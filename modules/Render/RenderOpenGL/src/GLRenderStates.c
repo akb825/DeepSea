@@ -19,6 +19,7 @@
 #include "AnyGL/gl.h"
 #include "GLTypes.h"
 #include <DeepSea/Core/Assert.h>
+#include <DeepSea/Math/Core.h>
 
 static const GLenum polygonModeMap[] =
 {
@@ -187,9 +188,9 @@ static void resetBlendState(mslBlendState* state)
 		state->blendConstants[i] = 0;
 }
 
-static void setRasterizationStates(mslRasterizationState* curState,
-	const mslRasterizationState* newState, const dsDynamicRenderStates* dynamicStates,
-	bool offscreen)
+static void setRasterizationStates(const dsResourceManager* resourceManager,
+	mslRasterizationState* curState, const mslRasterizationState* newState,
+	const dsDynamicRenderStates* dynamicStates, bool offscreen)
 {
 	if (curState->depthClampEnable != newState->depthClampEnable &&
 		(AnyGL_atLeastVersion(3, 2, false) || AnyGL_ARB_depth_clamp))
@@ -285,7 +286,8 @@ static void setRasterizationStates(mslRasterizationState* curState,
 	if (curState->lineWidth != newState->lineWidth)
 	{
 		curState->lineWidth = newState->lineWidth;
-		glLineWidth(curState->lineWidth);
+		glLineWidth(dsClamp(curState->lineWidth, resourceManager->lineWidthRange.x,
+			resourceManager->lineWidthRange.y));
 	}
 }
 
@@ -800,8 +802,9 @@ void dsGLRenderStates_updateGLState(const dsRenderer* renderer, mslRenderState* 
 	const mslRenderState* newState, const dsDynamicRenderStates* dynamicStates)
 {
 	const dsGLRenderer* glRenderer = (const dsGLRenderer*)renderer;
-	setRasterizationStates(&curState->rasterizationState, &newState->rasterizationState,
-		dynamicStates, glRenderer->curSurfaceType == GLSurfaceType_Framebuffer);
+	setRasterizationStates(renderer->resourceManager, &curState->rasterizationState,
+		&newState->rasterizationState, dynamicStates,
+		glRenderer->curSurfaceType == GLSurfaceType_Framebuffer);
 	setMultisampleStates(&curState->multisampleState, &newState->multisampleState);
 	setDepthStencilStates(&curState->depthStencilState, &newState->depthStencilState,
 		dynamicStates);

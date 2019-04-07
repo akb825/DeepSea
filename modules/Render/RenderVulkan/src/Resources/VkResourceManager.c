@@ -777,6 +777,8 @@ dsResourceManager* dsVkResourceManager_create(dsAllocator* allocator, dsVkRender
 	baseResourceManager->maxUniformBlockSize = limits->maxUniformBufferRange;
 	baseResourceManager->maxImageBufferElements = limits->maxTexelBufferElements;
 	baseResourceManager->maxVertexAttribs = limits->maxVertexInputAttributes;
+	baseResourceManager->lineWidthRange.x = limits->lineWidthRange[0];
+	baseResourceManager->lineWidthRange.y = limits->lineWidthRange[1];
 	baseResourceManager->maxSamplers = limits->maxDescriptorSetSamplers;
 	baseResourceManager->maxVertexSamplers = limits->maxDescriptorSetSamplers;
 	baseResourceManager->maxTextureSize = limits->maxImageDimension2D;

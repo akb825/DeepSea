@@ -27,7 +27,8 @@ void* dsSDLWindow_getUsableWindowHandle(void* window)
 
 void dsSDLWindow_releaseUsableWindowHandle(void* handle)
 {
-	CFBridgingRelease(handle);
+	if (handle)
+		CFRelease(handle);
 }
 
 #endif // DS_MAC

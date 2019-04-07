@@ -1259,6 +1259,8 @@ dsGLResourceManager* dsGLResourceManager_create(dsAllocator* allocator, dsGLRend
 	GLint maxVertexAttribs = 0;
 	glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &maxVertexAttribs);
 	baseResourceManager->maxVertexAttribs = dsMin(maxVertexAttribs, DS_MAX_ALLOWED_VERTEX_ATTRIBS);
+	baseResourceManager->lineWidthRange.x = baseResourceManager->lineWidthRange.y = 1.0f;
+	glGetFloatv(GL_ALIASED_LINE_WIDTH_RANGE, baseResourceManager->lineWidthRange.values);
 	baseResourceManager->createGeometryFunc = &dsGLDrawGeometry_create;
 	baseResourceManager->destroyGeometryFunc = &dsGLDrawGeometry_destroy;
 

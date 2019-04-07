@@ -425,6 +425,7 @@ bool dsVkCommandBuffer_initialize(dsVkCommandBuffer* commandBuffer, dsRenderer* 
 	dsVkDevice* device = &vkRenderer->device;
 	dsVkInstance* instance = &device->instance;
 
+	DS_ASSERT(allocator->freeFunc);
 	memset(commandBuffer, 0, sizeof(*commandBuffer));
 	baseCommandBuffer->renderer = renderer;
 	baseCommandBuffer->allocator = allocator;

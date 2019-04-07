@@ -19,5 +19,14 @@
 #include <DeepSea/Core/Config.h>
 #include "MTLTypes.h"
 
-dsGfxFenceResult dsMTLRenderer_waitForSubmit(const dsRenderer* renderer, uint64_t submitCount,
-	unsigned int milliseconds);
+bool dsMTLCommandBuffer_initialize(dsMTLCommandBuffer* commandBuffer, dsRenderer* renderer,
+	dsAllocator* allocator, dsCommandBufferUsage usage);
+
+id<MTLCommandBuffer> dsMTLCommandBuffer_getCommandBuffer(dsCommandBuffer* commandBuffer);
+id<MTLBlitCommandEncoder> dsMTLCommandBuffer_getBlitCommandEncoder(dsCommandBuffer* commandBuffer);
+id<MTLComputeCommandEncoder> dsMTLCommandBuffer_getComputeCommandEncoder(
+	dsCommandBuffer* commandBuffer);
+
+bool dsMTLCommandBuffer_addGfxBuffer(dsCommandBuffer* commandBuffer, dsMTLGfxBufferData* buffer);
+
+void dsMTLCommandBuffer_shutdown(dsMTLCommandBuffer* commandBuffer);

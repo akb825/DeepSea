@@ -272,7 +272,8 @@ static void setupCommonStates(dsShader* shader)
 {
 	const mslModule* module = shader->module->module;
 	uint32_t pipelineIndex = shader->pipelineIndex;
-	dsVkDevice* device = &((dsVkRenderer*)shader->resourceManager->renderer)->device;
+	const dsResourceManager* resourceManager = shader->resourceManager;
+	dsVkDevice* device = &((dsVkRenderer*)resourceManager->renderer)->device;
 	const VkPhysicalDeviceFeatures* features = &device->features;
 	dsVkShader* vkShader = (dsVkShader*)shader;
 
@@ -322,7 +323,8 @@ static void setupCommonStates(dsShader* shader)
 			rasterizationState->depthBiasSlopeFactor;
 	rasterizationInfo->lineWidth =
 		!features->wideLines || rasterizationState->lineWidth == MSL_UNKNOWN_FLOAT ? 1.0f :
-			rasterizationState->lineWidth;
+			dsClamp(rasterizationState->lineWidth, resourceManager->lineWidthRange.x,
+				resourceManager->lineWidthRange.y);
 
 	const mslMultisampleState* multisampleState = &renderState.multisampleState;
 	VkPipelineMultisampleStateCreateInfo* multisampleInfo = &vkShader->multisampleInfo;
@@ -660,6 +662,7 @@ static bool bindShaderStates(dsCommandBuffer* commandBuffer, const dsShader* sha
 {
 	dsVkDevice* device = &((dsVkRenderer*)commandBuffer->renderer)->device;
 	const dsVkShader* vkShader = (const dsVkShader*)shader;
+	const dsResourceManager* resourceManager = shader->resourceManager;
 
 	VkCommandBuffer vkCommandBuffer = dsVkCommandBuffer_getCommandBuffer(commandBuffer);
 	if (!vkCommandBuffer)
@@ -667,7 +670,8 @@ static bool bindShaderStates(dsCommandBuffer* commandBuffer, const dsShader* sha
 
 	if (vkShader->dynamicLineWidth)
 	{
-		float lineWidth = renderStates ? renderStates->lineWidth : 1.0f;
+		float lineWidth = renderStates ? dsClamp(renderStates->lineWidth,
+				resourceManager->lineWidthRange.x, resourceManager->lineWidthRange.y) : 1.0f;
 		DS_VK_CALL(device->vkCmdSetLineWidth)(vkCommandBuffer, lineWidth);
 	}
 

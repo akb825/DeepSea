@@ -116,18 +116,20 @@ void* dsVkGfxBuffer_map(dsResourceManager* resourceManager, dsGfxBuffer* buffer,
 
 	bufferData->mappedStart = offset;
 	bufferData->mappedSize = size;
-	bufferData->mappedWrite = (flags & dsGfxBufferMap_Write) != 0 &&
-		(flags & dsGfxBufferMap_Persistent) == 0;
+	bufferData->mappedWrite = (flags & dsGfxBufferMap_Write) &&
+		!(flags & dsGfxBufferMap_Persistent);
 	uint64_t lastUsedSubmit = bufferData->resource.lastUsedSubmit;
 
 	// Wait for the submitted command to be finished when synchronized.
 	if ((buffer->memoryHints & dsGfxMemory_Synchronize) && lastUsedSubmit != DS_NOT_SUBMITTED)
 	{
 		DS_VERIFY(dsSpinlock_unlock(&bufferData->resource.lock));
+		DS_VERIFY(dsSpinlock_unlock(&vkBuffer->lock));
 
 		dsGfxFenceResult fenceResult = dsVkRenderer_waitForSubmit(renderer, lastUsedSubmit,
 			DS_DEFAULT_WAIT_TIMEOUT);
 
+		DS_VERIFY(dsSpinlock_lock(&vkBuffer->lock));
 		DS_VERIFY(dsSpinlock_lock(&bufferData->resource.lock));
 
 		if (fenceResult == dsGfxFenceResult_WaitingToQueue)
@@ -143,7 +145,7 @@ void* dsVkGfxBuffer_map(dsResourceManager* resourceManager, dsGfxBuffer* buffer,
 			return NULL;
 		}
 
-		if (bufferData->mappedSize == 0)
+		if (bufferData != vkBuffer->bufferData || bufferData->mappedSize == 0)
 		{
 			DS_VERIFY(dsSpinlock_unlock(&bufferData->resource.lock));
 			DS_VERIFY(dsSpinlock_unlock(&vkBuffer->lock));
@@ -256,10 +258,10 @@ bool dsVkGfxBuffer_flush(dsResourceManager* resourceManager, dsGfxBuffer* buffer
 
 	DS_VERIFY(dsSpinlock_lock(&vkBuffer->lock));
 	dsVkGfxBufferData* bufferData = vkBuffer->bufferData;
-	DS_VERIFY(dsSpinlock_unlock(&vkBuffer->lock));
 
 	if (!bufferData->keepHost)
 	{
+		DS_VERIFY(dsSpinlock_unlock(&vkBuffer->lock));
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_VULKAN_LOG_TAG, "Buffer memory not accessible to be flushed.");
 		return false;
@@ -274,6 +276,7 @@ bool dsVkGfxBuffer_flush(dsResourceManager* resourceManager, dsGfxBuffer* buffer
 		offset + size == buffer->size ? VK_WHOLE_SIZE : size
 	};
 	VkResult result = DS_VK_CALL(device->vkFlushMappedMemoryRanges)(device->device, 1, &range);
+	DS_VERIFY(dsSpinlock_unlock(&vkBuffer->lock));
 	return dsHandleVkResult(result);
 }
 
@@ -286,10 +289,10 @@ bool dsVkGfxBuffer_invalidate(dsResourceManager* resourceManager, dsGfxBuffer* b
 
 	DS_VERIFY(dsSpinlock_lock(&vkBuffer->lock));
 	dsVkGfxBufferData* bufferData = vkBuffer->bufferData;
-	DS_VERIFY(dsSpinlock_unlock(&vkBuffer->lock));
 
 	if (!bufferData->keepHost)
 	{
+		DS_VERIFY(dsSpinlock_unlock(&vkBuffer->lock));
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_VULKAN_LOG_TAG, "Buffer memory not accessible to be flushed.");
 		return false;
@@ -306,6 +309,7 @@ bool dsVkGfxBuffer_invalidate(dsResourceManager* resourceManager, dsGfxBuffer* b
 		offset + size == buffer->size ? VK_WHOLE_SIZE : size
 	};
 	VkResult result = DS_VK_CALL(device->vkInvalidateMappedMemoryRanges)(device->device, 1, &range);
+	DS_VERIFY(dsSpinlock_unlock(&vkBuffer->lock));
 	return dsHandleVkResult(result);
 }
 

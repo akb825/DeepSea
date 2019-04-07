@@ -18,12 +18,81 @@
 
 #include <DeepSea/Core/Config.h>
 #include <DeepSea/Render/Types.h>
+#include <DeepSea/RenderMetal/RendererIDs.h>
 
 #import <Foundation/NSObject.h>
 #import <Metal/MTLArgument.h>
+#import <Metal/MTLCommandBuffer.h>
 #import <Metal/MTLDevice.h>
 #import <Metal/MTLPixelFormat.h>
 #import <Metal/MTLVertexDescriptor.h>
+
+// This is used by SPIRV-Cross to create the shader.
+#define DS_IMAGE_BUFFER_WIDTH 4096
+#define DS_NOT_SUBMITTED (uint64_t)-1
+#define DS_DELAY_FRAMES 3
+#define DS_EXPECTED_FRAME_FLUSHES 10
+#define DS_MAX_SUBMITS (DS_DELAY_FRAMES*DS_EXPECTED_FRAME_FLUSHES)
+// 10 seconds in milliseconds
+#define DS_DEFAULT_WAIT_TIMEOUT 10000
+#define DS_RECENTLY_ADDED_SIZE 10
+
+typedef struct dsMTLBufferTexture
+{
+	CFTypeRef mtlTexture;
+	dsGfxFormat format;
+	size_t offset;
+	size_t count;
+} dsMTLBufferTexture;
+
+typedef struct dsMTLGfxBufferData
+{
+	dsResourceManager* resourceManager;
+	dsAllocator* allocator;
+	dsAllocator* scratchAllocator;
+	dsLifetime* lifetime;
+
+	CFTypeRef mtlBuffer;
+	uint64_t lastUsedSubmit;
+
+	dsSpinlock bufferTextureLock;
+	dsMTLBufferTexture* bufferTextures;
+	uint32_t bufferTextureCount;
+	uint32_t maxBufferTextures;
+
+	size_t mappedStart;
+	size_t mappedSize;
+	bool mappedWrite;
+
+	bool managed;
+	uint32_t used;
+} dsMTLGfxBufferData;
+
+typedef struct dsMTLGfxBuffer
+{
+	dsGfxBuffer buffer;
+	dsSpinlock lock;
+	dsMTLGfxBufferData* bufferData;
+} dsMTLGfxBuffer;
+
+typedef struct dsMTLCommandBuffer
+{
+	dsCommandBuffer commandBuffer;
+
+	CFTypeRef mtlCommandBuffer;
+
+	CFTypeRef renderCommandEncoder;
+	CFTypeRef blitCommandEncoder;
+	CFTypeRef computeCommandEncoder;
+
+	CFTypeRef* submitBuffers;
+	uint32_t submitBufferCount;
+	uint32_t maxSubmitBuffers;
+
+	dsLifetime** gfxBuffers;
+	uint32_t gfxBufferCount;
+	uint32_t maxGfxBuffers;
+} dsMTLCommandBuffer;
 
 typedef struct dsMTLResourceManager
 {
@@ -36,10 +105,25 @@ typedef struct dsMTLResourceManager
 	MTLVertexFormat vertexFormats[dsGfxFormat_StandardCount][dsGfxFormat_DecoratorCount];
 } dsMTLResourceManager;
 
+typedef struct dsMTLSubmitInfo
+{
+	CFTypeRef commandBuffer;
+	uint64_t submitCount;
+} dsMTLSubmitInfo;
+
 typedef struct dsMTLRenderer
 {
 	dsRenderer renderer;
 
-	CFTypeRef mtlDevice;
+	CFTypeRef device;
+	CFTypeRef commandQueue;
 	MTLFeatureSet featureSet;
+
+	uint32_t curSubmit;
+	dsMTLSubmitInfo submits[DS_MAX_SUBMITS];
+	uint64_t submitCount;
+	uint64_t finishedSubmitCount;
+
+	dsConditionVariable* submitCondition;
+	dsMutex* submitMutex;
 } dsMTLRenderer;

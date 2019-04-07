@@ -16,6 +16,8 @@
 
 #include "Resources/MTLResourceManager.h"
 
+#include "Resources/MTLGfxBuffer.h"
+
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
@@ -26,8 +28,17 @@
 
 #include <string.h>
 
-static void initializePixelFormats(dsMTLResourceManager* resourceManager, id<MTLDevice> device)
+struct dsResourceContext
 {
+	int dummy;
+};
+
+static dsResourceContext dummyContext;
+
+static void initializePixelFormats(dsMTLResourceManager* resourceManager, id<MTLDevice> device,
+	MTLFeatureSet featureSet)
+{
+	DS_UNUSED(featureSet);
 	memset(resourceManager->standardPixelFormats, 0, sizeof(resourceManager->standardPixelFormats));
 	memset(resourceManager->specialPixelFormats, 0, sizeof(resourceManager->specialPixelFormats));
 	memset(resourceManager->compressedPixelFormats, 0,
@@ -186,109 +197,138 @@ static void initializePixelFormats(dsMTLResourceManager* resourceManager, id<MTL
 		[dsGfxFormat_specialIndex(dsGfxFormat_EAC_R11G11)][snormIndex] =
 			MTLPixelFormatEAC_R11G11Snorm;
 
-	resourceManager->compressedPixelFormats
-		[dsGfxFormat_specialIndex(dsGfxFormat_ASTC_4x4)][unormIndex] = MTLPixelFormatASTC_4x4_LDR;
-	resourceManager->compressedPixelFormats
-		[dsGfxFormat_specialIndex(dsGfxFormat_ASTC_4x4)][srgbIndex] = MTLPixelFormatASTC_4x4_sRGB;
+	if (featureSet != MTLFeatureSet_iOS_GPUFamily1_v1 &&
+		featureSet != MTLFeatureSet_iOS_GPUFamily1_v2 &&
+		featureSet != MTLFeatureSet_iOS_GPUFamily1_v3 &&
+		featureSet != MTLFeatureSet_iOS_GPUFamily1_v4 &&
+		featureSet != MTLFeatureSet_iOS_GPUFamily1_v5)
+	{
+		resourceManager->compressedPixelFormats
+			[dsGfxFormat_specialIndex(dsGfxFormat_ASTC_4x4)][unormIndex] =
+				MTLPixelFormatASTC_4x4_LDR;
+		resourceManager->compressedPixelFormats
+			[dsGfxFormat_specialIndex(dsGfxFormat_ASTC_4x4)][srgbIndex] =
+				MTLPixelFormatASTC_4x4_sRGB;
 
-	resourceManager->compressedPixelFormats
-		[dsGfxFormat_specialIndex(dsGfxFormat_ASTC_5x4)][unormIndex] = MTLPixelFormatASTC_5x4_LDR;
-	resourceManager->compressedPixelFormats
-		[dsGfxFormat_specialIndex(dsGfxFormat_ASTC_5x4)][srgbIndex] = MTLPixelFormatASTC_5x4_sRGB;
+		resourceManager->compressedPixelFormats
+			[dsGfxFormat_specialIndex(dsGfxFormat_ASTC_5x4)][unormIndex] =
+				MTLPixelFormatASTC_5x4_LDR;
+		resourceManager->compressedPixelFormats
+			[dsGfxFormat_specialIndex(dsGfxFormat_ASTC_5x4)][srgbIndex] =
+				MTLPixelFormatASTC_5x4_sRGB;
 
-	resourceManager->compressedPixelFormats
-		[dsGfxFormat_specialIndex(dsGfxFormat_ASTC_5x5)][unormIndex] = MTLPixelFormatASTC_5x5_LDR;
-	resourceManager->compressedPixelFormats
-		[dsGfxFormat_specialIndex(dsGfxFormat_ASTC_5x5)][srgbIndex] = MTLPixelFormatASTC_5x5_sRGB;
+		resourceManager->compressedPixelFormats
+			[dsGfxFormat_specialIndex(dsGfxFormat_ASTC_5x5)][unormIndex] =
+				MTLPixelFormatASTC_5x5_LDR;
+		resourceManager->compressedPixelFormats
+			[dsGfxFormat_specialIndex(dsGfxFormat_ASTC_5x5)][srgbIndex] =
+				MTLPixelFormatASTC_5x5_sRGB;
 
-	resourceManager->compressedPixelFormats
-		[dsGfxFormat_specialIndex(dsGfxFormat_ASTC_6x5)][unormIndex] = MTLPixelFormatASTC_6x5_LDR;
-	resourceManager->compressedPixelFormats
-		[dsGfxFormat_specialIndex(dsGfxFormat_ASTC_6x5)][srgbIndex] = MTLPixelFormatASTC_6x5_sRGB;
+		resourceManager->compressedPixelFormats
+			[dsGfxFormat_specialIndex(dsGfxFormat_ASTC_6x5)][unormIndex] =
+				MTLPixelFormatASTC_6x5_LDR;
+		resourceManager->compressedPixelFormats
+			[dsGfxFormat_specialIndex(dsGfxFormat_ASTC_6x5)][srgbIndex] =
+				MTLPixelFormatASTC_6x5_sRGB;
 
-	resourceManager->compressedPixelFormats
-		[dsGfxFormat_specialIndex(dsGfxFormat_ASTC_6x6)][unormIndex] = MTLPixelFormatASTC_6x6_LDR;
-	resourceManager->compressedPixelFormats
-		[dsGfxFormat_specialIndex(dsGfxFormat_ASTC_6x6)][srgbIndex] = MTLPixelFormatASTC_6x6_sRGB;
+		resourceManager->compressedPixelFormats
+			[dsGfxFormat_specialIndex(dsGfxFormat_ASTC_6x6)][unormIndex] =
+				MTLPixelFormatASTC_6x6_LDR;
+		resourceManager->compressedPixelFormats
+			[dsGfxFormat_specialIndex(dsGfxFormat_ASTC_6x6)][srgbIndex] =
+				MTLPixelFormatASTC_6x6_sRGB;
 
-	resourceManager->compressedPixelFormats
-		[dsGfxFormat_specialIndex(dsGfxFormat_ASTC_8x5)][unormIndex] = MTLPixelFormatASTC_8x5_LDR;
-	resourceManager->compressedPixelFormats
-		[dsGfxFormat_specialIndex(dsGfxFormat_ASTC_8x5)][srgbIndex] = MTLPixelFormatASTC_8x5_sRGB;
+		resourceManager->compressedPixelFormats
+			[dsGfxFormat_specialIndex(dsGfxFormat_ASTC_8x5)][unormIndex] =
+				MTLPixelFormatASTC_8x5_LDR;
+		resourceManager->compressedPixelFormats
+			[dsGfxFormat_specialIndex(dsGfxFormat_ASTC_8x5)][srgbIndex] =
+				MTLPixelFormatASTC_8x5_sRGB;
 
-	resourceManager->compressedPixelFormats
-		[dsGfxFormat_specialIndex(dsGfxFormat_ASTC_8x6)][unormIndex] = MTLPixelFormatASTC_8x6_LDR;
-	resourceManager->compressedPixelFormats
-		[dsGfxFormat_specialIndex(dsGfxFormat_ASTC_8x6)][srgbIndex] = MTLPixelFormatASTC_8x6_sRGB;
+		resourceManager->compressedPixelFormats
+			[dsGfxFormat_specialIndex(dsGfxFormat_ASTC_8x6)][unormIndex] =
+				MTLPixelFormatASTC_8x6_LDR;
+		resourceManager->compressedPixelFormats
+			[dsGfxFormat_specialIndex(dsGfxFormat_ASTC_8x6)][srgbIndex] =
+				MTLPixelFormatASTC_8x6_sRGB;
 
-	resourceManager->compressedPixelFormats
-		[dsGfxFormat_specialIndex(dsGfxFormat_ASTC_8x8)][unormIndex] = MTLPixelFormatASTC_8x8_LDR;
-	resourceManager->compressedPixelFormats
-		[dsGfxFormat_specialIndex(dsGfxFormat_ASTC_8x8)][srgbIndex] = MTLPixelFormatASTC_8x8_sRGB;
+		resourceManager->compressedPixelFormats
+			[dsGfxFormat_specialIndex(dsGfxFormat_ASTC_8x8)][unormIndex] =
+				MTLPixelFormatASTC_8x8_LDR;
+		resourceManager->compressedPixelFormats
+			[dsGfxFormat_specialIndex(dsGfxFormat_ASTC_8x8)][srgbIndex] =
+				MTLPixelFormatASTC_8x8_sRGB;
 
-	resourceManager->compressedPixelFormats
-		[dsGfxFormat_specialIndex(dsGfxFormat_ASTC_10x5)][unormIndex] = MTLPixelFormatASTC_10x5_LDR;
-	resourceManager->compressedPixelFormats
-		[dsGfxFormat_specialIndex(dsGfxFormat_ASTC_10x5)][srgbIndex] = MTLPixelFormatASTC_10x5_sRGB;
+		resourceManager->compressedPixelFormats
+			[dsGfxFormat_specialIndex(dsGfxFormat_ASTC_10x5)][unormIndex] =
+				MTLPixelFormatASTC_10x5_LDR;
+		resourceManager->compressedPixelFormats
+			[dsGfxFormat_specialIndex(dsGfxFormat_ASTC_10x5)][srgbIndex] =
+				MTLPixelFormatASTC_10x5_sRGB;
 
-	resourceManager->compressedPixelFormats
-		[dsGfxFormat_specialIndex(dsGfxFormat_ASTC_10x6)][unormIndex] = MTLPixelFormatASTC_10x6_LDR;
-	resourceManager->compressedPixelFormats
-		[dsGfxFormat_specialIndex(dsGfxFormat_ASTC_10x6)][srgbIndex] = MTLPixelFormatASTC_10x6_sRGB;
+		resourceManager->compressedPixelFormats
+			[dsGfxFormat_specialIndex(dsGfxFormat_ASTC_10x6)][unormIndex] =
+				MTLPixelFormatASTC_10x6_LDR;
+		resourceManager->compressedPixelFormats
+			[dsGfxFormat_specialIndex(dsGfxFormat_ASTC_10x6)][srgbIndex] =
+				MTLPixelFormatASTC_10x6_sRGB;
 
-	resourceManager->compressedPixelFormats
-		[dsGfxFormat_specialIndex(dsGfxFormat_ASTC_10x8)][unormIndex] = MTLPixelFormatASTC_10x8_LDR;
-	resourceManager->compressedPixelFormats
-		[dsGfxFormat_specialIndex(dsGfxFormat_ASTC_10x8)][srgbIndex] = MTLPixelFormatASTC_10x8_sRGB;
+		resourceManager->compressedPixelFormats
+			[dsGfxFormat_specialIndex(dsGfxFormat_ASTC_10x8)][unormIndex] =
+				MTLPixelFormatASTC_10x8_LDR;
+		resourceManager->compressedPixelFormats
+			[dsGfxFormat_specialIndex(dsGfxFormat_ASTC_10x8)][srgbIndex] =
+				MTLPixelFormatASTC_10x8_sRGB;
 
-	resourceManager->compressedPixelFormats
-		[dsGfxFormat_specialIndex(dsGfxFormat_ASTC_10x10)][unormIndex] =
-			MTLPixelFormatASTC_10x10_LDR;
-	resourceManager->compressedPixelFormats
-		[dsGfxFormat_specialIndex(dsGfxFormat_ASTC_10x10)][srgbIndex] =
-			MTLPixelFormatASTC_10x10_sRGB;
+		resourceManager->compressedPixelFormats
+			[dsGfxFormat_specialIndex(dsGfxFormat_ASTC_10x10)][unormIndex] =
+				MTLPixelFormatASTC_10x10_LDR;
+		resourceManager->compressedPixelFormats
+			[dsGfxFormat_specialIndex(dsGfxFormat_ASTC_10x10)][srgbIndex] =
+				MTLPixelFormatASTC_10x10_sRGB;
 
-	resourceManager->compressedPixelFormats
-		[dsGfxFormat_specialIndex(dsGfxFormat_ASTC_12x10)][unormIndex] =
-			MTLPixelFormatASTC_12x10_LDR;
-	resourceManager->compressedPixelFormats
-		[dsGfxFormat_specialIndex(dsGfxFormat_ASTC_12x10)][srgbIndex] =
-			MTLPixelFormatASTC_12x10_sRGB;
+		resourceManager->compressedPixelFormats
+			[dsGfxFormat_specialIndex(dsGfxFormat_ASTC_12x10)][unormIndex] =
+				MTLPixelFormatASTC_12x10_LDR;
+		resourceManager->compressedPixelFormats
+			[dsGfxFormat_specialIndex(dsGfxFormat_ASTC_12x10)][srgbIndex] =
+				MTLPixelFormatASTC_12x10_sRGB;
 
-	resourceManager->compressedPixelFormats
-		[dsGfxFormat_specialIndex(dsGfxFormat_ASTC_12x12)][unormIndex] =
-			MTLPixelFormatASTC_12x12_LDR;
-	resourceManager->compressedPixelFormats
-		[dsGfxFormat_specialIndex(dsGfxFormat_ASTC_12x12)][srgbIndex] =
-			MTLPixelFormatASTC_12x12_sRGB;
+		resourceManager->compressedPixelFormats
+			[dsGfxFormat_specialIndex(dsGfxFormat_ASTC_12x12)][unormIndex] =
+				MTLPixelFormatASTC_12x12_LDR;
+		resourceManager->compressedPixelFormats
+			[dsGfxFormat_specialIndex(dsGfxFormat_ASTC_12x12)][srgbIndex] =
+				MTLPixelFormatASTC_12x12_sRGB;
 
-	resourceManager->compressedPixelFormats
-		[dsGfxFormat_specialIndex(dsGfxFormat_PVRTC1_RGB_2BPP)][unormIndex] =
-			MTLPixelFormatPVRTC_RGB_2BPP;
-	resourceManager->compressedPixelFormats
-		[dsGfxFormat_specialIndex(dsGfxFormat_PVRTC1_RGB_2BPP)][srgbIndex] =
-			MTLPixelFormatPVRTC_RGB_2BPP_sRGB;
+		resourceManager->compressedPixelFormats
+			[dsGfxFormat_specialIndex(dsGfxFormat_PVRTC1_RGB_2BPP)][unormIndex] =
+				MTLPixelFormatPVRTC_RGB_2BPP;
+		resourceManager->compressedPixelFormats
+			[dsGfxFormat_specialIndex(dsGfxFormat_PVRTC1_RGB_2BPP)][srgbIndex] =
+				MTLPixelFormatPVRTC_RGB_2BPP_sRGB;
 
-	resourceManager->compressedPixelFormats
-		[dsGfxFormat_specialIndex(dsGfxFormat_PVRTC1_RGBA_2BPP)][unormIndex] =
-			MTLPixelFormatPVRTC_RGBA_2BPP;
-	resourceManager->compressedPixelFormats
-		[dsGfxFormat_specialIndex(dsGfxFormat_PVRTC1_RGBA_2BPP)][srgbIndex] =
-			MTLPixelFormatPVRTC_RGBA_2BPP_sRGB;
+		resourceManager->compressedPixelFormats
+			[dsGfxFormat_specialIndex(dsGfxFormat_PVRTC1_RGBA_2BPP)][unormIndex] =
+				MTLPixelFormatPVRTC_RGBA_2BPP;
+		resourceManager->compressedPixelFormats
+			[dsGfxFormat_specialIndex(dsGfxFormat_PVRTC1_RGBA_2BPP)][srgbIndex] =
+				MTLPixelFormatPVRTC_RGBA_2BPP_sRGB;
 
-	resourceManager->compressedPixelFormats
-		[dsGfxFormat_specialIndex(dsGfxFormat_PVRTC1_RGB_4BPP)][unormIndex] =
-			MTLPixelFormatPVRTC_RGB_4BPP;
-	resourceManager->compressedPixelFormats
-		[dsGfxFormat_specialIndex(dsGfxFormat_PVRTC1_RGB_4BPP)][srgbIndex] =
-			MTLPixelFormatPVRTC_RGB_4BPP_sRGB;
+		resourceManager->compressedPixelFormats
+			[dsGfxFormat_specialIndex(dsGfxFormat_PVRTC1_RGB_4BPP)][unormIndex] =
+				MTLPixelFormatPVRTC_RGB_4BPP;
+		resourceManager->compressedPixelFormats
+			[dsGfxFormat_specialIndex(dsGfxFormat_PVRTC1_RGB_4BPP)][srgbIndex] =
+				MTLPixelFormatPVRTC_RGB_4BPP_sRGB;
 
-	resourceManager->compressedPixelFormats
-		[dsGfxFormat_specialIndex(dsGfxFormat_PVRTC1_RGBA_4BPP)][unormIndex] =
-			MTLPixelFormatPVRTC_RGBA_4BPP;
-	resourceManager->compressedPixelFormats
-		[dsGfxFormat_specialIndex(dsGfxFormat_PVRTC1_RGBA_4BPP)][srgbIndex] =
-			MTLPixelFormatPVRTC_RGBA_4BPP_sRGB;
+		resourceManager->compressedPixelFormats
+			[dsGfxFormat_specialIndex(dsGfxFormat_PVRTC1_RGBA_4BPP)][unormIndex] =
+				MTLPixelFormatPVRTC_RGBA_4BPP;
+		resourceManager->compressedPixelFormats
+			[dsGfxFormat_specialIndex(dsGfxFormat_PVRTC1_RGBA_4BPP)][srgbIndex] =
+				MTLPixelFormatPVRTC_RGBA_4BPP_sRGB;
+	}
 #else
 	uint32_t ufloatIndex = dsGfxFormat_decoratorIndex(dsGfxFormat_UFloat);
 	resourceManager->compressedPixelFormats
@@ -477,13 +517,8 @@ static uint32_t getMinImageBufferAlignment(dsMTLResourceManager* resourceManager
 			if (format == MTLPixelFormatInvalid)
 				continue;
 
-#if IPHONE_OS_VERSION_MIN_REQUIRED >= 120000 || MAC_OS_X_VERSION_MIN_REQUIRED >= 101400
-			alignment = dsMax(alignment,
-				(uint32_t)[device minimumTextureBufferAlignmentForPixelFormat: format]);
-#else
 			alignment = dsMax(alignment,
 				(uint32_t)[device minimumLinearTextureAlignmentForPixelFormat: format]);
-#endif
 		}
 	}
 
@@ -494,13 +529,8 @@ static uint32_t getMinImageBufferAlignment(dsMTLResourceManager* resourceManager
 		if (format == MTLPixelFormatInvalid)
 			continue;
 
-#if IPHONE_OS_VERSION_MIN_REQUIRED >= 120000 || MAC_OS_X_VERSION_MIN_REQUIRED >= 101400
-		alignment = dsMax(alignment,
-			(uint32_t)[device minimumTextureBufferAlignmentForPixelFormat: format]);
-#else
 		alignment = dsMax(alignment,
 			(uint32_t)[device minimumLinearTextureAlignmentForPixelFormat: format]);
-#endif
 	}
 
 	for (uint32_t i = 0; i < (uint32_t)dsGfxFormat_CompressedCount; ++i)
@@ -511,13 +541,8 @@ static uint32_t getMinImageBufferAlignment(dsMTLResourceManager* resourceManager
 			if (format == MTLPixelFormatInvalid)
 				continue;
 
-#if IPHONE_OS_VERSION_MIN_REQUIRED >= 120000 || MAC_OS_X_VERSION_MIN_REQUIRED >= 101400
-			alignment = dsMax(alignment,
-				(uint32_t)[device minimumTextureBufferAlignmentForPixelFormat: format]);
-#else
 			alignment = dsMax(alignment,
 				(uint32_t)[device minimumLinearTextureAlignmentForPixelFormat: format]);
-#endif
 		}
 	}
 #endif
@@ -645,6 +670,118 @@ static bool hasCubeArrays(MTLFeatureSet feature)
 #endif
 }
 
+bool dsMTLResourceManager_vertexFormatSupported(const dsResourceManager* resourceManager,
+	dsGfxFormat format)
+{
+	const dsMTLResourceManager* mtlResourceManager = (const dsMTLResourceManager*)resourceManager;
+	uint32_t standardIndex = dsGfxFormat_standardIndex(format);
+	uint32_t decoratorIndex = dsGfxFormat_decoratorIndex(format);
+	return mtlResourceManager->vertexFormats[standardIndex][decoratorIndex] !=
+		MTLVertexFormatInvalid;
+}
+
+bool dsMTLResourceManager_textureFormatSupported(const dsResourceManager* resourceManager,
+	dsGfxFormat format)
+{
+	const dsMTLResourceManager* mtlResourceManager = (const dsMTLResourceManager*)resourceManager;
+	uint32_t standardIndex = dsGfxFormat_standardIndex(format);
+	if (standardIndex > 0)
+	{
+		uint32_t decoratorIndex = dsGfxFormat_decoratorIndex(format);
+		return mtlResourceManager->standardPixelFormats[standardIndex][decoratorIndex] !=
+			MTLVertexFormatInvalid;
+	}
+
+	uint32_t specialIndex = dsGfxFormat_specialIndex(format);
+	if (specialIndex > 0)
+		return mtlResourceManager->specialPixelFormats[specialIndex] != MTLVertexFormatInvalid;
+
+	uint32_t compressedIndex = dsGfxFormat_compressedIndex(format);
+	if (compressedIndex > 0)
+	{
+		uint32_t decoratorIndex = dsGfxFormat_decoratorIndex(format);
+		return mtlResourceManager->compressedPixelFormats[compressedIndex][decoratorIndex] !=
+			MTLVertexFormatInvalid;
+	}
+
+	return false;
+}
+
+bool dsMTLResourceManager_offscreenFormatSupported(const dsResourceManager* resourceManager,
+	dsGfxFormat format)
+{
+	const dsMTLResourceManager* mtlResourceManager = (const dsMTLResourceManager*)resourceManager;
+	uint32_t standardIndex = dsGfxFormat_standardIndex(format);
+	if (standardIndex > 0)
+	{
+		uint32_t decoratorIndex = dsGfxFormat_decoratorIndex(format);
+		return mtlResourceManager->standardPixelFormats[standardIndex][decoratorIndex] !=
+			MTLVertexFormatInvalid;
+	}
+
+	uint32_t specialIndex = dsGfxFormat_specialIndex(format);
+	if (specialIndex > 0)
+		return mtlResourceManager->specialPixelFormats[specialIndex] != MTLVertexFormatInvalid;
+
+	return false;
+}
+
+bool dsMTLResourceManager_generateMipmapFormatSupported(const dsResourceManager* resourceManager,
+	dsGfxFormat format)
+{
+	const dsMTLResourceManager* mtlResourceManager = (const dsMTLResourceManager*)resourceManager;
+	uint32_t standardIndex = dsGfxFormat_standardIndex(format);
+	if (standardIndex > 0)
+	{
+		uint32_t decoratorIndex = dsGfxFormat_decoratorIndex(format);
+		return mtlResourceManager->standardPixelFormats[standardIndex][decoratorIndex] !=
+			MTLVertexFormatInvalid;
+	}
+
+	return false;
+}
+
+bool dsMTLResourceManager_textureCopyFormatsSupported(const dsResourceManager* resourceManager,
+	dsGfxFormat srcFormat, dsGfxFormat dstFormat)
+{
+	if (!dsMTLResourceManager_textureFormatSupported(resourceManager, srcFormat) ||
+		!dsMTLResourceManager_textureFormatSupported(resourceManager, dstFormat) ||
+		dsGfxFormat_size(srcFormat) != dsGfxFormat_size(dstFormat))
+	{
+		return false;
+	}
+
+	uint32_t srcCompressedIndex = dsGfxFormat_compressedIndex(srcFormat);
+	uint32_t dstCompressedIndex = dsGfxFormat_compressedIndex(dstFormat);
+	if (srcCompressedIndex > 0 || dstCompressedIndex > 0)
+	{
+		if (srcCompressedIndex != dstCompressedIndex)
+			return false;
+
+		dsGfxFormat srcDecorator = srcFormat & dsGfxFormat_DecoratorMask;
+		dsGfxFormat dstDecorator = srcFormat & dsGfxFormat_DecoratorMask;
+		return srcDecorator == dstDecorator ||
+			(srcDecorator == dsGfxFormat_SRGB && srcDecorator == dsGfxFormat_UNorm) ||
+			(srcDecorator == dsGfxFormat_UNorm && srcDecorator == dsGfxFormat_SRGB);
+	}
+
+	return true;
+}
+
+dsResourceContext* dsMTLResourceManager_createResourceContext(dsResourceManager* resourceManager)
+{
+	DS_UNUSED(resourceManager);
+	return &dummyContext;
+}
+
+bool dsMTLResourceManager_destroyResourceContext(dsResourceManager* resourceManager,
+	dsResourceContext* context)
+{
+	DS_UNUSED(resourceManager);
+	DS_UNUSED(context);
+	return true;
+}
+
 dsResourceManager* dsMTLResourceManager_create(dsAllocator* allocator, dsRenderer* renderer)
 {
 	dsMTLResourceManager* resourceManager = DS_ALLOCATE_OBJECT(allocator, dsMTLResourceManager);
@@ -652,7 +789,7 @@ dsResourceManager* dsMTLResourceManager_create(dsAllocator* allocator, dsRendere
 		return NULL;
 
 	dsMTLRenderer* mtlRenderer = (dsMTLRenderer*)renderer;
-	id<MTLDevice> device = (__bridge id<MTLDevice>)(mtlRenderer->mtlDevice);
+	id<MTLDevice> device = (__bridge id<MTLDevice>)(mtlRenderer->device);
 
 	dsResourceManager* baseResourceManager = (dsResourceManager*)resourceManager;
 	DS_VERIFY(dsResourceManager_initialize(baseResourceManager));
@@ -661,7 +798,7 @@ dsResourceManager* dsMTLResourceManager_create(dsAllocator* allocator, dsRendere
 	baseResourceManager->maxResourceContexts = UINT_MAX;
 	baseResourceManager->minNonCoherentMappingAlignment = 0;
 
-	initializePixelFormats(resourceManager, device);
+	initializePixelFormats(resourceManager, device, mtlRenderer->featureSet);
 	initializeVertexFormats(resourceManager);
 
 	baseResourceManager->minImageBufferAlignment = getMinImageBufferAlignment(resourceManager,
@@ -683,9 +820,12 @@ dsResourceManager* dsMTLResourceManager_create(dsAllocator* allocator, dsRendere
 	baseResourceManager->maxVertexAttribs = 31;
 	baseResourceManager->maxSamplers = 16;
 	baseResourceManager->maxVertexSamplers = 16;
+	baseResourceManager->lineWidthRange.x = 1.0f;
+	baseResourceManager->lineWidthRange.y = 1.0f;
 
 	baseResourceManager->maxTextureSize = getMaxTextureSize(mtlRenderer->featureSet);
-	baseResourceManager->maxImageBufferElements = dsPow2(baseResourceManager->maxTextureSize);
+	baseResourceManager->maxImageBufferElements =
+		DS_IMAGE_BUFFER_WIDTH*baseResourceManager->maxTextureSize;
 	baseResourceManager->maxTextureDepth = 2048;
 	baseResourceManager->maxTextureArrayLevels = 2048;
 	baseResourceManager->maxRenderbufferSize = baseResourceManager->maxTextureSize;
@@ -706,6 +846,34 @@ dsResourceManager* dsMTLResourceManager_create(dsAllocator* allocator, dsRendere
 	baseResourceManager->hasQueryBuffers = true;
 	baseResourceManager->timestampPeriod = 0.0f;
 
+	// Core functionality
+	baseResourceManager->vertexFormatSupportedFunc = &dsMTLResourceManager_vertexFormatSupported;
+	baseResourceManager->textureFormatSupportedFunc = &dsMTLResourceManager_textureFormatSupported;
+	baseResourceManager->offscreenFormatSupportedFunc =
+		&dsMTLResourceManager_offscreenFormatSupported;
+#if DS_IOS || MAC_OS_X_VERSION_MIN_REQUIRED >= 101300
+	baseResourceManager->imageBufferFormatSupportedFunc =
+		&dsMTLResourceManager_textureFormatSupported;
+#endif
+	baseResourceManager->generateMipmapFormatSupportedFunc =
+		&dsMTLResourceManager_generateMipmapFormatSupported;
+	baseResourceManager->textureCopyFormatsSupportedFunc =
+		&dsMTLResourceManager_textureCopyFormatsSupported;
+	// NOTE: Blitting between textures isn't supported. Can potentially use an offscreen in the
+	// future if *really* needed, though ther emay be some restrictions.
+	baseResourceManager->createResourceContextFunc = &dsMTLResourceManager_createResourceContext;
+	baseResourceManager->destroyResourceContextFunc = &dsMTLResourceManager_destroyResourceContext;
+
+	// Buffers
+	baseResourceManager->createBufferFunc = &dsMTLGfxBuffer_create;
+	baseResourceManager->destroyBufferFunc = &dsMTLGfxBuffer_destroy;
+	baseResourceManager->mapBufferFunc = &dsMTLGfxBuffer_map;
+	baseResourceManager->unmapBufferFunc = &dsMTLGfxBuffer_unmap;
+	baseResourceManager->flushBufferFunc = &dsMTLGfxBuffer_flush;
+	baseResourceManager->invalidateBufferFunc = &dsMTLGfxBuffer_invalidate;
+	baseResourceManager->copyBufferDataFunc = &dsMTLGfxBuffer_copyData;
+	baseResourceManager->copyBufferFunc = &dsMTLGfxBuffer_copy;
+
 	return baseResourceManager;
 }
 
@@ -716,4 +884,38 @@ void dsMTLResourceManager_destroy(dsResourceManager* resourceManager)
 
 	dsResourceManager_shutdown(resourceManager);
 	DS_VERIFY(dsAllocator_free(resourceManager->allocator, resourceManager));
+}
+
+MTLPixelFormat dsMTLResourceManager_getPixelFormat(const dsResourceManager* resourceManager,
+	dsGfxFormat format)
+{
+	const dsMTLResourceManager* mtlResourceManager = (const dsMTLResourceManager*)resourceManager;
+	uint32_t standardIndex = dsGfxFormat_standardIndex(format);
+	if (standardIndex > 0)
+	{
+		uint32_t decoratorIndex = dsGfxFormat_decoratorIndex(format);
+		return mtlResourceManager->standardPixelFormats[standardIndex][decoratorIndex];
+	}
+
+	uint32_t specialIndex = dsGfxFormat_specialIndex(format);
+	if (specialIndex > 0)
+		return mtlResourceManager->specialPixelFormats[specialIndex];
+
+	uint32_t compressedIndex = dsGfxFormat_compressedIndex(format);
+	if (compressedIndex > 0)
+	{
+		uint32_t decoratorIndex = dsGfxFormat_decoratorIndex(format);
+		return mtlResourceManager->compressedPixelFormats[compressedIndex][decoratorIndex];
+	}
+
+	return MTLPixelFormatInvalid;
+}
+
+MTLVertexFormat dsMTLResourceManager_getVertexFormat(const dsResourceManager* resourceManager,
+	dsGfxFormat format)
+{
+	const dsMTLResourceManager* mtlResourceManager = (const dsMTLResourceManager*)resourceManager;
+	uint32_t standardIndex = dsGfxFormat_standardIndex(format);
+	uint32_t decoratorIndex = dsGfxFormat_decoratorIndex(format);
+	return mtlResourceManager->vertexFormats[standardIndex][decoratorIndex];
 }

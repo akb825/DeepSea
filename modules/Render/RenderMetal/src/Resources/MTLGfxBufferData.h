@@ -19,5 +19,10 @@
 #include <DeepSea/Core/Config.h>
 #include "MTLTypes.h"
 
-dsGfxFenceResult dsMTLRenderer_waitForSubmit(const dsRenderer* renderer, uint64_t submitCount,
-	unsigned int milliseconds);
+dsMTLGfxBufferData* dsMTLGfxBufferData_create(dsResourceManager* resourceManager,
+	dsAllocator* allocator, dsAllocator* scratchAllocator, dsGfxBufferUsage usage,
+	dsGfxMemory memoryHints, const void* data, size_t size);
+void dsMTLGfxBufferData_markAsUsed(dsMTLGfxBufferData* buffer);
+id<MTLTexture> dsMTLGfxBufferData_getBufferTexture(dsMTLGfxBufferData* buffer, dsGfxFormat format,
+	size_t offset, size_t count);
+void dsMTLGfxBufferData_destroy(dsMTLGfxBufferData* buffer);

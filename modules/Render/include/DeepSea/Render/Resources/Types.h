@@ -1856,6 +1856,11 @@ struct dsResourceManager
 	uint32_t maxVertexAttribs;
 
 	/**
+	 * @brief The minimum and maximum values for line widths.
+	 */
+	dsVector2f lineWidthRange;
+
+	/**
 	 * @brief The maximum number of samplers that can be used at once in a shader.
 	 */
 	uint32_t maxSamplers;

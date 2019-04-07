@@ -20,6 +20,8 @@
 #include "Resources/MTLResourceManager.h"
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
+#include <DeepSea/Core/Thread/ConditionVariable.h>
+#include <DeepSea/Core/Thread/Mutex.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
@@ -89,7 +91,8 @@ static MTLFeatureSet mtlFeatures[] =
 
 static size_t dsMTLRenderer_fullAllocSize(size_t deviceNameLen)
 {
-	return DS_ALIGNED_SIZE(sizeof(dsMTLRenderer)) + DS_ALIGNED_SIZE(deviceNameLen + 1);
+	return DS_ALIGNED_SIZE(sizeof(dsMTLRenderer)) + DS_ALIGNED_SIZE(deviceNameLen + 1) +
+		dsConditionVariable_fullAllocSize() + dsMutex_fullAllocSize();
 }
 
 static uint32_t getShaderVersion(MTLFeatureSet feature)
@@ -229,7 +232,33 @@ static uint32_t hasTessellationShaders(MTLFeatureSet feature)
 bool dsMTLRenderer_destroy(dsRenderer* renderer)
 {
 	dsMTLRenderer* mtlRenderer = (dsMTLRenderer*)renderer;
-	CFRelease(mtlRenderer->mtlDevice);
+
+	// Check the function manually so we only wait if initialization completed.
+	if (renderer->waitUntilIdleFunc)
+		dsRenderer_waitUntilIdle(renderer);
+
+	if (mtlRenderer->submitMutex)
+	{
+		DS_ASSERT(mtlRenderer->submitCondition);
+		DS_VERIFY(dsMutex_lock(mtlRenderer->submitMutex));
+		mtlRenderer->finishedSubmitCount = DS_NOT_SUBMITTED;
+		DS_VERIFY(dsConditionVariable_notifyAll(mtlRenderer->submitCondition));
+		DS_VERIFY(dsMutex_unlock(mtlRenderer->submitMutex));
+
+		dsConditionVariable_destroy(mtlRenderer->submitCondition);
+		dsMutex_destroy(mtlRenderer->submitMutex);
+	}
+
+	for (uint32_t i = 0; i < DS_MAX_SUBMITS; ++i)
+	{
+		if (mtlRenderer->submits[i].commandBuffer)
+			CFRelease(mtlRenderer->submits[i].commandBuffer);
+	}
+
+	if (mtlRenderer->device)
+		CFRelease(mtlRenderer->device);
+	if (mtlRenderer->commandQueue)
+		CFRelease(mtlRenderer->commandQueue);
 	DS_VERIFY(dsAllocator_free(renderer->allocator, renderer));
 	return true;
 }
@@ -301,12 +330,29 @@ dsRenderer* dsMTLRenderer_create(dsAllocator* allocator, const dsRendererOptions
 	dsRenderer* baseRenderer = (dsRenderer*)renderer;
 
 	DS_VERIFY(dsRenderer_initialize(baseRenderer));
-	renderer->mtlDevice = CFBridgingRetain(device);
+	renderer->device = CFBridgingRetain(device);
 	for (uint32_t i = 0; i < DS_ARRAY_SIZE(mtlFeatures); ++i)
 	{
 		if ([device supportsFeatureSet: mtlFeatures[i]])
 			renderer->featureSet = mtlFeatures[i];
 	}
+
+	id<MTLCommandQueue> commandQueue = [device newCommandQueue];
+	if (!commandQueue)
+	{
+		dsMTLRenderer_destroy(baseRenderer);
+		errno = ENOMEM;
+		return NULL;
+	}
+
+	renderer->commandQueue = CFBridgingRetain(commandQueue);
+
+	// Start at submit count 1 so it's ahead of the finished index.
+	renderer->submitCount = 1;
+	renderer->submitCondition = dsConditionVariable_create((dsAllocator*)&bufferAlloc,
+		"Render Submit Condition");
+	renderer->submitMutex = dsMutex_create((dsAllocator*)&bufferAlloc,
+		"Render Submit Mutex");
 
 	baseRenderer->allocator = dsAllocator_keepPointer(allocator);
 	//baseRenderer->mainCommandBuffer = ...;
@@ -363,5 +409,42 @@ dsRenderer* dsMTLRenderer_create(dsAllocator* allocator, const dsRendererOptions
 
 	baseRenderer->destroyFunc = &dsMTLRenderer_destroy;
 
+	DS_VERIFY(dsRenderer_initializeResources(baseRenderer));
+
 	return baseRenderer;
+}
+
+dsGfxFenceResult dsMTLRenderer_waitForSubmit(const dsRenderer* renderer, uint64_t submitCount,
+	unsigned int milliseconds)
+{
+	const dsMTLRenderer* mtlRenderer = (const dsMTLRenderer*)renderer;
+	DS_VERIFY(dsMutex_lock(mtlRenderer->submitMutex));
+	if (mtlRenderer->submitCount <= submitCount)
+	{
+		DS_VERIFY(dsMutex_unlock(mtlRenderer->submitMutex));
+		return dsGfxFenceResult_WaitingToQueue;
+	}
+
+	while (submitCount > mtlRenderer->finishedSubmitCount)
+	{
+		dsConditionVariableResult result = dsConditionVariable_timedWait(
+			mtlRenderer->submitCondition, mtlRenderer->submitMutex, milliseconds);
+		switch (result)
+		{
+			case dsConditionVariableResult_Error:
+				DS_VERIFY(dsMutex_unlock(mtlRenderer->submitMutex));
+				return dsGfxFenceResult_Error;
+			case dsConditionVariableResult_Timeout:
+				DS_VERIFY(dsMutex_unlock(mtlRenderer->submitMutex));
+				if (submitCount > mtlRenderer->finishedSubmitCount)
+					return dsGfxFenceResult_Timeout;
+				else
+					return dsGfxFenceResult_Success;
+			default:
+				break;
+		}
+	}
+	DS_VERIFY(dsMutex_unlock(mtlRenderer->submitMutex));
+
+	return dsGfxFenceResult_Success;
 }

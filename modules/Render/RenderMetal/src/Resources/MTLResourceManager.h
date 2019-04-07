@@ -21,3 +21,8 @@
 
 dsResourceManager* dsMTLResourceManager_create(dsAllocator* allocator, dsRenderer* renderer);
 void dsMTLResourceManager_destroy(dsResourceManager* resourceManager);
+
+MTLPixelFormat dsMTLResourceManager_getPixelFormat(const dsResourceManager* resourceManager,
+	dsGfxFormat format);
+MTLVertexFormat dsMTLResourceManager_getVertexFormat(const dsResourceManager* resourceManager,
+	dsGfxFormat format);

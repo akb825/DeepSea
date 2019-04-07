@@ -231,7 +231,7 @@ void dsDestroyGLSurface(void* display, dsRenderSurfaceType surfaceType, void* su
 	if (!surface)
 		return;
 
-	CFBridgingRelease(surface);
+	CFRelease(surface);
 }
 
 bool dsBindGLContext(void* display, void* context, void* surface)
