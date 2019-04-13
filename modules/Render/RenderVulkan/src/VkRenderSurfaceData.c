@@ -196,7 +196,7 @@ static bool createDepthImage(dsVkRenderSurfaceData* surfaceData, uint32_t width,
 	if (!depthFormat)
 	{
 		errno = EPERM;
-		DS_LOG_INFO(DS_RENDER_VULKAN_LOG_TAG, "Unknown format.");
+		DS_LOG_ERROR(DS_RENDER_VULKAN_LOG_TAG, "Unknown format.");
 		return false;
 	}
 
@@ -275,7 +275,7 @@ dsVkRenderSurfaceData* dsVkRenderSurfaceData_create(dsAllocator* allocator, dsRe
 	if (!colorFormat)
 	{
 		errno = EPERM;
-		DS_LOG_INFO(DS_RENDER_VULKAN_LOG_TAG, "Unknown format.");
+		DS_LOG_ERROR(DS_RENDER_VULKAN_LOG_TAG, "Unknown format.");
 		return NULL;
 	}
 

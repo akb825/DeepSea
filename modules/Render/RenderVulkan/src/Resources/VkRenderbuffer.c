@@ -35,7 +35,7 @@ dsRenderbuffer* dsVkRenderbuffer_create(dsResourceManager* resourceManager, dsAl
 	if (!formatInfo)
 	{
 		errno = EINVAL;
-		DS_LOG_INFO(DS_RENDER_VULKAN_LOG_TAG, "Unknown format.");
+		DS_LOG_ERROR(DS_RENDER_VULKAN_LOG_TAG, "Unknown format.");
 		return NULL;
 	}
 

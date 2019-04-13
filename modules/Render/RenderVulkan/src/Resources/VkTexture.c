@@ -382,7 +382,7 @@ static dsTexture* createTextureImpl(dsResourceManager* resourceManager, dsAlloca
 	if (!formatInfo)
 	{
 		errno = EINVAL;
-		DS_LOG_INFO(DS_RENDER_VULKAN_LOG_TAG, "Unknown format.");
+		DS_LOG_ERROR(DS_RENDER_VULKAN_LOG_TAG, "Unknown format.");
 		return NULL;
 	}
 
@@ -567,14 +567,14 @@ static dsTexture* createTextureImpl(dsResourceManager* resourceManager, dsAlloca
 		instance->allocCallbacksPtr, &texture->deviceImageView);
 
 	if (needsHostMemory && !createHostImages(device, (dsAllocator*)&bufferAlloc, info, formatInfo,
-		aspectMask, singleHostImage ? NULL : &imageCreateInfo, texture, data, size))
+			aspectMask, singleHostImage ? NULL : &imageCreateInfo, texture, data, size))
 	{
 		dsVkTexture_destroyImpl(baseTexture);
 		return NULL;
 	}
 
 	if (resolve && !createSurfaceImage(device, info, formatInfo, aspectMask, imageType,
-		imageViewType, texture))
+			imageViewType, texture))
 	{
 		dsVkTexture_destroyImpl(baseTexture);
 		return NULL;

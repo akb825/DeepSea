@@ -294,6 +294,7 @@ dsTexture* dsTexture_create(dsResourceManager* resourceManager, dsAllocator* all
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
+	texInfo.samples = dsMax(1U, texInfo.samples);
 	if (texInfo.samples > 1)
 	{
 		errno = EINVAL;

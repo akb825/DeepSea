@@ -58,41 +58,41 @@ dsMTLGfxBufferData* dsMTLGfxBufferData_create(dsResourceManager* resourceManager
 		return NULL;
 	}
 
-	MTLResourceOptions options;
+	MTLResourceOptions resourceOptions;
 	if (memoryHints & dsGfxMemory_Read)
-		options = MTLResourceCPUCacheModeDefaultCache;
+		resourceOptions = MTLResourceCPUCacheModeDefaultCache;
 	else
-		options = MTLResourceCPUCacheModeWriteCombined;
+		resourceOptions = MTLResourceCPUCacheModeWriteCombined;
 
 #if !DS_IOS || IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
 	if (memoryHints & dsGfxMemory_GPUOnly)
-		options |= MTLResourceStorageModePrivate;
+		resourceOptions |= MTLResourceStorageModePrivate;
 	else if ((memoryHints & dsGfxMemory_Read) || (memoryHints & dsGfxMemory_Stream) ||
 		(memoryHints & dsGfxMemory_Coherent))
 	{
-		options |= MTLResourceStorageModeShared;
+		resourceOptions |= MTLResourceStorageModeShared;
 	}
 	else
 	{
 #if !DS_IOS
-		options |= MTLResourceStorageModeManaged;
+		resourceOptions |= MTLResourceStorageModeManaged;
 		buffer->managed = true;
 #else
-		options |= MTLResourceStorageModeShared;
+		resourceOptions |= MTLResourceStorageModeShared;
 #endif
 	}
 #endif
 
 #if IPHONE_OS_VERSION_MIN_REQUIRED >= 100000 || MAC_OS_X_VERSION_MIN_REQUIRED >= 101300
 	if ((memoryHints & dsGfxMemory_GPUOnly) && !(usage & dsGfxBufferUsage_CopyTo))
-		options |= MTLResourceHazardTrackingModeUntracked;
+		resourceOptions |= MTLResourceHazardTrackingModeUntracked;
 #endif
 
 	id<MTLBuffer> mtlBuffer;
 	if (data)
-		mtlBuffer = [device newBufferWithLength: size options: options];
+		mtlBuffer = [device newBufferWithLength: size options: resourceOptions];
 	else
-		mtlBuffer = [device newBufferWithBytes: data length: size options: options];
+		mtlBuffer = [device newBufferWithBytes: data length: size options: resourceOptions];
 
 	if (!mtlBuffer)
 	{
@@ -133,7 +133,7 @@ id<MTLTexture> dsMTLGfxBufferData_getBufferTexture(dsMTLGfxBufferData* buffer, d
 	if (pixelFormat == MTLPixelFormatInvalid)
 	{
 		errno = EINVAL;
-		DS_LOG_INFO(DS_RENDER_METAL_LOG_TAG, "Unknown format.");
+		DS_LOG_ERROR(DS_RENDER_METAL_LOG_TAG, "Unknown format.");
 		return nil;
 	}
 

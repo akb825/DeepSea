@@ -21,3 +21,4 @@
 
 dsGfxFenceResult dsMTLRenderer_waitForSubmit(const dsRenderer* renderer, uint64_t submitCount,
 	unsigned int milliseconds);
+void dsMTLRenderer_processTexture(dsRenderer* renderer, dsTexture* texture);

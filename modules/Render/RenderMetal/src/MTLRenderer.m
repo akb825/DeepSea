@@ -18,10 +18,13 @@
 #include "MTLRendererInternal.h"
 
 #include "Resources/MTLResourceManager.h"
+#include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
+#include <DeepSea/Core/Memory/Lifetime.h>
 #include <DeepSea/Core/Thread/ConditionVariable.h>
 #include <DeepSea/Core/Thread/Mutex.h>
+#include <DeepSea/Core/Thread/Spinlock.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
@@ -255,6 +258,11 @@ bool dsMTLRenderer_destroy(dsRenderer* renderer)
 			CFRelease(mtlRenderer->submits[i].commandBuffer);
 	}
 
+	for (uint32_t i = 0; i < mtlRenderer->processTextureCount; ++i)
+		dsLifetime_freeRef(mtlRenderer->processTextures[i]);
+	DS_VERIFY(dsAllocator_free(renderer->allocator, mtlRenderer->processTextures));
+	dsSpinlock_shutdown(&mtlRenderer->processTexturesLock);
+
 	if (mtlRenderer->device)
 		CFRelease(mtlRenderer->device);
 	if (mtlRenderer->commandQueue)
@@ -328,6 +336,7 @@ dsRenderer* dsMTLRenderer_create(dsAllocator* allocator, const dsRendererOptions
 	DS_ASSERT(renderer);
 	memset(renderer, 0, sizeof(*renderer));
 	dsRenderer* baseRenderer = (dsRenderer*)renderer;
+	DS_VERIFY(dsSpinlock_initialize(&renderer->processTexturesLock));
 
 	DS_VERIFY(dsRenderer_initialize(baseRenderer));
 	renderer->device = CFBridgingRetain(device);
@@ -447,4 +456,28 @@ dsGfxFenceResult dsMTLRenderer_waitForSubmit(const dsRenderer* renderer, uint64_
 	DS_VERIFY(dsMutex_unlock(mtlRenderer->submitMutex));
 
 	return dsGfxFenceResult_Success;
+}
+
+void dsMTLRenderer_processTexture(dsRenderer* renderer, dsTexture* texture)
+{
+#if IPHONE_OS_VERSION_MIN_REQUIRED >= 120000 || MAC_OS_X_VERSION_MIN_REQUIRED >= 101400
+	dsMTLRenderer* mtlRenderer = (dsMTLRenderer*)renderer;
+	dsMTLTexture* mtlTexture = (dsMTLTexture*)texture;
+
+	DS_VERIFY(dsSpinlock_lock(&mtlRenderer->processTexturesLock));
+
+	uint32_t index = mtlRenderer->processTextureCount;
+	if (!DS_RESIZEABLE_ARRAY_ADD(renderer->allocator, mtlRenderer->processTextures,
+		mtlRenderer->processTextureCount, mtlRenderer->maxProcessTextures, 1))
+	{
+		DS_VERIFY(dsSpinlock_unlock(&mtlRenderer->processTexturesLock));
+		return;
+	}
+
+	mtlRenderer->processTextures[index] = dsLifetime_addRef(mtlTexture->lifetime);
+	DS_VERIFY(dsSpinlock_unlock(&mtlRenderer->processTexturesLock));
+#else
+	DS_UNUSED(renderer);
+	DS_UNUSED(texture);
+#endif
 }

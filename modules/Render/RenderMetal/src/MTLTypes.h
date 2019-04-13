@@ -75,6 +75,16 @@ typedef struct dsMTLGfxBuffer
 	dsMTLGfxBufferData* bufferData;
 } dsMTLGfxBuffer;
 
+typedef struct dsMTLTexture
+{
+	dsTexture texture;
+	dsLifetime* lifetime;
+
+	CFTypeRef mtlTexture;
+	CFTypeRef resolveTexture;
+	uint32_t processed;
+} dsMTLTexture;
+
 typedef struct dsMTLCommandBuffer
 {
 	dsCommandBuffer commandBuffer;
@@ -126,4 +136,10 @@ typedef struct dsMTLRenderer
 
 	dsConditionVariable* submitCondition;
 	dsMutex* submitMutex;
+
+	dsLifetime** processTextures;
+	uint32_t processTextureCount;
+	uint32_t maxProcessTextures;
+
+	dsSpinlock processTexturesLock;
 } dsMTLRenderer;
