@@ -270,9 +270,55 @@ static bool canResolveSurface(const dsFramebufferSurface* surface)
 		case dsGfxSurfaceType_DepthRenderSurfaceRight:
 			return false;
 		case dsGfxSurfaceType_Texture:
-			return ((dsOffscreen*)surface->surface)->resolve;
+			return ((const dsOffscreen*)surface->surface)->resolve;
 		case dsGfxSurfaceType_Renderbuffer:
 			return false;
+		default:
+			DS_ASSERT(false);
+			return true;
+	}
+}
+
+static bool canKeepRenderbuffer(const dsFramebufferSurface* surface)
+{
+	switch (surface->surfaceType)
+	{
+		case dsGfxSurfaceType_ColorRenderSurface:
+		case dsGfxSurfaceType_ColorRenderSurfaceLeft:
+		case dsGfxSurfaceType_ColorRenderSurfaceRight:
+		case dsGfxSurfaceType_DepthRenderSurface:
+		case dsGfxSurfaceType_DepthRenderSurfaceLeft:
+		case dsGfxSurfaceType_DepthRenderSurfaceRight:
+		case dsGfxSurfaceType_Texture:
+			return true;
+		case dsGfxSurfaceType_Renderbuffer:
+		{
+			const dsRenderbuffer* renderbuffer = (const dsRenderbuffer*)surface->surface;
+			return (renderbuffer->usage & dsRenderbufferUsage_Continue) != 0;
+		}
+		default:
+			DS_ASSERT(false);
+			return true;
+	}
+}
+
+static bool canContinueOffscreen(const dsFramebufferSurface* surface)
+{
+	switch (surface->surfaceType)
+	{
+		case dsGfxSurfaceType_ColorRenderSurface:
+		case dsGfxSurfaceType_ColorRenderSurfaceLeft:
+		case dsGfxSurfaceType_ColorRenderSurfaceRight:
+		case dsGfxSurfaceType_DepthRenderSurface:
+		case dsGfxSurfaceType_DepthRenderSurfaceLeft:
+		case dsGfxSurfaceType_DepthRenderSurfaceRight:
+		case dsGfxSurfaceType_Renderbuffer:
+			return false;
+		case dsGfxSurfaceType_Texture:
+		{
+			const dsOffscreen* offscreen = (const dsOffscreen*)surface->surface;
+			return (offscreen->usage & dsTextureUsage_OffscreenContinue) != 0;
+		}
 		default:
 			DS_ASSERT(false);
 			return true;
@@ -531,6 +577,28 @@ bool dsRenderPass_begin(const dsRenderPass* renderPass, dsCommandBuffer* command
 
 		if (renderPass->attachments[i].usage & dsAttachmentUsage_Clear)
 			needsClear = true;
+
+		if ((renderPass->attachments[i].usage & dsAttachmentUsage_KeepAfter) &&
+			!canKeepRenderbuffer(framebuffer->surfaces + i))
+		{
+			errno = EINVAL;
+			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Can't use dsAttachmentUsage_KeepAfter with a "
+				"dsRenderbuffer without the dsRenderbufferUsage_Continue usage flag.");
+			DS_PROFILE_FUNC_END();
+			endRenderPassScope(commandBuffer);
+			return false;
+		}
+
+		if ((renderPass->attachments[i].usage & dsAttachmentUsage_Resolve) &&
+			!canContinueOffscreen(framebuffer->surfaces + i))
+		{
+			errno = EINVAL;
+			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Resolving an offscreen after the full render pass "
+				"requires the dsTextureUsage_OffscreenContinue usage flag.");
+			DS_PROFILE_FUNC_END();
+			endRenderPassScope(commandBuffer);
+			return false;
+		}
 	}
 
 	for (uint32_t i = 0; i < renderPass->subpassCount; ++i)

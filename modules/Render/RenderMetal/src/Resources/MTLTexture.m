@@ -186,12 +186,13 @@ static dsTexture* createTextureImpl(dsResourceManager* resourceManager, dsAlloca
 	}
 
 #if IPHONE_OS_VERSION_MIN_REQUIRED >= 100000 || MAC_OS_X_VERSION_MIN_REQUIRED >= 101300
-	if (!offscreen && (memoryHints & dsGfxMemory_GPUOnly) && !(usage & dsGfxBufferUsage_CopyTo))
+	if (!offscreen && !(usage & dsGfxBufferUsage_CopyTo))
 		resourceOptions |= MTLResourceHazardTrackingModeUntracked;
 #endif
 #if IPHONE_OS_VERSION_MIN_REQUIRED >= 100000
-	if (usage == dsTextureUsage_SubpassInput)
-		resourceOptions |= MTLResourceStorageModeMemoryless;
+	// TODO: Set to memoryless for tiled rendering if/when supported.
+	/*if (usage == dsTextureUsage_SubpassInput)
+		resourceOptions |= MTLResourceStorageModeMemoryless;*/
 #endif
 
 	descriptor.resourceOptions = resourceOptions;
@@ -228,7 +229,8 @@ static dsTexture* createTextureImpl(dsResourceManager* resourceManager, dsAlloca
 		resourceOptions |= MTLResourceStorageModePrivate;
 #endif
 #if IPHONE_OS_VERSION_MIN_REQUIRED >= 100000
-		resourceOptions |= MTLResourceStorageModeMemoryless;
+		if (!(usage & dsTextureUsage_OffscreenContinue))
+			resourceOptions |= MTLResourceStorageModeMemoryless;
 #endif
 
 		mtlTexture = [device newTextureWithDescriptor: descriptor];

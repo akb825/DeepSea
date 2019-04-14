@@ -103,7 +103,13 @@ typedef enum dsTextureUsage
 	dsTextureUsage_Image = 0x2,        ///< Use as an image without a sampler.
 	dsTextureUsage_SubpassInput = 0x4, ///< Use for passing image data from one subpass to another.
 	dsTextureUsage_CopyFrom = 0x8,     ///< Source for GPU copy operations.
-	dsTextureUsage_CopyTo = 0x10       ///< Destination for GPU and CPU copy operations.
+	dsTextureUsage_CopyTo = 0x10,      ///< Destination for GPU and CPU copy operations.
+	/**
+	 * When used as an offscreen, rendering may continue across multiple passes or subpasses. When
+	 * not set, some offscreen contents may be discarded after rendering depending on the underlying
+	 * hardware and other usage flags to save memory.
+	 */
+	dsTextureUsage_OffscreenContinue = 0x20
 } dsTextureUsage;
 
 /**
@@ -121,7 +127,12 @@ typedef enum dsRenderbufferUsage
 	 * Can be cleared explicitly with dsRenderer_clearColorSurface() or
 	 * dsRenderer_clearDepthStencilSurface(). Clearing as part of a render pass is still allowed.
 	 */
-	dsRenderbufferUsage_Clear = 0x4
+	dsRenderbufferUsage_Clear = 0x4,
+	/**
+	 * When used as an offscreen, rendering may continue across multiple passes or subpasses. When
+	 * not set, the contents may be discarded or never stored in the first place.
+	 */
+	dsRenderbufferUsage_Continue = 0x8
 } dsRenderbufferUsage;
 
 /**
