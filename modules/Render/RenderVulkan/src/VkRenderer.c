@@ -1086,11 +1086,8 @@ static bool beginDraw(dsCommandBuffer* commandBuffer, VkCommandBuffer submitBuff
 	dsVkDevice* device = &((dsVkRenderer*)commandBuffer->renderer)->device;
 	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)dsVkCommandBuffer_get(commandBuffer);
 
-	dsVertexFormat vertexFormats[DS_MAX_GEOMETRY_VERTEX_BUFFERS];
-	for (uint32_t i = 0; i < DS_MAX_GEOMETRY_VERTEX_BUFFERS; ++i)
-		vertexFormats[i] = geometry->vertexBuffers[i].format;
 	VkPipeline pipeline = dsVkShader_getPipeline((dsShader*)commandBuffer->boundShader,
-		commandBuffer, primitiveType, vertexFormats);
+		commandBuffer, primitiveType, geometry);
 	if (!pipeline)
 		return false;
 

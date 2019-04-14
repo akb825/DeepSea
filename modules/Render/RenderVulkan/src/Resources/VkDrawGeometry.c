@@ -46,8 +46,7 @@ dsDrawGeometry* dsVkDrawGeometry_create(dsResourceManager* resourceManager,
 			memset(baseGeometry->vertexBuffers + i, 0, sizeof(*baseGeometry->vertexBuffers));
 
 		dsVertexFormat* format = &baseGeometry->vertexBuffers[i].format;
-		uint32_t formatHash = dsHashBytes(format, sizeof(*format));
-		geometry->vertexHash = dsHashCombine(geometry->vertexHash, formatHash);
+		geometry->vertexHash = dsHashCombineBytes(geometry->vertexHash, format, sizeof(*format));
 	}
 
 	if (indexBuffer)

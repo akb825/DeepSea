@@ -20,8 +20,8 @@
 #include "VkTypes.h"
 
 uint32_t dsVkPipeline_hash(uint32_t samples, float defaultAnisotropy,
-	dsPrimitiveType primitiveType, const dsVertexFormat formats[DS_MAX_GEOMETRY_VERTEX_BUFFERS],
-	const dsRenderPass* renderPass, uint32_t subpass);
+	dsPrimitiveType primitiveType, uint32_t vertexFormatHash, const dsRenderPass* renderPass,
+	uint32_t subpass);
 dsVkPipeline* dsVkPipeline_create(dsAllocator* allocator, dsShader* shader,
 	VkPipeline existingPipeline, uint32_t hash, uint32_t samples, float defaultAnisotropy,
 	dsPrimitiveType primitiveType, const dsVertexFormat formats[DS_MAX_GEOMETRY_VERTEX_BUFFERS],

@@ -46,4 +46,4 @@ void dsVkShader_removeRenderPass(dsShader* shader, dsVkRenderPassData* renderPas
 dsVkSamplerList* dsVkShader_getSamplerList(dsShader* shader, dsCommandBuffer* commandBuffer);
 VkPipeline dsVkShader_getComputePipeline(dsShader* shader, dsCommandBuffer* commandBuffer);
 VkPipeline dsVkShader_getPipeline(dsShader* shader, dsCommandBuffer* commandBuffer,
-	dsPrimitiveType primitiveType, const dsVertexFormat formats[DS_MAX_GEOMETRY_VERTEX_BUFFERS]);
+	dsPrimitiveType primitiveType, const dsDrawGeometry* geometry);

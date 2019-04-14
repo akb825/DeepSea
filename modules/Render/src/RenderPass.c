@@ -294,7 +294,8 @@ static bool canKeepRenderbuffer(const dsFramebufferSurface* surface)
 		case dsGfxSurfaceType_Renderbuffer:
 		{
 			const dsRenderbuffer* renderbuffer = (const dsRenderbuffer*)surface->surface;
-			return (renderbuffer->usage & dsRenderbufferUsage_Continue) != 0;
+			return (renderbuffer->usage &
+				(dsRenderbufferUsage_Continue | dsRenderbufferUsage_BlitFrom)) != 0;
 		}
 		default:
 			DS_ASSERT(false);
@@ -583,7 +584,8 @@ bool dsRenderPass_begin(const dsRenderPass* renderPass, dsCommandBuffer* command
 		{
 			errno = EINVAL;
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Can't use dsAttachmentUsage_KeepAfter with a "
-				"dsRenderbuffer without the dsRenderbufferUsage_Continue usage flag.");
+				"dsRenderbuffer without the dsRenderbufferUsage_Continue or "
+				"dsRenderbufferUsage_BlitFrom usage flag.");
 			DS_PROFILE_FUNC_END();
 			endRenderPassScope(commandBuffer);
 			return false;
