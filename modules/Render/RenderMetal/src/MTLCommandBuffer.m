@@ -166,6 +166,7 @@ bool dsMTLCommandBuffer_addGfxBuffer(dsCommandBuffer* commandBuffer, dsMTLGfxBuf
 
 void dsMTLCommandBuffer_shutdown(dsMTLCommandBuffer* commandBuffer)
 {
+	dsAllocator* allocator = ((dsCommandBuffer*)commandBuffer)->allocator;
 	if (commandBuffer->mtlCommandBuffer)
 		CFRelease(commandBuffer->mtlCommandBuffer);
 	if (commandBuffer->renderCommandEncoder)
@@ -180,7 +181,10 @@ void dsMTLCommandBuffer_shutdown(dsMTLCommandBuffer* commandBuffer)
 		if (commandBuffer->submitBuffers[i])
 			CFRelease(commandBuffer->submitBuffers[i]);
 	}
+	DS_VERIFY(dsAllocator_free(allocator, commandBuffer->submitBuffers));
 
 	for (uint32_t i = 0; i < commandBuffer->gfxBufferCount; ++i)
 		dsLifetime_freeRef(commandBuffer->gfxBuffers[i]);
+
+	DS_VERIFY(dsAllocator_free(allocator, commandBuffer->secondaryCommands));
 }

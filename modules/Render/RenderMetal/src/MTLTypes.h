@@ -91,6 +91,12 @@ typedef struct dsMTLTexture
 	uint32_t processed;
 } dsMTLTexture;
 
+typedef struct dsMTLRenderbuffer
+{
+	dsRenderbuffer renderbuffer;
+	CFTypeRef surface;
+} dsMTLRenderbuffer;
+
 typedef struct dsMTLCommandBuffer
 {
 	dsCommandBuffer commandBuffer;
@@ -108,6 +114,10 @@ typedef struct dsMTLCommandBuffer
 	dsLifetime** gfxBuffers;
 	uint32_t gfxBufferCount;
 	uint32_t maxGfxBuffers;
+
+	uint8_t* secondaryCommands;
+	uint32_t secondaryCommandSize;
+	uint32_t maxSecondaryCommandSize;
 } dsMTLCommandBuffer;
 
 typedef struct dsMTLResourceManager

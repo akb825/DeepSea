@@ -18,6 +18,7 @@
 
 #include "Resources/MTLDrawGeometry.h"
 #include "Resources/MTLGfxBuffer.h"
+#include "Resources/MTLRenderbuffer.h"
 #include "Resources/MTLTexture.h"
 
 #include <DeepSea/Core/Memory/Allocator.h>
@@ -889,6 +890,10 @@ dsResourceManager* dsMTLResourceManager_create(dsAllocator* allocator, dsRendere
 	baseResourceManager->generateTextureMipmapsFunc = &dsMTLTexture_generateMipmaps;
 	baseResourceManager->getTextureDataFunc = &dsMTLTexture_getData;
 	baseResourceManager->processTextureFunc = &dsMTLTexture_process;
+
+	// Renderbuffers
+	baseResourceManager->createRenderbufferFunc = &dsMTLRenderbuffer_create;
+	baseResourceManager->destroyRenderbufferFunc = &dsMTLRenderbuffer_destroy;
 
 	return baseResourceManager;
 }
