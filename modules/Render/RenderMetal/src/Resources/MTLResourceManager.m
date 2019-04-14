@@ -17,6 +17,7 @@
 #include "Resources/MTLResourceManager.h"
 
 #include "Resources/MTLGfxBuffer.h"
+#include "Resources/MTLTexture.h"
 
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
@@ -873,6 +874,18 @@ dsResourceManager* dsMTLResourceManager_create(dsAllocator* allocator, dsRendere
 	baseResourceManager->invalidateBufferFunc = &dsMTLGfxBuffer_invalidate;
 	baseResourceManager->copyBufferDataFunc = &dsMTLGfxBuffer_copyData;
 	baseResourceManager->copyBufferFunc = &dsMTLGfxBuffer_copy;
+
+	// Draw geometry.
+
+	// Textures
+	baseResourceManager->createTextureFunc = &dsMTLTexture_create;
+	baseResourceManager->createOffscreenFunc = &dsMTLTexture_createOffscreen;
+	baseResourceManager->destroyTextureFunc = &dsMTLTexture_destroy;
+	baseResourceManager->copyTextureDataFunc = &dsMTLTexture_copyData;
+	baseResourceManager->copyTextureFunc = &dsMTLTexture_copy;
+	baseResourceManager->generateTextureMipmapsFunc = &dsMTLTexture_generateMipmaps;
+	baseResourceManager->getTextureDataFunc = &dsMTLTexture_getData;
+	baseResourceManager->processTextureFunc = &dsMTLTexture_process;
 
 	return baseResourceManager;
 }
