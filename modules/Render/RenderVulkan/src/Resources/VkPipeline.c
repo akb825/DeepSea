@@ -43,8 +43,8 @@ uint32_t dsVkPipeline_hash(uint32_t samples, float defaultAnisotropy,
 
 dsVkPipeline* dsVkPipeline_create(dsAllocator* allocator, dsShader* shader,
 	VkPipeline existingPipeline, uint32_t hash, uint32_t samples, float defaultAnisotropy,
-	dsPrimitiveType primitiveType, const dsVertexFormat formats[DS_MAX_GEOMETRY_VERTEX_BUFFERS],
-	const dsRenderPass* renderPass, uint32_t subpass)
+	dsPrimitiveType primitiveType, const dsDrawGeometry* geometry, const dsRenderPass* renderPass,
+	uint32_t subpass)
 {
 	dsVkPipeline* pipeline = DS_ALLOCATE_OBJECT(allocator, dsVkPipeline);
 	if (!pipeline)
@@ -65,7 +65,11 @@ dsVkPipeline* dsVkPipeline_create(dsAllocator* allocator, dsShader* shader,
 	pipeline->samples = samples;
 	pipeline->defaultAnisotropy = defaultAnisotropy;
 	pipeline->primitiveType = primitiveType;
-	memcpy(pipeline->formats, formats, sizeof(pipeline->formats));
+	for (uint32_t i = 0; i < DS_MAX_GEOMETRY_VERTEX_BUFFERS; ++i)
+	{
+		memcpy(pipeline->formats + i, &geometry->vertexBuffers[i].format,
+			sizeof(dsVertexFormat));
+	}
 	pipeline->renderPass = dsLifetime_addRef(renderPassData->lifetime);
 	pipeline->subpass = subpass;
 
@@ -94,19 +98,20 @@ dsVkPipeline* dsVkPipeline_create(dsAllocator* allocator, dsShader* shader,
 	uint32_t attributeCount = 0;
 	for (uint32_t i = 0; i < DS_MAX_GEOMETRY_VERTEX_BUFFERS; ++i)
 	{
-		if (formats[i].enabledMask == 0)
+		const dsVertexFormat* format = pipeline->formats + i;
+		if (format->enabledMask == 0)
 			continue;
 
-		DS_ASSERT(formats[i].size > 0);
+		DS_ASSERT(format->size > 0);
 		vertexBindings[bindingCount].binding = bindingCount;
-		vertexBindings[bindingCount].stride = formats[i].size;
-		vertexBindings[bindingCount].inputRate = formats[i].divisor > 0;
-		for (uint32_t mask = formats[i].enabledMask; mask; mask = dsRemoveLastBit(mask))
+		vertexBindings[bindingCount].stride = format->size;
+		vertexBindings[bindingCount].inputRate = format->divisor > 0;
+		for (uint32_t mask = format->enabledMask; mask; mask = dsRemoveLastBit(mask))
 		{
 			uint32_t attribute = dsBitmaskIndex(mask);
 
 			const dsVkFormatInfo* formatInfo = dsVkResourceManager_getFormat(resourceManager,
-				formats[i].elements[attribute].format);
+				format->elements[attribute].format);
 			if (!formatInfo)
 			{
 				errno = EINVAL;
@@ -118,7 +123,7 @@ dsVkPipeline* dsVkPipeline_create(dsAllocator* allocator, dsShader* shader,
 			attributes[attributeCount].location = attribute;
 			attributes[attributeCount].binding = bindingCount;
 			attributes[attributeCount].format = formatInfo->vkFormat;
-			attributes[attributeCount].offset = formats[i].elements[attribute].offset;
+			attributes[attributeCount].offset = format->elements[attribute].offset;
 			++attributeCount;
 			DS_ASSERT(attributeCount <= DS_MAX_ALLOWED_VERTEX_ATTRIBS);
 		}
@@ -187,18 +192,29 @@ dsVkPipeline* dsVkPipeline_create(dsAllocator* allocator, dsShader* shader,
 }
 
 bool dsVkPipeline_isEquivalent(const dsVkPipeline* pipeline, uint32_t hash, uint32_t samples,
-	float defaultAnisotropy, dsPrimitiveType primitiveType,
-	const dsVertexFormat formats[DS_MAX_GEOMETRY_VERTEX_BUFFERS],
+	float defaultAnisotropy, dsPrimitiveType primitiveType, const dsDrawGeometry* geometry,
 	const dsVkRenderPassData* renderPassData, uint32_t subpass)
 {
 	if (pipeline->hash != hash)
 		return false;
 
-	return pipeline->samples == samples && pipeline->defaultAnisotropy == defaultAnisotropy &&
-		pipeline->primitiveType == primitiveType && pipeline->subpass == subpass &&
-		dsLifetime_getObject(pipeline->renderPass) == renderPassData &&
-		memcmp(pipeline->formats, formats,
-			sizeof(dsVertexFormat)*DS_MAX_GEOMETRY_VERTEX_BUFFERS) == 0;
+	if (pipeline->samples != samples || pipeline->defaultAnisotropy != defaultAnisotropy ||
+		pipeline->primitiveType != primitiveType || pipeline->subpass != subpass ||
+		dsLifetime_getObject(pipeline->renderPass) != renderPassData)
+	{
+		return false;
+	}
+
+	for (uint32_t i = 0; i < DS_MAX_GEOMETRY_VERTEX_BUFFERS; ++i)
+	{
+		if (memcmp(pipeline->formats + i, &geometry->vertexBuffers[i].format,
+			sizeof(dsVertexFormat)) != 0)
+		{
+			return false;
+		}
+	}
+
+	return true;
 }
 
 void dsVkPipeline_destroy(dsVkPipeline* pipeline)

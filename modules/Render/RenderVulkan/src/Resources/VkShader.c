@@ -1356,10 +1356,6 @@ VkPipeline dsVkShader_getPipeline(dsShader* shader, dsCommandBuffer* commandBuff
 	uint32_t hash = dsVkPipeline_hash(samples, anisotropy, primitiveType,
 		vkDrawGeometry->vertexHash, renderPass, subpassIndex);
 
-	dsVertexFormat vertexFormats[DS_MAX_GEOMETRY_VERTEX_BUFFERS];
-	for (uint32_t i = 0; i < DS_MAX_GEOMETRY_VERTEX_BUFFERS; ++i)
-		vertexFormats[i] = geometry->vertexBuffers[i].format;
-
 	DS_VERIFY(dsSpinlock_lock(&vkShader->pipelineLock));
 
 	// Search for an existing pipeline
@@ -1367,7 +1363,7 @@ VkPipeline dsVkShader_getPipeline(dsShader* shader, dsCommandBuffer* commandBuff
 	{
 		dsVkPipeline* pipeline = vkShader->pipelines[i];
 		if (dsVkPipeline_isEquivalent(pipeline, hash, samples, anisotropy,
-			primitiveType, vertexFormats, renderPassData, subpassIndex))
+			primitiveType, geometry, renderPassData, subpassIndex))
 		{
 			VkPipeline vkPipeline = pipeline->pipeline;
 			if (!dsVkCommandBuffer_addResource(commandBuffer, &pipeline->resource))
@@ -1388,7 +1384,7 @@ VkPipeline dsVkShader_getPipeline(dsShader* shader, dsCommandBuffer* commandBuff
 
 	vkShader->pipelines[index] = dsVkPipeline_create(vkShader->scratchAllocator, shader,
 		index > 0 ? vkShader->pipelines[0]->pipeline : 0, hash, samples, anisotropy, primitiveType,
-		vertexFormats, renderPass, subpassIndex);
+		geometry, renderPass, subpassIndex);
 	if (!vkShader->pipelines[index])
 	{
 		--vkShader->pipelineCount;
