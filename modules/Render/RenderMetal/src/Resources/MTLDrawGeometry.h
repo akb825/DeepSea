@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2019 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,9 @@
 #pragma once
 
 #include <DeepSea/Core/Config.h>
-#include "VkTypes.h"
+#include "MTLTypes.h"
 
-dsDrawGeometry* dsVkDrawGeometry_create(dsResourceManager* resourceManager,
+dsDrawGeometry* dsMTLDrawGeometry_create(dsResourceManager* resourceManager,
 	dsAllocator* allocator, dsVertexBuffer* vertexBuffers[DS_MAX_GEOMETRY_VERTEX_BUFFERS],
 	dsIndexBuffer* indexBuffer);
-bool dsVkDrawGeometry_destroy(dsResourceManager* resourceManager, dsDrawGeometry* geometry);
+bool dsMTLDrawGeometry_destroy(dsResourceManager* resourceManager, dsDrawGeometry* geometry);

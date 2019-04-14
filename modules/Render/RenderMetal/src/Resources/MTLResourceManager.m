@@ -16,6 +16,7 @@
 
 #include "Resources/MTLResourceManager.h"
 
+#include "Resources/MTLDrawGeometry.h"
 #include "Resources/MTLGfxBuffer.h"
 #include "Resources/MTLTexture.h"
 
@@ -876,6 +877,8 @@ dsResourceManager* dsMTLResourceManager_create(dsAllocator* allocator, dsRendere
 	baseResourceManager->copyBufferFunc = &dsMTLGfxBuffer_copy;
 
 	// Draw geometry.
+	baseResourceManager->createGeometryFunc = &dsMTLDrawGeometry_create;
+	baseResourceManager->destroyGeometryFunc = &dsMTLDrawGeometry_destroy;
 
 	// Textures
 	baseResourceManager->createTextureFunc = &dsMTLTexture_create;

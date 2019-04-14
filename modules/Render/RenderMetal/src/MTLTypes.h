@@ -75,6 +75,12 @@ typedef struct dsMTLGfxBuffer
 	dsMTLGfxBufferData* bufferData;
 } dsMTLGfxBuffer;
 
+typedef struct dsMTLDrawGeometry
+{
+	dsDrawGeometry drawGeometry;
+	uint32_t vertexHash;
+} dsMTLDrawGeometry;
+
 typedef struct dsMTLTexture
 {
 	dsTexture texture;
