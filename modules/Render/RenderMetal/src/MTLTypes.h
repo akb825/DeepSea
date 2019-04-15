@@ -30,9 +30,6 @@
 // This is used by SPIRV-Cross to create the shader.
 #define DS_IMAGE_BUFFER_WIDTH 4096
 #define DS_NOT_SUBMITTED (uint64_t)-1
-#define DS_DELAY_FRAMES 3
-#define DS_EXPECTED_FRAME_FLUSHES 10
-#define DS_MAX_SUBMITS (DS_DELAY_FRAMES*DS_EXPECTED_FRAME_FLUSHES)
 // 10 seconds in milliseconds
 #define DS_DEFAULT_WAIT_TIMEOUT 10000
 #define DS_RECENTLY_ADDED_SIZE 10
