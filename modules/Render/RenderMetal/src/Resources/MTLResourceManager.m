@@ -18,6 +18,7 @@
 
 #include "Resources/MTLDrawGeometry.h"
 #include "Resources/MTLGfxBuffer.h"
+#include "Resources/MTLGfxFence.h"
 #include "Resources/MTLRenderbuffer.h"
 #include "Resources/MTLTexture.h"
 
@@ -894,6 +895,13 @@ dsResourceManager* dsMTLResourceManager_create(dsAllocator* allocator, dsRendere
 	// Renderbuffers
 	baseResourceManager->createRenderbufferFunc = &dsMTLRenderbuffer_create;
 	baseResourceManager->destroyRenderbufferFunc = &dsMTLRenderbuffer_destroy;
+
+	// Fences
+	baseResourceManager->createFenceFunc = &dsMTLGfxFence_create;
+	baseResourceManager->destroyFenceFunc = &dsMTLGfxFence_destroy;
+	baseResourceManager->setFencesFunc = &dsMTLGfxFence_set;
+	baseResourceManager->waitFenceFunc = &dsMTLGfxFence_wait;
+	baseResourceManager->resetFenceFunc = &dsMTLGfxFence_reset;
 
 	return baseResourceManager;
 }

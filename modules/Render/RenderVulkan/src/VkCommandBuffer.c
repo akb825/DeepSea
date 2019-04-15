@@ -753,7 +753,7 @@ void dsVkCommandBuffer_submitFence(dsCommandBuffer* commandBuffer, bool readback
 		return;
 	}
 
-	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
+	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)dsVkCommandBuffer_get(commandBuffer);
 	vkCommandBuffer->fenceSet = true;
 	if (readback)
 		vkCommandBuffer->fenceReadback = true;

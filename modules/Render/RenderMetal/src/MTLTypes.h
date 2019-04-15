@@ -97,6 +97,13 @@ typedef struct dsMTLRenderbuffer
 	CFTypeRef surface;
 } dsMTLRenderbuffer;
 
+typedef struct dsMTLGfxFence
+{
+	dsGfxFence fence;
+	dsLifetime* lifetime;
+	uint64_t lastUsedSubmit;
+} dsMTLGfxFence;
+
 typedef struct dsMTLCommandBuffer
 {
 	dsCommandBuffer commandBuffer;
@@ -115,9 +122,15 @@ typedef struct dsMTLCommandBuffer
 	uint32_t gfxBufferCount;
 	uint32_t maxGfxBuffers;
 
+	dsLifetime** fences;
+	uint32_t fenceCount;
+	uint32_t maxFences;
+
 	uint8_t* secondaryCommands;
 	uint32_t secondaryCommandSize;
 	uint32_t maxSecondaryCommandSize;
+
+	bool fenceSet;
 } dsMTLCommandBuffer;
 
 typedef struct dsMTLResourceManager
@@ -131,12 +144,6 @@ typedef struct dsMTLResourceManager
 	MTLVertexFormat vertexFormats[dsGfxFormat_StandardCount][dsGfxFormat_DecoratorCount];
 } dsMTLResourceManager;
 
-typedef struct dsMTLSubmitInfo
-{
-	CFTypeRef commandBuffer;
-	uint64_t submitCount;
-} dsMTLSubmitInfo;
-
 typedef struct dsMTLRenderer
 {
 	dsRenderer renderer;
@@ -145,8 +152,8 @@ typedef struct dsMTLRenderer
 	CFTypeRef commandQueue;
 	MTLFeatureSet featureSet;
 
-	uint32_t curSubmit;
-	dsMTLSubmitInfo submits[DS_MAX_SUBMITS];
+	dsMTLCommandBuffer mainCommandBuffer;
+
 	uint64_t submitCount;
 	uint64_t finishedSubmitCount;
 

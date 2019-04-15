@@ -18,6 +18,8 @@
 #include "MTLRendererInternal.h"
 
 #include "Resources/MTLResourceManager.h"
+#include "MTLCommandBuffer.h"
+
 #include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
@@ -31,6 +33,9 @@
 #include <DeepSea/Render/Resources/GfxFormat.h>
 
 #include <string.h>
+
+#import <Metal/MTLBlitCommandEncoder.h>
+#import <Metal/MTLCommandQueue.h>
 
 #if defined(IPHONE_OS_VERSION_MIN_REQUIRED) && IPHONE_OS_VERSION_MIN_REQUIRED < 80000
 #error iPhone target version must be >= 8.0 to support metal.
@@ -232,6 +237,51 @@ static uint32_t hasTessellationShaders(MTLFeatureSet feature)
 	}
 }
 
+static id<MTLCommandBuffer> processTextures(dsMTLRenderer* renderer)
+{
+#if IPHONE_OS_VERSION_MIN_REQUIRED >= 120000 || MAC_OS_X_VERSION_MIN_REQUIRED >= 101400
+	id<MTLCommandQueue> queue = (__bridge id<MTLCommandQueue>)renderer->commandQueue;
+	id<MTLCommandBuffer> textureCommandBuffer = nil;
+	DS_VERIFY(dsSpinlock_lock(&renderer->processTexturesLock));
+	if (renderer->processTextureCount > 0)
+	{
+		textureCommandBuffer = [queue commandBuffer];
+		id<MTLBlitCommandEncoder> encoder;
+		if (textureCommandBuffer)
+			encoder = [textureCommandBuffer blitCommandEncoder];
+		else
+			encoder = nil;
+		if (!encoder)
+		{
+			for (uint32_t i = 0; i < renderer->processTextureCount; ++i)
+				dsLifetime_freeRef(renderer->processTextures[i]);
+			renderer->processTextureCount = 0;
+			DS_VERIFY(dsSpinlock_unlock(&renderer->processTexturesLock));
+		}
+
+		for (uint32_t i = 0; i < renderer->processTextureCount; ++i)
+		{
+			dsLifetime* lifetime = renderer->processTextures[i];
+			dsMTLTexture* texture = (dsMTLTexture*)dsLifetime_acquire(lifetime);
+			if (texture)
+			{
+				id<MTLTexture> mtlTexture = (__bridge id<MTLTexture>)texture->mtlTexture;
+				[encoder optimizeContentsForGPUAccess: mtlTexture];
+				dsLifetime_release(lifetime);
+			}
+			dsLifetime_freeRef(lifetime);
+		}
+		renderer->processTextureCount = 0;
+
+		[textureCommandBuffer commit];
+	}
+	DS_VERIFY(dsSpinlock_unlock(&renderer->processTexturesLock));
+	return textureCommandBuffer;
+#else
+	DS_UNUSED(renderer);
+#endif
+}
+
 bool dsMTLRenderer_destroy(dsRenderer* renderer)
 {
 	dsMTLRenderer* mtlRenderer = (dsMTLRenderer*)renderer;
@@ -250,12 +300,6 @@ bool dsMTLRenderer_destroy(dsRenderer* renderer)
 
 		dsConditionVariable_destroy(mtlRenderer->submitCondition);
 		dsMutex_destroy(mtlRenderer->submitMutex);
-	}
-
-	for (uint32_t i = 0; i < DS_MAX_SUBMITS; ++i)
-	{
-		if (mtlRenderer->submits[i].commandBuffer)
-			CFRelease(mtlRenderer->submits[i].commandBuffer);
 	}
 
 	for (uint32_t i = 0; i < mtlRenderer->processTextureCount; ++i)
@@ -287,6 +331,41 @@ bool dsMTLRenderer_queryDevices(dsRenderDeviceInfo* outDevices, uint32_t* outDev
 
 	*outDeviceCount = 0;
 	return true;
+}
+
+void dsMTLRenderer_flush(dsRenderer* renderer)
+{
+	dsMTLRenderer* mtlRenderer = (dsMTLRenderer*)renderer;
+
+	dsMTLCommandBuffer_endEncoding(renderer->mainCommandBuffer);
+	dsMTLCommandBuffer* commandBuffer = &mtlRenderer->mainCommandBuffer;
+
+	id<MTLCommandBuffer> lastCommandBuffer = processTextures(mtlRenderer);
+	for (uint32_t i = 0; i < commandBuffer->submitBufferCount; ++i)
+	{
+		lastCommandBuffer = (__bridge id<MTLCommandBuffer>)commandBuffer->submitBuffers[i];
+		[lastCommandBuffer commit];
+	}
+
+	DS_VERIFY(dsMutex_lock(mtlRenderer->submitMutex));
+	uint64_t submit = mtlRenderer->submitCount;
+	if (lastCommandBuffer > 0)
+		++mtlRenderer->submitCount;
+	DS_VERIFY(dsMutex_unlock(mtlRenderer->submitMutex));
+
+	// Increment finished submit count at the end of the last command buffer.
+	[lastCommandBuffer addCompletedHandler: ^(id<MTLCommandBuffer> commandBuffer)
+		{
+			DS_UNUSED(commandBuffer);
+			DS_VERIFY(dsMutex_lock(mtlRenderer->submitMutex));
+			if (submit > mtlRenderer->finishedSubmitCount)
+			{
+				mtlRenderer->finishedSubmitCount = submit;
+				DS_VERIFY(dsConditionVariable_notifyAll(mtlRenderer->submitCondition));
+			}
+			DS_VERIFY(dsMutex_unlock(mtlRenderer->submitMutex));
+		}];
+	dsMTLCommandBuffer_submitted(renderer->mainCommandBuffer, submit);
 }
 
 dsRenderer* dsMTLRenderer_create(dsAllocator* allocator, const dsRendererOptions* options)
@@ -364,7 +443,10 @@ dsRenderer* dsMTLRenderer_create(dsAllocator* allocator, const dsRendererOptions
 		"Render Submit Mutex");
 
 	baseRenderer->allocator = dsAllocator_keepPointer(allocator);
-	//baseRenderer->mainCommandBuffer = ...;
+
+	dsMTLCommandBuffer_initialize(&renderer->mainCommandBuffer, baseRenderer, allocator,
+		dsCommandBufferUsage_Standard);
+	baseRenderer->mainCommandBuffer = (dsCommandBuffer*)&renderer->mainCommandBuffer;
 
 	baseRenderer->platform = dsGfxPlatform_Default;
 	baseRenderer->rendererID = DS_MTL_RENDERER_ID;

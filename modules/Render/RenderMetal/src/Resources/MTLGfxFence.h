@@ -19,7 +19,10 @@
 #include <DeepSea/Core/Config.h>
 #include "MTLTypes.h"
 
-void dsMTLRenderer_flush(dsRenderer* renderer);
-dsGfxFenceResult dsMTLRenderer_waitForSubmit(const dsRenderer* renderer, uint64_t submitCount,
-	unsigned int milliseconds);
-void dsMTLRenderer_processTexture(dsRenderer* renderer, dsTexture* texture);
+dsGfxFence* dsMTLGfxFence_create(dsResourceManager* resourceManager, dsAllocator* allocator);
+bool dsMTLGfxFence_set(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
+	dsGfxFence** fences, uint32_t fenceCount, bool bufferReadback);
+dsGfxFenceResult dsMTLGfxFence_wait(dsResourceManager* resourceManager, dsGfxFence* fence,
+	uint64_t timeout);
+bool dsMTLGfxFence_reset(dsResourceManager* resourceManager, dsGfxFence* fence);
+bool dsMTLGfxFence_destroy(dsResourceManager* resourceManager, dsGfxFence* fence);

@@ -16,10 +16,12 @@
 
 #include "MTLCommandBuffer.h"
 
+#include "MTLRendererInternal.h"
 #include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/Lifetime.h>
 #include <DeepSea/Core/Assert.h>
+#include <DeepSea/Core/Atomic.h>
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Render/Resources/GfxFormat.h>
@@ -27,31 +29,7 @@
 
 #import <Metal/MTLCommandQueue.h>
 
-static void endEncoding(dsMTLCommandBuffer* commandBuffer)
-{
-	// Render encoder is fully managed by render passes.
-	DS_ASSERT(!commandBuffer->renderCommandEncoder);
-
-	if (commandBuffer->blitCommandEncoder)
-	{
-		id<MTLBlitCommandEncoder> encoder =
-			(__bridge id<MTLBlitCommandEncoder>)(commandBuffer->blitCommandEncoder);
-		[encoder endEncoding];
-		CFRelease(commandBuffer->blitCommandEncoder);
-		commandBuffer->blitCommandEncoder = NULL;
-	}
-
-	if (commandBuffer->computeCommandEncoder)
-	{
-		id<MTLComputeCommandEncoder> encoder =
-			(__bridge id<MTLComputeCommandEncoder>)(commandBuffer->computeCommandEncoder);
-		[encoder endEncoding];
-		CFRelease(commandBuffer->computeCommandEncoder);
-		commandBuffer->computeCommandEncoder = NULL;
-	}
-}
-
-bool dsMTLCommandBuffer_initialize(dsMTLCommandBuffer* commandBuffer, dsRenderer* renderer,
+void dsMTLCommandBuffer_initialize(dsMTLCommandBuffer* commandBuffer, dsRenderer* renderer,
 	dsAllocator* allocator, dsCommandBufferUsage usage)
 {
 	dsCommandBuffer* baseCommandBuffer = (dsCommandBuffer*)commandBuffer;
@@ -61,8 +39,6 @@ bool dsMTLCommandBuffer_initialize(dsMTLCommandBuffer* commandBuffer, dsRenderer
 	baseCommandBuffer->renderer = renderer;
 	baseCommandBuffer->allocator = allocator;
 	baseCommandBuffer->usage = usage;
-
-	return true;
 }
 
 id<MTLCommandBuffer> dsMTLCommandBuffer_getCommandBuffer(dsCommandBuffer* commandBuffer)
@@ -104,7 +80,7 @@ id<MTLBlitCommandEncoder> dsMTLCommandBuffer_getBlitCommandEncoder(dsCommandBuff
 	if (!realCommandBuffer)
 		return nil;
 
-	endEncoding(mtlCommandBuffer);
+	dsMTLCommandBuffer_endEncoding(commandBuffer);
 
 	id<MTLBlitCommandEncoder> encoder = [realCommandBuffer blitCommandEncoder];
 	if (!encoder)
@@ -129,7 +105,7 @@ id<MTLComputeCommandEncoder> dsMTLCommandBuffer_getComputeCommandEncoder(
 	if (!realCommandBuffer)
 		return nil;
 
-	endEncoding(mtlCommandBuffer);
+	dsMTLCommandBuffer_endEncoding(commandBuffer);
 
 	id<MTLComputeCommandEncoder> encoder = [realCommandBuffer computeCommandEncoder];
 	if (!encoder)
@@ -140,6 +116,31 @@ id<MTLComputeCommandEncoder> dsMTLCommandBuffer_getComputeCommandEncoder(
 
 	mtlCommandBuffer->computeCommandEncoder = CFBridgingRetain(encoder);
 	return encoder;
+}
+
+void dsMTLCommandBuffer_endEncoding(dsCommandBuffer* commandBuffer)
+{
+	// Render encoder is fully managed by render passes.
+	dsMTLCommandBuffer* mtlCommandBuffer = (dsMTLCommandBuffer*)commandBuffer;
+	DS_ASSERT(!mtlCommandBuffer->renderCommandEncoder);
+
+	if (mtlCommandBuffer->blitCommandEncoder)
+	{
+		id<MTLBlitCommandEncoder> encoder =
+			(__bridge id<MTLBlitCommandEncoder>)(mtlCommandBuffer->blitCommandEncoder);
+		[encoder endEncoding];
+		CFRelease(mtlCommandBuffer->blitCommandEncoder);
+		mtlCommandBuffer->blitCommandEncoder = NULL;
+	}
+
+	if (mtlCommandBuffer->computeCommandEncoder)
+	{
+		id<MTLComputeCommandEncoder> encoder =
+			(__bridge id<MTLComputeCommandEncoder>)(mtlCommandBuffer->computeCommandEncoder);
+		[encoder endEncoding];
+		CFRelease(mtlCommandBuffer->computeCommandEncoder);
+		mtlCommandBuffer->computeCommandEncoder = NULL;
+	}
 }
 
 bool dsMTLCommandBuffer_addGfxBuffer(dsCommandBuffer* commandBuffer, dsMTLGfxBufferData* buffer)
@@ -164,9 +165,109 @@ bool dsMTLCommandBuffer_addGfxBuffer(dsCommandBuffer* commandBuffer, dsMTLGfxBuf
 	return true;
 }
 
+bool dsMTLCommandBuffer_addFence(dsCommandBuffer* commandBuffer, dsGfxFence* fence)
+{
+	dsMTLCommandBuffer* mtlCommandBuffer = (dsMTLCommandBuffer*)commandBuffer;
+	dsMTLGfxFence* mtlFence = (dsMTLGfxFence*)fence;
+
+	uint32_t checkCount = dsMin(DS_RECENTLY_ADDED_SIZE, mtlCommandBuffer->fenceCount);
+	for (uint32_t i = mtlCommandBuffer->fenceCount - checkCount;
+		i < mtlCommandBuffer->fenceCount; ++i)
+	{
+		if (mtlCommandBuffer->fences[i] == mtlFence->lifetime)
+			return true;
+	}
+
+	uint32_t index = mtlCommandBuffer->fenceCount;
+	if (!DS_RESIZEABLE_ARRAY_ADD(commandBuffer->allocator, mtlCommandBuffer->fences,
+			mtlCommandBuffer->fenceCount, mtlCommandBuffer->maxFences, 1))
+	{
+		return false;
+	}
+
+	mtlCommandBuffer->fences[index] = dsLifetime_addRef(mtlFence->lifetime);
+	return true;
+}
+
+void dsMTLCommandBuffer_submitFence(dsCommandBuffer* commandBuffer)
+{
+	dsMTLCommandBuffer* mtlCommandBuffer = (dsMTLCommandBuffer*)commandBuffer;
+
+	// Process immediately for the main command buffer if not in a render pass.
+	if (commandBuffer == commandBuffer->renderer->mainCommandBuffer &&
+		!commandBuffer->boundRenderPass)
+	{
+		dsMTLRenderer_flush(commandBuffer->renderer);
+		mtlCommandBuffer->fenceSet = false;
+		return;
+	}
+
+	mtlCommandBuffer->fenceSet = true;
+}
+
+void dsMTLCommandBuffer_clear(dsCommandBuffer* commandBuffer)
+{
+	dsMTLCommandBuffer* mtlCommandBuffer = (dsMTLCommandBuffer*)commandBuffer;
+	for (uint32_t i = 0; i < mtlCommandBuffer->submitBufferCount; ++i)
+	{
+		if (mtlCommandBuffer->submitBuffers[i])
+			CFRelease(mtlCommandBuffer->submitBuffers[i]);
+	}
+	mtlCommandBuffer->submitBufferCount = 0;
+
+	for (uint32_t i = 0; i < mtlCommandBuffer->gfxBufferCount; ++i)
+		dsLifetime_freeRef(mtlCommandBuffer->gfxBuffers[i]);
+	mtlCommandBuffer->gfxBufferCount = 0;
+
+	for (uint32_t i = 0; i < mtlCommandBuffer->fenceCount; ++i)
+		dsLifetime_freeRef(mtlCommandBuffer->fences[i]);
+	mtlCommandBuffer->fenceCount = 0;
+}
+
+void dsMTLCommandBuffer_submitted(dsCommandBuffer* commandBuffer, uint64_t submitCount)
+{
+	dsMTLCommandBuffer* mtlCommandBuffer = (dsMTLCommandBuffer*)commandBuffer;
+	for (uint32_t i = 0; i < mtlCommandBuffer->submitBufferCount; ++i)
+	{
+		if (mtlCommandBuffer->submitBuffers[i])
+			CFRelease(mtlCommandBuffer->submitBuffers[i]);
+	}
+	mtlCommandBuffer->submitBufferCount = 0;
+
+	for (uint32_t i = 0; i < mtlCommandBuffer->gfxBufferCount; ++i)
+	{
+		dsLifetime* lifetime = mtlCommandBuffer->gfxBuffers[i];
+		dsMTLGfxBufferData* bufferData = (dsMTLGfxBufferData*)dsLifetime_acquire(lifetime);
+		if (bufferData)
+		{
+			DS_ATOMIC_STORE64(&bufferData->lastUsedSubmit, &submitCount);
+			dsLifetime_release(lifetime);
+		}
+		dsLifetime_freeRef(lifetime);
+	}
+	mtlCommandBuffer->gfxBufferCount = 0;
+
+	for (uint32_t i = 0; i < mtlCommandBuffer->fenceCount; ++i)
+	{
+		dsLifetime* lifetime = mtlCommandBuffer->fences[i];
+		dsMTLGfxFence* fence = (dsMTLGfxFence*)dsLifetime_acquire(lifetime);
+		if (fence)
+		{
+			DS_ATOMIC_STORE64(&fence->lastUsedSubmit, &submitCount);
+			dsLifetime_release(lifetime);
+		}
+		dsLifetime_freeRef(lifetime);
+	}
+	mtlCommandBuffer->fenceCount = 0;
+}
+
 void dsMTLCommandBuffer_shutdown(dsMTLCommandBuffer* commandBuffer)
 {
 	dsAllocator* allocator = ((dsCommandBuffer*)commandBuffer)->allocator;
+	// Not initialized yet.
+	if (!allocator)
+		return;
+
 	if (commandBuffer->mtlCommandBuffer)
 		CFRelease(commandBuffer->mtlCommandBuffer);
 	if (commandBuffer->renderCommandEncoder)
@@ -185,6 +286,11 @@ void dsMTLCommandBuffer_shutdown(dsMTLCommandBuffer* commandBuffer)
 
 	for (uint32_t i = 0; i < commandBuffer->gfxBufferCount; ++i)
 		dsLifetime_freeRef(commandBuffer->gfxBuffers[i]);
+	DS_VERIFY(dsAllocator_free(allocator, commandBuffer->gfxBuffers));
+
+	for (uint32_t i = 0; i < commandBuffer->fenceCount; ++i)
+		dsLifetime_freeRef(commandBuffer->fences[i]);
+	DS_VERIFY(dsAllocator_free(allocator, commandBuffer->fences));
 
 	DS_VERIFY(dsAllocator_free(allocator, commandBuffer->secondaryCommands));
 }
