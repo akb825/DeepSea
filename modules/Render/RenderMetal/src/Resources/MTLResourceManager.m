@@ -845,7 +845,27 @@ dsResourceManager* dsMTLResourceManager_create(dsAllocator* allocator, dsRendere
 	baseResourceManager->hasVertexPipelineWrites = true;
 	baseResourceManager->hasFragmentWrites = true;
 	baseResourceManager->hasFences = true;
-	baseResourceManager->hasQueries = true;
+
+	/*
+	 * Disable Query support for Metal:
+	 * Timer queries aren't natively supported. MoltenVK emulates timer queries by getting the CPU
+	 * time in the submit complete handler for a command buffer. This is both a rough approximation
+	 * and requires a flush of the command buffer. Some versions of iOS support getting the actual
+	 * GPU time, but it's still in the submit complete handler, so it would still need a flush.
+	 *
+	 * Occlusion queries are very limited in how they can be used. A buffer must be set with the
+	 * render pass, then only one element of that buffer can be used without stopping and
+	 * re-starting the render pass. It would be very difficult to support the full range of uses of
+	 * queries (i.e. both within and without of render passes and across multiple command buffers),
+	 * and may make some optimizations like memoryless buffers impossible. (due to breaking if you
+	 * stop/restart the render pass) Based on looking at the implementation, even MoltenVK appears
+	 * to only support a subset of usage properly. (starting a query before a render pass and ending
+	 * it after)
+	 *
+	 * Perhaps in the future some subset of queries will be supported, but until a compelling use
+	 * case (that can also potentially be optimized for) comes up it's better to just not
+	 */
+	baseResourceManager->hasQueries = false;
 	baseResourceManager->has64BitQueries = true;
 	baseResourceManager->hasQueryBuffers = true;
 	baseResourceManager->timestampPeriod = 0.0f;

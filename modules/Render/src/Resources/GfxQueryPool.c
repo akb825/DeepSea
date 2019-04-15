@@ -30,23 +30,22 @@ dsGfxQueryPool* dsGfxQueryPool_create(dsResourceManager* resourceManager, dsAllo
 {
 	DS_PROFILE_FUNC_START();
 
-	if (!resourceManager || (!allocator && !resourceManager->allocator) ||
-		!resourceManager->createQueryPoolFunc || !resourceManager->destroyQueryPoolFunc ||
-		count == 0)
+	if (!resourceManager || (!allocator && !resourceManager->allocator) || count == 0)
 	{
 		errno = EINVAL;
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
-	if (!allocator)
-		allocator = resourceManager->allocator;
-
-	if (!resourceManager->hasQueries)
+	if (!resourceManager->hasQueries || !resourceManager->createQueryPoolFunc ||
+		!resourceManager->destroyQueryPoolFunc)
 	{
 		errno = EINVAL;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Current target doesn't support queries.");
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
+
+	if (!allocator)
+		allocator = resourceManager->allocator;
 
 	switch (type)
 	{
