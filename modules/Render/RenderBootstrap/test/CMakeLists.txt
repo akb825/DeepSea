@@ -38,8 +38,8 @@ ds_compile_shaders(shaders FILE ${shaderSourceDir}/WriteOffscreenTransform.msl
 ds_compile_shaders(shaders FILE ${shaderSourceDir}/WriteBuffer.msl
 	OUTPUT WriteBuffer.mslb CONFIG ${computeShaderConfigs} OUTPUT_DIR ${shaderDir}
 	INCLUDE ${DEEPSEA_MODULE_DIR}/Render/include)
-ds_compile_shaders(shaders FILE ${shaderSourceDir}/CopyImageBuffer.msl
-	OUTPUT CopyImageBuffer.mslb CONFIG ${computeShaderConfigs}
+ds_compile_shaders(shaders FILE ${shaderSourceDir}/CopyTextureBuffer.msl
+	OUTPUT CopyTextureBuffer.mslb CONFIG ${computeShaderConfigs}
 	OUTPUT_DIR ${shaderDir} INCLUDE ${DEEPSEA_MODULE_DIR}/Render/include)
 ds_compile_shaders_target(deepsea_render_bootstrap_test_shaders shaders
 	DEPENDS deepsea_render_bootstrap_test_prepare)

@@ -133,7 +133,8 @@ DeepSea contains the following modules:
 * [RenderMock](modules/Render/RenderMock/README.md): Mock implementation of the Render library, used for unit tests.
 * [RenderOpenGL](modules/Render/RenderOpenGL/README.md): OpenGL implementation of the Render library. This supports both desktop OpenGL and OpenGL ES.
 * [RenderVulkan](modules/Render/RenderVulkan/README.md): Vulkan implementation of the Render library.
-* [RenderBootstrap](modules/Render/RenderVulkan/README.md): Library that aids in creating one of the various renderers based on what is supported.
+* [RenderMetal](modules/Render/RenderMetal/README.md): Metal implementation of the Render library.
+* [RenderBootstrap](modules/Render/RenderBootstrap/README.md): Library that aids in creating one of the various renderers based on what is supported.
 * [Text](modules/Text/README.md): Draws Unicode text.
 * [VectorDraw](modules/VectorDraw/README.md): Draws vector graphics.
 * [Application](modules/Application/README.md): Application library, providing functionality such as input and window events.

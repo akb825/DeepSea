@@ -88,9 +88,9 @@ dsVkGfxBufferData* dsVkGfxBufferData_create(dsResourceManager* resourceManager,
 		baseCreateFlags |= VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
 	if (usage & dsGfxBufferUsage_UniformBuffer)
 		baseCreateFlags |= VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
-	if (usage & dsGfxBufferUsage_Image)
+	if (usage & dsGfxBufferUsage_Texture)
 		baseCreateFlags |= VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT;
-	if (usage & dsGfxBufferUsage_MutableImage)
+	if (usage & dsGfxBufferUsage_Image)
 		baseCreateFlags |= VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT;
 	if (usage & dsGfxBufferUsage_CopyFrom)
 		baseCreateFlags |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
@@ -381,7 +381,7 @@ bool dsVkGfxBufferData_isStatic(const dsVkGfxBufferData* buffer)
 	 * 1 and either 2 or 3 must be met.
 	 */
 	return !(buffer->usage & (dsGfxBufferUsage_CopyTo | dsGfxBufferUsage_UniformBuffer |
-		dsGfxBufferUsage_MutableImage)) &&
+		dsGfxBufferUsage_Image)) &&
 		((buffer->memoryHints & dsGfxMemory_GPUOnly) || buffer->deviceMemory);
 }
 
@@ -390,7 +390,7 @@ bool dsVkGfxBufferData_addMemoryBarrier(dsVkGfxBufferData* buffer, VkDeviceSize 
 {
 	DS_ASSERT(DS_IS_BUFFER_RANGE_VALID(offset, size, buffer->size));
 	bool canMap = dsVkGfxBufferData_canMap(buffer);
-	bool canWrite = buffer->usage & (dsGfxBufferUsage_CopyTo | dsGfxBufferUsage_MutableImage |
+	bool canWrite = buffer->usage & (dsGfxBufferUsage_CopyTo | dsGfxBufferUsage_Image |
 		dsGfxBufferUsage_UniformBuffer) || canMap;
 	if (canWrite)
 	{

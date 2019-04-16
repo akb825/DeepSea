@@ -414,16 +414,16 @@ bool dsGfxFormat_offscreenSupported(const dsResourceManager* resourceManager, ds
 	return resourceManager->offscreenFormatSupportedFunc(resourceManager, format);
 }
 
-bool dsGfxFormat_imageBufferSupported(const dsResourceManager* resourceManager,
+bool dsGfxFormat_textureBufferSupported(const dsResourceManager* resourceManager,
 	dsGfxFormat format)
 {
-	if (!resourceManager || !resourceManager->imageBufferFormatSupportedFunc ||
+	if (!resourceManager || !resourceManager->textureBufferFormatSupportedFunc ||
 		!dsGfxFormat_isValid(format))
 	{
 		return false;
 	}
 
-	return resourceManager->imageBufferFormatSupportedFunc(resourceManager, format);
+	return resourceManager->textureBufferFormatSupportedFunc(resourceManager, format);
 }
 
 bool dsGfxFormat_generateMipmapsSupported(const dsResourceManager* resourceManager,

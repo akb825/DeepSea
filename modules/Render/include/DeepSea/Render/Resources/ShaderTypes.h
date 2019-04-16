@@ -95,8 +95,8 @@ typedef enum dsMaterialType
 	dsMaterialType_Texture,              ///< Sampled texture.
 	dsMaterialType_Image,                ///< Unsampled image texture.
 	dsMaterialType_SubpassInput,         ///< Image result from a previous subpass.
-	dsMaterialType_ImageBuffer,          ///< Read-only image buffer.
-	dsMaterialType_MutableImageBuffer,   ///< Read/write image buffer.
+	dsMaterialType_TextureBuffer,        ///< Read-only texture buffer.
+	dsMaterialType_ImageBuffer,          ///< Read/write image buffer.
 	dsMaterialType_VariableGroup,        ///< Group of variables from dsShaderVariableGroup.
 	dsMaterialType_UniformBlock,         ///< Graphics buffer bound as a shader block.
 	dsMaterialType_UniformBuffer,        ///< Graphics buffer bound as a shader buffer.

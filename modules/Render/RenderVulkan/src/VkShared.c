@@ -205,7 +205,7 @@ VkAccessFlags dsVkReadBufferAccessFlags(dsGfxBufferUsage usage)
 	if (usage & (dsGfxBufferUsage_IndirectDraw | dsGfxBufferUsage_IndirectDispatch))
 		flags |= VK_ACCESS_INDIRECT_COMMAND_READ_BIT;
 	if (usage & (dsGfxBufferUsage_UniformBlock | dsGfxBufferUsage_UniformBuffer |
-		dsGfxBufferUsage_Image | dsGfxBufferUsage_MutableImage))
+		dsGfxBufferUsage_Texture | dsGfxBufferUsage_Image))
 	{
 		flags |= VK_ACCESS_SHADER_READ_BIT;
 	}
@@ -219,7 +219,7 @@ VkAccessFlags dsVkWriteBufferAccessFlags(dsGfxBufferUsage usage, bool canMap)
 	VkAccessFlags flags = 0;
 	if (canMap)
 		flags |= VK_ACCESS_HOST_WRITE_BIT;
-	if (usage & (dsGfxBufferUsage_UniformBuffer | dsGfxBufferUsage_MutableImage))
+	if (usage & (dsGfxBufferUsage_UniformBuffer | dsGfxBufferUsage_Image))
 		flags |= VK_ACCESS_SHADER_WRITE_BIT;
 	if (usage & dsGfxBufferUsage_CopyTo)
 		flags |= VK_ACCESS_TRANSFER_WRITE_BIT;
@@ -242,7 +242,7 @@ VkPipelineStageFlags dsVkReadBufferStageFlags(const dsRenderer* renderer, dsGfxB
 	if (usage & dsGfxBufferUsage_IndirectDispatch)
 		flags |= VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
 	if (usage & (dsGfxBufferUsage_UniformBlock | dsGfxBufferUsage_UniformBuffer |
-		dsGfxBufferUsage_Image | dsGfxBufferUsage_MutableImage))
+		dsGfxBufferUsage_Texture | dsGfxBufferUsage_Image))
 	{
 		flags |= VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT |
 			VK_PIPELINE_STAGE_VERTEX_SHADER_BIT |
@@ -266,7 +266,7 @@ VkPipelineStageFlags dsVkWriteBufferStageFlags(const dsRenderer* renderer, dsGfx
 	VkPipelineStageFlags flags = 0;
 	if (canMap)
 		flags |= VK_PIPELINE_STAGE_HOST_BIT;
-	if (usage & (dsGfxBufferUsage_UniformBuffer | dsGfxBufferUsage_MutableImage))
+	if (usage & (dsGfxBufferUsage_UniformBuffer | dsGfxBufferUsage_Image))
 	{
 		flags |= VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT |
 			VK_PIPELINE_STAGE_VERTEX_SHADER_BIT |
@@ -407,9 +407,9 @@ VkDescriptorType dsVkDescriptorType(dsMaterialType type, bool isShared)
 			return VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
 		case dsMaterialType_SubpassInput:
 			return VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;
-		case dsMaterialType_ImageBuffer:
+		case dsMaterialType_TextureBuffer:
 			return VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER;
-		case dsMaterialType_MutableImageBuffer:
+		case dsMaterialType_ImageBuffer:
 			return VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER;
 		case dsMaterialType_VariableGroup:
 			return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;

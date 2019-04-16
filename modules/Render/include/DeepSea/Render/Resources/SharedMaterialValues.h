@@ -139,7 +139,7 @@ DS_RENDER_EXPORT bool dsSharedMaterialValues_setTextureId(dsSharedMaterialValues
 	uint32_t nameId, dsTexture* texture);
 
 /**
- * @brief Gets a image buffer value by name.
+ * @brief Gets a texture buffer value by name.
  * @param[out] outFormat The texture format to interpret the buffer data. This may be NULL.
  * @param[out] outOffset The offset into the buffer. This may be NULL.
  * @param[out] outCount The number of texels for the buffer. This may be NULL.
@@ -147,11 +147,11 @@ DS_RENDER_EXPORT bool dsSharedMaterialValues_setTextureId(dsSharedMaterialValues
  * @param name The name of the buffer.
  * @return The buffer, or NULL if not found or unset.
  */
-DS_RENDER_EXPORT dsGfxBuffer* dsSharedMaterialValues_getImageBufferName(dsGfxFormat* outFormat,
+DS_RENDER_EXPORT dsGfxBuffer* dsSharedMaterialValues_getTextureBufferName(dsGfxFormat* outFormat,
 	size_t* outOffset, size_t* outCount, const dsSharedMaterialValues* values, const char* name);
 
 /**
- * @brief Gets a image buffer value by ID.
+ * @brief Gets a texture buffer value by ID.
  * @param[out] outFormat The texture format to interpret the buffer data. This may be NULL.
  * @param[out] outOffset The offset into the buffer. This may be NULL.
  * @param[out] outCount The number of texels for the buffer. This may be NULL.
@@ -159,11 +159,11 @@ DS_RENDER_EXPORT dsGfxBuffer* dsSharedMaterialValues_getImageBufferName(dsGfxFor
  * @param nameId The hash of the buffer name.
  * @return The buffer, or NULL if not found or unset.
  */
-DS_RENDER_EXPORT dsGfxBuffer* dsSharedMaterialValues_getImageBufferId(dsGfxFormat* outFormat,
+DS_RENDER_EXPORT dsGfxBuffer* dsSharedMaterialValues_getTextureBufferId(dsGfxFormat* outFormat,
 	size_t* outOffset, size_t* outCount, const dsSharedMaterialValues* values, uint32_t nameId);
 
 /**
- * @brief Sets a image buffer value by name.
+ * @brief Sets a texture buffer value by name.
  * @remark errno will be set on failure.
  * @param values The shared material values.
  * @param name The name of the buffer.
@@ -174,12 +174,12 @@ DS_RENDER_EXPORT dsGfxBuffer* dsSharedMaterialValues_getImageBufferId(dsGfxForma
  * @return False if the parameters are invalid, there isn't space available, or a value with the
  *     name is set that isn't a buffer.
  */
-DS_RENDER_EXPORT bool dsSharedMaterialValues_setImageBufferName(
+DS_RENDER_EXPORT bool dsSharedMaterialValues_setTextureBufferName(
 	dsSharedMaterialValues* values, const char* name, dsGfxBuffer* buffer, dsGfxFormat format,
 	size_t offset, size_t count);
 
 /**
- * @brief Sets a image buffer value by ID.
+ * @brief Sets a texture buffer value by ID.
  * @remark errno will be set on failure.
  * @param values The shared material values.
  * @param nameId The hash of the buffer name.
@@ -190,7 +190,7 @@ DS_RENDER_EXPORT bool dsSharedMaterialValues_setImageBufferName(
  * @return False if the parameters are invalid, there isn't space available, or a value with the
  *     name is set that isn't a buffer.
  */
-DS_RENDER_EXPORT bool dsSharedMaterialValues_setImageBufferId(dsSharedMaterialValues* values,
+DS_RENDER_EXPORT bool dsSharedMaterialValues_setTextureBufferId(dsSharedMaterialValues* values,
 	uint32_t nameId, dsGfxBuffer* buffer, dsGfxFormat format, size_t offset, size_t count);
 
 /**

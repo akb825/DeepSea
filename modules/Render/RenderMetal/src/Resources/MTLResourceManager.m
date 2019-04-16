@@ -496,7 +496,7 @@ static void initializeVertexFormats(dsMTLResourceManager* resourceManager)
 	resourceManager->vertexFormats[dsGfxFormat_X32Y32Z32W32][floatIndex] = MTLVertexFormatFloat4;
 }
 
-static uint32_t getMinImageBufferAlignment(dsMTLResourceManager* resourceManager,
+static uint32_t getMinTextureBufferAlignment(dsMTLResourceManager* resourceManager,
 	id<MTLDevice> device)
 {
 #if IPHONE_OS_VERSION_MIN_REQUIRED < 110000 && MAC_OS_X_VERSION_MIN_REQUIRED < 101300
@@ -805,7 +805,7 @@ dsResourceManager* dsMTLResourceManager_create(dsAllocator* allocator, dsRendere
 	initializePixelFormats(resourceManager, device, mtlRenderer->featureSet);
 	initializeVertexFormats(resourceManager);
 
-	baseResourceManager->minImageBufferAlignment = getMinImageBufferAlignment(resourceManager,
+	baseResourceManager->minTextureBufferAlignment = getMinTextureBufferAlignment(resourceManager,
 		device);
 #if DS_IOS
 	baseResourceManager->minUniformBlockAlignment = 4;
@@ -818,7 +818,7 @@ dsResourceManager* dsMTLResourceManager_create(dsAllocator* allocator, dsRendere
 	baseResourceManager->supportedBuffers = getSupportedBuffers();
 	baseResourceManager->bufferMapSupport = dsGfxBufferMapSupport_Full;
 	baseResourceManager->canCopyBuffers = true;
-	baseResourceManager->hasImageBufferSubrange = true;
+	baseResourceManager->hasTextureBufferSubrange = true;
 	baseResourceManager->maxIndexSize = sizeof(uint32_t);
 	baseResourceManager->maxUniformBlockSize = getMaxBufferLength(device);
 	baseResourceManager->maxVertexAttribs = 31;
@@ -828,7 +828,7 @@ dsResourceManager* dsMTLResourceManager_create(dsAllocator* allocator, dsRendere
 	baseResourceManager->lineWidthRange.y = 1.0f;
 
 	baseResourceManager->maxTextureSize = getMaxTextureSize(mtlRenderer->featureSet);
-	baseResourceManager->maxImageBufferElements =
+	baseResourceManager->maxTextureBufferElements =
 		DS_IMAGE_BUFFER_WIDTH*baseResourceManager->maxTextureSize;
 	baseResourceManager->maxTextureDepth = 2048;
 	baseResourceManager->maxTextureArrayLevels = 2048;
@@ -876,7 +876,7 @@ dsResourceManager* dsMTLResourceManager_create(dsAllocator* allocator, dsRendere
 	baseResourceManager->offscreenFormatSupportedFunc =
 		&dsMTLResourceManager_offscreenFormatSupported;
 #if DS_IOS || MAC_OS_X_VERSION_MIN_REQUIRED >= 101300
-	baseResourceManager->imageBufferFormatSupportedFunc =
+	baseResourceManager->textureBufferFormatSupportedFunc =
 		&dsMTLResourceManager_textureFormatSupported;
 #endif
 	baseResourceManager->generateMipmapFormatSupportedFunc =

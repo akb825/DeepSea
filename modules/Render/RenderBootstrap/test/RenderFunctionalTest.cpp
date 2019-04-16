@@ -982,7 +982,7 @@ TEST_P(RendererFunctionalTest, ComputeShaderIndirect)
 	DS_VERIFY(dsGfxBuffer_destroy(buffer));
 }
 
-TEST_P(RendererFunctionalTest, ImageBuffer)
+TEST_P(RendererFunctionalTest, TextureBuffer)
 {
 	const uint32_t invocationCount = 10;
 	if (renderer->maxComputeWorkGroupSize[0] < invocationCount)
@@ -991,9 +991,9 @@ TEST_P(RendererFunctionalTest, ImageBuffer)
 		return;
 	}
 
-	if (!(resourceManager->supportedBuffers & dsGfxBufferUsage_Image))
+	if (!(resourceManager->supportedBuffers & dsGfxBufferUsage_Texture))
 	{
-		DS_LOG_INFO("RenderFunctionalTest", "Image buffers not supported: skipping test.");
+		DS_LOG_INFO("RenderFunctionalTest", "Texture buffers not supported: skipping test.");
 		return;
 	}
 
@@ -1007,14 +1007,14 @@ TEST_P(RendererFunctionalTest, ImageBuffer)
 		sizeof(values));
 	ASSERT_TRUE(buffer);
 
-	dsGfxBuffer* imageBuffer = dsGfxBuffer_create(resourceManager, (dsAllocator*)&allocator,
-		dsGfxBufferUsage_Image, dsGfxMemory_Static, values,
+	dsGfxBuffer* textureBuffer = dsGfxBuffer_create(resourceManager, (dsAllocator*)&allocator,
+		dsGfxBufferUsage_Texture, dsGfxMemory_Static, values,
 		sizeof(values));
 	ASSERT_TRUE(buffer);
 
 	dsMaterialElement materialElements[] =
 	{
-		{"image", dsMaterialType_ImageBuffer, 0, NULL, false, 0},
+		{"testTexBuffer", dsMaterialType_TextureBuffer, 0, NULL, false, 0},
 		{"TestBuffer", dsMaterialType_UniformBuffer, 0, NULL, false, 0}
 	};
 
@@ -1026,9 +1026,9 @@ TEST_P(RendererFunctionalTest, ImageBuffer)
 		materialDesc);
 	ASSERT_TRUE(material);
 
-	uint32_t imageIdx = dsMaterialDesc_findElement(materialDesc, "image");
-	ASSERT_NE(DS_MATERIAL_UNKNOWN, imageIdx);
-	ASSERT_TRUE(dsMaterial_setImageBuffer(material, imageIdx, imageBuffer,
+	uint32_t textureIdx = dsMaterialDesc_findElement(materialDesc, "testTexBuffer");
+	ASSERT_NE(DS_MATERIAL_UNKNOWN, textureIdx);
+	ASSERT_TRUE(dsMaterial_setTextureBuffer(material, textureIdx, textureBuffer,
 		dsGfxFormat_decorate(dsGfxFormat_R32, dsGfxFormat_UInt), 0, invocationCount));
 
 	uint32_t bufferIdx = dsMaterialDesc_findElement(materialDesc, "TestBuffer");
@@ -1037,11 +1037,11 @@ TEST_P(RendererFunctionalTest, ImageBuffer)
 
 	dsShaderModule* shaderModule = dsShaderModule_loadResource(resourceManager,
 		(dsAllocator*)&allocator, dsFileResourceType_Embedded,
-		getShaderPath("CopyImageBuffer.mslb"), "CopyImageBuffer");
+		getShaderPath("CopyTextureBuffer.mslb"), "CopyTextureBuffer");
 	ASSERT_TRUE(shaderModule);
 
 	dsShader* shader = dsShader_createName(resourceManager, (dsAllocator*)&allocator, shaderModule,
-		"CopyImageBuffer", materialDesc);
+		"CopyTextureBuffer", materialDesc);
 	ASSERT_TRUE(shader);
 
 	dsCommandBuffer* commandBuffer = renderer->mainCommandBuffer;
@@ -1058,12 +1058,12 @@ TEST_P(RendererFunctionalTest, ImageBuffer)
 		EXPECT_EQ(values[i], data[i]);
 	EXPECT_TRUE(dsGfxBuffer_unmap(buffer));
 
-	auto newData = reinterpret_cast<uint32_t*>(dsGfxBuffer_map(imageBuffer, dsGfxBufferMap_Write, 0,
+	auto newData = reinterpret_cast<uint32_t*>(dsGfxBuffer_map(textureBuffer, dsGfxBufferMap_Write, 0,
 		buffer->size));
 	ASSERT_TRUE(newData);
 	for (uint32_t i = 0; i < invocationCount; ++i)
 		newData[i] = values[i] = i*3 + 1;
-	EXPECT_TRUE(dsGfxBuffer_unmap(imageBuffer));
+	EXPECT_TRUE(dsGfxBuffer_unmap(textureBuffer));
 
 	ASSERT_TRUE(dsShader_bindCompute(shader, commandBuffer, material, NULL));
 	ASSERT_TRUE(dsRenderer_dispatchCompute(renderer, commandBuffer, invocationCount, 1, 1));
@@ -1082,6 +1082,6 @@ TEST_P(RendererFunctionalTest, ImageBuffer)
 	DS_VERIFY(dsShaderModule_destroy(shaderModule));
 	dsMaterial_destroy(material);
 	DS_VERIFY(dsMaterialDesc_destroy(materialDesc));
-	DS_VERIFY(dsGfxBuffer_destroy(imageBuffer));
+	DS_VERIFY(dsGfxBuffer_destroy(textureBuffer));
 	DS_VERIFY(dsGfxBuffer_destroy(buffer));
 }

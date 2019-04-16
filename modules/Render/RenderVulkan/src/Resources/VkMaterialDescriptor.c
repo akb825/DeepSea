@@ -232,8 +232,8 @@ dsVkMaterialDescriptor* dsVkMaterialDescriptor_create(dsRenderer* renderer, dsAl
 				++imageInfoIndex;
 				break;
 			}
+			case dsMaterialType_TextureBuffer:
 			case dsMaterialType_ImageBuffer:
-			case dsMaterialType_MutableImageBuffer:
 			{
 				DS_ASSERT(bufferViewIndex < deviceMaterial->bufferViewCount);
 				dsVkTexelBufferBinding* bufferBinding = descriptor->texelBuffers + bufferViewIndex;

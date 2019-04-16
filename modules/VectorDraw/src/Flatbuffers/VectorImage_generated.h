@@ -2346,23 +2346,23 @@ inline const DeepSeaVectorDraw::VectorImage *GetSizePrefixedVectorImage(const vo
   return flatbuffers::GetSizePrefixedRoot<DeepSeaVectorDraw::VectorImage>(buf);
 }
 
-inline bool VerifyVectorImageBuffer(
+inline bool VerifyVectorTextureBuffer(
     flatbuffers::Verifier &verifier) {
   return verifier.VerifyBuffer<DeepSeaVectorDraw::VectorImage>(nullptr);
 }
 
-inline bool VerifySizePrefixedVectorImageBuffer(
+inline bool VerifySizePrefixedVectorTextureBuffer(
     flatbuffers::Verifier &verifier) {
   return verifier.VerifySizePrefixedBuffer<DeepSeaVectorDraw::VectorImage>(nullptr);
 }
 
-inline void FinishVectorImageBuffer(
+inline void FinishVectorTextureBuffer(
     flatbuffers::FlatBufferBuilder &fbb,
     flatbuffers::Offset<DeepSeaVectorDraw::VectorImage> root) {
   fbb.Finish(root);
 }
 
-inline void FinishSizePrefixedVectorImageBuffer(
+inline void FinishSizePrefixedVectorTextureBuffer(
     flatbuffers::FlatBufferBuilder &fbb,
     flatbuffers::Offset<DeepSeaVectorDraw::VectorImage> root) {
   fbb.FinishSizePrefixed(root);

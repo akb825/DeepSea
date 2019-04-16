@@ -59,19 +59,19 @@ static bool setSharedMaterialValues(dsCommandBuffer* commandBuffer,
 					dsGLCommandBuffer_setTexture(commandBuffer, shader, i, NULL);
 				break;
 			}
+			case dsMaterialType_TextureBuffer:
 			case dsMaterialType_ImageBuffer:
-			case dsMaterialType_MutableImageBuffer:
 			{
 				if (glShader->uniforms[i].location < 0)
 					continue;
 
 				dsGfxFormat format;
 				size_t offset, count;
-				dsGfxBuffer* buffer = dsSharedMaterialValues_getImageBufferId(&format,
+				dsGfxBuffer* buffer = dsSharedMaterialValues_getTextureBufferId(&format,
 					&offset, &count, sharedValues, i);
 				if (buffer)
 				{
-					dsGLCommandBuffer_setImageBuffer(commandBuffer, shader, i, buffer,
+					dsGLCommandBuffer_setTextureBuffer(commandBuffer, shader, i, buffer,
 						format, offset, count);
 				}
 				else
@@ -188,11 +188,11 @@ static bool bindMaterial(dsCommandBuffer* commandBuffer, const dsShader* shader,
 				{
 					dsGfxFormat format;
 					size_t offset, count;
-					dsGfxBuffer* buffer = dsMaterial_getImageBuffer(&format, &offset, &count,
+					dsGfxBuffer* buffer = dsMaterial_getTextureBuffer(&format, &offset, &count,
 						material, i);
 					if (buffer)
 					{
-						dsGLCommandBuffer_setImageBuffer(commandBuffer, shader, i, buffer,
+						dsGLCommandBuffer_setTextureBuffer(commandBuffer, shader, i, buffer,
 							format, offset, count);
 					}
 					else
@@ -200,19 +200,19 @@ static bool bindMaterial(dsCommandBuffer* commandBuffer, const dsShader* shader,
 				}
 				break;
 			}
+			case dsMaterialType_TextureBuffer:
 			case dsMaterialType_ImageBuffer:
-			case dsMaterialType_MutableImageBuffer:
 			{
 				if (glShader->uniforms[i].location < 0)
 					continue;
 
 				dsGfxFormat format;
 				size_t offset, count;
-				dsGfxBuffer* buffer = dsMaterial_getImageBuffer(&format, &offset, &count, material,
+				dsGfxBuffer* buffer = dsMaterial_getTextureBuffer(&format, &offset, &count, material,
 					i);
 				if (buffer)
 				{
-					dsGLCommandBuffer_setImageBuffer(commandBuffer, shader, i, buffer,
+					dsGLCommandBuffer_setTextureBuffer(commandBuffer, shader, i, buffer,
 						format, offset, count);
 				}
 				else
@@ -443,11 +443,11 @@ bool dsGLCommandBuffer_setTexture(dsCommandBuffer* commandBuffer, const dsShader
 	return functions->setTextureFunc(commandBuffer, shader, element, texture);
 }
 
-bool dsGLCommandBuffer_setImageBuffer(dsCommandBuffer* commandBuffer, const dsShader* shader,
+bool dsGLCommandBuffer_setTextureBuffer(dsCommandBuffer* commandBuffer, const dsShader* shader,
 	uint32_t element, dsGfxBuffer* buffer, dsGfxFormat format, size_t offset, size_t count)
 {
 	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
-	return functions->setImageBufferFunc(commandBuffer, shader, element, buffer, format, offset,
+	return functions->setTextureBufferFunc(commandBuffer, shader, element, buffer, format, offset,
 		count);
 }
 

@@ -119,7 +119,7 @@ static const dsMaterialType materialTypeMap[] =
 	dsMaterialType_Image, // mslType_Image2DArray
 	dsMaterialType_Image, // mslType_Image2DMS
 	dsMaterialType_Image, // mslType_Image2DMSArray
-	dsMaterialType_Image, // mslType_ImageBuffer
+	dsMaterialType_Image, // mslType_TextureBuffer
 	dsMaterialType_Image, // mslType_Image2DRect
 	dsMaterialType_Image, // mslType_IImage1D
 	dsMaterialType_Image, // mslType_IImage2D

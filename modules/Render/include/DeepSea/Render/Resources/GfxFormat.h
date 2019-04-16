@@ -199,19 +199,19 @@ DS_RENDER_EXPORT bool dsGfxFormat_offscreenSupported(const dsResourceManager* re
 	dsGfxFormat format);
 
 /**
- * @brief Checks whether or not a graphics format is supported for image buffers.
+ * @brief Checks whether or not a graphics format is supported for texture buffers.
  * @param resourceManager The resource manager.
  * @param format The graphics format to check.
- * @return True if the format can be used for image buffers.
+ * @return True if the format can be used for texture buffers.
  */
-DS_RENDER_EXPORT bool dsGfxFormat_imageBufferSupported(const dsResourceManager* resourceManager,
+DS_RENDER_EXPORT bool dsGfxFormat_textureBufferSupported(const dsResourceManager* resourceManager,
 	dsGfxFormat format);
 
 /**
  * @brief Checks whether or not a format can have mipmaps generated.
  * @param resourceManager The resource manager.
  * @param format The graphics format to check.
- * @return True if the format can be used for image buffers.
+ * @return True if the format can be used for texture buffers.
  */
 DS_RENDER_EXPORT bool dsGfxFormat_generateMipmapsSupported(const dsResourceManager* resourceManager,
 	dsGfxFormat format);

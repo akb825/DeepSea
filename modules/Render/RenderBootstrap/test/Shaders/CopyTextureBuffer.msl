@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-uniform usamplerBuffer image;
+uniform usamplerBuffer testTexBuffer;
 
 buffer TestBuffer
 {
@@ -24,10 +24,10 @@ buffer TestBuffer
 void process()
 {
 	for (uint i = 0; i < gl_NumWorkGroups.x; ++i)
-		data[i] = texelFetch(image, int(i)).r;
+		data[i] = texelFetch(testTexBuffer, int(i)).r;
 }
 
-pipeline CopyImageBuffer
+pipeline CopyTextureBuffer
 {
 	compute = process;
 }

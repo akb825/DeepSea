@@ -55,7 +55,7 @@ static bool offscreenFormatSupported(const dsResourceManager* resourceManager, d
 	return !dsGfxFormat_compressedIndex(format);
 }
 
-static bool imageBufferFormatSupported(const dsResourceManager* resourceManager,
+static bool textureBufferFormatSupported(const dsResourceManager* resourceManager,
 	dsGfxFormat format)
 {
 	DS_UNUSED(resourceManager);
@@ -119,20 +119,20 @@ dsResourceManager* dsMockResourceManager_create(dsRenderer* renderer, dsAllocato
 	resourceManager->allocator = dsAllocator_keepPointer(allocator);
 	resourceManager->maxResourceContexts = 1;
 	resourceManager->minNonCoherentMappingAlignment = 16;
-	resourceManager->minImageBufferAlignment = 16;
+	resourceManager->minTextureBufferAlignment = 16;
 	resourceManager->minUniformBlockAlignment = 16;
 	resourceManager->minUniformBufferAlignment = 16;
 	resourceManager->supportedBuffers = (dsGfxBufferUsage)(dsGfxBufferUsage_Index |
 		dsGfxBufferUsage_Vertex | dsGfxBufferUsage_IndirectDraw |
 		dsGfxBufferUsage_IndirectDispatch | dsGfxBufferUsage_UniformBlock |
-		dsGfxBufferUsage_UniformBuffer | dsGfxBufferUsage_Image | dsGfxBufferUsage_MutableImage |
+		dsGfxBufferUsage_UniformBuffer | dsGfxBufferUsage_Texture | dsGfxBufferUsage_Image |
 		dsGfxBufferUsage_CopyFrom | dsGfxBufferUsage_CopyTo);
 	resourceManager->bufferMapSupport = dsGfxBufferMapSupport_Persistent;
 	resourceManager->canCopyBuffers = true;
-	resourceManager->hasImageBufferSubrange = true;
+	resourceManager->hasTextureBufferSubrange = true;
 	resourceManager->maxIndexSize = (uint32_t)sizeof(uint32_t);
 	resourceManager->maxUniformBlockSize = 1024*1024*1024;
-	resourceManager->maxImageBufferElements = 16*1024*1024;
+	resourceManager->maxTextureBufferElements = 16*1024*1024;
 	resourceManager->maxVertexAttribs = 16;
 	resourceManager->maxSamplers = 16;
 	resourceManager->maxVertexSamplers = 16;
@@ -159,7 +159,7 @@ dsResourceManager* dsMockResourceManager_create(dsRenderer* renderer, dsAllocato
 	resourceManager->vertexFormatSupportedFunc = &vertexFormatSupported;
 	resourceManager->textureFormatSupportedFunc = &textureFormatSupported;
 	resourceManager->offscreenFormatSupportedFunc = &offscreenFormatSupported;
-	resourceManager->imageBufferFormatSupportedFunc = &imageBufferFormatSupported;
+	resourceManager->textureBufferFormatSupportedFunc = &textureBufferFormatSupported;
 	resourceManager->generateMipmapFormatSupportedFunc = &generateMipmapsFormatSupported;
 	resourceManager->textureCopyFormatsSupportedFunc = &copyFormatsSupported;
 	resourceManager->surfaceBlitFormatsSupportedFunc = &blitFormatsSupported;

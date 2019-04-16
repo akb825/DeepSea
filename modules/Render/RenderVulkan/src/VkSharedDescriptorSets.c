@@ -138,13 +138,13 @@ static bool setupElements(bool* outIsEqual, dsVkSharedDescriptorSets* descriptor
 				descriptors->images[index] = imageInfo;
 				break;
 			}
+			case dsMaterialType_TextureBuffer:
 			case dsMaterialType_ImageBuffer:
-			case dsMaterialType_MutableImageBuffer:
 			{
 				dsGfxFormat format;
 				size_t offset;
 				size_t count;
-				dsGfxBuffer* buffer = dsSharedMaterialValues_getImageBufferId(&format, &offset,
+				dsGfxBuffer* buffer = dsSharedMaterialValues_getTextureBufferId(&format, &offset,
 					&count, sharedValues, element->nameId);
 
 				VkBufferView bufferView = 0;
@@ -383,8 +383,8 @@ static bool setDescriptorBindings(dsVkSharedDescriptorSets* descriptors,
 				if (!pImageInfo)
 					continue;
 				break;
+			case dsMaterialType_TextureBuffer:
 			case dsMaterialType_ImageBuffer:
-			case dsMaterialType_MutableImageBuffer:
 				DS_ASSERT(texelBufferIndex < descriptors->texelBufferCount);
 				if (descriptors->texelBuffers[texelBufferIndex])
 					pTexelBufferView = descriptors->texelBuffers + texelBufferIndex;

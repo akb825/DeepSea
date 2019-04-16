@@ -30,7 +30,7 @@
 typedef enum Type
 {
 	Type_Texture,
-	Type_ImageBuffer,
+	Type_TextureBuffer,
 	Type_ShaderVariableGroup,
 	Type_Buffer
 } Type;
@@ -113,21 +113,21 @@ static bool setValue(dsSharedMaterialValues* values, uint32_t nameId, Type type,
 	return true;
 }
 
-static bool canUseImageBuffer(dsGfxBuffer* buffer, dsGfxFormat format, size_t offset,
+static bool canUseTextureBuffer(dsGfxBuffer* buffer, dsGfxFormat format, size_t offset,
 	size_t count)
 {
 	if (!buffer)
 		return true;
 
 	dsResourceManager* resourceManager = buffer->resourceManager;
-	if (!dsGfxFormat_imageBufferSupported(resourceManager, format))
+	if (!dsGfxFormat_textureBufferSupported(resourceManager, format))
 	{
 		errno = EINVAL;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Format not supported for image buffers.");
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Format not supported for texture buffers.");
 		return false;
 	}
 
-	if (!(buffer->usage & (dsGfxBufferUsage_Image | dsGfxBufferUsage_MutableImage)))
+	if (!(buffer->usage & (dsGfxBufferUsage_Texture | dsGfxBufferUsage_Image)))
 	{
 		errno = EINVAL;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Buffer doesn't support being used as a texture.");
@@ -142,29 +142,29 @@ static bool canUseImageBuffer(dsGfxBuffer* buffer, dsGfxFormat format, size_t of
 		return false;
 	}
 
-	if (!resourceManager->hasImageBufferSubrange && (offset != 0 ||
+	if (!resourceManager->hasTextureBufferSubrange && (offset != 0 ||
 		count*formatSize != buffer->size))
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
-			"Current target doesn't support using a subrange of a image buffer.");
+			"Current target doesn't support using a subrange of a texture buffer.");
 		return false;
 	}
 
-	if (resourceManager->minImageBufferAlignment > 0 &&
-		(offset % resourceManager->minImageBufferAlignment) != 0)
+	if (resourceManager->minTextureBufferAlignment > 0 &&
+		(offset % resourceManager->minTextureBufferAlignment) != 0)
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
-			"Image buffer offset doesn't match alignment requirements.");
+			"Texture buffer offset doesn't match alignment requirements.");
 		return false;
 	}
 
-	if (count > resourceManager->maxImageBufferElements)
+	if (count > resourceManager->maxTextureBufferElements)
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
-			"Image buffer elements exceeds the maximum for the current target.");
+			"Texture buffer elements exceeds the maximum for the current target.");
 		return false;
 	}
 
@@ -321,27 +321,27 @@ bool dsSharedMaterialValues_setTextureId(dsSharedMaterialValues* values, uint32_
 	return setValue(values, nameId, Type_Texture, texture, dsGfxFormat_Unknown, 0, 0);
 }
 
-dsGfxBuffer* dsSharedMaterialValues_getImageBufferName(dsGfxFormat* outFormat,
+dsGfxBuffer* dsSharedMaterialValues_getTextureBufferName(dsGfxFormat* outFormat,
 	size_t* outOffset, size_t* outCount, const dsSharedMaterialValues* values, const char* name)
 {
 	if (!values || !name)
 		return NULL;
 
 	return (dsGfxBuffer*)getValue(outFormat, outOffset, outCount, values, dsHashString(name),
-		Type_ImageBuffer);
+		Type_TextureBuffer);
 }
 
-dsGfxBuffer* dsSharedMaterialValues_getImageBufferId(dsGfxFormat* outFormat, size_t* outOffset,
+dsGfxBuffer* dsSharedMaterialValues_getTextureBufferId(dsGfxFormat* outFormat, size_t* outOffset,
 	size_t* outCount, const dsSharedMaterialValues* values, uint32_t nameId)
 {
 	if (!values)
 		return NULL;
 
 	return (dsGfxBuffer*)getValue(outFormat, outOffset, outCount, values, nameId,
-		Type_ImageBuffer);
+		Type_TextureBuffer);
 }
 
-bool dsSharedMaterialValues_setImageBufferName(dsSharedMaterialValues* values,
+bool dsSharedMaterialValues_setTextureBufferName(dsSharedMaterialValues* values,
 	const char* name, dsGfxBuffer* buffer, dsGfxFormat format, size_t offset, size_t count)
 {
 	if (!values || !name)
@@ -350,13 +350,13 @@ bool dsSharedMaterialValues_setImageBufferName(dsSharedMaterialValues* values,
 		return false;
 	}
 
-	if (!canUseImageBuffer(buffer, format, offset, count))
+	if (!canUseTextureBuffer(buffer, format, offset, count))
 		return false;
 
-	return setValue(values, dsHashString(name), Type_ImageBuffer, buffer, format, offset, count);
+	return setValue(values, dsHashString(name), Type_TextureBuffer, buffer, format, offset, count);
 }
 
-bool dsSharedMaterialValues_setImageBufferId(dsSharedMaterialValues* values, uint32_t nameId,
+bool dsSharedMaterialValues_setTextureBufferId(dsSharedMaterialValues* values, uint32_t nameId,
 	dsGfxBuffer* buffer, dsGfxFormat format, size_t offset, size_t count)
 {
 	if (!values)
@@ -365,10 +365,10 @@ bool dsSharedMaterialValues_setImageBufferId(dsSharedMaterialValues* values, uin
 		return false;
 	}
 
-	if (!canUseImageBuffer(buffer, format, offset, count))
+	if (!canUseTextureBuffer(buffer, format, offset, count))
 		return false;
 
-	return setValue(values, nameId, Type_ImageBuffer, buffer, format, offset, count);
+	return setValue(values, nameId, Type_TextureBuffer, buffer, format, offset, count);
 }
 
 dsShaderVariableGroup* dsSharedMaterialValues_getVariableGroupName(

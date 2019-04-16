@@ -85,8 +85,8 @@ typedef enum dsGfxBufferUsage
 	dsGfxBufferUsage_IndirectDispatch = 0x008, ///< Indirect dispatch information.
 	dsGfxBufferUsage_UniformBlock = 0x010,     ///< Shader uniform block.
 	dsGfxBufferUsage_UniformBuffer = 0x020,    ///< Shader uniform buffer, modifiable by the shader.
-	dsGfxBufferUsage_Image = 0x040,            ///< Shader image buffer.
-	dsGfxBufferUsage_MutableImage = 0x080,     ///< Shader image buffer that can be stored to.
+	dsGfxBufferUsage_Texture = 0x040,          ///< Shader texture buffer.
+	dsGfxBufferUsage_Image = 0x080,            ///< Shader image buffer that can be stored to.
 	dsGfxBufferUsage_CopyFrom = 0x100,         ///< Source for GPU copy operations.
 	dsGfxBufferUsage_CopyTo = 0x200            ///< Destination for GPU and CPU copy operations.
 } dsGfxBufferUsage;
@@ -1810,9 +1810,9 @@ struct dsResourceManager
 	uint32_t minNonCoherentMappingAlignment;
 
 	/**
-	 * @brief The minimum alignment for an image buffer offset.
+	 * @brief The minimum alignment for an texture buffer offset.
 	 */
-	uint32_t minImageBufferAlignment;
+	uint32_t minTextureBufferAlignment;
 
 	/**
 	 * @brief The minimum alignment for a uniform block offset.
@@ -1840,9 +1840,9 @@ struct dsResourceManager
 	bool canCopyBuffers;
 
 	/**
-	 * @brief Whether or not image buffers can be a subrange of the buffer.
+	 * @brief Whether or not texture buffers can be a subrange of the buffer.
 	 */
-	bool hasImageBufferSubrange;
+	bool hasTextureBufferSubrange;
 
 	/**
 	 * @brief The maximum size for each index in bytes.
@@ -1855,9 +1855,9 @@ struct dsResourceManager
 	size_t maxUniformBlockSize;
 
 	/**
-	 * @brief The maximum number of elements in a image buffer.
+	 * @brief The maximum number of elements in a texture buffer.
 	 */
-	size_t maxImageBufferElements;
+	size_t maxTextureBufferElements;
 
 	/**
 	 * @brief The maximum number of vertex attributes.
@@ -2098,9 +2098,9 @@ struct dsResourceManager
 	dsFormatSupportedFunction offscreenFormatSupportedFunc;
 
 	/**
-	 * @brief Image buffer format supported function.
+	 * @brief Texture buffer format supported function.
 	 */
-	dsFormatSupportedFunction imageBufferFormatSupportedFunc;
+	dsFormatSupportedFunction textureBufferFormatSupportedFunc;
 
 	/**
 	 * @brief Texture mipmap generation validity check function.

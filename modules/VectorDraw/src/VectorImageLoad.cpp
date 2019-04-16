@@ -478,7 +478,7 @@ dsVectorImage* dsVectorImage_loadImpl(dsAllocator* allocator, dsAllocator* resou
 	const dsVector2f* targetSize, const char* name)
 {
 	flatbuffers::Verifier verifier(reinterpret_cast<const uint8_t*>(data), size);
-	if (!DeepSeaVectorDraw::VerifyVectorImageBuffer(verifier))
+	if (!DeepSeaVectorDraw::VerifyVectorTextureBuffer(verifier))
 	{
 		errno = EFORMAT;
 		printFlatbufferError(name);
