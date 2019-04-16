@@ -1533,7 +1533,7 @@ static void postFlush(dsRenderer* renderer)
 	dsVkSubmitInfo* submit = vkRenderer->submits + vkRenderer->curSubmit;
 	dsCommandBuffer* submitBuffer = (dsCommandBuffer*)&submit->commandBuffer;
 
-	// Wait untile we can use the command buffer.
+	// Wait until we can use the command buffer.
 	if (submit->submitIndex != DS_NOT_SUBMITTED)
 	{
 		DS_PROFILE_WAIT_START("vkWaitForFences");

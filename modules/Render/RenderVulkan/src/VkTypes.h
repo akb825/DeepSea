@@ -522,6 +522,14 @@ typedef struct dsVkSamplerMapping
 	uint32_t samplerIndex;
 } dsVkSamplerMapping;
 
+typedef struct dsVkPushConstantMapping
+{
+	uint32_t materialElement;
+	uint32_t offset;
+	uint32_t count;
+	uint32_t stride;
+} dsVkPushConstantMapping;
+
 typedef struct dsVkShader
 {
 	dsShader shader;
@@ -558,6 +566,10 @@ typedef struct dsVkShader
 	float depthBiasSlopeFactor;
 
 	dsVkComputePipeline* computePipeline;
+
+	dsVkPushConstantMapping* pushConstants;
+	uint32_t pushConstantCount;
+	uint32_t pushConstantSize;
 
 	dsLifetime** usedMaterials;
 	uint32_t usedMaterialCount;

@@ -36,6 +36,7 @@
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Render/Resources/Material.h>
 #include <DeepSea/Render/Resources/MaterialDesc.h>
+#include <DeepSea/Render/Resources/MaterialType.h>
 
 #include <MSL/Client/ModuleC.h>
 #include <string.h>
@@ -255,9 +256,10 @@ static void copyBlendAttachmentState(VkPipelineColorBlendAttachmentState* vkBlen
 }
 
 static size_t fullAllocSize(const mslModule* module, const mslPipeline* pipeline,
-	const dsMaterialDesc* materialDesc, uint32_t samplerCount)
+	const dsMaterialDesc* materialDesc, uint32_t pushConstantCount, uint32_t samplerCount)
 {
 	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsVkShader)) +
+		DS_ALIGNED_SIZE(sizeof(dsVkPushConstantMapping)*pushConstantCount) +
 		(samplerCount > 0 ?
 			DS_ALIGNED_SIZE(sizeof(dsVkSamplerMapping)*materialDesc->elementCount) : 0U);
 	for (int i = 0; i < mslStage_Count; ++i)
@@ -618,42 +620,43 @@ static bool bindPushConstants(dsCommandBuffer* commandBuffer, const dsShader* sh
 	const dsVkShader* vkShader = (const dsVkShader*)shader;
 	const dsMaterialDesc* materialDesc = shader->materialDesc;
 
-	uint32_t pipeline = shader->pipelineIndex;
-	uint32_t structIndex = shader->pipeline->pushConstantStruct;
-	if (structIndex == MSL_UNKNOWN)
+	if (vkShader->pushConstantSize == 0)
 		return true;
 
 	VkCommandBuffer vkCommandBuffer = dsVkCommandBuffer_getCommandBuffer(commandBuffer);
 	if (!vkCommandBuffer)
 		return false;
 
-	const mslModule* module = shader->module->module;
-	mslStruct pushConstantStruct;
-	DS_VERIFY(mslModule_struct(&pushConstantStruct, module, pipeline, structIndex));
-
 	uint8_t* pushConstantData = dsVkCommandBuffer_allocatePushConstantData(commandBuffer,
-		pushConstantStruct.size);
+		vkShader->pushConstantSize);
 	if (!pushConstantData)
 		return false;
 
-	for (uint32_t i = 0; i < pushConstantStruct.memberCount; ++i)
+	for (uint32_t i = 0; i < vkShader->pushConstantCount; ++i)
 	{
-		mslStructMember member;
-		DS_VERIFY(mslModule_structMember(&member, module, pipeline, structIndex, i));
-		uint32_t element = dsMaterialDesc_findElement(materialDesc, member.name);
-		if (element == DS_MATERIAL_UNKNOWN)
-			return false;
-
-		dsMaterialType type = dsMaterialDesc_convertMaterialType(member.type);
-		if (!dsMaterial_getElementData(pushConstantData + member.offset, material, element, type,
-			0, dsMax(member.arrayElementCount, 1U)))
+		const dsVkPushConstantMapping* pushConstant = vkShader->pushConstants + i;
+		const dsMaterialElement* element = materialDesc->elements + pushConstant->materialElement;
+		if (pushConstant->count == 1 ||
+			pushConstant->stride == dsMaterialType_cpuSize(element->type))
 		{
-			return false;
+			// Can copy all elements at once.
+			DS_VERIFY(dsMaterial_getElementData(pushConstantData + pushConstant->offset, material,
+				pushConstant->materialElement, element->type, 0, pushConstant->count));
+		}
+		else
+		{
+			// Must copy each element individually if the stride is different from the storage.
+			for (uint32_t j = 0; j < pushConstant->count; ++j)
+			{
+				DS_VERIFY(dsMaterial_getElementData(pushConstantData + pushConstant->offset +
+					pushConstant->stride*j, material, pushConstant->materialElement, element->type,
+					j, 1));
+			}
 		}
 	}
 
 	DS_VK_CALL(device->vkCmdPushConstants)(vkCommandBuffer, vkShader->layout, stages, 0,
-		pushConstantStruct.size, pushConstantData);
+		vkShader->pushConstantSize, pushConstantData);
 	return true;
 }
 
@@ -816,11 +819,7 @@ dsShader* dsVkShader_create(dsResourceManager* resourceManager, dsAllocator* all
 	for (uint32_t i = 0; i < pipeline.uniformCount; ++i)
 	{
 		mslUniform uniform;
-		if (!mslModule_uniform(&uniform, module->module, shaderIndex, i))
-		{
-			errno = EINDEX;
-			return NULL;
-		}
+		DS_VERIFY(mslModule_uniform(&uniform, module->module, shaderIndex, i));
 		if (uniform.uniformType != mslUniformType_SampledImage ||
 			uniform.samplerIndex == MSL_UNKNOWN)
 		{
@@ -842,11 +841,23 @@ dsShader* dsVkShader_create(dsResourceManager* resourceManager, dsAllocator* all
 		}
 	}
 
+	uint32_t pushConstantCount = 0;
+	uint32_t pushConstantSize = 0;
+	if (pipeline.pushConstantStruct != MSL_UNKNOWN)
+	{
+		mslStruct pushConstant;
+		DS_VERIFY(mslModule_struct(&pushConstant, module->module, shaderIndex,
+			pipeline.pushConstantStruct));
+		pushConstantCount = pushConstant.memberCount;
+		pushConstantSize = pushConstant.size;
+	}
+
 	dsAllocator* scratchAllocator = allocator;
 	if (!scratchAllocator->freeFunc)
 		scratchAllocator = resourceManager->allocator;
 
-	size_t fullSize = fullAllocSize(module->module, &pipeline, materialDesc, samplerCount);
+	size_t fullSize = fullAllocSize(module->module, &pipeline, materialDesc, pushConstantCount,
+		samplerCount);
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 		return NULL;
@@ -877,6 +888,46 @@ dsShader* dsVkShader_create(dsResourceManager* resourceManager, dsAllocator* all
 	shader->scratchAllocator = scratchAllocator;
 	shader->lifetime = lifetime;
 	shader->pipeline = pipeline;
+
+	if (pushConstantCount > 0)
+	{
+		shader->pushConstants = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
+			dsVkPushConstantMapping, pushConstantCount);
+		DS_ASSERT(shader->pushConstants);
+		shader->pushConstantCount = pushConstantCount;
+		for (uint32_t i = 0; i < pushConstantCount; ++i)
+		{
+			dsVkPushConstantMapping* pushConstant = shader->pushConstants + i;
+			mslStructMember member;
+			DS_VERIFY(mslModule_structMember(&member, module->module, shaderIndex,
+				pipeline.pushConstantStruct, i));
+			pushConstant->materialElement = dsMaterialDesc_findElement(materialDesc, member.name);
+			DS_ASSERT(pushConstant->materialElement != DS_MATERIAL_UNKNOWN);
+			DS_ASSERT(dsMaterialDesc_convertMaterialType(member.type) ==
+				materialDesc->elements[pushConstant->materialElement].type);
+			pushConstant->offset = member.offset;
+
+			// Should have been varified to have at most 1 array element in initial shader load.
+			DS_ASSERT(member.arrayElementCount <= 1);
+			if (member.arrayElementCount == 1)
+			{
+				mslArrayInfo arrayInfo;
+				DS_VERIFY(mslModule_structMemberArrayInfo(&arrayInfo, module->module, shaderIndex,
+					pipeline.pushConstantStruct, i, 0));
+				pushConstant->count = arrayInfo.length;
+				pushConstant->stride = arrayInfo.stride;
+			}
+			else
+			{
+				pushConstant->count = 1;
+				pushConstant->stride = 0;
+			}
+		}
+	}
+	else
+		shader->pushConstants = NULL;
+	shader->pushConstantCount = pushConstantCount;
+	shader->pushConstantSize = pushConstantSize;
 
 	if (samplerCount > 0)
 	{
