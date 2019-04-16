@@ -334,7 +334,7 @@ static void freeAllResources(dsVkResourceList* deleteList, bool ignoreCommandBuf
 	deleteList->renderPassCount = finalCount;
 }
 
-static void freeResources(dsVkRenderer* renderer)
+static void freeResources(dsVkRenderer* renderer, uint64_t finishedSubmitCount)
 {
 	dsRenderer* baseRenderer = (dsRenderer*)renderer;
 
@@ -348,9 +348,9 @@ static void freeResources(dsVkRenderer* renderer)
 		dsVkGfxBufferData* buffer = prevDeleteList->buffers[i];
 		DS_ASSERT(buffer);
 
-		bool stillInUse = dsVkResource_isInUse(&buffer->resource, baseRenderer) ||
+		bool stillInUse = dsVkResource_isInUse(&buffer->resource, finishedSubmitCount) ||
 			(buffer->uploadedSubmit != DS_NOT_SUBMITTED &&
-				buffer->uploadedSubmit > renderer->finishedSubmitCount);
+				buffer->uploadedSubmit > finishedSubmitCount);
 		if (stillInUse)
 		{
 			dsVkRenderer_deleteGfxBuffer(baseRenderer, buffer);
@@ -366,11 +366,11 @@ static void freeResources(dsVkRenderer* renderer)
 		DS_ASSERT(texture);
 		dsVkTexture* vkTexture = (dsVkTexture*)texture;
 
-		bool stillInUse = dsVkResource_isInUse(&vkTexture->resource, baseRenderer) ||
+		bool stillInUse = dsVkResource_isInUse(&vkTexture->resource, finishedSubmitCount) ||
 			(vkTexture->uploadedSubmit != DS_NOT_SUBMITTED &&
-				vkTexture->uploadedSubmit > renderer->finishedSubmitCount) ||
+				vkTexture->uploadedSubmit > finishedSubmitCount) ||
 			(vkTexture->lastDrawSubmit != DS_NOT_SUBMITTED &&
-				vkTexture->lastDrawSubmit > renderer->finishedSubmitCount);
+				vkTexture->lastDrawSubmit > finishedSubmitCount);
 		if (stillInUse)
 		{
 			dsVkRenderer_deleteTexture(baseRenderer, texture);
@@ -385,7 +385,7 @@ static void freeResources(dsVkRenderer* renderer)
 		dsVkCopyImage* copyImage = prevDeleteList->copyImages[i];
 		DS_ASSERT(copyImage);
 
-		if (dsVkResource_isInUse(&copyImage->resource, baseRenderer))
+		if (dsVkResource_isInUse(&copyImage->resource, finishedSubmitCount))
 		{
 			dsVkRenderer_deleteCopyImage(baseRenderer, copyImage);
 			continue;
@@ -400,7 +400,7 @@ static void freeResources(dsVkRenderer* renderer)
 		DS_ASSERT(renderbuffer);
 		dsVkRenderbuffer* vkRenderbuffer = (dsVkRenderbuffer*)renderbuffer;
 
-		if (dsVkResource_isInUse(&vkRenderbuffer->resource, baseRenderer))
+		if (dsVkResource_isInUse(&vkRenderbuffer->resource, finishedSubmitCount))
 		{
 			dsVkRenderer_deleteRenderbuffer(baseRenderer, renderbuffer);
 			continue;
@@ -414,7 +414,7 @@ static void freeResources(dsVkRenderer* renderer)
 		dsVkRealFramebuffer* framebuffer = prevDeleteList->framebuffers[i];
 		DS_ASSERT(framebuffer);
 
-		if (dsVkResource_isInUse(&framebuffer->resource, baseRenderer))
+		if (dsVkResource_isInUse(&framebuffer->resource, finishedSubmitCount))
 		{
 			dsVkRenderer_deleteFramebuffer(baseRenderer, framebuffer);
 			continue;
@@ -429,7 +429,7 @@ static void freeResources(dsVkRenderer* renderer)
 		DS_ASSERT(fence);
 		dsVkGfxFence* vkFence = (dsVkGfxFence*)fence;
 
-		if (dsVkResource_isInUse(&vkFence->resource, baseRenderer))
+		if (dsVkResource_isInUse(&vkFence->resource, finishedSubmitCount))
 		{
 			dsVkRenderer_deleteFence(baseRenderer, fence);
 			continue;
@@ -444,7 +444,7 @@ static void freeResources(dsVkRenderer* renderer)
 		DS_ASSERT(queries);
 		dsVkGfxQueryPool* vkQueries = (dsVkGfxQueryPool*)queries;
 
-		if (dsVkResource_isInUse(&vkQueries->resource, baseRenderer))
+		if (dsVkResource_isInUse(&vkQueries->resource, finishedSubmitCount))
 		{
 			dsVkRenderer_deleteQueriePool(baseRenderer, queries);
 			continue;
@@ -458,7 +458,7 @@ static void freeResources(dsVkRenderer* renderer)
 		dsVkMaterialDescriptor* descriptor = prevDeleteList->descriptors[i];
 		DS_ASSERT(descriptor);
 
-		if (dsVkResource_isInUse(&descriptor->resource, baseRenderer))
+		if (dsVkResource_isInUse(&descriptor->resource, finishedSubmitCount))
 		{
 			dsVkRenderer_deleteMaterialDescriptor(baseRenderer, descriptor);
 			continue;
@@ -472,7 +472,7 @@ static void freeResources(dsVkRenderer* renderer)
 		dsVkSamplerList* samplers = prevDeleteList->samplers[i];
 		DS_ASSERT(samplers);
 
-		if (dsVkResource_isInUse(&samplers->resource, baseRenderer))
+		if (dsVkResource_isInUse(&samplers->resource, finishedSubmitCount))
 		{
 			dsVkRenderer_deleteSamplerList(baseRenderer, samplers);
 			continue;
@@ -486,7 +486,7 @@ static void freeResources(dsVkRenderer* renderer)
 		dsVkComputePipeline* pipeline = prevDeleteList->computePipelines[i];
 		DS_ASSERT(pipeline);
 
-		if (dsVkResource_isInUse(&pipeline->resource, baseRenderer))
+		if (dsVkResource_isInUse(&pipeline->resource, finishedSubmitCount))
 		{
 			dsVkRenderer_deleteComputePipeline(baseRenderer, pipeline);
 			continue;
@@ -500,7 +500,7 @@ static void freeResources(dsVkRenderer* renderer)
 		dsVkPipeline* pipeline = prevDeleteList->pipelines[i];
 		DS_ASSERT(pipeline);
 
-		if (dsVkResource_isInUse(&pipeline->resource, baseRenderer))
+		if (dsVkResource_isInUse(&pipeline->resource, finishedSubmitCount))
 		{
 			dsVkRenderer_deletePipeline(baseRenderer, pipeline);
 			continue;
@@ -514,7 +514,7 @@ static void freeResources(dsVkRenderer* renderer)
 		dsVkRenderSurfaceData* surface = prevDeleteList->renderSurfaces[i];
 		DS_ASSERT(surface);
 
-		if (dsVkResource_isInUse(&surface->resource, baseRenderer))
+		if (dsVkResource_isInUse(&surface->resource, finishedSubmitCount))
 		{
 			dsVkRenderer_deleteRenderSurface(baseRenderer, surface);
 			continue;
@@ -528,7 +528,7 @@ static void freeResources(dsVkRenderer* renderer)
 		dsVkCommandPoolData* pool = prevDeleteList->commandPools[i];
 		DS_ASSERT(pool);
 
-		if (dsVkResource_isInUse(&pool->resource, baseRenderer))
+		if (dsVkResource_isInUse(&pool->resource, finishedSubmitCount))
 		{
 			dsVkRenderer_deleteCommandPool(baseRenderer, pool);
 			continue;
@@ -542,7 +542,7 @@ static void freeResources(dsVkRenderer* renderer)
 		dsVkRenderPassData* renderPass = prevDeleteList->renderPasses[i];
 		DS_ASSERT(renderPass);
 
-		if (dsVkResource_isInUse(&renderPass->resource, baseRenderer))
+		if (dsVkResource_isInUse(&renderPass->resource, finishedSubmitCount))
 		{
 			dsVkRenderer_deleteRenderPass(baseRenderer, renderPass);
 			continue;
@@ -807,7 +807,8 @@ static void prepareTexture(dsVkRenderer* renderer, dsVkTexture* texture)
 		dsVkTexture_imageLayout(baseTexture));
 }
 
-static void processBuffers(dsVkRenderer* renderer, dsVkProcessResourceList* resourceList)
+static void processBuffers(dsVkRenderer* renderer, dsVkProcessResourceList* resourceList,
+	uint64_t finishedSubmitCount)
 {
 	dsRenderer* baseRenderer = (dsRenderer*)renderer;
 	dsVkDevice* device = &renderer->device;
@@ -862,7 +863,7 @@ static void processBuffers(dsVkRenderer* renderer, dsVkProcessResourceList* reso
 		if (doUpload)
 			buffer->uploadedSubmit = renderer->submitCount;
 		else if (buffer->hostBuffer && !buffer->keepHost &&
-			buffer->uploadedSubmit <= renderer->finishedSubmitCount)
+			buffer->uploadedSubmit <= finishedSubmitCount)
 		{
 			hostMemory = buffer->hostMemory;
 			hostBuffer = buffer->hostBuffer;
@@ -891,7 +892,8 @@ static void processBuffers(dsVkRenderer* renderer, dsVkProcessResourceList* reso
 	}
 }
 
-static void processTextures(dsVkRenderer* renderer, dsVkProcessResourceList* resourceList)
+static void processTextures(dsVkRenderer* renderer, dsVkProcessResourceList* resourceList,
+	uint64_t finishedSubmitCount)
 {
 	dsRenderer* baseRenderer = (dsRenderer*)renderer;
 	dsVkDevice* device = &renderer->device;
@@ -925,7 +927,7 @@ static void processTextures(dsVkRenderer* renderer, dsVkProcessResourceList* res
 		DS_VERIFY(dsSpinlock_unlock(&vkTexture->resource.lock));
 
 		// Queue for re-processing if we still need to delete the host image.
-		if (doUpload || vkTexture->uploadedSubmit > renderer->finishedSubmitCount)
+		if (doUpload || vkTexture->uploadedSubmit > finishedSubmitCount)
 			dsVkRenderer_processTexture(baseRenderer, texture);
 		else if (!texture->offscreen)
 		{
@@ -1030,6 +1032,8 @@ static void processResources(dsVkRenderer* renderer, VkCommandBuffer commandBuff
 		(renderer->curPendingResources + 1) % DS_PENDING_RESOURCES_ARRAY;
 	DS_VERIFY(dsSpinlock_unlock(&renderer->resourceLock));
 
+	uint64_t finishedSubmitCount = dsVkRenderer_getFinishedSubmitCount((dsRenderer*)renderer);
+
 	// Clear everything out.
 	renderer->bufferCopiesCount = 0;
 	renderer->bufferCopyInfoCount = 0;
@@ -1039,8 +1043,8 @@ static void processResources(dsVkRenderer* renderer, VkCommandBuffer commandBuff
 	dsVkBarrierList_clear(preResourceBarriers);
 	dsVkBarrierList_clear(postResourceBarriers);
 
-	processBuffers(renderer, prevResourceList);
-	processTextures(renderer, prevResourceList);
+	processBuffers(renderer, prevResourceList, finishedSubmitCount);
+	processTextures(renderer, prevResourceList, finishedSubmitCount);
 	processRenderbuffers(renderer, prevResourceList);
 	processRenderSurfaces(renderer, prevResourceList);
 
@@ -1534,22 +1538,29 @@ static void postFlush(dsRenderer* renderer)
 	dsCommandBuffer* submitBuffer = (dsCommandBuffer*)&submit->commandBuffer;
 
 	// Wait until we can use the command buffer.
+	uint64_t finishedSubmitCount;
 	if (submit->submitIndex != DS_NOT_SUBMITTED)
 	{
 		DS_PROFILE_WAIT_START("vkWaitForFences");
 		VkResult result = DS_VK_CALL(device->vkWaitForFences)(device->device, 1, &submit->fence,
 			true, DS_DEFAULT_WAIT_TIMEOUT);
+		DS_PROFILE_WAIT_END();
 		if (result == VK_ERROR_DEVICE_LOST)
 		{
 			DS_LOG_FATAL_F(DS_RENDER_VULKAN_LOG_TAG, "Vulkan device was lost.");
 			abort();
 		}
-		vkRenderer->finishedSubmitCount = submit->submitIndex;
-		DS_PROFILE_WAIT_END();
+
+		DS_VERIFY(dsMutex_lock(vkRenderer->submitLock));
+		finishedSubmitCount = dsMax(vkRenderer->finishedSubmitCount, submit->submitIndex);
+		vkRenderer->finishedSubmitCount = finishedSubmitCount;
+		DS_VERIFY(dsMutex_unlock(vkRenderer->submitLock));
 	}
+	else
+		finishedSubmitCount = dsVkRenderer_getFinishedSubmitCount(renderer);
 
 	// Free resources that are waiting to be in an unused state.
-	freeResources(vkRenderer);
+	freeResources(vkRenderer, finishedSubmitCount);
 
 	vkRenderer->mainCommandBuffer.realCommandBuffer = submitBuffer;
 	dsVkCommandBuffer_prepare(submitBuffer);
@@ -2001,6 +2012,7 @@ bool dsVkRenderer_waitUntilIdle(dsRenderer* renderer)
 	dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
 	dsVkDevice* device = &vkRenderer->device;
 
+	uint64_t submitCount = vkRenderer->submitCount;
 	preFlush(renderer, true, false);
 	DS_VK_CALL(device->vkQueueWaitIdle)(device->queue);
 	postFlush(renderer);
@@ -2009,6 +2021,10 @@ bool dsVkRenderer_waitUntilIdle(dsRenderer* renderer)
 	for (uint32_t i = 0; i < DS_DELETE_RESOURCES_ARRAY; ++i)
 		freeAllResources(vkRenderer->deleteResources + i, false);
 	DS_VERIFY(dsSpinlock_unlock(&vkRenderer->deleteLock));
+
+	DS_VERIFY(dsMutex_lock(vkRenderer->submitLock));
+	vkRenderer->finishedSubmitCount = submitCount;
+	DS_VERIFY(dsMutex_unlock(vkRenderer->submitLock));
 	return true;
 }
 
@@ -2407,8 +2423,10 @@ dsGfxFenceResult dsVkRenderer_waitForSubmit(dsRenderer* renderer, uint64_t submi
 	VkResult result;
 	if (fenceCount > 0)
 	{
+		DS_PROFILE_WAIT_START("vkWaitForFences");
 		result = DS_VK_CALL(device->vkWaitForFences)(device->device, fenceCount, fences, true,
 			timeout);
+		DS_PROFILE_WAIT_END();
 	}
 	else
 		result = VK_SUCCESS;
@@ -2433,6 +2451,15 @@ dsGfxFenceResult dsVkRenderer_waitForSubmit(dsRenderer* renderer, uint64_t submi
 			dsHandleVkResult(result);
 			return dsGfxFenceResult_Error;
 	}
+}
+
+uint64_t dsVkRenderer_getFinishedSubmitCount(const dsRenderer* renderer)
+{
+	const dsVkRenderer* vkRenderer = (const dsVkRenderer*)renderer;
+	DS_VERIFY(dsMutex_lock(vkRenderer->submitLock));
+	uint64_t finishedSubmitCount = vkRenderer->finishedSubmitCount;
+	DS_VERIFY(dsMutex_unlock(vkRenderer->submitLock));
+	return finishedSubmitCount;
 }
 
 void dsVkRenderer_processGfxBuffer(dsRenderer* renderer, dsVkGfxBufferData* buffer)

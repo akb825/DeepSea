@@ -22,6 +22,7 @@
 VkSemaphore dsVkRenderer_flushImpl(dsRenderer* renderer, bool readback, bool useSemaphore);
 dsGfxFenceResult dsVkRenderer_waitForSubmit(dsRenderer* renderer, uint64_t submitCount,
 	uint64_t timeout);
+uint64_t dsVkRenderer_getFinishedSubmitCount(const dsRenderer* renderer);
 
 void dsVkRenderer_processGfxBuffer(dsRenderer* renderer, dsVkGfxBufferData* buffer);
 void dsVkRenderer_processTexture(dsRenderer* renderer, dsTexture* texture);

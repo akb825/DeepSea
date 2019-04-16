@@ -27,16 +27,15 @@ void dsVkResource_initialize(dsVkResource* resource)
 	resource->lastUsedSubmit = DS_NOT_SUBMITTED;
 }
 
-bool dsVkResource_isInUse(dsVkResource* resource, const dsRenderer* renderer)
+bool dsVkResource_isInUse(dsVkResource* resource, uint64_t finishedSubmitCount)
 {
-	const dsVkRenderer* vkRenderer = (const dsVkRenderer*)renderer;
 	uint32_t commandBufferCount;
 	DS_ATOMIC_LOAD32(&resource->commandBufferCount, &commandBufferCount);
 	DS_VERIFY(dsSpinlock_lock(&resource->lock));
 	uint64_t lastUsedSubmit = resource->lastUsedSubmit;
 	DS_VERIFY(dsSpinlock_unlock(&resource->lock));
 	return commandBufferCount > 0 ||
-		(lastUsedSubmit != DS_NOT_SUBMITTED && lastUsedSubmit > vkRenderer->finishedSubmitCount);
+		(lastUsedSubmit != DS_NOT_SUBMITTED && lastUsedSubmit > finishedSubmitCount);
 }
 
 void dsVkResource_waitUntilNotInUse(dsVkResource* resource, dsRenderer* renderer)

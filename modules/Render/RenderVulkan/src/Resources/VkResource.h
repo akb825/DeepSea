@@ -20,6 +20,6 @@
 #include "VkTypes.h"
 
 void dsVkResource_initialize(dsVkResource* resource);
-bool dsVkResource_isInUse(dsVkResource* resource, const dsRenderer* renderer);
+bool dsVkResource_isInUse(dsVkResource* resource, uint64_t finishedSubmitCount);
 void dsVkResource_waitUntilNotInUse(dsVkResource* resource, dsRenderer* renderer);
 void dsVkResource_shutdown(dsVkResource* resource);
