@@ -481,6 +481,7 @@ typedef struct dsVkMaterialDescBindings
 typedef struct dsVkMaterialDesc
 {
 	dsMaterialDesc materialDesc;
+	dsLifetime* lifetime;
 	uint32_t* elementMappings;
 
 	// Index 0 for static material values.
@@ -857,33 +858,20 @@ typedef struct dsVkSharedBindingInfo
 
 typedef struct dsVkSharedDescriptorSets
 {
+	dsRenderer* renderer;
 	dsAllocator* allocator;
-	dsVkDevice* device;
-	VkDescriptorPool* descriptorPools;
-	uint32_t descriptorPoolCount;
-	uint32_t maxDescriptorPools;
 
-	VkDescriptorSet lastDescriptorSet;
-	VkDescriptorSetLayout lastLayout;
+	dsLifetime* lastMaterialDesc;
+	dsVkMaterialDescriptor* lastDescriptor;
 
-	VkDescriptorImageInfo* images;
-	uint32_t imageCount;
-	uint32_t maxImages;
-
-	VkDescriptorBufferInfo* buffers;
-	uint32_t bufferCount;
+	dsVkBindingMemory bindingMemory;
+	uint32_t maxTextures;
 	uint32_t maxBuffers;
-
-	VkBufferView* texelBuffers;
-	uint32_t texelBufferCount;
 	uint32_t maxTexelBuffers;
-
-	dsVkSharedBindingInfo* bindingInfos;
-	uint32_t bindingInfoCount;
-	uint32_t maxBindingInfos;
-
-	VkWriteDescriptorSet* bindings;
-	uint32_t maxbindingCount;
+	uint32_t maxBindings;
+	uint32_t maxImageInfos;
+	uint32_t maxBufferInfos;
+	uint32_t maxBufferViews;
 
 	uint32_t* offsets;
 	uint32_t offsetCount;

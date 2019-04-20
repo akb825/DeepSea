@@ -103,10 +103,13 @@ dsVkMaterialDescriptor* dsVkMaterialDescriptor_create(dsRenderer* renderer, dsAl
 	for (uint32_t i = 0; i < materialDesc->elementCount; ++i)
 	{
 		const dsMaterialElement* element = materialDesc->elements + i;
-		if (element->isShared || vkMaterialDesc->elementMappings[i] == DS_MATERIAL_UNKNOWN)
+		if (element->isShared != isShared ||
+			vkMaterialDesc->elementMappings[i] == DS_MATERIAL_UNKNOWN)
+		{
 			continue;
+		}
 
-		VkDescriptorType type = dsVkDescriptorType(element->type, false);
+		VkDescriptorType type = dsVkDescriptorType(element->type, isShared);
 		DS_ASSERT(type != VK_DESCRIPTOR_TYPE_MAX_ENUM);
 
 		uint32_t index;
@@ -167,7 +170,7 @@ bool dsVkMaterialDescriptor_isUpToDate(const dsVkMaterialDescriptor* descriptor,
 	const dsVkBindingMemory* bindingMemory, const dsVkSamplerList* samplers)
 {
 	DS_ASSERT(memcmp(&descriptor->counts, &bindingMemory->counts, sizeof(dsVkBindingCounts)) == 0);
-	return samplers != descriptor->samplers &&
+	return samplers == descriptor->samplers &&
 		memcmp(descriptor->textures, bindingMemory->textures,
 			sizeof(dsTexture*)*descriptor->counts.textures) == 0 &&
 		memcmp(descriptor->buffers, bindingMemory->buffers,
@@ -192,6 +195,7 @@ void dsVkMaterialDescriptor_update(dsVkMaterialDescriptor* descriptor, const dsS
 		sizeof(dsVkGfxBufferBinding)*descriptor->counts.buffers);
 	memcpy(descriptor->texelBuffers, bindingMemory->texelBuffers,
 		sizeof(dsVkTexelBufferBinding)*descriptor->counts.texelBuffers);
+	descriptor->samplers = samplers;
 
 	uint32_t index = 0;
 	uint32_t imageInfoIndex = 0;
@@ -200,8 +204,11 @@ void dsVkMaterialDescriptor_update(dsVkMaterialDescriptor* descriptor, const dsS
 	for (uint32_t i = 0; i < descriptor->materialDesc->elementCount; ++i)
 	{
 		const dsMaterialElement* element = descriptor->materialDesc->elements + i;
-		if (element->isShared || vkMaterialDesc->elementMappings[i] == DS_MATERIAL_UNKNOWN)
+		if (element->isShared != descriptor->isShared ||
+			vkMaterialDesc->elementMappings[i] == DS_MATERIAL_UNKNOWN)
+		{
 			continue;
+		}
 
 		DS_ASSERT(index < descriptor->counts.total);
 		VkWriteDescriptorSet* binding = bindingMemory->bindings + index;

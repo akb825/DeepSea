@@ -181,6 +181,18 @@ static VkSampler createDefaultSampler(dsVkDevice* device)
 static void freeAllResources(dsVkResourceList* deleteList, bool ignoreCommandBufferRefs)
 {
 	uint32_t finalCount = 0;
+	// Free command pools first since they may free other types of resources.
+	for (uint32_t i = 0; i < deleteList->commandPoolCount; ++i)
+	{
+		dsVkCommandPoolData* commandPool = deleteList->commandPools[i];
+		if (ignoreCommandBufferRefs || commandPool->resource.commandBufferCount == 0)
+			dsVkCommandPoolData_destroy(commandPool);
+		else
+			deleteList->commandPools[finalCount++] = commandPool;
+	}
+	deleteList->commandPoolCount = finalCount;
+
+	finalCount = 0;
 	for (uint32_t i = 0; i < deleteList->bufferCount; ++i)
 	{
 		if (ignoreCommandBufferRefs || deleteList->buffers[i]->resource.commandBufferCount == 0)
@@ -310,17 +322,6 @@ static void freeAllResources(dsVkResourceList* deleteList, bool ignoreCommandBuf
 			deleteList->renderSurfaces[finalCount++] = renderSurface;
 	}
 	deleteList->renderSurfaceCount = finalCount;
-
-	finalCount = 0;
-	for (uint32_t i = 0; i < deleteList->commandPoolCount; ++i)
-	{
-		dsVkCommandPoolData* commandPool = deleteList->commandPools[i];
-		if (ignoreCommandBufferRefs || commandPool->resource.commandBufferCount == 0)
-			dsVkCommandPoolData_destroy(commandPool);
-		else
-			deleteList->commandPools[finalCount++] = commandPool;
-	}
-	deleteList->commandPoolCount = finalCount;
 
 	finalCount = 0;
 	for (uint32_t i = 0; i < deleteList->renderPassCount; ++i)

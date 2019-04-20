@@ -20,9 +20,7 @@
 #include "VkTypes.h"
 
 void dsVkSharedDescriptorSets_initialize(dsVkSharedDescriptorSets* descriptors,
-	dsAllocator* allocator, dsVkDevice* device);
+	dsRenderer* renderer, dsAllocator* allocator);
 VkDescriptorSet dsVkSharedDescriptorSets_createSet(dsVkSharedDescriptorSets* descriptors,
-	dsCommandBuffer* commandBuffer, dsShader* shader,
-	const dsSharedMaterialValues* sharedValues);
-void dsVkSharedDescriptorSets_clear(dsVkSharedDescriptorSets* descriptors);
+	dsCommandBuffer* commandBuffer, dsShader* shader, const dsSharedMaterialValues* sharedValues);
 void dsVkSharedDescriptorSets_shutdown(dsVkSharedDescriptorSets* descriptors);

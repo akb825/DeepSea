@@ -452,8 +452,7 @@ bool dsVkCommandBuffer_initialize(dsVkCommandBuffer* commandBuffer, dsRenderer* 
 	dsVkCommandBufferData_initialize(&commandBuffer->subpassBufferData, allocator, device,
 		commandBuffer->commandPool, true);
 	dsVkBarrierList_initialize(&commandBuffer->barriers, allocator, &vkRenderer->device);
-	dsVkSharedDescriptorSets_initialize(&commandBuffer->sharedDescriptorSets, allocator,
-		&vkRenderer->device);
+	dsVkSharedDescriptorSets_initialize(&commandBuffer->sharedDescriptorSets, renderer, allocator);
 	dsVkSubpassBuffers_initialize(&commandBuffer->subpassBuffers, allocator);
 
 	return true;
@@ -663,7 +662,6 @@ void dsVkCommandBuffer_prepare(dsCommandBuffer* commandBuffer)
 	resetActiveRenderAndComputeState(vkCommandBuffer);
 	dsVkCommandBufferData_reset(&vkCommandBuffer->commandBufferData);
 	dsVkCommandBufferData_reset(&vkCommandBuffer->subpassBufferData);
-	dsVkSharedDescriptorSets_clear(&vkCommandBuffer->sharedDescriptorSets);
 	DS_PROFILE_FUNC_RETURN_VOID();
 }
 

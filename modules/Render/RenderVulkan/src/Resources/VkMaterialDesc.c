@@ -24,6 +24,7 @@
 #include <DeepSea/Core/Containers/List.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
+#include <DeepSea/Core/Memory/Lifetime.h>
 #include <DeepSea/Core/Thread/Spinlock.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Log.h>
@@ -89,6 +90,8 @@ dsMaterialDesc* dsVkMaterialDesc_create(dsResourceManager* resourceManager, dsAl
 		baseMaterialDesc->elements = NULL;
 		materialDesc->elementMappings = NULL;
 	}
+
+	materialDesc->lifetime = NULL;
 
 	memset(materialDesc->bindings, 0, sizeof(materialDesc->bindings));
 	for (uint32_t i = 0; i < 2; ++i)
@@ -172,6 +175,10 @@ dsMaterialDesc* dsVkMaterialDesc_create(dsResourceManager* resourceManager, dsAl
 		DS_VERIFY(dsSpinlock_initialize(&bindings->lock));
 	}
 
+	materialDesc->lifetime = dsLifetime_create(allocator, materialDesc);
+	if (!materialDesc->lifetime)
+		dsVkMaterialDesc_destroy(resourceManager, baseMaterialDesc);
+
 	return baseMaterialDesc;
 }
 
@@ -181,6 +188,8 @@ bool dsVkMaterialDesc_destroy(dsResourceManager* resourceManager, dsMaterialDesc
 	dsVkDevice* device = &((dsVkRenderer*)renderer)->device;
 	dsVkInstance* instance = &device->instance;
 	dsVkMaterialDesc* vkMaterialDesc = (dsVkMaterialDesc*)materialDesc;
+
+	dsLifetime_destroy(vkMaterialDesc->lifetime);
 
 	for (uint32_t i = 0; i < 2; ++i)
 	{
