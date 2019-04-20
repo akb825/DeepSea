@@ -1552,8 +1552,9 @@ static void postFlush(dsRenderer* renderer)
 		}
 
 		DS_VERIFY(dsMutex_lock(vkRenderer->submitLock));
+		// NOTE: only assigned under mutex lock so no need to do atomic load.
 		finishedSubmitCount = dsMax(vkRenderer->finishedSubmitCount, submit->submitIndex);
-		vkRenderer->finishedSubmitCount = finishedSubmitCount;
+		DS_ATOMIC_STORE64(&vkRenderer->finishedSubmitCount, &finishedSubmitCount);
 		DS_VERIFY(dsMutex_unlock(vkRenderer->submitLock));
 	}
 	else
@@ -2023,7 +2024,7 @@ bool dsVkRenderer_waitUntilIdle(dsRenderer* renderer)
 	DS_VERIFY(dsSpinlock_unlock(&vkRenderer->deleteLock));
 
 	DS_VERIFY(dsMutex_lock(vkRenderer->submitLock));
-	vkRenderer->finishedSubmitCount = submitCount;
+	DS_ATOMIC_STORE64(&vkRenderer->finishedSubmitCount, &submitCount);
 	DS_VERIFY(dsMutex_unlock(vkRenderer->submitLock));
 	return true;
 }
@@ -2411,6 +2412,7 @@ dsGfxFenceResult dsVkRenderer_waitForSubmit(dsRenderer* renderer, uint64_t submi
 	for (uint32_t i = 0; i < DS_MAX_SUBMITS; ++i)
 	{
 		dsVkSubmitInfo* submit = vkRenderer->submits + i;
+		// NOTE: Only written inside of lock, so don't need atomic load.
 		if (submit->submitIndex > vkRenderer->finishedSubmitCount &&
 			submit->submitIndex <= submitCount)
 		{
@@ -2435,7 +2437,7 @@ dsGfxFenceResult dsVkRenderer_waitForSubmit(dsRenderer* renderer, uint64_t submi
 	if (--vkRenderer->waitCount == 0)
 		DS_VERIFY(dsConditionVariable_notifyAll(vkRenderer->waitCondition));
 	if (result == VK_SUCCESS && submitCount > vkRenderer->finishedSubmitCount)
-		vkRenderer->finishedSubmitCount = submitCount;
+		DS_ATOMIC_STORE64(&vkRenderer->finishedSubmitCount, &submitCount);
 	DS_VERIFY(dsMutex_unlock(vkRenderer->submitLock));
 
 	switch (result)
@@ -2456,9 +2458,8 @@ dsGfxFenceResult dsVkRenderer_waitForSubmit(dsRenderer* renderer, uint64_t submi
 uint64_t dsVkRenderer_getFinishedSubmitCount(const dsRenderer* renderer)
 {
 	const dsVkRenderer* vkRenderer = (const dsVkRenderer*)renderer;
-	DS_VERIFY(dsMutex_lock(vkRenderer->submitLock));
-	uint64_t finishedSubmitCount = vkRenderer->finishedSubmitCount;
-	DS_VERIFY(dsMutex_unlock(vkRenderer->submitLock));
+	uint64_t finishedSubmitCount;
+	DS_ATOMIC_LOAD64(&vkRenderer->finishedSubmitCount, &finishedSubmitCount);
 	return finishedSubmitCount;
 }
 

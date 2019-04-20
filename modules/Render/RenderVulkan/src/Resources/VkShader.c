@@ -498,7 +498,7 @@ static void setupSpirv(dsShader* shader, dsAllocator* allocator)
 			continue;
 
 		uint32_t descriptorSet;
-		if (!vkMaterialDesc->descriptorSets[0])
+		if (!vkMaterialDesc->bindings[0].descriptorSets)
 			descriptorSet = 0;
 		else
 			descriptorSet = materialDesc->elements[i].isShared != false;
@@ -572,15 +572,19 @@ static bool createLayout(dsShader* shader)
 	dsVkInstance* instance = &device->instance;
 	dsVkShader* vkShader = (dsVkShader*)shader;
 
-	uint32_t descriptorCount = (vkMaterialDesc->descriptorSets[0] != 0) +
-		(vkMaterialDesc->descriptorSets[1] != 0);
-	const VkDescriptorSetLayout* layouts;
+	VkDescriptorSetLayout layoutArray[2] =
+	{
+		vkMaterialDesc->bindings[0].descriptorSets,
+		vkMaterialDesc->bindings[1].descriptorSets,
+	};
+	uint32_t descriptorCount = (layoutArray[0] != 0) + (layoutArray[1] != 0);
+	VkDescriptorSetLayout* layouts;
 	if (descriptorCount == 0)
 		layouts = NULL;
-	else if (vkMaterialDesc->descriptorSets[0])
-		layouts = vkMaterialDesc->descriptorSets;
+	else if (layoutArray[0])
+		layouts = layoutArray;
 	else
-		layouts = vkMaterialDesc->descriptorSets + 1;
+		layouts = layoutArray + 1;
 
 	uint32_t pushConstantSize = 0;
 	if (pipeline->pushConstantStruct != MSL_UNKNOWN)
@@ -787,7 +791,7 @@ static bool updateSharedValues(dsResourceManager* resourceManager, dsCommandBuff
 	const dsVkShader* vkShader = (const dsVkShader*)shader;
 	const dsMaterialDesc* materialDesc = shader->materialDesc;
 	const dsVkMaterialDesc* vkMaterialDesc = (const dsVkMaterialDesc*)materialDesc;
-	if (!vkMaterialDesc->descriptorSets[1])
+	if (!vkMaterialDesc->bindings[1].descriptorSets)
 		return true;
 
 	VkCommandBuffer vkCommandBuffer = dsVkCommandBuffer_getCommandBuffer(commandBuffer);
@@ -801,7 +805,7 @@ static bool updateSharedValues(dsResourceManager* resourceManager, dsCommandBuff
 	if (!descriptorSet)
 		return false;
 
-	uint32_t descriptorIndex = vkMaterialDesc->descriptorSets[0] ? 1U : 0U;
+	uint32_t descriptorIndex = vkMaterialDesc->bindings[0].descriptorSets ? 1U : 0U;
 	DS_VK_CALL(device->vkCmdBindDescriptorSets)(vkCommandBuffer, bindPoint, vkShader->layout,
 		descriptorIndex, 1, &descriptorSet, descriptors->offsetCount, descriptors->offsets);
 	return true;
@@ -1030,7 +1034,7 @@ bool dsVkShader_bind(dsResourceManager* resourceManager, dsCommandBuffer* comman
 	if (!bindShaderStates(commandBuffer, shader, renderStates))
 		return false;
 
-	if (vkMaterialDesc->descriptorSets[0])
+	if (vkMaterialDesc->bindings[0].descriptorSets)
 	{
 		VkDescriptorSet descriptorSet = dsVkDeviceMaterial_getDescriptorSet(commandBuffer,
 			deviceMaterial, (dsShader*)shader);
@@ -1084,7 +1088,7 @@ bool dsVkShader_bindCompute(dsResourceManager* resourceManager, dsCommandBuffer*
 	if (!bindPushConstants(commandBuffer, shader, material, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT))
 		return false;
 
-	if (vkMaterialDesc->descriptorSets[0])
+	if (vkMaterialDesc->bindings[0].descriptorSets)
 	{
 		VkDescriptorSet descriptorSet = dsVkDeviceMaterial_getDescriptorSet(commandBuffer,
 			deviceMaterial, (dsShader*)shader);

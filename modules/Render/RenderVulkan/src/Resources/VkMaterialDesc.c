@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2019 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,16 @@
  */
 
 #include "Resources/VkMaterialDesc.h"
+
+#include "Resources/VkMaterialDescriptor.h"
 #include "Resources/VkResource.h"
+#include "VkRendererInternal.h"
 #include "VkShared.h"
+
+#include <DeepSea/Core/Containers/List.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
+#include <DeepSea/Core/Thread/Spinlock.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Math/Core.h>
@@ -84,18 +90,16 @@ dsMaterialDesc* dsVkMaterialDesc_create(dsResourceManager* resourceManager, dsAl
 		materialDesc->elementMappings = NULL;
 	}
 
+	memset(materialDesc->bindings, 0, sizeof(materialDesc->bindings));
 	for (uint32_t i = 0; i < 2; ++i)
 	{
+		dsVkMaterialDescBindings* bindings = materialDesc->bindings + i;
 		if (bindingCounts[i] == 0)
-		{
-			materialDesc->bindings[i] = 0;
-			materialDesc->descriptorSets[i] = 0;
 			continue;
-		}
 
-		materialDesc->bindings[i] = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
+		bindings->bindings = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
 			VkDescriptorSetLayoutBinding, bindingCounts[i]);
-		DS_ASSERT(materialDesc->bindings[i]);
+		DS_ASSERT(bindings->bindings);
 
 		uint32_t index = 0;
 		for (uint32_t j = 0; j < elementCount; ++j)
@@ -108,10 +112,31 @@ dsMaterialDesc* dsVkMaterialDesc_create(dsResourceManager* resourceManager, dsAl
 			if (type == VK_DESCRIPTOR_TYPE_MAX_ENUM)
 				continue;
 
+			switch (elements[j].type)
+			{
+				case dsMaterialType_Texture:
+				case dsMaterialType_Image:
+				case dsMaterialType_SubpassInput:
+					++bindings->bindingCounts.textures;
+					break;
+				case dsMaterialType_TextureBuffer:
+				case dsMaterialType_ImageBuffer:
+					++bindings->bindingCounts.texelBuffers;
+					break;
+				case dsMaterialType_VariableGroup:
+				case dsMaterialType_UniformBlock:
+				case dsMaterialType_UniformBuffer:
+					++bindings->bindingCounts.buffers;
+					break;
+				default:
+					DS_ASSERT(false);
+					break;
+			}
+
 			DS_ASSERT(index < bindingCounts[i]);
 			materialDesc->elementMappings[j] = index;
 
-			VkDescriptorSetLayoutBinding* binding = materialDesc->bindings[i] + index;
+			VkDescriptorSetLayoutBinding* binding = bindings->bindings + index;
 			binding->binding = index;
 			binding->descriptorType = type;
 			binding->descriptorCount = dsMax(1U, elements[j].count);
@@ -124,6 +149,7 @@ dsMaterialDesc* dsVkMaterialDesc_create(dsResourceManager* resourceManager, dsAl
 			++index;
 		}
 		DS_ASSERT(index == bindingCounts[i]);
+		bindings->bindingCounts.total = bindingCounts[i];
 
 		VkDescriptorSetLayoutCreateInfo createInfo =
 		{
@@ -131,23 +157,19 @@ dsMaterialDesc* dsVkMaterialDesc_create(dsResourceManager* resourceManager, dsAl
 			NULL,
 			0,
 			bindingCounts[i],
-			materialDesc->bindings[i]
+			bindings->bindings
 		};
 
 		VkResult result = DS_VK_CALL(device->vkCreateDescriptorSetLayout)(device->device,
-			&createInfo, instance->allocCallbacksPtr, materialDesc->descriptorSets + i);
+			&createInfo, instance->allocCallbacksPtr, &bindings->descriptorSets);
 		if (!dsHandleVkResult(result))
 		{
-			for (uint32_t j = 0; j < i; ++j)
-			{
-				DS_VK_CALL(device->vkDestroyDescriptorSetLayout)(device->device,
-					materialDesc->descriptorSets[i], instance->allocCallbacksPtr);
-			}
-
-			if (baseMaterialDesc->allocator)
-				DS_VERIFY(dsAllocator_free(baseMaterialDesc->allocator, baseMaterialDesc));
+			dsVkMaterialDesc_destroy(resourceManager, baseMaterialDesc);
 			return NULL;
 		}
+
+		DS_VERIFY(dsList_initialize(&bindings->descriptorFreeList));
+		DS_VERIFY(dsSpinlock_initialize(&bindings->lock));
 	}
 
 	return baseMaterialDesc;
@@ -155,20 +177,72 @@ dsMaterialDesc* dsVkMaterialDesc_create(dsResourceManager* resourceManager, dsAl
 
 bool dsVkMaterialDesc_destroy(dsResourceManager* resourceManager, dsMaterialDesc* materialDesc)
 {
-	dsVkDevice* device = &((dsVkRenderer*)resourceManager->renderer)->device;
+	dsRenderer* renderer = resourceManager->renderer;
+	dsVkDevice* device = &((dsVkRenderer*)renderer)->device;
 	dsVkInstance* instance = &device->instance;
 	dsVkMaterialDesc* vkMaterialDesc = (dsVkMaterialDesc*)materialDesc;
 
 	for (uint32_t i = 0; i < 2; ++i)
 	{
-		if (vkMaterialDesc->descriptorSets[i])
-		{
-			DS_VK_CALL(device->vkDestroyDescriptorSetLayout)(device->device,
-				vkMaterialDesc->descriptorSets[i], instance->allocCallbacksPtr);
-		}
+		dsVkMaterialDescBindings* bindings = vkMaterialDesc->bindings + i;
+		if (!bindings->descriptorSets)
+			continue;
+
+		DS_VK_CALL(device->vkDestroyDescriptorSetLayout)(device->device, bindings->descriptorSets,
+			instance->allocCallbacksPtr);
+		dsSpinlock_shutdown(&vkMaterialDesc->bindings->lock);
+
+		for (dsListNode* node = bindings->descriptorFreeList.head; node; node = node->next)
+			dsVkRenderer_deleteMaterialDescriptor(renderer, (dsVkMaterialDescriptor*)node);
 	}
 
 	if (materialDesc->allocator)
 		DS_VERIFY(dsAllocator_free(materialDesc->allocator, materialDesc));
 	return true;
+}
+
+dsVkMaterialDescriptor* dsVkMaterialDesc_createDescriptor(const dsMaterialDesc* materialDesc,
+	dsAllocator* allocator, bool isShared)
+{
+	dsVkMaterialDesc* vkMaterialDesc = (dsVkMaterialDesc*)materialDesc;
+	dsVkMaterialDescBindings* bindings = vkMaterialDesc->bindings + (isShared != false);
+	if (!bindings->descriptorSets)
+		return NULL;
+
+	dsRenderer* renderer = materialDesc->resourceManager->renderer;
+	uint64_t finishedSubmitCount = dsVkRenderer_getFinishedSubmitCount(renderer);
+	DS_VERIFY(dsSpinlock_lock(&bindings->lock));
+	dsVkMaterialDescriptor* descriptor = NULL;
+	for (dsListNode* node = bindings->descriptorFreeList.head; node; node = node->next)
+	{
+		dsVkMaterialDescriptor* curDescriptor = (dsVkMaterialDescriptor*)node;
+		if (!dsVkResource_isInUse(&curDescriptor->resource, finishedSubmitCount))
+		{
+			DS_VERIFY(dsList_remove(&bindings->descriptorFreeList, node));
+			descriptor = curDescriptor;
+			break;
+		}
+	}
+	DS_VERIFY(dsSpinlock_unlock(&bindings->lock));
+
+	if (!descriptor)
+	{
+		descriptor = dsVkMaterialDescriptor_create(renderer, allocator, materialDesc,
+			&bindings->bindingCounts, isShared);
+	}
+
+	return descriptor;
+}
+
+void dsVkMaterialDesc_freeDescriptor(const dsMaterialDesc* materialDesc,
+	dsVkMaterialDescriptor* descriptor)
+{
+	if (!descriptor)
+		return;
+
+	dsVkMaterialDesc* vkMaterialDesc = (dsVkMaterialDesc*)materialDesc;
+	dsVkMaterialDescBindings* bindings = vkMaterialDesc->bindings + (descriptor->isShared != false);
+	DS_VERIFY(dsSpinlock_lock(&bindings->lock));
+	DS_VERIFY(dsList_append(&bindings->descriptorFreeList, (dsListNode*)descriptor));
+	DS_VERIFY(dsSpinlock_unlock(&bindings->lock));
 }

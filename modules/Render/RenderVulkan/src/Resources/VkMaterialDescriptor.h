@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2019 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,5 +20,9 @@
 #include "VkTypes.h"
 
 dsVkMaterialDescriptor* dsVkMaterialDescriptor_create(dsRenderer* renderer, dsAllocator* allocator,
-	dsDeviceMaterial* deviceMaterial, dsShader* shader, dsVkSamplerList* samplers);
+	const dsMaterialDesc* materialDesc, const dsVkBindingCounts* counts, bool isShared);
+bool dsVkMaterialDescriptor_isUpToDate(const dsVkMaterialDescriptor* descriptor,
+	const dsVkBindingMemory* bindingMemory, const dsVkSamplerList* samplers);
+void dsVkMaterialDescriptor_update(dsVkMaterialDescriptor* descriptor, const dsShader* shader,
+	dsVkBindingMemory* bindingMemory, const dsVkSamplerList* samplers);
 void dsVkMaterialDescriptor_destroy(dsVkMaterialDescriptor* descriptor);

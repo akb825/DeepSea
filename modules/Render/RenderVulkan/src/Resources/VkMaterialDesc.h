@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2019 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,3 +22,8 @@
 dsMaterialDesc* dsVkMaterialDesc_create(dsResourceManager* resourceManager, dsAllocator* allocator,
 	const dsMaterialElement* elements, uint32_t elementCount);
 bool dsVkMaterialDesc_destroy(dsResourceManager* resourceManager, dsMaterialDesc* materialDesc);
+
+dsVkMaterialDescriptor* dsVkMaterialDesc_createDescriptor(const dsMaterialDesc* materialDesc,
+	dsAllocator* allocator, bool isShared);
+void dsVkMaterialDesc_freeDescriptor(const dsMaterialDesc* materialDesc,
+	dsVkMaterialDescriptor* descriptor);

@@ -410,17 +410,6 @@ typedef struct dsVkGfxQueryPool
 	VkQueryPool vkQueries;
 } dsVkGfxQueryPool;
 
-typedef struct dsVkMaterialDesc
-{
-	dsMaterialDesc materialDesc;
-	uint32_t* elementMappings;
-
-	// Index 0 for static material values.
-	// Index 1 for shared material values.
-	VkDescriptorSetLayoutBinding* bindings[2];
-	VkDescriptorSetLayout descriptorSets[2];
-} dsVkMaterialDesc;
-
 typedef struct dsVkSamplerList
 {
 	dsResourceManager* resourceManager;
@@ -430,6 +419,14 @@ typedef struct dsVkSamplerList
 	uint32_t samplerCount;
 	float defaultAnisotropy;
 } dsVkSamplerList;
+
+typedef struct dsVkBindingCounts
+{
+	uint32_t textures;
+	uint32_t buffers;
+	uint32_t texelBuffers;
+	uint32_t total;
+} dsVkBindingCounts;
 
 typedef struct dsVkTexelBufferBinding
 {
@@ -448,11 +445,15 @@ typedef struct dsVkGfxBufferBinding
 
 typedef struct dsVkMaterialDescriptor
 {
+	dsListNode node;
 	dsRenderer* renderer;
 	dsAllocator* allocator;
 	dsVkResource resource;
-	dsLifetime* shader;
+	const dsMaterialDesc* materialDesc;
 	const dsVkSamplerList* samplers; // Only used for comparison
+
+	dsVkBindingCounts counts;
+	bool isShared;
 
 	dsTexture** textures;
 	dsVkGfxBufferBinding* buffers;
@@ -462,6 +463,45 @@ typedef struct dsVkMaterialDescriptor
 	VkDescriptorSet set;
 } dsVkMaterialDescriptor;
 
+typedef struct dsVkMaterialDescriptorRef
+{
+	dsVkMaterialDescriptor* descriptor;
+	dsLifetime* shader;
+} dsVkMaterialDescriptorRef;
+
+typedef struct dsVkMaterialDescBindings
+{
+	VkDescriptorSetLayoutBinding* bindings;
+	dsVkBindingCounts bindingCounts;
+	VkDescriptorSetLayout descriptorSets;
+	dsList descriptorFreeList;
+	dsSpinlock lock;
+} dsVkMaterialDescBindings;
+
+typedef struct dsVkMaterialDesc
+{
+	dsMaterialDesc materialDesc;
+	uint32_t* elementMappings;
+
+	// Index 0 for static material values.
+	// Index 1 for shared material values.
+	dsVkMaterialDescBindings bindings[2];
+} dsVkMaterialDesc;
+
+typedef struct dsVkBindingMemory
+{
+	dsVkBindingCounts counts;
+
+	dsTexture** textures;
+	dsVkGfxBufferBinding* buffers;
+	dsVkTexelBufferBinding* texelBuffers;
+
+	VkWriteDescriptorSet* bindings;
+	VkDescriptorImageInfo* imageInfos;
+	VkDescriptorBufferInfo* bufferInfos;
+	VkBufferView* bufferViews;
+} dsVkBindingMemory;
+
 struct dsDeviceMaterial
 {
 	dsResourceManager* resourceManager;
@@ -470,23 +510,11 @@ struct dsDeviceMaterial
 	dsMaterial* material;
 	dsLifetime* lifetime;
 
-	dsVkMaterialDescriptor** descriptors;
+	dsVkMaterialDescriptorRef* descriptors;
 	uint32_t descriptorCount;
 	uint32_t maxDescriptors;
 
-	VkWriteDescriptorSet* bindings;
-	VkDescriptorImageInfo* imageInfos;
-	VkDescriptorBufferInfo* bufferInfos;
-	VkBufferView* bufferViews;
-
-	dsTexture** textures;
-	dsVkGfxBufferBinding* buffers;
-	dsVkTexelBufferBinding* texelBuffers;
-
-	uint32_t bindingCount;
-	uint32_t imageInfoCount;
-	uint32_t bufferInfoCount;
-	uint32_t bufferViewCount;
+	dsVkBindingMemory bindingMemory;
 
 	dsSpinlock lock;
 };

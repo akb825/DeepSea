@@ -448,7 +448,7 @@ VkDescriptorSet dsVkSharedDescriptorSets_createSet(dsVkSharedDescriptorSets* des
 {
 	const dsMaterialDesc* materialDesc = shader->materialDesc;
 	const dsVkMaterialDesc* vkMaterialDesc = (const dsVkMaterialDesc*)materialDesc;
-	VkDescriptorSetLayout layout = vkMaterialDesc->descriptorSets[1];
+	VkDescriptorSetLayout layout = vkMaterialDesc->bindings[1].descriptorSets;
 	bool isEqual = false;
 	if (!setupElements(&isEqual, descriptors, commandBuffer, shader, sharedValues, layout))
 		return 0;

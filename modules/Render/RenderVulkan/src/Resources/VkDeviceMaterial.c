@@ -15,8 +15,10 @@
  */
 
 #include "Resources/VkDeviceMaterial.h"
+
 #include "Resources/VkGfxBuffer.h"
 #include "Resources/VkGfxBufferData.h"
+#include "Resources/VkMaterialDesc.h"
 #include "Resources/VkMaterialDescriptor.h"
 #include "Resources/VkShader.h"
 #include "Resources/VkTexture.h"
@@ -42,52 +44,19 @@ dsDeviceMaterial* dsVkDeviceMaterial_create(dsResourceManager* resourceManager,
 	if (!scratchAllocator->freeFunc)
 		scratchAllocator = resourceManager->allocator;
 
-	uint32_t bindingCount = 0;
-	uint32_t imageInfoCount = 0;
-	uint32_t bufferInfoCount = 0;
-	uint32_t bufferViewCount = 0;
-
 	const dsMaterialDesc* materialDesc = dsMaterial_getDescription(material);
 	DS_ASSERT(materialDesc);
 	const dsVkMaterialDesc* vkMaterialDesc = (const dsVkMaterialDesc*)materialDesc;
-
-	for (uint32_t i = 0; i < materialDesc->elementCount; ++i)
-	{
-		const dsMaterialElement* element = materialDesc->elements + i;
-		if (element->isShared || vkMaterialDesc->elementMappings[i] == DS_MATERIAL_UNKNOWN)
-			continue;
-
-		switch (element->type)
-		{
-			case dsMaterialType_Texture:
-			case dsMaterialType_Image:
-			case dsMaterialType_SubpassInput:
-				++imageInfoCount;
-				break;
-			case dsMaterialType_TextureBuffer:
-			case dsMaterialType_ImageBuffer:
-				++bufferViewCount;
-				break;
-			case dsMaterialType_VariableGroup:
-			case dsMaterialType_UniformBlock:
-			case dsMaterialType_UniformBuffer:
-				++bufferInfoCount;
-				break;
-			default:
-				DS_ASSERT(false);
-		}
-
-		++bindingCount;
-	}
+	const dsVkBindingCounts* bindingCounts = &vkMaterialDesc->bindings[0].bindingCounts;
 
 	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsDeviceMaterial)) +
-		DS_ALIGNED_SIZE(sizeof(VkWriteDescriptorSet)*bindingCount) +
-		DS_ALIGNED_SIZE(sizeof(VkDescriptorImageInfo)*imageInfoCount) +
-		DS_ALIGNED_SIZE(sizeof(dsTexture*)*imageInfoCount) +
-		DS_ALIGNED_SIZE(sizeof(VkDescriptorBufferInfo)*bufferInfoCount) +
-		DS_ALIGNED_SIZE(sizeof(dsVkGfxBufferBinding)*bufferInfoCount) +
-		DS_ALIGNED_SIZE(sizeof(VkBufferView)*bufferViewCount) +
-		DS_ALIGNED_SIZE(sizeof(dsVkTexelBufferBinding)*bufferViewCount);
+		DS_ALIGNED_SIZE(sizeof(VkWriteDescriptorSet)*bindingCounts->total) +
+		DS_ALIGNED_SIZE(sizeof(VkDescriptorImageInfo)*bindingCounts->textures) +
+		DS_ALIGNED_SIZE(sizeof(dsTexture*)*bindingCounts->textures) +
+		DS_ALIGNED_SIZE(sizeof(VkDescriptorBufferInfo)*bindingCounts->buffers) +
+		DS_ALIGNED_SIZE(sizeof(dsVkGfxBufferBinding)*bindingCounts->buffers) +
+		DS_ALIGNED_SIZE(sizeof(VkBufferView)*bindingCounts->texelBuffers) +
+		DS_ALIGNED_SIZE(sizeof(dsVkTexelBufferBinding)*bindingCounts->texelBuffers);
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 		return NULL;
@@ -116,155 +85,96 @@ dsDeviceMaterial* dsVkDeviceMaterial_create(dsResourceManager* resourceManager,
 	deviceMaterial->descriptorCount = 0;
 	deviceMaterial->maxDescriptors = 0;
 
-	if (bindingCount > 0)
+	dsVkBindingMemory* bindingMemory = &deviceMaterial->bindingMemory;
+	bindingMemory->counts = *bindingCounts;
+	if (bindingCounts->total > 0)
 	{
-		deviceMaterial->bindings = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
-			VkWriteDescriptorSet, bindingCount);
-		DS_ASSERT(deviceMaterial->bindings);
+		bindingMemory->bindings = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
+			VkWriteDescriptorSet, bindingCounts->total);
+		DS_ASSERT(bindingMemory->bindings);
 	}
 	else
-		deviceMaterial->bindings = NULL;
+		bindingMemory->bindings = NULL;
 
-	if (imageInfoCount > 0)
+	if (bindingCounts->textures > 0)
 	{
-		deviceMaterial->imageInfos = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
-			VkDescriptorImageInfo, imageInfoCount);
-		DS_ASSERT(deviceMaterial->imageInfos);
+		bindingMemory->imageInfos = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
+			VkDescriptorImageInfo, bindingCounts->textures);
+		DS_ASSERT(bindingMemory->imageInfos);
 
-		deviceMaterial->textures = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
-			dsTexture*, imageInfoCount);
-		DS_ASSERT(deviceMaterial->textures);
-	}
-	else
-	{
-		deviceMaterial->imageInfos = NULL;
-		deviceMaterial->textures = NULL;
-	}
-
-	if (bufferInfoCount > 0)
-	{
-		deviceMaterial->bufferInfos = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
-			VkDescriptorBufferInfo, bufferInfoCount);
-		DS_ASSERT(deviceMaterial->bufferInfos);
-
-		deviceMaterial->buffers = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
-			dsVkGfxBufferBinding, bufferInfoCount);
-		DS_ASSERT(deviceMaterial->buffers);
+		bindingMemory->textures = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
+			dsTexture*, bindingCounts->textures);
+		DS_ASSERT(bindingMemory->textures);
 	}
 	else
 	{
-		deviceMaterial->bufferInfos = NULL;
-		deviceMaterial->buffers = NULL;
+		bindingMemory->imageInfos = NULL;
+		bindingMemory->textures = NULL;
 	}
 
-	if (bufferViewCount > 0)
+	if (bindingCounts->buffers > 0)
 	{
-		deviceMaterial->bufferViews = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
-			VkBufferView, bufferViewCount);
-		DS_ASSERT(deviceMaterial->bufferViews);
+		bindingMemory->bufferInfos = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
+			VkDescriptorBufferInfo, bindingCounts->buffers);
+		DS_ASSERT(bindingMemory->bufferInfos);
 
-		deviceMaterial->texelBuffers = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
-			dsVkTexelBufferBinding, bufferViewCount);
-		DS_ASSERT(deviceMaterial->texelBuffers);
+		bindingMemory->buffers = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
+			dsVkGfxBufferBinding, bindingCounts->buffers);
+		DS_ASSERT(bindingMemory->buffers);
 	}
 	else
 	{
-		deviceMaterial->bufferViews = NULL;
-		deviceMaterial->texelBuffers = NULL;
+		bindingMemory->bufferInfos = NULL;
+		bindingMemory->buffers = NULL;
 	}
 
-	deviceMaterial->bindingCount = bindingCount;
-	deviceMaterial->imageInfoCount = imageInfoCount;
-	deviceMaterial->bufferInfoCount = bufferInfoCount;
-	deviceMaterial->bufferViewCount = bufferViewCount;
+	if (bindingCounts->texelBuffers > 0)
+	{
+		bindingMemory->bufferViews = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
+			VkBufferView, bindingCounts->texelBuffers);
+		DS_ASSERT(bindingMemory->bufferViews);
+
+		bindingMemory->texelBuffers = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
+			dsVkTexelBufferBinding, bindingCounts->texelBuffers);
+		DS_ASSERT(bindingMemory->texelBuffers);
+	}
+	else
+	{
+		bindingMemory->bufferViews = NULL;
+		bindingMemory->texelBuffers = NULL;
+	}
 
 	dsSpinlock_initialize(&deviceMaterial->lock);
-
-	uint32_t index = 0;
-	uint32_t imageInfoIndex = 0;
-	uint32_t bufferInfoIndex = 0;
-	uint32_t bufferViewIndex = 0;
-	for (uint32_t i = 0; i < materialDesc->elementCount; ++i)
-	{
-		const dsMaterialElement* element = materialDesc->elements + i;
-		if (element->isShared || vkMaterialDesc->elementMappings[i] == DS_MATERIAL_UNKNOWN)
-			continue;
-
-		DS_ASSERT(index < bindingCount);
-		VkWriteDescriptorSet* binding = deviceMaterial->bindings + index;
-		binding->sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-		binding->pNext = NULL;
-		binding->dstSet = 0;
-		binding->dstBinding = vkMaterialDesc->elementMappings[i];
-		binding->dstArrayElement = 0;
-		binding->descriptorType = dsVkDescriptorType(element->type, false);
-		binding->descriptorCount = 1;
-		binding->pImageInfo = NULL;
-		binding->pBufferInfo = NULL;
-		binding->pTexelBufferView = NULL;
-
-		++index;
-		switch (element->type)
-		{
-			case dsMaterialType_Texture:
-			case dsMaterialType_Image:
-			case dsMaterialType_SubpassInput:
-				DS_ASSERT(imageInfoIndex < imageInfoCount);
-				binding->pImageInfo = deviceMaterial->imageInfos + imageInfoIndex;
-				++imageInfoIndex;
-				break;
-			case dsMaterialType_TextureBuffer:
-			case dsMaterialType_ImageBuffer:
-				DS_ASSERT(bufferViewIndex < bufferViewCount);
-				binding->pTexelBufferView = deviceMaterial->bufferViews + bufferViewIndex;
-				++bufferViewIndex;
-				break;
-			case dsMaterialType_VariableGroup:
-			case dsMaterialType_UniformBlock:
-			case dsMaterialType_UniformBuffer:
-				DS_ASSERT(bufferInfoIndex < bufferInfoCount);
-				binding->pBufferInfo = deviceMaterial->bufferInfos + bufferInfoIndex;
-				++bufferInfoIndex;
-				break;
-			default:
-				DS_ASSERT(false);
-		}
-	}
-
-	DS_ASSERT(index == bindingCount);
-	DS_ASSERT(imageInfoIndex == imageInfoCount);
-	DS_ASSERT(bufferInfoIndex == bufferInfoCount);
-	DS_ASSERT(bufferViewIndex == bufferViewCount);
-
 	return deviceMaterial;
 }
 
 void dsVkDeviceMaterial_destroy(dsResourceManager* resourceManager, dsMaterial* material,
 	dsDeviceMaterial* deviceMaterial)
 {
-	dsRenderer* renderer = resourceManager->renderer;
-	DS_UNUSED(material);
+	DS_UNUSED(resourceManager);
 
 	// Clear out the array inside the lock, then destroy the objects outside to avoid nested locks
 	// that can deadlock. The lifetime object protects against shaders being destroyed concurrently
 	// when unregistering the material.
 	DS_VERIFY(dsSpinlock_lock(&deviceMaterial->lock));
-	dsVkMaterialDescriptor** descriptors = deviceMaterial->descriptors;
+	dsVkMaterialDescriptorRef* descriptors = deviceMaterial->descriptors;
 	uint32_t descriptorCount = deviceMaterial->descriptorCount;
 	deviceMaterial->descriptors = NULL;
 	deviceMaterial->descriptorCount = 0;
 	deviceMaterial->maxDescriptors = 0;
 	DS_VERIFY(dsSpinlock_unlock(&deviceMaterial->lock));
 
+	const dsMaterialDesc* materialDesc = dsMaterial_getDescription(material);
 	for (uint32_t i = 0; i < descriptorCount; ++i)
 	{
-		dsShader* shader = (dsShader*)dsLifetime_acquire(descriptors[i]->shader);
+		dsShader* shader = (dsShader*)dsLifetime_acquire(descriptors[i].shader);
 		if (shader)
 		{
 			dsVkShader_removeMaterial(shader, deviceMaterial);
-			dsLifetime_release(descriptors[i]->shader);
+			dsLifetime_release(descriptors[i].shader);
 		}
-		dsVkRenderer_deleteMaterialDescriptor(renderer, descriptors[i]);
+		dsLifetime_freeRef(descriptors[i].shader);
+		dsVkMaterialDesc_freeDescriptor(materialDesc, descriptors[i].descriptor);
 	}
 	DS_VERIFY(dsAllocator_free(deviceMaterial->scratchAllocator, descriptors));
 	DS_ASSERT(!deviceMaterial->descriptors);
@@ -281,11 +191,12 @@ void dsVkDeviceMaterial_removeShader(dsDeviceMaterial* material, dsShader* shade
 	DS_VERIFY(dsSpinlock_lock(&material->lock));
 	for (uint32_t i = 0; i < material->descriptorCount; ++i)
 	{
-		void* descriptorShader = dsLifetime_getObject(material->descriptors[i]->shader);
+		void* descriptorShader = dsLifetime_getObject(material->descriptors[i].shader);
 		DS_ASSERT(descriptorShader);
 		if (descriptorShader == shader)
 		{
-			descriptor = material->descriptors[i];
+			descriptor = material->descriptors[i].descriptor;
+			dsLifetime_freeRef(material->descriptors[i].shader);
 			DS_VERIFY(DS_RESIZEABLE_ARRAY_REMOVE(material->descriptors, material->descriptorCount,
 				i, 1));
 			break;
@@ -293,7 +204,7 @@ void dsVkDeviceMaterial_removeShader(dsDeviceMaterial* material, dsShader* shade
 	}
 	DS_VERIFY(dsSpinlock_unlock(&material->lock));
 
-	dsVkRenderer_deleteMaterialDescriptor(material->resourceManager->renderer, descriptor);
+	dsVkMaterialDesc_freeDescriptor(shader->materialDesc, descriptor);
 }
 
 VkDescriptorSet dsVkDeviceMaterial_getDescriptorSet(dsCommandBuffer* commandBuffer,
@@ -302,7 +213,10 @@ VkDescriptorSet dsVkDeviceMaterial_getDescriptorSet(dsCommandBuffer* commandBuff
 	dsVkShader* vkShader = (dsVkShader*)shader;
 	const dsMaterialDesc* materialDesc = dsMaterial_getDescription(material->material);
 	const dsVkMaterialDesc* vkMaterialDesc = (const dsVkMaterialDesc*)materialDesc;
-	dsRenderer* renderer = commandBuffer->renderer;
+
+	dsVkBindingMemory* bindingMemory = &material->bindingMemory;
+	if (bindingMemory->counts.total == 0)
+		return 0;
 
 	if (!dsVkShader_addMaterial(shader, material))
 		return 0;
@@ -322,7 +236,7 @@ VkDescriptorSet dsVkDeviceMaterial_getDescriptorSet(dsCommandBuffer* commandBuff
 	uint32_t index = 0;
 	for (uint32_t i = 0; i < material->descriptorCount; ++i, ++index)
 	{
-		void* descriptorShader = dsLifetime_getObject(material->descriptors[i]->shader);
+		void* descriptorShader = dsLifetime_getObject(material->descriptors[i].shader);
 		DS_ASSERT(descriptorShader);
 		if (descriptorShader == shader)
 			break;
@@ -337,7 +251,8 @@ VkDescriptorSet dsVkDeviceMaterial_getDescriptorSet(dsCommandBuffer* commandBuff
 			return 0;
 		}
 
-		material->descriptors[index] = NULL;
+		material->descriptors[index].descriptor = NULL;
+		material->descriptors[index].shader = dsLifetime_addRef(vkShader->lifetime);
 	}
 
 	// Grab the list of resources needed to bind.
@@ -356,7 +271,7 @@ VkDescriptorSet dsVkDeviceMaterial_getDescriptorSet(dsCommandBuffer* commandBuff
 			case dsMaterialType_Image:
 			case dsMaterialType_SubpassInput:
 			{
-				DS_ASSERT(textureIndex < material->imageInfoCount);
+				DS_ASSERT(textureIndex < bindingMemory->counts.textures);
 				dsTexture* texture = dsMaterial_getTexture(material->material, i);
 				if (texture && !dsVkTexture_addMemoryBarrier(texture, commandBuffer))
 				{
@@ -364,15 +279,15 @@ VkDescriptorSet dsVkDeviceMaterial_getDescriptorSet(dsCommandBuffer* commandBuff
 					return 0;
 				}
 
-				material->textures[textureIndex] = texture;
+				bindingMemory->textures[textureIndex] = texture;
 				++textureIndex;
 				break;
 			}
 			case dsMaterialType_TextureBuffer:
 			case dsMaterialType_ImageBuffer:
 			{
-				DS_ASSERT(texelBufferIndex < material->bufferViewCount);
-				dsVkTexelBufferBinding* binding = material->texelBuffers + texelBufferIndex;
+				DS_ASSERT(texelBufferIndex < bindingMemory->counts.texelBuffers);
+				dsVkTexelBufferBinding* binding = bindingMemory->texelBuffers + texelBufferIndex;
 				dsGfxBuffer* buffer = dsMaterial_getTextureBuffer(&binding->format,
 					&binding->offset, &binding->count, material->material, i);
 
@@ -399,8 +314,8 @@ VkDescriptorSet dsVkDeviceMaterial_getDescriptorSet(dsCommandBuffer* commandBuff
 			}
 			case dsMaterialType_VariableGroup:
 			{
-				DS_ASSERT(bufferIndex < material->bufferInfoCount);
-				dsVkGfxBufferBinding* binding = material->buffers + bufferIndex;
+				DS_ASSERT(bufferIndex < bindingMemory->counts.buffers);
+				dsVkGfxBufferBinding* binding = bindingMemory->buffers + bufferIndex;
 				dsShaderVariableGroup* group = dsMaterial_getVariableGroup(material->material, i);
 				dsGfxBuffer* buffer;
 				if (group)
@@ -433,8 +348,8 @@ VkDescriptorSet dsVkDeviceMaterial_getDescriptorSet(dsCommandBuffer* commandBuff
 			case dsMaterialType_UniformBlock:
 			case dsMaterialType_UniformBuffer:
 			{
-				DS_ASSERT(bufferIndex < material->bufferInfoCount);
-				dsVkGfxBufferBinding* binding = material->buffers + bufferIndex;
+				DS_ASSERT(bufferIndex < bindingMemory->counts.buffers);
+				dsVkGfxBufferBinding* binding = bindingMemory->buffers + bufferIndex;
 				dsGfxBuffer* buffer = dsMaterial_getBuffer(&binding->offset, &binding->size,
 					material->material, i);
 
@@ -462,33 +377,27 @@ VkDescriptorSet dsVkDeviceMaterial_getDescriptorSet(dsCommandBuffer* commandBuff
 		}
 	}
 
-	DS_ASSERT(textureIndex == material->imageInfoCount);
-	DS_ASSERT(bufferIndex == material->bufferInfoCount);
-	DS_ASSERT(texelBufferIndex == material->bufferViewCount);
+	DS_ASSERT(textureIndex == bindingMemory->counts.textures);
+	DS_ASSERT(bufferIndex == bindingMemory->counts.buffers);
+	DS_ASSERT(texelBufferIndex == bindingMemory->counts.texelBuffers);
 
 	// Create the descriptor if new or if the resources have changed.
-	dsVkMaterialDescriptor* descriptor = material->descriptors[index];
-	if (!descriptor || descriptor->samplers != samplers ||
-		memcmp(descriptor->textures, material->textures,
-			sizeof(dsTexture*)*material->imageInfoCount) != 0 ||
-		memcmp(descriptor->buffers, material->buffers,
-			sizeof(dsVkGfxBufferBinding)*material->bufferInfoCount) != 0 ||
-		memcmp(descriptor->texelBuffers, material->texelBuffers,
-			sizeof(dsVkTexelBufferBinding)*material->bufferViewCount) != 0)
+	dsVkMaterialDescriptor* descriptor = material->descriptors[index].descriptor;
+	if (!descriptor || !dsVkMaterialDescriptor_isUpToDate(descriptor, bindingMemory, samplers))
 	{
-		dsVkRenderer_deleteMaterialDescriptor(renderer, descriptor);
+		dsVkMaterialDesc_freeDescriptor(materialDesc, descriptor);
 
-		descriptor = dsVkMaterialDescriptor_create(
-			dsMaterial_getResourceManager(material->material)->renderer, material->scratchAllocator,
-			material, shader, samplers);
+		descriptor = dsVkMaterialDesc_createDescriptor(materialDesc, material->scratchAllocator,
+			false);
 		if (!descriptor)
 		{
-			material->descriptors[index] = NULL;
+			material->descriptors[index].descriptor = NULL;
 			DS_VERIFY(dsSpinlock_unlock(&material->lock));
 			return 0;
 		}
 
-		material->descriptors[index] = descriptor;
+		dsVkMaterialDescriptor_update(descriptor, shader, bindingMemory, samplers);
+		material->descriptors[index].descriptor = descriptor;
 	}
 
 	if (!dsVkCommandBuffer_addResource(commandBuffer, &descriptor->resource))
