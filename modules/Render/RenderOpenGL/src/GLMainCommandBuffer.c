@@ -1964,6 +1964,7 @@ dsGLMainCommandBuffer* dsGLMainCommandBuffer_create(dsRenderer* renderer, dsAllo
 	commandBuffer->defaultSamplerState.compareOp = mslCompareOp_Unset;
 
 	dsGLCommandBuffer_initialize(baseCommandBuffer);
+	dsGLMainCommandBuffer_resetState(commandBuffer);
 
 	return commandBuffer;
 }
