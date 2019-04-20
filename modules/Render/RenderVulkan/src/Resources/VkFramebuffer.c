@@ -170,7 +170,7 @@ dsVkRealFramebuffer* dsVkFramebuffer_getRealFramebuffer(dsFramebuffer* framebuff
 	for (uint32_t i = 0; i < vkFramebuffer->framebufferCount; ++i)
 	{
 		dsVkRealFramebuffer* realFramebuffer = vkFramebuffer->realFramebuffers[i];
-		if (dsLifetime_getObject(realFramebuffer->renderPassData) == renderPassData)
+		if (realFramebuffer->renderPassData == renderPassData->lifetime)
 		{
 			if (realFramebuffer->surfaceData != surfaceData)
 			{
@@ -224,10 +224,7 @@ void dsVkFramebuffer_removeRenderPass(dsFramebuffer* framebuffer,
 	DS_VERIFY(dsSpinlock_lock(&vkFramebuffer->lock));
 	for (uint32_t i = 0; i < vkFramebuffer->framebufferCount; ++i)
 	{
-		void* usedRenderPass =
-			dsLifetime_getObject(vkFramebuffer->realFramebuffers[i]->renderPassData);
-		DS_ASSERT(usedRenderPass);
-		if (usedRenderPass == renderPass)
+		if (vkFramebuffer->realFramebuffers[i]->renderPassData == renderPass->lifetime)
 		{
 			dsVkRenderer_deleteFramebuffer(framebuffer->resourceManager->renderer,
 				vkFramebuffer->realFramebuffers[i]);

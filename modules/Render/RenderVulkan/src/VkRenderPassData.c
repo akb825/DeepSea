@@ -876,9 +876,7 @@ bool dsVkRenderPassData_addShader(dsVkRenderPassData* renderPass, dsShader* shad
 
 	for (uint32_t i = 0; i < renderPass->usedShaderCount; ++i)
 	{
-		void* usedShader = dsLifetime_getObject(renderPass->usedShaders[i]);
-		DS_ASSERT(usedShader);
-		if (usedShader == shader)
+		if (renderPass->usedShaders[i] == vkShader->lifetime)
 		{
 			DS_VERIFY(dsSpinlock_unlock(&renderPass->shaderLock));
 			return true;
@@ -900,13 +898,12 @@ bool dsVkRenderPassData_addShader(dsVkRenderPassData* renderPass, dsShader* shad
 
 void dsVkRenderPassData_removeShader(dsVkRenderPassData* renderPass, dsShader* shader)
 {
+	dsVkShader* vkShader = (dsVkShader*)shader;
 	DS_VERIFY(dsSpinlock_lock(&renderPass->shaderLock));
 	for (uint32_t i = 0; i < renderPass->usedShaderCount; ++i)
 	{
 		dsLifetime* shaderLifetime = renderPass->usedShaders[i];
-		void* usedShader = dsLifetime_getObject(shaderLifetime);
-		DS_ASSERT(usedShader);
-		if (usedShader == shader)
+		if (shaderLifetime == vkShader->lifetime)
 		{
 			DS_VERIFY(DS_RESIZEABLE_ARRAY_REMOVE(renderPass->usedShaders,
 				renderPass->usedShaderCount, i, 1));
@@ -924,9 +921,7 @@ bool dsVkRenderPassData_addFramebuffer(dsVkRenderPassData* renderPass, dsFramebu
 
 	for (uint32_t i = 0; i < renderPass->usedFramebufferCount; ++i)
 	{
-		void* usedFramebuffer = dsLifetime_getObject(renderPass->usedFramebuffers[i]);
-		DS_ASSERT(usedFramebuffer);
-		if (usedFramebuffer == framebuffer)
+		if (renderPass->usedFramebuffers[i] == vkFramebuffer->lifetime)
 		{
 			DS_VERIFY(dsSpinlock_unlock(&renderPass->framebufferLock));
 			return true;
@@ -949,13 +944,12 @@ bool dsVkRenderPassData_addFramebuffer(dsVkRenderPassData* renderPass, dsFramebu
 void dsVkRenderPassData_removeFramebuffer(dsVkRenderPassData* renderPass,
 	dsFramebuffer* framebuffer)
 {
+	dsVkFramebuffer* vkFramebuffer = (dsVkFramebuffer*)framebuffer;
 	DS_VERIFY(dsSpinlock_lock(&renderPass->framebufferLock));
 	for (uint32_t i = 0; i < renderPass->usedFramebufferCount; ++i)
 	{
 		dsLifetime* framebufferLifetime = renderPass->usedFramebuffers[i];
-		void* usedFramebuffer = dsLifetime_getObject(framebufferLifetime);
-		DS_ASSERT(usedFramebuffer);
-		if (usedFramebuffer == framebuffer)
+		if (framebufferLifetime == vkFramebuffer->lifetime)
 		{
 			DS_VERIFY(DS_RESIZEABLE_ARRAY_REMOVE(renderPass->usedFramebuffers,
 				renderPass->usedFramebufferCount, i, 1));

@@ -1223,9 +1223,7 @@ bool dsVkShader_addMaterial(dsShader* shader, dsDeviceMaterial* material)
 
 	for (uint32_t i = 0; i < vkShader->usedMaterialCount; ++i)
 	{
-		void* usedMaterial = dsLifetime_getObject(vkShader->usedMaterials[i]);
-		DS_ASSERT(usedMaterial);
-		if (usedMaterial == material)
+		if (vkShader->usedMaterials[i] == material->lifetime)
 		{
 			DS_VERIFY(dsSpinlock_unlock(&vkShader->materialLock));
 			return true;
@@ -1252,9 +1250,7 @@ void dsVkShader_removeMaterial(dsShader* shader, dsDeviceMaterial* material)
 	for (uint32_t i = 0; i < vkShader->usedMaterialCount; ++i)
 	{
 		dsLifetime* materialLifetime = vkShader->usedMaterials[i];
-		void* usedMaterial = dsLifetime_getObject(materialLifetime);
-		DS_ASSERT(usedMaterial);
-		if (usedMaterial == material)
+		if (materialLifetime == material->lifetime)
 		{
 			DS_VERIFY(DS_RESIZEABLE_ARRAY_REMOVE(vkShader->usedMaterials,
 				vkShader->usedMaterialCount, i, 1));
@@ -1276,9 +1272,7 @@ void dsVkShader_removeRenderPass(dsShader* shader, dsVkRenderPassData* renderPas
 	for (uint32_t i = 0; i < vkShader->usedRenderPassCount; ++i)
 	{
 		dsLifetime* renderPassLifetime = vkShader->usedRenderPasses[i];
-		void* usedRenderPass = dsLifetime_getObject(renderPassLifetime);
-		DS_ASSERT(usedRenderPass);
-		if (usedRenderPass == renderPass)
+		if (renderPassLifetime == renderPass->lifetime)
 		{
 			DS_VERIFY(DS_RESIZEABLE_ARRAY_REMOVE(vkShader->usedRenderPasses,
 				vkShader->usedRenderPassCount, i, 1));
@@ -1297,9 +1291,7 @@ void dsVkShader_removeRenderPass(dsShader* shader, dsVkRenderPassData* renderPas
 	// Remove all pipelines for the render pass.
 	for (uint32_t i = 0; i < vkShader->pipelineCount;)
 	{
-		void* usedRenderPass = dsLifetime_getObject(vkShader->pipelines[i]->renderPass);
-		DS_ASSERT(usedRenderPass);
-		if (usedRenderPass == renderPass)
+		if (vkShader->pipelines[i]->renderPass == renderPass->lifetime)
 		{
 			dsVkRenderer_deletePipeline(renderer, vkShader->pipelines[i]);
 			DS_VERIFY(DS_RESIZEABLE_ARRAY_REMOVE(vkShader->pipelines, vkShader->pipelineCount, i,
@@ -1451,9 +1443,7 @@ VkPipeline dsVkShader_getPipeline(dsShader* shader, dsCommandBuffer* commandBuff
 	bool hasRenderPass = false;
 	for (uint32_t i = 0; i < vkShader->usedRenderPassCount; ++i)
 	{
-		void* usedRenderPass = dsLifetime_getObject(vkShader->usedRenderPasses[i]);
-		DS_ASSERT(usedRenderPass);
-		if (usedRenderPass == renderPassData)
+		if (vkShader->usedRenderPasses[i] == renderPassData->lifetime)
 		{
 			hasRenderPass = true;
 			break;

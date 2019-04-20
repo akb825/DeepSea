@@ -200,7 +200,7 @@ bool dsVkPipeline_isEquivalent(const dsVkPipeline* pipeline, uint32_t hash, uint
 
 	if (pipeline->samples != samples || pipeline->defaultAnisotropy != defaultAnisotropy ||
 		pipeline->primitiveType != primitiveType || pipeline->subpass != subpass ||
-		dsLifetime_getObject(pipeline->renderPass) != renderPassData)
+		pipeline->renderPass != renderPassData->lifetime)
 	{
 		return false;
 	}

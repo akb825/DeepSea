@@ -187,13 +187,12 @@ void dsVkDeviceMaterial_destroy(dsResourceManager* resourceManager, dsMaterial* 
 
 void dsVkDeviceMaterial_removeShader(dsDeviceMaterial* material, dsShader* shader)
 {
+	dsVkShader* vkShader = (dsVkShader*)shader;
 	dsVkMaterialDescriptor* descriptor = NULL;
 	DS_VERIFY(dsSpinlock_lock(&material->lock));
 	for (uint32_t i = 0; i < material->descriptorCount; ++i)
 	{
-		void* descriptorShader = dsLifetime_getObject(material->descriptors[i].shader);
-		DS_ASSERT(descriptorShader);
-		if (descriptorShader == shader)
+		if (material->descriptors[i].shader == vkShader->lifetime)
 		{
 			descriptor = material->descriptors[i].descriptor;
 			dsLifetime_freeRef(material->descriptors[i].shader);
@@ -236,9 +235,7 @@ VkDescriptorSet dsVkDeviceMaterial_getDescriptorSet(dsCommandBuffer* commandBuff
 	uint32_t index = 0;
 	for (uint32_t i = 0; i < material->descriptorCount; ++i, ++index)
 	{
-		void* descriptorShader = dsLifetime_getObject(material->descriptors[i].shader);
-		DS_ASSERT(descriptorShader);
-		if (descriptorShader == shader)
+		if (material->descriptors[i].shader == vkShader->lifetime)
 			break;
 	}
 
