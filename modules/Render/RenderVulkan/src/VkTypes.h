@@ -1026,7 +1026,7 @@ typedef struct dsVkRenderer
 	dsConditionVariable* waitCondition;
 
 	uint64_t submitCount;
-	uint64_t finishedSubmitCount;
+	DS_ALIGN(8) uint64_t finishedSubmitCount;
 	dsVkSubmitInfo submits[DS_MAX_SUBMITS];
 	uint32_t curSubmit;
 	uint32_t waitCount;
