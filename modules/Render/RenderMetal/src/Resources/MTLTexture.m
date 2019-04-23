@@ -520,9 +520,10 @@ bool dsMTLTexture_getData(void* result, size_t size, dsResourceManager* resource
 void dsMTLTexture_process(dsResourceManager* resourceManager, dsTexture* texture)
 {
 	dsMTLTexture* mtlTexture = (dsMTLTexture*)texture;
-	uint32_t notProcessed = false;
 	uint32_t processed = true;
-	if (DS_ATOMIC_COMPARE_EXCHANGE32(&mtlTexture->processed, &notProcessed, &processed, false))
+	uint32_t wasProcessed;
+	DS_ATOMIC_EXCHANGE32(&mtlTexture->processed, &processed, &wasProcessed);
+	if (!wasProcessed)
 		dsMTLRenderer_processTexture(resourceManager->renderer, texture);
 }
 

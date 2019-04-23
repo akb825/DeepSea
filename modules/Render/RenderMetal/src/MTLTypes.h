@@ -20,6 +20,8 @@
 #include <DeepSea/Render/Types.h>
 #include <DeepSea/RenderMetal/RendererIDs.h>
 
+#include <MSL/Client/TypesC.h>
+
 #import <Foundation/NSObject.h>
 #import <Metal/MTLArgument.h>
 #import <Metal/MTLCommandBuffer.h>
@@ -100,6 +102,67 @@ typedef struct dsMTLGfxFence
 	dsLifetime* lifetime;
 	uint64_t lastUsedSubmit;
 } dsMTLGfxFence;
+
+typedef struct dsMTLShaderModule
+{
+	dsShaderModule module;
+	CFTypeRef* shaders;
+} dsMTLShaderModule;
+
+typedef struct dsMTLShaderStageInfo
+{
+	CFTypeRef function;
+	uint32_t* uniformIndices;
+} dsMTLShaderStageInfo;
+
+typedef struct dsMTLPipeline
+{
+	dsAllocator* allocator;
+	CFTypeRef pipeline;
+
+	uint32_t hash;
+	uint32_t samples;
+	dsPrimitiveType primitiveType;
+	dsVertexFormat formats[DS_MAX_GEOMETRY_VERTEX_BUFFERS];
+	dsLifetime* renderPass;
+	uint32_t subpass;
+} dsMTLPipeline;
+
+typedef struct dsMTLShader
+{
+	dsShader shader;
+	dsAllocator* scratchAllocator;
+	dsLifetime* lifetime;
+
+	mslPipeline pipeline;
+	dsMTLShaderStageInfo stages[mslStage_Count];
+	mslRenderState renderState;
+	CFTypeRef* samplers;
+	float defaultAnisotropy;
+	dsSpinlock samplerLock;
+
+	dsLifetime** usedRenderPasses;
+	uint32_t usedRenderPassCount;
+	uint32_t maxUsedRenderPasses;
+
+	dsMTLPipeline** pipelines;
+	uint32_t pipelineCount;
+	uint32_t maxPipelines;
+	dsSpinlock pipelineLock;
+
+	CFTypeRef computePipeline;
+} dsMTLShader;
+
+typedef struct dsMTLRenderPass
+{
+	dsRenderPass renderPass;
+	dsLifetime* lifetime;
+
+	dsLifetime** usedShaders;
+	uint32_t usedShaderCount;
+	uint32_t maxUsedShaders;
+	dsSpinlock shaderLock;
+} dsMTLRenderPass;
 
 typedef struct dsMTLCommandBuffer
 {

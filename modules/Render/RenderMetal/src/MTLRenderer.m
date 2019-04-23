@@ -233,7 +233,39 @@ static uint32_t hasTessellationShaders(MTLFeatureSet feature)
 #endif
 			return false;
 		default:
-			return true;
+			/*
+			 * Tessellation shaders on Metal are... strange... Apple in their infinite wisdom
+			 * decided instead of making adjustments to their render pipeline structures to have
+			 * it work like literally every other graphics API, they decided to shoehorn it in a
+			 * very strange way that requires multiple manual pipieline stages:
+			 * 1. Have a graphics pipeline with just a vertex shader for the initial vertex shader.
+			 *    Use a buffer to capture the output to use later.
+			 * 2. Run a compute shader for the tessellation control. This will require ending the
+			 *    render encoding and starting a compute encoding to run the compute shader. The
+			 *    vertex shader output is passed as an input, and the patch output is captured in
+			 *    another buffer.
+			 * 3. A new render encoding needs to be created, and uses the tessellation evaluation
+			 *    shader as the "vertex" function. This pipeline has some properties set to run the
+			 *    tessellation stage.
+			 *
+			 * Note that stopping/restartng the render encoder can make some optimizations
+			 * impossible, such as memoryless render targets since the render contents need to be
+			 * preserved between the render pass invocations.
+			 *
+			 * *Can* this be implemented? Sure, MoltenVK does it and it's obvious why it took so
+			 * long to add tessellation shader support. *Will* this be implemented? Currently no.
+			 *
+			 * I don't see this as critical enough to spend the time to implement this, especially
+			 * given that some Vulkan drivers (e.g. Qualcomm) don't implement tessellation.
+			 * Tessellation already has its own set of performance issues (e.g. drawing text by
+			 * tessellating points into quads is slower even on desktop GPUs), and having to
+			 * stop/restart the rendering encoder and manage the buffers will make this even slower
+			 * compared to the driver providing a proper interface.
+			 *
+			 * So for the time being, no tessellation on Metal.
+			 */
+			//return true;
+			return false;
 	}
 }
 

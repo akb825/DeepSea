@@ -24,8 +24,6 @@
 #include <MSL/Client/ModuleC.h>
 #include <string.h>
 
-#define DS_SHADER_ERROR ((VkShaderModule)0xFFFFFFFFFFFFFFFFULL)
-
 dsShaderModule* dsVkShaderModule_create(dsResourceManager* resourceManager, dsAllocator* allocator,
 	mslModule* module, const char* name)
 {

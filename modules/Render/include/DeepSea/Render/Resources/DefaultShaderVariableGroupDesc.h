@@ -29,7 +29,7 @@ extern "C"
  * @file
  * @brief Functions to create the default implementation of dsShaderVariableGroupDesc.
  *
- * This is used by internal implementations of the renderer that don't require special
+ * This is used by internal implementations of the renderer that don't require a special
  * implementation.
  */
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2019 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,32 +17,30 @@
 #pragma once
 
 #include <DeepSea/Core/Config.h>
-#include "VkTypes.h"
+#include "MTLTypes.h"
 
-dsShader* dsVkShader_create(dsResourceManager* resourceManager, dsAllocator* allocator,
+#import <Metal/MTLRenderPipeline.h>
+
+dsShader* dsMTLShader_create(dsResourceManager* resourceManager, dsAllocator* allocator,
 	dsShaderModule* module, uint32_t shaderIndex, const dsMaterialDesc* materialDesc);
-bool dsVkShader_bind(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
+bool dsMTLShader_bind(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
 	const dsShader* shader, const dsMaterial* material,
 	const dsSharedMaterialValues* sharedValues, const dsDynamicRenderStates* renderStates);
-bool dsVkShader_updateSharedValues(dsResourceManager* resourceManager,
+bool dsMTLShader_updateSharedValues(dsResourceManager* resourceManager,
 	dsCommandBuffer* commandBuffer, const dsShader* shader,
 	const dsSharedMaterialValues* sharedValues);
-bool dsVkShader_unbind(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
+bool dsMTLShader_unbind(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
 	const dsShader* shader);
-bool dsVkShader_bindCompute(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
+bool dsMTLShader_bindCompute(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
 	const dsShader* shader, const dsMaterial* material,
 	const dsSharedMaterialValues* sharedValues);
-bool dsVkShader_updateComputeSharedValues(dsResourceManager* resourceManager,
+bool dsMTLShader_updateComputeSharedValues(dsResourceManager* resourceManager,
 	dsCommandBuffer* commandBuffer, const dsShader* shader,
 	const dsSharedMaterialValues* sharedValues);
-bool dsVkShader_unbindCompute(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
+bool dsMTLShader_unbindCompute(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
 	const dsShader* shader);
-bool dsVkShader_destroy(dsResourceManager* resourceManager, dsShader* shader);
+bool dsMTLShader_destroy(dsResourceManager* resourceManager, dsShader* shader);
 
-bool dsVkShader_addMaterial(dsShader* shader, dsDeviceMaterial* material);
-void dsVkShader_removeMaterial(dsShader* shader, dsDeviceMaterial* material);
-void dsVkShader_removeRenderPass(dsShader* shader, dsVkRenderPassData* renderPass);
-dsVkSamplerList* dsVkShader_getSamplerList(dsShader* shader, dsCommandBuffer* commandBuffer);
-VkPipeline dsVkShader_getComputePipeline(dsShader* shader, dsCommandBuffer* commandBuffer);
-VkPipeline dsVkShader_getPipeline(dsShader* shader, dsCommandBuffer* commandBuffer,
+id<MTLRenderPipelineState> dsMTLShader_getPipeline(dsShader* shader, dsCommandBuffer* commandBuffer,
 	dsPrimitiveType primitiveType, const dsDrawGeometry* geometry);
+void dsMTLShader_removeRenderPass(dsShader* shader, dsRenderPass* renderPass);

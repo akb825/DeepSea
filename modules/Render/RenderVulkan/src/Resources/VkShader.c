@@ -1007,13 +1007,6 @@ dsShader* dsVkShader_create(dsResourceManager* resourceManager, dsAllocator* all
 	return baseShader;
 }
 
-bool dsVkShader_isUniformInternal(dsResourceManager* resourceManager, const char* name)
-{
-	DS_UNUSED(resourceManager);
-	DS_UNUSED(name);
-	return false;
-}
-
 bool dsVkShader_bind(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
 	const dsShader* shader, const dsMaterial* material,
 	const dsSharedMaterialValues* sharedValues, const dsDynamicRenderStates* renderStates)

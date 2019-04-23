@@ -19,7 +19,9 @@
 #include "Resources/MTLDrawGeometry.h"
 #include "Resources/MTLGfxBuffer.h"
 #include "Resources/MTLGfxFence.h"
+#include "Resources/MTLMaterialDesc.h"
 #include "Resources/MTLRenderbuffer.h"
+#include "Resources/MTLShaderModule.h"
 #include "Resources/MTLTexture.h"
 
 #include <DeepSea/Core/Memory/Allocator.h>
@@ -27,6 +29,7 @@
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Math/Core.h>
+#include <DeepSea/Render/Resources/DefaultShaderVariableGroupDesc.h>
 #include <DeepSea/Render/Resources/GfxFormat.h>
 #include <DeepSea/Render/Resources/ResourceManager.h>
 
@@ -549,9 +552,8 @@ static uint32_t getMinTextureBufferAlignment(dsMTLResourceManager* resourceManag
 				(uint32_t)[device minimumLinearTextureAlignmentForPixelFormat: format]);
 		}
 	}
-#endif
-
 	return alignment;
+#endif
 }
 
 static dsGfxBufferUsage getSupportedBuffers(void)
@@ -561,7 +563,7 @@ static dsGfxBufferUsage getSupportedBuffers(void)
 		dsGfxBufferUsage_UniformBlock | dsGfxBufferUsage_UniformBuffer |
 		dsGfxBufferUsage_CopyFrom | dsGfxBufferUsage_CopyTo;
 #if DS_IOS || MAC_OS_X_VERSION_MIN_REQUIRED >= 101300
-	usage |= dsGfxBufferUsage_Image | dsGfxBufferUsage_MutableImage;
+	usage |= dsGfxBufferUsage_Texture | dsGfxBufferUsage_Image;
 #endif
 	return usage;
 }
@@ -571,6 +573,7 @@ static size_t getMaxBufferLength(id<MTLDevice> device)
 #if IPHONE_OS_VERSION_MIN_REQUIRED >= 120000 || MAC_OS_X_VERSION_MIN_REQUIRED >= 101400
 	return device.maxBufferLength;
 #else
+	DS_UNUSED(device);
 #if DS_IOS || MAC_OS_X_VERSION_MIN_REQUIRED == 101100
 	return 256*1024*1024;
 #else
@@ -922,6 +925,22 @@ dsResourceManager* dsMTLResourceManager_create(dsAllocator* allocator, dsRendere
 	baseResourceManager->setFencesFunc = &dsMTLGfxFence_set;
 	baseResourceManager->waitFenceFunc = &dsMTLGfxFence_wait;
 	baseResourceManager->resetFenceFunc = &dsMTLGfxFence_reset;
+
+	// Queries not implemented. (see above rant)
+
+	// Shader modules
+	baseResourceManager->createShaderModuleFunc = &dsMTLShaderModule_create;
+	baseResourceManager->destroyShaderModuleFunc = &dsMTLShaderModule_destroy;
+
+	// Material descriptions
+	baseResourceManager->createMaterialDescFunc = &dsMTLMaterialDesc_create;
+	baseResourceManager->destroyMaterialDescFunc = &dsMTLMaterialDesc_destroy;
+
+	// Shader variable group descriptions
+	baseResourceManager->createShaderVariableGroupDescFunc =
+		&dsDefaultShaderVariableGroupDesc_create;
+	baseResourceManager->destroyShaderVariableGroupDescFunc =
+		&dsDefaultShaderVariableGroupDesc_destroy;
 
 	return baseResourceManager;
 }

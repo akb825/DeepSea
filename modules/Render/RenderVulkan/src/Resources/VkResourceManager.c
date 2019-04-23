@@ -888,7 +888,6 @@ dsResourceManager* dsVkResourceManager_create(dsAllocator* allocator, dsVkRender
 	// Shaders
 	baseResourceManager->createShaderFunc = &dsVkShader_create;
 	baseResourceManager->destroyShaderFunc = &dsVkShader_destroy;
-	baseResourceManager->isShaderUniformInternalFunc = &dsVkShader_isUniformInternal;
 	baseResourceManager->bindShaderFunc = &dsVkShader_bind;
 	baseResourceManager->updateShaderSharedValuesFunc = &dsVkShader_updateSharedValues;
 	baseResourceManager->unbindShaderFunc = &dsVkShader_unbind;
