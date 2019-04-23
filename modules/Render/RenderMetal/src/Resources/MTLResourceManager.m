@@ -21,6 +21,7 @@
 #include "Resources/MTLGfxFence.h"
 #include "Resources/MTLMaterialDesc.h"
 #include "Resources/MTLRenderbuffer.h"
+#include "Resources/MTLShader.h"
 #include "Resources/MTLShaderModule.h"
 #include "Resources/MTLTexture.h"
 
@@ -941,6 +942,17 @@ dsResourceManager* dsMTLResourceManager_create(dsAllocator* allocator, dsRendere
 		&dsDefaultShaderVariableGroupDesc_create;
 	baseResourceManager->destroyShaderVariableGroupDescFunc =
 		&dsDefaultShaderVariableGroupDesc_destroy;
+
+	// Shaders
+	baseResourceManager->createShaderFunc = &dsMTLShader_create;
+	baseResourceManager->destroyShaderFunc = &dsMTLShader_destroy;
+	baseResourceManager->bindShaderFunc = &dsMTLShader_bind;
+	baseResourceManager->updateShaderSharedValuesFunc = &dsMTLShader_updateSharedValues;
+	baseResourceManager->unbindShaderFunc = &dsMTLShader_unbind;
+	baseResourceManager->bindComputeShaderFunc = &dsMTLShader_bindCompute;
+	baseResourceManager->updateComputeShaderSharedValuesFunc =
+		&dsMTLShader_updateComputeSharedValues;
+	baseResourceManager->unbindComputeShaderFunc = &dsMTLShader_unbindCompute;
 
 	return baseResourceManager;
 }
