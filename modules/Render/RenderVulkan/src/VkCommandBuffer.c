@@ -473,7 +473,7 @@ bool dsVkCommandBuffer_begin(dsRenderer* renderer, dsCommandBuffer* commandBuffe
 {
 	DS_ASSERT(commandBuffer != renderer->mainCommandBuffer);
 	DS_UNUSED(renderer);
-	dsVkCommandBuffer_clearUsedResources(commandtBuffer);
+	dsVkCommandBuffer_clearUsedResources(commandBuffer);
 	return true;
 }
 
@@ -483,7 +483,7 @@ bool dsVkCommandBuffer_beginSecondary(dsRenderer* renderer, dsCommandBuffer* com
 {
 	DS_ASSERT(commandBuffer != renderer->mainCommandBuffer);
 
-	dsVkCommandBuffer_clearUsedResources(commandtBuffer);
+	dsVkCommandBuffer_clearUsedResources(commandBuffer);
 
 	dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
 	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;

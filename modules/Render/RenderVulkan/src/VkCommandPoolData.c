@@ -68,7 +68,10 @@ bool dsVkCommandPoolData_prepare(dsVkCommandPoolData* pool)
 {
 	dsVkResource_waitUntilNotInUse(&pool->resource, pool->renderer);
 	for (uint32_t i = 0; i < pool->count; ++i)
+	{
 		dsVkCommandBuffer_prepare(pool->commandBuffers[i]);
+		dsVkCommandBuffer_clearUsedResources(pool->commandBuffers[i]);
+	}
 	return true;
 }
 

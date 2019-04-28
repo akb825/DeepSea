@@ -16,6 +16,7 @@
 
 #include "VkCommandBufferPool.h"
 
+#include "VkCommandBuffer.h"
 #include "VkCommandPoolData.h"
 #include "VkRendererInternal.h"
 #include "VkShared.h"
@@ -61,6 +62,13 @@ bool dsVkCommandBufferPool_reset(dsRenderer* renderer, dsCommandBufferPool* pool
 	DS_UNUSED(renderer);
 	dsVkCommandBufferPool* vkPool = (dsVkCommandBufferPool*)pool;
 	uint32_t nextCommandPool = (vkPool->curCommandPool + 1) % DS_DELAY_FRAMES;
+
+	// Clear out any resources on the "previous" buffers before they go back to the pools.
+	if (pool->previousBuffers)
+	{
+		for (uint32_t i = 0; i < pool->count; ++i)
+			dsVkCommandBuffer_clearUsedResources(pool->previousBuffers[i]);
+	}
 
 	dsVkCommandPoolData* poolData = vkPool->commandPools[nextCommandPool];
 	if (!dsVkCommandPoolData_prepare(poolData))
