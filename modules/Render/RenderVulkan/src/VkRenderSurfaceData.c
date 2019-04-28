@@ -271,7 +271,6 @@ dsVkRenderSurfaceData* dsVkRenderSurfaceData_create(dsAllocator* allocator, dsRe
 
 	const dsVkFormatInfo* colorFormat = dsVkResourceManager_getFormat(renderer->resourceManager,
 		renderer->surfaceColorFormat);
-	VkColorSpaceKHR colorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
 	if (!colorFormat)
 	{
 		errno = EPERM;
@@ -305,6 +304,9 @@ dsVkRenderSurfaceData* dsVkRenderSurfaceData_create(dsAllocator* allocator, dsRe
 		return NULL;
 	}
 
+	VkColorSpaceKHR colorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
+	if ((renderer->surfaceColorFormat & dsGfxFormat_DecoratorMask) == dsGfxFormat_Float)
+		colorSpace = VK_COLOR_SPACE_HDR10_ST2084_EXT;
 	if (!supportsFormat(device, surface, colorFormat->vkFormat, colorSpace))
 	{
 		errno = EPERM;

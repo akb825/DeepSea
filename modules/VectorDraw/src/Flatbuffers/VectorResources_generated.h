@@ -47,7 +47,8 @@ inline const char * const *EnumNamesFontQuality() {
 }
 
 inline const char *EnumNameFontQuality(FontQuality e) {
-  const size_t index = static_cast<int>(e);
+  if (e < FontQuality::Low || e > FontQuality::VeryHigh) return "";
+  const size_t index = static_cast<size_t>(e);
   return EnumNamesFontQuality()[index];
 }
 
@@ -76,12 +77,13 @@ inline const char * const *EnumNamesFontCacheSize() {
 }
 
 inline const char *EnumNameFontCacheSize(FontCacheSize e) {
-  const size_t index = static_cast<int>(e);
+  if (e < FontCacheSize::Small || e > FontCacheSize::Large) return "";
+  const size_t index = static_cast<size_t>(e);
   return EnumNamesFontCacheSize()[index];
 }
 
 struct Resource FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
-  enum {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_NAME = 4,
     VT_PATH = 6
   };
@@ -138,14 +140,16 @@ inline flatbuffers::Offset<Resource> CreateResourceDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     const char *name = nullptr,
     const char *path = nullptr) {
+  auto name__ = name ? _fbb.CreateString(name) : 0;
+  auto path__ = path ? _fbb.CreateString(path) : 0;
   return DeepSeaVectorDraw::CreateResource(
       _fbb,
-      name ? _fbb.CreateString(name) : 0,
-      path ? _fbb.CreateString(path) : 0);
+      name__,
+      path__);
 }
 
 struct FaceGroup FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
-  enum {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_NAME = 4,
     VT_FACES = 6
   };
@@ -203,14 +207,16 @@ inline flatbuffers::Offset<FaceGroup> CreateFaceGroupDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     const char *name = nullptr,
     const std::vector<flatbuffers::Offset<Resource>> *faces = nullptr) {
+  auto name__ = name ? _fbb.CreateString(name) : 0;
+  auto faces__ = faces ? _fbb.CreateVector<flatbuffers::Offset<Resource>>(*faces) : 0;
   return DeepSeaVectorDraw::CreateFaceGroup(
       _fbb,
-      name ? _fbb.CreateString(name) : 0,
-      faces ? _fbb.CreateVector<flatbuffers::Offset<Resource>>(*faces) : 0);
+      name__,
+      faces__);
 }
 
 struct Font FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
-  enum {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_NAME = 4,
     VT_FACEGROUP = 6,
     VT_FACES = 8,
@@ -303,17 +309,20 @@ inline flatbuffers::Offset<Font> CreateFontDirect(
     const std::vector<flatbuffers::Offset<flatbuffers::String>> *faces = nullptr,
     FontQuality quality = FontQuality::Low,
     FontCacheSize cacheSize = FontCacheSize::Small) {
+  auto name__ = name ? _fbb.CreateString(name) : 0;
+  auto faceGroup__ = faceGroup ? _fbb.CreateString(faceGroup) : 0;
+  auto faces__ = faces ? _fbb.CreateVector<flatbuffers::Offset<flatbuffers::String>>(*faces) : 0;
   return DeepSeaVectorDraw::CreateFont(
       _fbb,
-      name ? _fbb.CreateString(name) : 0,
-      faceGroup ? _fbb.CreateString(faceGroup) : 0,
-      faces ? _fbb.CreateVector<flatbuffers::Offset<flatbuffers::String>>(*faces) : 0,
+      name__,
+      faceGroup__,
+      faces__,
       quality,
       cacheSize);
 }
 
 struct ResourceSet FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
-  enum {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_TEXTURES = 4,
     VT_FACEGROUPS = 6,
     VT_FONTS = 8
@@ -383,11 +392,14 @@ inline flatbuffers::Offset<ResourceSet> CreateResourceSetDirect(
     const std::vector<flatbuffers::Offset<Resource>> *textures = nullptr,
     const std::vector<flatbuffers::Offset<FaceGroup>> *faceGroups = nullptr,
     const std::vector<flatbuffers::Offset<Font>> *fonts = nullptr) {
+  auto textures__ = textures ? _fbb.CreateVector<flatbuffers::Offset<Resource>>(*textures) : 0;
+  auto faceGroups__ = faceGroups ? _fbb.CreateVector<flatbuffers::Offset<FaceGroup>>(*faceGroups) : 0;
+  auto fonts__ = fonts ? _fbb.CreateVector<flatbuffers::Offset<Font>>(*fonts) : 0;
   return DeepSeaVectorDraw::CreateResourceSet(
       _fbb,
-      textures ? _fbb.CreateVector<flatbuffers::Offset<Resource>>(*textures) : 0,
-      faceGroups ? _fbb.CreateVector<flatbuffers::Offset<FaceGroup>>(*faceGroups) : 0,
-      fonts ? _fbb.CreateVector<flatbuffers::Offset<Font>>(*fonts) : 0);
+      textures__,
+      faceGroups__,
+      fonts__);
 }
 
 inline const DeepSeaVectorDraw::ResourceSet *GetResourceSet(const void *buf) {

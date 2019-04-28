@@ -86,7 +86,8 @@ inline const char * const *EnumNamesGradientEdge() {
 }
 
 inline const char *EnumNameGradientEdge(GradientEdge e) {
-  const size_t index = static_cast<int>(e);
+  if (e < GradientEdge::Clamp || e > GradientEdge::Mirror) return "";
+  const size_t index = static_cast<size_t>(e);
   return EnumNamesGradientEdge()[index];
 }
 
@@ -115,7 +116,8 @@ inline const char * const *EnumNamesMaterialSpace() {
 }
 
 inline const char *EnumNameMaterialSpace(MaterialSpace e) {
-  const size_t index = static_cast<int>(e);
+  if (e < MaterialSpace::Local || e > MaterialSpace::Bounds) return "";
+  const size_t index = static_cast<size_t>(e);
   return EnumNamesMaterialSpace()[index];
 }
 
@@ -147,7 +149,8 @@ inline const char * const *EnumNamesLineJoin() {
 }
 
 inline const char *EnumNameLineJoin(LineJoin e) {
-  const size_t index = static_cast<int>(e);
+  if (e < LineJoin::Miter || e > LineJoin::Round) return "";
+  const size_t index = static_cast<size_t>(e);
   return EnumNamesLineJoin()[index];
 }
 
@@ -179,7 +182,8 @@ inline const char * const *EnumNamesLineCap() {
 }
 
 inline const char *EnumNameLineCap(LineCap e) {
-  const size_t index = static_cast<int>(e);
+  if (e < LineCap::Butt || e > LineCap::Square) return "";
+  const size_t index = static_cast<size_t>(e);
   return EnumNamesLineCap()[index];
 }
 
@@ -208,7 +212,8 @@ inline const char * const *EnumNamesFillRule() {
 }
 
 inline const char *EnumNameFillRule(FillRule e) {
-  const size_t index = static_cast<int>(e);
+  if (e < FillRule::EvenOdd || e > FillRule::NonZero) return "";
+  const size_t index = static_cast<size_t>(e);
   return EnumNamesFillRule()[index];
 }
 
@@ -237,7 +242,8 @@ inline const char * const *EnumNamesTextPosition() {
 }
 
 inline const char *EnumNameTextPosition(TextPosition e) {
-  const size_t index = static_cast<int>(e);
+  if (e < TextPosition::Offset || e > TextPosition::Absolute) return "";
+  const size_t index = static_cast<size_t>(e);
   return EnumNamesTextPosition()[index];
 }
 
@@ -275,7 +281,8 @@ inline const char * const *EnumNamesTextAlign() {
 }
 
 inline const char *EnumNameTextAlign(TextAlign e) {
-  const size_t index = static_cast<int>(e);
+  if (e < TextAlign::Start || e > TextAlign::Center) return "";
+  const size_t index = static_cast<size_t>(e);
   return EnumNamesTextAlign()[index];
 }
 
@@ -343,7 +350,8 @@ inline const char * const *EnumNamesVectorCommandUnion() {
 }
 
 inline const char *EnumNameVectorCommandUnion(VectorCommandUnion e) {
-  const size_t index = static_cast<int>(e);
+  if (e < VectorCommandUnion::NONE || e > VectorCommandUnion::ImageCommand) return "";
+  const size_t index = static_cast<size_t>(e);
   return EnumNamesVectorCommandUnion()[index];
 }
 
@@ -419,7 +427,7 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(1) Color FLATBUFFERS_FINAL_CLASS {
 
  public:
   Color() {
-    memset(this, 0, sizeof(Color));
+    memset(static_cast<void *>(this), 0, sizeof(Color));
   }
   Color(uint8_t _r, uint8_t _g, uint8_t _b, uint8_t _a)
       : r_(flatbuffers::EndianScalar(_r)),
@@ -449,7 +457,7 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Vector2f FLATBUFFERS_FINAL_CLASS {
 
  public:
   Vector2f() {
-    memset(this, 0, sizeof(Vector2f));
+    memset(static_cast<void *>(this), 0, sizeof(Vector2f));
   }
   Vector2f(float _x, float _y)
       : x_(flatbuffers::EndianScalar(_x)),
@@ -472,7 +480,7 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Vector3f FLATBUFFERS_FINAL_CLASS {
 
  public:
   Vector3f() {
-    memset(this, 0, sizeof(Vector3f));
+    memset(static_cast<void *>(this), 0, sizeof(Vector3f));
   }
   Vector3f(float _x, float _y, float _z)
       : x_(flatbuffers::EndianScalar(_x)),
@@ -499,7 +507,7 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Matrix33f FLATBUFFERS_FINAL_CLASS {
 
  public:
   Matrix33f() {
-    memset(this, 0, sizeof(Matrix33f));
+    memset(static_cast<void *>(this), 0, sizeof(Matrix33f));
   }
   Matrix33f(const Vector3f &_column0, const Vector3f &_column1, const Vector3f &_column2)
       : column0_(_column0),
@@ -527,7 +535,7 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) DashArray FLATBUFFERS_FINAL_CLASS {
 
  public:
   DashArray() {
-    memset(this, 0, sizeof(DashArray));
+    memset(static_cast<void *>(this), 0, sizeof(DashArray));
   }
   DashArray(float _solid0, float _gap0, float _solid1, float _gap1)
       : solid0_(flatbuffers::EndianScalar(_solid0)),
@@ -557,7 +565,7 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) GradientStop FLATBUFFERS_FINAL_CLASS {
 
  public:
   GradientStop() {
-    memset(this, 0, sizeof(GradientStop));
+    memset(static_cast<void *>(this), 0, sizeof(GradientStop));
   }
   GradientStop(float _position, const Color &_color)
       : position_(flatbuffers::EndianScalar(_position)),
@@ -573,7 +581,7 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) GradientStop FLATBUFFERS_FINAL_CLASS {
 FLATBUFFERS_STRUCT_END(GradientStop, 8);
 
 struct ColorMaterial FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
-  enum {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_NAME = 4,
     VT_COLOR = 6
   };
@@ -629,14 +637,15 @@ inline flatbuffers::Offset<ColorMaterial> CreateColorMaterialDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     const char *name = nullptr,
     const Color *color = 0) {
+  auto name__ = name ? _fbb.CreateString(name) : 0;
   return DeepSeaVectorDraw::CreateColorMaterial(
       _fbb,
-      name ? _fbb.CreateString(name) : 0,
+      name__,
       color);
 }
 
 struct LinearGradient FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
-  enum {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_NAME = 4,
     VT_GRADIENT = 6,
     VT_START = 8,
@@ -751,10 +760,12 @@ inline flatbuffers::Offset<LinearGradient> CreateLinearGradientDirect(
     GradientEdge edge = GradientEdge::Clamp,
     MaterialSpace coordinateSpace = MaterialSpace::Local,
     const Matrix33f *transform = 0) {
+  auto name__ = name ? _fbb.CreateString(name) : 0;
+  auto gradient__ = gradient ? _fbb.CreateVectorOfStructs<GradientStop>(*gradient) : 0;
   return DeepSeaVectorDraw::CreateLinearGradient(
       _fbb,
-      name ? _fbb.CreateString(name) : 0,
-      gradient ? _fbb.CreateVectorOfStructs<GradientStop>(*gradient) : 0,
+      name__,
+      gradient__,
       start,
       end,
       edge,
@@ -763,7 +774,7 @@ inline flatbuffers::Offset<LinearGradient> CreateLinearGradientDirect(
 }
 
 struct RadialGradient FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
-  enum {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_NAME = 4,
     VT_GRADIENT = 6,
     VT_CENTER = 8,
@@ -900,10 +911,12 @@ inline flatbuffers::Offset<RadialGradient> CreateRadialGradientDirect(
     GradientEdge edge = GradientEdge::Clamp,
     MaterialSpace coordinateSpace = MaterialSpace::Local,
     const Matrix33f *transform = 0) {
+  auto name__ = name ? _fbb.CreateString(name) : 0;
+  auto gradient__ = gradient ? _fbb.CreateVectorOfStructs<GradientStop>(*gradient) : 0;
   return DeepSeaVectorDraw::CreateRadialGradient(
       _fbb,
-      name ? _fbb.CreateString(name) : 0,
-      gradient ? _fbb.CreateVectorOfStructs<GradientStop>(*gradient) : 0,
+      name__,
+      gradient__,
       center,
       radius,
       focus,
@@ -914,7 +927,7 @@ inline flatbuffers::Offset<RadialGradient> CreateRadialGradientDirect(
 }
 
 struct StartPathCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
-  enum {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_TRANSFORM = 4,
     VT_SIMPLE = 6
   };
@@ -965,7 +978,7 @@ inline flatbuffers::Offset<StartPathCommand> CreateStartPathCommand(
 }
 
 struct MoveCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
-  enum {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_POSITION = 4
   };
   const Vector2f *position() const {
@@ -1006,7 +1019,7 @@ inline flatbuffers::Offset<MoveCommand> CreateMoveCommand(
 }
 
 struct LineCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
-  enum {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_END = 4
   };
   const Vector2f *end() const {
@@ -1047,7 +1060,7 @@ inline flatbuffers::Offset<LineCommand> CreateLineCommand(
 }
 
 struct BezierCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
-  enum {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_CONTROL1 = 4,
     VT_CONTROL2 = 6,
     VT_END = 8
@@ -1110,7 +1123,7 @@ inline flatbuffers::Offset<BezierCommand> CreateBezierCommand(
 }
 
 struct QuadraticCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
-  enum {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_CONTROL = 4,
     VT_END = 6
   };
@@ -1162,7 +1175,7 @@ inline flatbuffers::Offset<QuadraticCommand> CreateQuadraticCommand(
 }
 
 struct ArcCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
-  enum {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_RADIUS = 4,
     VT_ROTATION = 6,
     VT_LARGEARC = 8,
@@ -1272,7 +1285,7 @@ inline flatbuffers::Offset<ClosePathCommand> CreateClosePathCommand(
 }
 
 struct EllipseCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
-  enum {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_CENTER = 4,
     VT_RADIUS = 6
   };
@@ -1324,7 +1337,7 @@ inline flatbuffers::Offset<EllipseCommand> CreateEllipseCommand(
 }
 
 struct RectangleCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
-  enum {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_UPPERLEFT = 4,
     VT_LOWERRIGHT = 6,
     VT_CORNERRADIUS = 8
@@ -1387,7 +1400,7 @@ inline flatbuffers::Offset<RectangleCommand> CreateRectangleCommand(
 }
 
 struct StrokePathCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
-  enum {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_MATERIAL = 4,
     VT_OPACITY = 6,
     VT_JOINTYPE = 8,
@@ -1498,9 +1511,10 @@ inline flatbuffers::Offset<StrokePathCommand> CreateStrokePathCommandDirect(
     float width = 0.0f,
     float miterLimit = 0.0f,
     const DashArray *dashArray = 0) {
+  auto material__ = material ? _fbb.CreateString(material) : 0;
   return DeepSeaVectorDraw::CreateStrokePathCommand(
       _fbb,
-      material ? _fbb.CreateString(material) : 0,
+      material__,
       opacity,
       joinType,
       capType,
@@ -1510,7 +1524,7 @@ inline flatbuffers::Offset<StrokePathCommand> CreateStrokePathCommandDirect(
 }
 
 struct FillPathCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
-  enum {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_MATERIAL = 4,
     VT_OPACITY = 6,
     VT_FILLRULE = 8
@@ -1576,15 +1590,16 @@ inline flatbuffers::Offset<FillPathCommand> CreateFillPathCommandDirect(
     const char *material = nullptr,
     float opacity = 0.0f,
     FillRule fillRule = FillRule::EvenOdd) {
+  auto material__ = material ? _fbb.CreateString(material) : 0;
   return DeepSeaVectorDraw::CreateFillPathCommand(
       _fbb,
-      material ? _fbb.CreateString(material) : 0,
+      material__,
       opacity,
       fillRule);
 }
 
 struct TextCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
-  enum {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_TEXT = 4,
     VT_FONT = 6,
     VT_ALIGNMENT = 8,
@@ -1697,10 +1712,12 @@ inline flatbuffers::Offset<TextCommand> CreateTextCommandDirect(
     float lineHeight = 0.0f,
     const Matrix33f *transform = 0,
     uint32_t rangeCount = 0) {
+  auto text__ = text ? _fbb.CreateString(text) : 0;
+  auto font__ = font ? _fbb.CreateString(font) : 0;
   return DeepSeaVectorDraw::CreateTextCommand(
       _fbb,
-      text ? _fbb.CreateString(text) : 0,
-      font ? _fbb.CreateString(font) : 0,
+      text__,
+      font__,
       alignment,
       maxLength,
       lineHeight,
@@ -1709,7 +1726,7 @@ inline flatbuffers::Offset<TextCommand> CreateTextCommandDirect(
 }
 
 struct TextRangeCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
-  enum {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_START = 4,
     VT_COUNT = 6,
     VT_POSITIONTYPE = 8,
@@ -1886,14 +1903,16 @@ inline flatbuffers::Offset<TextRangeCommand> CreateTextRangeCommandDirect(
     float slant = 0.0f,
     float outlineWidth = 0.0f,
     float fuziness = 0.0f) {
+  auto fillMaterial__ = fillMaterial ? _fbb.CreateString(fillMaterial) : 0;
+  auto outlineMaterial__ = outlineMaterial ? _fbb.CreateString(outlineMaterial) : 0;
   return DeepSeaVectorDraw::CreateTextRangeCommand(
       _fbb,
       start,
       count,
       positionType,
       position,
-      fillMaterial ? _fbb.CreateString(fillMaterial) : 0,
-      outlineMaterial ? _fbb.CreateString(outlineMaterial) : 0,
+      fillMaterial__,
+      outlineMaterial__,
       fillOpacity,
       outlineOpacity,
       size,
@@ -1904,7 +1923,7 @@ inline flatbuffers::Offset<TextRangeCommand> CreateTextRangeCommandDirect(
 }
 
 struct ImageCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
-  enum {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_IMAGE = 4,
     VT_UPPERLEFT = 6,
     VT_LOWERRIGHT = 8,
@@ -1995,9 +2014,10 @@ inline flatbuffers::Offset<ImageCommand> CreateImageCommandDirect(
     const Vector2f *lowerRight = 0,
     float opacity = 0.0f,
     const Matrix33f *transform = 0) {
+  auto image__ = image ? _fbb.CreateString(image) : 0;
   return DeepSeaVectorDraw::CreateImageCommand(
       _fbb,
-      image ? _fbb.CreateString(image) : 0,
+      image__,
       upperLeft,
       lowerRight,
       opacity,
@@ -2005,7 +2025,7 @@ inline flatbuffers::Offset<ImageCommand> CreateImageCommandDirect(
 }
 
 struct VectorCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
-  enum {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_COMMAND_TYPE = 4,
     VT_COMMAND = 6
   };
@@ -2156,7 +2176,7 @@ inline flatbuffers::Offset<VectorCommand> CreateVectorCommand(
 }
 
 struct VectorImage FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
-  enum {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_COLORMATERIALS = 4,
     VT_LINEARGRADIENTS = 6,
     VT_RADIALGRADIENTS = 8,
@@ -2252,12 +2272,16 @@ inline flatbuffers::Offset<VectorImage> CreateVectorImageDirect(
     const std::vector<flatbuffers::Offset<RadialGradient>> *radialGradients = nullptr,
     const std::vector<flatbuffers::Offset<VectorCommand>> *commands = nullptr,
     const Vector2f *size = 0) {
+  auto colorMaterials__ = colorMaterials ? _fbb.CreateVector<flatbuffers::Offset<ColorMaterial>>(*colorMaterials) : 0;
+  auto linearGradients__ = linearGradients ? _fbb.CreateVector<flatbuffers::Offset<LinearGradient>>(*linearGradients) : 0;
+  auto radialGradients__ = radialGradients ? _fbb.CreateVector<flatbuffers::Offset<RadialGradient>>(*radialGradients) : 0;
+  auto commands__ = commands ? _fbb.CreateVector<flatbuffers::Offset<VectorCommand>>(*commands) : 0;
   return DeepSeaVectorDraw::CreateVectorImage(
       _fbb,
-      colorMaterials ? _fbb.CreateVector<flatbuffers::Offset<ColorMaterial>>(*colorMaterials) : 0,
-      linearGradients ? _fbb.CreateVector<flatbuffers::Offset<LinearGradient>>(*linearGradients) : 0,
-      radialGradients ? _fbb.CreateVector<flatbuffers::Offset<RadialGradient>>(*radialGradients) : 0,
-      commands ? _fbb.CreateVector<flatbuffers::Offset<VectorCommand>>(*commands) : 0,
+      colorMaterials__,
+      linearGradients__,
+      radialGradients__,
+      commands__,
       size);
 }
 
