@@ -261,6 +261,8 @@ typedef struct dsGLRenderer
 	GLuint curFbo;
 } dsGLRenderer;
 
+typedef void (*GLResetCommandBufferFunction)(dsCommandBuffer* commandBuffer);
+
 typedef bool (*GLCopyGfxBufferDataFunction)(dsCommandBuffer* commandBuffer, dsGfxBuffer* buffer,
 	size_t offset, const void* data, size_t size);
 typedef bool (*GLCopyGfxBufferFunction)(dsCommandBuffer* commandBuffer, dsGfxBuffer* srcBuffer,
@@ -348,6 +350,8 @@ typedef bool (*GLSubmitCommandBufferFunction)(dsCommandBuffer* commandBuffer,
 
 typedef struct CommandBufferFunctionTable
 {
+	GLResetCommandBufferFunction resetCommandBuffer;
+
 	GLCopyGfxBufferDataFunction copyBufferDataFunc;
 	GLCopyGfxBufferFunction copyBufferFunc;
 

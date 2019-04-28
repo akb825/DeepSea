@@ -21,5 +21,5 @@
 
 dsGLOtherCommandBuffer* dsGLOtherCommandBuffer_create(dsRenderer* renderer, dsAllocator* allocator,
 	dsCommandBufferUsage usage);
-void dsGLOtherCommandBuffer_reset(dsGLOtherCommandBuffer* commandBuffer);
+void dsGLOtherCommandBuffer_reset(dsCommandBuffer* commandBuffer);
 bool dsGLOtherCommandBuffer_destroy(dsGLOtherCommandBuffer* commandBuffer);

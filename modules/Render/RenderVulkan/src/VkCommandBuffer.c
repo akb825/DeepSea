@@ -473,7 +473,7 @@ bool dsVkCommandBuffer_begin(dsRenderer* renderer, dsCommandBuffer* commandBuffe
 {
 	DS_ASSERT(commandBuffer != renderer->mainCommandBuffer);
 	DS_UNUSED(renderer);
-	DS_UNUSED(commandBuffer);
+	dsVkCommandBuffer_clearUsedResources(commandtBuffer);
 	return true;
 }
 
@@ -482,6 +482,8 @@ bool dsVkCommandBuffer_beginSecondary(dsRenderer* renderer, dsCommandBuffer* com
 	const dsAlignedBox3f* viewport)
 {
 	DS_ASSERT(commandBuffer != renderer->mainCommandBuffer);
+
+	dsVkCommandBuffer_clearUsedResources(commandtBuffer);
 
 	dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
 	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;

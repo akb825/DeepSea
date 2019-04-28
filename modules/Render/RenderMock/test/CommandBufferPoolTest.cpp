@@ -31,7 +31,7 @@ TEST_F(CommandBufferPoolTest, Create)
 	ASSERT_TRUE(pool);
 
 	EXPECT_TRUE(pool->currentBuffers);
-	EXPECT_FALSE(pool->prevBuffers);
+	EXPECT_FALSE(pool->previousBuffers);
 
 	EXPECT_TRUE(dsCommandBufferPool_destroy(pool));
 
@@ -39,7 +39,7 @@ TEST_F(CommandBufferPoolTest, Create)
 	ASSERT_TRUE(pool);
 
 	EXPECT_TRUE(pool->currentBuffers);
-	EXPECT_TRUE(pool->prevBuffers);
+	EXPECT_TRUE(pool->previousBuffers);
 
 	EXPECT_TRUE(dsCommandBufferPool_destroy(pool));
 }
@@ -54,7 +54,7 @@ TEST_F(CommandBufferPoolTest, Reset)
 	EXPECT_TRUE(dsCommandBufferPool_reset(pool));
 
 	EXPECT_TRUE(pool->currentBuffers);
-	EXPECT_FALSE(pool->prevBuffers);
+	EXPECT_FALSE(pool->previousBuffers);
 
 	EXPECT_TRUE(dsCommandBufferPool_destroy(pool));
 
@@ -62,11 +62,11 @@ TEST_F(CommandBufferPoolTest, Reset)
 	ASSERT_TRUE(pool);
 
 	dsCommandBuffer** currentBuffers = pool->currentBuffers;
-	dsCommandBuffer** otherBuffers = pool->prevBuffers;
+	dsCommandBuffer** otherBuffers = pool->previousBuffers;
 
 	EXPECT_TRUE(dsCommandBufferPool_reset(pool));
 	EXPECT_EQ(otherBuffers, pool->currentBuffers);
-	EXPECT_EQ(currentBuffers, pool->prevBuffers);
+	EXPECT_EQ(currentBuffers, pool->previousBuffers);
 
 	EXPECT_TRUE(dsCommandBufferPool_destroy(pool));
 }

@@ -715,12 +715,16 @@ typedef struct dsCommandBufferPool
 	/**
 	 * @brief The previous set of command buffers when double-buffering is enabled.
 	 *
-	 * When resetting the pool, the currentBuffers will be assigned to prevBuffers.
+	 * When resetting the pool, the currentBuffers will be assigned to previousBuffers.
 	 *
-	 * @remark It's not guaranteed that prevBuffers and currentBuffers are strictly swapped. In some
-	 * implementations, there could be multiple lists managed internally.
+	 * @remark It's not guaranteed that previousBuffers and currentBuffers are strictly swapped. In
+	 * some implementations, there could be multiple lists managed internally.
+	 *
+	 * @remark It's possible for previousBuffers to be NULL even if it's double-buffered if no
+	 * command buffers have been used. This behavior my differ based on different graphics API
+	 * implementations.
 	 */
-	dsCommandBuffer** prevBuffers;
+	dsCommandBuffer** previousBuffers;
 
 	/**
 	 * @brief The number of command buffers in the pool.

@@ -561,6 +561,11 @@ static void unbindBlitSurface(GLenum framebufferType, dsGfxSurfaceType surfaceTy
 	}
 }
 
+void dsGLMainCommandBuffer_reset(dsCommandBuffer* commandBuffer)
+{
+	DS_UNUSED(commandBuffer);
+}
+
 bool dsGLMainCommandBuffer_copyBufferData(dsCommandBuffer* commandBuffer, dsGfxBuffer* buffer,
 	size_t offset, const void* data, size_t size)
 {
@@ -1867,6 +1872,7 @@ bool dsGLMainCommandBuffer_submit(dsCommandBuffer* commandBuffer, dsCommandBuffe
 
 static CommandBufferFunctionTable functionTable =
 {
+	&dsGLMainCommandBuffer_reset,
 	&dsGLMainCommandBuffer_copyBufferData,
 	&dsGLMainCommandBuffer_copyBuffer,
 	&dsGLMainCommandBuffer_copyTextureData,

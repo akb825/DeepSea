@@ -22,6 +22,8 @@
 void dsGLCommandBuffer_initialize(dsCommandBuffer* commandBuffer);
 void dsGLCommandBuffer_shutdown(dsCommandBuffer* commandBuffer);
 
+void dsGLCommandBuffer_reset(dsCommandBuffer* commandBuffer);
+
 bool dsGLCommandBuffer_copyBufferData(dsCommandBuffer* commandBuffer, dsGfxBuffer* buffer,
 	size_t offset, const void* data, size_t size);
 bool dsGLCommandBuffer_copyBuffer(dsCommandBuffer* commandBuffer, dsGfxBuffer* srcBuffer,

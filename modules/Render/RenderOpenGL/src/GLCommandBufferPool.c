@@ -51,13 +51,13 @@ dsCommandBufferPool* dsGLCommandBufferPool_create(dsRenderer* renderer, dsAlloca
 
 	if (usage & dsCommandBufferUsage_DoubleBuffer)
 	{
-		pool->prevBuffers = (dsCommandBuffer**)dsAllocator_alloc((dsAllocator*)&bufferAlloc,
+		pool->previousBuffers = (dsCommandBuffer**)dsAllocator_alloc((dsAllocator*)&bufferAlloc,
 			bufferArraySize);
-		DS_ASSERT(pool->prevBuffers);
+		DS_ASSERT(pool->previousBuffers);
 		memset(pool->currentBuffers, 0, bufferArraySize);
 	}
 	else
-		pool->prevBuffers = NULL;
+		pool->previousBuffers = NULL;
 
 	pool->count = count;
 	pool->usage = usage;
@@ -70,13 +70,13 @@ dsCommandBufferPool* dsGLCommandBufferPool_create(dsRenderer* renderer, dsAlloca
 			dsGLCommandBufferPool_destroy(renderer, pool);
 	}
 
-	if (pool->prevBuffers)
+	if (pool->previousBuffers)
 	{
 		for (uint32_t i = 0; i < count; ++i)
 		{
-			pool->prevBuffers[i] = (dsCommandBuffer*)dsGLOtherCommandBuffer_create(renderer,
+			pool->previousBuffers[i] = (dsCommandBuffer*)dsGLOtherCommandBuffer_create(renderer,
 				allocator, (dsCommandBufferUsage)usage);
-			if (!pool->prevBuffers[i])
+			if (!pool->previousBuffers[i])
 				dsGLCommandBufferPool_destroy(renderer, pool);
 		}
 	}
@@ -89,15 +89,15 @@ bool dsGLCommandBufferPool_reset(dsRenderer* renderer, dsCommandBufferPool* pool
 	DS_UNUSED(renderer);
 	DS_ASSERT(pool);
 
-	if (pool->prevBuffers)
+	if (pool->previousBuffers)
 	{
-		dsCommandBuffer** temp = pool->prevBuffers;
-		pool->prevBuffers = pool->currentBuffers;
+		dsCommandBuffer** temp = pool->previousBuffers;
+		pool->previousBuffers = pool->currentBuffers;
 		pool->currentBuffers = temp;
 	}
 
 	for (uint32_t i = 0; i < pool->count; ++i)
-		dsGLOtherCommandBuffer_reset((dsGLOtherCommandBuffer*)pool->currentBuffers[i]);
+		dsGLOtherCommandBuffer_reset(pool->currentBuffers[i]);
 	return true;
 }
 
@@ -112,12 +112,12 @@ bool dsGLCommandBufferPool_destroy(dsRenderer* renderer, dsCommandBufferPool* po
 			dsGLOtherCommandBuffer_destroy((dsGLOtherCommandBuffer*)pool->currentBuffers[i]);
 	}
 
-	if (pool->prevBuffers)
+	if (pool->previousBuffers)
 	{
 		for (uint32_t i = 0; i < pool->count; ++i)
 		{
-			if (pool->prevBuffers[i])
-				dsGLOtherCommandBuffer_destroy((dsGLOtherCommandBuffer*)pool->prevBuffers[i]);
+			if (pool->previousBuffers[i])
+				dsGLOtherCommandBuffer_destroy((dsGLOtherCommandBuffer*)pool->previousBuffers[i]);
 		}
 	}
 

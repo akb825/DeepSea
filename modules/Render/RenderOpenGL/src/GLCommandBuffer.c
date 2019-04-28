@@ -334,6 +334,12 @@ void dsGLCommandBuffer_shutdown(dsCommandBuffer* commandBuffer)
 	dsAllocator_free(commandBuffer->allocator, glCommandBuffer->commitCounts);
 }
 
+void dsGLCommandBuffer_reset(dsCommandBuffer* commandBuffer)
+{
+	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
+	return functions->resetCommandBuffer(commandBuffer);
+}
+
 bool dsGLCommandBuffer_copyBufferData(dsCommandBuffer* commandBuffer, dsGfxBuffer* buffer,
 	size_t offset, const void* data, size_t size)
 {
@@ -682,7 +688,7 @@ bool dsGLCommandBuffer_begin(dsRenderer* renderer, dsCommandBuffer* commandBuffe
 {
 	DS_ASSERT(commandBuffer != renderer->mainCommandBuffer);
 	DS_UNUSED(renderer);
-	DS_UNUSED(commandBuffer);
+	dsGLCommandBuffer_reset(commandBuffer);
 	return true;
 }
 
@@ -692,11 +698,11 @@ bool dsGLCommandBuffer_beginSecondary(dsRenderer* renderer, dsCommandBuffer* com
 {
 	DS_ASSERT(commandBuffer != renderer->mainCommandBuffer);
 	DS_UNUSED(renderer);
-	DS_UNUSED(commandBuffer);
 	DS_UNUSED(framebuffer);
 	DS_UNUSED(renderPass);
 	DS_UNUSED(subpass);
 	DS_UNUSED(viewport);
+	dsGLCommandBuffer_reset(commandBuffer);
 	return true;
 }
 

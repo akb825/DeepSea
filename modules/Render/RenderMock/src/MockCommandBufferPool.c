@@ -30,7 +30,7 @@ dsCommandBufferPool* dsMockCommandBufferPool_create(dsRenderer* renderer, dsAllo
 
 	size_t totalSize = DS_ALIGNED_SIZE(sizeof(dsCommandBufferPool)) +
 		lists*(DS_ALIGNED_SIZE(sizeof(dsCommandBuffer*)*count) +
-		DS_ALIGNED_SIZE(sizeof(dsCommandBuffer))*count);
+			DS_ALIGNED_SIZE(sizeof(dsCommandBuffer))*count);
 	void* buffer = dsAllocator_alloc(allocator, totalSize);
 	if (!buffer)
 		return NULL;
@@ -70,7 +70,7 @@ dsCommandBufferPool* dsMockCommandBufferPool_create(dsRenderer* renderer, dsAllo
 
 	if (lists == 2)
 	{
-		pool->prevBuffers = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAllocator,
+		pool->previousBuffers = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAllocator,
 			dsCommandBuffer*, count);
 		DS_ASSERT(pool->currentBuffers);
 		for (uint32_t i = 0; i < count; ++i)
@@ -88,11 +88,11 @@ dsCommandBufferPool* dsMockCommandBufferPool_create(dsRenderer* renderer, dsAllo
 			commandBuffer->activeRenderSubpass = 0;
 			commandBuffer->boundShader = NULL;
 			commandBuffer->boundComputeShader = NULL;
-			pool->prevBuffers[i] = commandBuffer;
+			pool->previousBuffers[i] = commandBuffer;
 		}
 	}
 	else
-		pool->prevBuffers = NULL;
+		pool->previousBuffers = NULL;
 
 	return pool;
 }
@@ -106,8 +106,8 @@ bool dsMockCommandBufferPool_reset(dsRenderer* renderer, dsCommandBufferPool* po
 	if (pool->usage & dsCommandBufferUsage_DoubleBuffer)
 	{
 		dsCommandBuffer** temp = pool->currentBuffers;
-		pool->currentBuffers = pool->prevBuffers;
-		pool->prevBuffers = temp;
+		pool->currentBuffers = pool->previousBuffers;
+		pool->previousBuffers = temp;
 	}
 
 	return true;

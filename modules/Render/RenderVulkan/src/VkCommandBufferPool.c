@@ -35,7 +35,7 @@ dsCommandBufferPool* dsVkCommandBufferPool_create(dsRenderer* renderer, dsAlloca
 	basePool->renderer = renderer;
 	basePool->allocator = dsAllocator_keepPointer(allocator);
 	basePool->currentBuffers = NULL;
-	basePool->prevBuffers = NULL;
+	basePool->previousBuffers = NULL;
 	basePool->count = count;
 	basePool->usage = usage;
 
@@ -66,7 +66,7 @@ bool dsVkCommandBufferPool_reset(dsRenderer* renderer, dsCommandBufferPool* pool
 	if (!dsVkCommandPoolData_prepare(poolData))
 		return false;
 
-	pool->prevBuffers = pool->currentBuffers;
+	pool->previousBuffers = pool->currentBuffers;
 	pool->currentBuffers = poolData->commandBuffers;
 	return true;
 }

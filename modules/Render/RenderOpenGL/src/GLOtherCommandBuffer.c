@@ -399,6 +399,213 @@ static Command* allocateCommand(dsCommandBuffer* commandBuffer, CommandType type
 	return command;
 }
 
+void dsGLOtherCommandBuffer_reset(dsCommandBuffer* commandBuffer)
+{
+	DS_ASSERT(commandBuffer);
+	dsGLOtherCommandBuffer* glCommandBuffer = (dsGLOtherCommandBuffer*)commandBuffer;
+
+	// Free any internal refs for resources.
+	uint8_t* buffer = (uint8_t*)glCommandBuffer->buffer.buffer;
+	size_t bufferSize = ((dsAllocator*)&glCommandBuffer->buffer)->size;
+	size_t offset = 0;
+	while (offset < bufferSize)
+	{
+		Command* command = (Command*)(buffer + offset);
+		offset += command->size;
+		switch (command->type)
+		{
+			case CommandType_CopyBufferData:
+			{
+				CopyBufferDataCommand* thisCommand = (CopyBufferDataCommand*)command;
+				dsGLGfxBuffer_freeInternalRef(thisCommand->buffer);
+				break;
+			}
+			case CommandType_CopyBuffer:
+			{
+				CopyBufferCommand* thisCommand = (CopyBufferCommand*)command;
+				dsGLGfxBuffer_freeInternalRef(thisCommand->srcBuffer);
+				dsGLGfxBuffer_freeInternalRef(thisCommand->dstBuffer);
+				break;
+			}
+			case CommandType_CopyTextureData:
+			{
+				CopyTextureDataCommand* thisCommand = (CopyTextureDataCommand*)command;
+				dsGLTexture_freeInternalRef(thisCommand->texture);
+				break;
+			}
+			case CommandType_CopyTexture:
+			{
+				CopyTextureCommand* thisCommand = (CopyTextureCommand*)command;
+				dsGLTexture_freeInternalRef(thisCommand->srcTexture);
+				dsGLTexture_freeInternalRef(thisCommand->dstTexture);
+				break;
+			}
+			case CommandType_GenerateTextureMipmaps:
+			{
+				GenerateTextureMipmapsCommand* thisCommand =
+					(GenerateTextureMipmapsCommand*)command;
+				dsGLTexture_freeInternalRef(thisCommand->texture);
+				break;
+			}
+			case CommandType_BeginQuery:
+			case CommandType_EndQuery:
+			{
+				BeginEndQueryCommand* thisCommand = (BeginEndQueryCommand*)command;
+				dsGLGfxQueryPool_freeInternalRef(thisCommand->queries);
+				break;
+			}
+			case CommandType_QueryTimestamp:
+			{
+				QueryTimestampCommand* thisCommand = (QueryTimestampCommand*)command;
+				dsGLGfxQueryPool_freeInternalRef(thisCommand->queries);
+				break;
+			}
+			case CommandType_CopyQueryValues:
+			{
+				CopyQueryValuesCommand* thisCommand = (CopyQueryValuesCommand*)command;
+				dsGLGfxQueryPool_freeInternalRef(thisCommand->queries);
+				dsGLGfxBuffer_freeInternalRef(thisCommand->buffer);
+				break;
+			}
+			case CommandType_BindShader:
+			{
+				BindShaderCommand* thisCommand = (BindShaderCommand*)command;
+				dsGLShader_freeInternalRef((dsShader*)thisCommand->shader);
+				break;
+			}
+			case CommandType_SetTexture:
+			{
+				SetTextureCommand* thisCommand = (SetTextureCommand*)command;
+				dsGLShader_freeInternalRef((dsShader*)thisCommand->shader);
+				dsGLTexture_freeInternalRef(thisCommand->texture);
+				break;
+			}
+			case CommandType_SetTextureBuffer:
+			{
+				SetTextureBufferCommand* thisCommand = (SetTextureBufferCommand*)command;
+				dsGLShader_freeInternalRef((dsShader*)thisCommand->shader);
+				dsGLGfxBuffer_freeInternalRef(thisCommand->buffer);
+				break;
+			}
+			case CommandType_SetShaderBuffer:
+			{
+				SetShaderBufferCommand* thisCommand = (SetShaderBufferCommand*)command;
+				dsGLShader_freeInternalRef((dsShader*)thisCommand->shader);
+				dsGLGfxBuffer_freeInternalRef(thisCommand->buffer);
+				break;
+			}
+			case CommandType_SetUniform:
+				break;
+			case CommandType_UnbindShader:
+			case CommandType_UnbindComputeShader:
+			{
+				UnbindShaderCommand* thisCommand = (UnbindShaderCommand*)command;
+				dsGLShader_freeInternalRef((dsShader*)thisCommand->shader);
+				break;
+			}
+			case CommandType_BindComputeShader:
+			{
+				BindComputeShaderCommand* thisCommand = (BindComputeShaderCommand*)command;
+				dsGLShader_freeInternalRef((dsShader*)thisCommand->shader);
+				break;
+			}
+			case CommandType_BeginRenderSurface:
+				break;
+			case CommandType_EndRenderSurface:
+				break;
+			case CommandType_BeginRenderPass:
+			{
+				BeginRenderPassCommand* thisCommand = (BeginRenderPassCommand*)command;
+				dsGLRenderPass_freeInternalRef((dsRenderPass*)thisCommand->renderPass);
+				dsGLFramebuffer_freeInternalRef((dsFramebuffer*)thisCommand->framebuffer);
+				break;
+			}
+			case CommandType_NextRenderSubpass:
+			{
+				NextRenderSubpassCommand* thisCommand = (NextRenderSubpassCommand*)command;
+				dsGLRenderPass_freeInternalRef((dsRenderPass*)thisCommand->renderPass);
+				break;
+			}
+			case CommandType_EndRenderPass:
+			{
+				EndRenderPassCommand* thisCommand = (EndRenderPassCommand*)command;
+				dsGLRenderPass_freeInternalRef((dsRenderPass*)thisCommand->renderPass);
+				break;
+			}
+			case CommandType_ClearColorSurface:
+			{
+				ClearColorSurfaceCommand* thisCommand = (ClearColorSurfaceCommand*)command;
+				if (thisCommand->surface.surfaceType == dsGfxSurfaceType_Texture)
+					dsGLTexture_freeInternalRef((dsTexture*)thisCommand->surface.surface);
+				else if (thisCommand->surface.surfaceType == dsGfxSurfaceType_Renderbuffer)
+					dsGLRenderbuffer_freeInternalRef((dsRenderbuffer*)thisCommand->surface.surface);
+				break;
+			}
+			case CommandType_ClearDepthStencilSurface:
+			{
+				ClearDepthStencilSurfaceCommand* thisCommand =
+					(ClearDepthStencilSurfaceCommand*)command;
+				if (thisCommand->surface.surfaceType == dsGfxSurfaceType_Texture)
+					dsGLTexture_freeInternalRef((dsTexture*)thisCommand->surface.surface);
+				else if (thisCommand->surface.surfaceType == dsGfxSurfaceType_Renderbuffer)
+					dsGLRenderbuffer_freeInternalRef((dsRenderbuffer*)thisCommand->surface.surface);
+				break;
+			}
+			case CommandType_Draw:
+			{
+				DrawCommand* thisCommand = (DrawCommand*)command;
+				dsGLDrawGeometry_freeInternalRef((dsDrawGeometry*)thisCommand->geometry);
+				break;
+			}
+			case CommandType_DrawIndexed:
+			{
+				DrawIndexedCommand* thisCommand = (DrawIndexedCommand*)command;
+				dsGLDrawGeometry_freeInternalRef((dsDrawGeometry*)thisCommand->geometry);
+				break;
+			}
+			case CommandType_DrawIndirect:
+			case CommandType_DrawIndexedIndirect:
+			{
+				DrawIndirectCommand* thisCommand = (DrawIndirectCommand*)command;
+				dsGLDrawGeometry_freeInternalRef((dsDrawGeometry*)thisCommand->geometry);
+				dsGLGfxBuffer_freeInternalRef((dsGfxBuffer*)thisCommand->indirectBuffer);
+				break;
+			}
+			case CommandType_DispatchCompute:
+				break;
+			case CommandType_DispatchComputeIndirect:
+			{
+				DispatchComputeIndirectCommand* thisCommand =
+					(DispatchComputeIndirectCommand*)command;
+				dsGLGfxBuffer_freeInternalRef((dsGfxBuffer*)thisCommand->indirectBuffer);
+				break;
+			}
+			case CommandType_BlitSurface:
+			{
+				BlitSurfaceCommand* thisCommand = (BlitSurfaceCommand*)command;
+				freeSurfaceRef(thisCommand->srcSurfaceType, thisCommand->srcSurface);
+				freeSurfaceRef(thisCommand->dstSurfaceType, thisCommand->dstSurface);
+				break;
+			}
+			case CommandType_PushDebugGroup:
+				break;
+			case CommandType_PopDebugGroup:
+				break;
+			case CommandType_MemoryBarrier:
+				break;
+			default:
+				DS_ASSERT(false);
+		}
+	}
+
+	for (size_t i = 0; i < glCommandBuffer->curFenceSyncs; ++i)
+		dsGLFenceSyncRef_freeRef(glCommandBuffer->fenceSyncs[i]);
+	glCommandBuffer->curFenceSyncs = 0;
+	glCommandBuffer->bufferReadback = false;
+
+	DS_VERIFY(dsBufferAllocator_reset(&glCommandBuffer->buffer));
+}
+
 bool dsGLOtherCommandBuffer_copyBufferData(dsCommandBuffer* commandBuffer, dsGfxBuffer* buffer,
 	size_t offset, const void* data, size_t size)
 {
@@ -1241,13 +1448,14 @@ bool dsGLOtherCommandBuffer_submit(dsCommandBuffer* commandBuffer, dsCommandBuff
 	if (!(submitBuffer->usage &
 		(dsCommandBufferUsage_MultiSubmit | dsCommandBufferUsage_MultiFrame)))
 	{
-		dsGLOtherCommandBuffer_reset(glSubmitBuffer);
+		dsGLOtherCommandBuffer_reset(submitBuffer);
 	}
 	return true;
 }
 
 static CommandBufferFunctionTable functionTable =
 {
+	&dsGLOtherCommandBuffer_reset,
 	&dsGLOtherCommandBuffer_copyBufferData,
 	&dsGLOtherCommandBuffer_copyBuffer,
 	&dsGLOtherCommandBuffer_copyTextureData,
@@ -1332,217 +1540,11 @@ dsGLOtherCommandBuffer* dsGLOtherCommandBuffer_create(dsRenderer* renderer, dsAl
 	return commandBuffer;
 }
 
-void dsGLOtherCommandBuffer_reset(dsGLOtherCommandBuffer* commandBuffer)
-{
-	DS_ASSERT(commandBuffer);
-
-	// Free any internal refs for resources.
-	uint8_t* buffer = (uint8_t*)commandBuffer->buffer.buffer;
-	size_t bufferSize = ((dsAllocator*)&commandBuffer->buffer)->size;
-	size_t offset = 0;
-	while (offset < bufferSize)
-	{
-		Command* command = (Command*)(buffer + offset);
-		offset += command->size;
-		switch (command->type)
-		{
-			case CommandType_CopyBufferData:
-			{
-				CopyBufferDataCommand* thisCommand = (CopyBufferDataCommand*)command;
-				dsGLGfxBuffer_freeInternalRef(thisCommand->buffer);
-				break;
-			}
-			case CommandType_CopyBuffer:
-			{
-				CopyBufferCommand* thisCommand = (CopyBufferCommand*)command;
-				dsGLGfxBuffer_freeInternalRef(thisCommand->srcBuffer);
-				dsGLGfxBuffer_freeInternalRef(thisCommand->dstBuffer);
-				break;
-			}
-			case CommandType_CopyTextureData:
-			{
-				CopyTextureDataCommand* thisCommand = (CopyTextureDataCommand*)command;
-				dsGLTexture_freeInternalRef(thisCommand->texture);
-				break;
-			}
-			case CommandType_CopyTexture:
-			{
-				CopyTextureCommand* thisCommand = (CopyTextureCommand*)command;
-				dsGLTexture_freeInternalRef(thisCommand->srcTexture);
-				dsGLTexture_freeInternalRef(thisCommand->dstTexture);
-				break;
-			}
-			case CommandType_GenerateTextureMipmaps:
-			{
-				GenerateTextureMipmapsCommand* thisCommand =
-					(GenerateTextureMipmapsCommand*)command;
-				dsGLTexture_freeInternalRef(thisCommand->texture);
-				break;
-			}
-			case CommandType_BeginQuery:
-			case CommandType_EndQuery:
-			{
-				BeginEndQueryCommand* thisCommand = (BeginEndQueryCommand*)command;
-				dsGLGfxQueryPool_freeInternalRef(thisCommand->queries);
-				break;
-			}
-			case CommandType_QueryTimestamp:
-			{
-				QueryTimestampCommand* thisCommand = (QueryTimestampCommand*)command;
-				dsGLGfxQueryPool_freeInternalRef(thisCommand->queries);
-				break;
-			}
-			case CommandType_CopyQueryValues:
-			{
-				CopyQueryValuesCommand* thisCommand = (CopyQueryValuesCommand*)command;
-				dsGLGfxQueryPool_freeInternalRef(thisCommand->queries);
-				dsGLGfxBuffer_freeInternalRef(thisCommand->buffer);
-				break;
-			}
-			case CommandType_BindShader:
-			{
-				BindShaderCommand* thisCommand = (BindShaderCommand*)command;
-				dsGLShader_freeInternalRef((dsShader*)thisCommand->shader);
-				break;
-			}
-			case CommandType_SetTexture:
-			{
-				SetTextureCommand* thisCommand = (SetTextureCommand*)command;
-				dsGLShader_freeInternalRef((dsShader*)thisCommand->shader);
-				dsGLTexture_freeInternalRef(thisCommand->texture);
-				break;
-			}
-			case CommandType_SetTextureBuffer:
-			{
-				SetTextureBufferCommand* thisCommand = (SetTextureBufferCommand*)command;
-				dsGLShader_freeInternalRef((dsShader*)thisCommand->shader);
-				dsGLGfxBuffer_freeInternalRef(thisCommand->buffer);
-				break;
-			}
-			case CommandType_SetShaderBuffer:
-			{
-				SetShaderBufferCommand* thisCommand = (SetShaderBufferCommand*)command;
-				dsGLShader_freeInternalRef((dsShader*)thisCommand->shader);
-				dsGLGfxBuffer_freeInternalRef(thisCommand->buffer);
-				break;
-			}
-			case CommandType_SetUniform:
-				break;
-			case CommandType_UnbindShader:
-			case CommandType_UnbindComputeShader:
-			{
-				UnbindShaderCommand* thisCommand = (UnbindShaderCommand*)command;
-				dsGLShader_freeInternalRef((dsShader*)thisCommand->shader);
-				break;
-			}
-			case CommandType_BindComputeShader:
-			{
-				BindComputeShaderCommand* thisCommand = (BindComputeShaderCommand*)command;
-				dsGLShader_freeInternalRef((dsShader*)thisCommand->shader);
-				break;
-			}
-			case CommandType_BeginRenderSurface:
-				break;
-			case CommandType_EndRenderSurface:
-				break;
-			case CommandType_BeginRenderPass:
-			{
-				BeginRenderPassCommand* thisCommand = (BeginRenderPassCommand*)command;
-				dsGLRenderPass_freeInternalRef((dsRenderPass*)thisCommand->renderPass);
-				dsGLFramebuffer_freeInternalRef((dsFramebuffer*)thisCommand->framebuffer);
-				break;
-			}
-			case CommandType_NextRenderSubpass:
-			{
-				NextRenderSubpassCommand* thisCommand = (NextRenderSubpassCommand*)command;
-				dsGLRenderPass_freeInternalRef((dsRenderPass*)thisCommand->renderPass);
-				break;
-			}
-			case CommandType_EndRenderPass:
-			{
-				EndRenderPassCommand* thisCommand = (EndRenderPassCommand*)command;
-				dsGLRenderPass_freeInternalRef((dsRenderPass*)thisCommand->renderPass);
-				break;
-			}
-			case CommandType_ClearColorSurface:
-			{
-				ClearColorSurfaceCommand* thisCommand = (ClearColorSurfaceCommand*)command;
-				if (thisCommand->surface.surfaceType == dsGfxSurfaceType_Texture)
-					dsGLTexture_freeInternalRef((dsTexture*)thisCommand->surface.surface);
-				else if (thisCommand->surface.surfaceType == dsGfxSurfaceType_Renderbuffer)
-					dsGLRenderbuffer_freeInternalRef((dsRenderbuffer*)thisCommand->surface.surface);
-				break;
-			}
-			case CommandType_ClearDepthStencilSurface:
-			{
-				ClearDepthStencilSurfaceCommand* thisCommand =
-					(ClearDepthStencilSurfaceCommand*)command;
-				if (thisCommand->surface.surfaceType == dsGfxSurfaceType_Texture)
-					dsGLTexture_freeInternalRef((dsTexture*)thisCommand->surface.surface);
-				else if (thisCommand->surface.surfaceType == dsGfxSurfaceType_Renderbuffer)
-					dsGLRenderbuffer_freeInternalRef((dsRenderbuffer*)thisCommand->surface.surface);
-				break;
-			}
-			case CommandType_Draw:
-			{
-				DrawCommand* thisCommand = (DrawCommand*)command;
-				dsGLDrawGeometry_freeInternalRef((dsDrawGeometry*)thisCommand->geometry);
-				break;
-			}
-			case CommandType_DrawIndexed:
-			{
-				DrawIndexedCommand* thisCommand = (DrawIndexedCommand*)command;
-				dsGLDrawGeometry_freeInternalRef((dsDrawGeometry*)thisCommand->geometry);
-				break;
-			}
-			case CommandType_DrawIndirect:
-			case CommandType_DrawIndexedIndirect:
-			{
-				DrawIndirectCommand* thisCommand = (DrawIndirectCommand*)command;
-				dsGLDrawGeometry_freeInternalRef((dsDrawGeometry*)thisCommand->geometry);
-				dsGLGfxBuffer_freeInternalRef((dsGfxBuffer*)thisCommand->indirectBuffer);
-				break;
-			}
-			case CommandType_DispatchCompute:
-				break;
-			case CommandType_DispatchComputeIndirect:
-			{
-				DispatchComputeIndirectCommand* thisCommand =
-					(DispatchComputeIndirectCommand*)command;
-				dsGLGfxBuffer_freeInternalRef((dsGfxBuffer*)thisCommand->indirectBuffer);
-				break;
-			}
-			case CommandType_BlitSurface:
-			{
-				BlitSurfaceCommand* thisCommand = (BlitSurfaceCommand*)command;
-				freeSurfaceRef(thisCommand->srcSurfaceType, thisCommand->srcSurface);
-				freeSurfaceRef(thisCommand->dstSurfaceType, thisCommand->dstSurface);
-				break;
-			}
-			case CommandType_PushDebugGroup:
-				break;
-			case CommandType_PopDebugGroup:
-				break;
-			case CommandType_MemoryBarrier:
-				break;
-			default:
-				DS_ASSERT(false);
-		}
-	}
-
-	for (size_t i = 0; i < commandBuffer->curFenceSyncs; ++i)
-		dsGLFenceSyncRef_freeRef(commandBuffer->fenceSyncs[i]);
-	commandBuffer->curFenceSyncs = 0;
-	commandBuffer->bufferReadback = false;
-
-	DS_VERIFY(dsBufferAllocator_reset(&commandBuffer->buffer));
-}
-
 bool dsGLOtherCommandBuffer_destroy(dsGLOtherCommandBuffer* commandBuffer)
 {
 	DS_ASSERT(commandBuffer);
 	dsAllocator* allocator = ((dsCommandBuffer*)commandBuffer)->allocator;
-	dsGLOtherCommandBuffer_reset(commandBuffer);
+	dsGLOtherCommandBuffer_reset((dsCommandBuffer*)commandBuffer);
 	dsGLCommandBuffer_shutdown((dsCommandBuffer*)commandBuffer);
 
 	DS_ASSERT(commandBuffer->curFenceSyncs == 0);
