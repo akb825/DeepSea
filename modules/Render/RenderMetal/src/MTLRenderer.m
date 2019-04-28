@@ -19,6 +19,7 @@
 
 #include "Resources/MTLResourceManager.h"
 #include "MTLCommandBuffer.h"
+#include "MTLRenderSurface.h"
 
 #include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
@@ -365,7 +366,7 @@ bool dsMTLRenderer_queryDevices(dsRenderDeviceInfo* outDevices, uint32_t* outDev
 	return true;
 }
 
-void dsMTLRenderer_flush(dsRenderer* renderer)
+void dsMTLRenderer_flushImpl(dsRenderer* renderer, id<MTLCommandBuffer> extraCommands)
 {
 	dsMTLRenderer* mtlRenderer = (dsMTLRenderer*)renderer;
 
@@ -376,6 +377,12 @@ void dsMTLRenderer_flush(dsRenderer* renderer)
 	for (uint32_t i = 0; i < commandBuffer->submitBufferCount; ++i)
 	{
 		lastCommandBuffer = (__bridge id<MTLCommandBuffer>)commandBuffer->submitBuffers[i];
+		[lastCommandBuffer commit];
+	}
+
+	if (extraCommands)
+	{
+		lastCommandBuffer = extraCommands;
 		[lastCommandBuffer commit];
 	}
 
@@ -398,6 +405,11 @@ void dsMTLRenderer_flush(dsRenderer* renderer)
 			DS_VERIFY(dsMutex_unlock(mtlRenderer->submitMutex));
 		}];
 	dsMTLCommandBuffer_submitted(renderer->mainCommandBuffer, submit);
+}
+
+void dsMTLRenderer_flush(dsRenderer* renderer)
+{
+	dsMTLRenderer_flushImpl(renderer, nil);
 }
 
 dsRenderer* dsMTLRenderer_create(dsAllocator* allocator, const dsRendererOptions* options)
@@ -502,8 +514,6 @@ dsRenderer* dsMTLRenderer_create(dsAllocator* allocator, const dsRendererOptions
 	baseRenderer->maxColorAttachments = getMaxColorAttachments(renderer->featureSet);
 	baseRenderer->maxSurfaceSamples = getMaxSurfaceSamples(device);
 	baseRenderer->maxAnisotropy = 16.0f;
-	baseRenderer->surfaceColorFormat = colorFormat;
-	baseRenderer->surfaceDepthStencilFormat = depthFormat;
 	baseRenderer->surfaceSamples = options->samples;
 	baseRenderer->doubleBuffer = true;
 	baseRenderer->stereoscopic = false;
@@ -530,7 +540,52 @@ dsRenderer* dsMTLRenderer_create(dsAllocator* allocator, const dsRendererOptions
 		return NULL;
 	}
 
+	baseRenderer->surfaceColorFormat = colorFormat;
+
+	// 16 and 24-bit depth not always supported.
+	// First try 16 bit to fall back to 24 bit. Then try 24 bit to fall back to 32 bit.
+	if (depthFormat == dsGfxFormat_D16S8 &&
+		!dsGfxFormat_offscreenSupported(baseRenderer->resourceManager, depthFormat))
+	{
+		depthFormat = dsGfxFormat_D24S8;
+	}
+	else if (depthFormat == dsGfxFormat_D16 &&
+		!dsGfxFormat_offscreenSupported(baseRenderer->resourceManager, depthFormat))
+	{
+		depthFormat = dsGfxFormat_X8D24;
+	}
+
+	if (depthFormat == dsGfxFormat_D24S8 &&
+		!dsGfxFormat_offscreenSupported(baseRenderer->resourceManager, depthFormat))
+	{
+		depthFormat = dsGfxFormat_D32S8_Float;
+	}
+	else if (depthFormat == dsGfxFormat_X8D24 &&
+		!dsGfxFormat_offscreenSupported(baseRenderer->resourceManager, depthFormat))
+	{
+		depthFormat = dsGfxFormat_D32_Float;
+	}
+
+	if (depthFormat != dsGfxFormat_Unknown &&
+		!dsGfxFormat_offscreenSupported(baseRenderer->resourceManager, depthFormat))
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_METAL_LOG_TAG, "Can't draw to surface depth format.");
+		dsMTLRenderer_destroy(baseRenderer);
+		return NULL;
+	}
+
+	baseRenderer->surfaceDepthStencilFormat = depthFormat;
+
 	baseRenderer->destroyFunc = &dsMTLRenderer_destroy;
+
+	// Render surfaces
+	baseRenderer->createRenderSurfaceFunc = &dsMTLRenderSurface_create;
+	baseRenderer->destroyRenderSurfaceFunc = &dsMTLRenderSurface_destroy;
+	baseRenderer->updateRenderSurfaceFunc = &dsMTLRenderSurface_update;
+	baseRenderer->beginRenderSurfaceFunc = &dsMTLRenderSurface_beginDraw;
+	baseRenderer->endRenderSurfaceFunc = &dsMTLRenderSurface_endDraw;
+	baseRenderer->swapRenderSurfaceBuffersFunc = &dsMTLRenderSurface_swapBuffers;
 
 	DS_VERIFY(dsRenderer_initializeResources(baseRenderer));
 

@@ -678,6 +678,31 @@ static bool hasCubeArrays(MTLFeatureSet feature)
 #endif
 }
 
+static bool isSpecialTextureFormatSupported(const dsMTLResourceManager* mtlResourceManager,
+	dsGfxFormat format, uint32_t specialIndex)
+{
+	if (mtlResourceManager->specialPixelFormats[specialIndex] != MTLVertexFormatInvalid)
+		return true;
+
+	// Some depth-stencil formats need to be split.
+	if (format == dsGfxFormat_D16S8)
+	{
+		uint32_t depthIndex = dsGfxFormat_specialIndex(dsGfxFormat_D16);
+		uint32_t stencilIndex = dsGfxFormat_specialIndex(dsGfxFormat_S8);
+		return mtlResourceManager->specialPixelFormats[depthIndex] != MTLVertexFormatInvalid &&
+			mtlResourceManager->specialPixelFormats[stencilIndex] != MTLVertexFormatInvalid;
+	}
+	else if (format == dsGfxFormat_D32S8_Float)
+	{
+		uint32_t depthIndex = dsGfxFormat_specialIndex(dsGfxFormat_D32_Float);
+		uint32_t stencilIndex = dsGfxFormat_specialIndex(dsGfxFormat_S8);
+		return mtlResourceManager->specialPixelFormats[depthIndex] != MTLVertexFormatInvalid &&
+			mtlResourceManager->specialPixelFormats[stencilIndex] != MTLVertexFormatInvalid;
+	}
+
+	return false;
+}
+
 bool dsMTLResourceManager_vertexFormatSupported(const dsResourceManager* resourceManager,
 	dsGfxFormat format)
 {
@@ -702,7 +727,7 @@ bool dsMTLResourceManager_textureFormatSupported(const dsResourceManager* resour
 
 	uint32_t specialIndex = dsGfxFormat_specialIndex(format);
 	if (specialIndex > 0)
-		return mtlResourceManager->specialPixelFormats[specialIndex] != MTLVertexFormatInvalid;
+		return isSpecialTextureFormatSupported(mtlResourceManager, format, specialIndex);
 
 	uint32_t compressedIndex = dsGfxFormat_compressedIndex(format);
 	if (compressedIndex > 0)
@@ -729,7 +754,7 @@ bool dsMTLResourceManager_offscreenFormatSupported(const dsResourceManager* reso
 
 	uint32_t specialIndex = dsGfxFormat_specialIndex(format);
 	if (specialIndex > 0)
-		return mtlResourceManager->specialPixelFormats[specialIndex] != MTLVertexFormatInvalid;
+		return isSpecialTextureFormatSupported(mtlResourceManager, format, specialIndex);
 
 	return false;
 }

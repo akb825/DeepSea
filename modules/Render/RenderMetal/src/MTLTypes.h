@@ -193,6 +193,17 @@ typedef struct dsMTLCommandBuffer
 	bool fenceSet;
 } dsMTLCommandBuffer;
 
+typedef struct dsMTLRenderSurface
+{
+	dsRenderSurface renderSurface;
+	CFTypeRef view;
+	CFTypeRef layer;
+	CFTypeRef drawable;
+	CFTypeRef resolveSurface;
+	CFTypeRef depthSurface;
+	CFTypeRef stencilSurface;
+} dsMTLRenderSurface;
+
 typedef struct dsMTLResourceManager
 {
 	dsResourceManager resourceManager;

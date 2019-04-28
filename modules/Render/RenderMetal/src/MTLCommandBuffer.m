@@ -197,7 +197,7 @@ void dsMTLCommandBuffer_submitFence(dsCommandBuffer* commandBuffer)
 	if (commandBuffer == commandBuffer->renderer->mainCommandBuffer &&
 		!commandBuffer->boundRenderPass)
 	{
-		dsMTLRenderer_flush(commandBuffer->renderer);
+		dsMTLRenderer_flushImpl(commandBuffer->renderer, nil);
 		mtlCommandBuffer->fenceSet = false;
 		return;
 	}

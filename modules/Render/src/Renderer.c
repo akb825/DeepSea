@@ -267,6 +267,11 @@ dsGfxFormat dsRenderer_optionsColorFormat(const dsRendererOptions* options, bool
 		else
 			return dsGfxFormat_decorate(dsGfxFormat_A2B10G10R10, dsGfxFormat_UNorm);
 	}
+	else if (options->redBits == 16 && options->greenBits == 16 && options->blueBits == 16 &&
+		options->alphaBits == 16)
+	{
+		return dsGfxFormat_decorate(dsGfxFormat_R16G16B16A16, dsGfxFormat_Float);
+	}
 	else if (options->redBits == 5 && options->greenBits == 6 && options->blueBits == 5 &&
 		options->alphaBits == 0 && !options->srgb)
 	{
