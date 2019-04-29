@@ -19,6 +19,7 @@
 
 #include "Resources/MTLResourceManager.h"
 #include "MTLCommandBuffer.h"
+#include "MTLCommandBufferPool.h"
 #include "MTLRenderSurface.h"
 
 #include <DeepSea/Core/Containers/ResizeableArray.h>
@@ -366,47 +367,6 @@ bool dsMTLRenderer_queryDevices(dsRenderDeviceInfo* outDevices, uint32_t* outDev
 	return true;
 }
 
-void dsMTLRenderer_flushImpl(dsRenderer* renderer, id<MTLCommandBuffer> extraCommands)
-{
-	dsMTLRenderer* mtlRenderer = (dsMTLRenderer*)renderer;
-
-	dsMTLCommandBuffer_endEncoding(renderer->mainCommandBuffer);
-	dsMTLCommandBuffer* commandBuffer = &mtlRenderer->mainCommandBuffer;
-
-	id<MTLCommandBuffer> lastCommandBuffer = processTextures(mtlRenderer);
-	for (uint32_t i = 0; i < commandBuffer->submitBufferCount; ++i)
-	{
-		lastCommandBuffer = (__bridge id<MTLCommandBuffer>)commandBuffer->submitBuffers[i];
-		[lastCommandBuffer commit];
-	}
-
-	if (extraCommands)
-	{
-		lastCommandBuffer = extraCommands;
-		[lastCommandBuffer commit];
-	}
-
-	DS_VERIFY(dsMutex_lock(mtlRenderer->submitMutex));
-	uint64_t submit = mtlRenderer->submitCount;
-	if (lastCommandBuffer > 0)
-		++mtlRenderer->submitCount;
-	DS_VERIFY(dsMutex_unlock(mtlRenderer->submitMutex));
-
-	// Increment finished submit count at the end of the last command buffer.
-	[lastCommandBuffer addCompletedHandler: ^(id<MTLCommandBuffer> commandBuffer)
-		{
-			DS_UNUSED(commandBuffer);
-			DS_VERIFY(dsMutex_lock(mtlRenderer->submitMutex));
-			if (submit > mtlRenderer->finishedSubmitCount)
-			{
-				mtlRenderer->finishedSubmitCount = submit;
-				DS_VERIFY(dsConditionVariable_notifyAll(mtlRenderer->submitCondition));
-			}
-			DS_VERIFY(dsMutex_unlock(mtlRenderer->submitMutex));
-		}];
-	dsMTLCommandBuffer_submitted(renderer->mainCommandBuffer, submit);
-}
-
 void dsMTLRenderer_flush(dsRenderer* renderer)
 {
 	dsMTLRenderer_flushImpl(renderer, nil);
@@ -587,9 +547,61 @@ dsRenderer* dsMTLRenderer_create(dsAllocator* allocator, const dsRendererOptions
 	baseRenderer->endRenderSurfaceFunc = &dsMTLRenderSurface_endDraw;
 	baseRenderer->swapRenderSurfaceBuffersFunc = &dsMTLRenderSurface_swapBuffers;
 
+	// Command buffer pools
+	baseRenderer->createCommandBufferPoolFunc = &dsMTLCommandBufferPool_create;
+	baseRenderer->destroyCommandBufferPoolFunc = &dsMTLCommandBufferPool_destroy;
+	baseRenderer->resetCommandBufferPoolFunc = &dsMTLCommandBufferPool_reset;
+
+	// Command buffers.
+	baseRenderer->beginCommandBufferFunc = &dsMTLCommandBuffer_begin;
+	baseRenderer->beginSecondaryCommandBufferFunc = &dsMTLCommandBuffer_beginSecondary;
+	baseRenderer->endCommandBufferFunc = &dsMTLCommandBuffer_end;
+	baseRenderer->submitCommandBufferFunc = &dsMTLCommandBuffer_submit;
+
 	DS_VERIFY(dsRenderer_initializeResources(baseRenderer));
 
 	return baseRenderer;
+}
+
+void dsMTLRenderer_flushImpl(dsRenderer* renderer, id<MTLCommandBuffer> extraCommands)
+{
+	dsMTLRenderer* mtlRenderer = (dsMTLRenderer*)renderer;
+
+	dsMTLCommandBuffer_endEncoding(renderer->mainCommandBuffer);
+	dsMTLCommandBuffer* commandBuffer = &mtlRenderer->mainCommandBuffer;
+
+	id<MTLCommandBuffer> lastCommandBuffer = processTextures(mtlRenderer);
+	for (uint32_t i = 0; i < commandBuffer->submitBufferCount; ++i)
+	{
+		lastCommandBuffer = (__bridge id<MTLCommandBuffer>)commandBuffer->submitBuffers[i];
+		[lastCommandBuffer commit];
+	}
+
+	if (extraCommands)
+	{
+		lastCommandBuffer = extraCommands;
+		[lastCommandBuffer commit];
+	}
+
+	DS_VERIFY(dsMutex_lock(mtlRenderer->submitMutex));
+	uint64_t submit = mtlRenderer->submitCount;
+	if (lastCommandBuffer > 0)
+		++mtlRenderer->submitCount;
+	DS_VERIFY(dsMutex_unlock(mtlRenderer->submitMutex));
+
+	// Increment finished submit count at the end of the last command buffer.
+	[lastCommandBuffer addCompletedHandler: ^(id<MTLCommandBuffer> commandBuffer)
+		{
+			DS_UNUSED(commandBuffer);
+			DS_VERIFY(dsMutex_lock(mtlRenderer->submitMutex));
+			if (submit > mtlRenderer->finishedSubmitCount)
+			{
+				mtlRenderer->finishedSubmitCount = submit;
+				DS_VERIFY(dsConditionVariable_notifyAll(mtlRenderer->submitCondition));
+			}
+			DS_VERIFY(dsMutex_unlock(mtlRenderer->submitMutex));
+		}];
+	dsMTLCommandBuffer_submitted(renderer->mainCommandBuffer, submit);
 }
 
 dsGfxFenceResult dsMTLRenderer_waitForSubmit(const dsRenderer* renderer, uint64_t submitCount,

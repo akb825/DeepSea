@@ -78,7 +78,7 @@ typedef enum CommandType
 typedef struct Command
 {
 	CommandType type;
-	size_t size;
+	uint32_t size;
 } Command;
 
 typedef struct CopyBufferDataCommand
@@ -395,7 +395,7 @@ static Command* allocateCommand(dsCommandBuffer* commandBuffer, CommandType type
 	}
 
 	command->type = type;
-	command->size = DS_ALIGNED_SIZE(size);
+	command->size = (uint32_t)DS_ALIGNED_SIZE(size);
 	return command;
 }
 

@@ -19,6 +19,7 @@
 #include "Resources/MTLPipeline.h"
 #include "Resources/MTLShaderModule.h"
 #include "MTLRenderPass.h"
+#include "MTLShared.h"
 
 #include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
@@ -33,19 +34,18 @@
 #include <MSL/Client/ModuleC.h>
 #include <string.h>
 
-#import <Metal/MTLSampler.h>
-
-static size_t fullAllocSize(const mslPipeline* pipeline)
+static size_t fullAllocSize(const mslPipeline* pipeline, uint32_t elementCount)
 {
 	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsMTLShader));
 
 	for (int i = 0; i < mslStage_Count; ++i)
 	{
 		if (pipeline->shaders[i] != DS_MATERIAL_UNKNOWN)
-			fullSize += DS_ALIGNED_SIZE(sizeof(uint32_t)*pipeline->uniformCount);
+			fullSize += DS_ALIGNED_SIZE(sizeof(uint32_t)*(pipeline->uniformCount + 1));
 	}
 
 	fullSize += DS_ALIGNED_SIZE(sizeof(CFTypeRef)*pipeline->samplerStateCount);
+	fullSize += DS_ALIGNED_SIZE(sizeof(uint32_t)*elementCount);
 	return fullSize;
 }
 
@@ -112,29 +112,6 @@ static MTLSamplerBorderColor getBorderColor(mslBorderColor color)
 }
 
 #if !DS_IOS || IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
-MTLCompareFunction getCompareFunction(mslCompareOp compare)
-{
-	switch (compare)
-	{
-		case mslCompareOp_Less:
-			return MTLCompareFunctionLess;
-		case mslCompareOp_Equal:
-			return MTLCompareFunctionEqual;
-		case mslCompareOp_LessOrEqual:
-			return MTLCompareFunctionLessEqual;
-		case mslCompareOp_Greater:
-			return MTLCompareFunctionGreater;
-		case mslCompareOp_NotEqual:
-			return MTLCompareFunctionNotEqual;
-		case mslCompareOp_GreaterOrEqual:
-			return MTLCompareFunctionGreaterEqual;
-		case mslCompareOp_Always:
-			return MTLCompareFunctionAlways;
-		case mslCompareOp_Never:
-		default:
-			return MTLCompareFunctionNever;
-	}
-}
 #endif
 
 static id<MTLSamplerState> createSampler(dsRenderer* renderer, const mslSamplerState* samplerState)
@@ -168,7 +145,7 @@ static id<MTLSamplerState> createSampler(dsRenderer* renderer, const mslSamplerS
 	}
 
 #if !DS_IOS || IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
-	descriptor.compareFunction = getCompareFunction(samplerState->compareOp);
+	descriptor.compareFunction = dsGetMTLCompareFunction(samplerState->compareOp);
 #endif
 
 	id<MTLSamplerState> sampler = [device newSamplerStateWithDescriptor: descriptor];
@@ -283,7 +260,7 @@ dsShader* dsMTLShader_create(dsResourceManager* resourceManager, dsAllocator* al
 			pipeline.pushConstantStruct));
 	}
 
-	size_t fullSize = fullAllocSize(&pipeline);
+	size_t fullSize = fullAllocSize(&pipeline, materialDesc->elementCount);
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 		return NULL;
@@ -306,18 +283,19 @@ dsShader* dsMTLShader_create(dsResourceManager* resourceManager, dsAllocator* al
 	shader->lifetime = NULL;
 	shader->pipeline = pipeline;
 
+	uint32_t fullUniformCount = pipeline.uniformCount + 1;
 	for (int i = 0; i < mslStage_Count; ++i)
 	{
 		shader->stages[i].function = NULL;
-		if (pipeline.shaders[i] != MSL_UNKNOWN)
+		if (pipeline.shaders[i] == MSL_UNKNOWN)
+			shader->stages[i].uniformIndices = NULL;
+		else
 		{
 			shader->stages[i].uniformIndices = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
-				uint32_t, pipeline.uniformCount);
+				uint32_t, fullUniformCount);
 			DS_ASSERT(shader->stages[i].uniformIndices);
-			memset(shader->stages[i].uniformIndices, 0xFF, sizeof(CFTypeRef)*pipeline.uniformCount);
+			memset(shader->stages[i].uniformIndices, 0xFF, sizeof(CFTypeRef)*fullUniformCount);
 		}
-		else
-			shader->stages[i].uniformIndices = NULL;
 	}
 
 	if (pipeline.samplerStateCount > 0)
@@ -328,6 +306,27 @@ dsShader* dsMTLShader_create(dsResourceManager* resourceManager, dsAllocator* al
 		memset(shader->samplers, 0, sizeof(CFTypeRef)*pipeline.samplerStateCount);
 	}
 	DS_VERIFY(dsSpinlock_initialize(&shader->samplerLock));
+
+	shader->elementMapping = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc, uint32_t,
+		materialDesc->elementCount);
+	for (uint32_t i = 0; i < materialDesc->elementCount; ++i)
+	{
+		const dsMaterialElement* element = materialDesc->elements + i;
+		shader->elementMapping[i] = DS_MATERIAL_UNKNOWN;
+		if (element->type < dsMaterialType_Texture || element->type > dsMaterialType_UniformBuffer)
+			continue;
+
+		for (uint32_t j = 0; j < pipeline.uniformCount; ++j)
+		{
+			mslUniform uniform;
+			DS_VERIFY(mslModule_uniform(&uniform, module->module, shaderIndex, j));
+			if (strcmp(uniform.name, element->name) == 0)
+			{
+				shader->elementMapping[i] = j;
+				break;
+			}
+		}
+	}
 
 	shader->pipelines = NULL;
 	shader->pipelineCount = 0;

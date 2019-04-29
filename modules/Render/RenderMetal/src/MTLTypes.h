@@ -137,9 +137,12 @@ typedef struct dsMTLShader
 	mslPipeline pipeline;
 	dsMTLShaderStageInfo stages[mslStage_Count];
 	mslRenderState renderState;
+	CFTypeRef depthStencilState;
 	CFTypeRef* samplers;
 	float defaultAnisotropy;
 	dsSpinlock samplerLock;
+
+	uint32_t* elementMapping;
 
 	dsLifetime** usedRenderPasses;
 	uint32_t usedRenderPassCount;
@@ -186,9 +189,10 @@ typedef struct dsMTLCommandBuffer
 	uint32_t fenceCount;
 	uint32_t maxFences;
 
-	uint8_t* secondaryCommands;
-	uint32_t secondaryCommandSize;
-	uint32_t maxSecondaryCommandSize;
+	dsBufferAllocator secondaryCommands;
+
+	uint8_t* pushConstantData;
+	uint32_t maxPushConstantDataSize;
 
 	bool fenceSet;
 } dsMTLCommandBuffer;
