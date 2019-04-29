@@ -38,9 +38,6 @@ typedef enum CommandType
 	CommandType_BindBufferUniform,
 	CommandType_BindTextureUniform,
 	CommandType_SetRenderStates,
-	CommandType_BindComputePushConstants,
-	CommandType_BindComputeBufferUniform,
-	CommandType_BindComputeTextureUniform
 } CommandType;
 
 typedef struct Command
@@ -85,30 +82,6 @@ typedef struct SetRenderStatesCommand
 	dsDynamicRenderStates dynamicStates;
 	bool hasDynamicStates;
 } SetRenderStatesCommand;
-
-typedef struct BindComputePushConstantsCommand
-{
-	Command command;
-	uint32_t size;
-	uint8_t data[];
-} BindComputePushConstantsCommand;
-
-typedef struct BindComputeBufferUniformCommand
-{
-	Command command;
-	CFTypeRef buffer;
-	size_t offset;
-	uint32_t index;
-} BindComputeBufferUniformCommand;
-
-typedef struct BindComputeTextureUniformCommand
-{
-	Command command;
-	CFTypeRef texture;
-	CFTypeRef sampler;
-	size_t offset;
-	uint32_t index;
-} BindComputeTextureUniformCommand;
 
 static Command* allocateCommand(dsCommandBuffer* commandBuffer, CommandType type, size_t size)
 {
@@ -173,24 +146,6 @@ static void clearSecondaryCommands(dsCommandBuffer* commandBuffer)
 			}
 			case CommandType_SetRenderStates:
 				break;
-			case CommandType_BindComputePushConstants:
-				break;
-			case CommandType_BindComputeBufferUniform:
-			{
-				BindComputeBufferUniformCommand* thisCommand =
-					(BindComputeBufferUniformCommand*)command;
-				CFRelease(thisCommand->buffer);
-				break;
-			}
-			case CommandType_BindComputeTextureUniform:
-			{
-				BindComputeTextureUniformCommand* thisCommand =
-					(BindComputeTextureUniformCommand*)command;
-				CFRelease(thisCommand->texture);
-				if (thisCommand->sampler)
-					CFRelease(thisCommand->sampler);
-				break;
-			}
 			default:
 				DS_ASSERT(false);
 		}
@@ -243,32 +198,6 @@ static void submitSecondaryCommands(dsCommandBuffer* commandBuffer,
 				dsMTLCommandBuffer_setRenderStates(commandBuffer, &thisCommand->renderStates,
 					(__bridge id<MTLDepthStencilState>)thisCommand->depthStencilState,
 					thisCommand->hasDynamicStates ? &thisCommand->dynamicStates : NULL);
-				break;
-			}
-			case CommandType_BindComputePushConstants:
-			{
-				BindComputePushConstantsCommand* thisCommand =
-					(BindComputePushConstantsCommand*)command;
-				dsMTLCommandBuffer_bindComputePushConstants(commandBuffer, thisCommand->data,
-					thisCommand->size);
-				break;
-			}
-			case CommandType_BindComputeBufferUniform:
-			{
-				BindComputeBufferUniformCommand* thisCommand =
-					(BindComputeBufferUniformCommand*)command;
-				dsMTLCommandBuffer_bindComputeBufferUniform(commandBuffer,
-					(__bridge id<MTLBuffer>)thisCommand->buffer, thisCommand->offset,
-					thisCommand->index);
-				break;
-			}
-			case CommandType_BindComputeTextureUniform:
-			{
-				BindComputeTextureUniformCommand* thisCommand =
-					(BindComputeTextureUniformCommand*)command;
-				dsMTLCommandBuffer_bindComputeTextureUniform(commandBuffer,
-					(__bridge id<MTLTexture>)thisCommand->texture,
-					(__bridge id<MTLSamplerState>)thisCommand->sampler, thisCommand->index);
 				break;
 			}
 			default:
@@ -678,86 +607,43 @@ bool dsMTLCommandBuffer_bindTextureUniform(dsCommandBuffer* commandBuffer, id<MT
 bool dsMTLCommandBuffer_bindComputePushConstants(dsCommandBuffer* commandBuffer, const void* data,
 	uint32_t size)
 {
-	if (commandBuffer->usage & dsCommandBufferUsage_Secondary)
-	{
-		BindComputePushConstantsCommand* command =
-			(BindComputePushConstantsCommand*)allocateCommand(commandBuffer,
-				CommandType_BindComputePushConstants,
-				sizeof(BindComputePushConstantsCommand) + size);
-		if (!command)
-			return false;
+	DS_ASSERT(!(commandBuffer->usage & dsCommandBufferUsage_Secondary));
+	id<MTLComputeCommandEncoder> encoder =
+		dsMTLCommandBuffer_getComputeCommandEncoder(commandBuffer);
+	if (!encoder)
+		return false;
 
-		command->size = size;
-		memcpy(command->data, data, size);
-	}
-	else
-	{
-		id<MTLComputeCommandEncoder> encoder =
-			dsMTLCommandBuffer_getComputeCommandEncoder(commandBuffer);
-		if (!encoder)
-			return false;
-
-		[encoder setBytes: data length: size atIndex: 0];
-	}
-
+	[encoder setBytes: data length: size atIndex: 0];
 	return true;
 }
 
 bool dsMTLCommandBuffer_bindComputeBufferUniform(dsCommandBuffer* commandBuffer,
 	id<MTLBuffer> buffer, size_t offset, uint32_t index)
 {
-	if (commandBuffer->usage & dsCommandBufferUsage_Secondary)
-	{
-		BindComputeBufferUniformCommand* command =
-			(BindComputeBufferUniformCommand*)allocateCommand(commandBuffer,
-				CommandType_BindComputeBufferUniform, sizeof(BindComputeBufferUniformCommand));
-		if (!command)
-			return false;
+	DS_ASSERT(!(commandBuffer->usage & dsCommandBufferUsage_Secondary));
 
-		command->buffer = CFBridgingRetain(buffer);
-		command->offset = offset;
-		command->index = index;
-	}
-	else
-	{
-		id<MTLComputeCommandEncoder> encoder =
-			dsMTLCommandBuffer_getComputeCommandEncoder(commandBuffer);
-		if (!encoder)
-			return false;
+	id<MTLComputeCommandEncoder> encoder =
+		dsMTLCommandBuffer_getComputeCommandEncoder(commandBuffer);
+	if (!encoder)
+		return false;
 
-		[encoder setBuffer: buffer offset: offset atIndex: index];
-	}
-
+	[encoder setBuffer: buffer offset: offset atIndex: index];
 	return true;
 }
 
 bool dsMTLCommandBuffer_bindComputeTextureUniform(dsCommandBuffer* commandBuffer,
 	id<MTLTexture> texture, id<MTLSamplerState> sampler, uint32_t index)
 {
-	if (commandBuffer->usage & dsCommandBufferUsage_Secondary)
-	{
-		BindComputeTextureUniformCommand* command =
-			(BindComputeTextureUniformCommand*)allocateCommand(commandBuffer,
-				CommandType_BindComputeTextureUniform, sizeof(BindComputeTextureUniformCommand));
-		if (!command)
-			return false;
+	DS_ASSERT(!(commandBuffer->usage & dsCommandBufferUsage_Secondary));
 
-		command->texture = CFBridgingRetain(texture);
-		command->sampler = CFBridgingRetain(sampler);
-		command->index = index;
-	}
-	else
-	{
-		id<MTLComputeCommandEncoder> encoder =
-			dsMTLCommandBuffer_getComputeCommandEncoder(commandBuffer);
-		if (!encoder)
-			return false;
+	id<MTLComputeCommandEncoder> encoder =
+		dsMTLCommandBuffer_getComputeCommandEncoder(commandBuffer);
+	if (!encoder)
+		return false;
 
-		[encoder setTexture: texture atIndex: index];
-		if (sampler)
-			[encoder setSamplerState: sampler atIndex: index];
-	}
-
+	[encoder setTexture: texture atIndex: index];
+	if (sampler)
+		[encoder setSamplerState: sampler atIndex: index];
 	return true;
 }
 
