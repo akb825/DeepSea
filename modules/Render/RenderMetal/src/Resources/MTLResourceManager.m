@@ -43,10 +43,8 @@ struct dsResourceContext
 
 static dsResourceContext dummyContext;
 
-static void initializePixelFormats(dsMTLResourceManager* resourceManager, id<MTLDevice> device,
-	MTLFeatureSet featureSet)
+static void initializePixelFormats(dsMTLResourceManager* resourceManager, id<MTLDevice> device)
 {
-	DS_UNUSED(featureSet);
 	memset(resourceManager->standardPixelFormats, 0, sizeof(resourceManager->standardPixelFormats));
 	memset(resourceManager->specialPixelFormats, 0, sizeof(resourceManager->specialPixelFormats));
 	memset(resourceManager->compressedPixelFormats, 0,
@@ -205,11 +203,11 @@ static void initializePixelFormats(dsMTLResourceManager* resourceManager, id<MTL
 		[dsGfxFormat_specialIndex(dsGfxFormat_EAC_R11G11)][snormIndex] =
 			MTLPixelFormatEAC_R11G11Snorm;
 
-	if (featureSet != MTLFeatureSet_iOS_GPUFamily1_v1 &&
-		featureSet != MTLFeatureSet_iOS_GPUFamily1_v2 &&
-		featureSet != MTLFeatureSet_iOS_GPUFamily1_v3 &&
-		featureSet != MTLFeatureSet_iOS_GPUFamily1_v4 &&
-		featureSet != MTLFeatureSet_iOS_GPUFamily1_v5)
+	bool hasASTC = false;
+#if IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
+	hasASTC = [device supportsFeatureSet: MTLFeatureSet_iOS_GPUFamily2_v1];
+#endif
+	if (hasASTC)
 	{
 		resourceManager->compressedPixelFormats
 			[dsGfxFormat_specialIndex(dsGfxFormat_ASTC_4x4)][unormIndex] =
@@ -583,97 +581,42 @@ static size_t getMaxBufferLength(id<MTLDevice> device)
 #endif
 }
 
-static uint32_t getMaxTextureSize(MTLFeatureSet feature)
+static uint32_t getMaxTextureSize(id<MTLDevice> device)
 {
-	switch (feature)
-	{
-#if IPHONE_OS_VERSION_MIN_REQUIRED >= 80000
-		case MTLFeatureSet_iOS_GPUFamily1_v1:
-		case MTLFeatureSet_iOS_GPUFamily2_v1:
-			return 4096;
+	DS_UNUSED(device);
+#if IPHONE_OS_VERSION_MIN_REQUIRED == 80000
+	return 4096;
+#elif IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
+	return [device supportsFeatureSet: MTLFeatureSet_iOS_GPUFamily3_v1] ? 16384 : 8192;
+#else
+	return 16384;
 #endif
-
-#if IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
-		case MTLFeatureSet_iOS_GPUFamily1_v2:
-		case MTLFeatureSet_iOS_GPUFamily2_v2:
-			return 8192;
-		case MTLFeatureSet_iOS_GPUFamily3_v1:
-			return 16384;
-#endif
-
-#if IPHONE_OS_VERSION_MIN_REQUIRED >= 100000
-		case MTLFeatureSet_iOS_GPUFamily1_v3:
-		case MTLFeatureSet_iOS_GPUFamily2_v3:
-			return 8192;
-		case MTLFeatureSet_iOS_GPUFamily3_v2:
-#endif
-
-#if IPHONE_OS_VERSION_MIN_REQUIRED >= 110000
-		case MTLFeatureSet_iOS_GPUFamily1_v4:
-		case MTLFeatureSet_iOS_GPUFamily2_v4:
-			return 8192;
-		case MTLFeatureSet_iOS_GPUFamily3_v3:
-		case MTLFeatureSet_iOS_GPUFamily4_v1:
-			return 16384;
-#endif
-
-#if IPHONE_OS_VERSION_MIN_REQUIRED >= 120000
-		case MTLFeatureSet_iOS_GPUFamily1_v5:
-		case MTLFeatureSet_iOS_GPUFamily2_v5:
-			return 8192;
-		case MTLFeatureSet_iOS_GPUFamily3_v4:
-		case MTLFeatureSet_iOS_GPUFamily4_v2:
-		case MTLFeatureSet_iOS_GPUFamily5_v1:
-			return 16384;
-#endif
-
-		default:
-			return 16384;
-	}
 }
 
-static bool hasLayeredRendering(MTLFeatureSet feature)
+static bool hasLayeredRendering(id<MTLDevice> device)
 {
+	DS_UNUSED(device);
 #if DS_IOS
 #if IPHONE_OS_VERSION_MIN_REQUIRED >= 120000
-	switch (feature)
-	{
-		case MTLFeatureSet_iOS_GPUFamily5_v1:
-			return true;
-		default:
-			return false;
-	}
+	return [device supportsFeatureSet: MTLFeatureSet_iOS_GPUFamily5_v1];
 #else
-	DS_UNUSED(feature);
 	return false;
 #endif
 #else
-	DS_UNUSED(feature);
 	return true;
 #endif
 }
 
-static bool hasCubeArrays(MTLFeatureSet feature)
+static bool hasCubeArrays(id<MTLDevice> device)
 {
+	DS_UNUSED(device);
 #if DS_IOS
-	switch (feature)
-	{
 #if IPHONE_OS_VERSION_MIN_REQUIRED >= 110000
-		case MTLFeatureSet_iOS_GPUFamily4_v1:
-			return true;
-#endif
-
-#if IPHONE_OS_VERSION_MIN_REQUIRED >= 120000
-		case MTLFeatureSet_iOS_GPUFamily4_v2:
-		case MTLFeatureSet_iOS_GPUFamily5_v1:
-			return true;
-#endif
-
-		default:
-			return false;
-	}
+	return [device supportsFeatureSet: MTLFeatureSet_iOS_GPUFamily4_v1];
 #else
-	DS_UNUSED(feature);
+	return false;
+#endif
+#else
 	return true;
 #endif
 }
@@ -831,7 +774,7 @@ dsResourceManager* dsMTLResourceManager_create(dsAllocator* allocator, dsRendere
 	baseResourceManager->maxResourceContexts = UINT_MAX;
 	baseResourceManager->minNonCoherentMappingAlignment = 0;
 
-	initializePixelFormats(resourceManager, device, mtlRenderer->featureSet);
+	initializePixelFormats(resourceManager, device);
 	initializeVertexFormats(resourceManager);
 
 	baseResourceManager->minTextureBufferAlignment = getMinTextureBufferAlignment(resourceManager,
@@ -856,17 +799,16 @@ dsResourceManager* dsMTLResourceManager_create(dsAllocator* allocator, dsRendere
 	baseResourceManager->lineWidthRange.x = 1.0f;
 	baseResourceManager->lineWidthRange.y = 1.0f;
 
-	baseResourceManager->maxTextureSize = getMaxTextureSize(mtlRenderer->featureSet);
+	baseResourceManager->maxTextureSize = getMaxTextureSize(device);
 	baseResourceManager->maxTextureBufferElements =
 		DS_IMAGE_BUFFER_WIDTH*baseResourceManager->maxTextureSize;
 	baseResourceManager->maxTextureDepth = 2048;
 	baseResourceManager->maxTextureArrayLevels = 2048;
 	baseResourceManager->maxRenderbufferSize = baseResourceManager->maxTextureSize;
-	baseResourceManager->maxFramebufferLayers =
-		hasLayeredRendering(mtlRenderer->featureSet) ? 256 : 1;
+	baseResourceManager->maxFramebufferLayers = hasLayeredRendering(device) ? 256 : 1;
 	baseResourceManager->maxTextureSamples = renderer->maxSurfaceSamples;
 	baseResourceManager->hasArbitraryMipmapping = true;
-	baseResourceManager->hasCubeArrays = hasCubeArrays(mtlRenderer->featureSet);
+	baseResourceManager->hasCubeArrays = hasCubeArrays(device);
 	baseResourceManager->texturesReadable = true;
 	baseResourceManager->requiresColorBuffer = false;
 	baseResourceManager->requiresAnySurface = false;

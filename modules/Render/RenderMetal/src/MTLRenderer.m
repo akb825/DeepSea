@@ -47,155 +47,47 @@
 #error macOS target version must be >= 10.11 to support metal.
 #endif
 
-static MTLFeatureSet mtlFeatures[] =
-{
-#if IPHONE_OS_VERSION_MIN_REQUIRED >= 80000
-	MTLFeatureSet_iOS_GPUFamily1_v1,
-	MTLFeatureSet_iOS_GPUFamily2_v1,
-#endif
-
-#if IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
-	MTLFeatureSet_iOS_GPUFamily1_v2,
-	MTLFeatureSet_iOS_GPUFamily2_v2,
-	MTLFeatureSet_iOS_GPUFamily3_v1,
-#endif
-
-#if IPHONE_OS_VERSION_MIN_REQUIRED >= 100000
-	MTLFeatureSet_iOS_GPUFamily1_v3,
-	MTLFeatureSet_iOS_GPUFamily2_v3,
-	MTLFeatureSet_iOS_GPUFamily3_v2,
-#endif
-
-#if IPHONE_OS_VERSION_MIN_REQUIRED >= 110000
-	MTLFeatureSet_iOS_GPUFamily1_v4,
-	MTLFeatureSet_iOS_GPUFamily2_v4,
-	MTLFeatureSet_iOS_GPUFamily3_v3,
-	MTLFeatureSet_iOS_GPUFamily4_v1,
-#endif
-
-#if IPHONE_OS_VERSION_MIN_REQUIRED >= 120000
-	MTLFeatureSet_iOS_GPUFamily1_v5,
-	MTLFeatureSet_iOS_GPUFamily2_v5,
-	MTLFeatureSet_iOS_GPUFamily3_v4,
-	MTLFeatureSet_iOS_GPUFamily4_v2,
-	MTLFeatureSet_iOS_GPUFamily5_v1,
-#endif
-
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= 101100
-	MTLFeatureSet_macOS_GPUFamily1_v1,
-#endif
-
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= 101200
-	MTLFeatureSet_macOS_GPUFamily1_v2,
-#endif
-
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= 101300
-	MTLFeatureSet_macOS_GPUFamily1_v3,
-#endif
-
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= 101400
-	MTLFeatureSet_macOS_GPUFamily1_v4,
-	MTLFeatureSet_macOS_GPUFamily2_v1,
-#endif
-};
-
 static size_t dsMTLRenderer_fullAllocSize(size_t deviceNameLen)
 {
 	return DS_ALIGNED_SIZE(sizeof(dsMTLRenderer)) + DS_ALIGNED_SIZE(deviceNameLen + 1) +
 		dsConditionVariable_fullAllocSize() + dsMutex_fullAllocSize();
 }
 
-static uint32_t getShaderVersion(MTLFeatureSet feature)
+static uint32_t getShaderVersion(void)
 {
-	switch (feature)
-	{
-#if IPHONE_OS_VERSION_MIN_REQUIRED >= 80000
-		case MTLFeatureSet_iOS_GPUFamily1_v1:
-		case MTLFeatureSet_iOS_GPUFamily2_v1:
-			return DS_ENCODE_VERSION(1, 0, 0);
+#if IPHONE_OS_VERSION_MIN_REQUIRED == 80000
+	return DS_ENCODE_VERSION(1, 0, 0);
+#elif IPHONE_OS_VERSION_MIN_REQUIRED == 90000
+	return DS_ENCODE_VERSION(1, 1, 0);
+#elif IPHONE_OS_VERSION_MIN_REQUIRED == 100000
+	return DS_ENCODE_VERSION(1, 2, 0);
+#elif IPHONE_OS_VERSION_MIN_REQUIRED == 110000
+	return DS_ENCODE_VERSION(2, 0, 0);
+#elif IPHONE_OS_VERSION_MIN_REQUIRED >= 120000
+	return DS_ENCODE_VERSION(2, 1, 0);
+#elif MAC_OS_X_VERSION_MIN_REQUIRED == 101100
+	return DS_ENCODE_VERSION(1, 1, 0);
+#elif MAC_OS_X_VERSION_MIN_REQUIRED == 101200
+	return DS_ENCODE_VERSION(1, 2, 0);
+#elif MAC_OS_X_VERSION_MIN_REQUIRED == 101300
+	return DS_ENCODE_VERSION(2, 0, 0);
+#elif MAC_OS_X_VERSION_MIN_REQUIRED >= 101400
+	return DS_ENCODE_VERSION(2, 1, 0);
+#else
+#error Metal not supported on this macOS/iOS version!
 #endif
-
-#if IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
-		case MTLFeatureSet_iOS_GPUFamily1_v2:
-		case MTLFeatureSet_iOS_GPUFamily2_v2:
-		case MTLFeatureSet_iOS_GPUFamily3_v1:
-			return DS_ENCODE_VERSION(1, 1, 0);
-#endif
-
-#if IPHONE_OS_VERSION_MIN_REQUIRED >= 100000
-		case MTLFeatureSet_iOS_GPUFamily1_v3:
-		case MTLFeatureSet_iOS_GPUFamily2_v3:
-		case MTLFeatureSet_iOS_GPUFamily3_v2:
-			return DS_ENCODE_VERSION(1, 2, 0);
-#endif
-
-#if IPHONE_OS_VERSION_MIN_REQUIRED >= 110000
-		case MTLFeatureSet_iOS_GPUFamily1_v4:
-		case MTLFeatureSet_iOS_GPUFamily2_v4:
-		case MTLFeatureSet_iOS_GPUFamily3_v3:
-		case MTLFeatureSet_iOS_GPUFamily4_v1:
-			return DS_ENCODE_VERSION(2, 0, 0);
-#endif
-
-#if IPHONE_OS_VERSION_MIN_REQUIRED >= 120000
-		case MTLFeatureSet_iOS_GPUFamily1_v5:
-		case MTLFeatureSet_iOS_GPUFamily2_v5:
-		case MTLFeatureSet_iOS_GPUFamily3_v4:
-		case MTLFeatureSet_iOS_GPUFamily4_v2:
-		case MTLFeatureSet_iOS_GPUFamily5_v1:
-			return DS_ENCODE_VERSION(2, 1, 0);
-#endif
-
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= 101100
-		case MTLFeatureSet_macOS_GPUFamily1_v1:
-			return DS_ENCODE_VERSION(1, 1, 0);
-#endif
-
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= 101200
-		case MTLFeatureSet_macOS_GPUFamily1_v2:
-			return DS_ENCODE_VERSION(1, 2, 0);
-#endif
-
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= 101300
-		case MTLFeatureSet_macOS_GPUFamily1_v3:
-			return DS_ENCODE_VERSION(2, 0, 0);
-#endif
-
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= 101400
-		case MTLFeatureSet_macOS_GPUFamily1_v4:
-		case MTLFeatureSet_macOS_GPUFamily2_v1:
-			return DS_ENCODE_VERSION(2, 1, 0);
-#endif
-
-		default:
-			DS_ASSERT(false);
-			return 0;
-	}
 }
 
-static uint32_t getMaxColorAttachments(MTLFeatureSet feature)
+static uint32_t getMaxColorAttachments(id<MTLDevice> device)
 {
-	switch (feature)
-	{
-#if IPHONE_OS_VERSION_MIN_REQUIRED >= 80000
-		case MTLFeatureSet_iOS_GPUFamily1_v1:
-#if IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
-		case MTLFeatureSet_iOS_GPUFamily1_v2:
+	DS_UNUSED(device);
+#if IPHONE_OS_VERSION_MIN_REQUIRED == 80000
+	return 4;
+#elif IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
+	return [device supportsFeatureSet: MTLFeatureSet_iOS_GPUFamily2_v1] ? 8 : 4;
+#else
+	return 8;
 #endif
-#if IPHONE_OS_VERSION_MIN_REQUIRED >= 100000
-		case MTLFeatureSet_iOS_GPUFamily1_v3:
-#endif
-#if IPHONE_OS_VERSION_MIN_REQUIRED >= 110000
-		case MTLFeatureSet_iOS_GPUFamily1_v4:
-#endif
-#if IPHONE_OS_VERSION_MIN_REQUIRED >= 120000
-		case MTLFeatureSet_iOS_GPUFamily1_v5:
-#endif
-			return 4;
-#endif
-		default:
-			return 8;
-	}
 }
 
 static uint32_t getMaxSurfaceSamples(id<MTLDevice> device)
@@ -205,70 +97,52 @@ static uint32_t getMaxSurfaceSamples(id<MTLDevice> device)
 	return 4;
 }
 
-static uint32_t hasTessellationShaders(MTLFeatureSet feature)
+static uint32_t hasTessellationShaders(id<MTLDevice> device)
 {
-	switch (feature)
-	{
-#if IPHONE_OS_VERSION_MIN_REQUIRED >= 80000
-		case MTLFeatureSet_iOS_GPUFamily1_v1:
-		case MTLFeatureSet_iOS_GPUFamily2_v1:
+	/*
+	* Tessellation shaders on Metal are... strange... Apple in their infinite wisdom
+	* decided instead of making adjustments to their render pipeline structures to have
+	* it work like literally every other graphics API, they decided to shoehorn it in a
+	* very strange way that requires multiple manual pipieline stages:
+	* 1. Have a graphics pipeline with just a vertex shader for the initial vertex shader.
+	*    Use a buffer to capture the output to use later.
+	* 2. Run a compute shader for the tessellation control. This will require ending the
+	*    render encoding and starting a compute encoding to run the compute shader. The
+	*    vertex shader output is passed as an input, and the patch output is captured in
+	*    another buffer.
+	* 3. A new render encoding needs to be created, and uses the tessellation evaluation
+	*    shader as the "vertex" function. This pipeline has some properties set to run the
+	*    tessellation stage.
+	*
+	* Note that stopping/restartng the render encoder can make some optimizations
+	* impossible, such as memoryless render targets since the render contents need to be
+	* preserved between the render pass invocations.
+	*
+	* *Can* this be implemented? Sure, MoltenVK does it and it's obvious why it took so
+	* long to add tessellation shader support. *Will* this be implemented? Currently no.
+	*
+	* I don't see this as critical enough to spend the time to implement this, especially
+	* given that some Vulkan drivers (e.g. Qualcomm) don't implement tessellation.
+	* Tessellation already has its own set of performance issues (e.g. drawing text by
+	* tessellating points into quads is slower even on desktop GPUs), and having to
+	* stop/restart the rendering encoder and manage the buffers will make this even slower
+	* compared to the driver providing a proper interface.
+	*
+	* So for the time being, no tessellation on Metal.
+	*/
+
+	DS_UNUSED(device);
+#if DS_IOS && IPHONE_OS_VERSION_MIN_REQUIRED < 100000
+	return false;
+#elif IPHONE_OS_VERSION_MIN_REQUIRED >= 100000
+	//return [device supportsFeatureSet: MTLFeatureSet_iOS_GPUFamily3_v2];
+	return false;
+#elif MAC_OS_X_VERSION_MIN_REQUIRED == 101000
+	return false;
+#else
+	//return true;
+	return false;
 #endif
-#if IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
-		case MTLFeatureSet_iOS_GPUFamily1_v2:
-		case MTLFeatureSet_iOS_GPUFamily2_v2:
-		case MTLFeatureSet_iOS_GPUFamily3_v1:
-#endif
-#if IPHONE_OS_VERSION_MIN_REQUIRED >= 100000
-		case MTLFeatureSet_iOS_GPUFamily1_v3:
-		case MTLFeatureSet_iOS_GPUFamily2_v3:
-#endif
-#if IPHONE_OS_VERSION_MIN_REQUIRED >= 110000
-		case MTLFeatureSet_iOS_GPUFamily1_v4:
-		case MTLFeatureSet_iOS_GPUFamily2_v4:
-#endif
-#if IPHONE_OS_VERSION_MIN_REQUIRED >= 120000
-		case MTLFeatureSet_iOS_GPUFamily1_v5:
-		case MTLFeatureSet_iOS_GPUFamily2_v5:
-#endif
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= 101100
-		case MTLFeatureSet_macOS_GPUFamily1_v1:
-#endif
-			return false;
-		default:
-			/*
-			 * Tessellation shaders on Metal are... strange... Apple in their infinite wisdom
-			 * decided instead of making adjustments to their render pipeline structures to have
-			 * it work like literally every other graphics API, they decided to shoehorn it in a
-			 * very strange way that requires multiple manual pipieline stages:
-			 * 1. Have a graphics pipeline with just a vertex shader for the initial vertex shader.
-			 *    Use a buffer to capture the output to use later.
-			 * 2. Run a compute shader for the tessellation control. This will require ending the
-			 *    render encoding and starting a compute encoding to run the compute shader. The
-			 *    vertex shader output is passed as an input, and the patch output is captured in
-			 *    another buffer.
-			 * 3. A new render encoding needs to be created, and uses the tessellation evaluation
-			 *    shader as the "vertex" function. This pipeline has some properties set to run the
-			 *    tessellation stage.
-			 *
-			 * Note that stopping/restartng the render encoder can make some optimizations
-			 * impossible, such as memoryless render targets since the render contents need to be
-			 * preserved between the render pass invocations.
-			 *
-			 * *Can* this be implemented? Sure, MoltenVK does it and it's obvious why it took so
-			 * long to add tessellation shader support. *Will* this be implemented? Currently no.
-			 *
-			 * I don't see this as critical enough to spend the time to implement this, especially
-			 * given that some Vulkan drivers (e.g. Qualcomm) don't implement tessellation.
-			 * Tessellation already has its own set of performance issues (e.g. drawing text by
-			 * tessellating points into quads is slower even on desktop GPUs), and having to
-			 * stop/restart the rendering encoder and manage the buffers will make this even slower
-			 * compared to the driver providing a proper interface.
-			 *
-			 * So for the time being, no tessellation on Metal.
-			 */
-			//return true;
-			return false;
-	}
 }
 
 static id<MTLCommandBuffer> processTextures(dsMTLRenderer* renderer)
@@ -423,11 +297,6 @@ dsRenderer* dsMTLRenderer_create(dsAllocator* allocator, const dsRendererOptions
 
 	DS_VERIFY(dsRenderer_initialize(baseRenderer));
 	renderer->device = CFBridgingRetain(device);
-	for (uint32_t i = 0; i < DS_ARRAY_SIZE(mtlFeatures); ++i)
-	{
-		if ([device supportsFeatureSet: mtlFeatures[i]])
-			renderer->featureSet = mtlFeatures[i];
-	}
 
 	id<MTLCommandQueue> commandQueue = [device newCommandQueue];
 	if (!commandQueue)
@@ -466,12 +335,12 @@ dsRenderer* dsMTLRenderer_create(dsAllocator* allocator, const dsRendererOptions
 	DS_ASSERT(deviceNameCopy);
 	memcpy(deviceNameCopy, deviceName, deviceNameLen + 1);
 	baseRenderer->deviceName = deviceNameCopy;
-	baseRenderer->shaderVersion = getShaderVersion(renderer->featureSet);
+	baseRenderer->shaderVersion = getShaderVersion();
 	baseRenderer->vendorID = 0;
 	baseRenderer->deviceID = 0;
 	baseRenderer->driverVersion = 0;
 
-	baseRenderer->maxColorAttachments = getMaxColorAttachments(renderer->featureSet);
+	baseRenderer->maxColorAttachments = getMaxColorAttachments(device);
 	baseRenderer->maxSurfaceSamples = getMaxSurfaceSamples(device);
 	baseRenderer->maxAnisotropy = 16.0f;
 	baseRenderer->surfaceSamples = options->samples;
@@ -481,7 +350,7 @@ dsRenderer* dsMTLRenderer_create(dsAllocator* allocator, const dsRendererOptions
 	baseRenderer->clipHalfDepth = true;
 	baseRenderer->clipInvertY = false;
 	baseRenderer->hasGeometryShaders = false;
-	baseRenderer->hasTessellationShaders = hasTessellationShaders(renderer->featureSet);
+	baseRenderer->hasTessellationShaders = hasTessellationShaders(device);
 
 	MTLSize maxComputeSize = device.maxThreadsPerThreadgroup;
 	baseRenderer->maxComputeWorkGroupSize[0] = (uint32_t)maxComputeSize.width;

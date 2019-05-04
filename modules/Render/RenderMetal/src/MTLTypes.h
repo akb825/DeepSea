@@ -225,7 +225,6 @@ typedef struct dsMTLRenderer
 
 	CFTypeRef device;
 	CFTypeRef commandQueue;
-	MTLFeatureSet featureSet;
 
 	dsMTLCommandBuffer mainCommandBuffer;
 
