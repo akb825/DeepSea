@@ -326,68 +326,13 @@ bool dsMTLTexture_copyData(dsResourceManager* resourceManager, dsCommandBuffer* 
 	dsTexture* texture, const dsTexturePosition* position, uint32_t width, uint32_t height,
 	uint32_t layers, const void* data, size_t size)
 {
-	DS_UNUSED(size);
-	dsMTLRenderer* mtlRenderer = (dsMTLRenderer*)resourceManager->renderer;
-	id<MTLDevice> device = (__bridge id<MTLDevice>)mtlRenderer->device;
+	DS_UNUSED(resourceManager);
 	dsMTLTexture* mtlTexture = (dsMTLTexture*)texture;
 	id<MTLTexture> realTexture = (__bridge id<MTLTexture>)mtlTexture->mtlTexture;
 
 	dsMTLTexture_process(resourceManager, texture);
-
-	MTLPixelFormat pixelFormat = dsMTLResourceManager_getPixelFormat(resourceManager,
-		texture->info.format);
-	DS_ASSERT(pixelFormat != MTLPixelFormatInvalid);
-	MTLTextureDescriptor* descriptor =
-		[MTLTextureDescriptor texture2DDescriptorWithPixelFormat: pixelFormat width: width
-			height: height mipmapped: false];
-	if (!descriptor)
-	{
-		errno = ENOMEM;
-		return false;
-	}
-
-	id<MTLBlitCommandEncoder> blitEncoder = dsMTLCommandBuffer_getBlitCommandEncoder(commandBuffer);
-	if (!blitEncoder)
-		return false;
-
-	unsigned int formatSize = dsGfxFormat_size(texture->info.format);
-	unsigned int blocksX, blocksY;
-	DS_VERIFY(dsGfxFormat_blockDimensions(&blocksX, &blocksY, texture->info.format));
-
-	uint32_t blocksWide = (width + blocksX - 1)/blocksX;
-	uint32_t blocksHigh = (width + blocksY - 1)/blocksY;
-	uint32_t sliceSize = blocksWide*blocksHigh*formatSize;
-
-	uint32_t faceCount = texture->info.dimension == dsTextureDim_Cube ? 6 : 1;
-	bool is3D = texture->info.dimension == dsTextureDim_3D;
-	bool is1D = texture->info.dimension == dsTextureDim_1D;
-	uint32_t iterations = is3D ? 1 : layers;
-	uint32_t baseSlice = is3D ? 0 : position->depth*faceCount + position->face;
-	const uint8_t* bytes = (const uint8_t*)data;
-
-	MTLRegion region =
-	{
-		{0, 0, 0},
-		{width, height, is3D ? layers: 1}
-	};
-	MTLOrigin dstOrigin = {position->x, position->y, is3D ? position->depth : 0};
-	for (uint32_t i = 0; i < iterations; ++i)
-	{
-		id<MTLTexture> tempImage = [device newTextureWithDescriptor: descriptor];
-		if (!tempImage)
-		{
-			errno = ENOMEM;
-			return false;
-		}
-
-		[tempImage replaceRegion: region mipmapLevel: 0 slice: 0 withBytes: bytes + i*sliceSize
-			bytesPerRow: is1D ? 0 : formatSize*blocksWide bytesPerImage: is3D ? sliceSize : 0];
-		[blitEncoder copyFromTexture: tempImage sourceSlice: 0 sourceLevel: 0
-			sourceOrigin: region.origin sourceSize: region.size toTexture: realTexture
-			destinationSlice: baseSlice + i destinationLevel: position->mipLevel
-			destinationOrigin: dstOrigin];
-	}
-	return true;
+	return dsMTLCommandBuffer_copyTextureData(commandBuffer, realTexture, &texture->info, position,
+		width, height, layers, data, size);
 }
 
 bool dsMTLTexture_copy(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
@@ -401,89 +346,17 @@ bool dsMTLTexture_copy(dsResourceManager* resourceManager, dsCommandBuffer* comm
 
 	dsMTLTexture_process(resourceManager, srcTexture);
 	dsMTLTexture_process(resourceManager, dstTexture);
-
-	id<MTLBlitCommandEncoder> blitEncoder = dsMTLCommandBuffer_getBlitCommandEncoder(commandBuffer);
-	if (!blitEncoder)
-		return false;
-
-	uint32_t srcFaceCount = srcTexture->info.dimension == dsTextureDim_Cube ? 6 : 1;
-	bool srcIs3D = srcTexture->info.dimension == dsTextureDim_3D;
-
-	uint32_t dstFaceCount = dstTexture->info.dimension == dsTextureDim_Cube ? 6 : 1;
-	bool dstIs3D = dstTexture->info.dimension == dsTextureDim_3D;
-
-	for (uint32_t i = 0; i < regionCount; ++i)
-	{
-		const dsTextureCopyRegion* region = regions + i;
-		uint32_t srcLayer, srcDepth;
-		if (srcIs3D)
-		{
-			srcLayer = 0;
-			srcDepth = region->srcPosition.depth;
-		}
-		else
-		{
-			srcLayer = region->srcPosition.depth*srcFaceCount + region->srcPosition.face;
-			srcDepth = 0;
-		}
-
-		uint32_t dstLayer, dstDepth;
-		if (dstIs3D)
-		{
-			dstLayer = 0;
-			dstDepth = region->dstPosition.depth;
-		}
-		else
-		{
-			dstLayer = region->dstPosition.depth*dstFaceCount + region->dstPosition.face;
-			dstDepth = 0;
-		}
-
-		MTLOrigin srcOrigin = {region->srcPosition.x, region->srcPosition.y, srcDepth};
-		MTLOrigin dstOrigin = {region->dstPosition.x, region->dstPosition.y, dstDepth};
-		MTLSize size = {region->width, region->height, 1};
-		if (srcIs3D && dstIs3D)
-		{
-			size.depth = region->layers;
-			[blitEncoder copyFromTexture: realSrcTexture sourceSlice: 0
-				sourceLevel: region->srcPosition.mipLevel sourceOrigin: srcOrigin sourceSize: size
-				toTexture: realDstTexture destinationSlice: 0
-				destinationLevel: region->dstPosition.mipLevel destinationOrigin: dstOrigin];
-		}
-		else
-		{
-			for (uint32_t j = 0; j < region->layers; ++j)
-			{
-				if (srcIs3D)
-					srcOrigin.z = srcDepth + j;
-				if (dstIs3D)
-					dstOrigin.z = dstDepth + j;
-
-				[blitEncoder copyFromTexture: realSrcTexture sourceSlice: srcIs3D ? srcLayer + j : 0
-					sourceLevel: region->srcPosition.mipLevel sourceOrigin: srcOrigin
-					sourceSize: size toTexture: realDstTexture
-					destinationSlice: dstIs3D ? dstLayer + j : 0
-					destinationLevel: region->dstPosition.mipLevel destinationOrigin: dstOrigin];
-			}
-		}
-	}
-
-	return true;
+	return dsMTLCommandBuffer_copyTexture(commandBuffer, realSrcTexture, realDstTexture, regions,
+		regionCount);
 }
 
 bool dsMTLTexture_generateMipmaps(dsResourceManager* resourceManager,
 	dsCommandBuffer* commandBuffer, dsTexture* texture)
 {
+	DS_UNUSED(resourceManager);
 	dsMTLTexture* mtlTexture = (dsMTLTexture*)texture;
 	id<MTLTexture> realTexture = (__bridge id<MTLTexture>)mtlTexture->mtlTexture;
-	dsMTLTexture_process(resourceManager, texture);
-
-	id<MTLBlitCommandEncoder> blitEncoder = dsMTLCommandBuffer_getBlitCommandEncoder(commandBuffer);
-	if (!blitEncoder)
-		return false;
-
-	[blitEncoder generateMipmapsForTexture: realTexture];
-	return true;
+	return dsMTLCommandBuffer_generateMipmaps(commandBuffer, realTexture);
 }
 
 bool dsMTLTexture_getData(void* result, size_t size, dsResourceManager* resourceManager,

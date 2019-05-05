@@ -20,6 +20,7 @@
 #include "Resources/MTLResourceManager.h"
 #include "MTLCommandBuffer.h"
 #include "MTLCommandBufferPool.h"
+#include "MTLHardwareCommandBuffer.h"
 #include "MTLRenderSurface.h"
 
 #include <DeepSea/Core/Containers/ResizeableArray.h>
@@ -215,6 +216,8 @@ bool dsMTLRenderer_destroy(dsRenderer* renderer)
 	DS_VERIFY(dsAllocator_free(renderer->allocator, mtlRenderer->processTextures));
 	dsSpinlock_shutdown(&mtlRenderer->processTexturesLock);
 
+	dsMTLHardwareCommandBuffer_shutdown(&mtlRenderer->mainCommandBuffer);
+
 	if (mtlRenderer->device)
 		CFRelease(mtlRenderer->device);
 	if (mtlRenderer->commandQueue)
@@ -317,7 +320,7 @@ dsRenderer* dsMTLRenderer_create(dsAllocator* allocator, const dsRendererOptions
 
 	baseRenderer->allocator = dsAllocator_keepPointer(allocator);
 
-	dsMTLCommandBuffer_initialize(&renderer->mainCommandBuffer, baseRenderer, allocator,
+	dsMTLHardwareCommandBuffer_initialize(&renderer->mainCommandBuffer, baseRenderer, allocator,
 		dsCommandBufferUsage_Standard);
 	baseRenderer->mainCommandBuffer = (dsCommandBuffer*)&renderer->mainCommandBuffer;
 
@@ -436,8 +439,8 @@ void dsMTLRenderer_flushImpl(dsRenderer* renderer, id<MTLCommandBuffer> extraCom
 {
 	dsMTLRenderer* mtlRenderer = (dsMTLRenderer*)renderer;
 
-	dsMTLCommandBuffer_endEncoding(renderer->mainCommandBuffer);
-	dsMTLCommandBuffer* commandBuffer = &mtlRenderer->mainCommandBuffer;
+	dsMTLHardwareCommandBuffer_endEncoding(renderer->mainCommandBuffer);
+	dsMTLHardwareCommandBuffer* commandBuffer = &mtlRenderer->mainCommandBuffer;
 
 	id<MTLCommandBuffer> lastCommandBuffer = processTextures(mtlRenderer);
 	for (uint32_t i = 0; i < commandBuffer->submitBufferCount; ++i)
@@ -470,7 +473,7 @@ void dsMTLRenderer_flushImpl(dsRenderer* renderer, id<MTLCommandBuffer> extraCom
 			}
 			DS_VERIFY(dsMutex_unlock(mtlRenderer->submitMutex));
 		}];
-	dsMTLCommandBuffer_submitted(renderer->mainCommandBuffer, submit);
+	dsMTLHardwareCommandBuffer_submitted(renderer->mainCommandBuffer, submit);
 }
 
 dsGfxFenceResult dsMTLRenderer_waitForSubmit(const dsRenderer* renderer, uint64_t submitCount,

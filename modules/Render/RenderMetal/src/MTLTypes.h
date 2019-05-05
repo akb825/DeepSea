@@ -167,9 +167,85 @@ typedef struct dsMTLRenderPass
 	dsSpinlock shaderLock;
 } dsMTLRenderPass;
 
+typedef void (*ClearCommandBufferFunction)(dsCommandBuffer* commandBuffer);
+typedef void (*EndCommandBufferFunction)(dsCommandBuffer* commandBuffer);
+typedef bool (*SubmitCommandBufferFunction)(dsCommandBuffer* commandBuffer,
+	dsCommandBuffer* submitBuffer);
+
+typedef bool (*CopyBufferDataFunction)(dsCommandBuffer* commandBuffer,
+	id<MTLBuffer> buffer, size_t offset, const void* data, size_t size);
+typedef bool (*CopyBufferFunction)(dsCommandBuffer* commandBuffer, id<MTLBuffer> srcBuffer,
+	size_t srcOffset, id<MTLBuffer> dstBuffer, size_t dstOffset, size_t size);
+
+typedef bool (*CopyTextureDataFunction)(dsCommandBuffer* commandBuffer, id<MTLTexture> texture,
+	const dsTextureInfo* textureInfo, const dsTexturePosition* position, uint32_t width,
+	uint32_t height, uint32_t layers, const void* data, size_t size);
+typedef bool (*CopyTextureFunction)(dsCommandBuffer* commandBuffer, id<MTLTexture> srcTexture,
+	id<MTLTexture> dstTexture, const dsTextureCopyRegion* regions, uint32_t regionCount);
+typedef bool (*GenerateMipmapsFunction)(dsCommandBuffer* commandBuffer, id<MTLTexture> texture);
+
+typedef bool (*BindPushConstantsFunction)(dsCommandBuffer* commandBuffer, const void* data,
+	uint32_t size, bool vertex, bool fragment);
+typedef bool (*BindBufferUniformFunction)(dsCommandBuffer* commandBuffer, id<MTLBuffer> buffer,
+	size_t offset, uint32_t vertexIndex, uint32_t fragmentIndex);
+typedef bool (*BindTextureUniformFunction)(dsCommandBuffer* commandBuffer, id<MTLTexture> texture,
+	id<MTLSamplerState> sampler, uint32_t vertexIndex, uint32_t fragmentIndex);
+typedef bool (*SetRenderStatesFunction)(dsCommandBuffer* commandBuffer,
+	const mslRenderState* renderStates, id<MTLDepthStencilState> depthStencilState,
+	const dsDynamicRenderStates* dynamicStates);
+
+typedef bool (*BindComputePushConstantsFunction)(dsCommandBuffer* commandBuffer, const void* data,
+	uint32_t size);
+typedef bool (*BindComputeBufferUniformFunction)(dsCommandBuffer* commandBuffer,
+	id<MTLBuffer> buffer, size_t offset, uint32_t index);
+typedef bool (*BindComputeTextureUniformFunction)(dsCommandBuffer* commandBuffer,
+	id<MTLTexture> texture, id<MTLSamplerState> sampler, uint32_t index);
+
+typedef struct dsMTLCommandBufferFunctionTable
+{
+	ClearCommandBufferFunction clearFunc;
+	EndCommandBufferFunction endFunc;
+	SubmitCommandBufferFunction submitFunc;
+
+	CopyBufferDataFunction copyBufferDataFunc;
+	CopyBufferFunction copyBufferFunc;
+
+	CopyTextureDataFunction copyTextureDataFunc;
+	CopyTextureFunction copyTextureFunc;
+	GenerateMipmapsFunction generateMipmapsFunc;
+
+	BindPushConstantsFunction bindPushConstantsFunc;
+	BindBufferUniformFunction bindBufferUniformFunc;
+	BindTextureUniformFunction bindTextureUniformFunc;
+	SetRenderStatesFunction setRenderStatesFunc;
+
+	BindComputePushConstantsFunction bindComputePushConstantsFunc;
+	BindComputeBufferUniformFunction bindComputeBufferUniformFunc;
+	BindComputeTextureUniformFunction bindComputeTextureUniformFunc;
+} dsMTLCommandBufferFunctionTable;
+
 typedef struct dsMTLCommandBuffer
 {
 	dsCommandBuffer commandBuffer;
+	const dsMTLCommandBufferFunctionTable* functions;
+
+	dsLifetime** gfxBuffers;
+	uint32_t gfxBufferCount;
+	uint32_t maxGfxBuffers;
+
+	dsLifetime** fences;
+	uint32_t fenceCount;
+	uint32_t maxFences;
+
+	uint8_t* pushConstantData;
+	uint32_t maxPushConstantDataSize;
+
+	bool fenceSet;
+} dsMTLCommandBuffer;
+
+typedef struct dsMTLHardwareCommandBuffer
+{
+	dsMTLCommandBuffer commandBuffer;
 
 	CFTypeRef mtlCommandBuffer;
 
@@ -180,22 +256,13 @@ typedef struct dsMTLCommandBuffer
 	CFTypeRef* submitBuffers;
 	uint32_t submitBufferCount;
 	uint32_t maxSubmitBuffers;
+} dsMTLHardwareCommandBuffer;
 
-	dsLifetime** gfxBuffers;
-	uint32_t gfxBufferCount;
-	uint32_t maxGfxBuffers;
-
-	dsLifetime** fences;
-	uint32_t fenceCount;
-	uint32_t maxFences;
-
-	dsBufferAllocator secondaryCommands;
-
-	uint8_t* pushConstantData;
-	uint32_t maxPushConstantDataSize;
-
-	bool fenceSet;
-} dsMTLCommandBuffer;
+typedef struct dsMTLSoftwareCommandBuffer
+{
+	dsMTLCommandBuffer commandBuffer;
+	dsBufferAllocator commands;
+} dsMTLSoftwareCommandBuffer;
 
 typedef struct dsMTLRenderSurface
 {
@@ -226,7 +293,7 @@ typedef struct dsMTLRenderer
 	CFTypeRef device;
 	CFTypeRef commandQueue;
 
-	dsMTLCommandBuffer mainCommandBuffer;
+	dsMTLHardwareCommandBuffer mainCommandBuffer;
 
 	uint64_t submitCount;
 	uint64_t finishedSubmitCount;

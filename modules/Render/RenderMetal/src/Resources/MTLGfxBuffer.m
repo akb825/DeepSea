@@ -216,29 +216,12 @@ bool dsMTLGfxBuffer_invalidate(dsResourceManager* resourceManager, dsGfxBuffer* 
 bool dsMTLGfxBuffer_copyData(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
 	dsGfxBuffer* buffer, size_t offset, const void* data, size_t size)
 {
-	dsRenderer* renderer = resourceManager->renderer;
-	dsMTLRenderer* mtlRenderer = (dsMTLRenderer*)renderer;
-	id<MTLDevice> device = (__bridge id<MTLDevice>)mtlRenderer->device;
-
-	id<MTLBlitCommandEncoder> encoder = dsMTLCommandBuffer_getBlitCommandEncoder(commandBuffer);
-	if (!encoder)
-		return false;
-
+	DS_UNUSED(resourceManager);
 	id<MTLBuffer> realBuffer = dsMTLGfxBuffer_getBuffer(buffer, commandBuffer);
 	if (!realBuffer)
 		return false;
 
-	id<MTLBuffer> tempBuffer = [device newBufferWithBytes: data length:
-		size options: MTLResourceCPUCacheModeDefaultCache];
-	if (!tempBuffer)
-	{
-		errno = ENOMEM;
-		return false;
-	}
-
-	[encoder copyFromBuffer: tempBuffer sourceOffset: 0 toBuffer: realBuffer
-		destinationOffset: offset size: size];
-	return true;
+	return dsMTLCommandBuffer_copyBufferData(commandBuffer, realBuffer, offset, data, size);
 }
 
 bool dsMTLGfxBuffer_copy(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
@@ -246,10 +229,6 @@ bool dsMTLGfxBuffer_copy(dsResourceManager* resourceManager, dsCommandBuffer* co
 	size_t size)
 {
 	DS_UNUSED(resourceManager);
-	id<MTLBlitCommandEncoder> encoder = dsMTLCommandBuffer_getBlitCommandEncoder(commandBuffer);
-	if (!encoder)
-		return false;
-
 	id<MTLBuffer> realSrcBuffer = dsMTLGfxBuffer_getBuffer(srcBuffer, commandBuffer);
 	if (!realSrcBuffer)
 		return false;
@@ -258,9 +237,8 @@ bool dsMTLGfxBuffer_copy(dsResourceManager* resourceManager, dsCommandBuffer* co
 	if (!realDstBuffer)
 		return false;
 
-	[encoder copyFromBuffer: realSrcBuffer sourceOffset: srcOffset toBuffer: realDstBuffer
-		destinationOffset: dstOffset size: size];
-	return true;
+	return dsMTLCommandBuffer_copyBuffer(commandBuffer, realSrcBuffer, srcOffset, realDstBuffer,
+		dstOffset, size);
 }
 
 bool dsMTLGfxBuffer_destroy(dsResourceManager* resourceManager, dsGfxBuffer* buffer)
