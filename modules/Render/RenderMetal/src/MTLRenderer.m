@@ -445,20 +445,24 @@ void dsMTLRenderer_flushImpl(dsRenderer* renderer, id<MTLCommandBuffer> extraCom
 	id<MTLCommandBuffer> lastCommandBuffer = processTextures(mtlRenderer);
 	for (uint32_t i = 0; i < commandBuffer->submitBufferCount; ++i)
 	{
+		if (lastCommandBuffer)
+			[lastCommandBuffer commit];
 		lastCommandBuffer = (__bridge id<MTLCommandBuffer>)commandBuffer->submitBuffers[i];
-		[lastCommandBuffer commit];
 	}
 
 	if (extraCommands)
 	{
+		if (lastCommandBuffer)
+			[lastCommandBuffer commit];
 		lastCommandBuffer = extraCommands;
-		[lastCommandBuffer commit];
 	}
+
+	if (!lastCommandBuffer)
+		return;
 
 	DS_VERIFY(dsMutex_lock(mtlRenderer->submitMutex));
 	uint64_t submit = mtlRenderer->submitCount;
-	if (lastCommandBuffer > 0)
-		++mtlRenderer->submitCount;
+	++mtlRenderer->submitCount;
 	DS_VERIFY(dsMutex_unlock(mtlRenderer->submitMutex));
 
 	// Increment finished submit count at the end of the last command buffer.
@@ -473,6 +477,7 @@ void dsMTLRenderer_flushImpl(dsRenderer* renderer, id<MTLCommandBuffer> extraCom
 			}
 			DS_VERIFY(dsMutex_unlock(mtlRenderer->submitMutex));
 		}];
+	[lastCommandBuffer commit];
 	dsMTLHardwareCommandBuffer_submitted(renderer->mainCommandBuffer, submit);
 }
 
