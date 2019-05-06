@@ -63,3 +63,19 @@ MTLStencilOperation dsGetMTLStencilOp(mslStencilOp op)
 			return MTLStencilOperationKeep;
 	}
 }
+
+MTLStencilDescriptor* dsCreateMTLStencilDescriptor(const mslStencilOpState* state,
+	uint32_t compareMask, uint32_t writeMask)
+{
+	MTLStencilDescriptor* descriptor = [MTLStencilDescriptor new];
+	if (!descriptor)
+		return NULL;
+
+	descriptor.stencilFailureOperation = dsGetMTLStencilOp(state->failOp);
+	descriptor.depthFailureOperation = dsGetMTLStencilOp(state->depthFailOp);
+	descriptor.depthStencilPassOperation = dsGetMTLStencilOp(state->passOp);
+	descriptor.stencilCompareFunction = dsGetMTLCompareFunction(state->compareOp);
+	descriptor.readMask = state->compareMask == MSL_UNKNOWN ? compareMask : state->compareMask;
+	descriptor.writeMask = state->writeMask == MSL_UNKNOWN ? writeMask : state->writeMask;
+	return descriptor;
+}

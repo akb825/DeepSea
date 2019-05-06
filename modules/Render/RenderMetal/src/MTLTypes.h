@@ -113,6 +113,7 @@ typedef struct dsMTLShaderStageInfo
 {
 	CFTypeRef function;
 	uint32_t* uniformIndices;
+	bool hasPushConstants;
 } dsMTLShaderStageInfo;
 
 typedef struct dsMTLPipeline
@@ -128,6 +129,20 @@ typedef struct dsMTLPipeline
 	uint32_t subpass;
 } dsMTLPipeline;
 
+typedef struct dsMTLUniformInfo
+{
+	uint32_t element;
+	uint32_t sampler;
+} dsMTLUniformInfo;
+
+typedef struct dsMTLPushConstantInfo
+{
+	uint32_t element;
+	uint32_t offset;
+	uint32_t count;
+	uint32_t stride;
+} dsMTLPushConstantInfo;
+
 typedef struct dsMTLShader
 {
 	dsShader shader;
@@ -142,7 +157,12 @@ typedef struct dsMTLShader
 	float defaultAnisotropy;
 	dsSpinlock samplerLock;
 
-	uint32_t* elementMapping;
+	dsMTLUniformInfo* uniformInfos;
+	uint32_t uniformCount;
+
+	dsMTLPushConstantInfo* pushConstantInfos;
+	uint32_t pushConstantCount;
+	uint32_t pushConstantSize;
 
 	dsLifetime** usedRenderPasses;
 	uint32_t usedRenderPassCount;
@@ -284,6 +304,8 @@ typedef struct dsMTLResourceManager
 	MTLPixelFormat compressedPixelFormats[dsGfxFormat_CompressedCount][dsGfxFormat_DecoratorCount];
 
 	MTLVertexFormat vertexFormats[dsGfxFormat_StandardCount][dsGfxFormat_DecoratorCount];
+
+	CFTypeRef defaultSampler;
 } dsMTLResourceManager;
 
 typedef struct dsMTLRenderer

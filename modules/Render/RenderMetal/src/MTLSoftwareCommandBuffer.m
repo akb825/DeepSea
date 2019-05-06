@@ -203,13 +203,15 @@ void dsMTLSoftwareCommandBuffer_clear(dsCommandBuffer* commandBuffer)
 			case CommandType_BindBufferUniform:
 			{
 				BindBufferUniformCommand* thisCommand = (BindBufferUniformCommand*)command;
-				CFRelease(thisCommand->buffer);
+				if (thisCommand->buffer)
+					CFRelease(thisCommand->buffer);
 				break;
 			}
 			case CommandType_BindTextureUniform:
 			{
 				BindTextureUniformCommand* thisCommand = (BindTextureUniformCommand*)command;
-				CFRelease(thisCommand->texture);
+				if (thisCommand->texture)
+					CFRelease(thisCommand->texture);
 				if (thisCommand->sampler)
 					CFRelease(thisCommand->sampler);
 				break;
@@ -222,14 +224,16 @@ void dsMTLSoftwareCommandBuffer_clear(dsCommandBuffer* commandBuffer)
 			{
 				BindComputeBufferUniformCommand* thisCommand =
 					(BindComputeBufferUniformCommand*)command;
-				CFRelease(thisCommand->buffer);
+				if (thisCommand->buffer)
+					CFRelease(thisCommand->buffer);
 				break;
 			}
 			case CommandType_BindComputeTextureUniform:
 			{
 				BindComputeTextureUniformCommand* thisCommand =
 					(BindComputeTextureUniformCommand*)command;
-				CFRelease(thisCommand->texture);
+				if (thisCommand->texture)
+					CFRelease(thisCommand->texture);
 				if (thisCommand->sampler)
 					CFRelease(thisCommand->sampler);
 				break;

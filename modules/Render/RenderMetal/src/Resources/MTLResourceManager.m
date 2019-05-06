@@ -36,6 +36,8 @@
 
 #include <string.h>
 
+#import <Metal/MTLSampler.h>
+
 struct dsResourceContext
 {
 	int dummy;
@@ -776,6 +778,24 @@ dsResourceManager* dsMTLResourceManager_create(dsAllocator* allocator, dsRendere
 
 	initializePixelFormats(resourceManager, device);
 	initializeVertexFormats(resourceManager);
+	resourceManager->defaultSampler = NULL;
+
+	MTLSamplerDescriptor* samplerDescriptor = [MTLSamplerDescriptor new];
+	if (!samplerDescriptor)
+	{
+		errno = ENOMEM;
+		dsMTLResourceManager_destroy(baseResourceManager);
+		return NULL;
+	}
+
+	resourceManager->defaultSampler =
+		CFBridgingRetain([device newSamplerStateWithDescriptor: samplerDescriptor]);
+	if (!resourceManager->defaultSampler)
+	{
+		errno = ENOMEM;
+		dsMTLResourceManager_destroy(baseResourceManager);
+		return NULL;
+	}
 
 	baseResourceManager->minTextureBufferAlignment = getMinTextureBufferAlignment(resourceManager,
 		device);
@@ -928,6 +948,10 @@ void dsMTLResourceManager_destroy(dsResourceManager* resourceManager)
 {
 	if (!resourceManager)
 		return;
+
+	dsMTLResourceManager* mtlResourceManager = (dsMTLResourceManager*)resourceManager;
+	if (mtlResourceManager->defaultSampler)
+		CFRelease(mtlResourceManager->defaultSampler);
 
 	dsResourceManager_shutdown(resourceManager);
 	DS_VERIFY(dsAllocator_free(resourceManager->allocator, resourceManager));

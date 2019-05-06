@@ -18,8 +18,12 @@
 
 #include "Resources/MTLPipeline.h"
 #include "Resources/MTLShaderModule.h"
+#include "MTLCommandBuffer.h"
+#include "MTLGfxBuffer.h"
+#include "MTLGfxBufferData.h"
 #include "MTLRenderPass.h"
 #include "MTLShared.h"
+#include "MTLTexture.h"
 
 #include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
@@ -30,22 +34,29 @@
 #include <DeepSea/Core/Atomic.h>
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Math/Core.h>
+#include <DeepSea/Render/Resources/Material.h>
+#include <DeepSea/Render/Resources/MaterialDesc.h>
+#include <DeepSea/Render/Resources/MaterialType.h>
+#include <DeepSea/Render/Resources/ShaderVariableGroup.h>
+#include <DeepSea/Render/Resources/SharedMaterialValues.h>
 
 #include <MSL/Client/ModuleC.h>
 #include <string.h>
 
-static size_t fullAllocSize(const mslPipeline* pipeline, uint32_t elementCount)
+static size_t fullAllocSize(const mslPipeline* pipeline, uint32_t uniformCount,
+	uint32_t pushConstantCount)
 {
 	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsMTLShader));
 
 	for (int i = 0; i < mslStage_Count; ++i)
 	{
 		if (pipeline->shaders[i] != DS_MATERIAL_UNKNOWN)
-			fullSize += DS_ALIGNED_SIZE(sizeof(uint32_t)*(pipeline->uniformCount + 1));
+			fullSize += DS_ALIGNED_SIZE(sizeof(uint32_t)*pipeline->uniformCount);
 	}
 
 	fullSize += DS_ALIGNED_SIZE(sizeof(CFTypeRef)*pipeline->samplerStateCount);
-	fullSize += DS_ALIGNED_SIZE(sizeof(uint32_t)*elementCount);
+	fullSize += DS_ALIGNED_SIZE(sizeof(dsMTLUniformInfo)*uniformCount);
+	fullSize += DS_ALIGNED_SIZE(sizeof(dsMTLPushConstantInfo)*pushConstantCount);
 	return fullSize;
 }
 
@@ -111,8 +122,53 @@ static MTLSamplerBorderColor getBorderColor(mslBorderColor color)
 	}
 }
 
-#if !DS_IOS || IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
-#endif
+static bool createDepthStencilState(dsMTLShader* shader)
+{
+	dsRenderer* renderer = ((dsShader*)shader)->resourceManager->renderer;
+	dsMTLRenderer* mtlRenderer = (dsMTLRenderer*)renderer;
+	id<MTLDevice> device = (__bridge id<MTLDevice>)mtlRenderer;
+
+	MTLDepthStencilDescriptor* descriptor = [MTLDepthStencilDescriptor new];
+	if (!descriptor)
+	{
+		errno = ENOMEM;
+		return false;
+	}
+
+	const mslDepthStencilState* states = &shader->renderState.depthStencilState;
+	descriptor.depthCompareFunction = states->depthTestEnable == mslBool_True ?
+		dsGetMTLCompareFunction(states->depthCompareOp) : MTLCompareFunctionAlways;
+	descriptor.depthWriteEnabled = states->depthWriteEnable != mslBool_False;
+	if (states->stencilTestEnable == mslBool_True)
+	{
+		descriptor.frontFaceStencil = dsCreateMTLStencilDescriptor(&states->frontStencil,
+			states->frontStencil.compareMask, states->frontStencil.writeMask);
+		if (!descriptor.frontFaceStencil)
+		{
+			errno = ENOMEM;
+			return false;
+		}
+
+		descriptor.backFaceStencil = dsCreateMTLStencilDescriptor(&states->backStencil,
+			states->backStencil.compareMask, states->backStencil.writeMask);
+		if (!descriptor.backFaceStencil)
+		{
+			errno = ENOMEM;
+			return false;
+		}
+	}
+
+	id<MTLDepthStencilState> depthStencilState =
+		[device newDepthStencilStateWithDescriptor: descriptor];
+	if (!depthStencilState)
+	{
+		errno = ENOMEM;
+		return false;
+	}
+
+	shader->depthStencilState = CFBridgingRetain(depthStencilState);
+	return true;
+}
 
 static id<MTLSamplerState> createSampler(dsRenderer* renderer, const mslSamplerState* samplerState)
 {
@@ -124,6 +180,7 @@ static id<MTLSamplerState> createSampler(dsRenderer* renderer, const mslSamplerS
 		errno = ENOMEM;
 		return NULL;
 	}
+
 	descriptor.rAddressMode = getAddressMode(samplerState->addressModeU);
 	descriptor.sAddressMode = getAddressMode(samplerState->addressModeV);
 	descriptor.tAddressMode = getAddressMode(samplerState->addressModeW);
@@ -243,6 +300,354 @@ static bool setupShaders(dsShader* shader, mslModule* module, uint32_t shaderInd
 	return true;
 }
 
+static void* setPushConstantData(const dsShader* shader, const dsMaterial* material,
+	dsCommandBuffer* commandBuffer)
+{
+	const dsMTLShader* mtlShader = (const dsMTLShader*)shader;
+	uint8_t* data = (uint8_t*)dsMTLCommandBuffer_getPushConstantData(commandBuffer,
+		mtlShader->pushConstantSize);
+	if (!data)
+		return NULL;
+
+	for (uint32_t i = 0; i < mtlShader->pushConstantCount; ++i)
+	{
+		const dsMTLPushConstantInfo* info = mtlShader->pushConstantInfos + i;
+		const dsMaterialElement* element = shader->materialDesc->elements + info->element;
+		if (info->count == 1 ||
+			info->stride == dsMaterialType_cpuSize(element->type))
+		{
+			// Can copy all elements at once.
+			DS_VERIFY(dsMaterial_getElementData(data + info->offset, material, info->element,
+				element->type, 0, info->count));
+		}
+		else
+		{
+			// Must copy each element individually if the stride is different from the storage.
+			for (uint32_t j = 0; j < info->count; ++j)
+			{
+				DS_VERIFY(dsMaterial_getElementData(data + info->offset + info->stride*j,
+					material, info->element, element->type, j, 1));
+			}
+		}
+	}
+
+	return data;
+}
+
+static bool setPushConstnants(const dsShader* shader, dsCommandBuffer* commandBuffer,
+	const dsMaterial* material)
+{
+	const dsMTLShader* mtlShader = (const dsMTLShader*)shader;
+	bool vertexPushConstants = mtlShader->stages[mslStage_Vertex].hasPushConstants;
+	bool fragmentPushConstants = mtlShader->stages[mslStage_Fragment].hasPushConstants;
+	if (!vertexPushConstants && !fragmentPushConstants)
+		return true;
+
+	void* data = setPushConstantData(shader, material, commandBuffer);
+	if (!data)
+		return false;
+
+	return dsMTLCommandBuffer_bindPushConstants(commandBuffer, data, mtlShader->pushConstantSize,
+		vertexPushConstants, fragmentPushConstants);
+}
+
+static bool setComputePushConstnants(const dsShader* shader, dsCommandBuffer* commandBuffer,
+	const dsMaterial* material)
+{
+	const dsMTLShader* mtlShader = (const dsMTLShader*)shader;
+	if (!mtlShader->stages[mslStage_Compute].hasPushConstants)
+		return true;
+
+	void* data = setPushConstantData(shader, material, commandBuffer);
+	if (!data)
+		return false;
+
+	return dsMTLCommandBuffer_bindComputePushConstants(commandBuffer, data,
+		mtlShader->pushConstantSize);
+}
+
+static void getTextureAndSampler(id<MTLTexture>* outTexture, id<MTLSamplerState>* outSampler,
+	const dsShader* shader, const dsMaterial* material, const dsSharedMaterialValues* sharedValues,
+	const dsMTLUniformInfo* uniform)
+{
+	const dsMTLShader* mtlShader = (const dsMTLShader*)shader;
+	const dsMaterialElement* element = shader->materialDesc->elements + uniform->element;
+	dsTexture* texture;
+	if (element->isShared)
+	{
+		DS_ASSERT(sharedValues);
+		texture = dsSharedMaterialValues_getTextureId(sharedValues, element->nameId);
+	}
+	else
+	{
+		DS_ASSERT(material);
+		texture = dsMaterial_getTexture(material, uniform->element);
+	}
+
+	if (texture)
+	{
+		dsMTLTexture_process(texture->resourceManager, texture);
+		*outTexture = (__bridge id<MTLTexture>)((dsMTLTexture*)texture)->mtlTexture;
+		if (element->type == dsMaterialType_Texture)
+		{
+			if (uniform->sampler == DS_MATERIAL_UNKNOWN)
+			{
+				dsMTLResourceManager* mtlResourceManager =
+					(dsMTLResourceManager*)shader->resourceManager;
+				*outSampler = (__bridge id<MTLSamplerState>)mtlResourceManager->defaultSampler;
+			}
+			else
+			{
+				*outSampler =
+					(__bridge id<MTLSamplerState>)mtlShader->samplers[uniform->sampler];
+			}
+		}
+		else
+			*outSampler = nil;
+	}
+	else
+	{
+		*outTexture = nil;
+		*outSampler = nil;
+	}
+}
+
+static id<MTLTexture> getTextureBuffer(const dsShader* shader, const dsMaterial* material,
+	const dsSharedMaterialValues* sharedValues, const dsMTLUniformInfo* uniform,
+	dsCommandBuffer* commandBuffer)
+{
+	const dsMaterialElement* element = shader->materialDesc->elements + uniform->element;
+	dsGfxBuffer* buffer;
+	dsGfxFormat format;
+	size_t offset, count;
+	if (element->isShared)
+	{
+		DS_ASSERT(sharedValues);
+		buffer = dsSharedMaterialValues_getTextureBufferId(&format, &offset, &count, sharedValues,
+			element->nameId);
+	}
+	else
+	{
+		DS_ASSERT(material);
+		buffer = dsMaterial_getTextureBuffer(&format, &offset, &count, material, uniform->element);
+	}
+
+	if (!buffer)
+		return nil;
+
+	dsMTLGfxBufferData* data = dsMTLGfxBuffer_getData(buffer, commandBuffer);
+	DS_ASSERT(data);
+	id<MTLTexture> texture = dsMTLGfxBufferData_getBufferTexture(data, format, offset, count);
+	dsLifetime_release(data->lifetime);
+	return texture;
+}
+
+static id<MTLBuffer> getShaderVariableGroupBuffer(const dsShader* shader,
+	const dsMaterial* material, const dsSharedMaterialValues* sharedValues,
+	const dsMTLUniformInfo* uniform, dsCommandBuffer* commandBuffer)
+{
+	const dsMaterialElement* element = shader->materialDesc->elements + uniform->element;
+	dsShaderVariableGroup* group;
+	if (element->isShared)
+	{
+		DS_ASSERT(sharedValues);
+		group = dsSharedMaterialValues_getVariableGroupId(sharedValues, element->nameId);
+	}
+	else
+	{
+		DS_ASSERT(material);
+		group = dsMaterial_getVariableGroup(material, uniform->element);
+	}
+
+	if (!group)
+		return nil;
+
+	dsGfxBuffer* buffer = dsShaderVariableGroup_getGfxBuffer(group);
+	DS_ASSERT(buffer);
+	return dsMTLGfxBuffer_getBuffer(buffer, commandBuffer);
+}
+
+static id<MTLBuffer> getBuffer(size_t* outOffset, const dsShader* shader,
+	const dsMaterial* material, const dsSharedMaterialValues* sharedValues,
+	const dsMTLUniformInfo* uniform, dsCommandBuffer* commandBuffer)
+{
+	const dsMaterialElement* element = shader->materialDesc->elements + uniform->element;
+	dsGfxBuffer* buffer;
+	if (element->isShared)
+	{
+		DS_ASSERT(sharedValues);
+		buffer = dsSharedMaterialValues_getBufferId(outOffset, NULL, sharedValues, element->nameId);
+	}
+	else
+	{
+		DS_ASSERT(material);
+		buffer = dsMaterial_getBuffer(outOffset, NULL, material, uniform->element);
+	}
+
+	if (!buffer)
+	{
+		*outOffset = 0;
+		return nil;
+	}
+
+	return dsMTLGfxBuffer_getBuffer(buffer, commandBuffer);
+}
+
+static bool bindUniforms(const dsShader* shader, const dsMaterial* material,
+	const dsSharedMaterialValues* sharedValues, dsCommandBuffer* commandBuffer)
+{
+	const dsMTLShader* mtlShader = (const dsMTLShader*)shader;
+	const dsMaterialDesc* materialDesc = shader->materialDesc;
+	for (uint32_t i = 0; i < mtlShader->uniformCount; ++i)
+	{
+		uint32_t vertexIndex = mtlShader->stages[mslStage_Vertex].uniformIndices[i];
+		uint32_t fragmentIndex = mtlShader->stages[mslStage_Fragment].uniformIndices[i];
+		if (vertexIndex == DS_MATERIAL_UNKNOWN && fragmentIndex == DS_MATERIAL_UNKNOWN)
+			continue;
+
+		const dsMTLUniformInfo* info = mtlShader->uniformInfos + i;
+		const dsMaterialElement* element = materialDesc->elements + info->element;
+		if ((element->isShared && !sharedValues) || (!element->isShared && !material))
+			continue;
+
+		switch (element->type)
+		{
+			case dsMaterialType_Texture:
+			case dsMaterialType_Image:
+			case dsMaterialType_SubpassInput:
+			{
+				id<MTLTexture> texture;
+				id<MTLSamplerState> sampler;
+				getTextureAndSampler(&texture, &sampler, shader, material, sharedValues, info);
+				if (!dsMTLCommandBuffer_bindTextureUniform(commandBuffer, texture, sampler,
+						vertexIndex, fragmentIndex))
+				{
+					return false;
+				}
+				break;
+			}
+			case dsMaterialType_TextureBuffer:
+			case dsMaterialType_ImageBuffer:
+			{
+				id<MTLTexture> texture = getTextureBuffer(shader, material, sharedValues, info,
+					commandBuffer);
+				if (!dsMTLCommandBuffer_bindTextureUniform(commandBuffer, texture, nil, vertexIndex,
+						fragmentIndex))
+				{
+					return false;
+				}
+				break;
+			}
+			case dsMaterialType_VariableGroup:
+			{
+				id<MTLBuffer> buffer = getShaderVariableGroupBuffer(shader, material, sharedValues,
+					info, commandBuffer);
+				if (!dsMTLCommandBuffer_bindBufferUniform(commandBuffer, buffer, 0, vertexIndex,
+						fragmentIndex))
+				{
+					return false;
+				}
+				break;
+			}
+			case dsMaterialType_UniformBlock:
+			case dsMaterialType_UniformBuffer:
+			{
+				size_t offset;
+				id<MTLBuffer> buffer = getBuffer(&offset, shader, material, sharedValues, info,
+					commandBuffer);
+				if (!dsMTLCommandBuffer_bindBufferUniform(commandBuffer, buffer, offset,
+						vertexIndex, fragmentIndex))
+				{
+					return false;
+				}
+				break;
+			}
+			default:
+				DS_ASSERT(false);
+				break;
+		}
+	}
+
+	return true;
+}
+
+static bool bindComputeUniforms(const dsShader* shader, const dsMaterial* material,
+	const dsSharedMaterialValues* sharedValues, dsCommandBuffer* commandBuffer)
+{
+	const dsMTLShader* mtlShader = (const dsMTLShader*)shader;
+	const dsMaterialDesc* materialDesc = shader->materialDesc;
+	for (uint32_t i = 0; i < mtlShader->uniformCount; ++i)
+	{
+		uint32_t computeIndex = mtlShader->stages[mslStage_Compute].uniformIndices[i];
+		if (computeIndex == DS_MATERIAL_UNKNOWN)
+			continue;
+
+		const dsMTLUniformInfo* info = mtlShader->uniformInfos + i;
+		const dsMaterialElement* element = materialDesc->elements + info->element;
+		if ((element->isShared && !sharedValues) || (!element->isShared && !material))
+			continue;
+
+		switch (element->type)
+		{
+			case dsMaterialType_Texture:
+			case dsMaterialType_Image:
+			case dsMaterialType_SubpassInput:
+			{
+				id<MTLTexture> texture;
+				id<MTLSamplerState> sampler;
+				getTextureAndSampler(&texture, &sampler, shader, material, sharedValues, info);
+				if (!dsMTLCommandBuffer_bindComputeTextureUniform(commandBuffer, texture, sampler,
+						computeIndex))
+				{
+					return false;
+				}
+				break;
+			}
+			case dsMaterialType_TextureBuffer:
+			case dsMaterialType_ImageBuffer:
+			{
+				id<MTLTexture> texture = getTextureBuffer(shader, material, sharedValues, info,
+					commandBuffer);
+				if (!dsMTLCommandBuffer_bindComputeTextureUniform(commandBuffer, texture, nil,
+						computeIndex))
+				{
+					return false;
+				}
+				break;
+			}
+			case dsMaterialType_VariableGroup:
+			{
+				id<MTLBuffer> buffer = getShaderVariableGroupBuffer(shader, material, sharedValues,
+					info, commandBuffer);
+				if (!dsMTLCommandBuffer_bindComputeBufferUniform(commandBuffer, buffer, 0,
+						computeIndex))
+				{
+					return false;
+				}
+				break;
+			}
+			case dsMaterialType_UniformBlock:
+			case dsMaterialType_UniformBuffer:
+			{
+				size_t offset;
+				id<MTLBuffer> buffer = getBuffer(&offset, shader, material, sharedValues, info,
+					commandBuffer);
+				if (!dsMTLCommandBuffer_bindComputeBufferUniform(commandBuffer, buffer, offset,
+						computeIndex))
+				{
+					return false;
+				}
+				break;
+			}
+			default:
+				DS_ASSERT(false);
+				break;
+		}
+	}
+
+	return true;
+}
+
 dsShader* dsMTLShader_create(dsResourceManager* resourceManager, dsAllocator* allocator,
 	dsShaderModule* module, uint32_t shaderIndex, const dsMaterialDesc* materialDesc)
 {
@@ -260,7 +665,8 @@ dsShader* dsMTLShader_create(dsResourceManager* resourceManager, dsAllocator* al
 			pipeline.pushConstantStruct));
 	}
 
-	size_t fullSize = fullAllocSize(&pipeline, materialDesc->elementCount);
+	size_t fullSize = fullAllocSize(&pipeline, pipeline.uniformCount,
+		pushConstantStruct.memberCount);
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 		return NULL;
@@ -282,8 +688,8 @@ dsShader* dsMTLShader_create(dsResourceManager* resourceManager, dsAllocator* al
 	shader->scratchAllocator = resourceManager->allocator;
 	shader->lifetime = NULL;
 	shader->pipeline = pipeline;
+	shader->depthStencilState = NULL;
 
-	uint32_t fullUniformCount = pipeline.uniformCount + 1;
 	for (int i = 0; i < mslStage_Count; ++i)
 	{
 		shader->stages[i].function = NULL;
@@ -292,10 +698,11 @@ dsShader* dsMTLShader_create(dsResourceManager* resourceManager, dsAllocator* al
 		else
 		{
 			shader->stages[i].uniformIndices = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
-				uint32_t, fullUniformCount);
+				uint32_t, pipeline.uniformCount);
 			DS_ASSERT(shader->stages[i].uniformIndices);
-			memset(shader->stages[i].uniformIndices, 0xFF, sizeof(CFTypeRef)*fullUniformCount);
+			memset(shader->stages[i].uniformIndices, 0xFF, sizeof(CFTypeRef)*pipeline.uniformCount);
 		}
+		shader->stages[i].hasPushConstants = false;
 	}
 
 	if (pipeline.samplerStateCount > 0)
@@ -307,26 +714,86 @@ dsShader* dsMTLShader_create(dsResourceManager* resourceManager, dsAllocator* al
 	}
 	DS_VERIFY(dsSpinlock_initialize(&shader->samplerLock));
 
-	shader->elementMapping = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc, uint32_t,
-		materialDesc->elementCount);
-	for (uint32_t i = 0; i < materialDesc->elementCount; ++i)
+	if (pipeline.uniformCount > 0)
 	{
-		const dsMaterialElement* element = materialDesc->elements + i;
-		shader->elementMapping[i] = DS_MATERIAL_UNKNOWN;
-		if (element->type < dsMaterialType_Texture || element->type > dsMaterialType_UniformBuffer)
-			continue;
-
-		for (uint32_t j = 0; j < pipeline.uniformCount; ++j)
+		shader->uniformInfos = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
+			dsMTLUniformInfo, materialDesc->elementCount);
+		DS_ASSERT(shader->uniformInfos);
+		for (uint32_t i = 0; i < pipeline.uniformCount; ++i)
 		{
 			mslUniform uniform;
-			DS_VERIFY(mslModule_uniform(&uniform, module->module, shaderIndex, j));
-			if (strcmp(uniform.name, element->name) == 0)
+			DS_VERIFY(mslModule_uniform(&uniform, module->module, shaderIndex, i));
+
+			dsMTLUniformInfo* info = shader->uniformInfos + i;
+			info->element = DS_MATERIAL_UNKNOWN;
+			info->sampler = uniform.samplerIndex;
+			for (uint32_t j = 0; j < materialDesc->elementCount; ++j)
 			{
-				shader->elementMapping[i] = j;
-				break;
+				const dsMaterialElement* element = materialDesc->elements + j;
+				if (strcmp(uniform.name, element->name) != 0)
+				{
+					info->element = j;
+					break;
+				}
 			}
+			// Should have been validated before creation.
+			DS_ASSERT(info->element != DS_MATERIAL_UNKNOWN);
 		}
 	}
+	else
+		shader->uniformInfos = NULL;
+	shader->uniformCount = pipeline.uniformCount;
+
+	if (pushConstantStruct.memberCount > 0)
+	{
+		shader->pushConstantInfos = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
+			dsMTLPushConstantInfo, pushConstantStruct.memberCount);
+		DS_ASSERT(shader->pushConstantInfos);
+		for (uint32_t i = 0; i < pushConstantStruct.memberCount; ++i)
+		{
+			mslStructMember member;
+			DS_VERIFY(mslModule_structMember(&member, module->module, shaderIndex,
+				pipeline.pushConstantStruct, i));
+
+			dsMTLPushConstantInfo* info = shader->pushConstantInfos + i;
+			info->element = DS_MATERIAL_UNKNOWN;
+			info->offset = member.offset;
+			if (member.arrayElementCount > 0)
+			{
+				DS_ASSERT(member.arrayElementCount == 1);
+				mslArrayInfo arrayInfo;
+				DS_VERIFY(mslModule_structMemberArrayInfo(&arrayInfo, module->module, shaderIndex,
+					pipeline.pushConstantStruct, i, 0));
+				info->count = arrayInfo.length;
+			}
+			else
+			{
+				info->count = 1;
+				info->stride = 0;
+			}
+
+			for (uint32_t j = 0; j < materialDesc->elementCount; ++j)
+			{
+				const dsMaterialElement* element = materialDesc->elements + i;
+				if (element->type >= dsMaterialType_Texture)
+					continue;
+
+				if (strcmp(member.name, element->name) == 0)
+				{
+					info->element = j;
+					DS_ASSERT(element->type == dsMaterialDesc_convertMaterialType(member.type));
+					DS_ASSERT(info->count == dsMax(element->count, 1));
+					break;
+				}
+			}
+			// Should have been validated before creation.
+			DS_ASSERT(info->element != DS_MATERIAL_UNKNOWN);
+		}
+	}
+	else
+		shader->pushConstantInfos = NULL;
+	shader->pushConstantCount = pushConstantStruct.memberCount;
+	shader->pushConstantSize = pushConstantStruct.size;
 
 	shader->pipelines = NULL;
 	shader->pipelineCount = 0;
@@ -349,11 +816,12 @@ dsShader* dsMTLShader_create(dsResourceManager* resourceManager, dsAllocator* al
 	}
 
 	DS_VERIFY(mslModule_renderState(&shader->renderState, module->module, shaderIndex));
-	if (!createSamplers(shader, module->module, shaderIndex))
+	if (!createDepthStencilState(shader) || !createSamplers(shader, module->module, shaderIndex))
 	{
 		dsMTLShader_destroy(resourceManager, baseShader);
 		return NULL;
 	}
+
 	return baseShader;
 }
 
@@ -362,12 +830,17 @@ bool dsMTLShader_bind(dsResourceManager* resourceManager, dsCommandBuffer* comma
 	const dsSharedMaterialValues* sharedValues, const dsDynamicRenderStates* renderStates)
 {
 	DS_UNUSED(resourceManager);
-	DS_UNUSED(commandBuffer);
-	DS_UNUSED(shader);
-	DS_UNUSED(material);
-	DS_UNUSED(sharedValues);
-	DS_UNUSED(renderStates);
-	return false;
+	const dsMTLShader* mtlShader = (const dsMTLShader*)shader;
+	if (!dsMTLCommandBuffer_setRenderStates(commandBuffer, &mtlShader->renderState,
+			(__bridge id<MTLDepthStencilState>)mtlShader->depthStencilState, renderStates))
+	{
+		return false;
+	}
+
+	if (!setPushConstnants(shader, commandBuffer, material))
+		return false;
+
+	return bindUniforms(shader, material, sharedValues, commandBuffer);
 }
 
 bool dsMTLShader_updateSharedValues(dsResourceManager* resourceManager,
@@ -375,10 +848,7 @@ bool dsMTLShader_updateSharedValues(dsResourceManager* resourceManager,
 	const dsSharedMaterialValues* sharedValues)
 {
 	DS_UNUSED(resourceManager);
-	DS_UNUSED(commandBuffer);
-	DS_UNUSED(shader);
-	DS_UNUSED(sharedValues);
-	return false;
+	return bindUniforms(shader, NULL, sharedValues, commandBuffer);
 }
 
 bool dsMTLShader_unbind(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
@@ -387,7 +857,7 @@ bool dsMTLShader_unbind(dsResourceManager* resourceManager, dsCommandBuffer* com
 	DS_UNUSED(resourceManager);
 	DS_UNUSED(commandBuffer);
 	DS_UNUSED(shader);
-	return false;
+	return true;
 }
 
 bool dsMTLShader_bindCompute(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
@@ -395,11 +865,10 @@ bool dsMTLShader_bindCompute(dsResourceManager* resourceManager, dsCommandBuffer
 	const dsSharedMaterialValues* sharedValues)
 {
 	DS_UNUSED(resourceManager);
-	DS_UNUSED(commandBuffer);
-	DS_UNUSED(shader);
-	DS_UNUSED(material);
-	DS_UNUSED(sharedValues);
-	return false;
+	if (!setComputePushConstnants(shader, commandBuffer, material))
+		return false;
+
+	return bindComputeUniforms(shader, material, sharedValues, commandBuffer);
 }
 
 bool dsMTLShader_updateComputeSharedValues(dsResourceManager* resourceManager,
@@ -407,10 +876,7 @@ bool dsMTLShader_updateComputeSharedValues(dsResourceManager* resourceManager,
 	const dsSharedMaterialValues* sharedValues)
 {
 	DS_UNUSED(resourceManager);
-	DS_UNUSED(commandBuffer);
-	DS_UNUSED(shader);
-	DS_UNUSED(sharedValues);
-	return false;
+	return bindComputeUniforms(shader, NULL, sharedValues, commandBuffer);
 }
 
 bool dsMTLShader_unbindCompute(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
@@ -419,7 +885,7 @@ bool dsMTLShader_unbindCompute(dsResourceManager* resourceManager, dsCommandBuff
 	DS_UNUSED(resourceManager);
 	DS_UNUSED(commandBuffer);
 	DS_UNUSED(shader);
-	return false;
+	return true;
 }
 
 bool dsMTLShader_destroy(dsResourceManager* resourceManager, dsShader* shader)
@@ -466,6 +932,8 @@ bool dsMTLShader_destroy(dsResourceManager* resourceManager, dsShader* shader)
 			CFRelease(mtlShader->stages[i].function);
 	}
 
+	if (mtlShader->depthStencilState)
+		CFRelease(mtlShader->depthStencilState);
 	for (uint32_t i = 0; i < shader->pipeline->samplerStateCount; ++i)
 	{
 		if (mtlShader->samplers[i])

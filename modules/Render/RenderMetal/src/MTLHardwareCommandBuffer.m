@@ -112,22 +112,6 @@ static bool needsDynamicDepthStencil(const mslStencilOpState* state)
 	return state->compareMask == MSL_UNKNOWN || state->writeMask == MSL_UNKNOWN;
 }
 
-static MTLStencilDescriptor* getStencilDescriptor(const mslStencilOpState* state,
-	uint32_t compareMask, uint32_t writeMask)
-{
-	MTLStencilDescriptor* descriptor = [MTLStencilDescriptor new];
-	if (!descriptor)
-		return NULL;
-
-	descriptor.stencilFailureOperation = dsGetMTLStencilOp(state->failOp);
-	descriptor.depthFailureOperation = dsGetMTLStencilOp(state->depthFailOp);
-	descriptor.depthStencilPassOperation = dsGetMTLStencilOp(state->passOp);
-	descriptor.stencilCompareFunction = dsGetMTLCompareFunction(state->compareOp);
-	descriptor.readMask = state->compareMask == MSL_UNKNOWN ? compareMask : state->compareMask;
-	descriptor.writeMask = state->writeMask == MSL_UNKNOWN ? writeMask : state->writeMask;
-	return descriptor;
-}
-
 static void setRasterizationState(id<MTLRenderCommandEncoder> encoder,
 	const mslRenderState* renderStates, const dsDynamicRenderStates* dynamicStates)
 {
@@ -185,15 +169,17 @@ static void setDepthStencilState(id<MTLRenderCommandEncoder> encoder,
 			return;
 
 		descriptor.depthCompareFunction =
-			dsGetMTLCompareFunction(renderStates->depthStencilState.depthCompareOp);
+			renderStates->depthStencilState.depthTestEnable == mslBool_True ?
+				dsGetMTLCompareFunction(renderStates->depthStencilState.depthCompareOp) :
+				mslCompareOp_Always;
 		descriptor.depthWriteEnabled =
 			renderStates->depthStencilState.depthWriteEnable != mslBool_False;
-		descriptor.frontFaceStencil = getStencilDescriptor(
+		descriptor.frontFaceStencil = dsCreateMTLStencilDescriptor(
 			&renderStates->depthStencilState.frontStencil, dynamicStates->frontStencilCompareMask,
-			dynamicStates->backStencilCompareMask);
-		descriptor.backFaceStencil = getStencilDescriptor(
+			dynamicStates->frontStencilWriteMask);
+		descriptor.backFaceStencil = dsCreateMTLStencilDescriptor(
 			&renderStates->depthStencilState.backStencil, dynamicStates->backStencilCompareMask,
-			dynamicStates->backStencilCompareMask);
+			dynamicStates->backStencilWriteMask);
 
 		depthStencilState = [[encoder device] newDepthStencilStateWithDescriptor: descriptor];
 		if (!depthStencilState)
@@ -528,14 +514,12 @@ bool dsMTLHardwareCommandBuffer_bindTextureUniform(dsCommandBuffer* commandBuffe
 	if (vertexIndex != DS_MATERIAL_UNKNOWN)
 	{
 		[encoder setVertexTexture: texture atIndex: vertexIndex];
-		if (sampler)
-			[encoder setVertexSamplerState: sampler atIndex: vertexIndex];
+		[encoder setVertexSamplerState: sampler atIndex: vertexIndex];
 	}
 	if (fragmentIndex != DS_MATERIAL_UNKNOWN)
 	{
 		[encoder setFragmentTexture: texture atIndex: vertexIndex];
-		if (sampler)
-			[encoder setFragmentSamplerState: sampler atIndex: vertexIndex];
+		[encoder setFragmentSamplerState: sampler atIndex: vertexIndex];
 	}
 	return true;
 }
@@ -586,8 +570,7 @@ bool dsMTLHardwareCommandBuffer_bindComputeTextureUniform(dsCommandBuffer* comma
 		return false;
 
 	[encoder setTexture: texture atIndex: index];
-	if (sampler)
-		[encoder setSamplerState: sampler atIndex: index];
+	[encoder setSamplerState: sampler atIndex: index];
 	return true;
 }
 
