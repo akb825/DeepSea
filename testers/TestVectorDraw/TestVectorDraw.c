@@ -31,7 +31,6 @@
 #include <DeepSea/Render/Resources/GfxBuffer.h>
 #include <DeepSea/Render/Resources/GfxFormat.h>
 #include <DeepSea/Render/Resources/Material.h>
-#include <DeepSea/Render/Resources/MaterialDesc.h>
 #include <DeepSea/Render/Resources/ResourceManager.h>
 #include <DeepSea/Render/Resources/Shader.h>
 #include <DeepSea/Render/Resources/ShaderModule.h>

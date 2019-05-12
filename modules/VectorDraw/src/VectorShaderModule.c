@@ -76,15 +76,17 @@ static dsVectorShaderModule* createVectorShaderModule(dsResourceManager* resourc
 
 	dsMaterialElement materialElements[] =
 	{
-		{shapeInfoName, dsMaterialType_Texture, 0, NULL, false, 0},
-		{materialInfoName, dsMaterialType_Texture, 0, NULL, false, 0},
-		{materialColorName, dsMaterialType_Texture, 0, NULL, false, 0},
-		{textOutlineMaterialInfoName, dsMaterialType_Texture, 0, NULL, false, 0},
-		{textOutlineMaterialColorName, dsMaterialType_Texture, 0, NULL, false, 0},
-		{otherTextureName, dsMaterialType_Texture, 0, NULL, false, 0},
-		{modelViewProjectionName, dsMaterialType_Mat4, 0, NULL, false, 0},
-		{sizeName, dsMaterialType_Vec2, 0, NULL, false, 0},
-		{textureSizesName, dsMaterialType_Vec3, 0, NULL, false, 0}
+		{shapeInfoName, dsMaterialType_Texture, 0, NULL, dsMaterialBinding_Material, 0},
+		{materialInfoName, dsMaterialType_Texture, 0, NULL, dsMaterialBinding_Material, 0},
+		{materialColorName, dsMaterialType_Texture, 0, NULL, dsMaterialBinding_Material, 0},
+		{textOutlineMaterialInfoName, dsMaterialType_Texture, 0, NULL, dsMaterialBinding_Material,
+			0},
+		{textOutlineMaterialColorName, dsMaterialType_Texture, 0, NULL, dsMaterialBinding_Material,
+			0},
+		{otherTextureName, dsMaterialType_Texture, 0, NULL, dsMaterialBinding_Material, 0},
+		{modelViewProjectionName, dsMaterialType_Mat4, 0, NULL, dsMaterialBinding_Material, 0},
+		{sizeName, dsMaterialType_Vec2, 0, NULL, dsMaterialBinding_Material, 0},
+		{textureSizesName, dsMaterialType_Vec3, 0, NULL, dsMaterialBinding_Material, 0}
 	};
 	dsMaterialElement* finalMaterialElements = materialElements;
 	uint32_t finalMaterialElementCount = DS_ARRAY_SIZE(materialElements);

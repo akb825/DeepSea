@@ -62,16 +62,18 @@ bool dsGLCommandBuffer_setShaderBuffer(dsCommandBuffer* commandBuffer, const dsS
 	uint32_t element, dsGfxBuffer* buffer, size_t offset, size_t size);
 bool dsGLCommandBuffer_setUniform(dsCommandBuffer* commandBuffer, GLint location,
 	dsMaterialType type, uint32_t count, const void* data);
-bool dsGLCommandBuffer_setSharedMaterialValues(dsCommandBuffer* commandBuffer,
-	const dsShader* shader, const dsSharedMaterialValues* sharedValues);
+bool dsGLCommandBuffer_setInstanceMaterialValues(dsCommandBuffer* commandBuffer,
+	const dsShader* shader, const dsSharedMaterialValues* instanceValues);
+bool dsGLCommandBuffer_updateDynamicRenderStates(dsCommandBuffer* commandBuffer,
+	const dsShader* shader, const dsDynamicRenderStates* renderStates);
 bool dsGLCommandBuffer_unbindShader(dsCommandBuffer* commandBuffer, const dsShader* shader);
 
 bool dsGLCommandBuffer_bindComputeShaderAndMaterial(dsCommandBuffer* commandBuffer,
 	const dsShader* shader, const dsMaterial* material,
 	const dsSharedMaterialValues* sharedValues);
 bool dsGLCommandBuffer_bindComputeShader(dsCommandBuffer* commandBuffer, const dsShader* shader);
-bool dsGLCommandBuffer_setComputeSharedMaterialValues(dsCommandBuffer* commandBuffer,
-	const dsShader* shader, const dsSharedMaterialValues* sharedValues);
+bool dsGLCommandBuffer_setComputeInstanceMaterialValues(dsCommandBuffer* commandBuffer,
+	const dsShader* shader, const dsSharedMaterialValues* instanceValues);
 bool dsGLCommandBuffer_unbindComputeShader(dsCommandBuffer* commandBuffer, const dsShader* shader);
 
 bool dsGLCommandBuffer_beginRenderSurface(dsCommandBuffer* commandBuffer, void* glSurface);

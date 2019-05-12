@@ -24,18 +24,21 @@ dsShader* dsGLShader_create(dsResourceManager* resourceManager, dsAllocator* all
 bool dsGLShader_isUniformInternal(dsResourceManager* resourceManager, const char* name);
 bool dsGLShader_bind(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
 	const dsShader* shader, const dsMaterial* material,
-	const dsSharedMaterialValues* sharedValues, const dsDynamicRenderStates* renderStates);
-bool dsGLShader_updateSharedValues(dsResourceManager* resourceManager,
+	const dsSharedMaterialValues* globalValues, const dsDynamicRenderStates* renderStates);
+bool dsGLShader_updateInstanceValues(dsResourceManager* resourceManager,
 	dsCommandBuffer* commandBuffer, const dsShader* shader,
-	const dsSharedMaterialValues* sharedValues);
+	const dsSharedMaterialValues* instanceValues);
+bool dsGLShader_updateDynamicRenderStates(dsResourceManager* resourceManager,
+	dsCommandBuffer* commandBuffer, const dsShader* shader,
+	const dsDynamicRenderStates* renderStates);
 bool dsGLShader_unbind(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
 	const dsShader* shader);
 bool dsGLShader_bindCompute(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
 	const dsShader* shader, const dsMaterial* material,
-	const dsSharedMaterialValues* sharedValues);
-bool dsGLShader_updateComputeSharedValues(dsResourceManager* resourceManager,
+	const dsSharedMaterialValues* globalValues);
+bool dsGLShader_updateComputeInstanceValues(dsResourceManager* resourceManager,
 	dsCommandBuffer* commandBuffer, const dsShader* shader,
-	const dsSharedMaterialValues* sharedValues);
+	const dsSharedMaterialValues* instanceValues);
 bool dsGLShader_unbindCompute(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
 	const dsShader* shader);
 bool dsGLShader_destroy(dsResourceManager* resourceManager, dsShader* shader);

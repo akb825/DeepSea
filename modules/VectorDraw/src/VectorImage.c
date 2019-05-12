@@ -1173,7 +1173,7 @@ bool dsVectorImage_updateText(dsVectorImage* vectorImage, dsCommandBuffer* comma
 
 bool dsVectorImage_draw(const dsVectorImage* vectorImage, dsCommandBuffer* commandBuffer,
 	const dsVectorShaders* shaders, dsMaterial* material, const dsMatrix44f* modelViewProjection,
-	const dsSharedMaterialValues* sharedValues, const dsDynamicRenderStates* renderStates)
+	const dsSharedMaterialValues* globalValues, const dsDynamicRenderStates* renderStates)
 {
 	DS_PROFILE_FUNC_START();
 
@@ -1285,7 +1285,7 @@ bool dsVectorImage_draw(const dsVectorImage* vectorImage, dsCommandBuffer* comma
 		}
 
 		dsShader* shader = shaders->shaders[piece->type];
-		if (!dsShader_bind(shader, commandBuffer, material, sharedValues, renderStates))
+		if (!dsShader_bind(shader, commandBuffer, material, globalValues, renderStates))
 		{
 			success = false;
 			break;

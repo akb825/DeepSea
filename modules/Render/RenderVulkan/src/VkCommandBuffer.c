@@ -409,12 +409,16 @@ static void resetActiveRenderState(dsVkCommandBuffer* commandBuffer)
 	commandBuffer->activePipeline = 0;
 	commandBuffer->activeVertexGeometry = NULL;
 	commandBuffer->activeIndexBuffer = NULL;
+	memset(commandBuffer->activeDescriptorSets[VK_PIPELINE_BIND_POINT_GRAPHICS], 0,
+		sizeof(commandBuffer->activeDescriptorSets[VK_PIPELINE_BIND_POINT_GRAPHICS]));
 }
 
 static void resetActiveRenderAndComputeState(dsVkCommandBuffer* commandBuffer)
 {
 	resetActiveRenderState(commandBuffer);
 	commandBuffer->activeComputePipeline = 0;
+	memset(commandBuffer->activeDescriptorSets[VK_PIPELINE_BIND_POINT_COMPUTE], 0,
+		sizeof(commandBuffer->activeDescriptorSets[VK_PIPELINE_BIND_POINT_COMPUTE]));
 }
 
 bool dsVkCommandBuffer_initialize(dsVkCommandBuffer* commandBuffer, dsRenderer* renderer,
@@ -452,7 +456,10 @@ bool dsVkCommandBuffer_initialize(dsVkCommandBuffer* commandBuffer, dsRenderer* 
 	dsVkCommandBufferData_initialize(&commandBuffer->subpassBufferData, allocator, device,
 		commandBuffer->commandPool, true);
 	dsVkBarrierList_initialize(&commandBuffer->barriers, allocator, &vkRenderer->device);
-	dsVkSharedDescriptorSets_initialize(&commandBuffer->sharedDescriptorSets, renderer, allocator);
+	dsVkSharedDescriptorSets_initialize(&commandBuffer->globalDescriptorSets, renderer, allocator,
+		dsMaterialBinding_Global);
+	dsVkSharedDescriptorSets_initialize(&commandBuffer->instanceDescriptorSets, renderer,
+		allocator, dsMaterialBinding_Instance);
 	dsVkSubpassBuffers_initialize(&commandBuffer->subpassBuffers, allocator);
 
 	return true;
@@ -931,6 +938,22 @@ void dsVkCommandBuffer_bindComputePipeline(dsCommandBuffer* commandBuffer,
 	vkCommandBuffer->activeComputePipeline = pipeline;
 }
 
+void dsVkCommandBuffer_bindDescriptorSet(dsCommandBuffer* commandBuffer,
+	VkCommandBuffer submitBuffer, VkPipelineBindPoint bindPoint, uint32_t setIndex,
+	VkPipelineLayout layout, VkDescriptorSet descriptorSet, const uint32_t* offsets,
+	uint32_t offsetCount)
+{
+	commandBuffer = dsVkCommandBuffer_get(commandBuffer);
+	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
+	dsVkDevice* device = &((dsVkRenderer*)commandBuffer->renderer)->device;
+	if (!offsets && vkCommandBuffer->activeDescriptorSets[bindPoint][setIndex] == descriptorSet)
+		return;
+
+	DS_VK_CALL(device->vkCmdBindDescriptorSets)(submitBuffer, bindPoint, layout, setIndex, 1,
+		&descriptorSet, offsetCount, offsets);
+	vkCommandBuffer->activeDescriptorSets[bindPoint][setIndex] = descriptorSet;
+}
+
 bool dsVkCommandBuffer_recentlyAddedImageBarrier(dsCommandBuffer* commandBuffer,
 	const VkImageMemoryBarrier* barrier)
 {
@@ -1220,12 +1243,20 @@ void dsVkCommandBuffer_submittedRenderSurfaces(dsCommandBuffer* commandBuffer,
 	vkCommandBuffer->renderSurfaceCount = 0;
 }
 
-dsVkSharedDescriptorSets* dsVkCommandBuffer_getSharedDescriptorSets(
+dsVkSharedDescriptorSets* dsVkCommandBuffer_getGlobalDescriptorSets(
 	dsCommandBuffer* commandBuffer)
 {
 	commandBuffer = dsVkCommandBuffer_get(commandBuffer);
 	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
-	return &vkCommandBuffer->sharedDescriptorSets;
+	return &vkCommandBuffer->globalDescriptorSets;
+}
+
+dsVkSharedDescriptorSets* dsVkCommandBuffer_getInstanceDescriptorSets(
+	dsCommandBuffer* commandBuffer)
+{
+	commandBuffer = dsVkCommandBuffer_get(commandBuffer);
+	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
+	return &vkCommandBuffer->instanceDescriptorSets;
 }
 
 uint8_t* dsVkCommandBuffer_allocatePushConstantData(dsCommandBuffer* commandBuffer, uint32_t size)
@@ -1274,5 +1305,6 @@ void dsVkCommandBuffer_shutdown(dsVkCommandBuffer* commandBuffer)
 	dsVkSubpassBuffers_shutdown(&commandBuffer->subpassBuffers);
 	DS_VERIFY(dsAllocator_free(baseCommandBuffer->allocator, commandBuffer->imageCopies));
 	DS_VERIFY(dsAllocator_free(baseCommandBuffer->allocator, commandBuffer->pushConstantBytes));
-	dsVkSharedDescriptorSets_shutdown(&commandBuffer->sharedDescriptorSets);
+	dsVkSharedDescriptorSets_shutdown(&commandBuffer->globalDescriptorSets);
+	dsVkSharedDescriptorSets_shutdown(&commandBuffer->instanceDescriptorSets);
 }

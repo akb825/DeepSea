@@ -48,6 +48,10 @@ void dsVkCommandBuffer_bindPipeline(dsCommandBuffer* commandBuffer, VkCommandBuf
 	VkPipeline pipeline);
 void dsVkCommandBuffer_bindComputePipeline(dsCommandBuffer* commandBuffer,
 	VkCommandBuffer submitBuffer, VkPipeline pipeline);
+void dsVkCommandBuffer_bindDescriptorSet(dsCommandBuffer* commandBuffer,
+	VkCommandBuffer submitBuffer, VkPipelineBindPoint bindPoint, uint32_t setIndex,
+	VkPipelineLayout layout, VkDescriptorSet descriptorSet, const uint32_t* offsets,
+	uint32_t offsetCount);
 
 bool dsVkCommandBuffer_recentlyAddedImageBarrier(dsCommandBuffer* commandBuffer,
 	const VkImageMemoryBarrier* barrier);
@@ -74,7 +78,9 @@ void dsVkCommandBuffer_submittedReadbackOffscreens(dsCommandBuffer* commandBuffe
 void dsVkCommandBuffer_submittedRenderSurfaces(dsCommandBuffer* commandBuffer,
 	uint64_t submitCount);
 
-dsVkSharedDescriptorSets* dsVkCommandBuffer_getSharedDescriptorSets(
+dsVkSharedDescriptorSets* dsVkCommandBuffer_getGlobalDescriptorSets(
+	dsCommandBuffer* commandBuffer);
+dsVkSharedDescriptorSets* dsVkCommandBuffer_getInstanceDescriptorSets(
 	dsCommandBuffer* commandBuffer);
 uint8_t* dsVkCommandBuffer_allocatePushConstantData(dsCommandBuffer* commandBuffer, uint32_t size);
 

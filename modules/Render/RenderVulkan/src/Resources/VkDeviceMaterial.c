@@ -47,7 +47,8 @@ dsDeviceMaterial* dsVkDeviceMaterial_create(dsResourceManager* resourceManager,
 	const dsMaterialDesc* materialDesc = dsMaterial_getDescription(material);
 	DS_ASSERT(materialDesc);
 	const dsVkMaterialDesc* vkMaterialDesc = (const dsVkMaterialDesc*)materialDesc;
-	const dsVkBindingCounts* bindingCounts = &vkMaterialDesc->bindings[0].bindingCounts;
+	const dsVkBindingCounts* bindingCounts =
+		&vkMaterialDesc->bindings[dsMaterialBinding_Material].bindingCounts;
 
 	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsDeviceMaterial)) +
 		DS_ALIGNED_SIZE(sizeof(VkWriteDescriptorSet)*bindingCounts->total) +
@@ -259,8 +260,11 @@ VkDescriptorSet dsVkDeviceMaterial_getDescriptorSet(dsCommandBuffer* commandBuff
 	for (uint32_t i = 0; i < materialDesc->elementCount; ++i)
 	{
 		const dsMaterialElement* element = materialDesc->elements + i;
-		if (element->isShared || vkMaterialDesc->elementMappings[i] == DS_MATERIAL_UNKNOWN)
+		if (element->binding != dsMaterialBinding_Material ||
+			vkMaterialDesc->elementMappings[i] == DS_MATERIAL_UNKNOWN)
+		{
 			continue;
+		}
 
 		switch (element->type)
 		{

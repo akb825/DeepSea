@@ -24,6 +24,6 @@ dsMaterialDesc* dsVkMaterialDesc_create(dsResourceManager* resourceManager, dsAl
 bool dsVkMaterialDesc_destroy(dsResourceManager* resourceManager, dsMaterialDesc* materialDesc);
 
 dsVkMaterialDescriptor* dsVkMaterialDesc_createDescriptor(const dsMaterialDesc* materialDesc,
-	dsAllocator* allocator, bool isShared);
+	dsAllocator* allocator, dsMaterialBinding binding);
 void dsVkMaterialDesc_freeDescriptor(const dsMaterialDesc* materialDesc,
 	dsVkMaterialDescriptor* descriptor);

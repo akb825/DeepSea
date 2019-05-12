@@ -105,23 +105,14 @@ typedef enum dsMaterialType
 } dsMaterialType;
 
 /**
- * @brief Enum for the type of primitive to draw with.
- * @see Shader.h
- * @see Renderer.h
+ * @brief Enum for where to bind material values.
  */
-typedef enum dsPrimitiveType
+typedef enum dsMaaterialBinding
 {
-	dsPrimitiveType_PointList,              ///< A list of points.
-	dsPrimitiveType_LineList,               ///< A list of lines.
-	dsPrimitiveType_LineStrip,              ///< A strip of connected lines.
-	dsPrimitiveType_TriangleList,           ///< A list of triangles.
-	dsPrimitiveType_TriangleStrip,          ///< A strip of connected triangles.
-	dsPrimitiveType_TriangleFan,            ///< A fan of connected triangles.
-	dsPrimitiveType_LineListAdjacency,      ///< A list of lines with adjacency info.
-	dsPrimitiveType_TriangleListAdjacency,  ///< A list of triangles with adjacency info.
-	dsPrimitiveType_TriangleStripAdjacency, ///< A strip of connected triangles with adjacency info.
-	dsPrimitiveType_PatchList,              ///< A list of tessellation control patches.
-} dsPrimitiveType;
+	dsMaterialBinding_Material, ///< Bound with the material itself.
+	dsMaterialBinding_Global,   ///< Bound as a global value used between materials.
+	dsMaterialBinding_Instance  ///< Bound as an instance value, changing within a material binding.
+} dsMaterialBinding;
 
 /**
  * @brief Enum for a stage within a shader pipeline.
@@ -293,16 +284,20 @@ typedef struct dsMaterialElement
 	const dsShaderVariableGroupDesc* shaderVariableGroupDesc;
 
 	/**
-	 * @brief Whether or not the variable is shared, able to change across draw calls.
+	 * @brief The binding point for this element.
 	 *
-	 * This may only be used for shader variables of type:
+	 * Most values may only use dsMaterialBinding_Material. In order to set to a global or instance
+	 * binding, the material type must be one of the following:
 	 * - dsMaterialType_Texture
 	 * - dsMaterialType_Image
+	 * - dsMaterialType_SubpassInput
+	 * - dsMaterialType_TextureBuffer
+	 * - dsMaterialType_ImageBuffer
 	 * - dsMaterialType_VariableGroup
 	 * - dsMaterialType_UniformBlock
 	 * - dsMaterialType_UniformBuffer
 	 */
-	bool isShared;
+	dsMaterialBinding binding;
 
 	/**
 	 * @brief The hash value for the name.

@@ -453,7 +453,7 @@ typedef struct dsVkMaterialDescriptor
 	const dsVkSamplerList* samplers; // Only used for comparison
 
 	dsVkBindingCounts counts;
-	bool isShared;
+	dsMaterialBinding binding;
 
 	dsTexture** textures;
 	dsVkGfxBufferBinding* buffers;
@@ -471,6 +471,7 @@ typedef struct dsVkMaterialDescriptorRef
 
 typedef struct dsVkMaterialDescBindings
 {
+	uint32_t setIndex;
 	VkDescriptorSetLayoutBinding* bindings;
 	dsVkBindingCounts bindingCounts;
 	VkDescriptorSetLayout descriptorSets;
@@ -484,9 +485,8 @@ typedef struct dsVkMaterialDesc
 	dsLifetime* lifetime;
 	uint32_t* elementMappings;
 
-	// Index 0 for static material values.
-	// Index 1 for shared material values.
-	dsVkMaterialDescBindings bindings[2];
+	// Indices match dsMaterialBinding enum.
+	dsVkMaterialDescBindings bindings[3];
 } dsVkMaterialDesc;
 
 typedef struct dsVkBindingMemory
@@ -865,6 +865,7 @@ typedef struct dsVkSharedDescriptorSets
 	dsVkMaterialDescriptor* lastDescriptor;
 
 	dsVkBindingMemory bindingMemory;
+	dsMaterialBinding binding;
 	uint32_t maxTextures;
 	uint32_t maxBuffers;
 	uint32_t maxTexelBuffers;
@@ -932,6 +933,7 @@ struct dsVkCommandBuffer
 	dsVector2f depthRange;
 	VkPipeline activePipeline;
 	VkPipeline activeComputePipeline;
+	VkDescriptorSet activeDescriptorSets[2][3];
 	const dsDrawGeometry* activeVertexGeometry;
 	const dsIndexBuffer* activeIndexBuffer;
 
@@ -940,7 +942,8 @@ struct dsVkCommandBuffer
 	uint32_t maxClearValues;
 
 	dsVkBarrierList barriers;
-	dsVkSharedDescriptorSets sharedDescriptorSets;
+	dsVkSharedDescriptorSets globalDescriptorSets;
+	dsVkSharedDescriptorSets instanceDescriptorSets;
 
 	VkCommandBuffer* submitBuffers;
 	uint32_t submitBufferCount;

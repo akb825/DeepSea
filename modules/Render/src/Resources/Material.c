@@ -90,7 +90,7 @@ static size_t getDataSize(const dsMaterialDesc* description)
 	size_t dataSize = 0;
 	for (uint32_t i = 0; i < description->elementCount; ++i)
 	{
-		if (description->elements[i].isShared)
+		if (description->elements[i].binding != dsMaterialBinding_Material)
 			continue;
 
 		addElementSize(&dataSize, description->elements[i].type, description->elements[i].count);
@@ -201,7 +201,7 @@ dsMaterial* dsMaterial_create(dsResourceManager* resourceManager, dsAllocator* a
 	size_t curSize = 0;
 	for (uint32_t i = 0; i < description->elementCount; ++i)
 	{
-		if (description->elements[i].isShared)
+		if (description->elements[i].binding != dsMaterialBinding_Material)
 			material->offsets[i] = DS_MATERIAL_UNKNOWN;
 		else
 		{

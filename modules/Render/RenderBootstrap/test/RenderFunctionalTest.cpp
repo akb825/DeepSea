@@ -74,7 +74,7 @@ private:
 
 		dsMaterialElement materialElements[] =
 		{
-			{"projection", dsMaterialType_Mat4, 0, NULL, false, 0}
+			{"projection", dsMaterialType_Mat4, 0, NULL, dsMaterialBinding_Material, 0}
 		};
 
 		materialDesc = dsMaterialDesc_create(resourceManager, allocator, materialElements,
@@ -868,7 +868,7 @@ TEST_P(RendererFunctionalTest, BufferReadback)
 
 	dsMaterialElement materialElements[] =
 	{
-		{"TestBuffer", dsMaterialType_UniformBuffer, 0, NULL, false, 0}
+		{"TestBuffer", dsMaterialType_UniformBuffer, 0, NULL, dsMaterialBinding_Material, 0}
 	};
 
 	dsMaterialDesc* materialDesc = dsMaterialDesc_create(resourceManager, (dsAllocator*)&allocator,
@@ -936,7 +936,7 @@ TEST_P(RendererFunctionalTest, ComputeShaderIndirect)
 
 	dsMaterialElement materialElements[] =
 	{
-		{"TestBuffer", dsMaterialType_UniformBuffer, 0, NULL, false, 0}
+		{"TestBuffer", dsMaterialType_UniformBuffer, 0, NULL, dsMaterialBinding_Material, 0}
 	};
 
 	dsMaterialDesc* materialDesc = dsMaterialDesc_create(resourceManager, (dsAllocator*)&allocator,
@@ -1014,8 +1014,8 @@ TEST_P(RendererFunctionalTest, TextureBuffer)
 
 	dsMaterialElement materialElements[] =
 	{
-		{"testTexBuffer", dsMaterialType_TextureBuffer, 0, NULL, false, 0},
-		{"TestBuffer", dsMaterialType_UniformBuffer, 0, NULL, false, 0}
+		{"testTexBuffer", dsMaterialType_TextureBuffer, 0, NULL, dsMaterialBinding_Material, 0},
+		{"TestBuffer", dsMaterialType_UniformBuffer, 0, NULL, dsMaterialBinding_Material, 0}
 	};
 
 	dsMaterialDesc* materialDesc = dsMaterialDesc_create(resourceManager, (dsAllocator*)&allocator,

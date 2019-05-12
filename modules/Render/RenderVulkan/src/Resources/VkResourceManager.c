@@ -889,11 +889,13 @@ dsResourceManager* dsVkResourceManager_create(dsAllocator* allocator, dsVkRender
 	baseResourceManager->createShaderFunc = &dsVkShader_create;
 	baseResourceManager->destroyShaderFunc = &dsVkShader_destroy;
 	baseResourceManager->bindShaderFunc = &dsVkShader_bind;
-	baseResourceManager->updateShaderSharedValuesFunc = &dsVkShader_updateSharedValues;
+	baseResourceManager->updateShaderInstanceValuesFunc = &dsVkShader_updateInstanceValues;
+	baseResourceManager->updateShaderDynamicRenderStatesFunc =
+		&dsVkShader_updateDynamicRenderStates;
 	baseResourceManager->unbindShaderFunc = &dsVkShader_unbind;
 	baseResourceManager->bindComputeShaderFunc = &dsVkShader_bindCompute;
-	baseResourceManager->updateComputeShaderSharedValuesFunc =
-		&dsVkShader_updateComputeSharedValues;
+	baseResourceManager->updateComputeShaderInstanceValuesFunc =
+		&dsVkShader_updateComputeInstanceValues;
 	baseResourceManager->unbindComputeShaderFunc = &dsVkShader_unbindCompute;
 
 	void* pipelineCacheData = NULL;

@@ -27,10 +27,10 @@ TEST_F(MaterialDescTest, Create)
 {
 	dsMaterialElement elements[] =
 	{
-		{"singleVec4", dsMaterialType_Vec4, 0, NULL, false, 0},
-		{"matrixArray", dsMaterialType_Mat4, 3, NULL, false, 0},
-		{"integer", dsMaterialType_Int, 0, NULL, false, 0},
-		{"texture", dsMaterialType_Texture, 0, NULL, true, 0}
+		{"singleVec4", dsMaterialType_Vec4, 0, NULL, dsMaterialBinding_Material, 0},
+		{"matrixArray", dsMaterialType_Mat4, 3, NULL, dsMaterialBinding_Material, 0},
+		{"integer", dsMaterialType_Int, 0, NULL, dsMaterialBinding_Material, 0},
+		{"texture", dsMaterialType_Texture, 0, NULL, dsMaterialBinding_Global, 0}
 	};
 	unsigned int elementCount = DS_ARRAY_SIZE(elements);
 
@@ -55,11 +55,11 @@ TEST_F(MaterialDescTest, CreateDuplicateName)
 {
 	dsMaterialElement elements[] =
 	{
-		{"integer", dsMaterialType_Int, 0, NULL, false, 0},
-		{"singleVec4", dsMaterialType_Vec4, 0, NULL, false, 0},
-		{"matrixArray", dsMaterialType_Mat4, 3, NULL, false, 0},
-		{"integer", dsMaterialType_Int, 3, NULL, false, 0},
-		{"texture", dsMaterialType_Texture, 0, NULL, true, 0}
+		{"integer", dsMaterialType_Int, 0, NULL, dsMaterialBinding_Material, 0},
+		{"singleVec4", dsMaterialType_Vec4, 0, NULL, dsMaterialBinding_Material, 0},
+		{"matrixArray", dsMaterialType_Mat4, 3, NULL, dsMaterialBinding_Material, 0},
+		{"integer", dsMaterialType_Int, 3, NULL, dsMaterialBinding_Material, 0},
+		{"texture", dsMaterialType_Texture, 0, NULL, dsMaterialBinding_Global, 0}
 	};
 	unsigned int elementCount = DS_ARRAY_SIZE(elements);
 
@@ -70,10 +70,10 @@ TEST_F(MaterialDescTest, CreateSharedPrimitive)
 {
 	dsMaterialElement elements[] =
 	{
-		{"singleVec4", dsMaterialType_Vec4, 0, NULL, true, 0},
-		{"matrixArray", dsMaterialType_Mat4, 3, NULL, false, 0},
-		{"integer", dsMaterialType_Int, 0, NULL, false, 0},
-		{"texture", dsMaterialType_Texture, 0, NULL, true, 0}
+		{"singleVec4", dsMaterialType_Vec4, 0, NULL, dsMaterialBinding_Global, 0},
+		{"matrixArray", dsMaterialType_Mat4, 3, NULL, dsMaterialBinding_Material, 0},
+		{"integer", dsMaterialType_Int, 0, NULL, dsMaterialBinding_Material, 0},
+		{"texture", dsMaterialType_Texture, 0, NULL, dsMaterialBinding_Global, 0}
 	};
 	unsigned int elementCount = DS_ARRAY_SIZE(elements);
 
@@ -84,10 +84,10 @@ TEST_F(MaterialDescTest, CreateOpaqueArray)
 {
 	dsMaterialElement elements[] =
 	{
-		{"singleVec4", dsMaterialType_Vec4, 0, NULL, false, 0},
-		{"matrixArray", dsMaterialType_Mat4, 3, NULL, false, 0},
-		{"integer", dsMaterialType_Int, 0, NULL, false, 0},
-		{"texture", dsMaterialType_Texture, 2, NULL, true, 0}
+		{"singleVec4", dsMaterialType_Vec4, 0, NULL, dsMaterialBinding_Material, 0},
+		{"matrixArray", dsMaterialType_Mat4, 3, NULL, dsMaterialBinding_Material, 0},
+		{"integer", dsMaterialType_Int, 0, NULL, dsMaterialBinding_Material, 0},
+		{"texture", dsMaterialType_Texture, 2, NULL, dsMaterialBinding_Global, 0}
 	};
 	unsigned int elementCount = DS_ARRAY_SIZE(elements);
 
@@ -98,11 +98,11 @@ TEST_F(MaterialDescTest, CreateShaderVariableGroup)
 {
 	dsMaterialElement elements[] =
 	{
-		{"singleVec4", dsMaterialType_Vec4, 0, NULL, false, 0},
-		{"matrixArray", dsMaterialType_Mat4, 3, NULL, false, 0},
-		{"integer", dsMaterialType_Int, 0, NULL, false, 0},
-		{"texture", dsMaterialType_Texture, 0, NULL, true, 0},
-		{"variableGroup", dsMaterialType_VariableGroup, 0, NULL, false, 0}
+		{"singleVec4", dsMaterialType_Vec4, 0, NULL, dsMaterialBinding_Material, 0},
+		{"matrixArray", dsMaterialType_Mat4, 3, NULL, dsMaterialBinding_Material, 0},
+		{"integer", dsMaterialType_Int, 0, NULL, dsMaterialBinding_Material, 0},
+		{"texture", dsMaterialType_Texture, 0, NULL, dsMaterialBinding_Global, 0},
+		{"variableGroup", dsMaterialType_VariableGroup, 0, NULL, dsMaterialBinding_Material, 0}
 	};
 	unsigned int elementCount = DS_ARRAY_SIZE(elements);
 
@@ -131,11 +131,11 @@ TEST_F(MaterialDescTest, CreateUniformBlock)
 {
 	dsMaterialElement elements[] =
 	{
-		{"singleVec4", dsMaterialType_Vec4, 0, NULL, false, 0},
-		{"matrixArray", dsMaterialType_Mat4, 3, NULL, false, 0},
-		{"integer", dsMaterialType_Int, 0, NULL, false, 0},
-		{"texture", dsMaterialType_Texture, 0, NULL, true, 0},
-		{"uniformBlock", dsMaterialType_UniformBlock, 0, NULL, false, 0}
+		{"singleVec4", dsMaterialType_Vec4, 0, NULL, dsMaterialBinding_Material, 0},
+		{"matrixArray", dsMaterialType_Mat4, 3, NULL, dsMaterialBinding_Material, 0},
+		{"integer", dsMaterialType_Int, 0, NULL, dsMaterialBinding_Material, 0},
+		{"texture", dsMaterialType_Texture, 0, NULL, dsMaterialBinding_Global, 0},
+		{"uniformBlock", dsMaterialType_UniformBlock, 0, NULL, dsMaterialBinding_Material, 0}
 	};
 	unsigned int elementCount = DS_ARRAY_SIZE(elements);
 
@@ -154,11 +154,11 @@ TEST_F(MaterialDescTest, CreateUniformBuffer)
 {
 	dsMaterialElement elements[] =
 	{
-		{"singleVec4", dsMaterialType_Vec4, 0, NULL, false, 0},
-		{"matrixArray", dsMaterialType_Mat4, 3, NULL, false, 0},
-		{"integer", dsMaterialType_Int, 0, NULL, false, 0},
-		{"texture", dsMaterialType_Texture, 0, NULL, true, 0},
-		{"uniformBuffer", dsMaterialType_UniformBuffer, 0, NULL, false, 0}
+		{"singleVec4", dsMaterialType_Vec4, 0, NULL, dsMaterialBinding_Material, 0},
+		{"matrixArray", dsMaterialType_Mat4, 3, NULL, dsMaterialBinding_Material, 0},
+		{"integer", dsMaterialType_Int, 0, NULL, dsMaterialBinding_Material, 0},
+		{"texture", dsMaterialType_Texture, 0, NULL, dsMaterialBinding_Global, 0},
+		{"uniformBuffer", dsMaterialType_UniformBuffer, 0, NULL, dsMaterialBinding_Material, 0}
 	};
 	unsigned int elementCount = DS_ARRAY_SIZE(elements);
 

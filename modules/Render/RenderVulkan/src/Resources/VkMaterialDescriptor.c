@@ -32,7 +32,7 @@
 #define DS_MAX_DESCRIPTOR_SETS (uint32_t)(VK_DESCRIPTOR_TYPE_END_RANGE + 1)
 
 dsVkMaterialDescriptor* dsVkMaterialDescriptor_create(dsRenderer* renderer, dsAllocator* allocator,
-	const dsMaterialDesc* materialDesc, const dsVkBindingCounts* counts, bool isShared)
+	const dsMaterialDesc* materialDesc, const dsVkBindingCounts* counts, dsMaterialBinding binding)
 {
 	DS_ASSERT(counts->total > 0);
 	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsVkMaterialDescriptor)) +
@@ -54,7 +54,7 @@ dsVkMaterialDescriptor* dsVkMaterialDescriptor_create(dsRenderer* renderer, dsAl
 	dsVkInstance* instance = &device->instance;
 	const dsVkMaterialDesc* vkMaterialDesc = (const dsVkMaterialDesc*)materialDesc;
 
-	VkDescriptorSetLayout layout = vkMaterialDesc->bindings[isShared != 0].descriptorSets;
+	VkDescriptorSetLayout layout = vkMaterialDesc->bindings[binding].descriptorSets;
 
 	descriptor->renderer = renderer;
 	descriptor->allocator = dsAllocator_keepPointer(allocator);
@@ -90,7 +90,7 @@ dsVkMaterialDescriptor* dsVkMaterialDescriptor_create(dsRenderer* renderer, dsAl
 		descriptor->texelBuffers = NULL;
 
 	descriptor->counts = *counts;
-	descriptor->isShared = isShared;
+	descriptor->binding = binding;
 
 	descriptor->pool = 0;
 	descriptor->set = 0;
@@ -103,13 +103,13 @@ dsVkMaterialDescriptor* dsVkMaterialDescriptor_create(dsRenderer* renderer, dsAl
 	for (uint32_t i = 0; i < materialDesc->elementCount; ++i)
 	{
 		const dsMaterialElement* element = materialDesc->elements + i;
-		if (element->isShared != isShared ||
+		if (element->binding != binding ||
 			vkMaterialDesc->elementMappings[i] == DS_MATERIAL_UNKNOWN)
 		{
 			continue;
 		}
 
-		VkDescriptorType type = dsVkDescriptorType(element->type, isShared);
+		VkDescriptorType type = dsVkDescriptorType(element->type, binding);
 		DS_ASSERT(type != VK_DESCRIPTOR_TYPE_MAX_ENUM);
 
 		uint32_t index;
@@ -204,7 +204,7 @@ void dsVkMaterialDescriptor_update(dsVkMaterialDescriptor* descriptor, const dsS
 	for (uint32_t i = 0; i < descriptor->materialDesc->elementCount; ++i)
 	{
 		const dsMaterialElement* element = descriptor->materialDesc->elements + i;
-		if (element->isShared != descriptor->isShared ||
+		if (element->binding != descriptor->binding ||
 			vkMaterialDesc->elementMappings[i] == DS_MATERIAL_UNKNOWN)
 		{
 			continue;
@@ -218,7 +218,7 @@ void dsVkMaterialDescriptor_update(dsVkMaterialDescriptor* descriptor, const dsS
 		binding->dstBinding = vkMaterialDesc->elementMappings[i];
 		binding->dstArrayElement = 0;
 		binding->descriptorCount = 1;
-		binding->descriptorType = dsVkDescriptorType(element->type, element->isShared);
+		binding->descriptorType = dsVkDescriptorType(element->type, element->binding);
 		binding->pImageInfo = NULL;
 		binding->pBufferInfo = NULL;
 		binding->pTexelBufferView = NULL;

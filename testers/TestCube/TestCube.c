@@ -369,8 +369,8 @@ static bool setup(TestCube* testCube, dsApplication* application, dsAllocator* a
 
 	dsMaterialElement materialElems[] =
 	{
-		{"modelViewProjection", dsMaterialType_Mat4, 0, NULL, false, 0},
-		{"tex", dsMaterialType_Texture, 0, NULL, false, 0}
+		{"modelViewProjection", dsMaterialType_Mat4, 0, NULL, dsMaterialBinding_Material, 0},
+		{"tex", dsMaterialType_Texture, 0, NULL, dsMaterialBinding_Material, 0}
 	};
 	testCube->materialDesc = dsMaterialDesc_create(resourceManager, allocator, materialElems,
 		DS_ARRAY_SIZE(materialElems));

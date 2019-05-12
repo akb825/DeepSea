@@ -1668,20 +1668,6 @@ typedef bool (*dsDestroyShaderVariableGroupDescFunction)(dsResourceManager* reso
 	dsShaderVariableGroupDesc* shaderVarGroupDesc);
 
 /**
- * @brief Function for creating a shader.
- * @param resourceManager The resource manager to create the shader from.
- * @param allocator The allocator to create the shader with.
- * @param module The shader module that contains the shader.
- * @param shaderIndex The index of the shader.
- * @param materialDesc The description of the material type used by the shader.
- * @param primitiveType The type of primitives the shader will be drawn with.
- * @return The created shader, or NULL if it couldn't be created.
- */
-typedef dsShader* (*dsCreateShaderFunction)(dsResourceManager* resourceManager,
-	dsAllocator* allocator, dsShaderModule* module, uint32_t shaderIndex,
-	const dsMaterialDesc* materialDesc);
-
-/**
  * @brief Function for creating data for device-specific material management.
  * @remark Setting the device material functions is optional, but if set it's expected that
  *     returning NULL is an error.
@@ -1713,14 +1699,6 @@ typedef void (*dsDeviceMaterialChangedFunction)(dsResourceManager* resourceManag
 	dsMaterial* material, dsDeviceMaterial* deviceMaterial, uint32_t element);
 
 /**
- * @brief Function for destroying a shader.
- * @param resourceManager The resource manager the shader was created with.
- * @param shader The shader.
- * @return False if the shader couldn't be destroyed.
- */
-typedef bool (*dsDestroyShaderFunction)(dsResourceManager* resourceManager, dsShader* shader);
-
-/**
  * @brief Function to check if a uniform is internal, removing the requirement for the user
  *     to set it in the material description.
  * @param resourceManager The resource manager.
@@ -1731,34 +1709,71 @@ typedef bool (*dsIsShaderUniformInternalFunction)(dsResourceManager* resourceMan
 	const char* name);
 
 /**
+ * @brief Function for creating a shader.
+ * @param resourceManager The resource manager to create the shader from.
+ * @param allocator The allocator to create the shader with.
+ * @param module The shader module that contains the shader.
+ * @param shaderIndex The index of the shader.
+ * @param materialDesc The description of the material type used by the shader.
+ * @param primitiveType The type of primitives the shader will be drawn with.
+ * @return The created shader, or NULL if it couldn't be created.
+ */
+typedef dsShader* (*dsCreateShaderFunction)(dsResourceManager* resourceManager,
+	dsAllocator* allocator, dsShaderModule* module, uint32_t shaderIndex,
+	const dsMaterialDesc* materialDesc);
+
+/**
+ * @brief Function for destroying a shader.
+ * @param resourceManager The resource manager the shader was created with.
+ * @param shader The shader.
+ * @return False if the shader couldn't be destroyed.
+ */
+typedef bool (*dsDestroyShaderFunction)(dsResourceManager* resourceManager, dsShader* shader);
+
+/**
  * @brief Function for binding a shader for drawing.
  * @param resourceManager The resource manager the shader was created with.
  * @param commandBuffer The command buffer to queue commands onto.
  * @param shader The shader to draw with.
  * @param material The material values to apply to the shader.
- * @param sharedValues The shared values to apply to the shader.
+ * @param globalValues The global values to apply to the shader.
  * @param renderStates The dynamic render states to apply. This may be NULL to use the default
  *     values.
  * @return False if the values couldn't be bound.
  */
 typedef bool (*dsBindShaderFunction)(dsResourceManager* resourceManager,
 	dsCommandBuffer* commandBuffer, const dsShader* shader, const dsMaterial* material,
-	const dsSharedMaterialValues* sharedValues, const dsDynamicRenderStates* renderStates);
+	const dsSharedMaterialValues* globalValues, const dsDynamicRenderStates* renderStates);
 
 /**
- * @brief Function for updating the shared material values used for the currently bound shader.
+ * @brief Function for updating the instance material values used for the currently bound shader.
  *
  * The implementation should attempt to only update the values that have changed.
  *
  * @param resourceManager The resource manager the shader was created with.
  * @param commandBuffer The command buffer to queue commands onto.
  * @param shader The shader to update the values on.
- * @param sharedValues The shared values to updte.
+ * @param instanceValues The instance values to update.
  * @return False if the values couldn't be updated.
  */
-typedef bool (*dsUpdateShaderSharedValuesFunction)(dsResourceManager* resourceManager,
+typedef bool (*dsUpdateShaderInstanceValuesFunction)(dsResourceManager* resourceManager,
 	dsCommandBuffer* commandBuffer, const dsShader* shader,
-	const dsSharedMaterialValues* sharedValues);
+	const dsSharedMaterialValues* instanceValues);
+
+/**
+ * @brief Function for updating the dynamic render states for the currently bound shader.
+ *
+ * The implementation should attempt to only update the values that have changed.
+ *
+ * @param resourceManager The resource manager the shader was created with.
+ * @param commandBuffer The command buffer to queue commands onto.
+ * @param shader The shader to update the render states on.
+ * @param renderStates The dynamic render states to apply.
+ * @return False if the values couldn't be updated.
+ */
+typedef bool (*dsUpdateShaderDynamicRenderStatesFunction)(dsResourceManager* resourceManager,
+	dsCommandBuffer* commandBuffer, const dsShader* shader,
+	const dsDynamicRenderStates* renderStates);
 
 /**
  * @brief Function for un-binding the currently bound shader.
@@ -1775,12 +1790,12 @@ typedef bool (*dsUnbindShaderFunction)(dsResourceManager* resourceManager,
  * @param commandBuffer The command buffer to queue commands onto.
  * @param shader The shader to draw with.
  * @param material The material values to apply to the shader.
- * @param sharedValues The shared values to apply to the shader.
+ * @param globalValues The global values to apply to the shader.
  * @return False if the values couldn't be bound.
  */
 typedef bool (*dsBindComputeShaderFunction)(dsResourceManager* resourceManager,
 	dsCommandBuffer* commandBuffer, const dsShader* shader, const dsMaterial* material,
-	const dsSharedMaterialValues* sharedValues);
+	const dsSharedMaterialValues* globalValues);
 
 /** @copydoc dsResourceManager */
 struct dsResourceManager
@@ -2373,9 +2388,14 @@ struct dsResourceManager
 	dsBindShaderFunction bindShaderFunc;
 
 	/**
-	 * @brief Shader shared value update function.
+	 * @brief Shader instance value update function.
 	 */
-	dsUpdateShaderSharedValuesFunction updateShaderSharedValuesFunc;
+	dsUpdateShaderInstanceValuesFunction updateShaderInstanceValuesFunc;
+
+	/**
+	 * @brief Shader dynamic render state update function.
+	 */
+	dsUpdateShaderDynamicRenderStatesFunction updateShaderDynamicRenderStatesFunc;
 
 	/**
 	 * @brief Shader unbinding function.
@@ -2388,9 +2408,9 @@ struct dsResourceManager
 	dsBindComputeShaderFunction bindComputeShaderFunc;
 
 	/**
-	 * @brief Compute shader shared value update function.
+	 * @brief Compute shader instance value update function.
 	 */
-	dsUpdateShaderSharedValuesFunction updateComputeShaderSharedValuesFunc;
+	dsUpdateShaderInstanceValuesFunction updateComputeShaderInstanceValuesFunc;
 
 	/**
 	 * @brief Compute shader unbinding function.

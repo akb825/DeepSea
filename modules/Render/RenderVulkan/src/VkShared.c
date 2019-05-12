@@ -397,7 +397,7 @@ VkImageAspectFlags dsVkClearDepthStencilImageAspectFlags(dsGfxFormat format,
 	return aspectFlags & dsVkImageAspectFlags(format);
 }
 
-VkDescriptorType dsVkDescriptorType(dsMaterialType type, bool isShared)
+VkDescriptorType dsVkDescriptorType(dsMaterialType type, dsMaterialBinding binding)
 {
 	switch (type)
 	{
@@ -414,11 +414,11 @@ VkDescriptorType dsVkDescriptorType(dsMaterialType type, bool isShared)
 		case dsMaterialType_VariableGroup:
 			return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 		case dsMaterialType_UniformBlock:
-			if (isShared)
+			if (binding == dsMaterialBinding_Instance)
 				return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
 			return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 		case dsMaterialType_UniformBuffer:
-			if (isShared)
+			if (binding == dsMaterialBinding_Instance)
 				return VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC;
 			return VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
 		default:

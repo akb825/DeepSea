@@ -143,6 +143,19 @@ typedef enum dsAttachmentUsage
 } dsAttachmentUsage;
 
 /**
+ * @brief Enum for the platform for the graphics system.
+ *
+ * In many cases only a single choice is available. This enum will only contain the platforms that
+ * can be chosen.
+ */
+typedef enum dsGfxPlatform
+{
+	dsGfxPlatform_Default, ///< The default platform.
+	dsGfxPlatform_X11,     ///< X11 windowing platform. This is the default on Linux.
+	dsGfxPlatform_Wayland  ///< Wayland windowing platform.
+} dsGfxPlatform;
+
+/**
  * @brief Enum for the stage for a pipeline dependency.
  * @see RenderPass.h
  */
@@ -213,17 +226,23 @@ typedef enum dsGfxAccess
 } dsGfxAccess;
 
 /**
- * @brief Enum for the platform for the graphics system.
- *
- * In many cases only a single choice is available. This enum will only contain the platforms that
- * can be chosen.
+ * @brief Enum for the type of primitive to draw with.
+ * @see Shader.h
+ * @see Renderer.h
  */
-typedef enum dsGfxPlatform
+typedef enum dsPrimitiveType
 {
-	dsGfxPlatform_Default, ///< The default platform.
-	dsGfxPlatform_X11,     ///< X11 windowing platform. This is the default on Linux.
-	dsGfxPlatform_Wayland  ///< Wayland windowing platform.
-} dsGfxPlatform;
+	dsPrimitiveType_PointList,              ///< A list of points.
+	dsPrimitiveType_LineList,               ///< A list of lines.
+	dsPrimitiveType_LineStrip,              ///< A strip of connected lines.
+	dsPrimitiveType_TriangleList,           ///< A list of triangles.
+	dsPrimitiveType_TriangleStrip,          ///< A strip of connected triangles.
+	dsPrimitiveType_TriangleFan,            ///< A fan of connected triangles.
+	dsPrimitiveType_LineListAdjacency,      ///< A list of lines with adjacency info.
+	dsPrimitiveType_TriangleListAdjacency,  ///< A list of triangles with adjacency info.
+	dsPrimitiveType_TriangleStripAdjacency, ///< A strip of connected triangles with adjacency info.
+	dsPrimitiveType_PatchList,              ///< A list of tessellation control patches.
+} dsPrimitiveType;
 
 /**
  * @brief Base object for interfacing with the DeepSea Render library.

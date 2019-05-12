@@ -29,13 +29,13 @@ class SharedMaterialValuesTest : public FixtureBase
 
 TEST_F(SharedMaterialValuesTest, Create)
 {
-	EXPECT_FALSE(dsSharedMaterialValues_create(NULL, DS_DEFAULT_MAX_VOLATILE_MATERIAL_VALUES));
+	EXPECT_FALSE(dsSharedMaterialValues_create(NULL, DS_DEFAULT_MAX_SHARED_MATERIAL_VALUES));
 	EXPECT_FALSE(dsSharedMaterialValues_create((dsAllocator*)&allocator, 0));
 	dsSharedMaterialValues* values = dsSharedMaterialValues_create((dsAllocator*)&allocator,
-		DS_DEFAULT_MAX_VOLATILE_MATERIAL_VALUES);
+		DS_DEFAULT_MAX_SHARED_MATERIAL_VALUES);
 	EXPECT_TRUE(values);
 
-	EXPECT_EQ(DS_DEFAULT_MAX_VOLATILE_MATERIAL_VALUES,
+	EXPECT_EQ(DS_DEFAULT_MAX_SHARED_MATERIAL_VALUES,
 		dsSharedMaterialValues_getMaxValueCount(values));
 	EXPECT_EQ(0U, dsSharedMaterialValues_getValueCount(values));
 
@@ -45,7 +45,7 @@ TEST_F(SharedMaterialValuesTest, Create)
 TEST_F(SharedMaterialValuesTest, Textures)
 {
 	dsSharedMaterialValues* values = dsSharedMaterialValues_create((dsAllocator*)&allocator,
-		DS_DEFAULT_MAX_VOLATILE_MATERIAL_VALUES);
+		DS_DEFAULT_MAX_SHARED_MATERIAL_VALUES);
 	ASSERT_TRUE(values);
 
 	dsTextureInfo texInfo = {dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm),
@@ -95,7 +95,7 @@ TEST_F(SharedMaterialValuesTest, Textures)
 TEST_F(SharedMaterialValuesTest, TextureBuffers)
 {
 	dsSharedMaterialValues* values = dsSharedMaterialValues_create((dsAllocator*)&allocator,
-		DS_DEFAULT_MAX_VOLATILE_MATERIAL_VALUES);
+		DS_DEFAULT_MAX_SHARED_MATERIAL_VALUES);
 	ASSERT_TRUE(values);
 
 	dsGfxBuffer* buffer1 = dsGfxBuffer_create(resourceManager, NULL,
@@ -198,7 +198,7 @@ TEST_F(SharedMaterialValuesTest, TextureBuffers)
 TEST_F(SharedMaterialValuesTest, VariableGroups)
 {
 	dsSharedMaterialValues* values = dsSharedMaterialValues_create((dsAllocator*)&allocator,
-		DS_DEFAULT_MAX_VOLATILE_MATERIAL_VALUES);
+		DS_DEFAULT_MAX_SHARED_MATERIAL_VALUES);
 	ASSERT_TRUE(values);
 
 	dsShaderVariableElement elements[] =
@@ -256,7 +256,7 @@ TEST_F(SharedMaterialValuesTest, VariableGroups)
 TEST_F(SharedMaterialValuesTest, Buffers)
 {
 	dsSharedMaterialValues* values = dsSharedMaterialValues_create((dsAllocator*)&allocator,
-		DS_DEFAULT_MAX_VOLATILE_MATERIAL_VALUES);
+		DS_DEFAULT_MAX_SHARED_MATERIAL_VALUES);
 	ASSERT_TRUE(values);
 
 	dsGfxBuffer* buffer1 = dsGfxBuffer_create(resourceManager, NULL,
@@ -330,7 +330,7 @@ TEST_F(SharedMaterialValuesTest, Buffers)
 TEST_F(SharedMaterialValuesTest, MixedTypes)
 {
 	dsSharedMaterialValues* values = dsSharedMaterialValues_create((dsAllocator*)&allocator,
-		DS_DEFAULT_MAX_VOLATILE_MATERIAL_VALUES);
+		DS_DEFAULT_MAX_SHARED_MATERIAL_VALUES);
 	ASSERT_TRUE(values);
 
 	dsTextureInfo texInfo = {dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm),

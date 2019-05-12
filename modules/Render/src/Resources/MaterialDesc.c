@@ -206,10 +206,11 @@ dsMaterialDesc* dsMaterialDesc_create(dsResourceManager* resourceManager,
 			elementsValid = false;
 		}
 
-		if (elements[i].isShared && elements[i].type < dsMaterialType_Texture)
+		if (elements[i].binding != dsMaterialBinding_Material &&
+			elements[i].type < dsMaterialType_Texture)
 		{
 			DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Primitive, vector, and matrix material elements "
-				"cannot be shared for element '%s'.", elements[i].name);
+				"must use dsMaterialBinding_Material for element '%s'.", elements[i].name);
 			elementsValid = false;
 		}
 

@@ -30,16 +30,18 @@ extern "C"
  * @brief Functions for creating and using shared material values.
  *
  * This holds a set of values to be used for shared material elements indexed by name. Shared
- * material values are texture, image, and buffer material values declared as shared within
- * dsMaterialDesc. This allows values for the current rendering state to be stored separately from
- * the material properties. Separate instances can be used for different render passes, draw
+ * material values are texture, image, and buffer material values set as global or instance binding
+ * within dsMaterialDesc. This allows values for the current rendering state to be stored separately
+ * from the material properties. Separate instances can be used for different render passes, draw
  * threads, etc. to remain independent between multiple uses of the material, and the values stored
  * in this may be changed in-between draw calls.
  *
- * The cost of updating a value is dependent on the underlying graphics API and driver. In the case
- * of Vulkan, which is the most explicit in how shader variables are managed, the cheapest change is
- * to update the offset for a uniform block or uniform buffer while keeping the underlying buffer
- * the same. When possible, this is the best update to change in-between draw calls.
+ * The cost of updating a value is dependent on the underlying graphics API and driver. Global
+ * bindings are intended to change rarely, while instance bindings are intended to change more
+ * often. In the case of Vulkan, which is the most explicit in how shader variables are managed, the
+ * cheapest change is to update the offset for a uniform block or uniform buffer while keeping the
+ * underlying buffer the same. When possible, this is the best update to change in-between draw
+ * calls for instance bindings.
  *
  * Lookups into this will be frequent, so as a result the index is done by pre-hashing the name. You
  * may either access the elements by name or by the ID, which is the hash of the name. (by calling
@@ -55,7 +57,7 @@ extern "C"
 /**
  * @brief The default maximum number of shared material values.
  */
-#define DS_DEFAULT_MAX_VOLATILE_MATERIAL_VALUES 100U
+#define DS_DEFAULT_MAX_SHARED_MATERIAL_VALUES 100U
 
 /**
  * @brief Gets the size of dsSharedMaterialValues.

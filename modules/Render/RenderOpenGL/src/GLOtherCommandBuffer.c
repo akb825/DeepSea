@@ -53,6 +53,7 @@ typedef enum CommandType
 	CommandType_SetTextureBuffer,
 	CommandType_SetShaderBuffer,
 	CommandType_SetUniform,
+	CommandType_UpdateDynamicRenderStates,
 	CommandType_UnbindShader,
 	CommandType_BindComputeShader,
 	CommandType_UnbindComputeShader,
@@ -200,6 +201,13 @@ typedef struct SetUniformCommand
 	// Type with the most strict alignment.
 	double data[];
 } SetUniformCommand;
+
+typedef struct UpdateDynamicRenderStatesCommand
+{
+	Command command;
+	const dsShader* shader;
+	dsDynamicRenderStates renderStates;
+} UpdateDynamicRenderStatesCommand;
 
 typedef struct UnbindShaderCommand
 {
@@ -496,6 +504,13 @@ void dsGLOtherCommandBuffer_reset(dsCommandBuffer* commandBuffer)
 			}
 			case CommandType_SetUniform:
 				break;
+			case CommandType_UpdateDynamicRenderStates:
+			{
+				UpdateDynamicRenderStatesCommand* thisCommand =
+					(UpdateDynamicRenderStatesCommand*)command;
+				dsGLShader_freeInternalRef((dsShader*)thisCommand->shader);
+				break;
+			}
 			case CommandType_UnbindShader:
 			case CommandType_UnbindComputeShader:
 			{
@@ -869,6 +884,21 @@ bool dsGLOtherCommandBuffer_setUniform(dsCommandBuffer* commandBuffer, GLint loc
 	command->type = type;
 	command->count = count;
 	memcpy(command->data, data, dataSize);
+	return true;
+}
+
+bool dsGLOtherCommandBuffer_updateDynamicRenderStates(dsCommandBuffer* commandBuffer,
+	const dsShader* shader, const dsDynamicRenderStates* renderStates)
+{
+	UpdateDynamicRenderStatesCommand* command = (UpdateDynamicRenderStatesCommand*)allocateCommand(
+		commandBuffer, CommandType_UpdateDynamicRenderStates,
+		sizeof(UpdateDynamicRenderStatesCommand));
+	if (!command)
+		return false;
+
+	dsGLShader_addInternalRef((dsShader*)shader);
+	command->shader = shader;
+	command->renderStates = *renderStates;
 	return true;
 }
 
@@ -1292,6 +1322,14 @@ bool dsGLOtherCommandBuffer_submit(dsCommandBuffer* commandBuffer, dsCommandBuff
 					thisCommand->type, thisCommand->count, thisCommand->data);
 				break;
 			}
+			case CommandType_UpdateDynamicRenderStates:
+			{
+				UpdateDynamicRenderStatesCommand* thisCommand =
+					(UpdateDynamicRenderStatesCommand*)command;
+				dsGLCommandBuffer_updateDynamicRenderStates(commandBuffer, thisCommand->shader,
+					&thisCommand->renderStates);
+				break;
+			}
 			case CommandType_UnbindShader:
 			{
 				UnbindShaderCommand* thisCommand = (UnbindShaderCommand*)command;
@@ -1471,6 +1509,7 @@ static CommandBufferFunctionTable functionTable =
 	&dsGLOtherCommandBuffer_setTextureBuffer,
 	&dsGLOtherCommandBuffer_setShaderBuffer,
 	&dsGLOtherCommandBuffer_setUniform,
+	&dsGLOtherCommandBuffer_updateDynamicRenderStates,
 	&dsGLOtherCommandBuffer_unbindShader,
 	&dsGLOtherCommandBuffer_bindComputeShader,
 	&dsGLOtherCommandBuffer_unbindComputeShader,

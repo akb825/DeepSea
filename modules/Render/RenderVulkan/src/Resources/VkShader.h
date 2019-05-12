@@ -23,18 +23,21 @@ dsShader* dsVkShader_create(dsResourceManager* resourceManager, dsAllocator* all
 	dsShaderModule* module, uint32_t shaderIndex, const dsMaterialDesc* materialDesc);
 bool dsVkShader_bind(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
 	const dsShader* shader, const dsMaterial* material,
-	const dsSharedMaterialValues* sharedValues, const dsDynamicRenderStates* renderStates);
-bool dsVkShader_updateSharedValues(dsResourceManager* resourceManager,
+	const dsSharedMaterialValues* globalValues, const dsDynamicRenderStates* renderStates);
+bool dsVkShader_updateInstanceValues(dsResourceManager* resourceManager,
 	dsCommandBuffer* commandBuffer, const dsShader* shader,
-	const dsSharedMaterialValues* sharedValues);
+	const dsSharedMaterialValues* instanceValues);
+bool dsVkShader_updateDynamicRenderStates(dsResourceManager* resourceManager,
+	dsCommandBuffer* commandBuffer, const dsShader* shader,
+	const dsDynamicRenderStates* renderStates);
 bool dsVkShader_unbind(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
 	const dsShader* shader);
 bool dsVkShader_bindCompute(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
 	const dsShader* shader, const dsMaterial* material,
-	const dsSharedMaterialValues* sharedValues);
-bool dsVkShader_updateComputeSharedValues(dsResourceManager* resourceManager,
+	const dsSharedMaterialValues* globalValues);
+bool dsVkShader_updateComputeInstanceValues(dsResourceManager* resourceManager,
 	dsCommandBuffer* commandBuffer, const dsShader* shader,
-	const dsSharedMaterialValues* sharedValues);
+	const dsSharedMaterialValues* instanceValues);
 bool dsVkShader_unbindCompute(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
 	const dsShader* shader);
 bool dsVkShader_destroy(dsResourceManager* resourceManager, dsShader* shader);

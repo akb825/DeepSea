@@ -23,3 +23,5 @@
 void dsGLRenderStates_initialize(mslRenderState* state);
 void dsGLRenderStates_updateGLState(const dsRenderer* renderer, mslRenderState* curState,
 	const mslRenderState* newState, const dsDynamicRenderStates* dynamicStates);
+void dsGLRenderStates_updateDynamicGLStates(const dsRenderer* renderer, mslRenderState* curState,
+	const mslRenderState* newState, const dsDynamicRenderStates* dynamicStates);

@@ -312,16 +312,17 @@ static bool isMaterialDescCompatible(dsResourceManager* resourceManager, const m
 }
 
 static bool verifySharedMaterialValues(const dsMaterialDesc* materialDesc,
-	const dsSharedMaterialValues* sharedValues)
+	const dsSharedMaterialValues* sharedValues, dsMaterialBinding binding)
 {
 	for (uint32_t i = 0; i < materialDesc->elementCount; ++i)
 	{
-		if (!materialDesc->elements[i].isShared)
+		if (materialDesc->elements[i].binding != binding)
 			continue;
 
 		if (!sharedValues)
 		{
-			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Material uses shared values, but no shared values "
+			DS_ASSERT(binding == dsMaterialBinding_Global);
+			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Material uses global values, but no global values "
 				"provided during shader bind.");
 			return false;
 		}
@@ -481,7 +482,7 @@ dsShader* dsShader_createIndex(dsResourceManager* resourceManager, dsAllocator* 
 	mslPipeline pipeline;
 	DS_VERIFY(mslModule_pipeline(&pipeline, shaderModule->module, index));
 	if (!isMaterialDescCompatible(resourceManager, shaderModule->module, &pipeline,
-		index, materialDesc, (resourceManager->supportedBuffers & dsGfxBufferUsage_UniformBlock)
+			index, materialDesc, (resourceManager->supportedBuffers & dsGfxBufferUsage_UniformBlock)
 		!= 0))
 	{
 		errno = EINVAL;
@@ -538,7 +539,7 @@ bool dsShader_hasStage(const dsShader* shader, dsShaderStage stage)
 }
 
 bool dsShader_bind(const dsShader* shader, dsCommandBuffer* commandBuffer,
-	const dsMaterial* material, const dsSharedMaterialValues* sharedValues,
+	const dsMaterial* material, const dsSharedMaterialValues* globalValues,
 	const dsDynamicRenderStates* renderStates)
 {
 	DS_PROFILE_FUNC_START();
@@ -565,7 +566,7 @@ bool dsShader_bind(const dsShader* shader, dsCommandBuffer* commandBuffer,
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	if (!verifySharedMaterialValues(shader->materialDesc, sharedValues))
+	if (!verifySharedMaterialValues(shader->materialDesc, globalValues, dsMaterialBinding_Global))
 	{
 		errno = EINVAL;
 		DS_PROFILE_FUNC_RETURN(false);
@@ -588,7 +589,7 @@ bool dsShader_bind(const dsShader* shader, dsCommandBuffer* commandBuffer,
 
 	dsResourceManager* resourceManager = shader->resourceManager;
 	bool success = resourceManager->bindShaderFunc(shader->resourceManager, commandBuffer, shader,
-		material, sharedValues, renderStates);
+		material, globalValues, renderStates);
 	if (!success)
 		DS_PROFILE_FUNC_RETURN(success);
 
@@ -596,19 +597,46 @@ bool dsShader_bind(const dsShader* shader, dsCommandBuffer* commandBuffer,
 	DS_PROFILE_FUNC_RETURN(success);
 }
 
-bool dsShader_updateSharedValues(const dsShader* shader, dsCommandBuffer* commandBuffer,
-	const dsSharedMaterialValues* sharedValues)
+bool dsShader_updateInstanceValues(const dsShader* shader, dsCommandBuffer* commandBuffer,
+	const dsSharedMaterialValues* instanceValues)
 {
 	DS_PROFILE_FUNC_START();
 
-	if (!commandBuffer || !shader || !shader->resourceManager ||
-		!shader->resourceManager->updateShaderSharedValuesFunc)
+	if (!commandBuffer || !shader || !instanceValues || !shader->resourceManager ||
+		!shader->resourceManager->updateShaderInstanceValuesFunc)
 	{
 		errno = EINVAL;
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	if (!verifySharedMaterialValues(shader->materialDesc, sharedValues))
+	if (!verifySharedMaterialValues(shader->materialDesc, instanceValues,
+			dsMaterialBinding_Instance))
+	{
+		errno = EINVAL;
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	if (commandBuffer->boundShader != shader)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Can only update instance values for the currently bound shader.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	dsResourceManager* resourceManager = shader->resourceManager;
+	bool success = resourceManager->updateShaderInstanceValuesFunc(shader->resourceManager,
+		commandBuffer, shader, instanceValues);
+	DS_PROFILE_FUNC_RETURN(success);
+}
+
+bool dsShader_updateDynamicRenderStates(const dsShader* shader, dsCommandBuffer* commandBuffer,
+	const dsDynamicRenderStates* renderStates)
+{
+	DS_PROFILE_FUNC_START();
+
+	if (!commandBuffer || !shader || !renderStates || !shader->resourceManager ||
+		!shader->resourceManager->updateShaderDynamicRenderStatesFunc)
 	{
 		errno = EINVAL;
 		DS_PROFILE_FUNC_RETURN(false);
@@ -623,8 +651,8 @@ bool dsShader_updateSharedValues(const dsShader* shader, dsCommandBuffer* comman
 	}
 
 	dsResourceManager* resourceManager = shader->resourceManager;
-	bool success = resourceManager->updateShaderSharedValuesFunc(shader->resourceManager,
-		commandBuffer, shader, sharedValues);
+	bool success = resourceManager->updateShaderDynamicRenderStatesFunc(shader->resourceManager,
+		commandBuffer, shader, renderStates);
 	DS_PROFILE_FUNC_RETURN(success);
 }
 
@@ -664,7 +692,7 @@ bool dsShader_unbind(const dsShader* shader, dsCommandBuffer* commandBuffer)
 }
 
 bool dsShader_bindCompute(const dsShader* shader, dsCommandBuffer* commandBuffer,
-	const dsMaterial* material, const dsSharedMaterialValues* sharedValues)
+	const dsMaterial* material, const dsSharedMaterialValues* globalValues)
 {
 	DS_PROFILE_FUNC_START();
 
@@ -699,7 +727,7 @@ bool dsShader_bindCompute(const dsShader* shader, dsCommandBuffer* commandBuffer
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	if (!verifySharedMaterialValues(shader->materialDesc, sharedValues))
+	if (!verifySharedMaterialValues(shader->materialDesc, globalValues, dsMaterialBinding_Global))
 	{
 		errno = EINVAL;
 		DS_PROFILE_FUNC_RETURN(false);
@@ -730,7 +758,7 @@ bool dsShader_bindCompute(const dsShader* shader, dsCommandBuffer* commandBuffer
 	}
 
 	bool success = resourceManager->bindComputeShaderFunc(shader->resourceManager, commandBuffer,
-		shader, material, sharedValues);
+		shader, material, globalValues);
 	if (!success)
 		DS_PROFILE_FUNC_RETURN(success);
 
@@ -738,19 +766,19 @@ bool dsShader_bindCompute(const dsShader* shader, dsCommandBuffer* commandBuffer
 	DS_PROFILE_FUNC_RETURN(success);
 }
 
-bool dsShader_updateComputeSharedValues(const dsShader* shader, dsCommandBuffer* commandBuffer,
-	const dsSharedMaterialValues* sharedValues)
+bool dsShader_updateComputeInstanceValues(const dsShader* shader, dsCommandBuffer* commandBuffer,
+	const dsSharedMaterialValues* instanceValues)
 {
 	DS_PROFILE_FUNC_START();
 
-	if (!commandBuffer || !shader || !shader->resourceManager)
+	if (!commandBuffer || !shader || !instanceValues || !shader->resourceManager)
 	{
 		errno = EINVAL;
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
 	dsResourceManager* resourceManager = shader->resourceManager;
-	if (!resourceManager->updateComputeShaderSharedValuesFunc ||
+	if (!resourceManager->updateComputeShaderInstanceValuesFunc ||
 		resourceManager->renderer->maxComputeWorkGroupSize[0] == 0)
 	{
 		errno = EPERM;
@@ -758,7 +786,8 @@ bool dsShader_updateComputeSharedValues(const dsShader* shader, dsCommandBuffer*
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	if (!verifySharedMaterialValues(shader->materialDesc, sharedValues))
+	if (!verifySharedMaterialValues(shader->materialDesc, instanceValues,
+			dsMaterialBinding_Instance))
 	{
 		errno = EINVAL;
 		DS_PROFILE_FUNC_RETURN(false);
@@ -768,12 +797,12 @@ bool dsShader_updateComputeSharedValues(const dsShader* shader, dsCommandBuffer*
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
-			"Can only update compute shared values for the currently bound compute shader.");
+			"Can only update compute instance values for the currently bound compute shader.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	bool success = resourceManager->updateComputeShaderSharedValuesFunc(shader->resourceManager,
-		commandBuffer, shader, sharedValues);
+	bool success = resourceManager->updateComputeShaderInstanceValuesFunc(shader->resourceManager,
+		commandBuffer, shader, instanceValues);
 	DS_PROFILE_FUNC_RETURN(success);
 }
 

@@ -1172,6 +1172,16 @@ bool dsGLMainCommandBuffer_setUniform(dsCommandBuffer* commandBuffer, GLint loca
 	return true;
 }
 
+bool dsGLMainCommandBuffer_updateDynamicRenderStates(dsCommandBuffer* commandBuffer,
+	const dsShader* shader, const dsDynamicRenderStates* renderStates)
+{
+	dsGLMainCommandBuffer* glCommandBuffer = (dsGLMainCommandBuffer*)commandBuffer;
+	const dsGLShader* glShader = (const dsGLShader*)shader;
+	dsGLRenderStates_updateDynamicGLStates(commandBuffer->renderer, &glCommandBuffer->currentState,
+		&glShader->renderState, renderStates);
+	return true;
+}
+
 bool dsGLMainCommandBuffer_unbindShader(dsCommandBuffer* commandBuffer, const dsShader* shader)
 {
 	DS_UNUSED(commandBuffer);
@@ -1888,6 +1898,7 @@ static CommandBufferFunctionTable functionTable =
 	&dsGLMainCommandBuffer_setTextureBuffer,
 	&dsGLMainCommandBuffer_setShaderBuffer,
 	&dsGLMainCommandBuffer_setUniform,
+	&dsGLMainCommandBuffer_updateDynamicRenderStates,
 	&dsGLMainCommandBuffer_unbindShader,
 	&dsGLMainCommandBuffer_bindComputeShader,
 	&dsGLMainCommandBuffer_unbindComputeShader,

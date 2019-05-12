@@ -20,7 +20,7 @@
 #include "VkTypes.h"
 
 dsVkMaterialDescriptor* dsVkMaterialDescriptor_create(dsRenderer* renderer, dsAllocator* allocator,
-	const dsMaterialDesc* materialDesc, const dsVkBindingCounts* counts, bool isShared);
+	const dsMaterialDesc* materialDesc, const dsVkBindingCounts* counts, dsMaterialBinding binding);
 bool dsVkMaterialDescriptor_isUpToDate(const dsVkMaterialDescriptor* descriptor,
 	const dsVkBindingMemory* bindingMemory, const dsVkSamplerList* samplers);
 void dsVkMaterialDescriptor_update(dsVkMaterialDescriptor* descriptor, const dsShader* shader,

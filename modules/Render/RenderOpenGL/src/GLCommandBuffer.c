@@ -24,7 +24,7 @@
 #include <DeepSea/Render/Resources/SharedMaterialValues.h>
 
 static bool setSharedMaterialValues(dsCommandBuffer* commandBuffer,
-	const dsShader* shader, const dsSharedMaterialValues* sharedValues)
+	const dsShader* shader, const dsSharedMaterialValues* sharedValues, dsMaterialBinding binding)
 {
 	DS_ASSERT(commandBuffer);
 	DS_ASSERT(shader);
@@ -39,7 +39,7 @@ static bool setSharedMaterialValues(dsCommandBuffer* commandBuffer,
 	DS_ASSERT(useGfxBuffers || glCommandBuffer->commitCountSize >= materialDesc->elementCount);
 	for (uint32_t i = 0; i < materialDesc->elementCount; ++i)
 	{
-		if (!materialDesc->elements[i].isShared)
+		if (materialDesc->elements[i].binding != binding)
 			continue;
 
 		uint32_t nameId = materialDesc->elements[i].nameId;
@@ -162,14 +162,14 @@ static bool setSharedMaterialValues(dsCommandBuffer* commandBuffer,
 }
 
 static bool bindMaterial(dsCommandBuffer* commandBuffer, const dsShader* shader,
-	const dsMaterial* material, const dsSharedMaterialValues* sharedValues)
+	const dsMaterial* material, const dsSharedMaterialValues* globalValues)
 {
 	dsGLShader* glShader = (dsGLShader*)shader;
 	bool useGfxBuffers = dsShaderVariableGroup_useGfxBuffer(shader->resourceManager);
 	const dsMaterialDesc* materialDesc = shader->materialDesc;
 	for (uint32_t i = 0; i < materialDesc->elementCount; ++i)
 	{
-		if (materialDesc->elements[i].isShared)
+		if (materialDesc->elements[i].binding != dsMaterialBinding_Material)
 			continue;
 
 		switch (materialDesc->elements[i].type)
@@ -309,7 +309,7 @@ static bool bindMaterial(dsCommandBuffer* commandBuffer, const dsShader* shader,
 		}
 	}
 
-	if (!setSharedMaterialValues(commandBuffer, shader, sharedValues))
+	if (!setSharedMaterialValues(commandBuffer, shader, globalValues, dsMaterialBinding_Global))
 		return false;
 
 	return true;
@@ -415,7 +415,7 @@ bool dsGLCommandBuffer_copyQueryValues(dsCommandBuffer* commandBuffer, dsGfxQuer
 }
 
 bool dsGLCommandBuffer_bindShaderAndMaterial(dsCommandBuffer* commandBuffer, const dsShader* shader,
-	const dsMaterial* material, const dsSharedMaterialValues* sharedValues,
+	const dsMaterial* material, const dsSharedMaterialValues* globalValues,
 	const dsDynamicRenderStates* renderStates)
 {
 	DS_ASSERT(commandBuffer);
@@ -425,7 +425,7 @@ bool dsGLCommandBuffer_bindShaderAndMaterial(dsCommandBuffer* commandBuffer, con
 	if (!dsGLCommandBuffer_bindShader(commandBuffer, shader, renderStates))
 		return false;
 
-	if (!bindMaterial(commandBuffer, shader, material, sharedValues))
+	if (!bindMaterial(commandBuffer, shader, material, globalValues))
 	{
 		dsGLCommandBuffer_unbindShader(commandBuffer, shader);
 		return false;
@@ -471,10 +471,19 @@ bool dsGLCommandBuffer_setUniform(dsCommandBuffer* commandBuffer, GLint location
 	return functions->setUniformFunc(commandBuffer, location, type, count, data);
 }
 
-bool dsGLCommandBuffer_setSharedMaterialValues(dsCommandBuffer* commandBuffer,
-	const dsShader* shader, const dsSharedMaterialValues* sharedValues)
+bool dsGLCommandBuffer_setInstanceMaterialValues(dsCommandBuffer* commandBuffer,
+	const dsShader* shader, const dsSharedMaterialValues* instanceValues)
 {
-	return setSharedMaterialValues(commandBuffer, shader, sharedValues);
+	return setSharedMaterialValues(commandBuffer, shader, instanceValues,
+		dsMaterialBinding_Instance);
+}
+
+bool dsGLCommandBuffer_updateDynamicRenderStates(dsCommandBuffer* commandBuffer,
+	const dsShader* shader, const dsDynamicRenderStates* renderStates)
+{
+	dsGLCommandBuffer* glCommandBuffer = (dsGLCommandBuffer*)commandBuffer;
+	const CommandBufferFunctionTable* functions = glCommandBuffer->functions;
+	return functions->updateDynamicRenderStatesFunc(commandBuffer, shader, renderStates);
 }
 
 bool dsGLCommandBuffer_unbindShader(dsCommandBuffer* commandBuffer, const dsShader* shader)
@@ -504,10 +513,11 @@ bool dsGLCommandBuffer_bindComputeShaderAndMaterial(dsCommandBuffer* commandBuff
 	return true;
 }
 
-bool dsGLCommandBuffer_setComputeSharedMaterialValues(dsCommandBuffer* commandBuffer,
-	const dsShader* shader, const dsSharedMaterialValues* sharedValues)
+bool dsGLCommandBuffer_setComputeInstanceMaterialValues(dsCommandBuffer* commandBuffer,
+	const dsShader* shader, const dsSharedMaterialValues* instanceValues)
 {
-	return setSharedMaterialValues(commandBuffer, shader, sharedValues);
+	return setSharedMaterialValues(commandBuffer, shader, instanceValues,
+		dsMaterialBinding_Instance);
 }
 
 bool dsGLCommandBuffer_bindComputeShader(dsCommandBuffer* commandBuffer, const dsShader* shader)

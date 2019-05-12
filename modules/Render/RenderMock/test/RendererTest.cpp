@@ -56,11 +56,12 @@ public:
 
 		dsMaterialElement elements[] =
 		{
-			{"diffuseTexture", dsMaterialType_Texture, 0, NULL, false, 0},
-			{"colorMultiplier", dsMaterialType_Vec4, 0, NULL, false, 0},
-			{"textureScaleOffset", dsMaterialType_Vec2, 2, NULL, false, 0},
-			{"Transform", dsMaterialType_VariableGroup, 0, transformDesc, false, 0},
-			{"extraVar", dsMaterialType_Int, 0, NULL, false, 0}
+			{"diffuseTexture", dsMaterialType_Texture, 0, NULL, dsMaterialBinding_Material, 0},
+			{"colorMultiplier", dsMaterialType_Vec4, 0, NULL, dsMaterialBinding_Material, 0},
+			{"textureScaleOffset", dsMaterialType_Vec2, 2, NULL, dsMaterialBinding_Material, 0},
+			{"Transform", dsMaterialType_VariableGroup, 0, transformDesc,
+				dsMaterialBinding_Material, 0},
+			{"extraVar", dsMaterialType_Int, 0, NULL, dsMaterialBinding_Material, 0}
 		};
 		unsigned int elementCount = DS_ARRAY_SIZE(elements);
 		materialDesc = dsMaterialDesc_create(resourceManager, NULL, elements, elementCount);

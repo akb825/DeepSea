@@ -40,18 +40,19 @@ TEST_F(MaterialTest, PrimitivesVectorsMatrices)
 
 	dsMaterialElement elements[] =
 	{
-		{"vec3Mem", dsMaterialType_Vec3, 0, NULL, false, 0},
-		{"vec2Mem", dsMaterialType_Vec2, 0, NULL, false, 0},
-		{"floatMem", dsMaterialType_Float, 0, NULL, false, 0},
-		{"intMem", dsMaterialType_Int, 0, NULL, false, 0},
-		{"texture", dsMaterialType_Texture, 0, NULL, false, 0},
-		{"uintMem", dsMaterialType_UInt, 0, NULL, false, 0},
-		{"doubleMem", dsMaterialType_Double, 0, NULL, false, 0},
-		{"variableGroup", dsMaterialType_VariableGroup, 0, groupDesc, false, 0},
-		{"matrix3x4Mem", dsMaterialType_Mat3x4, 0, NULL, false, 0},
-		{"doubleMatrix2x3Mem", dsMaterialType_DMat2x3, 0, NULL, false, 0},
-		{"buffer", dsMaterialType_UniformBlock, 0, NULL, false, 0},
-		{"floatArrayMem", dsMaterialType_Float, 5, NULL, false, 0}
+		{"vec3Mem", dsMaterialType_Vec3, 0, NULL, dsMaterialBinding_Material, 0},
+		{"vec2Mem", dsMaterialType_Vec2, 0, NULL, dsMaterialBinding_Material, 0},
+		{"floatMem", dsMaterialType_Float, 0, NULL, dsMaterialBinding_Material, 0},
+		{"intMem", dsMaterialType_Int, 0, NULL, dsMaterialBinding_Material, 0},
+		{"texture", dsMaterialType_Texture, 0, NULL, dsMaterialBinding_Material, 0},
+		{"uintMem", dsMaterialType_UInt, 0, NULL, dsMaterialBinding_Material, 0},
+		{"doubleMem", dsMaterialType_Double, 0, NULL, dsMaterialBinding_Material, 0},
+		{"variableGroup", dsMaterialType_VariableGroup, 0, groupDesc, dsMaterialBinding_Material,
+			0},
+		{"matrix3x4Mem", dsMaterialType_Mat3x4, 0, NULL, dsMaterialBinding_Material, 0},
+		{"doubleMatrix2x3Mem", dsMaterialType_DMat2x3, 0, NULL, dsMaterialBinding_Material, 0},
+		{"buffer", dsMaterialType_UniformBlock, 0, NULL, dsMaterialBinding_Material, 0},
+		{"floatArrayMem", dsMaterialType_Float, 5, NULL, dsMaterialBinding_Material, 0}
 	};
 
 	dsMaterialDesc* materialDesc = dsMaterialDesc_create(resourceManager, NULL, elements,
@@ -241,13 +242,14 @@ TEST_F(MaterialTest, Textures)
 
 	dsMaterialElement elements[] =
 	{
-		{"float", dsMaterialType_Float, 0, NULL, false, 0},
-		{"texture", dsMaterialType_Texture, 0, NULL, false, 0},
-		{"variableGroup", dsMaterialType_VariableGroup, 0, groupDesc, false, 0},
-		{"image", dsMaterialType_Image, 0, NULL, false, 0},
-		{"buffer", dsMaterialType_UniformBlock, 0, NULL, false, 0},
-		{"subpassInput", dsMaterialType_SubpassInput, 0, NULL, false, 0},
-		{"sharedTexture", dsMaterialType_Texture, 0, NULL, true, 0}
+		{"float", dsMaterialType_Float, 0, NULL, dsMaterialBinding_Material, 0},
+		{"texture", dsMaterialType_Texture, 0, NULL, dsMaterialBinding_Material, 0},
+		{"variableGroup", dsMaterialType_VariableGroup, 0, groupDesc, dsMaterialBinding_Material,
+			0},
+		{"image", dsMaterialType_Image, 0, NULL, dsMaterialBinding_Material, 0},
+		{"buffer", dsMaterialType_UniformBlock, 0, NULL, dsMaterialBinding_Material, 0},
+		{"subpassInput", dsMaterialType_SubpassInput, 0, NULL, dsMaterialBinding_Material, 0},
+		{"sharedTexture", dsMaterialType_Texture, 0, NULL, dsMaterialBinding_Global, 0}
 	};
 
 	dsMaterialDesc* materialDesc = dsMaterialDesc_create(resourceManager, NULL, elements,
@@ -318,13 +320,14 @@ TEST_F(MaterialTest, TextureBuffers)
 
 	dsMaterialElement elements[] =
 	{
-		{"float", dsMaterialType_Float, 0, NULL, false, 0},
-		{"texture", dsMaterialType_TextureBuffer, 0, NULL, false, 0},
-		{"variableGroup", dsMaterialType_VariableGroup, 0, groupDesc, false, 0},
-		{"mutableTexture", dsMaterialType_ImageBuffer, 0, NULL, false, 0},
-		{"buffer", dsMaterialType_UniformBlock, 0, NULL, false, 0},
-		{"subpassInput", dsMaterialType_SubpassInput, 0, NULL, false, 0},
-		{"sharedTexture", dsMaterialType_TextureBuffer, 0, NULL, true, 0}
+		{"float", dsMaterialType_Float, 0, NULL, dsMaterialBinding_Material, 0},
+		{"texture", dsMaterialType_TextureBuffer, 0, NULL, dsMaterialBinding_Material, 0},
+		{"variableGroup", dsMaterialType_VariableGroup, 0, groupDesc, dsMaterialBinding_Material,
+			0},
+		{"mutableTexture", dsMaterialType_ImageBuffer, 0, NULL, dsMaterialBinding_Material, 0},
+		{"buffer", dsMaterialType_UniformBlock, 0, NULL, dsMaterialBinding_Material, 0},
+		{"subpassInput", dsMaterialType_SubpassInput, 0, NULL, dsMaterialBinding_Material, 0},
+		{"sharedTexture", dsMaterialType_TextureBuffer, 0, NULL, dsMaterialBinding_Global, 0}
 	};
 
 	dsMaterialDesc* materialDesc = dsMaterialDesc_create(resourceManager, NULL, elements,
@@ -414,11 +417,13 @@ TEST_F(MaterialTest, ShaderVariableGroups)
 
 	dsMaterialElement elements[] =
 	{
-		{"float", dsMaterialType_Float, 0, NULL, false, 0},
-		{"variableGroup", dsMaterialType_VariableGroup, 0, groupDesc1, false, 0},
-		{"texture", dsMaterialType_Texture, 0, NULL, false, 0},
-		{"sharedVariableGroup", dsMaterialType_VariableGroup, 0, groupDesc2, true, 0},
-		{"buffer", dsMaterialType_UniformBlock, 0, NULL, false, 0}
+		{"float", dsMaterialType_Float, 0, NULL, dsMaterialBinding_Material, 0},
+		{"variableGroup", dsMaterialType_VariableGroup, 0, groupDesc1, dsMaterialBinding_Material,
+			0},
+		{"texture", dsMaterialType_Texture, 0, NULL, dsMaterialBinding_Material, 0},
+		{"sharedVariableGroup", dsMaterialType_VariableGroup, 0, groupDesc2,
+			dsMaterialBinding_Global, 0},
+		{"buffer", dsMaterialType_UniformBlock, 0, NULL, dsMaterialBinding_Material, 0}
 	};
 
 	dsMaterialDesc* materialDesc = dsMaterialDesc_create(resourceManager, NULL, elements,
@@ -470,12 +475,13 @@ TEST_F(MaterialTest, Buffers)
 
 	dsMaterialElement elements[] =
 	{
-		{"float", dsMaterialType_Float, 0, NULL, false, 0},
-		{"uniformBlock", dsMaterialType_UniformBlock, 0, NULL, false, 0},
-		{"texture", dsMaterialType_Texture, 0, NULL, false, 0},
-		{"uniformBuffer", dsMaterialType_UniformBuffer, 0, NULL, false, 0},
-		{"variableGroup", dsMaterialType_VariableGroup, 0, groupDesc, false, 0},
-		{"sharedBuffer", dsMaterialType_UniformBlock, 0, NULL, true, 0}
+		{"float", dsMaterialType_Float, 0, NULL, dsMaterialBinding_Material, 0},
+		{"uniformBlock", dsMaterialType_UniformBlock, 0, NULL, dsMaterialBinding_Material, 0},
+		{"texture", dsMaterialType_Texture, 0, NULL, dsMaterialBinding_Material, 0},
+		{"uniformBuffer", dsMaterialType_UniformBuffer, 0, NULL, dsMaterialBinding_Material, 0},
+		{"variableGroup", dsMaterialType_VariableGroup, 0, groupDesc, dsMaterialBinding_Material,
+			0},
+		{"sharedBuffer", dsMaterialType_UniformBlock, 0, NULL, dsMaterialBinding_Global, 0}
 	};
 
 	dsMaterialDesc* materialDesc = dsMaterialDesc_create(resourceManager, NULL, elements,
@@ -545,11 +551,12 @@ TEST_F(MaterialTest, MixedTypes)
 
 	dsMaterialElement elements[] =
 	{
-		{"float", dsMaterialType_Float, 0, NULL, false, 0},
-		{"sharedTexture", dsMaterialType_Texture, 0, NULL, true, 0},
-		{"texture", dsMaterialType_Texture, 0, NULL, false, 0},
-		{"uniformBlock", dsMaterialType_UniformBlock, 0, NULL, false, 0},
-		{"variableGroup", dsMaterialType_VariableGroup, 0, groupDesc, false, 0}
+		{"float", dsMaterialType_Float, 0, NULL, dsMaterialBinding_Material, 0},
+		{"sharedTexture", dsMaterialType_Texture, 0, NULL, dsMaterialBinding_Global, 0},
+		{"texture", dsMaterialType_Texture, 0, NULL, dsMaterialBinding_Material, 0},
+		{"uniformBlock", dsMaterialType_UniformBlock, 0, NULL, dsMaterialBinding_Material, 0},
+		{"variableGroup", dsMaterialType_VariableGroup, 0, groupDesc, dsMaterialBinding_Material,
+			0}
 	};
 
 	dsMaterialDesc* materialDesc = dsMaterialDesc_create(resourceManager, NULL, elements,

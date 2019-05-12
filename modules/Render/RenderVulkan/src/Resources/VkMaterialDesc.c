@@ -41,13 +41,12 @@ typedef struct DescriptorSetInfo
 dsMaterialDesc* dsVkMaterialDesc_create(dsResourceManager* resourceManager, dsAllocator* allocator,
 	const dsMaterialElement* elements, uint32_t elementCount)
 {
-	uint32_t bindingCounts[2] = {0, 0};
+	uint32_t bindingCounts[3] = {0, 0, 0};
 	for (uint32_t i = 0; i < elementCount; ++i)
 	{
-		// Guarantee it's 0 or 1.
-		bool isShared = elements[i].isShared != false;
-		if (dsVkDescriptorType(elements[i].type, isShared) != VK_DESCRIPTOR_TYPE_MAX_ENUM)
-			++bindingCounts[isShared];
+		dsMaterialBinding binding = elements[i].binding;
+		if (dsVkDescriptorType(elements[i].type, binding) != VK_DESCRIPTOR_TYPE_MAX_ENUM)
+			++bindingCounts[binding];
 	}
 
 	dsVkDevice* device = &((dsVkRenderer*)resourceManager->renderer)->device;
@@ -57,7 +56,8 @@ dsMaterialDesc* dsVkMaterialDesc_create(dsResourceManager* resourceManager, dsAl
 		DS_ALIGNED_SIZE(sizeof(dsMaterialElement)*elementCount) +
 		DS_ALIGNED_SIZE(sizeof(uint32_t)*elementCount) +
 		DS_ALIGNED_SIZE(sizeof(VkDescriptorSetLayoutBinding)*bindingCounts[0]) +
-		DS_ALIGNED_SIZE(sizeof(VkDescriptorSetLayoutBinding)*bindingCounts[1]);
+		DS_ALIGNED_SIZE(sizeof(VkDescriptorSetLayoutBinding)*bindingCounts[1]) +
+		DS_ALIGNED_SIZE(sizeof(VkDescriptorSetLayoutBinding)*bindingCounts[2]);
 	void* buffer = dsAllocator_alloc(allocator, bufferSize);
 	if (!buffer)
 		return NULL;
@@ -93,13 +93,18 @@ dsMaterialDesc* dsVkMaterialDesc_create(dsResourceManager* resourceManager, dsAl
 
 	materialDesc->lifetime = NULL;
 
+	uint32_t setIndex = 0;
 	memset(materialDesc->bindings, 0, sizeof(materialDesc->bindings));
-	for (uint32_t i = 0; i < 2; ++i)
+	for (uint32_t i = 0; i < DS_ARRAY_SIZE(materialDesc->bindings); ++i)
 	{
 		dsVkMaterialDescBindings* bindings = materialDesc->bindings + i;
 		if (bindingCounts[i] == 0)
+		{
+			bindings->setIndex = DS_MATERIAL_UNKNOWN;
 			continue;
+		}
 
+		bindings->setIndex = setIndex++;
 		bindings->bindings = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
 			VkDescriptorSetLayoutBinding, bindingCounts[i]);
 		DS_ASSERT(bindings->bindings);
@@ -107,8 +112,7 @@ dsMaterialDesc* dsVkMaterialDesc_create(dsResourceManager* resourceManager, dsAl
 		uint32_t index = 0;
 		for (uint32_t j = 0; j < elementCount; ++j)
 		{
-			bool isShared = elements[j].isShared != false;
-			if (isShared != i)
+			if (elements[j].binding != i)
 				continue;
 
 			VkDescriptorType type = dsVkDescriptorType(elements[j].type, i);
@@ -191,7 +195,7 @@ bool dsVkMaterialDesc_destroy(dsResourceManager* resourceManager, dsMaterialDesc
 
 	dsLifetime_destroy(vkMaterialDesc->lifetime);
 
-	for (uint32_t i = 0; i < 2; ++i)
+	for (uint32_t i = 0; i < DS_ARRAY_SIZE(vkMaterialDesc->bindings); ++i)
 	{
 		dsVkMaterialDescBindings* bindings = vkMaterialDesc->bindings + i;
 		if (!bindings->descriptorSets)
@@ -211,10 +215,10 @@ bool dsVkMaterialDesc_destroy(dsResourceManager* resourceManager, dsMaterialDesc
 }
 
 dsVkMaterialDescriptor* dsVkMaterialDesc_createDescriptor(const dsMaterialDesc* materialDesc,
-	dsAllocator* allocator, bool isShared)
+	dsAllocator* allocator, dsMaterialBinding binding)
 {
 	dsVkMaterialDesc* vkMaterialDesc = (dsVkMaterialDesc*)materialDesc;
-	dsVkMaterialDescBindings* bindings = vkMaterialDesc->bindings + (isShared != false);
+	dsVkMaterialDescBindings* bindings = vkMaterialDesc->bindings + binding;
 	if (!bindings->descriptorSets)
 		return NULL;
 
@@ -237,7 +241,7 @@ dsVkMaterialDescriptor* dsVkMaterialDesc_createDescriptor(const dsMaterialDesc* 
 	if (!descriptor)
 	{
 		descriptor = dsVkMaterialDescriptor_create(renderer, allocator, materialDesc,
-			&bindings->bindingCounts, isShared);
+			&bindings->bindingCounts, binding);
 	}
 
 	return descriptor;
@@ -250,7 +254,7 @@ void dsVkMaterialDesc_freeDescriptor(const dsMaterialDesc* materialDesc,
 		return;
 
 	dsVkMaterialDesc* vkMaterialDesc = (dsVkMaterialDesc*)materialDesc;
-	dsVkMaterialDescBindings* bindings = vkMaterialDesc->bindings + (descriptor->isShared != false);
+	dsVkMaterialDescBindings* bindings = vkMaterialDesc->bindings + descriptor->binding;
 	DS_VERIFY(dsSpinlock_lock(&bindings->lock));
 	DS_VERIFY(dsList_append(&bindings->descriptorFreeList, (dsListNode*)descriptor));
 	DS_VERIFY(dsSpinlock_unlock(&bindings->lock));

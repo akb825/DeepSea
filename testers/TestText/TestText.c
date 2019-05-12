@@ -823,11 +823,12 @@ static bool setupShaders(TestText* testText)
 
 	dsMaterialElement materialElems[] =
 	{
-		{"SharedInfo", dsMaterialType_VariableGroup, 0, testText->sharedInfoDesc, false, 0},
-		{"position", dsMaterialType_Vec2, 0, NULL, false, 0},
-		{"yMult", dsMaterialType_Float, 0, NULL, false, 0},
-		{"fontTex", dsMaterialType_Texture, 0, NULL, false, 0},
-		{"bounds", dsMaterialType_Vec4, 0, NULL, false, 0}
+		{"SharedInfo", dsMaterialType_VariableGroup, 0, testText->sharedInfoDesc,
+			dsMaterialBinding_Material, 0},
+		{"position", dsMaterialType_Vec2, 0, NULL, dsMaterialBinding_Material, 0},
+		{"yMult", dsMaterialType_Float, 0, NULL, dsMaterialBinding_Material, 0},
+		{"fontTex", dsMaterialType_Texture, 0, NULL, dsMaterialBinding_Material, 0},
+		{"bounds", dsMaterialType_Vec4, 0, NULL, dsMaterialBinding_Material, 0}
 	};
 	testText->materialDesc = dsMaterialDesc_create(resourceManager, allocator, materialElems,
 		DS_ARRAY_SIZE(materialElems));

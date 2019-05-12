@@ -954,26 +954,39 @@ bool dsGLShader_isUniformInternal(dsResourceManager* resourceManager, const char
 
 bool dsGLShader_bind(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
 	const dsShader* shader, const dsMaterial* material,
-	const dsSharedMaterialValues* sharedValues, const dsDynamicRenderStates* renderStates)
+	const dsSharedMaterialValues* globalValues, const dsDynamicRenderStates* renderStates)
 {
 	DS_ASSERT(resourceManager);
 	DS_ASSERT(commandBuffer);
 	DS_ASSERT(shader);
 	DS_ASSERT(material);
 
-	return dsGLCommandBuffer_bindShaderAndMaterial(commandBuffer, shader, material, sharedValues,
+	return dsGLCommandBuffer_bindShaderAndMaterial(commandBuffer, shader, material, globalValues,
 		renderStates);
 }
 
-bool dsGLShader_updateSharedValues(dsResourceManager* resourceManager,
+bool dsGLShader_updateInstanceValues(dsResourceManager* resourceManager,
 	dsCommandBuffer* commandBuffer, const dsShader* shader,
-	const dsSharedMaterialValues* sharedValues)
+	const dsSharedMaterialValues* instanceValues)
 {
 	DS_UNUSED(resourceManager);
 	DS_ASSERT(commandBuffer);
 	DS_ASSERT(shader);
+	DS_ASSERT(instanceValues);
 
-	return dsGLCommandBuffer_setSharedMaterialValues(commandBuffer, shader, sharedValues);
+	return dsGLCommandBuffer_setInstanceMaterialValues(commandBuffer, shader, instanceValues);
+}
+
+bool dsGLShader_updateDynamicRenderStates(dsResourceManager* resourceManager,
+	dsCommandBuffer* commandBuffer, const dsShader* shader,
+	const dsDynamicRenderStates* renderStates)
+{
+	DS_UNUSED(resourceManager);
+	DS_ASSERT(commandBuffer);
+	DS_ASSERT(shader);
+	DS_ASSERT(renderStates);
+
+	return dsGLCommandBuffer_updateDynamicRenderStates(commandBuffer, shader, renderStates);
 }
 
 bool dsGLShader_unbind(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
@@ -999,16 +1012,17 @@ bool dsGLShader_bindCompute(dsResourceManager* resourceManager, dsCommandBuffer*
 		sharedValues);
 }
 
-bool dsGLShader_updateComputeSharedValues(dsResourceManager* resourceManager,
+bool dsGLShader_updateComputeInstanceValues(dsResourceManager* resourceManager,
 	dsCommandBuffer* commandBuffer, const dsShader* shader,
-	const dsSharedMaterialValues* sharedValues)
+	const dsSharedMaterialValues* instanceValues)
 {
 	DS_UNUSED(resourceManager);
 	DS_ASSERT(commandBuffer);
 	DS_ASSERT(shader);
+	DS_ASSERT(instanceValues);
 
-	return dsGLCommandBuffer_setComputeSharedMaterialValues(commandBuffer, shader,
-		sharedValues);
+	return dsGLCommandBuffer_setComputeInstanceMaterialValues(commandBuffer, shader,
+		instanceValues);
 }
 
 bool dsGLShader_unbindCompute(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,

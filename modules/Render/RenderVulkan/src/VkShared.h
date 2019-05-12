@@ -66,7 +66,7 @@ VkPipelineStageFlags dsVkWriteImageStageFlags(const dsRenderer* renderer, dsText
 VkImageAspectFlags dsVkImageAspectFlags(dsGfxFormat format);
 VkImageAspectFlags dsVkClearDepthStencilImageAspectFlags(dsGfxFormat format,
 	dsClearDepthStencil surfaceParts);
-VkDescriptorType dsVkDescriptorType(dsMaterialType type, bool isShared);
+VkDescriptorType dsVkDescriptorType(dsMaterialType type, dsMaterialBinding binding);
 
 VkCompareOp dsVkCompareOp(mslCompareOp compareOp, VkCompareOp defaultOp);
 VkShaderStageFlagBits dsVkShaderStage(mslStage stage);

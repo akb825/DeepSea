@@ -54,8 +54,11 @@ static bool setupElements(dsVkSharedDescriptorSets* descriptors, dsCommandBuffer
 	for (uint32_t i = 0; i < materialDesc->elementCount; ++i)
 	{
 		const dsMaterialElement* element = materialDesc->elements + i;
-		if (!element->isShared || vkMaterialDesc->elementMappings[i] == DS_MATERIAL_UNKNOWN)
+		if (element->binding != descriptors->binding ||
+			vkMaterialDesc->elementMappings[i] == DS_MATERIAL_UNKNOWN)
+		{
 			continue;
+		}
 
 		switch (element->type)
 		{
@@ -125,6 +128,7 @@ static bool setupElements(dsVkSharedDescriptorSets* descriptors, dsCommandBuffer
 			{
 				dsGfxBuffer* buffer = NULL;
 				size_t offset = 0;
+				size_t bindingOffset = 0;
 				size_t size = 0;
 				if (element->type == dsMaterialType_VariableGroup)
 				{
@@ -140,7 +144,8 @@ static bool setupElements(dsVkSharedDescriptorSets* descriptors, dsCommandBuffer
 				{
 					buffer = dsSharedMaterialValues_getBufferId(&offset, &size, sharedValues,
 						element->nameId);
-					if (buffer)
+					// Dynamic offsets forinstance variables.
+					if (buffer && descriptors->binding == dsMaterialBinding_Instance)
 					{
 						uint32_t offsetIndex = descriptors->offsetCount;
 						if (!DS_RESIZEABLE_ARRAY_ADD(descriptors->allocator, descriptors->offsets,
@@ -150,6 +155,8 @@ static bool setupElements(dsVkSharedDescriptorSets* descriptors, dsCommandBuffer
 						}
 						descriptors->offsets[offsetIndex] = (uint32_t)offset;
 					}
+					else
+						bindingOffset = offset;
 				}
 
 				uint32_t index = bindingCounts->buffers;
@@ -169,7 +176,7 @@ static bool setupElements(dsVkSharedDescriptorSets* descriptors, dsCommandBuffer
 					}
 
 					bindingMemory->buffers[index].buffer = bufferData;
-					bindingMemory->buffers[index].offset = 0; // Offset dynamically set.
+					bindingMemory->buffers[index].offset = bindingOffset;
 					bindingMemory->buffers[index].size = size;
 				}
 				else
@@ -188,7 +195,7 @@ static bool setupElements(dsVkSharedDescriptorSets* descriptors, dsCommandBuffer
 	// Allocate memory for the bindings and info arrays.
 	if (!DS_RESIZEABLE_ARRAY_ADD(descriptors->allocator, bindingMemory->bindings,
 			bindingCounts->total, descriptors->maxBindings,
-			vkMaterialDesc->bindings[1].bindingCounts.total))
+			vkMaterialDesc->bindings[descriptors->binding].bindingCounts.total))
 	{
 		return false;
 	}
@@ -212,11 +219,14 @@ static bool setupElements(dsVkSharedDescriptorSets* descriptors, dsCommandBuffer
 		return false;
 	}
 
-	DS_ASSERT(bindingCounts->total == vkMaterialDesc->bindings[1].bindingCounts.total);
-	DS_ASSERT(bindingCounts->textures == vkMaterialDesc->bindings[1].bindingCounts.textures);
-	DS_ASSERT(bindingCounts->buffers == vkMaterialDesc->bindings[1].bindingCounts.buffers);
+	DS_ASSERT(bindingCounts->total ==
+		vkMaterialDesc->bindings[descriptors->binding].bindingCounts.total);
+	DS_ASSERT(bindingCounts->textures ==
+		vkMaterialDesc->bindings[descriptors->binding].bindingCounts.textures);
+	DS_ASSERT(bindingCounts->buffers ==
+		vkMaterialDesc->bindings[descriptors->binding].bindingCounts.buffers);
 	DS_ASSERT(bindingCounts->texelBuffers ==
-		vkMaterialDesc->bindings[1].bindingCounts.texelBuffers);
+		vkMaterialDesc->bindings[descriptors->binding].bindingCounts.texelBuffers);
 
 	return true;
 }
@@ -242,11 +252,12 @@ static void disposeLastDescriptor(dsVkSharedDescriptorSets* descriptors)
 }
 
 void dsVkSharedDescriptorSets_initialize(dsVkSharedDescriptorSets* descriptors,
-	dsRenderer* renderer, dsAllocator* allocator)
+	dsRenderer* renderer, dsAllocator* allocator, dsMaterialBinding binding)
 {
 	memset(descriptors, 0, sizeof(*descriptors));
 	descriptors->renderer = renderer;
 	descriptors->allocator = dsAllocator_keepPointer(allocator);
+	descriptors->binding = binding;
 }
 
 VkDescriptorSet dsVkSharedDescriptorSets_createSet(dsVkSharedDescriptorSets* descriptors,
@@ -276,7 +287,7 @@ VkDescriptorSet dsVkSharedDescriptorSets_createSet(dsVkSharedDescriptorSets* des
 
 	disposeLastDescriptor(descriptors);
 	descriptors->lastDescriptor = dsVkMaterialDesc_createDescriptor(materialDesc,
-		descriptors->allocator, true);
+		descriptors->allocator, descriptors->binding);
 	if (!descriptors->lastDescriptor)
 		return 0;
 

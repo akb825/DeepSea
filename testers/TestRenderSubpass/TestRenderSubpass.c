@@ -603,9 +603,9 @@ static bool setup(TestRenderSubpass* testRenderSubpass, dsApplication* applicati
 		dsMaterialElement materialElems[] =
 		{
 			{"Transform", dsMaterialType_VariableGroup, 0, testRenderSubpass->transformGroupDesc,
-				true, 0},
-			{"channel", dsMaterialType_Int, 0, NULL, false, 0},
-			{"tex", dsMaterialType_Texture, 0, NULL, false, 0}
+				dsMaterialBinding_Global, 0},
+			{"channel", dsMaterialType_Int, 0, NULL, dsMaterialBinding_Material, 0},
+			{"tex", dsMaterialType_Texture, 0, NULL, dsMaterialBinding_Material, 0}
 		};
 		testRenderSubpass->cubeMaterialDesc = dsMaterialDesc_create(resourceManager, allocator,
 			materialElems, DS_ARRAY_SIZE(materialElems));
@@ -620,9 +620,9 @@ static bool setup(TestRenderSubpass* testRenderSubpass, dsApplication* applicati
 	{
 		dsMaterialElement materialElems[] =
 		{
-			{"channelR", dsMaterialType_SubpassInput, 0, NULL, false, 0},
-			{"channelG", dsMaterialType_SubpassInput, 0, NULL, false, 0},
-			{"channelB", dsMaterialType_SubpassInput, 0, NULL, false, 0}
+			{"channelR", dsMaterialType_SubpassInput, 0, NULL, dsMaterialBinding_Material, 0},
+			{"channelG", dsMaterialType_SubpassInput, 0, NULL, dsMaterialBinding_Material, 0},
+			{"channelB", dsMaterialType_SubpassInput, 0, NULL, dsMaterialBinding_Material, 0}
 		};
 		testRenderSubpass->resolveMaterialDesc = dsMaterialDesc_create(resourceManager, allocator,
 			materialElems, DS_ARRAY_SIZE(materialElems));
@@ -644,7 +644,7 @@ static bool setup(TestRenderSubpass* testRenderSubpass, dsApplication* applicati
 	}
 
 	testRenderSubpass->sharedValues = dsSharedMaterialValues_create(allocator,
-		DS_DEFAULT_MAX_VOLATILE_MATERIAL_VALUES);
+		DS_DEFAULT_MAX_SHARED_MATERIAL_VALUES);
 	if (!testRenderSubpass->sharedValues)
 	{
 		DS_LOG_ERROR_F("TestRenderSubpass", "Couldn't create shared material values: %s",
