@@ -934,11 +934,13 @@ dsResourceManager* dsMTLResourceManager_create(dsAllocator* allocator, dsRendere
 	baseResourceManager->createShaderFunc = &dsMTLShader_create;
 	baseResourceManager->destroyShaderFunc = &dsMTLShader_destroy;
 	baseResourceManager->bindShaderFunc = &dsMTLShader_bind;
-	baseResourceManager->updateShaderSharedValuesFunc = &dsMTLShader_updateSharedValues;
+	baseResourceManager->updateShaderInstanceValuesFunc = &dsMTLShader_updateInstanceValues;
+	baseResourceManager->updateShaderDynamicRenderStatesFunc =
+		&dsMTLShader_updateDynamicRenderStates;
 	baseResourceManager->unbindShaderFunc = &dsMTLShader_unbind;
 	baseResourceManager->bindComputeShaderFunc = &dsMTLShader_bindCompute;
-	baseResourceManager->updateComputeShaderSharedValuesFunc =
-		&dsMTLShader_updateComputeSharedValues;
+	baseResourceManager->updateComputeShaderInstanceValuesFunc =
+		&dsMTLShader_updateComputeInstanceValues;
 	baseResourceManager->unbindComputeShaderFunc = &dsMTLShader_unbindCompute;
 
 	return baseResourceManager;

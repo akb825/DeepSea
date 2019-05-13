@@ -113,8 +113,29 @@ static bool needsDynamicDepthStencil(const mslStencilOpState* state)
 }
 
 static void setRasterizationState(id<MTLRenderCommandEncoder> encoder,
-	const mslRenderState* renderStates, const dsDynamicRenderStates* dynamicStates)
+	const mslRenderState* renderStates, const dsDynamicRenderStates* dynamicStates,
+	bool dynamicOnly)
 {
+	dsColor4f blendConstants;
+	memcpy(&blendConstants, renderStates->blendState.blendConstants, sizeof(blendConstants));
+	if (blendConstants.x == MSL_UNKNOWN_FLOAT)
+	{
+		if (dynamicStates)
+			blendConstants = dynamicStates->blendConstants;
+		else
+		{
+			blendConstants.r = 0.0f;
+			blendConstants.g = 0.0f;
+			blendConstants.b = 0.0f;
+			blendConstants.a = 1.0f;
+		}
+	}
+	[encoder setBlendColorRed: blendConstants.r green: blendConstants.g blue: blendConstants.b
+		alpha: blendConstants.a];
+
+	if (dynamicOnly)
+		return;
+
 	const mslRasterizationState* rasterState = &renderStates->rasterizationState;
 	[encoder setTriangleFillMode: rasterState->polygonMode == mslPolygonMode_Line ?
 		MTLTriangleFillModeLines : MTLTriangleFillModeFill];
@@ -136,28 +157,11 @@ static void setRasterizationState(id<MTLRenderCommandEncoder> encoder,
 			break;
 	}
 	[encoder setCullMode: cullMode];
-
-	dsColor4f blendConstants;
-	memcpy(&blendConstants, renderStates->blendState.blendConstants, sizeof(blendConstants));
-	if (blendConstants.x == MSL_UNKNOWN_FLOAT)
-	{
-		if (dynamicStates)
-			blendConstants = dynamicStates->blendConstants;
-		else
-		{
-			blendConstants.r = 0.0f;
-			blendConstants.g = 0.0f;
-			blendConstants.b = 0.0f;
-			blendConstants.a = 1.0f;
-		}
-	}
-	[encoder setBlendColorRed: blendConstants.r green: blendConstants.g blue: blendConstants.b
-		alpha: blendConstants.a];
 }
 
 static void setDepthStencilState(id<MTLRenderCommandEncoder> encoder,
 	const mslRenderState* renderStates, id<MTLDepthStencilState> depthStencilState,
-	const dsDynamicRenderStates* dynamicStates)
+	const dsDynamicRenderStates* dynamicStates, bool dynamicOnly)
 {
 	if (renderStates->depthStencilState.stencilTestEnable == mslBool_True &&
 		dynamicStates &&
@@ -186,8 +190,6 @@ static void setDepthStencilState(id<MTLRenderCommandEncoder> encoder,
 			return;
 	}
 
-	[encoder setDepthStencilState: depthStencilState];
-
 	if (renderStates->depthStencilState.stencilTestEnable == mslBool_True)
 	{
 		uint32_t frontReference = renderStates->depthStencilState.frontStencil.reference;
@@ -202,10 +204,16 @@ static void setDepthStencilState(id<MTLRenderCommandEncoder> encoder,
 		[encoder setStencilReferenceValue: frontReference];
 #endif
 	}
+
+	if (dynamicOnly)
+		return;
+
+	[encoder setDepthStencilState: depthStencilState];
 }
 
 static void setDynamicDepthState(id<MTLRenderCommandEncoder> encoder,
-	const mslRenderState* renderStates, const dsDynamicRenderStates* dynamicStates)
+	const mslRenderState* renderStates, const dsDynamicRenderStates* dynamicStates,
+	bool dynamicOnly)
 {
 	if (renderStates->depthStencilState.depthWriteEnable == mslBool_False)
 		return;
@@ -228,6 +236,9 @@ static void setDynamicDepthState(id<MTLRenderCommandEncoder> encoder,
 		else if (dynamicStates)
 			clamp = dynamicStates->depthBiasClamp;
 	}
+
+	if (dynamicOnly)
+		return;
 
 	[encoder setDepthBias: constBias slopeScale: slopeBias clamp: clamp];
 	[encoder setDepthClipMode:
@@ -526,7 +537,7 @@ bool dsMTLHardwareCommandBuffer_bindTextureUniform(dsCommandBuffer* commandBuffe
 
 bool dsMTLHardwareCommandBuffer_setRenderStates(dsCommandBuffer* commandBuffer,
 	const mslRenderState* renderStates, id<MTLDepthStencilState> depthStencilState,
-	const dsDynamicRenderStates* dynamicStates)
+	const dsDynamicRenderStates* dynamicStates, bool dynamicOnly)
 {
 	dsMTLHardwareCommandBuffer* mtlCommandBuffer = (dsMTLHardwareCommandBuffer*)commandBuffer;
 	if (!mtlCommandBuffer->renderCommandEncoder)
@@ -534,9 +545,9 @@ bool dsMTLHardwareCommandBuffer_setRenderStates(dsCommandBuffer* commandBuffer,
 
 	id<MTLRenderCommandEncoder> encoder =
 		(__bridge id<MTLRenderCommandEncoder>)mtlCommandBuffer->renderCommandEncoder;
-	setRasterizationState(encoder, renderStates, dynamicStates);
-	setDepthStencilState(encoder, renderStates, depthStencilState, dynamicStates);
-	setDynamicDepthState(encoder, renderStates, dynamicStates);
+	setRasterizationState(encoder, renderStates, dynamicStates, dynamicOnly);
+	setDepthStencilState(encoder, renderStates, depthStencilState, dynamicStates, dynamicOnly);
+	setDynamicDepthState(encoder, renderStates, dynamicStates, dynamicOnly);
 	return true;
 }
 

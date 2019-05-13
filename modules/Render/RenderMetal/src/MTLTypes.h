@@ -212,7 +212,7 @@ typedef bool (*BindTextureUniformFunction)(dsCommandBuffer* commandBuffer, id<MT
 	id<MTLSamplerState> sampler, uint32_t vertexIndex, uint32_t fragmentIndex);
 typedef bool (*SetRenderStatesFunction)(dsCommandBuffer* commandBuffer,
 	const mslRenderState* renderStates, id<MTLDepthStencilState> depthStencilState,
-	const dsDynamicRenderStates* dynamicStates);
+	const dsDynamicRenderStates* dynamicStates, bool dynamicOnly);
 
 typedef bool (*BindComputePushConstantsFunction)(dsCommandBuffer* commandBuffer, const void* data,
 	uint32_t size);

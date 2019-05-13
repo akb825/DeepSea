@@ -53,7 +53,7 @@ bool dsMTLCommandBuffer_bindTextureUniform(dsCommandBuffer* commandBuffer, id<MT
 	id<MTLSamplerState> sampler, uint32_t vertexIndex, uint32_t fragmentIndex);
 bool dsMTLCommandBuffer_setRenderStates(dsCommandBuffer* commandBuffer,
 	const mslRenderState* renderStates, id<MTLDepthStencilState> depthStencilState,
-	const dsDynamicRenderStates* dynamicStates);
+	const dsDynamicRenderStates* dynamicStates, bool dynamicOnly);
 
 bool dsMTLCommandBuffer_bindComputePushConstants(dsCommandBuffer* commandBuffer, const void* data,
 	uint32_t size);

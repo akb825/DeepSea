@@ -107,6 +107,7 @@ typedef struct SetRenderStatesCommand
 	CFTypeRef depthStencilState;
 	dsDynamicRenderStates dynamicStates;
 	bool hasDynamicStates;
+	bool dynamicOnly;
 } SetRenderStatesCommand;
 
 typedef struct BindComputePushConstantsCommand
@@ -321,7 +322,8 @@ bool dsMTLSoftwareCommandBuffer_submit(dsCommandBuffer* commandBuffer,
 				result = dsMTLCommandBuffer_setRenderStates(commandBuffer,
 					&thisCommand->renderStates,
 					(__bridge id<MTLDepthStencilState>)thisCommand->depthStencilState,
-					thisCommand->hasDynamicStates ? &thisCommand->dynamicStates : NULL);
+					thisCommand->hasDynamicStates ? &thisCommand->dynamicStates : NULL,
+					thisCommand->dynamicOnly);
 				break;
 			}
 			case CommandType_BindComputePushConstants:
@@ -541,7 +543,7 @@ bool dsMTLSoftwareCommandBuffer_bindBufferUniform(dsCommandBuffer* commandBuffer
 
 bool dsMTLSoftwareCommandBuffer_setRenderStates(dsCommandBuffer* commandBuffer,
 	const mslRenderState* renderStates, id<MTLDepthStencilState> depthStencilState,
-	const dsDynamicRenderStates* dynamicStates)
+	const dsDynamicRenderStates* dynamicStates, bool dynamicOnly)
 {
 	SetRenderStatesCommand* command = (SetRenderStatesCommand*)allocateCommand(
 		commandBuffer, CommandType_SetRenderStates, sizeof(SetRenderStatesCommand));
@@ -556,7 +558,11 @@ bool dsMTLSoftwareCommandBuffer_setRenderStates(dsCommandBuffer* commandBuffer,
 		command->hasDynamicStates = true;
 	}
 	else
+	{
+		DS_ASSERT(!dynamicOnly);
 		command->hasDynamicStates = false;
+	}
+	command->dynamicOnly = dynamicOnly;
 	return true;
 }
 

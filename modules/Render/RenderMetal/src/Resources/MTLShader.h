@@ -26,17 +26,20 @@ dsShader* dsMTLShader_create(dsResourceManager* resourceManager, dsAllocator* al
 bool dsMTLShader_bind(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
 	const dsShader* shader, const dsMaterial* material,
 	const dsSharedMaterialValues* sharedValues, const dsDynamicRenderStates* renderStates);
-bool dsMTLShader_updateSharedValues(dsResourceManager* resourceManager,
+bool dsMTLShader_updateInstanceValues(dsResourceManager* resourceManager,
 	dsCommandBuffer* commandBuffer, const dsShader* shader,
-	const dsSharedMaterialValues* sharedValues);
+	const dsSharedMaterialValues* instanceValues);
+bool dsMTLShader_updateDynamicRenderStates(dsResourceManager* resourceManager,
+	dsCommandBuffer* commandBuffer, const dsShader* shader,
+	const dsDynamicRenderStates* renderStates);
 bool dsMTLShader_unbind(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
 	const dsShader* shader);
 bool dsMTLShader_bindCompute(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
 	const dsShader* shader, const dsMaterial* material,
 	const dsSharedMaterialValues* sharedValues);
-bool dsMTLShader_updateComputeSharedValues(dsResourceManager* resourceManager,
+bool dsMTLShader_updateComputeInstanceValues(dsResourceManager* resourceManager,
 	dsCommandBuffer* commandBuffer, const dsShader* shader,
-	const dsSharedMaterialValues* sharedValues);
+	const dsSharedMaterialValues* instanceValues);
 bool dsMTLShader_unbindCompute(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
 	const dsShader* shader);
 bool dsMTLShader_destroy(dsResourceManager* resourceManager, dsShader* shader);

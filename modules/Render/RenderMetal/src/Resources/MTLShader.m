@@ -373,15 +373,15 @@ static void getTextureAndSampler(id<MTLTexture>* outTexture, id<MTLSamplerState>
 	const dsMTLShader* mtlShader = (const dsMTLShader*)shader;
 	const dsMaterialElement* element = shader->materialDesc->elements + uniform->element;
 	dsTexture* texture;
-	if (element->isShared)
-	{
-		DS_ASSERT(sharedValues);
-		texture = dsSharedMaterialValues_getTextureId(sharedValues, element->nameId);
-	}
-	else
+	if (element->binding == dsMaterialBinding_Material)
 	{
 		DS_ASSERT(material);
 		texture = dsMaterial_getTexture(material, uniform->element);
+	}
+	else
+	{
+		DS_ASSERT(sharedValues);
+		texture = dsSharedMaterialValues_getTextureId(sharedValues, element->nameId);
 	}
 
 	if (texture)
@@ -420,16 +420,16 @@ static id<MTLTexture> getTextureBuffer(const dsShader* shader, const dsMaterial*
 	dsGfxBuffer* buffer;
 	dsGfxFormat format;
 	size_t offset, count;
-	if (element->isShared)
+	if (element->binding == dsMaterialBinding_Material)
+	{
+		DS_ASSERT(material);
+		buffer = dsMaterial_getTextureBuffer(&format, &offset, &count, material, uniform->element);
+	}
+	else
 	{
 		DS_ASSERT(sharedValues);
 		buffer = dsSharedMaterialValues_getTextureBufferId(&format, &offset, &count, sharedValues,
 			element->nameId);
-	}
-	else
-	{
-		DS_ASSERT(material);
-		buffer = dsMaterial_getTextureBuffer(&format, &offset, &count, material, uniform->element);
 	}
 
 	if (!buffer)
@@ -448,15 +448,15 @@ static id<MTLBuffer> getShaderVariableGroupBuffer(const dsShader* shader,
 {
 	const dsMaterialElement* element = shader->materialDesc->elements + uniform->element;
 	dsShaderVariableGroup* group;
-	if (element->isShared)
-	{
-		DS_ASSERT(sharedValues);
-		group = dsSharedMaterialValues_getVariableGroupId(sharedValues, element->nameId);
-	}
-	else
+	if (element->binding == dsMaterialBinding_Material)
 	{
 		DS_ASSERT(material);
 		group = dsMaterial_getVariableGroup(material, uniform->element);
+	}
+	else
+	{
+		DS_ASSERT(sharedValues);
+		group = dsSharedMaterialValues_getVariableGroupId(sharedValues, element->nameId);
 	}
 
 	if (!group)
@@ -473,15 +473,15 @@ static id<MTLBuffer> getBuffer(size_t* outOffset, const dsShader* shader,
 {
 	const dsMaterialElement* element = shader->materialDesc->elements + uniform->element;
 	dsGfxBuffer* buffer;
-	if (element->isShared)
-	{
-		DS_ASSERT(sharedValues);
-		buffer = dsSharedMaterialValues_getBufferId(outOffset, NULL, sharedValues, element->nameId);
-	}
-	else
+	if (element->binding == dsMaterialBinding_Material)
 	{
 		DS_ASSERT(material);
 		buffer = dsMaterial_getBuffer(outOffset, NULL, material, uniform->element);
+	}
+	else
+	{
+		DS_ASSERT(sharedValues);
+		buffer = dsSharedMaterialValues_getBufferId(outOffset, NULL, sharedValues, element->nameId);
 	}
 
 	if (!buffer)
@@ -494,7 +494,8 @@ static id<MTLBuffer> getBuffer(size_t* outOffset, const dsShader* shader,
 }
 
 static bool bindUniforms(const dsShader* shader, const dsMaterial* material,
-	const dsSharedMaterialValues* sharedValues, dsCommandBuffer* commandBuffer)
+	dsCommandBuffer* commandBuffer, const dsSharedMaterialValues* sharedValues,
+	dsMaterialBinding binding)
 {
 	const dsMTLShader* mtlShader = (const dsMTLShader*)shader;
 	const dsMaterialDesc* materialDesc = shader->materialDesc;
@@ -507,8 +508,14 @@ static bool bindUniforms(const dsShader* shader, const dsMaterial* material,
 
 		const dsMTLUniformInfo* info = mtlShader->uniformInfos + i;
 		const dsMaterialElement* element = materialDesc->elements + info->element;
-		if ((element->isShared && !sharedValues) || (!element->isShared && !material))
+		bool invalidBinding = element->binding != dsMaterialBinding_Material &&
+			element->binding != binding;
+		bool isMaterialBinding = element->binding == dsMaterialBinding_Material;
+		if (invalidBinding ||  (isMaterialBinding && !material) ||
+			(!isMaterialBinding && !sharedValues))
+		{
 			continue;
+		}
 
 		switch (element->type)
 		{
@@ -572,7 +579,8 @@ static bool bindUniforms(const dsShader* shader, const dsMaterial* material,
 }
 
 static bool bindComputeUniforms(const dsShader* shader, const dsMaterial* material,
-	const dsSharedMaterialValues* sharedValues, dsCommandBuffer* commandBuffer)
+	dsCommandBuffer* commandBuffer, const dsSharedMaterialValues* sharedValues,
+	dsMaterialBinding binding)
 {
 	const dsMTLShader* mtlShader = (const dsMTLShader*)shader;
 	const dsMaterialDesc* materialDesc = shader->materialDesc;
@@ -584,8 +592,14 @@ static bool bindComputeUniforms(const dsShader* shader, const dsMaterial* materi
 
 		const dsMTLUniformInfo* info = mtlShader->uniformInfos + i;
 		const dsMaterialElement* element = materialDesc->elements + info->element;
-		if ((element->isShared && !sharedValues) || (!element->isShared && !material))
+		bool invalidBinding = element->binding != dsMaterialBinding_Material &&
+			element->binding != binding;
+		bool isMaterialBinding = element->binding == dsMaterialBinding_Material;
+		if (invalidBinding ||  (isMaterialBinding && !material) ||
+			(!isMaterialBinding && !sharedValues))
+		{
 			continue;
+		}
 
 		switch (element->type)
 		{
@@ -827,12 +841,12 @@ dsShader* dsMTLShader_create(dsResourceManager* resourceManager, dsAllocator* al
 
 bool dsMTLShader_bind(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
 	const dsShader* shader, const dsMaterial* material,
-	const dsSharedMaterialValues* sharedValues, const dsDynamicRenderStates* renderStates)
+	const dsSharedMaterialValues* globalValues, const dsDynamicRenderStates* renderStates)
 {
 	DS_UNUSED(resourceManager);
 	const dsMTLShader* mtlShader = (const dsMTLShader*)shader;
 	if (!dsMTLCommandBuffer_setRenderStates(commandBuffer, &mtlShader->renderState,
-			(__bridge id<MTLDepthStencilState>)mtlShader->depthStencilState, renderStates))
+			(__bridge id<MTLDepthStencilState>)mtlShader->depthStencilState, renderStates, false))
 	{
 		return false;
 	}
@@ -840,15 +854,25 @@ bool dsMTLShader_bind(dsResourceManager* resourceManager, dsCommandBuffer* comma
 	if (!setPushConstnants(shader, commandBuffer, material))
 		return false;
 
-	return bindUniforms(shader, material, sharedValues, commandBuffer);
+	return bindUniforms(shader, material, commandBuffer, globalValues, dsMaterialBinding_Global);
 }
 
-bool dsMTLShader_updateSharedValues(dsResourceManager* resourceManager,
+bool dsMTLShader_updateInstanceValues(dsResourceManager* resourceManager,
 	dsCommandBuffer* commandBuffer, const dsShader* shader,
-	const dsSharedMaterialValues* sharedValues)
+	const dsSharedMaterialValues* instanceValues)
 {
 	DS_UNUSED(resourceManager);
-	return bindUniforms(shader, NULL, sharedValues, commandBuffer);
+	return bindUniforms(shader, NULL, commandBuffer, instanceValues, dsMaterialBinding_Instance);
+}
+
+bool dsMTLShader_updateDynamicRenderStates(dsResourceManager* resourceManager,
+	dsCommandBuffer* commandBuffer, const dsShader* shader,
+	const dsDynamicRenderStates* renderStates)
+{
+	DS_UNUSED(resourceManager);
+	const dsMTLShader* mtlShader = (const dsMTLShader*)shader;
+	return dsMTLCommandBuffer_setRenderStates(commandBuffer, &mtlShader->renderState,
+		(__bridge id<MTLDepthStencilState>)mtlShader->depthStencilState, renderStates, true);
 }
 
 bool dsMTLShader_unbind(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
@@ -862,21 +886,23 @@ bool dsMTLShader_unbind(dsResourceManager* resourceManager, dsCommandBuffer* com
 
 bool dsMTLShader_bindCompute(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
 	const dsShader* shader, const dsMaterial* material,
-	const dsSharedMaterialValues* sharedValues)
+	const dsSharedMaterialValues* globalValues)
 {
 	DS_UNUSED(resourceManager);
 	if (!setComputePushConstnants(shader, commandBuffer, material))
 		return false;
 
-	return bindComputeUniforms(shader, material, sharedValues, commandBuffer);
+	return bindComputeUniforms(shader, material, commandBuffer, globalValues,
+		dsMaterialBinding_Global);
 }
 
-bool dsMTLShader_updateComputeSharedValues(dsResourceManager* resourceManager,
+bool dsMTLShader_updateComputeInstanceValues(dsResourceManager* resourceManager,
 	dsCommandBuffer* commandBuffer, const dsShader* shader,
-	const dsSharedMaterialValues* sharedValues)
+	const dsSharedMaterialValues* instanceValues)
 {
 	DS_UNUSED(resourceManager);
-	return bindComputeUniforms(shader, NULL, sharedValues, commandBuffer);
+	return bindComputeUniforms(shader, NULL, commandBuffer, instanceValues,
+		dsMaterialBinding_Instance);
 }
 
 bool dsMTLShader_unbindCompute(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,

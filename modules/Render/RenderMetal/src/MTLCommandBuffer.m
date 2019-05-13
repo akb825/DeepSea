@@ -195,12 +195,12 @@ bool dsMTLCommandBuffer_bindTextureUniform(dsCommandBuffer* commandBuffer, id<MT
 
 bool dsMTLCommandBuffer_setRenderStates(dsCommandBuffer* commandBuffer,
 	const mslRenderState* renderStates, id<MTLDepthStencilState> depthStencilState,
-	const dsDynamicRenderStates* dynamicStates)
+	const dsDynamicRenderStates* dynamicStates, bool dynamicOnly)
 {
 	const dsMTLCommandBufferFunctionTable* functions =
 		((dsMTLCommandBuffer*)commandBuffer)->functions;
 	return functions->setRenderStatesFunc(commandBuffer, renderStates, depthStencilState,
-		dynamicStates);
+		dynamicStates, dynamicOnly);
 }
 
 bool dsMTLCommandBuffer_bindComputePushConstants(dsCommandBuffer* commandBuffer, const void* data,
