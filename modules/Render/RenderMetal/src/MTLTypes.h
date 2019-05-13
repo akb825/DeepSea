@@ -179,6 +179,7 @@ typedef struct dsMTLShader
 typedef struct dsMTLRenderPass
 {
 	dsRenderPass renderPass;
+	dsAllocator* scratchAllocator;
 	dsLifetime* lifetime;
 
 	dsLifetime** usedShaders;

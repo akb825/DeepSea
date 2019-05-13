@@ -19,5 +19,19 @@
 #include <DeepSea/Core/Config.h>
 #include "MTLTypes.h"
 
+dsRenderPass* dsMTLRenderPass_create(dsRenderer* renderer, dsAllocator* allocator,
+	const dsAttachmentInfo* attachments, uint32_t attachmentCount,
+	const dsRenderSubpassInfo* subpasses, uint32_t subpassCount,
+	const dsSubpassDependency* dependencies, uint32_t dependencyCount);
+bool dsMTLRenderPass_begin(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	const dsRenderPass* renderPass, const dsFramebuffer* framebuffer,
+	const dsAlignedBox3f* viewport, const dsSurfaceClearValue* clearValues,
+	uint32_t clearValueCount);
+bool dsMTLRenderPass_nextSubpass(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	const dsRenderPass* renderPass, uint32_t index);
+bool dsMTLRenderPass_end(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	const dsRenderPass* renderPass);
+bool dsMTLRenderPass_destroy(dsRenderer* renderer, dsRenderPass* renderPass);
+
 bool dsMTLRenderPass_addShader(dsRenderPass* renderPass, dsShader* shader);
 void dsMTLRenderPass_removeShader(dsRenderPass* renderPass, dsShader* shader);
