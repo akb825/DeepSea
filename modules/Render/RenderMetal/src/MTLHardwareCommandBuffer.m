@@ -246,6 +246,60 @@ static void setDynamicDepthState(id<MTLRenderCommandEncoder> encoder,
 			MTLDepthClipModeClamp : MTLDepthClipModeClip];
 }
 
+static bool needToBindTexture(dsMTLBoundTextureSet* boundTextures, dsAllocator* allocator,
+	uint32_t index, CFTypeRef texture, CFTypeRef sampler)
+{
+	if (index >= boundTextures->textureCount)
+	{
+		uint32_t prevCount = boundTextures->textureCount;
+		uint32_t addCount = index + 1 - prevCount;
+		if (!DS_RESIZEABLE_ARRAY_ADD(allocator, boundTextures->textures,
+				boundTextures->textureCount, boundTextures->maxTextures, addCount))
+		{
+			return true;
+		}
+
+		memset(boundTextures->textures + prevCount, 0, addCount*sizeof(dsMTLBoundTexture));
+	}
+
+	if (boundTextures->textures[index].texture == texture &&
+		boundTextures->textures[index].sampler == sampler)
+	{
+		return false;
+	}
+
+	boundTextures->textures[index].texture = texture;
+	boundTextures->textures[index].sampler = sampler;
+	return true;
+}
+
+static bool needToBindBuffer(dsMTLBoundBufferSet* boundBuffers, dsAllocator* allocator,
+	uint32_t index, CFTypeRef buffer, size_t offset)
+{
+	if (index >= boundBuffers->bufferCount)
+	{
+		uint32_t prevCount = boundBuffers->bufferCount;
+		uint32_t addCount = index + 1 - prevCount;
+		if (!DS_RESIZEABLE_ARRAY_ADD(allocator, boundBuffers->buffers,
+				boundBuffers->bufferCount, boundBuffers->maxBuffers, addCount))
+		{
+			return true;
+		}
+
+		memset(boundBuffers->buffers + prevCount, 0, addCount*sizeof(dsMTLBoundBuffer));
+	}
+
+	if (boundBuffers->buffers[index].buffer == buffer &&
+		boundBuffers->buffers[index].offset == offset)
+	{
+		return false;
+	}
+
+	boundBuffers->buffers[index].buffer = buffer;
+	boundBuffers->buffers[index].offset = offset;
+	return true;
+}
+
 void dsMTLHardwareCommandBuffer_clear(dsCommandBuffer* commandBuffer)
 {
 	dsMTLHardwareCommandBuffer* mtlCommandBuffer = (dsMTLHardwareCommandBuffer*)commandBuffer;
@@ -506,9 +560,21 @@ bool dsMTLHardwareCommandBuffer_bindBufferUniform(dsCommandBuffer* commandBuffer
 	id<MTLRenderCommandEncoder> encoder =
 		(__bridge id<MTLRenderCommandEncoder>)mtlCommandBuffer->renderCommandEncoder;
 	if (vertexIndex != DS_MATERIAL_UNKNOWN)
-		[encoder setVertexBuffer: buffer offset: offset atIndex: vertexIndex];
+	{
+		if (needToBindBuffer(mtlCommandBuffer->boundBuffers + 0, commandBuffer->allocator,
+				vertexIndex, (__bridge CFTypeRef)buffer, offset))
+		{
+			[encoder setVertexBuffer: buffer offset: offset atIndex: vertexIndex];
+		}
+	}
 	if (fragmentIndex != DS_MATERIAL_UNKNOWN)
-		[encoder setFragmentBuffer: buffer offset: offset atIndex: vertexIndex];
+	{
+		if (needToBindBuffer(mtlCommandBuffer->boundBuffers + 1, commandBuffer->allocator,
+				vertexIndex, (__bridge CFTypeRef)buffer, offset))
+		{
+			[encoder setFragmentBuffer: buffer offset: offset atIndex: vertexIndex];
+		}
+	}
 	return true;
 }
 
@@ -524,13 +590,21 @@ bool dsMTLHardwareCommandBuffer_bindTextureUniform(dsCommandBuffer* commandBuffe
 		(__bridge id<MTLRenderCommandEncoder>)mtlCommandBuffer->renderCommandEncoder;
 	if (vertexIndex != DS_MATERIAL_UNKNOWN)
 	{
-		[encoder setVertexTexture: texture atIndex: vertexIndex];
-		[encoder setVertexSamplerState: sampler atIndex: vertexIndex];
+		if (needToBindTexture(mtlCommandBuffer->boundTextures + 0, commandBuffer->allocator,
+				vertexIndex, (__bridge CFTypeRef)texture, (__bridge CFTypeRef)sampler))
+		{
+			[encoder setVertexTexture: texture atIndex: vertexIndex];
+			[encoder setVertexSamplerState: sampler atIndex: vertexIndex];
+		}
 	}
 	if (fragmentIndex != DS_MATERIAL_UNKNOWN)
 	{
-		[encoder setFragmentTexture: texture atIndex: vertexIndex];
-		[encoder setFragmentSamplerState: sampler atIndex: vertexIndex];
+		if (needToBindTexture(mtlCommandBuffer->boundTextures + 1, commandBuffer->allocator,
+				vertexIndex, (__bridge CFTypeRef)texture, (__bridge CFTypeRef)sampler))
+		{
+			[encoder setFragmentTexture: texture atIndex: vertexIndex];
+			[encoder setFragmentSamplerState: sampler atIndex: vertexIndex];
+		}
 	}
 	return true;
 }
@@ -565,23 +639,33 @@ bool dsMTLHardwareCommandBuffer_bindComputePushConstants(dsCommandBuffer* comman
 bool dsMTLHardwareCommandBuffer_bindComputeBufferUniform(dsCommandBuffer* commandBuffer,
 	id<MTLBuffer> buffer, size_t offset, uint32_t index)
 {
+	dsMTLHardwareCommandBuffer* mtlCommandBuffer = (dsMTLHardwareCommandBuffer*)commandBuffer;
 	id<MTLComputeCommandEncoder> encoder = getComputeCommandEncoder(commandBuffer);
 	if (!encoder)
 		return false;
 
-	[encoder setBuffer: buffer offset: offset atIndex: index];
+	if (needToBindBuffer(&mtlCommandBuffer->boundComputeBuffers, commandBuffer->allocator, index,
+			(__bridge CFTypeRef)buffer, offset))
+	{
+		[encoder setBuffer: buffer offset: offset atIndex: index];
+	}
 	return true;
 }
 
 bool dsMTLHardwareCommandBuffer_bindComputeTextureUniform(dsCommandBuffer* commandBuffer,
 	id<MTLTexture> texture, id<MTLSamplerState> sampler, uint32_t index)
 {
+	dsMTLHardwareCommandBuffer* mtlCommandBuffer = (dsMTLHardwareCommandBuffer*)commandBuffer;
 	id<MTLComputeCommandEncoder> encoder = getComputeCommandEncoder(commandBuffer);
 	if (!encoder)
 		return false;
 
-	[encoder setTexture: texture atIndex: index];
-	[encoder setSamplerState: sampler atIndex: index];
+	if (needToBindTexture(&mtlCommandBuffer->boundComputeTextures, commandBuffer->allocator,
+			index, (__bridge CFTypeRef)texture, (__bridge CFTypeRef)sampler))
+	{
+		[encoder setTexture: texture atIndex: index];
+		[encoder setSamplerState: sampler atIndex: index];
+	}
 	return true;
 }
 
@@ -704,6 +788,14 @@ void dsMTLHardwareCommandBuffer_shutdown(dsMTLHardwareCommandBuffer* commandBuff
 			CFRelease(commandBuffer->submitBuffers[i]);
 	}
 	DS_VERIFY(dsAllocator_free(allocator, commandBuffer->submitBuffers));
+
+	for (uint32_t i = 0; i < 2; ++i)
+	{
+		DS_VERIFY(dsAllocator_free(allocator, commandBuffer->boundTextures[i].textures));
+		DS_VERIFY(dsAllocator_free(allocator, commandBuffer->boundBuffers[i].buffers));
+	}
+	DS_VERIFY(dsAllocator_free(allocator, commandBuffer->boundComputeTextures.textures));
+	DS_VERIFY(dsAllocator_free(allocator, commandBuffer->boundComputeBuffers.buffers));
 
 	dsMTLCommandBuffer_shutdown((dsMTLCommandBuffer*)commandBuffer);
 }

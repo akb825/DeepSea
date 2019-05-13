@@ -263,6 +263,32 @@ typedef struct dsMTLCommandBuffer
 	bool fenceSet;
 } dsMTLCommandBuffer;
 
+typedef struct dsMTLBoundTexture
+{
+	CFTypeRef texture;
+	CFTypeRef sampler;
+} dsMTLBoundTexture;
+
+typedef struct dsMTLBoundTextureSet
+{
+	dsMTLBoundTexture* textures;
+	uint32_t textureCount;
+	uint32_t maxTextures;
+} dsMTLBoundTextureSet;
+
+typedef struct dsMTLBoundBuffer
+{
+	CFTypeRef buffer;
+	size_t offset;
+} dsMTLBoundBuffer;
+
+typedef struct dsMTLBoundBufferSet
+{
+	dsMTLBoundBuffer* buffers;
+	uint32_t bufferCount;
+	uint32_t maxBuffers;
+} dsMTLBoundBufferSet;
+
 typedef struct dsMTLHardwareCommandBuffer
 {
 	dsMTLCommandBuffer commandBuffer;
@@ -276,6 +302,12 @@ typedef struct dsMTLHardwareCommandBuffer
 	CFTypeRef* submitBuffers;
 	uint32_t submitBufferCount;
 	uint32_t maxSubmitBuffers;
+
+	dsMTLBoundTextureSet boundTextures[2];
+	dsMTLBoundBufferSet boundBuffers[2];
+
+	dsMTLBoundTextureSet boundComputeTextures;
+	dsMTLBoundBufferSet boundComputeBuffers;
 } dsMTLHardwareCommandBuffer;
 
 typedef struct dsMTLSoftwareCommandBuffer
