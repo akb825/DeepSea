@@ -43,7 +43,7 @@ inline static uint64_t rotl64(uint64_t x, int8_t r)
 	return (x << r) | (x >> (64 - r));
 }
 
-inline uint64_t static fmix64(uint64_t k)
+inline static uint64_t fmix64(uint64_t k)
 {
 	k ^= k >> 33;
 	k *= 0xff51afd7ed558ccdULL;
@@ -60,6 +60,7 @@ static uint32_t hashBytesSmall(uint32_t seed, const void* buffer, size_t size)
 {
 	// Just the tail portion of dsHashCombineBytes().
 	DS_ASSERT(buffer);
+	DS_ASSERT(size < sizeof(uint32_t));
 	const uint8_t* tail = (const uint8_t*)buffer;
 	uint32_t k1 = 0;
 	uint32_t h1 = seed;
@@ -87,6 +88,7 @@ static uint32_t hashBytes32(uint32_t seed, const void* buffer, size_t size)
 {
 	// Single iteration of dsHashCombineBytes().
 	DS_ASSERT(buffer);
+	DS_ASSERT(size == sizeof(uint32_t));
 	uint32_t block = *(const uint32_t*)buffer;
 	uint32_t h1 = seed;
 
@@ -102,12 +104,6 @@ static uint32_t hashBytes32(uint32_t seed, const void* buffer, size_t size)
 	h1 ^= k1;
 	h1 = rotl32(h1, 13);
 	h1 = h1 * 5 + 0xe6546b64;
-
-	k1 = 0;
-	k1 *= c1;
-	k1 = rotl32(k1, 15);
-	k1 *= c2;
-	h1 ^= k1;
 
 	//----------
 	// finalization
