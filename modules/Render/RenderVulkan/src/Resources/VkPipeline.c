@@ -33,7 +33,7 @@ uint32_t dsVkPipeline_hash(uint32_t samples, float defaultAnisotropy,
 	uint32_t subpass)
 {
 	uint32_t hash = dsHash32(&samples);
-	hash = dsHashCombine(hash, dsHash32(&defaultAnisotropy));
+	hash = dsHashCombine(hash, dsHashFloat(&defaultAnisotropy));
 	uint32_t primitiveType32 = primitiveType;
 	hash = dsHashCombine(hash, dsHash32(&primitiveType32));
 	hash = dsHashCombine(hash, vertexFormatHash);
