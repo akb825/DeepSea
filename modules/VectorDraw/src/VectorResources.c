@@ -76,7 +76,7 @@ typedef struct dsResourceInfo
 	dsFileResourceType type;
 } dsResourceInfo;
 
-static const float loadFactor = 0.73f;
+static const float loadFactor = 0.75f;
 
 static uint32_t tableSize(uint32_t maxSize)
 {
