@@ -106,7 +106,7 @@ static bool commandBufferValid(const dsCommandBuffer* commandBuffer)
 
 static uint32_t getHashTableSize(uint32_t querySize)
 {
-	const float loadFactor = 0.75f;
+	const float loadFactor = 0.73f;
 	return (uint32_t)((float)querySize/loadFactor);
 }
 

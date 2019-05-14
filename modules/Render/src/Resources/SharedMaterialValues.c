@@ -60,7 +60,7 @@ static uint32_t identityHash(const void* key)
 
 static unsigned int getTableSize(unsigned int maxValues)
 {
-	const float loadFactor = 0.75f;
+	const float loadFactor = 0.73f;
 	return (unsigned int)((float)maxValues/loadFactor);
 }
 

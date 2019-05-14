@@ -61,7 +61,7 @@ typedef struct dsMaterialNode
 
 #define TEX_WIDTH 256
 
-static const float loadFactor = 0.75f;
+static const float loadFactor = 0.73f;
 
 static uint32_t tableSize(uint32_t maxSize)
 {
