@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2019 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -85,6 +85,19 @@ DS_CORE_EXPORT uint32_t dsHashCombine(uint32_t first, uint32_t second);
 DS_CORE_EXPORT uint32_t dsHashString(const void* string);
 
 /**
+ * @brief Hashes a C string.
+ * @param string The string to hash.
+ */
+DS_CORE_EXPORT uint32_t dsHashString(const void* string);
+
+/**
+ * @brief Hashes a C string, combining with a previous hash.
+ * @param seed The previous hash value.
+ * @param string The string to hash.
+ */
+DS_CORE_EXPORT uint32_t dsHashCombineString(uint32_t seed, const void* string);
+
+/**
  * @brief Checks if two C strings are equal.
  * @param first The first string.
  * @param second The second string.
@@ -100,6 +113,14 @@ DS_CORE_EXPORT bool dsHashStringEqual(const void* first, const void* second);
 DS_CORE_EXPORT uint32_t dsHash8(const void* ptr);
 
 /**
+ * @brief Hashes an 8-bit value, combining with a previous hash.
+ * @param seed The previous hash value.
+ * @param ptr A pointer to the value to hash.
+ * @return The hashed value.
+ */
+DS_CORE_EXPORT uint32_t dsHashCombine8(uint32_t seed, const void* ptr);
+
+/**
  * @brief Checks if two 8-bit values are equal.
  * @param first A pointer to the first value.
  * @param second A pointer to the second value.
@@ -108,11 +129,19 @@ DS_CORE_EXPORT uint32_t dsHash8(const void* ptr);
 DS_CORE_EXPORT bool dsHash8Equal(const void* first, const void* second);
 
 /**
- * @brief Hashes an 16-bit value.
+ * @brief Hashes a 16-bit value.
  * @param ptr A pointer to the value to hash.
  * @return The hashed value.
  */
 DS_CORE_EXPORT uint32_t dsHash16(const void* ptr);
+
+/**
+ * @brief Hashes a 16-bit value, combining with a previous hash.
+ * @param seed The previous hash value.
+ * @param ptr A pointer to the value to hash.
+ * @return The hashed value.
+ */
+DS_CORE_EXPORT uint32_t dsHashCombine16(uint32_t seed, const void* ptr);
 
 /**
  * @brief Checks if two 16-bit values are equal.
@@ -130,6 +159,14 @@ DS_CORE_EXPORT bool dsHash16Equal(const void* first, const void* second);
 DS_CORE_EXPORT uint32_t dsHash32(const void* ptr);
 
 /**
+ * @brief Hashes a 32-bit value, combining with a previous hash.
+ * @param seed The previous hash value.
+ * @param ptr A pointer to the value to hash.
+ * @return The hashed value.
+ */
+DS_CORE_EXPORT uint32_t dsHashCombine32(uint32_t seed, const void* ptr);
+
+/**
  * @brief Checks if two 32-bit values are equal.
  * @param first A pointer to the first value.
  * @param second A pointer to the second value.
@@ -145,6 +182,14 @@ DS_CORE_EXPORT bool dsHash32Equal(const void* first, const void* second);
 DS_CORE_EXPORT uint32_t dsHash64(const void* ptr);
 
 /**
+ * @brief Hashes a 64-bit value, combining with a previous hash.
+ * @param seed The previous hash value.
+ * @param ptr A pointer to the value to hash.
+ * @return The hashed value.
+ */
+DS_CORE_EXPORT uint32_t dsHashCombine64(uint32_t seed, const void* ptr);
+
+/**
  * @brief Checks if two 64-bit values are equal.
  * @param first A pointer to the first value.
  * @param second A pointer to the second value.
@@ -153,14 +198,22 @@ DS_CORE_EXPORT uint32_t dsHash64(const void* ptr);
 DS_CORE_EXPORT bool dsHash64Equal(const void* first, const void* second);
 
 /**
- * @brief Hashes a uint32_t value.
+ * @brief Hashes a size_t value.
  * @param ptr A pointer to the value to hash.
  * @return The hashed value.
  */
 DS_CORE_EXPORT uint32_t dsHashSizeT(const void* ptr);
 
 /**
- * @brief Checks if two uint32_t values are equal.
+ * @brief Hashes a size_t value, combining with a previous hash.
+ * @param seed The previous hash value.
+ * @param ptr A pointer to the value to hash.
+ * @return The hashed value.
+ */
+DS_CORE_EXPORT uint32_t dsHashCombineSizeT(uint32_t seed, const void* ptr);
+
+/**
+ * @brief Checks if two size_t values are equal.
  * @param first A pointer to the first value.
  * @param second A pointer to the second value.
  * @return The hashed value.
@@ -175,6 +228,17 @@ DS_CORE_EXPORT bool dsHashSizeTEqual(const void* first, const void* second);
  * @param ptr The pointer to hash.
  */
 DS_CORE_EXPORT uint32_t dsHashPointer(const void* ptr);
+
+/**
+ * @brief Hashes a pointer, combining with a previous hash.
+ *
+ * This hashes the value passed in directly rather than dereferencing it.
+ *
+ * @param seed The previous hash value.
+ * @param ptr A pointer to the value to hash.
+ * @return The hashed value.
+ */
+DS_CORE_EXPORT uint32_t dsHashCombinePointer(uint32_t seed, const void* ptr);
 
 /**
  * @brief Checks if two pointers are equal.
@@ -198,6 +262,17 @@ DS_CORE_EXPORT bool dsHashPointerEqual(const void* first, const void* second);
 DS_CORE_EXPORT uint32_t dsHashFloat(const void* ptr);
 
 /**
+ * @brief Hashes a float value, combining with a previous hash.
+ *
+ * This is similar to dsHashCombine32(), except it treats 0 and -0 as the same.
+ *
+ * @param seed The previous hash value.
+ * @param ptr A pointer to the value to hash.
+ * @return The hashed value.
+ */
+DS_CORE_EXPORT uint32_t dsHashCombineFloat(uint32_t seed, const void* ptr);
+
+/**
  * @brief Checks if two float values are equal.
  *
  * This is similar to dsHash32Equal(), except it treats 0 and -0 as the same.
@@ -217,6 +292,17 @@ DS_CORE_EXPORT bool dsHashFloatEqual(const void* first, const void* second);
  * @return The hashed value.
  */
 DS_CORE_EXPORT uint32_t dsHashDouble(const void* ptr);
+
+/**
+ * @brief Hashes a double value, combining with a previous hash.
+ *
+ * This is similar to dsHashCombine64(), except it treats 0 and -0 as the same.
+ *
+ * @param seed The previous hash value.
+ * @param ptr A pointer to the value to hash.
+ * @return The hashed value.
+ */
+DS_CORE_EXPORT uint32_t dsHashCombineDouble(uint32_t seed, const void* ptr);
 
 /**
  * @brief Checks if two double values are equal.

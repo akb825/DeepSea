@@ -80,6 +80,9 @@ TEST(HashTest, HashString)
 	EXPECT_EQ(dsHashString("test1"), dsHashString(str1.c_str()));
 	EXPECT_EQ(dsHashString("test2"), dsHashString(str2.c_str()));
 	EXPECT_NE(dsHashString(str1.c_str()), dsHashString(str2.c_str()));
+	EXPECT_EQ(dsHashString("test1"), dsHashBytes(str1.c_str(), str1.length()));
+	EXPECT_EQ(dsHashCombineString(1234, "test1"), dsHashCombineBytes(1234, str1.c_str(),
+		str1.length()));
 
 	EXPECT_TRUE(dsHashStringEqual("test1", str1.c_str()));
 	EXPECT_TRUE(dsHashStringEqual("test2", str2.c_str()));
@@ -97,6 +100,7 @@ TEST(HashTest, Hash8)
 	uint8_t val2 = 45;
 	EXPECT_NE(dsHash8(&val1), dsHash8(&val2));
 	EXPECT_EQ(dsHashBytes(&val1, sizeof(val1)), dsHash8(&val1));
+	EXPECT_EQ(dsHashCombineBytes(1234, &val1, sizeof(val1)), dsHashCombine8(1234, &val1));
 
 	EXPECT_FALSE(dsHash8Equal(&val1, &val2));
 	val2 = val1;
@@ -114,6 +118,7 @@ TEST(HashTest, Hash16)
 	uint16_t val2 = 456;
 	EXPECT_NE(dsHash16(&val1), dsHash16(&val2));
 	EXPECT_EQ(dsHashBytes(&val1, sizeof(val1)), dsHash16(&val1));
+	EXPECT_EQ(dsHashCombineBytes(1234, &val1, sizeof(val1)), dsHashCombine16(1234, &val1));
 
 	EXPECT_FALSE(dsHash16Equal(&val1, &val2));
 	val2 = val1;
@@ -131,6 +136,7 @@ TEST(HashTest, Hash32)
 	uint32_t val2 = 456;
 	EXPECT_NE(dsHash32(&val1), dsHash32(&val2));
 	EXPECT_EQ(dsHashBytes(&val1, sizeof(val1)), dsHash32(&val1));
+	EXPECT_EQ(dsHashCombineBytes(1234, &val1, sizeof(val1)), dsHashCombine32(1234, &val1));
 
 	EXPECT_FALSE(dsHash32Equal(&val1, &val2));
 	val2 = val1;
@@ -148,6 +154,7 @@ TEST(HashTest, Hash64)
 	uint64_t val2 = 456;
 	EXPECT_NE(dsHash64(&val1), dsHash64(&val2));
 	EXPECT_EQ(dsHashBytes(&val1, sizeof(val1)), dsHash64(&val1));
+	EXPECT_EQ(dsHashCombineBytes(1234, &val1, sizeof(val1)), dsHashCombine64(1234, &val1));
 
 	EXPECT_FALSE(dsHash64Equal(&val1, &val2));
 	val2 = val1;
@@ -165,6 +172,7 @@ TEST(HashTest, HashSizeT)
 	size_t val2 = 456;
 	EXPECT_NE(dsHashSizeT(&val1), dsHashSizeT(&val2));
 	EXPECT_EQ(dsHashBytes(&val1, sizeof(val1)), dsHashSizeT(&val1));
+	EXPECT_EQ(dsHashCombineBytes(1234, &val1, sizeof(val1)), dsHashCombineSizeT(1234, &val1));
 
 	EXPECT_FALSE(dsHashSizeTEqual(&val1, &val2));
 	val2 = val1;
@@ -182,6 +190,7 @@ TEST(HashTest, HashPointer)
 	void* val2 = (void*)456;
 	EXPECT_NE(dsHashPointer(val1), dsHashPointer(val2));
 	EXPECT_EQ(dsHashBytes(&val1, sizeof(val1)), dsHashPointer(val1));
+	EXPECT_EQ(dsHashCombineBytes(1234, &val1, sizeof(val1)), dsHashCombinePointer(1234, val1));
 
 	EXPECT_FALSE(dsHashPointerEqual(val1, val2));
 	val2 = val1;
@@ -201,6 +210,7 @@ TEST(HashTest, HashFloat)
 	EXPECT_NE(dsHashFloat(&val1), dsHashFloat(&val2));
 	EXPECT_NE(dsHash32(&val2), dsHash32(&val3));
 	EXPECT_EQ(dsHashFloat(&val2), dsHashFloat(&val3));
+	EXPECT_EQ(dsHashCombineBytes(1234, &val1, sizeof(val1)), dsHashCombineFloat(1234, &val1));
 
 	EXPECT_FALSE(dsHashFloatEqual(&val1, &val2));
 	EXPECT_FALSE(dsHash32Equal(&val2, &val3));
@@ -222,6 +232,7 @@ TEST(HashTest, HashDouble)
 	EXPECT_NE(dsHashDouble(&val1), dsHashDouble(&val2));
 	EXPECT_NE(dsHash64(&val2), dsHash64(&val3));
 	EXPECT_EQ(dsHashDouble(&val2), dsHashDouble(&val3));
+	EXPECT_EQ(dsHashCombineBytes(1234, &val1, sizeof(val1)), dsHashCombineDouble(1234, &val1));
 
 	EXPECT_FALSE(dsHashDoubleEqual(&val1, &val2));
 	EXPECT_FALSE(dsHash64Equal(&val2, &val3));

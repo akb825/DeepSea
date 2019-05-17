@@ -33,12 +33,12 @@ uint32_t dsVkPipeline_hash(uint32_t samples, float defaultAnisotropy,
 	uint32_t subpass)
 {
 	uint32_t hash = dsHash32(&samples);
-	hash = dsHashCombine(hash, dsHashFloat(&defaultAnisotropy));
+	hash = dsHashCombineFloat(hash, &defaultAnisotropy);
 	uint32_t primitiveType32 = primitiveType;
-	hash = dsHashCombine(hash, dsHash32(&primitiveType32));
+	hash = dsHashCombine32(hash, &primitiveType32);
 	hash = dsHashCombine(hash, vertexFormatHash);
-	hash = dsHashCombine(hash, dsHashPointer(renderPass));
-	return dsHashCombine(hash, dsHash32(&subpass));
+	hash = dsHashCombinePointer(hash, renderPass);
+	return dsHashCombine32(hash, &subpass);
 }
 
 dsVkPipeline* dsVkPipeline_create(dsAllocator* allocator, dsShader* shader,

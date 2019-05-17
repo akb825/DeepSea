@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2019 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -508,6 +508,14 @@ uint32_t dsHashString(const void* string)
 	return dsHashBytes(string, strlen((const char*)string));
 }
 
+uint32_t dsHashCombineString(uint32_t seed, const void* string)
+{
+	if (!string)
+		return seed;
+
+	return dsHashCombineBytes(seed, string, strlen((const char*)string));
+}
+
 bool dsHashStringEqual(const void* first, const void* second)
 {
 	if (first == second)
@@ -522,6 +530,12 @@ uint32_t dsHash8(const void* ptr)
 {
 	uint8_t value = ptr ? *(const uint8_t*)ptr : 0;
 	return hashBytesSmall(DEFAULT_SEED, &value, sizeof(uint8_t));
+}
+
+uint32_t dsHashCombine8(uint32_t seed, const void* ptr)
+{
+	uint8_t value = ptr ? *(const uint8_t*)ptr : 0;
+	return hashBytesSmall(seed, &value, sizeof(uint8_t));
 }
 
 bool dsHash8Equal(const void* first, const void* second)
@@ -540,6 +554,12 @@ uint32_t dsHash16(const void* ptr)
 	return hashBytesSmall(DEFAULT_SEED, &value, sizeof(uint16_t));
 }
 
+uint32_t dsHashCombine16(uint32_t seed, const void* ptr)
+{
+	uint16_t value = ptr ? *(const uint16_t*)ptr : 0;
+	return hashBytesSmall(seed, &value, sizeof(uint16_t));
+}
+
 bool dsHash16Equal(const void* first, const void* second)
 {
 	if (first == second)
@@ -556,6 +576,12 @@ uint32_t dsHash32(const void* ptr)
 	return hashBytes32(DEFAULT_SEED, &value, sizeof(uint32_t));
 }
 
+uint32_t dsHashCombine32(uint32_t seed, const void* ptr)
+{
+	uint32_t value = ptr ? *(const uint32_t*)ptr : 0;
+	return hashBytes32(seed, &value, sizeof(uint32_t));
+}
+
 bool dsHash32Equal(const void* first, const void* second)
 {
 	if (first == second)
@@ -570,6 +596,12 @@ uint32_t dsHash64(const void* ptr)
 {
 	uint64_t value = ptr ? *(const uint64_t*)ptr : 0;
 	return hashBytes64(DEFAULT_SEED, &value, sizeof(uint64_t));
+}
+
+uint32_t dsHashCombine64(uint32_t seed, const void* ptr)
+{
+	uint64_t value = ptr ? *(const uint64_t*)ptr : 0;
+	return hashBytes64(seed, &value, sizeof(uint64_t));
 }
 
 bool dsHash64Equal(const void* first, const void* second)
@@ -590,6 +622,17 @@ uint32_t dsHashSizeT(const void* ptr)
 #else
 	DS_STATIC_ASSERT(sizeof(size_t) == sizeof(uint32_t), unexpected_sizeof_size_t);
 	return dsHash32(ptr);
+#endif
+}
+
+uint32_t dsHashCombineSizeT(uint32_t seed, const void* ptr)
+{
+#if DS_64BIT
+	DS_STATIC_ASSERT(sizeof(size_t) == sizeof(uint64_t), unexpected_sizeof_size_t);
+	return dsHashCombine64(seed, ptr);
+#else
+	DS_STATIC_ASSERT(sizeof(size_t) == sizeof(uint32_t), unexpected_sizeof_size_t);
+	return dsHashCombine32(seed, ptr);
 #endif
 }
 
@@ -614,6 +657,17 @@ uint32_t dsHashPointer(const void* ptr)
 #endif
 }
 
+uint32_t dsHashCombinePointer(uint32_t seed, const void* ptr)
+{
+#if DS_64BIT
+	DS_STATIC_ASSERT(sizeof(void*) == sizeof(uint64_t), unexpected_sizeof_void_ptr);
+	return dsHashCombine64(seed, &ptr);
+#else
+	DS_STATIC_ASSERT(sizeof(void*) == sizeof(uint32_t), unexpected_sizeof_void_ptr);
+	return dsHashCombine32(seed, &ptr);
+#endif
+}
+
 bool dsHashPointerEqual(const void* first, const void* second)
 {
 	return first == second;
@@ -625,6 +679,14 @@ uint32_t dsHashFloat(const void* ptr)
 	// Handle -0
 	value = value != 0.0f ? value : 0.0f;
 	return hashBytes32(DEFAULT_SEED, &value, sizeof(uint32_t));
+}
+
+uint32_t dsHashCombineFloat(uint32_t seed, const void* ptr)
+{
+	float value = ptr ? *(const float*)ptr : 0;
+	// Handle -0
+	value = value != 0.0f ? value : 0.0f;
+	return hashBytes32(seed, &value, sizeof(uint32_t));
 }
 
 bool dsHashFloatEqual(const void* first, const void* second)
@@ -642,7 +704,15 @@ uint32_t dsHashDouble(const void* ptr)
 	double value = ptr ? *(const double*)ptr : 0;
 	// Handle -0
 	value = value != 0.0 ? value : 0.0;
-	return dsHashBytes(&value, sizeof(double));
+	return hashBytes64(DEFAULT_SEED, &value, sizeof(double));
+}
+
+uint32_t dsHashCombineDouble(uint32_t seed, const void* ptr)
+{
+	double value = ptr ? *(const double*)ptr : 0;
+	// Handle -0
+	value = value != 0.0 ? value : 0.0;
+	return hashBytes64(seed, &value, sizeof(double));
 }
 
 bool dsHashDoubleEqual(const void* first, const void* second)

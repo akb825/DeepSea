@@ -292,10 +292,10 @@ uint32_t dsMTLPipeline_hash(uint32_t samples, dsPrimitiveType primitiveType,
 	const dsMTLRenderPass* mtlRenderPass = (const dsMTLRenderPass*)renderPass;
 	uint32_t hash = dsHash32(&samples);
 	uint32_t primitiveType32 = normalizePrimitiveType(primitiveType);
-	hash = dsHashCombine(hash, dsHash32(&primitiveType32));
+	hash = dsHashCombine32(hash, &primitiveType32);
 	hash = dsHashCombine(hash, vertexFormatHash);
-	hash = dsHashCombine(hash, dsHashPointer(mtlRenderPass->lifetime));
-	return dsHashCombine(hash, dsHash32(&subpass));
+	hash = dsHashCombinePointer(hash, mtlRenderPass->lifetime);
+	return dsHashCombine32(hash, &subpass);
 }
 
 dsMTLPipeline* dsMTLPipeline_create(dsAllocator* allocator, dsShader* shader, uint32_t hash,
