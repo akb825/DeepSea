@@ -157,11 +157,7 @@ uint32_t dsHashBytes(const void* buffer, size_t size)
 	return dsHashCombineBytes(DEFAULT_SEED, buffer, size);
 }
 
-// Optimization on 32-bit ARM with Clang (e.g. Android) causes unaligned access.
-#if DS_ARM_32 && DS_CLANG
-__attribute__((optnone))
-#endif
-uint32_t dsHashCombineBytes(uint32_t seed, const void* buffer, size_t size)
+uint32_t dsHashCombineBytesAligned(uint32_t seed, const void* buffer, size_t size)
 {
 	// https://github.com/aappleby/smhasher/blob/master/src/MurmurHash3.cpp
 	DS_ASSERT(buffer);
@@ -175,7 +171,7 @@ uint32_t dsHashCombineBytes(uint32_t seed, const void* buffer, size_t size)
 
 	//----------
 	// body
-	const uint32_t* blocks = (const uint32_t*)data;
+	const uint32_t* blocks = (const uint32_t*)buffer;
 	for (size_t i = 0; i < nblocks; ++i)
 	{
 		uint32_t k1 = blocks[i];
@@ -209,6 +205,68 @@ uint32_t dsHashCombineBytes(uint32_t seed, const void* buffer, size_t size)
 	h1 ^= (uint32_t)size;
 
 	return fmix32(h1);
+}
+
+uint32_t dsHashCombineBytesUnaligned(uint32_t seed, const void* buffer, size_t size)
+{
+	// https://github.com/aappleby/smhasher/blob/master/src/MurmurHash3.cpp
+	DS_ASSERT(buffer);
+	const uint8_t* data = (const uint8_t*)buffer;
+	const size_t nblocks = size/4;
+
+	uint32_t h1 = seed;
+
+	const uint32_t c1 = 0xcc9e2d51;
+	const uint32_t c2 = 0x1b873593;
+
+	//----------
+	// body
+	for (size_t i = 0; i < nblocks; ++i)
+	{
+		// Use memcpy to allow unaligned access. Need to access from a uint8_t*, otherwise the
+		// compiler will assume a uint32_t* is aligned to 4 bytes and optimize out the memcpy.
+		uint32_t k1;
+		memcpy(&k1, buffer + i*sizeof(uint32_t), sizeof(uint32_t));
+
+		k1 *= c1;
+		k1 = rotl32(k1, 15);
+		k1 *= c2;
+
+		h1 ^= k1;
+		h1 = rotl32(h1, 13);
+		h1 = h1 * 5 + 0xe6546b64;
+	}
+
+	//----------
+	// tail
+
+	const uint8_t* tail = (const uint8_t*)(data + nblocks*4);
+	uint32_t k1 = 0;
+
+	switch (size & 3)
+	{
+		case 3: k1 ^= tail[2] << 16;
+		case 2: k1 ^= tail[1] << 8;
+		case 1: k1 ^= tail[0];
+		k1 *= c1; k1 = rotl32(k1, 15); k1 *= c2; h1 ^= k1;
+	};
+
+	//----------
+	// finalization
+
+	h1 ^= (uint32_t)size;
+
+	return fmix32(h1);
+}
+
+uint32_t dsHashCombineBytes(uint32_t seed, const void* buffer, size_t size)
+{
+	// Choose the implementation based on the alignment. Depending on the platform it may have no
+	// difference or a small improvement. (~1-2%) It's simple enough that might as well.
+	if (((size_t)buffer & 3) == 0)
+		return dsHashCombineBytesAligned(seed, buffer, size);
+	else
+		return dsHashCombineBytesUnaligned(seed, buffer, size);
 }
 
 #if DS_64BIT
@@ -312,6 +370,7 @@ void dsHashCombineBytes128(void* outResult, const void* seed, const void* buffer
 	DS_ASSERT(outResult);
 	DS_ASSERT(seed);
 	DS_ASSERT(buffer);
+	DS_ASSERT(((size_t)buffer & 3) == 0); // Some architectures don't allow unaligned access.
 	const uint8_t* data = (const uint8_t*)buffer;
 	const size_t nblocks = size/16;
 
