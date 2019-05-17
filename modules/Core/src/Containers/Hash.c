@@ -113,6 +113,45 @@ static uint32_t hashBytes32(uint32_t seed, const void* buffer, size_t size)
 	return fmix32(h1);
 }
 
+static uint32_t hashBytes64(uint32_t seed, const void* buffer, size_t size)
+{
+	// Two iterations of dsHashCombineBytes().
+	DS_ASSERT(buffer);
+	DS_ASSERT(size == sizeof(uint64_t));
+	const uint32_t* block = (const uint32_t*)buffer;
+	uint32_t h1 = seed;
+
+	const uint32_t c1 = 0xcc9e2d51;
+	const uint32_t c2 = 0x1b873593;
+
+	uint32_t k1 = block[0];
+
+	k1 *= c1;
+	k1 = rotl32(k1, 15);
+	k1 *= c2;
+
+	h1 ^= k1;
+	h1 = rotl32(h1, 13);
+	h1 = h1 * 5 + 0xe6546b64;
+
+	k1 = block[1];
+
+	k1 *= c1;
+	k1 = rotl32(k1, 15);
+	k1 *= c2;
+
+	h1 ^= k1;
+	h1 = rotl32(h1, 13);
+	h1 = h1 * 5 + 0xe6546b64;
+
+	//----------
+	// finalization
+
+	h1 ^= (uint32_t)size;
+
+	return fmix32(h1);
+}
+
 uint32_t dsHashBytes(const void* buffer, size_t size)
 {
 	return dsHashCombineBytes(DEFAULT_SEED, buffer, size);
@@ -471,7 +510,7 @@ bool dsHash32Equal(const void* first, const void* second)
 uint32_t dsHash64(const void* ptr)
 {
 	uint64_t value = ptr ? *(const uint64_t*)ptr : 0;
-	return dsHashBytes(&value, sizeof(uint64_t));
+	return hashBytes64(DEFAULT_SEED, &value, sizeof(uint64_t));
 }
 
 bool dsHash64Equal(const void* first, const void* second)
