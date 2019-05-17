@@ -337,7 +337,7 @@ void dsGLCommandBuffer_shutdown(dsCommandBuffer* commandBuffer)
 void dsGLCommandBuffer_reset(dsCommandBuffer* commandBuffer)
 {
 	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
-	return functions->resetCommandBuffer(commandBuffer);
+	functions->resetCommandBuffer(commandBuffer);
 }
 
 bool dsGLCommandBuffer_copyBufferData(dsCommandBuffer* commandBuffer, dsGfxBuffer* buffer,

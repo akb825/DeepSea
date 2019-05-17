@@ -226,7 +226,7 @@ uint32_t dsHashCombineBytesUnaligned(uint32_t seed, const void* buffer, size_t s
 		// Use memcpy to allow unaligned access. Need to access from a uint8_t*, otherwise the
 		// compiler will assume a uint32_t* is aligned to 4 bytes and optimize out the memcpy.
 		uint32_t k1;
-		memcpy(&k1, buffer + i*sizeof(uint32_t), sizeof(uint32_t));
+		memcpy(&k1, data + i*sizeof(uint32_t), sizeof(uint32_t));
 
 		k1 *= c1;
 		k1 = rotl32(k1, 15);
@@ -370,7 +370,6 @@ void dsHashCombineBytes128(void* outResult, const void* seed, const void* buffer
 	DS_ASSERT(outResult);
 	DS_ASSERT(seed);
 	DS_ASSERT(buffer);
-	DS_ASSERT(((size_t)buffer & 3) == 0); // Some architectures don't allow unaligned access.
 	const uint8_t* data = (const uint8_t*)buffer;
 	const size_t nblocks = size/16;
 
@@ -387,45 +386,44 @@ void dsHashCombineBytes128(void* outResult, const void* seed, const void* buffer
 	//----------
 	// body
 
-	const uint32_t* blocks = (const uint32_t*)(data + nblocks*16);
+	const uint8_t* blocks = data + nblocks*16;
 	for (size_t i = -nblocks; i; i++)
 	{
-		uint32_t k1 = blocks[i*4];
-		uint32_t k2 = blocks[i*4 + 1];
-		uint32_t k3 = blocks[i*4 + 2];
-		uint32_t k4 = blocks[i*4 + 3];
+		// Use memcpy to avoid potentially unaligned access.
+		uint32_t k[4];
+		memcpy(k, blocks + i*4*sizeof(uint32_t), sizeof(k));
 
-		k1 *= c1;
-		k1 = rotl32(k1, 15);
-		k1 *= c2;
-		h1 ^= k1;
+		k[0] *= c1;
+		k[0] = rotl32(k[0], 15);
+		k[0] *= c2;
+		h1 ^= k[0];
 
 		h1 = rotl32(h1, 19);
 		h1 += h2;
 		h1 = h1*5+0x561ccd1b;
 
-		k2 *= c2;
-		k2 = rotl32(k2, 16);
-		k2 *= c3;
-		h2 ^= k2;
+		k[1] *= c2;
+		k[1] = rotl32(k[1], 16);
+		k[1] *= c3;
+		h2 ^= k[1];
 
 		h2 = rotl32(h2, 17);
 		h2 += h3;
 		h2 = h2*5+0x0bcaa747;
 
-		k3 *= c3;
-		k3 = rotl32(k3, 17);
-		k3 *= c4;
-		h3 ^= k3;
+		k[2] *= c3;
+		k[2] = rotl32(k[2], 17);
+		k[2] *= c4;
+		h3 ^= k[2];
 
 		h3 = rotl32(h3, 15);
 		h3 += h4;
 		h3 = h3*5+0x96cd1c35;
 
-		k4 *= c4;
-		k4 = rotl32(k4, 18);
-		k4 *= c1;
-		h4 ^= k4;
+		k[3] *= c4;
+		k[3] = rotl32(k[3], 18);
+		k[3] *= c1;
+		h4 ^= k[3];
 
 		h4 = rotl32(h4, 13);
 		h4 += h1;
