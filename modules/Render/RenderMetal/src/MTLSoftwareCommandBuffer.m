@@ -38,7 +38,9 @@ typedef enum CommandType
 	CommandType_SetRenderStates,
 	CommandType_BindComputePushConstants,
 	CommandType_BindComputeBufferUniform,
-	CommandType_BindComputeTextureUniform
+	CommandType_BindComputeTextureUniform,
+	CommandType_BeginRenderPass,
+	CommandType_EndRenderPass
 } CommandType;
 
 typedef struct Command
@@ -133,6 +135,13 @@ typedef struct BindComputeTextureUniformCommand
 	size_t offset;
 	uint32_t index;
 } BindComputeTextureUniformCommand;
+
+typedef struct BeginRenderPassCommand
+{
+	Command command;
+	CFTypeRef renderPass;
+	dsAlignedBox3f viewport;
+} BeginRenderPassCommand;
 
 static Command* allocateCommand(dsCommandBuffer* commandBuffer, CommandType type, size_t size)
 {
@@ -239,6 +248,14 @@ void dsMTLSoftwareCommandBuffer_clear(dsCommandBuffer* commandBuffer)
 					CFRelease(thisCommand->sampler);
 				break;
 			}
+			case CommandType_BeginRenderPass:
+			{
+				BeginRenderPassCommand* thisCommand = (BeginRenderPassCommand*)command;
+				CFRelease(thisCommand->renderPass);
+				break;
+			}
+			case CommandType_EndRenderPass:
+				break;
 			default:
 				DS_ASSERT(false);
 		}
@@ -350,6 +367,19 @@ bool dsMTLSoftwareCommandBuffer_submit(dsCommandBuffer* commandBuffer,
 				result = dsMTLCommandBuffer_bindComputeTextureUniform(commandBuffer,
 					(__bridge id<MTLTexture>)thisCommand->texture,
 					(__bridge id<MTLSamplerState>)thisCommand->sampler, thisCommand->index);
+				break;
+			}
+			case CommandType_BeginRenderPass:
+			{
+				BeginRenderPassCommand* thisCommand = (BeginRenderPassCommand*)command;
+				result = dsMTLCommandBuffer_beginRenderPass(commandBuffer,
+					(__bridge MTLRenderPassDescriptor*)thisCommand->renderPass,
+					&thisCommand->viewport);
+				break;
+			}
+			case CommandType_EndRenderPass:
+			{
+				result = dsMTLCommandBuffer_endRenderPass(commandBuffer);
 				break;
 			}
 			default:
@@ -627,6 +657,25 @@ bool dsMTLSoftwareCommandBuffer_bindComputeTextureUniform(dsCommandBuffer* comma
 	return true;
 }
 
+bool dsMTLSoftwareCommandBuffer_beginRenderPass(dsCommandBuffer* commandBuffer,
+	MTLRenderPassDescriptor* renderPass, const dsAlignedBox3f* viewport)
+{
+	BeginRenderPassCommand* command =
+		(BeginRenderPassCommand*)allocateCommand(commandBuffer,
+			CommandType_BeginRenderPass, sizeof(BeginRenderPassCommand));
+	if (!command)
+		return false;
+
+	command->renderPass = CFBridgingRetain(renderPass);
+	command->viewport = *viewport;
+	return true;
+}
+
+bool dsMTLSoftwareCommandBuffer_endRenderPass(dsCommandBuffer* commandBuffer)
+{
+	return allocateCommand(commandBuffer, CommandType_EndRenderPass, sizeof(Command)) != NULL;
+}
+
 static dsMTLCommandBufferFunctionTable softwareCommandBufferFunctions =
 {
 	&dsMTLSoftwareCommandBuffer_clear,
@@ -643,7 +692,9 @@ static dsMTLCommandBufferFunctionTable softwareCommandBufferFunctions =
 	&dsMTLSoftwareCommandBuffer_setRenderStates,
 	&dsMTLSoftwareCommandBuffer_bindComputePushConstants,
 	&dsMTLSoftwareCommandBuffer_bindComputeBufferUniform,
-	&dsMTLSoftwareCommandBuffer_bindComputeTextureUniform
+	&dsMTLSoftwareCommandBuffer_bindComputeTextureUniform,
+	&dsMTLSoftwareCommandBuffer_beginRenderPass,
+	&dsMTLSoftwareCommandBuffer_endRenderPass
 };
 
 void dsMTLSoftwareCommandBuffer_initialize(dsMTLSoftwareCommandBuffer* commandBuffer,

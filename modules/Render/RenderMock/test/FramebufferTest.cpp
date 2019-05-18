@@ -49,11 +49,11 @@ TEST_F(FramebufferTest, Create)
 
 	dsFramebufferSurface surfaces[] =
 	{
-		{dsGfxSurfaceType_Texture, dsCubeFace_None, 0, 0, offscreen},
+		{dsGfxSurfaceType_Offscreen, dsCubeFace_None, 0, 0, offscreen},
 		{dsGfxSurfaceType_Renderbuffer, dsCubeFace_None, 0, 0, depthBuffer},
 		{dsGfxSurfaceType_ColorRenderSurface, dsCubeFace_None, 0, 0, renderSurface},
 		{dsGfxSurfaceType_DepthRenderSurface, dsCubeFace_None, 0, 0, renderSurface},
-		{dsGfxSurfaceType_Texture, dsCubeFace_None, 0, 0, texture}
+		{dsGfxSurfaceType_Offscreen, dsCubeFace_None, 0, 0, texture}
 	};
 
 	EXPECT_FALSE(dsFramebuffer_create(resourceManager, NULL, "test", surfaces,
@@ -88,8 +88,8 @@ TEST_F(FramebufferTest, CreateLayers)
 
 	dsFramebufferSurface surfaces[] =
 	{
-		{dsGfxSurfaceType_Texture, dsCubeFace_None, 15, 0, offscreen1},
-		{dsGfxSurfaceType_Texture, dsCubeFace_None, 0, 0, offscreen2}
+		{dsGfxSurfaceType_Offscreen, dsCubeFace_None, 15, 0, offscreen1},
+		{dsGfxSurfaceType_Offscreen, dsCubeFace_None, 0, 0, offscreen2}
 	};
 
 	EXPECT_FALSE(dsFramebuffer_create(resourceManager, NULL, "test", surfaces,
@@ -119,8 +119,8 @@ TEST_F(FramebufferTest, CreateMipmaps)
 
 	dsFramebufferSurface surfaces[] =
 	{
-		{dsGfxSurfaceType_Texture, dsCubeFace_None, 0, 2, offscreen1},
-		{dsGfxSurfaceType_Texture, dsCubeFace_None, 0, 0, offscreen2}
+		{dsGfxSurfaceType_Offscreen, dsCubeFace_None, 0, 2, offscreen1},
+		{dsGfxSurfaceType_Offscreen, dsCubeFace_None, 0, 0, offscreen2}
 	};
 
 	EXPECT_FALSE(dsFramebuffer_create(resourceManager, NULL, "test", surfaces,

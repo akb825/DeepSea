@@ -388,7 +388,7 @@ typedef enum dsGfxSurfaceType
 	dsGfxSurfaceType_DepthRenderSurfaceLeft,
 	/// The right depth/stencil portion of a render surface.
 	dsGfxSurfaceType_DepthRenderSurfaceRight,
-	dsGfxSurfaceType_Texture,                 ///< Texture or offscreen.
+	dsGfxSurfaceType_Offscreen,               ///< Offscreen texture.
 	dsGfxSurfaceType_Renderbuffer             ///< Color or depth renderbuffer.
 } dsGfxSurfaceType;
 

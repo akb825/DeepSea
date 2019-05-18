@@ -27,6 +27,7 @@
 #import <Metal/MTLCommandBuffer.h>
 #import <Metal/MTLDevice.h>
 #import <Metal/MTLPixelFormat.h>
+#import <Metal/MTLRenderPass.h>
 #import <Metal/MTLVertexDescriptor.h>
 
 // This is used by SPIRV-Cross to create the shader.
@@ -176,11 +177,25 @@ typedef struct dsMTLShader
 	CFTypeRef computePipeline;
 } dsMTLShader;
 
+typedef struct dsMTLAttachmentInfo
+{
+	MTLLoadAction loadAction;
+	MTLStoreAction storeAction;
+} dsMTLAttachmentInfo;
+
+typedef struct dsMTLSubpassInfo
+{
+	dsMTLAttachmentInfo* colorAttachments;
+	dsMTLAttachmentInfo depthStencilAttachment;
+} dsMTLSubpassInfo;
+
 typedef struct dsMTLRenderPass
 {
 	dsRenderPass renderPass;
 	dsAllocator* scratchAllocator;
 	dsLifetime* lifetime;
+
+	dsMTLSubpassInfo* subpassInfos;
 
 	dsLifetime** usedShaders;
 	uint32_t usedShaderCount;
@@ -222,6 +237,10 @@ typedef bool (*BindComputeBufferUniformFunction)(dsCommandBuffer* commandBuffer,
 typedef bool (*BindComputeTextureUniformFunction)(dsCommandBuffer* commandBuffer,
 	id<MTLTexture> texture, id<MTLSamplerState> sampler, uint32_t index);
 
+typedef bool (*BeginRenderPassFunction)(dsCommandBuffer* commandBuffer,
+	MTLRenderPassDescriptor* renderPass, const dsAlignedBox3f* viewport);
+typedef bool (*EndRenderPassFunction)(dsCommandBuffer* commandBuffer);
+
 typedef struct dsMTLCommandBufferFunctionTable
 {
 	ClearCommandBufferFunction clearFunc;
@@ -243,6 +262,9 @@ typedef struct dsMTLCommandBufferFunctionTable
 	BindComputePushConstantsFunction bindComputePushConstantsFunc;
 	BindComputeBufferUniformFunction bindComputeBufferUniformFunc;
 	BindComputeTextureUniformFunction bindComputeTextureUniformFunc;
+
+	BeginRenderPassFunction beginRenderPassFunc;
+	EndRenderPassFunction endRenderPassFunc;
 } dsMTLCommandBufferFunctionTable;
 
 typedef struct dsMTLCommandBuffer
@@ -260,6 +282,12 @@ typedef struct dsMTLCommandBuffer
 
 	uint8_t* pushConstantData;
 	uint32_t maxPushConstantDataSize;
+
+	dsSurfaceClearValue* clearValues;
+	uint32_t clearValueCount;
+	uint32_t maxClearValues;
+
+	dsAlignedBox3f viewport;
 
 	bool fenceSet;
 } dsMTLCommandBuffer;

@@ -22,6 +22,7 @@
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Core/Profile.h>
+#include <DeepSea/Render/Resources/Framebuffer.h>
 #include <DeepSea/Render/Resources/GfxFormat.h>
 #include <stdio.h>
 
@@ -196,7 +197,7 @@ static SurfaceType getSurfaceType(dsGfxSurfaceType surfaceType)
 		case dsGfxSurfaceType_ColorRenderSurfaceRight:
 		case dsGfxSurfaceType_DepthRenderSurfaceRight:
 			return SurfaceType_Right;
-		case dsGfxSurfaceType_Texture:
+		case dsGfxSurfaceType_Offscreen:
 		case dsGfxSurfaceType_Renderbuffer:
 			return SurfaceType_Other;
 		default:
@@ -214,28 +215,6 @@ static bool hasMultipleSurfaceTypes(SurfaceType surfaceType)
 	return count > 1;
 }
 
-static dsGfxFormat getSurfaceFormat(dsRenderer* renderer, const dsFramebufferSurface* surface)
-{
-	switch (surface->surfaceType)
-	{
-		case dsGfxSurfaceType_ColorRenderSurface:
-		case dsGfxSurfaceType_ColorRenderSurfaceLeft:
-		case dsGfxSurfaceType_ColorRenderSurfaceRight:
-			return renderer->surfaceColorFormat;
-		case dsGfxSurfaceType_DepthRenderSurface:
-		case dsGfxSurfaceType_DepthRenderSurfaceLeft:
-		case dsGfxSurfaceType_DepthRenderSurfaceRight:
-			return renderer->surfaceDepthStencilFormat;
-		case dsGfxSurfaceType_Texture:
-			return ((dsOffscreen*)surface->surface)->info.format;
-		case dsGfxSurfaceType_Renderbuffer:
-			return ((dsRenderbuffer*)surface->surface)->format;
-		default:
-			DS_ASSERT(false);
-			return dsGfxFormat_Unknown;
-	}
-}
-
 static uint32_t getSurfaceSamples(dsRenderer* renderer, const dsFramebufferSurface* surface)
 {
 	switch (surface->surfaceType)
@@ -247,7 +226,7 @@ static uint32_t getSurfaceSamples(dsRenderer* renderer, const dsFramebufferSurfa
 		case dsGfxSurfaceType_DepthRenderSurfaceLeft:
 		case dsGfxSurfaceType_DepthRenderSurfaceRight:
 			return renderer->surfaceSamples;
-		case dsGfxSurfaceType_Texture:
+		case dsGfxSurfaceType_Offscreen:
 			return ((dsOffscreen*)surface->surface)->info.samples;
 		case dsGfxSurfaceType_Renderbuffer:
 			return ((dsRenderbuffer*)surface->surface)->samples;
@@ -269,7 +248,7 @@ static bool canResolveSurface(const dsFramebufferSurface* surface)
 		case dsGfxSurfaceType_DepthRenderSurfaceLeft:
 		case dsGfxSurfaceType_DepthRenderSurfaceRight:
 			return false;
-		case dsGfxSurfaceType_Texture:
+		case dsGfxSurfaceType_Offscreen:
 			return ((const dsOffscreen*)surface->surface)->resolve;
 		case dsGfxSurfaceType_Renderbuffer:
 			return false;
@@ -289,7 +268,7 @@ static bool canKeepRenderbuffer(const dsFramebufferSurface* surface)
 		case dsGfxSurfaceType_DepthRenderSurface:
 		case dsGfxSurfaceType_DepthRenderSurfaceLeft:
 		case dsGfxSurfaceType_DepthRenderSurfaceRight:
-		case dsGfxSurfaceType_Texture:
+		case dsGfxSurfaceType_Offscreen:
 			return true;
 		case dsGfxSurfaceType_Renderbuffer:
 		{
@@ -315,7 +294,7 @@ static bool canContinueOffscreen(const dsFramebufferSurface* surface)
 		case dsGfxSurfaceType_DepthRenderSurfaceRight:
 		case dsGfxSurfaceType_Renderbuffer:
 			return false;
-		case dsGfxSurfaceType_Texture:
+		case dsGfxSurfaceType_Offscreen:
 		{
 			const dsOffscreen* offscreen = (const dsOffscreen*)surface->surface;
 			return (offscreen->usage & dsTextureUsage_OffscreenContinue) != 0;
@@ -552,7 +531,7 @@ bool dsRenderPass_begin(const dsRenderPass* renderPass, dsCommandBuffer* command
 	bool needsClear = false;
 	for (uint32_t i = 0; i < framebuffer->surfaceCount; ++i)
 	{
-		if (getSurfaceFormat(renderer, framebuffer->surfaces + i) !=
+		if (dsFramebuffer_getSurfaceFormat(renderer, framebuffer->surfaces + i) !=
 			renderPass->attachments[i].format)
 		{
 			errno = EINVAL;
@@ -609,7 +588,7 @@ bool dsRenderPass_begin(const dsRenderPass* renderPass, dsCommandBuffer* command
 		for (uint32_t j = 0; j < subpass->inputAttachmentCount; ++j)
 		{
 			if (framebuffer->surfaces[subpass->inputAttachments[j]].surfaceType !=
-				dsGfxSurfaceType_Texture)
+				dsGfxSurfaceType_Offscreen)
 			{
 				errno = EINVAL;
 				DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Subpass inputs must be offscreens.");
@@ -687,7 +666,7 @@ bool dsRenderPass_begin(const dsRenderPass* renderPass, dsCommandBuffer* command
 	}
 
 	if ((!clearValues && clearValueCount > 0) ||
-		(clearValues != 0 && clearValueCount != renderPass->attachmentCount))
+		(clearValueCount != 0 && clearValueCount != renderPass->attachmentCount))
 	{
 		errno = EINVAL;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,

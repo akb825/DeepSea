@@ -125,7 +125,7 @@ dsFramebuffer* dsFramebuffer_create(dsResourceManager* resourceManager, dsAlloca
 				surfaceLayers = 1;
 				break;
 			}
-			case dsGfxSurfaceType_Texture:
+			case dsGfxSurfaceType_Offscreen:
 			{
 				dsOffscreen* surface = (dsOffscreen*)surfaces[i].surface;
 				if (!surface->offscreen)
@@ -241,6 +241,35 @@ dsFramebuffer* dsFramebuffer_create(dsResourceManager* resourceManager, dsAlloca
 	if (framebuffer)
 		DS_ATOMIC_FETCH_ADD32(&resourceManager->framebufferCount, 1);
 	DS_PROFILE_FUNC_RETURN(framebuffer);
+}
+
+dsGfxFormat dsFramebuffer_getSurfaceFormat(const dsRenderer* renderer,
+	const dsFramebufferSurface* surface)
+{
+	if (!renderer || !surface)
+	{
+		errno = EINVAL;
+		return dsGfxFormat_Unknown;
+	}
+
+	switch (surface->surfaceType)
+	{
+		case dsGfxSurfaceType_ColorRenderSurface:
+		case dsGfxSurfaceType_ColorRenderSurfaceLeft:
+		case dsGfxSurfaceType_ColorRenderSurfaceRight:
+			return renderer->surfaceColorFormat;
+		case dsGfxSurfaceType_DepthRenderSurface:
+		case dsGfxSurfaceType_DepthRenderSurfaceLeft:
+		case dsGfxSurfaceType_DepthRenderSurfaceRight:
+			return renderer->surfaceDepthStencilFormat;
+		case dsGfxSurfaceType_Offscreen:
+			return ((const dsOffscreen*)surface->surface)->info.format;
+		case dsGfxSurfaceType_Renderbuffer:
+			return ((const dsRenderbuffer*)surface->surface)->format;
+		default:
+			DS_ASSERT(false);
+			return dsGfxFormat_Unknown;
+	}
 }
 
 bool dsFramebuffer_destroy(dsFramebuffer* framebuffer)

@@ -59,6 +59,16 @@ DS_RENDER_EXPORT dsFramebuffer* dsFramebuffer_create(dsResourceManager* resource
 	uint32_t surfaceCount, uint32_t width, uint32_t height, uint32_t layers);
 
 /**
+ * @brief Gets the format for a surface.
+ * @remark errno will be set on failure.
+ * @param renderer The renderer.
+ * @param surface The framebuffer surface.
+ * @return The surface format, or dsGfxFormat_Unknown if the parameters are invalid.
+ */
+DS_RENDER_EXPORT dsGfxFormat dsFramebuffer_getSurfaceFormat(const dsRenderer* renderer,
+	const dsFramebufferSurface* surface);
+
+/**
  * @brief Destroys a framebuffer.
  * @remark errno will be set on failure.
  * @param framebuffer The framebuffer to destroy.

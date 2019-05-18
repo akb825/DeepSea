@@ -163,7 +163,7 @@ TEST_F(RendererTest, ClearColorSurface)
 	colorValue.floatValue.b = 0.0f;
 	colorValue.floatValue.a = 1.0f;
 
-	dsFramebufferSurface surface = {dsGfxSurfaceType_Texture, dsCubeFace_None, 0, 0,
+	dsFramebufferSurface surface = {dsGfxSurfaceType_Offscreen, dsCubeFace_None, 0, 0,
 		offscreen1};
 	EXPECT_FALSE(dsRenderer_clearColorSurface(NULL, commandBuffer, &surface, &colorValue));
 	EXPECT_FALSE(dsRenderer_clearColorSurface(renderer, NULL, &surface, &colorValue));
@@ -237,7 +237,7 @@ TEST_F(RendererTest, ClearDepthStencilSurface)
 	ASSERT_TRUE(renderSurface);
 
 	dsDepthStencilValue depthStencilValue = {1.0f, 0};
-	dsFramebufferSurface surface = {dsGfxSurfaceType_Texture, dsCubeFace_None, 0, 0, offscreen1};
+	dsFramebufferSurface surface = {dsGfxSurfaceType_Offscreen, dsCubeFace_None, 0, 0, offscreen1};
 	EXPECT_FALSE(dsRenderer_clearDepthStencilSurface(NULL, commandBuffer, &surface,
 		dsClearDepthStencil_Both, &depthStencilValue));
 	EXPECT_FALSE(dsRenderer_clearDepthStencilSurface(renderer, NULL, &surface,
@@ -681,8 +681,8 @@ TEST_F(RendererTest, Blit)
 		8, 4, 8, 4, 2
 	};
 
-	EXPECT_FALSE(dsRenderer_blitSurface(renderer, commandBuffer, dsGfxSurfaceType_Texture,
-		fromTexture, dsGfxSurfaceType_Texture, toTexture, &blitRegion, 1, dsBlitFilter_Nearest));
+	EXPECT_FALSE(dsRenderer_blitSurface(renderer, commandBuffer, dsGfxSurfaceType_Offscreen,
+		fromTexture, dsGfxSurfaceType_Offscreen, toTexture, &blitRegion, 1, dsBlitFilter_Nearest));
 	EXPECT_TRUE(dsTexture_destroy(fromTexture));
 	EXPECT_TRUE(dsTexture_destroy(toTexture));
 
@@ -695,8 +695,8 @@ TEST_F(RendererTest, Blit)
 		&toInfo, NULL, 0);
 	ASSERT_TRUE(toTexture);
 
-	EXPECT_FALSE(dsRenderer_blitSurface(renderer, commandBuffer, dsGfxSurfaceType_Texture,
-		fromTexture, dsGfxSurfaceType_Texture, toTexture, &blitRegion, 1, dsBlitFilter_Nearest));
+	EXPECT_FALSE(dsRenderer_blitSurface(renderer, commandBuffer, dsGfxSurfaceType_Offscreen,
+		fromTexture, dsGfxSurfaceType_Offscreen, toTexture, &blitRegion, 1, dsBlitFilter_Nearest));
 	EXPECT_TRUE(dsTexture_destroy(fromTexture));
 	EXPECT_TRUE(dsTexture_destroy(toTexture));
 
@@ -711,12 +711,12 @@ TEST_F(RendererTest, Blit)
 	ASSERT_TRUE(toTexture);
 
 	EXPECT_TRUE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0));
-	EXPECT_FALSE(dsRenderer_blitSurface(renderer, commandBuffer, dsGfxSurfaceType_Texture,
-		fromTexture, dsGfxSurfaceType_Texture, toTexture, &blitRegion, 1, dsBlitFilter_Nearest));
+	EXPECT_FALSE(dsRenderer_blitSurface(renderer, commandBuffer, dsGfxSurfaceType_Offscreen,
+		fromTexture, dsGfxSurfaceType_Offscreen, toTexture, &blitRegion, 1, dsBlitFilter_Nearest));
 	EXPECT_TRUE(dsRenderPass_end(renderPass, commandBuffer));
 
-	EXPECT_TRUE(dsRenderer_blitSurface(renderer, commandBuffer, dsGfxSurfaceType_Texture,
-		fromTexture, dsGfxSurfaceType_Texture, toTexture, &blitRegion, 1, dsBlitFilter_Nearest));
+	EXPECT_TRUE(dsRenderer_blitSurface(renderer, commandBuffer, dsGfxSurfaceType_Offscreen,
+		fromTexture, dsGfxSurfaceType_Offscreen, toTexture, &blitRegion, 1, dsBlitFilter_Nearest));
 
 	dsColor readTextureData[8*4];
 	EXPECT_TRUE(dsTexture_getData(readTextureData, sizeof(readTextureData), toTexture,
@@ -747,44 +747,44 @@ TEST_F(RendererTest, Blit)
 	}
 
 	blitRegion.srcPosition.x = 25;
-	EXPECT_FALSE(dsRenderer_blitSurface(renderer, commandBuffer, dsGfxSurfaceType_Texture,
-		fromTexture, dsGfxSurfaceType_Texture, toTexture, &blitRegion, 1, dsBlitFilter_Nearest));
+	EXPECT_FALSE(dsRenderer_blitSurface(renderer, commandBuffer, dsGfxSurfaceType_Offscreen,
+		fromTexture, dsGfxSurfaceType_Offscreen, toTexture, &blitRegion, 1, dsBlitFilter_Nearest));
 
 	blitRegion.srcPosition.x = 1;
 	blitRegion.srcPosition.y = 13;
-	EXPECT_FALSE(dsRenderer_blitSurface(renderer, commandBuffer, dsGfxSurfaceType_Texture,
-		fromTexture, dsGfxSurfaceType_Texture, toTexture, &blitRegion, 1, dsBlitFilter_Nearest));
+	EXPECT_FALSE(dsRenderer_blitSurface(renderer, commandBuffer, dsGfxSurfaceType_Offscreen,
+		fromTexture, dsGfxSurfaceType_Offscreen, toTexture, &blitRegion, 1, dsBlitFilter_Nearest));
 
 	blitRegion.srcPosition.x = 0;
 	blitRegion.srcPosition.y = 0;
 	blitRegion.srcPosition.mipLevel = 5;
-	EXPECT_FALSE(dsRenderer_blitSurface(renderer, commandBuffer, dsGfxSurfaceType_Texture,
-		fromTexture, dsGfxSurfaceType_Texture, toTexture, &blitRegion, 1, dsBlitFilter_Nearest));
+	EXPECT_FALSE(dsRenderer_blitSurface(renderer, commandBuffer, dsGfxSurfaceType_Offscreen,
+		fromTexture, dsGfxSurfaceType_Offscreen, toTexture, &blitRegion, 1, dsBlitFilter_Nearest));
 
 	blitRegion.srcPosition.mipLevel = 0;
 	blitRegion.srcPosition.depth = 3;
-	EXPECT_FALSE(dsRenderer_blitSurface(renderer, commandBuffer, dsGfxSurfaceType_Texture,
-		fromTexture, dsGfxSurfaceType_Texture, toTexture, &blitRegion, 1, dsBlitFilter_Nearest));
+	EXPECT_FALSE(dsRenderer_blitSurface(renderer, commandBuffer, dsGfxSurfaceType_Offscreen,
+		fromTexture, dsGfxSurfaceType_Offscreen, toTexture, &blitRegion, 1, dsBlitFilter_Nearest));
 
 	blitRegion.srcPosition.depth = 0;
 	blitRegion.dstPosition.x = 17;
-	EXPECT_FALSE(dsRenderer_blitSurface(renderer, commandBuffer, dsGfxSurfaceType_Texture,
-		fromTexture, dsGfxSurfaceType_Texture, toTexture, &blitRegion, 1, dsBlitFilter_Nearest));
+	EXPECT_FALSE(dsRenderer_blitSurface(renderer, commandBuffer, dsGfxSurfaceType_Offscreen,
+		fromTexture, dsGfxSurfaceType_Offscreen, toTexture, &blitRegion, 1, dsBlitFilter_Nearest));
 
 	blitRegion.dstPosition.x = 3;
 	blitRegion.dstPosition.y = 29;
-	EXPECT_FALSE(dsRenderer_blitSurface(renderer, commandBuffer, dsGfxSurfaceType_Texture,
-		fromTexture, dsGfxSurfaceType_Texture, toTexture, &blitRegion, 1, dsBlitFilter_Nearest));
+	EXPECT_FALSE(dsRenderer_blitSurface(renderer, commandBuffer, dsGfxSurfaceType_Offscreen,
+		fromTexture, dsGfxSurfaceType_Offscreen, toTexture, &blitRegion, 1, dsBlitFilter_Nearest));
 
 	blitRegion.dstPosition.y = 4;
 	blitRegion.dstPosition.mipLevel = 3;
-	EXPECT_FALSE(dsRenderer_blitSurface(renderer, commandBuffer, dsGfxSurfaceType_Texture,
-		fromTexture, dsGfxSurfaceType_Texture, toTexture, &blitRegion, 1, dsBlitFilter_Nearest));
+	EXPECT_FALSE(dsRenderer_blitSurface(renderer, commandBuffer, dsGfxSurfaceType_Offscreen,
+		fromTexture, dsGfxSurfaceType_Offscreen, toTexture, &blitRegion, 1, dsBlitFilter_Nearest));
 
 	blitRegion.dstPosition.mipLevel = 0;
 	blitRegion.dstPosition.depth = 4;
-	EXPECT_FALSE(dsRenderer_blitSurface(renderer, commandBuffer, dsGfxSurfaceType_Texture,
-		fromTexture, dsGfxSurfaceType_Texture, toTexture, &blitRegion, 1, dsBlitFilter_Nearest));
+	EXPECT_FALSE(dsRenderer_blitSurface(renderer, commandBuffer, dsGfxSurfaceType_Offscreen,
+		fromTexture, dsGfxSurfaceType_Offscreen, toTexture, &blitRegion, 1, dsBlitFilter_Nearest));
 
 	EXPECT_TRUE(dsTexture_destroy(fromTexture));
 	EXPECT_TRUE(dsTexture_destroy(toTexture));

@@ -232,7 +232,8 @@ bool dsMockRenderer_blitSurface(dsRenderer* renderer, dsCommandBuffer* commandBu
 	DS_UNUSED(commandBuffer);
 	DS_UNUSED(filter);
 
-	if (srcSurfaceType != dsGfxSurfaceType_Texture || dstSurfaceType != dsGfxSurfaceType_Texture)
+	if (srcSurfaceType != dsGfxSurfaceType_Offscreen ||
+		dstSurfaceType != dsGfxSurfaceType_Offscreen)
 	{
 		errno = EPERM;
 		DS_LOG_ERROR("render-mock",

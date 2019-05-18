@@ -77,7 +77,7 @@ static bool getImageViews(dsResourceManager* resourceManager, const dsFramebuffe
 				DS_ASSERT(resolveIndex == DS_NO_ATTACHMENT);
 				break;
 			}
-			case dsGfxSurfaceType_Texture:
+			case dsGfxSurfaceType_Offscreen:
 			{
 				dsOffscreen* offscreen = (dsOffscreen*)surface->surface;
 				dsVkTexture* vkOffscreen = (dsVkTexture*)offscreen;

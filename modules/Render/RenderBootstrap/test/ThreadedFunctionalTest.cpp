@@ -94,7 +94,8 @@ struct RenderInfo
 			dsGfxMemory_Read, &offscreenInfo, true);
 		ASSERT_TRUE(offscreen);
 
-		dsFramebufferSurface surface = {dsGfxSurfaceType_Texture, dsCubeFace_None, 0, 0, offscreen};
+		dsFramebufferSurface surface = {dsGfxSurfaceType_Offscreen, dsCubeFace_None, 0, 0,
+			offscreen};
 		framebuffer = dsFramebuffer_create(resourceManager, allocator, "WriteOffscreen", &surface,
 			1, width, height, 1);
 		ASSERT_TRUE(framebuffer);

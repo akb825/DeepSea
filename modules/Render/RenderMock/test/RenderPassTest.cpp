@@ -200,17 +200,17 @@ TEST_F(RenderPassTest, BeginNextEnd)
 	{
 		{dsGfxSurfaceType_DepthRenderSurface, dsCubeFace_None, 0, 0, renderSurface},
 		{dsGfxSurfaceType_ColorRenderSurface, dsCubeFace_None, 0, 0, renderSurface},
-		{dsGfxSurfaceType_Texture, dsCubeFace_None, 0, 0, offscreen1},
-		{dsGfxSurfaceType_Texture, dsCubeFace_None, 0, 0, offscreen2}
+		{dsGfxSurfaceType_Offscreen, dsCubeFace_None, 0, 0, offscreen1},
+		{dsGfxSurfaceType_Offscreen, dsCubeFace_None, 0, 0, offscreen2}
 	};
 	uint32_t surface1Count = DS_ARRAY_SIZE(surfaces1);
 
 	dsFramebufferSurface surfaces2[] =
 	{
-		{dsGfxSurfaceType_Texture, dsCubeFace_None, 0, 0, offscreen3},
+		{dsGfxSurfaceType_Offscreen, dsCubeFace_None, 0, 0, offscreen3},
 		{dsGfxSurfaceType_ColorRenderSurface, dsCubeFace_None, 0, 0, renderSurface},
-		{dsGfxSurfaceType_Texture, dsCubeFace_None, 0, 0, offscreen1},
-		{dsGfxSurfaceType_Texture, dsCubeFace_None, 0, 0, offscreen2}
+		{dsGfxSurfaceType_Offscreen, dsCubeFace_None, 0, 0, offscreen1},
+		{dsGfxSurfaceType_Offscreen, dsCubeFace_None, 0, 0, offscreen2}
 	};
 	uint32_t surface2Count = DS_ARRAY_SIZE(surfaces2);
 

@@ -379,7 +379,7 @@ static bool endRenderSubpass(dsGLMainCommandBuffer* commandBuffer,
 		if (attachment == DS_NO_ATTACHMENT || !subpass->colorAttachments[i].resolve)
 			continue;
 
-		if (framebuffer->surfaces[attachment].surfaceType != dsGfxSurfaceType_Texture)
+		if (framebuffer->surfaces[attachment].surfaceType != dsGfxSurfaceType_Offscreen)
 			continue;
 
 		texture = (dsTexture*)framebuffer->surfaces[attachment].surface;
@@ -463,7 +463,8 @@ static GLuint createTempRenderbuffer(dsGLMainCommandBuffer* commandBuffer, uint3
 	return renderbuffers[index].id;
 }
 
-static dsGfxFormat getSurfaceFormat(dsRenderer* renderer, dsGfxSurfaceType surfaceType, void* surface)
+static dsGfxFormat getSurfaceFormat(dsRenderer* renderer, dsGfxSurfaceType surfaceType,
+	void* surface)
 {
 	switch (surfaceType)
 	{
@@ -475,7 +476,7 @@ static dsGfxFormat getSurfaceFormat(dsRenderer* renderer, dsGfxSurfaceType surfa
 		case dsGfxSurfaceType_DepthRenderSurfaceLeft:
 		case dsGfxSurfaceType_DepthRenderSurfaceRight:
 			return renderer->surfaceDepthStencilFormat;
-		case dsGfxSurfaceType_Texture:
+		case dsGfxSurfaceType_Offscreen:
 			return ((dsTexture*)surface)->info.format;
 		case dsGfxSurfaceType_Renderbuffer:
 			return ((dsRenderbuffer*)surface)->format;
@@ -490,7 +491,7 @@ static void getSurfaceInfo(uint32_t* outWidth, uint32_t* outHeight, uint32_t* ou
 {
 	switch (surfaceType)
 	{;
-		case dsGfxSurfaceType_Texture:
+		case dsGfxSurfaceType_Offscreen:
 		{
 			dsTexture* texture = (dsTexture*)surface;
 			*outWidth = texture->info.width;
@@ -525,7 +526,7 @@ static void bindBlitSurface(GLenum framebufferType, dsGfxSurfaceType surfaceType
 {
 	switch (surfaceType)
 	{
-		case dsGfxSurfaceType_Texture:
+		case dsGfxSurfaceType_Offscreen:
 			dsGLTexture_bindFramebufferTexture((dsTexture*)surface, framebufferType, mipLevel,
 				layer);
 			break;
@@ -546,7 +547,7 @@ static void unbindBlitSurface(GLenum framebufferType, dsGfxSurfaceType surfaceTy
 {
 	switch (surfaceType)
 	{
-		case dsGfxSurfaceType_Texture:
+		case dsGfxSurfaceType_Offscreen:
 			dsGLTexture_unbindFramebuffer((dsTexture*)surface, framebufferType);
 			break;
 		case dsGfxSurfaceType_Renderbuffer:
@@ -1309,7 +1310,7 @@ bool dsGLMainCommandBuffer_endRenderPass(dsCommandBuffer* commandBuffer,
 		if (!(renderPass->attachments[i].usage & dsAttachmentUsage_Resolve))
 			continue;
 
-		if (framebuffer->surfaces[i].surfaceType != dsGfxSurfaceType_Texture)
+		if (framebuffer->surfaces[i].surfaceType != dsGfxSurfaceType_Offscreen)
 			continue;
 
 		texture = (dsTexture*)framebuffer->surfaces[i].surface;
@@ -1362,7 +1363,7 @@ bool dsGLMainCommandBuffer_clearColorSurface(dsCommandBuffer* commandBuffer,
 {
 	DS_ASSERT(surface);
 	dsGLCommandBuffer* glCommandBuffer = (dsGLCommandBuffer*)commandBuffer;
-	if (surface->surfaceType != dsGfxSurfaceType_Texture &&
+	if (surface->surfaceType != dsGfxSurfaceType_Offscreen &&
 		surface->surfaceType != dsGfxSurfaceType_Renderbuffer)
 	{
 		if (((dsGLRenderSurface*)surface->surface)->glSurface != glCommandBuffer->boundSurface)
@@ -1384,7 +1385,7 @@ bool dsGLMainCommandBuffer_clearColorSurface(dsCommandBuffer* commandBuffer,
 		DS_ASSERT(fbo);
 		glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 		dsGfxFormat format;
-		if (surface->surfaceType == dsGfxSurfaceType_Texture)
+		if (surface->surfaceType == dsGfxSurfaceType_Offscreen)
 		{
 			dsTexture* texture = (dsTexture*)surface->surface;
 			format = texture->info.format;
@@ -1410,7 +1411,7 @@ bool dsGLMainCommandBuffer_clearColorSurface(dsCommandBuffer* commandBuffer,
 		}
 
 		glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, 0, 0);
-		if (surface->surfaceType == dsGfxSurfaceType_Texture)
+		if (surface->surfaceType == dsGfxSurfaceType_Offscreen)
 		{
 			dsTexture* texture = (dsTexture*)surface->surface;
 			dsGLTexture_unbindFramebuffer(texture, GL_FRAMEBUFFER);
@@ -1458,7 +1459,7 @@ bool dsGLMainCommandBuffer_clearDepthStencilSurface(dsCommandBuffer* commandBuff
 		uint32_t width;
 		uint32_t height;
 		uint32_t samples;
-		if (surface->surfaceType == dsGfxSurfaceType_Texture)
+		if (surface->surfaceType == dsGfxSurfaceType_Offscreen)
 		{
 			dsTexture* texture = (dsTexture*)surface->surface;
 			format = texture->info.format;
@@ -1513,7 +1514,7 @@ bool dsGLMainCommandBuffer_clearDepthStencilSurface(dsCommandBuffer* commandBuff
 		}
 
 		glFramebufferTexture(GL_FRAMEBUFFER, attachment, 0, 0);
-		if (surface->surfaceType == dsGfxSurfaceType_Texture)
+		if (surface->surfaceType == dsGfxSurfaceType_Offscreen)
 		{
 			dsTexture* texture = (dsTexture*)surface->surface;
 			dsGLTexture_unbindFramebuffer(texture, GL_FRAMEBUFFER);

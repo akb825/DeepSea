@@ -98,7 +98,7 @@ static bool getBlitSurfaceInfo(dsGfxFormat* outFormat, dsTextureDim* outDim, uin
 			}
 			break;
 		}
-		case dsGfxSurfaceType_Texture:
+		case dsGfxSurfaceType_Offscreen:
 		{
 			dsTexture* realSurface = (dsTexture*)surface;
 			*outFormat = realSurface->info.format;
@@ -634,7 +634,7 @@ bool dsRenderer_clearColorSurface(dsRenderer* renderer, dsCommandBuffer* command
 		case dsGfxSurfaceType_DepthRenderSurfaceRight:
 			valid = false;
 			break;
-		case dsGfxSurfaceType_Texture:
+		case dsGfxSurfaceType_Offscreen:
 		{
 			dsOffscreen* offscreen = (dsOffscreen*)surface->surface;
 			if (!offscreen->offscreen)
@@ -732,7 +732,7 @@ bool dsRenderer_clearDepthStencilSurface(dsRenderer* renderer, dsCommandBuffer* 
 		case dsGfxSurfaceType_DepthRenderSurface:
 			valid = true;
 			break;
-		case dsGfxSurfaceType_Texture:
+		case dsGfxSurfaceType_Offscreen:
 		{
 			dsOffscreen* offscreen = (dsOffscreen*)surface->surface;
 			if (!offscreen->offscreen)

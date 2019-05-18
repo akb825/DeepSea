@@ -279,11 +279,11 @@ static bool createFramebuffer(TestRenderSubpass* testRenderSubpass)
 	dsFramebufferSurface surfaces[] =
 	{
 		{dsGfxSurfaceType_ColorRenderSurface, dsCubeFace_None, 0, 0, surface},
-		{dsGfxSurfaceType_Texture, dsCubeFace_None, 0, 0, testRenderSubpass->rColor},
+		{dsGfxSurfaceType_Offscreen, dsCubeFace_None, 0, 0, testRenderSubpass->rColor},
 		{dsGfxSurfaceType_Renderbuffer, dsCubeFace_None, 0, 0, testRenderSubpass->rDepth},
-		{dsGfxSurfaceType_Texture, dsCubeFace_None, 0, 0, testRenderSubpass->gColor},
+		{dsGfxSurfaceType_Offscreen, dsCubeFace_None, 0, 0, testRenderSubpass->gColor},
 		{dsGfxSurfaceType_Renderbuffer, dsCubeFace_None, 0, 0, testRenderSubpass->gDepth},
-		{dsGfxSurfaceType_Texture, dsCubeFace_None, 0, 0, testRenderSubpass->bColor},
+		{dsGfxSurfaceType_Offscreen, dsCubeFace_None, 0, 0, testRenderSubpass->bColor},
 		{dsGfxSurfaceType_Renderbuffer, dsCubeFace_None, 0, 0, testRenderSubpass->bDepth}
 	};
 
@@ -449,13 +449,13 @@ static void draw(dsApplication* application, dsWindow* window, void* userData)
 			width/2, height/2,
 			1
 		};
-		dsRenderer_blitSurface(renderer, commandBuffer, dsGfxSurfaceType_Texture,
+		dsRenderer_blitSurface(renderer, commandBuffer, dsGfxSurfaceType_Offscreen,
 			testRenderSubpass->rColor, dsGfxSurfaceType_ColorRenderSurface,
 			testRenderSubpass->window->surface, &region, 1, dsBlitFilter_Linear);
 
 		region.dstPosition.x = width/2;
 		region.dstWidth = width - region.dstPosition.x;
-		dsRenderer_blitSurface(renderer, commandBuffer, dsGfxSurfaceType_Texture,
+		dsRenderer_blitSurface(renderer, commandBuffer, dsGfxSurfaceType_Offscreen,
 			testRenderSubpass->gColor, dsGfxSurfaceType_ColorRenderSurface,
 			testRenderSubpass->window->surface, &region, 1, dsBlitFilter_Linear);
 
@@ -463,7 +463,7 @@ static void draw(dsApplication* application, dsWindow* window, void* userData)
 		region.dstPosition.y = height/2;
 		region.dstWidth = width/2;
 		region.dstHeight = height - region.dstPosition.y;
-		dsRenderer_blitSurface(renderer, commandBuffer, dsGfxSurfaceType_Texture,
+		dsRenderer_blitSurface(renderer, commandBuffer, dsGfxSurfaceType_Offscreen,
 			testRenderSubpass->bColor, dsGfxSurfaceType_ColorRenderSurface,
 			testRenderSubpass->window->surface, &region, 1, dsBlitFilter_Linear);
 

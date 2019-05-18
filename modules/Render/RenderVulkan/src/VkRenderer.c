@@ -1343,7 +1343,7 @@ static void setBeginBlitSurfaceBarrierInfo(dsRenderer* renderer, VkImageMemoryBa
 				VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
 			break;
 		}
-		case dsGfxSurfaceType_Texture:
+		case dsGfxSurfaceType_Offscreen:
 		{
 			dsOffscreen* offscreen = (dsOffscreen*)surface;
 			DS_ASSERT(offscreen->offscreen);
@@ -1412,7 +1412,7 @@ static void setEndBlitSurfaceBarrierInfo(const dsRenderer* renderer, VkImageMemo
 			*stages |= VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT |
 				VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
 			break;
-		case dsGfxSurfaceType_Texture:
+		case dsGfxSurfaceType_Offscreen:
 		{
 			dsOffscreen* offscreen = (dsOffscreen*)surface;
 			DS_ASSERT(offscreen->offscreen);
@@ -1630,7 +1630,7 @@ bool dsVkRenderer_clearColorSurface(dsRenderer* renderer, dsCommandBuffer* comma
 				surface->surfaceType == dsGfxSurfaceType_ColorRenderSurfaceRight, commandBuffer,
 				colorValue);
 		}
-		case dsGfxSurfaceType_Texture:
+		case dsGfxSurfaceType_Offscreen:
 			return dsVkTexture_clearColor((dsOffscreen*)surface->surface, commandBuffer,
 				colorValue);
 		case dsGfxSurfaceType_Renderbuffer:
@@ -1657,7 +1657,7 @@ bool dsVkRenderer_clearDepthStencilSurface(dsRenderer* renderer, dsCommandBuffer
 			return dsVkRenderSurfaceData_clearDepthStencil(renderSurface->surfaceData,
 				commandBuffer, surfaceParts, depthStencilValue);
 		}
-		case dsGfxSurfaceType_Texture:
+		case dsGfxSurfaceType_Offscreen:
 			return dsVkTexture_clearDepthStencil((dsOffscreen*)surface->surface, commandBuffer,
 				surfaceParts, depthStencilValue);
 		case dsGfxSurfaceType_Renderbuffer:
@@ -1794,7 +1794,7 @@ bool dsVkRenderer_blitSurface(dsRenderer* renderer, dsCommandBuffer* commandBuff
 
 	uint32_t srcFaceCount = 1;
 	bool srcIs3D = false;
-	if (srcSurfaceType == dsGfxSurfaceType_Texture)
+	if (srcSurfaceType == dsGfxSurfaceType_Offscreen)
 	{
 		dsTexture* srcTexture = (dsTexture*)srcSurface;
 		if (srcTexture->info.dimension == dsTextureDim_Cube)
@@ -1804,7 +1804,7 @@ bool dsVkRenderer_blitSurface(dsRenderer* renderer, dsCommandBuffer* commandBuff
 
 	uint32_t dstFaceCount = 1;
 	bool dstIs3D = false;
-	if (dstSurfaceType == dsGfxSurfaceType_Texture)
+	if (dstSurfaceType == dsGfxSurfaceType_Offscreen)
 	{
 		dsTexture* dstTexture = (dsTexture*)dstSurface;
 		if (dstTexture->info.dimension == dsTextureDim_Cube)

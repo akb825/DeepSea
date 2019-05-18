@@ -188,7 +188,7 @@ static bool beginFramebuffer(dsCommandBuffer* commandBuffer, const dsFramebuffer
 	for (uint32_t i = 0; i < framebuffer->surfaceCount; ++i)
 	{
 		const dsFramebufferSurface* surface = framebuffer->surfaces + i;
-		if (surface->surfaceType != dsGfxSurfaceType_Texture)
+		if (surface->surfaceType != dsGfxSurfaceType_Offscreen)
 			continue;
 
 		dsTexture* texture = (dsTexture*)surface->surface;
@@ -332,7 +332,7 @@ static bool endFramebuffer(dsCommandBuffer* commandBuffer, const dsFramebuffer* 
 					surfaceData->resolveImage, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, 0);
 				break;
 			}
-			case dsGfxSurfaceType_Texture:
+			case dsGfxSurfaceType_Offscreen:
 			{
 				dsTexture* texture = (dsTexture*)surface->surface;
 				DS_ASSERT(texture->offscreen);
@@ -420,7 +420,7 @@ static bool endFramebuffer(dsCommandBuffer* commandBuffer, const dsFramebuffer* 
 				finalImage = surfaceData->images[surfaceData->imageIndex];
 				finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 			}
-			case dsGfxSurfaceType_Texture:
+			case dsGfxSurfaceType_Offscreen:
 			{
 				dsTexture* texture = (dsTexture*)surface->surface;
 				DS_ASSERT(texture->offscreen);

@@ -21,6 +21,7 @@
 #include "MTLCommandBuffer.h"
 #include "MTLCommandBufferPool.h"
 #include "MTLHardwareCommandBuffer.h"
+#include "MTLRenderPass.h"
 #include "MTLRenderSurface.h"
 
 #include <DeepSea/Core/Containers/ResizeableArray.h>
@@ -429,6 +430,13 @@ dsRenderer* dsMTLRenderer_create(dsAllocator* allocator, const dsRendererOptions
 	baseRenderer->beginSecondaryCommandBufferFunc = &dsMTLCommandBuffer_beginSecondary;
 	baseRenderer->endCommandBufferFunc = &dsMTLCommandBuffer_end;
 	baseRenderer->submitCommandBufferFunc = &dsMTLCommandBuffer_submit;
+
+	// Render passes.
+	baseRenderer->createRenderPassFunc = &dsMTLRenderPass_create;
+	baseRenderer->destroyRenderPassFunc = &dsMTLRenderPass_destroy;
+	baseRenderer->beginRenderPassFunc = &dsMTLRenderPass_begin;
+	baseRenderer->nextRenderSubpassFunc = &dsMTLRenderPass_nextSubpass;
+	baseRenderer->endRenderPassFunc = &dsMTLRenderPass_end;
 
 	DS_VERIFY(dsRenderer_initializeResources(baseRenderer));
 

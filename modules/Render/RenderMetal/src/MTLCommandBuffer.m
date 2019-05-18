@@ -167,6 +167,24 @@ void* dsMTLCommandBuffer_getPushConstantData(dsCommandBuffer* commandBuffer, uin
 	return mtlCommandBuffer->pushConstantData;
 }
 
+bool dsMTLCommandBuffer_copyClearValues(dsCommandBuffer* commandBuffer,
+	const dsSurfaceClearValue* clearValues, uint32_t clearValueCount)
+{
+	dsMTLCommandBuffer* mtlCommandBuffer = (dsMTLCommandBuffer*)commandBuffer;
+	mtlCommandBuffer->clearValueCount = 0;
+	if (clearValueCount == 0)
+		return true;
+
+	if (!DS_RESIZEABLE_ARRAY_ADD(commandBuffer->allocator, mtlCommandBuffer->clearValues,
+			mtlCommandBuffer->clearValueCount, mtlCommandBuffer->maxClearValues, clearValueCount))
+	{
+		return false;
+	}
+
+	memcpy(mtlCommandBuffer->clearValues, clearValues, clearValueCount*sizeof(dsSurfaceClearValue));
+	return true;
+}
+
 bool dsMTLCommandBuffer_bindPushConstants(dsCommandBuffer* commandBuffer, const void* data,
 	uint32_t size, bool vertex, bool fragment)
 {
@@ -225,6 +243,21 @@ bool dsMTLCommandBuffer_bindComputeTextureUniform(dsCommandBuffer* commandBuffer
 	const dsMTLCommandBufferFunctionTable* functions =
 		((dsMTLCommandBuffer*)commandBuffer)->functions;
 	return functions->bindComputeTextureUniformFunc(commandBuffer, texture, sampler, index);
+}
+
+bool dsMTLCommandBuffer_beginRenderPass(dsCommandBuffer* commandBuffer,
+	MTLRenderPassDescriptor* renderPass, const dsAlignedBox3f* viewport)
+{
+	const dsMTLCommandBufferFunctionTable* functions =
+		((dsMTLCommandBuffer*)commandBuffer)->functions;
+	return functions->beginRenderPassFunc(commandBuffer, renderPass, viewport);
+}
+
+bool dsMTLCommandBuffer_endRenderPass(dsCommandBuffer* commandBuffer)
+{
+	const dsMTLCommandBufferFunctionTable* functions =
+		((dsMTLCommandBuffer*)commandBuffer)->functions;
+	return functions->endRenderPassFunc(commandBuffer);
 }
 
 bool dsMTLCommandBuffer_addGfxBuffer(dsCommandBuffer* commandBuffer, dsMTLGfxBufferData* buffer)

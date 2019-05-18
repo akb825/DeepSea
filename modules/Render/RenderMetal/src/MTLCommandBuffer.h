@@ -44,6 +44,8 @@ bool dsMTLCommandBuffer_copyTexture(dsCommandBuffer* commandBuffer, id<MTLTextur
 bool dsMTLCommandBuffer_generateMipmaps(dsCommandBuffer* commandBuffer, id<MTLTexture> texture);
 
 void* dsMTLCommandBuffer_getPushConstantData(dsCommandBuffer* commandBuffer, uint32_t size);
+bool dsMTLCommandBuffer_copyClearValues(dsCommandBuffer* commandBuffer,
+	const dsSurfaceClearValue* clearValues, uint32_t clearValueCount);
 
 bool dsMTLCommandBuffer_bindPushConstants(dsCommandBuffer* commandBuffer, const void* data,
 	uint32_t size, bool vertex, bool fragment);
@@ -61,6 +63,10 @@ bool dsMTLCommandBuffer_bindComputeBufferUniform(dsCommandBuffer* commandBuffer,
 	id<MTLBuffer> buffer, size_t offset, uint32_t index);
 bool dsMTLCommandBuffer_bindComputeTextureUniform(dsCommandBuffer* commandBuffer,
 	id<MTLTexture> texture, id<MTLSamplerState> sampler, uint32_t index);
+
+bool dsMTLCommandBuffer_beginRenderPass(dsCommandBuffer* commandBuffer,
+	MTLRenderPassDescriptor* renderPass, const dsAlignedBox3f* viewport);
+bool dsMTLCommandBuffer_endRenderPass(dsCommandBuffer* commandBuffer);
 
 bool dsMTLCommandBuffer_addGfxBuffer(dsCommandBuffer* commandBuffer, dsMTLGfxBufferData* buffer);
 bool dsMTLCommandBuffer_addFence(dsCommandBuffer* commandBuffer, dsGfxFence* fence);

@@ -669,6 +669,41 @@ bool dsMTLHardwareCommandBuffer_bindComputeTextureUniform(dsCommandBuffer* comma
 	return true;
 }
 
+bool dsMTLHardwareCommandBuffer_beginRenderPass(dsCommandBuffer* commandBuffer,
+	MTLRenderPassDescriptor* renderPass, const dsAlignedBox3f* viewport)
+{
+	dsMTLHardwareCommandBuffer* mtlCommandBuffer = (dsMTLHardwareCommandBuffer*)commandBuffer;
+	id<MTLCommandBuffer> submitBuffer = getCommandBuffer(commandBuffer);
+	if (!submitBuffer)
+		return false;
+
+	dsMTLHardwareCommandBuffer_endEncoding(commandBuffer);
+	id<MTLRenderCommandEncoder> encoder =
+		[submitBuffer renderCommandEncoderWithDescriptor: renderPass];
+	if (!encoder)
+		return false;
+
+	mtlCommandBuffer->renderCommandEncoder = CFBridgingRetain(encoder);
+	MTLViewport mtlViewport = {viewport->min.x, viewport->min.y, viewport->max.x - viewport->min.x,
+		viewport->max.y - viewport->min.y, viewport->min.z, viewport->max.z};
+	[encoder setViewport: mtlViewport];
+	return true;
+}
+
+bool dsMTLHardwareCommandBuffer_endRenderPass(dsCommandBuffer* commandBuffer)
+{
+	dsMTLHardwareCommandBuffer* mtlCommandBuffer = (dsMTLHardwareCommandBuffer*)commandBuffer;
+	if (!mtlCommandBuffer->renderCommandEncoder)
+		return true;
+
+	id<MTLRenderCommandEncoder> encoder =
+		(__bridge id<MTLRenderCommandEncoder>)mtlCommandBuffer->renderCommandEncoder;
+	[encoder endEncoding];
+	CFRelease(mtlCommandBuffer->renderCommandEncoder);
+	mtlCommandBuffer->renderCommandEncoder = NULL;
+	return true;
+}
+
 static dsMTLCommandBufferFunctionTable hardwareCommandBufferFunctions =
 {
 	&dsMTLHardwareCommandBuffer_clear,
@@ -685,7 +720,9 @@ static dsMTLCommandBufferFunctionTable hardwareCommandBufferFunctions =
 	&dsMTLHardwareCommandBuffer_setRenderStates,
 	&dsMTLHardwareCommandBuffer_bindComputePushConstants,
 	&dsMTLHardwareCommandBuffer_bindComputeBufferUniform,
-	&dsMTLHardwareCommandBuffer_bindComputeTextureUniform
+	&dsMTLHardwareCommandBuffer_bindComputeTextureUniform,
+	&dsMTLHardwareCommandBuffer_beginRenderPass,
+	&dsMTLHardwareCommandBuffer_endRenderPass
 };
 
 inline static void assertIsHardwareCommandBuffer(dsCommandBuffer* commandBuffer)

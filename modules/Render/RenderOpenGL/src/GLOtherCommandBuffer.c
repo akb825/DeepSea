@@ -353,7 +353,7 @@ static void addSurfaceRef(dsGfxSurfaceType type, void* surface)
 {
 	switch (type)
 	{
-		case dsGfxSurfaceType_Texture:
+		case dsGfxSurfaceType_Offscreen:
 			dsGLTexture_addInternalRef((dsTexture*)surface);
 			break;
 		case dsGfxSurfaceType_Renderbuffer:
@@ -368,7 +368,7 @@ static void freeSurfaceRef(dsGfxSurfaceType type, void* surface)
 {
 	switch (type)
 	{
-		case dsGfxSurfaceType_Texture:
+		case dsGfxSurfaceType_Offscreen:
 			dsGLTexture_freeInternalRef((dsTexture*)surface);
 			break;
 		case dsGfxSurfaceType_Renderbuffer:
@@ -550,7 +550,7 @@ void dsGLOtherCommandBuffer_reset(dsCommandBuffer* commandBuffer)
 			case CommandType_ClearColorSurface:
 			{
 				ClearColorSurfaceCommand* thisCommand = (ClearColorSurfaceCommand*)command;
-				if (thisCommand->surface.surfaceType == dsGfxSurfaceType_Texture)
+				if (thisCommand->surface.surfaceType == dsGfxSurfaceType_Offscreen)
 					dsGLTexture_freeInternalRef((dsTexture*)thisCommand->surface.surface);
 				else if (thisCommand->surface.surfaceType == dsGfxSurfaceType_Renderbuffer)
 					dsGLRenderbuffer_freeInternalRef((dsRenderbuffer*)thisCommand->surface.surface);
@@ -560,7 +560,7 @@ void dsGLOtherCommandBuffer_reset(dsCommandBuffer* commandBuffer)
 			{
 				ClearDepthStencilSurfaceCommand* thisCommand =
 					(ClearDepthStencilSurfaceCommand*)command;
-				if (thisCommand->surface.surfaceType == dsGfxSurfaceType_Texture)
+				if (thisCommand->surface.surfaceType == dsGfxSurfaceType_Offscreen)
 					dsGLTexture_freeInternalRef((dsTexture*)thisCommand->surface.surface);
 				else if (thisCommand->surface.surfaceType == dsGfxSurfaceType_Renderbuffer)
 					dsGLRenderbuffer_freeInternalRef((dsRenderbuffer*)thisCommand->surface.surface);
@@ -1026,7 +1026,7 @@ bool dsGLOtherCommandBuffer_clearColorSurface(dsCommandBuffer* commandBuffer,
 		return false;
 
 	command->surface = *surface;
-	if (surface->surfaceType == dsGfxSurfaceType_Texture)
+	if (surface->surfaceType == dsGfxSurfaceType_Offscreen)
 		dsGLTexture_addInternalRef((dsTexture*)surface->surface);
 	else if (surface->surfaceType == dsGfxSurfaceType_Renderbuffer)
 		dsGLRenderbuffer_addInternalRef((dsRenderbuffer*)surface->surface);
@@ -1045,7 +1045,7 @@ bool dsGLOtherCommandBuffer_clearDepthStencilSurface(dsCommandBuffer* commandBuf
 		return false;
 
 	command->surface = *surface;
-	if (surface->surfaceType == dsGfxSurfaceType_Texture)
+	if (surface->surfaceType == dsGfxSurfaceType_Offscreen)
 		dsGLTexture_addInternalRef((dsTexture*)surface->surface);
 	else if (surface->surfaceType == dsGfxSurfaceType_Renderbuffer)
 		dsGLRenderbuffer_addInternalRef((dsRenderbuffer*)surface->surface);
