@@ -113,15 +113,17 @@ static void addPreserveAttachment(uint32_t* outCount, uint32_t* outAttachments, 
 }
 
 static void findPreserveAttachments(uint32_t* outCount, uint32_t* outAttachments,
-	uint32_t attachmentCount, const VkSubpassDescription* subpasses,
-	const VkSubpassDependency* dependencies, uint32_t dependencyCount, uint32_t curSubpass,
-	uint32_t curDependency)
+	uint32_t attachmentCount, const VkSubpassDescription* subpasses, uint32_t subpassCount,
+	const VkSubpassDependency* dependencies, uint32_t dependencyCount, uint32_t curDependency,
+	uint32_t depth)
 {
+	if (depth >= subpassCount)
+		return;
+
 	for (uint32_t i = 0; i < dependencyCount; ++i)
 	{
 		const VkSubpassDependency* dependency = dependencies + i;
 		if (dependency->dstSubpass != curDependency ||
-			dependency->srcSubpass == curSubpass ||
 			dependency->srcSubpass == DS_EXTERNAL_SUBPASS)
 		{
 			continue;
@@ -156,8 +158,8 @@ static void findPreserveAttachments(uint32_t* outCount, uint32_t* outAttachments
 				subpasses + curSubpass);
 		}
 
-		findPreserveAttachments(outCount, outAttachments, attachmentCount, subpasses, dependencies,
-			dependencyCount, curSubpass, dependency->srcSubpass);
+		findPreserveAttachments(outCount, outAttachments, attachmentCount, subpasses, subpassCount,
+			dependencies, dependencyCount, dependency->srcSubpass, depth + 1);
 	}
 }
 
@@ -758,8 +760,8 @@ dsVkRenderPassData* dsVkRenderPassData_create(dsAllocator* allocator, dsVkDevice
 		DS_ASSERT(preserveAttachments);
 		vkSubpass->pPreserveAttachments = preserveAttachments;
 		findPreserveAttachments(&vkSubpass->preserveAttachmentCount, preserveAttachments,
-			fullAttachmentCount, vkSubpasses, vkRenderPass->vkDependencies,
-			renderPass->subpassDependencyCount, i, i);
+			fullAttachmentCount, vkSubpasses, renderPass->subpassCount,
+			vkRenderPass->vkDependencies, renderPass->subpassDependencyCount, i, 0);
 	}
 
 	renderPassData->lifetime = dsLifetime_create(allocator, renderPassData);
