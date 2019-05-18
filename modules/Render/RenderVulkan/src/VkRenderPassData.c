@@ -114,8 +114,8 @@ static void addPreserveAttachment(uint32_t* outCount, uint32_t* outAttachments, 
 
 static void findPreserveAttachments(uint32_t* outCount, uint32_t* outAttachments,
 	uint32_t attachmentCount, const VkSubpassDescription* subpasses, uint32_t subpassCount,
-	const VkSubpassDependency* dependencies, uint32_t dependencyCount, uint32_t curDependency,
-	uint32_t depth)
+	const VkSubpassDependency* dependencies, uint32_t dependencyCount, uint32_t curSubpass,
+	uint32_t curDependency, uint32_t depth)
 {
 	if (depth >= subpassCount)
 		return;
@@ -159,7 +159,7 @@ static void findPreserveAttachments(uint32_t* outCount, uint32_t* outAttachments
 		}
 
 		findPreserveAttachments(outCount, outAttachments, attachmentCount, subpasses, subpassCount,
-			dependencies, dependencyCount, dependency->srcSubpass, depth + 1);
+			dependencies, dependencyCount, curSubpass, dependency->srcSubpass, depth + 1);
 	}
 }
 
@@ -761,7 +761,7 @@ dsVkRenderPassData* dsVkRenderPassData_create(dsAllocator* allocator, dsVkDevice
 		vkSubpass->pPreserveAttachments = preserveAttachments;
 		findPreserveAttachments(&vkSubpass->preserveAttachmentCount, preserveAttachments,
 			fullAttachmentCount, vkSubpasses, renderPass->subpassCount,
-			vkRenderPass->vkDependencies, renderPass->subpassDependencyCount, i, 0);
+			vkRenderPass->vkDependencies, renderPass->subpassDependencyCount, i, i, 0);
 	}
 
 	renderPassData->lifetime = dsLifetime_create(allocator, renderPassData);
