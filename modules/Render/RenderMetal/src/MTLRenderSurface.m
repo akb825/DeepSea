@@ -315,6 +315,10 @@ bool dsMTLRenderSurface_swapBuffers(dsRenderer* renderer, dsRenderSurface** rend
 		CFRelease(mtlRenderSurface->drawable);
 
 		CAMetalLayer* layer = (__bridge CAMetalLayer*)mtlRenderSurface->layer;
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= 101300
+		if (layer.displaySyncEnabled != renderer->vsync)
+			layer.displaySyncEnabled = renderer->vsync;
+#endif
 		mtlRenderSurface->drawable = CFBridgingRetain([layer nextDrawable]);
 		DS_ASSERT(mtlRenderSurface->drawable);
 		dsMTLRenderSurface_update(renderer, renderSurface);

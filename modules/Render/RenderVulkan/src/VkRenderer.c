@@ -1585,7 +1585,7 @@ bool dsVkRenderer_endFrame(dsRenderer* renderer)
 
 bool dsVkRenderer_setSurfaceSamples(dsRenderer* renderer, uint32_t samples)
 {
-	renderer->surfaceSamples = dsClamp(samples, 1U, renderer->maxSurfaceSamples);
+	renderer->surfaceSamples = samples;
 	return true;
 }
 
@@ -1604,14 +1604,7 @@ bool dsVkRenderer_setVsync(dsRenderer* renderer, bool vsync)
 
 bool dsVkRenderer_setDefaultAnisotropy(dsRenderer* renderer, float anisotropy)
 {
-	if (renderer->defaultAnisotropy == anisotropy)
-		return true;
-
 	renderer->defaultAnisotropy = anisotropy;
-
-	// This will require re-creating render surfaces, so make sure to flush any previous resource
-	// changes in order to avoid multiple simultaneous render surface changes.
-	dsRenderer_waitUntilIdle(renderer);
 	return true;
 }
 

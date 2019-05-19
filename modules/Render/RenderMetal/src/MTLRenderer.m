@@ -245,6 +245,36 @@ bool dsMTLRenderer_queryDevices(dsRenderDeviceInfo* outDevices, uint32_t* outDev
 	return true;
 }
 
+bool dsMTLRenderer_beginFrame(dsRenderer* renderer)
+{
+	DS_UNUSED(renderer);
+	return true;
+}
+
+bool dsMTLRenderer_endFrame(dsRenderer* renderer)
+{
+	DS_UNUSED(renderer);
+	return true;
+}
+
+bool dsMTLRenderer_setSurfaceSamples(dsRenderer* renderer, uint32_t samples)
+{
+	renderer->surfaceSamples = samples;
+	return true;
+}
+
+bool dsMTLRenderer_setVsync(dsRenderer* renderer, bool vsync)
+{
+	renderer->vsync = vsync;
+	return true;
+}
+
+bool dsMTLRenderer_setDefaultAnisotropy(dsRenderer* renderer, float anisotropy)
+{
+	renderer->defaultAnisotropy = anisotropy;
+	return true;
+}
+
 void dsMTLRenderer_flush(dsRenderer* renderer)
 {
 	dsMTLRenderer_flushImpl(renderer, nil);
@@ -437,6 +467,13 @@ dsRenderer* dsMTLRenderer_create(dsAllocator* allocator, const dsRendererOptions
 	baseRenderer->beginRenderPassFunc = &dsMTLRenderPass_begin;
 	baseRenderer->nextRenderSubpassFunc = &dsMTLRenderPass_nextSubpass;
 	baseRenderer->endRenderPassFunc = &dsMTLRenderPass_end;
+
+	// Rendering functions.
+	baseRenderer->beginFrameFunc = &dsMTLRenderer_beginFrame;
+	baseRenderer->endFrameFunc = &dsMTLRenderer_endFrame;
+	baseRenderer->setSurfaceSamplesFunc = &dsMTLRenderer_setSurfaceSamples;
+	baseRenderer->setVsyncFunc = &dsMTLRenderer_setVsync;
+	baseRenderer->setDefaultAnisotropyFunc = &dsMTLRenderer_setDefaultAnisotropy;
 
 	DS_VERIFY(dsRenderer_initializeResources(baseRenderer));
 
