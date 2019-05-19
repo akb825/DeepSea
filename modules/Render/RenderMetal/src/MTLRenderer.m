@@ -17,7 +17,9 @@
 #include <DeepSea/RenderMetal/MTLRenderer.h>
 #include "MTLRendererInternal.h"
 
+#include "Resources/MTLGfxBuffer.h"
 #include "Resources/MTLResourceManager.h"
+#include "Resources/MTLShader.h"
 #include "MTLCommandBuffer.h"
 #include "MTLCommandBufferPool.h"
 #include "MTLHardwareCommandBuffer.h"
@@ -192,6 +194,31 @@ static id<MTLCommandBuffer> processTextures(dsMTLRenderer* renderer)
 #else
 	DS_UNUSED(renderer);
 #endif
+}
+
+static bool bindVertexBuffers(dsCommandBuffer* commandBuffer, const dsShader* shader,
+	const dsDrawGeometry* geometry)
+{
+	const dsMTLShader* mtlShader = (const dsMTLShader*)shader;
+	for (uint32_t i = 0; i < DS_MAX_GEOMETRY_VERTEX_BUFFERS; ++i)
+	{
+		const dsVertexBuffer* vertexBuffer = geometry->vertexBuffers + i;
+		if (!vertexBuffer->buffer)
+			continue;
+
+		uint32_t bufferIndex = mtlShader->firstVertexBuffer + i;
+		id<MTLBuffer> mtlBuffer = dsMTLGfxBuffer_getBuffer(vertexBuffer->buffer, commandBuffer);
+		if (!mtlBuffer)
+			return false;
+
+		if (!dsMTLCommandBuffer_bindBufferUniform(commandBuffer, mtlBuffer, vertexBuffer->offset,
+				bufferIndex, DS_MATERIAL_UNKNOWN))
+		{
+			return false;
+		}
+	}
+
+	return true;
 }
 
 bool dsMTLRenderer_destroy(dsRenderer* renderer)
@@ -386,6 +413,131 @@ bool dsMTLRenderer_clearDepthStencilSurface(dsRenderer* renderer, dsCommandBuffe
 		depthStencilValue->stencil);
 }
 
+bool dsMTLRenderer_draw(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	const dsDrawGeometry* geometry, const dsDrawRange* drawRange, dsPrimitiveType primitiveType)
+{
+	DS_UNUSED(renderer);
+	if (primitiveType == dsPrimitiveType_TriangleFan)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_METAL_LOG_TAG, "Metal doesn't support drawing triangle fans.");
+		return false;
+	}
+
+	dsShader* shader = (dsShader*)commandBuffer->boundShader;
+	DS_ASSERT(shader);
+	id<MTLRenderPipelineState> pipeline = dsMTLShader_getPipeline(shader, commandBuffer,
+		primitiveType, geometry);
+	if (!pipeline)
+		return false;
+
+	if (!bindVertexBuffers(commandBuffer, shader, geometry))
+		return false;
+
+	return dsMTLCommandBuffer_draw(commandBuffer, pipeline, drawRange, primitiveType);
+}
+
+bool dsMTLRenderer_drawIndexed(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	const dsDrawGeometry* geometry, const dsDrawIndexedRange* drawRange,
+	dsPrimitiveType primitiveType)
+{
+	DS_UNUSED(renderer);
+	if (primitiveType == dsPrimitiveType_TriangleFan)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_METAL_LOG_TAG, "Metal doesn't support drawing triangle fans.");
+		return false;
+	}
+
+	dsShader* shader = (dsShader*)commandBuffer->boundShader;
+	DS_ASSERT(shader);
+	id<MTLRenderPipelineState> pipeline = dsMTLShader_getPipeline(shader, commandBuffer,
+		primitiveType, geometry);
+	if (!pipeline)
+		return false;
+
+	DS_ASSERT(geometry->indexBuffer.buffer);
+	id<MTLBuffer> indexBuffer = dsMTLGfxBuffer_getBuffer(geometry->indexBuffer.buffer,
+		commandBuffer);
+	if (!indexBuffer)
+		return false;
+
+	if (!bindVertexBuffers(commandBuffer, shader, geometry))
+		return false;
+
+	return dsMTLCommandBuffer_drawIndexed(commandBuffer, pipeline, indexBuffer,
+		geometry->indexBuffer.offset, geometry->indexBuffer.indexSize, drawRange, primitiveType);
+}
+
+bool dsMTLRenderer_drawIndirect(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	const dsDrawGeometry* geometry, const dsGfxBuffer* indirectBuffer, size_t offset,
+	uint32_t count, uint32_t stride, dsPrimitiveType primitiveType)
+{
+	DS_UNUSED(renderer);
+	if (primitiveType == dsPrimitiveType_TriangleFan)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_METAL_LOG_TAG, "Metal doesn't support drawing triangle fans.");
+		return false;
+	}
+
+	dsShader* shader = (dsShader*)commandBuffer->boundShader;
+	DS_ASSERT(shader);
+	id<MTLRenderPipelineState> pipeline = dsMTLShader_getPipeline(shader, commandBuffer,
+		primitiveType, geometry);
+	if (!pipeline)
+		return false;
+
+	id<MTLBuffer> mtlIndirectBuffer = dsMTLGfxBuffer_getBuffer((dsGfxBuffer*)indirectBuffer,
+		commandBuffer);
+	if (!mtlIndirectBuffer)
+		return false;
+
+	if (!bindVertexBuffers(commandBuffer, shader, geometry))
+		return false;
+
+	return dsMTLCommandBuffer_drawIndirect(commandBuffer, pipeline, mtlIndirectBuffer, offset,
+		count, stride, primitiveType);
+}
+
+bool dsMTLRenderer_drawIndexedIndirect(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	const dsDrawGeometry* geometry, const dsGfxBuffer* indirectBuffer, size_t offset,
+	uint32_t count, uint32_t stride, dsPrimitiveType primitiveType)
+{
+	DS_UNUSED(renderer);
+	if (primitiveType == dsPrimitiveType_TriangleFan)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_METAL_LOG_TAG, "Metal doesn't support drawing triangle fans.");
+		return false;
+	}
+
+	dsShader* shader = (dsShader*)commandBuffer->boundShader;
+	DS_ASSERT(shader);
+	id<MTLRenderPipelineState> pipeline = dsMTLShader_getPipeline(shader, commandBuffer,
+		primitiveType, geometry);
+	if (!pipeline)
+		return false;
+
+	DS_ASSERT(geometry->indexBuffer.buffer);
+	id<MTLBuffer> indexBuffer = dsMTLGfxBuffer_getBuffer(geometry->indexBuffer.buffer,
+		commandBuffer);
+	if (!indexBuffer)
+		return false;
+
+	id<MTLBuffer> mtlIndirectBuffer = dsMTLGfxBuffer_getBuffer((dsGfxBuffer*)indirectBuffer,
+		commandBuffer);
+	if (!mtlIndirectBuffer)
+		return false;
+
+	if (!bindVertexBuffers(commandBuffer, shader, geometry))
+		return false;
+
+	return dsMTLCommandBuffer_drawIndexedIndirect(commandBuffer, pipeline, indexBuffer,
+		geometry->indexBuffer.offset, geometry->indexBuffer.indexSize, mtlIndirectBuffer, offset,
+		count, stride, primitiveType);
+}
+
 void dsMTLRenderer_flush(dsRenderer* renderer)
 {
 	dsMTLRenderer_flushImpl(renderer, nil);
@@ -502,7 +654,8 @@ dsRenderer* dsMTLRenderer_create(dsAllocator* allocator, const dsRendererOptions
 	baseRenderer->maxComputeWorkGroupSize[1] = (uint32_t)maxComputeSize.height;
 	baseRenderer->maxComputeWorkGroupSize[2] = (uint32_t)maxComputeSize.depth;
 
-	baseRenderer->hasNativeMultidraw = false;
+	// Enough optimizations that might as well consider multidraw native.
+	baseRenderer->hasNativeMultidraw = true;
 	baseRenderer->supportsInstancedDrawing = true;
 	baseRenderer->supportsStartInstance = true;
 	baseRenderer->defaultAnisotropy = 1.0f;
@@ -587,6 +740,10 @@ dsRenderer* dsMTLRenderer_create(dsAllocator* allocator, const dsRendererOptions
 	baseRenderer->setDefaultAnisotropyFunc = &dsMTLRenderer_setDefaultAnisotropy;
 	baseRenderer->clearColorSurfaceFunc = &dsMTLRenderer_clearColorSurface;
 	baseRenderer->clearDepthStencilSurfaceFunc = &dsMTLRenderer_clearDepthStencilSurface;
+	baseRenderer->drawFunc = &dsMTLRenderer_draw;
+	baseRenderer->drawIndexedFunc = &dsMTLRenderer_drawIndexed;
+	baseRenderer->drawIndirectFunc = &dsMTLRenderer_drawIndirect;
+	baseRenderer->drawIndexedIndirectFunc = &dsMTLRenderer_drawIndexedIndirect;
 
 	DS_VERIFY(dsRenderer_initializeResources(baseRenderer));
 

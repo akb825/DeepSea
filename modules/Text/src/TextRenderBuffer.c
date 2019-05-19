@@ -171,7 +171,7 @@ bool dsTextRenderBuffer_addTextRange(dsTextRenderBuffer* renderBuffer,
 				charMapping->firstGlyph + j, (uint8_t*)renderBuffer->tempData + vertexOffset,
 				&renderBuffer->geometry->vertexBuffers[0].format, vertexCount);
 
-			uint32_t indexOffset = renderBuffer->geometry->indexBuffer.offset +
+			size_t indexOffset = renderBuffer->geometry->indexBuffer.offset +
 				indexSize*renderBuffer->queuedGlyphs*6;
 			if (indexSize == sizeof(uint32_t))
 			{
@@ -241,7 +241,7 @@ bool dsTextRenderBuffer_commit(dsTextRenderBuffer* renderBuffer, dsCommandBuffer
 
 		if (indexSize > 0)
 		{
-			uint32_t offset = renderBuffer->geometry->indexBuffer.offset;
+			size_t offset = renderBuffer->geometry->indexBuffer.offset;
 			if (!dsGfxBuffer_copyData(gfxBuffer, commandBuffer, offset,
 				(uint8_t*)renderBuffer->tempData + offset, renderBuffer->queuedGlyphs*indexSize*6))
 			{

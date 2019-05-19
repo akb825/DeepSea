@@ -161,6 +161,7 @@ typedef struct dsMTLShader
 	CFTypeRef depthStencilState;
 	CFTypeRef* samplers;
 	float defaultAnisotropy;
+	uint32_t firstVertexBuffer;
 	dsSpinlock samplerLock;
 
 	dsMTLUniformInfo* uniformInfos;
@@ -252,6 +253,19 @@ typedef bool (*ClearDepthStencilSurfaceFunction)(dsCommandBuffer* commandBuffer,
 	id<MTLTexture> depthTexture, id<MTLTexture> resolveDepthTexture, float depthValue,
 	id<MTLTexture> stencilTexture, id<MTLTexture> resolveStencilTexture, uint32_t stenciLValue);
 
+typedef bool (*DrawFunction)(dsCommandBuffer* commandBuffer, id<MTLRenderPipelineState> pipeline,
+	const dsDrawRange* drawRange, dsPrimitiveType primitiveType);
+typedef bool (*DrawIndexedFunction)(dsCommandBuffer* commandBuffer,
+	id<MTLRenderPipelineState> pipeline, id<MTLBuffer> indexBuffer, size_t indexOffset,
+	uint32_t indexSize, const dsDrawIndexedRange* drawRange, dsPrimitiveType primitiveType);
+typedef bool (*DrawIndirectFunction)(dsCommandBuffer* commandBuffer,
+	id<MTLRenderPipelineState> pipeline, id<MTLBuffer> indirectBuffer, size_t offset,
+	uint32_t count, uint32_t stride, dsPrimitiveType primitiveType);
+typedef bool (*DrawIndexedIndirectFunction)(dsCommandBuffer* commandBuffer,
+	id<MTLRenderPipelineState> pipeline, id<MTLBuffer> indexBuffer, size_t indexOffset,
+	uint32_t indexSize, id<MTLBuffer> indirectBuffer, size_t indirectOffset,
+	uint32_t count, uint32_t stride, dsPrimitiveType primitiveType);
+
 typedef struct dsMTLCommandBufferFunctionTable
 {
 	ClearCommandBufferFunction clearFunc;
@@ -279,6 +293,11 @@ typedef struct dsMTLCommandBufferFunctionTable
 
 	ClearColorSurfaceFunction clearColorSurfaceFunc;
 	ClearDepthStencilSurfaceFunction clearDepthStencilSurfaceFunc;
+
+	DrawFunction drawFunc;
+	DrawIndexedFunction drawIndexedFunc;
+	DrawIndirectFunction drawIndirectFunc;
+	DrawIndexedIndirectFunction drawIndexedIndirectFunc;
 } dsMTLCommandBufferFunctionTable;
 
 typedef struct dsMTLCommandBuffer
@@ -351,6 +370,8 @@ typedef struct dsMTLHardwareCommandBuffer
 
 	dsMTLBoundTextureSet boundComputeTextures;
 	dsMTLBoundBufferSet boundComputeBuffers;
+
+	CFTypeRef boundPipeline;
 } dsMTLHardwareCommandBuffer;
 
 typedef struct dsMTLSoftwareCommandBuffer

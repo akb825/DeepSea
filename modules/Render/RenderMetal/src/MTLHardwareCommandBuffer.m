@@ -300,6 +300,34 @@ static bool needToBindBuffer(dsMTLBoundBufferSet* boundBuffers, dsAllocator* all
 	return true;
 }
 
+static MTLPrimitiveType getPrimitiveType(dsPrimitiveType type)
+{
+	switch (type)
+	{
+		case dsPrimitiveType_PointList:
+			return MTLPrimitiveTypePoint;
+		case dsPrimitiveType_LineList:
+		case dsPrimitiveType_LineListAdjacency:
+			return MTLPrimitiveTypeLine;
+		case dsPrimitiveType_LineStrip:
+			return MTLPrimitiveTypeLineStrip;
+		case dsPrimitiveType_TriangleList:
+		case dsPrimitiveType_TriangleListAdjacency:
+			return MTLPrimitiveTypeTriangle;
+		case dsPrimitiveType_TriangleStrip:
+		case dsPrimitiveType_TriangleStripAdjacency:
+			return MTLPrimitiveTypeTriangleStrip;
+		default:
+			DS_ASSERT(false);
+			return MTLPrimitiveTypeTriangle;
+	}
+}
+
+static MTLIndexType getIndexType(uint32_t size)
+{
+	return size == sizeof(uint32_t) ? MTLIndexTypeUInt32 : MTLIndexTypeUInt16;
+}
+
 void dsMTLHardwareCommandBuffer_clear(dsCommandBuffer* commandBuffer)
 {
 	dsMTLHardwareCommandBuffer* mtlCommandBuffer = (dsMTLHardwareCommandBuffer*)commandBuffer;
@@ -701,6 +729,16 @@ bool dsMTLHardwareCommandBuffer_endRenderPass(dsCommandBuffer* commandBuffer)
 	[encoder endEncoding];
 	CFRelease(mtlCommandBuffer->renderCommandEncoder);
 	mtlCommandBuffer->renderCommandEncoder = NULL;
+
+	for (uint32_t i = 0; i < 2; ++i)
+	{
+		dsMTLBoundTextureSet* boundTextures = mtlCommandBuffer->boundTextures + i;
+		memset(boundTextures->textures, 0, sizeof(dsMTLBoundTexture)*boundTextures->textureCount);
+		dsMTLBoundBufferSet* boundBuffers = mtlCommandBuffer->boundBuffers + i;
+		memset(boundBuffers->buffers, 0, sizeof(dsMTLBoundBuffer)*boundBuffers->bufferCount);
+	}
+	mtlCommandBuffer->boundPipeline = NULL;
+
 	return true;
 }
 
@@ -886,6 +924,103 @@ bool dsMTLHardwareCommandBuffer_clearDepthStencilSurface(dsCommandBuffer* comman
 	return true;
 }
 
+bool dsMTLHardwareCommandBuffer_draw(dsCommandBuffer* commandBuffer,
+	id<MTLRenderPipelineState> pipeline, const dsDrawRange* drawRange,
+	dsPrimitiveType primitiveType)
+{
+	dsMTLHardwareCommandBuffer* mtlCommandBuffer = (dsMTLHardwareCommandBuffer*)commandBuffer;
+	if (!mtlCommandBuffer->renderCommandEncoder)
+		return false;
+
+	id<MTLRenderCommandEncoder> encoder =
+		(__bridge id<MTLRenderCommandEncoder>)mtlCommandBuffer->renderCommandEncoder;
+	if (mtlCommandBuffer->boundPipeline != (__bridge CFTypeRef)pipeline)
+	{
+		[encoder setRenderPipelineState: pipeline];
+		mtlCommandBuffer->boundPipeline = (__bridge CFTypeRef)pipeline;
+	}
+
+	[encoder drawPrimitives: getPrimitiveType(primitiveType) vertexStart: drawRange->firstVertex
+		vertexCount: drawRange->vertexCount instanceCount: drawRange->instanceCount
+		baseInstance: drawRange->firstInstance];
+	return true;
+}
+
+bool dsMTLHardwareCommandBuffer_drawIndexed(dsCommandBuffer* commandBuffer,
+	id<MTLRenderPipelineState> pipeline, id<MTLBuffer> indexBuffer, size_t indexOffset,
+	uint32_t indexSize, const dsDrawIndexedRange* drawRange, dsPrimitiveType primitiveType)
+{
+	dsMTLHardwareCommandBuffer* mtlCommandBuffer = (dsMTLHardwareCommandBuffer*)commandBuffer;
+	if (!mtlCommandBuffer->renderCommandEncoder)
+		return false;
+
+	id<MTLRenderCommandEncoder> encoder =
+		(__bridge id<MTLRenderCommandEncoder>)mtlCommandBuffer->renderCommandEncoder;
+	if (mtlCommandBuffer->boundPipeline != (__bridge CFTypeRef)pipeline)
+	{
+		[encoder setRenderPipelineState: pipeline];
+		mtlCommandBuffer->boundPipeline = (__bridge CFTypeRef)pipeline;
+	}
+
+	[encoder drawIndexedPrimitives: getPrimitiveType(primitiveType)
+		indexCount: drawRange->indexCount indexType: getIndexType(indexSize)
+		indexBuffer: indexBuffer indexBufferOffset: indexOffset
+		instanceCount: drawRange->instanceCount baseVertex: drawRange->vertexOffset
+		baseInstance: drawRange->firstIndex];
+	return true;
+}
+
+bool dsMTLHardwareCommandBuffer_drawIndirect(dsCommandBuffer* commandBuffer,
+	id<MTLRenderPipelineState> pipeline, id<MTLBuffer> indirectBuffer, size_t offset,
+	uint32_t count, uint32_t stride, dsPrimitiveType primitiveType)
+{
+	dsMTLHardwareCommandBuffer* mtlCommandBuffer = (dsMTLHardwareCommandBuffer*)commandBuffer;
+	if (!mtlCommandBuffer->renderCommandEncoder)
+		return false;
+
+	id<MTLRenderCommandEncoder> encoder =
+		(__bridge id<MTLRenderCommandEncoder>)mtlCommandBuffer->renderCommandEncoder;
+	if (mtlCommandBuffer->boundPipeline != (__bridge CFTypeRef)pipeline)
+	{
+		[encoder setRenderPipelineState: pipeline];
+		mtlCommandBuffer->boundPipeline = (__bridge CFTypeRef)pipeline;
+	}
+
+	for (uint32_t i = 0; i < count; ++i)
+	{
+		[encoder drawPrimitives: getPrimitiveType(primitiveType) indirectBuffer: indirectBuffer
+			indirectBufferOffset: offset + i*stride];
+	}
+	return true;
+}
+
+bool dsMTLHardwareCommandBuffer_drawIndexedIndirect(dsCommandBuffer* commandBuffer,
+	id<MTLRenderPipelineState> pipeline, id<MTLBuffer> indexBuffer, size_t indexOffset,
+	uint32_t indexSize, id<MTLBuffer> indirectBuffer, size_t indirectOffset,
+	uint32_t count, uint32_t stride, dsPrimitiveType primitiveType)
+{
+	dsMTLHardwareCommandBuffer* mtlCommandBuffer = (dsMTLHardwareCommandBuffer*)commandBuffer;
+	if (!mtlCommandBuffer->renderCommandEncoder)
+		return false;
+
+	id<MTLRenderCommandEncoder> encoder =
+		(__bridge id<MTLRenderCommandEncoder>)mtlCommandBuffer->renderCommandEncoder;
+	if (mtlCommandBuffer->boundPipeline != (__bridge CFTypeRef)pipeline)
+	{
+		[encoder setRenderPipelineState: pipeline];
+		mtlCommandBuffer->boundPipeline = (__bridge CFTypeRef)pipeline;
+	}
+
+	for (uint32_t i = 0; i < count; ++i)
+	{
+		[encoder drawIndexedPrimitives: getPrimitiveType(primitiveType)
+			indexType:getIndexType(indexSize) indexBuffer: indexBuffer
+			indexBufferOffset: indexOffset indirectBuffer: indirectBuffer
+			indirectBufferOffset: indirectOffset + i*stride];
+	}
+	return true;
+}
+
 static dsMTLCommandBufferFunctionTable hardwareCommandBufferFunctions =
 {
 	&dsMTLHardwareCommandBuffer_clear,
@@ -906,7 +1041,11 @@ static dsMTLCommandBufferFunctionTable hardwareCommandBufferFunctions =
 	&dsMTLHardwareCommandBuffer_beginRenderPass,
 	&dsMTLHardwareCommandBuffer_endRenderPass,
 	&dsMTLHardwareCommandBuffer_clearColorSurface,
-	&dsMTLHardwareCommandBuffer_clearDepthStencilSurface
+	&dsMTLHardwareCommandBuffer_clearDepthStencilSurface,
+	&dsMTLHardwareCommandBuffer_draw,
+	&dsMTLHardwareCommandBuffer_drawIndexed,
+	&dsMTLHardwareCommandBuffer_drawIndirect,
+	&dsMTLHardwareCommandBuffer_drawIndexedIndirect
 };
 
 inline static void assertIsHardwareCommandBuffer(dsCommandBuffer* commandBuffer)

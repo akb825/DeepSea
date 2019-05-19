@@ -278,6 +278,45 @@ bool dsMTLCommandBuffer_clearDepthStencilSurface(dsCommandBuffer* commandBuffer,
 		depthValue, stencilTexture, resolveStencilTexture, stencilValue);
 }
 
+bool dsMTLCommandBuffer_draw(dsCommandBuffer* commandBuffer, id<MTLRenderPipelineState> pipeline,
+	const dsDrawRange* drawRange, dsPrimitiveType primitiveType)
+{
+	const dsMTLCommandBufferFunctionTable* functions =
+		((dsMTLCommandBuffer*)commandBuffer)->functions;
+	return functions->drawFunc(commandBuffer, pipeline, drawRange, primitiveType);
+}
+
+bool dsMTLCommandBuffer_drawIndexed(dsCommandBuffer* commandBuffer,
+	id<MTLRenderPipelineState> pipeline, id<MTLBuffer> indexBuffer, size_t indexOffset,
+	uint32_t indexSize, const dsDrawIndexedRange* drawRange, dsPrimitiveType primitiveType)
+{
+	const dsMTLCommandBufferFunctionTable* functions =
+		((dsMTLCommandBuffer*)commandBuffer)->functions;
+	return functions->drawIndexedFunc(commandBuffer, pipeline, indexBuffer, indexOffset, indexSize,
+		drawRange, primitiveType);
+}
+
+bool dsMTLCommandBuffer_drawIndirect(dsCommandBuffer* commandBuffer,
+	id<MTLRenderPipelineState> pipeline, id<MTLBuffer> indirectBuffer, size_t offset,
+	uint32_t count, uint32_t stride, dsPrimitiveType primitiveType)
+{
+	const dsMTLCommandBufferFunctionTable* functions =
+		((dsMTLCommandBuffer*)commandBuffer)->functions;
+	return functions->drawIndirectFunc(commandBuffer, pipeline, indirectBuffer, offset, count,
+		stride, primitiveType);
+}
+
+bool dsMTLCommandBuffer_drawIndexedIndirect(dsCommandBuffer* commandBuffer,
+	id<MTLRenderPipelineState> pipeline, id<MTLBuffer> indexBuffer, size_t indexOffset,
+	uint32_t indexSize, id<MTLBuffer> indirectBuffer, size_t indirectOffset,
+	uint32_t count, uint32_t stride, dsPrimitiveType primitiveType)
+{
+	const dsMTLCommandBufferFunctionTable* functions =
+		((dsMTLCommandBuffer*)commandBuffer)->functions;
+	return functions->drawIndexedIndirectFunc(commandBuffer, pipeline, indexBuffer, indexOffset,
+		indexSize, indirectBuffer, indirectOffset, count, stride, primitiveType);
+}
+
 bool dsMTLCommandBuffer_addGfxBuffer(dsCommandBuffer* commandBuffer, dsMTLGfxBufferData* buffer)
 {
 	dsMTLCommandBuffer* mtlCommandBuffer = (dsMTLCommandBuffer*)commandBuffer;

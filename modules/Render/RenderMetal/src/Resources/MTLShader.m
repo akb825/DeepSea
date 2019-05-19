@@ -246,6 +246,7 @@ static void setupUniformIndices(dsMTLShader* shader, mslModule* module, uint32_t
 	DS_UNUSED(shader);
 	DS_UNUSED(module);
 	DS_UNUSED(shaderIndex);
+	shader->firstVertexBuffer = 0; // TODO: Set based on max vertex buffer for uniforms.
 }
 
 static bool setupShaders(dsShader* shader, mslModule* module, uint32_t shaderIndex)

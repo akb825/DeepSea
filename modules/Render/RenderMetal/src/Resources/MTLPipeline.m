@@ -21,6 +21,7 @@
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/Lifetime.h>
 #include <DeepSea/Core/Assert.h>
+#include <DeepSea/Core/Bits.h>
 #include <DeepSea/Core/Log.h>
 #include <string.h>
 
@@ -216,6 +217,70 @@ static MTLPrimitiveTopologyClass getPrimitiveTopology(dsPrimitiveType type)
 }
 #endif
 
+static bool setupVertexState(dsShader* shader, MTLRenderPipelineDescriptor* descriptor,
+	const dsVertexFormat formats[DS_MAX_GEOMETRY_VERTEX_BUFFERS])
+{
+	dsMTLShader* mtlShader = (dsMTLShader*)shader;
+	dsResourceManager* resourceManager = shader->resourceManager;
+	MTLVertexDescriptor* vertexDescriptor = [MTLVertexDescriptor new];
+	if (!vertexDescriptor)
+	{
+		errno = ENOMEM;
+		return false;
+	}
+
+	uint32_t index = 0;
+	for (uint32_t i = 0; i < DS_MAX_GEOMETRY_VERTEX_BUFFERS; ++i)
+	{
+		if (formats[i].enabledMask == 0)
+			continue;
+
+		uint32_t bufferIndex = mtlShader->firstVertexBuffer + i;
+		MTLVertexBufferLayoutDescriptor* layout = vertexDescriptor.layouts[bufferIndex];
+		if (!layout)
+		{
+			errno = ENOMEM;
+			return false;
+		}
+
+		if (formats[i].divisor > 0)
+		{
+			layout.stepFunction = MTLVertexStepFunctionPerInstance;
+			layout.stepRate = formats[i].divisor;
+		}
+		layout.stride = formats[i].size;
+
+		for (uint32_t curBitmask = formats[i].enabledMask; curBitmask;
+			curBitmask = dsRemoveLastBit(curBitmask), ++index)
+		{
+			uint32_t j = dsBitmaskIndex(curBitmask);
+			MTLVertexAttributeDescriptor* attribute = vertexDescriptor.attributes[index];
+			if (!attribute)
+			{
+				errno = ENOMEM;
+				return false;
+			}
+
+			const dsVertexElement* element = formats[i].elements + j;
+			MTLVertexFormat format = dsMTLResourceManager_getVertexFormat(resourceManager,
+				element->format);
+			if (format == MTLVertexFormatInvalid)
+			{
+				DS_LOG_ERROR(DS_RENDER_METAL_LOG_TAG, "Unkonwn vertex format.");
+				errno = EPERM;
+				return false;
+			}
+
+			attribute.format = format;
+			attribute.offset = element->offset;
+			attribute.bufferIndex = bufferIndex;
+		}
+	}
+
+	descriptor.vertexDescriptor = vertexDescriptor;
+	return true;
+}
+
 static void setupColorAttachments(dsShader* shader, MTLRenderPipelineDescriptor* descriptor,
 	const dsRenderPass* renderPass, uint32_t subpass)
 {
@@ -331,6 +396,12 @@ dsMTLPipeline* dsMTLPipeline_create(dsAllocator* allocator, dsShader* shader, ui
 	if (!descriptor)
 	{
 		errno = ENOMEM;
+		dsMTLPipeline_destroy(pipeline);
+		return NULL;
+	}
+
+	if (!setupVertexState(shader, descriptor, pipeline->formats))
+	{
 		dsMTLPipeline_destroy(pipeline);
 		return NULL;
 	}

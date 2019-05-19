@@ -960,6 +960,9 @@ bool dsRenderer_drawIndirect(dsRenderer* renderer, dsCommandBuffer* commandBuffe
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
+	if (count == 0)
+		DS_PROFILE_FUNC_RETURN(true);
+
 	bool success = renderer->drawIndirectFunc(renderer, commandBuffer, geometry, indirectBuffer,
 		offset, count, stride, primitiveType);
 	DS_PROFILE_FUNC_RETURN(success);
@@ -1020,6 +1023,9 @@ bool dsRenderer_drawIndexedIndirect(dsRenderer* renderer, dsCommandBuffer* comma
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "A shader must be bound for drawing.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
+
+	if (count == 0)
+		DS_PROFILE_FUNC_RETURN(true);
 
 	bool success = renderer->drawIndexedIndirectFunc(renderer, commandBuffer, geometry,
 		indirectBuffer, offset, count, stride, primitiveType);

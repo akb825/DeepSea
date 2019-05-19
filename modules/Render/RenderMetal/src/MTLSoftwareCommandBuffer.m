@@ -42,7 +42,11 @@ typedef enum CommandType
 	CommandType_BeginRenderPass,
 	CommandType_EndRenderPass,
 	CommandType_ClearColorSurface,
-	CommandType_ClearDepthStencilSurface
+	CommandType_ClearDepthStencilSurface,
+	CommandType_Draw,
+	CommandType_DrawIndexed,
+	CommandType_DrawIndirect,
+	CommandType_DrawIndexedIndirect
 } CommandType;
 
 typedef struct Command
@@ -164,6 +168,50 @@ typedef struct ClearDepthStencilSurfaceCommand
 	uint32_t stencilValue;
 } ClearDepthStencilSurfaceCommand;
 
+typedef struct DrawCommand
+{
+	Command command;
+	CFTypeRef pipeline;
+	dsDrawRange drawRange;
+	dsPrimitiveType primitiveType;
+} DrawCommand;
+
+typedef struct DrawIndexedCommand
+{
+	Command command;
+	CFTypeRef pipeline;
+	CFTypeRef indexBuffer;
+	size_t indexOffset;
+	uint32_t indexSize;
+	dsDrawIndexedRange drawRange;
+	dsPrimitiveType primitiveType;
+} DrawIndexedCommand;
+
+typedef struct DrawIndirectCommand
+{
+	Command command;
+	CFTypeRef pipeline;
+	CFTypeRef indirectBuffer;
+	size_t offset;
+	uint32_t count;
+	uint32_t stride;
+	dsPrimitiveType primitiveType;
+} DrawIndirectCommand;
+
+typedef struct DrawIndexedIndirectCommand
+{
+	Command command;
+	CFTypeRef pipeline;
+	CFTypeRef indexBuffer;
+	CFTypeRef indirectBuffer;
+	size_t indexOffset;
+	size_t indirectOffset;
+	uint32_t indexSize;
+	uint32_t count;
+	uint32_t stride;
+	dsPrimitiveType primitiveType;
+} DrawIndexedIndirectCommand;
+
 static Command* allocateCommand(dsCommandBuffer* commandBuffer, CommandType type, size_t size)
 {
 	DS_ASSERT(size >= sizeof(Command));
@@ -283,6 +331,7 @@ void dsMTLSoftwareCommandBuffer_clear(dsCommandBuffer* commandBuffer)
 				CFRelease(thisCommand->texture);
 				if (thisCommand->resolveTexture)
 					CFRelease(thisCommand->resolveTexture);
+				break;
 			}
 			case CommandType_ClearDepthStencilSurface:
 			{
@@ -296,6 +345,35 @@ void dsMTLSoftwareCommandBuffer_clear(dsCommandBuffer* commandBuffer)
 					CFRelease(thisCommand->stencilTexture);
 				if (thisCommand->resolveStencilTexture)
 					CFRelease(thisCommand->resolveStencilTexture);
+				break;
+			}
+			case CommandType_Draw:
+			{
+				DrawCommand* thisCommand = (DrawCommand*)command;
+				CFRelease(thisCommand->pipeline);
+				break;
+			}
+			case CommandType_DrawIndexed:
+			{
+				DrawIndexedCommand* thisCommand = (DrawIndexedCommand*)command;
+				CFRelease(thisCommand->pipeline);
+				CFRelease(thisCommand->indexBuffer);
+				break;
+			}
+			case CommandType_DrawIndirect:
+			{
+				DrawIndirectCommand* thisCommand = (DrawIndirectCommand*)command;
+				CFRelease(thisCommand->pipeline);
+				CFRelease(thisCommand->indirectBuffer);
+				break;
+			}
+			case CommandType_DrawIndexedIndirect:
+			{
+				DrawIndexedIndirectCommand* thisCommand = (DrawIndexedIndirectCommand*)command;
+				CFRelease(thisCommand->pipeline);
+				CFRelease(thisCommand->indirectBuffer);
+				CFRelease(thisCommand->indexBuffer);
+				break;
 			}
 			default:
 				DS_ASSERT(false);
@@ -441,6 +519,43 @@ bool dsMTLSoftwareCommandBuffer_submit(dsCommandBuffer* commandBuffer,
 					thisCommand->depthValue, (__bridge id<MTLTexture>)thisCommand->stencilTexture,
 					(__bridge id<MTLTexture>)thisCommand->resolveStencilTexture,
 					thisCommand->stencilValue);
+				break;
+			}
+			case CommandType_Draw:
+			{
+				DrawCommand* thisCommand = (DrawCommand*)command;
+				result = dsMTLCommandBuffer_draw(commandBuffer,
+					(__bridge id<MTLRenderPipelineState>)thisCommand->pipeline,
+					&thisCommand->drawRange, thisCommand->primitiveType);
+				break;
+			}
+			case CommandType_DrawIndexed:
+			{
+				DrawIndexedCommand* thisCommand = (DrawIndexedCommand*)command;
+				result = dsMTLCommandBuffer_drawIndexed(commandBuffer,
+					(__bridge id<MTLRenderPipelineState>)thisCommand->pipeline,
+					(__bridge id<MTLBuffer>)thisCommand->indexBuffer, thisCommand->indexOffset,
+					thisCommand->indexSize, &thisCommand->drawRange, thisCommand->primitiveType);
+				break;
+			}
+			case CommandType_DrawIndirect:
+			{
+				DrawIndirectCommand* thisCommand = (DrawIndirectCommand*)command;
+				result = dsMTLCommandBuffer_drawIndirect(commandBuffer,
+					(__bridge id<MTLRenderPipelineState>)thisCommand->pipeline,
+					(__bridge id<MTLBuffer>)thisCommand->indirectBuffer, thisCommand->offset,
+					thisCommand->count, thisCommand->stride, thisCommand->primitiveType);
+				break;
+			}
+			case CommandType_DrawIndexedIndirect:
+			{
+				DrawIndexedIndirectCommand* thisCommand = (DrawIndexedIndirectCommand*)command;
+				result = dsMTLCommandBuffer_drawIndexedIndirect(commandBuffer,
+					(__bridge id<MTLRenderPipelineState>)thisCommand->pipeline,
+					(__bridge id<MTLBuffer>)thisCommand->indexBuffer, thisCommand->indexOffset,
+					thisCommand->indexSize, (__bridge id<MTLBuffer>)thisCommand->indirectBuffer,
+					thisCommand->indirectOffset, thisCommand->count, thisCommand->stride,
+					thisCommand->primitiveType);
 				break;
 			}
 			default:
@@ -770,6 +885,80 @@ bool dsMTLSoftwareCommandBuffer_clearDepthStencilSurface(dsCommandBuffer* comman
 	return true;
 }
 
+bool dsMTLSoftwareCommandBuffer_draw(dsCommandBuffer* commandBuffer,
+	id<MTLRenderPipelineState> pipeline, const dsDrawRange* drawRange,
+	dsPrimitiveType primitiveType)
+{
+	DrawCommand* command = (DrawCommand*)allocateCommand(commandBuffer, CommandType_Draw,
+		sizeof(DrawCommand));
+	if (!command)
+		return false;
+
+	command->pipeline = CFBridgingRetain(pipeline);
+	command->drawRange = *drawRange;
+	command->primitiveType = primitiveType;
+	return true;
+}
+
+bool dsMTLSoftwareCommandBuffer_drawIndexed(dsCommandBuffer* commandBuffer,
+	id<MTLRenderPipelineState> pipeline, id<MTLBuffer> indexBuffer, size_t indexOffset,
+	uint32_t indexSize, const dsDrawIndexedRange* drawRange, dsPrimitiveType primitiveType)
+{
+	DrawIndexedCommand* command = (DrawIndexedCommand*)allocateCommand(commandBuffer,
+		CommandType_DrawIndexed, sizeof(DrawIndexedCommand));
+	if (!command)
+		return false;
+
+	command->pipeline = CFBridgingRetain(pipeline);
+	command->indexBuffer = CFBridgingRetain(indexBuffer);
+	command->indexOffset = indexOffset;
+	command->indexSize = indexSize;
+	command->drawRange = *drawRange;
+	command->primitiveType = primitiveType;
+	return true;
+}
+
+bool dsMTLSoftwareCommandBuffer_drawIndirect(dsCommandBuffer* commandBuffer,
+	id<MTLRenderPipelineState> pipeline, id<MTLBuffer> indirectBuffer, size_t offset,
+	uint32_t count, uint32_t stride, dsPrimitiveType primitiveType)
+{
+	DrawIndirectCommand* command = (DrawIndirectCommand*)allocateCommand(commandBuffer,
+		CommandType_DrawIndirect, sizeof(DrawIndirectCommand));
+	if (!command)
+		return false;
+
+	command->pipeline = CFBridgingRetain(pipeline);
+	command->indirectBuffer = CFBridgingRetain(indirectBuffer);
+	command->offset = offset;
+	command->count = count;
+	command->stride = stride;
+	command->primitiveType = primitiveType;
+	return true;
+}
+
+bool dsMTLSoftwareCommandBuffer_drawIndexedIndirect(dsCommandBuffer* commandBuffer,
+	id<MTLRenderPipelineState> pipeline, id<MTLBuffer> indexBuffer, size_t indexOffset,
+	uint32_t indexSize, id<MTLBuffer> indirectBuffer, size_t indirectOffset,
+	uint32_t count, uint32_t stride, dsPrimitiveType primitiveType)
+{
+	DrawIndexedIndirectCommand* command =
+		(DrawIndexedIndirectCommand*)allocateCommand(commandBuffer, CommandType_DrawIndexedIndirect,
+			sizeof(DrawIndexedIndirectCommand));
+	if (!command)
+		return false;
+
+	command->pipeline = CFBridgingRetain(pipeline);
+	command->indexBuffer = CFBridgingRetain(indexBuffer);
+	command->indexOffset = indexOffset;
+	command->indexSize = indexSize;
+	command->indirectBuffer = CFBridgingRetain(indirectBuffer);
+	command->indirectOffset = indirectOffset;
+	command->count = count;
+	command->stride = stride;
+	command->primitiveType = primitiveType;
+	return true;
+}
+
 static dsMTLCommandBufferFunctionTable softwareCommandBufferFunctions =
 {
 	&dsMTLSoftwareCommandBuffer_clear,
@@ -790,7 +979,11 @@ static dsMTLCommandBufferFunctionTable softwareCommandBufferFunctions =
 	&dsMTLSoftwareCommandBuffer_beginRenderPass,
 	&dsMTLSoftwareCommandBuffer_endRenderPass,
 	&dsMTLSoftwareCommandBuffer_clearColorSurface,
-	&dsMTLSoftwareCommandBuffer_clearDepthStencilSurface
+	&dsMTLSoftwareCommandBuffer_clearDepthStencilSurface,
+	&dsMTLSoftwareCommandBuffer_draw,
+	&dsMTLSoftwareCommandBuffer_drawIndexed,
+	&dsMTLSoftwareCommandBuffer_drawIndirect,
+	&dsMTLSoftwareCommandBuffer_drawIndexedIndirect
 };
 
 void dsMTLSoftwareCommandBuffer_initialize(dsMTLSoftwareCommandBuffer* commandBuffer,

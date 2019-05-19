@@ -74,6 +74,19 @@ bool dsMTLCommandBuffer_clearDepthStencilSurface(dsCommandBuffer* commandBuffer,
 	id<MTLTexture> depthTexture, id<MTLTexture> resolveDepthTexture, float depthValue,
 	id<MTLTexture> stencilTexture, id<MTLTexture> resolveStencilTexture, uint32_t stencilValue);
 
+bool dsMTLCommandBuffer_draw(dsCommandBuffer* commandBuffer, id<MTLRenderPipelineState> pipeline,
+	const dsDrawRange* drawRange, dsPrimitiveType primitiveType);
+bool dsMTLCommandBuffer_drawIndexed(dsCommandBuffer* commandBuffer,
+	id<MTLRenderPipelineState> pipeline, id<MTLBuffer> indexBuffer, size_t indexOffset,
+	uint32_t indexSize, const dsDrawIndexedRange* drawRange, dsPrimitiveType primitiveType);
+bool dsMTLCommandBuffer_drawIndirect(dsCommandBuffer* commandBuffer,
+	id<MTLRenderPipelineState> pipeline, id<MTLBuffer> indirectBuffer, size_t offset,
+	uint32_t count, uint32_t stride, dsPrimitiveType primitiveType);
+bool dsMTLCommandBuffer_drawIndexedIndirect(dsCommandBuffer* commandBuffer,
+	id<MTLRenderPipelineState> pipeline, id<MTLBuffer> indexBuffer, size_t indexOffset,
+	uint32_t indexSize, id<MTLBuffer> indirectBuffer, size_t indirectOffset,
+	uint32_t count, uint32_t stride, dsPrimitiveType primitiveType);
+
 bool dsMTLCommandBuffer_addGfxBuffer(dsCommandBuffer* commandBuffer, dsMTLGfxBufferData* buffer);
 bool dsMTLCommandBuffer_addFence(dsCommandBuffer* commandBuffer, dsGfxFence* fence);
 

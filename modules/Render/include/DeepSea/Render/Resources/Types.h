@@ -551,7 +551,7 @@ typedef struct dsVertexBuffer
 	/**
 	 * @brief The offset into the buffer for the vertex data.
 	 */
-	uint32_t offset;
+	size_t offset;
 
 	/**
 	 * @brief The number of vertices to use in the buffer.
@@ -583,7 +583,7 @@ typedef struct dsIndexBuffer
 	/**
 	 * @brief The offset into the buffer for the index data.
 	 */
-	uint32_t offset;
+	size_t offset;
 
 	/**
 	 * @brief The number of indices to use in the buffer.
