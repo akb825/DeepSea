@@ -291,13 +291,9 @@ bool dsMTLRenderer_clearColorSurface(dsRenderer* renderer, dsCommandBuffer* comm
 		{
 			dsMTLRenderSurface* renderSurface = (dsMTLRenderSurface*)surface->surface;
 			id<CAMetalDrawable> drawable = (__bridge id<CAMetalDrawable>)renderSurface->drawable;
+			texture = drawable.texture;
 			if (renderSurface->resolveSurface)
-			{
-				texture = (__bridge id<MTLTexture>)renderSurface->resolveSurface;
-				resolveTexture = drawable.texture;
-			}
-			else
-				texture = drawable.texture;
+				resolveTexture = (__bridge id<MTLTexture>)renderSurface->resolveSurface;
 			format = renderer->surfaceColorFormat;
 			break;
 		}
@@ -305,13 +301,9 @@ bool dsMTLRenderer_clearColorSurface(dsRenderer* renderer, dsCommandBuffer* comm
 		{
 			const dsOffscreen* offscreen = (const dsOffscreen*)surface->surface;
 			const dsMTLTexture* mtlTexture = (const dsMTLTexture*)offscreen;
+			texture = (__bridge id<MTLTexture>)mtlTexture->mtlTexture;
 			if (mtlTexture->resolveTexture)
-			{
-				texture = (__bridge id<MTLTexture>)mtlTexture->resolveTexture;
-				resolveTexture = (__bridge id<MTLTexture>)mtlTexture->mtlTexture;
-			}
-			else
-				texture = (__bridge id<MTLTexture>)mtlTexture->mtlTexture;
+				resolveTexture = (__bridge id<MTLTexture>)mtlTexture->resolveTexture;
 			format = offscreen->info.format;
 			break;
 		}
@@ -357,52 +349,20 @@ bool dsMTLRenderer_clearDepthStencilSurface(dsRenderer* renderer, dsCommandBuffe
 		{
 			const dsOffscreen* offscreen = (const dsOffscreen*)surface->surface;
 			const dsMTLTexture* mtlTexture = (const dsMTLTexture*)offscreen;
-			id<MTLTexture> texture = nil;
-			id<MTLTexture> resolveTexture = nil;
+			depthTexture = (__bridge id<MTLTexture>)mtlTexture->mtlTexture;
+			stencilTexture = (__bridge id<MTLTexture>)mtlTexture->stencilTexture;
 			if (mtlTexture->resolveTexture)
-			{
-				texture = (__bridge id<MTLTexture>)mtlTexture->resolveTexture;
-				resolveTexture = (__bridge id<MTLTexture>)mtlTexture->mtlTexture;
-			}
-			else
-				texture = (__bridge id<MTLTexture>)mtlTexture->mtlTexture;
-			format = offscreen->info.format;
-
-			if (format == dsGfxFormat_D16 || format == dsGfxFormat_X8D24 ||
-				format == dsGfxFormat_D16S8 || format == dsGfxFormat_D24S8 ||
-				format == dsGfxFormat_D32S8_Float)
-			{
-				depthTexture = texture;
-				resolveDepthTexture = resolveTexture;
-			}
-
-			if (format == dsGfxFormat_S8 || format == dsGfxFormat_D16S8 ||
-				format == dsGfxFormat_D24S8 || format == dsGfxFormat_D32S8_Float)
-			{
-				stencilTexture = texture;
-				resolveStencilTexture = resolveTexture;
-			}
+				resolveDepthTexture = (__bridge id<MTLTexture>)mtlTexture->resolveTexture;
+			if (mtlTexture->resolveStencilTexture)
+				resolveStencilTexture = (__bridge id<MTLTexture>)mtlTexture->resolveStencilTexture;
 			break;
 		}
 		case dsGfxSurfaceType_Renderbuffer:
 		{
 			const dsRenderbuffer* renderbuffer = (const dsRenderbuffer*)surface->surface;
 			const dsMTLRenderbuffer* mtlRenderbuffer = (const dsMTLRenderbuffer*)renderbuffer;
-			id<MTLTexture> texture = (__bridge id<MTLTexture>)mtlRenderbuffer->surface;
-			format = renderbuffer->format;
-
-			if (format == dsGfxFormat_D16 || format == dsGfxFormat_X8D24 ||
-				format == dsGfxFormat_D16S8 || format == dsGfxFormat_D24S8 ||
-				format == dsGfxFormat_D32S8_Float)
-			{
-				depthTexture = texture;
-			}
-
-			if (format == dsGfxFormat_S8 || format == dsGfxFormat_D16S8 ||
-				format == dsGfxFormat_D24S8 || format == dsGfxFormat_D32S8_Float)
-			{
-				stencilTexture = texture;
-			}
+			depthTexture = (__bridge id<MTLTexture>)mtlRenderbuffer->surface;
+			stencilTexture = (__bridge id<MTLTexture>)mtlRenderbuffer->stencilSurface;
 			break;
 		}
 		default:

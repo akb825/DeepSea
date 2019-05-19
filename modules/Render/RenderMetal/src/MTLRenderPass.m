@@ -196,6 +196,7 @@ static void setAttachmentSurface(MTLRenderPassAttachmentDescriptor* descriptor,
 		case dsGfxSurfaceType_ColorRenderSurfaceLeft:
 		case dsGfxSurfaceType_ColorRenderSurfaceRight:
 		{
+			DS_ASSERT(!stencil);
 			const dsMTLRenderSurface* renderSurface = (const dsMTLRenderSurface*)surface->surface;
 			id<CAMetalDrawable> drawable = (__bridge id<CAMetalDrawable>)renderSurface->drawable;
 			if (renderSurface->resolveSurface)
@@ -223,28 +224,47 @@ static void setAttachmentSurface(MTLRenderPassAttachmentDescriptor* descriptor,
 		{
 			const dsOffscreen* offscreen = (const dsOffscreen*)surface->surface;
 			const dsMTLTexture* mtlTexture = (const dsMTLTexture*)offscreen;
-			if (mtlTexture->resolveTexture)
+			if (mtlTexture->resolveTexture || mtlTexture->resolveStencilTexture)
 			{
-				descriptor.texture = (__bridge id<MTLTexture>)mtlTexture->resolveTexture;
-				if (resolve)
-					descriptor.resolveTexture = (__bridge id<MTLTexture>)mtlTexture->mtlTexture;
+				if (stencil)
+				{
+					descriptor.texture = (__bridge id<MTLTexture>)mtlTexture->resolveStencilTexture;
+					if (resolve)
+					{
+						descriptor.resolveTexture =
+							(__bridge id<MTLTexture>)mtlTexture->stencilTexture;
+					}
+				}
+				else
+				{
+					descriptor.texture = (__bridge id<MTLTexture>)mtlTexture->resolveTexture;
+					if (resolve)
+						descriptor.resolveTexture = (__bridge id<MTLTexture>)mtlTexture->mtlTexture;
+				}
 			}
 			else
 			{
 				uint32_t faceCount = offscreen->info.dimension == dsTextureDim_Cube ? 6 : 1;
-				descriptor.texture = (__bridge id<MTLTexture>)mtlTexture->mtlTexture;
 				descriptor.level = surface->mipLevel;
 				if (offscreen->info.dimension == dsTextureDim_3D)
 					descriptor.depthPlane = surface->layer;
 				else
 					descriptor.slice = surface->layer*faceCount + surface->cubeFace;
+
+				if (stencil)
+					descriptor.texture = (__bridge id<MTLTexture>)mtlTexture->stencilTexture;
+				else
+					descriptor.texture = (__bridge id<MTLTexture>)mtlTexture->mtlTexture;
 			}
 			break;
 		}
 		case dsGfxSurfaceType_Renderbuffer:
 		{
 			const dsMTLRenderbuffer* renderbuffer = (const dsMTLRenderbuffer*)surface->surface;
-			descriptor.texture = (__bridge id<MTLTexture>)renderbuffer->surface;
+			if (stencil)
+				descriptor.texture = (__bridge id<MTLTexture>)renderbuffer->stencilSurface;
+			else
+				descriptor.texture = (__bridge id<MTLTexture>)renderbuffer->surface;
 			break;
 		}
 		default:

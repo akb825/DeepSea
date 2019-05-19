@@ -88,6 +88,10 @@ typedef struct dsMTLTexture
 
 	CFTypeRef mtlTexture;
 	CFTypeRef resolveTexture;
+
+	CFTypeRef stencilTexture;
+	CFTypeRef resolveStencilTexture;
+
 	uint32_t processed;
 } dsMTLTexture;
 
@@ -95,6 +99,7 @@ typedef struct dsMTLRenderbuffer
 {
 	dsRenderbuffer renderbuffer;
 	CFTypeRef surface;
+	CFTypeRef stencilSurface;
 } dsMTLRenderbuffer;
 
 typedef struct dsMTLGfxFence
