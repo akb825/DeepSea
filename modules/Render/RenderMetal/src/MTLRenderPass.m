@@ -62,104 +62,39 @@ static bool subpassHasAttachment(const dsRenderSubpassInfo* subpass, uint32_t at
 	return false;
 }
 
-static bool hasUsageBeforeRec(uint32_t attachment, uint32_t subpass,
-	const dsRenderSubpassInfo* subpasses, uint32_t subpassCount,
-	const dsSubpassDependency* dependencies, uint32_t dependencyCount, uint32_t depth)
-{
-	if (depth >= subpassCount)
-		return false;
-
-	for (uint32_t i = 0; i < dependencyCount; ++i)
-	{
-		const dsSubpassDependency* dependency = dependencies + i;
-		if (dependency->dstSubpass != subpass || dependency->srcSubpass == DS_EXTERNAL_SUBPASS)
-			continue;
-
-		if (subpassHasAttachment(subpasses + dependency->srcSubpass, attachment))
-			return true;
-
-		if (hasUsageBeforeRec(attachment, dependency->srcSubpass, subpasses, subpassCount,
-				dependencies, dependencyCount, depth + 1))
-		{
-			return true;
-		}
-	}
-
-	return false;
-}
-
 static bool hasUsageBefore(uint32_t attachment, uint32_t subpass,
-	const dsRenderSubpassInfo* subpasses, uint32_t subpassCount,
-	const dsSubpassDependency* dependencies, uint32_t dependencyCount)
+	const dsRenderSubpassInfo* subpasses, uint32_t subpassCount)
 {
-	if (dependencyCount == DS_DEFAULT_SUBPASS_DEPENDENCIES)
+	DS_UNUSED(subpassCount);
+	for (uint32_t i = 0; i < subpass; ++i)
 	{
-		for (uint32_t i = 0; i < subpass; ++i)
-		{
-			if (subpassHasAttachment(subpasses + i, attachment))
-				return true;
-		}
-
-		return false;
-	}
-
-	return hasUsageBeforeRec(attachment, subpass, subpasses, subpassCount, dependencies,
-		dependencyCount, 0);
-}
-
-static bool hasUsageAfterRec(uint32_t attachment, uint32_t subpass,
-	const dsRenderSubpassInfo* subpasses, uint32_t subpassCount,
-	const dsSubpassDependency* dependencies, uint32_t dependencyCount, uint32_t depth)
-{
-	if (depth >= subpassCount)
-		return false;
-
-	for (uint32_t i = 0; i < dependencyCount; ++i)
-	{
-		const dsSubpassDependency* dependency = dependencies + i;
-		if (dependency->srcSubpass != subpass || dependency->dstSubpass == DS_EXTERNAL_SUBPASS)
-			continue;
-
-		if (subpassHasAttachment(subpasses + dependency->dstSubpass, attachment))
+		if (subpassHasAttachment(subpasses + i, attachment))
 			return true;
-
-		if (hasUsageBeforeRec(attachment, dependency->dstSubpass, subpasses, subpassCount,
-				dependencies, dependencyCount, depth + 1))
-		{
-			return true;
-		}
 	}
 
 	return false;
 }
 
 static bool hasUsageAfter(uint32_t attachment, uint32_t subpass,
-	const dsRenderSubpassInfo* subpasses, uint32_t subpassCount,
-	const dsSubpassDependency* dependencies, uint32_t dependencyCount)
+	const dsRenderSubpassInfo* subpasses, uint32_t subpassCount)
 {
-	if (dependencyCount == DS_DEFAULT_SUBPASS_DEPENDENCIES)
+	for (uint32_t i = subpass + 1; i < subpassCount; ++i)
 	{
-		for (uint32_t i = subpass + 1; i < subpassCount; ++i)
-		{
-			if (subpassHasAttachment(subpasses + i, attachment))
-				return true;
-		}
-
-		return false;
+		if (subpassHasAttachment(subpasses + i, attachment))
+			return true;
 	}
 
-	return hasUsageAfterRec(attachment, subpass, subpasses, subpassCount, dependencies,
-		dependencyCount, 0);
+	return false;
 }
 
 static MTLLoadAction getLoadAction(uint32_t attachment, uint32_t subpass,
 	const dsAttachmentInfo* attachments, const dsRenderSubpassInfo* subpasses,
-	uint32_t subpassCount, const dsSubpassDependency* dependencies, uint32_t dependencyCount)
+	uint32_t subpassCount)
 {
 	if (attachment == DS_NO_ATTACHMENT)
 		return MTLLoadActionDontCare;
 
-	if (hasUsageBefore(attachment, subpass, subpasses, subpassCount, dependencies, dependencyCount))
+	if (hasUsageBefore(attachment, subpass, subpasses, subpassCount))
 		return MTLLoadActionLoad;
 
 	dsAttachmentUsage usage = attachments[attachment].usage;
@@ -172,16 +107,18 @@ static MTLLoadAction getLoadAction(uint32_t attachment, uint32_t subpass,
 
 static MTLStoreAction getStoreAction(uint32_t attachment, uint32_t subpass,
 	const dsAttachmentInfo* attachments, const dsRenderSubpassInfo* subpasses,
-	uint32_t subpassCount, const dsSubpassDependency* dependencies, uint32_t dependencyCount)
+	uint32_t subpassCount)
 {
 	if (attachment == DS_NO_ATTACHMENT)
 		return MTLStoreActionDontCare;
 
-	if (hasUsageAfter(attachment, subpass, subpasses, subpassCount, dependencies, dependencyCount))
+	if (hasUsageAfter(attachment, subpass, subpasses, subpassCount))
 		return MTLStoreActionStore;
 
 	dsAttachmentUsage usage = attachments[attachment].usage;
-	if (usage & (dsAttachmentUsage_KeepAfter | dsAttachmentUsage_UseLater))
+	if (usage & dsAttachmentUsage_Resolve)
+		return MTLStoreActionMultisampleResolve;
+	else if (usage & (dsAttachmentUsage_KeepAfter | dsAttachmentUsage_UseLater))
 		return MTLStoreActionStore;
 	return MTLStoreActionDontCare;
 }
@@ -190,6 +127,9 @@ static void setAttachmentSurface(MTLRenderPassAttachmentDescriptor* descriptor,
 	const dsFramebufferSurface* surface, const dsMTLAttachmentInfo* info, bool resolve,
 	bool stencil)
 {
+	if (info->storeAction == MTLStoreActionMultisampleResolve)
+		resolve = true;
+
 	switch (surface->surfaceType)
 	{
 		case dsGfxSurfaceType_ColorRenderSurface:
@@ -276,7 +216,12 @@ static void setAttachmentSurface(MTLRenderPassAttachmentDescriptor* descriptor,
 	if (descriptor.resolveTexture)
 		descriptor.storeAction = MTLStoreActionMultisampleResolve;
 	else
-		descriptor.storeAction = info->storeAction;
+	{
+		if (info->storeAction == MTLStoreActionMultisampleResolve)
+			descriptor.storeAction = MTLStoreActionStore;
+		else
+			descriptor.storeAction = info->storeAction;
+	}
 }
 
 static MTLRenderPassDescriptor* createRenderPassDescriptor(const dsRenderPass* renderPass,
@@ -366,6 +311,8 @@ dsRenderPass* dsMTLRenderPass_create(dsRenderer* renderer, dsAllocator* allocato
 	const dsRenderSubpassInfo* subpasses, uint32_t subpassCount,
 	const dsSubpassDependency* dependencies, uint32_t dependencyCount)
 {
+	DS_UNUSED(dependencies);
+	DS_UNUSED(dependencyCount);
 	size_t fullSize = fullAllocSize(attachmentCount, subpasses, subpassCount);
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
@@ -436,20 +383,18 @@ dsRenderPass* dsMTLRenderPass_create(dsRenderer* renderer, dsAllocator* allocato
 				dsMTLAttachmentInfo* attachmentInfo = curSubpassInfo->colorAttachments + j;
 				const dsColorAttachmentRef* colorAttachment = curSubpass->colorAttachments + j;
 				attachmentInfo->loadAction = getLoadAction(colorAttachment->attachmentIndex, i,
-					attachments, subpasses, subpassCount, dependencies, dependencyCount);
+					attachments, subpasses, subpassCount);
 				attachmentInfo->storeAction = getStoreAction(colorAttachment->attachmentIndex,
-					i, attachments, subpasses, subpassCount, dependencies, dependencyCount);
+					i, attachments, subpasses, subpassCount);
 			}
 		}
 		else
 			curSubpassInfo->colorAttachments = NULL;
 
 		curSubpassInfo->depthStencilAttachment.loadAction = getLoadAction(
-			curSubpass->depthStencilAttachment, i, attachments, subpasses, subpassCount,
-			dependencies, dependencyCount);
+			curSubpass->depthStencilAttachment, i, attachments, subpasses, subpassCount);
 		curSubpassInfo->depthStencilAttachment.storeAction = getStoreAction(
-			curSubpass->depthStencilAttachment, i, attachments, subpasses, subpassCount,
-			dependencies, dependencyCount);
+			curSubpass->depthStencilAttachment, i, attachments, subpasses, subpassCount);
 	}
 
 	baseRenderPass->subpassDependencies = NULL;
