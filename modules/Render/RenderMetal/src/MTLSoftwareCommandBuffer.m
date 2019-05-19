@@ -40,7 +40,9 @@ typedef enum CommandType
 	CommandType_BindComputeBufferUniform,
 	CommandType_BindComputeTextureUniform,
 	CommandType_BeginRenderPass,
-	CommandType_EndRenderPass
+	CommandType_EndRenderPass,
+	CommandType_ClearColorSurface,
+	CommandType_ClearDepthStencilSurface
 } CommandType;
 
 typedef struct Command
@@ -142,6 +144,25 @@ typedef struct BeginRenderPassCommand
 	CFTypeRef renderPass;
 	dsAlignedBox3f viewport;
 } BeginRenderPassCommand;
+
+typedef struct ClearColorSurfaceCommand
+{
+	Command command;
+	CFTypeRef texture;
+	CFTypeRef resolveTexture;
+	MTLClearColor clearColor;
+} ClearColorSurfaceCommand;
+
+typedef struct ClearDepthStencilSurfaceCommand
+{
+	Command command;
+	CFTypeRef depthTexture;
+	CFTypeRef resolveDepthTexture;
+	CFTypeRef stencilTexture;
+	CFTypeRef resolveStencilTexture;
+	float depthValue;
+	uint32_t stencilValue;
+} ClearDepthStencilSurfaceCommand;
 
 static Command* allocateCommand(dsCommandBuffer* commandBuffer, CommandType type, size_t size)
 {
@@ -256,6 +277,26 @@ void dsMTLSoftwareCommandBuffer_clear(dsCommandBuffer* commandBuffer)
 			}
 			case CommandType_EndRenderPass:
 				break;
+			case CommandType_ClearColorSurface:
+			{
+				ClearColorSurfaceCommand* thisCommand = (ClearColorSurfaceCommand*)command;
+				CFRelease(thisCommand->texture);
+				if (thisCommand->resolveTexture)
+					CFRelease(thisCommand->resolveTexture);
+			}
+			case CommandType_ClearDepthStencilSurface:
+			{
+				ClearDepthStencilSurfaceCommand* thisCommand =
+					(ClearDepthStencilSurfaceCommand*)command;
+				if (thisCommand->depthTexture)
+					CFRelease(thisCommand->depthTexture);
+				if (thisCommand->resolveDepthTexture)
+					CFRelease(thisCommand->resolveDepthTexture);
+				if (thisCommand->stencilTexture)
+					CFRelease(thisCommand->stencilTexture);
+				if (thisCommand->resolveStencilTexture)
+					CFRelease(thisCommand->resolveStencilTexture);
+			}
 			default:
 				DS_ASSERT(false);
 		}
@@ -380,6 +421,26 @@ bool dsMTLSoftwareCommandBuffer_submit(dsCommandBuffer* commandBuffer,
 			case CommandType_EndRenderPass:
 			{
 				result = dsMTLCommandBuffer_endRenderPass(commandBuffer);
+				break;
+			}
+			case CommandType_ClearColorSurface:
+			{
+				ClearColorSurfaceCommand* thisCommand = (ClearColorSurfaceCommand*)command;
+				result = dsMTLCommandBuffer_clearColorSurface(commandBuffer,
+					(__bridge id<MTLTexture>)thisCommand->texture,
+					(__bridge id<MTLTexture>)thisCommand->resolveTexture, thisCommand->clearColor);
+				break;
+			}
+			case CommandType_ClearDepthStencilSurface:
+			{
+				ClearDepthStencilSurfaceCommand* thisCommand =
+					(ClearDepthStencilSurfaceCommand*)command;
+				result = dsMTLCommandBuffer_clearDepthStencilSurface(commandBuffer,
+					(__bridge id<MTLTexture>)thisCommand->depthTexture,
+					(__bridge id<MTLTexture>)thisCommand->resolveDepthTexture,
+					thisCommand->depthValue, (__bridge id<MTLTexture>)thisCommand->stencilTexture,
+					(__bridge id<MTLTexture>)thisCommand->resolveStencilTexture,
+					thisCommand->stencilValue);
 				break;
 			}
 			default:
@@ -676,6 +737,39 @@ bool dsMTLSoftwareCommandBuffer_endRenderPass(dsCommandBuffer* commandBuffer)
 	return allocateCommand(commandBuffer, CommandType_EndRenderPass, sizeof(Command)) != NULL;
 }
 
+bool dsMTLSoftwareCommandBuffer_clearColorSurface(dsCommandBuffer* commandBuffer,
+	id<MTLTexture> texture, id<MTLTexture> resolveTexture, MTLClearColor clearColor)
+{
+	ClearColorSurfaceCommand* command = (ClearColorSurfaceCommand*)allocateCommand(commandBuffer,
+		CommandType_ClearColorSurface, sizeof(ClearColorSurfaceCommand));
+	if (!command)
+		return false;
+
+	command->texture = CFBridgingRetain(texture);
+	command->resolveTexture = CFBridgingRetain(resolveTexture);
+	command->clearColor = clearColor;
+	return true;
+}
+
+bool dsMTLSoftwareCommandBuffer_clearDepthStencilSurface(dsCommandBuffer* commandBuffer,
+	id<MTLTexture> depthTexture, id<MTLTexture> resolveDepthTexture, float depthValue,
+	id<MTLTexture> stencilTexture, id<MTLTexture> resolveStencilTexture, uint32_t stencilValue)
+{
+	ClearDepthStencilSurfaceCommand* command =
+		(ClearDepthStencilSurfaceCommand*)allocateCommand(commandBuffer,
+			CommandType_ClearDepthStencilSurface, sizeof(ClearDepthStencilSurfaceCommand));
+	if (!command)
+		return false;
+
+	command->depthTexture = CFBridgingRetain(depthTexture);
+	command->resolveDepthTexture = CFBridgingRetain(resolveDepthTexture);
+	command->stencilTexture = CFBridgingRetain(stencilTexture);
+	command->resolveStencilTexture = CFBridgingRetain(resolveStencilTexture);
+	command->depthValue = depthValue;
+	command->stencilValue = stencilValue;
+	return true;
+}
+
 static dsMTLCommandBufferFunctionTable softwareCommandBufferFunctions =
 {
 	&dsMTLSoftwareCommandBuffer_clear,
@@ -694,7 +788,9 @@ static dsMTLCommandBufferFunctionTable softwareCommandBufferFunctions =
 	&dsMTLSoftwareCommandBuffer_bindComputeBufferUniform,
 	&dsMTLSoftwareCommandBuffer_bindComputeTextureUniform,
 	&dsMTLSoftwareCommandBuffer_beginRenderPass,
-	&dsMTLSoftwareCommandBuffer_endRenderPass
+	&dsMTLSoftwareCommandBuffer_endRenderPass,
+	&dsMTLSoftwareCommandBuffer_clearColorSurface,
+	&dsMTLSoftwareCommandBuffer_clearDepthStencilSurface
 };
 
 void dsMTLSoftwareCommandBuffer_initialize(dsMTLSoftwareCommandBuffer* commandBuffer,

@@ -79,3 +79,22 @@ MTLStencilDescriptor* dsCreateMTLStencilDescriptor(const mslStencilOpState* stat
 	descriptor.writeMask = state->writeMask == MSL_UNKNOWN ? writeMask : state->writeMask;
 	return descriptor;
 }
+
+MTLClearColor dsGetClearColor(dsGfxFormat format, const dsSurfaceColorValue* value)
+{
+	if (format & dsGfxFormat_UInt)
+	{
+		return MTLClearColorMake(value->uintValue[0], value->uintValue[1], value->uintValue[2],
+			value->uintValue[3]);
+	}
+	else if (format & dsGfxFormat_SInt)
+	{
+		return MTLClearColorMake(value->intValue[0], value->intValue[1], value->intValue[2],
+			value->intValue[3]);
+	}
+	else
+	{
+		return MTLClearColorMake(value->floatValue.r, value->floatValue.g, value->floatValue.b,
+			value->floatValue.a);
+	}
+}

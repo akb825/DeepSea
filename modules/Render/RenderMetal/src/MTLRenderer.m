@@ -23,6 +23,7 @@
 #include "MTLHardwareCommandBuffer.h"
 #include "MTLRenderPass.h"
 #include "MTLRenderSurface.h"
+#include "MTLShared.h"
 
 #include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
@@ -40,6 +41,7 @@
 
 #import <Metal/MTLBlitCommandEncoder.h>
 #import <Metal/MTLCommandQueue.h>
+#import <QuartzCore/CAMetalLayer.h>
 
 #if defined(IPHONE_OS_VERSION_MIN_REQUIRED) && IPHONE_OS_VERSION_MIN_REQUIRED < 80000
 #error iPhone target version must be >= 8.0 to support metal.
@@ -275,6 +277,155 @@ bool dsMTLRenderer_setDefaultAnisotropy(dsRenderer* renderer, float anisotropy)
 	return true;
 }
 
+bool dsMTLRenderer_clearColorSurface(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	const dsFramebufferSurface* surface, const dsSurfaceColorValue* colorValue)
+{
+	id<MTLTexture> texture = nil;
+	id<MTLTexture> resolveTexture = nil;
+	dsGfxFormat format;
+	switch (surface->surfaceType)
+	{
+		case dsGfxSurfaceType_ColorRenderSurface:
+		case dsGfxSurfaceType_ColorRenderSurfaceLeft:
+		case dsGfxSurfaceType_ColorRenderSurfaceRight:
+		{
+			dsMTLRenderSurface* renderSurface = (dsMTLRenderSurface*)surface->surface;
+			id<CAMetalDrawable> drawable = (__bridge id<CAMetalDrawable>)renderSurface->drawable;
+			if (renderSurface->resolveSurface)
+			{
+				texture = (__bridge id<MTLTexture>)renderSurface->resolveSurface;
+				resolveTexture = drawable.texture;
+			}
+			else
+				texture = drawable.texture;
+			format = renderer->surfaceColorFormat;
+			break;
+		}
+		case dsGfxSurfaceType_Offscreen:
+		{
+			const dsOffscreen* offscreen = (const dsOffscreen*)surface->surface;
+			const dsMTLTexture* mtlTexture = (const dsMTLTexture*)offscreen;
+			if (mtlTexture->resolveTexture)
+			{
+				texture = (__bridge id<MTLTexture>)mtlTexture->resolveTexture;
+				resolveTexture = (__bridge id<MTLTexture>)mtlTexture->mtlTexture;
+			}
+			else
+				texture = (__bridge id<MTLTexture>)mtlTexture->mtlTexture;
+			format = offscreen->info.format;
+			break;
+		}
+		case dsGfxSurfaceType_Renderbuffer:
+		{
+			const dsRenderbuffer* renderbuffer = (const dsRenderbuffer*)surface->surface;
+			const dsMTLRenderbuffer* mtlRenderbuffer = (const dsMTLRenderbuffer*)renderbuffer;
+			texture = (__bridge id<MTLTexture>)mtlRenderbuffer->surface;
+			format = renderbuffer->format;
+			break;
+		}
+		default:
+			DS_ASSERT(false);
+			return false;
+	}
+
+	return dsMTLCommandBuffer_clearColorSurface(commandBuffer, texture, resolveTexture,
+		dsGetClearColor(format, colorValue));
+}
+
+bool dsMTLRenderer_clearDepthStencilSurface(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	const dsFramebufferSurface* surface, dsClearDepthStencil surfaceParts,
+	const dsDepthStencilValue* depthStencilValue)
+{
+	id<MTLTexture> depthTexture = nil;
+	id<MTLTexture> resolveDepthTexture = nil;
+	id<MTLTexture> stencilTexture = nil;
+	id<MTLTexture> resolveStencilTexture = nil;
+	dsGfxFormat format;
+	switch (surface->surfaceType)
+	{
+		case dsGfxSurfaceType_DepthRenderSurface:
+		case dsGfxSurfaceType_DepthRenderSurfaceLeft:
+		case dsGfxSurfaceType_DepthRenderSurfaceRight:
+		{
+			dsMTLRenderSurface* renderSurface = (dsMTLRenderSurface*)surface->surface;
+			depthTexture = (__bridge id<MTLTexture>)renderSurface->depthSurface;
+			stencilTexture = (__bridge id<MTLTexture>)renderSurface->stencilSurface;
+			format = renderer->surfaceColorFormat;
+			break;
+		}
+		case dsGfxSurfaceType_Offscreen:
+		{
+			const dsOffscreen* offscreen = (const dsOffscreen*)surface->surface;
+			const dsMTLTexture* mtlTexture = (const dsMTLTexture*)offscreen;
+			id<MTLTexture> texture = nil;
+			id<MTLTexture> resolveTexture = nil;
+			if (mtlTexture->resolveTexture)
+			{
+				texture = (__bridge id<MTLTexture>)mtlTexture->resolveTexture;
+				resolveTexture = (__bridge id<MTLTexture>)mtlTexture->mtlTexture;
+			}
+			else
+				texture = (__bridge id<MTLTexture>)mtlTexture->mtlTexture;
+			format = offscreen->info.format;
+
+			if (format == dsGfxFormat_D16 || format == dsGfxFormat_X8D24 ||
+				format == dsGfxFormat_D16S8 || format == dsGfxFormat_D24S8 ||
+				format == dsGfxFormat_D32S8_Float)
+			{
+				depthTexture = texture;
+				resolveDepthTexture = resolveTexture;
+			}
+
+			if (format == dsGfxFormat_S8 || format == dsGfxFormat_D16S8 ||
+				format == dsGfxFormat_D24S8 || format == dsGfxFormat_D32S8_Float)
+			{
+				stencilTexture = texture;
+				resolveStencilTexture = resolveTexture;
+			}
+			break;
+		}
+		case dsGfxSurfaceType_Renderbuffer:
+		{
+			const dsRenderbuffer* renderbuffer = (const dsRenderbuffer*)surface->surface;
+			const dsMTLRenderbuffer* mtlRenderbuffer = (const dsMTLRenderbuffer*)renderbuffer;
+			id<MTLTexture> texture = (__bridge id<MTLTexture>)mtlRenderbuffer->surface;
+			format = renderbuffer->format;
+
+			if (format == dsGfxFormat_D16 || format == dsGfxFormat_X8D24 ||
+				format == dsGfxFormat_D16S8 || format == dsGfxFormat_D24S8 ||
+				format == dsGfxFormat_D32S8_Float)
+			{
+				depthTexture = texture;
+			}
+
+			if (format == dsGfxFormat_S8 || format == dsGfxFormat_D16S8 ||
+				format == dsGfxFormat_D24S8 || format == dsGfxFormat_D32S8_Float)
+			{
+				stencilTexture = texture;
+			}
+			break;
+		}
+		default:
+			DS_ASSERT(false);
+			return false;
+	}
+
+	if (surfaceParts == dsClearDepthStencil_Depth)
+	{
+		stencilTexture = nil;
+		resolveStencilTexture = nil;
+	}
+	else if (surfaceParts == dsClearDepthStencil_Stencil)
+	{
+		depthTexture = nil;
+		resolveDepthTexture = nil;
+	}
+
+	return dsMTLCommandBuffer_clearDepthStencilSurface(commandBuffer, depthTexture,
+		resolveDepthTexture, depthStencilValue->depth, stencilTexture, resolveStencilTexture,
+		depthStencilValue->stencil);
+}
+
 void dsMTLRenderer_flush(dsRenderer* renderer)
 {
 	dsMTLRenderer_flushImpl(renderer, nil);
@@ -474,6 +625,8 @@ dsRenderer* dsMTLRenderer_create(dsAllocator* allocator, const dsRendererOptions
 	baseRenderer->setSurfaceSamplesFunc = &dsMTLRenderer_setSurfaceSamples;
 	baseRenderer->setVsyncFunc = &dsMTLRenderer_setVsync;
 	baseRenderer->setDefaultAnisotropyFunc = &dsMTLRenderer_setDefaultAnisotropy;
+	baseRenderer->clearColorSurfaceFunc = &dsMTLRenderer_clearColorSurface;
+	baseRenderer->clearDepthStencilSurfaceFunc = &dsMTLRenderer_clearDepthStencilSurface;
 
 	DS_VERIFY(dsRenderer_initializeResources(baseRenderer));
 

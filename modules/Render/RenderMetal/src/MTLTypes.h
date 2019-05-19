@@ -241,6 +241,12 @@ typedef bool (*BeginRenderPassFunction)(dsCommandBuffer* commandBuffer,
 	MTLRenderPassDescriptor* renderPass, const dsAlignedBox3f* viewport);
 typedef bool (*EndRenderPassFunction)(dsCommandBuffer* commandBuffer);
 
+typedef bool (*ClearColorSurfaceFunction)(dsCommandBuffer* commandBuffer, id<MTLTexture> texture,
+	id<MTLTexture> resolveTexture, MTLClearColor clearColor);
+typedef bool (*ClearDepthStencilSurfaceFunction)(dsCommandBuffer* commandBuffer,
+	id<MTLTexture> depthTexture, id<MTLTexture> resolveDepthTexture, float depthValue,
+	id<MTLTexture> stencilTexture, id<MTLTexture> resolveStencilTexture, uint32_t stenciLValue);
+
 typedef struct dsMTLCommandBufferFunctionTable
 {
 	ClearCommandBufferFunction clearFunc;
@@ -265,6 +271,9 @@ typedef struct dsMTLCommandBufferFunctionTable
 
 	BeginRenderPassFunction beginRenderPassFunc;
 	EndRenderPassFunction endRenderPassFunc;
+
+	ClearColorSurfaceFunction clearColorSurfaceFunc;
+	ClearDepthStencilSurfaceFunction clearDepthStencilSurfaceFunc;
 } dsMTLCommandBufferFunctionTable;
 
 typedef struct dsMTLCommandBuffer

@@ -25,3 +25,4 @@ MTLCompareFunction dsGetMTLCompareFunction(mslCompareOp compare);
 MTLStencilOperation dsGetMTLStencilOp(mslStencilOp op);
 MTLStencilDescriptor* dsCreateMTLStencilDescriptor(const mslStencilOpState* state,
 	uint32_t compareMask, uint32_t writeMask);
+MTLClearColor dsGetClearColor(dsGfxFormat format, const dsSurfaceColorValue* value);

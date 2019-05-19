@@ -260,6 +260,24 @@ bool dsMTLCommandBuffer_endRenderPass(dsCommandBuffer* commandBuffer)
 	return functions->endRenderPassFunc(commandBuffer);
 }
 
+bool dsMTLCommandBuffer_clearColorSurface(dsCommandBuffer* commandBuffer, id<MTLTexture> texture,
+	id<MTLTexture> resolveTexture, MTLClearColor clearColor)
+{
+	const dsMTLCommandBufferFunctionTable* functions =
+		((dsMTLCommandBuffer*)commandBuffer)->functions;
+	return functions->clearColorSurfaceFunc(commandBuffer, texture, resolveTexture, clearColor);
+}
+
+bool dsMTLCommandBuffer_clearDepthStencilSurface(dsCommandBuffer* commandBuffer,
+	id<MTLTexture> depthTexture, id<MTLTexture> resolveDepthTexture, float depthValue,
+	id<MTLTexture> stencilTexture, id<MTLTexture> resolveStencilTexture, uint32_t stencilValue)
+{
+	const dsMTLCommandBufferFunctionTable* functions =
+		((dsMTLCommandBuffer*)commandBuffer)->functions;
+	return functions->clearDepthStencilSurfaceFunc(commandBuffer, depthTexture, resolveDepthTexture,
+		depthValue, stencilTexture, resolveStencilTexture, stencilValue);
+}
+
 bool dsMTLCommandBuffer_addGfxBuffer(dsCommandBuffer* commandBuffer, dsMTLGfxBufferData* buffer)
 {
 	dsMTLCommandBuffer* mtlCommandBuffer = (dsMTLCommandBuffer*)commandBuffer;

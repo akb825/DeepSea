@@ -68,6 +68,12 @@ bool dsMTLCommandBuffer_beginRenderPass(dsCommandBuffer* commandBuffer,
 	MTLRenderPassDescriptor* renderPass, const dsAlignedBox3f* viewport);
 bool dsMTLCommandBuffer_endRenderPass(dsCommandBuffer* commandBuffer);
 
+bool dsMTLCommandBuffer_clearColorSurface(dsCommandBuffer* commandBuffer, id<MTLTexture> texture,
+	id<MTLTexture> resolveTexture, MTLClearColor clearColor);
+bool dsMTLCommandBuffer_clearDepthStencilSurface(dsCommandBuffer* commandBuffer,
+	id<MTLTexture> depthTexture, id<MTLTexture> resolveDepthTexture, float depthValue,
+	id<MTLTexture> stencilTexture, id<MTLTexture> resolveStencilTexture, uint32_t stencilValue);
+
 bool dsMTLCommandBuffer_addGfxBuffer(dsCommandBuffer* commandBuffer, dsMTLGfxBufferData* buffer);
 bool dsMTLCommandBuffer_addFence(dsCommandBuffer* commandBuffer, dsGfxFence* fence);
 

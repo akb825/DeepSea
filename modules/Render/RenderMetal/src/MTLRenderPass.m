@@ -18,6 +18,7 @@
 
 #include "Resources/MTLShader.h"
 #include "MTLCommandBuffer.h"
+#include "MTLShared.h"
 
 #include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
@@ -288,26 +289,8 @@ static MTLRenderPassDescriptor* createRenderPassDescriptor(const dsRenderPass* r
 		{
 			dsGfxFormat format = dsFramebuffer_getSurfaceFormat(commandBuffer->renderer, surface);
 			DS_ASSERT(colorAttachment->attachmentIndex < mtlCommandBuffer->clearValueCount);
-			const dsSurfaceClearValue* clearValue =
-				mtlCommandBuffer->clearValues + colorAttachment->attachmentIndex;
-			if (format & dsGfxFormat_UInt)
-			{
-				colorDescriptor.clearColor = MTLClearColorMake(clearValue->colorValue.uintValue[0],
-					clearValue->colorValue.uintValue[1], clearValue->colorValue.uintValue[2],
-					clearValue->colorValue.uintValue[3]);
-			}
-			else if (format & dsGfxFormat_SInt)
-			{
-				colorDescriptor.clearColor = MTLClearColorMake(clearValue->colorValue.intValue[0],
-					clearValue->colorValue.intValue[1], clearValue->colorValue.intValue[2],
-					clearValue->colorValue.intValue[3]);
-			}
-			else
-			{
-				colorDescriptor.clearColor = MTLClearColorMake(clearValue->colorValue.floatValue.r,
-					clearValue->colorValue.floatValue.g, clearValue->colorValue.floatValue.b,
-					clearValue->colorValue.floatValue.a);
-			}
+			colorDescriptor.clearColor = dsGetClearColor(format,
+				&mtlCommandBuffer->clearValues[colorAttachment->attachmentIndex].colorValue);
 		}
 	}
 
