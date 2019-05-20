@@ -199,6 +199,10 @@ static id<MTLCommandBuffer> processTextures(dsMTLRenderer* renderer)
 static bool bindVertexBuffers(dsCommandBuffer* commandBuffer, const dsShader* shader,
 	const dsDrawGeometry* geometry)
 {
+	dsMTLCommandBuffer* mtlCommandBuffer = (dsMTLCommandBuffer*)commandBuffer;
+	if (mtlCommandBuffer->boundGeometry == geometry)
+		return true;
+
 	const dsMTLShader* mtlShader = (const dsMTLShader*)shader;
 	for (uint32_t i = 0; i < DS_MAX_GEOMETRY_VERTEX_BUFFERS; ++i)
 	{
@@ -218,6 +222,7 @@ static bool bindVertexBuffers(dsCommandBuffer* commandBuffer, const dsShader* sh
 		}
 	}
 
+	mtlCommandBuffer->boundGeometry = geometry;
 	return true;
 }
 

@@ -255,8 +255,10 @@ bool dsMTLCommandBuffer_beginRenderPass(dsCommandBuffer* commandBuffer,
 
 bool dsMTLCommandBuffer_endRenderPass(dsCommandBuffer* commandBuffer)
 {
-	const dsMTLCommandBufferFunctionTable* functions =
-		((dsMTLCommandBuffer*)commandBuffer)->functions;
+	dsMTLCommandBuffer* mtlCommandBuffer = (dsMTLCommandBuffer*)commandBuffer;
+	mtlCommandBuffer->boundGeometry = NULL;
+
+	const dsMTLCommandBufferFunctionTable* functions = mtlCommandBuffer->functions;
 	return functions->endRenderPassFunc(commandBuffer);
 }
 

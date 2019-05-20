@@ -321,6 +321,7 @@ typedef struct dsMTLCommandBuffer
 	uint32_t maxClearValues;
 
 	dsAlignedBox3f viewport;
+	const dsDrawGeometry* boundGeometry;
 
 	bool fenceSet;
 } dsMTLCommandBuffer;
