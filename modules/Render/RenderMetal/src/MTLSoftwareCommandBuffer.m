@@ -36,6 +36,7 @@ typedef enum CommandType
 	CommandType_BindBufferUniform,
 	CommandType_BindTextureUniform,
 	CommandType_SetRenderStates,
+	CommandType_BeginComputeShader,
 	CommandType_BindComputePushConstants,
 	CommandType_BindComputeBufferUniform,
 	CommandType_BindComputeTextureUniform,
@@ -46,7 +47,9 @@ typedef enum CommandType
 	CommandType_Draw,
 	CommandType_DrawIndexed,
 	CommandType_DrawIndirect,
-	CommandType_DrawIndexedIndirect
+	CommandType_DrawIndexedIndirect,
+	CommandType_DispatchCompute,
+	CommandType_DispatchComputeIndirect
 } CommandType;
 
 typedef struct Command
@@ -212,6 +215,29 @@ typedef struct DrawIndexedIndirectCommand
 	dsPrimitiveType primitiveType;
 } DrawIndexedIndirectCommand;
 
+typedef struct DispatchComputeCommand
+{
+	Command command;
+	CFTypeRef computePipeline;
+	uint32_t x;
+	uint32_t y;
+	uint32_t z;
+	uint32_t groupX;
+	uint32_t groupY;
+	uint32_t groupZ;
+} DispatchComputeCommand;
+
+typedef struct DispatchComputeIndirectCommand
+{
+	Command command;
+	CFTypeRef computePipeline;
+	CFTypeRef buffer;
+	size_t offset;
+	uint32_t groupX;
+	uint32_t groupY;
+	uint32_t groupZ;
+} DispatchComputeIndirectCommand;
+
 static Command* allocateCommand(dsCommandBuffer* commandBuffer, CommandType type, size_t size)
 {
 	DS_ASSERT(size >= sizeof(Command));
@@ -297,6 +323,8 @@ void dsMTLSoftwareCommandBuffer_clear(dsCommandBuffer* commandBuffer)
 			}
 			case CommandType_SetRenderStates:
 				break;
+			case CommandType_BeginComputeShader:
+				break;
 			case CommandType_BindComputePushConstants:
 				break;
 			case CommandType_BindComputeBufferUniform:
@@ -373,6 +401,20 @@ void dsMTLSoftwareCommandBuffer_clear(dsCommandBuffer* commandBuffer)
 				CFRelease(thisCommand->pipeline);
 				CFRelease(thisCommand->indirectBuffer);
 				CFRelease(thisCommand->indexBuffer);
+				break;
+			}
+			case CommandType_DispatchCompute:
+			{
+				DispatchComputeCommand* thisCommand = (DispatchComputeCommand*)command;
+				CFRelease(thisCommand->computePipeline);
+				break;
+			}
+			case CommandType_DispatchComputeIndirect:
+			{
+				DispatchComputeIndirectCommand* thisCommand =
+					(DispatchComputeIndirectCommand*)command;
+				CFRelease(thisCommand->computePipeline);
+				CFRelease(thisCommand->buffer);
 				break;
 			}
 			default:
@@ -460,6 +502,11 @@ bool dsMTLSoftwareCommandBuffer_submit(dsCommandBuffer* commandBuffer,
 					(__bridge id<MTLDepthStencilState>)thisCommand->depthStencilState,
 					thisCommand->hasDynamicStates ? &thisCommand->dynamicStates : NULL,
 					thisCommand->dynamicOnly);
+				break;
+			}
+			case CommandType_BeginComputeShader:
+			{
+				result = dsMTLCommandBuffer_beginComputeShader(commandBuffer);
 				break;
 			}
 			case CommandType_BindComputePushConstants:
@@ -556,6 +603,25 @@ bool dsMTLSoftwareCommandBuffer_submit(dsCommandBuffer* commandBuffer,
 					thisCommand->indexSize, (__bridge id<MTLBuffer>)thisCommand->indirectBuffer,
 					thisCommand->indirectOffset, thisCommand->count, thisCommand->stride,
 					thisCommand->primitiveType);
+				break;
+			}
+			case CommandType_DispatchCompute:
+			{
+				DispatchComputeCommand* thisCommand = (DispatchComputeCommand*)command;
+				result = dsMTLCommandBuffer_dispatchCompute(commandBuffer,
+					(__bridge id<MTLComputePipelineState>)thisCommand->computePipeline,
+					thisCommand->x, thisCommand->y, thisCommand->z, thisCommand->groupX,
+					thisCommand->groupY, thisCommand->groupZ);
+				break;
+			}
+			case CommandType_DispatchComputeIndirect:
+			{
+				DispatchComputeIndirectCommand* thisCommand =
+					(DispatchComputeIndirectCommand*)command;
+				result = dsMTLCommandBuffer_dispatchComputeIndirect(commandBuffer,
+					(__bridge id<MTLComputePipelineState>)thisCommand->computePipeline,
+					(__bridge id<MTLBuffer>)thisCommand->buffer, thisCommand->offset,
+					thisCommand->groupX, thisCommand->groupY, thisCommand->groupZ);
 				break;
 			}
 			default:
@@ -788,6 +854,11 @@ bool dsMTLSoftwareCommandBuffer_bindTextureUniform(dsCommandBuffer* commandBuffe
 	return true;
 }
 
+bool dsMTLSoftwareCommandBuffer_beginComputeShader(dsCommandBuffer* commandBuffer)
+{
+	return allocateCommand(commandBuffer, CommandType_BeginComputeShader, sizeof(Command)) != NULL;
+}
+
 bool dsMTLSoftwareCommandBuffer_bindComputePushConstants(dsCommandBuffer* commandBuffer,
 	const void* data, uint32_t size)
 {
@@ -959,6 +1030,44 @@ bool dsMTLSoftwareCommandBuffer_drawIndexedIndirect(dsCommandBuffer* commandBuff
 	return true;
 }
 
+bool dsMTLSoftwareCommandBuffer_dispatchCompute(dsCommandBuffer* commandBuffer,
+	id<MTLComputePipelineState> computePipeline, uint32_t x, uint32_t y, uint32_t z,
+	uint32_t groupX, uint32_t groupY, uint32_t groupZ)
+{
+	DispatchComputeCommand* command = (DispatchComputeCommand*)allocateCommand(commandBuffer,
+		CommandType_DispatchCompute, sizeof(DispatchComputeCommand));
+	if (!command)
+		return false;
+
+	command->computePipeline = CFBridgingRetain(computePipeline);
+	command->x = x;
+	command->y = y;
+	command->z = z;
+	command->groupX = groupX;
+	command->groupY = groupY;
+	command->groupZ = groupZ;
+	return true;
+}
+
+bool dsMTLSoftwareCommandBuffer_dispatchComputeIndirect(dsCommandBuffer* commandBuffer,
+	id<MTLComputePipelineState> computePipeline, id<MTLBuffer> buffer, size_t offset,
+	uint32_t groupX, uint32_t groupY, uint32_t groupZ)
+{
+	DispatchComputeIndirectCommand* command =
+		(DispatchComputeIndirectCommand*)allocateCommand(commandBuffer,
+			CommandType_DispatchComputeIndirect, sizeof(DispatchComputeIndirectCommand));
+	if (!command)
+		return false;
+
+	command->computePipeline = CFBridgingRetain(computePipeline);
+	command->buffer = CFBridgingRetain(buffer);
+	command->offset = offset;
+	command->groupX = groupX;
+	command->groupY = groupY;
+	command->groupZ = groupZ;
+	return true;
+}
+
 static dsMTLCommandBufferFunctionTable softwareCommandBufferFunctions =
 {
 	&dsMTLSoftwareCommandBuffer_clear,
@@ -973,6 +1082,7 @@ static dsMTLCommandBufferFunctionTable softwareCommandBufferFunctions =
 	&dsMTLSoftwareCommandBuffer_bindBufferUniform,
 	&dsMTLSoftwareCommandBuffer_bindTextureUniform,
 	&dsMTLSoftwareCommandBuffer_setRenderStates,
+	&dsMTLSoftwareCommandBuffer_beginComputeShader,
 	&dsMTLSoftwareCommandBuffer_bindComputePushConstants,
 	&dsMTLSoftwareCommandBuffer_bindComputeBufferUniform,
 	&dsMTLSoftwareCommandBuffer_bindComputeTextureUniform,
@@ -983,7 +1093,9 @@ static dsMTLCommandBufferFunctionTable softwareCommandBufferFunctions =
 	&dsMTLSoftwareCommandBuffer_draw,
 	&dsMTLSoftwareCommandBuffer_drawIndexed,
 	&dsMTLSoftwareCommandBuffer_drawIndirect,
-	&dsMTLSoftwareCommandBuffer_drawIndexedIndirect
+	&dsMTLSoftwareCommandBuffer_drawIndexedIndirect,
+	&dsMTLSoftwareCommandBuffer_dispatchCompute,
+	&dsMTLSoftwareCommandBuffer_dispatchComputeIndirect
 };
 
 void dsMTLSoftwareCommandBuffer_initialize(dsMTLSoftwareCommandBuffer* commandBuffer,

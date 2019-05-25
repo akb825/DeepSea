@@ -221,6 +221,13 @@ bool dsMTLCommandBuffer_setRenderStates(dsCommandBuffer* commandBuffer,
 		dynamicStates, dynamicOnly);
 }
 
+bool dsMTLCommandBuffer_beginComputeShader(dsCommandBuffer* commandBuffer)
+{
+	const dsMTLCommandBufferFunctionTable* functions =
+		((dsMTLCommandBuffer*)commandBuffer)->functions;
+	return functions->beginComputeShaderFunc(commandBuffer);
+}
+
 bool dsMTLCommandBuffer_bindComputePushConstants(dsCommandBuffer* commandBuffer, const void* data,
 	uint32_t size)
 {
@@ -317,6 +324,26 @@ bool dsMTLCommandBuffer_drawIndexedIndirect(dsCommandBuffer* commandBuffer,
 		((dsMTLCommandBuffer*)commandBuffer)->functions;
 	return functions->drawIndexedIndirectFunc(commandBuffer, pipeline, indexBuffer, indexOffset,
 		indexSize, indirectBuffer, indirectOffset, count, stride, primitiveType);
+}
+
+bool dsMTLCommandBuffer_dispatchCompute(dsCommandBuffer* commandBuffer,
+	id<MTLComputePipelineState> computePipeline, uint32_t x, uint32_t y, uint32_t z,
+	uint32_t groupX, uint32_t groupY, uint32_t groupZ)
+{
+	const dsMTLCommandBufferFunctionTable* functions =
+		((dsMTLCommandBuffer*)commandBuffer)->functions;
+	return functions->dispatchComputeFunc(commandBuffer, computePipeline, x, y, z, groupX, groupY,
+		groupZ);
+}
+
+bool dsMTLCommandBuffer_dispatchComputeIndirect(dsCommandBuffer* commandBuffer,
+	id<MTLComputePipelineState> computePipeline, id<MTLBuffer> buffer, size_t offset,
+	uint32_t groupX, uint32_t groupY, uint32_t groupZ)
+{
+	const dsMTLCommandBufferFunctionTable* functions =
+		((dsMTLCommandBuffer*)commandBuffer)->functions;
+	return functions->dispatchComputeIndirectFunc(commandBuffer, computePipeline, buffer, offset,
+		groupX, groupY, groupZ);
 }
 
 bool dsMTLCommandBuffer_addGfxBuffer(dsCommandBuffer* commandBuffer, dsMTLGfxBufferData* buffer)

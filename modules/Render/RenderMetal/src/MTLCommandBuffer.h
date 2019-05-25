@@ -57,6 +57,7 @@ bool dsMTLCommandBuffer_setRenderStates(dsCommandBuffer* commandBuffer,
 	const mslRenderState* renderStates, id<MTLDepthStencilState> depthStencilState,
 	const dsDynamicRenderStates* dynamicStates, bool dynamicOnly);
 
+bool dsMTLCommandBuffer_beginComputeShader(dsCommandBuffer* commandBuffer);
 bool dsMTLCommandBuffer_bindComputePushConstants(dsCommandBuffer* commandBuffer, const void* data,
 	uint32_t size);
 bool dsMTLCommandBuffer_bindComputeBufferUniform(dsCommandBuffer* commandBuffer,
@@ -86,6 +87,13 @@ bool dsMTLCommandBuffer_drawIndexedIndirect(dsCommandBuffer* commandBuffer,
 	id<MTLRenderPipelineState> pipeline, id<MTLBuffer> indexBuffer, size_t indexOffset,
 	uint32_t indexSize, id<MTLBuffer> indirectBuffer, size_t indirectOffset,
 	uint32_t count, uint32_t stride, dsPrimitiveType primitiveType);
+
+bool dsMTLCommandBuffer_dispatchCompute(dsCommandBuffer* commandBuffer,
+	id<MTLComputePipelineState> computePipeline, uint32_t x, uint32_t y, uint32_t z,
+	uint32_t groupX, uint32_t groupY, uint32_t groupZ);
+bool dsMTLCommandBuffer_dispatchComputeIndirect(dsCommandBuffer* commandBuffer,
+	id<MTLComputePipelineState> computePipeline, id<MTLBuffer> buffer, size_t offset,
+	uint32_t groupX, uint32_t groupY, uint32_t groupZ);
 
 bool dsMTLCommandBuffer_addGfxBuffer(dsCommandBuffer* commandBuffer, dsMTLGfxBufferData* buffer);
 bool dsMTLCommandBuffer_addFence(dsCommandBuffer* commandBuffer, dsGfxFence* fence);

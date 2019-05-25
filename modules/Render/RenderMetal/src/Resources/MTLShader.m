@@ -890,6 +890,9 @@ bool dsMTLShader_bindCompute(dsResourceManager* resourceManager, dsCommandBuffer
 	const dsSharedMaterialValues* globalValues)
 {
 	DS_UNUSED(resourceManager);
+	if (!dsMTLCommandBuffer_beginComputeShader(commandBuffer))
+		return false;
+
 	if (!setComputePushConstnants(shader, commandBuffer, material))
 		return false;
 

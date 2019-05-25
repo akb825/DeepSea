@@ -84,29 +84,6 @@ static id<MTLBlitCommandEncoder> getBlitCommandEncoder(dsCommandBuffer* commandB
 	return encoder;
 }
 
-static id<MTLComputeCommandEncoder> getComputeCommandEncoder(dsCommandBuffer* commandBuffer)
-{
-	dsMTLHardwareCommandBuffer* mtlCommandBuffer = (dsMTLHardwareCommandBuffer*)commandBuffer;
-	if (mtlCommandBuffer->computeCommandEncoder)
-		return (__bridge id<MTLComputeCommandEncoder>)(mtlCommandBuffer->computeCommandEncoder);
-
-	id<MTLCommandBuffer> realCommandBuffer = getCommandBuffer(commandBuffer);
-	if (!realCommandBuffer)
-		return nil;
-
-	dsMTLHardwareCommandBuffer_endEncoding(commandBuffer);
-
-	id<MTLComputeCommandEncoder> encoder = [realCommandBuffer computeCommandEncoder];
-	if (!encoder)
-	{
-		errno = ENOMEM;
-		return nil;
-	}
-
-	mtlCommandBuffer->computeCommandEncoder = CFBridgingRetain(encoder);
-	return encoder;
-}
-
 static bool needsDynamicDepthStencil(const mslStencilOpState* state)
 {
 	return state->compareMask == MSL_UNKNOWN || state->writeMask == MSL_UNKNOWN;
@@ -653,13 +630,34 @@ bool dsMTLHardwareCommandBuffer_setRenderStates(dsCommandBuffer* commandBuffer,
 	return true;
 }
 
-bool dsMTLHardwareCommandBuffer_bindComputePushConstants(dsCommandBuffer* commandBuffer,
-	const void* data, uint32_t size)
+bool dsMTLHardwareCommandBuffer_beginComputeShader(dsCommandBuffer* commandBuffer)
 {
-	id<MTLComputeCommandEncoder> encoder = getComputeCommandEncoder(commandBuffer);
+	dsMTLHardwareCommandBuffer* mtlCommandBuffer = (dsMTLHardwareCommandBuffer*)commandBuffer;
+	if (mtlCommandBuffer->computeCommandEncoder)
+		return true;
+
+	id<MTLCommandBuffer> submitBuffer = getCommandBuffer(commandBuffer);
+	if (!submitBuffer)
+		return false;
+
+	dsMTLHardwareCommandBuffer_endEncoding(commandBuffer);
+	id<MTLComputeCommandEncoder> encoder = [submitBuffer computeCommandEncoder];
 	if (!encoder)
 		return false;
 
+	mtlCommandBuffer->computeCommandEncoder = CFBridgingRetain(encoder);
+	return true;
+}
+
+bool dsMTLHardwareCommandBuffer_bindComputePushConstants(dsCommandBuffer* commandBuffer,
+	const void* data, uint32_t size)
+{
+	dsMTLHardwareCommandBuffer* mtlCommandBuffer = (dsMTLHardwareCommandBuffer*)commandBuffer;
+	if (mtlCommandBuffer->computeCommandEncoder)
+		return false;
+
+	id<MTLComputeCommandEncoder> encoder =
+		(__bridge id<MTLComputeCommandEncoder>)mtlCommandBuffer->computeCommandEncoder;
 	[encoder setBytes: data length: size atIndex: 0];
 	return true;
 }
@@ -668,10 +666,11 @@ bool dsMTLHardwareCommandBuffer_bindComputeBufferUniform(dsCommandBuffer* comman
 	id<MTLBuffer> buffer, size_t offset, uint32_t index)
 {
 	dsMTLHardwareCommandBuffer* mtlCommandBuffer = (dsMTLHardwareCommandBuffer*)commandBuffer;
-	id<MTLComputeCommandEncoder> encoder = getComputeCommandEncoder(commandBuffer);
-	if (!encoder)
+	if (mtlCommandBuffer->computeCommandEncoder)
 		return false;
 
+	id<MTLComputeCommandEncoder> encoder =
+		(__bridge id<MTLComputeCommandEncoder>)mtlCommandBuffer->computeCommandEncoder;
 	if (needToBindBuffer(&mtlCommandBuffer->boundComputeBuffers, commandBuffer->allocator, index,
 			(__bridge CFTypeRef)buffer, offset))
 	{
@@ -684,10 +683,11 @@ bool dsMTLHardwareCommandBuffer_bindComputeTextureUniform(dsCommandBuffer* comma
 	id<MTLTexture> texture, id<MTLSamplerState> sampler, uint32_t index)
 {
 	dsMTLHardwareCommandBuffer* mtlCommandBuffer = (dsMTLHardwareCommandBuffer*)commandBuffer;
-	id<MTLComputeCommandEncoder> encoder = getComputeCommandEncoder(commandBuffer);
-	if (!encoder)
+	if (mtlCommandBuffer->computeCommandEncoder)
 		return false;
 
+	id<MTLComputeCommandEncoder> encoder =
+		(__bridge id<MTLComputeCommandEncoder>)mtlCommandBuffer->computeCommandEncoder;
 	if (needToBindTexture(&mtlCommandBuffer->boundComputeTextures, commandBuffer->allocator,
 			index, (__bridge CFTypeRef)texture, (__bridge CFTypeRef)sampler))
 	{
@@ -1021,6 +1021,50 @@ bool dsMTLHardwareCommandBuffer_drawIndexedIndirect(dsCommandBuffer* commandBuff
 	return true;
 }
 
+bool dsMTLHardwareCommandBuffer_dispatchCompute(dsCommandBuffer* commandBuffer,
+	id<MTLComputePipelineState> computePipeline, uint32_t x, uint32_t y, uint32_t z,
+	uint32_t groupX, uint32_t groupY, uint32_t groupZ)
+{
+	dsMTLHardwareCommandBuffer* mtlCommandBuffer = (dsMTLHardwareCommandBuffer*)commandBuffer;
+	if (mtlCommandBuffer->computeCommandEncoder)
+		return false;
+
+	id<MTLComputeCommandEncoder> encoder =
+		(__bridge id<MTLComputeCommandEncoder>)mtlCommandBuffer->computeCommandEncoder;
+	CFTypeRef computePipelineRef = (__bridge CFTypeRef)computePipeline;
+	if (computePipelineRef != mtlCommandBuffer->boundComputePipeline)
+	{
+		[encoder setComputePipelineState: computePipeline];
+		mtlCommandBuffer->boundComputePipeline = computePipelineRef;
+	}
+
+	[encoder dispatchThreadgroups: MTLSizeMake(x, y, z)
+		threadsPerThreadgroup: MTLSizeMake(groupX, groupY, groupZ)];
+	return true;
+}
+
+bool dsMTLHardwareCommandBuffer_dispatchComputeIndirect(dsCommandBuffer* commandBuffer,
+	id<MTLComputePipelineState> computePipeline, id<MTLBuffer> buffer, size_t offset,
+	uint32_t groupX, uint32_t groupY, uint32_t groupZ)
+{
+	dsMTLHardwareCommandBuffer* mtlCommandBuffer = (dsMTLHardwareCommandBuffer*)commandBuffer;
+	if (mtlCommandBuffer->computeCommandEncoder)
+		return false;
+
+	id<MTLComputeCommandEncoder> encoder =
+		(__bridge id<MTLComputeCommandEncoder>)mtlCommandBuffer->computeCommandEncoder;
+	CFTypeRef computePipelineRef = (__bridge CFTypeRef)computePipeline;
+	if (computePipelineRef != mtlCommandBuffer->boundComputePipeline)
+	{
+		[encoder setComputePipelineState: computePipeline];
+		mtlCommandBuffer->boundComputePipeline = computePipelineRef;
+	}
+
+	[encoder dispatchThreadgroupsWithIndirectBuffer: buffer indirectBufferOffset: offset
+		threadsPerThreadgroup: MTLSizeMake(groupX, groupY, groupZ)];
+	return true;
+}
+
 static dsMTLCommandBufferFunctionTable hardwareCommandBufferFunctions =
 {
 	&dsMTLHardwareCommandBuffer_clear,
@@ -1035,6 +1079,7 @@ static dsMTLCommandBufferFunctionTable hardwareCommandBufferFunctions =
 	&dsMTLHardwareCommandBuffer_bindBufferUniform,
 	&dsMTLHardwareCommandBuffer_bindTextureUniform,
 	&dsMTLHardwareCommandBuffer_setRenderStates,
+	&dsMTLHardwareCommandBuffer_beginComputeShader,
 	&dsMTLHardwareCommandBuffer_bindComputePushConstants,
 	&dsMTLHardwareCommandBuffer_bindComputeBufferUniform,
 	&dsMTLHardwareCommandBuffer_bindComputeTextureUniform,
@@ -1045,7 +1090,9 @@ static dsMTLCommandBufferFunctionTable hardwareCommandBufferFunctions =
 	&dsMTLHardwareCommandBuffer_draw,
 	&dsMTLHardwareCommandBuffer_drawIndexed,
 	&dsMTLHardwareCommandBuffer_drawIndirect,
-	&dsMTLHardwareCommandBuffer_drawIndexedIndirect
+	&dsMTLHardwareCommandBuffer_drawIndexedIndirect,
+	&dsMTLHardwareCommandBuffer_dispatchCompute,
+	&dsMTLHardwareCommandBuffer_dispatchComputeIndirect
 };
 
 inline static void assertIsHardwareCommandBuffer(dsCommandBuffer* commandBuffer)
@@ -1084,6 +1131,12 @@ void dsMTLHardwareCommandBuffer_endEncoding(dsCommandBuffer* commandBuffer)
 		[encoder endEncoding];
 		CFRelease(mtlCommandBuffer->computeCommandEncoder);
 		mtlCommandBuffer->computeCommandEncoder = NULL;
+
+		dsMTLBoundTextureSet* boundTextures = &mtlCommandBuffer->boundComputeTextures;
+		memset(boundTextures->textures, 0, sizeof(dsMTLBoundTexture)*boundTextures->textureCount);
+		dsMTLBoundBufferSet* boundBuffers = &mtlCommandBuffer->boundComputeBuffers;
+		memset(boundBuffers->buffers, 0, sizeof(dsMTLBoundBuffer)*boundBuffers->bufferCount);
+		mtlCommandBuffer->boundComputePipeline = NULL;
 	}
 }
 

@@ -543,6 +543,42 @@ bool dsMTLRenderer_drawIndexedIndirect(dsRenderer* renderer, dsCommandBuffer* co
 		count, stride, primitiveType);
 }
 
+bool dsMTLRenderer_dispatchCompute(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	uint32_t x, uint32_t y, uint32_t z)
+{
+	DS_UNUSED(renderer);
+	const dsMTLShader* shader = (const dsMTLShader*)commandBuffer->boundComputeShader;
+	DS_ASSERT(shader);
+
+	id<MTLComputePipelineState> computePipeline =
+		(__bridge id<MTLComputePipelineState>)shader->computePipeline;
+	DS_ASSERT(computePipeline);
+
+	// TODO: get groupX, groupY, groupZ from shader.
+	return dsMTLCommandBuffer_dispatchCompute(commandBuffer, computePipeline, x, y, z, 1, 1, 1);
+}
+
+bool dsMTLRenderer_dispatchComputeIndirect(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	const dsGfxBuffer* indirectBuffer, size_t offset)
+{
+	DS_UNUSED(renderer);
+	const dsMTLShader* shader = (const dsMTLShader*)commandBuffer->boundComputeShader;
+	DS_ASSERT(shader);
+
+	id<MTLComputePipelineState> computePipeline =
+		(__bridge id<MTLComputePipelineState>)shader->computePipeline;
+	DS_ASSERT(computePipeline);
+
+	id<MTLBuffer> mtlIndirectBuffer = dsMTLGfxBuffer_getBuffer((dsGfxBuffer*)indirectBuffer,
+		commandBuffer);
+	if (!mtlIndirectBuffer)
+		return false;
+
+	// TODO: get groupX, groupY, groupZ from shader.
+	return dsMTLCommandBuffer_dispatchComputeIndirect(commandBuffer, computePipeline,
+		mtlIndirectBuffer, offset, 1, 1, 1);
+}
+
 void dsMTLRenderer_flush(dsRenderer* renderer)
 {
 	dsMTLRenderer_flushImpl(renderer, nil);
@@ -749,6 +785,8 @@ dsRenderer* dsMTLRenderer_create(dsAllocator* allocator, const dsRendererOptions
 	baseRenderer->drawIndexedFunc = &dsMTLRenderer_drawIndexed;
 	baseRenderer->drawIndirectFunc = &dsMTLRenderer_drawIndirect;
 	baseRenderer->drawIndexedIndirectFunc = &dsMTLRenderer_drawIndexedIndirect;
+	baseRenderer->dispatchComputeFunc = &dsMTLRenderer_dispatchCompute;
+	baseRenderer->dispatchComputeIndirectFunc = &dsMTLRenderer_dispatchComputeIndirect;
 
 	DS_VERIFY(dsRenderer_initializeResources(baseRenderer));
 
