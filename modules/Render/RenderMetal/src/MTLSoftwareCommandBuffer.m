@@ -49,7 +49,9 @@ typedef enum CommandType
 	CommandType_DrawIndirect,
 	CommandType_DrawIndexedIndirect,
 	CommandType_DispatchCompute,
-	CommandType_DispatchComputeIndirect
+	CommandType_DispatchComputeIndirect,
+	CommandType_PushDebugGroup,
+	CommandType_PopDebugGroup
 } CommandType;
 
 typedef struct Command
@@ -238,6 +240,12 @@ typedef struct DispatchComputeIndirectCommand
 	uint32_t groupZ;
 } DispatchComputeIndirectCommand;
 
+typedef struct PushDebugGroupCommand
+{
+	Command command;
+	const char* name;
+} PushDebugGroupCommand;
+
 static Command* allocateCommand(dsCommandBuffer* commandBuffer, CommandType type, size_t size)
 {
 	DS_ASSERT(size >= sizeof(Command));
@@ -417,6 +425,10 @@ void dsMTLSoftwareCommandBuffer_clear(dsCommandBuffer* commandBuffer)
 				CFRelease(thisCommand->buffer);
 				break;
 			}
+			case CommandType_PushDebugGroup:
+				break;
+			case CommandType_PopDebugGroup:
+				break;
 			default:
 				DS_ASSERT(false);
 		}
@@ -622,6 +634,17 @@ bool dsMTLSoftwareCommandBuffer_submit(dsCommandBuffer* commandBuffer,
 					(__bridge id<MTLComputePipelineState>)thisCommand->computePipeline,
 					(__bridge id<MTLBuffer>)thisCommand->buffer, thisCommand->offset,
 					thisCommand->groupX, thisCommand->groupY, thisCommand->groupZ);
+				break;
+			}
+			case CommandType_PushDebugGroup:
+			{
+				PushDebugGroupCommand* thisCommand = (PushDebugGroupCommand*)command;
+				result = dsMTLCommandBuffer_pushDebugGroup(commandBuffer, thisCommand->name);
+				break;
+			}
+			case CommandType_PopDebugGroup:
+			{
+				result = dsMTLCommandBuffer_popDebugGroup(commandBuffer);
 				break;
 			}
 			default:
@@ -1068,6 +1091,22 @@ bool dsMTLSoftwareCommandBuffer_dispatchComputeIndirect(dsCommandBuffer* command
 	return true;
 }
 
+bool dsMTLSoftwareCommandBuffer_pushDebugGroup(dsCommandBuffer* commandBuffer, const char* name)
+{
+	PushDebugGroupCommand* command = (PushDebugGroupCommand*)allocateCommand(commandBuffer,
+		CommandType_PushDebugGroup, sizeof(PushDebugGroupCommand));
+	if (!command)
+		return false;
+
+	command->name = name;
+	return true;
+}
+
+bool dsMTLSoftwareCommandBuffer_popDebugGroup(dsCommandBuffer* commandBuffer)
+{
+	return allocateCommand(commandBuffer, CommandType_PopDebugGroup, sizeof(Command)) != NULL;
+}
+
 static dsMTLCommandBufferFunctionTable softwareCommandBufferFunctions =
 {
 	&dsMTLSoftwareCommandBuffer_clear,
@@ -1095,7 +1134,9 @@ static dsMTLCommandBufferFunctionTable softwareCommandBufferFunctions =
 	&dsMTLSoftwareCommandBuffer_drawIndirect,
 	&dsMTLSoftwareCommandBuffer_drawIndexedIndirect,
 	&dsMTLSoftwareCommandBuffer_dispatchCompute,
-	&dsMTLSoftwareCommandBuffer_dispatchComputeIndirect
+	&dsMTLSoftwareCommandBuffer_dispatchComputeIndirect,
+	&dsMTLSoftwareCommandBuffer_pushDebugGroup,
+	&dsMTLSoftwareCommandBuffer_popDebugGroup
 };
 
 void dsMTLSoftwareCommandBuffer_initialize(dsMTLSoftwareCommandBuffer* commandBuffer,

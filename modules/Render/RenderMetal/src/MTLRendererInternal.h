@@ -19,7 +19,7 @@
 #include <DeepSea/Core/Config.h>
 #include "MTLTypes.h"
 
-void dsMTLRenderer_flushImpl(dsRenderer* renderer, id<MTLCommandBuffer> extraCommands);
+uint64_t dsMTLRenderer_flushImpl(dsRenderer* renderer, id<MTLCommandBuffer> extraCommands);
 dsGfxFenceResult dsMTLRenderer_waitForSubmit(const dsRenderer* renderer, uint64_t submitCount,
 	unsigned int milliseconds);
 void dsMTLRenderer_processTexture(dsRenderer* renderer, dsTexture* texture);

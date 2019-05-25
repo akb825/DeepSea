@@ -274,6 +274,9 @@ typedef bool (*DispatchComputeIndirectFunction)(dsCommandBuffer* commandBuffer,
 	id<MTLComputePipelineState> computePipeline, id<MTLBuffer> buffer, size_t offset,
 	uint32_t groupX, uint32_t groupY, uint32_t groupZ);
 
+typedef bool (*PushDebugGroupFunction)(dsCommandBuffer* commandBuffer, const char* name);
+typedef bool (*PopDebugGroupFunction)(dsCommandBuffer* commandBuffer);
+
 typedef struct dsMTLCommandBufferFunctionTable
 {
 	ClearCommandBufferFunction clearFunc;
@@ -310,6 +313,9 @@ typedef struct dsMTLCommandBufferFunctionTable
 
 	DispatchComputeFunction dispatchComputeFunc;
 	DispatchComputeIndirectFunction dispatchComputeIndirectFunc;
+
+	PushDebugGroupFunction pushDebugGroupFunc;
+	PopDebugGroupFunction popDebugGroupFunc;
 } dsMTLCommandBufferFunctionTable;
 
 typedef struct dsMTLCommandBuffer

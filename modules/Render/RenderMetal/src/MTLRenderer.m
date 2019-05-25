@@ -579,9 +579,29 @@ bool dsMTLRenderer_dispatchComputeIndirect(dsRenderer* renderer, dsCommandBuffer
 		mtlIndirectBuffer, offset, 1, 1, 1);
 }
 
-void dsMTLRenderer_flush(dsRenderer* renderer)
+bool dsMTLRenderer_pushDebugGroup(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	const char* name)
+{
+	DS_UNUSED(renderer);
+	return dsMTLCommandBuffer_pushDebugGroup(commandBuffer, name);
+}
+
+bool dsMTLRenderer_popDebugGroup(dsRenderer* renderer, dsCommandBuffer* commandBuffer)
+{
+	DS_UNUSED(renderer);
+	return dsMTLCommandBuffer_popDebugGroup(commandBuffer);
+}
+
+bool dsMTLRenderer_flush(dsRenderer* renderer)
 {
 	dsMTLRenderer_flushImpl(renderer, nil);
+	return true;
+}
+
+bool dsMTLRenderer_waitUntilIdle(dsRenderer* renderer)
+{
+	uint64_t submit = dsMTLRenderer_flushImpl(renderer, nil);
+	return dsMTLRenderer_waitForSubmit(renderer, submit, 0xFFFFFFFF) == dsGfxFenceResult_Success;
 }
 
 dsRenderer* dsMTLRenderer_create(dsAllocator* allocator, const dsRendererOptions* options)
@@ -787,13 +807,17 @@ dsRenderer* dsMTLRenderer_create(dsAllocator* allocator, const dsRendererOptions
 	baseRenderer->drawIndexedIndirectFunc = &dsMTLRenderer_drawIndexedIndirect;
 	baseRenderer->dispatchComputeFunc = &dsMTLRenderer_dispatchCompute;
 	baseRenderer->dispatchComputeIndirectFunc = &dsMTLRenderer_dispatchComputeIndirect;
+	baseRenderer->pushDebugGroupFunc = &dsMTLRenderer_pushDebugGroup;
+	baseRenderer->popDebugGroupFunc = &dsMTLRenderer_popDebugGroup;
+	baseRenderer->flushFunc = &dsMTLRenderer_flush;
+	baseRenderer->waitUntilIdleFunc = &dsMTLRenderer_waitUntilIdle;
 
 	DS_VERIFY(dsRenderer_initializeResources(baseRenderer));
 
 	return baseRenderer;
 }
 
-void dsMTLRenderer_flushImpl(dsRenderer* renderer, id<MTLCommandBuffer> extraCommands)
+uint64_t dsMTLRenderer_flushImpl(dsRenderer* renderer, id<MTLCommandBuffer> extraCommands)
 {
 	dsMTLRenderer* mtlRenderer = (dsMTLRenderer*)renderer;
 
@@ -815,11 +839,14 @@ void dsMTLRenderer_flushImpl(dsRenderer* renderer, id<MTLCommandBuffer> extraCom
 		lastCommandBuffer = extraCommands;
 	}
 
-	if (!lastCommandBuffer)
-		return;
-
 	DS_VERIFY(dsMutex_lock(mtlRenderer->submitMutex));
 	uint64_t submit = mtlRenderer->submitCount;
+	if (!lastCommandBuffer)
+	{
+		DS_VERIFY(dsMutex_unlock(mtlRenderer->submitMutex));
+		return submit - 1;
+	}
+
 	++mtlRenderer->submitCount;
 	DS_VERIFY(dsMutex_unlock(mtlRenderer->submitMutex));
 
@@ -837,6 +864,7 @@ void dsMTLRenderer_flushImpl(dsRenderer* renderer, id<MTLCommandBuffer> extraCom
 		}];
 	[lastCommandBuffer commit];
 	dsMTLHardwareCommandBuffer_submitted(renderer->mainCommandBuffer, submit);
+	return submit;
 }
 
 dsGfxFenceResult dsMTLRenderer_waitForSubmit(const dsRenderer* renderer, uint64_t submitCount,

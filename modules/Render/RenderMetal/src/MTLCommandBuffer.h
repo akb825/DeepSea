@@ -95,6 +95,9 @@ bool dsMTLCommandBuffer_dispatchComputeIndirect(dsCommandBuffer* commandBuffer,
 	id<MTLComputePipelineState> computePipeline, id<MTLBuffer> buffer, size_t offset,
 	uint32_t groupX, uint32_t groupY, uint32_t groupZ);
 
+bool dsMTLCommandBuffer_pushDebugGroup(dsCommandBuffer* commandBuffer, const char* name);
+bool dsMTLCommandBuffer_popDebugGroup(dsCommandBuffer* commandBuffer);
+
 bool dsMTLCommandBuffer_addGfxBuffer(dsCommandBuffer* commandBuffer, dsMTLGfxBufferData* buffer);
 bool dsMTLCommandBuffer_addFence(dsCommandBuffer* commandBuffer, dsGfxFence* fence);
 

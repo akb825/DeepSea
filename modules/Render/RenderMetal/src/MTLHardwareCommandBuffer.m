@@ -1065,6 +1065,26 @@ bool dsMTLHardwareCommandBuffer_dispatchComputeIndirect(dsCommandBuffer* command
 	return true;
 }
 
+bool dsMTLHardwareCommandBuffer_pushDebugGroup(dsCommandBuffer* commandBuffer, const char* name)
+{
+	id<MTLCommandBuffer> submitBuffer = getCommandBuffer(commandBuffer);
+	if (!submitBuffer)
+		return false;
+
+	[submitBuffer pushDebugGroup: [NSString stringWithUTF8String: name]];
+	return true;
+}
+
+bool dsMTLHardwareCommandBuffer_popDebugGroup(dsCommandBuffer* commandBuffer)
+{
+	id<MTLCommandBuffer> submitBuffer = getCommandBuffer(commandBuffer);
+	if (!submitBuffer)
+		return false;
+
+	[submitBuffer popDebugGroup];
+	return true;
+}
+
 static dsMTLCommandBufferFunctionTable hardwareCommandBufferFunctions =
 {
 	&dsMTLHardwareCommandBuffer_clear,
@@ -1092,7 +1112,9 @@ static dsMTLCommandBufferFunctionTable hardwareCommandBufferFunctions =
 	&dsMTLHardwareCommandBuffer_drawIndirect,
 	&dsMTLHardwareCommandBuffer_drawIndexedIndirect,
 	&dsMTLHardwareCommandBuffer_dispatchCompute,
-	&dsMTLHardwareCommandBuffer_dispatchComputeIndirect
+	&dsMTLHardwareCommandBuffer_dispatchComputeIndirect,
+	&dsMTLHardwareCommandBuffer_pushDebugGroup,
+	&dsMTLHardwareCommandBuffer_popDebugGroup
 };
 
 inline static void assertIsHardwareCommandBuffer(dsCommandBuffer* commandBuffer)

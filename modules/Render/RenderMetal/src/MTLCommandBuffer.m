@@ -346,6 +346,20 @@ bool dsMTLCommandBuffer_dispatchComputeIndirect(dsCommandBuffer* commandBuffer,
 		groupX, groupY, groupZ);
 }
 
+bool dsMTLCommandBuffer_pushDebugGroup(dsCommandBuffer* commandBuffer, const char* name)
+{
+	const dsMTLCommandBufferFunctionTable* functions =
+		((dsMTLCommandBuffer*)commandBuffer)->functions;
+	return functions->pushDebugGroupFunc(commandBuffer, name);
+}
+
+bool dsMTLCommandBuffer_popDebugGroup(dsCommandBuffer* commandBuffer)
+{
+	const dsMTLCommandBufferFunctionTable* functions =
+		((dsMTLCommandBuffer*)commandBuffer)->functions;
+	return functions->popDebugGroupFunc(commandBuffer);
+}
+
 bool dsMTLCommandBuffer_addGfxBuffer(dsCommandBuffer* commandBuffer, dsMTLGfxBufferData* buffer)
 {
 	dsMTLCommandBuffer* mtlCommandBuffer = (dsMTLCommandBuffer*)commandBuffer;
