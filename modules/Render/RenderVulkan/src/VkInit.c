@@ -337,10 +337,10 @@ static bool queryInstanceExtensions(dsVkInstance* instance)
 static void addLayers(const char** layerNames, uint32_t* layerCount,
 	const dsRendererOptions* options)
 {
-	bool wantDebug = (options && options->debug) || DS_GPU_PROFILING_ENABLED;
-	if (wantDebug && instanceExtensions.debug)
+	bool wantValidation = (options && options->debug);
+	if (wantValidation && instanceExtensions.debug)
 		DS_ADD_EXTENSION(layerNames, *layerCount, debugLayerName);
-	else if (wantDebug && instanceExtensions.oldDebug)
+	else if (wantValidation && instanceExtensions.oldDebug)
 	{
 		// Need to add each validation layer individually for older systems. (e.g. Android)
 		DS_ADD_EXTENSION(layerNames, *layerCount, threadingValLayerName);
@@ -371,10 +371,11 @@ static void addInstanceExtensions(const char** extensionNames, uint32_t* extensi
 	}
 
 	// NOTE: Push groups use the debug utils extension, so use it if profiling is enabled.
-	bool wantDebug = options && (options->debug || DS_GPU_PROFILING_ENABLED);
+	bool wantValidation = (options && options->debug);
+	bool wantDebug = wantValidation || DS_PROFILING_ENABLED;
 	if (wantDebug && instanceExtensions.debug)
 		DS_ADD_EXTENSION(extensionNames, *extensionCount, debugExtensionName);
-	else if (wantDebug && instanceExtensions.oldDebug)
+	else if (wantValidation && instanceExtensions.oldDebug)
 		DS_ADD_EXTENSION(extensionNames, *extensionCount, oldDebugExtensionName);
 }
 
@@ -649,9 +650,11 @@ bool dsCreateVkInstance(dsVkInstance* instance, const dsRendererOptions* options
 
 	instance->debugCallback = 0;
 	instance->oldDebugCallback = 0;
-	if (options && options->debug)
+	bool wantValidation = (options && options->debug);
+	bool wantDebug = wantValidation || DS_PROFILING_ENABLED;
+	if (wantDebug && instanceExtensions.debug)
 	{
-		if (instanceExtensions.debug)
+		if (wantValidation)
 		{
 			DS_LOAD_VK_INSTANCE_FUNCTION(instance, vkCreateDebugUtilsMessengerEXT);
 			DS_LOAD_VK_INSTANCE_FUNCTION(instance, vkDestroyDebugUtilsMessengerEXT);
@@ -672,28 +675,28 @@ bool dsCreateVkInstance(dsVkInstance* instance, const dsRendererOptions* options
 			};
 			instance->vkCreateDebugUtilsMessengerEXT(instance->instance, &debugCreateInfo,
 				instance->allocCallbacksPtr, &instance->debugCallback);
-
-			DS_LOAD_VK_INSTANCE_FUNCTION(instance, vkCmdBeginDebugUtilsLabelEXT);
-			DS_LOAD_VK_INSTANCE_FUNCTION(instance, vkCmdEndDebugUtilsLabelEXT);
 		}
-		else if (instanceExtensions.oldDebug)
+
+		DS_LOAD_VK_INSTANCE_FUNCTION(instance, vkCmdBeginDebugUtilsLabelEXT);
+		DS_LOAD_VK_INSTANCE_FUNCTION(instance, vkCmdEndDebugUtilsLabelEXT);
+	}
+	else if (wantValidation && instanceExtensions.oldDebug)
+	{
+		DS_LOAD_VK_INSTANCE_FUNCTION(instance, vkCreateDebugReportCallbackEXT);
+		DS_LOAD_VK_INSTANCE_FUNCTION(instance, vkDestroyDebugReportCallbackEXT);
+		DS_LOAD_VK_INSTANCE_FUNCTION(instance, vkDebugReportMessageEXT);
+
+		VkDebugReportCallbackCreateInfoEXT debugCreateInfo =
 		{
-			DS_LOAD_VK_INSTANCE_FUNCTION(instance, vkCreateDebugReportCallbackEXT);
-			DS_LOAD_VK_INSTANCE_FUNCTION(instance, vkDestroyDebugReportCallbackEXT);
-			DS_LOAD_VK_INSTANCE_FUNCTION(instance, vkDebugReportMessageEXT);
-
-			VkDebugReportCallbackCreateInfoEXT debugCreateInfo =
-			{
-				VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT,
-				NULL,
-				VK_DEBUG_REPORT_INFORMATION_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT |
-					VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT | VK_DEBUG_REPORT_ERROR_BIT_EXT |
-					VK_DEBUG_REPORT_DEBUG_BIT_EXT,
-				&oldDebugFunc, NULL
-			};
-			instance->vkCreateDebugReportCallbackEXT(instance->instance, &debugCreateInfo,
-				instance->allocCallbacksPtr, &instance->oldDebugCallback);
-		}
+			VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT,
+			NULL,
+			VK_DEBUG_REPORT_INFORMATION_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT |
+				VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT | VK_DEBUG_REPORT_ERROR_BIT_EXT |
+				VK_DEBUG_REPORT_DEBUG_BIT_EXT,
+			&oldDebugFunc, NULL
+		};
+		instance->vkCreateDebugReportCallbackEXT(instance->instance, &debugCreateInfo,
+			instance->allocCallbacksPtr, &instance->oldDebugCallback);
 	}
 
 	return true;
