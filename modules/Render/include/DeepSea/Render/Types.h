@@ -406,6 +406,10 @@ typedef struct dsRendererOptions
 
 	/**
 	 * @brief True to enable debugging.
+	 *
+	 * When calling dsRenderer_defaultOptions(), this will default to true for debug builds and
+	 * false for release builds. The default can be adjusted by setting the DEEPSEA_GRAPHICS_DEBUG
+	 * environment variable to 0 or 1.
 	 */
 	bool debug;
 

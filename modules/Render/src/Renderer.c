@@ -30,7 +30,15 @@
 #include <DeepSea/Render/Resources/ResourceManager.h>
 
 #include <MSL/Client/ModuleC.h>
+#include <stdlib.h>
 #include <string.h>
+
+#if DS_WINDOWS
+#define strcasecmp(x, y) _stricmp(x, y)
+#else
+#include <strings.h>
+#endif
+
 
 DS_STATIC_ASSERT(DS_MAX_ATTACHMENTS == MSL_MAX_ATTACHMENTS, max_attachments_dont_match);
 
@@ -214,6 +222,18 @@ void dsRenderer_defaultOptions(dsRendererOptions* options, const char* applicati
 	options->shaderCacheDir = NULL;
 	memset(options->deviceUUID, 0, sizeof(options->deviceUUID));
 	options->gfxAPIAllocator = NULL;
+
+	const char* debugEnv = getenv("DEEPSEA_GRAPHICS_DEBUG");
+	if (debugEnv)
+	{
+		if (strcmp(debugEnv, "0") == 0 || strcasecmp(debugEnv, "off") == 0 ||
+			strcasecmp(debugEnv, "false") == 0)
+		{
+			options->debug = false;
+		}
+		else
+			options->debug = true;
+	}
 }
 
 dsGfxFormat dsRenderer_optionsColorFormat(const dsRendererOptions* options, bool bgra,
