@@ -57,6 +57,7 @@ add_custom_target(deepsea_test_vector_draw_app_prepare
 	COMMAND ${CMAKE_COMMAND} -E make_directory ${imageDir})
 
 # Shaders
+# Strip symbols and optimize to verify that this works with non-trivial shaders.
 set(shaderOptions OUTPUT_DIR ${shaderDir}
 	INCLUDE ${DEEPSEA_MODULE_DIR}/Render/include ${DEEPSEA_MODULE_DIR}/Text/include
 		${DEEPSEA_MODULE_DIR}/VectorDraw/include
@@ -68,14 +69,16 @@ ds_compile_shaders(shaders FILE ${CMAKE_CURRENT_SOURCE_DIR}/VectorElementFill.ms
 	${CMAKE_CURRENT_SOURCE_DIR}/VectorElementTextColor.msl
 	${CMAKE_CURRENT_SOURCE_DIR}/VectorElementTextGradient.msl
 	OUTPUT TestVectorDraw.mslb
-	CONFIG ${shaderConfigs} ${shaderOptions})
+	CONFIG ${shaderConfigs} ${shaderOptions}
+	STRIP OPTIMIZE)
 ds_compile_shaders(shaders FILE ${CMAKE_CURRENT_SOURCE_DIR}/VectorElementFillSRGB.msl
 	${CMAKE_CURRENT_SOURCE_DIR}/VectorElementLineSRGB.msl
 	${CMAKE_CURRENT_SOURCE_DIR}/VectorElementImage.msl
 	${CMAKE_CURRENT_SOURCE_DIR}/VectorElementTextColorSRGB.msl
 	${CMAKE_CURRENT_SOURCE_DIR}/VectorElementTextGradientSRGB.msl
 	OUTPUT TestVectorDrawSRGB.mslb
-	CONFIG ${srgbShaderConfigs} ${shaderOptions})
+	CONFIG ${srgbShaderConfigs} ${shaderOptions}
+	STRIP OPTIMIZE)
 ds_compile_shaders_target(deepsea_test_vector_draw_app_shaders shaders
 	DEPENDS deepsea_test_vector_draw_app_prepare)
 

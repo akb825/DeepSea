@@ -147,7 +147,7 @@ fi
 if [ $SUBMODULES -ne 0 ]; then
 	echo "Updating git submodules..."
 	git submodule init
-	git submodule update
+	git submodule update --recursive
 fi
 
 if [[ ($TOOLS -eq 2 && -d "$DEPENDENCIES_DIR/tools" ) || $TOOLS -eq 1 ]]; then

@@ -554,8 +554,9 @@ bool dsMTLRenderer_dispatchCompute(dsRenderer* renderer, dsCommandBuffer* comman
 		(__bridge id<MTLComputePipelineState>)shader->computePipeline;
 	DS_ASSERT(computePipeline);
 
-	// TODO: get groupX, groupY, groupZ from shader.
-	return dsMTLCommandBuffer_dispatchCompute(commandBuffer, computePipeline, x, y, z, 1, 1, 1);
+	const uint32_t* computeLocalSize = shader->pipeline.computeLocalSize;
+	return dsMTLCommandBuffer_dispatchCompute(commandBuffer, computePipeline, x, y, z,
+		computeLocalSize[0], computeLocalSize[1], computeLocalSize[2]);
 }
 
 bool dsMTLRenderer_dispatchComputeIndirect(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
@@ -574,9 +575,9 @@ bool dsMTLRenderer_dispatchComputeIndirect(dsRenderer* renderer, dsCommandBuffer
 	if (!mtlIndirectBuffer)
 		return false;
 
-	// TODO: get groupX, groupY, groupZ from shader.
+	const uint32_t* computeLocalSize = shader->pipeline.computeLocalSize;
 	return dsMTLCommandBuffer_dispatchComputeIndirect(commandBuffer, computePipeline,
-		mtlIndirectBuffer, offset, 1, 1, 1);
+		mtlIndirectBuffer, offset, computeLocalSize[0], computeLocalSize[1], computeLocalSize[2]);
 }
 
 bool dsMTLRenderer_pushDebugGroup(dsRenderer* renderer, dsCommandBuffer* commandBuffer,

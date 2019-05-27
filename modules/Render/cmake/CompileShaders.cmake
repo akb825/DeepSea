@@ -35,7 +35,7 @@ endif()
 #                    [DEPENDENCY_RECURSE pattern1 [pattern2 ...]]
 #                    [WARN_NONE]
 #                    [WARN_ERROR]
-#                    [STRIP_SYMBOLS]
+#                    [STRIP]
 #                    [OPTIMIZE]
 #                    [WORKING_DIRECTORY dir])
 #
@@ -55,7 +55,7 @@ endif()
 # DEPENDENCY_RECURSE - same as DEPENDENCY, except each pattern performs a GLOB_RECURSE.
 # WARN_NONE - if specified, disables all warnings.
 # WARN_ERROR - if specified, treats warnings as errors. 
-# STRIP_SYMBOLS - if specified, strips symbols.
+# STRIP - if specified, strips symbols.
 # OPTIMIZE - if specified, enables optimizations.
 # WORKING_DIRECTORY - the working directory for running the shader compiler.
 function(ds_compile_shaders container)
@@ -63,7 +63,7 @@ function(ds_compile_shaders container)
 		message(FATAL_ERROR "Program 'mslc' not found on the path.")
 	endif()
 
-	set(options WARN_NONE WARN_ERROR STRIP_SYMBOLS OPTIMIZE)
+	set(options WARN_NONE WARN_ERROR STRIP OPTIMIZE)
 	set(oneValueArgs OUTPUT OUTPUT_DIR WORKING_DIRECTORY)
 	set(multiValueArgs FILE CONFIG INCLUDE DEFINE DEPENDENCY DEPENDENCY_RECURSE)
 	cmake_parse_arguments(ARGS "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
@@ -98,7 +98,7 @@ function(ds_compile_shaders container)
 	if (ARGS_WARN_ERROR)
 		list(APPEND extraArgs -W)
 	endif()
-	if (ARGS_STRIP_SYMBOLS)
+	if (ARGS_STRIP)
 		list(APPEND extraArgs -s)
 	endif()
 	if (ARGS_OPTIMIZE)

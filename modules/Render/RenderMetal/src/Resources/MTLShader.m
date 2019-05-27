@@ -242,11 +242,25 @@ static bool createSamplers(dsMTLShader* shader, mslModule* module, uint32_t shad
 
 static void setupUniformIndices(dsMTLShader* shader, mslModule* module, uint32_t shaderIndex)
 {
-	// TODO once implemented in MSL
-	DS_UNUSED(shader);
-	DS_UNUSED(module);
-	DS_UNUSED(shaderIndex);
-	shader->firstVertexBuffer = 0; // TODO: Set based on max vertex buffer for uniforms.
+	shader->firstVertexBuffer = 0;
+	for (int i = 0; i < mslStage_Count; ++i)
+	{
+		if (!shader->stages[i].uniformIndices)
+			continue;
+
+		mslStage stage = (mslStage)i;
+		uint32_t maxIndex = 0;
+		for (uint32_t j = 0; j < shader->pipeline.uniformCount; ++j)
+		{
+			uint32_t index = mslModule_shaderUniformId(module, shaderIndex, j, stage);
+			shader->stages[i].uniformIndices[j] = index;
+			if (index != MSL_UNKNOWN && index > maxIndex)
+				maxIndex = index;
+		}
+
+		if (stage == mslStage_Vertex)
+			shader->firstVertexBuffer = maxIndex;
+	}
 }
 
 static bool setupShaders(dsShader* shader, mslModule* module, uint32_t shaderIndex)
@@ -709,15 +723,19 @@ dsShader* dsMTLShader_create(dsResourceManager* resourceManager, dsAllocator* al
 	{
 		shader->stages[i].function = NULL;
 		if (pipeline.shaders[i] == MSL_UNKNOWN)
+		{
 			shader->stages[i].uniformIndices = NULL;
+			shader->stages[i].hasPushConstants = false;
+		}
 		else
 		{
 			shader->stages[i].uniformIndices = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
 				uint32_t, pipeline.uniformCount);
 			DS_ASSERT(shader->stages[i].uniformIndices);
 			memset(shader->stages[i].uniformIndices, 0xFF, sizeof(CFTypeRef)*pipeline.uniformCount);
+			shader->stages[i].hasPushConstants = mslModule_shaderUsesPushConstants(module->module,
+				pipeline.shaders[i]);
 		}
-		shader->stages[i].hasPushConstants = false;
 	}
 
 	if (pipeline.samplerStateCount > 0)
