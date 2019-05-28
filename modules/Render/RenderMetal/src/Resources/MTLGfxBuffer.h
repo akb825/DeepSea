@@ -33,6 +33,7 @@ bool dsMTLGfxBuffer_copyData(dsResourceManager* resourceManager, dsCommandBuffer
 bool dsMTLGfxBuffer_copy(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
 	dsGfxBuffer* srcBuffer, size_t srcOffset, dsGfxBuffer* dstBuffer, size_t dstOffset,
 	size_t size);
+void dsMTLGfxBuffer_process(dsResourceManager* resourceManager, dsGfxBuffer* buffer);
 bool dsMTLGfxBuffer_destroy(dsResourceManager* resourceManager, dsGfxBuffer* buffer);
 
 // NOTE: Must release the lifetime on the returned buffer data when done with it.

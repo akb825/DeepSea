@@ -22,4 +22,5 @@
 uint64_t dsMTLRenderer_flushImpl(dsRenderer* renderer, id<MTLCommandBuffer> extraCommands);
 dsGfxFenceResult dsMTLRenderer_waitForSubmit(const dsRenderer* renderer, uint64_t submitCount,
 	unsigned int milliseconds);
+void dsMTLRenderer_processBuffer(dsRenderer* renderer, dsMTLGfxBufferData* buffer);
 void dsMTLRenderer_processTexture(dsRenderer* renderer, dsTexture* texture);

@@ -113,6 +113,7 @@ void* dsMTLGfxBuffer_map(dsResourceManager* resourceManager, dsGfxBuffer* buffer
 		dsGfxFenceResult fenceResult = dsMTLRenderer_waitForSubmit(renderer, lastUsedSubmit,
 			DS_DEFAULT_WAIT_TIMEOUT);
 
+		DS_VERIFY(dsSpinlock_lock(&mtlBuffer->lock));
 		if (fenceResult == dsGfxFenceResult_WaitingToQueue)
 		{
 			bufferData->mappedStart = 0;
@@ -125,7 +126,6 @@ void* dsMTLGfxBuffer_map(dsResourceManager* resourceManager, dsGfxBuffer* buffer
 			return NULL;
 		}
 
-		DS_VERIFY(dsSpinlock_unlock(&mtlBuffer->lock));
 		if (bufferData != mtlBuffer->bufferData || bufferData->mappedSize == 0)
 		{
 			DS_VERIFY(dsSpinlock_unlock(&mtlBuffer->lock));
@@ -241,6 +241,14 @@ bool dsMTLGfxBuffer_copy(dsResourceManager* resourceManager, dsCommandBuffer* co
 		dstOffset, size);
 }
 
+void dsMTLGfxBuffer_process(dsResourceManager* resourceManager, dsGfxBuffer* buffer)
+{
+	dsMTLGfxBuffer* mtlBuffer = (dsMTLGfxBuffer*)buffer;
+	DS_VERIFY(dsSpinlock_lock(&mtlBuffer->lock));
+	dsMTLGfxBufferData_process(mtlBuffer->bufferData, resourceManager->renderer);
+	DS_VERIFY(dsSpinlock_unlock(&mtlBuffer->lock));
+}
+
 bool dsMTLGfxBuffer_destroy(dsResourceManager* resourceManager, dsGfxBuffer* buffer)
 {
 	DS_UNUSED(resourceManager);
@@ -262,6 +270,7 @@ dsMTLGfxBufferData* dsMTLGfxBuffer_getData(dsGfxBuffer* buffer, dsCommandBuffer*
 	DS_VERIFY(dsLifetime_acquire(bufferData->lifetime) == bufferData);
 	if (buffer->memoryHints & dsGfxMemory_Synchronize)
 		dsMTLCommandBuffer_addGfxBuffer(commandBuffer, bufferData);
+	dsMTLGfxBufferData_process(bufferData, commandBuffer->renderer);
 
 	DS_VERIFY(dsSpinlock_unlock(&mtlBuffer->lock));
 

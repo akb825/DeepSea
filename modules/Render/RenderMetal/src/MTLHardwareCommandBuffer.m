@@ -38,7 +38,7 @@ static id<MTLCommandBuffer> getCommandBuffer(dsCommandBuffer* commandBuffer)
 {
 	dsMTLHardwareCommandBuffer* mtlCommandBuffer = (dsMTLHardwareCommandBuffer*)commandBuffer;
 	if (mtlCommandBuffer->mtlCommandBuffer)
-		return (__bridge id<MTLCommandBuffer>)(mtlCommandBuffer);
+		return (__bridge id<MTLCommandBuffer>)(mtlCommandBuffer->mtlCommandBuffer);
 
 	dsMTLRenderer* mtlRenderer = (dsMTLRenderer*)commandBuffer->renderer;
 	id<MTLCommandQueue> commandQueue = (__bridge id<MTLCommandQueue>)mtlRenderer->commandQueue;
@@ -338,20 +338,26 @@ bool dsMTLHardwareCommandBuffer_submit(dsCommandBuffer* commandBuffer,
 	if (mtlCommandBuffer->mtlCommandBuffer)
 	{
 		CFRelease(mtlCommandBuffer->mtlCommandBuffer);
-		mtlCommandBuffer = NULL;
+		mtlCommandBuffer->mtlCommandBuffer = NULL;
 	}
 
 	if (mtlSubmitBuffer->mtlCommandBuffer)
 	{
-		uint32_t index = mtlCommandBuffer->submitBufferCount;
-		if (!DS_RESIZEABLE_ARRAY_ADD(commandBuffer->allocator, mtlCommandBuffer->submitBuffers,
-				mtlCommandBuffer->submitBufferCount, mtlCommandBuffer->maxSubmitBuffers, 1))
-		{
-			return false;
-		}
-
-		mtlCommandBuffer->submitBuffers[index] = CFRetain(mtlSubmitBuffer->mtlCommandBuffer);
+		CFRelease(mtlSubmitBuffer->mtlCommandBuffer);
+		mtlSubmitBuffer->mtlCommandBuffer = NULL;
 	}
+
+	uint32_t index = mtlCommandBuffer->submitBufferCount;
+	if (!DS_RESIZEABLE_ARRAY_ADD(commandBuffer->allocator, mtlCommandBuffer->submitBuffers,
+			mtlCommandBuffer->submitBufferCount, mtlCommandBuffer->maxSubmitBuffers,
+			mtlSubmitBuffer->submitBufferCount))
+	{
+		return false;
+	}
+
+	for (uint32_t i = 0; i < mtlSubmitBuffer->submitBufferCount; ++i)
+		mtlCommandBuffer->submitBuffers[index + i] = mtlSubmitBuffer->submitBuffers[i];
+	mtlSubmitBuffer->submitBufferCount = 0;
 
 	return true;
 }

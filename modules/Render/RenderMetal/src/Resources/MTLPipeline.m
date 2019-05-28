@@ -229,7 +229,6 @@ static bool setupVertexState(dsShader* shader, MTLRenderPipelineDescriptor* desc
 		return false;
 	}
 
-	uint32_t index = 0;
 	for (uint32_t i = 0; i < DS_MAX_GEOMETRY_VERTEX_BUFFERS; ++i)
 	{
 		if (formats[i].enabledMask == 0)
@@ -251,10 +250,10 @@ static bool setupVertexState(dsShader* shader, MTLRenderPipelineDescriptor* desc
 		layout.stride = formats[i].size;
 
 		for (uint32_t curBitmask = formats[i].enabledMask; curBitmask;
-			curBitmask = dsRemoveLastBit(curBitmask), ++index)
+			curBitmask = dsRemoveLastBit(curBitmask))
 		{
 			uint32_t j = dsBitmaskIndex(curBitmask);
-			MTLVertexAttributeDescriptor* attribute = vertexDescriptor.attributes[index];
+			MTLVertexAttributeDescriptor* attribute = vertexDescriptor.attributes[j];
 			if (!attribute)
 			{
 				errno = ENOMEM;

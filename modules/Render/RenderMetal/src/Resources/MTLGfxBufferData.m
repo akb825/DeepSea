@@ -17,6 +17,7 @@
 #include "Resources/MTLGfxBufferData.h"
 
 #include "Resources/MTLResourceManager.h"
+#include "MTLRendererInternal.h"
 #include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/Lifetime.h>
@@ -48,6 +49,7 @@ dsMTLGfxBufferData* dsMTLGfxBufferData_create(dsResourceManager* resourceManager
 	buffer->resourceManager = resourceManager;
 	buffer->allocator = dsAllocator_keepPointer(allocator);
 	buffer->scratchAllocator = scratchAllocator;
+	buffer->processed = false;
 	DS_VERIFY(dsSpinlock_initialize(&buffer->bufferTextureLock));
 
 	buffer->lifetime = dsLifetime_create(allocator, buffer);
@@ -84,15 +86,30 @@ dsMTLGfxBufferData* dsMTLGfxBufferData_create(dsResourceManager* resourceManager
 #endif
 
 #if IPHONE_OS_VERSION_MIN_REQUIRED >= 100000 || MAC_OS_X_VERSION_MIN_REQUIRED >= 101300
-	if ((memoryHints & dsGfxMemory_GPUOnly) && !(usage & dsGfxBufferUsage_CopyTo))
+	if ((memoryHints & dsGfxMemory_GPUOnly) && !(usage & (dsGfxBufferUsage_CopyTo |
+			dsGfxBufferUsage_UniformBuffer | dsGfxBufferUsage_Image)))
+	{
 		resourceOptions |= MTLResourceHazardTrackingModeUntracked;
+	}
 #endif
 
 	id<MTLBuffer> mtlBuffer;
+	id<MTLBuffer> copyBuffer;
 	if (data)
-		mtlBuffer = [device newBufferWithLength: size options: resourceOptions];
+	{
+#if !DS_IOS || IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
+		if (resourceOptions & MTLResourceStorageModePrivate)
+		{
+			copyBuffer = [device newBufferWithBytes: data length: size
+				options: MTLResourceCPUCacheModeWriteCombined];
+			mtlBuffer = [device newBufferWithLength: size options: resourceOptions];
+		}
+		else
+#endif
+			mtlBuffer = [device newBufferWithBytes: data length: size options: resourceOptions];
+	}
 	else
-		mtlBuffer = [device newBufferWithBytes: data length: size options: resourceOptions];
+		mtlBuffer = [device newBufferWithLength: size options: resourceOptions];
 
 	if (!mtlBuffer)
 	{
@@ -178,12 +195,23 @@ id<MTLTexture> dsMTLGfxBufferData_getBufferTexture(dsMTLGfxBufferData* buffer, d
 #endif
 }
 
+void dsMTLGfxBufferData_process(dsMTLGfxBufferData* buffer, dsRenderer* renderer)
+{
+	uint32_t processed = true;
+	uint32_t wasProcessed;
+	DS_ATOMIC_EXCHANGE32(&buffer->processed, &processed, &wasProcessed);
+	if (!wasProcessed && buffer->copyBuffer)
+		dsMTLRenderer_processBuffer(renderer, buffer);
+}
+
 void dsMTLGfxBufferData_destroy(dsMTLGfxBufferData* buffer)
 {
 	if (!buffer)
 		return;
 
 	dsLifetime_destroy(buffer->lifetime);
+	if (buffer->copyBuffer)
+		CFRelease(buffer->copyBuffer);
 	if (buffer->mtlBuffer)
 		CFRelease(buffer->mtlBuffer);
 

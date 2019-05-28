@@ -618,7 +618,8 @@ void dsGLOtherCommandBuffer_reset(dsCommandBuffer* commandBuffer)
 	glCommandBuffer->curFenceSyncs = 0;
 	glCommandBuffer->bufferReadback = false;
 
-	DS_VERIFY(dsBufferAllocator_reset(&glCommandBuffer->buffer));
+	if (bufferSize > 0)
+		DS_VERIFY(dsBufferAllocator_reset(&glCommandBuffer->buffer));
 }
 
 bool dsGLOtherCommandBuffer_copyBufferData(dsCommandBuffer* commandBuffer, dsGfxBuffer* buffer,

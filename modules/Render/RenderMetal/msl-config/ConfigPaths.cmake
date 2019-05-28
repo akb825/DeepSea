@@ -1,1 +1,10 @@
-set_property(GLOBAL PROPERTY spirv-1.0 ${CMAKE_CURRENT_LIST_DIR}/spirv-1.0.conf)
+set_property(GLOBAL PROPERTY metal-ios-1.0 ${CMAKE_CURRENT_LIST_DIR}/metal-ios-1.0.conf)
+set_property(GLOBAL PROPERTY metal-ios-1.1 ${CMAKE_CURRENT_LIST_DIR}/metal-ios-1.1.conf)
+set_property(GLOBAL PROPERTY metal-ios-1.2 ${CMAKE_CURRENT_LIST_DIR}/metal-ios-1.2.conf)
+set_property(GLOBAL PROPERTY metal-ios-2.0 ${CMAKE_CURRENT_LIST_DIR}/metal-ios-2.0.conf)
+set_property(GLOBAL PROPERTY metal-ios-2.1 ${CMAKE_CURRENT_LIST_DIR}/metal-ios-2.1.conf)
+
+set_property(GLOBAL PROPERTY metal-osx-1.1 ${CMAKE_CURRENT_LIST_DIR}/metal-osx-1.1.conf)
+set_property(GLOBAL PROPERTY metal-osx-1.2 ${CMAKE_CURRENT_LIST_DIR}/metal-osx-1.2.conf)
+set_property(GLOBAL PROPERTY metal-osx-2.0 ${CMAKE_CURRENT_LIST_DIR}/metal-osx-2.0.conf)
+set_property(GLOBAL PROPERTY metal-osx-2.1 ${CMAKE_CURRENT_LIST_DIR}/metal-osx-2.1.conf)

@@ -126,7 +126,7 @@ static bool createDepthStencilState(dsMTLShader* shader)
 {
 	dsRenderer* renderer = ((dsShader*)shader)->resourceManager->renderer;
 	dsMTLRenderer* mtlRenderer = (dsMTLRenderer*)renderer;
-	id<MTLDevice> device = (__bridge id<MTLDevice>)mtlRenderer;
+	id<MTLDevice> device = (__bridge id<MTLDevice>)mtlRenderer->device;
 
 	MTLDepthStencilDescriptor* descriptor = [MTLDepthStencilDescriptor new];
 	if (!descriptor)
@@ -173,7 +173,7 @@ static bool createDepthStencilState(dsMTLShader* shader)
 static id<MTLSamplerState> createSampler(dsRenderer* renderer, const mslSamplerState* samplerState)
 {
 	dsMTLRenderer* mtlRenderer = (dsMTLRenderer*)renderer;
-	id<MTLDevice> device = (__bridge id<MTLDevice>)mtlRenderer;
+	id<MTLDevice> device = (__bridge id<MTLDevice>)mtlRenderer->device;
 	MTLSamplerDescriptor* descriptor = [MTLSamplerDescriptor new];
 	if (!descriptor)
 	{
@@ -522,6 +522,9 @@ static bool bindUniforms(const dsShader* shader, const dsMaterial* material,
 			continue;
 
 		const dsMTLUniformInfo* info = mtlShader->uniformInfos + i;
+		if (info->element == DS_MATERIAL_UNKNOWN)
+			continue;
+
 		const dsMaterialElement* element = materialDesc->elements + info->element;
 		bool invalidBinding = element->binding != dsMaterialBinding_Material &&
 			element->binding != binding;
@@ -732,7 +735,7 @@ dsShader* dsMTLShader_create(dsResourceManager* resourceManager, dsAllocator* al
 			shader->stages[i].uniformIndices = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
 				uint32_t, pipeline.uniformCount);
 			DS_ASSERT(shader->stages[i].uniformIndices);
-			memset(shader->stages[i].uniformIndices, 0xFF, sizeof(CFTypeRef)*pipeline.uniformCount);
+			memset(shader->stages[i].uniformIndices, 0xFF, sizeof(uint32_t)*pipeline.uniformCount);
 			shader->stages[i].hasPushConstants = mslModule_shaderUsesPushConstants(module->module,
 				pipeline.shaders[i]);
 		}
@@ -760,10 +763,13 @@ dsShader* dsMTLShader_create(dsResourceManager* resourceManager, dsAllocator* al
 			dsMTLUniformInfo* info = shader->uniformInfos + i;
 			info->element = DS_MATERIAL_UNKNOWN;
 			info->sampler = uniform.samplerIndex;
+			if (uniform.uniformType == mslUniformType_PushConstant)
+				continue;
+
 			for (uint32_t j = 0; j < materialDesc->elementCount; ++j)
 			{
 				const dsMaterialElement* element = materialDesc->elements + j;
-				if (strcmp(uniform.name, element->name) != 0)
+				if (strcmp(uniform.name, element->name) == 0)
 				{
 					info->element = j;
 					break;
@@ -828,6 +834,9 @@ dsShader* dsMTLShader_create(dsResourceManager* resourceManager, dsAllocator* al
 	shader->pushConstantCount = pushConstantStruct.memberCount;
 	shader->pushConstantSize = pushConstantStruct.size;
 
+	shader->usedRenderPasses = NULL;
+	shader->usedRenderPassCount = 0;
+	shader->maxUsedRenderPasses = 0;
 	shader->pipelines = NULL;
 	shader->pipelineCount = 0;
 	shader->maxPipelines = 0;

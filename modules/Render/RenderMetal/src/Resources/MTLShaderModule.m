@@ -30,7 +30,7 @@ dsShaderModule* dsMTLShaderModule_create(dsResourceManager* resourceManager, dsA
 	mslModule* module, const char* name)
 {
 	uint32_t shaderCount = mslModule_shaderCount(module);
-	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsShaderModule)) +
+	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsMTLShaderModule)) +
 		DS_ALIGNED_SIZE(sizeof(CFTypeRef)*shaderCount);
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)

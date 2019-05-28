@@ -90,7 +90,10 @@ static dsTexture* createTextureImpl(dsResourceManager* resourceManager, dsAlloca
 	baseTexture->resolve = resolve;
 
 	texture->mtlTexture = NULL;
+	texture->copyTexture = NULL;
+	texture->stencilTexture = NULL;
 	texture->resolveTexture = NULL;
+	texture->resolveStencilTexture = NULL;
 	texture->processed = false;
 
 	texture->lifetime = dsLifetime_create(allocator, texture);
@@ -202,7 +205,7 @@ static dsTexture* createTextureImpl(dsResourceManager* resourceManager, dsAlloca
 	{
 		resourceOptions = MTLResourceOptionCPUCacheModeDefault;
 #if !DS_IOS || IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
-		resourceOptions |= MTLResourceStorageModeShared;
+		resourceOptions |= MTLResourceStorageModeManaged;
 #endif
 	}
 	else
@@ -214,7 +217,7 @@ static dsTexture* createTextureImpl(dsResourceManager* resourceManager, dsAlloca
 	}
 
 #if IPHONE_OS_VERSION_MIN_REQUIRED >= 100000 || MAC_OS_X_VERSION_MIN_REQUIRED >= 101300
-	if (!offscreen && !(usage & dsGfxBufferUsage_CopyTo))
+	if (!offscreen && !(usage & (dsGfxBufferUsage_CopyTo | dsGfxBufferUsage_Image)))
 		resourceOptions |= MTLResourceHazardTrackingModeUntracked;
 #endif
 #if IPHONE_OS_VERSION_MIN_REQUIRED >= 100000
@@ -327,6 +330,37 @@ dsTexture* dsMTLTexture_create(dsResourceManager* resourceManager, dsAllocator* 
 	{
 		dsMTLTexture* mtlTexture = (dsMTLTexture*)texture;
 		id<MTLTexture> realTexture = (__bridge id<MTLTexture>)mtlTexture->mtlTexture;
+#if !DS_IOS || IPHONE_OS_VERSION_MIN_REQUIRED >= 110000
+		if (realTexture.storageMode == MTLStorageModePrivate)
+		{
+			dsMTLRenderer* renderer = (dsMTLRenderer*)resourceManager->renderer;
+			id<MTLDevice> device = (__bridge id<MTLDevice>)renderer->device;
+			MTLTextureDescriptor* descriptor = [MTLTextureDescriptor new];
+			if (!descriptor)
+			{
+				dsMTLTexture_destroy(resourceManager, texture);
+				return NULL;
+			}
+
+			descriptor.textureType = realTexture.textureType;
+			descriptor.pixelFormat = realTexture.pixelFormat;
+			descriptor.width = realTexture.width;
+			descriptor.height = realTexture.height;
+			descriptor.depth = realTexture.depth;
+			descriptor.mipmapLevelCount = realTexture.mipmapLevelCount;
+			descriptor.arrayLength = realTexture.arrayLength;
+
+			realTexture = [device newTextureWithDescriptor: descriptor];
+			if (!realTexture)
+			{
+				dsMTLTexture_destroy(resourceManager, texture);
+				return NULL;
+			}
+
+			mtlTexture->copyTexture = CFBridgingRetain(realTexture);
+		}
+#endif
+
 		uint32_t faceCount = info->dimension == dsTextureDim_Cube ? 6 : 1;
 		bool is1D = info->dimension == dsTextureDim_1D;
 		bool is3D = info->dimension == dsTextureDim_3D;
@@ -458,14 +492,11 @@ bool dsMTLTexture_getData(void* result, size_t size, dsResourceManager* resource
 
 void dsMTLTexture_process(dsResourceManager* resourceManager, dsTexture* texture)
 {
-	if (texture->offscreen)
-		return;
-
 	dsMTLTexture* mtlTexture = (dsMTLTexture*)texture;
 	uint32_t processed = true;
 	uint32_t wasProcessed;
 	DS_ATOMIC_EXCHANGE32(&mtlTexture->processed, &processed, &wasProcessed);
-	if (!wasProcessed)
+	if (!wasProcessed && mtlTexture->copyTexture)
 		dsMTLRenderer_processTexture(resourceManager->renderer, texture);
 }
 
@@ -476,6 +507,8 @@ bool dsMTLTexture_destroy(dsResourceManager* resourceManager, dsTexture* texture
 	dsLifetime_destroy(mtlTexture->lifetime);
 	if (mtlTexture->mtlTexture)
 		CFRelease(mtlTexture->mtlTexture);
+	if (mtlTexture->copyTexture)
+		CFRelease(mtlTexture->copyTexture);
 	if (mtlTexture->resolveTexture)
 		CFRelease(mtlTexture->resolveTexture);
 	if (mtlTexture->stencilTexture)

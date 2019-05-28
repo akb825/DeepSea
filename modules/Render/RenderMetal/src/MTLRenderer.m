@@ -38,6 +38,7 @@
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Render/Resources/GfxFormat.h>
+#include <DeepSea/Math/Core.h>
 
 #include <string.h>
 
@@ -151,20 +152,65 @@ static uint32_t hasTessellationShaders(id<MTLDevice> device)
 #endif
 }
 
-static id<MTLCommandBuffer> processTextures(dsMTLRenderer* renderer)
+static id<MTLCommandBuffer> processResources(dsMTLRenderer* renderer)
 {
-#if IPHONE_OS_VERSION_MIN_REQUIRED >= 120000 || MAC_OS_X_VERSION_MIN_REQUIRED >= 101400
+
+#if !DS_IOS || IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
 	id<MTLCommandQueue> queue = (__bridge id<MTLCommandQueue>)renderer->commandQueue;
-	id<MTLCommandBuffer> textureCommandBuffer = nil;
+	id<MTLCommandBuffer> resourceCommandBuffer = nil;
+	id<MTLBlitCommandEncoder> encoder = nil;
+
+	DS_VERIFY(dsSpinlock_lock(&renderer->processBuffersLock));
+	if (renderer->processBufferCount > 0)
+	{
+		if (!encoder)
+		{
+			resourceCommandBuffer = [queue commandBuffer];
+			if (resourceCommandBuffer)
+				encoder = [resourceCommandBuffer blitCommandEncoder];
+		}
+
+		if (!encoder)
+		{
+			for (uint32_t i = 0; i < renderer->processBufferCount; ++i)
+				dsLifetime_freeRef(renderer->processBuffers[i]);
+			renderer->processBufferCount = 0;
+			DS_VERIFY(dsSpinlock_unlock(&renderer->processBuffersLock));
+		}
+
+		for (uint32_t i = 0; i < renderer->processBufferCount; ++i)
+		{
+			dsLifetime* lifetime = renderer->processBuffers[i];
+			dsMTLGfxBufferData* buffer = (dsMTLGfxBufferData*)dsLifetime_acquire(lifetime);
+			if (buffer)
+			{
+				id<MTLBuffer> srcBuffer = (__bridge id<MTLBuffer>)buffer->copyBuffer;
+				id<MTLBuffer> dstBuffer = (__bridge id<MTLBuffer>)buffer->mtlBuffer;
+				DS_ASSERT(srcBuffer);
+				DS_ASSERT(dstBuffer);
+				[encoder copyFromBuffer: srcBuffer sourceOffset: 0 toBuffer: dstBuffer
+					destinationOffset: 0 size: srcBuffer.length];
+				CFRelease(buffer->copyBuffer);
+				buffer->copyBuffer = NULL;
+				dsLifetime_release(lifetime);
+			}
+			dsLifetime_freeRef(lifetime);
+		}
+		renderer->processBufferCount = 0;
+
+	}
+	DS_VERIFY(dsSpinlock_unlock(&renderer->processBuffersLock));
+
 	DS_VERIFY(dsSpinlock_lock(&renderer->processTexturesLock));
 	if (renderer->processTextureCount > 0)
 	{
-		textureCommandBuffer = [queue commandBuffer];
-		id<MTLBlitCommandEncoder> encoder;
-		if (textureCommandBuffer)
-			encoder = [textureCommandBuffer blitCommandEncoder];
-		else
-			encoder = nil;
+		if (!encoder)
+		{
+			resourceCommandBuffer = [queue commandBuffer];
+			if (resourceCommandBuffer)
+				encoder = [resourceCommandBuffer blitCommandEncoder];
+		}
+
 		if (!encoder)
 		{
 			for (uint32_t i = 0; i < renderer->processTextureCount; ++i)
@@ -176,23 +222,45 @@ static id<MTLCommandBuffer> processTextures(dsMTLRenderer* renderer)
 		for (uint32_t i = 0; i < renderer->processTextureCount; ++i)
 		{
 			dsLifetime* lifetime = renderer->processTextures[i];
-			dsMTLTexture* texture = (dsMTLTexture*)dsLifetime_acquire(lifetime);
+			dsTexture* texture = (dsTexture*)dsLifetime_acquire(lifetime);
 			if (texture)
 			{
-				id<MTLTexture> mtlTexture = (__bridge id<MTLTexture>)texture->mtlTexture;
-				[encoder optimizeContentsForGPUAccess: mtlTexture];
+				dsMTLTexture* mtlTexture = (dsMTLTexture*)texture;
+				id<MTLTexture> srcTexture = (__bridge id<MTLTexture>)mtlTexture->copyTexture;
+				id<MTLTexture> dstTexture = (__bridge id<MTLTexture>)mtlTexture->mtlTexture;
+				DS_ASSERT(srcTexture);
+				DS_ASSERT(dstTexture);
+
+				const dsTextureInfo* info = &texture->info;
+				uint32_t faceCount = info->dimension == dsTextureDim_Cube ? 6 : 1;
+				uint32_t slices = (uint32_t)srcTexture.arrayLength*faceCount;
+				MTLOrigin origin = {0, 0, 0};
+				for (uint32_t i = 0; i < info->mipLevels; ++i)
+				{
+					MTLSize size = {dsMax(1U, info->width >> i), dsMax(1U, info->height >> i),
+						dsMax(1U, srcTexture.depth >> i)};
+					for (uint32_t j = 0; j < slices; ++j)
+					{
+						[encoder copyFromTexture: srcTexture sourceSlice: j sourceLevel: i
+							sourceOrigin: origin sourceSize: size toTexture:
+							dstTexture destinationSlice: j destinationLevel: i
+							destinationOrigin: origin];
+					}
+				}
 				dsLifetime_release(lifetime);
 			}
 			dsLifetime_freeRef(lifetime);
 		}
 		renderer->processTextureCount = 0;
 
-		[textureCommandBuffer commit];
 	}
 	DS_VERIFY(dsSpinlock_unlock(&renderer->processTexturesLock));
-	return textureCommandBuffer;
+
+	if (encoder)
+		[encoder endEncoding];
+	return resourceCommandBuffer;
 #else
-	DS_UNUSED(renderer);
+	return nil;
 #endif
 }
 
@@ -245,6 +313,11 @@ bool dsMTLRenderer_destroy(dsRenderer* renderer)
 		dsConditionVariable_destroy(mtlRenderer->submitCondition);
 		dsMutex_destroy(mtlRenderer->submitMutex);
 	}
+
+	for (uint32_t i = 0; i < mtlRenderer->processBufferCount; ++i)
+		dsLifetime_freeRef(mtlRenderer->processBuffers[i]);
+	DS_VERIFY(dsAllocator_free(renderer->allocator, mtlRenderer->processBuffers));
+	dsSpinlock_shutdown(&mtlRenderer->processBuffersLock);
 
 	for (uint32_t i = 0; i < mtlRenderer->processTextureCount; ++i)
 		dsLifetime_freeRef(mtlRenderer->processTextures[i]);
@@ -652,6 +725,7 @@ dsRenderer* dsMTLRenderer_create(dsAllocator* allocator, const dsRendererOptions
 	DS_ASSERT(renderer);
 	memset(renderer, 0, sizeof(*renderer));
 	dsRenderer* baseRenderer = (dsRenderer*)renderer;
+	DS_VERIFY(dsSpinlock_initialize(&renderer->processBuffersLock));
 	DS_VERIFY(dsSpinlock_initialize(&renderer->processTexturesLock));
 
 	DS_VERIFY(dsRenderer_initialize(baseRenderer));
@@ -825,7 +899,7 @@ uint64_t dsMTLRenderer_flushImpl(dsRenderer* renderer, id<MTLCommandBuffer> extr
 	dsMTLHardwareCommandBuffer_endEncoding(renderer->mainCommandBuffer);
 	dsMTLHardwareCommandBuffer* commandBuffer = &mtlRenderer->mainCommandBuffer;
 
-	id<MTLCommandBuffer> lastCommandBuffer = processTextures(mtlRenderer);
+	id<MTLCommandBuffer> lastCommandBuffer = processResources(mtlRenderer);
 	for (uint32_t i = 0; i < commandBuffer->submitBufferCount; ++i)
 	{
 		if (lastCommandBuffer)
@@ -903,9 +977,32 @@ dsGfxFenceResult dsMTLRenderer_waitForSubmit(const dsRenderer* renderer, uint64_
 	return dsGfxFenceResult_Success;
 }
 
+void dsMTLRenderer_processBuffer(dsRenderer* renderer, dsMTLGfxBufferData* buffer)
+{
+#if !DS_IOS || IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
+	dsMTLRenderer* mtlRenderer = (dsMTLRenderer*)renderer;
+
+	DS_VERIFY(dsSpinlock_lock(&mtlRenderer->processBuffersLock));
+
+	uint32_t index = mtlRenderer->processBufferCount;
+	if (!DS_RESIZEABLE_ARRAY_ADD(renderer->allocator, mtlRenderer->processBuffers,
+		mtlRenderer->processBufferCount, mtlRenderer->maxProcessBuffers, 1))
+	{
+		DS_VERIFY(dsSpinlock_unlock(&mtlRenderer->processBuffersLock));
+		return;
+	}
+
+	mtlRenderer->processBuffers[index] = dsLifetime_addRef(buffer->lifetime);
+	DS_VERIFY(dsSpinlock_unlock(&mtlRenderer->processBuffersLock));
+#else
+	DS_UNUSED(renderer);
+	DS_UNUSED(buffer);
+#endif
+}
+
 void dsMTLRenderer_processTexture(dsRenderer* renderer, dsTexture* texture)
 {
-#if IPHONE_OS_VERSION_MIN_REQUIRED >= 120000 || MAC_OS_X_VERSION_MIN_REQUIRED >= 101400
+#if !DS_IOS || IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
 	dsMTLRenderer* mtlRenderer = (dsMTLRenderer*)renderer;
 	dsMTLTexture* mtlTexture = (dsMTLTexture*)texture;
 

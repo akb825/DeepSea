@@ -25,4 +25,5 @@ dsMTLGfxBufferData* dsMTLGfxBufferData_create(dsResourceManager* resourceManager
 void dsMTLGfxBufferData_markAsUsed(dsMTLGfxBufferData* buffer);
 id<MTLTexture> dsMTLGfxBufferData_getBufferTexture(dsMTLGfxBufferData* buffer, dsGfxFormat format,
 	size_t offset, size_t count);
+void dsMTLGfxBufferData_process(dsMTLGfxBufferData* buffer, dsRenderer* renderer);
 void dsMTLGfxBufferData_destroy(dsMTLGfxBufferData* buffer);

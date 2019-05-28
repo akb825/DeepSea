@@ -434,7 +434,8 @@ void dsMTLSoftwareCommandBuffer_clear(dsCommandBuffer* commandBuffer)
 		}
 	}
 
-	DS_VERIFY(dsBufferAllocator_reset(&mtlCommandBuffer->commands));
+	if (bufferSize > 0)
+		DS_VERIFY(dsBufferAllocator_reset(&mtlCommandBuffer->commands));
 }
 
 void dsMTLSoftwareCommandBuffer_end(dsCommandBuffer* commandBuffer)

@@ -534,6 +534,9 @@ static uint32_t getMinTextureBufferAlignment(dsMTLResourceManager* resourceManag
 
 	for (uint32_t i = 0; i < (uint32_t)dsGfxFormat_SpecialCount; ++i)
 	{
+		if (dsGfxFormat_isDepthStencil(dsGfxFormat_specialEnum(i)))
+			continue;
+
 		MTLPixelFormat format = resourceManager->specialPixelFormats[i];
 		if (format == MTLPixelFormatInvalid)
 			continue;
@@ -542,18 +545,6 @@ static uint32_t getMinTextureBufferAlignment(dsMTLResourceManager* resourceManag
 			(uint32_t)[device minimumLinearTextureAlignmentForPixelFormat: format]);
 	}
 
-	for (uint32_t i = 0; i < (uint32_t)dsGfxFormat_CompressedCount; ++i)
-	{
-		for (uint32_t j = 0; j < (uint32_t)dsGfxFormat_DecoratorCount; ++j)
-		{
-			MTLPixelFormat format = resourceManager->compressedPixelFormats[i][j];
-			if (format == MTLPixelFormatInvalid)
-				continue;
-
-			alignment = dsMax(alignment,
-				(uint32_t)[device minimumLinearTextureAlignmentForPixelFormat: format]);
-		}
-	}
 	return alignment;
 #endif
 }
@@ -889,6 +880,7 @@ dsResourceManager* dsMTLResourceManager_create(dsAllocator* allocator, dsRendere
 	baseResourceManager->invalidateBufferFunc = &dsMTLGfxBuffer_invalidate;
 	baseResourceManager->copyBufferDataFunc = &dsMTLGfxBuffer_copyData;
 	baseResourceManager->copyBufferFunc = &dsMTLGfxBuffer_copy;
+	baseResourceManager->processBufferFunc = &dsMTLGfxBuffer_process;
 
 	// Draw geometry.
 	baseResourceManager->createGeometryFunc = &dsMTLDrawGeometry_create;
