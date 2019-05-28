@@ -172,7 +172,7 @@ static void setDepthStencilState(id<MTLRenderCommandEncoder> encoder,
 		uint32_t frontReference = renderStates->depthStencilState.frontStencil.reference;
 		if (frontReference == MSL_UNKNOWN && dynamicStates)
 			frontReference = dynamicStates->frontStencilReference;
-#if !DS_IOS || IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
+#if DS_MAC || IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
 		uint32_t backReference = renderStates->depthStencilState.backStencil.reference;
 		if (backReference == MSL_UNKNOWN && dynamicStates)
 			backReference = dynamicStates->backStencilReference;
@@ -1179,6 +1179,12 @@ void dsMTLHardwareCommandBuffer_submitted(dsCommandBuffer* commandBuffer, uint64
 			CFRelease(mtlHardwareCommandBuffer->submitBuffers[i]);
 	}
 	mtlHardwareCommandBuffer->submitBufferCount = 0;
+
+	if (mtlHardwareCommandBuffer->mtlCommandBuffer)
+	{
+		CFRelease(mtlHardwareCommandBuffer->mtlCommandBuffer);
+		mtlHardwareCommandBuffer->mtlCommandBuffer = NULL;
+	}
 
 	for (uint32_t i = 0; i < mtlCommandBuffer->gfxBufferCount; ++i)
 	{

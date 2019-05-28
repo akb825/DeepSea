@@ -173,7 +173,7 @@ static dsTexture* createTextureImpl(dsResourceManager* resourceManager, dsAlloca
 			descriptor.depth = info->depth;
 			break;
 		case dsTextureDim_Cube:
-#if !DS_IOS || IPHONE_OS_VERSION_MIN_REQUIRED >= 110000
+#if DS_MAC || IPHONE_OS_VERSION_MIN_REQUIRED >= 110000
 			if (info->depth > 0)
 			{
 				DS_ASSERT(resourceManager->hasCubeArrays);
@@ -204,14 +204,14 @@ static dsTexture* createTextureImpl(dsResourceManager* resourceManager, dsAlloca
 	if (!(memoryHints & dsGfxMemory_GPUOnly) && (memoryHints & dsGfxMemory_Read))
 	{
 		resourceOptions = MTLResourceOptionCPUCacheModeDefault;
-#if !DS_IOS || IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
+#if DS_MAC || IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
 		resourceOptions |= MTLResourceStorageModeManaged;
 #endif
 	}
 	else
 	{
 		resourceOptions = MTLResourceOptionCPUCacheModeWriteCombined;
-#if !DS_IOS || IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
+#if DS_MAC || IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
 		resourceOptions |= MTLResourceStorageModePrivate;
 #endif
 	}
@@ -270,13 +270,14 @@ static dsTexture* createTextureImpl(dsResourceManager* resourceManager, dsAlloca
 	if (offscreen && resolve)
 	{
 		DS_ASSERT(info->samples > 1);
+		descriptor.textureType = MTLTextureType2DMultisample;
 		descriptor.mipmapLevelCount = 1;
 		descriptor.arrayLength = 1;
 		descriptor.depth = 1;
 		descriptor.sampleCount = info->samples;
 
 		resourceOptions = MTLResourceOptionCPUCacheModeDefault;
-#if !DS_IOS || IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
+#if DS_MAC || IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
 		resourceOptions |= MTLResourceStorageModePrivate;
 #endif
 #if IPHONE_OS_VERSION_MIN_REQUIRED >= 100000
@@ -330,7 +331,7 @@ dsTexture* dsMTLTexture_create(dsResourceManager* resourceManager, dsAllocator* 
 	{
 		dsMTLTexture* mtlTexture = (dsMTLTexture*)texture;
 		id<MTLTexture> realTexture = (__bridge id<MTLTexture>)mtlTexture->mtlTexture;
-#if !DS_IOS || IPHONE_OS_VERSION_MIN_REQUIRED >= 110000
+#if DS_MAC || IPHONE_OS_VERSION_MIN_REQUIRED >= 110000
 		if (realTexture.storageMode == MTLStorageModePrivate)
 		{
 			dsMTLRenderer* renderer = (dsMTLRenderer*)resourceManager->renderer;

@@ -201,7 +201,7 @@ static id<MTLSamplerState> createSampler(dsRenderer* renderer, const mslSamplerS
 			descriptor.maxAnisotropy = (NSUInteger)roundf(renderer->defaultAnisotropy);
 	}
 
-#if !DS_IOS || IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
+#if DS_MAC || IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
 	descriptor.compareFunction = dsGetMTLCompareFunction(samplerState->compareOp);
 #endif
 
@@ -1004,6 +1004,8 @@ bool dsMTLShader_destroy(dsResourceManager* resourceManager, dsShader* shader)
 	if (mtlShader->computePipeline)
 		CFRelease(mtlShader->computePipeline);
 
+	if (shader->allocator)
+		DS_VERIFY(dsAllocator_free(shader->allocator, shader));
 	return true;
 }
 

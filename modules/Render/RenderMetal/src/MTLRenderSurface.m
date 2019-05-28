@@ -56,16 +56,23 @@ static bool createExtraSurfaces(dsRenderer* renderer, dsRenderSurface* renderSur
 			MTLPixelFormat pixelFormat =
 				dsMTLResourceManager_getPixelFormat(renderer->resourceManager,
 					renderer->surfaceColorFormat);
-			MTLTextureDescriptor* descriptor = [MTLTextureDescriptor
-				texture2DDescriptorWithPixelFormat: pixelFormat width: renderSurface->width
-				height: renderSurface->height mipmapped: false];
+			MTLTextureDescriptor* descriptor = [MTLTextureDescriptor new];
 			if (!descriptor)
 			{
 				errno = ENOMEM;
 				return false;
 			}
 
+			descriptor.textureType = MTLTextureType2DMultisample;
+			descriptor.pixelFormat = pixelFormat;
+			descriptor.width = renderSurface->width;
+			descriptor.height = renderSurface->height;
 			descriptor.sampleCount = renderer->surfaceSamples;
+#if DS_MAC || IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
+			descriptor.storageMode = MTLStorageModePrivate;
+			descriptor.usage = MTLTextureUsageRenderTarget;
+#endif
+
 			resolveSurface = [device newTextureWithDescriptor: descriptor];
 			if (!resolveSurface)
 			{
@@ -133,16 +140,23 @@ static bool createExtraSurfaces(dsRenderer* renderer, dsRenderSurface* renderSur
 				mtlRenderSurface->stencilSurface = NULL;
 			}
 
-			MTLTextureDescriptor* descriptor = [MTLTextureDescriptor
-				texture2DDescriptorWithPixelFormat: depthPixelFormat width: renderSurface->width
-				height: renderSurface->height mipmapped: false];
+			MTLTextureDescriptor* descriptor = [MTLTextureDescriptor new];
 			if (!descriptor)
 			{
 				errno = ENOMEM;
 				return false;
 			}
 
+			descriptor.textureType = MTLTextureType2DMultisample;
+			descriptor.pixelFormat = depthPixelFormat;
+			descriptor.width = renderSurface->width;
+			descriptor.height = renderSurface->height;
 			descriptor.sampleCount = renderer->surfaceSamples;
+#if DS_MAC || IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
+			descriptor.storageMode = MTLStorageModePrivate;
+			descriptor.usage = MTLTextureUsageRenderTarget;
+#endif
+
 			depthSurface = [device newTextureWithDescriptor: descriptor];
 			if (!depthSurface)
 			{
@@ -173,6 +187,8 @@ static bool createExtraSurfaces(dsRenderer* renderer, dsRenderSurface* renderSur
 dsRenderSurface* dsMTLRenderSurface_create(dsRenderer* renderer, dsAllocator* allocator,
 	const char* name, void* osHandle, dsRenderSurfaceType type)
 {
+	dsMTLRenderer* mtlRenderer = (dsMTLRenderer*)renderer;
+	id<MTLDevice> device = (__bridge id<MTLDevice>)mtlRenderer->device;
 	if (type == dsRenderSurfaceType_Pixmap)
 	{
 		errno = EINVAL;
@@ -191,11 +207,21 @@ dsRenderSurface* dsMTLRenderSurface_create(dsRenderer* renderer, dsAllocator* al
 	ViewType* view = (__bridge ViewType*)osHandle;
 	if (view.layer.class != [CAMetalLayer class])
 	{
-		errno = EINVAL;
-		DS_LOG_ERROR(DS_RENDER_METAL_LOG_TAG,
-			"View used with Metal renderer must use CAMetalAlayer as its layer type.");
-		return NULL;
+		CALayer* oldLayer = view.layer;
+		CALayer* newLayer = [CAMetalLayer new];
+		if (!newLayer)
+		{
+			errno = ENOMEM;
+			return NULL;
+		}
+
+		newLayer.frame = oldLayer.frame;
+		view.layer = newLayer;
+#if DS_MAC
+		view.wantsLayer = true;
+#endif
 	}
+	((CAMetalLayer*)view.layer).device = device;
 
 	MTLPixelFormat format = MTLPixelFormatBGRA8Unorm;
 	if (renderer->surfaceColorFormat ==
@@ -229,6 +255,12 @@ dsRenderSurface* dsMTLRenderSurface_create(dsRenderer* renderer, dsAllocator* al
 	baseRenderSurface->surfaceType = type;
 
 	CGSize size = layer.drawableSize;
+	if (size.width == 0 || size.height == 0)
+	{
+		size = view.bounds.size;
+		size.width *= layer.contentsScale;
+		size.height *= layer.contentsScale;
+	}
 	baseRenderSurface->width = (uint32_t)size.width;
 	baseRenderSurface->height = (uint32_t)size.height;
 
@@ -240,7 +272,7 @@ dsRenderSurface* dsMTLRenderSurface_create(dsRenderer* renderer, dsAllocator* al
 	renderSurface->stencilSurface = NULL;
 
 	renderSurface->drawable = CFBridgingRetain([layer nextDrawable]);
-	if (renderSurface->drawable)
+	if (!renderSurface->drawable)
 	{
 		errno = EINVAL;
 		DS_LOG_ERROR(DS_RENDER_METAL_LOG_TAG,

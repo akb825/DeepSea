@@ -66,7 +66,7 @@ dsMTLGfxBufferData* dsMTLGfxBufferData_create(dsResourceManager* resourceManager
 	else
 		resourceOptions = MTLResourceCPUCacheModeWriteCombined;
 
-#if !DS_IOS || IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
+#if DS_MAC || IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
 	if (memoryHints & dsGfxMemory_GPUOnly)
 		resourceOptions |= MTLResourceStorageModePrivate;
 	else if ((memoryHints & dsGfxMemory_Read) || (memoryHints & dsGfxMemory_Stream) ||
@@ -76,7 +76,7 @@ dsMTLGfxBufferData* dsMTLGfxBufferData_create(dsResourceManager* resourceManager
 	}
 	else
 	{
-#if !DS_IOS
+#if DS_MAC
 		resourceOptions |= MTLResourceStorageModeManaged;
 		buffer->managed = true;
 #else
@@ -97,7 +97,7 @@ dsMTLGfxBufferData* dsMTLGfxBufferData_create(dsResourceManager* resourceManager
 	id<MTLBuffer> copyBuffer;
 	if (data)
 	{
-#if !DS_IOS || IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
+#if DS_MAC || IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
 		if (resourceOptions & MTLResourceStorageModePrivate)
 		{
 			copyBuffer = [device newBufferWithBytes: data length: size

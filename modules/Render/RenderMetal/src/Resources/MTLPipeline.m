@@ -193,7 +193,7 @@ static MTLPixelFormat getStencilFormat(const dsResourceManager* resourceManager,
 	}
 }
 
-#if !DS_IOS || IPHONE_OS_VERSION_MIN_REQUIRED >= 120000
+#if DS_MAC || IPHONE_OS_VERSION_MIN_REQUIRED >= 120000
 static MTLPrimitiveTopologyClass getPrimitiveTopology(dsPrimitiveType type)
 {
 	switch (type)
@@ -343,7 +343,7 @@ static void setupRasterState(dsShader* shader, MTLRenderPipelineDescriptor* desc
 	descriptor.alphaToCoverageEnabled = multisampleState->alphaToCoverageEnable == mslBool_True;
 	descriptor.alphaToOneEnabled = multisampleState->alphaToOneEnable == mslBool_True;
 	descriptor.rasterizationEnabled = rasterState->rasterizerDiscardEnable != mslBool_False;
-#if !DS_IOS || IPHONE_OS_VERSION_MIN_REQUIRED >= 120000
+#if DS_MAC || IPHONE_OS_VERSION_MIN_REQUIRED >= 120000
 	descriptor.inputPrimitiveTopology = getPrimitiveTopology(primitiveType);
 #else
 	DS_UNUSED(primitiveType);

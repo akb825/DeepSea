@@ -547,6 +547,7 @@ int dsMain(int argc, const char** argv)
 	dsShaderVersion shaderVersions[] =
 	{
 		{DS_VK_RENDERER_ID, DS_ENCODE_VERSION(1, 0, 0)},
+		{DS_MTL_RENDERER_ID, DS_ENCODE_VERSION(1, 1, 0)},
 		{DS_GL_RENDERER_ID, DS_ENCODE_VERSION(1, 1, 0)},
 		{DS_GL_RENDERER_ID, DS_ENCODE_VERSION(1, 5, 0)},
 		{DS_GLES_RENDERER_ID, DS_ENCODE_VERSION(1, 0, 0)}

@@ -495,7 +495,7 @@ bool dsMTLRenderPass_destroy(dsRenderer* renderer, dsRenderPass* renderPass)
 		}
 		dsLifetime_freeRef(usedShaders[i]);
 	}
-	DS_VERIFY(dsAllocator_free(renderPass->allocator, usedShaders));
+	DS_VERIFY(dsAllocator_free(mtlRenderPass->scratchAllocator, usedShaders));
 	DS_ASSERT(!mtlRenderPass->usedShaders);
 
 	dsLifetime_destroy(mtlRenderPass->lifetime);

@@ -77,8 +77,6 @@ bool dsSDLWindow_createComponents(dsWindow* window, const char* title, const cha
 	{
 		sdlFlags |= SDL_WINDOW_OPENGL;
 	}
-	if (application->renderer->platformID == DS_VK_RENDERER_ID)
-		sdlFlags |= SDL_WINDOW_VULKAN;
 
 	if (!dsRenderSurface_destroy(window->surface))
 		return false;

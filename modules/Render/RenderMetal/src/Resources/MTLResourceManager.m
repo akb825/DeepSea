@@ -100,6 +100,11 @@ static void initializePixelFormats(dsMTLResourceManager* resourceManager, id<MTL
 	resourceManager->standardPixelFormats[dsGfxFormat_R8G8B8A8][srgbIndex] =
 		MTLPixelFormatRGBA8Unorm_sRGB;
 
+	resourceManager->standardPixelFormats[dsGfxFormat_B8G8R8A8][unormIndex] =
+		MTLPixelFormatBGRA8Unorm;
+	resourceManager->standardPixelFormats[dsGfxFormat_B8G8R8A8][srgbIndex] =
+		MTLPixelFormatBGRA8Unorm_sRGB;
+
 #if IPHONE_OS_VERSION_MIN_REQUIRED >= 110000 || MAC_OS_X_VERSION_MIN_REQUIRED >= 101300
 	resourceManager->standardPixelFormats[dsGfxFormat_A2R10G10B10][unormIndex] =
 		MTLPixelFormatBGR10A2Unorm;
@@ -159,7 +164,7 @@ static void initializePixelFormats(dsMTLResourceManager* resourceManager, id<MTL
 		MTLPixelFormatDepth32Float;
 	resourceManager->specialPixelFormats[dsGfxFormat_specialIndex(dsGfxFormat_S8)] =
 		MTLPixelFormatStencil8;
-#if !DS_IOS
+#if DS_MAC
 	if (device.depth24Stencil8PixelFormatSupported)
 	{
 		resourceManager->specialPixelFormats[dsGfxFormat_specialIndex(dsGfxFormat_D24S8)] =

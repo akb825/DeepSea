@@ -90,20 +90,22 @@ dsRenderbuffer* dsMTLRenderbuffer_create(dsResourceManager* resourceManager, dsA
 		return NULL;
 	}
 
+	if (samples > 1)
+		descriptor.textureType = MTLTextureType2DMultisample;
 	descriptor.width = width;
 	descriptor.height = height;
 	descriptor.sampleCount = samples;
 
 	MTLResourceOptions resourceOptions = MTLResourceOptionCPUCacheModeWriteCombined;
-#if !DS_IOS || IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
+#if DS_MAC || IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
 	resourceOptions |= MTLResourceStorageModePrivate;
+	descriptor.usage = MTLTextureUsageRenderTarget;
 #endif
 #if IPHONE_OS_VERSION_MIN_REQUIRED >= 100000
 	if (!(usage & (dsRenderbufferUsage_Continue | dsRenderbufferUsage_Clear)))
 		resourceOptions |= MTLResourceStorageModeMemoryless;
 #endif
 	descriptor.resourceOptions = resourceOptions;
-	descriptor.usage = MTLTextureUsageRenderTarget;
 
 	if (pixelFormat != MTLPixelFormatInvalid)
 	{

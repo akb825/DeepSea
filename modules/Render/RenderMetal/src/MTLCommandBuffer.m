@@ -451,4 +451,5 @@ void dsMTLCommandBuffer_shutdown(dsMTLCommandBuffer* commandBuffer)
 	DS_VERIFY(dsAllocator_free(allocator, commandBuffer->fences));
 
 	DS_VERIFY(dsAllocator_free(allocator, commandBuffer->pushConstantData));
+	DS_VERIFY(dsAllocator_free(allocator, commandBuffer->clearValues));
 }

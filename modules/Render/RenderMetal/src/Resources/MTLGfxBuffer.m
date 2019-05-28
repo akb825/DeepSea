@@ -169,7 +169,7 @@ bool dsMTLGfxBuffer_unmap(dsResourceManager* resourceManager, dsGfxBuffer* buffe
 	}
 
 	// Need to mark the range as dirty to copy to the GPU when next used.
-#if !DS_IOS
+#if DS_MAC
 	if (bufferData->mappedWrite && bufferData->managed)
 	{
 		id<MTLBuffer> realMTLBuffer = (__bridge id<MTLBuffer>)(bufferData->mtlBuffer);

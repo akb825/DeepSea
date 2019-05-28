@@ -155,7 +155,7 @@ static uint32_t hasTessellationShaders(id<MTLDevice> device)
 static id<MTLCommandBuffer> processResources(dsMTLRenderer* renderer)
 {
 
-#if !DS_IOS || IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
+#if DS_MAC || IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
 	id<MTLCommandQueue> queue = (__bridge id<MTLCommandQueue>)renderer->commandQueue;
 	id<MTLCommandBuffer> resourceCommandBuffer = nil;
 	id<MTLBlitCommandEncoder> encoder = nil;
@@ -298,6 +298,8 @@ bool dsMTLRenderer_destroy(dsRenderer* renderer)
 {
 	dsMTLRenderer* mtlRenderer = (dsMTLRenderer*)renderer;
 
+	dsRenderer_shutdownResources(renderer);
+
 	// Check the function manually so we only wait if initialization completed.
 	if (renderer->waitUntilIdleFunc)
 		dsRenderer_waitUntilIdle(renderer);
@@ -325,6 +327,7 @@ bool dsMTLRenderer_destroy(dsRenderer* renderer)
 	dsSpinlock_shutdown(&mtlRenderer->processTexturesLock);
 
 	dsMTLHardwareCommandBuffer_shutdown(&mtlRenderer->mainCommandBuffer);
+	dsMTLResourceManager_destroy(renderer->resourceManager);
 
 	if (mtlRenderer->device)
 		CFRelease(mtlRenderer->device);
@@ -693,7 +696,7 @@ dsRenderer* dsMTLRenderer_create(dsAllocator* allocator, const dsRendererOptions
 		return NULL;
 	}
 
-	dsGfxFormat colorFormat = dsRenderer_optionsColorFormat(options, false, false);
+	dsGfxFormat colorFormat = dsRenderer_optionsColorFormat(options, true, true);
 	if (!dsGfxFormat_isValid(colorFormat))
 	{
 		errno = EPERM;
@@ -979,7 +982,7 @@ dsGfxFenceResult dsMTLRenderer_waitForSubmit(const dsRenderer* renderer, uint64_
 
 void dsMTLRenderer_processBuffer(dsRenderer* renderer, dsMTLGfxBufferData* buffer)
 {
-#if !DS_IOS || IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
+#if DS_MAC || IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
 	dsMTLRenderer* mtlRenderer = (dsMTLRenderer*)renderer;
 
 	DS_VERIFY(dsSpinlock_lock(&mtlRenderer->processBuffersLock));
@@ -1002,7 +1005,7 @@ void dsMTLRenderer_processBuffer(dsRenderer* renderer, dsMTLGfxBufferData* buffe
 
 void dsMTLRenderer_processTexture(dsRenderer* renderer, dsTexture* texture)
 {
-#if !DS_IOS || IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
+#if DS_MAC || IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
 	dsMTLRenderer* mtlRenderer = (dsMTLRenderer*)renderer;
 	dsMTLTexture* mtlTexture = (dsMTLTexture*)texture;
 
