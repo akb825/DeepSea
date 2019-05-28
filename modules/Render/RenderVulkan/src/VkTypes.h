@@ -567,6 +567,8 @@ typedef struct dsVkShader
 	mslPipeline pipeline;
 
 	VkShaderStageFlags stages;
+	VkShaderStageFlags pushConstantStages;
+	bool computeUsesPushConstants;
 	mslSizedData spirv[mslStage_Count];
 	VkShaderModule shaders[mslStage_Count];
 	VkPipelineLayout layout;

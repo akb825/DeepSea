@@ -518,6 +518,7 @@ static bool setupShaders(dsShader* shader)
 	dsVkDevice* device = &((dsVkRenderer*)resourceManager->renderer)->device;
 	dsVkInstance* instance = &device->instance;
 	dsVkShader* vkShader = (dsVkShader*)shader;
+	mslModule* module = shader->module->module;
 
 	for (int i = 0; i < mslStage_Count; ++i)
 	{
@@ -543,18 +544,56 @@ static bool setupShaders(dsShader* shader)
 	}
 
 	vkShader->stages = 0;
+	vkShader->pushConstantStages = 0;
+	vkShader->computeUsesPushConstants = false;
 	if (vkShader->spirv[mslStage_Vertex].data)
+	{
 		vkShader->stages |= VK_SHADER_STAGE_VERTEX_BIT;
+		if (mslModule_shaderUsesPushConstants(module, vkShader->pipeline.shaders[mslStage_Vertex]))
+			vkShader->pushConstantStages |= VK_SHADER_STAGE_VERTEX_BIT;
+	}
 	if (vkShader->spirv[mslStage_TessellationControl].data)
+	{
 		vkShader->stages |= VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
+		if (mslModule_shaderUsesPushConstants(module,
+				vkShader->pipeline.shaders[mslStage_TessellationControl]))
+		{
+			vkShader->pushConstantStages |= VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
+		}
+	}
 	if (vkShader->spirv[mslStage_TessellationEvaluation].data)
+	{
 		vkShader->stages |= VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
+		if (mslModule_shaderUsesPushConstants(module,
+				vkShader->pipeline.shaders[mslStage_TessellationEvaluation]))
+		{
+			vkShader->pushConstantStages |= VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
+		}
+	}
 	if (vkShader->spirv[mslStage_Geometry].data)
+	{
 		vkShader->stages |= VK_SHADER_STAGE_GEOMETRY_BIT;
+		if (mslModule_shaderUsesPushConstants(module,
+				vkShader->pipeline.shaders[mslStage_Geometry]))
+		{
+			vkShader->pushConstantStages |= VK_SHADER_STAGE_GEOMETRY_BIT;
+		}
+	}
 	if (vkShader->spirv[mslStage_Fragment].data)
+	{
 		vkShader->stages |= VK_SHADER_STAGE_FRAGMENT_BIT;
+		if (mslModule_shaderUsesPushConstants(module,
+				vkShader->pipeline.shaders[mslStage_Fragment]))
+		{
+			vkShader->pushConstantStages |= VK_SHADER_STAGE_FRAGMENT_BIT;
+		}
+	}
 	if (vkShader->spirv[mslStage_Compute].data)
+	{
 		vkShader->stages |= VK_SHADER_STAGE_COMPUTE_BIT;
+		vkShader->computeUsesPushConstants = mslModule_shaderUsesPushConstants(module,
+				vkShader->pipeline.shaders[mslStage_Compute]);
+	}
 
 	return true;
 }
@@ -1024,8 +1063,11 @@ bool dsVkShader_bind(dsResourceManager* resourceManager, dsCommandBuffer* comman
 	if (!submitBuffer)
 		return false;
 
-	if (!bindPushConstants(commandBuffer, submitBuffer, shader, material, vkShader->stages))
+	if (!bindPushConstants(commandBuffer, submitBuffer, shader, material,
+			vkShader->pushConstantStages))
+	{
 		return false;
+	}
 
 	if (!bindShaderStates(submitBuffer, shader, renderStates))
 		return false;
@@ -1095,8 +1137,8 @@ bool dsVkShader_bindCompute(dsResourceManager* resourceManager, dsCommandBuffer*
 	if (!submitBuffer)
 		return false;
 
-	if (!bindPushConstants(commandBuffer, submitBuffer, shader, material,
-			VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT))
+	if (vkShader->computeUsesPushConstants && !bindPushConstants(commandBuffer, submitBuffer,
+			shader, material, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT))
 	{
 		return false;
 	}
