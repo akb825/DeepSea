@@ -1009,7 +1009,7 @@ TEST_P(RendererFunctionalTest, TextureBuffer)
 	dsGfxBuffer* buffer = dsGfxBuffer_create(resourceManager, (dsAllocator*)&allocator,
 		dsGfxBufferUsage_UniformBuffer,
 		(dsGfxMemory)(dsGfxMemory_Stream | dsGfxMemory_Read | dsGfxMemory_Synchronize), NULL,
-		sizeof(values));
+		sizeof(uint32_t)*invocationCount);
 	ASSERT_TRUE(buffer);
 
 	dsGfxBuffer* textureBuffer = dsGfxBuffer_create(resourceManager, (dsAllocator*)&allocator,
