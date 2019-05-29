@@ -173,7 +173,8 @@ bool dsMTLGfxBuffer_unmap(dsResourceManager* resourceManager, dsGfxBuffer* buffe
 	if (bufferData->mappedWrite && bufferData->managed)
 	{
 		id<MTLBuffer> realMTLBuffer = (__bridge id<MTLBuffer>)(bufferData->mtlBuffer);
-		NSRange range = {bufferData->mappedStart, bufferData->mappedSize};
+		size_t mappedSize = dsMin(bufferData->mappedSize, buffer->size - bufferData->mappedStart);
+		NSRange range = {bufferData->mappedStart, mappedSize};
 		[realMTLBuffer didModifyRange: range];
 	}
 #endif

@@ -138,7 +138,7 @@ static bool createDepthStencilState(dsMTLShader* shader)
 	const mslDepthStencilState* states = &shader->renderState.depthStencilState;
 	descriptor.depthCompareFunction = states->depthTestEnable == mslBool_True ?
 		dsGetMTLCompareFunction(states->depthCompareOp) : MTLCompareFunctionAlways;
-	descriptor.depthWriteEnabled = states->depthWriteEnable != mslBool_False;
+	descriptor.depthWriteEnabled = states->depthWriteEnable == mslBool_True;
 	if (states->stencilTestEnable == mslBool_True)
 	{
 		descriptor.frontFaceStencil = dsCreateMTLStencilDescriptor(&states->frontStencil,
