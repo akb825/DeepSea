@@ -18,6 +18,7 @@
 #include <DeepSea/Core/Containers/Hash.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
+#include <DeepSea/Core/Log.h>
 #include <string.h>
 
 dsDrawGeometry* dsMTLDrawGeometry_create(dsResourceManager* resourceManager,
@@ -38,7 +39,17 @@ dsDrawGeometry* dsMTLDrawGeometry_create(dsResourceManager* resourceManager,
 	for (unsigned int i = 0; i < DS_MAX_GEOMETRY_VERTEX_BUFFERS; ++i)
 	{
 		if (vertexBuffers[i])
+		{
 			baseGeometry->vertexBuffers[i] = *vertexBuffers[i];
+			if (vertexBuffers[i]->offset % resourceManager->minUniformBlockAlignment != 0)
+			{
+				errno = EPERM;
+				DS_LOG_ERROR(DS_RENDER_METAL_LOG_TAG, "Vertex buffers in Metal must have the same "
+					"alignemnt as uniform block buffers.");
+				dsMTLDrawGeometry_destroy(resourceManager, baseGeometry);
+				return NULL;
+			}
+		}
 		else
 			memset(baseGeometry->vertexBuffers + i, 0, sizeof(*baseGeometry->vertexBuffers));
 
