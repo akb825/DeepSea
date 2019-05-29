@@ -149,8 +149,10 @@ struct RenderInfo
 		ASSERT_EQ(offsetof(Vertex, color), format.elements[dsVertexAttrib_Color].offset);
 
 		// Metal has the same alignment restrictions for vertex buffers as uniform block buffers.
-		uint32_t vertexBlockSize = std::max((uint32_t)sizeof(*vertices),
-			resourceManager->minUniformBlockAlignment);
+		uint32_t vertexBlockSize = (uint32_t)sizeof(*vertices);
+		vertexBlockSize = (vertexBlockSize + resourceManager->minUniformBlockAlignment - 1)/
+			resourceManager->minUniformBlockAlignment;
+		vertexBlockSize *= resourceManager->minUniformBlockAlignment;
 		std::vector<uint8_t> alignedVertices(vertexBlockSize*2);
 		memcpy(alignedVertices.data(), vertices[0], sizeof(*vertices));
 		memcpy(alignedVertices.data() + vertexBlockSize, vertices[1], sizeof(*vertices));

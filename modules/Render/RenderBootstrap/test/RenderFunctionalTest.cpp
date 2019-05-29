@@ -998,8 +998,10 @@ TEST_P(RendererFunctionalTest, TextureBuffer)
 		return;
 	}
 
-	uint32_t size = std::max(invocationCount,
-		resourceManager->minTextureBufferAlignment/(uint32_t)sizeof(uint32_t));
+	std::size_t size = invocationCount*sizeof(uint32_t);
+	size = (size + resourceManager->minTextureBufferAlignment - 1)/
+		resourceManager->minTextureBufferAlignment;
+	size = (size*resourceManager->minTextureBufferAlignment)/sizeof(uint32_t);
 	std::vector<uint32_t> values(size);
 	for (uint32_t i = 0; i < invocationCount; ++i)
 		values[i] = i*2 + 3;
