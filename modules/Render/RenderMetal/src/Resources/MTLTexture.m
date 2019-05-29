@@ -202,7 +202,7 @@ static dsTexture* createTextureImpl(dsResourceManager* resourceManager, dsAlloca
 	descriptor.sampleCount = resolve ? info->samples : 1;
 
 	MTLResourceOptions resourceOptions;
-	if (!(memoryHints & dsGfxMemory_GPUOnly) && (memoryHints & dsGfxMemory_Read))
+	if (offscreen && (memoryHints & dsGfxMemory_Read))
 	{
 		resourceOptions = MTLResourceOptionCPUCacheModeDefault;
 #if DS_MAC || IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
@@ -469,21 +469,23 @@ bool dsMTLTexture_getData(void* result, size_t size, dsResourceManager* resource
 	dsMTLTexture* mtlTexture = (dsMTLTexture*)texture;
 	id<MTLTexture> realTexture = (__bridge id<MTLTexture>)mtlTexture->mtlTexture;
 
-	if (texture->offscreen)
+	uint64_t lastUsedSubmit;
+	DS_ATOMIC_LOAD64(&mtlTexture->lastUsedSubmit, &lastUsedSubmit);
+	if (lastUsedSubmit == DS_NOT_SUBMITTED)
 	{
-		uint64_t lastUsedSubmit;
-		DS_ATOMIC_LOAD64(&mtlTexture->lastUsedSubmit, &lastUsedSubmit);
-		if (lastUsedSubmit != DS_NOT_SUBMITTED)
-		{
-			dsGfxFenceResult fenceResult = dsMTLRenderer_waitForSubmit(resourceManager->renderer,
-				lastUsedSubmit, DS_DEFAULT_WAIT_TIMEOUT);
-			if (fenceResult == dsGfxFenceResult_WaitingToQueue)
-			{
-				errno = EPERM;
-				DS_LOG_ERROR(DS_RENDER_METAL_LOG_TAG, "Offscreen still queued to be rendered.");
-				return false;
-			}
-		}
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_VULKAN_LOG_TAG,
+			"Trying to read to an offscreen that hasn't had a draw flushed yet.");
+		return false;
+	}
+
+	dsGfxFenceResult fenceResult = dsMTLRenderer_waitForSubmit(resourceManager->renderer,
+		lastUsedSubmit, DS_DEFAULT_WAIT_TIMEOUT);
+	if (fenceResult == dsGfxFenceResult_WaitingToQueue)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_METAL_LOG_TAG, "Offscreen still queued to be rendered.");
+		return false;
 	}
 
 	unsigned int formatSize = dsGfxFormat_size(texture->info.format);
