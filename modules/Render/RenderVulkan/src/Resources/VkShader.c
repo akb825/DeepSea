@@ -590,7 +590,6 @@ static bool setupShaders(dsShader* shader)
 	}
 	if (vkShader->spirv[mslStage_Compute].data)
 	{
-		vkShader->stages |= VK_SHADER_STAGE_COMPUTE_BIT;
 		vkShader->computeUsesPushConstants = mslModule_shaderUsesPushConstants(module,
 				vkShader->pipeline.shaders[mslStage_Compute]);
 	}
@@ -598,7 +597,8 @@ static bool setupShaders(dsShader* shader)
 	return true;
 }
 
-static bool createLayout(dsShader* shader)
+static bool createLayout(VkPipelineLayout* layout, dsShader* shader,
+	VkPipelineStageFlags pushConstantStages)
 {
 	const dsMaterialDesc* materialDesc = shader->materialDesc;
 	const dsVkMaterialDesc* vkMaterialDesc = (const dsVkMaterialDesc*)materialDesc;
@@ -606,7 +606,6 @@ static bool createLayout(dsShader* shader)
 	const mslPipeline* pipeline = shader->pipeline;
 	dsVkDevice* device = &((dsVkRenderer*)shader->resourceManager->renderer)->device;
 	dsVkInstance* instance = &device->instance;
-	dsVkShader* vkShader = (dsVkShader*)shader;
 
 	VkDescriptorSetLayout layouts[3];
 	uint32_t descriptorCount = 0;
@@ -617,7 +616,7 @@ static bool createLayout(dsShader* shader)
 	}
 
 	uint32_t pushConstantSize = 0;
-	if (pipeline->pushConstantStruct != MSL_UNKNOWN)
+	if (pipeline->pushConstantStruct != MSL_UNKNOWN && pushConstantStages != 0)
 	{
 		mslStruct pushConstantStruct;
 		DS_VERIFY(mslModule_struct(&pushConstantStruct, module, shader->pipelineIndex,
@@ -627,7 +626,7 @@ static bool createLayout(dsShader* shader)
 
 	VkPushConstantRange pushConstantRange =
 	{
-		vkShader->stages,
+		pushConstantStages,
 		0,
 		pushConstantSize
 	};
@@ -643,12 +642,13 @@ static bool createLayout(dsShader* shader)
 	};
 
 	VkResult result = DS_VK_CALL(device->vkCreatePipelineLayout)(device->device, &createInfo,
-		instance->allocCallbacksPtr, &vkShader->layout);
+		instance->allocCallbacksPtr, layout);
 	return dsHandleVkResult(result);
 }
 
 static bool bindPushConstants(dsCommandBuffer* commandBuffer, VkCommandBuffer submitBuffer,
-	const dsShader* shader, const dsMaterial* material, VkShaderStageFlags stages)
+	const dsShader* shader, const dsMaterial* material, VkPipelineLayout layout,
+	VkShaderStageFlags stages)
 {
 	dsVkDevice* device = &((dsVkRenderer*)commandBuffer->renderer)->device;
 	const dsVkShader* vkShader = (const dsVkShader*)shader;
@@ -685,7 +685,7 @@ static bool bindPushConstants(dsCommandBuffer* commandBuffer, VkCommandBuffer su
 		}
 	}
 
-	DS_VK_CALL(device->vkCmdPushConstants)(submitBuffer, vkShader->layout, stages, 0,
+	DS_VK_CALL(device->vkCmdPushConstants)(submitBuffer, layout, stages, 0,
 		vkShader->pushConstantSize, pushConstantData);
 	return true;
 }
@@ -822,8 +822,10 @@ static bool updateGlobalValues(dsCommandBuffer* commandBuffer, VkCommandBuffer s
 		return false;
 
 	uint32_t setIndex = vkMaterialDesc->bindings[dsMaterialBinding_Global].setIndex;
-	dsVkCommandBuffer_bindDescriptorSet(commandBuffer, submitBuffer, bindPoint, setIndex,
-		vkShader->layout, descriptorSet, descriptors->offsets, descriptors->offsetCount);
+	VkPipelineLayout layout = bindPoint == VK_PIPELINE_BIND_POINT_GRAPHICS ? vkShader->layout :
+		vkShader->computeLayout;
+	dsVkCommandBuffer_bindDescriptorSet(commandBuffer, submitBuffer, bindPoint, setIndex, layout,
+		descriptorSet, descriptors->offsets, descriptors->offsetCount);
 	return true;
 }
 
@@ -848,8 +850,10 @@ static bool updateInstanceValues(dsCommandBuffer* commandBuffer, const dsShader*
 		return false;
 
 	uint32_t setIndex = vkMaterialDesc->bindings[dsMaterialBinding_Instance].setIndex;
-	dsVkCommandBuffer_bindDescriptorSet(commandBuffer, submitBuffer, bindPoint, setIndex,
-		vkShader->layout, descriptorSet, descriptors->offsets, descriptors->offsetCount);
+	VkPipelineLayout layout = bindPoint == VK_PIPELINE_BIND_POINT_GRAPHICS ? vkShader->layout :
+		vkShader->computeLayout;
+	dsVkCommandBuffer_bindDescriptorSet(commandBuffer, submitBuffer, bindPoint, setIndex, layout,
+		descriptorSet, descriptors->offsets, descriptors->offsetCount);
 	return true;
 }
 
@@ -1011,6 +1015,7 @@ dsShader* dsVkShader_create(dsResourceManager* resourceManager, dsAllocator* all
 
 	memset(shader->shaders, 0, sizeof(shader->shaders));
 	shader->layout = 0;
+	shader->computeLayout = 0;
 	shader->computePipeline = NULL;
 
 	DS_VERIFY(dsSpinlock_initialize(&shader->materialLock));
@@ -1019,7 +1024,20 @@ dsShader* dsVkShader_create(dsResourceManager* resourceManager, dsAllocator* all
 
 	setupCommonStates(baseShader);
 	setupSpirv(baseShader, (dsAllocator*)&bufferAlloc);
-	if (!setupShaders(baseShader) || !createLayout(baseShader))
+	if (!setupShaders(baseShader))
+	{
+		dsVkShader_destroy(resourceManager, baseShader);
+		return NULL;
+	}
+
+	if (shader->stages != 0 && !createLayout(&shader->layout, baseShader, shader->stages))
+	{
+		dsVkShader_destroy(resourceManager, baseShader);
+		return NULL;
+	}
+
+	if (shader->spirv[mslStage_Compute].data && !createLayout(&shader->computeLayout, baseShader,
+			shader->computeUsesPushConstants ? VK_SHADER_STAGE_COMPUTE_BIT : 0))
 	{
 		dsVkShader_destroy(resourceManager, baseShader);
 		return NULL;
@@ -1063,8 +1081,8 @@ bool dsVkShader_bind(dsResourceManager* resourceManager, dsCommandBuffer* comman
 	if (!submitBuffer)
 		return false;
 
-	if (!bindPushConstants(commandBuffer, submitBuffer, shader, material,
-			vkShader->pushConstantStages))
+	if (!bindPushConstants(commandBuffer, submitBuffer, shader, material, vkShader->layout,
+			vkShader->stages))
 	{
 		return false;
 	}
@@ -1138,7 +1156,7 @@ bool dsVkShader_bindCompute(dsResourceManager* resourceManager, dsCommandBuffer*
 		return false;
 
 	if (vkShader->computeUsesPushConstants && !bindPushConstants(commandBuffer, submitBuffer,
-			shader, material, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT))
+			shader, material, vkShader->computeLayout, VK_SHADER_STAGE_COMPUTE_BIT))
 	{
 		return false;
 	}
@@ -1152,7 +1170,8 @@ bool dsVkShader_bindCompute(dsResourceManager* resourceManager, dsCommandBuffer*
 
 		uint32_t setIndex = vkMaterialDesc->bindings[dsMaterialBinding_Material].setIndex;
 		dsVkCommandBuffer_bindDescriptorSet(commandBuffer, submitBuffer,
-			VK_PIPELINE_BIND_POINT_COMPUTE, setIndex, vkShader->layout, descriptorSet, NULL, 0);
+			VK_PIPELINE_BIND_POINT_COMPUTE, setIndex, vkShader->computeLayout, descriptorSet, NULL,
+			0);
 	}
 
 	if (globalValues && !updateGlobalValues(commandBuffer, submitBuffer, shader, globalValues,
@@ -1255,6 +1274,12 @@ bool dsVkShader_destroy(dsResourceManager* resourceManager, dsShader* shader)
 	if (vkShader->layout)
 	{
 		DS_VK_CALL(device->vkDestroyPipelineLayout)(device->device, vkShader->layout,
+			instance->allocCallbacksPtr);
+	}
+
+	if (vkShader->computeLayout)
+	{
+		DS_VK_CALL(device->vkDestroyPipelineLayout)(device->device, vkShader->computeLayout,
 			instance->allocCallbacksPtr);
 	}
 

@@ -869,7 +869,8 @@ TEST_P(RendererFunctionalTest, BufferReadback)
 
 	dsMaterialElement materialElements[] =
 	{
-		{"TestBuffer", dsMaterialType_UniformBuffer, 0, NULL, dsMaterialBinding_Material, 0}
+		{"TestBuffer", dsMaterialType_UniformBuffer, 0, NULL, dsMaterialBinding_Material, 0},
+		{"offset", dsMaterialType_UInt, 0, NULL, dsMaterialBinding_Material, 0}
 	};
 
 	dsMaterialDesc* materialDesc = dsMaterialDesc_create(resourceManager, (dsAllocator*)&allocator,
@@ -883,6 +884,11 @@ TEST_P(RendererFunctionalTest, BufferReadback)
 	uint32_t bufferIdx = dsMaterialDesc_findElement(materialDesc, "TestBuffer");
 	ASSERT_NE(DS_MATERIAL_UNKNOWN, bufferIdx);
 	ASSERT_TRUE(dsMaterial_setBuffer(material, bufferIdx, buffer, 0, buffer->size));
+
+	int32_t offset = 3;
+	uint32_t offsetIdx = dsMaterialDesc_findElement(materialDesc, "offset");
+	ASSERT_NE(DS_MATERIAL_UNKNOWN, offsetIdx);
+	ASSERT_TRUE(dsMaterial_setElementData(material, offsetIdx, &offset, dsMaterialType_UInt, 0, 1));
 
 	dsShaderModule* shaderModule = dsShaderModule_loadResource(resourceManager,
 		(dsAllocator*)&allocator, dsFileResourceType_Embedded, getShaderPath("WriteBuffer.mslb"),
@@ -904,7 +910,7 @@ TEST_P(RendererFunctionalTest, BufferReadback)
 		buffer->size));
 	ASSERT_TRUE(data);
 	for (uint32_t i = 0; i < invocationCount; ++i)
-		EXPECT_EQ(i, data[i]);
+		EXPECT_EQ(i + offset, data[i]);
 	EXPECT_TRUE(dsGfxBuffer_unmap(buffer));
 
 	DS_VERIFY(dsShader_destroy(shader));
@@ -937,7 +943,8 @@ TEST_P(RendererFunctionalTest, ComputeShaderIndirect)
 
 	dsMaterialElement materialElements[] =
 	{
-		{"TestBuffer", dsMaterialType_UniformBuffer, 0, NULL, dsMaterialBinding_Material, 0}
+		{"TestBuffer", dsMaterialType_UniformBuffer, 0, NULL, dsMaterialBinding_Material, 0},
+		{"offset", dsMaterialType_UInt, 0, NULL, dsMaterialBinding_Material, 0}
 	};
 
 	dsMaterialDesc* materialDesc = dsMaterialDesc_create(resourceManager, (dsAllocator*)&allocator,
@@ -951,6 +958,11 @@ TEST_P(RendererFunctionalTest, ComputeShaderIndirect)
 	uint32_t bufferIdx = dsMaterialDesc_findElement(materialDesc, "TestBuffer");
 	ASSERT_NE(DS_MATERIAL_UNKNOWN, bufferIdx);
 	ASSERT_TRUE(dsMaterial_setBuffer(material, bufferIdx, buffer, 0, buffer->size));
+
+	int32_t offset = 3;
+	uint32_t offsetIdx = dsMaterialDesc_findElement(materialDesc, "offset");
+	ASSERT_NE(DS_MATERIAL_UNKNOWN, offsetIdx);
+	ASSERT_TRUE(dsMaterial_setElementData(material, offsetIdx, &offset, dsMaterialType_UInt, 0, 1));
 
 	dsShaderModule* shaderModule = dsShaderModule_loadResource(resourceManager,
 		(dsAllocator*)&allocator, dsFileResourceType_Embedded, getShaderPath("WriteBuffer.mslb"),
@@ -972,7 +984,7 @@ TEST_P(RendererFunctionalTest, ComputeShaderIndirect)
 		buffer->size));
 	ASSERT_TRUE(data);
 	for (uint32_t i = 0; i < invocationCount; ++i)
-		EXPECT_EQ(i, data[i]);
+		EXPECT_EQ(i + offset, data[i]);
 	EXPECT_TRUE(dsGfxBuffer_unmap(buffer));
 
 	DS_VERIFY(dsShader_destroy(shader));

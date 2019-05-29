@@ -52,7 +52,7 @@ dsVkComputePipeline* dsVkComputePipeline_create(dsAllocator* allocator, dsShader
 			"main",
 			NULL
 		},
-		vkShader->layout,
+		vkShader->computeLayout,
 		0,
 		-1
 	};

@@ -19,10 +19,12 @@ buffer TestBuffer
 	uint data[];
 };
 
+uniform uint offset;
+
 void process()
 {
 	for (uint i = 0; i < gl_NumWorkGroups.x; ++i)
-		data[i] = i;
+		data[i] = i + uniforms.offset;
 }
 
 pipeline WriteBuffer

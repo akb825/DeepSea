@@ -572,6 +572,7 @@ typedef struct dsVkShader
 	mslSizedData spirv[mslStage_Count];
 	VkShaderModule shaders[mslStage_Count];
 	VkPipelineLayout layout;
+	VkPipelineLayout computeLayout;
 
 	VkPipelineTessellationStateCreateInfo tessellationInfo;
 	VkPipelineViewportStateCreateInfo viewportInfo;
