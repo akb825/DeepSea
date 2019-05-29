@@ -249,17 +249,17 @@ static void setupUniformIndices(dsMTLShader* shader, mslModule* module, uint32_t
 			continue;
 
 		mslStage stage = (mslStage)i;
-		uint32_t maxIndex = 0;
+		uint32_t firstAvailableIndex = shader->stages[i].hasPushConstants;
 		for (uint32_t j = 0; j < shader->pipeline.uniformCount; ++j)
 		{
 			uint32_t index = mslModule_shaderUniformId(module, shaderIndex, j, stage);
 			shader->stages[i].uniformIndices[j] = index;
-			if (index != MSL_UNKNOWN && index > maxIndex)
-				maxIndex = index;
+			if (index != MSL_UNKNOWN && index + 1 > firstAvailableIndex)
+				firstAvailableIndex = index + 1;
 		}
 
 		if (stage == mslStage_Vertex)
-			shader->firstVertexBuffer = maxIndex;
+			shader->firstVertexBuffer = firstAvailableIndex;
 	}
 }
 

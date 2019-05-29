@@ -58,6 +58,7 @@ typedef struct dsMTLGfxBufferData
 	uint32_t processed;
 
 	dsSpinlock bufferTextureLock;
+	dsGfxBufferUsage usage;
 	dsMTLBufferTexture* bufferTextures;
 	uint32_t bufferTextureCount;
 	uint32_t maxBufferTextures;
@@ -95,6 +96,7 @@ typedef struct dsMTLTexture
 	CFTypeRef stencilTexture;
 	CFTypeRef resolveStencilTexture;
 
+	uint64_t lastUsedSubmit;
 	uint32_t processed;
 } dsMTLTexture;
 
@@ -329,6 +331,10 @@ typedef struct dsMTLCommandBuffer
 	dsLifetime** gfxBuffers;
 	uint32_t gfxBufferCount;
 	uint32_t maxGfxBuffers;
+
+	dsLifetime** readbackOffscreens;
+	uint32_t readbackOffscreenCount;
+	uint32_t maxReadbackOffscreens;
 
 	dsLifetime** fences;
 	uint32_t fenceCount;

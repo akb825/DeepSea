@@ -148,16 +148,22 @@ struct RenderInfo
 		ASSERT_EQ(offsetof(Vertex, position), format.elements[dsVertexAttrib_Position].offset);
 		ASSERT_EQ(offsetof(Vertex, color), format.elements[dsVertexAttrib_Color].offset);
 
+		// Metal has the same alignment restrictions for vertex buffers as uniform block buffers.
+		uint32_t vertexBlockSize = std::max((uint32_t)sizeof(*vertices),
+			resourceManager->minUniformBlockAlignment);
+		std::vector<uint8_t> alignedVertices(vertexBlockSize*2);
+		memcpy(alignedVertices.data(), vertices[0], sizeof(*vertices));
+		memcpy(alignedVertices.data() + vertexBlockSize, vertices[1], sizeof(*vertices));
+
 		vertexBuffer = dsGfxBuffer_create(resourceManager, allocator,
 			dsGfxBufferUsage_Vertex,
 			(dsGfxMemory)(dsGfxMemory_Static | dsGfxMemory_Draw | dsGfxMemory_GPUOnly),
-			vertices, sizeof(vertices));
+			alignedVertices.data(), alignedVertices.size());
 		ASSERT_TRUE(vertexBuffer);
 
 		for (uint32_t i = 0; i < 2; ++i)
 		{
-			dsVertexBuffer vertexBufferRef = {vertexBuffer, (uint32_t)(sizeof(*vertices)*i), 6,
-				format};
+			dsVertexBuffer vertexBufferRef = {vertexBuffer, vertexBlockSize*i, 6, format};
 			dsVertexBuffer* vertexBuffers[DS_MAX_GEOMETRY_VERTEX_BUFFERS] = {&vertexBufferRef,
 				nullptr, nullptr, nullptr};
 			drawGeometry[i] = dsDrawGeometry_create(resourceManager, allocator,

@@ -23,6 +23,7 @@ void dsMTLHardwareCommandBuffer_initialize(dsMTLHardwareCommandBuffer* commandBu
 	dsRenderer* renderer, dsAllocator* allocator, dsCommandBufferUsage usage);
 
 void dsMTLHardwareCommandBuffer_endEncoding(dsCommandBuffer* commandBuffer);
-void dsMTLHardwareCommandBuffer_submitted(dsCommandBuffer* commandBuffer, uint64_t submitCount);
+id<MTLCommandBuffer> dsMTLHardwareCommandBuffer_submitted(dsCommandBuffer* commandBuffer,
+	uint64_t submitCount);
 
 void dsMTLHardwareCommandBuffer_shutdown(dsMTLHardwareCommandBuffer* commandBuffer);

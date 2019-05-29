@@ -306,6 +306,28 @@ static MTLRenderPassDescriptor* createRenderPassDescriptor(const dsRenderPass* r
 	return descriptor;
 }
 
+static void addReadbackOffscreens(const dsRenderPass* renderPass, uint32_t subpass,
+	const dsFramebuffer* framebuffer, dsCommandBuffer* commandBuffer)
+{
+	const dsRenderSubpassInfo* subpassInfo = renderPass->subpasses + subpass;
+	for (uint32_t i = 0; i < subpassInfo->colorAttachmentCount; ++i)
+	{
+		uint32_t attachment = subpassInfo->colorAttachments[i].attachmentIndex;
+		if (attachment == DS_NO_ATTACHMENT)
+			continue;
+
+		const dsFramebufferSurface* surface = framebuffer->surfaces + attachment;
+		if (surface->surfaceType != dsGfxSurfaceType_Offscreen)
+			continue;
+
+		dsOffscreen* offscreen = (dsOffscreen*)surface->surface;
+		if (!(offscreen->memoryHints & dsGfxMemory_Read))
+			continue;
+
+		dsMTLCommandBuffer_addReadbackOffscreen(commandBuffer, offscreen);
+	}
+}
+
 dsRenderPass* dsMTLRenderPass_create(dsRenderer* renderer, dsAllocator* allocator,
 	const dsAttachmentInfo* attachments, uint32_t attachmentCount,
 	const dsRenderSubpassInfo* subpasses, uint32_t subpassCount,
@@ -440,6 +462,7 @@ bool dsMTLRenderPass_begin(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	if (!descriptor)
 		return false;
 
+	addReadbackOffscreens(renderPass, 0, framebuffer, commandBuffer);
 	return dsMTLCommandBuffer_beginRenderPass(commandBuffer, descriptor,
 		&mtlCommandBuffer->viewport);
 }
@@ -457,8 +480,12 @@ bool dsMTLRenderPass_nextSubpass(dsRenderer* renderer, dsCommandBuffer* commandB
 	if (!descriptor)
 		return false;
 
-	return dsMTLCommandBuffer_endRenderPass(commandBuffer) &&
-		dsMTLCommandBuffer_beginRenderPass(commandBuffer, descriptor, &mtlCommandBuffer->viewport);
+	if (!dsMTLCommandBuffer_endRenderPass(commandBuffer))
+		return false;
+
+	addReadbackOffscreens(renderPass, index, framebuffer, commandBuffer);
+	return dsMTLCommandBuffer_beginRenderPass(commandBuffer, descriptor,
+		&mtlCommandBuffer->viewport);
 }
 
 bool dsMTLRenderPass_end(dsRenderer* renderer, dsCommandBuffer* commandBuffer,

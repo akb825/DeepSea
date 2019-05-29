@@ -928,6 +928,14 @@ uint64_t dsMTLRenderer_flushImpl(dsRenderer* renderer, id<MTLCommandBuffer> extr
 	++mtlRenderer->submitCount;
 	DS_VERIFY(dsMutex_unlock(mtlRenderer->submitMutex));
 
+	id<MTLCommandBuffer> synchronizeCommands =
+		dsMTLHardwareCommandBuffer_submitted(renderer->mainCommandBuffer, submit);
+	if (synchronizeCommands)
+	{
+		[lastCommandBuffer commit];
+		lastCommandBuffer = synchronizeCommands;
+	}
+
 	// Increment finished submit count at the end of the last command buffer.
 	[lastCommandBuffer addCompletedHandler: ^(id<MTLCommandBuffer> commandBuffer)
 		{
@@ -941,7 +949,6 @@ uint64_t dsMTLRenderer_flushImpl(dsRenderer* renderer, id<MTLCommandBuffer> extr
 			DS_VERIFY(dsMutex_unlock(mtlRenderer->submitMutex));
 		}];
 	[lastCommandBuffer commit];
-	dsMTLHardwareCommandBuffer_submitted(renderer->mainCommandBuffer, submit);
 	return submit;
 }
 

@@ -99,6 +99,8 @@ bool dsMTLCommandBuffer_pushDebugGroup(dsCommandBuffer* commandBuffer, const cha
 bool dsMTLCommandBuffer_popDebugGroup(dsCommandBuffer* commandBuffer);
 
 bool dsMTLCommandBuffer_addGfxBuffer(dsCommandBuffer* commandBuffer, dsMTLGfxBufferData* buffer);
+bool dsMTLCommandBuffer_addReadbackOffscreen(dsCommandBuffer* commandBuffer,
+	dsOffscreen* offscreen);
 bool dsMTLCommandBuffer_addFence(dsCommandBuffer* commandBuffer, dsGfxFence* fence);
 
 void dsMTLCommandBuffer_submitFence(dsCommandBuffer* commandBuffer);

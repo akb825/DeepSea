@@ -94,6 +94,7 @@ static dsTexture* createTextureImpl(dsResourceManager* resourceManager, dsAlloca
 	texture->stencilTexture = NULL;
 	texture->resolveTexture = NULL;
 	texture->resolveStencilTexture = NULL;
+	texture->lastUsedSubmit = DS_NOT_SUBMITTED;
 	texture->processed = false;
 
 	texture->lifetime = dsLifetime_create(allocator, texture);
@@ -467,6 +468,23 @@ bool dsMTLTexture_getData(void* result, size_t size, dsResourceManager* resource
 	DS_UNUSED(resourceManager);
 	dsMTLTexture* mtlTexture = (dsMTLTexture*)texture;
 	id<MTLTexture> realTexture = (__bridge id<MTLTexture>)mtlTexture->mtlTexture;
+
+	if (texture->offscreen)
+	{
+		uint64_t lastUsedSubmit;
+		DS_ATOMIC_LOAD64(&mtlTexture->lastUsedSubmit, &lastUsedSubmit);
+		if (lastUsedSubmit != DS_NOT_SUBMITTED)
+		{
+			dsGfxFenceResult fenceResult = dsMTLRenderer_waitForSubmit(resourceManager->renderer,
+				lastUsedSubmit, DS_DEFAULT_WAIT_TIMEOUT);
+			if (fenceResult == dsGfxFenceResult_WaitingToQueue)
+			{
+				errno = EPERM;
+				DS_LOG_ERROR(DS_RENDER_METAL_LOG_TAG, "Offscreen still queued to be rendered.");
+				return false;
+			}
+		}
+	}
 
 	unsigned int formatSize = dsGfxFormat_size(texture->info.format);
 	unsigned int blocksX, blocksY;

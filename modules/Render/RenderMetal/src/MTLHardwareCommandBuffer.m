@@ -659,7 +659,7 @@ bool dsMTLHardwareCommandBuffer_bindComputePushConstants(dsCommandBuffer* comman
 	const void* data, uint32_t size)
 {
 	dsMTLHardwareCommandBuffer* mtlCommandBuffer = (dsMTLHardwareCommandBuffer*)commandBuffer;
-	if (mtlCommandBuffer->computeCommandEncoder)
+	if (!mtlCommandBuffer->computeCommandEncoder)
 		return false;
 
 	id<MTLComputeCommandEncoder> encoder =
@@ -672,7 +672,7 @@ bool dsMTLHardwareCommandBuffer_bindComputeBufferUniform(dsCommandBuffer* comman
 	id<MTLBuffer> buffer, size_t offset, uint32_t index)
 {
 	dsMTLHardwareCommandBuffer* mtlCommandBuffer = (dsMTLHardwareCommandBuffer*)commandBuffer;
-	if (mtlCommandBuffer->computeCommandEncoder)
+	if (!mtlCommandBuffer->computeCommandEncoder)
 		return false;
 
 	id<MTLComputeCommandEncoder> encoder =
@@ -689,7 +689,7 @@ bool dsMTLHardwareCommandBuffer_bindComputeTextureUniform(dsCommandBuffer* comma
 	id<MTLTexture> texture, id<MTLSamplerState> sampler, uint32_t index)
 {
 	dsMTLHardwareCommandBuffer* mtlCommandBuffer = (dsMTLHardwareCommandBuffer*)commandBuffer;
-	if (mtlCommandBuffer->computeCommandEncoder)
+	if (!mtlCommandBuffer->computeCommandEncoder)
 		return false;
 
 	id<MTLComputeCommandEncoder> encoder =
@@ -1032,7 +1032,7 @@ bool dsMTLHardwareCommandBuffer_dispatchCompute(dsCommandBuffer* commandBuffer,
 	uint32_t groupX, uint32_t groupY, uint32_t groupZ)
 {
 	dsMTLHardwareCommandBuffer* mtlCommandBuffer = (dsMTLHardwareCommandBuffer*)commandBuffer;
-	if (mtlCommandBuffer->computeCommandEncoder)
+	if (!mtlCommandBuffer->computeCommandEncoder)
 		return false;
 
 	id<MTLComputeCommandEncoder> encoder =
@@ -1054,7 +1054,7 @@ bool dsMTLHardwareCommandBuffer_dispatchComputeIndirect(dsCommandBuffer* command
 	uint32_t groupX, uint32_t groupY, uint32_t groupZ)
 {
 	dsMTLHardwareCommandBuffer* mtlCommandBuffer = (dsMTLHardwareCommandBuffer*)commandBuffer;
-	if (mtlCommandBuffer->computeCommandEncoder)
+	if (!mtlCommandBuffer->computeCommandEncoder)
 		return false;
 
 	id<MTLComputeCommandEncoder> encoder =
@@ -1168,7 +1168,8 @@ void dsMTLHardwareCommandBuffer_endEncoding(dsCommandBuffer* commandBuffer)
 	}
 }
 
-void dsMTLHardwareCommandBuffer_submitted(dsCommandBuffer* commandBuffer, uint64_t submitCount)
+id<MTLCommandBuffer> dsMTLHardwareCommandBuffer_submitted(dsCommandBuffer* commandBuffer,
+	uint64_t submitCount)
 {
 	dsMTLHardwareCommandBuffer* mtlHardwareCommandBuffer =
 		(dsMTLHardwareCommandBuffer*)commandBuffer;
@@ -1211,6 +1212,37 @@ void dsMTLHardwareCommandBuffer_submitted(dsCommandBuffer* commandBuffer, uint64
 		dsLifetime_freeRef(lifetime);
 	}
 	mtlCommandBuffer->fenceCount = 0;
+
+	if (mtlCommandBuffer->readbackOffscreenCount == 0)
+		return nil;
+
+	dsMTLRenderer* renderer = (dsMTLRenderer*)commandBuffer->renderer;
+	id<MTLCommandQueue> commandQueue = (__bridge id<MTLCommandQueue>)renderer->commandQueue;
+	id<MTLCommandBuffer> submitBuffer = [commandQueue commandBuffer];
+	if (!submitBuffer)
+		return nil;
+
+	id<MTLBlitCommandEncoder> encoder = [submitBuffer blitCommandEncoder];
+	if (!encoder)
+		return nil;
+
+	for (uint32_t i = 0; i < mtlCommandBuffer->readbackOffscreenCount; ++i)
+	{
+		dsLifetime* lifetime = mtlCommandBuffer->readbackOffscreens[i];
+		dsMTLTexture* texture = (dsMTLTexture*)dsLifetime_acquire(lifetime);
+		if (texture)
+		{
+			id<MTLTexture> realTexture = (__bridge id<MTLTexture>)texture->mtlTexture;
+			[encoder synchronizeResource: realTexture];
+			DS_ATOMIC_STORE64(&texture->lastUsedSubmit, &submitCount);
+			dsLifetime_release(lifetime);
+		}
+		dsLifetime_freeRef(lifetime);
+	}
+	mtlCommandBuffer->readbackOffscreenCount = 0;
+
+	[encoder endEncoding];
+	return submitBuffer;
 }
 
 void dsMTLHardwareCommandBuffer_shutdown(dsMTLHardwareCommandBuffer* commandBuffer)

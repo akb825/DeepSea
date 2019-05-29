@@ -43,10 +43,7 @@ void dsMTLCommandBuffer_initialize(dsMTLCommandBuffer* commandBuffer, dsRenderer
 bool dsMTLCommandBuffer_begin(dsRenderer* renderer, dsCommandBuffer* commandBuffer)
 {
 	DS_UNUSED(renderer);
-
-	const dsMTLCommandBufferFunctionTable* functions =
-		((dsMTLCommandBuffer*)commandBuffer)->functions;
-	functions->clearFunc(commandBuffer);
+	dsMTLCommandBuffer_clear(commandBuffer);
 	return true;
 }
 
@@ -60,17 +57,14 @@ bool dsMTLCommandBuffer_beginSecondary(dsRenderer* renderer, dsCommandBuffer* co
 	DS_UNUSED(subpass);
 	DS_UNUSED(viewport);
 
-	const dsMTLCommandBufferFunctionTable* functions =
-		((dsMTLCommandBuffer*)commandBuffer)->functions;
-	functions->clearFunc(commandBuffer);
+	dsMTLCommandBuffer_clear(commandBuffer);
 	return true;
 }
 
 bool dsMTLCommandBuffer_end(dsRenderer* renderer, dsCommandBuffer* commandBuffer)
 {
 	DS_UNUSED(renderer);
-
-	dsMTLCommandBuffer_clear(commandBuffer);
+	DS_UNUSED(commandBuffer);
 	return true;
 }
 
@@ -91,6 +85,17 @@ bool dsMTLCommandBuffer_submit(dsRenderer* renderer, dsCommandBuffer* commandBuf
 
 		dsMTLCommandBuffer_addGfxBuffer(commandBuffer, buffer);
 		dsLifetime_release(mtlSubmitBuffer->gfxBuffers[i]);
+	}
+
+	for (uint32_t i = 0; i < mtlSubmitBuffer->readbackOffscreenCount; ++i)
+	{
+		dsTexture* texture =
+			(dsTexture*)dsLifetime_acquire(mtlSubmitBuffer->readbackOffscreens[i]);
+		if (!texture)
+			continue;
+
+		dsMTLCommandBuffer_addReadbackOffscreen(commandBuffer, texture);
+		dsLifetime_release(mtlSubmitBuffer->readbackOffscreens[i]);
 	}
 
 	for (uint32_t i = 0; i < mtlSubmitBuffer->fenceCount; ++i)
@@ -382,6 +387,36 @@ bool dsMTLCommandBuffer_addGfxBuffer(dsCommandBuffer* commandBuffer, dsMTLGfxBuf
 	return true;
 }
 
+bool dsMTLCommandBuffer_addReadbackOffscreen(dsCommandBuffer* commandBuffer, dsOffscreen* offscreen)
+{
+#if DS_MAC
+	dsMTLCommandBuffer* mtlCommandBuffer = (dsMTLCommandBuffer*)commandBuffer;
+	dsMTLTexture* mtlTexture = (dsMTLTexture*)offscreen;
+	if (!mtlTexture->mtlTexture)
+		return true;
+
+	for (uint32_t i = 0; i < mtlCommandBuffer->readbackOffscreenCount; ++i)
+	{
+		if (mtlCommandBuffer->readbackOffscreens[i] == mtlTexture->lifetime)
+			return true;
+	}
+
+	uint32_t index = mtlCommandBuffer->readbackOffscreenCount;
+	if (!DS_RESIZEABLE_ARRAY_ADD(commandBuffer->allocator, mtlCommandBuffer->readbackOffscreens,
+			mtlCommandBuffer->readbackOffscreenCount, mtlCommandBuffer->maxReadbackOffscreens, 1))
+	{
+		return false;
+	}
+
+	mtlCommandBuffer->readbackOffscreens[index] = dsLifetime_addRef(mtlTexture->lifetime);
+	return true;
+#else
+	DS_UNUSED(commandBuffer);
+	DS_UNUSED(texture);
+	return true;
+#endif
+}
+
 bool dsMTLCommandBuffer_addFence(dsCommandBuffer* commandBuffer, dsGfxFence* fence)
 {
 	dsMTLCommandBuffer* mtlCommandBuffer = (dsMTLCommandBuffer*)commandBuffer;
@@ -430,6 +465,10 @@ void dsMTLCommandBuffer_clear(dsCommandBuffer* commandBuffer)
 		dsLifetime_freeRef(mtlCommandBuffer->gfxBuffers[i]);
 	mtlCommandBuffer->gfxBufferCount = 0;
 
+	for (uint32_t i = 0; i < mtlCommandBuffer->readbackOffscreenCount; ++i)
+		dsLifetime_freeRef(mtlCommandBuffer->readbackOffscreens[i]);
+	mtlCommandBuffer->readbackOffscreenCount = 0;
+
 	for (uint32_t i = 0; i < mtlCommandBuffer->fenceCount; ++i)
 		dsLifetime_freeRef(mtlCommandBuffer->fences[i]);
 	mtlCommandBuffer->fenceCount = 0;
@@ -445,6 +484,10 @@ void dsMTLCommandBuffer_shutdown(dsMTLCommandBuffer* commandBuffer)
 	for (uint32_t i = 0; i < commandBuffer->gfxBufferCount; ++i)
 		dsLifetime_freeRef(commandBuffer->gfxBuffers[i]);
 	DS_VERIFY(dsAllocator_free(allocator, commandBuffer->gfxBuffers));
+
+	for (uint32_t i = 0; i < commandBuffer->readbackOffscreenCount; ++i)
+		dsLifetime_freeRef(commandBuffer->readbackOffscreens[i]);
+	DS_VERIFY(dsAllocator_free(allocator, commandBuffer->readbackOffscreens));
 
 	for (uint32_t i = 0; i < commandBuffer->fenceCount; ++i)
 		dsLifetime_freeRef(commandBuffer->fences[i]);

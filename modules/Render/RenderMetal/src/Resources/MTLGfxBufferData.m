@@ -50,6 +50,7 @@ dsMTLGfxBufferData* dsMTLGfxBufferData_create(dsResourceManager* resourceManager
 	buffer->allocator = dsAllocator_keepPointer(allocator);
 	buffer->scratchAllocator = scratchAllocator;
 	buffer->processed = false;
+	buffer->usage = usage;
 	DS_VERIFY(dsSpinlock_initialize(&buffer->bufferTextureLock));
 
 	buffer->lifetime = dsLifetime_create(allocator, buffer);
@@ -118,6 +119,7 @@ dsMTLGfxBufferData* dsMTLGfxBufferData_create(dsResourceManager* resourceManager
 	}
 
 	buffer->mtlBuffer = CFBridgingRetain(mtlBuffer);
+	buffer->copyBuffer = CFBridgingRetain(copyBuffer);
 	return buffer;
 }
 
@@ -169,12 +171,28 @@ id<MTLTexture> dsMTLGfxBufferData_getBufferTexture(dsMTLGfxBufferData* buffer, d
 
 	uint32_t width = (uint32_t)dsMin(count, DS_IMAGE_BUFFER_WIDTH);
 	id<MTLBuffer> mtlBuffer = (__bridge id<MTLBuffer>)buffer->mtlBuffer;
-	id<MTLTexture> texture =
-		[mtlBuffer newTextureWithDescriptor:
-			[MTLTextureDescriptor texture2DDescriptorWithPixelFormat: pixelFormat
-				width: width height: (count + DS_IMAGE_BUFFER_WIDTH - 1)/DS_IMAGE_BUFFER_WIDTH
-				mipmapped: false]
-		offset: offset bytesPerRow: width*dsGfxFormat_size(format)];
+	MTLTextureDescriptor* descriptor = [MTLTextureDescriptor
+		texture2DDescriptorWithPixelFormat: pixelFormat width: width
+		height: (count + DS_IMAGE_BUFFER_WIDTH - 1)/DS_IMAGE_BUFFER_WIDTH mipmapped: false];
+	if (!descriptor)
+	{
+		--buffer->bufferTextureCount;
+		DS_VERIFY(dsSpinlock_unlock(&buffer->bufferTextureLock));
+		return nil;
+	}
+
+#if DS_MAC || IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
+	descriptor.storageMode = mtlBuffer.storageMode;
+	descriptor.cpuCacheMode = mtlBuffer.cpuCacheMode;
+#endif
+
+	MTLTextureUsage usage = MTLTextureUsageShaderRead;
+	if (buffer->usage & dsGfxBufferUsage_Image)
+		usage |= MTLTextureUsageShaderWrite;
+	descriptor.usage = usage;
+
+	id<MTLTexture> texture = [mtlBuffer newTextureWithDescriptor: descriptor offset: offset
+		bytesPerRow: width*dsGfxFormat_size(format)];
 	if (!texture)
 	{
 		--buffer->bufferTextureCount;

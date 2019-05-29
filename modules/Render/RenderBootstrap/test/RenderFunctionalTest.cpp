@@ -998,7 +998,9 @@ TEST_P(RendererFunctionalTest, TextureBuffer)
 		return;
 	}
 
-	uint32_t values[invocationCount];
+	uint32_t size = std::max(invocationCount,
+		resourceManager->minTextureBufferAlignment/(uint32_t)sizeof(uint32_t));
+	std::vector<uint32_t> values(size);
 	for (uint32_t i = 0; i < invocationCount; ++i)
 		values[i] = i*2 + 3;
 
@@ -1009,8 +1011,8 @@ TEST_P(RendererFunctionalTest, TextureBuffer)
 	ASSERT_TRUE(buffer);
 
 	dsGfxBuffer* textureBuffer = dsGfxBuffer_create(resourceManager, (dsAllocator*)&allocator,
-		dsGfxBufferUsage_Texture, dsGfxMemory_Static, values,
-		sizeof(values));
+		dsGfxBufferUsage_Texture, dsGfxMemory_Static, values.data(),
+		values.size()*sizeof(uint32_t));
 	ASSERT_TRUE(buffer);
 
 	dsMaterialElement materialElements[] =
@@ -1030,7 +1032,7 @@ TEST_P(RendererFunctionalTest, TextureBuffer)
 	uint32_t textureIdx = dsMaterialDesc_findElement(materialDesc, "testTexBuffer");
 	ASSERT_NE(DS_MATERIAL_UNKNOWN, textureIdx);
 	ASSERT_TRUE(dsMaterial_setTextureBuffer(material, textureIdx, textureBuffer,
-		dsGfxFormat_decorate(dsGfxFormat_R32, dsGfxFormat_UInt), 0, invocationCount));
+		dsGfxFormat_decorate(dsGfxFormat_R32, dsGfxFormat_UInt), 0, size));
 
 	uint32_t bufferIdx = dsMaterialDesc_findElement(materialDesc, "TestBuffer");
 	ASSERT_NE(DS_MATERIAL_UNKNOWN, bufferIdx);
