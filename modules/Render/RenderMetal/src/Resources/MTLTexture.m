@@ -199,7 +199,7 @@ static dsTexture* createTextureImpl(dsResourceManager* resourceManager, dsAlloca
 	else
 		descriptor.height = info->height;
 	descriptor.mipmapLevelCount = info->mipLevels;
-	descriptor.sampleCount = resolve ? info->samples : 1;
+	descriptor.sampleCount = resolve ? 1 : info->samples;
 
 	MTLResourceOptions resourceOptions;
 	if (offscreen && (memoryHints & dsGfxMemory_Read))
@@ -230,7 +230,7 @@ static dsTexture* createTextureImpl(dsResourceManager* resourceManager, dsAlloca
 	descriptor.resourceOptions = resourceOptions;
 
 	MTLTextureUsage textureUsage = MTLTextureUsageUnknown;
-	if (usage & (dsTextureUsage_Texture | dsTextureUsage_Image))
+	if (usage & (dsTextureUsage_Texture | dsTextureUsage_Image | dsTextureUsage_SubpassInput))
 		textureUsage |= MTLTextureUsageShaderRead;
 	if (usage & dsTextureUsage_Image)
 		textureUsage |= MTLTextureUsageShaderWrite;
@@ -285,6 +285,7 @@ static dsTexture* createTextureImpl(dsResourceManager* resourceManager, dsAlloca
 		if (!(usage & dsTextureUsage_OffscreenContinue))
 			resourceOptions |= MTLResourceStorageModeMemoryless;
 #endif
+		descriptor.usage = MTLTextureUsageRenderTarget;
 
 		if (pixelFormat != MTLPixelFormatInvalid)
 		{

@@ -43,7 +43,7 @@
 #include <MSL/Client/ModuleC.h>
 #include <string.h>
 
-static size_t fullAllocSize(const mslPipeline* pipeline, uint32_t uniformCount,
+static size_t fullAllocSize(const mslPipeline* pipeline, uint32_t elementCount,
 	uint32_t pushConstantCount)
 {
 	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsMTLShader));
@@ -55,7 +55,7 @@ static size_t fullAllocSize(const mslPipeline* pipeline, uint32_t uniformCount,
 	}
 
 	fullSize += DS_ALIGNED_SIZE(sizeof(CFTypeRef)*pipeline->samplerStateCount);
-	fullSize += DS_ALIGNED_SIZE(sizeof(dsMTLUniformInfo)*uniformCount);
+	fullSize += DS_ALIGNED_SIZE(sizeof(dsMTLUniformInfo)*elementCount);
 	fullSize += DS_ALIGNED_SIZE(sizeof(dsMTLPushConstantInfo)*pushConstantCount);
 	return fullSize;
 }
@@ -137,7 +137,8 @@ static bool createDepthStencilState(dsMTLShader* shader)
 
 	const mslDepthStencilState* states = &shader->renderState.depthStencilState;
 	descriptor.depthCompareFunction = states->depthTestEnable == mslBool_True ?
-		dsGetMTLCompareFunction(states->depthCompareOp) : MTLCompareFunctionAlways;
+		dsGetMTLCompareFunction(states->depthCompareOp, MTLCompareFunctionLess) :
+			MTLCompareFunctionAlways;
 	descriptor.depthWriteEnabled = states->depthWriteEnable == mslBool_True;
 	if (states->stencilTestEnable == mslBool_True)
 	{
@@ -202,7 +203,8 @@ static id<MTLSamplerState> createSampler(dsRenderer* renderer, const mslSamplerS
 	}
 
 #if DS_MAC || IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
-	descriptor.compareFunction = dsGetMTLCompareFunction(samplerState->compareOp);
+	descriptor.compareFunction = dsGetMTLCompareFunction(samplerState->compareOp,
+		MTLCompareFunctionLess);
 #endif
 
 	id<MTLSamplerState> sampler = [device newSamplerStateWithDescriptor: descriptor];
@@ -254,8 +256,16 @@ static void setupUniformIndices(dsMTLShader* shader, mslModule* module, uint32_t
 		{
 			uint32_t index = mslModule_shaderUniformId(module, shaderIndex, j, stage);
 			shader->stages[i].uniformIndices[j] = index;
-			if (index != MSL_UNKNOWN && index + 1 > firstAvailableIndex)
-				firstAvailableIndex = index + 1;
+			if (stage == mslStage_Vertex && index != MSL_UNKNOWN && index + 1 > firstAvailableIndex)
+			{
+				mslUniform uniform;
+				mslModule_uniform(&uniform, module, shaderIndex, j);
+				if (uniform.uniformType == mslUniformType_Block ||
+					uniform.uniformType == mslUniformType_BlockBuffer)
+				{
+					firstAvailableIndex = index + 1;
+				}
+			}
 		}
 
 		if (stage == mslStage_Vertex)
@@ -700,7 +710,7 @@ dsShader* dsMTLShader_create(dsResourceManager* resourceManager, dsAllocator* al
 			pipeline.pushConstantStruct));
 	}
 
-	size_t fullSize = fullAllocSize(&pipeline, pipeline.uniformCount,
+	size_t fullSize = fullAllocSize(&pipeline, materialDesc->elementCount,
 		pushConstantStruct.memberCount);
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)

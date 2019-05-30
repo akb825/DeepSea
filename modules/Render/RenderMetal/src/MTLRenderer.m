@@ -154,7 +154,6 @@ static uint32_t hasTessellationShaders(id<MTLDevice> device)
 
 static id<MTLCommandBuffer> processResources(dsMTLRenderer* renderer)
 {
-
 #if DS_MAC || IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
 	id<MTLCommandQueue> queue = (__bridge id<MTLCommandQueue>)renderer->commandQueue;
 	id<MTLCommandBuffer> resourceCommandBuffer = nil;
@@ -176,6 +175,7 @@ static id<MTLCommandBuffer> processResources(dsMTLRenderer* renderer)
 				dsLifetime_freeRef(renderer->processBuffers[i]);
 			renderer->processBufferCount = 0;
 			DS_VERIFY(dsSpinlock_unlock(&renderer->processBuffersLock));
+			return nil;
 		}
 
 		for (uint32_t i = 0; i < renderer->processBufferCount; ++i)
@@ -217,6 +217,7 @@ static id<MTLCommandBuffer> processResources(dsMTLRenderer* renderer)
 				dsLifetime_freeRef(renderer->processTextures[i]);
 			renderer->processTextureCount = 0;
 			DS_VERIFY(dsSpinlock_unlock(&renderer->processTexturesLock));
+			return nil;
 		}
 
 		for (uint32_t i = 0; i < renderer->processTextureCount; ++i)

@@ -151,8 +151,8 @@ static void setDepthStencilState(id<MTLRenderCommandEncoder> encoder,
 
 		descriptor.depthCompareFunction =
 			renderStates->depthStencilState.depthTestEnable == mslBool_True ?
-				dsGetMTLCompareFunction(renderStates->depthStencilState.depthCompareOp) :
-				mslCompareOp_Always;
+				dsGetMTLCompareFunction(renderStates->depthStencilState.depthCompareOp,
+					MTLCompareFunctionLess) : mslCompareOp_Always;
 		descriptor.depthWriteEnabled =
 			renderStates->depthStencilState.depthWriteEnable != mslBool_False;
 		descriptor.frontFaceStencil = dsCreateMTLStencilDescriptor(
@@ -337,12 +337,14 @@ bool dsMTLHardwareCommandBuffer_submit(dsCommandBuffer* commandBuffer,
 
 	if (mtlCommandBuffer->mtlCommandBuffer)
 	{
+		dsMTLHardwareCommandBuffer_endEncoding(commandBuffer);
 		CFRelease(mtlCommandBuffer->mtlCommandBuffer);
 		mtlCommandBuffer->mtlCommandBuffer = NULL;
 	}
 
 	if (mtlSubmitBuffer->mtlCommandBuffer)
 	{
+		dsMTLHardwareCommandBuffer_endEncoding(submitBuffer);
 		CFRelease(mtlSubmitBuffer->mtlCommandBuffer);
 		mtlSubmitBuffer->mtlCommandBuffer = NULL;
 	}
@@ -581,9 +583,9 @@ bool dsMTLHardwareCommandBuffer_bindBufferUniform(dsCommandBuffer* commandBuffer
 	if (fragmentIndex != DS_MATERIAL_UNKNOWN)
 	{
 		if (needToBindBuffer(mtlCommandBuffer->boundBuffers + 1, commandBuffer->allocator,
-				vertexIndex, (__bridge CFTypeRef)buffer, offset))
+				fragmentIndex, (__bridge CFTypeRef)buffer, offset))
 		{
-			[encoder setFragmentBuffer: buffer offset: offset atIndex: vertexIndex];
+			[encoder setFragmentBuffer: buffer offset: offset atIndex: fragmentIndex];
 		}
 	}
 	return true;
@@ -611,10 +613,10 @@ bool dsMTLHardwareCommandBuffer_bindTextureUniform(dsCommandBuffer* commandBuffe
 	if (fragmentIndex != DS_MATERIAL_UNKNOWN)
 	{
 		if (needToBindTexture(mtlCommandBuffer->boundTextures + 1, commandBuffer->allocator,
-				vertexIndex, (__bridge CFTypeRef)texture, (__bridge CFTypeRef)sampler))
+				fragmentIndex, (__bridge CFTypeRef)texture, (__bridge CFTypeRef)sampler))
 		{
-			[encoder setFragmentTexture: texture atIndex: vertexIndex];
-			[encoder setFragmentSamplerState: sampler atIndex: vertexIndex];
+			[encoder setFragmentTexture: texture atIndex: fragmentIndex];
+			[encoder setFragmentSamplerState: sampler atIndex: fragmentIndex];
 		}
 	}
 	return true;

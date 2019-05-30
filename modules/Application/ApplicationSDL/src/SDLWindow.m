@@ -15,14 +15,30 @@
  */
 
 #include <DeepSea/Core/Config.h>
+
+#include "SDLShared.h"
 #include <stdbool.h>
 
 #if DS_MAC
 #include <AppKit/NSWindow.h>
+#else
+#include <UIKit/UIWindow.h>
+#endif
+
+#if DS_APPLE
 
 void* dsSDLWindow_getUsableWindowHandle(void* window)
 {
-	return (void*)CFBridgingRetain([(__bridge NSWindow*)window contentView]);
+#if DS_MAC
+	NSView* view = [(__bridge NSWindow*)window contentView];
+	if (view.subviews.count > 0)
+		view = view.subviews[0];
+	return (void*)CFBridgingRetain(view);
+#else
+#define METALVIEW_TAG 255
+	DS_UNUSED(rendererID);
+	return (void*)CFBridgingRetain([(__bridge UIWindow*)window viewWithTag: METALVIEW_TAG]);
+#endif
 }
 
 void dsSDLWindow_releaseUsableWindowHandle(void* handle)

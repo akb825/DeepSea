@@ -207,19 +207,10 @@ dsRenderSurface* dsMTLRenderSurface_create(dsRenderer* renderer, dsAllocator* al
 	ViewType* view = (__bridge ViewType*)osHandle;
 	if (view.layer.class != [CAMetalLayer class])
 	{
-		CALayer* oldLayer = view.layer;
-		CALayer* newLayer = [CAMetalLayer new];
-		if (!newLayer)
-		{
-			errno = ENOMEM;
-			return NULL;
-		}
-
-		newLayer.frame = oldLayer.frame;
-		view.layer = newLayer;
-#if DS_MAC
-		view.wantsLayer = true;
-#endif
+		errno = EINVAL;
+		DS_LOG_ERROR(DS_RENDER_METAL_LOG_TAG,
+			"View used with Metal renderer must use CAMetalAlayer as its layer type.");
+		return NULL;
 	}
 	((CAMetalLayer*)view.layer).device = device;
 
@@ -255,12 +246,6 @@ dsRenderSurface* dsMTLRenderSurface_create(dsRenderer* renderer, dsAllocator* al
 	baseRenderSurface->surfaceType = type;
 
 	CGSize size = layer.drawableSize;
-	if (size.width == 0 || size.height == 0)
-	{
-		size = view.bounds.size;
-		size.width *= layer.contentsScale;
-		size.height *= layer.contentsScale;
-	}
 	baseRenderSurface->width = (uint32_t)size.width;
 	baseRenderSurface->height = (uint32_t)size.height;
 

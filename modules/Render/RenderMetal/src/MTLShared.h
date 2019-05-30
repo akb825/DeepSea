@@ -21,7 +21,7 @@
 
 #import <Metal/MTLSampler.h>
 
-MTLCompareFunction dsGetMTLCompareFunction(mslCompareOp compare);
+MTLCompareFunction dsGetMTLCompareFunction(mslCompareOp compare, MTLCompareFunction defaultVal);
 MTLStencilOperation dsGetMTLStencilOp(mslStencilOp op);
 MTLStencilDescriptor* dsCreateMTLStencilDescriptor(const mslStencilOpState* state,
 	uint32_t compareMask, uint32_t writeMask);

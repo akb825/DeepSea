@@ -16,10 +16,12 @@
 
 #include "MTLShared.h"
 
-MTLCompareFunction dsGetMTLCompareFunction(mslCompareOp compare)
+MTLCompareFunction dsGetMTLCompareFunction(mslCompareOp compare, MTLCompareFunction defaultVal)
 {
 	switch (compare)
 	{
+		case mslCompareOp_Never:
+			return MTLCompareFunctionNever;
 		case mslCompareOp_Less:
 			return MTLCompareFunctionLess;
 		case mslCompareOp_Equal:
@@ -34,9 +36,8 @@ MTLCompareFunction dsGetMTLCompareFunction(mslCompareOp compare)
 			return MTLCompareFunctionGreaterEqual;
 		case mslCompareOp_Always:
 			return MTLCompareFunctionAlways;
-		case mslCompareOp_Never:
 		default:
-			return MTLCompareFunctionNever;
+			return defaultVal;
 	}
 }
 
@@ -74,7 +75,8 @@ MTLStencilDescriptor* dsCreateMTLStencilDescriptor(const mslStencilOpState* stat
 	descriptor.stencilFailureOperation = dsGetMTLStencilOp(state->failOp);
 	descriptor.depthFailureOperation = dsGetMTLStencilOp(state->depthFailOp);
 	descriptor.depthStencilPassOperation = dsGetMTLStencilOp(state->passOp);
-	descriptor.stencilCompareFunction = dsGetMTLCompareFunction(state->compareOp);
+	descriptor.stencilCompareFunction = dsGetMTLCompareFunction(state->compareOp,
+		MTLCompareFunctionAlways);
 	descriptor.readMask = state->compareMask == MSL_UNKNOWN ? compareMask : state->compareMask;
 	descriptor.writeMask = state->writeMask == MSL_UNKNOWN ? writeMask : state->writeMask;
 	return descriptor;
@@ -82,12 +84,12 @@ MTLStencilDescriptor* dsCreateMTLStencilDescriptor(const mslStencilOpState* stat
 
 MTLClearColor dsGetClearColor(dsGfxFormat format, const dsSurfaceColorValue* value)
 {
-	if (format & dsGfxFormat_UInt)
+	if ((format & dsGfxFormat_DecoratorMask) == dsGfxFormat_UInt)
 	{
 		return MTLClearColorMake(value->uintValue[0], value->uintValue[1], value->uintValue[2],
 			value->uintValue[3]);
 	}
-	else if (format & dsGfxFormat_SInt)
+	else if ((format & dsGfxFormat_DecoratorMask) == dsGfxFormat_SInt)
 	{
 		return MTLClearColorMake(value->intValue[0], value->intValue[1], value->intValue[2],
 			value->intValue[3]);
