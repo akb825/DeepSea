@@ -34,16 +34,21 @@ add_custom_target(deepsea_render_bootstrap_test_prepare
 set(shaderSourceDir ${CMAKE_CURRENT_SOURCE_DIR}/Shaders)
 ds_compile_shaders(shaders FILE ${shaderSourceDir}/WriteOffscreen.msl
 	OUTPUT WriteOffscreen.mslb CONFIG ${shaderConfigs} ${bufferShaderConfigs}
-	${computeShaderConfigs} OUTPUT_DIR ${shaderDir} INCLUDE ${DEEPSEA_MODULE_DIR}/Render/include)
+	${computeShaderConfigs} OUTPUT_DIR ${shaderDir} INCLUDE ${DEEPSEA_MODULE_DIR}/Render/include
+	DEPENDENCY_RECURSE ${DEEPSEA_MODULE_DIR}/Render/include/*.mslh
+	STRIP OPTIMIZE)
 ds_compile_shaders(shaders FILE ${shaderSourceDir}/WriteOffscreenTransform.msl
 	OUTPUT WriteOffscreenTransform.mslb CONFIG ${bufferShaderConfigs} ${computeShaderConfigs}
-	OUTPUT_DIR ${shaderDir} INCLUDE ${DEEPSEA_MODULE_DIR}/Render/include)
+	OUTPUT_DIR ${shaderDir} INCLUDE ${DEEPSEA_MODULE_DIR}/Render/include
+	DEPENDENCY_RECURSE ${DEEPSEA_MODULE_DIR}/Render/include/*.mslh STRIP OPTIMIZE)
 ds_compile_shaders(shaders FILE ${shaderSourceDir}/WriteBuffer.msl
 	OUTPUT WriteBuffer.mslb CONFIG ${computeShaderConfigs} OUTPUT_DIR ${shaderDir}
-	INCLUDE ${DEEPSEA_MODULE_DIR}/Render/include)
+	INCLUDE ${DEEPSEA_MODULE_DIR}/Render/include
+	DEPENDENCY_RECURSE ${DEEPSEA_MODULE_DIR}/Render/include/*.mslh STRIP OPTIMIZE)
 ds_compile_shaders(shaders FILE ${shaderSourceDir}/CopyTextureBuffer.msl
 	OUTPUT CopyTextureBuffer.mslb CONFIG ${computeShaderConfigs}
-	OUTPUT_DIR ${shaderDir} INCLUDE ${DEEPSEA_MODULE_DIR}/Render/include)
+	OUTPUT_DIR ${shaderDir} INCLUDE ${DEEPSEA_MODULE_DIR}/Render/include
+	DEPENDENCY_RECURSE ${DEEPSEA_MODULE_DIR}/Render/include/*.mslh STRIP OPTIMIZE)
 ds_compile_shaders_target(deepsea_render_bootstrap_test_shaders shaders
 	DEPENDS deepsea_render_bootstrap_test_prepare)
 

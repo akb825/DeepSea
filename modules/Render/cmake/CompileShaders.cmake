@@ -91,7 +91,7 @@ function(ds_compile_shaders container)
 		set(workingDir "")
 	endif()
 
-	set(extraArgs "")
+	set(extraArgs)
 	if (ARGS_WARN_NONE)
 		list(APPEND extraArgs -w)
 	endif()
