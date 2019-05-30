@@ -269,6 +269,7 @@ bool dsMTLCommandBuffer_endRenderPass(dsCommandBuffer* commandBuffer)
 {
 	dsMTLCommandBuffer* mtlCommandBuffer = (dsMTLCommandBuffer*)commandBuffer;
 	mtlCommandBuffer->boundGeometry = NULL;
+	mtlCommandBuffer->firstVertexBuffer = 0;
 
 	const dsMTLCommandBufferFunctionTable* functions = mtlCommandBuffer->functions;
 	return functions->endRenderPassFunc(commandBuffer);

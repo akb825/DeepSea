@@ -349,6 +349,7 @@ typedef struct dsMTLCommandBuffer
 
 	dsAlignedBox3f viewport;
 	const dsDrawGeometry* boundGeometry;
+	uint32_t firstVertexBuffer;
 
 	bool fenceSet;
 } dsMTLCommandBuffer;

@@ -269,10 +269,13 @@ static bool bindVertexBuffers(dsCommandBuffer* commandBuffer, const dsShader* sh
 	const dsDrawGeometry* geometry)
 {
 	dsMTLCommandBuffer* mtlCommandBuffer = (dsMTLCommandBuffer*)commandBuffer;
-	if (mtlCommandBuffer->boundGeometry == geometry)
-		return true;
-
 	const dsMTLShader* mtlShader = (const dsMTLShader*)shader;
+	if (mtlCommandBuffer->boundGeometry == geometry &&
+		mtlCommandBuffer->firstVertexBuffer == mtlShader->firstVertexBuffer)
+	{
+		return true;
+	}
+
 	for (uint32_t i = 0; i < DS_MAX_GEOMETRY_VERTEX_BUFFERS; ++i)
 	{
 		const dsVertexBuffer* vertexBuffer = geometry->vertexBuffers + i;
@@ -292,6 +295,7 @@ static bool bindVertexBuffers(dsCommandBuffer* commandBuffer, const dsShader* sh
 	}
 
 	mtlCommandBuffer->boundGeometry = geometry;
+	mtlCommandBuffer->firstVertexBuffer = mtlShader->firstVertexBuffer;
 	return true;
 }
 
