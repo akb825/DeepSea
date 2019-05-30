@@ -609,6 +609,9 @@ static bool bindComputeUniforms(const dsShader* shader, const dsMaterial* materi
 			continue;
 
 		const dsMTLUniformInfo* info = mtlShader->uniformInfos + i;
+		if (info->element == DS_MATERIAL_UNKNOWN)
+			continue;
+
 		const dsMaterialElement* element = materialDesc->elements + info->element;
 		bool invalidBinding = element->binding != dsMaterialBinding_Material &&
 			element->binding != binding;
@@ -813,7 +816,7 @@ dsShader* dsMTLShader_create(dsResourceManager* resourceManager, dsAllocator* al
 
 			for (uint32_t j = 0; j < materialDesc->elementCount; ++j)
 			{
-				const dsMaterialElement* element = materialDesc->elements + i;
+				const dsMaterialElement* element = materialDesc->elements + j;
 				if (element->type >= dsMaterialType_Texture)
 					continue;
 

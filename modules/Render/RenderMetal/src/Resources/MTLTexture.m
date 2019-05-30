@@ -474,7 +474,7 @@ bool dsMTLTexture_getData(void* result, size_t size, dsResourceManager* resource
 	if (lastUsedSubmit == DS_NOT_SUBMITTED)
 	{
 		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_VULKAN_LOG_TAG,
+		DS_LOG_ERROR(DS_RENDER_METAL_LOG_TAG,
 			"Trying to read to an offscreen that hasn't had a draw flushed yet.");
 		return false;
 	}
