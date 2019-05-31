@@ -31,14 +31,10 @@ void* dsSDLWindow_getUsableWindowHandle(void* window)
 {
 #if DS_MAC
 	NSView* view = [(__bridge NSWindow*)window contentView];
-	if (view.subviews.count > 0)
-		view = view.subviews[0];
-	return (void*)CFBridgingRetain(view);
 #else
-#define METALVIEW_TAG 255
-	DS_UNUSED(rendererID);
-	return (void*)CFBridgingRetain([(__bridge UIWindow*)window viewWithTag: METALVIEW_TAG]);
+	UIView* view = ((__bridge UIWindow*)window).subviews[0];
 #endif
+	return (void*)CFBridgingRetain(view);
 }
 
 void dsSDLWindow_releaseUsableWindowHandle(void* handle)

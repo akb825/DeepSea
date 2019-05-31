@@ -28,8 +28,6 @@
 #include <string.h>
 
 #if DS_APPLE
-#include <SDL_metal.h>
-
 void* dsSDLWindow_getUsableWindowHandle(void* window);
 void dsSDLWindow_releaseUsableWindowHandle(void* handle);
 #elif DS_ANDROID
@@ -79,11 +77,6 @@ bool dsSDLWindow_createComponents(dsWindow* window, const char* title, const cha
 	{
 		sdlFlags |= SDL_WINDOW_OPENGL;
 	}
-#if DS_APPLE
-	// Special patch to add Metal support only applied on Apple platforms.
-	if (application->renderer->rendererID == DS_MTL_RENDERER_ID)
-		sdlFlags |= SDL_WINDOW_METAL;
-#endif
 
 	if (!dsRenderSurface_destroy(window->surface))
 		return false;
@@ -103,18 +96,6 @@ bool dsSDLWindow_createComponents(dsWindow* window, const char* title, const cha
 		DS_LOG_ERROR_F(DS_APPLICATION_SDL_LOG_TAG, "Couldn't create window: %s", SDL_GetError());
 		return false;
 	}
-
-#if DS_APPLE
-	// Need to add the metal view manually.
-	if (application->renderer->rendererID == DS_MTL_RENDERER_ID &&
-		!SDL_Metal_CreateSurface(internalWindow))
-	{
-		errno = EPERM;
-		DS_LOG_ERROR_F(DS_APPLICATION_SDL_LOG_TAG, "Couldn't create Metal surface: %s",
-			SDL_GetError());
-		return false;
-	}
-#endif
 
 	window->surface = NULL;
 	sdlWindow->surfaceName = surfaceName;

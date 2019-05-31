@@ -28,13 +28,85 @@
 #import <Metal/MTLCommandQueue.h>
 #import <QuartzCore/CAMetalLayer.h>
 
-#if DS_IOS
-#import <UIKit/UIView.h>
-typedef UIView ViewType;
-#else
+#if DS_MAC
 #import <AppKit/NSView.h>
 typedef NSView ViewType;
+#else
+#import <UIKit/UIView.h>
+typedef UIView ViewType;
 #endif
+
+@interface DSMetalView : ViewType
+
+- (instancetype)initWithFrame:(NSRect)frame;
+
+@end
+
+@implementation DSMetalView
+
++ (Class)layerClass
+{
+	return [CAMetalLayer class];
+}
+
+- (instancetype)initWithFrame:(NSRect)frame
+{
+	if ((self = [super initWithFrame: frame]))
+	{
+		self.wantsLayer = true;
+		self.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
+		[self updateDrawableSize];
+	}
+
+	return self;
+}
+
+- (void)updateDrawableSize
+{
+	CAMetalLayer* metalLayer = (CAMetalLayer*)self.layer;
+	CGSize size = self.bounds.size;
+
+#if DS_MAC
+	CGSize backingSize = [self convertSizeToBacking: size];
+	metalLayer.contentsScale = backingSize.height/size.height;
+	size = backingSize;
+#else
+	size.width *= metalLayer.contentsScale;
+    size.height *= metalLayer.contentsScale;
+#endif
+
+	metalLayer.drawableSize = size;
+}
+
+#if DS_IOS
+
+- (void)layoutSubviews
+{
+    [super layoutSubviews];
+    [self updateDrawableSize];
+}
+
+#else
+
+- (BOOL)wantsUpdateLayer
+{
+	return true;
+}
+
+- (CALayer*)makeBackingLayer
+{
+	return [CAMetalLayer layer];
+}
+
+- (void)resizeWithOldSuperviewSize:(NSSize)oldSize
+{
+    [super resizeWithOldSuperviewSize: oldSize];
+    [self updateDrawableSize];
+}
+
+#endif
+
+@end
 
 static bool createExtraSurfaces(dsRenderer* renderer, dsRenderSurface* renderSurface)
 {
@@ -207,12 +279,19 @@ dsRenderSurface* dsMTLRenderSurface_create(dsRenderer* renderer, dsAllocator* al
 	ViewType* view = (__bridge ViewType*)osHandle;
 	if (view.layer.class != [CAMetalLayer class])
 	{
-		errno = EINVAL;
-		DS_LOG_ERROR(DS_RENDER_METAL_LOG_TAG,
-			"View used with Metal renderer must use CAMetalAlayer as its layer type.");
-		return NULL;
+		DSMetalView* metalView = [[DSMetalView alloc] initWithFrame: view.frame];
+		if (!metalView)
+		{
+			errno = ENOMEM;
+			return NULL;
+		}
+
+		[view addSubview: metalView];
+		view = metalView;
 	}
-	((CAMetalLayer*)view.layer).device = device;
+
+	CAMetalLayer* layer = (CAMetalLayer*)view.layer;
+	layer.device = device;
 
 	MTLPixelFormat format = MTLPixelFormatBGRA8Unorm;
 	if (renderer->surfaceColorFormat ==
@@ -226,7 +305,6 @@ dsRenderSurface* dsMTLRenderSurface_create(dsRenderer* renderer, dsAllocator* al
 		format = MTLPixelFormatRGBA16Float;
 	}
 
-	CAMetalLayer* layer = (CAMetalLayer*)view.layer;
 	layer.pixelFormat = format;
 #if MAC_OS_X_VERSION_MIN_REQUIRED >= 101300
 	layer.displaySyncEnabled = renderer->vsync;
