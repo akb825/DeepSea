@@ -182,9 +182,9 @@ static id<MTLSamplerState> createSampler(dsRenderer* renderer, const mslSamplerS
 		return NULL;
 	}
 
-	descriptor.rAddressMode = getAddressMode(samplerState->addressModeU);
-	descriptor.sAddressMode = getAddressMode(samplerState->addressModeV);
-	descriptor.tAddressMode = getAddressMode(samplerState->addressModeW);
+	descriptor.sAddressMode = getAddressMode(samplerState->addressModeU);
+	descriptor.tAddressMode = getAddressMode(samplerState->addressModeV);
+	descriptor.rAddressMode = getAddressMode(samplerState->addressModeW);
 	descriptor.borderColor = getBorderColor(samplerState->borderColor);
 
 	descriptor.minFilter = getFilter(samplerState->minFilter);
