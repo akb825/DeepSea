@@ -323,193 +323,212 @@ dsTexture* dsMTLTexture_create(dsResourceManager* resourceManager, dsAllocator* 
 	dsTextureUsage usage, dsGfxMemory memoryHints, const dsTextureInfo* info, const void* data,
 	size_t size)
 {
-	DS_UNUSED(size);
-	dsTexture* texture = createTextureImpl(resourceManager, allocator, usage, memoryHints, info,
-		false, false);
-	if (!texture)
-		return NULL;
-
-	if (data)
+	@autoreleasepool
 	{
-		dsMTLTexture* mtlTexture = (dsMTLTexture*)texture;
-		id<MTLTexture> realTexture = (__bridge id<MTLTexture>)mtlTexture->mtlTexture;
-#if DS_MAC || IPHONE_OS_VERSION_MIN_REQUIRED >= 110000
-		if (realTexture.storageMode == MTLStorageModePrivate)
+		DS_UNUSED(size);
+		dsTexture* texture = createTextureImpl(resourceManager, allocator, usage, memoryHints, info,
+			false, false);
+		if (!texture)
+			return NULL;
+
+		if (data)
 		{
-			dsMTLRenderer* renderer = (dsMTLRenderer*)resourceManager->renderer;
-			id<MTLDevice> device = (__bridge id<MTLDevice>)renderer->device;
-			MTLTextureDescriptor* descriptor = [MTLTextureDescriptor new];
-			if (!descriptor)
+			dsMTLTexture* mtlTexture = (dsMTLTexture*)texture;
+			id<MTLTexture> realTexture = (__bridge id<MTLTexture>)mtlTexture->mtlTexture;
+	#if DS_MAC || IPHONE_OS_VERSION_MIN_REQUIRED >= 110000
+			if (realTexture.storageMode == MTLStorageModePrivate)
 			{
-				dsMTLTexture_destroy(resourceManager, texture);
-				return NULL;
-			}
-
-			descriptor.textureType = realTexture.textureType;
-			descriptor.pixelFormat = realTexture.pixelFormat;
-			descriptor.width = realTexture.width;
-			descriptor.height = realTexture.height;
-			descriptor.depth = realTexture.depth;
-			descriptor.mipmapLevelCount = realTexture.mipmapLevelCount;
-			descriptor.arrayLength = realTexture.arrayLength;
-
-			realTexture = [device newTextureWithDescriptor: descriptor];
-			if (!realTexture)
-			{
-				dsMTLTexture_destroy(resourceManager, texture);
-				return NULL;
-			}
-
-			mtlTexture->copyTexture = CFBridgingRetain(realTexture);
-		}
-#endif
-
-		uint32_t faceCount = info->dimension == dsTextureDim_Cube ? 6 : 1;
-		bool is1D = info->dimension == dsTextureDim_1D;
-		bool is3D = info->dimension == dsTextureDim_3D;
-		unsigned int formatSize = dsGfxFormat_size(info->format);
-		unsigned int blocksX, blocksY;
-		DS_VERIFY(dsGfxFormat_blockDimensions(&blocksX, &blocksY, info->format));
-
-		const uint8_t* bytes = (const uint8_t*)data;
-		for (uint32_t i = 0; i < info->mipLevels; ++i)
-		{
-			uint32_t width = info->width >> i;
-			uint32_t height = info->height >> i;
-			uint32_t depth = is3D ? info->depth >> i : info->depth;
-
-			width = dsMax(width, 1U);
-			height = dsMax(height, 1U);
-			depth = dsMax(depth, 1U)*faceCount;
-
-			uint32_t blocksWide = (width + blocksX - 1)/blocksX;
-			uint32_t blocksHigh = (height + blocksX - 1)/blocksX;
-
-			if (is3D)
-			{
-				MTLRegion region =
+				dsMTLRenderer* renderer = (dsMTLRenderer*)resourceManager->renderer;
+				id<MTLDevice> device = (__bridge id<MTLDevice>)renderer->device;
+				MTLTextureDescriptor* descriptor = [MTLTextureDescriptor new];
+				if (!descriptor)
 				{
-					{0, 0, 0},
-					{width, height, depth}
-				};
-				[realTexture replaceRegion: region mipmapLevel: i slice: 0
-					withBytes: bytes + dsTexture_layerOffset(info, 0, i)
-					bytesPerRow: is1D ? 0 : formatSize*blocksWide
-					bytesPerImage: formatSize*blocksWide*blocksHigh];
-			}
-			else
-			{
-				MTLRegion region =
-				{
-					{0, 0, 0},
-					{width, height, 1}
-				};
-				for (uint32_t j = 0; j < depth; ++j)
-				{
-					[realTexture replaceRegion: region mipmapLevel: i slice: j
-						withBytes: bytes + dsTexture_layerOffset(info, j, i)
-						bytesPerRow: is1D ? 0 : formatSize*blocksWide bytesPerImage: 0];
+					dsMTLTexture_destroy(resourceManager, texture);
+					return NULL;
+				}
 
+				descriptor.textureType = realTexture.textureType;
+				descriptor.pixelFormat = realTexture.pixelFormat;
+				descriptor.width = realTexture.width;
+				descriptor.height = realTexture.height;
+				descriptor.depth = realTexture.depth;
+				descriptor.mipmapLevelCount = realTexture.mipmapLevelCount;
+				descriptor.arrayLength = realTexture.arrayLength;
+
+				realTexture = [device newTextureWithDescriptor: descriptor];
+				if (!realTexture)
+				{
+					dsMTLTexture_destroy(resourceManager, texture);
+					return NULL;
+				}
+
+				mtlTexture->copyTexture = CFBridgingRetain(realTexture);
+			}
+	#endif
+
+			uint32_t faceCount = info->dimension == dsTextureDim_Cube ? 6 : 1;
+			bool is1D = info->dimension == dsTextureDim_1D;
+			bool is3D = info->dimension == dsTextureDim_3D;
+			unsigned int formatSize = dsGfxFormat_size(info->format);
+			unsigned int blocksX, blocksY;
+			DS_VERIFY(dsGfxFormat_blockDimensions(&blocksX, &blocksY, info->format));
+
+			const uint8_t* bytes = (const uint8_t*)data;
+			for (uint32_t i = 0; i < info->mipLevels; ++i)
+			{
+				uint32_t width = info->width >> i;
+				uint32_t height = info->height >> i;
+				uint32_t depth = is3D ? info->depth >> i : info->depth;
+
+				width = dsMax(width, 1U);
+				height = dsMax(height, 1U);
+				depth = dsMax(depth, 1U)*faceCount;
+
+				uint32_t blocksWide = (width + blocksX - 1)/blocksX;
+				uint32_t blocksHigh = (height + blocksX - 1)/blocksX;
+
+				if (is3D)
+				{
+					MTLRegion region =
+					{
+						{0, 0, 0},
+						{width, height, depth}
+					};
+					[realTexture replaceRegion: region mipmapLevel: i slice: 0
+						withBytes: bytes + dsTexture_layerOffset(info, 0, i)
+						bytesPerRow: is1D ? 0 : formatSize*blocksWide
+						bytesPerImage: formatSize*blocksWide*blocksHigh];
+				}
+				else
+				{
+					MTLRegion region =
+					{
+						{0, 0, 0},
+						{width, height, 1}
+					};
+					for (uint32_t j = 0; j < depth; ++j)
+					{
+						[realTexture replaceRegion: region mipmapLevel: i slice: j
+							withBytes: bytes + dsTexture_layerOffset(info, j, i)
+							bytesPerRow: is1D ? 0 : formatSize*blocksWide bytesPerImage: 0];
+
+					}
 				}
 			}
 		}
-	}
 
-	return texture;
+		return texture;
+	}
 }
 
 dsOffscreen* dsMTLTexture_createOffscreen(dsResourceManager* resourceManager,
 	dsAllocator* allocator, dsTextureUsage usage, dsGfxMemory memoryHints,
 	const dsTextureInfo* info, bool resolve)
 {
-	return createTextureImpl(resourceManager, allocator, usage, memoryHints, info, true, resolve);
+	@autoreleasepool
+	{
+		return createTextureImpl(resourceManager, allocator, usage, memoryHints, info, true,
+			resolve);
+	}
 }
 
 bool dsMTLTexture_copyData(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
 	dsTexture* texture, const dsTexturePosition* position, uint32_t width, uint32_t height,
 	uint32_t layers, const void* data, size_t size)
 {
-	DS_UNUSED(resourceManager);
-	dsMTLTexture* mtlTexture = (dsMTLTexture*)texture;
-	id<MTLTexture> realTexture = (__bridge id<MTLTexture>)mtlTexture->mtlTexture;
+	@autoreleasepool
+	{
+		DS_UNUSED(resourceManager);
+		dsMTLTexture* mtlTexture = (dsMTLTexture*)texture;
+		id<MTLTexture> realTexture = (__bridge id<MTLTexture>)mtlTexture->mtlTexture;
 
-	dsMTLTexture_process(resourceManager, texture);
-	return dsMTLCommandBuffer_copyTextureData(commandBuffer, realTexture, &texture->info, position,
-		width, height, layers, data, size);
+		dsMTLTexture_process(resourceManager, texture);
+		return dsMTLCommandBuffer_copyTextureData(commandBuffer, realTexture, &texture->info,
+			position, width, height, layers, data, size);
+	}
 }
 
 bool dsMTLTexture_copy(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
 	dsTexture* srcTexture, dsTexture* dstTexture, const dsTextureCopyRegion* regions,
 	uint32_t regionCount)
 {
-	dsMTLTexture* srcMtlTexture = (dsMTLTexture*)srcTexture;
-	id<MTLTexture> realSrcTexture = (__bridge id<MTLTexture>)srcMtlTexture->mtlTexture;
-	dsMTLTexture* dstMtlTexture = (dsMTLTexture*)dstTexture;
-	id<MTLTexture> realDstTexture = (__bridge id<MTLTexture>)dstMtlTexture->mtlTexture;
+	@autoreleasepool
+	{
+		dsMTLTexture* srcMtlTexture = (dsMTLTexture*)srcTexture;
+		id<MTLTexture> realSrcTexture = (__bridge id<MTLTexture>)srcMtlTexture->mtlTexture;
+		dsMTLTexture* dstMtlTexture = (dsMTLTexture*)dstTexture;
+		id<MTLTexture> realDstTexture = (__bridge id<MTLTexture>)dstMtlTexture->mtlTexture;
 
-	dsMTLTexture_process(resourceManager, srcTexture);
-	dsMTLTexture_process(resourceManager, dstTexture);
-	return dsMTLCommandBuffer_copyTexture(commandBuffer, realSrcTexture, realDstTexture, regions,
-		regionCount);
+		dsMTLTexture_process(resourceManager, srcTexture);
+		dsMTLTexture_process(resourceManager, dstTexture);
+		return dsMTLCommandBuffer_copyTexture(commandBuffer, realSrcTexture, realDstTexture,
+			regions, regionCount);
+	}
 }
 
 bool dsMTLTexture_generateMipmaps(dsResourceManager* resourceManager,
 	dsCommandBuffer* commandBuffer, dsTexture* texture)
 {
-	DS_UNUSED(resourceManager);
-	dsMTLTexture* mtlTexture = (dsMTLTexture*)texture;
-	id<MTLTexture> realTexture = (__bridge id<MTLTexture>)mtlTexture->mtlTexture;
-	return dsMTLCommandBuffer_generateMipmaps(commandBuffer, realTexture);
+	@autoreleasepool
+	{
+		DS_UNUSED(resourceManager);
+		dsMTLTexture* mtlTexture = (dsMTLTexture*)texture;
+		id<MTLTexture> realTexture = (__bridge id<MTLTexture>)mtlTexture->mtlTexture;
+		return dsMTLCommandBuffer_generateMipmaps(commandBuffer, realTexture);
+	}
 }
 
 bool dsMTLTexture_getData(void* result, size_t size, dsResourceManager* resourceManager,
 	dsTexture* texture, const dsTexturePosition* position, uint32_t width, uint32_t height)
 {
-	DS_UNUSED(size);
-	DS_UNUSED(resourceManager);
-	dsMTLTexture* mtlTexture = (dsMTLTexture*)texture;
-	id<MTLTexture> realTexture = (__bridge id<MTLTexture>)mtlTexture->mtlTexture;
-
-	uint64_t lastUsedSubmit;
-	DS_ATOMIC_LOAD64(&mtlTexture->lastUsedSubmit, &lastUsedSubmit);
-	if (lastUsedSubmit == DS_NOT_SUBMITTED)
+	@autoreleasepool
 	{
-		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_METAL_LOG_TAG,
-			"Trying to read to an offscreen that hasn't had a draw flushed yet.");
-		return false;
+		DS_UNUSED(size);
+		DS_UNUSED(resourceManager);
+		dsMTLTexture* mtlTexture = (dsMTLTexture*)texture;
+		id<MTLTexture> realTexture = (__bridge id<MTLTexture>)mtlTexture->mtlTexture;
+
+		uint64_t lastUsedSubmit;
+		DS_ATOMIC_LOAD64(&mtlTexture->lastUsedSubmit, &lastUsedSubmit);
+		if (lastUsedSubmit == DS_NOT_SUBMITTED)
+		{
+			errno = EPERM;
+			DS_LOG_ERROR(DS_RENDER_METAL_LOG_TAG,
+				"Trying to read to an offscreen that hasn't had a draw flushed yet.");
+			return false;
+		}
+
+		dsGfxFenceResult fenceResult = dsMTLRenderer_waitForSubmit(resourceManager->renderer,
+			lastUsedSubmit, DS_DEFAULT_WAIT_TIMEOUT);
+		if (fenceResult == dsGfxFenceResult_WaitingToQueue)
+		{
+			errno = EPERM;
+			DS_LOG_ERROR(DS_RENDER_METAL_LOG_TAG, "Offscreen still queued to be rendered.");
+			return false;
+		}
+
+		unsigned int formatSize = dsGfxFormat_size(texture->info.format);
+		unsigned int blocksX, blocksY;
+		DS_VERIFY(dsGfxFormat_blockDimensions(&blocksX, &blocksY, texture->info.format));
+
+		uint32_t blocksWide = (width + blocksX - 1)/blocksX;
+		uint32_t blocksHigh = (width + blocksY - 1)/blocksY;
+
+		uint32_t faceCount = texture->info.dimension == dsTextureDim_Cube ? 6 : 1;
+		bool is3D = texture->info.dimension == dsTextureDim_3D;
+		bool is1D = texture->info.dimension == dsTextureDim_1D;
+
+		MTLRegion region =
+		{
+			{position->x, position->y, is3D ? position->depth : 0},
+			{width, height, 1}
+		};
+		[realTexture getBytes: result bytesPerRow: is1D ? 0 : formatSize*blocksWide
+			bytesPerImage: is3D ? formatSize*blocksWide*blocksHigh : 0 fromRegion: region
+			mipmapLevel: position->mipLevel
+			slice: is3D ? 0 : position->depth*faceCount + position->face];
+		return true;
 	}
-
-	dsGfxFenceResult fenceResult = dsMTLRenderer_waitForSubmit(resourceManager->renderer,
-		lastUsedSubmit, DS_DEFAULT_WAIT_TIMEOUT);
-	if (fenceResult == dsGfxFenceResult_WaitingToQueue)
-	{
-		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_METAL_LOG_TAG, "Offscreen still queued to be rendered.");
-		return false;
-	}
-
-	unsigned int formatSize = dsGfxFormat_size(texture->info.format);
-	unsigned int blocksX, blocksY;
-	DS_VERIFY(dsGfxFormat_blockDimensions(&blocksX, &blocksY, texture->info.format));
-
-	uint32_t blocksWide = (width + blocksX - 1)/blocksX;
-	uint32_t blocksHigh = (width + blocksY - 1)/blocksY;
-
-	uint32_t faceCount = texture->info.dimension == dsTextureDim_Cube ? 6 : 1;
-	bool is3D = texture->info.dimension == dsTextureDim_3D;
-	bool is1D = texture->info.dimension == dsTextureDim_1D;
-
-	MTLRegion region =
-	{
-		{position->x, position->y, is3D ? position->depth : 0},
-		{width, height, 1}
-	};
-	[realTexture getBytes: result bytesPerRow: is1D ? 0 : formatSize*blocksWide
-		bytesPerImage: is3D ? formatSize*blocksWide*blocksHigh : 0 fromRegion: region
-		mipmapLevel: position->mipLevel
-		slice: is3D ? 0 : position->depth*faceCount + position->face];
-	return true;
 }
 
 void dsMTLTexture_process(dsResourceManager* resourceManager, dsTexture* texture)

@@ -60,6 +60,14 @@ extern "C"
  */
 #define DS_ALIGNED_SIZE(x) (((x) + DS_ALLOC_ALIGNMENT - 1) & ~(DS_ALLOC_ALIGNMENT - 1))
 
+/**
+ * @brief Gets the aligned size for a custom alignment.
+ * @param x The original size.
+ * @param alignment The alignment.
+ * @return The aligned size.
+ */
+#define DS_CUSTOM_ALIGNED_SIZE(x, alignment) ((((x) + (alignment) - 1)/(alignment))*(alignment))
+
 #ifdef __cplusplus
 }
 #endif

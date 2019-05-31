@@ -48,28 +48,34 @@ dsGfxFence* dsMTLGfxFence_create(dsResourceManager* resourceManager, dsAllocator
 bool dsMTLGfxFence_set(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
 	dsGfxFence** fences, uint32_t fenceCount, bool bufferReadback)
 {
-	DS_UNUSED(resourceManager);
-	DS_UNUSED(bufferReadback);
-	for (uint32_t i = 0; i < fenceCount; ++i)
+	@autoreleasepool
 	{
-		if (!dsMTLCommandBuffer_addFence(commandBuffer, fences[i]))
-			return false;
-	}
+		DS_UNUSED(resourceManager);
+		DS_UNUSED(bufferReadback);
+		for (uint32_t i = 0; i < fenceCount; ++i)
+		{
+			if (!dsMTLCommandBuffer_addFence(commandBuffer, fences[i]))
+				return false;
+		}
 
-	dsMTLCommandBuffer_submitFence(commandBuffer);
-	return true;
+		dsMTLCommandBuffer_submitFence(commandBuffer);
+		return true;
+	}
 }
 
 dsGfxFenceResult dsMTLGfxFence_wait(dsResourceManager* resourceManager, dsGfxFence* fence,
 	uint64_t timeout)
 {
-	dsMTLGfxFence* vkFence = (dsMTLGfxFence*)fence;
-	uint64_t submit;
-	DS_ATOMIC_LOAD64(&vkFence->lastUsedSubmit, &submit);
+	@autoreleasepool
+	{
+		dsMTLGfxFence* vkFence = (dsMTLGfxFence*)fence;
+		uint64_t submit;
+		DS_ATOMIC_LOAD64(&vkFence->lastUsedSubmit, &submit);
 
-	double milliseconds = round((double)timeout/1000000.0);
-	unsigned int intMS = (unsigned int)dsMin((double)UINT_MAX, milliseconds);
-	return dsMTLRenderer_waitForSubmit(resourceManager->renderer, submit, intMS);
+		double milliseconds = round((double)timeout/1000000.0);
+		unsigned int intMS = (unsigned int)dsMin((double)UINT_MAX, milliseconds);
+		return dsMTLRenderer_waitForSubmit(resourceManager->renderer, submit, intMS);
+	}
 }
 
 bool dsMTLGfxFence_reset(dsResourceManager* resourceManager, dsGfxFence* fence)

@@ -42,9 +42,12 @@ void dsMTLCommandBuffer_initialize(dsMTLCommandBuffer* commandBuffer, dsRenderer
 
 bool dsMTLCommandBuffer_begin(dsRenderer* renderer, dsCommandBuffer* commandBuffer)
 {
-	DS_UNUSED(renderer);
-	dsMTLCommandBuffer_clear(commandBuffer);
-	return true;
+	@autoreleasepool
+	{
+		DS_UNUSED(renderer);
+		dsMTLCommandBuffer_clear(commandBuffer);
+		return true;
+	}
 }
 
 bool dsMTLCommandBuffer_beginSecondary(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
@@ -57,8 +60,11 @@ bool dsMTLCommandBuffer_beginSecondary(dsRenderer* renderer, dsCommandBuffer* co
 	DS_UNUSED(subpass);
 	DS_UNUSED(viewport);
 
-	dsMTLCommandBuffer_clear(commandBuffer);
-	return true;
+	@autoreleasepool
+	{
+		dsMTLCommandBuffer_clear(commandBuffer);
+		return true;
+	}
 }
 
 bool dsMTLCommandBuffer_end(dsRenderer* renderer, dsCommandBuffer* commandBuffer)
@@ -71,50 +77,53 @@ bool dsMTLCommandBuffer_end(dsRenderer* renderer, dsCommandBuffer* commandBuffer
 bool dsMTLCommandBuffer_submit(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	dsCommandBuffer* submitBuffer)
 {
-	DS_UNUSED(renderer);
-	dsMTLCommandBuffer* mtlSubmitBuffer = (dsMTLCommandBuffer*)submitBuffer;
-	if (!mtlSubmitBuffer->functions->submitFunc(commandBuffer, submitBuffer))
-		return false;
-
-	for (uint32_t i = 0; i < mtlSubmitBuffer->gfxBufferCount; ++i)
+	@autoreleasepool
 	{
-		dsMTLGfxBufferData* buffer =
-			(dsMTLGfxBufferData*)dsLifetime_acquire(mtlSubmitBuffer->gfxBuffers[i]);
-		if (!buffer)
-			continue;
+		DS_UNUSED(renderer);
+		dsMTLCommandBuffer* mtlSubmitBuffer = (dsMTLCommandBuffer*)submitBuffer;
+		if (!mtlSubmitBuffer->functions->submitFunc(commandBuffer, submitBuffer))
+			return false;
 
-		dsMTLCommandBuffer_addGfxBuffer(commandBuffer, buffer);
-		dsLifetime_release(mtlSubmitBuffer->gfxBuffers[i]);
+		for (uint32_t i = 0; i < mtlSubmitBuffer->gfxBufferCount; ++i)
+		{
+			dsMTLGfxBufferData* buffer =
+				(dsMTLGfxBufferData*)dsLifetime_acquire(mtlSubmitBuffer->gfxBuffers[i]);
+			if (!buffer)
+				continue;
+
+			dsMTLCommandBuffer_addGfxBuffer(commandBuffer, buffer);
+			dsLifetime_release(mtlSubmitBuffer->gfxBuffers[i]);
+		}
+
+		for (uint32_t i = 0; i < mtlSubmitBuffer->readbackOffscreenCount; ++i)
+		{
+			dsTexture* texture =
+				(dsTexture*)dsLifetime_acquire(mtlSubmitBuffer->readbackOffscreens[i]);
+			if (!texture)
+				continue;
+
+			dsMTLCommandBuffer_addReadbackOffscreen(commandBuffer, texture);
+			dsLifetime_release(mtlSubmitBuffer->readbackOffscreens[i]);
+		}
+
+		for (uint32_t i = 0; i < mtlSubmitBuffer->fenceCount; ++i)
+		{
+			dsGfxFence* fence = (dsGfxFence*)dsLifetime_acquire(mtlSubmitBuffer->fences[i]);
+			if (!fence)
+				continue;
+
+			dsMTLCommandBuffer_addFence(commandBuffer, fence);
+			dsLifetime_release(mtlSubmitBuffer->fences[i]);
+		}
+
+		if (!(submitBuffer->usage &
+			(dsCommandBufferUsage_MultiFrame | dsCommandBufferUsage_MultiFrame)))
+		{
+			dsMTLCommandBuffer_clear(submitBuffer);
+		}
+
+		return true;
 	}
-
-	for (uint32_t i = 0; i < mtlSubmitBuffer->readbackOffscreenCount; ++i)
-	{
-		dsTexture* texture =
-			(dsTexture*)dsLifetime_acquire(mtlSubmitBuffer->readbackOffscreens[i]);
-		if (!texture)
-			continue;
-
-		dsMTLCommandBuffer_addReadbackOffscreen(commandBuffer, texture);
-		dsLifetime_release(mtlSubmitBuffer->readbackOffscreens[i]);
-	}
-
-	for (uint32_t i = 0; i < mtlSubmitBuffer->fenceCount; ++i)
-	{
-		dsGfxFence* fence = (dsGfxFence*)dsLifetime_acquire(mtlSubmitBuffer->fences[i]);
-		if (!fence)
-			continue;
-
-		dsMTLCommandBuffer_addFence(commandBuffer, fence);
-		dsLifetime_release(mtlSubmitBuffer->fences[i]);
-	}
-
-	if (!(submitBuffer->usage &
-		(dsCommandBufferUsage_MultiFrame | dsCommandBufferUsage_MultiFrame)))
-	{
-		dsMTLCommandBuffer_clear(submitBuffer);
-	}
-
-	return true;
 }
 
 bool dsMTLCommandBuffer_copyBufferData(dsCommandBuffer* commandBuffer, id<MTLBuffer> buffer,

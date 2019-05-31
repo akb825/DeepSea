@@ -366,76 +366,81 @@ dsMTLPipeline* dsMTLPipeline_create(dsAllocator* allocator, dsShader* shader, ui
 	uint32_t samples, dsPrimitiveType primitiveType, const dsDrawGeometry* geometry,
 	const dsRenderPass* renderPass, uint32_t subpass)
 {
-	dsMTLPipeline* pipeline = DS_ALLOCATE_OBJECT(allocator, dsMTLPipeline);
-	if (!pipeline)
-		return NULL;
-
-	dsMTLShader* mtlShader = (dsMTLShader*)shader;
-	dsResourceManager* resourceManager = shader->resourceManager;
-	dsMTLRenderer* mtlRenderer = (dsMTLRenderer*)resourceManager->renderer;
-	id<MTLDevice> device = (__bridge id<MTLDevice>)mtlRenderer->device;
-	const dsMTLRenderPass* mtlRenderPass = (const dsMTLRenderPass*)renderPass;
-
-	pipeline->allocator = dsAllocator_keepPointer(allocator);
-	pipeline->pipeline = NULL;
-	pipeline->hash = hash;
-	pipeline->samples = samples;
-	pipeline->primitiveType = normalizePrimitiveType(primitiveType);
-	pipeline->renderPass = dsLifetime_addRef(mtlRenderPass->lifetime);
-	pipeline->subpass = subpass;
-	for (uint32_t i = 0; i < DS_MAX_GEOMETRY_VERTEX_BUFFERS; ++i)
+	@autoreleasepool
 	{
-		memcpy(pipeline->formats + i, &geometry->vertexBuffers[i].format,
-			sizeof(dsVertexFormat));
-	}
+		dsMTLPipeline* pipeline = DS_ALLOCATE_OBJECT(allocator, dsMTLPipeline);
+		if (!pipeline)
+			return NULL;
 
-	// Maybe add support for tessellation shaders some day. See rant in hasTessellationShaders()
-	// function in MTLRenderer.m for why this isn't implemented for now.
-	MTLRenderPipelineDescriptor* descriptor = [MTLRenderPipelineDescriptor new];
-	if (!descriptor)
-	{
-		errno = ENOMEM;
-		dsMTLPipeline_destroy(pipeline);
-		return NULL;
-	}
+		dsMTLShader* mtlShader = (dsMTLShader*)shader;
+		dsResourceManager* resourceManager = shader->resourceManager;
+		dsMTLRenderer* mtlRenderer = (dsMTLRenderer*)resourceManager->renderer;
+		id<MTLDevice> device = (__bridge id<MTLDevice>)mtlRenderer->device;
+		const dsMTLRenderPass* mtlRenderPass = (const dsMTLRenderPass*)renderPass;
 
-	if (!setupVertexState(shader, descriptor, pipeline->formats))
-	{
-		dsMTLPipeline_destroy(pipeline);
-		return NULL;
-	}
-
-	descriptor.vertexFunction =
-		(__bridge id<MTLFunction>)mtlShader->stages[mslStage_Vertex].function;
-	descriptor.fragmentFunction =
-		(__bridge id<MTLFunction>)mtlShader->stages[mslStage_Fragment].function;
-	setupColorAttachments(shader, descriptor, renderPass, subpass);
-	setupDepthStencilAttachment(shader, descriptor, renderPass, subpass);
-	setupRasterState(shader, descriptor, samples, primitiveType);
-
-	NSError* error = NULL;
-	id<MTLRenderPipelineState> renderPipeline =
-		[device newRenderPipelineStateWithDescriptor: descriptor error: &error];
-	if (!renderPipeline)
-	{
-		errno = EPERM;
-		if (error)
+		pipeline->allocator = dsAllocator_keepPointer(allocator);
+		pipeline->pipeline = NULL;
+		pipeline->hash = hash;
+		pipeline->samples = samples;
+		pipeline->primitiveType = normalizePrimitiveType(primitiveType);
+		pipeline->renderPass = dsLifetime_addRef(mtlRenderPass->lifetime);
+		pipeline->subpass = subpass;
+		for (uint32_t i = 0; i < DS_MAX_GEOMETRY_VERTEX_BUFFERS; ++i)
 		{
-			DS_LOG_ERROR_F(DS_RENDER_METAL_LOG_TAG, "Error creating pipeline for shader %s.%s: %s",
-				shader->module->name, shader->name, [[error localizedDescription] UTF8String]);
+			memcpy(pipeline->formats + i, &geometry->vertexBuffers[i].format,
+				sizeof(dsVertexFormat));
 		}
-		else
+
+		// Maybe add support for tessellation shaders some day. See rant in hasTessellationShaders()
+		// function in MTLRenderer.m for why this isn't implemented for now.
+		MTLRenderPipelineDescriptor* descriptor = [MTLRenderPipelineDescriptor new];
+		if (!descriptor)
 		{
-			DS_LOG_ERROR_F(DS_RENDER_METAL_LOG_TAG, "Error creating pipeline for shader %s.%s.",
-				shader->module->name, shader->name);
+			errno = ENOMEM;
+			dsMTLPipeline_destroy(pipeline);
+			return NULL;
 		}
-		dsMTLPipeline_destroy(pipeline);
-		return NULL;
+
+		if (!setupVertexState(shader, descriptor, pipeline->formats))
+		{
+			dsMTLPipeline_destroy(pipeline);
+			return NULL;
+		}
+
+		descriptor.vertexFunction =
+			(__bridge id<MTLFunction>)mtlShader->stages[mslStage_Vertex].function;
+		descriptor.fragmentFunction =
+			(__bridge id<MTLFunction>)mtlShader->stages[mslStage_Fragment].function;
+		setupColorAttachments(shader, descriptor, renderPass, subpass);
+		setupDepthStencilAttachment(shader, descriptor, renderPass, subpass);
+		setupRasterState(shader, descriptor, samples, primitiveType);
+
+		NSError* error = NULL;
+		id<MTLRenderPipelineState> renderPipeline =
+			[device newRenderPipelineStateWithDescriptor: descriptor error: &error];
+		if (!renderPipeline)
+		{
+			errno = EPERM;
+			if (error)
+			{
+				DS_LOG_ERROR_F(DS_RENDER_METAL_LOG_TAG,
+					"Error creating pipeline for shader %s.%s: %s", shader->module->name,
+					shader->name, [[error localizedDescription] UTF8String]);
+			}
+			else
+			{
+				DS_LOG_ERROR_F(DS_RENDER_METAL_LOG_TAG,
+					"Error creating pipeline for shader %s.%s.", shader->module->name,
+					shader->name);
+			}
+			dsMTLPipeline_destroy(pipeline);
+			return NULL;
+		}
+
+		pipeline->pipeline = CFBridgingRetain(renderPipeline);
+
+		return pipeline;
 	}
-
-	pipeline->pipeline = CFBridgingRetain(renderPipeline);
-
-	return pipeline;
 }
 
 bool dsMTLPipeline_isEquivalent(const dsMTLPipeline* pipeline, uint32_t hash, uint32_t samples,

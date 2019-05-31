@@ -36,172 +36,185 @@
 dsGfxBuffer* dsMTLGfxBuffer_create(dsResourceManager* resourceManager, dsAllocator* allocator,
 	dsGfxBufferUsage usage, dsGfxMemory memoryHints, const void* data, size_t size)
 {
-	DS_ASSERT(resourceManager);
-	DS_ASSERT(allocator);
-
-	dsMTLGfxBuffer* buffer = DS_ALLOCATE_OBJECT(allocator, dsMTLGfxBuffer);
-	if (!buffer)
-		return NULL;
-
-	dsGfxBuffer* baseBuffer = (dsGfxBuffer*)buffer;
-	baseBuffer->resourceManager = resourceManager;
-	baseBuffer->allocator = dsAllocator_keepPointer(allocator);
-	baseBuffer->usage = usage;
-	baseBuffer->memoryHints = memoryHints;
-	baseBuffer->size = size;
-
-	buffer->bufferData = dsMTLGfxBufferData_create(resourceManager, allocator,
-		resourceManager->allocator, usage, memoryHints, data, size);
-	if (!buffer->bufferData)
+	@autoreleasepool
 	{
-		if (baseBuffer->allocator)
-			dsAllocator_free(baseBuffer->allocator, buffer);
-		return NULL;
-	}
+		DS_ASSERT(resourceManager);
+		DS_ASSERT(allocator);
 
-	DS_VERIFY(dsSpinlock_initialize(&buffer->lock));
-	return baseBuffer;
+		dsMTLGfxBuffer* buffer = DS_ALLOCATE_OBJECT(allocator, dsMTLGfxBuffer);
+		if (!buffer)
+			return NULL;
+
+		dsGfxBuffer* baseBuffer = (dsGfxBuffer*)buffer;
+		baseBuffer->resourceManager = resourceManager;
+		baseBuffer->allocator = dsAllocator_keepPointer(allocator);
+		baseBuffer->usage = usage;
+		baseBuffer->memoryHints = memoryHints;
+		baseBuffer->size = size;
+
+		buffer->bufferData = dsMTLGfxBufferData_create(resourceManager, allocator,
+			resourceManager->allocator, usage, memoryHints, data, size);
+		if (!buffer->bufferData)
+		{
+			if (baseBuffer->allocator)
+				dsAllocator_free(baseBuffer->allocator, buffer);
+			return NULL;
+		}
+
+		DS_VERIFY(dsSpinlock_initialize(&buffer->lock));
+		return baseBuffer;
+	}
 }
 
 void* dsMTLGfxBuffer_map(dsResourceManager* resourceManager, dsGfxBuffer* buffer,
 	dsGfxBufferMap flags, size_t offset, size_t size)
 {
-	dsMTLGfxBuffer* mtlBuffer = (dsMTLGfxBuffer*)buffer;
-	dsRenderer* renderer = resourceManager->renderer;
-
-	DS_VERIFY(dsSpinlock_lock(&mtlBuffer->lock));
-
-	dsMTLGfxBufferData* bufferData = mtlBuffer->bufferData;
-
-	if (bufferData->mappedSize > 0)
+	@autoreleasepool
 	{
-		DS_VERIFY(dsSpinlock_unlock(&mtlBuffer->lock));
-		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_METAL_LOG_TAG, "Buffer is already mapped.");
-		return NULL;
-	}
+		dsMTLGfxBuffer* mtlBuffer = (dsMTLGfxBuffer*)buffer;
+		dsRenderer* renderer = resourceManager->renderer;
 
-	// Orphan the data if requested and not previously used.
-	if ((flags & dsGfxBufferMap_Orphan) && bufferData->used)
-	{
-		dsMTLGfxBufferData* newBufferData = dsMTLGfxBufferData_create(resourceManager,
-			buffer->allocator, resourceManager->allocator, buffer->usage, buffer->memoryHints, NULL,
-			buffer->size);
-		if (!newBufferData)
+		DS_VERIFY(dsSpinlock_lock(&mtlBuffer->lock));
+
+		dsMTLGfxBufferData* bufferData = mtlBuffer->bufferData;
+
+		if (bufferData->mappedSize > 0)
 		{
 			DS_VERIFY(dsSpinlock_unlock(&mtlBuffer->lock));
+			errno = EPERM;
+			DS_LOG_ERROR(DS_RENDER_METAL_LOG_TAG, "Buffer is already mapped.");
 			return NULL;
 		}
 
-		// Delete the previous buffer data and replace with the new one.
-		mtlBuffer->bufferData = newBufferData;
-		dsMTLGfxBufferData_destroy(bufferData);
-		bufferData = newBufferData;
-	}
+		// Orphan the data if requested and not previously used.
+		if ((flags & dsGfxBufferMap_Orphan) && bufferData->used)
+		{
+			dsMTLGfxBufferData* newBufferData = dsMTLGfxBufferData_create(resourceManager,
+					buffer->allocator, resourceManager->allocator, buffer->usage,
+					buffer->memoryHints, NULL, buffer->size);
+			if (!newBufferData)
+			{
+				DS_VERIFY(dsSpinlock_unlock(&mtlBuffer->lock));
+				return NULL;
+			}
 
-	bufferData->mappedStart = offset;
-	bufferData->mappedSize = size;
-	bufferData->mappedWrite = (flags & dsGfxBufferMap_Write) &&
-		!(flags & dsGfxBufferMap_Persistent);
-	uint64_t lastUsedSubmit;
-	DS_ATOMIC_LOAD64(&bufferData->lastUsedSubmit, &lastUsedSubmit);
+			// Delete the previous buffer data and replace with the new one.
+			mtlBuffer->bufferData = newBufferData;
+			dsMTLGfxBufferData_destroy(bufferData);
+			bufferData = newBufferData;
+		}
 
-	// Wait for the submitted command to be finished when synchronized.
-	if ((buffer->memoryHints & dsGfxMemory_Synchronize) && lastUsedSubmit != DS_NOT_SUBMITTED)
-	{
-		DS_VERIFY(dsSpinlock_unlock(&mtlBuffer->lock));
-		dsGfxFenceResult fenceResult = dsMTLRenderer_waitForSubmit(renderer, lastUsedSubmit,
-			DS_DEFAULT_WAIT_TIMEOUT);
+		bufferData->mappedStart = offset;
+		bufferData->mappedSize = size;
+		bufferData->mappedWrite = (flags & dsGfxBufferMap_Write) &&
+			!(flags & dsGfxBufferMap_Persistent);
+		uint64_t lastUsedSubmit;
+		DS_ATOMIC_LOAD64(&bufferData->lastUsedSubmit, &lastUsedSubmit);
 
-		DS_VERIFY(dsSpinlock_lock(&mtlBuffer->lock));
-		if (fenceResult == dsGfxFenceResult_WaitingToQueue)
+		// Wait for the submitted command to be finished when synchronized.
+		if ((buffer->memoryHints & dsGfxMemory_Synchronize) && lastUsedSubmit != DS_NOT_SUBMITTED)
+		{
+			DS_VERIFY(dsSpinlock_unlock(&mtlBuffer->lock));
+			dsGfxFenceResult fenceResult = dsMTLRenderer_waitForSubmit(renderer, lastUsedSubmit,
+				DS_DEFAULT_WAIT_TIMEOUT);
+
+			DS_VERIFY(dsSpinlock_lock(&mtlBuffer->lock));
+			if (fenceResult == dsGfxFenceResult_WaitingToQueue)
+			{
+				bufferData->mappedStart = 0;
+				bufferData->mappedSize = 0;
+				bufferData->mappedWrite = false;
+				DS_VERIFY(dsSpinlock_unlock(&mtlBuffer->lock));
+
+				errno = EPERM;
+				DS_LOG_ERROR(DS_RENDER_METAL_LOG_TAG, "Buffer still queued to be rendered.");
+				return NULL;
+			}
+
+			if (bufferData != mtlBuffer->bufferData || bufferData->mappedSize == 0)
+			{
+				DS_VERIFY(dsSpinlock_unlock(&mtlBuffer->lock));
+				errno = EPERM;
+				DS_LOG_ERROR(DS_RENDER_METAL_LOG_TAG, "Buffer was unlocked while waiting.");
+				return NULL;
+			}
+		}
+
+		id<MTLBuffer> realMTLBuffer = (__bridge id<MTLBuffer>)(bufferData->mtlBuffer);
+		uint8_t* memory = (uint8_t*)realMTLBuffer.contents;
+		if (!memory)
 		{
 			bufferData->mappedStart = 0;
 			bufferData->mappedSize = 0;
 			bufferData->mappedWrite = false;
 			DS_VERIFY(dsSpinlock_unlock(&mtlBuffer->lock));
-
 			errno = EPERM;
-			DS_LOG_ERROR(DS_RENDER_METAL_LOG_TAG, "Buffer still queued to be rendered.");
 			return NULL;
 		}
 
-		if (bufferData != mtlBuffer->bufferData || bufferData->mappedSize == 0)
-		{
-			DS_VERIFY(dsSpinlock_unlock(&mtlBuffer->lock));
-			errno = EPERM;
-			DS_LOG_ERROR(DS_RENDER_METAL_LOG_TAG, "Buffer was unlocked while waiting.");
-			return NULL;
-		}
-	}
-
-	id<MTLBuffer> realMTLBuffer = (__bridge id<MTLBuffer>)(bufferData->mtlBuffer);
-	uint8_t* memory = (uint8_t*)realMTLBuffer.contents;
-	if (!memory)
-	{
-		bufferData->mappedStart = 0;
-		bufferData->mappedSize = 0;
-		bufferData->mappedWrite = false;
 		DS_VERIFY(dsSpinlock_unlock(&mtlBuffer->lock));
-		errno = EPERM;
-		return NULL;
+		return memory + offset;
 	}
-
-	DS_VERIFY(dsSpinlock_unlock(&mtlBuffer->lock));
-	return memory + offset;
 }
 
 bool dsMTLGfxBuffer_unmap(dsResourceManager* resourceManager, dsGfxBuffer* buffer)
 {
-	DS_UNUSED(resourceManager);
-	dsMTLGfxBuffer* mtlBuffer = (dsMTLGfxBuffer*)buffer;
-
-	DS_VERIFY(dsSpinlock_lock(&mtlBuffer->lock));
-
-	dsMTLGfxBufferData* bufferData = mtlBuffer->bufferData;
-
-	if (bufferData->mappedSize == 0)
+	@autoreleasepool
 	{
-		DS_VERIFY(dsSpinlock_unlock(&mtlBuffer->lock));
-		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_METAL_LOG_TAG, "Buffer isn't mapped.");
-		return false;
-	}
+		DS_UNUSED(resourceManager);
+		dsMTLGfxBuffer* mtlBuffer = (dsMTLGfxBuffer*)buffer;
 
-	// Need to mark the range as dirty to copy to the GPU when next used.
+		DS_VERIFY(dsSpinlock_lock(&mtlBuffer->lock));
+
+		dsMTLGfxBufferData* bufferData = mtlBuffer->bufferData;
+
+		if (bufferData->mappedSize == 0)
+		{
+			DS_VERIFY(dsSpinlock_unlock(&mtlBuffer->lock));
+			errno = EPERM;
+			DS_LOG_ERROR(DS_RENDER_METAL_LOG_TAG, "Buffer isn't mapped.");
+			return false;
+		}
+
+		// Need to mark the range as dirty to copy to the GPU when next used.
 #if DS_MAC
-	if (bufferData->mappedWrite && bufferData->managed)
-	{
-		id<MTLBuffer> realMTLBuffer = (__bridge id<MTLBuffer>)(bufferData->mtlBuffer);
-		size_t mappedSize = dsMin(bufferData->mappedSize, buffer->size - bufferData->mappedStart);
-		NSRange range = {bufferData->mappedStart, mappedSize};
-		[realMTLBuffer didModifyRange: range];
-	}
+		if (bufferData->mappedWrite && bufferData->managed)
+		{
+			id<MTLBuffer> realMTLBuffer = (__bridge id<MTLBuffer>)(bufferData->mtlBuffer);
+			size_t mappedSize = dsMin(bufferData->mappedSize, buffer->size -
+				bufferData->mappedStart);
+			NSRange range = {bufferData->mappedStart, mappedSize};
+			[realMTLBuffer didModifyRange: range];
+		}
 #endif
 
-	bufferData->mappedStart = 0;
-	bufferData->mappedSize = 0;
-	bufferData->mappedWrite = false;
-	DS_VERIFY(dsSpinlock_unlock(&mtlBuffer->lock));
+		bufferData->mappedStart = 0;
+		bufferData->mappedSize = 0;
+		bufferData->mappedWrite = false;
+		DS_VERIFY(dsSpinlock_unlock(&mtlBuffer->lock));
 
-	return true;
+		return true;
+	}
 }
 
 bool dsMTLGfxBuffer_flush(dsResourceManager* resourceManager, dsGfxBuffer* buffer,
 	size_t offset, size_t size)
 {
-	DS_UNUSED(resourceManager);
-	dsMTLGfxBuffer* mtlBuffer = (dsMTLGfxBuffer*)buffer;
+	@autoreleasepool
+	{
+		DS_UNUSED(resourceManager);
+		dsMTLGfxBuffer* mtlBuffer = (dsMTLGfxBuffer*)buffer;
 
-	DS_VERIFY(dsSpinlock_lock(&mtlBuffer->lock));
-	dsMTLGfxBufferData* bufferData = mtlBuffer->bufferData;
+		DS_VERIFY(dsSpinlock_lock(&mtlBuffer->lock));
+		dsMTLGfxBufferData* bufferData = mtlBuffer->bufferData;
 
-	id<MTLBuffer> realMTLBuffer = (__bridge id<MTLBuffer>)(bufferData->mtlBuffer);
-	NSRange range = {offset, size};
-	[realMTLBuffer didModifyRange: range];
+		id<MTLBuffer> realMTLBuffer = (__bridge id<MTLBuffer>)(bufferData->mtlBuffer);
+		NSRange range = {offset, size};
+		[realMTLBuffer didModifyRange: range];
 
-	DS_VERIFY(dsSpinlock_unlock(&mtlBuffer->lock));
-	return true;
+		DS_VERIFY(dsSpinlock_unlock(&mtlBuffer->lock));
+		return true;
+	}
 }
 
 bool dsMTLGfxBuffer_invalidate(dsResourceManager* resourceManager, dsGfxBuffer* buffer,
@@ -217,29 +230,35 @@ bool dsMTLGfxBuffer_invalidate(dsResourceManager* resourceManager, dsGfxBuffer* 
 bool dsMTLGfxBuffer_copyData(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
 	dsGfxBuffer* buffer, size_t offset, const void* data, size_t size)
 {
-	DS_UNUSED(resourceManager);
-	id<MTLBuffer> realBuffer = dsMTLGfxBuffer_getBuffer(buffer, commandBuffer);
-	if (!realBuffer)
-		return false;
+	@autoreleasepool
+	{
+		DS_UNUSED(resourceManager);
+		id<MTLBuffer> realBuffer = dsMTLGfxBuffer_getBuffer(buffer, commandBuffer);
+		if (!realBuffer)
+			return false;
 
-	return dsMTLCommandBuffer_copyBufferData(commandBuffer, realBuffer, offset, data, size);
+		return dsMTLCommandBuffer_copyBufferData(commandBuffer, realBuffer, offset, data, size);
+	}
 }
 
 bool dsMTLGfxBuffer_copy(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
 	dsGfxBuffer* srcBuffer, size_t srcOffset, dsGfxBuffer* dstBuffer, size_t dstOffset,
 	size_t size)
 {
-	DS_UNUSED(resourceManager);
-	id<MTLBuffer> realSrcBuffer = dsMTLGfxBuffer_getBuffer(srcBuffer, commandBuffer);
-	if (!realSrcBuffer)
-		return false;
+	@autoreleasepool
+	{
+		DS_UNUSED(resourceManager);
+		id<MTLBuffer> realSrcBuffer = dsMTLGfxBuffer_getBuffer(srcBuffer, commandBuffer);
+		if (!realSrcBuffer)
+			return false;
 
-	id<MTLBuffer> realDstBuffer = dsMTLGfxBuffer_getBuffer(dstBuffer, commandBuffer);
-	if (!realDstBuffer)
-		return false;
+		id<MTLBuffer> realDstBuffer = dsMTLGfxBuffer_getBuffer(dstBuffer, commandBuffer);
+		if (!realDstBuffer)
+			return false;
 
-	return dsMTLCommandBuffer_copyBuffer(commandBuffer, realSrcBuffer, srcOffset, realDstBuffer,
-		dstOffset, size);
+		return dsMTLCommandBuffer_copyBuffer(commandBuffer, realSrcBuffer, srcOffset, realDstBuffer,
+			dstOffset, size);
+	}
 }
 
 void dsMTLGfxBuffer_process(dsResourceManager* resourceManager, dsGfxBuffer* buffer)

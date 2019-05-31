@@ -695,8 +695,25 @@ bool dsVectorScratchData_hasGeometry(const dsVectorScratchData* data)
 dsGfxBuffer* dsVectorScratchData_createGfxBuffer(dsVectorScratchData* data,
 	dsResourceManager* resourceManager, dsAllocator* allocator)
 {
-	size_t totalSize = data->shapeVertexCount*sizeof(ShapeVertex) +
-		data->imageVertexCount*sizeof(ImageVertex) + data->indexCount*sizeof(uint16_t);
+	size_t shapeVertexSize = data->shapeVertexCount*sizeof(ShapeVertex);
+	size_t imageVertexSize = data->imageVertexCount*sizeof(ImageVertex);
+	size_t indexSize = data->indexCount*sizeof(uint16_t);
+
+	size_t alignedShapeVertexSize = shapeVertexSize;
+	size_t alignedImageVertexSize = imageVertexSize;
+	size_t alignedIndexSize = indexSize;
+
+	// Metal has some interesting alignment restrictions.
+	if (resourceManager->renderer->rendererID == DS_FOURCC('M', 'T', 'L', 0))
+	{
+		alignedShapeVertexSize = DS_CUSTOM_ALIGNED_SIZE(shapeVertexSize,
+			resourceManager->minUniformBlockAlignment);
+		alignedImageVertexSize = DS_CUSTOM_ALIGNED_SIZE(imageVertexSize,
+			resourceManager->minUniformBlockAlignment);
+		alignedIndexSize = DS_CUSTOM_ALIGNED_SIZE(indexSize, 4);
+	}
+
+	size_t totalSize = alignedShapeVertexSize + alignedImageVertexSize + alignedIndexSize;
 	if (totalSize == 0)
 		return NULL;
 
@@ -711,19 +728,16 @@ dsGfxBuffer* dsVectorScratchData_createGfxBuffer(dsVectorScratchData* data,
 	}
 
 	size_t offset = 0;
-	size_t curSize = data->shapeVertexCount*sizeof(ShapeVertex);
-	memcpy(data->combinedBuffer + offset, data->shapeVertices, curSize);
-	offset += curSize;
+	memcpy(data->combinedBuffer + offset, data->shapeVertices, shapeVertexSize);
+	offset += alignedShapeVertexSize;
 
-	DS_ASSERT(offset == dsVectorScratchData_imageVerticesOffset(data));
-	curSize = data->imageVertexCount*sizeof(ImageVertex);
-	memcpy(data->combinedBuffer + offset, data->imageVertices, curSize);
-	offset += curSize;
+	data->imageVertexOffset = (uint32_t)offset;
+	memcpy(data->combinedBuffer + offset, data->imageVertices, imageVertexSize);
+	offset += alignedImageVertexSize;
 
-	DS_ASSERT(offset == dsVectorScratchData_indicesOffset(data));
-	curSize = data->indexCount*sizeof(uint16_t);
-	memcpy(data->combinedBuffer + offset, data->indices, curSize);
-	DS_ASSERT(offset + curSize == totalSize);
+	data->indexOffset = (uint32_t)offset;
+	memcpy(data->combinedBuffer + offset, data->indices, indexSize);
+	DS_ASSERT(offset + alignedIndexSize == totalSize);
 
 	dsGfxBufferUsage usageFlags =
 		(dsGfxBufferUsage)(dsGfxBufferUsage_Vertex | dsGfxBufferUsage_Index);
@@ -748,17 +762,10 @@ uint32_t dsVectorScratchData_shapeVerticesOffset(const dsVectorScratchData* data
 
 uint32_t dsVectorScratchData_imageVerticesOffset(const dsVectorScratchData* data)
 {
-	return (uint32_t)(data->shapeVertexCount*sizeof(ShapeVertex));
-}
-
-uint32_t dsVectorScratchData_textVerticesOffset(const dsVectorScratchData* data)
-{
-	return (uint32_t)(data->shapeVertexCount*sizeof(ShapeVertex) +
-		data->imageVertexCount*sizeof(ImageVertex));
+	return data->imageVertexOffset;
 }
 
 uint32_t dsVectorScratchData_indicesOffset(const dsVectorScratchData* data)
 {
-	return (uint32_t)(data->shapeVertexCount*sizeof(ShapeVertex) +
-		data->imageVertexCount*sizeof(ImageVertex));
+	return data->indexOffset;
 }

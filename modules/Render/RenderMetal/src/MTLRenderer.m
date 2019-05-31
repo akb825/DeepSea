@@ -301,50 +301,56 @@ static bool bindVertexBuffers(dsCommandBuffer* commandBuffer, const dsShader* sh
 
 bool dsMTLRenderer_destroy(dsRenderer* renderer)
 {
-	dsMTLRenderer* mtlRenderer = (dsMTLRenderer*)renderer;
-
-	dsRenderer_shutdownResources(renderer);
-
-	// Check the function manually so we only wait if initialization completed.
-	if (renderer->waitUntilIdleFunc)
-		dsRenderer_waitUntilIdle(renderer);
-
-	if (mtlRenderer->submitMutex)
+	@autoreleasepool
 	{
-		DS_ASSERT(mtlRenderer->submitCondition);
-		DS_VERIFY(dsMutex_lock(mtlRenderer->submitMutex));
-		mtlRenderer->finishedSubmitCount = DS_NOT_SUBMITTED;
-		DS_VERIFY(dsConditionVariable_notifyAll(mtlRenderer->submitCondition));
-		DS_VERIFY(dsMutex_unlock(mtlRenderer->submitMutex));
+		dsMTLRenderer* mtlRenderer = (dsMTLRenderer*)renderer;
 
-		dsConditionVariable_destroy(mtlRenderer->submitCondition);
-		dsMutex_destroy(mtlRenderer->submitMutex);
+		dsRenderer_shutdownResources(renderer);
+
+		// Check the function manually so we only wait if initialization completed.
+		if (renderer->waitUntilIdleFunc)
+			dsRenderer_waitUntilIdle(renderer);
+
+		if (mtlRenderer->submitMutex)
+		{
+			DS_ASSERT(mtlRenderer->submitCondition);
+			DS_VERIFY(dsMutex_lock(mtlRenderer->submitMutex));
+			mtlRenderer->finishedSubmitCount = DS_NOT_SUBMITTED;
+			DS_VERIFY(dsConditionVariable_notifyAll(mtlRenderer->submitCondition));
+			DS_VERIFY(dsMutex_unlock(mtlRenderer->submitMutex));
+
+			dsConditionVariable_destroy(mtlRenderer->submitCondition);
+			dsMutex_destroy(mtlRenderer->submitMutex);
+		}
+
+		for (uint32_t i = 0; i < mtlRenderer->processBufferCount; ++i)
+			dsLifetime_freeRef(mtlRenderer->processBuffers[i]);
+		DS_VERIFY(dsAllocator_free(renderer->allocator, mtlRenderer->processBuffers));
+		dsSpinlock_shutdown(&mtlRenderer->processBuffersLock);
+
+		for (uint32_t i = 0; i < mtlRenderer->processTextureCount; ++i)
+			dsLifetime_freeRef(mtlRenderer->processTextures[i]);
+		DS_VERIFY(dsAllocator_free(renderer->allocator, mtlRenderer->processTextures));
+		dsSpinlock_shutdown(&mtlRenderer->processTexturesLock);
+
+		dsMTLHardwareCommandBuffer_shutdown(&mtlRenderer->mainCommandBuffer);
+		dsMTLResourceManager_destroy(renderer->resourceManager);
+
+		if (mtlRenderer->device)
+			CFRelease(mtlRenderer->device);
+		if (mtlRenderer->commandQueue)
+			CFRelease(mtlRenderer->commandQueue);
+		DS_VERIFY(dsAllocator_free(renderer->allocator, renderer));
+		return true;
 	}
-
-	for (uint32_t i = 0; i < mtlRenderer->processBufferCount; ++i)
-		dsLifetime_freeRef(mtlRenderer->processBuffers[i]);
-	DS_VERIFY(dsAllocator_free(renderer->allocator, mtlRenderer->processBuffers));
-	dsSpinlock_shutdown(&mtlRenderer->processBuffersLock);
-
-	for (uint32_t i = 0; i < mtlRenderer->processTextureCount; ++i)
-		dsLifetime_freeRef(mtlRenderer->processTextures[i]);
-	DS_VERIFY(dsAllocator_free(renderer->allocator, mtlRenderer->processTextures));
-	dsSpinlock_shutdown(&mtlRenderer->processTexturesLock);
-
-	dsMTLHardwareCommandBuffer_shutdown(&mtlRenderer->mainCommandBuffer);
-	dsMTLResourceManager_destroy(renderer->resourceManager);
-
-	if (mtlRenderer->device)
-		CFRelease(mtlRenderer->device);
-	if (mtlRenderer->commandQueue)
-		CFRelease(mtlRenderer->commandQueue);
-	DS_VERIFY(dsAllocator_free(renderer->allocator, renderer));
-	return true;
 }
 
 bool dsMTLRenderer_isSupported(void)
 {
-	return [MTLCopyAllDevices() count] > 0;
+	@autoreleasepool
+	{
+		return [MTLCopyAllDevices() count] > 0;
+	}
 }
 
 bool dsMTLRenderer_queryDevices(dsRenderDeviceInfo* outDevices, uint32_t* outDeviceCount)
@@ -393,511 +399,559 @@ bool dsMTLRenderer_setDefaultAnisotropy(dsRenderer* renderer, float anisotropy)
 bool dsMTLRenderer_clearColorSurface(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsFramebufferSurface* surface, const dsSurfaceColorValue* colorValue)
 {
-	id<MTLTexture> texture = nil;
-	id<MTLTexture> resolveTexture = nil;
-	dsGfxFormat format;
-	switch (surface->surfaceType)
+	@autoreleasepool
 	{
-		case dsGfxSurfaceType_ColorRenderSurface:
-		case dsGfxSurfaceType_ColorRenderSurfaceLeft:
-		case dsGfxSurfaceType_ColorRenderSurfaceRight:
+		id<MTLTexture> texture = nil;
+		id<MTLTexture> resolveTexture = nil;
+		dsGfxFormat format;
+		switch (surface->surfaceType)
 		{
-			dsMTLRenderSurface* renderSurface = (dsMTLRenderSurface*)surface->surface;
-			id<CAMetalDrawable> drawable = (__bridge id<CAMetalDrawable>)renderSurface->drawable;
-			texture = drawable.texture;
-			if (renderSurface->resolveSurface)
-				resolveTexture = (__bridge id<MTLTexture>)renderSurface->resolveSurface;
-			format = renderer->surfaceColorFormat;
-			break;
+			case dsGfxSurfaceType_ColorRenderSurface:
+			case dsGfxSurfaceType_ColorRenderSurfaceLeft:
+			case dsGfxSurfaceType_ColorRenderSurfaceRight:
+			{
+				dsMTLRenderSurface* renderSurface = (dsMTLRenderSurface*)surface->surface;
+				id<CAMetalDrawable> drawable =
+					(__bridge id<CAMetalDrawable>)renderSurface->drawable;
+				texture = drawable.texture;
+				if (renderSurface->resolveSurface)
+					resolveTexture = (__bridge id<MTLTexture>)renderSurface->resolveSurface;
+				format = renderer->surfaceColorFormat;
+				break;
+			}
+			case dsGfxSurfaceType_Offscreen:
+			{
+				const dsOffscreen* offscreen = (const dsOffscreen*)surface->surface;
+				const dsMTLTexture* mtlTexture = (const dsMTLTexture*)offscreen;
+				texture = (__bridge id<MTLTexture>)mtlTexture->mtlTexture;
+				if (mtlTexture->resolveTexture)
+					resolveTexture = (__bridge id<MTLTexture>)mtlTexture->resolveTexture;
+				format = offscreen->info.format;
+				break;
+			}
+			case dsGfxSurfaceType_Renderbuffer:
+			{
+				const dsRenderbuffer* renderbuffer = (const dsRenderbuffer*)surface->surface;
+				const dsMTLRenderbuffer* mtlRenderbuffer = (const dsMTLRenderbuffer*)renderbuffer;
+				texture = (__bridge id<MTLTexture>)mtlRenderbuffer->surface;
+				format = renderbuffer->format;
+				break;
+			}
+			default:
+				DS_ASSERT(false);
+				return false;
 		}
-		case dsGfxSurfaceType_Offscreen:
-		{
-			const dsOffscreen* offscreen = (const dsOffscreen*)surface->surface;
-			const dsMTLTexture* mtlTexture = (const dsMTLTexture*)offscreen;
-			texture = (__bridge id<MTLTexture>)mtlTexture->mtlTexture;
-			if (mtlTexture->resolveTexture)
-				resolveTexture = (__bridge id<MTLTexture>)mtlTexture->resolveTexture;
-			format = offscreen->info.format;
-			break;
-		}
-		case dsGfxSurfaceType_Renderbuffer:
-		{
-			const dsRenderbuffer* renderbuffer = (const dsRenderbuffer*)surface->surface;
-			const dsMTLRenderbuffer* mtlRenderbuffer = (const dsMTLRenderbuffer*)renderbuffer;
-			texture = (__bridge id<MTLTexture>)mtlRenderbuffer->surface;
-			format = renderbuffer->format;
-			break;
-		}
-		default:
-			DS_ASSERT(false);
-			return false;
-	}
 
-	return dsMTLCommandBuffer_clearColorSurface(commandBuffer, texture, resolveTexture,
-		dsGetClearColor(format, colorValue));
+		return dsMTLCommandBuffer_clearColorSurface(commandBuffer, texture, resolveTexture,
+			dsGetClearColor(format, colorValue));
+	}
 }
 
 bool dsMTLRenderer_clearDepthStencilSurface(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsFramebufferSurface* surface, dsClearDepthStencil surfaceParts,
 	const dsDepthStencilValue* depthStencilValue)
 {
-	id<MTLTexture> depthTexture = nil;
-	id<MTLTexture> resolveDepthTexture = nil;
-	id<MTLTexture> stencilTexture = nil;
-	id<MTLTexture> resolveStencilTexture = nil;
-	dsGfxFormat format;
-	switch (surface->surfaceType)
+	@autoreleasepool
 	{
-		case dsGfxSurfaceType_DepthRenderSurface:
-		case dsGfxSurfaceType_DepthRenderSurfaceLeft:
-		case dsGfxSurfaceType_DepthRenderSurfaceRight:
+		id<MTLTexture> depthTexture = nil;
+		id<MTLTexture> resolveDepthTexture = nil;
+		id<MTLTexture> stencilTexture = nil;
+		id<MTLTexture> resolveStencilTexture = nil;
+		dsGfxFormat format;
+		switch (surface->surfaceType)
 		{
-			dsMTLRenderSurface* renderSurface = (dsMTLRenderSurface*)surface->surface;
-			depthTexture = (__bridge id<MTLTexture>)renderSurface->depthSurface;
-			stencilTexture = (__bridge id<MTLTexture>)renderSurface->stencilSurface;
-			format = renderer->surfaceColorFormat;
-			break;
+			case dsGfxSurfaceType_DepthRenderSurface:
+			case dsGfxSurfaceType_DepthRenderSurfaceLeft:
+			case dsGfxSurfaceType_DepthRenderSurfaceRight:
+			{
+				dsMTLRenderSurface* renderSurface = (dsMTLRenderSurface*)surface->surface;
+				depthTexture = (__bridge id<MTLTexture>)renderSurface->depthSurface;
+				stencilTexture = (__bridge id<MTLTexture>)renderSurface->stencilSurface;
+				format = renderer->surfaceColorFormat;
+				break;
+			}
+			case dsGfxSurfaceType_Offscreen:
+			{
+				const dsOffscreen* offscreen = (const dsOffscreen*)surface->surface;
+				const dsMTLTexture* mtlTexture = (const dsMTLTexture*)offscreen;
+				depthTexture = (__bridge id<MTLTexture>)mtlTexture->mtlTexture;
+				stencilTexture = (__bridge id<MTLTexture>)mtlTexture->stencilTexture;
+				if (mtlTexture->resolveTexture)
+					resolveDepthTexture = (__bridge id<MTLTexture>)mtlTexture->resolveTexture;
+				if (mtlTexture->resolveStencilTexture)
+				{
+					resolveStencilTexture =
+						(__bridge id<MTLTexture>)mtlTexture->resolveStencilTexture;
+				}
+				break;
+			}
+			case dsGfxSurfaceType_Renderbuffer:
+			{
+				const dsRenderbuffer* renderbuffer = (const dsRenderbuffer*)surface->surface;
+				const dsMTLRenderbuffer* mtlRenderbuffer = (const dsMTLRenderbuffer*)renderbuffer;
+				depthTexture = (__bridge id<MTLTexture>)mtlRenderbuffer->surface;
+				stencilTexture = (__bridge id<MTLTexture>)mtlRenderbuffer->stencilSurface;
+				break;
+			}
+			default:
+				DS_ASSERT(false);
+				return false;
 		}
-		case dsGfxSurfaceType_Offscreen:
-		{
-			const dsOffscreen* offscreen = (const dsOffscreen*)surface->surface;
-			const dsMTLTexture* mtlTexture = (const dsMTLTexture*)offscreen;
-			depthTexture = (__bridge id<MTLTexture>)mtlTexture->mtlTexture;
-			stencilTexture = (__bridge id<MTLTexture>)mtlTexture->stencilTexture;
-			if (mtlTexture->resolveTexture)
-				resolveDepthTexture = (__bridge id<MTLTexture>)mtlTexture->resolveTexture;
-			if (mtlTexture->resolveStencilTexture)
-				resolveStencilTexture = (__bridge id<MTLTexture>)mtlTexture->resolveStencilTexture;
-			break;
-		}
-		case dsGfxSurfaceType_Renderbuffer:
-		{
-			const dsRenderbuffer* renderbuffer = (const dsRenderbuffer*)surface->surface;
-			const dsMTLRenderbuffer* mtlRenderbuffer = (const dsMTLRenderbuffer*)renderbuffer;
-			depthTexture = (__bridge id<MTLTexture>)mtlRenderbuffer->surface;
-			stencilTexture = (__bridge id<MTLTexture>)mtlRenderbuffer->stencilSurface;
-			break;
-		}
-		default:
-			DS_ASSERT(false);
-			return false;
-	}
 
-	if (surfaceParts == dsClearDepthStencil_Depth)
-	{
-		stencilTexture = nil;
-		resolveStencilTexture = nil;
-	}
-	else if (surfaceParts == dsClearDepthStencil_Stencil)
-	{
-		depthTexture = nil;
-		resolveDepthTexture = nil;
-	}
+		if (surfaceParts == dsClearDepthStencil_Depth)
+		{
+			stencilTexture = nil;
+			resolveStencilTexture = nil;
+		}
+		else if (surfaceParts == dsClearDepthStencil_Stencil)
+		{
+			depthTexture = nil;
+			resolveDepthTexture = nil;
+		}
 
-	return dsMTLCommandBuffer_clearDepthStencilSurface(commandBuffer, depthTexture,
-		resolveDepthTexture, depthStencilValue->depth, stencilTexture, resolveStencilTexture,
-		depthStencilValue->stencil);
+		return dsMTLCommandBuffer_clearDepthStencilSurface(commandBuffer, depthTexture,
+			resolveDepthTexture, depthStencilValue->depth, stencilTexture, resolveStencilTexture,
+			depthStencilValue->stencil);
+	}
 }
 
 bool dsMTLRenderer_draw(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsDrawGeometry* geometry, const dsDrawRange* drawRange, dsPrimitiveType primitiveType)
 {
-	DS_UNUSED(renderer);
-	if (primitiveType == dsPrimitiveType_TriangleFan)
+	@autoreleasepool
 	{
-		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_METAL_LOG_TAG, "Metal doesn't support drawing triangle fans.");
-		return false;
+		DS_UNUSED(renderer);
+		if (primitiveType == dsPrimitiveType_TriangleFan)
+		{
+			errno = EPERM;
+			DS_LOG_ERROR(DS_RENDER_METAL_LOG_TAG, "Metal doesn't support drawing triangle fans.");
+			return false;
+		}
+
+		dsShader* shader = (dsShader*)commandBuffer->boundShader;
+		DS_ASSERT(shader);
+		id<MTLRenderPipelineState> pipeline = dsMTLShader_getPipeline(shader, commandBuffer,
+			primitiveType, geometry);
+		if (!pipeline)
+			return false;
+
+		if (!bindVertexBuffers(commandBuffer, shader, geometry))
+			return false;
+
+		return dsMTLCommandBuffer_draw(commandBuffer, pipeline, drawRange, primitiveType);
 	}
-
-	dsShader* shader = (dsShader*)commandBuffer->boundShader;
-	DS_ASSERT(shader);
-	id<MTLRenderPipelineState> pipeline = dsMTLShader_getPipeline(shader, commandBuffer,
-		primitiveType, geometry);
-	if (!pipeline)
-		return false;
-
-	if (!bindVertexBuffers(commandBuffer, shader, geometry))
-		return false;
-
-	return dsMTLCommandBuffer_draw(commandBuffer, pipeline, drawRange, primitiveType);
 }
 
 bool dsMTLRenderer_drawIndexed(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsDrawGeometry* geometry, const dsDrawIndexedRange* drawRange,
 	dsPrimitiveType primitiveType)
 {
-	DS_UNUSED(renderer);
-	if (primitiveType == dsPrimitiveType_TriangleFan)
+	@autoreleasepool
 	{
-		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_METAL_LOG_TAG, "Metal doesn't support drawing triangle fans.");
-		return false;
+		DS_UNUSED(renderer);
+		if (primitiveType == dsPrimitiveType_TriangleFan)
+		{
+			errno = EPERM;
+			DS_LOG_ERROR(DS_RENDER_METAL_LOG_TAG, "Metal doesn't support drawing triangle fans.");
+			return false;
+		}
+
+		dsShader* shader = (dsShader*)commandBuffer->boundShader;
+		DS_ASSERT(shader);
+		id<MTLRenderPipelineState> pipeline = dsMTLShader_getPipeline(shader, commandBuffer,
+			primitiveType, geometry);
+		if (!pipeline)
+			return false;
+
+		DS_ASSERT(geometry->indexBuffer.buffer);
+		id<MTLBuffer> indexBuffer = dsMTLGfxBuffer_getBuffer(geometry->indexBuffer.buffer,
+			commandBuffer);
+		if (!indexBuffer)
+			return false;
+
+		if (!bindVertexBuffers(commandBuffer, shader, geometry))
+			return false;
+
+		return dsMTLCommandBuffer_drawIndexed(commandBuffer, pipeline, indexBuffer,
+			geometry->indexBuffer.offset, geometry->indexBuffer.indexSize, drawRange,
+			primitiveType);
 	}
-
-	dsShader* shader = (dsShader*)commandBuffer->boundShader;
-	DS_ASSERT(shader);
-	id<MTLRenderPipelineState> pipeline = dsMTLShader_getPipeline(shader, commandBuffer,
-		primitiveType, geometry);
-	if (!pipeline)
-		return false;
-
-	DS_ASSERT(geometry->indexBuffer.buffer);
-	id<MTLBuffer> indexBuffer = dsMTLGfxBuffer_getBuffer(geometry->indexBuffer.buffer,
-		commandBuffer);
-	if (!indexBuffer)
-		return false;
-
-	if (!bindVertexBuffers(commandBuffer, shader, geometry))
-		return false;
-
-	return dsMTLCommandBuffer_drawIndexed(commandBuffer, pipeline, indexBuffer,
-		geometry->indexBuffer.offset, geometry->indexBuffer.indexSize, drawRange, primitiveType);
 }
 
 bool dsMTLRenderer_drawIndirect(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsDrawGeometry* geometry, const dsGfxBuffer* indirectBuffer, size_t offset,
 	uint32_t count, uint32_t stride, dsPrimitiveType primitiveType)
 {
-	DS_UNUSED(renderer);
-	if (primitiveType == dsPrimitiveType_TriangleFan)
+	@autoreleasepool
 	{
-		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_METAL_LOG_TAG, "Metal doesn't support drawing triangle fans.");
-		return false;
+		DS_UNUSED(renderer);
+		if (primitiveType == dsPrimitiveType_TriangleFan)
+		{
+			errno = EPERM;
+			DS_LOG_ERROR(DS_RENDER_METAL_LOG_TAG, "Metal doesn't support drawing triangle fans.");
+			return false;
+		}
+
+		dsShader* shader = (dsShader*)commandBuffer->boundShader;
+		DS_ASSERT(shader);
+		id<MTLRenderPipelineState> pipeline = dsMTLShader_getPipeline(shader, commandBuffer,
+			primitiveType, geometry);
+		if (!pipeline)
+			return false;
+
+		id<MTLBuffer> mtlIndirectBuffer = dsMTLGfxBuffer_getBuffer((dsGfxBuffer*)indirectBuffer,
+			commandBuffer);
+		if (!mtlIndirectBuffer)
+			return false;
+
+		if (!bindVertexBuffers(commandBuffer, shader, geometry))
+			return false;
+
+		return dsMTLCommandBuffer_drawIndirect(commandBuffer, pipeline, mtlIndirectBuffer, offset,
+			count, stride, primitiveType);
 	}
-
-	dsShader* shader = (dsShader*)commandBuffer->boundShader;
-	DS_ASSERT(shader);
-	id<MTLRenderPipelineState> pipeline = dsMTLShader_getPipeline(shader, commandBuffer,
-		primitiveType, geometry);
-	if (!pipeline)
-		return false;
-
-	id<MTLBuffer> mtlIndirectBuffer = dsMTLGfxBuffer_getBuffer((dsGfxBuffer*)indirectBuffer,
-		commandBuffer);
-	if (!mtlIndirectBuffer)
-		return false;
-
-	if (!bindVertexBuffers(commandBuffer, shader, geometry))
-		return false;
-
-	return dsMTLCommandBuffer_drawIndirect(commandBuffer, pipeline, mtlIndirectBuffer, offset,
-		count, stride, primitiveType);
 }
 
 bool dsMTLRenderer_drawIndexedIndirect(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsDrawGeometry* geometry, const dsGfxBuffer* indirectBuffer, size_t offset,
 	uint32_t count, uint32_t stride, dsPrimitiveType primitiveType)
 {
-	DS_UNUSED(renderer);
-	if (primitiveType == dsPrimitiveType_TriangleFan)
+	@autoreleasepool
 	{
-		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_METAL_LOG_TAG, "Metal doesn't support drawing triangle fans.");
-		return false;
+		DS_UNUSED(renderer);
+		if (primitiveType == dsPrimitiveType_TriangleFan)
+		{
+			errno = EPERM;
+			DS_LOG_ERROR(DS_RENDER_METAL_LOG_TAG, "Metal doesn't support drawing triangle fans.");
+			return false;
+		}
+
+		dsShader* shader = (dsShader*)commandBuffer->boundShader;
+		DS_ASSERT(shader);
+		id<MTLRenderPipelineState> pipeline = dsMTLShader_getPipeline(shader, commandBuffer,
+			primitiveType, geometry);
+		if (!pipeline)
+			return false;
+
+		DS_ASSERT(geometry->indexBuffer.buffer);
+		id<MTLBuffer> indexBuffer = dsMTLGfxBuffer_getBuffer(geometry->indexBuffer.buffer,
+			commandBuffer);
+		if (!indexBuffer)
+			return false;
+
+		id<MTLBuffer> mtlIndirectBuffer = dsMTLGfxBuffer_getBuffer((dsGfxBuffer*)indirectBuffer,
+			commandBuffer);
+		if (!mtlIndirectBuffer)
+			return false;
+
+		if (!bindVertexBuffers(commandBuffer, shader, geometry))
+			return false;
+
+		return dsMTLCommandBuffer_drawIndexedIndirect(commandBuffer, pipeline, indexBuffer,
+			geometry->indexBuffer.offset, geometry->indexBuffer.indexSize, mtlIndirectBuffer,
+			offset, count, stride, primitiveType);
 	}
-
-	dsShader* shader = (dsShader*)commandBuffer->boundShader;
-	DS_ASSERT(shader);
-	id<MTLRenderPipelineState> pipeline = dsMTLShader_getPipeline(shader, commandBuffer,
-		primitiveType, geometry);
-	if (!pipeline)
-		return false;
-
-	DS_ASSERT(geometry->indexBuffer.buffer);
-	id<MTLBuffer> indexBuffer = dsMTLGfxBuffer_getBuffer(geometry->indexBuffer.buffer,
-		commandBuffer);
-	if (!indexBuffer)
-		return false;
-
-	id<MTLBuffer> mtlIndirectBuffer = dsMTLGfxBuffer_getBuffer((dsGfxBuffer*)indirectBuffer,
-		commandBuffer);
-	if (!mtlIndirectBuffer)
-		return false;
-
-	if (!bindVertexBuffers(commandBuffer, shader, geometry))
-		return false;
-
-	return dsMTLCommandBuffer_drawIndexedIndirect(commandBuffer, pipeline, indexBuffer,
-		geometry->indexBuffer.offset, geometry->indexBuffer.indexSize, mtlIndirectBuffer, offset,
-		count, stride, primitiveType);
 }
 
 bool dsMTLRenderer_dispatchCompute(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	uint32_t x, uint32_t y, uint32_t z)
 {
-	DS_UNUSED(renderer);
-	const dsMTLShader* shader = (const dsMTLShader*)commandBuffer->boundComputeShader;
-	DS_ASSERT(shader);
+	@autoreleasepool
+	{
+		DS_UNUSED(renderer);
+		const dsMTLShader* shader = (const dsMTLShader*)commandBuffer->boundComputeShader;
+		DS_ASSERT(shader);
 
-	id<MTLComputePipelineState> computePipeline =
-		(__bridge id<MTLComputePipelineState>)shader->computePipeline;
-	DS_ASSERT(computePipeline);
+		id<MTLComputePipelineState> computePipeline =
+			(__bridge id<MTLComputePipelineState>)shader->computePipeline;
+		DS_ASSERT(computePipeline);
 
-	const uint32_t* computeLocalSize = shader->pipeline.computeLocalSize;
-	return dsMTLCommandBuffer_dispatchCompute(commandBuffer, computePipeline, x, y, z,
-		computeLocalSize[0], computeLocalSize[1], computeLocalSize[2]);
+		const uint32_t* computeLocalSize = shader->pipeline.computeLocalSize;
+		return dsMTLCommandBuffer_dispatchCompute(commandBuffer, computePipeline, x, y, z,
+			computeLocalSize[0], computeLocalSize[1], computeLocalSize[2]);
+	}
 }
 
 bool dsMTLRenderer_dispatchComputeIndirect(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsGfxBuffer* indirectBuffer, size_t offset)
 {
-	DS_UNUSED(renderer);
-	const dsMTLShader* shader = (const dsMTLShader*)commandBuffer->boundComputeShader;
-	DS_ASSERT(shader);
+	@autoreleasepool
+	{
+		DS_UNUSED(renderer);
+		const dsMTLShader* shader = (const dsMTLShader*)commandBuffer->boundComputeShader;
+		DS_ASSERT(shader);
 
-	id<MTLComputePipelineState> computePipeline =
-		(__bridge id<MTLComputePipelineState>)shader->computePipeline;
-	DS_ASSERT(computePipeline);
+		id<MTLComputePipelineState> computePipeline =
+			(__bridge id<MTLComputePipelineState>)shader->computePipeline;
+		DS_ASSERT(computePipeline);
 
-	id<MTLBuffer> mtlIndirectBuffer = dsMTLGfxBuffer_getBuffer((dsGfxBuffer*)indirectBuffer,
-		commandBuffer);
-	if (!mtlIndirectBuffer)
-		return false;
+		id<MTLBuffer> mtlIndirectBuffer = dsMTLGfxBuffer_getBuffer((dsGfxBuffer*)indirectBuffer,
+			commandBuffer);
+		if (!mtlIndirectBuffer)
+			return false;
 
-	const uint32_t* computeLocalSize = shader->pipeline.computeLocalSize;
-	return dsMTLCommandBuffer_dispatchComputeIndirect(commandBuffer, computePipeline,
-		mtlIndirectBuffer, offset, computeLocalSize[0], computeLocalSize[1], computeLocalSize[2]);
+		const uint32_t* computeLocalSize = shader->pipeline.computeLocalSize;
+		return dsMTLCommandBuffer_dispatchComputeIndirect(commandBuffer, computePipeline,
+			mtlIndirectBuffer, offset, computeLocalSize[0], computeLocalSize[1],
+			computeLocalSize[2]);
+	}
 }
 
 bool dsMTLRenderer_pushDebugGroup(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const char* name)
 {
-	DS_UNUSED(renderer);
-	return dsMTLCommandBuffer_pushDebugGroup(commandBuffer, name);
+	@autoreleasepool
+	{
+		DS_UNUSED(renderer);
+		return dsMTLCommandBuffer_pushDebugGroup(commandBuffer, name);
+	}
 }
 
 bool dsMTLRenderer_popDebugGroup(dsRenderer* renderer, dsCommandBuffer* commandBuffer)
 {
-	DS_UNUSED(renderer);
-	return dsMTLCommandBuffer_popDebugGroup(commandBuffer);
+	@autoreleasepool
+	{
+		DS_UNUSED(renderer);
+		return dsMTLCommandBuffer_popDebugGroup(commandBuffer);
+	}
 }
 
 bool dsMTLRenderer_flush(dsRenderer* renderer)
 {
-	dsMTLRenderer_flushImpl(renderer, nil);
-	return true;
+	@autoreleasepool
+	{
+		dsMTLRenderer_flushImpl(renderer, nil);
+		return true;
+	}
 }
 
 bool dsMTLRenderer_waitUntilIdle(dsRenderer* renderer)
 {
-	uint64_t submit = dsMTLRenderer_flushImpl(renderer, nil);
-	return dsMTLRenderer_waitForSubmit(renderer, submit, 0xFFFFFFFF) == dsGfxFenceResult_Success;
+	@autoreleasepool
+	{
+		uint64_t submit = dsMTLRenderer_flushImpl(renderer, nil);
+		return dsMTLRenderer_waitForSubmit(renderer, submit, 0xFFFFFFFF) ==
+			dsGfxFenceResult_Success;
+	}
 }
 
 dsRenderer* dsMTLRenderer_create(dsAllocator* allocator, const dsRendererOptions* options)
 {
-	if (!allocator || !options)
+	@autoreleasepool
 	{
-		errno = EINVAL;
-		return NULL;
+		if (!allocator || !options)
+		{
+			errno = EINVAL;
+			return NULL;
+		}
+
+		if (!allocator->freeFunc)
+		{
+			errno = EPERM;
+			DS_LOG_ERROR(DS_RENDER_METAL_LOG_TAG,
+				"Renderer allocator must support freeing memory.");
+			return NULL;
+		}
+
+		dsGfxFormat colorFormat = dsRenderer_optionsColorFormat(options, true, true);
+		if (!dsGfxFormat_isValid(colorFormat))
+		{
+			errno = EPERM;
+			DS_LOG_ERROR(DS_RENDER_METAL_LOG_TAG, "Invalid color format.");
+			return NULL;
+		}
+
+		dsGfxFormat depthFormat = dsRenderer_optionsDepthFormat(options);
+
+		id<MTLDevice> device = MTLCreateSystemDefaultDevice();
+		if (!device)
+		{
+			errno = EAGAIN;
+			DS_LOG_ERROR(DS_RENDER_METAL_LOG_TAG, "Couldn't create Metal device.");
+			return NULL;
+		}
+
+		const char* deviceName = [device.name UTF8String];
+		size_t deviceNameLen = strlen(deviceName);
+
+		size_t bufferSize = dsMTLRenderer_fullAllocSize(deviceNameLen);
+		void* buffer = dsAllocator_alloc(allocator, bufferSize);
+		if (!buffer)
+			return NULL;
+
+		dsBufferAllocator bufferAlloc;
+		DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, bufferSize));
+		dsMTLRenderer* renderer = DS_ALLOCATE_OBJECT((dsAllocator*)&bufferAlloc, dsMTLRenderer);
+		DS_ASSERT(renderer);
+		memset(renderer, 0, sizeof(*renderer));
+		dsRenderer* baseRenderer = (dsRenderer*)renderer;
+		DS_VERIFY(dsSpinlock_initialize(&renderer->processBuffersLock));
+		DS_VERIFY(dsSpinlock_initialize(&renderer->processTexturesLock));
+
+		DS_VERIFY(dsRenderer_initialize(baseRenderer));
+		renderer->device = CFBridgingRetain(device);
+
+		id<MTLCommandQueue> commandQueue = [device newCommandQueue];
+		if (!commandQueue)
+		{
+			dsMTLRenderer_destroy(baseRenderer);
+			errno = ENOMEM;
+			return NULL;
+		}
+
+		renderer->commandQueue = CFBridgingRetain(commandQueue);
+
+		// Start at submit count 1 so it's ahead of the finished index.
+		renderer->submitCount = 1;
+		renderer->submitCondition = dsConditionVariable_create((dsAllocator*)&bufferAlloc,
+			"Render Submit Condition");
+		renderer->submitMutex = dsMutex_create((dsAllocator*)&bufferAlloc,
+			"Render Submit Mutex");
+
+		baseRenderer->allocator = dsAllocator_keepPointer(allocator);
+
+		dsMTLHardwareCommandBuffer_initialize(&renderer->mainCommandBuffer, baseRenderer, allocator,
+			dsCommandBufferUsage_Standard);
+		baseRenderer->mainCommandBuffer = (dsCommandBuffer*)&renderer->mainCommandBuffer;
+
+		baseRenderer->platform = dsGfxPlatform_Default;
+		baseRenderer->rendererID = DS_MTL_RENDERER_ID;
+		baseRenderer->platformID = 0;
+		baseRenderer->name = "Metal";
+	#if DS_IOS
+		baseRenderer->shaderLanguage = "metal-ios";
+	#else
+		baseRenderer->shaderLanguage = "metal-osx";
+	#endif
+
+		char* deviceNameCopy = (char*)dsAllocator_alloc((dsAllocator*)&bufferAlloc,
+			deviceNameLen + 1);
+		DS_ASSERT(deviceNameCopy);
+		memcpy(deviceNameCopy, deviceName, deviceNameLen + 1);
+		baseRenderer->deviceName = deviceNameCopy;
+		baseRenderer->shaderVersion = getShaderVersion();
+		baseRenderer->vendorID = 0;
+		baseRenderer->deviceID = 0;
+		baseRenderer->driverVersion = 0;
+
+		baseRenderer->maxColorAttachments = getMaxColorAttachments(device);
+		baseRenderer->maxSurfaceSamples = getMaxSurfaceSamples(device);
+		baseRenderer->maxAnisotropy = 16.0f;
+		baseRenderer->surfaceSamples = options->samples;
+		baseRenderer->doubleBuffer = true;
+		baseRenderer->stereoscopic = false;
+		baseRenderer->vsync = false;
+		baseRenderer->clipHalfDepth = true;
+		baseRenderer->clipInvertY = false;
+		baseRenderer->hasGeometryShaders = false;
+		baseRenderer->hasTessellationShaders = hasTessellationShaders(device);
+
+		MTLSize maxComputeSize = device.maxThreadsPerThreadgroup;
+		baseRenderer->maxComputeWorkGroupSize[0] = (uint32_t)maxComputeSize.width;
+		baseRenderer->maxComputeWorkGroupSize[1] = (uint32_t)maxComputeSize.height;
+		baseRenderer->maxComputeWorkGroupSize[2] = (uint32_t)maxComputeSize.depth;
+
+		// Enough optimizations that might as well consider multidraw native.
+		baseRenderer->hasNativeMultidraw = true;
+		baseRenderer->supportsInstancedDrawing = true;
+		baseRenderer->supportsStartInstance = true;
+		baseRenderer->defaultAnisotropy = 1.0f;
+
+		baseRenderer->resourceManager = dsMTLResourceManager_create(allocator, baseRenderer);
+		if (!baseRenderer->resourceManager)
+		{
+			dsMTLRenderer_destroy(baseRenderer);
+			return NULL;
+		}
+
+		baseRenderer->surfaceColorFormat = colorFormat;
+
+		// 16 and 24-bit depth not always supported.
+		// First try 16 bit to fall back to 24 bit. Then try 24 bit to fall back to 32 bit.
+		if (depthFormat == dsGfxFormat_D16S8 &&
+			!dsGfxFormat_offscreenSupported(baseRenderer->resourceManager, depthFormat))
+		{
+			depthFormat = dsGfxFormat_D24S8;
+		}
+		else if (depthFormat == dsGfxFormat_D16 &&
+			!dsGfxFormat_offscreenSupported(baseRenderer->resourceManager, depthFormat))
+		{
+			depthFormat = dsGfxFormat_X8D24;
+		}
+
+		if (depthFormat == dsGfxFormat_D24S8 &&
+			!dsGfxFormat_offscreenSupported(baseRenderer->resourceManager, depthFormat))
+		{
+			depthFormat = dsGfxFormat_D32S8_Float;
+		}
+		else if (depthFormat == dsGfxFormat_X8D24 &&
+			!dsGfxFormat_offscreenSupported(baseRenderer->resourceManager, depthFormat))
+		{
+			depthFormat = dsGfxFormat_D32_Float;
+		}
+
+		if (depthFormat != dsGfxFormat_Unknown &&
+			!dsGfxFormat_offscreenSupported(baseRenderer->resourceManager, depthFormat))
+		{
+			errno = EPERM;
+			DS_LOG_ERROR(DS_RENDER_METAL_LOG_TAG, "Can't draw to surface depth format.");
+			dsMTLRenderer_destroy(baseRenderer);
+			return NULL;
+		}
+
+		baseRenderer->surfaceDepthStencilFormat = depthFormat;
+
+		baseRenderer->destroyFunc = &dsMTLRenderer_destroy;
+
+		// Render surfaces
+		baseRenderer->createRenderSurfaceFunc = &dsMTLRenderSurface_create;
+		baseRenderer->destroyRenderSurfaceFunc = &dsMTLRenderSurface_destroy;
+		baseRenderer->updateRenderSurfaceFunc = &dsMTLRenderSurface_update;
+		baseRenderer->beginRenderSurfaceFunc = &dsMTLRenderSurface_beginDraw;
+		baseRenderer->endRenderSurfaceFunc = &dsMTLRenderSurface_endDraw;
+		baseRenderer->swapRenderSurfaceBuffersFunc = &dsMTLRenderSurface_swapBuffers;
+
+		// Command buffer pools
+		baseRenderer->createCommandBufferPoolFunc = &dsMTLCommandBufferPool_create;
+		baseRenderer->destroyCommandBufferPoolFunc = &dsMTLCommandBufferPool_destroy;
+		baseRenderer->resetCommandBufferPoolFunc = &dsMTLCommandBufferPool_reset;
+
+		// Command buffers.
+		baseRenderer->beginCommandBufferFunc = &dsMTLCommandBuffer_begin;
+		baseRenderer->beginSecondaryCommandBufferFunc = &dsMTLCommandBuffer_beginSecondary;
+		baseRenderer->endCommandBufferFunc = &dsMTLCommandBuffer_end;
+		baseRenderer->submitCommandBufferFunc = &dsMTLCommandBuffer_submit;
+
+		// Render passes.
+		baseRenderer->createRenderPassFunc = &dsMTLRenderPass_create;
+		baseRenderer->destroyRenderPassFunc = &dsMTLRenderPass_destroy;
+		baseRenderer->beginRenderPassFunc = &dsMTLRenderPass_begin;
+		baseRenderer->nextRenderSubpassFunc = &dsMTLRenderPass_nextSubpass;
+		baseRenderer->endRenderPassFunc = &dsMTLRenderPass_end;
+
+		// Rendering functions.
+		baseRenderer->beginFrameFunc = &dsMTLRenderer_beginFrame;
+		baseRenderer->endFrameFunc = &dsMTLRenderer_endFrame;
+		baseRenderer->setSurfaceSamplesFunc = &dsMTLRenderer_setSurfaceSamples;
+		baseRenderer->setVsyncFunc = &dsMTLRenderer_setVsync;
+		baseRenderer->setDefaultAnisotropyFunc = &dsMTLRenderer_setDefaultAnisotropy;
+		baseRenderer->clearColorSurfaceFunc = &dsMTLRenderer_clearColorSurface;
+		baseRenderer->clearDepthStencilSurfaceFunc = &dsMTLRenderer_clearDepthStencilSurface;
+		baseRenderer->drawFunc = &dsMTLRenderer_draw;
+		baseRenderer->drawIndexedFunc = &dsMTLRenderer_drawIndexed;
+		baseRenderer->drawIndirectFunc = &dsMTLRenderer_drawIndirect;
+		baseRenderer->drawIndexedIndirectFunc = &dsMTLRenderer_drawIndexedIndirect;
+		baseRenderer->dispatchComputeFunc = &dsMTLRenderer_dispatchCompute;
+		baseRenderer->dispatchComputeIndirectFunc = &dsMTLRenderer_dispatchComputeIndirect;
+		baseRenderer->pushDebugGroupFunc = &dsMTLRenderer_pushDebugGroup;
+		baseRenderer->popDebugGroupFunc = &dsMTLRenderer_popDebugGroup;
+		baseRenderer->flushFunc = &dsMTLRenderer_flush;
+		baseRenderer->waitUntilIdleFunc = &dsMTLRenderer_waitUntilIdle;
+
+		DS_VERIFY(dsRenderer_initializeResources(baseRenderer));
+
+		return baseRenderer;
 	}
-
-	if (!allocator->freeFunc)
-	{
-		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_METAL_LOG_TAG, "Renderer allocator must support freeing memory.");
-		return NULL;
-	}
-
-	dsGfxFormat colorFormat = dsRenderer_optionsColorFormat(options, true, true);
-	if (!dsGfxFormat_isValid(colorFormat))
-	{
-		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_METAL_LOG_TAG, "Invalid color format.");
-		return NULL;
-	}
-
-	dsGfxFormat depthFormat = dsRenderer_optionsDepthFormat(options);
-
-	id<MTLDevice> device = MTLCreateSystemDefaultDevice();
-	if (!device)
-	{
-		errno = EAGAIN;
-		DS_LOG_ERROR(DS_RENDER_METAL_LOG_TAG, "Couldn't create Metal device.");
-		return NULL;
-	}
-
-	const char* deviceName = [device.name UTF8String];
-	size_t deviceNameLen = strlen(deviceName);
-
-	size_t bufferSize = dsMTLRenderer_fullAllocSize(deviceNameLen);
-	void* buffer = dsAllocator_alloc(allocator, bufferSize);
-	if (!buffer)
-		return NULL;
-
-	dsBufferAllocator bufferAlloc;
-	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, bufferSize));
-	dsMTLRenderer* renderer = DS_ALLOCATE_OBJECT((dsAllocator*)&bufferAlloc, dsMTLRenderer);
-	DS_ASSERT(renderer);
-	memset(renderer, 0, sizeof(*renderer));
-	dsRenderer* baseRenderer = (dsRenderer*)renderer;
-	DS_VERIFY(dsSpinlock_initialize(&renderer->processBuffersLock));
-	DS_VERIFY(dsSpinlock_initialize(&renderer->processTexturesLock));
-
-	DS_VERIFY(dsRenderer_initialize(baseRenderer));
-	renderer->device = CFBridgingRetain(device);
-
-	id<MTLCommandQueue> commandQueue = [device newCommandQueue];
-	if (!commandQueue)
-	{
-		dsMTLRenderer_destroy(baseRenderer);
-		errno = ENOMEM;
-		return NULL;
-	}
-
-	renderer->commandQueue = CFBridgingRetain(commandQueue);
-
-	// Start at submit count 1 so it's ahead of the finished index.
-	renderer->submitCount = 1;
-	renderer->submitCondition = dsConditionVariable_create((dsAllocator*)&bufferAlloc,
-		"Render Submit Condition");
-	renderer->submitMutex = dsMutex_create((dsAllocator*)&bufferAlloc,
-		"Render Submit Mutex");
-
-	baseRenderer->allocator = dsAllocator_keepPointer(allocator);
-
-	dsMTLHardwareCommandBuffer_initialize(&renderer->mainCommandBuffer, baseRenderer, allocator,
-		dsCommandBufferUsage_Standard);
-	baseRenderer->mainCommandBuffer = (dsCommandBuffer*)&renderer->mainCommandBuffer;
-
-	baseRenderer->platform = dsGfxPlatform_Default;
-	baseRenderer->rendererID = DS_MTL_RENDERER_ID;
-	baseRenderer->platformID = 0;
-	baseRenderer->name = "Metal";
-#if DS_IOS
-	baseRenderer->shaderLanguage = "metal-ios";
-#else
-	baseRenderer->shaderLanguage = "metal-osx";
-#endif
-
-	char* deviceNameCopy = (char*)dsAllocator_alloc((dsAllocator*)&bufferAlloc, deviceNameLen + 1);
-	DS_ASSERT(deviceNameCopy);
-	memcpy(deviceNameCopy, deviceName, deviceNameLen + 1);
-	baseRenderer->deviceName = deviceNameCopy;
-	baseRenderer->shaderVersion = getShaderVersion();
-	baseRenderer->vendorID = 0;
-	baseRenderer->deviceID = 0;
-	baseRenderer->driverVersion = 0;
-
-	baseRenderer->maxColorAttachments = getMaxColorAttachments(device);
-	baseRenderer->maxSurfaceSamples = getMaxSurfaceSamples(device);
-	baseRenderer->maxAnisotropy = 16.0f;
-	baseRenderer->surfaceSamples = options->samples;
-	baseRenderer->doubleBuffer = true;
-	baseRenderer->stereoscopic = false;
-	baseRenderer->vsync = false;
-	baseRenderer->clipHalfDepth = true;
-	baseRenderer->clipInvertY = false;
-	baseRenderer->hasGeometryShaders = false;
-	baseRenderer->hasTessellationShaders = hasTessellationShaders(device);
-
-	MTLSize maxComputeSize = device.maxThreadsPerThreadgroup;
-	baseRenderer->maxComputeWorkGroupSize[0] = (uint32_t)maxComputeSize.width;
-	baseRenderer->maxComputeWorkGroupSize[1] = (uint32_t)maxComputeSize.height;
-	baseRenderer->maxComputeWorkGroupSize[2] = (uint32_t)maxComputeSize.depth;
-
-	// Enough optimizations that might as well consider multidraw native.
-	baseRenderer->hasNativeMultidraw = true;
-	baseRenderer->supportsInstancedDrawing = true;
-	baseRenderer->supportsStartInstance = true;
-	baseRenderer->defaultAnisotropy = 1.0f;
-
-	baseRenderer->resourceManager = dsMTLResourceManager_create(allocator, baseRenderer);
-	if (!baseRenderer->resourceManager)
-	{
-		dsMTLRenderer_destroy(baseRenderer);
-		return NULL;
-	}
-
-	baseRenderer->surfaceColorFormat = colorFormat;
-
-	// 16 and 24-bit depth not always supported.
-	// First try 16 bit to fall back to 24 bit. Then try 24 bit to fall back to 32 bit.
-	if (depthFormat == dsGfxFormat_D16S8 &&
-		!dsGfxFormat_offscreenSupported(baseRenderer->resourceManager, depthFormat))
-	{
-		depthFormat = dsGfxFormat_D24S8;
-	}
-	else if (depthFormat == dsGfxFormat_D16 &&
-		!dsGfxFormat_offscreenSupported(baseRenderer->resourceManager, depthFormat))
-	{
-		depthFormat = dsGfxFormat_X8D24;
-	}
-
-	if (depthFormat == dsGfxFormat_D24S8 &&
-		!dsGfxFormat_offscreenSupported(baseRenderer->resourceManager, depthFormat))
-	{
-		depthFormat = dsGfxFormat_D32S8_Float;
-	}
-	else if (depthFormat == dsGfxFormat_X8D24 &&
-		!dsGfxFormat_offscreenSupported(baseRenderer->resourceManager, depthFormat))
-	{
-		depthFormat = dsGfxFormat_D32_Float;
-	}
-
-	if (depthFormat != dsGfxFormat_Unknown &&
-		!dsGfxFormat_offscreenSupported(baseRenderer->resourceManager, depthFormat))
-	{
-		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_METAL_LOG_TAG, "Can't draw to surface depth format.");
-		dsMTLRenderer_destroy(baseRenderer);
-		return NULL;
-	}
-
-	baseRenderer->surfaceDepthStencilFormat = depthFormat;
-
-	baseRenderer->destroyFunc = &dsMTLRenderer_destroy;
-
-	// Render surfaces
-	baseRenderer->createRenderSurfaceFunc = &dsMTLRenderSurface_create;
-	baseRenderer->destroyRenderSurfaceFunc = &dsMTLRenderSurface_destroy;
-	baseRenderer->updateRenderSurfaceFunc = &dsMTLRenderSurface_update;
-	baseRenderer->beginRenderSurfaceFunc = &dsMTLRenderSurface_beginDraw;
-	baseRenderer->endRenderSurfaceFunc = &dsMTLRenderSurface_endDraw;
-	baseRenderer->swapRenderSurfaceBuffersFunc = &dsMTLRenderSurface_swapBuffers;
-
-	// Command buffer pools
-	baseRenderer->createCommandBufferPoolFunc = &dsMTLCommandBufferPool_create;
-	baseRenderer->destroyCommandBufferPoolFunc = &dsMTLCommandBufferPool_destroy;
-	baseRenderer->resetCommandBufferPoolFunc = &dsMTLCommandBufferPool_reset;
-
-	// Command buffers.
-	baseRenderer->beginCommandBufferFunc = &dsMTLCommandBuffer_begin;
-	baseRenderer->beginSecondaryCommandBufferFunc = &dsMTLCommandBuffer_beginSecondary;
-	baseRenderer->endCommandBufferFunc = &dsMTLCommandBuffer_end;
-	baseRenderer->submitCommandBufferFunc = &dsMTLCommandBuffer_submit;
-
-	// Render passes.
-	baseRenderer->createRenderPassFunc = &dsMTLRenderPass_create;
-	baseRenderer->destroyRenderPassFunc = &dsMTLRenderPass_destroy;
-	baseRenderer->beginRenderPassFunc = &dsMTLRenderPass_begin;
-	baseRenderer->nextRenderSubpassFunc = &dsMTLRenderPass_nextSubpass;
-	baseRenderer->endRenderPassFunc = &dsMTLRenderPass_end;
-
-	// Rendering functions.
-	baseRenderer->beginFrameFunc = &dsMTLRenderer_beginFrame;
-	baseRenderer->endFrameFunc = &dsMTLRenderer_endFrame;
-	baseRenderer->setSurfaceSamplesFunc = &dsMTLRenderer_setSurfaceSamples;
-	baseRenderer->setVsyncFunc = &dsMTLRenderer_setVsync;
-	baseRenderer->setDefaultAnisotropyFunc = &dsMTLRenderer_setDefaultAnisotropy;
-	baseRenderer->clearColorSurfaceFunc = &dsMTLRenderer_clearColorSurface;
-	baseRenderer->clearDepthStencilSurfaceFunc = &dsMTLRenderer_clearDepthStencilSurface;
-	baseRenderer->drawFunc = &dsMTLRenderer_draw;
-	baseRenderer->drawIndexedFunc = &dsMTLRenderer_drawIndexed;
-	baseRenderer->drawIndirectFunc = &dsMTLRenderer_drawIndirect;
-	baseRenderer->drawIndexedIndirectFunc = &dsMTLRenderer_drawIndexedIndirect;
-	baseRenderer->dispatchComputeFunc = &dsMTLRenderer_dispatchCompute;
-	baseRenderer->dispatchComputeIndirectFunc = &dsMTLRenderer_dispatchComputeIndirect;
-	baseRenderer->pushDebugGroupFunc = &dsMTLRenderer_pushDebugGroup;
-	baseRenderer->popDebugGroupFunc = &dsMTLRenderer_popDebugGroup;
-	baseRenderer->flushFunc = &dsMTLRenderer_flush;
-	baseRenderer->waitUntilIdleFunc = &dsMTLRenderer_waitUntilIdle;
-
-	DS_VERIFY(dsRenderer_initializeResources(baseRenderer));
-
-	return baseRenderer;
 }
 
 uint64_t dsMTLRenderer_flushImpl(dsRenderer* renderer, id<MTLCommandBuffer> extraCommands)

@@ -148,6 +148,9 @@ struct dsVectorScratchData
 	uint32_t indexCount;
 	uint32_t maxIndices;
 
+	uint32_t imageVertexOffset;
+	uint32_t indexOffset;
+
 	VectorInfo* vectorInfos;
 	uint32_t vectorInfoCount;
 	uint32_t maxVectorInfos;

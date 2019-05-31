@@ -333,106 +333,111 @@ dsRenderPass* dsMTLRenderPass_create(dsRenderer* renderer, dsAllocator* allocato
 	const dsRenderSubpassInfo* subpasses, uint32_t subpassCount,
 	const dsSubpassDependency* dependencies, uint32_t dependencyCount)
 {
-	DS_UNUSED(dependencies);
-	DS_UNUSED(dependencyCount);
-	size_t fullSize = fullAllocSize(attachmentCount, subpasses, subpassCount);
-	void* buffer = dsAllocator_alloc(allocator, fullSize);
-	if (!buffer)
-		return NULL;
-
-	dsBufferAllocator bufferAlloc;
-	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, fullSize));
-	dsMTLRenderPass* renderPass = DS_ALLOCATE_OBJECT((dsAllocator*)&bufferAlloc, dsMTLRenderPass);
-	DS_ASSERT(renderPass);
-
-	renderPass->lifetime = dsLifetime_create(allocator, renderPass);
-	if (!renderPass->lifetime)
+	@autoreleasepool
 	{
-		if (allocator->freeFunc)
-			DS_VERIFY(dsAllocator_free(allocator, renderPass));
-		return NULL;
-	}
+		DS_UNUSED(dependencies);
+		DS_UNUSED(dependencyCount);
+		size_t fullSize = fullAllocSize(attachmentCount, subpasses, subpassCount);
+		void* buffer = dsAllocator_alloc(allocator, fullSize);
+		if (!buffer)
+			return NULL;
 
-	dsRenderPass* baseRenderPass = (dsRenderPass*)renderPass;
-	baseRenderPass->renderer = renderer;
-	baseRenderPass->allocator = dsAllocator_keepPointer(allocator);
+		dsBufferAllocator bufferAlloc;
+		DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, fullSize));
+		dsMTLRenderPass* renderPass = DS_ALLOCATE_OBJECT((dsAllocator*)&bufferAlloc,
+			dsMTLRenderPass);
+		DS_ASSERT(renderPass);
 
-	if (attachmentCount > 0)
-	{
-		baseRenderPass->attachments = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
-			dsAttachmentInfo, attachmentCount);
-		DS_ASSERT(baseRenderPass->attachments);
-		memcpy((void*)baseRenderPass->attachments, attachments,
-			sizeof(dsAttachmentInfo)*attachmentCount);
-	}
-	else
-		baseRenderPass->attachments = NULL;
-
-	dsRenderSubpassInfo* subpassesCopy = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
-		dsRenderSubpassInfo, subpassCount);
-	DS_ASSERT(subpassesCopy);
-	memcpy(subpassesCopy, subpasses, sizeof(dsRenderSubpassInfo)*subpassCount);
-	baseRenderPass->subpasses = subpassesCopy;
-	renderPass->subpassInfos = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
-		dsMTLSubpassInfo, subpassCount);
-	DS_ASSERT(renderPass->subpassInfos);
-	for (uint32_t i = 0; i < subpassCount; ++i)
-	{
-		dsRenderSubpassInfo* curSubpass = subpassesCopy + i;
-		dsMTLSubpassInfo* curSubpassInfo = renderPass->subpassInfos + i;
-		if (curSubpass->inputAttachmentCount > 0)
+		renderPass->lifetime = dsLifetime_create(allocator, renderPass);
+		if (!renderPass->lifetime)
 		{
-			curSubpass->inputAttachments = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
-				uint32_t, curSubpass->inputAttachmentCount);
-			DS_ASSERT(curSubpass->inputAttachments);
-			memcpy((void*)curSubpass->inputAttachments, subpasses[i].inputAttachments,
-				sizeof(uint32_t)*curSubpass->inputAttachmentCount);
+			if (allocator->freeFunc)
+				DS_VERIFY(dsAllocator_free(allocator, renderPass));
+			return NULL;
 		}
 
-		if (curSubpass->colorAttachmentCount > 0)
-		{
-			curSubpass->colorAttachments = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
-				dsColorAttachmentRef, curSubpass->colorAttachmentCount);
-			DS_ASSERT(curSubpass->colorAttachments);
-			memcpy((void*)curSubpass->colorAttachments, subpasses[i].colorAttachments,
-				sizeof(dsColorAttachmentRef)*curSubpass->colorAttachmentCount);
+		dsRenderPass* baseRenderPass = (dsRenderPass*)renderPass;
+		baseRenderPass->renderer = renderer;
+		baseRenderPass->allocator = dsAllocator_keepPointer(allocator);
 
-			curSubpassInfo->colorAttachments = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
-				dsMTLAttachmentInfo, curSubpass->colorAttachmentCount);
-			DS_ASSERT(curSubpassInfo->colorAttachments);
-			for (uint32_t j = 0; j < curSubpass->colorAttachmentCount; ++j)
-			{
-				dsMTLAttachmentInfo* attachmentInfo = curSubpassInfo->colorAttachments + j;
-				const dsColorAttachmentRef* colorAttachment = curSubpass->colorAttachments + j;
-				attachmentInfo->loadAction = getLoadAction(colorAttachment->attachmentIndex, i,
-					attachments, subpasses, subpassCount);
-				attachmentInfo->storeAction = getStoreAction(colorAttachment->attachmentIndex,
-					i, attachments, subpasses, subpassCount);
-			}
+		if (attachmentCount > 0)
+		{
+			baseRenderPass->attachments = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
+				dsAttachmentInfo, attachmentCount);
+			DS_ASSERT(baseRenderPass->attachments);
+			memcpy((void*)baseRenderPass->attachments, attachments,
+				sizeof(dsAttachmentInfo)*attachmentCount);
 		}
 		else
-			curSubpassInfo->colorAttachments = NULL;
+			baseRenderPass->attachments = NULL;
 
-		curSubpassInfo->depthStencilAttachment.loadAction = getLoadAction(
-			curSubpass->depthStencilAttachment, i, attachments, subpasses, subpassCount);
-		curSubpassInfo->depthStencilAttachment.storeAction = getStoreAction(
-			curSubpass->depthStencilAttachment, i, attachments, subpasses, subpassCount);
+		dsRenderSubpassInfo* subpassesCopy = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
+			dsRenderSubpassInfo, subpassCount);
+		DS_ASSERT(subpassesCopy);
+		memcpy(subpassesCopy, subpasses, sizeof(dsRenderSubpassInfo)*subpassCount);
+		baseRenderPass->subpasses = subpassesCopy;
+		renderPass->subpassInfos = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
+			dsMTLSubpassInfo, subpassCount);
+		DS_ASSERT(renderPass->subpassInfos);
+		for (uint32_t i = 0; i < subpassCount; ++i)
+		{
+			dsRenderSubpassInfo* curSubpass = subpassesCopy + i;
+			dsMTLSubpassInfo* curSubpassInfo = renderPass->subpassInfos + i;
+			if (curSubpass->inputAttachmentCount > 0)
+			{
+				curSubpass->inputAttachments = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
+					uint32_t, curSubpass->inputAttachmentCount);
+				DS_ASSERT(curSubpass->inputAttachments);
+				memcpy((void*)curSubpass->inputAttachments, subpasses[i].inputAttachments,
+					sizeof(uint32_t)*curSubpass->inputAttachmentCount);
+			}
+
+			if (curSubpass->colorAttachmentCount > 0)
+			{
+				curSubpass->colorAttachments = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
+					dsColorAttachmentRef, curSubpass->colorAttachmentCount);
+				DS_ASSERT(curSubpass->colorAttachments);
+				memcpy((void*)curSubpass->colorAttachments, subpasses[i].colorAttachments,
+					sizeof(dsColorAttachmentRef)*curSubpass->colorAttachmentCount);
+
+				curSubpassInfo->colorAttachments =
+					DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc, dsMTLAttachmentInfo,
+					curSubpass->colorAttachmentCount);
+				DS_ASSERT(curSubpassInfo->colorAttachments);
+				for (uint32_t j = 0; j < curSubpass->colorAttachmentCount; ++j)
+				{
+					dsMTLAttachmentInfo* attachmentInfo = curSubpassInfo->colorAttachments + j;
+					const dsColorAttachmentRef* colorAttachment = curSubpass->colorAttachments + j;
+					attachmentInfo->loadAction = getLoadAction(colorAttachment->attachmentIndex, i,
+						attachments, subpasses, subpassCount);
+					attachmentInfo->storeAction = getStoreAction(colorAttachment->attachmentIndex,
+						i, attachments, subpasses, subpassCount);
+				}
+			}
+			else
+				curSubpassInfo->colorAttachments = NULL;
+
+			curSubpassInfo->depthStencilAttachment.loadAction = getLoadAction(
+				curSubpass->depthStencilAttachment, i, attachments, subpasses, subpassCount);
+			curSubpassInfo->depthStencilAttachment.storeAction = getStoreAction(
+				curSubpass->depthStencilAttachment, i, attachments, subpasses, subpassCount);
+		}
+
+		baseRenderPass->subpassDependencies = NULL;
+
+		baseRenderPass->attachmentCount = attachmentCount;
+		baseRenderPass->subpassCount = subpassCount;
+		baseRenderPass->subpassDependencyCount = 0;
+
+		renderPass->scratchAllocator = renderer->allocator;
+		renderPass->usedShaders = NULL;
+		renderPass->usedShaderCount = 0;
+		renderPass->maxUsedShaders = 0;
+
+		DS_VERIFY(dsSpinlock_initialize(&renderPass->shaderLock));
+
+		return baseRenderPass;
 	}
-
-	baseRenderPass->subpassDependencies = NULL;
-
-	baseRenderPass->attachmentCount = attachmentCount;
-	baseRenderPass->subpassCount = subpassCount;
-	baseRenderPass->subpassDependencyCount = 0;
-
-	renderPass->scratchAllocator = renderer->allocator;
-	renderPass->usedShaders = NULL;
-	renderPass->usedShaderCount = 0;
-	renderPass->maxUsedShaders = 0;
-
-	DS_VERIFY(dsSpinlock_initialize(&renderPass->shaderLock));
-
-	return baseRenderPass;
 }
 
 bool dsMTLRenderPass_begin(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
@@ -440,60 +445,69 @@ bool dsMTLRenderPass_begin(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsAlignedBox3f* viewport, const dsSurfaceClearValue* clearValues,
 	uint32_t clearValueCount)
 {
-	DS_UNUSED(renderer);
-	if (!dsMTLCommandBuffer_copyClearValues(commandBuffer, clearValues, clearValueCount))
-		return false;
-
-	dsMTLCommandBuffer* mtlCommandBuffer = (dsMTLCommandBuffer*)commandBuffer;
-	if (viewport)
-		mtlCommandBuffer->viewport = *viewport;
-	else
+	@autoreleasepool
 	{
-		mtlCommandBuffer->viewport.min.x = 0.0f;
-		mtlCommandBuffer->viewport.min.y = 0.0f;
-		mtlCommandBuffer->viewport.min.z = 0.0f;
-		mtlCommandBuffer->viewport.max.x = (float)framebuffer->width;
-		mtlCommandBuffer->viewport.max.y = (float)framebuffer->height;
-		mtlCommandBuffer->viewport.max.z = 1.0f;
+		DS_UNUSED(renderer);
+		if (!dsMTLCommandBuffer_copyClearValues(commandBuffer, clearValues, clearValueCount))
+			return false;
+
+		dsMTLCommandBuffer* mtlCommandBuffer = (dsMTLCommandBuffer*)commandBuffer;
+		if (viewport)
+			mtlCommandBuffer->viewport = *viewport;
+		else
+		{
+			mtlCommandBuffer->viewport.min.x = 0.0f;
+			mtlCommandBuffer->viewport.min.y = 0.0f;
+			mtlCommandBuffer->viewport.min.z = 0.0f;
+			mtlCommandBuffer->viewport.max.x = (float)framebuffer->width;
+			mtlCommandBuffer->viewport.max.y = (float)framebuffer->height;
+			mtlCommandBuffer->viewport.max.z = 1.0f;
+		}
+
+		MTLRenderPassDescriptor* descriptor = createRenderPassDescriptor(renderPass, 0, framebuffer,
+			commandBuffer);
+		if (!descriptor)
+			return false;
+
+		addReadbackOffscreens(renderPass, 0, framebuffer, commandBuffer);
+		return dsMTLCommandBuffer_beginRenderPass(commandBuffer, descriptor,
+			&mtlCommandBuffer->viewport);
 	}
-
-	MTLRenderPassDescriptor* descriptor = createRenderPassDescriptor(renderPass, 0, framebuffer,
-		commandBuffer);
-	if (!descriptor)
-		return false;
-
-	addReadbackOffscreens(renderPass, 0, framebuffer, commandBuffer);
-	return dsMTLCommandBuffer_beginRenderPass(commandBuffer, descriptor,
-		&mtlCommandBuffer->viewport);
 }
 
 bool dsMTLRenderPass_nextSubpass(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsRenderPass* renderPass, uint32_t index)
 {
-	DS_UNUSED(renderer);
-	dsMTLCommandBuffer* mtlCommandBuffer = (dsMTLCommandBuffer*)commandBuffer;
-	const dsFramebuffer* framebuffer = commandBuffer->boundFramebuffer;
-	DS_ASSERT(framebuffer);
+	@autoreleasepool
+	{
+		DS_UNUSED(renderer);
+		dsMTLCommandBuffer* mtlCommandBuffer = (dsMTLCommandBuffer*)commandBuffer;
+		const dsFramebuffer* framebuffer = commandBuffer->boundFramebuffer;
+		DS_ASSERT(framebuffer);
 
-	MTLRenderPassDescriptor* descriptor = createRenderPassDescriptor(renderPass, index,
-		framebuffer, commandBuffer);
-	if (!descriptor)
-		return false;
+		MTLRenderPassDescriptor* descriptor = createRenderPassDescriptor(renderPass, index,
+			framebuffer, commandBuffer);
+		if (!descriptor)
+			return false;
 
-	if (!dsMTLCommandBuffer_endRenderPass(commandBuffer))
-		return false;
+		if (!dsMTLCommandBuffer_endRenderPass(commandBuffer))
+			return false;
 
-	addReadbackOffscreens(renderPass, index, framebuffer, commandBuffer);
-	return dsMTLCommandBuffer_beginRenderPass(commandBuffer, descriptor,
-		&mtlCommandBuffer->viewport);
+		addReadbackOffscreens(renderPass, index, framebuffer, commandBuffer);
+		return dsMTLCommandBuffer_beginRenderPass(commandBuffer, descriptor,
+			&mtlCommandBuffer->viewport);
+	}
 }
 
 bool dsMTLRenderPass_end(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsRenderPass* renderPass)
 {
-	DS_UNUSED(renderer);
-	DS_UNUSED(renderPass);
-	return dsMTLCommandBuffer_endRenderPass(commandBuffer);
+	@autoreleasepool
+	{
+		DS_UNUSED(renderer);
+		DS_UNUSED(renderPass);
+		return dsMTLCommandBuffer_endRenderPass(commandBuffer);
+	}
 }
 
 bool dsMTLRenderPass_destroy(dsRenderer* renderer, dsRenderPass* renderPass)

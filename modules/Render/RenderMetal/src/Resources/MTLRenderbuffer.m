@@ -30,114 +30,117 @@ dsRenderbuffer* dsMTLRenderbuffer_create(dsResourceManager* resourceManager, dsA
 	dsRenderbufferUsage usage, dsGfxFormat format, uint32_t width, uint32_t height,
 	uint32_t samples)
 {
-	dsMTLRenderer* renderer = (dsMTLRenderer*)resourceManager->renderer;
-	id<MTLDevice> device = (__bridge id<MTLDevice>)renderer->device;
-	MTLPixelFormat pixelFormat = dsMTLResourceManager_getPixelFormat(resourceManager, format);
-	MTLPixelFormat stencilPixelFormat = MTLPixelFormatInvalid;
-	if (pixelFormat == MTLPixelFormatInvalid)
+	@autoreleasepool
 	{
-		// Need to have separate depth and stencil surfaces.
-		switch (format)
+		dsMTLRenderer* renderer = (dsMTLRenderer*)resourceManager->renderer;
+		id<MTLDevice> device = (__bridge id<MTLDevice>)renderer->device;
+		MTLPixelFormat pixelFormat = dsMTLResourceManager_getPixelFormat(resourceManager, format);
+		MTLPixelFormat stencilPixelFormat = MTLPixelFormatInvalid;
+		if (pixelFormat == MTLPixelFormatInvalid)
 		{
+			// Need to have separate depth and stencil surfaces.
+			switch (format)
+			{
 #if MAC_OS_X_VERSION_MIN_REQUIRED >= 101200
-			case dsGfxFormat_D16S8:
-				pixelFormat = MTLPixelFormatDepth16Unorm;
-				stencilPixelFormat = MTLPixelFormatStencil8;
-				break;
+				case dsGfxFormat_D16S8:
+					pixelFormat = MTLPixelFormatDepth16Unorm;
+					stencilPixelFormat = MTLPixelFormatStencil8;
+					break;
 #endif
-			case dsGfxFormat_D32S8_Float:
-				pixelFormat = MTLPixelFormatDepth32Float;
-				stencilPixelFormat = MTLPixelFormatStencil8;
-				break;
-			default:
-				break;
+				case dsGfxFormat_D32S8_Float:
+					pixelFormat = MTLPixelFormatDepth32Float;
+					stencilPixelFormat = MTLPixelFormatStencil8;
+					break;
+				default:
+					break;
+			}
 		}
-	}
-	else if (pixelFormat == MTLPixelFormatStencil8)
-	{
-		stencilPixelFormat = pixelFormat;
-		pixelFormat = MTLPixelFormatInvalid;
-	}
+		else if (pixelFormat == MTLPixelFormatStencil8)
+		{
+			stencilPixelFormat = pixelFormat;
+			pixelFormat = MTLPixelFormatInvalid;
+		}
 
-	bool sharedStencil = format == dsGfxFormat_D16S8 || format == dsGfxFormat_D24S8 ||
-		format == dsGfxFormat_D32S8_Float;
+		bool sharedStencil = format == dsGfxFormat_D16S8 || format == dsGfxFormat_D24S8 ||
+			format == dsGfxFormat_D32S8_Float;
 
-	if (pixelFormat == MTLPixelFormatInvalid)
-	{
-		errno = EINVAL;
-		DS_LOG_ERROR(DS_RENDER_METAL_LOG_TAG, "Unknown format.");
-		return nil;
-	}
+		if (pixelFormat == MTLPixelFormatInvalid)
+		{
+			errno = EINVAL;
+			DS_LOG_ERROR(DS_RENDER_METAL_LOG_TAG, "Unknown format.");
+			return nil;
+		}
 
-	dsMTLRenderbuffer* renderbuffer = DS_ALLOCATE_OBJECT(allocator, dsMTLRenderbuffer);
-	if (!renderbuffer)
-		return NULL;
+		dsMTLRenderbuffer* renderbuffer = DS_ALLOCATE_OBJECT(allocator, dsMTLRenderbuffer);
+		if (!renderbuffer)
+			return NULL;
 
-	dsRenderbuffer* baseRenderbuffer = (dsRenderbuffer*)renderbuffer;
-	baseRenderbuffer->resourceManager = resourceManager;
-	baseRenderbuffer->allocator = dsAllocator_keepPointer(allocator);
-	baseRenderbuffer->usage = usage;
-	baseRenderbuffer->format = format;
-	baseRenderbuffer->width = width;
-	baseRenderbuffer->height = height;
-	baseRenderbuffer->samples = samples;
+		dsRenderbuffer* baseRenderbuffer = (dsRenderbuffer*)renderbuffer;
+		baseRenderbuffer->resourceManager = resourceManager;
+		baseRenderbuffer->allocator = dsAllocator_keepPointer(allocator);
+		baseRenderbuffer->usage = usage;
+		baseRenderbuffer->format = format;
+		baseRenderbuffer->width = width;
+		baseRenderbuffer->height = height;
+		baseRenderbuffer->samples = samples;
 
-	MTLTextureDescriptor* descriptor = [MTLTextureDescriptor new];
-	if (!descriptor)
-	{
-		errno = ENOMEM;
-		dsMTLRenderbuffer_destroy(resourceManager, baseRenderbuffer);
-		return NULL;
-	}
+		MTLTextureDescriptor* descriptor = [MTLTextureDescriptor new];
+		if (!descriptor)
+		{
+			errno = ENOMEM;
+			dsMTLRenderbuffer_destroy(resourceManager, baseRenderbuffer);
+			return NULL;
+		}
 
-	if (samples > 1)
-		descriptor.textureType = MTLTextureType2DMultisample;
-	descriptor.width = width;
-	descriptor.height = height;
-	descriptor.sampleCount = samples;
+		if (samples > 1)
+			descriptor.textureType = MTLTextureType2DMultisample;
+		descriptor.width = width;
+		descriptor.height = height;
+		descriptor.sampleCount = samples;
 
-	MTLResourceOptions resourceOptions = MTLResourceOptionCPUCacheModeWriteCombined;
+		MTLResourceOptions resourceOptions = MTLResourceOptionCPUCacheModeWriteCombined;
 #if DS_MAC || IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
-	resourceOptions |= MTLResourceStorageModePrivate;
-	descriptor.usage = MTLTextureUsageRenderTarget;
+		resourceOptions |= MTLResourceStorageModePrivate;
+		descriptor.usage = MTLTextureUsageRenderTarget;
 #endif
 #if IPHONE_OS_VERSION_MIN_REQUIRED >= 100000
-	if (!(usage & (dsRenderbufferUsage_Continue | dsRenderbufferUsage_Clear)))
-		resourceOptions |= MTLResourceStorageModeMemoryless;
+		if (!(usage & (dsRenderbufferUsage_Continue | dsRenderbufferUsage_Clear)))
+			resourceOptions |= MTLResourceStorageModeMemoryless;
 #endif
-	descriptor.resourceOptions = resourceOptions;
+		descriptor.resourceOptions = resourceOptions;
 
-	if (pixelFormat != MTLPixelFormatInvalid)
-	{
-		descriptor.pixelFormat = pixelFormat;
-		id<MTLTexture> surface = [device newTextureWithDescriptor: descriptor];
-		if (!surface)
+		if (pixelFormat != MTLPixelFormatInvalid)
 		{
-			errno = ENOMEM;
-			dsMTLRenderbuffer_destroy(resourceManager, baseRenderbuffer);
-			return NULL;
+			descriptor.pixelFormat = pixelFormat;
+			id<MTLTexture> surface = [device newTextureWithDescriptor: descriptor];
+			if (!surface)
+			{
+				errno = ENOMEM;
+				dsMTLRenderbuffer_destroy(resourceManager, baseRenderbuffer);
+				return NULL;
+			}
+			renderbuffer->surface = CFBridgingRetain(surface);
 		}
-		renderbuffer->surface = CFBridgingRetain(surface);
-	}
 
-	if (stencilPixelFormat != MTLPixelFormatInvalid)
-	{
-		descriptor.pixelFormat = stencilPixelFormat;
-		id<MTLTexture> surface = [device newTextureWithDescriptor: descriptor];
-		if (!surface)
+		if (stencilPixelFormat != MTLPixelFormatInvalid)
 		{
-			errno = ENOMEM;
-			dsMTLRenderbuffer_destroy(resourceManager, baseRenderbuffer);
-			return NULL;
+			descriptor.pixelFormat = stencilPixelFormat;
+			id<MTLTexture> surface = [device newTextureWithDescriptor: descriptor];
+			if (!surface)
+			{
+				errno = ENOMEM;
+				dsMTLRenderbuffer_destroy(resourceManager, baseRenderbuffer);
+				return NULL;
+			}
+			renderbuffer->stencilSurface = CFBridgingRetain(surface);
 		}
-		renderbuffer->stencilSurface = CFBridgingRetain(surface);
-	}
-	else if (sharedStencil)
-	{
-		renderbuffer->stencilSurface = CFRetain(renderbuffer->surface);
-	}
+		else if (sharedStencil)
+		{
+			renderbuffer->stencilSurface = CFRetain(renderbuffer->surface);
+		}
 
-	return baseRenderbuffer;
+		return baseRenderbuffer;
+	}
 }
 
 bool dsMTLRenderbuffer_destroy(dsResourceManager* resourceManager, dsRenderbuffer* renderbuffer)
