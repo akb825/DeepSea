@@ -972,9 +972,9 @@ bool dsMTLHardwareCommandBuffer_drawIndexed(dsCommandBuffer* commandBuffer,
 
 	[encoder drawIndexedPrimitives: getPrimitiveType(primitiveType)
 		indexCount: drawRange->indexCount indexType: getIndexType(indexSize)
-		indexBuffer: indexBuffer indexBufferOffset: indexOffset
+		indexBuffer: indexBuffer indexBufferOffset: indexOffset + drawRange->firstIndex*indexSize
 		instanceCount: drawRange->instanceCount baseVertex: drawRange->vertexOffset
-		baseInstance: drawRange->firstIndex];
+		baseInstance: drawRange->firstInstance];
 	return true;
 }
 

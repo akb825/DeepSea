@@ -955,7 +955,7 @@ typedef struct dsDrawIndexedRange
 	uint32_t instanceCount;
 
 	/**
-	 * @brief The first instance to draw.
+	 * @brief The first index to draw.
 	 */
 	uint32_t firstIndex;
 

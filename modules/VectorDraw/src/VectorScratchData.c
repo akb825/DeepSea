@@ -706,10 +706,13 @@ dsGfxBuffer* dsVectorScratchData_createGfxBuffer(dsVectorScratchData* data,
 	// Metal has some interesting alignment restrictions.
 	if (resourceManager->renderer->rendererID == DS_FOURCC('M', 'T', 'L', 0))
 	{
+		// Need to align to uniform block for the first set of vertices so the second set can be
+		// aligned.
 		alignedShapeVertexSize = DS_CUSTOM_ALIGNED_SIZE(shapeVertexSize,
 			resourceManager->minUniformBlockAlignment);
-		alignedImageVertexSize = DS_CUSTOM_ALIGNED_SIZE(imageVertexSize,
-			resourceManager->minUniformBlockAlignment);
+		// Second set should be fine as-is.
+		alignedImageVertexSize = imageVertexSize;
+		// End of the buffer must be a multiple of 4.
 		alignedIndexSize = DS_CUSTOM_ALIGNED_SIZE(indexSize, 4);
 	}
 
