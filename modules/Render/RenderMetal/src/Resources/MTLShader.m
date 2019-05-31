@@ -242,6 +242,44 @@ static bool createSamplers(dsMTLShader* shader, mslModule* module, uint32_t shad
 	return true;
 }
 
+static void updateSamplers(dsMTLShader* shader, mslModule* module, uint32_t shaderIndex)
+{
+	if (shader->defaultAnisotropy == MSL_UNKNOWN_FLOAT)
+		return;
+
+	// Default anisotropy shouldn't change in the middle of drawing, so just need to synchronize
+	// re-creating the samplers the first use in a frame.
+	DS_VERIFY(dsSpinlock_lock(&shader->samplerLock));
+	dsRenderer* renderer = ((dsShader*)shader)->resourceManager->renderer;
+	if (shader->defaultAnisotropy == renderer->defaultAnisotropy)
+	{
+		DS_VERIFY(dsSpinlock_unlock(&shader->samplerLock));
+		return;
+	}
+
+	for (uint32_t i = 0; i < shader->pipeline.samplerStateCount; ++i)
+	{
+		mslSamplerState samplerState;
+		DS_VERIFY(mslModule_samplerState(&samplerState, module, shaderIndex, i));
+
+		if (samplerState.mipFilter != mslMipFilter_Anisotropic ||
+			samplerState.maxAnisotropy != MSL_UNKNOWN_FLOAT)
+		{
+			continue;
+		}
+
+		id<MTLSamplerState> sampler = createSampler(renderer, &samplerState);
+		if (!sampler)
+			continue;
+
+		CFRelease(shader->samplers[i]);
+		shader->samplers[i] = CFBridgingRetain(sampler);
+	}
+
+	shader->defaultAnisotropy = renderer->defaultAnisotropy;
+	DS_VERIFY(dsSpinlock_unlock(&shader->samplerLock));
+}
+
 static void setupUniformIndices(dsMTLShader* shader, mslModule* module, uint32_t shaderIndex)
 {
 	shader->firstVertexBuffer = 0;
@@ -524,6 +562,8 @@ static bool bindUniforms(const dsShader* shader, const dsMaterial* material,
 {
 	const dsMTLShader* mtlShader = (const dsMTLShader*)shader;
 	const dsMaterialDesc* materialDesc = shader->materialDesc;
+	updateSamplers((dsMTLShader*)mtlShader, shader->module->module, shader->pipelineIndex);
+
 	for (uint32_t i = 0; i < mtlShader->uniformCount; ++i)
 	{
 		uint32_t vertexIndex = mtlShader->stages[mslStage_Vertex].uniformIndices[i];
@@ -612,6 +652,8 @@ static bool bindComputeUniforms(const dsShader* shader, const dsMaterial* materi
 {
 	const dsMTLShader* mtlShader = (const dsMTLShader*)shader;
 	const dsMaterialDesc* materialDesc = shader->materialDesc;
+	updateSamplers((dsMTLShader*)mtlShader, shader->module->module, shader->pipelineIndex);
+
 	for (uint32_t i = 0; i < mtlShader->uniformCount; ++i)
 	{
 		uint32_t computeIndex = mtlShader->stages[mslStage_Compute].uniformIndices[i];
@@ -1032,10 +1074,12 @@ bool dsMTLShader_destroy(dsResourceManager* resourceManager, dsShader* shader)
 		if (mtlShader->samplers[i])
 			CFRelease(mtlShader->samplers[i]);
 	}
+	dsSpinlock_shutdown(&mtlShader->samplerLock);
 
 	for (uint32_t i = 0; i < pipelineCount; ++i)
 		dsMTLPipeline_destroy(pipelines[i]);
 	DS_VERIFY(dsAllocator_free(mtlShader->scratchAllocator, pipelines));
+	dsSpinlock_shutdown(&mtlShader->pipelineLock);
 
 	if (mtlShader->computePipeline)
 		CFRelease(mtlShader->computePipeline);

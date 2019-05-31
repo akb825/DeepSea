@@ -203,6 +203,8 @@ DS_RENDER_EXPORT bool dsRenderer_endFrame(dsRenderer* renderer);
  * responsibility of the caller to re-create any render surfaces, offscreens, renderbuffers, and
  * framebuffers to respect this change.
  *
+ * @remark This shouldn't be changed in the middle of drawing. Ideally it should be set between
+ * frames.
  * @remark errno will be set on failure.
  * @param renderer The renderer.
  * @param samples The number of anti-alias samples.
@@ -212,6 +214,8 @@ DS_RENDER_EXPORT bool dsRenderer_setSurfaceSamples(dsRenderer* renderer, uint32_
 
 /**
  * @brief Sets whether or not to wait for vsync.
+ * @remark This shouldn't be changed in the middle of drawing. Ideally it should be set between
+ * frames.
  * @remark errno will be set on failure.
  * @param renderer The renderer.
  * @param vsync True to wait for vsync.
@@ -221,6 +225,8 @@ DS_RENDER_EXPORT bool dsRenderer_setVsync(dsRenderer* renderer, bool vsync);
 
 /**
  * @brief Sets the default anisotropy for anisotropic filtering.
+ * @remark This shouldn't be changed in the middle of drawing. Ideally it should be set between
+ * frames.
  * @remark errno will be set on failure.
  * @param renderer The renderer.
  * @param anisotropy The default anisotropy.

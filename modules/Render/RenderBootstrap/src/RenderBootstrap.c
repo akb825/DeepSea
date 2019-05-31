@@ -89,11 +89,11 @@ dsRendererType dsRenderBootstrap_defaultRenderer(void)
 		return defaultRenderer;
 
 #if DS_HAS_RENDER_METAL
-	/*if (dsMTLRenderer_isSupported())
+	if (dsMTLRenderer_isSupported())
 	{
 		defaultRenderer = dsRendererType_Metal;
 		return defaultRenderer;
-	}*/
+	}
 #endif
 
 #if DS_HAS_RENDER_VULKAN
@@ -141,7 +141,7 @@ bool dsRenderBootstrap_isSupported(dsRendererType type)
 	{
 		case dsRendererType_Metal:
 #if DS_HAS_RENDER_METAL
-			return false; // return dsMTLRenderer_isSupported();
+			return dsMTLRenderer_isSupported();
 #else
 			return false;
 #endif
@@ -217,10 +217,7 @@ dsRenderer* dsRenderBootstrap_createRenderer(dsRendererType type, dsAllocator* a
 		case dsRendererType_Metal:
 		{
 #if DS_HAS_RENDER_METAL
-			errno = EPERM;
-			DS_LOG_ERROR(DS_RENDER_BOOTSTRAP_LOG_TAG,
-				"Metal renderer not yet implemented.");
-			return NULL;
+			return dsMTLRenderer_create(allocator, options);
 #else
 			errno = EPERM;
 			DS_LOG_ERROR(DS_RENDER_BOOTSTRAP_LOG_TAG,

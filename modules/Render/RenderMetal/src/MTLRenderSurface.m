@@ -219,7 +219,10 @@ static bool createExtraSurfaces(dsRenderer* renderer, dsRenderSurface* renderSur
 				return false;
 			}
 
-			descriptor.textureType = MTLTextureType2DMultisample;
+			if (renderer->surfaceSamples > 1)
+				descriptor.textureType = MTLTextureType2DMultisample;
+			else
+				descriptor.textureType = MTLTextureType2D;
 			descriptor.pixelFormat = depthPixelFormat;
 			descriptor.width = renderSurface->width;
 			descriptor.height = renderSurface->height;
