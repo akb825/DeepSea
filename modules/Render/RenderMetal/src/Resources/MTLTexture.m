@@ -205,8 +205,10 @@ static dsTexture* createTextureImpl(dsResourceManager* resourceManager, dsAlloca
 	if (offscreen && (memoryHints & dsGfxMemory_Read))
 	{
 		resourceOptions = MTLResourceOptionCPUCacheModeDefault;
-#if DS_MAC || IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
+#if DS_MAC
 		resourceOptions |= MTLResourceStorageModeManaged;
+#elif IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
+		resourceOptions |= MTLResourceStorageModeShared;
 #endif
 	}
 	else
