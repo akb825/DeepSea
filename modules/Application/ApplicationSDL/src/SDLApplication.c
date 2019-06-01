@@ -451,6 +451,8 @@ int dsSDLApplication_run(dsApplication* application)
 					event.type = dsEventType_DidEnterForeground;
 #if DS_ANDROID
 					invalidateWindowSurfaces(application);
+					// Make sure invalidated surfaces fully go through the GPU.
+					dsRenderer_waitUntilIdle(application->renderer);
 #endif
 					break;
 				case SDL_WINDOWEVENT:
