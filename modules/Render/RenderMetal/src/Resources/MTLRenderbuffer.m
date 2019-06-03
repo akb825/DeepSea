@@ -41,7 +41,7 @@ dsRenderbuffer* dsMTLRenderbuffer_create(dsResourceManager* resourceManager, dsA
 			// Need to have separate depth and stencil surfaces.
 			switch (format)
 			{
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= 101200
+#if __MAC_OS_X_VERSION_MIN_REQUIRED >= 101200
 				case dsGfxFormat_D16S8:
 					pixelFormat = MTLPixelFormatDepth16Unorm;
 					stencilPixelFormat = MTLPixelFormatStencil8;
@@ -98,12 +98,12 @@ dsRenderbuffer* dsMTLRenderbuffer_create(dsResourceManager* resourceManager, dsA
 		descriptor.height = height;
 		descriptor.sampleCount = samples;
 
-		MTLResourceOptions resourceOptions = MTLResourceOptionCPUCacheModeWriteCombined;
-#if DS_MAC || IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
+		MTLResourceOptions resourceOptions = MTLResourceCPUCacheModeWriteCombined;
+#if DS_MAC || __IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
 		resourceOptions |= MTLResourceStorageModePrivate;
 		descriptor.usage = MTLTextureUsageRenderTarget;
 #endif
-#if IPHONE_OS_VERSION_MIN_REQUIRED >= 100000
+#if __IPHONE_OS_VERSION_MIN_REQUIRED >= 100000
 		if (!(usage & (dsRenderbufferUsage_Continue | dsRenderbufferUsage_Clear)))
 			resourceOptions |= MTLResourceStorageModeMemoryless;
 #endif

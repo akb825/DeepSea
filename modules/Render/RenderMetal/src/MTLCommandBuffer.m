@@ -399,7 +399,6 @@ bool dsMTLCommandBuffer_addGfxBuffer(dsCommandBuffer* commandBuffer, dsMTLGfxBuf
 
 bool dsMTLCommandBuffer_addReadbackOffscreen(dsCommandBuffer* commandBuffer, dsOffscreen* offscreen)
 {
-#if DS_MAC
 	dsMTLCommandBuffer* mtlCommandBuffer = (dsMTLCommandBuffer*)commandBuffer;
 	dsMTLTexture* mtlTexture = (dsMTLTexture*)offscreen;
 	if (!mtlTexture->mtlTexture)
@@ -420,11 +419,6 @@ bool dsMTLCommandBuffer_addReadbackOffscreen(dsCommandBuffer* commandBuffer, dsO
 
 	mtlCommandBuffer->readbackOffscreens[index] = dsLifetime_addRef(mtlTexture->lifetime);
 	return true;
-#else
-	DS_UNUSED(commandBuffer);
-	DS_UNUSED(texture);
-	return true;
-#endif
 }
 
 bool dsMTLCommandBuffer_addFence(dsCommandBuffer* commandBuffer, dsGfxFence* fence)

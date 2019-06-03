@@ -58,7 +58,7 @@ void* dsCreateGLConfig(dsAllocator* allocator, void* display, const dsRendererOp
 	{
 		NSOpenGLPixelFormatAttribute versions[] =
 		{
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= 1010
+#if __MAC_OS_X_VERSION_MIN_REQUIRED >= 1010
 			NSOpenGLProfileVersion4_1Core,
 #endif
 			NSOpenGLProfileVersion3_2Core, NSOpenGLProfileVersionLegacy

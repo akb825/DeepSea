@@ -95,16 +95,24 @@ static MTLSamplerAddressMode getAddressMode(mslAddressMode mode)
 			return MTLSamplerAddressModeMirrorRepeat;
 		case mslAddressMode_ClampToEdge:
 			return MTLSamplerAddressModeClampToEdge;
+#if DS_MAC
 		case mslAddressMode_ClampToBorder:
 			return MTLSamplerAddressModeClampToBorderColor;
 		case mslAddressMode_MirrorOnce:
 			return MTLSamplerAddressModeMirrorClampToEdge;
+#else
+		case mslAddressMode_ClampToBorder:
+			return MTLSamplerAddressModeClampToEdge;
+		case mslAddressMode_MirrorOnce:
+			return MTLSamplerAddressModeMirrorRepeat;
+#endif
 		case mslAddressMode_Repeat:
 		default:
 			return MTLSamplerAddressModeRepeat;
 	}
 }
 
+#if DS_MAC
 static MTLSamplerBorderColor getBorderColor(mslBorderColor color)
 {
 	switch (color)
@@ -121,6 +129,7 @@ static MTLSamplerBorderColor getBorderColor(mslBorderColor color)
 			return MTLSamplerBorderColorTransparentBlack;
 	}
 }
+#endif
 
 static bool createDepthStencilState(dsMTLShader* shader)
 {
@@ -185,7 +194,9 @@ static id<MTLSamplerState> createSampler(dsRenderer* renderer, const mslSamplerS
 	descriptor.sAddressMode = getAddressMode(samplerState->addressModeU);
 	descriptor.tAddressMode = getAddressMode(samplerState->addressModeV);
 	descriptor.rAddressMode = getAddressMode(samplerState->addressModeW);
+#if DS_MAC
 	descriptor.borderColor = getBorderColor(samplerState->borderColor);
+#endif
 
 	descriptor.minFilter = getFilter(samplerState->minFilter);
 	descriptor.magFilter = getFilter(samplerState->magFilter);
@@ -202,7 +213,7 @@ static id<MTLSamplerState> createSampler(dsRenderer* renderer, const mslSamplerS
 			descriptor.maxAnisotropy = (NSUInteger)roundf(renderer->defaultAnisotropy);
 	}
 
-#if DS_MAC || IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
+#if DS_MAC || __IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
 	descriptor.compareFunction = dsGetMTLCompareFunction(samplerState->compareOp,
 		MTLCompareFunctionLess);
 #endif

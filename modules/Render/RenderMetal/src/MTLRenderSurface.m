@@ -38,7 +38,7 @@ typedef UIView ViewType;
 
 @interface DSMetalView : ViewType
 
-- (instancetype)initWithFrame:(NSRect)frame;
+- (instancetype)initWithFrame:(CGRect)frame;
 
 @end
 
@@ -49,12 +49,16 @@ typedef UIView ViewType;
 	return [CAMetalLayer class];
 }
 
-- (instancetype)initWithFrame:(NSRect)frame
+- (instancetype)initWithFrame:(CGRect)frame
 {
 	if ((self = [super initWithFrame: frame]))
 	{
+#if DS_MAC
 		self.wantsLayer = true;
 		self.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
+#else
+		self.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+#endif
 		[self updateDrawableSize];
 	}
 
@@ -140,7 +144,7 @@ static bool createExtraSurfaces(dsRenderer* renderer, dsRenderSurface* renderSur
 			descriptor.width = renderSurface->width;
 			descriptor.height = renderSurface->height;
 			descriptor.sampleCount = renderer->surfaceSamples;
-#if DS_MAC || IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
+#if DS_MAC || __IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
 			descriptor.storageMode = MTLStorageModePrivate;
 			descriptor.usage = MTLTextureUsageRenderTarget;
 #endif
@@ -172,7 +176,7 @@ static bool createExtraSurfaces(dsRenderer* renderer, dsRenderSurface* renderSur
 				// Need to have separate depth and stencil surfaces.
 				switch (renderer->surfaceDepthStencilFormat)
 				{
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= 101200
+#if __MAC_OS_X_VERSION_MIN_REQUIRED >= 101200
 					case dsGfxFormat_D16S8:
 						depthPixelFormat = MTLPixelFormatDepth16Unorm;
 						stencilPixelFormat = MTLPixelFormatStencil8;
@@ -227,7 +231,7 @@ static bool createExtraSurfaces(dsRenderer* renderer, dsRenderSurface* renderSur
 			descriptor.width = renderSurface->width;
 			descriptor.height = renderSurface->height;
 			descriptor.sampleCount = renderer->surfaceSamples;
-#if DS_MAC || IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
+#if DS_MAC || __IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
 			descriptor.storageMode = MTLStorageModePrivate;
 			descriptor.usage = MTLTextureUsageRenderTarget;
 #endif
@@ -311,10 +315,10 @@ dsRenderSurface* dsMTLRenderSurface_create(dsRenderer* renderer, dsAllocator* al
 		}
 
 		layer.pixelFormat = format;
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= 101300
+#if __MAC_OS_X_VERSION_MIN_REQUIRED >= 101300
 		layer.displaySyncEnabled = renderer->vsync;
 #endif
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= 101100
+#if __MAC_OS_X_VERSION_MIN_REQUIRED >= 101100
 		layer.wantsExtendedDynamicRangeContent = format == MTLPixelFormatRGBA16Float;
 #endif
 
@@ -422,7 +426,7 @@ bool dsMTLRenderSurface_swapBuffers(dsRenderer* renderer, dsRenderSurface** rend
 			CFRelease(mtlRenderSurface->drawable);
 
 			CAMetalLayer* layer = (__bridge CAMetalLayer*)mtlRenderSurface->layer;
-	#if MAC_OS_X_VERSION_MIN_REQUIRED >= 101300
+	#if __MAC_OS_X_VERSION_MIN_REQUIRED >= 101300
 			if (layer.displaySyncEnabled != renderer->vsync)
 				layer.displaySyncEnabled = renderer->vsync;
 	#endif

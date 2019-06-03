@@ -200,6 +200,7 @@ bool dsMTLGfxBuffer_unmap(dsResourceManager* resourceManager, dsGfxBuffer* buffe
 bool dsMTLGfxBuffer_flush(dsResourceManager* resourceManager, dsGfxBuffer* buffer,
 	size_t offset, size_t size)
 {
+#if DS_MAC
 	@autoreleasepool
 	{
 		DS_UNUSED(resourceManager);
@@ -215,6 +216,13 @@ bool dsMTLGfxBuffer_flush(dsResourceManager* resourceManager, dsGfxBuffer* buffe
 		DS_VERIFY(dsSpinlock_unlock(&mtlBuffer->lock));
 		return true;
 	}
+#else
+	DS_UNUSED(resourceManager);
+	DS_UNUSED(buffer);
+	DS_UNUSED(offset);
+	DS_UNUSED(size);
+	return true;
+#endif
 }
 
 bool dsMTLGfxBuffer_invalidate(dsResourceManager* resourceManager, dsGfxBuffer* buffer,

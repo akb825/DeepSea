@@ -12,7 +12,7 @@ ds_target_include_directories(deepsea_render_metal
 ds_target_link_libraries(deepsea_render_metal PRIVATE msl_client "-framework Metal"
 	"-framework QuartzCore")
 if (IOS)
-	ds_target_link_libraries(deepsea_render_metal PRIVATE "-framework UIKit")
+	ds_target_link_libraries(deepsea_render_metal PRIVATE "-framework Foundation -framework UIKit")
 else()
 	ds_target_link_libraries(deepsea_render_metal PRIVATE "-framework AppKit")
 endif()

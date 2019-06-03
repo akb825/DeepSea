@@ -508,4 +508,3 @@ TEST_P(ThreadedFunctionalTest, RenderMultithreaded)
 	else
 		info.destroy(*this);
 }
-

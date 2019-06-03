@@ -172,7 +172,7 @@ static void setDepthStencilState(id<MTLRenderCommandEncoder> encoder,
 		uint32_t frontReference = renderStates->depthStencilState.frontStencil.reference;
 		if (frontReference == MSL_UNKNOWN && dynamicStates)
 			frontReference = dynamicStates->frontStencilReference;
-#if DS_MAC || IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
+#if DS_MAC || __IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
 		uint32_t backReference = renderStates->depthStencilState.backStencil.reference;
 		if (backReference == MSL_UNKNOWN && dynamicStates)
 			backReference = dynamicStates->backStencilReference;
@@ -218,9 +218,11 @@ static void setDynamicDepthState(id<MTLRenderCommandEncoder> encoder,
 		return;
 
 	[encoder setDepthBias: constBias slopeScale: slopeBias clamp: clamp];
+#if DS_MAC || __IPHONE_OS_VERSION_MIN_REQUIRED >= 110000
 	[encoder setDepthClipMode:
 		renderStates->rasterizationState.depthClampEnable == mslBool_True ?
 			MTLDepthClipModeClamp : MTLDepthClipModeClip];
+#endif
 }
 
 static bool needToBindTexture(dsMTLBoundTextureSet* boundTextures, dsAllocator* allocator,
@@ -1075,22 +1077,33 @@ bool dsMTLHardwareCommandBuffer_dispatchComputeIndirect(dsCommandBuffer* command
 
 bool dsMTLHardwareCommandBuffer_pushDebugGroup(dsCommandBuffer* commandBuffer, const char* name)
 {
+#if DS_MAC || __IPHONE_OS_VERSION_MIN_REQUIRED >= 110000
 	id<MTLCommandBuffer> submitBuffer = getCommandBuffer(commandBuffer);
 	if (!submitBuffer)
 		return false;
 
 	[submitBuffer pushDebugGroup: [NSString stringWithUTF8String: name]];
 	return true;
+#else
+	DS_UNUSED(commandBuffer);
+	DS_UNUSED(name);
+	return true;
+#endif
 }
 
 bool dsMTLHardwareCommandBuffer_popDebugGroup(dsCommandBuffer* commandBuffer)
 {
+#if DS_MAC || __IPHONE_OS_VERSION_MIN_REQUIRED >= 110000
 	id<MTLCommandBuffer> submitBuffer = getCommandBuffer(commandBuffer);
 	if (!submitBuffer)
 		return false;
 
 	[submitBuffer popDebugGroup];
 	return true;
+#else
+	DS_UNUSED(commandBuffer);
+	return true;
+#endif
 }
 
 static dsMTLCommandBufferFunctionTable hardwareCommandBufferFunctions =
@@ -1234,8 +1247,10 @@ id<MTLCommandBuffer> dsMTLHardwareCommandBuffer_submitted(dsCommandBuffer* comma
 		dsMTLTexture* texture = (dsMTLTexture*)dsLifetime_acquire(lifetime);
 		if (texture)
 		{
+#if DS_MAC
 			id<MTLTexture> realTexture = (__bridge id<MTLTexture>)texture->mtlTexture;
 			[encoder synchronizeResource: realTexture];
+#endif
 			DS_ATOMIC_STORE64(&texture->lastUsedSubmit, &submitCount);
 			dsLifetime_release(lifetime);
 		}

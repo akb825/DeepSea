@@ -115,7 +115,7 @@ static MTLBlendFactor convertBlendFactor(mslBlendFactor factor, MTLBlendFactor d
 			return MTLBlendFactorOneMinusBlendAlpha;
 		case mslBlendFactor_SrcAlphaSaturate:
 			return MTLBlendFactorSourceAlphaSaturated;
-#if IPHONE_OS_VERSION_MIN_REQUIRED >= 110000 || MAC_OS_X_VERSION_MIN_REQUIRED >= 101200
+#if __IPHONE_OS_VERSION_MIN_REQUIRED >= 110000 || __MAC_OS_X_VERSION_MIN_REQUIRED >= 101200
 		case mslBlendFactor_Src1Color:
 			return MTLBlendFactorSource1Color;
 		case mslBlendFactor_OneMinusSrc1Color:
@@ -125,7 +125,7 @@ static MTLBlendFactor convertBlendFactor(mslBlendFactor factor, MTLBlendFactor d
 		case mslBlendFactor_OneMinusSrc1Alpha:
 			return MTLBlendFactorOneMinusSource1Alpha;
 #else
-		case mslBlendFactor_SrcColor:
+		case mslBlendFactor_Src1Color:
 			return MTLBlendFactorSourceColor;
 		case mslBlendFactor_OneMinusSrc1Color:
 			return MTLBlendFactorOneMinusSourceColor;
@@ -193,7 +193,7 @@ static MTLPixelFormat getStencilFormat(const dsResourceManager* resourceManager,
 	}
 }
 
-#if DS_MAC || IPHONE_OS_VERSION_MIN_REQUIRED >= 120000
+#if DS_MAC || __IPHONE_OS_VERSION_MIN_REQUIRED >= 120000
 static MTLPrimitiveTopologyClass getPrimitiveTopology(dsPrimitiveType type)
 {
 	switch (type)
@@ -335,7 +335,7 @@ static void setupRasterState(dsShader* shader, MTLRenderPipelineDescriptor* desc
 	dsMTLShader* mtlShader = (dsMTLShader*)shader;
 	const mslRasterizationState* rasterState = &mtlShader->renderState.rasterizationState;
 	const mslMultisampleState* multisampleState = &mtlShader->renderState.multisampleState;
-#if IPHONE_OS_VERSION_MIN_REQUIRED >= 110000 || MAC_OS_X_VERSION_MIN_REQUIRED >= 101300
+#if __IPHONE_OS_VERSION_MIN_REQUIRED >= 110000 || __MAC_OS_X_VERSION_MIN_REQUIRED >= 101300
 	descriptor.rasterSampleCount = samples;
 #else
 	descriptor.sampleCount = samples;
@@ -343,7 +343,7 @@ static void setupRasterState(dsShader* shader, MTLRenderPipelineDescriptor* desc
 	descriptor.alphaToCoverageEnabled = multisampleState->alphaToCoverageEnable == mslBool_True;
 	descriptor.alphaToOneEnabled = multisampleState->alphaToOneEnable == mslBool_True;
 	descriptor.rasterizationEnabled = rasterState->rasterizerDiscardEnable != mslBool_False;
-#if DS_MAC || IPHONE_OS_VERSION_MIN_REQUIRED >= 120000
+#if DS_MAC || __IPHONE_OS_VERSION_MIN_REQUIRED >= 120000
 	descriptor.inputPrimitiveTopology = getPrimitiveTopology(primitiveType);
 #else
 	DS_UNUSED(primitiveType);

@@ -46,11 +46,11 @@
 #import <Metal/MTLCommandQueue.h>
 #import <QuartzCore/CAMetalLayer.h>
 
-#if defined(IPHONE_OS_VERSION_MIN_REQUIRED) && IPHONE_OS_VERSION_MIN_REQUIRED < 80000
+#if DS_IOS && __IPHONE_OS_VERSION_MIN_REQUIRED < 80000
 #error iPhone target version must be >= 8.0 to support metal.
 #endif
 
-#if defined(MAC_OS_X_VERSION_MIN_REQUIRED) && MAC_OS_X_VERSION_MIN_REQUIRED < 101100
+#if DS_MAC && __MAC_OS_X_VERSION_MIN_REQUIRED < 101100
 #error macOS target version must be >= 10.11 to support metal.
 #endif
 
@@ -62,23 +62,23 @@ static size_t dsMTLRenderer_fullAllocSize(size_t deviceNameLen)
 
 static uint32_t getShaderVersion(void)
 {
-#if IPHONE_OS_VERSION_MIN_REQUIRED == 80000
+#if __IPHONE_OS_VERSION_MIN_REQUIRED == 80000
 	return DS_ENCODE_VERSION(1, 0, 0);
-#elif IPHONE_OS_VERSION_MIN_REQUIRED == 90000
+#elif __IPHONE_OS_VERSION_MIN_REQUIRED == 90000
 	return DS_ENCODE_VERSION(1, 1, 0);
-#elif IPHONE_OS_VERSION_MIN_REQUIRED == 100000
+#elif __IPHONE_OS_VERSION_MIN_REQUIRED == 100000
 	return DS_ENCODE_VERSION(1, 2, 0);
-#elif IPHONE_OS_VERSION_MIN_REQUIRED == 110000
+#elif __IPHONE_OS_VERSION_MIN_REQUIRED == 110000
 	return DS_ENCODE_VERSION(2, 0, 0);
-#elif IPHONE_OS_VERSION_MIN_REQUIRED >= 120000
+#elif __IPHONE_OS_VERSION_MIN_REQUIRED >= 120000
 	return DS_ENCODE_VERSION(2, 1, 0);
-#elif MAC_OS_X_VERSION_MIN_REQUIRED == 101100
+#elif __MAC_OS_X_VERSION_MIN_REQUIRED == 101100
 	return DS_ENCODE_VERSION(1, 1, 0);
-#elif MAC_OS_X_VERSION_MIN_REQUIRED == 101200
+#elif __MAC_OS_X_VERSION_MIN_REQUIRED == 101200
 	return DS_ENCODE_VERSION(1, 2, 0);
-#elif MAC_OS_X_VERSION_MIN_REQUIRED == 101300
+#elif __MAC_OS_X_VERSION_MIN_REQUIRED == 101300
 	return DS_ENCODE_VERSION(2, 0, 0);
-#elif MAC_OS_X_VERSION_MIN_REQUIRED >= 101400
+#elif __MAC_OS_X_VERSION_MIN_REQUIRED >= 101400
 	return DS_ENCODE_VERSION(2, 1, 0);
 #else
 #error Metal not supported on this macOS/iOS version!
@@ -88,9 +88,9 @@ static uint32_t getShaderVersion(void)
 static uint32_t getMaxColorAttachments(id<MTLDevice> device)
 {
 	DS_UNUSED(device);
-#if IPHONE_OS_VERSION_MIN_REQUIRED == 80000
+#if __IPHONE_OS_VERSION_MIN_REQUIRED == 80000
 	return 4;
-#elif IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
+#elif __IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
 	return [device supportsFeatureSet: MTLFeatureSet_iOS_GPUFamily2_v1] ? 8 : 4;
 #else
 	return 8;
@@ -139,12 +139,12 @@ static uint32_t hasTessellationShaders(id<MTLDevice> device)
 	*/
 
 	DS_UNUSED(device);
-#if DS_IOS && IPHONE_OS_VERSION_MIN_REQUIRED < 100000
+#if DS_IOS && __IPHONE_OS_VERSION_MIN_REQUIRED < 100000
 	return false;
-#elif IPHONE_OS_VERSION_MIN_REQUIRED >= 100000
+#elif __IPHONE_OS_VERSION_MIN_REQUIRED >= 100000
 	//return [device supportsFeatureSet: MTLFeatureSet_iOS_GPUFamily3_v2];
 	return false;
-#elif MAC_OS_X_VERSION_MIN_REQUIRED == 101000
+#elif __MAC_OS_X_VERSION_MIN_REQUIRED == 101000
 	return false;
 #else
 	//return true;
@@ -154,7 +154,7 @@ static uint32_t hasTessellationShaders(id<MTLDevice> device)
 
 static id<MTLCommandBuffer> processResources(dsMTLRenderer* renderer)
 {
-#if DS_MAC || IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
+#if DS_MAC || __IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
 	id<MTLCommandQueue> queue = (__bridge id<MTLCommandQueue>)renderer->commandQueue;
 	id<MTLCommandBuffer> resourceCommandBuffer = nil;
 	id<MTLBlitCommandEncoder> encoder = nil;
@@ -347,10 +347,14 @@ bool dsMTLRenderer_destroy(dsRenderer* renderer)
 
 bool dsMTLRenderer_isSupported(void)
 {
+#if DS_MAC
 	@autoreleasepool
 	{
 		return [MTLCopyAllDevices() count] > 0;
 	}
+#else
+	return true;
+#endif
 }
 
 bool dsMTLRenderer_queryDevices(dsRenderDeviceInfo* outDevices, uint32_t* outDeviceCount)
@@ -1048,7 +1052,7 @@ dsGfxFenceResult dsMTLRenderer_waitForSubmit(const dsRenderer* renderer, uint64_
 
 void dsMTLRenderer_processBuffer(dsRenderer* renderer, dsMTLGfxBufferData* buffer)
 {
-#if DS_MAC || IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
+#if DS_MAC || __IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
 	dsMTLRenderer* mtlRenderer = (dsMTLRenderer*)renderer;
 
 	DS_VERIFY(dsSpinlock_lock(&mtlRenderer->processBuffersLock));
@@ -1071,7 +1075,7 @@ void dsMTLRenderer_processBuffer(dsRenderer* renderer, dsMTLGfxBufferData* buffe
 
 void dsMTLRenderer_processTexture(dsRenderer* renderer, dsTexture* texture)
 {
-#if DS_MAC || IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
+#if DS_MAC || __IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
 	dsMTLRenderer* mtlRenderer = (dsMTLRenderer*)renderer;
 	dsMTLTexture* mtlTexture = (dsMTLTexture*)texture;
 

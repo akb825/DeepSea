@@ -105,7 +105,7 @@ static void initializePixelFormats(dsMTLResourceManager* resourceManager, id<MTL
 	resourceManager->standardPixelFormats[dsGfxFormat_B8G8R8A8][srgbIndex] =
 		MTLPixelFormatBGRA8Unorm_sRGB;
 
-#if IPHONE_OS_VERSION_MIN_REQUIRED >= 110000 || MAC_OS_X_VERSION_MIN_REQUIRED >= 101300
+#if __IPHONE_OS_VERSION_MIN_REQUIRED >= 110000 || __MAC_OS_X_VERSION_MIN_REQUIRED >= 101300
 	resourceManager->standardPixelFormats[dsGfxFormat_A2R10G10B10][unormIndex] =
 		MTLPixelFormatBGR10A2Unorm;
 #endif
@@ -156,7 +156,7 @@ static void initializePixelFormats(dsMTLResourceManager* resourceManager, id<MTL
 		MTLPixelFormatRG11B10Float;
 	resourceManager->specialPixelFormats[dsGfxFormat_specialIndex(dsGfxFormat_E5B9G9R9_UFloat)] =
 		MTLPixelFormatRGB9E5Float;
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= 101200
+#if __MAC_OS_X_VERSION_MIN_REQUIRED >= 101200
 	resourceManager->specialPixelFormats[dsGfxFormat_specialIndex(dsGfxFormat_D16)] =
 		MTLPixelFormatDepth16Unorm;
 #endif
@@ -172,7 +172,7 @@ static void initializePixelFormats(dsMTLResourceManager* resourceManager, id<MTL
 	}
 #endif
 
-#if !defined(IPHONE_OS_VERSION_MIN_REQUIRED) || IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
+#if !defined(__IPHONE_OS_VERSION_MIN_REQUIRED) || __IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
 	resourceManager->specialPixelFormats[dsGfxFormat_specialIndex(dsGfxFormat_D32S8_Float)] =
 		MTLPixelFormatDepth32Float_Stencil8;
 #endif
@@ -206,13 +206,13 @@ static void initializePixelFormats(dsMTLResourceManager* resourceManager, id<MTL
 
 	resourceManager->compressedPixelFormats
 		[dsGfxFormat_specialIndex(dsGfxFormat_EAC_R11G11)][unormIndex] =
-			MTLPixelFormatEAC_R11G11Unorm;
+			MTLPixelFormatEAC_RG11Unorm;
 	resourceManager->compressedPixelFormats
 		[dsGfxFormat_specialIndex(dsGfxFormat_EAC_R11G11)][snormIndex] =
-			MTLPixelFormatEAC_R11G11Snorm;
+			MTLPixelFormatEAC_RG11Snorm;
 
 	bool hasASTC = false;
-#if IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
+#if __IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
 	hasASTC = [device supportsFeatureSet: MTLFeatureSet_iOS_GPUFamily2_v1];
 #endif
 	if (hasASTC)
@@ -398,7 +398,7 @@ static void initializeVertexFormats(dsMTLResourceManager* resourceManager)
 	uint32_t sscaledIndex = dsGfxFormat_decoratorIndex(dsGfxFormat_SScaled);
 	uint32_t floatIndex = dsGfxFormat_decoratorIndex(dsGfxFormat_Float);
 
-#if IPHONE_OS_VERSION_MIN_REQUIRED >= 110000 || MAC_OS_X_VERSION_MIN_REQUIRED >= 101300
+#if __IPHONE_OS_VERSION_MIN_REQUIRED >= 110000 || __MAC_OS_X_VERSION_MIN_REQUIRED >= 101300
 	resourceManager->vertexFormats[dsGfxFormat_X8][unormIndex] = MTLVertexFormatUCharNormalized;
 	resourceManager->vertexFormats[dsGfxFormat_X8][snormIndex] = MTLVertexFormatCharNormalized;
 	resourceManager->vertexFormats[dsGfxFormat_X8][uintIndex] = MTLVertexFormatUChar;
@@ -431,7 +431,7 @@ static void initializeVertexFormats(dsMTLResourceManager* resourceManager)
 	resourceManager->vertexFormats[dsGfxFormat_X8Y8Z8W8][uscaledIndex] = MTLVertexFormatUChar4;
 	resourceManager->vertexFormats[dsGfxFormat_X8Y8Z8W8][sscaledIndex] = MTLVertexFormatChar4;
 
-#if IPHONE_OS_VERSION_MIN_REQUIRED >= 110000 || MAC_OS_X_VERSION_MIN_REQUIRED >= 101300
+#if __IPHONE_OS_VERSION_MIN_REQUIRED >= 110000 || __MAC_OS_X_VERSION_MIN_REQUIRED >= 101300
 	resourceManager->vertexFormats[dsGfxFormat_B8G8R8A8][unormIndex] =
 		MTLVertexFormatUChar4Normalized_BGRA;
 #endif
@@ -441,7 +441,7 @@ static void initializeVertexFormats(dsMTLResourceManager* resourceManager)
 	resourceManager->vertexFormats[dsGfxFormat_W2Z10Y10X10][snormIndex] =
 		MTLVertexFormatInt1010102Normalized;
 
-#if IPHONE_OS_VERSION_MIN_REQUIRED >= 110000 || MAC_OS_X_VERSION_MIN_REQUIRED >= 101300
+#if __IPHONE_OS_VERSION_MIN_REQUIRED >= 110000 || __MAC_OS_X_VERSION_MIN_REQUIRED >= 101300
 	resourceManager->vertexFormats[dsGfxFormat_X16][unormIndex] = MTLVertexFormatUShortNormalized;
 	resourceManager->vertexFormats[dsGfxFormat_X16][snormIndex] = MTLVertexFormatShortNormalized;
 	resourceManager->vertexFormats[dsGfxFormat_X16][uintIndex] = MTLVertexFormatUShort;
@@ -509,15 +509,15 @@ static void initializeVertexFormats(dsMTLResourceManager* resourceManager)
 static uint32_t getMinTextureBufferAlignment(dsMTLResourceManager* resourceManager,
 	id<MTLDevice> device)
 {
-#if IPHONE_OS_VERSION_MIN_REQUIRED < 110000 && MAC_OS_X_VERSION_MIN_REQUIRED < 101300
+#if __IPHONE_OS_VERSION_MIN_REQUIRED < 110000 && __MAC_OS_X_VERSION_MIN_REQUIRED < 101300
 	DS_UNUSED(resourceManager);
 	DS_UNUSED(device);
 #if DS_IOS
-#if IPHONE_OS_VERSION_MIN_REQUIRED == 100000
+#if __IPHONE_OS_VERSION_MIN_REQUIRED == 100000
 	if ([device supportsFeatureSet: MTLFeatureSet_iOS_GPUFamily3_v2])
 		return 16;
 #endif
-	return 64
+	return 64;
 #else
 	return 0;
 #endif
@@ -560,7 +560,7 @@ static dsGfxBufferUsage getSupportedBuffers(void)
 		dsGfxBufferUsage_IndirectDraw | dsGfxBufferUsage_IndirectDispatch |
 		dsGfxBufferUsage_UniformBlock | dsGfxBufferUsage_UniformBuffer |
 		dsGfxBufferUsage_CopyFrom | dsGfxBufferUsage_CopyTo;
-#if DS_IOS || MAC_OS_X_VERSION_MIN_REQUIRED >= 101300
+#if DS_IOS || __MAC_OS_X_VERSION_MIN_REQUIRED >= 101300
 	usage |= dsGfxBufferUsage_Texture | dsGfxBufferUsage_Image;
 #endif
 	return usage;
@@ -568,11 +568,11 @@ static dsGfxBufferUsage getSupportedBuffers(void)
 
 static size_t getMaxBufferLength(id<MTLDevice> device)
 {
-#if IPHONE_OS_VERSION_MIN_REQUIRED >= 120000 || MAC_OS_X_VERSION_MIN_REQUIRED >= 101400
+#if __IPHONE_OS_VERSION_MIN_REQUIRED >= 120000 || __MAC_OS_X_VERSION_MIN_REQUIRED >= 101400
 	return device.maxBufferLength;
 #else
 	DS_UNUSED(device);
-#if DS_IOS || MAC_OS_X_VERSION_MIN_REQUIRED == 101100
+#if DS_IOS || __MAC_OS_X_VERSION_MIN_REQUIRED == 101100
 	return 256*1024*1024;
 #else
 	return 1024*1024*1024;
@@ -583,9 +583,9 @@ static size_t getMaxBufferLength(id<MTLDevice> device)
 static uint32_t getMaxTextureSize(id<MTLDevice> device)
 {
 	DS_UNUSED(device);
-#if IPHONE_OS_VERSION_MIN_REQUIRED == 80000
+#if __IPHONE_OS_VERSION_MIN_REQUIRED == 80000
 	return 4096;
-#elif IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
+#elif __IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
 	return [device supportsFeatureSet: MTLFeatureSet_iOS_GPUFamily3_v1] ? 16384 : 8192;
 #else
 	return 16384;
@@ -596,7 +596,7 @@ static bool hasLayeredRendering(id<MTLDevice> device)
 {
 	DS_UNUSED(device);
 #if DS_IOS
-#if IPHONE_OS_VERSION_MIN_REQUIRED >= 120000
+#if __IPHONE_OS_VERSION_MIN_REQUIRED >= 120000
 	return [device supportsFeatureSet: MTLFeatureSet_iOS_GPUFamily5_v1];
 #else
 	return false;
@@ -610,7 +610,7 @@ static bool hasCubeArrays(id<MTLDevice> device)
 {
 	DS_UNUSED(device);
 #if DS_IOS
-#if IPHONE_OS_VERSION_MIN_REQUIRED >= 110000
+#if __IPHONE_OS_VERSION_MIN_REQUIRED >= 110000
 	return [device supportsFeatureSet: MTLFeatureSet_iOS_GPUFamily4_v1];
 #else
 	return false;
@@ -805,7 +805,7 @@ dsResourceManager* dsMTLResourceManager_create(dsAllocator* allocator, dsRendere
 #endif
 
 	baseResourceManager->supportedBuffers = getSupportedBuffers();
-	baseResourceManager->bufferMapSupport = dsGfxBufferMapSupport_Full;
+	baseResourceManager->bufferMapSupport = dsGfxBufferMapSupport_Persistent;
 	baseResourceManager->canCopyBuffers = true;
 	baseResourceManager->hasTextureBufferSubrange = true;
 	baseResourceManager->maxIndexSize = sizeof(uint32_t);
@@ -863,7 +863,7 @@ dsResourceManager* dsMTLResourceManager_create(dsAllocator* allocator, dsRendere
 	baseResourceManager->textureFormatSupportedFunc = &dsMTLResourceManager_textureFormatSupported;
 	baseResourceManager->offscreenFormatSupportedFunc =
 		&dsMTLResourceManager_offscreenFormatSupported;
-#if DS_IOS || MAC_OS_X_VERSION_MIN_REQUIRED >= 101300
+#if DS_IOS || __MAC_OS_X_VERSION_MIN_REQUIRED >= 101300
 	baseResourceManager->textureBufferFormatSupportedFunc =
 		&dsMTLResourceManager_textureFormatSupported;
 #endif

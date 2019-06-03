@@ -67,7 +67,7 @@ dsMTLGfxBufferData* dsMTLGfxBufferData_create(dsResourceManager* resourceManager
 	else
 		resourceOptions = MTLResourceCPUCacheModeWriteCombined;
 
-#if DS_MAC || IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
+#if DS_MAC || __IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
 	if (memoryHints & dsGfxMemory_GPUOnly)
 		resourceOptions |= MTLResourceStorageModePrivate;
 	else if ((memoryHints & dsGfxMemory_Read) || (memoryHints & dsGfxMemory_Stream) ||
@@ -86,7 +86,7 @@ dsMTLGfxBufferData* dsMTLGfxBufferData_create(dsResourceManager* resourceManager
 	}
 #endif
 
-#if IPHONE_OS_VERSION_MIN_REQUIRED >= 100000 || MAC_OS_X_VERSION_MIN_REQUIRED >= 101300
+#if __IPHONE_OS_VERSION_MIN_REQUIRED >= 100000 || __MAC_OS_X_VERSION_MIN_REQUIRED >= 101300
 	if ((memoryHints & dsGfxMemory_GPUOnly) && !(usage & (dsGfxBufferUsage_CopyTo |
 			dsGfxBufferUsage_UniformBuffer | dsGfxBufferUsage_Image)))
 	{
@@ -98,7 +98,7 @@ dsMTLGfxBufferData* dsMTLGfxBufferData_create(dsResourceManager* resourceManager
 	id<MTLBuffer> copyBuffer;
 	if (data)
 	{
-#if DS_MAC || IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
+#if DS_MAC || __IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
 		if (resourceOptions & MTLResourceStorageModePrivate)
 		{
 			copyBuffer = [device newBufferWithBytes: data length: size
@@ -132,7 +132,7 @@ void dsMTLGfxBufferData_markAsUsed(dsMTLGfxBufferData* buffer)
 id<MTLTexture> dsMTLGfxBufferData_getBufferTexture(dsMTLGfxBufferData* buffer, dsGfxFormat format,
 	size_t offset, size_t count)
 {
-#if DS_IOS || MAC_OS_X_VERSION_MIN_REQUIRED >= 101300
+#if DS_IOS || __MAC_OS_X_VERSION_MIN_REQUIRED >= 101300
 	DS_VERIFY(dsSpinlock_lock(&buffer->bufferTextureLock));
 
 	for (uint32_t i = 0; i < buffer->bufferTextureCount; ++i)
@@ -181,7 +181,7 @@ id<MTLTexture> dsMTLGfxBufferData_getBufferTexture(dsMTLGfxBufferData* buffer, d
 		return nil;
 	}
 
-#if DS_MAC || IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
+#if DS_MAC || __IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
 	descriptor.storageMode = mtlBuffer.storageMode;
 	descriptor.cpuCacheMode = mtlBuffer.cpuCacheMode;
 #endif

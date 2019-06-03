@@ -46,7 +46,7 @@ static dsTexture* createTextureImpl(dsResourceManager* resourceManager, dsAlloca
 		// Need to have separate depth and stencil surfaces.
 		switch (info->format)
 		{
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= 101200
+#if __MAC_OS_X_VERSION_MIN_REQUIRED >= 101200
 			case dsGfxFormat_D16S8:
 				pixelFormat = MTLPixelFormatDepth16Unorm;
 				stencilPixelFormat = MTLPixelFormatStencil8;
@@ -123,7 +123,7 @@ static dsTexture* createTextureImpl(dsResourceManager* resourceManager, dsAlloca
 			return NULL;
 		}
 
-#if MAC_OS_X_VERSION_MIN_REQUIRED < 101400
+#if __MAC_OS_X_VERSION_MIN_REQUIRED < 101400
 		if (info->depth > 0)
 		{
 			dsMTLTexture_destroy(resourceManager, baseTexture);
@@ -150,7 +150,7 @@ static dsTexture* createTextureImpl(dsResourceManager* resourceManager, dsAlloca
 		case dsTextureDim_2D:
 			if (info->depth > 0)
 			{
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= 101400
+#if __MAC_OS_X_VERSION_MIN_REQUIRED >= 101400
 				if (info->samples > 1 && !resolve)
 					descriptor.textureType = MTLTextureType2DMultisampleArray;
 				else
@@ -174,7 +174,7 @@ static dsTexture* createTextureImpl(dsResourceManager* resourceManager, dsAlloca
 			descriptor.depth = info->depth;
 			break;
 		case dsTextureDim_Cube:
-#if DS_MAC || IPHONE_OS_VERSION_MIN_REQUIRED >= 110000
+#if DS_MAC || __IPHONE_OS_VERSION_MIN_REQUIRED >= 110000
 			if (info->depth > 0)
 			{
 				DS_ASSERT(resourceManager->hasCubeArrays);
@@ -204,26 +204,26 @@ static dsTexture* createTextureImpl(dsResourceManager* resourceManager, dsAlloca
 	MTLResourceOptions resourceOptions;
 	if (offscreen && (memoryHints & dsGfxMemory_Read))
 	{
-		resourceOptions = MTLResourceOptionCPUCacheModeDefault;
+		resourceOptions = MTLResourceCPUCacheModeDefaultCache;
 #if DS_MAC
 		resourceOptions |= MTLResourceStorageModeManaged;
-#elif IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
+#elif __IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
 		resourceOptions |= MTLResourceStorageModeShared;
 #endif
 	}
 	else
 	{
-		resourceOptions = MTLResourceOptionCPUCacheModeWriteCombined;
-#if DS_MAC || IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
+		resourceOptions = MTLResourceCPUCacheModeWriteCombined;
+#if DS_MAC || __IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
 		resourceOptions |= MTLResourceStorageModePrivate;
 #endif
 	}
 
-#if IPHONE_OS_VERSION_MIN_REQUIRED >= 100000 || MAC_OS_X_VERSION_MIN_REQUIRED >= 101300
+#if __IPHONE_OS_VERSION_MIN_REQUIRED >= 100000 || __MAC_OS_X_VERSION_MIN_REQUIRED >= 101300
 	if (!offscreen && !(usage & (dsGfxBufferUsage_CopyTo | dsGfxBufferUsage_Image)))
 		resourceOptions |= MTLResourceHazardTrackingModeUntracked;
 #endif
-#if IPHONE_OS_VERSION_MIN_REQUIRED >= 100000
+#if __IPHONE_OS_VERSION_MIN_REQUIRED >= 100000
 	// TODO: Set to memoryless for tiled rendering if/when supported.
 	/*if (usage == dsTextureUsage_SubpassInput)
 		resourceOptions |= MTLResourceStorageModeMemoryless;*/
@@ -279,11 +279,11 @@ static dsTexture* createTextureImpl(dsResourceManager* resourceManager, dsAlloca
 		descriptor.depth = 1;
 		descriptor.sampleCount = info->samples;
 
-		resourceOptions = MTLResourceOptionCPUCacheModeDefault;
-#if DS_MAC || IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
+		resourceOptions = MTLResourceCPUCacheModeDefaultCache;
+#if DS_MAC || __IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
 		resourceOptions |= MTLResourceStorageModePrivate;
 #endif
-#if IPHONE_OS_VERSION_MIN_REQUIRED >= 100000
+#if __IPHONE_OS_VERSION_MIN_REQUIRED >= 100000
 		if (!(usage & dsTextureUsage_OffscreenContinue))
 			resourceOptions |= MTLResourceStorageModeMemoryless;
 #endif
@@ -337,7 +337,7 @@ dsTexture* dsMTLTexture_create(dsResourceManager* resourceManager, dsAllocator* 
 		{
 			dsMTLTexture* mtlTexture = (dsMTLTexture*)texture;
 			id<MTLTexture> realTexture = (__bridge id<MTLTexture>)mtlTexture->mtlTexture;
-	#if DS_MAC || IPHONE_OS_VERSION_MIN_REQUIRED >= 110000
+	#if DS_MAC || __IPHONE_OS_VERSION_MIN_REQUIRED >= 110000
 			if (realTexture.storageMode == MTLStorageModePrivate)
 			{
 				dsMTLRenderer* renderer = (dsMTLRenderer*)resourceManager->renderer;
