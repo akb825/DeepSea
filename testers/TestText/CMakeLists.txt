@@ -50,7 +50,7 @@ ds_compile_shaders_target(deepsea_test_text_app_shaders shaders
 
 set(fontDir ${CMAKE_CURRENT_SOURCE_DIR}/../Shared/Fonts)
 
-ds_build_assets_dir(assetsDir)
+ds_build_assets_dir(assetsDir deepsea_test_text_app)
 set(assetsDir ${assetsDir}/TestText-assets)
 add_custom_target(deepsea_test_text_app_assets DEPENDS deepsea_test_text_app_shaders
 	COMMAND ${CMAKE_COMMAND} -E remove_directory ${assetsDir}

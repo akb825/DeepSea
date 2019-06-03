@@ -1,3 +1,8 @@
+if (IOS)
+	message("OpenGL not implemented for iOS")
+	return()
+endif()
+
 if (DEEPSEA_PREFER_EGL)
 	set(OpenGL_GL_PREFERENCE LEGACY)
 else()

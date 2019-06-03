@@ -101,7 +101,7 @@ endforeach()
 ds_convert_svg_target(deepsea_test_vector_draw_app_svgs svgs
 	DEPENDS deepsea_test_vector_draw_app_prepare)
 
-ds_build_assets_dir(assetsDir)
+ds_build_assets_dir(assetsDir deepsea_test_vector_draw_app)
 set(assetsDir ${assetsDir}/TestVectorDraw-assets)
 add_custom_target(deepsea_test_vector_draw_app_assets
 	DEPENDS deepsea_test_vector_draw_app_shaders deepsea_test_vector_draw_app_resources

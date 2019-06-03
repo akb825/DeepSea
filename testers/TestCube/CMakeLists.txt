@@ -51,7 +51,7 @@ ds_convert_texture(textures IMAGE ${CMAKE_CURRENT_SOURCE_DIR}/../Shared/SimpleTe
 ds_convert_textures_target(deepsea_test_cube_app_textures textures
 	DEPENDS deepsea_test_cube_app_prepare)
 
-ds_build_assets_dir(assetsDir)
+ds_build_assets_dir(assetsDir deepsea_test_cube_app)
 set(assetsDir ${assetsDir}/TestCube-assets)
 add_custom_target(deepsea_test_cube_app_assets
 	DEPENDS deepsea_test_cube_app_shaders deepsea_test_cube_app_textures

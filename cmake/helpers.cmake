@@ -22,7 +22,8 @@
 # DEEPSEA_ANDROID_ASSETS_DIR variable. By default it will use src/main/assets.
 #
 # output - variable name to place the directory into.
-macro(ds_build_assets_dir output)
+# target - the target to get the output directory for
+macro(ds_build_assets_dir output target)
 	if (ANDROID)
 		# Get the assets directory based on the structure defined by Android Studio.
 		# Root build directory for the APK.
@@ -46,6 +47,10 @@ macro(ds_build_assets_dir output)
 
 		if (CMAKE_CONFIGURATION_TYPES)
 			set(${output} ${${output}}/$<CONFIG>)
+		endif()
+
+		if (IOS)
+			set(${output} ${${output}}/${target}.app)
 		endif()
 	endif()
 endmacro()

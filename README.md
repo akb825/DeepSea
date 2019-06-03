@@ -52,7 +52,7 @@ DeepSea has been built for and tested on the following platforms:
 
 [CMake](https://cmake.org/) is used as the build system. The way to invoke CMake differs for different platforms.
 
-## Linux/macOS
+## Linux
 
 To create a release build, execute the following commands:
 
@@ -67,6 +67,22 @@ The tests can be run by running the command:
 
 > **Note:** When building on Linux, the freetype and harfbuzz libraries aren't installed with the pre-built library packages since they are installed on nearly all Linux systems already. The development packages for these libraries must be installed when building DeepSea. In the case of Ubuntu, the `libfreetype6-dev` and `harfbuzz-dev` should be installed.
 
+## macOS
+
+macOS can be built the same way as for Linux, or you can generate an Xcode project with the following commands:
+
+	DeepSea$ mkdir build
+	DeepSea$ cd build
+	DeepSea/build$ cmake .. -G Xcode
+
+## iOS
+
+iOS can be built with an Xcode project similar to the macOS instructions above, pointing to the iOS toolchain.
+
+	DeepSea$ mkdir build
+	DeepSea$ cd build
+	DeepSea/build$ cmake .. -G Xcode -DCMAKE_TOOLCHAIN_FILE=../cmake/ios.toolchain.cmake
+
 ## Windows
 
 Generating Visual Studio projects can either be done through the CMake GUI tool or on the command line. To generate Visual Studio 2017 projects from the command line, you can run the commands:
@@ -74,6 +90,10 @@ Generating Visual Studio projects can either be done through the CMake GUI tool 
 	DeepSea$ mkdir build
 	DeepSea$ cd build
 	DeepSea\build$ cmake .. -G "Visual Studio 15 2017 Win64"
+
+## Android
+
+To build the examples, an Android Studio project is provided in the android subdirectory. Building the libraries can be accomplished through CMake with the CMake toolchain embedded in the Android NDK.
 
 ## Compile Options:
 

@@ -52,7 +52,7 @@ ds_compile_shaders(shaders FILE ${shaderSourceDir}/CopyTextureBuffer.msl
 ds_compile_shaders_target(deepsea_render_bootstrap_test_shaders shaders
 	DEPENDS deepsea_render_bootstrap_test_prepare)
 
-ds_build_assets_dir(assetsDir)
+ds_build_assets_dir(assetsDir deepsea_render_bootstrap_test)
 set(assetsDir ${assetsDir}/RenderBootstrapTest-assets)
 add_custom_target(deepsea_render_bootstrap_assets
 	DEPENDS deepsea_render_bootstrap_test_shaders
