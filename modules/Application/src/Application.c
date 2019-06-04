@@ -367,6 +367,14 @@ uint32_t dsApplication_adjustWindowSize(const dsApplication* application, uint32
 #endif
 }
 
+float dsApplication_adjustSize(const dsApplication* application, uint32_t display, float size)
+{
+	if (!application || display >= application->displayCount)
+		return size;
+
+	return size*application->displays[display].dpi/DS_DEFAULT_DPI;
+}
+
 dsCursor dsApplication_getCursor(const dsApplication* application)
 {
 	if (!application || !application->getCursorFunc)

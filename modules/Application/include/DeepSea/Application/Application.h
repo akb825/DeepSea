@@ -226,6 +226,19 @@ DS_APPLICATION_EXPORT uint32_t dsApplication_adjustWindowSize(const dsApplicatio
 	uint32_t display, uint32_t size);
 
 /**
+ * @brief Adjusts an arbitary size based on the DPI.
+ *
+ * This will multiply the size based on the DPI of the display compared to the reference DPI.
+ *
+ * @param application The application.
+ * @param display The index of the display.
+ * @param size The size to adjust.
+ * @return The adjusted size.
+ */
+DS_APPLICATION_EXPORT float dsApplication_adjustSize(const dsApplication* application,
+	uint32_t display, float size);
+
+/**
  * @brief Gets the cursor used by the application.
  * @param application The application.
  * @return The cursor.
