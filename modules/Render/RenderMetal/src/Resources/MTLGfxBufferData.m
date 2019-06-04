@@ -86,14 +86,6 @@ dsMTLGfxBufferData* dsMTLGfxBufferData_create(dsResourceManager* resourceManager
 	}
 #endif
 
-#if __IPHONE_OS_VERSION_MIN_REQUIRED >= 100000 || __MAC_OS_X_VERSION_MIN_REQUIRED >= 101300
-	if ((memoryHints & dsGfxMemory_GPUOnly) && !(usage & (dsGfxBufferUsage_CopyTo |
-			dsGfxBufferUsage_UniformBuffer | dsGfxBufferUsage_Image)))
-	{
-		resourceOptions |= MTLResourceHazardTrackingModeUntracked;
-	}
-#endif
-
 	id<MTLBuffer> mtlBuffer;
 	id<MTLBuffer> copyBuffer;
 	if (data)

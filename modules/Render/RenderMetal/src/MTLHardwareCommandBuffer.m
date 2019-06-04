@@ -1231,6 +1231,7 @@ id<MTLCommandBuffer> dsMTLHardwareCommandBuffer_submitted(dsCommandBuffer* comma
 	if (mtlCommandBuffer->readbackOffscreenCount == 0)
 		return nil;
 
+#if DS_MAC
 	dsMTLRenderer* renderer = (dsMTLRenderer*)commandBuffer->renderer;
 	id<MTLCommandQueue> commandQueue = (__bridge id<MTLCommandQueue>)renderer->commandQueue;
 	id<MTLCommandBuffer> submitBuffer = [commandQueue commandBuffer];
@@ -1240,6 +1241,7 @@ id<MTLCommandBuffer> dsMTLHardwareCommandBuffer_submitted(dsCommandBuffer* comma
 	id<MTLBlitCommandEncoder> encoder = [submitBuffer blitCommandEncoder];
 	if (!encoder)
 		return nil;
+#endif
 
 	for (uint32_t i = 0; i < mtlCommandBuffer->readbackOffscreenCount; ++i)
 	{
@@ -1258,8 +1260,12 @@ id<MTLCommandBuffer> dsMTLHardwareCommandBuffer_submitted(dsCommandBuffer* comma
 	}
 	mtlCommandBuffer->readbackOffscreenCount = 0;
 
+#if DS_MAC
 	[encoder endEncoding];
 	return submitBuffer;
+#else
+	return nil;
+#endif
 }
 
 void dsMTLHardwareCommandBuffer_shutdown(dsMTLHardwareCommandBuffer* commandBuffer)
