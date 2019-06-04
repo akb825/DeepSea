@@ -206,11 +206,21 @@ macro(ds_add_executable target)
 		if (ARGS_WIN32)
 			list(APPEND ARGS_FORWARDED WIN32)
 		endif()
-		if (ARGS_MACOSX_BUNDLE)
+		if (ARGS_MACOSX_BUNDLE OR IOS)
 			list(APPEND ARGS_FORWARDED MACOSX_BUNDLE)
 		endif()
 
 		add_executable(${target} ${ARGS_FORWARDED} ${ARGS_UNPARSED_ARGUMENTS})
+
+		if (ARGS_MACOSX_BUNDLE OR IOS)
+			string(REPLACE "_" "" targetNoUnderscore ${target})
+			string(REPLACE "deepsea" "" targetNoUnderscore ${targetNoUnderscore})
+			set_target_properties(${target} PROPERTIES
+				MACOSX_BUNDLE_GUI_IDENTIFIER com.deepsea.${targetNoUnderscore}
+				MACOSX_BUNDLE_BUNDLE_NAME ${target}
+				XCODE_ATTRIBUTE_TARGETED_DEVICE_FAMILY 1,2
+				XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER com.deepsea.${targetNoUnderscore})
+		endif()
 	endif()
 endmacro()
 

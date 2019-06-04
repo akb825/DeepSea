@@ -1,3 +1,8 @@
+if (IOS)
+	message("EasyProfiler currently disabled on iOS due to invalid assembly instruction.")
+	return()
+endif()
+
 file(GLOB_RECURSE sources src/*.c src/*.cpp src/*.h include/*.h)
 
 if (DEEPSEA_PROFILING)

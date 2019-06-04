@@ -33,12 +33,23 @@
 typedef NSView ViewType;
 #else
 #import <UIKit/UIView.h>
+#import <UIKit/UIScreen.h>
+#import <UIKit/UIWindow.h>
 typedef UIView ViewType;
 #endif
 
 @interface DSMetalView : ViewType
+{
+#if DS_IOS
+	CGFloat contentsScale;
+#endif
+}
 
-- (instancetype)initWithFrame:(CGRect)frame;
+- (instancetype)initWithFrame:(CGRect)frame
+#if DS_IOS
+	contentsScale: (CGFloat)scale
+#endif
+	;
 
 @end
 
@@ -50,6 +61,9 @@ typedef UIView ViewType;
 }
 
 - (instancetype)initWithFrame:(CGRect)frame
+#if DS_IOS
+	contentsScale: (CGFloat)scale
+#endif
 {
 	if ((self = [super initWithFrame: frame]))
 	{
@@ -58,6 +72,8 @@ typedef UIView ViewType;
 		self.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
 #else
 		self.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+		self.multipleTouchEnabled = true;
+		self->contentsScale = scale;
 #endif
 		[self updateDrawableSize];
 	}
@@ -75,8 +91,9 @@ typedef UIView ViewType;
 	metalLayer.contentsScale = backingSize.height/size.height;
 	size = backingSize;
 #else
-	size.width *= metalLayer.contentsScale;
-    size.height *= metalLayer.contentsScale;
+	metalLayer.contentsScale = self->contentsScale;
+	size.width *= self->contentsScale;
+    size.height *= self->contentsScale;
 #endif
 
 	metalLayer.drawableSize = size;
@@ -288,7 +305,11 @@ dsRenderSurface* dsMTLRenderSurface_create(dsRenderer* renderer, dsAllocator* al
 		ViewType* view = (__bridge ViewType*)osHandle;
 		if (view.layer.class != [CAMetalLayer class])
 		{
-			DSMetalView* metalView = [[DSMetalView alloc] initWithFrame: view.frame];
+			DSMetalView* metalView = [[DSMetalView alloc] initWithFrame: view.frame
+#if DS_IOS
+				contentsScale: view.window.screen.scale
+#endif
+				];
 			if (!metalView)
 			{
 				errno = ENOMEM;
