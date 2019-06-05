@@ -686,15 +686,15 @@ static bool addCopyImageBarriers(dsCommandBuffer* commandBuffer, const dsTexture
 			barrier->pNext = NULL;
 			if (reverse)
 			{
-				barrier->dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+				barrier->srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
 				barrier->dstAccessMask = dstAccessFlags;
 				barrier->oldLayout = dstLayout;
 				barrier->newLayout = dstMainLayout;
 			}
 			else
 			{
-				barrier->dstAccessMask = dstAccessFlags;
-				barrier->dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+				barrier->srcAccessMask = dstAccessFlags;
+				barrier->dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
 				barrier->oldLayout = dstMainLayout;
 				barrier->newLayout = dstLayout;
 			}
@@ -805,8 +805,8 @@ bool dsVkTexture_copyData(dsResourceManager* resourceManager, dsCommandBuffer* c
 		}
 	}
 
-	barrier.dstAccessMask = barrier.srcAccessMask;
 	barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+	barrier.dstAccessMask = barrier.srcAccessMask;
 	barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
 	barrier.newLayout = layout;
 	DS_VK_CALL(device->vkCmdPipelineBarrier)(vkCommandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT,

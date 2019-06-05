@@ -381,8 +381,13 @@ bool dsVkGfxBufferData_isStatic(const dsVkGfxBufferData* buffer)
 	 * 1 and either 2 or 3 must be met.
 	 */
 	return !(buffer->usage & (dsGfxBufferUsage_CopyTo | dsGfxBufferUsage_UniformBuffer |
-		dsGfxBufferUsage_Image)) &&
+			dsGfxBufferUsage_Image)) &&
 		((buffer->memoryHints & dsGfxMemory_GPUOnly) || buffer->deviceMemory);
+}
+
+bool dsVkGfxBufferData_needsMemoryBarrier(const dsVkGfxBufferData* buffer, bool canMap)
+{
+	return (buffer->usage & (dsGfxBufferUsage_Image | dsGfxBufferUsage_UniformBuffer)) || canMap;
 }
 
 bool dsVkGfxBufferData_addMemoryBarrier(dsVkGfxBufferData* buffer, VkDeviceSize offset,
@@ -390,9 +395,7 @@ bool dsVkGfxBufferData_addMemoryBarrier(dsVkGfxBufferData* buffer, VkDeviceSize 
 {
 	DS_ASSERT(DS_IS_BUFFER_RANGE_VALID(offset, size, buffer->size));
 	bool canMap = dsVkGfxBufferData_canMap(buffer);
-	bool canWrite = buffer->usage & (dsGfxBufferUsage_CopyTo | dsGfxBufferUsage_Image |
-		dsGfxBufferUsage_UniformBuffer) || canMap;
-	if (canWrite)
+	if (dsVkGfxBufferData_needsMemoryBarrier(buffer, canMap))
 	{
 		VkAccessFlags srcAccessMask = dsVkWriteBufferAccessFlags(buffer->usage, canMap);
 		VkAccessFlags dstAccessMask = dsVkReadBufferAccessFlags(buffer->usage);

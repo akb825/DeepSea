@@ -358,6 +358,15 @@ bool dsVkGfxBuffer_copyData(dsResourceManager* resourceManager, dsCommandBuffer*
 			(const uint8_t*)data + block);
 	}
 
+	// Add a memory barrier if it otherwise doesn't need it for normal rendering.
+	if (!dsVkGfxBufferData_needsMemoryBarrier(bufferData, canMap))
+	{
+		barrier.dstAccessMask = barrier.srcAccessMask;
+		barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+		DS_VK_CALL(device->vkCmdPipelineBarrier)(vkCommandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT,
+			stages, 0, 0, NULL, 1, &barrier, 0, NULL);
+	}
+
 	return true;
 }
 
@@ -426,6 +435,16 @@ bool dsVkGfxBuffer_copy(dsResourceManager* resourceManager, dsCommandBuffer* com
 	VkBufferCopy bufferCopy = {srcOffset, dstOffset, size};
 	DS_VK_CALL(device->vkCmdCopyBuffer)(vkCommandBuffer, srcCopyBuffer, dstCopyBuffer, 1,
 		&bufferCopy);
+
+	// Add a memory barrier if it otherwise doesn't need it for normal rendering.
+	if (!dsVkGfxBufferData_needsMemoryBarrier(dstBufferData, dstCanMap))
+	{
+		barriers->dstAccessMask = barriers[0].srcAccessMask;
+		barriers->srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+		DS_VK_CALL(device->vkCmdPipelineBarrier)(vkCommandBuffer, stages,
+			VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, NULL, 1, barriers, 0, NULL);
+	}
+
 	return true;
 }
 

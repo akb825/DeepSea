@@ -27,6 +27,7 @@ VkBufferView dsVkGfxBufferData_getBufferView(dsVkGfxBufferData* buffer, dsGfxFor
 	size_t offset, size_t count);
 bool dsVkGfxBufferData_canMap(const dsVkGfxBufferData* buffer);
 bool dsVkGfxBufferData_isStatic(const dsVkGfxBufferData* buffer);
+bool dsVkGfxBufferData_needsMemoryBarrier(const dsVkGfxBufferData* buffer, bool canMap);
 bool dsVkGfxBufferData_addMemoryBarrier(dsVkGfxBufferData* buffer, VkDeviceSize offset,
 	VkDeviceSize size, dsCommandBuffer* commandBuffer);
 void dsVkGfxBufferData_destroy(dsVkGfxBufferData* buffer);
