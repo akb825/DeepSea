@@ -267,7 +267,7 @@ dsMaterialDesc* dsMaterialDesc_create(dsResourceManager* resourceManager,
 	{
 		DS_ASSERT(materialDesc->elementCount == elementCount);
 		for (uint32_t i = 0; i < elementCount; ++i)
-			materialDesc->elements[i].nameId = dsHashString(materialDesc->elements[i].name);
+			materialDesc->elements[i].nameID = dsHashString(materialDesc->elements[i].name);
 		DS_ATOMIC_FETCH_ADD32(&resourceManager->materialDescCount, 1);
 	}
 

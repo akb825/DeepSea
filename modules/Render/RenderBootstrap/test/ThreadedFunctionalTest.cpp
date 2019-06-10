@@ -72,7 +72,7 @@ struct RenderInfo
 
 		uint32_t transformIdx = dsMaterialDesc_findElement(materialDesc, "Transform");
 		ASSERT_NE(DS_MATERIAL_UNKNOWN, transformIdx);
-		transformId = materialDesc->elements[transformIdx].nameId;
+		transformId = materialDesc->elements[transformIdx].nameID;
 
 		material = dsMaterial_create(resourceManager, allocator, materialDesc);
 		ASSERT_TRUE(material);

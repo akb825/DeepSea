@@ -67,7 +67,7 @@ static bool setupElements(dsVkSharedDescriptorSets* descriptors, dsCommandBuffer
 			case dsMaterialType_SubpassInput:
 			{
 				dsTexture* texture = dsSharedMaterialValues_getTextureId(sharedValues,
-					element->nameId);
+					element->nameID);
 				if (texture && !dsVkTexture_addMemoryBarrier(texture, commandBuffer))
 					return false;
 
@@ -88,7 +88,7 @@ static bool setupElements(dsVkSharedDescriptorSets* descriptors, dsCommandBuffer
 				size_t offset;
 				size_t count;
 				dsGfxBuffer* buffer = dsSharedMaterialValues_getTextureBufferId(&format, &offset,
-					&count, sharedValues, element->nameId);
+					&count, sharedValues, element->nameID);
 
 				uint32_t index = bindingCounts->texelBuffers;
 				if (!DS_RESIZEABLE_ARRAY_ADD(descriptors->allocator, bindingMemory->texelBuffers,
@@ -133,7 +133,7 @@ static bool setupElements(dsVkSharedDescriptorSets* descriptors, dsCommandBuffer
 				if (element->type == dsMaterialType_VariableGroup)
 				{
 					dsShaderVariableGroup* group = dsSharedMaterialValues_getVariableGroupId(
-						sharedValues, element->nameId);
+						sharedValues, element->nameID);
 					if (group)
 					{
 						buffer = dsShaderVariableGroup_getGfxBuffer(group);
@@ -143,7 +143,7 @@ static bool setupElements(dsVkSharedDescriptorSets* descriptors, dsCommandBuffer
 				else
 				{
 					buffer = dsSharedMaterialValues_getBufferId(&offset, &size, sharedValues,
-						element->nameId);
+						element->nameID);
 					// Dynamic offsets forinstance variables.
 					if (buffer && descriptors->binding == dsMaterialBinding_Instance)
 					{

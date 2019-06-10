@@ -305,7 +305,7 @@ typedef struct dsMaterialElement
 	 * This will be set when the dsMaterialDesc instance is created and doesn't need to be set by
 	 * the calling code.
 	 */
-	uint32_t nameId;
+	uint32_t nameID;
 } dsMaterialElement;
 
 /** @copydoc dsMaterialDesc */

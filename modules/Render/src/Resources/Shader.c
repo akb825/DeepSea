@@ -334,7 +334,7 @@ static bool verifySharedMaterialValues(const dsMaterialDesc* materialDesc,
 			case dsMaterialType_SubpassInput:
 			{
 				dsTexture* texture = dsSharedMaterialValues_getTextureId(sharedValues,
-					materialDesc->elements[i].nameId);
+					materialDesc->elements[i].nameID);
 				if (!texture)
 				{
 					DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Shared texture '%s' not found.",
@@ -373,7 +373,7 @@ static bool verifySharedMaterialValues(const dsMaterialDesc* materialDesc,
 			case dsMaterialType_VariableGroup:
 			{
 				dsShaderVariableGroup* variableGroup = dsSharedMaterialValues_getVariableGroupId(
-					sharedValues, materialDesc->elements[i].nameId);
+					sharedValues, materialDesc->elements[i].nameID);
 				if (!variableGroup)
 				{
 					DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Shared variable group '%s' not found.",
@@ -395,7 +395,7 @@ static bool verifySharedMaterialValues(const dsMaterialDesc* materialDesc,
 			case dsMaterialType_UniformBuffer:
 			{
 				dsGfxBuffer* buffer = dsSharedMaterialValues_getBufferId(NULL, NULL,
-					sharedValues, materialDesc->elements[i].nameId);
+					sharedValues, materialDesc->elements[i].nameID);
 				if (!buffer)
 				{
 					DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Buffer '%s' not found.",

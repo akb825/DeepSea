@@ -110,11 +110,11 @@ DS_RENDER_EXPORT dsTexture* dsSharedMaterialValues_getTextureName(
 /**
  * @brief Gets a texture value by ID.
  * @param values The shared material values.
- * @param nameId The hash of the texture name.
+ * @param nameID The hash of the texture name.
  * @return The texture, or NULL if not found or unset.
  */
 DS_RENDER_EXPORT dsTexture* dsSharedMaterialValues_getTextureId(
-	const dsSharedMaterialValues* values, uint32_t nameId);
+	const dsSharedMaterialValues* values, uint32_t nameID);
 
 /**
  * @brief Sets a texture value by name.
@@ -132,13 +132,13 @@ DS_RENDER_EXPORT bool dsSharedMaterialValues_setTextureName(dsSharedMaterialValu
  * @brief Sets a texture value by ID.
  * @remark errno will be set on failure.
  * @param values The shared material values.
- * @param nameId The hash of the texture name.
+ * @param nameID The hash of the texture name.
  * @param texture The texture to set.
  * @return False if the parameters are invalid, there isn't space available, or a value with the
  *     name is set that isn't a texture.
  */
 DS_RENDER_EXPORT bool dsSharedMaterialValues_setTextureId(dsSharedMaterialValues* values,
-	uint32_t nameId, dsTexture* texture);
+	uint32_t nameID, dsTexture* texture);
 
 /**
  * @brief Gets a texture buffer value by name.
@@ -158,11 +158,11 @@ DS_RENDER_EXPORT dsGfxBuffer* dsSharedMaterialValues_getTextureBufferName(dsGfxF
  * @param[out] outOffset The offset into the buffer. This may be NULL.
  * @param[out] outCount The number of texels for the buffer. This may be NULL.
  * @param values The shared material values.
- * @param nameId The hash of the buffer name.
+ * @param nameID The hash of the buffer name.
  * @return The buffer, or NULL if not found or unset.
  */
 DS_RENDER_EXPORT dsGfxBuffer* dsSharedMaterialValues_getTextureBufferId(dsGfxFormat* outFormat,
-	size_t* outOffset, size_t* outCount, const dsSharedMaterialValues* values, uint32_t nameId);
+	size_t* outOffset, size_t* outCount, const dsSharedMaterialValues* values, uint32_t nameID);
 
 /**
  * @brief Sets a texture buffer value by name.
@@ -184,7 +184,7 @@ DS_RENDER_EXPORT bool dsSharedMaterialValues_setTextureBufferName(
  * @brief Sets a texture buffer value by ID.
  * @remark errno will be set on failure.
  * @param values The shared material values.
- * @param nameId The hash of the buffer name.
+ * @param nameID The hash of the buffer name.
  * @param buffer The buffer to set.
  * @param format The texture format to interpret the buffer data.
  * @param offset The offset into the buffer.
@@ -193,7 +193,7 @@ DS_RENDER_EXPORT bool dsSharedMaterialValues_setTextureBufferName(
  *     name is set that isn't a buffer.
  */
 DS_RENDER_EXPORT bool dsSharedMaterialValues_setTextureBufferId(dsSharedMaterialValues* values,
-	uint32_t nameId, dsGfxBuffer* buffer, dsGfxFormat format, size_t offset, size_t count);
+	uint32_t nameID, dsGfxBuffer* buffer, dsGfxFormat format, size_t offset, size_t count);
 
 /**
  * @brief Gets a shader variable group value by name.
@@ -207,11 +207,11 @@ DS_RENDER_EXPORT dsShaderVariableGroup* dsSharedMaterialValues_getVariableGroupN
 /**
  * @brief Gets a shader variable group value by ID.
  * @param values The shared material values.
- * @param nameId The hash of the shader variable group name.
+ * @param nameID The hash of the shader variable group name.
  * @return The shader variable group, or NULL if not found or unset.
  */
 DS_RENDER_EXPORT dsShaderVariableGroup* dsSharedMaterialValues_getVariableGroupId(
-	const dsSharedMaterialValues* values, uint32_t nameId);
+	const dsSharedMaterialValues* values, uint32_t nameID);
 
 /**
  * @brief Sets a shader variable group value by name.
@@ -229,13 +229,13 @@ DS_RENDER_EXPORT bool dsSharedMaterialValues_setVariableGroupName(
  * @brief Sets a shader variable group value by ID.
  * @remark errno will be set on failure.
  * @param values The shared material values.
- * @param nameId The hash of the shader variable group name.
+ * @param nameID The hash of the shader variable group name.
  * @param group The shader variable group to set.
  * @return False if the parameters are invalid, there isn't space available, or a value with the
  *     name is set that isn't a shader variable group.
  */
 DS_RENDER_EXPORT bool dsSharedMaterialValues_setVariableGroupId(dsSharedMaterialValues* values,
-	uint32_t nameId, dsShaderVariableGroup* group);
+	uint32_t nameID, dsShaderVariableGroup* group);
 
 /**
  * @brief Gets a buffer value by name.
@@ -253,11 +253,11 @@ DS_RENDER_EXPORT dsGfxBuffer* dsSharedMaterialValues_getBufferName(size_t* outOf
  * @param[out] outOffset The offset into the buffer. This may be NULL.
  * @param[out] outSize The size to use within the buffer. This may be NULL.
  * @param values The shared material values.
- * @param nameId The hash of the buffer name.
+ * @param nameID The hash of the buffer name.
  * @return The buffer, or NULL if not found or unset.
  */
 DS_RENDER_EXPORT dsGfxBuffer* dsSharedMaterialValues_getBufferId(size_t* outOffset,
-	size_t* outSize, const dsSharedMaterialValues* values, uint32_t nameId);
+	size_t* outSize, const dsSharedMaterialValues* values, uint32_t nameID);
 
 /**
  * @brief Sets a buffer value by name.
@@ -277,7 +277,7 @@ DS_RENDER_EXPORT bool dsSharedMaterialValues_setBufferName(dsSharedMaterialValue
  * @brief Sets a buffer value by ID.
  * @remark errno will be set on failure.
  * @param values The shared material values.
- * @param nameId The hash of the buffer name.
+ * @param nameID The hash of the buffer name.
  * @param buffer The buffer to set.
  * @param offset The offset into the buffer.
  * @param size The size to use within the buffer.
@@ -285,7 +285,7 @@ DS_RENDER_EXPORT bool dsSharedMaterialValues_setBufferName(dsSharedMaterialValue
  *     name is set that isn't a buffer.
  */
 DS_RENDER_EXPORT bool dsSharedMaterialValues_setBufferId(dsSharedMaterialValues* values,
-	uint32_t nameId, dsGfxBuffer* buffer, size_t offset, size_t size);
+	uint32_t nameID, dsGfxBuffer* buffer, size_t offset, size_t size);
 
 /**
  * @brief Removes a shared material value by name.
@@ -299,11 +299,11 @@ DS_RENDER_EXPORT bool dsSharedMaterialValues_removeValueName(dsSharedMaterialVal
 /**
  * @brief Removes a shared material value by ID.
  * @param values The shared material values.
- * @param nameId The hash of the name of the value to remvoe.
+ * @param nameID The hash of the name of the value to remvoe.
  * @return True if the value was removed.
  */
 DS_RENDER_EXPORT bool dsSharedMaterialValues_removeValueId(dsSharedMaterialValues* values,
-	uint32_t nameId);
+	uint32_t nameID);
 
 /**
  * @brief Clears the shared material values.

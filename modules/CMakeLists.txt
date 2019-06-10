@@ -34,6 +34,10 @@ if (DEEPSEA_BUILD_RENDER)
 		endif()
 	endif()
 
+	if (DEEPSEA_BUILD_SCENE)
+		ds_add_module(Scene)
+	endif()
+
 	if (DEEPSEA_BUILD_APPLICATION)
 		ds_add_module(Application)
 		if (DEEPSEA_BUILD_APPLICATION_SDL)

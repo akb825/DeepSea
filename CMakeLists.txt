@@ -27,6 +27,8 @@ set(DEEPSEA_BUILD_RENDER_METAL ON CACHE BOOL "Build Metal rendering implementati
 set(DEEPSEA_BUILD_TEXT ON CACHE BOOL "Build text rendering library.")
 set(DEEPSEA_BUILD_VECTOR_DRAW ON CACHE BOOL "Build vector draw library.")
 
+set(DEEPSEA_BUILD_SCENE ON CACHE BOOL "Build scene library.")
+
 set(DEEPSEA_BUILD_APPLICATION ON CACHE BOOL "Build application framework libraries.")
 set(DEEPSEA_BUILD_APPLICATION_SDL ON CACHE BOOL "Build SDL application implementation.")
 
