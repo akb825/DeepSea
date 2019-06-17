@@ -37,7 +37,7 @@ extern "C"
 /**
  * @brief Constant for no scene node.
  */
-#define DS_SCENE_NO_NODE (uint32_t)-1
+#define DS_NO_SCENE_NODE (uint32_t)-1
 
 /**
  * @brief Struct for processing items within a scene.
@@ -45,8 +45,6 @@ extern "C"
  * Different implementations can effectively subclass this type by having it as the first member of
  * the structure. This can be done to add additional data to the structure and have it be freely
  * casted between dsSceneItemList and the true internal type.
- *
- * @see SceneItemList.h
  */
 typedef struct dsSceneItemList dsSceneItemList;
 
@@ -97,7 +95,7 @@ typedef struct dsSceneTreeNode dsSceneTreeNode;
  * @param node The node to add.
  * @param transform The transform for the node. The contents of the pointer will change as the node
  *     is updated.
- * @return The ID of the node within the item list, or DS_SCENE_NO_NODE if not added.
+ * @return The ID of the node within the item list, or DS_NO_SCENE_NODE if not added.
  */
 typedef uint32_t (*dsAddSceneItemListNodeFunction)(dsSceneItemList* itemList, dsSceneNode* node,
 	const dsMatrix44f* transform);
@@ -258,11 +256,6 @@ struct dsSceneNode
 	dsSceneNodeType type;
 
 	/**
-	 * @brief The parents of the node.
-	 */
-	dsSceneNode** parents;
-
-	/**
 	 * @brief The children of the node.
 	 */
 	dsSceneNode** children;
@@ -274,6 +267,8 @@ struct dsSceneNode
 
 	/**
 	 * @brief The tree nodes that correspond to this node in various scenes.
+	 *
+	 * This is for internal management of the scene graph.
 	 */
 	dsSceneTreeNode** treeNodes;
 
@@ -286,16 +281,6 @@ struct dsSceneNode
 	 * @brief The maximum number of children.
 	 */
 	uint32_t maxChildren;
-
-	/**
-	 * @brief The number of parents.
-	 */
-	uint32_t parentCount;
-
-	/**
-	 * @brief The maximum number of parents.
-	 */
-	uint32_t maxParents;
 
 	/**
 	 * @brief The number of draw lists.
@@ -325,65 +310,6 @@ struct dsSceneNode
 	dsDestroySceneNodeFunction destroyFunc;
 };
 
-struct dsSceneTreeNode
-{
-	/**
-	 * @brief The scene this belongs to.
-	 */
-	dsScene* scene;
-
-	/**
-	 * @brief The allocator the node was created with.
-	 */
-	dsAllocator* allocator;
-
-	/**
-	 * @brief The node from the original scene graph.
-	 */
-	dsSceneNode* node;
-
-	/**
-	 * @brief The parent node.
-	 */
-	dsSceneTreeNode* parent;
-
-	/**
-	 * @brief The child node.
-	 */
-	dsSceneTreeNode** children;
-
-	/**
-	 * @brief The number of child nodes.
-	 */
-	uint32_t childCount;
-
-	/**
-	 * @brief The maximum number of child nodes.
-	 */
-	uint32_t maxChildren;
-
-	/**
-	 * @brief The transform for the node.
-	 */
-	dsMatrix44f transform;
-};
-
-/**
- * @brief Scene node implementation for the root of a scene.
- */
-typedef struct dsSceneRootNode
-{
-	/**
-	 * @brief The base node.
-	 */
-	dsSceneNode node;
-
-	/**
-	 * @brief The scene this node belongs to.
-	 */
-	dsScene* scene;
-} dsSceneRootNode;
-
 /**
  * @brief Scene node implementation that contains a transform for any subnodes.
  * @see SceneTransformNode
@@ -400,36 +326,6 @@ typedef struct dsSceneTransformNode
 	 */
 	dsMatrix44f transform;
 } dsSceneTransformNode;
-
-/**
- * @brief Struct with a pool of allocated strings.
- *
- * This is used for types that expect external lifetimes for the objects.
- *
- * @see SceneStringTable.h
- */
-typedef struct dsSceneStringTable
-{
-	/**
-	 * @brief The allocator for the string table.
-	 */
-	dsAllocator* allocator;
-
-	/**
-	 * @brief The table of strings.
-	 */
-	char* strings;
-
-	/**
-	 * @brief The size of the table.
-	 */
-	uint32_t size;
-
-	/**
-	 * @brief The capacity of the table.
-	 */
-	uint32_t capacity;
-} dsSceneStringTable;
 
 #ifdef __cplusplus
 }

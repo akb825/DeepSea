@@ -16,8 +16,10 @@
 
 #include <DeepSea/Scene/Nodes/SceneNode.h>
 
+#include "Nodes/SceneTreeNode.h"
 #include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
+#include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Atomic.h>
 #include <DeepSea/Core/Error.h>
 #include <string.h>
@@ -37,7 +39,7 @@ bool dsSceneNode_initialize(dsSceneNode* node, dsAllocator* allocator,
 	dsSceneNodeType type, const char** drawLists, uint32_t drawListCount,
 	dsDestroySceneNodeFunction destroyFunc)
 {
-	if (!node || !dsAllocator_keepPointer(allocator))
+	if (!node || !dsAllocator_keepPointer(allocator) || !destroyFunc)
 	{
 		errno = EINVAL;
 		return false;
@@ -45,12 +47,9 @@ bool dsSceneNode_initialize(dsSceneNode* node, dsAllocator* allocator,
 
 	node->allocator = allocator;
 	node->type = type;
-	node->parents = NULL;
 	node->children = NULL;
 	node->drawLists = drawLists;
 	node->treeNodes = NULL;
-	node->parentCount = 0;
-	node->maxParents = 0;
 	node->childCount = 0;
 	node->maxChildren = 0;
 	node->drawListCount = drawListCount;
@@ -61,12 +60,39 @@ bool dsSceneNode_initialize(dsSceneNode* node, dsAllocator* allocator,
 	return true;
 }
 
-void dsSceneNode_addRef(dsSceneNode* node)
+bool dsSceneNode_addChild(dsSceneNode* node, dsSceneNode* child)
+{
+	if (!node || !child)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	uint32_t index = node->childCount;
+	if (!DS_RESIZEABLE_ARRAY_ADD(node->allocator, node->children, node->childCount,
+			node->maxChildren, 1))
+	{
+		return false;
+	}
+
+	node->children[index] = dsSceneNode_addRef(child);
+	if (!dsSceneTreeNode_buildSubtree(node, child))
+	{
+		dsSceneNode_freeRef(child);
+		--node->childCount;
+		return false;
+	}
+
+	return true;
+}
+
+dsSceneNode* dsSceneNode_addRef(dsSceneNode* node)
 {
 	if (!node)
-		return;
+		return NULL;
 
 	DS_ATOMIC_FETCH_ADD32(&node->refCount, 1);
+	return node;
 }
 
 void dsSceneNode_freeRef(dsSceneNode* node)
@@ -78,8 +104,12 @@ void dsSceneNode_freeRef(dsSceneNode* node)
 		return;
 
 	for (uint32_t i = 0; i < node->childCount; ++i)
-		dsSceneNode_freeRef(node->children[i]);
+	{
+		dsSceneNode* child = node->children[i];
+		dsSceneTreeNode_removeSubtree(node, child);
+		dsSceneNode_freeRef(child);
+	}
 
-	if (node->destroyFunc)
-		node->destroyFunc(node);
+	DS_ASSERT(node->destroyFunc);
+	node->destroyFunc(node);
 }

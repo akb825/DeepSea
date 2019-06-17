@@ -14,4 +14,28 @@
  * limitations under the License.
  */
 
-#include <DeepSea/Scene/Scene.h>
+#pragma once
+
+#include <DeepSea/Core/Config.h>
+#include <DeepSea/Scene/Export.h>
+#include <DeepSea/Scene/Types.h>
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
+/**
+ * @file
+ * @brief Functions for creating and manipulating transform nodes.
+ * @see dsTransformNode
+ */
+
+/**
+ * @brief Gets the type of a transform node.
+ */
+DS_SCENE_EXPORT dsSceneNodeType dsSceneTransformNode_type(void);
+
+#ifdef __cplusplus
+}
+#endif

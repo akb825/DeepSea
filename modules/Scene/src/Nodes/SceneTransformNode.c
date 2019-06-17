@@ -14,4 +14,11 @@
  * limitations under the License.
  */
 
-#include <DeepSea/Scene/Scene.h>
+#include <DeepSea/Scene/Nodes/SceneTransformNode.h>
+
+static int nodeType;
+
+dsSceneNodeType dsSceneTransformNode_type(void)
+{
+	return &nodeType;
+}

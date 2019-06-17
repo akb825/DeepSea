@@ -14,4 +14,12 @@
  * limitations under the License.
  */
 
-#include <DeepSea/Scene/Scene.h>
+#pragma once
+
+#include <DeepSea/Core/Config.h>
+#include <DeepSea/Scene/Types.h>
+
+dsScene* dsSceneTreeNode_getScene(dsSceneTreeNode* node);
+bool dsSceneTreeNode_buildSubtree(dsSceneNode* node, dsSceneNode* child);
+void dsSceneTreeNode_removeSubtree(dsSceneNode* node, dsSceneNode* child);
+void dsSceneTreeNode_updateSubtree(dsSceneTreeNode* node);
