@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2019 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 #pragma once
 
 #include <DeepSea/Core/Config.h>
+#include <DeepSea/Core/Memory/Types.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stddef.h>
@@ -189,6 +190,37 @@ typedef struct dsHashTable
 		dsHashTable hashTable; \
 		uint8_t data[sizeof(dsHashTable) + tableSize*sizeof(dsHashTableNode*)]; \
 	}
+
+/**
+ * @brief Struct with a pool of allocated strings.
+ *
+ * When multiple objects that expect external lifetime management of strings are used, this can be
+ * used to pool those allocations to free them in one go.
+ *
+ * @see StringTable.h
+ */
+typedef struct dsStringPool
+{
+	/**
+	 * @brief The allocator for the string pool.
+	 */
+	dsAllocator* allocator;
+
+	/**
+	 * @brief The table of strings.
+	 */
+	char* strings;
+
+	/**
+	 * @brief The current size of the table.
+	 */
+	size_t size;
+
+	/**
+	 * @brief The size that's been reserved.
+	 */
+	size_t reservedSize;
+} dsStringPool;
 
 #ifdef __cplusplus
 }
