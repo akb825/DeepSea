@@ -10,9 +10,10 @@ ds_add_library(deepsea_render_metal MODULE RenderMetal FILES ${sources} DEPENDS 
 ds_target_include_directories(deepsea_render_metal
 	PRIVATE ${DEEPSEA_MODULE_DIR}/Render/RenderMetal/src)
 ds_target_link_libraries(deepsea_render_metal PRIVATE msl_client "-framework Metal"
-	"-framework QuartzCore")
+	"-framework QuartzCore" "-framework CoreFoundation")
 if (IOS)
-	ds_target_link_libraries(deepsea_render_metal PRIVATE "-framework Foundation -framework UIKit")
+	ds_target_link_libraries(deepsea_render_metal PRIVATE "-framework Foundation"
+		"-framework UIKit")
 else()
 	ds_target_link_libraries(deepsea_render_metal PRIVATE "-framework AppKit")
 endif()
