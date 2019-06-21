@@ -102,7 +102,7 @@ id<MTLFunction> dsMTLShaderModule_getShader(dsShaderModule* module, uint32_t sha
 	{
 		if ([library functionNames].count == 1)
 		{
-			function = [library newFunctionWithName: [library functionNames][0]];
+			function = [library newFunctionWithName: library.functionNames[0]];
 			if (!function)
 				errno = ENOMEM;
 		}
