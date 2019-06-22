@@ -152,7 +152,7 @@ static void setDepthStencilState(id<MTLRenderCommandEncoder> encoder,
 		descriptor.depthCompareFunction =
 			renderStates->depthStencilState.depthTestEnable == mslBool_True ?
 				dsGetMTLCompareFunction(renderStates->depthStencilState.depthCompareOp,
-					MTLCompareFunctionLess) : mslCompareOp_Always;
+					MTLCompareFunctionLess) : MTLCompareFunctionAlways;
 		descriptor.depthWriteEnabled =
 			renderStates->depthStencilState.depthWriteEnable != mslBool_False;
 		descriptor.frontFaceStencil = dsCreateMTLStencilDescriptor(

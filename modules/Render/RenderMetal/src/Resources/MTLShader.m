@@ -358,7 +358,7 @@ static bool setupShaders(dsShader* shader, mslModule* module, uint32_t shaderInd
 			{
 				DS_LOG_ERROR_F(DS_RENDER_METAL_LOG_TAG,
 					"Error creating compute pipeline for shader %s.%s: %s",
-					shader->module->name, shader->name, [[error localizedDescription] UTF8String]);
+					shader->module->name, shader->name, error.localizedDescription.UTF8String);
 			}
 			else
 			{

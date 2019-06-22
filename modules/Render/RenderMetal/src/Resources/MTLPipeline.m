@@ -425,7 +425,7 @@ dsMTLPipeline* dsMTLPipeline_create(dsAllocator* allocator, dsShader* shader, ui
 			{
 				DS_LOG_ERROR_F(DS_RENDER_METAL_LOG_TAG,
 					"Error creating pipeline for shader %s.%s: %s", shader->module->name,
-					shader->name, [[error localizedDescription] UTF8String]);
+					shader->name, error.localizedDescription.UTF8String);
 			}
 			else
 			{

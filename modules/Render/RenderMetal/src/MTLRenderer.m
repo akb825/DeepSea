@@ -775,7 +775,7 @@ dsRenderer* dsMTLRenderer_create(dsAllocator* allocator, const dsRendererOptions
 			return NULL;
 		}
 
-		const char* deviceName = [device.name UTF8String];
+		const char* deviceName = device.name.UTF8String;
 		size_t deviceNameLen = strlen(deviceName);
 
 		size_t bufferSize = dsMTLRenderer_fullAllocSize(deviceNameLen);

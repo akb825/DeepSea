@@ -119,7 +119,7 @@ id<MTLFunction> dsMTLShaderModule_getShader(dsShaderModule* module, uint32_t sha
 		if (error)
 		{
 			DS_LOG_ERROR_F(DS_RENDER_METAL_LOG_TAG, "Error loading shader %s.%s: %s",
-				module->name, pipelineName, [[error localizedDescription] UTF8String]);
+				module->name, pipelineName, error.localizedDescription.UTF8String);
 		}
 		else
 		{
