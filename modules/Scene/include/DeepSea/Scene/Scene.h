@@ -35,10 +35,10 @@ extern "C"
 /**
  * @brief Creates a scene.
  * @remark errno will be set on failure.
- * @param allocator The allocator to create the scene with.
- * @param pipeline The pipeline to perform when rendering the scene. This will perform a deep copy
- *     of the arrays and will take ownership of the objects, i.e. render passes and draw item lists.
- *     If creation fails, this means it will immediately destroy all objects in this list.
+ * @param allocator The allocator to create the scene with. This must support freeing memory.
+ * @param pipeline The pipeline to perform when rendering the scene. This will copy the array itself
+ *     and take ownership of the objects, i.e. render passes and draw item lists. If creation fails,
+ *     this means it will immediately destroy all objects in this list.
  * @param pipelineCount The number of pipeline items.
  * @param stringPool An optional string pool for pooled string allocation. This will take
  *     ownership of the strings pointer within stringPool, which will also be freed if creation
@@ -47,6 +47,12 @@ extern "C"
  */
 DS_SCENE_EXPORT dsScene* dsScene_create(dsAllocator* allocator, const dsScenePipelineItem* pipeline,
 	uint32_t pipelineCount, const dsStringPool* stringPool);
+
+/**
+ * @brief Destroys a scene.
+ * @param scene The scene to destroy.
+ */
+DS_SCENE_EXPORT void dsScene_destroy(dsScene* scene);
 
 #ifdef __cplusplus
 }

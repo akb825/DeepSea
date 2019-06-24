@@ -17,9 +17,26 @@
 #pragma once
 
 #include <DeepSea/Core/Config.h>
+#include <DeepSea/Scene/Export.h>
 #include <DeepSea/Scene/Types.h>
 
-dsScene* dsSceneTreeNode_getScene(dsSceneTreeNode* node);
-bool dsSceneTreeNode_buildSubtree(dsSceneNode* node, const dsSceneNodeChildRef* child);
-void dsSceneTreeNode_removeSubtree(dsSceneNode* node, dsSceneNode* child, uint32_t childID);
-void dsSceneTreeNode_updateSubtree(dsSceneTreeNode* node);
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
+/**
+ * @file
+ * @brief Functions for manipulating scene item lists.
+ * @see dsSceneItemLIst
+ */
+
+/**
+ * @brief Destroys a scene item list.
+ * @param list The list to destroy.
+ */
+DS_SCENE_EXPORT void dsSceneItemList_destroy(dsSceneItemList* list);
+
+#ifdef __cplusplus
+}
+#endif

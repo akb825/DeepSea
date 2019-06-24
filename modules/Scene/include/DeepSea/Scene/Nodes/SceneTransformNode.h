@@ -36,6 +36,16 @@ extern "C"
  */
 DS_SCENE_EXPORT dsSceneNodeType dsSceneTransformNode_type(void);
 
+/**
+ * @brief Creates a transform node.
+ * @remark errno will be set on failure.
+ * @param allocator The allocator for the node. This must support freeing memory.
+ * @param transform The initial transform for the node.
+ * @return The transform node or NULL if an error occurred.
+ */
+DS_SCENE_EXPORT dsSceneTransformNode* dsSceneTransformNode_create(dsAllocator* allocator,
+	const dsMatrix44f* transform);
+
 #ifdef __cplusplus
 }
 #endif

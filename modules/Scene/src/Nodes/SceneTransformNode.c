@@ -16,9 +16,43 @@
 
 #include <DeepSea/Scene/Nodes/SceneTransformNode.h>
 
+#include <DeepSea/Core/Memory/Allocator.h>
+#include <DeepSea/Core/Assert.h>
+#include <DeepSea/Scene/Nodes/SceneNode.h>
+
 static int nodeType;
+
+static void destroy(dsSceneNode* node)
+{
+	DS_VERIFY(dsAllocator_free(node->allocator, node));
+}
 
 dsSceneNodeType dsSceneTransformNode_type(void)
 {
 	return &nodeType;
+}
+
+dsSceneTransformNode* dsSceneTransformNode_create(dsAllocator* allocator,
+	const dsMatrix44f* transform)
+{
+	if (!allocator || !transform)
+	{
+		errno = EINVAL;
+		return NULL;
+	}
+
+	dsSceneTransformNode* node = DS_ALLOCATE_OBJECT(allocator, dsSceneTransformNode);
+	if (!node)
+		return NULL;
+
+	if (!dsSceneNode_initialize((dsSceneNode*)node, allocator, dsSceneTransformNode_type(), NULL, 0,
+			&destroy))
+	{
+		if (allocator->freeFunc)
+			DS_VERIFY(dsAllocator_free(allocator, node));
+		return NULL;
+	}
+
+	node->transform = *transform;
+	return node;
 }

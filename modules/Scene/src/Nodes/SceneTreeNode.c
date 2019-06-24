@@ -29,7 +29,7 @@
 
 static void updateTransform(dsSceneTreeNode* node)
 {
-	if (node->node->type == dsSceneTransformNode_type())
+	if (node->node.node->type == dsSceneTransformNode_type())
 	{
 		dsSceneTransformNode* transformNode = (dsSceneTransformNode*)node;
 		if (node->parent)
@@ -46,15 +46,15 @@ static void updateTransform(dsSceneTreeNode* node)
 	}
 	if (node->parent == NULL)
 	{
-		if (node->node->type == dsSceneTransformNode_type())
+		if (node->node.node->type == dsSceneTransformNode_type())
 			node->transform = ((dsSceneTransformNode*)node)->transform;
 		else
 			dsMatrix44_identity(node->transform);
 	}
 }
 
-static dsSceneTreeNode* addNode(dsSceneTreeNode* node, dsSceneNode* child, dsScene* scene,
-	dsAllocator* allocator)
+static dsSceneTreeNode* addNode(dsSceneTreeNode* node, const dsSceneNodeChildRef* child,
+	dsScene* scene, dsAllocator* allocator)
 {
 	uint32_t childIndex = node->parent->childCount;
 	if (!DS_RESIZEABLE_ARRAY_ADD(node->allocator, node->children, node->childCount,
@@ -63,21 +63,22 @@ static dsSceneTreeNode* addNode(dsSceneTreeNode* node, dsSceneNode* child, dsSce
 		return NULL;
 	}
 
-	uint32_t treeNodeIndex = child->treeNodeCount;
-	if (!DS_RESIZEABLE_ARRAY_ADD(child->allocator, child->treeNodes, child->treeNodeCount,
-			child->maxTreeNodes, 1))
+	dsSceneNode* childNode = child->node;
+	uint32_t treeNodeIndex = childNode->treeNodeCount;
+	if (!DS_RESIZEABLE_ARRAY_ADD(childNode->allocator, childNode->treeNodes,
+			childNode->treeNodeCount, childNode->maxTreeNodes, 1))
 	{
 		node->childCount = childIndex;
 		return NULL;
 	}
 
 	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsSceneTreeNode)) +
-		DS_ALIGNED_SIZE(sizeof(dsSceneItemEntry)*child->drawListCount);
+		DS_ALIGNED_SIZE(sizeof(dsSceneItemEntry)*childNode->drawListCount);
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 	{
 		node->childCount = childIndex;
-		child->treeNodeCount = treeNodeIndex;
+		childNode->treeNodeCount = treeNodeIndex;
 		return NULL;
 	}
 
@@ -88,8 +89,9 @@ static dsSceneTreeNode* addNode(dsSceneTreeNode* node, dsSceneNode* child, dsSce
 		dsSceneTreeNode);
 	DS_ASSERT(childTreeNode);
 
+	dsSceneNode_addRef(childNode);
 	childTreeNode->allocator = allocator;
-	childTreeNode->node = dsSceneNode_addRef(child);
+	childTreeNode->node = *child;
 	childTreeNode->parent = node;
 	childTreeNode->children = NULL;
 	childTreeNode->childCount = 0;
@@ -98,12 +100,12 @@ static dsSceneTreeNode* addNode(dsSceneTreeNode* node, dsSceneNode* child, dsSce
 	updateTransform(childTreeNode);
 
 	childTreeNode->drawItems= DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
-		dsSceneItemEntry, child->drawListCount);
-	DS_ASSERT(childTreeNode->drawItems || child->drawListCount == 0);
-	for (uint32_t i = 0; i < child->drawListCount; ++i)
+		dsSceneItemEntry, childNode->drawListCount);
+	DS_ASSERT(childTreeNode->drawItems || childNode->drawListCount == 0);
+	for (uint32_t i = 0; i < childNode->drawListCount; ++i)
 	{
-		dsSceneItemListNode* node = (dsSceneItemListNode*)dsHashTable_find(scene->drawLists,
-			child->drawLists[i]);
+		dsSceneItemListNode* node = (dsSceneItemListNode*)dsHashTable_find(scene->itemLists,
+			childNode->drawLists[i]);
 		if (!node)
 		{
 			childTreeNode->drawItems[i].list = NULL;
@@ -112,24 +114,25 @@ static dsSceneTreeNode* addNode(dsSceneTreeNode* node, dsSceneNode* child, dsSce
 		}
 
 		childTreeNode->drawItems[i].list = node->list;
-		childTreeNode->drawItems[i].entry = node->list->addNodeFunc(node->list, child,
+		childTreeNode->drawItems[i].entry = node->list->addNodeFunc(node->list, childNode,
 			&childTreeNode->transform);
 	}
 
 	node->children[childIndex] = childTreeNode;
-	child->treeNodes[treeNodeIndex] = childTreeNode;
+	childNode->treeNodes[treeNodeIndex] = childTreeNode;
 	return childTreeNode;
 }
 
-static bool buildSubtreeRec(dsSceneTreeNode* node, dsSceneNode* child, dsScene* scene)
+static bool buildSubtreeRec(dsSceneTreeNode* node, const dsSceneNodeChildRef* child, dsScene* scene)
 {
 	dsSceneTreeNode* childTreeNode = addNode(node, child, scene, scene->allocator);
 	if (!childTreeNode)
 		return false;
 
-	for (uint32_t i = 0; i < child->childCount; ++i)
+	dsSceneNode* childNode = child->node;
+	for (uint32_t i = 0; i < childNode->childCount; ++i)
 	{
-		if (!buildSubtreeRec(childTreeNode, child->children[i], scene))
+		if (!buildSubtreeRec(childTreeNode, childNode->children + i, scene))
 			return false;
 	}
 
@@ -138,7 +141,7 @@ static bool buildSubtreeRec(dsSceneTreeNode* node, dsSceneNode* child, dsScene* 
 
 static uint32_t findTreeNodeIndex(dsSceneTreeNode* treeNode)
 {
-	dsSceneNode* node = treeNode->node;
+	dsSceneNode* node = treeNode->node.node;
 	for (uint32_t i = 0; i < node->treeNodeCount; ++i)
 	{
 		if (node->treeNodes[i] == treeNode)
@@ -153,14 +156,14 @@ static void removeSubtreeRec(dsSceneNode* child, uint32_t treeNodeIndex, dsScene
 {
 	dsSceneTreeNode* childTreeNode = child->treeNodes[treeNodeIndex];
 	// Remove the reference in the main node.
-	DS_RESIZEABLE_ARRAY_REMOVE(child->treeNodes, child->treeNodeCount, child->maxTreeNodes,
-		treeNodeIndex);
+	child->treeNodes[treeNodeIndex] = child->treeNodes[child->treeNodeCount - 1];
+	--child->treeNodeCount;
 
 	// Recurse for the children.
 	for (uint32_t i = 0; i < childTreeNode->childCount; ++i)
 	{
 		dsSceneTreeNode* nextTreeNode = childTreeNode->children[i];
-		removeSubtreeRec(nextTreeNode->node, findTreeNodeIndex(nextTreeNode), scene);
+		removeSubtreeRec(nextTreeNode->node.node, findTreeNodeIndex(nextTreeNode), scene);
 	}
 
 	// Dispose of the node.
@@ -174,7 +177,7 @@ static void removeSubtreeRec(dsSceneNode* child, uint32_t treeNodeIndex, dsScene
 		list->removeNodeFunc(list, entry);
 	}
 
-	dsSceneNode_freeRef(childTreeNode->node);
+	dsSceneNode_freeRef(childTreeNode->node.node);
 	DS_VERIFY(dsAllocator_free(childTreeNode->allocator, childTreeNode->children));
 	DS_VERIFY(dsAllocator_free(childTreeNode->allocator, childTreeNode));
 
@@ -184,8 +187,8 @@ static void removeSubtreeRec(dsSceneNode* child, uint32_t treeNodeIndex, dsScene
 		if (scene->dirtyNodes[i] != childTreeNode)
 			continue;
 
-		DS_RESIZEABLE_ARRAY_REMOVE(scene->dirtyNodes, scene->dirtyNodeCount, scene->maxDirtyNodes,
-			i);
+		scene->dirtyNodes[i] = scene->dirtyNodes[scene->dirtyNodeCount - 1];
+		--scene->dirtyNodeCount;
 		break;
 	}
 }
@@ -206,7 +209,7 @@ dsScene* dsSceneTreeNode_getScene(dsSceneTreeNode* node)
 	return ((dsSceneTreeRootNode*)node)->scene;
 }
 
-bool dsSceneTreeNode_buildSubtree(dsSceneNode* node, dsSceneNode* child)
+bool dsSceneTreeNode_buildSubtree(dsSceneNode* node, const dsSceneNodeChildRef* child)
 {
 	for (uint32_t i = 0; i < node->treeNodeCount; ++i)
 	{
@@ -215,7 +218,7 @@ bool dsSceneTreeNode_buildSubtree(dsSceneNode* node, dsSceneNode* child)
 		DS_ASSERT(scene);
 		if (!buildSubtreeRec(treeNode, child, scene))
 		{
-			dsSceneTreeNode_removeSubtree(node, child);
+			dsSceneTreeNode_removeSubtree(node, child->node, child->childID);
 			return false;
 		}
 	}
@@ -223,15 +226,18 @@ bool dsSceneTreeNode_buildSubtree(dsSceneNode* node, dsSceneNode* child)
 	return true;
 }
 
-void dsSceneTreeNode_removeSubtree(dsSceneNode* node, dsSceneNode* child)
+void dsSceneTreeNode_removeSubtree(dsSceneNode* node, dsSceneNode* child, uint32_t childID)
 {
 	// Find all tree nodes of the parent that are a parent to the current child.
 	// Don't increment i if removing the child, since the index will be removed.
 	for (uint32_t i = 0; i < child->treeNodeCount;)
 	{
 		dsSceneTreeNode* childTreeNode = child->treeNodes[i];
+		if (childID != DS_NO_SCENE_NODE && childTreeNode->node.childID != childID)
+			continue;
+
 		dsSceneTreeNode* treeNode = childTreeNode->parent;
-		if (treeNode->node != node)
+		if (treeNode->node.node != node)
 		{
 			++i;
 			continue;
@@ -247,8 +253,8 @@ void dsSceneTreeNode_removeSubtree(dsSceneNode* node, dsSceneNode* child)
 		{
 			if (treeNode->children[j] == childTreeNode)
 			{
-				DS_RESIZEABLE_ARRAY_REMOVE(treeNode->children, treeNode->childCount,
-					treeNode->maxChildren, j);
+				treeNode->children[i] = treeNode->children[treeNode->childCount - 1];
+				--treeNode->childCount;
 				break;
 			}
 		}

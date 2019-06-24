@@ -209,14 +209,14 @@ typedef struct dsSubpassDrawLists
 typedef struct dsSceneRenderPass
 {
 	/**
-	 * @brief The base render pass this extends.
-	 */
-	dsRenderPass* renderPass;
-
-	/**
 	 * @brief The allocator this was created with.
 	 */
 	dsAllocator* allocator;
+
+	/**
+	 * @brief The base render pass this extends.
+	 */
+	dsRenderPass* renderPass;
 
 	/**
 	 * @brief The scene item lists for each subpass.
@@ -242,6 +242,25 @@ typedef struct dsScenePipelineItem
 	dsSceneItemList* computeItems;
 } dsScenePipelineItem;
 
+/**
+ * @brief Struct that contains a unique reference to a child node.
+ *
+ * This allows the system to uniquely reference a child when maintaining the parallel data
+ * structures.
+ */
+typedef struct dsSceneNodeChildRef
+{
+	/**
+	 * @brief The scene node.
+	 */
+	dsSceneNode* node;
+
+	/**
+	 * @brief A unique child ID.
+	 */
+	uint32_t childID;
+} dsSceneNodeChildRef;
+
 /** @copydoc dsSceneNode */
 struct dsSceneNode
 {
@@ -258,7 +277,7 @@ struct dsSceneNode
 	/**
 	 * @brief The children of the node.
 	 */
-	dsSceneNode** children;
+	dsSceneNodeChildRef* children;
 
 	/**
 	 * @brief The draw lists that will use the node.
@@ -303,6 +322,11 @@ struct dsSceneNode
 	 * This will start at 1 on creation.
 	 */
 	uint32_t refCount;
+
+	/**
+	 * @brief The child ID for the next child node.
+	 */
+	uint32_t nextChildID;
 
 	/**
 	 * @brief Destroy function.

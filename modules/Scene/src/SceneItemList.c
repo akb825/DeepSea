@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-#pragma once
+#include <DeepSea/Scene/SceneItemList.h>
 
-#include <DeepSea/Core/Config.h>
-#include <DeepSea/Scene/Types.h>
+void dsSceneItemList_destroy(dsSceneItemList* list)
+{
+	if (!list || !list->destroyFunc)
+		return;
 
-dsScene* dsSceneTreeNode_getScene(dsSceneTreeNode* node);
-bool dsSceneTreeNode_buildSubtree(dsSceneNode* node, const dsSceneNodeChildRef* child);
-void dsSceneTreeNode_removeSubtree(dsSceneNode* node, dsSceneNode* child, uint32_t childID);
-void dsSceneTreeNode_updateSubtree(dsSceneTreeNode* node);
+	list->destroyFunc(list);
+}

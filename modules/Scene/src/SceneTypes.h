@@ -29,7 +29,7 @@ typedef struct dsSceneItemEntry
 struct dsSceneTreeNode
 {
 	dsAllocator* allocator;
-	dsSceneNode* node;
+	dsSceneNodeChildRef node;
 	dsSceneTreeNode* parent;
 	dsSceneTreeNode** children;
 	dsSceneItemEntry* drawItems;
@@ -54,12 +54,12 @@ typedef struct dsSceneItemListNode
 struct dsScene
 {
 	dsAllocator* allocator;
-	dsSceneTransformNode* rootNode;
+	dsSceneNode rootNode;
 	dsSceneTreeRootNode rootTreeNode;
 
-	dsScenePipelineItem* items;
-	uint32_t itemCount;
-	dsHashTable* drawLists;
+	dsScenePipelineItem* pipeline;
+	uint32_t pipelineCount;
+	dsHashTable* itemLists;
 	dsStringPool stringPool;
 
 	dsSceneTreeNode** dirtyNodes;
