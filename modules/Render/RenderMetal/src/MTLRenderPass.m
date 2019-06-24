@@ -590,8 +590,9 @@ void dsMTLRenderPass_removeShader(dsRenderPass* renderPass, dsShader* shader)
 		dsLifetime* shaderLifetime = mtlRenderPass->usedShaders[i];
 		if (shaderLifetime == mtlShader->lifetime)
 		{
-			DS_VERIFY(DS_RESIZEABLE_ARRAY_REMOVE(mtlRenderPass->usedShaders,
-				mtlRenderPass->usedShaderCount, i, 1));
+			mtlRenderPass->usedShaders[i] =
+				mtlRenderPass->usedShaders[mtlRenderPass->usedShaderCount - 1];
+			--mtlRenderPass->usedShaderCount;
 			dsLifetime_freeRef(shaderLifetime);
 			break;
 		}

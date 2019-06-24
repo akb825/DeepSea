@@ -1225,8 +1225,9 @@ void dsMTLShader_removeRenderPass(dsShader* shader, dsRenderPass* renderPass)
 		dsLifetime* renderPassLifetime = mtlShader->usedRenderPasses[i];
 		if (renderPassLifetime == mtlRenderPass->lifetime)
 		{
-			DS_VERIFY(DS_RESIZEABLE_ARRAY_REMOVE(mtlShader->usedRenderPasses,
-				mtlShader->usedRenderPassCount, i, 1));
+			mtlShader->usedRenderPasses[i] =
+				mtlShader->usedRenderPasses[mtlShader->usedRenderPassCount - 1];
+			--mtlShader->usedRenderPassCount;
 			dsLifetime_freeRef(renderPassLifetime);
 			wasRegistered = true;
 			break;
@@ -1245,8 +1246,8 @@ void dsMTLShader_removeRenderPass(dsShader* shader, dsRenderPass* renderPass)
 		if (mtlShader->pipelines[i]->renderPass == mtlRenderPass->lifetime)
 		{
 			dsMTLPipeline_destroy(mtlShader->pipelines[i]);
-			DS_VERIFY(DS_RESIZEABLE_ARRAY_REMOVE(mtlShader->pipelines, mtlShader->pipelineCount, i,
-				1));
+			mtlShader->pipelines[i] = mtlShader->pipelines[mtlShader->pipelineCount - 1];
+			--mtlShader->pipelineCount;
 		}
 		else
 			++i;
