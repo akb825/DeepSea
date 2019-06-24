@@ -197,8 +197,8 @@ void dsVkDeviceMaterial_removeShader(dsDeviceMaterial* material, dsShader* shade
 		{
 			descriptor = material->descriptors[i].descriptor;
 			dsLifetime_freeRef(material->descriptors[i].shader);
-			DS_VERIFY(DS_RESIZEABLE_ARRAY_REMOVE(material->descriptors, material->descriptorCount,
-				i, 1));
+			material->descriptors[i] = material->descriptors[material->descriptorCount - 1];
+			--material->descriptorCount;
 			break;
 		}
 	}

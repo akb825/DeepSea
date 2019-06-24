@@ -228,8 +228,9 @@ void dsVkFramebuffer_removeRenderPass(dsFramebuffer* framebuffer,
 		{
 			dsVkRenderer_deleteFramebuffer(framebuffer->resourceManager->renderer,
 				vkFramebuffer->realFramebuffers[i]);
-			DS_VERIFY(DS_RESIZEABLE_ARRAY_REMOVE(vkFramebuffer->realFramebuffers,
-				vkFramebuffer->framebufferCount, i, 1));
+			vkFramebuffer->realFramebuffers[i] =
+				vkFramebuffer->realFramebuffers[vkFramebuffer->framebufferCount - 1];
+			--vkFramebuffer->framebufferCount;
 			break;
 		}
 	}

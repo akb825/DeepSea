@@ -1334,8 +1334,8 @@ void dsVkShader_removeMaterial(dsShader* shader, dsDeviceMaterial* material)
 		dsLifetime* materialLifetime = vkShader->usedMaterials[i];
 		if (materialLifetime == material->lifetime)
 		{
-			DS_VERIFY(DS_RESIZEABLE_ARRAY_REMOVE(vkShader->usedMaterials,
-				vkShader->usedMaterialCount, i, 1));
+			vkShader->usedMaterials[i] = vkShader->usedMaterials[vkShader->usedMaterialCount - 1];
+			--vkShader->usedMaterialCount;
 			dsLifetime_freeRef(materialLifetime);
 			break;
 		}
@@ -1356,8 +1356,9 @@ void dsVkShader_removeRenderPass(dsShader* shader, dsVkRenderPassData* renderPas
 		dsLifetime* renderPassLifetime = vkShader->usedRenderPasses[i];
 		if (renderPassLifetime == renderPass->lifetime)
 		{
-			DS_VERIFY(DS_RESIZEABLE_ARRAY_REMOVE(vkShader->usedRenderPasses,
-				vkShader->usedRenderPassCount, i, 1));
+			vkShader->usedRenderPasses[i] =
+				vkShader->usedRenderPasses[vkShader->usedRenderPassCount - 1];
+			--vkShader->usedRenderPassCount;
 			dsLifetime_freeRef(renderPassLifetime);
 			wasRegistered = true;
 			break;
@@ -1376,8 +1377,8 @@ void dsVkShader_removeRenderPass(dsShader* shader, dsVkRenderPassData* renderPas
 		if (vkShader->pipelines[i]->renderPass == renderPass->lifetime)
 		{
 			dsVkRenderer_deletePipeline(renderer, vkShader->pipelines[i]);
-			DS_VERIFY(DS_RESIZEABLE_ARRAY_REMOVE(vkShader->pipelines, vkShader->pipelineCount, i,
-				1));
+			vkShader->pipelines[i] = vkShader->pipelines[vkShader->pipelineCount - 1];
+			--vkShader->pipelineCount;
 		}
 		else
 			++i;

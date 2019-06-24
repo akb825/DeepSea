@@ -907,8 +907,8 @@ void dsVkRenderPassData_removeShader(dsVkRenderPassData* renderPass, dsShader* s
 		dsLifetime* shaderLifetime = renderPass->usedShaders[i];
 		if (shaderLifetime == vkShader->lifetime)
 		{
-			DS_VERIFY(DS_RESIZEABLE_ARRAY_REMOVE(renderPass->usedShaders,
-				renderPass->usedShaderCount, i, 1));
+			renderPass->usedShaders[i] = renderPass->usedShaders[renderPass->usedShaderCount - 1];
+			--renderPass->usedShaderCount;
 			dsLifetime_freeRef(shaderLifetime);
 			break;
 		}
@@ -953,8 +953,9 @@ void dsVkRenderPassData_removeFramebuffer(dsVkRenderPassData* renderPass,
 		dsLifetime* framebufferLifetime = renderPass->usedFramebuffers[i];
 		if (framebufferLifetime == vkFramebuffer->lifetime)
 		{
-			DS_VERIFY(DS_RESIZEABLE_ARRAY_REMOVE(renderPass->usedFramebuffers,
-				renderPass->usedFramebufferCount, i, 1));
+			renderPass->usedFramebuffers[i] =
+				renderPass->usedFramebuffers[renderPass->usedFramebufferCount - 1];
+			--renderPass->usedFramebufferCount;
 			dsLifetime_freeRef(framebufferLifetime);
 			break;
 		}
