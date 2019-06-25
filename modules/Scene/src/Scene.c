@@ -146,8 +146,7 @@ dsScene* dsScene_create(dsAllocator* allocator, const dsScenePipelineItem* pipel
 
 	dsSceneTreeNode* rootTreeNode = &scene->rootTreeNode.node;
 	rootTreeNode->allocator = allocator;
-	rootTreeNode->node.node = &scene->rootNode;
-	rootTreeNode->node.childID = 0;
+	rootTreeNode->node = &scene->rootNode;
 	rootTreeNode->parent = NULL;
 	rootTreeNode->children = NULL;
 	rootTreeNode->drawItems = NULL;

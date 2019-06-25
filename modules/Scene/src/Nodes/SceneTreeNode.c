@@ -29,7 +29,7 @@
 
 static void updateTransform(dsSceneTreeNode* node)
 {
-	if (node->node.node->type == dsSceneTransformNode_type())
+	if (node->node->type == dsSceneTransformNode_type())
 	{
 		dsSceneTransformNode* transformNode = (dsSceneTransformNode*)node;
 		if (node->parent)
@@ -46,14 +46,14 @@ static void updateTransform(dsSceneTreeNode* node)
 	}
 	if (node->parent == NULL)
 	{
-		if (node->node.node->type == dsSceneTransformNode_type())
+		if (node->node->type == dsSceneTransformNode_type())
 			node->transform = ((dsSceneTransformNode*)node)->transform;
 		else
 			dsMatrix44_identity(node->transform);
 	}
 }
 
-static dsSceneTreeNode* addNode(dsSceneTreeNode* node, const dsSceneNodeChildRef* child,
+static dsSceneTreeNode* addNode(dsSceneTreeNode* node, dsSceneNode* child,
 	dsScene* scene, dsAllocator* allocator)
 {
 	uint32_t childIndex = node->parent->childCount;
@@ -63,22 +63,21 @@ static dsSceneTreeNode* addNode(dsSceneTreeNode* node, const dsSceneNodeChildRef
 		return NULL;
 	}
 
-	dsSceneNode* childNode = child->node;
-	uint32_t treeNodeIndex = childNode->treeNodeCount;
-	if (!DS_RESIZEABLE_ARRAY_ADD(childNode->allocator, childNode->treeNodes,
-			childNode->treeNodeCount, childNode->maxTreeNodes, 1))
+	uint32_t treeNodeIndex = child->treeNodeCount;
+	if (!DS_RESIZEABLE_ARRAY_ADD(child->allocator, child->treeNodes,
+			child->treeNodeCount, child->maxTreeNodes, 1))
 	{
 		node->childCount = childIndex;
 		return NULL;
 	}
 
 	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsSceneTreeNode)) +
-		DS_ALIGNED_SIZE(sizeof(dsSceneItemEntry)*childNode->drawListCount);
+		DS_ALIGNED_SIZE(sizeof(dsSceneItemEntry)*child->drawListCount);
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 	{
 		node->childCount = childIndex;
-		childNode->treeNodeCount = treeNodeIndex;
+		child->treeNodeCount = treeNodeIndex;
 		return NULL;
 	}
 
@@ -89,9 +88,8 @@ static dsSceneTreeNode* addNode(dsSceneTreeNode* node, const dsSceneNodeChildRef
 		dsSceneTreeNode);
 	DS_ASSERT(childTreeNode);
 
-	dsSceneNode_addRef(childNode);
 	childTreeNode->allocator = allocator;
-	childTreeNode->node = *child;
+	childTreeNode->node = dsSceneNode_addRef(child);
 	childTreeNode->parent = node;
 	childTreeNode->children = NULL;
 	childTreeNode->childCount = 0;
@@ -100,12 +98,12 @@ static dsSceneTreeNode* addNode(dsSceneTreeNode* node, const dsSceneNodeChildRef
 	updateTransform(childTreeNode);
 
 	childTreeNode->drawItems= DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
-		dsSceneItemEntry, childNode->drawListCount);
-	DS_ASSERT(childTreeNode->drawItems || childNode->drawListCount == 0);
-	for (uint32_t i = 0; i < childNode->drawListCount; ++i)
+		dsSceneItemEntry, child->drawListCount);
+	DS_ASSERT(childTreeNode->drawItems || child->drawListCount == 0);
+	for (uint32_t i = 0; i < child->drawListCount; ++i)
 	{
 		dsSceneItemListNode* node = (dsSceneItemListNode*)dsHashTable_find(scene->itemLists,
-			childNode->drawLists[i]);
+			child->drawLists[i]);
 		if (!node)
 		{
 			childTreeNode->drawItems[i].list = NULL;
@@ -114,25 +112,24 @@ static dsSceneTreeNode* addNode(dsSceneTreeNode* node, const dsSceneNodeChildRef
 		}
 
 		childTreeNode->drawItems[i].list = node->list;
-		childTreeNode->drawItems[i].entry = node->list->addNodeFunc(node->list, childNode,
+		childTreeNode->drawItems[i].entry = node->list->addNodeFunc(node->list, child,
 			&childTreeNode->transform);
 	}
 
 	node->children[childIndex] = childTreeNode;
-	childNode->treeNodes[treeNodeIndex] = childTreeNode;
+	child->treeNodes[treeNodeIndex] = childTreeNode;
 	return childTreeNode;
 }
 
-static bool buildSubtreeRec(dsSceneTreeNode* node, const dsSceneNodeChildRef* child, dsScene* scene)
+static bool buildSubtreeRec(dsSceneTreeNode* node, dsSceneNode* child, dsScene* scene)
 {
 	dsSceneTreeNode* childTreeNode = addNode(node, child, scene, scene->allocator);
 	if (!childTreeNode)
 		return false;
 
-	dsSceneNode* childNode = child->node;
-	for (uint32_t i = 0; i < childNode->childCount; ++i)
+	for (uint32_t i = 0; i < child->childCount; ++i)
 	{
-		if (!buildSubtreeRec(childTreeNode, childNode->children + i, scene))
+		if (!buildSubtreeRec(childTreeNode, child->children[i], scene))
 			return false;
 	}
 
@@ -141,7 +138,7 @@ static bool buildSubtreeRec(dsSceneTreeNode* node, const dsSceneNodeChildRef* ch
 
 static uint32_t findTreeNodeIndex(dsSceneTreeNode* treeNode)
 {
-	dsSceneNode* node = treeNode->node.node;
+	dsSceneNode* node = treeNode->node;
 	for (uint32_t i = 0; i < node->treeNodeCount; ++i)
 	{
 		if (node->treeNodes[i] == treeNode)
@@ -163,7 +160,7 @@ static void removeSubtreeRec(dsSceneNode* child, uint32_t treeNodeIndex, dsScene
 	for (uint32_t i = 0; i < childTreeNode->childCount; ++i)
 	{
 		dsSceneTreeNode* nextTreeNode = childTreeNode->children[i];
-		removeSubtreeRec(nextTreeNode->node.node, findTreeNodeIndex(nextTreeNode), scene);
+		removeSubtreeRec(nextTreeNode->node, findTreeNodeIndex(nextTreeNode), scene);
 	}
 
 	// Dispose of the node.
@@ -177,7 +174,7 @@ static void removeSubtreeRec(dsSceneNode* child, uint32_t treeNodeIndex, dsScene
 		list->removeNodeFunc(list, entry);
 	}
 
-	dsSceneNode_freeRef(childTreeNode->node.node);
+	dsSceneNode_freeRef(childTreeNode->node);
 	DS_VERIFY(dsAllocator_free(childTreeNode->allocator, childTreeNode->children));
 	DS_VERIFY(dsAllocator_free(childTreeNode->allocator, childTreeNode));
 
@@ -209,7 +206,7 @@ dsScene* dsSceneTreeNode_getScene(dsSceneTreeNode* node)
 	return ((dsSceneTreeRootNode*)node)->scene;
 }
 
-bool dsSceneTreeNode_buildSubtree(dsSceneNode* node, const dsSceneNodeChildRef* child)
+bool dsSceneTreeNode_buildSubtree(dsSceneNode* node, dsSceneNode* child)
 {
 	for (uint32_t i = 0; i < node->treeNodeCount; ++i)
 	{
@@ -218,7 +215,7 @@ bool dsSceneTreeNode_buildSubtree(dsSceneNode* node, const dsSceneNodeChildRef* 
 		DS_ASSERT(scene);
 		if (!buildSubtreeRec(treeNode, child, scene))
 		{
-			dsSceneTreeNode_removeSubtree(node, child->node, child->childID);
+			dsSceneTreeNode_removeSubtree(node, child);
 			return false;
 		}
 	}
@@ -226,18 +223,15 @@ bool dsSceneTreeNode_buildSubtree(dsSceneNode* node, const dsSceneNodeChildRef* 
 	return true;
 }
 
-void dsSceneTreeNode_removeSubtree(dsSceneNode* node, dsSceneNode* child, uint32_t childID)
+void dsSceneTreeNode_removeSubtree(dsSceneNode* node, dsSceneNode* child)
 {
 	// Find all tree nodes of the parent that are a parent to the current child.
 	// Don't increment i if removing the child, since the index will be removed.
 	for (uint32_t i = 0; i < child->treeNodeCount;)
 	{
 		dsSceneTreeNode* childTreeNode = child->treeNodes[i];
-		if (childID != DS_NO_SCENE_NODE && childTreeNode->node.childID != childID)
-			continue;
-
 		dsSceneTreeNode* treeNode = childTreeNode->parent;
-		if (treeNode->node.node != node)
+		if (treeNode->node != node)
 		{
 			++i;
 			continue;

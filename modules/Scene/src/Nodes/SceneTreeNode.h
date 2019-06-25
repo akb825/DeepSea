@@ -20,6 +20,6 @@
 #include <DeepSea/Scene/Types.h>
 
 dsScene* dsSceneTreeNode_getScene(dsSceneTreeNode* node);
-bool dsSceneTreeNode_buildSubtree(dsSceneNode* node, const dsSceneNodeChildRef* child);
-void dsSceneTreeNode_removeSubtree(dsSceneNode* node, dsSceneNode* child, uint32_t childID);
+bool dsSceneTreeNode_buildSubtree(dsSceneNode* node, dsSceneNode* child);
+void dsSceneTreeNode_removeSubtree(dsSceneNode* node, dsSceneNode* child);
 void dsSceneTreeNode_updateSubtree(dsSceneTreeNode* node);

@@ -80,6 +80,23 @@ typedef const int* dsSceneNodeType;
  * the structure. This can be done to add additional data to the structure and have it be freely
  * casted between dsSceneItemList and the true internal type.
  *
+ * @remark A node may not be a sibbling with itself, sharing the same direct parent. If you want to
+ * have the same node appear multiple times, there must be a separate parent between them. For
+ * example, the following is not allowed:
+ * ```
+ *     A
+ *    / \
+ *   B   B
+ * ```
+ * However, the following is allowed:
+ * ```
+ *     A
+ *    / \
+ *   C   D
+ *   |   |
+ *   B   B
+ * ```
+ *
  * @see SceneNode.h
  */
 typedef struct dsSceneNode dsSceneNode;
@@ -242,25 +259,6 @@ typedef struct dsScenePipelineItem
 	dsSceneItemList* computeItems;
 } dsScenePipelineItem;
 
-/**
- * @brief Struct that contains a unique reference to a child node.
- *
- * This allows the system to uniquely reference a child when maintaining the parallel data
- * structures.
- */
-typedef struct dsSceneNodeChildRef
-{
-	/**
-	 * @brief The scene node.
-	 */
-	dsSceneNode* node;
-
-	/**
-	 * @brief A unique child ID.
-	 */
-	uint32_t childID;
-} dsSceneNodeChildRef;
-
 /** @copydoc dsSceneNode */
 struct dsSceneNode
 {
@@ -277,7 +275,7 @@ struct dsSceneNode
 	/**
 	 * @brief The children of the node.
 	 */
-	dsSceneNodeChildRef* children;
+	dsSceneNode** children;
 
 	/**
 	 * @brief The draw lists that will use the node.
@@ -322,11 +320,6 @@ struct dsSceneNode
 	 * This will start at 1 on creation.
 	 */
 	uint32_t refCount;
-
-	/**
-	 * @brief The child ID for the next child node.
-	 */
-	uint32_t nextChildID;
 
 	/**
 	 * @brief Destroy function.

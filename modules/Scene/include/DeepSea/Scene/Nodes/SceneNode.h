@@ -64,11 +64,11 @@ DS_SCENE_EXPORT bool dsSceneNode_initialize(dsSceneNode* node, dsAllocator* allo
  * @brief Adds a child to a node.
  * @remark errno will be set on failure.
  * @remark Adding a circular reference can result in infinite loops.
- * @param node The node to add the child to.
+ * @param node The node to add the child to. It may not already be a child of this node.
  * @param child The node to add.
- * @return The child ID of the node or DS_NO_SCENE_NODE if an error occurred.
+ * @return False if an error occurred.
  */
-DS_SCENE_EXPORT uint32_t dsSceneNode_addChild(dsSceneNode* node, dsSceneNode* child);
+DS_SCENE_EXPORT bool dsSceneNode_addChild(dsSceneNode* node, dsSceneNode* child);
 
 /**
  * @brief Removes a child from a node by index.
@@ -84,12 +84,9 @@ DS_SCENE_EXPORT bool dsSceneNode_removeChildIndex(dsSceneNode* node, uint32_t ch
  * @remark errno will be set on failure.
  * @param node The node to remove the child from.
  * @param child The child to remove.
- * @param childID The ID of the specific child to remove returned from DS_NO_SCENE_NODE, or
- *     DS_NO_SCENE_NODE to remove all children that use te child pointer.
  * @return False if an error occurred.
  */
-DS_SCENE_EXPORT bool dsSceneNode_removeChildNode(dsSceneNode* node, dsSceneNode* child,
-	uint32_t childID);
+DS_SCENE_EXPORT bool dsSceneNode_removeChildNode(dsSceneNode* node, dsSceneNode* child);
 
 /**
  * @brief Clears all chidlren from a scene node.

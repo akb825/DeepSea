@@ -64,37 +64,42 @@ bool dsSceneNode_initialize(dsSceneNode* node, dsAllocator* allocator,
 	node->treeNodeCount = 0;
 	node->maxTreeNodes = 0;
 	node->refCount = 1;
-	node->nextChildID = 0;
 	node->destroyFunc = destroyFunc;
 	return true;
 }
 
-uint32_t dsSceneNode_addChild(dsSceneNode* node, dsSceneNode* child)
+bool dsSceneNode_addChild(dsSceneNode* node, dsSceneNode* child)
 {
 	if (!node || !child)
 	{
 		errno = EINVAL;
-		return DS_NO_SCENE_NODE;
+		return false;
+	}
+
+	for (uint32_t i = 0; i < node->childCount; ++i)
+	{
+		if (node->children[i] == child)
+		{
+			errno = EPERM;
+			return false;
+		}
 	}
 
 	uint32_t index = node->childCount;
 	if (!DS_RESIZEABLE_ARRAY_ADD(node->allocator, node->children, node->childCount,
 			node->maxChildren, 1))
 	{
-		return DS_NO_SCENE_NODE;
+		return false;
 	}
 
-	dsSceneNodeChildRef* childRef = node->children + index;
-	childRef->node = dsSceneNode_addRef(child);
-	childRef->childID = node->nextChildID++;
-	if (!dsSceneTreeNode_buildSubtree(node, childRef))
+	node->children[index] = dsSceneNode_addRef(child);
+	if (!dsSceneTreeNode_buildSubtree(node, child))
 	{
 		dsSceneNode_freeRef(child);
-		--node->childCount;
-		return DS_NO_SCENE_NODE;
+		return false;
 	}
 
-	return childRef->childID;
+	return true;
 }
 
 bool dsSceneNode_removeChildIndex(dsSceneNode* node, uint32_t childIndex)
@@ -111,15 +116,14 @@ bool dsSceneNode_removeChildIndex(dsSceneNode* node, uint32_t childIndex)
 		return false;
 	}
 
-	dsSceneNodeChildRef* child = node->children + childIndex;
-	dsSceneTreeNode_removeSubtree(node, child->node, child->childID);
+	dsSceneTreeNode_removeSubtree(node, node->children[childIndex]);
 	// Order shouldn't matter, so put the last item in this spot for constant-time removal.
 	node->children[childIndex] = node->children[node->childCount - 1];
 	--node->childCount;
 	return true;
 }
 
-bool dsSceneNode_removeChildNode(dsSceneNode* node, dsSceneNode* child, uint32_t childID)
+bool dsSceneNode_removeChildNode(dsSceneNode* node, dsSceneNode* child)
 {
 	if (!node || !child)
 	{
@@ -127,19 +131,16 @@ bool dsSceneNode_removeChildNode(dsSceneNode* node, dsSceneNode* child, uint32_t
 		return false;
 	}
 
-	dsSceneTreeNode_removeSubtree(node, child, childID);
+	dsSceneTreeNode_removeSubtree(node, child);
 	for (uint32_t i = node->childCount; i-- > 0;)
 	{
-		dsSceneNodeChildRef* childRef = node->children + i;
-		if (childRef->node != child ||
-			(childID != DS_NO_SCENE_NODE && childRef->childID != childID))
-		{
+		if (node->children[i] != child)
 			continue;
-		}
 
 		dsSceneNode_freeRef(child);
 		node->children[i] = node->children[node->childCount - 1];
 		--node->childCount;
+		break;
 	}
 	return true;
 }
@@ -151,8 +152,8 @@ void dsSceneNode_clear(dsSceneNode* node)
 
 	for (uint32_t i = 0; i < node->childCount; ++i)
 	{
-		dsSceneNode* child = node->children[i].node;
-		dsSceneTreeNode_removeSubtree(node, child, DS_NO_SCENE_NODE);
+		dsSceneNode* child = node->children[i];
+		dsSceneTreeNode_removeSubtree(node, child);
 		dsSceneNode_freeRef(child);
 	}
 	node->childCount = 0;

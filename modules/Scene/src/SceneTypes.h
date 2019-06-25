@@ -29,7 +29,7 @@ typedef struct dsSceneItemEntry
 struct dsSceneTreeNode
 {
 	dsAllocator* allocator;
-	dsSceneNodeChildRef node;
+	dsSceneNode* node;
 	dsSceneTreeNode* parent;
 	dsSceneTreeNode** children;
 	dsSceneItemEntry* drawItems;
