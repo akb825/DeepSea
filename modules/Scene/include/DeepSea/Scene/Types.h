@@ -340,6 +340,12 @@ typedef struct dsSceneTransformNode
 
 	/**
 	 * @brief The transform for the node.
+	 *
+	 * This is the local transform for this node relative to any parent nodes.
+	 *
+	 * This should not be assigned directly since it won't udpate the transforms for any children.
+	 * Instead, dsSceneTransformNode_setTransform() should be called. The children will then have
+	 * their transforms updated in the call to dsScene_update().
 	 */
 	dsMatrix44f transform;
 } dsSceneTransformNode;

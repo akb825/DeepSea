@@ -46,6 +46,19 @@ DS_SCENE_EXPORT dsSceneNodeType dsSceneTransformNode_type(void);
 DS_SCENE_EXPORT dsSceneTransformNode* dsSceneTransformNode_create(dsAllocator* allocator,
 	const dsMatrix44f* transform);
 
+/**
+ * @brief Sets the transform node's transform matrix.
+ *
+ * This will assign the transform and mark the node as dirty.
+ *
+ * @remark errno will be set on failure.
+ * @param node The node to set the transform on.
+ * @param transform THe new transform.
+ * @return False if the parameters are invalid.
+ */
+DS_SCENE_EXPORT bool dsSceneTransformNode_setTransform(dsSceneTransformNode* node,
+	const dsMatrix44f* transform);
+
 #ifdef __cplusplus
 }
 #endif

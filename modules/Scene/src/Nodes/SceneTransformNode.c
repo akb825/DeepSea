@@ -16,6 +16,9 @@
 
 #include <DeepSea/Scene/Nodes/SceneTransformNode.h>
 
+#include "Nodes/SceneTreeNode.h"
+#include "SceneTypes.h"
+#include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Scene/Nodes/SceneNode.h>
@@ -55,4 +58,35 @@ dsSceneTransformNode* dsSceneTransformNode_create(dsAllocator* allocator,
 
 	node->transform = *transform;
 	return node;
+}
+
+bool dsSceneTransformNode_setTransform(dsSceneTransformNode* node, const dsMatrix44f* transform)
+{
+	if (!node || !transform)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	node->transform = *transform;
+
+	dsSceneNode* baseNode = (dsSceneNode*)node;
+	for (uint32_t i = 0; i < baseNode->treeNodeCount; ++i)
+	{
+		dsSceneTreeNode* treeNode = baseNode->treeNodes[i];
+		dsScene* scene = dsSceneTreeNode_getScene(treeNode);
+		DS_ASSERT(scene);
+
+		treeNode->dirty = true;
+		// Since the dirty flag is used, don't bother a linear search to see if already on the list.
+		uint32_t index = scene->dirtyNodeCount;
+		if (!DS_RESIZEABLE_ARRAY_ADD(scene->allocator, scene->dirtyNodes, scene->dirtyNodeCount,
+				scene->maxDirtyNodes, 1))
+		{
+			continue;
+		}
+
+		scene->dirtyNodes[index] = treeNode;
+	}
+	return true;
 }

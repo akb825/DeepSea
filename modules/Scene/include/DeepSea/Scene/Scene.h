@@ -49,6 +49,14 @@ DS_SCENE_EXPORT dsScene* dsScene_create(dsAllocator* allocator, const dsScenePip
 	uint32_t pipelineCount, const dsStringPool* stringPool);
 
 /**
+ * @brief Updates dirty nodes within the scene.
+ * @remark errno will be set on failure.
+ * @param scene The scene to update.
+ * @return False if the parameters are invalid.
+ */
+DS_SCENE_EXPORT bool dsScene_update(dsScene* scene);
+
+/**
  * @brief Destroys a scene.
  * @param scene The scene to destroy.
  */

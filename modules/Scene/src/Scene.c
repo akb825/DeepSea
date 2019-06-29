@@ -16,6 +16,7 @@
 
 #include <DeepSea/Scene/Scene.h>
 
+#include "Nodes/SceneTreeNode.h"
 #include "SceneTypes.h"
 #include <DeepSea/Core/Containers/Hash.h>
 #include <DeepSea/Core/Containers/HashTable.h>
@@ -216,17 +217,37 @@ dsScene* dsScene_create(dsAllocator* allocator, const dsScenePipelineItem* pipel
 	return scene;
 }
 
+bool dsScene_update(dsScene* scene)
+{
+	if (!scene)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	for (uint32_t i = 0; i < scene->dirtyNodeCount; ++i)
+		dsSceneTreeNode_updateSubtree(scene->dirtyNodes[i]);
+	scene->dirtyNodeCount = 0;
+	return true;
+}
+
 void dsScene_destroy(dsScene* scene)
 {
 	if (!scene)
 		return;
 
-	destroyObjects(scene->pipeline, scene->pipelineCount, &scene->stringPool);
+	// Prevent tree teardown from removing from the dirty list, which is just a waste of cycles on
+	// destruction.
+	scene->dirtyNodeCount = 0;
+
 	DS_ASSERT(scene->rootNode.refCount == 1);
 	dsSceneNode_freeRef(&scene->rootNode);
 
 	dsSceneTreeNode* rootTreeNode = &scene->rootTreeNode.node;
 	DS_VERIFY(dsAllocator_free(rootTreeNode->allocator, rootTreeNode->children));
+
+	destroyObjects(scene->pipeline, scene->pipelineCount, &scene->stringPool);
+	DS_VERIFY(dsAllocator_free(scene->allocator, scene->dirtyNodes));
 
 	DS_VERIFY(dsAllocator_free(scene->allocator, scene));
 }
