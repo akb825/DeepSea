@@ -211,8 +211,8 @@ dsVectorResources* dsVectorReosurces_create(dsAllocator* allocator, uint32_t max
 		resources->faceGroupTable = (dsHashTable*)dsAllocator_alloc((dsAllocator*)&bufferAlloc,
 			dsHashTable_fullAllocSize(faceGroupTableSize));
 		DS_ASSERT(resources->faceGroupTable);
-		DS_VERIFY(dsHashTable_initialize(resources->faceGroupTable, faceGroupTableSize, &dsHashString,
-			&dsHashStringEqual));
+		DS_VERIFY(dsHashTable_initialize(resources->faceGroupTable, faceGroupTableSize,
+			&dsHashString, &dsHashStringEqual));
 
 		size_t poolSize = dsPoolAllocator_bufferSize(sizeof(dsFaceGroupNode), maxFaceGroups);
 		void* pool = dsAllocator_alloc((dsAllocator*)&bufferAlloc, poolSize);
