@@ -108,7 +108,7 @@ DS_SCENE_EXPORT dsSceneNode* dsSceneNode_addRef(dsSceneNode* node);
  * Once the reference count reaches 0 the node will be destroyed.
  *
  * @remark This function is thread-safe.
- * @param node The node to add the reference to.
+ * @param node The node to subtract the reference from.
  */
 DS_SCENE_EXPORT void dsSceneNode_freeRef(dsSceneNode* node);
 

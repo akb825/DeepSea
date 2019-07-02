@@ -48,24 +48,24 @@ struct dsVectorResources
 typedef struct dsTextureNode
 {
 	dsHashTableNode node;
-	char name[DS_MAX_VECTOR_RESOURCE_NAME_LENGTH];
 	dsTexture* texture;
+	char name[DS_MAX_VECTOR_RESOURCE_NAME_LENGTH];
 	bool owned;
 } dsTextureNode;
 
 typedef struct dsFaceGroupNode
 {
 	dsHashTableNode node;
-	char name[DS_MAX_VECTOR_RESOURCE_NAME_LENGTH];
 	dsFaceGroup* faceGroup;
+	char name[DS_MAX_VECTOR_RESOURCE_NAME_LENGTH];
 	bool owned;
 } dsFaceGroupNode;
 
 typedef struct dsFontNode
 {
 	dsHashTableNode node;
-	char name[DS_MAX_VECTOR_RESOURCE_NAME_LENGTH];
 	dsFont* font;
+	char name[DS_MAX_VECTOR_RESOURCE_NAME_LENGTH];
 	bool owned;
 } dsFontNode;
 

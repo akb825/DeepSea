@@ -40,6 +40,11 @@ extern "C"
 #define DS_NO_SCENE_NODE (uint32_t)-1
 
 /**
+ * @brief Constant for the maximum length of a scene resource name, including the null terminator.
+ */
+#define DS_MAX_SCENE_RESOURCE_NAME_LENGTH 100U
+
+/**
  * @brief Struct for processing items within a scene.
  *
  * Different implementations can effectively subclass this type by having it as the first member of
@@ -105,6 +110,17 @@ typedef struct dsSceneNode dsSceneNode;
  * @brief Struct for a node in the scene tree, which reflects the scene graph.
  */
 typedef struct dsSceneTreeNode dsSceneTreeNode;
+
+/**
+ * @brief Struct for holding a collection of resources used in a scene.
+ *
+ * The resources held in the collection may be referenced by name, and allow a way to easily access
+ * them within nodes in a scene graph. The struct is reference counted, ensuring that the resources
+ * remain valid as long as they're in use.
+ *
+ * @see SceneResources.h
+ */
+typedef struct dsSceneResources dsSceneResources;
 
 /**
  * @brief Function for adding a node to the item list.
