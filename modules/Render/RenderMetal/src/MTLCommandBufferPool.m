@@ -98,8 +98,7 @@ dsCommandBufferPool* dsMTLCommandBufferPool_create(dsRenderer* renderer, dsAlloc
 	dsBufferAllocator bufferAllocator;
 	DS_VERIFY(dsBufferAllocator_initialize(&bufferAllocator, buffer, totalSize));
 
-	dsCommandBufferPool* pool = DS_ALLOCATE_OBJECT((dsAllocator*)&bufferAllocator,
-		dsCommandBufferPool);
+	dsCommandBufferPool* pool = DS_ALLOCATE_OBJECT(&bufferAllocator, dsCommandBufferPool);
 	DS_ASSERT(pool);
 
 	pool->renderer = renderer;
@@ -107,16 +106,14 @@ dsCommandBufferPool* dsMTLCommandBufferPool_create(dsRenderer* renderer, dsAlloc
 	pool->count = count;
 	pool->usage = usage;
 
-	pool->currentBuffers = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAllocator,
-		dsCommandBuffer*, count);
+	pool->currentBuffers = DS_ALLOCATE_OBJECT_ARRAY(&bufferAllocator, dsCommandBuffer*, count);
 	DS_ASSERT(pool->currentBuffers);
 	createCommandBuffers(pool->currentBuffers, renderer, (dsAllocator*)&bufferAllocator, usage,
 		count);
 
 	if (usage & dsCommandBufferUsage_DoubleBuffer)
 	{
-		pool->previousBuffers = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAllocator,
-			dsCommandBuffer*, count);
+		pool->previousBuffers = DS_ALLOCATE_OBJECT_ARRAY(&bufferAllocator, dsCommandBuffer*, count);
 		DS_ASSERT(pool->previousBuffers);
 		createCommandBuffers(pool->previousBuffers, renderer, (dsAllocator*)&bufferAllocator, usage,
 			count);

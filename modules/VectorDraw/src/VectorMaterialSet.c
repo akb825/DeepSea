@@ -61,17 +61,10 @@ typedef struct dsMaterialNode
 
 #define TEX_WIDTH 256
 
-static const float loadFactor = 0.75f;
-
-static uint32_t tableSize(uint32_t maxSize)
-{
-	return (uint32_t)roundf((float)maxSize/loadFactor);
-}
-
 size_t dsVectorMaterialSet_fullAllocSize(uint32_t maxMaterials)
 {
 	return DS_ALIGNED_SIZE(sizeof(dsVectorMaterialSet)) +
-		dsHashTable_fullAllocSize(tableSize(maxMaterials)) +
+		dsHashTable_fullAllocSize(dsHashTable_getTableSize(maxMaterials)) +
 		dsPoolAllocator_bufferSize(sizeof(dsMaterialNode), maxMaterials);
 }
 
@@ -150,13 +143,12 @@ dsVectorMaterialSet* dsVectorMaterialSet_create(dsAllocator* allocator,
 
 	dsBufferAllocator bufferAlloc;
 	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, fullSize));
-	dsVectorMaterialSet* materials = DS_ALLOCATE_OBJECT((dsAllocator*)&bufferAlloc,
-		dsVectorMaterialSet);
+	dsVectorMaterialSet* materials = DS_ALLOCATE_OBJECT(&bufferAlloc, dsVectorMaterialSet);
 	DS_ASSERT(materials);
 
 	materials->allocator = dsAllocator_keepPointer(allocator);
 
-	uint32_t materialTableSize = tableSize(maxMaterials);
+	uint32_t materialTableSize = dsHashTable_getTableSize(maxMaterials);
 	materials->materialTable = (dsHashTable*)dsAllocator_alloc((dsAllocator*)&bufferAlloc,
 		dsHashTable_fullAllocSize(materialTableSize));
 	DS_ASSERT(materials->materialTable);
@@ -222,8 +214,7 @@ bool dsVectorMaterialSet_addMaterial(dsVectorMaterialSet* materials, const char*
 		return false;
 	}
 
-	dsMaterialNode* node = DS_ALLOCATE_OBJECT((dsAllocator*)&materials->materialPool,
-		dsMaterialNode);
+	dsMaterialNode* node = DS_ALLOCATE_OBJECT(&materials->materialPool, dsMaterialNode);
 	DS_ASSERT(node);
 	strncpy(node->name, name, nameLength + 1);
 	node->material = *material;

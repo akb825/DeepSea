@@ -95,14 +95,14 @@ dsSceneRenderPass* dsSceneRenderPass_create(dsAllocator* allocator,
 	dsBufferAllocator bufferAlloc;
 	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, fullSize));
 
-	dsSceneRenderPass* sceneRenderPass = DS_ALLOCATE_OBJECT((dsAllocator*)&bufferAlloc,
+	dsSceneRenderPass* sceneRenderPass = DS_ALLOCATE_OBJECT(&bufferAlloc,
 		dsSceneRenderPass);
 	DS_ASSERT(sceneRenderPass);
 
 	sceneRenderPass->allocator = dsAllocator_keepPointer(allocator);
 	sceneRenderPass->renderPass = renderPass;
-	sceneRenderPass->drawLists = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
-		dsSubpassDrawLists, subpassDrawListCount);
+	sceneRenderPass->drawLists = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsSubpassDrawLists,
+		subpassDrawListCount);
 	DS_ASSERT(sceneRenderPass);
 	for (uint32_t i = 0; i < subpassDrawListCount; ++i)
 	{
@@ -115,8 +115,8 @@ dsSceneRenderPass* dsSceneRenderPass_create(dsAllocator* allocator,
 			continue;
 		}
 
-		dstDrawLists->drawLists = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
-			dsSceneItemList*, srcDrawLists->count);
+		dstDrawLists->drawLists = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsSceneItemList*,
+			srcDrawLists->count);
 		DS_ASSERT(dstDrawLists->drawLists);
 		memcpy(dstDrawLists->drawLists, srcDrawLists->drawLists,
 			sizeof(dsSceneItemList*)*srcDrawLists->count);

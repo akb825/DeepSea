@@ -123,8 +123,8 @@ dsFramebuffer* dsGLFramebuffer_create(dsResourceManager* resourceManager, dsAllo
 	baseFramebuffer->name = name;
 	if (surfaceCount > 0)
 	{
-		baseFramebuffer->surfaces = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAllocator,
-			dsFramebufferSurface, surfaceCount);
+		baseFramebuffer->surfaces = DS_ALLOCATE_OBJECT_ARRAY(&bufferAllocator, dsFramebufferSurface,
+			surfaceCount);
 		DS_ASSERT(baseFramebuffer->surfaces);
 		memcpy(baseFramebuffer->surfaces, surfaces, sizeof(dsFramebufferSurface)*surfaceCount);
 	}

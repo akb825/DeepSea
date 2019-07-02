@@ -36,22 +36,25 @@ extern "C"
 /**
  * @brief Macro to allocate an object and return it as a pointer to that object type.
  * @remark errno will be set on failure.
- * @param allocator The allocator.
+ * @param allocator The allocator. This will be cast to dsAllocator* so specific allocator types
+ *     (e.g. dsBufferAllocator, dsPoolAllocator) can be provided without an explicit cast.
  * @param type The type to allocate.
  * @return The allocated object, or NULL if the allocation failed.
  */
-#define DS_ALLOCATE_OBJECT(allocator, type) ((type*)dsAllocator_alloc((allocator), sizeof(type)))
+#define DS_ALLOCATE_OBJECT(allocator, type) ((type*)dsAllocator_alloc( \
+		(dsAllocator*)(allocator), sizeof(type)))
 
 /**
  * @brief Macro to allocate an array of objects and return it as a pointer to that object type.
  * @remark errno will be set on failure.
- * @param allocator The allocator.
+ * @param allocator The allocator. This will be cast to dsAllocator* so specific allocator types
+ *     (e.g. dsBufferAllocator, dsPoolAllocator) can be provided without an explicit cast.
  * @param type The type to allocate.
  * @param count The number of objects to allocate.
  * @return The allocated array, or NULL if the allocation failed.
  */
-#define DS_ALLOCATE_OBJECT_ARRAY(allocator, type, count) ((type*)dsAllocator_alloc((allocator), \
-		sizeof(type)*count))
+#define DS_ALLOCATE_OBJECT_ARRAY(allocator, type, count) ((type*)dsAllocator_alloc( \
+		(dsAllocator*)(allocator), sizeof(type)*count))
 
 /**
  * @brief Allocates memory from the allocator.

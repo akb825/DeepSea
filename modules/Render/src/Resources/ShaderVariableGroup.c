@@ -196,8 +196,7 @@ dsShaderVariableGroup* dsShaderVariableGroup_create(dsResourceManager* resourceM
 	dsBufferAllocator bufferAllocator;
 	DS_VERIFY(dsBufferAllocator_initialize(&bufferAllocator, fullMem, totalSize));
 
-	dsShaderVariableGroup* group = DS_ALLOCATE_OBJECT((dsAllocator*)&bufferAllocator,
-		dsShaderVariableGroup);
+	dsShaderVariableGroup* group = DS_ALLOCATE_OBJECT(&bufferAllocator, dsShaderVariableGroup);
 	DS_ASSERT(group);
 
 	group->resourceManager = resourceManager;
@@ -240,8 +239,8 @@ dsShaderVariableGroup* dsShaderVariableGroup_create(dsResourceManager* resourceM
 	// Cache the position of each element.
 	if (!useGfxBuffer)
 	{
-		group->rawDataPositions = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAllocator,
-			PositionInfo, description->elementCount);
+		group->rawDataPositions = DS_ALLOCATE_OBJECT_ARRAY(&bufferAllocator, PositionInfo,
+			description->elementCount);
 		DS_ASSERT(group->rawDataPositions);
 
 		size_t curSize = 0;

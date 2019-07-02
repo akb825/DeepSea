@@ -312,30 +312,27 @@ static dsText* createTextImpl(dsFont* font, dsAllocator* allocator, const void* 
 	dsBufferAllocator bufferAlloc;
 	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, fullSize));
 
-	dsText* text = DS_ALLOCATE_OBJECT((dsAllocator*)&bufferAlloc, dsText);
+	dsText* text = DS_ALLOCATE_OBJECT(&bufferAlloc, dsText);
 	DS_ASSERT(text);
 	text->font = font;
 	text->allocator = dsAllocator_keepPointer(allocator);
 	if (scratchText->glyphCount > 0)
 	{
-		text->characters = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc, uint32_t, length);
+		text->characters = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, uint32_t, length);
 		DS_ASSERT(text->characters);
 		text->characterCount = length;
 		memcpy((void*)text->characters, scratchText->characters, length*sizeof(uint32_t));
 
-		text->charMappings = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
-			dsCharMapping, length);
+		text->charMappings = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsCharMapping, length);
 		DS_ASSERT(text->charMappings);
 
 		// Ranges may not be in monotomic increasing order due to right to left text. Re-order the
 		// glyphs so it is.
-		text->glyphs = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc, dsGlyph,
-			scratchText->glyphCount);
+		text->glyphs = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsGlyph, scratchText->glyphCount);
 		DS_ASSERT(text->glyphs);
 		text->glyphCount = scratchText->glyphCount;
 
-		text->ranges = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc, dsTextRange,
-			rangeCount);
+		text->ranges = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsTextRange, rangeCount);
 		DS_ASSERT(text->ranges);
 		text->rangeCount = rangeCount;
 

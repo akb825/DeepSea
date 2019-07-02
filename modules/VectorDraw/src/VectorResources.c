@@ -76,13 +76,6 @@ typedef struct dsResourceInfo
 	dsFileResourceType type;
 } dsResourceInfo;
 
-static const float loadFactor = 0.75f;
-
-static uint32_t tableSize(uint32_t maxSize)
-{
-	return (uint32_t)roundf((float)maxSize/loadFactor);
-}
-
 static dsTexture* loadTextureFile(void* userData, dsResourceManager* resourceManager,
 	dsAllocator* allocator, dsAllocator* tempAllocator, const char* path, dsTextureUsage usage,
 	dsGfxMemory memoryHints)
@@ -157,9 +150,9 @@ dsVectorResources* dsVectorResources_loadImpl(dsAllocator* allocator, dsAllocato
 size_t dsVectorResources_fullAllocSize(uint32_t maxTextures, uint32_t maxFaceGroups,
 	uint32_t maxFonts)
 {
-	uint32_t textureTableSize = tableSize(maxTextures);
-	uint32_t faceGroupTableSize = tableSize(maxFaceGroups);
-	uint32_t fontTableSize = tableSize(maxFonts);
+	uint32_t textureTableSize = dsHashTable_getTableSize(maxTextures);
+	uint32_t faceGroupTableSize = dsHashTable_getTableSize(maxFaceGroups);
+	uint32_t fontTableSize = dsHashTable_getTableSize(maxFonts);
 
 	return DS_ALIGNED_SIZE(sizeof(dsVectorResources)) +
 		dsHashTable_fullAllocSize(textureTableSize) +
@@ -186,15 +179,14 @@ dsVectorResources* dsVectorReosurces_create(dsAllocator* allocator, uint32_t max
 
 	dsBufferAllocator bufferAlloc;
 	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, fullSize));
-	dsVectorResources* resources = DS_ALLOCATE_OBJECT((dsAllocator*)&bufferAlloc,
-		dsVectorResources);
+	dsVectorResources* resources = DS_ALLOCATE_OBJECT(&bufferAlloc, dsVectorResources);
 	DS_ASSERT(resources);
 
 	resources->allocator = dsAllocator_keepPointer(allocator);
 
 	if (maxTextures > 0)
 	{
-		uint32_t textureTableSize = tableSize(maxTextures);
+		uint32_t textureTableSize = dsHashTable_getTableSize(maxTextures);
 		resources->textureTable = (dsHashTable*)dsAllocator_alloc((dsAllocator*)&bufferAlloc,
 			dsHashTable_fullAllocSize(textureTableSize));
 		DS_ASSERT(resources->textureTable);
@@ -215,7 +207,7 @@ dsVectorResources* dsVectorReosurces_create(dsAllocator* allocator, uint32_t max
 
 	if (maxFaceGroups > 0)
 	{
-		uint32_t faceGroupTableSize = tableSize(maxFaceGroups);
+		uint32_t faceGroupTableSize = dsHashTable_getTableSize(maxFaceGroups);
 		resources->faceGroupTable = (dsHashTable*)dsAllocator_alloc((dsAllocator*)&bufferAlloc,
 			dsHashTable_fullAllocSize(faceGroupTableSize));
 		DS_ASSERT(resources->faceGroupTable);
@@ -236,7 +228,7 @@ dsVectorResources* dsVectorReosurces_create(dsAllocator* allocator, uint32_t max
 
 	if (maxFonts > 0)
 	{
-		uint32_t fontTableSize = tableSize(maxFonts);
+		uint32_t fontTableSize = dsHashTable_getTableSize(maxFonts);
 		resources->fontTable = (dsHashTable*)dsAllocator_alloc((dsAllocator*)&bufferAlloc,
 			dsHashTable_fullAllocSize(fontTableSize));
 		DS_ASSERT(resources->fontTable);
@@ -448,7 +440,7 @@ bool dsVectorResources_addTexture(dsVectorResources* resources, const char* name
 		return false;
 	}
 
-	dsTextureNode* node = DS_ALLOCATE_OBJECT((dsAllocator*)&resources->texturePool, dsTextureNode);
+	dsTextureNode* node = DS_ALLOCATE_OBJECT(&resources->texturePool, dsTextureNode);
 	DS_ASSERT(node);
 	strncpy(node->name, name, nameLength + 1);
 	node->texture = texture;
@@ -571,8 +563,7 @@ bool dsVectorResources_addFaceGroup(dsVectorResources* resources, const char* na
 		return false;
 	}
 
-	dsFaceGroupNode* node = DS_ALLOCATE_OBJECT((dsAllocator*)&resources->faceGroupPool,
-		dsFaceGroupNode);
+	dsFaceGroupNode* node = DS_ALLOCATE_OBJECT(&resources->faceGroupPool, dsFaceGroupNode);
 	DS_ASSERT(node);
 	strncpy(node->name, name, nameLength + 1);
 	node->faceGroup = faceGroup;
@@ -657,7 +648,7 @@ bool dsVectorResources_addFont(dsVectorResources* resources, const char* name,
 		return false;
 	}
 
-	dsFontNode* node = DS_ALLOCATE_OBJECT((dsAllocator*)&resources->fontPool, dsFontNode);
+	dsFontNode* node = DS_ALLOCATE_OBJECT(&resources->fontPool, dsFontNode);
 	DS_ASSERT(node);
 	strncpy(node->name, name, nameLength + 1);
 	node->font = font;

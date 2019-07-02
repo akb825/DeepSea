@@ -171,7 +171,7 @@ dsMaterial* dsMaterial_create(dsResourceManager* resourceManager, dsAllocator* a
 	dsBufferAllocator bufferAllocator;
 	DS_VERIFY(dsBufferAllocator_initialize(&bufferAllocator, fullMem, fullSize));
 
-	dsMaterial* material = DS_ALLOCATE_OBJECT((dsAllocator*)&bufferAllocator, dsMaterial);
+	dsMaterial* material = DS_ALLOCATE_OBJECT(&bufferAllocator, dsMaterial);
 	DS_ASSERT(material);
 
 	material->resourceManager = resourceManager;
@@ -195,7 +195,7 @@ dsMaterial* dsMaterial_create(dsResourceManager* resourceManager, dsAllocator* a
 	else
 		material->data = NULL;
 
-	material->offsets = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAllocator, uint32_t,
+	material->offsets = DS_ALLOCATE_OBJECT_ARRAY(&bufferAllocator, uint32_t,
 		description->elementCount);
 	DS_ASSERT(material->offsets);
 	size_t curSize = 0;

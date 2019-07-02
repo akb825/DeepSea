@@ -741,8 +741,7 @@ dsResourceManager* dsVkResourceManager_create(dsAllocator* allocator, dsVkRender
 
 	dsBufferAllocator bufferAlloc;
 	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, fullSize));
-	dsVkResourceManager* resourceManager = DS_ALLOCATE_OBJECT((dsAllocator*)&bufferAlloc,
-		dsVkResourceManager);
+	dsVkResourceManager* resourceManager = DS_ALLOCATE_OBJECT(&bufferAlloc, dsVkResourceManager);
 	DS_ASSERT(resourceManager);
 
 	dsVkDevice* device = &renderer->device;

@@ -35,12 +35,6 @@
 
 static int rootNodeType;
 
-static uint32_t getTableSize(uint32_t maxValues)
-{
-	const float loadFactor = 0.75f;
-	return (uint32_t)((float)maxValues/loadFactor);
-}
-
 static void destroyObjects(const dsScenePipelineItem* pipeline, uint32_t pipelineCount,
 	const dsStringPool* stringPool)
 {
@@ -85,7 +79,7 @@ static size_t fullAllocSize(uint32_t* outNameCount, const dsScenePipelineItem* p
 			++*outNameCount;
 	}
 
-	return fullSize + dsHashTable_fullAllocSize(getTableSize(*outNameCount)) +
+	return fullSize + dsHashTable_fullAllocSize(dsHashTable_getTableSize(*outNameCount)) +
 		DS_ALIGNED_SIZE(sizeof(dsSceneItemListNode)**outNameCount);
 }
 
@@ -139,7 +133,7 @@ dsScene* dsScene_create(dsAllocator* allocator, const dsScenePipelineItem* pipel
 
 	dsBufferAllocator bufferAlloc;
 	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, fullSize));
-	dsScene* scene = DS_ALLOCATE_OBJECT((dsAllocator*)&bufferAlloc, dsScene);
+	dsScene* scene = DS_ALLOCATE_OBJECT(&bufferAlloc, dsScene);
 	DS_ASSERT(scene);
 
 	scene->allocator = dsAllocator_keepPointer(allocator);
@@ -157,13 +151,12 @@ dsScene* dsScene_create(dsAllocator* allocator, const dsScenePipelineItem* pipel
 	rootTreeNode->dirty = false;
 	scene->rootTreeNode.scene = scene;
 
-	scene->pipeline = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc, dsScenePipelineItem,
-		pipelineCount);
+	scene->pipeline = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsScenePipelineItem, pipelineCount);
 	DS_ASSERT(scene->pipeline);
 	memcpy(scene->pipeline, pipeline, sizeof(dsScenePipelineItem)*pipelineCount);
 	scene->pipelineCount = pipelineCount;
 
-	uint32_t tableSize = getTableSize(nameCount);
+	uint32_t tableSize = dsHashTable_getTableSize(nameCount);
 	size_t hashTableSize = dsHashTable_fullAllocSize(tableSize);
 	scene->itemLists = dsAllocator_alloc((dsAllocator*)&bufferAlloc, hashTableSize);
 	DS_ASSERT(scene->itemLists);
@@ -178,8 +171,8 @@ dsScene* dsScene_create(dsAllocator* allocator, const dsScenePipelineItem* pipel
 	scene->dirtyNodeCount = 0;
 	scene->maxDirtyNodes = 0;
 
-	dsSceneItemListNode* itemNodes = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
-		dsSceneItemListNode, nameCount);
+	dsSceneItemListNode* itemNodes = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsSceneItemListNode,
+		nameCount);
 	DS_ASSERT(itemNodes);
 	uint32_t curItems = 0;
 	for (uint32_t i = 0; i < pipelineCount; ++i)

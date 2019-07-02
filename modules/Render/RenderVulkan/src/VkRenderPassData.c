@@ -541,8 +541,7 @@ dsVkRenderPassData* dsVkRenderPassData_create(dsAllocator* allocator, dsVkDevice
 	dsBufferAllocator bufferAlloc;
 	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, fullSize));
 
-	dsVkRenderPassData* renderPassData = DS_ALLOCATE_OBJECT((dsAllocator*)&bufferAlloc,
-		dsVkRenderPassData);
+	dsVkRenderPassData* renderPassData = DS_ALLOCATE_OBJECT(&bufferAlloc, dsVkRenderPassData);
 	DS_ASSERT(renderPassData);
 
 	memset(renderPassData, 0, sizeof(*renderPassData));
@@ -560,12 +559,12 @@ dsVkRenderPassData* dsVkRenderPassData_create(dsAllocator* allocator, dsVkDevice
 		vkAttachments = DS_ALLOCATE_STACK_OBJECT_ARRAY(VkAttachmentDescription,
 			fullAttachmentCount);
 
-		renderPassData->resolveIndices = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
-			uint32_t, attachmentCount);
+		renderPassData->resolveIndices = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, uint32_t,
+			attachmentCount);
 		DS_ASSERT(renderPassData->resolveIndices);
 
-		renderPassData->resolveAttachment = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
-			bool, attachmentCount);
+		renderPassData->resolveAttachment = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, bool,
+			attachmentCount);
 		DS_ASSERT(renderPassData->resolveAttachment);
 
 		uint32_t resolveIndex = 0;

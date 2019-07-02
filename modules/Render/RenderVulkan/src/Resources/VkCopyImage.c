@@ -78,20 +78,19 @@ dsVkCopyImage* dsVkCopyImage_create(dsAllocator* allocator, dsVkDevice* device, 
 	// Create the main object.
 	dsBufferAllocator bufferAlloc;
 	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, fullSize));
-	dsVkCopyImage* copyImage = DS_ALLOCATE_OBJECT((dsAllocator*)&bufferAlloc, dsVkCopyImage);
+	dsVkCopyImage* copyImage = DS_ALLOCATE_OBJECT(&bufferAlloc, dsVkCopyImage);
 	DS_ASSERT(copyImage);
 	dsVkResource_initialize(&copyImage->resource);
 	copyImage->allocator = dsAllocator_keepPointer(allocator);
 	copyImage->device = device;
 	copyImage->memory = 0;
-	copyImage->images = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc, VkImage, imageCount);
+	copyImage->images = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, VkImage, imageCount);
 	DS_ASSERT(copyImage->images);
 	memset(copyImage->images, 0, sizeof(VkImage)*imageCount);
-	copyImage->imageBarriers = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
-		VkImageMemoryBarrier, imageCount);
+	copyImage->imageBarriers = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, VkImageMemoryBarrier,
+		imageCount);
 	copyImage->imageCount = imageCount;
-	copyImage->imageCopies = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc, VkImageCopy,
-		vkLayers);
+	copyImage->imageCopies = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, VkImageCopy, vkLayers);
 	DS_ASSERT(copyImage->imageCopies);
 	copyImage->imageCopyCount = vkLayers;
 	copyImage->memory = 0;

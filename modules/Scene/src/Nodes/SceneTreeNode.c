@@ -84,7 +84,7 @@ static dsSceneTreeNode* addNode(dsSceneTreeNode* node, dsSceneNode* child,
 	dsBufferAllocator bufferAlloc;
 	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, fullSize));
 
-	dsSceneTreeNode* childTreeNode = DS_ALLOCATE_OBJECT((dsAllocator*)&bufferAlloc,
+	dsSceneTreeNode* childTreeNode = DS_ALLOCATE_OBJECT(&bufferAlloc,
 		dsSceneTreeNode);
 	DS_ASSERT(childTreeNode);
 
@@ -97,8 +97,8 @@ static dsSceneTreeNode* addNode(dsSceneTreeNode* node, dsSceneNode* child,
 	childTreeNode->dirty = false;
 	updateTransform(childTreeNode);
 
-	childTreeNode->drawItems= DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
-		dsSceneItemEntry, child->drawListCount);
+	childTreeNode->drawItems= DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsSceneItemEntry,
+		child->drawListCount);
 	DS_ASSERT(childTreeNode->drawItems || child->drawListCount == 0);
 	for (uint32_t i = 0; i < child->drawListCount; ++i)
 	{

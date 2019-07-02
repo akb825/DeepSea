@@ -64,8 +64,7 @@ dsDeviceMaterial* dsVkDeviceMaterial_create(dsResourceManager* resourceManager,
 
 	dsBufferAllocator bufferAlloc;
 	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, fullSize));
-	dsDeviceMaterial* deviceMaterial = DS_ALLOCATE_OBJECT((dsAllocator*)&bufferAlloc,
-		dsDeviceMaterial);
+	dsDeviceMaterial* deviceMaterial = DS_ALLOCATE_OBJECT(&bufferAlloc, dsDeviceMaterial);
 	DS_ASSERT(deviceMaterial);
 
 	dsLifetime* lifetime = dsLifetime_create(scratchAllocator, deviceMaterial);
@@ -90,8 +89,8 @@ dsDeviceMaterial* dsVkDeviceMaterial_create(dsResourceManager* resourceManager,
 	bindingMemory->counts = *bindingCounts;
 	if (bindingCounts->total > 0)
 	{
-		bindingMemory->bindings = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
-			VkWriteDescriptorSet, bindingCounts->total);
+		bindingMemory->bindings = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, VkWriteDescriptorSet,
+			bindingCounts->total);
 		DS_ASSERT(bindingMemory->bindings);
 	}
 	else
@@ -99,12 +98,12 @@ dsDeviceMaterial* dsVkDeviceMaterial_create(dsResourceManager* resourceManager,
 
 	if (bindingCounts->textures > 0)
 	{
-		bindingMemory->imageInfos = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
-			VkDescriptorImageInfo, bindingCounts->textures);
+		bindingMemory->imageInfos = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, VkDescriptorImageInfo,
+			bindingCounts->textures);
 		DS_ASSERT(bindingMemory->imageInfos);
 
-		bindingMemory->textures = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
-			dsTexture*, bindingCounts->textures);
+		bindingMemory->textures = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsTexture*,
+			bindingCounts->textures);
 		DS_ASSERT(bindingMemory->textures);
 	}
 	else
@@ -115,12 +114,12 @@ dsDeviceMaterial* dsVkDeviceMaterial_create(dsResourceManager* resourceManager,
 
 	if (bindingCounts->buffers > 0)
 	{
-		bindingMemory->bufferInfos = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
-			VkDescriptorBufferInfo, bindingCounts->buffers);
+		bindingMemory->bufferInfos = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, VkDescriptorBufferInfo,
+			bindingCounts->buffers);
 		DS_ASSERT(bindingMemory->bufferInfos);
 
-		bindingMemory->buffers = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
-			dsVkGfxBufferBinding, bindingCounts->buffers);
+		bindingMemory->buffers = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsVkGfxBufferBinding,
+			bindingCounts->buffers);
 		DS_ASSERT(bindingMemory->buffers);
 	}
 	else
@@ -131,12 +130,12 @@ dsDeviceMaterial* dsVkDeviceMaterial_create(dsResourceManager* resourceManager,
 
 	if (bindingCounts->texelBuffers > 0)
 	{
-		bindingMemory->bufferViews = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
-			VkBufferView, bindingCounts->texelBuffers);
+		bindingMemory->bufferViews = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, VkBufferView,
+			bindingCounts->texelBuffers);
 		DS_ASSERT(bindingMemory->bufferViews);
 
-		bindingMemory->texelBuffers = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
-			dsVkTexelBufferBinding, bindingCounts->texelBuffers);
+		bindingMemory->texelBuffers = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsVkTexelBufferBinding,
+			bindingCounts->texelBuffers);
 		DS_ASSERT(bindingMemory->texelBuffers);
 	}
 	else

@@ -104,12 +104,6 @@ static bool commandBufferValid(const dsCommandBuffer* commandBuffer)
 		(dsCommandBufferUsage_MultiFrame | dsCommandBufferUsage_MultiSubmit)) == 0;
 }
 
-static uint32_t getHashTableSize(uint32_t querySize)
-{
-	const float loadFactor = 0.75f;
-	return (uint32_t)((float)querySize/loadFactor);
-}
-
 static uint32_t queryHash(const void* key)
 {
 	const QueryInfo* queryKey = (const QueryInfo*)key;
@@ -216,7 +210,7 @@ static void submitGPUProfileResults(dsGPUProfileContext* context, QueryPools* po
 	}
 	memset(context->nodes, 0, pools->totalRanges*sizeof(QueryNode));
 
-	uint32_t hashTableSize = getHashTableSize(pools->totalRanges);
+	uint32_t hashTableSize = dsHashTable_getTableSize(pools->totalRanges);
 	if (!context->hashTable || hashTableSize > context->hashTable->tableSize)
 	{
 		dsAllocator_free(context->allocator, context->hashTable);

@@ -401,8 +401,7 @@ dsVkRenderSurfaceData* dsVkRenderSurfaceData_create(dsAllocator* allocator, dsRe
 	dsBufferAllocator bufferAlloc;
 	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, fullSize));
 
-	dsVkRenderSurfaceData* surfaceData = DS_ALLOCATE_OBJECT((dsAllocator*)&bufferAlloc,
-		dsVkRenderSurfaceData);
+	dsVkRenderSurfaceData* surfaceData = DS_ALLOCATE_OBJECT(&bufferAlloc, dsVkRenderSurfaceData);
 	DS_ASSERT(surfaceData);
 
 	memset(surfaceData, 0, sizeof(*surfaceData));
@@ -412,25 +411,24 @@ dsVkRenderSurfaceData* dsVkRenderSurfaceData_create(dsAllocator* allocator, dsRe
 	dsVkResource_initialize(&surfaceData->resource);
 
 	surfaceData->swapchain = swapchain;
-	surfaceData->images = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc, VkImage, imageCount);
+	surfaceData->images = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, VkImage, imageCount);
 	DS_ASSERT(surfaceData->images);
 	memset(surfaceData->images, 0, sizeof(VkImage)*imageCount);
 
-	surfaceData->leftImageViews = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
-		VkImageView, imageCount);
+	surfaceData->leftImageViews = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, VkImageView, imageCount);
 	DS_ASSERT(surfaceData->leftImageViews);
 	memset(surfaceData->leftImageViews, 0, sizeof(VkImageView)*imageCount);
 
 	if (renderer->stereoscopic)
 	{
-		surfaceData->rightImageViews = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
-			VkImageView, imageCount);
+		surfaceData->rightImageViews = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, VkImageView,
+			imageCount);
 		DS_ASSERT(surfaceData->rightImageViews);
 		memset(surfaceData->rightImageViews, 0, sizeof(VkImageView)*imageCount);
 	}
 
-	surfaceData->imageData = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
-		dsVkSurfaceImageData, imageCount);
+	surfaceData->imageData = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsVkSurfaceImageData,
+		imageCount);
 	DS_ASSERT(surfaceData->imageData);
 	memset(surfaceData->imageData, 0, sizeof(dsVkSurfaceImageData)*imageCount);
 

@@ -38,8 +38,7 @@ dsShaderModule* dsMTLShaderModule_create(dsResourceManager* resourceManager, dsA
 
 	dsBufferAllocator bufferAlloc;
 	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, fullSize));
-	dsMTLShaderModule* shaderModule = DS_ALLOCATE_OBJECT((dsAllocator*)&bufferAlloc,
-		dsMTLShaderModule);
+	dsMTLShaderModule* shaderModule = DS_ALLOCATE_OBJECT(&bufferAlloc, dsMTLShaderModule);
 	DS_ASSERT(shaderModule);
 
 	dsShaderModule* baseShaderModule = (dsShaderModule*)shaderModule;
@@ -49,8 +48,7 @@ dsShaderModule* dsMTLShaderModule_create(dsResourceManager* resourceManager, dsA
 	baseShaderModule->module = module;
 	baseShaderModule->name = name;
 
-	shaderModule->shaders = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc, CFTypeRef,
-		shaderCount);
+	shaderModule->shaders = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, CFTypeRef, shaderCount);
 	DS_ASSERT(shaderModule->shaders);
 	memset(shaderModule->shaders, 0, sizeof(CFTypeRef)*shaderCount);
 

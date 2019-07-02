@@ -914,7 +914,7 @@ dsShader* dsVkShader_create(dsResourceManager* resourceManager, dsAllocator* all
 
 	dsBufferAllocator bufferAlloc;
 	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, fullSize));
-	dsVkShader* shader = DS_ALLOCATE_OBJECT((dsAllocator*)&bufferAlloc, dsVkShader);
+	dsVkShader* shader = DS_ALLOCATE_OBJECT(&bufferAlloc, dsVkShader);
 	DS_ASSERT(shader);
 	memset(shader, 0, sizeof(dsVkShader));
 
@@ -941,8 +941,8 @@ dsShader* dsVkShader_create(dsResourceManager* resourceManager, dsAllocator* all
 
 	if (pushConstantCount > 0)
 	{
-		shader->pushConstants = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
-			dsVkPushConstantMapping, pushConstantCount);
+		shader->pushConstants = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsVkPushConstantMapping,
+			pushConstantCount);
 		DS_ASSERT(shader->pushConstants);
 		shader->pushConstantCount = pushConstantCount;
 		for (uint32_t i = 0; i < pushConstantCount; ++i)
@@ -981,8 +981,8 @@ dsShader* dsVkShader_create(dsResourceManager* resourceManager, dsAllocator* all
 
 	if (samplerCount > 0)
 	{
-		shader->samplerMapping = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
-			dsVkSamplerMapping, materialDesc->elementCount);
+		shader->samplerMapping = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsVkSamplerMapping,
+			materialDesc->elementCount);
 		DS_ASSERT(shader->samplerMapping);
 
 		uint32_t index = 0;

@@ -49,7 +49,7 @@ dsRenderPass* dsGLRenderPass_create(dsRenderer* renderer, dsAllocator* allocator
 
 	dsBufferAllocator bufferAlloc;
 	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, fullSize));
-	dsGLRenderPass* renderPass = DS_ALLOCATE_OBJECT((dsAllocator*)&bufferAlloc, dsGLRenderPass);
+	dsGLRenderPass* renderPass = DS_ALLOCATE_OBJECT(&bufferAlloc, dsGLRenderPass);
 	DS_ASSERT(renderPass);
 
 	dsRenderPass* baseRenderPass = (dsRenderPass*)renderPass;
@@ -58,13 +58,13 @@ dsRenderPass* dsGLRenderPass_create(dsRenderer* renderer, dsAllocator* allocator
 
 	if (attachmentCount > 0)
 	{
-		baseRenderPass->attachments = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
-			dsAttachmentInfo, attachmentCount);
+		baseRenderPass->attachments = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsAttachmentInfo,
+			attachmentCount);
 		DS_ASSERT(baseRenderPass->attachments);
 		memcpy((void*)baseRenderPass->attachments, attachments, attachmentArraySize);
 
 		// Find the first subpass that cleared attachments appear in.
-		renderPass->clearSubpass = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc, uint32_t,
+		renderPass->clearSubpass = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, uint32_t,
 			attachmentCount);
 		memset(renderPass->clearSubpass, 0xFF, clearSubpassArraySize);
 		for (uint32_t i = 0; i < subpassCount; ++i)
@@ -100,8 +100,8 @@ dsRenderPass* dsGLRenderPass_create(dsRenderer* renderer, dsAllocator* allocator
 		renderPass->clearSubpass = NULL;
 	}
 
-	dsRenderSubpassInfo* subpassesCopy = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
-		dsRenderSubpassInfo, subpassCount);
+	dsRenderSubpassInfo* subpassesCopy = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsRenderSubpassInfo,
+		subpassCount);
 	DS_ASSERT(subpassesCopy);
 	memcpy(subpassesCopy, subpasses, subpassArraySize);
 	baseRenderPass->subpasses = subpassesCopy;
@@ -110,8 +110,8 @@ dsRenderPass* dsGLRenderPass_create(dsRenderer* renderer, dsAllocator* allocator
 		dsRenderSubpassInfo* curSubpass = (dsRenderSubpassInfo*)baseRenderPass->subpasses + i;
 		if (curSubpass->inputAttachmentCount > 0)
 		{
-			curSubpass->inputAttachments = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
-				uint32_t, curSubpass->inputAttachmentCount);
+			curSubpass->inputAttachments = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, uint32_t,
+				curSubpass->inputAttachmentCount);
 			DS_ASSERT(curSubpass->inputAttachments);
 			memcpy((void*)curSubpass->inputAttachments, subpasses[i].inputAttachments,
 				sizeof(uint32_t)*curSubpass->inputAttachmentCount);
@@ -119,7 +119,7 @@ dsRenderPass* dsGLRenderPass_create(dsRenderer* renderer, dsAllocator* allocator
 
 		if (curSubpass->colorAttachmentCount > 0)
 		{
-			curSubpass->colorAttachments = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
+			curSubpass->colorAttachments = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc,
 				dsColorAttachmentRef, curSubpass->colorAttachmentCount);
 			DS_ASSERT(curSubpass->colorAttachments);
 			memcpy((void*)curSubpass->colorAttachments, subpasses[i].colorAttachments,

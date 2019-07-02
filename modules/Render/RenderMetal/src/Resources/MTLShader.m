@@ -773,7 +773,7 @@ dsShader* dsMTLShader_create(dsResourceManager* resourceManager, dsAllocator* al
 
 		dsBufferAllocator bufferAlloc;
 		DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, fullSize));
-		dsMTLShader* shader = DS_ALLOCATE_OBJECT((dsAllocator*)&bufferAlloc, dsMTLShader);
+		dsMTLShader* shader = DS_ALLOCATE_OBJECT(&bufferAlloc, dsMTLShader);
 		DS_ASSERT(shader);
 
 		dsShader* baseShader = (dsShader*)shader;
@@ -801,8 +801,7 @@ dsShader* dsMTLShader_create(dsResourceManager* resourceManager, dsAllocator* al
 			else
 			{
 				shader->stages[i].uniformIndices =
-					DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc, uint32_t,
-					pipeline.uniformCount);
+					DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, uint32_t, pipeline.uniformCount);
 				DS_ASSERT(shader->stages[i].uniformIndices);
 				memset(shader->stages[i].uniformIndices, 0xFF,
 					sizeof(uint32_t)*pipeline.uniformCount);
@@ -813,7 +812,7 @@ dsShader* dsMTLShader_create(dsResourceManager* resourceManager, dsAllocator* al
 
 		if (pipeline.samplerStateCount > 0)
 		{
-			shader->samplers = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc, CFTypeRef,
+			shader->samplers = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, CFTypeRef,
 				pipeline.samplerStateCount);
 			DS_ASSERT(shader->samplers);
 			memset(shader->samplers, 0, sizeof(CFTypeRef)*pipeline.samplerStateCount);
@@ -822,8 +821,8 @@ dsShader* dsMTLShader_create(dsResourceManager* resourceManager, dsAllocator* al
 
 		if (pipeline.uniformCount > 0)
 		{
-			shader->uniformInfos = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
-				dsMTLUniformInfo, materialDesc->elementCount);
+			shader->uniformInfos = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsMTLUniformInfo,
+				materialDesc->elementCount);
 			DS_ASSERT(shader->uniformInfos);
 			for (uint32_t i = 0; i < pipeline.uniformCount; ++i)
 			{
@@ -855,7 +854,7 @@ dsShader* dsMTLShader_create(dsResourceManager* resourceManager, dsAllocator* al
 
 		if (pushConstantStruct.memberCount > 0)
 		{
-			shader->pushConstantInfos = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
+			shader->pushConstantInfos = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc,
 				dsMTLPushConstantInfo, pushConstantStruct.memberCount);
 			DS_ASSERT(shader->pushConstantInfos);
 			for (uint32_t i = 0; i < pushConstantStruct.memberCount; ++i)

@@ -45,8 +45,7 @@ dsVkMaterialDescriptor* dsVkMaterialDescriptor_create(dsRenderer* renderer, dsAl
 
 	dsBufferAllocator bufferAlloc;
 	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, fullSize));
-	dsVkMaterialDescriptor* descriptor = DS_ALLOCATE_OBJECT((dsAllocator*)&bufferAlloc,
-		dsVkMaterialDescriptor);
+	dsVkMaterialDescriptor* descriptor = DS_ALLOCATE_OBJECT(&bufferAlloc, dsVkMaterialDescriptor);
 	DS_ASSERT(descriptor);
 
 	dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
@@ -64,8 +63,7 @@ dsVkMaterialDescriptor* dsVkMaterialDescriptor_create(dsRenderer* renderer, dsAl
 
 	if (counts->textures > 0)
 	{
-		descriptor->textures = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc, dsTexture*,
-			counts->textures);
+		descriptor->textures = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsTexture*, counts->textures);
 		DS_ASSERT(descriptor->textures);
 	}
 	else
@@ -73,8 +71,8 @@ dsVkMaterialDescriptor* dsVkMaterialDescriptor_create(dsRenderer* renderer, dsAl
 
 	if (counts->buffers > 0)
 	{
-		descriptor->buffers = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
-			dsVkGfxBufferBinding, counts->buffers);
+		descriptor->buffers = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsVkGfxBufferBinding,
+			counts->buffers);
 		DS_ASSERT(descriptor->buffers);
 	}
 	else
@@ -82,8 +80,8 @@ dsVkMaterialDescriptor* dsVkMaterialDescriptor_create(dsRenderer* renderer, dsAl
 
 	if (counts->texelBuffers > 0)
 	{
-		descriptor->texelBuffers = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
-			dsVkTexelBufferBinding, counts->texelBuffers);
+		descriptor->texelBuffers = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsVkTexelBufferBinding,
+			counts->texelBuffers);
 		DS_ASSERT(descriptor->texelBuffers);
 	}
 	else

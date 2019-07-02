@@ -1336,7 +1336,7 @@ TEST_F(SimplePolygonTest, HoleCCW)
 
 TEST_P(SimplePolygonStressTest, Circle)
 {
-	dsVector2d* points = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&allocator, dsVector2d, GetParam());
+	dsVector2d* points = DS_ALLOCATE_OBJECT_ARRAY(&allocator, dsVector2d, GetParam());
 	for (uint32_t i = 0; i < GetParam(); ++i)
 	{
 		double theta = (double)i/(double)GetParam()*2.0*M_PI;
@@ -1352,7 +1352,7 @@ TEST_P(SimplePolygonStressTest, Circle)
 
 TEST_P(SimplePolygonStressTest, SingleInflection)
 {
-	dsVector2d* points = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&allocator, dsVector2d, GetParam());
+	dsVector2d* points = DS_ALLOCATE_OBJECT_ARRAY(&allocator, dsVector2d, GetParam());
 	for (uint32_t i = 0; i < GetParam(); ++i)
 	{
 		double radius = i == 0 ? 0.7 : 1.0;
@@ -1369,7 +1369,7 @@ TEST_P(SimplePolygonStressTest, SingleInflection)
 
 TEST_P(SimplePolygonStressTest, Starburst)
 {
-	dsVector2d* points = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&allocator, dsVector2d, GetParam());
+	dsVector2d* points = DS_ALLOCATE_OBJECT_ARRAY(&allocator, dsVector2d, GetParam());
 	for (uint32_t i = 0; i < GetParam(); ++i)
 	{
 		double radius = (i & 1) == 0 ? 0.7 : 1.0;

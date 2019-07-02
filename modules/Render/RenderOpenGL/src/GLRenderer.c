@@ -470,7 +470,7 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 
 	dsBufferAllocator bufferAlloc;
 	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, bufferSize));
-	dsGLRenderer* renderer = DS_ALLOCATE_OBJECT((dsAllocator*)&bufferAlloc, dsGLRenderer);
+	dsGLRenderer* renderer = DS_ALLOCATE_OBJECT(&bufferAlloc, dsGLRenderer);
 	DS_ASSERT(renderer);
 	memset(renderer, 0, sizeof(*renderer));
 	dsRenderer* baseRenderer = (dsRenderer*)renderer;

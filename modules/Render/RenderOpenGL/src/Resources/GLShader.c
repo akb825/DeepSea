@@ -799,7 +799,7 @@ dsShader* dsGLShader_create(dsResourceManager* resourceManager, dsAllocator* all
 
 	dsBufferAllocator bufferAlloc;
 	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, fullSize));
-	dsGLShader* shader = DS_ALLOCATE_OBJECT((dsAllocator*)&bufferAlloc, dsGLShader);
+	dsGLShader* shader = DS_ALLOCATE_OBJECT(&bufferAlloc, dsGLShader);
 	DS_ASSERT(shader);
 
 	dsShader* baseShader = (dsShader*)shader;
@@ -821,8 +821,8 @@ dsShader* dsGLShader_create(dsResourceManager* resourceManager, dsAllocator* all
 	shader->programId = 0;
 	if (hasSamplers && pipeline.samplerStateCount > 0)
 	{
-		shader->samplerIds = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
-			GLuint, pipeline.samplerStateCount + 1);
+		shader->samplerIds = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, GLuint,
+			pipeline.samplerStateCount + 1);
 		DS_ASSERT(shader->samplerIds);
 		glGenSamplers(shader->pipeline.samplerStateCount, shader->samplerIds);
 		if (!*shader->samplerIds)
@@ -841,8 +841,8 @@ dsShader* dsGLShader_create(dsResourceManager* resourceManager, dsAllocator* all
 
 	if (pipeline.samplerStateCount > 0)
 	{
-		shader->samplerStates = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
-			mslSamplerState, pipeline.samplerStateCount);
+		shader->samplerStates = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, mslSamplerState,
+			pipeline.samplerStateCount);
 		DS_ASSERT(shader->samplerStates);
 		for (uint32_t i = 0; i < pipeline.samplerStateCount; ++i)
 		{
@@ -855,7 +855,7 @@ dsShader* dsGLShader_create(dsResourceManager* resourceManager, dsAllocator* all
 
 	if (materialDesc->elementCount > 0)
 	{
-		shader->uniforms = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc, dsGLUniformInfo,
+		shader->uniforms = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsGLUniformInfo,
 			materialDesc->elementCount);
 		DS_ASSERT(shader->uniforms );
 		memset(shader->uniforms , 0xFF, sizeof(dsGLUniformInfo)*materialDesc->elementCount);

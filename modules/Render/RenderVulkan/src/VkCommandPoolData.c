@@ -37,18 +37,16 @@ dsVkCommandPoolData* dsVkCommandPoolData_create(dsAllocator* allocator, dsRender
 
 	dsBufferAllocator bufferAlloc;
 	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, fullSize));
-	dsVkCommandPoolData* pool = DS_ALLOCATE_OBJECT((dsAllocator*)&bufferAlloc, dsVkCommandPoolData);
+	dsVkCommandPoolData* pool = DS_ALLOCATE_OBJECT(&bufferAlloc, dsVkCommandPoolData);
 	DS_ASSERT(pool);
 
 	pool->allocator = dsAllocator_keepPointer(allocator);
 	pool->renderer = renderer;
 	dsVkResource_initialize(&pool->resource);
-	pool->vkCommandBuffers = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc, dsVkCommandBuffer,
-		count);
+	pool->vkCommandBuffers = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsVkCommandBuffer, count);
 	DS_ASSERT(pool->vkCommandBuffers);
 	memset(pool->vkCommandBuffers, 0, sizeof(dsVkCommandBuffer)*count);
-	pool->commandBuffers = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc, dsCommandBuffer*,
-		count);
+	pool->commandBuffers = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsCommandBuffer*, count);
 	DS_ASSERT(pool->commandBuffers);
 	memset(pool->commandBuffers, 0, sizeof(dsCommandBuffer*)*count);
 	pool->count = count;

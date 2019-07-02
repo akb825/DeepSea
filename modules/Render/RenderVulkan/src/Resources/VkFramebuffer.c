@@ -66,7 +66,7 @@ dsFramebuffer* dsVkFramebuffer_create(dsResourceManager* resourceManager, dsAllo
 
 	dsBufferAllocator bufferAlloc;
 	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, bufferSize));
-	dsVkFramebuffer* framebuffer = DS_ALLOCATE_OBJECT((dsAllocator*)&bufferAlloc, dsVkFramebuffer);
+	dsVkFramebuffer* framebuffer = DS_ALLOCATE_OBJECT(&bufferAlloc, dsVkFramebuffer);
 	DS_ASSERT(framebuffer);
 
 	dsFramebuffer* baseFramebuffer = (dsFramebuffer*)framebuffer;
@@ -75,8 +75,8 @@ dsFramebuffer* dsVkFramebuffer_create(dsResourceManager* resourceManager, dsAllo
 	baseFramebuffer->name = name;
 	if (surfaceCount > 0)
 	{
-		baseFramebuffer->surfaces = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
-			dsFramebufferSurface, surfaceCount);
+		baseFramebuffer->surfaces = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsFramebufferSurface,
+			surfaceCount);
 		DS_ASSERT(baseFramebuffer->surfaces);
 		memcpy(baseFramebuffer->surfaces, surfaces, sizeof(dsFramebufferSurface)*surfaceCount);
 	}

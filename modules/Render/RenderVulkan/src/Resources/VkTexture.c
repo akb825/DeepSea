@@ -443,7 +443,7 @@ static dsTexture* createTextureImpl(dsResourceManager* resourceManager, dsAlloca
 
 	dsBufferAllocator bufferAlloc;
 	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, bufferSize));
-	dsVkTexture* texture = DS_ALLOCATE_OBJECT((dsAllocator*)&bufferAlloc, dsVkTexture);
+	dsVkTexture* texture = DS_ALLOCATE_OBJECT(&bufferAlloc, dsVkTexture);
 	DS_ASSERT(texture);
 
 	memset(texture, 0, sizeof(*texture));

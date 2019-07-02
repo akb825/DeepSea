@@ -363,7 +363,7 @@ dsRenderer* dsMockRenderer_create(dsAllocator* allocator)
 
 	dsBufferAllocator bufferAllocator;
 	DS_VERIFY(dsBufferAllocator_initialize(&bufferAllocator, buffer, totalSize));
-	dsRenderer* renderer = DS_ALLOCATE_OBJECT((dsAllocator*)&bufferAllocator, dsRenderer);
+	dsRenderer* renderer = DS_ALLOCATE_OBJECT(&bufferAllocator, dsRenderer);
 	DS_ASSERT(renderer);
 
 	if (!dsRenderer_initialize(renderer))
@@ -391,8 +391,7 @@ dsRenderer* dsMockRenderer_create(dsAllocator* allocator)
 	renderer->shaderVersion = DS_ENCODE_VERSION(1, 0, 0);
 	renderer->deviceName = "None";
 
-	renderer->mainCommandBuffer = DS_ALLOCATE_OBJECT((dsAllocator*)&bufferAllocator,
-		dsCommandBuffer);
+	renderer->mainCommandBuffer = DS_ALLOCATE_OBJECT(&bufferAllocator, dsCommandBuffer);
 	DS_ASSERT(renderer->mainCommandBuffer);
 	renderer->mainCommandBuffer->renderer = renderer;
 	renderer->mainCommandBuffer->usage = dsCommandBufferUsage_Standard;

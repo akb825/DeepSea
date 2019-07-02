@@ -105,7 +105,7 @@ dsVkSamplerList* dsVkSamplerList_create(dsAllocator* allocator, dsShader* shader
 	dsBufferAllocator bufferAlloc;
 	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, fullSize));
 
-	dsVkSamplerList* samplers = DS_ALLOCATE_OBJECT((dsAllocator*)&bufferAlloc, dsVkSamplerList);
+	dsVkSamplerList* samplers = DS_ALLOCATE_OBJECT(&bufferAlloc, dsVkSamplerList);
 	if (!samplers)
 		return NULL;
 
@@ -116,8 +116,7 @@ dsVkSamplerList* dsVkSamplerList_create(dsAllocator* allocator, dsShader* shader
 	samplers->allocator = allocator;
 	if (samplerCount > 0)
 	{
-		samplers->samplers = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc, VkSampler,
-			samplerCount);
+		samplers->samplers = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, VkSampler, samplerCount);
 		DS_ASSERT(samplers->samplers);
 		memset(samplers->samplers, 0, sizeof(VkSampler)*samplerCount);
 	}

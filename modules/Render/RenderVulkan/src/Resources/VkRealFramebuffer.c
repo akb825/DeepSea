@@ -244,8 +244,7 @@ dsVkRealFramebuffer* dsVkRealFramebuffer_create(dsAllocator* allocator,
 	dsBufferAllocator bufferAlloc;
 	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, bufferSize));
 
-	dsVkRealFramebuffer* realFramebuffer = DS_ALLOCATE_OBJECT((dsAllocator*)&bufferAlloc,
-		dsVkRealFramebuffer);
+	dsVkRealFramebuffer* realFramebuffer = DS_ALLOCATE_OBJECT(&bufferAlloc, dsVkRealFramebuffer);
 	DS_ASSERT(realFramebuffer);
 
 	realFramebuffer->allocator = dsAllocator_keepPointer(allocator);
@@ -254,20 +253,19 @@ dsVkRealFramebuffer* dsVkRealFramebuffer_create(dsAllocator* allocator,
 	realFramebuffer->renderPassData = dsLifetime_addRef(renderPassData->lifetime);
 	realFramebuffer->surfaceData = surfaceData;
 
-	realFramebuffer->framebuffers = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
-		VkFramebuffer, framebufferCount);
+	realFramebuffer->framebuffers = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, VkFramebuffer,
+		framebufferCount);
 	DS_ASSERT(realFramebuffer->framebuffers);
 	memset(realFramebuffer->framebuffers, 0, sizeof(VkFramebuffer)*framebufferCount);
 
 	if (imageCount > 0)
 	{
-		realFramebuffer->imageViews = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
-			VkImageView, imageCount);
+		realFramebuffer->imageViews = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, VkImageView,
+			imageCount);
 		DS_ASSERT(realFramebuffer->imageViews);
 		memset(realFramebuffer->imageViews, 0, sizeof(VkImageView)*imageCount);
 
-		realFramebuffer->imageViewTemp = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc, bool,
-			imageCount);
+		realFramebuffer->imageViewTemp = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, bool, imageCount);
 		DS_ASSERT(realFramebuffer->imageViewTemp);
 		memset(realFramebuffer->imageViewTemp, 0, sizeof(bool)*imageCount);
 

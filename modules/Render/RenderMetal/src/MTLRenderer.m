@@ -785,7 +785,7 @@ dsRenderer* dsMTLRenderer_create(dsAllocator* allocator, const dsRendererOptions
 
 		dsBufferAllocator bufferAlloc;
 		DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, bufferSize));
-		dsMTLRenderer* renderer = DS_ALLOCATE_OBJECT((dsAllocator*)&bufferAlloc, dsMTLRenderer);
+		dsMTLRenderer* renderer = DS_ALLOCATE_OBJECT(&bufferAlloc, dsMTLRenderer);
 		DS_ASSERT(renderer);
 		memset(renderer, 0, sizeof(*renderer));
 		dsRenderer* baseRenderer = (dsRenderer*)renderer;

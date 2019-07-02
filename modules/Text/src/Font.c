@@ -456,11 +456,11 @@ dsFont* dsFont_create(dsFaceGroup* group, dsResourceManager* resourceManager,
 	dsBufferAllocator bufferAlloc;
 	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, fullSize));
 
-	dsFont* font = DS_ALLOCATE_OBJECT((dsAllocator*)&bufferAlloc, dsFont);
+	dsFont* font = DS_ALLOCATE_OBJECT(&bufferAlloc, dsFont);
 	DS_ASSERT(font);
 	font->allocator = dsAllocator_keepPointer(allocator);
 	font->group = group;
-	font->faces = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc, dsFontFace*, faceCount);
+	font->faces = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsFontFace*, faceCount);
 	DS_ASSERT(font->faces);
 	for (uint32_t i = 0; i < faceCount; ++i)
 	{

@@ -38,8 +38,7 @@ dsMaterialDesc* dsGLMaterialDesc_create(dsResourceManager* resourceManager, dsAl
 
 	dsBufferAllocator bufferAlloc;
 	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, fullSize));
-	dsGLMaterialDesc* materialDesc = DS_ALLOCATE_OBJECT((dsAllocator*)&bufferAlloc,
-		dsGLMaterialDesc);
+	dsGLMaterialDesc* materialDesc = DS_ALLOCATE_OBJECT(&bufferAlloc, dsGLMaterialDesc);
 	DS_ASSERT(materialDesc);
 
 	dsMaterialDesc* baseMaterialDesc = (dsMaterialDesc*)materialDesc;
@@ -48,8 +47,8 @@ dsMaterialDesc* dsGLMaterialDesc_create(dsResourceManager* resourceManager, dsAl
 	baseMaterialDesc->elementCount = elementCount;
 	if (elementCount > 0)
 	{
-		baseMaterialDesc->elements = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
-			dsMaterialElement, elementCount);
+		baseMaterialDesc->elements = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsMaterialElement,
+			elementCount);
 		DS_ASSERT(baseMaterialDesc->elements);
 		memcpy(baseMaterialDesc->elements, elements, elementCount*sizeof(dsMaterialElement));
 	}

@@ -438,8 +438,7 @@ TEST_F(SimpleHoledPolygonTest, TouchingHoles)
 
 TEST_P(SimpleHoledPolygonStressTest, Starburst)
 {
-	dsVector2d* points = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&allocator, dsVector2d,
-		GetParam()*2);
+	dsVector2d* points = DS_ALLOCATE_OBJECT_ARRAY(&allocator, dsVector2d, GetParam()*2);
 	for (uint32_t i = 0; i < GetParam(); ++i)
 	{
 		double outerRadius = (i & 1) == 0 ? 0.7 : 1.0;
@@ -461,8 +460,7 @@ TEST_P(SimpleHoledPolygonStressTest, Starburst)
 
 TEST_P(SimpleHoledPolygonStressTest, StarburstTouching)
 {
-	dsVector2d* points = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&allocator, dsVector2d,
-		GetParam()*2);
+	dsVector2d* points = DS_ALLOCATE_OBJECT_ARRAY(&allocator, dsVector2d, GetParam()*2);
 	for (uint32_t i = 0; i < GetParam(); ++i)
 	{
 		double outerRadius = (i & 1) == 0 ? 0.7 : 1.0;

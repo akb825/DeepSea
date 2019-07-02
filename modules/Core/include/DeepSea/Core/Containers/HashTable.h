@@ -36,6 +36,13 @@ extern "C"
  */
 
 /**
+ * @brief Gets the suggested table size for a maximum number of elements.
+ * @param maxElements The maximum number of elements.
+ * @return The suggested table size.
+ */
+DS_CORE_EXPORT uint32_t dsHashTable_getTableSize(uint32_t maxElements);
+
+/**
  * @brief Calculates the size of a hash table.
  * @param tableSize The number of hash buckets for the hash table.
  * @return The size of the hash table.

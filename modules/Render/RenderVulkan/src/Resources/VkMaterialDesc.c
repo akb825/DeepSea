@@ -64,8 +64,7 @@ dsMaterialDesc* dsVkMaterialDesc_create(dsResourceManager* resourceManager, dsAl
 
 	dsBufferAllocator bufferAlloc;
 	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, bufferSize));
-	dsVkMaterialDesc* materialDesc = DS_ALLOCATE_OBJECT((dsAllocator*)&bufferAlloc,
-		dsVkMaterialDesc);
+	dsVkMaterialDesc* materialDesc = DS_ALLOCATE_OBJECT(&bufferAlloc, dsVkMaterialDesc);
 	DS_ASSERT(materialDesc);
 
 	dsMaterialDesc* baseMaterialDesc = (dsMaterialDesc*)materialDesc;
@@ -75,13 +74,13 @@ dsMaterialDesc* dsVkMaterialDesc_create(dsResourceManager* resourceManager, dsAl
 
 	if (elementCount > 0)
 	{
-		baseMaterialDesc->elements = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
-			dsMaterialElement, elementCount);
+		baseMaterialDesc->elements = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsMaterialElement,
+			elementCount);
 		DS_ASSERT(baseMaterialDesc->elements);
 		memcpy(baseMaterialDesc->elements, elements, sizeof(dsMaterialElement)*elementCount);
 
-		materialDesc->elementMappings = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
-			uint32_t, elementCount);
+		materialDesc->elementMappings = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, uint32_t,
+			elementCount);
 		DS_ASSERT(materialDesc->elementMappings);
 		memset(materialDesc->elementMappings, 0xFF, sizeof(uint32_t)*elementCount);
 	}
@@ -105,8 +104,8 @@ dsMaterialDesc* dsVkMaterialDesc_create(dsResourceManager* resourceManager, dsAl
 		}
 
 		bindings->setIndex = setIndex++;
-		bindings->bindings = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
-			VkDescriptorSetLayoutBinding, bindingCounts[i]);
+		bindings->bindings = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, VkDescriptorSetLayoutBinding,
+			bindingCounts[i]);
 		DS_ASSERT(bindings->bindings);
 
 		uint32_t index = 0;

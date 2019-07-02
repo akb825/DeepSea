@@ -58,11 +58,10 @@ dsGradient* dsGradient_create(dsAllocator* allocator, const dsGradientStop* stop
 
 	dsBufferAllocator bufferAlloc;
 	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, fullSize));
-	dsGradient* gradient = DS_ALLOCATE_OBJECT((dsAllocator*)&bufferAlloc, dsGradient);
+	dsGradient* gradient = DS_ALLOCATE_OBJECT(&bufferAlloc, dsGradient);
 	DS_ASSERT(gradient);
 	gradient->allocator = dsAllocator_keepPointer(allocator);
-	gradient->stops = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc, dsGradientStop,
-		stopCount);
+	gradient->stops = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsGradientStop, stopCount);
 	DS_ASSERT(gradient->stops);
 	memcpy(gradient->stops, stops, sizeof(dsGradientStop)*stopCount);
 	gradient->stopCount = stopCount;

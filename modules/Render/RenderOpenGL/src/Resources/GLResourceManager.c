@@ -1135,15 +1135,14 @@ dsGLResourceManager* dsGLResourceManager_create(dsAllocator* allocator, dsGLRend
 	dsBufferAllocator bufferAlloc;
 	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, bufferSize));
 
-	dsGLResourceManager* resourceManager = DS_ALLOCATE_OBJECT((dsAllocator*)&bufferAlloc,
-		dsGLResourceManager);
+	dsGLResourceManager* resourceManager = DS_ALLOCATE_OBJECT(&bufferAlloc, dsGLResourceManager);
 	DS_ASSERT(resourceManager);
 	dsResourceManager* baseResourceManager = (dsResourceManager*)resourceManager;
 	DS_VERIFY(dsResourceManager_initialize(baseResourceManager));
 
 	if (options->maxResourceThreads > 0)
 	{
-		resourceManager->resourceContexts = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
+		resourceManager->resourceContexts = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc,
 			dsResourceContext, options->maxResourceThreads);
 		DS_ASSERT(resourceManager->resourceContexts);
 		memset(resourceManager->resourceContexts, 0,

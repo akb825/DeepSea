@@ -38,8 +38,7 @@ dsCommandBufferPool* dsMockCommandBufferPool_create(dsRenderer* renderer, dsAllo
 	dsBufferAllocator bufferAllocator;
 	DS_VERIFY(dsBufferAllocator_initialize(&bufferAllocator, buffer, totalSize));
 
-	dsCommandBufferPool* pool = DS_ALLOCATE_OBJECT((dsAllocator*)&bufferAllocator,
-		dsCommandBufferPool);
+	dsCommandBufferPool* pool = DS_ALLOCATE_OBJECT(&bufferAllocator, dsCommandBufferPool);
 	DS_ASSERT(pool);
 
 	pool->renderer = renderer;
@@ -47,13 +46,11 @@ dsCommandBufferPool* dsMockCommandBufferPool_create(dsRenderer* renderer, dsAllo
 	pool->count = count;
 	pool->usage = usage;
 
-	pool->currentBuffers = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAllocator,
-		dsCommandBuffer*, count);
+	pool->currentBuffers = DS_ALLOCATE_OBJECT_ARRAY(&bufferAllocator, dsCommandBuffer*, count);
 	DS_ASSERT(pool->currentBuffers);
 	for (uint32_t i = 0; i < count; ++i)
 	{
-		dsCommandBuffer* commandBuffer = DS_ALLOCATE_OBJECT((dsAllocator*)&bufferAllocator,
-			dsCommandBuffer);
+		dsCommandBuffer* commandBuffer = DS_ALLOCATE_OBJECT(&bufferAllocator, dsCommandBuffer);
 		DS_ASSERT(commandBuffer);
 		commandBuffer->renderer = renderer;
 		commandBuffer->allocator = pool->allocator;
@@ -70,13 +67,11 @@ dsCommandBufferPool* dsMockCommandBufferPool_create(dsRenderer* renderer, dsAllo
 
 	if (lists == 2)
 	{
-		pool->previousBuffers = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAllocator,
-			dsCommandBuffer*, count);
+		pool->previousBuffers = DS_ALLOCATE_OBJECT_ARRAY(&bufferAllocator, dsCommandBuffer*, count);
 		DS_ASSERT(pool->currentBuffers);
 		for (uint32_t i = 0; i < count; ++i)
 		{
-			dsCommandBuffer* commandBuffer = DS_ALLOCATE_OBJECT((dsAllocator*)&bufferAllocator,
-				dsCommandBuffer);
+			dsCommandBuffer* commandBuffer = DS_ALLOCATE_OBJECT(&bufferAllocator, dsCommandBuffer);
 			DS_ASSERT(commandBuffer);
 			commandBuffer->renderer = renderer;
 			commandBuffer->allocator = pool->allocator;

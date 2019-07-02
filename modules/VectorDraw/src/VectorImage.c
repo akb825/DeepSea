@@ -887,7 +887,7 @@ dsVectorImage* dsVectorImage_create(dsAllocator* allocator, dsAllocator* resourc
 	dsBufferAllocator bufferAlloc;
 	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, fullSize));
 
-	dsVectorImage* image = DS_ALLOCATE_OBJECT((dsAllocator*)&bufferAlloc, dsVectorImage);
+	dsVectorImage* image = DS_ALLOCATE_OBJECT(&bufferAlloc, dsVectorImage);
 	DS_ASSERT(image);
 	memset(image, 0, sizeof(dsVectorImage));
 	image->allocator = dsAllocator_keepPointer(allocator);
@@ -897,8 +897,7 @@ dsVectorImage* dsVectorImage_create(dsAllocator* allocator, dsAllocator* resourc
 	{
 		DS_ASSERT(scratchData->maxVectorInfos % INFOS_PER_TEXTURE == 0);
 		dsTextureInfo infoTexInfo = {infoFormat, dsTextureDim_2D, 4, 0, 0, 1, 1};
-		image->infoTextures = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc, dsTexture*,
-			infoTextureCount);
+		image->infoTextures = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsTexture*, infoTextureCount);
 		for (uint32_t i = 0; i < infoTextureCount; ++i, ++image->infoTextureCount)
 		{
 			infoTexInfo.height = INFOS_PER_TEXTURE;
@@ -942,8 +941,8 @@ dsVectorImage* dsVectorImage_create(dsAllocator* allocator, dsAllocator* resourc
 		}
 
 		DS_ASSERT(scratchData->pieceCount > 0);
-		image->imagePieces = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
-			VectorImagePiece, scratchData->pieceCount);
+		image->imagePieces = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, VectorImagePiece,
+			scratchData->pieceCount);
 		DS_ASSERT(image->imagePieces);
 		for (uint32_t i = 0; i < scratchData->pieceCount; ++i)
 		{
@@ -963,7 +962,7 @@ dsVectorImage* dsVectorImage_create(dsAllocator* allocator, dsAllocator* resourc
 		if (scratchData->textLayoutCount > 0)
 		{
 			image->textLayoutCount = scratchData->textLayoutCount;
-			image->textLayouts = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc, dsTextLayout*,
+			image->textLayouts = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsTextLayout*,
 				image->textLayoutCount);
 			DS_ASSERT(image->textLayouts);
 			memcpy(image->textLayouts, scratchData->textLayouts,
@@ -972,8 +971,8 @@ dsVectorImage* dsVectorImage_create(dsAllocator* allocator, dsAllocator* resourc
 
 			DS_ASSERT(scratchData->textDrawInfoCount > 0);
 			image->textDrawInfoCount = scratchData->textDrawInfoCount;
-			image->textDrawInfos = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
-				TextDrawInfo, image->textDrawInfoCount);
+			image->textDrawInfos = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, TextDrawInfo,
+				image->textDrawInfoCount);
 			DS_ASSERT(image->textDrawInfos);
 			memcpy(image->textDrawInfos, scratchData->textDrawInfos,
 				sizeof(TextDrawInfo)*image->textDrawInfoCount);

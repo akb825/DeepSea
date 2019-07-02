@@ -349,8 +349,7 @@ dsRenderPass* dsMTLRenderPass_create(dsRenderer* renderer, dsAllocator* allocato
 
 		dsBufferAllocator bufferAlloc;
 		DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, fullSize));
-		dsMTLRenderPass* renderPass = DS_ALLOCATE_OBJECT((dsAllocator*)&bufferAlloc,
-			dsMTLRenderPass);
+		dsMTLRenderPass* renderPass = DS_ALLOCATE_OBJECT(&bufferAlloc, dsMTLRenderPass);
 		DS_ASSERT(renderPass);
 
 		renderPass->lifetime = dsLifetime_create(allocator, renderPass);
@@ -367,8 +366,8 @@ dsRenderPass* dsMTLRenderPass_create(dsRenderer* renderer, dsAllocator* allocato
 
 		if (attachmentCount > 0)
 		{
-			baseRenderPass->attachments = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
-				dsAttachmentInfo, attachmentCount);
+			baseRenderPass->attachments = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsAttachmentInfo,
+				attachmentCount);
 			DS_ASSERT(baseRenderPass->attachments);
 			memcpy((void*)baseRenderPass->attachments, attachments,
 				sizeof(dsAttachmentInfo)*attachmentCount);
@@ -376,13 +375,13 @@ dsRenderPass* dsMTLRenderPass_create(dsRenderer* renderer, dsAllocator* allocato
 		else
 			baseRenderPass->attachments = NULL;
 
-		dsRenderSubpassInfo* subpassesCopy = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
+		dsRenderSubpassInfo* subpassesCopy = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc,
 			dsRenderSubpassInfo, subpassCount);
 		DS_ASSERT(subpassesCopy);
 		memcpy(subpassesCopy, subpasses, sizeof(dsRenderSubpassInfo)*subpassCount);
 		baseRenderPass->subpasses = subpassesCopy;
-		renderPass->subpassInfos = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
-			dsMTLSubpassInfo, subpassCount);
+		renderPass->subpassInfos = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsMTLSubpassInfo,
+			subpassCount);
 		DS_ASSERT(renderPass->subpassInfos);
 		for (uint32_t i = 0; i < subpassCount; ++i)
 		{
@@ -390,8 +389,8 @@ dsRenderPass* dsMTLRenderPass_create(dsRenderer* renderer, dsAllocator* allocato
 			dsMTLSubpassInfo* curSubpassInfo = renderPass->subpassInfos + i;
 			if (curSubpass->inputAttachmentCount > 0)
 			{
-				curSubpass->inputAttachments = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
-					uint32_t, curSubpass->inputAttachmentCount);
+				curSubpass->inputAttachments = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, uint32_t,
+					curSubpass->inputAttachmentCount);
 				DS_ASSERT(curSubpass->inputAttachments);
 				memcpy((void*)curSubpass->inputAttachments, subpasses[i].inputAttachments,
 					sizeof(uint32_t)*curSubpass->inputAttachmentCount);
@@ -399,15 +398,15 @@ dsRenderPass* dsMTLRenderPass_create(dsRenderer* renderer, dsAllocator* allocato
 
 			if (curSubpass->colorAttachmentCount > 0)
 			{
-				curSubpass->colorAttachments = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
+				curSubpass->colorAttachments = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc,
 					dsColorAttachmentRef, curSubpass->colorAttachmentCount);
 				DS_ASSERT(curSubpass->colorAttachments);
 				memcpy((void*)curSubpass->colorAttachments, subpasses[i].colorAttachments,
 					sizeof(dsColorAttachmentRef)*curSubpass->colorAttachmentCount);
 
 				curSubpassInfo->colorAttachments =
-					DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc, dsMTLAttachmentInfo,
-					curSubpass->colorAttachmentCount);
+					DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsMTLAttachmentInfo,
+						curSubpass->colorAttachmentCount);
 				DS_ASSERT(curSubpassInfo->colorAttachments);
 				for (uint32_t j = 0; j < curSubpass->colorAttachmentCount; ++j)
 				{

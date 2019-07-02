@@ -39,14 +39,14 @@ dsShader* dsMockShader_create(dsResourceManager* resourceManager, dsAllocator* a
 	dsBufferAllocator bufferAllocator;
 	DS_VERIFY(dsBufferAllocator_initialize(&bufferAllocator, buffer, size));
 
-	dsShader* shader = DS_ALLOCATE_OBJECT((dsAllocator*)&bufferAllocator, dsShader);
+	dsShader* shader = DS_ALLOCATE_OBJECT(&bufferAllocator, dsShader);
 	DS_ASSERT(shader);
 
 	shader->resourceManager = resourceManager;
 	shader->allocator = dsAllocator_keepPointer(allocator);
 	shader->module = module;
 	shader->pipelineIndex = shaderIndex;
-	shader->pipeline = DS_ALLOCATE_OBJECT((dsAllocator*)&bufferAllocator, mslPipeline);
+	shader->pipeline = DS_ALLOCATE_OBJECT(&bufferAllocator, mslPipeline);
 	DS_ASSERT(shader->pipeline);
 	DS_VERIFY(mslModule_pipeline(shader->pipeline, module->module, shaderIndex));
 	shader->name = shader->pipeline->name;

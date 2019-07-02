@@ -58,12 +58,6 @@ static uint32_t identityHash(const void* key)
 	return *(const uint32_t*)key;
 }
 
-static unsigned int getTableSize(unsigned int maxValues)
-{
-	const float loadFactor = 0.75f;
-	return (unsigned int)((float)maxValues/loadFactor);
-}
-
 static void* getValue(dsGfxFormat* outFormat, size_t* outOffset, size_t* outSize,
 	const dsSharedMaterialValues* values, uint32_t nameID, Type type)
 {
@@ -99,7 +93,7 @@ static bool setValue(dsSharedMaterialValues* values, uint32_t nameID, Type type,
 		return true;
 	}
 
-	entry = DS_ALLOCATE_OBJECT((dsAllocator*)&values->entryPool, Entry);
+	entry = DS_ALLOCATE_OBJECT(&values->entryPool, Entry);
 	if (!entry)
 		return false;
 
@@ -224,7 +218,7 @@ size_t dsSharedMaterialValues_fullAllocSize(unsigned int maxValues)
 {
 	return DS_ALIGNED_SIZE(sizeof(dsSharedMaterialValues)) +
 		DS_ALIGNED_SIZE(dsPoolAllocator_bufferSize(sizeof(Entry), maxValues)) +
-		dsHashTable_fullAllocSize(getTableSize(maxValues));
+		dsHashTable_fullAllocSize(dsHashTable_getTableSize(maxValues));
 }
 
 dsSharedMaterialValues* dsSharedMaterialValues_create(dsAllocator* allocator,
@@ -244,7 +238,7 @@ dsSharedMaterialValues* dsSharedMaterialValues_create(dsAllocator* allocator,
 	dsBufferAllocator bufferAllocator;
 	DS_VERIFY(dsBufferAllocator_initialize(&bufferAllocator, buffer, bufferSize));
 
-	dsSharedMaterialValues* materialValues = DS_ALLOCATE_OBJECT((dsAllocator*)&bufferAllocator,
+	dsSharedMaterialValues* materialValues = DS_ALLOCATE_OBJECT(&bufferAllocator,
 		dsSharedMaterialValues);
 	DS_ASSERT(materialValues);
 	materialValues->allocator = dsAllocator_keepPointer(allocator);
@@ -255,7 +249,7 @@ dsSharedMaterialValues* dsSharedMaterialValues_create(dsAllocator* allocator,
 	DS_VERIFY(dsPoolAllocator_initialize(&materialValues->entryPool, sizeof(Entry), maxValues,
 		poolBuffer, poolSize));
 
-	unsigned int tableSize = getTableSize(maxValues);
+	uint32_t tableSize = dsHashTable_getTableSize(maxValues);
 	materialValues->hashTable = (dsHashTable*)dsAllocator_alloc((dsAllocator*)&bufferAllocator,
 		dsHashTable_fullAllocSize(tableSize));
 	DS_VERIFY(dsHashTable_initialize(materialValues->hashTable, tableSize, &identityHash,

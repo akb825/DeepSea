@@ -2172,7 +2172,7 @@ dsRenderer* dsVkRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 
 	dsBufferAllocator bufferAlloc;
 	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, bufferSize));
-	dsVkRenderer* renderer = DS_ALLOCATE_OBJECT((dsAllocator*)&bufferAlloc, dsVkRenderer);
+	dsVkRenderer* renderer = DS_ALLOCATE_OBJECT(&bufferAlloc, dsVkRenderer);
 	DS_ASSERT(renderer);
 	memset(renderer, 0, sizeof(*renderer));
 	dsRenderer* baseRenderer = (dsRenderer*)renderer;
