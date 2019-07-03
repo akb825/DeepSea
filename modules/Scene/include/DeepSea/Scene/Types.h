@@ -45,6 +45,22 @@ extern "C"
 #define DS_MAX_SCENE_RESOURCE_NAME_LENGTH 100U
 
 /**
+ * @brief Enum for the type of a resource stored in dsSceneResources.
+ */
+typedef enum dsSceneResourceType
+{
+	dsSceneResourceType_Buffer,
+	dsSceneResourceType_Texture,
+	dsSceneResourceType_ShaderVariableGroupDesc,
+	dsSceneResourceType_ShaderVariableGroup,
+	dsSceneResourceType_MaterialDesc,
+	dsSceneResourceType_Material,
+	dsSceneResourceType_ShaderModule,
+	dsSceneResourceType_Shader,
+	dsSceneResourceType_DrawGeometry
+} dsSceneResourceType;
+
+/**
  * @brief Struct for processing items within a scene.
  *
  * Different implementations can effectively subclass this type by having it as the first member of

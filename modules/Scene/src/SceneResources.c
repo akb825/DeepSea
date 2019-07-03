@@ -27,8 +27,12 @@
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Render/Resources/DrawGeometry.h>
 #include <DeepSea/Render/Resources/GfxBuffer.h>
+#include <DeepSea/Render/Resources/Material.h>
+#include <DeepSea/Render/Resources/MaterialDesc.h>
 #include <DeepSea/Render/Resources/Shader.h>
 #include <DeepSea/Render/Resources/ShaderModule.h>
+#include <DeepSea/Render/Resources/ShaderVariableGroup.h>
+#include <DeepSea/Render/Resources/ShaderVariableGroupDesc.h>
 #include <DeepSea/Render/Resources/Texture.h>
 
 #include <string.h>
@@ -38,23 +42,15 @@ typedef struct ResourceNode
 	dsHashTableNode node;
 	void* resource;
 	char name[DS_MAX_SCENE_RESOURCE_NAME_LENGTH];
+	dsSceneResourceType type;
 	bool owned;
 } ResourceNode;
 
 struct dsSceneResources
 {
 	dsAllocator* allocator;
-	dsHashTable* textures;
-	dsHashTable* buffers;
-	dsHashTable* shaderModules;
-	dsHashTable* shaders;
-	dsHashTable* drawGeometries;
+	dsHashTable* resources;
 	dsPoolAllocator nodePool;
-	uint32_t maxTextures;
-	uint32_t maxBuffers;
-	uint32_t maxShaderModules;
-	uint32_t maxShaders;
-	uint32_t maxDrawGeometries;
 	uint32_t refCount;
 };
 
@@ -68,60 +64,33 @@ static dsHashTable* createHashTable(dsBufferAllocator* allocator, uint32_t maxIt
 	return hashTable;
 }
 
-static void destroy(dsSceneResources* resources)
+static bool destroyResource(dsSceneResourceType type, void* resource)
 {
-	if (resources->textures)
+	switch (type)
 	{
-		for (dsListNode* node = resources->textures->list.head; node; node = node->next)
-		{
-			ResourceNode* resourceNode = (ResourceNode*)node;
-			if (resourceNode->owned)
-				dsTexture_destroy((dsTexture*)resourceNode->resource);
-		}
+		case dsSceneResourceType_Buffer:
+			return dsGfxBuffer_destroy((dsGfxBuffer*)resource);
+		case dsSceneResourceType_Texture:
+			return dsTexture_destroy((dsTexture*)resource);
+		case dsSceneResourceType_ShaderVariableGroupDesc:
+			return dsShaderVariableGroupDesc_destroy((dsShaderVariableGroupDesc*)resource);
+		case dsSceneResourceType_ShaderVariableGroup:
+			return dsShaderVariableGroup_destroy((dsShaderVariableGroup*)resource);
+		case dsSceneResourceType_MaterialDesc:
+			return dsMaterialDesc_destroy((dsMaterialDesc*)resource);
+		case dsSceneResourceType_Material:
+			dsMaterial_destroy((dsMaterial*)resource);
+			return true;
+		case dsSceneResourceType_ShaderModule:
+			return dsShaderModule_destroy((dsShaderModule*)resource);
+		case dsSceneResourceType_Shader:
+			return dsShader_destroy((dsShader*)resource);
+		case dsSceneResourceType_DrawGeometry:
+			return dsDrawGeometry_destroy((dsDrawGeometry*)resource);
+		default:
+			DS_ASSERT(false);
+			return false;
 	}
-
-	if (resources->buffers)
-	{
-		for (dsListNode* node = resources->buffers->list.head; node; node = node->next)
-		{
-			ResourceNode* resourceNode = (ResourceNode*)node;
-			if (resourceNode->owned)
-				dsGfxBuffer_destroy((dsGfxBuffer*)resourceNode->resource);
-		}
-	}
-
-	if (resources->shaders)
-	{
-		for (dsListNode* node = resources->shaders->list.head; node; node = node->next)
-		{
-			ResourceNode* resourceNode = (ResourceNode*)node;
-			if (resourceNode->owned)
-				dsShader_destroy((dsShader*)resourceNode->resource);
-		}
-	}
-
-	if (resources->shaderModules)
-	{
-		for (dsListNode* node = resources->shaderModules->list.head; node; node = node->next)
-		{
-			ResourceNode* resourceNode = (ResourceNode*)node;
-			if (resourceNode->owned)
-				dsShaderModule_destroy((dsShaderModule*)resourceNode->resource);
-		}
-	}
-
-	if (resources->drawGeometries)
-	{
-		for (dsListNode* node = resources->drawGeometries->list.head; node; node = node->next)
-		{
-			ResourceNode* resourceNode = (ResourceNode*)node;
-			if (resourceNode->owned)
-				dsDrawGeometry_destroy((dsDrawGeometry*)resourceNode->resource);
-		}
-	}
-
-	if (resources->allocator)
-		DS_VERIFY(dsAllocator_free(resources->allocator, resources));
 }
 
 size_t dsSceneResources_sizeof(void)
@@ -129,27 +98,14 @@ size_t dsSceneResources_sizeof(void)
 	return sizeof(dsSceneResources);
 }
 
-size_t dsSceneResources_fullAllocSize(uint32_t maxTextures, uint32_t maxBuffers,
-	uint32_t maxShaderModules, uint32_t maxShaders, uint32_t maxDrawGeometries)
+size_t dsSceneResources_fullAllocSize(uint32_t maxResources)
 {
-	uint32_t totalNodes = maxTextures + maxBuffers + maxShaderModules + maxShaders +
-		maxDrawGeometries;
-	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsSceneResources));
-	if (maxTextures > 0)
-		fullSize += dsHashTable_fullAllocSize(dsHashTable_getTableSize(maxTextures));
-	if (maxBuffers > 0)
-		fullSize += dsHashTable_fullAllocSize(dsHashTable_getTableSize(maxBuffers));
-	if (maxShaderModules > 0)
-		fullSize += dsHashTable_fullAllocSize(dsHashTable_getTableSize(maxShaderModules));
-	if (maxShaders > 0)
-		fullSize += dsHashTable_fullAllocSize(dsHashTable_getTableSize(maxShaders));
-	if (maxDrawGeometries > 0)
-		fullSize += dsHashTable_fullAllocSize(dsHashTable_getTableSize(maxDrawGeometries));
-	return fullSize + dsPoolAllocator_bufferSize(sizeof(ResourceNode), totalNodes);
+	return DS_ALIGNED_SIZE(sizeof(dsSceneResources)) +
+		dsHashTable_fullAllocSize(dsHashTable_getTableSize(maxResources)) +
+		dsPoolAllocator_bufferSize(sizeof(ResourceNode), maxResources);
 }
 
-dsSceneResources* dsSceneResources_create(dsAllocator* allocator, uint32_t maxTextures,
-	uint32_t maxBuffers, uint32_t maxShaderModules, uint32_t maxShaders, uint32_t maxDrawGeometries)
+dsSceneResources* dsSceneResources_create(dsAllocator* allocator, uint32_t maxResources)
 {
 	if (!allocator)
 	{
@@ -157,8 +113,7 @@ dsSceneResources* dsSceneResources_create(dsAllocator* allocator, uint32_t maxTe
 		return NULL;
 	}
 
-	size_t fullSize = dsSceneResources_fullAllocSize(maxTextures, maxBuffers, maxShaderModules,
-		maxShaders, maxDrawGeometries);
+	size_t fullSize = dsSceneResources_fullAllocSize(maxResources);
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 		return NULL;
@@ -168,57 +123,31 @@ dsSceneResources* dsSceneResources_create(dsAllocator* allocator, uint32_t maxTe
 	DS_ASSERT(sceneResources);
 
 	sceneResources->allocator = dsAllocator_keepPointer(allocator);
+	sceneResources->resources = createHashTable(&bufferAlloc, maxResources);
 
-	if (maxTextures > 0)
-		sceneResources->textures = createHashTable(&bufferAlloc, maxTextures);
-	else
-		sceneResources->textures = NULL;
-	if (maxBuffers > 0)
-		sceneResources->buffers = createHashTable(&bufferAlloc, maxBuffers);
-	else
-		sceneResources->buffers = NULL;
-	if (maxShaderModules > 0)
-		sceneResources->shaderModules = createHashTable(&bufferAlloc, maxShaderModules);
-	else
-		sceneResources->shaderModules = NULL;
-	if (maxShaders > 0)
-		sceneResources->shaders = createHashTable(&bufferAlloc, maxShaders);
-	else
-		sceneResources->shaders = NULL;
-	if (maxDrawGeometries > 0)
-		sceneResources->drawGeometries = createHashTable(&bufferAlloc, maxDrawGeometries);
-	else
-		sceneResources->drawGeometries = NULL;
-
-	uint32_t totalNodes = maxTextures + maxBuffers + maxShaderModules + maxShaders +
-		maxDrawGeometries;
-	size_t poolSize = dsPoolAllocator_bufferSize(sizeof(ResourceNode), totalNodes);
+	size_t poolSize = dsPoolAllocator_bufferSize(sizeof(ResourceNode), maxResources);
 	void* poolBuffer = dsAllocator_alloc((dsAllocator*)&bufferAlloc, poolSize);
 	DS_ASSERT(poolBuffer);
 	DS_VERIFY(dsPoolAllocator_initialize(&sceneResources->nodePool, sizeof(ResourceNode),
-		totalNodes, poolBuffer, poolSize));
+		maxResources, poolBuffer, poolSize));
 
-	sceneResources->maxTextures = maxTextures;
-	sceneResources->maxBuffers = maxBuffers;
-	sceneResources->maxShaderModules = maxShaderModules;
-	sceneResources->maxShaders = maxShaders;
-	sceneResources->maxDrawGeometries = maxDrawGeometries;
 	sceneResources->refCount = 1;
 	return sceneResources;
 }
 
-uint32_t dsSceneResources_getRemainingTextures(const dsSceneResources* resources)
+uint32_t dsSceneResources_getRemainingResources(const dsSceneResources* resources)
 {
-	if (!resources || !resources->textures)
+	if (!resources)
 		return 0;
 
-	return resources->maxTextures - (uint32_t)resources->textures->list.length;
+	return (uint32_t)resources->nodePool.freeCount;
 }
 
-bool dsSceneResources_addTexture(dsSceneResources* resources, const char* name, dsTexture* texture,
-	bool own)
+bool dsSceneResources_addResource(dsSceneResources* resources, const char* name,
+	dsSceneResourceType type, void* resource, bool own)
 {
-	if (!resources || !name || !texture)
+	if (!resources || !name || type < dsSceneResourceType_Buffer ||
+		type > dsSceneResourceType_DrawGeometry || !resource)
 	{
 		errno = EINVAL;
 		return false;
@@ -228,42 +157,43 @@ bool dsSceneResources_addTexture(dsSceneResources* resources, const char* name, 
 	if (nameLength >= DS_MAX_SCENE_RESOURCE_NAME_LENGTH)
 	{
 		errno = EINVAL;
-		DS_LOG_ERROR_F(DS_SCENE_LOG_TAG, "Texture name '%s' exceeds maximum size of %u.",
+		DS_LOG_ERROR_F(DS_SCENE_LOG_TAG, "Resource name '%s' exceeds maximum size of %u.",
 			name, DS_MAX_SCENE_RESOURCE_NAME_LENGTH);
 		return false;
 	}
 
-	dsHashTableNode* foundNode = dsHashTable_find(resources->textures, name);
+	dsHashTableNode* foundNode = dsHashTable_find(resources->resources, name);
 	if (foundNode)
 	{
 		errno = EPERM;
-		DS_LOG_ERROR_F(DS_SCENE_LOG_TAG, "Texture '%s' has already been added.", name);
+		DS_LOG_ERROR_F(DS_SCENE_LOG_TAG, "Resource '%s' has already been added.", name);
 		return false;
 	}
 
-	if (!resources->textures || resources->textures->list.length >= resources->maxTextures)
+	if (resources->nodePool.freeCount == 0)
 	{
 		errno = ESIZE;
-		DS_LOG_ERROR(DS_SCENE_LOG_TAG, "Maximum number of textures has been exceeded.");
+		DS_LOG_ERROR(DS_SCENE_LOG_TAG, "Maximum number of resources has been exceeded.");
 		return false;
 	}
 
 	ResourceNode* node = DS_ALLOCATE_OBJECT(&resources->nodePool, ResourceNode);
 	DS_ASSERT(node);
 	strncpy(node->name, name, nameLength + 1);
-	node->resource = texture;
+	node->resource = resource;
+	node->type = type;
 	node->owned = own;
-	DS_VERIFY(dsHashTable_insert(resources->textures, node->name, (dsHashTableNode*)node, NULL));
+	DS_VERIFY(dsHashTable_insert(resources->resources, node->name, (dsHashTableNode*)node, NULL));
 	return true;
 }
 
-bool dsSceneResource_removeTexture(dsSceneResources* resources, const char* name,
+bool dsSceneResource_removeResource(dsSceneResources* resources, const char* name,
 	bool relinquish)
 {
-	if (!resources || !resources->textures || !name)
+	if (!resources || !resources->resources || !name)
 		return false;
 
-	ResourceNode* node = (ResourceNode*)dsHashTable_remove(resources->textures, name);
+	ResourceNode* node = (ResourceNode*)dsHashTable_remove(resources->resources, name);
 	if (!node)
 	{
 		errno = ENOTFOUND;
@@ -274,11 +204,11 @@ bool dsSceneResource_removeTexture(dsSceneResources* resources, const char* name
 	DS_ASSERT(node->resource);
 	if (node->owned && !relinquish)
 	{
-		if (!dsTexture_destroy((dsTexture*)node->resource))
+		if (!destroyResource(node->type, node->resource))
 		{
 			// Put back into the hash table.
-			DS_VERIFY(dsHashTable_insert(resources->textures, node->name,
-				(dsHashTableNode*)node, NULL));
+			DS_VERIFY(dsHashTable_insert(resources->resources, node->name, (dsHashTableNode*)node,
+				NULL));
 			return false;
 		}
 	}
@@ -287,390 +217,21 @@ bool dsSceneResource_removeTexture(dsSceneResources* resources, const char* name
 	return true;
 }
 
-dsTexture* dsSceneResources_findTexture(const dsSceneResources* resources, const char* name)
+bool dsSceneResources_findBuffer(dsSceneResourceType* outType, void** outResource,
+	const dsSceneResources* resources, const char* name)
 {
 	if (!resources || !name)
-		return NULL;
+		return false;
 
-	ResourceNode* node = (ResourceNode*)dsHashTable_find(resources->textures, name);
+	ResourceNode* node = (ResourceNode*)dsHashTable_find(resources->resources, name);
 	if (!node)
-		return NULL;
-
-	return (dsTexture*)node->resource;
-}
-
-uint32_t dsSceneResources_getRemainingBuffers(const dsSceneResources* resources)
-{
-	if (!resources || !resources->buffers)
-		return 0;
-
-	return resources->maxBuffers - (uint32_t)resources->buffers->list.length;
-}
-
-bool dsSceneResources_addBuffer(dsSceneResources* resources, const char* name, dsGfxBuffer* buffer,
-	bool own)
-{
-	if (!resources || !name || !buffer)
-	{
-		errno = EINVAL;
 		return false;
-	}
 
-	size_t nameLength = strlen(name);
-	if (nameLength >= DS_MAX_SCENE_RESOURCE_NAME_LENGTH)
-	{
-		errno = EINVAL;
-		DS_LOG_ERROR_F(DS_SCENE_LOG_TAG, "Buffer name '%s' exceeds maximum size of %u.",
-			name, DS_MAX_SCENE_RESOURCE_NAME_LENGTH);
-		return false;
-	}
-
-	dsHashTableNode* foundNode = dsHashTable_find(resources->buffers, name);
-	if (foundNode)
-	{
-		errno = EPERM;
-		DS_LOG_ERROR_F(DS_SCENE_LOG_TAG, "Buffer '%s' has already been added.", name);
-		return false;
-	}
-
-	if (!resources->buffers || resources->buffers->list.length >= resources->maxBuffers)
-	{
-		errno = ESIZE;
-		DS_LOG_ERROR(DS_SCENE_LOG_TAG, "Maximum number of buffers has been exceeded.");
-		return false;
-	}
-
-	ResourceNode* node = DS_ALLOCATE_OBJECT(&resources->nodePool, ResourceNode);
-	DS_ASSERT(node);
-	strncpy(node->name, name, nameLength + 1);
-	node->resource = buffer;
-	node->owned = own;
-	DS_VERIFY(dsHashTable_insert(resources->buffers, node->name, (dsHashTableNode*)node, NULL));
+	if (outType)
+		*outType = node->type;
+	if (outResource)
+		*outResource = node->resource;
 	return true;
-}
-
-bool dsSceneResource_removeBuffer(dsSceneResources* resources, const char* name,
-	bool relinquish)
-{
-	if (!resources || !resources->buffers || !name)
-		return false;
-
-	ResourceNode* node = (ResourceNode*)dsHashTable_remove(resources->buffers, name);
-	if (!node)
-	{
-		errno = ENOTFOUND;
-		DS_LOG_ERROR_F(DS_SCENE_LOG_TAG, "Buffer '%s' not found.", name);
-		return false;
-	}
-
-	DS_ASSERT(node->resource);
-	if (node->owned && !relinquish)
-	{
-		if (!dsGfxBuffer_destroy((dsGfxBuffer*)node->resource))
-		{
-			// Put back into the hash table.
-			DS_VERIFY(dsHashTable_insert(resources->buffers, node->name,
-				(dsHashTableNode*)node, NULL));
-			return false;
-		}
-	}
-
-	DS_VERIFY(dsAllocator_free((dsAllocator*)&resources->nodePool, node));
-	return true;
-}
-
-dsGfxBuffer* dsSceneResources_findBuffer(const dsSceneResources* resources, const char* name)
-{
-	if (!resources || !name)
-		return NULL;
-
-	ResourceNode* node = (ResourceNode*)dsHashTable_find(resources->buffers, name);
-	if (!node)
-		return NULL;
-
-	return (dsGfxBuffer*)node->resource;
-}
-
-uint32_t dsSceneResources_getRemainingShaderModules(const dsSceneResources* resources)
-{
-	if (!resources || !resources->shaderModules)
-		return 0;
-
-	return resources->maxShaderModules - (uint32_t)resources->shaderModules->list.length;
-}
-
-bool dsSceneResources_addShaderModule(dsSceneResources* resources, const char* name,
-	dsShaderModule* shaderModule, bool own)
-{
-	if (!resources || !name || !shaderModule)
-	{
-		errno = EINVAL;
-		return false;
-	}
-
-	size_t nameLength = strlen(name);
-	if (nameLength >= DS_MAX_SCENE_RESOURCE_NAME_LENGTH)
-	{
-		errno = EINVAL;
-		DS_LOG_ERROR_F(DS_SCENE_LOG_TAG, "ShaderModule name '%s' exceeds maximum size of %u.",
-			name, DS_MAX_SCENE_RESOURCE_NAME_LENGTH);
-		return false;
-	}
-
-	dsHashTableNode* foundNode = dsHashTable_find(resources->shaderModules, name);
-	if (foundNode)
-	{
-		errno = EPERM;
-		DS_LOG_ERROR_F(DS_SCENE_LOG_TAG, "ShaderModule '%s' has already been added.", name);
-		return false;
-	}
-
-	if (!resources->shaderModules || resources->shaderModules->list.length >=
-		resources->maxShaderModules)
-	{
-		errno = ESIZE;
-		DS_LOG_ERROR(DS_SCENE_LOG_TAG, "Maximum number of shaderModules has been exceeded.");
-		return false;
-	}
-
-	ResourceNode* node = DS_ALLOCATE_OBJECT(&resources->nodePool, ResourceNode);
-	DS_ASSERT(node);
-	strncpy(node->name, name, nameLength + 1);
-	node->resource = shaderModule;
-	node->owned = own;
-	DS_VERIFY(dsHashTable_insert(resources->shaderModules, node->name, (dsHashTableNode*)node,
-		NULL));
-	return true;
-}
-
-bool dsSceneResource_removeShaderModule(dsSceneResources* resources, const char* name,
-	bool relinquish)
-{
-	if (!resources || !resources->shaderModules || !name)
-		return false;
-
-	ResourceNode* node = (ResourceNode*)dsHashTable_remove(resources->shaderModules, name);
-	if (!node)
-	{
-		errno = ENOTFOUND;
-		DS_LOG_ERROR_F(DS_SCENE_LOG_TAG, "ShaderModule '%s' not found.", name);
-		return false;
-	}
-
-	DS_ASSERT(node->resource);
-	if (node->owned && !relinquish)
-	{
-		if (!dsShaderModule_destroy((dsShaderModule*)node->resource))
-		{
-			// Put back into the hash table.
-			DS_VERIFY(dsHashTable_insert(resources->shaderModules, node->name,
-				(dsHashTableNode*)node, NULL));
-			return false;
-		}
-	}
-
-	DS_VERIFY(dsAllocator_free((dsAllocator*)&resources->nodePool, node));
-	return true;
-}
-
-dsShaderModule* dsSceneResources_findShaderModule(const dsSceneResources* resources,
-	const char* name)
-{
-	if (!resources || !name)
-		return NULL;
-
-	ResourceNode* node = (ResourceNode*)dsHashTable_find(resources->shaderModules, name);
-	if (!node)
-		return NULL;
-
-	return (dsShaderModule*)node->resource;
-}
-
-uint32_t dsSceneResources_getRemainingShaders(const dsSceneResources* resources)
-{
-	if (!resources || !resources->shaders)
-		return 0;
-
-	return resources->maxShaders - (uint32_t)resources->shaders->list.length;
-}
-
-bool dsSceneResources_addShader(dsSceneResources* resources, const char* name, dsShader* shader,
-	bool own)
-{
-	if (!resources || !name || !shader)
-	{
-		errno = EINVAL;
-		return false;
-	}
-
-	size_t nameLength = strlen(name);
-	if (nameLength >= DS_MAX_SCENE_RESOURCE_NAME_LENGTH)
-	{
-		errno = EINVAL;
-		DS_LOG_ERROR_F(DS_SCENE_LOG_TAG, "Shader name '%s' exceeds maximum size of %u.",
-			name, DS_MAX_SCENE_RESOURCE_NAME_LENGTH);
-		return false;
-	}
-
-	dsHashTableNode* foundNode = dsHashTable_find(resources->shaders, name);
-	if (foundNode)
-	{
-		errno = EPERM;
-		DS_LOG_ERROR_F(DS_SCENE_LOG_TAG, "Shader '%s' has already been added.", name);
-		return false;
-	}
-
-	if (!resources->shaders || resources->shaders->list.length >= resources->maxShaders)
-	{
-		errno = ESIZE;
-		DS_LOG_ERROR(DS_SCENE_LOG_TAG, "Maximum number of shaders has been exceeded.");
-		return false;
-	}
-
-	ResourceNode* node = DS_ALLOCATE_OBJECT(&resources->nodePool, ResourceNode);
-	DS_ASSERT(node);
-	strncpy(node->name, name, nameLength + 1);
-	node->resource = shader;
-	node->owned = own;
-	DS_VERIFY(dsHashTable_insert(resources->shaders, node->name, (dsHashTableNode*)node, NULL));
-	return true;
-}
-
-bool dsSceneResource_removeShader(dsSceneResources* resources, const char* name,
-	bool relinquish)
-{
-	if (!resources || !resources->shaders || !name)
-		return false;
-
-	ResourceNode* node = (ResourceNode*)dsHashTable_remove(resources->shaders, name);
-	if (!node)
-	{
-		errno = ENOTFOUND;
-		DS_LOG_ERROR_F(DS_SCENE_LOG_TAG, "Shader '%s' not found.", name);
-		return false;
-	}
-
-	DS_ASSERT(node->resource);
-	if (node->owned && !relinquish)
-	{
-		if (!dsShader_destroy((dsShader*)node->resource))
-		{
-			// Put back into the hash table.
-			DS_VERIFY(dsHashTable_insert(resources->shaders, node->name,
-				(dsHashTableNode*)node, NULL));
-			return false;
-		}
-	}
-
-	DS_VERIFY(dsAllocator_free((dsAllocator*)&resources->nodePool, node));
-	return true;
-}
-
-dsShader* dsSceneResources_findShader(const dsSceneResources* resources, const char* name)
-{
-	if (!resources || !name)
-		return NULL;
-
-	ResourceNode* node = (ResourceNode*)dsHashTable_find(resources->shaders, name);
-	if (!node)
-		return NULL;
-
-	return (dsShader*)node->resource;
-}
-
-uint32_t dsSceneResources_getRemainingDrawGeometries(const dsSceneResources* resources)
-{
-	if (!resources || !resources->drawGeometries)
-		return 0;
-
-	return resources->maxDrawGeometries - (uint32_t)resources->drawGeometries->list.length;
-}
-
-bool dsSceneResources_addDrawGeometry(dsSceneResources* resources, const char* name,
-	dsDrawGeometry* drawGeometry, bool own)
-{
-	if (!resources || !name || !drawGeometry)
-	{
-		errno = EINVAL;
-		return false;
-	}
-
-	size_t nameLength = strlen(name);
-	if (nameLength >= DS_MAX_SCENE_RESOURCE_NAME_LENGTH)
-	{
-		errno = EINVAL;
-		DS_LOG_ERROR_F(DS_SCENE_LOG_TAG, "DrawGeometry name '%s' exceeds maximum size of %u.",
-			name, DS_MAX_SCENE_RESOURCE_NAME_LENGTH);
-		return false;
-	}
-
-	dsHashTableNode* foundNode = dsHashTable_find(resources->drawGeometries, name);
-	if (foundNode)
-	{
-		errno = EPERM;
-		DS_LOG_ERROR_F(DS_SCENE_LOG_TAG, "DrawGeometry '%s' has already been added.", name);
-		return false;
-	}
-
-	if (!resources->drawGeometries || resources->drawGeometries->list.length >=
-			resources->maxDrawGeometries)
-	{
-		errno = ESIZE;
-		DS_LOG_ERROR(DS_SCENE_LOG_TAG, "Maximum number of drawGeometries has been exceeded.");
-		return false;
-	}
-
-	ResourceNode* node = DS_ALLOCATE_OBJECT(&resources->nodePool, ResourceNode);
-	DS_ASSERT(node);
-	strncpy(node->name, name, nameLength + 1);
-	node->resource = drawGeometry;
-	node->owned = own;
-	DS_VERIFY(dsHashTable_insert(resources->drawGeometries, node->name, (dsHashTableNode*)node,
-		NULL));
-	return true;
-}
-
-bool dsSceneResource_removeDrawGeometry(dsSceneResources* resources, const char* name,
-	bool relinquish)
-{
-	if (!resources || !resources->drawGeometries || !name)
-		return false;
-
-	ResourceNode* node = (ResourceNode*)dsHashTable_remove(resources->drawGeometries, name);
-	if (!node)
-	{
-		errno = ENOTFOUND;
-		DS_LOG_ERROR_F(DS_SCENE_LOG_TAG, "DrawGeometry '%s' not found.", name);
-		return false;
-	}
-
-	DS_ASSERT(node->resource);
-	if (node->owned && !relinquish)
-	{
-		if (!dsDrawGeometry_destroy((dsDrawGeometry*)node->resource))
-		{
-			// Put back into the hash table.
-			DS_VERIFY(dsHashTable_insert(resources->drawGeometries, node->name,
-				(dsHashTableNode*)node, NULL));
-			return false;
-		}
-	}
-
-	DS_VERIFY(dsAllocator_free((dsAllocator*)&resources->nodePool, node));
-	return true;
-}
-
-dsDrawGeometry* dsSceneResources_findDrawGeometry(const dsSceneResources* resources,
-	const char* name)
-{
-	if (!resources || !name)
-		return NULL;
-
-	ResourceNode* node = (ResourceNode*)dsHashTable_find(resources->drawGeometries, name);
-	if (!node)
-		return NULL;
-
-	return (dsDrawGeometry*)node->resource;
 }
 
 dsSceneResources* dsSceneResources_addRef(dsSceneResources* resources)
@@ -687,6 +248,16 @@ void dsSceneResources_freeRef(dsSceneResources* resources)
 	if (!resources)
 		return;
 
-	if (DS_ATOMIC_FETCH_ADD32(&resources->refCount, -1) == 1)
-		destroy(resources);
+	if (DS_ATOMIC_FETCH_ADD32(&resources->refCount, -1) != 1)
+		return;
+
+	for (dsListNode* node = resources->resources->list.head; node; node = node->next)
+	{
+		ResourceNode* resourceNode = (ResourceNode*)node;
+		if (resourceNode->owned)
+			destroyResource(resourceNode->type, resourceNode->resource);
+	}
+
+	if (resources->allocator)
+		DS_VERIFY(dsAllocator_free(resources->allocator, resources));
 }
