@@ -32,7 +32,10 @@ size_t dsSceneNode_drawListsAllocSize(const char** drawLists, uint32_t drawListC
 
 	size_t fullSize = DS_ALIGNED_SIZE(sizeof(const char*)*drawListCount);
 	for (uint32_t i = 0; i < drawListCount; ++i)
-		fullSize += DS_ALIGNED_SIZE(strlen(drawLists[i]));
+	{
+		if (drawLists[i])
+			fullSize += DS_ALIGNED_SIZE(strlen(drawLists[i]));
+	}
 	return fullSize;
 }
 
@@ -64,6 +67,8 @@ bool dsSceneNode_initialize(dsSceneNode* node, dsAllocator* allocator,
 	node->treeNodeCount = 0;
 	node->maxTreeNodes = 0;
 	node->refCount = 1;
+	node->userData = NULL;
+	node->destroyUserDataFunc = NULL;
 	node->destroyFunc = destroyFunc;
 	return true;
 }
@@ -175,6 +180,9 @@ void dsSceneNode_freeRef(dsSceneNode* node)
 
 	if (DS_ATOMIC_FETCH_ADD32(&node->refCount, -1) != 1)
 		return;
+
+	if (node->destroyUserDataFunc)
+		node->destroyUserDataFunc(node, node->userData);
 
 	dsSceneNode_clear(node);
 	DS_VERIFY(dsAllocator_free(node->allocator, node->children));

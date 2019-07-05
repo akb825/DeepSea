@@ -33,6 +33,7 @@ extern "C"
 
 /**
  * @brief Gets the type of a transform node.
+ * @return The type of a transform node.
  */
 DS_SCENE_EXPORT dsSceneNodeType dsSceneTransformNode_type(void);
 

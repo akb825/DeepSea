@@ -17,6 +17,7 @@
 #pragma once
 
 #include <DeepSea/Core/Config.h>
+#include <DeepSea/Geometry/Types.h>
 #include <DeepSea/Render/Types.h>
 
 #ifdef __cplusplus
@@ -177,6 +178,13 @@ typedef void (*dsCommitSceneItemListFunction)(dsSceneItemList* itemList, const d
  * @param itemList The scene item list to destroy.
  */
 typedef void (*dsDestroySceneItemListFunction)(dsSceneItemList* itemList);
+
+/**
+ * @brief Function to destroy scene node user data.
+ * @param node The node the user data was set on.
+ * @param data The user data for the node.
+ */
+typedef void (*dsDestroySceneNodeUserDataFunction)(dsSceneNode* node, void* data);
 
 /**
  * @brief Function for destroying a scene ndoe.
@@ -354,6 +362,16 @@ struct dsSceneNode
 	uint32_t refCount;
 
 	/**
+	 * @brief Custom user data to store with the node.
+	 */
+	void* userData;
+
+	/**
+	 * @brief Function called on destruction to destroy the user data.
+	 */
+	dsDestroySceneNodeUserDataFunction destroyUserDataFunc;
+
+	/**
 	 * @brief Destroy function.
 	 */
 	dsDestroySceneNodeFunction destroyFunc;
@@ -381,6 +399,72 @@ typedef struct dsSceneTransformNode
 	 */
 	dsMatrix44f transform;
 } dsSceneTransformNode;
+
+/**
+ * @brief Info for what to draw inside a model node.
+ * @see SceneDrawNode.h
+ */
+typedef struct dsSceneModelInfo
+{
+	/**
+	 * @brief The shader to draw the model with.
+	 */
+	dsShader* shader;
+
+	/**
+	 * @brief The material to draw the model with.
+	 */
+	dsMaterial* material;
+
+	/**
+	 * @brief List of geometry instances to draw.
+	 */
+	dsDrawGeometry** geometry;
+
+	/**
+	 * @brief The number of geometry instances to draw.
+	 */
+	uint32_t geometryCount;
+} dsSceneModelInfo;
+
+/**
+ * @brief Scene node implementation that contains model geometry to draw.
+ * @see SceneModelNode.h
+ */
+typedef struct dsSceneModelNode
+{
+	/**
+	 * @brief The base node.
+	 */
+	dsSceneNode node;
+
+	/**
+	 * @brief The models that will be drawn within the ndoe.
+	 */
+	dsSceneModelInfo* models;
+
+	/**
+	 * @brief The resources to keep a reference to.
+	 *
+	 * This will ensure that any resources used within models are kept alive.
+	 */
+	dsSceneResources** resources;
+
+	/**
+	 * @brief The number of models.
+	 */
+	uint32_t modelCount;
+
+	/**
+	 * @brief The number of resources.
+	 */
+	uint32_t resourceCount;
+
+	/**
+	 * @brief The bounding box for the model.
+	 */
+	dsAlignedBox3f bounds;
+} dsSceneModelNode;
 
 #ifdef __cplusplus
 }
