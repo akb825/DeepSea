@@ -25,6 +25,7 @@
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Render/Resources/GfxFormat.h>
+#include <DeepSea/Render/Resources/ShaderVariableGroup.h>
 #include <DeepSea/Render/Types.h>
 
 typedef enum Type
@@ -410,8 +411,7 @@ dsGfxBuffer* dsSharedMaterialValues_getBufferName(size_t* outOffset, size_t* out
 	if (!values || !name)
 		return NULL;
 
-	return (dsGfxBuffer*)getValue(NULL, outOffset, outSize, values, dsHashString(name),
-		Type_Buffer);
+	return dsSharedMaterialValues_getBufferId(outOffset, outSize, values, dsHashString(name));
 }
 
 dsGfxBuffer* dsSharedMaterialValues_getBufferId(size_t* outOffset, size_t* outSize,
@@ -420,7 +420,33 @@ dsGfxBuffer* dsSharedMaterialValues_getBufferId(size_t* outOffset, size_t* outSi
 	if (!values)
 		return NULL;
 
-	return (dsGfxBuffer*)getValue(NULL, outOffset, outSize, values, nameID, Type_Buffer);
+	// Custom find to support either dsShaderVariableGroup or dsGfxBuffer storage.
+	Entry* entry = (Entry*)dsHashTable_find(values->hashTable, &nameID);
+	if (!entry)
+		return NULL;
+
+	if (entry->type == Type_Buffer)
+	{
+		if (outOffset)
+			*outOffset = entry->offset;
+		if (outSize)
+			*outSize = entry->size;
+		return (dsGfxBuffer*)entry->value;
+	}
+	else if (entry->type == Type_ShaderVariableGroup)
+	{
+		dsShaderVariableGroup* group = (dsShaderVariableGroup*)entry->value;
+		dsGfxBuffer* buffer = dsShaderVariableGroup_getGfxBuffer(group);
+		if (buffer)
+		{
+			if (outOffset)
+				*outOffset = 0;
+			if (outSize)
+				*outSize = buffer->size;
+		}
+		return buffer;
+	}
+	return NULL;
 }
 
 bool dsSharedMaterialValues_setBufferName(dsSharedMaterialValues* values, const char* name,

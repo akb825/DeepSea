@@ -130,34 +130,21 @@ static bool setupElements(dsVkSharedDescriptorSets* descriptors, dsCommandBuffer
 				size_t offset = 0;
 				size_t bindingOffset = 0;
 				size_t size = 0;
-				if (element->type == dsMaterialType_VariableGroup)
+				buffer = dsSharedMaterialValues_getBufferId(&offset, &size, sharedValues,
+					element->nameID);
+				// Dynamic offsets forinstance variables.
+				if (buffer && descriptors->binding == dsMaterialBinding_Instance)
 				{
-					dsShaderVariableGroup* group = dsSharedMaterialValues_getVariableGroupId(
-						sharedValues, element->nameID);
-					if (group)
+					uint32_t offsetIndex = descriptors->offsetCount;
+					if (!DS_RESIZEABLE_ARRAY_ADD(descriptors->allocator, descriptors->offsets,
+							descriptors->offsetCount, descriptors->maxOffsets, 1))
 					{
-						buffer = dsShaderVariableGroup_getGfxBuffer(group);
-						size = buffer->size;
+						return false;
 					}
+					descriptors->offsets[offsetIndex] = (uint32_t)offset;
 				}
 				else
-				{
-					buffer = dsSharedMaterialValues_getBufferId(&offset, &size, sharedValues,
-						element->nameID);
-					// Dynamic offsets forinstance variables.
-					if (buffer && descriptors->binding == dsMaterialBinding_Instance)
-					{
-						uint32_t offsetIndex = descriptors->offsetCount;
-						if (!DS_RESIZEABLE_ARRAY_ADD(descriptors->allocator, descriptors->offsets,
-								descriptors->offsetCount, descriptors->maxOffsets, 1))
-						{
-							return false;
-						}
-						descriptors->offsets[offsetIndex] = (uint32_t)offset;
-					}
-					else
-						bindingOffset = offset;
-				}
+					bindingOffset = offset;
 
 				uint32_t index = bindingCounts->buffers;
 				if (!DS_RESIZEABLE_ARRAY_ADD(descriptors->allocator, bindingMemory->buffers,

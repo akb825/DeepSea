@@ -93,7 +93,6 @@ static bool setSharedMaterialValues(dsCommandBuffer* commandBuffer,
 					DS_LOG_ERROR_F(DS_RENDER_OPENGL_LOG_TAG,
 						"No buffer set for shared material value '%s'",
 						materialDesc->elements[i].name);
-					dsGLCommandBuffer_unbindShader(commandBuffer, shader);
 					return false;
 				}
 				dsGLCommandBuffer_setShaderBuffer(commandBuffer, shader, i, buffer, offset, size);
@@ -101,29 +100,38 @@ static bool setSharedMaterialValues(dsCommandBuffer* commandBuffer,
 			}
 			case dsMaterialType_VariableGroup:
 			{
-				dsShaderVariableGroup* variableGroup = dsSharedMaterialValues_getVariableGroupId(
-					sharedValues, nameID);
-				if (!variableGroup)
-				{
-					errno = EPERM;
-					DS_LOG_ERROR_F(DS_RENDER_OPENGL_LOG_TAG,
-						"No variable group set for material value '%s'",
-						materialDesc->elements[i].name);
-					return false;
-				}
-
 				if (useGfxBuffers)
 				{
 					if (glShader->uniforms[i].location < 0)
 						continue;
 
-					dsGfxBuffer* buffer = dsShaderVariableGroup_getGfxBuffer(variableGroup);
-					DS_ASSERT(buffer);
-					dsGLCommandBuffer_setShaderBuffer(commandBuffer, shader, i, buffer, 0,
-						buffer->size);
+					size_t offset, size;
+					dsGfxBuffer* buffer = dsSharedMaterialValues_getBufferId(&offset, &size,
+						sharedValues, nameID);
+					if (!buffer)
+					{
+						errno = EPERM;
+						DS_LOG_ERROR_F(DS_RENDER_OPENGL_LOG_TAG,
+							"No buffer set for shared material value '%s'",
+							materialDesc->elements[i].name);
+						return false;
+					}
+					dsGLCommandBuffer_setShaderBuffer(commandBuffer, shader, i, buffer, offset,
+						size);
 				}
 				else
 				{
+					dsShaderVariableGroup* variableGroup =
+						dsSharedMaterialValues_getVariableGroupId(sharedValues, nameID);
+					if (!variableGroup)
+					{
+						errno = EPERM;
+						DS_LOG_ERROR_F(DS_RENDER_OPENGL_LOG_TAG,
+							"No variable group set for material value '%s'",
+							materialDesc->elements[i].name);
+						return false;
+					}
+
 					const dsShaderVariableGroupDesc* groupDesc =
 						materialDesc->elements[i].shaderVariableGroupDesc;
 					DS_ASSERT(groupDesc);

@@ -516,27 +516,29 @@ static id<MTLTexture> getTextureBuffer(const dsShader* shader, const dsMaterial*
 	return texture;
 }
 
-static id<MTLBuffer> getShaderVariableGroupBuffer(const dsShader* shader,
+static id<MTLBuffer> getShaderVariableGroupBuffer(size_t* outOffset, const dsShader* shader,
 	const dsMaterial* material, const dsSharedMaterialValues* sharedValues,
 	const dsMTLUniformInfo* uniform, dsCommandBuffer* commandBuffer)
 {
 	const dsMaterialElement* element = shader->materialDesc->elements + uniform->element;
-	dsShaderVariableGroup* group;
+	dsGfxBuffer* buffer;
 	if (element->binding == dsMaterialBinding_Material)
 	{
 		DS_ASSERT(material);
-		group = dsMaterial_getVariableGroup(material, uniform->element);
+		dsShaderVariableGroup* group = dsMaterial_getVariableGroup(material, uniform->element);
+
+		if (!group)
+			return nil;
+
+		*outOffset = 0;
+		buffer = dsShaderVariableGroup_getGfxBuffer(group);
 	}
 	else
 	{
 		DS_ASSERT(sharedValues);
-		group = dsSharedMaterialValues_getVariableGroupId(sharedValues, element->nameID);
+		buffer = dsSharedMaterialValues_getBufferId(outOffset, NULL, sharedValues, element->nameID);
 	}
 
-	if (!group)
-		return nil;
-
-	dsGfxBuffer* buffer = dsShaderVariableGroup_getGfxBuffer(group);
 	DS_ASSERT(buffer);
 	return dsMTLGfxBuffer_getBuffer(buffer, commandBuffer);
 }

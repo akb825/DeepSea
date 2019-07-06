@@ -239,6 +239,8 @@ DS_RENDER_EXPORT bool dsSharedMaterialValues_setVariableGroupId(dsSharedMaterial
 
 /**
  * @brief Gets a buffer value by name.
+ * @remark This may also be used for shader variable groups for devices that support uniform block
+ *     buffers.
  * @param[out] outOffset The offset into the buffer. This may be NULL.
  * @param[out] outSize The size to use within the buffer. This may be NULL.
  * @param values The shared material values.
@@ -250,6 +252,8 @@ DS_RENDER_EXPORT dsGfxBuffer* dsSharedMaterialValues_getBufferName(size_t* outOf
 
 /**
  * @brief Gets a buffer value by ID.
+ * @remark This may also be used for shader variable groups for devices that support uniform block
+ *     buffers.
  * @param[out] outOffset The offset into the buffer. This may be NULL.
  * @param[out] outSize The size to use within the buffer. This may be NULL.
  * @param values The shared material values.
@@ -261,6 +265,8 @@ DS_RENDER_EXPORT dsGfxBuffer* dsSharedMaterialValues_getBufferId(size_t* outOffs
 
 /**
  * @brief Sets a buffer value by name.
+ * @remark This may also be used for shader variable groups for devices that support uniform block
+ *     buffers.
  * @remark errno will be set on failure.
  * @param values The shared material values.
  * @param name The name of the buffer.
@@ -275,6 +281,8 @@ DS_RENDER_EXPORT bool dsSharedMaterialValues_setBufferName(dsSharedMaterialValue
 
 /**
  * @brief Sets a buffer value by ID.
+ * @remark This may also be used for shader variable groups for devices that support uniform block
+ *     buffers.
  * @remark errno will be set on failure.
  * @param values The shared material values.
  * @param nameID The hash of the buffer name.

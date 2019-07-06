@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2019 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -122,6 +122,22 @@ DS_RENDER_EXPORT bool dsShaderVariableGroup_setElementData(dsShaderVariableGroup
  */
 DS_RENDER_EXPORT bool dsShaderVariableGroup_commit(dsShaderVariableGroup* group,
 	dsCommandBuffer* commandBuffer);
+
+/**
+ * @brief Commits any pending changes to the shader variable group to the GPU when uniform block
+ * buffers are NOT supported.
+ *
+ * This is effectively the same as dsShaderVariableGroup_commit(), except it's allowed to be called
+ * within a render pass. The intended usage of this function is for code that has two code paths:
+ * one for optimized management of buffers internally to set the values when uniform block buffers
+ * are supported, and a second for using a dsShaderVariableGroup instance as a fallback when uniform
+ * block buffers aren't supported.
+ *
+ * @remark errno will be set on failure.
+ * @param group The shader variable group to commit changes for.
+ * @return False if the variables couldn't be committed.
+ */
+DS_RENDER_EXPORT bool dsShaderVariableGroup_commitWithoutBuffer(dsShaderVariableGroup* group);
 
 /**
  * @brief Gets the graphics buffer for the shader variable data.

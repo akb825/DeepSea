@@ -231,7 +231,7 @@ TEST_F(SharedMaterialValuesTest, VariableGroups)
 	EXPECT_FALSE(dsSharedMaterialValues_getVariableGroupName(values, "asdf"));
 	EXPECT_FALSE(dsSharedMaterialValues_getVariableGroupId(values, dsHashString("asdf")));
 	EXPECT_FALSE(dsSharedMaterialValues_getTextureName(values, "test1"));
-	EXPECT_FALSE(dsSharedMaterialValues_getBufferName(NULL, NULL, values, "test1"));
+	EXPECT_TRUE(dsSharedMaterialValues_getBufferName(NULL, NULL, values, "test1"));
 
 	EXPECT_TRUE(dsSharedMaterialValues_setVariableGroupName(values, "test1", variableGroup2));
 	EXPECT_TRUE(dsSharedMaterialValues_setVariableGroupName(values, "test2", variableGroup1));

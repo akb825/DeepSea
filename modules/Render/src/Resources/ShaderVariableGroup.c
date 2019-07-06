@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2019 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -372,6 +372,26 @@ bool dsShaderVariableGroup_commit(dsShaderVariableGroup* group, dsCommandBuffer*
 		++group->commitCount;
 
 	DS_PROFILE_FUNC_RETURN(success);
+}
+
+bool dsShaderVariableGroup_commitWithoutBuffer(dsShaderVariableGroup* group)
+{
+	if (!group)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	if (group->buffer)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Shader variable group uses a buffer when calling "
+			"dsShaderVariableGroup_commitWithoutBuffer().");
+		return false;
+	}
+
+	++group->commitCount;
+	return true;
 }
 
 dsGfxBuffer* dsShaderVariableGroup_getGfxBuffer(const dsShaderVariableGroup* group)

@@ -412,7 +412,6 @@ VkDescriptorType dsVkDescriptorType(dsMaterialType type, dsMaterialBinding bindi
 		case dsMaterialType_ImageBuffer:
 			return VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER;
 		case dsMaterialType_VariableGroup:
-			return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 		case dsMaterialType_UniformBlock:
 			if (binding == dsMaterialBinding_Instance)
 				return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
