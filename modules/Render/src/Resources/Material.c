@@ -82,7 +82,7 @@ static size_t addElementSize(size_t* curSize, dsMaterialType type, uint32_t coun
 		return offset;
 	}
 
-	return dsMaterialType_addElementCpuSize(curSize, type, count);
+	return dsMaterialType_addElementCPUSize(curSize, type, count);
 }
 
 static size_t getDataSize(const dsMaterialDesc* description)

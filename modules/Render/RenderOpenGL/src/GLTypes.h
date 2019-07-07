@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2019 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,7 +51,7 @@ typedef struct dsGLResource
 {
 	uint32_t internalRef;
 	dsSpinlock lock;
-	bool defferDestroy;
+	bool deferDestroy;
 } dsGLResource;
 
 typedef struct dsGLGfxBuffer
@@ -59,6 +59,15 @@ typedef struct dsGLGfxBuffer
 	dsGfxBuffer buffer;
 	dsGLResource resource;
 	GLuint bufferId;
+
+	dsSpinlock mapLock;
+	dsGfxBufferMap mapFlags;
+	bool emulatedMap;
+	dsAllocator* scratchAllocator;
+	void* mappedBuffer;
+	size_t mappedOffset;
+	size_t mappedSize;
+	size_t mappedBufferCapacity;
 } dsGLGfxBuffer;
 
 typedef struct dsGLDrawGeometry

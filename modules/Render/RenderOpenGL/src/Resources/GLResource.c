@@ -23,7 +23,7 @@ void dsGLResource_initialize(dsGLResource* resource)
 {
 	DS_VERIFY(dsSpinlock_initialize(&resource->lock));
 	resource->internalRef = 0;
-	resource->defferDestroy = false;
+	resource->deferDestroy = false;
 }
 
 void dsGLResource_addRef(dsGLResource* resource)
@@ -40,11 +40,11 @@ bool dsGLResource_freeRef(dsGLResource* resource)
 		return false;
 	}
 
-	bool deffer = resource->defferDestroy;
+	bool defer = resource->deferDestroy;
 	DS_VERIFY(dsSpinlock_unlock(&resource->lock));
-	if (deffer)
+	if (defer)
 		dsSpinlock_shutdown(&resource->lock);
-	return deffer;
+	return defer;
 }
 
 bool dsGLResource_destroy(dsGLResource* resource)
@@ -54,7 +54,7 @@ bool dsGLResource_destroy(dsGLResource* resource)
 	DS_ATOMIC_LOAD32(&resource->internalRef, &internalRef);
 	if (internalRef > 0)
 	{
-		resource->defferDestroy = true;
+		resource->deferDestroy = true;
 		DS_VERIFY(dsSpinlock_unlock(&resource->lock));
 		return false;
 	}

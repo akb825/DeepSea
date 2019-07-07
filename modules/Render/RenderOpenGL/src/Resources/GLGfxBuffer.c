@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2019 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,12 +22,126 @@
 #include "GLHelpers.h"
 #include "GLResource.h"
 #include "GLTypes.h"
+
 #include <DeepSea/Core/Memory/Allocator.h>
+#include <DeepSea/Core/Thread/Spinlock.h>
 #include <DeepSea/Core/Thread/Thread.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Math/Core.h>
+
+#include <string.h>
+
+static bool needsMapEmulation(const dsResourceManager* resourceManager, dsGfxBufferMap flags)
+{
+	// Emulate persistent mapping.
+	if ((flags & dsGfxBufferMap_Persistent) &&
+			resourceManager->bufferMapSupport != dsGfxBufferMapSupport_Persistent)
+	{
+		return true;
+	}
+
+	// Emulate mapping all together.
+	if (!ANYGL_SUPPORTED(glMapBuffer) && !ANYGL_SUPPORTED(glMapBufferRange))
+		return true;
+
+	// Emulate orphaning of buffers.
+	if ((flags & dsGfxBufferMap_Orphan) && !ANYGL_SUPPORTED(glMapBufferRange))
+		return true;
+
+	return false;
+}
+
+static bool readBufferData(void* outData, dsGfxBuffer* buffer, GLenum bufferType, size_t offset,
+	size_t size)
+{
+	dsGLGfxBuffer* glBuffer = (dsGLGfxBuffer*)buffer;
+
+	void* ptr = NULL;
+	glBindBuffer(bufferType, glBuffer->bufferId);
+	if (ANYGL_SUPPORTED(glMapBufferRange))
+	{
+		GLbitfield access = GL_MAP_READ_BIT;
+		if (!(buffer->memoryHints & dsGfxMemory_Synchronize))
+			access |= GL_MAP_UNSYNCHRONIZED_BIT;
+		ptr = glMapBufferRange(bufferType, offset, size, access);
+	}
+	else if (ANYGL_SUPPORTED(glMapBuffer))
+	{
+		ptr = glMapBuffer(bufferType, GL_READ_ONLY);
+		if (ptr)
+			ptr = (uint8_t*)ptr + offset;
+	}
+	else if (ANYGL_SUPPORTED(glGetBufferSubData))
+	{
+		glGetBufferSubData(bufferType, offset, size, outData);
+		glBindBuffer(bufferType, 0);
+		return true;
+	}
+	else
+	{
+		glBindBuffer(bufferType, 0);
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG,
+			"Cannot read from buffers when no mapping or copying is supported.");
+		return false;
+	}
+
+	if (!ptr)
+	{
+		glBindBuffer(bufferType, 0);
+		errno = EPERM;
+		return false;
+	}
+
+	memcpy(outData, ptr, size);
+	glUnmapBuffer(bufferType);
+	glBindBuffer(bufferType, 0);
+
+	return true;
+}
+
+static bool writeBufferData(dsGfxBuffer* buffer, GLenum bufferType, size_t offset, size_t size,
+	const void* data)
+{
+	dsGLGfxBuffer* glBuffer = (dsGLGfxBuffer*)buffer;
+
+	void* ptr = NULL;
+	glBindBuffer(bufferType, glBuffer->bufferId);
+	bool synchronize = (buffer->memoryHints & dsGfxMemory_Synchronize) ||
+		(glBuffer->mapFlags & dsGfxBufferMap_Orphan);
+	if (ANYGL_SUPPORTED(glMapBufferRange) && !synchronize)
+	{
+		ptr = glMapBufferRange(bufferType, offset, size,
+			GL_MAP_WRITE_BIT | GL_MAP_UNSYNCHRONIZED_BIT);
+	}
+	else if (ANYGL_SUPPORTED(glMapBuffer) && !synchronize)
+	{
+		ptr = glMapBuffer(bufferType, GL_WRITE_ONLY);
+		if (ptr)
+			ptr = (uint8_t*)ptr + offset;
+	}
+	else
+	{
+		glBufferSubData(bufferType, offset, size, data);
+		glBindBuffer(bufferType, 0);
+		return true;
+	}
+
+	if (!ptr)
+	{
+		glBindBuffer(bufferType, 0);
+		errno = EPERM;
+		return false;
+	}
+
+	memcpy(ptr, data, size);
+	glUnmapBuffer(bufferType);
+	glBindBuffer(bufferType, 0);
+
+	return true;
+}
 
 dsGfxBuffer* dsGLGfxBuffer_create(dsResourceManager* resourceManager, dsAllocator* allocator,
 	dsGfxBufferUsage usage, dsGfxMemory memoryHints, const void* data, size_t size)
@@ -48,6 +162,15 @@ dsGfxBuffer* dsGLGfxBuffer_create(dsResourceManager* resourceManager, dsAllocato
 
 	buffer->bufferId = 0;
 	dsGLResource_initialize(&buffer->resource);
+
+	DS_VERIFY(dsSpinlock_initialize(&buffer->mapLock));
+	buffer->mapFlags = 0;
+	buffer->emulatedMap = false;
+	buffer->scratchAllocator = resourceManager->allocator;
+	buffer->mappedBuffer = NULL;
+	buffer->mappedOffset = 0;
+	buffer->mappedSize = 0;
+	buffer->mappedBufferCapacity = 0;
 
 	bool prevChecksEnabled = AnyGL_getErrorCheckingEnabled();
 	AnyGL_setErrorCheckingEnabled(false);
@@ -71,9 +194,12 @@ dsGfxBuffer* dsGLGfxBuffer_create(dsResourceManager* resourceManager, dsAllocato
 	{
 		GLbitfield flags = 0;
 
-		bool noUpdate = (memoryHints & dsGfxMemory_Static) != 0;
-		if (!noUpdate)
+		// Explicitly copy or emulate persistent mapping.
+		if ((usage & dsGfxBufferUsage_CopyTo) || ((memoryHints & dsGfxMemory_Persistent) &&
+				resourceManager->bufferMapSupport != dsGfxBufferMapSupport_Persistent))
+		{
 			flags |= GL_DYNAMIC_STORAGE_BIT;
+		}
 
 		if (!(memoryHints & dsGfxMemory_GPUOnly))
 		{
@@ -155,11 +281,44 @@ void* dsGLGfxBuffer_map(dsResourceManager* resourceManager, dsGfxBuffer* buffer,
 	dsGLGfxBuffer* glBuffer = (dsGLGfxBuffer*)buffer;
 	DS_ASSERT(glBuffer && glBuffer->bufferId);
 
+	DS_VERIFY(dsSpinlock_lock(&glBuffer->mapLock));
+
+	if (glBuffer->mappedSize > 0)
+	{
+		DS_VERIFY(dsSpinlock_unlock(&glBuffer->mapLock));
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, "Buffer is already mapped.");
+		return NULL;
+	}
+
+	size = dsMin(size, buffer->size - offset);
+	bool emulate = needsMapEmulation(resourceManager, flags);
+	if (emulate && (!glBuffer->mappedBuffer || glBuffer->mappedBufferCapacity < size))
+	{
+		DS_VERIFY(dsAllocator_free(glBuffer->scratchAllocator, glBuffer->mappedBuffer));
+		glBuffer->mappedBuffer = dsAllocator_alloc(glBuffer->scratchAllocator, size);
+		glBuffer->mappedBufferCapacity = size;
+		if (!glBuffer->mappedBuffer)
+		{
+			DS_VERIFY(dsSpinlock_unlock(&glBuffer->mapLock));
+			return NULL;
+		}
+	}
+
 	GLenum bufferType = dsGetGLBufferType(buffer->usage);
 	void* ptr = NULL;
-	if (ANYGL_SUPPORTED(glMapBufferRange))
+	if (emulate)
 	{
-		size = dsMin(size, buffer->size - offset);
+		if ((flags & dsGfxBufferMap_Read) &&
+			!readBufferData(glBuffer->mappedBuffer, buffer, bufferType, offset, size))
+		{
+			DS_VERIFY(dsSpinlock_unlock(&glBuffer->mapLock));
+			return NULL;
+		}
+		ptr = glBuffer->mappedBuffer;
+	}
+	else if (ANYGL_SUPPORTED(glMapBufferRange))
+	{
 		GLbitfield access = 0;
 		if (flags & dsGfxBufferMap_Read)
 			access |= GL_MAP_READ_BIT;
@@ -167,7 +326,8 @@ void* dsGLGfxBuffer_map(dsResourceManager* resourceManager, dsGfxBuffer* buffer,
 			access |= GL_MAP_WRITE_BIT;
 		if (flags & dsGfxBufferMap_Orphan)
 			access |= GL_MAP_INVALIDATE_BUFFER_BIT;
-		if (flags & dsGfxBufferMap_Persistent)
+		if (resourceManager->bufferMapSupport == dsGfxBufferMapSupport_Persistent &&
+			flags & dsGfxBufferMap_Persistent)
 		{
 			access |= GL_MAP_PERSISTENT_BIT;
 			if (buffer->memoryHints & dsGfxMemory_Coherent)
@@ -175,7 +335,7 @@ void* dsGLGfxBuffer_map(dsResourceManager* resourceManager, dsGfxBuffer* buffer,
 			else if (flags & dsGfxBufferMap_Write)
 				access |= GL_MAP_FLUSH_EXPLICIT_BIT;
 		}
-		if (!(buffer->memoryHints & dsGfxMemory_Synchronize) && !(flags & dsGfxBufferMap_Read))
+		if (!(buffer->memoryHints & dsGfxMemory_Synchronize))
 			access |= GL_MAP_UNSYNCHRONIZED_BIT;
 
 		glBindBuffer(bufferType, glBuffer->bufferId);
@@ -196,7 +356,21 @@ void* dsGLGfxBuffer_map(dsResourceManager* resourceManager, dsGfxBuffer* buffer,
 		glBindBuffer(bufferType, glBuffer->bufferId);
 		ptr = glMapBuffer(bufferType, access);
 		glBindBuffer(bufferType, 0);
+		if (ptr)
+			ptr = (uint8_t*)ptr + offset;
 	}
+
+	if (ptr)
+	{
+		glBuffer->mapFlags = flags;
+		glBuffer->emulatedMap = emulate;
+		glBuffer->mappedOffset = offset;
+		glBuffer->mappedSize = size;
+	}
+	else
+		errno = EPERM;
+
+	DS_VERIFY(dsSpinlock_unlock(&glBuffer->mapLock));
 
 	return ptr;
 }
@@ -207,15 +381,44 @@ bool dsGLGfxBuffer_unmap(dsResourceManager* resourceManager, dsGfxBuffer* buffer
 	dsGLGfxBuffer* glBuffer = (dsGLGfxBuffer*)buffer;
 	DS_ASSERT(glBuffer && glBuffer->bufferId);
 
+	DS_VERIFY(dsSpinlock_lock(&glBuffer->mapLock));
+
+	if (glBuffer->mappedSize == 0)
+	{
+		DS_VERIFY(dsSpinlock_unlock(&glBuffer->mapLock));
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, "Buffer isn't mapped.");
+		return NULL;
+	}
+
 	GLenum bufferType = dsGetGLBufferType(buffer->usage);
-	DS_ASSERT(ANYGL_SUPPORTED(glUnmapBuffer));
-	glBindBuffer(bufferType, glBuffer->bufferId);
-	bool success = glUnmapBuffer(bufferType);
-	glBindBuffer(bufferType, 0);
+	bool success = true;
+	if (glBuffer->emulatedMap)
+	{
+		if ((glBuffer->mapFlags & dsGfxBufferMap_Write) &&
+			!(glBuffer->mapFlags & dsGfxBufferMap_Persistent))
+		{
+			success = writeBufferData(buffer, bufferType, glBuffer->mappedOffset,
+				glBuffer->mappedSize, glBuffer->mappedBuffer);
+		}
+	}
+	else
+	{
+		DS_ASSERT(ANYGL_SUPPORTED(glUnmapBuffer));
+		glBindBuffer(bufferType, glBuffer->bufferId);
+		success = glUnmapBuffer(bufferType);
+		glBindBuffer(bufferType, 0);
+	}
 
 	// Make sure it's visible from the main render thread.
 	if (success && !dsThread_equal(resourceManager->renderer->mainThread, dsThread_thisThreadID()))
 		glFlush();
+
+	glBuffer->mapFlags = 0;
+	glBuffer->mappedOffset = 0;
+	glBuffer->mappedSize = 0;
+
+	DS_VERIFY(dsSpinlock_unlock(&glBuffer->mapLock));
 
 	return success;
 }
@@ -227,28 +430,73 @@ bool dsGLGfxBuffer_flush(dsResourceManager* resourceManager, dsGfxBuffer* buffer
 	dsGLGfxBuffer* glBuffer = (dsGLGfxBuffer*)buffer;
 	DS_ASSERT(glBuffer && glBuffer->bufferId);
 
+	DS_VERIFY(dsSpinlock_lock(&glBuffer->mapLock));
+
+	if (glBuffer->mappedSize == 0)
+	{
+		DS_VERIFY(dsSpinlock_unlock(&glBuffer->mapLock));
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, "Buffer isn't mapped.");
+		return NULL;
+	}
+
+	bool success;
 	GLenum bufferType = dsGetGLBufferType(buffer->usage);
-	DS_ASSERT(ANYGL_SUPPORTED(glFlushMappedBufferRange));
-	glBindBuffer(bufferType, glBuffer->bufferId);
-	glFlushMappedBufferRange(bufferType, offset, size);
-	glBindBuffer(bufferType, 0);
+	if (glBuffer->emulatedMap || !ANYGL_SUPPORTED(glFlushMappedBufferRange))
+	{
+		size = dsMin(size, buffer->size - offset);
+		size_t end = offset + size;
+		offset = dsMax(offset, glBuffer->mappedOffset);
+		end = dsMin(end, glBuffer->mappedOffset + glBuffer->mappedSize);
+		success = writeBufferData(buffer, bufferType, offset, end - offset,
+			(uint8_t*)glBuffer->mappedBuffer + offset - glBuffer->mappedOffset);
+	}
+	else
+	{
+		glBindBuffer(bufferType, glBuffer->bufferId);
+		glFlushMappedBufferRange(bufferType, offset, size);
+		glBindBuffer(bufferType, 0);
+		success = true;
+	}
 
 	// Make sure it's visible from the main render thread.
 	if (!dsThread_equal(resourceManager->renderer->mainThread, dsThread_thisThreadID()))
 		glFlush();
 
-	return true;
+	DS_VERIFY(dsSpinlock_unlock(&glBuffer->mapLock));
+
+	return success;
 }
 
 bool dsGLGfxBuffer_invalidate(dsResourceManager* resourceManager, dsGfxBuffer* buffer,
 	size_t offset, size_t size)
 {
 	DS_UNUSED(resourceManager);
-	DS_UNUSED(buffer);
-	DS_UNUSED(offset);
-	DS_UNUSED(size);
+	dsGLGfxBuffer* glBuffer = (dsGLGfxBuffer*)buffer;
+	DS_ASSERT(glBuffer && glBuffer->bufferId);
 
-	return true;
+	DS_VERIFY(dsSpinlock_lock(&glBuffer->mapLock));
+
+	if (glBuffer->mappedSize == 0)
+	{
+		DS_VERIFY(dsSpinlock_unlock(&glBuffer->mapLock));
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, "Buffer isn't mapped.");
+		return NULL;
+	}
+
+	bool success = true;
+	if (glBuffer->emulatedMap)
+	{
+		size = dsMin(size, buffer->size - offset);
+		size_t end = offset + size;
+		offset = dsMax(offset, glBuffer->mappedOffset);
+		end = dsMin(end, glBuffer->mappedOffset + glBuffer->mappedSize);
+		success = readBufferData((uint8_t*)glBuffer->mappedBuffer + offset - glBuffer->mappedOffset,
+			buffer, dsGetGLBufferType(buffer->usage), offset, end - offset);
+	}
+
+	return success;
 }
 
 bool dsGLGfxBuffer_copyData(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
@@ -272,8 +520,9 @@ static bool destroyImpl(dsGfxBuffer* buffer)
 	dsGLGfxBuffer* glBuffer = (dsGLGfxBuffer*)buffer;
 	if (glBuffer->bufferId)
 		glDeleteBuffers(1, &glBuffer->bufferId);
+	DS_VERIFY(dsAllocator_free(glBuffer->scratchAllocator, glBuffer->mappedBuffer));
 	if (buffer->allocator)
-		return dsAllocator_free(buffer->allocator, buffer);
+		DS_VERIFY(dsAllocator_free(buffer->allocator, buffer));
 
 	return true;
 }

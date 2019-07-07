@@ -297,7 +297,7 @@ uint16_t dsMaterialType_cpuAlignment(dsMaterialType type)
 	return alignment[type];
 }
 
-size_t dsMaterialType_addElementCpuSize(size_t* curSize, dsMaterialType type, uint32_t count)
+size_t dsMaterialType_addElementCPUSize(size_t* curSize, dsMaterialType type, uint32_t count)
 {
 	if (!curSize)
 		return DS_INVALID_MATERIAL_OFFSET;

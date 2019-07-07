@@ -82,7 +82,7 @@ static size_t getRawBufferSize(const dsShaderVariableGroupDesc* description, boo
 	size_t dataSize = 0;
 	for (uint32_t i = 0; i < description->elementCount; ++i)
 	{
-		dsMaterialType_addElementCpuSize(&dataSize, description->elements[i].type,
+		dsMaterialType_addElementCPUSize(&dataSize, description->elements[i].type,
 			description->elements[i].count);
 	}
 	return dataSize;
@@ -249,7 +249,7 @@ dsShaderVariableGroup* dsShaderVariableGroup_create(dsResourceManager* resourceM
 			dsMaterialType type = description->elements[i].type;
 			uint16_t stride = dsMaterialType_cpuSize(type);
 
-			group->rawDataPositions[i].pos.offset = (uint32_t)dsMaterialType_addElementCpuSize(
+			group->rawDataPositions[i].pos.offset = (uint32_t)dsMaterialType_addElementCPUSize(
 				&curSize, type, description->elements[i].count);
 			group->rawDataPositions[i].pos.stride = stride;
 			group->rawDataPositions[i].pos.matrixColStride = dsMaterialType_cpuSize(

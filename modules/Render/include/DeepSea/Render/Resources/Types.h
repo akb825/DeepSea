@@ -66,9 +66,18 @@ typedef enum dsGfxMemory
 	dsGfxMemory_Stream = 0x008,     ///< The memory will be modified on the CPU constantly.
 	dsGfxMemory_Draw = 0x010,       ///< The memory will be used by draw commands.
 	dsGfxMemory_Read = 0x020,       ///< The memory will be read back from the GPU.
-	dsGfxMemory_Persistent = 0x040, ///< The memory will be mapped mersistently across frames.
-	dsGfxMemory_Coherent = 0x080,   ///< The memory should remain coherent to avoid manual flushing.
-	dsGfxMemory_Synchronize = 0x100 ///< Wait for the memory to not be in use when mapping.
+	dsGfxMemory_Persistent = 0x040, ///< The memory will be mapped persistently across GPU calls.
+	/**
+	 * The memory should remain coherent to avoid manual flushing. Only allowed when persistent
+	 * mapping is natively supported.
+	 */
+	dsGfxMemory_Coherent = 0x080,
+	/**
+	 * Wait for the memory to not be in use when mapping. Can be used with persistent mapping for
+	 * platforms that emulate persistent mapping and don't have fences available for some amount
+	 * of synchronization.
+	 */
+	dsGfxMemory_Synchronize = 0x100
 } dsGfxMemory;
 
 /**
@@ -151,14 +160,19 @@ typedef enum dsGfxBufferMap
  * @brief Enum for what kind of mapping is supported on the system.
  *
  * Each level assumes that the features of the previous enum values are also supported.
+ *
+ * Mapping is always supported in some capacity through emulation. However, some features may be
+ * limited or slower due to having to buffer copies rather than directly changing the data. The
+ * biggest behavior change is if dsGfxBufferMapSupport_Persistent isn't available, coherent memory
+ * cannot be used. In that case you must *always* use dsGfxBuffer_flush() and
+ * dsGfxBuffer_invalidate() to manage synchronization.
  */
 typedef enum dsGfxBufferMapSupport
 {
-	dsGfxBufferMapSupport_None,      ///< Mapping of buffers isn't supported.
-	dsGfxBufferMapSupport_Full,      ///< May only map the full buffer. The library will offset
-	                                 ///  into the buffer to simulate mapping ranges.
-	dsGfxBufferMapSupport_Range,     ///< May arbitrary ranges of buffers.
-	dsGfxBufferMapSupport_Persistent ///< Buffers may be persistently locked.
+	dsGfxBufferMapSupport_None,      ///< Native mapping isn't supported and must be fully emulated.
+	dsGfxBufferMapSupport_Standard,  ///< Standard mapping is supported, but persistent mapping
+	                                 ///  must be emulated.
+	dsGfxBufferMapSupport_Persistent ///< Buffers may be persistently mapped natively.
 } dsGfxBufferMapSupport;
 
 /**
@@ -1177,6 +1191,10 @@ typedef bool (*dsDestroyGfxBufferFunction)(dsResourceManager* resourceManager, d
 
 /**
  * @brief Function for mapping a range of a buffer to memory.
+ *
+ * When not natively supported, mapping should be emulated through a series of copies to and from an
+ * intermediate buffer.
+ *
  * @param resourceManager The resource manager that the buffer was created with.
  * @param buffer The buffer to map.
  * @param flags The flags describing how to map the memory. This should be a combination of

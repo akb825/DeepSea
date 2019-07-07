@@ -64,23 +64,23 @@ struct StructStorageBuffer
 TEST(MaterialTypeTest, CpuOffsets)
 {
 	size_t curSize = 0;
-	EXPECT_EQ(offsetof(StructCpu, vec3Mem), dsMaterialType_addElementCpuSize(&curSize,
+	EXPECT_EQ(offsetof(StructCpu, vec3Mem), dsMaterialType_addElementCPUSize(&curSize,
 		dsMaterialType_Vec3, 0));
-	EXPECT_EQ(offsetof(StructCpu, vec2Mem), dsMaterialType_addElementCpuSize(&curSize,
+	EXPECT_EQ(offsetof(StructCpu, vec2Mem), dsMaterialType_addElementCPUSize(&curSize,
 		dsMaterialType_Vec2, 0));
-	EXPECT_EQ(offsetof(StructCpu, floatMem), dsMaterialType_addElementCpuSize(&curSize,
+	EXPECT_EQ(offsetof(StructCpu, floatMem), dsMaterialType_addElementCPUSize(&curSize,
 		dsMaterialType_Float, 0));
-	EXPECT_EQ(offsetof(StructCpu, intMem), dsMaterialType_addElementCpuSize(&curSize,
+	EXPECT_EQ(offsetof(StructCpu, intMem), dsMaterialType_addElementCPUSize(&curSize,
 		dsMaterialType_Int, 0));
-	EXPECT_EQ(offsetof(StructCpu, uintMem), dsMaterialType_addElementCpuSize(&curSize,
+	EXPECT_EQ(offsetof(StructCpu, uintMem), dsMaterialType_addElementCPUSize(&curSize,
 		dsMaterialType_UInt, 0));
-	EXPECT_EQ(offsetof(StructCpu, doubleMem), dsMaterialType_addElementCpuSize(&curSize,
+	EXPECT_EQ(offsetof(StructCpu, doubleMem), dsMaterialType_addElementCPUSize(&curSize,
 		dsMaterialType_Double, 0));
-	EXPECT_EQ(offsetof(StructCpu, matrix3x4Mem), dsMaterialType_addElementCpuSize(&curSize,
+	EXPECT_EQ(offsetof(StructCpu, matrix3x4Mem), dsMaterialType_addElementCPUSize(&curSize,
 		dsMaterialType_Mat3x4, 0));
-	EXPECT_EQ(offsetof(StructCpu, doubleMatrix2x3Mem), dsMaterialType_addElementCpuSize(&curSize,
+	EXPECT_EQ(offsetof(StructCpu, doubleMatrix2x3Mem), dsMaterialType_addElementCPUSize(&curSize,
 		dsMaterialType_DMat2x3, 0));
-	EXPECT_EQ(offsetof(StructCpu, floatArrayMem), dsMaterialType_addElementCpuSize(&curSize,
+	EXPECT_EQ(offsetof(StructCpu, floatArrayMem), dsMaterialType_addElementCPUSize(&curSize,
 		dsMaterialType_Float, 5));
 	// Extra padding at the end
 	EXPECT_EQ(sizeof(StructCpu), curSize + sizeof(float));

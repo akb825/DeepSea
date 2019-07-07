@@ -647,12 +647,6 @@ TEST_P(RendererFunctionalTest, OrphanBuffer)
 
 TEST_P(RendererFunctionalTest, PersistentMapping)
 {
-	if (resourceManager->bufferMapSupport != dsGfxBufferMapSupport_Persistent)
-	{
-		DS_LOG_INFO("RenderFunctionalTest", "Persistent mapping not supported: skipping test.");
-		return;
-	}
-
 	WriteOffscreenInfo info(*this);
 
 	Vertex vertices[] =

@@ -73,6 +73,15 @@ dsGfxBuffer* dsGfxBuffer_create(dsResourceManager* resourceManager, dsAllocator*
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
+	if (memoryHints & dsGfxMemory_Coherent &&
+		resourceManager->bufferMapSupport != dsGfxBufferMapSupport_Persistent)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Coherent buffer memory isn't supported when persistent "
+			"mapping isn't natively supported.");
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
 	if (!dsResourceManager_canUseResources(resourceManager))
 	{
 		errno = EPERM;
@@ -101,22 +110,15 @@ void* dsGfxBuffer_map(dsGfxBuffer* buffer, dsGfxBufferMap flags, size_t offset, 
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
-	dsResourceManager* resourceManager = buffer->resourceManager;
-	dsGfxBufferMapSupport support = resourceManager->bufferMapSupport;
-	if (support == dsGfxBufferMapSupport_None)
+	if (!(flags & dsGfxBufferMap_Read) && !(flags & dsGfxBufferMap_Write))
 	{
-		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Buffer mapping not supported on the current target.");
-		DS_PROFILE_FUNC_RETURN(NULL);
-	}
-	else if ((flags & dsGfxBufferMap_Persistent) && support != dsGfxBufferMapSupport_Persistent)
-	{
-		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
-			"Persistent buffer mapping not supported on the current target.");
+		errno = EINVAL;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Buffer map flags must contain at least one of "
+			"dsGfxBufferMap_Read or dsGfxBufferMap_Write.");
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
+	dsResourceManager* resourceManager = buffer->resourceManager;
 	if ((flags & dsGfxBufferMap_Read) && !(buffer->memoryHints & dsGfxMemory_Read))
 	{
 		errno = EINVAL;
@@ -171,25 +173,15 @@ void* dsGfxBuffer_map(dsGfxBuffer* buffer, dsGfxBufferMap flags, size_t offset, 
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
-	void* ptr;
-	if (support == dsGfxBufferMapSupport_Full)
-	{
-		ptr = resourceManager->mapBufferFunc(resourceManager, buffer, flags, 0, DS_MAP_FULL_BUFFER);
-		if (!ptr)
-			DS_PROFILE_FUNC_RETURN(NULL);
-		ptr = ((uint8_t*)ptr + offset);
-	}
-	else
-	{
-		size_t rem = 0;
-		uint32_t alignment = resourceManager->minNonCoherentMappingAlignment;
-		if (alignment > 0 && !(buffer->memoryHints & dsGfxMemory_Coherent))
-			adjustAlignment(alignment, buffer->size, &offset, &size, &rem);
-		ptr = buffer->resourceManager->mapBufferFunc(resourceManager, buffer, flags, offset, size);
-		if (!ptr)
-			DS_PROFILE_FUNC_RETURN(NULL);
-		ptr = (uint8_t*)ptr + rem;
-	}
+	size_t rem = 0;
+	uint32_t alignment = resourceManager->minNonCoherentMappingAlignment;
+	if (alignment > 0 && !(buffer->memoryHints & dsGfxMemory_Coherent))
+		adjustAlignment(alignment, buffer->size, &offset, &size, &rem);
+	void* ptr = buffer->resourceManager->mapBufferFunc(resourceManager, buffer, flags, offset,
+		size);
+	if (!ptr)
+		DS_PROFILE_FUNC_RETURN(NULL);
+	ptr = (uint8_t*)ptr + rem;
 
 	DS_PROFILE_FUNC_RETURN(ptr);
 }
@@ -227,14 +219,6 @@ bool dsGfxBuffer_flush(dsGfxBuffer* buffer, size_t offset, size_t size)
 	}
 
 	dsResourceManager* resourceManager = buffer->resourceManager;
-	if (resourceManager->bufferMapSupport != dsGfxBufferMapSupport_Persistent)
-	{
-		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
-			"Persistent buffer mapping not supported on the current target.");
-		DS_PROFILE_FUNC_RETURN(false);
-	}
-
 	if (!dsResourceManager_canUseResources(resourceManager))
 	{
 		errno = EPERM;
@@ -266,14 +250,6 @@ bool dsGfxBuffer_invalidate(dsGfxBuffer* buffer, size_t offset, size_t size)
 	}
 
 	dsResourceManager* resourceManager = buffer->resourceManager;
-	if (resourceManager->bufferMapSupport != dsGfxBufferMapSupport_Persistent)
-	{
-		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
-			"Persistent buffer mapping not supported on the current target.");
-		DS_PROFILE_FUNC_RETURN(false);
-	}
-
 	if (!dsResourceManager_canUseResources(resourceManager))
 	{
 		errno = EPERM;

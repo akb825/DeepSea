@@ -94,7 +94,7 @@ DS_RENDER_EXPORT uint16_t dsMaterialType_cpuAlignment(dsMaterialType type);
  * @return The offset of the element. This will take the CPU alignment into account. If not a valid
  *     type, DS_INVALID_MATERIAL_OFFSET will be returned.
  */
-DS_RENDER_EXPORT size_t dsMaterialType_addElementCpuSize(size_t* curSize, dsMaterialType type,
+DS_RENDER_EXPORT size_t dsMaterialType_addElementCPUSize(size_t* curSize, dsMaterialType type,
 	uint32_t count);
 
 /**

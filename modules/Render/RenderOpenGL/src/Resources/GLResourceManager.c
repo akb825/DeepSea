@@ -122,12 +122,12 @@ static dsGfxBufferMapSupport getBufferMapSupport(void)
 	{
 		if (!ANYGL_SUPPORTED(glMapBuffer))
 			return dsGfxBufferMapSupport_None;
-		return dsGfxBufferMapSupport_Full;
+		return dsGfxBufferMapSupport_Standard;
 	}
 	else if (AnyGL_atLeastVersion(4, 4, true) || AnyGL_ARB_buffer_storage)
 		return dsGfxBufferMapSupport_Persistent;
 
-	return dsGfxBufferMapSupport_Range;
+	return dsGfxBufferMapSupport_Standard;
 }
 
 static void setStandardVertexFormat(dsGLResourceManager* resourceManager, dsGfxFormat format,

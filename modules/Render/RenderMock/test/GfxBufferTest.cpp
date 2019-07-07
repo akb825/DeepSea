@@ -88,28 +88,6 @@ TEST_F(GfxBufferTest, Map)
 	EXPECT_EQ(3, *(int*)data);
 	EXPECT_TRUE(dsGfxBuffer_unmap(buffer));
 
-	// Limit the map support to test error checking.
-	resourceManager->bufferMapSupport = dsGfxBufferMapSupport_Range;
-	EXPECT_FALSE(dsGfxBuffer_map(buffer, (dsGfxBufferMap)(dsGfxBufferMap_Read |
-		dsGfxBufferMap_Write | dsGfxBufferMap_Persistent), 4, 4));
-	EXPECT_TRUE(dsGfxBuffer_map(buffer,
-		(dsGfxBufferMap)(dsGfxBufferMap_Read | dsGfxBufferMap_Write), 4, 4));
-	EXPECT_TRUE(dsGfxBuffer_unmap(buffer));
-
-	EXPECT_FALSE(dsGfxBuffer_flush(buffer, 0, sizeof(testData)));
-	EXPECT_FALSE(dsGfxBuffer_invalidate(buffer, 0, sizeof(testData)));
-
-	resourceManager->bufferMapSupport = dsGfxBufferMapSupport_Full;
-	data = dsGfxBuffer_map(buffer, (dsGfxBufferMap)(dsGfxBufferMap_Read | dsGfxBufferMap_Write), 4,
-		4);
-	ASSERT_TRUE(data);
-	EXPECT_EQ(3, *(int*)data);
-	EXPECT_TRUE(dsGfxBuffer_unmap(buffer));
-
-	resourceManager->bufferMapSupport = dsGfxBufferMapSupport_None;
-	EXPECT_FALSE(dsGfxBuffer_map(buffer,
-		(dsGfxBufferMap)(dsGfxBufferMap_Read | dsGfxBufferMap_Write), 0, sizeof(testData)));
-
 	EXPECT_TRUE(dsGfxBuffer_destroy(buffer));
 }
 
@@ -133,12 +111,6 @@ TEST_F(GfxBufferTest, FlushInvalidate)
 
 	EXPECT_TRUE(dsGfxBuffer_flush(buffer, 0, sizeof(testData)));
 	EXPECT_TRUE(dsGfxBuffer_invalidate(buffer, 0, sizeof(testData)));
-
-	// Limit the map support to test error checking.
-	resourceManager->bufferMapSupport = dsGfxBufferMapSupport_Range;
-
-	EXPECT_FALSE(dsGfxBuffer_flush(buffer, 0, sizeof(testData)));
-	EXPECT_FALSE(dsGfxBuffer_invalidate(buffer, 0, sizeof(testData)));
 
 	EXPECT_TRUE(dsGfxBuffer_destroy(buffer));
 }
