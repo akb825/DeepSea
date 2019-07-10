@@ -426,7 +426,8 @@ struct dsShaderVariableGroupDesc
 	/**
 	 * @brief The position for the elements.
 	 *
-	 * This is only necessary when shader uniform blocks are supported.
+	 * This should always follow the uniform block (or std140) packing rules, even when uniform
+	 * block buffers aren't natively supported.
 	 */
 	dsShaderVariablePos* positions;
 };

@@ -242,7 +242,7 @@ void dsResourceManager_shutdown(dsResourceManager* resourceManager)
 	if (resourceManager->shaderVariableGroupCount)
 	{
 		DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "%u shader variable groups remain allocated.",
-			resourceManager->shaderVariableGroupDescCount);
+			resourceManager->shaderVariableGroupCount);
 	}
 
 	if (resourceManager->shaderCount)
