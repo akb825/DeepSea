@@ -352,20 +352,18 @@ static bool setupShaders(dsShader* shader, mslModule* module, uint32_t shaderInd
 		NSError* error = NULL;
 		id<MTLComputePipelineState> computePipeline =
 			[device newComputePipelineStateWithFunction: function error: &error];
-		if (!computePipeline)
+		if (error)
 		{
-			if (error)
-			{
-				DS_LOG_ERROR_F(DS_RENDER_METAL_LOG_TAG,
-					"Error creating compute pipeline for shader %s.%s: %s",
-					shader->module->name, shader->name, error.localizedDescription.UTF8String);
-			}
-			else
-			{
-				DS_LOG_ERROR_F(DS_RENDER_METAL_LOG_TAG,
-					"Error creating compute pipeline for shader %s.%s.",
-					shader->module->name, shader->name);
-			}
+			DS_LOG_ERROR_F(DS_RENDER_METAL_LOG_TAG,
+				"Error creating compute pipeline for shader %s.%s: %s",
+				shader->module->name, shader->name, error.localizedDescription.UTF8String);
+			return false;
+		}
+		else if (!computePipeline)
+		{
+			DS_LOG_ERROR_F(DS_RENDER_METAL_LOG_TAG,
+				"Error creating compute pipeline for shader %s.%s.",
+				shader->module->name, shader->name);
 			return false;
 		}
 

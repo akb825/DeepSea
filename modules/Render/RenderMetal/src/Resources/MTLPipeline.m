@@ -418,21 +418,20 @@ dsMTLPipeline* dsMTLPipeline_create(dsAllocator* allocator, dsShader* shader, ui
 		NSError* error = NULL;
 		id<MTLRenderPipelineState> renderPipeline =
 			[device newRenderPipelineStateWithDescriptor: descriptor error: &error];
-		if (!renderPipeline)
+		if (error)
 		{
 			errno = EPERM;
-			if (error)
-			{
-				DS_LOG_ERROR_F(DS_RENDER_METAL_LOG_TAG,
-					"Error creating pipeline for shader %s.%s: %s", shader->module->name,
-					shader->name, error.localizedDescription.UTF8String);
-			}
-			else
-			{
-				DS_LOG_ERROR_F(DS_RENDER_METAL_LOG_TAG,
-					"Error creating pipeline for shader %s.%s.", shader->module->name,
-					shader->name);
-			}
+			DS_LOG_ERROR_F(DS_RENDER_METAL_LOG_TAG,
+				"Error creating pipeline for shader %s.%s: %s", shader->module->name,
+				shader->name, error.localizedDescription.UTF8String);
+			dsMTLPipeline_destroy(pipeline);
+			return NULL;
+		}
+		else if (!renderPipeline)
+		{
+			DS_LOG_ERROR_F(DS_RENDER_METAL_LOG_TAG,
+				"Error creating pipeline for shader %s.%s.", shader->module->name,
+				shader->name);
 			dsMTLPipeline_destroy(pipeline);
 			return NULL;
 		}

@@ -96,7 +96,13 @@ id<MTLFunction> dsMTLShaderModule_getShader(dsShaderModule* module, uint32_t sha
 	NSError* error = NULL;
 	id<MTLLibrary> library = [device newLibraryWithData: data error: &error];
 	id<MTLFunction> function = nil;
-	if (library)
+	if (error)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR_F(DS_RENDER_METAL_LOG_TAG, "Error loading shader %s.%s: %s",
+			module->name, pipelineName, error.localizedDescription.UTF8String);
+	}
+	else if (library)
 	{
 		if ([library functionNames].count == 1)
 		{
@@ -114,16 +120,8 @@ id<MTLFunction> dsMTLShaderModule_getShader(dsShaderModule* module, uint32_t sha
 	else
 	{
 		errno = EPERM;
-		if (error)
-		{
-			DS_LOG_ERROR_F(DS_RENDER_METAL_LOG_TAG, "Error loading shader %s.%s: %s",
-				module->name, pipelineName, error.localizedDescription.UTF8String);
-		}
-		else
-		{
-			DS_LOG_ERROR_F(DS_RENDER_METAL_LOG_TAG, "Error loading shader %s.%s.",
-				module->name, pipelineName);
-		}
+		DS_LOG_ERROR_F(DS_RENDER_METAL_LOG_TAG, "Error loading shader %s.%s.",
+			module->name, pipelineName);
 	}
 
 	if (function)
