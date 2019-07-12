@@ -549,8 +549,8 @@ bool dsMTLHardwareCommandBuffer_generateMipmaps(dsCommandBuffer* commandBuffer,
 	return true;
 }
 
-bool dsMTLHardwareCommandBuffer_bindPushConstants(dsCommandBuffer* commandBuffer, const void* data,
-	uint32_t size, bool vertex, bool fragment)
+bool dsMTLHardwareCommandBuffer_bindPushConstants(dsCommandBuffer* commandBuffer,
+	id<MTLBuffer> data, bool vertex, bool fragment)
 {
 	dsMTLHardwareCommandBuffer* mtlCommandBuffer = (dsMTLHardwareCommandBuffer*)commandBuffer;
 	if (!mtlCommandBuffer->renderCommandEncoder)
@@ -559,9 +559,9 @@ bool dsMTLHardwareCommandBuffer_bindPushConstants(dsCommandBuffer* commandBuffer
 	id<MTLRenderCommandEncoder> encoder =
 		(__bridge id<MTLRenderCommandEncoder>)mtlCommandBuffer->renderCommandEncoder;
 	if (vertex)
-		[encoder setVertexBytes: data length: size atIndex: 0];
+		[encoder setVertexBuffer: data offset: 0 atIndex: 0];
 	if (fragment)
-		[encoder setFragmentBytes: data length: size atIndex: 0];
+		[encoder setFragmentBuffer: data offset: 0 atIndex: 0];
 	return true;
 }
 
@@ -660,7 +660,7 @@ bool dsMTLHardwareCommandBuffer_beginComputeShader(dsCommandBuffer* commandBuffe
 }
 
 bool dsMTLHardwareCommandBuffer_bindComputePushConstants(dsCommandBuffer* commandBuffer,
-	const void* data, uint32_t size)
+	id<MTLBuffer> data)
 {
 	dsMTLHardwareCommandBuffer* mtlCommandBuffer = (dsMTLHardwareCommandBuffer*)commandBuffer;
 	if (!mtlCommandBuffer->computeCommandEncoder)
@@ -668,7 +668,7 @@ bool dsMTLHardwareCommandBuffer_bindComputePushConstants(dsCommandBuffer* comman
 
 	id<MTLComputeCommandEncoder> encoder =
 		(__bridge id<MTLComputeCommandEncoder>)mtlCommandBuffer->computeCommandEncoder;
-	[encoder setBytes: data length: size atIndex: 0];
+	[encoder setBuffer: data offset: 0 atIndex: 0];
 	return true;
 }
 

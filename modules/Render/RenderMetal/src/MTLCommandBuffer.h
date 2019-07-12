@@ -47,8 +47,8 @@ void* dsMTLCommandBuffer_getPushConstantData(dsCommandBuffer* commandBuffer, uin
 bool dsMTLCommandBuffer_copyClearValues(dsCommandBuffer* commandBuffer,
 	const dsSurfaceClearValue* clearValues, uint32_t clearValueCount);
 
-bool dsMTLCommandBuffer_bindPushConstants(dsCommandBuffer* commandBuffer, const void* data,
-	uint32_t size, bool vertex, bool fragment);
+bool dsMTLCommandBuffer_bindPushConstants(dsCommandBuffer* commandBuffer, id<MTLBuffer> data,
+	bool vertex, bool fragment);
 bool dsMTLCommandBuffer_bindBufferUniform(dsCommandBuffer* commandBuffer, id<MTLBuffer> buffer,
 	size_t offset, uint32_t vertexIndex, uint32_t fragmentIndex);
 bool dsMTLCommandBuffer_bindTextureUniform(dsCommandBuffer* commandBuffer, id<MTLTexture> texture,
@@ -58,8 +58,8 @@ bool dsMTLCommandBuffer_setRenderStates(dsCommandBuffer* commandBuffer,
 	const dsDynamicRenderStates* dynamicStates, bool dynamicOnly);
 
 bool dsMTLCommandBuffer_beginComputeShader(dsCommandBuffer* commandBuffer);
-bool dsMTLCommandBuffer_bindComputePushConstants(dsCommandBuffer* commandBuffer, const void* data,
-	uint32_t size);
+bool dsMTLCommandBuffer_bindComputePushConstants(dsCommandBuffer* commandBuffer,
+	id<MTLBuffer> data);
 bool dsMTLCommandBuffer_bindComputeBufferUniform(dsCommandBuffer* commandBuffer,
 	id<MTLBuffer> buffer, size_t offset, uint32_t index);
 bool dsMTLCommandBuffer_bindComputeTextureUniform(dsCommandBuffer* commandBuffer,

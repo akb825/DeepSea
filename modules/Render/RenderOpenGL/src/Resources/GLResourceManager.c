@@ -1220,7 +1220,7 @@ dsGLResourceManager* dsGLResourceManager_create(dsAllocator* allocator, dsGLRend
 		glGetIntegerv(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT,
 			(GLint*)&baseResourceManager->minUniformBlockAlignment);
 	}
-	if (baseResourceManager->supportedBuffers & dsGfxBufferUsage_UniformBlock)
+	if (baseResourceManager->supportedBuffers & dsGfxBufferUsage_UniformBuffer)
 	{
 		glGetIntegerv(GL_SHADER_STORAGE_BUFFER_OFFSET_ALIGNMENT,
 			(GLint*)&baseResourceManager->minUniformBufferAlignment);
@@ -1241,16 +1241,10 @@ dsGLResourceManager* dsGLResourceManager_create(dsAllocator* allocator, dsGLRend
 
 	baseResourceManager->createBufferFunc = &dsGLGfxBuffer_create;
 	baseResourceManager->destroyBufferFunc = &dsGLGfxBuffer_destroy;
-	if (baseResourceManager->bufferMapSupport != dsGfxBufferMapSupport_None)
-	{
-		baseResourceManager->mapBufferFunc = &dsGLGfxBuffer_map;
-		baseResourceManager->unmapBufferFunc = &dsGLGfxBuffer_unmap;
-		if (baseResourceManager->bufferMapSupport == dsGfxBufferMapSupport_Persistent)
-		{
-			baseResourceManager->flushBufferFunc = &dsGLGfxBuffer_flush;
-			baseResourceManager->invalidateBufferFunc = &dsGLGfxBuffer_invalidate;
-		}
-	}
+	baseResourceManager->mapBufferFunc = &dsGLGfxBuffer_map;
+	baseResourceManager->unmapBufferFunc = &dsGLGfxBuffer_unmap;
+	baseResourceManager->flushBufferFunc = &dsGLGfxBuffer_flush;
+	baseResourceManager->invalidateBufferFunc = &dsGLGfxBuffer_invalidate;
 	baseResourceManager->copyBufferDataFunc = &dsGLGfxBuffer_copyData;
 	baseResourceManager->copyBufferFunc = &dsGLGfxBuffer_copy;
 

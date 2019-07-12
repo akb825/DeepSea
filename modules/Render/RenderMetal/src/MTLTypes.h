@@ -231,8 +231,8 @@ typedef bool (*CopyTextureFunction)(dsCommandBuffer* commandBuffer, id<MTLTextur
 	id<MTLTexture> dstTexture, const dsTextureCopyRegion* regions, uint32_t regionCount);
 typedef bool (*GenerateMipmapsFunction)(dsCommandBuffer* commandBuffer, id<MTLTexture> texture);
 
-typedef bool (*BindPushConstantsFunction)(dsCommandBuffer* commandBuffer, const void* data,
-	uint32_t size, bool vertex, bool fragment);
+typedef bool (*BindPushConstantsFunction)(dsCommandBuffer* commandBuffer, id<MTLBuffer> data,
+	bool vertex, bool fragment);
 typedef bool (*BindBufferUniformFunction)(dsCommandBuffer* commandBuffer, id<MTLBuffer> buffer,
 	size_t offset, uint32_t vertexIndex, uint32_t fragmentIndex);
 typedef bool (*BindTextureUniformFunction)(dsCommandBuffer* commandBuffer, id<MTLTexture> texture,
@@ -242,8 +242,8 @@ typedef bool (*SetRenderStatesFunction)(dsCommandBuffer* commandBuffer,
 	const dsDynamicRenderStates* dynamicStates, bool dynamicOnly);
 
 typedef bool (*BeginComputeShaderFunction)(dsCommandBuffer* commandBuffer);
-typedef bool (*BindComputePushConstantsFunction)(dsCommandBuffer* commandBuffer, const void* data,
-	uint32_t size);
+typedef bool (*BindComputePushConstantsFunction)(dsCommandBuffer* commandBuffer,
+	id<MTLBuffer> data);
 typedef bool (*BindComputeBufferUniformFunction)(dsCommandBuffer* commandBuffer,
 	id<MTLBuffer> buffer, size_t offset, uint32_t index);
 typedef bool (*BindComputeTextureUniformFunction)(dsCommandBuffer* commandBuffer,

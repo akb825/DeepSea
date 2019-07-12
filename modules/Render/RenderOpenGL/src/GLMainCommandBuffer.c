@@ -809,9 +809,12 @@ bool dsGLMainCommandBuffer_generateTextureMipmaps(dsCommandBuffer* commandBuffer
 		GLenum target = dsGLTexture_target(texture);
 		dsGLRenderer_beginTextureOp(commandBuffer->renderer, target, glTexture->textureId);
 		// Some drivers may need the texture to be enabled.
-		glEnable(target);
+		bool needEnable = !ANYGL_GLES && !AnyGL_atLeastVersion(3, 0, false);
+		if (needEnable)
+			glEnable(target);
 		glGenerateMipmap(target);
-		glDisable(target);
+		if (needEnable)
+			glDisable(target);
 		dsGLRenderer_endTextureOp(commandBuffer->renderer);
 	}
 

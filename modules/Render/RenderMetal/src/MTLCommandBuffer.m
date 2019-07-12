@@ -199,12 +199,12 @@ bool dsMTLCommandBuffer_copyClearValues(dsCommandBuffer* commandBuffer,
 	return true;
 }
 
-bool dsMTLCommandBuffer_bindPushConstants(dsCommandBuffer* commandBuffer, const void* data,
-	uint32_t size, bool vertex, bool fragment)
+bool dsMTLCommandBuffer_bindPushConstants(dsCommandBuffer* commandBuffer, id<MTLBuffer> data,
+	bool vertex, bool fragment)
 {
 	const dsMTLCommandBufferFunctionTable* functions =
 		((dsMTLCommandBuffer*)commandBuffer)->functions;
-	return functions->bindPushConstantsFunc(commandBuffer, data, size, vertex, fragment);
+	return functions->bindPushConstantsFunc(commandBuffer, data, vertex, fragment);
 }
 
 bool dsMTLCommandBuffer_bindBufferUniform(dsCommandBuffer* commandBuffer, id<MTLBuffer> buffer,
@@ -242,12 +242,12 @@ bool dsMTLCommandBuffer_beginComputeShader(dsCommandBuffer* commandBuffer)
 	return functions->beginComputeShaderFunc(commandBuffer);
 }
 
-bool dsMTLCommandBuffer_bindComputePushConstants(dsCommandBuffer* commandBuffer, const void* data,
-	uint32_t size)
+bool dsMTLCommandBuffer_bindComputePushConstants(dsCommandBuffer* commandBuffer,
+	id<MTLBuffer> data)
 {
 	const dsMTLCommandBufferFunctionTable* functions =
 		((dsMTLCommandBuffer*)commandBuffer)->functions;
-	return functions->bindComputePushConstantsFunc(commandBuffer, data, size);
+	return functions->bindComputePushConstantsFunc(commandBuffer, data);
 }
 
 bool dsMTLCommandBuffer_bindComputeBufferUniform(dsCommandBuffer* commandBuffer,
