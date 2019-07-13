@@ -30,18 +30,13 @@
 
 static int nodeType;
 
-static size_t fullAllocSize(const char** drawLists, uint32_t drawListCount,
-	const dsSceneModelInfo* models, uint32_t modelCount, uint32_t resourceCount)
+static size_t fullAllocSize(const char** drawLists, uint32_t drawListCount, uint32_t modelCount,
+	uint32_t resourceCount)
 {
-	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsSceneModelNode)) +
+	return DS_ALIGNED_SIZE(sizeof(dsSceneModelNode)) +
 		dsSceneNode_drawListsAllocSize(drawLists, drawListCount) +
 		DS_ALIGNED_SIZE(sizeof(dsSceneModelInfo)*modelCount) +
 		DS_ALIGNED_SIZE(sizeof(dsSceneResources*)*resourceCount);
-
-	for (uint32_t i = 0; i < modelCount; ++i)
-		fullSize += DS_ALIGNED_SIZE(sizeof(dsDrawGeometry*)*models[i].geometryCount);
-
-	return fullSize;
 }
 
 static void destroy(dsSceneNode* node)
@@ -80,15 +75,7 @@ dsSceneModelNode* dsSceneModelNode_create(dsAllocator* allocator, const char** d
 	for (uint32_t i = 0; i < modelCount; ++i)
 	{
 		const dsSceneModelInfo* model = models + i;
-		bool valid = model->shader && model->material && model->geometry &&
-			model->geometryCount > 0;
-		for (uint32_t j = 0; j < model->geometryCount && valid; ++j)
-		{
-			if (!model->geometry[i])
-				valid = false;
-		}
-
-		if (!valid)
+		if (!model->shader || !model->material || !model->geometry)
 		{
 			errno = EINVAL;
 			DS_LOG_ERROR(DS_SCENE_LOG_TAG,
@@ -113,7 +100,7 @@ dsSceneModelNode* dsSceneModelNode_create(dsAllocator* allocator, const char** d
 		}
 	}
 
-	size_t fullSize = fullAllocSize(drawLists, drawListCount, models, modelCount, resourceCount);
+	size_t fullSize = fullAllocSize(drawLists, drawListCount, modelCount, resourceCount);
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 		return NULL;
@@ -143,17 +130,7 @@ dsSceneModelNode* dsSceneModelNode_create(dsAllocator* allocator, const char** d
 
 	node->models = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsSceneModelInfo, modelCount);
 	DS_ASSERT(node->models);
-	for (uint32_t i = 0; i < node->modelCount; ++i)
-	{
-		node->models[i].shader = models[i].shader;
-		node->models[i].material = models[i].material;
-		node->models[i].geometry = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsDrawGeometry*,
-			models[i].geometryCount);
-		DS_ASSERT(node->models[i].geometry);
-		memcpy(node->models[i].geometry, models[i].geometry,
-			sizeof(dsDrawGeometry*)*models[i].geometryCount);
-		node->models[i].geometryCount = models[i].geometryCount;
-	}
+	memcpy(node->models, models, sizeof(dsSceneModelInfo)*modelCount);
 	node->modelCount = modelCount;
 
 	if (resourceCount > 0)

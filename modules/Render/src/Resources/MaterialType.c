@@ -18,7 +18,7 @@
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Core/Assert.h>
 
-static const uint16_t bufferAlignment[] =
+static const uint8_t bufferAlignment[] =
 {
 	// Scalars and vectors
 	sizeof(float),          // dsMaterialType_Float
@@ -45,12 +45,12 @@ static const uint16_t bufferAlignment[] =
 DS_STATIC_ASSERT(DS_ARRAY_SIZE(bufferAlignment) == dsMaterialType_Mat2,
 	buffer_alignment_array_enum_mismatch);
 
-unsigned int dsMaterialType_matrixRows(dsMaterialType type)
+uint8_t dsMaterialType_matrixRows(dsMaterialType type)
 {
 	if (type < dsMaterialType_Mat2 || type > dsMaterialType_DMat4x3)
 		return 0;
 
-	static const unsigned int rows[] =
+	static const uint8_t rows[] =
 	{
 		2, // dsMaterialType_Mat2
 		3, // dsMaterialType_Mat3
@@ -76,12 +76,12 @@ unsigned int dsMaterialType_matrixRows(dsMaterialType type)
 	return rows[type - dsMaterialType_Mat2];
 }
 
-unsigned int dsMaterialType_matrixColumns(dsMaterialType type)
+uint8_t dsMaterialType_matrixColumns(dsMaterialType type)
 {
 	if (type < dsMaterialType_Mat2 || type > dsMaterialType_DMat4x3)
 		return 0;
 
-	static const unsigned int columns[] =
+	static const uint8_t columns[] =
 	{
 		2, // dsMaterialType_Mat2
 		3, // dsMaterialType_Mat3
@@ -169,9 +169,9 @@ dsMaterialType dsMaterialType_matrixRowType(dsMaterialType type)
 	return columnTypes[type - dsMaterialType_Mat2];
 }
 
-uint16_t dsMaterialType_cpuSize(dsMaterialType type)
+uint8_t dsMaterialType_cpuSize(dsMaterialType type)
 {
-	static const uint16_t size[] =
+	static const uint8_t size[] =
 	{
 		// Scalars and vectors
 		sizeof(float),        // dsMaterialType_Float
@@ -233,9 +233,9 @@ uint16_t dsMaterialType_cpuSize(dsMaterialType type)
 	return size[type];
 }
 
-uint16_t dsMaterialType_cpuAlignment(dsMaterialType type)
+uint8_t dsMaterialType_cpuAlignment(dsMaterialType type)
 {
-	static const uint16_t alignment[] =
+	static const uint8_t alignment[] =
 	{
 		// Scalars and vectors
 		sizeof(float),        // dsMaterialType_Float
@@ -313,15 +313,15 @@ size_t dsMaterialType_addElementCPUSize(size_t* curSize, dsMaterialType type, ui
 	return offset;
 }
 
-uint16_t dsMaterialType_blockSize(dsMaterialType type, bool isArray)
+uint8_t dsMaterialType_blockSize(dsMaterialType type, bool isArray)
 {
-	uint16_t alignment = dsMaterialType_blockAlignment(type, isArray);
+	uint8_t alignment = dsMaterialType_blockAlignment(type, isArray);
 	if ((unsigned int)type >= dsMaterialType_Mat2)
-		alignment = (uint16_t)(alignment*dsMaterialType_matrixColumns(type));
+		alignment = (uint8_t)(alignment*dsMaterialType_matrixColumns(type));
 	return alignment;
 }
 
-uint16_t dsMaterialType_blockAlignment(dsMaterialType type, bool isArray)
+uint8_t dsMaterialType_blockAlignment(dsMaterialType type, bool isArray)
 {
 	if ((unsigned int)type >= dsMaterialType_Texture)
 		return 0;
@@ -333,11 +333,11 @@ uint16_t dsMaterialType_blockAlignment(dsMaterialType type, bool isArray)
 		DS_ASSERT((unsigned int)type < dsMaterialType_Mat2);
 	}
 
-	uint16_t typeAlignment = bufferAlignment[type];
+	uint8_t typeAlignment = bufferAlignment[type];
 	if (isArray)
 	{
 		const size_t vec4Size = sizeof(float)*4;
-		typeAlignment = (uint16_t)(((typeAlignment + vec4Size - 1)/vec4Size)*vec4Size);
+		typeAlignment = (uint8_t)(((typeAlignment + vec4Size - 1)/vec4Size)*vec4Size);
 	}
 
 	return typeAlignment;
@@ -359,15 +359,15 @@ size_t dsMaterialType_addElementBlockSize(size_t* curSize, dsMaterialType type, 
 	return offset;
 }
 
-uint16_t dsMaterialType_bufferSize(dsMaterialType type)
+uint8_t dsMaterialType_bufferSize(dsMaterialType type)
 {
-	uint16_t alignment = dsMaterialType_bufferAlignment(type);
+	uint8_t alignment = dsMaterialType_bufferAlignment(type);
 	if ((unsigned int)type >= dsMaterialType_Mat2)
-		alignment = (uint16_t)(alignment*dsMaterialType_matrixColumns(type));
+		alignment = (uint8_t)(alignment*dsMaterialType_matrixColumns(type));
 	return alignment;
 }
 
-uint16_t dsMaterialType_bufferAlignment(dsMaterialType type)
+uint8_t dsMaterialType_bufferAlignment(dsMaterialType type)
 {
 	if ((unsigned int)type >= dsMaterialType_Texture)
 		return 0;

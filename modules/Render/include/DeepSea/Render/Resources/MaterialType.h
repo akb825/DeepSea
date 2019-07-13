@@ -41,14 +41,14 @@ extern "C"
  * @param type The material type.
  * @return The number of matrix rows, or 0 if not a matrix type.
  */
-DS_RENDER_EXPORT unsigned int dsMaterialType_matrixRows(dsMaterialType type);
+DS_RENDER_EXPORT uint8_t dsMaterialType_matrixRows(dsMaterialType type);
 
 /**
  * @brief Gets the number of columns for a matrix type.
  * @param type The material type.
  * @return The number of matrix columns, or 0 if not a matrix type.
  */
-DS_RENDER_EXPORT unsigned int dsMaterialType_matrixColumns(dsMaterialType type);
+DS_RENDER_EXPORT uint8_t dsMaterialType_matrixColumns(dsMaterialType type);
 
 /**
  * @brief Gets the type of a matrix column.
@@ -69,7 +69,7 @@ DS_RENDER_EXPORT dsMaterialType dsMaterialType_matrixRowType(dsMaterialType type
  * @param type The material type.
  * @return The size of the type.
  */
-DS_RENDER_EXPORT uint16_t dsMaterialType_cpuSize(dsMaterialType type);
+DS_RENDER_EXPORT uint8_t dsMaterialType_cpuSize(dsMaterialType type);
 
 /**
  * @brief Gets the alignment of a material type on the CPU.
@@ -79,7 +79,7 @@ DS_RENDER_EXPORT uint16_t dsMaterialType_cpuSize(dsMaterialType type);
  * @param type The material type.
  * @return The alignment of the type.
  */
-DS_RENDER_EXPORT uint16_t dsMaterialType_cpuAlignment(dsMaterialType type);
+DS_RENDER_EXPORT uint8_t dsMaterialType_cpuAlignment(dsMaterialType type);
 
 /**
  * @brief Adds the size of an element for access on the CPU.
@@ -106,7 +106,7 @@ DS_RENDER_EXPORT size_t dsMaterialType_addElementCPUSize(size_t* curSize, dsMate
  * @param isArray True if the element is an array.
  * @return The size of the type.
  */
-DS_RENDER_EXPORT uint16_t dsMaterialType_blockSize(dsMaterialType type, bool isArray);
+DS_RENDER_EXPORT uint8_t dsMaterialType_blockSize(dsMaterialType type, bool isArray);
 
 /**
  * @brief Gets the alignment of a material type for a uniform block on the GPU.
@@ -117,7 +117,7 @@ DS_RENDER_EXPORT uint16_t dsMaterialType_blockSize(dsMaterialType type, bool isA
  * @param isArray True if the element is an array.
  * @return The alignment of the type.
  */
-DS_RENDER_EXPORT uint16_t dsMaterialType_blockAlignment(dsMaterialType type, bool isArray);
+DS_RENDER_EXPORT uint8_t dsMaterialType_blockAlignment(dsMaterialType type, bool isArray);
 
 /**
  * @brief Adds the size of an element for access by a uniform block on the GPU.
@@ -143,7 +143,7 @@ DS_RENDER_EXPORT size_t dsMaterialType_addElementBlockSize(size_t* curSize, dsMa
  * @param type The material type.
  * @return The size of the type.
  */
-DS_RENDER_EXPORT uint16_t dsMaterialType_bufferSize(dsMaterialType type);
+DS_RENDER_EXPORT uint8_t dsMaterialType_bufferSize(dsMaterialType type);
 
 /**
  * @brief Gets the alignment of a material type for a storage buffer on the GPU.
@@ -153,7 +153,7 @@ DS_RENDER_EXPORT uint16_t dsMaterialType_bufferSize(dsMaterialType type);
  * @param type The material type.
  * @return The alignment of the type.
  */
-DS_RENDER_EXPORT uint16_t dsMaterialType_bufferAlignment(dsMaterialType type);
+DS_RENDER_EXPORT uint8_t dsMaterialType_bufferAlignment(dsMaterialType type);
 
 /**
  * @brief Adds the size of an element for access by a storage buffer on the GPU.

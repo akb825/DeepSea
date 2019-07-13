@@ -247,7 +247,7 @@ dsShaderVariableGroup* dsShaderVariableGroup_create(dsResourceManager* resourceM
 		for (uint32_t i = 0; i < description->elementCount; ++i)
 		{
 			dsMaterialType type = description->elements[i].type;
-			uint16_t stride = dsMaterialType_cpuSize(type);
+			uint8_t stride = dsMaterialType_cpuSize(type);
 
 			group->rawDataPositions[i].pos.offset = (uint32_t)dsMaterialType_addElementCPUSize(
 				&curSize, type, description->elements[i].count);

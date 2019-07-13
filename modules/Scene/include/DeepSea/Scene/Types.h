@@ -62,6 +62,17 @@ typedef enum dsSceneResourceType
 } dsSceneResourceType;
 
 /**
+ * @brief Enum for how to sort models.
+ */
+typedef enum dsModelSortType
+{
+	dsModelSortType_None,        ///< Don't sort the models.
+	dsModelSortType_Material,    ///< Sort by material to reduce state changes.
+	dsModelSortType_BackToFront, ///< Sort back to front, typically for drawing transparent objects.
+	dsModelSortType_FrontToBack  ///< Sort front to back, typically for reducing pixel fill.
+} dsModelSortType;
+
+/**
  * @brief Struct for processing items within a scene.
  *
  * Different implementations can effectively subclass this type by having it as the first member of
@@ -119,6 +130,7 @@ typedef const int* dsSceneNodeType;
  *   B   B
  * ```
  *
+ * @remark None of the members should be modified outside of the implementation.
  * @see SceneNode.h
  */
 typedef struct dsSceneNode dsSceneNode;
@@ -135,9 +147,63 @@ typedef struct dsSceneTreeNode dsSceneTreeNode;
  * them within nodes in a scene graph. The struct is reference counted, ensuring that the resources
  * remain valid as long as they're in use.
  *
+ * @remark None of the members should be modified outside of the implementation.
  * @see SceneResources.h
  */
 typedef struct dsSceneResources dsSceneResources;
+
+/**
+ * @brief Info for a single instance inside a scene that will be drawn.
+ * @remark None of the members should be modified outside of the implementation.
+ * @see SceneInstanceData.h
+ */
+typedef struct dsSceneInstanceInfo
+{
+	/**
+	 * @brief The original node for the data.
+	 */
+	const dsSceneNode* node;
+
+	/**
+	 * @brief The transform for the instance.
+	 */
+	dsMatrix44f transform;
+} dsSceneInstanceInfo;
+
+/**
+ * @brief Function for populating the underlying instance data.
+ *
+ * The data is stored with the same packing rules as uniform blocks. (or std140)
+ *
+ * @param userData The user data for managing the instance data.
+ * @param view The view being drawn.
+ * @param instances The instances to populate the data for.
+ * @param instanceCount The number of instances.
+ * @param data The data to populate.
+ * @param stride The stride between each instance in the data.
+ *
+ * @see SceneInstanceData.h
+ */
+typedef void (*dsPopulateSceneInstanceDataFunction)(void* userData, const dsView* view,
+	const dsSceneInstanceInfo* instances, uint32_t instanceCount, uint8_t* data, uint32_t stride);
+
+/**
+ * @brief Function to destroy the user data associated with dsSceneInstanceData.
+ * @param userData The user data to destroy.
+ *
+ * @see SceneInstanceData.h
+ */
+typedef void (*dsDestroySceneInstanceUserDataFunction)(void* userData);
+
+/**
+ * @brief Struct for controlling data that's set for each instance being drawn.
+ *
+ * This fulfills a role similar to dsShaderVariableGroup, excpet it can be used efficiently for
+ * constantly changing values.
+ *
+ * @see SceneInstanceData.h
+ */
+typedef struct dsSceneInstanceData dsSceneInstanceData;
 
 /**
  * @brief Function for adding a node to the item list.
@@ -235,6 +301,15 @@ struct dsSceneItemList
 	 */
 	dsDestroySceneItemListFunction destroyFunc;
 };
+
+/**
+ * @brief Scene item list implementation for drawing models.
+ *
+ * This will hold information from dsSceneModelNode node types.
+ *
+ * @see SceneModelList.h
+ */
+typedef struct dsSceneModelList dsSceneModelList;
 
 /**
  * @brief Struct that holds a list of dsSceneItemList instances used for a render subpass.
@@ -379,6 +454,7 @@ struct dsSceneNode
 
 /**
  * @brief Scene node implementation that contains a transform for any subnodes.
+ * @remark None of the members should be modified outside of the implementation.
  * @see SceneTransformNode
  */
 typedef struct dsSceneTransformNode
@@ -417,18 +493,14 @@ typedef struct dsSceneModelInfo
 	dsMaterial* material;
 
 	/**
-	 * @brief List of geometry instances to draw.
+	 * @brief Geometry instance to draw.
 	 */
-	dsDrawGeometry** geometry;
-
-	/**
-	 * @brief The number of geometry instances to draw.
-	 */
-	uint32_t geometryCount;
+	dsDrawGeometry* geometry;
 } dsSceneModelInfo;
 
 /**
  * @brief Scene node implementation that contains model geometry to draw.
+ * @remark None of the members should be modified outside of the implementation.
  * @see SceneModelNode.h
  */
 typedef struct dsSceneModelNode

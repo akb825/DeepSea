@@ -392,12 +392,12 @@ typedef struct dsShaderVariablePos
 	/**
 	 * @brief The stride of each array element.
 	 */
-	uint16_t stride;
+	uint8_t stride;
 
 	/**
 	 * @brief The stride for each column for matrix elements.
 	 */
-	uint16_t matrixColStride;
+	uint8_t matrixColStride;
 } dsShaderVariablePos;
 
 /** @copydoc dsShaderVariableGroupDesc */
