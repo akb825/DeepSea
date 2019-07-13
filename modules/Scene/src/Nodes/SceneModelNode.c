@@ -16,6 +16,7 @@
 
 #include <DeepSea/Scene/Nodes/SceneModelNode.h>
 
+#include <DeepSea/Core/Containers/Hash.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Assert.h>
@@ -27,6 +28,8 @@
 #include <DeepSea/Scene/SceneResources.h>
 
 #include <string.h>
+
+#define EXPECTED_MAX_NODES 256
 
 static int nodeType;
 
@@ -47,39 +50,64 @@ static void destroy(dsSceneNode* node)
 	DS_VERIFY(dsAllocator_free(node->allocator, node));
 }
 
+static void populateDrawList(const char** drawLists, uint32_t* hashes, uint32_t* drawListCount,
+	const dsSceneModelInitInfo* models, uint32_t modelCount)
+{
+	for (uint32_t i = 0; i < modelCount; ++i)
+		hashes[i] = dsHashString(models[i].listName);
+
+	for (uint32_t i = 0; i < modelCount; ++i)
+	{
+		bool unique = true;
+		for (uint32_t j = 0; j < *drawListCount; ++j)
+		{
+			if (hashes[i] == hashes[j])
+			{
+				unique = false;
+				break;
+			}
+		}
+
+		if (!unique)
+			continue;
+
+		drawLists[*drawListCount] = models[i].listName;
+		// Also make sure the assigned hashes match for faster uniqueness check.
+		hashes[*drawListCount] = hashes[i];
+		++*drawListCount;
+	}
+}
+
 dsSceneNodeType dsSceneModelNode_type(void)
 {
 	return &nodeType;
 }
 
-dsSceneModelNode* dsSceneModelNode_create(dsAllocator* allocator, const char** drawLists,
-	uint32_t drawListCount, const dsSceneModelInfo* models, uint32_t modelCount,
-	dsSceneResources** resources, uint32_t resourceCount, const dsAlignedBox3f* bounds)
+dsSceneModelNode* dsSceneModelNode_create(dsAllocator* allocator,
+	const dsSceneModelInitInfo* models, uint32_t modelCount, dsSceneResources** resources,
+	uint32_t resourceCount, const dsAlignedBox3f* bounds)
 {
-	if (!allocator || !drawLists || drawListCount == 0 || !models || modelCount == 0 ||
-		(!resources && resourceCount > 0))
+	if (!allocator || !models || modelCount == 0 || (!resources && resourceCount > 0))
 	{
 		errno = EINVAL;
 		return NULL;
 	}
 
-	for (uint32_t i = 0; i < drawListCount; ++i)
+	if (!allocator->freeFunc)
 	{
-		if (!drawLists[i])
-		{
-			errno = EINVAL;
-			return NULL;
-		}
+		errno = EINVAL;
+		DS_LOG_ERROR(DS_SCENE_LOG_TAG, "Scene node allocator must support freeing memory.");
+		return false;
 	}
 
 	for (uint32_t i = 0; i < modelCount; ++i)
 	{
-		const dsSceneModelInfo* model = models + i;
-		if (!model->shader || !model->material || !model->geometry)
+		const dsSceneModelInitInfo* model = models + i;
+		if (!model->shader || !model->material || !model->geometry || !model->listName)
 		{
 			errno = EINVAL;
-			DS_LOG_ERROR(DS_SCENE_LOG_TAG,
-				"All scene models must have a valid shader, material, and geometry.");
+			DS_LOG_ERROR(DS_SCENE_LOG_TAG, "All scene models must have a valid shader, material, "
+				"geometry, and draw list name.");
 			return NULL;
 		}
 
@@ -100,10 +128,39 @@ dsSceneModelNode* dsSceneModelNode_create(dsAllocator* allocator, const char** d
 		}
 	}
 
+	// Get the draw lists from the model nodes.
+	const char* tempStringListData[EXPECTED_MAX_NODES];
+	uint32_t tempStringHashListData[EXPECTED_MAX_NODES];
+	const char** drawLists = tempStringListData;
+	uint32_t drawListCount = 0;
+	uint32_t* tempStringHashList = tempStringHashListData;
+	if (modelCount > EXPECTED_MAX_NODES)
+	{
+		// Need to dynamically allocate temp lists if too large.
+		drawLists = DS_ALLOCATE_OBJECT_ARRAY(allocator, const char*, modelCount);
+		if (!drawLists)
+			return NULL;
+		tempStringHashList = DS_ALLOCATE_OBJECT_ARRAY(allocator, uint32_t, modelCount);
+		if (!tempStringHashList)
+		{
+			DS_VERIFY(dsAllocator_free(allocator, drawLists));
+			return NULL;
+		}
+	}
+
+	populateDrawList(drawLists, tempStringHashList, &drawListCount, models, modelCount);
+
 	size_t fullSize = fullAllocSize(drawLists, drawListCount, modelCount, resourceCount);
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
+	{
+		if (drawLists != tempStringListData)
+		{
+			DS_VERIFY(dsAllocator_free(allocator, drawLists));
+			DS_VERIFY(dsAllocator_free(allocator, tempStringHashList));
+		}
 		return NULL;
+	}
 
 	dsBufferAllocator bufferAlloc;
 	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, fullSize));
@@ -117,7 +174,13 @@ dsSceneModelNode* dsSceneModelNode_create(dsAllocator* allocator, const char** d
 	{
 		size_t length = strlen(drawLists[i]);
 		drawListsCopy[i] = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, length + 1);
-		strcpy(drawListsCopy[i], drawLists[i]);
+		memcpy(drawListsCopy[i], drawLists[i], length + 1);
+	}
+
+	if (drawLists != tempStringListData)
+	{
+		DS_VERIFY(dsAllocator_free(allocator, drawLists));
+		DS_VERIFY(dsAllocator_free(allocator, tempStringHashList));
 	}
 
 	if (!dsSceneNode_initialize((dsSceneNode*)node, allocator, dsSceneModelNode_type(),
@@ -130,7 +193,16 @@ dsSceneModelNode* dsSceneModelNode_create(dsAllocator* allocator, const char** d
 
 	node->models = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsSceneModelInfo, modelCount);
 	DS_ASSERT(node->models);
-	memcpy(node->models, models, sizeof(dsSceneModelInfo)*modelCount);
+	for (uint32_t i = 0; i < modelCount; ++i)
+	{
+		const dsSceneModelInitInfo* initInfo = models + i;
+		dsSceneModelInfo* model = node->models + i;
+		model->shader = initInfo->shader;
+		model->material = initInfo->material;
+		model->geometry = initInfo->geometry;
+		model->listNameID = dsHashString(initInfo->listName);
+		model->drawRange = initInfo->drawRange;
+	}
 	node->modelCount = modelCount;
 
 	if (resourceCount > 0)

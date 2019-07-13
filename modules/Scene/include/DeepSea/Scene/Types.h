@@ -277,6 +277,11 @@ struct dsSceneItemList
 	const char* name;
 
 	/**
+	 * @brief The name ID for the item list.
+	 */
+	uint32_t nameID;
+
+	/**
 	 * @brief Function for adding a node to the item list.
 	 */
 	dsAddSceneItemListNodeFunction addNodeFunc;
@@ -477,6 +482,40 @@ typedef struct dsSceneTransformNode
 } dsSceneTransformNode;
 
 /**
+ * @brief Info for what to draw inside a model node when initializing.
+ * @see SceneDrawNode.h
+ */
+typedef struct dsSceneModelInitInfo
+{
+	/**
+	 * @brief The shader to draw the model with.
+	 */
+	dsShader* shader;
+
+	/**
+	 * @brief The material to draw the model with.
+	 */
+	dsMaterial* material;
+
+	/**
+	 * @brief Geometry instance to draw.
+	 */
+	dsDrawGeometry* geometry;
+
+	/**
+	 * @brief The name for the list to use the model with.
+	 */
+	const char* listName;
+
+	/**
+	 * @brief The distance range to draw the model.
+	 *
+	 * Lower range is inclusive, upperrange is exclusive.
+	 */
+	dsVector2f drawRange;
+} dsSceneModelInitInfo;
+
+/**
  * @brief Info for what to draw inside a model node.
  * @see SceneDrawNode.h
  */
@@ -496,6 +535,18 @@ typedef struct dsSceneModelInfo
 	 * @brief Geometry instance to draw.
 	 */
 	dsDrawGeometry* geometry;
+
+	/**
+	 * @brief The name ID for the list to use the model with.
+	 */
+	uint32_t listNameID;
+
+	/**
+	 * @brief The distance range to draw the model.
+	 *
+	 * Lower range is inclusive, upperrange is exclusive.
+	 */
+	dsVector2f drawRange;
 } dsSceneModelInfo;
 
 /**

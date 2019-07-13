@@ -41,11 +41,8 @@ DS_SCENE_EXPORT dsSceneNodeType dsSceneModelNode_type(void);
  * @brief Creates a scene model node.
  * @remark errno will be set on failure.
  * @param allocator The allocator to create the model node with.
- * @param drawLists The list of draw list names to use. The names will be copied. It is expected
- *     that at least one draw list is provided.
- * @param drawListCount The number of draw lists.
- * @param models The models to draw within the node. The array, as well as the arrays for the draw
- *     geometries, will be copied. It is expected that at least one model is provided.
+ * @param models The models to draw within the node. The array will be copied. It is expected that
+ *     at least one model is provided.
  * @param modelCount The number of models.
  * @param resources The resources to keep a reference to.
  * @param resourceCount The number of resources.
@@ -53,9 +50,8 @@ DS_SCENE_EXPORT dsSceneNodeType dsSceneModelNode_type(void);
  * @return The model node or NULL if an error occurred.
  */
 DS_SCENE_EXPORT dsSceneModelNode* dsSceneModelNode_create(dsAllocator* allocator,
-	const char** drawLists, uint32_t drawListCount, const dsSceneModelInfo* models,
-	uint32_t modelCount, dsSceneResources** resources, uint32_t resourceCount,
-	const dsAlignedBox3f* bounds);
+	const dsSceneModelInitInfo* models, uint32_t modelCount, dsSceneResources** resources,
+	uint32_t resourceCount, const dsAlignedBox3f* bounds);
 
 #ifdef __cplusplus
 }
