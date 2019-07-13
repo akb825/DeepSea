@@ -388,7 +388,7 @@ bool dsGLGfxBuffer_unmap(dsResourceManager* resourceManager, dsGfxBuffer* buffer
 		DS_VERIFY(dsSpinlock_unlock(&glBuffer->mapLock));
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, "Buffer isn't mapped.");
-		return NULL;
+		return false;
 	}
 
 	GLenum bufferType = dsGetGLBufferType(buffer->usage);
@@ -437,7 +437,7 @@ bool dsGLGfxBuffer_flush(dsResourceManager* resourceManager, dsGfxBuffer* buffer
 		DS_VERIFY(dsSpinlock_unlock(&glBuffer->mapLock));
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, "Buffer isn't mapped.");
-		return NULL;
+		return false;
 	}
 
 	bool success;
@@ -482,7 +482,7 @@ bool dsGLGfxBuffer_invalidate(dsResourceManager* resourceManager, dsGfxBuffer* b
 		DS_VERIFY(dsSpinlock_unlock(&glBuffer->mapLock));
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, "Buffer isn't mapped.");
-		return NULL;
+		return false;
 	}
 
 	bool success = true;
