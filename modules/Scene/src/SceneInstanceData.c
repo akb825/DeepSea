@@ -24,7 +24,6 @@
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Render/Resources/GfxBuffer.h>
-#include <DeepSea/Render/Resources/GfxFence.h>
 #include <DeepSea/Render/Resources/MaterialType.h>
 #include <DeepSea/Render/Resources/ShaderVariableGroup.h>
 #include <DeepSea/Render/Resources/SharedMaterialValues.h>
@@ -37,7 +36,6 @@
 typedef struct BufferInfo
 {
 	dsGfxBuffer* buffer;
-	dsGfxFence* fence;
 	uint64_t lastUsedFrame;
 } BufferInfo;
 
@@ -104,7 +102,6 @@ static bool reserveSpace(dsSceneInstanceData* instanceData, uint32_t maxInstance
 	size_t requiredSize = (size_t)instanceData->instanceSize*maxInstances;
 	dsResourceManager* resourceManager = instanceData->resourceManager;
 	uint64_t frameNumber = resourceManager->renderer->frameNumber;
-	DS_ASSERT(resourceManager->bufferMapSupport != dsGfxBufferMapSupport_None);
 
 	// Look for any buffer large enough that's FRAME_DELAY number of frames earlier than the
 	// current one.
@@ -120,11 +117,6 @@ static bool reserveSpace(dsSceneInstanceData* instanceData, uint32_t maxInstance
 		if (bufferInfo->buffer->size >= requiredSize)
 		{
 			// Found
-			if (bufferInfo->fence)
-			{
-				const uint64_t secondInNanoseconds = 1000*1000*1000;
-				dsGfxFence_wait(bufferInfo->fence, secondInNanoseconds);
-			}
 			bufferInfo->lastUsedFrame = frameNumber;
 			instanceData->curBuffer = bufferInfo;
 			break;
@@ -133,7 +125,6 @@ static bool reserveSpace(dsSceneInstanceData* instanceData, uint32_t maxInstance
 		// This buffer is too small. Delete it now since a new one will need to be allocated.
 		if (!dsGfxBuffer_destroy(bufferInfo->buffer))
 			return false;
-		DS_VERIFY(dsGfxFence_destroy(bufferInfo->fence));
 
 		// Constant-time removal since order doesn't matter.
 		*bufferInfo = instanceData->buffers[instanceData->bufferCount - 1];
@@ -150,14 +141,7 @@ static bool reserveSpace(dsSceneInstanceData* instanceData, uint32_t maxInstance
 			return false;
 		}
 
-		dsGfxMemory memoryHints = dsGfxMemory_Stream | dsGfxMemory_Persistent;
-		if (!resourceManager->hasFences)
-		{
-			// Synchronize when no fences so the persistent memory emulation will handle
-			// synchronization isnstead.
-			DS_ASSERT(resourceManager->bufferMapSupport != dsGfxBufferMapSupport_Persistent);
-			memoryHints |= dsGfxMemory_Synchronize;
-		}
+		dsGfxMemory memoryHints = dsGfxMemory_Stream | dsGfxMemory_Synchronize;
 		BufferInfo* bufferInfo = instanceData->buffers + index;
 		bufferInfo->buffer = dsGfxBuffer_create(resourceManager, instanceData->allocator,
 			dsGfxBufferUsage_UniformBlock, memoryHints, NULL, requiredSize);
@@ -167,26 +151,13 @@ static bool reserveSpace(dsSceneInstanceData* instanceData, uint32_t maxInstance
 			return false;
 		}
 
-		if (resourceManager->hasFences)
-		{
-			bufferInfo->fence = dsGfxFence_create(resourceManager, instanceData->allocator);
-			if (!bufferInfo->fence)
-			{
-				DS_VERIFY(dsGfxBuffer_destroy(bufferInfo->buffer));
-				--instanceData->bufferCount;
-				return NULL;
-			}
-		}
-		else
-			bufferInfo->fence = NULL;
-
 		bufferInfo->lastUsedFrame = frameNumber;
 		instanceData->curBuffer = bufferInfo;
 	}
 
 	DS_ASSERT(instanceData->curBuffer);
 	instanceData->curBufferData = dsGfxBuffer_map(instanceData->curBuffer->buffer,
-		dsGfxBufferMap_Write | dsGfxBufferMap_Persistent, 0, DS_MAP_FULL_BUFFER);
+		dsGfxBufferMap_Write, 0, DS_MAP_FULL_BUFFER);
 	return instanceData->curBufferData != NULL;
 }
 
@@ -320,7 +291,7 @@ bool dsSceneInstanceData_populateData(dsSceneInstanceData* instanceData,
 		instanceData->curBufferData, instanceData->stride);
 	BufferInfo* curBuffer = instanceData->curBuffer;
 	if (curBuffer)
-		dsGfxBuffer_flush(curBuffer->buffer, 0, curBuffer->buffer->size);
+		DS_VERIFY(dsGfxBuffer_unmap(curBuffer->buffer));
 
 	return true;
 }
@@ -402,16 +373,6 @@ bool dsSceneInstanceData_finish(dsSceneInstanceData* instanceData, dsCommandBuff
 		return false;
 	}
 
-	BufferInfo* curBuffer = instanceData->curBuffer;
-	if (!curBuffer)
-		return true;
-
-	if (!dsGfxBuffer_unmap(curBuffer->buffer))
-		return false;
-
-	if (curBuffer->fence && !dsGfxFence_set(curBuffer->fence, commandBuffer, false))
-		return false;
-
 	instanceData->curBuffer = NULL;
 	instanceData->curBufferData = NULL;
 	instanceData->curInstanceCount = 0;
@@ -423,12 +384,6 @@ bool dsSceneInstanceData_destroy(dsSceneInstanceData* instanceData)
 	if (!instanceData)
 		return true;
 
-	if (instanceData->curBuffer && instanceData->curBufferData)
-	{
-		if (!dsGfxBuffer_unmap(instanceData->curBuffer->buffer))
-			return false;
-	}
-
 	for (uint32_t i = 0; i < instanceData->bufferCount; ++i)
 	{
 		if (!dsGfxBuffer_destroy(instanceData->buffers[i].buffer))
@@ -436,7 +391,6 @@ bool dsSceneInstanceData_destroy(dsSceneInstanceData* instanceData)
 			DS_ASSERT(i == 0);
 			return false;
 		}
-		DS_VERIFY(dsGfxFence_destroy(instanceData->buffers[i].fence));
 	}
 
 	if (!dsShaderVariableGroup_destroy(instanceData->fallback))
