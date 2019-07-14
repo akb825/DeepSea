@@ -106,40 +106,9 @@ static bool writeBufferData(dsGfxBuffer* buffer, GLenum bufferType, size_t offse
 	const void* data)
 {
 	dsGLGfxBuffer* glBuffer = (dsGLGfxBuffer*)buffer;
-
-	void* ptr = NULL;
 	glBindBuffer(bufferType, glBuffer->bufferId);
-	bool synchronize = (buffer->memoryHints & dsGfxMemory_Synchronize) ||
-		(glBuffer->mapFlags & dsGfxBufferMap_Orphan);
-	if (ANYGL_SUPPORTED(glMapBufferRange) && !synchronize)
-	{
-		ptr = glMapBufferRange(bufferType, offset, size,
-			GL_MAP_WRITE_BIT | GL_MAP_UNSYNCHRONIZED_BIT);
-	}
-	else if (ANYGL_SUPPORTED(glMapBuffer) && !synchronize)
-	{
-		ptr = glMapBuffer(bufferType, GL_WRITE_ONLY);
-		if (ptr)
-			ptr = (uint8_t*)ptr + offset;
-	}
-	else
-	{
-		glBufferSubData(bufferType, offset, size, data);
-		glBindBuffer(bufferType, 0);
-		return true;
-	}
-
-	if (!ptr)
-	{
-		glBindBuffer(bufferType, 0);
-		errno = EPERM;
-		return false;
-	}
-
-	memcpy(ptr, data, size);
-	glUnmapBuffer(bufferType);
+	glBufferSubData(bufferType, offset, size, data);
 	glBindBuffer(bufferType, 0);
-
 	return true;
 }
 

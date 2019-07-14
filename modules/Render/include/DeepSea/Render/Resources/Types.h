@@ -72,12 +72,7 @@ typedef enum dsGfxMemory
 	 * mapping is natively supported.
 	 */
 	dsGfxMemory_Coherent = 0x080,
-	/**
-	 * Wait for the memory to not be in use when mapping. Can be used with persistent mapping for
-	 * platforms that emulate persistent mapping and don't have fences available for some amount
-	 * of synchronization.
-	 */
-	dsGfxMemory_Synchronize = 0x100
+	dsGfxMemory_Synchronize = 0x100 ///< Wait for the memory to not be in use when mapping.
 } dsGfxMemory;
 
 /**
