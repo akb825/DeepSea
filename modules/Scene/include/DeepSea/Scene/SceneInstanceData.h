@@ -87,11 +87,9 @@ DS_SCENE_EXPORT bool dsSceneInstanceData_bindInstance(const dsSceneInstanceData*
  *
  * @remark errno will be set on failure.
  * @param instanceData The instance data.
- * @param commandBuffer The command buffer the draw commands were placed on.
  * @return False if an error occurred.
  */
-DS_SCENE_EXPORT bool dsSceneInstanceData_finish(dsSceneInstanceData* instanceData,
-	dsCommandBuffer* commandBuffer);
+DS_SCENE_EXPORT bool dsSceneInstanceData_finish(dsSceneInstanceData* instanceData);
 
 /**
  * @brief Destroys a scene instance data object.

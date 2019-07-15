@@ -35,9 +35,11 @@
 #include <DeepSea/Math/Vector2.h>
 #include <DeepSea/Text/FaceGroup.h>
 #include <DeepSea/Text/Unicode.h>
+
 #include <SheenBidi.h>
 #include <ctype.h>
 #include <math.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include <ft2build.h>
@@ -272,9 +274,8 @@ static bool addGlyphLine(dsGlyphGeometry* geometry, const dsVector2f* end)
 	return addGlyphPoint(geometry, end);
 }
 
-static int compareGlyphEdge(const void* left, const void* right, void* context)
+static int compareGlyphEdge(const void* left, const void* right)
 {
-	DS_UNUSED(context);
 	const dsOrderedGlyphEdge* leftEdge = (const dsOrderedGlyphEdge*)left;
 	const dsOrderedGlyphEdge* rightEdge = (const dsOrderedGlyphEdge*)right;
 	if (leftEdge->minPoint.y < rightEdge->minPoint.y)
@@ -328,8 +329,8 @@ static bool sortGlyphEdges(dsGlyphGeometry* geometry)
 
 	DS_ASSERT(edgeIndex <= geometry->pointCount);
 	geometry->edgeCount = edgeIndex;
-	dsSort(geometry->sortedEdges, geometry->edgeCount, sizeof(dsOrderedGlyphEdge),
-		&compareGlyphEdge, NULL);
+	qsort(geometry->sortedEdges, geometry->edgeCount, sizeof(dsOrderedGlyphEdge),
+		&compareGlyphEdge);
 	return true;
 }
 

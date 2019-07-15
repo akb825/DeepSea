@@ -166,7 +166,7 @@ static void removeSubtreeRec(dsSceneNode* child, uint32_t treeNodeIndex, dsScene
 	// Dispose of the node.
 	for (uint32_t i = 0; i < child->drawListCount; ++i)
 	{
-		uint32_t entry = childTreeNode->drawItems[i].entry;
+		uint64_t entry = childTreeNode->drawItems[i].entry;
 		if (entry == DS_NO_SCENE_NODE)
 			continue;
 
@@ -194,6 +194,14 @@ static void updateSubtreeRec(dsSceneTreeNode* node)
 {
 	updateTransform(node);
 	node->dirty = false;
+	for (uint32_t i = 0; i < node->node->drawListCount; ++i)
+	{
+		uint64_t entry = node->drawItems[i].entry;
+		dsSceneItemList* list = node->drawItems[i].list;
+		if (entry != DS_NO_SCENE_NODE && list->updateNodeFunc)
+			list->removeNodeFunc(list, entry);
+	}
+
 	for (uint32_t i = 0; i < node->childCount; ++i)
 		updateSubtreeRec(node->children[i]);
 }

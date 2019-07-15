@@ -38,7 +38,7 @@ extern "C"
 /**
  * @brief Constant for no scene node.
  */
-#define DS_NO_SCENE_NODE (uint32_t)-1
+#define DS_NO_SCENE_NODE (uint64_t)-1
 
 /**
  * @brief Constant for the maximum length of a scene resource name, including the null terminator.
@@ -89,6 +89,7 @@ typedef struct dsScene dsScene;
 
 /**
  * @brief Struct that describes a view to draw a scene with.
+ * @remark Members should be modified outside of the implementation unless otherwise specified.
  * @see View.h
  */
 typedef struct dsView dsView;
@@ -213,7 +214,7 @@ typedef struct dsSceneInstanceData dsSceneInstanceData;
  *     is updated.
  * @return The ID of the node within the item list, or DS_NO_SCENE_NODE if not added.
  */
-typedef uint32_t (*dsAddSceneItemListNodeFunction)(dsSceneItemList* itemList, dsSceneNode* node,
+typedef uint64_t (*dsAddSceneItemListNodeFunction)(dsSceneItemList* itemList, dsSceneNode* node,
 	const dsMatrix44f* transform);
 
 /**
@@ -221,14 +222,14 @@ typedef uint32_t (*dsAddSceneItemListNodeFunction)(dsSceneItemList* itemList, ds
  * @param itemList The item list.
  * @param nodeID The ID of the node to update.
  */
-typedef void (*dsUpdateSceneItemListNodeFunction)(dsSceneItemList* itemList, uint32_t nodeID);
+typedef void (*dsUpdateSceneItemListNodeFunction)(dsSceneItemList* itemList, uint64_t nodeID);
 
 /**
  * @brief Function for updating a node in an item list.
  * @param itemList The item list.
  * @param nodeID The ID of the node to update.
  */
-typedef void (*dsRemoveSceneItemListNodeFunction)(dsSceneItemList* itemList, uint32_t nodeID);
+typedef void (*dsRemoveSceneItemListNodeFunction)(dsSceneItemList* itemList, uint64_t nodeID);
 
 /**
  * @brief Function for drawing a scene item list.
@@ -262,11 +263,6 @@ typedef void (*dsDestroySceneNodeFunction)(dsSceneNode* node);
 struct dsSceneItemList
 {
 	/**
-	 * @brief The scene the scene item list is used with.
-	 */
-	dsScene* scene;
-
-	/**
 	 * @brief The allocator this was created with.
 	 */
 	dsAllocator* allocator;
@@ -288,6 +284,8 @@ struct dsSceneItemList
 
 	/**
 	 * @brief Function for updating a node in the item list.
+	 *
+	 * This may be NULL if nodes don't need to be updated.
 	 */
 	dsUpdateSceneItemListNodeFunction updateNodeFunc;
 
@@ -503,16 +501,39 @@ typedef struct dsSceneModelInitInfo
 	dsDrawGeometry* geometry;
 
 	/**
+	 * @brief The distance range to draw the model.
+	 *
+	 * Lower range is inclusive, upperrange is exclusive. If the x value is larger than the y value,
+	 * then the model will always be drawn.
+	 */
+	dsVector2f distanceRange;
+
+	union
+	{
+		/**
+		 * @brief The draw range.
+		 *
+		 * This will be used if geometry doesn't have an index buffer.
+		 */
+		dsDrawRange drawRange;
+
+		/**
+		 * @brief The indexed draw range.
+		 *
+		 * This will be used if geometry has an index buffer.
+		 */
+		dsDrawIndexedRange drawIndexedRange;
+	};
+
+	/**
+	 * @brief The primitive type for the draw.
+	 */
+	dsPrimitiveType primitiveType;
+
+	/**
 	 * @brief The name for the list to use the model with.
 	 */
 	const char* listName;
-
-	/**
-	 * @brief The distance range to draw the model.
-	 *
-	 * Lower range is inclusive, upperrange is exclusive.
-	 */
-	dsVector2f drawRange;
 } dsSceneModelInitInfo;
 
 /**
@@ -537,16 +558,39 @@ typedef struct dsSceneModelInfo
 	dsDrawGeometry* geometry;
 
 	/**
+	 * @brief The distance range to draw the model.
+	 *
+	 * Lower range is inclusive, upperrange is exclusive. If the x value is larger than the y value,
+	 * then the model will always be drawn.
+	 */
+	dsVector2f distanceRange;
+
+	union
+	{
+		/**
+		 * @brief The draw range.
+		 *
+		 * This will be used if geometry doesn't have an index buffer.
+		 */
+		dsDrawRange drawRange;
+
+		/**
+		 * @brief The indexed draw range.
+		 *
+		 * This will be used if geometry has an index buffer.
+		 */
+		dsDrawIndexedRange drawIndexedRange;
+	};
+
+	/**
+	 * @brief The primitive type for the draw.
+	 */
+	dsPrimitiveType primitiveType;
+
+	/**
 	 * @brief The name ID for the list to use the model with.
 	 */
 	uint32_t listNameID;
-
-	/**
-	 * @brief The distance range to draw the model.
-	 *
-	 * Lower range is inclusive, upperrange is exclusive.
-	 */
-	dsVector2f drawRange;
 } dsSceneModelInfo;
 
 /**
@@ -586,8 +630,63 @@ typedef struct dsSceneModelNode
 	/**
 	 * @brief The bounding box for the model.
 	 */
-	dsAlignedBox3f bounds;
+	dsOrientedBox3f bounds;
 } dsSceneModelNode;
+
+/** @copydoc dsView */
+struct dsView
+{
+	/**
+	 * @brief The allocator for the view.
+	 */
+	dsAllocator* allocator;
+
+	/**
+	 * @brief The scene to draw with the view.
+	 */
+	dsScene* scene;
+
+	/**
+	 * @brief The camera matrix, transforming from camera to world.
+	 */
+	dsMatrix44f cameraMatrix;
+
+	/**
+	 * @brief The view matrix, transforming from world to camera.
+	 *
+	 * This is the inverse of the camera matrix.
+	 */
+	dsMatrix44f viewMatrix;
+
+	/**
+	 * @brief The projection matrix.
+	 */
+	dsMatrix44f projectionMatrix;
+
+	/**
+	 * @brief The pre-multiplied view projection matrix.
+	 */
+	dsMatrix44f viewProjectionMatrix;
+
+	/**
+	 * @brief The view frustum.
+	 */
+	dsFrustum3f viewFrustum;
+
+	/**
+	 * @brief The viewport to draw to.
+	 *
+	 * This may be modified directly, though not in the middle of drawing a view.
+	 */
+	dsAlignedBox3f viewport;
+
+	/**
+	 * @brief Global material values to do while drawing.
+	 *
+	 * The contents of this may be modified as needed.
+	 */
+	dsSharedMaterialValues* globalValues;
+};
 
 #ifdef __cplusplus
 }

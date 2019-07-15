@@ -23,7 +23,7 @@
 typedef struct dsSceneItemEntry
 {
 	dsSceneItemList* list;
-	uint32_t entry;
+	uint64_t entry;
 } dsSceneItemEntry;
 
 struct dsSceneTreeNode

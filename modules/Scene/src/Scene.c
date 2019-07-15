@@ -237,6 +237,7 @@ void dsScene_destroy(dsScene* scene)
 	dsSceneNode_freeRef(&scene->rootNode);
 
 	dsSceneTreeNode* rootTreeNode = &scene->rootTreeNode.node;
+	DS_ASSERT(rootTreeNode->childCount == 0);
 	DS_VERIFY(dsAllocator_free(rootTreeNode->allocator, rootTreeNode->children));
 
 	destroyObjects(scene->pipeline, scene->pipelineCount, &scene->stringPool);

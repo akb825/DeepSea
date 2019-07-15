@@ -22,7 +22,7 @@
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
-#include <DeepSea/Geometry/AlignedBox3.h>
+#include <DeepSea/Geometry/OrientedBox3.h>
 #include <DeepSea/Render/Resources/Material.h>
 #include <DeepSea/Scene/Nodes/SceneNode.h>
 #include <DeepSea/Scene/SceneResources.h>
@@ -85,7 +85,7 @@ dsSceneNodeType dsSceneModelNode_type(void)
 
 dsSceneModelNode* dsSceneModelNode_create(dsAllocator* allocator,
 	const dsSceneModelInitInfo* models, uint32_t modelCount, dsSceneResources** resources,
-	uint32_t resourceCount, const dsAlignedBox3f* bounds)
+	uint32_t resourceCount, const dsOrientedBox3f* bounds)
 {
 	if (!allocator || !models || modelCount == 0 || (!resources && resourceCount > 0))
 	{
@@ -200,8 +200,13 @@ dsSceneModelNode* dsSceneModelNode_create(dsAllocator* allocator,
 		model->shader = initInfo->shader;
 		model->material = initInfo->material;
 		model->geometry = initInfo->geometry;
+		model->distanceRange = initInfo->distanceRange;
+		if (model->geometry->indexBuffer.buffer)
+			model->drawIndexedRange = initInfo->drawIndexedRange;
+		else
+			model->drawRange = initInfo->drawRange;
+		model->primitiveType = initInfo->primitiveType;
 		model->listNameID = dsHashString(initInfo->listName);
-		model->drawRange = initInfo->drawRange;
 	}
 	node->modelCount = modelCount;
 
@@ -222,7 +227,7 @@ dsSceneModelNode* dsSceneModelNode_create(dsAllocator* allocator,
 	if (bounds)
 		node->bounds = *bounds;
 	else
-		dsAlignedBox3f_makeInvalid(&node->bounds);
+		dsOrientedBox3_makeInvalid(node->bounds);
 
 	return node;
 }

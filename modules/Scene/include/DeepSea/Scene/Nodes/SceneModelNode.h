@@ -51,7 +51,7 @@ DS_SCENE_EXPORT dsSceneNodeType dsSceneModelNode_type(void);
  */
 DS_SCENE_EXPORT dsSceneModelNode* dsSceneModelNode_create(dsAllocator* allocator,
 	const dsSceneModelInitInfo* models, uint32_t modelCount, dsSceneResources** resources,
-	uint32_t resourceCount, const dsAlignedBox3f* bounds);
+	uint32_t resourceCount, const dsOrientedBox3f* bounds);
 
 #ifdef __cplusplus
 }

@@ -365,9 +365,9 @@ bool dsSceneInstanceData_bindInstance(const dsSceneInstanceData* instanceData,
 	return true;
 }
 
-bool dsSceneInstanceData_finish(dsSceneInstanceData* instanceData, dsCommandBuffer* commandBuffer)
+bool dsSceneInstanceData_finish(dsSceneInstanceData* instanceData)
 {
-	if (!instanceData || !commandBuffer)
+	if (!instanceData)
 	{
 		errno = EINVAL;
 		return false;
