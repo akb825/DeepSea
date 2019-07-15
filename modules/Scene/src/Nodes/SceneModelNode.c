@@ -143,7 +143,7 @@ dsSceneModelNode* dsSceneModelNode_create(dsAllocator* allocator,
 		tempStringHashList = DS_ALLOCATE_OBJECT_ARRAY(allocator, uint32_t, modelCount);
 		if (!tempStringHashList)
 		{
-			DS_VERIFY(dsAllocator_free(allocator, drawLists));
+			DS_VERIFY(dsAllocator_free(allocator, (void*)drawLists));
 			return NULL;
 		}
 	}
@@ -156,7 +156,7 @@ dsSceneModelNode* dsSceneModelNode_create(dsAllocator* allocator,
 	{
 		if (drawLists != tempStringListData)
 		{
-			DS_VERIFY(dsAllocator_free(allocator, drawLists));
+			DS_VERIFY(dsAllocator_free(allocator, (void*)drawLists));
 			DS_VERIFY(dsAllocator_free(allocator, tempStringHashList));
 		}
 		return NULL;
@@ -179,7 +179,7 @@ dsSceneModelNode* dsSceneModelNode_create(dsAllocator* allocator,
 
 	if (drawLists != tempStringListData)
 	{
-		DS_VERIFY(dsAllocator_free(allocator, drawLists));
+		DS_VERIFY(dsAllocator_free(allocator, (void*)drawLists));
 		DS_VERIFY(dsAllocator_free(allocator, tempStringHashList));
 	}
 
