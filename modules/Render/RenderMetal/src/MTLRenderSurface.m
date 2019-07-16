@@ -30,6 +30,7 @@
 
 #if DS_MAC
 #import <AppKit/NSView.h>
+#import <AppKit/NSWindow.h>
 typedef NSView ViewType;
 #else
 #import <UIKit/UIView.h>
@@ -123,6 +124,34 @@ typedef UIView ViewType;
 {
     [super resizeWithOldSuperviewSize: oldSize];
     [self updateDrawableSize];
+}
+
+- (void)viewWillMoveToWindow:(NSWindow*)window
+{
+	NSNotificationCenter* center = [NSNotificationCenter defaultCenter];
+	if (self.window)
+	{
+		[center removeObserver: self name: NSWindowDidChangeBackingPropertiesNotification
+			object: self.window];
+	}
+
+	if (window)
+	{
+		[center addObserver: self selector: @selector(didChangeBackingProperties:)
+			name: NSWindowDidChangeBackingPropertiesNotification object: window];
+	}
+}
+
+- (void)viewDidMoveToWindow
+{
+	[super viewDidMoveToWindow];
+	[self updateDrawableSize];
+}
+
+- (void)didChangeBackingProperties:(NSNotification*)notification
+{
+	DS_UNUSED(notification);
+	[self updateDrawableSize];
 }
 
 #endif
