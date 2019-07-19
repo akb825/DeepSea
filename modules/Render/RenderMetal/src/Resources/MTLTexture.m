@@ -19,6 +19,7 @@
 #include "Resources/MTLResourceManager.h"
 #include "MTLCommandBuffer.h"
 #include "MTLRendererInternal.h"
+#include "MTLShared.h"
 
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/Lifetime.h>
@@ -367,6 +368,7 @@ dsTexture* dsMTLTexture_create(dsResourceManager* resourceManager, dsAllocator* 
 			uint32_t faceCount = info->dimension == dsTextureDim_Cube ? 6 : 1;
 			bool is1D = info->dimension == dsTextureDim_1D;
 			bool is3D = info->dimension == dsTextureDim_3D;
+			bool isPVR = dsIsMTLFormatPVR(info->format);
 			unsigned int formatSize = dsGfxFormat_size(info->format);
 			unsigned int blocksX, blocksY;
 			DS_VERIFY(dsGfxFormat_blockDimensions(&blocksX, &blocksY, info->format));
@@ -394,7 +396,7 @@ dsTexture* dsMTLTexture_create(dsResourceManager* resourceManager, dsAllocator* 
 					};
 					[realTexture replaceRegion: region mipmapLevel: i slice: 0
 						withBytes: bytes + dsTexture_layerOffset(info, 0, i)
-						bytesPerRow: is1D ? 0 : formatSize*blocksWide
+						bytesPerRow: isPVR ? 0 : formatSize*blocksWide
 						bytesPerImage: formatSize*blocksWide*blocksHigh];
 				}
 				else
@@ -408,7 +410,8 @@ dsTexture* dsMTLTexture_create(dsResourceManager* resourceManager, dsAllocator* 
 					{
 						[realTexture replaceRegion: region mipmapLevel: i slice: j
 							withBytes: bytes + dsTexture_layerOffset(info, j, i)
-							bytesPerRow: is1D ? 0 : formatSize*blocksWide bytesPerImage: 0];
+							bytesPerRow: is1D || isPVR ? 0 : formatSize*blocksWide
+							bytesPerImage: 0];
 
 					}
 				}
@@ -515,13 +518,14 @@ bool dsMTLTexture_getData(void* result, size_t size, dsResourceManager* resource
 		uint32_t faceCount = texture->info.dimension == dsTextureDim_Cube ? 6 : 1;
 		bool is3D = texture->info.dimension == dsTextureDim_3D;
 		bool is1D = texture->info.dimension == dsTextureDim_1D;
+		bool isPVR = dsIsMTLFormatPVR(texture->info.format);
 
 		MTLRegion region =
 		{
 			{position->x, position->y, is3D ? position->depth : 0},
 			{width, height, 1}
 		};
-		[realTexture getBytes: result bytesPerRow: is1D ? 0 : formatSize*blocksWide
+		[realTexture getBytes: result bytesPerRow: is1D || isPVR ? 0 : formatSize*blocksWide
 			bytesPerImage: is3D ? formatSize*blocksWide*blocksHigh : 0 fromRegion: region
 			mipmapLevel: position->mipLevel
 			slice: is3D ? 0 : position->depth*faceCount + position->face];

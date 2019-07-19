@@ -17,6 +17,7 @@
 #include "MTLSoftwareCommandBuffer.h"
 
 #include "MTLCommandBuffer.h"
+#include "MTLShared.h"
 
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
@@ -743,6 +744,7 @@ bool dsMTLSoftwareCommandBuffer_copyTextureData(dsCommandBuffer* commandBuffer,
 	uint32_t faceCount = textureInfo->dimension == dsTextureDim_Cube ? 6 : 1;
 	bool is3D = textureInfo->dimension == dsTextureDim_3D;
 	bool is1D = textureInfo->dimension == dsTextureDim_1D;
+	bool isPVR = dsIsMTLFormatPVR(textureInfo->format);
 	uint32_t iterations = is3D ? 1 : layers;
 	uint32_t baseSlice = is3D ? 0 : position->depth*faceCount + position->face;
 	const uint8_t* bytes = (const uint8_t*)data;
@@ -762,7 +764,8 @@ bool dsMTLSoftwareCommandBuffer_copyTextureData(dsCommandBuffer* commandBuffer,
 		}
 
 		[tempImage replaceRegion: region mipmapLevel: 0 slice: 0 withBytes: bytes + i*sliceSize
-			bytesPerRow: is1D ? 0 : formatSize*blocksWide bytesPerImage: is3D ? sliceSize : 0];
+			bytesPerRow: is1D || isPVR ? 0 : formatSize*blocksWide
+			bytesPerImage: is3D ? sliceSize : 0];
 
 		CopyTextureCommand* command = (CopyTextureCommand*)allocateCommand(
 			commandBuffer, CommandType_CopyTexture,

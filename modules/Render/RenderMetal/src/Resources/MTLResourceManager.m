@@ -172,7 +172,7 @@ static void initializePixelFormats(dsMTLResourceManager* resourceManager, id<MTL
 	}
 #endif
 
-#if !defined(__IPHONE_OS_VERSION_MIN_REQUIRED) || __IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
+#if DS_MAC || __IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
 	resourceManager->specialPixelFormats[dsGfxFormat_specialIndex(dsGfxFormat_D32S8_Float)] =
 		MTLPixelFormatDepth32Float_Stencil8;
 #endif
@@ -554,12 +554,18 @@ static uint32_t getMinTextureBufferAlignment(dsMTLResourceManager* resourceManag
 #endif
 }
 
-static dsGfxBufferUsage getSupportedBuffers(void)
+static dsGfxBufferUsage getSupportedBuffers(id<MTLDevice> device)
 {
 	dsGfxBufferUsage usage = dsGfxBufferUsage_Index | dsGfxBufferUsage_Vertex |
-		dsGfxBufferUsage_IndirectDraw | dsGfxBufferUsage_IndirectDispatch |
 		dsGfxBufferUsage_UniformBlock | dsGfxBufferUsage_UniformBuffer |
 		dsGfxBufferUsage_CopyFrom | dsGfxBufferUsage_CopyTo;
+#if DS_MAC
+	DS_UNUSED(device);
+	usage |= dsGfxBufferUsage_IndirectDraw | dsGfxBufferUsage_IndirectDispatch;
+#elif __IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
+	if ([device supportsFeatureSet: MTLFeatureSet_iOS_GPUFamily3_v1])
+		usage |= dsGfxBufferUsage_IndirectDraw | dsGfxBufferUsage_IndirectDispatch;
+#endif
 #if DS_IOS || __MAC_OS_X_VERSION_MIN_REQUIRED >= 101300
 	usage |= dsGfxBufferUsage_Texture | dsGfxBufferUsage_Image;
 #endif
@@ -804,7 +810,7 @@ dsResourceManager* dsMTLResourceManager_create(dsAllocator* allocator, dsRendere
 	baseResourceManager->minUniformBufferAlignment = 256;
 #endif
 
-	baseResourceManager->supportedBuffers = getSupportedBuffers();
+	baseResourceManager->supportedBuffers = getSupportedBuffers(device);
 	baseResourceManager->bufferMapSupport = dsGfxBufferMapSupport_Persistent;
 	baseResourceManager->canCopyBuffers = true;
 	baseResourceManager->hasTextureBufferSubrange = true;

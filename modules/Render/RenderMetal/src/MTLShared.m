@@ -82,7 +82,7 @@ MTLStencilDescriptor* dsCreateMTLStencilDescriptor(const mslStencilOpState* stat
 	return descriptor;
 }
 
-MTLClearColor dsGetClearColor(dsGfxFormat format, const dsSurfaceColorValue* value)
+MTLClearColor dsGetMTLClearColor(dsGfxFormat format, const dsSurfaceColorValue* value)
 {
 	if ((format & dsGfxFormat_DecoratorMask) == dsGfxFormat_UInt)
 	{
@@ -99,4 +99,11 @@ MTLClearColor dsGetClearColor(dsGfxFormat format, const dsSurfaceColorValue* val
 		return MTLClearColorMake(value->floatValue.r, value->floatValue.g, value->floatValue.b,
 			value->floatValue.a);
 	}
+}
+
+bool dsIsMTLFormatPVR(dsGfxFormat format)
+{
+	dsGfxFormat compressedFormat = format & dsGfxFormat_CompressedMask;
+	return compressedFormat >= dsGfxFormat_PVRTC1_RGB_2BPP &&
+		compressedFormat <= dsGfxFormat_PVRTC2_RGBA_4BPP;
 }

@@ -436,6 +436,7 @@ bool dsMTLHardwareCommandBuffer_copyTextureData(dsCommandBuffer* commandBuffer,
 	uint32_t faceCount = textureInfo->dimension == dsTextureDim_Cube ? 6 : 1;
 	bool is3D = textureInfo->dimension == dsTextureDim_3D;
 	bool is1D = textureInfo->dimension == dsTextureDim_1D;
+	bool isPVR = dsIsMTLFormatPVR(textureInfo->format);
 	uint32_t iterations = is3D ? 1 : layers;
 	uint32_t baseSlice = is3D ? 0 : position->depth*faceCount + position->face;
 	const uint8_t* bytes = (const uint8_t*)data;
@@ -456,7 +457,8 @@ bool dsMTLHardwareCommandBuffer_copyTextureData(dsCommandBuffer* commandBuffer,
 		}
 
 		[tempImage replaceRegion: region mipmapLevel: 0 slice: 0 withBytes: bytes + i*sliceSize
-			bytesPerRow: is1D ? 0 : formatSize*blocksWide bytesPerImage: is3D ? sliceSize : 0];
+			bytesPerRow: is1D || isPVR ? 0 : formatSize*blocksWide
+			bytesPerImage: is3D ? sliceSize : 0];
 		[blitEncoder copyFromTexture: tempImage sourceSlice: 0 sourceLevel: 0
 			sourceOrigin: region.origin sourceSize: region.size toTexture: texture
 			destinationSlice: baseSlice + i destinationLevel: position->mipLevel
@@ -972,11 +974,25 @@ bool dsMTLHardwareCommandBuffer_drawIndexed(dsCommandBuffer* commandBuffer,
 		mtlCommandBuffer->boundPipeline = (__bridge CFTypeRef)pipeline;
 	}
 
-	[encoder drawIndexedPrimitives: getPrimitiveType(primitiveType)
-		indexCount: drawRange->indexCount indexType: getIndexType(indexSize)
-		indexBuffer: indexBuffer indexBufferOffset: indexOffset + drawRange->firstIndex*indexSize
-		instanceCount: drawRange->instanceCount baseVertex: drawRange->vertexOffset
-		baseInstance: drawRange->firstInstance];
+#if DS_MAC || __IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
+	if (commandBuffer->renderer->supportsStartInstance || DS_MAC)
+	{
+		[encoder drawIndexedPrimitives: getPrimitiveType(primitiveType)
+			indexCount: drawRange->indexCount indexType: getIndexType(indexSize)
+			indexBuffer: indexBuffer
+			indexBufferOffset: indexOffset + drawRange->firstIndex*indexSize
+			instanceCount: drawRange->instanceCount baseVertex: drawRange->vertexOffset
+			baseInstance: drawRange->firstInstance];
+	}
+	else
+#endif
+	{
+		[encoder drawIndexedPrimitives: getPrimitiveType(primitiveType)
+			indexCount: drawRange->indexCount indexType: getIndexType(indexSize)
+			indexBuffer: indexBuffer
+			indexBufferOffset: indexOffset + drawRange->firstIndex*indexSize
+			instanceCount: drawRange->instanceCount];
+	}
 	return true;
 }
 
@@ -984,6 +1000,7 @@ bool dsMTLHardwareCommandBuffer_drawIndirect(dsCommandBuffer* commandBuffer,
 	id<MTLRenderPipelineState> pipeline, id<MTLBuffer> indirectBuffer, size_t offset,
 	uint32_t count, uint32_t stride, dsPrimitiveType primitiveType)
 {
+#if DS_MAC || __IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
 	dsMTLHardwareCommandBuffer* mtlCommandBuffer = (dsMTLHardwareCommandBuffer*)commandBuffer;
 	if (!mtlCommandBuffer->renderCommandEncoder)
 		return false;
@@ -1002,6 +1019,16 @@ bool dsMTLHardwareCommandBuffer_drawIndirect(dsCommandBuffer* commandBuffer,
 			indirectBufferOffset: offset + i*stride];
 	}
 	return true;
+#else
+	DS_UNUSED(commandBuffer);
+	DS_UNUSED(pipeline);
+	DS_UNUSED(indirectBuffer);
+	DS_UNUSED(offset);
+	DS_UNUSED(count);
+	DS_UNUSED(stride);
+	DS_UNUSED(primitiveType);
+	return false;
+#endif
 }
 
 bool dsMTLHardwareCommandBuffer_drawIndexedIndirect(dsCommandBuffer* commandBuffer,
@@ -1009,6 +1036,7 @@ bool dsMTLHardwareCommandBuffer_drawIndexedIndirect(dsCommandBuffer* commandBuff
 	uint32_t indexSize, id<MTLBuffer> indirectBuffer, size_t indirectOffset,
 	uint32_t count, uint32_t stride, dsPrimitiveType primitiveType)
 {
+#if DS_MAC || __IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
 	dsMTLHardwareCommandBuffer* mtlCommandBuffer = (dsMTLHardwareCommandBuffer*)commandBuffer;
 	if (!mtlCommandBuffer->renderCommandEncoder)
 		return false;
@@ -1029,6 +1057,19 @@ bool dsMTLHardwareCommandBuffer_drawIndexedIndirect(dsCommandBuffer* commandBuff
 			indirectBufferOffset: indirectOffset + i*stride];
 	}
 	return true;
+#else
+	DS_UNUSED(commandBuffer);
+	DS_UNUSED(pipeline);
+	DS_UNUSED(indexBuffer);
+	DS_UNUSED(indexOffset);
+	DS_UNUSED(indexSize);
+	DS_UNUSED(indirectBuffer);
+	DS_UNUSED(indirectOffset);
+	DS_UNUSED(count);
+	DS_UNUSED(stride);
+	DS_UNUSED(primitiveType);
+	return false;
+#endif
 }
 
 bool dsMTLHardwareCommandBuffer_dispatchCompute(dsCommandBuffer* commandBuffer,
@@ -1057,6 +1098,7 @@ bool dsMTLHardwareCommandBuffer_dispatchComputeIndirect(dsCommandBuffer* command
 	id<MTLComputePipelineState> computePipeline, id<MTLBuffer> buffer, size_t offset,
 	uint32_t groupX, uint32_t groupY, uint32_t groupZ)
 {
+#if DS_MAC || __IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
 	dsMTLHardwareCommandBuffer* mtlCommandBuffer = (dsMTLHardwareCommandBuffer*)commandBuffer;
 	if (!mtlCommandBuffer->computeCommandEncoder)
 		return false;
@@ -1073,6 +1115,16 @@ bool dsMTLHardwareCommandBuffer_dispatchComputeIndirect(dsCommandBuffer* command
 	[encoder dispatchThreadgroupsWithIndirectBuffer: buffer indirectBufferOffset: offset
 		threadsPerThreadgroup: MTLSizeMake(groupX, groupY, groupZ)];
 	return true;
+#else
+	DS_UNUSED(commandBuffer);
+	DS_UNUSED(computePipeline);
+	DS_UNUSED(buffer);
+	DS_UNUSED(offset);
+	DS_UNUSED(groupX);
+	DS_UNUSED(groupY);
+	DS_UNUSED(groupZ);
+	return false;
+#endif
 }
 
 bool dsMTLHardwareCommandBuffer_pushDebugGroup(dsCommandBuffer* commandBuffer, const char* name)

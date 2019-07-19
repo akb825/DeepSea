@@ -254,7 +254,7 @@ static MTLRenderPassDescriptor* createRenderPassDescriptor(const dsRenderPass* r
 		{
 			dsGfxFormat format = dsFramebuffer_getSurfaceFormat(commandBuffer->renderer, surface);
 			DS_ASSERT(colorAttachment->attachmentIndex < mtlCommandBuffer->clearValueCount);
-			colorDescriptor.clearColor = dsGetClearColor(format,
+			colorDescriptor.clearColor = dsGetMTLClearColor(format,
 				&mtlCommandBuffer->clearValues[colorAttachment->attachmentIndex].colorValue);
 		}
 	}

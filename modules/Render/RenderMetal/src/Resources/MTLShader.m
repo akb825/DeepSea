@@ -96,8 +96,13 @@ static MTLSamplerAddressMode getAddressMode(mslAddressMode mode)
 		case mslAddressMode_ClampToEdge:
 			return MTLSamplerAddressModeClampToEdge;
 #if DS_MAC
+#if __MAC_OS_X_VERSION_MIN_REQUIRED >= 101200
 		case mslAddressMode_ClampToBorder:
 			return MTLSamplerAddressModeClampToBorderColor;
+#else
+		case mslAddressMode_ClampToBorder:
+			return MTLSamplerAddressModeClampToEdge;
+#endif
 		case mslAddressMode_MirrorOnce:
 			return MTLSamplerAddressModeMirrorClampToEdge;
 #else
@@ -112,7 +117,7 @@ static MTLSamplerAddressMode getAddressMode(mslAddressMode mode)
 	}
 }
 
-#if DS_MAC
+#if DS_MAC && __MAC_OS_X_VERSION_MIN_REQUIRED >= 101200
 static MTLSamplerBorderColor getBorderColor(mslBorderColor color)
 {
 	switch (color)
@@ -194,7 +199,7 @@ static id<MTLSamplerState> createSampler(dsRenderer* renderer, const mslSamplerS
 	descriptor.sAddressMode = getAddressMode(samplerState->addressModeU);
 	descriptor.tAddressMode = getAddressMode(samplerState->addressModeV);
 	descriptor.rAddressMode = getAddressMode(samplerState->addressModeW);
-#if DS_MAC
+#if DS_MAC && __MAC_OS_X_VERSION_MIN_REQUIRED >= 101200
 	descriptor.borderColor = getBorderColor(samplerState->borderColor);
 #endif
 

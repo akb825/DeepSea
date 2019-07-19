@@ -266,12 +266,13 @@ static id<MTLCommandBuffer> processResources(dsMTLRenderer* renderer)
 }
 
 static bool bindVertexBuffers(dsCommandBuffer* commandBuffer, const dsShader* shader,
-	const dsDrawGeometry* geometry)
+	const dsDrawGeometry* geometry, int32_t vertexOffset)
 {
 	dsMTLCommandBuffer* mtlCommandBuffer = (dsMTLCommandBuffer*)commandBuffer;
 	const dsMTLShader* mtlShader = (const dsMTLShader*)shader;
 	if (mtlCommandBuffer->boundGeometry == geometry &&
-		mtlCommandBuffer->firstVertexBuffer == mtlShader->firstVertexBuffer)
+		mtlCommandBuffer->firstVertexBuffer == mtlShader->firstVertexBuffer &&
+		mtlCommandBuffer->vertexOffset == vertexOffset)
 	{
 		return true;
 	}
@@ -287,8 +288,9 @@ static bool bindVertexBuffers(dsCommandBuffer* commandBuffer, const dsShader* sh
 		if (!mtlBuffer)
 			return false;
 
-		if (!dsMTLCommandBuffer_bindBufferUniform(commandBuffer, mtlBuffer, vertexBuffer->offset,
-				bufferIndex, DS_MATERIAL_UNKNOWN))
+		size_t offset = vertexBuffer->offset + vertexBuffer->format.size*vertexOffset;
+		if (!dsMTLCommandBuffer_bindBufferUniform(commandBuffer, mtlBuffer, offset, bufferIndex,
+				DS_MATERIAL_UNKNOWN))
 		{
 			return false;
 		}
@@ -296,6 +298,7 @@ static bool bindVertexBuffers(dsCommandBuffer* commandBuffer, const dsShader* sh
 
 	mtlCommandBuffer->boundGeometry = geometry;
 	mtlCommandBuffer->firstVertexBuffer = mtlShader->firstVertexBuffer;
+	mtlCommandBuffer->vertexOffset = vertexOffset;
 	return true;
 }
 
@@ -447,7 +450,7 @@ bool dsMTLRenderer_clearColorSurface(dsRenderer* renderer, dsCommandBuffer* comm
 		}
 
 		return dsMTLCommandBuffer_clearColorSurface(commandBuffer, texture, resolveTexture,
-			dsGetClearColor(format, colorValue));
+			dsGetMTLClearColor(format, colorValue));
 	}
 }
 
@@ -539,7 +542,7 @@ bool dsMTLRenderer_draw(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 		if (!pipeline)
 			return false;
 
-		if (!bindVertexBuffers(commandBuffer, shader, geometry))
+		if (!bindVertexBuffers(commandBuffer, shader, geometry, 0))
 			return false;
 
 		return dsMTLCommandBuffer_draw(commandBuffer, pipeline, drawRange, primitiveType);
@@ -573,7 +576,8 @@ bool dsMTLRenderer_drawIndexed(dsRenderer* renderer, dsCommandBuffer* commandBuf
 		if (!indexBuffer)
 			return false;
 
-		if (!bindVertexBuffers(commandBuffer, shader, geometry))
+		int32_t vertexOffset = renderer->supportsStartInstance ? 0 : drawRange->vertexOffset;
+		if (!bindVertexBuffers(commandBuffer, shader, geometry, vertexOffset))
 			return false;
 
 		return dsMTLCommandBuffer_drawIndexed(commandBuffer, pipeline, indexBuffer,
@@ -608,7 +612,7 @@ bool dsMTLRenderer_drawIndirect(dsRenderer* renderer, dsCommandBuffer* commandBu
 		if (!mtlIndirectBuffer)
 			return false;
 
-		if (!bindVertexBuffers(commandBuffer, shader, geometry))
+		if (!bindVertexBuffers(commandBuffer, shader, geometry, 0))
 			return false;
 
 		return dsMTLCommandBuffer_drawIndirect(commandBuffer, pipeline, mtlIndirectBuffer, offset,
@@ -648,7 +652,7 @@ bool dsMTLRenderer_drawIndexedIndirect(dsRenderer* renderer, dsCommandBuffer* co
 		if (!mtlIndirectBuffer)
 			return false;
 
-		if (!bindVertexBuffers(commandBuffer, shader, geometry))
+		if (!bindVertexBuffers(commandBuffer, shader, geometry, 0))
 			return false;
 
 		return dsMTLCommandBuffer_drawIndexedIndirect(commandBuffer, pipeline, indexBuffer,
@@ -858,7 +862,14 @@ dsRenderer* dsMTLRenderer_create(dsAllocator* allocator, const dsRendererOptions
 		// Enough optimizations that might as well consider multidraw native.
 		baseRenderer->hasNativeMultidraw = true;
 		baseRenderer->supportsInstancedDrawing = true;
+#if DS_MAC
 		baseRenderer->supportsStartInstance = true;
+#elif __IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
+		baseRenderer->supportsStartInstance =
+			[device supportsFeatureSet: MTLFeatureSet_iOS_GPUFamily3_v1];
+#else
+		baseRenderer->supportsStartInstance = true;
+#endif
 		baseRenderer->defaultAnisotropy = 1.0f;
 
 		baseRenderer->resourceManager = dsMTLResourceManager_create(allocator, baseRenderer);
