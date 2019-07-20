@@ -35,7 +35,7 @@ double dsRandomDouble(uint32_t* seed, double minVal, double maxVal)
 
 int dsRandomInt(uint32_t* seed, int minVal, int maxVal)
 {
-	int range = maxVal - minVal;
-	double baseVal = (double)dsRandom(seed)/DS_RANDOM_MAX;
-	return (int)round(baseVal*range) + minVal;
+	int range = maxVal - minVal + 1;
+	double baseVal = (double)dsRandom(seed)/(DS_RANDOM_MAX + 1);
+	return (int)floor(baseVal*range) + minVal;
 }
