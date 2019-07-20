@@ -952,9 +952,19 @@ bool dsMTLHardwareCommandBuffer_draw(dsCommandBuffer* commandBuffer,
 		mtlCommandBuffer->boundPipeline = (__bridge CFTypeRef)pipeline;
 	}
 
-	[encoder drawPrimitives: getPrimitiveType(primitiveType) vertexStart: drawRange->firstVertex
-		vertexCount: drawRange->vertexCount instanceCount: drawRange->instanceCount
-		baseInstance: drawRange->firstInstance];
+#if DS_MAC || __IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
+	if (commandBuffer->renderer->supportsStartInstance || DS_MAC)
+	{
+		[encoder drawPrimitives: getPrimitiveType(primitiveType) vertexStart: drawRange->firstVertex
+			vertexCount: drawRange->vertexCount instanceCount: drawRange->instanceCount
+			baseInstance: drawRange->firstInstance];
+	}
+	else
+#endif
+	{
+		[encoder drawPrimitives: getPrimitiveType(primitiveType) vertexStart: drawRange->firstVertex
+			vertexCount: drawRange->vertexCount instanceCount: drawRange->instanceCount];
+	}
 	return true;
 }
 

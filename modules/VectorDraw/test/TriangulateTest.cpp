@@ -69,7 +69,7 @@ TEST_F(TriangulateTest, Triangle)
 
 	dsGfxBuffer* buffer = dsVectorImage_getBuffer(image);
 	ASSERT_TRUE(buffer);
-	ASSERT_EQ(sizeof(ShapeVertex)*3 + sizeof(uint16_t)*3, buffer->size);
+	ASSERT_LE(sizeof(ShapeVertex)*3 + sizeof(uint16_t)*3, buffer->size);
 
 	const void* data = dsGfxBuffer_map(buffer, dsGfxBufferMap_Read, 0, buffer->size);
 	ASSERT_TRUE(data);
@@ -239,7 +239,7 @@ TEST_F(TriangulateTest, Complex)
 
 	dsGfxBuffer* buffer = dsVectorImage_getBuffer(image);
 	ASSERT_TRUE(buffer);
-	ASSERT_EQ(sizeof(ShapeVertex)*39 + sizeof(uint16_t)*111, buffer->size);
+	ASSERT_LE(sizeof(ShapeVertex)*39 + sizeof(uint16_t)*111, buffer->size);
 
 	const void* data = dsGfxBuffer_map(buffer, dsGfxBufferMap_Read, 0, buffer->size);
 	ASSERT_TRUE(data);
@@ -526,7 +526,7 @@ TEST_F(TriangulateTest, TriangleNoClose)
 
 	dsGfxBuffer* buffer = dsVectorImage_getBuffer(image);
 	ASSERT_TRUE(buffer);
-	ASSERT_EQ(sizeof(ShapeVertex)*3 + sizeof(uint16_t)*3, buffer->size);
+	ASSERT_LE(sizeof(ShapeVertex)*3 + sizeof(uint16_t)*3, buffer->size);
 
 	const void* data = dsGfxBuffer_map(buffer, dsGfxBufferMap_Read, 0, buffer->size);
 	ASSERT_TRUE(data);
@@ -609,7 +609,7 @@ TEST_F(TriangulateTest, ClosePointOutside)
 
 	dsGfxBuffer* buffer = dsVectorImage_getBuffer(image);
 	ASSERT_TRUE(buffer);
-	ASSERT_EQ(sizeof(ShapeVertex)*10 + sizeof(uint16_t)*24, buffer->size);
+	ASSERT_LE(sizeof(ShapeVertex)*10 + sizeof(uint16_t)*24, buffer->size);
 
 	const void* data = dsGfxBuffer_map(buffer, dsGfxBufferMap_Read, 0, buffer->size);
 	ASSERT_TRUE(data);
@@ -731,7 +731,7 @@ TEST_F(TriangulateTest, ClosePointInside)
 
 	dsGfxBuffer* buffer = dsVectorImage_getBuffer(image);
 	ASSERT_TRUE(buffer);
-	ASSERT_EQ(sizeof(ShapeVertex)*9 + sizeof(uint16_t)*21, buffer->size);
+	ASSERT_LE(sizeof(ShapeVertex)*9 + sizeof(uint16_t)*21, buffer->size);
 
 	const void* data = dsGfxBuffer_map(buffer, dsGfxBufferMap_Read, 0, buffer->size);
 	ASSERT_TRUE(data);

@@ -699,24 +699,11 @@ dsGfxBuffer* dsVectorScratchData_createGfxBuffer(dsVectorScratchData* data,
 	size_t imageVertexSize = data->imageVertexCount*sizeof(ImageVertex);
 	size_t indexSize = data->indexCount*sizeof(uint16_t);
 
-	size_t alignedShapeVertexSize = shapeVertexSize;
-	size_t alignedImageVertexSize = imageVertexSize;
+	// End of the buffer must be a multiple of 4 for some platforms.
 	size_t alignedIndexSize = indexSize;
+	alignedIndexSize = DS_CUSTOM_ALIGNED_SIZE(indexSize, 4);
 
-	// Metal has some interesting alignment restrictions.
-	if (resourceManager->renderer->rendererID == DS_FOURCC('M', 'T', 'L', 0))
-	{
-		// Need to align to uniform block for the first set of vertices so the second set can be
-		// aligned.
-		alignedShapeVertexSize = DS_CUSTOM_ALIGNED_SIZE(shapeVertexSize,
-			resourceManager->minUniformBlockAlignment);
-		// Second set should be fine as-is.
-		alignedImageVertexSize = imageVertexSize;
-		// End of the buffer must be a multiple of 4.
-		alignedIndexSize = DS_CUSTOM_ALIGNED_SIZE(indexSize, 4);
-	}
-
-	size_t totalSize = alignedShapeVertexSize + alignedImageVertexSize + alignedIndexSize;
+	size_t totalSize = shapeVertexSize + imageVertexSize + alignedIndexSize;
 	if (totalSize == 0)
 		return NULL;
 
@@ -732,11 +719,11 @@ dsGfxBuffer* dsVectorScratchData_createGfxBuffer(dsVectorScratchData* data,
 
 	size_t offset = 0;
 	memcpy(data->combinedBuffer + offset, data->shapeVertices, shapeVertexSize);
-	offset += alignedShapeVertexSize;
+	offset += shapeVertexSize;
 
 	data->imageVertexOffset = (uint32_t)offset;
 	memcpy(data->combinedBuffer + offset, data->imageVertices, imageVertexSize);
-	offset += alignedImageVertexSize;
+	offset += imageVertexSize;
 
 	data->indexOffset = (uint32_t)offset;
 	memcpy(data->combinedBuffer + offset, data->indices, indexSize);
