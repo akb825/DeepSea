@@ -199,6 +199,9 @@ dsWindow* dsSDLWindow_create(dsApplication* application, dsAllocator* allocator,
 		return NULL;
 	}
 
+	// Ensure that the SDL window's display mode matches what we expect.
+	dsSDLWindow_setDisplayMode(application, baseWindow, &baseWindow->displayMode);
+
 	return baseWindow;
 }
 
