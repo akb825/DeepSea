@@ -17,8 +17,8 @@
 #pragma once
 
 #include <DeepSea/Core/Config.h>
+#include <DeepSea/Scene/Nodes/Types.h>
 #include <DeepSea/Scene/Export.h>
-#include <DeepSea/Scene/Types.h>
 
 #ifdef __cplusplus
 extern "C"

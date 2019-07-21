@@ -387,6 +387,18 @@ dsSceneModelList* dsSceneModelList_create(dsAllocator* allocator, const char* na
 		return NULL;
 	}
 
+	uint32_t valueCount = 0;
+	for (uint32_t i = 0; i < instanceDataCount; ++i)
+	{
+		if (!instanceData[i])
+		{
+			errno = EINVAL;
+			destroyInstanceData(instanceData, instanceDataCount);
+			return NULL;
+		}
+		valueCount += instanceData[i]->valueCount;
+	}
+
 	size_t nameLen = strlen(name);
 	size_t globalDataSize = instanceDataCount > 0 ?
 		dsSharedMaterialValues_fullAllocSize(instanceDataCount) : 0;
@@ -426,9 +438,14 @@ dsSceneModelList* dsSceneModelList_create(dsAllocator* allocator, const char* na
 
 	if (instanceDataCount > 0)
 	{
-		modelList->instanceValues = dsSharedMaterialValues_create((dsAllocator*)&bufferAlloc,
-			instanceDataCount);
-		DS_ASSERT(modelList->instanceValues);
+		if (valueCount > 0)
+		{
+			modelList->instanceValues = dsSharedMaterialValues_create((dsAllocator*)&bufferAlloc,
+				instanceDataCount);
+			DS_ASSERT(modelList->instanceValues);
+		}
+		else
+			modelList->instanceValues = NULL;
 		modelList->instanceData = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsSceneInstanceData*,
 			instanceDataCount);
 		DS_ASSERT(modelList->instanceData);

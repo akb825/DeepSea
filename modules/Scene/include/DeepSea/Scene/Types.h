@@ -17,8 +17,7 @@
 #pragma once
 
 #include <DeepSea/Core/Config.h>
-#include <DeepSea/Geometry/Types.h>
-#include <DeepSea/Render/Types.h>
+#include <DeepSea/Scene/Nodes/Types.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -95,64 +94,6 @@ typedef struct dsScene dsScene;
 typedef struct dsView dsView;
 
 /**
- * @brief ID for a type of a scene node.
- *
- * The type should be declared as a static variable.
- *
- * If the parent needs to be set, then it should be done using atomic operations during
- * construction. This avoids complications for static initialization, and the parent will only ever
- * be requested for the type stored on a dsSceneNode instance.
- */
-typedef struct dsSceneNodeType dsSceneNodeType;
-
-/** @copydoc dsSceneNodeType */
-struct dsSceneNodeType
-{
-	/**
-	 * @brief The parent type of the node, or NULL if there is no base type.
-	 */
-	const dsSceneNodeType* parent;
-};
-
-/**
- * @brief Struct for a node within a scene graph.
- *
- * Scene nodes are reference counted. They may be referenced multiple times, or even within
- * different scenes. The reference count starts at 1 on creation and once the last reference has
- * been freed the node will be deleted.
- *
- * Different implementations can effectively subclass this type by having it as the first member of
- * the structure. This can be done to add additional data to the structure and have it be freely
- * casted between dsSceneItemList and the true internal type.
- *
- * @remark A node may not be a sibbling with itself, sharing the same direct parent. If you want to
- * have the same node appear multiple times, there must be a separate parent between them. For
- * example, the following is not allowed:
- * ```
- *     A
- *    / \
- *   B   B
- * ```
- * However, the following is allowed:
- * ```
- *     A
- *    / \
- *   C   D
- *   |   |
- *   B   B
- * ```
- *
- * @remark None of the members should be modified outside of the implementation.
- * @see SceneNode.h
- */
-typedef struct dsSceneNode dsSceneNode;
-
-/**
- * @brief Struct for a node in the scene tree, which reflects the scene graph.
- */
-typedef struct dsSceneTreeNode dsSceneTreeNode;
-
-/**
  * @brief Struct for holding a collection of resources used in a scene.
  *
  * The resources held in the collection may be referenced by name, and allow a way to easily access
@@ -183,6 +124,82 @@ typedef struct dsSceneInstanceInfo
 } dsSceneInstanceInfo;
 
 /**
+ * @brief Struct for managing data that's each instance being drawn.
+ *
+ * Different implementations can effectively subclass this type by having it as the first member of
+ * the structure. This can be done to add additional data to the structure and have it be freely
+ * casted between dsSceneItemList and the true internal type.
+ *
+ * @see SceneInstanceData.h
+ */
+typedef struct dsSceneInstanceData dsSceneInstanceData;
+
+/**
+ * @brief Function to populate scene instance data.
+ * @remark errno should be set on failure.
+ * @param instanceData The instance data.
+ * @param view The view being drawn.
+ * @param instances The list of instances.
+ * @param instanceCount The number of instances.
+ * @return False if an error occurred.
+ */
+typedef bool (*dsPopulateSceneInstanceDataFunction)(dsSceneInstanceData* instanceData,
+	const dsView* view, const dsSceneInstanceInfo* instances, uint32_t instanceCount);
+
+/**
+ * @brief Function for binding scene instance data.
+ * @remark errno should be set on failure.
+ * @param instanceData The instance data.
+ * @param index The index of the instance to set.
+ * @param values The material values to bind to.
+ * @return False if an error occurred.
+ */
+typedef bool (*dsBindSceneInstanceDataFunction)(dsSceneInstanceData* instanceData, uint32_t index,
+	dsSharedMaterialValues* values);
+
+/**
+ * @brief Function for destroying scene instance data.
+ * @remark errno should be set on failure.
+ * @param instanceData The instance data.
+ * @return False if an error occurred.
+ */
+typedef bool (*dsFinishSceneInstanceDataFunction)(dsSceneInstanceData* instanceData);
+
+/** @copydoc dsSceneInstanceData */
+struct dsSceneInstanceData
+{
+	/**
+	 * @brief The allocator the instance data was created with.
+	 */
+	dsAllocator* allocator;
+
+	/**
+	 * @brief The number of values that will be stored on dsSharedMaterialValues.
+	 */
+	uint32_t valueCount;
+
+	/**
+	 * @brief Data populate function.
+	 */
+	dsPopulateSceneInstanceDataFunction populateDataFunc;
+
+	/**
+	 * @brief Bind instance function.
+	 */
+	dsBindSceneInstanceDataFunction bindInstanceFunc;
+
+	/**
+	 * @brief Finish function.
+	 */
+	dsFinishSceneInstanceDataFunction finishFunc;
+
+	/**
+	 * @brief Destroy function.
+	 */
+	dsFinishSceneInstanceDataFunction destroyFunc;
+};
+
+/**
  * @brief Function for populating the underlying instance data.
  *
  * The data is stored with the same packing rules as uniform blocks. (or std140)
@@ -194,28 +211,17 @@ typedef struct dsSceneInstanceInfo
  * @param data The data to populate.
  * @param stride The stride between each instance in the data.
  *
- * @see SceneInstanceData.h
+ * @see SceneInstanceVariables.h
  */
-typedef void (*dsPopulateSceneInstanceDataFunction)(void* userData, const dsView* view,
+typedef void (*dsPopulateSceneInstanceVariablesFunction)(void* userData, const dsView* view,
 	const dsSceneInstanceInfo* instances, uint32_t instanceCount, uint8_t* data, uint32_t stride);
 
 /**
- * @brief Function to destroy the user data associated with dsSceneInstanceData.
+ * @brief Function to destroy the user data associated with dsSceneInstanceVariables.
  * @param userData The user data to destroy.
- *
- * @see SceneInstanceData.h
+ * @see SceneInstanceVariables.h
  */
-typedef void (*dsDestroySceneInstanceUserDataFunction)(void* userData);
-
-/**
- * @brief Struct for controlling data that's set for each instance being drawn.
- *
- * This fulfills a role similar to dsShaderVariableGroup, excpet it can be used efficiently for
- * constantly changing values.
- *
- * @see SceneInstanceData.h
- */
-typedef struct dsSceneInstanceData dsSceneInstanceData;
+typedef void (*dsDestroySceneInstanceVariablesUserDataFunction)(void* userData);
 
 /**
  * @brief Function for adding a node to the item list.
@@ -256,19 +262,6 @@ typedef void (*dsCommitSceneItemListFunction)(dsSceneItemList* itemList, const d
  * @param itemList The scene item list to destroy.
  */
 typedef void (*dsDestroySceneItemListFunction)(dsSceneItemList* itemList);
-
-/**
- * @brief Function to destroy scene node user data.
- * @param node The node the user data was set on.
- * @param data The user data for the node.
- */
-typedef void (*dsDestroySceneNodeUserDataFunction)(dsSceneNode* node, void* data);
-
-/**
- * @brief Function for destroying a scene ndoe.
- * @param node The node to destroy.
- */
-typedef void (*dsDestroySceneNodeFunction)(dsSceneNode* node);
 
 /** @copydoc dsSceneItemList */
 struct dsSceneItemList
@@ -387,262 +380,6 @@ typedef struct dsScenePipelineItem
 	 */
 	dsSceneItemList* computeItems;
 } dsScenePipelineItem;
-
-/** @copydoc dsSceneNode */
-struct dsSceneNode
-{
-	/**
-	 * @brief The allocator for the node.
-	 */
-	dsAllocator* allocator;
-
-	/**
-	 * @brief The type of the node.
-	 */
-	const dsSceneNodeType* type;
-
-	/**
-	 * @brief The children of the node.
-	 */
-	dsSceneNode** children;
-
-	/**
-	 * @brief The draw lists that will use the node.
-	 */
-	const char** drawLists;
-
-	/**
-	 * @brief The tree nodes that correspond to this node in various scenes.
-	 *
-	 * This is for internal management of the scene graph.
-	 */
-	dsSceneTreeNode** treeNodes;
-
-	/**
-	 * @brief The number of children.
-	 */
-	uint32_t childCount;
-
-	/**
-	 * @brief The maximum number of children.
-	 */
-	uint32_t maxChildren;
-
-	/**
-	 * @brief The number of draw lists.
-	 */
-	uint32_t drawListCount;
-
-	/**
-	 * @brief The number of tree nodes.
-	 */
-	uint32_t treeNodeCount;
-
-	/**
-	 * @brief The maximum number of tree nodes.
-	 */
-	uint32_t maxTreeNodes;
-
-	/**
-	 * @brief The reference count for the node.
-	 *
-	 * This will start at 1 on creation.
-	 */
-	uint32_t refCount;
-
-	/**
-	 * @brief Custom user data to store with the node.
-	 */
-	void* userData;
-
-	/**
-	 * @brief Function called on destruction to destroy the user data.
-	 */
-	dsDestroySceneNodeUserDataFunction destroyUserDataFunc;
-
-	/**
-	 * @brief Destroy function.
-	 */
-	dsDestroySceneNodeFunction destroyFunc;
-};
-
-/**
- * @brief Scene node implementation that contains a transform for any subnodes.
- * @remark None of the members should be modified outside of the implementation.
- * @see SceneTransformNode
- */
-typedef struct dsSceneTransformNode
-{
-	/**
-	 * @brief The base node.
-	 */
-	dsSceneNode node;
-
-	/**
-	 * @brief The transform for the node.
-	 *
-	 * This is the local transform for this node relative to any parent nodes.
-	 *
-	 * This should not be assigned directly since it won't udpate the transforms for any children.
-	 * Instead, dsSceneTransformNode_setTransform() should be called. The children will then have
-	 * their transforms updated in the call to dsScene_update().
-	 */
-	dsMatrix44f transform;
-} dsSceneTransformNode;
-
-/**
- * @brief Info for what to draw inside a model node when initializing.
- * @see SceneDrawNode.h
- */
-typedef struct dsSceneModelInitInfo
-{
-	/**
-	 * @brief The shader to draw the model with.
-	 */
-	dsShader* shader;
-
-	/**
-	 * @brief The material to draw the model with.
-	 */
-	dsMaterial* material;
-
-	/**
-	 * @brief Geometry instance to draw.
-	 */
-	dsDrawGeometry* geometry;
-
-	/**
-	 * @brief The distance range to draw the model.
-	 *
-	 * Lower range is inclusive, upperrange is exclusive. If the x value is larger than the y value,
-	 * then the model will always be drawn.
-	 */
-	dsVector2f distanceRange;
-
-	union
-	{
-		/**
-		 * @brief The draw range.
-		 *
-		 * This will be used if geometry doesn't have an index buffer.
-		 */
-		dsDrawRange drawRange;
-
-		/**
-		 * @brief The indexed draw range.
-		 *
-		 * This will be used if geometry has an index buffer.
-		 */
-		dsDrawIndexedRange drawIndexedRange;
-	};
-
-	/**
-	 * @brief The primitive type for the draw.
-	 */
-	dsPrimitiveType primitiveType;
-
-	/**
-	 * @brief The name for the list to use the model with.
-	 */
-	const char* listName;
-} dsSceneModelInitInfo;
-
-/**
- * @brief Info for what to draw inside a model node.
- * @see SceneDrawNode.h
- */
-typedef struct dsSceneModelInfo
-{
-	/**
-	 * @brief The shader to draw the model with.
-	 */
-	dsShader* shader;
-
-	/**
-	 * @brief The material to draw the model with.
-	 */
-	dsMaterial* material;
-
-	/**
-	 * @brief Geometry instance to draw.
-	 */
-	dsDrawGeometry* geometry;
-
-	/**
-	 * @brief The distance range to draw the model.
-	 *
-	 * Lower range is inclusive, upperrange is exclusive. If the x value is larger than the y value,
-	 * then the model will always be drawn.
-	 */
-	dsVector2f distanceRange;
-
-	union
-	{
-		/**
-		 * @brief The draw range.
-		 *
-		 * This will be used if geometry doesn't have an index buffer.
-		 */
-		dsDrawRange drawRange;
-
-		/**
-		 * @brief The indexed draw range.
-		 *
-		 * This will be used if geometry has an index buffer.
-		 */
-		dsDrawIndexedRange drawIndexedRange;
-	};
-
-	/**
-	 * @brief The primitive type for the draw.
-	 */
-	dsPrimitiveType primitiveType;
-
-	/**
-	 * @brief The name ID for the list to use the model with.
-	 */
-	uint32_t listNameID;
-} dsSceneModelInfo;
-
-/**
- * @brief Scene node implementation that contains model geometry to draw.
- * @remark None of the members should be modified outside of the implementation.
- * @see SceneModelNode.h
- */
-typedef struct dsSceneModelNode
-{
-	/**
-	 * @brief The base node.
-	 */
-	dsSceneNode node;
-
-	/**
-	 * @brief The models that will be drawn within the ndoe.
-	 */
-	dsSceneModelInfo* models;
-
-	/**
-	 * @brief The resources to keep a reference to.
-	 *
-	 * This will ensure that any resources used within models are kept alive.
-	 */
-	dsSceneResources** resources;
-
-	/**
-	 * @brief The number of models.
-	 */
-	uint32_t modelCount;
-
-	/**
-	 * @brief The number of resources.
-	 */
-	uint32_t resourceCount;
-
-	/**
-	 * @brief The bounding box for the model.
-	 */
-	dsOrientedBox3f bounds;
-} dsSceneModelNode;
 
 /** @copydoc dsView */
 struct dsView

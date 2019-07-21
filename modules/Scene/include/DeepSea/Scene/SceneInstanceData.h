@@ -38,26 +38,6 @@ extern "C"
  */
 
 /**
- * @brief Creates a scene instance data object.
- * @remark errno will be set on failure.
- * @param allocator The allocator to create the data with. This must support freeing memory.
- * @param resourceManager The resource manager to create any resources with.
- * @param dataDesc The description for the data held for each instance. This must remain alive at
- *     least as long as the instance data object.
- * @param nameID The name ID to use when setting the buffer data on the dsSharedMaterialValues
- *     instance.
- * @param populateDataFunc Function to populate the instance data.
- * @param userData The user data that will be provided to populateDataFunc. This may be NULL.
- * @param destroyUserDataFunc Function to destroy the user data. This may be NULL. This will be
- *     called if creation fails.
- * @return The instance data or NULL if an error occurred.
- */
-DS_SCENE_EXPORT dsSceneInstanceData* dsSceneInstanceData_create(dsAllocator* allocator,
-	dsResourceManager* resourceManager, const dsShaderVariableGroupDesc* dataDesc, uint32_t nameID,
-	dsPopulateSceneInstanceDataFunction populateDataFunc, void* userData,
-	dsDestroySceneInstanceUserDataFunction destroyUserDataFunc);
-
-/**
  * @brief Populates the instance data.
  * @remark errno will be set on failure.
  * @param instanceData The instance data.
@@ -77,7 +57,7 @@ DS_SCENE_EXPORT bool dsSceneInstanceData_populateData(dsSceneInstanceData* insta
  * @param values The values to bind to.
  * @return False if an error occurred.
  */
-DS_SCENE_EXPORT bool dsSceneInstanceData_bindInstance(const dsSceneInstanceData* instanceData,
+DS_SCENE_EXPORT bool dsSceneInstanceData_bindInstance(dsSceneInstanceData* instanceData,
 	uint32_t index, dsSharedMaterialValues* values);
 
 /**
@@ -102,4 +82,3 @@ DS_SCENE_EXPORT bool dsSceneInstanceData_destroy(dsSceneInstanceData* instanceDa
 #ifdef __cplusplus
 }
 #endif
-
