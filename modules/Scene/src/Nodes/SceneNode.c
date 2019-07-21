@@ -40,10 +40,10 @@ size_t dsSceneNode_drawListsAllocSize(const char** drawLists, uint32_t drawListC
 }
 
 bool dsSceneNode_initialize(dsSceneNode* node, dsAllocator* allocator,
-	dsSceneNodeType type, const char** drawLists, uint32_t drawListCount,
+	const dsSceneNodeType* type, const char** drawLists, uint32_t drawListCount,
 	dsDestroySceneNodeFunction destroyFunc)
 {
-	if (!node || !allocator || !destroyFunc)
+	if (!node || !allocator || !type || !destroyFunc)
 	{
 		errno = EINVAL;
 		return false;
@@ -71,6 +71,21 @@ bool dsSceneNode_initialize(dsSceneNode* node, dsAllocator* allocator,
 	node->destroyUserDataFunc = NULL;
 	node->destroyFunc = destroyFunc;
 	return true;
+}
+
+bool dsSceneNode_isOfType(const dsSceneNode* node, const dsSceneNodeType* type)
+{
+	if (!node || !node->type || !type)
+		return false;
+
+	const dsSceneNodeType* nodeType = node->type;
+	do
+	{
+		if (nodeType == type)
+			return true;
+		nodeType = nodeType->parent;
+	} while(nodeType);
+	return false;
 }
 
 bool dsSceneNode_addChild(dsSceneNode* node, dsSceneNode* child)

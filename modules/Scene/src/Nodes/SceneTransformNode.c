@@ -23,14 +23,14 @@
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Scene/Nodes/SceneNode.h>
 
-static int nodeType;
+static dsSceneNodeType nodeType;
 
 static void destroy(dsSceneNode* node)
 {
 	DS_VERIFY(dsAllocator_free(node->allocator, node));
 }
 
-dsSceneNodeType dsSceneTransformNode_type(void)
+const dsSceneNodeType* dsSceneTransformNode_type(void)
 {
 	return &nodeType;
 }

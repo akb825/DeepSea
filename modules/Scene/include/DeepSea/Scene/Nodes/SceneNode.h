@@ -57,8 +57,16 @@ DS_SCENE_EXPORT size_t dsSceneNode_drawListsAllocSize(const char** drawLists,
  * @return False if the parameters are invalid.
  */
 DS_SCENE_EXPORT bool dsSceneNode_initialize(dsSceneNode* node, dsAllocator* allocator,
-	dsSceneNodeType type, const char** drawLists, uint32_t drawListCount,
+	const dsSceneNodeType* type, const char** drawLists, uint32_t drawListCount,
 	dsDestroySceneNodeFunction destroyFunc);
+
+/**
+ * @brief Returns whether or nto a scene node is of a specific type.
+ * @param node The node to check the type of.
+ * @param type The type to check against node.
+ * @return True if the type of the node, or a parent type, is type.
+ */
+DS_SCENE_EXPORT bool dsSceneNode_isOfType(const dsSceneNode* node, const dsSceneNodeType* type);
 
 /**
  * @brief Adds a child to a node.

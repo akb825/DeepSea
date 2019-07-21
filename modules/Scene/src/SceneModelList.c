@@ -32,6 +32,7 @@
 #include <DeepSea/Render/Resources/SharedMaterialValues.h>
 #include <DeepSea/Render/Renderer.h>
 #include <DeepSea/Scene/Nodes/SceneModelNode.h>
+#include <DeepSea/Scene/Nodes/SceneNode.h>
 #include <DeepSea/Scene/SceneInstanceData.h>
 
 #include <stdlib.h>
@@ -313,7 +314,7 @@ static void destroyInstanceData(dsSceneInstanceData* const* instanceData,
 uint64_t dsSceneModelList_addNode(dsSceneItemList* itemList, dsSceneNode* node,
 	const dsMatrix44f* transform)
 {
-	if (node->type != dsSceneModelNode_type())
+	if (!dsSceneNode_isOfType(node, dsSceneModelNode_type()))
 		return DS_NO_SCENE_NODE;
 
 	dsSceneModelList* modelList = (dsSceneModelList*)itemList;

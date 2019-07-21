@@ -97,11 +97,22 @@ typedef struct dsView dsView;
 /**
  * @brief ID for a type of a scene node.
  *
- * Specific node implementations should declare an arbitrary static int variable, the address of
- * which will be the ID of that node type. This guarantees a unique identifier that can be ued
- * program-wide.
+ * The type should be declared as a static variable.
+ *
+ * If the parent needs to be set, then it should be done using atomic operations during
+ * construction. This avoids complications for static initialization, and the parent will only ever
+ * be requested for the type stored on a dsSceneNode instance.
  */
-typedef const int* dsSceneNodeType;
+typedef struct dsSceneNodeType dsSceneNodeType;
+
+/** @copydoc dsSceneNodeType */
+struct dsSceneNodeType
+{
+	/**
+	 * @brief The parent type of the node, or NULL if there is no base type.
+	 */
+	const dsSceneNodeType* parent;
+};
 
 /**
  * @brief Struct for a node within a scene graph.
@@ -388,7 +399,7 @@ struct dsSceneNode
 	/**
 	 * @brief The type of the node.
 	 */
-	dsSceneNodeType type;
+	const dsSceneNodeType* type;
 
 	/**
 	 * @brief The children of the node.

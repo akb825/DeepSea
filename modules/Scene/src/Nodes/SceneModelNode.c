@@ -31,23 +31,14 @@
 
 #define EXPECTED_MAX_NODES 256
 
-static int nodeType;
+static dsSceneNodeType nodeType;
 
-static size_t fullAllocSize(const char** drawLists, uint32_t drawListCount, uint32_t modelCount,
-	uint32_t resourceCount)
+static size_t fullAllocSize(size_t structSize, const char** drawLists, uint32_t drawListCount,
+	uint32_t modelCount, uint32_t resourceCount)
 {
-	return DS_ALIGNED_SIZE(sizeof(dsSceneModelNode)) +
-		dsSceneNode_drawListsAllocSize(drawLists, drawListCount) +
+	return DS_ALIGNED_SIZE(structSize) + dsSceneNode_drawListsAllocSize(drawLists, drawListCount) +
 		DS_ALIGNED_SIZE(sizeof(dsSceneModelInfo)*modelCount) +
 		DS_ALIGNED_SIZE(sizeof(dsSceneResources*)*resourceCount);
-}
-
-static void destroy(dsSceneNode* node)
-{
-	dsSceneModelNode* modelNode = (dsSceneModelNode*)node;
-	for (uint32_t i = 0; i < modelNode->resourceCount; ++i)
-		dsSceneResources_freeRef(modelNode->resources[i]);
-	DS_VERIFY(dsAllocator_free(node->allocator, node));
 }
 
 static void populateDrawList(const char** drawLists, uint32_t* hashes, uint32_t* drawListCount,
@@ -78,7 +69,7 @@ static void populateDrawList(const char** drawLists, uint32_t* hashes, uint32_t*
 	}
 }
 
-dsSceneNodeType dsSceneModelNode_type(void)
+const dsSceneNodeType* dsSceneModelNode_type(void)
 {
 	return &nodeType;
 }
@@ -87,7 +78,16 @@ dsSceneModelNode* dsSceneModelNode_create(dsAllocator* allocator,
 	const dsSceneModelInitInfo* models, uint32_t modelCount, dsSceneResources** resources,
 	uint32_t resourceCount, const dsOrientedBox3f* bounds)
 {
-	if (!allocator || !models || modelCount == 0 || (!resources && resourceCount > 0))
+	return dsSceneModelNode_createBase(allocator, sizeof(dsSceneModelNode), models, modelCount,
+		resources, resourceCount, bounds);
+}
+
+dsSceneModelNode* dsSceneModelNode_createBase(dsAllocator* allocator, size_t structSize,
+	const dsSceneModelInitInfo* models, uint32_t modelCount, dsSceneResources** resources,
+	uint32_t resourceCount, const dsOrientedBox3f* bounds)
+{
+	if (!allocator || structSize < sizeof(dsSceneModelNode) || !models || modelCount == 0 ||
+		(!resources && resourceCount > 0))
 	{
 		errno = EINVAL;
 		return NULL;
@@ -150,7 +150,8 @@ dsSceneModelNode* dsSceneModelNode_create(dsAllocator* allocator,
 
 	populateDrawList(drawLists, tempStringHashList, &drawListCount, models, modelCount);
 
-	size_t fullSize = fullAllocSize(drawLists, drawListCount, modelCount, resourceCount);
+	size_t fullSize = fullAllocSize(structSize, drawLists, drawListCount, modelCount,
+		resourceCount);
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 	{
@@ -165,7 +166,8 @@ dsSceneModelNode* dsSceneModelNode_create(dsAllocator* allocator,
 	dsBufferAllocator bufferAlloc;
 	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, fullSize));
 
-	dsSceneModelNode* node = DS_ALLOCATE_OBJECT(&bufferAlloc, dsSceneModelNode);
+	dsSceneModelNode* node =
+		(dsSceneModelNode*)dsAllocator_alloc((dsAllocator*)&bufferAlloc, structSize);
 	DS_ASSERT(node);
 
 	char** drawListsCopy = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char*, drawListCount);
@@ -184,7 +186,7 @@ dsSceneModelNode* dsSceneModelNode_create(dsAllocator* allocator,
 	}
 
 	if (!dsSceneNode_initialize((dsSceneNode*)node, allocator, dsSceneModelNode_type(),
-			(const char**)drawListsCopy, drawListCount, &destroy))
+			(const char**)drawListsCopy, drawListCount, &dsSceneModelNode_destroy))
 	{
 		if (allocator->freeFunc)
 			DS_VERIFY(dsAllocator_free(allocator, node));
@@ -230,4 +232,12 @@ dsSceneModelNode* dsSceneModelNode_create(dsAllocator* allocator,
 		dsOrientedBox3_makeInvalid(node->bounds);
 
 	return node;
+}
+
+void dsSceneModelNode_destroy(dsSceneNode* node)
+{
+	dsSceneModelNode* modelNode = (dsSceneModelNode*)node;
+	for (uint32_t i = 0; i < modelNode->resourceCount; ++i)
+		dsSceneResources_freeRef(modelNode->resources[i]);
+	DS_VERIFY(dsAllocator_free(node->allocator, node));
 }

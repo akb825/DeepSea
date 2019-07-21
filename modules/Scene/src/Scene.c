@@ -33,7 +33,7 @@
 
 #include <string.h>
 
-static int rootNodeType;
+static dsSceneNodeType rootNodeType;
 
 static void destroyObjects(const dsScenePipelineItem* pipeline, uint32_t pipelineCount,
 	const dsStringPool* stringPool)
