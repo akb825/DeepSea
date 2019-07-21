@@ -39,6 +39,17 @@ size_t dsSceneNode_drawListsAllocSize(const char** drawLists, uint32_t drawListC
 	return fullSize;
 }
 
+const dsSceneNodeType* dsSceneNode_setupParentType(dsSceneNodeType* type,
+	const dsSceneNodeType* parentType)
+{
+	if (!type)
+		return parentType;
+
+	dsSceneNodeType* expectedParent = NULL;
+	DS_ATOMIC_COMPARE_EXCHANGE_PTR(&type->parent, &expectedParent, &parentType, false);
+	return type;
+}
+
 bool dsSceneNode_initialize(dsSceneNode* node, dsAllocator* allocator,
 	const dsSceneNodeType* type, const char** drawLists, uint32_t drawListCount,
 	dsDestroySceneNodeFunction destroyFunc)

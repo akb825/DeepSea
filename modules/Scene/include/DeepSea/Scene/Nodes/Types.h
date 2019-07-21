@@ -33,11 +33,8 @@ extern "C"
 /**
  * @brief ID for a type of a scene node.
  *
- * The type should be declared as a static variable.
- *
- * If the parent needs to be set, then it should be done using atomic operations during
- * construction. This avoids complications for static initialization, and the parent will only ever
- * be requested for the type stored on a dsSceneNode instance.
+ * The type should be declared as a static variable. See dsSceneNode_setupParentType() for
+ * information for how to set up the parent type.
  */
 typedef struct dsSceneNodeType dsSceneNodeType;
 

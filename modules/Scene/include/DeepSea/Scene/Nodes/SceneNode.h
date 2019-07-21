@@ -44,6 +44,51 @@ DS_SCENE_EXPORT size_t dsSceneNode_drawListsAllocSize(const char** drawLists,
 	uint32_t drawListCount);
 
 /**
+ * @brief Sets up the parent type for a node.
+ *
+ * This should be called for dsSceneNode implementations that have a base type. (apart from
+ * dsSceneNode itself)
+ *
+ * In order to support further subclassing, each node should have a
+ * xxx_setupParentType(dsSceneNodeType* type) function like so:
+ *
+ * ```
+ * static dsSceneNodeType mySceneNodeType;
+ * const dsSceneNodeType* dsMySceneNode_setupParentType(dsSceneNodeType* type)
+ * {
+ *     // First guarantee that the type for dsMySceneNode is fully set up.
+ *     // Use this line if dsBaseSceneNode itself has a parent type.
+ *     dsBaseSceneNode_setupParentType(&mySceneNodeType);
+ *     // Use this line instead of the parent line if dsBaseSceneNode has no parent type.
+ *     dsSceneNode_setupParentType(&mySceneNodeType, dsBaseSceneNode_type();
+ *
+ *     // Now set up type passed in.
+ *     return dsSceneNode_setupParentType(type, &mySceneNodeType);
+ * }
+ * ```
+ *
+ * The type should be set up in the create function for your node. This guarantees that the parent
+ * type for the full hierarchy is initialized before it's ever needed.
+ *
+ * ```
+ * dsMySceneNode* dsMySceneNode_create(...)
+ * {
+ *     ...
+ *     // Pass in NULL to not set up a derived type of dsMySceneNode, but ensure the full hierarchy
+ *     // is initialized.
+ *     node->type = dsMySceneNode_setupParentType(NULL);
+ *     ...
+ * }
+ * ```
+ *
+ * @param type The type to initialize.
+ * @param parentType The parent type to set.
+ * @return type, or parentType if type is NULL.
+ */
+DS_SCENE_EXPORT const dsSceneNodeType* dsSceneNode_setupParentType(dsSceneNodeType* type,
+	const dsSceneNodeType* parentType);
+
+/**
  * @brief Initializes a scene node.
  * @remark errno will be set on failure.
  * @remark The ref count of the node will begin at 1.
