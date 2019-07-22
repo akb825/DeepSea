@@ -21,7 +21,7 @@
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Render/RenderPass.h>
-#include <DeepSea/Scene/ItemLIsts/SceneItemList.h>
+#include <DeepSea/Scene/ItemLists/SceneItemList.h>
 #include <string.h>
 
 static void destroyObjects(dsRenderPass* renderPass, const dsSubpassDrawLists* subpassDrawLists,
