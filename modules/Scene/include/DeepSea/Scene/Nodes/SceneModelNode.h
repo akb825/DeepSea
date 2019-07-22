@@ -39,28 +39,43 @@ DS_SCENE_EXPORT const dsSceneNodeType* dsSceneModelNode_type(void);
 
 /**
  * @brief Creates a scene model node.
+ *
+ * @remark The same item list name may appear multiple times in the model list, but the extra item
+ * list is expected to contain unique names.
+ *
  * @remark errno will be set on failure.
  * @param allocator The allocator to create the model node with.
  * @param models The models to draw within the node. The array will be copied. It is expected that
  *     at least one model is provided.
  * @param modelCount The number of models.
+ * @param extraItemLists List of item list names to add the node to. This is in addition to the list
+ *     of draw lists from the models array, such as for cull lists. The array will be copied.
+ * @param extraItemListCount The number of item lists.
  * @param resources The resources to keep a reference to.
  * @param resourceCount The number of resources.
  * @param bounds The bounding box for the model. If NULL, the model will never be culled.
  * @return The model node or NULL if an error occurred.
  */
 DS_SCENE_EXPORT dsSceneModelNode* dsSceneModelNode_create(dsAllocator* allocator,
-	const dsSceneModelInitInfo* models, uint32_t modelCount, dsSceneResources** resources,
-	uint32_t resourceCount, const dsOrientedBox3f* bounds);
+	const dsSceneModelInitInfo* models, uint32_t modelCount, const char** extraItemLists,
+	uint32_t extraItemListCount, dsSceneResources** resources, uint32_t resourceCount,
+	const dsOrientedBox3f* bounds);
 
 /**
  * @brief Creates a scene node as a base class of another node type.
+ *
+ * @remark The same item list name may appear multiple times in the model list, but the extra item
+ * list is expected to contain unique names.
+ *
  * @remark errno will be set on failure.
  * @param allocator The allocator to create the model node with.
  * @param structSize The size of the struct.
  * @param models The models to draw within the node. The array will be copied. It is expected that
  *     at least one model is provided.
  * @param modelCount The number of models.
+ * @param extraItemLists List of item list names to add the node to. This is in addition to the list
+ *     of draw lists from the models array, such as for cull lists. The array will be copied.
+ * @param extraItemListCount The number of item lists.
  * @param resources The resources to keep a reference to.
  * @param resourceCount The number of resources.
  * @param bounds The bounding box for the model. If NULL, the model will never be culled.
@@ -68,7 +83,8 @@ DS_SCENE_EXPORT dsSceneModelNode* dsSceneModelNode_create(dsAllocator* allocator
  */
 DS_SCENE_EXPORT dsSceneModelNode* dsSceneModelNode_createBase(dsAllocator* allocator,
 	size_t structSize, const dsSceneModelInitInfo* models, uint32_t modelCount,
-	dsSceneResources** resources, uint32_t resourceCount, const dsOrientedBox3f* bounds);
+	const char** extraItemLists, uint32_t extraItemListCount,  dsSceneResources** resources,
+	uint32_t resourceCount, const dsOrientedBox3f* bounds);
 
 /**
  * @brief Destroys a model node.

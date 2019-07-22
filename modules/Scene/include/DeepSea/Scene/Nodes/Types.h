@@ -353,6 +353,12 @@ typedef struct dsSceneModelNode
 	uint32_t resourceCount;
 
 	/**
+	 * @brief Mask for whether or not a cull check passed.
+	 * @see dsSceneCullManager
+	 */
+	uint32_t cullMask;
+
+	/**
 	 * @brief The bounding box for the model.
 	 */
 	dsOrientedBox3f bounds;

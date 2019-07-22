@@ -17,6 +17,7 @@
 #pragma once
 
 #include <DeepSea/Core/Config.h>
+#include <DeepSea/Scene/ItemLists/Types.h>
 #include <DeepSea/Scene/Nodes/Types.h>
 
 #ifdef __cplusplus
@@ -61,26 +62,6 @@ typedef enum dsSceneResourceType
 } dsSceneResourceType;
 
 /**
- * @brief Enum for how to sort models.
- */
-typedef enum dsModelSortType
-{
-	dsModelSortType_None,        ///< Don't sort the models.
-	dsModelSortType_Material,    ///< Sort by material to reduce state changes.
-	dsModelSortType_BackToFront, ///< Sort back to front, typically for drawing transparent objects.
-	dsModelSortType_FrontToBack  ///< Sort front to back, typically for reducing pixel fill.
-} dsModelSortType;
-
-/**
- * @brief Struct for processing items within a scene.
- *
- * Different implementations can effectively subclass this type by having it as the first member of
- * the structure. This can be done to add additional data to the structure and have it be freely
- * casted between dsSceneItemList and the true internal type.
- */
-typedef struct dsSceneItemList dsSceneItemList;
-
-/**
  * @brief Struct that describes a scene.
  * @see Scene.h
  */
@@ -104,219 +85,6 @@ typedef struct dsView dsView;
  * @see SceneResources.h
  */
 typedef struct dsSceneResources dsSceneResources;
-
-/**
- * @brief Info for a single instance inside a scene that will be drawn.
- * @remark None of the members should be modified outside of the implementation.
- * @see SceneInstanceData.h
- */
-typedef struct dsSceneInstanceInfo
-{
-	/**
-	 * @brief The original node for the data.
-	 */
-	const dsSceneNode* node;
-
-	/**
-	 * @brief The transform for the instance.
-	 */
-	dsMatrix44f transform;
-} dsSceneInstanceInfo;
-
-/**
- * @brief Struct for managing data that's each instance being drawn.
- *
- * Different implementations can effectively subclass this type by having it as the first member of
- * the structure. This can be done to add additional data to the structure and have it be freely
- * casted between dsSceneItemList and the true internal type.
- *
- * @see SceneInstanceData.h
- */
-typedef struct dsSceneInstanceData dsSceneInstanceData;
-
-/**
- * @brief Function to populate scene instance data.
- * @remark errno should be set on failure.
- * @param instanceData The instance data.
- * @param view The view being drawn.
- * @param instances The list of instances.
- * @param instanceCount The number of instances.
- * @return False if an error occurred.
- */
-typedef bool (*dsPopulateSceneInstanceDataFunction)(dsSceneInstanceData* instanceData,
-	const dsView* view, const dsSceneInstanceInfo* instances, uint32_t instanceCount);
-
-/**
- * @brief Function for binding scene instance data.
- * @remark errno should be set on failure.
- * @param instanceData The instance data.
- * @param index The index of the instance to set.
- * @param values The material values to bind to.
- * @return False if an error occurred.
- */
-typedef bool (*dsBindSceneInstanceDataFunction)(dsSceneInstanceData* instanceData, uint32_t index,
-	dsSharedMaterialValues* values);
-
-/**
- * @brief Function for destroying scene instance data.
- * @remark errno should be set on failure.
- * @param instanceData The instance data.
- * @return False if an error occurred.
- */
-typedef bool (*dsFinishSceneInstanceDataFunction)(dsSceneInstanceData* instanceData);
-
-/** @copydoc dsSceneInstanceData */
-struct dsSceneInstanceData
-{
-	/**
-	 * @brief The allocator the instance data was created with.
-	 */
-	dsAllocator* allocator;
-
-	/**
-	 * @brief The number of values that will be stored on dsSharedMaterialValues.
-	 */
-	uint32_t valueCount;
-
-	/**
-	 * @brief Data populate function.
-	 */
-	dsPopulateSceneInstanceDataFunction populateDataFunc;
-
-	/**
-	 * @brief Bind instance function.
-	 */
-	dsBindSceneInstanceDataFunction bindInstanceFunc;
-
-	/**
-	 * @brief Finish function.
-	 */
-	dsFinishSceneInstanceDataFunction finishFunc;
-
-	/**
-	 * @brief Destroy function.
-	 */
-	dsFinishSceneInstanceDataFunction destroyFunc;
-};
-
-/**
- * @brief Function for populating the underlying instance data.
- *
- * The data is stored with the same packing rules as uniform blocks. (or std140)
- *
- * @param userData The user data for managing the instance data.
- * @param view The view being drawn.
- * @param instances The instances to populate the data for.
- * @param instanceCount The number of instances.
- * @param data The data to populate.
- * @param stride The stride between each instance in the data.
- *
- * @see SceneInstanceVariables.h
- */
-typedef void (*dsPopulateSceneInstanceVariablesFunction)(void* userData, const dsView* view,
-	const dsSceneInstanceInfo* instances, uint32_t instanceCount, uint8_t* data, uint32_t stride);
-
-/**
- * @brief Function to destroy the user data associated with dsSceneInstanceVariables.
- * @param userData The user data to destroy.
- * @see SceneInstanceVariables.h
- */
-typedef void (*dsDestroySceneInstanceVariablesUserDataFunction)(void* userData);
-
-/**
- * @brief Function for adding a node to the item list.
- * @param itemList The item list.
- * @param node The node to add.
- * @param transform The transform for the node. The contents of the pointer will change as the node
- *     is updated.
- * @return The ID of the node within the item list, or DS_NO_SCENE_NODE if not added.
- */
-typedef uint64_t (*dsAddSceneItemListNodeFunction)(dsSceneItemList* itemList, dsSceneNode* node,
-	const dsMatrix44f* transform);
-
-/**
- * @brief Function for updating a node in an item list.
- * @param itemList The item list.
- * @param nodeID The ID of the node to update.
- */
-typedef void (*dsUpdateSceneItemListNodeFunction)(dsSceneItemList* itemList, uint64_t nodeID);
-
-/**
- * @brief Function for updating a node in an item list.
- * @param itemList The item list.
- * @param nodeID The ID of the node to update.
- */
-typedef void (*dsRemoveSceneItemListNodeFunction)(dsSceneItemList* itemList, uint64_t nodeID);
-
-/**
- * @brief Function for drawing a scene item list.
- * @param itemList The scene item list to draw.
- * @param view The view to draw to.
- * @param commandBuffer The command buffer to draw to.
- */
-typedef void (*dsCommitSceneItemListFunction)(dsSceneItemList* itemList, const dsView* view,
-	dsCommandBuffer* commandBuffer);
-
-/**
- * @brief Function for destroying a scene item list.
- * @param itemList The scene item list to destroy.
- */
-typedef void (*dsDestroySceneItemListFunction)(dsSceneItemList* itemList);
-
-/** @copydoc dsSceneItemList */
-struct dsSceneItemList
-{
-	/**
-	 * @brief The allocator this was created with.
-	 */
-	dsAllocator* allocator;
-
-	/**
-	 * @brief The name of the scene item list.
-	 */
-	const char* name;
-
-	/**
-	 * @brief The name ID for the item list.
-	 */
-	uint32_t nameID;
-
-	/**
-	 * @brief Function for adding a node to the item list.
-	 */
-	dsAddSceneItemListNodeFunction addNodeFunc;
-
-	/**
-	 * @brief Function for updating a node in the item list.
-	 *
-	 * This may be NULL if nodes don't need to be updated.
-	 */
-	dsUpdateSceneItemListNodeFunction updateNodeFunc;
-
-	/**
-	 * @brief Function for updating a node in the item list.
-	 */
-	dsRemoveSceneItemListNodeFunction removeNodeFunc;
-
-	/**
-	 * @brief Function for committing the scene item list.
-	 */
-	dsCommitSceneItemListFunction commitFunc;
-
-	/**
-	 * @brief Function for destroying the scene item list.
-	 */
-	dsDestroySceneItemListFunction destroyFunc;
-};
-
-/**
- * @brief Scene item list implementation for drawing models.
- *
- * This will hold information from dsSceneModelNode node types.
- *
- * @see SceneModelList.h
- */
-typedef struct dsSceneModelList dsSceneModelList;
 
 /**
  * @brief Struct that holds a list of dsSceneItemList instances used for a render subpass.
@@ -381,6 +149,35 @@ typedef struct dsScenePipelineItem
 	dsSceneItemList* computeItems;
 } dsScenePipelineItem;
 
+/**
+ * @brief Type for an ID for a unique cull type.
+ *
+ * Implementations should declare an int as a static variable and return its pointer to get the ID.
+ *
+ * @see SceneCullManager.h
+ */
+typedef int* dsSceneCullID;
+
+/**
+ * @brief Struct to manage multiple types of culls.
+ *
+ * Ultimately this will convert a cull ID into a bit to use within a bitmask of cull results.
+ *
+ * @see SceneCullManager.h
+ */
+typedef struct dsSceneCullManager
+{
+	/**
+	 * @brief The registered cull IDs.
+	 */
+	dsSceneCullID cullIDs[32];
+
+	/**
+	 * @brief The number of registered ID.
+	 */
+	uint32_t registeredIDCount;
+} dsSceneCullManager;
+
 /** @copydoc dsView */
 struct dsView
 {
@@ -392,7 +189,7 @@ struct dsView
 	/**
 	 * @brief The scene to draw with the view.
 	 */
-	dsScene* scene;
+	const dsScene* scene;
 
 	/**
 	 * @brief The camera matrix, transforming from camera to world.
@@ -427,6 +224,11 @@ struct dsView
 	 * This may be modified directly, though not in the middle of drawing a view.
 	 */
 	dsAlignedBox3f viewport;
+
+	/**
+	 * @brief Cull manager used when drawing the scene.
+	 */
+	dsSceneCullManager cullManager;
 
 	/**
 	 * @brief Global material values to do while drawing.

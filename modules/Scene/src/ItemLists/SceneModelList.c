@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include <DeepSea/Scene/SceneModelList.h>
+#include <DeepSea/Scene/ItemLists/SceneModelList.h>
 
 #include <DeepSea/Core/Containers/Hash.h>
 #include <DeepSea/Core/Containers/ResizeableArray.h>
@@ -31,9 +31,10 @@
 #include <DeepSea/Render/Resources/Shader.h>
 #include <DeepSea/Render/Resources/SharedMaterialValues.h>
 #include <DeepSea/Render/Renderer.h>
+#include <DeepSea/Scene/ItemLists/SceneInstanceData.h>
 #include <DeepSea/Scene/Nodes/SceneModelNode.h>
 #include <DeepSea/Scene/Nodes/SceneNode.h>
-#include <DeepSea/Scene/SceneInstanceData.h>
+#include <DeepSea/Scene/SceneCullManager.h>
 
 #include <stdlib.h>
 #include <string.h>
@@ -68,15 +69,16 @@ struct dsSceneModelList
 	dsDynamicRenderStates renderStates;
 	bool hasRenderStates;
 	dsModelSortType sortType;
+	dsSceneCullID cullID;
 
 	dsSharedMaterialValues* instanceValues;
 	dsSceneInstanceData** instanceData;
 	uint32_t instanceDataCount;
-	uint64_t nextNodeID;
 
 	Entry* entries;
 	uint32_t entryCount;
 	uint32_t maxEntries;
+	uint64_t nextNodeID;
 
 	dsSceneInstanceInfo* instances;
 	DrawItem* drawItems;
@@ -90,19 +92,20 @@ static void addInstances(dsSceneItemList* itemList, const dsView* view, uint32_t
 	DS_PROFILE_FUNC_START();
 
 	dsSceneModelList* modelList = (dsSceneModelList*)itemList;
+	uint32_t cullInstance;
+	if (modelList->cullID)
+		cullInstance = dsSceneCullManager_findCullID(&view->cullManager, modelList->cullID);
+	else
+		cullInstance = DS_NO_SCENE_CULL;
+
 	for (uint32_t i = 0; i < modelList->entryCount; ++i)
 	{
 		const Entry* entry = modelList->entries + i;
 		const dsSceneModelNode* modelNode = entry->node;
-		if (dsOrientedBox3_isValid(modelNode->bounds))
+		if (cullInstance != DS_NO_SCENE_CULL &&
+			!dsSceneCullManager_getCullResult(modelNode->cullMask, cullInstance))
 		{
-			dsOrientedBox3f transformedBounds = modelNode->bounds;
-			DS_VERIFY(dsOrientedBox3f_transform(&transformedBounds, entry->transform));
-			if (dsFrustum3f_intersectOrientedBox(&view->viewFrustum, &transformedBounds) ==
-					dsIntersectResult_Outside)
-			{
-				continue;
-			}
+			continue;
 		}
 
 		float distance2 = dsVector3_dist2(entry->transform->columns[3],
@@ -166,7 +169,7 @@ static void addInstances(dsSceneItemList* itemList, const dsView* view, uint32_t
 	DS_PROFILE_FUNC_RETURN_VOID();
 }
 
-void setupInstances(dsSceneModelList* modelList, const dsView* view, uint32_t instanceCount)
+static void setupInstances(dsSceneModelList* modelList, const dsView* view, uint32_t instanceCount)
 {
 	DS_PROFILE_FUNC_START();
 
@@ -369,7 +372,7 @@ void dsSceneModelList_commit(dsSceneItemList* itemList, const dsView* view,
 
 dsSceneModelList* dsSceneModelList_create(dsAllocator* allocator, const char* name,
 	dsSceneInstanceData* const* instanceData, uint32_t instanceDataCount, dsModelSortType sortType,
-	const dsDynamicRenderStates* renderStates)
+	const dsDynamicRenderStates* renderStates, dsSceneCullID cullID)
 {
 	if (!allocator || !name || (!instanceData && instanceDataCount > 0))
 	{
@@ -435,6 +438,7 @@ dsSceneModelList* dsSceneModelList_create(dsAllocator* allocator, const char* na
 	else
 		modelList->hasRenderStates = false;
 	modelList->sortType = sortType;
+	modelList->cullID = cullID;
 
 	if (instanceDataCount > 0)
 	{
@@ -459,10 +463,10 @@ dsSceneModelList* dsSceneModelList_create(dsAllocator* allocator, const char* na
 	}
 	modelList->instanceDataCount = instanceDataCount;
 
-	modelList->nextNodeID = 0;
 	modelList->entries = NULL;
 	modelList->entryCount = 0;
 	modelList->maxEntries = 0;
+	modelList->nextNodeID = 0;
 	modelList->instances = NULL;
 	modelList->drawItems = NULL;
 	modelList->maxInstances = 0;

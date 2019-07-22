@@ -27,17 +27,20 @@
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Math/Matrix44.h>
+#include <DeepSea/Scene/ItemLists/SceneItemList.h>
 #include <DeepSea/Scene/Nodes/SceneNode.h>
-#include <DeepSea/Scene/SceneItemList.h>
 #include <DeepSea/Scene/SceneRenderPass.h>
 
 #include <string.h>
 
 static dsSceneNodeType rootNodeType;
 
-static void destroyObjects(const dsScenePipelineItem* pipeline, uint32_t pipelineCount,
-	const dsStringPool* stringPool)
+static void destroyObjects(dsSceneItemList* const* globalItems, uint32_t globalItemCount,
+	const dsScenePipelineItem* pipeline, uint32_t pipelineCount, const dsStringPool* stringPool)
 {
+	for (uint32_t i = 0; i < globalItemCount; ++i)
+		dsSceneItemList_destroy(globalItems[i]);
+
 	if (pipeline)
 	{
 		for (uint32_t i = 0; i < pipelineCount; ++i)
@@ -51,13 +54,20 @@ static void destroyObjects(const dsScenePipelineItem* pipeline, uint32_t pipelin
 		DS_VERIFY(dsAllocator_free(stringPool->allocator, stringPool->strings));
 }
 
-static size_t fullAllocSize(uint32_t* outNameCount, const dsScenePipelineItem* pipeline,
-	uint32_t pipelineCount)
+static size_t fullAllocSize(uint32_t* outNameCount, dsSceneItemList* const* globalItems,
+	uint32_t globalItemCount, const dsScenePipelineItem* pipeline, uint32_t pipelineCount)
 {
 	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsScene)) +
+		DS_ALIGNED_SIZE(sizeof(dsSceneItemList*)*globalItemCount) +
 		DS_ALIGNED_SIZE(sizeof(dsScenePipelineItem)*pipelineCount);
 
-	*outNameCount = 0;
+	*outNameCount = globalItemCount;
+	for (uint32_t i = 0; i < globalItemCount; ++i)
+	{
+		if (!globalItems[i])
+			return 0;
+	}
+
 	for (uint32_t i = 0; i < pipelineCount; ++i)
 	{
 		const dsScenePipelineItem* item = pipeline  + i;
@@ -97,13 +107,15 @@ static bool insertSceneList(dsHashTable* hashTable, dsSceneItemListNode* node,
 	return true;
 }
 
-dsScene* dsScene_create(dsAllocator* allocator, const dsScenePipelineItem* pipeline,
-	uint32_t pipelineCount, const dsStringPool* stringPool)
+dsScene* dsScene_create(dsAllocator* allocator, dsSceneItemList* const* globalItems,
+	uint32_t globalItemCount, const dsScenePipelineItem* pipeline, uint32_t pipelineCount,
+	const dsStringPool* stringPool)
 {
-	if (!allocator || !pipeline || pipelineCount == 0)
+	if (!allocator || (!globalItems && globalItemCount > 0) || !pipeline ||
+		pipelineCount == 0)
 	{
 		errno = EINVAL;
-		destroyObjects(pipeline, pipelineCount, stringPool);
+		destroyObjects(globalItems, globalItemCount, pipeline, pipelineCount, stringPool);
 		return NULL;
 	}
 
@@ -111,23 +123,24 @@ dsScene* dsScene_create(dsAllocator* allocator, const dsScenePipelineItem* pipel
 	{
 		errno = EINVAL;
 		DS_LOG_ERROR(DS_SCENE_LOG_TAG, "Scene allocator must support freeing memory.");
-		destroyObjects(pipeline, pipelineCount, stringPool);
+		destroyObjects(globalItems, globalItemCount, pipeline, pipelineCount, stringPool);
 		return NULL;
 	}
 
 	uint32_t nameCount;
-	size_t fullSize = fullAllocSize(&nameCount, pipeline, pipelineCount);
+	size_t fullSize = fullAllocSize(&nameCount, globalItems, globalItemCount, pipeline,
+		pipelineCount);
 	if (fullSize == 0)
 	{
 		errno = EINVAL;
-		destroyObjects(pipeline, pipelineCount, stringPool);
+		destroyObjects(globalItems, globalItemCount, pipeline, pipelineCount, stringPool);
 		return NULL;
 	}
 
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 	{
-		destroyObjects(pipeline, pipelineCount, stringPool);
+		destroyObjects(globalItems, globalItemCount, pipeline, pipelineCount, stringPool);
 		return NULL;
 	}
 
@@ -150,6 +163,17 @@ dsScene* dsScene_create(dsAllocator* allocator, const dsScenePipelineItem* pipel
 	dsMatrix44_identity(rootTreeNode->transform);
 	rootTreeNode->dirty = false;
 	scene->rootTreeNode.scene = scene;
+
+	if (globalItemCount > 0)
+	{
+		scene->globalItems = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsSceneItemList*,
+			globalItemCount);
+		memcpy(scene->globalItems, globalItems,
+			sizeof(dsSceneItemList*)*globalItemCount);
+	}
+	else
+		scene->globalItems = NULL;
+	scene->globalItemCount = globalItemCount;
 
 	scene->pipeline = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsScenePipelineItem, pipelineCount);
 	DS_ASSERT(scene->pipeline);
@@ -240,7 +264,8 @@ void dsScene_destroy(dsScene* scene)
 	DS_ASSERT(rootTreeNode->childCount == 0);
 	DS_VERIFY(dsAllocator_free(rootTreeNode->allocator, rootTreeNode->children));
 
-	destroyObjects(scene->pipeline, scene->pipelineCount, &scene->stringPool);
+	destroyObjects(scene->globalItems, scene->globalItemCount, scene->pipeline,
+		scene->pipelineCount, &scene->stringPool);
 	DS_VERIFY(dsAllocator_free(scene->allocator, scene->dirtyNodes));
 
 	DS_VERIFY(dsAllocator_free(scene->allocator, scene));

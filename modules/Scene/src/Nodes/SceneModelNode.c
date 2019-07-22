@@ -41,8 +41,9 @@ static size_t fullAllocSize(size_t structSize, const char** drawLists, uint32_t 
 		DS_ALIGNED_SIZE(sizeof(dsSceneResources*)*resourceCount);
 }
 
-static void populateDrawList(const char** drawLists, uint32_t* hashes, uint32_t* drawListCount,
-	const dsSceneModelInitInfo* models, uint32_t modelCount)
+static void populateItemList(const char** itemLists, uint32_t* hashes, uint32_t* itemListCount,
+	const dsSceneModelInitInfo* models, uint32_t modelCount, const char** extraItemLists,
+	uint32_t extraItemListCount)
 {
 	for (uint32_t i = 0; i < modelCount; ++i)
 		hashes[i] = dsHashString(models[i].listName);
@@ -50,7 +51,7 @@ static void populateDrawList(const char** drawLists, uint32_t* hashes, uint32_t*
 	for (uint32_t i = 0; i < modelCount; ++i)
 	{
 		bool unique = true;
-		for (uint32_t j = 0; j < *drawListCount; ++j)
+		for (uint32_t j = 0; j < *itemListCount; ++j)
 		{
 			if (hashes[i] == hashes[j])
 			{
@@ -62,10 +63,17 @@ static void populateDrawList(const char** drawLists, uint32_t* hashes, uint32_t*
 		if (!unique)
 			continue;
 
-		drawLists[*drawListCount] = models[i].listName;
+		uint32_t index = (*itemListCount)++;
+		itemLists[index] = models[i].listName;
 		// Also make sure the assigned hashes match for faster uniqueness check.
-		hashes[*drawListCount] = hashes[i];
-		++*drawListCount;
+		hashes[index] = hashes[i];
+	}
+
+	// Assume uniqueness for the extra lists.
+	for (uint32_t i = 0; i < extraItemListCount; ++i)
+	{
+		uint32_t index = *itemListCount++;
+		itemLists[index] = extraItemLists[i];
 	}
 }
 
@@ -75,19 +83,21 @@ const dsSceneNodeType* dsSceneModelNode_type(void)
 }
 
 dsSceneModelNode* dsSceneModelNode_create(dsAllocator* allocator,
-	const dsSceneModelInitInfo* models, uint32_t modelCount, dsSceneResources** resources,
-	uint32_t resourceCount, const dsOrientedBox3f* bounds)
+	const dsSceneModelInitInfo* models, uint32_t modelCount, const char** extraItemLists,
+	uint32_t extraItemListCount, dsSceneResources** resources, uint32_t resourceCount,
+	const dsOrientedBox3f* bounds)
 {
 	return dsSceneModelNode_createBase(allocator, sizeof(dsSceneModelNode), models, modelCount,
-		resources, resourceCount, bounds);
+		extraItemLists, extraItemListCount, resources, resourceCount, bounds);
 }
 
 dsSceneModelNode* dsSceneModelNode_createBase(dsAllocator* allocator, size_t structSize,
-	const dsSceneModelInitInfo* models, uint32_t modelCount, dsSceneResources** resources,
-	uint32_t resourceCount, const dsOrientedBox3f* bounds)
+	const dsSceneModelInitInfo* models, uint32_t modelCount, const char** extraItemLists,
+	uint32_t extraItemListCount, dsSceneResources** resources, uint32_t resourceCount,
+	const dsOrientedBox3f* bounds)
 {
 	if (!allocator || structSize < sizeof(dsSceneModelNode) || !models || modelCount == 0 ||
-		(!resources && resourceCount > 0))
+		(!extraItemLists && extraItemListCount > 0) || (!resources && resourceCount > 0))
 	{
 		errno = EINVAL;
 		return NULL;
@@ -131,35 +141,39 @@ dsSceneModelNode* dsSceneModelNode_createBase(dsAllocator* allocator, size_t str
 	// Get the draw lists from the model nodes.
 	const char* tempStringListData[EXPECTED_MAX_NODES];
 	uint32_t tempStringHashListData[EXPECTED_MAX_NODES];
-	const char** drawLists = tempStringListData;
-	uint32_t drawListCount = 0;
+	const char** itemLists = tempStringListData;
+	uint32_t itemListCount = 0;
 	uint32_t* tempStringHashList = tempStringHashListData;
-	if (modelCount > EXPECTED_MAX_NODES)
+	uint32_t maxItemListCount = modelCount + extraItemListCount;
+	if (maxItemListCount > EXPECTED_MAX_NODES)
 	{
 		// Need to dynamically allocate temp lists if too large.
-		drawLists = DS_ALLOCATE_OBJECT_ARRAY(allocator, const char*, modelCount);
-		if (!drawLists)
+		itemLists = DS_ALLOCATE_OBJECT_ARRAY(allocator, const char*, maxItemListCount);
+		if (!itemLists)
 			return NULL;
-		tempStringHashList = DS_ALLOCATE_OBJECT_ARRAY(allocator, uint32_t, modelCount);
-		if (!tempStringHashList)
+		if (modelCount > EXPECTED_MAX_NODES)
 		{
-			DS_VERIFY(dsAllocator_free(allocator, (void*)drawLists));
-			return NULL;
+			tempStringHashList = DS_ALLOCATE_OBJECT_ARRAY(allocator, uint32_t, modelCount);
+			if (!tempStringHashList)
+			{
+				DS_VERIFY(dsAllocator_free(allocator, (void*)itemLists));
+				return NULL;
+			}
 		}
 	}
 
-	populateDrawList(drawLists, tempStringHashList, &drawListCount, models, modelCount);
+	populateItemList(itemLists, tempStringHashList, &itemListCount, models, modelCount,
+		extraItemLists, extraItemListCount);
+	if (tempStringHashList != tempStringHashListData)
+		DS_VERIFY(dsAllocator_free(allocator, tempStringHashList));
 
-	size_t fullSize = fullAllocSize(structSize, drawLists, drawListCount, modelCount,
+	size_t fullSize = fullAllocSize(structSize, itemLists, itemListCount, modelCount,
 		resourceCount);
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 	{
-		if (drawLists != tempStringListData)
-		{
-			DS_VERIFY(dsAllocator_free(allocator, (void*)drawLists));
-			DS_VERIFY(dsAllocator_free(allocator, tempStringHashList));
-		}
+		if (itemLists != tempStringListData)
+			DS_VERIFY(dsAllocator_free(allocator, (void*)itemLists));
 		return NULL;
 	}
 
@@ -170,23 +184,20 @@ dsSceneModelNode* dsSceneModelNode_createBase(dsAllocator* allocator, size_t str
 		(dsSceneModelNode*)dsAllocator_alloc((dsAllocator*)&bufferAlloc, structSize);
 	DS_ASSERT(node);
 
-	char** drawListsCopy = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char*, drawListCount);
-	DS_ASSERT(drawListsCopy);
-	for (uint32_t i = 0; i < drawListCount; ++i)
+	char** itemListsCopy = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char*, itemListCount);
+	DS_ASSERT(itemListsCopy);
+	for (uint32_t i = 0; i < itemListCount; ++i)
 	{
-		size_t length = strlen(drawLists[i]);
-		drawListsCopy[i] = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, length + 1);
-		memcpy(drawListsCopy[i], drawLists[i], length + 1);
+		size_t length = strlen(itemLists[i]);
+		itemListsCopy[i] = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, length + 1);
+		memcpy(itemListsCopy[i], itemLists[i], length + 1);
 	}
 
-	if (drawLists != tempStringListData)
-	{
-		DS_VERIFY(dsAllocator_free(allocator, (void*)drawLists));
-		DS_VERIFY(dsAllocator_free(allocator, tempStringHashList));
-	}
+	if (itemLists != tempStringListData)
+		DS_VERIFY(dsAllocator_free(allocator, (void*)itemLists));
 
 	if (!dsSceneNode_initialize((dsSceneNode*)node, allocator, dsSceneModelNode_type(),
-			(const char**)drawListsCopy, drawListCount, &dsSceneModelNode_destroy))
+			(const char**)itemListsCopy, itemListCount, &dsSceneModelNode_destroy))
 	{
 		if (allocator->freeFunc)
 			DS_VERIFY(dsAllocator_free(allocator, node));
@@ -225,6 +236,8 @@ dsSceneModelNode* dsSceneModelNode_createBase(dsAllocator* allocator, size_t str
 		node->resources = NULL;
 		node->resourceCount = 0;
 	}
+
+	node->cullMask = 0;
 
 	if (bounds)
 		node->bounds = *bounds;

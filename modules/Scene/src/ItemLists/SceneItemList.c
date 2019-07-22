@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include <DeepSea/Scene/SceneItemList.h>
+#include <DeepSea/Scene/ItemLists/SceneItemList.h>
 
 void dsSceneItemList_destroy(dsSceneItemList* list)
 {

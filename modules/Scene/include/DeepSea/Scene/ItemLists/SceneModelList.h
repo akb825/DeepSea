@@ -35,17 +35,18 @@ extern "C"
  * @brief Creates a scene model list.
  * @remark errno will be set on failure.
  * @param allocator The allocator to create the list with. This must support freeing memory.
- * @param name The name of the instance data. This will be copied.
+ * @param name The name of the model list. This will be copied.
  * @param instanceData The list of instance datas to use. The array will be copied, and this will
  *     take ownership of each instance data. The instances will be destroyed if an error occurrs.
  * @param instanceDataCount The number of instance datas.
  * @param sortType How to sort the geometry.
  * @param renderStates The render states to use, or NULL if no special render states are needed.
+ * @param cullID The cull ID to determine what models are in view, or NULL if no culling is used.
  * @return The model list or NULL if an error occurred.
  */
 dsSceneModelList* dsSceneModelList_create(dsAllocator* allocator, const char* name,
 	dsSceneInstanceData* const* instanceData, uint32_t instanceDataCount, dsModelSortType sortType,
-	const dsDynamicRenderStates* renderStates);
+	const dsDynamicRenderStates* renderStates, dsSceneCullID cullID);
 
 /**
  * @brief Gets the sort type for a model list.

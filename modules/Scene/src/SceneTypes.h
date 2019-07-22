@@ -57,7 +57,9 @@ struct dsScene
 	dsSceneNode rootNode;
 	dsSceneTreeRootNode rootTreeNode;
 
+	dsSceneItemList** globalItems;
 	dsScenePipelineItem* pipeline;
+	uint32_t globalItemCount;
 	uint32_t pipelineCount;
 	dsHashTable* itemLists;
 	dsStringPool stringPool;

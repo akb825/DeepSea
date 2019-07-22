@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include <DeepSea/Scene/SceneInstanceData.h>
+#include <DeepSea/Scene/ItemLists/SceneInstanceData.h>
 #include <DeepSea/Core/Error.h>
 
 bool dsSceneInstanceData_populateData(dsSceneInstanceData* instanceData,

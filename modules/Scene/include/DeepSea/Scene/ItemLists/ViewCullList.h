@@ -27,15 +27,22 @@ extern "C"
 
 /**
  * @file
- * @brief Functions for manipulating scene item lists.
- * @see dsSceneItemLIst
+ * @brief Functions for creating and manipulating cull lists.
  */
 
 /**
- * @brief Destroys a scene item list.
- * @param list The list to destroy.
+ * @brief Gets the cull ID for dsViewCullList.
  */
-DS_SCENE_EXPORT void dsSceneItemList_destroy(dsSceneItemList* list);
+DS_SCENE_EXPORT dsSceneCullID dsViewCullList_cullID(void);
+
+/**
+ * @brief Creates a view cull list.
+ * @remark errno will be set on failure.
+ * @param allocator The allocator to create the list with. This must support freeing memory.
+ * @param name The name of the cull list. This will be copied.
+ * @return The cull list or NULL if an error occurred.
+ */
+DS_SCENE_EXPORT dsSceneItemList* dsViewCullList_create(dsAllocator* allocator, const char* name);
 
 #ifdef __cplusplus
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include <DeepSea/Scene/SceneInstanceVariables.h>
+#include <DeepSea/Scene/ItemLists/SceneInstanceVariables.h>
 
 #include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
@@ -27,6 +27,7 @@
 #include <DeepSea/Render/Resources/MaterialType.h>
 #include <DeepSea/Render/Resources/ShaderVariableGroup.h>
 #include <DeepSea/Render/Resources/SharedMaterialValues.h>
+#include <DeepSea/Scene/Types.h>
 
 #include <limits.h>
 #include <string.h>
