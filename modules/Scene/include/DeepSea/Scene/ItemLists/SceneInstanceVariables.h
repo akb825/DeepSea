@@ -49,7 +49,7 @@ extern "C"
 DS_SCENE_EXPORT dsSceneInstanceData* dsSceneInstanceVariables_create(dsAllocator* allocator,
 	dsResourceManager* resourceManager, const dsShaderVariableGroupDesc* dataDesc, uint32_t nameID,
 	dsPopulateSceneInstanceVariablesFunction populateDataFunc, void* userData,
-	dsDestroySceneInstanceVariablesUserDataFunction destroyUserDataFunc);
+	dsDestroySceneUserDataFunction destroyUserDataFunc);
 
 #ifdef __cplusplus
 }

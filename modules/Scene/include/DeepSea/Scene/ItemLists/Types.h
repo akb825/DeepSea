@@ -80,6 +80,7 @@ typedef struct dsSceneInstanceData dsSceneInstanceData;
 
 /// @cond
 typedef struct dsView dsView;
+typedef void (*dsDestroySceneUserDataFunction)(void* userData);
 /// @endcond
 
 /**
@@ -106,12 +107,20 @@ typedef bool (*dsBindSceneInstanceDataFunction)(dsSceneInstanceData* instanceDat
 	dsSharedMaterialValues* values);
 
 /**
- * @brief Function for destroying scene instance data.
+ * @brief Function for finishing the current set of instance data.
  * @remark errno should be set on failure.
  * @param instanceData The instance data.
  * @return False if an error occurred.
  */
 typedef bool (*dsFinishSceneInstanceDataFunction)(dsSceneInstanceData* instanceData);
+
+/**
+ * @brief Function for destroying scene instance data.
+ * @remark errno should be set on failure.
+ * @param instanceData The instance data.
+ * @return False if an error occurred.
+ */
+typedef bool (*dsDestroySceneInstanceDataFunction)(dsSceneInstanceData* instanceData);
 
 /** @copydoc dsSceneInstanceData */
 struct dsSceneInstanceData
@@ -144,7 +153,7 @@ struct dsSceneInstanceData
 	/**
 	 * @brief Destroy function.
 	 */
-	dsFinishSceneInstanceDataFunction destroyFunc;
+	dsDestroySceneInstanceDataFunction destroyFunc;
 };
 
 /**
@@ -163,13 +172,6 @@ struct dsSceneInstanceData
  */
 typedef void (*dsPopulateSceneInstanceVariablesFunction)(void* userData, const dsView* view,
 	const dsSceneInstanceInfo* instances, uint32_t instanceCount, uint8_t* data, uint32_t stride);
-
-/**
- * @brief Function to destroy the user data associated with dsSceneInstanceVariables.
- * @param userData The user data to destroy.
- * @see SceneInstanceVariables.h
- */
-typedef void (*dsDestroySceneInstanceVariablesUserDataFunction)(void* userData);
 
 /**
  * @brief Function for adding a node to the item list.

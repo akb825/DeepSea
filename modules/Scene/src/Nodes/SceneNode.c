@@ -208,7 +208,7 @@ void dsSceneNode_freeRef(dsSceneNode* node)
 		return;
 
 	if (node->destroyUserDataFunc)
-		node->destroyUserDataFunc(node, node->userData);
+		node->destroyUserDataFunc(node->userData);
 
 	dsSceneNode_clear(node);
 	DS_VERIFY(dsAllocator_free(node->allocator, node->children));

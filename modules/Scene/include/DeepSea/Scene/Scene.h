@@ -36,22 +36,27 @@ extern "C"
  * @brief Creates a scene.
  * @remark errno will be set on failure.
  * @param allocator The allocator to create the scene with. This must support freeing memory.
- * @param globalItems The item lists to run before the rest of the scene. (e.g. cull item lists)
+ * @param sharedItems The item lists to run before the rest of the scene. (e.g. cull item lists)
  *     This will copy the array itself and take ownership of the objects. If creation fails, this
  *     means it will immediately destroy all objects in this list.
- * @param globalItemCount The number of global items.
+ * @param sharedItemCount The number of shared items.
  * @param pipeline The pipeline to perform when rendering the scene. This will copy the array itself
  *     and take ownership of the objects, i.e. render passes and draw item lists. If creation fails,
  *     this means it will immediately destroy all objects in this list.
  * @param pipelineCount The number of pipeline items.
+ * @param globalData The list of global data isntances used within the scene. This will copy the
+ *     array itself and take ownership of the objects. If creation fails, this means it will
+ *     immediately destroy all objects in this list.
+ * @param globalDataCount The number of global data instances.
  * @param stringPool An optional string pool for pooled string allocation. This will take
  *     ownership of the strings pointer within stringPool, which will also be freed if creation
  *     failed. This may be NULL if no string pool is used.
  * @return The scene or NULL if an error occurred.
  */
 DS_SCENE_EXPORT dsScene* dsScene_create(dsAllocator* allocator,
-	dsSceneItemList* const* globalItems, uint32_t globalItemCount,
-	const dsScenePipelineItem* pipeline, uint32_t pipelineCount, const dsStringPool* stringPool);
+	dsSceneItemList* const* sharedItems, uint32_t sharedItemCount,
+	const dsScenePipelineItem* pipeline, uint32_t pipelineCount,
+	dsSceneGlobalData* const* globalData, uint32_t globalDataCount, const dsStringPool* stringPool);
 
 /**
  * @brief Updates dirty nodes within the scene.

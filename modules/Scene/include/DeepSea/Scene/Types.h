@@ -87,10 +87,18 @@ typedef struct dsView dsView;
 typedef struct dsSceneResources dsSceneResources;
 
 /**
+ * @brief Function to destroy the user data stored within various scene objects..
+ * @param userData The user data to destroy.
+ */
+typedef void (*dsDestroySceneUserDataFunction)(void* userData);
+
+/**
  * @brief Struct that holds a list of dsSceneItemList instances used for a render subpass.
  *
  * The dsScenItemLists must draw the items as part of the render pass. (as opposed to processing
  * compute shader items)
+ *
+ * @see SceneRenderPass.h
  */
 typedef struct dsSubpassDrawLists
 {
@@ -133,6 +141,7 @@ typedef struct dsSceneRenderPass
 
 /**
  * @brief Struct containing an item within the rendering pipeline for a scene.
+ * @see Scene.h
  */
 typedef struct dsScenePipelineItem
 {
@@ -148,6 +157,67 @@ typedef struct dsScenePipelineItem
 	 */
 	dsSceneItemList* computeItems;
 } dsScenePipelineItem;
+
+/**
+ * @brief Struct containing global data used within a scene.
+ * @see SceneGlobalData.h
+ */
+typedef struct dsSceneGlobalData dsSceneGlobalData;
+
+/**
+ * @brief Function to populate scene global data.
+ * @remark errno should be set on failure.
+ * @param globalData The instance data.
+ * @param view The view being drawn. Material values should be set on view->globalValues.
+ * @return False if an error occurred.
+ */
+typedef bool (*dsPopulateSceneGlobalDataFunction)(dsSceneGlobalData* globalData,
+	const dsView* view);
+
+/**
+ * @brief Function for finishing the current set of global data.
+ * @remark errno should be set on failure.
+ * @param globalData The global data.
+ * @return False if an error occurred.
+ */
+typedef bool (*dsFinishSceneGlobalDataFunction)(dsSceneGlobalData* globalData);
+
+/**
+ * @brief Function for destroying scene global data.
+ * @remark errno should be set on failure.
+ * @param globalData The global data.
+ * @return False if an error occurred.
+ */
+typedef bool (*dsDestroySceneGlobalDataFunction)(dsSceneGlobalData* globalData);
+
+/** @copydoc dsSceneGlobalData */
+struct dsSceneGlobalData
+{
+	/**
+	 * @brief The allocator this was created with.
+	 */
+	dsAllocator* allocator;
+
+	/**
+	 * @brief The number of values that will be stored on dsSharedMaterialValues.
+	 */
+	uint32_t valueCount;
+
+	/**
+	 * @brief Data populate function.
+	 */
+	dsPopulateSceneGlobalDataFunction populateDataFunc;
+
+	/**
+	 * @brief Finish function.
+	 */
+	dsFinishSceneGlobalDataFunction finishFunc;
+
+	/**
+	 * @brief Destroy function.
+	 */
+	dsDestroySceneGlobalDataFunction destroyFunc;
+};
 
 /**
  * @brief Type for an ID for a unique cull type.

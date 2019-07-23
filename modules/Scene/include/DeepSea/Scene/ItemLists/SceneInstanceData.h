@@ -29,10 +29,10 @@ extern "C"
  * @file
  * @brief Functions for creating and manipulating scene instance data.
  *
- * Creation and destruction of scene instance data, as well as reserving space, must be performed on
- * the main thread or on a thread with an active resource context. Usage should not be done
+ * Creation and destruction of scene instance data, as well as populating of data, must be performed
+ * on the main thread or on a thread with an active resource context. Usage should not be done
  * simultaneously across multiple threads, which in practice usually means to use separate instances
- * across multiple dsSceneModelList objects.
+ * across multiple dsSceneItemList objects.
  *
  * @see dsSceneInstanceData
  */

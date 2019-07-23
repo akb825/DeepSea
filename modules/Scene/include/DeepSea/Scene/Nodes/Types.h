@@ -86,17 +86,15 @@ typedef struct dsSceneNode dsSceneNode;
 typedef struct dsSceneTreeNode dsSceneTreeNode;
 
 /**
- * @brief Function to destroy scene node user data.
- * @param node The node the user data was set on.
- * @param data The user data for the node.
- */
-typedef void (*dsDestroySceneNodeUserDataFunction)(dsSceneNode* node, void* data);
-
-/**
  * @brief Function for destroying a scene ndoe.
  * @param node The node to destroy.
  */
 typedef void (*dsDestroySceneNodeFunction)(dsSceneNode* node);
+
+/// @cond
+typedef struct dsSceneResources dsSceneResources;
+typedef void (*dsDestroySceneUserDataFunction)(void* userData);
+/// @endcond
 
 /** @copydoc dsSceneNode */
 struct dsSceneNode
@@ -168,7 +166,7 @@ struct dsSceneNode
 	/**
 	 * @brief Function called on destruction to destroy the user data.
 	 */
-	dsDestroySceneNodeUserDataFunction destroyUserDataFunc;
+	dsDestroySceneUserDataFunction destroyUserDataFunc;
 
 	/**
 	 * @brief Destroy function.
@@ -313,10 +311,6 @@ typedef struct dsSceneModelInfo
 	 */
 	uint32_t listNameID;
 } dsSceneModelInfo;
-
-/// @cond
-typedef struct dsSceneResources dsSceneResources;
-/// @endcond
 
 /**
  * @brief Scene node implementation that contains model geometry to draw.
