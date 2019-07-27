@@ -73,3 +73,4 @@ uint32_t dsSceneCullManager_findCullID(const dsSceneCullManager* cullManager, ds
 }
 
 void dsSceneCullManager_setCullResult(uint32_t* mask, uint32_t instance, bool result);
+bool dsSceneCullManager_getCullResult(uint32_t mask, uint32_t instance);

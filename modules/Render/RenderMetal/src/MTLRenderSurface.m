@@ -20,6 +20,7 @@
 #include "MTLRendererInternal.h"
 
 #include <DeepSea/Core/Memory/Allocator.h>
+#include <DeepSea/Core/Thread/Spinlock.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
@@ -323,33 +324,43 @@ dsRenderSurface* dsMTLRenderSurface_create(dsRenderer* renderer, dsAllocator* al
 			return NULL;
 		}
 
-		if (!osHandle)
+		NSObject* handleObject = (__bridge NSObject*)osHandle;
+		if (!handleObject || (![handleObject isKindOfClass: [ViewType class]] &&
+				![handleObject isKindOfClass: [CAMetalLayer class]]))
 		{
 			errno = EINVAL;
-			DS_LOG_ERROR(DS_RENDER_METAL_LOG_TAG, "An NSView/UIView must be passed as the OS "
-				"handle to create a Metal render surface.");
+			DS_LOG_ERROR(DS_RENDER_METAL_LOG_TAG, "An NSView/UIView or CAMetalLayer must be passed "
+				"as the OS handle to create a Metal render surface.");
 			return NULL;
 		}
 
-		ViewType* view = (__bridge ViewType*)osHandle;
-		if (view.layer.class != [CAMetalLayer class])
+		ViewType* view = NULL;
+		CAMetalLayer* layer;
+		if ([handleObject isKindOfClass: [ViewType class]])
 		{
-			DSMetalView* metalView = [[DSMetalView alloc] initWithFrame: view.frame
-#if DS_IOS
-				contentsScale: view.window.screen.scale
-#endif
-				];
-			if (!metalView)
+			view = (ViewType*)handleObject;
+			if (view.layer.class != [CAMetalLayer class])
 			{
-				errno = ENOMEM;
-				return NULL;
+				DSMetalView* metalView = [[DSMetalView alloc] initWithFrame: view.frame
+#if DS_IOS
+					contentsScale: view.window.screen.scale
+#endif
+					];
+				if (!metalView)
+				{
+					errno = ENOMEM;
+					return NULL;
+				}
+
+				[view addSubview: metalView];
+				view = metalView;
 			}
 
-			[view addSubview: metalView];
-			view = metalView;
+			layer = (CAMetalLayer*)view.layer;
 		}
+		else
+			layer = (CAMetalLayer*)handleObject;
 
-		CAMetalLayer* layer = (CAMetalLayer*)view.layer;
 		layer.device = device;
 
 		MTLPixelFormat format = MTLPixelFormatBGRA8Unorm;
@@ -386,6 +397,7 @@ dsRenderSurface* dsMTLRenderSurface_create(dsRenderer* renderer, dsAllocator* al
 		baseRenderSurface->width = (uint32_t)size.width;
 		baseRenderSurface->height = (uint32_t)size.height;
 
+		DS_VERIFY(dsSpinlock_initialize(&renderSurface->lock));
 		renderSurface->view = CFBridgingRetain(view);
 		renderSurface->layer = CFBridgingRetain(layer);
 		renderSurface->drawable = NULL;
@@ -398,7 +410,7 @@ dsRenderSurface* dsMTLRenderSurface_create(dsRenderer* renderer, dsAllocator* al
 		{
 			errno = EINVAL;
 			DS_LOG_ERROR(DS_RENDER_METAL_LOG_TAG,
-				"Render surface color format not supported for Metal view.");
+				"Render surface color format not supported for Metal surface.");
 			dsMTLRenderSurface_destroy(renderer, baseRenderSurface);
 			return NULL;
 		}
@@ -424,15 +436,10 @@ bool dsMTLRenderSurface_update(dsRenderer* renderer, dsRenderSurface* renderSurf
 		renderSurface->width = (uint32_t)size.width;
 		renderSurface->height = (uint32_t)size.height;
 
-		// If the size has changed, need a new image.
-		id<CAMetalDrawable> drawable = (__bridge id<CAMetalDrawable>)mtlRenderSurface->drawable;
-		id<MTLTexture> surface = drawable.texture;
-		if (surface.width != renderSurface->width && surface.height != renderSurface->height)
-		{
-			CFRelease(mtlRenderSurface->drawable);
-			mtlRenderSurface->drawable = CFBridgingRetain([layer nextDrawable]);
-			DS_ASSERT(mtlRenderSurface->drawable);
-		}
+#if __MAC_OS_X_VERSION_MIN_REQUIRED >= 101300
+		if (layer.displaySyncEnabled != renderer->vsync)
+			layer.displaySyncEnabled = renderer->vsync;
+#endif
 
 		return createExtraSurfaces(renderer, renderSurface);
 	}
@@ -443,7 +450,20 @@ bool dsMTLRenderSurface_beginDraw(dsRenderer* renderer, dsCommandBuffer* command
 {
 	DS_UNUSED(renderer);
 	DS_UNUSED(commandBuffer);
-	DS_UNUSED(renderSurface);
+
+	dsMTLRenderSurface* mtlRenderSurface = (dsMTLRenderSurface*)renderSurface;
+	DS_VERIFY(dsSpinlock_lock(&mtlRenderSurface->lock));
+	if (mtlRenderSurface->drawable)
+	{
+		DS_VERIFY(dsSpinlock_unlock(&mtlRenderSurface->lock));
+		return true;
+	}
+
+	CAMetalLayer* layer = (__bridge CAMetalLayer*)mtlRenderSurface->layer;
+	mtlRenderSurface->drawable = CFBridgingRetain([layer nextDrawable]);
+	DS_ASSERT(mtlRenderSurface->drawable);
+	dsMTLRenderSurface_update(renderer, (dsRenderSurface*)renderSurface);
+	DS_VERIFY(dsSpinlock_unlock(&mtlRenderSurface->lock));
 	return true;
 }
 
@@ -474,15 +494,7 @@ bool dsMTLRenderSurface_swapBuffers(dsRenderer* renderer, dsRenderSurface** rend
 			[commandBuffer
 				presentDrawable: (__bridge id<CAMetalDrawable>)mtlRenderSurface->drawable];
 			CFRelease(mtlRenderSurface->drawable);
-
-			CAMetalLayer* layer = (__bridge CAMetalLayer*)mtlRenderSurface->layer;
-	#if __MAC_OS_X_VERSION_MIN_REQUIRED >= 101300
-			if (layer.displaySyncEnabled != renderer->vsync)
-				layer.displaySyncEnabled = renderer->vsync;
-	#endif
-			mtlRenderSurface->drawable = CFBridgingRetain([layer nextDrawable]);
-			DS_ASSERT(mtlRenderSurface->drawable);
-			dsMTLRenderSurface_update(renderer, renderSurface);
+			mtlRenderSurface->drawable = NULL;
 		}
 
 		dsMTLRenderer_flushImpl(renderer, commandBuffer);
@@ -495,6 +507,7 @@ bool dsMTLRenderSurface_destroy(dsRenderer* renderer, dsRenderSurface* renderSur
 	DS_UNUSED(renderer);
 	dsMTLRenderSurface* mtlRenderSurface = (dsMTLRenderSurface*)renderSurface;
 
+	dsSpinlock_shutdown(&mtlRenderSurface->lock);
 	if (mtlRenderSurface->view)
 		CFRelease(mtlRenderSurface->view);
 	if (mtlRenderSurface->layer)

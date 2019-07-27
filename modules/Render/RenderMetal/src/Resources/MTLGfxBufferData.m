@@ -62,10 +62,10 @@ dsMTLGfxBufferData* dsMTLGfxBufferData_create(dsResourceManager* resourceManager
 	}
 
 	MTLResourceOptions resourceOptions;
-	if (memoryHints & dsGfxMemory_Read)
-		resourceOptions = MTLResourceCPUCacheModeDefaultCache;
-	else
+	if (memoryHints & dsGfxMemory_GPUOnly)
 		resourceOptions = MTLResourceCPUCacheModeWriteCombined;
+	else
+		resourceOptions = MTLResourceCPUCacheModeDefaultCache;
 
 #if DS_MAC || __IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
 	if (memoryHints & dsGfxMemory_GPUOnly)

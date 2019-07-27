@@ -414,6 +414,7 @@ typedef struct dsMTLSoftwareCommandBuffer
 typedef struct dsMTLRenderSurface
 {
 	dsRenderSurface renderSurface;
+	dsSpinlock lock;
 	CFTypeRef view;
 	CFTypeRef layer;
 	CFTypeRef drawable;
