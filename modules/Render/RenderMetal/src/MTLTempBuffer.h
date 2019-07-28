@@ -19,9 +19,9 @@
 #include <DeepSea/Core/Config.h>
 #include "MTLTypes.h"
 
-uint64_t dsMTLRenderer_flushImpl(dsRenderer* renderer, id<MTLCommandBuffer> extraCommands);
-uint64_t dsMTLRenderer_getFinishedSubmit(const dsRenderer* renderer);
-dsGfxFenceResult dsMTLRenderer_waitForSubmit(const dsRenderer* renderer, uint64_t submitCount,
-	unsigned int milliseconds);
-void dsMTLRenderer_processBuffer(dsRenderer* renderer, dsMTLGfxBufferData* buffer);
-void dsMTLRenderer_processTexture(dsRenderer* renderer, dsTexture* texture);
+dsMTLTempBuffer* dsMTLTempBuffer_create(dsAllocator* allocator, id<MTLDevice> device);
+void* dsMTLTempBuffer_allocate(uint32_t* outOffset, id<MTLBuffer>* outMTLBuffer,
+	dsMTLTempBuffer* buffer, uint32_t size, uint32_t alignment);
+void dsMTLTempBuffer_finish(dsMTLTempBuffer* buffer, uint64_t submitCount);
+bool dsMTLTempBuffer_reset(dsMTLTempBuffer* buffer, uint64_t finishedSubmit);
+void dsMTLTempBuffer_destroy(dsMTLTempBuffer* buffer);

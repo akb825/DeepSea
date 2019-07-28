@@ -95,6 +95,17 @@ bool dsMTLCommandBuffer_submit(dsRenderer* renderer, dsCommandBuffer* commandBuf
 			dsLifetime_release(mtlSubmitBuffer->gfxBuffers[i]);
 		}
 
+		for (uint32_t i = 0; i < mtlSubmitBuffer->tempBufferCount; ++i)
+		{
+			dsMTLTempBuffer* buffer =
+				(dsMTLTempBuffer*)dsLifetime_acquire(mtlSubmitBuffer->tempBuffers[i]);
+			if (!buffer)
+				continue;
+
+			dsMTLCommandBuffer_addTempBuffer(commandBuffer, buffer);
+			dsLifetime_release(mtlSubmitBuffer->tempBuffers[i]);
+		}
+
 		for (uint32_t i = 0; i < mtlSubmitBuffer->readbackOffscreenCount; ++i)
 		{
 			dsTexture* texture =
@@ -199,12 +210,12 @@ bool dsMTLCommandBuffer_copyClearValues(dsCommandBuffer* commandBuffer,
 	return true;
 }
 
-bool dsMTLCommandBuffer_bindPushConstants(dsCommandBuffer* commandBuffer, id<MTLBuffer> data,
-	bool vertex, bool fragment)
+bool dsMTLCommandBuffer_bindPushConstants(dsCommandBuffer* commandBuffer, const void* data,
+	uint32_t size, bool vertex, bool fragment)
 {
 	const dsMTLCommandBufferFunctionTable* functions =
 		((dsMTLCommandBuffer*)commandBuffer)->functions;
-	return functions->bindPushConstantsFunc(commandBuffer, data, vertex, fragment);
+	return functions->bindPushConstantsFunc(commandBuffer, data, size, vertex, fragment);
 }
 
 bool dsMTLCommandBuffer_bindBufferUniform(dsCommandBuffer* commandBuffer, id<MTLBuffer> buffer,
@@ -242,12 +253,12 @@ bool dsMTLCommandBuffer_beginComputeShader(dsCommandBuffer* commandBuffer)
 	return functions->beginComputeShaderFunc(commandBuffer);
 }
 
-bool dsMTLCommandBuffer_bindComputePushConstants(dsCommandBuffer* commandBuffer,
-	id<MTLBuffer> data)
+bool dsMTLCommandBuffer_bindComputePushConstants(dsCommandBuffer* commandBuffer, const void* data,
+	uint32_t size)
 {
 	const dsMTLCommandBufferFunctionTable* functions =
 		((dsMTLCommandBuffer*)commandBuffer)->functions;
-	return functions->bindComputePushConstantsFunc(commandBuffer, data);
+	return functions->bindComputePushConstantsFunc(commandBuffer, data, size);
 }
 
 bool dsMTLCommandBuffer_bindComputeBufferUniform(dsCommandBuffer* commandBuffer,
@@ -398,6 +409,20 @@ bool dsMTLCommandBuffer_addGfxBuffer(dsCommandBuffer* commandBuffer, dsMTLGfxBuf
 	return true;
 }
 
+bool dsMTLCommandBuffer_addTempBuffer(dsCommandBuffer* commandBuffer, dsMTLTempBuffer* buffer)
+{
+	dsMTLCommandBuffer* mtlCommandBuffer = (dsMTLCommandBuffer*)commandBuffer;
+	uint32_t index = mtlCommandBuffer->tempBufferCount;
+	if (!DS_RESIZEABLE_ARRAY_ADD(commandBuffer->allocator, mtlCommandBuffer->tempBuffers,
+			mtlCommandBuffer->tempBufferCount, mtlCommandBuffer->maxTempBuffers, 1))
+	{
+		return false;
+	}
+
+	mtlCommandBuffer->tempBuffers[index] = dsLifetime_addRef(buffer->lifetime);
+	return true;
+}
+
 bool dsMTLCommandBuffer_addReadbackOffscreen(dsCommandBuffer* commandBuffer, dsOffscreen* offscreen)
 {
 	dsMTLCommandBuffer* mtlCommandBuffer = (dsMTLCommandBuffer*)commandBuffer;
@@ -470,6 +495,10 @@ void dsMTLCommandBuffer_clear(dsCommandBuffer* commandBuffer)
 		dsLifetime_freeRef(mtlCommandBuffer->gfxBuffers[i]);
 	mtlCommandBuffer->gfxBufferCount = 0;
 
+	for (uint32_t i = 0; i < mtlCommandBuffer->tempBufferCount; ++i)
+		dsLifetime_freeRef(mtlCommandBuffer->tempBuffers[i]);
+	mtlCommandBuffer->tempBufferCount = 0;
+
 	for (uint32_t i = 0; i < mtlCommandBuffer->readbackOffscreenCount; ++i)
 		dsLifetime_freeRef(mtlCommandBuffer->readbackOffscreens[i]);
 	mtlCommandBuffer->readbackOffscreenCount = 0;
@@ -489,6 +518,10 @@ void dsMTLCommandBuffer_shutdown(dsMTLCommandBuffer* commandBuffer)
 	for (uint32_t i = 0; i < commandBuffer->gfxBufferCount; ++i)
 		dsLifetime_freeRef(commandBuffer->gfxBuffers[i]);
 	DS_VERIFY(dsAllocator_free(allocator, commandBuffer->gfxBuffers));
+
+	for (uint32_t i = 0; i < commandBuffer->tempBufferCount; ++i)
+		dsLifetime_freeRef(commandBuffer->tempBuffers[i]);
+	DS_VERIFY(dsAllocator_free(allocator, commandBuffer->tempBuffers));
 
 	for (uint32_t i = 0; i < commandBuffer->readbackOffscreenCount; ++i)
 		dsLifetime_freeRef(commandBuffer->readbackOffscreens[i]);

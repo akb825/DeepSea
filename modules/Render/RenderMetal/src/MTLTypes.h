@@ -36,6 +36,8 @@
 // 10 seconds in milliseconds
 #define DS_DEFAULT_WAIT_TIMEOUT 10000
 #define DS_RECENTLY_ADDED_SIZE 10
+#define DS_TEMP_BUFFER_CAPACITY 524288
+#define DS_MAX_TEMP_BUFFER_ALLOC 262144
 
 typedef struct dsMTLBufferTexture
 {
@@ -214,6 +216,17 @@ typedef struct dsMTLRenderPass
 	dsSpinlock shaderLock;
 } dsMTLRenderPass;
 
+typedef struct dsMTLTempBuffer
+{
+	dsAllocator* allocator;
+	dsLifetime* lifetime;
+
+	CFTypeRef mtlBuffer;
+	uint8_t* contents;
+	uint64_t lastUsedSubmit;
+	uint32_t size;
+} dsMTLTempBuffer;
+
 typedef void (*ClearCommandBufferFunction)(dsCommandBuffer* commandBuffer);
 typedef void (*EndCommandBufferFunction)(dsCommandBuffer* commandBuffer);
 typedef bool (*SubmitCommandBufferFunction)(dsCommandBuffer* commandBuffer,
@@ -231,8 +244,8 @@ typedef bool (*CopyTextureFunction)(dsCommandBuffer* commandBuffer, id<MTLTextur
 	id<MTLTexture> dstTexture, const dsTextureCopyRegion* regions, uint32_t regionCount);
 typedef bool (*GenerateMipmapsFunction)(dsCommandBuffer* commandBuffer, id<MTLTexture> texture);
 
-typedef bool (*BindPushConstantsFunction)(dsCommandBuffer* commandBuffer, id<MTLBuffer> data,
-	bool vertex, bool fragment);
+typedef bool (*BindPushConstantsFunction)(dsCommandBuffer* commandBuffer, const void* data,
+	uint32_t size, bool vertex, bool fragment);
 typedef bool (*BindBufferUniformFunction)(dsCommandBuffer* commandBuffer, id<MTLBuffer> buffer,
 	size_t offset, uint32_t vertexIndex, uint32_t fragmentIndex);
 typedef bool (*BindTextureUniformFunction)(dsCommandBuffer* commandBuffer, id<MTLTexture> texture,
@@ -242,8 +255,8 @@ typedef bool (*SetRenderStatesFunction)(dsCommandBuffer* commandBuffer,
 	const dsDynamicRenderStates* dynamicStates, bool dynamicOnly);
 
 typedef bool (*BeginComputeShaderFunction)(dsCommandBuffer* commandBuffer);
-typedef bool (*BindComputePushConstantsFunction)(dsCommandBuffer* commandBuffer,
-	id<MTLBuffer> data);
+typedef bool (*BindComputePushConstantsFunction)(dsCommandBuffer* commandBuffer, const void* data,
+	uint32_t size);
 typedef bool (*BindComputeBufferUniformFunction)(dsCommandBuffer* commandBuffer,
 	id<MTLBuffer> buffer, size_t offset, uint32_t index);
 typedef bool (*BindComputeTextureUniformFunction)(dsCommandBuffer* commandBuffer,
@@ -332,6 +345,10 @@ typedef struct dsMTLCommandBuffer
 	uint32_t gfxBufferCount;
 	uint32_t maxGfxBuffers;
 
+	dsLifetime** tempBuffers;
+	uint32_t tempBufferCount;
+	uint32_t maxTempBuffers;
+
 	dsLifetime** readbackOffscreens;
 	uint32_t readbackOffscreenCount;
 	uint32_t maxReadbackOffscreens;
@@ -403,6 +420,11 @@ typedef struct dsMTLHardwareCommandBuffer
 	CFTypeRef boundComputePipeline;
 
 	CFTypeRef boundPipeline;
+
+	dsMTLTempBuffer* curTempBuffer;
+	dsMTLTempBuffer** tempBufferPool;
+	uint32_t tempBufferPoolCount;
+	uint32_t maxTempBufferPools;
 } dsMTLHardwareCommandBuffer;
 
 typedef struct dsMTLSoftwareCommandBuffer

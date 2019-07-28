@@ -377,14 +377,14 @@ static bool setupShaders(dsShader* shader, mslModule* module, uint32_t shaderInd
 	return true;
 }
 
-static id<MTLBuffer> setPushConstantData(const dsShader* shader, const dsMaterial* material,
+static void* setPushConstantData(const dsShader* shader, const dsMaterial* material,
 	dsCommandBuffer* commandBuffer)
 {
 	const dsMTLShader* mtlShader = (const dsMTLShader*)shader;
 	uint8_t* data = (uint8_t*)dsMTLCommandBuffer_getPushConstantData(commandBuffer,
 		mtlShader->pushConstantSize);
 	if (!data)
-		return nil;
+		return NULL;
 
 	for (uint32_t i = 0; i < mtlShader->pushConstantCount; ++i)
 	{
@@ -408,21 +408,7 @@ static id<MTLBuffer> setPushConstantData(const dsShader* shader, const dsMateria
 		}
 	}
 
-
-	dsMTLRenderer* mtlRenderer = (dsMTLRenderer*)shader->resourceManager->renderer;
-	id<MTLDevice> device = (__bridge id<MTLDevice>)mtlRenderer->device;
-	MTLResourceOptions options = MTLResourceCPUCacheModeDefaultCache;
-#if DS_MAC || __IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
-	options |= MTLResourceStorageModeShared;
-#endif
-	id<MTLBuffer> buffer = [device newBufferWithBytes: data length: mtlShader->pushConstantSize
-		options: options];
-	if (!buffer)
-	{
-		errno = ENOMEM;
-		return nil;
-	}
-	return buffer;
+	return data;
 }
 
 static bool setPushConstnants(const dsShader* shader, dsCommandBuffer* commandBuffer,
@@ -434,12 +420,12 @@ static bool setPushConstnants(const dsShader* shader, dsCommandBuffer* commandBu
 	if (!vertexPushConstants && !fragmentPushConstants)
 		return true;
 
-	id<MTLBuffer> data = setPushConstantData(shader, material, commandBuffer);
+	void* data = setPushConstantData(shader, material, commandBuffer);
 	if (!data)
 		return false;
 
-	return dsMTLCommandBuffer_bindPushConstants(commandBuffer, data, vertexPushConstants,
-		fragmentPushConstants);
+	return dsMTLCommandBuffer_bindPushConstants(commandBuffer, data, mtlShader->pushConstantSize,
+		vertexPushConstants, fragmentPushConstants);
 }
 
 static bool setComputePushConstnants(const dsShader* shader, dsCommandBuffer* commandBuffer,
@@ -449,11 +435,12 @@ static bool setComputePushConstnants(const dsShader* shader, dsCommandBuffer* co
 	if (!mtlShader->stages[mslStage_Compute].hasPushConstants)
 		return true;
 
-	id<MTLBuffer> data = setPushConstantData(shader, material, commandBuffer);
+	void* data = setPushConstantData(shader, material, commandBuffer);
 	if (!data)
 		return false;
 
-	return dsMTLCommandBuffer_bindComputePushConstants(commandBuffer, data);
+	return dsMTLCommandBuffer_bindComputePushConstants(commandBuffer, data,
+		mtlShader->pushConstantSize);
 }
 
 static void getTextureAndSampler(id<MTLTexture>* outTexture, id<MTLSamplerState>* outSampler,

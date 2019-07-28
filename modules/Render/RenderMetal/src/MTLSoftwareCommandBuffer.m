@@ -89,9 +89,10 @@ typedef struct GenerateMipmapsCommand
 typedef struct BindPushConstantsCommand
 {
 	Command command;
-	CFTypeRef data;
 	bool vertex;
 	bool fragment;
+	uint32_t size;
+	uint8_t data[];
 } BindPushConstantsCommand;
 
 typedef struct BindBufferUniformCommand
@@ -126,7 +127,8 @@ typedef struct SetRenderStatesCommand
 typedef struct BindComputePushConstantsCommand
 {
 	Command command;
-	CFTypeRef data;
+	uint32_t size;
+	uint8_t data[];
 } BindComputePushConstantsCommand;
 
 typedef struct BindComputeBufferUniformCommand
@@ -311,12 +313,7 @@ void dsMTLSoftwareCommandBuffer_clear(dsCommandBuffer* commandBuffer)
 				break;
 			}
 			case CommandType_BindPushConstants:
-			{
-				BindPushConstantsCommand* thisCommand = (BindPushConstantsCommand*)command;
-				if (thisCommand->data)
-					CFRelease(thisCommand->data);
 				break;
-			}
 			case CommandType_BindBufferUniform:
 			{
 				BindBufferUniformCommand* thisCommand = (BindBufferUniformCommand*)command;
@@ -338,13 +335,7 @@ void dsMTLSoftwareCommandBuffer_clear(dsCommandBuffer* commandBuffer)
 			case CommandType_BeginComputeShader:
 				break;
 			case CommandType_BindComputePushConstants:
-			{
-				BindComputePushConstantsCommand* thisCommand =
-					(BindComputePushConstantsCommand*)command;
-				if (thisCommand->data)
-					CFRelease(thisCommand->data);
 				break;
-			}
 			case CommandType_BindComputeBufferUniform:
 			{
 				BindComputeBufferUniformCommand* thisCommand =
@@ -496,9 +487,8 @@ bool dsMTLSoftwareCommandBuffer_submit(dsCommandBuffer* commandBuffer,
 			case CommandType_BindPushConstants:
 			{
 				BindPushConstantsCommand* thisCommand = (BindPushConstantsCommand*)command;
-				result = dsMTLCommandBuffer_bindPushConstants(commandBuffer,
-					(__bridge id<MTLBuffer>)thisCommand->data, thisCommand->vertex,
-					thisCommand->fragment);
+				result = dsMTLCommandBuffer_bindPushConstants(commandBuffer, thisCommand->data,
+					thisCommand->size, thisCommand->vertex, thisCommand->fragment);
 				break;
 			}
 			case CommandType_BindBufferUniform:
@@ -538,7 +528,7 @@ bool dsMTLSoftwareCommandBuffer_submit(dsCommandBuffer* commandBuffer,
 				BindComputePushConstantsCommand* thisCommand =
 					(BindComputePushConstantsCommand*)command;
 				result = dsMTLCommandBuffer_bindComputePushConstants(commandBuffer,
-					(__bridge id<MTLBuffer>)thisCommand->data);
+					thisCommand->data, thisCommand->size);
 				break;
 			}
 			case CommandType_BindComputeBufferUniform:
@@ -820,17 +810,18 @@ bool dsMTLSoftwareCommandBuffer_generateMipmaps(dsCommandBuffer* commandBuffer,
 	return true;
 }
 
-bool dsMTLSoftwareCommandBuffer_bindPushConstants(dsCommandBuffer* commandBuffer,
-	id<MTLBuffer> data, bool vertex, bool fragment)
+bool dsMTLSoftwareCommandBuffer_bindPushConstants(dsCommandBuffer* commandBuffer, const void* data,
+	uint32_t size, bool vertex, bool fragment)
 {
 	BindPushConstantsCommand* command = (BindPushConstantsCommand*)allocateCommand(
-		commandBuffer, CommandType_BindPushConstants, sizeof(BindPushConstantsCommand));
+		commandBuffer, CommandType_BindPushConstants, sizeof(BindPushConstantsCommand) + size);
 	if (!command)
 		return false;
 
-	command->data = CFBridgingRetain(data);
 	command->vertex = vertex;
 	command->fragment = fragment;
+	command->size = size;
+	memcpy(command->data, data, size);
 	return true;
 }
 
@@ -896,15 +887,17 @@ bool dsMTLSoftwareCommandBuffer_beginComputeShader(dsCommandBuffer* commandBuffe
 }
 
 bool dsMTLSoftwareCommandBuffer_bindComputePushConstants(dsCommandBuffer* commandBuffer,
-	id<MTLBuffer> data)
+	const void* data, uint32_t size)
 {
 	BindComputePushConstantsCommand* command =
 		(BindComputePushConstantsCommand*)allocateCommand(commandBuffer,
-			CommandType_BindComputePushConstants, sizeof(BindComputePushConstantsCommand));
+			CommandType_BindComputePushConstants,
+			sizeof(BindComputePushConstantsCommand) + size);
 	if (!command)
 		return false;
 
-	command->data = CFBridgingRetain(data);
+	command->size = size;
+	memcpy(command->data, data, size);
 	return true;
 }
 

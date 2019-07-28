@@ -19,6 +19,7 @@
 #include "MTLCommandBuffer.h"
 #include "MTLRendererInternal.h"
 #include "MTLShared.h"
+#include "MTLTempBuffer.h"
 
 #include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
@@ -307,6 +308,53 @@ static MTLIndexType getIndexType(uint32_t size)
 	return size == sizeof(uint32_t) ? MTLIndexTypeUInt32 : MTLIndexTypeUInt16;
 }
 
+static void* getTempBufferData(uint32_t* outOffset, id<MTLBuffer>* outMTLBuffer,
+	dsCommandBuffer* commandBuffer, uint32_t size, uint32_t alignment)
+{
+	dsMTLHardwareCommandBuffer* mtlCommandBuffer = (dsMTLHardwareCommandBuffer*)commandBuffer;
+	if (mtlCommandBuffer->curTempBuffer)
+	{
+		void* data = dsMTLTempBuffer_allocate(
+			outOffset, outMTLBuffer, mtlCommandBuffer->curTempBuffer, size, alignment);
+		if (data)
+			return data;
+	}
+
+	// Try to find a finished buffer.
+	uint64_t finishedSubmit = dsMTLRenderer_getFinishedSubmit(commandBuffer->renderer);
+	for (uint32_t i = 0; i < mtlCommandBuffer->tempBufferPoolCount; ++i)
+	{
+		dsMTLTempBuffer* tempBuffer = mtlCommandBuffer->tempBufferPool[i];
+		if (!dsMTLTempBuffer_reset(tempBuffer, finishedSubmit))
+			continue;
+
+		mtlCommandBuffer->curTempBuffer = tempBuffer;
+		dsMTLCommandBuffer_addTempBuffer(commandBuffer, tempBuffer);
+		return dsMTLTempBuffer_allocate(outOffset, outMTLBuffer, tempBuffer, size, alignment);
+	}
+
+	uint32_t index = mtlCommandBuffer->tempBufferPoolCount;
+	if (!DS_RESIZEABLE_ARRAY_ADD(commandBuffer->allocator, mtlCommandBuffer->tempBufferPool,
+			mtlCommandBuffer->tempBufferPoolCount, mtlCommandBuffer->maxTempBufferPools, 1))
+	{
+		return NULL;
+	}
+
+	dsMTLRenderer* mtlRenderer = (dsMTLRenderer*)commandBuffer->renderer;
+	id<MTLDevice> device = (__bridge id<MTLDevice>)mtlRenderer->device;
+	dsMTLTempBuffer* tempBuffer = dsMTLTempBuffer_create(commandBuffer->allocator, device);
+	if (!tempBuffer)
+	{
+		--mtlCommandBuffer->tempBufferPoolCount;
+		return NULL;
+	}
+
+	mtlCommandBuffer->tempBufferPool[index] = tempBuffer;
+	mtlCommandBuffer->curTempBuffer = tempBuffer;
+	dsMTLCommandBuffer_addTempBuffer(commandBuffer, tempBuffer);
+	return dsMTLTempBuffer_allocate(outOffset, outMTLBuffer, tempBuffer, size, alignment);
+}
+
 void dsMTLHardwareCommandBuffer_clear(dsCommandBuffer* commandBuffer)
 {
 	dsMTLHardwareCommandBuffer* mtlCommandBuffer = (dsMTLHardwareCommandBuffer*)commandBuffer;
@@ -316,6 +364,7 @@ void dsMTLHardwareCommandBuffer_clear(dsCommandBuffer* commandBuffer)
 			CFRelease(mtlCommandBuffer->submitBuffers[i]);
 	}
 	mtlCommandBuffer->submitBufferCount = 0;
+	mtlCommandBuffer->curTempBuffer = NULL;
 }
 
 void dsMTLHardwareCommandBuffer_end(dsCommandBuffer* commandBuffer)
@@ -377,16 +426,32 @@ bool dsMTLHardwareCommandBuffer_copyBufferData(dsCommandBuffer* commandBuffer,
 	if (!encoder)
 		return false;
 
-	id<MTLBuffer> tempBuffer = [device newBufferWithBytes: data length:
-		size options: MTLResourceCPUCacheModeDefaultCache];
-	if (!tempBuffer)
+	if (size > DS_MAX_TEMP_BUFFER_ALLOC)
 	{
-		errno = ENOMEM;
-		return false;
-	}
+		id<MTLBuffer> tempBuffer = [device newBufferWithBytes: data length:
+			size options: MTLResourceCPUCacheModeDefaultCache];
+		if (!tempBuffer)
+		{
+			errno = ENOMEM;
+			return false;
+		}
 
-	[encoder copyFromBuffer: tempBuffer sourceOffset: 0 toBuffer: buffer
-		destinationOffset: offset size: size];
+		[encoder copyFromBuffer: tempBuffer sourceOffset: 0 toBuffer: buffer
+			destinationOffset: offset size: size];
+	}
+	else
+	{
+		uint32_t tempOffset = 0;
+		id<MTLBuffer> tempBuffer = nil;
+		void* tempData =
+			getTempBufferData(&tempOffset, &tempBuffer, commandBuffer, (uint32_t)size, 4);
+		if (!tempData)
+			return false;
+
+		memcpy(tempData, data, size);
+		[encoder copyFromBuffer: tempBuffer sourceOffset: tempOffset toBuffer: buffer
+			destinationOffset: offset size: size];
+	}
 	return true;
 }
 
@@ -430,7 +495,7 @@ bool dsMTLHardwareCommandBuffer_copyTextureData(dsCommandBuffer* commandBuffer,
 	DS_VERIFY(dsGfxFormat_blockDimensions(&blocksX, &blocksY, textureInfo->format));
 
 	uint32_t blocksWide = (width + blocksX - 1)/blocksX;
-	uint32_t blocksHigh = (width + blocksY - 1)/blocksY;
+	uint32_t blocksHigh = (height + blocksY - 1)/blocksY;
 	uint32_t sliceSize = blocksWide*blocksHigh*formatSize;
 
 	uint32_t faceCount = textureInfo->dimension == dsTextureDim_Cube ? 6 : 1;
@@ -447,22 +512,43 @@ bool dsMTLHardwareCommandBuffer_copyTextureData(dsCommandBuffer* commandBuffer,
 		{width, height, is3D ? layers: 1}
 	};
 	MTLOrigin dstOrigin = {position->x, position->y, is3D ? position->depth : 0};
-	for (uint32_t i = 0; i < iterations; ++i)
+	if (sliceSize > DS_MAX_TEMP_BUFFER_ALLOC || isPVR)
 	{
-		id<MTLTexture> tempImage = [device newTextureWithDescriptor: descriptor];
-		if (!tempImage)
+		for (uint32_t i = 0; i < iterations; ++i)
 		{
-			errno = ENOMEM;
-			return false;
-		}
+			id<MTLTexture> tempImage = [device newTextureWithDescriptor: descriptor];
+			if (!tempImage)
+			{
+				errno = ENOMEM;
+				return false;
+			}
 
-		[tempImage replaceRegion: region mipmapLevel: 0 slice: 0 withBytes: bytes + i*sliceSize
-			bytesPerRow: is1D || isPVR ? 0 : formatSize*blocksWide
-			bytesPerImage: is3D ? sliceSize : 0];
-		[blitEncoder copyFromTexture: tempImage sourceSlice: 0 sourceLevel: 0
-			sourceOrigin: region.origin sourceSize: region.size toTexture: texture
-			destinationSlice: baseSlice + i destinationLevel: position->mipLevel
-			destinationOrigin: dstOrigin];
+			[tempImage replaceRegion: region mipmapLevel: 0 slice: 0 withBytes: bytes + i*sliceSize
+				bytesPerRow: is1D || isPVR ? 0 : formatSize*blocksWide
+				bytesPerImage: is3D ? sliceSize : 0];
+			[blitEncoder copyFromTexture: tempImage sourceSlice: 0 sourceLevel: 0
+				sourceOrigin: region.origin sourceSize: region.size toTexture: texture
+				destinationSlice: baseSlice + i destinationLevel: position->mipLevel
+				destinationOrigin: dstOrigin];
+		}
+	}
+	else
+	{
+		for (uint32_t i = 0; i < iterations; ++i)
+		{
+			uint32_t offset = 0;
+			id<MTLBuffer> tempBuffer = nil;
+			void* tempData =
+				getTempBufferData(&offset, &tempBuffer, commandBuffer, sliceSize, formatSize);
+			if (!tempData)
+				return false;
+
+			memcpy(tempData, bytes + i*sliceSize, sliceSize);
+			[blitEncoder copyFromBuffer: tempBuffer sourceOffset: offset
+				sourceBytesPerRow: blocksWide*formatSize sourceBytesPerImage: sliceSize
+				sourceSize: region.size toTexture: texture destinationSlice: baseSlice + i
+				destinationLevel: position->mipLevel destinationOrigin: dstOrigin];
+		}
 	}
 	return true;
 }
@@ -551,19 +637,28 @@ bool dsMTLHardwareCommandBuffer_generateMipmaps(dsCommandBuffer* commandBuffer,
 	return true;
 }
 
-bool dsMTLHardwareCommandBuffer_bindPushConstants(dsCommandBuffer* commandBuffer,
-	id<MTLBuffer> data, bool vertex, bool fragment)
+bool dsMTLHardwareCommandBuffer_bindPushConstants(dsCommandBuffer* commandBuffer, const void* data,
+	uint32_t size, bool vertex, bool fragment)
 {
 	dsMTLHardwareCommandBuffer* mtlCommandBuffer = (dsMTLHardwareCommandBuffer*)commandBuffer;
 	if (!mtlCommandBuffer->renderCommandEncoder)
 		return false;
 
+	uint32_t alignment = commandBuffer->renderer->resourceManager->minUniformBlockAlignment;
+	uint32_t offset = 0;
+	id<MTLBuffer> mtlBuffer = nil;
+	void* tempData = getTempBufferData(&offset, &mtlBuffer, commandBuffer, size, alignment);
+	if (!tempData)
+		return false;
+
+	memcpy(tempData, data, size);
+
 	id<MTLRenderCommandEncoder> encoder =
 		(__bridge id<MTLRenderCommandEncoder>)mtlCommandBuffer->renderCommandEncoder;
 	if (vertex)
-		[encoder setVertexBuffer: data offset: 0 atIndex: 0];
+		[encoder setVertexBuffer: mtlBuffer offset: offset atIndex: 0];
 	if (fragment)
-		[encoder setFragmentBuffer: data offset: 0 atIndex: 0];
+		[encoder setFragmentBuffer: mtlBuffer offset: offset atIndex: 0];
 	return true;
 }
 
@@ -662,15 +757,24 @@ bool dsMTLHardwareCommandBuffer_beginComputeShader(dsCommandBuffer* commandBuffe
 }
 
 bool dsMTLHardwareCommandBuffer_bindComputePushConstants(dsCommandBuffer* commandBuffer,
-	id<MTLBuffer> data)
+	const void* data, uint32_t size)
 {
 	dsMTLHardwareCommandBuffer* mtlCommandBuffer = (dsMTLHardwareCommandBuffer*)commandBuffer;
 	if (!mtlCommandBuffer->computeCommandEncoder)
 		return false;
 
+	uint32_t alignment = commandBuffer->renderer->resourceManager->minUniformBlockAlignment;
+	uint32_t offset = 0;
+	id<MTLBuffer> mtlBuffer = nil;
+	void* tempData = getTempBufferData(&offset, &mtlBuffer, commandBuffer, size, alignment);
+	if (!tempData)
+		return false;
+
+	memcpy(tempData, data, size);
+
 	id<MTLComputeCommandEncoder> encoder =
 		(__bridge id<MTLComputeCommandEncoder>)mtlCommandBuffer->computeCommandEncoder;
-	[encoder setBuffer: data offset: 0 atIndex: 0];
+	[encoder setBuffer: mtlBuffer offset: offset atIndex: 0];
 	return true;
 }
 
@@ -1277,6 +1381,20 @@ id<MTLCommandBuffer> dsMTLHardwareCommandBuffer_submitted(dsCommandBuffer* comma
 	}
 	mtlCommandBuffer->gfxBufferCount = 0;
 
+	for (uint32_t i = 0; i < mtlCommandBuffer->tempBufferCount; ++i)
+	{
+		dsLifetime* lifetime = mtlCommandBuffer->tempBuffers[i];
+		dsMTLTempBuffer* tempBuffer = (dsMTLTempBuffer*)dsLifetime_acquire(lifetime);
+		if (tempBuffer)
+		{
+			DS_ATOMIC_STORE64(&tempBuffer->lastUsedSubmit, &submitCount);
+			dsLifetime_release(lifetime);
+		}
+		dsLifetime_freeRef(lifetime);
+	}
+	mtlCommandBuffer->tempBufferCount = 0;
+	mtlHardwareCommandBuffer->curTempBuffer = NULL;
+
 	for (uint32_t i = 0; i < mtlCommandBuffer->fenceCount; ++i)
 	{
 		dsLifetime* lifetime = mtlCommandBuffer->fences[i];
@@ -1360,6 +1478,10 @@ void dsMTLHardwareCommandBuffer_shutdown(dsMTLHardwareCommandBuffer* commandBuff
 	}
 	DS_VERIFY(dsAllocator_free(allocator, commandBuffer->boundComputeTextures.textures));
 	DS_VERIFY(dsAllocator_free(allocator, commandBuffer->boundComputeBuffers.buffers));
+
+	for (uint32_t i = 0; i < commandBuffer->tempBufferPoolCount; ++i)
+		dsMTLTempBuffer_destroy(commandBuffer->tempBufferPool[i]);
+	DS_VERIFY(dsAllocator_free(allocator, commandBuffer->tempBufferPool));
 
 	dsMTLCommandBuffer_shutdown((dsMTLCommandBuffer*)commandBuffer);
 }

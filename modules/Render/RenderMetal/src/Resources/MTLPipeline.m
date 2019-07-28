@@ -350,6 +350,43 @@ static void setupRasterState(dsShader* shader, MTLRenderPipelineDescriptor* desc
 #endif
 }
 
+static void setupBufferInfos(dsShader* shader, MTLRenderPipelineDescriptor* descriptor)
+{
+#if __IPHONE_OS_VERSION_MIN_REQUIRED >= 110000 || __MAC_OS_X_VERSION_MIN_REQUIRED >= 101300
+	dsMTLShader* mtlShader = (dsMTLShader*)shader;
+	if (mtlShader->stages[mslStage_Vertex].hasPushConstants)
+		descriptor.vertexBuffers[0].mutability = MTLMutabilityImmutable;
+	if (mtlShader->stages[mslStage_Fragment].hasPushConstants)
+		descriptor.fragmentBuffers[0].mutability = MTLMutabilityImmutable;
+
+	const dsMaterialDesc* materialDesc = shader->materialDesc;
+	for (uint32_t i = 0; i < mtlShader->uniformCount; ++i)
+	{
+		uint32_t vertexIndex = mtlShader->stages[mslStage_Vertex].uniformIndices[i];
+		uint32_t fragmentIndex = mtlShader->stages[mslStage_Fragment].uniformIndices[i];
+		if (vertexIndex == DS_MATERIAL_UNKNOWN && fragmentIndex == DS_MATERIAL_UNKNOWN)
+			continue;
+
+		const dsMTLUniformInfo* info = mtlShader->uniformInfos + i;
+		if (info->element == DS_MATERIAL_UNKNOWN)
+			continue;
+
+		const dsMaterialElement* element = materialDesc->elements + info->element;
+		if (element->type == dsMaterialType_VariableGroup ||
+			element->type == dsMaterialType_UniformBlock)
+		{
+			if (vertexIndex != DS_MATERIAL_UNKNOWN)
+				descriptor.vertexBuffers[vertexIndex].mutability = MTLMutabilityImmutable;
+			if (fragmentIndex != DS_MATERIAL_UNKNOWN)
+				descriptor.fragmentBuffers[fragmentIndex].mutability = MTLMutabilityImmutable;
+		}
+	}
+#else
+	DS_UNUSED(shader);
+	DS_UNUSED(descriptor);
+#endif
+}
+
 uint32_t dsMTLPipeline_hash(uint32_t samples, dsPrimitiveType primitiveType,
 	uint32_t vertexFormatHash, const dsRenderPass* renderPass, uint32_t subpass)
 {
@@ -414,6 +451,7 @@ dsMTLPipeline* dsMTLPipeline_create(dsAllocator* allocator, dsShader* shader, ui
 		setupColorAttachments(shader, descriptor, renderPass, subpass);
 		setupDepthStencilAttachment(shader, descriptor, renderPass, subpass);
 		setupRasterState(shader, descriptor, samples, primitiveType);
+		setupBufferInfos(shader, descriptor);
 
 		NSError* error = NULL;
 		id<MTLRenderPipelineState> renderPipeline =

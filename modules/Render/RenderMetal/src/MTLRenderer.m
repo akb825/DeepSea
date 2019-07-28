@@ -35,6 +35,7 @@
 #include <DeepSea/Core/Thread/Mutex.h>
 #include <DeepSea/Core/Thread/Spinlock.h>
 #include <DeepSea/Core/Assert.h>
+#include <DeepSea/Core/Atomic.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Render/Resources/GfxFormat.h>
@@ -1017,13 +1018,21 @@ uint64_t dsMTLRenderer_flushImpl(dsRenderer* renderer, id<MTLCommandBuffer> extr
 			DS_VERIFY(dsMutex_lock(mtlRenderer->submitMutex));
 			if (submit > mtlRenderer->finishedSubmitCount)
 			{
-				mtlRenderer->finishedSubmitCount = submit;
+				DS_ATOMIC_STORE64(&mtlRenderer->finishedSubmitCount, &submit);
 				DS_VERIFY(dsConditionVariable_notifyAll(mtlRenderer->submitCondition));
 			}
 			DS_VERIFY(dsMutex_unlock(mtlRenderer->submitMutex));
 		}];
 	[lastCommandBuffer commit];
 	return submit;
+}
+
+uint64_t dsMTLRenderer_getFinishedSubmit(const dsRenderer* renderer)
+{
+	const dsMTLRenderer* mtlRenderer = (const dsMTLRenderer*)renderer;
+	uint64_t finishedSubmit;
+	DS_ATOMIC_LOAD64(&mtlRenderer->finishedSubmitCount, &finishedSubmit);
+	return finishedSubmit;
 }
 
 dsGfxFenceResult dsMTLRenderer_waitForSubmit(const dsRenderer* renderer, uint64_t submitCount,
