@@ -800,6 +800,8 @@ dsResourceManager* dsVkResourceManager_create(dsAllocator* allocator, dsVkRender
 	baseResourceManager->hasQueryBuffers = true;
 	baseResourceManager->timestampPeriod = limits->timestampPeriod;
 
+	resourceManager->maxPushConstantSize = limits->maxPushConstantsSize;
+
 	// Core functionality
 	initializeFormats(resourceManager);
 	baseResourceManager->vertexFormatSupportedFunc = &dsVkResourceManager_vertexFormatSupported;

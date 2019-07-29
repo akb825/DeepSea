@@ -1074,6 +1074,8 @@ typedef struct dsVkResourceManager
 	dsVkFormatInfo specialFormats[dsGfxFormat_SpecialCount];
 	dsVkFormatInfo compressedFormats[dsGfxFormat_CompressedCount][dsGfxFormat_DecoratorCount];
 
+	uint32_t maxPushConstantSize;
+
 	const char* shaderCacheDir;
 	VkPipelineCache pipelineCache;
 } dsVkResourceManager;

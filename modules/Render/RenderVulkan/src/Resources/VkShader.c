@@ -604,6 +604,8 @@ static bool createLayout(VkPipelineLayout* layout, dsShader* shader,
 	const dsVkMaterialDesc* vkMaterialDesc = (const dsVkMaterialDesc*)materialDesc;
 	const mslModule* module = shader->module->module;
 	const mslPipeline* pipeline = shader->pipeline;
+	const dsVkResourceManager* vkResourceManager =
+		(const dsVkResourceManager*)shader->resourceManager;
 	dsVkDevice* device = &((dsVkRenderer*)shader->resourceManager->renderer)->device;
 	dsVkInstance* instance = &device->instance;
 
@@ -622,6 +624,16 @@ static bool createLayout(VkPipelineLayout* layout, dsShader* shader,
 		DS_VERIFY(mslModule_struct(&pushConstantStruct, module, shader->pipelineIndex,
 			pipeline->pushConstantStruct));
 		pushConstantSize = pushConstantStruct.size;
+	}
+
+	if (pushConstantSize > vkResourceManager->maxPushConstantSize)
+	{
+		DS_LOG_ERROR_F(DS_RENDER_VULKAN_LOG_TAG,
+			"Push constant size (%u bytes) exceeds maximum (%u bytes) for shader %s.%s",
+			pushConstantSize, vkResourceManager->maxPushConstantSize, shader->module->name,
+			shader->name);
+		errno = ENOMEM;
+		return false;
 	}
 
 	VkPushConstantRange pushConstantRange =
