@@ -31,7 +31,7 @@ void dsVkRenderer_processRenderSurface(dsRenderer* renderer, dsVkRenderSurfaceDa
 
 void dsVkRenderer_deleteGfxBuffer(dsRenderer* renderer, dsVkGfxBufferData* buffer);
 void dsVkRenderer_deleteTexture(dsRenderer* renderer, dsTexture* texture);
-void dsVkRenderer_deleteCopyImage(dsRenderer* renderer, dsVkCopyImage* copyImage);
+void dsVkRenderer_deleteTempBuffer(dsRenderer* renderer, dsVkTempBuffer* buffer);
 void dsVkRenderer_deleteRenderbuffer(dsRenderer* renderer, dsRenderbuffer* renderbuffer);
 void dsVkRenderer_deleteFramebuffer(dsRenderer* renderer, dsVkRealFramebuffer* framebuffer);
 void dsVkRenderer_deleteFence(dsRenderer* renderer, dsGfxFence* fence);

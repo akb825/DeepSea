@@ -78,11 +78,11 @@ void dsMTLTempBuffer_finish(dsMTLTempBuffer* buffer, uint64_t submitCount)
 	DS_ATOMIC_STORE64(&buffer->lastUsedSubmit, &submitCount);
 }
 
-bool dsMTLTempBuffer_reset(dsMTLTempBuffer* buffer, uint64_t finishedSubmit)
+bool dsMTLTempBuffer_reset(dsMTLTempBuffer* buffer, uint64_t finishedSubmitCount)
 {
 	uint64_t lastUsedSubmit;
 	DS_ATOMIC_LOAD64(&buffer->lastUsedSubmit, &lastUsedSubmit);
-	if (lastUsedSubmit > finishedSubmit)
+	if (lastUsedSubmit > finishedSubmitCount)
 		return false;
 
 	// Shouldn't be any thread contention at this point for lastUsedSubmit.

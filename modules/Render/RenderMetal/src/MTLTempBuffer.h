@@ -23,5 +23,5 @@ dsMTLTempBuffer* dsMTLTempBuffer_create(dsAllocator* allocator, id<MTLDevice> de
 void* dsMTLTempBuffer_allocate(uint32_t* outOffset, id<MTLBuffer>* outMTLBuffer,
 	dsMTLTempBuffer* buffer, uint32_t size, uint32_t alignment);
 void dsMTLTempBuffer_finish(dsMTLTempBuffer* buffer, uint64_t submitCount);
-bool dsMTLTempBuffer_reset(dsMTLTempBuffer* buffer, uint64_t finishedSubmit);
+bool dsMTLTempBuffer_reset(dsMTLTempBuffer* buffer, uint64_t finishedSubmitCount);
 void dsMTLTempBuffer_destroy(dsMTLTempBuffer* buffer);

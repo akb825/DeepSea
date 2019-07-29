@@ -53,6 +53,9 @@ void dsVkCommandBuffer_bindDescriptorSet(dsCommandBuffer* commandBuffer,
 	VkPipelineLayout layout, VkDescriptorSet descriptorSet, const uint32_t* offsets,
 	uint32_t offsetCount);
 
+void* dsVkCommandBuffer_getTempData(size_t* outOffset, VkBuffer* outBuffer,
+	dsCommandBuffer* commandBuffer, size_t size, uint32_t alignment);
+
 bool dsVkCommandBuffer_recentlyAddedImageBarrier(dsCommandBuffer* commandBuffer,
 	const VkImageMemoryBarrier* barrier);
 VkImageMemoryBarrier* dsVkCommandBuffer_addImageBarrier(dsCommandBuffer* commandBuffer);

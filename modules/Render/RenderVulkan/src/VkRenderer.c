@@ -19,7 +19,6 @@
 
 #include "Platform/VkPlatform.h"
 #include "Resources/VkComputePipeline.h"
-#include "Resources/VkCopyImage.h"
 #include "Resources/VkFramebuffer.h"
 #include "Resources/VkGfxBuffer.h"
 #include "Resources/VkGfxBufferData.h"
@@ -33,6 +32,7 @@
 #include "Resources/VkResourceManager.h"
 #include "Resources/VkSamplerList.h"
 #include "Resources/VkShader.h"
+#include "Resources/VkTempBuffer.h"
 #include "Resources/VkTexture.h"
 #include "VkBarrierList.h"
 #include "VkCommandBuffer.h"
@@ -215,14 +215,14 @@ static void freeAllResources(dsVkResourceList* deleteList, bool ignoreCommandBuf
 	deleteList->textureCount = finalCount;
 
 	finalCount = 0;
-	for (uint32_t i = 0; i < deleteList->copyImageCount; ++i)
+	for (uint32_t i = 0; i < deleteList->tempBufferCount; ++i)
 	{
-		if (ignoreCommandBufferRefs || deleteList->copyImages[i]->resource.commandBufferCount == 0)
-			dsVkCopyImage_destroy(deleteList->copyImages[i]);
+		if (ignoreCommandBufferRefs || deleteList->tempBuffers[i]->resource.commandBufferCount == 0)
+			dsVkTempBuffer_destroy(deleteList->tempBuffers[i]);
 		else
-			deleteList->copyImages[finalCount++] = deleteList->copyImages[i];
+			deleteList->tempBuffers[finalCount++] = deleteList->tempBuffers[i];
 	}
-	deleteList->copyImageCount = finalCount;
+	deleteList->tempBufferCount = finalCount;
 
 	finalCount = 0;
 	for (uint32_t i = 0; i < deleteList->renderbufferCount; ++i)
@@ -381,18 +381,18 @@ static void freeResources(dsVkRenderer* renderer, uint64_t finishedSubmitCount)
 		dsVkTexture_destroyImpl(texture);
 	}
 
-	for (uint32_t i = 0; i < prevDeleteList->copyImageCount; ++i)
+	for (uint32_t i = 0; i < prevDeleteList->tempBufferCount; ++i)
 	{
-		dsVkCopyImage* copyImage = prevDeleteList->copyImages[i];
-		DS_ASSERT(copyImage);
+		dsVkTempBuffer* buffer = prevDeleteList->tempBuffers[i];
+		DS_ASSERT(buffer);
 
-		if (dsVkResource_isInUse(&copyImage->resource, finishedSubmitCount))
+		if (dsVkResource_isInUse(&buffer->resource, finishedSubmitCount))
 		{
-			dsVkRenderer_deleteCopyImage(baseRenderer, copyImage);
+			dsVkRenderer_deleteTempBuffer(baseRenderer, buffer);
 			continue;
 		}
 
-		dsVkCopyImage_destroy(copyImage);
+		dsVkTempBuffer_destroy(buffer);
 	}
 
 	for (uint32_t i = 0; i < prevDeleteList->renderbufferCount; ++i)
@@ -2578,16 +2578,16 @@ void dsVkRenderer_deleteTexture(dsRenderer* renderer, dsTexture* texture)
 	DS_VERIFY(dsSpinlock_unlock(&vkRenderer->deleteLock));
 }
 
-void dsVkRenderer_deleteCopyImage(dsRenderer* renderer, dsVkCopyImage* copyImage)
+void dsVkRenderer_deleteTempBuffer(dsRenderer* renderer, dsVkTempBuffer* buffer)
 {
-	if (!copyImage)
+	if (!buffer)
 		return;
 
 	dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
 	DS_VERIFY(dsSpinlock_lock(&vkRenderer->deleteLock));
 
 	dsVkResourceList* resourceList = vkRenderer->deleteResources + vkRenderer->curDeleteResources;
-	dsVkResourceList_addCopyImage(resourceList, copyImage);
+	dsVkResourceList_addTempBuffer(resourceList, buffer);
 	DS_VERIFY(dsSpinlock_unlock(&vkRenderer->deleteLock));
 }
 

@@ -20,7 +20,7 @@
 #include "MTLTypes.h"
 
 uint64_t dsMTLRenderer_flushImpl(dsRenderer* renderer, id<MTLCommandBuffer> extraCommands);
-uint64_t dsMTLRenderer_getFinishedSubmit(const dsRenderer* renderer);
+uint64_t dsMTLRenderer_getFinishedSubmitCount(const dsRenderer* renderer);
 dsGfxFenceResult dsMTLRenderer_waitForSubmit(const dsRenderer* renderer, uint64_t submitCount,
 	unsigned int milliseconds);
 void dsMTLRenderer_processBuffer(dsRenderer* renderer, dsMTLGfxBufferData* buffer);

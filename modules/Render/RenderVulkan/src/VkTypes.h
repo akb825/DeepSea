@@ -28,7 +28,7 @@
 
 #define DS_NOT_SUBMITTED (uint64_t)-1
 #define DS_DELAY_FRAMES 3
-#define DS_EXPECTED_FRAME_FLUSHES 10
+#define DS_EXPECTED_FRAME_FLUSHES 2
 #define DS_MAX_SUBMITS (DS_DELAY_FRAMES*DS_EXPECTED_FRAME_FLUSHES)
 #define DS_PENDING_RESOURCES_ARRAY 2
 #define DS_DELETE_RESOURCES_ARRAY 2
@@ -37,6 +37,8 @@
 #define DS_MAX_DYNAMIC_STATES VK_DYNAMIC_STATE_STENCIL_REFERENCE + 1
 #define DS_COMMAND_BUFFER_CHUNK_SIZE 20
 #define DS_RECENTLY_ADDED_SIZE 10
+#define DS_TEMP_BUFFER_CAPACITY 524288
+#define DS_MAX_TEMP_BUFFER_ALLOC 262144
 
 typedef struct dsVkInstance
 {
@@ -129,6 +131,7 @@ typedef struct dsVkDevice
 	PFN_vkGetBufferMemoryRequirements vkGetBufferMemoryRequirements;
 	PFN_vkBindBufferMemory vkBindBufferMemory;
 	PFN_vkCmdCopyBuffer vkCmdCopyBuffer;
+	PFN_vkCmdCopyBufferToImage vkCmdCopyBufferToImage;
 	PFN_vkCmdUpdateBuffer vkCmdUpdateBuffer;
 	PFN_vkCmdBindVertexBuffers vkCmdBindVertexBuffers;
 	PFN_vkCmdBindIndexBuffer vkCmdBindIndexBuffer;
@@ -313,18 +316,17 @@ typedef struct dsVkHostImage
 	VkSubresourceLayout layout;
 } dsVkHostImage;
 
-typedef struct dsVkCopyImage
+typedef struct dsVkTempBuffer
 {
 	dsVkResource resource;
 	dsAllocator* allocator;
 	dsVkDevice* device;
-	VkImage* images;
-	VkImageMemoryBarrier* imageBarriers;
-	VkImageCopy* imageCopies;
-	uint32_t imageCount;
-	uint32_t imageCopyCount;
+	VkBuffer buffer;
 	VkDeviceMemory memory;
-} dsVkCopyImage;
+	uint8_t* contents;
+	size_t size;
+	size_t capacity;
+} dsVkTempBuffer;
 
 typedef struct dsVkTexture
 {
@@ -749,9 +751,9 @@ typedef struct dsVkResourceList
 	uint32_t textureCount;
 	uint32_t maxTextures;
 
-	dsVkCopyImage** copyImages;
-	uint32_t copyImageCount;
-	uint32_t maxCopyImages;
+	dsVkTempBuffer** tempBuffers;
+	uint32_t tempBufferCount;
+	uint32_t maxTempBuffers;
 
 	dsRenderbuffer** renderbuffers;
 	uint32_t renderbufferCount;
@@ -955,6 +957,11 @@ struct dsVkCommandBuffer
 	dsVkResource** usedResources;
 	uint32_t usedResourceCount;
 	uint32_t maxUsedResources;
+
+	dsVkTempBuffer* curTempBuffer;
+	dsVkTempBuffer** tempBuffers;
+	uint32_t tempBufferCount;
+	uint32_t maxTempBuffers;
 
 	dsOffscreen** readbackOffscreens;
 	uint32_t readbackOffscreenCount;

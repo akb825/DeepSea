@@ -1027,12 +1027,12 @@ uint64_t dsMTLRenderer_flushImpl(dsRenderer* renderer, id<MTLCommandBuffer> extr
 	return submit;
 }
 
-uint64_t dsMTLRenderer_getFinishedSubmit(const dsRenderer* renderer)
+uint64_t dsMTLRenderer_getFinishedSubmitCount(const dsRenderer* renderer)
 {
 	const dsMTLRenderer* mtlRenderer = (const dsMTLRenderer*)renderer;
-	uint64_t finishedSubmit;
-	DS_ATOMIC_LOAD64(&mtlRenderer->finishedSubmitCount, &finishedSubmit);
-	return finishedSubmit;
+	uint64_t finishedSubmitCount;
+	DS_ATOMIC_LOAD64(&mtlRenderer->finishedSubmitCount, &finishedSubmitCount);
+	return finishedSubmitCount;
 }
 
 dsGfxFenceResult dsMTLRenderer_waitForSubmit(const dsRenderer* renderer, uint64_t submitCount,

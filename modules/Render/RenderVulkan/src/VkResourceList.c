@@ -53,16 +53,16 @@ bool dsVkResourceList_addTexture(dsVkResourceList* resources, dsTexture* texture
 	return true;
 }
 
-bool dsVkResourceList_addCopyImage(dsVkResourceList* resources, dsVkCopyImage* image)
+bool dsVkResourceList_addTempBuffer(dsVkResourceList* resources, dsVkTempBuffer* buffer)
 {
-	uint32_t index = resources->copyImageCount;
-	if (!DS_RESIZEABLE_ARRAY_ADD(resources->allocator, resources->copyImages,
-		resources->copyImageCount, resources->maxCopyImages, 1))
+	uint32_t index = resources->tempBufferCount;
+	if (!DS_RESIZEABLE_ARRAY_ADD(resources->allocator, resources->tempBuffers,
+		resources->tempBufferCount, resources->maxTempBuffers, 1))
 	{
 		return false;
 	}
 
-	resources->copyImages[index] = image;
+	resources->tempBuffers[index] = buffer;
 	return true;
 }
 
@@ -214,7 +214,7 @@ void dsVkResourceList_clear(dsVkResourceList* resources)
 {
 	resources->bufferCount = 0;
 	resources->textureCount = 0;
-	resources->copyImageCount = 0;
+	resources->tempBufferCount = 0;
 	resources->renderbufferCount = 0;
 	resources->framebufferCount = 0;
 	resources->fenceCount = 0;
@@ -235,7 +235,7 @@ void dsVkResourceList_shutdown(dsVkResourceList* resources)
 
 	DS_VERIFY(dsAllocator_free(resources->allocator, resources->buffers));
 	DS_VERIFY(dsAllocator_free(resources->allocator, resources->textures));
-	DS_VERIFY(dsAllocator_free(resources->allocator, resources->copyImages));
+	DS_VERIFY(dsAllocator_free(resources->allocator, resources->tempBuffers));
 	DS_VERIFY(dsAllocator_free(resources->allocator, resources->renderbuffers));
 	DS_VERIFY(dsAllocator_free(resources->allocator, resources->framebuffers));
 	DS_VERIFY(dsAllocator_free(resources->allocator, resources->fences));

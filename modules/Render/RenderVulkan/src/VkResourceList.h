@@ -23,7 +23,7 @@ void dsVkResourceList_initialize(dsVkResourceList* resources, dsAllocator* alloc
 
 bool dsVkResourceList_addBuffer(dsVkResourceList* resources, dsVkGfxBufferData* buffer);
 bool dsVkResourceList_addTexture(dsVkResourceList* resources, dsTexture* texture);
-bool dsVkResourceList_addCopyImage(dsVkResourceList* resources, dsVkCopyImage* image);
+bool dsVkResourceList_addTempBuffer(dsVkResourceList* resources, dsVkTempBuffer* buffer);
 bool dsVkResourceList_addRenderbuffer(dsVkResourceList* resources, dsRenderbuffer* renderbuffer);
 bool dsVkResourceList_addFramebuffer(dsVkResourceList* resources, dsVkRealFramebuffer* framebuffer);
 bool dsVkResourceList_addFence(dsVkResourceList* resources, dsGfxFence* fence);

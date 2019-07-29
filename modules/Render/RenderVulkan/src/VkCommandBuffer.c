@@ -18,6 +18,7 @@
 
 #include "Resources/VkFramebuffer.h"
 #include "Resources/VkRealFramebuffer.h"
+#include "Resources/VkTempBuffer.h"
 #include "Resources/VkTexture.h"
 #include "VkBarrierList.h"
 #include "VkCommandBufferData.h"
@@ -954,6 +955,80 @@ void dsVkCommandBuffer_bindDescriptorSet(dsCommandBuffer* commandBuffer,
 	vkCommandBuffer->activeDescriptorSets[bindPoint][setIndex] = descriptorSet;
 }
 
+void* dsVkCommandBuffer_getTempData(size_t* outOffset, VkBuffer* outBuffer,
+	dsCommandBuffer* commandBuffer, size_t size, uint32_t alignment)
+{
+	commandBuffer = dsVkCommandBuffer_get(commandBuffer);
+	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
+	dsRenderer* renderer = commandBuffer->renderer;
+	dsVkDevice* device = &((dsVkRenderer*)renderer)->device;
+
+	// Too large for the temp buffer pools, create a temp buffer and destroy it once finished.
+	if (size > DS_MAX_TEMP_BUFFER_ALLOC)
+	{
+		dsVkTempBuffer* buffer = dsVkTempBuffer_create(commandBuffer->allocator, device, size);
+		if (!buffer)
+			return NULL;
+
+		if (!dsVkCommandBuffer_addResource(commandBuffer, &buffer->resource))
+		{
+			dsVkTempBuffer_destroy(buffer);
+			return NULL;
+		}
+		dsVkRenderer_deleteTempBuffer(renderer, buffer);
+
+		*outBuffer = buffer->buffer;
+		return dsVkTempBuffer_allocate(outOffset, buffer, size, alignment);
+	}
+
+	if (vkCommandBuffer->curTempBuffer)
+	{
+		*outBuffer = vkCommandBuffer->curTempBuffer->buffer;
+		void* data =
+			dsVkTempBuffer_allocate(outOffset, vkCommandBuffer->curTempBuffer, size, alignment);
+		if (data)
+			return data;
+	}
+
+	uint64_t finishedSubmitCount = dsVkRenderer_getFinishedSubmitCount(commandBuffer->renderer);
+	for (uint32_t i = 0; i < vkCommandBuffer->tempBufferCount; ++i)
+	{
+		dsVkTempBuffer* buffer = vkCommandBuffer->tempBuffers[i];
+		if (!dsVkTempBuffer_reset(buffer, finishedSubmitCount))
+			continue;
+
+		vkCommandBuffer->curTempBuffer = buffer;
+		dsVkCommandBuffer_addResource(commandBuffer, &buffer->resource);
+		*outBuffer = buffer->buffer;
+		return dsVkTempBuffer_allocate(outOffset, buffer, size, alignment);
+	}
+
+	dsVkTempBuffer* buffer = dsVkTempBuffer_create(commandBuffer->allocator, device,
+		DS_TEMP_BUFFER_CAPACITY);
+	if (!buffer)
+		return NULL;
+
+	uint32_t index = vkCommandBuffer->tempBufferCount;
+	if (!DS_RESIZEABLE_ARRAY_ADD(commandBuffer->allocator, vkCommandBuffer->tempBuffers,
+			vkCommandBuffer->tempBufferCount, vkCommandBuffer->maxTempBuffers, 1))
+	{
+		dsVkTempBuffer_destroy(buffer);
+		return NULL;
+	}
+
+	if (!dsVkCommandBuffer_addResource(commandBuffer, &buffer->resource))
+	{
+		dsVkTempBuffer_destroy(buffer);
+		--vkCommandBuffer->tempBufferCount;
+		return NULL;
+	}
+
+	vkCommandBuffer->tempBuffers[index] = buffer;
+	vkCommandBuffer->curTempBuffer = buffer;
+	*outBuffer = buffer->buffer;
+	return dsVkTempBuffer_allocate(outOffset, buffer, size, alignment);
+}
+
 bool dsVkCommandBuffer_recentlyAddedImageBarrier(dsCommandBuffer* commandBuffer,
 	const VkImageMemoryBarrier* barrier)
 {
@@ -1188,6 +1263,7 @@ void dsVkCommandBuffer_clearUsedResources(dsCommandBuffer* commandBuffer)
 	vkCommandBuffer->usedResourceCount = 0;
 	vkCommandBuffer->readbackOffscreenCount = 0;
 	vkCommandBuffer->renderSurfaceCount = 0;
+	vkCommandBuffer->curTempBuffer = NULL;
 }
 
 void dsVkCommandBuffer_submittedResources(dsCommandBuffer* commandBuffer, uint64_t submitCount)
@@ -1205,6 +1281,7 @@ void dsVkCommandBuffer_submittedResources(dsCommandBuffer* commandBuffer, uint64
 	}
 
 	vkCommandBuffer->usedResourceCount = 0;
+	vkCommandBuffer->curTempBuffer = NULL;
 }
 
 void dsVkCommandBuffer_submittedReadbackOffscreens(dsCommandBuffer* commandBuffer,
@@ -1281,7 +1358,8 @@ void dsVkCommandBuffer_shutdown(dsVkCommandBuffer* commandBuffer)
 	if (!baseCommandBuffer->renderer)
 		return;
 
-	dsVkDevice* device = &((dsVkRenderer*)baseCommandBuffer->renderer)->device;
+	dsRenderer* renderer = baseCommandBuffer->renderer;
+	dsVkDevice* device = &((dsVkRenderer*)renderer)->device;
 	dsVkInstance* instance = &device->instance;
 
 	if (commandBuffer->commandPool)
@@ -1297,6 +1375,9 @@ void dsVkCommandBuffer_shutdown(dsVkCommandBuffer* commandBuffer)
 	DS_VERIFY(dsAllocator_free(baseCommandBuffer->allocator, commandBuffer->clearValues));
 	DS_VERIFY(dsAllocator_free(baseCommandBuffer->allocator, commandBuffer->submitBuffers));
 	DS_VERIFY(dsAllocator_free(baseCommandBuffer->allocator, commandBuffer->usedResources));
+	for (uint32_t i = 0; i < commandBuffer->tempBufferCount; ++i)
+		dsVkRenderer_deleteTempBuffer(renderer, commandBuffer->tempBuffers[i]);
+	DS_VERIFY(dsAllocator_free(baseCommandBuffer->allocator, commandBuffer->tempBuffers));
 	DS_VERIFY(dsAllocator_free(baseCommandBuffer->allocator, commandBuffer->readbackOffscreens));
 	DS_VERIFY(dsAllocator_free(baseCommandBuffer->allocator, commandBuffer->renderSurfaces));
 	DS_VERIFY(dsAllocator_free(baseCommandBuffer->allocator, commandBuffer->imageBarriers));

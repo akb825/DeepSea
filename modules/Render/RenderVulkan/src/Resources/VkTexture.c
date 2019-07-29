@@ -16,7 +16,6 @@
 
 #include "Resources/VkTexture.h"
 
-#include "Resources/VkCopyImage.h"
 #include "Resources/VkResource.h"
 #include "Resources/VkResourceManager.h"
 #include "VkBarrierList.h"
@@ -628,7 +627,7 @@ static bool addCopyImageBarriers(dsCommandBuffer* commandBuffer, const dsTexture
 		else
 		{
 			srcLayers = region->layers;
-			srcBaseLayer = dsMax(1U, srcPosition->depth)*srcFaceCount + srcPosition->face;
+			srcBaseLayer = srcPosition->depth*srcFaceCount + srcPosition->face;
 		}
 
 		for (uint32_t j = 0; j < srcLayers; ++j)
@@ -673,7 +672,7 @@ static bool addCopyImageBarriers(dsCommandBuffer* commandBuffer, const dsTexture
 		else
 		{
 			dstLayers = region->layers;
-			dstBaseLayer = dsMax(1U, dstPosition->depth)*dstFaceCount + dstPosition->face;
+			dstBaseLayer = dstPosition->depth*dstFaceCount + dstPosition->face;
 		}
 
 		for (uint32_t j = 0; j < dstLayers; ++j)
@@ -733,33 +732,63 @@ bool dsVkTexture_copyData(dsResourceManager* resourceManager, dsCommandBuffer* c
 {
 	dsRenderer* renderer = resourceManager->renderer;
 	dsVkDevice* device = &((dsVkRenderer*)renderer)->device;
+	dsVkTexture* vkTexture = (dsVkTexture*)texture;
 
 	VkCommandBuffer vkCommandBuffer = dsVkCommandBuffer_getCommandBuffer(commandBuffer);
 	if (!vkCommandBuffer)
 		return false;
 
-	dsVkCopyImage* copyImage = dsVkCopyImage_create(resourceManager->allocator, device, texture,
-		position, width, height, layers, data, size);
-	if (!copyImage)
-		return false;
+	const dsTextureInfo* texInfo = &texture->info;
+	unsigned int formatSize = dsGfxFormat_size(texInfo->format);
+	unsigned int blocksX, blocksY;
+	DS_VERIFY(dsGfxFormat_blockDimensions(&blocksX, &blocksY, texInfo->format));
 
-	dsVkTexture* vkTexture = (dsVkTexture*)texture;
-	if (!dsVkCommandBuffer_addResource(commandBuffer, &vkTexture->resource) ||
-		!dsVkCommandBuffer_addResource(commandBuffer, &copyImage->resource))
+	uint32_t z, depth;
+	uint32_t baseLayer, copyLayerCount;
+	if (texInfo->dimension == dsTextureDim_3D)
 	{
-		dsVkCopyImage_destroy(copyImage);
-		return false;
+		z = position->depth;
+		depth = layers;
+		baseLayer = 0;
+		copyLayerCount = 1;
 	}
+	else
+	{
+		z = 0;
+		depth = 1;
+		uint32_t faceCount = texture->info.dimension == dsTextureDim_Cube ? 6 : 1;
+		baseLayer = position->depth*faceCount + position->face;
+		copyLayerCount = layers;
+	}
+
+	size_t offset = 0;
+	VkBuffer tempBuffer = 0;
+	void* tempData =
+		dsVkCommandBuffer_getTempData(&offset, &tempBuffer, commandBuffer, size, formatSize);
+	if (!tempData)
+		return NULL;
+
+	memcpy(tempData, data, size);
 
 	dsVkRenderer_processTexture(renderer, texture);
 
-	DS_VK_CALL(device->vkCmdPipelineBarrier)(vkCommandBuffer, VK_PIPELINE_STAGE_HOST_BIT,
-		VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, NULL, 0, NULL,
-		copyImage->imageCount, copyImage->imageBarriers);
+	VkBufferMemoryBarrier bufferBarrier =
+	{
+		VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER,
+		NULL,
+		VK_ACCESS_HOST_WRITE_BIT,
+		VK_ACCESS_TRANSFER_READ_BIT,
+		VK_QUEUE_FAMILY_IGNORED,
+		VK_QUEUE_FAMILY_IGNORED,
+		tempBuffer,
+		offset,
+		size
+	};
 
 	bool isDepthStencil = dsGfxFormat_isDepthStencil(texture->info.format);
 	VkImageLayout layout = dsVkTexture_imageLayout(texture);
-	VkImageMemoryBarrier barrier =
+	VkImageAspectFlags aspectMask = dsVkImageAspectFlags(texInfo->format);
+	VkImageMemoryBarrier imageBarrier =
 	{
 		VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
 		NULL,
@@ -771,48 +800,42 @@ bool dsVkTexture_copyData(dsResourceManager* resourceManager, dsCommandBuffer* c
 		VK_QUEUE_FAMILY_IGNORED,
 		VK_QUEUE_FAMILY_IGNORED,
 		vkTexture->deviceImage,
-		{dsVkImageAspectFlags(texture->info.format), position->mipLevel, 1, 0, 1}
+		{aspectMask, position->mipLevel, 1, baseLayer, copyLayerCount}
 	};
 
 	if (texture->info.dimension != dsTextureDim_3D)
 	{
 		uint32_t faceCount = texture->info.dimension == dsTextureDim_Cube ? 6 : 1;
-		barrier.subresourceRange.baseArrayLayer = position->depth*faceCount + position->face;
-		barrier.subresourceRange.layerCount = layers;
+		imageBarrier.subresourceRange.baseArrayLayer = position->depth*faceCount + position->face;
+		imageBarrier.subresourceRange.layerCount = layers;
 	}
 
 	VkPipelineStageFlags pipelineStages = dsVkReadImageStageFlags(renderer, texture->usage,
 			texture->offscreen && isDepthStencil && !texture->resolve) |
 		dsVkWriteImageStageFlags(renderer, texture->usage, texture->offscreen, isDepthStencil);
-	DS_VK_CALL(device->vkCmdPipelineBarrier)(vkCommandBuffer, pipelineStages,
-		VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, NULL, 0, NULL, 1, &barrier);
+	DS_VK_CALL(device->vkCmdPipelineBarrier)(vkCommandBuffer,
+		pipelineStages | VK_PIPELINE_STAGE_HOST_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, NULL, 1,
+		&bufferBarrier, 1, &imageBarrier);
 
-	DS_ASSERT(copyImage->imageCount == 1 || copyImage->imageCount == copyImage->imageCopyCount);
-	if (copyImage->imageCount == 1)
+	VkBufferImageCopy copyInfo =
 	{
-		DS_VK_CALL(device->vkCmdCopyImage)(vkCommandBuffer, copyImage->images[0],
-			VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, vkTexture->deviceImage,
-			VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, copyImage->imageCopyCount,
-			copyImage->imageCopies);
-	}
-	else
-	{
-		for (uint32_t i = 0; i < copyImage->imageCount; ++i)
-		{
-			DS_VK_CALL(device->vkCmdCopyImage)(vkCommandBuffer, copyImage->images[i],
-				VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, vkTexture->deviceImage,
-				VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, copyImage->imageCopies + i);
-		}
-	}
+		offset,
+		0,
+		0,
+		{aspectMask, position->mipLevel, baseLayer, copyLayerCount},
+		{position->x, position->y, z},
+		{width, height, depth}
+	};
 
-	barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-	barrier.dstAccessMask = barrier.srcAccessMask;
-	barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-	barrier.newLayout = layout;
+	DS_VK_CALL(device->vkCmdCopyBufferToImage)(vkCommandBuffer, tempBuffer, vkTexture->deviceImage,
+		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &copyInfo);
+
+	imageBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+	imageBarrier.dstAccessMask = imageBarrier.srcAccessMask;
+	imageBarrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+	imageBarrier.newLayout = layout;
 	DS_VK_CALL(device->vkCmdPipelineBarrier)(vkCommandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT,
-		pipelineStages, 0, 0, NULL, 0, NULL, 1, &barrier);
-
-	dsVkRenderer_deleteCopyImage(resourceManager->renderer, copyImage);
+		pipelineStages, 0, 0, NULL, 0, NULL, 1, &imageBarrier);
 	return true;
 }
 

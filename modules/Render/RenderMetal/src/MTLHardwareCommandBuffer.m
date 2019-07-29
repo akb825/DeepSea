@@ -321,11 +321,11 @@ static void* getTempBufferData(uint32_t* outOffset, id<MTLBuffer>* outMTLBuffer,
 	}
 
 	// Try to find a finished buffer.
-	uint64_t finishedSubmit = dsMTLRenderer_getFinishedSubmit(commandBuffer->renderer);
+	uint64_t finishedSubmitCount = dsMTLRenderer_getFinishedSubmitCount(commandBuffer->renderer);
 	for (uint32_t i = 0; i < mtlCommandBuffer->tempBufferPoolCount; ++i)
 	{
 		dsMTLTempBuffer* tempBuffer = mtlCommandBuffer->tempBufferPool[i];
-		if (!dsMTLTempBuffer_reset(tempBuffer, finishedSubmit))
+		if (!dsMTLTempBuffer_reset(tempBuffer, finishedSubmitCount))
 			continue;
 
 		mtlCommandBuffer->curTempBuffer = tempBuffer;

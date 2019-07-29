@@ -587,7 +587,7 @@ dsRunInfo* dsFaceGroup_findBidiRuns(uint32_t* outCount, dsFaceGroup* group, cons
 	}
 	if (sequence.stringLength == 0)
 	{
-		outCount = 0;
+		*outCount = 0;
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
