@@ -25,7 +25,6 @@
 
 #include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
-#include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Memory/Lifetime.h>
 #include <DeepSea/Core/Memory/StackAllocator.h>
 #include <DeepSea/Core/Thread/Spinlock.h>
@@ -37,14 +36,6 @@
 #include <DeepSea/Render/Resources/GfxFormat.h>
 #include <DeepSea/Render/Resources/Texture.h>
 #include <string.h>
-
-static size_t fullAllocSize(const dsTextureInfo* info, bool needsHost)
-{
-	size_t size = DS_ALIGNED_SIZE(sizeof(dsVkTexture));
-	if (needsHost)
-		size += DS_ALIGNED_SIZE(dsTexture_surfaceCount(info)*sizeof(dsVkHostImage));
-	return size;
-}
 
 inline static void adjustAlignment(size_t alignment, VkDeviceSize totalSize, VkDeviceSize* offset,
 	VkDeviceSize* size, size_t* rem)
@@ -58,139 +49,32 @@ inline static void adjustAlignment(size_t alignment, VkDeviceSize totalSize, VkD
 	*size = dsMin(*size, totalSize - *offset);
 }
 
-static bool createHostImages(dsVkDevice* device, dsAllocator* allocator, const dsTextureInfo* info,
-	const dsVkFormatInfo* formatInfo, VkImageAspectFlags aspectMask,
-	VkImageCreateInfo* baseCreateInfo, dsVkTexture* texture, const void* data, size_t dataSize)
+static bool createHostImageBuffer(dsVkDevice* device,  dsVkTexture* texture, const void* data,
+	size_t dataSize)
 {
 	dsVkInstance* instance = &device->instance;
 	dsTexture* baseTexture = (dsTexture*)texture;
-	VkMemoryRequirements memoryRequirements = {0, 0, 0};
 
-	texture->hostImageCount = dsTexture_surfaceCount(info);
-	texture->hostImages = DS_ALLOCATE_OBJECT_ARRAY(allocator, dsVkHostImage,
-		texture->hostImageCount);
-	DS_ASSERT(texture->hostImages);
-	memset(texture->hostImages, 0, texture->hostImageCount*sizeof(dsVkHostImage));
-
-	VkImageLayout initialLayout;
-	VkImageUsageFlags hostUsageFlags;
-	if (baseTexture->offscreen)
+	VkBufferCreateInfo bufferCreateInfo =
 	{
-		initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-		hostUsageFlags = VK_IMAGE_USAGE_TRANSFER_DST_BIT;
-	}
-	else
-	{
-		initialLayout = VK_IMAGE_LAYOUT_PREINITIALIZED;
-		hostUsageFlags = VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
-	}
+		VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
+		NULL,
+		0,
+		dataSize,
+		baseTexture->offscreen ? VK_BUFFER_USAGE_TRANSFER_DST_BIT :
+			VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+		VK_SHARING_MODE_EXCLUSIVE,
+		0, NULL
+	};
 
-	uint32_t faceCount = info->dimension == dsTextureDim_Cube ? 6 : 1;
-	bool is3D = info->dimension == dsTextureDim_3D;
-	if (baseCreateInfo)
-	{
-		// Single image for all surfaces.
-		VkImageCreateInfo imageCreateInfo = *baseCreateInfo;
-		imageCreateInfo.tiling = VK_IMAGE_TILING_LINEAR;
-		imageCreateInfo.usage = hostUsageFlags;
-		imageCreateInfo.initialLayout = initialLayout;
-		VkResult result = DS_VK_CALL(device->vkCreateImage)(device->device, &imageCreateInfo,
-			instance->allocCallbacksPtr, &texture->hostImage);
-		if (!dsHandleVkResult(result))
-			return false;
+	VkResult result = DS_VK_CALL(device->vkCreateBuffer)(device->device, &bufferCreateInfo,
+		instance->allocCallbacksPtr, &texture->hostBuffer);
+	if (!dsHandleVkResult(result))
+		return false;
 
-		DS_VK_CALL(device->vkGetImageMemoryRequirements)(device->device,
-			texture->hostImage, &memoryRequirements);
-
-		for (uint32_t i = 0, index = 0; i < info->mipLevels; ++i)
-		{
-			VkSubresourceLayout baseLayout;
-			VkImageSubresource subresource = {aspectMask, 0, i};
-			DS_VK_CALL(device->vkGetImageSubresourceLayout)(device->device, texture->hostImage,
-				&subresource, &baseLayout);
-
-			uint32_t depth = is3D ? info->depth >> i : info->depth;
-			depth = dsMax(depth, 1U);
-			for (uint32_t j = 0; j < depth; ++j)
-			{
-				for (uint32_t k = 0; k < faceCount; ++k, ++index)
-				{
-					VkSubresourceLayout* imageLayout = &texture->hostImages[index].layout;
-					*imageLayout = baseLayout;
-					VkDeviceSize localOffset;
-					if (is3D)
-						localOffset = j*baseLayout.depthPitch;
-					else
-						localOffset = (j*faceCount + k)*baseLayout.arrayPitch;
-					imageLayout->offset += localOffset;
-					imageLayout->size = dsMin(baseLayout.depthPitch,
-						baseLayout.size - localOffset);
-					DS_ASSERT(imageLayout->offset + imageLayout->size <= memoryRequirements.size);
-				}
-			}
-		}
-
-	}
-	else
-	{
-		// Fall back to a separate image for each surface.
-		for (uint32_t i = 0, index = 0; i < info->mipLevels; ++i)
-		{
-			uint32_t width = info->width >> i;
-			uint32_t height = info->height >> i;
-			uint32_t depth = is3D ? info->depth >> i : info->depth;
-			width = dsMax(1U, width);
-			height = dsMax(1U, height);
-			depth = dsMax(1U, depth);
-			for (uint32_t j = 0; j < depth; ++j)
-			{
-				for (uint32_t k = 0; k < faceCount; ++k, ++index)
-				{
-					DS_ASSERT(index < texture->hostImageCount);
-					dsVkHostImage* hostImage = texture->hostImages + index;
-					VkImageCreateInfo imageCreateInfo =
-					{
-						VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
-						NULL,
-						0,
-						VK_IMAGE_TYPE_2D,
-						formatInfo->vkFormat,
-						{width, height, 1},
-						1,
-						1,
-						VK_SAMPLE_COUNT_1_BIT,
-						VK_IMAGE_TILING_LINEAR,
-						hostUsageFlags,
-						VK_SHARING_MODE_EXCLUSIVE,
-						0, NULL,
-						initialLayout
-					};
-					VkResult result = DS_VK_CALL(device->vkCreateImage)(device->device,
-						&imageCreateInfo, instance->allocCallbacksPtr, &hostImage->image);
-					if (!dsHandleVkResult(result))
-						return false;
-
-					VkMemoryRequirements imageRequirements;
-					DS_VK_CALL(device->vkGetImageMemoryRequirements)(device->device,
-						hostImage->image, &imageRequirements);
-
-					VkDeviceSize alignment = imageRequirements.alignment;
-					memoryRequirements.size =
-						((memoryRequirements.size + (alignment - 1))/alignment)*alignment;
-
-					hostImage->offset = (size_t)memoryRequirements.size;
-					VkImageSubresource subresource = {aspectMask, 0, 0};
-					DS_VK_CALL(device->vkGetImageSubresourceLayout)(device->device,
-						hostImage->image, &subresource, &hostImage->layout);
-
-					memoryRequirements.alignment = dsMax(alignment, memoryRequirements.alignment);
-					memoryRequirements.size += imageRequirements.size;
-					memoryRequirements.memoryTypeBits |= imageRequirements.memoryTypeBits;
-				}
-			}
-		}
-	}
-
+	VkMemoryRequirements memoryRequirements;
+	DS_VK_CALL(device->vkGetBufferMemoryRequirements)(device->device, texture->hostBuffer,
+		&memoryRequirements);
 	uint32_t memoryIndex = dsVkMemoryIndex(device, &memoryRequirements, 0);
 	if (memoryIndex == DS_INVALID_HEAP)
 		return false;
@@ -199,82 +83,24 @@ static bool createHostImages(dsVkDevice* device, dsAllocator* allocator, const d
 	if (!texture->hostMemory)
 		return false;
 
-	texture->hostMemorySize = memoryRequirements.size;
+	texture->hostMemorySize = dataSize;
 	texture->hostMemoryCoherent = dsVkHeapIsCoherent(device, memoryIndex);
 
-	// Share the same block of memory for all host images.
-	if (texture->hostImage)
-	{
-		VkResult result = DS_VK_CALL(device->vkBindImageMemory)(device->device, texture->hostImage,
-			texture->hostMemory, 0);
-		if (!dsHandleVkResult(result))
-			return false;
-	}
-	else
-	{
-		for (uint32_t i = 0; i < texture->hostImageCount; ++i)
-		{
-			dsVkHostImage* hostImage = texture->hostImages + i;
-			VkResult result = DS_VK_CALL(device->vkBindImageMemory)(device->device,
-				hostImage->image, texture->hostMemory, hostImage->offset);
-			if (!dsHandleVkResult(result))
-				return false;
-		}
-	}
+	result = DS_VK_CALL(device->vkBindBufferMemory)(device->device, texture->hostBuffer,
+		texture->hostMemory, 0);
+	if (!dsHandleVkResult(result))
+		return false;
 
 	// Populate the data.
 	if (data)
 	{
-		const uint8_t* dataBytes = (uint8_t*)data;
-		const uint8_t* dataEnd = dataBytes + dataSize;
-		DS_UNUSED(dataEnd);
-
 		void* hostData;
 		VkResult result = DS_VK_CALL(device->vkMapMemory)(device->device, texture->hostMemory, 0,
 			VK_WHOLE_SIZE, 0, &hostData);
 		if (!dsHandleVkResult(result))
 			return false;
 
-		uint8_t* hostBytes = (uint8_t*)hostData;
-		uint8_t* hostEnd = hostBytes + memoryRequirements.size;
-		DS_UNUSED(hostEnd);
-
-		unsigned int blockX, blockY;
-		DS_VERIFY(dsGfxFormat_blockDimensions(&blockX, &blockY, info->format));
-		unsigned int formatSize = dsGfxFormat_size(info->format);
-
-		for (uint32_t i = 0, index = 0; i < info->mipLevels; ++i)
-		{
-			uint32_t width = info->width >> i;
-			uint32_t height = info->height >> i;
-			uint32_t depth = info->dimension == dsTextureDim_3D ? info->depth >> i : info->depth;
-			width = dsMax(1U, width);
-			height = dsMax(1U, height);
-			depth = dsMax(1U, depth);
-
-			uint32_t xBlocks = (width + blockX - 1)/blockX;
-			uint32_t yBlocks = (height + blockY - 1)/blockY;
-			uint32_t pitch = xBlocks*formatSize;
-			for (uint32_t j = 0; j < depth; ++j)
-			{
-				for (uint32_t k = 0; k < faceCount; ++k, ++index)
-				{
-					dsVkHostImage* hostImage = texture->hostImages + index;
-					uint8_t* surfaceData = hostBytes + hostImage->offset +
-						(size_t)hostImage->layout.offset;
-					size_t hostPitch = (size_t)hostImage->layout.rowPitch;
-					size_t remainingSize = (size_t)hostImage->layout.size;
-					for (uint32_t y = 0; y < yBlocks; ++y, dataBytes += pitch,
-						surfaceData += hostPitch, remainingSize -= hostPitch)
-					{
-						size_t copySize = dsMin(pitch, remainingSize);
-						DS_ASSERT(dataBytes + copySize <= dataEnd);
-						DS_ASSERT(surfaceData + copySize <= hostEnd);
-						memcpy(surfaceData, dataBytes, copySize);
-					}
-				}
-			}
-		}
+		memcpy(hostData, data, dataSize);
 
 		if (!texture->hostMemoryCoherent)
 		{
@@ -370,7 +196,8 @@ static dsTexture* createTextureImpl(dsResourceManager* resourceManager, dsAlloca
 	dsTextureUsage usage, dsGfxMemory memoryHints, const dsTextureInfo* info, const void* data,
 	size_t size, bool offscreen, bool resolve)
 {
-	DS_ASSERT(size == 0 || size == dsTexture_size(info));
+	size_t textureSize = dsTexture_size(info);
+	DS_ASSERT(size == 0 || size == textureSize);
 	DS_UNUSED(size);
 
 	dsVkRenderer* renderer = (dsVkRenderer*)resourceManager->renderer;
@@ -429,21 +256,9 @@ static dsTexture* createTextureImpl(dsResourceManager* resourceManager, dsAlloca
 			return NULL;
 	}
 
-	bool singleHostImage = true;
-	// NOTE: Intel seems to break on this, allocating incorrect sizes. NVidia only supports a single
-	// image as well, so just disable for now. Perhaps this can be used sometime in the future.
-	/*if (needsHostMemory)
-		singleHostImage = !dsVkTexture_supportsHostImage(device, formatInfo, imageType, info);*/
-
-	size_t bufferSize = fullAllocSize(info, needsHostMemory);
-	void* buffer = dsAllocator_alloc(allocator, bufferSize);
-	if (!buffer)
+	dsVkTexture* texture = DS_ALLOCATE_OBJECT(allocator, dsVkTexture);
+	if (!texture)
 		return NULL;
-
-	dsBufferAllocator bufferAlloc;
-	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, bufferSize));
-	dsVkTexture* texture = DS_ALLOCATE_OBJECT(&bufferAlloc, dsVkTexture);
-	DS_ASSERT(texture);
 
 	memset(texture, 0, sizeof(*texture));
 	dsVkResource_initialize(&texture->resource);
@@ -565,8 +380,7 @@ static dsTexture* createTextureImpl(dsResourceManager* resourceManager, dsAlloca
 	result = DS_VK_CALL(device->vkCreateImageView)(device->device, &imageViewCreateInfo,
 		instance->allocCallbacksPtr, &texture->deviceImageView);
 
-	if (needsHostMemory && !createHostImages(device, (dsAllocator*)&bufferAlloc, info, formatInfo,
-			aspectMask, singleHostImage ? NULL : &imageCreateInfo, texture, data, size))
+	if (needsHostMemory && !createHostImageBuffer(device, texture, data, textureSize))
 	{
 		dsVkTexture_destroyImpl(baseTexture);
 		return NULL;
@@ -766,9 +580,10 @@ bool dsVkTexture_copyData(dsResourceManager* resourceManager, dsCommandBuffer* c
 	void* tempData =
 		dsVkCommandBuffer_getTempData(&offset, &tempBuffer, commandBuffer, size, formatSize);
 	if (!tempData)
-		return NULL;
+		return false;
 
 	memcpy(tempData, data, size);
+	dsVkCommandBuffer_flushTempData(commandBuffer, offset, size);
 
 	dsVkRenderer_processTexture(renderer, texture);
 
@@ -1122,19 +937,26 @@ bool dsVkTexture_getData(void* result, size_t size, dsResourceManager* resourceM
 		return false;
 	}
 
-	uint32_t imageIndex = dsTexture_surfaceIndex(info, position->face, position->depth,
-		position->mipLevel);
-	DS_ASSERT(imageIndex < vkTexture->hostImageCount);
-	dsVkHostImage* hostImage = vkTexture->hostImages + imageIndex;
-
 	dsVkResource_waitUntilNotInUse(&vkTexture->resource, resourceManager->renderer);
 
+	dsTextureInfo surfaceInfo;
+	surfaceInfo.format = info->format;
+	surfaceInfo.dimension = info->dimension;
+	surfaceInfo.width = dsMax(info->width >> position->mipLevel, 1U);
+	surfaceInfo.height = dsMax(info->height >> position->mipLevel, 1U);
+	surfaceInfo.depth = 1;
+	surfaceInfo.mipLevels = 1;
+	surfaceInfo.samples = 1;
+
 	void* imageMemory;
-	VkDeviceSize offset = hostImage->offset + hostImage->layout.offset;
-	VkDeviceSize mapSize = hostImage->layout.size;
+	VkDeviceSize offset = dsTexture_surfaceOffset(info, position->face, position->depth,
+		position->mipLevel);
+	VkDeviceSize mapSize = dsTexture_size(&surfaceInfo);
 	size_t rem = 0;
 	adjustAlignment(resourceManager->minNonCoherentMappingAlignment, vkTexture->hostMemorySize,
 		&offset, &mapSize, &rem);
+	if (offset + mapSize >= vkTexture->hostMemorySize)
+		mapSize = VK_WHOLE_SIZE;
 	VkResult vkResult = DS_VK_CALL(device->vkMapMemory)(device->device, vkTexture->hostMemory,
 		offset, mapSize, 0, &imageMemory);
 	if (!dsHandleVkResult(vkResult))
@@ -1150,7 +972,7 @@ bool dsVkTexture_getData(void* result, size_t size, dsResourceManager* resourceM
 			NULL,
 			vkTexture->hostMemory,
 			offset,
-			offset + mapSize == vkTexture->hostMemorySize ? VK_WHOLE_SIZE : mapSize
+			mapSize
 		};
 		vkResult = DS_VK_CALL(device->vkInvalidateMappedMemoryRanges)(device->device, 1, &range);
 		if (!dsHandleVkResult(vkResult))
@@ -1168,7 +990,7 @@ bool dsVkTexture_getData(void* result, size_t size, dsResourceManager* resourceM
 	DS_ASSERT(size == pitch*yBlocks);
 	DS_UNUSED(size);
 
-	uint32_t imagePitch = (uint32_t)hostImage->layout.rowPitch;
+	uint32_t imagePitch = surfaceInfo.width/blockX*formatSize;
 
 	uint32_t startXBlock = position->x/blockX;
 	uint32_t startYBlock = position->y/blockY;
@@ -1474,19 +1296,10 @@ void dsVkTexture_destroyImpl(dsTexture* texture)
 			instance->allocCallbacksPtr);
 	}
 
-	if (vkTexture->hostImage)
+	if (vkTexture->hostBuffer)
 	{
-		DS_VK_CALL(device->vkDestroyImage)(device->device, vkTexture->hostImage,
+		DS_VK_CALL(device->vkDestroyBuffer)(device->device, vkTexture->hostBuffer,
 			instance->allocCallbacksPtr);
-	}
-	for (uint32_t i = 0; i < vkTexture->hostImageCount; ++i)
-	{
-		dsVkHostImage* hostImage = vkTexture->hostImages + i;
-		if (hostImage->image)
-		{
-			DS_VK_CALL(device->vkDestroyImage)(device->device, hostImage->image,
-				instance->allocCallbacksPtr);
-		}
 	}
 	if (vkTexture->hostMemory)
 	{

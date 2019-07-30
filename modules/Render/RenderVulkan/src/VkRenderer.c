@@ -612,26 +612,6 @@ static void prepareOffscreen(dsVkRenderer* renderer, dsVkTexture* texture)
 
 	VkImageSubresourceRange fullLayout = {texture->aspectMask, 0, VK_REMAINING_MIP_LEVELS, 0,
 		VK_REMAINING_ARRAY_LAYERS};
-	if (texture->hostImageCount > 0)
-	{
-		if (texture->hostImage)
-		{
-			dsVkBarrierList_addImageBarrier(postResourceBarriers, texture->hostImage, &fullLayout,
-				0, false, true, isDepthStencil, baseTexture->usage | dsTextureUsage_CopyTo,
-				VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL);
-		}
-		else
-		{
-			for (uint32_t i = 0; i < texture->hostImageCount; ++i)
-			{
-				dsVkBarrierList_addImageBarrier(postResourceBarriers, texture->hostImages[i].image,
-					&fullLayout, 0, false, true, isDepthStencil,
-					baseTexture->usage | dsTextureUsage_CopyTo,
-					VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL);
-			}
-		}
-	}
-
 	dsVkBarrierList_addImageBarrier(postResourceBarriers, texture->deviceImage, &fullLayout,
 		0, false, true, isDepthStencil, baseTexture->usage, VK_IMAGE_LAYOUT_UNDEFINED,
 		dsVkTexture_imageLayout(baseTexture));
@@ -660,132 +640,66 @@ static bool addImageCopies(dsVkRenderer* renderer, dsVkTexture* texture)
 	dsVkBarrierList_addImageBarrier(preResourceBarriers, texture->deviceImage, &fullLayout,
 		0, false, false, false, dsTextureUsage_CopyTo, VK_IMAGE_LAYOUT_UNDEFINED,
 		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+	dsVkBarrierList_addBufferBarrier(preResourceBarriers, texture->hostBuffer, 0,
+		texture->hostMemorySize, 0, dsGfxBufferUsage_CopyFrom, true);
 
-	if (texture->hostImage)
+	uint32_t index = renderer->imageCopyCount;
+	if (!DS_RESIZEABLE_ARRAY_ADD(baseRenderer->allocator, renderer->imageCopies,
+		renderer->imageCopyCount, renderer->maxImageCopies, info->mipLevels))
 	{
-		uint32_t index = renderer->imageCopyCount;
-		if (!DS_RESIZEABLE_ARRAY_ADD(baseRenderer->allocator, renderer->imageCopies,
-			renderer->imageCopyCount, renderer->maxImageCopies, info->mipLevels))
-		{
-			return false;
-		}
-
-		uint32_t infoIndex = renderer->imageCopyInfoCount;
-		if (!DS_RESIZEABLE_ARRAY_ADD(baseRenderer->allocator, renderer->imageCopyInfos,
-			renderer->imageCopyInfoCount, renderer->maxImageCopyInfos, 1))
-		{
-			renderer->imageCopyCount = index;
-			return false;
-		}
-
-		dsVkImageCopyInfo* copyInfo = renderer->imageCopyInfos + infoIndex;
-		copyInfo->srcImage = texture->hostImage;
-		copyInfo->dstImage = texture->deviceImage;
-		copyInfo->srcLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
-		copyInfo->dstLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-		copyInfo->firstRange = index;
-		copyInfo->rangeCount = info->mipLevels;
-
-		for (uint32_t i = 0; i < info->mipLevels; ++i)
-		{
-			uint32_t width = info->width >> i;
-			uint32_t height = info->height >> i;
-			uint32_t depth = is3D ? info->depth >> i : info->depth;
-			width = dsMax(1U, width);
-			height = dsMax(1U, height);
-			depth = dsMax(1U, depth);
-
-			uint32_t layerCount = faceCount*(is3D ? 1U : depth);
-			VkImageCopy* imageCopy = renderer->imageCopies + index + i;
-			imageCopy->srcSubresource.aspectMask = texture->aspectMask;
-			imageCopy->srcSubresource.mipLevel = 0;
-			imageCopy->srcSubresource.baseArrayLayer = 0;
-			imageCopy->srcSubresource.layerCount = layerCount;
-			imageCopy->srcOffset.x = 0;
-			imageCopy->srcOffset.y = 0;
-			imageCopy->srcOffset.z = 0;
-			imageCopy->dstSubresource = imageCopy->srcSubresource;
-			imageCopy->dstOffset = imageCopy->srcOffset;
-			imageCopy->extent.width = width;
-			imageCopy->extent.height = height;
-			imageCopy->extent.depth = is3D ? depth : 1U;
-		}
-
-		dsVkBarrierList_addImageBarrier(preResourceBarriers, texture->hostImage, &fullLayout,
-			0, true, false, false, dsTextureUsage_CopyTo, VK_IMAGE_LAYOUT_PREINITIALIZED,
-			VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+		return false;
 	}
-	else
+
+	uint32_t infoIndex = renderer->imageCopyInfoCount;
+	if (!DS_RESIZEABLE_ARRAY_ADD(baseRenderer->allocator, renderer->imageCopyInfos,
+		renderer->imageCopyInfoCount, renderer->maxImageCopyInfos, 1))
 	{
-		DS_ASSERT(texture->hostImageCount > 0);
-		uint32_t index = renderer->imageCopyCount;
-		if (!DS_RESIZEABLE_ARRAY_ADD(baseRenderer->allocator, renderer->imageCopies,
-			renderer->imageCopyCount, renderer->maxImageCopies, texture->hostImageCount))
-		{
-			return false;
-		}
-
-		uint32_t infoIndex = renderer->imageCopyInfoCount;
-		if (!DS_RESIZEABLE_ARRAY_ADD(baseRenderer->allocator, renderer->imageCopyInfos,
-			renderer->imageCopyInfoCount, renderer->maxImageCopyInfos, texture->hostImageCount))
-		{
-			renderer->imageCopyCount = index;
-			return false;
-		}
-
-		for (uint32_t i = 0, imageIndex = 0; i < info->mipLevels; ++i)
-		{
-			uint32_t width = info->width >> i;
-			uint32_t height = info->height >> i;
-			uint32_t depth = is3D ? info->depth >> i : info->depth;
-			width = dsMax(1U, width);
-			height = dsMax(1U, height);
-			depth = dsMax(1U, depth);
-			for (uint32_t j = 0; j < depth; ++j)
-			{
-				for (uint32_t k = 0; k < faceCount; ++k, ++index, ++infoIndex, ++imageIndex)
-				{
-					DS_ASSERT(index < renderer->imageCopyCount);
-					DS_ASSERT(infoIndex < renderer->imageCopyInfoCount);
-
-					VkImageCopy* imageCopy = renderer->imageCopies + index;
-					imageCopy->srcSubresource.aspectMask = texture->aspectMask;
-					imageCopy->srcSubresource.mipLevel = 0;
-					imageCopy->srcSubresource.baseArrayLayer = 0;
-					imageCopy->srcSubresource.layerCount = 1;
-					imageCopy->srcOffset.x = 0;
-					imageCopy->srcOffset.y = 0;
-					imageCopy->srcOffset.z = 0;
-					imageCopy->dstSubresource.aspectMask = texture->aspectMask;
-					imageCopy->dstSubresource.mipLevel = i;
-					imageCopy->dstSubresource.baseArrayLayer = j*faceCount + k;
-					imageCopy->dstSubresource.layerCount = 1;
-					imageCopy->dstOffset.x = 0;
-					imageCopy->dstOffset.y = 0;
-					imageCopy->dstOffset.z = is3D ? j : 0;
-					imageCopy->extent.width = width;
-					imageCopy->extent.height = height;
-					imageCopy->extent.depth = 1U;
-
-					VkImage hostImage = texture->hostImages[imageIndex].image;
-					dsVkImageCopyInfo* copyInfo = renderer->imageCopyInfos + infoIndex;
-					copyInfo->srcImage = hostImage;
-					copyInfo->dstImage = texture->deviceImage;
-					copyInfo->srcLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
-					copyInfo->dstLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-					copyInfo->firstRange = index;
-					copyInfo->rangeCount = 1;
-
-					dsVkBarrierList_addImageBarrier(preResourceBarriers, hostImage, &fullLayout, 0,
-						true, false, false, dsTextureUsage_CopyTo, VK_IMAGE_LAYOUT_PREINITIALIZED,
-						VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
-				}
-			}
-		}
-
-		DS_ASSERT(index == renderer->imageCopyCount);
-		DS_ASSERT(infoIndex == renderer->imageCopyInfoCount);
+		renderer->imageCopyCount = index;
+		return false;
 	}
+
+	dsVkImageCopyInfo* copyInfo = renderer->imageCopyInfos + infoIndex;
+	copyInfo->srcBuffer= texture->hostBuffer;
+	copyInfo->dstImage = texture->deviceImage;
+	copyInfo->dstLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+	copyInfo->firstRange = index;
+	copyInfo->rangeCount = info->mipLevels;
+
+	size_t offset = 0;
+	dsTextureInfo surfaceInfo = baseTexture->info;
+	surfaceInfo.mipLevels = 1;
+	for (uint32_t i = 0; i < info->mipLevels; ++i)
+	{
+		uint32_t width = info->width >> i;
+		uint32_t height = info->height >> i;
+		uint32_t depth = is3D ? info->depth >> i : info->depth;
+		width = dsMax(1U, width);
+		height = dsMax(1U, height);
+		depth = dsMax(1U, depth);
+
+		uint32_t layerCount = faceCount*(is3D ? 1U : depth);
+		VkBufferImageCopy* imageCopy = renderer->imageCopies + index + i;
+		imageCopy->bufferOffset = offset;
+		imageCopy->bufferRowLength = 0;
+		imageCopy->bufferImageHeight = 0;
+		imageCopy->imageSubresource.aspectMask = texture->aspectMask;
+		imageCopy->imageSubresource.mipLevel = i;
+		imageCopy->imageSubresource.baseArrayLayer = 0;
+		imageCopy->imageSubresource.layerCount = layerCount;
+		imageCopy->imageOffset.x = 0;
+		imageCopy->imageOffset.y = 0;
+		imageCopy->imageOffset.z = 0;
+		imageCopy->imageExtent.width = width;
+		imageCopy->imageExtent.height = height;
+		imageCopy->imageExtent.depth = is3D ? depth : 1U;
+
+		surfaceInfo.width = width;
+		surfaceInfo.height = height;
+		if (is3D)
+			surfaceInfo.depth = depth;
+		offset += dsTexture_size(&surfaceInfo);
+	}
+	DS_ASSERT(offset <= texture->hostMemorySize);
 
 	// Even non-static images will have a barrier to process the layout conversion.
 	dsVkBarrierList_addImageBarrier(postResourceBarriers, texture->deviceImage, &fullLayout,
@@ -918,7 +832,7 @@ static void processTextures(dsVkRenderer* renderer, dsVkProcessResourceList* res
 			doUpload = true;
 			if (texture->offscreen)
 				prepareOffscreen(renderer, vkTexture);
-			else if (vkTexture->hostImage || vkTexture->hostImageCount > 0)
+			else if (vkTexture->hostBuffer)
 				addImageCopies(renderer, vkTexture);
 			else
 				prepareTexture(renderer, vkTexture);
@@ -930,27 +844,14 @@ static void processTextures(dsVkRenderer* renderer, dsVkProcessResourceList* res
 		// Queue for re-processing if we still need to delete the host image.
 		if (doUpload || vkTexture->uploadedSubmit > finishedSubmitCount)
 			dsVkRenderer_processTexture(baseRenderer, texture);
-		else if (!texture->offscreen)
+		else if (!texture->offscreen && vkTexture->hostBuffer)
 		{
 			// Non-offscreens don't need host images to remain.
-			if (vkTexture->hostImage)
-			{
-				DS_ASSERT(vkTexture->hostImageCount == 0);
-				DS_VK_CALL(device->vkDestroyImage)(device->device, vkTexture->hostImage,
-					instance->allocCallbacksPtr);
-				vkTexture->hostImage = 0;
-			}
-			else
-			{
-				for (uint32_t j = 0; j < vkTexture->hostImageCount; ++j)
-				{
-					DS_VK_CALL(device->vkDestroyImage)(device->device,
-						vkTexture->hostImages[j].image, instance->allocCallbacksPtr);
-				}
-				vkTexture->hostImageCount = 0;
-			}
+			DS_VK_CALL(device->vkDestroyBuffer)(device->device, vkTexture->hostBuffer,
+				instance->allocCallbacksPtr);
 			DS_VK_CALL(device->vkFreeMemory)(device->device, vkTexture->hostMemory,
 				instance->allocCallbacksPtr);
+			vkTexture->hostBuffer = 0;
 			vkTexture->hostMemory = 0;
 		}
 
@@ -1069,7 +970,7 @@ static void processResources(dsVkRenderer* renderer, VkCommandBuffer commandBuff
 	for (uint32_t i = 0; i < renderer->imageCopyInfoCount; ++i)
 	{
 		const dsVkImageCopyInfo* copyInfo = renderer->imageCopyInfos + i;
-		DS_VK_CALL(device->vkCmdCopyImage)(commandBuffer, copyInfo->srcImage, copyInfo->srcLayout,
+		DS_VK_CALL(device->vkCmdCopyBufferToImage)(commandBuffer, copyInfo->srcBuffer,
 			copyInfo->dstImage, copyInfo->dstLayout, copyInfo->rangeCount,
 			renderer->imageCopies + copyInfo->firstRange);
 	}

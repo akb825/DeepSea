@@ -289,6 +289,38 @@ TEST_P(RendererFunctionalTest, ReadFromOffscreen)
 	EXPECT_EQ(255, colors[3].b);
 	EXPECT_EQ(255, colors[3].a);
 
+	position.x = 0;
+	position.y = 0;
+	ASSERT_TRUE(dsTexture_getData(colors, sizeof(*colors), info.offscreen, &position, 1, 1));
+	EXPECT_EQ(255, colors[0].r);
+	EXPECT_EQ(0, colors[0].g);
+	EXPECT_EQ(255, colors[0].b);
+	EXPECT_EQ(255, colors[0].a);
+
+	position.x = 1;
+	position.y = 0;
+	ASSERT_TRUE(dsTexture_getData(colors, sizeof(*colors), info.offscreen, &position, 1, 1));
+	EXPECT_EQ(255, colors[0].r);
+	EXPECT_EQ(255, colors[0].g);
+	EXPECT_EQ(0, colors[0].b);
+	EXPECT_EQ(255, colors[0].a);
+
+	position.x = 0;
+	position.y = 1;
+	ASSERT_TRUE(dsTexture_getData(colors, sizeof(*colors), info.offscreen, &position, 1, 1));
+	EXPECT_EQ(255, colors[0].r);
+	EXPECT_EQ(255, colors[0].g);
+	EXPECT_EQ(255, colors[0].b);
+	EXPECT_EQ(255, colors[0].a);
+
+	position.x = 1;
+	position.y = 1;
+	ASSERT_TRUE(dsTexture_getData(colors, sizeof(*colors), info.offscreen, &position, 1, 1));
+	EXPECT_EQ(0, colors[0].r);
+	EXPECT_EQ(255, colors[0].g);
+	EXPECT_EQ(255, colors[0].b);
+	EXPECT_EQ(255, colors[0].a);
+
 	EXPECT_TRUE(dsDrawGeometry_destroy(drawGeometry));
 	EXPECT_TRUE(dsDrawGeometry_destroy(otherDrawGeometry));
 	EXPECT_TRUE(dsGfxBuffer_destroy(buffer));

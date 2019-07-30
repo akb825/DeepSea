@@ -959,6 +959,7 @@ bool dsCreateVkDevice(dsVkDevice* device, dsAllocator* allocator, const dsRender
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkGetImageMemoryRequirements);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkBindImageMemory);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCmdCopyImage);
+	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCmdCopyImageToBuffer);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCmdBlitImage);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCmdClearColorImage);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCmdClearDepthStencilImage);

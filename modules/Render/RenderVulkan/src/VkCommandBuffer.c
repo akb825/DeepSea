@@ -36,6 +36,7 @@
 #include <DeepSea/Core/Profile.h>
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Render/Resources/GfxFormat.h>
+#include <DeepSea/Render/Resources/Texture.h>
 #include <string.h>
 
 static VkCommandBuffer getMainCommandBuffer(dsCommandBuffer* commandBuffer)
@@ -82,54 +83,6 @@ static VkCommandBuffer getMainCommandBuffer(dsCommandBuffer* commandBuffer)
 	return newBuffer;
 }
 
-static bool addOffscreenHostBeginBarrier(dsCommandBuffer* commandBuffer, VkImage image,
-	VkImageAspectFlags aspectMask)
-{
-	VkImageMemoryBarrier* imageBarrier = dsVkCommandBuffer_addCopyImageBarrier(commandBuffer);
-	if (!imageBarrier)
-		return false;
-
-	imageBarrier->sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-	imageBarrier->pNext = NULL;
-	imageBarrier->srcAccessMask = VK_ACCESS_HOST_READ_BIT;
-	imageBarrier->dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-	imageBarrier->oldLayout = VK_IMAGE_LAYOUT_GENERAL;
-	imageBarrier->newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-	imageBarrier->srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-	imageBarrier->dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-	imageBarrier->image = image;
-	imageBarrier->subresourceRange.aspectMask = aspectMask;
-	imageBarrier->subresourceRange.baseMipLevel = 0;
-	imageBarrier->subresourceRange.levelCount = VK_REMAINING_MIP_LEVELS;
-	imageBarrier->subresourceRange.baseArrayLayer = 0;
-	imageBarrier->subresourceRange.layerCount = VK_REMAINING_ARRAY_LAYERS;
-	return true;
-}
-
-static bool addOffscreenHostEndBarrier(dsCommandBuffer* commandBuffer, VkImage image,
-	VkImageAspectFlags aspectMask)
-{
-	VkImageMemoryBarrier* imageBarrier = dsVkCommandBuffer_addCopyImageBarrier(commandBuffer);
-	if (!imageBarrier)
-		return false;
-
-	imageBarrier->sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-	imageBarrier->pNext = NULL;
-	imageBarrier->srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-	imageBarrier->dstAccessMask = VK_ACCESS_HOST_READ_BIT;
-	imageBarrier->oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-	imageBarrier->newLayout = VK_IMAGE_LAYOUT_GENERAL;
-	imageBarrier->srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-	imageBarrier->dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-	imageBarrier->image = image;
-	imageBarrier->subresourceRange.aspectMask = aspectMask;
-	imageBarrier->subresourceRange.baseMipLevel = 0;
-	imageBarrier->subresourceRange.levelCount = VK_REMAINING_MIP_LEVELS;
-	imageBarrier->subresourceRange.baseArrayLayer = 0;
-	imageBarrier->subresourceRange.layerCount = VK_REMAINING_ARRAY_LAYERS;
-	return true;
-}
-
 static bool processOffscreenReadbacks(dsCommandBuffer* commandBuffer,
 	VkCommandBuffer renderCommands)
 {
@@ -138,16 +91,39 @@ static bool processOffscreenReadbacks(dsCommandBuffer* commandBuffer,
 	dsVkDevice* device = &vkRenderer->device;
 	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
 
-	dsVkCommandBuffer_resetCopyImageBarriers(commandBuffer);
+	DS_ASSERT(vkCommandBuffer->copyBufferBarrierCount == 0);
+	DS_ASSERT(vkCommandBuffer->copyImageBarrierCount == 0);
 	for (uint32_t i = 0; i < vkCommandBuffer->readbackOffscreenCount; ++i)
 	{
 		dsOffscreen* offscreen = vkCommandBuffer->readbackOffscreens[i];
 		DS_ASSERT(offscreen->offscreen);
 		const dsTextureInfo* info = &offscreen->info;
 		dsVkTexture* vkOffscreen = (dsVkTexture*)offscreen;
+		VkBufferMemoryBarrier* bufferBarrier =
+			dsVkCommandBuffer_addCopyBufferBarrier(commandBuffer);
+		if (!bufferBarrier)
+		{
+			vkCommandBuffer->bufferBarrierCount = 0;
+			vkCommandBuffer->imageBarrierCount = 0;
+			return false;
+		}
+
+		bufferBarrier->sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
+		bufferBarrier->pNext = NULL;
+		bufferBarrier->srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT | VK_ACCESS_HOST_READ_BIT;
+		bufferBarrier->dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+		bufferBarrier->srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		bufferBarrier->dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		bufferBarrier->offset = 0;
+		bufferBarrier->size = vkOffscreen->hostMemorySize;
+
 		VkImageMemoryBarrier* imageBarrier = dsVkCommandBuffer_addCopyImageBarrier(commandBuffer);
 		if (!imageBarrier)
+		{
+			vkCommandBuffer->bufferBarrierCount = 0;
+			vkCommandBuffer->imageBarrierCount = 0;
 			return false;
+		}
 
 		VkImageAspectFlags aspectMask = dsVkImageAspectFlags(info->format);
 		VkImageLayout layout = dsVkTexture_imageLayout(offscreen);
@@ -167,23 +143,6 @@ static bool processOffscreenReadbacks(dsCommandBuffer* commandBuffer,
 		imageBarrier->subresourceRange.levelCount = VK_REMAINING_MIP_LEVELS;
 		imageBarrier->subresourceRange.baseArrayLayer = 0;
 		imageBarrier->subresourceRange.layerCount = VK_REMAINING_ARRAY_LAYERS;
-
-		if (vkOffscreen->hostImage)
-		{
-			if (!addOffscreenHostBeginBarrier(commandBuffer, vkOffscreen->hostImage, aspectMask))
-				return false;
-		}
-		else
-		{
-			for (uint32_t i = 0; i < vkOffscreen->hostImageCount; ++i)
-			{
-				if (!addOffscreenHostBeginBarrier(commandBuffer, vkOffscreen->hostImages[i].image,
-						aspectMask))
-				{
-					return false;
-				}
-			}
-		}
 	}
 
 	VkPipelineStageFlags stages = VK_PIPELINE_STAGE_TRANSFER_BIT |
@@ -199,8 +158,10 @@ static bool processOffscreenReadbacks(dsCommandBuffer* commandBuffer,
 		stages |= VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT;
 
 	DS_VK_CALL(device->vkCmdPipelineBarrier)(renderCommands, stages | VK_PIPELINE_STAGE_HOST_BIT,
-		VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, NULL, 0, NULL,
+		VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, NULL,
+		vkCommandBuffer->copyBufferBarrierCount, vkCommandBuffer->copyBufferBarriers,
 		vkCommandBuffer->copyImageBarrierCount, vkCommandBuffer->copyImageBarriers);
+	vkCommandBuffer->copyBufferBarrierCount = 0;
 	vkCommandBuffer->copyImageBarrierCount = 0;
 
 	// Copy offscreen texture data to host images that can be read back from.
@@ -220,94 +181,74 @@ static bool processOffscreenReadbacks(dsCommandBuffer* commandBuffer,
 		else
 			layerCount = dsMax(1U, info->depth)*faceCount;
 
-		if (vkOffscreen->hostImage)
+		uint32_t imageCopiesCount = 0;
+		if (!DS_RESIZEABLE_ARRAY_ADD(commandBuffer->allocator, vkCommandBuffer->imageCopies,
+			imageCopiesCount, vkCommandBuffer->maxImageCopies, info->mipLevels))
 		{
-			// Single image for all surfaces within each mip level.
-			uint32_t imageCopiesCount = 0;
-			if (!DS_RESIZEABLE_ARRAY_ADD(commandBuffer->allocator, vkCommandBuffer->imageCopies,
-				imageCopiesCount, vkCommandBuffer->maxImageCopies, info->mipLevels))
-			{
-				return false;
-			}
-
-			uint32_t copyIndex = imageCopiesCount;
-			for (uint32_t j = 0; j < info->mipLevels; ++j)
-			{
-				uint32_t width = info->width >> j;
-				uint32_t height = info->height >> j;
-				uint32_t depth = is3D ? info->depth >> j : info->depth;
-				width = dsMax(1U, width);
-				height = dsMax(1U, height);
-				depth = dsMax(1U, depth);
-
-				VkImageCopy* imageCopy = vkCommandBuffer->imageCopies + copyIndex + j;
-				imageCopy->srcSubresource.aspectMask = aspectMask;
-				imageCopy->srcSubresource.mipLevel = j;
-				imageCopy->srcSubresource.baseArrayLayer = 0;
-				imageCopy->srcSubresource.layerCount = layerCount;
-				imageCopy->srcOffset.x = 0;
-				imageCopy->srcOffset.y = 0;
-				imageCopy->srcOffset.z = 0;
-				imageCopy->dstSubresource = imageCopy->srcSubresource;
-				imageCopy->dstOffset = imageCopy->srcOffset;
-				imageCopy->extent.width = width;
-				imageCopy->extent.height = height;
-				imageCopy->extent.depth = depth;
-			}
-
-			DS_VK_CALL(device->vkCmdCopyImage)(renderCommands, vkOffscreen->deviceImage,
-				VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, vkOffscreen->hostImage,
-				VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, imageCopiesCount,
-				vkCommandBuffer->imageCopies);
+			return false;
 		}
-		else
+
+		size_t offset = 0;
+		dsTextureInfo surfaceInfo = offscreen->info;
+		surfaceInfo.mipLevels = 1;
+		for (uint32_t j = 0; j < info->mipLevels; ++j)
 		{
-			// Separate copies for each image level.
-			for (uint32_t j = 0, index = 0; j < vkOffscreen->hostImageCount; ++j)
-			{
-				uint32_t width = info->width >> j;
-				uint32_t height = info->height >> j;
-				uint32_t depth = is3D ? info->depth >> j : info->depth;
-				width = dsMax(1U, width);
-				height = dsMax(1U, height);
-				depth = dsMax(1U, depth);
+			uint32_t width = info->width >> j;
+			uint32_t height = info->height >> j;
+			uint32_t depth = is3D ? info->depth >> j : info->depth;
+			width = dsMax(1U, width);
+			height = dsMax(1U, height);
+			depth = dsMax(1U, depth);
 
-				for (uint32_t k = 0; k < depth; ++k)
-				{
-					for (uint32_t l = 0; l < faceCount; ++l, ++index)
-					{
-						DS_ASSERT(index < vkOffscreen->hostImageCount);
-						const dsVkHostImage* hostImage = vkOffscreen->hostImages + index;
+			uint32_t layerCount = faceCount*(is3D ? 1U : depth);
+			VkBufferImageCopy* imageCopy = vkCommandBuffer->imageCopies + j;
+			imageCopy->bufferOffset = offset;
+			imageCopy->bufferRowLength = 0;
+			imageCopy->bufferImageHeight = 0;
+			imageCopy->imageSubresource.aspectMask = vkOffscreen->aspectMask;
+			imageCopy->imageSubresource.mipLevel = j;
+			imageCopy->imageSubresource.baseArrayLayer = 0;
+			imageCopy->imageSubresource.layerCount = layerCount;
+			imageCopy->imageOffset.x = 0;
+			imageCopy->imageOffset.y = 0;
+			imageCopy->imageOffset.z = 0;
+			imageCopy->imageExtent.width = width;
+			imageCopy->imageExtent.height = height;
+			imageCopy->imageExtent.depth = is3D ? depth : 1U;
 
-						VkImageCopy imageCopy =
-						{
-							{aspectMask, j, is3D ? 0 : k*faceCount + l, 1},
-							{0, 0, is3D ? k : 0},
-							{aspectMask, 0, 0, 1},
-							{0, 0, 0},
-							{width, height, 1}
-						};
-
-						DS_VK_CALL(device->vkCmdCopyImage)(renderCommands, vkOffscreen->deviceImage,
-							VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, hostImage->image,
-							VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &imageCopy);
-					}
-				}
-			}
+			surfaceInfo.width = width;
+			surfaceInfo.height = height;
+			if (is3D)
+				surfaceInfo.depth = depth;
+			offset += dsTexture_size(&surfaceInfo);
 		}
+		DS_ASSERT(offset <= vkOffscreen->hostMemorySize);
+
+		DS_VK_CALL(device->vkCmdCopyImageToBuffer)(renderCommands, vkOffscreen->deviceImage,
+			VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, vkOffscreen->hostBuffer, imageCopiesCount,
+			vkCommandBuffer->imageCopies);
 	}
 
-	dsVkCommandBuffer_resetCopyImageBarriers(commandBuffer);
 	for (uint32_t i = 0; i < vkCommandBuffer->readbackOffscreenCount; ++i)
 	{
 		dsOffscreen* offscreen = vkCommandBuffer->readbackOffscreens[i];
 		DS_ASSERT(offscreen->offscreen);
 		const dsTextureInfo* info = &offscreen->info;
 		dsVkTexture* vkOffscreen = (dsVkTexture*)offscreen;
-		VkImageMemoryBarrier* imageBarrier = dsVkCommandBuffer_addCopyImageBarrier(commandBuffer);
-		if (!imageBarrier)
-			return false;
+		VkBufferMemoryBarrier* bufferBarrier =
+			dsVkCommandBuffer_addCopyBufferBarrier(commandBuffer);
+		DS_ASSERT(bufferBarrier);
+		bufferBarrier->sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
+		bufferBarrier->pNext = NULL;
+		bufferBarrier->srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+		bufferBarrier->dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT | VK_ACCESS_HOST_READ_BIT;
+		bufferBarrier->srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		bufferBarrier->dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		bufferBarrier->offset = 0;
+		bufferBarrier->size = vkOffscreen->hostMemorySize;
 
+		VkImageMemoryBarrier* imageBarrier = dsVkCommandBuffer_addCopyImageBarrier(commandBuffer);
+		DS_ASSERT(imageBarrier);
 		VkImageAspectFlags aspectMask = dsVkImageAspectFlags(info->format);
 		VkImageLayout layout = dsVkTexture_imageLayout(offscreen);
 		bool isDepthStencil = dsGfxFormat_isDepthStencil(info->format);
@@ -326,28 +267,13 @@ static bool processOffscreenReadbacks(dsCommandBuffer* commandBuffer,
 		imageBarrier->subresourceRange.levelCount = VK_REMAINING_MIP_LEVELS;
 		imageBarrier->subresourceRange.baseArrayLayer = 0;
 		imageBarrier->subresourceRange.layerCount = VK_REMAINING_ARRAY_LAYERS;
-
-		if (vkOffscreen->hostImage)
-		{
-			if (!addOffscreenHostEndBarrier(commandBuffer, vkOffscreen->hostImage, aspectMask))
-				return false;
-		}
-		else
-		{
-			for (uint32_t i = 0; i < vkOffscreen->hostImageCount; ++i)
-			{
-				if (!addOffscreenHostEndBarrier(commandBuffer, vkOffscreen->hostImages[i].image,
-						aspectMask))
-				{
-					return false;
-				}
-			}
-		}
 	}
 
 	DS_VK_CALL(device->vkCmdPipelineBarrier)(renderCommands, VK_PIPELINE_STAGE_TRANSFER_BIT,
-		VK_PIPELINE_STAGE_HOST_BIT | stages, 0, 0, NULL, 0, NULL,
+		VK_PIPELINE_STAGE_HOST_BIT | stages, 0, 0, NULL,
+		vkCommandBuffer->copyBufferBarrierCount, vkCommandBuffer->copyBufferBarriers,
 		vkCommandBuffer->copyImageBarrierCount, vkCommandBuffer->copyImageBarriers);
+	vkCommandBuffer->copyBufferBarrierCount = 0;
 	vkCommandBuffer->copyImageBarrierCount = 0;
 
 	return true;
@@ -1029,6 +955,15 @@ void* dsVkCommandBuffer_getTempData(size_t* outOffset, VkBuffer* outBuffer,
 	return dsVkTempBuffer_allocate(outOffset, buffer, size, alignment);
 }
 
+void dsVkCommandBuffer_flushTempData(dsCommandBuffer* commandBuffer, size_t offset, size_t size)
+{
+	commandBuffer = dsVkCommandBuffer_get(commandBuffer);
+	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
+	DS_ASSERT(vkCommandBuffer->curTempBuffer);
+	DS_ASSERT(offset + size == vkCommandBuffer->curTempBuffer->size);
+	dsVkTempBuffer_flush(vkCommandBuffer->curTempBuffer, offset, size);
+}
+
 bool dsVkCommandBuffer_recentlyAddedImageBarrier(dsCommandBuffer* commandBuffer,
 	const VkImageMemoryBarrier* barrier)
 {
@@ -1169,6 +1104,49 @@ void dsVkCommandBuffer_resetCopyImageBarriers(dsCommandBuffer* commandBuffer)
 	commandBuffer = dsVkCommandBuffer_get(commandBuffer);
 	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
 	vkCommandBuffer->copyImageBarrierCount = 0;
+}
+
+VkBufferMemoryBarrier* dsVkCommandBuffer_addCopyBufferBarrier(dsCommandBuffer* commandBuffer)
+{
+	commandBuffer = dsVkCommandBuffer_get(commandBuffer);
+	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
+	uint32_t index = vkCommandBuffer->copyBufferBarrierCount;
+	if (!DS_RESIZEABLE_ARRAY_ADD(commandBuffer->allocator, vkCommandBuffer->copyBufferBarriers,
+		vkCommandBuffer->copyBufferBarrierCount, vkCommandBuffer->maxCopyBufferBarriers, 1))
+	{
+		return NULL;
+	}
+
+	return vkCommandBuffer->copyBufferBarriers + index;
+}
+
+bool dsVkCommandBuffer_submitCopyBufferBarriers(dsCommandBuffer* commandBuffer,
+	VkPipelineStageFlags srcStages, VkPipelineStageFlags dstStages)
+{
+	dsVkDevice* device = &((dsVkRenderer*)commandBuffer->renderer)->device;
+	commandBuffer = dsVkCommandBuffer_get(commandBuffer);
+	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
+	if (vkCommandBuffer->copyBufferBarrierCount == 0)
+		return true;
+
+	VkCommandBuffer submitBuffer = getMainCommandBuffer(commandBuffer);
+	if (!submitBuffer)
+	{
+		vkCommandBuffer->copyBufferBarrierCount = 0;
+		return false;
+	}
+
+	DS_VK_CALL(device->vkCmdPipelineBarrier)(submitBuffer, srcStages, dstStages, 0, 0, NULL,
+		vkCommandBuffer->copyBufferBarrierCount, vkCommandBuffer->copyBufferBarriers, 0, NULL);
+	vkCommandBuffer->copyBufferBarrierCount = 0;
+	return true;
+}
+
+void dsVkCommandBuffer_resetCopyBufferBarriers(dsCommandBuffer* commandBuffer)
+{
+	commandBuffer = dsVkCommandBuffer_get(commandBuffer);
+	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
+	vkCommandBuffer->copyBufferBarrierCount = 0;
 }
 
 bool dsVkCommandBuffer_addResource(dsCommandBuffer* commandBuffer, dsVkResource* resource)
@@ -1383,6 +1361,7 @@ void dsVkCommandBuffer_shutdown(dsVkCommandBuffer* commandBuffer)
 	DS_VERIFY(dsAllocator_free(baseCommandBuffer->allocator, commandBuffer->imageBarriers));
 	DS_VERIFY(dsAllocator_free(baseCommandBuffer->allocator, commandBuffer->bufferBarriers));
 	DS_VERIFY(dsAllocator_free(baseCommandBuffer->allocator, commandBuffer->copyImageBarriers));
+	DS_VERIFY(dsAllocator_free(baseCommandBuffer->allocator, commandBuffer->copyBufferBarriers));
 	dsVkSubpassBuffers_shutdown(&commandBuffer->subpassBuffers);
 	DS_VERIFY(dsAllocator_free(baseCommandBuffer->allocator, commandBuffer->imageCopies));
 	DS_VERIFY(dsAllocator_free(baseCommandBuffer->allocator, commandBuffer->pushConstantBytes));

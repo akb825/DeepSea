@@ -144,6 +144,7 @@ typedef struct dsVkDevice
 	PFN_vkGetImageMemoryRequirements vkGetImageMemoryRequirements;
 	PFN_vkBindImageMemory vkBindImageMemory;
 	PFN_vkCmdCopyImage vkCmdCopyImage;
+	PFN_vkCmdCopyImageToBuffer vkCmdCopyImageToBuffer;
 	PFN_vkCmdBlitImage vkCmdBlitImage;
 	PFN_vkCmdClearColorImage vkCmdClearColorImage;
 	PFN_vkCmdClearDepthStencilImage vkCmdClearDepthStencilImage;
@@ -309,13 +310,6 @@ typedef struct dsVkDrawGeometry
 	uint32_t vertexHash;
 } dsVkDrawGeometry;
 
-typedef struct dsVkHostImage
-{
-	VkImage image;
-	size_t offset;
-	VkSubresourceLayout layout;
-} dsVkHostImage;
-
 typedef struct dsVkTempBuffer
 {
 	dsVkResource resource;
@@ -323,6 +317,7 @@ typedef struct dsVkTempBuffer
 	dsVkDevice* device;
 	VkBuffer buffer;
 	VkDeviceMemory memory;
+	bool coherent;
 	uint8_t* contents;
 	size_t size;
 	size_t capacity;
@@ -340,10 +335,8 @@ typedef struct dsVkTexture
 
 	VkDeviceMemory hostMemory;
 	VkDeviceSize hostMemorySize;
-	VkImage hostImage;
-	uint32_t hostImageCount;
 	bool hostMemoryCoherent;
-	dsVkHostImage* hostImages;
+	VkBuffer hostBuffer;
 	uint64_t uploadedSubmit;
 	void* submitQueue;
 
@@ -847,9 +840,8 @@ typedef struct dsVkBufferCopyInfo
 
 typedef struct dsVkImageCopyInfo
 {
-	VkImage srcImage;
+	VkBuffer srcBuffer;
 	VkImage dstImage;
-	VkImageLayout srcLayout;
 	VkImageLayout dstLayout;
 	uint32_t firstRange;
 	uint32_t rangeCount;
@@ -983,9 +975,13 @@ struct dsVkCommandBuffer
 	uint32_t copyImageBarrierCount;
 	uint32_t maxCopyImageBarriers;
 
+	VkBufferMemoryBarrier* copyBufferBarriers;
+	uint32_t copyBufferBarrierCount;
+	uint32_t maxCopyBufferBarriers;
+
 	dsVkSubpassBuffers subpassBuffers;
 
-	VkImageCopy* imageCopies;
+	VkBufferImageCopy* imageCopies;
 	uint8_t* pushConstantBytes;
 	uint32_t maxImageCopies;
 	uint32_t maxPushConstantBytes;
@@ -1063,7 +1059,7 @@ typedef struct dsVkRenderer
 	uint32_t bufferCopyInfoCount;
 	uint32_t maxBufferCopyInfos;
 
-	VkImageCopy* imageCopies;
+	VkBufferImageCopy* imageCopies;
 	uint32_t imageCopyCount;
 	uint32_t maxImageCopies;
 
