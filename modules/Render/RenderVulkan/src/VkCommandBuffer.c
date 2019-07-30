@@ -114,6 +114,7 @@ static bool processOffscreenReadbacks(dsCommandBuffer* commandBuffer,
 		bufferBarrier->dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
 		bufferBarrier->srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 		bufferBarrier->dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		bufferBarrier->buffer = vkOffscreen->hostBuffer;
 		bufferBarrier->offset = 0;
 		bufferBarrier->size = vkOffscreen->hostMemorySize;
 
@@ -244,6 +245,7 @@ static bool processOffscreenReadbacks(dsCommandBuffer* commandBuffer,
 		bufferBarrier->dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT | VK_ACCESS_HOST_READ_BIT;
 		bufferBarrier->srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 		bufferBarrier->dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		bufferBarrier->buffer = vkOffscreen->hostBuffer;
 		bufferBarrier->offset = 0;
 		bufferBarrier->size = vkOffscreen->hostMemorySize;
 
