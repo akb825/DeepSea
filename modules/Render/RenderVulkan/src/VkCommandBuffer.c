@@ -173,14 +173,8 @@ static bool processOffscreenReadbacks(dsCommandBuffer* commandBuffer,
 		const dsTextureInfo* info = &offscreen->info;
 		dsVkTexture* vkOffscreen = (dsVkTexture*)offscreen;
 
-		VkImageAspectFlags aspectMask = dsVkImageAspectFlags(info->format);
 		uint32_t faceCount = info->dimension == dsTextureDim_Cube ? 6 : 1;
-		uint32_t layerCount;
 		bool is3D = info->dimension == dsTextureDim_3D;
-		if (is3D)
-			layerCount = 1;
-		else
-			layerCount = dsMax(1U, info->depth)*faceCount;
 
 		uint32_t imageCopiesCount = 0;
 		if (!DS_RESIZEABLE_ARRAY_ADD(commandBuffer->allocator, vkCommandBuffer->imageCopies,
