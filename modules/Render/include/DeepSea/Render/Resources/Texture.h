@@ -199,6 +199,27 @@ DS_RENDER_EXPORT bool dsTexture_copy(dsCommandBuffer* commandBuffer, dsTexture* 
 	dsTexture* dstTexture, const dsTextureCopyRegion* regions, uint32_t regionCount);
 
 /**
+ * @brief Copies data from a texture to a buffer.
+ *
+ * This queues the copy on a command buffer, so the thread that processes this doesn't need a
+ * resource context.
+ *
+ * @remark This must be called outside of a render pass.
+ * @remark errno will be set on failure.
+ * @param commandBuffer The command buffer to process the copy on.
+ * @param srcTexture The texture to copy from. This must have been created with
+ *     dsTextureUsage_CopyFrom.
+ * @param dstBuffer The buffer to copy the data to. This must have been created with
+ *     dsGfxBufferUsage_CopyTo.
+ * @param regions The regions to copy.
+ * @param regionCount The number of regions to copy.
+ * @return False if the data couldn't be copied.
+ */
+DS_RENDER_EXPORT bool dsTexture_copyToBuffer(dsCommandBuffer* commandBuffer,
+	dsTexture* srcTexture, dsGfxBuffer* dstBuffer, const dsGfxBufferTextureCopyRegion* regions,
+	uint32_t regionCount);
+
+/**
  * @brief Generates mipmaps for a texture based on the first mip level.
  *
  * This will only populate data for already allocated mipmaps. Most commonly, this will be used to

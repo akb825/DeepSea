@@ -487,6 +487,30 @@ bool dsGfxFormat_standardSurfaceBlitSupported(dsGfxFormat srcFormat, dsGfxFormat
 	return true;
 }
 
+bool dsGfxFormat_copyBufferToTextureSupported(const dsResourceManager* resourceManager,
+	dsGfxFormat format)
+{
+	if (!resourceManager || !resourceManager->copyBufferToTextureSupportedFunc ||
+		!dsGfxFormat_isValid(format))
+	{
+		return false;
+	}
+
+	return resourceManager->copyBufferToTextureSupportedFunc(resourceManager, format);
+}
+
+bool dsGfxFormat_copyTextureToBufferSupported(const dsResourceManager* resourceManager,
+	dsGfxFormat format)
+{
+	if (!resourceManager || !resourceManager->copyTextureToBufferSupportedFunc ||
+		!dsGfxFormat_isValid(format))
+	{
+		return false;
+	}
+
+	return resourceManager->copyTextureToBufferSupportedFunc(resourceManager, format);
+}
+
 unsigned int dsGfxFormat_standardIndex(dsGfxFormat format);
 dsGfxFormat dsGfxFormat_standardEnum(unsigned int index);
 unsigned int dsGfxFormat_specialIndex(dsGfxFormat format);

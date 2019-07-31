@@ -16,6 +16,7 @@
 
 #include <DeepSea/Render/Resources/Texture.h>
 
+#include "Resources/RenderResourceHelpers.h"
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Atomic.h>
 #include <DeepSea/Core/Bits.h>
@@ -63,8 +64,8 @@ size_t dsTexture_size(const dsTextureInfo* info)
 		curWidth = dsMax(1U, curWidth/2), curHeight = dsMax(1U, curHeight/2),
 		curDepth = info->dimension == dsTextureDim_3D ? dsMax(1U, curDepth/2) : depth, ++i)
 	{
-		uint32_t curBlocksX = (dsMax(curWidth, minX) + blockX - 1)/blockX;
-		uint32_t curBlocksY = (dsMax(curHeight, minY) + blockY - 1)/blockY;
+		size_t curBlocksX = (dsMax(curWidth, minX) + blockX - 1)/blockX;
+		size_t curBlocksY = (dsMax(curHeight, minY) + blockY - 1)/blockY;
 		size += curBlocksX*curBlocksY*formatSize*curDepth;
 	}
 
@@ -169,8 +170,8 @@ size_t dsTexture_surfaceOffset(const dsTextureInfo* info, dsCubeFace cubeFace, u
 		curWidth = dsMax(1U, curWidth/2), curHeight = dsMax(1U, curHeight/2),
 		curDepth = info->dimension == dsTextureDim_3D ? dsMax(1U, curDepth/2) : depth, ++mip)
 	{
-		uint32_t curBlocksX = (dsMax(curWidth, minX) + blockX - 1)/blockX;
-		uint32_t curBlocksY = (dsMax(curHeight, minY) + blockY - 1)/blockY;
+		size_t curBlocksX = (dsMax(curWidth, minX) + blockX - 1)/blockX;
+		size_t curBlocksY = (dsMax(curHeight, minY) + blockY - 1)/blockY;
 
 		size_t baseMipSize = curBlocksX*curBlocksY*formatSize;
 		// Add all the depth and face levels until we reach the requested mip.
@@ -221,8 +222,8 @@ size_t dsTexture_layerOffset(const dsTextureInfo* info, uint32_t layerIndex, uin
 		curWidth = dsMax(1U, curWidth/2), curHeight = dsMax(1U, curHeight/2),
 		curDepth = info->dimension == dsTextureDim_3D ? dsMax(1U, curDepth/2) : depth, ++mip)
 	{
-		uint32_t curBlocksX = (dsMax(curWidth, minX) + blockX - 1)/blockX;
-		uint32_t curBlocksY = (dsMax(curHeight, minY) + blockY - 1)/blockY;
+		size_t curBlocksX = (dsMax(curWidth, minX) + blockX - 1)/blockX;
+		size_t curBlocksY = (dsMax(curHeight, minY) + blockY - 1)/blockY;
 
 		size_t baseMipSize = curBlocksX*curBlocksY*formatSize;
 		// Add all the depth and face levels until we reach the requested mip.
@@ -613,7 +614,7 @@ bool dsTexture_copy(dsCommandBuffer* commandBuffer, dsTexture* srcTexture, dsTex
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
-			"Textures cannot be copied between each other on the current target.");
+			"Texture formats cannot be copied between each other on the current target.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
@@ -638,16 +639,17 @@ bool dsTexture_copy(dsCommandBuffer* commandBuffer, dsTexture* srcTexture, dsTex
 
 	for (size_t i = 0; i < regionCount; ++i)
 	{
-		if (regions[i].srcPosition.x % blockX != 0 || regions[i].srcPosition.y % blockY != 0 ||
-			regions[i].dstPosition.x % blockX != 0 || regions[i].dstPosition.y % blockY != 0)
+		const dsTexturePosition* srcPosition = &regions[i].srcPosition;
+		const dsTexturePosition* dstPosition = &regions[i].dstPosition;
+		if (srcPosition->x % blockX != 0 || srcPosition->y % blockY != 0 ||
+			dstPosition->x % blockX != 0 || dstPosition->y % blockY != 0)
 		{
 			errno = EINVAL;
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG,
-				"Texture data position must be a multiple of the block size.");
+				"Texture position must be a multiple of the block size.");
 			DS_PROFILE_FUNC_RETURN(false);
 		}
 
-		const dsTexturePosition* srcPosition = &regions[i].srcPosition;
 		if (srcPosition->mipLevel >= srcTexture->info.mipLevels)
 		{
 			errno = EINDEX;
@@ -666,8 +668,8 @@ bool dsTexture_copy(dsCommandBuffer* commandBuffer, dsTexture* srcTexture, dsTex
 			srcMipLayers *= 6;
 			srcLayerOffset = srcLayerOffset*6 + srcPosition->face;
 		}
-		uint32_t srcEndX = regions[i].srcPosition.x + regions[i].width;
-		uint32_t srcEndY = regions[i].srcPosition.y + regions[i].height;
+		uint32_t srcEndX = srcPosition->x + regions[i].width;
+		uint32_t srcEndY = srcPosition->y + regions[i].height;
 		uint32_t srcEndLayer = srcLayerOffset + regions[i].layers;
 		if (srcEndX > srcMipWidth || srcEndY > srcMipHeight || srcEndLayer > srcMipLayers)
 		{
@@ -686,7 +688,6 @@ bool dsTexture_copy(dsCommandBuffer* commandBuffer, dsTexture* srcTexture, dsTex
 			DS_PROFILE_FUNC_RETURN(false);
 		}
 
-		const dsTexturePosition* dstPosition = &regions[i].dstPosition;
 		if (dstPosition->mipLevel >= dstTexture->info.mipLevels)
 		{
 			errno = EINDEX;
@@ -705,8 +706,8 @@ bool dsTexture_copy(dsCommandBuffer* commandBuffer, dsTexture* srcTexture, dsTex
 			dstMipLayers *= 6;
 			dstLayerOffset = dstLayerOffset*6 + dstPosition->face;
 		}
-		uint32_t dstEndX = regions[i].dstPosition.x + regions[i].width;
-		uint32_t dstEndY = regions[i].dstPosition.y + regions[i].height;
+		uint32_t dstEndX = dstPosition->x + regions[i].width;
+		uint32_t dstEndY = dstPosition->y + regions[i].height;
 		uint32_t dstEndLayer = dstLayerOffset + regions[i].layers;
 		if (dstEndX > dstMipWidth || dstEndY > dstMipHeight || dstEndLayer > dstMipLayers)
 		{
@@ -726,9 +727,9 @@ bool dsTexture_copy(dsCommandBuffer* commandBuffer, dsTexture* srcTexture, dsTex
 		}
 
 		if ((srcTexture->info.dimension != dsTextureDim_Cube &&
-				regions[i].srcPosition.face != dsCubeFace_None) ||
+				srcPosition->face != dsCubeFace_None) ||
 			(dstTexture->info.dimension != dsTextureDim_Cube &&
-				regions[i].dstPosition.face != dsCubeFace_None))
+				dstPosition->face != dsCubeFace_None))
 		{
 			errno = EINVAL;
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG,
@@ -754,6 +755,76 @@ bool dsTexture_copy(dsCommandBuffer* commandBuffer, dsTexture* srcTexture, dsTex
 
 	bool success = resourceManager->copyTextureFunc(resourceManager, commandBuffer, srcTexture,
 		dstTexture, regions, regionCount);
+	DS_PROFILE_FUNC_RETURN(success);
+}
+
+bool dsTexture_copyToBuffer(dsCommandBuffer* commandBuffer, dsTexture* srcTexture,
+	dsGfxBuffer* dstBuffer, const dsGfxBufferTextureCopyRegion* regions, uint32_t regionCount)
+{
+	DS_PROFILE_FUNC_START();
+
+	if (!commandBuffer || !srcTexture || !srcTexture->resourceManager ||
+		!srcTexture->resourceManager->copyTextureToBufferFunc || !dstBuffer ||
+		dstBuffer->resourceManager != srcTexture->resourceManager|| (!regions && regionCount > 0))
+	{
+		errno = EINVAL;
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	dsResourceManager* resourceManager = srcTexture->resourceManager;
+	if (!dsGfxFormat_copyTextureToBufferSupported(resourceManager, srcTexture->info.format))
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Texture format cannot be copied from texture to buffer on the current target.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	if (!(srcTexture->usage & dsTextureUsage_CopyFrom))
+	{
+		errno = EINVAL;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Attempting to copy data from a texture without the copy from usage flag set.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	if (!(dstBuffer->usage & dsGfxBufferUsage_CopyTo))
+	{
+		errno = EINVAL;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Attempting to copy data to a buffer without the copy to usage flag set.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	unsigned int blockX, blockY;
+	DS_VERIFY(dsGfxFormat_blockDimensions(&blockX, &blockY, srcTexture->info.format));
+
+	for (size_t i = 0; i < regionCount; ++i)
+	{
+		if (!dsIsGfxBufferTextureCopyRegionValid(regions + i, &srcTexture->info, dstBuffer->size))
+		{
+			return false;
+		}
+	}
+
+	if (!commandBuffer->frameActive)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Texture to buffer copying must be performed inside of a frame.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	if (commandBuffer->boundRenderPass)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Texture to buffer copying must be performed outside of a render pass.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	bool success = resourceManager->copyTextureToBufferFunc(resourceManager, commandBuffer,
+		srcTexture, dstBuffer, regions, regionCount);
 	DS_PROFILE_FUNC_RETURN(success);
 }
 

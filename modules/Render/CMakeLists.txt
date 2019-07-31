@@ -26,6 +26,7 @@ file(GLOB_RECURSE sources src/*.c src/*.h include/*.h include/*.mslh)
 ds_add_library(deepsea_render MODULE Render FILES ${sources} DEPENDS deepsea_core deepsea_math
 	deepsea_geometry)
 ds_target_link_libraries(deepsea_render PRIVATE msl_client)
+ds_target_include_directories(deepsea_render PRIVATE ${DEEPSEA_MODULE_DIR}/Render/src)
 
 if (DEEPSEA_GPU_PROFILING)
 	set(gpuProfilingEnabled 1)

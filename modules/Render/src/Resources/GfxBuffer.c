@@ -16,11 +16,13 @@
 
 #include <DeepSea/Render/Resources/GfxBuffer.h>
 
+#include "Resources/RenderResourceHelpers.h"
 #include <DeepSea/Core/Atomic.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Core/Profile.h>
 #include <DeepSea/Math/Core.h>
+#include <DeepSea/Render/Resources/GfxFormat.h>
 #include <DeepSea/Render/Resources/ResourceManager.h>
 #include <DeepSea/Render/Types.h>
 
@@ -381,6 +383,76 @@ bool dsGfxBuffer_copy(dsCommandBuffer* commandBuffer, dsGfxBuffer* srcBuffer, si
 
 	bool success = resourceManager->copyBufferFunc(resourceManager, commandBuffer, srcBuffer,
 		srcOffset, dstBuffer, dstOffset, size);
+	DS_PROFILE_FUNC_RETURN(success);
+}
+
+bool dsGfxBuffer_copyToTexture(dsCommandBuffer* commandBuffer, dsGfxBuffer* srcBuffer,
+	dsTexture* dstTexture, const dsGfxBufferTextureCopyRegion* regions, uint32_t regionCount)
+{
+	DS_PROFILE_FUNC_START();
+
+	if (!commandBuffer || !srcBuffer || !srcBuffer->resourceManager ||
+		!srcBuffer->resourceManager->copyBufferToTextureFunc || !dstTexture ||
+		dstTexture->resourceManager != srcBuffer->resourceManager|| (!regions && regionCount > 0))
+	{
+		errno = EINVAL;
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	dsResourceManager* resourceManager = srcBuffer->resourceManager;
+	if (!dsGfxFormat_copyBufferToTextureSupported(resourceManager, dstTexture->info.format))
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Texture format cannot be copied from buffer to texture on the current target.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	if (!(srcBuffer->usage & dsGfxBufferUsage_CopyFrom))
+	{
+		errno = EINVAL;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Attempting to copy data from a buffer without the copy from usage flag set.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	if (!(dstTexture->usage & dsTextureUsage_CopyTo))
+	{
+		errno = EINVAL;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Attempting to copy data to a texture without the copy to usage flag set.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	unsigned int blockX, blockY;
+	DS_VERIFY(dsGfxFormat_blockDimensions(&blockX, &blockY, dstTexture->info.format));
+
+	for (size_t i = 0; i < regionCount; ++i)
+	{
+		if (!dsIsGfxBufferTextureCopyRegionValid(regions + i, &dstTexture->info, srcBuffer->size))
+		{
+			return false;
+		}
+	}
+
+	if (!commandBuffer->frameActive)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Buffer to texture copying must be performed inside of a frame.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	if (commandBuffer->boundRenderPass)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Buffer to texture copying must be performed outside of a render pass.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	bool success = resourceManager->copyBufferToTextureFunc(resourceManager, commandBuffer,
+		srcBuffer, dstTexture, regions, regionCount);
 	DS_PROFILE_FUNC_RETURN(success);
 }
 

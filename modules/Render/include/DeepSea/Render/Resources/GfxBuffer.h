@@ -149,6 +149,26 @@ DS_RENDER_EXPORT bool dsGfxBuffer_copy(dsCommandBuffer* commandBuffer, dsGfxBuff
 	size_t srcOffset, dsGfxBuffer* dstBuffer, size_t dstOffset, size_t size);
 
 /**
+ * @brief Copies data from a buffer to a texture.
+ *
+ * This queues the copy on a command buffer, so the thread that processes this doesn't need a
+ * resource context.
+ *
+ * @remark This must be called outside of a render pass.
+ * @remark errno will be set on failure.
+ * @param commandBuffer The command buffer to process the copy on.
+ * @param srcBuffer The buffer to copy the data from. This must have been created with
+ *     dsGfxBufferUsage_CopyFrom.
+ * @param dstTexture The texture to copy to. This must have been created with dsTextureUsage_CopyTo.
+ * @param regions The regions to copy.
+ * @param regionCount The number of regions to copy.
+ * @return False if the data couldn't be copied.
+ */
+DS_RENDER_EXPORT bool dsGfxBuffer_copyToTexture(dsCommandBuffer* commandBuffer,
+	dsGfxBuffer* srcBuffer, dsTexture* dstTexture, const dsGfxBufferTextureCopyRegion* regions,
+	uint32_t regionCount);
+
+/**
  * @brief Processes a buffer to prepare it for rendering.
  *
  * This may be used to cause buffer processing to be done ealier in order to do the work before

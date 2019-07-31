@@ -234,7 +234,7 @@ DS_RENDER_EXPORT bool dsGfxFormat_textureCopySupported(const dsResourceManager* 
  * @param srcFormat The graphics format to blit from.
  * @param dstFormat The graphics format to blit to.
  * @param filter The filter to blit with.
- * @return True if the formats can be used for copyinblitting textures.
+ * @return True if the formats can be used for blitting textures.
  */
 DS_RENDER_EXPORT bool dsGfxFormat_surfaceBlitSupported(const dsResourceManager* resourceManager,
 	dsGfxFormat srcFormat, dsGfxFormat dstFormat, dsBlitFilter filter);
@@ -248,10 +248,28 @@ DS_RENDER_EXPORT bool dsGfxFormat_surfaceBlitSupported(const dsResourceManager* 
  * @param srcFormat The graphics format to blit from.
  * @param dstFormat The graphics format to blit to.
  * @param filter The filter to blit with.
- * @return True if the formats can be used for copyinblitting textures.
+ * @return True if the formats can be used for blitting textures.
  */
 DS_RENDER_EXPORT bool dsGfxFormat_standardSurfaceBlitSupported(dsGfxFormat srcFormat,
 	dsGfxFormat dstFormat, dsBlitFilter filter);
+
+/**
+ * @brief Checks whether or not a graphics format can be copied from a buffer to a texture.
+ * @param resourceManager The resource manager.
+ * @param format The format to check.
+ * @return True if the format can be used for copying.
+ */
+DS_RENDER_EXPORT bool dsGfxFormat_copyBufferToTextureSupported(
+	const dsResourceManager* resourceManager, dsGfxFormat format);
+
+/**
+ * @brief Checks whether or not a graphics format can be copied from a texture to a buffer.
+ * @param resourceManager The resource manager.
+ * @param format The format to check.
+ * @return True if the format can be used for copying.
+ */
+DS_RENDER_EXPORT bool dsGfxFormat_copyTextureToBufferSupported(
+	const dsResourceManager* resourceManager, dsGfxFormat format);
 
 inline unsigned int dsGfxFormat_standardIndex(dsGfxFormat format)
 {

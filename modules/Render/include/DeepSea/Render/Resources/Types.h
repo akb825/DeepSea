@@ -831,6 +831,59 @@ typedef struct dsTextureCopyRegion
 } dsTextureCopyRegion;
 
 /**
+ * @brief Structure for defining the region to copy between a buffer and texture.
+ * @see GfxBuffer.h
+ * @see Texture.h
+ */
+typedef struct dsGfxBufferTextureCopyRegion
+{
+	/**
+	 * @brief The offset into the buffer.
+	 */
+	size_t bufferOffset;
+
+	/**
+	 * @brief The width of the image in the buffer.
+	 *
+	 * If 0, textureWidth will be used.
+	 */
+	uint32_t bufferWidth;
+
+	/**
+	 * @brief The height of the image in the buffer.
+	 *
+	 * If 0, textureHeight will be used.
+	 */
+	uint32_t bufferHeight;
+
+	/**
+	 * @brief The position for the texture.
+	 */
+	dsTexturePosition texturePosition;
+
+	/**
+	 * @brief The width of the texture.
+	 *
+	 * This must always be a multiple of the format's block size or reach the edge of the image.
+	 */
+	uint32_t textureWidth;
+
+	/**
+	 * @brief The height of the texture.
+	 *
+	 * This must always be a multiple of the format's block size or reach the edge of the image.
+	 */
+	uint32_t textureHeight;
+
+	/**
+	 * @brief The number of layers to copy.
+	 *
+	 * This is the number of depth layers multiplied by the number of faces.
+	 */
+	uint32_t layers;
+} dsGfxBufferTextureCopyRegion;
+
+/**
  * @brief Struct for holding data for a texture.
  *
  * This is generally loaded from a file in order to create a final renderable texture.
@@ -1131,6 +1184,7 @@ typedef bool (*dsFormatSupportedFunction)(const dsResourceManager* resourceManag
  * @param resourceManager The resource manager.
  * @param srcFormat The format for the source texture.
  * @param dstFormat The format for the destination texture.
+ * @return True if the copy is supported.
  */
 typedef bool (*dsCopySupportedFunction)(const dsResourceManager* resourceManager,
 	dsGfxFormat srcFormat, dsGfxFormat dstFormat);
@@ -1141,9 +1195,19 @@ typedef bool (*dsCopySupportedFunction)(const dsResourceManager* resourceManager
  * @param srcFormat The format for the source texture.
  * @param dstFormat The format for the destination texture.
  * @param filter The blit filter.
+ * @return True if the blit is supported.
  */
 typedef bool (*dsBlitSupportedFunction)(const dsResourceManager* resourceManager,
 	dsGfxFormat srcFormat, dsGfxFormat dstFormat, dsBlitFilter filter);
+
+/**
+ * @brief Function for determining whether or not copying between a buffer and texture is supported.
+ * @param resourceManager The resource manager.
+ * @param format The format to copy.
+ * @return True if the copy is supported.
+ */
+typedef bool (*dsBufferTextureCopySupportedFunction)(const dsResourceManager* resourceManager,
+	dsGfxFormat format);
 
 /**
  * @brief Function for creating a resource context for the current thread.
@@ -1260,7 +1324,7 @@ typedef bool (*dsCopyGfxBufferDataFunction)(dsResourceManager* resourceManager,
 	size_t size);
 
 /**
- * @brief Function for copying data to a buffer.
+ * @brief Function for copying data from one buffer to another.
  *
  * This queues the copy on a command buffer, so the thread that processes this doesn't need a
  * resource context.
@@ -1277,6 +1341,24 @@ typedef bool (*dsCopyGfxBufferDataFunction)(dsResourceManager* resourceManager,
 typedef bool (*dsCopyGfxBufferFunction)(dsResourceManager* resourceManager,
 	dsCommandBuffer* commandBuffer, dsGfxBuffer* srcBuffer, size_t srcOffset,
 	dsGfxBuffer* dstBuffer, size_t dstOffset, size_t size);
+
+/**
+ * @brief Function for copying data from a buffer to a texture.
+ *
+ * This queues the copy on a command buffer, so the thread that processes this doesn't need a
+ * resource context.
+ *
+ * @param resourceManager The resource manager that the buffers were created with.
+ * @param commandBuffer The command buffer to process the copy on.
+ * @param srcBuffer The buffer to copy the data from.
+ * @param dstTexture The texture to copy the data to.
+ * @param regions The regions to copy.
+ * @param regionCount The number of regions to copy.
+ * @return False if the data couldn't be copied.
+ */
+typedef bool (*dsCopyGfxBufferToTextureFunction)(dsResourceManager* resourceManager,
+	dsCommandBuffer* commandBuffer, dsGfxBuffer* srcBuffer, dsTexture* dstTexture,
+	const dsGfxBufferTextureCopyRegion* regions, uint32_t regionCount);
 
 /**
  * @brief Function for processing a buffer.
@@ -1391,6 +1473,24 @@ typedef bool (*dsCopyTextureDataFunction)(dsResourceManager* resourceManager,
 typedef bool (*dsCopyTextureFunction)(dsResourceManager* resourceManager,
 	dsCommandBuffer* commandBuffer, dsTexture* srcTexture, dsTexture* dstTexture,
 	const dsTextureCopyRegion* regions, uint32_t regionCount);
+
+/**
+ * @brief Function for copying data from a texture to a buffer.
+ *
+ * This queues the copy on a command buffer, so the thread that processes this doesn't need a
+ * resource context.
+ *
+ * @param resourceManager The resource manager that the buffers were created with.
+ * @param commandBuffer The command buffer to process the copy on.
+ * @param srcTexture The texture to copy the data from.
+ * @param dstBuffer The buffer to copy the data to.
+ * @param regions The regions to copy.
+ * @param regionCount The number of regions to copy.
+ * @return False if the data couldn't be copied.
+ */
+typedef bool (*dsCopyTextureToGfxBufferFunction)(dsResourceManager* resourceManager,
+	dsCommandBuffer* commandBuffer, dsTexture* srcTexture, dsGfxBuffer* dstBuffer,
+	const dsGfxBufferTextureCopyRegion* regions, uint32_t regionCount);
 
 /**
  * @brief Function for generating mipmaps for textures.
@@ -2146,6 +2246,16 @@ struct dsResourceManager
 	dsBlitSupportedFunction surfaceBlitFormatsSupportedFunc;
 
 	/**
+	 * @brief Copy buffer to texture validity check function.
+	 */
+	dsBufferTextureCopySupportedFunction copyBufferToTextureSupportedFunc;
+
+	/**
+	 * @brief Copy texture to buffer validity check function.
+	 */
+	dsBufferTextureCopySupportedFunction copyTextureToBufferSupportedFunc;
+
+	/**
 	 * @brief Resource context creation function.
 	 */
 	dsCreateResourceContextFunction createResourceContextFunc;
@@ -2196,6 +2306,11 @@ struct dsResourceManager
 	dsCopyGfxBufferFunction copyBufferFunc;
 
 	/**
+	 * @brief Buffer to texture copying function.
+	 */
+	dsCopyGfxBufferToTextureFunction copyBufferToTextureFunc;
+
+	/**
 	 * @brief Buffer process function.
 	 */
 	dsProcessGfxBufferFunction processBufferFunc;
@@ -2234,6 +2349,11 @@ struct dsResourceManager
 	 * @brief Texture to texture copying function.
 	 */
 	dsCopyTextureFunction copyTextureFunc;
+
+	/**
+	 * @brief Texture to buffer copying function.
+	 */
+	dsCopyTextureToGfxBufferFunction copyTextureToBufferFunc;
 
 	/**
 	 * @brief Texture process function.
