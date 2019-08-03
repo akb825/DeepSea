@@ -53,7 +53,21 @@ extern "C"
 DS_RENDER_EXPORT bool dsResourceManager_createResourceContext(dsResourceManager* resourceManager);
 
 /**
+ * @brief Flushes the resource context for the current thread.
+ *
+ * Use this to guarantee that any resource changes are available for rendering.
+ *
+ * @remark errno will be set on failure.
+ * @param resourceManager The resource manager
+ * @return False if the resource context couldn't be flushed.
+ */
+DS_RENDER_EXPORT bool dsResourceManager_flushResourceContext(dsResourceManager* resourceManager);
+
+/**
  * @brief Destroys the resource context for the current thread.
+ *
+ * Any remaining tasks are flushed.
+ *
  * @remark errno will be set on failure.
  * @param resourceManager The resource manager
  * @return False if the resource context couldn't be destroyed.

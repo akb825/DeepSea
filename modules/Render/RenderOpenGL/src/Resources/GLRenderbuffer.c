@@ -87,10 +87,6 @@ dsRenderbuffer* dsGLRenderbuffer_create(dsResourceManager* resourceManager, dsAl
 		return NULL;
 	}
 
-	// Make sure it's visible from the main render thread.
-	if (!dsThread_equal(resourceManager->renderer->mainThread, dsThread_thisThreadID()))
-		glFlush();
-
 	return baseRenderbuffer;
 }
 

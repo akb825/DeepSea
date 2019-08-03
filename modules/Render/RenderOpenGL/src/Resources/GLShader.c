@@ -939,10 +939,6 @@ dsShader* dsGLShader_create(dsResourceManager* resourceManager, dsAllocator* all
 		errno = prevErrno;
 	}
 
-	// Make sure it's visible from the main render thread.
-	if (!dsThread_equal(resourceManager->renderer->mainThread, dsThread_thisThreadID()))
-		glFlush();
-
 	return baseShader;
 }
 

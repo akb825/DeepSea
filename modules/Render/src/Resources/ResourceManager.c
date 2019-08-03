@@ -92,6 +92,29 @@ bool dsResourceManager_createResourceContext(dsResourceManager* resourceManager)
 	DS_PROFILE_FUNC_RETURN(true);
 }
 
+bool dsResourceManager_flushResourceContext(dsResourceManager* resourceManager)
+{
+	if (!resourceManager || !resourceManager->flushResourceContextFunc)
+		return true;
+
+	DS_PROFILE_FUNC_START();
+
+	// Not needed for main thread.
+	if (dsThread_equal(resourceManager->renderer->mainThread, dsThread_thisThreadID()))
+		DS_PROFILE_FUNC_RETURN(true);
+
+	dsResourceContext* context = (dsResourceContext*)dsThreadStorage_get(
+		resourceManager->_resourceContext);
+	if (!context)
+	{
+		errno = EPERM;
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	bool result = resourceManager->flushResourceContextFunc(resourceManager, context);
+	DS_PROFILE_FUNC_RETURN(result);
+}
+
 bool dsResourceManager_destroyResourceContext(dsResourceManager* resourceManager)
 {
 	if (!resourceManager)

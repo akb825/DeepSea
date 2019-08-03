@@ -215,11 +215,9 @@ void dsSwapGLBuffers(void* display, dsRenderSurface** renderSurfaces, uint32_t c
 		}
 
 		NSView* view = (__bridge NSView*)((dsGLRenderSurface*)renderSurfaces[i])->glSurface;
+		// Would normally call glFlush(), but dsGLRenderSurface_swapBuffers() already calls it.
 		if ([context view] != view)
-		{
-			glFlush();
 			[context setView: view];
-		}
 		[context flushBuffer];
 	}
 }

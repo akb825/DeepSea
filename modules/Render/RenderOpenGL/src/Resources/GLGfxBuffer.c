@@ -236,10 +236,6 @@ dsGfxBuffer* dsGLGfxBuffer_create(dsResourceManager* resourceManager, dsAllocato
 		return NULL;
 	}
 
-	// Make sure it's visible from the main render thread.
-	if (!dsThread_equal(resourceManager->renderer->mainThread, dsThread_thisThreadID()))
-		glFlush();
-
 	return baseBuffer;
 }
 
@@ -379,10 +375,6 @@ bool dsGLGfxBuffer_unmap(dsResourceManager* resourceManager, dsGfxBuffer* buffer
 		glBindBuffer(bufferType, 0);
 	}
 
-	// Make sure it's visible from the main render thread.
-	if (success && !dsThread_equal(resourceManager->renderer->mainThread, dsThread_thisThreadID()))
-		glFlush();
-
 	glBuffer->mapFlags = 0;
 	glBuffer->mappedOffset = 0;
 	glBuffer->mappedSize = 0;
@@ -427,10 +419,6 @@ bool dsGLGfxBuffer_flush(dsResourceManager* resourceManager, dsGfxBuffer* buffer
 		glBindBuffer(bufferType, 0);
 		success = true;
 	}
-
-	// Make sure it's visible from the main render thread.
-	if (!dsThread_equal(resourceManager->renderer->mainThread, dsThread_thisThreadID()))
-		glFlush();
 
 	DS_VERIFY(dsSpinlock_unlock(&glBuffer->mapLock));
 

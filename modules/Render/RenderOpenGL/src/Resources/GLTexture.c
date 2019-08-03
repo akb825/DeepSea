@@ -396,10 +396,6 @@ dsTexture* dsGLTexture_create(dsResourceManager* resourceManager, dsAllocator* a
 		return NULL;
 	}
 
-	// Make sure it's visible from the main render thread.
-	if (!dsThread_equal(resourceManager->renderer->mainThread, dsThread_thisThreadID()))
-		glFlush();
-
 	return baseTexture;
 }
 
@@ -598,10 +594,6 @@ dsOffscreen* dsGLTexture_createOffscreen(dsResourceManager* resourceManager, dsA
 		dsGLTexture_destroy(resourceManager, baseTexture);
 		return NULL;
 	}
-
-	// Make sure it's visible from the main render thread.
-	if (!dsThread_equal(resourceManager->renderer->mainThread, dsThread_thisThreadID()))
-		glFlush();
 
 	return baseTexture;
 }

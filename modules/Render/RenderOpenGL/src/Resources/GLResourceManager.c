@@ -1103,6 +1103,15 @@ dsResourceContext* dsGLResourceManager_createResourceContext(dsResourceManager* 
 	return context;
 }
 
+bool dsGLResourceManager_flushResourceContext(dsResourceManager* resourceManager,
+	dsResourceContext* context)
+{
+	DS_UNUSED(resourceManager);
+	DS_UNUSED(context);
+	glFlush();
+	return true;
+}
+
 bool dsGLResourceManager_destroyResourceContext(dsResourceManager* resourceManager,
 	dsResourceContext* context)
 {
@@ -1203,6 +1212,7 @@ dsGLResourceManager* dsGLResourceManager_create(dsAllocator* allocator, dsGLRend
 
 	// Resource contexts
 	baseResourceManager->createResourceContextFunc = &dsGLResourceManager_createResourceContext;
+	baseResourceManager->flushResourceContextFunc = &dsGLResourceManager_flushResourceContext;
 	baseResourceManager->destroyResourceContextFunc = &dsGLResourceManager_destroyResourceContext;
 
 	// Buffers

@@ -1217,7 +1217,19 @@ typedef bool (*dsBufferTextureCopySupportedFunction)(const dsResourceManager* re
 typedef dsResourceContext* (*dsCreateResourceContextFunction)(dsResourceManager* resourceManager);
 
 /**
+ * @brief Function for flushing a resource context.
+ * @param resourceManager The resource manager that the context was created with.
+ * @param context The resource context to flush.
+ * @return False if the destruction is invalid. errno should be set if the destruction failed.
+ */
+typedef bool (*dsFlushResourceContextFunction)(dsResourceManager* resourceManager,
+	dsResourceContext* context);
+
+/**
  * @brief Function for destroying a resource context.
+ *
+ * This should flush any remaining tasks are flushed.
+ *
  * @param resourceManager The resource manager that the context was created with.
  * @param context The resource context to destroy.
  * @return False if the destruction is invalid. errno should be set if the destruction failed.
@@ -2259,6 +2271,11 @@ struct dsResourceManager
 	 * @brief Resource context creation function.
 	 */
 	dsCreateResourceContextFunction createResourceContextFunc;
+
+	/**
+	 * @brief Resource context flush function.
+	 */
+	dsFlushResourceContextFunction flushResourceContextFunc;
 
 	/**
 	 * @brief Resource context destruction function.
