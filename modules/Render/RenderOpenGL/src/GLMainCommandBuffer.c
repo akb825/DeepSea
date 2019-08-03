@@ -27,6 +27,7 @@
 #include "GLHelpers.h"
 #include "GLRendererInternal.h"
 #include "GLRenderStates.h"
+
 #include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
@@ -34,6 +35,7 @@
 #include <DeepSea/Core/Profile.h>
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Render/Resources/GfxFormat.h>
+#include <DeepSea/Render/Resources/Texture.h>
 #include <limits.h>
 #include <string.h>
 
@@ -562,56 +564,20 @@ static void unbindBlitSurface(GLenum framebufferType, dsGfxSurfaceType surfaceTy
 	}
 }
 
-void dsGLMainCommandBuffer_reset(dsCommandBuffer* commandBuffer)
-{
-	DS_UNUSED(commandBuffer);
-}
-
-bool dsGLMainCommandBuffer_copyBufferData(dsCommandBuffer* commandBuffer, dsGfxBuffer* buffer,
-	size_t offset, const void* data, size_t size)
-{
-	DS_UNUSED(commandBuffer);
-
-	dsGLGfxBuffer* glBuffer = (dsGLGfxBuffer*)buffer;
-	GLenum bufferType = dsGetGLBufferType(buffer->usage);
-	glBindBuffer(bufferType, glBuffer->bufferId);
-	glBufferSubData(bufferType, offset, size, data);
-	glBindBuffer(bufferType, 0);
-	return true;
-}
-
-bool dsGLMainCommandBuffer_copyBuffer(dsCommandBuffer* commandBuffer, dsGfxBuffer* srcBuffer,
-	size_t srcOffset, dsGfxBuffer* dstBuffer, size_t dstOffset, size_t size)
-{
-	DS_UNUSED(commandBuffer);
-
-	dsGLGfxBuffer* glSrcBuffer = (dsGLGfxBuffer*)srcBuffer;
-	dsGLGfxBuffer* glDstBuffer = (dsGLGfxBuffer*)dstBuffer;
-	glCopyBufferSubData(glSrcBuffer->bufferId, glDstBuffer->bufferId, srcOffset, dstOffset, size);
-	return true;
-}
-
-bool dsGLMainCommandBuffer_copyTextureData(dsCommandBuffer* commandBuffer, dsTexture* texture,
+static void copyTextureData(const dsResourceManager* resourceManager, const dsTextureInfo* info,
 	const dsTexturePosition* position, uint32_t width, uint32_t height, uint32_t layers,
-	const void* data, size_t size)
+	size_t size, const void* data)
 {
-	DS_UNUSED(commandBuffer);
-
-	dsGLTexture* glTexture = (dsGLTexture*)texture;
-	GLenum target = dsGLTexture_target(texture);
-
-	bool compressed = dsGfxFormat_compressedIndex(texture->info.format) > 0;
+	bool compressed = dsGfxFormat_compressedIndex(info->format) > 0;
 	GLenum internalFormat;
 	GLenum glFormat;
 	GLenum type;
 	DS_VERIFY(dsGLResourceManager_getTextureFormatInfo(&internalFormat, &glFormat, &type,
-		texture->resourceManager, texture->info.format));
-
-	dsGLRenderer_beginTextureOp(commandBuffer->renderer, target, glTexture->textureId);
-	switch (texture->info.dimension)
+		resourceManager, info->format));
+	switch (info->dimension)
 	{
 		case dsTextureDim_1D:
-			if (texture->info.depth > 0)
+			if (info->depth > 0)
 			{
 				if (compressed)
 				{
@@ -639,7 +605,7 @@ bool dsGLMainCommandBuffer_copyTextureData(dsCommandBuffer* commandBuffer, dsTex
 			}
 			break;
 		case dsTextureDim_2D:
-			if (texture->info.depth > 0)
+			if (info->depth > 0)
 			{
 				if (compressed)
 				{
@@ -681,7 +647,7 @@ bool dsGLMainCommandBuffer_copyTextureData(dsCommandBuffer* commandBuffer, dsTex
 			}
 			break;
 		case dsTextureDim_Cube:
-			if (texture->info.depth > 0)
+			if (info->depth > 0)
 			{
 				if (compressed)
 				{
@@ -718,6 +684,97 @@ bool dsGLMainCommandBuffer_copyTextureData(dsCommandBuffer* commandBuffer, dsTex
 		default:
 			DS_ASSERT(false);
 	}
+}
+
+void dsGLMainCommandBuffer_reset(dsCommandBuffer* commandBuffer)
+{
+	DS_UNUSED(commandBuffer);
+}
+
+bool dsGLMainCommandBuffer_copyBufferData(dsCommandBuffer* commandBuffer, dsGfxBuffer* buffer,
+	size_t offset, const void* data, size_t size)
+{
+	DS_UNUSED(commandBuffer);
+
+	dsGLGfxBuffer* glBuffer = (dsGLGfxBuffer*)buffer;
+	GLenum bufferType = dsGetGLBufferType(buffer->usage);
+	glBindBuffer(bufferType, glBuffer->bufferId);
+	glBufferSubData(bufferType, offset, size, data);
+	glBindBuffer(bufferType, 0);
+	return true;
+}
+
+bool dsGLMainCommandBuffer_copyBuffer(dsCommandBuffer* commandBuffer, dsGfxBuffer* srcBuffer,
+	size_t srcOffset, dsGfxBuffer* dstBuffer, size_t dstOffset, size_t size)
+{
+	DS_UNUSED(commandBuffer);
+
+	dsGLGfxBuffer* glSrcBuffer = (dsGLGfxBuffer*)srcBuffer;
+	dsGLGfxBuffer* glDstBuffer = (dsGLGfxBuffer*)dstBuffer;
+	glBindBuffer(GL_COPY_READ_BUFFER, glSrcBuffer->bufferId);
+	glBindBuffer(GL_COPY_WRITE_BUFFER, glDstBuffer->bufferId);
+	glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, srcOffset, dstOffset, size);
+	glBindBuffer(GL_COPY_READ_BUFFER, 0);
+	glBindBuffer(GL_COPY_WRITE_BUFFER, 0);
+	return true;
+}
+
+bool dsGLMainCommandBuffer_copyBufferToTexture(dsCommandBuffer* commandBuffer,
+	dsGfxBuffer* srcBuffer, dsTexture* dstTexture, const dsGfxBufferTextureCopyRegion* regions,
+	uint32_t regionCount)
+{
+	DS_UNUSED(commandBuffer);
+
+	dsGLGfxBuffer* glSrcBuffer = (dsGLGfxBuffer*)srcBuffer;
+	dsGLTexture* glDstTexture = (dsGLTexture*)dstTexture;
+
+	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, glSrcBuffer->bufferId);
+	GLenum dstTarget = dsGLTexture_target(dstTexture);
+	dsGLRenderer_beginTextureOp(commandBuffer->renderer, dstTarget, glDstTexture->textureId);
+
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	for (size_t i = 0; i < regionCount; ++i)
+	{
+		const dsGfxBufferTextureCopyRegion* region = regions + i;
+		glPixelStorei(GL_UNPACK_ROW_LENGTH, region->bufferWidth);
+		glPixelStorei(GL_UNPACK_IMAGE_HEIGHT, region->bufferHeight);
+
+		dsTextureInfo surfaceInfo = dstTexture->info;
+		surfaceInfo.width = region->textureWidth;
+		surfaceInfo.height = region->textureHeight;
+		surfaceInfo.depth = 1;
+		surfaceInfo.mipLevels = 1;
+		size_t size = dsTexture_size(&surfaceInfo)*region->layers;
+		const void* data = (const void*)region->bufferOffset;
+		copyTextureData(srcBuffer->resourceManager, &dstTexture->info, &region->texturePosition,
+			region->textureWidth, region->textureHeight, region->layers, size, data);
+	}
+
+	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+	dsGLRenderer_endTextureOp(commandBuffer->renderer);
+
+	return true;
+}
+
+bool dsGLMainCommandBuffer_copyTextureData(dsCommandBuffer* commandBuffer, dsTexture* texture,
+	const dsTexturePosition* position, uint32_t width, uint32_t height, uint32_t layers,
+	const void* data, size_t size)
+{
+	DS_UNUSED(commandBuffer);
+
+	dsGLTexture* glTexture = (dsGLTexture*)texture;
+	GLenum target = dsGLTexture_target(texture);
+
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	if (!ANYGL_GLES || AnyGL_atLeastVersion(3, 0, true))
+	{
+		glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
+		glPixelStorei(GL_UNPACK_IMAGE_HEIGHT, 0);
+	}
+
+	dsGLRenderer_beginTextureOp(commandBuffer->renderer, target, glTexture->textureId);
+	copyTextureData(
+		texture->resourceManager, &texture->info, position, width, height, layers, size, data);
 	dsGLRenderer_endTextureOp(commandBuffer->renderer);
 
 	return true;
@@ -793,6 +850,121 @@ bool dsGLMainCommandBuffer_copyTexture(dsCommandBuffer* commandBuffer, dsTexture
 		glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
 		dsGLRenderer_restoreFramebuffer(renderer);
 	}
+
+	return true;
+}
+
+bool dsGLMainCommandBuffer_copyTextureToBuffer(dsCommandBuffer* commandBuffer,
+	dsTexture* srcTexture, dsGfxBuffer* dstBuffer, const dsGfxBufferTextureCopyRegion* regions,
+	uint32_t regionCount)
+{
+	DS_UNUSED(commandBuffer);
+
+	dsGLGfxBuffer* glDstBuffer = (dsGLGfxBuffer*)dstBuffer;
+	glBindBuffer(GL_PIXEL_PACK_BUFFER, glDstBuffer->bufferId);
+	glPixelStorei(GL_PACK_ALIGNMENT, 1);
+
+	const dsTextureInfo* info = &srcTexture->info;
+	GLenum internalFormat;
+	GLenum glFormat;
+	GLenum type;
+	DS_VERIFY(dsGLResourceManager_getTextureFormatInfo(&internalFormat, &glFormat, &type,
+		srcTexture->resourceManager, info->format));
+
+	unsigned int formatSize = dsGfxFormat_size(info->format);
+	unsigned int blockX, blockY;
+	DS_VERIFY(dsGfxFormat_blockDimensions(&blockX, &blockY, info->format));
+
+	if (ANYGL_SUPPORTED(glGetTextureSubImage))
+	{
+		DS_ASSERT(ANYGL_SUPPORTED(glGetCompressedTextureSubImage));
+		dsGLTexture* glSrcTexture = (dsGLTexture*)srcTexture;
+		bool compressed = dsGfxFormat_compressedIndex(srcTexture->info.format) > 0;
+		for (size_t i = 0; i < regionCount; ++i)
+		{
+			const dsGfxBufferTextureCopyRegion* region = regions + i;
+			const dsTexturePosition* position = &region->texturePosition;
+			glPixelStorei(GL_PACK_ROW_LENGTH, region->bufferWidth);
+			glPixelStorei(GL_PACK_IMAGE_HEIGHT, region->bufferHeight);
+
+			uint32_t layer = position->depth;
+			if (srcTexture->info.dimension == dsTextureDim_Cube)
+				layer = layer*6 + position->face;
+
+			uint32_t bufferWidth = region->bufferWidth;
+			if (bufferWidth == 0)
+				bufferWidth = region->textureWidth;
+			uint32_t bufferHeight = region->bufferHeight;
+			if (bufferHeight == 0)
+				bufferHeight = region->textureHeight;
+			size_t bufferXBlocks = (bufferWidth + blockX - 1)/blockX;
+			size_t bufferYBlocks = (bufferHeight + blockY - 1)/blockY;
+			size_t textureXBlocks = (region->textureWidth + blockX - 1)/blockY;
+			size_t remainderBlocks = bufferXBlocks - textureXBlocks;
+			size_t bufferSize =
+				((bufferXBlocks*bufferYBlocks*region->layers) - remainderBlocks)*formatSize;
+
+			if (compressed)
+			{
+				glGetCompressedTextureSubImage(glSrcTexture->textureId, position->mipLevel,
+					position->x, position->y, position->depth, region->textureWidth,
+					region->textureHeight, region->layers, (GLsizei)bufferSize,
+					(void*)region->bufferOffset);
+			}
+			else
+			{
+				glGetTextureSubImage(glSrcTexture->textureId, position->mipLevel,
+					position->x, position->y, position->depth, region->textureWidth,
+					region->textureHeight, region->layers, glFormat, type, (GLsizei)bufferSize,
+					(void*)region->bufferOffset);
+			}
+		}
+	}
+	else
+	{
+		GLuint framebuffer;
+		glGenFramebuffers(1, &framebuffer);
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer);
+		if (ANYGL_SUPPORTED(glReadBuffer))
+			glReadBuffer(GL_COLOR_ATTACHMENT0);
+
+		for (size_t i = 0; i < regionCount; ++i)
+		{
+			const dsGfxBufferTextureCopyRegion* region = regions + i;
+			const dsTexturePosition* position = &region->texturePosition;
+			glPixelStorei(GL_PACK_ROW_LENGTH, region->bufferWidth);
+			glPixelStorei(GL_PACK_IMAGE_HEIGHT, region->bufferHeight);
+
+			uint32_t layer = position->depth;
+			if (srcTexture->info.dimension == dsTextureDim_Cube)
+				layer = layer*6 + position->face;
+
+			uint32_t bufferWidth = region->bufferWidth;
+			if (bufferWidth == 0)
+				bufferWidth = region->textureWidth;
+			uint32_t bufferHeight = region->bufferHeight;
+			if (bufferHeight == 0)
+				bufferHeight = region->textureHeight;
+			size_t bufferXBlocks = (bufferWidth + blockX - 1)/blockX;
+			size_t bufferYBlocks = (bufferHeight + blockY - 1)/blockY;
+			size_t bufferLayerSize = bufferXBlocks*bufferYBlocks*formatSize;
+
+			uint8_t* data = (uint8_t*)region->bufferOffset;
+			for (uint32_t j = 0; j < region->layers; ++j, data += bufferLayerSize)
+			{
+				dsGLTexture_bindFramebufferTexture(srcTexture, GL_READ_FRAMEBUFFER,
+				position->mipLevel, layer + j);
+				glReadPixels(position->x, position->y, region->textureWidth, region->textureHeight,
+					glFormat, type, data);
+			}
+		}
+
+		dsGLTexture_unbindFramebuffer(srcTexture, GL_READ_FRAMEBUFFER);
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+		glDeleteFramebuffers(1, &framebuffer);
+	}
+
+	glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 
 	return true;
 }
@@ -1889,8 +2061,10 @@ static CommandBufferFunctionTable functionTable =
 	&dsGLMainCommandBuffer_reset,
 	&dsGLMainCommandBuffer_copyBufferData,
 	&dsGLMainCommandBuffer_copyBuffer,
+	&dsGLMainCommandBuffer_copyBufferToTexture,
 	&dsGLMainCommandBuffer_copyTextureData,
 	&dsGLMainCommandBuffer_copyTexture,
+	&dsGLMainCommandBuffer_copyTextureToBuffer,
 	&dsGLMainCommandBuffer_generateTextureMipmaps,
 	&dsGLMainCommandBuffer_setFenceSyncs,
 	&dsGLMainCommandBuffer_beginQuery,
@@ -2051,7 +2225,6 @@ void dsGLMainCommandBuffer_resetState(dsGLMainCommandBuffer* commandBuffer)
 
 	if (AnyGL_atLeastVersion(3, 2, false) || AnyGL_ARB_seamless_cube_map)
 		glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
-	glPixelStorei(GL_PACK_ALIGNMENT, 1);
 
 	if (glRenderer->options.preferHalfDepthRange && ANYGL_SUPPORTED(glClipControl))
 		glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);

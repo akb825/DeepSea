@@ -41,8 +41,10 @@ typedef enum CommandType
 {
 	CommandType_CopyBufferData,
 	CommandType_CopyBuffer,
+	CommandType_CopyBufferToTexture,
 	CommandType_CopyTextureData,
 	CommandType_CopyTexture,
+	CommandType_CopyTextureToBuffer,
 	CommandType_GenerateTextureMipmaps,
 	CommandType_BeginQuery,
 	CommandType_EndQuery,
@@ -101,6 +103,15 @@ typedef struct CopyBufferCommand
 	size_t size;
 } CopyBufferCommand;
 
+typedef struct CopyBufferToTextureCommand
+{
+	Command command;
+	dsGfxBuffer* srcBuffer;
+	dsTexture* dstTexture;
+	uint32_t regionCount;
+	dsGfxBufferTextureCopyRegion regions[];
+} CopyBufferToTextureCommand;
+
 typedef struct CopyTextureDataCommand
 {
 	Command command;
@@ -121,6 +132,15 @@ typedef struct CopyTextureCommand
 	uint32_t regionCount;
 	dsTextureCopyRegion regions[];
 } CopyTextureCommand;
+
+typedef struct CopyTextureToBufferCommand
+{
+	Command command;
+	dsTexture* srcTexture;
+	dsGfxBuffer* dstBuffer;
+	uint32_t regionCount;
+	dsGfxBufferTextureCopyRegion regions[];
+} CopyTextureToBufferCommand;
 
 typedef struct GenerateTextureMipmapsCommand
 {
@@ -435,6 +455,13 @@ void dsGLOtherCommandBuffer_reset(dsCommandBuffer* commandBuffer)
 				dsGLGfxBuffer_freeInternalRef(thisCommand->dstBuffer);
 				break;
 			}
+			case CommandType_CopyBufferToTexture:
+			{
+				CopyBufferToTextureCommand* thisCommand = (CopyBufferToTextureCommand*)command;
+				dsGLGfxBuffer_freeInternalRef(thisCommand->srcBuffer);
+				dsGLTexture_freeInternalRef(thisCommand->dstTexture);
+				break;
+			}
 			case CommandType_CopyTextureData:
 			{
 				CopyTextureDataCommand* thisCommand = (CopyTextureDataCommand*)command;
@@ -446,6 +473,13 @@ void dsGLOtherCommandBuffer_reset(dsCommandBuffer* commandBuffer)
 				CopyTextureCommand* thisCommand = (CopyTextureCommand*)command;
 				dsGLTexture_freeInternalRef(thisCommand->srcTexture);
 				dsGLTexture_freeInternalRef(thisCommand->dstTexture);
+				break;
+			}
+			case CommandType_CopyTextureToBuffer:
+			{
+				CopyTextureToBufferCommand* thisCommand = (CopyTextureToBufferCommand*)command;
+				dsGLTexture_freeInternalRef(thisCommand->srcTexture);
+				dsGLGfxBuffer_freeInternalRef(thisCommand->dstBuffer);
 				break;
 			}
 			case CommandType_GenerateTextureMipmaps:
@@ -657,6 +691,27 @@ bool dsGLOtherCommandBuffer_copyBuffer(dsCommandBuffer* commandBuffer, dsGfxBuff
 	return true;
 }
 
+bool dsGLOtherCommandBuffer_copyBufferToTexture(dsCommandBuffer* commandBuffer,
+	dsGfxBuffer* srcBuffer, dsTexture* dstTexture, const dsGfxBufferTextureCopyRegion* regions,
+	uint32_t regionCount)
+{
+	size_t commandSize = sizeof(CopyBufferToTextureCommand) +
+		sizeof(dsGfxBufferTextureCopyRegion)*regionCount;
+	CopyBufferToTextureCommand* command =
+		(CopyBufferToTextureCommand*)allocateCommand(commandBuffer, CommandType_CopyBufferToTexture,
+			commandSize);
+	if (!command)
+		return false;
+
+	dsGLGfxBuffer_addInternalRef(srcBuffer);
+	dsGLTexture_addInternalRef(dstTexture);
+	command->srcBuffer = srcBuffer;
+	command->dstTexture = dstTexture;
+	command->regionCount = regionCount;
+	memcpy(command->regions, regions, sizeof(dsGfxBufferTextureCopyRegion)*regionCount);
+	return true;
+}
+
 bool dsGLOtherCommandBuffer_copyTextureData(dsCommandBuffer* commandBuffer, dsTexture* texture,
 	const dsTexturePosition* position, uint32_t width, uint32_t height, uint32_t layers,
 	const void* data, size_t size)
@@ -693,6 +748,27 @@ bool dsGLOtherCommandBuffer_copyTexture(dsCommandBuffer* commandBuffer, dsTextur
 	command->dstTexture = dstTexture;
 	command->regionCount = regionCount;
 	memcpy(command->regions, regions, sizeof(dsTextureCopyRegion)*regionCount);
+	return true;
+}
+
+bool dsGLOtherCommandBuffer_copyTextureToBuffer(dsCommandBuffer* commandBuffer,
+	dsTexture* srcTexture, dsGfxBuffer* dstBuffer, const dsGfxBufferTextureCopyRegion* regions,
+	uint32_t regionCount)
+{
+	size_t commandSize = sizeof(CopyTextureToBufferCommand) +
+		sizeof(dsGfxBufferTextureCopyRegion)*regionCount;
+	CopyTextureToBufferCommand* command =
+		(CopyTextureToBufferCommand*)allocateCommand(commandBuffer, CommandType_CopyTextureToBuffer,
+			commandSize);
+	if (!command)
+		return false;
+
+	dsGLTexture_addInternalRef(srcTexture);
+	dsGLGfxBuffer_addInternalRef(dstBuffer);
+	command->srcTexture = srcTexture;
+	command->dstBuffer = dstBuffer;
+	command->regionCount = regionCount;
+	memcpy(command->regions, regions, sizeof(dsGfxBufferTextureCopyRegion)*regionCount);
 	return true;
 }
 
@@ -1234,6 +1310,13 @@ bool dsGLOtherCommandBuffer_submit(dsCommandBuffer* commandBuffer, dsCommandBuff
 					thisCommand->size);
 				break;
 			}
+			case CommandType_CopyBufferToTexture:
+			{
+				CopyBufferToTextureCommand* thisCommand = (CopyBufferToTextureCommand*)command;
+				dsGLCommandBuffer_copyBufferToTexture(commandBuffer, thisCommand->srcBuffer,
+					thisCommand->dstTexture, thisCommand->regions, thisCommand->regionCount);
+				break;
+			}
 			case CommandType_CopyTextureData:
 			{
 				CopyTextureDataCommand* thisCommand = (CopyTextureDataCommand*)command;
@@ -1247,6 +1330,13 @@ bool dsGLOtherCommandBuffer_submit(dsCommandBuffer* commandBuffer, dsCommandBuff
 				CopyTextureCommand* thisCommand = (CopyTextureCommand*)command;
 				dsGLCommandBuffer_copyTexture(commandBuffer, thisCommand->srcTexture,
 					thisCommand->dstTexture, thisCommand->regions, thisCommand->regionCount);
+				break;
+			}
+			case CommandType_CopyTextureToBuffer:
+			{
+				CopyTextureToBufferCommand* thisCommand = (CopyTextureToBufferCommand*)command;
+				dsGLCommandBuffer_copyTextureToBuffer(commandBuffer, thisCommand->srcTexture,
+					thisCommand->dstBuffer, thisCommand->regions, thisCommand->regionCount);
 				break;
 			}
 			case CommandType_GenerateTextureMipmaps:
@@ -1497,8 +1587,10 @@ static CommandBufferFunctionTable functionTable =
 	&dsGLOtherCommandBuffer_reset,
 	&dsGLOtherCommandBuffer_copyBufferData,
 	&dsGLOtherCommandBuffer_copyBuffer,
+	&dsGLOtherCommandBuffer_copyBufferToTexture,
 	&dsGLOtherCommandBuffer_copyTextureData,
 	&dsGLOtherCommandBuffer_copyTexture,
+	&dsGLOtherCommandBuffer_copyTextureToBuffer,
 	&dsGLOtherCommandBuffer_generateTextureMipmaps,
 	&dsGLOtherCommandBuffer_setFenceSyncs,
 	&dsGLOtherCommandBuffer_beginQuery,

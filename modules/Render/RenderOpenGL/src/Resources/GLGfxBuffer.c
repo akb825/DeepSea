@@ -472,6 +472,15 @@ bool dsGLGfxBuffer_copy(dsResourceManager* resourceManager, dsCommandBuffer* com
 		size);
 }
 
+bool dsGLGfxBuffer_copyToTexture(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
+	dsGfxBuffer* srcBuffer, dsTexture* dstTexture, const dsGfxBufferTextureCopyRegion* regions,
+	uint32_t regionCount)
+{
+	DS_UNUSED(resourceManager);
+	return dsGLCommandBuffer_copyBufferToTexture(commandBuffer, srcBuffer, dstTexture, regions,
+		regionCount);
+}
+
 static bool destroyImpl(dsGfxBuffer* buffer)
 {
 	dsGLGfxBuffer* glBuffer = (dsGLGfxBuffer*)buffer;

@@ -713,7 +713,7 @@ TEST_F(TextureTest, CopyToBuffer)
 
 	dsTextureInfo toInfo = {format, dsTextureDim_2D, 16, 32, 5, 2, 1};
 	size_t toSize = dsTexture_size(&toInfo);
-	dsGfxBuffer* toBuffer = dsGfxBuffer_create(resourceManager, NULL, dsGfxBufferUsage_CopyFrom,
+	dsGfxBuffer* toBuffer = dsGfxBuffer_create(resourceManager, NULL, dsGfxBufferUsage_CopyTo,
 		dsGfxMemory_Read, NULL, toSize);
 	ASSERT_TRUE(toBuffer);
 
@@ -787,6 +787,7 @@ TEST_F(TextureTest, CopyToBuffer)
 		}
 		index += copyRegion.bufferWidth - copyRegion.textureWidth;
 	}
+	EXPECT_TRUE(dsGfxBuffer_unmap(toBuffer));
 
 	copyRegion.texturePosition.x = 25;
 	EXPECT_FALSE(dsTexture_copyToBuffer(commandBuffer, fromTexture, toBuffer, &copyRegion, 1));

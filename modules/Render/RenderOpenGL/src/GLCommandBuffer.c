@@ -363,6 +363,14 @@ bool dsGLCommandBuffer_copyBuffer(dsCommandBuffer* commandBuffer, dsGfxBuffer* s
 		size);
 }
 
+bool dsGLCommandBuffer_copyBufferToTexture(dsCommandBuffer* commandBuffer, dsGfxBuffer* srcBuffer,
+	dsTexture* dstTexture, const dsGfxBufferTextureCopyRegion* regions, uint32_t regionCount)
+{
+	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
+	return functions->copyBufferToTextureFunc(commandBuffer, srcBuffer, dstTexture, regions,
+		regionCount);
+}
+
 bool dsGLCommandBuffer_copyTextureData(dsCommandBuffer* commandBuffer, dsTexture* texture,
 	const dsTexturePosition* position, uint32_t width, uint32_t height, uint32_t layers,
 	const void* data, size_t size)
@@ -370,6 +378,14 @@ bool dsGLCommandBuffer_copyTextureData(dsCommandBuffer* commandBuffer, dsTexture
 	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
 	return functions->copyTextureDataFunc(commandBuffer, texture, position, width, height, layers,
 		data, size);
+}
+
+bool dsGLCommandBuffer_copyTextureToBuffer(dsCommandBuffer* commandBuffer, dsTexture* srcTexture,
+	dsGfxBuffer* dstBuffer, const dsGfxBufferTextureCopyRegion* regions, uint32_t regionCount)
+{
+	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
+	return functions->copyTextureToBufferFunc(commandBuffer, srcTexture, dstBuffer, regions,
+		regionCount);
 }
 
 bool dsGLCommandBuffer_copyTexture(dsCommandBuffer* commandBuffer, dsTexture* srcTexture,

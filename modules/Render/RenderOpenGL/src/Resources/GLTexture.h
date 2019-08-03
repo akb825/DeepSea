@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2019 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,9 @@ bool dsGLTexture_copyData(dsResourceManager* resourceManager, dsCommandBuffer* c
 	uint32_t layers, const void* data, size_t size);
 bool dsGLTexture_copy(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
 	dsTexture* srcTexture, dsTexture* dstTexture, const dsTextureCopyRegion* regions,
+	uint32_t regionCount);
+bool dsGLTexture_copyToBuffer(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
+	dsTexture* srcTexture, dsGfxBuffer* dstBuffer, const dsGfxBufferTextureCopyRegion* regions,
 	uint32_t regionCount);
 bool dsGLTexture_generateMipmaps(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
 	dsTexture* texture);

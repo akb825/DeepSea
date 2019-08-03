@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2019 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,7 +47,9 @@ enum FormatBit
 	FormatBit_Vertex = 0x1,
 	FormatBit_Texture = 0x2,
 	FormatBit_Offscreen = 0x4,
-	FormatBit_TextureBuffer = 0x8
+	FormatBit_TextureBuffer = 0x8,
+	FormatBit_CopyBufferToTexture = 0x10,
+	FormatBit_CopyTextureToBuffer = 0x20
 };
 
 static size_t dsGLResourceManager_fullAllocSize(const dsRendererOptions* options)
@@ -149,12 +151,27 @@ static void setSpecialVertexFormat(dsGLResourceManager* resourceManager, dsGfxFo
 	resourceManager->specialVertexElements[index] = elements;
 }
 
+static uint8_t addCopyBits(uint8_t bits)
+{
+	if (ANYGL_SUPPORTED(glGetTextureSubImage))
+		bits |= (uint8_t)(FormatBit_CopyBufferToTexture | FormatBit_CopyTextureToBuffer);
+	else if (AnyGL_atLeastVersion(2, 1, false) || AnyGL_atLeastVersion(3, 0, true) ||
+		AnyGL_ARB_pixel_buffer_object || AnyGL_EXT_pixel_buffer_object)
+	{
+		bits |= (uint8_t)FormatBit_CopyBufferToTexture;
+		if (bits & FormatBit_Offscreen)
+			bits |= (uint8_t)FormatBit_CopyTextureToBuffer;
+	}
+
+	return bits;
+}
+
 static void setStandardFormat(dsGLResourceManager* resourceManager, dsGfxFormat format,
 	dsGfxFormat decorator, int bits, GLenum internalFormat, GLenum glFormat, GLenum type)
 {
 	unsigned int index = dsGfxFormat_standardIndex(format);
 	unsigned int decoratorIndex = dsGfxFormat_decoratorIndex(decorator);
-	resourceManager->standardFormats[index][decoratorIndex] |= (uint8_t)bits;
+	resourceManager->standardFormats[index][decoratorIndex] |= addCopyBits((uint8_t)bits);
 	resourceManager->standardInternalFormats[index][decoratorIndex] = internalFormat;
 	resourceManager->standardGlFormats[index][decoratorIndex] = glFormat;
 	resourceManager->standardTypes[index][decoratorIndex] = type;
@@ -164,7 +181,7 @@ static void setSpecialFormat(dsGLResourceManager* resourceManager, dsGfxFormat f
 	int bits, GLenum internalFormat, GLenum glFormat, GLenum type)
 {
 	unsigned int index = dsGfxFormat_specialIndex(format);
-	resourceManager->specialFormats[index] |= (uint8_t)bits;
+	resourceManager->specialFormats[index] |= addCopyBits((uint8_t)bits);
 	resourceManager->specialInternalFormats[index] = internalFormat;
 	resourceManager->specialGlFormats[index] = glFormat;
 	resourceManager->specialTypes[index] = type;
@@ -175,7 +192,7 @@ static void setCompressedFormat(dsGLResourceManager* resourceManager, dsGfxForma
 {
 	unsigned int index = dsGfxFormat_compressedIndex(format);
 	unsigned int decoratorIndex = dsGfxFormat_decoratorIndex(decorator);
-	resourceManager->compressedFormats[index][decoratorIndex] |= (uint8_t)bits;
+	resourceManager->compressedFormats[index][decoratorIndex] |= addCopyBits((uint8_t)bits);
 	resourceManager->compressedInternalFormats[index][decoratorIndex] = internalFormat;
 	resourceManager->compressedGlFormats[index][decoratorIndex] = glFormat;
 }
@@ -1078,6 +1095,24 @@ bool dsGLResourceManager_textureCopyFormatsSupported(const dsResourceManager* re
 	return dsGfxFormat_size(srcFormat) == dsGfxFormat_size(srcFormat);
 }
 
+bool dsGLResourceManager_copyBufferToTextureSupported(const dsResourceManager* resourceManager,
+	dsGfxFormat format)
+{
+	DS_ASSERT(resourceManager);
+
+	const dsGLResourceManager* glResourceManager = (const dsGLResourceManager*)resourceManager;
+	return formatSupported(glResourceManager, format, FormatBit_CopyBufferToTexture);
+}
+
+bool dsGLResourceManager_copyTextureToBufferSupported(const dsResourceManager* resourceManager,
+	dsGfxFormat format)
+{
+	DS_ASSERT(resourceManager);
+
+	const dsGLResourceManager* glResourceManager = (const dsGLResourceManager*)resourceManager;
+	return formatSupported(glResourceManager, format, FormatBit_CopyTextureToBuffer);
+}
+
 dsResourceContext* dsGLResourceManager_createResourceContext(dsResourceManager* resourceManager)
 {
 	DS_ASSERT(resourceManager);
@@ -1209,6 +1244,10 @@ dsGLResourceManager* dsGLResourceManager_create(dsAllocator* allocator, dsGLRend
 		&dsGLResourceManager_textureCopyFormatsSupported;
 	baseResourceManager->surfaceBlitFormatsSupportedFunc =
 		&dsGLResourceManager_surfaceBlitFormatsSupported;
+	baseResourceManager->copyBufferToTextureSupportedFunc =
+		&dsGLResourceManager_copyBufferToTextureSupported;
+	baseResourceManager->copyTextureToBufferSupportedFunc =
+		&dsGLResourceManager_copyTextureToBufferSupported;
 
 	// Resource contexts
 	baseResourceManager->createResourceContextFunc = &dsGLResourceManager_createResourceContext;
@@ -1257,6 +1296,7 @@ dsGLResourceManager* dsGLResourceManager_create(dsAllocator* allocator, dsGLRend
 	baseResourceManager->invalidateBufferFunc = &dsGLGfxBuffer_invalidate;
 	baseResourceManager->copyBufferDataFunc = &dsGLGfxBuffer_copyData;
 	baseResourceManager->copyBufferFunc = &dsGLGfxBuffer_copy;
+	baseResourceManager->copyBufferToTextureFunc = &dsGLGfxBuffer_copyToTexture;
 
 	// Draw geometry
 	GLint maxVertexAttribs = 0;
@@ -1299,6 +1339,7 @@ dsGLResourceManager* dsGLResourceManager_create(dsAllocator* allocator, dsGLRend
 	baseResourceManager->destroyTextureFunc = &dsGLTexture_destroy;
 	baseResourceManager->copyTextureDataFunc = &dsGLTexture_copyData;
 	baseResourceManager->copyTextureFunc = &dsGLTexture_copy;
+	baseResourceManager->copyTextureToBufferFunc = &dsGLTexture_copyToBuffer;
 	baseResourceManager->generateTextureMipmapsFunc = &dsGLTexture_generateMipmaps;
 	baseResourceManager->getTextureDataFunc = &dsGLTexture_getData;
 

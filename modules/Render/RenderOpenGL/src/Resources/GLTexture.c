@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2019 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -87,9 +87,13 @@ dsTexture* dsGLTexture_create(dsResourceManager* resourceManager, dsAllocator* a
 
 	GLenum target = dsGLTexture_target(baseTexture);
 	dsGLRenderer_beginTextureOp(resourceManager->renderer, target, texture->textureId);
-	// This could happen with some resource context rather than the render context, so always set
-	// the pixel alignment to be tightly packed.
+
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	if (!ANYGL_GLES || AnyGL_atLeastVersion(3, 0, true))
+	{
+		glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
+		glPixelStorei(GL_UNPACK_IMAGE_HEIGHT, 0);
+	}
 
 	// Format should have been validated earlier.
 	GLenum internalFormat;
@@ -603,10 +607,6 @@ bool dsGLTexture_copyData(dsResourceManager* resourceManager, dsCommandBuffer* c
 	uint32_t layers, const void* data, size_t size)
 {
 	DS_UNUSED(resourceManager);
-	DS_ASSERT(commandBuffer);
-	DS_ASSERT(texture);
-	DS_ASSERT(position);
-
 	return dsGLCommandBuffer_copyTextureData(commandBuffer, texture, position, width, height,
 		layers, data, size);
 }
@@ -616,12 +616,16 @@ bool dsGLTexture_copy(dsResourceManager* resourceManager, dsCommandBuffer* comma
 	uint32_t regionCount)
 {
 	DS_UNUSED(resourceManager);
-	DS_ASSERT(commandBuffer);
-	DS_ASSERT(srcTexture);
-	DS_ASSERT(dstTexture);
-	DS_ASSERT(regions || regionCount == 0);
-
 	return dsGLCommandBuffer_copyTexture(commandBuffer, srcTexture, dstTexture, regions,
+		regionCount);
+}
+
+bool dsGLTexture_copyToBuffer(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
+	dsTexture* srcTexture, dsGfxBuffer* dstBuffer, const dsGfxBufferTextureCopyRegion* regions,
+	uint32_t regionCount)
+{
+	DS_UNUSED(resourceManager);
+	return dsGLCommandBuffer_copyTextureToBuffer(commandBuffer, srcTexture, dstBuffer, regions,
 		regionCount);
 }
 
@@ -649,6 +653,11 @@ bool dsGLTexture_getData(void* result, size_t size, dsResourceManager* resourceM
 	DS_VERIFY(dsGLResourceManager_getTextureFormatInfo(NULL, &glFormat, &type, resourceManager,
 		texture->info.format));
 	glPixelStorei(GL_PACK_ALIGNMENT, 1);
+	if (!ANYGL_GLES || AnyGL_atLeastVersion(3, 0, true))
+	{
+		glPixelStorei(GL_PACK_ROW_LENGTH, 0);
+		glPixelStorei(GL_PACK_IMAGE_HEIGHT, 0);
+	}
 	if (texture->offscreen)
 	{
 		GLuint framebuffer;

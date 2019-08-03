@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2019 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,9 @@ bool dsGLGfxBuffer_copyData(dsResourceManager* resourceManager, dsCommandBuffer*
 bool dsGLGfxBuffer_copy(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
 	dsGfxBuffer* srcBuffer, size_t srcOffset, dsGfxBuffer* dstBuffer, size_t dstOffset,
 	size_t size);
+bool dsGLGfxBuffer_copyToTexture(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
+	dsGfxBuffer* srcBuffer, dsTexture* dstTexture, const dsGfxBufferTextureCopyRegion* regions,
+	uint32_t regionCount);
 bool dsGLGfxBuffer_destroy(dsResourceManager* resourceManager, dsGfxBuffer* buffer);
 
 void dsGLGfxBuffer_addInternalRef(dsGfxBuffer* buffer);

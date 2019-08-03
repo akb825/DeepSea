@@ -276,12 +276,18 @@ typedef bool (*GLCopyGfxBufferDataFunction)(dsCommandBuffer* commandBuffer, dsGf
 	size_t offset, const void* data, size_t size);
 typedef bool (*GLCopyGfxBufferFunction)(dsCommandBuffer* commandBuffer, dsGfxBuffer* srcBuffer,
 	size_t srcOffset, dsGfxBuffer* dstBuffer, size_t dstOffset, size_t size);
+typedef bool (*GLCopyGfxBufferToTextureFunction)(dsCommandBuffer* commandBuffer,
+	dsGfxBuffer* srcBuffer, dsTexture* dstTexture, const dsGfxBufferTextureCopyRegion* regions,
+	uint32_t regionCount);
 
 typedef bool (*GLCopyTextureDataFunction)(dsCommandBuffer* commandBuffer, dsTexture* texture,
 	const dsTexturePosition* position, uint32_t width, uint32_t height, uint32_t layers,
 	const void* data, size_t size);
 typedef bool (*GLCopyTextureFunction)(dsCommandBuffer* commandBuffer, dsTexture* srcTexture,
 	dsTexture* dstTexture, const dsTextureCopyRegion* regions, uint32_t regionCount);
+typedef bool (*GLCopyTextureToGfxBufferFunction)(dsCommandBuffer* commandBuffer,
+	dsTexture* srcTexture, dsGfxBuffer* dstBuffer, const dsGfxBufferTextureCopyRegion* regions,
+	uint32_t regionCount);
 typedef bool (*GLGenerateTextureMipmaps)(dsCommandBuffer* commandBuffer, dsTexture* texture);
 
 typedef bool (*GLSetFenceSyncsFunction)(dsCommandBuffer* commandBuffer, dsGLFenceSyncRef** syncs,
@@ -365,9 +371,11 @@ typedef struct CommandBufferFunctionTable
 
 	GLCopyGfxBufferDataFunction copyBufferDataFunc;
 	GLCopyGfxBufferFunction copyBufferFunc;
+	GLCopyGfxBufferToTextureFunction copyBufferToTextureFunc;
 
 	GLCopyTextureDataFunction copyTextureDataFunc;
 	GLCopyTextureFunction copyTextureFunc;
+	GLCopyTextureToGfxBufferFunction copyTextureToBufferFunc;
 	GLGenerateTextureMipmaps generateTextureMipmapsFunc;
 
 	GLSetFenceSyncsFunction setFenceSyncsFunc;

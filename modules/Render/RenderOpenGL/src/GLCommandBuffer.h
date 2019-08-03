@@ -28,12 +28,16 @@ bool dsGLCommandBuffer_copyBufferData(dsCommandBuffer* commandBuffer, dsGfxBuffe
 	size_t offset, const void* data, size_t size);
 bool dsGLCommandBuffer_copyBuffer(dsCommandBuffer* commandBuffer, dsGfxBuffer* srcBuffer,
 	size_t srcOffset, dsGfxBuffer* dstBuffer, size_t dstOffset, size_t size);
+bool dsGLCommandBuffer_copyBufferToTexture(dsCommandBuffer* commandBuffer, dsGfxBuffer* srcBuffer,
+	dsTexture* dstTexture, const dsGfxBufferTextureCopyRegion* regions, uint32_t regionCount);
 
 bool dsGLCommandBuffer_copyTextureData(dsCommandBuffer* commandBuffer, dsTexture* texture,
 	const dsTexturePosition* position, uint32_t width, uint32_t height, uint32_t layers,
 	const void* data, size_t size);
 bool dsGLCommandBuffer_copyTexture(dsCommandBuffer* commandBuffer, dsTexture* srcTexture,
 	dsTexture* dstTexture, const dsTextureCopyRegion* regions, uint32_t regionCount);
+bool dsGLCommandBuffer_copyTextureToBuffer(dsCommandBuffer* commandBuffer, dsTexture* srcTexture,
+	dsGfxBuffer* dstBuffer, const dsGfxBufferTextureCopyRegion* regions, uint32_t regionCount);
 bool dsGLCommandBuffer_generateTextureMipmaps(dsCommandBuffer* commandBuffer, dsTexture* texture);
 
 bool dsGLCommandBuffer_setFenceSyncs(dsCommandBuffer* commandBuffer, dsGLFenceSyncRef** syncs,
