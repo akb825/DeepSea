@@ -331,7 +331,7 @@ TEST_P(RendererFunctionalTest, DrawIndirect)
 {
 	if (!(resourceManager->supportedBuffers & dsGfxBufferUsage_IndirectDraw))
 	{
-		DS_LOG_INFO("RenderFunctionalTest", "Indirect drawing not supported: skipping test.");
+		DS_LOG_INFO("RendererFunctionalTest", "Indirect drawing not supported: skipping test.");
 		return;
 	}
 
@@ -431,7 +431,7 @@ TEST_P(RendererFunctionalTest, WriteToBuffer)
 {
 	if (resourceManager->bufferMapSupport == dsGfxBufferMapSupport_None)
 	{
-		DS_LOG_INFO("RenderFunctionalTest", "Buffer mapping not supported: skipping test.");
+		DS_LOG_INFO("RendererFunctionalTest", "Buffer mapping not supported: skipping test.");
 		return;
 	}
 
@@ -554,7 +554,7 @@ TEST_P(RendererFunctionalTest, OrphanBuffer)
 {
 	if (resourceManager->bufferMapSupport == dsGfxBufferMapSupport_None)
 	{
-		DS_LOG_INFO("RenderFunctionalTest", "Buffer mapping not supported: skipping test.");
+		DS_LOG_INFO("RendererFunctionalTest", "Buffer mapping not supported: skipping test.");
 		return;
 	}
 
@@ -883,7 +883,7 @@ TEST_P(RendererFunctionalTest, BufferReadback)
 	const uint32_t invocationCount = 10;
 	if (renderer->maxComputeWorkGroupSize[0] < invocationCount)
 	{
-		DS_LOG_INFO("RenderFunctionalTest", "Compute shaders not supported: skipping test.");
+		DS_LOG_INFO("RendererFunctionalTest", "Compute shaders not supported: skipping test.");
 		return;
 	}
 
@@ -951,7 +951,7 @@ TEST_P(RendererFunctionalTest, ComputeShaderIndirect)
 	const uint32_t invocationCount = 10;
 	if (renderer->maxComputeWorkGroupSize[0] < invocationCount)
 	{
-		DS_LOG_INFO("RenderFunctionalTest", "Compute shaders not supported: skipping test.");
+		DS_LOG_INFO("RendererFunctionalTest", "Compute shaders not supported: skipping test.");
 		return;
 	}
 
@@ -1026,13 +1026,13 @@ TEST_P(RendererFunctionalTest, TextureBuffer)
 	const uint32_t invocationCount = 10;
 	if (renderer->maxComputeWorkGroupSize[0] < invocationCount)
 	{
-		DS_LOG_INFO("RenderFunctionalTest", "Compute shaders not supported: skipping test.");
+		DS_LOG_INFO("RendererFunctionalTest", "Compute shaders not supported: skipping test.");
 		return;
 	}
 
 	if (!(resourceManager->supportedBuffers & dsGfxBufferUsage_Texture))
 	{
-		DS_LOG_INFO("RenderFunctionalTest", "Texture buffers not supported: skipping test.");
+		DS_LOG_INFO("RendererFunctionalTest", "Texture buffers not supported: skipping test.");
 		return;
 	}
 
@@ -1099,8 +1099,8 @@ TEST_P(RendererFunctionalTest, TextureBuffer)
 		EXPECT_EQ(values[i], data[i]);
 	EXPECT_TRUE(dsGfxBuffer_unmap(buffer));
 
-	auto newData = reinterpret_cast<uint32_t*>(dsGfxBuffer_map(textureBuffer, dsGfxBufferMap_Write, 0,
-		buffer->size));
+	auto newData = reinterpret_cast<uint32_t*>(dsGfxBuffer_map(textureBuffer, dsGfxBufferMap_Write,
+		0, buffer->size));
 	ASSERT_TRUE(newData);
 	for (uint32_t i = 0; i < invocationCount; ++i)
 		newData[i] = values[i] = i*3 + 1;
