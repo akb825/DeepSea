@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2019 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 #include "Fixtures/RenderPassFixtureBase.h"
 #include <DeepSea/Math/Types.h>
+#include <DeepSea/Render/Resources/GfxBuffer.h>
 #include <DeepSea/Render/Resources/GfxFormat.h>
 #include <DeepSea/Render/Resources/Texture.h>
 #include <DeepSea/Render/RenderPass.h>
@@ -566,8 +567,7 @@ TEST_F(TextureTest, Copy)
 	dsGfxFormat format = dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm);
 	dsTextureInfo fromInfo = {format, dsTextureDim_2D, 32, 16, 4, 3, 1};
 	dsTexture* fromTexture = dsTexture_create(resourceManager, NULL, dsTextureUsage_Texture,
-		dsGfxMemory_Read, &fromInfo, textureData,
-		sizeof(textureData));
+		dsGfxMemory_GPUOnly, &fromInfo, textureData, sizeof(textureData));
 	ASSERT_TRUE(fromTexture);
 
 	dsTextureInfo toInfo = {format, dsTextureDim_2D, 16, 32, 5, 2, 1};
@@ -588,7 +588,7 @@ TEST_F(TextureTest, Copy)
 	EXPECT_TRUE(dsTexture_destroy(toTexture));
 
 	fromTexture = dsTexture_create(resourceManager, NULL,
-		(dsTextureUsage)(dsTextureUsage_Texture | dsTextureUsage_CopyFrom), dsGfxMemory_Read,
+		(dsTextureUsage)(dsTextureUsage_Texture | dsTextureUsage_CopyFrom), dsGfxMemory_GPUOnly,
 		&fromInfo, textureData, sizeof(textureData));
 	ASSERT_TRUE(fromTexture);
 
@@ -601,7 +601,7 @@ TEST_F(TextureTest, Copy)
 	EXPECT_TRUE(dsTexture_destroy(toTexture));
 
 	fromTexture = dsTexture_create(resourceManager, NULL,
-		(dsTextureUsage)(dsTextureUsage_Texture | dsTextureUsage_CopyFrom), dsGfxMemory_Read,
+		(dsTextureUsage)(dsTextureUsage_Texture | dsTextureUsage_CopyFrom), dsGfxMemory_GPUOnly,
 		&fromInfo, textureData, sizeof(textureData));
 	ASSERT_TRUE(fromTexture);
 
@@ -678,6 +678,146 @@ TEST_F(TextureTest, Copy)
 
 	EXPECT_TRUE(dsTexture_destroy(fromTexture));
 	EXPECT_TRUE(dsTexture_destroy(toTexture));
+}
+
+TEST_F(TextureTest, CopyToBuffer)
+{
+	dsCommandBuffer* commandBuffer = renderer->mainCommandBuffer;
+
+	dsColor textureData[(32*16 + 16*8 + 8*4)*4];
+	for (unsigned int level = 0, index = 0; level < 3; ++level)
+	{
+		unsigned int width = 32 >> level;
+		unsigned int height = 16 >> level;
+		for (unsigned int depth = 0; depth < 4; ++depth)
+		{
+			for (unsigned int y = 0; y < height; ++y)
+			{
+				for (unsigned int x = 0; x < width; ++x, ++index)
+				{
+					textureData[index].r = (uint8_t)x;
+					textureData[index].g = (uint8_t)y;
+					textureData[index].b = (uint8_t)level;
+					textureData[index].a = (uint8_t)depth;
+				}
+			}
+		}
+	}
+
+	dsGfxFormat format = dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm);
+	dsTextureInfo fromInfo = {format, dsTextureDim_2D, 32, 16, 4, 3, 1};
+	dsTexture* fromTexture = dsTexture_create(resourceManager, NULL, dsTextureUsage_Texture,
+		dsGfxMemory_GPUOnly, &fromInfo, textureData,
+		sizeof(textureData));
+	ASSERT_TRUE(fromTexture);
+
+	dsTextureInfo toInfo = {format, dsTextureDim_2D, 16, 32, 5, 2, 1};
+	size_t toSize = dsTexture_size(&toInfo);
+	dsGfxBuffer* toBuffer = dsGfxBuffer_create(resourceManager, NULL, dsGfxBufferUsage_CopyFrom,
+		dsGfxMemory_Read, NULL, toSize);
+	ASSERT_TRUE(toBuffer);
+
+	// array index 1, mip level 0, position (3, 4)
+	size_t bufferOffset = dsTexture_layerOffset(&fromInfo, 1, 0) + (4*16 + 3)*sizeof(dsColor);
+	dsGfxBufferTextureCopyRegion copyRegion =
+	{
+		bufferOffset, 16, 32,
+		{dsCubeFace_None, 1, 2, 2, 1},
+		8, 4, 2
+	};
+
+	EXPECT_FALSE(dsTexture_copyToBuffer(commandBuffer, fromTexture, toBuffer, &copyRegion, 1));
+	EXPECT_TRUE(dsTexture_destroy(fromTexture));
+	EXPECT_TRUE(dsGfxBuffer_destroy(toBuffer));
+
+	fromTexture = dsTexture_create(resourceManager, NULL,
+		(dsTextureUsage)(dsTextureUsage_Texture | dsTextureUsage_CopyFrom), dsGfxMemory_GPUOnly,
+		&fromInfo, textureData, sizeof(textureData));
+	ASSERT_TRUE(fromTexture);
+
+	toBuffer = dsGfxBuffer_create(resourceManager, NULL, dsGfxBufferUsage_Vertex, dsGfxMemory_Read,
+		NULL, toSize);
+	ASSERT_TRUE(toBuffer);
+
+	EXPECT_FALSE(dsTexture_copyToBuffer(commandBuffer, fromTexture, toBuffer, &copyRegion, 1));
+	EXPECT_TRUE(dsTexture_destroy(fromTexture));
+	EXPECT_TRUE(dsGfxBuffer_destroy(toBuffer));
+
+	fromTexture = dsTexture_create(resourceManager, NULL,
+		(dsTextureUsage)(dsTextureUsage_Texture | dsTextureUsage_CopyFrom), dsGfxMemory_GPUOnly,
+		&fromInfo, textureData, sizeof(textureData));
+	ASSERT_TRUE(fromTexture);
+
+	toBuffer = dsGfxBuffer_create(resourceManager, NULL, dsGfxBufferUsage_CopyTo,
+		dsGfxMemory_Read, NULL, toSize);
+	ASSERT_TRUE(toBuffer);
+
+	EXPECT_TRUE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0));
+	EXPECT_FALSE(dsTexture_copyToBuffer(commandBuffer, fromTexture, toBuffer, &copyRegion, 1));
+	EXPECT_TRUE(dsRenderPass_end(renderPass, commandBuffer));
+
+	EXPECT_TRUE(dsTexture_copyToBuffer(commandBuffer, fromTexture, toBuffer, &copyRegion, 1));
+
+	const uint8_t* bufferData =
+		(const uint8_t*)dsGfxBuffer_map(toBuffer, dsGfxBufferMap_Read, 0, DS_MAP_FULL_BUFFER);
+	ASSERT_TRUE(bufferData);
+	const dsColor* readTextureData = (const dsColor*)(bufferData + bufferOffset);
+	for (unsigned int y = 0, index = 0; y < 4; ++y)
+	{
+		for (unsigned int x = 0; x < 8; ++x, ++index)
+		{
+			EXPECT_EQ(x + 1, readTextureData[index].r);
+			EXPECT_EQ(y + 2, readTextureData[index].g);
+			EXPECT_EQ(1U, readTextureData[index].b);
+			EXPECT_EQ(2U, readTextureData[index].a);
+		}
+		index += copyRegion.bufferWidth - copyRegion.textureWidth;
+	}
+
+	size_t nextBufferOffset = dsTexture_layerOffset(&fromInfo, 2, 0) + (4*16 + 3)*sizeof(dsColor);
+	readTextureData = (const dsColor*)(bufferData + nextBufferOffset);
+	for (unsigned int y = 0, index = 0; y < 4; ++y)
+	{
+		for (unsigned int x = 0; x < 8; ++x, ++index)
+		{
+			EXPECT_EQ(x + 1, readTextureData[index].r);
+			EXPECT_EQ(y + 2, readTextureData[index].g);
+			EXPECT_EQ(1U, readTextureData[index].b);
+			EXPECT_EQ(3U, readTextureData[index].a);
+		}
+		index += copyRegion.bufferWidth - copyRegion.textureWidth;
+	}
+
+	copyRegion.texturePosition.x = 25;
+	EXPECT_FALSE(dsTexture_copyToBuffer(commandBuffer, fromTexture, toBuffer, &copyRegion, 1));
+
+	copyRegion.texturePosition.x = 1;
+	copyRegion.texturePosition.y = 13;
+	EXPECT_FALSE(dsTexture_copyToBuffer(commandBuffer, fromTexture, toBuffer, &copyRegion, 1));
+
+	copyRegion.texturePosition.x = 0;
+	copyRegion.texturePosition.y = 0;
+	copyRegion.texturePosition.mipLevel = 5;
+	EXPECT_FALSE(dsTexture_copyToBuffer(commandBuffer, fromTexture, toBuffer, &copyRegion, 1));
+
+	copyRegion.texturePosition.mipLevel = 0;
+	copyRegion.texturePosition.depth = 3;
+	EXPECT_FALSE(dsTexture_copyToBuffer(commandBuffer, fromTexture, toBuffer, &copyRegion, 1));
+
+	copyRegion.texturePosition.depth = 0;
+	copyRegion.bufferWidth = 1;
+	EXPECT_FALSE(dsTexture_copyToBuffer(commandBuffer, fromTexture, toBuffer, &copyRegion, 1));
+
+	copyRegion.bufferWidth = 16;
+	copyRegion.bufferHeight = 1;
+	EXPECT_FALSE(dsTexture_copyToBuffer(commandBuffer, fromTexture, toBuffer, &copyRegion, 1));
+
+	copyRegion.bufferHeight = 32;
+	copyRegion.bufferOffset = dsTexture_layerOffset(&toInfo, 4, 1);
+	EXPECT_FALSE(dsTexture_copyToBuffer(commandBuffer, fromTexture, toBuffer, &copyRegion, 1));
+
+	EXPECT_TRUE(dsTexture_destroy(fromTexture));
+	EXPECT_TRUE(dsGfxBuffer_destroy(toBuffer));
 }
 
 TEST_F(TextureTest, GenerateMipmaps)

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2019 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
  */
 
 #include "Resources/MockTexture.h"
+
+#include "MockTypes.h"
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
@@ -176,6 +178,70 @@ bool dsMockTexture_copy(dsResourceManager* resourceManager, dsCommandBuffer* com
 				DS_ASSERT(dstOffset + copySize <= ((dsMockTexture*)dstTexture)->dataSize);
 				memcpy(((dsMockTexture*)dstTexture)->data + dstOffset,
 					((dsMockTexture*)srcTexture)->data + srcOffset, copySize);
+			}
+		}
+	}
+
+	return true;
+}
+
+bool dsMockTexture_copyToBuffer(dsResourceManager* resourceManager,
+	dsCommandBuffer* commandBuffer, dsTexture* srcTexture, dsGfxBuffer* dstBuffer,
+	const dsGfxBufferTextureCopyRegion* regions, uint32_t regionCount)
+{
+	DS_UNUSED(resourceManager);
+	DS_UNUSED(commandBuffer);
+	DS_ASSERT(srcTexture);
+	DS_ASSERT(dstBuffer);
+	DS_ASSERT(regions || regionCount == 0);
+
+	dsMockTexture* mockSrcTexture = (dsMockTexture*)srcTexture;
+	dsMockGfxBuffer* mockDstBuffer = (dsMockGfxBuffer*)dstBuffer;
+
+	const dsTextureInfo* info = &srcTexture->info;
+	unsigned int formatSize = dsGfxFormat_size(info->format);
+	unsigned int blockX, blockY;
+	DS_VERIFY(dsGfxFormat_blockDimensions(&blockX, &blockY, info->format));
+	for (uint32_t i = 0; i < regionCount; ++i)
+	{
+		const dsGfxBufferTextureCopyRegion* region = regions + i;
+		const dsTexturePosition* position = &region->texturePosition;
+		if (region->textureWidth == 0 || region->textureHeight == 0 || region->layers == 0)
+			continue;
+
+		uint32_t layerOffset = position->depth;
+		if (info->dimension == dsTextureDim_Cube)
+			layerOffset = layerOffset*6 + position->face;
+
+		uint32_t bufferWidth = region->bufferWidth;
+		uint32_t bufferHeight = region->bufferHeight;
+		if (bufferWidth == 0)
+			bufferWidth = region->textureWidth;
+		if (bufferHeight == 0)
+			bufferHeight = region->textureHeight;
+
+		size_t textureXBlocks = (region->textureWidth + blockX- 1)/blockX;
+		size_t rowSize = textureXBlocks*formatSize;
+		size_t mipWidth = dsMax(1U, info->width >> position->mipLevel);
+		size_t mipXBlocks = (mipWidth + blockX - 1)/blockX;
+		size_t textureStride = mipXBlocks*formatSize;
+		size_t texturePosOffset = (position->y/blockY*mipXBlocks + position->x/blockX)*formatSize;
+
+		size_t bufferXBlocks = (bufferWidth + blockX - 1)/blockX;
+		size_t bufferYBlocks = (bufferHeight + blockY - 1)/blockY;
+		size_t bufferStride = bufferXBlocks*formatSize;
+
+		size_t bufferLayerStride = bufferXBlocks*bufferYBlocks*formatSize;
+		for (uint32_t i = 0; i < region->layers; ++i)
+		{
+			const uint8_t* textureData = mockSrcTexture->data +
+				dsTexture_layerOffset(info, layerOffset + i, position->mipLevel) + texturePosOffset;
+			uint8_t* bufferData = mockDstBuffer->data + region->bufferOffset +
+				bufferLayerStride*i;
+			for (uint32_t y = 0; y < bufferYBlocks;
+				++y, textureData += textureStride, bufferData += bufferStride)
+			{
+				memcpy(bufferData, textureData, rowSize);
 			}
 		}
 	}

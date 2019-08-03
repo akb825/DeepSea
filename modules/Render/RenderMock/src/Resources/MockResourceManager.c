@@ -84,6 +84,11 @@ static bool generateMipmapsFormatSupported(const dsResourceManager* resourceMana
 	return !dsGfxFormat_compressedIndex(format) && !dsGfxFormat_specialIndex(format);
 }
 
+static bool copyBufferTextureSupported(const dsResourceManager* resourceManager, dsGfxFormat format)
+{
+	return textureFormatSupported(resourceManager, format);
+}
+
 static dsResourceContext* createResourceContext(dsResourceManager* resourceManager)
 {
 	DS_ASSERT(resourceManager && resourceManager->allocator);
@@ -163,6 +168,8 @@ dsResourceManager* dsMockResourceManager_create(dsRenderer* renderer, dsAllocato
 	resourceManager->generateMipmapFormatSupportedFunc = &generateMipmapsFormatSupported;
 	resourceManager->textureCopyFormatsSupportedFunc = &copyFormatsSupported;
 	resourceManager->surfaceBlitFormatsSupportedFunc = &blitFormatsSupported;
+	resourceManager->copyBufferToTextureSupportedFunc = &copyBufferTextureSupported;
+	resourceManager->copyTextureToBufferSupportedFunc = &copyBufferTextureSupported;
 	resourceManager->createResourceContextFunc = &createResourceContext;
 	resourceManager->destroyResourceContextFunc = &destroyResourceContext;
 
@@ -174,6 +181,7 @@ dsResourceManager* dsMockResourceManager_create(dsRenderer* renderer, dsAllocato
 	resourceManager->invalidateBufferFunc = &dsMockGfxBuffer_invalidate;
 	resourceManager->copyBufferDataFunc = &dsMockGfxBuffer_copyData;
 	resourceManager->copyBufferFunc = &dsMockGfxBuffer_copy;
+	resourceManager->copyBufferToTextureFunc = dsMockGfxBuffer_copyToTexture;
 
 	resourceManager->createGeometryFunc = &dsMockDrawGeometry_create;
 	resourceManager->destroyGeometryFunc = &dsMockDrawGeometry_destroy;
@@ -183,6 +191,7 @@ dsResourceManager* dsMockResourceManager_create(dsRenderer* renderer, dsAllocato
 	resourceManager->destroyTextureFunc = &dsMockTexture_destroy;
 	resourceManager->copyTextureDataFunc = &dsMockTexture_copyData;
 	resourceManager->copyTextureFunc = &dsMockTexture_copy;
+	resourceManager->copyTextureToBufferFunc = &dsMockTexture_copyToBuffer;
 	resourceManager->generateTextureMipmapsFunc = &dsMockTexture_generateMipmaps;
 	resourceManager->getTextureDataFunc = &dsMockTexture_getData;
 

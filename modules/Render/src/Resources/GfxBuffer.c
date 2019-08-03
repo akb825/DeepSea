@@ -430,9 +430,7 @@ bool dsGfxBuffer_copyToTexture(dsCommandBuffer* commandBuffer, dsGfxBuffer* srcB
 	for (size_t i = 0; i < regionCount; ++i)
 	{
 		if (!dsIsGfxBufferTextureCopyRegionValid(regions + i, &dstTexture->info, srcBuffer->size))
-		{
-			return false;
-		}
+			DS_PROFILE_FUNC_RETURN(false);
 	}
 
 	if (!commandBuffer->frameActive)

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2019 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,13 +19,6 @@
 #include <DeepSea/Core/Config.h>
 #include <DeepSea/Render/Resources/Types.h>
 
-typedef struct dsMockTexture
-{
-	dsTexture texture;
-	size_t dataSize;
-	uint8_t data[];
-} dsMockTexture;
-
 dsTexture* dsMockTexture_create(dsResourceManager* resourceManager, dsAllocator* allocator,
 	dsTextureUsage usage, dsGfxMemory memoryHints, const dsTextureInfo* info, const void* data,
 	size_t size);
@@ -38,6 +31,9 @@ bool dsMockTexture_copyData(dsResourceManager* resourceManager, dsCommandBuffer*
 bool dsMockTexture_copy(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
 	dsTexture* srcTexture, dsTexture* dstTexture, const dsTextureCopyRegion* regions,
 	uint32_t regionCount);
+bool dsMockTexture_copyToBuffer(dsResourceManager* resourceManager,
+	dsCommandBuffer* commandBuffer, dsTexture* srcTexture, dsGfxBuffer* dstBuffer,
+	const dsGfxBufferTextureCopyRegion* regions, uint32_t regionCount);
 bool dsMockTexture_generateMipmaps(dsResourceManager* resourceManager,
 	dsCommandBuffer* commandBuffer, dsTexture* texture);
 bool dsMockTexture_getData(void* result, size_t size, dsResourceManager* resourceManager,

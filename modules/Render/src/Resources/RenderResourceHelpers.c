@@ -70,9 +70,9 @@ bool dsIsGfxBufferTextureCopyRegionValid(const dsGfxBufferTextureCopyRegion* reg
 	uint32_t bufferWidth = region->bufferWidth;
 	uint32_t bufferHeight = region->bufferHeight;
 	if (bufferWidth == 0)
-		bufferWidth = mipWidth;
+		bufferWidth = region->textureWidth;
 	if (bufferHeight == 0)
-		bufferHeight = mipHeight;
+		bufferHeight = region->textureHeight;
 
 	if (bufferWidth < region->textureWidth || bufferHeight < region->textureHeight)
 	{
@@ -86,7 +86,7 @@ bool dsIsGfxBufferTextureCopyRegionValid(const dsGfxBufferTextureCopyRegion* reg
 	size_t bufferYBlocks = (bufferHeight + blockY - 1)/blockY;
 	size_t textureXBlocks = (region->textureWidth + blockX - 1)/blockX;
 	size_t remainderXBlocks = bufferXBlocks - textureXBlocks;
-	size_t copySize = (bufferXBlocks*bufferYBlocks*mipLayers - remainderXBlocks)*formatSize;
+	size_t copySize = (bufferXBlocks*bufferYBlocks*region->layers - remainderXBlocks)*formatSize;
 	if (!DS_IS_BUFFER_RANGE_VALID(region->bufferOffset, copySize, bufferSize))
 	{
 		errno = EINDEX;

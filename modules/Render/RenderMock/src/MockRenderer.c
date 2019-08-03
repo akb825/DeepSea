@@ -22,6 +22,7 @@
 #include "MockCommandBufferPool.h"
 #include "MockRenderPass.h"
 #include "MockRenderSurface.h"
+#include "MockTypes.h"
 
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
