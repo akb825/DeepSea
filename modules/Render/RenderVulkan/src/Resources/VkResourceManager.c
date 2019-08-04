@@ -816,6 +816,10 @@ dsResourceManager* dsVkResourceManager_create(dsAllocator* allocator, dsVkRender
 		&dsVkResourceManager_textureCopyFormatsSupported;
 	baseResourceManager->surfaceBlitFormatsSupportedFunc =
 		&dsVkResourceManager_surfaceBlitFormatsSupported;
+	baseResourceManager->copyBufferToTextureSupportedFunc =
+		&dsVkResourceManager_textureFormatSupported;
+	baseResourceManager->copyTextureToBufferSupportedFunc =
+		&dsVkResourceManager_textureFormatSupported;
 	baseResourceManager->createResourceContextFunc = &dsVkResourceManager_createResourceContext;
 	baseResourceManager->destroyResourceContextFunc = &dsVkResourceManager_destroyResourceContext;
 
@@ -828,6 +832,7 @@ dsResourceManager* dsVkResourceManager_create(dsAllocator* allocator, dsVkRender
 	baseResourceManager->invalidateBufferFunc = &dsVkGfxBuffer_invalidate;
 	baseResourceManager->copyBufferDataFunc = &dsVkGfxBuffer_copyData;
 	baseResourceManager->copyBufferFunc = &dsVkGfxBuffer_copy;
+	baseResourceManager->copyBufferToTextureFunc = &dsVkGfxBuffer_copyToTexture;
 
 	// Draw geometry
 	baseResourceManager->createGeometryFunc = &dsVkDrawGeometry_create;
@@ -839,6 +844,7 @@ dsResourceManager* dsVkResourceManager_create(dsAllocator* allocator, dsVkRender
 	baseResourceManager->destroyTextureFunc = &dsVkTexture_destroy;
 	baseResourceManager->copyTextureDataFunc = &dsVkTexture_copyData;
 	baseResourceManager->copyTextureFunc = &dsVkTexture_copy;
+	baseResourceManager->copyTextureToBufferFunc = &dsVkTexture_copyToBuffer;
 	baseResourceManager->generateTextureMipmapsFunc = &dsVkTexture_generateMipmaps;
 	baseResourceManager->getTextureDataFunc = &dsVkTexture_getData;
 	baseResourceManager->processTextureFunc = &dsVkTexture_process;

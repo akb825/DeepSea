@@ -1000,6 +1000,20 @@ VkImageMemoryBarrier* dsVkCommandBuffer_addImageBarrier(dsCommandBuffer* command
 	return vkCommandBuffer->imageBarriers + index;
 }
 
+VkBufferMemoryBarrier* dsVkCommandBuffer_addBufferBarrier(dsCommandBuffer* commandBuffer)
+{
+	commandBuffer = dsVkCommandBuffer_get(commandBuffer);
+	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
+	uint32_t index = vkCommandBuffer->bufferBarrierCount;
+	if (!DS_RESIZEABLE_ARRAY_ADD(commandBuffer->allocator, vkCommandBuffer->bufferBarriers,
+		vkCommandBuffer->bufferBarrierCount, vkCommandBuffer->maxBufferBarriers, 1))
+	{
+		return NULL;
+	}
+
+	return vkCommandBuffer->bufferBarriers + index;
+}
+
 bool dsVkCommandBuffer_recentlyAddedBufferBarrier(dsCommandBuffer* commandBuffer,
 	const VkBufferMemoryBarrier* barrier)
 {
@@ -1024,20 +1038,6 @@ bool dsVkCommandBuffer_recentlyAddedBufferBarrier(dsCommandBuffer* commandBuffer
 	return false;
 }
 
-VkBufferMemoryBarrier* dsVkCommandBuffer_addBufferBarrier(dsCommandBuffer* commandBuffer)
-{
-	commandBuffer = dsVkCommandBuffer_get(commandBuffer);
-	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
-	uint32_t index = vkCommandBuffer->bufferBarrierCount;
-	if (!DS_RESIZEABLE_ARRAY_ADD(commandBuffer->allocator, vkCommandBuffer->bufferBarriers,
-		vkCommandBuffer->bufferBarrierCount, vkCommandBuffer->maxBufferBarriers, 1))
-	{
-		return NULL;
-	}
-
-	return vkCommandBuffer->bufferBarriers + index;
-}
-
 bool dsVkCommandBuffer_submitMemoryBarriers(dsCommandBuffer* commandBuffer,
 	VkPipelineStageFlags srcStages, VkPipelineStageFlags dstStages)
 {
@@ -1059,49 +1059,6 @@ bool dsVkCommandBuffer_submitMemoryBarriers(dsCommandBuffer* commandBuffer,
 	return true;
 }
 
-VkImageMemoryBarrier* dsVkCommandBuffer_addCopyImageBarrier(dsCommandBuffer* commandBuffer)
-{
-	commandBuffer = dsVkCommandBuffer_get(commandBuffer);
-	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
-	uint32_t index = vkCommandBuffer->copyImageBarrierCount;
-	if (!DS_RESIZEABLE_ARRAY_ADD(commandBuffer->allocator, vkCommandBuffer->copyImageBarriers,
-		vkCommandBuffer->copyImageBarrierCount, vkCommandBuffer->maxCopyImageBarriers, 1))
-	{
-		return NULL;
-	}
-
-	return vkCommandBuffer->copyImageBarriers + index;
-}
-
-bool dsVkCommandBuffer_submitCopyImageBarriers(dsCommandBuffer* commandBuffer,
-	VkPipelineStageFlags srcStages, VkPipelineStageFlags dstStages)
-{
-	dsVkDevice* device = &((dsVkRenderer*)commandBuffer->renderer)->device;
-	commandBuffer = dsVkCommandBuffer_get(commandBuffer);
-	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
-	if (vkCommandBuffer->copyImageBarrierCount == 0)
-		return true;
-
-	VkCommandBuffer submitBuffer = getMainCommandBuffer(commandBuffer);
-	if (!submitBuffer)
-	{
-		vkCommandBuffer->copyImageBarrierCount = 0;
-		return false;
-	}
-
-	DS_VK_CALL(device->vkCmdPipelineBarrier)(submitBuffer, srcStages, dstStages, 0, 0, NULL,
-		0, NULL, vkCommandBuffer->copyImageBarrierCount, vkCommandBuffer->copyImageBarriers);
-	vkCommandBuffer->copyImageBarrierCount = 0;
-	return true;
-}
-
-void dsVkCommandBuffer_resetCopyImageBarriers(dsCommandBuffer* commandBuffer)
-{
-	commandBuffer = dsVkCommandBuffer_get(commandBuffer);
-	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
-	vkCommandBuffer->copyImageBarrierCount = 0;
-}
-
 VkBufferMemoryBarrier* dsVkCommandBuffer_addCopyBufferBarrier(dsCommandBuffer* commandBuffer)
 {
 	commandBuffer = dsVkCommandBuffer_get(commandBuffer);
@@ -1116,33 +1073,51 @@ VkBufferMemoryBarrier* dsVkCommandBuffer_addCopyBufferBarrier(dsCommandBuffer* c
 	return vkCommandBuffer->copyBufferBarriers + index;
 }
 
-bool dsVkCommandBuffer_submitCopyBufferBarriers(dsCommandBuffer* commandBuffer,
+VkImageMemoryBarrier* dsVkCommandBuffer_addCopyImageBarrier(dsCommandBuffer* commandBuffer)
+{
+	commandBuffer = dsVkCommandBuffer_get(commandBuffer);
+	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
+	uint32_t index = vkCommandBuffer->copyImageBarrierCount;
+	if (!DS_RESIZEABLE_ARRAY_ADD(commandBuffer->allocator, vkCommandBuffer->copyImageBarriers,
+		vkCommandBuffer->copyImageBarrierCount, vkCommandBuffer->maxCopyImageBarriers, 1))
+	{
+		return NULL;
+	}
+
+	return vkCommandBuffer->copyImageBarriers + index;
+}
+
+bool dsVkCommandBuffer_submitCopyBarriers(dsCommandBuffer* commandBuffer,
 	VkPipelineStageFlags srcStages, VkPipelineStageFlags dstStages)
 {
 	dsVkDevice* device = &((dsVkRenderer*)commandBuffer->renderer)->device;
 	commandBuffer = dsVkCommandBuffer_get(commandBuffer);
 	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
-	if (vkCommandBuffer->copyBufferBarrierCount == 0)
+	if (vkCommandBuffer->copyBufferBarrierCount == 0 && vkCommandBuffer->copyImageBarrierCount == 0)
 		return true;
 
 	VkCommandBuffer submitBuffer = getMainCommandBuffer(commandBuffer);
 	if (!submitBuffer)
 	{
 		vkCommandBuffer->copyBufferBarrierCount = 0;
+		vkCommandBuffer->copyImageBarrierCount = 0;
 		return false;
 	}
 
 	DS_VK_CALL(device->vkCmdPipelineBarrier)(submitBuffer, srcStages, dstStages, 0, 0, NULL,
-		vkCommandBuffer->copyBufferBarrierCount, vkCommandBuffer->copyBufferBarriers, 0, NULL);
+		vkCommandBuffer->copyBufferBarrierCount, vkCommandBuffer->copyBufferBarriers,
+		vkCommandBuffer->copyImageBarrierCount, vkCommandBuffer->copyImageBarriers);
 	vkCommandBuffer->copyBufferBarrierCount = 0;
+	vkCommandBuffer->copyImageBarrierCount = 0;
 	return true;
 }
 
-void dsVkCommandBuffer_resetCopyBufferBarriers(dsCommandBuffer* commandBuffer)
+void dsVkCommandBuffer_resetCopyBarriers(dsCommandBuffer* commandBuffer)
 {
 	commandBuffer = dsVkCommandBuffer_get(commandBuffer);
 	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
 	vkCommandBuffer->copyBufferBarrierCount = 0;
+	vkCommandBuffer->copyImageBarrierCount = 0;
 }
 
 bool dsVkCommandBuffer_addResource(dsCommandBuffer* commandBuffer, dsVkResource* resource)
@@ -1354,10 +1329,10 @@ void dsVkCommandBuffer_shutdown(dsVkCommandBuffer* commandBuffer)
 	DS_VERIFY(dsAllocator_free(baseCommandBuffer->allocator, commandBuffer->tempBuffers));
 	DS_VERIFY(dsAllocator_free(baseCommandBuffer->allocator, commandBuffer->readbackOffscreens));
 	DS_VERIFY(dsAllocator_free(baseCommandBuffer->allocator, commandBuffer->renderSurfaces));
-	DS_VERIFY(dsAllocator_free(baseCommandBuffer->allocator, commandBuffer->imageBarriers));
 	DS_VERIFY(dsAllocator_free(baseCommandBuffer->allocator, commandBuffer->bufferBarriers));
-	DS_VERIFY(dsAllocator_free(baseCommandBuffer->allocator, commandBuffer->copyImageBarriers));
+	DS_VERIFY(dsAllocator_free(baseCommandBuffer->allocator, commandBuffer->imageBarriers));
 	DS_VERIFY(dsAllocator_free(baseCommandBuffer->allocator, commandBuffer->copyBufferBarriers));
+	DS_VERIFY(dsAllocator_free(baseCommandBuffer->allocator, commandBuffer->copyImageBarriers));
 	dsVkSubpassBuffers_shutdown(&commandBuffer->subpassBuffers);
 	DS_VERIFY(dsAllocator_free(baseCommandBuffer->allocator, commandBuffer->imageCopies));
 	DS_VERIFY(dsAllocator_free(baseCommandBuffer->allocator, commandBuffer->pushConstantBytes));

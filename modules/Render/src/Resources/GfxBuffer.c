@@ -35,11 +35,14 @@ inline static void adjustAlignment(size_t alignment, size_t totalSize, size_t* o
 	{
 		*rem = *offset % alignment;
 		*offset -= *rem;
-		*size += *rem;
+		if (*size != DS_MAP_FULL_BUFFER)
+		{
+			*size += *rem;
 
-		size_t count = (*size + alignment - 1)/alignment;
-		*size = count*alignment;
-		*size = dsMin(*size, totalSize - *offset);
+			size_t count = (*size + alignment - 1)/alignment;
+			*size = count*alignment;
+			*size = dsMin(*size, totalSize - *offset);
+		}
 	}
 	else
 		rem = 0;
@@ -174,6 +177,9 @@ void* dsGfxBuffer_map(dsGfxBuffer* buffer, dsGfxBufferMap flags, size_t offset, 
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, dsResourceManager_noContextError);
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
+
+	if (size == 0)
+		DS_PROFILE_FUNC_RETURN(NULL);
 
 	size_t rem = 0;
 	uint32_t alignment = resourceManager->minNonCoherentMappingAlignment;
