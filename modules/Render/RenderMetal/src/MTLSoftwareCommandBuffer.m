@@ -30,8 +30,12 @@
 
 typedef enum CommandType
 {
+	CommandType_CopyBufferData,
 	CommandType_CopyBuffer,
+	CommandType_CopyBufferToTexture,
+	CommandType_CopyTextureData,
 	CommandType_CopyTexture,
+	CommandType_CopyTextureToBuffer,
 	CommandType_GenerateMipmaps,
 	CommandType_BindPushConstants,
 	CommandType_BindBufferUniform,
@@ -61,6 +65,15 @@ typedef struct Command
 	uint32_t size;
 } Command;
 
+typedef struct CopyBufferDataCommand
+{
+	Command command;
+	CFTypeRef buffer;
+	size_t offset;
+	size_t size;
+	uint8_t data[];
+} CopyBufferDataCommand;
+
 typedef struct CopyBufferCommand
 {
 	Command command;
@@ -71,6 +84,29 @@ typedef struct CopyBufferCommand
 	size_t size;
 } CopyBufferCommand;
 
+typedef struct CopyBufferToTextureCommand
+{
+	Command command;
+	CFTypeRef srcBuffer;
+	CFTypeRef dstTexture;
+	dsGfxFormat format;
+	uint32_t regionCount;
+	dsGfxBufferTextureCopyRegion regions[];
+} CopyBufferToTextureCommand;
+
+typedef struct CopyTextureDataCommand
+{
+	Command command;
+	CFTypeRef texture;
+	dsTextureInfo textureInfo;
+	dsTexturePosition position;
+	uint32_t width;
+	uint32_t height;
+	uint32_t layers;
+	size_t size;
+	uint8_t data[];
+} CopyTextureDataCommand;
+
 typedef struct CopyTextureCommand
 {
 	Command command;
@@ -79,6 +115,16 @@ typedef struct CopyTextureCommand
 	uint32_t regionCount;
 	dsTextureCopyRegion regions[];
 } CopyTextureCommand;
+
+typedef struct CopyTextureToBufferCommand
+{
+	Command command;
+	CFTypeRef srcTexture;
+	CFTypeRef dstBuffer;
+	dsGfxFormat format;
+	uint32_t regionCount;
+	dsGfxBufferTextureCopyRegion regions[];
+} CopyTextureToBufferCommand;
 
 typedef struct GenerateMipmapsCommand
 {
@@ -292,6 +338,12 @@ void dsMTLSoftwareCommandBuffer_clear(dsCommandBuffer* commandBuffer)
 		offset += command->size;
 		switch (command->type)
 		{
+			case CommandType_CopyBufferData:
+			{
+				CopyBufferDataCommand* thisCommand = (CopyBufferDataCommand*)command;
+				CFRelease(thisCommand->buffer);
+				break;
+			}
 			case CommandType_CopyBuffer:
 			{
 				CopyBufferCommand* thisCommand = (CopyBufferCommand*)command;
@@ -299,11 +351,31 @@ void dsMTLSoftwareCommandBuffer_clear(dsCommandBuffer* commandBuffer)
 				CFRelease(thisCommand->dstBuffer);
 				break;
 			}
+			case CommandType_CopyBufferToTexture:
+			{
+				CopyBufferToTextureCommand* thisCommand = (CopyBufferToTextureCommand*)command;
+				CFRelease(thisCommand->srcBuffer);
+				CFRelease(thisCommand->dstTexture);
+				break;
+			}
+			case CommandType_CopyTextureData:
+			{
+				CopyTextureDataCommand* thisCommand = (CopyTextureDataCommand*)command;
+				CFRelease(thisCommand->texture);
+				break;
+			}
 			case CommandType_CopyTexture:
 			{
 				CopyTextureCommand* thisCommand = (CopyTextureCommand*)command;
 				CFRelease(thisCommand->srcTexture);
 				CFRelease(thisCommand->dstTexture);
+				break;
+			}
+			case CommandType_CopyTextureToBuffer:
+			{
+				CopyTextureToBufferCommand* thisCommand = (CopyTextureToBufferCommand*)command;
+				CFRelease(thisCommand->srcTexture);
+				CFRelease(thisCommand->dstBuffer);
 				break;
 			}
 			case CommandType_GenerateMipmaps:
@@ -459,6 +531,14 @@ bool dsMTLSoftwareCommandBuffer_submit(dsCommandBuffer* commandBuffer,
 		bool result = true;
 		switch (command->type)
 		{
+			case CommandType_CopyBufferData:
+			{
+				CopyBufferDataCommand* thisCommand = (CopyBufferDataCommand*)command;
+				result = dsMTLCommandBuffer_copyBufferData(commandBuffer,
+					(__bridge id<MTLBuffer>)thisCommand->buffer, thisCommand->offset,
+					thisCommand->data, thisCommand->size);
+				break;
+			}
 			case CommandType_CopyBuffer:
 			{
 				CopyBufferCommand* thisCommand = (CopyBufferCommand*)command;
@@ -468,6 +548,24 @@ bool dsMTLSoftwareCommandBuffer_submit(dsCommandBuffer* commandBuffer,
 					thisCommand->size);
 				break;
 			}
+			case CommandType_CopyBufferToTexture:
+			{
+				CopyBufferToTextureCommand* thisCommand = (CopyBufferToTextureCommand*)command;
+				result = dsMTLCommandBuffer_copyBufferToTexture(commandBuffer,
+					(__bridge id<MTLBuffer>)thisCommand->srcBuffer,
+					(__bridge id<MTLTexture>)thisCommand->dstTexture, thisCommand->format,
+					thisCommand->regions, thisCommand->regionCount);
+				break;
+			}
+			case CommandType_CopyTextureData:
+			{
+				CopyTextureDataCommand* thisCommand = (CopyTextureDataCommand*)command;
+				result = dsMTLCommandBuffer_copyTextureData(commandBuffer,
+					(__bridge id<MTLTexture>)thisCommand->texture, &thisCommand->textureInfo,
+					&thisCommand->position, thisCommand->width, thisCommand->height,
+					thisCommand->layers, thisCommand->data, thisCommand->size);
+				break;
+			}
 			case CommandType_CopyTexture:
 			{
 				CopyTextureCommand* thisCommand = (CopyTextureCommand*)command;
@@ -475,6 +573,15 @@ bool dsMTLSoftwareCommandBuffer_submit(dsCommandBuffer* commandBuffer,
 					(__bridge id<MTLTexture>)thisCommand->srcTexture,
 					(__bridge id<MTLTexture>)thisCommand->dstTexture, thisCommand->regions,
 					thisCommand->regionCount);
+				break;
+			}
+			case CommandType_CopyTextureToBuffer:
+			{
+				CopyTextureToBufferCommand* thisCommand = (CopyTextureToBufferCommand*)command;
+				result = dsMTLCommandBuffer_copyTextureToBuffer(commandBuffer,
+					(__bridge id<MTLTexture>)thisCommand->srcTexture,
+					(__bridge id<MTLBuffer>)thisCommand->dstBuffer, thisCommand->format,
+					thisCommand->regions, thisCommand->regionCount);
 				break;
 			}
 			case CommandType_GenerateMipmaps:
@@ -663,28 +770,15 @@ bool dsMTLSoftwareCommandBuffer_submit(dsCommandBuffer* commandBuffer,
 bool dsMTLSoftwareCommandBuffer_copyBufferData(dsCommandBuffer* commandBuffer,
 	id<MTLBuffer> buffer, size_t offset, const void* data, size_t size)
 {
-	dsRenderer* renderer = commandBuffer->renderer;
-	dsMTLRenderer* mtlRenderer = (dsMTLRenderer*)renderer;
-	id<MTLDevice> device = (__bridge id<MTLDevice>)mtlRenderer->device;
-
-	CopyBufferCommand* command = (CopyBufferCommand*)allocateCommand(
-		commandBuffer, CommandType_CopyBuffer, sizeof(CopyBufferCommand));
+	CopyBufferDataCommand* command = (CopyBufferDataCommand*)allocateCommand(
+		commandBuffer, CommandType_CopyBufferData, sizeof(CopyBufferDataCommand) + size);
 	if (!command)
 		return false;
 
-	id<MTLBuffer> tempBuffer = [device newBufferWithBytes: data length:
-		size options: MTLResourceCPUCacheModeDefaultCache];
-	if (!tempBuffer)
-	{
-		errno = ENOMEM;
-		return false;
-	}
-
-	command->srcBuffer = CFBridgingRetain(tempBuffer);
-	command->dstBuffer = CFBridgingRetain(buffer);
-	command->srcOffset = 0;
-	command->dstOffset = offset;
+	command->buffer = CFBridgingRetain(buffer);
+	command->offset = offset;
 	command->size = size;
+	memcpy(command->data, data, size);
 	return true;
 }
 
@@ -705,79 +799,41 @@ bool dsMTLSoftwareCommandBuffer_copyBuffer(dsCommandBuffer* commandBuffer,
 	return true;
 }
 
+bool dsMTLSoftwareCommandBuffer_copyBufferToTexture(dsCommandBuffer* commandBuffer,
+	id<MTLBuffer> srcBuffer, id<MTLTexture> dstTexture, dsGfxFormat format,
+	const dsGfxBufferTextureCopyRegion* regions, uint32_t regionCount)
+{
+	CopyBufferToTextureCommand* command = (CopyBufferToTextureCommand*)allocateCommand(
+		commandBuffer, CommandType_CopyBufferToTexture,
+		sizeof(CopyBufferToTextureCommand) + regionCount*sizeof(dsGfxBufferTextureCopyRegion));
+	if (!command)
+		return false;
+
+	command->srcBuffer = CFBridgingRetain(srcBuffer);
+	command->dstTexture = CFBridgingRetain(dstTexture);
+	command->format = format;
+	command->regionCount = regionCount;
+	memcpy(command->regions, regions, regionCount*sizeof(dsGfxBufferTextureCopyRegion));
+	return true;
+}
+
 bool dsMTLSoftwareCommandBuffer_copyTextureData(dsCommandBuffer* commandBuffer,
 	id<MTLTexture> texture, const dsTextureInfo* textureInfo, const dsTexturePosition* position,
 	uint32_t width, uint32_t height, uint32_t layers, const void* data, size_t size)
 {
-	DS_UNUSED(size);
-	dsRenderer* renderer = commandBuffer->renderer;
-	dsMTLRenderer* mtlRenderer = (dsMTLRenderer*)renderer;
-	id<MTLDevice> device = (__bridge id<MTLDevice>)mtlRenderer->device;
-
-	MTLTextureDescriptor* descriptor =
-		[MTLTextureDescriptor texture2DDescriptorWithPixelFormat: texture.pixelFormat width: width
-			height: height mipmapped: false];
-	if (!descriptor)
-	{
-		errno = ENOMEM;
+	CopyTextureDataCommand* command = (CopyTextureDataCommand*)allocateCommand(
+		commandBuffer, CommandType_CopyTextureData, sizeof(CopyTextureDataCommand) + size);
+	if (!command)
 		return false;
-	}
 
-	unsigned int formatSize = dsGfxFormat_size(textureInfo->format);
-	unsigned int blocksX, blocksY;
-	DS_VERIFY(dsGfxFormat_blockDimensions(&blocksX, &blocksY, textureInfo->format));
-
-	uint32_t blocksWide = (width + blocksX - 1)/blocksX;
-	uint32_t blocksHigh = (width + blocksY - 1)/blocksY;
-	uint32_t sliceSize = blocksWide*blocksHigh*formatSize;
-
-	uint32_t faceCount = textureInfo->dimension == dsTextureDim_Cube ? 6 : 1;
-	bool is3D = textureInfo->dimension == dsTextureDim_3D;
-	bool is1D = textureInfo->dimension == dsTextureDim_1D;
-	bool isPVR = dsIsMTLFormatPVR(textureInfo->format);
-	uint32_t iterations = is3D ? 1 : layers;
-	uint32_t baseSlice = is3D ? 0 : position->depth*faceCount + position->face;
-	const uint8_t* bytes = (const uint8_t*)data;
-
-	MTLRegion region =
-	{
-		{0, 0, 0},
-		{width, height, is3D ? layers: 1}
-	};
-	for (uint32_t i = 0; i < iterations; ++i)
-	{
-		id<MTLTexture> tempImage = [device newTextureWithDescriptor: descriptor];
-		if (!tempImage)
-		{
-			errno = ENOMEM;
-			return false;
-		}
-
-		[tempImage replaceRegion: region mipmapLevel: 0 slice: 0 withBytes: bytes + i*sliceSize
-			bytesPerRow: is1D || isPVR ? 0 : formatSize*blocksWide
-			bytesPerImage: is3D ? sliceSize : 0];
-
-		CopyTextureCommand* command = (CopyTextureCommand*)allocateCommand(
-			commandBuffer, CommandType_CopyTexture,
-			sizeof(CopyTextureCommand) + sizeof(dsTextureCopyRegion));
-		if (!command)
-			return false;
-
-		command->srcTexture = CFBridgingRetain(tempImage);
-		command->dstTexture = CFBridgingRetain(texture);
-		command->regionCount = 1;
-		command->regions->srcPosition.face = dsCubeFace_None;
-		command->regions->srcPosition.x = 0;
-		command->regions->srcPosition.y = 0;
-		command->regions->srcPosition.depth = 0;
-		command->regions->srcPosition.mipLevel = 0;
-		command->regions->dstPosition = *position;
-
-		uint32_t slice = baseSlice + i;
-		command->regions->dstPosition.face = (dsCubeFace)(slice % faceCount);
-		command->regions->dstPosition.depth = slice/faceCount;
-	}
-
+	command->texture = CFBridgingRetain(texture);
+	command->textureInfo = *textureInfo;
+	command->position = *position;
+	command->width = width;
+	command->height = height;
+	command->layers = layers;
+	command->size = size;
+	memcpy(command->data, data, size);
 	return true;
 }
 
@@ -795,6 +851,24 @@ bool dsMTLSoftwareCommandBuffer_copyTexture(dsCommandBuffer* commandBuffer,
 	command->dstTexture = CFBridgingRetain(dstTexture);
 	command->regionCount = regionCount;
 	memcpy(command->regions, regions, regionCount*sizeof(dsTextureCopyRegion));
+	return true;
+}
+
+bool dsMTLSoftwareCommandBuffer_copyTextureToBuffer(dsCommandBuffer* commandBuffer,
+	id<MTLTexture> srcTexture, id<MTLBuffer> dstBuffer, dsGfxFormat format,
+	const dsGfxBufferTextureCopyRegion* regions, uint32_t regionCount)
+{
+	CopyTextureToBufferCommand* command = (CopyTextureToBufferCommand*)allocateCommand(
+		commandBuffer, CommandType_CopyTextureToBuffer,
+		sizeof(CopyBufferToTextureCommand) + regionCount*sizeof(dsGfxBufferTextureCopyRegion));
+	if (!command)
+		return false;
+
+	command->srcTexture = CFBridgingRetain(srcTexture);
+	command->dstBuffer = CFBridgingRetain(dstBuffer);
+	command->format = format;
+	command->regionCount = regionCount;
+	memcpy(command->regions, regions, regionCount*sizeof(dsGfxBufferTextureCopyRegion));
 	return true;
 }
 
@@ -1118,8 +1192,10 @@ static dsMTLCommandBufferFunctionTable softwareCommandBufferFunctions =
 	&dsMTLSoftwareCommandBuffer_submit,
 	&dsMTLSoftwareCommandBuffer_copyBufferData,
 	&dsMTLSoftwareCommandBuffer_copyBuffer,
+	&dsMTLSoftwareCommandBuffer_copyBufferToTexture,
 	&dsMTLSoftwareCommandBuffer_copyTextureData,
 	&dsMTLSoftwareCommandBuffer_copyTexture,
+	&dsMTLSoftwareCommandBuffer_copyTextureToBuffer,
 	&dsMTLSoftwareCommandBuffer_generateMipmaps,
 	&dsMTLSoftwareCommandBuffer_bindPushConstants,
 	&dsMTLSoftwareCommandBuffer_bindBufferUniform,

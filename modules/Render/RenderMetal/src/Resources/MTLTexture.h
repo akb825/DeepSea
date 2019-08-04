@@ -31,6 +31,9 @@ bool dsMTLTexture_copyData(dsResourceManager* resourceManager, dsCommandBuffer* 
 bool dsMTLTexture_copy(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
 	dsTexture* srcTexture, dsTexture* dstTexture, const dsTextureCopyRegion* regions,
 	uint32_t regionCount);
+bool dsMTLTexture_copyToBuffer(dsResourceManager* resourceManager,
+	dsCommandBuffer* commandBuffer, dsTexture* srcTexture, dsGfxBuffer* dstBuffer,
+	const dsGfxBufferTextureCopyRegion* regions, uint32_t regionCount);
 bool dsMTLTexture_generateMipmaps(dsResourceManager* resourceManager,
 	dsCommandBuffer* commandBuffer, dsTexture* texture);
 bool dsMTLTexture_getData(void* result, size_t size, dsResourceManager* resourceManager,

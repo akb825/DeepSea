@@ -29,6 +29,13 @@ bool dsIsGfxBufferTextureCopyRegionValid(const dsGfxBufferTextureCopyRegion* reg
 	DS_VERIFY(dsGfxFormat_blockDimensions(&blockX, &blockY, info->format));
 	unsigned int formatSize = dsGfxFormat_size(info->format);
 
+	if (region->bufferOffset % formatSize != 0)
+	{
+		errno = EINVAL;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Buffer offset must be a multiple of the format size.");
+		return false;
+	}
+
 	const dsTexturePosition* position = &region->texturePosition;
 	if (position->x % blockX != 0 || position->y % blockY != 0)
 	{

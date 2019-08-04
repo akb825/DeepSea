@@ -35,12 +35,18 @@ bool dsMTLCommandBuffer_copyBufferData(dsCommandBuffer* commandBuffer, id<MTLBuf
 	size_t offset, const void* data, size_t size);
 bool dsMTLCommandBuffer_copyBuffer(dsCommandBuffer* commandBuffer, id<MTLBuffer> srcBuffer,
 	size_t srcOffset, id<MTLBuffer> dstBuffer, size_t dstOffset, size_t size);
+bool dsMTLCommandBuffer_copyBufferToTexture(dsCommandBuffer* commandBuffer, id<MTLBuffer> srcBuffer,
+	id<MTLTexture> dstTexture, dsGfxFormat format, const dsGfxBufferTextureCopyRegion* regions,
+	uint32_t regionCount);
 
 bool dsMTLCommandBuffer_copyTextureData(dsCommandBuffer* commandBuffer,
 	id<MTLTexture> texture, const dsTextureInfo* textureInfo, const dsTexturePosition* position,
 	uint32_t width, uint32_t height, uint32_t layers, const void* data, size_t size);
 bool dsMTLCommandBuffer_copyTexture(dsCommandBuffer* commandBuffer, id<MTLTexture> srcTexture,
 	id<MTLTexture> dstTexture, const dsTextureCopyRegion* regions, uint32_t regionCount);
+bool dsMTLCommandBuffer_copyTextureToBuffer(dsCommandBuffer* commandBuffer,
+	id<MTLTexture> srcTexture, id<MTLBuffer> dstBuffer, dsGfxFormat format,
+	const dsGfxBufferTextureCopyRegion* regions, uint32_t regionCount);
 bool dsMTLCommandBuffer_generateMipmaps(dsCommandBuffer* commandBuffer, id<MTLTexture> texture);
 
 void* dsMTLCommandBuffer_getPushConstantData(dsCommandBuffer* commandBuffer, uint32_t size);

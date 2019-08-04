@@ -17,6 +17,7 @@
 #include "Resources/MTLGfxBuffer.h"
 
 #include "Resources/MTLGfxBufferData.h"
+#include "Resources/MTLTexture.h"
 #include "MTLCommandBuffer.h"
 #include "MTLRendererInternal.h"
 
@@ -266,6 +267,26 @@ bool dsMTLGfxBuffer_copy(dsResourceManager* resourceManager, dsCommandBuffer* co
 
 		return dsMTLCommandBuffer_copyBuffer(commandBuffer, realSrcBuffer, srcOffset, realDstBuffer,
 			dstOffset, size);
+	}
+}
+
+bool dsMTLGfxBuffer_copyToTexture(dsResourceManager* resourceManager,
+	dsCommandBuffer* commandBuffer, dsGfxBuffer* srcBuffer, dsTexture* dstTexture,
+	const dsGfxBufferTextureCopyRegion* regions, uint32_t regionCount)
+{
+	@autoreleasepool
+	{
+		DS_UNUSED(resourceManager);
+		id<MTLBuffer> realSrcBuffer = dsMTLGfxBuffer_getBuffer(srcBuffer, commandBuffer);
+		if (!realSrcBuffer)
+			return false;
+
+		dsMTLTexture_process(resourceManager, dstTexture);
+		dsMTLTexture* dstMtlTexture = (dsMTLTexture*)dstTexture;
+		id<MTLTexture> realDstTexture = (__bridge id<MTLTexture>)dstMtlTexture->mtlTexture;
+
+		return dsMTLCommandBuffer_copyBufferToTexture(commandBuffer, realSrcBuffer, realDstTexture,
+			dstTexture->info.format, regions, regionCount);
 	}
 }
 

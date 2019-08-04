@@ -25,6 +25,7 @@
 #include "Resources/MTLShader.h"
 #include "Resources/MTLShaderModule.h"
 #include "Resources/MTLTexture.h"
+#include "MTLShared.h"
 
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
@@ -749,6 +750,13 @@ bool dsMTLResourceManager_textureCopyFormatsSupported(const dsResourceManager* r
 	return true;
 }
 
+bool dsMTLResourceManager_bufferTextureCopySupported(const dsResourceManager* resourceManager,
+	dsGfxFormat format)
+{
+	return dsMTLResourceManager_textureFormatSupported(resourceManager, format) &&
+		!dsIsMTLFormatPVR(format);
+}
+
 dsResourceContext* dsMTLResourceManager_createResourceContext(dsResourceManager* resourceManager)
 {
 	DS_UNUSED(resourceManager);
@@ -880,7 +888,11 @@ dsResourceManager* dsMTLResourceManager_create(dsAllocator* allocator, dsRendere
 	baseResourceManager->textureCopyFormatsSupportedFunc =
 		&dsMTLResourceManager_textureCopyFormatsSupported;
 	// NOTE: Blitting between textures isn't supported. Can potentially use an offscreen in the
-	// future if *really* needed, though ther emay be some restrictions.
+	// future if *really* needed, though there may be some restrictions.
+	baseResourceManager->copyBufferToTextureSupportedFunc =
+		&dsMTLResourceManager_bufferTextureCopySupported;
+	baseResourceManager->copyTextureToBufferSupportedFunc =
+		&dsMTLResourceManager_bufferTextureCopySupported;
 	baseResourceManager->createResourceContextFunc = &dsMTLResourceManager_createResourceContext;
 	baseResourceManager->destroyResourceContextFunc = &dsMTLResourceManager_destroyResourceContext;
 
@@ -893,6 +905,7 @@ dsResourceManager* dsMTLResourceManager_create(dsAllocator* allocator, dsRendere
 	baseResourceManager->invalidateBufferFunc = &dsMTLGfxBuffer_invalidate;
 	baseResourceManager->copyBufferDataFunc = &dsMTLGfxBuffer_copyData;
 	baseResourceManager->copyBufferFunc = &dsMTLGfxBuffer_copy;
+	baseResourceManager->copyBufferToTextureFunc = &dsMTLGfxBuffer_copyToTexture;
 	baseResourceManager->processBufferFunc = &dsMTLGfxBuffer_process;
 
 	// Draw geometry.
@@ -905,6 +918,7 @@ dsResourceManager* dsMTLResourceManager_create(dsAllocator* allocator, dsRendere
 	baseResourceManager->destroyTextureFunc = &dsMTLTexture_destroy;
 	baseResourceManager->copyTextureDataFunc = &dsMTLTexture_copyData;
 	baseResourceManager->copyTextureFunc = &dsMTLTexture_copy;
+	baseResourceManager->copyTextureToBufferFunc = &dsMTLTexture_copyToBuffer;
 	baseResourceManager->generateTextureMipmapsFunc = &dsMTLTexture_generateMipmaps;
 	baseResourceManager->getTextureDataFunc = &dsMTLTexture_getData;
 	baseResourceManager->processTextureFunc = &dsMTLTexture_process;

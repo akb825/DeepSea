@@ -236,12 +236,18 @@ typedef bool (*CopyBufferDataFunction)(dsCommandBuffer* commandBuffer,
 	id<MTLBuffer> buffer, size_t offset, const void* data, size_t size);
 typedef bool (*CopyBufferFunction)(dsCommandBuffer* commandBuffer, id<MTLBuffer> srcBuffer,
 	size_t srcOffset, id<MTLBuffer> dstBuffer, size_t dstOffset, size_t size);
+typedef bool (*CopyBufferToTextureFunction)(dsCommandBuffer* commandBuffer, id<MTLBuffer> srcBuffer,
+	id<MTLTexture> dstTexture, dsGfxFormat format, const dsGfxBufferTextureCopyRegion* regions,
+	uint32_t regionCount);
 
 typedef bool (*CopyTextureDataFunction)(dsCommandBuffer* commandBuffer, id<MTLTexture> texture,
 	const dsTextureInfo* textureInfo, const dsTexturePosition* position, uint32_t width,
 	uint32_t height, uint32_t layers, const void* data, size_t size);
 typedef bool (*CopyTextureFunction)(dsCommandBuffer* commandBuffer, id<MTLTexture> srcTexture,
 	id<MTLTexture> dstTexture, const dsTextureCopyRegion* regions, uint32_t regionCount);
+typedef bool (*CopyTextureToBufferFunction)(dsCommandBuffer* commandBuffer,
+	id<MTLTexture> srcTexture, id<MTLBuffer> dstBuffer, dsGfxFormat format,
+	const dsGfxBufferTextureCopyRegion* regions, uint32_t regionCount);
 typedef bool (*GenerateMipmapsFunction)(dsCommandBuffer* commandBuffer, id<MTLTexture> texture);
 
 typedef bool (*BindPushConstantsFunction)(dsCommandBuffer* commandBuffer, const void* data,
@@ -303,9 +309,11 @@ typedef struct dsMTLCommandBufferFunctionTable
 
 	CopyBufferDataFunction copyBufferDataFunc;
 	CopyBufferFunction copyBufferFunc;
+	CopyBufferToTextureFunction copyBufferToTextureFunc;
 
 	CopyTextureDataFunction copyTextureDataFunc;
 	CopyTextureFunction copyTextureFunc;
+	CopyTextureToBufferFunction copyTextureToBufferFunc;
 	GenerateMipmapsFunction generateMipmapsFunc;
 
 	BindPushConstantsFunction bindPushConstantsFunc;

@@ -468,6 +468,74 @@ bool dsMTLHardwareCommandBuffer_copyBuffer(dsCommandBuffer* commandBuffer,
 	return true;
 }
 
+bool dsMTLHardwareCommandBuffer_copyBufferToTexture(dsCommandBuffer* commandBuffer,
+	id<MTLBuffer> srcBuffer, id<MTLTexture> dstTexture, dsGfxFormat format,
+	const dsGfxBufferTextureCopyRegion* regions, uint32_t regionCount)
+{
+	id<MTLBlitCommandEncoder> blitEncoder = getBlitCommandEncoder(commandBuffer);
+	if (!blitEncoder)
+		return false;
+
+	uint32_t dstFaceCount = dstTexture.textureType == MTLTextureTypeCube ? 6 : 1;
+	bool dstIs3D = dstTexture.textureType == MTLTextureType3D;
+
+	unsigned int formatSize = dsGfxFormat_size(format);
+	unsigned int blockX, blockY;
+	DS_VERIFY(dsGfxFormat_blockDimensions(&blockX, &blockY, format));
+
+	for (uint32_t i = 0; i < regionCount; ++i)
+	{
+		const dsGfxBufferTextureCopyRegion* region = regions + i;
+		const dsTexturePosition* position = &region->texturePosition;
+		uint32_t dstLayer, dstDepth;
+		if (dstIs3D)
+		{
+			dstLayer = 0;
+			dstDepth = position->depth;
+		}
+		else
+		{
+			dstLayer = position->depth*dstFaceCount + position->face;
+			dstDepth = 0;
+		}
+
+		uint32_t bufferWidth = region->bufferWidth;
+		if (bufferWidth == 0)
+			bufferWidth = region->textureWidth;
+		uint32_t bufferHeight = region->bufferHeight;
+		if (bufferHeight == 0)
+			bufferHeight = region->textureHeight;
+		size_t bufferXBlocks = (bufferWidth + blockX - 1)/blockX;
+		size_t bufferYBlocks = (bufferHeight + blockY - 1)/blockY;
+		size_t bufferPitch = bufferXBlocks*formatSize;
+		size_t bufferImageSize = bufferPitch*bufferYBlocks;
+
+		MTLOrigin dstOrigin = {position->x, position->y, dstDepth};
+		MTLSize size = {region->textureWidth, region->textureHeight, 1};
+		if (dstIs3D)
+		{
+			size.depth = region->layers;
+			[blitEncoder copyFromBuffer: srcBuffer sourceOffset: region->bufferOffset
+				sourceBytesPerRow: bufferPitch sourceBytesPerImage: bufferImageSize
+				sourceSize: size toTexture: dstTexture destinationSlice: 0
+				destinationLevel: position->mipLevel destinationOrigin: dstOrigin];
+		}
+		else
+		{
+			for (uint32_t j = 0; j < region->layers; ++j)
+			{
+				[blitEncoder copyFromBuffer: srcBuffer
+					sourceOffset: region->bufferOffset + bufferImageSize*j
+					sourceBytesPerRow: bufferPitch sourceBytesPerImage: bufferImageSize
+					sourceSize: size toTexture: dstTexture destinationSlice: dstLayer + j
+					destinationLevel: position->mipLevel destinationOrigin: dstOrigin];
+			}
+		}
+	}
+
+	return true;
+}
+
 bool dsMTLHardwareCommandBuffer_copyTextureData(dsCommandBuffer* commandBuffer,
 	id<MTLTexture> texture, const dsTextureInfo* textureInfo, const dsTexturePosition* position,
 	uint32_t width, uint32_t height, uint32_t layers, const void* data, size_t size)
@@ -600,9 +668,9 @@ bool dsMTLHardwareCommandBuffer_copyTexture(dsCommandBuffer* commandBuffer,
 		if (srcIs3D && dstIs3D)
 		{
 			size.depth = region->layers;
-			[blitEncoder copyFromTexture: srcTexture sourceSlice: 0
+			[blitEncoder copyFromTexture: srcTexture sourceSlice: srcLayer
 				sourceLevel: region->srcPosition.mipLevel sourceOrigin: srcOrigin sourceSize: size
-				toTexture: dstTexture destinationSlice: 0
+				toTexture: dstTexture destinationSlice: dstLayer
 				destinationLevel: region->dstPosition.mipLevel destinationOrigin: dstOrigin];
 		}
 		else
@@ -614,11 +682,78 @@ bool dsMTLHardwareCommandBuffer_copyTexture(dsCommandBuffer* commandBuffer,
 				if (dstIs3D)
 					dstOrigin.z = dstDepth + j;
 
-				[blitEncoder copyFromTexture: srcTexture sourceSlice: srcIs3D ? srcLayer + j : 0
+				[blitEncoder copyFromTexture: srcTexture sourceSlice: srcIs3D ? 0 : srcLayer + j
 					sourceLevel: region->srcPosition.mipLevel sourceOrigin: srcOrigin
 					sourceSize: size toTexture: dstTexture
-					destinationSlice: dstIs3D ? dstLayer + j : 0
+					destinationSlice: dstIs3D ? 0 : dstLayer + j
 					destinationLevel: region->dstPosition.mipLevel destinationOrigin: dstOrigin];
+			}
+		}
+	}
+
+	return true;
+}
+
+bool dsMTLHardwareCommandBuffer_copyTextureToBuffer(dsCommandBuffer* commandBuffer,
+	id<MTLTexture> srcTexture, id<MTLBuffer> dstBuffer, dsGfxFormat format,
+	const dsGfxBufferTextureCopyRegion* regions, uint32_t regionCount)
+{
+	id<MTLBlitCommandEncoder> blitEncoder = getBlitCommandEncoder(commandBuffer);
+	if (!blitEncoder)
+		return false;
+
+	uint32_t srcFaceCount = srcTexture.textureType == MTLTextureTypeCube ? 6 : 1;
+	bool srcIs3D = srcTexture.textureType == MTLTextureType3D;
+
+	unsigned int formatSize = dsGfxFormat_size(format);
+	unsigned int blockX, blockY;
+	DS_VERIFY(dsGfxFormat_blockDimensions(&blockX, &blockY, format));
+
+	for (uint32_t i = 0; i < regionCount; ++i)
+	{
+		const dsGfxBufferTextureCopyRegion* region = regions + i;
+		const dsTexturePosition* position = &region->texturePosition;
+		uint32_t srcLayer, srcDepth;
+		if (srcIs3D)
+		{
+			srcLayer = 0;
+			srcDepth = position->depth;
+		}
+		else
+		{
+			srcLayer = position->depth*srcFaceCount + position->face;
+			srcDepth = 0;
+		}
+
+		uint32_t bufferWidth = region->bufferWidth;
+		if (bufferWidth == 0)
+			bufferWidth = region->textureWidth;
+		uint32_t bufferHeight = region->bufferHeight;
+		if (bufferHeight == 0)
+			bufferHeight = region->textureHeight;
+		size_t bufferXBlocks = (bufferWidth + blockX - 1)/blockX;
+		size_t bufferYBlocks = (bufferHeight + blockY - 1)/blockY;
+		size_t bufferPitch = bufferXBlocks*formatSize;
+		size_t bufferImageSize = bufferPitch*bufferYBlocks;
+
+		MTLOrigin srcOrigin = {position->x, position->y, srcDepth};
+		MTLSize size = {region->textureWidth, region->textureHeight, 1};
+		if (srcIs3D)
+		{
+			size.depth = region->layers;
+			[blitEncoder copyFromTexture: srcTexture sourceSlice: 0 sourceLevel: position->mipLevel
+				sourceOrigin: srcOrigin sourceSize: size toBuffer: dstBuffer
+				destinationOffset: region->bufferOffset destinationBytesPerRow: bufferPitch
+				destinationBytesPerImage: bufferImageSize];
+		}
+		else
+		{
+			for (uint32_t j = 0; j < region->layers; ++j)
+			{
+				[blitEncoder copyFromTexture: srcTexture sourceSlice: srcLayer + j
+					sourceLevel: position->mipLevel sourceOrigin: srcOrigin sourceSize: size
+					toBuffer: dstBuffer destinationOffset: region->bufferOffset + bufferImageSize*j
+					destinationBytesPerRow: bufferPitch destinationBytesPerImage: bufferImageSize];
 			}
 		}
 	}
@@ -1279,8 +1414,10 @@ static dsMTLCommandBufferFunctionTable hardwareCommandBufferFunctions =
 	&dsMTLHardwareCommandBuffer_submit,
 	&dsMTLHardwareCommandBuffer_copyBufferData,
 	&dsMTLHardwareCommandBuffer_copyBuffer,
+	&dsMTLHardwareCommandBuffer_copyBufferToTexture,
 	&dsMTLHardwareCommandBuffer_copyTextureData,
 	&dsMTLHardwareCommandBuffer_copyTexture,
+	&dsMTLHardwareCommandBuffer_copyTextureToBuffer,
 	&dsMTLHardwareCommandBuffer_generateMipmaps,
 	&dsMTLHardwareCommandBuffer_bindPushConstants,
 	&dsMTLHardwareCommandBuffer_bindBufferUniform,
