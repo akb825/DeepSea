@@ -42,8 +42,7 @@ extern "C"
  * @param resourceManager The resource manager to create the framebuffer from.
  * @param allocator The allocator to create the framebuffer with. If NULL, it will use the same
  *     allocator as the resource manager.
- * @param name The name of the framebuffer, used for profiling info. This should remain allocated
- *     for the duration of the application, such as a string constant.
+ * @param name The name of the framebuffer, used for profiling info. The string will be copied.
  * @param surfaces The surfaces that make up the framebuffer. The surfaces must match the dimensions
  *     of the framebuffer. This array will be copied to the final object.
  * @param surfaceCount The number of surfaces.

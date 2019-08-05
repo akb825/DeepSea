@@ -44,7 +44,8 @@ dsRenderPass* dsMockRenderPass_create(dsRenderer* renderer, dsAllocator* allocat
 	for (uint32_t i = 0; i < subpassCount; ++i)
 	{
 		totalSize += DS_ALIGNED_SIZE(sizeof(uint32_t)*subpasses[i].inputAttachmentCount) +
-			DS_ALIGNED_SIZE(sizeof(dsColorAttachmentRef)*subpasses[i].colorAttachmentCount);
+			DS_ALIGNED_SIZE(sizeof(dsColorAttachmentRef)*subpasses[i].colorAttachmentCount) +
+			DS_ALIGNED_SIZE(strlen(subpasses[i].name) + 1);
 	}
 	void* buffer = dsAllocator_alloc(allocator, totalSize);
 	if (!buffer)
@@ -96,6 +97,11 @@ dsRenderPass* dsMockRenderPass_create(dsRenderer* renderer, dsAllocator* allocat
 			memcpy((void*)curSubpass->colorAttachments, subpasses[i].colorAttachments,
 				sizeof(dsColorAttachmentRef)*curSubpass->colorAttachmentCount);
 		}
+
+		size_t nameLen = strlen(subpasses[i].name) + 1;
+		curSubpass->name = DS_ALLOCATE_OBJECT_ARRAY(&bufferAllocator, char, nameLen);
+		DS_ASSERT(curSubpass->name);
+		memcpy((void*)curSubpass->name, subpasses[i].name, nameLen);
 	}
 	renderPass->subpassCount = subpassCount;
 

@@ -23,11 +23,13 @@
 #include "VkShared.h"
 
 #include <DeepSea/Core/Memory/Allocator.h>
+#include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Memory/Lifetime.h>
 #include <DeepSea/Core/Memory/StackAllocator.h>
 #include <DeepSea/Core/Thread/Spinlock.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Render/Renderer.h>
+#include <string.h>
 
 static bool transitionToRenderable(dsCommandBuffer* commandBuffer, dsVkRenderSurfaceData* surface)
 {
@@ -108,18 +110,28 @@ dsRenderSurface* dsVkRenderSurface_create(dsRenderer* renderer, dsAllocator* all
 			break;
 	}
 
-	dsVkRenderSurface* renderSurface = DS_ALLOCATE_OBJECT(allocator, dsVkRenderSurface);
-	if (!renderSurface)
+	size_t nameLen = strlen(name) + 1;
+	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsVkRenderSurface)) + DS_ALIGNED_SIZE(nameLen);
+	void* buffer = dsAllocator_alloc(allocator, fullSize);
+	if (!buffer)
 	{
 		if (type != dsRenderSurfaceType_Direct)
 			dsVkPlatform_destroySurface(&vkRenderer->platform, surface);
 		return NULL;
 	}
 
+	dsBufferAllocator bufferAlloc;
+	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, fullSize));
+
+	dsVkRenderSurface* renderSurface = DS_ALLOCATE_OBJECT(&bufferAlloc, dsVkRenderSurface);
+	DS_ASSERT(renderSurface);
+
 	dsRenderSurface* baseRenderSurface = (dsRenderSurface*)renderSurface;
 	baseRenderSurface->renderer = renderer;
 	baseRenderSurface->allocator = dsAllocator_keepPointer(allocator);
-	baseRenderSurface->name = name;
+	baseRenderSurface->name = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, nameLen);
+	DS_ASSERT(baseRenderSurface->name);
+	memcpy((void*)baseRenderSurface->name, name, nameLen);
 	baseRenderSurface->surfaceType = type;
 
 	renderSurface->scratchAllocator = renderer->allocator;

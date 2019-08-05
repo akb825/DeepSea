@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2019 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,8 +28,9 @@ dsFramebuffer* dsMockFramebuffer_create(dsResourceManager* resourceManager, dsAl
 	DS_ASSERT(resourceManager);
 	DS_ASSERT(allocator);
 
+	size_t nameLen = strlen(name) + 1;
 	size_t bufferSize = DS_ALIGNED_SIZE(sizeof(dsFramebuffer)) +
-		DS_ALIGNED_SIZE(sizeof(dsFramebufferSurface)*surfaceCount);
+		DS_ALIGNED_SIZE(sizeof(dsFramebufferSurface)*surfaceCount) + DS_ALIGNED_SIZE(nameLen);
 	void* buffer = dsAllocator_alloc(allocator, bufferSize);
 	if (!buffer)
 		return NULL;
@@ -41,7 +42,9 @@ dsFramebuffer* dsMockFramebuffer_create(dsResourceManager* resourceManager, dsAl
 	DS_ASSERT(framebuffer);
 	framebuffer->resourceManager = resourceManager;
 	framebuffer->allocator = dsAllocator_keepPointer(allocator);
-	framebuffer->name = name;
+	framebuffer->name = DS_ALLOCATE_OBJECT_ARRAY(&bufferAllocator, char, nameLen);
+	DS_ASSERT(framebuffer->name);
+	memcpy((void*)framebuffer->name, name, nameLen);
 
 	if (surfaceCount)
 	{

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2019 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,11 @@
 #include "GLCommandBuffer.h"
 #include "GLRendererInternal.h"
 #include "GLTypes.h"
+
 #include <DeepSea/Core/Memory/Allocator.h>
+#include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Assert.h>
+#include <string.h>
 
 dsRenderSurface* dsGLRenderSurface_create(dsRenderer* renderer, dsAllocator* allocator,
 	const char* name, void* osHandle, dsRenderSurfaceType type)
@@ -39,17 +42,27 @@ dsRenderSurface* dsGLRenderSurface_create(dsRenderer* renderer, dsAllocator* all
 		return NULL;
 	}
 
-	dsGLRenderSurface* renderSurface = DS_ALLOCATE_OBJECT(allocator, dsGLRenderSurface);
-	if (!renderSurface)
+	size_t nameLen = strlen(name) + 1;
+	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsGLRenderSurface)) + DS_ALIGNED_SIZE(nameLen);
+	void* buffer = dsAllocator_alloc(allocator, fullSize);
+	if (!buffer)
 	{
 		dsDestroyGLSurface(display, type, glSurface);
 		return NULL;
 	}
 
+	dsBufferAllocator bufferAlloc;
+	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, fullSize));
+
+	dsGLRenderSurface* renderSurface = DS_ALLOCATE_OBJECT(&bufferAlloc, dsGLRenderSurface);
+	DS_ASSERT(renderSurface);
+
 	dsRenderSurface* baseSurface = (dsRenderSurface*)renderSurface;
 	baseSurface->renderer = renderer;
 	baseSurface->allocator = dsAllocator_keepPointer(allocator);
-	baseSurface->name = name;
+	baseSurface->name = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, nameLen);
+	DS_ASSERT(baseSurface->name);
+	memcpy((void*)baseSurface->name, name, nameLen);
 	baseSurface->surfaceType = type;
 	DS_VERIFY(dsGetGLSurfaceSize(&baseSurface->width, &baseSurface->height, display, type,
 		glSurface));

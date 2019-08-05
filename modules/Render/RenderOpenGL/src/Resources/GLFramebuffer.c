@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2019 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -105,22 +105,24 @@ dsFramebuffer* dsGLFramebuffer_create(dsResourceManager* resourceManager, dsAllo
 	DS_ASSERT(allocator);
 	DS_ASSERT(surfaces || surfaceCount == 0);
 
+	size_t nameLen = strlen(name) + 1;
 	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsGLFramebuffer)) +
-		DS_ALIGNED_SIZE(sizeof(dsFramebufferSurface)*surfaceCount);
+		DS_ALIGNED_SIZE(sizeof(dsFramebufferSurface)*surfaceCount) + DS_ALIGNED_SIZE(nameLen);
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 		return NULL;
 
 	dsBufferAllocator bufferAllocator;
 	DS_VERIFY(dsBufferAllocator_initialize(&bufferAllocator, buffer, fullSize));
-	dsGLFramebuffer* framebuffer = DS_ALLOCATE_OBJECT((dsAllocator*)&bufferAllocator,
-		dsGLFramebuffer);
+	dsGLFramebuffer* framebuffer = DS_ALLOCATE_OBJECT(&bufferAllocator, dsGLFramebuffer);
 	DS_ASSERT(framebuffer);
 
 	dsFramebuffer* baseFramebuffer = (dsFramebuffer*)framebuffer;
 	baseFramebuffer->resourceManager = resourceManager;
 	baseFramebuffer->allocator = dsAllocator_keepPointer(allocator);
-	baseFramebuffer->name = name;
+	baseFramebuffer->name = DS_ALLOCATE_OBJECT_ARRAY(&bufferAllocator, char, nameLen);
+	DS_ASSERT(baseFramebuffer->name);
+	memcpy((void*)baseFramebuffer->name, name, nameLen);
 	if (surfaceCount > 0)
 	{
 		baseFramebuffer->surfaces = DS_ALLOCATE_OBJECT_ARRAY(&bufferAllocator, dsFramebufferSurface,

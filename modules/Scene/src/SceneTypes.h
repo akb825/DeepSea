@@ -64,7 +64,6 @@ struct dsScene
 	uint32_t pipelineCount;
 	uint32_t globalDataCount;
 	dsHashTable* itemLists;
-	dsStringPool stringPool;
 
 	dsSceneTreeNode** dirtyNodes;
 	uint32_t dirtyNodeCount;

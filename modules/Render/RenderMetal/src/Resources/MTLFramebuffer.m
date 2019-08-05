@@ -28,24 +28,27 @@ dsFramebuffer* dsMTLFramebuffer_create(dsResourceManager* resourceManager, dsAll
 {
 	DS_ASSERT(resourceManager);
 
+	size_t nameLen = strlen(name) + 1;
 	size_t bufferSize = DS_ALIGNED_SIZE(sizeof(dsFramebuffer)) +
-		DS_ALIGNED_SIZE(sizeof(dsFramebufferSurface)*surfaceCount);
+		DS_ALIGNED_SIZE(sizeof(dsFramebufferSurface)*surfaceCount) + DS_ALIGNED_SIZE(nameLen);
 	void* buffer = dsAllocator_alloc(allocator, bufferSize);
 	if (!buffer)
 		return NULL;
 
-	dsBufferAllocator bufferAllocator;
-	DS_VERIFY(dsBufferAllocator_initialize(&bufferAllocator, buffer, bufferSize));
+	dsBufferAllocator bufferAlloc;
+	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, bufferSize));
 
-	dsFramebuffer* framebuffer = DS_ALLOCATE_OBJECT(&bufferAllocator, dsFramebuffer);
+	dsFramebuffer* framebuffer = DS_ALLOCATE_OBJECT(&bufferAlloc, dsFramebuffer);
 	DS_ASSERT(framebuffer);
 	framebuffer->resourceManager = resourceManager;
 	framebuffer->allocator = dsAllocator_keepPointer(allocator);
-	framebuffer->name = name;
+	framebuffer->name = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, nameLen);
+	DS_ASSERT(framebuffer->name);
+	memcpy((void*)framebuffer->name, name, nameLen);
 
 	if (surfaceCount)
 	{
-		framebuffer->surfaces = DS_ALLOCATE_OBJECT_ARRAY(&bufferAllocator, dsFramebufferSurface,
+		framebuffer->surfaces = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsFramebufferSurface,
 			surfaceCount);
 		DS_ASSERT(framebuffer->surfaces);
 		memcpy(framebuffer->surfaces, surfaces, sizeof(dsFramebufferSurface)*surfaceCount);

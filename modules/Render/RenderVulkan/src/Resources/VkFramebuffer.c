@@ -58,8 +58,9 @@ dsFramebuffer* dsVkFramebuffer_create(dsResourceManager* resourceManager, dsAllo
 	const char* name, const dsFramebufferSurface* surfaces, uint32_t surfaceCount, uint32_t width,
 	uint32_t height, uint32_t layers)
 {
+	size_t nameLen = strlen(name) + 1;
 	size_t bufferSize = DS_ALIGNED_SIZE(sizeof(dsVkFramebuffer)) +
-		DS_ALIGNED_SIZE(sizeof(dsFramebufferSurface)*surfaceCount);
+		DS_ALIGNED_SIZE(sizeof(dsFramebufferSurface)*surfaceCount) + DS_ALIGNED_SIZE(nameLen);
 	void* buffer = dsAllocator_alloc(allocator, bufferSize);
 	if (!buffer)
 		return NULL;
@@ -72,7 +73,9 @@ dsFramebuffer* dsVkFramebuffer_create(dsResourceManager* resourceManager, dsAllo
 	dsFramebuffer* baseFramebuffer = (dsFramebuffer*)framebuffer;
 	baseFramebuffer->resourceManager = resourceManager;
 	baseFramebuffer->allocator = dsAllocator_keepPointer(allocator);
-	baseFramebuffer->name = name;
+	baseFramebuffer->name = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, nameLen);
+	DS_ASSERT(baseFramebuffer->name);
+	memcpy((char*)baseFramebuffer->name, name, nameLen);
 	if (surfaceCount > 0)
 	{
 		baseFramebuffer->surfaces = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsFramebufferSurface,

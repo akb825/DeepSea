@@ -1540,7 +1540,8 @@ typedef void (*dsProcessTextureFunction)(dsResourceManager* resourceManager, dsT
  * @brief Function for creeating a framebuffer.
  * @param resourceManager The resource manager to create the framebuffer from.
  * @param allocator The allocator to create the framebuffer with.
- * @param name The name of the framebuffer.
+ * @param name The name of the framebuffer. The implemention should copy the string and store with
+ *     the framebuffer.
  * @param surfaces The surfaces that make up the framebuffer.
  * @param surfaceCount The number of surfaces.
  * @param width The width of the framebuffer.

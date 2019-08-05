@@ -17,7 +17,6 @@
 #pragma once
 
 #include <DeepSea/Core/Config.h>
-#include <DeepSea/Core/Types.h>
 #include <DeepSea/Scene/Export.h>
 #include <DeepSea/Scene/Types.h>
 
@@ -48,15 +47,12 @@ extern "C"
  *     array itself and take ownership of the objects. If creation fails, this means it will
  *     immediately destroy all objects in this list.
  * @param globalDataCount The number of global data instances.
- * @param stringPool An optional string pool for pooled string allocation. This will take
- *     ownership of the strings pointer within stringPool, which will also be freed if creation
- *     failed. This may be NULL if no string pool is used.
  * @return The scene or NULL if an error occurred.
  */
 DS_SCENE_EXPORT dsScene* dsScene_create(dsAllocator* allocator,
 	dsSceneItemList* const* sharedItems, uint32_t sharedItemCount,
 	const dsScenePipelineItem* pipeline, uint32_t pipelineCount,
-	dsSceneGlobalData* const* globalData, uint32_t globalDataCount, const dsStringPool* stringPool);
+	dsSceneGlobalData* const* globalData, uint32_t globalDataCount);
 
 /**
  * @brief Updates dirty nodes within the scene.

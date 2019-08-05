@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2019 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,10 @@
 #include "MockRenderSurface.h"
 
 #include <DeepSea/Core/Memory/Allocator.h>
+#include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/RenderMock/Export.h>
+#include <string.h>
 
 DS_RENDERMOCK_EXPORT bool dsMockRenderSurface_changeSize;
 
@@ -29,13 +31,22 @@ dsRenderSurface* dsMockRenderSurface_create(dsRenderer* renderer, dsAllocator* a
 	DS_ASSERT(allocator);
 	DS_UNUSED(osHandle);
 
-	dsRenderSurface* renderSurface = DS_ALLOCATE_OBJECT(allocator, dsRenderSurface);
-	if (!renderSurface)
+	size_t nameLen = strlen(name) + 1;
+	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsRenderSurface)) + DS_ALIGNED_SIZE(nameLen);
+	void* buffer = dsAllocator_alloc(allocator, fullSize);
+	if (!buffer)
 		return NULL;
 
+	dsBufferAllocator bufferAlloc;
+	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, fullSize));
+
+	dsRenderSurface* renderSurface = DS_ALLOCATE_OBJECT(&bufferAlloc, dsRenderSurface);
+	DS_ASSERT(renderSurface);
 	renderSurface->renderer = renderer;
 	renderSurface->allocator = dsAllocator_keepPointer(allocator);
-	renderSurface->name = name;
+	renderSurface->name = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, nameLen);
+	DS_ASSERT(renderSurface->name);
+	memcpy((void*)renderSurface->name, name, nameLen);
 	renderSurface->surfaceType = type;
 	renderSurface->width = 1920;
 	renderSurface->height = 1080;

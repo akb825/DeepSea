@@ -43,7 +43,8 @@ static size_t fullAllocSize(uint32_t attachmentCount, const dsRenderSubpassInfo*
 	{
 		fullSize += DS_ALIGNED_SIZE(sizeof(uint32_t)*subpasses[i].inputAttachmentCount) +
 			DS_ALIGNED_SIZE(sizeof(dsColorAttachmentRef)*subpasses[i].colorAttachmentCount) +
-			DS_ALIGNED_SIZE(sizeof(dsMTLAttachmentInfo)*subpasses[i].colorAttachmentCount);
+			DS_ALIGNED_SIZE(sizeof(dsMTLAttachmentInfo)*subpasses[i].colorAttachmentCount) +
+			DS_ALIGNED_SIZE(strlen(subpasses[i].name) + 1);
 	}
 	return fullSize;
 }
@@ -425,6 +426,11 @@ dsRenderPass* dsMTLRenderPass_create(dsRenderer* renderer, dsAllocator* allocato
 				curSubpass->depthStencilAttachment, i, attachments, subpasses, subpassCount);
 			curSubpassInfo->depthStencilAttachment.storeAction = getStoreAction(
 				curSubpass->depthStencilAttachment, i, attachments, subpasses, subpassCount);
+
+			size_t nameLen = strlen(subpasses[i]) + 1;
+			curSubpassInfo->name = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, nameLen);
+			DS_ASSERT(curSubpassInfo->name);
+			memcpy((void*)curSubpassInfo->name, subpasses[i].name, nameLen);
 		}
 
 		baseRenderPass->subpassDependencies = NULL;

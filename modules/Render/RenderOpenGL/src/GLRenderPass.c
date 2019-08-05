@@ -41,7 +41,8 @@ dsRenderPass* dsGLRenderPass_create(dsRenderer* renderer, dsAllocator* allocator
 	for (uint32_t i = 0; i < subpassCount; ++i)
 	{
 		fullSize += DS_ALIGNED_SIZE(sizeof(uint32_t)*subpasses[i].inputAttachmentCount) +
-			DS_ALIGNED_SIZE(sizeof(dsColorAttachmentRef)*subpasses[i].colorAttachmentCount);
+			DS_ALIGNED_SIZE(sizeof(dsColorAttachmentRef)*subpasses[i].colorAttachmentCount) +
+			DS_ALIGNED_SIZE(strlen(subpasses[i].name) + 1);
 	}
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
@@ -125,6 +126,11 @@ dsRenderPass* dsGLRenderPass_create(dsRenderer* renderer, dsAllocator* allocator
 			memcpy((void*)curSubpass->colorAttachments, subpasses[i].colorAttachments,
 				sizeof(dsColorAttachmentRef)*curSubpass->colorAttachmentCount);
 		}
+
+		size_t nameLen = strlen(subpasses[i].name) + 1;
+		curSubpass->name = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, nameLen);
+		DS_ASSERT(curSubpass->name);
+		memcpy((void*)curSubpass->name, subpasses[i].name, nameLen);
 	}
 
 	baseRenderPass->subpassDependencies = NULL;

@@ -150,6 +150,9 @@ static QueryInfo* addQuery(dsGPUProfileContext* context, dsCommandBuffer* comman
 			--pools->poolCount;
 			return NULL;
 		}
+
+		// Need to reset before first usage.
+		dsGfxQueryPool_reset(pools->pools[poolIndex], commandBuffer, 0, QUERY_POOL_SIZE);
 	}
 
 	if (beginIndex != INVALID_INDEX)

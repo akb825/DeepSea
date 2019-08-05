@@ -581,7 +581,7 @@ typedef struct dsRenderSubpassInfo
 	/**
 	 * @brief The name of this subpass, used for profiling info.
 	 *
-	 * This should be allocated for the duration of the application, such as a string constant.
+	 * The implementation will copy this string.
 	 */
 	const char* name;
 
@@ -1098,7 +1098,8 @@ typedef void (*dsSetExtraRendererDebuggingFunction)(dsRenderer* renderer, bool e
  * @brief Function for creating a render surface.
  * @param renderer The renderer to use the render surface with.
  * @param allocator The allocator to create the render surface.
- * @param name The name of the render surface, used for profiling info
+ * @param name The name of the render surface, used for profiling info. Implementations should
+ *     copy the string and store it with the render surface.
  * @param osHandle The OS handle, such as window handle.
  * @param type The type of the render surface.
  * @return The created render surface, or NULL if it couldn't be created.
@@ -1228,7 +1229,7 @@ typedef bool (*dsSubmitCommandBufferFunction)(dsRenderer* renderer, dsCommandBuf
  * @brief Function for creating a render pass.
  *
  * All arrays passed in and part of the structures should be copied by the implementation rather
- * than just copying the pointers.
+ * than just copying the pointers. This also includes the strings stored inside of the subpasses.
  *
  * @param renderer The renderer to draw the render pass with.
  * @param allocator The allocator to create the render pass with.

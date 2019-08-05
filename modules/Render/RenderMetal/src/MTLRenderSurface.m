@@ -20,11 +20,13 @@
 #include "MTLRendererInternal.h"
 
 #include <DeepSea/Core/Memory/Allocator.h>
+#include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Thread/Spinlock.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Render/Resources/GfxFormat.h>
+#include <string.h>
 
 #import <Metal/MTLCommandQueue.h>
 #import <QuartzCore/CAMetalLayer.h>
@@ -383,14 +385,24 @@ dsRenderSurface* dsMTLRenderSurface_create(dsRenderer* renderer, dsAllocator* al
 		layer.wantsExtendedDynamicRangeContent = format == MTLPixelFormatRGBA16Float;
 #endif
 
-		dsMTLRenderSurface* renderSurface = DS_ALLOCATE_OBJECT(allocator, dsMTLRenderSurface);
-		if (!renderSurface)
+		size_t nameLen = strlen(name) + 1;
+		size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsMTLRenderSurface)) + DS_ALIGNED_SIZE(nameLen);
+		void* buffer = dsAllocator_alloc(allocator, fullSize);
+		if (!buffer)
 			return NULL;
+
+		dsBufferAllocator bufferAlloc;
+		DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, fullSize));
+
+		dsMTLRenderSurface* renderSurface = DS_ALLOCATE_OBJECT(&bufferAlloc, dsMTLRenderSurface);
+		DS_ASSERT(renderSurface);
 
 		dsRenderSurface* baseRenderSurface = (dsRenderSurface*)renderSurface;
 		baseRenderSurface->renderer = renderer;
 		baseRenderSurface->allocator = dsAllocator_keepPointer(allocator);
-		baseRenderSurface->name = name;
+		baseRenderSurface->name = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, nameLen);
+		DS_ASSERT(baseRenderSurface->name);
+		memcpy((void*)baseRenderSurface->name, name, nameLen);
 		baseRenderSurface->surfaceType = type;
 
 		CGSize size = layer.drawableSize;

@@ -20,7 +20,6 @@
 #include "SceneTypes.h"
 #include <DeepSea/Core/Containers/Hash.h>
 #include <DeepSea/Core/Containers/HashTable.h>
-#include <DeepSea/Core/Containers/StringPool.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Assert.h>
@@ -38,7 +37,7 @@ static dsSceneNodeType rootNodeType;
 
 static void destroyObjects(dsSceneItemList* const* sharedItems, uint32_t sharedItemCount,
 	const dsScenePipelineItem* pipeline, uint32_t pipelineCount,
-	dsSceneGlobalData* const* globalData, uint32_t globalDataCount, const dsStringPool* stringPool)
+	dsSceneGlobalData* const* globalData, uint32_t globalDataCount)
 {
 	if (sharedItems)
 	{
@@ -60,9 +59,6 @@ static void destroyObjects(dsSceneItemList* const* sharedItems, uint32_t sharedI
 		for (uint32_t i = 0; i < globalDataCount; ++i)
 			dsSceneGlobalData_destroy(globalData[i]);
 	}
-
-	if (stringPool && stringPool->allocator)
-		DS_VERIFY(dsAllocator_free(stringPool->allocator, stringPool->strings));
 }
 
 static size_t fullAllocSize(uint32_t* outNameCount, dsSceneItemList* const* sharedItems,
@@ -128,14 +124,14 @@ static bool insertSceneList(dsHashTable* hashTable, dsSceneItemListNode* node,
 
 dsScene* dsScene_create(dsAllocator* allocator, dsSceneItemList* const* sharedItems,
 	uint32_t sharedItemCount, const dsScenePipelineItem* pipeline, uint32_t pipelineCount,
-	dsSceneGlobalData* const* globalData, uint32_t globalDataCount, const dsStringPool* stringPool)
+	dsSceneGlobalData* const* globalData, uint32_t globalDataCount)
 {
 	if (!allocator || (!sharedItems && sharedItemCount > 0) || !pipeline || pipelineCount == 0 ||
 		(!globalData && globalDataCount > 0))
 	{
 		errno = EINVAL;
 		destroyObjects(sharedItems, sharedItemCount, pipeline, pipelineCount, globalData,
-			globalDataCount, stringPool);
+			globalDataCount);
 		return NULL;
 	}
 
@@ -144,7 +140,7 @@ dsScene* dsScene_create(dsAllocator* allocator, dsSceneItemList* const* sharedIt
 		errno = EINVAL;
 		DS_LOG_ERROR(DS_SCENE_LOG_TAG, "Scene allocator must support freeing memory.");
 		destroyObjects(sharedItems, sharedItemCount, pipeline, pipelineCount, globalData,
-			globalDataCount, stringPool);
+			globalDataCount);
 		return NULL;
 	}
 
@@ -155,7 +151,7 @@ dsScene* dsScene_create(dsAllocator* allocator, dsSceneItemList* const* sharedIt
 	{
 		errno = EINVAL;
 		destroyObjects(sharedItems, sharedItemCount, pipeline, pipelineCount, globalData,
-			globalDataCount, stringPool);
+			globalDataCount);
 		return NULL;
 	}
 
@@ -163,7 +159,7 @@ dsScene* dsScene_create(dsAllocator* allocator, dsSceneItemList* const* sharedIt
 	if (!buffer)
 	{
 		destroyObjects(sharedItems, sharedItemCount, pipeline, pipelineCount, globalData,
-			globalDataCount, stringPool);
+			globalDataCount);
 		return NULL;
 	}
 
@@ -217,10 +213,6 @@ dsScene* dsScene_create(dsAllocator* allocator, dsSceneItemList* const* sharedIt
 	DS_ASSERT(scene->itemLists);
 	DS_VERIFY(dsHashTable_initialize(scene->itemLists, tableSize, &dsHashString,
 		&dsHashStringEqual));
-	if (stringPool)
-		scene->stringPool = *stringPool;
-	else
-		memset(&scene->stringPool, 0, sizeof(scene->stringPool));
 
 	scene->dirtyNodes = NULL;
 	scene->dirtyNodeCount = 0;
@@ -296,7 +288,7 @@ void dsScene_destroy(dsScene* scene)
 	DS_VERIFY(dsAllocator_free(rootTreeNode->allocator, rootTreeNode->children));
 
 	destroyObjects(scene->sharedItems, scene->sharedItemCount, scene->pipeline,
-		scene->pipelineCount, scene->globalData, scene->globalDataCount, &scene->stringPool);
+		scene->pipelineCount, scene->globalData, scene->globalDataCount);
 	DS_VERIFY(dsAllocator_free(scene->allocator, scene->dirtyNodes));
 
 	DS_VERIFY(dsAllocator_free(scene->allocator, scene));
