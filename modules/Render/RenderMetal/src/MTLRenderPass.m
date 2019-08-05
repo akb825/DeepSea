@@ -427,10 +427,10 @@ dsRenderPass* dsMTLRenderPass_create(dsRenderer* renderer, dsAllocator* allocato
 			curSubpassInfo->depthStencilAttachment.storeAction = getStoreAction(
 				curSubpass->depthStencilAttachment, i, attachments, subpasses, subpassCount);
 
-			size_t nameLen = strlen(subpasses[i]) + 1;
-			curSubpassInfo->name = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, nameLen);
-			DS_ASSERT(curSubpassInfo->name);
-			memcpy((void*)curSubpassInfo->name, subpasses[i].name, nameLen);
+			size_t nameLen = strlen(subpasses[i].name) + 1;
+			curSubpass->name = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, nameLen);
+			DS_ASSERT(curSubpass->name);
+			memcpy((void*)curSubpass->name, subpasses[i].name, nameLen);
 		}
 
 		baseRenderPass->subpassDependencies = NULL;
