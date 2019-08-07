@@ -562,9 +562,10 @@ bool dsMTLHardwareCommandBuffer_copyTextureData(dsCommandBuffer* commandBuffer,
 	unsigned int blocksX, blocksY;
 	DS_VERIFY(dsGfxFormat_blockDimensions(&blocksX, &blocksY, textureInfo->format));
 
-	uint32_t blocksWide = (width + blocksX - 1)/blocksX;
-	uint32_t blocksHigh = (height + blocksY - 1)/blocksY;
-	uint32_t sliceSize = blocksWide*blocksHigh*formatSize;
+	size_t blocksWide = (width + blocksX - 1)/blocksX;
+	size_t blocksHigh = (height + blocksY - 1)/blocksY;
+	size_t baseSize = blocksWide*blocksHigh*formatSize;
+	DS_ASSERT(baseSize*layers == size);
 
 	uint32_t faceCount = textureInfo->dimension == dsTextureDim_Cube ? 6 : 1;
 	bool is3D = textureInfo->dimension == dsTextureDim_3D;
@@ -572,6 +573,7 @@ bool dsMTLHardwareCommandBuffer_copyTextureData(dsCommandBuffer* commandBuffer,
 	bool isPVR = dsIsMTLFormatPVR(textureInfo->format);
 	uint32_t iterations = is3D ? 1 : layers;
 	uint32_t baseSlice = is3D ? 0 : position->depth*faceCount + position->face;
+	size_t iterationSize = is3D ? baseSize*layers : baseSize;
 	const uint8_t* bytes = (const uint8_t*)data;
 
 	MTLRegion region =
@@ -580,7 +582,7 @@ bool dsMTLHardwareCommandBuffer_copyTextureData(dsCommandBuffer* commandBuffer,
 		{width, height, is3D ? layers: 1}
 	};
 	MTLOrigin dstOrigin = {position->x, position->y, is3D ? position->depth : 0};
-	if (sliceSize > DS_MAX_TEMP_BUFFER_ALLOC || isPVR)
+	if (isPVR)
 	{
 		for (uint32_t i = 0; i < iterations; ++i)
 		{
@@ -591,9 +593,9 @@ bool dsMTLHardwareCommandBuffer_copyTextureData(dsCommandBuffer* commandBuffer,
 				return false;
 			}
 
-			[tempImage replaceRegion: region mipmapLevel: 0 slice: 0 withBytes: bytes + i*sliceSize
+			[tempImage replaceRegion: region mipmapLevel: 0 slice: 0 withBytes: bytes + i*baseSize
 				bytesPerRow: is1D || isPVR ? 0 : formatSize*blocksWide
-				bytesPerImage: is3D ? sliceSize : 0];
+				bytesPerImage: is3D ? baseSize : 0];
 			[blitEncoder copyFromTexture: tempImage sourceSlice: 0 sourceLevel: 0
 				sourceOrigin: region.origin sourceSize: region.size toTexture: texture
 				destinationSlice: baseSlice + i destinationLevel: position->mipLevel
@@ -602,20 +604,38 @@ bool dsMTLHardwareCommandBuffer_copyTextureData(dsCommandBuffer* commandBuffer,
 	}
 	else
 	{
-		for (uint32_t i = 0; i < iterations; ++i)
+		if (iterationSize > DS_MAX_TEMP_BUFFER_ALLOC)
 		{
-			uint32_t offset = 0;
-			id<MTLBuffer> tempBuffer = nil;
-			void* tempData =
-				getTempBufferData(&offset, &tempBuffer, commandBuffer, sliceSize, formatSize);
-			if (!tempData)
+			id<MTLBuffer> tempBuffer = [device newBufferWithBytes: data length: size
+				options: MTLResourceCPUCacheModeDefaultCache];
+			if (!tempBuffer)
 				return false;
 
-			memcpy(tempData, bytes + i*sliceSize, sliceSize);
-			[blitEncoder copyFromBuffer: tempBuffer sourceOffset: offset
-				sourceBytesPerRow: blocksWide*formatSize sourceBytesPerImage: sliceSize
-				sourceSize: region.size toTexture: texture destinationSlice: baseSlice + i
-				destinationLevel: position->mipLevel destinationOrigin: dstOrigin];
+			for (uint32_t i = 0; i < iterations; ++i)
+			{
+				[blitEncoder copyFromBuffer: tempBuffer sourceOffset: baseSize*i
+					sourceBytesPerRow: blocksWide*formatSize sourceBytesPerImage: baseSize
+					sourceSize: region.size toTexture: texture destinationSlice: baseSlice + i
+					destinationLevel: position->mipLevel destinationOrigin: dstOrigin];
+			}
+		}
+		else
+		{
+			for (uint32_t i = 0; i < iterations; ++i)
+			{
+				uint32_t offset = 0;
+				id<MTLBuffer> tempBuffer = nil;
+				void* tempData = getTempBufferData(&offset, &tempBuffer, commandBuffer,
+					(uint32_t)iterationSize, formatSize);
+				if (!tempData)
+					return false;
+
+				memcpy(tempData, bytes + i*iterationSize, iterationSize);
+				[blitEncoder copyFromBuffer: tempBuffer sourceOffset: offset
+					sourceBytesPerRow: blocksWide*formatSize sourceBytesPerImage: baseSize
+					sourceSize: region.size toTexture: texture destinationSlice: baseSlice + i
+					destinationLevel: position->mipLevel destinationOrigin: dstOrigin];
+			}
 		}
 	}
 	return true;
