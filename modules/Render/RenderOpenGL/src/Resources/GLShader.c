@@ -706,7 +706,7 @@ static void resolveDefaultDepthStencilState(mslDepthStencilState* state)
 	if (state->depthBoundsTestEnable == mslBool_Unset)
 		state->depthTestEnable = mslBool_False;
 	if (state->depthWriteEnable == mslBool_Unset)
-		state->depthWriteEnable = mslBool_False;
+		state->depthWriteEnable = mslBool_True;
 	if (state->depthCompareOp == mslCompareOp_Unset)
 		state->depthCompareOp = mslCompareOp_Less;
 	if (state->depthBoundsTestEnable == mslBool_Unset)

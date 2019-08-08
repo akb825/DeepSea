@@ -345,15 +345,17 @@ static void setupCommonStates(dsShader* shader)
 	multisampleInfo->alphaToOneEnable = multisampleState->alphaToOneEnable == mslBool_True;
 
 	const mslDepthStencilState* depthStencilState = &renderState.depthStencilState;
+	bool depthEnabled = depthStencilState->depthTestEnable == mslBool_True;
 	VkPipelineDepthStencilStateCreateInfo* depthStencilInfo = &vkShader->depthStencilInfo;
 	depthStencilInfo->sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
 	depthStencilInfo->pNext = NULL;
 	depthStencilInfo->flags = 0;
-	depthStencilInfo->depthTestEnable = depthStencilState->depthTestEnable == mslBool_True;
-	depthStencilInfo->depthWriteEnable = depthStencilState->depthWriteEnable == mslBool_True;
+	depthStencilInfo->depthTestEnable = depthEnabled;
+	depthStencilInfo->depthWriteEnable = depthEnabled &&
+		depthStencilState->depthWriteEnable != mslBool_False;
 	depthStencilInfo->depthCompareOp = dsVkCompareOp(depthStencilState->depthCompareOp,
 		VK_COMPARE_OP_LESS);
-	depthStencilInfo->depthBoundsTestEnable = features->depthBounds &&
+	depthStencilInfo->depthBoundsTestEnable = features->depthBounds && depthEnabled &&
 		depthStencilState->depthBoundsTestEnable == mslBool_True;
 	depthStencilInfo->stencilTestEnable = depthStencilState->stencilTestEnable == mslBool_True;
 	copyStencilState(&depthStencilInfo->front, &depthStencilState->frontStencil);
