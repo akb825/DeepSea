@@ -156,7 +156,7 @@ static void resetStencilState(mslStencilOpState* state)
 static void resetDepthStencilState(mslDepthStencilState* state)
 {
 	state->depthTestEnable = mslBool_False;
-	state->depthWriteEnable = mslBool_False;
+	state->depthWriteEnable = mslBool_True;
 	state->depthCompareOp = mslCompareOp_Less;
 	state->depthBoundsTestEnable = mslBool_False;
 	state->stencilTestEnable = mslBool_False;
