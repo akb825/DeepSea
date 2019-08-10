@@ -22,7 +22,7 @@
 #include <DeepSea/Core/Debug.h>
 
 #if DS_DEBUG
-#define DS_VK_CALL(func) (dsSetLastVkCallsite(__FILE__, __FUNCTION__,__LINE__), (func))
+#define DS_VK_CALL(func) (dsSetLastVkCallsite(__FILE__, __FUNCTION__, __LINE__), (func))
 #else
 #define DS_VK_CALL(func) (func)
 #endif
