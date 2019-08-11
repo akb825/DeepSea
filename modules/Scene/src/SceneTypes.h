@@ -54,6 +54,11 @@ typedef struct dsSceneItemListNode
 struct dsScene
 {
 	dsAllocator* allocator;
+	dsRenderer* renderer;
+
+	void* userData;
+	dsDestroySceneUserDataFunction destroyUserDataFunc;
+
 	dsSceneNode rootNode;
 	dsSceneTreeRootNode rootTreeNode;
 
@@ -63,6 +68,7 @@ struct dsScene
 	uint32_t sharedItemCount;
 	uint32_t pipelineCount;
 	uint32_t globalDataCount;
+	uint32_t globalValueCount;
 	dsHashTable* itemLists;
 
 	dsSceneTreeNode** dirtyNodes;

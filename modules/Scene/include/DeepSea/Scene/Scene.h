@@ -35,6 +35,7 @@ extern "C"
  * @brief Creates a scene.
  * @remark errno will be set on failure.
  * @param allocator The allocator to create the scene with. This must support freeing memory.
+ * @param renderer The renderer the scene will be drawn with.
  * @param sharedItems The item lists to run before the rest of the scene. (e.g. cull item lists)
  *     This will copy the array itself and take ownership of the objects. If creation fails, this
  *     means it will immediately destroy all objects in this list.
@@ -47,12 +48,36 @@ extern "C"
  *     array itself and take ownership of the objects. If creation fails, this means it will
  *     immediately destroy all objects in this list.
  * @param globalDataCount The number of global data instances.
+ * @param userData User data to hold with the scene.
+ * @param destroyUserDataFunc Function to destroy the user data for the scene.
  * @return The scene or NULL if an error occurred.
  */
-DS_SCENE_EXPORT dsScene* dsScene_create(dsAllocator* allocator,
+DS_SCENE_EXPORT dsScene* dsScene_create(dsAllocator* allocator, dsRenderer* renderer,
 	dsSceneItemList* const* sharedItems, uint32_t sharedItemCount,
 	const dsScenePipelineItem* pipeline, uint32_t pipelineCount,
-	dsSceneGlobalData* const* globalData, uint32_t globalDataCount);
+	dsSceneGlobalData* const* globalData, uint32_t globalDataCount, void* userData,
+	dsDestroySceneUserDataFunction destroyUserDataFunc);
+
+/**
+ * @brief Gets the allocator used for a scene.
+ * @param scene The scene to get the allocator for.
+ * @return The allocator.
+ */
+DS_SCENE_EXPORT dsAllocator* dsScene_getAllocator(const dsScene* scene);
+
+/**
+ * @brief Gets the renderer used for a scene.
+ * @param scene The scene to get the renderer for.
+ * @return The renderer.
+ */
+DS_SCENE_EXPORT dsRenderer* dsScene_getRenderer(const dsScene* scene);
+
+/**
+ * @brief Gets the user data used for a scene.
+ * @param scene The scene to get the user data for.
+ * @return The user data.
+ */
+DS_SCENE_EXPORT void* dsScene_getUserData(const dsScene* scene);
 
 /**
  * @brief Updates dirty nodes within the scene.

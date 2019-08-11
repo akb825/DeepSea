@@ -134,6 +134,13 @@ typedef struct dsSceneRenderPass
 	dsRenderPass* renderPass;
 
 	/**
+	 * @brief The name of the framebuffer.
+	 *
+	 * This will be copied when creating the scene.
+	 */
+	const char* framebuffer;
+
+	/**
 	 * @brief The scene item lists for each subpass.
 	 */
 	dsSubpassDrawLists* drawLists;
@@ -248,18 +255,160 @@ typedef struct dsSceneCullManager
 	uint32_t registeredIDCount;
 } dsSceneCullManager;
 
+/**
+ * @brief Info for a surface used within a view.
+ */
+typedef struct dsViewSurfaceInfo
+{
+	/**
+	 * @brief The name of the surface.
+	 *
+	 * This will be copied.
+	 */
+	const char* name;
+
+	/**
+	 * @brief The type of the surface.
+	 */
+	dsGfxSurfaceType surfaceType;
+
+	/**
+	 * @brief Info to be used to create the texture or renderbuffer when no surface is provided.
+	 */
+	dsTextureInfo createInfo;
+
+	/**
+	 * @brief When > 0, the width will be set to the view's width times widthRatio, otherwise the
+	 * width of createInfo will be used.
+	 *
+	 * The result will be rounded. This will be ignored if an existing surface was provided.
+	 */
+	float widthRatio;
+
+	/**
+	 * @brief When > 0, the height will be set to the view's height times heightRatio, otherwise the
+	 * height of createInfo will be used.
+	 *
+	 * The result will be rounded. This will be ignored if an existing surface was provided.
+	 */
+	float heightRatio;
+
+	/**
+	 * @brief The usage of the surface.
+	 *
+	 * This should be a combination of dsTextureUsage flags if surfaceType is
+	 * dsGfxSurfaceType_Offscreen or dsRenderbufferUsage flags if surfaceType is
+	 * dsGfxSurfaceType_Renderbuffer.
+	 *
+	 * This will be ignored if an existing surface was provided.
+	 */
+	uint32_t usage;
+
+	/**
+	 * @brief The memory hints for the surface.
+	 *
+	 * This will be ignored if an existing surface was provided.
+	 */
+	dsGfxMemory memoryHints;
+
+	/**
+	 * @brief True to resolve a created offscreen.
+	 *
+	 * This is ignored when not creating a surface or if the surface type isn't an offscreen.
+	 */
+	bool resolve;
+
+	/**
+	 * @brief The existing surface.
+	 *
+	 * When NULL, a surface will be created based on createInfo. surfaceType must be
+	 * dsGfxSurfaceTye_Offscreen or dsGfxSurfaceType_Renderbuffer if NULL.
+	 */
+	void* surface;
+} dsViewSurfaceInfo;
+
+/**
+ * @brief Info for a framebuffer used within the view.
+ */
+typedef struct dsViewFramebufferInfo
+{
+	/**
+	 * @brief The name fo the framebuffer.
+	 *
+	 * This will be copied.
+	 */
+	const char* name;
+
+	/**
+	 * @brief The list of surfaces.
+	 *
+	 * The surface pointer must be the name of the surface from dsViewSurfaceInfo. The array and
+	 * surface names will be copied.
+	 */
+	const dsFramebufferSurface* surfaces;
+
+	/**
+	 * @brief The number of surfaces.
+	 */
+	uint32_t surfaceCount;
+
+	/**
+	 * @brief The width of the framebuffer.
+	 *
+	 * When > 0, this is used as-is for the width. When < 0, it's treated as a ratio to multiply the
+	 * view's width. For example, a value of -1.0 is the view's width, while -0.5 is 1/2 the view's
+	 * width. The result will be rounded.
+	 */
+	float width;
+
+
+	/**
+	 * @brief The height of the framebuffer.
+	 *
+	 * When > 0, this is used as-is for the width. When < 0, it's treated as a ratio to multiply the
+	 * view's height. For example, a value of -1.0 is the view's height, while -0.5 is 1/2 the
+	 * view's height. The result will be rounded.
+	 */
+	float height;
+
+	/**
+	 * @brief The number of layers for the framebuffer.
+	 */
+	uint32_t layers;
+} dsViewFramebufferInfo;
+
 /** @copydoc dsView */
 struct dsView
 {
+	/**
+	 * @brief The scene to draw with the view.
+	 */
+	const dsScene* scene;
+
 	/**
 	 * @brief The allocator for the view.
 	 */
 	dsAllocator* allocator;
 
 	/**
-	 * @brief The scene to draw with the view.
+	 * @brief User data for the view.
 	 */
-	const dsScene* scene;
+	void* userData;
+
+	/**
+	 * @brief Function to destroy user data.
+	 */
+	dsDestroySceneUserDataFunction destroyUserDataFunc;
+
+	/**
+	 * @brief The width of the view.
+	 */
+	uint32_t width;
+
+	/**
+	 * @brief The height of the view.
+	 */
+	uint32_t height;
 
 	/**
 	 * @brief The camera matrix, transforming from camera to world.

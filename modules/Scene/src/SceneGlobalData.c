@@ -46,4 +46,3 @@ bool dsSceneGlobalData_destroy(dsSceneGlobalData* globalData)
 
 	return globalData->destroyFunc(globalData);
 }
-
