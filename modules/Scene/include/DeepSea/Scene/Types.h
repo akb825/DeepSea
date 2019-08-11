@@ -141,6 +141,14 @@ typedef struct dsSceneRenderPass
 	const char* framebuffer;
 
 	/**
+	 * @brief The clear values for the render pass.
+	 *
+	 * This may be NULL if no surfaces are cleared, otherwise it must have an element for each
+	 * attachment in the render pass. This will be copied when creating the scene.
+	 */
+	const dsSurfaceClearValue* clearValues;
+
+	/**
 	 * @brief The scene item lists for each subpass.
 	 */
 	dsSubpassDrawLists* drawLists;
@@ -183,11 +191,9 @@ typedef bool (*dsPopulateSceneGlobalDataFunction)(dsSceneGlobalData* globalData,
 
 /**
  * @brief Function for finishing the current set of global data.
- * @remark errno should be set on failure.
  * @param globalData The global data.
- * @return False if an error occurred.
  */
-typedef bool (*dsFinishSceneGlobalDataFunction)(dsSceneGlobalData* globalData);
+typedef void (*dsFinishSceneGlobalDataFunction)(dsSceneGlobalData* globalData);
 
 /**
  * @brief Function for destroying scene global data.
@@ -278,16 +284,16 @@ typedef struct dsViewSurfaceInfo
 	dsTextureInfo createInfo;
 
 	/**
-	 * @brief When > 0, the width will be set to the view's width times widthRatio, otherwise the
-	 * width of createInfo will be used.
+	 * @brief When the createInfo's width is set to 0, the width will be set to the view's width
+	 * times widthRatio.
 	 *
 	 * The result will be rounded. This will be ignored if an existing surface was provided.
 	 */
 	float widthRatio;
 
 	/**
-	 * @brief When > 0, the height will be set to the view's height times heightRatio, otherwise the
-	 * height of createInfo will be used.
+	 * @brief When the createInfo's height is set to 0, the height will be set to the view's height
+	 * times heightRatio.
 	 *
 	 * The result will be rounded. This will be ignored if an existing surface was provided.
 	 */
@@ -375,6 +381,13 @@ typedef struct dsViewFramebufferInfo
 	 * @brief The number of layers for the framebuffer.
 	 */
 	uint32_t layers;
+
+	/**
+	 * The viewport to draw to.
+	 *
+	 * The x and y values will be treated as a fraction of the overall framebuffer dimensions.
+	 */
+	dsAlignedBox3f viewport;
 } dsViewFramebufferInfo;
 
 /** @copydoc dsView */
@@ -436,13 +449,6 @@ struct dsView
 	 * @brief The view frustum.
 	 */
 	dsFrustum3f viewFrustum;
-
-	/**
-	 * @brief The viewport to draw to.
-	 *
-	 * This may be modified directly, though not in the middle of drawing a view.
-	 */
-	dsAlignedBox3f viewport;
 
 	/**
 	 * @brief Cull manager used when drawing the scene.

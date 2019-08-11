@@ -112,6 +112,46 @@ DS_SCENE_EXPORT bool dsView_setSurface(dsView* view, const char* name, void* sur
 	dsGfxSurfaceType surfaceType);
 
 /**
+ * @brief Sets the camera matrix.
+ *
+ * This will perform a fast inversion on the matrix to get the view matrix and update
+ * viewProjectionMatrix and viewFrustum.
+ *
+ * @remark errno will be set on failure.
+ * @param view The view to set the camera matrix on.
+ * @param camera The camera matrix.
+ * @return False if an error occurred.
+ */
+DS_SCENE_EXPORT bool dsView_setCameraMatrix(dsView* view, const dsMatrix44f* camera);
+
+/**
+ * @brief Sets the projection matrix.
+ *
+ * This will update viewProjectionMatrix and viewFrustum.
+ *
+ * @remark errno will be set on failure.
+ * @param view The view to set the projection matrix on.
+ * @param projection The projection matrix.
+ * @return False if an error occurred.
+ */
+DS_SCENE_EXPORT bool dsView_setProjectionMatrix(dsView* view, const dsMatrix44f* projection);
+
+/**
+ * @brief Sets the camera and projection matrices.
+ *
+ * This is equivalent to calling dsView_setCameraMatrix() and dsView_setProjectionMatrix(), except
+ * it avoids duplication of work when updating viewProjectionMatrix and viewFrustum.
+ *
+ * @remark errno will be set on failure.
+ * @param view The view to set the matrices on.
+ * @param camera The camera matrix.
+ * @param projection The projection matrix.
+ * @return False if an error occurred.
+ */
+DS_SCENE_EXPORT bool dsView_setCameraAndProjectionMatrices(dsView* view, const dsMatrix44f* camera,
+	const dsMatrix44f* projection);
+
+/**
  * @brief Updates the view.
  *
  * This will re-create any surfaces and framebuffers it needs to based on the size or anti-alias
@@ -121,6 +161,23 @@ DS_SCENE_EXPORT bool dsView_setSurface(dsView* view, const char* name, void* sur
  * @return False if the view couldn't be updated.
  */
 DS_SCENE_EXPORT bool dsView_update(dsView* view);
+
+/**
+ * @brief Draws a view.
+ *
+ * The following is expected to have happened before drawing:
+ * 1. dsScene_update() has been called.
+ * 2. dsView_update() has been called.
+ * 3. The command buffer is either the main command buffer or is a primary command buffer that
+ *    dsCommandBuffer_begin() has been called on.
+ * 4. dsRenderer_beginFrame() has been called.
+ * 5. dsRenderSurface_beginDraw() has been called.
+ *
+ * @remark errno will be set on failure.
+ * @param view The view to draw.
+ * @param commandBuffer The command buffer to draw to.
+ */
+DS_SCENE_EXPORT bool dsView_draw(dsView* view, dsCommandBuffer* commandBuffer);
 
 /**
  * @brief Destroys a view.

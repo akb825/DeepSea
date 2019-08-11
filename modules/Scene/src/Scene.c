@@ -87,15 +87,41 @@ static size_t fullAllocSize(uint32_t* outNameCount, dsSceneItemList* const* shar
 		if ((item->renderPass && item->computeItems) ||
 			(!item->renderPass && !item->computeItems))
 		{
+			DS_LOG_ERROR(DS_SCENE_LOG_TAG,
+				"A scene pipeline item must contain either a render pass or a compute item.");
 			return 0;
 		}
 
 		if (item->renderPass)
 		{
 			fullSize += DS_ALIGNED_SIZE(strlen(item->renderPass->framebuffer) + 1);
-			for (uint32_t j = 0; j < item->renderPass->renderPass->subpassCount; ++j)
+
+			const dsRenderPass* baseRenderPass = item->renderPass->renderPass;
+			for (uint32_t j = 0; j < baseRenderPass->attachmentCount; ++j)
+			{
+				if (baseRenderPass->attachments[j].usage & dsAttachmentUsage_Clear &&
+					!item->renderPass->clearValues)
+				{
+					DS_LOG_ERROR(DS_SCENE_LOG_TAG,
+						"Clear values must be provided if any attachment is cleared.");
+					return 0;
+				}
+			}
+
+			if (item->renderPass->clearValues)
+			{
+				fullSize +=
+					DS_ALIGNED_SIZE(sizeof(dsSurfaceClearValue)*baseRenderPass->attachmentCount);
+			}
+
+			for (uint32_t j = 0; j < baseRenderPass->subpassCount; ++j)
 			{
 				const dsSubpassDrawLists* items = item->renderPass->drawLists + j;
+				for (uint32_t k = 0; k < items->count; ++k)
+				{
+					if (!items->drawLists[k])
+						return 0;
+				}
 				*outNameCount += items->count;
 			}
 		}
@@ -212,16 +238,25 @@ dsScene* dsScene_create(dsAllocator* allocator, dsRenderer* renderer,
 
 	for (uint32_t i = 0; i < pipelineCount; ++i)
 	{
-		dsScenePipelineItem* item = scene->pipeline + i;
-		if (!item->renderPass)
+		dsSceneRenderPass* renderPass = scene->pipeline[i].renderPass;
+		if (!renderPass)
 			continue;
 
 		size_t framebufferLen = strlen(pipeline[i].renderPass->framebuffer) + 1;
-		item->renderPass->framebuffer =
-			DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, framebufferLen);
-		DS_ASSERT(item->renderPass->framebuffer);
-		memcpy((void*)item->renderPass->framebuffer, pipeline[i].renderPass->framebuffer,
-			framebufferLen);
+		renderPass->framebuffer = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, framebufferLen);
+		DS_ASSERT(renderPass->framebuffer);
+		memcpy((void*)renderPass->framebuffer, pipeline[i].renderPass->framebuffer, framebufferLen);
+
+		if (renderPass->clearValues && renderPass->renderPass->attachmentCount > 0)
+		{
+			renderPass->clearValues = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsSurfaceClearValue,
+				renderPass->renderPass->attachmentCount);
+			DS_ASSERT(renderPass->clearValues);
+			memcpy((void*)renderPass->clearValues, pipeline[i].renderPass->clearValues,
+				sizeof(dsSurfaceClearValue)*renderPass->renderPass->attachmentCount);
+		}
+		else
+			renderPass->clearValues = NULL;
 	}
 
 	scene->globalValueCount = 0;

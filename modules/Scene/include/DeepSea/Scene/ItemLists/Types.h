@@ -232,6 +232,11 @@ struct dsSceneItemList
 	uint32_t nameID;
 
 	/**
+	 * @brief Whether or not the command buffer is required.
+	 */
+	bool needsCommandBuffer;
+
+	/**
 	 * @brief Function for adding a node to the item list.
 	 */
 	dsAddSceneItemListNodeFunction addNodeFunc;

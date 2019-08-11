@@ -164,6 +164,7 @@ dsSceneItemList* dsViewCullList_create(dsAllocator* allocator, const char* name)
 	itemList->name = DS_ALLOCATE_OBJECT_ARRAY(allocator, char, nameLen + 1);
 	memcpy((void*)itemList->name, name, nameLen + 1);
 	itemList->nameID = dsHashString(name);
+	itemList->needsCommandBuffer = false;
 	itemList->addNodeFunc = &dsViewCullList_addNode;
 	itemList->updateNodeFunc = NULL;
 	itemList->removeNodeFunc = &dsViewCullList_removeNode;

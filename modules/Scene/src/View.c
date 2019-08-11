@@ -31,7 +31,9 @@
 #include <DeepSea/Render/Resources/Renderbuffer.h>
 #include <DeepSea/Render/Resources/SharedMaterialValues.h>
 #include <DeepSea/Render/Resources/Texture.h>
+#include <DeepSea/Render/RenderPass.h>
 #include <DeepSea/Scene/SceneCullManager.h>
+#include <DeepSea/Scene/SceneGlobalData.h>
 #include <string.h>
 
 typedef struct IndexNode
@@ -157,6 +159,18 @@ static bool validateSurfacesFramebuffers(const dsResourceManager* resourceManage
 				return false;
 			}
 		}
+
+		for (uint32_t j = 0; j < 3; ++j)
+		{
+			if (framebuffer->viewport.min.values[j] < 0.0f ||
+				framebuffer->viewport.max.values[j] > 1.0f)
+			{
+				errno = EINVAL;
+				DS_LOG_ERROR(DS_SCENE_LOG_TAG,
+					"View framebuffer viewport values must be in the range [0, 1].");
+				return false;
+			}
+		}
 	}
 
 	return true;
@@ -169,6 +183,14 @@ static void destroyMidCreate(dsView* view)
 		view->destroyUserDataFunc(view->userData);
 	if (view->allocator)
 		DS_VERIFY(dsAllocator_free(view->allocator, view));
+}
+
+static void updatedCameraProjection(dsView* view)
+{
+	dsRenderer* renderer = view->scene->renderer;
+	dsMatrix44_mul(view->viewProjectionMatrix, view->projectionMatrix, view->viewMatrix);
+	dsFrustum3_fromMatrix(view->viewFrustum, view->viewProjectionMatrix, renderer->clipHalfDepth,
+		renderer->clipInvertY);
 }
 
 uint32_t dsView_registerCullID(const dsView* view, dsSceneCullID cullID)
@@ -253,12 +275,6 @@ dsView* dsView_create(const dsScene* scene, dsAllocator* allocator,
 	dsMatrix44_identity(view->viewProjectionMatrix);
 	dsFrustum3_fromMatrix(view->viewFrustum, view->viewProjectionMatrix, renderer->clipHalfDepth,
 		renderer->clipInvertY);
-	view->viewport.min.x = 0;
-	view->viewport.min.y = 0;
-	view->viewport.min.z = 0;
-	view->viewport.max.x = (float)width;
-	view->viewport.max.y = (float)height;
-	view->viewport.max.z = 1;
 	dsSceneCullManager_reset(&view->cullManager);
 
 	if (scene->globalValueCount > 0)
@@ -302,7 +318,7 @@ dsView* dsView_create(const dsScene* scene, dsAllocator* allocator,
 			(dsHashTableNode*)node, NULL))
 		{
 			errno = EINVAL;
-			DS_LOG_ERROR_F(DS_SCENE_LOG_TAG, "Surface '%s' provided multiple times to the view.",
+			DS_LOG_ERROR_F(DS_SCENE_LOG_TAG, "Surface '%s' isn't unique within the view.",
 				surfaceInfo->name);
 			destroyMidCreate(view);
 			return NULL;
@@ -472,6 +488,49 @@ bool dsView_setSurface(dsView* view, const char* name, void* surface, dsGfxSurfa
 	return true;
 }
 
+bool dsView_setCameraMatrix(dsView* view, const dsMatrix44f* camera)
+{
+	if (!view || !camera)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	view->cameraMatrix = *camera;
+	dsMatrix44_fastInvert(view->viewMatrix, *camera);
+	updatedCameraProjection(view);
+	return true;
+}
+
+bool dsView_setProjectionMatrix(dsView* view, const dsMatrix44f* projection)
+{
+	if (!view || !projection)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	view->projectionMatrix = *projection;
+	updatedCameraProjection(view);
+	return true;
+}
+
+bool dsView_setCameraAndProjectionMatrices(dsView* view, const dsMatrix44f* camera,
+	const dsMatrix44f* projection)
+{
+	if (!view || !camera || !projection)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	view->cameraMatrix = *camera;
+	dsMatrix44_fastInvert(view->viewMatrix, *camera);
+	view->projectionMatrix = *projection;
+	updatedCameraProjection(view);
+	return true;
+}
+
 bool dsView_update(dsView* view)
 {
 	if (!view)
@@ -606,6 +665,93 @@ bool dsView_update(dsView* view)
 	privateView->sizeUpdated = false;
 	privateView->surfaceSet = false;
 	privateView->lastSurfaceSamples = renderer->surfaceSamples;
+	return true;
+}
+
+bool dsView_draw(dsView* view, dsCommandBuffer* commandBuffer)
+{
+	if (!view || !commandBuffer)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	dsViewPrivate* privateView = (dsViewPrivate*)view;
+	const dsScene* scene = view->scene;
+	DS_VERIFY(dsSceneCullManager_reset(&view->cullManager));
+
+	// First setup the global data.
+	for (uint32_t i = 0; i < scene->globalDataCount; ++i)
+	{
+		dsSceneGlobalData* globalData = scene->globalData[i];
+		if (!dsSceneGlobalData_populateData(globalData, view))
+			return false;
+	}
+
+	// Then process the shared items.
+	for (uint32_t i = 0; i < scene->sharedItemCount; ++i)
+	{
+		dsSceneItemList* itemList = scene->sharedItems[i];
+		itemList->commitFunc(itemList, view, commandBuffer);
+	}
+
+	// Then process the scene pipeline.
+	for (uint32_t i = 0; i < scene->pipelineCount; ++i)
+	{
+		dsSceneRenderPass* sceneRenderPass = scene->pipeline[i].renderPass;
+		if (sceneRenderPass)
+		{
+			dsRenderPass* renderPass = sceneRenderPass->renderPass;
+
+			uint32_t framebufferIndex = privateView->pipelineFramebuffers[i];
+			const dsViewFramebufferInfo* framebufferInfo =
+				privateView->framebufferInfos + framebufferIndex;
+			dsFramebuffer* framebuffer = privateView->framebuffers[framebufferIndex];
+
+			dsAlignedBox3f viewport = framebufferInfo->viewport;
+			viewport.min.x *= (float)framebuffer->width;
+			viewport.max.x *= (float)framebuffer->width;
+			viewport.min.y *= (float)framebuffer->height;
+			viewport.max.y *= (float)framebuffer->height;
+			uint32_t clearValueCount =
+				sceneRenderPass->clearValues ? sceneRenderPass->renderPass->attachmentCount : 0;
+			if (!dsRenderPass_begin(renderPass, commandBuffer, framebuffer, &viewport,
+					sceneRenderPass->clearValues, clearValueCount))
+			{
+				return false;
+			}
+
+			for (uint32_t j = 0; j < renderPass->subpassCount; ++j)
+			{
+				dsSubpassDrawLists* drawLists = sceneRenderPass->drawLists + j;
+				for (uint32_t k = 0; k < drawLists->count; ++k)
+				{
+					dsSceneItemList* itemList = drawLists->drawLists[k];
+					itemList->commitFunc(itemList, view, commandBuffer);
+				}
+
+				if (j != renderPass->subpassCount - 1)
+					DS_VERIFY(dsRenderPass_nextSubpass(renderPass, commandBuffer));
+			}
+
+			DS_VERIFY(dsRenderPass_end(renderPass, commandBuffer));
+		}
+		else
+		{
+			dsSceneItemList* computeItems = scene->pipeline[i].computeItems;
+			DS_ASSERT(computeItems);
+			computeItems->commitFunc(computeItems, view, commandBuffer);
+		}
+	}
+
+	// Cleanup global data.
+	for (uint32_t i = 0; i < scene->globalDataCount; ++i)
+	{
+		dsSceneGlobalData* globalData = scene->globalData[i];
+		if (globalData->finishFunc)
+			dsSceneGlobalData_finish(globalData);
+	}
+
 	return true;
 }
 

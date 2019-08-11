@@ -30,13 +30,15 @@ bool dsSceneGlobalData_populateData(dsSceneGlobalData* globalData, const dsView*
 
 bool dsSceneGlobalData_finish(dsSceneGlobalData* globalData)
 {
-	if (!globalData || !globalData->finishFunc)
+	if (!globalData)
 	{
 		errno = EINVAL;
 		return false;
 	}
 
-	return globalData->finishFunc(globalData);
+	if (globalData->finishFunc)
+		globalData->finishFunc(globalData);
+	return true;
 }
 
 bool dsSceneGlobalData_destroy(dsSceneGlobalData* globalData)
