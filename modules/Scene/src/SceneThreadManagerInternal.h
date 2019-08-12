@@ -14,13 +14,10 @@
  * limitations under the License.
  */
 
-#include <DeepSea/Scene/SceneGlobalData.h>
-#include <DeepSea/Core/Error.h>
+#pragma once
 
-bool dsSceneGlobalData_destroy(dsSceneGlobalData* globalData)
-{
-	if (!globalData || !globalData->destroyFunc)
-		return true;
+#include <DeepSea/Scene/Types.h>
 
-	return globalData->destroyFunc(globalData);
-}
+bool dsSceneThreadManager_draw(dsSceneThreadManager* threadManager, const dsView* view,
+	dsCommandBuffer* commandBuffer, const dsViewFramebufferInfo* framebufferInfos,
+	dsFramebuffer** framebuffers, const uint32_t* pipelineFramebuffers);

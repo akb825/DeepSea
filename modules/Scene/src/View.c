@@ -16,6 +16,7 @@
 
 #include <DeepSea/Scene/View.h>
 
+#include "SceneThreadManagerInternal.h"
 #include "SceneTypes.h"
 #include <DeepSea/Core/Containers/Hash.h>
 #include <DeepSea/Core/Containers/HashTable.h>
@@ -23,6 +24,7 @@
 #include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
+#include <DeepSea/Core/Profile.h>
 #include <DeepSea/Geometry/Frustum3.h>
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Math/Matrix44.h>
@@ -533,10 +535,11 @@ bool dsView_setCameraAndProjectionMatrices(dsView* view, const dsMatrix44f* came
 
 bool dsView_update(dsView* view)
 {
+	DS_PROFILE_FUNC_START();
 	if (!view)
 	{
 		errno = EINVAL;
-		return false;
+		DS_PROFILE_FUNC_RETURN(false);
 	}
 
 	dsViewPrivate* privateView = (dsViewPrivate*)view;
@@ -546,7 +549,7 @@ bool dsView_update(dsView* view)
 	bool surfaceSet = privateView->surfaceSet;
 	bool samplesChanged = privateView->lastSurfaceSamples != renderer->surfaceSamples;
 	if (!sizeChanged && !surfaceSet && !samplesChanged)
-		return true;
+		DS_PROFILE_FUNC_RETURN(true);
 
 	for (uint32_t i = 0; i < privateView->surfaceCount; ++i)
 	{
@@ -587,7 +590,7 @@ bool dsView_update(dsView* view)
 					surfaceInfo->usage, surfaceInfo->memoryHints, &textureInfo,
 					surfaceInfo->resolve);
 				if (!offscreen)
-					return false;
+					DS_PROFILE_FUNC_RETURN(false);
 
 				DS_VERIFY(dsTexture_destroy((dsTexture*)privateView->surfaces[i]));
 				privateView->surfaces[i] = offscreen;
@@ -599,7 +602,7 @@ bool dsView_update(dsView* view)
 					view->allocator, surfaceInfo->usage, surfaceInfo->createInfo.format, width,
 					height, surfaceInfo->createInfo.samples);
 				if (!renderbuffer)
-					return false;
+					DS_PROFILE_FUNC_RETURN(false);
 
 				DS_VERIFY(dsRenderbuffer_destroy((dsRenderbuffer*)privateView->surfaces[i]));
 				privateView->surfaces[i] = renderbuffer;
@@ -618,7 +621,7 @@ bool dsView_update(dsView* view)
 		privateView->sizeUpdated = false;
 		privateView->surfaceSet = false;
 		privateView->lastSurfaceSamples = renderer->surfaceSamples;
-		return true;
+		DS_PROFILE_FUNC_RETURN(true);
 	}
 
 	// Re-create all framebuffers to avoid complicated logic to decide which ones specifically need
@@ -656,7 +659,7 @@ bool dsView_update(dsView* view)
 			framebufferInfo->name, privateView->tempSurfaces, framebufferInfo->surfaceCount, width,
 			height, framebufferInfo->layers);
 		if (!framebuffer)
-			return false;
+			DS_PROFILE_FUNC_RETURN(false);
 
 		DS_VERIFY(dsFramebuffer_destroy(privateView->framebuffers[i]));
 		privateView->framebuffers[i] = framebuffer;
@@ -665,15 +668,16 @@ bool dsView_update(dsView* view)
 	privateView->sizeUpdated = false;
 	privateView->surfaceSet = false;
 	privateView->lastSurfaceSamples = renderer->surfaceSamples;
-	return true;
+	DS_PROFILE_FUNC_RETURN(true);
 }
 
-bool dsView_draw(dsView* view, dsCommandBuffer* commandBuffer)
+bool dsView_draw(dsView* view, dsCommandBuffer* commandBuffer, dsSceneThreadManager* threadManager)
 {
+	DS_PROFILE_FUNC_START();
 	if (!view || !commandBuffer)
 	{
 		errno = EINVAL;
-		return false;
+		DS_PROFILE_FUNC_RETURN(false);
 	}
 
 	dsViewPrivate* privateView = (dsViewPrivate*)view;
@@ -684,8 +688,16 @@ bool dsView_draw(dsView* view, dsCommandBuffer* commandBuffer)
 	for (uint32_t i = 0; i < scene->globalDataCount; ++i)
 	{
 		dsSceneGlobalData* globalData = scene->globalData[i];
-		if (!dsSceneGlobalData_populateData(globalData, view))
-			return false;
+		if (!globalData->populateDataFunc(globalData, view))
+			DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	if (threadManager)
+	{
+		bool result = dsSceneThreadManager_draw(threadManager, view, commandBuffer,
+			privateView->framebufferInfos, privateView->framebuffers,
+			privateView->pipelineFramebuffers);
+		DS_PROFILE_FUNC_RETURN(result);
 	}
 
 	// Then process the shared items.
@@ -718,7 +730,7 @@ bool dsView_draw(dsView* view, dsCommandBuffer* commandBuffer)
 			if (!dsRenderPass_begin(renderPass, commandBuffer, framebuffer, &viewport,
 					sceneRenderPass->clearValues, clearValueCount))
 			{
-				return false;
+				DS_PROFILE_FUNC_RETURN(false);
 			}
 
 			for (uint32_t j = 0; j < renderPass->subpassCount; ++j)
@@ -749,10 +761,10 @@ bool dsView_draw(dsView* view, dsCommandBuffer* commandBuffer)
 	{
 		dsSceneGlobalData* globalData = scene->globalData[i];
 		if (globalData->finishFunc)
-			dsSceneGlobalData_finish(globalData);
+			globalData->finishFunc(globalData);
 	}
 
-	return true;
+	DS_PROFILE_FUNC_RETURN(true);
 }
 
 bool dsView_destroy(dsView* view)

@@ -32,24 +32,6 @@ extern "C"
  */
 
 /**
- * @brief Populates the global data.
- * @remark errno will be set on failure.
- * @param globalData The global data.
- * @param view The view being drawn.
- * @return False if the data couldn't be set.
- */
-DS_SCENE_EXPORT bool dsSceneGlobalData_populateData(dsSceneGlobalData* globalData,
-	const dsView* view);
-
-/**
- * @brief Finishes the current set of global data.
- * @remark errno will be set on failure.
- * @param globalData The global data.
- * @return False if an error occurred.
- */
-DS_SCENE_EXPORT bool dsSceneGlobalData_finish(dsSceneGlobalData* globalData);
-
-/**
  * @brief Destroys a scene global data object.
  * @remark errno will be set on failure.
  * @param globalData The global data to destroy.

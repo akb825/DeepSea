@@ -17,7 +17,6 @@
 #pragma once
 
 #include <DeepSea/Core/Config.h>
-#include <DeepSea/Core/Types.h>
 #include <DeepSea/Scene/Export.h>
 #include <DeepSea/Scene/Types.h>
 
@@ -174,10 +173,17 @@ DS_SCENE_EXPORT bool dsView_update(dsView* view);
  * 5. dsRenderSurface_beginDraw() has been called.
  *
  * @remark errno will be set on failure.
+ * @remark Views may be drawn concurrently, but not views that share the same scene or thread
+ *     manager. In general, it's best to draw views on the main thread and use a thread manager to
+ *     use multiple threads within a draw.
  * @param view The view to draw.
  * @param commandBuffer The command buffer to draw to.
+ * @param threadManager The thread manager for multithreaded rendering. This may be NULL to draw
+ *     without the help of extra threads.
+ * @return False if an error occurred.
  */
-DS_SCENE_EXPORT bool dsView_draw(dsView* view, dsCommandBuffer* commandBuffer);
+DS_SCENE_EXPORT bool dsView_draw(dsView* view, dsCommandBuffer* commandBuffer,
+	dsSceneThreadManager* threadManager);
 
 /**
  * @brief Destroys a view.
@@ -190,4 +196,3 @@ DS_SCENE_EXPORT bool dsView_destroy(dsView* view);
 #ifdef __cplusplus
 }
 #endif
-

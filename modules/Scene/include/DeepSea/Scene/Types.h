@@ -463,6 +463,16 @@ struct dsView
 	dsSharedMaterialValues* globalValues;
 };
 
+/**
+ * @brief Struct that manages threads used to draw across multiple threads.
+ *
+ * A thread manager may optionally be provided to dsView_draw() to perform draws across multiple
+ * threads. The same thread manager may not itself be used concurrently across threads.
+ *
+ * @see SceneThreadManager.h
+ */
+typedef struct dsSceneThreadManager dsSceneThreadManager;
+
 #ifdef __cplusplus
 }
 #endif
