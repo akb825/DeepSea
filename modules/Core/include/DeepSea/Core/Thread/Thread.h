@@ -32,6 +32,12 @@ extern "C"
  */
 
 /**
+ * @brief Gets the number of logical cores on the current device.
+ * @return The number of cores, or 0 if it couldn't be determined.
+ */
+DS_CORE_EXPORT unsigned int dsThread_logicalCoreCount(void);
+
+/**
  * @brief Creates a thread.
  * @remark errno will be set on failure.
  * @param[out] thread The thread to create.

@@ -62,6 +62,17 @@ static dsThreadReturnType threadWrapperFunc(void* data)
 	return function(userData);
 }
 
+unsigned int dsThread_logicalCoreCount(void)
+{
+#if DS_WINDOWS
+	SYSTEM_INFO sysinfo;
+	GetSystemInfo(&sysinfo);
+	return sysinfo.dwNumberOfProcessors;
+#else
+	return sysconf(_SC_NPROCESSORS_ONLN);
+#endif
+}
+
 bool dsThread_create(dsThread* thread, dsThreadFunction function, void* userData,
 	unsigned int stackSize, const char* name)
 {

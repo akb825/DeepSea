@@ -19,6 +19,7 @@
 #include <DeepSea/Core/Thread/Mutex.h>
 #include <DeepSea/Core/Thread/Thread.h>
 #include <DeepSea/Core/Timer.h>
+#include <thread>
 #include <gtest/gtest.h>
 
 namespace
@@ -80,6 +81,11 @@ dsThreadReturnType threadId(void* data)
 }
 
 } // namespace
+
+TEST(Thread, LogicalCoreCount)
+{
+	EXPECT_EQ(std::thread::hardware_concurrency(), dsThread_logicalCoreCount());
+}
 
 TEST(Thread, Join)
 {
