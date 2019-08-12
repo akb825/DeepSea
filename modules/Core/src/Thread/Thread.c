@@ -69,7 +69,7 @@ unsigned int dsThread_logicalCoreCount(void)
 	GetSystemInfo(&sysinfo);
 	return sysinfo.dwNumberOfProcessors;
 #else
-	return sysconf(_SC_NPROCESSORS_ONLN);
+	return (unsigned int)sysconf(_SC_NPROCESSORS_ONLN);
 #endif
 }
 
