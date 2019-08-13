@@ -874,12 +874,12 @@ dsRenderer* dsMTLRenderer_create(dsAllocator* allocator, const dsRendererOptions
 #endif
 
 #if __MAC_OS_X_VERSION_MIN_REQUIRED >= 101200
-		baseRenderer->hasDualSrcBlending = true;
+		baseRenderer->hasDualSrcBlend = true;
 #elif __IPHONE_OS_VERSION_MIN_REQUIRED >= 110000
-		baseRenderer->hasDualSrcBlending = baseRenderer->hasDepthClamp =
+		baseRenderer->hasDualSrcBlend = baseRenderer->hasDepthClamp =
 			[device supportsFeatureSet: MTLFeatureSet_iOS_GPUFamily4_v1];
 #else
-		baseRenderer->hasDualSrcBlending = false;
+		baseRenderer->hasDualSrcBlend = false;
 		baseRenderer->hasDepthClamp = false;
 #endif
 

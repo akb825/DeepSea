@@ -192,9 +192,9 @@ static void setDepthStencilState(id<MTLRenderCommandEncoder> encoder,
 
 static void setDynamicDepthState(id<MTLRenderCommandEncoder> encoder,
 	const mslRenderState* renderStates, const dsDynamicRenderStates* dynamicStates,
-	bool dynamicOnly, bool supportsDepthClip)
+	bool dynamicOnly, bool hasDepthClip)
 {
-	DS_UNUSED(supportsDepthClip);
+	DS_UNUSED(hasDepthClip);
 	if (renderStates->depthStencilState.depthWriteEnable == mslBool_False)
 		return;
 
@@ -222,7 +222,7 @@ static void setDynamicDepthState(id<MTLRenderCommandEncoder> encoder,
 		return;
 
 #if DS_MAC || __IPHONE_OS_VERSION_MIN_REQUIRED >= 110000
-	if (supportsDepthClip)
+	if (hasDepthClip)
 	{
 		[encoder setDepthClipMode:
 			renderStates->rasterizationState.depthClampEnable == mslBool_True ?
@@ -1218,7 +1218,7 @@ bool dsMTLHardwareCommandBuffer_draw(dsCommandBuffer* commandBuffer,
 	}
 
 #if DS_MAC || __IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
-	if (commandBuffer->renderer->supportsStartInstance || DS_MAC)
+	if (commandBuffer->renderer->hasStartInstance || DS_MAC)
 	{
 		[encoder drawPrimitives: getPrimitiveType(primitiveType) vertexStart: drawRange->firstVertex
 			vertexCount: drawRange->vertexCount instanceCount: drawRange->instanceCount
@@ -1250,7 +1250,7 @@ bool dsMTLHardwareCommandBuffer_drawIndexed(dsCommandBuffer* commandBuffer,
 	}
 
 #if DS_MAC || __IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
-	if (commandBuffer->renderer->supportsStartInstance || DS_MAC)
+	if (commandBuffer->renderer->hasStartInstance || DS_MAC)
 	{
 		[encoder drawIndexedPrimitives: getPrimitiveType(primitiveType)
 			indexCount: drawRange->indexCount indexType: getIndexType(indexSize)
