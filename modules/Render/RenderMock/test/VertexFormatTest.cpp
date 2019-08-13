@@ -110,6 +110,6 @@ TEST_F(VertexFormatTest, IsValid)
 	resourceManager->maxVertexAttribs = 16;
 	vertexFormat.divisor = 10;
 	EXPECT_TRUE(dsVertexFormat_isValid(resourceManager, &vertexFormat));
-	resourceManager->renderer->supportsInstancedDrawing = false;
+	resourceManager->renderer->hasInstancedDrawing = false;
 	EXPECT_FALSE(dsVertexFormat_isValid(resourceManager, &vertexFormat));
 }

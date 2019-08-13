@@ -848,7 +848,7 @@ bool dsRenderer_draw(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	if (!renderer->supportsInstancedDrawing && (drawRange->firstInstance != 0 ||
+	if (!renderer->hasInstancedDrawing && (drawRange->firstInstance != 0 ||
 		drawRange->instanceCount != 1))
 	{
 		errno = EPERM;
@@ -857,7 +857,7 @@ bool dsRenderer_draw(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	if (!renderer->supportsStartInstance && drawRange->firstInstance != 0 )
+	if (!renderer->hasStartInstance && drawRange->firstInstance != 0 )
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
@@ -903,7 +903,7 @@ bool dsRenderer_drawIndexed(dsRenderer* renderer, dsCommandBuffer* commandBuffer
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	if (!renderer->supportsInstancedDrawing && (drawRange->firstInstance != 0 ||
+	if (!renderer->hasInstancedDrawing && (drawRange->firstInstance != 0 ||
 		drawRange->instanceCount != 1))
 	{
 		errno = EPERM;
@@ -912,7 +912,7 @@ bool dsRenderer_drawIndexed(dsRenderer* renderer, dsCommandBuffer* commandBuffer
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	if (!renderer->supportsStartInstance && drawRange->firstInstance != 0 )
+	if (!renderer->hasStartInstance && drawRange->firstInstance != 0 )
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,

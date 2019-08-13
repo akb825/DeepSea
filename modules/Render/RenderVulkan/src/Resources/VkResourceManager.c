@@ -796,6 +796,7 @@ dsResourceManager* dsVkResourceManager_create(dsAllocator* allocator, dsVkRender
 	baseResourceManager->hasFragmentWrites = features->fragmentStoresAndAtomics != 0;
 	baseResourceManager->hasFences = true;
 	baseResourceManager->hasQueries = true;
+	baseResourceManager->hasPreciseOcclusionQueries = features->occlusionQueryPrecise;
 	baseResourceManager->has64BitQueries = true;
 	baseResourceManager->hasQueryBuffers = true;
 	baseResourceManager->timestampPeriod = limits->timestampPeriod;

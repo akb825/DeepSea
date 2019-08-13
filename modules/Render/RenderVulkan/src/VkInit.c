@@ -865,6 +865,22 @@ bool dsCreateVkDevice(dsVkDevice* device, dsAllocator* allocator, const dsRender
 	// We don't need these features.
 	device->features.robustBufferAccess = false;
 	device->features.largePoints = false;
+	device->features.pipelineStatisticsQuery = false;
+	device->features.shaderUniformBufferArrayDynamicIndexing = false;
+	device->features.shaderSampledImageArrayDynamicIndexing = false;
+	device->features.shaderStorageBufferArrayDynamicIndexing = false;
+	device->features.shaderStorageImageArrayDynamicIndexing = false;
+	device->features.shaderResourceResidency = false;
+	device->features.sparseBinding = false;
+	device->features.sparseResidencyBuffer = false;
+	device->features.sparseResidencyImage2D = false;
+	device->features.sparseResidencyImage3D = false;
+	device->features.sparseResidency2Samples = false;
+	device->features.sparseResidency4Samples = false;
+	device->features.sparseResidency8Samples = false;
+	device->features.sparseResidency16Samples = false;
+	device->features.sparseResidencyAliased = false;
+	device->features.variableMultisampleRate = false;
 
 	float queuePriority = 1.0f;
 	device->queueFamilyIndex = findQueueFamily(instance, device->physicalDevice);

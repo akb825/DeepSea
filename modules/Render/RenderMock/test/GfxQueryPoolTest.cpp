@@ -42,6 +42,11 @@ TEST_F(GfxQueryPoolTest, Create)
 	EXPECT_TRUE(queries);
 	EXPECT_TRUE(dsGfxQueryPool_destroy(queries));
 
+	resourceManager->hasPreciseOcclusionQueries = false;
+	queries = dsGfxQueryPool_create(resourceManager, NULL, dsGfxQueryType_SamplesPassed, 10);
+	EXPECT_FALSE(queries);
+
+	resourceManager->hasPreciseOcclusionQueries = true;
 	resourceManager->timestampPeriod = 0.0f;
 	EXPECT_FALSE(dsGfxQueryPool_create(resourceManager, NULL, dsGfxQueryType_Timestamp, 10));
 

@@ -418,7 +418,8 @@ typedef enum dsGfxFenceResult
  */
 typedef enum dsGfxQueryType
 {
-	dsGfxQueryType_SamplesPassed,    ///< The number of samples that pass the depth test.
+	dsGfxQueryType_SamplesPassed,    ///< The number of samples that pass the depth test. Not
+	                                 ///< allowed if hasPreciseOcclusionQueries is false.
 	dsGfxQueryType_AnySamplesPassed, ///< Non-zero if any samples passed.
 	dsGfxQueryType_Timestamp         ///< The current timestamp on the GPU in ns.
 } dsGfxQueryType;
@@ -2111,6 +2112,11 @@ struct dsResourceManager
 	 * @brief True if queries are supported.
 	 */
 	bool hasQueries;
+
+	/**
+	 * @brief True if precise occlusion queries are supported.
+	 */
+	bool hasPreciseOcclusionQueries;
 
 	/**
 	 * @brief True if query values may be 64 bits.

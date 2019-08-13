@@ -39,7 +39,7 @@ dsGfxQueryPool* dsVkGfxQueryPool_create(dsResourceManager* resourceManager,
 	{
 		case dsGfxQueryType_SamplesPassed:
 		case dsGfxQueryType_AnySamplesPassed:
-			vkType = VK_QUERY_TYPE_TIMESTAMP;
+			vkType = VK_QUERY_TYPE_OCCLUSION;
 			break;
 		case dsGfxQueryType_Timestamp:
 			vkType = VK_QUERY_TYPE_TIMESTAMP;
@@ -117,7 +117,7 @@ bool dsVkGfxQueryPool_beginQuery(dsResourceManager* resourceManager, dsCommandBu
 		return false;
 
 	VkQueryControlFlags flags = 0;
-	if (queries->type == dsGfxQueryType_SamplesPassed)
+	if (device->features.occlusionQueryPrecise && queries->type == dsGfxQueryType_SamplesPassed)
 		flags = VK_QUERY_CONTROL_PRECISE_BIT;
 	DS_VK_CALL(device->vkCmdBeginQuery)(vkCommandBuffer, vkQueries->vkQueries, query, flags);
 	return true;

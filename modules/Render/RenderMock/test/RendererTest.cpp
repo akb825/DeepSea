@@ -344,14 +344,14 @@ TEST_F(RendererTest, Draw)
 	EXPECT_TRUE(dsRenderer_draw(renderer, commandBuffer, geometry, &drawRange,
 		dsPrimitiveType_TriangleList));
 
-	renderer->supportsInstancedDrawing = false;
+	renderer->hasInstancedDrawing = false;
 	EXPECT_FALSE(dsRenderer_draw(renderer, commandBuffer, geometry, &drawRange,
 		dsPrimitiveType_TriangleList));
 
 	EXPECT_TRUE(dsShader_unbind(shader, commandBuffer));
 	EXPECT_TRUE(dsRenderPass_end(renderPass, commandBuffer));
 
-	renderer->supportsInstancedDrawing = true;
+	renderer->hasInstancedDrawing = true;
 	EXPECT_FALSE(dsRenderer_draw(renderer, commandBuffer, geometry, &drawRange,
 		dsPrimitiveType_TriangleList));
 
@@ -421,14 +421,14 @@ TEST_F(RendererTest, DrawIndexed)
 	EXPECT_TRUE(dsRenderer_drawIndexed(renderer, commandBuffer, geometry1, &drawRange,
 		dsPrimitiveType_TriangleList));
 
-	renderer->supportsInstancedDrawing = false;
+	renderer->hasInstancedDrawing = false;
 	EXPECT_FALSE(dsRenderer_drawIndexed(renderer, commandBuffer, geometry1, &drawRange,
 		dsPrimitiveType_TriangleList));
 
 	EXPECT_TRUE(dsShader_unbind(shader, commandBuffer));
 	EXPECT_TRUE(dsRenderPass_end(renderPass, commandBuffer));
 
-	renderer->supportsInstancedDrawing = true;
+	renderer->hasInstancedDrawing = true;
 	EXPECT_FALSE(dsRenderer_drawIndexed(renderer, commandBuffer, geometry1, &drawRange,
 		dsPrimitiveType_TriangleList));
 

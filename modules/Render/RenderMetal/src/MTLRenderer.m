@@ -577,7 +577,7 @@ bool dsMTLRenderer_drawIndexed(dsRenderer* renderer, dsCommandBuffer* commandBuf
 		if (!indexBuffer)
 			return false;
 
-		int32_t vertexOffset = renderer->supportsStartInstance ? 0 : drawRange->vertexOffset;
+		int32_t vertexOffset = renderer->hasStartInstance ? 0 : drawRange->vertexOffset;
 		if (!bindVertexBuffers(commandBuffer, shader, geometry, vertexOffset))
 			return false;
 
@@ -862,15 +862,36 @@ dsRenderer* dsMTLRenderer_create(dsAllocator* allocator, const dsRendererOptions
 
 		// Enough optimizations that might as well consider multidraw native.
 		baseRenderer->hasNativeMultidraw = true;
-		baseRenderer->supportsInstancedDrawing = true;
+		baseRenderer->hasInstancedDrawing = true;
+
 #if DS_MAC
-		baseRenderer->supportsStartInstance = true;
+		baseRenderer->hasStartInstance = true;
 #elif __IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
-		baseRenderer->supportsStartInstance =
+		baseRenderer->hasStartInstance =
 			[device supportsFeatureSet: MTLFeatureSet_iOS_GPUFamily3_v1];
 #else
-		baseRenderer->supportsStartInstance = true;
+		baseRenderer->hasStartInstance = true;
 #endif
+
+#if __MAC_OS_X_VERSION_MIN_REQUIRED >= 101200
+		baseRenderer->hasDualSrcBlending = true;
+#elif __IPHONE_OS_VERSION_MIN_REQUIRED >= 110000
+		baseRenderer->hasDualSrcBlending = baseRenderer->hasDepthClamp =
+			[device supportsFeatureSet: MTLFeatureSet_iOS_GPUFamily4_v1];
+#else
+		baseRenderer->hasDualSrcBlending = false;
+		baseRenderer->hasDepthClamp = false;
+#endif
+
+#if DS_MAC
+		baseRenderer->hasDepthClamp = true;
+#endif
+
+		baseRenderer->hasIndependentBlend = true;
+		baseRenderer->hasLogicOps = false;
+		baseRenderer->hasSampleShading = false;
+		baseRenderer->hasDepthBounds = true;
+		baseRenderer->hasDepthBiasClamp = true;
 		baseRenderer->defaultAnisotropy = 1.0f;
 
 		baseRenderer->resourceManager = dsMTLResourceManager_create(allocator, baseRenderer);

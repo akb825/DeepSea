@@ -1718,12 +1718,47 @@ struct dsRenderer
 	/**
 	 * @brief Whether or not instanced drawing is supported.
 	 */
-	bool supportsInstancedDrawing;
+	bool hasInstancedDrawing;
 
 	/**
 	 * @brief Whether or not the first instance can be set.
 	 */
-	bool supportsStartInstance;
+	bool hasStartInstance;
+
+	/**
+	 * @brief Whether or not each attachment can have the blend set independently.
+	 */
+	bool hasIndependentBlend;
+
+	/**
+	 * @brief Whether or not dual source blend is supported.
+	 */
+	bool hasDualSrcBlend;
+
+	/**
+	 * @brief Whether or not logical framebuffer operations are supported.
+	 */
+	bool hasLogicOps;
+
+	/**
+	 * @brief Whether or not shading per multisample is supported.
+	 */
+	bool hasSampleShading;
+
+	/**
+	 * @brief Whether or not custom depth bounds are supported.
+	 */
+	bool hasDepthBounds;
+
+	/**
+	 * @brief Whether or not depth clamping is supported.
+	 */
+	bool hasDepthClamp;
+
+	/**
+	 * @brief Whether or not depth bias clamping is supported.
+	 */
+	bool hasDepthBiasClamp;
 
 	/**
 	 * @brief The default level of anisotropy for anisotropic filtering.

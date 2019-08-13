@@ -422,8 +422,15 @@ dsRenderer* dsMockRenderer_create(dsAllocator* allocator)
 	renderer->maxComputeWorkGroupSize[1] = 256;
 	renderer->maxComputeWorkGroupSize[2] = 256;
 	renderer->hasNativeMultidraw = true;
-	renderer->supportsInstancedDrawing = true;
-	renderer->supportsStartInstance = true;
+	renderer->hasInstancedDrawing = true;
+	renderer->hasStartInstance = true;
+	renderer->hasIndependentBlend = true;
+	renderer->hasDualSrcBlend = true;
+	renderer->hasLogicOps = true;
+	renderer->hasSampleShading = true;
+	renderer->hasDepthBounds = true;
+	renderer->hasDepthClamp = true;
+	renderer->hasDepthBiasClamp = true;
 
 	renderer->destroyFunc = &dsMockRenderer_destroy;
 

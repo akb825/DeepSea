@@ -686,8 +686,16 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 		}
 	}
 	baseRenderer->hasNativeMultidraw = ANYGL_SUPPORTED(glMultiDrawArrays);
-	baseRenderer->supportsInstancedDrawing = ANYGL_SUPPORTED(glDrawArraysInstanced);
-	baseRenderer->supportsStartInstance = ANYGL_SUPPORTED(glDrawArraysInstancedBaseInstance);
+	baseRenderer->hasInstancedDrawing = ANYGL_SUPPORTED(glDrawArraysInstanced);
+	baseRenderer->hasStartInstance = ANYGL_SUPPORTED(glDrawArraysInstancedBaseInstance);
+	baseRenderer->hasIndependentBlend = ANYGL_SUPPORTED(glBlendFunci);
+	baseRenderer->hasDualSrcBlend = AnyGL_atLeastVersion(3, 3, false) ||
+		AnyGL_ARB_blend_func_extended || AnyGL_EXT_blend_func_extended;
+	baseRenderer->hasLogicOps = ANYGL_SUPPORTED(glLogicOp);
+	baseRenderer->hasSampleShading = ANYGL_SUPPORTED(glMinSampleShading);
+	baseRenderer->hasDepthBounds = AnyGL_EXT_depth_bounds_test;
+	baseRenderer->hasDepthClamp = (AnyGL_atLeastVersion(3, 2, false) || AnyGL_ARB_depth_clamp);
+	baseRenderer->hasDepthBiasClamp = ANYGL_SUPPORTED(glPolygonOffsetClamp);
 
 	if (AnyGL_EXT_texture_filter_anisotropic)
 		glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &baseRenderer->maxAnisotropy);

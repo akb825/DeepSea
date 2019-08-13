@@ -870,6 +870,7 @@ dsResourceManager* dsMTLResourceManager_create(dsAllocator* allocator, dsRendere
 	 * case (that can also potentially be optimized for) comes up it's better to just not
 	 */
 	baseResourceManager->hasQueries = false;
+	baseResourceManager->hasPreciseOcclusionQueries = false;
 	baseResourceManager->has64BitQueries = true;
 	baseResourceManager->hasQueryBuffers = true;
 	baseResourceManager->timestampPeriod = 0.0f;

@@ -1614,8 +1614,20 @@ bool dsVkRenderer_drawIndirect(dsRenderer* renderer, dsCommandBuffer* commandBuf
 		return false;
 	}
 
-	DS_VK_CALL(device->vkCmdDrawIndirect)(submitBuffer,
-		dsVkGfxBufferData_getBuffer(indirectBufferData), offset, count, stride);
+	VkBuffer vkIndirectBuffer = dsVkGfxBufferData_getBuffer(indirectBufferData);
+	if (device->features.multiDrawIndirect)
+	{
+		DS_VK_CALL(device->vkCmdDrawIndirect)(submitBuffer, vkIndirectBuffer, offset, count,
+			stride);
+	}
+	else
+	{
+		for (uint32_t i = 0; i < count; ++i)
+		{
+			DS_VK_CALL(device->vkCmdDrawIndirect)(submitBuffer, vkIndirectBuffer, offset + i*stride,
+				1, stride);
+		}
+	}
 	return true;
 }
 
@@ -1639,8 +1651,20 @@ bool dsVkRenderer_drawIndexedIndirect(dsRenderer* renderer, dsCommandBuffer* com
 		return false;
 	}
 
-	DS_VK_CALL(device->vkCmdDrawIndexedIndirect)(submitBuffer,
-		dsVkGfxBufferData_getBuffer(indirectBufferData), offset, count, stride);
+	VkBuffer vkIndirectBuffer = dsVkGfxBufferData_getBuffer(indirectBufferData);
+	if (device->features.multiDrawIndirect)
+	{
+		DS_VK_CALL(device->vkCmdDrawIndexedIndirect)(submitBuffer, vkIndirectBuffer, offset, count,
+			stride);
+	}
+	else
+	{
+		for (uint32_t i = 0; i < count; ++i)
+		{
+			DS_VK_CALL(device->vkCmdDrawIndexedIndirect)(submitBuffer, vkIndirectBuffer,
+				offset + i*stride, count, stride);
+		}
+	}
 	return true;
 }
 
@@ -2154,8 +2178,15 @@ dsRenderer* dsVkRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 	for (int i = 0; i < 3; ++i)
 		baseRenderer->maxComputeWorkGroupSize[i] = limits->maxComputeWorkGroupSize[i];
 	baseRenderer->hasNativeMultidraw = true;
-	baseRenderer->supportsInstancedDrawing = true;
-	baseRenderer->supportsStartInstance = (bool)deviceFeatures.drawIndirectFirstInstance;
+	baseRenderer->hasInstancedDrawing = true;
+	baseRenderer->hasStartInstance = (bool)deviceFeatures.drawIndirectFirstInstance;
+	baseRenderer->hasIndependentBlend = (bool)deviceFeatures.independentBlend;
+	baseRenderer->hasDualSrcBlend = (bool)deviceFeatures.dualSrcBlend;
+	baseRenderer->hasLogicOps = (bool)deviceFeatures.logicOp;
+	baseRenderer->hasSampleShading = (bool)deviceFeatures.sampleRateShading;
+	baseRenderer->hasDepthBounds = (bool)deviceFeatures.depthBounds;
+	baseRenderer->hasDepthClamp = (bool)deviceFeatures.depthClamp;
+	baseRenderer->hasDepthBiasClamp = (bool)deviceFeatures.depthBiasClamp;
 	baseRenderer->defaultAnisotropy = 1;
 
 	baseRenderer->resourceManager = dsVkResourceManager_create(allocator, renderer,

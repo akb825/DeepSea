@@ -223,7 +223,7 @@ static void setRasterizationStates(const dsResourceManager* resourceManager,
 			curState->depthBiasSlopeFactor = slopeFactor;
 
 			if (ANYGL_SUPPORTED(glPolygonOffsetClamp))
-				glPolygonOffsetClampEXT(slopeFactor, constantFactor, clamp);
+				glPolygonOffsetClamp(slopeFactor, constantFactor, clamp);
 			else
 				glPolygonOffset(slopeFactor, constantFactor);
 		}

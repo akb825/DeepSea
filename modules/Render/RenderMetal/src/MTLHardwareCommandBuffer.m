@@ -192,8 +192,9 @@ static void setDepthStencilState(id<MTLRenderCommandEncoder> encoder,
 
 static void setDynamicDepthState(id<MTLRenderCommandEncoder> encoder,
 	const mslRenderState* renderStates, const dsDynamicRenderStates* dynamicStates,
-	bool dynamicOnly)
+	bool dynamicOnly, bool supportsDepthClip)
 {
+	DS_UNUSED(supportsDepthClip);
 	if (renderStates->depthStencilState.depthWriteEnable == mslBool_False)
 		return;
 
@@ -215,15 +216,18 @@ static void setDynamicDepthState(id<MTLRenderCommandEncoder> encoder,
 		else if (dynamicStates)
 			clamp = dynamicStates->depthBiasClamp;
 	}
+	[encoder setDepthBias: constBias slopeScale: slopeBias clamp: clamp];
 
 	if (dynamicOnly)
 		return;
 
-	[encoder setDepthBias: constBias slopeScale: slopeBias clamp: clamp];
 #if DS_MAC || __IPHONE_OS_VERSION_MIN_REQUIRED >= 110000
-	[encoder setDepthClipMode:
-		renderStates->rasterizationState.depthClampEnable == mslBool_True ?
-			MTLDepthClipModeClamp : MTLDepthClipModeClip];
+	if (supportsDepthClip)
+	{
+		[encoder setDepthClipMode:
+			renderStates->rasterizationState.depthClampEnable == mslBool_True ?
+				MTLDepthClipModeClamp : MTLDepthClipModeClip];
+	}
 #endif
 }
 
@@ -889,7 +893,8 @@ bool dsMTLHardwareCommandBuffer_setRenderStates(dsCommandBuffer* commandBuffer,
 		(__bridge id<MTLRenderCommandEncoder>)mtlCommandBuffer->renderCommandEncoder;
 	setRasterizationState(encoder, renderStates, dynamicStates, dynamicOnly);
 	setDepthStencilState(encoder, renderStates, depthStencilState, dynamicStates, dynamicOnly);
-	setDynamicDepthState(encoder, renderStates, dynamicStates, dynamicOnly);
+	setDynamicDepthState(encoder, renderStates, dynamicStates, dynamicOnly,
+		commandBuffer->renderer->hasDepthClamp);
 	return true;
 }
 

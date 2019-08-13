@@ -50,6 +50,14 @@ dsGfxQueryPool* dsGfxQueryPool_create(dsResourceManager* resourceManager, dsAllo
 	switch (type)
 	{
 		case dsGfxQueryType_SamplesPassed:
+			if (!resourceManager->hasPreciseOcclusionQueries)
+			{
+				errno = EINVAL;
+				DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+					"Current target doesn't support precise occlusion queries.");
+				DS_PROFILE_FUNC_RETURN(NULL);
+			}
+			break;
 		case dsGfxQueryType_AnySamplesPassed:
 			break;
 		case dsGfxQueryType_Timestamp:

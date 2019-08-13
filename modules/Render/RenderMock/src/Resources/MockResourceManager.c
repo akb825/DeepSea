@@ -157,6 +157,7 @@ dsResourceManager* dsMockResourceManager_create(dsRenderer* renderer, dsAllocato
 	resourceManager->hasFragmentWrites = true;
 	resourceManager->hasFences = true;
 	resourceManager->hasQueries = true;
+	resourceManager->hasPreciseOcclusionQueries = true;
 	resourceManager->has64BitQueries = true;
 	resourceManager->hasQueryBuffers = true;
 	resourceManager->timestampPeriod = 1.0f;
