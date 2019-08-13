@@ -738,7 +738,7 @@ bool dsGatherVkPhysicalDevices(dsVkInstance* instance)
 		devices);
 	for (uint32_t i = 0; i < physicalDeviceCount;)
 	{
-		instance->vkGetPhysicalDeviceProperties(devices[i], physicalDevices + i);
+		DS_VK_CALL(instance->vkGetPhysicalDeviceProperties)(devices[i], physicalDevices + i);
 
 		// Make sure this device supports graphics.
 		uint32_t queueFamilyCount = DS_MAX_QUEUE_FAMILIES;
