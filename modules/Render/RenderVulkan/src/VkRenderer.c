@@ -2017,21 +2017,37 @@ bool dsVkRenderer_pushDebugGroup(dsRenderer* renderer, dsCommandBuffer* commandB
 {
 	dsVkDevice* device = &((dsVkRenderer*)renderer)->device;
 	dsVkInstance* instance = &device->instance;
-	if (!instance->vkCmdBeginDebugUtilsLabelEXT)
+	if (!instance->vkCmdBeginDebugUtilsLabelEXT && !device->vkCmdDebugMarkerBeginEXT)
 		return true;
 
 	VkCommandBuffer submitBuffer = dsVkCommandBuffer_getCommandBuffer(commandBuffer);
 	if (!submitBuffer)
 		return false;
 
-	VkDebugUtilsLabelEXT label =
+	if (instance->vkCmdBeginDebugUtilsLabelEXT)
 	{
-		VK_STRUCTURE_TYPE_DEBUG_UTILS_LABEL_EXT,
-		NULL,
-		name,
-		{0.0f, 0.0f, 0.0f, 0.0f}
-	};
-	DS_VK_CALL(instance->vkCmdBeginDebugUtilsLabelEXT)(submitBuffer, &label);
+		VkDebugUtilsLabelEXT label =
+		{
+			VK_STRUCTURE_TYPE_DEBUG_UTILS_LABEL_EXT,
+			NULL,
+			name,
+			{0.0f, 0.0f, 0.0f, 0.0f}
+		};
+		DS_VK_CALL(instance->vkCmdBeginDebugUtilsLabelEXT)(submitBuffer, &label);
+	}
+	else
+	{
+		DS_ASSERT(device->vkCmdDebugMarkerBeginEXT);
+		VkDebugMarkerMarkerInfoEXT label =
+		{
+			VK_STRUCTURE_TYPE_DEBUG_MARKER_MARKER_INFO_EXT,
+			NULL,
+			name,
+			{0.0f, 0.0f, 0.0f, 0.0f}
+		};
+		DS_VK_CALL(device->vkCmdDebugMarkerBeginEXT)(submitBuffer, &label);
+	}
+
 	return true;
 }
 
@@ -2039,14 +2055,20 @@ bool dsVkRenderer_popDebugGroup(dsRenderer* renderer, dsCommandBuffer* commandBu
 {
 	dsVkDevice* device = &((dsVkRenderer*)renderer)->device;
 	dsVkInstance* instance = &device->instance;
-	if (!instance->vkCmdBeginDebugUtilsLabelEXT)
+	if (!instance->vkCmdEndDebugUtilsLabelEXT && !device->vkCmdDebugMarkerEndEXT)
 		return true;
 
 	VkCommandBuffer submitBuffer = dsVkCommandBuffer_getCommandBuffer(commandBuffer);
 	if (!submitBuffer)
 		return false;
 
-	DS_VK_CALL(instance->vkCmdEndDebugUtilsLabelEXT)(submitBuffer);
+	if (instance->vkCmdEndDebugUtilsLabelEXT)
+		DS_VK_CALL(instance->vkCmdEndDebugUtilsLabelEXT)(submitBuffer);
+	else
+	{
+		DS_ASSERT(device->vkCmdDebugMarkerEndEXT);
+		DS_VK_CALL(device->vkCmdDebugMarkerEndEXT)(submitBuffer);
+	}
 	return true;
 }
 

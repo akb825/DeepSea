@@ -217,6 +217,9 @@ typedef struct dsVkDevice
 	PFN_vkCmdDispatch vkCmdDispatch;
 	PFN_vkCmdDispatchIndirect vkCmdDispatchIndirect;
 
+	PFN_vkCmdDebugMarkerBeginEXT vkCmdDebugMarkerBeginEXT;
+	PFN_vkCmdDebugMarkerEndEXT vkCmdDebugMarkerEndEXT;
+
 	VkPhysicalDevice physicalDevice;
 	VkDevice device;
 	VkQueue queue;
