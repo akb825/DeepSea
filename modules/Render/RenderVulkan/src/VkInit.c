@@ -939,7 +939,8 @@ bool dsCreateVkDevice(dsVkDevice* device, dsAllocator* allocator, const dsRender
 	uint32_t enabledLayerCount = 0;
 	addLayers(enabledLayers, &enabledLayerCount, useValidation);
 
-	DeviceExtensions extensions = {};
+	DeviceExtensions extensions;
+	memset(&extensions, 0, sizeof(DeviceExtensions));
 	const char* enabledExtensions[DS_MAX_ENABLED_EXTENSIONS];
 	uint32_t enabledExtensionCount = 0;
 	addDeviceExtensions(device, allocator, &extensions, enabledExtensions, &enabledExtensionCount,
