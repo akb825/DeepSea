@@ -18,7 +18,7 @@ if (APPLE)
 elseif (DEEPSEA_GLES OR ANDROID)
 	find_package(EGL)
 	if (NOT EGL_FOUND)
-		message(FATAL_ERROR "OpenGL not found. Skipping RenderOpenGL.")
+		message("OpenGL not found. Skipping RenderOpenGL.")
 		return()
 	endif()
 

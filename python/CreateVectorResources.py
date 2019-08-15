@@ -175,7 +175,7 @@ class VectorResources:
 			subprocess.check_call(commandLine)
 
 			nameOffset = builder.CreateString(name)
-			pathOffset = builder.CreateString(outputName)
+			pathOffset = builder.CreateString(outputName.replace('\\', '/'))
 
 			ResourceStart(builder)
 			ResourceAddName(builder, nameOffset)
@@ -201,7 +201,7 @@ class VectorResources:
 				shutil.copyfile(os.path.join(self.basePath, path), fontOutputPath)
 
 				faceNameOffset = builder.CreateString(name)
-				pathOffset = builder.CreateString(outputName)
+				pathOffset = builder.CreateString(outputName.replace('\\', '/'))
 
 				ResourceStart(builder)
 				ResourceAddName(builder, faceNameOffset)
