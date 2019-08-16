@@ -556,7 +556,7 @@ static void freeResources(dsVkRenderer* renderer, uint64_t finishedSubmitCount)
 }
 
 static bool addBufferCopies(dsVkRenderer* renderer, dsVkGfxBufferData* buffer,
-	const dsVkDirtyRange* dirtyRanges, uint32_t dirtyRangeCount)
+	const dsVkDirtyRange* dirtyRanges, uint32_t dirtyRangeCount, bool initial)
 {
 	dsRenderer* baseRenderer = (dsRenderer*)renderer;
 	dsVkBarrierList* preResourceBarriers = &renderer->preResourceBarriers;
@@ -569,7 +569,8 @@ static bool addBufferCopies(dsVkRenderer* renderer, dsVkGfxBufferData* buffer,
 		return false;
 	}
 
-	bool isStatic = dsVkGfxBufferData_isStatic(buffer);
+	// Since this has a device buffer, implicitly can't map the main buffer.
+	bool needsDynamicBarriers = dsVkGfxBufferData_needsMemoryBarrier(buffer, false);
 	for (uint32_t i = 0; i < dirtyRangeCount; ++i)
 	{
 		VkBufferCopy* copyInfo = renderer->bufferCopies + firstCopy + i;
@@ -577,14 +578,23 @@ static bool addBufferCopies(dsVkRenderer* renderer, dsVkGfxBufferData* buffer,
 		copyInfo->srcOffset = copyInfo->dstOffset = dirtyRange->start;
 		copyInfo->size = dirtyRange->size;
 
-		// Need a barrier before. If the buffer is static, have a memory barrier after
-		// the copy to avoid needing barriers for each usage.
+		// Need a barrier before.
 		dsVkBarrierList_addBufferBarrier(preResourceBarriers, buffer->hostBuffer,
 			dirtyRange->start, dirtyRange->size, 0, dsGfxBufferUsage_CopyFrom, true);
-		if (isStatic)
+		if (!initial)
 		{
+			// Only need a barrier before the copy for the device buffer if it's not the initial
+			// copy.
+			dsVkBarrierList_addBufferBarrier(preResourceBarriers, buffer->deviceBuffer,
+				dirtyRange->start, dirtyRange->size, buffer->usage | dsGfxBufferUsage_CopyTo,
+				dsGfxBufferUsage_CopyTo, false);
+		}
+		if (!needsDynamicBarriers)
+		{
+			// If the buffer doesn't need dynamic barriers, have a memory barrier after the copy.
 			dsVkBarrierList_addBufferBarrier(postResourceBarriers, buffer->deviceBuffer,
-				dirtyRange->start, dirtyRange->size, dsGfxBufferUsage_CopyTo, buffer->usage, false);
+				dirtyRange->start, dirtyRange->size, dsGfxBufferUsage_CopyTo,
+				buffer->usage | dsGfxBufferUsage_CopyTo, false);
 		}
 	}
 
@@ -613,12 +623,12 @@ static void prepareOffscreen(dsVkRenderer* renderer, dsVkTexture* texture)
 	VkImageSubresourceRange fullLayout = {texture->aspectMask, 0, VK_REMAINING_MIP_LEVELS, 0,
 		VK_REMAINING_ARRAY_LAYERS};
 	dsVkBarrierList_addImageBarrier(postResourceBarriers, texture->deviceImage, &fullLayout,
-		0, false, true, isDepthStencil, baseTexture->usage, VK_IMAGE_LAYOUT_UNDEFINED,
+		0, true, isDepthStencil, baseTexture->usage, VK_IMAGE_LAYOUT_UNDEFINED,
 		dsVkTexture_imageLayout(baseTexture));
 	if (texture->surfaceImage)
 	{
 		dsVkBarrierList_addImageBarrier(postResourceBarriers, texture->surfaceImage, &fullLayout,
-			0, false, true, isDepthStencil, baseTexture->usage, VK_IMAGE_LAYOUT_UNDEFINED,
+			0, true, isDepthStencil, baseTexture->usage, VK_IMAGE_LAYOUT_UNDEFINED,
 			isDepthStencil ? VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL :
 				VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 	}
@@ -637,8 +647,8 @@ static bool addImageCopies(dsVkRenderer* renderer, dsVkTexture* texture)
 	VkImageSubresourceRange fullLayout = {texture->aspectMask, 0, VK_REMAINING_MIP_LEVELS, 0,
 		VK_REMAINING_ARRAY_LAYERS};
 
-	dsVkBarrierList_addImageBarrier(preResourceBarriers, texture->deviceImage, &fullLayout,
-		0, false, false, false, dsTextureUsage_CopyTo, VK_IMAGE_LAYOUT_UNDEFINED,
+	dsVkBarrierList_addImageBarrier(preResourceBarriers, texture->deviceImage, &fullLayout, 0,
+		false, false, dsTextureUsage_CopyTo, VK_IMAGE_LAYOUT_UNDEFINED,
 		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 	dsVkBarrierList_addBufferBarrier(preResourceBarriers, texture->hostBuffer, 0,
 		texture->hostMemorySize, 0, dsGfxBufferUsage_CopyFrom, true);
@@ -703,7 +713,7 @@ static bool addImageCopies(dsVkRenderer* renderer, dsVkTexture* texture)
 
 	// Even non-static images will have a barrier to process the layout conversion.
 	dsVkBarrierList_addImageBarrier(postResourceBarriers, texture->deviceImage, &fullLayout,
-		dsTextureUsage_CopyFrom, false, false, false, baseTexture->usage,
+		dsTextureUsage_CopyFrom, false, false, baseTexture->usage,
 		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, dsVkTexture_imageLayout(baseTexture));
 
 	return true;
@@ -718,7 +728,7 @@ static void prepareTexture(dsVkRenderer* renderer, dsVkTexture* texture)
 		VK_REMAINING_ARRAY_LAYERS};
 
 	dsVkBarrierList_addImageBarrier(postResourceBarriers, texture->deviceImage, &fullLayout,
-		0, false, false, false, baseTexture->usage, VK_IMAGE_LAYOUT_UNDEFINED,
+		0, false, false, baseTexture->usage, VK_IMAGE_LAYOUT_UNDEFINED,
 		dsVkTexture_imageLayout(baseTexture));
 }
 
@@ -736,7 +746,7 @@ static void processBuffers(dsVkRenderer* renderer, dsVkProcessResourceList* reso
 		if (!buffer)
 			continue;
 
-		if (!buffer->deviceBuffer || !buffer->hostBuffer)
+		if (!buffer->hostBuffer)
 		{
 			dsLifetime_release(lifetime);
 			continue;
@@ -759,15 +769,24 @@ static void processBuffers(dsVkRenderer* renderer, dsVkProcessResourceList* reso
 		if (buffer->needsInitialCopy)
 		{
 			DS_ASSERT(buffer->dirtyRangeCount == 0);
-			doUpload = true;
-			dsVkDirtyRange dirtyRange = {0, buffer->size};
-			addBufferCopies(renderer, buffer, &dirtyRange, 1);
+			if (buffer->deviceBuffer)
+			{
+				doUpload = true;
+				dsVkDirtyRange dirtyRange = {0, buffer->size};
+				addBufferCopies(renderer, buffer, &dirtyRange, 1, true);
+			}
+			else
+			{
+				// Just need to add a barrier if no device buffer.
+				dsVkBarrierList_addBufferBarrier(&renderer->postResourceBarriers, buffer->hostBuffer,
+					0, buffer->size, 0, buffer->usage, true);
+			}
 			buffer->needsInitialCopy = false;
 		}
 		else if (buffer->dirtyRangeCount > 0)
 		{
 			doUpload = true;
-			addBufferCopies(renderer, buffer, buffer->dirtyRanges, buffer->dirtyRangeCount);
+			addBufferCopies(renderer, buffer, buffer->dirtyRanges, buffer->dirtyRangeCount, false);
 			buffer->dirtyRangeCount = 0;
 		}
 
@@ -880,7 +899,7 @@ static void processRenderbuffers(dsVkRenderer* renderer, dsVkProcessResourceList
 			usage |= dsTextureUsage_CopyTo;
 
 		dsVkBarrierList_addImageBarrier(postResourceBarriers, vkRenderbuffer->image, &fullLayout,
-			0, false, true, isDepthStencil, usage, VK_IMAGE_LAYOUT_UNDEFINED,
+			0, true, isDepthStencil, usage, VK_IMAGE_LAYOUT_UNDEFINED,
 			isDepthStencil ? VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL :
 				VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 	}
@@ -908,14 +927,14 @@ static void processRenderSurfaces(dsVkRenderer* renderer, dsVkProcessResourceLis
 		if (surface->resolveImage)
 		{
 			dsVkBarrierList_addImageBarrier(postResourceBarriers, surface->resolveImage,
-				&fullColorLayout, 0, false, true, false, usage, VK_IMAGE_LAYOUT_UNDEFINED,
+				&fullColorLayout, 0, true, false, usage, VK_IMAGE_LAYOUT_UNDEFINED,
 				VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 		}
 
 		if (surface->depthImage)
 		{
 			dsVkBarrierList_addImageBarrier(postResourceBarriers, surface->depthImage,
-				&fullDepthLayout, 0, false, true, true, usage, VK_IMAGE_LAYOUT_UNDEFINED,
+				&fullDepthLayout, 0, true, true, usage, VK_IMAGE_LAYOUT_UNDEFINED,
 				VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
 		}
 	}
@@ -954,7 +973,7 @@ static void processResources(dsVkRenderer* renderer, VkCommandBuffer commandBuff
 	if (preResourceBarriers->bufferBarrierCount > 0 || preResourceBarriers->imageBarrierCount > 0)
 	{
 		DS_VK_CALL(device->vkCmdPipelineBarrier)(commandBuffer,
-			VK_PIPELINE_STAGE_HOST_BIT | VK_PIPELINE_STAGE_TRANSFER_BIT,
+			VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT | VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
 			VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, NULL, preResourceBarriers->bufferBarrierCount,
 			preResourceBarriers->bufferBarriers, preResourceBarriers->imageBarrierCount,
 			preResourceBarriers->imageBarriers);
@@ -977,7 +996,8 @@ static void processResources(dsVkRenderer* renderer, VkCommandBuffer commandBuff
 
 	if (postResourceBarriers->bufferBarrierCount > 0 || postResourceBarriers->imageBarrierCount > 0)
 	{
-		DS_VK_CALL(device->vkCmdPipelineBarrier)(commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT,
+		DS_VK_CALL(device->vkCmdPipelineBarrier)(commandBuffer,
+			VK_PIPELINE_STAGE_TRANSFER_BIT | VK_PIPELINE_STAGE_HOST_BIT,
 			VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT | VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, 0, 0, NULL,
 			postResourceBarriers->bufferBarrierCount, postResourceBarriers->bufferBarriers,
 			postResourceBarriers->imageBarrierCount, postResourceBarriers->imageBarriers);
@@ -2420,8 +2440,7 @@ void dsVkRenderer_processGfxBuffer(dsRenderer* renderer, dsVkGfxBufferData* buff
 	buffer->used = true;
 
 	// Make sure this needs to be processed.
-	if (!buffer->deviceBuffer || !buffer->hostBuffer ||
-		(!buffer->needsInitialCopy && buffer->dirtyRangeCount == 0))
+	if (!buffer->hostBuffer || (!buffer->needsInitialCopy && buffer->dirtyRangeCount == 0))
 	{
 		DS_VERIFY(dsSpinlock_unlock(&buffer->resource.lock));
 		return;

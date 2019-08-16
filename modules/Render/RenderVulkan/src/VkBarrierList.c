@@ -44,7 +44,8 @@ bool dsVkBarrierList_addBufferBarrier(dsVkBarrierList* barriers, VkBuffer buffer
 	VkBufferMemoryBarrier* barrier = barriers->bufferBarriers + index;
 	barrier->sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
 	barrier->pNext = NULL;
-	barrier->srcAccessMask = dsVkWriteBufferAccessFlags(srcUsage, canMap);
+	barrier->srcAccessMask = dsVkReadBufferAccessFlags(srcUsage) |
+		dsVkWriteBufferAccessFlags(srcUsage, canMap);
 	barrier->dstAccessMask = dsVkReadBufferAccessFlags(dstUsage) |
 		dsVkWriteBufferAccessFlags(dstUsage, false);
 	barrier->srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
@@ -57,9 +58,8 @@ bool dsVkBarrierList_addBufferBarrier(dsVkBarrierList* barriers, VkBuffer buffer
 }
 
 bool dsVkBarrierList_addImageBarrier(dsVkBarrierList* barriers, VkImage image,
-	const VkImageSubresourceRange* range, dsTextureUsage srcUsage, bool host,
-	bool offscreen, bool depthStencil, dsTextureUsage dstUsage, VkImageLayout oldLayout,
-	VkImageLayout newLayout)
+	const VkImageSubresourceRange* range, dsTextureUsage srcUsage, bool offscreen,
+	bool depthStencil, dsTextureUsage dstUsage, VkImageLayout oldLayout, VkImageLayout newLayout)
 {
 	uint32_t index = barriers->imageBarrierCount;
 	if (!DS_RESIZEABLE_ARRAY_ADD(barriers->allocator, barriers->imageBarriers,
@@ -71,7 +71,7 @@ bool dsVkBarrierList_addImageBarrier(dsVkBarrierList* barriers, VkImage image,
 	VkImageMemoryBarrier* barrier = barriers->imageBarriers + index;
 	barrier->sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
 	barrier->pNext = NULL;
-	barrier->srcAccessMask = host ? VK_ACCESS_HOST_WRITE_BIT :
+	barrier->srcAccessMask = dsVkReadImageAccessFlags(srcUsage) |
 		dsVkWriteImageAccessFlags(srcUsage, false, false);
 	barrier->dstAccessMask = dsVkReadImageAccessFlags(dstUsage) |
 		dsVkWriteImageAccessFlags(srcUsage, offscreen, depthStencil);

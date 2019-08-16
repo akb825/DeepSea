@@ -938,10 +938,10 @@ bool dsVkTexture_copyToBuffer(dsResourceManager* resourceManager, dsCommandBuffe
 	bool srcIs3D = srcTexture->info.dimension == dsTextureDim_3D;
 	bool srcIsDepthStencil = dsGfxFormat_isDepthStencil(srcTexture->info.format);
 
-	bool dstCanMap = dsVkGfxBufferData_canMap(dstBufferData);
+	bool dstCanMapMainBuffer = dsVkGfxBufferData_canMapMainBuffer(dstBufferData);
 
 	if (!addCopyToBufferBarriers(commandBuffer, regions, regionCount, srcTexture, dstBufferData,
-			dstCanMap, false))
+			dstCanMapMainBuffer, false))
 	{
 		dsVkCommandBuffer_resetCopyBarriers(commandBuffer);
 		return false;
@@ -1000,7 +1000,7 @@ bool dsVkTexture_copyToBuffer(dsResourceManager* resourceManager, dsCommandBuffe
 		dsVkWriteImageStageFlags(renderer, srcTexture->usage, srcTexture->offscreen,
 			srcIsDepthStencil);
 	VkPipelineStageFlags dstStageFlags = dsVkReadBufferStageFlags(renderer, dstBuffer->usage) |
-		dsVkWriteBufferStageFlags(renderer, dstBuffer->usage, dstCanMap);
+		dsVkWriteBufferStageFlags(renderer, dstBuffer->usage, dstCanMapMainBuffer);
 	VkPipelineStageFlags stageFlags = srcStageFlags | dstStageFlags;
 	dsVkCommandBuffer_submitCopyBarriers(commandBuffer, stageFlags, VK_PIPELINE_STAGE_TRANSFER_BIT);
 	DS_VK_CALL(device->vkCmdCopyImageToBuffer)(vkCommandBuffer, srcVkTexture->deviceImage,
@@ -1011,7 +1011,7 @@ bool dsVkTexture_copyToBuffer(dsResourceManager* resourceManager, dsCommandBuffe
 		DS_VERIFY(dsAllocator_free(scratchAllocator, imageCopies));
 
 	if (!addCopyToBufferBarriers(commandBuffer, regions, regionCount, srcTexture, dstBufferData,
-			dstCanMap, true))
+			dstCanMapMainBuffer, true))
 	{
 		dsVkCommandBuffer_resetCopyBarriers(commandBuffer);
 		return false;

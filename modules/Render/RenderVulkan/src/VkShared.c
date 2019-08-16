@@ -294,10 +294,10 @@ VkAccessFlags dsVkReadBufferAccessFlags(dsGfxBufferUsage usage)
 	return flags;
 }
 
-VkAccessFlags dsVkWriteBufferAccessFlags(dsGfxBufferUsage usage, bool canMap)
+VkAccessFlags dsVkWriteBufferAccessFlags(dsGfxBufferUsage usage, bool canMapMainBuffer)
 {
 	VkAccessFlags flags = 0;
-	if (canMap)
+	if (canMapMainBuffer)
 		flags |= VK_ACCESS_HOST_WRITE_BIT;
 	if (usage & (dsGfxBufferUsage_UniformBuffer | dsGfxBufferUsage_Image))
 		flags |= VK_ACCESS_SHADER_WRITE_BIT;
@@ -341,10 +341,10 @@ VkPipelineStageFlags dsVkReadBufferStageFlags(const dsRenderer* renderer, dsGfxB
 }
 
 VkPipelineStageFlags dsVkWriteBufferStageFlags(const dsRenderer* renderer, dsGfxBufferUsage usage,
-	bool canMap)
+	bool canMapMainBuffer)
 {
 	VkPipelineStageFlags flags = 0;
-	if (canMap)
+	if (canMapMainBuffer)
 		flags |= VK_PIPELINE_STAGE_HOST_BIT;
 	if (usage & (dsGfxBufferUsage_UniformBuffer | dsGfxBufferUsage_Image))
 	{

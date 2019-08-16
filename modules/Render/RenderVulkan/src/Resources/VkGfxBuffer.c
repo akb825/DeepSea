@@ -446,13 +446,13 @@ bool dsVkGfxBuffer_copyData(dsResourceManager* resourceManager, dsCommandBuffer*
 	dsVkRenderer_processGfxBuffer(renderer, bufferData);
 	VkBuffer dstBuffer = dsVkGfxBufferData_getBuffer(bufferData);
 
-	bool canMap = dsVkGfxBufferData_canMap(bufferData);
+	bool canMapMainBuffer = dsVkGfxBufferData_canMapMainBuffer(bufferData);
 	VkBufferMemoryBarrier barrier =
 	{
 		VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER,
 		NULL,
 		dsVkReadBufferAccessFlags(buffer->usage) |
-			dsVkWriteBufferAccessFlags(bufferData->usage, canMap),
+			dsVkWriteBufferAccessFlags(bufferData->usage, canMapMainBuffer),
 		VK_ACCESS_TRANSFER_WRITE_BIT,
 		VK_QUEUE_FAMILY_IGNORED,
 		VK_QUEUE_FAMILY_IGNORED,
@@ -461,7 +461,7 @@ bool dsVkGfxBuffer_copyData(dsResourceManager* resourceManager, dsCommandBuffer*
 		size
 	};
 	VkPipelineStageFlags stages = dsVkReadBufferStageFlags(renderer, buffer->usage) |
-		dsVkWriteBufferStageFlags(renderer, bufferData->usage, canMap);
+		dsVkWriteBufferStageFlags(renderer, bufferData->usage, canMapMainBuffer);
 	DS_VK_CALL(device->vkCmdPipelineBarrier)(vkCommandBuffer, stages,
 		VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, NULL, 1, &barrier, 0, NULL);
 
@@ -474,7 +474,7 @@ bool dsVkGfxBuffer_copyData(dsResourceManager* resourceManager, dsCommandBuffer*
 	}
 
 	// Add a memory barrier if it otherwise doesn't need it for normal rendering.
-	if (!dsVkGfxBufferData_needsMemoryBarrier(bufferData, canMap))
+	if (!dsVkGfxBufferData_needsMemoryBarrier(bufferData, canMapMainBuffer))
 	{
 		barrier.dstAccessMask = barrier.srcAccessMask;
 		barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
@@ -511,14 +511,14 @@ bool dsVkGfxBuffer_copy(dsResourceManager* resourceManager, dsCommandBuffer* com
 	VkBuffer srcCopyBuffer = dsVkGfxBufferData_getBuffer(srcBufferData);
 	VkBuffer dstCopyBuffer = dsVkGfxBufferData_getBuffer(dstBufferData);
 
-	bool srcCanMap = dsVkGfxBufferData_canMap(srcBufferData);
-	bool dstCanMap = dsVkGfxBufferData_canMap(dstBufferData);
+	bool srcCanMapMainBuffer = dsVkGfxBufferData_canMapMainBuffer(srcBufferData);
+	bool dstCanMapMainBuffer = dsVkGfxBufferData_canMapMainBuffer(dstBufferData);
 	VkBufferMemoryBarrier barriers[2] =
 	{
 		{
 			VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER,
 			NULL,
-			dsVkWriteBufferAccessFlags(dstBufferData->usage, dstCanMap) |
+			dsVkWriteBufferAccessFlags(dstBufferData->usage, dstCanMapMainBuffer) |
 				dsVkReadBufferAccessFlags(dstBuffer->usage),
 			VK_ACCESS_TRANSFER_WRITE_BIT,
 			VK_QUEUE_FAMILY_IGNORED,
@@ -530,7 +530,7 @@ bool dsVkGfxBuffer_copy(dsResourceManager* resourceManager, dsCommandBuffer* com
 		{
 			VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER,
 			NULL,
-			dsVkWriteBufferAccessFlags(srcBufferData->usage, srcCanMap),
+			dsVkWriteBufferAccessFlags(srcBufferData->usage, srcCanMapMainBuffer),
 			VK_ACCESS_TRANSFER_READ_BIT,
 			VK_QUEUE_FAMILY_IGNORED,
 			VK_QUEUE_FAMILY_IGNORED,
@@ -541,11 +541,11 @@ bool dsVkGfxBuffer_copy(dsResourceManager* resourceManager, dsCommandBuffer* com
 	};
 	uint32_t barrierCount = 1;
 	VkPipelineStageFlags stages = dsVkReadBufferStageFlags(renderer, dstBuffer->usage) |
-		dsVkWriteBufferStageFlags(renderer, dstBufferData->usage, dstCanMap);
+		dsVkWriteBufferStageFlags(renderer, dstBufferData->usage, dstCanMapMainBuffer);
 	if (!dsVkGfxBufferData_isStatic(srcBufferData))
 	{
 		++barrierCount;
-		stages |= dsVkWriteBufferStageFlags(renderer, srcBufferData->usage, srcCanMap);
+		stages |= dsVkWriteBufferStageFlags(renderer, srcBufferData->usage, srcCanMapMainBuffer);
 	}
 	DS_VK_CALL(device->vkCmdPipelineBarrier)(vkCommandBuffer, stages,
 		VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, NULL, barrierCount, barriers, 0, NULL);
@@ -555,7 +555,7 @@ bool dsVkGfxBuffer_copy(dsResourceManager* resourceManager, dsCommandBuffer* com
 		&bufferCopy);
 
 	// Add a memory barrier if it otherwise doesn't need it for normal rendering.
-	if (!dsVkGfxBufferData_needsMemoryBarrier(dstBufferData, dstCanMap))
+	if (!dsVkGfxBufferData_needsMemoryBarrier(dstBufferData, dstCanMapMainBuffer))
 	{
 		barriers->dstAccessMask = barriers[0].srcAccessMask;
 		barriers->srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
@@ -585,15 +585,15 @@ bool dsVkGfxBuffer_copyToTexture(dsResourceManager* resourceManager, dsCommandBu
 	dsVkRenderer_processGfxBuffer(renderer, srcBufferData);
 	dsVkRenderer_processTexture(renderer, dstTexture);
 
-	bool srcCanMap = dsVkGfxBufferData_canMap(srcBufferData);
+	bool srcCanMapMainBuffer = dsVkGfxBufferData_canMapMainBuffer(srcBufferData);
 
 	VkImageAspectFlags dstAspectMask = dsVkImageAspectFlags(dstTexture->info.format);
 	uint32_t dstFaceCount = dstTexture->info.dimension == dsTextureDim_Cube ? 6 : 1;
 	bool dstIs3D = dstTexture->info.dimension == dsTextureDim_3D;
 	bool dstIsDepthStencil = dsGfxFormat_isDepthStencil(dstTexture->info.format);
 
-	if (!addCopyToImageBarriers(commandBuffer, regions, regionCount, srcBufferData, srcCanMap,
-			dstTexture, false))
+	if (!addCopyToImageBarriers(commandBuffer, regions, regionCount, srcBufferData,
+			srcCanMapMainBuffer, dstTexture, false))
 	{
 		dsVkCommandBuffer_resetCopyBarriers(commandBuffer);
 		return false;
@@ -648,7 +648,7 @@ bool dsVkGfxBuffer_copyToTexture(dsResourceManager* resourceManager, dsCommandBu
 	}
 
 	VkPipelineStageFlags srcStageFlags = dsVkReadBufferStageFlags(renderer, srcBuffer->usage) |
-		dsVkWriteBufferStageFlags(renderer, srcBuffer->usage, srcCanMap);
+		dsVkWriteBufferStageFlags(renderer, srcBuffer->usage, srcCanMapMainBuffer);
 	VkPipelineStageFlags dstStageFlags = dsVkReadImageStageFlags(renderer, dstTexture->usage,
 			dstTexture->offscreen && dstIsDepthStencil && !dstTexture->resolve) |
 		dsVkWriteImageStageFlags(renderer, dstTexture->usage, dstTexture->offscreen,
@@ -662,8 +662,8 @@ bool dsVkGfxBuffer_copyToTexture(dsResourceManager* resourceManager, dsCommandBu
 	if (heapRegions)
 		DS_VERIFY(dsAllocator_free(scratchAllocator, imageCopies));
 
-	if (!addCopyToImageBarriers(commandBuffer, regions, regionCount, srcBufferData, srcCanMap,
-			dstTexture, true))
+	if (!addCopyToImageBarriers(commandBuffer, regions, regionCount, srcBufferData,
+			srcCanMapMainBuffer, dstTexture, true))
 	{
 		dsVkCommandBuffer_resetCopyBarriers(commandBuffer);
 		return false;

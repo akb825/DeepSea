@@ -52,13 +52,13 @@ bool dsVkHeapIsCoherent(const dsVkDevice* device, uint32_t memoryIndex);
 VkSampleCountFlagBits dsVkSampleCount(uint32_t sampleCount);
 
 VkAccessFlags dsVkReadBufferAccessFlags(dsGfxBufferUsage usage);
-VkAccessFlags dsVkWriteBufferAccessFlags(dsGfxBufferUsage usage, bool canMap);
+VkAccessFlags dsVkWriteBufferAccessFlags(dsGfxBufferUsage usage, bool canMapMainBuffer);
 
 bool dsVkImageUsageSupportsTransient(VkImageUsageFlags usage);
 
 VkPipelineStageFlags dsVkReadBufferStageFlags(const dsRenderer* renderer, dsGfxBufferUsage usage);
 VkPipelineStageFlags dsVkWriteBufferStageFlags(const dsRenderer* renderer, dsGfxBufferUsage usage,
-	bool canMap);
+	bool canMapMainBuffer);
 
 VkAccessFlags dsVkReadImageAccessFlags(dsTextureUsage usage);
 VkAccessFlags dsVkWriteImageAccessFlags(dsTextureUsage usage, bool offscreen, bool depthStencil);
