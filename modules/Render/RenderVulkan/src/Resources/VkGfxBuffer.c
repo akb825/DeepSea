@@ -274,7 +274,7 @@ void* dsVkGfxBuffer_map(dsResourceManager* resourceManager, dsGfxBuffer* buffer,
 	void* memory = NULL;
 	VkResult result = DS_VK_CALL(device->vkMapMemory)(device->device, bufferData->hostMemory,
 		offset, size, 0, &memory);
-	if (!dsHandleVkResult(result))
+	if (!DS_HANDLE_VK_RESULT(result, "Couldn't map buffer memory"))
 	{
 		bufferData->mappedStart = 0;
 		bufferData->mappedSize = 0;
@@ -392,7 +392,7 @@ bool dsVkGfxBuffer_flush(dsResourceManager* resourceManager, dsGfxBuffer* buffer
 	};
 	VkResult result = DS_VK_CALL(device->vkFlushMappedMemoryRanges)(device->device, 1, &range);
 	DS_VERIFY(dsSpinlock_unlock(&vkBuffer->lock));
-	return dsHandleVkResult(result);
+	return DS_HANDLE_VK_RESULT(result, "Couldn't flush buffer memory");
 }
 
 bool dsVkGfxBuffer_invalidate(dsResourceManager* resourceManager, dsGfxBuffer* buffer,
@@ -425,7 +425,7 @@ bool dsVkGfxBuffer_invalidate(dsResourceManager* resourceManager, dsGfxBuffer* b
 	};
 	VkResult result = DS_VK_CALL(device->vkInvalidateMappedMemoryRanges)(device->device, 1, &range);
 	DS_VERIFY(dsSpinlock_unlock(&vkBuffer->lock));
-	return dsHandleVkResult(result);
+	return DS_HANDLE_VK_RESULT(result, "Couldn't invalidate buffer memory");
 }
 
 bool dsVkGfxBuffer_copyData(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,

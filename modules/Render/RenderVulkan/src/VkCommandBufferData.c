@@ -77,7 +77,7 @@ VkCommandBuffer dsVkCommandBufferData_getCommandBuffer(dsVkCommandBufferData* bu
 
 	VkResult result = DS_VK_CALL(device->vkAllocateCommandBuffers)(device->device, &allocateInfo,
 		chunk->commandBuffers);
-	if (!dsHandleVkResult(result))
+	if (!DS_HANDLE_VK_RESULT(result, "Couldn't allocate command buffers"))
 	{
 		DS_VERIFY(dsAllocator_free(bufferData->allocator, chunk));
 		--bufferData->chunkCount;

@@ -63,7 +63,7 @@ VkSurfaceKHR dsVkPlatformAndroid_createSurface(dsVkInstance* instance, void* dis
 	VkSurfaceKHR surface;
 	VkResult result = DS_VK_CALL(vkCreateAndroidSurfaceKHR)(instance->instance, &createInfo,
 		instance->allocCallbacksPtr, &surface);
-	if (!dsHandleVkResult(result))
+	if (!DS_HANDLE_VK_RESULT(result, "Couldn't create surface"))
 		return 0;
 
 	return surface;

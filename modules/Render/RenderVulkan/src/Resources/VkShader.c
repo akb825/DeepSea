@@ -537,10 +537,10 @@ static bool setupShaders(dsShader* shader)
 		};
 		VkResult result = device->vkCreateShaderModule(device->device, &moduleCreateInfo,
 			instance->allocCallbacksPtr, vkShader->shaders + i);
-		if (!dsHandleVkResult(result))
+		if (!DS_HANDLE_VK_RESULT(result, NULL))
 		{
-			DS_LOG_ERROR_F(DS_RENDER_VULKAN_LOG_TAG, "Couldn't load shader %s.%s",
-				shader->module->name, shader->name);
+			DS_LOG_ERROR_F(DS_RENDER_VULKAN_LOG_TAG, "Couldn't load shader %s.%s: %s",
+				shader->module->name, shader->name, dsGetVkResultString(result));
 			return false;
 		}
 	}
@@ -657,7 +657,7 @@ static bool createLayout(VkPipelineLayout* layout, dsShader* shader,
 
 	VkResult result = DS_VK_CALL(device->vkCreatePipelineLayout)(device->device, &createInfo,
 		instance->allocCallbacksPtr, layout);
-	return dsHandleVkResult(result);
+	return DS_HANDLE_VK_RESULT(result, "Couldn't create pipeline layout");
 }
 
 static bool bindPushConstants(dsCommandBuffer* commandBuffer, VkCommandBuffer submitBuffer,

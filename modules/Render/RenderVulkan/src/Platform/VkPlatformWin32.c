@@ -74,7 +74,7 @@ VkSurfaceKHR dsVkPlatformWin32_createSurface(dsVkInstance* instance, void* displ
 	VkSurfaceKHR surface;
 	VkResult result = DS_VK_CALL(vkCreateWin32SurfaceKHR)(instance->instance, &createInfo,
 		instance->allocCallbacksPtr, &surface);
-	if (!dsHandleVkResult(result))
+	if (!DS_HANDLE_VK_RESULT(result, "Couldn't create surface"))
 		return 0;
 
 	return surface;

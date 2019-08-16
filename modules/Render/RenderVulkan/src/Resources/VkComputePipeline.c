@@ -60,7 +60,7 @@ dsVkComputePipeline* dsVkComputePipeline_create(dsAllocator* allocator, dsShader
 	VkResult result = DS_VK_CALL(device->vkCreateComputePipelines)(device->device,
 		vkResourceManager->pipelineCache, 1, &createInfo, instance->allocCallbacksPtr,
 		&pipeline->pipeline);
-	if (!dsHandleVkResult(result))
+	if (!DS_HANDLE_VK_RESULT(result, "Couldn't create compute pipeline"))
 	{
 		dsVkComputePipeline_destroy(pipeline);
 		return NULL;

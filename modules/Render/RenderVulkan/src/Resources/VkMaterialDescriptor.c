@@ -140,7 +140,7 @@ dsVkMaterialDescriptor* dsVkMaterialDescriptor_create(dsRenderer* renderer, dsAl
 
 	VkResult result = DS_VK_CALL(device->vkCreateDescriptorPool)(device->device, &poolCreateInfo,
 		instance->allocCallbacksPtr, &descriptor->pool);
-	if (!dsHandleVkResult(result))
+	if (!DS_HANDLE_VK_RESULT(result, "Couldn't create descriptor pool"))
 	{
 		dsVkMaterialDescriptor_destroy(descriptor);
 		return NULL;
@@ -155,7 +155,7 @@ dsVkMaterialDescriptor* dsVkMaterialDescriptor_create(dsRenderer* renderer, dsAl
 	};
 	result = DS_VK_CALL(device->vkAllocateDescriptorSets)(device->device, &setAllocateInfo,
 		&descriptor->set);
-	if (!dsHandleVkResult(result))
+	if (!DS_HANDLE_VK_RESULT(result, "Couldn't allocate descriptor sets"))
 	{
 		dsVkMaterialDescriptor_destroy(descriptor);
 		return NULL;

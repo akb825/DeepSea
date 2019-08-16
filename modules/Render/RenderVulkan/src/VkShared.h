@@ -29,7 +29,12 @@
 
 #define DS_INVALID_HEAP (uint32_t)-1
 
-bool dsHandleVkResult(VkResult result);
+#define DS_HANDLE_VK_RESULT(result, failMessage) \
+	dsHandleVkResult(result, failMessage, __FILE__, __LINE__, __FUNCTION__)
+
+const char* dsGetVkResultString(VkResult result);
+bool dsHandleVkResult(VkResult result, const char* failMessage, const char* file, unsigned int line,
+	const char* function);
 void dsSetLastVkCallsite(const char* file, const char* function, unsigned int line);
 void dsGetLastVkCallsite(const char** file, const char** function,
 	unsigned int* line);

@@ -782,7 +782,7 @@ dsVkRenderPassData* dsVkRenderPassData_create(dsAllocator* allocator, dsVkDevice
 
 	VkResult result = DS_VK_CALL(device->vkCreateRenderPass)(device->device, &createInfo,
 		instance->allocCallbacksPtr, &renderPassData->vkRenderPass);
-	if (!dsHandleVkResult(result))
+	if (!DS_HANDLE_VK_RESULT(result, "Couldn't create render pass"))
 	{
 		dsVkRenderPassData_destroy(renderPassData);
 		return NULL;

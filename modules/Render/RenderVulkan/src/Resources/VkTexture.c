@@ -71,7 +71,7 @@ static bool createHostImageBuffer(dsVkDevice* device,  dsVkTexture* texture, con
 
 	VkResult result = DS_VK_CALL(device->vkCreateBuffer)(device->device, &bufferCreateInfo,
 		instance->allocCallbacksPtr, &texture->hostBuffer);
-	if (!dsHandleVkResult(result))
+	if (!DS_HANDLE_VK_RESULT(result, "Couldn't create buffer"))
 		return false;
 
 	VkMemoryRequirements memoryRequirements;
@@ -90,7 +90,7 @@ static bool createHostImageBuffer(dsVkDevice* device,  dsVkTexture* texture, con
 
 	result = DS_VK_CALL(device->vkBindBufferMemory)(device->device, texture->hostBuffer,
 		texture->hostMemory, 0);
-	if (!dsHandleVkResult(result))
+	if (!DS_HANDLE_VK_RESULT(result, "Couldn't bind buffer memory"))
 		return false;
 
 	// Populate the data.
@@ -99,7 +99,7 @@ static bool createHostImageBuffer(dsVkDevice* device,  dsVkTexture* texture, con
 		void* hostData;
 		VkResult result = DS_VK_CALL(device->vkMapMemory)(device->device, texture->hostMemory, 0,
 			VK_WHOLE_SIZE, 0, &hostData);
-		if (!dsHandleVkResult(result))
+		if (!DS_HANDLE_VK_RESULT(result, "Couldn't map buffer memory"))
 			return false;
 
 		memcpy(hostData, data, dataSize);
@@ -155,7 +155,7 @@ static bool createSurfaceImage(dsVkDevice* device, const dsTextureInfo* info,
 	};
 	VkResult result = DS_VK_CALL(device->vkCreateImage)(device->device, &imageCreateInfo,
 		instance->allocCallbacksPtr, &texture->surfaceImage);
-	if (!dsHandleVkResult(result))
+	if (!DS_HANDLE_VK_RESULT(result, "Couldn't create image"))
 		return false;
 
 	VkMemoryRequirements surfaceRequirements;
@@ -174,7 +174,7 @@ static bool createSurfaceImage(dsVkDevice* device, const dsTextureInfo* info,
 
 	result = DS_VK_CALL(device->vkBindImageMemory)(device->device, texture->surfaceImage,
 		texture->surfaceMemory, 0);
-	if (!dsHandleVkResult(result))
+	if (!DS_HANDLE_VK_RESULT(result, "Couldn't bind image memory"))
 		return false;
 
 	VkImageViewCreateInfo imageViewCreateInfo =
@@ -191,7 +191,7 @@ static bool createSurfaceImage(dsVkDevice* device, const dsTextureInfo* info,
 	};
 	result = DS_VK_CALL(device->vkCreateImageView)(device->device, &imageViewCreateInfo,
 		instance->allocCallbacksPtr, &texture->surfaceImageView);
-	return dsHandleVkResult(result);
+	return DS_HANDLE_VK_RESULT(result, "Couldn't create image view");
 }
 
 static dsTexture* createTextureImpl(dsResourceManager* resourceManager, dsAllocator* allocator,
@@ -330,7 +330,7 @@ static dsTexture* createTextureImpl(dsResourceManager* resourceManager, dsAlloca
 	};
 	VkResult result = DS_VK_CALL(device->vkCreateImage)(device->device, &imageCreateInfo,
 		instance->allocCallbacksPtr, &texture->deviceImage);
-	if (!dsHandleVkResult(result))
+	if (!DS_HANDLE_VK_RESULT(result, "Couldn't create image"))
 	{
 		dsVkTexture_destroyImpl(baseTexture);
 		return NULL;
@@ -361,7 +361,7 @@ static dsTexture* createTextureImpl(dsResourceManager* resourceManager, dsAlloca
 
 	result = DS_VK_CALL(device->vkBindImageMemory)(device->device, texture->deviceImage,
 		texture->deviceMemory, 0);
-	if (!dsHandleVkResult(result))
+	if (!DS_HANDLE_VK_RESULT(result, "Couldn't bind image memory"))
 	{
 		dsVkTexture_destroyImpl(baseTexture);
 		return NULL;
@@ -1182,7 +1182,7 @@ bool dsVkTexture_getData(void* result, size_t size, dsResourceManager* resourceM
 		mapSize = VK_WHOLE_SIZE;
 	VkResult vkResult = DS_VK_CALL(device->vkMapMemory)(device->device, vkTexture->hostMemory,
 		offset, mapSize, 0, &imageMemory);
-	if (!dsHandleVkResult(vkResult))
+	if (!DS_HANDLE_VK_RESULT(vkResult, "Couldn't map image memory"))
 		return false;
 
 	imageMemory = (uint8_t*)imageMemory + rem;
@@ -1198,7 +1198,7 @@ bool dsVkTexture_getData(void* result, size_t size, dsResourceManager* resourceM
 			mapSize
 		};
 		vkResult = DS_VK_CALL(device->vkInvalidateMappedMemoryRanges)(device->device, 1, &range);
-		if (!dsHandleVkResult(vkResult))
+		if (!DS_HANDLE_VK_RESULT(vkResult, "Couldn't invalidate image memory"))
 			return false;
 	}
 

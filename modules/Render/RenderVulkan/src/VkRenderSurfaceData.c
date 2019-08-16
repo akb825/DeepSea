@@ -64,7 +64,7 @@ static bool supportsFormat(dsVkDevice* device, VkSurfaceKHR surface, VkFormat fo
 	uint32_t formatCount = 0;
 	VkResult result = DS_VK_CALL(instance->vkGetPhysicalDeviceSurfaceFormatsKHR)(
 		device->physicalDevice, surface, &formatCount, 0);
-	if (!dsHandleVkResult(result))
+	if (!DS_HANDLE_VK_RESULT(result, "Couldn't get surface formats"))
 		return false;
 
 	VkSurfaceFormatKHR* surfaceFormats = DS_ALLOCATE_STACK_OBJECT_ARRAY(VkSurfaceFormatKHR,
@@ -143,7 +143,7 @@ static bool createResolveImage(dsVkRenderSurfaceData* surfaceData, VkFormat form
 
 	VkResult result = DS_VK_CALL(device->vkCreateImage)(device->device, &imageCreateInfo,
 		instance->allocCallbacksPtr, &surfaceData->resolveImage);
-	if (!dsHandleVkResult(result))
+	if (!DS_HANDLE_VK_RESULT(result, "Couldn't create image"))
 		return false;
 
 	VkMemoryRequirements requirements;
@@ -162,7 +162,7 @@ static bool createResolveImage(dsVkRenderSurfaceData* surfaceData, VkFormat form
 
 	result = DS_VK_CALL(device->vkBindImageMemory)(device->device, surfaceData->resolveImage,
 		surfaceData->resolveMemory, 0);
-	if (!dsHandleVkResult(result))
+	if (!DS_HANDLE_VK_RESULT(result, "Couldn't bind image memory"))
 		return false;
 
 	VkImageViewCreateInfo imageViewCreateInfo =
@@ -180,7 +180,7 @@ static bool createResolveImage(dsVkRenderSurfaceData* surfaceData, VkFormat form
 
 	result = DS_VK_CALL(device->vkCreateImageView)(device->device, &imageViewCreateInfo,
 		instance->allocCallbacksPtr, &surfaceData->resolveImageView);
-	return dsHandleVkResult(result);
+	return DS_HANDLE_VK_RESULT(result, "Couldn't create image view");
 }
 
 static bool createDepthImage(dsVkRenderSurfaceData* surfaceData, uint32_t width, uint32_t height)
@@ -221,7 +221,7 @@ static bool createDepthImage(dsVkRenderSurfaceData* surfaceData, uint32_t width,
 
 	VkResult result = DS_VK_CALL(device->vkCreateImage)(device->device, &imageCreateInfo,
 		instance->allocCallbacksPtr, &surfaceData->depthImage);
-	if (!dsHandleVkResult(result))
+	if (!DS_HANDLE_VK_RESULT(result, "Couldn't create image"))
 		return false;
 
 	VkMemoryRequirements requirements;
@@ -240,7 +240,7 @@ static bool createDepthImage(dsVkRenderSurfaceData* surfaceData, uint32_t width,
 
 	result = DS_VK_CALL(device->vkBindImageMemory)(device->device, surfaceData->depthImage,
 		surfaceData->depthMemory, 0);
-	if (!dsHandleVkResult(result))
+	if (!DS_HANDLE_VK_RESULT(result, "Couldn't bind image memory"))
 		return false;
 
 	VkImageViewCreateInfo imageViewCreateInfo =
@@ -259,7 +259,7 @@ static bool createDepthImage(dsVkRenderSurfaceData* surfaceData, uint32_t width,
 
 	result = DS_VK_CALL(device->vkCreateImageView)(device->device, &imageViewCreateInfo,
 		instance->allocCallbacksPtr, &surfaceData->depthImageView);
-	return dsHandleVkResult(result);
+	return DS_HANDLE_VK_RESULT(result, "Couldn't create image view");
 }
 
 dsVkRenderSurfaceData* dsVkRenderSurfaceData_create(dsAllocator* allocator, dsRenderer* renderer,
@@ -281,7 +281,7 @@ dsVkRenderSurfaceData* dsVkRenderSurfaceData_create(dsAllocator* allocator, dsRe
 	VkBool32 supported = false;
 	VkResult result = DS_VK_CALL(instance->vkGetPhysicalDeviceSurfaceSupportKHR)(
 		device->physicalDevice, device->queueFamilyIndex, surface, &supported);
-	if (!dsHandleVkResult(result))
+	if (!DS_HANDLE_VK_RESULT(result, "Couldn't get surface support"))
 		return NULL;
 	if (!supported)
 	{
@@ -293,7 +293,7 @@ dsVkRenderSurfaceData* dsVkRenderSurfaceData_create(dsAllocator* allocator, dsRe
 	VkSurfaceCapabilitiesKHR surfaceInfo;
 	result = DS_VK_CALL(instance->vkGetPhysicalDeviceSurfaceCapabilitiesKHR)(
 		device->physicalDevice, surface, &surfaceInfo);
-	if (!dsHandleVkResult(result))
+	if (!DS_HANDLE_VK_RESULT(result, "Couldn't get surface capabilities"))
 		return NULL;
 
 	if (renderer->stereoscopic && surfaceInfo.maxImageArrayLayers < 2)
@@ -372,12 +372,12 @@ dsVkRenderSurfaceData* dsVkRenderSurfaceData_create(dsAllocator* allocator, dsRe
 	VkSwapchainKHR swapchain;
 	result = DS_VK_CALL(device->vkCreateSwapchainKHR)(device->device, &createInfo,
 		instance->allocCallbacksPtr, &swapchain);
-	if (!dsHandleVkResult(result))
+	if (!DS_HANDLE_VK_RESULT(result, "Couldn't create swapchain"))
 		return NULL;
 
 	result = DS_VK_CALL(device->vkGetSwapchainImagesKHR)(device->device, swapchain, &imageCount,
 		NULL);
-	if (!dsHandleVkResult(result))
+	if (!DS_HANDLE_VK_RESULT(result, "Couldn't get swapchain images"))
 	{
 		DS_VK_CALL(device->vkDestroySwapchainKHR)(device->device, swapchain,
 			instance->allocCallbacksPtr);
@@ -436,7 +436,7 @@ dsVkRenderSurfaceData* dsVkRenderSurfaceData_create(dsAllocator* allocator, dsRe
 
 	result = DS_VK_CALL(device->vkGetSwapchainImagesKHR)(device->device, swapchain, &imageCount,
 		surfaceData->images);
-	if (!dsHandleVkResult(result))
+	if (!DS_HANDLE_VK_RESULT(result, "Couldn't get swapchain images"))
 	{
 		dsVkRenderSurfaceData_destroy(surfaceData);
 		return NULL;
@@ -461,7 +461,7 @@ dsVkRenderSurfaceData* dsVkRenderSurfaceData_create(dsAllocator* allocator, dsRe
 
 		result = DS_VK_CALL(device->vkCreateImageView)(device->device, &imageViewCreateInfo,
 			instance->allocCallbacksPtr, surfaceData->leftImageViews + i);
-		if (!dsHandleVkResult(result))
+		if (!DS_HANDLE_VK_RESULT(result, "Couldn't create image view"))
 		{
 			dsVkRenderSurfaceData_destroy(surfaceData);
 			return NULL;
@@ -472,7 +472,7 @@ dsVkRenderSurfaceData* dsVkRenderSurfaceData_create(dsAllocator* allocator, dsRe
 			imageViewCreateInfo.subresourceRange.baseArrayLayer = 1;
 			result = DS_VK_CALL(device->vkCreateImageView)(device->device, &imageViewCreateInfo,
 				instance->allocCallbacksPtr, surfaceData->rightImageViews + i);
-			if (!dsHandleVkResult(result))
+			if (!DS_HANDLE_VK_RESULT(result, "Couldn't create image view"))
 			{
 				dsVkRenderSurfaceData_destroy(surfaceData);
 				return NULL;
@@ -488,7 +488,7 @@ dsVkRenderSurfaceData* dsVkRenderSurfaceData_create(dsAllocator* allocator, dsRe
 
 		result = DS_VK_CALL(device->vkCreateSemaphore)(device->device, &semaphoreCreateInfo,
 			instance->allocCallbacksPtr, &imageData->semaphore);
-		if (!dsHandleVkResult(result))
+		if (!DS_HANDLE_VK_RESULT(result, "Couldn't create semaphore"))
 		{
 			dsVkRenderSurfaceData_destroy(surfaceData);
 			return NULL;
@@ -539,7 +539,7 @@ dsVkSurfaceResult dsVkRenderSurfaceData_acquireImage(dsVkRenderSurfaceData* surf
 		surfaceData->swapchain, UINT64_MAX, imageData->semaphore, 0, &surfaceData->imageIndex);
 	if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR)
 		DS_PROFILE_FUNC_RETURN(dsVkSurfaceResult_OutOfDate);
-	else if (dsHandleVkResult(result))
+	if (DS_HANDLE_VK_RESULT(result, "Couldn't acquire next image"))
 		DS_PROFILE_FUNC_RETURN(dsVkSurfaceResult_Success);
 	else
 		DS_PROFILE_FUNC_RETURN(dsVkSurfaceResult_Error);

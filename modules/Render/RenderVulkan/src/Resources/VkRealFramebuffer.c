@@ -149,7 +149,7 @@ static bool getImageViews(dsResourceManager* resourceManager, const dsFramebuffe
 					};
 					VkResult result = DS_VK_CALL(device->vkCreateImageView)(device->device,
 						&createInfo, instance->allocCallbacksPtr, imageViews + index);
-					if (!dsHandleVkResult(result))
+					if (!DS_HANDLE_VK_RESULT(result, "Couldn't create image view"))
 						return false;
 
 					imageViewTemp[index] = true;
@@ -303,7 +303,7 @@ dsVkRealFramebuffer* dsVkRealFramebuffer_create(dsAllocator* allocator,
 		};
 		VkResult result = DS_VK_CALL(device->vkCreateFramebuffer)(device->device, &createInfo,
 			instance->allocCallbacksPtr, realFramebuffer->framebuffers + i);
-		if (!dsHandleVkResult(result))
+		if (!DS_HANDLE_VK_RESULT(result, "Couldn't create framebuffer"))
 		{
 			dsVkRealFramebuffer_destroy(realFramebuffer);
 			return NULL;

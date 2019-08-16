@@ -309,7 +309,7 @@ static bool beginSubpass(dsVkDevice* device, VkCommandBuffer commandBuffer,
 	};
 
 	VkResult result = DS_VK_CALL(device->vkBeginCommandBuffer)(commandBuffer, &beginInfo);
-	if (!dsHandleVkResult(result))
+	if (!DS_HANDLE_VK_RESULT(result, "Couldn't begin command buffer"))
 		return false;
 
 	VkViewport viewport =
@@ -368,7 +368,7 @@ bool dsVkCommandBuffer_initialize(dsVkCommandBuffer* commandBuffer, dsRenderer* 
 
 	VkResult result = DS_VK_CALL(device->vkCreateCommandPool)(device->device,
 		&commandPoolCreateInfo, instance->allocCallbacksPtr, &commandBuffer->commandPool);
-	if (!dsHandleVkResult(result))
+	if (!DS_HANDLE_VK_RESULT(result, "Couldn't create command pool"))
 		return false;
 
 	if (!(usage & dsCommandBufferUsage_Secondary))

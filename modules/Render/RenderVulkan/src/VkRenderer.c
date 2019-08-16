@@ -115,12 +115,12 @@ static bool createCommandBuffers(dsVkRenderer* renderer)
 
 		VkResult result = DS_VK_CALL(device->vkCreateFence)(device->device, &fenceCreateInfo,
 			instance->allocCallbacksPtr, &submit->fence);
-		if (!dsHandleVkResult(result))
+		if (!DS_HANDLE_VK_RESULT(result, "Couldn't create fence"))
 			return false;
 
 		result = DS_VK_CALL(device->vkCreateSemaphore)(device->device, &semaphoreCreateInfo,
 			instance->allocCallbacksPtr, &submit->semaphore);
-		if (!dsHandleVkResult(result))
+		if (!DS_HANDLE_VK_RESULT(result, "Couldn't create semaphore"))
 			return false;
 	}
 
@@ -172,7 +172,7 @@ static VkSampler createDefaultSampler(dsVkDevice* device)
 	VkSampler sampler;
 	VkResult result = DS_VK_CALL(device->vkCreateSampler)(device->device, &samplerCreateInfo,
 		instance->allocCallbacksPtr, &sampler);
-	if (!dsHandleVkResult(result))
+	if (!DS_HANDLE_VK_RESULT(result, "Couldn't create sampler"))
 		return 0;
 
 	return sampler;
@@ -2395,7 +2395,7 @@ dsGfxFenceResult dsVkRenderer_waitForSubmit(dsRenderer* renderer, uint64_t submi
 			DS_LOG_FATAL_F(DS_RENDER_VULKAN_LOG_TAG, "Vulkan device was lost.");
 			abort();
 		default:
-			dsHandleVkResult(result);
+			DS_HANDLE_VK_RESULT(result, "Couldn't wait for fence");
 			return dsGfxFenceResult_Error;
 	}
 }

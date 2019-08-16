@@ -653,11 +653,8 @@ bool dsCreateVkInstance(dsVkInstance* instance, const dsRendererOptions* options
 		&instance->instance);
 	if (handleErrors)
 	{
-		if (!dsHandleVkResult(result))
-		{
-			DS_LOG_ERROR(DS_RENDER_VULKAN_LOG_TAG, "Couldn't create Vulkan instance.");
+		if (!DS_HANDLE_VK_RESULT(result, "Couldn't create Vulkan instance"))
 			return false;
-		}
 	}
 	else if (result != VK_SUCCESS)
 		return false;
@@ -958,11 +955,8 @@ bool dsCreateVkDevice(dsVkDevice* device, dsAllocator* allocator, const dsRender
 	};
 	VkResult result = DS_VK_CALL(instance->vkCreateDevice)(device->physicalDevice,
 		&deviceCreateInfo, instance->allocCallbacksPtr, &device->device);
-	if (!dsHandleVkResult(result))
-	{
-		DS_LOG_ERROR(DS_RENDER_VULKAN_LOG_TAG, "Couldn't create Vulkan device.");
+	if (!DS_HANDLE_VK_RESULT(result, "Couldn't create Vulkan device"))
 		return false;
-	}
 
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkDestroyDevice);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkGetDeviceQueue);

@@ -182,7 +182,7 @@ dsVkPipeline* dsVkPipeline_create(dsAllocator* allocator, dsShader* shader,
 	VkResult result = DS_VK_CALL(device->vkCreateGraphicsPipelines)(device->device,
 		vkResourceManager->pipelineCache, 1, &createInfo, instance->allocCallbacksPtr,
 		&pipeline->pipeline);
-	if (!dsHandleVkResult(result))
+	if (!DS_HANDLE_VK_RESULT(result, "Couldn't create graphics pipeline"))
 	{
 		dsVkPipeline_destroy(pipeline);
 		return NULL;

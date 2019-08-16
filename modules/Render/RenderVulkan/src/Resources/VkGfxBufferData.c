@@ -117,7 +117,7 @@ dsVkGfxBufferData* dsVkGfxBufferData_create(dsResourceManager* resourceManager,
 		};
 		VkResult result = DS_VK_CALL(device->vkCreateBuffer)(device->device, &bufferCreateInfo,
 			instance->allocCallbacksPtr, &buffer->deviceBuffer);
-		if (!dsHandleVkResult(result))
+		if (!DS_HANDLE_VK_RESULT(result, "Couldn't create buffer"))
 		{
 			dsVkGfxBufferData_destroy(buffer);
 			return NULL;
@@ -155,7 +155,7 @@ dsVkGfxBufferData* dsVkGfxBufferData_create(dsResourceManager* resourceManager,
 		};
 		VkResult result = DS_VK_CALL(device->vkCreateBuffer)(device->device, &bufferCreateInfo,
 			instance->allocCallbacksPtr, &buffer->hostBuffer);
-		if (!dsHandleVkResult(result))
+		if (!DS_HANDLE_VK_RESULT(result, "Couldn't create buffer"))
 		{
 			dsVkGfxBufferData_destroy(buffer);
 			return NULL;
@@ -179,7 +179,8 @@ dsVkGfxBufferData* dsVkGfxBufferData_create(dsResourceManager* resourceManager,
 	}
 
 	// Check if the device and host memory are the same. If so, only create a single buffer.
-	// This is generally the case on devices with a shared memory model.
+	// This is generally the case on devices with a shared memory model. Don't re-use the previous
+	// buffers since different usage flags were used to allow copying between them.
 	if (deviceMemoryIndex == hostMemoryIndex)
 	{
 		DS_ASSERT(needsDeviceMemory && needsHostMemory);
@@ -203,7 +204,7 @@ dsVkGfxBufferData* dsVkGfxBufferData_create(dsResourceManager* resourceManager,
 		};
 		VkResult result = DS_VK_CALL(device->vkCreateBuffer)(device->device, &bufferCreateInfo,
 			instance->allocCallbacksPtr, &buffer->hostBuffer);
-		if (!dsHandleVkResult(result))
+		if (!DS_HANDLE_VK_RESULT(result, "Couldn't create buffer"))
 		{
 			dsVkGfxBufferData_destroy(buffer);
 			return NULL;
@@ -231,7 +232,7 @@ dsVkGfxBufferData* dsVkGfxBufferData_create(dsResourceManager* resourceManager,
 
 		VkResult result = DS_VK_CALL(device->vkBindBufferMemory)(device->device,
 			buffer->deviceBuffer, buffer->deviceMemory, 0);
-		if (!dsHandleVkResult(result))
+		if (!DS_HANDLE_VK_RESULT(result, "Couldn't bind buffer memory"))
 		{
 			dsVkGfxBufferData_destroy(buffer);
 			return NULL;
@@ -249,7 +250,7 @@ dsVkGfxBufferData* dsVkGfxBufferData_create(dsResourceManager* resourceManager,
 
 		VkResult result = DS_VK_CALL(device->vkBindBufferMemory)(device->device, buffer->hostBuffer,
 			buffer->hostMemory, 0);
-		if (!dsHandleVkResult(result))
+		if (!DS_HANDLE_VK_RESULT(result, "Couldn't bind buffer memory"))
 		{
 			dsVkGfxBufferData_destroy(buffer);
 			return NULL;
@@ -263,7 +264,7 @@ dsVkGfxBufferData* dsVkGfxBufferData_create(dsResourceManager* resourceManager,
 		void* mappedData;
 		VkResult result = DS_VK_CALL(device->vkMapMemory)(device->device, buffer->hostMemory, 0,
 			size, 0, &mappedData);
-		if (!dsHandleVkResult(result))
+		if (!DS_HANDLE_VK_RESULT(result, "Couldn't map buffer memory"))
 		{
 			dsVkGfxBufferData_destroy(buffer);
 			return NULL;
@@ -350,7 +351,7 @@ VkBufferView dsVkGfxBufferData_getBufferView(dsVkGfxBufferData* buffer, dsGfxFor
 	VkBufferView bufferView;
 	VkResult result = DS_VK_CALL(device->vkCreateBufferView)(device->device, &createInfo,
 		instance->allocCallbacksPtr, &bufferView);
-	if (!dsHandleVkResult(result))
+	if (!DS_HANDLE_VK_RESULT(result, "Couldn't create buffer view"))
 	{
 		DS_VERIFY(dsSpinlock_unlock(&buffer->bufferViewLock));
 		--buffer->bufferViewCount;

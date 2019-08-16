@@ -53,7 +53,7 @@ dsVkTempBuffer* dsVkTempBuffer_create(dsAllocator* allocator, dsVkDevice* device
 	};
 	VkResult result = DS_VK_CALL(device->vkCreateBuffer)(device->device, &bufferCreateInfo,
 		instance->allocCallbacksPtr, &buffer->buffer);
-	if (!dsHandleVkResult(result))
+	if (!DS_HANDLE_VK_RESULT(result, "Couldn't create buffer"))
 	{
 		dsVkTempBuffer_destroy(buffer);
 		return NULL;
@@ -80,7 +80,7 @@ dsVkTempBuffer* dsVkTempBuffer_create(dsAllocator* allocator, dsVkDevice* device
 
 	result = DS_VK_CALL(device->vkMapMemory)(
 		device->device, buffer->memory, 0, VK_WHOLE_SIZE, 0, (void**)&buffer->contents);
-	if (!dsHandleVkResult(result))
+	if (!DS_HANDLE_VK_RESULT(result, "Couldn't map buffer memory"))
 	{
 		dsVkTempBuffer_destroy(buffer);
 		return NULL;
@@ -88,7 +88,7 @@ dsVkTempBuffer* dsVkTempBuffer_create(dsAllocator* allocator, dsVkDevice* device
 
 	result =
 		DS_VK_CALL(device->vkBindBufferMemory)(device->device, buffer->buffer, buffer->memory, 0);
-	if (!dsHandleVkResult(result))
+	if (!DS_HANDLE_VK_RESULT(result, "Couldn't bind buffer memory"))
 	{
 		dsVkTempBuffer_destroy(buffer);
 		return NULL;

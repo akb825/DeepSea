@@ -187,7 +187,7 @@ dsVkSamplerList* dsVkSamplerList_create(dsAllocator* allocator, dsShader* shader
 
 		VkResult result = DS_VK_CALL(device->vkCreateSampler)(device->device, &createInfo,
 			instance->allocCallbacksPtr, samplers->samplers + samplerMapping[i].samplerIndex);
-		if (!dsHandleVkResult(result))
+		if (!DS_HANDLE_VK_RESULT(result, "Couldn't create sampler"))
 		{
 			dsVkSamplerList_destroy(samplers);
 			return NULL;

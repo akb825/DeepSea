@@ -30,14 +30,95 @@ typedef struct LastCallsite
 
 static DS_THREAD_LOCAL LastCallsite lastCallsite;
 
-bool dsHandleVkResult(VkResult result)
+const char* dsGetVkResultString(VkResult result)
 {
+	switch (result)
+	{
+		case VK_SUCCESS:
+			return "success";
+		case VK_NOT_READY:
+			return "not ready";
+		case VK_TIMEOUT:
+			return "timeout";
+		case VK_EVENT_SET:
+			return "event set";
+		case VK_EVENT_RESET:
+			return "event reset";
+		case VK_INCOMPLETE:
+			return "incomplete";
+		case VK_ERROR_OUT_OF_HOST_MEMORY:
+			return "out of host memory";
+		case VK_ERROR_OUT_OF_DEVICE_MEMORY:
+			return "out of device memory";
+		case VK_ERROR_INITIALIZATION_FAILED:
+			return "initialization failed";
+		case VK_ERROR_DEVICE_LOST:
+			return "device lost";
+		case VK_ERROR_MEMORY_MAP_FAILED:
+			return "memory map failed";
+		case VK_ERROR_LAYER_NOT_PRESENT:
+			return "layer not present";
+		case VK_ERROR_EXTENSION_NOT_PRESENT:
+			return "extension not present";
+		case VK_ERROR_FEATURE_NOT_PRESENT:
+			return "feature not present";
+		case VK_ERROR_INCOMPATIBLE_DRIVER:
+			return "incompatible driver";
+		case VK_ERROR_TOO_MANY_OBJECTS:
+			return "too many objects";
+		case VK_ERROR_FORMAT_NOT_SUPPORTED:
+			return "format not supported";
+		case VK_ERROR_FRAGMENTED_POOL:
+			return "fragmented pool";
+		case VK_ERROR_OUT_OF_POOL_MEMORY:
+			return "out of pool memory";
+		case VK_ERROR_INVALID_EXTERNAL_HANDLE:
+			return "invalid external handle";
+		case VK_ERROR_SURFACE_LOST_KHR:
+			return "surface lost";
+		case VK_ERROR_NATIVE_WINDOW_IN_USE_KHR:
+			return "native window in use";
+		case VK_SUBOPTIMAL_KHR:
+			return "suboptimal";
+		case VK_ERROR_OUT_OF_DATE_KHR:
+			return "out of date";
+		case VK_ERROR_INCOMPATIBLE_DISPLAY_KHR:
+			return "incompatible display";
+		case VK_ERROR_VALIDATION_FAILED_EXT:
+			return "validation failed";
+		case VK_ERROR_INVALID_SHADER_NV:
+			return "invalid shader";
+		case VK_ERROR_INVALID_DRM_FORMAT_MODIFIER_PLANE_LAYOUT_EXT:
+			return "invalid drm format modifier plane layout";
+		case VK_ERROR_FRAGMENTATION_EXT:
+			return "fragmentation";
+		case VK_ERROR_NOT_PERMITTED_EXT:
+			return "not permitted";
+		case VK_ERROR_INVALID_DEVICE_ADDRESS_EXT:
+			return "invalid device address";
+		case VK_ERROR_FULL_SCREEN_EXCLUSIVE_MODE_LOST_EXT:
+			return "full screen exclusive mode lost";
+		default:
+			return "unknown";
+	}
+}
+
+bool dsHandleVkResult(VkResult result, const char* failMessage, const char* file, unsigned int line,
+	const char* function)
+{
+	if (failMessage && result != VK_SUCCESS)
+	{
+		dsLog_messagef(dsLogLevel_Error, DS_RENDER_VULKAN_LOG_TAG, file, line, function, "%s: %s",
+			failMessage, dsGetVkResultString(result));
+	}
+
 	switch (result)
 	{
 		case VK_SUCCESS:
 			return true;
 		case VK_ERROR_OUT_OF_HOST_MEMORY:
 		case VK_ERROR_OUT_OF_DEVICE_MEMORY:
+		case VK_ERROR_TOO_MANY_OBJECTS:
 		case VK_ERROR_FRAGMENTED_POOL:
 		case VK_ERROR_OUT_OF_POOL_MEMORY:
 			errno = ENOMEM;
@@ -82,10 +163,7 @@ uint32_t dsVkMemoryIndexImpl(const dsVkDevice* device, const VkMemoryRequirement
 
 		VkDeviceSize size = memoryProperties->memoryHeaps[memoryType->heapIndex].size;
 		if (memoryIndex == DS_INVALID_HEAP)
-		{
 			memoryIndex = i;
-			memorySize = size;
-		}
 
 		// Find the largest optimal heap.
 		if (size > memorySize)
@@ -97,8 +175,10 @@ uint32_t dsVkMemoryIndexImpl(const dsVkDevice* device, const VkMemoryRequirement
 			}
 			else if (!isOptimal)
 				memoryIndex = i;
-			memorySize = size;
 		}
+
+		if (memoryIndex == i)
+			memorySize = size;
 	}
 
 	if (memoryIndex == DS_INVALID_HEAP)
@@ -164,7 +244,7 @@ VkDeviceMemory dsAllocateVkMemory(const dsVkDevice* device,
 	VkDeviceMemory memory = 0;
 	VkResult result = DS_VK_CALL(device->vkAllocateMemory)(device->device, &allocInfo,
 		instance->allocCallbacksPtr, &memory);
-	if (!dsHandleVkResult(result))
+	if (!DS_HANDLE_VK_RESULT(result, "Couldn't allocate memory"))
 		return 0;
 
 	return memory;

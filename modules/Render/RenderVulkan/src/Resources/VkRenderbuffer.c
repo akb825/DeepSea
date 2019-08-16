@@ -92,7 +92,7 @@ dsRenderbuffer* dsVkRenderbuffer_create(dsResourceManager* resourceManager, dsAl
 	};
 	VkResult result = DS_VK_CALL(device->vkCreateImage)(device->device, &imageCreateInfo,
 		instance->allocCallbacksPtr, &renderbuffer->image);
-	if (!dsHandleVkResult(result))
+	if (!DS_HANDLE_VK_RESULT(result, "Couldn't create image"))
 	{
 		dsVkRenderbuffer_destroyImpl(baseRenderbuffer);
 		return NULL;
@@ -120,7 +120,7 @@ dsRenderbuffer* dsVkRenderbuffer_create(dsResourceManager* resourceManager, dsAl
 
 	result = DS_VK_CALL(device->vkBindImageMemory)(device->device, renderbuffer->image,
 		renderbuffer->memory, 0);
-	if (!dsHandleVkResult(result))
+	if (!DS_HANDLE_VK_RESULT(result, "Couldn't bind image memory"))
 	{
 		dsVkRenderbuffer_destroyImpl(baseRenderbuffer);
 		return NULL;
@@ -140,7 +140,7 @@ dsRenderbuffer* dsVkRenderbuffer_create(dsResourceManager* resourceManager, dsAl
 	};
 	result = DS_VK_CALL(device->vkCreateImageView)(device->device, &imageViewCreateInfo,
 		instance->allocCallbacksPtr, &renderbuffer->imageView);
-	if (!dsHandleVkResult(result))
+	if (!DS_HANDLE_VK_RESULT(result, "Couldn't create image view"))
 	{
 		dsVkRenderbuffer_destroyImpl(baseRenderbuffer);
 		return NULL;

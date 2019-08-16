@@ -61,7 +61,7 @@ dsGfxQueryPool* dsVkGfxQueryPool_create(dsResourceManager* resourceManager,
 	VkQueryPool vkQueries;
 	VkResult result = DS_VK_CALL(device->vkCreateQueryPool)(device->device, &createInfo,
 		instance->allocCallbacksPtr, &vkQueries);
-	if (!dsHandleVkResult(result))
+	if (!DS_HANDLE_VK_RESULT(result, "Couldn't create query pool"))
 		return NULL;
 
 	dsVkGfxQueryPool* queries = DS_ALLOCATE_OBJECT(allocator, dsVkGfxQueryPool);
@@ -178,7 +178,7 @@ bool dsVkGfxQueryPool_getValues(dsResourceManager* resourceManager, dsGfxQueryPo
 		flags |= VK_QUERY_RESULT_WAIT_BIT;
 	VkResult result = DS_VK_CALL(device->vkGetQueryPoolResults)(device->device,
 		vkQueries->vkQueries, first, count, dataSize, data, stride, flags);
-	return dsHandleVkResult(result);
+	return DS_HANDLE_VK_RESULT(result, "Couldn't get query pool results");
 }
 
 bool dsVkGfxQueryPool_copyValues(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,

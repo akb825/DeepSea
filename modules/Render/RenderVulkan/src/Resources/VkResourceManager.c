@@ -577,7 +577,7 @@ static bool writePipelineCache(dsAllocator* allocator, const char* shaderCacheDi
 	size_t size = 0;
 	VkResult result = DS_VK_CALL(device->vkGetPipelineCacheData)(device->device, pipelineCache,
 		&size, NULL);
-	if (!dsHandleVkResult(result))
+	if (!DS_HANDLE_VK_RESULT(result, "Couldn't get pipeline cache data"))
 		return false;
 
 	void* data = dsAllocator_alloc(allocator, size);
@@ -586,7 +586,7 @@ static bool writePipelineCache(dsAllocator* allocator, const char* shaderCacheDi
 
 	result = DS_VK_CALL(device->vkGetPipelineCacheData)(device->device, pipelineCache,
 		&size, NULL);
-	if (!dsHandleVkResult(result))
+	if (!DS_HANDLE_VK_RESULT(result, "Couldn't get pipeline cache data"))
 		goto bufferError;
 
 	char path[DS_PATH_MAX];
@@ -930,7 +930,7 @@ dsResourceManager* dsVkResourceManager_create(dsAllocator* allocator, dsVkRender
 	VkResult result = DS_VK_CALL(device->vkCreatePipelineCache)(device->device,
 		&pipelineCacheCreateInfo, instance->allocCallbacksPtr, &resourceManager->pipelineCache);
 	DS_VERIFY(dsAllocator_free(allocator, pipelineCacheData));
-	if (!dsHandleVkResult(result))
+	if (!DS_HANDLE_VK_RESULT(result, "Couldn't create pipeline cache"))
 	{
 		dsVkResourceManager_destroy(baseResourceManager);
 		return NULL;

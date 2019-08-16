@@ -197,7 +197,7 @@ bool dsVkRenderSurface_update(dsRenderer* renderer, dsRenderSurface* renderSurfa
 		else if (result != VK_ERROR_OUT_OF_DATE_KHR)
 		{
 			DS_VERIFY(dsSpinlock_unlock(&vkSurface->lock));
-			return dsHandleVkResult(result);
+			return DS_HANDLE_VK_RESULT(result, "Couldn't get surface capabilities");
 		}
 	}
 
@@ -335,7 +335,7 @@ bool dsVkRenderSurface_swapBuffers(dsRenderer* renderer, dsRenderSurface** rende
 
 	dsVkDevice* device = &((dsVkRenderer*)renderer)->device;
 	VkResult result = DS_VK_CALL(device->vkQueuePresentKHR)(device->queue, &presentInfo);
-	return dsHandleVkResult(result);
+	return DS_HANDLE_VK_RESULT(result, "Couldn't queue present");
 }
 
 bool dsVkRenderSurface_destroy(dsRenderer* renderer, dsRenderSurface* renderSurface)

@@ -168,7 +168,7 @@ dsMaterialDesc* dsVkMaterialDesc_create(dsResourceManager* resourceManager, dsAl
 
 		VkResult result = DS_VK_CALL(device->vkCreateDescriptorSetLayout)(device->device,
 			&createInfo, instance->allocCallbacksPtr, &bindings->descriptorSets);
-		if (!dsHandleVkResult(result))
+		if (!DS_HANDLE_VK_RESULT(result, "Couldn't create descriptor set layout"))
 		{
 			dsVkMaterialDesc_destroy(resourceManager, baseMaterialDesc);
 			return NULL;

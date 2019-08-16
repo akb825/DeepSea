@@ -64,7 +64,7 @@ VkSurfaceKHR dsVkPlatformX11_createSurface(dsVkInstance* instance, void* display
 	VkSurfaceKHR surface;
 	VkResult result = DS_VK_CALL(vkCreateXlibSurfaceKHR)(instance->instance, &createInfo,
 		instance->allocCallbacksPtr, &surface);
-	if (!dsHandleVkResult(result))
+	if (!DS_HANDLE_VK_RESULT(result, "Couldn't create surface"))
 		return 0;
 
 	return surface;
