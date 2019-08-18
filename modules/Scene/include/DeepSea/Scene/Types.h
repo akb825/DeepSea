@@ -184,10 +184,11 @@ typedef struct dsSceneGlobalData dsSceneGlobalData;
  * @remark errno should be set on failure.
  * @param globalData The instance data.
  * @param view The view being drawn. Material values should be set on view->globalValues.
+ * @param commandBuffer The command buffer.
  * @return False if an error occurred.
  */
 typedef bool (*dsPopulateSceneGlobalDataFunction)(dsSceneGlobalData* globalData,
-	const dsView* view);
+	const dsView* view, dsCommandBuffer* commandBuffer);
 
 /**
  * @brief Function for finishing the current set of global data.

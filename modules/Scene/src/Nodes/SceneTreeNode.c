@@ -33,7 +33,10 @@ static void updateTransform(dsSceneTreeNode* node)
 	{
 		dsSceneTransformNode* transformNode = (dsSceneTransformNode*)node;
 		if (node->parent)
-			dsMatrix44_mul(node->transform, node->parent->transform, transformNode->transform);
+		{
+			dsMatrix44_affineMul(node->transform, node->parent->transform,
+				transformNode->transform);
+		}
 		else
 			node->transform = transformNode->transform;
 	}

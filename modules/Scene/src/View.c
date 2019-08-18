@@ -688,7 +688,7 @@ bool dsView_draw(dsView* view, dsCommandBuffer* commandBuffer, dsSceneThreadMana
 	for (uint32_t i = 0; i < scene->globalDataCount; ++i)
 	{
 		dsSceneGlobalData* globalData = scene->globalData[i];
-		if (!globalData->populateDataFunc(globalData, view))
+		if (!globalData->populateDataFunc(globalData, view, commandBuffer))
 			DS_PROFILE_FUNC_RETURN(false);
 	}
 
