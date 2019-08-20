@@ -284,9 +284,11 @@ void* dsVkGfxBuffer_map(dsResourceManager* resourceManager, dsGfxBuffer* buffer,
 		return NULL;
 	}
 
-	// Invalidate range for reading if not coherent.
-	if (!bufferData->hostMemoryCoherent && (flags & dsGfxBufferMap_Read) &&
-		!(flags & dsGfxBufferMap_Persistent) && lastUsedSubmit != DS_NOT_SUBMITTED)
+	// Invalidate range if the GPU can write to the buffer and not coherent or persistently mapped.
+	bool gpuCanWrite = (bufferData->usage & (dsGfxBufferUsage_UniformBuffer |
+		dsGfxBufferUsage_Image | dsGfxBufferUsage_CopyTo)) != 0;
+	if (!bufferData->hostMemoryCoherent && gpuCanWrite && !(flags & dsGfxBufferMap_Persistent) &&
+		lastUsedSubmit != DS_NOT_SUBMITTED)
 	{
 		VkMappedMemoryRange range =
 		{
@@ -409,7 +411,7 @@ bool dsVkGfxBuffer_invalidate(dsResourceManager* resourceManager, dsGfxBuffer* b
 	{
 		DS_VERIFY(dsSpinlock_unlock(&vkBuffer->lock));
 		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_VULKAN_LOG_TAG, "Buffer memory not accessible to be flushed.");
+		DS_LOG_ERROR(DS_RENDER_VULKAN_LOG_TAG, "Buffer memory not accessible to be invalidated.");
 		return false;
 	}
 

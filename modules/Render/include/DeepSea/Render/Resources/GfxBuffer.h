@@ -99,7 +99,8 @@ DS_RENDER_EXPORT bool dsGfxBuffer_flush(dsGfxBuffer* buffer, size_t offset, size
  * @brief Invlidates reads to a mapped memory range for a buffer.
  *
  * This is generally used for persistently mapped memory for a non-coherent buffer. This guarantees
- * writes from the GPU will be visible from the CPU.
+ * writes from the GPU will be visible from the CPU. This must be done even if you only write to the
+ * memory range.
  *
  * @remark errno will be set on failure.
  * @param buffer The buffer to invalidate.
