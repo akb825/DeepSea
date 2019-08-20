@@ -14,15 +14,12 @@
  * limitations under the License.
  */
 
-#include <DeepSea/Scene/ViewTransformData.h>
-
+#include "LightData.h"
 #include <DeepSea/Core/Containers/Hash.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Assert.h>
-#include <DeepSea/Core/Error.h>
-#include <DeepSea/Core/Log.h>
-#include <DeepSea/Math/Matrix44.h>
+#include <DeepSea/Math/Vector3.h>
 #include <DeepSea/Render/Resources/ShaderVariableGroup.h>
 #include <DeepSea/Render/Resources/ShaderVariableGroupDesc.h>
 #include <DeepSea/Render/Resources/SharedMaterialValues.h>
@@ -31,20 +28,17 @@
 
 static dsShaderVariableElement elements[] =
 {
-	{"view", dsMaterialType_Mat4, 0},
-	{"camera", dsMaterialType_Mat4, 0},
-	{"projection", dsMaterialType_Mat4, 0},
-	{"screenSize", dsMaterialType_IVec2, 0}
+	{"direction", dsMaterialType_Vec3, 0},
+	{"color", dsMaterialType_Vec3, 0},
+	{"ambient", dsMaterialType_Vec3, 0}
 };
 
-const char* const dsViewTransformData_shaderVariableGroupName = "ViewTransform";
-
-typedef struct dsViewTransformData
+typedef struct dsLightData
 {
 	dsSceneGlobalData globalData;
 	dsShaderVariableGroup* variableGroup;
 	uint32_t nameID;
-} dsViewTransformData;
+} dsLightData;
 
 dsShaderVariableGroupDesc* dsViewTransformData_createShaderVariableGroupDesc(
 	dsResourceManager* resourceManager, dsAllocator* allocator)
@@ -59,31 +53,22 @@ dsShaderVariableGroupDesc* dsViewTransformData_createShaderVariableGroupDesc(
 		DS_ARRAY_SIZE(elements));
 }
 
-bool dsViewTransformData_populateData(dsSceneGlobalData* globalData, const dsView* view,
+bool dsLightData_populateData(dsSceneGlobalData* globalData, const dsView* view,
 	dsCommandBuffer* commandBuffer)
 {
-	dsViewTransformData* viewData = (dsViewTransformData*)globalData;
-	DS_VERIFY(dsShaderVariableGroup_setElementData(viewData->variableGroup, 0, &view->viewMatrix,
-		dsMaterialType_Mat4, 0, 1));
-	DS_VERIFY(dsShaderVariableGroup_setElementData(viewData->variableGroup, 1, &view->cameraMatrix,
-		dsMaterialType_Mat4, 0, 1));
-	DS_VERIFY(dsShaderVariableGroup_setElementData(viewData->variableGroup, 2,
-		&view->projectionMatrix, dsMaterialType_Mat4, 0, 1));
-	dsVector2i screenSize = {{view->width, view->height}};
-	DS_VERIFY(dsShaderVariableGroup_setElementData(viewData->variableGroup, 3, &screenSize,
-		dsMaterialType_IVec2, 0, 1));
-	if (!dsShaderVariableGroup_commit(viewData->variableGroup, commandBuffer))
+	dsLightData* lightData = (dsLightData*)globalData;
+	if (!dsShaderVariableGroup_commit(lightData->variableGroup, commandBuffer))
 		return false;
 
-	DS_VERIFY(dsSharedMaterialValues_setVariableGroupId(view->globalValues, viewData->nameID,
-		viewData->variableGroup));
+	DS_VERIFY(dsSharedMaterialValues_setVariableGroupId(view->globalValues, lightData->nameID,
+		lightData->variableGroup));
 	return true;
 }
 
 bool dsViewTransformData_destroy(dsSceneGlobalData* globalData)
 {
-	dsViewTransformData* viewData = (dsViewTransformData*)globalData;
-	if (!dsShaderVariableGroup_destroy(viewData->variableGroup))
+	dsLightData* lightData = (dsLightData*)globalData;
+	if (!dsShaderVariableGroup_destroy(lightData->variableGroup))
 		return false;
 
 	if (globalData->allocator)
@@ -94,23 +79,11 @@ bool dsViewTransformData_destroy(dsSceneGlobalData* globalData)
 dsSceneGlobalData* dsViewTransformData_create(dsAllocator* allocator,
 	dsResourceManager* resourceManager, const dsShaderVariableGroupDesc* transformDesc)
 {
-	if (!allocator || !transformDesc)
-	{
-		errno = EINVAL;
-		return NULL;
-	}
+	DS_ASSERT(allocator);
+	DS_ASSERT(resourceManager);
+	DS_ASSERT(transformDesc);
 
-	if (transformDesc->elementCount != DS_ARRAY_SIZE(elements) ||
-		memcmp(transformDesc->elements, elements, sizeof(elements)) != 0)
-	{
-		errno = EINVAL;
-		DS_LOG_ERROR(DS_SCENE_LOG_TAG,
-			"View transform data's shader variable group description must have been created "
-			"with dsViewTransformData_createShaderVariableGroupDesc().");
-		return NULL;
-	}
-
-	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsViewTransformData)) +
+	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsLightData)) +
 		dsShaderVariableGroup_fullAllocSize(resourceManager, transformDesc);
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
@@ -119,26 +92,55 @@ dsSceneGlobalData* dsViewTransformData_create(dsAllocator* allocator,
 	dsBufferAllocator bufferAlloc;
 	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, fullSize));
 
-	dsViewTransformData* viewData = DS_ALLOCATE_OBJECT(&bufferAlloc, dsViewTransformData);
-	DS_VERIFY(viewData);
-	dsSceneGlobalData* globalData = (dsSceneGlobalData*)viewData;
+	dsLightData* lightData = DS_ALLOCATE_OBJECT(&bufferAlloc, dsLightData);
+	DS_VERIFY(lightData);
+	dsSceneGlobalData* globalData = (dsSceneGlobalData*)lightData;
 
 	globalData->allocator = dsAllocator_keepPointer(allocator);
 	globalData->valueCount = 1;
-	globalData->populateDataFunc = &dsViewTransformData_populateData;
+	globalData->populateDataFunc = &dsLightData_populateData;
 	globalData->destroyFunc = &dsViewTransformData_destroy;
 
-	viewData->variableGroup = dsShaderVariableGroup_create(resourceManager,
+	lightData->variableGroup = dsShaderVariableGroup_create(resourceManager,
 		(dsAllocator*)&bufferAlloc, allocator, transformDesc);
-	if (!viewData->variableGroup)
+	if (!lightData->variableGroup)
 	{
 		if (allocator->freeFunc)
 			DS_VERIFY(dsAllocator_free(allocator, buffer));
 		return NULL;
 	}
 
-	viewData->nameID = dsHashString(dsViewTransformData_shaderVariableGroupName);
+	const char* name = "Light";
+	lightData->nameID = dsHashString(name);
 
 	return globalData;
 }
 
+void dsLightData_setDirection(dsSceneGlobalData* globalData, const dsVector3f* direction)
+{
+	DS_VERIFY(globalData);
+	DS_VERIFY(direction);
+	dsLightData* lightData = (dsLightData*)globalData;
+	dsVector3f normDir;
+	dsVector3f_normalize(&normDir, direction);
+	DS_VERIFY(dsShaderVariableGroup_setElementData(lightData->variableGroup, 0, &normDir,
+		dsMaterialType_Vec3, 0, 1));
+}
+
+void dsLightData_setColor(dsSceneGlobalData* globalData, const dsVector3f* color)
+{
+	DS_VERIFY(globalData);
+	DS_VERIFY(color);
+	dsLightData* lightData = (dsLightData*)globalData;
+	DS_VERIFY(dsShaderVariableGroup_setElementData(lightData->variableGroup, 1, color,
+		dsMaterialType_Vec3, 0, 1));
+}
+
+void dsLightData_setAmbientColor(dsSceneGlobalData* globalData, const dsVector3f* color)
+{
+	DS_VERIFY(globalData);
+	DS_VERIFY(color);
+	dsLightData* lightData = (dsLightData*)globalData;
+	DS_VERIFY(dsShaderVariableGroup_setElementData(lightData->variableGroup, 2, color,
+		dsMaterialType_Vec3, 0, 1));
+}

@@ -34,6 +34,8 @@ static dsShaderVariableElement elements[] =
 	{"worldViewProj", dsMaterialType_Mat4, 0}
 };
 
+const char* const dsInstanceTransformData_shaderVariableGroupName = "InstanceTransform";
+
 typedef struct InstanceTransform
 {
 	dsMatrix44f world;
@@ -92,7 +94,7 @@ dsSceneInstanceData* dsInstanceTransformData_create(dsAllocator* allocator,
 		return NULL;
 	}
 
-	const char* name = "InstanceTransform";
 	return dsSceneInstanceVariables_create(allocator, resourceManager, transformDesc,
-		dsHashString(name), &dsInstanceTransformData_populateData, NULL, NULL);
+		dsHashString(dsInstanceTransformData_shaderVariableGroupName),
+		&dsInstanceTransformData_populateData, NULL, NULL);
 }

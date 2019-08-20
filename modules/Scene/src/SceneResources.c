@@ -217,7 +217,7 @@ bool dsSceneResource_removeResource(dsSceneResources* resources, const char* nam
 	return true;
 }
 
-bool dsSceneResources_findBuffer(dsSceneResourceType* outType, void** outResource,
+bool dsSceneResources_findResource(dsSceneResourceType* outType, void** outResource,
 	const dsSceneResources* resources, const char* name)
 {
 	if (!resources || !name)

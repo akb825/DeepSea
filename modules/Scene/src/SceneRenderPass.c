@@ -42,10 +42,15 @@ static void destroyObjects(dsRenderPass* renderPass, const dsSubpassDrawLists* s
 	}
 }
 
-size_t dsSceneRenderPass_fullAllocSize(const dsSubpassDrawLists* subpassDrawLists,
-	uint32_t subpassDrawListCount)
+size_t dsSceneRenderPass_fullAllocSize(const char* framebuffer, uint32_t clearValueCount,
+	const dsSubpassDrawLists* subpassDrawLists, uint32_t subpassDrawListCount)
 {
-	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsSceneRenderPass)) +
+	if (!framebuffer || !subpassDrawLists)
+		return 0;
+
+	size_t fullSize = DS_ALIGNED_SIZE(strlen(framebuffer) + 1) +
+		DS_ALIGNED_SIZE(sizeof(dsSurfaceClearValue)*clearValueCount) +
+		DS_ALIGNED_SIZE(sizeof(dsSceneRenderPass)) +
 		DS_ALIGNED_SIZE(sizeof(dsSubpassDrawLists)*subpassDrawListCount);
 	for (uint32_t i = 0; i < subpassDrawListCount; ++i)
 	{
@@ -64,11 +69,13 @@ size_t dsSceneRenderPass_fullAllocSize(const dsSubpassDrawLists* subpassDrawList
 	return fullSize;
 }
 
-dsSceneRenderPass* dsSceneRenderPass_create(dsAllocator* allocator,
-	dsRenderPass* renderPass, const dsSubpassDrawLists* subpassDrawLists,
-	uint32_t subpassDrawListCount)
+dsSceneRenderPass* dsSceneRenderPass_create(dsAllocator* allocator, dsRenderPass* renderPass,
+	const char* framebuffer, const dsSurfaceClearValue* clearValues, uint32_t clearValueCount,
+	const dsSubpassDrawLists* subpassDrawLists, uint32_t subpassDrawListCount)
 {
-	if (!allocator || !renderPass || !subpassDrawLists ||
+	if (!allocator || !renderPass || !framebuffer || !subpassDrawLists ||
+		(!clearValues && clearValueCount > 0) ||
+		(clearValueCount != 0 && clearValueCount != renderPass->attachmentCount) ||
 		subpassDrawListCount != renderPass->subpassCount)
 	{
 		errno = EINVAL;
@@ -76,11 +83,31 @@ dsSceneRenderPass* dsSceneRenderPass_create(dsAllocator* allocator,
 		return NULL;
 	}
 
-	size_t fullSize = dsSceneRenderPass_fullAllocSize(subpassDrawLists, subpassDrawListCount);
+	size_t fullSize = dsSceneRenderPass_fullAllocSize(framebuffer, clearValueCount,
+		subpassDrawLists, subpassDrawListCount);
 	if (fullSize == 0)
 	{
 		errno = EINVAL;
 		destroyObjects(renderPass, subpassDrawLists, subpassDrawListCount);
+		return NULL;
+	}
+
+	bool needsClear = false;
+	for (uint32_t i = 0; i < renderPass->attachmentCount; ++i)
+	{
+		if (renderPass->attachments[i].usage & dsAttachmentUsage_Clear)
+		{
+			needsClear = true;
+			break;
+		}
+	}
+
+	if (needsClear && clearValueCount == 0)
+	{
+		errno = EINVAL;
+		destroyObjects(renderPass, subpassDrawLists, subpassDrawListCount);
+		DS_LOG_ERROR(DS_SCENE_LOG_TAG,
+			"Scene render pass requires clear values, but none were provided.");
 		return NULL;
 	}
 
@@ -104,6 +131,21 @@ dsSceneRenderPass* dsSceneRenderPass_create(dsAllocator* allocator,
 	sceneRenderPass->drawLists = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsSubpassDrawLists,
 		subpassDrawListCount);
 	DS_ASSERT(sceneRenderPass);
+
+	size_t framebufferLen = strlen(framebuffer) + 1;
+	sceneRenderPass->framebuffer = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, framebufferLen);
+	DS_ASSERT(sceneRenderPass->framebuffer);
+	memcpy((void*)sceneRenderPass->framebuffer, framebuffer, framebufferLen);
+
+	if (clearValueCount > 0)
+	{
+		sceneRenderPass->clearValues = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsSurfaceClearValue,
+			clearValueCount);
+		DS_ASSERT(sceneRenderPass->clearValues);
+		memcpy((void*)sceneRenderPass->clearValues, clearValues,
+			sizeof(dsSurfaceClearValue)*clearValueCount);
+	}
+
 	for (uint32_t i = 0; i < subpassDrawListCount; ++i)
 	{
 		const dsSubpassDrawLists* srcDrawLists = subpassDrawLists + i;

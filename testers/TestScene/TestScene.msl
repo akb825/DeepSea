@@ -1,0 +1,60 @@
+/*
+ * Copyright 2019 Aaron Barany
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#include <DeepSea/Render/Shaders/VertexAttributes.mslh>
+#include <DeepSea/Scene/Shaders/InstanceTransform.mslh>
+
+uniform vec4 materialColor;
+
+uniform Light
+{
+	vec3 direction;
+	vec3 color;
+	vec3 ambient;
+} light;
+
+[[vertex]] layout(location = DS_POSITION) in vec3 position;
+[[vertex]] layout(location = DS_NORMAL) in vec3 normal;
+
+varying(vertex, fragment)
+{
+	vec3 vfNormal;
+}
+
+[[fragment]] out vec4 color;
+
+[[vertex]]
+void vertexShader()
+{
+	gl_Position = DS_ADJUST_CLIP(INSTANCE(dsInstanceTransform).worldViewProj*vec4(position, 1.0));
+	vfNormal = (INSTANCE(dsInstanceTransform).worldInvTrans*vec4(normal, 0.0)).xyz;
+}
+
+[[fragment]]
+void fragmentShader()
+{
+	float diffuse = dot(normalize(vfNormal), INSTANCE(light).direction);
+	vec3 lightColor = diffuse*INSTANCE(light).color + INSTANCE(light).ambient;
+	color = vec4(lightColor*uniforms.materialColor.rgb, uniforms.materialColor.a);
+}
+
+pipeline Default
+{
+	vertex = vertexShader;
+	fragment = fragmentShader;
+	depth_test_enable = true;
+	cull_mode = back;
+}

@@ -35,6 +35,11 @@ extern "C"
  */
 
 /**
+ * @brief The shader variable group name used for the instance transform data.
+ */
+DS_SCENE_EXPORT const char* const dsInstanceTransformData_shaderVariableGroupName;
+
+/**
  * @brief Creates the shader variable group description used to describe the variables for the
  *     instance transforms.
  * @remark This should be shared among all dsInstanceTransformData instances.

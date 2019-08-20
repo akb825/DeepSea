@@ -44,7 +44,7 @@ extern "C"
  * @param cullID The cull ID to determine what models are in view, or NULL if no culling is used.
  * @return The model list or NULL if an error occurred.
  */
-dsSceneModelList* dsSceneModelList_create(dsAllocator* allocator, const char* name,
+DS_SCENE_EXPORT dsSceneModelList* dsSceneModelList_create(dsAllocator* allocator, const char* name,
 	dsSceneInstanceData* const* instanceData, uint32_t instanceDataCount, dsModelSortType sortType,
 	const dsDynamicRenderStates* renderStates, dsSceneCullID cullID);
 
@@ -53,35 +53,37 @@ dsSceneModelList* dsSceneModelList_create(dsAllocator* allocator, const char* na
  * @param modelList The model list.
  * @return The sort type.
  */
-dsModelSortType dsSceneModelList_getSortType(const dsSceneModelList* modelList);
+DS_SCENE_EXPORT dsModelSortType dsSceneModelList_getSortType(const dsSceneModelList* modelList);
 
 /**
  * @brief Sets the sort type for a model list.
  * @param modelList The model list.
  * @param sortType The sort type.
  */
-void dsSceneModelList_setSortType(dsSceneModelList* modelList, dsModelSortType sortType);
+DS_SCENE_EXPORT void dsSceneModelList_setSortType(dsSceneModelList* modelList,
+	dsModelSortType sortType);
 
 /**
  * @brief Gets the render states for a model list.
  * @param modelList The model list.
  * @return The render states or NULL if no special render states are used.
  */
-const dsDynamicRenderStates* dsSceneModelList_getRenderStates(const dsSceneModelList* modelList);
+DS_SCENE_EXPORT const dsDynamicRenderStates* dsSceneModelList_getRenderStates(
+	const dsSceneModelList* modelList);
 
 /**
  * @brief Sets the render states for a model list.
  * @param modelList The model list.
  * @param renderStates The render states or NULL if no special render states are needed.
  */
-void dsSceneModelList_setRenderStates(dsSceneModelList* modelList,
+DS_SCENE_EXPORT void dsSceneModelList_setRenderStates(dsSceneModelList* modelList,
 	const dsDynamicRenderStates* renderStates);
 
 /**
  * @brief Destroys the model list.
  * @param modelList The model list.
  */
-void dsSceneModelList_destroy(dsSceneModelList* modelList);
+DS_SCENE_EXPORT void dsSceneModelList_destroy(dsSceneModelList* modelList);
 
 #ifdef __cplusplus
 }

@@ -33,11 +33,14 @@ extern "C"
 
 /**
  * @brief Gets the full size of the scene render pass.
+ * @param framebuffer The name of the framebuffer.
+ * @param clearValueCount The number of clear values.
  * @param subpassDrawLists The subpass draw lists.
  * @param subpassDrawListCount The number of subpass draw lists.
  * @return The full allocation size, or 0 if the subpass draw lists aren't valid.
  */
-size_t dsSceneRenderPass_fullAllocSize(const dsSubpassDrawLists* subpassDrawLists,
+DS_SCENE_EXPORT size_t dsSceneRenderPass_fullAllocSize(const char* framebuffer,
+	uint32_t clearValueCount, const dsSubpassDrawLists* subpassDrawLists,
 	uint32_t subpassDrawListCount);
 
 /**
@@ -46,6 +49,10 @@ size_t dsSceneRenderPass_fullAllocSize(const dsSubpassDrawLists* subpassDrawList
  * @param allocator The allocator to create the render pass with.
  * @param renderPass The core render pass this extends. This will take ownership of the render pass,
  *     and free it immediately if creation fails.
+ * @param framebuffer The name of the framebuffer to use. This will be copied.
+ * @param clearValues The clear values to use. This may be NULL if no attachment is set to clear.
+ * @param clearValueCount The number of clear values. It is expected that this matches the number of
+ *     attachments in renderPass or 0.
  * @param subpassDrawLists The draw lists for the subpasses. This will copy the arrays and take
  *     ownership of the draw lists themselves. The draw lists will be freed immediately if creation
  *     fails.
@@ -54,7 +61,8 @@ size_t dsSceneRenderPass_fullAllocSize(const dsSubpassDrawLists* subpassDrawList
  * @return The scene render pass or NULL if an error occurred.
  */
 DS_SCENE_EXPORT dsSceneRenderPass* dsSceneRenderPass_create(dsAllocator* allocator,
-	dsRenderPass* renderPass, const dsSubpassDrawLists* subpassDrawLists,
+	dsRenderPass* renderPass, const char* framebuffer, const dsSurfaceClearValue* clearValues,
+	uint32_t clearValueCount, const dsSubpassDrawLists* subpassDrawLists,
 	uint32_t subpassDrawListCount);
 
 /**

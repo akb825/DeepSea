@@ -195,17 +195,6 @@ static void updatedCameraProjection(dsView* view)
 		renderer->clipInvertY);
 }
 
-uint32_t dsView_registerCullID(const dsView* view, dsSceneCullID cullID)
-{
-	if (!view || !cullID)
-	{
-		errno = EINVAL;
-		return DS_NO_SCENE_CULL;
-	}
-
-	return dsSceneCullManager_registerCullID((dsSceneCullManager*)&view->cullManager, cullID);
-}
-
 dsView* dsView_create(const dsScene* scene, dsAllocator* allocator,
 	const dsViewSurfaceInfo* surfaces, uint32_t surfaceCount,
 	const dsViewFramebufferInfo* framebuffers, uint32_t framebufferCount, uint32_t width,
@@ -423,6 +412,17 @@ dsView* dsView_create(const dsScene* scene, dsAllocator* allocator,
 	privateView->surfaceSet = true;
 
 	return view;
+}
+
+uint32_t dsView_registerCullID(const dsView* view, dsSceneCullID cullID)
+{
+	if (!view || !cullID)
+	{
+		errno = EINVAL;
+		return DS_NO_SCENE_CULL;
+	}
+
+	return dsSceneCullManager_registerCullID((dsSceneCullManager*)&view->cullManager, cullID);
 }
 
 bool dsView_setDimensions(dsView* view, uint32_t width, uint32_t height)
