@@ -65,7 +65,7 @@ bool dsLightData_populateData(dsSceneGlobalData* globalData, const dsView* view,
 	return true;
 }
 
-bool dsViewTransformData_destroy(dsSceneGlobalData* globalData)
+bool dsLightData_destroy(dsSceneGlobalData* globalData)
 {
 	dsLightData* lightData = (dsLightData*)globalData;
 	if (!dsShaderVariableGroup_destroy(lightData->variableGroup))
@@ -99,7 +99,7 @@ dsSceneGlobalData* dsLightData_create(dsAllocator* allocator,
 	globalData->allocator = dsAllocator_keepPointer(allocator);
 	globalData->valueCount = 1;
 	globalData->populateDataFunc = &dsLightData_populateData;
-	globalData->destroyFunc = &dsViewTransformData_destroy;
+	globalData->destroyFunc = &dsLightData_destroy;
 
 	lightData->variableGroup = dsShaderVariableGroup_create(resourceManager,
 		(dsAllocator*)&bufferAlloc, allocator, transformDesc);
