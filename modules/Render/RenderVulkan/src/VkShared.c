@@ -393,7 +393,8 @@ VkAccessFlags dsVkWriteImageAccessFlags(dsTextureUsage usage, bool offscreen, bo
 	return flags;
 }
 
-VkPipelineStageFlags dsVkReadImageStageFlags(const dsRenderer* renderer, dsTextureUsage usage, bool depthStencilAttachment)
+VkPipelineStageFlags dsVkReadImageStageFlags(const dsRenderer* renderer, dsTextureUsage usage,
+	bool depthStencilAttachment)
 {
 	VkAccessFlags flags = 0;
 	if (depthStencilAttachment)
