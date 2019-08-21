@@ -40,7 +40,7 @@ typedef struct dsLightData
 	uint32_t nameID;
 } dsLightData;
 
-dsShaderVariableGroupDesc* dsViewTransformData_createShaderVariableGroupDesc(
+dsShaderVariableGroupDesc* dsLightData_createShaderVariableGroupDesc(
 	dsResourceManager* resourceManager, dsAllocator* allocator)
 {
 	if (!resourceManager)
@@ -76,7 +76,7 @@ bool dsViewTransformData_destroy(dsSceneGlobalData* globalData)
 	return true;
 }
 
-dsSceneGlobalData* dsViewTransformData_create(dsAllocator* allocator,
+dsSceneGlobalData* dsLightData_create(dsAllocator* allocator,
 	dsResourceManager* resourceManager, const dsShaderVariableGroupDesc* transformDesc)
 {
 	DS_ASSERT(allocator);
