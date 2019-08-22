@@ -1285,7 +1285,12 @@ VkImageLayout dsVkTexture_imageLayout(const dsTexture* texture)
 	}
 
 	if (texture->usage & dsTextureUsage_Texture)
-		return VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+	{
+		if (dsGfxFormat_isDepthStencil(texture->info.format))
+			return VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+		else
+			return VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+	}
 	else if (texture->usage == dsTextureUsage_CopyFrom)
 		return VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
 	else if (texture->usage == dsTextureUsage_CopyTo)
@@ -1298,7 +1303,10 @@ VkImageLayout dsVkTexture_bindImageLayout(const dsTexture* texture)
 	if (texture->usage & dsTextureUsage_Image)
 		return VK_IMAGE_LAYOUT_GENERAL;
 
-	return VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+	if (dsGfxFormat_isDepthStencil(texture->info.format))
+		return VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+	else
+		return VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 }
 
 bool dsVkTexture_canReadBack(const dsTexture* texture)

@@ -820,7 +820,8 @@ static bool bindShaderStates(VkCommandBuffer submitBuffer, const dsShader* shade
 }
 
 static bool updateGlobalValues(dsCommandBuffer* commandBuffer, VkCommandBuffer submitBuffer,
-	const dsShader* shader, const dsSharedMaterialValues* globalValues, VkPipelineBindPoint bindPoint)
+	const dsShader* shader, const dsSharedMaterialValues* globalValues,
+	VkPipelineBindPoint bindPoint)
 {
 	const dsVkShader* vkShader = (const dsVkShader*)shader;
 	const dsMaterialDesc* materialDesc = shader->materialDesc;
