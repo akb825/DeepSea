@@ -26,6 +26,7 @@
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Bits.h>
 #include <DeepSea/Core/Log.h>
+#include <DeepSea/Math/Core.h>
 #include <string.h>
 
 uint32_t dsVkPipeline_hash(uint32_t samples, float defaultAnisotropy,
@@ -104,7 +105,7 @@ dsVkPipeline* dsVkPipeline_create(dsAllocator* allocator, dsShader* shader,
 
 		DS_ASSERT(format->size > 0);
 		vertexBindings[bindingCount].binding = bindingCount;
-		vertexBindings[bindingCount].stride = format->size;
+		vertexBindings[bindingCount].stride = format->size*dsMax(format->divisor, 1U);
 		vertexBindings[bindingCount].inputRate = format->divisor > 0;
 		for (uint32_t mask = format->enabledMask; mask; mask = dsRemoveLastBit(mask))
 		{
