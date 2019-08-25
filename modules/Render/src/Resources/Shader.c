@@ -508,11 +508,67 @@ dsShader* dsShader_createIndex(dsResourceManager* resourceManager, dsAllocator* 
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
-	if (pipeline.shaders[mslStage_Compute] != MSL_UNKNOWN &&
-		renderer->maxComputeWorkGroupSize[0] == 0)
+	if (pipeline.shaders[mslStage_Compute] != MSL_UNKNOWN)
+	{
+		if (resourceManager->maxComputeLocalWorkGroupInvocations == 0)
+		{
+			errno = EPERM;
+			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Current target doesn't support compute shaders.");
+			DS_PROFILE_FUNC_RETURN(NULL);
+		}
+
+		unsigned long long invocations = 1;
+		const char* dimensions[] = {"x", "y", "z"};
+		for (unsigned int i = 0; i < 3; ++i)
+		{
+			invocations *= pipeline.computeLocalSize[i];
+			if (pipeline.computeLocalSize[i] > resourceManager->maxComputeLocalWorkGroupSize[i])
+			{
+				errno = EPERM;
+				DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Compute local working group size of %u along %s "
+					"exceeds maximum of %u for shader '%s'.", pipeline.computeLocalSize[i],
+					dimensions[i], resourceManager->maxComputeLocalWorkGroupSize[i], pipeline.name);
+				DS_PROFILE_FUNC_RETURN(NULL);
+			}
+		}
+
+		if (invocations > resourceManager->maxComputeLocalWorkGroupInvocations)
+		{
+			errno = EPERM;
+			DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Total compute local working group invocations of "
+				"%llu exceeds maximum of %u for shader '%s'.", invocations,
+				resourceManager->maxComputeLocalWorkGroupInvocations, pipeline.name);
+			DS_PROFILE_FUNC_RETURN(NULL);
+		}
+	}
+
+	mslRenderState renderState;
+	DS_VERIFY(mslModule_renderState(&renderState, shaderModule->module, index));
+	if (renderState.clipDistanceCount > resourceManager->maxClipDistances)
 	{
 		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Current target doesn't support compute shaders.");
+		DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Declared clip distances of %u exceeds maximum of %u for "
+			"shader '%s'.", renderState.clipDistanceCount, resourceManager->maxClipDistances,
+			pipeline.name);
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
+	if (renderState.cullDistanceCount > resourceManager->maxCullDistances)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Declared cull distances of %u exceeds maximum of %u for "
+			"shader '%s'.", renderState.cullDistanceCount, resourceManager->maxCullDistances,
+			pipeline.name);
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
+	uint32_t combinedClipAndCull = renderState.clipDistanceCount + renderState.cullDistanceCount;
+	if (combinedClipAndCull > resourceManager->maxCombinedClipAndCullDistances)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Sum of declared clip and cull distances of %u exceeds "
+			"maximum of %u for shader '%s'.", combinedClipAndCull,
+			resourceManager->maxCombinedClipAndCullDistances, pipeline.name);
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 

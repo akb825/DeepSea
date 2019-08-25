@@ -2104,6 +2104,36 @@ struct dsResourceManager
 	bool hasFragmentWrites;
 
 	/**
+	 * @brief The maximum size of the local workgroup declared in the shader in each dimension.
+	 *
+	 * If 0, compute shaders aren't supported.
+	 */
+	uint32_t maxComputeLocalWorkGroupSize[3];
+
+	/**
+	 * @brief The maximum number of invocations for a local workgroup declared in the shader.
+	 *
+	 * The product of each of the three local workgroup declarations may not exceed this value.
+	 * If 0, compute shaders aren't supported.
+	 */
+	uint32_t maxComputeLocalWorkGroupInvocations;
+
+	/**
+	 * @brief The maximum number of clip distances allowed in shaders.
+	 */
+	uint32_t maxClipDistances;
+
+	/**
+	 * @brief The maximum number of cull distances allowed in shaders.
+	 */
+	uint32_t maxCullDistances;
+
+	/**
+	 * @brief The maximum number of combined clip and cull distances allowed in shaders.
+	 */
+	uint32_t maxCombinedClipAndCullDistances;
+
+	/**
 	 * @brief True if fences are supported.
 	 */
 	bool hasFences;

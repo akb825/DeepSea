@@ -41,6 +41,7 @@
 #include <DeepSea/Render/Resources/GfxFormat.h>
 #include <DeepSea/Math/Core.h>
 
+#include <limits.h>
 #include <string.h>
 
 #import <Metal/MTLBlitCommandEncoder.h>
@@ -855,10 +856,9 @@ dsRenderer* dsMTLRenderer_create(dsAllocator* allocator, const dsRendererOptions
 		baseRenderer->hasGeometryShaders = false;
 		baseRenderer->hasTessellationShaders = hasTessellationShaders(device);
 
-		MTLSize maxComputeSize = device.maxThreadsPerThreadgroup;
-		baseRenderer->maxComputeWorkGroupSize[0] = (uint32_t)maxComputeSize.width;
-		baseRenderer->maxComputeWorkGroupSize[1] = (uint32_t)maxComputeSize.height;
-		baseRenderer->maxComputeWorkGroupSize[2] = (uint32_t)maxComputeSize.depth;
+		baseRenderer->maxComputeWorkGroupSize[0] = UINT_MAX;
+		baseRenderer->maxComputeWorkGroupSize[1] = UINT_MAX;
+		baseRenderer->maxComputeWorkGroupSize[2] = UINT_MAX;
 
 		// Enough optimizations that might as well consider multidraw native.
 		baseRenderer->hasNativeMultidraw = true;

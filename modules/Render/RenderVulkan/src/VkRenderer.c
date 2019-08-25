@@ -2218,7 +2218,7 @@ dsRenderer* dsVkRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 	baseRenderer->hasGeometryShaders = deviceFeatures.geometryShader != 0;
 	baseRenderer->hasTessellationShaders = deviceFeatures.tessellationShader != 0;
 	for (int i = 0; i < 3; ++i)
-		baseRenderer->maxComputeWorkGroupSize[i] = limits->maxComputeWorkGroupSize[i];
+		baseRenderer->maxComputeWorkGroupSize[i] = limits->maxComputeWorkGroupCount[i];
 	baseRenderer->hasNativeMultidraw = true;
 	baseRenderer->hasInstancedDrawing = true;
 	baseRenderer->hasStartInstance = (bool)deviceFeatures.drawIndirectFirstInstance;

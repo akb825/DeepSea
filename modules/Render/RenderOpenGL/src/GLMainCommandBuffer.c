@@ -2223,6 +2223,10 @@ void dsGLMainCommandBuffer_resetState(dsGLMainCommandBuffer* commandBuffer)
 	glColorMask(true, true, true, true);
 	glBlendColor(0, 0, 0, 0);
 
+	uint32_t maxClipDistances = baseCommandBuffer->renderer->resourceManager->maxClipDistances;
+	for (uint32_t i = 0; i < maxClipDistances; ++i)
+		glDisable(GL_CLIP_DISTANCE0 + i);
+
 	if (AnyGL_atLeastVersion(3, 2, false) || AnyGL_ARB_seamless_cube_map)
 		glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 

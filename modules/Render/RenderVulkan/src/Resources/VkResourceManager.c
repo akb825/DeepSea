@@ -794,6 +794,13 @@ dsResourceManager* dsVkResourceManager_create(dsAllocator* allocator, dsVkRender
 	baseResourceManager->canMixWithRenderSurface = true;
 	baseResourceManager->hasVertexPipelineWrites = features->vertexPipelineStoresAndAtomics != 0;
 	baseResourceManager->hasFragmentWrites = features->fragmentStoresAndAtomics != 0;
+	for (int i = 0; i < 3; ++i)
+		baseResourceManager->maxComputeLocalWorkGroupSize[i] = limits->maxComputeWorkGroupSize[i];
+	baseResourceManager->maxComputeLocalWorkGroupInvocations =
+		limits->maxComputeWorkGroupInvocations;
+	baseResourceManager->maxClipDistances = limits->maxClipDistances;
+	baseResourceManager->maxCullDistances = limits->maxCullDistances;
+	baseResourceManager->maxCombinedClipAndCullDistances = limits->maxCombinedClipAndCullDistances;
 	baseResourceManager->hasFences = true;
 	baseResourceManager->hasQueries = true;
 	baseResourceManager->hasPreciseOcclusionQueries = features->occlusionQueryPrecise;

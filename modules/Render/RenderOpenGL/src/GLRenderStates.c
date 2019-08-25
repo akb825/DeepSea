@@ -193,7 +193,6 @@ static void setRasterizationStates(const dsResourceManager* resourceManager,
 	mslRasterizationState* curState, const mslRasterizationState* newState,
 	const dsDynamicRenderStates* dynamicStates, bool offscreen, bool dynamicOnly)
 {
-
 	if (curState->depthBiasEnable)
 	{
 		float constantFactor = 0;
@@ -564,7 +563,6 @@ static void setDepthStencilStates(mslDepthStencilState* curState,
 static void setBlendStates(const dsRenderer* renderer, mslBlendState* curState,
 	const mslBlendState* newState, const dsDynamicRenderStates* dynamicStates, bool dynamicOnly)
 {
-
 	dsColor4f blendConstants = {{0, 0, 0, 0}};
 	if (newState->blendConstants[0] != MSL_UNKNOWN_FLOAT)
 	{
@@ -815,6 +813,8 @@ void dsGLRenderStates_initialize(mslRenderState* state)
 	resetDepthStencilState(&state->depthStencilState);
 	resetBlendState(&state->blendState);
 	state->patchControlPoints = MSL_UNKNOWN;
+	state->clipDistanceCount = 0;
+	state->cullDistanceCount = 0;
 }
 
 void dsGLRenderStates_updateGLState(const dsRenderer* renderer, mslRenderState* curState,
@@ -835,6 +835,23 @@ void dsGLRenderStates_updateGLState(const dsRenderer* renderer, mslRenderState* 
 	{
 		glPatchParameteri(GL_PATCH_VERTICES, newState->patchControlPoints);
 		curState->patchControlPoints = newState->patchControlPoints;
+	}
+
+	// NOTE: Should have already prevented any shaders with clip distances from being loaded if not
+	// supported.
+	if (newState->clipDistanceCount > curState->clipDistanceCount)
+	{
+		DS_ASSERT(AnyGL_atLeastVersion(3, 0, false));
+		for (uint32_t i = curState->clipDistanceCount; i < newState->clipDistanceCount; ++i)
+			glEnable(GL_CLIP_DISTANCE0 + i);
+		curState->clipDistanceCount = newState->clipDistanceCount;
+	}
+	else if (newState->clipDistanceCount < curState->clipDistanceCount)
+	{
+		DS_ASSERT(AnyGL_atLeastVersion(3, 0, false));
+		for (uint32_t i = newState->clipDistanceCount; i < curState->clipDistanceCount; ++i)
+			glDisable(GL_CLIP_DISTANCE0 + i);
+		curState->clipDistanceCount = newState->clipDistanceCount;
 	}
 }
 

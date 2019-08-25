@@ -155,6 +155,13 @@ dsResourceManager* dsMockResourceManager_create(dsRenderer* renderer, dsAllocato
 	resourceManager->canMixWithRenderSurface = true;
 	resourceManager->hasVertexPipelineWrites = true;
 	resourceManager->hasFragmentWrites = true;
+	resourceManager->maxComputeLocalWorkGroupSize[0] = 256;
+	resourceManager->maxComputeLocalWorkGroupSize[1] = 256;
+	resourceManager->maxComputeLocalWorkGroupSize[2] = 256;
+	resourceManager->maxComputeLocalWorkGroupInvocations = 1024;
+	resourceManager->maxClipDistances = 8;
+	resourceManager->maxCullDistances = 8;
+	resourceManager->maxCombinedClipAndCullDistances = 8;
 	resourceManager->hasFences = true;
 	resourceManager->hasQueries = true;
 	resourceManager->hasPreciseOcclusionQueries = true;

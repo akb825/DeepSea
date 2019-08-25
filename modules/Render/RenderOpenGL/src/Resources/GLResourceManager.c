@@ -1361,9 +1361,6 @@ dsGLResourceManager* dsGLResourceManager_create(dsAllocator* allocator, dsGLRend
 	baseResourceManager->requiresAnySurface = !AnyGL_atLeastVersion(4, 3, false) &&
 		(!ANYGL_SUPPORTED(glFramebufferParameteri) || !AnyGL_ARB_framebuffer_no_attachments);
 	baseResourceManager->canMixWithRenderSurface = false;
-	baseResourceManager->hasVertexPipelineWrites = AnyGL_atLeastVersion(4, 2, false) ||
-		AnyGL_atLeastVersion(3, 1, true);
-	baseResourceManager->hasFragmentWrites = baseResourceManager->hasVertexPipelineWrites;
 	baseResourceManager->createFramebufferFunc = &dsGLFramebuffer_create;
 	baseResourceManager->destroyFramebufferFunc = &dsGLFramebuffer_destroy;
 
@@ -1397,6 +1394,32 @@ dsGLResourceManager* dsGLResourceManager_create(dsAllocator* allocator, dsGLRend
 	baseResourceManager->copyQueryValuesFunc = &dsGLGfxQueryPool_copyValues;
 
 	// Shaders and materials
+	baseResourceManager->hasVertexPipelineWrites = AnyGL_atLeastVersion(4, 2, false) ||
+		AnyGL_atLeastVersion(3, 1, true);
+	baseResourceManager->hasFragmentWrites = baseResourceManager->hasVertexPipelineWrites;
+	if ((ANYGL_GLES && baseRenderer->shaderVersion >= DS_ENCODE_VERSION(3, 1, 0)) ||
+		(!ANYGL_GLES && baseRenderer->shaderVersion >= DS_ENCODE_VERSION(4, 3, 0)))
+	{
+		for (int i = 0; i < 3; ++i)
+		{
+			glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_SIZE, i,
+				(GLint*)(baseResourceManager->maxComputeLocalWorkGroupSize + i));
+		}
+		glGetIntegerv(GL_MAX_COMPUTE_WORK_GROUP_INVOCATIONS,
+			(GLint*)&baseResourceManager->maxComputeLocalWorkGroupInvocations);
+	}
+	if (AnyGL_atLeastVersion(3, 0, false))
+	{
+		glGetIntegerv(GL_MAX_CLIP_DISTANCES, (GLint*)&baseResourceManager->maxClipDistances);
+		baseResourceManager->maxCombinedClipAndCullDistances =
+			baseResourceManager->maxClipDistances;
+	}
+	if (AnyGL_atLeastVersion(4, 5, false))
+	{
+		glGetIntegerv(GL_MAX_CLIP_DISTANCES, (GLint*)&baseResourceManager->maxCullDistances);
+		glGetIntegerv(GL_MAX_COMBINED_CLIP_AND_CULL_DISTANCES,
+			(GLint*)&baseResourceManager->maxCombinedClipAndCullDistances);
+	}
 	baseResourceManager->createShaderModuleFunc = &dsGLShaderModule_create;
 	baseResourceManager->destroyShaderModuleFunc = &dsGLShaderModule_destroy;
 	baseResourceManager->isShaderUniformInternalFunc = &dsGLShader_isUniformInternal;

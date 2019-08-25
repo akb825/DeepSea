@@ -36,6 +36,7 @@
 #include <DeepSea/Render/Resources/GfxFormat.h>
 #include <DeepSea/Render/Resources/ResourceManager.h>
 
+#include <limits.h>
 #include <string.h>
 
 #import <Metal/MTLSampler.h>
@@ -848,6 +849,24 @@ dsResourceManager* dsMTLResourceManager_create(dsAllocator* allocator, dsRendere
 	baseResourceManager->canMixWithRenderSurface = true;
 	baseResourceManager->hasVertexPipelineWrites = true;
 	baseResourceManager->hasFragmentWrites = true;
+
+	MTLSize maxComputeSize = device.maxThreadsPerThreadgroup;
+	baseResourceManager->maxComputeLocalWorkGroupSize[0] = (uint32_t)maxComputeSize.width;
+	baseResourceManager->maxComputeLocalWorkGroupSize[1] = (uint32_t)maxComputeSize.height;
+	baseResourceManager->maxComputeLocalWorkGroupSize[2] = (uint32_t)maxComputeSize.depth;
+	baseResourceManager->maxComputeLocalWorkGroupInvocations = dsMax(
+		baseResourceManager->maxComputeLocalWorkGroupSize[0],
+		baseResourceManager->maxComputeLocalWorkGroupSize[1]);
+	baseResourceManager->maxComputeLocalWorkGroupInvocations = dsMax(
+		baseResourceManager->maxComputeLocalWorkGroupInvocations,
+		baseResourceManager->maxComputeLocalWorkGroupSize[2]);
+
+	// No defined maximum of clip distances. Cull distances not currently supported.
+	baseResourceManager->maxClipDistances = UINT_MAX/2;
+	baseResourceManager->maxCullDistances = 0;
+	baseResourceManager->maxCombinedClipAndCullDistances = baseResourceManager->maxClipDistances +
+		baseResourceManager->maxCullDistances;
+
 	baseResourceManager->hasFences = true;
 
 	/*
