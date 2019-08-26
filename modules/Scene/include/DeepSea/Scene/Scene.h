@@ -80,6 +80,56 @@ DS_SCENE_EXPORT dsRenderer* dsScene_getRenderer(const dsScene* scene);
 DS_SCENE_EXPORT void* dsScene_getUserData(const dsScene* scene);
 
 /**
+ * @brief Gets the number of nodes in the scene.
+ * @param scene The scene to get the node count for.
+ * @return The node count.
+ */
+DS_SCENE_EXPORT uint32_t dsScene_getNodeCount(const dsScene* scene);
+
+/**
+ * @brief Gets a node from the scene by index.
+ * @remark errno will be set on failure.
+ * @param scene The scene to get the node from.
+ * @param index The index of the node.
+ * @return The node, or NULL if the the parameters are invalid.
+ */
+DS_SCENE_EXPORT dsSceneNode* dsScene_getNode(const dsScene* scene, uint32_t index);
+
+/**
+ * @brief Adds a node to a scene.
+ * @remark errno will be set on failure.
+ * @remark Adding a circular reference can result in infinite loops.
+ * @param scene The node to add the node to. It may not already be at the root of the scene.
+ * @param node The node to add.
+ * @return False if an error occurred.
+ */
+DS_SCENE_EXPORT bool dsScene_addNode(dsScene* scene, dsSceneNode* node);
+
+/**
+ * @brief Removes a node from the scene by index.
+ * @remark errno will be set on failure.
+ * @param scene The scene to remove the node from.
+ * @param nodeIndex The index fo the node to remove.
+ * @return False if an error occurred.
+ */
+DS_SCENE_EXPORT bool dsScene_removeNodeIndex(dsScene* scene, uint32_t nodeIndex);
+
+/**
+ * @brief Removes a node from the scene by pointer.
+ * @remark errno will be set on failure.
+ * @param scene The node to remove the node from.
+ * @param node The node to remove.
+ * @return False if an error occurred.
+ */
+DS_SCENE_EXPORT bool dsScene_removeNode(dsScene* scene, dsSceneNode* node);
+
+/**
+ * @brief Clears all nodes from a scene.
+ * @param scene The scene to clear.
+ */
+DS_SCENE_EXPORT void dsScene_clearNodes(dsScene* scene);
+
+/**
  * @brief Updates dirty nodes within the scene.
  * @remark errno will be set on failure.
  * @param scene The scene to update.

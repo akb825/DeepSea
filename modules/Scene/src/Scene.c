@@ -94,26 +94,7 @@ static size_t fullAllocSize(uint32_t* outNameCount, dsSceneItemList* const* shar
 
 		if (item->renderPass)
 		{
-			fullSize += DS_ALIGNED_SIZE(strlen(item->renderPass->framebuffer) + 1);
-
 			const dsRenderPass* baseRenderPass = item->renderPass->renderPass;
-			for (uint32_t j = 0; j < baseRenderPass->attachmentCount; ++j)
-			{
-				if (baseRenderPass->attachments[j].usage & dsAttachmentUsage_Clear &&
-					!item->renderPass->clearValues)
-				{
-					DS_LOG_ERROR(DS_SCENE_LOG_TAG,
-						"Clear values must be provided if any attachment is cleared.");
-					return 0;
-				}
-			}
-
-			if (item->renderPass->clearValues)
-			{
-				fullSize +=
-					DS_ALIGNED_SIZE(sizeof(dsSurfaceClearValue)*baseRenderPass->attachmentCount);
-			}
-
 			for (uint32_t j = 0; j < baseRenderPass->subpassCount; ++j)
 			{
 				const dsSubpassDrawLists* items = item->renderPass->drawLists + j;
@@ -151,6 +132,11 @@ static bool insertSceneList(dsHashTable* hashTable, dsSceneItemListNode* node,
 	}
 
 	return true;
+}
+
+static void dummyDestroyFunc(dsSceneNode* node)
+{
+	DS_UNUSED(node);
 }
 
 dsScene* dsScene_create(dsAllocator* allocator, dsRenderer* renderer,
@@ -206,7 +192,8 @@ dsScene* dsScene_create(dsAllocator* allocator, dsRenderer* renderer,
 	scene->userData = userData;
 	scene->destroyUserDataFunc = destroyUserDataFunc;
 
-	DS_VERIFY(dsSceneNode_initialize(&scene->rootNode, allocator, &rootNodeType, NULL, 0, NULL));
+	DS_VERIFY(dsSceneNode_initialize(&scene->rootNode, allocator, &rootNodeType, NULL, 0,
+		&dummyDestroyFunc));
 
 	dsSceneTreeNode* rootTreeNode = &scene->rootTreeNode.node;
 	rootTreeNode->allocator = allocator;
@@ -235,29 +222,6 @@ dsScene* dsScene_create(dsAllocator* allocator, dsRenderer* renderer,
 	DS_ASSERT(scene->pipeline);
 	memcpy(scene->pipeline, pipeline, sizeof(dsScenePipelineItem)*pipelineCount);
 	scene->pipelineCount = pipelineCount;
-
-	for (uint32_t i = 0; i < pipelineCount; ++i)
-	{
-		dsSceneRenderPass* renderPass = scene->pipeline[i].renderPass;
-		if (!renderPass)
-			continue;
-
-		size_t framebufferLen = strlen(pipeline[i].renderPass->framebuffer) + 1;
-		renderPass->framebuffer = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, framebufferLen);
-		DS_ASSERT(renderPass->framebuffer);
-		memcpy((void*)renderPass->framebuffer, pipeline[i].renderPass->framebuffer, framebufferLen);
-
-		if (renderPass->clearValues && renderPass->renderPass->attachmentCount > 0)
-		{
-			renderPass->clearValues = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsSurfaceClearValue,
-				renderPass->renderPass->attachmentCount);
-			DS_ASSERT(renderPass->clearValues);
-			memcpy((void*)renderPass->clearValues, pipeline[i].renderPass->clearValues,
-				sizeof(dsSurfaceClearValue)*renderPass->renderPass->attachmentCount);
-		}
-		else
-			renderPass->clearValues = NULL;
-	}
 
 	scene->globalValueCount = 0;
 	if (globalDataCount > 0)
@@ -340,6 +304,69 @@ void* dsScene_getUserData(const dsScene* scene)
 	if (!scene)
 		return NULL;
 	return scene->userData;
+}
+
+uint32_t dsScene_getNodeCount(const dsScene* scene)
+{
+	if (!scene)
+		return 0;
+	return scene->rootNode.childCount;
+}
+
+dsSceneNode* dsScene_getNode(const dsScene* scene, uint32_t index)
+{
+	if (!scene)
+	{
+		errno = EINVAL;
+		return NULL;
+	}
+
+	if (index >= scene->rootNode.childCount)
+	{
+		errno = EINDEX;
+		return NULL;
+	}
+
+	return scene->rootNode.children[index];
+}
+
+bool dsScene_addNode(dsScene* scene, dsSceneNode* node)
+{
+	if (!scene || !node)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	return dsSceneNode_addChild(&scene->rootNode, node);
+}
+
+bool dsScene_removeNodeIndex(dsScene* scene, uint32_t nodeIndex)
+{
+	if (!scene)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	return dsSceneNode_removeChildIndex(&scene->rootNode, nodeIndex);
+}
+
+bool dsScene_removeNode(dsScene* scene, dsSceneNode* node)
+{
+	if (!scene || !node)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	return dsSceneNode_removeChildNode(&scene->rootNode, node);
+}
+
+void dsScene_clearNodes(dsScene* scene)
+{
+	if (scene)
+		dsSceneNode_clear(&scene->rootNode);
 }
 
 bool dsScene_update(dsScene* scene)

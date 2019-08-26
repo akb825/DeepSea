@@ -809,14 +809,12 @@ bool dsVkRenderPassData_begin(const dsVkRenderPassData* renderPass,
 	dsVector2f depthRange;
 	if (viewport)
 	{
-		renderArea.offset.x = (int32_t)floorf((float)framebuffer->width*viewport->min.x);
-		renderArea.offset.y = (int32_t)floorf((float)framebuffer->height*viewport->min.y);
-		renderArea.extent.width = (uint32_t)ceilf((float)framebuffer->width*
-			(viewport->max.x - viewport->min.x));
-		renderArea.extent.height = (uint32_t)ceilf((float)framebuffer->height*
-			(viewport->max.y - viewport->min.y));
-		depthRange.x = viewport->min.x;
-		depthRange.y = viewport->max.x;
+		renderArea.offset.x = (int32_t)floorf(viewport->min.x);
+		renderArea.offset.y = (int32_t)floorf(viewport->min.y);
+		renderArea.extent.width = (uint32_t)ceilf(viewport->max.x - viewport->min.x);
+		renderArea.extent.height = (uint32_t)ceilf(viewport->max.y - viewport->min.y);
+		depthRange.x = viewport->min.z;
+		depthRange.y = viewport->max.z;
 	}
 	else
 	{

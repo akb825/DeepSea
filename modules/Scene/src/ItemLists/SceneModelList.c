@@ -125,7 +125,7 @@ static void addInstances(dsSceneItemList* itemList, const dsView* view, uint32_t
 
 			if (model->distanceRange.x <= model->distanceRange.y &&
 				(distance2 < dsPow2(model->distanceRange.x) ||
-					distance2 >= dsPow2(model->distanceRange.x)))
+					distance2 >= dsPow2(model->distanceRange.y)))
 			{
 				continue;
 			}
@@ -421,7 +421,7 @@ dsSceneModelList* dsSceneModelList_create(dsAllocator* allocator, const char* na
 
 	dsSceneItemList* itemList = (dsSceneItemList*)modelList;
 	itemList->allocator = allocator;
-	itemList->name = DS_ALLOCATE_OBJECT_ARRAY(allocator, char, nameLen + 1);
+	itemList->name = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc, char, nameLen + 1);
 	memcpy((void*)itemList->name, name, nameLen + 1);
 	itemList->nameID = dsHashString(name);
 	itemList->addNodeFunc = &dsSceneModelList_addNode;
@@ -517,4 +517,5 @@ void dsSceneModelList_destroy(dsSceneModelList* modelList)
 	DS_VERIFY(dsAllocator_free(itemList->allocator, modelList->entries));
 	DS_VERIFY(dsAllocator_free(itemList->allocator, modelList->instances));
 	DS_VERIFY(dsAllocator_free(itemList->allocator, modelList->drawItems));
+	DS_VERIFY(dsAllocator_free(itemList->allocator, modelList));
 }

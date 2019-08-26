@@ -99,6 +99,7 @@ dsSceneGlobalData* dsLightData_create(dsAllocator* allocator,
 	globalData->allocator = dsAllocator_keepPointer(allocator);
 	globalData->valueCount = 1;
 	globalData->populateDataFunc = &dsLightData_populateData;
+	globalData->finishFunc = NULL;
 	globalData->destroyFunc = &dsLightData_destroy;
 
 	lightData->variableGroup = dsShaderVariableGroup_create(resourceManager,

@@ -21,6 +21,7 @@
 #include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
+#include <DeepSea/Math/Matrix44.h>
 #include <DeepSea/Scene/Nodes/SceneNode.h>
 
 static dsSceneNodeType nodeType;
@@ -38,7 +39,7 @@ const dsSceneNodeType* dsSceneTransformNode_type(void)
 dsSceneTransformNode* dsSceneTransformNode_create(dsAllocator* allocator,
 	const dsMatrix44f* transform)
 {
-	if (!allocator || !transform)
+	if (!allocator)
 	{
 		errno = EINVAL;
 		return NULL;
@@ -56,7 +57,10 @@ dsSceneTransformNode* dsSceneTransformNode_create(dsAllocator* allocator,
 		return NULL;
 	}
 
-	node->transform = *transform;
+	if (transform)
+		node->transform = *transform;
+	else
+		dsMatrix44_identity(node->transform);
 	return node;
 }
 

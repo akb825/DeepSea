@@ -126,6 +126,7 @@ dsSceneGlobalData* dsViewTransformData_create(dsAllocator* allocator,
 	globalData->allocator = dsAllocator_keepPointer(allocator);
 	globalData->valueCount = 1;
 	globalData->populateDataFunc = &dsViewTransformData_populateData;
+	globalData->finishFunc = NULL;
 	globalData->destroyFunc = &dsViewTransformData_destroy;
 
 	viewData->variableGroup = dsShaderVariableGroup_create(resourceManager,

@@ -119,6 +119,7 @@ dsSceneResources* dsSceneResources_create(dsAllocator* allocator, uint32_t maxRe
 		return NULL;
 
 	dsBufferAllocator bufferAlloc;
+	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, fullSize));
 	dsSceneResources* sceneResources = DS_ALLOCATE_OBJECT(&bufferAlloc, dsSceneResources);
 	DS_ASSERT(sceneResources);
 

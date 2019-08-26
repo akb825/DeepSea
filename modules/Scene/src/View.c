@@ -87,12 +87,12 @@ static size_t fullAllocSize(const dsScene* scene, const dsViewSurfaceInfo* surfa
 		const dsViewFramebufferInfo* framebuffer = framebuffers + i;
 		fullSize += DS_ALIGNED_SIZE(strlen(framebuffer->name) + 1);
 		fullSize += DS_ALIGNED_SIZE(sizeof(dsFramebufferSurface)*framebuffer->surfaceCount);
-		for (uint32_t i = 0; i < framebuffer->surfaceCount; ++i)
-			fullSize += DS_ALIGNED_SIZE(strlen((const char*)framebuffer->surfaces[i].surface) + 1);
+		for (uint32_t j = 0; j < framebuffer->surfaceCount; ++j)
+			fullSize += DS_ALIGNED_SIZE(strlen((const char*)framebuffer->surfaces[j].surface) + 1);
 		maxSurfaces = dsMax(maxSurfaces, framebuffer->surfaceCount);
 	}
 
-	fullSize += DS_ALIGNED_SIZE(sizeof(dsFramebufferSurface*)*maxSurfaces);
+	fullSize += DS_ALIGNED_SIZE(sizeof(dsFramebufferSurface)*maxSurfaces);
 
 	return fullSize;
 }
@@ -280,10 +280,11 @@ dsView* dsView_create(const dsScene* scene, dsAllocator* allocator,
 	privateView->surfaceInfos = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsViewSurfaceInfo,
 		surfaceCount);
 	DS_ASSERT(privateView->surfaceInfos);
-	memcpy(privateView->surfaceInfos, surfaces, surfaceCount);
+	memcpy(privateView->surfaceInfos, surfaces, sizeof(dsViewSurfaceInfo)*surfaceCount);
 
 	privateView->surfaces = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, void*, surfaceCount);
 	DS_ASSERT(privateView->surfaces);
+	privateView->surfaceCount = surfaceCount;
 
 	uint32_t surfaceTableSize = dsHashTable_getTableSize(surfaceCount);
 	privateView->surfaceTable = (dsHashTable*)dsAllocator_alloc((dsAllocator*)&bufferAlloc,
@@ -319,12 +320,14 @@ dsView* dsView_create(const dsScene* scene, dsAllocator* allocator,
 	privateView->framebufferInfos = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsViewFramebufferInfo,
 		framebufferCount);
 	DS_ASSERT(privateView->framebufferInfos);
-	memcpy(privateView->framebufferInfos, framebuffers, framebufferCount);
+	memcpy(privateView->framebufferInfos, framebuffers,
+		sizeof(dsViewFramebufferInfo)*framebufferCount);
 
 	privateView->framebuffers = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsFramebuffer*,
 		framebufferCount);
 	DS_ASSERT(privateView->framebuffers);
 	memset(privateView->framebuffers, 0, sizeof(dsFramebuffer*));
+	privateView->framebufferCount = framebufferCount;
 
 	uint32_t maxSurfaces = 0;
 	for (uint32_t i = 0; i < framebufferCount; ++i)
@@ -341,8 +344,8 @@ dsView* dsView_create(const dsScene* scene, dsAllocator* allocator,
 			sizeof(dsFramebufferSurface)*framebuffers[i].surfaceCount);
 		for (uint32_t j = 0; j < framebufferInfo->surfaceCount; ++j)
 		{
-			const char* surfaceName = (const char*)framebuffers[i].surfaces[j].surface;
-			dsFramebufferSurface* surface = (dsFramebufferSurface*)framebufferInfo->surfaces + i;
+			dsFramebufferSurface* surface = (dsFramebufferSurface*)framebufferInfo->surfaces + j;
+			const char* surfaceName = (const char*)surface->surface;
 			IndexNode* node = (IndexNode*)dsHashTable_find(privateView->surfaceTable, surfaceName);
 			if (!node)
 			{
@@ -721,10 +724,16 @@ bool dsView_draw(dsView* view, dsCommandBuffer* commandBuffer, dsSceneThreadMana
 			dsFramebuffer* framebuffer = privateView->framebuffers[framebufferIndex];
 
 			dsAlignedBox3f viewport = framebufferInfo->viewport;
-			viewport.min.x *= (float)framebuffer->width;
-			viewport.max.x *= (float)framebuffer->width;
-			viewport.min.y *= (float)framebuffer->height;
-			viewport.max.y *= (float)framebuffer->height;
+			float width = (float)framebuffer->width;
+			if (width < 0)
+				width *= (float)view->width;
+			float height = (float)framebuffer->height;
+			if (height < 0)
+				height *= (float)view->height;
+			viewport.min.x *= width;
+			viewport.max.x *= width;
+			viewport.min.y *= height;
+			viewport.max.y *= height;
 			uint32_t clearValueCount =
 				sceneRenderPass->clearValues ? sceneRenderPass->renderPass->attachmentCount : 0;
 			if (!dsRenderPass_begin(renderPass, commandBuffer, framebuffer, &viewport,

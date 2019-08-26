@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+#include "LightData.h"
 #include <DeepSea/Application/Application.h>
 #include <DeepSea/Application/Window.h>
 #include <DeepSea/ApplicationSDL/SDLApplication.h>
@@ -22,6 +23,7 @@
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
+#include <DeepSea/Geometry/OrientedBox3.h>
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Math/Matrix44.h>
 
@@ -65,11 +67,13 @@ typedef struct TestScene
 	dsWindow* window;
 	dsSceneResources* resources;
 	dsSceneTransformNode* primaryTransform;
+	dsSceneNode* secondarySceneRoot;
 	dsSceneTransformNode* secondaryTransform;
 	dsScene* scene;
 	dsView* view;
 
 	uint64_t invalidatedFrame;
+	bool secondarySceneSet;
 	float rotation;
 } TestScene;
 
@@ -213,6 +217,21 @@ static bool processEvent(dsApplication* application, dsWindow* window, const dsE
 					samples = 1;
 				dsRenderer_setSurfaceSamples(renderer, samples);
 			}
+			else if (event->key.key == dsKeyCode_2)
+			{
+				if (testScene->secondarySceneSet)
+				{
+					DS_VERIFY(dsSceneNode_removeChildNode((dsSceneNode*)testScene->primaryTransform,
+						testScene->secondarySceneRoot));
+					testScene->secondarySceneSet = false;
+				}
+				else
+				{
+					DS_VERIFY(dsSceneNode_addChild((dsSceneNode*)testScene->primaryTransform,
+						testScene->secondarySceneRoot));
+					testScene->secondarySceneSet = true;
+				}
+			}
 			return false;
 		default:
 			return true;
@@ -294,7 +313,7 @@ static dsSceneResources* createSceneResources(dsRenderer* renderer, dsAllocator*
 	}
 
 	++resourceCount;
-	lightDesc = dsViewTransformData_createShaderVariableGroupDesc(resourceManager, allocator);
+	lightDesc = dsLightData_createShaderVariableGroupDesc(resourceManager, allocator);
 	if (!lightDesc)
 	{
 		DS_LOG_ERROR_F("TestScene", "Couldn't create light description: %s",
@@ -451,7 +470,8 @@ fail:
 	return NULL;
 }
 
-dsScene* createScene(dsRenderer* renderer, dsAllocator* allocator, dsSceneResources* resources)
+static dsScene* createScene(dsRenderer* renderer, dsAllocator* allocator,
+	dsSceneResources* resources)
 {
 	dsResourceManager* resourceManager = renderer->resourceManager;
 
@@ -529,7 +549,6 @@ dsScene* createScene(dsRenderer* renderer, dsAllocator* allocator, dsSceneResour
 	// sceneRenderPass took ownership
 	renderPass = NULL;
 	modelList = NULL;
-	sceneRenderPass = NULL;
 
 	if (!sceneRenderPass)
 	{
@@ -602,6 +621,170 @@ static dsView* createView(dsAllocator* allocator, dsScene* scene, dsRenderSurfac
 	return view;
 }
 
+static bool createSceneGraph(TestScene* testScene, dsAllocator* allocator)
+{
+	dsSceneResources* resources = testScene->resources;
+	dsMaterial* centerCubeMaterial;
+	dsMaterial* outerCubeMaterial;
+	dsMaterial* groundMaterial;
+	dsShader* shader;
+	dsDrawGeometry* geometry;
+	dsSceneResourceType type;
+	DS_VERIFY(dsSceneResources_findResource(&type, (void**)&centerCubeMaterial, resources,
+		"centerCubeMaterial"));
+	DS_ASSERT(type == dsSceneResourceType_Material);
+	DS_VERIFY(dsSceneResources_findResource(&type, (void**)&outerCubeMaterial, resources,
+		"outerCubeMaterial"));
+	DS_ASSERT(type == dsSceneResourceType_Material);
+	DS_VERIFY(dsSceneResources_findResource(&type, (void**)&groundMaterial, resources,
+		"groundMaterial"));
+	DS_ASSERT(type == dsSceneResourceType_Material);
+	DS_VERIFY(dsSceneResources_findResource(&type, (void**)&shader, resources, "shader"));
+	DS_ASSERT(type == dsSceneResourceType_Shader);
+	DS_VERIFY(dsSceneResources_findResource(&type, (void**)&geometry, resources, "geometry"));
+	DS_ASSERT(type == dsSceneResourceType_DrawGeometry);
+
+	dsSceneNode* centerCubeModel = NULL;
+	dsSceneNode* outerCubeModel = NULL;
+	dsSceneNode* groundModel = NULL;
+	dsSceneNode* centerCubeTransform = NULL;
+	dsSceneNode* outerCubeTransform = NULL;
+	dsSceneNode* groundTransform = NULL;
+	dsSceneNode* secondarySceneRoot = NULL;
+	dsSceneTransformNode* primaryTransform = NULL;
+	dsSceneTransformNode* secondaryTransform = NULL;
+
+	dsSceneModelInitInfo model;
+	model.shader = shader;
+	model.material = centerCubeMaterial;
+	model.geometry = geometry;
+	model.distanceRange.x = 1.0f;
+	model.distanceRange.y = 0.0f;
+	model.drawIndexedRange.indexCount = geometry->indexBuffer.count;
+	model.drawIndexedRange.instanceCount = 1;
+	model.drawIndexedRange.firstIndex = 0;
+	model.drawIndexedRange.vertexOffset = 0;
+	model.drawIndexedRange.firstInstance = 0;
+	model.primitiveType = dsPrimitiveType_TriangleList;
+	model.listName = "main";
+
+	const char* cullListName = "cull";
+
+	dsAlignedBox3f bounds = {{{-1.0f, -1.0f, -1.0f}}, {{1.0f, 1.0f, 1.0f}}};
+	dsOrientedBox3f orientedBounds;
+	dsOrientedBox3f_fromAlignedBox(&orientedBounds, &bounds);
+	centerCubeModel = (dsSceneNode*)dsSceneModelNode_create(allocator, &model, 1, &cullListName, 1,
+		&resources, 1, &orientedBounds);
+	if (!centerCubeModel)
+		goto fail;
+
+	model.material = outerCubeMaterial;
+	outerCubeModel = (dsSceneNode*)dsSceneModelNode_create(allocator, &model, 1, &cullListName, 1,
+		&resources, 1, &orientedBounds);
+	if (!outerCubeModel)
+		goto fail;
+
+	model.material = groundMaterial;
+	model.drawIndexedRange.firstIndex = 30;
+	model.drawIndexedRange.indexCount = 6;
+	orientedBounds.halfExtents.y = 0.0f;
+	groundModel = (dsSceneNode*)dsSceneModelNode_create(allocator, &model, 1, &cullListName, 1,
+		&resources, 1, &orientedBounds);
+	if (!groundModel)
+		goto fail;
+
+	dsMatrix44f transform;
+	dsMatrix44f_makeScale(&transform, 2.0f, 2.0f, 2.0f);
+	centerCubeTransform = (dsSceneNode*)dsSceneTransformNode_create(allocator, &transform);
+	if (!centerCubeTransform || !dsSceneNode_addChild(centerCubeTransform, centerCubeModel))
+		goto fail;
+
+	dsSceneNode_freeRef(centerCubeModel);
+	centerCubeModel = NULL;
+
+	dsMatrix44f scale, rotate, translate, temp;
+	dsMatrix44f_makeScale(&scale, 1.5f, 0.75f, 0.5f);
+	dsMatrix44f_makeRotate(&rotate, (float)dsDegreesToRadians(20.0),
+		(float)dsDegreesToRadians(-40.0), (float)dsDegreesToRadians(60.0));
+	dsMatrix44f_makeTranslate(&translate, 4.0f, -1.0f, 3.0f);
+	dsMatrix44_affineMul(temp, rotate, scale);
+	dsMatrix44_affineMul(transform, translate, temp);
+	outerCubeTransform = (dsSceneNode*)dsSceneTransformNode_create(allocator, &transform);
+	if (!outerCubeTransform || !dsSceneNode_addChild(outerCubeTransform, outerCubeModel) ||
+		!dsSceneNode_addChild(centerCubeTransform, outerCubeTransform))
+	{
+		goto fail;
+	}
+
+	dsSceneNode_freeRef(outerCubeModel);
+	dsSceneNode_freeRef(outerCubeTransform);
+	outerCubeModel = NULL;
+	outerCubeTransform = NULL;
+
+	dsMatrix44f_makeScale(&scale, 10.0f, 1.0f, 10.0f);
+	dsMatrix44f_makeTranslate(&translate, 0.0f, -5.0f, 0.0f);
+	dsMatrix44_affineMul(transform, translate, scale);
+	groundTransform = (dsSceneNode*)dsSceneTransformNode_create(allocator, &transform);
+	if (!groundTransform || !dsSceneNode_addChild(groundTransform, groundModel))
+		goto fail;
+
+	dsSceneNode_freeRef(groundModel);
+	groundModel = NULL;
+
+	dsMatrix44f_makeRotate(&rotate, (float)dsDegreesToRadians(-20.0),
+		(float)dsDegreesToRadians(70.0), (float)dsDegreesToRadians(35.0));
+	dsMatrix44f_makeTranslate(&translate, 2.0f, 1.0f, -0.8f);
+	dsMatrix44_affineMul(transform, translate, rotate);
+	secondarySceneRoot = (dsSceneNode*)dsSceneTransformNode_create(allocator, &transform);
+	if (!secondarySceneRoot)
+		goto fail;
+
+	primaryTransform = dsSceneTransformNode_create(allocator, NULL);
+	if (!primaryTransform ||
+		!dsSceneNode_addChild((dsSceneNode*)primaryTransform, centerCubeTransform) ||
+		!dsSceneNode_addChild((dsSceneNode*)primaryTransform, secondarySceneRoot))
+	{
+		goto fail;
+	}
+
+	secondaryTransform = dsSceneTransformNode_create(allocator, NULL);
+	if (!secondaryTransform ||
+		!dsSceneNode_addChild((dsSceneNode*)secondaryTransform, centerCubeTransform) ||
+		!dsSceneNode_addChild(secondarySceneRoot, centerCubeTransform))
+	{
+		goto fail;
+	}
+
+	dsSceneNode_freeRef(centerCubeTransform);
+	centerCubeTransform = NULL;
+	if (!dsScene_addNode(testScene->scene, (dsSceneNode*)primaryTransform) ||
+		!dsScene_addNode(testScene->scene, groundTransform))
+	{
+		goto fail;
+	}
+
+	dsSceneNode_freeRef(groundTransform);
+	groundTransform = NULL;
+
+	testScene->primaryTransform = primaryTransform;
+	testScene->secondarySceneRoot = secondarySceneRoot;
+	testScene->secondaryTransform = secondaryTransform;
+	testScene->secondarySceneSet = true;
+	return true;
+
+fail:
+	dsSceneNode_freeRef(centerCubeModel);
+	dsSceneNode_freeRef(outerCubeModel);
+	dsSceneNode_freeRef(groundModel);
+	dsSceneNode_freeRef(centerCubeTransform);
+	dsSceneNode_freeRef(outerCubeTransform);
+	dsSceneNode_freeRef(groundTransform);
+	dsSceneNode_freeRef(secondarySceneRoot);
+	dsSceneNode_freeRef((dsSceneNode*)primaryTransform);
+	dsSceneNode_freeRef((dsSceneNode*)secondaryTransform);
+	return false;
+}
+
 static bool setup(TestScene* testScene, dsApplication* application, dsAllocator* allocator)
 {
 	dsRenderer* renderer = application->renderer;
@@ -645,6 +828,9 @@ static bool setup(TestScene* testScene, dsApplication* application, dsAllocator*
 	if (!testScene->view)
 		return false;
 
+	if (!createSceneGraph(testScene, allocator))
+		return false;
+
 	testScene->rotation = 0;
 
 	return true;
@@ -652,11 +838,12 @@ static bool setup(TestScene* testScene, dsApplication* application, dsAllocator*
 
 static void shutdown(TestScene* testScene)
 {
-	dsSceneNode_freeRef((dsSceneNode*)testScene->primaryTransform);
-	dsSceneNode_freeRef((dsSceneNode*)testScene->secondaryTransform);
 	DS_VERIFY(dsView_destroy(testScene->view));
 	dsScene_destroy(testScene->scene);
 	dsSceneResources_freeRef(testScene->resources);
+	dsSceneNode_freeRef((dsSceneNode*)testScene->primaryTransform);
+	dsSceneNode_freeRef(testScene->secondarySceneRoot);
+	dsSceneNode_freeRef((dsSceneNode*)testScene->secondaryTransform);
 	DS_VERIFY(dsWindow_destroy(testScene->window));
 }
 
