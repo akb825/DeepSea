@@ -88,8 +88,7 @@ struct RenderInfo
 
 		dsGfxFormat surfaceFormat = dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm);
 		dsTextureInfo offscreenInfo = {surfaceFormat, dsTextureDim_2D, width, height, 0, 1, 1};
-		auto usageFlags = (dsTextureUsage)(dsTextureUsage_Texture | dsTextureUsage_CopyFrom |
-			dsTextureUsage_CopyTo);
+		auto usageFlags = (dsTextureUsage)(dsTextureUsage_Texture | dsTextureUsage_CopyFrom);
 		offscreen = dsTexture_createOffscreen(resourceManager, allocator, usageFlags,
 			dsGfxMemory_Read, &offscreenInfo, true);
 		ASSERT_TRUE(offscreen);

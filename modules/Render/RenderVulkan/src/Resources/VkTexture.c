@@ -124,10 +124,12 @@ static bool createHostImageBuffer(dsVkDevice* device,  dsVkTexture* texture, con
 
 static bool createSurfaceImage(dsVkDevice* device, const dsTextureInfo* info,
 	const dsVkFormatInfo* formatInfo, VkImageAspectFlags aspectMask, VkImageType imageType,
-	VkImageViewType imageViewType, dsVkTexture* texture)
+	VkImageViewType imageViewType, dsVkTexture* texture, bool canExplictlyResolve)
 {
 	dsVkInstance* instance = &device->instance;
-	VkImageUsageFlags usageFlags = VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+	VkImageUsageFlags usageFlags = 0;
+	if (canExplictlyResolve)
+		usageFlags |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
 	if (dsGfxFormat_isDepthStencil(info->format))
 		usageFlags |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
 	else
@@ -282,6 +284,7 @@ static dsTexture* createTextureImpl(dsResourceManager* resourceManager, dsAlloca
 	}
 
 	// Base flags determined from the usage flags passed in.
+	bool explicitResolve = resolve && (usage & dsTextureUsage_OffscreenContinue);
 	VkImageUsageFlags usageFlags = 0;
 	if (usage & dsTextureUsage_Texture)
 		usageFlags |= VK_IMAGE_USAGE_SAMPLED_BIT;
@@ -289,7 +292,7 @@ static dsTexture* createTextureImpl(dsResourceManager* resourceManager, dsAlloca
 		usageFlags |= VK_IMAGE_USAGE_STORAGE_BIT;
 	if ((usage & dsTextureUsage_CopyFrom))
 		usageFlags |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
-	if ((usage & dsTextureUsage_CopyTo) || data || offscreen)
+	if ((usage & dsTextureUsage_CopyTo) || data || explicitResolve)
 		usageFlags |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 	if (usage & dsTextureUsage_SubpassInput)
 		usageFlags |= VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT;
@@ -307,8 +310,6 @@ static dsTexture* createTextureImpl(dsResourceManager* resourceManager, dsAlloca
 	VkImageAspectFlags aspectMask = dsVkImageAspectFlags(info->format);
 
 	// Create device image for general usage.
-	if (needsHostMemory || resolve)
-		usageFlags |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 	uint32_t depthCount = dsMax(1U, info->depth);
 	uint32_t faceCount = info->dimension == dsTextureDim_Cube ? 6 : 1;
 	VkImageCreateInfo imageCreateInfo =
@@ -341,11 +342,8 @@ static dsTexture* createTextureImpl(dsResourceManager* resourceManager, dsAlloca
 		&deviceRequirements);
 
 	VkMemoryPropertyFlags memoryFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-	VkMemoryPropertyFlags optimalMemoryFlags = 0;
-	if (dsVkTexture_onlySubpassInput(usage) && device->hasLazyAllocation)
-		optimalMemoryFlags |= VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT;
 	uint32_t deviceMemoryIndex = dsVkMemoryIndexImpl(device, &deviceRequirements, memoryFlags,
-		optimalMemoryFlags);
+		VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT);
 	if (deviceMemoryIndex == DS_INVALID_HEAP)
 	{
 		dsVkTexture_destroyImpl(baseTexture);
@@ -392,7 +390,7 @@ static dsTexture* createTextureImpl(dsResourceManager* resourceManager, dsAlloca
 	}
 
 	if (resolve && !createSurfaceImage(device, info, formatInfo, aspectMask, imageType,
-			imageViewType, texture))
+			imageViewType, texture, explicitResolve))
 	{
 		dsVkTexture_destroyImpl(baseTexture);
 		return NULL;
