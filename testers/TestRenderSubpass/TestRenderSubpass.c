@@ -558,9 +558,12 @@ static bool setup(TestRenderSubpass* testRenderSubpass, dsApplication* applicati
 	// Resolve subpass is dependent on all previous subpasses.
 	dsSubpassDependency dependencies[] =
 	{
-		{0, dsSubpassDependencyStage_Fragment, 3, dsSubpassDependencyStage_Fragment, true},
-		{1, dsSubpassDependencyStage_Fragment, 3, dsSubpassDependencyStage_Fragment, true},
-		{2, dsSubpassDependencyStage_Fragment, 3, dsSubpassDependencyStage_Fragment, true},
+		{0, dsSubpassDependencyFlags_FragmentColorOutput, 3,
+			dsSubpassDependencyFlags_ColorSubpassInputRead, true},
+		{1, dsSubpassDependencyFlags_FragmentColorOutput, 3,
+			dsSubpassDependencyFlags_ColorSubpassInputRead, true},
+		{2, dsSubpassDependencyFlags_FragmentColorOutput, 3,
+			dsSubpassDependencyFlags_ColorSubpassInputRead, true},
 	};
 	testRenderSubpass->renderPass = dsRenderPass_create(renderer, allocator, attachments,
 		attachmentCount, subpasses, DS_ARRAY_SIZE(subpasses), dependencies,

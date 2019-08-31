@@ -487,6 +487,14 @@ dsRenderPass* dsRenderPass_create(dsRenderer* renderer, dsAllocator* allocator,
 				DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Subpasses may only depend on previous subpasses.");
 				DS_PROFILE_FUNC_RETURN(NULL);
 			}
+
+			if (dependencies[i].srcStages == 0 || dependencies[i].dstStages == 0)
+			{
+				errno = EINVAL;
+				DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+					"At least one stage flag must be provided for subpass dependencies.");
+				DS_PROFILE_FUNC_RETURN(NULL);
+			}
 		}
 	}
 

@@ -157,13 +157,53 @@ typedef enum dsGfxPlatform
 
 /**
  * @brief Enum for the stage for a pipeline dependency.
+ *
+ * This enum is a bitmask to allow multiple combinations of the stage bits. Each bit represents a
+ * stage of the graphics pipeline to either wait to complete (for the source stage) or wait to begin
+ * (for the destination stage)
+ *
  * @see RenderPass.h
  */
-typedef enum dsSubpassDependencyStage
+typedef enum dsSubpassDependencyFlags
 {
-	dsSubpassDependencyStage_Vertex,  ///< Vertex operations, including tessellation and geometry.
-	dsSubpassDependencyStage_Fragment ///< Fragment operations, including the final resolve.
-} dsSubpassDependencyStage;
+	/// Reading the indirect draw buffers.
+	dsSubpassDependencyFlags_DrawIndirect = 0x1,
+	/// Reading vertex attributes from the vertex shader.
+	dsSubpassDependencyFlags_VertexAttributes = 0x2,
+	/// Reading indices from the index buffer.
+	dsSubpassDependencyFlags_Indices = 0x4,
+	/// Reads within the vertex shader.
+	dsSubpassDependencyFlags_VertexShaderRead = 0x8,
+	/// Writes within the vertex shader.
+	dsSubpassDependencyFlags_VertexShaderWrite = 0x10,
+	/// Reads within the tessellation control shader.
+	dsSubpassDependencyFlags_TessControlShaderRead = 0x20,
+	/// Writes within the tessellation control shader.
+	dsSubpassDependencyFlags_TessControlShaderWrite = 0x40,
+	/// Reads within the tessellation evaluation shader.
+	dsSubpassDependencyFlags_TessEvalShaderRead = 0x80,
+	/// Writes within the tessellation evaluation shader.
+	dsSubpassDependencyFlags_TessEvalShaderWrite = 0x100,
+	/// Reads within the geometry shader.
+	dsSubpassDependencyFlags_GeometryShaderRead = 0x200,
+	/// Writes within the geometry shader.
+	dsSubpassDependencyFlags_GeometryShaderWrite = 0x400,
+	/// Reads within the fragment shader. This does NOT include subpass inputs.
+	dsSubpassDependencyFlags_FragmentShaderRead = 0x800,
+	/// Writes within the fragment shader.
+	dsSubpassDependencyFlags_FragmentShaderWrite = 0x1000,
+	/// Depth/stencil tests for fragments before shading. This includes reading the depth value.
+	dsSubpassDependencyFlags_FragmentPreShadingTests = 0x2000,
+	/// Final fragment color output.
+	dsSubpassDependencyFlags_FragmentColorOutput = 0x4000,
+	/// Depth/stencil tests for fragments after shading. This includes writing the depth result.
+	dsSubpassDependencyFlags_FragmentPostShadingTests = 0x8000,
+	/// Reads from a depth/stencil subpass input offscreen.
+	dsSubpassDependencyFlags_DepthStencilSubpassInputRead =
+		dsSubpassDependencyFlags_FragmentPreShadingTests,
+	/// Reads from a color subpass input offscreen.
+	dsSubpassDependencyFlags_ColorSubpassInputRead = 0x10000,
+} dsSubpassDependencyFlags;
 
 /**
  * @brief Enum for the type of a render surface.
@@ -623,6 +663,23 @@ typedef struct dsRenderSubpassInfo
  * This ensures that the GPU is done with the specified stage from the source subpass before
  * processing the specified stage for the destination subpass.
  *
+ * Dependencies on external render passes (with DS_EXTERNAL_SUBPASS) should only be required for
+ * cases where an offscreen written in one render pass is read from another render pass. Other
+ * cases, writing to buffers or images, are automatically managed.
+ *
+ * Subpass dependencies between subpasses within the same render pass are required in two
+ * situations:
+ * 1. The destination subpass reads from a resource written from the source subpass. This can either
+ *    be a color or depth/stencil attachment, buffer write, or image write within a shader. This is
+ *    the most obvious situation, where the results need to be available before being read from.
+ * 2. The destination subpass writes to a resource read from the source subpass. As with the first
+ *    point, attachments, buffers, and images used between both subpasses all require a dependency.
+ *    While less obvious of a requirement as the first point, this is required to ensure the
+ *    destination subpass doesn't overwrite the data before the source subpass is finished using it.
+ *
+ * Failure to have the correct dependencies may cause rendering artifacts, depending on if the
+ * hardware and underlying render implementation support executing subpasses in parallel.
+ *
  * @see RenderPass.h
  */
 typedef struct dsSubpassDependency
@@ -635,21 +692,21 @@ typedef struct dsSubpassDependency
 	uint32_t srcSubpass;
 
 	/**
-	 * @brief The stage to wait after in the source subpass.
+	 * @brief The stages to wait after in the source subpass.
 	 */
-	dsSubpassDependencyStage srcStage;
+	dsSubpassDependencyFlags srcStages;
 
 	/**
 	 * @brief The index of the destination subpass.
+	 *
+	 * This may be DS_EXTERNAL_SUBPASS to be a subpass outside of the current render pass.
 	 */
 	uint32_t dstSubpass;
 
 	/**
-	 * @brief The stage to wait executing for in the destination subpass.
-	 *
-	 * This may be DS_EXTERNAL_SUBPASS to be a subpass outside of the current render pass.
+	 * @brief The stages to wait before executing in the destination subpass.
 	 */
-	dsSubpassDependencyStage dstStage;
+	dsSubpassDependencyFlags dstStages;
 
 	/**
 	 * @brief True if the dependency is by region as opposed to the full surface.

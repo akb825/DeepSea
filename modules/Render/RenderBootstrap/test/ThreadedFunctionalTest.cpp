@@ -108,8 +108,7 @@ struct RenderInfo
 		dsColorAttachmentRef attachmentRef = {0, true};
 		dsRenderSubpassInfo subpass = {"WriteOffscreen", NULL, &attachmentRef, 0, 1,
 			DS_NO_ATTACHMENT};
-		renderPass = dsRenderPass_create(renderer, allocator, &attachment, 1, &subpass, 1, NULL,
-			DS_DEFAULT_SUBPASS_DEPENDENCIES);
+		renderPass = dsRenderPass_create(renderer, allocator, &attachment, 1, &subpass, 1, NULL, 0);
 		ASSERT_TRUE(renderPass);
 
 		Vertex vertices[2][6] =

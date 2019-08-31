@@ -49,41 +49,86 @@ static size_t fullAllocSize(uint32_t attachmentCount, const dsRenderSubpassInfo*
 }
 
 static VkPipelineStageFlags getPipelineStages(const dsRenderer* renderer,
-	dsSubpassDependencyStage stage)
+	dsSubpassDependencyFlags stages)
 {
-	VkPipelineStageFlags flags = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT |
-		VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT |
-		VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-	if (stage == dsSubpassDependencyStage_Vertex)
-	{
+	VkPipelineStageFlags flags = 0;
+	if (stages & dsSubpassDependencyFlags_DrawIndirect)
+		flags |= VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT;
+	if (stages & (dsSubpassDependencyFlags_VertexAttributes | dsSubpassDependencyFlags_Indices))
 		flags |= VK_PIPELINE_STAGE_VERTEX_INPUT_BIT;
-		if (renderer->hasTessellationShaders)
-		{
-			flags |= VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT |
-				VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT;
-		}
-		if (renderer->hasGeometryShaders)
-			flags |= VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT;
+	if (stages & (dsSubpassDependencyFlags_VertexShaderRead |
+			dsSubpassDependencyFlags_VertexShaderWrite))
+	{
+		flags |= VK_PIPELINE_STAGE_VERTEX_SHADER_BIT;
 	}
+	if (renderer->hasTessellationShaders)
+	{
+		if ((stages & (dsSubpassDependencyFlags_TessControlShaderRead |
+				dsSubpassDependencyFlags_TessControlShaderWrite)))
+		{
+			flags |= VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT;
+		}
+		if (stages & (dsSubpassDependencyFlags_TessEvalShaderRead |
+				dsSubpassDependencyFlags_TessEvalShaderWrite))
+		{
+			flags |= VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT;
+		}
+	}
+	if ((stages & (dsSubpassDependencyFlags_GeometryShaderRead |
+			dsSubpassDependencyFlags_GeometryShaderWrite)) && renderer->hasGeometryShaders)
+	{
+		flags |= VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT;
+	}
+	if (stages & (dsSubpassDependencyFlags_FragmentShaderRead |
+			dsSubpassDependencyFlags_FragmentShaderWrite))
+	{
+		flags |= VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+	}
+	if (stages & dsSubpassDependencyFlags_FragmentPreShadingTests)
+		flags |= VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+	if (stages & (dsSubpassDependencyFlags_FragmentColorOutput |
+			dsSubpassDependencyFlags_ColorSubpassInputRead))
+	{
+		flags |= VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+	}
+	if (stages & dsSubpassDependencyFlags_FragmentPostShadingTests)
+		flags |= VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
 	return flags;
 }
 
-static VkAccessFlags getSrcAccessFlags(dsSubpassDependencyStage stage)
+static VkAccessFlags getAccessFlags(dsSubpassDependencyFlags stages)
 {
-	DS_UNUSED(stage);
-	return VK_ACCESS_SHADER_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT |
-		VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-}
-
-static VkAccessFlags getDstAccessFlags(dsSubpassDependencyStage stage)
-{
-	VkAccessFlags flags = VK_ACCESS_UNIFORM_READ_BIT | VK_ACCESS_SHADER_READ_BIT |
-		VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
-	if (stage == dsSubpassDependencyStage_Vertex)
+	VkAccessFlags flags = 0;
+	if (stages & dsSubpassDependencyFlags_DrawIndirect)
+		flags |= VK_ACCESS_INDIRECT_COMMAND_READ_BIT;
+	if (stages & dsSubpassDependencyFlags_VertexAttributes)
+		flags |= VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT;
+	if (stages & dsSubpassDependencyFlags_Indices)
+		flags |= VK_ACCESS_INDEX_READ_BIT;
+	if (stages & (dsSubpassDependencyFlags_VertexShaderRead |
+			dsSubpassDependencyFlags_TessControlShaderRead |
+			dsSubpassDependencyFlags_TessEvalShaderRead |
+			dsSubpassDependencyFlags_GeometryShaderRead |
+			dsSubpassDependencyFlags_FragmentShaderRead))
 	{
-		flags |= VK_ACCESS_INDIRECT_COMMAND_READ_BIT | VK_ACCESS_INDEX_READ_BIT |
-			VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT;
+		flags |= VK_ACCESS_SHADER_READ_BIT;
 	}
+	if (stages & (dsSubpassDependencyFlags_VertexShaderWrite |
+			dsSubpassDependencyFlags_TessControlShaderWrite |
+			dsSubpassDependencyFlags_TessEvalShaderWrite |
+			dsSubpassDependencyFlags_GeometryShaderWrite |
+			dsSubpassDependencyFlags_FragmentShaderWrite))
+	{
+		flags |= VK_ACCESS_SHADER_WRITE_BIT;
+	}
+	if (flags & dsSubpassDependencyFlags_FragmentPreShadingTests)
+		flags |= VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
+	if (flags & dsSubpassDependencyFlags_FragmentColorOutput)
+		flags |= VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+	if (flags & dsSubpassDependencyFlags_FragmentPostShadingTests)
+		flags |= VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+	if (flags & dsSubpassDependencyFlags_ColorSubpassInputRead)
+		flags |= VK_ACCESS_COLOR_ATTACHMENT_READ_BIT;
 	return flags;
 }
 
@@ -191,9 +236,12 @@ dsRenderPass* dsVkRenderPass_create(dsRenderer* renderer, dsAllocator* allocator
 				dsSubpassDependency* dependency =
 					(dsSubpassDependency*)(baseRenderPass->subpassDependencies + i);
 				dependency->srcSubpass = i == 0 ? DS_EXTERNAL_SUBPASS : i - 1;
-				dependency->srcStage = dsSubpassDependencyStage_Fragment;
+				dependency->srcStages = dsSubpassDependencyFlags_FragmentColorOutput |
+					dsSubpassDependencyFlags_FragmentPostShadingTests;
 				dependency->dstSubpass = i;
-				dependency->dstStage = dsSubpassDependencyStage_Fragment;
+				dependency->dstStages = i == 0 ? dsSubpassDependencyFlags_FragmentShaderRead :
+					dsSubpassDependencyFlags_DepthStencilSubpassInputRead |
+						dsSubpassDependencyFlags_ColorSubpassInputRead;
 				dependency->regionDependency = i > 0;
 			}
 		}
@@ -213,10 +261,10 @@ dsRenderPass* dsVkRenderPass_create(dsRenderer* renderer, dsAllocator* allocator
 			VkSubpassDependency* vkDependency = renderPass->vkDependencies + i;
 			vkDependency->srcSubpass = curDependency->srcSubpass;
 			vkDependency->dstSubpass = curDependency->dstSubpass;
-			vkDependency->srcStageMask = getPipelineStages(renderer, curDependency->srcStage);
-			vkDependency->dstStageMask = getPipelineStages(renderer, curDependency->dstStage);
-			vkDependency->srcAccessMask = getSrcAccessFlags(curDependency->srcStage);
-			vkDependency->dstAccessMask = getDstAccessFlags(curDependency->srcStage);
+			vkDependency->srcStageMask = getPipelineStages(renderer, curDependency->srcStages);
+			vkDependency->dstStageMask = getPipelineStages(renderer, curDependency->dstStages);
+			vkDependency->srcAccessMask = getAccessFlags(curDependency->srcStages);
+			vkDependency->dstAccessMask = getAccessFlags(curDependency->dstStages);
 			if (curDependency->regionDependency)
 				vkDependency->dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
 			else
