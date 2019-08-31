@@ -1225,9 +1225,9 @@ static VkAccessFlags getMemoryAccessMask(dsRenderer* renderer, VkPipelineStageFl
 	return accessMask;
 }
 
-static void setBeginBlitSurfaceBarrierInfo(dsRenderer* renderer, VkImageMemoryBarrier* barrier,
-	dsGfxSurfaceType surfaceType, void* surface, VkImageAspectFlags* aspectMask,
-	VkPipelineStageFlags* stages)
+static bool setBeginBlitSurfaceBarrierInfo(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	VkImageMemoryBarrier* barrier, dsGfxSurfaceType surfaceType, void* surface,
+	VkImageAspectFlags* aspectMask, VkPipelineStageFlags* stages)
 {
 	switch (surfaceType)
 	{
@@ -1237,6 +1237,9 @@ static void setBeginBlitSurfaceBarrierInfo(dsRenderer* renderer, VkImageMemoryBa
 		{
 			dsVkRenderSurface* renderSurface = (dsVkRenderSurface*)surface;
 			dsVkRenderSurfaceData* surfaceData = renderSurface->surfaceData;
+			if (!dsVkCommandBuffer_addResource(commandBuffer, &surfaceData->resource))
+				return false;
+
 			barrier->srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT |
 				VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_TRANSFER_READ_BIT |
 				VK_ACCESS_TRANSFER_WRITE_BIT;
@@ -1246,7 +1249,7 @@ static void setBeginBlitSurfaceBarrierInfo(dsRenderer* renderer, VkImageMemoryBa
 				surfaceType == dsGfxSurfaceType_ColorRenderSurfaceRight;
 			*aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 			*stages |= VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-			break;
+			return true;
 		}
 		case dsGfxSurfaceType_DepthRenderSurface:
 		case dsGfxSurfaceType_DepthRenderSurfaceLeft:
@@ -1254,6 +1257,9 @@ static void setBeginBlitSurfaceBarrierInfo(dsRenderer* renderer, VkImageMemoryBa
 		{
 			dsVkRenderSurface* renderSurface = (dsVkRenderSurface*)surface;
 			dsVkRenderSurfaceData* surfaceData = renderSurface->surfaceData;
+			if (!dsVkCommandBuffer_addResource(commandBuffer, &surfaceData->resource))
+				return false;
+
 			barrier->srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT |
 				VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT | VK_ACCESS_TRANSFER_READ_BIT |
 				VK_ACCESS_TRANSFER_WRITE_BIT;
@@ -1262,13 +1268,16 @@ static void setBeginBlitSurfaceBarrierInfo(dsRenderer* renderer, VkImageMemoryBa
 			*aspectMask = dsVkImageAspectFlags(renderer->surfaceDepthStencilFormat);
 			*stages |= VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT |
 				VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
-			break;
+			return true;
 		}
 		case dsGfxSurfaceType_Offscreen:
 		{
 			dsOffscreen* offscreen = (dsOffscreen*)surface;
 			DS_ASSERT(offscreen->offscreen);
 			dsVkTexture* vkTexture = (dsVkTexture*)offscreen;
+			if (!dsVkCommandBuffer_addResource(commandBuffer, &vkTexture->resource))
+				return false;
+
 			dsVkRenderer_processTexture(renderer, offscreen);
 			bool isDepthStencil = dsGfxFormat_isDepthStencil(offscreen->info.format);
 			barrier->srcAccessMask = dsVkWriteImageAccessFlags(offscreen->usage, true,
@@ -1278,12 +1287,15 @@ static void setBeginBlitSurfaceBarrierInfo(dsRenderer* renderer, VkImageMemoryBa
 			*aspectMask = dsVkImageAspectFlags(offscreen->info.format);
 			*stages |= dsVkWriteImageStageFlags(renderer, offscreen->usage, offscreen->offscreen,
 				isDepthStencil);
-			break;
+			return true;
 		}
 		case dsGfxSurfaceType_Renderbuffer:
 		{
 			dsRenderbuffer* renderbuffer = (dsRenderbuffer*)surface;
 			dsVkRenderbuffer* vkRenderbuffer = (dsVkRenderbuffer*)renderbuffer;
+			if (!dsVkCommandBuffer_addResource(commandBuffer, &vkRenderbuffer->resource))
+				return false;
+
 			barrier->srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT |
 				VK_ACCESS_TRANSFER_WRITE_BIT;
 			if (dsGfxFormat_isDepthStencil(renderbuffer->format))
@@ -1302,10 +1314,11 @@ static void setBeginBlitSurfaceBarrierInfo(dsRenderer* renderer, VkImageMemoryBa
 			}
 			barrier->image = vkRenderbuffer->image;
 			*aspectMask = dsVkImageAspectFlags(renderbuffer->format);
-			break;
+			return true;
 		}
 		default:
 			DS_ASSERT(false);
+			return false;
 	}
 }
 
@@ -1818,10 +1831,13 @@ bool dsVkRenderer_blitSurface(dsRenderer* renderer, dsCommandBuffer* commandBuff
 	// Image barriers to prepare for the blit.
 	VkImageAspectFlags srcAspectMask = 0, dstAspectMask = 0;
 	VkPipelineStageFlags stageFlags = VK_PIPELINE_STAGE_TRANSFER_BIT;
-	setBeginBlitSurfaceBarrierInfo(renderer, imageBarriers, srcSurfaceType, srcSurface,
-		&srcAspectMask, &stageFlags);
-	setBeginBlitSurfaceBarrierInfo(renderer, imageBarriers + 1, dstSurfaceType, dstSurface,
-		&dstAspectMask, &stageFlags);
+	if (!setBeginBlitSurfaceBarrierInfo(renderer, commandBuffer, imageBarriers, srcSurfaceType,
+			srcSurface, &srcAspectMask, &stageFlags) ||
+		!setBeginBlitSurfaceBarrierInfo(renderer, commandBuffer, imageBarriers + 1, dstSurfaceType,
+			dstSurface, &dstAspectMask, &stageFlags))
+	{
+		return false;
+	}
 	imageBarriers[0].subresourceRange.aspectMask = srcAspectMask;
 	imageBarriers[1].subresourceRange.aspectMask = dstAspectMask;
 

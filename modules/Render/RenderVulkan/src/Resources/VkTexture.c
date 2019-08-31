@@ -1367,6 +1367,9 @@ bool dsVkTexture_clearColor(dsOffscreen* offscreen, dsCommandBuffer* commandBuff
 	dsVkTexture* vkTexture = (dsVkTexture*)offscreen;
 	dsRenderer* renderer = commandBuffer->renderer;
 	dsVkDevice* device = &((dsVkRenderer*)renderer)->device;
+	if (!dsVkCommandBuffer_addResource(commandBuffer, &vkTexture->resource))
+		return false;
+
 	VkCommandBuffer vkCommandBuffer = dsVkCommandBuffer_getCommandBuffer(commandBuffer);
 	if (!vkCommandBuffer)
 		return false;
@@ -1439,6 +1442,9 @@ bool dsVkTexture_clearDepthStencil(dsOffscreen* offscreen, dsCommandBuffer* comm
 	dsVkTexture* vkTexture = (dsVkTexture*)offscreen;
 	dsRenderer* renderer = commandBuffer->renderer;
 	dsVkDevice* device = &((dsVkRenderer*)renderer)->device;
+	if (!dsVkCommandBuffer_addResource(commandBuffer, &vkTexture->resource))
+		return false;
+
 	VkCommandBuffer vkCommandBuffer = dsVkCommandBuffer_getCommandBuffer(commandBuffer);
 	if (!vkCommandBuffer)
 		return false;

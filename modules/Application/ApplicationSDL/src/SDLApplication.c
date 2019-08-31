@@ -690,6 +690,15 @@ int dsSDLApplication_run(dsApplication* application)
 		updateWindowSamples(application);
 
 		DS_PROFILE_SCOPE_START("Draw");
+		uint32_t swapSurfaceCount = 0;
+		dsRenderSurface* swapSurfaces[DS_MAX_WINDOWS];
+		if (application->windowCount > DS_MAX_WINDOWS)
+		{
+			DS_LOG_ERROR_F(DS_APPLICATION_SDL_LOG_TAG, "A maximum of %u windows is supported.",
+				DS_MAX_WINDOWS);
+			abort();
+		}
+
 		dsCommandBuffer* commandBuffer = application->renderer->mainCommandBuffer;
 		for (uint32_t i = 0; i < application->windowCount; ++i)
 		{
@@ -697,9 +706,12 @@ int dsSDLApplication_run(dsApplication* application)
 			if (!window->drawFunc && !window->surface)
 				continue;
 
-			dsRenderSurface_beginDraw(window->surface, commandBuffer);
-			window->drawFunc(application, window, window->drawUserData);
-			dsRenderSurface_endDraw(window->surface, commandBuffer);
+			if (dsRenderSurface_beginDraw(window->surface, commandBuffer))
+			{
+				window->drawFunc(application, window, window->drawUserData);
+				dsRenderSurface_endDraw(window->surface, commandBuffer);
+				swapSurfaces[swapSurfaceCount++] = window->surface;
+			}
 		}
 		DS_PROFILE_SCOPE_END();
 
@@ -711,23 +723,7 @@ int dsSDLApplication_run(dsApplication* application)
 		}
 
 		// Swap the buffers for all the window surfaces at the end.
-		dsRenderSurface* swapSurfaces[DS_MAX_WINDOWS];
-		if (application->windowCount > DS_MAX_WINDOWS)
-		{
-			DS_LOG_ERROR_F(DS_APPLICATION_SDL_LOG_TAG, "A maximum of %u windows is supported.",
-				DS_MAX_WINDOWS);
-			abort();
-		}
-
-		uint32_t surfaceCount = 0;
-		for (uint32_t i = 0; i < application->windowCount; ++i)
-		{
-			if (!application->windows[i]->surface)
-				continue;
-
-			swapSurfaces[surfaceCount++] = application->windows[i]->surface;
-		}
-		dsRenderSurface_swapBuffers(swapSurfaces, surfaceCount);
+		dsRenderSurface_swapBuffers(swapSurfaces, swapSurfaceCount);
 
 		DS_VERIFY(dsRenderer_endFrame(application->renderer));
 	}

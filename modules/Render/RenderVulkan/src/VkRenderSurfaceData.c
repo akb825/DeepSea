@@ -549,6 +549,9 @@ bool dsVkRenderSurfaceData_clearColor(dsVkRenderSurfaceData* renderSurface, bool
 	dsCommandBuffer* commandBuffer, const dsSurfaceColorValue* colorValue)
 {
 	dsVkDevice* device = &((dsVkRenderer*)renderSurface->renderer)->device;
+	if (!dsVkCommandBuffer_addResource(commandBuffer, &renderSurface->resource))
+		return false;
+
 	VkCommandBuffer vkCommandBuffer = dsVkCommandBuffer_getCommandBuffer(commandBuffer);
 	if (!vkCommandBuffer)
 		return false;
@@ -614,6 +617,9 @@ bool dsVkRenderSurfaceData_clearDepthStencil(dsVkRenderSurfaceData* renderSurfac
 
 	dsRenderer* renderer = renderSurface->renderer;
 	dsVkDevice* device = &((dsVkRenderer*)renderer)->device;
+	if (!dsVkCommandBuffer_addResource(commandBuffer, &renderSurface->resource))
+		return false;
+
 	VkCommandBuffer vkCommandBuffer = dsVkCommandBuffer_getCommandBuffer(commandBuffer);
 	if (!vkCommandBuffer)
 		return false;

@@ -163,6 +163,9 @@ bool dsVkRenderbuffer_clearColor(dsRenderbuffer* renderbuffer, dsCommandBuffer* 
 {
 	dsVkRenderbuffer* vkRenderbuffer = (dsVkRenderbuffer*)renderbuffer;
 	dsVkDevice* device = &((dsVkRenderer*)commandBuffer->renderer)->device;
+	if (!dsVkCommandBuffer_addResource(commandBuffer, &vkRenderbuffer->resource))
+		return false;
+
 	VkCommandBuffer vkCommandBuffer = dsVkCommandBuffer_getCommandBuffer(commandBuffer);
 	if (!vkCommandBuffer)
 		return false;
@@ -213,6 +216,9 @@ bool dsVkRenderbuffer_clearDepthStencil(dsRenderbuffer* renderbuffer,
 	dsVkRenderbuffer* vkRenderbuffer = (dsVkRenderbuffer*)renderbuffer;
 	dsRenderer* renderer = commandBuffer->renderer;
 	dsVkDevice* device = &((dsVkRenderer*)renderer)->device;
+	if (!dsVkCommandBuffer_addResource(commandBuffer, &vkRenderbuffer->resource))
+		return false;
+
 	VkCommandBuffer vkCommandBuffer = dsVkCommandBuffer_getCommandBuffer(commandBuffer);
 	if (!vkCommandBuffer)
 		return false;

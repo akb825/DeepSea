@@ -309,10 +309,12 @@ static bool endFramebuffer(dsCommandBuffer* commandBuffer, const dsFramebuffer* 
 			case dsGfxSurfaceType_ColorRenderSurfaceLeft:
 			case dsGfxSurfaceType_ColorRenderSurfaceRight:
 			{
+				// NOTE: No need to add the resource for the surface since it's handled in
+				// dsVkRenderSurface_beginDraw().
 				dsVkRenderSurface* renderSurface = (dsVkRenderSurface*)surface->surface;
 				dsVkRenderSurfaceData* surfaceData = renderSurface->surfaceData;
 				if (!surfaceData->resolveImage || !resolveAttachment[i])
-					continue;
+					break;
 
 				// Need to have copy format to resolve.
 				VkImageMemoryBarrier* imageBarrier =
@@ -337,8 +339,11 @@ static bool endFramebuffer(dsCommandBuffer* commandBuffer, const dsFramebuffer* 
 				dsTexture* texture = (dsTexture*)surface->surface;
 				DS_ASSERT(texture->offscreen);
 				dsVkTexture* vkTexture = (dsVkTexture*)texture;
+				if (!dsVkCommandBuffer_addResource(commandBuffer, &vkTexture->resource))
+					return false;
+
 				if (dsVkTexture_onlySubpassInput(texture->usage))
-					continue;
+					break;
 
 				VkImageMemoryBarrier* imageBarrier =
 					dsVkCommandBuffer_addImageBarrier(commandBuffer);
@@ -365,6 +370,13 @@ static bool endFramebuffer(dsCommandBuffer* commandBuffer, const dsFramebuffer* 
 						vkTexture->deviceImage, dsVkTexture_imageLayout(texture),
 						surface->layer*faceCount + surface->cubeFace);
 				}
+				break;
+			}
+			case dsGfxSurfaceType_Renderbuffer:
+			{
+				dsVkRenderbuffer* renderbuffer = (dsVkRenderbuffer*)surface->surface;
+				if (!dsVkCommandBuffer_addResource(commandBuffer, &renderbuffer->resource))
+					return false;
 				break;
 			}
 			default:
