@@ -57,11 +57,11 @@ TEST_F(RenderPassTest, Create)
 	dsSubpassDependency dependencies[] =
 	{
 		{DS_EXTERNAL_SUBPASS, dsSubpassDependencyFlags_FragmentColorOutput, 0,
-			dsSubpassDependencyFlags_ColorSubpassInputRead, false},
+			dsSubpassDependencyFlags_FragmentShaderRead, false},
 		{0, dsSubpassDependencyFlags_FragmentColorOutput, 2,
-			dsSubpassDependencyFlags_ColorSubpassInputRead, true},
+			dsSubpassDependencyFlags_FragmentShaderRead, true},
 		{1, dsSubpassDependencyFlags_FragmentColorOutput, 2,
-			dsSubpassDependencyFlags_ColorSubpassInputRead, true}
+			dsSubpassDependencyFlags_FragmentShaderRead, true}
 	};
 	uint32_t dependencyCount = DS_ARRAY_SIZE(dependencies);
 
@@ -170,9 +170,9 @@ TEST_F(RenderPassTest, BeginNextEnd)
 	dsSubpassDependency dependencies[] =
 	{
 		{0, dsSubpassDependencyFlags_FragmentColorOutput, 2,
-			dsSubpassDependencyFlags_ColorSubpassInputRead, true},
+			dsSubpassDependencyFlags_FragmentShaderRead, true},
 		{1, dsSubpassDependencyFlags_FragmentColorOutput, 2,
-			dsSubpassDependencyFlags_ColorSubpassInputRead, true}
+			dsSubpassDependencyFlags_FragmentShaderRead, true}
 	};
 	uint32_t dependencyCount = DS_ARRAY_SIZE(dependencies);
 

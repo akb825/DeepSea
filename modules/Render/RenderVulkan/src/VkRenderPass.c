@@ -84,15 +84,21 @@ static VkPipelineStageFlags getPipelineStages(const dsRenderer* renderer,
 	{
 		flags |= VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
 	}
-	if (stages & dsSubpassDependencyFlags_FragmentPreShadingTests)
+	if (stages & (dsSubpassDependencyFlags_FragmentPreShadingTests |
+			dsSubpassDependencyFlags_DepthStencilAttachmentRead))
+	{
 		flags |= VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+	}
 	if (stages & (dsSubpassDependencyFlags_FragmentColorOutput |
-			dsSubpassDependencyFlags_ColorSubpassInputRead))
+			dsSubpassDependencyFlags_ColorAttachmentRead))
 	{
 		flags |= VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 	}
-	if (stages & dsSubpassDependencyFlags_FragmentPostShadingTests)
+	if (stages & (dsSubpassDependencyFlags_FragmentPostShadingTests |
+			dsSubpassDependencyFlags_DepthStencilAttachmentRead))
+	{
 		flags |= VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+	}
 	return flags;
 }
 
@@ -121,13 +127,18 @@ static VkAccessFlags getAccessFlags(dsSubpassDependencyFlags stages)
 	{
 		flags |= VK_ACCESS_SHADER_WRITE_BIT;
 	}
-	if (flags & dsSubpassDependencyFlags_FragmentPreShadingTests)
+	if (stages & dsSubpassDependencyFlags_FragmentShaderRead)
+		flags |= VK_ACCESS_INPUT_ATTACHMENT_READ_BIT;
+	if (flags & (dsSubpassDependencyFlags_FragmentPreShadingTests |
+			dsSubpassDependencyFlags_DepthStencilAttachmentRead))
+	{
 		flags |= VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
+	}
 	if (flags & dsSubpassDependencyFlags_FragmentColorOutput)
 		flags |= VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
 	if (flags & dsSubpassDependencyFlags_FragmentPostShadingTests)
 		flags |= VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-	if (flags & dsSubpassDependencyFlags_ColorSubpassInputRead)
+	if (flags & dsSubpassDependencyFlags_ColorAttachmentRead)
 		flags |= VK_ACCESS_COLOR_ATTACHMENT_READ_BIT;
 	return flags;
 }
@@ -239,9 +250,12 @@ dsRenderPass* dsVkRenderPass_create(dsRenderer* renderer, dsAllocator* allocator
 				dependency->srcStages = dsSubpassDependencyFlags_FragmentColorOutput |
 					dsSubpassDependencyFlags_FragmentPostShadingTests;
 				dependency->dstSubpass = i;
-				dependency->dstStages = i == 0 ? dsSubpassDependencyFlags_FragmentShaderRead :
-					dsSubpassDependencyFlags_DepthStencilSubpassInputRead |
-						dsSubpassDependencyFlags_ColorSubpassInputRead;
+				dependency->dstStages = dsSubpassDependencyFlags_FragmentShaderRead;
+				if (i == 0)
+				{
+					dependency->dstStages |= dsSubpassDependencyFlags_DepthStencilAttachmentRead |
+						dsSubpassDependencyFlags_ColorAttachmentRead;
+				}
 				dependency->regionDependency = i > 0;
 			}
 		}

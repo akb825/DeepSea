@@ -188,7 +188,7 @@ typedef enum dsSubpassDependencyFlags
 	dsSubpassDependencyFlags_GeometryShaderRead = 0x200,
 	/// Writes within the geometry shader.
 	dsSubpassDependencyFlags_GeometryShaderWrite = 0x400,
-	/// Reads within the fragment shader. This does NOT include subpass inputs.
+	/// Reads within the fragment shader.
 	dsSubpassDependencyFlags_FragmentShaderRead = 0x800,
 	/// Writes within the fragment shader.
 	dsSubpassDependencyFlags_FragmentShaderWrite = 0x1000,
@@ -198,11 +198,10 @@ typedef enum dsSubpassDependencyFlags
 	dsSubpassDependencyFlags_FragmentColorOutput = 0x4000,
 	/// Depth/stencil tests for fragments after shading. This includes writing the depth result.
 	dsSubpassDependencyFlags_FragmentPostShadingTests = 0x8000,
-	/// Reads from a depth/stencil subpass input offscreen.
-	dsSubpassDependencyFlags_DepthStencilSubpassInputRead =
-		dsSubpassDependencyFlags_FragmentPreShadingTests,
-	/// Reads from a color subpass input offscreen.
-	dsSubpassDependencyFlags_ColorSubpassInputRead = 0x10000,
+	/// Reads from a depth/stencil attachment when re-using across render passes.
+	dsSubpassDependencyFlags_DepthStencilAttachmentRead = 0x10000,
+	/// Reads from a color attachment when re-using across render passes.
+	dsSubpassDependencyFlags_ColorAttachmentRead = 0x20000,
 } dsSubpassDependencyFlags;
 
 /**
@@ -663,9 +662,10 @@ typedef struct dsRenderSubpassInfo
  * This ensures that the GPU is done with the specified stage from the source subpass before
  * processing the specified stage for the destination subpass.
  *
- * Dependencies on external render passes (with DS_EXTERNAL_SUBPASS) should only be required for
- * cases where an offscreen written in one render pass is read from another render pass. Other
- * cases, writing to buffers or images, are automatically managed.
+ * Dependencies on external render passes (with DS_EXTERNAL_SUBPASS) should only be required if the
+ * same attachments are used across multiple render passes or cases where an offscreen written in
+ * one render pass is read from another render pass. Other cases, writing to buffers or images, are
+ * automatically managed.
  *
  * Subpass dependencies between subpasses within the same render pass are required in two
  * situations:

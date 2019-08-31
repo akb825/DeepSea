@@ -119,9 +119,12 @@ dsRenderPass* dsMockRenderPass_create(dsRenderer* renderer, dsAllocator* allocat
 				dependency->srcStages = dsSubpassDependencyFlags_FragmentColorOutput |
 					dsSubpassDependencyFlags_FragmentPostShadingTests;
 				dependency->dstSubpass = i;
-				dependency->dstStages = i == 0 ? dsSubpassDependencyFlags_FragmentShaderRead :
-					dsSubpassDependencyFlags_DepthStencilSubpassInputRead |
-						dsSubpassDependencyFlags_ColorSubpassInputRead;
+				dependency->dstStages = dsSubpassDependencyFlags_FragmentShaderRead;
+				if (i == 0)
+				{
+					dependency->dstStages |= dsSubpassDependencyFlags_DepthStencilAttachmentRead |
+						dsSubpassDependencyFlags_ColorAttachmentRead;
+				}
 				dependency->regionDependency = i > 0;
 			}
 		}

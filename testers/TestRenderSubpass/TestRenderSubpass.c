@@ -559,11 +559,11 @@ static bool setup(TestRenderSubpass* testRenderSubpass, dsApplication* applicati
 	dsSubpassDependency dependencies[] =
 	{
 		{0, dsSubpassDependencyFlags_FragmentColorOutput, 3,
-			dsSubpassDependencyFlags_ColorSubpassInputRead, true},
+			dsSubpassDependencyFlags_FragmentShaderRead, true},
 		{1, dsSubpassDependencyFlags_FragmentColorOutput, 3,
-			dsSubpassDependencyFlags_ColorSubpassInputRead, true},
+			dsSubpassDependencyFlags_FragmentShaderRead, true},
 		{2, dsSubpassDependencyFlags_FragmentColorOutput, 3,
-			dsSubpassDependencyFlags_ColorSubpassInputRead, true},
+			dsSubpassDependencyFlags_FragmentShaderRead, true},
 	};
 	testRenderSubpass->renderPass = dsRenderPass_create(renderer, allocator, attachments,
 		attachmentCount, subpasses, DS_ARRAY_SIZE(subpasses), dependencies,
