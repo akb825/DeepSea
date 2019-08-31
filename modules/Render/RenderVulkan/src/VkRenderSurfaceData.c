@@ -619,7 +619,7 @@ bool dsVkRenderSurfaceData_clearDepthStencil(dsVkRenderSurfaceData* renderSurfac
 		return false;
 
 	VkAccessFlags accessMask = VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_TRANSFER_WRITE_BIT |
-		VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+		VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
 	VkImageAspectFlags aspectFlags = dsVkClearDepthStencilImageAspectFlags(
 		renderer->surfaceDepthStencilFormat, surfaceParts);
 
@@ -638,7 +638,7 @@ bool dsVkRenderSurfaceData_clearDepthStencil(dsVkRenderSurfaceData* renderSurfac
 	};
 
 	VkPipelineStageFlags pipelineStages = VK_PIPELINE_STAGE_TRANSFER_BIT |
-		VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+		VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
 	DS_VK_CALL(device->vkCmdPipelineBarrier)(vkCommandBuffer, pipelineStages,
 		VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, NULL, 0, NULL, 1, &barrier);
 
@@ -651,7 +651,6 @@ bool dsVkRenderSurfaceData_clearDepthStencil(dsVkRenderSurfaceData* renderSurfac
 	barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
 	barrier.newLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
-	pipelineStages |= VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
 	DS_VK_CALL(device->vkCmdPipelineBarrier)(vkCommandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT,
 		pipelineStages, 0, 0, NULL, 0, NULL, 1, &barrier);
 

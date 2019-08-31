@@ -846,14 +846,16 @@ typedef struct dsGfxBufferTextureCopyRegion
 	/**
 	 * @brief The width of the image in the buffer.
 	 *
-	 * If 0, textureWidth will be used.
+	 * This must always be a multiple of the format's block size. If 0, textureWidth will be used,
+	 * rounded to the next block boundary.
 	 */
 	uint32_t bufferWidth;
 
 	/**
 	 * @brief The height of the image in the buffer.
 	 *
-	 * If 0, textureHeight will be used.
+	 * This must always be a multiple of the format's block size. If 0, textureHeight will be used,
+	 * rounded to the next block boundary.
 	 */
 	uint32_t bufferHeight;
 

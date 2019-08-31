@@ -77,9 +77,9 @@ bool dsIsGfxBufferTextureCopyRegionValid(const dsGfxBufferTextureCopyRegion* reg
 	uint32_t bufferWidth = region->bufferWidth;
 	uint32_t bufferHeight = region->bufferHeight;
 	if (bufferWidth == 0)
-		bufferWidth = region->textureWidth;
+		bufferWidth = ((region->textureWidth + blockX - 1)/blockX)*blockX;
 	if (bufferHeight == 0)
-		bufferHeight = region->textureHeight;
+		bufferHeight = ((region->textureHeight + blockY - 1)/blockY)*blockY;
 
 	if (bufferWidth < region->textureWidth || bufferHeight < region->textureHeight)
 	{
@@ -89,8 +89,16 @@ bool dsIsGfxBufferTextureCopyRegionValid(const dsGfxBufferTextureCopyRegion* reg
 		return false;
 	}
 
-	size_t bufferXBlocks = (bufferWidth + blockX - 1)/blockX;
-	size_t bufferYBlocks = (bufferHeight + blockY - 1)/blockY;
+	if (bufferWidth % blockX != 0 || bufferHeight % blockY != 0)
+	{
+		errno = EINVAL;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Buffer dimensions must be a multiple of the texture format block size.");
+		return false;
+	}
+
+	size_t bufferXBlocks = bufferWidth/blockX;
+	size_t bufferYBlocks = bufferHeight/blockY;
 	size_t textureXBlocks = (region->textureWidth + blockX - 1)/blockX;
 	size_t remainderXBlocks = bufferXBlocks - textureXBlocks;
 	size_t copySize = (bufferXBlocks*bufferYBlocks*region->layers - remainderXBlocks)*formatSize;

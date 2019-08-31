@@ -1077,7 +1077,7 @@ bool dsVkTexture_generateMipmaps(dsResourceManager* resourceManager, dsCommandBu
 				NULL,
 				accessFlags,
 				VK_ACCESS_TRANSFER_WRITE_BIT,
-				layout,
+				VK_IMAGE_LAYOUT_UNDEFINED,
 				VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
 				VK_QUEUE_FAMILY_IGNORED,
 				VK_QUEUE_FAMILY_IGNORED,
@@ -1383,7 +1383,7 @@ bool dsVkTexture_clearColor(dsOffscreen* offscreen, dsCommandBuffer* commandBuff
 	VkImageMemoryBarrier barriers[2];
 	uint32_t barrierCount = 1;
 
-	dsTextureUsage usage = offscreen->usage | dsTextureUsage_CopyFrom | dsTextureUsage_CopyTo;
+	dsTextureUsage usage = offscreen->usage | dsTextureUsage_CopyTo;
 	VkAccessFlags accessMask = dsVkReadImageAccessFlags(usage) | dsVkWriteImageAccessFlags(usage,
 		true, false);
 	VkPipelineStageFlags stageMask = dsVkReadImageStageFlags(renderer, usage, false) |
@@ -1455,7 +1455,7 @@ bool dsVkTexture_clearDepthStencil(dsOffscreen* offscreen, dsCommandBuffer* comm
 	VkImageMemoryBarrier barriers[2];
 	uint32_t barrierCount = 1;
 
-	dsTextureUsage usage = offscreen->usage | dsTextureUsage_CopyFrom | dsTextureUsage_CopyTo;
+	dsTextureUsage usage = offscreen->usage | dsTextureUsage_CopyTo;
 	VkAccessFlags accessMask = dsVkReadImageAccessFlags(usage) | dsVkWriteImageAccessFlags(usage,
 		true, false);
 	VkPipelineStageFlags stageMask = dsVkReadImageStageFlags(renderer, usage, false) |
@@ -1483,6 +1483,8 @@ bool dsVkTexture_clearDepthStencil(dsOffscreen* offscreen, dsCommandBuffer* comm
 	{
 		++barrierCount;
 		barriers[1] = barriers[0];
+		// Add read access bit for explicit multisample resolve of depth/stencil surfaces.
+		barriers[1].srcAccessMask |= VK_ACCESS_TRANSFER_READ_BIT;
 		barriers[1].oldLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 		barriers[1].image = vkTexture->surfaceImage;
 	}
@@ -1501,6 +1503,8 @@ bool dsVkTexture_clearDepthStencil(dsOffscreen* offscreen, dsCommandBuffer* comm
 		barriers[i].oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
 	}
 	barriers[0].newLayout = layout;
+	// Add read access bit for explicit multisample resolve of depth/stencil surfaces.
+	barriers[1].dstAccessMask |= VK_ACCESS_TRANSFER_READ_BIT;
 	barriers[1].newLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
 	DS_VK_CALL(device->vkCmdPipelineBarrier)(vkCommandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT,
