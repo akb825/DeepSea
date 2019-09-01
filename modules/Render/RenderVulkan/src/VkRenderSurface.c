@@ -27,6 +27,7 @@
 #include <DeepSea/Core/Memory/Lifetime.h>
 #include <DeepSea/Core/Memory/StackAllocator.h>
 #include <DeepSea/Core/Thread/Spinlock.h>
+#include <DeepSea/Core/Thread/Thread.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Render/Renderer.h>
 #include <string.h>
@@ -201,6 +202,10 @@ bool dsVkRenderSurface_update(dsRenderer* renderer, dsRenderSurface* renderSurfa
 		}
 	}
 
+	// NOTE: Some systems need to wait until all of the render commands have come through before
+	// re-creating the render surface.
+	dsRenderer_waitUntilIdle(renderer);
+
 	VkSwapchainKHR prevSwapchain = vkSurface->surfaceData ? vkSurface->surfaceData->swapchain : 0;
 	dsVkRenderSurfaceData* surfaceData = dsVkRenderSurfaceData_create(vkSurface->scratchAllocator,
 		renderer, vkSurface->surface, renderer->vsync, prevSwapchain);
@@ -267,6 +272,11 @@ bool dsVkRenderSurface_beginDraw(dsRenderer* renderer, dsCommandBuffer* commandB
 		return true;
 	}
 
+	// NOTE: Some systems need to wait until all of the render commands have come through before
+	// re-creating the render surface. Can only do this if processed on the main thread.
+	if (dsThread_equal(dsThread_thisThreadID(), renderer->mainThread))
+		dsRenderer_waitUntilIdle(renderer);
+
 	VkSwapchainKHR prevSwapchain = vkSurface->surfaceData ? vkSurface->surfaceData->swapchain : 0;
 	dsVkRenderSurfaceData* surfaceData = dsVkRenderSurfaceData_create(vkSurface->scratchAllocator,
 		renderer, vkSurface->surface, renderer->vsync, prevSwapchain);
@@ -305,6 +315,8 @@ bool dsVkRenderSurface_endDraw(dsRenderer* renderer, dsCommandBuffer* commandBuf
 bool dsVkRenderSurface_swapBuffers(dsRenderer* renderer, dsRenderSurface** renderSurfaces,
 	uint32_t count)
 {
+	dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
+	uint64_t submitCount = vkRenderer->submitCount;
 	VkSemaphore semaphore = dsVkRenderer_flushImpl(renderer, true, true);
 	VkSwapchainKHR* swapchains = DS_ALLOCATE_STACK_OBJECT_ARRAY(VkSwapchainKHR, count);
 	uint32_t* imageIndices = DS_ALLOCATE_STACK_OBJECT_ARRAY(uint32_t, count);
@@ -312,15 +324,21 @@ bool dsVkRenderSurface_swapBuffers(dsRenderer* renderer, dsRenderSurface** rende
 	{
 		dsVkRenderSurface* vkSurface = (dsVkRenderSurface*)renderSurfaces[i];
 		DS_VERIFY(dsSpinlock_lock(&vkSurface->lock));
-		if (!vkSurface->surfaceData)
+		dsVkRenderSurfaceData* surfaceData = vkSurface->surfaceData;
+		if (!surfaceData)
 		{
 			DS_VERIFY(dsSpinlock_unlock(&vkSurface->lock));
 			errno = EAGAIN;
 			return false;
 		}
 
-		swapchains[i] = vkSurface->surfaceData->swapchain;
-		imageIndices[i] = vkSurface->surfaceData->imageIndex;
+		// Update the submit count basedon the current submit.
+		DS_VERIFY(dsSpinlock_lock(&surfaceData->resource.lock));
+		surfaceData->resource.lastUsedSubmit = submitCount;
+		DS_VERIFY(dsSpinlock_unlock(&surfaceData->resource.lock));
+
+		swapchains[i] = surfaceData->swapchain;
+		imageIndices[i] = surfaceData->imageIndex;
 		DS_VERIFY(dsSpinlock_unlock(&vkSurface->lock));
 	}
 

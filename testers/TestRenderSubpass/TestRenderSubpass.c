@@ -48,6 +48,7 @@
 #include <string.h>
 
 #define SAMPLE_COUNT 4
+#define NO_BLIT DS_MAC
 
 typedef struct TestRenderSubpass
 {
@@ -232,15 +233,15 @@ static bool createFramebuffer(TestRenderSubpass* testRenderSubpass)
 	dsGfxFormat colorFormat = dsGfxFormat_decorate(dsGfxFormat_R8, dsGfxFormat_UNorm);
 	dsTextureInfo texInfo = {colorFormat, dsTextureDim_2D, width, height, 0, 1, SAMPLE_COUNT};
 	dsGfxFormat combinedColorFormat = renderer->surfaceColorFormat;
+	dsTextureUsage offscreenUsage = dsTextureUsage_SubpassInput;
+	if (!NO_BLIT)
+		offscreenUsage |= dsTextureUsage_CopyFrom;
 	testRenderSubpass->rColor = dsTexture_createOffscreen(resourceManager, allocator,
-		dsTextureUsage_SubpassInput | dsTextureUsage_CopyFrom,
-		dsGfxMemory_Static | dsGfxMemory_GPUOnly, &texInfo, true);
+		offscreenUsage, dsGfxMemory_Static | dsGfxMemory_GPUOnly, &texInfo, true);
 	testRenderSubpass->gColor = dsTexture_createOffscreen(resourceManager, allocator,
-		dsTextureUsage_SubpassInput | dsTextureUsage_CopyFrom,
-		dsGfxMemory_Static | dsGfxMemory_GPUOnly, &texInfo, true);
+		offscreenUsage, dsGfxMemory_Static | dsGfxMemory_GPUOnly, &texInfo, true);
 	testRenderSubpass->bColor = dsTexture_createOffscreen(resourceManager, allocator,
-		dsTextureUsage_SubpassInput | dsTextureUsage_CopyFrom,
-		dsGfxMemory_Static | dsGfxMemory_GPUOnly, &texInfo, true);
+		offscreenUsage, dsGfxMemory_Static | dsGfxMemory_GPUOnly, &texInfo, true);
 	if (!testRenderSubpass->rColor || !testRenderSubpass->gColor || !testRenderSubpass->bColor)
 	{
 		DS_LOG_ERROR_F("TestRenderSubpass", "Couldn't create offscreen: %s",
@@ -263,7 +264,7 @@ static bool createFramebuffer(TestRenderSubpass* testRenderSubpass)
 
 	// NOTE: Mac seems to have a problem with blitting to the framebuffer.
 	if (dsGfxFormat_surfaceBlitSupported(resourceManager, combinedColorFormat,
-		testRenderSubpass->renderer->surfaceColorFormat, dsBlitFilter_Linear) && !DS_MAC)
+		testRenderSubpass->renderer->surfaceColorFormat, dsBlitFilter_Linear) && !NO_BLIT)
 	{
 		testRenderSubpass->combinedColor = dsRenderbuffer_create(resourceManager, allocator,
 			dsRenderbufferUsage_BlitFrom, combinedColorFormat, width, height, 1);

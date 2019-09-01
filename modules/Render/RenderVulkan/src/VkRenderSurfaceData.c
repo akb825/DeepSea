@@ -31,6 +31,7 @@
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Core/Profile.h>
 #include <DeepSea/Math/Core.h>
+#include <DeepSea/Render/Renderer.h>
 
 #include <string.h>
 
@@ -338,13 +339,7 @@ dsVkRenderSurfaceData* dsVkRenderSurfaceData_create(dsAllocator* allocator, dsRe
 	VkImageUsageFlags usageFlags = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
 		VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 
-	uint32_t imageCount = 2;
-	// From Adreno programming guide for Vulkan:
-	// We recommend using 3 images in the swapchain. Using 2 will reduce memory use, but has the
-	// potential for some jittering.
-	// Jittering has been confirmed in usage.
-	if (renderer->vendorID == DS_VENDOR_ID_QUALCOMM)
-		imageCount = 3;
+	uint32_t imageCount = 3;
 	uint32_t maxImageCount = surfaceInfo.maxImageCount ? surfaceInfo.maxImageCount : UINT_MAX;
 	imageCount = dsClamp(imageCount, surfaceInfo.minImageCount, maxImageCount);
 

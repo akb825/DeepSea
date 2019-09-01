@@ -389,12 +389,8 @@ int dsSDLApplication_run(dsApplication* application)
 			dsSDLWindow_getSize(&newWidth, &newHeight, application, window);
 			bool windowResized = newWidth != sdlWindow->curWidth ||
 				newHeight != sdlWindow->curHeight;
-			if (windowResized && !hasResize)
-			{
-				// Wait until idle before updating the surface to ensure all commands are flushed.
-				dsRenderer_waitUntilIdle(application->renderer);
+			if (windowResized)
 				hasResize = true;
-			}
 
 #if DS_ANDROID
 			// NOTE: On Android there's a delay between the window update and render surface update.
