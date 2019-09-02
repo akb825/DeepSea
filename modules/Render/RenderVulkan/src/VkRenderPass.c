@@ -54,7 +54,7 @@ static VkPipelineStageFlags getPipelineStages(const dsRenderer* renderer,
 	VkPipelineStageFlags flags = 0;
 	if (stages & dsSubpassDependencyFlags_DrawIndirect)
 		flags |= VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT;
-	if (stages & (dsSubpassDependencyFlags_VertexAttributes | dsSubpassDependencyFlags_Indices))
+	if (stages & (dsSubpassDependencyFlags_VertexAttribute | dsSubpassDependencyFlags_Index))
 		flags |= VK_PIPELINE_STAGE_VERTEX_INPUT_BIT;
 	if (stages & (dsSubpassDependencyFlags_VertexShaderRead |
 			dsSubpassDependencyFlags_VertexShaderWrite))
@@ -107,9 +107,9 @@ static VkAccessFlags getAccessFlags(dsSubpassDependencyFlags stages)
 	VkAccessFlags flags = 0;
 	if (stages & dsSubpassDependencyFlags_DrawIndirect)
 		flags |= VK_ACCESS_INDIRECT_COMMAND_READ_BIT;
-	if (stages & dsSubpassDependencyFlags_VertexAttributes)
+	if (stages & dsSubpassDependencyFlags_VertexAttribute)
 		flags |= VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT;
-	if (stages & dsSubpassDependencyFlags_Indices)
+	if (stages & dsSubpassDependencyFlags_Index)
 		flags |= VK_ACCESS_INDEX_READ_BIT;
 	if (stages & (dsSubpassDependencyFlags_VertexShaderRead |
 			dsSubpassDependencyFlags_TessControlShaderRead |

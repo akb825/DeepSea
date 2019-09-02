@@ -686,6 +686,54 @@ static void copyTextureData(const dsResourceManager* resourceManager, const dsTe
 	}
 }
 
+static void addSubpassBarrier(const dsSubpassDependency* dependencies, uint32_t dependencyCount,
+	uint32_t beforeIndex, uint32_t afterIndex)
+{
+	if (!ANYGL_SUPPORTED(glMemoryBarrier))
+		return;
+
+	GLbitfield barriers = 0;
+	for (uint32_t i = 0; i < dependencyCount; ++i)
+	{
+		if (dependencies[i].srcSubpass != beforeIndex && dependencies[i].dstSubpass != afterIndex)
+			continue;
+
+		dsSubpassDependencyFlags combinedFlags = dependencies[i].srcStages |
+			dependencies[i].dstStages;
+		if (combinedFlags & dsSubpassDependencyFlags_DrawIndirect)
+			barriers |= GL_COMMAND_BARRIER_BIT;
+		if (combinedFlags & dsSubpassDependencyFlags_VertexAttribute)
+			barriers |= GL_VERTEX_ATTRIB_ARRAY_BARRIER_BIT;
+		if (combinedFlags & dsSubpassDependencyFlags_Index)
+			barriers |= GL_ELEMENT_ARRAY_BARRIER_BIT;
+		if (combinedFlags & (dsSubpassDependencyFlags_VertexShaderRead |
+				dsSubpassDependencyFlags_VertexShaderWrite |
+				dsSubpassDependencyFlags_TessControlShaderRead |
+				dsSubpassDependencyFlags_TessControlShaderWrite |
+				dsSubpassDependencyFlags_TessEvalShaderRead |
+				dsSubpassDependencyFlags_TessEvalShaderWrite |
+				dsSubpassDependencyFlags_GeometryShaderRead |
+				dsSubpassDependencyFlags_GeometryShaderWrite |
+				dsSubpassDependencyFlags_FragmentShaderRead |
+				dsSubpassDependencyFlags_FragmentShaderWrite))
+		{
+			barriers |= GL_UNIFORM_BARRIER_BIT | GL_TEXTURE_FETCH_BARRIER_BIT |
+				GL_SHADER_IMAGE_ACCESS_BARRIER_BIT | GL_SHADER_STORAGE_BARRIER_BIT;
+		}
+		if (combinedFlags & (dsSubpassDependencyFlags_FragmentPreShadingTests |
+				dsSubpassDependencyFlags_FragmentColorOutput |
+				dsSubpassDependencyFlags_FragmentPostShadingTests |
+				dsSubpassDependencyFlags_DepthStencilAttachmentRead |
+				dsSubpassDependencyFlags_ColorAttachmentRead))
+		{
+			barriers |= GL_FRAMEBUFFER_BARRIER_BIT;
+		}
+	}
+
+	if (barriers)
+		glMemoryBarrier(barriers);
+}
+
 void dsGLMainCommandBuffer_reset(dsCommandBuffer* commandBuffer)
 {
 	DS_UNUSED(commandBuffer);
@@ -1448,6 +1496,8 @@ bool dsGLMainCommandBuffer_beginRenderPass(dsCommandBuffer* commandBuffer,
 	}
 
 	glCommandBuffer->curFramebuffer = framebuffer;
+	addSubpassBarrier(renderPass->subpassDependencies, renderPass->subpassDependencyCount,
+		DS_EXTERNAL_SUBPASS, 0);
 	if (!beginRenderSubpass(glCommandBuffer, renderPass, 0))
 	{
 		glCommandBuffer->curFramebuffer = NULL;
@@ -1464,6 +1514,8 @@ bool dsGLMainCommandBuffer_nextRenderSubpass(dsCommandBuffer* commandBuffer,
 	dsGLMainCommandBuffer* glCommandBuffer = (dsGLMainCommandBuffer*)commandBuffer;
 	if (!endRenderSubpass(glCommandBuffer, renderPass, subpassIndex - 1))
 		return false;
+	addSubpassBarrier(renderPass->subpassDependencies, renderPass->subpassDependencyCount,
+		subpassIndex - 1, subpassIndex);
 	return beginRenderSubpass(glCommandBuffer, renderPass, subpassIndex);
 }
 
@@ -1473,6 +1525,9 @@ bool dsGLMainCommandBuffer_endRenderPass(dsCommandBuffer* commandBuffer,
 	dsGLMainCommandBuffer* glCommandBuffer = (dsGLMainCommandBuffer*)commandBuffer;
 	if (!endRenderSubpass(glCommandBuffer, renderPass, renderPass->subpassCount - 1))
 		return false;
+
+	addSubpassBarrier(renderPass->subpassDependencies, renderPass->subpassDependencyCount,
+		renderPass->subpassCount - 1, DS_EXTERNAL_SUBPASS);
 
 	// Resolve any remaining attachments.
 	GLuint readFbo = 0;

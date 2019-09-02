@@ -169,9 +169,9 @@ typedef enum dsSubpassDependencyFlags
 	/// Reading the indirect draw buffers.
 	dsSubpassDependencyFlags_DrawIndirect = 0x1,
 	/// Reading vertex attributes from the vertex shader.
-	dsSubpassDependencyFlags_VertexAttributes = 0x2,
+	dsSubpassDependencyFlags_VertexAttribute = 0x2,
 	/// Reading indices from the index buffer.
-	dsSubpassDependencyFlags_Indices = 0x4,
+	dsSubpassDependencyFlags_Index = 0x4,
 	/// Reads within the vertex shader.
 	dsSubpassDependencyFlags_VertexShaderRead = 0x8,
 	/// Writes within the vertex shader.

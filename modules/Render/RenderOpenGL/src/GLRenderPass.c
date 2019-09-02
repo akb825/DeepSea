@@ -30,14 +30,17 @@ dsRenderPass* dsGLRenderPass_create(dsRenderer* renderer, dsAllocator* allocator
 {
 	DS_ASSERT(renderer);
 	DS_ASSERT(allocator);
-	DS_UNUSED(dependencies);
-	DS_UNUSED(dependencyCount);
+	// Ignore default dependencies.
+	if (dependencyCount == DS_DEFAULT_SUBPASS_DEPENDENCIES)
+		dependencyCount = 0;
+
 	size_t attachmentArraySize = sizeof(dsAttachmentInfo)*attachmentCount;
 	size_t subpassArraySize = sizeof(dsRenderSubpassInfo)*subpassCount;
+	size_t dependencyArraySize = sizeof(dsSubpassDependency)*dependencyCount;
 	size_t clearSubpassArraySize = sizeof(uint32_t)*attachmentCount;
 	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsGLRenderPass)) +
 		DS_ALIGNED_SIZE(attachmentArraySize) + DS_ALIGNED_SIZE(subpassArraySize) +
-		DS_ALIGNED_SIZE(clearSubpassArraySize);
+		DS_ALIGNED_SIZE(clearSubpassArraySize) + DS_ALIGNED_SIZE(dependencyArraySize);
 	for (uint32_t i = 0; i < subpassCount; ++i)
 	{
 		fullSize += DS_ALIGNED_SIZE(sizeof(uint32_t)*subpasses[i].inputAttachmentCount) +
@@ -133,11 +136,19 @@ dsRenderPass* dsGLRenderPass_create(dsRenderer* renderer, dsAllocator* allocator
 		memcpy((void*)curSubpass->name, subpasses[i].name, nameLen);
 	}
 
-	baseRenderPass->subpassDependencies = NULL;
+	if (dependencyCount > 0)
+	{
+		baseRenderPass->subpassDependencies = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc,
+			dsSubpassDependency, dependencyCount);
+		DS_ASSERT(baseRenderPass->subpassDependencies);
+		memcpy((void*)baseRenderPass->subpassDependencies, dependencies, dependencyArraySize);
+	}
+	else
+		baseRenderPass->subpassDependencies = NULL;
 
 	baseRenderPass->attachmentCount = attachmentCount;
 	baseRenderPass->subpassCount = subpassCount;
-	baseRenderPass->subpassDependencyCount = 0;
+	baseRenderPass->subpassDependencyCount = dependencyCount;
 
 	dsGLResource_initialize(&renderPass->resource);
 	return baseRenderPass;
