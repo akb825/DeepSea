@@ -2033,10 +2033,12 @@ bool dsGLMainCommandBuffer_memoryBarrier(dsCommandBuffer* commandBuffer,
 		}
 		if (combinedAccess & (dsGfxAccess_Image | dsGfxAccess_InputAttachment))
 			bitmask |= GL_SHADER_IMAGE_ACCESS_BARRIER_BIT;
+		if (combinedAccess & dsGfxAccess_Texture)
+			bitmask |= GL_TEXTURE_FETCH_BARRIER_BIT;
 		if (combinedAccess & (dsGfxAccess_DepthStencilAttachment | dsGfxAccess_ColorAttachment))
 			bitmask |= GL_FRAMEBUFFER_BARRIER_BIT | GL_PIXEL_BUFFER_BARRIER_BIT;
 		if (combinedAccess & dsGfxAccess_Copy)
-			bitmask |= GL_TEXTURE_UPDATE_BARRIER_BIT;
+			bitmask |= GL_BUFFER_UPDATE_BARRIER_BIT | GL_TEXTURE_UPDATE_BARRIER_BIT;
 		if (combinedAccess & dsGfxAccess_MappedBuffer)
 			bitmask |= GL_CLIENT_MAPPED_BUFFER_BARRIER_BIT;
 		if (combinedAccess & dsGfxAccess_Memory)

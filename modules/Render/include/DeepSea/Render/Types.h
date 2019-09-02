@@ -282,12 +282,13 @@ typedef enum dsGfxAccess
 	dsGfxAccess_UniformBlock = 0x8,             ///< Uniform blocks.
 	dsGfxAccess_UniformBuffer = 0x10,           ///< Uniform buffers.
 	dsGfxAccess_Image = 0x20,                   ///< Image load/store operations.
-	dsGfxAccess_InputAttachment = 0x40,         ///< Render pass input attachments.
-	dsGfxAccess_ColorAttachment = 0x80,         ///< Color attachments.
-	dsGfxAccess_DepthStencilAttachment = 0x100, ///< Depth/stencil attachments.
-	dsGfxAccess_Copy = 0x200,                   ///< Copy operation.
-	dsGfxAccess_MappedBuffer = 0x400,           ///< Direct access to a mapped buffer.
-	dsGfxAccess_Memory = 0x800                  ///< General memory access.
+	dsGfxAccess_Texture = 0x40,                 ///< Texture load operations.
+	dsGfxAccess_InputAttachment = 0x80,         ///< Render pass input attachments.
+	dsGfxAccess_ColorAttachment = 0x100,        ///< Color attachments.
+	dsGfxAccess_DepthStencilAttachment = 0x200, ///< Depth/stencil attachments.
+	dsGfxAccess_Copy = 0x400,                   ///< Copy operation.
+	dsGfxAccess_MappedBuffer = 0x800,           ///< Direct access to a mapped buffer.
+	dsGfxAccess_Memory = 0x1000                 ///< General memory access.
 } dsGfxAccess;
 
 /**

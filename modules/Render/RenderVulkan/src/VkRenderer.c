@@ -1182,7 +1182,7 @@ static VkAccessFlags getMemoryAccessMask(dsRenderer* renderer, VkPipelineStageFl
 		addShaderPipelineMask(renderer, stages);
 	}
 
-	if (access & (dsGfxAccess_UniformBuffer | dsGfxAccess_Image))
+	if (access & (dsGfxAccess_UniformBuffer | dsGfxAccess_Image | dsGfxAccess_Texture))
 	{
 		accessMask |= VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT;
 		addShaderPipelineMask(renderer, stages);
