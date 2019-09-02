@@ -202,6 +202,10 @@ typedef enum dsSubpassDependencyFlags
 	dsSubpassDependencyFlags_DepthStencilAttachmentRead = 0x10000,
 	/// Reads from a color attachment when re-using across render passes.
 	dsSubpassDependencyFlags_ColorAttachmentRead = 0x20000,
+	/// Dependency for the render pipeline when used with DS_EXTERNAL_SUBPASS. This ensures that
+	/// attachment management works properly across multiple command buffer submissions and witing
+	/// for images from render surface buffer swaps.
+	dsSubpassDependencyFlags_RenderPipeline = 0x40000,
 } dsSubpassDependencyFlags;
 
 /**
@@ -771,9 +775,6 @@ struct dsRenderPass
 
 	/**
 	 * @brief The list of subpass explicit subpass dependencies.
-	 *
-	 * If not specified, the default behavior is for each subpass' fragment stage to depend
-	 * on the previous subpass' fragment stage.
 	 */
 	const dsSubpassDependency* subpassDependencies;
 

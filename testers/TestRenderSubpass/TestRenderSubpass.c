@@ -565,12 +565,25 @@ static bool setup(TestRenderSubpass* testRenderSubpass, dsApplication* applicati
 	// Resolve subpass is dependent on all previous subpasses.
 	dsSubpassDependency dependencies[] =
 	{
+		// Ensure synchronized with start of render pipeline.
+		{DS_EXTERNAL_SUBPASS, dsSubpassDependencyFlags_RenderPipeline, 0,
+			dsSubpassDependencyFlags_RenderPipeline, false},
+		{DS_EXTERNAL_SUBPASS, dsSubpassDependencyFlags_RenderPipeline, 1,
+			dsSubpassDependencyFlags_RenderPipeline, false},
+		{DS_EXTERNAL_SUBPASS, dsSubpassDependencyFlags_RenderPipeline, 2,
+			dsSubpassDependencyFlags_RenderPipeline, false},
+
+		// Dependencies of the subpasses.
 		{0, dsSubpassDependencyFlags_FragmentColorOutput, 3,
 			dsSubpassDependencyFlags_FragmentShaderRead, true},
 		{1, dsSubpassDependencyFlags_FragmentColorOutput, 3,
 			dsSubpassDependencyFlags_FragmentShaderRead, true},
 		{2, dsSubpassDependencyFlags_FragmentColorOutput, 3,
 			dsSubpassDependencyFlags_FragmentShaderRead, true},
+
+		// Ensure synchronized with the end of render pipeline.
+		{3, dsSubpassDependencyFlags_RenderPipeline, DS_EXTERNAL_SUBPASS,
+			dsSubpassDependencyFlags_RenderPipeline, false},
 	};
 	testRenderSubpass->renderPass = dsRenderPass_create(renderer, allocator, attachments,
 		attachmentCount, subpasses, DS_ARRAY_SIZE(subpasses), dependencies,

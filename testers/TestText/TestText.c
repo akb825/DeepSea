@@ -1176,7 +1176,7 @@ static bool setup(TestText* testText, dsApplication* application, dsAllocator* a
 		"TestText", NULL, &colorAttachment, 0, 1, depthStencilAttachment
 	};
 	testText->renderPass = dsRenderPass_create(renderer, allocator, &attachment, 1, &subpass, 1,
-		NULL, 0);
+		NULL, DS_DEFAULT_SUBPASS_DEPENDENCIES);
 	if (!testText->renderPass)
 	{
 		DS_LOG_ERROR_F("TestText", "Couldn't create render pass: %s", dsErrorString(errno));

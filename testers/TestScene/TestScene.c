@@ -528,7 +528,8 @@ static dsScene* createScene(dsRenderer* renderer, dsAllocator* allocator,
 	{
 		"TestScene", NULL, &colorAttachment, 0, 1, depthStencilAttachment
 	};
-	renderPass = dsRenderPass_create(renderer, allocator, attachments, 2, &subpass, 1, NULL, 0);
+	renderPass = dsRenderPass_create(renderer, allocator, attachments, 2, &subpass, 1, NULL,
+		DS_DEFAULT_SUBPASS_DEPENDENCIES);
 	if (!renderPass)
 	{
 		DS_LOG_ERROR_F("TestScene", "Couldn't create render pass: %s", dsErrorString(errno));

@@ -387,7 +387,7 @@ static bool setup(TestVectorDraw* testVectorDraw, dsApplication* application,
 		"TestVectorDraw", NULL, &colorAttachment, 0, 1, depthStencilAttachment
 	};
 	testVectorDraw->renderPass = dsRenderPass_create(renderer, allocator, &attachment, 1, &subpass,
-		1, NULL, 0);
+		1, NULL, DS_DEFAULT_SUBPASS_DEPENDENCIES);
 	if (!testVectorDraw->renderPass)
 	{
 		DS_LOG_ERROR_F("TestVectorDraw", "Couldn't create render pass: %s", dsErrorString(errno));

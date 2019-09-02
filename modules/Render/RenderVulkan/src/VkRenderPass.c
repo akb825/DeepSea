@@ -154,7 +154,7 @@ dsRenderPass* dsVkRenderPass_create(dsRenderer* renderer, dsAllocator* allocator
 	if (dependencyCount == 0)
 		finalDependencyCount = 0;
 	else if (dependencyCount == DS_DEFAULT_SUBPASS_DEPENDENCIES)
-		finalDependencyCount = subpassCount;
+		finalDependencyCount = subpassCount + 1;
 
 	size_t totalSize = fullAllocSize(attachmentCount, subpasses, subpassCount,
 		finalDependencyCount);
@@ -248,16 +248,26 @@ dsRenderPass* dsVkRenderPass_create(dsRenderer* renderer, dsAllocator* allocator
 					(dsSubpassDependency*)(baseRenderPass->subpassDependencies + i);
 				dependency->srcSubpass = i == 0 ? DS_EXTERNAL_SUBPASS : i - 1;
 				dependency->srcStages = dsSubpassDependencyFlags_FragmentColorOutput |
-					dsSubpassDependencyFlags_FragmentPostShadingTests;
+					dsSubpassDependencyFlags_FragmentPostShadingTests |
+					dsSubpassDependencyFlags_RenderPipeline;
 				dependency->dstSubpass = i;
 				dependency->dstStages = dsSubpassDependencyFlags_FragmentShaderRead;
 				if (i == 0)
 				{
 					dependency->dstStages |= dsSubpassDependencyFlags_DepthStencilAttachmentRead |
-						dsSubpassDependencyFlags_ColorAttachmentRead;
+						dsSubpassDependencyFlags_ColorAttachmentRead |
+						dsSubpassDependencyFlags_RenderPipeline;
 				}
 				dependency->regionDependency = i > 0;
 			}
+
+			dsSubpassDependency* lastDependency =
+				(dsSubpassDependency*)(baseRenderPass->subpassDependencies + subpassCount);
+			lastDependency->srcSubpass = subpassCount - 1;
+			lastDependency->srcStages = dsSubpassDependencyFlags_RenderPipeline;
+			lastDependency->dstSubpass = DS_EXTERNAL_SUBPASS;
+			lastDependency->dstStages = dsSubpassDependencyFlags_RenderPipeline;
+			lastDependency->regionDependency = false;
 		}
 		else
 		{
@@ -279,6 +289,32 @@ dsRenderPass* dsVkRenderPass_create(dsRenderer* renderer, dsAllocator* allocator
 			vkDependency->dstStageMask = getPipelineStages(renderer, curDependency->dstStages);
 			vkDependency->srcAccessMask = getAccessFlags(curDependency->srcStages);
 			vkDependency->dstAccessMask = getAccessFlags(curDependency->dstStages);
+
+			// Default implicit dependencies for external subpasses.
+			if (curDependency->srcSubpass == DS_EXTERNAL_SUBPASS &&
+				((curDependency->srcStages & dsSubpassDependencyFlags_RenderPipeline) ||
+					(curDependency->dstStages & dsSubpassDependencyFlags_RenderPipeline)))
+			{
+				vkDependency->srcStageMask |= VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+				vkDependency->dstStageMask |= VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT;
+				vkDependency->dstAccessMask |= VK_ACCESS_INPUT_ATTACHMENT_READ_BIT |
+					VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT |
+					VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT |
+					VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+			}
+
+			if (curDependency->dstSubpass == DS_EXTERNAL_SUBPASS &&
+				((curDependency->srcStages & dsSubpassDependencyFlags_RenderPipeline) ||
+					(curDependency->dstStages & dsSubpassDependencyFlags_RenderPipeline)))
+			{
+				vkDependency->srcStageMask |= VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT;
+				vkDependency->dstStageMask |= VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+				vkDependency->srcAccessMask |= VK_ACCESS_INPUT_ATTACHMENT_READ_BIT |
+					VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT |
+					VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT |
+					VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+			}
+
 			if (curDependency->regionDependency)
 				vkDependency->dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
 			else

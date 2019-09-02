@@ -350,7 +350,7 @@ static bool setup(TestCube* testCube, dsApplication* application, dsAllocator* a
 		"TestCube", NULL, &colorAttachment, 0, 1, depthStencilAttachment
 	};
 	testCube->renderPass = dsRenderPass_create(renderer, allocator, attachments, 2, &subpass, 1,
-		NULL, 0);
+		NULL, DS_DEFAULT_SUBPASS_DEPENDENCIES);
 	if (!testCube->renderPass)
 	{
 		DS_LOG_ERROR_F("TestCube", "Couldn't create render pass: %s", dsErrorString(errno));

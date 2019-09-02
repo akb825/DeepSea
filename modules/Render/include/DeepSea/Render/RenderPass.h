@@ -60,9 +60,9 @@ extern "C"
  * @param dependencies The dependencies between subpasses. If the implementation keeps the
  *     dependencies, this array will be copied.
  * @param dependencyCount The number of dependencies. This may be set to
- *     DS_DEFAULT_SUBPASS_DEPENDENCIES. Default dependencies have the first subpass have an external
- *     dependency for reading offscreens, while subsequent subpasses depend on the previous supbass
- *     for reading depth and color subpass inputs.
+ *     DS_DEFAULT_SUBPASS_DEPENDENCIES. Default dependencies have the first and lass subpasses have
+ *     an external dependency for reading offscreens, while subsequent subpasses depend on the
+ *     previous supbass for reading depth and color subpass inputs.
  * @return The created render pass, or NULL if it couldn't be created.
  */
 DS_RENDER_EXPORT dsRenderPass* dsRenderPass_create(dsRenderer* renderer, dsAllocator* allocator,

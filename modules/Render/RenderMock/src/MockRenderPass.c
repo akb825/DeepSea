@@ -36,7 +36,7 @@ dsRenderPass* dsMockRenderPass_create(dsRenderer* renderer, dsAllocator* allocat
 	if (dependencyCount == 0)
 		finalDependencyCount = 0;
 	else if (dependencyCount == DS_DEFAULT_SUBPASS_DEPENDENCIES)
-		finalDependencyCount = subpassCount;
+		finalDependencyCount = subpassCount + 1;
 	size_t totalSize = DS_ALIGNED_SIZE(sizeof(dsRenderPass)) +
 		DS_ALIGNED_SIZE(sizeof(dsAttachmentInfo)*attachmentCount) +
 		DS_ALIGNED_SIZE(sizeof(dsRenderSubpassInfo)*subpassCount) +
@@ -122,11 +122,21 @@ dsRenderPass* dsMockRenderPass_create(dsRenderer* renderer, dsAllocator* allocat
 				dependency->dstStages = dsSubpassDependencyFlags_FragmentShaderRead;
 				if (i == 0)
 				{
+					dependency->srcSubpass |= dsSubpassDependencyFlags_RenderPipeline;
 					dependency->dstStages |= dsSubpassDependencyFlags_DepthStencilAttachmentRead |
-						dsSubpassDependencyFlags_ColorAttachmentRead;
+						dsSubpassDependencyFlags_ColorAttachmentRead |
+						dsSubpassDependencyFlags_RenderPipeline;
 				}
 				dependency->regionDependency = i > 0;
 			}
+
+			dsSubpassDependency* lastDependency =
+				(dsSubpassDependency*)(renderPass->subpassDependencies + subpassCount);
+			lastDependency->srcSubpass = subpassCount - 1;
+			lastDependency->srcStages = dsSubpassDependencyFlags_RenderPipeline;
+			lastDependency->dstSubpass = DS_EXTERNAL_SUBPASS;
+			lastDependency->dstStages = dsSubpassDependencyFlags_RenderPipeline;
+			lastDependency->regionDependency = false;
 		}
 		else
 		{

@@ -135,7 +135,7 @@ TEST_F(RenderPassTest, Create)
 	renderPass = dsRenderPass_create(renderer, NULL, attachments, attachmentCount, subpasses,
 		subpassCount, NULL, DS_DEFAULT_SUBPASS_DEPENDENCIES);
 	ASSERT_TRUE(renderPass);
-	EXPECT_EQ(subpassCount, renderPass->subpassDependencyCount);
+	EXPECT_EQ(subpassCount + 1, renderPass->subpassDependencyCount);
 	EXPECT_TRUE(dsRenderPass_destroy(renderPass));
 }
 
