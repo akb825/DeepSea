@@ -169,7 +169,7 @@ bool dsSDLWindow_createSurfaceInternal(dsWindow* window, const char* surfaceName
 	}
 
 	window->surface = dsRenderSurface_create(application->renderer, window->allocator,
-		surfaceName, windowHandle, dsRenderSurfaceType_Window);
+		surfaceName, windowHandle, dsRenderSurfaceType_Window, sdlWindow->clientRotations);
 
 #if defined(SDL_VIDEO_DRIVER_COCOA)
 	if (info.subsystem == SDL_SYSWM_COCOA)
@@ -193,7 +193,7 @@ dsWindow* dsSDLWindow_create(dsApplication* application, dsAllocator* allocator,
 	baseWindow->allocator = dsAllocator_keepPointer(allocator);
 
 	if (!dsSDLWindow_createComponents(baseWindow, title, surfaceName, position, width, height,
-		flags))
+			flags))
 	{
 		DS_VERIFY(dsAllocator_free(allocator, window));
 		return NULL;
@@ -201,6 +201,12 @@ dsWindow* dsSDLWindow_create(dsApplication* application, dsAllocator* allocator,
 
 	// Ensure that the SDL window's display mode matches what we expect.
 	dsSDLWindow_setDisplayMode(application, baseWindow, &baseWindow->displayMode);
+
+	window->curPosition.x = 0;
+	window->curPosition.y = 0;
+	window->curFlags = 0;
+	window->clientRotations = (flags & dsWindowFlags_ClientRotations) != 0;
+	window->hasFocus = false;
 
 	return baseWindow;
 }

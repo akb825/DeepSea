@@ -140,14 +140,15 @@ typedef enum dsWindowStyle
  */
 typedef enum dsWindowFlags
 {
-	dsWindowFlags_None = 0,                 ///< No special flags.
-	dsWindowFlags_Hidden = 0x1,             ///< Window is hidden.
-	dsWindowFlags_Resizeable = 0x2,         ///< Window can be resized.
-	dsWindowFlags_Minimized = 0x4,          ///< Window is minimized.
-	dsWindowFlags_Maximized = 0x8,          ///< Window is maximized.
-	dsWindowFlags_GrabInput = 0x10,         ///< Grab input and lock to the window.
-	dsWindowFlags_Center = 0x20,            ///< Center the window on the target display.
-	dsWindowFlags_DelaySurfaceCreate = 0x40 ///< Delay surface creation until explicitly created.
+	dsWindowFlags_None = 0,                  ///< No special flags.
+	dsWindowFlags_Hidden = 0x1,              ///< Window is hidden.
+	dsWindowFlags_Resizeable = 0x2,          ///< Window can be resized.
+	dsWindowFlags_Minimized = 0x4,           ///< Window is minimized.
+	dsWindowFlags_Maximized = 0x8,           ///< Window is maximized.
+	dsWindowFlags_GrabInput = 0x10,          ///< Grab input and lock to the window.
+	dsWindowFlags_Center = 0x20,             ///< Center the window on the target display.
+	dsWindowFlags_DelaySurfaceCreate = 0x40, ///< Delay surface creation until explicitly created.
+	dsWindowFlags_ClientRotations = 0x80     ///< Perform render surface rotations on client side.
 } dsWindowFlags;
 
 /**

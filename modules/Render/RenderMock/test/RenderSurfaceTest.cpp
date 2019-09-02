@@ -15,6 +15,8 @@
  */
 
 #include "Fixtures/FixtureBase.h"
+#include <DeepSea/Math/Core.h>
+#include <DeepSea/Math/Matrix44.h>
 #include <DeepSea/Render/RenderSurface.h>
 #include <gtest/gtest.h>
 
@@ -24,12 +26,50 @@ class RenderSurfaceTest : public FixtureBase
 
 extern "C" DS_RENDERMOCK_EXPORT bool dsMockRenderSurface_changeSize;
 
+TEST_F(RenderSurfaceTest, Roation)
+{
+	dsMatrix44f rotation, expected;
+	EXPECT_FALSE(dsRenderSurface_makeRotationMatrix(NULL, dsRenderSurfaceRotation_0));
+
+	EXPECT_TRUE(dsRenderSurface_makeRotationMatrix(&rotation, dsRenderSurfaceRotation_0));
+	dsMatrix44_identity(expected);
+	for (unsigned int i = 0; i < 4; ++i)
+	{
+		for (unsigned int j = 0; j < 4; ++j)
+			EXPECT_NEAR(expected.values[i][j], rotation.values[i][j], 1e-6);
+	}
+
+	EXPECT_TRUE(dsRenderSurface_makeRotationMatrix(&rotation, dsRenderSurfaceRotation_90));
+	dsMatrix44f_makeRotate(&expected, 0.0f, 0.0f, (float)M_PI_2);
+	for (unsigned int i = 0; i < 4; ++i)
+	{
+		for (unsigned int j = 0; j < 4; ++j)
+			EXPECT_NEAR(expected.values[i][j], rotation.values[i][j], 1e-6);
+	}
+
+	EXPECT_TRUE(dsRenderSurface_makeRotationMatrix(&rotation, dsRenderSurfaceRotation_180));
+	dsMatrix44f_makeRotate(&expected, 0.0f, 0.0f, (float)M_PI);
+	for (unsigned int i = 0; i < 4; ++i)
+	{
+		for (unsigned int j = 0; j < 4; ++j)
+			EXPECT_NEAR(expected.values[i][j], rotation.values[i][j], 1e-6);
+	}
+
+	EXPECT_TRUE(dsRenderSurface_makeRotationMatrix(&rotation, dsRenderSurfaceRotation_270));
+	dsMatrix44f_makeRotate(&expected, 0.0f, 0.0f, (float)(M_PI*1.5));
+	for (unsigned int i = 0; i < 4; ++i)
+	{
+		for (unsigned int j = 0; j < 4; ++j)
+			EXPECT_NEAR(expected.values[i][j], rotation.values[i][j], 1e-6);
+	}
+}
+
 TEST_F(RenderSurfaceTest, Create)
 {
-	EXPECT_FALSE(dsRenderSurface_create(NULL, NULL, NULL, NULL, dsRenderSurfaceType_Direct));
+	EXPECT_FALSE(dsRenderSurface_create(NULL, NULL, NULL, NULL, dsRenderSurfaceType_Direct, false));
 
 	dsRenderSurface* renderSurface = dsRenderSurface_create(renderer, NULL, "test", NULL,
-		dsRenderSurfaceType_Direct);
+		dsRenderSurfaceType_Direct, false);
 	ASSERT_TRUE(renderSurface);
 
 	EXPECT_TRUE(dsRenderSurface_destroy(renderSurface));
@@ -38,7 +78,7 @@ TEST_F(RenderSurfaceTest, Create)
 TEST_F(RenderSurfaceTest, Update)
 {
 	dsRenderSurface* renderSurface = dsRenderSurface_create(renderer, NULL, "test", NULL,
-		dsRenderSurfaceType_Direct);
+		dsRenderSurfaceType_Direct, false);
 	ASSERT_TRUE(renderSurface);
 
 	EXPECT_FALSE(dsRenderSurface_update(NULL));
@@ -62,7 +102,7 @@ TEST_F(RenderSurfaceTest, BeginEnd)
 	dsCommandBuffer* commandBuffer = renderer->mainCommandBuffer;
 
 	dsRenderSurface* renderSurface = dsRenderSurface_create(renderer, NULL, "test", NULL,
-		dsRenderSurfaceType_Direct);
+		dsRenderSurfaceType_Direct, false);
 	ASSERT_TRUE(renderSurface);
 
 	EXPECT_FALSE(dsRenderSurface_beginDraw(renderSurface, NULL));
@@ -81,7 +121,7 @@ TEST_F(RenderSurfaceTest, BeginEnd)
 TEST_F(RenderSurfaceTest, SwapBuffers)
 {
 	dsRenderSurface* renderSurface = dsRenderSurface_create(renderer, NULL, "test", NULL,
-		dsRenderSurfaceType_Direct);
+		dsRenderSurfaceType_Direct, false);
 	ASSERT_TRUE(renderSurface);
 
 	EXPECT_TRUE(dsRenderSurface_swapBuffers(NULL, 0));

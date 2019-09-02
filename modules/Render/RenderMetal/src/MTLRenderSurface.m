@@ -313,8 +313,9 @@ static bool createExtraSurfaces(dsRenderer* renderer, dsRenderSurface* renderSur
 }
 
 dsRenderSurface* dsMTLRenderSurface_create(dsRenderer* renderer, dsAllocator* allocator,
-	const char* name, void* osHandle, dsRenderSurfaceType type)
+	const char* name, void* osHandle, dsRenderSurfaceType type, bool clientRotations)
 {
+	DS_UNUSED(clientRotations);
 	@autoreleasepool
 	{
 		dsMTLRenderer* mtlRenderer = (dsMTLRenderer*)renderer;
@@ -408,6 +409,7 @@ dsRenderSurface* dsMTLRenderSurface_create(dsRenderer* renderer, dsAllocator* al
 		CGSize size = layer.drawableSize;
 		baseRenderSurface->width = (uint32_t)size.width;
 		baseRenderSurface->height = (uint32_t)size.height;
+		baseRenderSurface->rotation = dsRenderSurfaceRotation_0;
 
 		DS_VERIFY(dsSpinlock_initialize(&renderSurface->lock));
 		renderSurface->view = CFBridgingRetain(view);

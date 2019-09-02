@@ -40,6 +40,16 @@ extern "C"
  */
 
 /**
+ * @brief Creates a rotation matrix for the render surface rotation.
+ * @remark errno will be set on failure.
+ * @param[out] result The rotation matrix.
+ * @param rotation The rotation to make the matrix for.
+ * @return False if the parameters are invalid.
+ */
+DS_RENDER_EXPORT bool dsRenderSurface_makeRotationMatrix(dsMatrix44f* result,
+	dsRenderSurfaceRotation rotation);
+
+/**
  * @brief Creates a render surface.
  * @remark errno will be set on failure.
  * @param renderer The renderer to use the render surface with.
@@ -49,10 +59,14 @@ extern "C"
  * @param osHandle The handle to the OS surface, such as the window handle. In the case of a
  *     macOS/iOS, it will actually be a view or Metal layer.
  * @param type The render surface type.
+ * @param clientRotations True to perform rotations client-side. This may increase performance in
+ *     cases like phones and tablets that allow screen rotation. If false, the rotation of the
+ *     render surface will always be 0 degrees.
  * @return The created renderbuffer, or NULL if it couldn't be created.
  */
 DS_RENDER_EXPORT dsRenderSurface* dsRenderSurface_create(dsRenderer* renderer,
-	dsAllocator* allocator, const char* name, void* osHandle, dsRenderSurfaceType type);
+	dsAllocator* allocator, const char* name, void* osHandle, dsRenderSurfaceType type,
+	bool clientRotations);
 
 /**
  * @brief Updates a render surface.

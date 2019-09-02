@@ -38,6 +38,7 @@
 #include <DeepSea/Render/Resources/VertexFormat.h>
 #include <DeepSea/Render/Renderer.h>
 #include <DeepSea/Render/RenderPass.h>
+#include <DeepSea/Render/RenderSurface.h>
 #include <DeepSea/RenderBootstrap/RenderBootstrap.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -185,8 +186,12 @@ static bool createFramebuffer(TestCube* testCube)
 		return false;
 	}
 
-	DS_VERIFY(dsRenderer_makePerspective(&testCube->projection, testCube->renderer,
+	dsMatrix44f baseProjection, surfaceRotation;
+	DS_VERIFY(dsRenderer_makePerspective(&baseProjection, testCube->renderer,
 		(float)dsDegreesToRadians(45.0f), (float)width/(float)height, 0.1f, 100.0f));
+	DS_VERIFY(dsRenderSurface_makeRotationMatrix(&surfaceRotation,
+		testCube->window->surface->rotation));
+	dsMatrix44_mul(testCube->projection, surfaceRotation, baseProjection);
 
 	return true;
 }
@@ -309,7 +314,8 @@ static bool setup(TestCube* testCube, dsApplication* application, dsAllocator* a
 	uint32_t width = dsApplication_adjustWindowSize(application, 0, 800);
 	uint32_t height = dsApplication_adjustWindowSize(application, 0, 600);
 	testCube->window = dsWindow_create(application, allocator, "Test Cube", NULL,
-		NULL, width, height, dsWindowFlags_Resizeable | dsWindowFlags_DelaySurfaceCreate);
+		NULL, width, height, dsWindowFlags_Resizeable | dsWindowFlags_DelaySurfaceCreate |
+		dsWindowFlags_ClientRotations);
 	if (!testCube->window)
 	{
 		DS_LOG_ERROR_F("TestCube", "Couldn't create window: %s", dsErrorString(errno));

@@ -23,6 +23,7 @@
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Core/Profile.h>
+#include <DeepSea/Math/Matrix44.h>
 #include <stdio.h>
 
 #define SCOPE_SIZE 256
@@ -55,8 +56,84 @@ static void endSurfaceScope(const dsRenderSurface* renderSurface)
 #endif
 }
 
+bool dsRenderSurface_makeRotationMatrix(dsMatrix44f* result, dsRenderSurfaceRotation rotation)
+{
+	if (!result)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	switch (rotation)
+	{
+		case dsRenderSurfaceRotation_0:
+			dsMatrix44_identity(*result);
+			return true;
+		case dsRenderSurfaceRotation_90:
+			dsMatrix44_identity(*result);
+			result->columns[0].x = 0.0f;
+			result->columns[0].y = 1.0f;
+			result->columns[0].z = 0.0f;
+			result->columns[0].w = 0.0f;
+			result->columns[1].x = -1.0f;
+			result->columns[1].y = 0.0f;
+			result->columns[1].z = 0.0f;
+			result->columns[1].w = 0.0f;
+			result->columns[2].x = 0.0f;
+			result->columns[2].y = 0.0f;
+			result->columns[2].z = 1.0f;
+			result->columns[2].w = 0.0f;
+			result->columns[3].x = 0.0f;
+			result->columns[3].y = 0.0f;
+			result->columns[3].z = 0.0f;
+			result->columns[3].w = 1.0f;
+			return true;
+		case dsRenderSurfaceRotation_180:
+			dsMatrix44_identity(*result);
+			result->columns[0].x = -1.0f;
+			result->columns[0].y = 0.0f;
+			result->columns[0].z = 0.0f;
+			result->columns[0].w = 0.0f;
+			result->columns[1].x = 0.0f;
+			result->columns[1].y = -1.0f;
+			result->columns[1].z = 0.0f;
+			result->columns[1].w = 0.0f;
+			result->columns[2].x = 0.0f;
+			result->columns[2].y = 0.0f;
+			result->columns[2].z = 1.0f;
+			result->columns[2].w = 0.0f;
+			result->columns[3].x = 0.0f;
+			result->columns[3].y = 0.0f;
+			result->columns[3].z = 0.0f;
+			result->columns[3].w = 1.0f;
+			return true;
+		case dsRenderSurfaceRotation_270:
+			dsMatrix44_identity(*result);
+			result->columns[0].x = 0.0f;
+			result->columns[0].y = -1.0f;
+			result->columns[0].z = 0.0f;
+			result->columns[0].w = 0.0f;
+			result->columns[1].x = 1.0f;
+			result->columns[1].y = 0.0f;
+			result->columns[1].z = 0.0f;
+			result->columns[1].w = 0.0f;
+			result->columns[2].x = 0.0f;
+			result->columns[2].y = 0.0f;
+			result->columns[2].z = 1.0f;
+			result->columns[2].w = 0.0f;
+			result->columns[3].x = 0.0f;
+			result->columns[3].y = 0.0f;
+			result->columns[3].z = 0.0f;
+			result->columns[3].w = 1.0f;
+			return true;
+		default:
+			errno = EINVAL;
+			return false;
+	}
+}
+
 dsRenderSurface* dsRenderSurface_create(dsRenderer* renderer, dsAllocator* allocator,
-	const char* name, void* osHandle, dsRenderSurfaceType type)
+	const char* name, void* osHandle, dsRenderSurfaceType type, bool clientRotations)
 {
 	DS_PROFILE_FUNC_START();
 
@@ -78,7 +155,7 @@ dsRenderSurface* dsRenderSurface_create(dsRenderer* renderer, dsAllocator* alloc
 	}
 
 	dsRenderSurface* renderSurface = renderer->createRenderSurfaceFunc(renderer, allocator, name,
-		osHandle, type);
+		osHandle, type, clientRotations);
 	DS_PROFILE_FUNC_RETURN(renderSurface);
 }
 

@@ -686,6 +686,7 @@ struct dsVkRenderSurfaceData
 
 	uint32_t width;
 	uint32_t height;
+	dsRenderSurfaceRotation rotation;
 
 	bool vsync;
 
@@ -709,6 +710,7 @@ typedef struct dsVkRenderSurface
 
 	VkSurfaceKHR surface;
 	dsVkRenderSurfaceData* surfaceData;
+	bool clientRotations;
 	bool surfaceError;
 	uint64_t updatedFrame;
 	dsSpinlock lock;

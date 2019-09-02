@@ -263,8 +263,23 @@ static bool createDepthImage(dsVkRenderSurfaceData* surfaceData, uint32_t width,
 	return DS_HANDLE_VK_RESULT(result, "Couldn't create image view");
 }
 
+dsRenderSurfaceRotation dsVkRenderSurfaceData_getRotation(VkSurfaceTransformFlagBitsKHR rotation)
+{
+	switch (rotation)
+	{
+		case VK_SURFACE_TRANSFORM_ROTATE_90_BIT_KHR:
+			return dsRenderSurfaceRotation_90;
+		case VK_SURFACE_TRANSFORM_ROTATE_180_BIT_KHR:
+			return dsRenderSurfaceRotation_180;
+		case VK_SURFACE_TRANSFORM_ROTATE_270_BIT_KHR:
+			return dsRenderSurfaceRotation_270;
+		default:
+			return dsRenderSurfaceRotation_0;
+	}
+}
+
 dsVkRenderSurfaceData* dsVkRenderSurfaceData_create(dsAllocator* allocator, dsRenderer* renderer,
-	VkSurfaceKHR surface, bool vsync, VkSwapchainKHR prevSwapchain)
+	VkSurfaceKHR surface, bool vsync, VkSwapchainKHR prevSwapchain, bool clientRotations)
 {
 	dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
 	dsVkDevice* device = &vkRenderer->device;
@@ -343,6 +358,14 @@ dsVkRenderSurfaceData* dsVkRenderSurfaceData_create(dsAllocator* allocator, dsRe
 	uint32_t maxImageCount = surfaceInfo.maxImageCount ? surfaceInfo.maxImageCount : UINT_MAX;
 	imageCount = dsClamp(imageCount, surfaceInfo.minImageCount, maxImageCount);
 
+	VkSurfaceTransformFlagBitsKHR transform = surfaceInfo.currentTransform;
+	dsRenderSurfaceRotation rotation = dsRenderSurfaceRotation_0;
+	if (clientRotations)
+		rotation = dsVkRenderSurfaceData_getRotation(surfaceInfo.currentTransform);
+	// Rotation also set to 0 for unsupported transforms like mirror, so explicitly set to identity.
+	if (rotation == dsRenderSurfaceRotation_0)
+		transform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
+
 	VkSwapchainCreateInfoKHR createInfo =
 	{
 		VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
@@ -357,7 +380,7 @@ dsVkRenderSurfaceData* dsVkRenderSurfaceData_create(dsAllocator* allocator, dsRe
 		usageFlags,
 		VK_SHARING_MODE_EXCLUSIVE,
 		0, NULL,
-		VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR,
+		transform,
 		alphaFlags,
 		getPresentMode(device, surface, vsync),
 		true,
@@ -505,6 +528,7 @@ dsVkRenderSurfaceData* dsVkRenderSurfaceData_create(dsAllocator* allocator, dsRe
 
 	surfaceData->width = width;
 	surfaceData->height = height;
+	surfaceData->rotation = rotation;
 
 	// Queue processing immediately.
 	dsVkRenderer_processRenderSurface(renderer, surfaceData);

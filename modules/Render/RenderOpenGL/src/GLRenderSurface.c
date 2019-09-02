@@ -26,11 +26,12 @@
 #include <string.h>
 
 dsRenderSurface* dsGLRenderSurface_create(dsRenderer* renderer, dsAllocator* allocator,
-	const char* name, void* osHandle, dsRenderSurfaceType type)
+	const char* name, void* osHandle, dsRenderSurfaceType type, bool clientRotations)
 {
 	DS_ASSERT(renderer);
 	DS_ASSERT(allocator);
 	DS_ASSERT(name);
+	DS_UNUSED(clientRotations);
 
 	dsGLRenderer* glRenderer = (dsGLRenderer*)renderer;
 	void* display = glRenderer->options.display;
@@ -64,6 +65,7 @@ dsRenderSurface* dsGLRenderSurface_create(dsRenderer* renderer, dsAllocator* all
 	DS_ASSERT(baseSurface->name);
 	memcpy((void*)baseSurface->name, name, nameLen);
 	baseSurface->surfaceType = type;
+	baseSurface->rotation = dsRenderSurfaceRotation_0;
 	DS_VERIFY(dsGetGLSurfaceSize(&baseSurface->width, &baseSurface->height, display, type,
 		glSurface));
 

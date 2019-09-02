@@ -216,6 +216,32 @@ typedef enum dsRenderSurfaceType
 } dsRenderSurfaceType;
 
 /**
+ * @brief The rotation to apply to the render surface.
+ *
+ * The client must apply this rotation to any geometry drawn to the render surface to display in the
+ * correct oreintation. All rotations are clockwise.
+ *
+ * The width and height for the surface will be the post-rotated dimensions. For example, if you
+ * take a 200 x 100 surface with rotation 0 and rotate it to 90 degrees, the render surface will
+ * still report a dimensions of 100 x 200. In other words, the dimensions always correspond to the
+ * final logical dimensions of the surface, while dsRenderSurfaceRotation indicates the
+ * transformation that needs to be applied to properly orient the image contents.
+ *
+ * The projection matrix may be adjusted with the matrix from dsRenderSurface_makeRotationMatrix().
+ * However, any viewport locations and blit regions must also be adjusted accordingly for the
+ * rotation.
+ *
+ * @see RenderSurface.h
+ */
+typedef enum dsRenderSurfaceRotation
+{
+	dsRenderSurfaceRotation_0,   ///< 0 degrees of rotation.
+	dsRenderSurfaceRotation_90,  ///< 90 degrees of rotation.
+	dsRenderSurfaceRotation_180, ///< 180 degrees of rotation.
+	dsRenderSurfaceRotation_270  ///< 270 degrees of rotation.
+} dsRenderSurfaceRotation;
+
+/**
  * @brief Enum for how to use a command buffer.
  *
  * This enum is a bitmask to allow multiple combinations of the usage bits.
@@ -541,6 +567,11 @@ typedef struct dsRenderSurface
 	 * @brief The height of the render surface.
 	 */
 	uint32_t height;
+
+	/**
+	 * @brief The rotation to apply to the image.
+	 */
+	dsRenderSurfaceRotation rotation;
 } dsRenderSurface;
 
 /**
@@ -1159,10 +1190,12 @@ typedef void (*dsSetExtraRendererDebuggingFunction)(dsRenderer* renderer, bool e
  *     copy the string and store it with the render surface.
  * @param osHandle The OS handle, such as window handle.
  * @param type The type of the render surface.
+ * @param clientRotations True to perform rotations on the client.
  * @return The created render surface, or NULL if it couldn't be created.
  */
 typedef dsRenderSurface* (*dsCreateRenderSurfaceFunction)(dsRenderer* renderer,
-	dsAllocator* allocator, const char* name, void* osHandle, dsRenderSurfaceType type);
+	dsAllocator* allocator, const char* name, void* osHandle, dsRenderSurfaceType type,
+	bool clientRotations);
 
 /**
  * @brief Function for destroying a render surface.

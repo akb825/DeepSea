@@ -35,6 +35,7 @@ typedef struct dsSDLWindow
 
 	dsVector2i curPosition;
 	dsWindowFlags curFlags;
+	bool clientRotations;
 	bool hasFocus;
 } dsSDLWindow;
 

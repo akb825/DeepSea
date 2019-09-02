@@ -20,7 +20,7 @@
 #include <DeepSea/Render/Types.h>
 
 dsRenderSurface* dsGLRenderSurface_create(dsRenderer* renderer, dsAllocator* allocator,
-	const char* name, void* osHandle, dsRenderSurfaceType type);
+	const char* name, void* osHandle, dsRenderSurfaceType type, bool clientRotations);
 bool dsGLRenderSurface_update(dsRenderer* renderer, dsRenderSurface* renderSurface);
 bool dsGLRenderSurface_beginDraw(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsRenderSurface* renderSurface);

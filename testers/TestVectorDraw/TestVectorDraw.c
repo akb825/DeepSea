@@ -39,6 +39,7 @@
 #include <DeepSea/Render/CommandBufferPool.h>
 #include <DeepSea/Render/Renderer.h>
 #include <DeepSea/Render/RenderPass.h>
+#include <DeepSea/Render/RenderSurface.h>
 #include <DeepSea/RenderBootstrap/RenderBootstrap.h>
 #include <DeepSea/VectorDraw/VectorImage.h>
 #include <DeepSea/VectorDraw/VectorResources.h>
@@ -302,8 +303,12 @@ static void draw(dsApplication* application, dsWindow* window, void* userData)
 	else
 		size.x = size.y*windowAspect;
 
-	dsMatrix44f matrix;
-	DS_VERIFY(dsRenderer_makeOrtho(&matrix, renderer, 0.0f, size.x, 0.0f, size.y, 0.0f, 1.0f));
+	dsMatrix44f projection, surfaceRotation, matrix;
+	DS_VERIFY(dsRenderer_makeOrtho(&projection, renderer, 0.0f, size.x, 0.0f, size.y, 0.0f, 1.0f));
+	DS_VERIFY(dsRenderSurface_makeRotationMatrix(&surfaceRotation,
+		testVectorDraw->window->surface->rotation));
+	dsMatrix44_mul(matrix, surfaceRotation, projection);
+
 	dsVectorShaders* shaders;
 	if (testVectorDraw->wireframe)
 		shaders = testVectorDraw->wireframeShaders;
@@ -349,7 +354,8 @@ static bool setup(TestVectorDraw* testVectorDraw, dsApplication* application,
 	float targetImageSize = dsApplication_adjustSize(application, 0, (float)TARGET_SIZE);
 	testVectorDraw->window = dsWindow_create(application, allocator, "Test Vector Draw", NULL,
 		NULL, targetWindowSize, targetWindowSize,
-		dsWindowFlags_Resizeable | dsWindowFlags_DelaySurfaceCreate);
+		dsWindowFlags_Resizeable | dsWindowFlags_DelaySurfaceCreate |
+			dsWindowFlags_ClientRotations);
 	if (!testVectorDraw->window)
 	{
 		DS_LOG_ERROR_F("TestVectorDraw", "Couldn't create window: %s", dsErrorString(errno));

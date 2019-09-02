@@ -25,11 +25,12 @@
 DS_RENDERMOCK_EXPORT bool dsMockRenderSurface_changeSize;
 
 dsRenderSurface* dsMockRenderSurface_create(dsRenderer* renderer, dsAllocator* allocator,
-	const char* name, void* osHandle, dsRenderSurfaceType type)
+	const char* name, void* osHandle, dsRenderSurfaceType type, bool clientRotations)
 {
 	DS_ASSERT(renderer);
 	DS_ASSERT(allocator);
 	DS_UNUSED(osHandle);
+	DS_UNUSED(clientRotations);
 
 	size_t nameLen = strlen(name) + 1;
 	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsRenderSurface)) + DS_ALIGNED_SIZE(nameLen);
@@ -50,6 +51,7 @@ dsRenderSurface* dsMockRenderSurface_create(dsRenderer* renderer, dsAllocator* a
 	renderSurface->surfaceType = type;
 	renderSurface->width = 1920;
 	renderSurface->height = 1080;
+	renderSurface->rotation = dsRenderSurfaceRotation_0;
 	return renderSurface;
 }
 

@@ -42,6 +42,7 @@
 #include <DeepSea/Render/Resources/SharedMaterialValues.h>
 #include <DeepSea/Render/Renderer.h>
 #include <DeepSea/Render/RenderPass.h>
+#include <DeepSea/Render/RenderSurface.h>
 #include <DeepSea/RenderBootstrap/RenderBootstrap.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -312,9 +313,13 @@ static bool createFramebuffer(TestRenderSubpass* testRenderSubpass)
 		testRenderSubpass->channelGElement, testRenderSubpass->gColor));
 	DS_VERIFY(dsMaterial_setTexture(testRenderSubpass->resolveMaterial,
 		testRenderSubpass->channelBElement, testRenderSubpass->bColor));
-	DS_VERIFY(dsRenderer_makePerspective(&testRenderSubpass->projection,
-		testRenderSubpass->renderer, (float)dsDegreesToRadians(45.0f), (float)width/(float)height,
-		0.1f, 100.0f));
+
+	dsMatrix44f baseProjection, surfaceRotation;
+	DS_VERIFY(dsRenderer_makePerspective(&baseProjection, testRenderSubpass->renderer,
+		(float)dsDegreesToRadians(45.0f), (float)width/(float)height, 0.1f, 100.0f));
+	DS_VERIFY(dsRenderSurface_makeRotationMatrix(&surfaceRotation,
+		testRenderSubpass->window->surface->rotation));
+	dsMatrix44_mul(testRenderSubpass->projection, surfaceRotation, baseProjection);
 
 	return true;
 }
@@ -491,7 +496,8 @@ static bool setup(TestRenderSubpass* testRenderSubpass, dsApplication* applicati
 	uint32_t width = dsApplication_adjustWindowSize(application, 0, 800);
 	uint32_t height = dsApplication_adjustWindowSize(application, 0, 600);
 	testRenderSubpass->window = dsWindow_create(application, allocator, "Test Render Subpass",
-		NULL, NULL, width, height, dsWindowFlags_Resizeable | dsWindowFlags_DelaySurfaceCreate);
+		NULL, NULL, width, height, dsWindowFlags_Resizeable | dsWindowFlags_DelaySurfaceCreate |
+		dsWindowFlags_ClientRotations);
 	if (!testRenderSubpass->window)
 	{
 		DS_LOG_ERROR_F("TestRenderSubpass", "Couldn't create window: %s", dsErrorString(errno));

@@ -20,7 +20,7 @@
 #include "MTLTypes.h"
 
 dsRenderSurface* dsMTLRenderSurface_create(dsRenderer* renderer, dsAllocator* allocator,
-	const char* name, void* osHandle, dsRenderSurfaceType type);
+	const char* name, void* osHandle, dsRenderSurfaceType type, bool clientRotations);
 bool dsMTLRenderSurface_update(dsRenderer* renderer, dsRenderSurface* renderSurface);
 bool dsMTLRenderSurface_beginDraw(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsRenderSurface* renderSurface);

@@ -95,7 +95,7 @@ static bool transitionToPresentable(dsCommandBuffer* commandBuffer, dsVkRenderSu
 }
 
 dsRenderSurface* dsVkRenderSurface_create(dsRenderer* renderer, dsAllocator* allocator,
-	const char* name, void* osHandle, dsRenderSurfaceType type)
+	const char* name, void* osHandle, dsRenderSurfaceType type, bool clientRotations)
 {
 	dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
 	VkSurfaceKHR surface;
@@ -139,6 +139,7 @@ dsRenderSurface* dsVkRenderSurface_create(dsRenderer* renderer, dsAllocator* all
 	renderSurface->lifetime = NULL;
 	renderSurface->surface = surface;
 	renderSurface->surfaceData = NULL;
+	renderSurface->clientRotations = clientRotations;
 	renderSurface->surfaceError = false;
 	renderSurface->updatedFrame = renderer->frameNumber - 1;
 	DS_VERIFY(dsSpinlock_initialize(&renderSurface->lock));
@@ -151,7 +152,7 @@ dsRenderSurface* dsVkRenderSurface_create(dsRenderer* renderer, dsAllocator* all
 	}
 
 	renderSurface->surfaceData = dsVkRenderSurfaceData_create(renderSurface->scratchAllocator,
-		renderer, surface, renderer->vsync, 0);
+		renderer, surface, renderer->vsync, 0, clientRotations);
 	if (!renderSurface->surfaceData)
 	{
 		dsVkRenderSurface_destroy(renderer, baseRenderSurface);
@@ -160,6 +161,7 @@ dsRenderSurface* dsVkRenderSurface_create(dsRenderer* renderer, dsAllocator* all
 
 	baseRenderSurface->width = renderSurface->surfaceData->width;
 	baseRenderSurface->height = renderSurface->surfaceData->height;
+	baseRenderSurface->rotation = renderSurface->surfaceData->rotation;
 
 	return baseRenderSurface;
 }
@@ -180,15 +182,20 @@ bool dsVkRenderSurface_update(dsRenderer* renderer, dsRenderSurface* renderSurfa
 			device->physicalDevice, vkSurface->surface, &surfaceInfo);
 		if (result == VK_SUCCESS)
 		{
-			if (surfaceInfo.currentExtent.width == vkSurface->surfaceData->width &&
-				surfaceInfo.currentExtent.height == vkSurface->surfaceData->height)
+			uint32_t width = surfaceInfo.currentExtent.width;
+			uint32_t height = surfaceInfo.currentExtent.height;
+			dsRenderSurfaceRotation rotation = dsRenderSurfaceRotation_0;
+			if (vkSurface->clientRotations)
+				rotation = dsVkRenderSurfaceData_getRotation(surfaceInfo.currentTransform);
+
+			if (width == vkSurface->surfaceData->width &&
+				height == vkSurface->surfaceData->height &&
+				rotation == vkSurface->surfaceData->rotation)
 			{
-				renderSurface->width = surfaceInfo.currentExtent.width;
-				renderSurface->height = surfaceInfo.currentExtent.height;
 				DS_VERIFY(dsSpinlock_unlock(&vkSurface->lock));
 				return true;
 			}
-			else if (surfaceInfo.currentExtent.width == 0 || surfaceInfo.currentExtent.height == 0)
+			else if (width == 0 || height == 0)
 			{
 				// Ignore if the size is 0. (e.g. minimized)
 				DS_VERIFY(dsSpinlock_unlock(&vkSurface->lock));
@@ -208,7 +215,7 @@ bool dsVkRenderSurface_update(dsRenderer* renderer, dsRenderSurface* renderSurfa
 
 	VkSwapchainKHR prevSwapchain = vkSurface->surfaceData ? vkSurface->surfaceData->swapchain : 0;
 	dsVkRenderSurfaceData* surfaceData = dsVkRenderSurfaceData_create(vkSurface->scratchAllocator,
-		renderer, vkSurface->surface, renderer->vsync, prevSwapchain);
+		renderer, vkSurface->surface, renderer->vsync, prevSwapchain, vkSurface->clientRotations);
 	if (surfaceData)
 	{
 		dsVkRenderer_deleteRenderSurface(renderer, vkSurface->surfaceData);
@@ -216,6 +223,7 @@ bool dsVkRenderSurface_update(dsRenderer* renderer, dsRenderSurface* renderSurfa
 
 		renderSurface->width = vkSurface->surfaceData->width;
 		renderSurface->height = vkSurface->surfaceData->height;
+		renderSurface->rotation = vkSurface->surfaceData->rotation;
 	}
 	else
 		vkSurface->surfaceError = true;
@@ -279,7 +287,7 @@ bool dsVkRenderSurface_beginDraw(dsRenderer* renderer, dsCommandBuffer* commandB
 
 	VkSwapchainKHR prevSwapchain = vkSurface->surfaceData ? vkSurface->surfaceData->swapchain : 0;
 	dsVkRenderSurfaceData* surfaceData = dsVkRenderSurfaceData_create(vkSurface->scratchAllocator,
-		renderer, vkSurface->surface, renderer->vsync, prevSwapchain);
+		renderer, vkSurface->surface, renderer->vsync, prevSwapchain, vkSurface->clientRotations);
 
 	bool success = false;
 	if (surfaceData)

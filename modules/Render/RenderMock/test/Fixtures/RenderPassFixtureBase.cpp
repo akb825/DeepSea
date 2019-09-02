@@ -41,7 +41,7 @@ void RenderPassFixtureBase::SetUp()
 	ASSERT_TRUE(renderPass);
 
 	renderSurface = dsRenderSurface_create(renderer, NULL, "test", NULL,
-		dsRenderSurfaceType_Direct);
+		dsRenderSurfaceType_Direct, false);
 	ASSERT_TRUE(renderSurface);
 
 	dsFramebufferSurface surfaces[] =

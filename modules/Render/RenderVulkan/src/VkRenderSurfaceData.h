@@ -26,8 +26,10 @@ typedef enum dsVkSurfaceResult
 	dsVkSurfaceResult_OutOfDate,
 } dsVkSurfaceResult;
 
+
+dsRenderSurfaceRotation dsVkRenderSurfaceData_getRotation(VkSurfaceTransformFlagBitsKHR rotation);
 dsVkRenderSurfaceData* dsVkRenderSurfaceData_create(dsAllocator* allocator, dsRenderer* renderer,
-	VkSurfaceKHR surface, bool vsync, VkSwapchainKHR prevSwapchain);
+	VkSurfaceKHR surface, bool vsync, VkSwapchainKHR prevSwapchain, bool clientRotations);
 dsVkSurfaceResult dsVkRenderSurfaceData_acquireImage(dsVkRenderSurfaceData* surfaceData);
 
 bool dsVkRenderSurfaceData_clearColor(dsVkRenderSurfaceData* renderSurface, bool rightSurface,
