@@ -575,11 +575,11 @@ static bool setup(TestRenderSubpass* testRenderSubpass, dsApplication* applicati
 
 		// Dependencies of the subpasses.
 		{0, dsGfxPipelineStage_ColorOutput, dsGfxAccess_ColorAttachmentWrite, 3,
-			dsGfxPipelineStage_ColorOutput, dsGfxAccess_InputAttachmentRead, true},
+			dsGfxPipelineStage_FragmentShader, dsGfxAccess_InputAttachmentRead, true},
 		{1, dsGfxPipelineStage_ColorOutput, dsGfxAccess_ColorAttachmentWrite, 3,
-			dsGfxPipelineStage_ColorOutput, dsGfxAccess_InputAttachmentRead, true},
+			dsGfxPipelineStage_FragmentShader, dsGfxAccess_InputAttachmentRead, true},
 		{2, dsGfxPipelineStage_ColorOutput, dsGfxAccess_ColorAttachmentWrite, 3,
-			dsGfxPipelineStage_ColorOutput, dsGfxAccess_InputAttachmentRead, true},
+			dsGfxPipelineStage_FragmentShader, dsGfxAccess_InputAttachmentRead, true},
 
 		// Ensure synchronized with the end of render pipeline.
 		{3, (dsGfxPipelineStage)0, dsGfxAccess_None, DS_EXTERNAL_SUBPASS,
