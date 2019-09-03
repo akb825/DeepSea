@@ -68,7 +68,7 @@ static bool setupElements(dsVkSharedDescriptorSets* descriptors, dsCommandBuffer
 			{
 				dsTexture* texture = dsSharedMaterialValues_getTextureId(sharedValues,
 					element->nameID);
-				if (texture && !dsVkTexture_addMemoryBarrier(texture, commandBuffer))
+				if (texture && !dsVkTexture_processAndAddResource(texture, commandBuffer))
 					return false;
 
 				uint32_t index = bindingCounts->textures;
@@ -99,18 +99,15 @@ static bool setupElements(dsVkSharedDescriptorSets* descriptors, dsCommandBuffer
 
 				if (buffer)
 				{
-					size_t size = count*dsGfxFormat_size(format);
 					dsVkGfxBufferData* bufferData = dsVkGfxBuffer_getData(buffer, commandBuffer);
-					if (!bufferData || !dsVkGfxBufferData_addMemoryBarrier(bufferData, offset, size,
-							commandBuffer))
-					{
+					if (!bufferData)
 						return false;
-					}
 
 					bindingMemory->texelBuffers[index].buffer = bufferData;
 					bindingMemory->texelBuffers[index].format = format;
 					bindingMemory->texelBuffers[index].offset = offset;
 					bindingMemory->texelBuffers[index].count = count;
+					dsVkRenderer_processGfxBuffer(commandBuffer->renderer, bufferData);
 				}
 				else
 				{
@@ -156,8 +153,7 @@ static bool setupElements(dsVkSharedDescriptorSets* descriptors, dsCommandBuffer
 				if (buffer)
 				{
 					dsVkGfxBufferData* bufferData = dsVkGfxBuffer_getData(buffer, commandBuffer);
-					if (!bufferData || !dsVkGfxBufferData_addMemoryBarrier(bufferData, offset, size,
-							commandBuffer))
+					if (!bufferData)
 					{
 						return false;
 					}
@@ -165,6 +161,7 @@ static bool setupElements(dsVkSharedDescriptorSets* descriptors, dsCommandBuffer
 					bindingMemory->buffers[index].buffer = bufferData;
 					bindingMemory->buffers[index].offset = bindingOffset;
 					bindingMemory->buffers[index].size = size;
+					dsVkRenderer_processGfxBuffer(commandBuffer->renderer, bufferData);
 				}
 				else
 				{

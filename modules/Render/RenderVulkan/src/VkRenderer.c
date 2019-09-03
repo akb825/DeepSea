@@ -569,8 +569,6 @@ static bool addBufferCopies(dsVkRenderer* renderer, dsVkGfxBufferData* buffer,
 		return false;
 	}
 
-	// Since this has a device buffer, implicitly can't map the main buffer.
-	bool needsDynamicBarriers = dsVkGfxBufferData_needsMemoryBarrier(buffer, false);
 	for (uint32_t i = 0; i < dirtyRangeCount; ++i)
 	{
 		VkBufferCopy* copyInfo = renderer->bufferCopies + firstCopy + i;
@@ -589,13 +587,10 @@ static bool addBufferCopies(dsVkRenderer* renderer, dsVkGfxBufferData* buffer,
 				dirtyRange->start, dirtyRange->size, buffer->usage | dsGfxBufferUsage_CopyTo,
 				dsGfxBufferUsage_CopyTo, false);
 		}
-		if (!needsDynamicBarriers)
-		{
-			// If the buffer doesn't need dynamic barriers, have a memory barrier after the copy.
-			dsVkBarrierList_addBufferBarrier(postResourceBarriers, buffer->deviceBuffer,
-				dirtyRange->start, dirtyRange->size, dsGfxBufferUsage_CopyTo,
-				buffer->usage | dsGfxBufferUsage_CopyTo, false);
-		}
+		// Also need a barrier after.
+		dsVkBarrierList_addBufferBarrier(postResourceBarriers, buffer->deviceBuffer,
+			dirtyRange->start, dirtyRange->size, dsGfxBufferUsage_CopyTo,
+			buffer->usage | dsGfxBufferUsage_CopyTo, false);
 	}
 
 	uint32_t curInfo = renderer->bufferCopyInfoCount;
@@ -994,14 +989,21 @@ static void processResources(dsVkRenderer* renderer, VkCommandBuffer commandBuff
 			renderer->imageCopies + copyInfo->firstRange);
 	}
 
-	if (postResourceBarriers->bufferBarrierCount > 0 || postResourceBarriers->imageBarrierCount > 0)
+	// Ensure that all host access is synchronized.
+	VkMemoryBarrier memoryBarrier =
 	{
-		DS_VK_CALL(device->vkCmdPipelineBarrier)(commandBuffer,
-			VK_PIPELINE_STAGE_TRANSFER_BIT | VK_PIPELINE_STAGE_HOST_BIT,
-			VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT | VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, 0, 0, NULL,
-			postResourceBarriers->bufferBarrierCount, postResourceBarriers->bufferBarriers,
-			postResourceBarriers->imageBarrierCount, postResourceBarriers->imageBarriers);
-	}
+		VK_STRUCTURE_TYPE_MEMORY_BARRIER,
+		NULL,
+		VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_MEMORY_WRITE_BIT,
+		VK_ACCESS_UNIFORM_READ_BIT | VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT |
+			VK_ACCESS_TRANSFER_WRITE_BIT
+	};
+
+	DS_VK_CALL(device->vkCmdPipelineBarrier)(commandBuffer,
+		VK_PIPELINE_STAGE_TRANSFER_BIT | VK_PIPELINE_STAGE_HOST_BIT,
+		VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, 0, 1, &memoryBarrier,
+		postResourceBarriers->bufferBarrierCount, postResourceBarriers->bufferBarriers,
+		postResourceBarriers->imageBarrierCount, postResourceBarriers->imageBarriers);
 
 	dsVkProcessResourceList_clear(prevResourceList);
 }
@@ -1040,18 +1042,10 @@ static bool beginDraw(dsCommandBuffer* commandBuffer, VkCommandBuffer submitBuff
 		if (drawRange)
 			offset += drawRange->firstVertex*formatSize;
 
-		VkDeviceSize size;
-		if (drawRange)
-			size = drawRange->vertexCount*formatSize;
-		else
-			size = vertexBuffer->count*formatSize;
-
-		if (!bufferData || !dsVkGfxBufferData_addMemoryBarrier(bufferData, offset, size,
-				commandBuffer))
-		{
+		if (!bufferData)
 			return false;
-		}
 
+		dsVkRenderer_processGfxBuffer(commandBuffer->renderer, bufferData);
 		VkBuffer vkBuffer = dsVkGfxBufferData_getBuffer(bufferData);
 		for (uint32_t curBitmask = format->enabledMask; curBitmask;
 			curBitmask = dsRemoveLastBit(curBitmask), ++bindingCount)
@@ -1087,16 +1081,10 @@ static bool beginIndexedDraw(dsCommandBuffer* commandBuffer, VkCommandBuffer sub
 
 	uint32_t indexSize = indexBuffer->indexSize;
 	VkDeviceSize offset = indexBuffer->offset;
-	VkDeviceSize size = indexBuffer->count*indexSize;
 	if (drawRange)
-	{
 		offset += drawRange->firstIndex*indexSize;
-		size = drawRange->indexCount*indexSize;
-	}
 
-	if (!dsVkGfxBufferData_addMemoryBarrier(bufferData, offset, size, commandBuffer))
-		return false;
-
+	dsVkRenderer_processGfxBuffer(commandBuffer->renderer, bufferData);
 	vkCommandBuffer->activeIndexBuffer = indexBuffer;
 	DS_VK_CALL(device->vkCmdBindIndexBuffer)(submitBuffer,
 		dsVkGfxBufferData_getBuffer(bufferData), indexBuffer->offset,
@@ -1344,7 +1332,8 @@ static VkSemaphore preFlush(dsRenderer* renderer, bool readback, bool useSemapho
 		{
 			dsVkRenderSurfaceData* surface = vkSubmitBuffer->renderSurfaces[i];
 			waitSemaphores[i] = surface->imageData[surface->imageDataIndex].semaphore;
-			waitStages[i] = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT |
+			waitStages[i] = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT |
+				VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT |
 				VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_TRANSFER_BIT;
 		}
 	}
@@ -1551,12 +1540,10 @@ bool dsVkRenderer_drawIndirect(dsRenderer* renderer, dsCommandBuffer* commandBuf
 
 	dsVkGfxBufferData* indirectBufferData = dsVkGfxBuffer_getData((dsGfxBuffer*)indirectBuffer,
 		commandBuffer);
-	if (!indirectBufferData || !dsVkGfxBufferData_addMemoryBarrier(indirectBufferData, offset,
-			count*stride, commandBuffer))
-	{
+	if (!indirectBufferData)
 		return false;
-	}
 
+	dsVkRenderer_processGfxBuffer(renderer, indirectBufferData);
 	VkBuffer vkIndirectBuffer = dsVkGfxBufferData_getBuffer(indirectBufferData);
 	if (device->features.multiDrawIndirect)
 	{
@@ -1588,12 +1575,10 @@ bool dsVkRenderer_drawIndexedIndirect(dsRenderer* renderer, dsCommandBuffer* com
 
 	dsVkGfxBufferData* indirectBufferData = dsVkGfxBuffer_getData((dsGfxBuffer*)indirectBuffer,
 		commandBuffer);
-	if (!indirectBufferData || !dsVkGfxBufferData_addMemoryBarrier(indirectBufferData, offset,
-			count*stride, commandBuffer))
-	{
+	if (!indirectBufferData)
 		return false;
-	}
 
+	dsVkRenderer_processGfxBuffer(renderer, indirectBufferData);
 	VkBuffer vkIndirectBuffer = dsVkGfxBufferData_getBuffer(indirectBufferData);
 	if (device->features.multiDrawIndirect)
 	{
@@ -1628,12 +1613,10 @@ bool dsVkRenderer_dispatchComputeIndirect(dsRenderer* renderer, dsCommandBuffer*
 {
 	dsVkGfxBufferData* indirectBufferData = dsVkGfxBuffer_getData((dsGfxBuffer*)indirectBuffer,
 		commandBuffer);
-	if (!indirectBufferData || !dsVkGfxBufferData_addMemoryBarrier(indirectBufferData, offset,
-			sizeof(uint32_t)*3, commandBuffer))
-	{
+	if (!indirectBufferData)
 		return false;
-	}
 
+	dsVkRenderer_processGfxBuffer(renderer, indirectBufferData);
 	dsVkDevice* device = &((dsVkRenderer*)renderer)->device;
 	VkCommandBuffer submitBuffer = dsVkCommandBuffer_getCommandBuffer(commandBuffer);
 	if (!submitBuffer || !beginDispatch(renderer, submitBuffer, commandBuffer))

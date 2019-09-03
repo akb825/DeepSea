@@ -380,10 +380,16 @@ DS_RENDER_EXPORT bool dsRenderer_blitSurface(dsRenderer* renderer, dsCommandBuff
 	dsBlitFilter filter);
 
 /**
- * @brief Adds a memory barrier to ensure writes are properly performed before reads.
- * @remark When called within a render pass, the subpass must have a self-dependency. This means
- *     having a dsSubpassDependency with srcSubpass and dstSubpass both set to the current subpass
- *     index.
+ * @brief Adds a memory barrier to ensure that read and write operations are properly ordered.
+ *
+ * The situations that generally require a barrier are reads/writes with a persistantly mapped
+ * buffer or if a shader writes to a resource. (uniform buffer or image) Subpass dependencies also
+ * provide the same functionality as memory barriers.
+ *
+ * Memory barriers may also be placed inside a subpass, but in this situation the subpass must have
+ * a self-dependency. This means having a dsSubpassDependency with srcSubpass and dstSubpass both
+ * set to the current subpass index.
+ *
  * @remark errno will be set on failure.
  * @param renderer The rendferer.
  * @param commandBuffer The command buffer to place the barrier on.

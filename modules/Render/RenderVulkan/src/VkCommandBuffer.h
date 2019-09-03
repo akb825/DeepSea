@@ -57,20 +57,11 @@ void* dsVkCommandBuffer_getTempData(size_t* outOffset, VkBuffer* outBuffer,
 	dsCommandBuffer* commandBuffer, size_t size, uint32_t alignment);
 void dsVkCommandBuffer_flushTempData(dsCommandBuffer* commandBuffer, size_t offset, size_t size);
 
-bool dsVkCommandBuffer_recentlyAddedImageBarrier(dsCommandBuffer* commandBuffer,
-	const VkImageMemoryBarrier* barrier);
 VkBufferMemoryBarrier* dsVkCommandBuffer_addBufferBarrier(dsCommandBuffer* commandBuffer);
 VkImageMemoryBarrier* dsVkCommandBuffer_addImageBarrier(dsCommandBuffer* commandBuffer);
-bool dsVkCommandBuffer_recentlyAddedBufferBarrier(dsCommandBuffer* commandBuffer,
-	const VkBufferMemoryBarrier* barrier);
 bool dsVkCommandBuffer_submitMemoryBarriers(dsCommandBuffer* commandBuffer,
 	VkPipelineStageFlags srcStages, VkPipelineStageFlags dstStages);
-
-VkBufferMemoryBarrier* dsVkCommandBuffer_addCopyBufferBarrier(dsCommandBuffer* commandBuffer);
-VkImageMemoryBarrier* dsVkCommandBuffer_addCopyImageBarrier(dsCommandBuffer* commandBuffer);
-bool dsVkCommandBuffer_submitCopyBarriers(dsCommandBuffer* commandBuffer,
-	VkPipelineStageFlags srcStages, VkPipelineStageFlags dstStages);
-void dsVkCommandBuffer_resetCopyBarriers(dsCommandBuffer* commandBuffer);
+void dsVkCommandBuffer_resetMemoryBarriers(dsCommandBuffer* commandBuffer);
 
 bool dsVkCommandBuffer_addResource(dsCommandBuffer* commandBuffer, dsVkResource* resource);
 bool dsVkCommandBuffer_addReadbackOffscreen(dsCommandBuffer* commandBuffer, dsOffscreen* offscreen);

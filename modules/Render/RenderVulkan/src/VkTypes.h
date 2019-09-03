@@ -976,14 +976,6 @@ struct dsVkCommandBuffer
 	uint32_t bufferBarrierCount;
 	uint32_t maxBufferBarriers;
 
-	VkBufferMemoryBarrier* copyBufferBarriers;
-	uint32_t copyBufferBarrierCount;
-	uint32_t maxCopyBufferBarriers;
-
-	VkImageMemoryBarrier* copyImageBarriers;
-	uint32_t copyImageBarrierCount;
-	uint32_t maxCopyImageBarriers;
-
 	dsVkSubpassBuffers subpassBuffers;
 
 	VkBufferImageCopy* imageCopies;

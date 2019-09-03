@@ -446,7 +446,7 @@ static bool addCopyImageBarriers(dsCommandBuffer* commandBuffer, const dsTexture
 			srcBaseLayer = srcPosition->depth*srcFaceCount + srcPosition->face;
 		}
 
-		VkImageMemoryBarrier* barrier = dsVkCommandBuffer_addCopyImageBarrier(commandBuffer);
+		VkImageMemoryBarrier* barrier = dsVkCommandBuffer_addImageBarrier(commandBuffer);
 		if (!barrier)
 			return false;
 
@@ -488,7 +488,7 @@ static bool addCopyImageBarriers(dsCommandBuffer* commandBuffer, const dsTexture
 			dstBaseLayer = dstPosition->depth*dstFaceCount + dstPosition->face;
 		}
 
-		barrier = dsVkCommandBuffer_addCopyImageBarrier(commandBuffer);
+		barrier = dsVkCommandBuffer_addImageBarrier(commandBuffer);
 		if (!barrier)
 			return false;
 
@@ -561,7 +561,7 @@ static bool addCopyToBufferBarriers(dsCommandBuffer* commandBuffer,
 			srcBaseLayer = srcPosition->depth*srcFaceCount + srcPosition->face;
 		}
 
-		VkImageMemoryBarrier* barrier = dsVkCommandBuffer_addCopyImageBarrier(commandBuffer);
+		VkImageMemoryBarrier* barrier = dsVkCommandBuffer_addImageBarrier(commandBuffer);
 		if (!barrier)
 			return false;
 
@@ -590,10 +590,10 @@ static bool addCopyToBufferBarriers(dsCommandBuffer* commandBuffer,
 		barrier->subresourceRange.baseArrayLayer = srcBaseLayer;
 		barrier->subresourceRange.layerCount = srcLayers;
 
-		if (!reverse || !dsVkGfxBufferData_needsMemoryBarrier(dstBufferData, dstCanMap))
+		if (!reverse)
 		{
 			VkBufferMemoryBarrier* bufferBarrier =
-				dsVkCommandBuffer_addCopyBufferBarrier(commandBuffer);
+				dsVkCommandBuffer_addBufferBarrier(commandBuffer);
 			if (!bufferBarrier)
 				return false;
 
@@ -800,7 +800,7 @@ bool dsVkTexture_copy(dsResourceManager* resourceManager, dsCommandBuffer* comma
 
 	if (!addCopyImageBarriers(commandBuffer, regions, regionCount, srcTexture, dstTexture, false))
 	{
-		dsVkCommandBuffer_resetCopyBarriers(commandBuffer);
+		dsVkCommandBuffer_resetMemoryBarriers(commandBuffer);
 		return false;
 	}
 
@@ -895,7 +895,8 @@ bool dsVkTexture_copy(dsResourceManager* resourceManager, dsCommandBuffer* comma
 		dsVkWriteImageStageFlags(renderer, dstTexture->usage, dstTexture->offscreen,
 			dstIsDepthStencil);
 	VkPipelineStageFlags stageFlags = srcStageFlags | dstStageFlags;
-	dsVkCommandBuffer_submitCopyBarriers(commandBuffer, stageFlags, VK_PIPELINE_STAGE_TRANSFER_BIT);
+	dsVkCommandBuffer_submitMemoryBarriers(commandBuffer, stageFlags,
+		VK_PIPELINE_STAGE_TRANSFER_BIT);
 	DS_VK_CALL(device->vkCmdCopyImage)(vkCommandBuffer, srcVkTexture->deviceImage,
 		srcLayout, dstVkTexture->deviceImage, dstLayout, regionCount, imageCopies);
 
@@ -904,10 +905,10 @@ bool dsVkTexture_copy(dsResourceManager* resourceManager, dsCommandBuffer* comma
 
 	if (!addCopyImageBarriers(commandBuffer, regions, regionCount, srcTexture, dstTexture, true))
 	{
-		dsVkCommandBuffer_resetCopyBarriers(commandBuffer);
+		dsVkCommandBuffer_resetMemoryBarriers(commandBuffer);
 		return false;
 	}
-	dsVkCommandBuffer_submitCopyBarriers(commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, stageFlags);
+	dsVkCommandBuffer_submitMemoryBarriers(commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, stageFlags);
 
 	return true;
 }
@@ -941,7 +942,7 @@ bool dsVkTexture_copyToBuffer(dsResourceManager* resourceManager, dsCommandBuffe
 	if (!addCopyToBufferBarriers(commandBuffer, regions, regionCount, srcTexture, dstBufferData,
 			dstCanMapMainBuffer, false))
 	{
-		dsVkCommandBuffer_resetCopyBarriers(commandBuffer);
+		dsVkCommandBuffer_resetMemoryBarriers(commandBuffer);
 		return false;
 	}
 
@@ -1000,7 +1001,8 @@ bool dsVkTexture_copyToBuffer(dsResourceManager* resourceManager, dsCommandBuffe
 	VkPipelineStageFlags dstStageFlags = dsVkReadBufferStageFlags(renderer, dstBuffer->usage) |
 		dsVkWriteBufferStageFlags(renderer, dstBuffer->usage, dstCanMapMainBuffer);
 	VkPipelineStageFlags stageFlags = srcStageFlags | dstStageFlags;
-	dsVkCommandBuffer_submitCopyBarriers(commandBuffer, stageFlags, VK_PIPELINE_STAGE_TRANSFER_BIT);
+	dsVkCommandBuffer_submitMemoryBarriers(commandBuffer, stageFlags,
+		VK_PIPELINE_STAGE_TRANSFER_BIT);
 	DS_VK_CALL(device->vkCmdCopyImageToBuffer)(vkCommandBuffer, srcVkTexture->deviceImage,
 		VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, dsVkGfxBufferData_getBuffer(dstBufferData),
 		regionCount, imageCopies);
@@ -1011,10 +1013,11 @@ bool dsVkTexture_copyToBuffer(dsResourceManager* resourceManager, dsCommandBuffe
 	if (!addCopyToBufferBarriers(commandBuffer, regions, regionCount, srcTexture, dstBufferData,
 			dstCanMapMainBuffer, true))
 	{
-		dsVkCommandBuffer_resetCopyBarriers(commandBuffer);
+		dsVkCommandBuffer_resetMemoryBarriers(commandBuffer);
 		return false;
 	}
-	dsVkCommandBuffer_submitCopyBarriers(commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, stageFlags);
+	dsVkCommandBuffer_submitMemoryBarriers(commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT,
+		stageFlags);
 
 	return true;
 }
@@ -1313,50 +1316,9 @@ bool dsVkTexture_canReadBack(const dsTexture* texture)
 		(texture->memoryHints & dsGfxMemory_Read);
 }
 
-bool dsVkTexture_addMemoryBarrier(dsTexture* texture, dsCommandBuffer* commandBuffer)
+bool dsVkTexture_processAndAddResource(dsTexture* texture, dsCommandBuffer* commandBuffer)
 {
 	dsVkTexture* vkTexture = (dsVkTexture*)texture;
-
-	if (texture->usage & dsTextureUsage_Image)
-	{
-		dsTextureUsage usage = texture->usage;
-		if (texture->offscreen)
-			usage |= dsTextureUsage_CopyFrom | dsTextureUsage_CopyTo;
-		VkAccessFlags accessMask = dsVkReadImageAccessFlags(usage) |
-			dsVkWriteImageAccessFlags(usage, texture->offscreen,
-				dsGfxFormat_isDepthStencil(texture->info.format));
-		VkImageLayout layout = dsVkTexture_imageLayout(texture);
-
-		if (texture->offscreen || (usage & dsTextureUsage_Image))
-		{
-			VkImageMemoryBarrier imageBarrier =
-			{
-				VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-				NULL,
-				accessMask,
-				accessMask,
-				layout,
-				layout,
-				VK_QUEUE_FAMILY_IGNORED,
-				VK_QUEUE_FAMILY_IGNORED,
-				vkTexture->deviceImage,
-				{dsVkImageAspectFlags(texture->info.format), 0, VK_REMAINING_MIP_LEVELS, 0,
-					VK_REMAINING_ARRAY_LAYERS}
-			};
-
-			// If recently added, implies that the following parts have already been done.
-			if (dsVkCommandBuffer_recentlyAddedImageBarrier(commandBuffer, &imageBarrier))
-				return true;
-
-			VkImageMemoryBarrier* addedBarrier = dsVkCommandBuffer_addImageBarrier(commandBuffer);
-			if (!addedBarrier)
-				return true;
-
-			*addedBarrier = imageBarrier;
-		}
-	}
-
-	// Make sure the texture is renderable.
 	dsVkRenderer_processTexture(commandBuffer->renderer, texture);
 	return dsVkCommandBuffer_addResource(commandBuffer, &vkTexture->resource);
 }

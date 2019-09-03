@@ -163,27 +163,9 @@ static void findPreserveAttachments(uint32_t* outCount, uint32_t* outAttachments
 	}
 }
 
-static bool submitResourceBarriers(dsCommandBuffer* commandBuffer)
-{
-	dsRenderer* renderer = commandBuffer->renderer;
-	VkPipelineStageFlagBits dstStages = VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT |
-		VK_PIPELINE_STAGE_VERTEX_INPUT_BIT | VK_PIPELINE_STAGE_VERTEX_SHADER_BIT |
-		VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-	if (renderer->hasTessellationShaders)
-	{
-		dstStages |= VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT |
-			VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT;
-	}
-	if (renderer->hasGeometryShaders)
-		dstStages |= VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT;
-
-	VkPipelineStageFlags srcStages = dstStages | VK_PIPELINE_STAGE_TRANSFER_BIT |
-		VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT | VK_PIPELINE_STAGE_HOST_BIT;
-	return dsVkCommandBuffer_submitMemoryBarriers(commandBuffer, srcStages, dstStages);
-}
-
 static bool beginFramebuffer(dsCommandBuffer* commandBuffer, const dsFramebuffer* framebuffer)
 {
+	// Move framebuffer images into the "optimal" layouts.
 	dsRenderer* renderer = commandBuffer->renderer;
 	for (uint32_t i = 0; i < framebuffer->surfaceCount; ++i)
 	{
@@ -299,6 +281,7 @@ static void setEndImageBarrier(VkImageMemoryBarrier* imageBarrier, const dsFrame
 static bool endFramebuffer(dsCommandBuffer* commandBuffer, const dsFramebuffer* framebuffer,
 	const bool* resolveAttachment)
 {
+	// Move framebuffer images into the expected layouts.
 	dsRenderer* renderer = commandBuffer->renderer;
 	for (uint32_t i = 0; i < framebuffer->surfaceCount; ++i)
 	{
@@ -316,7 +299,7 @@ static bool endFramebuffer(dsCommandBuffer* commandBuffer, const dsFramebuffer* 
 				if (!surfaceData->resolveImage || !resolveAttachment[i])
 					break;
 
-				// Need to have copy format to resolve.
+				// Need to have copy format for explicit resolve.
 				VkImageMemoryBarrier* imageBarrier =
 					dsVkCommandBuffer_addImageBarrier(commandBuffer);
 				if (!imageBarrier)
@@ -353,6 +336,7 @@ static bool endFramebuffer(dsCommandBuffer* commandBuffer, const dsFramebuffer* 
 				uint32_t faceCount = texture->info.dimension == dsTextureDim_Cube ? 6 : 1;
 				if (vkTexture->surfaceImage && resolveAttachment[i])
 				{
+					// Prepare for explicit resolve.
 					setEndImageBarrier(imageBarrier, framebuffer, surface, texture->info.format,
 						vkTexture->deviceImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
 						surface->layer*faceCount + surface->cubeFace);
@@ -398,7 +382,7 @@ static bool endFramebuffer(dsCommandBuffer* commandBuffer, const dsFramebuffer* 
 	if (!dsVkCommandBuffer_submitMemoryBarriers(commandBuffer, srcStages, srcStages))
 		return false;
 
-	// Resolved images.
+	// Process explicitly resolved multisampled images.
 	dsVkDevice* device = &((dsVkRenderer*)renderer)->device;
 	VkCommandBuffer vkCommandBuffer = dsVkCommandBuffer_getCommandBuffer(commandBuffer);
 	if (!vkCommandBuffer)
@@ -858,18 +842,17 @@ bool dsVkRenderPassData_end(const dsVkRenderPassData* renderPass, dsCommandBuffe
 	const dsFramebuffer* framebuffer = commandBuffer->boundFramebuffer;
 	DS_ASSERT(framebuffer);
 
-	// Submit resource barriers first so they get cleared before the framebuffer barriers are
-	// processed.
-	if (!submitResourceBarriers(commandBuffer) ||
-		!beginFramebuffer(commandBuffer, framebuffer))
+	if (!beginFramebuffer(commandBuffer, framebuffer))
 	{
+		dsVkCommandBuffer_resetMemoryBarriers(commandBuffer);
 		return false;
 	}
 
 	dsVkCommandBuffer_endRenderPass(commandBuffer);
 	if (!endFramebuffer(commandBuffer, commandBuffer->boundFramebuffer,
-		renderPass->resolveAttachment))
+			renderPass->resolveAttachment))
 	{
+		dsVkCommandBuffer_resetMemoryBarriers(commandBuffer);
 		return false;
 	}
 

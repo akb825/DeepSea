@@ -153,7 +153,7 @@ dsRenderPass* dsVkRenderPass_create(dsRenderer* renderer, dsAllocator* allocator
 				dsSubpassDependency* dependency =
 					(dsSubpassDependency*)(baseRenderPass->subpassDependencies + i);
 				dependency->srcSubpass = i == 0 ? DS_EXTERNAL_SUBPASS : i - 1;
-				dependency->dstStages = dsGfxPipelineStage_ColorOutput |
+				dependency->srcStages = dsGfxPipelineStage_ColorOutput |
 					dsGfxPipelineStage_PostFragmentShaderTests;
 				dependency->srcAccess = dsGfxAccess_ColorAttachmentWrite |
 					dsGfxAccess_DepthStencilAttachmentWrite;

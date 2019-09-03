@@ -386,53 +386,6 @@ bool dsVkGfxBufferData_isStatic(const dsVkGfxBufferData* buffer)
 		((buffer->memoryHints & dsGfxMemory_GPUOnly) || buffer->deviceMemory);
 }
 
-bool dsVkGfxBufferData_needsMemoryBarrier(const dsVkGfxBufferData* buffer, bool canMapMainBuffer)
-{
-	return (buffer->usage & (dsGfxBufferUsage_Image | dsGfxBufferUsage_UniformBuffer)) ||
-		canMapMainBuffer;
-}
-
-bool dsVkGfxBufferData_addMemoryBarrier(dsVkGfxBufferData* buffer, VkDeviceSize offset,
-	VkDeviceSize size, dsCommandBuffer* commandBuffer)
-{
-	DS_ASSERT(DS_IS_BUFFER_RANGE_VALID(offset, size, buffer->size));
-	bool canMapMainBuffer = dsVkGfxBufferData_canMapMainBuffer(buffer);
-	if (dsVkGfxBufferData_needsMemoryBarrier(buffer, canMapMainBuffer))
-	{
-		VkAccessFlags srcAccessMask = dsVkWriteBufferAccessFlags(buffer->usage, canMapMainBuffer);
-		VkAccessFlags dstAccessMask = dsVkReadBufferAccessFlags(buffer->usage);
-		VkBuffer vkBuffer = dsVkGfxBufferData_getBuffer(buffer);
-		VkBufferMemoryBarrier bufferBarrier =
-		{
-			VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER,
-			NULL,
-			srcAccessMask,
-			dstAccessMask,
-			VK_QUEUE_FAMILY_IGNORED,
-			VK_QUEUE_FAMILY_IGNORED,
-			vkBuffer,
-			offset,
-			size
-		};
-
-		// If recently added, implies that the following parts have already been done.
-		if (dsVkCommandBuffer_recentlyAddedBufferBarrier(commandBuffer, &bufferBarrier))
-			return true;
-
-		VkBufferMemoryBarrier* addedBarrier = dsVkCommandBuffer_addBufferBarrier(commandBuffer);
-		if (!addedBarrier)
-			return false;
-
-		*addedBarrier = bufferBarrier;
-	}
-
-	// Make sure the buffer is renderable.
-	dsVkRenderer_processGfxBuffer(commandBuffer->renderer, buffer);
-
-	// Getting the buffer added to the command buffer resource list.
-	return true;
-}
-
 void dsVkGfxBufferData_destroy(dsVkGfxBufferData* buffer)
 {
 	if (!buffer)

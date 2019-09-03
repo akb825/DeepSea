@@ -273,7 +273,7 @@ VkDescriptorSet dsVkDeviceMaterial_getDescriptorSet(dsCommandBuffer* commandBuff
 			{
 				DS_ASSERT(textureIndex < bindingMemory->counts.textures);
 				dsTexture* texture = dsMaterial_getTexture(material->material, i);
-				if (texture && !dsVkTexture_addMemoryBarrier(texture, commandBuffer))
+				if (texture && !dsVkTexture_processAndAddResource(texture, commandBuffer))
 				{
 					DS_VERIFY(dsSpinlock_unlock(&material->lock));
 					return 0;
@@ -293,14 +293,14 @@ VkDescriptorSet dsVkDeviceMaterial_getDescriptorSet(dsCommandBuffer* commandBuff
 
 				if (buffer)
 				{
-					size_t size = binding->count*dsGfxFormat_size(binding->format);
 					binding->buffer = dsVkGfxBuffer_getData(buffer, commandBuffer);
-					if (!binding->buffer || !dsVkGfxBufferData_addMemoryBarrier(binding->buffer,
-							binding->offset, size, commandBuffer))
+					if (!binding->buffer)
 					{
 						DS_VERIFY(dsSpinlock_unlock(&material->lock));
 						return 0;
 					}
+
+					dsVkRenderer_processGfxBuffer(commandBuffer->renderer, binding->buffer);
 				}
 				else
 				{
@@ -326,8 +326,7 @@ VkDescriptorSet dsVkDeviceMaterial_getDescriptorSet(dsCommandBuffer* commandBuff
 				if (buffer)
 				{
 					binding->buffer = dsVkGfxBuffer_getData(buffer, commandBuffer);
-					if (!binding->buffer || !dsVkGfxBufferData_addMemoryBarrier(binding->buffer, 0,
-							buffer->size, commandBuffer))
+					if (!binding->buffer)
 					{
 						DS_VERIFY(dsSpinlock_unlock(&material->lock));
 						return 0;
@@ -335,6 +334,7 @@ VkDescriptorSet dsVkDeviceMaterial_getDescriptorSet(dsCommandBuffer* commandBuff
 
 					binding->offset = 0;
 					binding->size = buffer->size;
+					dsVkRenderer_processGfxBuffer(commandBuffer->renderer, binding->buffer);
 				}
 				else
 				{
@@ -356,12 +356,12 @@ VkDescriptorSet dsVkDeviceMaterial_getDescriptorSet(dsCommandBuffer* commandBuff
 				if (buffer)
 				{
 					binding->buffer = dsVkGfxBuffer_getData(buffer, commandBuffer);
-					if (!binding->buffer || !dsVkGfxBufferData_addMemoryBarrier(binding->buffer,
-							binding->offset, binding->size, commandBuffer))
+					if (!binding->buffer)
 					{
 						DS_VERIFY(dsSpinlock_unlock(&material->lock));
 						return 0;
 					}
+					dsVkRenderer_processGfxBuffer(commandBuffer->renderer, binding->buffer);
 				}
 				else
 				{

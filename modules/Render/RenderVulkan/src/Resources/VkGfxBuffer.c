@@ -63,44 +63,43 @@ static bool addCopyToImageBarriers(dsCommandBuffer* commandBuffer,
 	{
 		const dsGfxBufferTextureCopyRegion* region = regions + i;
 
-		if (!reverse || !dsVkGfxBufferData_needsMemoryBarrier(srcBufferData, srcCanMap))
+		// Buffer barrier.
+		VkBufferMemoryBarrier* bufferBarrier =
+			dsVkCommandBuffer_addBufferBarrier(commandBuffer);
+		if (!bufferBarrier)
+			return false;
+
+		bufferBarrier->sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
+		bufferBarrier->pNext = NULL;
+		if (reverse)
 		{
-			VkBufferMemoryBarrier* bufferBarrier =
-				dsVkCommandBuffer_addCopyBufferBarrier(commandBuffer);
-			if (!bufferBarrier)
-				return false;
-
-			bufferBarrier->sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
-			bufferBarrier->pNext = NULL;
-			if (reverse)
-			{
-				bufferBarrier->srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
-				bufferBarrier->dstAccessMask = srcAccessFlags;
-			}
-			else
-			{
-				bufferBarrier->srcAccessMask = srcAccessFlags;
-				bufferBarrier->dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
-			}
-			bufferBarrier->srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-			bufferBarrier->dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-			bufferBarrier->buffer = srcVkBuffer;
-			bufferBarrier->offset = region->bufferOffset;
-
-			uint32_t bufferWidth = region->bufferWidth;
-			if (bufferWidth == 0)
-				bufferWidth = region->textureWidth;
-			uint32_t bufferHeight = region->bufferHeight;
-			if (bufferHeight == 0)
-				bufferHeight = region->textureHeight;
-			size_t bufferXBlocks = (bufferWidth + blockX - 1)/blockX;
-			size_t bufferYBlocks = (bufferHeight + blockY - 1)/blockY;
-			size_t textureXBlocks = (region->textureWidth + blockX - 1)/blockY;
-			size_t remainderBlocks = bufferXBlocks - textureXBlocks;
-			bufferBarrier->size =
-				((bufferXBlocks*bufferYBlocks*region->layers) - remainderBlocks)*formatSize;
+			bufferBarrier->srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+			bufferBarrier->dstAccessMask = srcAccessFlags;
 		}
+		else
+		{
+			bufferBarrier->srcAccessMask = srcAccessFlags;
+			bufferBarrier->dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+		}
+		bufferBarrier->srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		bufferBarrier->dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		bufferBarrier->buffer = srcVkBuffer;
+		bufferBarrier->offset = region->bufferOffset;
 
+		uint32_t bufferWidth = region->bufferWidth;
+		if (bufferWidth == 0)
+			bufferWidth = region->textureWidth;
+		uint32_t bufferHeight = region->bufferHeight;
+		if (bufferHeight == 0)
+			bufferHeight = region->textureHeight;
+		size_t bufferXBlocks = (bufferWidth + blockX - 1)/blockX;
+		size_t bufferYBlocks = (bufferHeight + blockY - 1)/blockY;
+		size_t textureXBlocks = (region->textureWidth + blockX - 1)/blockY;
+		size_t remainderBlocks = bufferXBlocks - textureXBlocks;
+		bufferBarrier->size =
+			((bufferXBlocks*bufferYBlocks*region->layers) - remainderBlocks)*formatSize;
+
+		// Image barrier.
 		const dsTexturePosition* dstPosition = &region->texturePosition;
 		uint32_t dstLayers, dstBaseLayer;
 		if (dstIs3D)
@@ -114,7 +113,7 @@ static bool addCopyToImageBarriers(dsCommandBuffer* commandBuffer,
 			dstBaseLayer = dstPosition->depth*dstFaceCount + dstPosition->face;
 		}
 
-		VkImageMemoryBarrier* barrier = dsVkCommandBuffer_addCopyImageBarrier(commandBuffer);
+		VkImageMemoryBarrier* barrier = dsVkCommandBuffer_addImageBarrier(commandBuffer);
 		if (!barrier)
 			return false;
 
@@ -475,15 +474,10 @@ bool dsVkGfxBuffer_copyData(dsResourceManager* resourceManager, dsCommandBuffer*
 			(const uint8_t*)data + block);
 	}
 
-	// Add a memory barrier if it otherwise doesn't need it for normal rendering.
-	if (!dsVkGfxBufferData_needsMemoryBarrier(bufferData, canMapMainBuffer))
-	{
-		barrier.dstAccessMask = barrier.srcAccessMask;
-		barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-		DS_VK_CALL(device->vkCmdPipelineBarrier)(vkCommandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT,
-			stages, 0, 0, NULL, 1, &barrier, 0, NULL);
-	}
-
+	barrier.dstAccessMask = barrier.srcAccessMask;
+	barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+	DS_VK_CALL(device->vkCmdPipelineBarrier)(vkCommandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT,
+		stages, 0, 0, NULL, 1, &barrier, 0, NULL);
 	return true;
 }
 
@@ -556,15 +550,12 @@ bool dsVkGfxBuffer_copy(dsResourceManager* resourceManager, dsCommandBuffer* com
 	DS_VK_CALL(device->vkCmdCopyBuffer)(vkCommandBuffer, srcCopyBuffer, dstCopyBuffer, 1,
 		&bufferCopy);
 
-	// Add a memory barrier if it otherwise doesn't need it for normal rendering.
-	if (!dsVkGfxBufferData_needsMemoryBarrier(dstBufferData, dstCanMapMainBuffer))
-	{
-		barriers->dstAccessMask = barriers[0].srcAccessMask;
-		barriers->srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-		DS_VK_CALL(device->vkCmdPipelineBarrier)(vkCommandBuffer, stages,
-			VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, NULL, 1, barriers, 0, NULL);
-	}
-
+	barriers[0].dstAccessMask = barriers[0].srcAccessMask;
+	barriers[0].srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+	barriers[1].dstAccessMask = barriers[1].srcAccessMask;
+	barriers[1].srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+	DS_VK_CALL(device->vkCmdPipelineBarrier)(vkCommandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT,
+		stages, 0, 0, NULL, 2, barriers, 0, NULL);
 	return true;
 }
 
@@ -597,7 +588,7 @@ bool dsVkGfxBuffer_copyToTexture(dsResourceManager* resourceManager, dsCommandBu
 	if (!addCopyToImageBarriers(commandBuffer, regions, regionCount, srcBufferData,
 			srcCanMapMainBuffer, dstTexture, false))
 	{
-		dsVkCommandBuffer_resetCopyBarriers(commandBuffer);
+		dsVkCommandBuffer_resetMemoryBarriers(commandBuffer);
 		return false;
 	}
 
@@ -656,7 +647,8 @@ bool dsVkGfxBuffer_copyToTexture(dsResourceManager* resourceManager, dsCommandBu
 		dsVkWriteImageStageFlags(renderer, dstTexture->usage, dstTexture->offscreen,
 			dstIsDepthStencil);
 	VkPipelineStageFlags stageFlags = srcStageFlags | dstStageFlags;
-	dsVkCommandBuffer_submitCopyBarriers(commandBuffer, stageFlags, VK_PIPELINE_STAGE_TRANSFER_BIT);
+	dsVkCommandBuffer_submitMemoryBarriers(commandBuffer, stageFlags,
+		VK_PIPELINE_STAGE_TRANSFER_BIT);
 	DS_VK_CALL(device->vkCmdCopyBufferToImage)(vkCommandBuffer,
 		dsVkGfxBufferData_getBuffer(srcBufferData), dstVkTexture->deviceImage,
 		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, regionCount, imageCopies);
@@ -667,10 +659,11 @@ bool dsVkGfxBuffer_copyToTexture(dsResourceManager* resourceManager, dsCommandBu
 	if (!addCopyToImageBarriers(commandBuffer, regions, regionCount, srcBufferData,
 			srcCanMapMainBuffer, dstTexture, true))
 	{
-		dsVkCommandBuffer_resetCopyBarriers(commandBuffer);
+		dsVkCommandBuffer_resetMemoryBarriers(commandBuffer);
 		return false;
 	}
-	dsVkCommandBuffer_submitCopyBarriers(commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, stageFlags);
+	dsVkCommandBuffer_submitMemoryBarriers(commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT,
+		stageFlags);
 
 	return true;
 }
