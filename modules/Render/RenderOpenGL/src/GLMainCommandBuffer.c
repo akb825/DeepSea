@@ -736,14 +736,12 @@ static void addSubpassBarrier(const dsSubpassDependency* dependencies, uint32_t 
 	dsGfxAccess combinedAccess = dsGfxAccess_None;
 	for (uint32_t i = 0; i < dependencyCount; ++i)
 	{
-		if ((dependencies[i].srcSubpass != beforeIndex &&
-				dependencies[i].dstSubpass != afterIndex) ||
-			dependencies[i].srcSubpass == dependencies[i].dstSubpass)
+		if ((dependencies[i].dstSubpass == beforeIndex ||
+				dependencies[i].srcSubpass == afterIndex) &&
+			dependencies[i].srcSubpass != dependencies[i].dstSubpass)
 		{
-			continue;
+			combinedAccess |= dependencies[i].srcAccess | dependencies[i].dstAccess;
 		}
-
-		combinedAccess |= dependencies[i].srcAccess | dependencies[i].dstAccess;
 	}
 
 	GLbitfield barriers = getBarriers(combinedAccess);
