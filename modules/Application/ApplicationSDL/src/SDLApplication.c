@@ -388,25 +388,17 @@ int dsSDLApplication_run(dsApplication* application)
 			uint32_t newWidth = sdlWindow->curWidth, newHeight = sdlWindow->curHeight;
 			dsSDLWindow_getSize(&newWidth, &newHeight, application, window);
 
-#if DS_ANDROID
-			// NOTE: On Android there's a delay between the window update and render surface update.
-			// This is less effecient, but required to get correct sizes. (e.g. when rotating)
+			// NOTE: Sometimes the surface resize doesn't correspond with the window resize event.
 			uint32_t oldWidth = window->surface->width;
 			uint32_t oldHeight = window->surface->height;
+			dsRenderSurfaceRotation oldRotation = window->surface->rotation;
 			dsRenderSurface_update(window->surface);
-			bool windowResized = window->surface->width != oldWidth ||
-				window->surface->height != oldHeight;
-#else
-			bool windowResized = newWidth != sdlWindow->curWidth ||
-				newHeight != sdlWindow->curHeight;
-#endif
 
-			if (windowResized)
+			if (window->surface->width != oldWidth ||
+				window->surface->height != oldHeight ||
+				window->surface->rotation != oldRotation)
 			{
-				// Already updated on Android.
-#if !DS_ANDROID
 				dsRenderSurface_update(window->surface);
-#endif
 
 				sdlWindow->curWidth = newWidth;
 				sdlWindow->curHeight = newHeight;
