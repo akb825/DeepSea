@@ -387,10 +387,6 @@ int dsSDLApplication_run(dsApplication* application)
 			dsSDLWindow* sdlWindow = (dsSDLWindow*)window;
 			uint32_t newWidth = sdlWindow->curWidth, newHeight = sdlWindow->curHeight;
 			dsSDLWindow_getSize(&newWidth, &newHeight, application, window);
-			bool windowResized = newWidth != sdlWindow->curWidth ||
-				newHeight != sdlWindow->curHeight;
-			if (windowResized)
-				hasResize = true;
 
 #if DS_ANDROID
 			// NOTE: On Android there's a delay between the window update and render surface update.
@@ -398,8 +394,11 @@ int dsSDLApplication_run(dsApplication* application)
 			uint32_t oldWidth = window->surface->width;
 			uint32_t oldHeight = window->surface->height;
 			dsRenderSurface_update(window->surface);
-			if (window->surface->width != oldWidth || window->surface->height != oldHeight)
-				windowResized = true;
+			bool windowResized = window->surface->width != oldWidth ||
+				window->surface->height != oldHeight;
+#else
+			bool windowResized = newWidth != sdlWindow->curWidth ||
+				newHeight != sdlWindow->curHeight;
 #endif
 
 			if (windowResized)
@@ -417,6 +416,7 @@ int dsSDLApplication_run(dsApplication* application)
 				event.resize.width = window->surface->width;
 				event.resize.height = window->surface->height;
 				dsApplication_dispatchEvent(application, window, &event);
+				hasResize = true;
 			}
 		}
 
