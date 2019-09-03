@@ -256,14 +256,18 @@ static void setEndImageBarrier(VkImageMemoryBarrier* imageBarrier, const dsFrame
 	imageBarrier->dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
 	if (isDepthStencil)
 	{
-		imageBarrier->srcAccessMask |= VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-		imageBarrier->dstAccessMask |= VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+		imageBarrier->srcAccessMask |= VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT |
+			VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+		imageBarrier->dstAccessMask |= VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT |
+			VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
 		imageBarrier->oldLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 	}
 	else
 	{
-		imageBarrier->srcAccessMask |= VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-		imageBarrier->dstAccessMask |= VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+		imageBarrier->srcAccessMask |= VK_ACCESS_COLOR_ATTACHMENT_READ_BIT |
+			VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+		imageBarrier->dstAccessMask |= VK_ACCESS_COLOR_ATTACHMENT_READ_BIT |
+			VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
 		imageBarrier->oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 	}
 	imageBarrier->newLayout = layout;
@@ -415,6 +419,7 @@ static bool endFramebuffer(dsCommandBuffer* commandBuffer, const dsFramebuffer* 
 				multisampleImage = surfaceData->resolveImage;
 				finalImage = surfaceData->images[surfaceData->imageIndex];
 				finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+				break;
 			}
 			case dsGfxSurfaceType_Offscreen:
 			{
@@ -458,16 +463,18 @@ static bool endFramebuffer(dsCommandBuffer* commandBuffer, const dsFramebuffer* 
 		imageBarrier->sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
 		imageBarrier->pNext = NULL;
 		imageBarrier->srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
-		imageBarrier->dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+		imageBarrier->dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_TRANSFER_WRITE_BIT;
 		imageBarrier->oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
 		if (isDepthStencil)
 		{
-			imageBarrier->dstAccessMask |= VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+			imageBarrier->dstAccessMask |= VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT |
+				VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
 			imageBarrier->newLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 		}
 		else
 		{
-			imageBarrier->dstAccessMask |= VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+			imageBarrier->dstAccessMask |= VK_ACCESS_COLOR_ATTACHMENT_READ_BIT |
+				VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
 			imageBarrier->newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 		}
 		imageBarrier->srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
