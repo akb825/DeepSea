@@ -47,7 +47,7 @@ TEST_P(ResourceCopyTest, CopyBuffers)
 		dsGfxMemory_GPUOnly, &testData, sizeof(testData));
 	ASSERT_TRUE(fromBuffer);
 	dsGfxBuffer* toBuffer = dsGfxBuffer_create(resourceManager, NULL, dsGfxBufferUsage_CopyTo,
-		(dsGfxMemory)(dsGfxMemory_Read | dsGfxMemory_Synchronize), NULL, sizeof(testData) + 4);
+		dsGfxMemory_Read | dsGfxMemory_Synchronize, NULL, sizeof(testData) + 4);
 	ASSERT_TRUE(toBuffer);
 	EXPECT_TRUE(dsGfxBuffer_copy(commandBuffer, fromBuffer, 0, toBuffer, 4, sizeof(testData)));
 	EXPECT_TRUE(dsRenderer_flush(renderer));
@@ -118,13 +118,11 @@ TEST_P(ResourceCopyTest, CopyTextures)
 
 	dsTextureInfo toInfo = {format, dsTextureDim_2D, 16, 32, 5, 2, 1};
 	dsTexture* toTexture = dsTexture_create(resourceManager, NULL,
-		(dsTextureUsage)(dsTextureUsage_CopyTo | dsTextureUsage_CopyFrom), dsGfxMemory_GPUOnly,
-		&toInfo, NULL, 0);
+		dsTextureUsage_CopyTo | dsTextureUsage_CopyFrom, dsGfxMemory_GPUOnly, &toInfo, NULL, 0);
 	ASSERT_TRUE(toTexture);
 
 	dsGfxBuffer* readBuffer = dsGfxBuffer_create(resourceManager, NULL, dsGfxBufferUsage_CopyTo,
-		(dsGfxMemory)(dsGfxMemory_Read | dsGfxMemory_Synchronize), NULL,
-		8*4*dsGfxFormat_size(format)*2);
+		dsGfxMemory_Read | dsGfxMemory_Synchronize, NULL, 8*4*dsGfxFormat_size(format)*2);
 	ASSERT_TRUE(readBuffer);
 
 	dsTextureCopyRegion copyRegion =
@@ -229,13 +227,11 @@ TEST_P(ResourceCopyTest, CopyBufferToTexture)
 
 	dsTextureInfo toInfo = {format, dsTextureDim_2D, 16, 32, 5, 2, 1};
 	dsTexture* toTexture = dsTexture_create(resourceManager, NULL,
-		(dsTextureUsage)(dsTextureUsage_CopyTo | dsTextureUsage_CopyFrom), dsGfxMemory_GPUOnly,
-		&toInfo, NULL, 0);
+		dsTextureUsage_CopyTo | dsTextureUsage_CopyFrom, dsGfxMemory_GPUOnly, &toInfo, NULL, 0);
 	ASSERT_TRUE(toTexture);
 
 	dsGfxBuffer* readBuffer = dsGfxBuffer_create(resourceManager, NULL, dsGfxBufferUsage_CopyTo,
-		(dsGfxMemory)(dsGfxMemory_Read | dsGfxMemory_Synchronize), NULL,
-		8*4*dsGfxFormat_size(format)*2);
+		dsGfxMemory_Read | dsGfxMemory_Synchronize, NULL, 8*4*dsGfxFormat_size(format)*2);
 	ASSERT_TRUE(fromBuffer);
 
 	// array index 2, mip level 1 (16 x 8), position (1, 2)
@@ -343,7 +339,7 @@ TEST_P(ResourceCopyTest, CopyTextureToBuffer)
 	dsTextureInfo toInfo = {format, dsTextureDim_2D, 16, 32, 5, 2, 1};
 	size_t toSize = dsTexture_size(&toInfo);
 	dsGfxBuffer* toBuffer = dsGfxBuffer_create(resourceManager, NULL, dsGfxBufferUsage_CopyTo,
-		(dsGfxMemory)(dsGfxMemory_Read | dsGfxMemory_Synchronize), NULL, toSize);
+		dsGfxMemory_Read | dsGfxMemory_Synchronize, NULL, toSize);
 	ASSERT_TRUE(toBuffer);
 
 	// array index 1, mip level 0, position (3, 4)

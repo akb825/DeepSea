@@ -711,11 +711,13 @@ bool dsGLCommandBuffer_popDebugGroup(dsRenderer* renderer, dsCommandBuffer* comm
 }
 
 bool dsGLCommandBuffer_memoryBarrier(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	dsGfxPipelineStage beforeStages, dsGfxPipelineStage afterStages,
 	const dsGfxMemoryBarrier* barriers, uint32_t barrierCount)
 {
 	DS_UNUSED(renderer);
 	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
-	return functions->memoryBarrierFunc(commandBuffer, barriers, barrierCount);
+	return functions->memoryBarrierFunc(commandBuffer, beforeStages, afterStages, barriers,
+		barrierCount);
 }
 
 bool dsGLCommandBuffer_begin(dsRenderer* renderer, dsCommandBuffer* commandBuffer)

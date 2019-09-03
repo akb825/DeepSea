@@ -18,6 +18,7 @@
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Assert.h>
+#include <DeepSea/Render/RenderPass.h>
 #include <string.h>
 
 dsRenderPass* dsMockRenderPass_create(dsRenderer* renderer, dsAllocator* allocator,
@@ -116,27 +117,28 @@ dsRenderPass* dsMockRenderPass_create(dsRenderer* renderer, dsAllocator* allocat
 				dsSubpassDependency* dependency =
 					(dsSubpassDependency*)(renderPass->subpassDependencies + i);
 				dependency->srcSubpass = i == 0 ? DS_EXTERNAL_SUBPASS : i - 1;
-				dependency->srcStages = dsSubpassDependencyFlags_FragmentColorOutput |
-					dsSubpassDependencyFlags_FragmentPostShadingTests;
+				dependency->dstStages = dsGfxPipelineStage_ColorOutput |
+					dsGfxPipelineStage_PostFragmentShaderTests;
+				dependency->srcAccess = dsGfxAccess_ColorAttachmentWrite |
+					dsGfxAccess_DepthStencilAttachmentWrite;
 				dependency->dstSubpass = i;
-				dependency->dstStages = dsSubpassDependencyFlags_FragmentShaderRead;
-				if (i == 0)
-				{
-					dependency->srcSubpass |= dsSubpassDependencyFlags_RenderPipeline;
-					dependency->dstStages |= dsSubpassDependencyFlags_DepthStencilAttachmentRead |
-						dsSubpassDependencyFlags_ColorAttachmentRead |
-						dsSubpassDependencyFlags_RenderPipeline;
-				}
+				dependency->dstStages = dsGfxPipelineStage_FragmentShader;
+				dependency->dstAccess = dsGfxAccess_InputAttachmentRead;
 				dependency->regionDependency = i > 0;
+				if (i == 0)
+					DS_VERIFY(dsRenderPass_addFirstSubpassDependencyFlags(dependency));
 			}
 
 			dsSubpassDependency* lastDependency =
 				(dsSubpassDependency*)(renderPass->subpassDependencies + subpassCount);
 			lastDependency->srcSubpass = subpassCount - 1;
-			lastDependency->srcStages = dsSubpassDependencyFlags_RenderPipeline;
+			lastDependency->srcStages = 0;
+			lastDependency->srcAccess = dsGfxAccess_None;
 			lastDependency->dstSubpass = DS_EXTERNAL_SUBPASS;
-			lastDependency->dstStages = dsSubpassDependencyFlags_RenderPipeline;
+			lastDependency->dstStages = 0;
+			lastDependency->dstAccess = dsGfxAccess_None;
 			lastDependency->regionDependency = false;
+			DS_VERIFY(dsRenderPass_addLastSubpassDependencyFlags(lastDependency));
 		}
 		else
 		{

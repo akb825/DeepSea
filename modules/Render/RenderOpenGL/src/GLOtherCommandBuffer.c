@@ -354,6 +354,8 @@ typedef struct PopDebugGroupCommand
 typedef struct MemoryBarrierCommand
 {
 	Command command;
+	dsGfxPipelineStage beforeStages;
+	dsGfxPipelineStage afterStages;
 	uint32_t barrierCount;
 	dsGfxMemoryBarrier barriers[];
 } MemoryBarrierCommand;
@@ -1270,6 +1272,7 @@ bool dsGLOtherCommandBuffer_popDebugGroup(dsCommandBuffer* commandBuffer)
 }
 
 bool dsGLOtherCommandBuffer_memoryBarrier(dsCommandBuffer* commandBuffer,
+	dsGfxPipelineStage beforeStages, dsGfxPipelineStage afterStages,
 	const dsGfxMemoryBarrier* barriers, uint32_t barrierCount)
 {
 	size_t commandSize = sizeof(MemoryBarrierCommand) + sizeof(dsGfxMemoryBarrier)*barrierCount;
@@ -1278,6 +1281,8 @@ bool dsGLOtherCommandBuffer_memoryBarrier(dsCommandBuffer* commandBuffer,
 	if (!command)
 		return false;
 
+	command->beforeStages = beforeStages;
+	command->afterStages = afterStages;
 	command->barrierCount = barrierCount;
 	memcpy(command->barriers, barriers, sizeof(dsGfxMemoryBarrier)*barrierCount);
 	return true;
@@ -1558,7 +1563,8 @@ bool dsGLOtherCommandBuffer_submit(dsCommandBuffer* commandBuffer, dsCommandBuff
 			{
 				MemoryBarrierCommand* thisCommand = (MemoryBarrierCommand*)command;
 				dsGLCommandBuffer_memoryBarrier(commandBuffer->renderer, commandBuffer,
-					thisCommand->barriers, thisCommand->barrierCount);
+					thisCommand->beforeStages, thisCommand->afterStages, thisCommand->barriers,
+					thisCommand->barrierCount);
 				break;
 			}
 			default:

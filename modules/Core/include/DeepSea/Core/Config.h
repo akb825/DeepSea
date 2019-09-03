@@ -289,6 +289,23 @@
  */
 #define DS_VERSION DS_ENCODE_VERSION(DS_MAJOR_VERSION, DS_MINOR_VERSION, DS_PATCH_VERSION)
 
+/**
+ * @brief Macro for defining bitwise operators for enums.
+ * @param type Enum type.
+ */
+#ifdef __cplusplus
+#define DS_ENUM_BITMASK_OPERATORS(type) \
+	inline type operator~(type x) {return (type)~(unsigned int)x;} \
+	inline type operator|(type l, type r) {return (type)((unsigned int)l | (unsigned int)r);} \
+	inline type operator&(type l, type r) {return (type)((unsigned int)l & (unsigned int)r);} \
+	inline type operator^(type l, type r) {return (type)((unsigned int)l ^ (unsigned int)r);} \
+	inline type& operator|=(type& l, type r) {return l = l | r;} \
+	inline type& operator&=(type& l, type r) {return l = l & r;} \
+	inline type& operator^=(type& l, type r) {return l = l ^ r;}
+#else
+#define DS_ENUM_BITMASK_OPERATORS(type)
+#endif
+
 #if DS_MSC
 #pragma warning(disable: 4200) // nonstandard extension used : zero-sized array in struct/union
 #endif

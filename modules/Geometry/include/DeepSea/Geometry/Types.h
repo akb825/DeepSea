@@ -613,3 +613,8 @@ typedef bool (*dsComplexPolygonPointFunction)(void* outPosition, const dsComplex
 #ifdef __cplusplus
 }
 #endif
+
+// Needs to be after the extern "C" block.
+/// @cond
+DS_ENUM_BITMASK_OPERATORS(dsKdTreeSide);
+/// @endcond

@@ -686,50 +686,67 @@ static void copyTextureData(const dsResourceManager* resourceManager, const dsTe
 	}
 }
 
+static GLbitfield getBarriers(dsGfxAccess access)
+{
+	// Only need a barrier if writing in the shader or host access.
+	if (!(access & (dsGfxAccess_ImageWrite | dsGfxAccess_UniformBufferWrite |
+			dsGfxAccess_MemoryRead | dsGfxAccess_MemoryWrite)))
+	{
+		return 0;
+	}
+
+	GLbitfield barriers = 0;
+	if (access & dsGfxAccess_VertexAttributeRead)
+		barriers |= GL_VERTEX_ATTRIB_ARRAY_BARRIER_BIT;
+	if (access & dsGfxAccess_IndexRead)
+		barriers |= GL_ELEMENT_ARRAY_BARRIER_BIT;
+	if (access & dsGfxAccess_UniformBlockRead)
+		barriers |= GL_UNIFORM_BARRIER_BIT;
+	if (access & dsGfxAccess_TextureRead)
+		barriers |= GL_TEXTURE_FETCH_BARRIER_BIT;
+	if (access & (dsGfxAccess_ImageRead | dsGfxAccess_ImageWrite))
+		barriers |= GL_SHADER_IMAGE_ACCESS_BARRIER_BIT;
+	if (access & dsGfxAccess_IndirectCommandRead)
+		barriers |= GL_COMMAND_BARRIER_BIT;
+	if (access & dsGfxAccess_ColorAttachmentWrite)
+		barriers |= GL_PIXEL_BUFFER_BARRIER_BIT;
+	if (access & (dsGfxAccess_CopyRead | dsGfxAccess_CopyWrite))
+	{
+		barriers |= GL_PIXEL_BUFFER_BARRIER_BIT | GL_TEXTURE_UPDATE_BARRIER_BIT |
+			GL_BUFFER_UPDATE_BARRIER_BIT;
+	}
+	if (access & (dsGfxAccess_ColorAttachmentRead | dsGfxAccess_ColorAttachmentWrite |
+			dsGfxAccess_DepthStencilAttachmentRead | dsGfxAccess_DepthStencilAttachmentWrite))
+	{
+		barriers |= GL_FRAMEBUFFER_BARRIER_BIT;
+	}
+	if (access & (dsGfxAccess_UniformBufferRead | dsGfxAccess_UniformBufferWrite))
+		barriers |= GL_SHADER_STORAGE_BARRIER_BIT;
+	if (access & (dsGfxAccess_MemoryRead | dsGfxAccess_MemoryWrite))
+		barriers |= GL_ALL_BARRIER_BITS;
+	return barriers;
+}
+
 static void addSubpassBarrier(const dsSubpassDependency* dependencies, uint32_t dependencyCount,
 	uint32_t beforeIndex, uint32_t afterIndex)
 {
 	if (!ANYGL_SUPPORTED(glMemoryBarrier))
 		return;
 
-	GLbitfield barriers = 0;
+	dsGfxAccess combinedAccess = dsGfxAccess_None;
 	for (uint32_t i = 0; i < dependencyCount; ++i)
 	{
-		if (dependencies[i].srcSubpass != beforeIndex && dependencies[i].dstSubpass != afterIndex)
+		if ((dependencies[i].srcSubpass != beforeIndex &&
+				dependencies[i].dstSubpass != afterIndex) ||
+			dependencies[i].srcSubpass == dependencies[i].dstSubpass)
+		{
 			continue;
+		}
 
-		dsSubpassDependencyFlags combinedFlags = dependencies[i].srcStages |
-			dependencies[i].dstStages;
-		if (combinedFlags & dsSubpassDependencyFlags_DrawIndirect)
-			barriers |= GL_COMMAND_BARRIER_BIT;
-		if (combinedFlags & dsSubpassDependencyFlags_VertexAttribute)
-			barriers |= GL_VERTEX_ATTRIB_ARRAY_BARRIER_BIT;
-		if (combinedFlags & dsSubpassDependencyFlags_Index)
-			barriers |= GL_ELEMENT_ARRAY_BARRIER_BIT;
-		if (combinedFlags & (dsSubpassDependencyFlags_VertexShaderRead |
-				dsSubpassDependencyFlags_VertexShaderWrite |
-				dsSubpassDependencyFlags_TessControlShaderRead |
-				dsSubpassDependencyFlags_TessControlShaderWrite |
-				dsSubpassDependencyFlags_TessEvalShaderRead |
-				dsSubpassDependencyFlags_TessEvalShaderWrite |
-				dsSubpassDependencyFlags_GeometryShaderRead |
-				dsSubpassDependencyFlags_GeometryShaderWrite |
-				dsSubpassDependencyFlags_FragmentShaderRead |
-				dsSubpassDependencyFlags_FragmentShaderWrite))
-		{
-			barriers |= GL_UNIFORM_BARRIER_BIT | GL_TEXTURE_FETCH_BARRIER_BIT |
-				GL_SHADER_IMAGE_ACCESS_BARRIER_BIT | GL_SHADER_STORAGE_BARRIER_BIT;
-		}
-		if (combinedFlags & (dsSubpassDependencyFlags_FragmentPreShadingTests |
-				dsSubpassDependencyFlags_FragmentColorOutput |
-				dsSubpassDependencyFlags_FragmentPostShadingTests |
-				dsSubpassDependencyFlags_DepthStencilAttachmentRead |
-				dsSubpassDependencyFlags_ColorAttachmentRead))
-		{
-			barriers |= GL_FRAMEBUFFER_BARRIER_BIT;
-		}
+		combinedAccess |= dependencies[i].srcAccess | dependencies[i].dstAccess;
 	}
 
+	GLbitfield barriers = getBarriers(combinedAccess);
 	if (barriers)
 		glMemoryBarrier(barriers);
 }
@@ -2063,44 +2080,22 @@ bool dsGLMainCommandBuffer_popDebugGroup(dsCommandBuffer* commandBuffer)
 }
 
 bool dsGLMainCommandBuffer_memoryBarrier(dsCommandBuffer* commandBuffer,
+	dsGfxPipelineStage beforeStages, dsGfxPipelineStage afterStages,
 	const dsGfxMemoryBarrier* barriers, uint32_t barrierCount)
 {
+	DS_UNUSED(commandBuffer);
+	DS_UNUSED(beforeStages);
+	DS_UNUSED(afterStages);
 	if (!ANYGL_SUPPORTED(glMemoryBarrier))
 		return true;
 
-	dsResourceManager* resourceManager = commandBuffer->renderer->resourceManager;
-	GLbitfield bitmask = 0;
+	dsGfxAccess combinedAccess = dsGfxAccess_None;
 	for (uint32_t i = 0; i < barrierCount; ++i)
-	{
-		dsGfxAccess combinedAccess = barriers[i].beforeAccess | barriers[i].afterAccess;
-		if (combinedAccess & dsGfxAccess_IndirectCommand)
-			bitmask |= GL_COMMAND_BARRIER_BIT;
-		if (combinedAccess & dsGfxAccess_Index)
-			bitmask |= GL_ELEMENT_ARRAY_BARRIER_BIT;
-		if (combinedAccess & dsGfxAccess_VertexAttribute)
-			bitmask |= GL_VERTEX_ATTRIB_ARRAY_BARRIER_BIT;
-		if (combinedAccess & dsGfxAccess_UniformBlock)
-			bitmask |= GL_UNIFORM_BARRIER_BIT;
-		if ((combinedAccess & dsGfxAccess_UniformBuffer) &&
-			(resourceManager->supportedBuffers & dsGfxBufferUsage_UniformBuffer))
-		{
-			bitmask |= GL_SHADER_STORAGE_BARRIER_BIT;
-		}
-		if (combinedAccess & (dsGfxAccess_Image | dsGfxAccess_InputAttachment))
-			bitmask |= GL_SHADER_IMAGE_ACCESS_BARRIER_BIT;
-		if (combinedAccess & dsGfxAccess_Texture)
-			bitmask |= GL_TEXTURE_FETCH_BARRIER_BIT;
-		if (combinedAccess & (dsGfxAccess_DepthStencilAttachment | dsGfxAccess_ColorAttachment))
-			bitmask |= GL_FRAMEBUFFER_BARRIER_BIT | GL_PIXEL_BUFFER_BARRIER_BIT;
-		if (combinedAccess & dsGfxAccess_Copy)
-			bitmask |= GL_BUFFER_UPDATE_BARRIER_BIT | GL_TEXTURE_UPDATE_BARRIER_BIT;
-		if (combinedAccess & dsGfxAccess_MappedBuffer)
-			bitmask |= GL_CLIENT_MAPPED_BUFFER_BARRIER_BIT;
-		if (combinedAccess & dsGfxAccess_Memory)
-			bitmask |= GL_ALL_BARRIER_BITS;
-	}
+		combinedAccess |= barriers[i].beforeAccess | barriers[i].afterAccess;
 
-	glMemoryBarrier(bitmask);
+	GLbitfield barrierBits = getBarriers(combinedAccess);
+	if (barrierBits)
+		glMemoryBarrier(barrierBits);
 	return true;
 }
 

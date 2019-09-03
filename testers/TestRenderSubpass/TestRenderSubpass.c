@@ -566,25 +566,29 @@ static bool setup(TestRenderSubpass* testRenderSubpass, dsApplication* applicati
 	dsSubpassDependency dependencies[] =
 	{
 		// Ensure synchronized with start of render pipeline.
-		{DS_EXTERNAL_SUBPASS, dsSubpassDependencyFlags_RenderPipeline, 0,
-			dsSubpassDependencyFlags_RenderPipeline, false},
-		{DS_EXTERNAL_SUBPASS, dsSubpassDependencyFlags_RenderPipeline, 1,
-			dsSubpassDependencyFlags_RenderPipeline, false},
-		{DS_EXTERNAL_SUBPASS, dsSubpassDependencyFlags_RenderPipeline, 2,
-			dsSubpassDependencyFlags_RenderPipeline, false},
+		{DS_EXTERNAL_SUBPASS, (dsGfxPipelineStage)0, dsGfxAccess_None, 0,
+			(dsGfxPipelineStage)0, dsGfxAccess_None, false},
+		{DS_EXTERNAL_SUBPASS, (dsGfxPipelineStage)0, dsGfxAccess_None, 1,
+			(dsGfxPipelineStage)0, dsGfxAccess_None, false},
+		{DS_EXTERNAL_SUBPASS, (dsGfxPipelineStage)0, dsGfxAccess_None, 2,
+			(dsGfxPipelineStage)0, dsGfxAccess_None, false},
 
 		// Dependencies of the subpasses.
-		{0, dsSubpassDependencyFlags_FragmentColorOutput, 3,
-			dsSubpassDependencyFlags_FragmentShaderRead, true},
-		{1, dsSubpassDependencyFlags_FragmentColorOutput, 3,
-			dsSubpassDependencyFlags_FragmentShaderRead, true},
-		{2, dsSubpassDependencyFlags_FragmentColorOutput, 3,
-			dsSubpassDependencyFlags_FragmentShaderRead, true},
+		{0, dsGfxPipelineStage_ColorOutput, dsGfxAccess_ColorAttachmentWrite, 3,
+			dsGfxPipelineStage_ColorOutput, dsGfxAccess_InputAttachmentRead, true},
+		{1, dsGfxPipelineStage_ColorOutput, dsGfxAccess_ColorAttachmentWrite, 3,
+			dsGfxPipelineStage_ColorOutput, dsGfxAccess_InputAttachmentRead, true},
+		{2, dsGfxPipelineStage_ColorOutput, dsGfxAccess_ColorAttachmentWrite, 3,
+			dsGfxPipelineStage_ColorOutput, dsGfxAccess_InputAttachmentRead, true},
 
 		// Ensure synchronized with the end of render pipeline.
-		{3, dsSubpassDependencyFlags_RenderPipeline, DS_EXTERNAL_SUBPASS,
-			dsSubpassDependencyFlags_RenderPipeline, false},
+		{3, (dsGfxPipelineStage)0, dsGfxAccess_None, DS_EXTERNAL_SUBPASS,
+			(dsGfxPipelineStage)0, dsGfxAccess_None, false},
 	};
+	DS_VERIFY(dsRenderPass_addFirstSubpassDependencyFlags(dependencies + 0));
+	DS_VERIFY(dsRenderPass_addFirstSubpassDependencyFlags(dependencies + 1));
+	DS_VERIFY(dsRenderPass_addFirstSubpassDependencyFlags(dependencies + 2));
+	DS_VERIFY(dsRenderPass_addLastSubpassDependencyFlags(dependencies + 6));
 	testRenderSubpass->renderPass = dsRenderPass_create(renderer, allocator, attachments,
 		attachmentCount, subpasses, DS_ARRAY_SIZE(subpasses), dependencies,
 		DS_ARRAY_SIZE(dependencies));

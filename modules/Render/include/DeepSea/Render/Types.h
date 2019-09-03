@@ -156,59 +156,6 @@ typedef enum dsGfxPlatform
 } dsGfxPlatform;
 
 /**
- * @brief Enum for the stage for a pipeline dependency.
- *
- * This enum is a bitmask to allow multiple combinations of the stage bits. Each bit represents a
- * stage of the graphics pipeline to either wait to complete (for the source stage) or wait to begin
- * (for the destination stage)
- *
- * @see RenderPass.h
- */
-typedef enum dsSubpassDependencyFlags
-{
-	/// Reading the indirect draw buffers.
-	dsSubpassDependencyFlags_DrawIndirect = 0x1,
-	/// Reading vertex attributes from the vertex shader.
-	dsSubpassDependencyFlags_VertexAttribute = 0x2,
-	/// Reading indices from the index buffer.
-	dsSubpassDependencyFlags_Index = 0x4,
-	/// Reads within the vertex shader.
-	dsSubpassDependencyFlags_VertexShaderRead = 0x8,
-	/// Writes within the vertex shader.
-	dsSubpassDependencyFlags_VertexShaderWrite = 0x10,
-	/// Reads within the tessellation control shader.
-	dsSubpassDependencyFlags_TessControlShaderRead = 0x20,
-	/// Writes within the tessellation control shader.
-	dsSubpassDependencyFlags_TessControlShaderWrite = 0x40,
-	/// Reads within the tessellation evaluation shader.
-	dsSubpassDependencyFlags_TessEvalShaderRead = 0x80,
-	/// Writes within the tessellation evaluation shader.
-	dsSubpassDependencyFlags_TessEvalShaderWrite = 0x100,
-	/// Reads within the geometry shader.
-	dsSubpassDependencyFlags_GeometryShaderRead = 0x200,
-	/// Writes within the geometry shader.
-	dsSubpassDependencyFlags_GeometryShaderWrite = 0x400,
-	/// Reads within the fragment shader.
-	dsSubpassDependencyFlags_FragmentShaderRead = 0x800,
-	/// Writes within the fragment shader.
-	dsSubpassDependencyFlags_FragmentShaderWrite = 0x1000,
-	/// Depth/stencil tests for fragments before shading. This includes reading the depth value.
-	dsSubpassDependencyFlags_FragmentPreShadingTests = 0x2000,
-	/// Final fragment color output.
-	dsSubpassDependencyFlags_FragmentColorOutput = 0x4000,
-	/// Depth/stencil tests for fragments after shading. This includes writing the depth result.
-	dsSubpassDependencyFlags_FragmentPostShadingTests = 0x8000,
-	/// Reads from a depth/stencil attachment when re-using across render passes.
-	dsSubpassDependencyFlags_DepthStencilAttachmentRead = 0x10000,
-	/// Reads from a color attachment when re-using across render passes.
-	dsSubpassDependencyFlags_ColorAttachmentRead = 0x20000,
-	/// Dependency for the render pipeline when used with DS_EXTERNAL_SUBPASS. This ensures that
-	/// attachment management works properly across multiple command buffer submissions and witing
-	/// for images from render surface buffer swaps.
-	dsSubpassDependencyFlags_RenderPipeline = 0x40000,
-} dsSubpassDependencyFlags;
-
-/**
  * @brief Enum for the type of a render surface.
  * @see RenderSurface.h
  */
@@ -276,23 +223,66 @@ typedef enum dsClearDepthStencil
 } dsClearDepthStencil;
 
 /**
+ * @brief Enum for a stage of the render pipeline.
+ *
+ * This is typically used in conjunction with dsGfxAccess to determine how memory is accessed inside
+ * the GPU stages.
+ */
+typedef enum dsGfxPipelineStage
+{
+	dsGfxPipelineStage_CommandBuffer = 0x1,   ///< Begin/end of the command buffer execution.
+	dsGfxPipelineStage_DrawIndirect = 0x2,    ///< Consume indirect draw parameters.
+	dsGfxPipelineStage_VertexInput = 0x4,     ///< Read vertex attributes and indices.
+	dsGfxPipelineStage_VertexShader = 0x8,    ///< Execution of vertex shader.
+	/// Execution of tessellation control shader.
+	dsGfxPipelineStage_TessellationControlShader = 0x10,
+	/// Execution of tessellation evaluation shader.
+	dsGfxPipelineStage_TessellationEvaluationShader = 0x20,
+	dsGfxPipelineStage_GeometryShader = 0x40, ///< Execution of geometry shader.
+	dsGfxPipelineStage_FragmentShader = 0x80, ///< Execution of fragment shader.
+	/// Tests before running the fragment shader. This includes reading depth values.
+	dsGfxPipelineStage_PreFragmentShaderTests = 0x100,
+	/// Tests after running the fragment shader. This includes writing depth values.
+	dsGfxPipelineStage_PostFragmentShaderTests = 0x200,
+	/// Color output after running the fragment shader. This also handles loads for blending and
+	/// multisample resolve.
+	dsGfxPipelineStage_ColorOutput = 0x400,
+	dsGfxPipelineStage_ComputeShader = 0x800, ///< Execution of compute shader.
+	dsGfxPipelineStage_Copy = 0x1000,         ///< Copy between buffers and textures.
+	dsGfxPipelineStage_HostAccess = 0x2000,   ///< Access of mapped memory on the host.
+	dsGfxPipelineStage_AllGraphics = 0x4000,  ///< All graphics stages.
+	dsGfxPipelineStage_AllCommands = 0x8000,  ///< All graphics and compute stages.
+} dsGfxPipelineStage;
+
+/**
  * @brief Bitmask enum for determining graphics memory access.
+ *
+ * This is typically used with dsGfxPipelineStage to determine what rendering stages the access
+ * occurs in.
  */
 typedef enum dsGfxAccess
 {
-	dsGfxAccess_IndirectCommand = 0x1,          ///< Indirect draw/compute buffers.
-	dsGfxAccess_Index = 0x2,                    ///< Index buffers.
-	dsGfxAccess_VertexAttribute = 0x4,          ///< Vertex buffers.
-	dsGfxAccess_UniformBlock = 0x8,             ///< Uniform blocks.
-	dsGfxAccess_UniformBuffer = 0x10,           ///< Uniform buffers.
-	dsGfxAccess_Image = 0x20,                   ///< Image load/store operations.
-	dsGfxAccess_Texture = 0x40,                 ///< Texture load operations.
-	dsGfxAccess_InputAttachment = 0x80,         ///< Render pass input attachments.
-	dsGfxAccess_ColorAttachment = 0x100,        ///< Color attachments.
-	dsGfxAccess_DepthStencilAttachment = 0x200, ///< Depth/stencil attachments.
-	dsGfxAccess_Copy = 0x400,                   ///< Copy operation.
-	dsGfxAccess_MappedBuffer = 0x800,           ///< Direct access to a mapped buffer.
-	dsGfxAccess_Memory = 0x1000                 ///< General memory access.
+	dsGfxAccess_None = 0x0,                           ///< No access flags.
+	dsGfxAccess_IndirectCommandRead = 0x1,            ///< Read data for indirect draws and compute.
+	dsGfxAccess_IndexRead = 0x2,                      ///< Read the index buffer.
+	dsGfxAccess_VertexAttributeRead = 0x4,            ///< Read vertex attributes.
+	dsGfxAccess_UniformBlockRead = 0x8,               ///< Read a uniform block from a shader.
+	dsGfxAccess_UniformBufferRead = 0x10,             ///< Read a uniform buffer from a shader.
+	dsGfxAccess_UniformBufferWrite = 0x20,            ///< Write a uniform buffer from a shader.
+	dsGfxAccess_TextureRead = 0x40,                   ///< Read a texture from a shader.
+	dsGfxAccess_ImageRead = 0x80,                     ///< Read an image from a shader.
+	dsGfxAccess_ImageWrite = 0x100,                   ///< Write an image from a shader.
+	dsGfxAccess_InputAttachmentRead = 0x200,          ///< Read a subpass input attachment.
+	dsGfxAccess_ColorAttachmentRead = 0x400,          ///< Read from a color attachment.
+	dsGfxAccess_ColorAttachmentWrite = 0x800,         ///< Write to a color attachment.
+	dsGfxAccess_DepthStencilAttachmentRead = 0x1000,  ///< Read from a depth/stencil attachment.
+	dsGfxAccess_DepthStencilAttachmentWrite = 0x2000, ///< Write to a depth/stencil attachment.
+	dsGfxAccess_CopyRead = 0x4000,                    ///< Read for a copy operation.
+	dsGfxAccess_CopyWrite = 0x8000,                   ///< Write for a copy operation.
+	dsGfxAccess_HostRead = 0x10000,                   ///< Read mapped memory from the host.
+	dsGfxAccess_HostWrite = 0x20000,                  ///< Write mapped memory from the host.
+	dsGfxAccess_MemoryRead = 0x40000,                 ///< General memory read access.
+	dsGfxAccess_MemoryWrite = 0x80000,                ///< General memory write access.
 } dsGfxAccess;
 
 /**
@@ -730,7 +720,12 @@ typedef struct dsSubpassDependency
 	/**
 	 * @brief The stages to wait after in the source subpass.
 	 */
-	dsSubpassDependencyFlags srcStages;
+	dsGfxPipelineStage srcStages;
+
+	/**
+	 * @brief The access types to wait after in the source subpass.
+	 */
+	dsGfxAccess srcAccess;
 
 	/**
 	 * @brief The index of the destination subpass.
@@ -742,7 +737,12 @@ typedef struct dsSubpassDependency
 	/**
 	 * @brief The stages to wait before executing in the destination subpass.
 	 */
-	dsSubpassDependencyFlags dstStages;
+	dsGfxPipelineStage dstStages;
+
+	/**
+	 * @brief The access types wait before executing in the destination subpass.
+	 */
+	dsGfxAccess dstAccess;
 
 	/**
 	 * @brief True if the dependency is by region as opposed to the full surface.
@@ -1562,11 +1562,14 @@ typedef bool (*dsBlitSurfaceFunction)(dsRenderer* renderer, dsCommandBuffer* com
  * @brief Function for adding a memory barrier.
  * @param renderer The renderer.
  * @param commandBuffer The command buffer to place the barrier on.
+ * @param beforeStages The stages to wait on before the barrier.
+ * @param afterStages The stages to wait for after the barrier.
  * @param barriers List of write/read dependencies to place barriers for.
  * @param barrierCount The number of barriers.
  * @return False if the barrier couldn't be added.
  */
 typedef bool (*dsGfxMemoryBarrierFunction)(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	dsGfxPipelineStage beforeStages, dsGfxPipelineStage afterStages,
 	const dsGfxMemoryBarrier* barriers, uint32_t barrierCount);
 
 /**
@@ -2068,3 +2071,11 @@ struct dsRenderer
 #ifdef __cplusplus
 }
 #endif
+
+// Needs to be after the extern "C" block.
+/// @cond
+DS_ENUM_BITMASK_OPERATORS(dsAttachmentUsage);
+DS_ENUM_BITMASK_OPERATORS(dsCommandBufferUsage);
+DS_ENUM_BITMASK_OPERATORS(dsGfxPipelineStage);
+DS_ENUM_BITMASK_OPERATORS(dsGfxAccess);
+/// @endcond

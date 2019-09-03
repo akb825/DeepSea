@@ -381,14 +381,20 @@ DS_RENDER_EXPORT bool dsRenderer_blitSurface(dsRenderer* renderer, dsCommandBuff
 
 /**
  * @brief Adds a memory barrier to ensure writes are properly performed before reads.
+ * @remark When called within a render pass, the subpass must have a self-dependency. This means
+ *     having a dsSubpassDependency with srcSubpass and dstSubpass both set to the current subpass
+ *     index.
  * @remark errno will be set on failure.
  * @param renderer The rendferer.
  * @param commandBuffer The command buffer to place the barrier on.
+ * @param beforeStages The stages to wait on before the barrier.
+ * @param afterStages The stages to wait for after the barrier.
  * @param barriers List of write/read dependencies to place barriers for.
  * @param barrierCount The number of barriers.
  * @return False if the barrier couldn't be added.
  */
 DS_RENDER_EXPORT bool dsRenderer_memoryBarrier(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	dsGfxPipelineStage beforeStages, dsGfxPipelineStage afterStages,
 	const dsGfxMemoryBarrier* barriers, uint32_t barrierCount);
 
 /**

@@ -30,10 +30,10 @@ TEST_F(RenderPassTest, Create)
 {
 	dsAttachmentInfo attachments[] =
 	{
-		{(dsAttachmentUsage)(dsAttachmentUsage_Clear | dsAttachmentUsage_KeepAfter),
-			renderer->surfaceDepthStencilFormat, DS_DEFAULT_ANTIALIAS_SAMPLES},
-		{(dsAttachmentUsage)(dsAttachmentUsage_Clear | dsAttachmentUsage_KeepAfter),
-			renderer->surfaceColorFormat, DS_DEFAULT_ANTIALIAS_SAMPLES},
+		{dsAttachmentUsage_Clear | dsAttachmentUsage_KeepAfter, renderer->surfaceDepthStencilFormat,
+			DS_DEFAULT_ANTIALIAS_SAMPLES},
+		{dsAttachmentUsage_Clear | dsAttachmentUsage_KeepAfter, renderer->surfaceColorFormat,
+			DS_DEFAULT_ANTIALIAS_SAMPLES},
 		{dsAttachmentUsage_Clear, renderer->surfaceColorFormat, DS_DEFAULT_ANTIALIAS_SAMPLES},
 		{dsAttachmentUsage_Clear, renderer->surfaceColorFormat, DS_DEFAULT_ANTIALIAS_SAMPLES}
 	};
@@ -56,13 +56,16 @@ TEST_F(RenderPassTest, Create)
 
 	dsSubpassDependency dependencies[] =
 	{
-		{DS_EXTERNAL_SUBPASS, dsSubpassDependencyFlags_FragmentColorOutput, 0,
-			dsSubpassDependencyFlags_FragmentShaderRead, false},
-		{0, dsSubpassDependencyFlags_FragmentColorOutput, 2,
-			dsSubpassDependencyFlags_FragmentShaderRead, true},
-		{1, dsSubpassDependencyFlags_FragmentColorOutput, 2,
-			dsSubpassDependencyFlags_FragmentShaderRead, true}
+		{DS_EXTERNAL_SUBPASS, (dsGfxPipelineStage)0, dsGfxAccess_None, 0, (dsGfxPipelineStage)0,
+			dsGfxAccess_None, false},
+		{0, dsGfxPipelineStage_ColorOutput | dsGfxPipelineStage_PostFragmentShaderTests,
+			dsGfxAccess_ColorAttachmentWrite | dsGfxAccess_DepthStencilAttachmentWrite, 2,
+			dsGfxPipelineStage_FragmentShader, dsGfxAccess_InputAttachmentRead, true},
+		{1, dsGfxPipelineStage_ColorOutput | dsGfxPipelineStage_PostFragmentShaderTests,
+			dsGfxAccess_ColorAttachmentWrite | dsGfxAccess_DepthStencilAttachmentWrite, 2,
+			dsGfxPipelineStage_FragmentShader, dsGfxAccess_InputAttachmentRead, true}
 	};
+	EXPECT_TRUE(dsRenderPass_addFirstSubpassDependencyFlags(dependencies + 0));
 	uint32_t dependencyCount = DS_ARRAY_SIZE(dependencies);
 
 	EXPECT_FALSE(dsRenderPass_create(NULL, NULL, attachments, attachmentCount,
@@ -143,10 +146,10 @@ TEST_F(RenderPassTest, BeginNextEnd)
 {
 	dsAttachmentInfo attachments[] =
 	{
-		{(dsAttachmentUsage)(dsAttachmentUsage_Clear | dsAttachmentUsage_KeepAfter),
-			renderer->surfaceDepthStencilFormat, renderer->surfaceSamples},
-		{(dsAttachmentUsage)(dsAttachmentUsage_Clear | dsAttachmentUsage_KeepAfter),
-			renderer->surfaceColorFormat, renderer->surfaceSamples},
+		{dsAttachmentUsage_Clear | dsAttachmentUsage_KeepAfter, renderer->surfaceDepthStencilFormat,
+			renderer->surfaceSamples},
+		{dsAttachmentUsage_Clear | dsAttachmentUsage_KeepAfter, renderer->surfaceColorFormat,
+			renderer->surfaceSamples},
 		{dsAttachmentUsage_Clear, renderer->surfaceColorFormat, renderer->surfaceSamples},
 		{dsAttachmentUsage_Clear, renderer->surfaceColorFormat, renderer->surfaceSamples}
 	};
@@ -169,10 +172,12 @@ TEST_F(RenderPassTest, BeginNextEnd)
 
 	dsSubpassDependency dependencies[] =
 	{
-		{0, dsSubpassDependencyFlags_FragmentColorOutput, 2,
-			dsSubpassDependencyFlags_FragmentShaderRead, true},
-		{1, dsSubpassDependencyFlags_FragmentColorOutput, 2,
-			dsSubpassDependencyFlags_FragmentShaderRead, true}
+		{0, dsGfxPipelineStage_ColorOutput | dsGfxPipelineStage_PostFragmentShaderTests,
+			dsGfxAccess_ColorAttachmentWrite | dsGfxAccess_DepthStencilAttachmentWrite, 2,
+			dsGfxPipelineStage_FragmentShader, dsGfxAccess_InputAttachmentRead, true},
+		{1, dsGfxPipelineStage_ColorOutput | dsGfxPipelineStage_PostFragmentShaderTests,
+			dsGfxAccess_ColorAttachmentWrite | dsGfxAccess_DepthStencilAttachmentWrite, 2,
+			dsGfxPipelineStage_FragmentShader, dsGfxAccess_InputAttachmentRead, true}
 	};
 	uint32_t dependencyCount = DS_ARRAY_SIZE(dependencies);
 

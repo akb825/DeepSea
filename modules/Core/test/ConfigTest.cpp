@@ -19,6 +19,14 @@
 #include <limits.h>
 #include <stdint.h>
 
+enum Bits
+{
+	Bit1 = 0x1,
+	Bit2 = 0x2,
+};
+
+DS_ENUM_BITMASK_OPERATORS(Bits);
+
 TEST(ConfigTest, IsBufferRangeValid)
 {
 	uint32_t offset, rangeSize, bufferSize;
@@ -74,4 +82,29 @@ TEST(ConfigTest, EncodeVersion)
 TEST(ConfigTest, LibraryVersion)
 {
 	EXPECT_NE(0U, DS_VERSION);
+}
+
+TEST(ConfigTest, EnumBitmaskOperators)
+{
+	Bits value = Bit1 | Bit2;
+	EXPECT_EQ(0x3U, (unsigned int)value);
+
+	value = value & Bit2;
+	EXPECT_EQ(0x2U, (unsigned int)value);
+
+	value = value ^ (Bit1 | Bit2);
+	EXPECT_EQ(0x1U, (unsigned int)value);
+
+	value = ~value;
+	EXPECT_EQ(0xFFFFFFFEU, (unsigned int)value);
+
+	value = Bit1;
+	value |= Bit2;
+	EXPECT_EQ(0x3U, (unsigned int)value);
+
+	value &= Bit2;
+	EXPECT_EQ(0x2U, (unsigned int)value);
+
+	value ^= (Bit1 | Bit2);
+	EXPECT_EQ(0x1U, (unsigned int)value);
 }

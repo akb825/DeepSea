@@ -90,7 +90,7 @@ TEST_F(ShaderTest, Create)
 TEST_F(ShaderTest, CreateNoBuffers)
 {
 	resourceManager->supportedBuffers =
-		(dsGfxBufferUsage)(resourceManager->supportedBuffers & ~dsGfxBufferUsage_UniformBlock);
+		resourceManager->supportedBuffers & ~dsGfxBufferUsage_UniformBlock;
 
 	dsShaderVariableElement transformElements[] =
 	{
@@ -132,7 +132,7 @@ TEST_F(ShaderTest, CreateNoBuffers)
 TEST_F(ShaderTest, CreateNoBuffersDuplicateElements)
 {
 	resourceManager->supportedBuffers =
-		(dsGfxBufferUsage)(resourceManager->supportedBuffers & ~dsGfxBufferUsage_UniformBlock);
+		resourceManager->supportedBuffers & ~dsGfxBufferUsage_UniformBlock;
 
 	dsShaderVariableElement transformElements[] =
 	{
@@ -369,13 +369,11 @@ TEST_F(ShaderTest, BindAndUpdate)
 	dsTextureInfo texInfo = {dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm),
 		dsTextureDim_2D, 16, 16, 0, DS_ALL_MIP_LEVELS, 1};
 	dsTexture* texture1 = dsTexture_create(resourceManager, NULL,
-		(dsTextureUsage)(dsTextureUsage_Texture | dsTextureUsage_CopyTo), dsGfxMemory_Static,
-		&texInfo, NULL, 0);
+		dsTextureUsage_Texture | dsTextureUsage_CopyTo, dsGfxMemory_Static, &texInfo, NULL, 0);
 	ASSERT_TRUE(texture1);
 
 	dsTexture* texture2 = dsTexture_create(resourceManager, NULL,
-		(dsTextureUsage)(dsTextureUsage_Image | dsTextureUsage_CopyTo), dsGfxMemory_Static,
-		&texInfo, NULL, 0);
+		dsTextureUsage_Image | dsTextureUsage_CopyTo, dsGfxMemory_Static, &texInfo, NULL, 0);
 	ASSERT_TRUE(texture2);
 
 	dsSharedMaterialValues* globalValues = dsSharedMaterialValues_create(
@@ -472,13 +470,13 @@ TEST_F(ShaderTest, BindAndUpdateBuffer)
 	ASSERT_TRUE(material);
 
 	dsGfxBuffer* buffer1 = dsGfxBuffer_create(resourceManager, (dsAllocator*)&allocator,
-		(dsGfxBufferUsage)(dsGfxBufferUsage_UniformBlock | dsGfxBufferUsage_CopyTo),
-		dsGfxMemory_Static, NULL, sizeof(float)*28);
+		dsGfxBufferUsage_UniformBlock | dsGfxBufferUsage_CopyTo, dsGfxMemory_Static, NULL,
+		sizeof(float)*28);
 	ASSERT_TRUE(buffer1);
 
 	dsGfxBuffer* buffer2 = dsGfxBuffer_create(resourceManager, (dsAllocator*)&allocator,
-		(dsGfxBufferUsage)(dsGfxBufferUsage_UniformBuffer | dsGfxBufferUsage_CopyTo),
-		dsGfxMemory_Static, NULL, sizeof(float)*28);
+		dsGfxBufferUsage_UniformBuffer | dsGfxBufferUsage_CopyTo, dsGfxMemory_Static, NULL,
+		sizeof(float)*28);
 	ASSERT_TRUE(buffer2);
 
 	dsSharedMaterialValues* globalValues = dsSharedMaterialValues_create(
@@ -544,13 +542,13 @@ TEST_F(ShaderTest, BindAndUpdateInstanceBuffer)
 	ASSERT_TRUE(material);
 
 	dsGfxBuffer* buffer1 = dsGfxBuffer_create(resourceManager, (dsAllocator*)&allocator,
-		(dsGfxBufferUsage)(dsGfxBufferUsage_UniformBlock | dsGfxBufferUsage_CopyTo),
-		dsGfxMemory_Static, NULL, sizeof(float)*28);
+		dsGfxBufferUsage_UniformBlock | dsGfxBufferUsage_CopyTo, dsGfxMemory_Static, NULL,
+		sizeof(float)*28);
 	ASSERT_TRUE(buffer1);
 
 	dsGfxBuffer* buffer2 = dsGfxBuffer_create(resourceManager, (dsAllocator*)&allocator,
-		(dsGfxBufferUsage)(dsGfxBufferUsage_UniformBuffer | dsGfxBufferUsage_CopyTo),
-		dsGfxMemory_Static, NULL, sizeof(float)*28);
+		dsGfxBufferUsage_UniformBuffer | dsGfxBufferUsage_CopyTo, dsGfxMemory_Static, NULL,
+		sizeof(float)*28);
 	ASSERT_TRUE(buffer2);
 
 	dsSharedMaterialValues* instanceValues = dsSharedMaterialValues_create(
@@ -647,13 +645,11 @@ TEST_F(ShaderTest, BindAndUpdateCompute)
 	dsTextureInfo texInfo = {dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm),
 		dsTextureDim_2D, 16, 16, 0, DS_ALL_MIP_LEVELS, 1};
 	dsTexture* texture1 = dsTexture_create(resourceManager, NULL,
-		(dsTextureUsage)(dsTextureUsage_Texture | dsTextureUsage_CopyTo), dsGfxMemory_Static,
-		&texInfo, NULL, 0);
+		dsTextureUsage_Texture | dsTextureUsage_CopyTo, dsGfxMemory_Static, &texInfo, NULL, 0);
 	ASSERT_TRUE(texture1);
 
 	dsTexture* texture2 = dsTexture_create(resourceManager, NULL,
-		(dsTextureUsage)(dsTextureUsage_Image | dsTextureUsage_CopyTo), dsGfxMemory_Static,
-		&texInfo, NULL, 0);
+		dsTextureUsage_Image | dsTextureUsage_CopyTo, dsGfxMemory_Static, &texInfo, NULL, 0);
 	ASSERT_TRUE(texture2);
 
 	dsSharedMaterialValues* globalValues = dsSharedMaterialValues_create(
@@ -749,13 +745,13 @@ TEST_F(ShaderTest, BindAndUpdateComputeBuffer)
 	ASSERT_TRUE(material);
 
 	dsGfxBuffer* buffer1 = dsGfxBuffer_create(resourceManager, (dsAllocator*)&allocator,
-		(dsGfxBufferUsage)(dsGfxBufferUsage_UniformBlock | dsGfxBufferUsage_CopyTo),
-		dsGfxMemory_Static, NULL, sizeof(float)*28);
+		dsGfxBufferUsage_UniformBlock | dsGfxBufferUsage_CopyTo, dsGfxMemory_Static, NULL,
+		sizeof(float)*28);
 	ASSERT_TRUE(buffer1);
 
 	dsGfxBuffer* buffer2 = dsGfxBuffer_create(resourceManager, (dsAllocator*)&allocator,
-		(dsGfxBufferUsage)(dsGfxBufferUsage_UniformBuffer | dsGfxBufferUsage_CopyTo),
-		dsGfxMemory_Static, NULL, sizeof(float)*28);
+		dsGfxBufferUsage_UniformBuffer | dsGfxBufferUsage_CopyTo, dsGfxMemory_Static, NULL,
+		sizeof(float)*28);
 	ASSERT_TRUE(buffer2);
 
 	dsSharedMaterialValues* globalValues = dsSharedMaterialValues_create(
@@ -820,13 +816,13 @@ TEST_F(ShaderTest, BindAndUpdateComputeInstanceBuffer)
 	ASSERT_TRUE(material);
 
 	dsGfxBuffer* buffer1 = dsGfxBuffer_create(resourceManager, (dsAllocator*)&allocator,
-		(dsGfxBufferUsage)(dsGfxBufferUsage_UniformBlock | dsGfxBufferUsage_CopyTo),
-		dsGfxMemory_Static, NULL, sizeof(float)*28);
+		dsGfxBufferUsage_UniformBlock | dsGfxBufferUsage_CopyTo, dsGfxMemory_Static, NULL,
+		sizeof(float)*28);
 	ASSERT_TRUE(buffer1);
 
 	dsGfxBuffer* buffer2 = dsGfxBuffer_create(resourceManager, (dsAllocator*)&allocator,
-		(dsGfxBufferUsage)(dsGfxBufferUsage_UniformBuffer | dsGfxBufferUsage_CopyTo),
-		dsGfxMemory_Static, NULL, sizeof(float)*28);
+		dsGfxBufferUsage_UniformBuffer | dsGfxBufferUsage_CopyTo, dsGfxMemory_Static, NULL,
+		sizeof(float)*28);
 	ASSERT_TRUE(buffer2);
 
 	dsSharedMaterialValues* instanceValues = dsSharedMaterialValues_create(

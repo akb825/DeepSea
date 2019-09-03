@@ -124,6 +124,7 @@ bool dsGLCommandBuffer_pushDebugGroup(dsRenderer* renderer, dsCommandBuffer* com
 bool dsGLCommandBuffer_popDebugGroup(dsRenderer* renderer, dsCommandBuffer* commandBuffer);
 
 bool dsGLCommandBuffer_memoryBarrier(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	dsGfxPipelineStage beforeStages, dsGfxPipelineStage afterStages,
 	const dsGfxMemoryBarrier* barriers, uint32_t barrierCount);
 
 bool dsGLCommandBuffer_begin(dsRenderer* renderer, dsCommandBuffer* commandBuffer);

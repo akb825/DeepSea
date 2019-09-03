@@ -1135,96 +1135,6 @@ static bool beginDispatch(dsRenderer* renderer, VkCommandBuffer submitBuffer,
 	return dsVkCommandBuffer_submitMemoryBarriers(commandBuffer, srcStages, dstStages);
 }
 
-static void addShaderPipelineMask(dsRenderer* renderer, VkPipelineStageFlags* stages)
-{
-	*stages |= VK_PIPELINE_STAGE_VERTEX_SHADER_BIT | VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT |
-		VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
-	if (renderer->hasTessellationShaders)
-	{
-		*stages |= VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT |
-			VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT;
-	}
-	if (renderer->hasGeometryShaders)
-		*stages |= VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT;
-}
-
-static VkAccessFlags getMemoryAccessMask(dsRenderer* renderer, VkPipelineStageFlags* stages,
-	dsGfxAccess access)
-{
-	if (access & dsGfxAccess_Memory)
-	{
-		return getMemoryAccessMask(renderer, stages,
-			(dsGfxAccess)(0xFFFFFFFF & ~(dsGfxAccess_Memory)));
-	}
-
-	VkAccessFlags accessMask = 0;
-	if (access & dsGfxAccess_IndirectCommand)
-	{
-		accessMask |= VK_ACCESS_INDIRECT_COMMAND_READ_BIT;
-		*stages |= VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT;
-	}
-
-	if (access & dsGfxAccess_Index)
-	{
-		accessMask |= VK_ACCESS_INDEX_READ_BIT;
-		*stages |= VK_PIPELINE_STAGE_VERTEX_INPUT_BIT;
-	}
-
-	if (access & dsGfxAccess_VertexAttribute)
-	{
-		accessMask |= VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT;
-		*stages |= VK_PIPELINE_STAGE_VERTEX_INPUT_BIT;
-	}
-
-	if (access & dsGfxAccess_UniformBlock)
-	{
-		accessMask |= VK_ACCESS_UNIFORM_READ_BIT;
-		addShaderPipelineMask(renderer, stages);
-	}
-
-	if (access & (dsGfxAccess_UniformBuffer | dsGfxAccess_Image | dsGfxAccess_Texture))
-	{
-		accessMask |= VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT;
-		addShaderPipelineMask(renderer, stages);
-	}
-
-	if (access & dsGfxAccess_InputAttachment)
-	{
-		accessMask |= VK_ACCESS_INPUT_ATTACHMENT_READ_BIT;
-		*stages |= VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT |
-			VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-	}
-
-	if (access & dsGfxAccess_ColorAttachment)
-	{
-		accessMask |= VK_ACCESS_COLOR_ATTACHMENT_READ_BIT |
-			VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-		*stages |= VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-	}
-
-	if (access & dsGfxAccess_DepthStencilAttachment)
-	{
-		accessMask |= VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT |
-			VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-		*stages |= VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT |
-			VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
-	}
-
-	if (access & dsGfxAccess_Copy)
-	{
-		accessMask |= VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_TRANSFER_WRITE_BIT;
-		*stages |= VK_PIPELINE_STAGE_TRANSFER_BIT;
-	}
-
-	if (access & dsGfxAccess_MappedBuffer)
-	{
-		accessMask |= VK_ACCESS_HOST_READ_BIT | VK_ACCESS_HOST_WRITE_BIT;
-		*stages |= VK_PIPELINE_STAGE_HOST_BIT;
-	}
-
-	return accessMask;
-}
-
 static bool setBeginBlitSurfaceBarrierInfo(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	VkImageMemoryBarrier* barrier, dsGfxSurfaceType surfaceType, void* surface,
 	VkImageAspectFlags* aspectMask, VkPipelineStageFlags* stages)
@@ -1931,6 +1841,7 @@ bool dsVkRenderer_blitSurface(dsRenderer* renderer, dsCommandBuffer* commandBuff
 }
 
 bool dsVkRenderer_memoryBarrier(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	dsGfxPipelineStage beforeStages, dsGfxPipelineStage afterStages,
 	const dsGfxMemoryBarrier* barriers, uint32_t barrierCount)
 {
 	dsVkDevice* device = &((dsVkRenderer*)renderer)->device;
@@ -1939,21 +1850,20 @@ bool dsVkRenderer_memoryBarrier(dsRenderer* renderer, dsCommandBuffer* commandBu
 		return false;
 
 	VkMemoryBarrier* memoryBarriers = DS_ALLOCATE_STACK_OBJECT_ARRAY(VkMemoryBarrier, barrierCount);
-	VkPipelineStageFlags srcStages = 0;
-	VkPipelineStageFlags dstStages = 0;
 	for (uint32_t i = 0; i < barrierCount; ++i)
 	{
 		memoryBarriers[i].sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
 		memoryBarriers[i].pNext = NULL;
-		memoryBarriers[i].srcAccessMask =
-			getMemoryAccessMask(renderer, &srcStages, barriers[i].beforeAccess);
-		memoryBarriers[i].dstAccessMask =
-			getMemoryAccessMask(renderer, &dstStages, barriers[i].afterAccess);
-		memoryBarriers[i].dstAccessMask = 0;
+		memoryBarriers[i].srcAccessMask = dsVkAccessFlags(barriers[i].beforeAccess);
+		memoryBarriers[i].dstAccessMask = dsVkAccessFlags(barriers[i].afterAccess);
 	}
 
-	DS_VK_CALL(device->vkCmdPipelineBarrier)(submitBuffer, srcStages, dstStages, 0, barrierCount,
-		memoryBarriers, 0, NULL, 0, NULL);
+	VkPipelineStageFlags srcStages =  dsVkPipelineStageFlags(renderer, beforeStages, true);
+	VkPipelineStageFlags dstStages =  dsVkPipelineStageFlags(renderer, afterStages, false);
+	VkDependencyFlags dependencyFlags =
+		commandBuffer->boundRenderPass ? VK_DEPENDENCY_BY_REGION_BIT : 0;
+	DS_VK_CALL(device->vkCmdPipelineBarrier)(submitBuffer, srcStages, dstStages, dependencyFlags,
+		barrierCount, memoryBarriers, 0, NULL, 0, NULL);
 	return true;
 }
 

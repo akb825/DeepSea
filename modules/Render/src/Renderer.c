@@ -1308,6 +1308,7 @@ bool dsRenderer_blitSurface(dsRenderer* renderer, dsCommandBuffer* commandBuffer
 }
 
 bool dsRenderer_memoryBarrier(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	dsGfxPipelineStage beforeStages, dsGfxPipelineStage afterStages,
 	const dsGfxMemoryBarrier* barriers, uint32_t barrierCount)
 {
 	DS_PROFILE_FUNC_START();
@@ -1318,11 +1319,52 @@ bool dsRenderer_memoryBarrier(dsRenderer* renderer, dsCommandBuffer* commandBuff
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
+	if (beforeStages == 0 || afterStages == 0)
+	{
+		errno = EINVAL;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Pipeline stage flags for memory barrier cannot be empty.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	if (commandBuffer->boundRenderPass)
+	{
+		dsGfxPipelineStage srcStages = 0;
+		dsGfxPipelineStage dstStages = 0;
+		for (uint32_t i = 0; i < commandBuffer->boundRenderPass->subpassDependencyCount; ++i)
+		{
+			const dsSubpassDependency* dependency =
+				commandBuffer->boundRenderPass->subpassDependencies + i;
+			if (dependency->srcSubpass == commandBuffer->activeRenderSubpass &&
+				dependency->dstSubpass == commandBuffer->activeRenderSubpass)
+			{
+				srcStages |= dependency->srcStages;
+				dstStages |= dependency->dstStages;
+			}
+		}
+
+		if (!srcStages || !dstStages)
+		{
+			errno = EPERM;
+			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Memory barriers inside of a subpass must have a "
+				"self-dependency for that subpass.");
+			DS_PROFILE_FUNC_RETURN(false);
+		}
+
+		if ((beforeStages & srcStages) != beforeStages || (afterStages & dstStages) != afterStages)
+		{
+			errno = EPERM;
+			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Memory barriers inside of a subpass must contain a "
+				"subset of pipeline stages from the self-dependencies.");
+			DS_PROFILE_FUNC_RETURN(false);
+		}
+	}
+
 	// OK if no implementation, in which case barriers are ignored.
 	if (!renderer->memoryBarrierFunc || barrierCount == 0)
 		DS_PROFILE_FUNC_RETURN(true);
 
-	bool success = renderer->memoryBarrierFunc(renderer, commandBuffer, barriers, barrierCount);
+	bool success = renderer->memoryBarrierFunc(renderer, commandBuffer, beforeStages, afterStages,
+		barriers, barrierCount);
 	DS_PROFILE_FUNC_RETURN(success);
 }
 

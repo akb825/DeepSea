@@ -1423,3 +1423,8 @@ struct dsWindow
 #ifdef __cplusplus
 }
 #endif
+
+// Needs to be after the extern "C" block.
+/// @cond
+DS_ENUM_BITMASK_OPERATORS(dsWindowFlags);
+/// @endcond

@@ -312,6 +312,55 @@ bool dsVkImageUsageSupportsTransient(VkImageUsageFlags usage)
 		VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT)) == 0;
 }
 
+VkPipelineStageFlags dsVkPipelineStageFlags(const dsRenderer* renderer, dsGfxPipelineStage stages,
+	bool isSrc)
+{
+	VkPipelineStageFlags flags = 0;
+	if (stages & dsGfxPipelineStage_CommandBuffer)
+	{
+		if (isSrc)
+			flags |= VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+		else
+			flags |= VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+	}
+	if (stages & dsGfxPipelineStage_DrawIndirect)
+		flags |= VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT;
+	if (stages & dsGfxPipelineStage_VertexInput)
+		flags |= VK_PIPELINE_STAGE_VERTEX_INPUT_BIT;
+	if (stages & dsGfxPipelineStage_VertexShader)
+		flags |= VK_PIPELINE_STAGE_VERTEX_SHADER_BIT;
+	if (renderer->hasTessellationShaders)
+	{
+		if (stages & dsGfxPipelineStage_TessellationControlShader)
+			flags |= VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT;
+		if (stages & dsGfxPipelineStage_TessellationEvaluationShader)
+			flags |= VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT;
+	}
+	if (renderer->hasGeometryShaders && (stages & dsGfxPipelineStage_GeometryShader))
+		flags |= VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT;
+	if (stages & dsGfxPipelineStage_FragmentShader)
+		flags |= VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+	if (stages & dsGfxPipelineStage_PreFragmentShaderTests)
+		flags |= VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+	if (stages & dsGfxPipelineStage_PostFragmentShaderTests)
+		flags |= VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+	if (stages & dsGfxPipelineStage_ColorOutput)
+		flags |= VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+	if (stages & dsGfxPipelineStage_ComputeShader)
+		flags |= VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+	if (stages & dsGfxPipelineStage_Copy)
+		flags |= VK_PIPELINE_STAGE_TRANSFER_BIT;
+	if (stages & dsGfxPipelineStage_HostAccess)
+		flags |= VK_PIPELINE_STAGE_HOST_BIT;
+	if (stages & dsGfxPipelineStage_AllGraphics)
+		flags |= VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT;
+	if (stages & dsGfxPipelineStage_AllGraphics)
+		flags |= VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT;
+	if (stages & dsGfxPipelineStage_AllCommands)
+		flags |= VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
+	return flags;
+}
+
 VkPipelineStageFlags dsVkReadBufferStageFlags(const dsRenderer* renderer, dsGfxBufferUsage usage)
 {
 	VkAccessFlags flags = 0;
@@ -337,6 +386,46 @@ VkPipelineStageFlags dsVkReadBufferStageFlags(const dsRenderer* renderer, dsGfxB
 	}
 	if (usage & dsGfxBufferUsage_CopyFrom)
 		flags |= VK_PIPELINE_STAGE_TRANSFER_BIT;
+	return flags;
+}
+
+VkAccessFlags dsVkAccessFlags(dsGfxAccess access)
+{
+	VkAccessFlags flags = 0;
+	if (access & dsGfxAccess_IndirectCommandRead)
+		flags |= VK_ACCESS_INDIRECT_COMMAND_READ_BIT;
+	if (access & dsGfxAccess_IndexRead)
+		flags |= VK_ACCESS_INDEX_READ_BIT;
+	if (access & dsGfxAccess_VertexAttributeRead)
+		flags |= VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT;
+	if (access & dsGfxAccess_UniformBlockRead)
+		flags |= VK_ACCESS_UNIFORM_READ_BIT;
+	if (access & (dsGfxAccess_UniformBufferRead | dsGfxAccess_TextureRead | dsGfxAccess_ImageRead))
+		flags |= VK_ACCESS_SHADER_READ_BIT;
+	if (access & (dsGfxAccess_UniformBufferWrite | dsGfxAccess_ImageWrite))
+		flags |= VK_ACCESS_SHADER_WRITE_BIT;
+	if (access & dsGfxAccess_InputAttachmentRead)
+		flags |= VK_ACCESS_INPUT_ATTACHMENT_READ_BIT;
+	if (access & dsGfxAccess_ColorAttachmentRead)
+		flags |= VK_ACCESS_COLOR_ATTACHMENT_READ_BIT;
+	if (access & dsGfxAccess_ColorAttachmentWrite)
+		flags |= VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+	if (access & dsGfxAccess_DepthStencilAttachmentRead)
+		flags |= VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
+	if (access & dsGfxAccess_DepthStencilAttachmentWrite)
+		flags |= VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+	if (access & dsGfxAccess_CopyRead)
+		flags |= VK_ACCESS_TRANSFER_READ_BIT;
+	if (access & dsGfxAccess_CopyWrite)
+		flags |= VK_ACCESS_TRANSFER_WRITE_BIT;
+	if (access & dsGfxAccess_HostRead)
+		flags |= VK_ACCESS_HOST_READ_BIT;
+	if (access & dsGfxAccess_HostWrite)
+		flags |= VK_ACCESS_HOST_WRITE_BIT;
+	if (access & dsGfxAccess_MemoryRead)
+		flags |= VK_ACCESS_MEMORY_READ_BIT;
+	if (access & dsGfxAccess_MemoryWrite)
+		flags |= VK_ACCESS_MEMORY_WRITE_BIT;
 	return flags;
 }
 

@@ -88,7 +88,7 @@ struct RenderInfo
 
 		dsGfxFormat surfaceFormat = dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm);
 		dsTextureInfo offscreenInfo = {surfaceFormat, dsTextureDim_2D, width, height, 0, 1, 1};
-		auto usageFlags = (dsTextureUsage)(dsTextureUsage_Texture | dsTextureUsage_CopyFrom);
+		auto usageFlags = dsTextureUsage_Texture | dsTextureUsage_CopyFrom;
 		offscreen = dsTexture_createOffscreen(resourceManager, allocator, usageFlags,
 			dsGfxMemory_Read, &offscreenInfo, true);
 		ASSERT_TRUE(offscreen);
@@ -101,7 +101,7 @@ struct RenderInfo
 
 		dsAttachmentInfo attachment =
 		{
-			(dsAttachmentUsage)(dsAttachmentUsage_Clear | dsAttachmentUsage_KeepAfter),
+			dsAttachmentUsage_Clear | dsAttachmentUsage_KeepAfter,
 			surfaceFormat, 1
 		};
 		dsColorAttachmentRef attachmentRef = {0, true};
@@ -148,8 +148,7 @@ struct RenderInfo
 		ASSERT_EQ(offsetof(Vertex, color), format.elements[dsVertexAttrib_Color].offset);
 
 		vertexBuffer = dsGfxBuffer_create(resourceManager, allocator,
-			dsGfxBufferUsage_Vertex,
-			(dsGfxMemory)(dsGfxMemory_Static | dsGfxMemory_Draw | dsGfxMemory_GPUOnly),
+			dsGfxBufferUsage_Vertex, dsGfxMemory_Static | dsGfxMemory_Draw | dsGfxMemory_GPUOnly,
 			vertices, sizeof(vertices));
 		ASSERT_TRUE(vertexBuffer);
 
@@ -195,7 +194,7 @@ struct RenderInfo
 		dsMatrix44_mul(*transforms[0], projection, leftMatrix);
 		dsMatrix44_mul(*transforms[1], projection, rightMatrix);
 		transformBuffer = dsGfxBuffer_create(resourceManager, allocator,
-			dsGfxBufferUsage_UniformBlock, (dsGfxMemory)(dsGfxMemory_Static | dsGfxMemory_GPUOnly),
+			dsGfxBufferUsage_UniformBlock, dsGfxMemory_Static | dsGfxMemory_GPUOnly,
 			transformData.data(), transformData.size());
 		ASSERT_TRUE(transformBuffer);
 

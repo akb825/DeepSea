@@ -146,7 +146,7 @@ TEST_F(MaterialDescTest, CreateUniformBlock)
 	EXPECT_TRUE(dsMaterialDesc_destroy(materialDesc));
 
 	resourceManager->supportedBuffers =
-		(dsGfxBufferUsage)(resourceManager->supportedBuffers & ~dsGfxBufferUsage_UniformBlock);
+		resourceManager->supportedBuffers & ~dsGfxBufferUsage_UniformBlock;
 	EXPECT_FALSE(dsMaterialDesc_create(resourceManager, NULL, elements, elementCount));
 }
 
@@ -169,6 +169,6 @@ TEST_F(MaterialDescTest, CreateUniformBuffer)
 	EXPECT_TRUE(dsMaterialDesc_destroy(materialDesc));
 
 	resourceManager->supportedBuffers =
-		(dsGfxBufferUsage)(resourceManager->supportedBuffers & ~dsGfxBufferUsage_UniformBuffer);
+		resourceManager->supportedBuffers & ~dsGfxBufferUsage_UniformBuffer;
 	EXPECT_FALSE(dsMaterialDesc_create(resourceManager, NULL, elements, elementCount));
 }

@@ -44,8 +44,8 @@ TEST_F(CommandBufferTest, BeginEndSecondary)
 {
 	dsAttachmentInfo attachments[] =
 	{
-		{(dsAttachmentUsage)(dsAttachmentUsage_Clear | dsAttachmentUsage_KeepAfter),
-			renderer->surfaceColorFormat, DS_DEFAULT_ANTIALIAS_SAMPLES}
+		{dsAttachmentUsage_Clear | dsAttachmentUsage_KeepAfter, renderer->surfaceColorFormat,
+			DS_DEFAULT_ANTIALIAS_SAMPLES}
 	};
 	uint32_t attachmentCount = DS_ARRAY_SIZE(attachments);
 

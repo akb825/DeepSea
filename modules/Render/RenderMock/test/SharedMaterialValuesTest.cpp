@@ -51,13 +51,11 @@ TEST_F(SharedMaterialValuesTest, Textures)
 	dsTextureInfo texInfo = {dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm),
 		dsTextureDim_2D, 16, 16, 0, DS_ALL_MIP_LEVELS, 1};
 	dsTexture* texture1 = dsTexture_create(resourceManager, NULL,
-		(dsTextureUsage)(dsTextureUsage_Texture | dsTextureUsage_CopyTo), dsGfxMemory_Static,
-		&texInfo, NULL, 0);
+		dsTextureUsage_Texture | dsTextureUsage_CopyTo, dsGfxMemory_Static, &texInfo, NULL, 0);
 	ASSERT_TRUE(texture1);
 
 	dsTexture* texture2 = dsTexture_create(resourceManager, NULL,
-		(dsTextureUsage)(dsTextureUsage_Texture | dsTextureUsage_CopyTo), dsGfxMemory_Static,
-		&texInfo, NULL, 0);
+		dsTextureUsage_Texture | dsTextureUsage_CopyTo, dsGfxMemory_Static, &texInfo, NULL, 0);
 	ASSERT_TRUE(texture2);
 
 	EXPECT_TRUE(dsSharedMaterialValues_setTextureName(values, "test1", texture1));
@@ -99,18 +97,15 @@ TEST_F(SharedMaterialValuesTest, TextureBuffers)
 	ASSERT_TRUE(values);
 
 	dsGfxBuffer* buffer1 = dsGfxBuffer_create(resourceManager, NULL,
-		(dsGfxBufferUsage)(dsGfxBufferUsage_Texture | dsGfxBufferUsage_CopyTo), dsGfxMemory_Static,
-		NULL, 1024);
+		dsGfxBufferUsage_Texture | dsGfxBufferUsage_CopyTo, dsGfxMemory_Static, NULL, 1024);
 	ASSERT_TRUE(buffer1);
 
 	dsGfxBuffer* buffer2 = dsGfxBuffer_create(resourceManager, NULL,
-		(dsGfxBufferUsage)(dsGfxBufferUsage_Image| dsGfxBufferUsage_CopyTo),
-		dsGfxMemory_Static, NULL, 1024);
+		dsGfxBufferUsage_Image| dsGfxBufferUsage_CopyTo, dsGfxMemory_Static, NULL, 1024);
 	ASSERT_TRUE(buffer2);
 
 	dsGfxBuffer* buffer3 = dsGfxBuffer_create(resourceManager, NULL,
-		(dsGfxBufferUsage)(dsGfxBufferUsage_Vertex | dsGfxBufferUsage_CopyTo), dsGfxMemory_Static,
-		NULL, 1024);
+		dsGfxBufferUsage_Vertex | dsGfxBufferUsage_CopyTo, dsGfxMemory_Static, NULL, 1024);
 	ASSERT_TRUE(buffer3);
 
 	dsGfxFormat format = dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm);
@@ -260,18 +255,15 @@ TEST_F(SharedMaterialValuesTest, Buffers)
 	ASSERT_TRUE(values);
 
 	dsGfxBuffer* buffer1 = dsGfxBuffer_create(resourceManager, NULL,
-		(dsGfxBufferUsage)(dsGfxBufferUsage_UniformBlock | dsGfxBufferUsage_CopyTo),
-		dsGfxMemory_Static, NULL, 128);
+		dsGfxBufferUsage_UniformBlock | dsGfxBufferUsage_CopyTo, dsGfxMemory_Static, NULL, 128);
 	ASSERT_TRUE(buffer1);
 
 	dsGfxBuffer* buffer2 = dsGfxBuffer_create(resourceManager, NULL,
-		(dsGfxBufferUsage)(dsGfxBufferUsage_UniformBlock | dsGfxBufferUsage_CopyTo),
-		dsGfxMemory_Static, NULL, 128);
+		dsGfxBufferUsage_UniformBlock | dsGfxBufferUsage_CopyTo, dsGfxMemory_Static, NULL, 128);
 	ASSERT_TRUE(buffer2);
 
 	dsGfxBuffer* buffer3 = dsGfxBuffer_create(resourceManager, NULL,
-		(dsGfxBufferUsage)(dsGfxBufferUsage_Vertex | dsGfxBufferUsage_CopyTo),
-		dsGfxMemory_Static, NULL, 128);
+		dsGfxBufferUsage_Vertex | dsGfxBufferUsage_CopyTo, dsGfxMemory_Static, NULL, 128);
 	ASSERT_TRUE(buffer3);
 
 	EXPECT_FALSE(dsSharedMaterialValues_setBufferName(values, "test1", buffer1, 64, 128));
@@ -336,13 +328,11 @@ TEST_F(SharedMaterialValuesTest, MixedTypes)
 	dsTextureInfo texInfo = {dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm),
 		dsTextureDim_2D, 16, 16, 0, DS_ALL_MIP_LEVELS, 1};
 	dsTexture* texture = dsTexture_create(resourceManager, NULL,
-		(dsTextureUsage)(dsTextureUsage_Texture | dsTextureUsage_CopyTo), dsGfxMemory_Static,
-		&texInfo, NULL, 0);
+		dsTextureUsage_Texture | dsTextureUsage_CopyTo, dsGfxMemory_Static, &texInfo, NULL, 0);
 	ASSERT_TRUE(texture);
 
 	dsGfxBuffer* textureBuffer = dsGfxBuffer_create(resourceManager, NULL,
-		(dsGfxBufferUsage)(dsGfxBufferUsage_Texture | dsGfxBufferUsage_CopyTo), dsGfxMemory_Static,
-		NULL, 1024);
+		dsGfxBufferUsage_Texture | dsGfxBufferUsage_CopyTo, dsGfxMemory_Static, NULL, 1024);
 	ASSERT_TRUE(textureBuffer);
 
 	dsShaderVariableElement elements[] =
@@ -359,8 +349,7 @@ TEST_F(SharedMaterialValuesTest, MixedTypes)
 	ASSERT_TRUE(variableGroup);
 
 	dsGfxBuffer* buffer = dsGfxBuffer_create(resourceManager, NULL,
-		(dsGfxBufferUsage)(dsGfxBufferUsage_UniformBlock | dsGfxBufferUsage_CopyTo),
-		dsGfxMemory_Static, NULL, 128);
+		dsGfxBufferUsage_UniformBlock | dsGfxBufferUsage_CopyTo, dsGfxMemory_Static, NULL, 128);
 	ASSERT_TRUE(buffer);
 
 	dsGfxFormat format = dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm);
@@ -408,8 +397,7 @@ TEST_F(SharedMaterialValuesTest, Limit)
 	dsTextureInfo texInfo = {dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm),
 		dsTextureDim_2D, 16, 16, 0, DS_ALL_MIP_LEVELS, 1};
 	dsTexture* texture = dsTexture_create(resourceManager, NULL,
-		(dsTextureUsage)(dsTextureUsage_Texture | dsTextureUsage_CopyTo), dsGfxMemory_Static,
-		&texInfo, NULL, 0);
+		dsTextureUsage_Texture | dsTextureUsage_CopyTo, dsGfxMemory_Static, &texInfo, NULL, 0);
 	ASSERT_TRUE(texture);
 
 	dsShaderVariableElement elements[] =
@@ -426,8 +414,7 @@ TEST_F(SharedMaterialValuesTest, Limit)
 	ASSERT_TRUE(variableGroup);
 
 	dsGfxBuffer* buffer = dsGfxBuffer_create(resourceManager, NULL,
-		(dsGfxBufferUsage)(dsGfxBufferUsage_UniformBlock | dsGfxBufferUsage_CopyTo),
-		dsGfxMemory_Static, NULL, 128);
+		dsGfxBufferUsage_UniformBlock | dsGfxBufferUsage_CopyTo, dsGfxMemory_Static, NULL, 128);
 	ASSERT_TRUE(buffer);
 
 	EXPECT_TRUE(dsSharedMaterialValues_setTextureName(values, "texture", texture));

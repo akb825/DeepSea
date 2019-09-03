@@ -56,6 +56,10 @@ VkAccessFlags dsVkWriteBufferAccessFlags(dsGfxBufferUsage usage, bool canMapMain
 
 bool dsVkImageUsageSupportsTransient(VkImageUsageFlags usage);
 
+VkPipelineStageFlags dsVkPipelineStageFlags(const dsRenderer* renderer, dsGfxPipelineStage stages,
+	bool isSrc);
+VkAccessFlags dsVkAccessFlags(dsGfxAccess access);
+
 VkPipelineStageFlags dsVkReadBufferStageFlags(const dsRenderer* renderer, dsGfxBufferUsage usage);
 VkPipelineStageFlags dsVkWriteBufferStageFlags(const dsRenderer* renderer, dsGfxBufferUsage usage,
 	bool canMapMainBuffer);

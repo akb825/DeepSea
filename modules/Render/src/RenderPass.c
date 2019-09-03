@@ -305,6 +305,38 @@ static bool canContinueOffscreen(const dsFramebufferSurface* surface)
 	}
 }
 
+bool dsRenderPass_addFirstSubpassDependencyFlags(dsSubpassDependency* dependency)
+{
+	if (!dependency || dependency->srcSubpass != DS_EXTERNAL_SUBPASS)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	dependency->srcStages |= dsGfxPipelineStage_CommandBuffer;
+	dependency->dstStages |= dsGfxPipelineStage_AllGraphics;
+	dependency->dstAccess |= dsGfxAccess_InputAttachmentRead | dsGfxAccess_ColorAttachmentRead |
+		dsGfxAccess_ColorAttachmentWrite | dsGfxAccess_DepthStencilAttachmentRead |
+		dsGfxAccess_DepthStencilAttachmentWrite;
+	return true;
+}
+
+bool dsRenderPass_addLastSubpassDependencyFlags(dsSubpassDependency* dependency)
+{
+	if (!dependency || dependency->dstSubpass != DS_EXTERNAL_SUBPASS)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	dependency->srcStages |= dsGfxPipelineStage_AllGraphics;
+	dependency->dstStages |= dsGfxPipelineStage_CommandBuffer;
+	dependency->srcAccess |= dsGfxAccess_InputAttachmentRead | dsGfxAccess_ColorAttachmentRead |
+		dsGfxAccess_ColorAttachmentWrite | dsGfxAccess_DepthStencilAttachmentRead |
+		dsGfxAccess_DepthStencilAttachmentWrite;
+	return true;
+}
+
 dsRenderPass* dsRenderPass_create(dsRenderer* renderer, dsAllocator* allocator,
 	const dsAttachmentInfo* attachments, uint32_t attachmentCount,
 	const dsRenderSubpassInfo* subpasses, uint32_t subpassCount,
@@ -492,7 +524,16 @@ dsRenderPass* dsRenderPass_create(dsRenderer* renderer, dsAllocator* allocator,
 			{
 				errno = EINVAL;
 				DS_LOG_ERROR(DS_RENDER_LOG_TAG,
-					"At least one stage flag must be provided for subpass dependencies.");
+					"Pipeline stage flags cannot be empty for subpass dependencies.");
+				DS_PROFILE_FUNC_RETURN(NULL);
+			}
+
+			if (dependencies[i].srcSubpass == dependencies[i].dstSubpass &&
+				!dependencies[i].regionDependency)
+			{
+				errno = EINVAL;
+				DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+					"Subpasses that depend on themselves must have region dependencies.");
 				DS_PROFILE_FUNC_RETURN(NULL);
 			}
 		}

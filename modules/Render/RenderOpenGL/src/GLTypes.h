@@ -360,6 +360,7 @@ typedef bool (*GLPushDebugGroupFunction)(dsCommandBuffer* commandBuffer, const c
 typedef bool (*GLPopDebugGroupFunction)(dsCommandBuffer* commandBuffer);
 
 typedef bool (*GLGfxMemoryBarrierFunction)(dsCommandBuffer* commandBuffer,
+	dsGfxPipelineStage beforeStages, dsGfxPipelineStage afterStages,
 	const dsGfxMemoryBarrier* barriers, uint32_t barrierCount);
 
 typedef bool (*GLSubmitCommandBufferFunction)(dsCommandBuffer* commandBuffer,

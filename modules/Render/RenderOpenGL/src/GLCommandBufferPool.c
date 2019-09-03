@@ -65,7 +65,7 @@ dsCommandBufferPool* dsGLCommandBufferPool_create(dsRenderer* renderer, dsAlloca
 	for (uint32_t i = 0; i < count; ++i)
 	{
 		pool->currentBuffers[i] = (dsCommandBuffer*)dsGLOtherCommandBuffer_create(renderer,
-			allocator, (dsCommandBufferUsage)usage);
+			allocator, usage);
 		if (!pool->currentBuffers[i])
 			dsGLCommandBufferPool_destroy(renderer, pool);
 	}
@@ -75,7 +75,7 @@ dsCommandBufferPool* dsGLCommandBufferPool_create(dsRenderer* renderer, dsAlloca
 		for (uint32_t i = 0; i < count; ++i)
 		{
 			pool->previousBuffers[i] = (dsCommandBuffer*)dsGLOtherCommandBuffer_create(renderer,
-				allocator, (dsCommandBufferUsage)usage);
+				allocator, usage);
 			if (!pool->previousBuffers[i])
 				dsGLCommandBufferPool_destroy(renderer, pool);
 		}

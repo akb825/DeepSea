@@ -46,6 +46,30 @@ extern "C"
  */
 
 /**
+ * @brief Adds the default dependency flags for the first subpass.
+ *
+ * This is for a dependency where srcSubpass is DS_EXTERNAL_SUBPASS, ensuring that it's properly
+ * synchronized with the command buffer.
+ *
+ * @remark errno will be set on failure.
+ * @param dependency The dependency to add the flags for.
+ * @return False if dependency is NULL or srcSubpass isn't DS_EXTERNAL_SUBPASS.
+ */
+DS_RENDER_EXPORT bool dsRenderPass_addFirstSubpassDependencyFlags(dsSubpassDependency* dependency);
+
+/**
+ * @brief Adds the default dependency flags for the last subpass.
+ *
+ * This is for a dependency where dstSubpass is DS_EXTERNAL_SUBPASS, ensuring that it's properly
+ * synchronized with the command buffer.
+ *
+ * @remark errno will be set on failure.
+ * @param dependency The dependency to add the flags for.
+ * @return False if dependency is NULL or dstSubpass isn't DS_EXTERNAL_SUBPASS.
+ */
+DS_RENDER_EXPORT bool dsRenderPass_addLastSubpassDependencyFlags(dsSubpassDependency* dependency);
+
+/**
  * @brief Creates a render pass.
  * @remark errno will be set on failure.
  * @param renderer The renderer to draw the render pass with.

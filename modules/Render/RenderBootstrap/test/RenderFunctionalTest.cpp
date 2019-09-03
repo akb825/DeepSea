@@ -104,8 +104,7 @@ private:
 		dsGfxFormat surfaceFormat = dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm);
 		dsTextureInfo offscreenInfo = {surfaceFormat, dsTextureDim_2D, width, height, 0, mipLevels,
 			1};
-		auto usageFlags = (dsTextureUsage)(dsTextureUsage_Texture | dsTextureUsage_CopyFrom |
-			dsTextureUsage_CopyTo);
+		auto usageFlags = dsTextureUsage_Texture | dsTextureUsage_CopyFrom | dsTextureUsage_CopyTo;
 		offscreen = dsTexture_createOffscreen(resourceManager, allocator, usageFlags,
 			dsGfxMemory_Read, &offscreenInfo, true);
 		ASSERT_TRUE(offscreen);
@@ -118,7 +117,7 @@ private:
 
 		dsAttachmentInfo attachment =
 		{
-			(dsAttachmentUsage)(dsAttachmentUsage_Clear | dsAttachmentUsage_KeepAfter),
+			dsAttachmentUsage_Clear | dsAttachmentUsage_KeepAfter,
 			surfaceFormat, 1
 		};
 		dsColorAttachmentRef attachmentRef = {0, true};
@@ -159,9 +158,8 @@ TEST_P(RendererFunctionalTest, ReadFromOffscreen)
 		{{{0.0f, 0.0f}}, {{0, 0, 0, 255}}}
 	};
 	dsGfxBuffer* buffer = dsGfxBuffer_create(resourceManager, (dsAllocator*)&allocator,
-		dsGfxBufferUsage_Vertex,
-		(dsGfxMemory)(dsGfxMemory_Static | dsGfxMemory_Draw | dsGfxMemory_GPUOnly), vertices,
-		sizeof(vertices));
+		dsGfxBufferUsage_Vertex, dsGfxMemory_Static | dsGfxMemory_Draw | dsGfxMemory_GPUOnly,
+		vertices, sizeof(vertices));
 	ASSERT_TRUE(buffer);
 
 	Vertex otherVertices[] =
@@ -175,9 +173,8 @@ TEST_P(RendererFunctionalTest, ReadFromOffscreen)
 		{{{0.0f, 0.0f}}, {{255, 255, 255, 255}}}
 	};
 	dsGfxBuffer* otherBuffer = dsGfxBuffer_create(resourceManager, (dsAllocator*)&allocator,
-		dsGfxBufferUsage_Vertex,
-		(dsGfxMemory)(dsGfxMemory_Static | dsGfxMemory_Draw | dsGfxMemory_GPUOnly), otherVertices,
-		sizeof(otherVertices));
+		dsGfxBufferUsage_Vertex, dsGfxMemory_Static | dsGfxMemory_Draw | dsGfxMemory_GPUOnly,
+		otherVertices, sizeof(otherVertices));
 	ASSERT_TRUE(otherBuffer);
 
 	dsVertexFormat format;
@@ -348,15 +345,14 @@ TEST_P(RendererFunctionalTest, DrawIndirect)
 		{{{0.0f, 0.0f}}, {{0, 0, 0, 255}}}
 	};
 	dsGfxBuffer* buffer = dsGfxBuffer_create(resourceManager, (dsAllocator*)&allocator,
-		dsGfxBufferUsage_Vertex,
-		(dsGfxMemory)(dsGfxMemory_Static | dsGfxMemory_Draw | dsGfxMemory_GPUOnly), vertices,
-		sizeof(vertices));
+		dsGfxBufferUsage_Vertex, dsGfxMemory_Static | dsGfxMemory_Draw | dsGfxMemory_GPUOnly,
+		vertices, sizeof(vertices));
 	ASSERT_TRUE(buffer);
 
 	dsDrawRange drawRange = {6, 1, 0, 0};
 	dsGfxBuffer* indirectBuffer = dsGfxBuffer_create(resourceManager, (dsAllocator*)&allocator,
-		dsGfxBufferUsage_IndirectDraw, (dsGfxMemory)(dsGfxMemory_Static | dsGfxMemory_GPUOnly),
-		&drawRange, sizeof(drawRange));
+		dsGfxBufferUsage_IndirectDraw, dsGfxMemory_Static | dsGfxMemory_GPUOnly, &drawRange,
+		sizeof(drawRange));
 	ASSERT_TRUE(indirectBuffer);
 
 	dsVertexFormat format;
@@ -448,9 +444,8 @@ TEST_P(RendererFunctionalTest, WriteToBuffer)
 		{{{0.0f, 0.0f}}, {{0, 0, 0, 255}}}
 	};
 	dsGfxBuffer* buffer = dsGfxBuffer_create(resourceManager, (dsAllocator*)&allocator,
-		dsGfxBufferUsage_Vertex,
-		(dsGfxMemory)(dsGfxMemory_Static | dsGfxMemory_Draw | dsGfxMemory_Synchronize), vertices,
-		sizeof(vertices));
+		dsGfxBufferUsage_Vertex, dsGfxMemory_Static | dsGfxMemory_Draw | dsGfxMemory_Synchronize,
+		vertices, sizeof(vertices));
 	ASSERT_TRUE(buffer);
 
 	Vertex otherVertices[] =
@@ -571,12 +566,11 @@ TEST_P(RendererFunctionalTest, OrphanBuffer)
 		{{{0.0f, 0.0f}}, {{0, 0, 0, 255}}}
 	};
 	dsGfxBuffer* buffer = dsGfxBuffer_create(resourceManager, (dsAllocator*)&allocator,
-		dsGfxBufferUsage_Vertex, (dsGfxMemory)(dsGfxMemory_Static | dsGfxMemory_Draw), NULL,
-		sizeof(vertices));
+		dsGfxBufferUsage_Vertex, dsGfxMemory_Static | dsGfxMemory_Draw, NULL, sizeof(vertices));
 	ASSERT_TRUE(buffer);
 
-	void* data = dsGfxBuffer_map(buffer,
-		(dsGfxBufferMap)(dsGfxBufferMap_Write | dsGfxBufferMap_Orphan), 0, buffer->size);
+	void* data = dsGfxBuffer_map(buffer, dsGfxBufferMap_Write | dsGfxBufferMap_Orphan, 0,
+		buffer->size);
 	ASSERT_TRUE(data);
 	memcpy(data, vertices, sizeof(vertices));
 	ASSERT_TRUE(dsGfxBuffer_unmap(buffer));
@@ -632,8 +626,7 @@ TEST_P(RendererFunctionalTest, OrphanBuffer)
 	EXPECT_TRUE(dsShader_unbind(info.shader, commandBuffer));
 	EXPECT_TRUE(dsRenderPass_end(info.renderPass, commandBuffer));
 
-	data = dsGfxBuffer_map(buffer, (dsGfxBufferMap)(dsGfxBufferMap_Write | dsGfxBufferMap_Orphan),
-		0, buffer->size);
+	data = dsGfxBuffer_map(buffer, dsGfxBufferMap_Write | dsGfxBufferMap_Orphan, 0, buffer->size);
 	ASSERT_TRUE(data);
 	memcpy(data, otherVertices, sizeof(otherVertices));
 	ASSERT_TRUE(dsGfxBuffer_unmap(buffer));
@@ -692,9 +685,8 @@ TEST_P(RendererFunctionalTest, PersistentMapping)
 		{{{0.0f, 0.0f}}, {{0, 0, 0, 255}}}
 	};
 	dsGfxBuffer* buffer = dsGfxBuffer_create(resourceManager, (dsAllocator*)&allocator,
-		dsGfxBufferUsage_Vertex,
-		(dsGfxMemory)(dsGfxMemory_Static | dsGfxMemory_Draw | dsGfxMemory_Persistent), vertices,
-		sizeof(vertices));
+		dsGfxBufferUsage_Vertex, dsGfxMemory_Static | dsGfxMemory_Draw | dsGfxMemory_Persistent,
+		vertices, sizeof(vertices));
 	ASSERT_TRUE(buffer);
 
 	void* data = dsGfxBuffer_map(buffer,
@@ -816,9 +808,8 @@ TEST_P(RendererFunctionalTest, GenerateMipmaps)
 		{{{0.0f, 0.0f}}, {{0, 0, 0, 255}}}
 	};
 	dsGfxBuffer* buffer = dsGfxBuffer_create(resourceManager, (dsAllocator*)&allocator,
-		dsGfxBufferUsage_Vertex,
-		(dsGfxMemory)(dsGfxMemory_Static | dsGfxMemory_Draw | dsGfxMemory_GPUOnly), vertices,
-		sizeof(vertices));
+		dsGfxBufferUsage_Vertex, dsGfxMemory_Static | dsGfxMemory_Draw | dsGfxMemory_GPUOnly,
+		vertices, sizeof(vertices));
 	ASSERT_TRUE(buffer);
 
 	dsVertexFormat format;
@@ -889,7 +880,7 @@ TEST_P(RendererFunctionalTest, BufferReadback)
 
 	dsGfxBuffer* buffer = dsGfxBuffer_create(resourceManager, (dsAllocator*)&allocator,
 		dsGfxBufferUsage_UniformBuffer,
-		(dsGfxMemory)(dsGfxMemory_Stream | dsGfxMemory_Read | dsGfxMemory_Synchronize), NULL,
+		dsGfxMemory_Stream | dsGfxMemory_Read | dsGfxMemory_Synchronize, NULL,
 		sizeof(uint32_t)*invocationCount);
 	ASSERT_TRUE(buffer);
 
@@ -957,14 +948,14 @@ TEST_P(RendererFunctionalTest, ComputeShaderIndirect)
 
 	dsGfxBuffer* buffer = dsGfxBuffer_create(resourceManager, (dsAllocator*)&allocator,
 		dsGfxBufferUsage_UniformBuffer,
-		(dsGfxMemory)(dsGfxMemory_Stream | dsGfxMemory_Read | dsGfxMemory_Synchronize), NULL,
+		dsGfxMemory_Stream | dsGfxMemory_Read | dsGfxMemory_Synchronize, NULL,
 		sizeof(uint32_t)*invocationCount);
 	ASSERT_TRUE(buffer);
 
 	uint32_t dispatchSizes[3] = {invocationCount, 1, 1};
 	dsGfxBuffer* indirectBuffer = dsGfxBuffer_create(resourceManager, (dsAllocator*)&allocator,
-		dsGfxBufferUsage_IndirectDispatch, (dsGfxMemory)(dsGfxMemory_Static | dsGfxMemory_GPUOnly),
-		dispatchSizes, sizeof(dispatchSizes));
+		dsGfxBufferUsage_IndirectDispatch, dsGfxMemory_Static | dsGfxMemory_GPUOnly, dispatchSizes,
+		sizeof(dispatchSizes));
 	ASSERT_TRUE(indirectBuffer);
 
 	dsMaterialElement materialElements[] =
@@ -1044,7 +1035,7 @@ TEST_P(RendererFunctionalTest, TextureBuffer)
 
 	dsGfxBuffer* buffer = dsGfxBuffer_create(resourceManager, (dsAllocator*)&allocator,
 		dsGfxBufferUsage_UniformBuffer,
-		(dsGfxMemory)(dsGfxMemory_Stream | dsGfxMemory_Read | dsGfxMemory_Synchronize), NULL,
+		dsGfxMemory_Stream | dsGfxMemory_Read | dsGfxMemory_Synchronize, NULL,
 		sizeof(uint32_t)*invocationCount);
 	ASSERT_TRUE(buffer);
 

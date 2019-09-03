@@ -129,7 +129,7 @@ TEST_F(ShaderVariableGroupTest, GfxBuffer)
 	ASSERT_TRUE(buffer);
 
 	TestGfxBufferStruct* gfxBufferValues = (TestGfxBufferStruct*)dsGfxBuffer_map(buffer,
-		(dsGfxBufferMap)(dsGfxBufferMap_Read | dsGfxBufferMap_Write), 0, DS_MAP_FULL_BUFFER);
+		dsGfxBufferMap_Read | dsGfxBufferMap_Write, 0, DS_MAP_FULL_BUFFER);
 	ASSERT_TRUE(gfxBufferValues);
 	memset(gfxBufferValues, 0, sizeof(TestGfxBufferStruct));
 
@@ -298,8 +298,8 @@ TEST_F(ShaderVariableGroupTest, GfxBuffer)
 TEST_F(ShaderVariableGroupTest, NoGfxBuffer)
 {
 	dsCommandBuffer* commandBuffer = renderer->mainCommandBuffer;
-	resourceManager->supportedBuffers = (dsGfxBufferUsage)(resourceManager->supportedBuffers &
-		~dsGfxBufferUsage_UniformBlock);
+	resourceManager->supportedBuffers =
+		resourceManager->supportedBuffers & ~dsGfxBufferUsage_UniformBlock;
 
 	dsShaderVariableGroupDesc* desc = createDesc();
 	ASSERT_TRUE(desc);
