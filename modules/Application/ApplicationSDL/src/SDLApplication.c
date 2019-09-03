@@ -379,7 +379,6 @@ int dsSDLApplication_run(dsApplication* application)
 		DS_PROFILE_SCOPE_START("Process Events");
 		// Check if any size has changed.
 		SDL_PumpEvents();
-		bool hasResize = false;
 		for (uint32_t i = 0; i < application->windowCount; ++i)
 		{
 			dsWindow* window = application->windows[i];
@@ -408,13 +407,8 @@ int dsSDLApplication_run(dsApplication* application)
 				event.resize.width = window->surface->width;
 				event.resize.height = window->surface->height;
 				dsApplication_dispatchEvent(application, window, &event);
-				hasResize = true;
 			}
 		}
-
-		// Make sure that resizes fully go through the GPU.
-		if (hasResize)
-			dsRenderer_waitUntilIdle(application->renderer);
 
 		SDL_Event sdlEvent;
 		while (SDL_PollEvent(&sdlEvent))

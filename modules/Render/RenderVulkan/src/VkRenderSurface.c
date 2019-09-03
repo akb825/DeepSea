@@ -224,6 +224,7 @@ bool dsVkRenderSurface_update(dsRenderer* renderer, dsRenderSurface* renderSurfa
 		renderSurface->width = vkSurface->surfaceData->width;
 		renderSurface->height = vkSurface->surfaceData->height;
 		renderSurface->rotation = vkSurface->surfaceData->rotation;
+		vkSurface->surfaceError = false;
 	}
 	else
 		vkSurface->surfaceError = true;
@@ -245,68 +246,29 @@ bool dsVkRenderSurface_beginDraw(dsRenderer* renderer, dsCommandBuffer* commandB
 		return transitionToRenderable(commandBuffer, vkSurface->surfaceData);
 	}
 
-	if (vkSurface->surfaceData && !vkSurface->surfaceError &&
-		vkSurface->surfaceData->vsync == renderer->vsync)
-	{
-		dsVkSurfaceResult result = dsVkRenderSurfaceData_acquireImage(vkSurface->surfaceData);
-		if (result == dsVkSurfaceResult_Success)
-		{
-			bool success = dsVkCommandBuffer_addRenderSurface(commandBuffer,
-				vkSurface->surfaceData);
-			if (success)
-				vkSurface->updatedFrame = renderer->frameNumber;
-			DS_VERIFY(dsSpinlock_unlock(&vkSurface->lock));
-			if (success)
-				return transitionToRenderable(commandBuffer, vkSurface->surfaceData);
-			return false;
-		}
-		else if (result == dsVkSurfaceResult_Error)
-		{
-			DS_VERIFY(dsSpinlock_unlock(&vkSurface->lock));
-			return false;
-		}
-	}
-
-	// Ignore if the size is 0. (e.g. minimized)
-	dsVkDevice* device = &((dsVkRenderer*)renderer)->device;
-	dsVkInstance* instance = &device->instance;
-	VkSurfaceCapabilitiesKHR surfaceInfo;
-	VkResult result = DS_VK_CALL(instance->vkGetPhysicalDeviceSurfaceCapabilitiesKHR)(
-		device->physicalDevice, vkSurface->surface, &surfaceInfo);
-	if (result == VK_SUCCESS && surfaceInfo.currentExtent.width == 0 &&
-		surfaceInfo.currentExtent.height == 0)
+	if (!vkSurface->surfaceData || vkSurface->surfaceError ||
+		vkSurface->surfaceData->vsync != renderer->vsync)
 	{
 		DS_VERIFY(dsSpinlock_unlock(&vkSurface->lock));
-		return true;
+		errno = EPERM;
+		return false;
 	}
 
-	// NOTE: Some systems need to wait until all of the render commands have come through before
-	// re-creating the render surface. Can only do this if processed on the main thread.
-	if (dsThread_equal(dsThread_thisThreadID(), renderer->mainThread))
-		dsRenderer_waitUntilIdle(renderer);
-
-	VkSwapchainKHR prevSwapchain = vkSurface->surfaceData ? vkSurface->surfaceData->swapchain : 0;
-	dsVkRenderSurfaceData* surfaceData = dsVkRenderSurfaceData_create(vkSurface->scratchAllocator,
-		renderer, vkSurface->surface, renderer->vsync, prevSwapchain, vkSurface->clientRotations);
-
-	bool success = false;
-	if (surfaceData)
+	dsVkSurfaceResult result = dsVkRenderSurfaceData_acquireImage(vkSurface->surfaceData);
+	if (result != dsVkSurfaceResult_Success)
 	{
-		dsVkRenderer_deleteRenderSurface(renderer, vkSurface->surfaceData);
-		vkSurface->surfaceData = surfaceData;
-		vkSurface->surfaceError = false;
-
-		if (dsVkRenderSurfaceData_acquireImage(vkSurface->surfaceData) == dsVkSurfaceResult_Success)
-		{
-			success = dsVkCommandBuffer_addRenderSurface(commandBuffer, vkSurface->surfaceData);
-			if (success)
-				vkSurface->updatedFrame = renderer->frameNumber;
-		}
-	}
-	else
+		// Wait until next update to re-create surface.
 		vkSurface->surfaceError = true;
-	DS_VERIFY(dsSpinlock_unlock(&vkSurface->lock));
+		DS_VERIFY(dsSpinlock_unlock(&vkSurface->lock));
+		errno = EPERM;
+		return false;
+	}
 
+	bool success = dsVkCommandBuffer_addRenderSurface(commandBuffer,
+		vkSurface->surfaceData);
+	if (success)
+		vkSurface->updatedFrame = renderer->frameNumber;
+	DS_VERIFY(dsSpinlock_unlock(&vkSurface->lock));
 	if (success)
 		return transitionToRenderable(commandBuffer, vkSurface->surfaceData);
 	return false;
