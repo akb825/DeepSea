@@ -283,12 +283,13 @@ static void setEndImageBarrier(VkImageMemoryBarrier* imageBarrier, const dsFrame
 }
 
 static bool endFramebuffer(dsCommandBuffer* commandBuffer, const dsFramebuffer* framebuffer,
-	const bool* resolveAttachment)
+	const dsAttachmentInfo* attachments)
 {
 	// Move framebuffer images into the expected layouts.
 	dsRenderer* renderer = commandBuffer->renderer;
 	for (uint32_t i = 0; i < framebuffer->surfaceCount; ++i)
 	{
+		bool resolveRequested = (attachments[i].usage & dsAttachmentUsage_Resolve) != 0;
 		const dsFramebufferSurface* surface = framebuffer->surfaces + i;
 		switch (surface->surfaceType)
 		{
@@ -300,7 +301,7 @@ static bool endFramebuffer(dsCommandBuffer* commandBuffer, const dsFramebuffer* 
 				// dsVkRenderSurface_beginDraw().
 				dsVkRenderSurface* renderSurface = (dsVkRenderSurface*)surface->surface;
 				dsVkRenderSurfaceData* surfaceData = renderSurface->surfaceData;
-				if (!surfaceData->resolveImage || !resolveAttachment[i])
+				if (!surfaceData->resolveImage || !resolveRequested)
 					break;
 
 				// Need to have copy format for explicit resolve.
@@ -329,7 +330,9 @@ static bool endFramebuffer(dsCommandBuffer* commandBuffer, const dsFramebuffer* 
 				if (!dsVkCommandBuffer_addResource(commandBuffer, &vkTexture->resource))
 					return false;
 
-				if (dsVkTexture_onlySubpassInput(texture->usage))
+				// Skip textures only used as subpass inputs unless explicitly resolved.
+				bool explicitResolve = vkTexture->surfaceImage && resolveRequested;
+				if (dsVkTexture_onlySubpassInput(texture->usage) && !explicitResolve)
 					break;
 
 				VkImageMemoryBarrier* imageBarrier =
@@ -338,7 +341,7 @@ static bool endFramebuffer(dsCommandBuffer* commandBuffer, const dsFramebuffer* 
 					return false;
 
 				uint32_t faceCount = texture->info.dimension == dsTextureDim_Cube ? 6 : 1;
-				if (vkTexture->surfaceImage && resolveAttachment[i])
+				if (explicitResolve)
 				{
 					// Prepare for explicit resolve.
 					setEndImageBarrier(imageBarrier, framebuffer, surface, texture->info.format,
@@ -395,7 +398,7 @@ static bool endFramebuffer(dsCommandBuffer* commandBuffer, const dsFramebuffer* 
 	for (uint32_t i = 0; i < framebuffer->surfaceCount; ++i)
 	{
 		const dsFramebufferSurface* surface = framebuffer->surfaces + i;
-		if (!resolveAttachment[i])
+		if (!(attachments[i].usage & dsAttachmentUsage_Resolve))
 			continue;
 
 		dsTextureUsage usage = dsTextureUsage_CopyTo;
@@ -426,7 +429,7 @@ static bool endFramebuffer(dsCommandBuffer* commandBuffer, const dsFramebuffer* 
 				dsTexture* texture = (dsTexture*)surface->surface;
 				DS_ASSERT(texture->offscreen);
 				dsVkTexture* vkTexture = (dsVkTexture*)texture;
-				if (!vkTexture->surfaceImage || dsVkTexture_onlySubpassInput(texture->usage))
+				if (!vkTexture->surfaceImage)
 					continue;
 
 				usage |= texture->usage | dsTextureUsage_CopyFrom;
@@ -527,7 +530,7 @@ dsVkRenderPassData* dsVkRenderPassData_create(dsAllocator* allocator, dsVkDevice
 		// Don't resolve default samples since we need space for the attachment when multisampling
 		// is disabled in case it's enabled later.
 		if (hasResolve(renderPass->subpasses, renderPass->subpassCount, i,
-			renderPass->attachments[i].samples, renderer->surfaceSamples))
+				renderPass->attachments[i].samples, renderer->surfaceSamples))
 		{
 			++fullAttachmentCount;
 			++resolveAttachmentCount;
@@ -535,7 +538,6 @@ dsVkRenderPassData* dsVkRenderPassData_create(dsAllocator* allocator, dsVkDevice
 	}
 
 	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsVkRenderPassData)) +
-		DS_ALIGNED_SIZE(sizeof(bool)*attachmentCount) +
 		DS_ALIGNED_SIZE(sizeof(uint32_t)*attachmentCount);
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
@@ -566,18 +568,12 @@ dsVkRenderPassData* dsVkRenderPassData_create(dsAllocator* allocator, dsVkDevice
 			attachmentCount);
 		DS_ASSERT(renderPassData->resolveIndices);
 
-		renderPassData->resolveAttachment = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, bool,
-			attachmentCount);
-		DS_ASSERT(renderPassData->resolveAttachment);
-
 		uint32_t resolveIndex = 0;
 		for (uint32_t i = 0; i < attachmentCount; ++i)
 		{
 			const dsAttachmentInfo* attachment = renderPass->attachments + i;
 			VkAttachmentDescription* vkAttachment = vkAttachments + i;
 			dsAttachmentUsage usage = attachment->usage;
-
-			renderPassData->resolveAttachment[i] = (usage & dsAttachmentUsage_Resolve) != 0;
 
 			const dsVkFormatInfo* format = dsVkResourceManager_getFormat(renderer->resourceManager,
 				attachment->format);
@@ -646,10 +642,7 @@ dsVkRenderPassData* dsVkRenderPassData_create(dsAllocator* allocator, dsVkDevice
 		DS_ASSERT(resolveIndex == resolveAttachmentCount);
 	}
 	else
-	{
 		renderPassData->resolveIndices = NULL;
-		renderPassData->resolveAttachment = NULL;
-	}
 	renderPassData->attachmentCount = attachmentCount;
 	renderPassData->fullAttachmentCount = fullAttachmentCount;
 
@@ -857,7 +850,7 @@ bool dsVkRenderPassData_end(const dsVkRenderPassData* renderPass, dsCommandBuffe
 
 	dsVkCommandBuffer_endRenderPass(commandBuffer);
 	if (!endFramebuffer(commandBuffer, commandBuffer->boundFramebuffer,
-			renderPass->resolveAttachment))
+			renderPass->renderPass->attachments))
 	{
 		dsVkCommandBuffer_resetMemoryBarriers(commandBuffer);
 		return false;

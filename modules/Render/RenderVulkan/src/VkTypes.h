@@ -632,7 +632,6 @@ typedef struct dsVkRenderPassData
 	const dsRenderPass* renderPass;
 
 	uint32_t* resolveIndices;
-	bool* resolveAttachment;
 	uint32_t attachmentCount;
 	uint32_t fullAttachmentCount;
 

@@ -137,7 +137,7 @@ typedef enum dsAttachmentUsage
 	/**
 	 * Resolve multisample attachment once the render pass has completed. Note that this may not be
 	 * as optimal as resolving as part of a subpass. This must be used with an offscreen that has
-	 * the dsTextureUsage_OffscreenContinue usage flag set.
+	 * the dsAttachmentUsage_Resolve usage flag set.
 	 */
 	dsAttachmentUsage_Resolve = 0x10
 } dsAttachmentUsage;

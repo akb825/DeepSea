@@ -113,7 +113,8 @@ typedef enum dsTextureUsage
 	 * not set, some offscreen contents may be discarded after rendering depending on the underlying
 	 * hardware and other usage flags to save memory.
 	 */
-	dsTextureUsage_OffscreenContinue = 0x20
+	dsTextureUsage_OffscreenContinue = 0x20,
+	dsTextureUsage_ExplicitResolve = 0x40 ///< Explicitly resolve with dsAttachmentUsage_Resolve.
 } dsTextureUsage;
 
 /**

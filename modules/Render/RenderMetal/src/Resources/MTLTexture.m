@@ -282,7 +282,7 @@ static dsTexture* createTextureImpl(dsResourceManager* resourceManager, dsAlloca
 		resourceOptions |= MTLResourceStorageModePrivate;
 #endif
 #if __IPHONE_OS_VERSION_MIN_REQUIRED >= 100000
-		if (!(usage & dsTextureUsage_OffscreenContinue))
+		if (!(usage & (dsTextureUsage_OffscreenContinue | dsTextureUsage_ExplicitResolve)))
 			resourceOptions |= MTLResourceStorageModeMemoryless;
 #endif
 		descriptor.usage = MTLTextureUsageRenderTarget;

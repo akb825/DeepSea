@@ -284,7 +284,7 @@ static dsTexture* createTextureImpl(dsResourceManager* resourceManager, dsAlloca
 	}
 
 	// Base flags determined from the usage flags passed in.
-	bool explicitResolve = resolve && (usage & dsTextureUsage_OffscreenContinue);
+	bool explicitResolve = resolve && (usage & dsTextureUsage_ExplicitResolve);
 	VkImageUsageFlags usageFlags = 0;
 	if (usage & dsTextureUsage_Texture)
 		usageFlags |= VK_IMAGE_USAGE_SAMPLED_BIT;

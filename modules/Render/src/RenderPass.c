@@ -282,7 +282,7 @@ static bool canKeepRenderbuffer(const dsFramebufferSurface* surface)
 	}
 }
 
-static bool canContinueOffscreen(const dsFramebufferSurface* surface)
+static bool canExplicitlyResolveOffscreen(const dsFramebufferSurface* surface)
 {
 	switch (surface->surfaceType)
 	{
@@ -297,7 +297,7 @@ static bool canContinueOffscreen(const dsFramebufferSurface* surface)
 		case dsGfxSurfaceType_Offscreen:
 		{
 			const dsOffscreen* offscreen = (const dsOffscreen*)surface->surface;
-			return (offscreen->usage & dsTextureUsage_OffscreenContinue) != 0;
+			return (offscreen->usage & dsTextureUsage_ExplicitResolve) != 0;
 		}
 		default:
 			DS_ASSERT(false);
@@ -620,11 +620,11 @@ bool dsRenderPass_begin(const dsRenderPass* renderPass, dsCommandBuffer* command
 		}
 
 		if ((renderPass->attachments[i].usage & dsAttachmentUsage_Resolve) &&
-			!canContinueOffscreen(framebuffer->surfaces + i))
+			!canExplicitlyResolveOffscreen(framebuffer->surfaces + i))
 		{
 			errno = EINVAL;
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Resolving an offscreen after the full render pass "
-				"requires the dsTextureUsage_OffscreenContinue usage flag.");
+				"requires the dsTextureUsage_ExplicitResolve usage flag.");
 			DS_PROFILE_FUNC_END();
 			endRenderPassScope(commandBuffer);
 			return false;
