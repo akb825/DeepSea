@@ -153,8 +153,9 @@ bool dsResourceManager_canUseResources(const dsResourceManager* resourceManager)
 
 void dsResourceManager_reportStatistics(const dsResourceManager* resourceManager)
 {
+	DS_PROFILE_FUNC_START();
 	if (!resourceManager)
-		return;
+		DS_PROFILE_FUNC_RETURN_VOID();
 
 	DS_PROFILE_STAT("ResourceManager", "Resource contexts", resourceManager->resourceContextCount);
 	DS_PROFILE_STAT("ResourceManager", "Buffers", resourceManager->bufferCount);
@@ -177,6 +178,7 @@ void dsResourceManager_reportStatistics(const dsResourceManager* resourceManager
 		resourceManager->shaderVariableGroupDescCount);
 	DS_PROFILE_STAT("ResourceManager", "Shader variable groups",
 		resourceManager->shaderVariableGroupCount);
+	DS_PROFILE_FUNC_RETURN_VOID();
 }
 
 bool dsResourceManager_initialize(dsResourceManager* resourceManager)

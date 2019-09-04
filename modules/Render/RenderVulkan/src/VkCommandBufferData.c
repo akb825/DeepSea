@@ -84,9 +84,11 @@ VkCommandBuffer dsVkCommandBufferData_getCommandBuffer(dsVkCommandBufferData* bu
 		return 0;
 	}
 
-	chunk->nextBuffer = 1;
 	VkCommandBuffer commandBuffer = chunk->commandBuffers[0];
 	bufferData->chunks[index] = chunk;
+	chunk->nextBuffer = 1;
+	if (chunk->nextBuffer == DS_COMMAND_BUFFER_CHUNK_SIZE)
+		++bufferData->activeChunk;
 	return commandBuffer;
 }
 

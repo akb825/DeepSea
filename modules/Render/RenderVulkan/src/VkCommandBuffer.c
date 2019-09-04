@@ -48,7 +48,7 @@ static VkCommandBuffer getMainCommandBuffer(dsCommandBuffer* commandBuffer)
 
 	uint32_t index = vkCommandBuffer->submitBufferCount;
 	if (!DS_RESIZEABLE_ARRAY_ADD(commandBuffer->allocator, vkCommandBuffer->submitBuffers,
-		vkCommandBuffer->submitBufferCount, vkCommandBuffer->maxSubmitBuffers, 1))
+			vkCommandBuffer->submitBufferCount, vkCommandBuffer->maxSubmitBuffers, 1))
 	{
 		return 0;
 	}
@@ -178,7 +178,7 @@ static bool processOffscreenReadbacks(dsCommandBuffer* commandBuffer,
 
 		uint32_t imageCopiesCount = 0;
 		if (!DS_RESIZEABLE_ARRAY_ADD(commandBuffer->allocator, vkCommandBuffer->imageCopies,
-			imageCopiesCount, vkCommandBuffer->maxImageCopies, info->mipLevels))
+				imageCopiesCount, vkCommandBuffer->maxImageCopies, info->mipLevels))
 		{
 			return false;
 		}
@@ -502,8 +502,8 @@ bool dsVkCommandBuffer_submit(dsRenderer* renderer, dsCommandBuffer* commandBuff
 	// Copy over the used resources.
 	uint32_t offset = vkCommandBuffer->usedResourceCount;
 	if (!DS_RESIZEABLE_ARRAY_ADD(commandBuffer->allocator, vkCommandBuffer->usedResources,
-		vkCommandBuffer->usedResourceCount, vkCommandBuffer->maxUsedResources,
-		vkSubmitBuffer->usedResourceCount))
+			vkCommandBuffer->usedResourceCount, vkCommandBuffer->maxUsedResources,
+			vkSubmitBuffer->usedResourceCount))
 	{
 		return false;
 	}
@@ -552,8 +552,8 @@ bool dsVkCommandBuffer_submit(dsRenderer* renderer, dsCommandBuffer* commandBuff
 
 		offset = vkCommandBuffer->submitBufferCount;
 		if (!DS_RESIZEABLE_ARRAY_ADD(commandBuffer->allocator, vkCommandBuffer->submitBuffers,
-			vkCommandBuffer->submitBufferCount, vkCommandBuffer->maxSubmitBuffers,
-			vkSubmitBuffer->submitBufferCount))
+				vkCommandBuffer->submitBufferCount, vkCommandBuffer->maxSubmitBuffers,
+				vkSubmitBuffer->submitBufferCount))
 		{
 			return false;
 		}
@@ -649,6 +649,7 @@ void dsVkCommandBuffer_forceNewCommandBuffer(dsCommandBuffer* commandBuffer)
 
 void dsVkCommandBuffer_finishCommandBuffer(dsCommandBuffer* commandBuffer)
 {
+	DS_PROFILE_FUNC_START();
 	DS_ASSERT(commandBuffer != commandBuffer->renderer->mainCommandBuffer);
 	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
 	dsVkDevice* device = &((dsVkRenderer*)commandBuffer->renderer)->device;
@@ -666,6 +667,7 @@ void dsVkCommandBuffer_finishCommandBuffer(dsCommandBuffer* commandBuffer)
 	}
 
 	resetActiveRenderAndComputeState(vkCommandBuffer);
+	DS_PROFILE_FUNC_RETURN_VOID();
 }
 
 void dsVkCommandBuffer_submitFence(dsCommandBuffer* commandBuffer, bool readback)
@@ -691,6 +693,7 @@ void dsVkCommandBuffer_submitFence(dsCommandBuffer* commandBuffer, bool readback
 
 bool dsVkCommandBuffer_endSubmitCommands(dsCommandBuffer* commandBuffer)
 {
+	DS_PROFILE_FUNC_START();
 	DS_ASSERT(commandBuffer != commandBuffer->renderer->mainCommandBuffer);
 	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
 	dsRenderer* renderer = commandBuffer->renderer;
@@ -698,15 +701,15 @@ bool dsVkCommandBuffer_endSubmitCommands(dsCommandBuffer* commandBuffer)
 
 	// First submit buffer is always for resource processing.
 	if (vkCommandBuffer->submitBufferCount <= 1)
-		return true;
+		DS_PROFILE_FUNC_RETURN(true);
 
 	VkCommandBuffer renderCommands = getMainCommandBuffer(commandBuffer);
 	if (!renderCommands)
-		return false;
+		DS_PROFILE_FUNC_RETURN(false);
 
 	// Copy the readback offscreens.
 	if (!processOffscreenReadbacks(commandBuffer, renderCommands))
-		return false;
+		DS_PROFILE_FUNC_RETURN(false);
 
 	// Make sure any writes are visible for mapping buffers.
 	VkMemoryBarrier memoryBarrier =
@@ -721,8 +724,7 @@ bool dsVkCommandBuffer_endSubmitCommands(dsCommandBuffer* commandBuffer)
 
 	DS_VK_CALL(device->vkCmdPipelineBarrier)(renderCommands, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
 		VK_PIPELINE_STAGE_HOST_BIT, 0, 1, &memoryBarrier, 0, NULL, 0, NULL);
-
-	return true;
+	DS_PROFILE_FUNC_RETURN(true);
 }
 
 bool dsVkCommandBuffer_beginRenderPass(dsCommandBuffer* commandBuffer, VkRenderPass renderPass,

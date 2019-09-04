@@ -937,6 +937,7 @@ static void processRenderSurfaces(dsVkRenderer* renderer, dsVkProcessResourceLis
 
 static void processResources(dsVkRenderer* renderer, VkCommandBuffer commandBuffer)
 {
+	DS_PROFILE_FUNC_START();
 	dsVkDevice* device = &renderer->device;
 	dsVkBarrierList* preResourceBarriers = &renderer->preResourceBarriers;
 	dsVkBarrierList* postResourceBarriers = &renderer->postResourceBarriers;
@@ -1007,6 +1008,7 @@ static void processResources(dsVkRenderer* renderer, VkCommandBuffer commandBuff
 		postResourceBarriers->imageBarrierCount, postResourceBarriers->imageBarriers);
 
 	dsVkProcessResourceList_clear(prevResourceList);
+	DS_PROFILE_FUNC_RETURN_VOID();
 }
 
 static bool beginDraw(dsCommandBuffer* commandBuffer, VkCommandBuffer submitBuffer,
@@ -1355,10 +1357,12 @@ static VkSemaphore preFlush(dsRenderer* renderer, bool readback, bool useSemapho
 	DS_PROFILE_SCOPE_END();
 
 	// Clean up the previous command buffer.
+	DS_PROFILE_SCOPE_START("Post submit cleanup");
 	dsVkCommandBuffer_submittedResources(submitBuffer, submit->submitIndex);
 	dsVkCommandBuffer_submittedRenderSurfaces(submitBuffer, submit->submitIndex);
 	if (readback)
 		dsVkCommandBuffer_submittedReadbackOffscreens(submitBuffer, submit->submitIndex);
+	DS_PROFILE_SCOPE_END();
 
 	return submittedSemaphore;
 }

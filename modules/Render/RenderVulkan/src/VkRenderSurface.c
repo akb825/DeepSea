@@ -29,6 +29,7 @@
 #include <DeepSea/Core/Thread/Spinlock.h>
 #include <DeepSea/Core/Thread/Thread.h>
 #include <DeepSea/Core/Assert.h>
+#include <DeepSea/Core/Profile.h>
 #include <DeepSea/Render/Renderer.h>
 #include <string.h>
 
@@ -312,6 +313,7 @@ bool dsVkRenderSurface_swapBuffers(dsRenderer* renderer, dsRenderSurface** rende
 		DS_VERIFY(dsSpinlock_unlock(&vkSurface->lock));
 	}
 
+	DS_PROFILE_SCOPE_START("vkQueuePresentKHR");
 	VkPresentInfoKHR presentInfo =
 	{
 		VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
@@ -323,6 +325,7 @@ bool dsVkRenderSurface_swapBuffers(dsRenderer* renderer, dsRenderSurface** rende
 
 	dsVkDevice* device = &((dsVkRenderer*)renderer)->device;
 	VkResult result = DS_VK_CALL(device->vkQueuePresentKHR)(device->queue, &presentInfo);
+	DS_PROFILE_SCOPE_END();
 	return DS_HANDLE_VK_RESULT(result, "Couldn't queue present");
 }
 
