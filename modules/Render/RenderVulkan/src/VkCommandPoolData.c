@@ -65,11 +65,11 @@ dsVkCommandPoolData* dsVkCommandPoolData_create(dsAllocator* allocator, dsRender
 bool dsVkCommandPoolData_prepare(dsVkCommandPoolData* pool)
 {
 	dsVkResource_waitUntilNotInUse(&pool->resource, pool->renderer);
+	// Clear resources so they don't stick around, but delay calling dsVkCommandBuffer_prepare()
+	// until when begin is called on the command buffers to avoid performance issues on some
+	// drivers.
 	for (uint32_t i = 0; i < pool->count; ++i)
-	{
-		dsVkCommandBuffer_prepare(pool->commandBuffers[i]);
 		dsVkCommandBuffer_clearUsedResources(pool->commandBuffers[i]);
-	}
 	return true;
 }
 
