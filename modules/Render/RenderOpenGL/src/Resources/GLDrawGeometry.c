@@ -67,7 +67,7 @@ static void bindElements(dsGLDrawGeometry* geometry, int32_t baseVertex, bool tr
 				vertexBuffer->format.size, (void*)(size_t)(vertexBuffer->offset + element->offset +
 				offset));
 			if (ANYGL_SUPPORTED(glVertexAttribDivisor))
-				glVertexAttribDivisor(index, vertexBuffer->format.divisor);
+				glVertexAttribDivisor(index, vertexBuffer->format.instanced ? 1 : 0);
 		}
 	}
 

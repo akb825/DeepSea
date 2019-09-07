@@ -105,8 +105,9 @@ dsVkPipeline* dsVkPipeline_create(dsAllocator* allocator, dsShader* shader,
 
 		DS_ASSERT(format->size > 0);
 		vertexBindings[bindingCount].binding = bindingCount;
-		vertexBindings[bindingCount].stride = format->size*dsMax(format->divisor, 1U);
-		vertexBindings[bindingCount].inputRate = format->divisor > 0;
+		vertexBindings[bindingCount].stride = format->size;
+		vertexBindings[bindingCount].inputRate = format->instanced ? VK_VERTEX_INPUT_RATE_INSTANCE :
+			VK_VERTEX_INPUT_RATE_VERTEX;
 		for (uint32_t mask = format->enabledMask; mask; mask = dsRemoveLastBit(mask))
 		{
 			uint32_t attribute = dsBitmaskIndex(mask);

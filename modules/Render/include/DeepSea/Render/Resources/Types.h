@@ -533,16 +533,14 @@ typedef struct dsVertexFormat
 	uint32_t enabledMask;
 
 	/**
-	 * @brief The divisor to use when drawing instanced data.
-	 *
-	 * Set to 0 to disable.
-	 */
-	uint32_t divisor;
-
-	/**
 	 * @brief The size fo the vertex in bytes.
 	 */
 	uint32_t size;
+
+	/**
+	 * @brief True if the vertex data is incremented per instance rather than per vertex.
+	 */
+	bool instanced;
 } dsVertexFormat;
 
 /**

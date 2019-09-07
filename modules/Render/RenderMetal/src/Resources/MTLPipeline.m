@@ -242,10 +242,10 @@ static bool setupVertexState(dsShader* shader, MTLRenderPipelineDescriptor* desc
 			return false;
 		}
 
-		if (formats[i].divisor > 0)
+		if (formats[i].instanced)
 		{
 			layout.stepFunction = MTLVertexStepFunctionPerInstance;
-			layout.stepRate = formats[i].divisor;
+			layout.stepRate = 1;
 		}
 		layout.stride = formats[i].size;
 

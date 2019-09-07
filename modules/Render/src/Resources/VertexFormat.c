@@ -100,7 +100,7 @@ bool dsVertexFormat_isValid(const dsResourceManager* resourceManager, const dsVe
 	if (format->enabledMask == 0)
 		return false;
 
-	if (format->divisor != 0 && !resourceManager->renderer->hasInstancedDrawing)
+	if (format->instanced && !resourceManager->renderer->hasInstancedDrawing)
 		return false;
 
 	for (uint32_t mask = format->enabledMask; mask; mask = dsRemoveLastBit(mask))
