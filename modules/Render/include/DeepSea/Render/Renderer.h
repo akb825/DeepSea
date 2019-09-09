@@ -236,6 +236,10 @@ DS_RENDER_EXPORT bool dsRenderer_setDefaultAnisotropy(dsRenderer* renderer, floa
 
 /**
  * @brief Clears a color surface.
+ *
+ * Offscreens must have the dsTextureUsage_CopyTo flag set, while renderbuffers must have the
+ * dsRenderbufferUsage_Clear flag set.
+ *
  * @remark This must be called outside of a render pass.
  * @remark errno will be set on failure.
  * @param renderer The renderer.
@@ -250,6 +254,10 @@ DS_RENDER_EXPORT bool dsRenderer_clearColorSurface(dsRenderer* renderer,
 
 /**
  * @brief Clears a depth-stencil surface.
+ *
+ * Offscreens must have the dsTextureUsage_CopyTo flag set, while renderbuffers must have the
+ * dsRenderbufferUsage_Clear flag set.
+ *
  * @remark This must be called outside of a render pass.
  * @remark errno will be set on failure.
  * @param renderer The renderer.

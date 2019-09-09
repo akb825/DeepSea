@@ -49,10 +49,11 @@ TEST_F(CommandBufferTest, BeginEndSecondary)
 	};
 	uint32_t attachmentCount = DS_ARRAY_SIZE(attachments);
 
-	dsColorAttachmentRef colorAttachments[] = {{0, true}};
+	dsAttachmentRef colorAttachments[] = {{0, true}};
 	dsRenderSubpassInfo subpasses[] =
 	{
-		{"test", NULL, colorAttachments, 0, DS_ARRAY_SIZE(colorAttachments), DS_NO_ATTACHMENT},
+		{"test", NULL, colorAttachments, {DS_NO_ATTACHMENT, false}, 0,
+			DS_ARRAY_SIZE(colorAttachments)},
 	};
 	uint32_t subpassCount = DS_ARRAY_SIZE(subpasses);
 

@@ -545,22 +545,22 @@ static bool setup(TestRenderSubpass* testRenderSubpass, dsApplication* applicati
 	};
 	uint32_t attachmentCount = DS_ARRAY_SIZE(attachments);
 
-	dsColorAttachmentRef rColorAttachment = {1, true};
+	dsAttachmentRef rColorAttachment = {1, true};
 	uint32_t rDepthStencilAttachment = 2;
-	dsColorAttachmentRef gColorAttachment = {3, true};
+	dsAttachmentRef gColorAttachment = {3, true};
 	uint32_t gDepthStencilAttachment = 4;
-	dsColorAttachmentRef bColorAttachment = {5, true};
+	dsAttachmentRef bColorAttachment = {5, true};
 	uint32_t bDepthStencilAttachment = 6;
-	dsColorAttachmentRef resolveColorAttachment = {0, false};
+	dsAttachmentRef resolveColorAttachment = {0, false};
 	uint32_t inputAttachments[] = {1, 3, 5};
 
 	dsRenderSubpassInfo subpasses[] =
 	{
-		{"R channel", NULL, &rColorAttachment, 0, 1, rDepthStencilAttachment},
-		{"G channel", NULL, &gColorAttachment, 0, 1, gDepthStencilAttachment},
-		{"B channel", NULL, &bColorAttachment, 0, 1, bDepthStencilAttachment},
-		{"Resolve", inputAttachments, &resolveColorAttachment, DS_ARRAY_SIZE(inputAttachments), 1,
-			DS_NO_ATTACHMENT}
+		{"R channel", NULL, &rColorAttachment, {rDepthStencilAttachment, false}, 0, 1},
+		{"G channel", NULL, &gColorAttachment, {gDepthStencilAttachment, false}, 0, 1},
+		{"B channel", NULL, &bColorAttachment, {bDepthStencilAttachment, false}, 0, 1},
+		{"Resolve", inputAttachments, &resolveColorAttachment, {DS_NO_ATTACHMENT, false},
+			DS_ARRAY_SIZE(inputAttachments), 1}
 	};
 	// Resolve subpass is dependent on all previous subpasses.
 	dsSubpassDependency dependencies[] =

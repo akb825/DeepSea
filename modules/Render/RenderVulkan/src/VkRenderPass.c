@@ -43,7 +43,7 @@ static size_t fullAllocSize(uint32_t attachmentCount, const dsRenderSubpassInfo*
 	for (uint32_t i = 0; i < subpassCount; ++i)
 	{
 		totalSize += DS_ALIGNED_SIZE(sizeof(uint32_t)*subpasses[i].inputAttachmentCount) +
-			DS_ALIGNED_SIZE(sizeof(dsColorAttachmentRef)*subpasses[i].colorAttachmentCount) +
+			DS_ALIGNED_SIZE(sizeof(dsAttachmentRef)*subpasses[i].colorAttachmentCount) +
 			DS_ALIGNED_SIZE(strlen(subpasses[i].name) + 1);
 	}
 	return totalSize;
@@ -128,10 +128,10 @@ dsRenderPass* dsVkRenderPass_create(dsRenderer* renderer, dsAllocator* allocator
 		if (curSubpass->colorAttachmentCount > 0)
 		{
 			curSubpass->colorAttachments = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc,
-				dsColorAttachmentRef, curSubpass->colorAttachmentCount);
+				dsAttachmentRef, curSubpass->colorAttachmentCount);
 			DS_ASSERT(curSubpass->colorAttachments);
 			memcpy((void*)curSubpass->colorAttachments, subpasses[i].colorAttachments,
-				sizeof(dsColorAttachmentRef)*curSubpass->colorAttachmentCount);
+				sizeof(dsAttachmentRef)*curSubpass->colorAttachmentCount);
 		}
 
 		size_t nameLen = strlen(subpasses[i].name) + 1;

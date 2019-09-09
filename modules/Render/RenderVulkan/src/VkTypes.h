@@ -148,7 +148,6 @@ typedef struct dsVkDevice
 	PFN_vkCmdBlitImage vkCmdBlitImage;
 	PFN_vkCmdClearColorImage vkCmdClearColorImage;
 	PFN_vkCmdClearDepthStencilImage vkCmdClearDepthStencilImage;
-	PFN_vkCmdResolveImage vkCmdResolveImage;
 	PFN_vkCreateImageView vkCreateImageView;
 	PFN_vkDestroyImageView vkDestroyImageView;
 
@@ -156,6 +155,7 @@ typedef struct dsVkDevice
 	PFN_vkDestroyFramebuffer vkDestroyFramebuffer;
 
 	PFN_vkCreateRenderPass vkCreateRenderPass;
+	PFN_vkCreateRenderPass2KHR vkCreateRenderPass2KHR;
 	PFN_vkDestroyRenderPass vkDestroyRenderPass;
 	PFN_vkCmdBeginRenderPass vkCmdBeginRenderPass;
 	PFN_vkCmdNextSubpass vkCmdNextSubpass;
@@ -227,6 +227,7 @@ typedef struct dsVkDevice
 
 	VkPhysicalDeviceFeatures features;
 	VkPhysicalDeviceProperties properties;
+	bool hasDepthStencilResolve;
 	bool hasPVRTC;
 	bool hasLazyAllocation;
 

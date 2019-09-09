@@ -44,7 +44,7 @@ dsRenderPass* dsGLRenderPass_create(dsRenderer* renderer, dsAllocator* allocator
 	for (uint32_t i = 0; i < subpassCount; ++i)
 	{
 		fullSize += DS_ALIGNED_SIZE(sizeof(uint32_t)*subpasses[i].inputAttachmentCount) +
-			DS_ALIGNED_SIZE(sizeof(dsColorAttachmentRef)*subpasses[i].colorAttachmentCount) +
+			DS_ALIGNED_SIZE(sizeof(dsAttachmentRef)*subpasses[i].colorAttachmentCount) +
 			DS_ALIGNED_SIZE(strlen(subpasses[i].name) + 1);
 	}
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
@@ -78,6 +78,7 @@ dsRenderPass* dsGLRenderPass_create(dsRenderer* renderer, dsAllocator* allocator
 				uint32_t attachmentIndex = subpasses[i].colorAttachments[j].attachmentIndex;
 				if (attachmentIndex == DS_NO_ATTACHMENT)
 					continue;
+
 				const dsAttachmentInfo* attachment = attachments + attachmentIndex;
 				if (!(attachment->usage & dsAttachmentUsage_Clear))
 					continue;
@@ -86,14 +87,14 @@ dsRenderPass* dsGLRenderPass_create(dsRenderer* renderer, dsAllocator* allocator
 					renderPass->clearSubpass[attachmentIndex] = i;
 			}
 
-			if (subpasses[i].depthStencilAttachment != DS_NO_ATTACHMENT)
+			uint32_t depthStencilAttachment = subpasses[i].depthStencilAttachment.attachmentIndex;
+			if (depthStencilAttachment != DS_NO_ATTACHMENT)
 			{
-				uint32_t attachmentIndex = subpasses[i].depthStencilAttachment;
-				const dsAttachmentInfo* attachment = attachments + attachmentIndex;
+				const dsAttachmentInfo* attachment = attachments + depthStencilAttachment;
 				if ((attachment->usage & dsAttachmentUsage_Clear) &&
-					renderPass->clearSubpass[attachmentIndex] == DS_NO_ATTACHMENT)
+					renderPass->clearSubpass[depthStencilAttachment] == DS_NO_ATTACHMENT)
 				{
-					renderPass->clearSubpass[attachmentIndex] = i;
+					renderPass->clearSubpass[depthStencilAttachment] = i;
 				}
 			}
 		}
@@ -124,10 +125,10 @@ dsRenderPass* dsGLRenderPass_create(dsRenderer* renderer, dsAllocator* allocator
 		if (curSubpass->colorAttachmentCount > 0)
 		{
 			curSubpass->colorAttachments = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc,
-				dsColorAttachmentRef, curSubpass->colorAttachmentCount);
+				dsAttachmentRef, curSubpass->colorAttachmentCount);
 			DS_ASSERT(curSubpass->colorAttachments);
 			memcpy((void*)curSubpass->colorAttachments, subpasses[i].colorAttachments,
-				sizeof(dsColorAttachmentRef)*curSubpass->colorAttachmentCount);
+				sizeof(dsAttachmentRef)*curSubpass->colorAttachmentCount);
 		}
 
 		size_t nameLen = strlen(subpasses[i].name) + 1;

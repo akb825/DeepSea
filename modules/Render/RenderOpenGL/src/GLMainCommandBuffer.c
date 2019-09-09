@@ -292,13 +292,13 @@ static void clearOtherFramebuffer(const dsRenderPass* renderPass, uint32_t subpa
 		}
 	}
 
-	if (subpass->depthStencilAttachment != DS_NO_ATTACHMENT)
+	uint32_t depthStencilAttachment = subpass->depthStencilAttachment.attachmentIndex;
+	if (depthStencilAttachment != DS_NO_ATTACHMENT)
 	{
-		uint32_t attachment = subpass->depthStencilAttachment;
-		if (glRenderPass->clearSubpass[attachment] == subpassIndex)
+		if (glRenderPass->clearSubpass[depthStencilAttachment] == subpassIndex)
 		{
-			clearDrawBuffer(renderPass->attachments[attachment].format, 0,
-				clearValues + attachment);
+			clearDrawBuffer(renderPass->attachments[depthStencilAttachment].format, 0,
+				clearValues + depthStencilAttachment);
 		}
 	}
 
@@ -326,13 +326,14 @@ static void clearMainFramebuffer(const dsRenderPass* renderPass, uint32_t subpas
 		setClearColor(renderPass->attachments[attachment].format, clearValues + attachment);
 	}
 
-	if (subpass->depthStencilAttachment != DS_NO_ATTACHMENT)
+	uint32_t depthStencilAttachment = subpass->depthStencilAttachment.attachmentIndex;
+	if (depthStencilAttachment != DS_NO_ATTACHMENT)
 	{
-		uint32_t attachment = subpass->depthStencilAttachment;
-		if (glRenderPass->clearSubpass[attachment] == subpassIndex)
+		if (glRenderPass->clearSubpass[depthStencilAttachment] == subpassIndex)
 		{
-			clearMask |= getClearMask(renderPass->attachments[attachment].format);
-			setClearColor(renderPass->attachments[attachment].format, clearValues + attachment);
+			clearMask |= getClearMask(renderPass->attachments[depthStencilAttachment].format);
+			setClearColor(renderPass->attachments[depthStencilAttachment].format,
+				clearValues + depthStencilAttachment);
 		}
 	}
 
@@ -348,7 +349,8 @@ static bool beginRenderSubpass(dsGLMainCommandBuffer* commandBuffer,
 	// Bind the framebuffer with the surfaces for this subpass.
 	const dsRenderSubpassInfo* subpass = renderPass->subpasses + subpassIndex;
 	GLSurfaceType surfaceType = dsGLFramebuffer_bind(commandBuffer->curFramebuffer,
-		subpass->colorAttachments, subpass->colorAttachmentCount, subpass->depthStencilAttachment);
+		subpass->colorAttachments, subpass->colorAttachmentCount,
+		subpass->depthStencilAttachment.attachmentIndex);
 	if (surfaceType == GLSurfaceType_None)
 		return false;
 
@@ -365,13 +367,44 @@ static bool beginRenderSubpass(dsGLMainCommandBuffer* commandBuffer,
 	return true;
 }
 
+static dsTexture* resolveMultisampledSurface(dsRenderer* renderer, const dsFramebuffer* framebuffer,
+	uint32_t attachment, GLuint* readFbo, GLuint* writeFbo)
+{
+	if (framebuffer->surfaces[attachment].surfaceType != dsGfxSurfaceType_Offscreen)
+		return NULL;
+
+	dsTexture* texture = (dsTexture*)framebuffer->surfaces[attachment].surface;
+	dsGLTexture* glTexture = (dsGLTexture*)texture;
+	if (!glTexture->drawBufferId)
+		return NULL;
+
+	if (!*readFbo)
+	{
+		*readFbo = dsGLRenderer_tempFramebuffer(renderer);
+		*writeFbo = dsGLRenderer_tempCopyFramebuffer(renderer);
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, *readFbo);
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, *writeFbo);
+	}
+
+	GLenum buffers = dsGLTexture_attachment(texture->info.format);
+	GLbitfield bufferMask = dsGLTexture_buffers(texture->info.format);
+	glFramebufferRenderbuffer(GL_READ_FRAMEBUFFER, buffers, GL_RENDERBUFFER,
+		glTexture->drawBufferId);
+	dsGLTexture_bindFramebufferTextureAttachment(texture, GL_DRAW_FRAMEBUFFER, buffers,
+		framebuffer->surfaces[attachment].mipLevel, framebuffer->surfaces[attachment].layer);
+
+	glBlitFramebuffer(0, 0, texture->info.width, texture->info.height, 0, 0,
+		texture->info.width, texture->info.height, bufferMask, GL_NEAREST);
+	return texture;
+}
+
 static bool endRenderSubpass(dsGLMainCommandBuffer* commandBuffer,
 	const dsRenderPass* renderPass, uint32_t subpassIndex)
 {
 	// Resolve any targets that are set to resolve.
 	GLuint readFbo = 0;
 	GLuint writeFbo = 0;
-	dsTexture* texture = NULL;
+	dsTexture* lastTexture = NULL;
 	dsRenderer* renderer = ((dsCommandBuffer*)commandBuffer)->renderer;
 	const dsRenderSubpassInfo* subpass = renderPass->subpasses + subpassIndex;
 	const dsFramebuffer* framebuffer = commandBuffer->curFramebuffer;
@@ -381,38 +414,34 @@ static bool endRenderSubpass(dsGLMainCommandBuffer* commandBuffer,
 		if (attachment == DS_NO_ATTACHMENT || !subpass->colorAttachments[i].resolve)
 			continue;
 
-		if (framebuffer->surfaces[attachment].surfaceType != dsGfxSurfaceType_Offscreen)
-			continue;
+		dsTexture* resolvedTexture = resolveMultisampledSurface(renderer, framebuffer, attachment,
+			&readFbo, &writeFbo);
+		if (resolvedTexture)
+			lastTexture = resolvedTexture;
+	}
 
-		texture = (dsTexture*)framebuffer->surfaces[attachment].surface;
-		dsGLTexture* glTexture = (dsGLTexture*)texture;
-		if (!glTexture->drawBufferId)
-			continue;
+	if (lastTexture)
+	{
+		dsGLTexture_unbindFramebuffer(lastTexture, GL_READ_FRAMEBUFFER);
+		dsGLTexture_unbindFramebuffer(lastTexture, GL_DRAW_FRAMEBUFFER);
+	}
 
-		if (!readFbo)
-		{
-			readFbo = dsGLRenderer_tempFramebuffer(renderer);
-			writeFbo = dsGLRenderer_tempCopyFramebuffer(renderer);
-			glBindFramebuffer(GL_READ_FRAMEBUFFER, readFbo);
-			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, writeFbo);
-		}
-
-		GLenum buffers = dsGLTexture_attachment(texture->info.format);
-		GLbitfield bufferMask = dsGLTexture_buffers(texture->info.format);
-		glFramebufferRenderbuffer(GL_READ_FRAMEBUFFER, buffers, GL_RENDERBUFFER,
-			glTexture->drawBufferId);
-		dsGLTexture_bindFramebufferTextureAttachment(texture, GL_DRAW_FRAMEBUFFER, buffers,
-			framebuffer->surfaces[attachment].mipLevel, framebuffer->surfaces[attachment].layer);
-
-		glBlitFramebuffer(0, 0, texture->info.width, texture->info.height, 0, 0,
-			texture->info.width, texture->info.height, bufferMask, GL_NEAREST);
+	const dsAttachmentRef* depthStencilAttachment = &subpass->depthStencilAttachment;
+	if (depthStencilAttachment->attachmentIndex != DS_NO_ATTACHMENT &&
+		depthStencilAttachment->resolve)
+	{
+		dsTexture* resolvedTexture = resolveMultisampledSurface(renderer, framebuffer,
+			depthStencilAttachment->attachmentIndex, &readFbo, &writeFbo);
+		if (resolvedTexture)
+			lastTexture = resolvedTexture;
 	}
 
 	if (readFbo)
 	{
 		DS_ASSERT(writeFbo);
-		DS_ASSERT(texture);
-		dsGLTexture_unbindFramebuffer(texture, GL_DRAW_FRAMEBUFFER);
+		DS_ASSERT(lastTexture);
+		dsGLTexture_unbindFramebuffer(lastTexture, GL_READ_FRAMEBUFFER);
+		dsGLTexture_unbindFramebuffer(lastTexture, GL_DRAW_FRAMEBUFFER);
 		glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
 		dsGLRenderer_restoreFramebuffer(renderer);
 	}
@@ -1543,53 +1572,6 @@ bool dsGLMainCommandBuffer_endRenderPass(dsCommandBuffer* commandBuffer,
 
 	addSubpassBarrier(renderPass->subpassDependencies, renderPass->subpassDependencyCount,
 		renderPass->subpassCount - 1, DS_EXTERNAL_SUBPASS);
-
-	// Resolve any remaining attachments.
-	GLuint readFbo = 0;
-	GLuint writeFbo = 0;
-	dsTexture* texture = NULL;
-	dsRenderer* renderer = commandBuffer->renderer;
-	const dsFramebuffer* framebuffer = glCommandBuffer->curFramebuffer;
-	for (uint32_t i = 0; i < renderPass->attachmentCount; ++i)
-	{
-		if (!(renderPass->attachments[i].usage & dsAttachmentUsage_Resolve))
-			continue;
-
-		if (framebuffer->surfaces[i].surfaceType != dsGfxSurfaceType_Offscreen)
-			continue;
-
-		texture = (dsTexture*)framebuffer->surfaces[i].surface;
-		dsGLTexture* glTexture = (dsGLTexture*)texture;
-		if (!glTexture->drawBufferId)
-			continue;
-
-		if (!readFbo)
-		{
-			readFbo = dsGLRenderer_tempFramebuffer(renderer);
-			writeFbo = dsGLRenderer_tempCopyFramebuffer(renderer);
-			glBindFramebuffer(GL_READ_FRAMEBUFFER, readFbo);
-			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, writeFbo);
-		}
-
-		GLenum buffers = dsGLTexture_attachment(texture->info.format);
-		GLbitfield bufferMask = dsGLTexture_buffers(texture->info.format);
-		glFramebufferRenderbuffer(GL_READ_FRAMEBUFFER, buffers, GL_RENDERBUFFER,
-			glTexture->drawBufferId);
-		dsGLTexture_bindFramebufferTextureAttachment(texture, GL_DRAW_FRAMEBUFFER, buffers,
-			framebuffer->surfaces[i].mipLevel, framebuffer->surfaces[i].layer);
-
-		glBlitFramebuffer(0, 0, texture->info.width, texture->info.height, 0, 0,
-			texture->info.width, texture->info.height, bufferMask, GL_NEAREST);
-	}
-
-	if (readFbo)
-	{
-		DS_ASSERT(writeFbo);
-		DS_ASSERT(texture);
-		dsGLTexture_unbindFramebuffer(texture, GL_DRAW_FRAMEBUFFER);
-		glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
-		dsGLRenderer_restoreFramebuffer(renderer);
-	}
 
 	glCommandBuffer->curFramebuffer = NULL;
 

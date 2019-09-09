@@ -282,27 +282,25 @@ static bool canKeepRenderbuffer(const dsFramebufferSurface* surface)
 	}
 }
 
-static bool canExplicitlyResolveOffscreen(const dsFramebufferSurface* surface)
+static bool isResolveValid(const dsRenderer* renderer, const dsAttachmentInfo* attachments,
+	const dsFramebuffer* framebuffer, uint32_t attachment)
 {
-	switch (surface->surfaceType)
+	// Don't check for resolve when no anti-aliasing since offscreens no longer resolve,
+	// which would give a false positive.
+	uint32_t samples = attachments[attachment].samples;
+	if (samples == DS_DEFAULT_ANTIALIAS_SAMPLES)
+		samples = renderer->surfaceSamples;
+
+	if (samples > 1 && !canResolveSurface(framebuffer->surfaces + attachment))
 	{
-		case dsGfxSurfaceType_ColorRenderSurface:
-		case dsGfxSurfaceType_ColorRenderSurfaceLeft:
-		case dsGfxSurfaceType_ColorRenderSurfaceRight:
-		case dsGfxSurfaceType_DepthRenderSurface:
-		case dsGfxSurfaceType_DepthRenderSurfaceLeft:
-		case dsGfxSurfaceType_DepthRenderSurfaceRight:
-		case dsGfxSurfaceType_Renderbuffer:
-			return false;
-		case dsGfxSurfaceType_Offscreen:
-		{
-			const dsOffscreen* offscreen = (const dsOffscreen*)surface->surface;
-			return (offscreen->usage & dsTextureUsage_ExplicitResolve) != 0;
-		}
-		default:
-			DS_ASSERT(false);
-			return true;
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Color attachment set to resolve used with unresolvable framebuffer surface.");
+		DS_PROFILE_FUNC_END();
+		return false;
 	}
+
+	return true;
 }
 
 bool dsRenderPass_addFirstSubpassDependencyFlags(dsSubpassDependency* dependency)
@@ -451,9 +449,10 @@ dsRenderPass* dsRenderPass_create(dsRenderer* renderer, dsAllocator* allocator,
 			DS_PROFILE_FUNC_RETURN(NULL);
 		}
 
-		if (subpasses[i].depthStencilAttachment != DS_NO_ATTACHMENT)
+		const dsAttachmentRef* depthStencilAttachment = &subpasses[i].depthStencilAttachment;
+		if (depthStencilAttachment->attachmentIndex != DS_NO_ATTACHMENT)
 		{
-			if (subpasses[i].depthStencilAttachment >= attachmentCount)
+			if (depthStencilAttachment->attachmentIndex >= attachmentCount)
 			{
 				errno = EINDEX;
 				DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Subpass depth-stencil attachment out of range.");
@@ -461,7 +460,7 @@ dsRenderPass* dsRenderPass_create(dsRenderer* renderer, dsAllocator* allocator,
 			}
 
 			if (!dsGfxFormat_isDepthStencil(
-				attachments[subpasses[i].depthStencilAttachment].format))
+					attachments[depthStencilAttachment->attachmentIndex].format))
 			{
 				errno = EINVAL;
 				DS_LOG_ERROR(DS_RENDER_LOG_TAG,
@@ -469,17 +468,25 @@ dsRenderPass* dsRenderPass_create(dsRenderer* renderer, dsAllocator* allocator,
 				DS_PROFILE_FUNC_RETURN(NULL);
 			}
 
-			if (samples && samples != attachments[subpasses[i].depthStencilAttachment].samples)
+			if (samples && samples != attachments[depthStencilAttachment->attachmentIndex].samples)
 			{
 				errno = EINVAL;
 				DS_LOG_ERROR(DS_RENDER_LOG_TAG, "All color and depth attachments must have the "
 					"same number of anti-alias samples.");
 				DS_PROFILE_FUNC_RETURN(NULL);
 			}
+
+			if (depthStencilAttachment->resolve && !renderer->hasDepthStencilMultisampleResolve)
+			{
+				errno = EPERM;
+				DS_LOG_ERROR(DS_RENDER_LOG_TAG, "The current target doesn't allow resolving "
+					"multisampled depth/stencil offscreens.");
+				DS_PROFILE_FUNC_RETURN(NULL);
+			}
 		}
 
 		if (resourceManager->requiresAnySurface && !anyColorAttachmentSet &&
-			subpasses[i].depthStencilAttachment == DS_NO_ATTACHMENT)
+			depthStencilAttachment->attachmentIndex == DS_NO_ATTACHMENT)
 		{
 			errno = EPERM;
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG,
@@ -618,17 +625,6 @@ bool dsRenderPass_begin(const dsRenderPass* renderPass, dsCommandBuffer* command
 			endRenderPassScope(commandBuffer);
 			return false;
 		}
-
-		if ((renderPass->attachments[i].usage & dsAttachmentUsage_Resolve) &&
-			!canExplicitlyResolveOffscreen(framebuffer->surfaces + i))
-		{
-			errno = EINVAL;
-			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Resolving an offscreen after the full render pass "
-				"requires the dsTextureUsage_ExplicitResolve usage flag.");
-			DS_PROFILE_FUNC_END();
-			endRenderPassScope(commandBuffer);
-			return false;
-		}
 	}
 
 	for (uint32_t i = 0; i < renderPass->subpassCount; ++i)
@@ -647,6 +643,7 @@ bool dsRenderPass_begin(const dsRenderPass* renderPass, dsCommandBuffer* command
 			}
 		}
 
+		const dsAttachmentRef* depthStencilAttachment = &subpass->depthStencilAttachment;
 		if (!renderer->resourceManager->canMixWithRenderSurface)
 		{
 			SurfaceType surfaceTypes = SurfaceType_Unset;
@@ -660,10 +657,10 @@ bool dsRenderPass_begin(const dsRenderPass* renderPass, dsCommandBuffer* command
 				}
 			}
 
-			if (subpass->depthStencilAttachment != DS_NO_ATTACHMENT)
+			if (depthStencilAttachment->attachmentIndex != DS_NO_ATTACHMENT)
 			{
 				surfaceTypes = (SurfaceType)(surfaceTypes | getSurfaceType(
-					framebuffer->surfaces[subpass->depthStencilAttachment].surfaceType));
+					framebuffer->surfaces[depthStencilAttachment->attachmentIndex].surfaceType));
 			}
 
 			if (hasMultipleSurfaceTypes(surfaceTypes))
@@ -683,24 +680,20 @@ bool dsRenderPass_begin(const dsRenderPass* renderPass, dsCommandBuffer* command
 				continue;
 
 			uint32_t attachment = subpass->colorAttachments[j].attachmentIndex;
-			if (attachment == DS_NO_ATTACHMENT)
-				continue;
-
-			// Don't check for resolve when no anti-aliasing since offscreens no longer resolve,
-			// which would give a false positive.
-			uint32_t samples = renderPass->attachments[attachment].samples;
-			if (samples == DS_DEFAULT_ANTIALIAS_SAMPLES)
-				samples = renderer->surfaceSamples;
-
-			if (samples > 1 && !canResolveSurface(framebuffer->surfaces + attachment))
+			if (attachment != DS_NO_ATTACHMENT &&
+				!isResolveValid(renderer, renderPass->attachments, framebuffer, attachment))
 			{
-				errno = EPERM;
-				DS_LOG_ERROR(DS_RENDER_LOG_TAG,
-					"Color attachment set to resolve used with unresolvable framebuffer surface.");
-				DS_PROFILE_FUNC_END();
 				endRenderPassScope(commandBuffer);
 				return false;
 			}
+		}
+
+		if (depthStencilAttachment->attachmentIndex != DS_NO_ATTACHMENT &&
+			depthStencilAttachment->resolve && !isResolveValid(renderer, renderPass->attachments,
+				framebuffer, depthStencilAttachment->attachmentIndex))
+		{
+			endRenderPassScope(commandBuffer);
+			return false;
 		}
 	}
 

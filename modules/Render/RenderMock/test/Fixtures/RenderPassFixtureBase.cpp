@@ -31,10 +31,10 @@ void RenderPassFixtureBase::SetUp()
 			DS_DEFAULT_ANTIALIAS_SAMPLES}
 	};
 	uint32_t attachmentCount = DS_ARRAY_SIZE(attachments);
-	dsColorAttachmentRef colorAttachments[] = {{1, true}};
+	dsAttachmentRef colorAttachments[] = {{1, true}};
 	dsRenderSubpassInfo subpasses[] =
 	{
-		{"test1", NULL, colorAttachments, 0, DS_ARRAY_SIZE(colorAttachments), 0}
+		{"test1", NULL, colorAttachments, {0, false}, 0, DS_ARRAY_SIZE(colorAttachments)}
 	};
 	renderPass = dsRenderPass_create(renderer, NULL, attachments, attachmentCount,
 		subpasses, 1, NULL, 0);

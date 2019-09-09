@@ -411,6 +411,15 @@ dsOffscreen* dsTexture_createOffscreen(dsResourceManager* resourceManager, dsAll
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
+	if (resolve && !resourceManager->renderer->hasDepthStencilMultisampleResolve &&
+		dsGfxFormat_isDepthStencil(texInfo.format))
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"The current target doesn't allow resolving multisampled depth/stencil offscreens.");
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
 	uint32_t maxMipLevels = dsTexture_maxMipmapLevels(texInfo.width, texInfo.height,
 		DS_MIP_DEPTH(texInfo.dimension, texInfo.depth));
 	texInfo.mipLevels = dsMin(texInfo.mipLevels, maxMipLevels);

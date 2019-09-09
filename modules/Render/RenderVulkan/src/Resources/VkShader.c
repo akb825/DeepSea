@@ -1483,7 +1483,7 @@ VkPipeline dsVkShader_getPipeline(dsShader* shader, dsCommandBuffer* commandBuff
 		}
 	}
 	if (referenceAttachment == DS_NO_ATTACHMENT)
-		referenceAttachment = subpass->depthStencilAttachment;
+		referenceAttachment = subpass->depthStencilAttachment.attachmentIndex;
 
 	uint32_t samples = DS_DEFAULT_ANTIALIAS_SAMPLES;
 	if (referenceAttachment != DS_NO_ATTACHMENT)

@@ -39,18 +39,18 @@ TEST_F(RenderPassTest, Create)
 	};
 	uint32_t attachmentCount = DS_ARRAY_SIZE(attachments);
 
-	dsColorAttachmentRef pass0ColorAttachments[] = {{2, true}};
-	dsColorAttachmentRef pass1ColorAttachments[] = {{3, true}};
+	dsAttachmentRef pass0ColorAttachments[] = {{2, true}};
+	dsAttachmentRef pass1ColorAttachments[] = {{3, true}};
 	uint32_t pass2InputAttachments[] = {2, 3};
-	dsColorAttachmentRef pass2ColorAttachments[] = {{1, false}};
+	dsAttachmentRef pass2ColorAttachments[] = {{1, false}};
 	dsRenderSubpassInfo subpasses[] =
 	{
-		{"test1", NULL, pass0ColorAttachments, 0, DS_ARRAY_SIZE(pass0ColorAttachments),
-			DS_NO_ATTACHMENT},
-		{"test2", NULL, pass1ColorAttachments, 0, DS_ARRAY_SIZE(pass1ColorAttachments),
-			DS_NO_ATTACHMENT},
-		{"combine", pass2InputAttachments, pass2ColorAttachments,
-			DS_ARRAY_SIZE(pass2InputAttachments), DS_ARRAY_SIZE(pass2ColorAttachments), 0}
+		{"test1", NULL, pass0ColorAttachments, {DS_NO_ATTACHMENT, false}, 0,
+			DS_ARRAY_SIZE(pass0ColorAttachments)},
+		{"test2", NULL, pass1ColorAttachments, {DS_NO_ATTACHMENT, false}, 0,
+			DS_ARRAY_SIZE(pass1ColorAttachments)},
+		{"combine", pass2InputAttachments, pass2ColorAttachments, {0, true},
+			DS_ARRAY_SIZE(pass2InputAttachments), DS_ARRAY_SIZE(pass2ColorAttachments)}
 	};
 	uint32_t subpassCount = DS_ARRAY_SIZE(subpasses);
 
@@ -94,15 +94,20 @@ TEST_F(RenderPassTest, Create)
 		subpasses, subpassCount, dependencies, dependencyCount));
 	((uint32_t*)subpasses[2].colorAttachments)[0] = 1;
 
-	subpasses[2].depthStencilAttachment = 4;
+	subpasses[2].depthStencilAttachment.attachmentIndex = 4;
 	EXPECT_FALSE(dsRenderPass_create(renderer, NULL, attachments, attachmentCount,
 		subpasses, subpassCount, dependencies, dependencyCount));
-	subpasses[2].depthStencilAttachment = 0;
+	subpasses[2].depthStencilAttachment.attachmentIndex = 0;
 
-	subpasses[2].depthStencilAttachment = 1;
+	subpasses[2].depthStencilAttachment.attachmentIndex = 1;
 	EXPECT_FALSE(dsRenderPass_create(renderer, NULL, attachments, attachmentCount,
 		subpasses, subpassCount, dependencies, dependencyCount));
-	subpasses[2].depthStencilAttachment = 0;
+	subpasses[2].depthStencilAttachment.attachmentIndex = 0;
+
+	renderer->hasDepthStencilMultisampleResolve = false;
+	EXPECT_FALSE(dsRenderPass_create(renderer, NULL, attachments, attachmentCount,
+		subpasses, subpassCount, dependencies, dependencyCount));
+	renderer->hasDepthStencilMultisampleResolve = true;;
 
 	dependencies[1].srcSubpass = 4;
 	EXPECT_FALSE(dsRenderPass_create(renderer, NULL, attachments, attachmentCount,
@@ -155,18 +160,18 @@ TEST_F(RenderPassTest, BeginNextEnd)
 	};
 	uint32_t attachmentCount = DS_ARRAY_SIZE(attachments);
 
-	dsColorAttachmentRef pass0ColorAttachments[] = {{2, true}};
-	dsColorAttachmentRef pass1ColorAttachments[] = {{3, true}};
+	dsAttachmentRef pass0ColorAttachments[] = {{2, true}};
+	dsAttachmentRef pass1ColorAttachments[] = {{3, true}};
 	uint32_t pass2InputAttachments[] = {2, 3};
-	dsColorAttachmentRef pass2ColorAttachments[] = {{1, false}};
+	dsAttachmentRef pass2ColorAttachments[] = {{1, false}};
 	dsRenderSubpassInfo subpasses[] =
 	{
-		{"test1", NULL, pass0ColorAttachments, 0, DS_ARRAY_SIZE(pass0ColorAttachments),
-			DS_NO_ATTACHMENT},
-		{"test2", NULL, pass1ColorAttachments, 0, DS_ARRAY_SIZE(pass1ColorAttachments),
-			DS_NO_ATTACHMENT},
-		{"combine", pass2InputAttachments, pass2ColorAttachments,
-			DS_ARRAY_SIZE(pass2InputAttachments), DS_ARRAY_SIZE(pass2ColorAttachments), 0}
+		{"test1", NULL, pass0ColorAttachments, {DS_NO_ATTACHMENT, false}, 0,
+			DS_ARRAY_SIZE(pass0ColorAttachments)},
+		{"test2", NULL, pass1ColorAttachments, {DS_NO_ATTACHMENT, false}, 0,
+			DS_ARRAY_SIZE(pass1ColorAttachments)},
+		{"combine", pass2InputAttachments, pass2ColorAttachments, {0, false},
+			DS_ARRAY_SIZE(pass2InputAttachments), DS_ARRAY_SIZE(pass2ColorAttachments)}
 	};
 	uint32_t subpassCount = DS_ARRAY_SIZE(subpasses);
 

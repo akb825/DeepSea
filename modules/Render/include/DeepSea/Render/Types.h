@@ -133,13 +133,7 @@ typedef enum dsAttachmentUsage
 	dsAttachmentUsage_Clear = 0x1,      ///< Clear the contents of the attachment before rendering.
 	dsAttachmentUsage_KeepBefore = 0x2, ///< Keep the existing value before rendering begins.
 	dsAttachmentUsage_KeepAfter = 0x4,  ///< Keep the value after rendering ends.
-	dsAttachmentUsage_UseLater = 0x8,   ///< May render with the attachment later.
-	/**
-	 * Resolve multisample attachment once the render pass has completed. Note that this may not be
-	 * as optimal as resolving as part of a subpass. This must be used with an offscreen that has
-	 * the dsAttachmentUsage_Resolve usage flag set.
-	 */
-	dsAttachmentUsage_Resolve = 0x10
+	dsAttachmentUsage_UseLater = 0x8    ///< May render with the attachment later.
 } dsAttachmentUsage;
 
 /**
@@ -607,10 +601,10 @@ typedef struct dsAttachmentInfo
 } dsAttachmentInfo;
 
 /**
- * @brief Reference for a color attachment.
+ * @brief Reference for an attachment.
  * @see RenderPass.h
  */
-typedef struct dsColorAttachmentRef
+typedef struct dsAttachmentRef
 {
 	/**
 	 * @brief The index to the attachment.
@@ -635,7 +629,7 @@ typedef struct dsColorAttachmentRef
 	 * @remark This is ignored when the surface doesn't have multisampling.
 	 */
 	bool resolve;
-} dsColorAttachmentRef;
+} dsAttachmentRef;
 
 /**
  * @brief Structure defining what is used for a subpass.
@@ -662,7 +656,14 @@ typedef struct dsRenderSubpassInfo
 	 * @brief List of image attachments to use as inputs as indices to the attachment list for the
 	 * render pass.
 	 */
-	const dsColorAttachmentRef* colorAttachments;
+	const dsAttachmentRef* colorAttachments;
+
+	/**
+	 * @brief The depth stencil attachment as an index to the attachment list for the render pass.
+	 *
+	 * Set to DS_NO_ATTACHMENT to not have a depth attachment.
+	 */
+	dsAttachmentRef depthStencilAttachment;
 
 	/**
 	 * @brief The number of input attachments.
@@ -673,13 +674,6 @@ typedef struct dsRenderSubpassInfo
 	 * @brief The number of color attachments.
 	 */
 	uint32_t colorAttachmentCount;
-
-	/**
-	 * @brief The depth stencil attachment as an index to the attachment list for the render pass.
-	 *
-	 * Set to DS_NO_ATTACHMENT to not have a depth attachment.
-	 */
-	uint32_t depthStencilAttachment;
 } dsRenderSubpassInfo;
 
 /**
@@ -1854,6 +1848,11 @@ struct dsRenderer
 	 * @brief Whether or not depth bias clamping is supported.
 	 */
 	bool hasDepthBiasClamp;
+
+	/**
+	 * @brief Whether or not depth/stencil surfaces can be resolved.
+	 */
+	bool hasDepthStencilMultisampleResolve;
 
 	/**
 	 * @brief The default level of anisotropy for anisotropic filtering.

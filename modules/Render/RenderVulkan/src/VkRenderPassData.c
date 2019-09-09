@@ -24,144 +24,18 @@
 #include "Resources/VkTexture.h"
 #include "VkCommandBuffer.h"
 #include "VkRendererInternal.h"
+#include "VkRenderPassCreation.h"
 #include "VkShared.h"
 
 #include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
-#include <DeepSea/Core/Memory/StackAllocator.h>
 #include <DeepSea/Core/Memory/Lifetime.h>
 #include <DeepSea/Core/Thread/Spinlock.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Render/Resources/GfxFormat.h>
 #include <string.h>
-
-static bool hasResolve(const dsRenderSubpassInfo* subpasses, uint32_t subpassCount,
-	uint32_t attachment, uint32_t samples, uint32_t defaultSamples)
-{
-	if (samples == 1 || (samples == DS_DEFAULT_ANTIALIAS_SAMPLES && defaultSamples == 1))
-		return false;
-
-	// Check to see if this will be resolved.
-	for (uint32_t i = 0; i < subpassCount; ++i)
-	{
-		const dsRenderSubpassInfo* subpass = subpasses + i;
-		for (uint32_t j = 0; j < subpass->colorAttachmentCount; ++j)
-		{
-			if (subpass->colorAttachments[j].attachmentIndex == attachment &&
-				subpass->colorAttachments[j].resolve)
-			{
-				return true;
-			}
-		}
-	}
-	return false;
-}
-
-static bool mustKeepMultisampledAttachment(dsAttachmentUsage usage, uint32_t samples)
-{
-	return samples == 1 || (usage & dsAttachmentUsage_Resolve) ||
-		((usage & dsAttachmentUsage_KeepAfter) && (usage & dsAttachmentUsage_UseLater));
-}
-
-static bool needsResolve(uint32_t samples, uint32_t defaultSamples)
-{
-	return (samples == DS_DEFAULT_ANTIALIAS_SAMPLES && defaultSamples > 1) ||
-		(samples != DS_DEFAULT_ANTIALIAS_SAMPLES && samples > 1);
-}
-
-static void addPreserveAttachment(uint32_t* outCount, uint32_t* outAttachments, uint32_t attachment,
-	uint32_t attachmentCount, const VkSubpassDescription* subpass)
-{
-	for (uint32_t i = 0; i < subpass->inputAttachmentCount; ++i)
-	{
-		if (subpass->pInputAttachments[i].attachment == attachment)
-			return;
-	}
-
-	for (uint32_t i = 0; i < subpass->colorAttachmentCount; ++i)
-	{
-		if (subpass->pColorAttachments[i].attachment == attachment)
-			return;
-	}
-
-	if (subpass->pResolveAttachments)
-	{
-		for (uint32_t i = 0; i < subpass->colorAttachmentCount; ++i)
-		{
-			if (subpass->pResolveAttachments[i].attachment == attachment)
-				return;
-		}
-	}
-
-	if (subpass->pDepthStencilAttachment &&
-		subpass->pDepthStencilAttachment->attachment == attachment)
-	{
-		return;
-	}
-
-	DS_UNUSED(attachmentCount);
-	for (uint32_t i = 0; i < *outCount; ++i)
-	{
-		if (outAttachments[i] == attachment)
-			return;
-	}
-
-	DS_ASSERT(*outCount < attachmentCount);
-	outAttachments[(*outCount)++] = attachment;
-}
-
-static void findPreserveAttachments(uint32_t* outCount, uint32_t* outAttachments,
-	uint32_t attachmentCount, const VkSubpassDescription* subpasses, uint32_t subpassCount,
-	const VkSubpassDependency* dependencies, uint32_t dependencyCount, uint32_t curSubpass,
-	uint32_t curDependency, uint32_t depth)
-{
-	if (depth >= subpassCount)
-		return;
-
-	for (uint32_t i = 0; i < dependencyCount; ++i)
-	{
-		const VkSubpassDependency* dependency = dependencies + i;
-		if (dependency->dstSubpass != curDependency ||
-			dependency->srcSubpass == DS_EXTERNAL_SUBPASS)
-		{
-			continue;
-		}
-
-		const VkSubpassDescription* depSubpass = subpasses + dependency->srcSubpass;
-		for (uint32_t j = 0; j < depSubpass->colorAttachmentCount; ++j)
-		{
-			uint32_t curAttachment = depSubpass->pColorAttachments[j].attachment;
-			if (curAttachment == DS_NO_ATTACHMENT)
-				continue;
-
-			addPreserveAttachment(outCount, outAttachments, curAttachment, attachmentCount,
-				subpasses + curSubpass);
-
-			if (!depSubpass->pResolveAttachments)
-				continue;
-
-			curAttachment = depSubpass->pResolveAttachments[j].attachment;
-			if (curAttachment == DS_NO_ATTACHMENT)
-				continue;
-
-			addPreserveAttachment(outCount, outAttachments, curAttachment, attachmentCount,
-				subpasses + curSubpass);
-		}
-
-		if (depSubpass->pDepthStencilAttachment &&
-			depSubpass->pDepthStencilAttachment->attachment != DS_NO_ATTACHMENT)
-		{
-			addPreserveAttachment(outCount, outAttachments,
-				depSubpass->pDepthStencilAttachment->attachment, attachmentCount,
-				subpasses + curSubpass);
-		}
-
-		findPreserveAttachments(outCount, outAttachments, attachmentCount, subpasses, subpassCount,
-			dependencies, dependencyCount, curSubpass, dependency->srcSubpass, depth + 1);
-	}
-}
 
 static bool beginFramebuffer(dsCommandBuffer* commandBuffer, const dsFramebuffer* framebuffer)
 {
@@ -282,46 +156,15 @@ static void setEndImageBarrier(VkImageMemoryBarrier* imageBarrier, const dsFrame
 	imageBarrier->subresourceRange.layerCount = framebuffer->layers;
 }
 
-static bool endFramebuffer(dsCommandBuffer* commandBuffer, const dsFramebuffer* framebuffer,
-	const dsAttachmentInfo* attachments)
+static bool endFramebuffer(dsCommandBuffer* commandBuffer, const dsFramebuffer* framebuffer)
 {
 	// Move framebuffer images into the expected layouts.
 	dsRenderer* renderer = commandBuffer->renderer;
 	for (uint32_t i = 0; i < framebuffer->surfaceCount; ++i)
 	{
-		bool resolveRequested = (attachments[i].usage & dsAttachmentUsage_Resolve) != 0;
 		const dsFramebufferSurface* surface = framebuffer->surfaces + i;
 		switch (surface->surfaceType)
 		{
-			case dsGfxSurfaceType_ColorRenderSurface:
-			case dsGfxSurfaceType_ColorRenderSurfaceLeft:
-			case dsGfxSurfaceType_ColorRenderSurfaceRight:
-			{
-				// NOTE: No need to add the resource for the surface since it's handled in
-				// dsVkRenderSurface_beginDraw().
-				dsVkRenderSurface* renderSurface = (dsVkRenderSurface*)surface->surface;
-				dsVkRenderSurfaceData* surfaceData = renderSurface->surfaceData;
-				if (!surfaceData->resolveImage || !resolveRequested)
-					break;
-
-				// Need to have copy format for explicit resolve.
-				VkImageMemoryBarrier* imageBarrier =
-					dsVkCommandBuffer_addImageBarrier(commandBuffer);
-				if (!imageBarrier)
-					return false;
-
-				uint32_t layer = surface->surfaceType == dsGfxSurfaceType_ColorRenderSurfaceRight;
-				setEndImageBarrier(imageBarrier, framebuffer, surface, renderer->surfaceColorFormat,
-					surfaceData->images[i], VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, layer);
-
-				imageBarrier = dsVkCommandBuffer_addImageBarrier(commandBuffer);
-				if (!imageBarrier)
-					return false;
-
-				setEndImageBarrier(imageBarrier, framebuffer, surface, renderer->surfaceColorFormat,
-					surfaceData->resolveImage, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, 0);
-				break;
-			}
 			case dsGfxSurfaceType_Offscreen:
 			{
 				dsTexture* texture = (dsTexture*)surface->surface;
@@ -330,9 +173,9 @@ static bool endFramebuffer(dsCommandBuffer* commandBuffer, const dsFramebuffer* 
 				if (!dsVkCommandBuffer_addResource(commandBuffer, &vkTexture->resource))
 					return false;
 
-				// Skip textures only used as subpass inputs unless explicitly resolved.
-				bool explicitResolve = vkTexture->surfaceImage && resolveRequested;
-				if (dsVkTexture_onlySubpassInput(texture->usage) && !explicitResolve)
+				// Skip textures only used as subpass inputs since they stay in the optimal
+				// attachment layout.
+				if (dsVkTexture_onlySubpassInput(texture->usage))
 					break;
 
 				VkImageMemoryBarrier* imageBarrier =
@@ -341,26 +184,10 @@ static bool endFramebuffer(dsCommandBuffer* commandBuffer, const dsFramebuffer* 
 					return false;
 
 				uint32_t faceCount = texture->info.dimension == dsTextureDim_Cube ? 6 : 1;
-				if (explicitResolve)
-				{
-					// Prepare for explicit resolve.
-					setEndImageBarrier(imageBarrier, framebuffer, surface, texture->info.format,
-						vkTexture->deviceImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-						surface->layer*faceCount + surface->cubeFace);
+				setEndImageBarrier(imageBarrier, framebuffer, surface, texture->info.format,
+					vkTexture->deviceImage, dsVkTexture_imageLayout(texture),
+					surface->layer*faceCount + surface->cubeFace);
 
-					imageBarrier = dsVkCommandBuffer_addImageBarrier(commandBuffer);
-					if (!imageBarrier)
-						return false;
-
-					setEndImageBarrier(imageBarrier, framebuffer, surface, texture->info.format,
-						vkTexture->surfaceImage, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, 0);
-				}
-				else
-				{
-					setEndImageBarrier(imageBarrier, framebuffer, surface, texture->info.format,
-						vkTexture->deviceImage, dsVkTexture_imageLayout(texture),
-						surface->layer*faceCount + surface->cubeFace);
-				}
 				break;
 			}
 			case dsGfxSurfaceType_Renderbuffer:
@@ -386,142 +213,13 @@ static bool endFramebuffer(dsCommandBuffer* commandBuffer, const dsFramebuffer* 
 	}
 	if (renderer->hasGeometryShaders)
 		srcStages |= VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT;
-	if (!dsVkCommandBuffer_submitMemoryBarriers(commandBuffer, srcStages, srcStages))
-		return false;
-
-	// Process explicitly resolved multisampled images.
-	dsVkDevice* device = &((dsVkRenderer*)renderer)->device;
-	VkCommandBuffer vkCommandBuffer = dsVkCommandBuffer_getCommandBuffer(commandBuffer);
-	if (!vkCommandBuffer)
-		return false;
-
-	for (uint32_t i = 0; i < framebuffer->surfaceCount; ++i)
-	{
-		const dsFramebufferSurface* surface = framebuffer->surfaces + i;
-		if (!(attachments[i].usage & dsAttachmentUsage_Resolve))
-			continue;
-
-		dsTextureUsage usage = dsTextureUsage_CopyTo;
-		dsGfxFormat format;
-		uint32_t firstLayer;
-		VkImage multisampleImage, finalImage;
-		VkImageLayout finalLayout;
-		switch (surface->surfaceType)
-		{
-			case dsGfxSurfaceType_ColorRenderSurface:
-			case dsGfxSurfaceType_ColorRenderSurfaceLeft:
-			case dsGfxSurfaceType_ColorRenderSurfaceRight:
-			{
-				dsVkRenderSurface* renderSurface = (dsVkRenderSurface*)surface->surface;
-				dsVkRenderSurfaceData* surfaceData = renderSurface->surfaceData;
-				if (!surfaceData->resolveImage)
-					continue;
-
-				format = renderer->surfaceColorFormat;
-				firstLayer = surface->surfaceType == dsGfxSurfaceType_ColorRenderSurfaceRight;
-				multisampleImage = surfaceData->resolveImage;
-				finalImage = surfaceData->images[surfaceData->imageIndex];
-				finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-				break;
-			}
-			case dsGfxSurfaceType_Offscreen:
-			{
-				dsTexture* texture = (dsTexture*)surface->surface;
-				DS_ASSERT(texture->offscreen);
-				dsVkTexture* vkTexture = (dsVkTexture*)texture;
-				if (!vkTexture->surfaceImage)
-					continue;
-
-				usage |= texture->usage | dsTextureUsage_CopyFrom;
-				format = texture->info.format;
-				uint32_t faceCount = texture->info.dimension == dsTextureDim_Cube ? 6 : 1;
-				firstLayer = surface->layer*faceCount + surface->cubeFace;
-				multisampleImage = vkTexture->surfaceImage;
-				finalImage = vkTexture->deviceImage;
-				finalLayout = dsVkTexture_imageLayout(texture);
-				break;
-			}
-			default:
-				continue;
-		}
-
-		VkImageAspectFlags aspectMask = dsVkImageAspectFlags(format);
-		VkImageResolve imageResolve =
-		{
-			{aspectMask, 0, 0, 1},
-			{0, 0, 0},
-			{aspectMask, surface->mipLevel, firstLayer, 1},
-			{0, 0, 0},
-			{framebuffer->width, framebuffer->height, 1}
-		};
-		DS_VK_CALL(device->vkCmdResolveImage)(vkCommandBuffer, multisampleImage,
-			VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, finalImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-			1, &imageResolve);
-
-		bool isDepthStencil = dsGfxFormat_isDepthStencil(aspectMask);
-		VkImageMemoryBarrier* imageBarrier = dsVkCommandBuffer_addImageBarrier(commandBuffer);
-		if (!imageBarrier)
-			return false;
-
-		imageBarrier->sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-		imageBarrier->pNext = NULL;
-		imageBarrier->srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
-		imageBarrier->dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_TRANSFER_WRITE_BIT;
-		imageBarrier->oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
-		if (isDepthStencil)
-		{
-			imageBarrier->dstAccessMask |= VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT |
-				VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-			imageBarrier->newLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-		}
-		else
-		{
-			imageBarrier->dstAccessMask |= VK_ACCESS_COLOR_ATTACHMENT_READ_BIT |
-				VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-			imageBarrier->newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-		}
-		imageBarrier->srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		imageBarrier->dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-
-		imageBarrier->image = multisampleImage;
-		imageBarrier->subresourceRange.aspectMask = aspectMask;
-		imageBarrier->subresourceRange.baseMipLevel = surface->mipLevel;
-		imageBarrier->subresourceRange.levelCount = 1;
-		imageBarrier->subresourceRange.baseArrayLayer = 0;
-		imageBarrier->subresourceRange.layerCount = framebuffer->layers;
-
-		imageBarrier = dsVkCommandBuffer_addImageBarrier(commandBuffer);
-		if (!imageBarrier)
-			return false;
-
-		imageBarrier->sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-		imageBarrier->pNext = NULL;
-		imageBarrier->srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
-		imageBarrier->dstAccessMask = dsVkReadImageStageFlags(renderer, usage, isDepthStencil),
-			dsVkWriteImageStageFlags(renderer, usage, true, isDepthStencil);
-		imageBarrier->oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-		imageBarrier->newLayout = finalLayout;
-		imageBarrier->image = finalImage;
-		imageBarrier->srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		imageBarrier->dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		imageBarrier->subresourceRange.aspectMask = aspectMask;
-		imageBarrier->subresourceRange.baseMipLevel = surface->mipLevel;
-		imageBarrier->subresourceRange.levelCount = 1;
-		imageBarrier->subresourceRange.baseArrayLayer = firstLayer;
-		imageBarrier->subresourceRange.layerCount = framebuffer->layers;
-	}
-
-	return dsVkCommandBuffer_submitMemoryBarriers(commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT,
-		srcStages);
+	return dsVkCommandBuffer_submitMemoryBarriers(commandBuffer, srcStages, srcStages);
 }
 
 dsVkRenderPassData* dsVkRenderPassData_create(dsAllocator* allocator, dsVkDevice* device,
 	const dsRenderPass* renderPass)
 {
-	const dsVkRenderPass* vkRenderPass = (const dsVkRenderPass*)renderPass;
 	const dsRenderer* renderer = renderPass->renderer;
-	dsVkInstance* instance = &device->instance;
-
 	uint32_t attachmentCount = renderPass->attachmentCount;
 	uint32_t fullAttachmentCount = attachmentCount;
 	uint32_t resolveAttachmentCount = 0;
@@ -529,7 +227,7 @@ dsVkRenderPassData* dsVkRenderPassData_create(dsAllocator* allocator, dsVkDevice
 	{
 		// Don't resolve default samples since we need space for the attachment when multisampling
 		// is disabled in case it's enabled later.
-		if (hasResolve(renderPass->subpasses, renderPass->subpassCount, i,
+		if (dsVkAttachmentHasResolve(renderPass->subpasses, renderPass->subpassCount, i,
 				renderPass->attachments[i].samples, renderer->surfaceSamples))
 		{
 			++fullAttachmentCount;
@@ -558,12 +256,8 @@ dsVkRenderPassData* dsVkRenderPassData_create(dsAllocator* allocator, dsVkDevice
 	DS_VERIFY(dsSpinlock_initialize(&renderPassData->shaderLock));
 	DS_VERIFY(dsSpinlock_initialize(&renderPassData->framebufferLock));
 
-	VkAttachmentDescription* vkAttachments = NULL;
 	if (attachmentCount > 0)
 	{
-		vkAttachments = DS_ALLOCATE_STACK_OBJECT_ARRAY(VkAttachmentDescription,
-			fullAttachmentCount);
-
 		renderPassData->resolveIndices = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, uint32_t,
 			attachmentCount);
 		DS_ASSERT(renderPassData->resolveIndices);
@@ -572,9 +266,6 @@ dsVkRenderPassData* dsVkRenderPassData_create(dsAllocator* allocator, dsVkDevice
 		for (uint32_t i = 0; i < attachmentCount; ++i)
 		{
 			const dsAttachmentInfo* attachment = renderPass->attachments + i;
-			VkAttachmentDescription* vkAttachment = vkAttachments + i;
-			dsAttachmentUsage usage = attachment->usage;
-
 			const dsVkFormatInfo* format = dsVkResourceManager_getFormat(renderer->resourceManager,
 				attachment->format);
 			if (!format)
@@ -585,53 +276,13 @@ dsVkRenderPassData* dsVkRenderPassData_create(dsAllocator* allocator, dsVkDevice
 				return NULL;
 			}
 
-			vkAttachment->flags = 0;
-			vkAttachment->format = format->vkFormat;
 			uint32_t samples = attachment->samples;
 			if (samples == DS_DEFAULT_ANTIALIAS_SAMPLES)
 				samples = renderer->surfaceSamples;
-
-			vkAttachment->samples = dsVkSampleCount(samples);
-
-			if (usage & dsAttachmentUsage_Clear)
-				vkAttachment->loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-			else if (usage & dsAttachmentUsage_KeepBefore)
-				vkAttachment->loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
-			else
-				vkAttachment->loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-			vkAttachment->stencilLoadOp = vkAttachment->loadOp;
-
-			if (mustKeepMultisampledAttachment(usage, samples))
-				vkAttachment->storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-			else
-				vkAttachment->storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-			vkAttachment->stencilStoreOp = vkAttachment->storeOp;
-
-			VkImageLayout layout;
-			if (dsGfxFormat_isDepthStencil(attachment->format))
-				layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-			else
-				layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-
-			vkAttachment->initialLayout = layout;
-			vkAttachment->finalLayout = layout;
-
-			if (hasResolve(renderPass->subpasses, renderPass->subpassCount, i, attachment->samples,
-					renderer->surfaceSamples))
+			if (dsVkAttachmentHasResolve(renderPass->subpasses, renderPass->subpassCount, i,
+					attachment->samples, renderer->surfaceSamples))
 			{
 				uint32_t resolveAttachmentIndex = attachmentCount + resolveIndex;
-				VkAttachmentDescription* vkResolveAttachment = vkAttachments +
-					resolveAttachmentIndex;
-				*vkResolveAttachment = *vkAttachment;
-				vkResolveAttachment->samples = VK_SAMPLE_COUNT_1_BIT;
-				vkResolveAttachment->loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-				vkResolveAttachment->stencilLoadOp = vkResolveAttachment->loadOp;
-				if ((usage & dsAttachmentUsage_KeepAfter) && !(usage & dsAttachmentUsage_Resolve))
-					vkResolveAttachment->storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-				else
-					vkResolveAttachment->storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-				vkResolveAttachment->stencilStoreOp = vkResolveAttachment->storeOp;
-
 				renderPassData->resolveIndices[i] = resolveAttachmentIndex;
 				++resolveIndex;
 			}
@@ -645,120 +296,6 @@ dsVkRenderPassData* dsVkRenderPassData_create(dsAllocator* allocator, dsVkDevice
 		renderPassData->resolveIndices = NULL;
 	renderPassData->attachmentCount = attachmentCount;
 	renderPassData->fullAttachmentCount = fullAttachmentCount;
-
-	VkSubpassDescription* vkSubpasses = DS_ALLOCATE_STACK_OBJECT_ARRAY(VkSubpassDescription,
-		renderPass->subpassCount);
-	for (uint32_t i = 0; i < renderPass->subpassCount; ++i)
-	{
-		const dsRenderSubpassInfo* curSubpass = renderPass->subpasses + i;
-		VkSubpassDescription* vkSubpass = vkSubpasses + i;
-
-		vkSubpass->flags = 0;
-		vkSubpass->pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-		vkSubpass->inputAttachmentCount = curSubpass->inputAttachmentCount;
-		vkSubpass->pInputAttachments = NULL;
-		vkSubpass->colorAttachmentCount = curSubpass->colorAttachmentCount;
-		vkSubpass->pColorAttachments = NULL;
-		vkSubpass->pResolveAttachments = NULL;
-		vkSubpass->pDepthStencilAttachment = NULL;
-		vkSubpass->preserveAttachmentCount = 0;
-		vkSubpass->pPreserveAttachments = NULL;
-
-		if (curSubpass->inputAttachmentCount > 0)
-		{
-			VkAttachmentReference* inputAttachments = DS_ALLOCATE_STACK_OBJECT_ARRAY(
-				VkAttachmentReference, curSubpass->inputAttachmentCount);
-			for (uint32_t j = 0; j < vkSubpass->inputAttachmentCount; ++j)
-			{
-				uint32_t attachment = curSubpass->inputAttachments[j];
-				if (attachment == DS_NO_ATTACHMENT)
-					inputAttachments[j].attachment = VK_ATTACHMENT_UNUSED;
-				else
-				{
-					// Use resolved result if available.
-					uint32_t resolveAttachment = renderPassData->resolveIndices[attachment];
-					if (resolveAttachment == DS_NO_ATTACHMENT)
-						inputAttachments[j].attachment = attachment;
-					else
-						inputAttachments[j].attachment = resolveAttachment;
-				}
-
-				if (attachment == DS_NO_ATTACHMENT)
-					inputAttachments[j].layout = VK_IMAGE_LAYOUT_GENERAL;
-				else if (dsGfxFormat_isDepthStencil(renderPass->attachments[attachment].format))
-					inputAttachments[j].layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
-				else
-					inputAttachments[j].layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-			}
-			vkSubpass->pInputAttachments = inputAttachments;
-		}
-
-		if (curSubpass->colorAttachmentCount > 0)
-		{
-			VkAttachmentReference* colorAttachments = DS_ALLOCATE_STACK_OBJECT_ARRAY(
-				VkAttachmentReference, curSubpass->colorAttachmentCount);
-
-			bool hasResolve = false;
-			for (uint32_t j = 0; j < vkSubpass->colorAttachmentCount; ++j)
-			{
-				const dsColorAttachmentRef* curAttachment = curSubpass->colorAttachments + j;
-				uint32_t attachmentIndex = curAttachment->attachmentIndex;
-				colorAttachments[j].attachment = attachmentIndex;
-				colorAttachments[j].layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-
-				if (attachmentIndex != DS_NO_ATTACHMENT && curAttachment->resolve &&
-					needsResolve(renderPass->attachments[curAttachment->attachmentIndex].samples,
-						renderer->surfaceSamples))
-				{
-					hasResolve = true;
-				}
-			}
-
-			vkSubpass->pColorAttachments = colorAttachments;
-			if (hasResolve)
-			{
-				VkAttachmentReference* resolveAttachments = DS_ALLOCATE_STACK_OBJECT_ARRAY(
-					VkAttachmentReference, curSubpass->colorAttachmentCount);
-
-				for (uint32_t j = 0; j < vkSubpass->colorAttachmentCount; ++j)
-				{
-					const dsColorAttachmentRef* curAttachment = curSubpass->colorAttachments + j;
-					uint32_t attachmentIndex = curAttachment->attachmentIndex;
-					if (attachmentIndex != DS_NO_ATTACHMENT && curAttachment->resolve &&
-						needsResolve(
-							renderPass->attachments[curAttachment->attachmentIndex].samples,
-							renderer->surfaceSamples))
-					{
-						uint32_t resolveAttachment =
-							renderPassData->resolveIndices[attachmentIndex];
-						DS_ASSERT(resolveAttachment != DS_NO_ATTACHMENT);
-						resolveAttachments[j].attachment = resolveAttachment;
-					}
-					else
-						resolveAttachments[j].attachment = VK_ATTACHMENT_UNUSED;
-					resolveAttachments[j].layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-				}
-
-				vkSubpass->pResolveAttachments = resolveAttachments;
-			}
-		}
-
-		if (curSubpass->depthStencilAttachment != DS_NO_ATTACHMENT)
-		{
-			VkAttachmentReference* depthSubpass = DS_ALLOCATE_STACK_OBJECT(VkAttachmentReference);
-			depthSubpass->attachment = curSubpass->depthStencilAttachment;
-			depthSubpass->layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-			vkSubpass->pDepthStencilAttachment = depthSubpass;
-		}
-
-		uint32_t* preserveAttachments = DS_ALLOCATE_STACK_OBJECT_ARRAY(uint32_t, attachmentCount);
-		DS_ASSERT(preserveAttachments);
-		vkSubpass->pPreserveAttachments = preserveAttachments;
-		findPreserveAttachments(&vkSubpass->preserveAttachmentCount, preserveAttachments,
-			fullAttachmentCount, vkSubpasses, renderPass->subpassCount,
-			vkRenderPass->vkDependencies, renderPass->subpassDependencyCount, i, i, 0);
-	}
-
 	renderPassData->lifetime = dsLifetime_create(allocator, renderPassData);
 	if (!renderPassData->lifetime)
 	{
@@ -766,19 +303,7 @@ dsVkRenderPassData* dsVkRenderPassData_create(dsAllocator* allocator, dsVkDevice
 		return NULL;
 	}
 
-	VkRenderPassCreateInfo createInfo =
-	{
-		VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
-		NULL,
-		0,
-		fullAttachmentCount, vkAttachments,
-		renderPass->subpassCount, vkSubpasses,
-		renderPass->subpassDependencyCount, vkRenderPass->vkDependencies
-	};
-
-	VkResult result = DS_VK_CALL(device->vkCreateRenderPass)(device->device, &createInfo,
-		instance->allocCallbacksPtr, &renderPassData->vkRenderPass);
-	if (!DS_HANDLE_VK_RESULT(result, "Couldn't create render pass"))
+	if (!dsCreateUnderlyingVkRenderPass(renderPassData, resolveAttachmentCount))
 	{
 		dsVkRenderPassData_destroy(renderPassData);
 		return NULL;
@@ -838,6 +363,7 @@ bool dsVkRenderPassData_nextSubpass(const dsVkRenderPassData* renderPass,
 
 bool dsVkRenderPassData_end(const dsVkRenderPassData* renderPass, dsCommandBuffer* commandBuffer)
 {
+	DS_UNUSED(renderPass);
 	DS_ASSERT(commandBuffer->boundFramebuffer);
 	const dsFramebuffer* framebuffer = commandBuffer->boundFramebuffer;
 	DS_ASSERT(framebuffer);
@@ -849,8 +375,7 @@ bool dsVkRenderPassData_end(const dsVkRenderPassData* renderPass, dsCommandBuffe
 	}
 
 	dsVkCommandBuffer_endRenderPass(commandBuffer);
-	if (!endFramebuffer(commandBuffer, commandBuffer->boundFramebuffer,
-			renderPass->renderPass->attachments))
+	if (!endFramebuffer(commandBuffer, commandBuffer->boundFramebuffer))
 	{
 		dsVkCommandBuffer_resetMemoryBarriers(commandBuffer);
 		return false;

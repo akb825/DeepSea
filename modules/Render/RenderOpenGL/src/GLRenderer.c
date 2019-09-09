@@ -695,6 +695,7 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 	baseRenderer->hasDepthBounds = AnyGL_EXT_depth_bounds_test;
 	baseRenderer->hasDepthClamp = (AnyGL_atLeastVersion(3, 2, false) || AnyGL_ARB_depth_clamp);
 	baseRenderer->hasDepthBiasClamp = ANYGL_SUPPORTED(glPolygonOffsetClamp);
+	baseRenderer->hasDepthStencilMultisampleResolve = true;
 
 	if (AnyGL_EXT_texture_filter_anisotropic)
 		glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &baseRenderer->maxAnisotropy);

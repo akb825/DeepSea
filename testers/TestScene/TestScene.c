@@ -522,11 +522,11 @@ static dsScene* createScene(dsRenderer* renderer, dsAllocator* allocator,
 		{dsAttachmentUsage_Clear, renderer->surfaceDepthStencilFormat, DS_DEFAULT_ANTIALIAS_SAMPLES}
 	};
 
-	dsColorAttachmentRef colorAttachment = {0, true};
+	dsAttachmentRef colorAttachment = {0, true};
 	uint32_t depthStencilAttachment = 1;
 	dsRenderSubpassInfo subpass =
 	{
-		"TestScene", NULL, &colorAttachment, 0, 1, depthStencilAttachment
+		"TestScene", NULL, &colorAttachment, {depthStencilAttachment, false}, 0, 1
 	};
 	renderPass = dsRenderPass_create(renderer, allocator, attachments, 2, &subpass, 1, NULL,
 		DS_DEFAULT_SUBPASS_DEPENDENCIES);

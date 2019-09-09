@@ -431,6 +431,7 @@ dsRenderer* dsMockRenderer_create(dsAllocator* allocator)
 	renderer->hasDepthBounds = true;
 	renderer->hasDepthClamp = true;
 	renderer->hasDepthBiasClamp = true;
+	renderer->hasDepthStencilMultisampleResolve = true;
 
 	renderer->destroyFunc = &dsMockRenderer_destroy;
 

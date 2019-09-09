@@ -343,11 +343,11 @@ static bool setup(TestCube* testCube, dsApplication* application, dsAllocator* a
 		{dsAttachmentUsage_Clear, renderer->surfaceDepthStencilFormat, DS_DEFAULT_ANTIALIAS_SAMPLES}
 	};
 
-	dsColorAttachmentRef colorAttachment = {0, true};
+	dsAttachmentRef colorAttachment = {0, true};
 	uint32_t depthStencilAttachment = 1;
 	dsRenderSubpassInfo subpass =
 	{
-		"TestCube", NULL, &colorAttachment, 0, 1, depthStencilAttachment
+		"TestCube", NULL, &colorAttachment, {depthStencilAttachment, false}, 0, 1
 	};
 	testCube->renderPass = dsRenderPass_create(renderer, allocator, attachments, 2, &subpass, 1,
 		NULL, DS_DEFAULT_SUBPASS_DEPENDENCIES);

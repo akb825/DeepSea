@@ -104,9 +104,9 @@ struct RenderInfo
 			dsAttachmentUsage_Clear | dsAttachmentUsage_KeepAfter,
 			surfaceFormat, 1
 		};
-		dsColorAttachmentRef attachmentRef = {0, true};
-		dsRenderSubpassInfo subpass = {"WriteOffscreen", NULL, &attachmentRef, 0, 1,
-			DS_NO_ATTACHMENT};
+		dsAttachmentRef attachmentRef = {0, true};
+		dsRenderSubpassInfo subpass = {"WriteOffscreen", NULL, &attachmentRef,
+			{DS_NO_ATTACHMENT, false}, 0, 1};
 		renderPass = dsRenderPass_create(renderer, allocator, &attachment, 1, &subpass, 1, NULL,
 			DS_DEFAULT_SUBPASS_DEPENDENCIES);
 		ASSERT_TRUE(renderPass);

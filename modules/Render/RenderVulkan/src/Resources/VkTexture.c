@@ -124,12 +124,12 @@ static bool createHostImageBuffer(dsVkDevice* device,  dsVkTexture* texture, con
 
 static bool createSurfaceImage(dsVkDevice* device, const dsTextureInfo* info,
 	const dsVkFormatInfo* formatInfo, VkImageAspectFlags aspectMask, VkImageType imageType,
-	VkImageViewType imageViewType, dsVkTexture* texture, bool canExplictlyResolve)
+	VkImageViewType imageViewType, dsVkTexture* texture, bool canClear)
 {
 	dsVkInstance* instance = &device->instance;
 	VkImageUsageFlags usageFlags = 0;
-	if (canExplictlyResolve)
-		usageFlags |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+	if (canClear)
+		usageFlags |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 	if (dsGfxFormat_isDepthStencil(info->format))
 		usageFlags |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
 	else
@@ -284,7 +284,6 @@ static dsTexture* createTextureImpl(dsResourceManager* resourceManager, dsAlloca
 	}
 
 	// Base flags determined from the usage flags passed in.
-	bool explicitResolve = resolve && (usage & dsTextureUsage_ExplicitResolve);
 	VkImageUsageFlags usageFlags = 0;
 	if (usage & dsTextureUsage_Texture)
 		usageFlags |= VK_IMAGE_USAGE_SAMPLED_BIT;
@@ -292,7 +291,7 @@ static dsTexture* createTextureImpl(dsResourceManager* resourceManager, dsAlloca
 		usageFlags |= VK_IMAGE_USAGE_STORAGE_BIT;
 	if ((usage & dsTextureUsage_CopyFrom))
 		usageFlags |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
-	if ((usage & dsTextureUsage_CopyTo) || data || explicitResolve)
+	if ((usage & dsTextureUsage_CopyTo) || data)
 		usageFlags |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 	if (usage & dsTextureUsage_SubpassInput)
 		usageFlags |= VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT;
@@ -390,7 +389,7 @@ static dsTexture* createTextureImpl(dsResourceManager* resourceManager, dsAlloca
 	}
 
 	if (resolve && !createSurfaceImage(device, info, formatInfo, aspectMask, imageType,
-			imageViewType, texture, explicitResolve))
+			imageViewType, texture, (usage & dsTextureUsage_CopyTo) != 0))
 	{
 		dsVkTexture_destroyImpl(baseTexture);
 		return NULL;

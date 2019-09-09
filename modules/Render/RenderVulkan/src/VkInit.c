@@ -91,6 +91,7 @@ typedef struct InstanceExtensions
 typedef struct DeviceExtensions
 {
 	bool oldDebugMarker;
+	bool depthStencilResolve;
 	bool pvrtc;
 } DeviceExtensions;
 
@@ -100,6 +101,7 @@ typedef struct ExtraDeviceInfo
 	bool supportsGraphics;
 } ExtraDeviceInfo;
 
+// Layers.
 static const char* debugLayerName = "VK_LAYER_LUNARG_standard_validation";
 static const char* threadingValLayerName = "VK_LAYER_GOOGLE_threading";
 static const char* paramValLayerName = "VK_LAYER_LUNARG_parameter_validation";
@@ -107,6 +109,7 @@ static const char* objectValLayerName = "VK_LAYER_LUNARG_object_tracker";
 static const char* coreValLayerName = "VK_LAYER_LUNARG_core_validation";
 static const char* uniqueObjectValLayerName = "VK_LAYER_GOOGLE_unique_objects";
 
+// Instance extensions.
 static const char* swapChainExtensionName = "VK_KHR_swapchain";
 static const char* surfaceExtensionName = "VK_KHR_surface";
 static const char* xlibDisplayExtensionName = "VK_KHR_xlib_surface";
@@ -115,9 +118,15 @@ static const char* win32DisplayExtensionName = "VK_KHR_win32_surface";
 static const char* androidDisplayExtensionName = "VK_KHR_android_surface";
 static const char* debugExtensionName = "VK_EXT_debug_utils";
 static const char* oldDebugReportExtensionName = "VK_EXT_debug_report";
+static const char* physicalDeviceProperties2ExtensionName =
+	"VK_KHR_get_physical_device_properties2";
+
+// Device extensions.
 static const char* oldDebugMarkerExtensionName = "VK_EXT_debug_marker";
-static const char* devicePropertiesExtensionName = "VK_KHR_get_physical_device_properties2";
-static const char* memoryCapabilitiesExtensionName = "VK_KHR_external_memory_capabilities";
+static const char* maintanence2ExtensionName = "VK_KHR_maintenance2";
+static const char* multiviewExtensionName = "VK_KHR_multiview";
+static const char* createRenderPass2ExtensionName = "VK_KHR_create_renderpass2";
+static const char* depthStencilResolveExtensionName = "VK_KHR_depth_stencil_resolve";
 static const char* pvrtcExtensionName = "VK_IMG_format_pvrtc";
 
 static InstanceExtensions instanceExtensions;
@@ -313,8 +322,7 @@ static bool queryInstanceExtensions(dsVkInstance* instance)
 	uint32_t extensionCount = 0;
 	instance->vkEnumerateInstanceExtensionProperties(NULL, &extensionCount, NULL);
 	bool hasSurface = false;
-	bool hasDeviceProperties = false;
-	bool hasMemoryCapabilities = false;
+	bool hasPhysicalDeviceProperties2 = false;
 	VkExtensionProperties* extensions =
 		(VkExtensionProperties*)malloc(extensionCount*sizeof(VkExtensionProperties));
 	if (!extensions)
@@ -325,10 +333,8 @@ static bool queryInstanceExtensions(dsVkInstance* instance)
 	{
 		if (strcmp(extensions[i].extensionName, surfaceExtensionName) == 0)
 			hasSurface = true;
-		else if (strcmp(extensions[i].extensionName, devicePropertiesExtensionName) == 0)
-			hasDeviceProperties = true;
-		else if (strcmp(extensions[i].extensionName, memoryCapabilitiesExtensionName) == 0)
-			hasMemoryCapabilities = true;
+		else if (strcmp(extensions[i].extensionName, physicalDeviceProperties2ExtensionName) == 0)
+			hasPhysicalDeviceProperties2 = true;
 		else if (strcmp(extensions[i].extensionName, debugExtensionName) == 0)
 			instanceExtensions.debug = true;
 		else if (strcmp(extensions[i].extensionName, oldDebugReportExtensionName) == 0)
@@ -351,7 +357,7 @@ static bool queryInstanceExtensions(dsVkInstance* instance)
 		return false;
 	}
 
-	if (hasDeviceProperties && hasMemoryCapabilities)
+	if (hasPhysicalDeviceProperties2)
 		instanceExtensions.deviceInfo = true;
 
 	instanceExtensions.initialized = true;
@@ -388,12 +394,8 @@ static void addInstanceExtensions(const char** extensionNames, uint32_t* extensi
 		DS_ADD_EXTENSION(extensionNames, *extensionCount, win32DisplayExtensionName);
 	if (instanceExtensions.android)
 		DS_ADD_EXTENSION(extensionNames, *extensionCount, androidDisplayExtensionName);
-
 	if (instanceExtensions.deviceInfo)
-	{
-		DS_ADD_EXTENSION(extensionNames, *extensionCount, devicePropertiesExtensionName);
-		DS_ADD_EXTENSION(extensionNames, *extensionCount, memoryCapabilitiesExtensionName);
-	}
+		DS_ADD_EXTENSION(extensionNames, *extensionCount, physicalDeviceProperties2ExtensionName);
 
 	// NOTE: Push groups use the debug utils extension, so use it if profiling is enabled.
 	if (enableMarkers(enableValidation(options)))
@@ -428,9 +430,12 @@ static void findDeviceExtensions(DeviceExtensions* outExtensions, dsVkDevice* de
 	{
 		if (strcmp(extensions[i].extensionName, oldDebugMarkerExtensionName) == 0)
 			outExtensions->oldDebugMarker = true;
+		else if (strcmp(extensions[i].extensionName, depthStencilResolveExtensionName) == 0)
+			outExtensions->depthStencilResolve = true;
 		else if (strcmp(extensions[i].extensionName, pvrtcExtensionName) == 0)
 			outExtensions->pvrtc = true;
 	}
+
 	dsAllocator_free(allocator, extensions);
 }
 
@@ -442,6 +447,14 @@ static void addDeviceExtensions(dsVkDevice* device,
 	DS_ADD_EXTENSION(extensionNames, *extensionCount, swapChainExtensionName);
 	if (useMarkers && extensions->oldDebugMarker)
 		DS_ADD_EXTENSION(extensionNames, *extensionCount, oldDebugMarkerExtensionName);
+	if (extensions->depthStencilResolve)
+	{
+		device->hasDepthStencilResolve = true;
+		DS_ADD_EXTENSION(extensionNames, *extensionCount, maintanence2ExtensionName);
+		DS_ADD_EXTENSION(extensionNames, *extensionCount, multiviewExtensionName);
+		DS_ADD_EXTENSION(extensionNames, *extensionCount, createRenderPass2ExtensionName);
+		DS_ADD_EXTENSION(extensionNames, *extensionCount, depthStencilResolveExtensionName);
+	}
 	if (extensions->pvrtc)
 	{
 		device->hasPVRTC = true;
@@ -1017,7 +1030,6 @@ bool dsCreateVkDevice(dsVkDevice* device, dsAllocator* allocator, const dsRender
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCmdBlitImage);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCmdClearColorImage);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCmdClearDepthStencilImage);
-	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCmdResolveImage);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCreateImageView);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkDestroyImageView);
 
@@ -1025,6 +1037,8 @@ bool dsCreateVkDevice(dsVkDevice* device, dsAllocator* allocator, const dsRender
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkDestroyFramebuffer);
 
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCreateRenderPass);
+	if (device->hasDepthStencilResolve)
+		DS_LOAD_VK_DEVICE_FUNCTION(device, vkCreateRenderPass2KHR);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkDestroyRenderPass);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCmdBeginRenderPass);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCmdNextSubpass);

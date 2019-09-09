@@ -678,10 +678,18 @@ bool dsRenderer_clearColorSurface(dsRenderer* renderer, dsCommandBuffer* command
 			if (surface->layer >= surfaceLayers)
 			{
 				errno = EINDEX;
-				DS_LOG_ERROR(DS_RENDER_LOG_TAG,
-					"Texture layer out of range for offscreen.");
+				DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Texture layer out of range for offscreen.");
 				DS_PROFILE_FUNC_RETURN(false);
 			}
+
+			if (!(offscreen->usage & dsTextureUsage_CopyTo))
+			{
+				errno = EINVAL;
+				DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+					"Clearing offscreens require the dsTextureUsage_CopyTo usage flag to be set.");
+				DS_PROFILE_FUNC_RETURN(false);
+			}
+
 			valid = !dsGfxFormat_isDepthStencil(offscreen->info.format);
 			break;
 		}
@@ -776,10 +784,18 @@ bool dsRenderer_clearDepthStencilSurface(dsRenderer* renderer, dsCommandBuffer* 
 			if (surface->layer >= surfaceLayers)
 			{
 				errno = EINDEX;
-				DS_LOG_ERROR(DS_RENDER_LOG_TAG,
-					"Texture layer out of range for offscreen.");
+				DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Texture layer out of range for offscreen.");
 				DS_PROFILE_FUNC_RETURN(false);
 			}
+
+			if (!(offscreen->usage & dsTextureUsage_CopyTo))
+			{
+				errno = EINVAL;
+				DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+					"Clearing offscreens require the dsTextureUsage_CopyTo usage flag to be set.");
+				DS_PROFILE_FUNC_RETURN(false);
+			}
+
 			valid = dsGfxFormat_isDepthStencil(offscreen->info.format);
 			break;
 		}

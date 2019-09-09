@@ -83,7 +83,7 @@ static bool getImageViews(dsResourceManager* resourceManager, const dsFramebuffe
 				dsVkTexture* vkOffscreen = (dsVkTexture*)offscreen;
 				const dsTextureInfo* info = &offscreen->info;
 				uint32_t index = i;
-				if (offscreen->resolve && !dsGfxFormat_isDepthStencil(info->format))
+				if (offscreen->resolve)
 				{
 					DS_ASSERT(resolveIndex != DS_NO_ATTACHMENT);
 					DS_ASSERT(offscreen->info.samples > 1);
