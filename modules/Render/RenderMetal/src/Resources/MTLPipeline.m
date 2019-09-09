@@ -320,11 +320,11 @@ static void setupDepthStencilAttachment(dsShader* shader, MTLRenderPipelineDescr
 {
 	dsResourceManager* resourceManager = shader->resourceManager;
 	const dsRenderSubpassInfo* subpassInfo = renderPass->subpasses + subpass;
-	if (subpassInfo->depthStencilAttachment == DS_NO_ATTACHMENT)
+	uint32_t depthStencilAttachment = subpassInfo->depthStencilAttachment.attachmentIndex;
+	if (depthStencilAttachment == DS_NO_ATTACHMENT)
 		return;
 
-	const dsAttachmentInfo* attachment = renderPass->attachments +
-		subpassInfo->depthStencilAttachment;
+	const dsAttachmentInfo* attachment = renderPass->attachments + depthStencilAttachment;
 	descriptor.depthAttachmentPixelFormat = getDepthFormat(resourceManager, attachment->format);
 	descriptor.stencilAttachmentPixelFormat = getStencilFormat(resourceManager, attachment->format);
 }

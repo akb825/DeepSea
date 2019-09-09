@@ -1042,6 +1042,7 @@ bool dsMTLHardwareCommandBuffer_clearColorSurface(dsCommandBuffer* commandBuffer
 	if (resolveTexture)
 	{
 		colorAttachment.texture = resolveTexture;
+		colorAttachment.storeAction = MTLStoreActionMultisampleResolve;
 		id<MTLRenderCommandEncoder> encoder =
 			[submitBuffer renderCommandEncoderWithDescriptor: descriptor];
 		if (!encoder)
@@ -1122,13 +1123,8 @@ bool dsMTLHardwareCommandBuffer_clearDepthStencilSurface(dsCommandBuffer* comman
 		if (depthAttachment)
 		{
 			DS_ASSERT(resolveDepthTexture);
+			depthAttachment.storeAction = MTLStoreActionMultisampleResolve;
 			depthAttachment.texture = resolveDepthTexture;
-		}
-
-		if (stencilAttachment)
-		{
-			DS_ASSERT(resolveStencilTexture);
-			stencilAttachment.texture = resolveStencilTexture;
 		}
 
 		id<MTLRenderCommandEncoder> encoder =

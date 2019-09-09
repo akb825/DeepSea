@@ -42,7 +42,7 @@ static size_t fullAllocSize(uint32_t attachmentCount, const dsRenderSubpassInfo*
 	for (uint32_t i = 0; i < subpassCount; ++i)
 	{
 		fullSize += DS_ALIGNED_SIZE(sizeof(uint32_t)*subpasses[i].inputAttachmentCount) +
-			DS_ALIGNED_SIZE(sizeof(dsColorAttachmentRef)*subpasses[i].colorAttachmentCount) +
+			DS_ALIGNED_SIZE(sizeof(dsAttachmentRef)*subpasses[i].colorAttachmentCount) +
 			DS_ALIGNED_SIZE(sizeof(dsMTLAttachmentInfo)*subpasses[i].colorAttachmentCount) +
 			DS_ALIGNED_SIZE(strlen(subpasses[i].name) + 1);
 	}
@@ -51,7 +51,7 @@ static size_t fullAllocSize(uint32_t attachmentCount, const dsRenderSubpassInfo*
 
 static bool subpassHasAttachment(const dsRenderSubpassInfo* subpass, uint32_t attachment)
 {
-	if (subpass->depthStencilAttachment == attachment)
+	if (subpass->depthStencilAttachment.attachmentIndex == attachment)
 		return true;
 
 	for (uint32_t i = 0; i < subpass->colorAttachmentCount; ++i)
@@ -113,14 +113,12 @@ static MTLStoreAction getStoreAction(uint32_t attachment, uint32_t subpass,
 	if (attachment == DS_NO_ATTACHMENT)
 		return MTLStoreActionDontCare;
 
-	if (hasUsageAfter(attachment, subpass, subpasses, subpassCount))
-		return MTLStoreActionStore;
-
 	dsAttachmentUsage usage = attachments[attachment].usage;
-	if (usage & dsAttachmentUsage_Resolve)
-		return MTLStoreActionMultisampleResolve;
-	else if (usage & (dsAttachmentUsage_KeepAfter | dsAttachmentUsage_UseLater))
+	if (usage & (dsAttachmentUsage_KeepAfter | dsAttachmentUsage_UseLater) ||
+		hasUsageAfter(attachment, subpass, subpasses, subpassCount))
+	{
 		return MTLStoreActionStore;
+	}
 	return MTLStoreActionDontCare;
 }
 
@@ -217,12 +215,7 @@ static void setAttachmentSurface(MTLRenderPassAttachmentDescriptor* descriptor,
 	if (descriptor.resolveTexture)
 		descriptor.storeAction = MTLStoreActionMultisampleResolve;
 	else
-	{
-		if (info->storeAction == MTLStoreActionMultisampleResolve)
-			descriptor.storeAction = MTLStoreActionStore;
-		else
-			descriptor.storeAction = info->storeAction;
-	}
+		descriptor.storeAction = info->storeAction;
 }
 
 static MTLRenderPassDescriptor* createRenderPassDescriptor(const dsRenderPass* renderPass,
@@ -238,7 +231,7 @@ static MTLRenderPassDescriptor* createRenderPassDescriptor(const dsRenderPass* r
 	const dsMTLSubpassInfo* subpassInfo = mtlRenderPass->subpassInfos + subpassIndex;
 	for (uint32_t i = 0; i < subpass->colorAttachmentCount; ++i)
 	{
-		const dsColorAttachmentRef* colorAttachment = subpass->colorAttachments + i;
+		const dsAttachmentRef* colorAttachment = subpass->colorAttachments + i;
 		if (colorAttachment->attachmentIndex == DS_NO_ATTACHMENT)
 			continue;
 
@@ -260,10 +253,11 @@ static MTLRenderPassDescriptor* createRenderPassDescriptor(const dsRenderPass* r
 		}
 	}
 
-	if (subpass->depthStencilAttachment != DS_NO_ATTACHMENT)
+	const dsAttachmentRef* depthStencilAttachment = &subpass->depthStencilAttachment;
+	if (depthStencilAttachment->attachmentIndex != DS_NO_ATTACHMENT)
 	{
-		const dsFramebufferSurface* surface =
-			framebuffer->surfaces + subpass->depthStencilAttachment;
+		const dsFramebufferSurface* surface = framebuffer->surfaces +
+			depthStencilAttachment->attachmentIndex;
 		dsGfxFormat format = dsFramebuffer_getSurfaceFormat(commandBuffer->renderer, surface);
 		if (format == dsGfxFormat_D16 || format == dsGfxFormat_X8D24 ||
 			format == dsGfxFormat_D16S8 || format == dsGfxFormat_D24S8 ||
@@ -274,12 +268,13 @@ static MTLRenderPassDescriptor* createRenderPassDescriptor(const dsRenderPass* r
 				return NULL;
 
 			setAttachmentSurface(depthDescriptor, surface, &subpassInfo->depthStencilAttachment,
-				false, false);
+				depthStencilAttachment->resolve, false);
 			if (subpassInfo->depthStencilAttachment.loadAction == MTLLoadActionClear)
 			{
-				DS_ASSERT(subpass->depthStencilAttachment < mtlCommandBuffer->clearValueCount);
+				DS_ASSERT(depthStencilAttachment->attachmentIndex <
+					mtlCommandBuffer->clearValueCount);
 				const dsSurfaceClearValue* clearValue =
-					mtlCommandBuffer->clearValues + subpass->depthStencilAttachment;
+					mtlCommandBuffer->clearValues + depthStencilAttachment->attachmentIndex;
 				depthDescriptor.clearDepth = clearValue->depthStencil.depth;
 			}
 		}
@@ -296,9 +291,10 @@ static MTLRenderPassDescriptor* createRenderPassDescriptor(const dsRenderPass* r
 				false, true);
 			if (subpassInfo->depthStencilAttachment.loadAction == MTLLoadActionClear)
 			{
-				DS_ASSERT(subpass->depthStencilAttachment < mtlCommandBuffer->clearValueCount);
+				DS_ASSERT(depthStencilAttachment->attachmentIndex <
+					mtlCommandBuffer->clearValueCount);
 				const dsSurfaceClearValue* clearValue =
-					mtlCommandBuffer->clearValues + subpass->depthStencilAttachment;
+					mtlCommandBuffer->clearValues + depthStencilAttachment->attachmentIndex;
 				stencilDescriptor.clearStencil = clearValue->depthStencil.stencil;
 			}
 		}
@@ -400,10 +396,10 @@ dsRenderPass* dsMTLRenderPass_create(dsRenderer* renderer, dsAllocator* allocato
 			if (curSubpass->colorAttachmentCount > 0)
 			{
 				curSubpass->colorAttachments = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc,
-					dsColorAttachmentRef, curSubpass->colorAttachmentCount);
+					dsAttachmentRef, curSubpass->colorAttachmentCount);
 				DS_ASSERT(curSubpass->colorAttachments);
 				memcpy((void*)curSubpass->colorAttachments, subpasses[i].colorAttachments,
-					sizeof(dsColorAttachmentRef)*curSubpass->colorAttachmentCount);
+					sizeof(dsAttachmentRef)*curSubpass->colorAttachmentCount);
 
 				curSubpassInfo->colorAttachments =
 					DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsMTLAttachmentInfo,
@@ -412,7 +408,7 @@ dsRenderPass* dsMTLRenderPass_create(dsRenderer* renderer, dsAllocator* allocato
 				for (uint32_t j = 0; j < curSubpass->colorAttachmentCount; ++j)
 				{
 					dsMTLAttachmentInfo* attachmentInfo = curSubpassInfo->colorAttachments + j;
-					const dsColorAttachmentRef* colorAttachment = curSubpass->colorAttachments + j;
+					const dsAttachmentRef* colorAttachment = curSubpass->colorAttachments + j;
 					attachmentInfo->loadAction = getLoadAction(colorAttachment->attachmentIndex, i,
 						attachments, subpasses, subpassCount);
 					attachmentInfo->storeAction = getStoreAction(colorAttachment->attachmentIndex,
@@ -422,10 +418,11 @@ dsRenderPass* dsMTLRenderPass_create(dsRenderer* renderer, dsAllocator* allocato
 			else
 				curSubpassInfo->colorAttachments = NULL;
 
+			const dsAttachmentRef* depthStencilAttachment = &curSubpass->depthStencilAttachment;
 			curSubpassInfo->depthStencilAttachment.loadAction = getLoadAction(
-				curSubpass->depthStencilAttachment, i, attachments, subpasses, subpassCount);
+				depthStencilAttachment->attachmentIndex, i, attachments, subpasses, subpassCount);
 			curSubpassInfo->depthStencilAttachment.storeAction = getStoreAction(
-				curSubpass->depthStencilAttachment, i, attachments, subpasses, subpassCount);
+				depthStencilAttachment->attachmentIndex, i, attachments, subpasses, subpassCount);
 
 			size_t nameLen = strlen(subpasses[i].name) + 1;
 			curSubpass->name = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, nameLen);

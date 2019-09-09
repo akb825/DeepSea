@@ -914,7 +914,7 @@ int dsMain(int argc, const char** argv)
 				return 1;
 			}
 		}
-		else
+		else if (*argv[i])
 		{
 			printf("Unknown option: %s\n", argv[i]);
 			printHelp(argv[0]);

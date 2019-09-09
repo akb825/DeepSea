@@ -892,6 +892,12 @@ dsRenderer* dsMTLRenderer_create(dsAllocator* allocator, const dsRendererOptions
 		baseRenderer->hasSampleShading = false;
 		baseRenderer->hasDepthBounds = true;
 		baseRenderer->hasDepthBiasClamp = true;
+#if DS_MAC
+		baseRenderer->hasDepthStencilMultisampleResolve = true;
+#else
+		baseRenderer->hasDepthStencilMultisampleResolve =
+			[device supportsFeatureSet: MTLFeatureSet_iOS_GPUFamily3_v1];
+#endif
 		baseRenderer->defaultAnisotropy = 1.0f;
 
 		baseRenderer->resourceManager = dsMTLResourceManager_create(allocator, baseRenderer);
