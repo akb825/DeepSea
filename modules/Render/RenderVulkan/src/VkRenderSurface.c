@@ -103,6 +103,9 @@ dsRenderSurface* dsVkRenderSurface_create(dsRenderer* renderer, dsAllocator* all
 	switch (type)
 	{
 		case dsRenderSurfaceType_Direct:
+			// VkSurfaceKHR is a dispatch handle, which typically means a 64-bit integer, even on
+			// 32-bit systems. However, it's generally defined as a pointer to a struct as provided
+			// in vk_icd.h. This is the case for all currently supported platforms.
 			surface = (VkSurfaceKHR)(uintptr_t)osHandle;
 			break;
 		default:

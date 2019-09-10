@@ -64,7 +64,7 @@ static bool supportsFormat(dsVkDevice* device, VkSurfaceKHR surface, VkFormat fo
 
 	uint32_t formatCount = 0;
 	VkResult result = DS_VK_CALL(instance->vkGetPhysicalDeviceSurfaceFormatsKHR)(
-		device->physicalDevice, surface, &formatCount, 0);
+		device->physicalDevice, surface, &formatCount, NULL);
 	if (!DS_HANDLE_VK_RESULT(result, "Couldn't get surface formats"))
 		return false;
 
