@@ -32,7 +32,7 @@ struct dsSceneTreeNode
 	dsSceneNode* node;
 	dsSceneTreeNode* parent;
 	dsSceneTreeNode** children;
-	dsSceneItemEntry* drawItems;
+	dsSceneItemEntry* itemLists;
 	uint32_t childCount;
 	uint32_t maxChildren;
 	dsMatrix44f transform;
@@ -61,6 +61,7 @@ struct dsScene
 
 	dsSceneNode rootNode;
 	dsSceneTreeRootNode rootTreeNode;
+	dsSceneTreeNode* rootTreeNodePtr;
 
 	dsSceneItemList** sharedItems;
 	dsScenePipelineItem* pipeline;
@@ -75,3 +76,5 @@ struct dsScene
 	uint32_t dirtyNodeCount;
 	uint32_t maxDirtyNodes;
 };
+
+extern dsSceneNodeType dsRootSceneNodeType;

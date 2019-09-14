@@ -31,7 +31,7 @@ static void updateTransform(dsSceneTreeNode* node)
 {
 	if (node->node->type == dsSceneTransformNode_type())
 	{
-		dsSceneTransformNode* transformNode = (dsSceneTransformNode*)node;
+		dsSceneTransformNode* transformNode = (dsSceneTransformNode*)node->node;
 		if (node->parent)
 		{
 			dsMatrix44_affineMul(node->transform, node->parent->transform,
@@ -59,7 +59,7 @@ static void updateTransform(dsSceneTreeNode* node)
 static dsSceneTreeNode* addNode(dsSceneTreeNode* node, dsSceneNode* child,
 	dsScene* scene, dsAllocator* allocator)
 {
-	uint32_t childIndex = node->parent->childCount;
+	uint32_t childIndex = node->childCount;
 	if (!DS_RESIZEABLE_ARRAY_ADD(node->allocator, node->children, node->childCount,
 			node->maxChildren, 1))
 	{
@@ -67,15 +67,15 @@ static dsSceneTreeNode* addNode(dsSceneTreeNode* node, dsSceneNode* child,
 	}
 
 	uint32_t treeNodeIndex = child->treeNodeCount;
-	if (!DS_RESIZEABLE_ARRAY_ADD(child->allocator, child->treeNodes,
-			child->treeNodeCount, child->maxTreeNodes, 1))
+	if (!DS_RESIZEABLE_ARRAY_ADD(child->allocator, child->treeNodes, child->treeNodeCount,
+			child->maxTreeNodes, 1))
 	{
 		node->childCount = childIndex;
 		return NULL;
 	}
 
 	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsSceneTreeNode)) +
-		DS_ALIGNED_SIZE(sizeof(dsSceneItemEntry)*child->drawListCount);
+		DS_ALIGNED_SIZE(sizeof(dsSceneItemEntry)*child->itemListCount);
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 	{
@@ -100,22 +100,22 @@ static dsSceneTreeNode* addNode(dsSceneTreeNode* node, dsSceneNode* child,
 	childTreeNode->dirty = false;
 	updateTransform(childTreeNode);
 
-	childTreeNode->drawItems= DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsSceneItemEntry,
-		child->drawListCount);
-	DS_ASSERT(childTreeNode->drawItems || child->drawListCount == 0);
-	for (uint32_t i = 0; i < child->drawListCount; ++i)
+	childTreeNode->itemLists = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsSceneItemEntry,
+		child->itemListCount);
+	DS_ASSERT(childTreeNode->itemLists || child->itemListCount == 0);
+	for (uint32_t i = 0; i < child->itemListCount; ++i)
 	{
 		dsSceneItemListNode* node = (dsSceneItemListNode*)dsHashTable_find(scene->itemLists,
-			child->drawLists[i]);
+			child->itemLists[i]);
 		if (!node)
 		{
-			childTreeNode->drawItems[i].list = NULL;
-			childTreeNode->drawItems[i].entry = DS_NO_SCENE_NODE;
+			childTreeNode->itemLists[i].list = NULL;
+			childTreeNode->itemLists[i].entry = DS_NO_SCENE_NODE;
 			continue;
 		}
 
-		childTreeNode->drawItems[i].list = node->list;
-		childTreeNode->drawItems[i].entry = node->list->addNodeFunc(node->list, child,
+		childTreeNode->itemLists[i].list = node->list;
+		childTreeNode->itemLists[i].entry = node->list->addNodeFunc(node->list, child,
 			&childTreeNode->transform);
 	}
 
@@ -167,13 +167,13 @@ static void removeSubtreeRec(dsSceneNode* child, uint32_t treeNodeIndex, dsScene
 	}
 
 	// Dispose of the node.
-	for (uint32_t i = 0; i < child->drawListCount; ++i)
+	for (uint32_t i = 0; i < child->itemListCount; ++i)
 	{
-		uint64_t entry = childTreeNode->drawItems[i].entry;
+		uint64_t entry = childTreeNode->itemLists[i].entry;
 		if (entry == DS_NO_SCENE_NODE)
 			continue;
 
-		dsSceneItemList* list = childTreeNode->drawItems[i].list;
+		dsSceneItemList* list = childTreeNode->itemLists[i].list;
 		list->removeNodeFunc(list, entry);
 	}
 
@@ -197,12 +197,12 @@ static void updateSubtreeRec(dsSceneTreeNode* node)
 {
 	updateTransform(node);
 	node->dirty = false;
-	for (uint32_t i = 0; i < node->node->drawListCount; ++i)
+	for (uint32_t i = 0; i < node->node->itemListCount; ++i)
 	{
-		uint64_t entry = node->drawItems[i].entry;
-		dsSceneItemList* list = node->drawItems[i].list;
+		uint64_t entry = node->itemLists[i].entry;
+		dsSceneItemList* list = node->itemLists[i].list;
 		if (entry != DS_NO_SCENE_NODE && list->updateNodeFunc)
-			list->removeNodeFunc(list, entry);
+			list->updateNodeFunc(list, entry);
 	}
 
 	for (uint32_t i = 0; i < node->childCount; ++i)
@@ -258,7 +258,7 @@ void dsSceneTreeNode_removeSubtree(dsSceneNode* node, dsSceneNode* child)
 		{
 			if (treeNode->children[j] == childTreeNode)
 			{
-				treeNode->children[i] = treeNode->children[treeNode->childCount - 1];
+				treeNode->children[j] = treeNode->children[treeNode->childCount - 1];
 				--treeNode->childCount;
 				break;
 			}

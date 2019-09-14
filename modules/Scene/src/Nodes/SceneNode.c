@@ -17,6 +17,7 @@
 #include <DeepSea/Scene/Nodes/SceneNode.h>
 
 #include "Nodes/SceneTreeNode.h"
+#include "SceneTypes.h"
 #include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
@@ -25,16 +26,16 @@
 #include <DeepSea/Core/Log.h>
 #include <string.h>
 
-size_t dsSceneNode_drawListsAllocSize(const char** drawLists, uint32_t drawListCount)
+size_t dsSceneNode_itemListsAllocSize(const char** itemLists, uint32_t itemListCount)
 {
-	if (drawListCount == 0)
+	if (itemListCount == 0)
 		return 0;
 
-	size_t fullSize = DS_ALIGNED_SIZE(sizeof(const char*)*drawListCount);
-	for (uint32_t i = 0; i < drawListCount; ++i)
+	size_t fullSize = DS_ALIGNED_SIZE(sizeof(const char*)*itemListCount);
+	for (uint32_t i = 0; i < itemListCount; ++i)
 	{
-		if (drawLists[i])
-			fullSize += DS_ALIGNED_SIZE(strlen(drawLists[i]));
+		if (itemLists[i])
+			fullSize += DS_ALIGNED_SIZE(strlen(itemLists[i]));
 	}
 	return fullSize;
 }
@@ -51,7 +52,7 @@ const dsSceneNodeType* dsSceneNode_setupParentType(dsSceneNodeType* type,
 }
 
 bool dsSceneNode_initialize(dsSceneNode* node, dsAllocator* allocator,
-	const dsSceneNodeType* type, const char** drawLists, uint32_t drawListCount,
+	const dsSceneNodeType* type, const char** itemLists, uint32_t itemListCount,
 	dsDestroySceneNodeFunction destroyFunc)
 {
 	if (!node || !allocator || !type || !destroyFunc)
@@ -70,11 +71,11 @@ bool dsSceneNode_initialize(dsSceneNode* node, dsAllocator* allocator,
 	node->allocator = allocator;
 	node->type = type;
 	node->children = NULL;
-	node->drawLists = drawLists;
+	node->itemLists = itemLists;
 	node->treeNodes = NULL;
 	node->childCount = 0;
 	node->maxChildren = 0;
-	node->drawListCount = drawListCount;
+	node->itemListCount = itemListCount;
 	node->treeNodeCount = 0;
 	node->maxTreeNodes = 0;
 	node->refCount = 1;
@@ -212,7 +213,9 @@ void dsSceneNode_freeRef(dsSceneNode* node)
 
 	dsSceneNode_clear(node);
 	DS_VERIFY(dsAllocator_free(node->allocator, node->children));
-	DS_VERIFY(dsAllocator_free(node->allocator, node->treeNodes));
+	// Root node doesn't dynamically allocate tree nodes.
+	if (node->type != &dsRootSceneNodeType)
+		DS_VERIFY(dsAllocator_free(node->allocator, node->treeNodes));
 
 	if (node->destroyFunc)
 		node->destroyFunc(node);

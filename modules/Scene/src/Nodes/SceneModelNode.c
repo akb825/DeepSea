@@ -36,7 +36,7 @@ static dsSceneNodeType nodeType;
 static size_t fullAllocSize(size_t structSize, const char** drawLists, uint32_t drawListCount,
 	uint32_t modelCount, uint32_t resourceCount)
 {
-	return DS_ALIGNED_SIZE(structSize) + dsSceneNode_drawListsAllocSize(drawLists, drawListCount) +
+	return DS_ALIGNED_SIZE(structSize) + dsSceneNode_itemListsAllocSize(drawLists, drawListCount) +
 		DS_ALIGNED_SIZE(sizeof(dsSceneModelInfo)*modelCount) +
 		DS_ALIGNED_SIZE(sizeof(dsSceneResources*)*resourceCount);
 }

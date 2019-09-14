@@ -32,16 +32,16 @@ extern "C"
  */
 
 /**
- * @brief Gets the allocated size for draw lists.
+ * @brief Gets the allocated size for item lists.
  *
  * This can be added to the other node memory to combine with a single allocation. This assumes one
  * allocation for the array, then a separate allocation for each string.
  *
- * @param drawLists The list of draw list names to use.
- * @param drawListCount The number of draw lists.
+ * @param itemLists The list of item list names to use.
+ * @param itemListCount The number of item lists.
  */
-DS_SCENE_EXPORT size_t dsSceneNode_drawListsAllocSize(const char** drawLists,
-	uint32_t drawListCount);
+DS_SCENE_EXPORT size_t dsSceneNode_itemListsAllocSize(const char** itemLists,
+	uint32_t itemListCount);
 
 /**
  * @brief Sets up the parent type for a node.
@@ -95,14 +95,14 @@ DS_SCENE_EXPORT const dsSceneNodeType* dsSceneNode_setupParentType(dsSceneNodeTy
  * @param node The node to initialize.
  * @param allocator The allocator the node was created with. This must support freeing memory.
  * @param type The type node.
- * @param drawLists The list of draw list names to use. These should be allocated with the node by
+ * @param itemLists The list of draw list names to use. These should be allocated with the node by
  *     using a dsBufferAllocator so they may all be freed at once.
- * @param drawListCount The number of draw lists.
+ * @param itemListCount The number of draw lists.
  * @param destroyFunc The function to destroy the node.
  * @return False if the parameters are invalid.
  */
 DS_SCENE_EXPORT bool dsSceneNode_initialize(dsSceneNode* node, dsAllocator* allocator,
-	const dsSceneNodeType* type, const char** drawLists, uint32_t drawListCount,
+	const dsSceneNodeType* type, const char** itemLists, uint32_t itemListCount,
 	dsDestroySceneNodeFunction destroyFunc);
 
 /**

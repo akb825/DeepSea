@@ -115,9 +115,9 @@ struct dsSceneNode
 	dsSceneNode** children;
 
 	/**
-	 * @brief The draw lists that will use the node.
+	 * @brief The item lists that will use the node.
 	 */
-	const char** drawLists;
+	const char** itemLists;
 
 	/**
 	 * @brief The tree nodes that correspond to this node in various scenes.
@@ -137,9 +137,9 @@ struct dsSceneNode
 	uint32_t maxChildren;
 
 	/**
-	 * @brief The number of draw lists.
+	 * @brief The number of item lists.
 	 */
-	uint32_t drawListCount;
+	uint32_t itemListCount;
 
 	/**
 	 * @brief The number of tree nodes.

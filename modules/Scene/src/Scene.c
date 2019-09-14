@@ -33,7 +33,7 @@
 
 #include <string.h>
 
-static dsSceneNodeType rootNodeType;
+dsSceneNodeType dsRootSceneNodeType;
 
 static void destroyObjects(dsSceneItemList* const* sharedItems, uint32_t sharedItemCount,
 	const dsScenePipelineItem* pipeline, uint32_t pipelineCount,
@@ -192,7 +192,7 @@ dsScene* dsScene_create(dsAllocator* allocator, dsRenderer* renderer,
 	scene->userData = userData;
 	scene->destroyUserDataFunc = destroyUserDataFunc;
 
-	DS_VERIFY(dsSceneNode_initialize(&scene->rootNode, allocator, &rootNodeType, NULL, 0,
+	DS_VERIFY(dsSceneNode_initialize(&scene->rootNode, allocator, &dsRootSceneNodeType, NULL, 0,
 		&dummyDestroyFunc));
 
 	dsSceneTreeNode* rootTreeNode = &scene->rootTreeNode.node;
@@ -200,12 +200,16 @@ dsScene* dsScene_create(dsAllocator* allocator, dsRenderer* renderer,
 	rootTreeNode->node = &scene->rootNode;
 	rootTreeNode->parent = NULL;
 	rootTreeNode->children = NULL;
-	rootTreeNode->drawItems = NULL;
+	rootTreeNode->itemLists = NULL;
 	rootTreeNode->childCount = 0;
 	rootTreeNode->maxChildren = 0;
 	dsMatrix44_identity(rootTreeNode->transform);
 	rootTreeNode->dirty = false;
 	scene->rootTreeNode.scene = scene;
+	scene->rootTreeNodePtr = (dsSceneTreeNode*)&scene->rootTreeNode;
+	scene->rootNode.treeNodes = &scene->rootTreeNodePtr;
+	scene->rootNode.treeNodeCount = 1;
+	scene->rootNode.maxTreeNodes = 1;
 
 	if (sharedItemCount > 0)
 	{
