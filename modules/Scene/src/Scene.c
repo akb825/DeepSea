@@ -254,6 +254,17 @@ dsScene* dsScene_create(dsAllocator* allocator, dsRenderer* renderer,
 		nameCount);
 	DS_ASSERT(itemNodes);
 	uint32_t curItems = 0;
+	for (uint32_t i = 0; i < sharedItemCount; ++i)
+	{
+		dsSceneItemListNode* node = itemNodes + curItems++;
+		if (!insertSceneList(scene->itemLists, node, sharedItems[i]))
+		{
+			errno = EINVAL;
+			dsScene_destroy(scene);
+			return NULL;
+		}
+	}
+
 	for (uint32_t i = 0; i < pipelineCount; ++i)
 	{
 		const dsScenePipelineItem* item = pipeline  + i;
@@ -285,6 +296,7 @@ dsScene* dsScene_create(dsAllocator* allocator, dsRenderer* renderer,
 			}
 		}
 	}
+	DS_ASSERT(curItems == nameCount);
 
 	return scene;
 }

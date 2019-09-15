@@ -77,14 +77,14 @@ bool dsLightData_destroy(dsSceneGlobalData* globalData)
 }
 
 dsSceneGlobalData* dsLightData_create(dsAllocator* allocator,
-	dsResourceManager* resourceManager, const dsShaderVariableGroupDesc* transformDesc)
+	dsResourceManager* resourceManager, const dsShaderVariableGroupDesc* lightDesc)
 {
 	DS_ASSERT(allocator);
 	DS_ASSERT(resourceManager);
-	DS_ASSERT(transformDesc);
+	DS_ASSERT(lightDesc);
 
 	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsLightData)) +
-		dsShaderVariableGroup_fullAllocSize(resourceManager, transformDesc);
+		dsShaderVariableGroup_fullAllocSize(resourceManager, lightDesc);
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 		return NULL;
@@ -103,7 +103,7 @@ dsSceneGlobalData* dsLightData_create(dsAllocator* allocator,
 	globalData->destroyFunc = &dsLightData_destroy;
 
 	lightData->variableGroup = dsShaderVariableGroup_create(resourceManager,
-		(dsAllocator*)&bufferAlloc, allocator, transformDesc);
+		(dsAllocator*)&bufferAlloc, allocator, lightDesc);
 	if (!lightData->variableGroup)
 	{
 		if (allocator->freeFunc)

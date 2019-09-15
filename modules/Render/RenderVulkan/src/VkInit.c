@@ -511,7 +511,7 @@ static VkPhysicalDevice findPhysicalDevice(dsVkInstance* instance,
 			DS_VK_CALL(instance->vkGetPhysicalDeviceProperties2KHR)(devices[i], &properties2);
 
 			if (memcmp(deviceID.deviceUUID, extraDeviceInfo[defaultPhysicalDevice].uuid,
-				DS_DEVICE_UUID_SIZE) == 0)
+					DS_DEVICE_UUID_SIZE) == 0)
 			{
 				prevDefaultDevice = devices[i];
 			}

@@ -100,7 +100,7 @@ inline void dsSceneCullManager_setCullResult(uint32_t* mask, uint32_t instance, 
 	do
 	{
 		newMask = (expectedMask & andVal) | orVal;
-	} while (!DS_ATOMIC_COMPARE_EXCHANGE_PTR(mask, &expectedMask, &newMask, true));
+	} while (!DS_ATOMIC_COMPARE_EXCHANGE32(mask, &expectedMask, &newMask, true));
 }
 
 inline bool dsSceneCullManager_getCullResult(uint32_t mask, uint32_t instance)

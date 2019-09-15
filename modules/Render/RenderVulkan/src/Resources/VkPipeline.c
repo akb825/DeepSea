@@ -210,7 +210,7 @@ bool dsVkPipeline_isEquivalent(const dsVkPipeline* pipeline, uint32_t hash, uint
 	for (uint32_t i = 0; i < DS_MAX_GEOMETRY_VERTEX_BUFFERS; ++i)
 	{
 		if (memcmp(pipeline->formats + i, &geometry->vertexBuffers[i].format,
-			sizeof(dsVertexFormat)) != 0)
+				sizeof(dsVertexFormat)) != 0)
 		{
 			return false;
 		}

@@ -269,8 +269,8 @@ static void drawGeometry(dsSceneModelList* modelList, uint32_t drawItemCount, co
 		{
 			for (uint32_t j = 0; j < modelList->instanceDataCount; ++j)
 			{
-				dsSceneInstanceData_bindInstance(modelList->instanceData[j], drawItem->instance,
-					modelList->instanceValues);
+				DS_CHECK(DS_SCENE_LOG_TAG, dsSceneInstanceData_bindInstance(
+					modelList->instanceData[j], drawItem->instance, modelList->instanceValues));
 			}
 
 			lastInstance = drawItem->instance;
@@ -279,8 +279,8 @@ static void drawGeometry(dsSceneModelList* modelList, uint32_t drawItemCount, co
 
 		if (updateInstances)
 		{
-			dsShader_updateInstanceValues(drawItem->shader, commandBuffer,
-				modelList->instanceValues);
+			DS_CHECK(DS_SCENE_LOG_TAG, dsShader_updateInstanceValues(drawItem->shader,
+				commandBuffer, modelList->instanceValues));
 		}
 
 		if (drawItem->geometry->indexBuffer.buffer)

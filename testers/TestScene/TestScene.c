@@ -175,6 +175,14 @@ static bool validateAllocator(dsAllocator* allocator, const char* name)
 	return false;
 }
 
+static void updateProjectionMatrix(dsView* view)
+{
+	dsMatrix44f projection;
+	DS_VERIFY(dsRenderer_makePerspective(&projection, dsScene_getRenderer(view->scene),
+		(float)dsDegreesToRadians(45.0f), (float)view->width/(float)view->height, 0.1f, 100.0f));
+	DS_VERIFY(dsView_setProjectionMatrix(view, &projection));
+}
+
 static bool processEvent(dsApplication* application, dsWindow* window, const dsEvent* event,
 	void* userData)
 {
@@ -197,6 +205,7 @@ static bool processEvent(dsApplication* application, dsWindow* window, const dsE
 		case dsEventType_WindowResized:
 			dsView_setDimensions(testScene->view, testScene->window->surface->width,
 				testScene->window->surface->height);
+			updateProjectionMatrix(testScene->view);
 			return true;
 		case dsEventType_KeyDown:
 			if (event->key.repeat)
@@ -254,7 +263,7 @@ static void update(dsApplication* application, double lastFrameTime, void* userD
 	dsMatrix44f_makeRotate(&transform, 0, testScene->rotation, 0);
 	DS_VERIFY(dsSceneTransformNode_setTransform(testScene->primaryTransform, &transform));
 
-	dsMatrix44f_makeRotate(&transform, 0, -testScene->rotation, 0);
+	dsMatrix44f_makeRotate(&transform, 0, -2.0f*testScene->rotation, 0);
 	transform.columns[3].x = -3.0f;
 	transform.columns[3].y = 2.0f;
 	transform.columns[3].z = 5.0f;
@@ -481,14 +490,15 @@ static dsScene* createScene(dsRenderer* renderer, dsAllocator* allocator,
 	dsRenderPass* renderPass = NULL;
 	dsSceneRenderPass* sceneRenderPass = NULL;
 	dsSceneGlobalData* viewTransformData = NULL;
+	dsSceneGlobalData* lightData = NULL;
 
 	dsSceneResourceType type;
-	void* transformDesc;
-	DS_VERIFY(dsSceneResources_findResource(&type, &transformDesc, resources,
+	void* variableGroupDesc;
+	DS_VERIFY(dsSceneResources_findResource(&type, &variableGroupDesc, resources,
 		"instanceTransformDesc"));
 	DS_ASSERT(type == dsSceneResourceType_ShaderVariableGroupDesc);
 	instanceTransformData = dsInstanceTransformData_create(allocator, resourceManager,
-		(const dsShaderVariableGroupDesc*)transformDesc);
+		(const dsShaderVariableGroupDesc*)variableGroupDesc);
 	if (!instanceTransformData)
 	{
 		DS_LOG_ERROR_F("TestScene", "Couldn't create instance transform data: %s",
@@ -557,11 +567,11 @@ static dsScene* createScene(dsRenderer* renderer, dsAllocator* allocator,
 		goto fail;
 	}
 
-	DS_VERIFY(dsSceneResources_findResource(&type, &transformDesc, resources,
+	DS_VERIFY(dsSceneResources_findResource(&type, &variableGroupDesc, resources,
 		"viewTransformDesc"));
 	DS_ASSERT(type == dsSceneResourceType_ShaderVariableGroupDesc);
 	viewTransformData = dsViewTransformData_create(allocator, resourceManager,
-		(const dsShaderVariableGroupDesc*)transformDesc);
+		(const dsShaderVariableGroupDesc*)variableGroupDesc);
 	if (!viewTransformData)
 	{
 		DS_LOG_ERROR_F("TestScene", "Couldn't create view transform data: %s",
@@ -569,9 +579,27 @@ static dsScene* createScene(dsRenderer* renderer, dsAllocator* allocator,
 		goto fail;
 	}
 
+	DS_VERIFY(dsSceneResources_findResource(&type, &variableGroupDesc, resources, "lightDesc"));
+	DS_ASSERT(type == dsSceneResourceType_ShaderVariableGroupDesc);
+	lightData = dsLightData_create(allocator, resourceManager,
+		(const dsShaderVariableGroupDesc*)variableGroupDesc);
+	if (!lightData)
+	{
+		DS_LOG_ERROR_F("TestScene", "Couldn't create light data: %s", dsErrorString(errno));
+		goto fail;
+	}
+
+	dsVector3f lightDirection = {{-0.3f, 1.0f, 0.6f}};
+	dsLightData_setDirection(lightData, &lightDirection);
+	dsVector3f lightColor = {{1.0f, 1.0f, 1.0f}};
+	dsLightData_setColor(lightData, &lightColor);
+	dsVector3f lightAmbient = {{0.2f, 0.2f, 0.2f}};
+	dsLightData_setAmbientColor(lightData, &lightAmbient);
+
 	dsScenePipelineItem pipeline = {sceneRenderPass, NULL};
-	dsScene* scene = dsScene_create(allocator, renderer, &cullList, 1, &pipeline, 1,
-		&viewTransformData, 1, NULL, NULL);
+	dsSceneGlobalData* globalData[] = {viewTransformData, lightData};
+	dsScene* scene = dsScene_create(allocator, renderer, &cullList, 1, &pipeline, 1, globalData,
+		DS_ARRAY_SIZE(globalData), NULL, NULL);
 	if (!scene)
 		DS_LOG_ERROR_F("TestScene", "Couldn't create scene: %s", dsErrorString(errno));
 	return scene;
@@ -583,6 +611,7 @@ fail:
 	dsSceneRenderPass_destroy(sceneRenderPass);
 	dsRenderPass_destroy(renderPass);
 	dsSceneGlobalData_destroy(viewTransformData);
+	dsSceneGlobalData_destroy(lightData);
 	return NULL;
 }
 
@@ -613,12 +642,13 @@ static dsView* createView(dsAllocator* allocator, dsScene* scene, dsRenderSurfac
 		return NULL;
 	}
 
-	dsVector3f eyePos = {{0.0f, 5.0f, 5.0f}};
+	dsVector3f eyePos = {{0.0f, 20.0f, 20.0f}};
 	dsVector3f lookAtPos = {{0.0f, 0.0f, 0.0f}};
 	dsVector3f upDir = {{0.0f, 1.0f, 0.0f}};
 	dsMatrix44f camera;
 	dsMatrix44f_lookAt(&camera, &eyePos, &lookAtPos, &upDir);
 	dsView_setCameraMatrix(view, &camera);
+	updateProjectionMatrix(view);
 	return view;
 }
 
@@ -686,7 +716,7 @@ static bool createSceneGraph(TestScene* testScene, dsAllocator* allocator)
 		goto fail;
 
 	model.material = groundMaterial;
-	model.drawIndexedRange.firstIndex = 30;
+	model.drawIndexedRange.firstIndex = 24;
 	model.drawIndexedRange.indexCount = 6;
 	orientedBounds.halfExtents.y = 0.0f;
 	groundModel = (dsSceneNode*)dsSceneModelNode_create(allocator, &model, 1, &cullListName, 1,
@@ -734,7 +764,7 @@ static bool createSceneGraph(TestScene* testScene, dsAllocator* allocator)
 
 	dsMatrix44f_makeRotate(&rotate, (float)dsDegreesToRadians(-20.0),
 		(float)dsDegreesToRadians(70.0), (float)dsDegreesToRadians(35.0));
-	dsMatrix44f_makeTranslate(&translate, 2.0f, 1.0f, -0.8f);
+	dsMatrix44f_makeTranslate(&translate, 5.0f, 4.0f, -2.8f);
 	dsMatrix44_affineMul(transform, translate, rotate);
 	secondarySceneRoot = (dsSceneNode*)dsSceneTransformNode_create(allocator, &transform);
 	if (!secondarySceneRoot)
@@ -742,16 +772,16 @@ static bool createSceneGraph(TestScene* testScene, dsAllocator* allocator)
 
 	primaryTransform = dsSceneTransformNode_create(allocator, NULL);
 	if (!primaryTransform ||
-		!dsSceneNode_addChild((dsSceneNode*)primaryTransform, centerCubeTransform) ||
-		!dsSceneNode_addChild((dsSceneNode*)primaryTransform, secondarySceneRoot))
+		!dsSceneNode_addChild((dsSceneNode*)primaryTransform, centerCubeTransform))
 	{
 		goto fail;
 	}
 
 	secondaryTransform = dsSceneTransformNode_create(allocator, NULL);
 	if (!secondaryTransform ||
-		!dsSceneNode_addChild((dsSceneNode*)secondaryTransform, centerCubeTransform) ||
-		!dsSceneNode_addChild(secondarySceneRoot, centerCubeTransform))
+		!dsSceneNode_addChild((dsSceneNode*)secondaryTransform, secondarySceneRoot) ||
+		!dsSceneNode_addChild(secondarySceneRoot, centerCubeTransform) ||
+		!dsSceneNode_addChild((dsSceneNode*)primaryTransform, (dsSceneNode*)secondaryTransform))
 	{
 		goto fail;
 	}

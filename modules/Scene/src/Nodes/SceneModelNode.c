@@ -72,7 +72,7 @@ static void populateItemList(const char** itemLists, uint32_t* hashes, uint32_t*
 	// Assume uniqueness for the extra lists.
 	for (uint32_t i = 0; i < extraItemListCount; ++i)
 	{
-		uint32_t index = *itemListCount++;
+		uint32_t index = (*itemListCount)++;
 		itemLists[index] = extraItemLists[i];
 	}
 }

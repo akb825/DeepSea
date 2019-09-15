@@ -21,8 +21,8 @@
 
 dsShaderVariableGroupDesc* dsLightData_createShaderVariableGroupDesc(
 	dsResourceManager* resourceManager, dsAllocator* allocator);
-dsSceneGlobalData* dsLight_create(dsAllocator* allocator,
-	dsResourceManager* resourceManager, const dsShaderVariableGroupDesc* transformDesc);
+dsSceneGlobalData* dsLightData_create(dsAllocator* allocator,
+	dsResourceManager* resourceManager, const dsShaderVariableGroupDesc* lightDesc);
 void dsLightData_setDirection(dsSceneGlobalData* globalData, const dsVector3f* direction);
 void dsLightData_setColor(dsSceneGlobalData* globalData, const dsVector3f* color);
 void dsLightData_setAmbientColor(dsSceneGlobalData* globalData, const dsVector3f* color);

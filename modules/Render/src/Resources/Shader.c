@@ -311,12 +311,34 @@ static bool isMaterialDescCompatible(dsResourceManager* resourceManager, const m
 	return success;
 }
 
+static bool verifySharedMaterialBufferValue(const dsMaterialElement* element, dsGfxBuffer* buffer)
+{
+	if (element->type == dsMaterialType_UniformBlock &&
+		!(buffer->usage & dsGfxBufferUsage_UniformBlock))
+	{
+		DS_LOG_ERROR_F(DS_RENDER_LOG_TAG,
+			"Buffer '%s' doesn't support being used as a uniform block.", element->name);
+		return false;
+	}
+
+	if (element->type == dsMaterialType_UniformBuffer &&
+		!(buffer->usage & dsGfxBufferUsage_UniformBuffer))
+	{
+		DS_LOG_ERROR_F(DS_RENDER_LOG_TAG,
+			"Buffer '%s' doesn't support being used as a uniform buffer.", element->name);
+		return false;
+	}
+
+	return true;
+}
+
 static bool verifySharedMaterialValues(const dsMaterialDesc* materialDesc,
 	const dsSharedMaterialValues* sharedValues, dsMaterialBinding binding)
 {
 	for (uint32_t i = 0; i < materialDesc->elementCount; ++i)
 	{
-		if (materialDesc->elements[i].binding != binding)
+		const dsMaterialElement* element = materialDesc->elements + i;
+		if (element->binding != binding)
 			continue;
 
 		if (!sharedValues)
@@ -327,45 +349,45 @@ static bool verifySharedMaterialValues(const dsMaterialDesc* materialDesc,
 			return false;
 		}
 
-		switch (materialDesc->elements[i].type)
+		switch (element->type)
 		{
 			case dsMaterialType_Texture:
 			case dsMaterialType_Image:
 			case dsMaterialType_SubpassInput:
 			{
 				dsTexture* texture = dsSharedMaterialValues_getTextureId(sharedValues,
-					materialDesc->elements[i].nameID);
+					element->nameID);
 				if (!texture)
 				{
 					DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Shared texture '%s' not found.",
-						materialDesc->elements[i].name);
+						element->name);
 					return false;
 				}
 
-				if (materialDesc->elements[i].type == dsMaterialType_Texture &&
+				if (element->type == dsMaterialType_Texture &&
 					!(texture->usage & dsTextureUsage_Texture))
 				{
 					DS_LOG_ERROR_F(DS_RENDER_LOG_TAG,
 						"Texture '%s' doesn't support being used as a texture sampler.",
-						materialDesc->elements[i].name);
+						element->name);
 					return false;
 				}
 
-				if (materialDesc->elements[i].type == dsMaterialType_Image &&
+				if (element->type == dsMaterialType_Image &&
 					!(texture->usage & dsTextureUsage_Image))
 				{
 					DS_LOG_ERROR_F(DS_RENDER_LOG_TAG,
 						"Texture '%s' doesn't support being used as an image sampler.",
-						materialDesc->elements[i].name);
+						element->name);
 					return false;
 				}
 
-				if (materialDesc->elements[i].type == dsMaterialType_SubpassInput &&
+				if (element->type == dsMaterialType_SubpassInput &&
 					!(texture->usage & dsTextureUsage_SubpassInput))
 				{
 					DS_LOG_ERROR_F(DS_RENDER_LOG_TAG,
 						"Texture '%s' doesn't support being used as a subpass input.",
-						materialDesc->elements[i].name);
+						element->name);
 					return false;
 				}
 				break;
@@ -373,20 +395,32 @@ static bool verifySharedMaterialValues(const dsMaterialDesc* materialDesc,
 			case dsMaterialType_VariableGroup:
 			{
 				dsShaderVariableGroup* variableGroup = dsSharedMaterialValues_getVariableGroupId(
-					sharedValues, materialDesc->elements[i].nameID);
+					sharedValues, element->nameID);
 				if (!variableGroup)
 				{
-					DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Shared variable group '%s' not found.",
-						materialDesc->elements[i].name);
-					return false;
+					// Check if there's an explicitly set buffer.
+					dsGfxBuffer* buffer = dsSharedMaterialValues_getBufferId(NULL, NULL,
+						sharedValues, element->nameID);
+					if (buffer)
+					{
+						if (!verifySharedMaterialBufferValue(element, buffer))
+							return false;
+						break;
+					}
+					else
+					{
+						DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Shared variable group '%s' not found.",
+							element->name);
+						return false;
+					}
 				}
 
 				if (dsShaderVariableGroup_getDescription(variableGroup) !=
-					materialDesc->elements[i].shaderVariableGroupDesc)
+					element->shaderVariableGroupDesc)
 				{
 					DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Shared variable group description for "
 						"'%s' doesn't match description set on material element.",
-						materialDesc->elements[i].name);
+						element->name);
 					return false;
 				}
 				break;
@@ -395,31 +429,16 @@ static bool verifySharedMaterialValues(const dsMaterialDesc* materialDesc,
 			case dsMaterialType_UniformBuffer:
 			{
 				dsGfxBuffer* buffer = dsSharedMaterialValues_getBufferId(NULL, NULL,
-					sharedValues, materialDesc->elements[i].nameID);
+					sharedValues, element->nameID);
 				if (!buffer)
 				{
 					DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Buffer '%s' not found.",
-						materialDesc->elements[i].name);
+						element->name);
 					return false;
 				}
 
-				if (materialDesc->elements[i].type == dsMaterialType_UniformBlock &&
-					!(buffer->usage & dsGfxBufferUsage_UniformBlock))
-				{
-					DS_LOG_ERROR_F(DS_RENDER_LOG_TAG,
-						"Buffer '%s' doesn't support being used as a uniform block.",
-						materialDesc->elements[i].name);
+				if (!verifySharedMaterialBufferValue(element, buffer))
 					return false;
-				}
-
-				if (materialDesc->elements[i].type == dsMaterialType_UniformBuffer &&
-					!(buffer->usage & dsGfxBufferUsage_UniformBuffer))
-				{
-					DS_LOG_ERROR_F(DS_RENDER_LOG_TAG,
-						"Buffer '%s' doesn't support being used as a uniform buffer.",
-						materialDesc->elements[i].name);
-					return false;
-				}
 				break;
 			}
 			default:
