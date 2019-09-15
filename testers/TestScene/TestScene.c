@@ -196,16 +196,19 @@ static bool processEvent(dsApplication* application, dsWindow* window, const dsE
 			testScene->window = NULL;
 			return false;
 		case dsEventType_SurfaceInvalidated:
-			dsView_setSurface(testScene->view, "windowColor", testScene->window->surface,
-				dsGfxSurfaceType_ColorRenderSurface);
-			dsView_setSurface(testScene->view, "windowDepth", testScene->window->surface,
-				dsGfxSurfaceType_DepthRenderSurface);
+			DS_VERIFY(dsView_setSurface(testScene->view, "windowColor", testScene->window->surface,
+				dsGfxSurfaceType_ColorRenderSurface));
+			DS_VERIFY(dsView_setSurface(testScene->view, "windowDepth", testScene->window->surface,
+				dsGfxSurfaceType_DepthRenderSurface));
 			testScene->invalidatedFrame = renderer->frameNumber;
 			// Fall through
 		case dsEventType_WindowResized:
-			dsView_setDimensions(testScene->view, testScene->window->surface->width,
-				testScene->window->surface->height);
+			DS_VERIFY(dsView_setDimensions(testScene->view, testScene->window->surface->width,
+				testScene->window->surface->height));
 			updateProjectionMatrix(testScene->view);
+			// Need to update the view again if the surfaces have been set.
+			if (event->type == dsEventType_SurfaceInvalidated)
+				dsView_update(testScene->view);
 			return true;
 		case dsEventType_KeyDown:
 			if (event->key.repeat)
@@ -231,13 +234,13 @@ static bool processEvent(dsApplication* application, dsWindow* window, const dsE
 				if (testScene->secondarySceneSet)
 				{
 					DS_VERIFY(dsSceneNode_removeChildNode((dsSceneNode*)testScene->primaryTransform,
-						testScene->secondarySceneRoot));
+						(dsSceneNode*)testScene->secondaryTransform));
 					testScene->secondarySceneSet = false;
 				}
 				else
 				{
 					DS_VERIFY(dsSceneNode_addChild((dsSceneNode*)testScene->primaryTransform,
-						testScene->secondarySceneRoot));
+						(dsSceneNode*)testScene->secondaryTransform));
 					testScene->secondarySceneSet = true;
 				}
 			}

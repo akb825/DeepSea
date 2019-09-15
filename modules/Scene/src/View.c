@@ -605,15 +605,6 @@ bool dsView_update(dsView* view)
 		surfaceSet = true;
 	}
 
-	// Only re-create framebuffers if surfaces have been set.
-	if (!surfaceSet)
-	{
-		privateView->sizeUpdated = false;
-		privateView->surfaceSet = false;
-		privateView->lastSurfaceSamples = renderer->surfaceSamples;
-		DS_PROFILE_FUNC_RETURN(true);
-	}
-
 	// Re-create all framebuffers to avoid complicated logic to decide which ones specifically need
 	// to change.
 	for (uint32_t i = 0; i < privateView->framebufferCount; ++i)
