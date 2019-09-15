@@ -66,7 +66,7 @@ static bool setupElements(dsVkSharedDescriptorSets* descriptors, dsCommandBuffer
 			case dsMaterialType_Image:
 			case dsMaterialType_SubpassInput:
 			{
-				dsTexture* texture = dsSharedMaterialValues_getTextureId(sharedValues,
+				dsTexture* texture = dsSharedMaterialValues_getTextureID(sharedValues,
 					element->nameID);
 				if (texture && !dsVkTexture_processAndAddResource(texture, commandBuffer))
 					return false;
@@ -87,7 +87,7 @@ static bool setupElements(dsVkSharedDescriptorSets* descriptors, dsCommandBuffer
 				dsGfxFormat format;
 				size_t offset;
 				size_t count;
-				dsGfxBuffer* buffer = dsSharedMaterialValues_getTextureBufferId(&format, &offset,
+				dsGfxBuffer* buffer = dsSharedMaterialValues_getTextureBufferID(&format, &offset,
 					&count, sharedValues, element->nameID);
 
 				uint32_t index = bindingCounts->texelBuffers;
@@ -127,7 +127,7 @@ static bool setupElements(dsVkSharedDescriptorSets* descriptors, dsCommandBuffer
 				size_t offset = 0;
 				size_t bindingOffset = 0;
 				size_t size = 0;
-				buffer = dsSharedMaterialValues_getBufferId(&offset, &size, sharedValues,
+				buffer = dsSharedMaterialValues_getBufferID(&offset, &size, sharedValues,
 					element->nameID);
 				// Dynamic offsets forinstance variables.
 				if (buffer && descriptors->binding == dsMaterialBinding_Instance)

@@ -59,24 +59,24 @@ dsThreadReturnType namedThread(void* data)
 
 struct ThreadIdData
 {
-	dsThreadID threadId;
+	dsThreadID threadID;
 	dsConditionVariable* condition;
 	dsMutex* mutex;
 	bool ready;
 };
 
-dsThreadReturnType threadId(void* data)
+dsThreadReturnType threadID(void* data)
 {
-	ThreadIdData* threadIdData = (ThreadIdData*)data;
-	EXPECT_TRUE(dsMutex_lock(threadIdData->mutex));
-	while (!threadIdData->ready)
+	ThreadIdData* threadIDData = (ThreadIdData*)data;
+	EXPECT_TRUE(dsMutex_lock(threadIDData->mutex));
+	while (!threadIDData->ready)
 	{
 		EXPECT_EQ(dsConditionVariableResult_Success, dsConditionVariable_wait(
-			threadIdData->condition, threadIdData->mutex));
+			threadIDData->condition, threadIDData->mutex));
 	}
-	EXPECT_TRUE(dsMutex_unlock(threadIdData->mutex));
+	EXPECT_TRUE(dsMutex_unlock(threadIDData->mutex));
 
-	EXPECT_TRUE(dsThread_equal(dsThread_thisThreadID(), threadIdData->threadId));
+	EXPECT_TRUE(dsThread_equal(dsThread_thisThreadID(), threadIDData->threadID));
 	return 0;
 }
 
@@ -180,13 +180,13 @@ TEST(Thread, ThreadId)
 	data3.condition = condition;
 	data3.mutex = mutex;
 
-	EXPECT_TRUE(dsThread_create(&thread1, &threadId, &data1, 0, nullptr));
-	EXPECT_TRUE(dsThread_create(&thread2, &threadId, &data2, 0, nullptr));
-	EXPECT_TRUE(dsThread_create(&thread3, &threadId, &data3, 0, nullptr));
+	EXPECT_TRUE(dsThread_create(&thread1, &threadID, &data1, 0, nullptr));
+	EXPECT_TRUE(dsThread_create(&thread2, &threadID, &data2, 0, nullptr));
+	EXPECT_TRUE(dsThread_create(&thread3, &threadID, &data3, 0, nullptr));
 
-	data1.threadId = dsThread_getID(thread1);
-	data2.threadId = dsThread_getID(thread2);
-	data3.threadId = dsThread_getID(thread3);
+	data1.threadID = dsThread_getID(thread1);
+	data2.threadID = dsThread_getID(thread2);
+	data3.threadID = dsThread_getID(thread3);
 
 	EXPECT_TRUE(dsMutex_lock(mutex));
 	data1.ready = data2.ready = data3.ready = true;

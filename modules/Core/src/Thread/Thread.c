@@ -204,31 +204,31 @@ void dsThread_exit(dsThreadReturnType returnVal)
 
 dsThreadID dsThread_getID(dsThread thread)
 {
-	dsThreadID threadId;
+	dsThreadID threadID;
 
 #if DS_WINDOWS
 	if (!thread.thread)
 		return dsThread_invalidID();
 
-	threadId.threadId = GetThreadId(thread.thread);
+	threadID.threadID = GetThreadId(thread.thread);
 #else
-	threadId.threadId = thread.thread;
+	threadID.threadID = thread.thread;
 #endif
 
-	return threadId;
+	return threadID;
 }
 
 dsThreadID dsThread_thisThreadID(void)
 {
-	dsThreadID threadId;
+	dsThreadID threadID;
 
 #if DS_WINDOWS
-	threadId.threadId = GetCurrentThreadId();
+	threadID.threadID = GetCurrentThreadId();
 #else
-	threadId.threadId = pthread_self();
+	threadID.threadID = pthread_self();
 #endif
 
-	return threadId;
+	return threadID;
 }
 
 dsThreadID dsThread_invalidID(void)
@@ -240,14 +240,14 @@ dsThreadID dsThread_invalidID(void)
 bool dsThread_equal(dsThreadID thread1, dsThreadID thread2)
 {
 #if DS_WINDOWS
-	return thread1.threadId == thread2.threadId;
+	return thread1.threadID == thread2.threadID;
 #else
 	bool thread1Set = isThreadSet(*(dsThread*)&thread1);
 	bool thread2Set = isThreadSet(*(dsThread*)&thread2);
 	if (!thread1Set || !thread2Set)
 		return thread1Set == thread2Set;
 
-	return pthread_equal(thread1.threadId, thread2.threadId);
+	return pthread_equal(thread1.threadID, thread2.threadID);
 #endif
 }
 

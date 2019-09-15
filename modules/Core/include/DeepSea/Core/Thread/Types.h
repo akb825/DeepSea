@@ -88,9 +88,9 @@ typedef struct dsThreadID
 {
 	/** Internal */
 #if DS_WINDOWS
-	uint32_t threadId;
+	uint32_t threadID;
 #else
-	pthread_t threadId;
+	pthread_t threadID;
 #endif
 } dsThreadID;
 

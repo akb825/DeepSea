@@ -75,7 +75,7 @@ bool dsViewTransformData_populateData(dsSceneGlobalData* globalData, const dsVie
 	if (!dsShaderVariableGroup_commit(viewData->variableGroup, commandBuffer))
 		return false;
 
-	DS_VERIFY(dsSharedMaterialValues_setVariableGroupId(view->globalValues, viewData->nameID,
+	DS_VERIFY(dsSharedMaterialValues_setVariableGroupID(view->globalValues, viewData->nameID,
 		viewData->variableGroup));
 	return true;
 }

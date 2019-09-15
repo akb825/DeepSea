@@ -113,7 +113,7 @@ DS_RENDER_EXPORT dsTexture* dsSharedMaterialValues_getTextureName(
  * @param nameID The hash of the texture name.
  * @return The texture, or NULL if not found or unset.
  */
-DS_RENDER_EXPORT dsTexture* dsSharedMaterialValues_getTextureId(
+DS_RENDER_EXPORT dsTexture* dsSharedMaterialValues_getTextureID(
 	const dsSharedMaterialValues* values, uint32_t nameID);
 
 /**
@@ -137,7 +137,7 @@ DS_RENDER_EXPORT bool dsSharedMaterialValues_setTextureName(dsSharedMaterialValu
  * @return False if the parameters are invalid, there isn't space available, or a value with the
  *     name is set that isn't a texture.
  */
-DS_RENDER_EXPORT bool dsSharedMaterialValues_setTextureId(dsSharedMaterialValues* values,
+DS_RENDER_EXPORT bool dsSharedMaterialValues_setTextureID(dsSharedMaterialValues* values,
 	uint32_t nameID, dsTexture* texture);
 
 /**
@@ -161,7 +161,7 @@ DS_RENDER_EXPORT dsGfxBuffer* dsSharedMaterialValues_getTextureBufferName(dsGfxF
  * @param nameID The hash of the buffer name.
  * @return The buffer, or NULL if not found or unset.
  */
-DS_RENDER_EXPORT dsGfxBuffer* dsSharedMaterialValues_getTextureBufferId(dsGfxFormat* outFormat,
+DS_RENDER_EXPORT dsGfxBuffer* dsSharedMaterialValues_getTextureBufferID(dsGfxFormat* outFormat,
 	size_t* outOffset, size_t* outCount, const dsSharedMaterialValues* values, uint32_t nameID);
 
 /**
@@ -192,7 +192,7 @@ DS_RENDER_EXPORT bool dsSharedMaterialValues_setTextureBufferName(
  * @return False if the parameters are invalid, there isn't space available, or a value with the
  *     name is set that isn't a buffer.
  */
-DS_RENDER_EXPORT bool dsSharedMaterialValues_setTextureBufferId(dsSharedMaterialValues* values,
+DS_RENDER_EXPORT bool dsSharedMaterialValues_setTextureBufferID(dsSharedMaterialValues* values,
 	uint32_t nameID, dsGfxBuffer* buffer, dsGfxFormat format, size_t offset, size_t count);
 
 /**
@@ -210,7 +210,7 @@ DS_RENDER_EXPORT dsShaderVariableGroup* dsSharedMaterialValues_getVariableGroupN
  * @param nameID The hash of the shader variable group name.
  * @return The shader variable group, or NULL if not found or unset.
  */
-DS_RENDER_EXPORT dsShaderVariableGroup* dsSharedMaterialValues_getVariableGroupId(
+DS_RENDER_EXPORT dsShaderVariableGroup* dsSharedMaterialValues_getVariableGroupID(
 	const dsSharedMaterialValues* values, uint32_t nameID);
 
 /**
@@ -234,7 +234,7 @@ DS_RENDER_EXPORT bool dsSharedMaterialValues_setVariableGroupName(
  * @return False if the parameters are invalid, there isn't space available, or a value with the
  *     name is set that isn't a shader variable group.
  */
-DS_RENDER_EXPORT bool dsSharedMaterialValues_setVariableGroupId(dsSharedMaterialValues* values,
+DS_RENDER_EXPORT bool dsSharedMaterialValues_setVariableGroupID(dsSharedMaterialValues* values,
 	uint32_t nameID, dsShaderVariableGroup* group);
 
 /**
@@ -260,7 +260,7 @@ DS_RENDER_EXPORT dsGfxBuffer* dsSharedMaterialValues_getBufferName(size_t* outOf
  * @param nameID The hash of the buffer name.
  * @return The buffer, or NULL if not found or unset.
  */
-DS_RENDER_EXPORT dsGfxBuffer* dsSharedMaterialValues_getBufferId(size_t* outOffset,
+DS_RENDER_EXPORT dsGfxBuffer* dsSharedMaterialValues_getBufferID(size_t* outOffset,
 	size_t* outSize, const dsSharedMaterialValues* values, uint32_t nameID);
 
 /**
@@ -292,7 +292,7 @@ DS_RENDER_EXPORT bool dsSharedMaterialValues_setBufferName(dsSharedMaterialValue
  * @return False if the parameters are invalid, there isn't space available, or a value with the
  *     name is set that isn't a buffer.
  */
-DS_RENDER_EXPORT bool dsSharedMaterialValues_setBufferId(dsSharedMaterialValues* values,
+DS_RENDER_EXPORT bool dsSharedMaterialValues_setBufferID(dsSharedMaterialValues* values,
 	uint32_t nameID, dsGfxBuffer* buffer, size_t offset, size_t size);
 
 /**
@@ -310,7 +310,7 @@ DS_RENDER_EXPORT bool dsSharedMaterialValues_removeValueName(dsSharedMaterialVal
  * @param nameID The hash of the name of the value to remvoe.
  * @return True if the value was removed.
  */
-DS_RENDER_EXPORT bool dsSharedMaterialValues_removeValueId(dsSharedMaterialValues* values,
+DS_RENDER_EXPORT bool dsSharedMaterialValues_removeValueID(dsSharedMaterialValues* values,
 	uint32_t nameID);
 
 /**

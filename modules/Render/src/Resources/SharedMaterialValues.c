@@ -283,7 +283,7 @@ dsTexture* dsSharedMaterialValues_getTextureName(const dsSharedMaterialValues* v
 	return (dsTexture*)getValue(NULL, NULL, NULL, values, dsHashString(name), Type_Texture);
 }
 
-dsTexture* dsSharedMaterialValues_getTextureId(const dsSharedMaterialValues* values,
+dsTexture* dsSharedMaterialValues_getTextureID(const dsSharedMaterialValues* values,
 	uint32_t nameID)
 {
 	if (!values)
@@ -304,7 +304,7 @@ bool dsSharedMaterialValues_setTextureName(dsSharedMaterialValues* values, const
 	return setValue(values, dsHashString(name), Type_Texture, texture, dsGfxFormat_Unknown, 0, 0);
 }
 
-bool dsSharedMaterialValues_setTextureId(dsSharedMaterialValues* values, uint32_t nameID,
+bool dsSharedMaterialValues_setTextureID(dsSharedMaterialValues* values, uint32_t nameID,
 	dsTexture* texture)
 {
 	if (!values)
@@ -326,7 +326,7 @@ dsGfxBuffer* dsSharedMaterialValues_getTextureBufferName(dsGfxFormat* outFormat,
 		Type_TextureBuffer);
 }
 
-dsGfxBuffer* dsSharedMaterialValues_getTextureBufferId(dsGfxFormat* outFormat, size_t* outOffset,
+dsGfxBuffer* dsSharedMaterialValues_getTextureBufferID(dsGfxFormat* outFormat, size_t* outOffset,
 	size_t* outCount, const dsSharedMaterialValues* values, uint32_t nameID)
 {
 	if (!values)
@@ -351,7 +351,7 @@ bool dsSharedMaterialValues_setTextureBufferName(dsSharedMaterialValues* values,
 	return setValue(values, dsHashString(name), Type_TextureBuffer, buffer, format, offset, count);
 }
 
-bool dsSharedMaterialValues_setTextureBufferId(dsSharedMaterialValues* values, uint32_t nameID,
+bool dsSharedMaterialValues_setTextureBufferID(dsSharedMaterialValues* values, uint32_t nameID,
 	dsGfxBuffer* buffer, dsGfxFormat format, size_t offset, size_t count)
 {
 	if (!values)
@@ -376,7 +376,7 @@ dsShaderVariableGroup* dsSharedMaterialValues_getVariableGroupName(
 		Type_ShaderVariableGroup);
 }
 
-dsShaderVariableGroup* dsSharedMaterialValues_getVariableGroupId(
+dsShaderVariableGroup* dsSharedMaterialValues_getVariableGroupID(
 	const dsSharedMaterialValues* values, uint32_t nameID)
 {
 	if (!values)
@@ -396,7 +396,7 @@ bool dsSharedMaterialValues_setVariableGroupName(dsSharedMaterialValues* values,
 		dsGfxFormat_Unknown, 0, 0);
 }
 
-bool dsSharedMaterialValues_setVariableGroupId(dsSharedMaterialValues* values,
+bool dsSharedMaterialValues_setVariableGroupID(dsSharedMaterialValues* values,
 	uint32_t nameID, dsShaderVariableGroup* group)
 {
 	if (!values)
@@ -411,10 +411,10 @@ dsGfxBuffer* dsSharedMaterialValues_getBufferName(size_t* outOffset, size_t* out
 	if (!values || !name)
 		return NULL;
 
-	return dsSharedMaterialValues_getBufferId(outOffset, outSize, values, dsHashString(name));
+	return dsSharedMaterialValues_getBufferID(outOffset, outSize, values, dsHashString(name));
 }
 
-dsGfxBuffer* dsSharedMaterialValues_getBufferId(size_t* outOffset, size_t* outSize,
+dsGfxBuffer* dsSharedMaterialValues_getBufferID(size_t* outOffset, size_t* outSize,
 	const dsSharedMaterialValues* values, uint32_t nameID)
 {
 	if (!values)
@@ -465,7 +465,7 @@ bool dsSharedMaterialValues_setBufferName(dsSharedMaterialValues* values, const 
 		size);
 }
 
-bool dsSharedMaterialValues_setBufferId(dsSharedMaterialValues* values, uint32_t nameID,
+bool dsSharedMaterialValues_setBufferID(dsSharedMaterialValues* values, uint32_t nameID,
 	dsGfxBuffer* buffer, size_t offset, size_t size)
 {
 	if (!values)
@@ -485,10 +485,10 @@ bool dsSharedMaterialValues_removeValueName(dsSharedMaterialValues* values, cons
 	if (!values || !name)
 		return false;
 
-	return dsSharedMaterialValues_removeValueId(values, dsHashString(name));
+	return dsSharedMaterialValues_removeValueID(values, dsHashString(name));
 }
 
-bool dsSharedMaterialValues_removeValueId(dsSharedMaterialValues* values, uint32_t nameID)
+bool dsSharedMaterialValues_removeValueID(dsSharedMaterialValues* values, uint32_t nameID)
 {
 	if (!values)
 		return false;

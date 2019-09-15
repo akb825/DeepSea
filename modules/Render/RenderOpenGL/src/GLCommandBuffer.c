@@ -52,7 +52,7 @@ static bool setSharedMaterialValues(dsCommandBuffer* commandBuffer,
 				if (glShader->uniforms[i].location < 0)
 					continue;
 
-				dsTexture* texture = dsSharedMaterialValues_getTextureId(sharedValues, nameID);
+				dsTexture* texture = dsSharedMaterialValues_getTextureID(sharedValues, nameID);
 				if (texture)
 					dsGLCommandBuffer_setTexture(commandBuffer, shader, i, texture);
 				else
@@ -67,7 +67,7 @@ static bool setSharedMaterialValues(dsCommandBuffer* commandBuffer,
 
 				dsGfxFormat format;
 				size_t offset, count;
-				dsGfxBuffer* buffer = dsSharedMaterialValues_getTextureBufferId(&format,
+				dsGfxBuffer* buffer = dsSharedMaterialValues_getTextureBufferID(&format,
 					&offset, &count, sharedValues, i);
 				if (buffer)
 				{
@@ -85,7 +85,7 @@ static bool setSharedMaterialValues(dsCommandBuffer* commandBuffer,
 					continue;
 
 				size_t offset, size;
-				dsGfxBuffer* buffer = dsSharedMaterialValues_getBufferId(&offset, &size,
+				dsGfxBuffer* buffer = dsSharedMaterialValues_getBufferID(&offset, &size,
 					sharedValues, nameID);
 				if (!buffer)
 				{
@@ -106,7 +106,7 @@ static bool setSharedMaterialValues(dsCommandBuffer* commandBuffer,
 						continue;
 
 					size_t offset, size;
-					dsGfxBuffer* buffer = dsSharedMaterialValues_getBufferId(&offset, &size,
+					dsGfxBuffer* buffer = dsSharedMaterialValues_getBufferID(&offset, &size,
 						sharedValues, nameID);
 					if (!buffer)
 					{
@@ -122,7 +122,7 @@ static bool setSharedMaterialValues(dsCommandBuffer* commandBuffer,
 				else
 				{
 					dsShaderVariableGroup* variableGroup =
-						dsSharedMaterialValues_getVariableGroupId(sharedValues, nameID);
+						dsSharedMaterialValues_getVariableGroupID(sharedValues, nameID);
 					if (!variableGroup)
 					{
 						errno = EPERM;

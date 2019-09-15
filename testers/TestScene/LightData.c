@@ -60,7 +60,7 @@ bool dsLightData_populateData(dsSceneGlobalData* globalData, const dsView* view,
 	if (!dsShaderVariableGroup_commit(lightData->variableGroup, commandBuffer))
 		return false;
 
-	DS_VERIFY(dsSharedMaterialValues_setVariableGroupId(view->globalValues, lightData->nameID,
+	DS_VERIFY(dsSharedMaterialValues_setVariableGroupID(view->globalValues, lightData->nameID,
 		lightData->variableGroup));
 	return true;
 }

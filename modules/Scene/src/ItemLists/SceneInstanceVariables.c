@@ -200,7 +200,7 @@ bool dsSceneInstanceVariables_bindInstance(dsSceneInstanceData* instanceData, ui
 	BufferInfo* curBuffer = variables->curBuffer;
 	if (curBuffer)
 	{
-		return dsSharedMaterialValues_setBufferId(values, variables->nameID, curBuffer->buffer,
+		return dsSharedMaterialValues_setBufferID(values, variables->nameID, curBuffer->buffer,
 			index*variables->stride, variables->instanceSize);
 	}
 

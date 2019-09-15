@@ -355,7 +355,7 @@ static bool verifySharedMaterialValues(const dsMaterialDesc* materialDesc,
 			case dsMaterialType_Image:
 			case dsMaterialType_SubpassInput:
 			{
-				dsTexture* texture = dsSharedMaterialValues_getTextureId(sharedValues,
+				dsTexture* texture = dsSharedMaterialValues_getTextureID(sharedValues,
 					element->nameID);
 				if (!texture)
 				{
@@ -394,12 +394,12 @@ static bool verifySharedMaterialValues(const dsMaterialDesc* materialDesc,
 			}
 			case dsMaterialType_VariableGroup:
 			{
-				dsShaderVariableGroup* variableGroup = dsSharedMaterialValues_getVariableGroupId(
+				dsShaderVariableGroup* variableGroup = dsSharedMaterialValues_getVariableGroupID(
 					sharedValues, element->nameID);
 				if (!variableGroup)
 				{
 					// Check if there's an explicitly set buffer.
-					dsGfxBuffer* buffer = dsSharedMaterialValues_getBufferId(NULL, NULL,
+					dsGfxBuffer* buffer = dsSharedMaterialValues_getBufferID(NULL, NULL,
 						sharedValues, element->nameID);
 					if (buffer)
 					{
@@ -428,7 +428,7 @@ static bool verifySharedMaterialValues(const dsMaterialDesc* materialDesc,
 			case dsMaterialType_UniformBlock:
 			case dsMaterialType_UniformBuffer:
 			{
-				dsGfxBuffer* buffer = dsSharedMaterialValues_getBufferId(NULL, NULL,
+				dsGfxBuffer* buffer = dsSharedMaterialValues_getBufferID(NULL, NULL,
 					sharedValues, element->nameID);
 				if (!buffer)
 				{

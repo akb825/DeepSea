@@ -308,7 +308,7 @@ TEST_P(ThreadedFunctionalTest, RenderMultithreaded)
 				{
 					ASSERT_TRUE(dsCommandBuffer_beginSecondary(secondaryCommands, info.framebuffer,
 						info.renderPass, 0, NULL));
-					ASSERT_TRUE(dsSharedMaterialValues_setBufferId(info.instanceValues[0],
+					ASSERT_TRUE(dsSharedMaterialValues_setBufferID(info.instanceValues[0],
 						info.transformId, info.transformBuffer, 0, sizeof(dsMatrix44f)));
 
 					ASSERT_TRUE(dsShader_bind(info.shader, secondaryCommands, info.material, NULL,
@@ -318,7 +318,7 @@ TEST_P(ThreadedFunctionalTest, RenderMultithreaded)
 					ASSERT_TRUE(dsRenderer_draw(renderer, secondaryCommands, info.drawGeometry[0],
 						&drawRange, dsPrimitiveType_TriangleList));
 
-					ASSERT_TRUE(dsSharedMaterialValues_setBufferId(info.instanceValues[0],
+					ASSERT_TRUE(dsSharedMaterialValues_setBufferID(info.instanceValues[0],
 						info.transformId, info.transformBuffer, transformSize,
 						sizeof(dsMatrix44f)));
 					ASSERT_TRUE(dsShader_updateInstanceValues(info.shader, secondaryCommands,
@@ -397,7 +397,7 @@ TEST_P(ThreadedFunctionalTest, RenderMultithreaded)
 				{
 					ASSERT_TRUE(dsCommandBuffer_beginSecondary(secondaryCommands0, info.framebuffer,
 						info.renderPass, 0, NULL));
-					ASSERT_TRUE(dsSharedMaterialValues_setBufferId(info.instanceValues[0],
+					ASSERT_TRUE(dsSharedMaterialValues_setBufferID(info.instanceValues[0],
 						info.transformId, info.transformBuffer, transformSize,
 						sizeof(dsMatrix44f)));
 
@@ -422,7 +422,7 @@ TEST_P(ThreadedFunctionalTest, RenderMultithreaded)
 				{
 					ASSERT_TRUE(dsCommandBuffer_beginSecondary(secondaryCommands1, info.framebuffer,
 						info.renderPass, 0, NULL));
-					ASSERT_TRUE(dsSharedMaterialValues_setBufferId(info.instanceValues[0],
+					ASSERT_TRUE(dsSharedMaterialValues_setBufferID(info.instanceValues[0],
 						info.transformId, info.transformBuffer, 0, sizeof(dsMatrix44f)));
 
 					ASSERT_TRUE(dsShader_bind(info.shader, secondaryCommands1, info.material, NULL,
