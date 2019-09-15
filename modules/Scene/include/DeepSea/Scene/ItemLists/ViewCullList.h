@@ -28,12 +28,10 @@ extern "C"
 /**
  * @file
  * @brief Functions for creating and manipulating cull lists.
+ *
+ * The item data is treated as a bool value for whether or not the item is out of view. In other
+ * words, check if the void* value is zero if it's in view or non-zero for out of view.
  */
-
-/**
- * @brief Gets the cull ID for dsViewCullList.
- */
-DS_SCENE_EXPORT dsSceneCullID dsViewCullList_cullID(void);
 
 /**
  * @brief Creates a view cull list.

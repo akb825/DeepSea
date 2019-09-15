@@ -507,7 +507,7 @@ static dsScene* createScene(dsRenderer* renderer, dsAllocator* allocator,
 	}
 
 	modelList = (dsSceneItemList*)dsSceneModelList_create(allocator, "main", &instanceTransformData,
-		1, dsModelSortType_Material, NULL, dsViewCullList_cullID());
+		1, dsModelSortType_Material, NULL, "cull");
 
 	// modelList took ownership
 	instanceTransformData = NULL;

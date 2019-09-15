@@ -45,9 +45,15 @@ static void populateItemList(const char** itemLists, uint32_t* hashes, uint32_t*
 	const dsSceneModelInitInfo* models, uint32_t modelCount, const char** extraItemLists,
 	uint32_t extraItemListCount)
 {
+	// Assume uniqueness for the extra lists. Add extra items first since the data will be more
+	// likely to be looked up, making the linear search faster.
+	for (uint32_t i = 0; i < extraItemListCount; ++i)
+		itemLists[i] = extraItemLists[i];
+
 	for (uint32_t i = 0; i < modelCount; ++i)
 		hashes[i] = dsHashString(models[i].listName);
 
+	uint32_t start = extraItemListCount;
 	for (uint32_t i = 0; i < modelCount; ++i)
 	{
 		bool unique = true;
@@ -64,17 +70,12 @@ static void populateItemList(const char** itemLists, uint32_t* hashes, uint32_t*
 			continue;
 
 		uint32_t index = (*itemListCount)++;
-		itemLists[index] = models[i].listName;
+		itemLists[start + index] = models[i].listName;
 		// Also make sure the assigned hashes match for faster uniqueness check.
 		hashes[index] = hashes[i];
 	}
 
-	// Assume uniqueness for the extra lists.
-	for (uint32_t i = 0; i < extraItemListCount; ++i)
-	{
-		uint32_t index = (*itemListCount)++;
-		itemLists[index] = extraItemLists[i];
-	}
+	*itemListCount += extraItemListCount;
 }
 
 const dsSceneNodeType* dsSceneModelNode_type(void)
@@ -236,8 +237,6 @@ dsSceneModelNode* dsSceneModelNode_createBase(dsAllocator* allocator, size_t str
 		node->resources = NULL;
 		node->resourceCount = 0;
 	}
-
-	node->cullMask = 0;
 
 	if (bounds)
 		node->bounds = *bounds;

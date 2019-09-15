@@ -27,7 +27,6 @@
 #include <DeepSea/Geometry/Frustum3.h>
 #include <DeepSea/Scene/Nodes/SceneModelNode.h>
 #include <DeepSea/Scene/Nodes/SceneNode.h>
-#include <DeepSea/Scene/SceneCullManager.h>
 #include <DeepSea/Scene/View.h>
 
 #include <string.h>
@@ -36,6 +35,7 @@ typedef struct Entry
 {
 	dsSceneModelNode* node;
 	const dsMatrix44f* transform;
+	bool* result;
 	uint64_t nodeID;
 } Entry;
 
@@ -49,16 +49,10 @@ typedef struct dsViewCullList
 	uint64_t nextNodeID;
 } dsViewCullList;
 
-static int cullID;
-
-dsSceneCullID dsViewCullList_cullID(void)
-{
-	return &cullID;
-}
-
 uint64_t dsViewCullList_addNode(dsSceneItemList* itemList, dsSceneNode* node,
-	const dsMatrix44f* transform)
+	const dsMatrix44f* transform, dsSceneNodeItemData* itemData, void** thisItemData)
 {
+	DS_UNUSED(itemData);
 	if (!dsSceneNode_isOfType(node, dsSceneModelNode_type()))
 		return DS_NO_SCENE_NODE;
 
@@ -74,6 +68,7 @@ uint64_t dsViewCullList_addNode(dsSceneItemList* itemList, dsSceneNode* node,
 	Entry* entry = cullList->entries + index;
 	entry->node = (dsSceneModelNode*)node;
 	entry->transform = transform;
+	entry->result = (bool*)thisItemData;
 	entry->nodeID = cullList->nextNodeID++;
 	return entry->nodeID;
 }
@@ -99,28 +94,21 @@ void dsViewCullList_commit(dsSceneItemList* itemList, const dsView* view,
 	DS_UNUSED(commandBuffer);
 	DS_PROFILE_DYNAMIC_SCOPE_START(itemList->name);
 
-	uint32_t cullInstance = dsView_registerCullID(view, &cullID);
-	if (!DS_CHECK(DS_SCENE_LOG_TAG, cullInstance != DS_NO_SCENE_CULL))
-	{
-		DS_PROFILE_SCOPE_END();
-		return;
-	}
-
 	dsViewCullList* cullList = (dsViewCullList*)itemList;
 	for (uint32_t i = 0; i < cullList->entryCount; ++i)
 	{
 		const Entry* entry = cullList->entries + i;
 		dsSceneModelNode* modelNode = entry->node;
-		bool result = true;
 		if (dsOrientedBox3_isValid(modelNode->bounds))
 		{
 			dsOrientedBox3f transformedBounds = modelNode->bounds;
 			DS_VERIFY(dsOrientedBox3f_transform(&transformedBounds, entry->transform));
-			result = dsFrustum3f_intersectOrientedBox(&view->viewFrustum, &transformedBounds) !=
-				dsIntersectResult_Outside;
+			*entry->result =
+				dsFrustum3f_intersectOrientedBox(&view->viewFrustum, &transformedBounds) ==
+					dsIntersectResult_Outside;
 		}
-
-		dsSceneCullManager_setCullResult(&modelNode->cullMask, cullInstance, result);
+		else
+			*entry->result = false;
 	}
 
 	DS_PROFILE_SCOPE_END();

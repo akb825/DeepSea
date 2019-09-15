@@ -52,23 +52,6 @@ DS_SCENE_EXPORT dsView* dsView_create(const dsScene* scene, dsAllocator* allocat
 	uint32_t height, void* userData, dsDestroySceneUserDataFunction destroyUserDataFunc);
 
 /**
- * @brief Registers a cull ID with the cull manager owned by the view.
- *
- * This must be done as part of the synchronous item list in the scene. While this modifies the
- * state of view despite being const, this is temporary data that is allowed to be modified.
- *
- * @remark Other interactions with the cull manager should be done directly from the cullManager
- * member of dsView. This is provided to make it explicit that it's safe to perform this non-const
- * operation on a const dsView instance.
- *
- * @remark errno will be set on failure.
- * @param view The view to register the cull ID with.
- * @param cullID The cull ID to register.
- * @return The cull instance or DS_SCENE_NO_CULL if it cannot be registered.
- */
-DS_SCENE_EXPORT uint32_t dsView_registerCullID(const dsView* view, dsSceneCullID cullID);
-
-/**
  * @brief Sets the dimensions of the view.
  *
  * This will be applied the next time dsView_update() is called.

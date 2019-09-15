@@ -34,7 +34,7 @@
 #include <DeepSea/Scene/ItemLists/SceneInstanceData.h>
 #include <DeepSea/Scene/Nodes/SceneModelNode.h>
 #include <DeepSea/Scene/Nodes/SceneNode.h>
-#include <DeepSea/Scene/SceneCullManager.h>
+#include <DeepSea/Scene/Nodes/SceneNodeItemData.h>
 
 #include <stdlib.h>
 #include <string.h>
@@ -43,6 +43,7 @@ typedef struct Entry
 {
 	const dsSceneModelNode* node;
 	const dsMatrix44f* transform;
+	dsSceneNodeItemData* itemData;
 	uint64_t nodeID;
 } Entry;
 
@@ -69,7 +70,7 @@ struct dsSceneModelList
 	dsDynamicRenderStates renderStates;
 	bool hasRenderStates;
 	dsModelSortType sortType;
-	dsSceneCullID cullID;
+	uint32_t cullNameID;
 
 	dsSharedMaterialValues* instanceValues;
 	dsSceneInstanceData** instanceData;
@@ -92,18 +93,14 @@ static void addInstances(dsSceneItemList* itemList, const dsView* view, uint32_t
 	DS_PROFILE_FUNC_START();
 
 	dsSceneModelList* modelList = (dsSceneModelList*)itemList;
-	uint32_t cullInstance;
-	if (modelList->cullID)
-		cullInstance = dsSceneCullManager_findCullID(&view->cullManager, modelList->cullID);
-	else
-		cullInstance = DS_NO_SCENE_CULL;
 
 	for (uint32_t i = 0; i < modelList->entryCount; ++i)
 	{
 		const Entry* entry = modelList->entries + i;
 		const dsSceneModelNode* modelNode = entry->node;
-		if (cullInstance != DS_NO_SCENE_CULL &&
-			!dsSceneCullManager_getCullResult(modelNode->cullMask, cullInstance))
+		// Non-zero cull result means out of view.
+		if (modelList->cullNameID &&
+			dsSceneNodeItemData_findID(entry->itemData, modelList->cullNameID))
 		{
 			continue;
 		}
@@ -315,8 +312,9 @@ static void destroyInstanceData(dsSceneInstanceData* const* instanceData,
 }
 
 uint64_t dsSceneModelList_addNode(dsSceneItemList* itemList, dsSceneNode* node,
-	const dsMatrix44f* transform)
+	const dsMatrix44f* transform, dsSceneNodeItemData* itemData, void** thisItemData)
 {
+	DS_UNUSED(thisItemData);
 	if (!dsSceneNode_isOfType(node, dsSceneModelNode_type()))
 		return DS_NO_SCENE_NODE;
 
@@ -332,6 +330,7 @@ uint64_t dsSceneModelList_addNode(dsSceneItemList* itemList, dsSceneNode* node,
 	Entry* entry = modelList->entries + index;
 	entry->node = (dsSceneModelNode*)node;
 	entry->transform = transform;
+	entry->itemData = itemData;
 	entry->nodeID = modelList->nextNodeID++;
 	return entry->nodeID;
 }
@@ -372,7 +371,7 @@ void dsSceneModelList_commit(dsSceneItemList* itemList, const dsView* view,
 
 dsSceneModelList* dsSceneModelList_create(dsAllocator* allocator, const char* name,
 	dsSceneInstanceData* const* instanceData, uint32_t instanceDataCount, dsModelSortType sortType,
-	const dsDynamicRenderStates* renderStates, dsSceneCullID cullID)
+	const dsDynamicRenderStates* renderStates, const char* cullName)
 {
 	if (!allocator || !name || (!instanceData && instanceDataCount > 0))
 	{
@@ -438,7 +437,7 @@ dsSceneModelList* dsSceneModelList_create(dsAllocator* allocator, const char* na
 	else
 		modelList->hasRenderStates = false;
 	modelList->sortType = sortType;
-	modelList->cullID = cullID;
+	modelList->cullNameID = cullName ? dsHashString(cullName) : 0;
 
 	if (instanceDataCount > 0)
 	{

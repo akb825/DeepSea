@@ -234,35 +234,6 @@ struct dsSceneGlobalData
 };
 
 /**
- * @brief Type for an ID for a unique cull type.
- *
- * Implementations should declare an int as a static variable and return its pointer to get the ID.
- *
- * @see SceneCullManager.h
- */
-typedef int* dsSceneCullID;
-
-/**
- * @brief Struct to manage multiple types of culls.
- *
- * Ultimately this will convert a cull ID into a bit to use within a bitmask of cull results.
- *
- * @see SceneCullManager.h
- */
-typedef struct dsSceneCullManager
-{
-	/**
-	 * @brief The registered cull IDs.
-	 */
-	dsSceneCullID cullIDs[32];
-
-	/**
-	 * @brief The number of registered ID.
-	 */
-	uint32_t registeredIDCount;
-} dsSceneCullManager;
-
-/**
  * @brief Info for a surface used within a view.
  */
 typedef struct dsViewSurfaceInfo
@@ -450,11 +421,6 @@ struct dsView
 	 * @brief The view frustum.
 	 */
 	dsFrustum3f viewFrustum;
-
-	/**
-	 * @brief Cull manager used when drawing the scene.
-	 */
-	dsSceneCullManager cullManager;
 
 	/**
 	 * @brief Global material values to do while drawing.

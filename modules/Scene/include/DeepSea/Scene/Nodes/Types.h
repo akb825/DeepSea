@@ -347,16 +347,46 @@ typedef struct dsSceneModelNode
 	uint32_t resourceCount;
 
 	/**
-	 * @brief Mask for whether or not a cull check passed.
-	 * @see dsSceneCullManager
-	 */
-	uint32_t cullMask;
-
-	/**
 	 * @brief The bounding box for the model.
 	 */
 	dsOrientedBox3f bounds;
 } dsSceneModelNode;
+
+/**
+ * @brief Struct holding data for an item in a scene item list.
+ */
+typedef struct dsSceneItemData
+{
+	/**
+	 * @brief The name ID for the corresponding scene item list.
+	 */
+	uint32_t nameID;
+
+	/**
+	 * @brief The data associated with the item.
+	 */
+	void* data;
+} dsSceneItemData;
+
+/**
+ * @brief Struct holding all of the item list data for a scene node.
+ *
+ * A separate instance is maintained for each time the node is present in the scene graph.
+ *
+ * @see SceneNodeItemData.h
+ */
+typedef struct dsSceneNodeItemData
+{
+	/**
+	 * @brief The data associated with each item list the node is used with.
+	 */
+	dsSceneItemData* itemData;
+
+	/**
+	 * @brief The number of item list data instances.
+	 */
+	uint32_t itemDataCount;
+} dsSceneNodeItemData;
 
 #ifdef __cplusplus
 }

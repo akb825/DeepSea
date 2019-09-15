@@ -75,7 +75,8 @@ static dsSceneTreeNode* addNode(dsSceneTreeNode* node, dsSceneNode* child,
 	}
 
 	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsSceneTreeNode)) +
-		DS_ALIGNED_SIZE(sizeof(dsSceneItemEntry)*child->itemListCount);
+		DS_ALIGNED_SIZE(sizeof(dsSceneItemEntry)*child->itemListCount) +
+		DS_ALIGNED_SIZE(sizeof(dsSceneItemData)*child->itemListCount);
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 	{
@@ -103,20 +104,30 @@ static dsSceneTreeNode* addNode(dsSceneTreeNode* node, dsSceneNode* child,
 	childTreeNode->itemLists = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsSceneItemEntry,
 		child->itemListCount);
 	DS_ASSERT(childTreeNode->itemLists || child->itemListCount == 0);
+	childTreeNode->itemData.itemData = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsSceneItemData,
+		child->itemListCount);
+	DS_ASSERT(childTreeNode->itemData.itemData || child->itemListCount == 0);
+	childTreeNode->itemData.itemDataCount = child->itemListCount;
 	for (uint32_t i = 0; i < child->itemListCount; ++i)
 	{
+		// Always initialize to NULL, regardless of the branch.
+		childTreeNode->itemData.itemData[i].data = NULL;
+
 		dsSceneItemListNode* node = (dsSceneItemListNode*)dsHashTable_find(scene->itemLists,
 			child->itemLists[i]);
 		if (!node)
 		{
 			childTreeNode->itemLists[i].list = NULL;
 			childTreeNode->itemLists[i].entry = DS_NO_SCENE_NODE;
+			childTreeNode->itemData.itemData[i].nameID = 0;
 			continue;
 		}
 
+		childTreeNode->itemData.itemData[i].nameID = node->list->nameID;
 		childTreeNode->itemLists[i].list = node->list;
 		childTreeNode->itemLists[i].entry = node->list->addNodeFunc(node->list, child,
-			&childTreeNode->transform);
+			&childTreeNode->transform, &childTreeNode->itemData,
+			&childTreeNode->itemData.itemData[i].data);
 	}
 
 	node->children[childIndex] = childTreeNode;

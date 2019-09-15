@@ -179,10 +179,14 @@ typedef void (*dsPopulateSceneInstanceVariablesFunction)(void* userData, const d
  * @param node The node to add.
  * @param transform The transform for the node. The contents of the pointer will change as the node
  *     is updated.
+ * @param itemData The item data associated with the node.
+ * @param thisItemData The pointer to the item data for this specific item. This pointer is
+ *     guaranteed to remain the same. Some implementations may choose to store the necessary data in
+ *     the pointer value rather than pointing to a separate structure.
  * @return The ID of the node within the item list, or DS_NO_SCENE_NODE if not added.
  */
 typedef uint64_t (*dsAddSceneItemListNodeFunction)(dsSceneItemList* itemList, dsSceneNode* node,
-	const dsMatrix44f* transform);
+	const dsMatrix44f* transform, dsSceneNodeItemData* itemData, void** thisItemData);
 
 /**
  * @brief Function for updating a node in an item list.

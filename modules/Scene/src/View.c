@@ -34,7 +34,6 @@
 #include <DeepSea/Render/Resources/SharedMaterialValues.h>
 #include <DeepSea/Render/Resources/Texture.h>
 #include <DeepSea/Render/RenderPass.h>
-#include <DeepSea/Scene/SceneCullManager.h>
 #include <DeepSea/Scene/SceneGlobalData.h>
 #include <string.h>
 
@@ -266,7 +265,6 @@ dsView* dsView_create(const dsScene* scene, dsAllocator* allocator,
 	dsMatrix44_identity(view->viewProjectionMatrix);
 	dsFrustum3_fromMatrix(view->viewFrustum, view->viewProjectionMatrix, renderer->clipHalfDepth,
 		renderer->clipInvertY);
-	dsSceneCullManager_reset(&view->cullManager);
 
 	if (scene->globalValueCount > 0)
 	{
@@ -415,17 +413,6 @@ dsView* dsView_create(const dsScene* scene, dsAllocator* allocator,
 	privateView->surfaceSet = true;
 
 	return view;
-}
-
-uint32_t dsView_registerCullID(const dsView* view, dsSceneCullID cullID)
-{
-	if (!view || !cullID)
-	{
-		errno = EINVAL;
-		return DS_NO_SCENE_CULL;
-	}
-
-	return dsSceneCullManager_registerCullID((dsSceneCullManager*)&view->cullManager, cullID);
 }
 
 bool dsView_setDimensions(dsView* view, uint32_t width, uint32_t height)
@@ -685,7 +672,6 @@ bool dsView_draw(dsView* view, dsCommandBuffer* commandBuffer, dsSceneThreadMana
 
 	dsViewPrivate* privateView = (dsViewPrivate*)view;
 	const dsScene* scene = view->scene;
-	DS_VERIFY(dsSceneCullManager_reset(&view->cullManager));
 
 	// First setup the global data.
 	for (uint32_t i = 0; i < scene->globalDataCount; ++i)
