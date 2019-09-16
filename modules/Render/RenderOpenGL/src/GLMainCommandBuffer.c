@@ -1522,7 +1522,7 @@ bool dsGLMainCommandBuffer_beginRenderPass(dsCommandBuffer* commandBuffer,
 	// Set the viewport parameters.
 	if (viewport)
 	{
-		glViewport((GLint)viewport->min.x, framebuffer->height - (GLint)viewport->min.y,
+		glViewport((GLint)viewport->min.x, framebuffer->height - (GLint)viewport->max.y,
 			(GLsizei)(viewport->max.x - viewport->min.x),
 			(GLsizei)(viewport->max.y - viewport->min.y));
 		if (ANYGL_SUPPORTED(glDepthRangef))
