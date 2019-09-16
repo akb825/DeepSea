@@ -496,6 +496,19 @@ ANYGL_EXPORT extern PFNANYGLXBLITCONTEXTFRAMEBUFFERAMDPROC AnyGL_glXBlitContextF
 #define GLX_BACK_BUFFER_AGE_EXT           0x20F4
 #endif /* ANYGL_NO_DEFINES */
 
+#ifndef GLX_EXT_context_priority
+#define GLX_EXT_context_priority 1
+#define ANYGLX_EXT_context_priority 1
+
+
+#endif /* GLX_EXT_context_priority */
+#ifndef ANYGL_NO_DEFINES
+#define GLX_CONTEXT_PRIORITY_LEVEL_EXT    0x3100
+#define GLX_CONTEXT_PRIORITY_HIGH_EXT     0x3101
+#define GLX_CONTEXT_PRIORITY_MEDIUM_EXT   0x3102
+#define GLX_CONTEXT_PRIORITY_LOW_EXT      0x3103
+#endif /* ANYGL_NO_DEFINES */
+
 #ifndef GLX_EXT_create_context_es2_profile
 #define GLX_EXT_create_context_es2_profile 1
 #define ANYGLX_EXT_create_context_es2_profile 1
@@ -800,7 +813,6 @@ ANYGL_EXPORT extern PFNANYGLXCREATEGLXPIXMAPMESAPROC AnyGL_glXCreateGLXPixmapMES
 #define GLX_RENDERER_OPENGL_COMPATIBILITY_PROFILE_VERSION_MESA 0x818B
 #define GLX_RENDERER_OPENGL_ES_PROFILE_VERSION_MESA 0x818C
 #define GLX_RENDERER_OPENGL_ES2_PROFILE_VERSION_MESA 0x818D
-#define GLX_RENDERER_ID_MESA              0x818E
 #endif /* ANYGL_NO_DEFINES */
 
 typedef Bool (APIENTRY* PFNANYGLXQUERYCURRENTRENDERERINTEGERMESAPROC)(int attribute, unsigned int *value);
@@ -845,7 +857,7 @@ ANYGL_EXPORT extern PFNANYGLXRELEASEBUFFERSMESAPROC AnyGL_glXReleaseBuffersMESA;
 #define GLX_3DFX_FULLSCREEN_MODE_MESA     0x2
 #endif /* ANYGL_NO_DEFINES */
 
-typedef Bool (APIENTRY* PFNANYGLXSET3DFXMODEMESAPROC)(int mode);
+typedef GLboolean (APIENTRY* PFNANYGLXSET3DFXMODEMESAPROC)(GLint mode);
 
 ANYGL_EXPORT extern PFNANYGLXSET3DFXMODEMESAPROC AnyGL_glXSet3DfxModeMESA;
 
@@ -923,6 +935,20 @@ ANYGL_EXPORT extern PFNANYGLXDELAYBEFORESWAPNVPROC AnyGL_glXDelayBeforeSwapNV;
 #endif /* GLX_NV_float_buffer */
 #ifndef ANYGL_NO_DEFINES
 #define GLX_FLOAT_COMPONENTS_NV           0x20B0
+#endif /* ANYGL_NO_DEFINES */
+
+#ifndef GLX_NV_multigpu_context
+#define GLX_NV_multigpu_context 1
+#define ANYGLX_NV_multigpu_context 1
+
+
+#endif /* GLX_NV_multigpu_context */
+#ifndef ANYGL_NO_DEFINES
+#define GLX_CONTEXT_MULTIGPU_ATTRIB_NV    0x20AA
+#define GLX_CONTEXT_MULTIGPU_ATTRIB_SINGLE_NV 0x20AB
+#define GLX_CONTEXT_MULTIGPU_ATTRIB_AFR_NV 0x20AC
+#define GLX_CONTEXT_MULTIGPU_ATTRIB_MULTICAST_NV 0x20AD
+#define GLX_CONTEXT_MULTIGPU_ATTRIB_MULTI_DISPLAY_MULTICAST_NV 0x20AE
 #endif /* ANYGL_NO_DEFINES */
 
 #ifndef GLX_NV_multisample_coverage
@@ -1154,7 +1180,7 @@ ANYGL_EXPORT extern PFNANYGLXWAITFORSBCOMLPROC AnyGL_glXWaitForSbcOML;
 
 
 #endif /* GLX_SUN_get_transparent_index */
-typedef Status (APIENTRY* PFNANYGLXGETTRANSPARENTINDEXSUNPROC)(Display *dpy, Window overlay, Window underlay, long *pTransparentIndex);
+typedef Status (APIENTRY* PFNANYGLXGETTRANSPARENTINDEXSUNPROC)(Display *dpy, Window overlay, Window underlay, unsigned long *pTransparentIndex);
 
 ANYGL_EXPORT extern PFNANYGLXGETTRANSPARENTINDEXSUNPROC AnyGL_glXGetTransparentIndexSUN;
 

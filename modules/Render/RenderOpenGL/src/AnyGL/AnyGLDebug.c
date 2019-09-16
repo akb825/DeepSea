@@ -4111,6 +4111,25 @@ static const char* getAnyEnumStr(GLenum e)
 		"GL_NUM_SAMPLE_COUNTS",
 		"GL_MULTISAMPLE_LINE_WIDTH_RANGE",
 		"GL_MULTISAMPLE_LINE_WIDTH_GRANULARITY",
+		"GL_VIEW_CLASS_EAC_R11",
+		"GL_VIEW_CLASS_EAC_RG11",
+		"GL_VIEW_CLASS_ETC2_RGB",
+		"GL_VIEW_CLASS_ETC2_RGBA",
+		"GL_VIEW_CLASS_ETC2_EAC_RGBA",
+		"GL_VIEW_CLASS_ASTC_4x4_RGBA",
+		"GL_VIEW_CLASS_ASTC_5x4_RGBA",
+		"GL_VIEW_CLASS_ASTC_5x5_RGBA",
+		"GL_VIEW_CLASS_ASTC_6x5_RGBA",
+		"GL_VIEW_CLASS_ASTC_6x6_RGBA",
+		"GL_VIEW_CLASS_ASTC_8x5_RGBA",
+		"GL_VIEW_CLASS_ASTC_8x6_RGBA",
+		"GL_VIEW_CLASS_ASTC_8x8_RGBA",
+		"GL_VIEW_CLASS_ASTC_10x5_RGBA",
+		"GL_VIEW_CLASS_ASTC_10x6_RGBA",
+		"GL_VIEW_CLASS_ASTC_10x8_RGBA",
+		"GL_VIEW_CLASS_ASTC_10x10_RGBA",
+		"GL_VIEW_CLASS_ASTC_12x10_RGBA",
+		"GL_VIEW_CLASS_ASTC_12x12_RGBA",
 		"GL_BGRA8_EXT",
 		"GL_COMPRESSED_RGBA_ASTC_4x4",
 		"GL_COMPRESSED_RGBA_ASTC_5x4",
@@ -4164,6 +4183,10 @@ static const char* getAnyEnumStr(GLenum e)
 		"GL_COMPRESSED_SRGB_ALPHA_PVRTC_4BPPV2_IMG",
 		"GL_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_EXT",
 		"GL_LAYOUT_DEPTH_ATTACHMENT_STENCIL_READ_ONLY_EXT",
+		"GL_SUBGROUP_SIZE_KHR",
+		"GL_SUBGROUP_SUPPORTED_STAGES_KHR",
+		"GL_SUBGROUP_SUPPORTED_FEATURES_KHR",
+		"GL_SUBGROUP_QUAD_ALL_STAGES_KHR",
 		"GL_SHADER_BINARY_FORMAT_SPIR_V",
 		"GL_SPIR_V_BINARY",
 		"GL_SPIR_V_EXTENSIONS",
@@ -4723,40 +4746,491 @@ static const char* getAnyEnumStr(GLenum e)
 		return enumNames[e - 0x935c + 2313];
 	if (e >= 0x9365 && e <= 0x9367)
 		return enumNames[e - 0x9365 + 2317];
-	if (e >= 0x9380 && e <= 0x9382)
+	if (e >= 0x9380 && e <= 0x9395)
 		return enumNames[e - 0x9380 + 2320];
 	if (e >= 0x93a1 && e <= 0x93a1)
-		return enumNames[e - 0x93a1 + 2323];
+		return enumNames[e - 0x93a1 + 2342];
 	if (e >= 0x93b0 && e <= 0x93bd)
-		return enumNames[e - 0x93b0 + 2324];
+		return enumNames[e - 0x93b0 + 2343];
 	if (e >= 0x93c0 && e <= 0x93c9)
-		return enumNames[e - 0x93c0 + 2338];
+		return enumNames[e - 0x93c0 + 2357];
 	if (e >= 0x93d0 && e <= 0x93dd)
-		return enumNames[e - 0x93d0 + 2348];
+		return enumNames[e - 0x93d0 + 2367];
 	if (e >= 0x93e0 && e <= 0x93e9)
-		return enumNames[e - 0x93e0 + 2362];
+		return enumNames[e - 0x93e0 + 2381];
 	if (e >= 0x93f0 && e <= 0x93f1)
-		return enumNames[e - 0x93f0 + 2372];
-	if (e >= 0x9530 && e <= 0x9531)
-		return enumNames[e - 0x9530 + 2374];
+		return enumNames[e - 0x93f0 + 2391];
+	if (e >= 0x9530 && e <= 0x9535)
+		return enumNames[e - 0x9530 + 2393];
 	if (e >= 0x9551 && e <= 0x9554)
-		return enumNames[e - 0x9551 + 2376];
+		return enumNames[e - 0x9551 + 2399];
 	if (e >= 0x9580 && e <= 0x959b)
-		return enumNames[e - 0x9580 + 2380];
+		return enumNames[e - 0x9580 + 2403];
 	if (e >= 0x9650 && e <= 0x9652)
-		return enumNames[e - 0x9650 + 2408];
+		return enumNames[e - 0x9650 + 2431];
 	if (e >= 0x10000 && e <= 0x10000)
-		return enumNames[e - 0x10000 + 2411];
+		return enumNames[e - 0x10000 + 2434];
 	if (e >= 0x20000 && e <= 0x20000)
-		return enumNames[e - 0x20000 + 2412];
+		return enumNames[e - 0x20000 + 2435];
 	if (e >= 0x40000 && e <= 0x40000)
-		return enumNames[e - 0x40000 + 2413];
+		return enumNames[e - 0x40000 + 2436];
 	if (e >= 0x80000 && e <= 0x80000)
-		return enumNames[e - 0x80000 + 2414];
+		return enumNames[e - 0x80000 + 2437];
 	if (e >= 0x20000000 && e <= 0x20000000)
-		return enumNames[e - 0x20000000 + 2415];
+		return enumNames[e - 0x20000000 + 2438];
 	if (e >= 0xffffffff && e == 0xffffffff)
-		return enumNames[e - 0xffffffff + 2416];
+		return enumNames[e - 0xffffffff + 2439];
+	return "INVALID";
+}
+
+static const char* getScalarTypeEnumStr(GLenum e)
+{
+	static const char* enumNames[] =
+	{
+		"GL_UNSIGNED_BYTE",
+		"GL_UNSIGNED_SHORT",
+		"GL_UNSIGNED_INT",
+	};
+
+	if (e >= 0x1401 && e <= 0x1401)
+		return enumNames[e - 0x1401 + 0];
+	if (e >= 0x1403 && e <= 0x1403)
+		return enumNames[e - 0x1403 + 1];
+	if (e >= 0x1405 && e <= 0x1405)
+		return enumNames[e - 0x1405 + 2];
+	return "INVALID";
+}
+
+static const char* getVertexShaderTextureUnitParameterEnumStr(GLenum e)
+{
+	static const char* enumNames[] =
+	{
+		"GL_CURRENT_TEXTURE_COORDS",
+		"GL_TEXTURE_MATRIX",
+	};
+
+	if (e >= 0xb03 && e <= 0xb03)
+		return enumNames[e - 0xb03 + 0];
+	if (e >= 0xba8 && e <= 0xba8)
+		return enumNames[e - 0xba8 + 1];
+	return "INVALID";
+}
+
+static const char* getCullParameterEXTEnumStr(GLenum e)
+{
+	static const char* enumNames[] =
+	{
+		"GL_CULL_VERTEX_EYE_POSITION_EXT",
+		"GL_CULL_VERTEX_OBJECT_POSITION_EXT",
+	};
+
+	if (e >= 0x81ab && e <= 0x81ac)
+		return enumNames[e - 0x81ab + 0];
+	return "INVALID";
+}
+
+static const char* getDataTypeEXTEnumStr(GLenum e)
+{
+	static const char* enumNames[] =
+	{
+		"GL_SCALAR_EXT",
+		"GL_VECTOR_EXT",
+		"GL_MATRIX_EXT",
+	};
+
+	if (e >= 0x87be && e <= 0x87c0)
+		return enumNames[e - 0x87be + 0];
+	return "INVALID";
+}
+
+static const char* getParameterRangeEXTEnumStr(GLenum e)
+{
+	static const char* enumNames[] =
+	{
+		"GL_NORMALIZED_RANGE_EXT",
+		"GL_FULL_RANGE_EXT",
+	};
+
+	if (e >= 0x87e0 && e <= 0x87e1)
+		return enumNames[e - 0x87e0 + 0];
+	return "INVALID";
+}
+
+static const char* getGetVariantValueEXTEnumStr(GLenum e)
+{
+	static const char* enumNames[] =
+	{
+		"GL_VARIANT_VALUE_EXT",
+		"GL_VARIANT_DATATYPE_EXT",
+		"GL_VARIANT_ARRAY_STRIDE_EXT",
+		"GL_VARIANT_ARRAY_TYPE_EXT",
+	};
+
+	if (e >= 0x87e4 && e <= 0x87e7)
+		return enumNames[e - 0x87e4 + 0];
+	return "INVALID";
+}
+
+static const char* getIndexMaterialParameterEXTEnumStr(GLenum e)
+{
+	static const char* enumNames[] =
+	{
+		"GL_INDEX_OFFSET",
+	};
+
+	if (e >= 0xd13 && e <= 0xd13)
+		return enumNames[e - 0xd13 + 0];
+	return "INVALID";
+}
+
+static const char* getVariantCapEXTEnumStr(GLenum e)
+{
+	static const char* enumNames[] =
+	{
+		"GL_VARIANT_ARRAY_EXT",
+	};
+
+	if (e >= 0x87e8 && e <= 0x87e8)
+		return enumNames[e - 0x87e8 + 0];
+	return "INVALID";
+}
+
+static const char* getPixelTransformTargetEXTEnumStr(GLenum e)
+{
+	static const char* enumNames[] =
+	{
+		"GL_PIXEL_TRANSFORM_2D_EXT",
+	};
+
+	if (e >= 0x8330 && e <= 0x8330)
+		return enumNames[e - 0x8330 + 0];
+	return "INVALID";
+}
+
+static const char* getPixelTransformPNameEXTEnumStr(GLenum e)
+{
+	static const char* enumNames[] =
+	{
+		"GL_PIXEL_MAG_FILTER_EXT",
+		"GL_PIXEL_MIN_FILTER_EXT",
+		"GL_PIXEL_CUBIC_WEIGHT_EXT",
+	};
+
+	if (e >= 0x8331 && e <= 0x8333)
+		return enumNames[e - 0x8331 + 0];
+	return "INVALID";
+}
+
+static const char* getTextureNormalModeEXTEnumStr(GLenum e)
+{
+	static const char* enumNames[] =
+	{
+		"GL_PERTURB_EXT",
+	};
+
+	if (e >= 0x85ae && e <= 0x85ae)
+		return enumNames[e - 0x85ae + 0];
+	return "INVALID";
+}
+
+static const char* getLightTexturePNameEXTEnumStr(GLenum e)
+{
+	static const char* enumNames[] =
+	{
+		"GL_ATTENUATION_EXT",
+		"GL_SHADOW_ATTENUATION_EXT",
+	};
+
+	if (e >= 0x834d && e <= 0x834e)
+		return enumNames[e - 0x834d + 0];
+	return "INVALID";
+}
+
+static const char* getVertexShaderCoordOutEXTEnumStr(GLenum e)
+{
+	static const char* enumNames[] =
+	{
+		"GL_X_EXT",
+		"GL_Y_EXT",
+		"GL_Z_EXT",
+		"GL_W_EXT",
+		"GL_NEGATIVE_X_EXT",
+		"GL_NEGATIVE_Y_EXT",
+		"GL_NEGATIVE_Z_EXT",
+		"GL_NEGATIVE_W_EXT",
+		"GL_ZERO_EXT",
+		"GL_ONE_EXT",
+		"GL_NEGATIVE_ONE_EXT",
+	};
+
+	if (e >= 0x87d5 && e <= 0x87df)
+		return enumNames[e - 0x87d5 + 0];
+	return "INVALID";
+}
+
+static const char* getSamplePatternEXTEnumStr(GLenum e)
+{
+	static const char* enumNames[] =
+	{
+		"GL_1PASS_EXT",
+		"GL_2PASS_0_EXT",
+		"GL_2PASS_1_EXT",
+		"GL_4PASS_0_EXT",
+		"GL_4PASS_1_EXT",
+		"GL_4PASS_2_EXT",
+		"GL_4PASS_3_EXT",
+	};
+
+	if (e >= 0x80a1 && e <= 0x80a7)
+		return enumNames[e - 0x80a1 + 0];
+	return "INVALID";
+}
+
+static const char* getVertexShaderStorageTypeEXTEnumStr(GLenum e)
+{
+	static const char* enumNames[] =
+	{
+		"GL_VARIANT_EXT",
+		"GL_INVARIANT_EXT",
+		"GL_LOCAL_CONSTANT_EXT",
+		"GL_LOCAL_EXT",
+	};
+
+	if (e >= 0x87c1 && e <= 0x87c4)
+		return enumNames[e - 0x87c1 + 0];
+	return "INVALID";
+}
+
+static const char* getVertexShaderParameterEXTEnumStr(GLenum e)
+{
+	static const char* enumNames[] =
+	{
+		"GL_CURRENT_VERTEX_EXT",
+		"GL_MVP_MATRIX_EXT",
+	};
+
+	if (e >= 0x87e2 && e <= 0x87e3)
+		return enumNames[e - 0x87e2 + 0];
+	return "INVALID";
+}
+
+static const char* getLightTextureModeEXTEnumStr(GLenum e)
+{
+	static const char* enumNames[] =
+	{
+		"GL_FRAGMENT_MATERIAL_EXT",
+		"GL_FRAGMENT_NORMAL_EXT",
+		"GL_FRAGMENT_COLOR_EXT",
+		"GL_FRAGMENT_DEPTH_EXT",
+	};
+
+	if (e >= 0x8349 && e <= 0x834a)
+		return enumNames[e - 0x8349 + 0];
+	if (e >= 0x834c && e <= 0x834c)
+		return enumNames[e - 0x834c + 2];
+	if (e >= 0x8452 && e <= 0x8452)
+		return enumNames[e - 0x8452 + 3];
+	return "INVALID";
+}
+
+static const char* getVertexShaderOpEXTEnumStr(GLenum e)
+{
+	static const char* enumNames[] =
+	{
+		"GL_OP_INDEX_EXT",
+		"GL_OP_NEGATE_EXT",
+		"GL_OP_DOT3_EXT",
+		"GL_OP_DOT4_EXT",
+		"GL_OP_MUL_EXT",
+		"GL_OP_ADD_EXT",
+		"GL_OP_MADD_EXT",
+		"GL_OP_FRAC_EXT",
+		"GL_OP_MAX_EXT",
+		"GL_OP_MIN_EXT",
+		"GL_OP_SET_GE_EXT",
+		"GL_OP_SET_LT_EXT",
+		"GL_OP_CLAMP_EXT",
+		"GL_OP_FLOOR_EXT",
+		"GL_OP_ROUND_EXT",
+		"GL_OP_EXP_BASE_2_EXT",
+		"GL_OP_LOG_BASE_2_EXT",
+		"GL_OP_POWER_EXT",
+		"GL_OP_RECIP_EXT",
+		"GL_OP_RECIP_SQRT_EXT",
+		"GL_OP_SUB_EXT",
+		"GL_OP_CROSS_PRODUCT_EXT",
+		"GL_OP_MULTIPLY_MATRIX_EXT",
+		"GL_OP_MOV_EXT",
+	};
+
+	if (e >= 0x8782 && e <= 0x8799)
+		return enumNames[e - 0x8782 + 0];
+	return "INVALID";
+}
+
+static const char* getProgramFormatARBEnumStr(GLenum e)
+{
+	static const char* enumNames[] =
+	{
+		"GL_PROGRAM_FORMAT_ASCII_ARB",
+	};
+
+	if (e >= 0x8875 && e <= 0x8875)
+		return enumNames[e - 0x8875 + 0];
+	return "INVALID";
+}
+
+static const char* getPointParameterNameARBEnumStr(GLenum e)
+{
+	static const char* enumNames[] =
+	{
+		"GL_POINT_SIZE_MIN_EXT",
+		"GL_POINT_SIZE_MAX_EXT",
+		"GL_POINT_FADE_THRESHOLD_SIZE_EXT",
+	};
+
+	if (e >= 0x8126 && e <= 0x8128)
+		return enumNames[e - 0x8126 + 0];
+	return "INVALID";
+}
+
+static const char* getVertexAttribPropertyARBEnumStr(GLenum e)
+{
+	static const char* enumNames[] =
+	{
+		"GL_VERTEX_ATTRIB_BINDING",
+		"GL_VERTEX_ATTRIB_RELATIVE_OFFSET",
+		"GL_VERTEX_ATTRIB_ARRAY_ENABLED",
+		"GL_VERTEX_ATTRIB_ARRAY_SIZE",
+		"GL_VERTEX_ATTRIB_ARRAY_STRIDE",
+		"GL_VERTEX_ATTRIB_ARRAY_TYPE",
+		"GL_CURRENT_VERTEX_ATTRIB",
+		"GL_VERTEX_ATTRIB_ARRAY_LONG",
+		"GL_VERTEX_ATTRIB_ARRAY_NORMALIZED",
+		"GL_VERTEX_ATTRIB_ARRAY_BUFFER_BINDING",
+		"GL_VERTEX_ATTRIB_ARRAY_INTEGER",
+		"GL_VERTEX_ATTRIB_ARRAY_DIVISOR",
+	};
+
+	if (e >= 0x82d4 && e <= 0x82d5)
+		return enumNames[e - 0x82d4 + 0];
+	if (e >= 0x8622 && e <= 0x8626)
+		return enumNames[e - 0x8622 + 2];
+	if (e >= 0x874e && e <= 0x874e)
+		return enumNames[e - 0x874e + 7];
+	if (e >= 0x886a && e <= 0x886a)
+		return enumNames[e - 0x886a + 8];
+	if (e >= 0x889f && e <= 0x889f)
+		return enumNames[e - 0x889f + 9];
+	if (e >= 0x88fd && e <= 0x88fe)
+		return enumNames[e - 0x88fd + 10];
+	return "INVALID";
+}
+
+static const char* getVertexAttribPointerPropertyARBEnumStr(GLenum e)
+{
+	static const char* enumNames[] =
+	{
+		"GL_VERTEX_ATTRIB_ARRAY_POINTER_ARB",
+	};
+
+	if (e >= 0x8645 && e <= 0x8645)
+		return enumNames[e - 0x8645 + 0];
+	return "INVALID";
+}
+
+static const char* getProgramStringPropertyARBEnumStr(GLenum e)
+{
+	static const char* enumNames[] =
+	{
+		"GL_PROGRAM_STRING_ARB",
+	};
+
+	if (e >= 0x8628 && e <= 0x8628)
+		return enumNames[e - 0x8628 + 0];
+	return "INVALID";
+}
+
+static const char* getBufferPointerNameARBEnumStr(GLenum e)
+{
+	static const char* enumNames[] =
+	{
+		"GL_BUFFER_MAP_POINTER_ARB",
+	};
+
+	if (e >= 0x88bd && e <= 0x88bd)
+		return enumNames[e - 0x88bd + 0];
+	return "INVALID";
+}
+
+static const char* getBufferPNameARBEnumStr(GLenum e)
+{
+	static const char* enumNames[] =
+	{
+		"GL_BUFFER_IMMUTABLE_STORAGE",
+		"GL_BUFFER_STORAGE_FLAGS",
+		"GL_BUFFER_SIZE_ARB",
+		"GL_BUFFER_USAGE_ARB",
+		"GL_BUFFER_ACCESS_ARB",
+		"GL_BUFFER_MAPPED_ARB",
+		"GL_BUFFER_ACCESS_FLAGS",
+		"GL_BUFFER_MAP_LENGTH",
+		"GL_BUFFER_MAP_OFFSET",
+	};
+
+	if (e >= 0x821f && e <= 0x8220)
+		return enumNames[e - 0x821f + 0];
+	if (e >= 0x8764 && e <= 0x8765)
+		return enumNames[e - 0x8764 + 2];
+	if (e >= 0x88bb && e <= 0x88bc)
+		return enumNames[e - 0x88bb + 4];
+	if (e >= 0x911f && e <= 0x9121)
+		return enumNames[e - 0x911f + 6];
+	return "INVALID";
+}
+
+static const char* getClampColorModeARBEnumStr(GLenum e)
+{
+	static const char* enumNames[] =
+	{
+		"GL_FALSE",
+		"GL_TRUE",
+		"GL_FIXED_ONLY_ARB",
+	};
+
+	if (e <= 0x1)
+		return enumNames[e - 0x0 + 0];
+	if (e >= 0x891d && e <= 0x891d)
+		return enumNames[e - 0x891d + 2];
+	return "INVALID";
+}
+
+static const char* getClampColorTargetARBEnumStr(GLenum e)
+{
+	static const char* enumNames[] =
+	{
+		"GL_CLAMP_VERTEX_COLOR_ARB",
+		"GL_CLAMP_FRAGMENT_COLOR_ARB",
+		"GL_CLAMP_READ_COLOR_ARB",
+	};
+
+	if (e >= 0x891a && e <= 0x891c)
+		return enumNames[e - 0x891a + 0];
+	return "INVALID";
+}
+
+static const char* getGetMultisamplePNameNVEnumStr(GLenum e)
+{
+	static const char* enumNames[] =
+	{
+		"GL_SAMPLE_POSITION",
+		"GL_PROGRAMMABLE_SAMPLE_LOCATION_ARB",
+	};
+
+	if (e >= 0x8e50 && e <= 0x8e50)
+		return enumNames[e - 0x8e50 + 0];
+	if (e >= 0x9341 && e <= 0x9341)
+		return enumNames[e - 0x9341 + 1];
 	return "INVALID";
 }
 
@@ -4812,6 +5286,7 @@ static const char* getBufferTargetARBEnumStr(GLenum e)
 {
 	static const char* enumNames[] =
 	{
+		"GL_PARAMETER_BUFFER",
 		"GL_ARRAY_BUFFER",
 		"GL_ELEMENT_ARRAY_BUFFER",
 		"GL_PIXEL_PACK_BUFFER",
@@ -4828,28 +5303,30 @@ static const char* getBufferTargetARBEnumStr(GLenum e)
 		"GL_ATOMIC_COUNTER_BUFFER",
 	};
 
+	if (e >= 0x80ee && e <= 0x80ee)
+		return enumNames[e - 0x80ee + 0];
 	if (e >= 0x8892 && e <= 0x8893)
-		return enumNames[e - 0x8892 + 0];
+		return enumNames[e - 0x8892 + 1];
 	if (e >= 0x88eb && e <= 0x88ec)
-		return enumNames[e - 0x88eb + 2];
+		return enumNames[e - 0x88eb + 3];
 	if (e >= 0x8a11 && e <= 0x8a11)
-		return enumNames[e - 0x8a11 + 4];
+		return enumNames[e - 0x8a11 + 5];
 	if (e >= 0x8c2a && e <= 0x8c2a)
-		return enumNames[e - 0x8c2a + 5];
+		return enumNames[e - 0x8c2a + 6];
 	if (e >= 0x8c8e && e <= 0x8c8e)
-		return enumNames[e - 0x8c8e + 6];
+		return enumNames[e - 0x8c8e + 7];
 	if (e >= 0x8f36 && e <= 0x8f37)
-		return enumNames[e - 0x8f36 + 7];
+		return enumNames[e - 0x8f36 + 8];
 	if (e >= 0x8f3f && e <= 0x8f3f)
-		return enumNames[e - 0x8f3f + 9];
+		return enumNames[e - 0x8f3f + 10];
 	if (e >= 0x90d2 && e <= 0x90d2)
-		return enumNames[e - 0x90d2 + 10];
+		return enumNames[e - 0x90d2 + 11];
 	if (e >= 0x90ee && e <= 0x90ee)
-		return enumNames[e - 0x90ee + 11];
+		return enumNames[e - 0x90ee + 12];
 	if (e >= 0x9192 && e <= 0x9192)
-		return enumNames[e - 0x9192 + 12];
+		return enumNames[e - 0x9192 + 13];
 	if (e >= 0x92c0 && e <= 0x92c0)
-		return enumNames[e - 0x92c0 + 13];
+		return enumNames[e - 0x92c0 + 14];
 	return "INVALID";
 }
 
@@ -5031,12 +5508,46 @@ static const char* getDrawBufferModeEnumStr(GLenum e)
 		"GL_AUX1",
 		"GL_AUX2",
 		"GL_AUX3",
+		"GL_COLOR_ATTACHMENT0",
+		"GL_COLOR_ATTACHMENT1",
+		"GL_COLOR_ATTACHMENT2",
+		"GL_COLOR_ATTACHMENT3",
+		"GL_COLOR_ATTACHMENT4",
+		"GL_COLOR_ATTACHMENT5",
+		"GL_COLOR_ATTACHMENT6",
+		"GL_COLOR_ATTACHMENT7",
+		"GL_COLOR_ATTACHMENT8",
+		"GL_COLOR_ATTACHMENT9",
+		"GL_COLOR_ATTACHMENT10",
+		"GL_COLOR_ATTACHMENT11",
+		"GL_COLOR_ATTACHMENT12",
+		"GL_COLOR_ATTACHMENT13",
+		"GL_COLOR_ATTACHMENT14",
+		"GL_COLOR_ATTACHMENT15",
+		"GL_COLOR_ATTACHMENT16",
+		"GL_COLOR_ATTACHMENT17",
+		"GL_COLOR_ATTACHMENT18",
+		"GL_COLOR_ATTACHMENT19",
+		"GL_COLOR_ATTACHMENT20",
+		"GL_COLOR_ATTACHMENT21",
+		"GL_COLOR_ATTACHMENT22",
+		"GL_COLOR_ATTACHMENT23",
+		"GL_COLOR_ATTACHMENT24",
+		"GL_COLOR_ATTACHMENT25",
+		"GL_COLOR_ATTACHMENT26",
+		"GL_COLOR_ATTACHMENT27",
+		"GL_COLOR_ATTACHMENT28",
+		"GL_COLOR_ATTACHMENT29",
+		"GL_COLOR_ATTACHMENT30",
+		"GL_COLOR_ATTACHMENT31",
 	};
 
 	if (e <= 0x0)
 		return enumNames[e - 0x0 + 0];
 	if (e >= 0x400 && e <= 0x40c)
 		return enumNames[e - 0x400 + 1];
+	if (e >= 0x8ce0 && e <= 0x8cff)
+		return enumNames[e - 0x8ce0 + 14];
 	return "INVALID";
 }
 
@@ -5603,12 +6114,30 @@ static const char* getReadBufferModeEnumStr(GLenum e)
 		"GL_AUX1",
 		"GL_AUX2",
 		"GL_AUX3",
+		"GL_COLOR_ATTACHMENT0",
+		"GL_COLOR_ATTACHMENT1",
+		"GL_COLOR_ATTACHMENT2",
+		"GL_COLOR_ATTACHMENT3",
+		"GL_COLOR_ATTACHMENT4",
+		"GL_COLOR_ATTACHMENT5",
+		"GL_COLOR_ATTACHMENT6",
+		"GL_COLOR_ATTACHMENT7",
+		"GL_COLOR_ATTACHMENT8",
+		"GL_COLOR_ATTACHMENT9",
+		"GL_COLOR_ATTACHMENT10",
+		"GL_COLOR_ATTACHMENT11",
+		"GL_COLOR_ATTACHMENT12",
+		"GL_COLOR_ATTACHMENT13",
+		"GL_COLOR_ATTACHMENT14",
+		"GL_COLOR_ATTACHMENT15",
 	};
 
 	if (e >= 0x400 && e <= 0x407)
 		return enumNames[e - 0x400 + 0];
 	if (e >= 0x409 && e <= 0x40c)
 		return enumNames[e - 0x409 + 8];
+	if (e >= 0x8ce0 && e <= 0x8cef)
+		return enumNames[e - 0x8ce0 + 12];
 	return "INVALID";
 }
 
@@ -5708,6 +6237,8 @@ static const char* getStencilOpEnumStr(GLenum e)
 		"GL_REPLACE",
 		"GL_INCR",
 		"GL_DECR",
+		"GL_INCR_WRAP",
+		"GL_DECR_WRAP",
 	};
 
 	if (e <= 0x0)
@@ -5716,6 +6247,8 @@ static const char* getStencilOpEnumStr(GLenum e)
 		return enumNames[e - 0x150a + 1];
 	if (e >= 0x1e00 && e <= 0x1e03)
 		return enumNames[e - 0x1e00 + 2];
+	if (e >= 0x8507 && e <= 0x8508)
+		return enumNames[e - 0x8507 + 6];
 	return "INVALID";
 }
 
@@ -5890,7 +6423,7 @@ static const char* getTextureUnitEnumStr(GLenum e)
 	return "INVALID";
 }
 
-static const char* getTypeEnumEnumStr(GLenum e)
+static const char* getConditionalRenderModeEnumStr(GLenum e)
 {
 	static const char* enumNames[] =
 	{
@@ -5898,9 +6431,13 @@ static const char* getTypeEnumEnumStr(GLenum e)
 		"GL_QUERY_NO_WAIT",
 		"GL_QUERY_BY_REGION_WAIT",
 		"GL_QUERY_BY_REGION_NO_WAIT",
+		"GL_QUERY_WAIT_INVERTED",
+		"GL_QUERY_NO_WAIT_INVERTED",
+		"GL_QUERY_BY_REGION_WAIT_INVERTED",
+		"GL_QUERY_BY_REGION_NO_WAIT_INVERTED",
 	};
 
-	if (e >= 0x8e13 && e <= 0x8e16)
+	if (e >= 0x8e13 && e <= 0x8e1a)
 		return enumNames[e - 0x8e13 + 0];
 	return "INVALID";
 }
@@ -5909,6 +6446,10 @@ static const char* getQueryTargetEnumStr(GLenum e)
 {
 	static const char* enumNames[] =
 	{
+		"GL_TRANSFORM_FEEDBACK_OVERFLOW",
+		"GL_VERTICES_SUBMITTED",
+		"GL_PRIMITIVES_SUBMITTED",
+		"GL_VERTEX_SHADER_INVOCATIONS",
 		"GL_TIME_ELAPSED",
 		"GL_SAMPLES_PASSED",
 		"GL_ANY_SAMPLES_PASSED",
@@ -5917,16 +6458,32 @@ static const char* getQueryTargetEnumStr(GLenum e)
 		"GL_ANY_SAMPLES_PASSED_CONSERVATIVE",
 	};
 
+	if (e >= 0x82ec && e <= 0x82ec)
+		return enumNames[e - 0x82ec + 0];
+	if (e >= 0x82ee && e <= 0x82f0)
+		return enumNames[e - 0x82ee + 1];
 	if (e >= 0x88bf && e <= 0x88bf)
-		return enumNames[e - 0x88bf + 0];
+		return enumNames[e - 0x88bf + 4];
 	if (e >= 0x8914 && e <= 0x8914)
-		return enumNames[e - 0x8914 + 1];
+		return enumNames[e - 0x8914 + 5];
 	if (e >= 0x8c2f && e <= 0x8c2f)
-		return enumNames[e - 0x8c2f + 2];
+		return enumNames[e - 0x8c2f + 6];
 	if (e >= 0x8c87 && e <= 0x8c88)
-		return enumNames[e - 0x8c87 + 3];
+		return enumNames[e - 0x8c87 + 7];
 	if (e >= 0x8d6a && e <= 0x8d6a)
-		return enumNames[e - 0x8d6a + 5];
+		return enumNames[e - 0x8d6a + 9];
+	return "INVALID";
+}
+
+static const char* getQueryCounterTargetEnumStr(GLenum e)
+{
+	static const char* enumNames[] =
+	{
+		"GL_TIMESTAMP",
+	};
+
+	if (e >= 0x8e28 && e <= 0x8e28)
+		return enumNames[e - 0x8e28 + 0];
 	return "INVALID";
 }
 
@@ -6254,6 +6811,46 @@ static const char* getCopyBufferSubDataTargetEnumStr(GLenum e)
 	return "INVALID";
 }
 
+static const char* getCopyImageSubDataTargetEnumStr(GLenum e)
+{
+	static const char* enumNames[] =
+	{
+		"GL_TEXTURE_1D",
+		"GL_TEXTURE_2D",
+		"GL_TEXTURE_3D",
+		"GL_TEXTURE_RECTANGLE",
+		"GL_TEXTURE_CUBE_MAP",
+		"GL_TEXTURE_1D_ARRAY",
+		"GL_TEXTURE_2D_ARRAY",
+		"GL_RENDERBUFFER",
+		"GL_TEXTURE_CUBE_MAP_ARRAY",
+		"GL_TEXTURE_2D_MULTISAMPLE",
+		"GL_TEXTURE_2D_MULTISAMPLE_ARRAY",
+	};
+
+	if (e >= 0xde0 && e <= 0xde1)
+		return enumNames[e - 0xde0 + 0];
+	if (e >= 0x806f && e <= 0x806f)
+		return enumNames[e - 0x806f + 2];
+	if (e >= 0x84f5 && e <= 0x84f5)
+		return enumNames[e - 0x84f5 + 3];
+	if (e >= 0x8513 && e <= 0x8513)
+		return enumNames[e - 0x8513 + 4];
+	if (e >= 0x8c18 && e <= 0x8c18)
+		return enumNames[e - 0x8c18 + 5];
+	if (e >= 0x8c1a && e <= 0x8c1a)
+		return enumNames[e - 0x8c1a + 6];
+	if (e >= 0x8d41 && e <= 0x8d41)
+		return enumNames[e - 0x8d41 + 7];
+	if (e >= 0x9009 && e <= 0x9009)
+		return enumNames[e - 0x9009 + 8];
+	if (e >= 0x9100 && e <= 0x9100)
+		return enumNames[e - 0x9100 + 9];
+	if (e >= 0x9102 && e <= 0x9102)
+		return enumNames[e - 0x9102 + 10];
+	return "INVALID";
+}
+
 static const char* getShaderTypeEnumStr(GLenum e)
 {
 	static const char* enumNames[] =
@@ -6327,6 +6924,7 @@ static const char* getDebugSeverityEnumStr(GLenum e)
 	static const char* enumNames[] =
 	{
 		"GL_DONT_CARE",
+		"GL_DEBUG_SEVERITY_NOTIFICATION",
 		"GL_DEBUG_SEVERITY_HIGH",
 		"GL_DEBUG_SEVERITY_MEDIUM",
 		"GL_DEBUG_SEVERITY_LOW",
@@ -6334,8 +6932,10 @@ static const char* getDebugSeverityEnumStr(GLenum e)
 
 	if (e >= 0x1100 && e <= 0x1100)
 		return enumNames[e - 0x1100 + 0];
+	if (e >= 0x826b && e <= 0x826b)
+		return enumNames[e - 0x826b + 1];
 	if (e >= 0x9146 && e <= 0x9148)
-		return enumNames[e - 0x9146 + 1];
+		return enumNames[e - 0x9146 + 2];
 	return "INVALID";
 }
 
@@ -6443,32 +7043,44 @@ static const char* getUniformPNameEnumStr(GLenum e)
 	return "INVALID";
 }
 
-static const char* getSamplerParameterNameEnumStr(GLenum e)
+static const char* getSamplerParameterIEnumStr(GLenum e)
 {
 	static const char* enumNames[] =
 	{
-		"GL_TEXTURE_BORDER_COLOR",
 		"GL_TEXTURE_MAG_FILTER",
 		"GL_TEXTURE_MIN_FILTER",
 		"GL_TEXTURE_WRAP_S",
 		"GL_TEXTURE_WRAP_T",
 		"GL_TEXTURE_WRAP_R",
-		"GL_TEXTURE_MIN_LOD",
-		"GL_TEXTURE_MAX_LOD",
 		"GL_TEXTURE_COMPARE_MODE",
 		"GL_TEXTURE_COMPARE_FUNC",
 	};
 
+	if (e >= 0x2800 && e <= 0x2803)
+		return enumNames[e - 0x2800 + 0];
+	if (e >= 0x8072 && e <= 0x8072)
+		return enumNames[e - 0x8072 + 4];
+	if (e >= 0x884c && e <= 0x884d)
+		return enumNames[e - 0x884c + 5];
+	return "INVALID";
+}
+
+static const char* getSamplerParameterFEnumStr(GLenum e)
+{
+	static const char* enumNames[] =
+	{
+		"GL_TEXTURE_BORDER_COLOR",
+		"GL_TEXTURE_MIN_LOD",
+		"GL_TEXTURE_MAX_LOD",
+		"GL_TEXTURE_MAX_ANISOTROPY",
+	};
+
 	if (e >= 0x1004 && e <= 0x1004)
 		return enumNames[e - 0x1004 + 0];
-	if (e >= 0x2800 && e <= 0x2803)
-		return enumNames[e - 0x2800 + 1];
-	if (e >= 0x8072 && e <= 0x8072)
-		return enumNames[e - 0x8072 + 5];
 	if (e >= 0x813a && e <= 0x813b)
-		return enumNames[e - 0x813a + 6];
-	if (e >= 0x884c && e <= 0x884d)
-		return enumNames[e - 0x884c + 8];
+		return enumNames[e - 0x813a + 1];
+	if (e >= 0x84fe && e <= 0x84fe)
+		return enumNames[e - 0x84fe + 3];
 	return "INVALID";
 }
 
@@ -7147,6 +7759,48 @@ static const char* getProgramPropertyARBEnumStr(GLenum e)
 		return enumNames[e - 0x8c83 + 18];
 	if (e >= 0x92d9 && e <= 0x92d9)
 		return enumNames[e - 0x92d9 + 19];
+	return "INVALID";
+}
+
+static const char* getTransformFeedbackBufferModeEnumStr(GLenum e)
+{
+	static const char* enumNames[] =
+	{
+		"GL_INTERLEAVED_ATTRIBS",
+		"GL_SEPARATE_ATTRIBS",
+	};
+
+	if (e >= 0x8c8c && e <= 0x8c8d)
+		return enumNames[e - 0x8c8c + 0];
+	return "INVALID";
+}
+
+static const char* getVertexAttribITypeEnumStr(GLenum e)
+{
+	static const char* enumNames[] =
+	{
+		"GL_BYTE",
+		"GL_UNSIGNED_BYTE",
+		"GL_SHORT",
+		"GL_UNSIGNED_SHORT",
+		"GL_INT",
+		"GL_UNSIGNED_INT",
+	};
+
+	if (e >= 0x1400 && e <= 0x1405)
+		return enumNames[e - 0x1400 + 0];
+	return "INVALID";
+}
+
+static const char* getVertexAttribLTypeEnumStr(GLenum e)
+{
+	static const char* enumNames[] =
+	{
+		"GL_DOUBLE",
+	};
+
+	if (e >= 0x140a && e <= 0x140a)
+		return enumNames[e - 0x140a + 0];
 	return "INVALID";
 }
 
@@ -8253,7 +8907,7 @@ static void APIENTRY debug_glGetBufferParameteriv(GLenum target, GLenum pname, G
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glGetBufferParameteriv(%s, %s, %p)", getBufferTargetARBEnumStr(target), getAnyEnumStr(pname), params);
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glGetBufferParameteriv(%s, %s, %p)", getBufferTargetARBEnumStr(target), getBufferPNameARBEnumStr(pname), params);
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glGetBufferParameteriv()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
@@ -8561,7 +9215,7 @@ static void APIENTRY debug_glGetVertexAttribfv(GLuint index, GLenum pname, GLflo
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glGetVertexAttribfv(%u, %s, %p)", index, getAnyEnumStr(pname), params);
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glGetVertexAttribfv(%u, %s, %p)", index, getVertexAttribPropertyARBEnumStr(pname), params);
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glGetVertexAttribfv()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
@@ -8579,7 +9233,7 @@ static void APIENTRY debug_glGetVertexAttribiv(GLuint index, GLenum pname, GLint
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glGetVertexAttribiv(%u, %s, %p)", index, getAnyEnumStr(pname), params);
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glGetVertexAttribiv(%u, %s, %p)", index, getVertexAttribPropertyARBEnumStr(pname), params);
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glGetVertexAttribiv()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
@@ -8597,7 +9251,7 @@ static void APIENTRY debug_glGetVertexAttribPointerv(GLuint index, GLenum pname,
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glGetVertexAttribPointerv(%u, %s, %p)", index, getAnyEnumStr(pname), pointer);
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glGetVertexAttribPointerv(%u, %s, %p)", index, getVertexAttribPointerPropertyARBEnumStr(pname), pointer);
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glGetVertexAttribPointerv()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
@@ -10010,7 +10664,7 @@ static void APIENTRY debug_glGetBufferPointerv(GLenum target, GLenum pname, void
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glGetBufferPointerv(%s, %s, %p)", getBufferTargetARBEnumStr(target), getAnyEnumStr(pname), params);
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glGetBufferPointerv(%s, %s, %p)", getBufferTargetARBEnumStr(target), getBufferPointerNameARBEnumStr(pname), params);
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glGetBufferPointerv()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
@@ -10318,7 +10972,7 @@ static void APIENTRY debug_glGetIntegeri_v(GLenum target, GLuint index, GLint *d
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glGetIntegeri_v(%s, %u, %p)", getTypeEnumEnumStr(target), index, data);
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glGetIntegeri_v(%s, %u, %p)", getAnyEnumStr(target), index, data);
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glGetIntegeri_v()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
@@ -10408,7 +11062,7 @@ static void APIENTRY debug_glTransformFeedbackVaryings(GLuint program, GLsizei c
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glTransformFeedbackVaryings(%u, %i, %p, %s)", program, count, varyings, getAnyEnumStr(bufferMode));
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glTransformFeedbackVaryings(%u, %i, %p, %s)", program, count, varyings, getTransformFeedbackBufferModeEnumStr(bufferMode));
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glTransformFeedbackVaryings()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
@@ -11134,7 +11788,7 @@ static void APIENTRY debug_glGetInteger64i_v(GLenum target, GLuint index, GLint6
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glGetInteger64i_v(%s, %u, %p)", getTypeEnumEnumStr(target), index, data);
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glGetInteger64i_v(%s, %u, %p)", getAnyEnumStr(target), index, data);
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glGetInteger64i_v()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
@@ -11152,7 +11806,7 @@ static void APIENTRY debug_glGetBufferParameteri64v(GLenum target, GLenum pname,
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glGetBufferParameteri64v(%s, %s, %p)", getBufferTargetARBEnumStr(target), getAnyEnumStr(pname), params);
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glGetBufferParameteri64v(%s, %s, %p)", getBufferTargetARBEnumStr(target), getBufferPNameARBEnumStr(pname), params);
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glGetBufferParameteri64v()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
@@ -11243,7 +11897,7 @@ static void APIENTRY debug_glSamplerParameteri(GLuint sampler, GLenum pname, GLi
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glSamplerParameteri(%u, %s, %i)", sampler, getSamplerParameterNameEnumStr(pname), param);
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glSamplerParameteri(%u, %s, %i)", sampler, getSamplerParameterIEnumStr(pname), param);
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glSamplerParameteri()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
@@ -11261,7 +11915,7 @@ static void APIENTRY debug_glSamplerParameteriv(GLuint sampler, GLenum pname, co
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glSamplerParameteriv(%u, %s, %p)", sampler, getSamplerParameterNameEnumStr(pname), param);
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glSamplerParameteriv(%u, %s, %p)", sampler, getSamplerParameterIEnumStr(pname), param);
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glSamplerParameteriv()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
@@ -11279,7 +11933,7 @@ static void APIENTRY debug_glSamplerParameterf(GLuint sampler, GLenum pname, GLf
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glSamplerParameterf(%u, %s, %f)", sampler, getSamplerParameterNameEnumStr(pname), param);
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glSamplerParameterf(%u, %s, %f)", sampler, getSamplerParameterFEnumStr(pname), param);
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glSamplerParameterf()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
@@ -11297,7 +11951,7 @@ static void APIENTRY debug_glSamplerParameterfv(GLuint sampler, GLenum pname, co
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glSamplerParameterfv(%u, %s, %p)", sampler, getSamplerParameterNameEnumStr(pname), param);
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glSamplerParameterfv(%u, %s, %p)", sampler, getSamplerParameterFEnumStr(pname), param);
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glSamplerParameterfv()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
@@ -11315,7 +11969,7 @@ static void APIENTRY debug_glGetSamplerParameteriv(GLuint sampler, GLenum pname,
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glGetSamplerParameteriv(%u, %s, %p)", sampler, getSamplerParameterNameEnumStr(pname), params);
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glGetSamplerParameteriv(%u, %s, %p)", sampler, getSamplerParameterIEnumStr(pname), params);
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glGetSamplerParameteriv()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
@@ -11333,7 +11987,7 @@ static void APIENTRY debug_glGetSamplerParameterfv(GLuint sampler, GLenum pname,
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glGetSamplerParameterfv(%u, %s, %p)", sampler, getSamplerParameterNameEnumStr(pname), params);
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glGetSamplerParameterfv(%u, %s, %p)", sampler, getSamplerParameterFEnumStr(pname), params);
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glGetSamplerParameterfv()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
@@ -11550,7 +12204,7 @@ static void APIENTRY debug_glInvalidateSubFramebuffer(GLenum target, GLsizei num
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glInvalidateSubFramebuffer(%s, %i, %p, %i, %i, %i, %i)", getAnyEnumStr(target), numAttachments, attachments, x, y, width, height);
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glInvalidateSubFramebuffer(%s, %i, %p, %i, %i, %i, %i)", getFramebufferTargetEnumStr(target), numAttachments, attachments, x, y, width, height);
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glInvalidateSubFramebuffer()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
@@ -12688,7 +13342,7 @@ static void APIENTRY debug_glGetMultisamplefv(GLenum pname, GLuint index, GLfloa
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glGetMultisamplefv(%s, %u, %p)", getAnyEnumStr(pname), index, val);
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glGetMultisamplefv(%s, %u, %p)", getGetMultisamplePNameNVEnumStr(pname), index, val);
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glGetMultisamplefv()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
@@ -12778,7 +13432,7 @@ static void APIENTRY debug_glVertexAttribFormat(GLuint attribindex, GLint size, 
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glVertexAttribFormat(%u, %i, %s, %s, %u)", attribindex, size, getAnyEnumStr(type), getBooleanEnumStr(normalized), relativeoffset);
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glVertexAttribFormat(%u, %i, %s, %s, %u)", attribindex, size, getVertexAttribTypeEnumStr(type), getBooleanEnumStr(normalized), relativeoffset);
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glVertexAttribFormat()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
@@ -12796,7 +13450,7 @@ static void APIENTRY debug_glVertexAttribIFormat(GLuint attribindex, GLint size,
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glVertexAttribIFormat(%u, %i, %s, %u)", attribindex, size, getAnyEnumStr(type), relativeoffset);
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glVertexAttribIFormat(%u, %i, %s, %u)", attribindex, size, getVertexAttribITypeEnumStr(type), relativeoffset);
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glVertexAttribIFormat()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
@@ -12868,7 +13522,7 @@ static void APIENTRY debug_glCopyImageSubData(GLuint srcName, GLenum srcTarget, 
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glCopyImageSubData(%u, %s, %i, %i, %i, %i, %u, %s, %i, %i, %i, %i, %i, %i, %i)", srcName, getCopyBufferSubDataTargetEnumStr(srcTarget), srcLevel, srcX, srcY, srcZ, dstName, getCopyBufferSubDataTargetEnumStr(dstTarget), dstLevel, dstX, dstY, dstZ, srcWidth, srcHeight, srcDepth);
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glCopyImageSubData(%u, %s, %i, %i, %i, %i, %u, %s, %i, %i, %i, %i, %i, %i, %i)", srcName, getCopyImageSubDataTargetEnumStr(srcTarget), srcLevel, srcX, srcY, srcZ, dstName, getCopyImageSubDataTargetEnumStr(dstTarget), dstLevel, dstX, dstY, dstZ, srcWidth, srcHeight, srcDepth);
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glCopyImageSubData()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
@@ -13013,7 +13667,7 @@ static void APIENTRY debug_glGetObjectLabel(GLenum identifier, GLuint name, GLsi
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glGetObjectLabel(%s, %u, %i, %p, %p)", getAnyEnumStr(identifier), name, bufSize, length, label);
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glGetObjectLabel(%s, %u, %i, %p, %p)", getObjectIdentifierEnumStr(identifier), name, bufSize, length, label);
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glGetObjectLabel()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
@@ -13519,7 +14173,7 @@ static void APIENTRY debug_glSamplerParameterIiv(GLuint sampler, GLenum pname, c
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glSamplerParameterIiv(%u, %s, %p)", sampler, getSamplerParameterNameEnumStr(pname), param);
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glSamplerParameterIiv(%u, %s, %p)", sampler, getSamplerParameterIEnumStr(pname), param);
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glSamplerParameterIiv()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
@@ -13537,7 +14191,7 @@ static void APIENTRY debug_glSamplerParameterIuiv(GLuint sampler, GLenum pname, 
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glSamplerParameterIuiv(%u, %s, %p)", sampler, getSamplerParameterNameEnumStr(pname), param);
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glSamplerParameterIuiv(%u, %s, %p)", sampler, getSamplerParameterIEnumStr(pname), param);
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glSamplerParameterIuiv()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
@@ -13555,7 +14209,7 @@ static void APIENTRY debug_glGetSamplerParameterIiv(GLuint sampler, GLenum pname
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glGetSamplerParameterIiv(%u, %s, %p)", sampler, getSamplerParameterNameEnumStr(pname), params);
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glGetSamplerParameterIiv(%u, %s, %p)", sampler, getSamplerParameterIEnumStr(pname), params);
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glGetSamplerParameterIiv()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
@@ -13573,7 +14227,7 @@ static void APIENTRY debug_glGetSamplerParameterIuiv(GLuint sampler, GLenum pnam
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glGetSamplerParameterIuiv(%u, %s, %p)", sampler, getSamplerParameterNameEnumStr(pname), params);
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glGetSamplerParameterIuiv(%u, %s, %p)", sampler, getSamplerParameterIEnumStr(pname), params);
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glGetSamplerParameterIuiv()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
@@ -19571,7 +20225,7 @@ static void APIENTRY debug_glPointParameterf(GLenum pname, GLfloat param)
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glPointParameterf(%s, %f)", getAnyEnumStr(pname), param);
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glPointParameterf(%s, %f)", getPointParameterNameARBEnumStr(pname), param);
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glPointParameterf()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
@@ -19589,7 +20243,7 @@ static void APIENTRY debug_glPointParameterfv(GLenum pname, const GLfloat *param
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glPointParameterfv(%s, %p)", getAnyEnumStr(pname), params);
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glPointParameterfv(%s, %p)", getPointParameterNameARBEnumStr(pname), params);
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glPointParameterfv()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
@@ -19607,7 +20261,7 @@ static void APIENTRY debug_glPointParameteri(GLenum pname, GLint param)
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glPointParameteri(%s, %i)", getAnyEnumStr(pname), param);
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glPointParameteri(%s, %i)", getPointParameterNameARBEnumStr(pname), param);
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glPointParameteri()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
@@ -19625,7 +20279,7 @@ static void APIENTRY debug_glPointParameteriv(GLenum pname, const GLint *params)
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glPointParameteriv(%s, %p)", getAnyEnumStr(pname), params);
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glPointParameteriv(%s, %p)", getPointParameterNameARBEnumStr(pname), params);
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glPointParameteriv()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
@@ -20382,7 +21036,7 @@ static void APIENTRY debug_glGetVertexAttribdv(GLuint index, GLenum pname, GLdou
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glGetVertexAttribdv(%u, %s, %p)", index, getAnyEnumStr(pname), params);
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glGetVertexAttribdv(%u, %s, %p)", index, getVertexAttribPropertyARBEnumStr(pname), params);
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glGetVertexAttribdv()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
@@ -20904,7 +21558,7 @@ static void APIENTRY debug_glClampColor(GLenum target, GLenum clamp)
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glClampColor(%s, %s)", getAnyEnumStr(target), getAnyEnumStr(clamp));
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glClampColor(%s, %s)", getClampColorTargetARBEnumStr(target), getClampColorModeARBEnumStr(clamp));
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glClampColor()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
@@ -20922,7 +21576,7 @@ static void APIENTRY debug_glBeginConditionalRender(GLuint id, GLenum mode)
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glBeginConditionalRender(%u, %s)", id, getTypeEnumEnumStr(mode));
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glBeginConditionalRender(%u, %s)", id, getConditionalRenderModeEnumStr(mode));
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glBeginConditionalRender()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
@@ -21445,7 +22099,7 @@ static void APIENTRY debug_glQueryCounter(GLuint id, GLenum target)
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glQueryCounter(%u, %s)", id, getQueryTargetEnumStr(target));
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glQueryCounter(%u, %s)", id, getQueryCounterTargetEnumStr(target));
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glQueryCounter()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
@@ -22743,7 +23397,7 @@ static void APIENTRY debug_glGetQueryIndexediv(GLenum target, GLuint index, GLen
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glGetQueryIndexediv(%s, %u, %s, %p)", getAnyEnumStr(target), index, getQueryParameterNameEnumStr(pname), params);
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glGetQueryIndexediv(%s, %u, %s, %p)", getQueryTargetEnumStr(target), index, getQueryParameterNameEnumStr(pname), params);
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glGetQueryIndexediv()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
@@ -23391,7 +24045,7 @@ static void APIENTRY debug_glGetFloati_v(GLenum target, GLuint index, GLfloat *d
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glGetFloati_v(%s, %u, %p)", getTypeEnumEnumStr(target), index, data);
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glGetFloati_v(%s, %u, %p)", getAnyEnumStr(target), index, data);
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glGetFloati_v()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
@@ -23409,7 +24063,7 @@ static void APIENTRY debug_glGetDoublei_v(GLenum target, GLuint index, GLdouble 
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glGetDoublei_v(%s, %u, %p)", getTypeEnumEnumStr(target), index, data);
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glGetDoublei_v(%s, %u, %p)", getAnyEnumStr(target), index, data);
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glGetDoublei_v()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
@@ -23463,7 +24117,7 @@ static void APIENTRY debug_glDrawElementsInstancedBaseVertexBaseInstance(GLenum 
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glDrawElementsInstancedBaseVertexBaseInstance(%s, %i, %s, %p, %i, %i, %u)", getPrimitiveTypeEnumStr(mode), count, getPrimitiveTypeEnumStr(type), indices, instancecount, basevertex, baseinstance);
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glDrawElementsInstancedBaseVertexBaseInstance(%s, %i, %s, %p, %i, %i, %u)", getPrimitiveTypeEnumStr(mode), count, getDrawElementsTypeEnumStr(type), indices, instancecount, basevertex, baseinstance);
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glDrawElementsInstancedBaseVertexBaseInstance()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
@@ -23571,7 +24225,7 @@ static void APIENTRY debug_glClearBufferSubData(GLenum target, GLenum internalfo
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glClearBufferSubData(%s, %s, %" SIZET_FORMAT "i, %" SIZET_FORMAT "i, %s, %s, %p)", getAnyEnumStr(target), getAnyEnumStr(internalformat), offset, size, getAnyEnumStr(format), getPixelTypeEnumStr(type), data);
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glClearBufferSubData(%s, %s, %" SIZET_FORMAT "i, %" SIZET_FORMAT "i, %s, %s, %p)", getBufferTargetARBEnumStr(target), getAnyEnumStr(internalformat), offset, size, getAnyEnumStr(format), getPixelTypeEnumStr(type), data);
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glClearBufferSubData()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
@@ -23770,7 +24424,7 @@ static void APIENTRY debug_glVertexAttribLFormat(GLuint attribindex, GLint size,
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glVertexAttribLFormat(%u, %i, %s, %u)", attribindex, size, getVertexAttribTypeEnumStr(type), relativeoffset);
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glVertexAttribLFormat(%u, %i, %s, %u)", attribindex, size, getVertexAttribLTypeEnumStr(type), relativeoffset);
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glVertexAttribLFormat()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
@@ -25484,7 +26138,7 @@ static void APIENTRY debug_glVertexArrayAttribIFormat(GLuint vaobj, GLuint attri
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glVertexArrayAttribIFormat(%u, %u, %i, %s, %u)", vaobj, attribindex, size, getVertexAttribTypeEnumStr(type), relativeoffset);
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glVertexArrayAttribIFormat(%u, %u, %i, %s, %u)", vaobj, attribindex, size, getVertexAttribITypeEnumStr(type), relativeoffset);
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glVertexArrayAttribIFormat()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
@@ -25502,7 +26156,7 @@ static void APIENTRY debug_glVertexArrayAttribLFormat(GLuint vaobj, GLuint attri
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glVertexArrayAttribLFormat(%u, %u, %i, %s, %u)", vaobj, attribindex, size, getVertexAttribTypeEnumStr(type), relativeoffset);
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glVertexArrayAttribLFormat(%u, %u, %i, %s, %u)", vaobj, attribindex, size, getVertexAttribLTypeEnumStr(type), relativeoffset);
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glVertexArrayAttribLFormat()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
@@ -26078,7 +26732,7 @@ static void APIENTRY debug_glMultiDrawElementsIndirectCount(GLenum mode, GLenum 
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glMultiDrawElementsIndirectCount(%s, %s, %p, %" SIZET_FORMAT "i, %i, %i)", getPrimitiveTypeEnumStr(mode), getAnyEnumStr(type), indirect, drawcount, maxdrawcount, stride);
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glMultiDrawElementsIndirectCount(%s, %s, %p, %" SIZET_FORMAT "i, %i, %i)", getPrimitiveTypeEnumStr(mode), getDrawElementsTypeEnumStr(type), indirect, drawcount, maxdrawcount, stride);
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glMultiDrawElementsIndirectCount()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
@@ -26444,7 +27098,7 @@ static void APIENTRY debug_glProgramStringARB(GLenum target, GLenum format, GLsi
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glProgramStringARB(%s, %s, %i, %p)", getAnyEnumStr(target), getAnyEnumStr(format), len, string);
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glProgramStringARB(%s, %s, %i, %p)", getAnyEnumStr(target), getProgramFormatARBEnumStr(format), len, string);
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glProgramStringARB()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
@@ -26750,7 +27404,7 @@ static void APIENTRY debug_glGetProgramStringARB(GLenum target, GLenum pname, vo
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glGetProgramStringARB(%s, %s, %p)", getAnyEnumStr(target), getAnyEnumStr(pname), string);
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glGetProgramStringARB(%s, %s, %p)", getAnyEnumStr(target), getProgramStringPropertyARBEnumStr(pname), string);
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glGetProgramStringARB()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
@@ -29687,7 +30341,7 @@ static void APIENTRY debug_glPointParameterxvOES(GLenum pname, const GLfixed *pa
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glPointParameterxvOES(%s, %p)", getAnyEnumStr(pname), params);
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glPointParameterxvOES(%s, %p)", getPointParameterNameARBEnumStr(pname), params);
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glPointParameterxvOES()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
@@ -32120,7 +32774,7 @@ static void APIENTRY debug_glCullParameterdvEXT(GLenum pname, GLdouble *params)
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glCullParameterdvEXT(%s, %p)", getAnyEnumStr(pname), params);
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glCullParameterdvEXT(%s, %p)", getCullParameterEXTEnumStr(pname), params);
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glCullParameterdvEXT()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
@@ -32138,7 +32792,7 @@ static void APIENTRY debug_glCullParameterfvEXT(GLenum pname, GLfloat *params)
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glCullParameterfvEXT(%s, %p)", getAnyEnumStr(pname), params);
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glCullParameterfvEXT(%s, %p)", getCullParameterEXTEnumStr(pname), params);
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glCullParameterfvEXT()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
@@ -33632,7 +34286,7 @@ static void APIENTRY debug_glGetPointerIndexedvEXT(GLenum target, GLuint index, 
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glGetPointerIndexedvEXT(%s, %u, %p)", getTypeEnumEnumStr(target), index, data);
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glGetPointerIndexedvEXT(%s, %u, %p)", getAnyEnumStr(target), index, data);
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glGetPointerIndexedvEXT()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
@@ -34102,7 +34756,7 @@ static void APIENTRY debug_glMultiTexBufferEXT(GLenum texunit, GLenum target, GL
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glMultiTexBufferEXT(%s, %s, %s, %u)", getTextureUnitEnumStr(texunit), getAnyEnumStr(target), getTypeEnumEnumStr(internalformat), buffer);
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glMultiTexBufferEXT(%s, %s, %s, %u)", getTextureUnitEnumStr(texunit), getAnyEnumStr(target), getAnyEnumStr(internalformat), buffer);
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glMultiTexBufferEXT()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
@@ -34462,7 +35116,7 @@ static void APIENTRY debug_glGetPointeri_vEXT(GLenum pname, GLuint index, void *
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glGetPointeri_vEXT(%s, %u, %p)", getTypeEnumEnumStr(pname), index, params);
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glGetPointeri_vEXT(%s, %u, %p)", getAnyEnumStr(pname), index, params);
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glGetPointeri_vEXT()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
@@ -35219,7 +35873,7 @@ static void APIENTRY debug_glVertexArrayVertexAttribIOffsetEXT(GLuint vaobj, GLu
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glVertexArrayVertexAttribIOffsetEXT(%u, %u, %u, %i, %s, %i, %" SIZET_FORMAT "i)", vaobj, buffer, index, size, getVertexAttribEnumEnumStr(type), stride, offset);
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glVertexArrayVertexAttribIOffsetEXT(%u, %u, %u, %i, %s, %i, %" SIZET_FORMAT "i)", vaobj, buffer, index, size, getVertexAttribTypeEnumStr(type), stride, offset);
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glVertexArrayVertexAttribIOffsetEXT()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
@@ -35922,7 +36576,7 @@ static void APIENTRY debug_glVertexArrayVertexAttribFormatEXT(GLuint vaobj, GLui
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glVertexArrayVertexAttribFormatEXT(%u, %u, %i, %s, %s, %u)", vaobj, attribindex, size, getAnyEnumStr(type), getBooleanEnumStr(normalized), relativeoffset);
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glVertexArrayVertexAttribFormatEXT(%u, %u, %i, %s, %s, %u)", vaobj, attribindex, size, getVertexAttribTypeEnumStr(type), getBooleanEnumStr(normalized), relativeoffset);
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glVertexArrayVertexAttribFormatEXT()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
@@ -35940,7 +36594,7 @@ static void APIENTRY debug_glVertexArrayVertexAttribIFormatEXT(GLuint vaobj, GLu
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glVertexArrayVertexAttribIFormatEXT(%u, %u, %i, %s, %u)", vaobj, attribindex, size, getAnyEnumStr(type), relativeoffset);
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glVertexArrayVertexAttribIFormatEXT(%u, %u, %i, %s, %u)", vaobj, attribindex, size, getVertexAttribITypeEnumStr(type), relativeoffset);
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glVertexArrayVertexAttribIFormatEXT()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
@@ -35958,7 +36612,7 @@ static void APIENTRY debug_glVertexArrayVertexAttribLFormatEXT(GLuint vaobj, GLu
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glVertexArrayVertexAttribLFormatEXT(%u, %u, %i, %s, %u)", vaobj, attribindex, size, getAnyEnumStr(type), relativeoffset);
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glVertexArrayVertexAttribLFormatEXT(%u, %u, %i, %s, %u)", vaobj, attribindex, size, getVertexAttribLTypeEnumStr(type), relativeoffset);
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glVertexArrayVertexAttribLFormatEXT()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
@@ -36012,7 +36666,7 @@ static void APIENTRY debug_glVertexArrayVertexAttribLOffsetEXT(GLuint vaobj, GLu
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glVertexArrayVertexAttribLOffsetEXT(%u, %u, %u, %i, %s, %i, %" SIZET_FORMAT "i)", vaobj, buffer, index, size, getAnyEnumStr(type), stride, offset);
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glVertexArrayVertexAttribLOffsetEXT(%u, %u, %u, %i, %s, %i, %" SIZET_FORMAT "i)", vaobj, buffer, index, size, getVertexAttribLTypeEnumStr(type), stride, offset);
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glVertexArrayVertexAttribLOffsetEXT()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
@@ -36282,7 +36936,7 @@ static void APIENTRY debug_glIndexMaterialEXT(GLenum face, GLenum mode)
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glIndexMaterialEXT(%s, %s)", getMaterialFaceEnumStr(face), getAnyEnumStr(mode));
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glIndexMaterialEXT(%s, %s)", getMaterialFaceEnumStr(face), getIndexMaterialParameterEXTEnumStr(mode));
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glIndexMaterialEXT()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
@@ -36300,7 +36954,7 @@ static void APIENTRY debug_glApplyTextureEXT(GLenum mode)
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glApplyTextureEXT(%s)", getAnyEnumStr(mode));
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glApplyTextureEXT(%s)", getLightTextureModeEXTEnumStr(mode));
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glApplyTextureEXT()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
@@ -36318,7 +36972,7 @@ static void APIENTRY debug_glTextureLightEXT(GLenum pname)
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glTextureLightEXT(%s)", getAnyEnumStr(pname));
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glTextureLightEXT(%s)", getLightTexturePNameEXTEnumStr(pname));
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glTextureLightEXT()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
@@ -36769,7 +37423,7 @@ static void APIENTRY debug_glSamplePatternEXT(GLenum pattern)
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glSamplePatternEXT(%s)", getAnyEnumStr(pattern));
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glSamplePatternEXT(%s)", getSamplePatternEXTEnumStr(pattern));
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glSamplePatternEXT()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
@@ -36841,7 +37495,7 @@ static void APIENTRY debug_glGetIntegeri_vEXT(GLenum target, GLuint index, GLint
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glGetIntegeri_vEXT(%s, %u, %p)", getTypeEnumEnumStr(target), index, data);
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glGetIntegeri_vEXT(%s, %u, %p)", getAnyEnumStr(target), index, data);
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glGetIntegeri_vEXT()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
@@ -36859,7 +37513,7 @@ static void APIENTRY debug_glPixelTransformParameteriEXT(GLenum target, GLenum p
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glPixelTransformParameteriEXT(%s, %s, %i)", getAnyEnumStr(target), getAnyEnumStr(pname), param);
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glPixelTransformParameteriEXT(%s, %s, %i)", getPixelTransformTargetEXTEnumStr(target), getPixelTransformPNameEXTEnumStr(pname), param);
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glPixelTransformParameteriEXT()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
@@ -36877,7 +37531,7 @@ static void APIENTRY debug_glPixelTransformParameterfEXT(GLenum target, GLenum p
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glPixelTransformParameterfEXT(%s, %s, %f)", getAnyEnumStr(target), getAnyEnumStr(pname), param);
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glPixelTransformParameterfEXT(%s, %s, %f)", getPixelTransformTargetEXTEnumStr(target), getPixelTransformPNameEXTEnumStr(pname), param);
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glPixelTransformParameterfEXT()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
@@ -36895,7 +37549,7 @@ static void APIENTRY debug_glPixelTransformParameterivEXT(GLenum target, GLenum 
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glPixelTransformParameterivEXT(%s, %s, %p)", getAnyEnumStr(target), getAnyEnumStr(pname), params);
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glPixelTransformParameterivEXT(%s, %s, %p)", getPixelTransformTargetEXTEnumStr(target), getPixelTransformPNameEXTEnumStr(pname), params);
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glPixelTransformParameterivEXT()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
@@ -36913,7 +37567,7 @@ static void APIENTRY debug_glPixelTransformParameterfvEXT(GLenum target, GLenum 
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glPixelTransformParameterfvEXT(%s, %s, %p)", getAnyEnumStr(target), getAnyEnumStr(pname), params);
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glPixelTransformParameterfvEXT(%s, %s, %p)", getPixelTransformTargetEXTEnumStr(target), getPixelTransformPNameEXTEnumStr(pname), params);
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glPixelTransformParameterfvEXT()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
@@ -36931,7 +37585,7 @@ static void APIENTRY debug_glGetPixelTransformParameterivEXT(GLenum target, GLen
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glGetPixelTransformParameterivEXT(%s, %s, %p)", getTypeEnumEnumStr(target), getAnyEnumStr(pname), params);
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glGetPixelTransformParameterivEXT(%s, %s, %p)", getAnyEnumStr(target), getAnyEnumStr(pname), params);
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glGetPixelTransformParameterivEXT()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
@@ -36949,7 +37603,7 @@ static void APIENTRY debug_glGetPixelTransformParameterfvEXT(GLenum target, GLen
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glGetPixelTransformParameterfvEXT(%s, %s, %p)", getTypeEnumEnumStr(target), getAnyEnumStr(pname), params);
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glGetPixelTransformParameterfvEXT(%s, %s, %p)", getAnyEnumStr(target), getAnyEnumStr(pname), params);
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glGetPixelTransformParameterfvEXT()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
@@ -37585,7 +38239,7 @@ static void APIENTRY debug_glTextureNormalEXT(GLenum mode)
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glTextureNormalEXT(%s)", getAnyEnumStr(mode));
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glTextureNormalEXT(%s)", getTextureNormalModeEXTEnumStr(mode));
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glTextureNormalEXT()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
@@ -37820,7 +38474,7 @@ static void APIENTRY debug_glShaderOp1EXT(GLenum op, GLuint res, GLuint arg1)
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glShaderOp1EXT(%s, %u, %u)", getAnyEnumStr(op), res, arg1);
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glShaderOp1EXT(%s, %u, %u)", getVertexShaderOpEXTEnumStr(op), res, arg1);
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glShaderOp1EXT()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
@@ -37838,7 +38492,7 @@ static void APIENTRY debug_glShaderOp2EXT(GLenum op, GLuint res, GLuint arg1, GL
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glShaderOp2EXT(%s, %u, %u, %u)", getAnyEnumStr(op), res, arg1, arg2);
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glShaderOp2EXT(%s, %u, %u, %u)", getVertexShaderOpEXTEnumStr(op), res, arg1, arg2);
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glShaderOp2EXT()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
@@ -37856,7 +38510,7 @@ static void APIENTRY debug_glShaderOp3EXT(GLenum op, GLuint res, GLuint arg1, GL
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glShaderOp3EXT(%s, %u, %u, %u, %u)", getAnyEnumStr(op), res, arg1, arg2, arg3);
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glShaderOp3EXT(%s, %u, %u, %u, %u)", getVertexShaderOpEXTEnumStr(op), res, arg1, arg2, arg3);
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glShaderOp3EXT()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
@@ -37874,7 +38528,7 @@ static void APIENTRY debug_glSwizzleEXT(GLuint res, GLuint in, GLenum outX, GLen
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glSwizzleEXT(%u, %u, %s, %s, %s, %s)", res, in, getAnyEnumStr(outX), getAnyEnumStr(outY), getAnyEnumStr(outZ), getAnyEnumStr(outW));
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glSwizzleEXT(%u, %u, %s, %s, %s, %s)", res, in, getVertexShaderCoordOutEXTEnumStr(outX), getVertexShaderCoordOutEXTEnumStr(outY), getVertexShaderCoordOutEXTEnumStr(outZ), getVertexShaderCoordOutEXTEnumStr(outW));
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glSwizzleEXT()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
@@ -37946,7 +38600,7 @@ static GLuint APIENTRY debug_glGenSymbolsEXT(GLenum datatype, GLenum storagetype
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glGenSymbolsEXT(%s, %s, %s, %u)", getAnyEnumStr(datatype), getAnyEnumStr(storagetype), getAnyEnumStr(range), components);
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glGenSymbolsEXT(%s, %s, %s, %u)", getDataTypeEXTEnumStr(datatype), getVertexShaderStorageTypeEXTEnumStr(storagetype), getParameterRangeEXTEnumStr(range), components);
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glGenSymbolsEXT()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
@@ -37965,7 +38619,7 @@ static void APIENTRY debug_glSetInvariantEXT(GLuint id, GLenum type, const void 
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glSetInvariantEXT(%u, %s, %p)", id, getAnyEnumStr(type), addr);
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glSetInvariantEXT(%u, %s, %p)", id, getScalarTypeEnumStr(type), addr);
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glSetInvariantEXT()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
@@ -37983,7 +38637,7 @@ static void APIENTRY debug_glSetLocalConstantEXT(GLuint id, GLenum type, const v
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glSetLocalConstantEXT(%u, %s, %p)", id, getAnyEnumStr(type), addr);
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glSetLocalConstantEXT(%u, %s, %p)", id, getScalarTypeEnumStr(type), addr);
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glSetLocalConstantEXT()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
@@ -38145,7 +38799,7 @@ static void APIENTRY debug_glVariantPointerEXT(GLuint id, GLenum type, GLuint st
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glVariantPointerEXT(%u, %s, %u, %p)", id, getAnyEnumStr(type), stride, addr);
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glVariantPointerEXT(%u, %s, %u, %p)", id, getScalarTypeEnumStr(type), stride, addr);
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glVariantPointerEXT()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
@@ -38256,7 +38910,7 @@ static GLuint APIENTRY debug_glBindTextureUnitParameterEXT(GLenum unit, GLenum v
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glBindTextureUnitParameterEXT(%s, %s)", getTextureUnitEnumStr(unit), getAnyEnumStr(value));
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glBindTextureUnitParameterEXT(%s, %s)", getTextureUnitEnumStr(unit), getVertexShaderTextureUnitParameterEnumStr(value));
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glBindTextureUnitParameterEXT()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
@@ -38275,7 +38929,7 @@ static GLuint APIENTRY debug_glBindParameterEXT(GLenum value)
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glBindParameterEXT(%s)", getAnyEnumStr(value));
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glBindParameterEXT(%s)", getVertexShaderParameterEXTEnumStr(value));
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glBindParameterEXT()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
@@ -38294,7 +38948,7 @@ static GLboolean APIENTRY debug_glIsVariantEnabledEXT(GLuint id, GLenum cap)
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glIsVariantEnabledEXT(%u, %s)", id, getAnyEnumStr(cap));
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glIsVariantEnabledEXT(%u, %s)", id, getVariantCapEXTEnumStr(cap));
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glIsVariantEnabledEXT()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
@@ -38313,7 +38967,7 @@ static void APIENTRY debug_glGetVariantBooleanvEXT(GLuint id, GLenum value, GLbo
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glGetVariantBooleanvEXT(%u, %s, %p)", id, getAnyEnumStr(value), data);
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glGetVariantBooleanvEXT(%u, %s, %p)", id, getGetVariantValueEXTEnumStr(value), data);
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glGetVariantBooleanvEXT()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
@@ -38331,7 +38985,7 @@ static void APIENTRY debug_glGetVariantIntegervEXT(GLuint id, GLenum value, GLin
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glGetVariantIntegervEXT(%u, %s, %p)", id, getAnyEnumStr(value), data);
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glGetVariantIntegervEXT(%u, %s, %p)", id, getGetVariantValueEXTEnumStr(value), data);
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glGetVariantIntegervEXT()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
@@ -38349,7 +39003,7 @@ static void APIENTRY debug_glGetVariantFloatvEXT(GLuint id, GLenum value, GLfloa
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glGetVariantFloatvEXT(%u, %s, %p)", id, getAnyEnumStr(value), data);
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glGetVariantFloatvEXT(%u, %s, %p)", id, getGetVariantValueEXTEnumStr(value), data);
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glGetVariantFloatvEXT()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
@@ -38367,7 +39021,7 @@ static void APIENTRY debug_glGetVariantPointervEXT(GLuint id, GLenum value, void
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glGetVariantPointervEXT(%u, %s, %p)", id, getAnyEnumStr(value), data);
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glGetVariantPointervEXT(%u, %s, %p)", id, getGetVariantValueEXTEnumStr(value), data);
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glGetVariantPointervEXT()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
@@ -38385,7 +39039,7 @@ static void APIENTRY debug_glGetInvariantBooleanvEXT(GLuint id, GLenum value, GL
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glGetInvariantBooleanvEXT(%u, %s, %p)", id, getAnyEnumStr(value), data);
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glGetInvariantBooleanvEXT(%u, %s, %p)", id, getGetVariantValueEXTEnumStr(value), data);
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glGetInvariantBooleanvEXT()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
@@ -38403,7 +39057,7 @@ static void APIENTRY debug_glGetInvariantIntegervEXT(GLuint id, GLenum value, GL
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glGetInvariantIntegervEXT(%u, %s, %p)", id, getAnyEnumStr(value), data);
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glGetInvariantIntegervEXT(%u, %s, %p)", id, getGetVariantValueEXTEnumStr(value), data);
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glGetInvariantIntegervEXT()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
@@ -38421,7 +39075,7 @@ static void APIENTRY debug_glGetInvariantFloatvEXT(GLuint id, GLenum value, GLfl
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glGetInvariantFloatvEXT(%u, %s, %p)", id, getAnyEnumStr(value), data);
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glGetInvariantFloatvEXT(%u, %s, %p)", id, getGetVariantValueEXTEnumStr(value), data);
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glGetInvariantFloatvEXT()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
@@ -38439,7 +39093,7 @@ static void APIENTRY debug_glGetLocalConstantBooleanvEXT(GLuint id, GLenum value
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glGetLocalConstantBooleanvEXT(%u, %s, %p)", id, getAnyEnumStr(value), data);
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glGetLocalConstantBooleanvEXT(%u, %s, %p)", id, getGetVariantValueEXTEnumStr(value), data);
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glGetLocalConstantBooleanvEXT()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
@@ -38457,7 +39111,7 @@ static void APIENTRY debug_glGetLocalConstantIntegervEXT(GLuint id, GLenum value
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glGetLocalConstantIntegervEXT(%u, %s, %p)", id, getAnyEnumStr(value), data);
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glGetLocalConstantIntegervEXT(%u, %s, %p)", id, getGetVariantValueEXTEnumStr(value), data);
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glGetLocalConstantIntegervEXT()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);
@@ -38475,7 +39129,7 @@ static void APIENTRY debug_glGetLocalConstantFloatvEXT(GLuint id, GLenum value, 
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glGetLocalConstantFloatvEXT(%u, %s, %p)", id, getAnyEnumStr(value), data);
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glGetLocalConstantFloatvEXT(%u, %s, %p)", id, getGetVariantValueEXTEnumStr(value), data);
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glGetLocalConstantFloatvEXT()", PRINT_BUFFER_SIZE);
 			errorFunc(_curCallsiteInfo->lastFile, _curCallsiteInfo->lastFunction, _curCallsiteInfo->lastLine, _error, _buffer);

@@ -1217,6 +1217,12 @@ ANYGL_EXPORT extern int AnyGL_KHR_robust_buffer_access_behavior;
 #endif
 ANYGL_EXPORT extern int AnyGL_KHR_robustness;
 
+#ifndef GL_KHR_shader_subgroup
+#define GL_KHR_shader_subgroup 1
+#define ANYGL_KHR_shader_subgroup 1
+#endif
+ANYGL_EXPORT extern int AnyGL_KHR_shader_subgroup;
+
 #ifndef GL_KHR_texture_compression_astc_hdr
 #define GL_KHR_texture_compression_astc_hdr 1
 #define ANYGL_KHR_texture_compression_astc_hdr 1
@@ -1685,6 +1691,12 @@ ANYGL_EXPORT extern int AnyGL_EXT_EGL_image_array;
 #endif
 ANYGL_EXPORT extern int AnyGL_EXT_EGL_image_storage;
 
+#ifndef GL_EXT_EGL_sync
+#define GL_EXT_EGL_sync 1
+#define ANYGL_EXT_EGL_sync 1
+#endif
+ANYGL_EXPORT extern int AnyGL_EXT_EGL_sync;
+
 #ifndef GL_EXT_YUV_target
 #define GL_EXT_YUV_target 1
 #define ANYGL_EXT_YUV_target 1
@@ -1870,6 +1882,12 @@ ANYGL_EXPORT extern int AnyGL_EXT_debug_marker;
 #define ANYGL_EXT_depth_bounds_test 1
 #endif
 ANYGL_EXPORT extern int AnyGL_EXT_depth_bounds_test;
+
+#ifndef GL_EXT_depth_clamp
+#define GL_EXT_depth_clamp 1
+#define ANYGL_EXT_depth_clamp 1
+#endif
+ANYGL_EXPORT extern int AnyGL_EXT_depth_clamp;
 
 #ifndef GL_EXT_direct_state_access
 #define GL_EXT_direct_state_access 1
@@ -2122,6 +2140,24 @@ ANYGL_EXPORT extern int AnyGL_EXT_multisampled_render_to_texture;
 #define ANYGL_EXT_multiview_draw_buffers 1
 #endif
 ANYGL_EXPORT extern int AnyGL_EXT_multiview_draw_buffers;
+
+#ifndef GL_EXT_multiview_tessellation_geometry_shader
+#define GL_EXT_multiview_tessellation_geometry_shader 1
+#define ANYGL_EXT_multiview_tessellation_geometry_shader 1
+#endif
+ANYGL_EXPORT extern int AnyGL_EXT_multiview_tessellation_geometry_shader;
+
+#ifndef GL_EXT_multiview_texture_multisample
+#define GL_EXT_multiview_texture_multisample 1
+#define ANYGL_EXT_multiview_texture_multisample 1
+#endif
+ANYGL_EXPORT extern int AnyGL_EXT_multiview_texture_multisample;
+
+#ifndef GL_EXT_multiview_timer_query
+#define GL_EXT_multiview_timer_query 1
+#define ANYGL_EXT_multiview_timer_query 1
+#endif
+ANYGL_EXPORT extern int AnyGL_EXT_multiview_timer_query;
 
 #ifndef GL_EXT_occlusion_query_boolean
 #define GL_EXT_occlusion_query_boolean 1
@@ -2609,6 +2645,12 @@ ANYGL_EXPORT extern int AnyGL_EXT_texture_object;
 #endif
 ANYGL_EXPORT extern int AnyGL_EXT_texture_perturb_normal;
 
+#ifndef GL_EXT_texture_query_lod
+#define GL_EXT_texture_query_lod 1
+#define ANYGL_EXT_texture_query_lod 1
+#endif
+ANYGL_EXPORT extern int AnyGL_EXT_texture_query_lod;
+
 #ifndef GL_EXT_texture_rg
 #define GL_EXT_texture_rg 1
 #define ANYGL_EXT_texture_rg 1
@@ -2638,6 +2680,12 @@ ANYGL_EXPORT extern int AnyGL_EXT_texture_sRGB_RG8;
 #define ANYGL_EXT_texture_sRGB_decode 1
 #endif
 ANYGL_EXPORT extern int AnyGL_EXT_texture_sRGB_decode;
+
+#ifndef GL_EXT_texture_shadow_lod
+#define GL_EXT_texture_shadow_lod 1
+#define ANYGL_EXT_texture_shadow_lod 1
+#endif
+ANYGL_EXPORT extern int AnyGL_EXT_texture_shadow_lod;
 
 #ifndef GL_EXT_texture_shared_exponent
 #define GL_EXT_texture_shared_exponent 1
@@ -2754,15 +2802,33 @@ ANYGL_EXPORT extern int AnyGL_IMG_texture_compression_pvrtc;
 ANYGL_EXPORT extern int AnyGL_IMG_texture_compression_pvrtc2;
 
 /* Type declarations */
-#if defined(ANYGL_VERSION_1_0) && defined(ANYGL_VERSION_1_0) && defined(ANYGL_ES_VERSION_2_0)
+#if !ANYGL_GLES
+#include <stddef.h>
+#include <stdint.h>
+typedef int8_t GLbyte;
+typedef uint8_t GLubyte;
+typedef int16_t GLshort;
+typedef uint16_t GLushort;
+typedef uint16_t GLushort;
+typedef float GLfloat;
+typedef float GLclampf;
+typedef uint16_t GLhalf;
+typedef int32_t GLfixed;
+typedef ptrdiff_t GLintptr;
+typedef ptrdiff_t GLsizeiptr;
+typedef int64_t GLint64;
+typedef uint64_t GLuint64;
+#endif
+
+#if defined(ANYGL_VERSION_1_0) || defined(ANYGL_ES_VERSION_2_0)
 #if ANYGL_GLES
 #include <KHR/khrplatform.h>
 typedef khronos_int8_t GLbyte;
 typedef khronos_float_t GLclampf;
 typedef khronos_int32_t GLfixed;
+typedef khronos_int16_t GLshort;
+typedef khronos_uint16_t GLushort;
 #endif
-typedef short GLshort;
-typedef unsigned short GLushort;
 typedef void GLvoid;
 typedef struct __GLsync *GLsync;
 #if ANYGL_GLES
@@ -2787,80 +2853,22 @@ typedef khronos_uint8_t GLubyte;
 #endif /* GL_ES_VERSION_2_0 */
 
 #ifdef ANYGL_ES_VERSION_3_0
-typedef unsigned short GLhalf;
+#if ANYGL_GLES
+typedef khronos_uint16_t GLhalf;
+#endif
 #endif /* GL_ES_VERSION_3_0 */
 
 #ifdef ANYGL_ES_VERSION_3_2
 typedef void (APIENTRY *GLDEBUGPROC)(GLenum source,GLenum type,GLuint id,GLenum severity,GLsizei length,const GLchar *message,const void *userParam);
 #endif /* GL_ES_VERSION_3_2 */
 
-#if defined(ANYGL_VERSION_1_0) && defined(ANYGL_VERSION_1_0) && defined(ANYGL_ES_VERSION_2_0)
-#if !ANYGL_GLES
-typedef float GLfloat;
-#endif
+#if defined(ANYGL_VERSION_1_0) || defined(ANYGL_ES_VERSION_2_0)
 typedef double GLdouble;
-typedef unsigned char GLubyte;
-typedef signed char GLbyte;
 #endif /* GL_VERSION_1_0 */
 
-#if defined(ANYGL_VERSION_1_0) && defined(ANYGL_VERSION_1_0) && defined(ANYGL_ES_VERSION_2_0)
-#if !ANYGL_GLES
-typedef float GLclampf;
-#endif
+#ifdef ANYGL_VERSION_1_1
 typedef double GLclampd;
 #endif /* GL_VERSION_1_1 */
-
-#ifdef ANYGL_VERSION_1_5
-#if !ANYGL_GLES
-#include <stddef.h>
-typedef ptrdiff_t GLintptr;
-typedef ptrdiff_t GLsizeiptr;
-#endif
-#endif /* GL_VERSION_1_5 */
-
-#ifdef ANYGL_VERSION_3_3
-#if !ANYGL_GLES
-#ifndef GLEXT_64_TYPES_DEFINED
-/* This code block is duplicated in glxext.h, so must be protected */
-#define GLEXT_64_TYPES_DEFINED
-/* Define int32_t, int64_t, and uint64_t types for UST/MSC */
-/* (as used in the GL_EXT_timer_query extension). */
-#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
-#include <inttypes.h>
-#elif defined(__sun__) || defined(__digital__)
-#include <inttypes.h>
-#if defined(__STDC__)
-#if defined(__arch64__) || defined(_LP64)
-typedef long int int64_t;
-typedef unsigned long int uint64_t;
-#else
-typedef long long int int64_t;
-typedef unsigned long long int uint64_t;
-#endif /* __arch64__ */
-#endif /* __STDC__ */
-#elif defined( __VMS ) || defined(__sgi)
-#include <inttypes.h>
-#elif defined(__SCO__) || defined(__USLC__)
-#include <stdint.h>
-#elif defined(__UNIXOS2__) || defined(__SOL64__)
-typedef long int int32_t;
-typedef long long int int64_t;
-typedef unsigned long long int uint64_t;
-#elif defined(_WIN32) && defined(__GNUC__)
-#include <stdint.h>
-#elif defined(_WIN32)
-typedef __int32 int32_t;
-typedef __int64 int64_t;
-typedef unsigned __int64 uint64_t;
-#else
-/* Fallback if nothing above works */
-#include <inttypes.h>
-#endif
-#endif
-typedef int64_t GLint64;
-typedef uint64_t GLuint64;
-#endif
-#endif /* GL_VERSION_3_3 */
 
 #ifdef ANYGL_ARB_bindless_texture
 typedef GLuint64 GLuint64EXT;
@@ -2876,7 +2884,9 @@ typedef void (APIENTRY *GLDEBUGPROCARB)(GLenum source,GLenum type,GLuint id,GLen
 #endif /* GL_ARB_debug_output */
 
 #ifdef ANYGL_ARB_half_float_pixel
-typedef unsigned short GLhalfARB;
+#if ANYGL_GLES
+typedef khronos_uint16_t GLhalfARB;
+#endif
 #endif /* GL_ARB_half_float_pixel */
 
 #ifdef ANYGL_ARB_shader_objects
@@ -2889,9 +2899,9 @@ typedef char GLcharARB;
 #endif /* GL_ARB_shader_objects */
 
 #ifdef ANYGL_ARB_vertex_buffer_object
-#if !ANYGL_GLES
-typedef ptrdiff_t GLsizeiptrARB;
-typedef ptrdiff_t GLintptrARB;
+#if ANYGL_GLES
+typedef khronos_ssize_t GLsizeiptrARB;
+typedef khronos_intptr_t GLintptrARB;
 #endif
 #endif /* GL_ARB_vertex_buffer_object */
 
@@ -2903,18 +2913,9 @@ typedef void (APIENTRY *GLDEBUGPROCKHR)(GLenum source,GLenum type,GLuint id,GLen
 typedef void *GLeglImageOES;
 #endif /* GL_OES_EGL_image */
 
-#ifdef ANYGL_OES_draw_texture
-typedef GLint GLfixed;
-#endif /* GL_OES_draw_texture */
-
 #ifdef ANYGL_EXT_external_buffer
 typedef void *GLeglClientBufferEXT;
 #endif /* GL_EXT_external_buffer */
-
-#if defined(ANYGL_VERSION_1_0) && !defined(ANYGL_ES_VERSION_2_0)
-typedef double GLdouble;
-typedef double GLclampd;
-#endif
 
 /* Enum definitions */
 #ifndef ANYGL_NO_DEFINES
@@ -5118,6 +5119,25 @@ typedef double GLclampd;
 
 #ifdef ANYGL_ARB_internalformat_query2
 #define GL_SRGB_DECODE_ARB                0x8299
+#define GL_VIEW_CLASS_EAC_R11             0x9383
+#define GL_VIEW_CLASS_EAC_RG11            0x9384
+#define GL_VIEW_CLASS_ETC2_RGB            0x9385
+#define GL_VIEW_CLASS_ETC2_RGBA           0x9386
+#define GL_VIEW_CLASS_ETC2_EAC_RGBA       0x9387
+#define GL_VIEW_CLASS_ASTC_4x4_RGBA       0x9388
+#define GL_VIEW_CLASS_ASTC_5x4_RGBA       0x9389
+#define GL_VIEW_CLASS_ASTC_5x5_RGBA       0x938A
+#define GL_VIEW_CLASS_ASTC_6x5_RGBA       0x938B
+#define GL_VIEW_CLASS_ASTC_6x6_RGBA       0x938C
+#define GL_VIEW_CLASS_ASTC_8x5_RGBA       0x938D
+#define GL_VIEW_CLASS_ASTC_8x6_RGBA       0x938E
+#define GL_VIEW_CLASS_ASTC_8x8_RGBA       0x938F
+#define GL_VIEW_CLASS_ASTC_10x5_RGBA      0x9390
+#define GL_VIEW_CLASS_ASTC_10x6_RGBA      0x9391
+#define GL_VIEW_CLASS_ASTC_10x8_RGBA      0x9392
+#define GL_VIEW_CLASS_ASTC_10x10_RGBA     0x9393
+#define GL_VIEW_CLASS_ASTC_12x10_RGBA     0x9394
+#define GL_VIEW_CLASS_ASTC_12x12_RGBA     0x9395
 #endif /* GL_ARB_internalformat_query2 */
 
 #ifdef ANYGL_ARB_matrix_palette
@@ -5673,6 +5693,21 @@ typedef double GLclampd;
 #define GL_NO_RESET_NOTIFICATION_KHR      0x8261
 #define GL_CONTEXT_LOST_KHR               0x0507
 #endif /* GL_KHR_robustness */
+
+#ifdef ANYGL_KHR_shader_subgroup
+#define GL_SUBGROUP_SIZE_KHR              0x9532
+#define GL_SUBGROUP_SUPPORTED_STAGES_KHR  0x9533
+#define GL_SUBGROUP_SUPPORTED_FEATURES_KHR 0x9534
+#define GL_SUBGROUP_QUAD_ALL_STAGES_KHR   0x9535
+#define GL_SUBGROUP_FEATURE_BASIC_BIT_KHR 0x00000001
+#define GL_SUBGROUP_FEATURE_VOTE_BIT_KHR  0x00000002
+#define GL_SUBGROUP_FEATURE_ARITHMETIC_BIT_KHR 0x00000004
+#define GL_SUBGROUP_FEATURE_BALLOT_BIT_KHR 0x00000008
+#define GL_SUBGROUP_FEATURE_SHUFFLE_BIT_KHR 0x00000010
+#define GL_SUBGROUP_FEATURE_SHUFFLE_RELATIVE_BIT_KHR 0x00000020
+#define GL_SUBGROUP_FEATURE_CLUSTERED_BIT_KHR 0x00000040
+#define GL_SUBGROUP_FEATURE_QUAD_BIT_KHR  0x00000080
+#endif /* GL_KHR_shader_subgroup */
 
 #ifdef ANYGL_KHR_texture_compression_astc_hdr
 #define GL_COMPRESSED_RGBA_ASTC_4x4_KHR   0x93B0
@@ -6308,6 +6343,10 @@ typedef double GLclampd;
 #define GL_DEPTH_BOUNDS_TEST_EXT          0x8890
 #define GL_DEPTH_BOUNDS_EXT               0x8891
 #endif /* GL_EXT_depth_bounds_test */
+
+#ifdef ANYGL_EXT_depth_clamp
+#define GL_DEPTH_CLAMP_EXT                0x864F
+#endif /* GL_EXT_depth_clamp */
 
 #ifdef ANYGL_EXT_direct_state_access
 #define GL_PROGRAM_MATRIX_EXT             0x8E2D
@@ -12595,6 +12634,12 @@ ANYGL_EXPORT extern PFNANYGLMAXSHADERCOMPILERTHREADSKHRPROC AnyGL_glMaxShaderCom
 #define glGetnUniformuivKHR(program, location, bufSize, params) ANYGL_CALL(AnyGL_glGetnUniformuiv)(program, location, bufSize, params)
 #endif /* ANYGL_NO_DEFINES */
 
+/* GL_KHR_shader_subgroup */
+
+
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
+
 /* GL_KHR_texture_compression_astc_hdr */
 
 
@@ -13611,6 +13656,12 @@ ANYGL_EXPORT extern PFNANYGLEGLIMAGETARGETTEXTURESTORAGEEXTPROC AnyGL_glEGLImage
 #define glEGLImageTargetTextureStorageEXT(texture, image, attrib_list) ANYGL_CALL(AnyGL_glEGLImageTargetTextureStorageEXT)(texture, image, attrib_list)
 #endif /* ANYGL_NO_DEFINES */
 
+/* GL_EXT_EGL_sync */
+
+
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
+
 /* GL_EXT_YUV_target */
 
 
@@ -13944,6 +13995,12 @@ ANYGL_EXPORT extern PFNANYGLDEPTHBOUNDSEXTPROC AnyGL_glDepthBoundsEXT;
 
 #ifndef ANYGL_NO_DEFINES
 #define glDepthBoundsEXT(zmin, zmax) ANYGL_CALL(AnyGL_glDepthBoundsEXT)(zmin, zmax)
+#endif /* ANYGL_NO_DEFINES */
+
+/* GL_EXT_depth_clamp */
+
+
+#ifndef ANYGL_NO_DEFINES
 #endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_direct_state_access */
@@ -15083,6 +15140,24 @@ ANYGL_EXPORT extern PFNANYGLGETINTEGERI_VEXTPROC AnyGL_glGetIntegeri_vEXT;
 #define glGetIntegeri_vEXT(target, index, data) ANYGL_CALL(AnyGL_glGetIntegeri_vEXT)(target, index, data)
 #endif /* ANYGL_NO_DEFINES */
 
+/* GL_EXT_multiview_tessellation_geometry_shader */
+
+
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
+
+/* GL_EXT_multiview_texture_multisample */
+
+
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
+
+/* GL_EXT_multiview_timer_query */
+
+
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
+
 /* GL_EXT_occlusion_query_boolean */
 
 
@@ -15746,6 +15821,12 @@ ANYGL_EXPORT extern PFNANYGLTEXTURENORMALEXTPROC AnyGL_glTextureNormalEXT;
 #define glTextureNormalEXT(mode) ANYGL_CALL(AnyGL_glTextureNormalEXT)(mode)
 #endif /* ANYGL_NO_DEFINES */
 
+/* GL_EXT_texture_query_lod */
+
+
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
+
 /* GL_EXT_texture_rg */
 
 
@@ -15771,6 +15852,12 @@ ANYGL_EXPORT extern PFNANYGLTEXTURENORMALEXTPROC AnyGL_glTextureNormalEXT;
 #endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_texture_sRGB_decode */
+
+
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
+
+/* GL_EXT_texture_shadow_lod */
 
 
 #ifndef ANYGL_NO_DEFINES

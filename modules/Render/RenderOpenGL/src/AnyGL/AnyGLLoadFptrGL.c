@@ -23,6 +23,7 @@
 int AnyGL_updateGLVersion(void);
 int AnyGL_queryExtension(const char* name);
 void AnyGL_initDebug(void);
+void AnyGL_clearFunctionPointers(void);
 
 int AnyGL_initialize(void)
 {
@@ -32,6 +33,8 @@ void AnyGL_shutdown(void) {}
 
 int AnyGL_load(void)
 {
+	AnyGL_clearFunctionPointers();
+
 	/* GL_VERSION_1_0 */
 	AnyGL_glCullFace = &glCullFace;
 	AnyGL_glFrontFace = &glFrontFace;
@@ -342,7 +345,6 @@ int AnyGL_load(void)
 
 	if (!AnyGL_updateGLVersion())
 		return 0;
-
 #ifndef ANYGL_VERSION_1_1
 	if (AnyGL_atLeastVersion(1, 1, 0))
 	{
@@ -735,6 +737,9 @@ int AnyGL_load(void)
 		AnyGL_glGetActiveUniformBlockiv = (PFNANYGLGETACTIVEUNIFORMBLOCKIVPROC)&glGetActiveUniformBlockiv;
 		AnyGL_glGetActiveUniformBlockName = (PFNANYGLGETACTIVEUNIFORMBLOCKNAMEPROC)&glGetActiveUniformBlockName;
 		AnyGL_glUniformBlockBinding = (PFNANYGLUNIFORMBLOCKBINDINGPROC)&glUniformBlockBinding;
+		AnyGL_glBindBufferRange = (PFNANYGLBINDBUFFERRANGEPROC)&glBindBufferRange;
+		AnyGL_glBindBufferBase = (PFNANYGLBINDBUFFERBASEPROC)&glBindBufferBase;
+		AnyGL_glGetIntegeri_v = (PFNANYGLGETINTEGERI_VPROC)&glGetIntegeri_v;
 	}
 #endif /* GL_VERSION_3_1 */
 
@@ -900,6 +905,7 @@ int AnyGL_load(void)
 		AnyGL_glGenProgramPipelines = (PFNANYGLGENPROGRAMPIPELINESPROC)&glGenProgramPipelines;
 		AnyGL_glIsProgramPipeline = (PFNANYGLISPROGRAMPIPELINEPROC)&glIsProgramPipeline;
 		AnyGL_glGetProgramPipelineiv = (PFNANYGLGETPROGRAMPIPELINEIVPROC)&glGetProgramPipelineiv;
+		AnyGL_glProgramParameteri = (PFNANYGLPROGRAMPARAMETERIPROC)&glProgramParameteri;
 		AnyGL_glProgramUniform1i = (PFNANYGLPROGRAMUNIFORM1IPROC)&glProgramUniform1i;
 		AnyGL_glProgramUniform1iv = (PFNANYGLPROGRAMUNIFORM1IVPROC)&glProgramUniform1iv;
 		AnyGL_glProgramUniform1f = (PFNANYGLPROGRAMUNIFORM1FPROC)&glProgramUniform1f;
@@ -1039,6 +1045,7 @@ int AnyGL_load(void)
 		AnyGL_glGetObjectLabel = (PFNANYGLGETOBJECTLABELPROC)&glGetObjectLabel;
 		AnyGL_glObjectPtrLabel = (PFNANYGLOBJECTPTRLABELPROC)&glObjectPtrLabel;
 		AnyGL_glGetObjectPtrLabel = (PFNANYGLGETOBJECTPTRLABELPROC)&glGetObjectPtrLabel;
+		AnyGL_glGetPointerv = (PFNANYGLGETPOINTERVPROC)&glGetPointerv;
 	}
 #endif /* GL_VERSION_4_3 */
 
@@ -1197,10 +1204,22 @@ int AnyGL_load(void)
 
 #ifndef ANYGL_ARB_ES2_compatibility
 	AnyGL_ARB_ES2_compatibility = AnyGL_queryExtension("GL_ARB_ES2_compatibility");
+	if (AnyGL_ARB_ES2_compatibility)
+	{
+		AnyGL_glReleaseShaderCompiler = (PFNANYGLRELEASESHADERCOMPILERPROC)&glReleaseShaderCompiler;
+		AnyGL_glShaderBinary = (PFNANYGLSHADERBINARYPROC)&glShaderBinary;
+		AnyGL_glGetShaderPrecisionFormat = (PFNANYGLGETSHADERPRECISIONFORMATPROC)&glGetShaderPrecisionFormat;
+		AnyGL_glDepthRangef = (PFNANYGLDEPTHRANGEFPROC)&glDepthRangef;
+		AnyGL_glClearDepthf = (PFNANYGLCLEARDEPTHFPROC)&glClearDepthf;
+	}
 #endif /* GL_ARB_ES2_compatibility */
 
 #ifndef ANYGL_ARB_ES3_1_compatibility
 	AnyGL_ARB_ES3_1_compatibility = AnyGL_queryExtension("GL_ARB_ES3_1_compatibility");
+	if (AnyGL_ARB_ES3_1_compatibility)
+	{
+		AnyGL_glMemoryBarrierByRegion = (PFNANYGLMEMORYBARRIERBYREGIONPROC)&glMemoryBarrierByRegion;
+	}
 #endif /* GL_ARB_ES3_1_compatibility */
 
 #ifndef ANYGL_ARB_ES3_2_compatibility
@@ -1209,9 +1228,6 @@ int AnyGL_load(void)
 	{
 		if (!AnyGL_glPrimitiveBoundingBox)
 			AnyGL_glPrimitiveBoundingBox = (PFNANYGLPRIMITIVEBOUNDINGBOXPROC)&glPrimitiveBoundingBoxARB;
-	}
-	else
-	{
 	}
 #endif /* GL_ARB_ES3_2_compatibility */
 
@@ -1225,6 +1241,12 @@ int AnyGL_load(void)
 
 #ifndef ANYGL_ARB_base_instance
 	AnyGL_ARB_base_instance = AnyGL_queryExtension("GL_ARB_base_instance");
+	if (AnyGL_ARB_base_instance)
+	{
+		AnyGL_glDrawArraysInstancedBaseInstance = (PFNANYGLDRAWARRAYSINSTANCEDBASEINSTANCEPROC)&glDrawArraysInstancedBaseInstance;
+		AnyGL_glDrawElementsInstancedBaseInstance = (PFNANYGLDRAWELEMENTSINSTANCEDBASEINSTANCEPROC)&glDrawElementsInstancedBaseInstance;
+		AnyGL_glDrawElementsInstancedBaseVertexBaseInstance = (PFNANYGLDRAWELEMENTSINSTANCEDBASEVERTEXBASEINSTANCEPROC)&glDrawElementsInstancedBaseVertexBaseInstance;
+	}
 #endif /* GL_ARB_base_instance */
 
 #ifndef ANYGL_ARB_bindless_texture
@@ -1248,33 +1270,23 @@ int AnyGL_load(void)
 		AnyGL_glVertexAttribL1ui64vARB = (PFNANYGLVERTEXATTRIBL1UI64VARBPROC)&glVertexAttribL1ui64vARB;
 		AnyGL_glGetVertexAttribLui64vARB = (PFNANYGLGETVERTEXATTRIBLUI64VARBPROC)&glGetVertexAttribLui64vARB;
 	}
-	else
-	{
-		AnyGL_glGetTextureHandleARB = 0;
-		AnyGL_glGetTextureSamplerHandleARB = 0;
-		AnyGL_glMakeTextureHandleResidentARB = 0;
-		AnyGL_glMakeTextureHandleNonResidentARB = 0;
-		AnyGL_glGetImageHandleARB = 0;
-		AnyGL_glMakeImageHandleResidentARB = 0;
-		AnyGL_glMakeImageHandleNonResidentARB = 0;
-		AnyGL_glUniformHandleui64ARB = 0;
-		AnyGL_glUniformHandleui64vARB = 0;
-		AnyGL_glProgramUniformHandleui64ARB = 0;
-		AnyGL_glProgramUniformHandleui64vARB = 0;
-		AnyGL_glIsTextureHandleResidentARB = 0;
-		AnyGL_glIsImageHandleResidentARB = 0;
-		AnyGL_glVertexAttribL1ui64ARB = 0;
-		AnyGL_glVertexAttribL1ui64vARB = 0;
-		AnyGL_glGetVertexAttribLui64vARB = 0;
-	}
 #endif /* GL_ARB_bindless_texture */
 
 #ifndef ANYGL_ARB_blend_func_extended
 	AnyGL_ARB_blend_func_extended = AnyGL_queryExtension("GL_ARB_blend_func_extended");
+	if (AnyGL_ARB_blend_func_extended)
+	{
+		AnyGL_glBindFragDataLocationIndexed = (PFNANYGLBINDFRAGDATALOCATIONINDEXEDPROC)&glBindFragDataLocationIndexed;
+		AnyGL_glGetFragDataIndex = (PFNANYGLGETFRAGDATAINDEXPROC)&glGetFragDataIndex;
+	}
 #endif /* GL_ARB_blend_func_extended */
 
 #ifndef ANYGL_ARB_buffer_storage
 	AnyGL_ARB_buffer_storage = AnyGL_queryExtension("GL_ARB_buffer_storage");
+	if (AnyGL_ARB_buffer_storage)
+	{
+		AnyGL_glBufferStorage = (PFNANYGLBUFFERSTORAGEPROC)&glBufferStorage;
+	}
 #endif /* GL_ARB_buffer_storage */
 
 #ifndef ANYGL_ARB_cl_event
@@ -1283,22 +1295,32 @@ int AnyGL_load(void)
 	{
 		AnyGL_glCreateSyncFromCLeventARB = (PFNANYGLCREATESYNCFROMCLEVENTARBPROC)&glCreateSyncFromCLeventARB;
 	}
-	else
-	{
-		AnyGL_glCreateSyncFromCLeventARB = 0;
-	}
 #endif /* GL_ARB_cl_event */
 
 #ifndef ANYGL_ARB_clear_buffer_object
 	AnyGL_ARB_clear_buffer_object = AnyGL_queryExtension("GL_ARB_clear_buffer_object");
+	if (AnyGL_ARB_clear_buffer_object)
+	{
+		AnyGL_glClearBufferData = (PFNANYGLCLEARBUFFERDATAPROC)&glClearBufferData;
+		AnyGL_glClearBufferSubData = (PFNANYGLCLEARBUFFERSUBDATAPROC)&glClearBufferSubData;
+	}
 #endif /* GL_ARB_clear_buffer_object */
 
 #ifndef ANYGL_ARB_clear_texture
 	AnyGL_ARB_clear_texture = AnyGL_queryExtension("GL_ARB_clear_texture");
+	if (AnyGL_ARB_clear_texture)
+	{
+		AnyGL_glClearTexImage = (PFNANYGLCLEARTEXIMAGEPROC)&glClearTexImage;
+		AnyGL_glClearTexSubImage = (PFNANYGLCLEARTEXSUBIMAGEPROC)&glClearTexSubImage;
+	}
 #endif /* GL_ARB_clear_texture */
 
 #ifndef ANYGL_ARB_clip_control
 	AnyGL_ARB_clip_control = AnyGL_queryExtension("GL_ARB_clip_control");
+	if (AnyGL_ARB_clip_control)
+	{
+		AnyGL_glClipControl = (PFNANYGLCLIPCONTROLPROC)&glClipControl;
+	}
 #endif /* GL_ARB_clip_control */
 
 #ifndef ANYGL_ARB_color_buffer_float
@@ -1307,9 +1329,6 @@ int AnyGL_load(void)
 	{
 		if (!AnyGL_glClampColor)
 			AnyGL_glClampColor = (PFNANYGLCLAMPCOLORPROC)&glClampColorARB;
-	}
-	else
-	{
 	}
 #endif /* GL_ARB_color_buffer_float */
 
@@ -1323,6 +1342,11 @@ int AnyGL_load(void)
 
 #ifndef ANYGL_ARB_compute_shader
 	AnyGL_ARB_compute_shader = AnyGL_queryExtension("GL_ARB_compute_shader");
+	if (AnyGL_ARB_compute_shader)
+	{
+		AnyGL_glDispatchCompute = (PFNANYGLDISPATCHCOMPUTEPROC)&glDispatchCompute;
+		AnyGL_glDispatchComputeIndirect = (PFNANYGLDISPATCHCOMPUTEINDIRECTPROC)&glDispatchComputeIndirect;
+	}
 #endif /* GL_ARB_compute_shader */
 
 #ifndef ANYGL_ARB_compute_variable_group_size
@@ -1330,10 +1354,6 @@ int AnyGL_load(void)
 	if (AnyGL_ARB_compute_variable_group_size)
 	{
 		AnyGL_glDispatchComputeGroupSizeARB = (PFNANYGLDISPATCHCOMPUTEGROUPSIZEARBPROC)&glDispatchComputeGroupSizeARB;
-	}
-	else
-	{
-		AnyGL_glDispatchComputeGroupSizeARB = 0;
 	}
 #endif /* GL_ARB_compute_variable_group_size */
 
@@ -1347,10 +1367,18 @@ int AnyGL_load(void)
 
 #ifndef ANYGL_ARB_copy_buffer
 	AnyGL_ARB_copy_buffer = AnyGL_queryExtension("GL_ARB_copy_buffer");
+	if (AnyGL_ARB_copy_buffer)
+	{
+		AnyGL_glCopyBufferSubData = (PFNANYGLCOPYBUFFERSUBDATAPROC)&glCopyBufferSubData;
+	}
 #endif /* GL_ARB_copy_buffer */
 
 #ifndef ANYGL_ARB_copy_image
 	AnyGL_ARB_copy_image = AnyGL_queryExtension("GL_ARB_copy_image");
+	if (AnyGL_ARB_copy_image)
+	{
+		AnyGL_glCopyImageSubData = (PFNANYGLCOPYIMAGESUBDATAPROC)&glCopyImageSubData;
+	}
 #endif /* GL_ARB_copy_image */
 
 #ifndef ANYGL_ARB_cull_distance
@@ -1369,9 +1397,6 @@ int AnyGL_load(void)
 			AnyGL_glDebugMessageCallback = (PFNANYGLDEBUGMESSAGECALLBACKPROC)&glDebugMessageCallbackARB;
 		if (!AnyGL_glGetDebugMessageLog)
 			AnyGL_glGetDebugMessageLog = (PFNANYGLGETDEBUGMESSAGELOGPROC)&glGetDebugMessageLogARB;
-	}
-	else
-	{
 	}
 #endif /* GL_ARB_debug_output */
 
@@ -1393,6 +1418,106 @@ int AnyGL_load(void)
 
 #ifndef ANYGL_ARB_direct_state_access
 	AnyGL_ARB_direct_state_access = AnyGL_queryExtension("GL_ARB_direct_state_access");
+	if (AnyGL_ARB_direct_state_access)
+	{
+		AnyGL_glCreateTransformFeedbacks = (PFNANYGLCREATETRANSFORMFEEDBACKSPROC)&glCreateTransformFeedbacks;
+		AnyGL_glTransformFeedbackBufferBase = (PFNANYGLTRANSFORMFEEDBACKBUFFERBASEPROC)&glTransformFeedbackBufferBase;
+		AnyGL_glTransformFeedbackBufferRange = (PFNANYGLTRANSFORMFEEDBACKBUFFERRANGEPROC)&glTransformFeedbackBufferRange;
+		AnyGL_glGetTransformFeedbackiv = (PFNANYGLGETTRANSFORMFEEDBACKIVPROC)&glGetTransformFeedbackiv;
+		AnyGL_glGetTransformFeedbacki_v = (PFNANYGLGETTRANSFORMFEEDBACKI_VPROC)&glGetTransformFeedbacki_v;
+		AnyGL_glGetTransformFeedbacki64_v = (PFNANYGLGETTRANSFORMFEEDBACKI64_VPROC)&glGetTransformFeedbacki64_v;
+		AnyGL_glCreateBuffers = (PFNANYGLCREATEBUFFERSPROC)&glCreateBuffers;
+		AnyGL_glNamedBufferStorage = (PFNANYGLNAMEDBUFFERSTORAGEPROC)&glNamedBufferStorage;
+		AnyGL_glNamedBufferData = (PFNANYGLNAMEDBUFFERDATAPROC)&glNamedBufferData;
+		AnyGL_glNamedBufferSubData = (PFNANYGLNAMEDBUFFERSUBDATAPROC)&glNamedBufferSubData;
+		AnyGL_glCopyNamedBufferSubData = (PFNANYGLCOPYNAMEDBUFFERSUBDATAPROC)&glCopyNamedBufferSubData;
+		AnyGL_glClearNamedBufferData = (PFNANYGLCLEARNAMEDBUFFERDATAPROC)&glClearNamedBufferData;
+		AnyGL_glClearNamedBufferSubData = (PFNANYGLCLEARNAMEDBUFFERSUBDATAPROC)&glClearNamedBufferSubData;
+		AnyGL_glMapNamedBuffer = (PFNANYGLMAPNAMEDBUFFERPROC)&glMapNamedBuffer;
+		AnyGL_glMapNamedBufferRange = (PFNANYGLMAPNAMEDBUFFERRANGEPROC)&glMapNamedBufferRange;
+		AnyGL_glUnmapNamedBuffer = (PFNANYGLUNMAPNAMEDBUFFERPROC)&glUnmapNamedBuffer;
+		AnyGL_glFlushMappedNamedBufferRange = (PFNANYGLFLUSHMAPPEDNAMEDBUFFERRANGEPROC)&glFlushMappedNamedBufferRange;
+		AnyGL_glGetNamedBufferParameteriv = (PFNANYGLGETNAMEDBUFFERPARAMETERIVPROC)&glGetNamedBufferParameteriv;
+		AnyGL_glGetNamedBufferParameteri64v = (PFNANYGLGETNAMEDBUFFERPARAMETERI64VPROC)&glGetNamedBufferParameteri64v;
+		AnyGL_glGetNamedBufferPointerv = (PFNANYGLGETNAMEDBUFFERPOINTERVPROC)&glGetNamedBufferPointerv;
+		AnyGL_glGetNamedBufferSubData = (PFNANYGLGETNAMEDBUFFERSUBDATAPROC)&glGetNamedBufferSubData;
+		AnyGL_glCreateFramebuffers = (PFNANYGLCREATEFRAMEBUFFERSPROC)&glCreateFramebuffers;
+		AnyGL_glNamedFramebufferRenderbuffer = (PFNANYGLNAMEDFRAMEBUFFERRENDERBUFFERPROC)&glNamedFramebufferRenderbuffer;
+		AnyGL_glNamedFramebufferParameteri = (PFNANYGLNAMEDFRAMEBUFFERPARAMETERIPROC)&glNamedFramebufferParameteri;
+		AnyGL_glNamedFramebufferTexture = (PFNANYGLNAMEDFRAMEBUFFERTEXTUREPROC)&glNamedFramebufferTexture;
+		AnyGL_glNamedFramebufferTextureLayer = (PFNANYGLNAMEDFRAMEBUFFERTEXTURELAYERPROC)&glNamedFramebufferTextureLayer;
+		AnyGL_glNamedFramebufferDrawBuffer = (PFNANYGLNAMEDFRAMEBUFFERDRAWBUFFERPROC)&glNamedFramebufferDrawBuffer;
+		AnyGL_glNamedFramebufferDrawBuffers = (PFNANYGLNAMEDFRAMEBUFFERDRAWBUFFERSPROC)&glNamedFramebufferDrawBuffers;
+		AnyGL_glNamedFramebufferReadBuffer = (PFNANYGLNAMEDFRAMEBUFFERREADBUFFERPROC)&glNamedFramebufferReadBuffer;
+		AnyGL_glInvalidateNamedFramebufferData = (PFNANYGLINVALIDATENAMEDFRAMEBUFFERDATAPROC)&glInvalidateNamedFramebufferData;
+		AnyGL_glInvalidateNamedFramebufferSubData = (PFNANYGLINVALIDATENAMEDFRAMEBUFFERSUBDATAPROC)&glInvalidateNamedFramebufferSubData;
+		AnyGL_glClearNamedFramebufferiv = (PFNANYGLCLEARNAMEDFRAMEBUFFERIVPROC)&glClearNamedFramebufferiv;
+		AnyGL_glClearNamedFramebufferuiv = (PFNANYGLCLEARNAMEDFRAMEBUFFERUIVPROC)&glClearNamedFramebufferuiv;
+		AnyGL_glClearNamedFramebufferfv = (PFNANYGLCLEARNAMEDFRAMEBUFFERFVPROC)&glClearNamedFramebufferfv;
+		AnyGL_glClearNamedFramebufferfi = (PFNANYGLCLEARNAMEDFRAMEBUFFERFIPROC)&glClearNamedFramebufferfi;
+		AnyGL_glBlitNamedFramebuffer = (PFNANYGLBLITNAMEDFRAMEBUFFERPROC)&glBlitNamedFramebuffer;
+		AnyGL_glCheckNamedFramebufferStatus = (PFNANYGLCHECKNAMEDFRAMEBUFFERSTATUSPROC)&glCheckNamedFramebufferStatus;
+		AnyGL_glGetNamedFramebufferParameteriv = (PFNANYGLGETNAMEDFRAMEBUFFERPARAMETERIVPROC)&glGetNamedFramebufferParameteriv;
+		AnyGL_glGetNamedFramebufferAttachmentParameteriv = (PFNANYGLGETNAMEDFRAMEBUFFERATTACHMENTPARAMETERIVPROC)&glGetNamedFramebufferAttachmentParameteriv;
+		AnyGL_glCreateRenderbuffers = (PFNANYGLCREATERENDERBUFFERSPROC)&glCreateRenderbuffers;
+		AnyGL_glNamedRenderbufferStorage = (PFNANYGLNAMEDRENDERBUFFERSTORAGEPROC)&glNamedRenderbufferStorage;
+		AnyGL_glNamedRenderbufferStorageMultisample = (PFNANYGLNAMEDRENDERBUFFERSTORAGEMULTISAMPLEPROC)&glNamedRenderbufferStorageMultisample;
+		AnyGL_glGetNamedRenderbufferParameteriv = (PFNANYGLGETNAMEDRENDERBUFFERPARAMETERIVPROC)&glGetNamedRenderbufferParameteriv;
+		AnyGL_glCreateTextures = (PFNANYGLCREATETEXTURESPROC)&glCreateTextures;
+		AnyGL_glTextureBuffer = (PFNANYGLTEXTUREBUFFERPROC)&glTextureBuffer;
+		AnyGL_glTextureBufferRange = (PFNANYGLTEXTUREBUFFERRANGEPROC)&glTextureBufferRange;
+		AnyGL_glTextureStorage1D = (PFNANYGLTEXTURESTORAGE1DPROC)&glTextureStorage1D;
+		AnyGL_glTextureStorage2D = (PFNANYGLTEXTURESTORAGE2DPROC)&glTextureStorage2D;
+		AnyGL_glTextureStorage3D = (PFNANYGLTEXTURESTORAGE3DPROC)&glTextureStorage3D;
+		AnyGL_glTextureStorage2DMultisample = (PFNANYGLTEXTURESTORAGE2DMULTISAMPLEPROC)&glTextureStorage2DMultisample;
+		AnyGL_glTextureStorage3DMultisample = (PFNANYGLTEXTURESTORAGE3DMULTISAMPLEPROC)&glTextureStorage3DMultisample;
+		AnyGL_glTextureSubImage1D = (PFNANYGLTEXTURESUBIMAGE1DPROC)&glTextureSubImage1D;
+		AnyGL_glTextureSubImage2D = (PFNANYGLTEXTURESUBIMAGE2DPROC)&glTextureSubImage2D;
+		AnyGL_glTextureSubImage3D = (PFNANYGLTEXTURESUBIMAGE3DPROC)&glTextureSubImage3D;
+		AnyGL_glCompressedTextureSubImage1D = (PFNANYGLCOMPRESSEDTEXTURESUBIMAGE1DPROC)&glCompressedTextureSubImage1D;
+		AnyGL_glCompressedTextureSubImage2D = (PFNANYGLCOMPRESSEDTEXTURESUBIMAGE2DPROC)&glCompressedTextureSubImage2D;
+		AnyGL_glCompressedTextureSubImage3D = (PFNANYGLCOMPRESSEDTEXTURESUBIMAGE3DPROC)&glCompressedTextureSubImage3D;
+		AnyGL_glCopyTextureSubImage1D = (PFNANYGLCOPYTEXTURESUBIMAGE1DPROC)&glCopyTextureSubImage1D;
+		AnyGL_glCopyTextureSubImage2D = (PFNANYGLCOPYTEXTURESUBIMAGE2DPROC)&glCopyTextureSubImage2D;
+		AnyGL_glCopyTextureSubImage3D = (PFNANYGLCOPYTEXTURESUBIMAGE3DPROC)&glCopyTextureSubImage3D;
+		AnyGL_glTextureParameterf = (PFNANYGLTEXTUREPARAMETERFPROC)&glTextureParameterf;
+		AnyGL_glTextureParameterfv = (PFNANYGLTEXTUREPARAMETERFVPROC)&glTextureParameterfv;
+		AnyGL_glTextureParameteri = (PFNANYGLTEXTUREPARAMETERIPROC)&glTextureParameteri;
+		AnyGL_glTextureParameterIiv = (PFNANYGLTEXTUREPARAMETERIIVPROC)&glTextureParameterIiv;
+		AnyGL_glTextureParameterIuiv = (PFNANYGLTEXTUREPARAMETERIUIVPROC)&glTextureParameterIuiv;
+		AnyGL_glTextureParameteriv = (PFNANYGLTEXTUREPARAMETERIVPROC)&glTextureParameteriv;
+		AnyGL_glGenerateTextureMipmap = (PFNANYGLGENERATETEXTUREMIPMAPPROC)&glGenerateTextureMipmap;
+		AnyGL_glBindTextureUnit = (PFNANYGLBINDTEXTUREUNITPROC)&glBindTextureUnit;
+		AnyGL_glGetTextureImage = (PFNANYGLGETTEXTUREIMAGEPROC)&glGetTextureImage;
+		AnyGL_glGetCompressedTextureImage = (PFNANYGLGETCOMPRESSEDTEXTUREIMAGEPROC)&glGetCompressedTextureImage;
+		AnyGL_glGetTextureLevelParameterfv = (PFNANYGLGETTEXTURELEVELPARAMETERFVPROC)&glGetTextureLevelParameterfv;
+		AnyGL_glGetTextureLevelParameteriv = (PFNANYGLGETTEXTURELEVELPARAMETERIVPROC)&glGetTextureLevelParameteriv;
+		AnyGL_glGetTextureParameterfv = (PFNANYGLGETTEXTUREPARAMETERFVPROC)&glGetTextureParameterfv;
+		AnyGL_glGetTextureParameterIiv = (PFNANYGLGETTEXTUREPARAMETERIIVPROC)&glGetTextureParameterIiv;
+		AnyGL_glGetTextureParameterIuiv = (PFNANYGLGETTEXTUREPARAMETERIUIVPROC)&glGetTextureParameterIuiv;
+		AnyGL_glGetTextureParameteriv = (PFNANYGLGETTEXTUREPARAMETERIVPROC)&glGetTextureParameteriv;
+		AnyGL_glCreateVertexArrays = (PFNANYGLCREATEVERTEXARRAYSPROC)&glCreateVertexArrays;
+		AnyGL_glDisableVertexArrayAttrib = (PFNANYGLDISABLEVERTEXARRAYATTRIBPROC)&glDisableVertexArrayAttrib;
+		AnyGL_glEnableVertexArrayAttrib = (PFNANYGLENABLEVERTEXARRAYATTRIBPROC)&glEnableVertexArrayAttrib;
+		AnyGL_glVertexArrayElementBuffer = (PFNANYGLVERTEXARRAYELEMENTBUFFERPROC)&glVertexArrayElementBuffer;
+		AnyGL_glVertexArrayVertexBuffer = (PFNANYGLVERTEXARRAYVERTEXBUFFERPROC)&glVertexArrayVertexBuffer;
+		AnyGL_glVertexArrayVertexBuffers = (PFNANYGLVERTEXARRAYVERTEXBUFFERSPROC)&glVertexArrayVertexBuffers;
+		AnyGL_glVertexArrayAttribBinding = (PFNANYGLVERTEXARRAYATTRIBBINDINGPROC)&glVertexArrayAttribBinding;
+		AnyGL_glVertexArrayAttribFormat = (PFNANYGLVERTEXARRAYATTRIBFORMATPROC)&glVertexArrayAttribFormat;
+		AnyGL_glVertexArrayAttribIFormat = (PFNANYGLVERTEXARRAYATTRIBIFORMATPROC)&glVertexArrayAttribIFormat;
+		AnyGL_glVertexArrayAttribLFormat = (PFNANYGLVERTEXARRAYATTRIBLFORMATPROC)&glVertexArrayAttribLFormat;
+		AnyGL_glVertexArrayBindingDivisor = (PFNANYGLVERTEXARRAYBINDINGDIVISORPROC)&glVertexArrayBindingDivisor;
+		AnyGL_glGetVertexArrayiv = (PFNANYGLGETVERTEXARRAYIVPROC)&glGetVertexArrayiv;
+		AnyGL_glGetVertexArrayIndexediv = (PFNANYGLGETVERTEXARRAYINDEXEDIVPROC)&glGetVertexArrayIndexediv;
+		AnyGL_glGetVertexArrayIndexed64iv = (PFNANYGLGETVERTEXARRAYINDEXED64IVPROC)&glGetVertexArrayIndexed64iv;
+		AnyGL_glCreateSamplers = (PFNANYGLCREATESAMPLERSPROC)&glCreateSamplers;
+		AnyGL_glCreateProgramPipelines = (PFNANYGLCREATEPROGRAMPIPELINESPROC)&glCreateProgramPipelines;
+		AnyGL_glCreateQueries = (PFNANYGLCREATEQUERIESPROC)&glCreateQueries;
+		AnyGL_glGetQueryBufferObjecti64v = (PFNANYGLGETQUERYBUFFEROBJECTI64VPROC)&glGetQueryBufferObjecti64v;
+		AnyGL_glGetQueryBufferObjectiv = (PFNANYGLGETQUERYBUFFEROBJECTIVPROC)&glGetQueryBufferObjectiv;
+		AnyGL_glGetQueryBufferObjectui64v = (PFNANYGLGETQUERYBUFFEROBJECTUI64VPROC)&glGetQueryBufferObjectui64v;
+		AnyGL_glGetQueryBufferObjectuiv = (PFNANYGLGETQUERYBUFFEROBJECTUIVPROC)&glGetQueryBufferObjectuiv;
+	}
 #endif /* GL_ARB_direct_state_access */
 
 #ifndef ANYGL_ARB_draw_buffers
@@ -1401,9 +1526,6 @@ int AnyGL_load(void)
 	{
 		if (!AnyGL_glDrawBuffers)
 			AnyGL_glDrawBuffers = (PFNANYGLDRAWBUFFERSPROC)&glDrawBuffersARB;
-	}
-	else
-	{
 	}
 #endif /* GL_ARB_draw_buffers */
 
@@ -1420,17 +1542,26 @@ int AnyGL_load(void)
 		if (!AnyGL_glBlendFuncSeparatei)
 			AnyGL_glBlendFuncSeparatei = (PFNANYGLBLENDFUNCSEPARATEIPROC)&glBlendFuncSeparateiARB;
 	}
-	else
-	{
-	}
 #endif /* GL_ARB_draw_buffers_blend */
 
 #ifndef ANYGL_ARB_draw_elements_base_vertex
 	AnyGL_ARB_draw_elements_base_vertex = AnyGL_queryExtension("GL_ARB_draw_elements_base_vertex");
+	if (AnyGL_ARB_draw_elements_base_vertex)
+	{
+		AnyGL_glDrawElementsBaseVertex = (PFNANYGLDRAWELEMENTSBASEVERTEXPROC)&glDrawElementsBaseVertex;
+		AnyGL_glDrawRangeElementsBaseVertex = (PFNANYGLDRAWRANGEELEMENTSBASEVERTEXPROC)&glDrawRangeElementsBaseVertex;
+		AnyGL_glDrawElementsInstancedBaseVertex = (PFNANYGLDRAWELEMENTSINSTANCEDBASEVERTEXPROC)&glDrawElementsInstancedBaseVertex;
+		AnyGL_glMultiDrawElementsBaseVertex = (PFNANYGLMULTIDRAWELEMENTSBASEVERTEXPROC)&glMultiDrawElementsBaseVertex;
+	}
 #endif /* GL_ARB_draw_elements_base_vertex */
 
 #ifndef ANYGL_ARB_draw_indirect
 	AnyGL_ARB_draw_indirect = AnyGL_queryExtension("GL_ARB_draw_indirect");
+	if (AnyGL_ARB_draw_indirect)
+	{
+		AnyGL_glDrawArraysIndirect = (PFNANYGLDRAWARRAYSINDIRECTPROC)&glDrawArraysIndirect;
+		AnyGL_glDrawElementsIndirect = (PFNANYGLDRAWELEMENTSINDIRECTPROC)&glDrawElementsIndirect;
+	}
 #endif /* GL_ARB_draw_indirect */
 
 #ifndef ANYGL_ARB_draw_instanced
@@ -1441,9 +1572,6 @@ int AnyGL_load(void)
 			AnyGL_glDrawArraysInstanced = (PFNANYGLDRAWARRAYSINSTANCEDPROC)&glDrawArraysInstancedARB;
 		if (!AnyGL_glDrawElementsInstanced)
 			AnyGL_glDrawElementsInstanced = (PFNANYGLDRAWELEMENTSINSTANCEDPROC)&glDrawElementsInstancedARB;
-	}
-	else
-	{
 	}
 #endif /* GL_ARB_draw_instanced */
 
@@ -1491,28 +1619,6 @@ int AnyGL_load(void)
 		AnyGL_glGetProgramStringARB = (PFNANYGLGETPROGRAMSTRINGARBPROC)&glGetProgramStringARB;
 		AnyGL_glIsProgramARB = (PFNANYGLISPROGRAMARBPROC)&glIsProgramARB;
 	}
-	else
-	{
-		AnyGL_glProgramStringARB = 0;
-		AnyGL_glBindProgramARB = 0;
-		AnyGL_glDeleteProgramsARB = 0;
-		AnyGL_glGenProgramsARB = 0;
-		AnyGL_glProgramEnvParameter4dARB = 0;
-		AnyGL_glProgramEnvParameter4dvARB = 0;
-		AnyGL_glProgramEnvParameter4fARB = 0;
-		AnyGL_glProgramEnvParameter4fvARB = 0;
-		AnyGL_glProgramLocalParameter4dARB = 0;
-		AnyGL_glProgramLocalParameter4dvARB = 0;
-		AnyGL_glProgramLocalParameter4fARB = 0;
-		AnyGL_glProgramLocalParameter4fvARB = 0;
-		AnyGL_glGetProgramEnvParameterdvARB = 0;
-		AnyGL_glGetProgramEnvParameterfvARB = 0;
-		AnyGL_glGetProgramLocalParameterdvARB = 0;
-		AnyGL_glGetProgramLocalParameterfvARB = 0;
-		AnyGL_glGetProgramivARB = 0;
-		AnyGL_glGetProgramStringARB = 0;
-		AnyGL_glIsProgramARB = 0;
-	}
 #endif /* GL_ARB_fragment_program */
 
 #ifndef ANYGL_ARB_fragment_program_shadow
@@ -1529,10 +1635,38 @@ int AnyGL_load(void)
 
 #ifndef ANYGL_ARB_framebuffer_no_attachments
 	AnyGL_ARB_framebuffer_no_attachments = AnyGL_queryExtension("GL_ARB_framebuffer_no_attachments");
+	if (AnyGL_ARB_framebuffer_no_attachments)
+	{
+		AnyGL_glFramebufferParameteri = (PFNANYGLFRAMEBUFFERPARAMETERIPROC)&glFramebufferParameteri;
+		AnyGL_glGetFramebufferParameteriv = (PFNANYGLGETFRAMEBUFFERPARAMETERIVPROC)&glGetFramebufferParameteriv;
+	}
 #endif /* GL_ARB_framebuffer_no_attachments */
 
 #ifndef ANYGL_ARB_framebuffer_object
 	AnyGL_ARB_framebuffer_object = AnyGL_queryExtension("GL_ARB_framebuffer_object");
+	if (AnyGL_ARB_framebuffer_object)
+	{
+		AnyGL_glIsRenderbuffer = (PFNANYGLISRENDERBUFFERPROC)&glIsRenderbuffer;
+		AnyGL_glBindRenderbuffer = (PFNANYGLBINDRENDERBUFFERPROC)&glBindRenderbuffer;
+		AnyGL_glDeleteRenderbuffers = (PFNANYGLDELETERENDERBUFFERSPROC)&glDeleteRenderbuffers;
+		AnyGL_glGenRenderbuffers = (PFNANYGLGENRENDERBUFFERSPROC)&glGenRenderbuffers;
+		AnyGL_glRenderbufferStorage = (PFNANYGLRENDERBUFFERSTORAGEPROC)&glRenderbufferStorage;
+		AnyGL_glGetRenderbufferParameteriv = (PFNANYGLGETRENDERBUFFERPARAMETERIVPROC)&glGetRenderbufferParameteriv;
+		AnyGL_glIsFramebuffer = (PFNANYGLISFRAMEBUFFERPROC)&glIsFramebuffer;
+		AnyGL_glBindFramebuffer = (PFNANYGLBINDFRAMEBUFFERPROC)&glBindFramebuffer;
+		AnyGL_glDeleteFramebuffers = (PFNANYGLDELETEFRAMEBUFFERSPROC)&glDeleteFramebuffers;
+		AnyGL_glGenFramebuffers = (PFNANYGLGENFRAMEBUFFERSPROC)&glGenFramebuffers;
+		AnyGL_glCheckFramebufferStatus = (PFNANYGLCHECKFRAMEBUFFERSTATUSPROC)&glCheckFramebufferStatus;
+		AnyGL_glFramebufferTexture1D = (PFNANYGLFRAMEBUFFERTEXTURE1DPROC)&glFramebufferTexture1D;
+		AnyGL_glFramebufferTexture2D = (PFNANYGLFRAMEBUFFERTEXTURE2DPROC)&glFramebufferTexture2D;
+		AnyGL_glFramebufferTexture3D = (PFNANYGLFRAMEBUFFERTEXTURE3DPROC)&glFramebufferTexture3D;
+		AnyGL_glFramebufferRenderbuffer = (PFNANYGLFRAMEBUFFERRENDERBUFFERPROC)&glFramebufferRenderbuffer;
+		AnyGL_glGetFramebufferAttachmentParameteriv = (PFNANYGLGETFRAMEBUFFERATTACHMENTPARAMETERIVPROC)&glGetFramebufferAttachmentParameteriv;
+		AnyGL_glGenerateMipmap = (PFNANYGLGENERATEMIPMAPPROC)&glGenerateMipmap;
+		AnyGL_glBlitFramebuffer = (PFNANYGLBLITFRAMEBUFFERPROC)&glBlitFramebuffer;
+		AnyGL_glRenderbufferStorageMultisample = (PFNANYGLRENDERBUFFERSTORAGEMULTISAMPLEPROC)&glRenderbufferStorageMultisample;
+		AnyGL_glFramebufferTextureLayer = (PFNANYGLFRAMEBUFFERTEXTURELAYERPROC)&glFramebufferTextureLayer;
+	}
 #endif /* GL_ARB_framebuffer_object */
 
 #ifndef ANYGL_ARB_framebuffer_sRGB
@@ -1551,18 +1685,25 @@ int AnyGL_load(void)
 			AnyGL_glFramebufferTextureLayer = (PFNANYGLFRAMEBUFFERTEXTURELAYERPROC)&glFramebufferTextureLayerARB;
 		AnyGL_glFramebufferTextureFaceARB = (PFNANYGLFRAMEBUFFERTEXTUREFACEARBPROC)&glFramebufferTextureFaceARB;
 	}
-	else
-	{
-		AnyGL_glFramebufferTextureFaceARB = 0;
-	}
 #endif /* GL_ARB_geometry_shader4 */
 
 #ifndef ANYGL_ARB_get_program_binary
 	AnyGL_ARB_get_program_binary = AnyGL_queryExtension("GL_ARB_get_program_binary");
+	if (AnyGL_ARB_get_program_binary)
+	{
+		AnyGL_glGetProgramBinary = (PFNANYGLGETPROGRAMBINARYPROC)&glGetProgramBinary;
+		AnyGL_glProgramBinary = (PFNANYGLPROGRAMBINARYPROC)&glProgramBinary;
+		AnyGL_glProgramParameteri = (PFNANYGLPROGRAMPARAMETERIPROC)&glProgramParameteri;
+	}
 #endif /* GL_ARB_get_program_binary */
 
 #ifndef ANYGL_ARB_get_texture_sub_image
 	AnyGL_ARB_get_texture_sub_image = AnyGL_queryExtension("GL_ARB_get_texture_sub_image");
+	if (AnyGL_ARB_get_texture_sub_image)
+	{
+		AnyGL_glGetTextureSubImage = (PFNANYGLGETTEXTURESUBIMAGEPROC)&glGetTextureSubImage;
+		AnyGL_glGetCompressedTextureSubImage = (PFNANYGLGETCOMPRESSEDTEXTURESUBIMAGEPROC)&glGetCompressedTextureSubImage;
+	}
 #endif /* GL_ARB_get_texture_sub_image */
 
 #ifndef ANYGL_ARB_gl_spirv
@@ -1572,9 +1713,6 @@ int AnyGL_load(void)
 		if (!AnyGL_glSpecializeShader)
 			AnyGL_glSpecializeShader = (PFNANYGLSPECIALIZESHADERPROC)&glSpecializeShaderARB;
 	}
-	else
-	{
-	}
 #endif /* GL_ARB_gl_spirv */
 
 #ifndef ANYGL_ARB_gpu_shader5
@@ -1583,6 +1721,27 @@ int AnyGL_load(void)
 
 #ifndef ANYGL_ARB_gpu_shader_fp64
 	AnyGL_ARB_gpu_shader_fp64 = AnyGL_queryExtension("GL_ARB_gpu_shader_fp64");
+	if (AnyGL_ARB_gpu_shader_fp64)
+	{
+		AnyGL_glUniform1d = (PFNANYGLUNIFORM1DPROC)&glUniform1d;
+		AnyGL_glUniform2d = (PFNANYGLUNIFORM2DPROC)&glUniform2d;
+		AnyGL_glUniform3d = (PFNANYGLUNIFORM3DPROC)&glUniform3d;
+		AnyGL_glUniform4d = (PFNANYGLUNIFORM4DPROC)&glUniform4d;
+		AnyGL_glUniform1dv = (PFNANYGLUNIFORM1DVPROC)&glUniform1dv;
+		AnyGL_glUniform2dv = (PFNANYGLUNIFORM2DVPROC)&glUniform2dv;
+		AnyGL_glUniform3dv = (PFNANYGLUNIFORM3DVPROC)&glUniform3dv;
+		AnyGL_glUniform4dv = (PFNANYGLUNIFORM4DVPROC)&glUniform4dv;
+		AnyGL_glUniformMatrix2dv = (PFNANYGLUNIFORMMATRIX2DVPROC)&glUniformMatrix2dv;
+		AnyGL_glUniformMatrix3dv = (PFNANYGLUNIFORMMATRIX3DVPROC)&glUniformMatrix3dv;
+		AnyGL_glUniformMatrix4dv = (PFNANYGLUNIFORMMATRIX4DVPROC)&glUniformMatrix4dv;
+		AnyGL_glUniformMatrix2x3dv = (PFNANYGLUNIFORMMATRIX2X3DVPROC)&glUniformMatrix2x3dv;
+		AnyGL_glUniformMatrix2x4dv = (PFNANYGLUNIFORMMATRIX2X4DVPROC)&glUniformMatrix2x4dv;
+		AnyGL_glUniformMatrix3x2dv = (PFNANYGLUNIFORMMATRIX3X2DVPROC)&glUniformMatrix3x2dv;
+		AnyGL_glUniformMatrix3x4dv = (PFNANYGLUNIFORMMATRIX3X4DVPROC)&glUniformMatrix3x4dv;
+		AnyGL_glUniformMatrix4x2dv = (PFNANYGLUNIFORMMATRIX4X2DVPROC)&glUniformMatrix4x2dv;
+		AnyGL_glUniformMatrix4x3dv = (PFNANYGLUNIFORMMATRIX4X3DVPROC)&glUniformMatrix4x3dv;
+		AnyGL_glGetUniformdv = (PFNANYGLGETUNIFORMDVPROC)&glGetUniformdv;
+	}
 #endif /* GL_ARB_gpu_shader_fp64 */
 
 #ifndef ANYGL_ARB_gpu_shader_int64
@@ -1626,45 +1785,6 @@ int AnyGL_load(void)
 		AnyGL_glProgramUniform3ui64vARB = (PFNANYGLPROGRAMUNIFORM3UI64VARBPROC)&glProgramUniform3ui64vARB;
 		AnyGL_glProgramUniform4ui64vARB = (PFNANYGLPROGRAMUNIFORM4UI64VARBPROC)&glProgramUniform4ui64vARB;
 	}
-	else
-	{
-		AnyGL_glUniform1i64ARB = 0;
-		AnyGL_glUniform2i64ARB = 0;
-		AnyGL_glUniform3i64ARB = 0;
-		AnyGL_glUniform4i64ARB = 0;
-		AnyGL_glUniform1i64vARB = 0;
-		AnyGL_glUniform2i64vARB = 0;
-		AnyGL_glUniform3i64vARB = 0;
-		AnyGL_glUniform4i64vARB = 0;
-		AnyGL_glUniform1ui64ARB = 0;
-		AnyGL_glUniform2ui64ARB = 0;
-		AnyGL_glUniform3ui64ARB = 0;
-		AnyGL_glUniform4ui64ARB = 0;
-		AnyGL_glUniform1ui64vARB = 0;
-		AnyGL_glUniform2ui64vARB = 0;
-		AnyGL_glUniform3ui64vARB = 0;
-		AnyGL_glUniform4ui64vARB = 0;
-		AnyGL_glGetUniformi64vARB = 0;
-		AnyGL_glGetUniformui64vARB = 0;
-		AnyGL_glGetnUniformi64vARB = 0;
-		AnyGL_glGetnUniformui64vARB = 0;
-		AnyGL_glProgramUniform1i64ARB = 0;
-		AnyGL_glProgramUniform2i64ARB = 0;
-		AnyGL_glProgramUniform3i64ARB = 0;
-		AnyGL_glProgramUniform4i64ARB = 0;
-		AnyGL_glProgramUniform1i64vARB = 0;
-		AnyGL_glProgramUniform2i64vARB = 0;
-		AnyGL_glProgramUniform3i64vARB = 0;
-		AnyGL_glProgramUniform4i64vARB = 0;
-		AnyGL_glProgramUniform1ui64ARB = 0;
-		AnyGL_glProgramUniform2ui64ARB = 0;
-		AnyGL_glProgramUniform3ui64ARB = 0;
-		AnyGL_glProgramUniform4ui64ARB = 0;
-		AnyGL_glProgramUniform1ui64vARB = 0;
-		AnyGL_glProgramUniform2ui64vARB = 0;
-		AnyGL_glProgramUniform3ui64vARB = 0;
-		AnyGL_glProgramUniform4ui64vARB = 0;
-	}
 #endif /* GL_ARB_gpu_shader_int64 */
 
 #ifndef ANYGL_ARB_half_float_pixel
@@ -1679,6 +1799,8 @@ int AnyGL_load(void)
 	AnyGL_ARB_imaging = AnyGL_queryExtension("GL_ARB_imaging");
 	if (AnyGL_ARB_imaging)
 	{
+		AnyGL_glBlendColor = (PFNANYGLBLENDCOLORPROC)&glBlendColor;
+		AnyGL_glBlendEquation = (PFNANYGLBLENDEQUATIONPROC)&glBlendEquation;
 		AnyGL_glColorTable = (PFNANYGLCOLORTABLEPROC)&glColorTable;
 		AnyGL_glColorTableParameterfv = (PFNANYGLCOLORTABLEPARAMETERFVPROC)&glColorTableParameterfv;
 		AnyGL_glColorTableParameteriv = (PFNANYGLCOLORTABLEPARAMETERIVPROC)&glColorTableParameteriv;
@@ -1712,41 +1834,6 @@ int AnyGL_load(void)
 		AnyGL_glResetHistogram = (PFNANYGLRESETHISTOGRAMPROC)&glResetHistogram;
 		AnyGL_glResetMinmax = (PFNANYGLRESETMINMAXPROC)&glResetMinmax;
 	}
-	else
-	{
-		AnyGL_glColorTable = 0;
-		AnyGL_glColorTableParameterfv = 0;
-		AnyGL_glColorTableParameteriv = 0;
-		AnyGL_glCopyColorTable = 0;
-		AnyGL_glGetColorTable = 0;
-		AnyGL_glGetColorTableParameterfv = 0;
-		AnyGL_glGetColorTableParameteriv = 0;
-		AnyGL_glColorSubTable = 0;
-		AnyGL_glCopyColorSubTable = 0;
-		AnyGL_glConvolutionFilter1D = 0;
-		AnyGL_glConvolutionFilter2D = 0;
-		AnyGL_glConvolutionParameterf = 0;
-		AnyGL_glConvolutionParameterfv = 0;
-		AnyGL_glConvolutionParameteri = 0;
-		AnyGL_glConvolutionParameteriv = 0;
-		AnyGL_glCopyConvolutionFilter1D = 0;
-		AnyGL_glCopyConvolutionFilter2D = 0;
-		AnyGL_glGetConvolutionFilter = 0;
-		AnyGL_glGetConvolutionParameterfv = 0;
-		AnyGL_glGetConvolutionParameteriv = 0;
-		AnyGL_glGetSeparableFilter = 0;
-		AnyGL_glSeparableFilter2D = 0;
-		AnyGL_glGetHistogram = 0;
-		AnyGL_glGetHistogramParameterfv = 0;
-		AnyGL_glGetHistogramParameteriv = 0;
-		AnyGL_glGetMinmax = 0;
-		AnyGL_glGetMinmaxParameterfv = 0;
-		AnyGL_glGetMinmaxParameteriv = 0;
-		AnyGL_glHistogram = 0;
-		AnyGL_glMinmax = 0;
-		AnyGL_glResetHistogram = 0;
-		AnyGL_glResetMinmax = 0;
-	}
 #endif /* GL_ARB_imaging */
 
 #ifndef ANYGL_ARB_indirect_parameters
@@ -1758,9 +1845,6 @@ int AnyGL_load(void)
 		if (!AnyGL_glMultiDrawElementsIndirectCount)
 			AnyGL_glMultiDrawElementsIndirectCount = (PFNANYGLMULTIDRAWELEMENTSINDIRECTCOUNTPROC)&glMultiDrawElementsIndirectCountARB;
 	}
-	else
-	{
-	}
 #endif /* GL_ARB_indirect_parameters */
 
 #ifndef ANYGL_ARB_instanced_arrays
@@ -1770,21 +1854,35 @@ int AnyGL_load(void)
 		if (!AnyGL_glVertexAttribDivisor)
 			AnyGL_glVertexAttribDivisor = (PFNANYGLVERTEXATTRIBDIVISORPROC)&glVertexAttribDivisorARB;
 	}
-	else
-	{
-	}
 #endif /* GL_ARB_instanced_arrays */
 
 #ifndef ANYGL_ARB_internalformat_query
 	AnyGL_ARB_internalformat_query = AnyGL_queryExtension("GL_ARB_internalformat_query");
+	if (AnyGL_ARB_internalformat_query)
+	{
+		AnyGL_glGetInternalformativ = (PFNANYGLGETINTERNALFORMATIVPROC)&glGetInternalformativ;
+	}
 #endif /* GL_ARB_internalformat_query */
 
 #ifndef ANYGL_ARB_internalformat_query2
 	AnyGL_ARB_internalformat_query2 = AnyGL_queryExtension("GL_ARB_internalformat_query2");
+	if (AnyGL_ARB_internalformat_query2)
+	{
+		AnyGL_glGetInternalformati64v = (PFNANYGLGETINTERNALFORMATI64VPROC)&glGetInternalformati64v;
+	}
 #endif /* GL_ARB_internalformat_query2 */
 
 #ifndef ANYGL_ARB_invalidate_subdata
 	AnyGL_ARB_invalidate_subdata = AnyGL_queryExtension("GL_ARB_invalidate_subdata");
+	if (AnyGL_ARB_invalidate_subdata)
+	{
+		AnyGL_glInvalidateTexSubImage = (PFNANYGLINVALIDATETEXSUBIMAGEPROC)&glInvalidateTexSubImage;
+		AnyGL_glInvalidateTexImage = (PFNANYGLINVALIDATETEXIMAGEPROC)&glInvalidateTexImage;
+		AnyGL_glInvalidateBufferSubData = (PFNANYGLINVALIDATEBUFFERSUBDATAPROC)&glInvalidateBufferSubData;
+		AnyGL_glInvalidateBufferData = (PFNANYGLINVALIDATEBUFFERDATAPROC)&glInvalidateBufferData;
+		AnyGL_glInvalidateFramebuffer = (PFNANYGLINVALIDATEFRAMEBUFFERPROC)&glInvalidateFramebuffer;
+		AnyGL_glInvalidateSubFramebuffer = (PFNANYGLINVALIDATESUBFRAMEBUFFERPROC)&glInvalidateSubFramebuffer;
+	}
 #endif /* GL_ARB_invalidate_subdata */
 
 #ifndef ANYGL_ARB_map_buffer_alignment
@@ -1793,6 +1891,11 @@ int AnyGL_load(void)
 
 #ifndef ANYGL_ARB_map_buffer_range
 	AnyGL_ARB_map_buffer_range = AnyGL_queryExtension("GL_ARB_map_buffer_range");
+	if (AnyGL_ARB_map_buffer_range)
+	{
+		AnyGL_glMapBufferRange = (PFNANYGLMAPBUFFERRANGEPROC)&glMapBufferRange;
+		AnyGL_glFlushMappedBufferRange = (PFNANYGLFLUSHMAPPEDBUFFERRANGEPROC)&glFlushMappedBufferRange;
+	}
 #endif /* GL_ARB_map_buffer_range */
 
 #ifndef ANYGL_ARB_matrix_palette
@@ -1805,22 +1908,28 @@ int AnyGL_load(void)
 		AnyGL_glMatrixIndexuivARB = (PFNANYGLMATRIXINDEXUIVARBPROC)&glMatrixIndexuivARB;
 		AnyGL_glMatrixIndexPointerARB = (PFNANYGLMATRIXINDEXPOINTERARBPROC)&glMatrixIndexPointerARB;
 	}
-	else
-	{
-		AnyGL_glCurrentPaletteMatrixARB = 0;
-		AnyGL_glMatrixIndexubvARB = 0;
-		AnyGL_glMatrixIndexusvARB = 0;
-		AnyGL_glMatrixIndexuivARB = 0;
-		AnyGL_glMatrixIndexPointerARB = 0;
-	}
 #endif /* GL_ARB_matrix_palette */
 
 #ifndef ANYGL_ARB_multi_bind
 	AnyGL_ARB_multi_bind = AnyGL_queryExtension("GL_ARB_multi_bind");
+	if (AnyGL_ARB_multi_bind)
+	{
+		AnyGL_glBindBuffersBase = (PFNANYGLBINDBUFFERSBASEPROC)&glBindBuffersBase;
+		AnyGL_glBindBuffersRange = (PFNANYGLBINDBUFFERSRANGEPROC)&glBindBuffersRange;
+		AnyGL_glBindTextures = (PFNANYGLBINDTEXTURESPROC)&glBindTextures;
+		AnyGL_glBindSamplers = (PFNANYGLBINDSAMPLERSPROC)&glBindSamplers;
+		AnyGL_glBindImageTextures = (PFNANYGLBINDIMAGETEXTURESPROC)&glBindImageTextures;
+		AnyGL_glBindVertexBuffers = (PFNANYGLBINDVERTEXBUFFERSPROC)&glBindVertexBuffers;
+	}
 #endif /* GL_ARB_multi_bind */
 
 #ifndef ANYGL_ARB_multi_draw_indirect
 	AnyGL_ARB_multi_draw_indirect = AnyGL_queryExtension("GL_ARB_multi_draw_indirect");
+	if (AnyGL_ARB_multi_draw_indirect)
+	{
+		AnyGL_glMultiDrawArraysIndirect = (PFNANYGLMULTIDRAWARRAYSINDIRECTPROC)&glMultiDrawArraysIndirect;
+		AnyGL_glMultiDrawElementsIndirect = (PFNANYGLMULTIDRAWELEMENTSINDIRECTPROC)&glMultiDrawElementsIndirect;
+	}
 #endif /* GL_ARB_multi_draw_indirect */
 
 #ifndef ANYGL_ARB_multisample
@@ -1829,9 +1938,6 @@ int AnyGL_load(void)
 	{
 		if (!AnyGL_glSampleCoverage)
 			AnyGL_glSampleCoverage = (PFNANYGLSAMPLECOVERAGEPROC)&glSampleCoverageARB;
-	}
-	else
-	{
 	}
 #endif /* GL_ARB_multisample */
 
@@ -1908,9 +2014,6 @@ int AnyGL_load(void)
 		if (!AnyGL_glMultiTexCoord4sv)
 			AnyGL_glMultiTexCoord4sv = (PFNANYGLMULTITEXCOORD4SVPROC)&glMultiTexCoord4svARB;
 	}
-	else
-	{
-	}
 #endif /* GL_ARB_multitexture */
 
 #ifndef ANYGL_ARB_occlusion_query
@@ -1934,9 +2037,6 @@ int AnyGL_load(void)
 		if (!AnyGL_glGetQueryObjectuiv)
 			AnyGL_glGetQueryObjectuiv = (PFNANYGLGETQUERYOBJECTUIVPROC)&glGetQueryObjectuivARB;
 	}
-	else
-	{
-	}
 #endif /* GL_ARB_occlusion_query */
 
 #ifndef ANYGL_ARB_occlusion_query2
@@ -1949,9 +2049,6 @@ int AnyGL_load(void)
 	{
 		if (!AnyGL_glMaxShaderCompilerThreadsKHR)
 			AnyGL_glMaxShaderCompilerThreadsKHR = (PFNANYGLMAXSHADERCOMPILERTHREADSKHRPROC)&glMaxShaderCompilerThreadsARB;
-	}
-	else
-	{
 	}
 #endif /* GL_ARB_parallel_shader_compile */
 
@@ -1972,9 +2069,6 @@ int AnyGL_load(void)
 		if (!AnyGL_glPointParameterfv)
 			AnyGL_glPointParameterfv = (PFNANYGLPOINTPARAMETERFVPROC)&glPointParameterfvARB;
 	}
-	else
-	{
-	}
 #endif /* GL_ARB_point_parameters */
 
 #ifndef ANYGL_ARB_point_sprite
@@ -1983,6 +2077,10 @@ int AnyGL_load(void)
 
 #ifndef ANYGL_ARB_polygon_offset_clamp
 	AnyGL_ARB_polygon_offset_clamp = AnyGL_queryExtension("GL_ARB_polygon_offset_clamp");
+	if (AnyGL_ARB_polygon_offset_clamp)
+	{
+		AnyGL_glPolygonOffsetClamp = (PFNANYGLPOLYGONOFFSETCLAMPPROC)&glPolygonOffsetClamp;
+	}
 #endif /* GL_ARB_polygon_offset_clamp */
 
 #ifndef ANYGL_ARB_post_depth_coverage
@@ -1991,10 +2089,23 @@ int AnyGL_load(void)
 
 #ifndef ANYGL_ARB_program_interface_query
 	AnyGL_ARB_program_interface_query = AnyGL_queryExtension("GL_ARB_program_interface_query");
+	if (AnyGL_ARB_program_interface_query)
+	{
+		AnyGL_glGetProgramInterfaceiv = (PFNANYGLGETPROGRAMINTERFACEIVPROC)&glGetProgramInterfaceiv;
+		AnyGL_glGetProgramResourceIndex = (PFNANYGLGETPROGRAMRESOURCEINDEXPROC)&glGetProgramResourceIndex;
+		AnyGL_glGetProgramResourceName = (PFNANYGLGETPROGRAMRESOURCENAMEPROC)&glGetProgramResourceName;
+		AnyGL_glGetProgramResourceiv = (PFNANYGLGETPROGRAMRESOURCEIVPROC)&glGetProgramResourceiv;
+		AnyGL_glGetProgramResourceLocation = (PFNANYGLGETPROGRAMRESOURCELOCATIONPROC)&glGetProgramResourceLocation;
+		AnyGL_glGetProgramResourceLocationIndex = (PFNANYGLGETPROGRAMRESOURCELOCATIONINDEXPROC)&glGetProgramResourceLocationIndex;
+	}
 #endif /* GL_ARB_program_interface_query */
 
 #ifndef ANYGL_ARB_provoking_vertex
 	AnyGL_ARB_provoking_vertex = AnyGL_queryExtension("GL_ARB_provoking_vertex");
+	if (AnyGL_ARB_provoking_vertex)
+	{
+		AnyGL_glProvokingVertex = (PFNANYGLPROVOKINGVERTEXPROC)&glProvokingVertex;
+	}
 #endif /* GL_ARB_provoking_vertex */
 
 #ifndef ANYGL_ARB_query_buffer_object
@@ -2050,9 +2161,6 @@ int AnyGL_load(void)
 		if (!AnyGL_glGetnMinmax)
 			AnyGL_glGetnMinmax = (PFNANYGLGETNMINMAXPROC)&glGetnMinmaxARB;
 	}
-	else
-	{
-	}
 #endif /* GL_ARB_robustness */
 
 #ifndef ANYGL_ARB_robustness_isolation
@@ -2067,12 +2175,6 @@ int AnyGL_load(void)
 		AnyGL_glNamedFramebufferSampleLocationsfvARB = (PFNANYGLNAMEDFRAMEBUFFERSAMPLELOCATIONSFVARBPROC)&glNamedFramebufferSampleLocationsfvARB;
 		AnyGL_glEvaluateDepthValuesARB = (PFNANYGLEVALUATEDEPTHVALUESARBPROC)&glEvaluateDepthValuesARB;
 	}
-	else
-	{
-		AnyGL_glFramebufferSampleLocationsfvARB = 0;
-		AnyGL_glNamedFramebufferSampleLocationsfvARB = 0;
-		AnyGL_glEvaluateDepthValuesARB = 0;
-	}
 #endif /* GL_ARB_sample_locations */
 
 #ifndef ANYGL_ARB_sample_shading
@@ -2082,13 +2184,27 @@ int AnyGL_load(void)
 		if (!AnyGL_glMinSampleShading)
 			AnyGL_glMinSampleShading = (PFNANYGLMINSAMPLESHADINGPROC)&glMinSampleShadingARB;
 	}
-	else
-	{
-	}
 #endif /* GL_ARB_sample_shading */
 
 #ifndef ANYGL_ARB_sampler_objects
 	AnyGL_ARB_sampler_objects = AnyGL_queryExtension("GL_ARB_sampler_objects");
+	if (AnyGL_ARB_sampler_objects)
+	{
+		AnyGL_glGenSamplers = (PFNANYGLGENSAMPLERSPROC)&glGenSamplers;
+		AnyGL_glDeleteSamplers = (PFNANYGLDELETESAMPLERSPROC)&glDeleteSamplers;
+		AnyGL_glIsSampler = (PFNANYGLISSAMPLERPROC)&glIsSampler;
+		AnyGL_glBindSampler = (PFNANYGLBINDSAMPLERPROC)&glBindSampler;
+		AnyGL_glSamplerParameteri = (PFNANYGLSAMPLERPARAMETERIPROC)&glSamplerParameteri;
+		AnyGL_glSamplerParameteriv = (PFNANYGLSAMPLERPARAMETERIVPROC)&glSamplerParameteriv;
+		AnyGL_glSamplerParameterf = (PFNANYGLSAMPLERPARAMETERFPROC)&glSamplerParameterf;
+		AnyGL_glSamplerParameterfv = (PFNANYGLSAMPLERPARAMETERFVPROC)&glSamplerParameterfv;
+		AnyGL_glSamplerParameterIiv = (PFNANYGLSAMPLERPARAMETERIIVPROC)&glSamplerParameterIiv;
+		AnyGL_glSamplerParameterIuiv = (PFNANYGLSAMPLERPARAMETERIUIVPROC)&glSamplerParameterIuiv;
+		AnyGL_glGetSamplerParameteriv = (PFNANYGLGETSAMPLERPARAMETERIVPROC)&glGetSamplerParameteriv;
+		AnyGL_glGetSamplerParameterIiv = (PFNANYGLGETSAMPLERPARAMETERIIVPROC)&glGetSamplerParameterIiv;
+		AnyGL_glGetSamplerParameterfv = (PFNANYGLGETSAMPLERPARAMETERFVPROC)&glGetSamplerParameterfv;
+		AnyGL_glGetSamplerParameterIuiv = (PFNANYGLGETSAMPLERPARAMETERIUIVPROC)&glGetSamplerParameterIuiv;
+	}
 #endif /* GL_ARB_sampler_objects */
 
 #ifndef ANYGL_ARB_seamless_cube_map
@@ -2101,6 +2217,70 @@ int AnyGL_load(void)
 
 #ifndef ANYGL_ARB_separate_shader_objects
 	AnyGL_ARB_separate_shader_objects = AnyGL_queryExtension("GL_ARB_separate_shader_objects");
+	if (AnyGL_ARB_separate_shader_objects)
+	{
+		AnyGL_glUseProgramStages = (PFNANYGLUSEPROGRAMSTAGESPROC)&glUseProgramStages;
+		AnyGL_glActiveShaderProgram = (PFNANYGLACTIVESHADERPROGRAMPROC)&glActiveShaderProgram;
+		AnyGL_glCreateShaderProgramv = (PFNANYGLCREATESHADERPROGRAMVPROC)&glCreateShaderProgramv;
+		AnyGL_glBindProgramPipeline = (PFNANYGLBINDPROGRAMPIPELINEPROC)&glBindProgramPipeline;
+		AnyGL_glDeleteProgramPipelines = (PFNANYGLDELETEPROGRAMPIPELINESPROC)&glDeleteProgramPipelines;
+		AnyGL_glGenProgramPipelines = (PFNANYGLGENPROGRAMPIPELINESPROC)&glGenProgramPipelines;
+		AnyGL_glIsProgramPipeline = (PFNANYGLISPROGRAMPIPELINEPROC)&glIsProgramPipeline;
+		AnyGL_glGetProgramPipelineiv = (PFNANYGLGETPROGRAMPIPELINEIVPROC)&glGetProgramPipelineiv;
+		AnyGL_glProgramParameteri = (PFNANYGLPROGRAMPARAMETERIPROC)&glProgramParameteri;
+		AnyGL_glProgramUniform1i = (PFNANYGLPROGRAMUNIFORM1IPROC)&glProgramUniform1i;
+		AnyGL_glProgramUniform1iv = (PFNANYGLPROGRAMUNIFORM1IVPROC)&glProgramUniform1iv;
+		AnyGL_glProgramUniform1f = (PFNANYGLPROGRAMUNIFORM1FPROC)&glProgramUniform1f;
+		AnyGL_glProgramUniform1fv = (PFNANYGLPROGRAMUNIFORM1FVPROC)&glProgramUniform1fv;
+		AnyGL_glProgramUniform1d = (PFNANYGLPROGRAMUNIFORM1DPROC)&glProgramUniform1d;
+		AnyGL_glProgramUniform1dv = (PFNANYGLPROGRAMUNIFORM1DVPROC)&glProgramUniform1dv;
+		AnyGL_glProgramUniform1ui = (PFNANYGLPROGRAMUNIFORM1UIPROC)&glProgramUniform1ui;
+		AnyGL_glProgramUniform1uiv = (PFNANYGLPROGRAMUNIFORM1UIVPROC)&glProgramUniform1uiv;
+		AnyGL_glProgramUniform2i = (PFNANYGLPROGRAMUNIFORM2IPROC)&glProgramUniform2i;
+		AnyGL_glProgramUniform2iv = (PFNANYGLPROGRAMUNIFORM2IVPROC)&glProgramUniform2iv;
+		AnyGL_glProgramUniform2f = (PFNANYGLPROGRAMUNIFORM2FPROC)&glProgramUniform2f;
+		AnyGL_glProgramUniform2fv = (PFNANYGLPROGRAMUNIFORM2FVPROC)&glProgramUniform2fv;
+		AnyGL_glProgramUniform2d = (PFNANYGLPROGRAMUNIFORM2DPROC)&glProgramUniform2d;
+		AnyGL_glProgramUniform2dv = (PFNANYGLPROGRAMUNIFORM2DVPROC)&glProgramUniform2dv;
+		AnyGL_glProgramUniform2ui = (PFNANYGLPROGRAMUNIFORM2UIPROC)&glProgramUniform2ui;
+		AnyGL_glProgramUniform2uiv = (PFNANYGLPROGRAMUNIFORM2UIVPROC)&glProgramUniform2uiv;
+		AnyGL_glProgramUniform3i = (PFNANYGLPROGRAMUNIFORM3IPROC)&glProgramUniform3i;
+		AnyGL_glProgramUniform3iv = (PFNANYGLPROGRAMUNIFORM3IVPROC)&glProgramUniform3iv;
+		AnyGL_glProgramUniform3f = (PFNANYGLPROGRAMUNIFORM3FPROC)&glProgramUniform3f;
+		AnyGL_glProgramUniform3fv = (PFNANYGLPROGRAMUNIFORM3FVPROC)&glProgramUniform3fv;
+		AnyGL_glProgramUniform3d = (PFNANYGLPROGRAMUNIFORM3DPROC)&glProgramUniform3d;
+		AnyGL_glProgramUniform3dv = (PFNANYGLPROGRAMUNIFORM3DVPROC)&glProgramUniform3dv;
+		AnyGL_glProgramUniform3ui = (PFNANYGLPROGRAMUNIFORM3UIPROC)&glProgramUniform3ui;
+		AnyGL_glProgramUniform3uiv = (PFNANYGLPROGRAMUNIFORM3UIVPROC)&glProgramUniform3uiv;
+		AnyGL_glProgramUniform4i = (PFNANYGLPROGRAMUNIFORM4IPROC)&glProgramUniform4i;
+		AnyGL_glProgramUniform4iv = (PFNANYGLPROGRAMUNIFORM4IVPROC)&glProgramUniform4iv;
+		AnyGL_glProgramUniform4f = (PFNANYGLPROGRAMUNIFORM4FPROC)&glProgramUniform4f;
+		AnyGL_glProgramUniform4fv = (PFNANYGLPROGRAMUNIFORM4FVPROC)&glProgramUniform4fv;
+		AnyGL_glProgramUniform4d = (PFNANYGLPROGRAMUNIFORM4DPROC)&glProgramUniform4d;
+		AnyGL_glProgramUniform4dv = (PFNANYGLPROGRAMUNIFORM4DVPROC)&glProgramUniform4dv;
+		AnyGL_glProgramUniform4ui = (PFNANYGLPROGRAMUNIFORM4UIPROC)&glProgramUniform4ui;
+		AnyGL_glProgramUniform4uiv = (PFNANYGLPROGRAMUNIFORM4UIVPROC)&glProgramUniform4uiv;
+		AnyGL_glProgramUniformMatrix2fv = (PFNANYGLPROGRAMUNIFORMMATRIX2FVPROC)&glProgramUniformMatrix2fv;
+		AnyGL_glProgramUniformMatrix3fv = (PFNANYGLPROGRAMUNIFORMMATRIX3FVPROC)&glProgramUniformMatrix3fv;
+		AnyGL_glProgramUniformMatrix4fv = (PFNANYGLPROGRAMUNIFORMMATRIX4FVPROC)&glProgramUniformMatrix4fv;
+		AnyGL_glProgramUniformMatrix2dv = (PFNANYGLPROGRAMUNIFORMMATRIX2DVPROC)&glProgramUniformMatrix2dv;
+		AnyGL_glProgramUniformMatrix3dv = (PFNANYGLPROGRAMUNIFORMMATRIX3DVPROC)&glProgramUniformMatrix3dv;
+		AnyGL_glProgramUniformMatrix4dv = (PFNANYGLPROGRAMUNIFORMMATRIX4DVPROC)&glProgramUniformMatrix4dv;
+		AnyGL_glProgramUniformMatrix2x3fv = (PFNANYGLPROGRAMUNIFORMMATRIX2X3FVPROC)&glProgramUniformMatrix2x3fv;
+		AnyGL_glProgramUniformMatrix3x2fv = (PFNANYGLPROGRAMUNIFORMMATRIX3X2FVPROC)&glProgramUniformMatrix3x2fv;
+		AnyGL_glProgramUniformMatrix2x4fv = (PFNANYGLPROGRAMUNIFORMMATRIX2X4FVPROC)&glProgramUniformMatrix2x4fv;
+		AnyGL_glProgramUniformMatrix4x2fv = (PFNANYGLPROGRAMUNIFORMMATRIX4X2FVPROC)&glProgramUniformMatrix4x2fv;
+		AnyGL_glProgramUniformMatrix3x4fv = (PFNANYGLPROGRAMUNIFORMMATRIX3X4FVPROC)&glProgramUniformMatrix3x4fv;
+		AnyGL_glProgramUniformMatrix4x3fv = (PFNANYGLPROGRAMUNIFORMMATRIX4X3FVPROC)&glProgramUniformMatrix4x3fv;
+		AnyGL_glProgramUniformMatrix2x3dv = (PFNANYGLPROGRAMUNIFORMMATRIX2X3DVPROC)&glProgramUniformMatrix2x3dv;
+		AnyGL_glProgramUniformMatrix3x2dv = (PFNANYGLPROGRAMUNIFORMMATRIX3X2DVPROC)&glProgramUniformMatrix3x2dv;
+		AnyGL_glProgramUniformMatrix2x4dv = (PFNANYGLPROGRAMUNIFORMMATRIX2X4DVPROC)&glProgramUniformMatrix2x4dv;
+		AnyGL_glProgramUniformMatrix4x2dv = (PFNANYGLPROGRAMUNIFORMMATRIX4X2DVPROC)&glProgramUniformMatrix4x2dv;
+		AnyGL_glProgramUniformMatrix3x4dv = (PFNANYGLPROGRAMUNIFORMMATRIX3X4DVPROC)&glProgramUniformMatrix3x4dv;
+		AnyGL_glProgramUniformMatrix4x3dv = (PFNANYGLPROGRAMUNIFORMMATRIX4X3DVPROC)&glProgramUniformMatrix4x3dv;
+		AnyGL_glValidateProgramPipeline = (PFNANYGLVALIDATEPROGRAMPIPELINEPROC)&glValidateProgramPipeline;
+		AnyGL_glGetProgramPipelineInfoLog = (PFNANYGLGETPROGRAMPIPELINEINFOLOGPROC)&glGetProgramPipelineInfoLog;
+	}
 #endif /* GL_ARB_separate_shader_objects */
 
 #ifndef ANYGL_ARB_shader_atomic_counter_ops
@@ -2109,6 +2289,10 @@ int AnyGL_load(void)
 
 #ifndef ANYGL_ARB_shader_atomic_counters
 	AnyGL_ARB_shader_atomic_counters = AnyGL_queryExtension("GL_ARB_shader_atomic_counters");
+	if (AnyGL_ARB_shader_atomic_counters)
+	{
+		AnyGL_glGetActiveAtomicCounterBufferiv = (PFNANYGLGETACTIVEATOMICCOUNTERBUFFERIVPROC)&glGetActiveAtomicCounterBufferiv;
+	}
 #endif /* GL_ARB_shader_atomic_counters */
 
 #ifndef ANYGL_ARB_shader_ballot
@@ -2133,6 +2317,11 @@ int AnyGL_load(void)
 
 #ifndef ANYGL_ARB_shader_image_load_store
 	AnyGL_ARB_shader_image_load_store = AnyGL_queryExtension("GL_ARB_shader_image_load_store");
+	if (AnyGL_ARB_shader_image_load_store)
+	{
+		AnyGL_glBindImageTexture = (PFNANYGLBINDIMAGETEXTUREPROC)&glBindImageTexture;
+		AnyGL_glMemoryBarrier = (PFNANYGLMEMORYBARRIERPROC)&glMemoryBarrier;
+	}
 #endif /* GL_ARB_shader_image_load_store */
 
 #ifndef ANYGL_ARB_shader_image_size
@@ -2216,15 +2405,6 @@ int AnyGL_load(void)
 		if (!AnyGL_glGetShaderSource)
 			AnyGL_glGetShaderSource = (PFNANYGLGETSHADERSOURCEPROC)&glGetShaderSourceARB;
 	}
-	else
-	{
-		AnyGL_glDeleteObjectARB = 0;
-		AnyGL_glGetHandleARB = 0;
-		AnyGL_glGetObjectParameterfvARB = 0;
-		AnyGL_glGetObjectParameterivARB = 0;
-		AnyGL_glGetInfoLogARB = 0;
-		AnyGL_glGetAttachedObjectsARB = 0;
-	}
 #endif /* GL_ARB_shader_objects */
 
 #ifndef ANYGL_ARB_shader_precision
@@ -2237,10 +2417,25 @@ int AnyGL_load(void)
 
 #ifndef ANYGL_ARB_shader_storage_buffer_object
 	AnyGL_ARB_shader_storage_buffer_object = AnyGL_queryExtension("GL_ARB_shader_storage_buffer_object");
+	if (AnyGL_ARB_shader_storage_buffer_object)
+	{
+		AnyGL_glShaderStorageBlockBinding = (PFNANYGLSHADERSTORAGEBLOCKBINDINGPROC)&glShaderStorageBlockBinding;
+	}
 #endif /* GL_ARB_shader_storage_buffer_object */
 
 #ifndef ANYGL_ARB_shader_subroutine
 	AnyGL_ARB_shader_subroutine = AnyGL_queryExtension("GL_ARB_shader_subroutine");
+	if (AnyGL_ARB_shader_subroutine)
+	{
+		AnyGL_glGetSubroutineUniformLocation = (PFNANYGLGETSUBROUTINEUNIFORMLOCATIONPROC)&glGetSubroutineUniformLocation;
+		AnyGL_glGetSubroutineIndex = (PFNANYGLGETSUBROUTINEINDEXPROC)&glGetSubroutineIndex;
+		AnyGL_glGetActiveSubroutineUniformiv = (PFNANYGLGETACTIVESUBROUTINEUNIFORMIVPROC)&glGetActiveSubroutineUniformiv;
+		AnyGL_glGetActiveSubroutineUniformName = (PFNANYGLGETACTIVESUBROUTINEUNIFORMNAMEPROC)&glGetActiveSubroutineUniformName;
+		AnyGL_glGetActiveSubroutineName = (PFNANYGLGETACTIVESUBROUTINENAMEPROC)&glGetActiveSubroutineName;
+		AnyGL_glUniformSubroutinesuiv = (PFNANYGLUNIFORMSUBROUTINESUIVPROC)&glUniformSubroutinesuiv;
+		AnyGL_glGetUniformSubroutineuiv = (PFNANYGLGETUNIFORMSUBROUTINEUIVPROC)&glGetUniformSubroutineuiv;
+		AnyGL_glGetProgramStageiv = (PFNANYGLGETPROGRAMSTAGEIVPROC)&glGetProgramStageiv;
+	}
 #endif /* GL_ARB_shader_subroutine */
 
 #ifndef ANYGL_ARB_shader_texture_image_samples
@@ -2274,15 +2469,6 @@ int AnyGL_load(void)
 		AnyGL_glGetNamedStringARB = (PFNANYGLGETNAMEDSTRINGARBPROC)&glGetNamedStringARB;
 		AnyGL_glGetNamedStringivARB = (PFNANYGLGETNAMEDSTRINGIVARBPROC)&glGetNamedStringivARB;
 	}
-	else
-	{
-		AnyGL_glNamedStringARB = 0;
-		AnyGL_glDeleteNamedStringARB = 0;
-		AnyGL_glCompileShaderIncludeARB = 0;
-		AnyGL_glIsNamedStringARB = 0;
-		AnyGL_glGetNamedStringARB = 0;
-		AnyGL_glGetNamedStringivARB = 0;
-	}
 #endif /* GL_ARB_shading_language_include */
 
 #ifndef ANYGL_ARB_shading_language_packing
@@ -2305,12 +2491,6 @@ int AnyGL_load(void)
 		AnyGL_glNamedBufferPageCommitmentEXT = (PFNANYGLNAMEDBUFFERPAGECOMMITMENTEXTPROC)&glNamedBufferPageCommitmentEXT;
 		AnyGL_glNamedBufferPageCommitmentARB = (PFNANYGLNAMEDBUFFERPAGECOMMITMENTARBPROC)&glNamedBufferPageCommitmentARB;
 	}
-	else
-	{
-		AnyGL_glBufferPageCommitmentARB = 0;
-		AnyGL_glNamedBufferPageCommitmentEXT = 0;
-		AnyGL_glNamedBufferPageCommitmentARB = 0;
-	}
 #endif /* GL_ARB_sparse_buffer */
 
 #ifndef ANYGL_ARB_sparse_texture
@@ -2318,10 +2498,6 @@ int AnyGL_load(void)
 	if (AnyGL_ARB_sparse_texture)
 	{
 		AnyGL_glTexPageCommitmentARB = (PFNANYGLTEXPAGECOMMITMENTARBPROC)&glTexPageCommitmentARB;
-	}
-	else
-	{
-		AnyGL_glTexPageCommitmentARB = 0;
 	}
 #endif /* GL_ARB_sparse_texture */
 
@@ -2343,14 +2519,33 @@ int AnyGL_load(void)
 
 #ifndef ANYGL_ARB_sync
 	AnyGL_ARB_sync = AnyGL_queryExtension("GL_ARB_sync");
+	if (AnyGL_ARB_sync)
+	{
+		AnyGL_glFenceSync = (PFNANYGLFENCESYNCPROC)&glFenceSync;
+		AnyGL_glIsSync = (PFNANYGLISSYNCPROC)&glIsSync;
+		AnyGL_glDeleteSync = (PFNANYGLDELETESYNCPROC)&glDeleteSync;
+		AnyGL_glClientWaitSync = (PFNANYGLCLIENTWAITSYNCPROC)&glClientWaitSync;
+		AnyGL_glWaitSync = (PFNANYGLWAITSYNCPROC)&glWaitSync;
+		AnyGL_glGetInteger64v = (PFNANYGLGETINTEGER64VPROC)&glGetInteger64v;
+		AnyGL_glGetSynciv = (PFNANYGLGETSYNCIVPROC)&glGetSynciv;
+	}
 #endif /* GL_ARB_sync */
 
 #ifndef ANYGL_ARB_tessellation_shader
 	AnyGL_ARB_tessellation_shader = AnyGL_queryExtension("GL_ARB_tessellation_shader");
+	if (AnyGL_ARB_tessellation_shader)
+	{
+		AnyGL_glPatchParameteri = (PFNANYGLPATCHPARAMETERIPROC)&glPatchParameteri;
+		AnyGL_glPatchParameterfv = (PFNANYGLPATCHPARAMETERFVPROC)&glPatchParameterfv;
+	}
 #endif /* GL_ARB_tessellation_shader */
 
 #ifndef ANYGL_ARB_texture_barrier
 	AnyGL_ARB_texture_barrier = AnyGL_queryExtension("GL_ARB_texture_barrier");
+	if (AnyGL_ARB_texture_barrier)
+	{
+		AnyGL_glTextureBarrier = (PFNANYGLTEXTUREBARRIERPROC)&glTextureBarrier;
+	}
 #endif /* GL_ARB_texture_barrier */
 
 #ifndef ANYGL_ARB_texture_border_clamp
@@ -2364,9 +2559,6 @@ int AnyGL_load(void)
 		if (!AnyGL_glTexBuffer)
 			AnyGL_glTexBuffer = (PFNANYGLTEXBUFFERPROC)&glTexBufferARB;
 	}
-	else
-	{
-	}
 #endif /* GL_ARB_texture_buffer_object */
 
 #ifndef ANYGL_ARB_texture_buffer_object_rgb32
@@ -2375,6 +2567,10 @@ int AnyGL_load(void)
 
 #ifndef ANYGL_ARB_texture_buffer_range
 	AnyGL_ARB_texture_buffer_range = AnyGL_queryExtension("GL_ARB_texture_buffer_range");
+	if (AnyGL_ARB_texture_buffer_range)
+	{
+		AnyGL_glTexBufferRange = (PFNANYGLTEXBUFFERRANGEPROC)&glTexBufferRange;
+	}
 #endif /* GL_ARB_texture_buffer_range */
 
 #ifndef ANYGL_ARB_texture_compression
@@ -2395,9 +2591,6 @@ int AnyGL_load(void)
 			AnyGL_glCompressedTexSubImage1D = (PFNANYGLCOMPRESSEDTEXSUBIMAGE1DPROC)&glCompressedTexSubImage1DARB;
 		if (!AnyGL_glGetCompressedTexImage)
 			AnyGL_glGetCompressedTexImage = (PFNANYGLGETCOMPRESSEDTEXIMAGEPROC)&glGetCompressedTexImageARB;
-	}
-	else
-	{
 	}
 #endif /* GL_ARB_texture_compression */
 
@@ -2459,6 +2652,13 @@ int AnyGL_load(void)
 
 #ifndef ANYGL_ARB_texture_multisample
 	AnyGL_ARB_texture_multisample = AnyGL_queryExtension("GL_ARB_texture_multisample");
+	if (AnyGL_ARB_texture_multisample)
+	{
+		AnyGL_glTexImage2DMultisample = (PFNANYGLTEXIMAGE2DMULTISAMPLEPROC)&glTexImage2DMultisample;
+		AnyGL_glTexImage3DMultisample = (PFNANYGLTEXIMAGE3DMULTISAMPLEPROC)&glTexImage3DMultisample;
+		AnyGL_glGetMultisamplefv = (PFNANYGLGETMULTISAMPLEFVPROC)&glGetMultisamplefv;
+		AnyGL_glSampleMaski = (PFNANYGLSAMPLEMASKIPROC)&glSampleMaski;
+	}
 #endif /* GL_ARB_texture_multisample */
 
 #ifndef ANYGL_ARB_texture_non_power_of_two
@@ -2491,10 +2691,21 @@ int AnyGL_load(void)
 
 #ifndef ANYGL_ARB_texture_storage
 	AnyGL_ARB_texture_storage = AnyGL_queryExtension("GL_ARB_texture_storage");
+	if (AnyGL_ARB_texture_storage)
+	{
+		AnyGL_glTexStorage1D = (PFNANYGLTEXSTORAGE1DPROC)&glTexStorage1D;
+		AnyGL_glTexStorage2D = (PFNANYGLTEXSTORAGE2DPROC)&glTexStorage2D;
+		AnyGL_glTexStorage3D = (PFNANYGLTEXSTORAGE3DPROC)&glTexStorage3D;
+	}
 #endif /* GL_ARB_texture_storage */
 
 #ifndef ANYGL_ARB_texture_storage_multisample
 	AnyGL_ARB_texture_storage_multisample = AnyGL_queryExtension("GL_ARB_texture_storage_multisample");
+	if (AnyGL_ARB_texture_storage_multisample)
+	{
+		AnyGL_glTexStorage2DMultisample = (PFNANYGLTEXSTORAGE2DMULTISAMPLEPROC)&glTexStorage2DMultisample;
+		AnyGL_glTexStorage3DMultisample = (PFNANYGLTEXSTORAGE3DMULTISAMPLEPROC)&glTexStorage3DMultisample;
+	}
 #endif /* GL_ARB_texture_storage_multisample */
 
 #ifndef ANYGL_ARB_texture_swizzle
@@ -2503,22 +2714,54 @@ int AnyGL_load(void)
 
 #ifndef ANYGL_ARB_texture_view
 	AnyGL_ARB_texture_view = AnyGL_queryExtension("GL_ARB_texture_view");
+	if (AnyGL_ARB_texture_view)
+	{
+		AnyGL_glTextureView = (PFNANYGLTEXTUREVIEWPROC)&glTextureView;
+	}
 #endif /* GL_ARB_texture_view */
 
 #ifndef ANYGL_ARB_timer_query
 	AnyGL_ARB_timer_query = AnyGL_queryExtension("GL_ARB_timer_query");
+	if (AnyGL_ARB_timer_query)
+	{
+		AnyGL_glQueryCounter = (PFNANYGLQUERYCOUNTERPROC)&glQueryCounter;
+		AnyGL_glGetQueryObjecti64v = (PFNANYGLGETQUERYOBJECTI64VPROC)&glGetQueryObjecti64v;
+		AnyGL_glGetQueryObjectui64v = (PFNANYGLGETQUERYOBJECTUI64VPROC)&glGetQueryObjectui64v;
+	}
 #endif /* GL_ARB_timer_query */
 
 #ifndef ANYGL_ARB_transform_feedback2
 	AnyGL_ARB_transform_feedback2 = AnyGL_queryExtension("GL_ARB_transform_feedback2");
+	if (AnyGL_ARB_transform_feedback2)
+	{
+		AnyGL_glBindTransformFeedback = (PFNANYGLBINDTRANSFORMFEEDBACKPROC)&glBindTransformFeedback;
+		AnyGL_glDeleteTransformFeedbacks = (PFNANYGLDELETETRANSFORMFEEDBACKSPROC)&glDeleteTransformFeedbacks;
+		AnyGL_glGenTransformFeedbacks = (PFNANYGLGENTRANSFORMFEEDBACKSPROC)&glGenTransformFeedbacks;
+		AnyGL_glIsTransformFeedback = (PFNANYGLISTRANSFORMFEEDBACKPROC)&glIsTransformFeedback;
+		AnyGL_glPauseTransformFeedback = (PFNANYGLPAUSETRANSFORMFEEDBACKPROC)&glPauseTransformFeedback;
+		AnyGL_glResumeTransformFeedback = (PFNANYGLRESUMETRANSFORMFEEDBACKPROC)&glResumeTransformFeedback;
+		AnyGL_glDrawTransformFeedback = (PFNANYGLDRAWTRANSFORMFEEDBACKPROC)&glDrawTransformFeedback;
+	}
 #endif /* GL_ARB_transform_feedback2 */
 
 #ifndef ANYGL_ARB_transform_feedback3
 	AnyGL_ARB_transform_feedback3 = AnyGL_queryExtension("GL_ARB_transform_feedback3");
+	if (AnyGL_ARB_transform_feedback3)
+	{
+		AnyGL_glDrawTransformFeedbackStream = (PFNANYGLDRAWTRANSFORMFEEDBACKSTREAMPROC)&glDrawTransformFeedbackStream;
+		AnyGL_glBeginQueryIndexed = (PFNANYGLBEGINQUERYINDEXEDPROC)&glBeginQueryIndexed;
+		AnyGL_glEndQueryIndexed = (PFNANYGLENDQUERYINDEXEDPROC)&glEndQueryIndexed;
+		AnyGL_glGetQueryIndexediv = (PFNANYGLGETQUERYINDEXEDIVPROC)&glGetQueryIndexediv;
+	}
 #endif /* GL_ARB_transform_feedback3 */
 
 #ifndef ANYGL_ARB_transform_feedback_instanced
 	AnyGL_ARB_transform_feedback_instanced = AnyGL_queryExtension("GL_ARB_transform_feedback_instanced");
+	if (AnyGL_ARB_transform_feedback_instanced)
+	{
+		AnyGL_glDrawTransformFeedbackInstanced = (PFNANYGLDRAWTRANSFORMFEEDBACKINSTANCEDPROC)&glDrawTransformFeedbackInstanced;
+		AnyGL_glDrawTransformFeedbackStreamInstanced = (PFNANYGLDRAWTRANSFORMFEEDBACKSTREAMINSTANCEDPROC)&glDrawTransformFeedbackStreamInstanced;
+	}
 #endif /* GL_ARB_transform_feedback_instanced */
 
 #ifndef ANYGL_ARB_transform_feedback_overflow_query
@@ -2538,13 +2781,23 @@ int AnyGL_load(void)
 		if (!AnyGL_glMultTransposeMatrixd)
 			AnyGL_glMultTransposeMatrixd = (PFNANYGLMULTTRANSPOSEMATRIXDPROC)&glMultTransposeMatrixdARB;
 	}
-	else
-	{
-	}
 #endif /* GL_ARB_transpose_matrix */
 
 #ifndef ANYGL_ARB_uniform_buffer_object
 	AnyGL_ARB_uniform_buffer_object = AnyGL_queryExtension("GL_ARB_uniform_buffer_object");
+	if (AnyGL_ARB_uniform_buffer_object)
+	{
+		AnyGL_glGetUniformIndices = (PFNANYGLGETUNIFORMINDICESPROC)&glGetUniformIndices;
+		AnyGL_glGetActiveUniformsiv = (PFNANYGLGETACTIVEUNIFORMSIVPROC)&glGetActiveUniformsiv;
+		AnyGL_glGetActiveUniformName = (PFNANYGLGETACTIVEUNIFORMNAMEPROC)&glGetActiveUniformName;
+		AnyGL_glGetUniformBlockIndex = (PFNANYGLGETUNIFORMBLOCKINDEXPROC)&glGetUniformBlockIndex;
+		AnyGL_glGetActiveUniformBlockiv = (PFNANYGLGETACTIVEUNIFORMBLOCKIVPROC)&glGetActiveUniformBlockiv;
+		AnyGL_glGetActiveUniformBlockName = (PFNANYGLGETACTIVEUNIFORMBLOCKNAMEPROC)&glGetActiveUniformBlockName;
+		AnyGL_glUniformBlockBinding = (PFNANYGLUNIFORMBLOCKBINDINGPROC)&glUniformBlockBinding;
+		AnyGL_glBindBufferRange = (PFNANYGLBINDBUFFERRANGEPROC)&glBindBufferRange;
+		AnyGL_glBindBufferBase = (PFNANYGLBINDBUFFERBASEPROC)&glBindBufferBase;
+		AnyGL_glGetIntegeri_v = (PFNANYGLGETINTEGERI_VPROC)&glGetIntegeri_v;
+	}
 #endif /* GL_ARB_uniform_buffer_object */
 
 #ifndef ANYGL_ARB_vertex_array_bgra
@@ -2553,14 +2806,43 @@ int AnyGL_load(void)
 
 #ifndef ANYGL_ARB_vertex_array_object
 	AnyGL_ARB_vertex_array_object = AnyGL_queryExtension("GL_ARB_vertex_array_object");
+	if (AnyGL_ARB_vertex_array_object)
+	{
+		AnyGL_glBindVertexArray = (PFNANYGLBINDVERTEXARRAYPROC)&glBindVertexArray;
+		AnyGL_glDeleteVertexArrays = (PFNANYGLDELETEVERTEXARRAYSPROC)&glDeleteVertexArrays;
+		AnyGL_glGenVertexArrays = (PFNANYGLGENVERTEXARRAYSPROC)&glGenVertexArrays;
+		AnyGL_glIsVertexArray = (PFNANYGLISVERTEXARRAYPROC)&glIsVertexArray;
+	}
 #endif /* GL_ARB_vertex_array_object */
 
 #ifndef ANYGL_ARB_vertex_attrib_64bit
 	AnyGL_ARB_vertex_attrib_64bit = AnyGL_queryExtension("GL_ARB_vertex_attrib_64bit");
+	if (AnyGL_ARB_vertex_attrib_64bit)
+	{
+		AnyGL_glVertexAttribL1d = (PFNANYGLVERTEXATTRIBL1DPROC)&glVertexAttribL1d;
+		AnyGL_glVertexAttribL2d = (PFNANYGLVERTEXATTRIBL2DPROC)&glVertexAttribL2d;
+		AnyGL_glVertexAttribL3d = (PFNANYGLVERTEXATTRIBL3DPROC)&glVertexAttribL3d;
+		AnyGL_glVertexAttribL4d = (PFNANYGLVERTEXATTRIBL4DPROC)&glVertexAttribL4d;
+		AnyGL_glVertexAttribL1dv = (PFNANYGLVERTEXATTRIBL1DVPROC)&glVertexAttribL1dv;
+		AnyGL_glVertexAttribL2dv = (PFNANYGLVERTEXATTRIBL2DVPROC)&glVertexAttribL2dv;
+		AnyGL_glVertexAttribL3dv = (PFNANYGLVERTEXATTRIBL3DVPROC)&glVertexAttribL3dv;
+		AnyGL_glVertexAttribL4dv = (PFNANYGLVERTEXATTRIBL4DVPROC)&glVertexAttribL4dv;
+		AnyGL_glVertexAttribLPointer = (PFNANYGLVERTEXATTRIBLPOINTERPROC)&glVertexAttribLPointer;
+		AnyGL_glGetVertexAttribLdv = (PFNANYGLGETVERTEXATTRIBLDVPROC)&glGetVertexAttribLdv;
+	}
 #endif /* GL_ARB_vertex_attrib_64bit */
 
 #ifndef ANYGL_ARB_vertex_attrib_binding
 	AnyGL_ARB_vertex_attrib_binding = AnyGL_queryExtension("GL_ARB_vertex_attrib_binding");
+	if (AnyGL_ARB_vertex_attrib_binding)
+	{
+		AnyGL_glBindVertexBuffer = (PFNANYGLBINDVERTEXBUFFERPROC)&glBindVertexBuffer;
+		AnyGL_glVertexAttribFormat = (PFNANYGLVERTEXATTRIBFORMATPROC)&glVertexAttribFormat;
+		AnyGL_glVertexAttribIFormat = (PFNANYGLVERTEXATTRIBIFORMATPROC)&glVertexAttribIFormat;
+		AnyGL_glVertexAttribLFormat = (PFNANYGLVERTEXATTRIBLFORMATPROC)&glVertexAttribLFormat;
+		AnyGL_glVertexAttribBinding = (PFNANYGLVERTEXATTRIBBINDINGPROC)&glVertexAttribBinding;
+		AnyGL_glVertexBindingDivisor = (PFNANYGLVERTEXBINDINGDIVISORPROC)&glVertexBindingDivisor;
+	}
 #endif /* GL_ARB_vertex_attrib_binding */
 
 #ifndef ANYGL_ARB_vertex_blend
@@ -2577,19 +2859,6 @@ int AnyGL_load(void)
 		AnyGL_glWeightuivARB = (PFNANYGLWEIGHTUIVARBPROC)&glWeightuivARB;
 		AnyGL_glWeightPointerARB = (PFNANYGLWEIGHTPOINTERARBPROC)&glWeightPointerARB;
 		AnyGL_glVertexBlendARB = (PFNANYGLVERTEXBLENDARBPROC)&glVertexBlendARB;
-	}
-	else
-	{
-		AnyGL_glWeightbvARB = 0;
-		AnyGL_glWeightsvARB = 0;
-		AnyGL_glWeightivARB = 0;
-		AnyGL_glWeightfvARB = 0;
-		AnyGL_glWeightdvARB = 0;
-		AnyGL_glWeightubvARB = 0;
-		AnyGL_glWeightusvARB = 0;
-		AnyGL_glWeightuivARB = 0;
-		AnyGL_glWeightPointerARB = 0;
-		AnyGL_glVertexBlendARB = 0;
 	}
 #endif /* GL_ARB_vertex_blend */
 
@@ -2619,9 +2888,6 @@ int AnyGL_load(void)
 			AnyGL_glGetBufferParameteriv = (PFNANYGLGETBUFFERPARAMETERIVPROC)&glGetBufferParameterivARB;
 		if (!AnyGL_glGetBufferPointerv)
 			AnyGL_glGetBufferPointerv = (PFNANYGLGETBUFFERPOINTERVPROC)&glGetBufferPointervARB;
-	}
-	else
-	{
 	}
 #endif /* GL_ARB_vertex_buffer_object */
 
@@ -2707,6 +2973,124 @@ int AnyGL_load(void)
 			AnyGL_glEnableVertexAttribArray = (PFNANYGLENABLEVERTEXATTRIBARRAYPROC)&glEnableVertexAttribArrayARB;
 		if (!AnyGL_glDisableVertexAttribArray)
 			AnyGL_glDisableVertexAttribArray = (PFNANYGLDISABLEVERTEXATTRIBARRAYPROC)&glDisableVertexAttribArrayARB;
+		AnyGL_glProgramStringARB = (PFNANYGLPROGRAMSTRINGARBPROC)&glProgramStringARB;
+		AnyGL_glBindProgramARB = (PFNANYGLBINDPROGRAMARBPROC)&glBindProgramARB;
+		AnyGL_glDeleteProgramsARB = (PFNANYGLDELETEPROGRAMSARBPROC)&glDeleteProgramsARB;
+		AnyGL_glGenProgramsARB = (PFNANYGLGENPROGRAMSARBPROC)&glGenProgramsARB;
+		AnyGL_glProgramEnvParameter4dARB = (PFNANYGLPROGRAMENVPARAMETER4DARBPROC)&glProgramEnvParameter4dARB;
+		AnyGL_glProgramEnvParameter4dvARB = (PFNANYGLPROGRAMENVPARAMETER4DVARBPROC)&glProgramEnvParameter4dvARB;
+		AnyGL_glProgramEnvParameter4fARB = (PFNANYGLPROGRAMENVPARAMETER4FARBPROC)&glProgramEnvParameter4fARB;
+		AnyGL_glProgramEnvParameter4fvARB = (PFNANYGLPROGRAMENVPARAMETER4FVARBPROC)&glProgramEnvParameter4fvARB;
+		AnyGL_glProgramLocalParameter4dARB = (PFNANYGLPROGRAMLOCALPARAMETER4DARBPROC)&glProgramLocalParameter4dARB;
+		AnyGL_glProgramLocalParameter4dvARB = (PFNANYGLPROGRAMLOCALPARAMETER4DVARBPROC)&glProgramLocalParameter4dvARB;
+		AnyGL_glProgramLocalParameter4fARB = (PFNANYGLPROGRAMLOCALPARAMETER4FARBPROC)&glProgramLocalParameter4fARB;
+		AnyGL_glProgramLocalParameter4fvARB = (PFNANYGLPROGRAMLOCALPARAMETER4FVARBPROC)&glProgramLocalParameter4fvARB;
+		AnyGL_glGetProgramEnvParameterdvARB = (PFNANYGLGETPROGRAMENVPARAMETERDVARBPROC)&glGetProgramEnvParameterdvARB;
+		AnyGL_glGetProgramEnvParameterfvARB = (PFNANYGLGETPROGRAMENVPARAMETERFVARBPROC)&glGetProgramEnvParameterfvARB;
+		AnyGL_glGetProgramLocalParameterdvARB = (PFNANYGLGETPROGRAMLOCALPARAMETERDVARBPROC)&glGetProgramLocalParameterdvARB;
+		AnyGL_glGetProgramLocalParameterfvARB = (PFNANYGLGETPROGRAMLOCALPARAMETERFVARBPROC)&glGetProgramLocalParameterfvARB;
+		AnyGL_glGetProgramivARB = (PFNANYGLGETPROGRAMIVARBPROC)&glGetProgramivARB;
+		AnyGL_glGetProgramStringARB = (PFNANYGLGETPROGRAMSTRINGARBPROC)&glGetProgramStringARB;
+		if (!AnyGL_glGetVertexAttribdv)
+			AnyGL_glGetVertexAttribdv = (PFNANYGLGETVERTEXATTRIBDVPROC)&glGetVertexAttribdvARB;
+		if (!AnyGL_glGetVertexAttribfv)
+			AnyGL_glGetVertexAttribfv = (PFNANYGLGETVERTEXATTRIBFVPROC)&glGetVertexAttribfvARB;
+		if (!AnyGL_glGetVertexAttribiv)
+			AnyGL_glGetVertexAttribiv = (PFNANYGLGETVERTEXATTRIBIVPROC)&glGetVertexAttribivARB;
+		if (!AnyGL_glGetVertexAttribPointerv)
+			AnyGL_glGetVertexAttribPointerv = (PFNANYGLGETVERTEXATTRIBPOINTERVPROC)&glGetVertexAttribPointervARB;
+		AnyGL_glIsProgramARB = (PFNANYGLISPROGRAMARBPROC)&glIsProgramARB;
+	}
+#endif /* GL_ARB_vertex_program */
+
+#ifndef ANYGL_ARB_vertex_shader
+	AnyGL_ARB_vertex_shader = AnyGL_queryExtension("GL_ARB_vertex_shader");
+	if (AnyGL_ARB_vertex_shader)
+	{
+		if (!AnyGL_glVertexAttrib1f)
+			AnyGL_glVertexAttrib1f = (PFNANYGLVERTEXATTRIB1FPROC)&glVertexAttrib1fARB;
+		if (!AnyGL_glVertexAttrib1s)
+			AnyGL_glVertexAttrib1s = (PFNANYGLVERTEXATTRIB1SPROC)&glVertexAttrib1sARB;
+		if (!AnyGL_glVertexAttrib1d)
+			AnyGL_glVertexAttrib1d = (PFNANYGLVERTEXATTRIB1DPROC)&glVertexAttrib1dARB;
+		if (!AnyGL_glVertexAttrib2f)
+			AnyGL_glVertexAttrib2f = (PFNANYGLVERTEXATTRIB2FPROC)&glVertexAttrib2fARB;
+		if (!AnyGL_glVertexAttrib2s)
+			AnyGL_glVertexAttrib2s = (PFNANYGLVERTEXATTRIB2SPROC)&glVertexAttrib2sARB;
+		if (!AnyGL_glVertexAttrib2d)
+			AnyGL_glVertexAttrib2d = (PFNANYGLVERTEXATTRIB2DPROC)&glVertexAttrib2dARB;
+		if (!AnyGL_glVertexAttrib3f)
+			AnyGL_glVertexAttrib3f = (PFNANYGLVERTEXATTRIB3FPROC)&glVertexAttrib3fARB;
+		if (!AnyGL_glVertexAttrib3s)
+			AnyGL_glVertexAttrib3s = (PFNANYGLVERTEXATTRIB3SPROC)&glVertexAttrib3sARB;
+		if (!AnyGL_glVertexAttrib3d)
+			AnyGL_glVertexAttrib3d = (PFNANYGLVERTEXATTRIB3DPROC)&glVertexAttrib3dARB;
+		if (!AnyGL_glVertexAttrib4f)
+			AnyGL_glVertexAttrib4f = (PFNANYGLVERTEXATTRIB4FPROC)&glVertexAttrib4fARB;
+		if (!AnyGL_glVertexAttrib4s)
+			AnyGL_glVertexAttrib4s = (PFNANYGLVERTEXATTRIB4SPROC)&glVertexAttrib4sARB;
+		if (!AnyGL_glVertexAttrib4d)
+			AnyGL_glVertexAttrib4d = (PFNANYGLVERTEXATTRIB4DPROC)&glVertexAttrib4dARB;
+		if (!AnyGL_glVertexAttrib4Nub)
+			AnyGL_glVertexAttrib4Nub = (PFNANYGLVERTEXATTRIB4NUBPROC)&glVertexAttrib4NubARB;
+		if (!AnyGL_glVertexAttrib1fv)
+			AnyGL_glVertexAttrib1fv = (PFNANYGLVERTEXATTRIB1FVPROC)&glVertexAttrib1fvARB;
+		if (!AnyGL_glVertexAttrib1sv)
+			AnyGL_glVertexAttrib1sv = (PFNANYGLVERTEXATTRIB1SVPROC)&glVertexAttrib1svARB;
+		if (!AnyGL_glVertexAttrib1dv)
+			AnyGL_glVertexAttrib1dv = (PFNANYGLVERTEXATTRIB1DVPROC)&glVertexAttrib1dvARB;
+		if (!AnyGL_glVertexAttrib2fv)
+			AnyGL_glVertexAttrib2fv = (PFNANYGLVERTEXATTRIB2FVPROC)&glVertexAttrib2fvARB;
+		if (!AnyGL_glVertexAttrib2sv)
+			AnyGL_glVertexAttrib2sv = (PFNANYGLVERTEXATTRIB2SVPROC)&glVertexAttrib2svARB;
+		if (!AnyGL_glVertexAttrib2dv)
+			AnyGL_glVertexAttrib2dv = (PFNANYGLVERTEXATTRIB2DVPROC)&glVertexAttrib2dvARB;
+		if (!AnyGL_glVertexAttrib3fv)
+			AnyGL_glVertexAttrib3fv = (PFNANYGLVERTEXATTRIB3FVPROC)&glVertexAttrib3fvARB;
+		if (!AnyGL_glVertexAttrib3sv)
+			AnyGL_glVertexAttrib3sv = (PFNANYGLVERTEXATTRIB3SVPROC)&glVertexAttrib3svARB;
+		if (!AnyGL_glVertexAttrib3dv)
+			AnyGL_glVertexAttrib3dv = (PFNANYGLVERTEXATTRIB3DVPROC)&glVertexAttrib3dvARB;
+		if (!AnyGL_glVertexAttrib4fv)
+			AnyGL_glVertexAttrib4fv = (PFNANYGLVERTEXATTRIB4FVPROC)&glVertexAttrib4fvARB;
+		if (!AnyGL_glVertexAttrib4sv)
+			AnyGL_glVertexAttrib4sv = (PFNANYGLVERTEXATTRIB4SVPROC)&glVertexAttrib4svARB;
+		if (!AnyGL_glVertexAttrib4dv)
+			AnyGL_glVertexAttrib4dv = (PFNANYGLVERTEXATTRIB4DVPROC)&glVertexAttrib4dvARB;
+		if (!AnyGL_glVertexAttrib4iv)
+			AnyGL_glVertexAttrib4iv = (PFNANYGLVERTEXATTRIB4IVPROC)&glVertexAttrib4ivARB;
+		if (!AnyGL_glVertexAttrib4bv)
+			AnyGL_glVertexAttrib4bv = (PFNANYGLVERTEXATTRIB4BVPROC)&glVertexAttrib4bvARB;
+		if (!AnyGL_glVertexAttrib4ubv)
+			AnyGL_glVertexAttrib4ubv = (PFNANYGLVERTEXATTRIB4UBVPROC)&glVertexAttrib4ubvARB;
+		if (!AnyGL_glVertexAttrib4usv)
+			AnyGL_glVertexAttrib4usv = (PFNANYGLVERTEXATTRIB4USVPROC)&glVertexAttrib4usvARB;
+		if (!AnyGL_glVertexAttrib4uiv)
+			AnyGL_glVertexAttrib4uiv = (PFNANYGLVERTEXATTRIB4UIVPROC)&glVertexAttrib4uivARB;
+		if (!AnyGL_glVertexAttrib4Nbv)
+			AnyGL_glVertexAttrib4Nbv = (PFNANYGLVERTEXATTRIB4NBVPROC)&glVertexAttrib4NbvARB;
+		if (!AnyGL_glVertexAttrib4Nsv)
+			AnyGL_glVertexAttrib4Nsv = (PFNANYGLVERTEXATTRIB4NSVPROC)&glVertexAttrib4NsvARB;
+		if (!AnyGL_glVertexAttrib4Niv)
+			AnyGL_glVertexAttrib4Niv = (PFNANYGLVERTEXATTRIB4NIVPROC)&glVertexAttrib4NivARB;
+		if (!AnyGL_glVertexAttrib4Nubv)
+			AnyGL_glVertexAttrib4Nubv = (PFNANYGLVERTEXATTRIB4NUBVPROC)&glVertexAttrib4NubvARB;
+		if (!AnyGL_glVertexAttrib4Nusv)
+			AnyGL_glVertexAttrib4Nusv = (PFNANYGLVERTEXATTRIB4NUSVPROC)&glVertexAttrib4NusvARB;
+		if (!AnyGL_glVertexAttrib4Nuiv)
+			AnyGL_glVertexAttrib4Nuiv = (PFNANYGLVERTEXATTRIB4NUIVPROC)&glVertexAttrib4NuivARB;
+		if (!AnyGL_glVertexAttribPointer)
+			AnyGL_glVertexAttribPointer = (PFNANYGLVERTEXATTRIBPOINTERPROC)&glVertexAttribPointerARB;
+		if (!AnyGL_glEnableVertexAttribArray)
+			AnyGL_glEnableVertexAttribArray = (PFNANYGLENABLEVERTEXATTRIBARRAYPROC)&glEnableVertexAttribArrayARB;
+		if (!AnyGL_glDisableVertexAttribArray)
+			AnyGL_glDisableVertexAttribArray = (PFNANYGLDISABLEVERTEXATTRIBARRAYPROC)&glDisableVertexAttribArrayARB;
+		if (!AnyGL_glBindAttribLocation)
+			AnyGL_glBindAttribLocation = (PFNANYGLBINDATTRIBLOCATIONPROC)&glBindAttribLocationARB;
+		if (!AnyGL_glGetActiveAttrib)
+			AnyGL_glGetActiveAttrib = (PFNANYGLGETACTIVEATTRIBPROC)&glGetActiveAttribARB;
+		if (!AnyGL_glGetAttribLocation)
+			AnyGL_glGetAttribLocation = (PFNANYGLGETATTRIBLOCATIONPROC)&glGetAttribLocationARB;
 		if (!AnyGL_glGetVertexAttribdv)
 			AnyGL_glGetVertexAttribdv = (PFNANYGLGETVERTEXATTRIBDVPROC)&glGetVertexAttribdvARB;
 		if (!AnyGL_glGetVertexAttribfv)
@@ -2716,25 +3100,6 @@ int AnyGL_load(void)
 		if (!AnyGL_glGetVertexAttribPointerv)
 			AnyGL_glGetVertexAttribPointerv = (PFNANYGLGETVERTEXATTRIBPOINTERVPROC)&glGetVertexAttribPointervARB;
 	}
-	else
-	{
-	}
-#endif /* GL_ARB_vertex_program */
-
-#ifndef ANYGL_ARB_vertex_shader
-	AnyGL_ARB_vertex_shader = AnyGL_queryExtension("GL_ARB_vertex_shader");
-	if (AnyGL_ARB_vertex_shader)
-	{
-		if (!AnyGL_glBindAttribLocation)
-			AnyGL_glBindAttribLocation = (PFNANYGLBINDATTRIBLOCATIONPROC)&glBindAttribLocationARB;
-		if (!AnyGL_glGetActiveAttrib)
-			AnyGL_glGetActiveAttrib = (PFNANYGLGETACTIVEATTRIBPROC)&glGetActiveAttribARB;
-		if (!AnyGL_glGetAttribLocation)
-			AnyGL_glGetAttribLocation = (PFNANYGLGETATTRIBLOCATIONPROC)&glGetAttribLocationARB;
-	}
-	else
-	{
-	}
 #endif /* GL_ARB_vertex_shader */
 
 #ifndef ANYGL_ARB_vertex_type_10f_11f_11f_rev
@@ -2743,10 +3108,64 @@ int AnyGL_load(void)
 
 #ifndef ANYGL_ARB_vertex_type_2_10_10_10_rev
 	AnyGL_ARB_vertex_type_2_10_10_10_rev = AnyGL_queryExtension("GL_ARB_vertex_type_2_10_10_10_rev");
+	if (AnyGL_ARB_vertex_type_2_10_10_10_rev)
+	{
+		AnyGL_glVertexAttribP1ui = (PFNANYGLVERTEXATTRIBP1UIPROC)&glVertexAttribP1ui;
+		AnyGL_glVertexAttribP1uiv = (PFNANYGLVERTEXATTRIBP1UIVPROC)&glVertexAttribP1uiv;
+		AnyGL_glVertexAttribP2ui = (PFNANYGLVERTEXATTRIBP2UIPROC)&glVertexAttribP2ui;
+		AnyGL_glVertexAttribP2uiv = (PFNANYGLVERTEXATTRIBP2UIVPROC)&glVertexAttribP2uiv;
+		AnyGL_glVertexAttribP3ui = (PFNANYGLVERTEXATTRIBP3UIPROC)&glVertexAttribP3ui;
+		AnyGL_glVertexAttribP3uiv = (PFNANYGLVERTEXATTRIBP3UIVPROC)&glVertexAttribP3uiv;
+		AnyGL_glVertexAttribP4ui = (PFNANYGLVERTEXATTRIBP4UIPROC)&glVertexAttribP4ui;
+		AnyGL_glVertexAttribP4uiv = (PFNANYGLVERTEXATTRIBP4UIVPROC)&glVertexAttribP4uiv;
+		AnyGL_glVertexP2ui = (PFNANYGLVERTEXP2UIPROC)&glVertexP2ui;
+		AnyGL_glVertexP2uiv = (PFNANYGLVERTEXP2UIVPROC)&glVertexP2uiv;
+		AnyGL_glVertexP3ui = (PFNANYGLVERTEXP3UIPROC)&glVertexP3ui;
+		AnyGL_glVertexP3uiv = (PFNANYGLVERTEXP3UIVPROC)&glVertexP3uiv;
+		AnyGL_glVertexP4ui = (PFNANYGLVERTEXP4UIPROC)&glVertexP4ui;
+		AnyGL_glVertexP4uiv = (PFNANYGLVERTEXP4UIVPROC)&glVertexP4uiv;
+		AnyGL_glTexCoordP1ui = (PFNANYGLTEXCOORDP1UIPROC)&glTexCoordP1ui;
+		AnyGL_glTexCoordP1uiv = (PFNANYGLTEXCOORDP1UIVPROC)&glTexCoordP1uiv;
+		AnyGL_glTexCoordP2ui = (PFNANYGLTEXCOORDP2UIPROC)&glTexCoordP2ui;
+		AnyGL_glTexCoordP2uiv = (PFNANYGLTEXCOORDP2UIVPROC)&glTexCoordP2uiv;
+		AnyGL_glTexCoordP3ui = (PFNANYGLTEXCOORDP3UIPROC)&glTexCoordP3ui;
+		AnyGL_glTexCoordP3uiv = (PFNANYGLTEXCOORDP3UIVPROC)&glTexCoordP3uiv;
+		AnyGL_glTexCoordP4ui = (PFNANYGLTEXCOORDP4UIPROC)&glTexCoordP4ui;
+		AnyGL_glTexCoordP4uiv = (PFNANYGLTEXCOORDP4UIVPROC)&glTexCoordP4uiv;
+		AnyGL_glMultiTexCoordP1ui = (PFNANYGLMULTITEXCOORDP1UIPROC)&glMultiTexCoordP1ui;
+		AnyGL_glMultiTexCoordP1uiv = (PFNANYGLMULTITEXCOORDP1UIVPROC)&glMultiTexCoordP1uiv;
+		AnyGL_glMultiTexCoordP2ui = (PFNANYGLMULTITEXCOORDP2UIPROC)&glMultiTexCoordP2ui;
+		AnyGL_glMultiTexCoordP2uiv = (PFNANYGLMULTITEXCOORDP2UIVPROC)&glMultiTexCoordP2uiv;
+		AnyGL_glMultiTexCoordP3ui = (PFNANYGLMULTITEXCOORDP3UIPROC)&glMultiTexCoordP3ui;
+		AnyGL_glMultiTexCoordP3uiv = (PFNANYGLMULTITEXCOORDP3UIVPROC)&glMultiTexCoordP3uiv;
+		AnyGL_glMultiTexCoordP4ui = (PFNANYGLMULTITEXCOORDP4UIPROC)&glMultiTexCoordP4ui;
+		AnyGL_glMultiTexCoordP4uiv = (PFNANYGLMULTITEXCOORDP4UIVPROC)&glMultiTexCoordP4uiv;
+		AnyGL_glNormalP3ui = (PFNANYGLNORMALP3UIPROC)&glNormalP3ui;
+		AnyGL_glNormalP3uiv = (PFNANYGLNORMALP3UIVPROC)&glNormalP3uiv;
+		AnyGL_glColorP3ui = (PFNANYGLCOLORP3UIPROC)&glColorP3ui;
+		AnyGL_glColorP3uiv = (PFNANYGLCOLORP3UIVPROC)&glColorP3uiv;
+		AnyGL_glColorP4ui = (PFNANYGLCOLORP4UIPROC)&glColorP4ui;
+		AnyGL_glColorP4uiv = (PFNANYGLCOLORP4UIVPROC)&glColorP4uiv;
+		AnyGL_glSecondaryColorP3ui = (PFNANYGLSECONDARYCOLORP3UIPROC)&glSecondaryColorP3ui;
+		AnyGL_glSecondaryColorP3uiv = (PFNANYGLSECONDARYCOLORP3UIVPROC)&glSecondaryColorP3uiv;
+	}
 #endif /* GL_ARB_vertex_type_2_10_10_10_rev */
 
 #ifndef ANYGL_ARB_viewport_array
 	AnyGL_ARB_viewport_array = AnyGL_queryExtension("GL_ARB_viewport_array");
+	if (AnyGL_ARB_viewport_array)
+	{
+		AnyGL_glViewportArrayv = (PFNANYGLVIEWPORTARRAYVPROC)&glViewportArrayv;
+		AnyGL_glViewportIndexedf = (PFNANYGLVIEWPORTINDEXEDFPROC)&glViewportIndexedf;
+		AnyGL_glViewportIndexedfv = (PFNANYGLVIEWPORTINDEXEDFVPROC)&glViewportIndexedfv;
+		AnyGL_glScissorArrayv = (PFNANYGLSCISSORARRAYVPROC)&glScissorArrayv;
+		AnyGL_glScissorIndexed = (PFNANYGLSCISSORINDEXEDPROC)&glScissorIndexed;
+		AnyGL_glScissorIndexedv = (PFNANYGLSCISSORINDEXEDVPROC)&glScissorIndexedv;
+		AnyGL_glDepthRangeArrayv = (PFNANYGLDEPTHRANGEARRAYVPROC)&glDepthRangeArrayv;
+		AnyGL_glDepthRangeIndexed = (PFNANYGLDEPTHRANGEINDEXEDPROC)&glDepthRangeIndexed;
+		AnyGL_glGetFloati_v = (PFNANYGLGETFLOATI_VPROC)&glGetFloati_v;
+		AnyGL_glGetDoublei_v = (PFNANYGLGETDOUBLEI_VPROC)&glGetDoublei_v;
+	}
 #endif /* GL_ARB_viewport_array */
 
 #ifndef ANYGL_ARB_window_pos
@@ -2786,9 +3205,6 @@ int AnyGL_load(void)
 		if (!AnyGL_glWindowPos3sv)
 			AnyGL_glWindowPos3sv = (PFNANYGLWINDOWPOS3SVPROC)&glWindowPos3svARB;
 	}
-	else
-	{
-	}
 #endif /* GL_ARB_window_pos */
 
 #ifndef ANYGL_KHR_blend_equation_advanced
@@ -2797,9 +3213,6 @@ int AnyGL_load(void)
 	{
 		if (!AnyGL_glBlendBarrier)
 			AnyGL_glBlendBarrier = (PFNANYGLBLENDBARRIERPROC)&glBlendBarrierKHR;
-	}
-	else
-	{
 	}
 #endif /* GL_KHR_blend_equation_advanced */
 
@@ -2813,6 +3226,20 @@ int AnyGL_load(void)
 
 #ifndef ANYGL_KHR_debug
 	AnyGL_KHR_debug = AnyGL_queryExtension("GL_KHR_debug");
+	if (AnyGL_KHR_debug)
+	{
+		AnyGL_glDebugMessageControl = (PFNANYGLDEBUGMESSAGECONTROLPROC)&glDebugMessageControl;
+		AnyGL_glDebugMessageInsert = (PFNANYGLDEBUGMESSAGEINSERTPROC)&glDebugMessageInsert;
+		AnyGL_glDebugMessageCallback = (PFNANYGLDEBUGMESSAGECALLBACKPROC)&glDebugMessageCallback;
+		AnyGL_glGetDebugMessageLog = (PFNANYGLGETDEBUGMESSAGELOGPROC)&glGetDebugMessageLog;
+		AnyGL_glPushDebugGroup = (PFNANYGLPUSHDEBUGGROUPPROC)&glPushDebugGroup;
+		AnyGL_glPopDebugGroup = (PFNANYGLPOPDEBUGGROUPPROC)&glPopDebugGroup;
+		AnyGL_glObjectLabel = (PFNANYGLOBJECTLABELPROC)&glObjectLabel;
+		AnyGL_glGetObjectLabel = (PFNANYGLGETOBJECTLABELPROC)&glGetObjectLabel;
+		AnyGL_glObjectPtrLabel = (PFNANYGLOBJECTPTRLABELPROC)&glObjectPtrLabel;
+		AnyGL_glGetObjectPtrLabel = (PFNANYGLGETOBJECTPTRLABELPROC)&glGetObjectPtrLabel;
+		AnyGL_glGetPointerv = (PFNANYGLGETPOINTERVPROC)&glGetPointerv;
+	}
 #endif /* GL_KHR_debug */
 
 #ifndef ANYGL_KHR_no_error
@@ -2825,10 +3252,6 @@ int AnyGL_load(void)
 	{
 		AnyGL_glMaxShaderCompilerThreadsKHR = (PFNANYGLMAXSHADERCOMPILERTHREADSKHRPROC)&glMaxShaderCompilerThreadsKHR;
 	}
-	else
-	{
-		AnyGL_glMaxShaderCompilerThreadsKHR = 0;
-	}
 #endif /* GL_KHR_parallel_shader_compile */
 
 #ifndef ANYGL_KHR_robust_buffer_access_behavior
@@ -2837,7 +3260,19 @@ int AnyGL_load(void)
 
 #ifndef ANYGL_KHR_robustness
 	AnyGL_KHR_robustness = AnyGL_queryExtension("GL_KHR_robustness");
+	if (AnyGL_KHR_robustness)
+	{
+		AnyGL_glGetGraphicsResetStatus = (PFNANYGLGETGRAPHICSRESETSTATUSPROC)&glGetGraphicsResetStatus;
+		AnyGL_glReadnPixels = (PFNANYGLREADNPIXELSPROC)&glReadnPixels;
+		AnyGL_glGetnUniformfv = (PFNANYGLGETNUNIFORMFVPROC)&glGetnUniformfv;
+		AnyGL_glGetnUniformiv = (PFNANYGLGETNUNIFORMIVPROC)&glGetnUniformiv;
+		AnyGL_glGetnUniformuiv = (PFNANYGLGETNUNIFORMUIVPROC)&glGetnUniformuiv;
+	}
 #endif /* GL_KHR_robustness */
+
+#ifndef ANYGL_KHR_shader_subgroup
+	AnyGL_KHR_shader_subgroup = AnyGL_queryExtension("GL_KHR_shader_subgroup");
+#endif /* GL_KHR_shader_subgroup */
 
 #ifndef ANYGL_KHR_texture_compression_astc_hdr
 	AnyGL_KHR_texture_compression_astc_hdr = AnyGL_queryExtension("GL_KHR_texture_compression_astc_hdr");
@@ -2858,11 +3293,6 @@ int AnyGL_load(void)
 		AnyGL_glEGLImageTargetTexture2DOES = (PFNANYGLEGLIMAGETARGETTEXTURE2DOESPROC)&glEGLImageTargetTexture2DOES;
 		AnyGL_glEGLImageTargetRenderbufferStorageOES = (PFNANYGLEGLIMAGETARGETRENDERBUFFERSTORAGEOESPROC)&glEGLImageTargetRenderbufferStorageOES;
 	}
-	else
-	{
-		AnyGL_glEGLImageTargetTexture2DOES = 0;
-		AnyGL_glEGLImageTargetRenderbufferStorageOES = 0;
-	}
 #endif /* GL_OES_EGL_image */
 
 #ifndef ANYGL_OES_EGL_image_external
@@ -2880,9 +3310,6 @@ int AnyGL_load(void)
 		if (!AnyGL_glBlendEquationSeparate)
 			AnyGL_glBlendEquationSeparate = (PFNANYGLBLENDEQUATIONSEPARATEPROC)&glBlendEquationSeparateOES;
 	}
-	else
-	{
-	}
 #endif /* GL_OES_blend_equation_separate */
 
 #ifndef ANYGL_OES_blend_func_separate
@@ -2892,9 +3319,6 @@ int AnyGL_load(void)
 		if (!AnyGL_glBlendFuncSeparate)
 			AnyGL_glBlendFuncSeparate = (PFNANYGLBLENDFUNCSEPARATEPROC)&glBlendFuncSeparateOES;
 	}
-	else
-	{
-	}
 #endif /* GL_OES_blend_func_separate */
 
 #ifndef ANYGL_OES_blend_subtract
@@ -2903,9 +3327,6 @@ int AnyGL_load(void)
 	{
 		if (!AnyGL_glBlendEquation)
 			AnyGL_glBlendEquation = (PFNANYGLBLENDEQUATIONPROC)&glBlendEquationOES;
-	}
-	else
-	{
 	}
 #endif /* GL_OES_blend_subtract */
 
@@ -2936,31 +3357,6 @@ int AnyGL_load(void)
 		AnyGL_glVertex4bOES = (PFNANYGLVERTEX4BOESPROC)&glVertex4bOES;
 		AnyGL_glVertex4bvOES = (PFNANYGLVERTEX4BVOESPROC)&glVertex4bvOES;
 	}
-	else
-	{
-		AnyGL_glMultiTexCoord1bOES = 0;
-		AnyGL_glMultiTexCoord1bvOES = 0;
-		AnyGL_glMultiTexCoord2bOES = 0;
-		AnyGL_glMultiTexCoord2bvOES = 0;
-		AnyGL_glMultiTexCoord3bOES = 0;
-		AnyGL_glMultiTexCoord3bvOES = 0;
-		AnyGL_glMultiTexCoord4bOES = 0;
-		AnyGL_glMultiTexCoord4bvOES = 0;
-		AnyGL_glTexCoord1bOES = 0;
-		AnyGL_glTexCoord1bvOES = 0;
-		AnyGL_glTexCoord2bOES = 0;
-		AnyGL_glTexCoord2bvOES = 0;
-		AnyGL_glTexCoord3bOES = 0;
-		AnyGL_glTexCoord3bvOES = 0;
-		AnyGL_glTexCoord4bOES = 0;
-		AnyGL_glTexCoord4bvOES = 0;
-		AnyGL_glVertex2bOES = 0;
-		AnyGL_glVertex2bvOES = 0;
-		AnyGL_glVertex3bOES = 0;
-		AnyGL_glVertex3bvOES = 0;
-		AnyGL_glVertex4bOES = 0;
-		AnyGL_glVertex4bvOES = 0;
-	}
 #endif /* GL_OES_byte_coordinates */
 
 #ifndef ANYGL_OES_compressed_ETC1_RGB8_sub_texture
@@ -2981,9 +3377,6 @@ int AnyGL_load(void)
 	{
 		if (!AnyGL_glCopyImageSubData)
 			AnyGL_glCopyImageSubData = (PFNANYGLCOPYIMAGESUBDATAPROC)&glCopyImageSubDataOES;
-	}
-	else
-	{
 	}
 #endif /* GL_OES_copy_image */
 
@@ -3020,9 +3413,6 @@ int AnyGL_load(void)
 		if (!AnyGL_glIsEnabledi)
 			AnyGL_glIsEnabledi = (PFNANYGLISENABLEDIPROC)&glIsEnablediOES;
 	}
-	else
-	{
-	}
 #endif /* GL_OES_draw_buffers_indexed */
 
 #ifndef ANYGL_OES_draw_elements_base_vertex
@@ -3038,9 +3428,6 @@ int AnyGL_load(void)
 		if (!AnyGL_glMultiDrawElementsBaseVertex)
 			AnyGL_glMultiDrawElementsBaseVertex = (PFNANYGLMULTIDRAWELEMENTSBASEVERTEXPROC)&glMultiDrawElementsBaseVertexEXT;
 	}
-	else
-	{
-	}
 #endif /* GL_OES_draw_elements_base_vertex */
 
 #ifndef ANYGL_OES_draw_texture
@@ -3055,17 +3442,6 @@ int AnyGL_load(void)
 		AnyGL_glDrawTexxvOES = (PFNANYGLDRAWTEXXVOESPROC)&glDrawTexxvOES;
 		AnyGL_glDrawTexfOES = (PFNANYGLDRAWTEXFOESPROC)&glDrawTexfOES;
 		AnyGL_glDrawTexfvOES = (PFNANYGLDRAWTEXFVOESPROC)&glDrawTexfvOES;
-	}
-	else
-	{
-		AnyGL_glDrawTexsOES = 0;
-		AnyGL_glDrawTexiOES = 0;
-		AnyGL_glDrawTexxOES = 0;
-		AnyGL_glDrawTexsvOES = 0;
-		AnyGL_glDrawTexivOES = 0;
-		AnyGL_glDrawTexxvOES = 0;
-		AnyGL_glDrawTexfOES = 0;
-		AnyGL_glDrawTexfvOES = 0;
 	}
 #endif /* GL_OES_draw_texture */
 
@@ -3189,112 +3565,6 @@ int AnyGL_load(void)
 		AnyGL_glVertex4xOES = (PFNANYGLVERTEX4XOESPROC)&glVertex4xOES;
 		AnyGL_glVertex4xvOES = (PFNANYGLVERTEX4XVOESPROC)&glVertex4xvOES;
 	}
-	else
-	{
-		AnyGL_glAlphaFuncxOES = 0;
-		AnyGL_glClearColorxOES = 0;
-		AnyGL_glClearDepthxOES = 0;
-		AnyGL_glClipPlanexOES = 0;
-		AnyGL_glColor4xOES = 0;
-		AnyGL_glDepthRangexOES = 0;
-		AnyGL_glFogxOES = 0;
-		AnyGL_glFogxvOES = 0;
-		AnyGL_glFrustumxOES = 0;
-		AnyGL_glGetClipPlanexOES = 0;
-		AnyGL_glGetFixedvOES = 0;
-		AnyGL_glGetTexEnvxvOES = 0;
-		AnyGL_glGetTexParameterxvOES = 0;
-		AnyGL_glLightModelxOES = 0;
-		AnyGL_glLightModelxvOES = 0;
-		AnyGL_glLightxOES = 0;
-		AnyGL_glLightxvOES = 0;
-		AnyGL_glLineWidthxOES = 0;
-		AnyGL_glLoadMatrixxOES = 0;
-		AnyGL_glMaterialxOES = 0;
-		AnyGL_glMaterialxvOES = 0;
-		AnyGL_glMultMatrixxOES = 0;
-		AnyGL_glMultiTexCoord4xOES = 0;
-		AnyGL_glNormal3xOES = 0;
-		AnyGL_glOrthoxOES = 0;
-		AnyGL_glPointParameterxvOES = 0;
-		AnyGL_glPointSizexOES = 0;
-		AnyGL_glPolygonOffsetxOES = 0;
-		AnyGL_glRotatexOES = 0;
-		AnyGL_glScalexOES = 0;
-		AnyGL_glTexEnvxOES = 0;
-		AnyGL_glTexEnvxvOES = 0;
-		AnyGL_glTexParameterxOES = 0;
-		AnyGL_glTexParameterxvOES = 0;
-		AnyGL_glTranslatexOES = 0;
-		AnyGL_glAccumxOES = 0;
-		AnyGL_glBitmapxOES = 0;
-		AnyGL_glBlendColorxOES = 0;
-		AnyGL_glClearAccumxOES = 0;
-		AnyGL_glColor3xOES = 0;
-		AnyGL_glColor3xvOES = 0;
-		AnyGL_glColor4xvOES = 0;
-		AnyGL_glConvolutionParameterxOES = 0;
-		AnyGL_glConvolutionParameterxvOES = 0;
-		AnyGL_glEvalCoord1xOES = 0;
-		AnyGL_glEvalCoord1xvOES = 0;
-		AnyGL_glEvalCoord2xOES = 0;
-		AnyGL_glEvalCoord2xvOES = 0;
-		AnyGL_glFeedbackBufferxOES = 0;
-		AnyGL_glGetConvolutionParameterxvOES = 0;
-		AnyGL_glGetHistogramParameterxvOES = 0;
-		AnyGL_glGetLightxOES = 0;
-		AnyGL_glGetMapxvOES = 0;
-		AnyGL_glGetMaterialxOES = 0;
-		AnyGL_glGetPixelMapxv = 0;
-		AnyGL_glGetTexGenxvOES = 0;
-		AnyGL_glGetTexLevelParameterxvOES = 0;
-		AnyGL_glIndexxOES = 0;
-		AnyGL_glIndexxvOES = 0;
-		AnyGL_glLoadTransposeMatrixxOES = 0;
-		AnyGL_glMap1xOES = 0;
-		AnyGL_glMap2xOES = 0;
-		AnyGL_glMapGrid1xOES = 0;
-		AnyGL_glMapGrid2xOES = 0;
-		AnyGL_glMultTransposeMatrixxOES = 0;
-		AnyGL_glMultiTexCoord1xOES = 0;
-		AnyGL_glMultiTexCoord1xvOES = 0;
-		AnyGL_glMultiTexCoord2xOES = 0;
-		AnyGL_glMultiTexCoord2xvOES = 0;
-		AnyGL_glMultiTexCoord3xOES = 0;
-		AnyGL_glMultiTexCoord3xvOES = 0;
-		AnyGL_glMultiTexCoord4xvOES = 0;
-		AnyGL_glNormal3xvOES = 0;
-		AnyGL_glPassThroughxOES = 0;
-		AnyGL_glPixelMapx = 0;
-		AnyGL_glPixelStorex = 0;
-		AnyGL_glPixelTransferxOES = 0;
-		AnyGL_glPixelZoomxOES = 0;
-		AnyGL_glPrioritizeTexturesxOES = 0;
-		AnyGL_glRasterPos2xOES = 0;
-		AnyGL_glRasterPos2xvOES = 0;
-		AnyGL_glRasterPos3xOES = 0;
-		AnyGL_glRasterPos3xvOES = 0;
-		AnyGL_glRasterPos4xOES = 0;
-		AnyGL_glRasterPos4xvOES = 0;
-		AnyGL_glRectxOES = 0;
-		AnyGL_glRectxvOES = 0;
-		AnyGL_glTexCoord1xOES = 0;
-		AnyGL_glTexCoord1xvOES = 0;
-		AnyGL_glTexCoord2xOES = 0;
-		AnyGL_glTexCoord2xvOES = 0;
-		AnyGL_glTexCoord3xOES = 0;
-		AnyGL_glTexCoord3xvOES = 0;
-		AnyGL_glTexCoord4xOES = 0;
-		AnyGL_glTexCoord4xvOES = 0;
-		AnyGL_glTexGenxOES = 0;
-		AnyGL_glTexGenxvOES = 0;
-		AnyGL_glVertex2xOES = 0;
-		AnyGL_glVertex2xvOES = 0;
-		AnyGL_glVertex3xOES = 0;
-		AnyGL_glVertex3xvOES = 0;
-		AnyGL_glVertex4xOES = 0;
-		AnyGL_glVertex4xvOES = 0;
-	}
 #endif /* GL_OES_fixed_point */
 
 #ifndef ANYGL_OES_fragment_precision_high
@@ -3336,9 +3606,6 @@ int AnyGL_load(void)
 		if (!AnyGL_glGenerateMipmap)
 			AnyGL_glGenerateMipmap = (PFNANYGLGENERATEMIPMAPPROC)&glGenerateMipmapOES;
 	}
-	else
-	{
-	}
 #endif /* GL_OES_framebuffer_object */
 
 #ifndef ANYGL_OES_geometry_point_size
@@ -3352,9 +3619,6 @@ int AnyGL_load(void)
 		if (!AnyGL_glFramebufferTexture)
 			AnyGL_glFramebufferTexture = (PFNANYGLFRAMEBUFFERTEXTUREPROC)&glFramebufferTextureOES;
 	}
-	else
-	{
-	}
 #endif /* GL_OES_geometry_shader */
 
 #ifndef ANYGL_OES_get_program_binary
@@ -3365,9 +3629,6 @@ int AnyGL_load(void)
 			AnyGL_glGetProgramBinary = (PFNANYGLGETPROGRAMBINARYPROC)&glGetProgramBinaryOES;
 		if (!AnyGL_glProgramBinary)
 			AnyGL_glProgramBinary = (PFNANYGLPROGRAMBINARYPROC)&glProgramBinaryOES;
-	}
-	else
-	{
 	}
 #endif /* GL_OES_get_program_binary */
 
@@ -3386,9 +3647,6 @@ int AnyGL_load(void)
 		if (!AnyGL_glGetBufferPointerv)
 			AnyGL_glGetBufferPointerv = (PFNANYGLGETBUFFERPOINTERVPROC)&glGetBufferPointervOES;
 	}
-	else
-	{
-	}
 #endif /* GL_OES_mapbuffer */
 
 #ifndef ANYGL_OES_matrix_get
@@ -3404,13 +3662,6 @@ int AnyGL_load(void)
 		AnyGL_glMatrixIndexPointerOES = (PFNANYGLMATRIXINDEXPOINTEROESPROC)&glMatrixIndexPointerOES;
 		AnyGL_glWeightPointerOES = (PFNANYGLWEIGHTPOINTEROESPROC)&glWeightPointerOES;
 	}
-	else
-	{
-		AnyGL_glCurrentPaletteMatrixOES = 0;
-		AnyGL_glLoadPaletteFromModelViewMatrixOES = 0;
-		AnyGL_glMatrixIndexPointerOES = 0;
-		AnyGL_glWeightPointerOES = 0;
-	}
 #endif /* GL_OES_matrix_palette */
 
 #ifndef ANYGL_OES_packed_depth_stencil
@@ -3422,10 +3673,6 @@ int AnyGL_load(void)
 	if (AnyGL_OES_point_size_array)
 	{
 		AnyGL_glPointSizePointerOES = (PFNANYGLPOINTSIZEPOINTEROESPROC)&glPointSizePointerOES;
-	}
-	else
-	{
-		AnyGL_glPointSizePointerOES = 0;
 	}
 #endif /* GL_OES_point_size_array */
 
@@ -3440,9 +3687,6 @@ int AnyGL_load(void)
 		if (!AnyGL_glPrimitiveBoundingBox)
 			AnyGL_glPrimitiveBoundingBox = (PFNANYGLPRIMITIVEBOUNDINGBOXPROC)&glPrimitiveBoundingBoxOES;
 	}
-	else
-	{
-	}
 #endif /* GL_OES_primitive_bounding_box */
 
 #ifndef ANYGL_OES_query_matrix
@@ -3450,10 +3694,6 @@ int AnyGL_load(void)
 	if (AnyGL_OES_query_matrix)
 	{
 		AnyGL_glQueryMatrixxOES = (PFNANYGLQUERYMATRIXXOESPROC)&glQueryMatrixxOES;
-	}
-	else
-	{
-		AnyGL_glQueryMatrixxOES = 0;
 	}
 #endif /* GL_OES_query_matrix */
 
@@ -3475,9 +3715,6 @@ int AnyGL_load(void)
 	{
 		if (!AnyGL_glMinSampleShading)
 			AnyGL_glMinSampleShading = (PFNANYGLMINSAMPLESHADINGPROC)&glMinSampleShadingOES;
-	}
-	else
-	{
 	}
 #endif /* GL_OES_sample_shading */
 
@@ -3509,13 +3746,6 @@ int AnyGL_load(void)
 		AnyGL_glFrustumfOES = (PFNANYGLFRUSTUMFOESPROC)&glFrustumfOES;
 		AnyGL_glGetClipPlanefOES = (PFNANYGLGETCLIPPLANEFOESPROC)&glGetClipPlanefOES;
 		AnyGL_glOrthofOES = (PFNANYGLORTHOFOESPROC)&glOrthofOES;
-	}
-	else
-	{
-		AnyGL_glClipPlanefOES = 0;
-		AnyGL_glFrustumfOES = 0;
-		AnyGL_glGetClipPlanefOES = 0;
-		AnyGL_glOrthofOES = 0;
 	}
 #endif /* GL_OES_single_precision */
 
@@ -3554,9 +3784,6 @@ int AnyGL_load(void)
 		if (!AnyGL_glPatchParameteri)
 			AnyGL_glPatchParameteri = (PFNANYGLPATCHPARAMETERIPROC)&glPatchParameteriOES;
 	}
-	else
-	{
-	}
 #endif /* GL_OES_tessellation_shader */
 
 #ifndef ANYGL_OES_texture_3D
@@ -3569,15 +3796,6 @@ int AnyGL_load(void)
 		AnyGL_glCompressedTexImage3DOES = (PFNANYGLCOMPRESSEDTEXIMAGE3DOESPROC)&glCompressedTexImage3DOES;
 		AnyGL_glCompressedTexSubImage3DOES = (PFNANYGLCOMPRESSEDTEXSUBIMAGE3DOESPROC)&glCompressedTexSubImage3DOES;
 		AnyGL_glFramebufferTexture3DOES = (PFNANYGLFRAMEBUFFERTEXTURE3DOESPROC)&glFramebufferTexture3DOES;
-	}
-	else
-	{
-		AnyGL_glTexImage3DOES = 0;
-		AnyGL_glTexSubImage3DOES = 0;
-		AnyGL_glCopyTexSubImage3DOES = 0;
-		AnyGL_glCompressedTexImage3DOES = 0;
-		AnyGL_glCompressedTexSubImage3DOES = 0;
-		AnyGL_glFramebufferTexture3DOES = 0;
 	}
 #endif /* GL_OES_texture_3D */
 
@@ -3602,9 +3820,6 @@ int AnyGL_load(void)
 		if (!AnyGL_glGetSamplerParameterIuiv)
 			AnyGL_glGetSamplerParameterIuiv = (PFNANYGLGETSAMPLERPARAMETERIUIVPROC)&glGetSamplerParameterIuivOES;
 	}
-	else
-	{
-	}
 #endif /* GL_OES_texture_border_clamp */
 
 #ifndef ANYGL_OES_texture_buffer
@@ -3615,9 +3830,6 @@ int AnyGL_load(void)
 			AnyGL_glTexBuffer = (PFNANYGLTEXBUFFERPROC)&glTexBufferOES;
 		if (!AnyGL_glTexBufferRange)
 			AnyGL_glTexBufferRange = (PFNANYGLTEXBUFFERRANGEPROC)&glTexBufferRangeOES;
-	}
-	else
-	{
 	}
 #endif /* GL_OES_texture_buffer */
 
@@ -3633,17 +3845,11 @@ int AnyGL_load(void)
 		AnyGL_glTexGenfvOES = (PFNANYGLTEXGENFVOESPROC)&glTexGenfvOES;
 		AnyGL_glTexGeniOES = (PFNANYGLTEXGENIOESPROC)&glTexGeniOES;
 		AnyGL_glTexGenivOES = (PFNANYGLTEXGENIVOESPROC)&glTexGenivOES;
+		AnyGL_glTexGenxOES = (PFNANYGLTEXGENXOESPROC)&glTexGenxOES;
+		AnyGL_glTexGenxvOES = (PFNANYGLTEXGENXVOESPROC)&glTexGenxvOES;
 		AnyGL_glGetTexGenfvOES = (PFNANYGLGETTEXGENFVOESPROC)&glGetTexGenfvOES;
 		AnyGL_glGetTexGenivOES = (PFNANYGLGETTEXGENIVOESPROC)&glGetTexGenivOES;
-	}
-	else
-	{
-		AnyGL_glTexGenfOES = 0;
-		AnyGL_glTexGenfvOES = 0;
-		AnyGL_glTexGeniOES = 0;
-		AnyGL_glTexGenivOES = 0;
-		AnyGL_glGetTexGenfvOES = 0;
-		AnyGL_glGetTexGenivOES = 0;
+		AnyGL_glGetTexGenxvOES = (PFNANYGLGETTEXGENXVOESPROC)&glGetTexGenxvOES;
 	}
 #endif /* GL_OES_texture_cube_map */
 
@@ -3690,9 +3896,6 @@ int AnyGL_load(void)
 		if (!AnyGL_glTexStorage3DMultisample)
 			AnyGL_glTexStorage3DMultisample = (PFNANYGLTEXSTORAGE3DMULTISAMPLEPROC)&glTexStorage3DMultisampleOES;
 	}
-	else
-	{
-	}
 #endif /* GL_OES_texture_storage_multisample_2d_array */
 
 #ifndef ANYGL_OES_texture_view
@@ -3701,9 +3904,6 @@ int AnyGL_load(void)
 	{
 		if (!AnyGL_glTextureView)
 			AnyGL_glTextureView = (PFNANYGLTEXTUREVIEWPROC)&glTextureViewOES;
-	}
-	else
-	{
 	}
 #endif /* GL_OES_texture_view */
 
@@ -3719,9 +3919,6 @@ int AnyGL_load(void)
 			AnyGL_glGenVertexArrays = (PFNANYGLGENVERTEXARRAYSPROC)&glGenVertexArraysOES;
 		if (!AnyGL_glIsVertexArray)
 			AnyGL_glIsVertexArray = (PFNANYGLISVERTEXARRAYPROC)&glIsVertexArrayOES;
-	}
-	else
-	{
 	}
 #endif /* GL_OES_vertex_array_object */
 
@@ -3753,11 +3950,12 @@ int AnyGL_load(void)
 		AnyGL_glDepthRangeIndexedfOES = (PFNANYGLDEPTHRANGEINDEXEDFOESPROC)&glDepthRangeIndexedfOES;
 		if (!AnyGL_glGetFloati_v)
 			AnyGL_glGetFloati_v = (PFNANYGLGETFLOATI_VPROC)&glGetFloati_vOES;
-	}
-	else
-	{
-		AnyGL_glDepthRangeArrayfvOES = 0;
-		AnyGL_glDepthRangeIndexedfOES = 0;
+		if (!AnyGL_glEnablei)
+			AnyGL_glEnablei = (PFNANYGLENABLEIPROC)&glEnableiOES;
+		if (!AnyGL_glDisablei)
+			AnyGL_glDisablei = (PFNANYGLDISABLEIPROC)&glDisableiOES;
+		if (!AnyGL_glIsEnabledi)
+			AnyGL_glIsEnabledi = (PFNANYGLISENABLEDIPROC)&glIsEnablediOES;
 	}
 #endif /* GL_OES_viewport_array */
 
@@ -3776,12 +3974,11 @@ int AnyGL_load(void)
 		AnyGL_glEGLImageTargetTexStorageEXT = (PFNANYGLEGLIMAGETARGETTEXSTORAGEEXTPROC)&glEGLImageTargetTexStorageEXT;
 		AnyGL_glEGLImageTargetTextureStorageEXT = (PFNANYGLEGLIMAGETARGETTEXTURESTORAGEEXTPROC)&glEGLImageTargetTextureStorageEXT;
 	}
-	else
-	{
-		AnyGL_glEGLImageTargetTexStorageEXT = 0;
-		AnyGL_glEGLImageTargetTextureStorageEXT = 0;
-	}
 #endif /* GL_EXT_EGL_image_storage */
+
+#ifndef ANYGL_EXT_EGL_sync
+	AnyGL_EXT_EGL_sync = AnyGL_queryExtension("GL_EXT_EGL_sync");
+#endif /* GL_EXT_EGL_sync */
 
 #ifndef ANYGL_EXT_YUV_target
 	AnyGL_EXT_YUV_target = AnyGL_queryExtension("GL_EXT_YUV_target");
@@ -3802,9 +3999,6 @@ int AnyGL_load(void)
 		if (!AnyGL_glDrawElementsInstancedBaseVertexBaseInstance)
 			AnyGL_glDrawElementsInstancedBaseVertexBaseInstance = (PFNANYGLDRAWELEMENTSINSTANCEDBASEVERTEXBASEINSTANCEPROC)&glDrawElementsInstancedBaseVertexBaseInstanceEXT;
 	}
-	else
-	{
-	}
 #endif /* GL_EXT_base_instance */
 
 #ifndef ANYGL_EXT_bgra
@@ -3819,12 +4013,6 @@ int AnyGL_load(void)
 		AnyGL_glGetUniformBufferSizeEXT = (PFNANYGLGETUNIFORMBUFFERSIZEEXTPROC)&glGetUniformBufferSizeEXT;
 		AnyGL_glGetUniformOffsetEXT = (PFNANYGLGETUNIFORMOFFSETEXTPROC)&glGetUniformOffsetEXT;
 	}
-	else
-	{
-		AnyGL_glUniformBufferEXT = 0;
-		AnyGL_glGetUniformBufferSizeEXT = 0;
-		AnyGL_glGetUniformOffsetEXT = 0;
-	}
 #endif /* GL_EXT_bindable_uniform */
 
 #ifndef ANYGL_EXT_blend_color
@@ -3834,9 +4022,6 @@ int AnyGL_load(void)
 		if (!AnyGL_glBlendColor)
 			AnyGL_glBlendColor = (PFNANYGLBLENDCOLORPROC)&glBlendColorEXT;
 	}
-	else
-	{
-	}
 #endif /* GL_EXT_blend_color */
 
 #ifndef ANYGL_EXT_blend_equation_separate
@@ -3845,9 +4030,6 @@ int AnyGL_load(void)
 	{
 		if (!AnyGL_glBlendEquationSeparate)
 			AnyGL_glBlendEquationSeparate = (PFNANYGLBLENDEQUATIONSEPARATEPROC)&glBlendEquationSeparateEXT;
-	}
-	else
-	{
 	}
 #endif /* GL_EXT_blend_equation_separate */
 
@@ -3864,9 +4046,6 @@ int AnyGL_load(void)
 		if (!AnyGL_glGetFragDataIndex)
 			AnyGL_glGetFragDataIndex = (PFNANYGLGETFRAGDATAINDEXPROC)&glGetFragDataIndexEXT;
 	}
-	else
-	{
-	}
 #endif /* GL_EXT_blend_func_extended */
 
 #ifndef ANYGL_EXT_blend_func_separate
@@ -3875,9 +4054,6 @@ int AnyGL_load(void)
 	{
 		if (!AnyGL_glBlendFuncSeparate)
 			AnyGL_glBlendFuncSeparate = (PFNANYGLBLENDFUNCSEPARATEPROC)&glBlendFuncSeparateEXT;
-	}
-	else
-	{
 	}
 #endif /* GL_EXT_blend_func_separate */
 
@@ -3892,9 +4068,6 @@ int AnyGL_load(void)
 		if (!AnyGL_glBlendEquation)
 			AnyGL_glBlendEquation = (PFNANYGLBLENDEQUATIONPROC)&glBlendEquationEXT;
 	}
-	else
-	{
-	}
 #endif /* GL_EXT_blend_minmax */
 
 #ifndef ANYGL_EXT_blend_subtract
@@ -3908,9 +4081,6 @@ int AnyGL_load(void)
 		if (!AnyGL_glBufferStorage)
 			AnyGL_glBufferStorage = (PFNANYGLBUFFERSTORAGEPROC)&glBufferStorageEXT;
 	}
-	else
-	{
-	}
 #endif /* GL_EXT_buffer_storage */
 
 #ifndef ANYGL_EXT_clear_texture
@@ -3922,9 +4092,6 @@ int AnyGL_load(void)
 		if (!AnyGL_glClearTexSubImage)
 			AnyGL_glClearTexSubImage = (PFNANYGLCLEARTEXSUBIMAGEPROC)&glClearTexSubImageEXT;
 	}
-	else
-	{
-	}
 #endif /* GL_EXT_clear_texture */
 
 #ifndef ANYGL_EXT_clip_control
@@ -3933,9 +4100,6 @@ int AnyGL_load(void)
 	{
 		if (!AnyGL_glClipControl)
 			AnyGL_glClipControl = (PFNANYGLCLIPCONTROLPROC)&glClipControlEXT;
-	}
-	else
-	{
 	}
 #endif /* GL_EXT_clip_control */
 
@@ -3968,9 +4132,6 @@ int AnyGL_load(void)
 		if (!AnyGL_glCopyColorSubTable)
 			AnyGL_glCopyColorSubTable = (PFNANYGLCOPYCOLORSUBTABLEPROC)&glCopyColorSubTableEXT;
 	}
-	else
-	{
-	}
 #endif /* GL_EXT_color_subtable */
 
 #ifndef ANYGL_EXT_compiled_vertex_array
@@ -3979,11 +4140,6 @@ int AnyGL_load(void)
 	{
 		AnyGL_glLockArraysEXT = (PFNANYGLLOCKARRAYSEXTPROC)&glLockArraysEXT;
 		AnyGL_glUnlockArraysEXT = (PFNANYGLUNLOCKARRAYSEXTPROC)&glUnlockArraysEXT;
-	}
-	else
-	{
-		AnyGL_glLockArraysEXT = 0;
-		AnyGL_glUnlockArraysEXT = 0;
 	}
 #endif /* GL_EXT_compiled_vertex_array */
 
@@ -4018,13 +4174,6 @@ int AnyGL_load(void)
 		if (!AnyGL_glSeparableFilter2D)
 			AnyGL_glSeparableFilter2D = (PFNANYGLSEPARABLEFILTER2DPROC)&glSeparableFilter2DEXT;
 	}
-	else
-	{
-		AnyGL_glGetConvolutionFilterEXT = 0;
-		AnyGL_glGetConvolutionParameterfvEXT = 0;
-		AnyGL_glGetConvolutionParameterivEXT = 0;
-		AnyGL_glGetSeparableFilterEXT = 0;
-	}
 #endif /* GL_EXT_convolution */
 
 #ifndef ANYGL_EXT_coordinate_frame
@@ -4054,31 +4203,6 @@ int AnyGL_load(void)
 		AnyGL_glTangentPointerEXT = (PFNANYGLTANGENTPOINTEREXTPROC)&glTangentPointerEXT;
 		AnyGL_glBinormalPointerEXT = (PFNANYGLBINORMALPOINTEREXTPROC)&glBinormalPointerEXT;
 	}
-	else
-	{
-		AnyGL_glTangent3bEXT = 0;
-		AnyGL_glTangent3bvEXT = 0;
-		AnyGL_glTangent3dEXT = 0;
-		AnyGL_glTangent3dvEXT = 0;
-		AnyGL_glTangent3fEXT = 0;
-		AnyGL_glTangent3fvEXT = 0;
-		AnyGL_glTangent3iEXT = 0;
-		AnyGL_glTangent3ivEXT = 0;
-		AnyGL_glTangent3sEXT = 0;
-		AnyGL_glTangent3svEXT = 0;
-		AnyGL_glBinormal3bEXT = 0;
-		AnyGL_glBinormal3bvEXT = 0;
-		AnyGL_glBinormal3dEXT = 0;
-		AnyGL_glBinormal3dvEXT = 0;
-		AnyGL_glBinormal3fEXT = 0;
-		AnyGL_glBinormal3fvEXT = 0;
-		AnyGL_glBinormal3iEXT = 0;
-		AnyGL_glBinormal3ivEXT = 0;
-		AnyGL_glBinormal3sEXT = 0;
-		AnyGL_glBinormal3svEXT = 0;
-		AnyGL_glTangentPointerEXT = 0;
-		AnyGL_glBinormalPointerEXT = 0;
-	}
 #endif /* GL_EXT_coordinate_frame */
 
 #ifndef ANYGL_EXT_copy_image
@@ -4087,9 +4211,6 @@ int AnyGL_load(void)
 	{
 		if (!AnyGL_glCopyImageSubData)
 			AnyGL_glCopyImageSubData = (PFNANYGLCOPYIMAGESUBDATAPROC)&glCopyImageSubDataEXT;
-	}
-	else
-	{
 	}
 #endif /* GL_EXT_copy_image */
 
@@ -4108,9 +4229,6 @@ int AnyGL_load(void)
 		if (!AnyGL_glCopyTexSubImage3D)
 			AnyGL_glCopyTexSubImage3D = (PFNANYGLCOPYTEXSUBIMAGE3DPROC)&glCopyTexSubImage3DEXT;
 	}
-	else
-	{
-	}
 #endif /* GL_EXT_copy_texture */
 
 #ifndef ANYGL_EXT_cull_vertex
@@ -4120,11 +4238,6 @@ int AnyGL_load(void)
 		AnyGL_glCullParameterdvEXT = (PFNANYGLCULLPARAMETERDVEXTPROC)&glCullParameterdvEXT;
 		AnyGL_glCullParameterfvEXT = (PFNANYGLCULLPARAMETERFVEXTPROC)&glCullParameterfvEXT;
 	}
-	else
-	{
-		AnyGL_glCullParameterdvEXT = 0;
-		AnyGL_glCullParameterfvEXT = 0;
-	}
 #endif /* GL_EXT_cull_vertex */
 
 #ifndef ANYGL_EXT_debug_label
@@ -4133,11 +4246,6 @@ int AnyGL_load(void)
 	{
 		AnyGL_glLabelObjectEXT = (PFNANYGLLABELOBJECTEXTPROC)&glLabelObjectEXT;
 		AnyGL_glGetObjectLabelEXT = (PFNANYGLGETOBJECTLABELEXTPROC)&glGetObjectLabelEXT;
-	}
-	else
-	{
-		AnyGL_glLabelObjectEXT = 0;
-		AnyGL_glGetObjectLabelEXT = 0;
 	}
 #endif /* GL_EXT_debug_label */
 
@@ -4149,12 +4257,6 @@ int AnyGL_load(void)
 		AnyGL_glPushGroupMarkerEXT = (PFNANYGLPUSHGROUPMARKEREXTPROC)&glPushGroupMarkerEXT;
 		AnyGL_glPopGroupMarkerEXT = (PFNANYGLPOPGROUPMARKEREXTPROC)&glPopGroupMarkerEXT;
 	}
-	else
-	{
-		AnyGL_glInsertEventMarkerEXT = 0;
-		AnyGL_glPushGroupMarkerEXT = 0;
-		AnyGL_glPopGroupMarkerEXT = 0;
-	}
 #endif /* GL_EXT_debug_marker */
 
 #ifndef ANYGL_EXT_depth_bounds_test
@@ -4163,11 +4265,11 @@ int AnyGL_load(void)
 	{
 		AnyGL_glDepthBoundsEXT = (PFNANYGLDEPTHBOUNDSEXTPROC)&glDepthBoundsEXT;
 	}
-	else
-	{
-		AnyGL_glDepthBoundsEXT = 0;
-	}
 #endif /* GL_EXT_depth_bounds_test */
+
+#ifndef ANYGL_EXT_depth_clamp
+	AnyGL_EXT_depth_clamp = AnyGL_queryExtension("GL_EXT_depth_clamp");
+#endif /* GL_EXT_depth_clamp */
 
 #ifndef ANYGL_EXT_direct_state_access
 	AnyGL_EXT_direct_state_access = AnyGL_queryExtension("GL_EXT_direct_state_access");
@@ -4473,220 +4575,6 @@ int AnyGL_load(void)
 		AnyGL_glTexturePageCommitmentEXT = (PFNANYGLTEXTUREPAGECOMMITMENTEXTPROC)&glTexturePageCommitmentEXT;
 		AnyGL_glVertexArrayVertexAttribDivisorEXT = (PFNANYGLVERTEXARRAYVERTEXATTRIBDIVISOREXTPROC)&glVertexArrayVertexAttribDivisorEXT;
 	}
-	else
-	{
-		AnyGL_glMatrixLoadfEXT = 0;
-		AnyGL_glMatrixLoaddEXT = 0;
-		AnyGL_glMatrixMultfEXT = 0;
-		AnyGL_glMatrixMultdEXT = 0;
-		AnyGL_glMatrixLoadIdentityEXT = 0;
-		AnyGL_glMatrixRotatefEXT = 0;
-		AnyGL_glMatrixRotatedEXT = 0;
-		AnyGL_glMatrixScalefEXT = 0;
-		AnyGL_glMatrixScaledEXT = 0;
-		AnyGL_glMatrixTranslatefEXT = 0;
-		AnyGL_glMatrixTranslatedEXT = 0;
-		AnyGL_glMatrixFrustumEXT = 0;
-		AnyGL_glMatrixOrthoEXT = 0;
-		AnyGL_glMatrixPopEXT = 0;
-		AnyGL_glMatrixPushEXT = 0;
-		AnyGL_glClientAttribDefaultEXT = 0;
-		AnyGL_glPushClientAttribDefaultEXT = 0;
-		AnyGL_glTextureParameterfEXT = 0;
-		AnyGL_glTextureParameterfvEXT = 0;
-		AnyGL_glTextureParameteriEXT = 0;
-		AnyGL_glTextureParameterivEXT = 0;
-		AnyGL_glTextureImage1DEXT = 0;
-		AnyGL_glTextureImage2DEXT = 0;
-		AnyGL_glTextureSubImage1DEXT = 0;
-		AnyGL_glTextureSubImage2DEXT = 0;
-		AnyGL_glCopyTextureImage1DEXT = 0;
-		AnyGL_glCopyTextureImage2DEXT = 0;
-		AnyGL_glCopyTextureSubImage1DEXT = 0;
-		AnyGL_glCopyTextureSubImage2DEXT = 0;
-		AnyGL_glGetTextureImageEXT = 0;
-		AnyGL_glGetTextureParameterfvEXT = 0;
-		AnyGL_glGetTextureParameterivEXT = 0;
-		AnyGL_glGetTextureLevelParameterfvEXT = 0;
-		AnyGL_glGetTextureLevelParameterivEXT = 0;
-		AnyGL_glTextureImage3DEXT = 0;
-		AnyGL_glTextureSubImage3DEXT = 0;
-		AnyGL_glCopyTextureSubImage3DEXT = 0;
-		AnyGL_glBindMultiTextureEXT = 0;
-		AnyGL_glMultiTexCoordPointerEXT = 0;
-		AnyGL_glMultiTexEnvfEXT = 0;
-		AnyGL_glMultiTexEnvfvEXT = 0;
-		AnyGL_glMultiTexEnviEXT = 0;
-		AnyGL_glMultiTexEnvivEXT = 0;
-		AnyGL_glMultiTexGendEXT = 0;
-		AnyGL_glMultiTexGendvEXT = 0;
-		AnyGL_glMultiTexGenfEXT = 0;
-		AnyGL_glMultiTexGenfvEXT = 0;
-		AnyGL_glMultiTexGeniEXT = 0;
-		AnyGL_glMultiTexGenivEXT = 0;
-		AnyGL_glGetMultiTexEnvfvEXT = 0;
-		AnyGL_glGetMultiTexEnvivEXT = 0;
-		AnyGL_glGetMultiTexGendvEXT = 0;
-		AnyGL_glGetMultiTexGenfvEXT = 0;
-		AnyGL_glGetMultiTexGenivEXT = 0;
-		AnyGL_glMultiTexParameteriEXT = 0;
-		AnyGL_glMultiTexParameterivEXT = 0;
-		AnyGL_glMultiTexParameterfEXT = 0;
-		AnyGL_glMultiTexParameterfvEXT = 0;
-		AnyGL_glMultiTexImage1DEXT = 0;
-		AnyGL_glMultiTexImage2DEXT = 0;
-		AnyGL_glMultiTexSubImage1DEXT = 0;
-		AnyGL_glMultiTexSubImage2DEXT = 0;
-		AnyGL_glCopyMultiTexImage1DEXT = 0;
-		AnyGL_glCopyMultiTexImage2DEXT = 0;
-		AnyGL_glCopyMultiTexSubImage1DEXT = 0;
-		AnyGL_glCopyMultiTexSubImage2DEXT = 0;
-		AnyGL_glGetMultiTexImageEXT = 0;
-		AnyGL_glGetMultiTexParameterfvEXT = 0;
-		AnyGL_glGetMultiTexParameterivEXT = 0;
-		AnyGL_glGetMultiTexLevelParameterfvEXT = 0;
-		AnyGL_glGetMultiTexLevelParameterivEXT = 0;
-		AnyGL_glMultiTexImage3DEXT = 0;
-		AnyGL_glMultiTexSubImage3DEXT = 0;
-		AnyGL_glCopyMultiTexSubImage3DEXT = 0;
-		AnyGL_glEnableClientStateIndexedEXT = 0;
-		AnyGL_glDisableClientStateIndexedEXT = 0;
-		AnyGL_glGetPointerIndexedvEXT = 0;
-		AnyGL_glCompressedTextureImage3DEXT = 0;
-		AnyGL_glCompressedTextureImage2DEXT = 0;
-		AnyGL_glCompressedTextureImage1DEXT = 0;
-		AnyGL_glCompressedTextureSubImage3DEXT = 0;
-		AnyGL_glCompressedTextureSubImage2DEXT = 0;
-		AnyGL_glCompressedTextureSubImage1DEXT = 0;
-		AnyGL_glGetCompressedTextureImageEXT = 0;
-		AnyGL_glCompressedMultiTexImage3DEXT = 0;
-		AnyGL_glCompressedMultiTexImage2DEXT = 0;
-		AnyGL_glCompressedMultiTexImage1DEXT = 0;
-		AnyGL_glCompressedMultiTexSubImage3DEXT = 0;
-		AnyGL_glCompressedMultiTexSubImage2DEXT = 0;
-		AnyGL_glCompressedMultiTexSubImage1DEXT = 0;
-		AnyGL_glGetCompressedMultiTexImageEXT = 0;
-		AnyGL_glMatrixLoadTransposefEXT = 0;
-		AnyGL_glMatrixLoadTransposedEXT = 0;
-		AnyGL_glMatrixMultTransposefEXT = 0;
-		AnyGL_glMatrixMultTransposedEXT = 0;
-		AnyGL_glNamedBufferDataEXT = 0;
-		AnyGL_glMapNamedBufferEXT = 0;
-		AnyGL_glUnmapNamedBufferEXT = 0;
-		AnyGL_glGetNamedBufferParameterivEXT = 0;
-		AnyGL_glGetNamedBufferPointervEXT = 0;
-		AnyGL_glGetNamedBufferSubDataEXT = 0;
-		AnyGL_glTextureBufferEXT = 0;
-		AnyGL_glMultiTexBufferEXT = 0;
-		AnyGL_glTextureParameterIivEXT = 0;
-		AnyGL_glTextureParameterIuivEXT = 0;
-		AnyGL_glGetTextureParameterIivEXT = 0;
-		AnyGL_glGetTextureParameterIuivEXT = 0;
-		AnyGL_glMultiTexParameterIivEXT = 0;
-		AnyGL_glMultiTexParameterIuivEXT = 0;
-		AnyGL_glGetMultiTexParameterIivEXT = 0;
-		AnyGL_glGetMultiTexParameterIuivEXT = 0;
-		AnyGL_glNamedProgramLocalParameters4fvEXT = 0;
-		AnyGL_glNamedProgramLocalParameterI4iEXT = 0;
-		AnyGL_glNamedProgramLocalParameterI4ivEXT = 0;
-		AnyGL_glNamedProgramLocalParametersI4ivEXT = 0;
-		AnyGL_glNamedProgramLocalParameterI4uiEXT = 0;
-		AnyGL_glNamedProgramLocalParameterI4uivEXT = 0;
-		AnyGL_glNamedProgramLocalParametersI4uivEXT = 0;
-		AnyGL_glGetNamedProgramLocalParameterIivEXT = 0;
-		AnyGL_glGetNamedProgramLocalParameterIuivEXT = 0;
-		AnyGL_glEnableClientStateiEXT = 0;
-		AnyGL_glDisableClientStateiEXT = 0;
-		AnyGL_glGetPointeri_vEXT = 0;
-		AnyGL_glNamedProgramStringEXT = 0;
-		AnyGL_glNamedProgramLocalParameter4dEXT = 0;
-		AnyGL_glNamedProgramLocalParameter4dvEXT = 0;
-		AnyGL_glNamedProgramLocalParameter4fEXT = 0;
-		AnyGL_glNamedProgramLocalParameter4fvEXT = 0;
-		AnyGL_glGetNamedProgramLocalParameterdvEXT = 0;
-		AnyGL_glGetNamedProgramLocalParameterfvEXT = 0;
-		AnyGL_glGetNamedProgramivEXT = 0;
-		AnyGL_glGetNamedProgramStringEXT = 0;
-		AnyGL_glNamedRenderbufferStorageEXT = 0;
-		AnyGL_glGetNamedRenderbufferParameterivEXT = 0;
-		AnyGL_glNamedRenderbufferStorageMultisampleEXT = 0;
-		AnyGL_glNamedRenderbufferStorageMultisampleCoverageEXT = 0;
-		AnyGL_glCheckNamedFramebufferStatusEXT = 0;
-		AnyGL_glNamedFramebufferTexture1DEXT = 0;
-		AnyGL_glNamedFramebufferTexture2DEXT = 0;
-		AnyGL_glNamedFramebufferTexture3DEXT = 0;
-		AnyGL_glNamedFramebufferRenderbufferEXT = 0;
-		AnyGL_glGetNamedFramebufferAttachmentParameterivEXT = 0;
-		AnyGL_glGenerateTextureMipmapEXT = 0;
-		AnyGL_glGenerateMultiTexMipmapEXT = 0;
-		AnyGL_glFramebufferDrawBufferEXT = 0;
-		AnyGL_glFramebufferDrawBuffersEXT = 0;
-		AnyGL_glFramebufferReadBufferEXT = 0;
-		AnyGL_glGetFramebufferParameterivEXT = 0;
-		AnyGL_glNamedCopyBufferSubDataEXT = 0;
-		AnyGL_glNamedFramebufferTextureEXT = 0;
-		AnyGL_glNamedFramebufferTextureLayerEXT = 0;
-		AnyGL_glNamedFramebufferTextureFaceEXT = 0;
-		AnyGL_glTextureRenderbufferEXT = 0;
-		AnyGL_glMultiTexRenderbufferEXT = 0;
-		AnyGL_glVertexArrayVertexOffsetEXT = 0;
-		AnyGL_glVertexArrayColorOffsetEXT = 0;
-		AnyGL_glVertexArrayEdgeFlagOffsetEXT = 0;
-		AnyGL_glVertexArrayIndexOffsetEXT = 0;
-		AnyGL_glVertexArrayNormalOffsetEXT = 0;
-		AnyGL_glVertexArrayTexCoordOffsetEXT = 0;
-		AnyGL_glVertexArrayMultiTexCoordOffsetEXT = 0;
-		AnyGL_glVertexArrayFogCoordOffsetEXT = 0;
-		AnyGL_glVertexArraySecondaryColorOffsetEXT = 0;
-		AnyGL_glVertexArrayVertexAttribOffsetEXT = 0;
-		AnyGL_glVertexArrayVertexAttribIOffsetEXT = 0;
-		AnyGL_glEnableVertexArrayEXT = 0;
-		AnyGL_glDisableVertexArrayEXT = 0;
-		AnyGL_glEnableVertexArrayAttribEXT = 0;
-		AnyGL_glDisableVertexArrayAttribEXT = 0;
-		AnyGL_glGetVertexArrayIntegervEXT = 0;
-		AnyGL_glGetVertexArrayPointervEXT = 0;
-		AnyGL_glGetVertexArrayIntegeri_vEXT = 0;
-		AnyGL_glGetVertexArrayPointeri_vEXT = 0;
-		AnyGL_glMapNamedBufferRangeEXT = 0;
-		AnyGL_glFlushMappedNamedBufferRangeEXT = 0;
-		AnyGL_glClearNamedBufferDataEXT = 0;
-		AnyGL_glClearNamedBufferSubDataEXT = 0;
-		AnyGL_glNamedFramebufferParameteriEXT = 0;
-		AnyGL_glGetNamedFramebufferParameterivEXT = 0;
-		AnyGL_glProgramUniform1dEXT = 0;
-		AnyGL_glProgramUniform2dEXT = 0;
-		AnyGL_glProgramUniform3dEXT = 0;
-		AnyGL_glProgramUniform4dEXT = 0;
-		AnyGL_glProgramUniform1dvEXT = 0;
-		AnyGL_glProgramUniform2dvEXT = 0;
-		AnyGL_glProgramUniform3dvEXT = 0;
-		AnyGL_glProgramUniform4dvEXT = 0;
-		AnyGL_glProgramUniformMatrix2dvEXT = 0;
-		AnyGL_glProgramUniformMatrix3dvEXT = 0;
-		AnyGL_glProgramUniformMatrix4dvEXT = 0;
-		AnyGL_glProgramUniformMatrix2x3dvEXT = 0;
-		AnyGL_glProgramUniformMatrix2x4dvEXT = 0;
-		AnyGL_glProgramUniformMatrix3x2dvEXT = 0;
-		AnyGL_glProgramUniformMatrix3x4dvEXT = 0;
-		AnyGL_glProgramUniformMatrix4x2dvEXT = 0;
-		AnyGL_glProgramUniformMatrix4x3dvEXT = 0;
-		AnyGL_glTextureBufferRangeEXT = 0;
-		AnyGL_glTextureStorage1DEXT = 0;
-		AnyGL_glTextureStorage2DEXT = 0;
-		AnyGL_glTextureStorage3DEXT = 0;
-		AnyGL_glTextureStorage2DMultisampleEXT = 0;
-		AnyGL_glTextureStorage3DMultisampleEXT = 0;
-		AnyGL_glVertexArrayBindVertexBufferEXT = 0;
-		AnyGL_glVertexArrayVertexAttribFormatEXT = 0;
-		AnyGL_glVertexArrayVertexAttribIFormatEXT = 0;
-		AnyGL_glVertexArrayVertexAttribLFormatEXT = 0;
-		AnyGL_glVertexArrayVertexAttribBindingEXT = 0;
-		AnyGL_glVertexArrayVertexBindingDivisorEXT = 0;
-		AnyGL_glVertexArrayVertexAttribLOffsetEXT = 0;
-		AnyGL_glTexturePageCommitmentEXT = 0;
-		AnyGL_glVertexArrayVertexAttribDivisorEXT = 0;
-	}
 #endif /* GL_EXT_direct_state_access */
 
 #ifndef ANYGL_EXT_discard_framebuffer
@@ -4694,10 +4582,6 @@ int AnyGL_load(void)
 	if (AnyGL_EXT_discard_framebuffer)
 	{
 		AnyGL_glDiscardFramebufferEXT = (PFNANYGLDISCARDFRAMEBUFFEREXTPROC)&glDiscardFramebufferEXT;
-	}
-	else
-	{
-		AnyGL_glDiscardFramebufferEXT = 0;
 	}
 #endif /* GL_EXT_discard_framebuffer */
 
@@ -4728,9 +4612,6 @@ int AnyGL_load(void)
 		if (!AnyGL_glGetQueryObjectui64v)
 			AnyGL_glGetQueryObjectui64v = (PFNANYGLGETQUERYOBJECTUI64VPROC)&glGetQueryObjectui64vEXT;
 	}
-	else
-	{
-	}
 #endif /* GL_EXT_disjoint_timer_query */
 
 #ifndef ANYGL_EXT_draw_buffers
@@ -4740,9 +4621,6 @@ int AnyGL_load(void)
 		if (!AnyGL_glDrawBuffers)
 			AnyGL_glDrawBuffers = (PFNANYGLDRAWBUFFERSPROC)&glDrawBuffersEXT;
 	}
-	else
-	{
-	}
 #endif /* GL_EXT_draw_buffers */
 
 #ifndef ANYGL_EXT_draw_buffers2
@@ -4751,9 +4629,16 @@ int AnyGL_load(void)
 	{
 		if (!AnyGL_glColorMaski)
 			AnyGL_glColorMaski = (PFNANYGLCOLORMASKIPROC)&glColorMaskIndexedEXT;
-	}
-	else
-	{
+		if (!AnyGL_glGetBooleani_v)
+			AnyGL_glGetBooleani_v = (PFNANYGLGETBOOLEANI_VPROC)&glGetBooleanIndexedvEXT;
+		if (!AnyGL_glGetIntegeri_v)
+			AnyGL_glGetIntegeri_v = (PFNANYGLGETINTEGERI_VPROC)&glGetIntegerIndexedvEXT;
+		if (!AnyGL_glEnablei)
+			AnyGL_glEnablei = (PFNANYGLENABLEIPROC)&glEnableIndexedEXT;
+		if (!AnyGL_glDisablei)
+			AnyGL_glDisablei = (PFNANYGLDISABLEIPROC)&glDisableIndexedEXT;
+		if (!AnyGL_glIsEnabledi)
+			AnyGL_glIsEnabledi = (PFNANYGLISENABLEDIPROC)&glIsEnabledIndexedEXT;
 	}
 #endif /* GL_EXT_draw_buffers2 */
 
@@ -4778,9 +4663,6 @@ int AnyGL_load(void)
 		if (!AnyGL_glIsEnabledi)
 			AnyGL_glIsEnabledi = (PFNANYGLISENABLEDIPROC)&glIsEnablediEXT;
 	}
-	else
-	{
-	}
 #endif /* GL_EXT_draw_buffers_indexed */
 
 #ifndef ANYGL_EXT_draw_elements_base_vertex
@@ -4793,9 +4675,8 @@ int AnyGL_load(void)
 			AnyGL_glDrawRangeElementsBaseVertex = (PFNANYGLDRAWRANGEELEMENTSBASEVERTEXPROC)&glDrawRangeElementsBaseVertexEXT;
 		if (!AnyGL_glDrawElementsInstancedBaseVertex)
 			AnyGL_glDrawElementsInstancedBaseVertex = (PFNANYGLDRAWELEMENTSINSTANCEDBASEVERTEXPROC)&glDrawElementsInstancedBaseVertexEXT;
-	}
-	else
-	{
+		if (!AnyGL_glMultiDrawElementsBaseVertex)
+			AnyGL_glMultiDrawElementsBaseVertex = (PFNANYGLMULTIDRAWELEMENTSBASEVERTEXPROC)&glMultiDrawElementsBaseVertexEXT;
 	}
 #endif /* GL_EXT_draw_elements_base_vertex */
 
@@ -4808,9 +4689,6 @@ int AnyGL_load(void)
 		if (!AnyGL_glDrawElementsInstanced)
 			AnyGL_glDrawElementsInstanced = (PFNANYGLDRAWELEMENTSINSTANCEDPROC)&glDrawElementsInstancedEXT;
 	}
-	else
-	{
-	}
 #endif /* GL_EXT_draw_instanced */
 
 #ifndef ANYGL_EXT_draw_range_elements
@@ -4819,9 +4697,6 @@ int AnyGL_load(void)
 	{
 		if (!AnyGL_glDrawRangeElements)
 			AnyGL_glDrawRangeElements = (PFNANYGLDRAWRANGEELEMENTSPROC)&glDrawRangeElementsEXT;
-	}
-	else
-	{
 	}
 #endif /* GL_EXT_draw_range_elements */
 
@@ -4834,9 +4709,6 @@ int AnyGL_load(void)
 		if (!AnyGL_glDrawTransformFeedbackInstanced)
 			AnyGL_glDrawTransformFeedbackInstanced = (PFNANYGLDRAWTRANSFORMFEEDBACKINSTANCEDPROC)&glDrawTransformFeedbackInstancedEXT;
 	}
-	else
-	{
-	}
 #endif /* GL_EXT_draw_transform_feedback */
 
 #ifndef ANYGL_EXT_external_buffer
@@ -4845,11 +4717,6 @@ int AnyGL_load(void)
 	{
 		AnyGL_glBufferStorageExternalEXT = (PFNANYGLBUFFERSTORAGEEXTERNALEXTPROC)&glBufferStorageExternalEXT;
 		AnyGL_glNamedBufferStorageExternalEXT = (PFNANYGLNAMEDBUFFERSTORAGEEXTERNALEXTPROC)&glNamedBufferStorageExternalEXT;
-	}
-	else
-	{
-		AnyGL_glBufferStorageExternalEXT = 0;
-		AnyGL_glNamedBufferStorageExternalEXT = 0;
 	}
 #endif /* GL_EXT_external_buffer */
 
@@ -4872,9 +4739,6 @@ int AnyGL_load(void)
 		if (!AnyGL_glFogCoordPointer)
 			AnyGL_glFogCoordPointer = (PFNANYGLFOGCOORDPOINTERPROC)&glFogCoordPointerEXT;
 	}
-	else
-	{
-	}
 #endif /* GL_EXT_fog_coord */
 
 #ifndef ANYGL_EXT_framebuffer_blit
@@ -4884,9 +4748,6 @@ int AnyGL_load(void)
 		if (!AnyGL_glBlitFramebuffer)
 			AnyGL_glBlitFramebuffer = (PFNANYGLBLITFRAMEBUFFERPROC)&glBlitFramebufferEXT;
 	}
-	else
-	{
-	}
 #endif /* GL_EXT_framebuffer_blit */
 
 #ifndef ANYGL_EXT_framebuffer_multisample
@@ -4895,9 +4756,6 @@ int AnyGL_load(void)
 	{
 		if (!AnyGL_glRenderbufferStorageMultisample)
 			AnyGL_glRenderbufferStorageMultisample = (PFNANYGLRENDERBUFFERSTORAGEMULTISAMPLEPROC)&glRenderbufferStorageMultisampleEXT;
-	}
-	else
-	{
 	}
 #endif /* GL_EXT_framebuffer_multisample */
 
@@ -4944,9 +4802,6 @@ int AnyGL_load(void)
 		if (!AnyGL_glGenerateMipmap)
 			AnyGL_glGenerateMipmap = (PFNANYGLGENERATEMIPMAPPROC)&glGenerateMipmapEXT;
 	}
-	else
-	{
-	}
 #endif /* GL_EXT_framebuffer_object */
 
 #ifndef ANYGL_EXT_framebuffer_sRGB
@@ -4964,9 +4819,6 @@ int AnyGL_load(void)
 		if (!AnyGL_glFramebufferTexture)
 			AnyGL_glFramebufferTexture = (PFNANYGLFRAMEBUFFERTEXTUREPROC)&glFramebufferTextureEXT;
 	}
-	else
-	{
-	}
 #endif /* GL_EXT_geometry_shader */
 
 #ifndef ANYGL_EXT_geometry_shader4
@@ -4975,9 +4827,6 @@ int AnyGL_load(void)
 	{
 		if (!AnyGL_glProgramParameteri)
 			AnyGL_glProgramParameteri = (PFNANYGLPROGRAMPARAMETERIPROC)&glProgramParameteriEXT;
-	}
-	else
-	{
 	}
 #endif /* GL_EXT_geometry_shader4 */
 
@@ -4988,11 +4837,6 @@ int AnyGL_load(void)
 		AnyGL_glProgramEnvParameters4fvEXT = (PFNANYGLPROGRAMENVPARAMETERS4FVEXTPROC)&glProgramEnvParameters4fvEXT;
 		AnyGL_glProgramLocalParameters4fvEXT = (PFNANYGLPROGRAMLOCALPARAMETERS4FVEXTPROC)&glProgramLocalParameters4fvEXT;
 	}
-	else
-	{
-		AnyGL_glProgramEnvParameters4fvEXT = 0;
-		AnyGL_glProgramLocalParameters4fvEXT = 0;
-	}
 #endif /* GL_EXT_gpu_program_parameters */
 
 #ifndef ANYGL_EXT_gpu_shader4
@@ -5001,6 +4845,8 @@ int AnyGL_load(void)
 	{
 		if (!AnyGL_glGetUniformuiv)
 			AnyGL_glGetUniformuiv = (PFNANYGLGETUNIFORMUIVPROC)&glGetUniformuivEXT;
+		if (!AnyGL_glBindFragDataLocation)
+			AnyGL_glBindFragDataLocation = (PFNANYGLBINDFRAGDATALOCATIONPROC)&glBindFragDataLocationEXT;
 		if (!AnyGL_glGetFragDataLocation)
 			AnyGL_glGetFragDataLocation = (PFNANYGLGETFRAGDATALOCATIONPROC)&glGetFragDataLocationEXT;
 		if (!AnyGL_glUniform1ui)
@@ -5019,9 +4865,6 @@ int AnyGL_load(void)
 			AnyGL_glUniform3uiv = (PFNANYGLUNIFORM3UIVPROC)&glUniform3uivEXT;
 		if (!AnyGL_glUniform4uiv)
 			AnyGL_glUniform4uiv = (PFNANYGLUNIFORM4UIVPROC)&glUniform4uivEXT;
-	}
-	else
-	{
 	}
 #endif /* GL_EXT_gpu_shader4 */
 
@@ -5048,15 +4891,6 @@ int AnyGL_load(void)
 		if (!AnyGL_glResetMinmax)
 			AnyGL_glResetMinmax = (PFNANYGLRESETMINMAXPROC)&glResetMinmaxEXT;
 	}
-	else
-	{
-		AnyGL_glGetHistogramEXT = 0;
-		AnyGL_glGetHistogramParameterfvEXT = 0;
-		AnyGL_glGetHistogramParameterivEXT = 0;
-		AnyGL_glGetMinmaxEXT = 0;
-		AnyGL_glGetMinmaxParameterfvEXT = 0;
-		AnyGL_glGetMinmaxParameterivEXT = 0;
-	}
 #endif /* GL_EXT_histogram */
 
 #ifndef ANYGL_EXT_index_array_formats
@@ -5069,10 +4903,6 @@ int AnyGL_load(void)
 	{
 		AnyGL_glIndexFuncEXT = (PFNANYGLINDEXFUNCEXTPROC)&glIndexFuncEXT;
 	}
-	else
-	{
-		AnyGL_glIndexFuncEXT = 0;
-	}
 #endif /* GL_EXT_index_func */
 
 #ifndef ANYGL_EXT_index_material
@@ -5080,10 +4910,6 @@ int AnyGL_load(void)
 	if (AnyGL_EXT_index_material)
 	{
 		AnyGL_glIndexMaterialEXT = (PFNANYGLINDEXMATERIALEXTPROC)&glIndexMaterialEXT;
-	}
-	else
-	{
-		AnyGL_glIndexMaterialEXT = 0;
 	}
 #endif /* GL_EXT_index_material */
 
@@ -5095,11 +4921,12 @@ int AnyGL_load(void)
 	AnyGL_EXT_instanced_arrays = AnyGL_queryExtension("GL_EXT_instanced_arrays");
 	if (AnyGL_EXT_instanced_arrays)
 	{
+		if (!AnyGL_glDrawArraysInstanced)
+			AnyGL_glDrawArraysInstanced = (PFNANYGLDRAWARRAYSINSTANCEDPROC)&glDrawArraysInstancedEXT;
+		if (!AnyGL_glDrawElementsInstanced)
+			AnyGL_glDrawElementsInstanced = (PFNANYGLDRAWELEMENTSINSTANCEDPROC)&glDrawElementsInstancedEXT;
 		if (!AnyGL_glVertexAttribDivisor)
 			AnyGL_glVertexAttribDivisor = (PFNANYGLVERTEXATTRIBDIVISORPROC)&glVertexAttribDivisorEXT;
-	}
-	else
-	{
 	}
 #endif /* GL_EXT_instanced_arrays */
 
@@ -5111,12 +4938,6 @@ int AnyGL_load(void)
 		AnyGL_glTextureLightEXT = (PFNANYGLTEXTURELIGHTEXTPROC)&glTextureLightEXT;
 		AnyGL_glTextureMaterialEXT = (PFNANYGLTEXTUREMATERIALEXTPROC)&glTextureMaterialEXT;
 	}
-	else
-	{
-		AnyGL_glApplyTextureEXT = 0;
-		AnyGL_glTextureLightEXT = 0;
-		AnyGL_glTextureMaterialEXT = 0;
-	}
 #endif /* GL_EXT_light_texture */
 
 #ifndef ANYGL_EXT_map_buffer_range
@@ -5127,9 +4948,6 @@ int AnyGL_load(void)
 			AnyGL_glMapBufferRange = (PFNANYGLMAPBUFFERRANGEPROC)&glMapBufferRangeEXT;
 		if (!AnyGL_glFlushMappedBufferRange)
 			AnyGL_glFlushMappedBufferRange = (PFNANYGLFLUSHMAPPEDBUFFERRANGEPROC)&glFlushMappedBufferRangeEXT;
-	}
-	else
-	{
 	}
 #endif /* GL_EXT_map_buffer_range */
 
@@ -5157,28 +4975,6 @@ int AnyGL_load(void)
 		AnyGL_glTexStorageMem1DEXT = (PFNANYGLTEXSTORAGEMEM1DEXTPROC)&glTexStorageMem1DEXT;
 		AnyGL_glTextureStorageMem1DEXT = (PFNANYGLTEXTURESTORAGEMEM1DEXTPROC)&glTextureStorageMem1DEXT;
 	}
-	else
-	{
-		AnyGL_glGetUnsignedBytevEXT = 0;
-		AnyGL_glGetUnsignedBytei_vEXT = 0;
-		AnyGL_glDeleteMemoryObjectsEXT = 0;
-		AnyGL_glIsMemoryObjectEXT = 0;
-		AnyGL_glCreateMemoryObjectsEXT = 0;
-		AnyGL_glMemoryObjectParameterivEXT = 0;
-		AnyGL_glGetMemoryObjectParameterivEXT = 0;
-		AnyGL_glTexStorageMem2DEXT = 0;
-		AnyGL_glTexStorageMem2DMultisampleEXT = 0;
-		AnyGL_glTexStorageMem3DEXT = 0;
-		AnyGL_glTexStorageMem3DMultisampleEXT = 0;
-		AnyGL_glBufferStorageMemEXT = 0;
-		AnyGL_glTextureStorageMem2DEXT = 0;
-		AnyGL_glTextureStorageMem2DMultisampleEXT = 0;
-		AnyGL_glTextureStorageMem3DEXT = 0;
-		AnyGL_glTextureStorageMem3DMultisampleEXT = 0;
-		AnyGL_glNamedBufferStorageMemEXT = 0;
-		AnyGL_glTexStorageMem1DEXT = 0;
-		AnyGL_glTextureStorageMem1DEXT = 0;
-	}
 #endif /* GL_EXT_memory_object */
 
 #ifndef ANYGL_EXT_memory_object_fd
@@ -5186,10 +4982,6 @@ int AnyGL_load(void)
 	if (AnyGL_EXT_memory_object_fd)
 	{
 		AnyGL_glImportMemoryFdEXT = (PFNANYGLIMPORTMEMORYFDEXTPROC)&glImportMemoryFdEXT;
-	}
-	else
-	{
-		AnyGL_glImportMemoryFdEXT = 0;
 	}
 #endif /* GL_EXT_memory_object_fd */
 
@@ -5199,11 +4991,6 @@ int AnyGL_load(void)
 	{
 		AnyGL_glImportMemoryWin32HandleEXT = (PFNANYGLIMPORTMEMORYWIN32HANDLEEXTPROC)&glImportMemoryWin32HandleEXT;
 		AnyGL_glImportMemoryWin32NameEXT = (PFNANYGLIMPORTMEMORYWIN32NAMEEXTPROC)&glImportMemoryWin32NameEXT;
-	}
-	else
-	{
-		AnyGL_glImportMemoryWin32HandleEXT = 0;
-		AnyGL_glImportMemoryWin32NameEXT = 0;
 	}
 #endif /* GL_EXT_memory_object_win32 */
 
@@ -5220,9 +5007,6 @@ int AnyGL_load(void)
 		if (!AnyGL_glMultiDrawElements)
 			AnyGL_glMultiDrawElements = (PFNANYGLMULTIDRAWELEMENTSPROC)&glMultiDrawElementsEXT;
 	}
-	else
-	{
-	}
 #endif /* GL_EXT_multi_draw_arrays */
 
 #ifndef ANYGL_EXT_multi_draw_indirect
@@ -5234,9 +5018,6 @@ int AnyGL_load(void)
 		if (!AnyGL_glMultiDrawElementsIndirect)
 			AnyGL_glMultiDrawElementsIndirect = (PFNANYGLMULTIDRAWELEMENTSINDIRECTPROC)&glMultiDrawElementsIndirectEXT;
 	}
-	else
-	{
-	}
 #endif /* GL_EXT_multi_draw_indirect */
 
 #ifndef ANYGL_EXT_multisample
@@ -5245,11 +5026,6 @@ int AnyGL_load(void)
 	{
 		AnyGL_glSampleMaskEXT = (PFNANYGLSAMPLEMASKEXTPROC)&glSampleMaskEXT;
 		AnyGL_glSamplePatternEXT = (PFNANYGLSAMPLEPATTERNEXTPROC)&glSamplePatternEXT;
-	}
-	else
-	{
-		AnyGL_glSampleMaskEXT = 0;
-		AnyGL_glSamplePatternEXT = 0;
 	}
 #endif /* GL_EXT_multisample */
 
@@ -5261,11 +5037,9 @@ int AnyGL_load(void)
 	AnyGL_EXT_multisampled_render_to_texture = AnyGL_queryExtension("GL_EXT_multisampled_render_to_texture");
 	if (AnyGL_EXT_multisampled_render_to_texture)
 	{
+		if (!AnyGL_glRenderbufferStorageMultisample)
+			AnyGL_glRenderbufferStorageMultisample = (PFNANYGLRENDERBUFFERSTORAGEMULTISAMPLEPROC)&glRenderbufferStorageMultisampleEXT;
 		AnyGL_glFramebufferTexture2DMultisampleEXT = (PFNANYGLFRAMEBUFFERTEXTURE2DMULTISAMPLEEXTPROC)&glFramebufferTexture2DMultisampleEXT;
-	}
-	else
-	{
-		AnyGL_glFramebufferTexture2DMultisampleEXT = 0;
 	}
 #endif /* GL_EXT_multisampled_render_to_texture */
 
@@ -5277,16 +5051,39 @@ int AnyGL_load(void)
 		AnyGL_glDrawBuffersIndexedEXT = (PFNANYGLDRAWBUFFERSINDEXEDEXTPROC)&glDrawBuffersIndexedEXT;
 		AnyGL_glGetIntegeri_vEXT = (PFNANYGLGETINTEGERI_VEXTPROC)&glGetIntegeri_vEXT;
 	}
-	else
-	{
-		AnyGL_glReadBufferIndexedEXT = 0;
-		AnyGL_glDrawBuffersIndexedEXT = 0;
-		AnyGL_glGetIntegeri_vEXT = 0;
-	}
 #endif /* GL_EXT_multiview_draw_buffers */
+
+#ifndef ANYGL_EXT_multiview_tessellation_geometry_shader
+	AnyGL_EXT_multiview_tessellation_geometry_shader = AnyGL_queryExtension("GL_EXT_multiview_tessellation_geometry_shader");
+#endif /* GL_EXT_multiview_tessellation_geometry_shader */
+
+#ifndef ANYGL_EXT_multiview_texture_multisample
+	AnyGL_EXT_multiview_texture_multisample = AnyGL_queryExtension("GL_EXT_multiview_texture_multisample");
+#endif /* GL_EXT_multiview_texture_multisample */
+
+#ifndef ANYGL_EXT_multiview_timer_query
+	AnyGL_EXT_multiview_timer_query = AnyGL_queryExtension("GL_EXT_multiview_timer_query");
+#endif /* GL_EXT_multiview_timer_query */
 
 #ifndef ANYGL_EXT_occlusion_query_boolean
 	AnyGL_EXT_occlusion_query_boolean = AnyGL_queryExtension("GL_EXT_occlusion_query_boolean");
+	if (AnyGL_EXT_occlusion_query_boolean)
+	{
+		if (!AnyGL_glGenQueries)
+			AnyGL_glGenQueries = (PFNANYGLGENQUERIESPROC)&glGenQueriesEXT;
+		if (!AnyGL_glDeleteQueries)
+			AnyGL_glDeleteQueries = (PFNANYGLDELETEQUERIESPROC)&glDeleteQueriesEXT;
+		if (!AnyGL_glIsQuery)
+			AnyGL_glIsQuery = (PFNANYGLISQUERYPROC)&glIsQueryEXT;
+		if (!AnyGL_glBeginQuery)
+			AnyGL_glBeginQuery = (PFNANYGLBEGINQUERYPROC)&glBeginQueryEXT;
+		if (!AnyGL_glEndQuery)
+			AnyGL_glEndQuery = (PFNANYGLENDQUERYPROC)&glEndQueryEXT;
+		if (!AnyGL_glGetQueryiv)
+			AnyGL_glGetQueryiv = (PFNANYGLGETQUERYIVPROC)&glGetQueryivEXT;
+		if (!AnyGL_glGetQueryObjectuiv)
+			AnyGL_glGetQueryObjectuiv = (PFNANYGLGETQUERYOBJECTUIVPROC)&glGetQueryObjectuivEXT;
+	}
 #endif /* GL_EXT_occlusion_query_boolean */
 
 #ifndef ANYGL_EXT_packed_depth_stencil
@@ -5314,9 +5111,6 @@ int AnyGL_load(void)
 		if (!AnyGL_glGetColorTableParameterfv)
 			AnyGL_glGetColorTableParameterfv = (PFNANYGLGETCOLORTABLEPARAMETERFVPROC)&glGetColorTableParameterfvEXT;
 	}
-	else
-	{
-	}
 #endif /* GL_EXT_paletted_texture */
 
 #ifndef ANYGL_EXT_pixel_buffer_object
@@ -5334,15 +5128,6 @@ int AnyGL_load(void)
 		AnyGL_glGetPixelTransformParameterivEXT = (PFNANYGLGETPIXELTRANSFORMPARAMETERIVEXTPROC)&glGetPixelTransformParameterivEXT;
 		AnyGL_glGetPixelTransformParameterfvEXT = (PFNANYGLGETPIXELTRANSFORMPARAMETERFVEXTPROC)&glGetPixelTransformParameterfvEXT;
 	}
-	else
-	{
-		AnyGL_glPixelTransformParameteriEXT = 0;
-		AnyGL_glPixelTransformParameterfEXT = 0;
-		AnyGL_glPixelTransformParameterivEXT = 0;
-		AnyGL_glPixelTransformParameterfvEXT = 0;
-		AnyGL_glGetPixelTransformParameterivEXT = 0;
-		AnyGL_glGetPixelTransformParameterfvEXT = 0;
-	}
 #endif /* GL_EXT_pixel_transform */
 
 #ifndef ANYGL_EXT_pixel_transform_color_table
@@ -5358,9 +5143,6 @@ int AnyGL_load(void)
 		if (!AnyGL_glPointParameterfv)
 			AnyGL_glPointParameterfv = (PFNANYGLPOINTPARAMETERFVPROC)&glPointParameterfvEXT;
 	}
-	else
-	{
-	}
 #endif /* GL_EXT_point_parameters */
 
 #ifndef ANYGL_EXT_polygon_offset
@@ -5368,10 +5150,6 @@ int AnyGL_load(void)
 	if (AnyGL_EXT_polygon_offset)
 	{
 		AnyGL_glPolygonOffsetEXT = (PFNANYGLPOLYGONOFFSETEXTPROC)&glPolygonOffsetEXT;
-	}
-	else
-	{
-		AnyGL_glPolygonOffsetEXT = 0;
 	}
 #endif /* GL_EXT_polygon_offset */
 
@@ -5381,9 +5159,6 @@ int AnyGL_load(void)
 	{
 		if (!AnyGL_glPolygonOffsetClamp)
 			AnyGL_glPolygonOffsetClamp = (PFNANYGLPOLYGONOFFSETCLAMPPROC)&glPolygonOffsetClampEXT;
-	}
-	else
-	{
 	}
 #endif /* GL_EXT_polygon_offset_clamp */
 
@@ -5398,9 +5173,6 @@ int AnyGL_load(void)
 		if (!AnyGL_glPrimitiveBoundingBox)
 			AnyGL_glPrimitiveBoundingBox = (PFNANYGLPRIMITIVEBOUNDINGBOXPROC)&glPrimitiveBoundingBoxEXT;
 	}
-	else
-	{
-	}
 #endif /* GL_EXT_primitive_bounding_box */
 
 #ifndef ANYGL_EXT_protected_textures
@@ -5414,9 +5186,6 @@ int AnyGL_load(void)
 		if (!AnyGL_glProvokingVertex)
 			AnyGL_glProvokingVertex = (PFNANYGLPROVOKINGVERTEXPROC)&glProvokingVertexEXT;
 	}
-	else
-	{
-	}
 #endif /* GL_EXT_provoking_vertex */
 
 #ifndef ANYGL_EXT_pvrtc_sRGB
@@ -5428,10 +5197,6 @@ int AnyGL_load(void)
 	if (AnyGL_EXT_raster_multisample)
 	{
 		AnyGL_glRasterSamplesEXT = (PFNANYGLRASTERSAMPLESEXTPROC)&glRasterSamplesEXT;
-	}
-	else
-	{
-		AnyGL_glRasterSamplesEXT = 0;
 	}
 #endif /* GL_EXT_raster_multisample */
 
@@ -5459,9 +5224,6 @@ int AnyGL_load(void)
 			AnyGL_glGetnUniformfv = (PFNANYGLGETNUNIFORMFVPROC)&glGetnUniformfvEXT;
 		if (!AnyGL_glGetnUniformiv)
 			AnyGL_glGetnUniformiv = (PFNANYGLGETNUNIFORMIVPROC)&glGetnUniformivEXT;
-	}
-	else
-	{
 	}
 #endif /* GL_EXT_robustness */
 
@@ -5512,15 +5274,14 @@ int AnyGL_load(void)
 		if (!AnyGL_glSecondaryColorPointer)
 			AnyGL_glSecondaryColorPointer = (PFNANYGLSECONDARYCOLORPOINTERPROC)&glSecondaryColorPointerEXT;
 	}
-	else
-	{
-	}
 #endif /* GL_EXT_secondary_color */
 
 #ifndef ANYGL_EXT_semaphore
 	AnyGL_EXT_semaphore = AnyGL_queryExtension("GL_EXT_semaphore");
 	if (AnyGL_EXT_semaphore)
 	{
+		AnyGL_glGetUnsignedBytevEXT = (PFNANYGLGETUNSIGNEDBYTEVEXTPROC)&glGetUnsignedBytevEXT;
+		AnyGL_glGetUnsignedBytei_vEXT = (PFNANYGLGETUNSIGNEDBYTEI_VEXTPROC)&glGetUnsignedBytei_vEXT;
 		AnyGL_glGenSemaphoresEXT = (PFNANYGLGENSEMAPHORESEXTPROC)&glGenSemaphoresEXT;
 		AnyGL_glDeleteSemaphoresEXT = (PFNANYGLDELETESEMAPHORESEXTPROC)&glDeleteSemaphoresEXT;
 		AnyGL_glIsSemaphoreEXT = (PFNANYGLISSEMAPHOREEXTPROC)&glIsSemaphoreEXT;
@@ -5529,16 +5290,6 @@ int AnyGL_load(void)
 		AnyGL_glWaitSemaphoreEXT = (PFNANYGLWAITSEMAPHOREEXTPROC)&glWaitSemaphoreEXT;
 		AnyGL_glSignalSemaphoreEXT = (PFNANYGLSIGNALSEMAPHOREEXTPROC)&glSignalSemaphoreEXT;
 	}
-	else
-	{
-		AnyGL_glGenSemaphoresEXT = 0;
-		AnyGL_glDeleteSemaphoresEXT = 0;
-		AnyGL_glIsSemaphoreEXT = 0;
-		AnyGL_glSemaphoreParameterui64vEXT = 0;
-		AnyGL_glGetSemaphoreParameterui64vEXT = 0;
-		AnyGL_glWaitSemaphoreEXT = 0;
-		AnyGL_glSignalSemaphoreEXT = 0;
-	}
 #endif /* GL_EXT_semaphore */
 
 #ifndef ANYGL_EXT_semaphore_fd
@@ -5546,10 +5297,6 @@ int AnyGL_load(void)
 	if (AnyGL_EXT_semaphore_fd)
 	{
 		AnyGL_glImportSemaphoreFdEXT = (PFNANYGLIMPORTSEMAPHOREFDEXTPROC)&glImportSemaphoreFdEXT;
-	}
-	else
-	{
-		AnyGL_glImportSemaphoreFdEXT = 0;
 	}
 #endif /* GL_EXT_semaphore_fd */
 
@@ -5560,11 +5307,6 @@ int AnyGL_load(void)
 		AnyGL_glImportSemaphoreWin32HandleEXT = (PFNANYGLIMPORTSEMAPHOREWIN32HANDLEEXTPROC)&glImportSemaphoreWin32HandleEXT;
 		AnyGL_glImportSemaphoreWin32NameEXT = (PFNANYGLIMPORTSEMAPHOREWIN32NAMEEXTPROC)&glImportSemaphoreWin32NameEXT;
 	}
-	else
-	{
-		AnyGL_glImportSemaphoreWin32HandleEXT = 0;
-		AnyGL_glImportSemaphoreWin32NameEXT = 0;
-	}
 #endif /* GL_EXT_semaphore_win32 */
 
 #ifndef ANYGL_EXT_separate_shader_objects
@@ -5574,12 +5316,76 @@ int AnyGL_load(void)
 		AnyGL_glUseShaderProgramEXT = (PFNANYGLUSESHADERPROGRAMEXTPROC)&glUseShaderProgramEXT;
 		AnyGL_glActiveProgramEXT = (PFNANYGLACTIVEPROGRAMEXTPROC)&glActiveProgramEXT;
 		AnyGL_glCreateShaderProgramEXT = (PFNANYGLCREATESHADERPROGRAMEXTPROC)&glCreateShaderProgramEXT;
-	}
-	else
-	{
-		AnyGL_glUseShaderProgramEXT = 0;
-		AnyGL_glActiveProgramEXT = 0;
-		AnyGL_glCreateShaderProgramEXT = 0;
+		if (!AnyGL_glProgramParameteri)
+			AnyGL_glProgramParameteri = (PFNANYGLPROGRAMPARAMETERIPROC)&glProgramParameteriEXT;
+		if (!AnyGL_glProgramUniform1f)
+			AnyGL_glProgramUniform1f = (PFNANYGLPROGRAMUNIFORM1FPROC)&glProgramUniform1fEXT;
+		if (!AnyGL_glProgramUniform1fv)
+			AnyGL_glProgramUniform1fv = (PFNANYGLPROGRAMUNIFORM1FVPROC)&glProgramUniform1fvEXT;
+		if (!AnyGL_glProgramUniform1i)
+			AnyGL_glProgramUniform1i = (PFNANYGLPROGRAMUNIFORM1IPROC)&glProgramUniform1iEXT;
+		if (!AnyGL_glProgramUniform1iv)
+			AnyGL_glProgramUniform1iv = (PFNANYGLPROGRAMUNIFORM1IVPROC)&glProgramUniform1ivEXT;
+		if (!AnyGL_glProgramUniform2f)
+			AnyGL_glProgramUniform2f = (PFNANYGLPROGRAMUNIFORM2FPROC)&glProgramUniform2fEXT;
+		if (!AnyGL_glProgramUniform2fv)
+			AnyGL_glProgramUniform2fv = (PFNANYGLPROGRAMUNIFORM2FVPROC)&glProgramUniform2fvEXT;
+		if (!AnyGL_glProgramUniform2i)
+			AnyGL_glProgramUniform2i = (PFNANYGLPROGRAMUNIFORM2IPROC)&glProgramUniform2iEXT;
+		if (!AnyGL_glProgramUniform2iv)
+			AnyGL_glProgramUniform2iv = (PFNANYGLPROGRAMUNIFORM2IVPROC)&glProgramUniform2ivEXT;
+		if (!AnyGL_glProgramUniform3f)
+			AnyGL_glProgramUniform3f = (PFNANYGLPROGRAMUNIFORM3FPROC)&glProgramUniform3fEXT;
+		if (!AnyGL_glProgramUniform3fv)
+			AnyGL_glProgramUniform3fv = (PFNANYGLPROGRAMUNIFORM3FVPROC)&glProgramUniform3fvEXT;
+		if (!AnyGL_glProgramUniform3i)
+			AnyGL_glProgramUniform3i = (PFNANYGLPROGRAMUNIFORM3IPROC)&glProgramUniform3iEXT;
+		if (!AnyGL_glProgramUniform3iv)
+			AnyGL_glProgramUniform3iv = (PFNANYGLPROGRAMUNIFORM3IVPROC)&glProgramUniform3ivEXT;
+		if (!AnyGL_glProgramUniform4f)
+			AnyGL_glProgramUniform4f = (PFNANYGLPROGRAMUNIFORM4FPROC)&glProgramUniform4fEXT;
+		if (!AnyGL_glProgramUniform4fv)
+			AnyGL_glProgramUniform4fv = (PFNANYGLPROGRAMUNIFORM4FVPROC)&glProgramUniform4fvEXT;
+		if (!AnyGL_glProgramUniform4i)
+			AnyGL_glProgramUniform4i = (PFNANYGLPROGRAMUNIFORM4IPROC)&glProgramUniform4iEXT;
+		if (!AnyGL_glProgramUniform4iv)
+			AnyGL_glProgramUniform4iv = (PFNANYGLPROGRAMUNIFORM4IVPROC)&glProgramUniform4ivEXT;
+		if (!AnyGL_glProgramUniformMatrix2fv)
+			AnyGL_glProgramUniformMatrix2fv = (PFNANYGLPROGRAMUNIFORMMATRIX2FVPROC)&glProgramUniformMatrix2fvEXT;
+		if (!AnyGL_glProgramUniformMatrix3fv)
+			AnyGL_glProgramUniformMatrix3fv = (PFNANYGLPROGRAMUNIFORMMATRIX3FVPROC)&glProgramUniformMatrix3fvEXT;
+		if (!AnyGL_glProgramUniformMatrix4fv)
+			AnyGL_glProgramUniformMatrix4fv = (PFNANYGLPROGRAMUNIFORMMATRIX4FVPROC)&glProgramUniformMatrix4fvEXT;
+		if (!AnyGL_glProgramUniform1ui)
+			AnyGL_glProgramUniform1ui = (PFNANYGLPROGRAMUNIFORM1UIPROC)&glProgramUniform1uiEXT;
+		if (!AnyGL_glProgramUniform2ui)
+			AnyGL_glProgramUniform2ui = (PFNANYGLPROGRAMUNIFORM2UIPROC)&glProgramUniform2uiEXT;
+		if (!AnyGL_glProgramUniform3ui)
+			AnyGL_glProgramUniform3ui = (PFNANYGLPROGRAMUNIFORM3UIPROC)&glProgramUniform3uiEXT;
+		if (!AnyGL_glProgramUniform4ui)
+			AnyGL_glProgramUniform4ui = (PFNANYGLPROGRAMUNIFORM4UIPROC)&glProgramUniform4uiEXT;
+		if (!AnyGL_glProgramUniform1uiv)
+			AnyGL_glProgramUniform1uiv = (PFNANYGLPROGRAMUNIFORM1UIVPROC)&glProgramUniform1uivEXT;
+		if (!AnyGL_glProgramUniform2uiv)
+			AnyGL_glProgramUniform2uiv = (PFNANYGLPROGRAMUNIFORM2UIVPROC)&glProgramUniform2uivEXT;
+		if (!AnyGL_glProgramUniform3uiv)
+			AnyGL_glProgramUniform3uiv = (PFNANYGLPROGRAMUNIFORM3UIVPROC)&glProgramUniform3uivEXT;
+		if (!AnyGL_glProgramUniform4uiv)
+			AnyGL_glProgramUniform4uiv = (PFNANYGLPROGRAMUNIFORM4UIVPROC)&glProgramUniform4uivEXT;
+		if (!AnyGL_glProgramUniformMatrix4fv)
+			AnyGL_glProgramUniformMatrix4fv = (PFNANYGLPROGRAMUNIFORMMATRIX4FVPROC)&glProgramUniformMatrix4fvEXT;
+		if (!AnyGL_glProgramUniformMatrix2x3fv)
+			AnyGL_glProgramUniformMatrix2x3fv = (PFNANYGLPROGRAMUNIFORMMATRIX2X3FVPROC)&glProgramUniformMatrix2x3fvEXT;
+		if (!AnyGL_glProgramUniformMatrix3x2fv)
+			AnyGL_glProgramUniformMatrix3x2fv = (PFNANYGLPROGRAMUNIFORMMATRIX3X2FVPROC)&glProgramUniformMatrix3x2fvEXT;
+		if (!AnyGL_glProgramUniformMatrix2x4fv)
+			AnyGL_glProgramUniformMatrix2x4fv = (PFNANYGLPROGRAMUNIFORMMATRIX2X4FVPROC)&glProgramUniformMatrix2x4fvEXT;
+		if (!AnyGL_glProgramUniformMatrix4x2fv)
+			AnyGL_glProgramUniformMatrix4x2fv = (PFNANYGLPROGRAMUNIFORMMATRIX4X2FVPROC)&glProgramUniformMatrix4x2fvEXT;
+		if (!AnyGL_glProgramUniformMatrix3x4fv)
+			AnyGL_glProgramUniformMatrix3x4fv = (PFNANYGLPROGRAMUNIFORMMATRIX3X4FVPROC)&glProgramUniformMatrix3x4fvEXT;
+		if (!AnyGL_glProgramUniformMatrix4x3fv)
+			AnyGL_glProgramUniformMatrix4x3fv = (PFNANYGLPROGRAMUNIFORMMATRIX4X3FVPROC)&glProgramUniformMatrix4x3fvEXT;
 	}
 #endif /* GL_EXT_separate_shader_objects */
 
@@ -5596,10 +5402,6 @@ int AnyGL_load(void)
 	if (AnyGL_EXT_shader_framebuffer_fetch_non_coherent)
 	{
 		AnyGL_glFramebufferFetchBarrierEXT = (PFNANYGLFRAMEBUFFERFETCHBARRIEREXTPROC)&glFramebufferFetchBarrierEXT;
-	}
-	else
-	{
-		AnyGL_glFramebufferFetchBarrierEXT = 0;
 	}
 #endif /* GL_EXT_shader_framebuffer_fetch_non_coherent */
 
@@ -5619,9 +5421,6 @@ int AnyGL_load(void)
 			AnyGL_glBindImageTexture = (PFNANYGLBINDIMAGETEXTUREPROC)&glBindImageTextureEXT;
 		if (!AnyGL_glMemoryBarrier)
 			AnyGL_glMemoryBarrier = (PFNANYGLMEMORYBARRIERPROC)&glMemoryBarrierEXT;
-	}
-	else
-	{
 	}
 #endif /* GL_EXT_shader_image_load_store */
 
@@ -5653,12 +5452,6 @@ int AnyGL_load(void)
 		AnyGL_glGetFramebufferPixelLocalStorageSizeEXT = (PFNANYGLGETFRAMEBUFFERPIXELLOCALSTORAGESIZEEXTPROC)&glGetFramebufferPixelLocalStorageSizeEXT;
 		AnyGL_glClearPixelLocalStorageuiEXT = (PFNANYGLCLEARPIXELLOCALSTORAGEUIEXTPROC)&glClearPixelLocalStorageuiEXT;
 	}
-	else
-	{
-		AnyGL_glFramebufferPixelLocalStorageSizeEXT = 0;
-		AnyGL_glGetFramebufferPixelLocalStorageSizeEXT = 0;
-		AnyGL_glClearPixelLocalStorageuiEXT = 0;
-	}
 #endif /* GL_EXT_shader_pixel_local_storage2 */
 
 #ifndef ANYGL_EXT_shader_texture_lod
@@ -5684,9 +5477,6 @@ int AnyGL_load(void)
 		if (!AnyGL_glTexPageCommitmentARB)
 			AnyGL_glTexPageCommitmentARB = (PFNANYGLTEXPAGECOMMITMENTARBPROC)&glTexPageCommitmentEXT;
 	}
-	else
-	{
-	}
 #endif /* GL_EXT_sparse_texture */
 
 #ifndef ANYGL_EXT_sparse_texture2
@@ -5699,10 +5489,6 @@ int AnyGL_load(void)
 	{
 		AnyGL_glStencilClearTagEXT = (PFNANYGLSTENCILCLEARTAGEXTPROC)&glStencilClearTagEXT;
 	}
-	else
-	{
-		AnyGL_glStencilClearTagEXT = 0;
-	}
 #endif /* GL_EXT_stencil_clear_tag */
 
 #ifndef ANYGL_EXT_stencil_two_side
@@ -5710,10 +5496,6 @@ int AnyGL_load(void)
 	if (AnyGL_EXT_stencil_two_side)
 	{
 		AnyGL_glActiveStencilFaceEXT = (PFNANYGLACTIVESTENCILFACEEXTPROC)&glActiveStencilFaceEXT;
-	}
-	else
-	{
-		AnyGL_glActiveStencilFaceEXT = 0;
 	}
 #endif /* GL_EXT_stencil_two_side */
 
@@ -5730,9 +5512,6 @@ int AnyGL_load(void)
 		if (!AnyGL_glTexSubImage2D)
 			AnyGL_glTexSubImage2D = (PFNANYGLTEXSUBIMAGE2DPROC)&glTexSubImage2DEXT;
 	}
-	else
-	{
-	}
 #endif /* GL_EXT_subtexture */
 
 #ifndef ANYGL_EXT_tessellation_point_size
@@ -5745,9 +5524,6 @@ int AnyGL_load(void)
 	{
 		if (!AnyGL_glPatchParameteri)
 			AnyGL_glPatchParameteri = (PFNANYGLPATCHPARAMETERIPROC)&glPatchParameteriEXT;
-	}
-	else
-	{
 	}
 #endif /* GL_EXT_tessellation_shader */
 
@@ -5764,9 +5540,6 @@ int AnyGL_load(void)
 		if (!AnyGL_glTexSubImage3D)
 			AnyGL_glTexSubImage3D = (PFNANYGLTEXSUBIMAGE3DPROC)&glTexSubImage3DEXT;
 	}
-	else
-	{
-	}
 #endif /* GL_EXT_texture3D */
 
 #ifndef ANYGL_EXT_texture_array
@@ -5775,9 +5548,6 @@ int AnyGL_load(void)
 	{
 		if (!AnyGL_glFramebufferTextureLayer)
 			AnyGL_glFramebufferTextureLayer = (PFNANYGLFRAMEBUFFERTEXTURELAYERPROC)&glFramebufferTextureLayerEXT;
-	}
-	else
-	{
 	}
 #endif /* GL_EXT_texture_array */
 
@@ -5802,9 +5572,6 @@ int AnyGL_load(void)
 		if (!AnyGL_glGetSamplerParameterIuiv)
 			AnyGL_glGetSamplerParameterIuiv = (PFNANYGLGETSAMPLERPARAMETERIUIVPROC)&glGetSamplerParameterIuivEXT;
 	}
-	else
-	{
-	}
 #endif /* GL_EXT_texture_border_clamp */
 
 #ifndef ANYGL_EXT_texture_buffer
@@ -5816,13 +5583,15 @@ int AnyGL_load(void)
 		if (!AnyGL_glTexBufferRange)
 			AnyGL_glTexBufferRange = (PFNANYGLTEXBUFFERRANGEPROC)&glTexBufferRangeEXT;
 	}
-	else
-	{
-	}
 #endif /* GL_EXT_texture_buffer */
 
 #ifndef ANYGL_EXT_texture_buffer_object
 	AnyGL_EXT_texture_buffer_object = AnyGL_queryExtension("GL_EXT_texture_buffer_object");
+	if (AnyGL_EXT_texture_buffer_object)
+	{
+		if (!AnyGL_glTexBuffer)
+			AnyGL_glTexBuffer = (PFNANYGLTEXBUFFERPROC)&glTexBufferEXT;
+	}
 #endif /* GL_EXT_texture_buffer_object */
 
 #ifndef ANYGL_EXT_texture_compression_astc_decode_mode
@@ -5893,13 +5662,16 @@ int AnyGL_load(void)
 	AnyGL_EXT_texture_integer = AnyGL_queryExtension("GL_EXT_texture_integer");
 	if (AnyGL_EXT_texture_integer)
 	{
+		if (!AnyGL_glTexParameterIiv)
+			AnyGL_glTexParameterIiv = (PFNANYGLTEXPARAMETERIIVPROC)&glTexParameterIivEXT;
+		if (!AnyGL_glTexParameterIuiv)
+			AnyGL_glTexParameterIuiv = (PFNANYGLTEXPARAMETERIUIVPROC)&glTexParameterIuivEXT;
+		if (!AnyGL_glGetTexParameterIiv)
+			AnyGL_glGetTexParameterIiv = (PFNANYGLGETTEXPARAMETERIIVPROC)&glGetTexParameterIivEXT;
+		if (!AnyGL_glGetTexParameterIuiv)
+			AnyGL_glGetTexParameterIuiv = (PFNANYGLGETTEXPARAMETERIUIVPROC)&glGetTexParameterIuivEXT;
 		AnyGL_glClearColorIiEXT = (PFNANYGLCLEARCOLORIIEXTPROC)&glClearColorIiEXT;
 		AnyGL_glClearColorIuiEXT = (PFNANYGLCLEARCOLORIUIEXTPROC)&glClearColorIuiEXT;
-	}
-	else
-	{
-		AnyGL_glClearColorIiEXT = 0;
-		AnyGL_glClearColorIuiEXT = 0;
 	}
 #endif /* GL_EXT_texture_integer */
 
@@ -5935,10 +5707,6 @@ int AnyGL_load(void)
 		if (!AnyGL_glPrioritizeTextures)
 			AnyGL_glPrioritizeTextures = (PFNANYGLPRIORITIZETEXTURESPROC)&glPrioritizeTexturesEXT;
 	}
-	else
-	{
-		AnyGL_glAreTexturesResidentEXT = 0;
-	}
 #endif /* GL_EXT_texture_object */
 
 #ifndef ANYGL_EXT_texture_perturb_normal
@@ -5947,11 +5715,11 @@ int AnyGL_load(void)
 	{
 		AnyGL_glTextureNormalEXT = (PFNANYGLTEXTURENORMALEXTPROC)&glTextureNormalEXT;
 	}
-	else
-	{
-		AnyGL_glTextureNormalEXT = 0;
-	}
 #endif /* GL_EXT_texture_perturb_normal */
+
+#ifndef ANYGL_EXT_texture_query_lod
+	AnyGL_EXT_texture_query_lod = AnyGL_queryExtension("GL_EXT_texture_query_lod");
+#endif /* GL_EXT_texture_query_lod */
 
 #ifndef ANYGL_EXT_texture_rg
 	AnyGL_EXT_texture_rg = AnyGL_queryExtension("GL_EXT_texture_rg");
@@ -5973,6 +5741,10 @@ int AnyGL_load(void)
 	AnyGL_EXT_texture_sRGB_decode = AnyGL_queryExtension("GL_EXT_texture_sRGB_decode");
 #endif /* GL_EXT_texture_sRGB_decode */
 
+#ifndef ANYGL_EXT_texture_shadow_lod
+	AnyGL_EXT_texture_shadow_lod = AnyGL_queryExtension("GL_EXT_texture_shadow_lod");
+#endif /* GL_EXT_texture_shadow_lod */
+
 #ifndef ANYGL_EXT_texture_shared_exponent
 	AnyGL_EXT_texture_shared_exponent = AnyGL_queryExtension("GL_EXT_texture_shared_exponent");
 #endif /* GL_EXT_texture_shared_exponent */
@@ -5991,9 +5763,9 @@ int AnyGL_load(void)
 			AnyGL_glTexStorage2D = (PFNANYGLTEXSTORAGE2DPROC)&glTexStorage2DEXT;
 		if (!AnyGL_glTexStorage3D)
 			AnyGL_glTexStorage3D = (PFNANYGLTEXSTORAGE3DPROC)&glTexStorage3DEXT;
-	}
-	else
-	{
+		AnyGL_glTextureStorage1DEXT = (PFNANYGLTEXTURESTORAGE1DEXTPROC)&glTextureStorage1DEXT;
+		AnyGL_glTextureStorage2DEXT = (PFNANYGLTEXTURESTORAGE2DEXTPROC)&glTextureStorage2DEXT;
+		AnyGL_glTextureStorage3DEXT = (PFNANYGLTEXTURESTORAGE3DEXTPROC)&glTextureStorage3DEXT;
 	}
 #endif /* GL_EXT_texture_storage */
 
@@ -6012,13 +5784,17 @@ int AnyGL_load(void)
 		if (!AnyGL_glTextureView)
 			AnyGL_glTextureView = (PFNANYGLTEXTUREVIEWPROC)&glTextureViewEXT;
 	}
-	else
-	{
-	}
 #endif /* GL_EXT_texture_view */
 
 #ifndef ANYGL_EXT_timer_query
 	AnyGL_EXT_timer_query = AnyGL_queryExtension("GL_EXT_timer_query");
+	if (AnyGL_EXT_timer_query)
+	{
+		if (!AnyGL_glGetQueryObjecti64v)
+			AnyGL_glGetQueryObjecti64v = (PFNANYGLGETQUERYOBJECTI64VPROC)&glGetQueryObjecti64vEXT;
+		if (!AnyGL_glGetQueryObjectui64v)
+			AnyGL_glGetQueryObjectui64v = (PFNANYGLGETQUERYOBJECTUI64VPROC)&glGetQueryObjectui64vEXT;
+	}
 #endif /* GL_EXT_timer_query */
 
 #ifndef ANYGL_EXT_transform_feedback
@@ -6038,10 +5814,6 @@ int AnyGL_load(void)
 			AnyGL_glTransformFeedbackVaryings = (PFNANYGLTRANSFORMFEEDBACKVARYINGSPROC)&glTransformFeedbackVaryingsEXT;
 		if (!AnyGL_glGetTransformFeedbackVarying)
 			AnyGL_glGetTransformFeedbackVarying = (PFNANYGLGETTRANSFORMFEEDBACKVARYINGPROC)&glGetTransformFeedbackVaryingEXT;
-	}
-	else
-	{
-		AnyGL_glBindBufferOffsetEXT = 0;
 	}
 #endif /* GL_EXT_transform_feedback */
 
@@ -6065,15 +5837,6 @@ int AnyGL_load(void)
 		AnyGL_glNormalPointerEXT = (PFNANYGLNORMALPOINTEREXTPROC)&glNormalPointerEXT;
 		AnyGL_glTexCoordPointerEXT = (PFNANYGLTEXCOORDPOINTEREXTPROC)&glTexCoordPointerEXT;
 		AnyGL_glVertexPointerEXT = (PFNANYGLVERTEXPOINTEREXTPROC)&glVertexPointerEXT;
-	}
-	else
-	{
-		AnyGL_glColorPointerEXT = 0;
-		AnyGL_glEdgeFlagPointerEXT = 0;
-		AnyGL_glIndexPointerEXT = 0;
-		AnyGL_glNormalPointerEXT = 0;
-		AnyGL_glTexCoordPointerEXT = 0;
-		AnyGL_glVertexPointerEXT = 0;
 	}
 #endif /* GL_EXT_vertex_array */
 
@@ -6105,9 +5868,6 @@ int AnyGL_load(void)
 			AnyGL_glVertexAttribLPointer = (PFNANYGLVERTEXATTRIBLPOINTERPROC)&glVertexAttribLPointerEXT;
 		if (!AnyGL_glGetVertexAttribLdv)
 			AnyGL_glGetVertexAttribLdv = (PFNANYGLGETVERTEXATTRIBLDVPROC)&glGetVertexAttribLdvEXT;
-	}
-	else
-	{
 	}
 #endif /* GL_EXT_vertex_attrib_64bit */
 
@@ -6158,51 +5918,6 @@ int AnyGL_load(void)
 		AnyGL_glGetLocalConstantIntegervEXT = (PFNANYGLGETLOCALCONSTANTINTEGERVEXTPROC)&glGetLocalConstantIntegervEXT;
 		AnyGL_glGetLocalConstantFloatvEXT = (PFNANYGLGETLOCALCONSTANTFLOATVEXTPROC)&glGetLocalConstantFloatvEXT;
 	}
-	else
-	{
-		AnyGL_glBeginVertexShaderEXT = 0;
-		AnyGL_glEndVertexShaderEXT = 0;
-		AnyGL_glBindVertexShaderEXT = 0;
-		AnyGL_glGenVertexShadersEXT = 0;
-		AnyGL_glDeleteVertexShaderEXT = 0;
-		AnyGL_glShaderOp1EXT = 0;
-		AnyGL_glShaderOp2EXT = 0;
-		AnyGL_glShaderOp3EXT = 0;
-		AnyGL_glSwizzleEXT = 0;
-		AnyGL_glWriteMaskEXT = 0;
-		AnyGL_glInsertComponentEXT = 0;
-		AnyGL_glExtractComponentEXT = 0;
-		AnyGL_glGenSymbolsEXT = 0;
-		AnyGL_glSetInvariantEXT = 0;
-		AnyGL_glSetLocalConstantEXT = 0;
-		AnyGL_glVariantbvEXT = 0;
-		AnyGL_glVariantsvEXT = 0;
-		AnyGL_glVariantivEXT = 0;
-		AnyGL_glVariantfvEXT = 0;
-		AnyGL_glVariantdvEXT = 0;
-		AnyGL_glVariantubvEXT = 0;
-		AnyGL_glVariantusvEXT = 0;
-		AnyGL_glVariantuivEXT = 0;
-		AnyGL_glVariantPointerEXT = 0;
-		AnyGL_glEnableVariantClientStateEXT = 0;
-		AnyGL_glDisableVariantClientStateEXT = 0;
-		AnyGL_glBindLightParameterEXT = 0;
-		AnyGL_glBindMaterialParameterEXT = 0;
-		AnyGL_glBindTexGenParameterEXT = 0;
-		AnyGL_glBindTextureUnitParameterEXT = 0;
-		AnyGL_glBindParameterEXT = 0;
-		AnyGL_glIsVariantEnabledEXT = 0;
-		AnyGL_glGetVariantBooleanvEXT = 0;
-		AnyGL_glGetVariantIntegervEXT = 0;
-		AnyGL_glGetVariantFloatvEXT = 0;
-		AnyGL_glGetVariantPointervEXT = 0;
-		AnyGL_glGetInvariantBooleanvEXT = 0;
-		AnyGL_glGetInvariantIntegervEXT = 0;
-		AnyGL_glGetInvariantFloatvEXT = 0;
-		AnyGL_glGetLocalConstantBooleanvEXT = 0;
-		AnyGL_glGetLocalConstantIntegervEXT = 0;
-		AnyGL_glGetLocalConstantFloatvEXT = 0;
-	}
 #endif /* GL_EXT_vertex_shader */
 
 #ifndef ANYGL_EXT_vertex_weighting
@@ -6213,12 +5928,6 @@ int AnyGL_load(void)
 		AnyGL_glVertexWeightfvEXT = (PFNANYGLVERTEXWEIGHTFVEXTPROC)&glVertexWeightfvEXT;
 		AnyGL_glVertexWeightPointerEXT = (PFNANYGLVERTEXWEIGHTPOINTEREXTPROC)&glVertexWeightPointerEXT;
 	}
-	else
-	{
-		AnyGL_glVertexWeightfEXT = 0;
-		AnyGL_glVertexWeightfvEXT = 0;
-		AnyGL_glVertexWeightPointerEXT = 0;
-	}
 #endif /* GL_EXT_vertex_weighting */
 
 #ifndef ANYGL_EXT_win32_keyed_mutex
@@ -6228,11 +5937,6 @@ int AnyGL_load(void)
 		AnyGL_glAcquireKeyedMutexWin32EXT = (PFNANYGLACQUIREKEYEDMUTEXWIN32EXTPROC)&glAcquireKeyedMutexWin32EXT;
 		AnyGL_glReleaseKeyedMutexWin32EXT = (PFNANYGLRELEASEKEYEDMUTEXWIN32EXTPROC)&glReleaseKeyedMutexWin32EXT;
 	}
-	else
-	{
-		AnyGL_glAcquireKeyedMutexWin32EXT = 0;
-		AnyGL_glReleaseKeyedMutexWin32EXT = 0;
-	}
 #endif /* GL_EXT_win32_keyed_mutex */
 
 #ifndef ANYGL_EXT_window_rectangles
@@ -6241,10 +5945,6 @@ int AnyGL_load(void)
 	{
 		AnyGL_glWindowRectanglesEXT = (PFNANYGLWINDOWRECTANGLESEXTPROC)&glWindowRectanglesEXT;
 	}
-	else
-	{
-		AnyGL_glWindowRectanglesEXT = 0;
-	}
 #endif /* GL_EXT_window_rectangles */
 
 #ifndef ANYGL_EXT_x11_sync_object
@@ -6252,10 +5952,6 @@ int AnyGL_load(void)
 	if (AnyGL_EXT_x11_sync_object)
 	{
 		AnyGL_glImportSyncEXT = (PFNANYGLIMPORTSYNCEXTPROC)&glImportSyncEXT;
-	}
-	else
-	{
-		AnyGL_glImportSyncEXT = 0;
 	}
 #endif /* GL_EXT_x11_sync_object */
 

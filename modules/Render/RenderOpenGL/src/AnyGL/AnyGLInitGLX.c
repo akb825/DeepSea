@@ -211,6 +211,8 @@ int AnyGL_initialize(void)
 
 	/* GLX_EXT_buffer_age */
 
+	/* GLX_EXT_context_priority */
+
 	/* GLX_EXT_create_context_es2_profile */
 
 	/* GLX_EXT_create_context_es_profile */
@@ -283,6 +285,8 @@ int AnyGL_initialize(void)
 	AnyGL_glXDelayBeforeSwapNV = (PFNANYGLXDELAYBEFORESWAPNVPROC)AnyGL_glXGetProcAddress((const GLubyte*)"glXDelayBeforeSwapNV");
 
 	/* GLX_NV_float_buffer */
+
+	/* GLX_NV_multigpu_context */
 
 	/* GLX_NV_multisample_coverage */
 

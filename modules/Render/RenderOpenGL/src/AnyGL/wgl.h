@@ -424,7 +424,7 @@ ANYGL_EXPORT extern PFNANYWGLSETSTEREOEMITTERSTATE3DLPROC AnyGL_wglSetStereoEmit
 #endif /* ANYGL_NO_DEFINES */
 
 typedef UINT (APIENTRY* PFNANYWGLGETGPUIDSAMDPROC)(UINT maxCount, UINT *ids);
-typedef INT (APIENTRY* PFNANYWGLGETGPUINFOAMDPROC)(UINT id, int property, GLenum dataType, UINT size, void *data);
+typedef INT (APIENTRY* PFNANYWGLGETGPUINFOAMDPROC)(UINT id, INT property, GLenum dataType, UINT size, void *data);
 typedef UINT (APIENTRY* PFNANYWGLGETCONTEXTGPUIDAMDPROC)(HGLRC hglrc);
 typedef HGLRC (APIENTRY* PFNANYWGLCREATEASSOCIATEDCONTEXTAMDPROC)(UINT id);
 typedef HGLRC (APIENTRY* PFNANYWGLCREATEASSOCIATEDCONTEXTATTRIBSAMDPROC)(UINT id, HGLRC hShareContext, const int *attribList);
@@ -465,6 +465,16 @@ ANYGL_EXPORT extern PFNANYWGLBLITCONTEXTFRAMEBUFFERAMDPROC AnyGL_wglBlitContextF
 #define WGL_TYPE_RGBA_FLOAT_ATI           0x21A0
 #endif /* ANYGL_NO_DEFINES */
 
+#ifndef WGL_ATI_render_texture_rectangle
+#define WGL_ATI_render_texture_rectangle 1
+#define ANYWGL_ATI_render_texture_rectangle 1
+
+
+#endif /* WGL_ATI_render_texture_rectangle */
+#ifndef ANYGL_NO_DEFINES
+#define WGL_TEXTURE_RECTANGLE_ATI         0x21A5
+#endif /* ANYGL_NO_DEFINES */
+
 #ifndef WGL_EXT_colorspace
 #define WGL_EXT_colorspace 1
 #define ANYWGL_EXT_colorspace 1
@@ -472,7 +482,7 @@ ANYGL_EXPORT extern PFNANYWGLBLITCONTEXTFRAMEBUFFERAMDPROC AnyGL_wglBlitContextF
 
 #endif /* WGL_EXT_colorspace */
 #ifndef ANYGL_NO_DEFINES
-#define WGL_COLORSPACE_EXT                0x3087
+#define WGL_COLORSPACE_EXT                0x309D
 #define WGL_COLORSPACE_SRGB_EXT           0x3089
 #define WGL_COLORSPACE_LINEAR_EXT         0x308A
 #endif /* ANYGL_NO_DEFINES */
@@ -1046,6 +1056,20 @@ ANYGL_EXPORT extern PFNANYWGLDELETEDCNVPROC AnyGL_wglDeleteDCNV;
 #define wglDeleteDCNV(hdc) AnyGL_wglDeleteDCNV(hdc)
 #endif /* ANYGL_NO_DEFINES */
 
+#ifndef WGL_NV_multigpu_context
+#define WGL_NV_multigpu_context 1
+#define ANYWGL_NV_multigpu_context 1
+
+
+#endif /* WGL_NV_multigpu_context */
+#ifndef ANYGL_NO_DEFINES
+#define WGL_CONTEXT_MULTIGPU_ATTRIB_NV    0x20AA
+#define WGL_CONTEXT_MULTIGPU_ATTRIB_SINGLE_NV 0x20AB
+#define WGL_CONTEXT_MULTIGPU_ATTRIB_AFR_NV 0x20AC
+#define WGL_CONTEXT_MULTIGPU_ATTRIB_MULTICAST_NV 0x20AD
+#define WGL_CONTEXT_MULTIGPU_ATTRIB_MULTI_DISPLAY_MULTICAST_NV 0x20AE
+#endif /* ANYGL_NO_DEFINES */
+
 #ifndef WGL_NV_multisample_coverage
 #define WGL_NV_multisample_coverage 1
 #define ANYWGL_NV_multisample_coverage 1
@@ -1068,8 +1092,8 @@ DECLARE_HANDLE(HVIDEOOUTPUTDEVICENV);
 #define WGL_NUM_VIDEO_SLOTS_NV            0x20F0
 #endif /* ANYGL_NO_DEFINES */
 
-typedef int (APIENTRY* PFNANYWGLENUMERATEVIDEODEVICESNVPROC)(HDC hDC, HVIDEOOUTPUTDEVICENV *phDeviceList);
-typedef BOOL (APIENTRY* PFNANYWGLBINDVIDEODEVICENVPROC)(HDC hDC, unsigned int uVideoSlot, HVIDEOOUTPUTDEVICENV hVideoDevice, const int *piAttribList);
+typedef int (APIENTRY* PFNANYWGLENUMERATEVIDEODEVICESNVPROC)(HDC hDc, HVIDEOOUTPUTDEVICENV *phDeviceList);
+typedef BOOL (APIENTRY* PFNANYWGLBINDVIDEODEVICENVPROC)(HDC hDc, unsigned int uVideoSlot, HVIDEOOUTPUTDEVICENV hVideoDevice, const int *piAttribList);
 typedef BOOL (APIENTRY* PFNANYWGLQUERYCURRENTCONTEXTNVPROC)(int iAttribute, int *piValue);
 
 ANYGL_EXPORT extern PFNANYWGLENUMERATEVIDEODEVICESNVPROC AnyGL_wglEnumerateVideoDevicesNV;
@@ -1077,8 +1101,8 @@ ANYGL_EXPORT extern PFNANYWGLBINDVIDEODEVICENVPROC AnyGL_wglBindVideoDeviceNV;
 ANYGL_EXPORT extern PFNANYWGLQUERYCURRENTCONTEXTNVPROC AnyGL_wglQueryCurrentContextNV;
 
 #ifndef ANYGL_NO_DEFINES
-#define wglEnumerateVideoDevicesNV(hDC, phDeviceList) AnyGL_wglEnumerateVideoDevicesNV(hDC, phDeviceList)
-#define wglBindVideoDeviceNV(hDC, uVideoSlot, hVideoDevice, piAttribList) AnyGL_wglBindVideoDeviceNV(hDC, uVideoSlot, hVideoDevice, piAttribList)
+#define wglEnumerateVideoDevicesNV(hDc, phDeviceList) AnyGL_wglEnumerateVideoDevicesNV(hDc, phDeviceList)
+#define wglBindVideoDeviceNV(hDc, uVideoSlot, hVideoDevice, piAttribList) AnyGL_wglBindVideoDeviceNV(hDc, uVideoSlot, hVideoDevice, piAttribList)
 #define wglQueryCurrentContextNV(iAttribute, piValue) AnyGL_wglQueryCurrentContextNV(iAttribute, piValue)
 #endif /* ANYGL_NO_DEFINES */
 
@@ -1241,7 +1265,7 @@ ANYGL_EXPORT extern PFNANYWGLGETVIDEOINFONVPROC AnyGL_wglGetVideoInfoNV;
 typedef BOOL (APIENTRY* PFNANYWGLGETSYNCVALUESOMLPROC)(HDC hdc, INT64 *ust, INT64 *msc, INT64 *sbc);
 typedef BOOL (APIENTRY* PFNANYWGLGETMSCRATEOMLPROC)(HDC hdc, INT32 *numerator, INT32 *denominator);
 typedef INT64 (APIENTRY* PFNANYWGLSWAPBUFFERSMSCOMLPROC)(HDC hdc, INT64 target_msc, INT64 divisor, INT64 remainder);
-typedef INT64 (APIENTRY* PFNANYWGLSWAPLAYERBUFFERSMSCOMLPROC)(HDC hdc, int fuPlanes, INT64 target_msc, INT64 divisor, INT64 remainder);
+typedef INT64 (APIENTRY* PFNANYWGLSWAPLAYERBUFFERSMSCOMLPROC)(HDC hdc, INT fuPlanes, INT64 target_msc, INT64 divisor, INT64 remainder);
 typedef BOOL (APIENTRY* PFNANYWGLWAITFORMSCOMLPROC)(HDC hdc, INT64 target_msc, INT64 divisor, INT64 remainder, INT64 *ust, INT64 *msc, INT64 *sbc);
 typedef BOOL (APIENTRY* PFNANYWGLWAITFORSBCOMLPROC)(HDC hdc, INT64 target_sbc, INT64 *ust, INT64 *msc, INT64 *sbc);
 

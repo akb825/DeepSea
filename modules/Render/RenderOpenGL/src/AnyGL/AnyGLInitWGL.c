@@ -280,6 +280,8 @@ int AnyGL_initialize(void)
 
 	/* WGL_ATI_pixel_format_float */
 
+	/* WGL_ATI_render_texture_rectangle */
+
 	/* WGL_EXT_colorspace */
 
 	/* WGL_EXT_create_context_es2_profile */
@@ -393,6 +395,8 @@ int AnyGL_initialize(void)
 	AnyGL_wglCreateAffinityDCNV = (PFNANYWGLCREATEAFFINITYDCNVPROC)wglGetProcAddress("wglCreateAffinityDCNV");
 	AnyGL_wglEnumGpusFromAffinityDCNV = (PFNANYWGLENUMGPUSFROMAFFINITYDCNVPROC)wglGetProcAddress("wglEnumGpusFromAffinityDCNV");
 	AnyGL_wglDeleteDCNV = (PFNANYWGLDELETEDCNVPROC)wglGetProcAddress("wglDeleteDCNV");
+
+	/* WGL_NV_multigpu_context */
 
 	/* WGL_NV_multisample_coverage */
 
