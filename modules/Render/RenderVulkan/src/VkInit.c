@@ -22,6 +22,7 @@
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/DynamicLib.h>
 #include <DeepSea/Core/Log.h>
+#include <DeepSea/Math/Core.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -474,13 +475,31 @@ static VkPhysicalDevice findPhysicalDevice(dsVkInstance* instance,
 	VkPhysicalDevice explicitDevice = NULL;
 
 	// Find the explicit device.
-	uint32_t deviceCount = DS_MAX_DEVICES;
+	uint32_t deviceCount = 0;
+	DS_VK_CALL(instance->vkEnumeratePhysicalDevices)(instance->instance, &deviceCount, NULL);
+	if (deviceCount > DS_MAX_DEVICES)
+	{
+		DS_LOG_WARNING_F(DS_RENDER_VULKAN_LOG_TAG, "An unusually high number of devices (%u) are "
+			"present. Only the first %u devices will be considered.", deviceCount, DS_MAX_DEVICES);
+		deviceCount = DS_MAX_DEVICES;
+	}
+
 	VkPhysicalDevice devices[DS_MAX_DEVICES];
 	DS_VK_CALL(instance->vkEnumeratePhysicalDevices)(instance->instance, &deviceCount, devices);
 	for (uint32_t i = 0; i < deviceCount; ++i)
 	{
 		// Make sure this device supports graphics.
-		uint32_t queueFamilyCount = DS_MAX_QUEUE_FAMILIES;
+		uint32_t queueFamilyCount = 0;
+		DS_VK_CALL(instance->vkGetPhysicalDeviceQueueFamilyProperties)(devices[i],
+			&queueFamilyCount, NULL);
+		if (queueFamilyCount > DS_MAX_QUEUE_FAMILIES)
+		{
+			DS_LOG_WARNING_F(DS_RENDER_VULKAN_LOG_TAG, "An unusually high number of queue families "
+				"(%u) are present. Only the first %u queue families will be considered.",
+				queueFamilyCount, DS_MAX_QUEUE_FAMILIES);
+			queueFamilyCount = DS_MAX_QUEUE_FAMILIES;
+		}
+
 		VkQueueFamilyProperties queueFamilies[DS_MAX_QUEUE_FAMILIES];
 		DS_VK_CALL(instance->vkGetPhysicalDeviceQueueFamilyProperties)(devices[i],
 			&queueFamilyCount, queueFamilies);
@@ -542,7 +561,17 @@ static VkPhysicalDevice findPhysicalDevice(dsVkInstance* instance,
 
 static uint32_t findQueueFamily(dsVkInstance* instance, VkPhysicalDevice physicalDevice)
 {
-	uint32_t queueFamilyCount = DS_MAX_QUEUE_FAMILIES;
+	uint32_t queueFamilyCount = 0;
+	DS_VK_CALL(instance->vkGetPhysicalDeviceQueueFamilyProperties)(physicalDevice,
+		&queueFamilyCount, NULL);
+	if (queueFamilyCount > DS_MAX_QUEUE_FAMILIES)
+	{
+		DS_LOG_WARNING_F(DS_RENDER_VULKAN_LOG_TAG, "An unusually high number of queue families "
+			"(%u) are present. Only the first %u queue families will be considered.",
+			queueFamilyCount, DS_MAX_QUEUE_FAMILIES);
+		queueFamilyCount = DS_MAX_QUEUE_FAMILIES;
+	}
+
 	VkQueueFamilyProperties queueFamilies[DS_MAX_QUEUE_FAMILIES];
 	DS_VK_CALL(instance->vkGetPhysicalDeviceQueueFamilyProperties)(physicalDevice,
 		&queueFamilyCount, queueFamilies);
