@@ -91,6 +91,17 @@ android {
             versionNameSuffix "-TestVectorDraw"
             resValue "string", "app_name", "TestVectorDraw"
         }
+        TestScene {
+            externalNativeBuild {
+                cmake {
+                    targets "deepsea_test_scene_app"
+                }
+            }
+            dimension "tester"
+            applicationIdSuffix ".testscene"
+            versionNameSuffix "-TestScene"
+            resValue "string", "app_name", "TestScene"
+        }
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
