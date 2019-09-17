@@ -39,6 +39,7 @@
 #include <DeepSea/Render/Resources/VertexFormat.h>
 #include <DeepSea/Render/Renderer.h>
 #include <DeepSea/Render/RenderPass.h>
+#include <DeepSea/Render/RenderSurface.h>
 #include <DeepSea/RenderBootstrap/RenderBootstrap.h>
 
 #include <DeepSea/Scene/ItemLists/InstanceTransformData.h>
@@ -178,11 +179,14 @@ static bool validateAllocator(dsAllocator* allocator, const char* name)
 	return false;
 }
 
-static void updateProjectionMatrix(dsView* view)
+static void updateProjectionMatrix(dsView* view, dsRenderSurface* surface)
 {
-	dsMatrix44f projection;
-	DS_VERIFY(dsRenderer_makePerspective(&projection, dsScene_getRenderer(view->scene),
+	dsMatrix44f projection, baseProjection, surfaceRotation;
+	DS_VERIFY(dsRenderer_makePerspective(&baseProjection, dsScene_getRenderer(view->scene),
 		(float)dsDegreesToRadians(45.0f), (float)view->width/(float)view->height, 0.1f, 100.0f));
+	DS_VERIFY(dsRenderSurface_makeRotationMatrix(&surfaceRotation,
+		surface->rotation));
+	dsMatrix44_mul(projection, surfaceRotation, baseProjection);
 	DS_VERIFY(dsView_setProjectionMatrix(view, &projection));
 }
 
@@ -208,7 +212,7 @@ static bool processEvent(dsApplication* application, dsWindow* window, const dsE
 		case dsEventType_WindowResized:
 			DS_VERIFY(dsView_setDimensions(testScene->view, testScene->window->surface->width,
 				testScene->window->surface->height));
-			updateProjectionMatrix(testScene->view);
+			updateProjectionMatrix(testScene->view, testScene->window->surface);
 			// Need to update the view again if the surfaces have been set.
 			if (event->type == dsEventType_SurfaceInvalidated)
 				dsView_update(testScene->view);
@@ -666,7 +670,7 @@ static dsView* createView(dsAllocator* allocator, dsScene* scene, dsRenderSurfac
 	dsMatrix44f camera;
 	dsMatrix44f_lookAt(&camera, &eyePos, &lookAtPos, &upDir);
 	dsView_setCameraMatrix(view, &camera);
-	updateProjectionMatrix(view);
+	updateProjectionMatrix(view, surface);
 	return view;
 }
 
@@ -847,7 +851,8 @@ static bool setup(TestScene* testScene, dsApplication* application, dsAllocator*
 	uint32_t width = dsApplication_adjustWindowSize(application, 0, 800);
 	uint32_t height = dsApplication_adjustWindowSize(application, 0, 600);
 	testScene->window = dsWindow_create(application, allocator, "Test Scene", NULL,
-		NULL, width, height, dsWindowFlags_Resizeable | dsWindowFlags_DelaySurfaceCreate);
+		NULL, width, height, dsWindowFlags_Resizeable | dsWindowFlags_DelaySurfaceCreate |
+			dsWindowFlags_ClientRotations);
 	if (!testScene->window)
 	{
 		DS_LOG_ERROR_F("TestScene", "Couldn't create window: %s", dsErrorString(errno));
