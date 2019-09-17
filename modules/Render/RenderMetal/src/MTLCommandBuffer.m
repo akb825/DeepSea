@@ -528,6 +528,10 @@ void dsMTLCommandBuffer_clear(dsCommandBuffer* commandBuffer)
 	mtlCommandBuffer->fenceCount = 0;
 
 	mtlCommandBuffer->functions->clearFunc(commandBuffer);
+
+	mtlCommandBuffer->boundGeometry = NULL;
+	mtlCommandBuffer->firstVertexBuffer = 0;
+	mtlCommandBuffer->vertexOffset = 0;
 }
 
 void dsMTLCommandBuffer_shutdown(dsMTLCommandBuffer* commandBuffer)

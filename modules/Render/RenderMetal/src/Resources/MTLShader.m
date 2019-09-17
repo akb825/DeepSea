@@ -459,7 +459,7 @@ static void getTextureAndSampler(id<MTLTexture>* outTexture, id<MTLSamplerState>
 	else
 	{
 		DS_ASSERT(sharedValues);
-		texture = dsSharedMaterialValues_getTextureId(sharedValues, element->nameID);
+		texture = dsSharedMaterialValues_getTextureID(sharedValues, element->nameID);
 	}
 
 	if (texture)
@@ -506,7 +506,7 @@ static id<MTLTexture> getTextureBuffer(const dsShader* shader, const dsMaterial*
 	else
 	{
 		DS_ASSERT(sharedValues);
-		buffer = dsSharedMaterialValues_getTextureBufferId(&format, &offset, &count, sharedValues,
+		buffer = dsSharedMaterialValues_getTextureBufferID(&format, &offset, &count, sharedValues,
 			element->nameID);
 	}
 
@@ -540,7 +540,7 @@ static id<MTLBuffer> getShaderVariableGroupBuffer(size_t* outOffset, const dsSha
 	else
 	{
 		DS_ASSERT(sharedValues);
-		buffer = dsSharedMaterialValues_getBufferId(outOffset, NULL, sharedValues, element->nameID);
+		buffer = dsSharedMaterialValues_getBufferID(outOffset, NULL, sharedValues, element->nameID);
 	}
 
 	DS_ASSERT(buffer);
@@ -561,7 +561,7 @@ static id<MTLBuffer> getBuffer(size_t* outOffset, const dsShader* shader,
 	else
 	{
 		DS_ASSERT(sharedValues);
-		buffer = dsSharedMaterialValues_getBufferId(outOffset, NULL, sharedValues, element->nameID);
+		buffer = dsSharedMaterialValues_getBufferID(outOffset, NULL, sharedValues, element->nameID);
 	}
 
 	if (!buffer)

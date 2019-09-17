@@ -37,7 +37,7 @@ extern "C"
 /**
  * @brief The shader variable group name used for the view transform data.
  */
-DS_SCENE_EXPORT const char* const dsViewTransformData_shaderVariableGroupName;
+DS_SCENE_EXPORT extern const char* const dsViewTransformData_shaderVariableGroupName;
 
 /**
  * @brief Creates the shader variable group description used to describe the variables for the

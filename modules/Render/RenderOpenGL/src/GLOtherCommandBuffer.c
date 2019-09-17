@@ -406,21 +406,29 @@ static Command* allocateCommand(dsCommandBuffer* commandBuffer, CommandType type
 	DS_ASSERT(size >= sizeof(Command));
 	dsGLOtherCommandBuffer* glCommandBuffer = (dsGLOtherCommandBuffer*)commandBuffer;
 	int prevErrno = errno;
-	Command* command = (Command*)dsAllocator_alloc((dsAllocator*)&glCommandBuffer->buffer, size);
+	dsAllocator* commandAllocator = (dsAllocator*)&glCommandBuffer->buffer;
+	Command* command = (Command*)dsAllocator_alloc(commandAllocator, size);
 	if (!command)
 	{
 		// Allocate a new buffer.
 		errno = prevErrno;
 		size_t newBufferSize = dsMax(glCommandBuffer->buffer.bufferSize*2,
 			glCommandBuffer->buffer.bufferSize + size);
+
+		size_t prevSize = commandAllocator->size;
+		uint32_t prevCurrentAllocations = commandAllocator->currentAllocations;
+		uint32_t prevTotalAllocations = commandAllocator->totalAllocations;
 		void* newBuffer = dsAllocator_reallocWithFallback(commandBuffer->allocator,
-			glCommandBuffer->buffer.buffer, ((dsAllocator*)&glCommandBuffer->buffer)->size,
+			glCommandBuffer->buffer.buffer, commandAllocator->size,
 			newBufferSize);
 		if (!newBuffer)
 			return NULL;
 
 		DS_VERIFY(dsBufferAllocator_initialize(&glCommandBuffer->buffer, newBuffer, newBufferSize));
-		command = (Command*)dsAllocator_alloc((dsAllocator*)&glCommandBuffer->buffer, size);
+		commandAllocator->size = prevSize;
+		commandAllocator->currentAllocations = prevCurrentAllocations;
+		commandAllocator->totalAllocations = prevTotalAllocations;
+		command = (Command*)dsAllocator_alloc(commandAllocator, size);
 		DS_ASSERT(command);
 	}
 

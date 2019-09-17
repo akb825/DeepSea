@@ -298,22 +298,30 @@ static Command* allocateCommand(dsCommandBuffer* commandBuffer, CommandType type
 	DS_ASSERT(size >= sizeof(Command));
 	dsMTLSoftwareCommandBuffer* mtlCommandBuffer = (dsMTLSoftwareCommandBuffer*)commandBuffer;
 	int prevErrno = errno;
-	Command* command = (Command*)dsAllocator_alloc(
-		(dsAllocator*)&mtlCommandBuffer->commands, size);
+	dsAllocator* commandAllocator = (dsAllocator*)&mtlCommandBuffer->commands;
+	Command* command = (Command*)dsAllocator_alloc(commandAllocator, size);
 	if (!command)
 	{
 		// Allocate a new buffer.
 		errno = prevErrno;
+		const size_t defaultBufferSize = 512*1024;
 		size_t newBufferSize = dsMax(mtlCommandBuffer->commands.bufferSize*2,
 			mtlCommandBuffer->commands.bufferSize + size);
+		newBufferSize = dsMax(newBufferSize, defaultBufferSize);
+
+		size_t prevSize = commandAllocator->size;
+		uint32_t prevCurrentAllocations = commandAllocator->currentAllocations;
+		uint32_t prevTotalAllocations = commandAllocator->totalAllocations;
 		void* newBuffer = dsAllocator_reallocWithFallback(commandBuffer->allocator,
-			mtlCommandBuffer->commands.buffer, ((dsAllocator*)&mtlCommandBuffer->commands)->size,
-			newBufferSize);
+			mtlCommandBuffer->commands.buffer, prevSize, newBufferSize);
 		if (!newBuffer)
 			return NULL;
 
 		DS_VERIFY(dsBufferAllocator_initialize(&mtlCommandBuffer->commands, newBuffer,
 			newBufferSize));
+		commandAllocator->size = prevSize;
+		commandAllocator->currentAllocations = prevCurrentAllocations;
+		commandAllocator->totalAllocations = prevTotalAllocations;
 		command = (Command*)dsAllocator_alloc((dsAllocator*)&mtlCommandBuffer->commands,
 			size);
 		DS_ASSERT(command);
