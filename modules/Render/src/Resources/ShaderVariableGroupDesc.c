@@ -106,10 +106,7 @@ dsShaderVariableGroupDesc* dsShaderVariableGroupDesc_create(dsResourceManager* r
 	{
 		DS_ATOMIC_FETCH_ADD32(&resourceManager->shaderVariableGroupDescCount, 1);
 		// Sanity check
-		DS_ASSERT(((resourceManager->supportedBuffers & dsGfxBufferUsage_UniformBlock) &&
-			groupDesc->positions) ||
-			(!(resourceManager->supportedBuffers & dsGfxBufferUsage_UniformBlock) &&
-			!groupDesc->positions));
+		DS_ASSERT(groupDesc->positions);
 	}
 	DS_PROFILE_FUNC_RETURN(groupDesc);
 }

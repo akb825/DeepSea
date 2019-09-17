@@ -224,7 +224,7 @@ bool dsSceneInstanceVariables_bindInstance(dsSceneInstanceData* instanceData, ui
 		{
 			DS_ASSERT(cpuInfo->columnCount > 0);
 			DS_ASSERT(cpuInfo->columnSize > 0);
-			DS_ASSERT(pos->stride == pos->matrixColStride*cpuInfo->columnCount);
+			DS_ASSERT(pos->stride == 0 || pos->stride == pos->matrixColStride*cpuInfo->columnCount);
 			for (uint32_t j = 0; j < count; ++j)
 			{
 				uint8_t* curCol = packedData;
@@ -248,7 +248,7 @@ bool dsSceneInstanceVariables_bindInstance(dsSceneInstanceData* instanceData, ui
 	}
 
 	DS_VERIFY(dsShaderVariableGroup_commitWithoutBuffer(group));
-	return true;
+	return dsSharedMaterialValues_setVariableGroupID(values, variables->nameID, group);
 }
 
 bool dsSceneInstanceVariables_finish(dsSceneInstanceData* instanceData)
