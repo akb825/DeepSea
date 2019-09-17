@@ -64,7 +64,7 @@ struct dsScene
 	dsSceneTreeRootNode rootTreeNode;
 	dsSceneTreeNode* rootTreeNodePtr;
 
-	dsSceneItemList** sharedItems;
+	dsSceneItemLists* sharedItems;
 	dsScenePipelineItem* pipeline;
 	dsSceneGlobalData** globalData;
 	uint32_t sharedItemCount;

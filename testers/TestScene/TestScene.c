@@ -556,7 +556,7 @@ static dsScene* createScene(dsRenderer* renderer, dsAllocator* allocator,
 	clearValues[0].colorValue.floatValue.a = 1.0f;
 	clearValues[1].depthStencil.depth = 1.0f;
 	clearValues[1].depthStencil.stencil = 0;
-	dsSubpassDrawLists subpassLists = {&modelList, 1};
+	dsSceneItemLists subpassLists = {&modelList, 1};
 	sceneRenderPass = dsSceneRenderPass_create(allocator, renderPass, "window", clearValues,
 		DS_ARRAY_SIZE(clearValues), &subpassLists, 1);
 
@@ -601,7 +601,8 @@ static dsScene* createScene(dsRenderer* renderer, dsAllocator* allocator,
 
 	dsScenePipelineItem pipeline = {sceneRenderPass, NULL};
 	dsSceneGlobalData* globalData[] = {viewTransformData, lightData};
-	dsScene* scene = dsScene_create(allocator, renderer, &cullList, 1, &pipeline, 1, globalData,
+	dsSceneItemLists sharedItems = {&cullList, 1};
+	dsScene* scene = dsScene_create(allocator, renderer, &sharedItems, 1, &pipeline, 1, globalData,
 		DS_ARRAY_SIZE(globalData), NULL, NULL);
 	if (!scene)
 		DS_LOG_ERROR_F("TestScene", "Couldn't create scene: %s", dsErrorString(errno));

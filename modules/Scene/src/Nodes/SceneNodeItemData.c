@@ -28,7 +28,7 @@ void* dsSceneNodeItemData_findID(dsSceneNodeItemData* itemData, uint32_t nameID)
 	if (!itemData)
 		return NULL;
 
-	for (uint32_t i = 0; i < itemData->itemDataCount; ++i)
+	for (uint32_t i = 0; i < itemData->count; ++i)
 	{
 		if (itemData->itemData[i].nameID == nameID)
 			return itemData->itemData[i].data;

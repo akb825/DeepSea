@@ -385,7 +385,7 @@ typedef struct dsSceneNodeItemData
 	/**
 	 * @brief The number of item list data instances.
 	 */
-	uint32_t itemDataCount;
+	uint32_t count;
 } dsSceneNodeItemData;
 
 #ifdef __cplusplus

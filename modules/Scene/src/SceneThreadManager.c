@@ -59,6 +59,7 @@ typedef struct DrawThread
 	dsThread thread;
 	dsSceneThreadManager* threadManager;
 	ThreadState state;
+	uint32_t sharedItemsIndex;
 } DrawThread;
 
 struct dsSceneThreadManager
@@ -98,7 +99,7 @@ struct dsSceneThreadManager
 	uint64_t lastFrame;
 };
 
-static void processSharedItems(dsSceneThreadManager* threadManager)
+static void processSharedItems(dsSceneThreadManager* threadManager, uint32_t index)
 {
 	const dsView* view = threadManager->curView;
 	const dsScene* scene = view->scene;
@@ -107,9 +108,10 @@ static void processSharedItems(dsSceneThreadManager* threadManager)
 		dsSceneItemList* itemList = NULL;
 		dsCommandBuffer* commandBuffer = NULL;
 		DS_VERIFY(dsSpinlock_lock(&threadManager->itemLock));
-		if (threadManager->nextItem < scene->sharedItemCount)
+		const dsSceneItemLists* sharedItems = scene->sharedItems + index;
+		if (threadManager->nextItem < sharedItems->count)
 		{
-			itemList = scene->sharedItems[threadManager->nextItem++];
+			itemList = sharedItems->itemLists[threadManager->nextItem++];
 			if (itemList->needsCommandBuffer)
 			{
 				commandBuffer =
@@ -210,7 +212,7 @@ static void processPipeline(dsSceneThreadManager* threadManager)
 				continue;
 			}
 
-			dsSceneItemList* itemList = item->renderPass->drawLists[subpass].drawLists[subpassItem];
+			dsSceneItemList* itemList = item->renderPass->drawLists[subpass].itemLists[subpassItem];
 			itemList->commitFunc(itemList, threadManager->curView, commandBuffer);
 
 			DS_VERIFY(dsCommandBuffer_end(commandBuffer));
@@ -266,7 +268,7 @@ static dsThreadReturnType threadFunc(void* userData)
 		switch (state)
 		{
 			case ThreadState_SharedItems:
-				processSharedItems(threadManager);
+				processSharedItems(threadManager, drawThread->sharedItemsIndex);
 				break;
 			case ThreadState_Pipeline:
 				processPipeline(threadManager);
@@ -297,12 +299,16 @@ static void waitForThreads(dsSceneThreadManager* threadManager)
 	threadManager->finishedCount = 0;
 }
 
-static void triggerThreads(dsSceneThreadManager* threadManager, ThreadState state)
+static void triggerThreads(dsSceneThreadManager* threadManager, ThreadState state,
+	uint32_t sharedItemsIndex)
 {
 	DS_ASSERT(threadManager->finishedCount == 0);
 	DS_VERIFY(dsMutex_lock(threadManager->stateMutex));
 	for (uint32_t i = 0; i < threadManager->threadCount; ++i)
+	{
 		threadManager->threads[i].state = state;
+		threadManager->threads[i].sharedItemsIndex = sharedItemsIndex;
+	}
 	DS_VERIFY(dsConditionVariable_notifyAll(threadManager->stateCondition));
 	DS_VERIFY(dsMutex_unlock(threadManager->stateMutex));
 }
@@ -381,20 +387,24 @@ static bool setupForDraw(dsSceneThreadManager* threadManager, const dsScene* sce
 {
 	for (uint32_t i = 0; i < scene->sharedItemCount; ++i)
 	{
-		if (!scene->sharedItems[i]->needsCommandBuffer)
-			continue;
-
-		uint32_t index = threadManager->commandBufferPointerCount;
-		if (!DS_RESIZEABLE_ARRAY_ADD(threadManager->allocator, threadManager->commandBufferPointers,
-				threadManager->commandBufferPointerCount, threadManager->maxCommandBufferPointers,
-				1))
+		const dsSceneItemLists* sharedItems = scene->sharedItems + i;
+		for (uint32_t j = 0; j < sharedItems->count; ++j)
 		{
-			return false;
-		}
+			if (!sharedItems->itemLists[j]->needsCommandBuffer)
+				continue;
 
-		threadManager->commandBufferPointers[index] = getComputeCommandBuffer(threadManager);
-		if (!threadManager->commandBufferPointers[index])
-			return false;
+			uint32_t index = threadManager->commandBufferPointerCount;
+			if (!DS_RESIZEABLE_ARRAY_ADD(threadManager->allocator,
+					threadManager->commandBufferPointers, threadManager->commandBufferPointerCount,
+					threadManager->maxCommandBufferPointers, 1))
+			{
+				return false;
+			}
+
+			threadManager->commandBufferPointers[index] = getComputeCommandBuffer(threadManager);
+			if (!threadManager->commandBufferPointers[index])
+				return false;
+		}
 	}
 
 	for (uint32_t i = 0; i < scene->pipelineCount; ++i)
@@ -405,7 +415,7 @@ static bool setupForDraw(dsSceneThreadManager* threadManager, const dsScene* sce
 			dsRenderPass* renderPass = sceneRenderPass->renderPass;
 			for (uint32_t j = 0; j < renderPass->subpassCount; ++j)
 			{
-				const dsSubpassDrawLists* drawLists = sceneRenderPass->drawLists + j;
+				const dsSceneItemLists* drawLists = sceneRenderPass->drawLists + j;
 				uint32_t index = threadManager->commandBufferPointerCount;
 				if (!DS_RESIZEABLE_ARRAY_ADD(threadManager->allocator,
 						threadManager->commandBufferPointers,
@@ -454,12 +464,17 @@ static bool submitCommandBuffers(dsSceneThreadManager* threadManager,
 	uint32_t nextCommandBuffer = 0;
 	for (uint32_t i = 0; i < scene->sharedItemCount; ++i)
 	{
-		if (!scene->sharedItems[i]->needsCommandBuffer)
-			continue;
+		const dsSceneItemLists* sharedItems = scene->sharedItems + i;
+		for (uint32_t j = 0; j < sharedItems->count; ++j)
+		{
+			if (!sharedItems->itemLists[j]->needsCommandBuffer)
+				continue;
 
-		dsCommandBuffer* submitBuffer = threadManager->commandBufferPointers[nextCommandBuffer++];
-		if (!dsCommandBuffer_submit(commandBuffer, submitBuffer))
-			return false;
+			dsCommandBuffer* submitBuffer =
+				threadManager->commandBufferPointers[nextCommandBuffer++];
+			if (!dsCommandBuffer_submit(commandBuffer, submitBuffer))
+				return false;
+		}
 	}
 
 	for (uint32_t i = 0; i < scene->pipelineCount; ++i)
@@ -488,7 +503,7 @@ static bool submitCommandBuffers(dsSceneThreadManager* threadManager,
 
 			for (uint32_t j = 0; j < renderPass->subpassCount; ++j)
 			{
-				dsSubpassDrawLists* drawLists = sceneRenderPass->drawLists + j;
+				dsSceneItemLists* drawLists = sceneRenderPass->drawLists + j;
 				for (uint32_t k = 0; k < drawLists->count; ++k)
 				{
 					dsCommandBuffer* submitBuffer =
@@ -642,15 +657,21 @@ bool dsSceneThreadManager_draw(dsSceneThreadManager* threadManager, const dsView
 	// Shared items first.
 	threadManager->nextItem = 0;
 	threadManager->nextCommandBuffer = 0;
-	triggerThreads(threadManager, ThreadState_SharedItems);
-	processSharedItems(threadManager);
-	waitForThreads(threadManager);
+	for (uint32_t i = 0; i < scene->sharedItemCount; ++i)
+	{
+		if (scene->sharedItems[i].count == 0)
+			continue;
+
+		triggerThreads(threadManager, ThreadState_SharedItems, i);
+		processSharedItems(threadManager, i);
+		waitForThreads(threadManager);
+	}
 
 	// Once finished, main rendering pipeline.
 	threadManager->nextItem = 0;
 	threadManager->nextSubpass = 0;
 	threadManager->nextSubpassItem = 0;
-	triggerThreads(threadManager, ThreadState_Pipeline);
+	triggerThreads(threadManager, ThreadState_Pipeline, 0);
 	processPipeline(threadManager);
 	waitForThreads(threadManager);
 

@@ -38,7 +38,9 @@ extern "C"
  * @param renderer The renderer the scene will be drawn with.
  * @param sharedItems The item lists to run before the rest of the scene. (e.g. cull item lists)
  *     This will copy the array itself and take ownership of the objects. If creation fails, this
- *     means it will immediately destroy all objects in this list.
+ *     means it will immediately destroy all objects in this list. When multithreaded rendering is
+ *     used, the lists within each sharedItems instance may be processed in parallel, but will be
+ *     synchronized between each index of the top-level sharedItems.
  * @param sharedItemCount The number of shared items.
  * @param pipeline The pipeline to perform when rendering the scene. This will copy the array itself
  *     and take ownership of the objects, i.e. render passes and draw item lists. If creation fails,
@@ -53,7 +55,7 @@ extern "C"
  * @return The scene or NULL if an error occurred.
  */
 DS_SCENE_EXPORT dsScene* dsScene_create(dsAllocator* allocator, dsRenderer* renderer,
-	dsSceneItemList* const* sharedItems, uint32_t sharedItemCount,
+	const dsSceneItemLists* sharedItems, uint32_t sharedItemCount,
 	const dsScenePipelineItem* pipeline, uint32_t pipelineCount,
 	dsSceneGlobalData* const* globalData, uint32_t globalDataCount, void* userData,
 	dsDestroySceneUserDataFunction destroyUserDataFunc);

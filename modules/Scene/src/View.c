@@ -683,8 +683,12 @@ bool dsView_draw(dsView* view, dsCommandBuffer* commandBuffer, dsSceneThreadMana
 	// Then process the shared items.
 	for (uint32_t i = 0; i < scene->sharedItemCount; ++i)
 	{
-		dsSceneItemList* itemList = scene->sharedItems[i];
-		itemList->commitFunc(itemList, view, commandBuffer);
+		dsSceneItemLists* sharedItems = scene->sharedItems + i;
+		for (uint32_t j = 0; j < sharedItems->count; ++j)
+		{
+			dsSceneItemList* itemList = sharedItems->itemLists[i];
+			itemList->commitFunc(itemList, view, commandBuffer);
+		}
 	}
 
 	// Then process the scene pipeline.
@@ -721,10 +725,10 @@ bool dsView_draw(dsView* view, dsCommandBuffer* commandBuffer, dsSceneThreadMana
 
 			for (uint32_t j = 0; j < renderPass->subpassCount; ++j)
 			{
-				dsSubpassDrawLists* drawLists = sceneRenderPass->drawLists + j;
+				dsSceneItemLists* drawLists = sceneRenderPass->drawLists + j;
 				for (uint32_t k = 0; k < drawLists->count; ++k)
 				{
-					dsSceneItemList* itemList = drawLists->drawLists[k];
+					dsSceneItemList* itemList = drawLists->itemLists[k];
 					itemList->commitFunc(itemList, view, commandBuffer);
 				}
 

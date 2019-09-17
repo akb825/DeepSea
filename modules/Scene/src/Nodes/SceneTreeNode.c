@@ -107,7 +107,7 @@ static dsSceneTreeNode* addNode(dsSceneTreeNode* node, dsSceneNode* child,
 	childTreeNode->itemData.itemData = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsSceneItemData,
 		child->itemListCount);
 	DS_ASSERT(childTreeNode->itemData.itemData || child->itemListCount == 0);
-	childTreeNode->itemData.itemDataCount = child->itemListCount;
+	childTreeNode->itemData.count = child->itemListCount;
 	for (uint32_t i = 0; i < child->itemListCount; ++i)
 	{
 		// Always initialize to NULL, regardless of the branch.

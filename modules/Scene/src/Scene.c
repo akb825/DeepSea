@@ -35,7 +35,7 @@
 
 dsSceneNodeType dsRootSceneNodeType;
 
-static void destroyObjects(dsSceneItemList* const* sharedItems, uint32_t sharedItemCount,
+static void destroyObjects(const dsSceneItemLists* sharedItems, uint32_t sharedItemCount,
 	const dsScenePipelineItem* pipeline, uint32_t pipelineCount,
 	dsSceneGlobalData* const* globalData, uint32_t globalDataCount, void* userData,
 	dsDestroySceneUserDataFunction destroyUserDataFunc)
@@ -43,7 +43,11 @@ static void destroyObjects(dsSceneItemList* const* sharedItems, uint32_t sharedI
 	if (sharedItems)
 	{
 		for (uint32_t i = 0; i < sharedItemCount; ++i)
-			dsSceneItemList_destroy(sharedItems[i]);
+		{
+			const dsSceneItemLists* itemLists = sharedItems + i;
+			for (uint32_t j = 0; j < itemLists->count; ++j)
+				dsSceneItemList_destroy(itemLists->itemLists[j]);
+		}
 	}
 
 	if (pipeline)
@@ -65,20 +69,30 @@ static void destroyObjects(dsSceneItemList* const* sharedItems, uint32_t sharedI
 		destroyUserDataFunc(userData);
 }
 
-static size_t fullAllocSize(uint32_t* outNameCount, dsSceneItemList* const* sharedItems,
+static size_t fullAllocSize(uint32_t* outNameCount, const dsSceneItemLists* sharedItems,
 	uint32_t sharedItemCount, const dsScenePipelineItem* pipeline, uint32_t pipelineCount,
 	dsSceneGlobalData* const* globalData, uint32_t globalDataCount)
 {
 	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsScene)) +
-		DS_ALIGNED_SIZE(sizeof(dsSceneItemList*)*sharedItemCount) +
+		DS_ALIGNED_SIZE(sizeof(dsSceneItemList)*sharedItemCount) +
 		DS_ALIGNED_SIZE(sizeof(dsScenePipelineItem)*pipelineCount) +
 		DS_ALIGNED_SIZE(sizeof(dsSceneGlobalData*)*globalDataCount);
 
-	*outNameCount = sharedItemCount;
+	*outNameCount = 0;
 	for (uint32_t i = 0; i < sharedItemCount; ++i)
 	{
-		if (!sharedItems[i])
+		const dsSceneItemLists* itemLists = sharedItems + i;
+		if (sharedItems[i].count > 0 && !itemLists->itemLists)
 			return 0;
+
+		for (uint32_t j = 0; j < itemLists->count; ++j)
+		{
+			if (!itemLists->itemLists[j])
+				return 0;
+		}
+
+		*outNameCount += itemLists->count;
+		fullSize += DS_ALIGNED_SIZE(sizeof(dsSceneItemList*)*itemLists->count);
 	}
 
 	for (uint32_t i = 0; i < pipelineCount; ++i)
@@ -97,10 +111,10 @@ static size_t fullAllocSize(uint32_t* outNameCount, dsSceneItemList* const* shar
 			const dsRenderPass* baseRenderPass = item->renderPass->renderPass;
 			for (uint32_t j = 0; j < baseRenderPass->subpassCount; ++j)
 			{
-				const dsSubpassDrawLists* items = item->renderPass->drawLists + j;
+				const dsSceneItemLists* items = item->renderPass->drawLists + j;
 				for (uint32_t k = 0; k < items->count; ++k)
 				{
-					if (!items->drawLists[k])
+					if (!items->itemLists[k])
 						return 0;
 				}
 				*outNameCount += items->count;
@@ -140,7 +154,7 @@ static void dummyDestroyFunc(dsSceneNode* node)
 }
 
 dsScene* dsScene_create(dsAllocator* allocator, dsRenderer* renderer,
-	dsSceneItemList* const* sharedItems, uint32_t sharedItemCount,
+	const dsSceneItemLists* sharedItems, uint32_t sharedItemCount,
 	const dsScenePipelineItem* pipeline, uint32_t pipelineCount,
 	dsSceneGlobalData* const* globalData, uint32_t globalDataCount, void* userData,
 	dsDestroySceneUserDataFunction destroyUserDataFunc)
@@ -214,9 +228,24 @@ dsScene* dsScene_create(dsAllocator* allocator, dsRenderer* renderer,
 	if (sharedItemCount > 0)
 	{
 		scene->sharedItems =
-			DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsSceneItemList*, sharedItemCount);
+			DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsSceneItemLists, sharedItemCount);
 		DS_ASSERT(scene->sharedItems);
-		memcpy(scene->sharedItems, sharedItems, sizeof(dsSceneItemList*)*sharedItemCount);
+		for (uint32_t i = 0; i < sharedItemCount; ++i)
+		{
+			const dsSceneItemLists* origItemLists = sharedItems + i;
+			dsSceneItemLists* itemLists = scene->sharedItems + i;
+			itemLists->count = origItemLists->count;
+			if (itemLists->count)
+			{
+				itemLists->itemLists = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsSceneItemList*,
+					itemLists->count);
+				DS_ASSERT(itemLists->itemLists);
+				memcpy(itemLists->itemLists, origItemLists->itemLists,
+					sizeof(dsSceneItemLists*)*itemLists->count);
+			}
+			else
+				itemLists->itemLists = NULL;
+		}
 	}
 	else
 		scene->sharedItems = NULL;
@@ -256,12 +285,16 @@ dsScene* dsScene_create(dsAllocator* allocator, dsRenderer* renderer,
 	uint32_t curItems = 0;
 	for (uint32_t i = 0; i < sharedItemCount; ++i)
 	{
-		dsSceneItemListNode* node = itemNodes + curItems++;
-		if (!insertSceneList(scene->itemLists, node, sharedItems[i]))
+		const dsSceneItemLists* itemLists = sharedItems + i;
+		for (uint32_t j = 0; j < itemLists->count; ++j)
 		{
-			errno = EINVAL;
-			dsScene_destroy(scene);
-			return NULL;
+			dsSceneItemListNode* node = itemNodes + curItems++;
+			if (!insertSceneList(scene->itemLists, node, sharedItems[i].itemLists[j]))
+			{
+				errno = EINVAL;
+				dsScene_destroy(scene);
+				return NULL;
+			}
 		}
 	}
 
@@ -272,11 +305,11 @@ dsScene* dsScene_create(dsAllocator* allocator, dsRenderer* renderer,
 		{
 			for (uint32_t j = 0; j < item->renderPass->renderPass->subpassCount; ++j)
 			{
-				const dsSubpassDrawLists* items = item->renderPass->drawLists + j;
+				const dsSceneItemLists* items = item->renderPass->drawLists + j;
 				for (uint32_t k = 0; k < items->count; ++k)
 				{
 					dsSceneItemListNode* node = itemNodes + curItems++;
-					if (!insertSceneList(scene->itemLists, node, items->drawLists[i]))
+					if (!insertSceneList(scene->itemLists, node, items->itemLists[i]))
 					{
 						errno = EINVAL;
 						dsScene_destroy(scene);

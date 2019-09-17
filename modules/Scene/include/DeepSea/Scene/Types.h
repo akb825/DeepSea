@@ -93,25 +93,20 @@ typedef struct dsSceneResources dsSceneResources;
 typedef void (*dsDestroySceneUserDataFunction)(void* userData);
 
 /**
- * @brief Struct that holds a list of dsSceneItemList instances used for a render subpass.
- *
- * The dsScenItemLists must draw the items as part of the render pass. (as opposed to processing
- * compute shader items)
- *
- * @see SceneRenderPass.h
+ * @brief Struct that holds a list of dsSceneItemList instances.
  */
-typedef struct dsSubpassDrawLists
+typedef struct dsSceneItemLists
 {
 	/**
-	 * @brief The scene item lists to draw.
+	 * @brief The scene item draw.
 	 */
-	dsSceneItemList** drawLists;
+	dsSceneItemList** itemLists;
 
 	/**
 	 * @brief The number of scene item lists.
 	 */
 	uint32_t count;
-} dsSubpassDrawLists;
+} dsSceneItemLists;
 
 /**
  * @brief Struct describing a render pass within a scene.
@@ -151,7 +146,7 @@ typedef struct dsSceneRenderPass
 	/**
 	 * @brief The scene item lists for each subpass.
 	 */
-	dsSubpassDrawLists* drawLists;
+	dsSceneItemLists* drawLists;
 } dsSceneRenderPass;
 
 /**

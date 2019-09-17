@@ -40,7 +40,7 @@ extern "C"
  * @return The full allocation size, or 0 if the subpass draw lists aren't valid.
  */
 DS_SCENE_EXPORT size_t dsSceneRenderPass_fullAllocSize(const char* framebuffer,
-	uint32_t clearValueCount, const dsSubpassDrawLists* subpassDrawLists,
+	uint32_t clearValueCount, const dsSceneItemLists* subpassDrawLists,
 	uint32_t subpassDrawListCount);
 
 /**
@@ -62,7 +62,7 @@ DS_SCENE_EXPORT size_t dsSceneRenderPass_fullAllocSize(const char* framebuffer,
  */
 DS_SCENE_EXPORT dsSceneRenderPass* dsSceneRenderPass_create(dsAllocator* allocator,
 	dsRenderPass* renderPass, const char* framebuffer, const dsSurfaceClearValue* clearValues,
-	uint32_t clearValueCount, const dsSubpassDrawLists* subpassDrawLists,
+	uint32_t clearValueCount, const dsSceneItemLists* subpassDrawLists,
 	uint32_t subpassDrawListCount);
 
 /**

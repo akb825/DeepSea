@@ -24,7 +24,7 @@
 #include <DeepSea/Scene/ItemLists/SceneItemList.h>
 #include <string.h>
 
-static void destroyObjects(dsRenderPass* renderPass, const dsSubpassDrawLists* subpassDrawLists,
+static void destroyObjects(dsRenderPass* renderPass, const dsSceneItemLists* subpassDrawLists,
 	uint32_t subpassDrawListCount)
 {
 	dsRenderPass_destroy(renderPass);
@@ -33,17 +33,17 @@ static void destroyObjects(dsRenderPass* renderPass, const dsSubpassDrawLists* s
 
 	for (uint32_t i = 0; i < subpassDrawListCount; ++i)
 	{
-		const dsSubpassDrawLists* drawLists = subpassDrawLists + i;
-		if (!drawLists->drawLists)
+		const dsSceneItemLists* drawLists = subpassDrawLists + i;
+		if (!drawLists->itemLists)
 			continue;
 
 		for (uint32_t j = 0; j < drawLists->count; ++j)
-			dsSceneItemList_destroy(drawLists->drawLists[i]);
+			dsSceneItemList_destroy(drawLists->itemLists[i]);
 	}
 }
 
 size_t dsSceneRenderPass_fullAllocSize(const char* framebuffer, uint32_t clearValueCount,
-	const dsSubpassDrawLists* subpassDrawLists, uint32_t subpassDrawListCount)
+	const dsSceneItemLists* subpassDrawLists, uint32_t subpassDrawListCount)
 {
 	if (!framebuffer || !subpassDrawLists)
 		return 0;
@@ -51,17 +51,17 @@ size_t dsSceneRenderPass_fullAllocSize(const char* framebuffer, uint32_t clearVa
 	size_t fullSize = DS_ALIGNED_SIZE(strlen(framebuffer) + 1) +
 		DS_ALIGNED_SIZE(sizeof(dsSurfaceClearValue)*clearValueCount) +
 		DS_ALIGNED_SIZE(sizeof(dsSceneRenderPass)) +
-		DS_ALIGNED_SIZE(sizeof(dsSubpassDrawLists)*subpassDrawListCount);
+		DS_ALIGNED_SIZE(sizeof(dsSceneItemLists)*subpassDrawListCount);
 	for (uint32_t i = 0; i < subpassDrawListCount; ++i)
 	{
-		const dsSubpassDrawLists* drawLists = subpassDrawLists + i;
-		if (drawLists->count > 0 && !drawLists->drawLists)
+		const dsSceneItemLists* drawLists = subpassDrawLists + i;
+		if (drawLists->count > 0 && !drawLists->itemLists)
 			return 0;
 
 		fullSize += DS_ALIGNED_SIZE(sizeof(dsSceneItemList*)*drawLists->count);
 		for (uint32_t j = 0; j < drawLists->count; ++j)
 		{
-			if (!drawLists->drawLists[i])
+			if (!drawLists->itemLists[i])
 				return 0;
 		}
 	}
@@ -71,7 +71,7 @@ size_t dsSceneRenderPass_fullAllocSize(const char* framebuffer, uint32_t clearVa
 
 dsSceneRenderPass* dsSceneRenderPass_create(dsAllocator* allocator, dsRenderPass* renderPass,
 	const char* framebuffer, const dsSurfaceClearValue* clearValues, uint32_t clearValueCount,
-	const dsSubpassDrawLists* subpassDrawLists, uint32_t subpassDrawListCount)
+	const dsSceneItemLists* subpassDrawLists, uint32_t subpassDrawListCount)
 {
 	if (!allocator || !renderPass || !framebuffer || !subpassDrawLists ||
 		(!clearValues && clearValueCount > 0) ||
@@ -128,7 +128,7 @@ dsSceneRenderPass* dsSceneRenderPass_create(dsAllocator* allocator, dsRenderPass
 
 	sceneRenderPass->allocator = dsAllocator_keepPointer(allocator);
 	sceneRenderPass->renderPass = renderPass;
-	sceneRenderPass->drawLists = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsSubpassDrawLists,
+	sceneRenderPass->drawLists = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsSceneItemLists,
 		subpassDrawListCount);
 	DS_ASSERT(sceneRenderPass);
 
@@ -148,19 +148,19 @@ dsSceneRenderPass* dsSceneRenderPass_create(dsAllocator* allocator, dsRenderPass
 
 	for (uint32_t i = 0; i < subpassDrawListCount; ++i)
 	{
-		const dsSubpassDrawLists* srcDrawLists = subpassDrawLists + i;
-		dsSubpassDrawLists* dstDrawLists = sceneRenderPass->drawLists + i;
+		const dsSceneItemLists* srcDrawLists = subpassDrawLists + i;
+		dsSceneItemLists* dstDrawLists = sceneRenderPass->drawLists + i;
 		if (srcDrawLists->count == 0)
 		{
-			dstDrawLists->drawLists = NULL;
+			dstDrawLists->itemLists = NULL;
 			dstDrawLists->count = 0;
 			continue;
 		}
 
-		dstDrawLists->drawLists = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsSceneItemList*,
+		dstDrawLists->itemLists = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsSceneItemList*,
 			srcDrawLists->count);
-		DS_ASSERT(dstDrawLists->drawLists);
-		memcpy(dstDrawLists->drawLists, srcDrawLists->drawLists,
+		DS_ASSERT(dstDrawLists->itemLists);
+		memcpy(dstDrawLists->itemLists, srcDrawLists->itemLists,
 			sizeof(dsSceneItemList*)*srcDrawLists->count);
 		dstDrawLists->count = srcDrawLists->count;
 	}
