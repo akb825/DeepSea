@@ -53,6 +53,7 @@
 #include <DeepSea/Scene/SceneGlobalData.h>
 #include <DeepSea/Scene/SceneRenderPass.h>
 #include <DeepSea/Scene/SceneResources.h>
+#include <DeepSea/Scene/SceneThreadManager.h>
 #include <DeepSea/Scene/View.h>
 #include <DeepSea/Scene/ViewTransformData.h>
 
@@ -71,9 +72,11 @@ typedef struct TestScene
 	dsSceneTransformNode* secondaryTransform;
 	dsScene* scene;
 	dsView* view;
+	dsSceneThreadManager* threadManager;
 
 	uint64_t invalidatedFrame;
 	bool secondarySceneSet;
+	bool multithreadedRendering;
 	float rotation;
 } TestScene;
 
@@ -228,6 +231,8 @@ static bool processEvent(dsApplication* application, dsWindow* window, const dsE
 				else
 					samples = 1;
 				dsRenderer_setSurfaceSamples(renderer, samples);
+				DS_LOG_INFO_F("TestScene", "Togging anti-aliasing: %s",
+					samples == 1 ? "off" : "on");
 			}
 			else if (event->key.key == dsKeyCode_2)
 			{
@@ -243,6 +248,14 @@ static bool processEvent(dsApplication* application, dsWindow* window, const dsE
 						(dsSceneNode*)testScene->secondaryTransform));
 					testScene->secondarySceneSet = true;
 				}
+				DS_LOG_INFO_F("TestScene", "Togging secondary scene: %s",
+					testScene->secondarySceneSet ? "on" : "off");
+			}
+			else if (event->key.key == dsKeyCode_3)
+			{
+				testScene->multithreadedRendering = !testScene->multithreadedRendering;
+				DS_LOG_INFO_F("TestScene", "Togging multi-threaded rendering: %s",
+					testScene->multithreadedRendering ? "on" : "off");
 			}
 			return false;
 		default:
@@ -285,7 +298,8 @@ static void draw(dsApplication* application, dsWindow* window, void* userData)
 	dsRenderer* renderer = testScene->renderer;
 	dsCommandBuffer* commandBuffer = renderer->mainCommandBuffer;
 
-	DS_VERIFY(dsView_draw(testScene->view, commandBuffer, NULL));
+	DS_VERIFY(dsView_draw(testScene->view, commandBuffer,
+		testScene->multithreadedRendering ? testScene->threadManager : NULL));
 }
 
 static dsSceneResources* createSceneResources(dsRenderer* renderer, dsAllocator* allocator)
@@ -863,6 +877,10 @@ static bool setup(TestScene* testScene, dsApplication* application, dsAllocator*
 	if (!testScene->view)
 		return false;
 
+	testScene->threadManager = dsSceneThreadManager_create(allocator, renderer, 1);
+	if (!testScene->threadManager)
+		return false;
+
 	if (!createSceneGraph(testScene, allocator))
 		return false;
 
@@ -875,6 +893,7 @@ static void shutdown(TestScene* testScene)
 {
 	DS_VERIFY(dsView_destroy(testScene->view));
 	dsScene_destroy(testScene->scene);
+	dsSceneThreadManager_destroy(testScene->threadManager);
 	dsSceneResources_freeRef(testScene->resources);
 	dsSceneNode_freeRef((dsSceneNode*)testScene->primaryTransform);
 	dsSceneNode_freeRef(testScene->secondarySceneRoot);
@@ -919,6 +938,7 @@ int dsMain(int argc, const char** argv)
 	DS_LOG_INFO_F("TestScene", "Render using %s", dsRenderBootstrap_rendererName(rendererType));
 	DS_LOG_INFO("TestScene", "Press '1' to toggle anti-aliasing.");
 	DS_LOG_INFO("TestScene", "Press '2' to toggle sub-scene.");
+	DS_LOG_INFO("TestScene", "Press '3' to toggle multi-threaded rendering.");
 
 	dsSystemAllocator renderAllocator;
 	DS_VERIFY(dsSystemAllocator_initialize(&renderAllocator, DS_ALLOCATOR_NO_LIMIT));

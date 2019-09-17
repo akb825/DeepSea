@@ -680,7 +680,7 @@ bool dsSceneThreadManager_draw(dsSceneThreadManager* threadManager, const dsView
 
 bool dsSceneThreadManager_destroy(dsSceneThreadManager* threadManager)
 {
-	if (threadManager)
+	if (!threadManager)
 		return true;
 
 	for (uint32_t i = 0; i < threadManager->computeCommandBufferCount; ++i)
