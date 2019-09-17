@@ -949,6 +949,7 @@ int dsMain(int argc, const char** argv)
 
 	dsRendererOptions rendererOptions;
 	dsRenderer_defaultOptions(&rendererOptions, "TestScene", 0);
+	rendererOptions.maxResourceThreads = 1;
 	dsRenderer* renderer = dsRenderBootstrap_createRenderer(rendererType,
 		(dsAllocator*)&renderAllocator, &rendererOptions);
 	if (!renderer)
