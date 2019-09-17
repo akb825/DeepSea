@@ -32,11 +32,9 @@ dsShaderVariableGroupDesc* dsDefaultShaderVariableGroupDesc_create(
 	DS_ASSERT(elements);
 	DS_ASSERT(elementCount > 0);
 
-	bool useGfxBuffer = dsShaderVariableGroup_useGfxBuffer(resourceManager);
 	size_t size = DS_ALIGNED_SIZE(sizeof(dsShaderVariableGroupDesc)) +
-		DS_ALIGNED_SIZE(sizeof(dsShaderVariableElement)*elementCount);
-	if (useGfxBuffer)
-		size += DS_ALIGNED_SIZE(sizeof(dsShaderVariablePos)*elementCount);
+		DS_ALIGNED_SIZE(sizeof(dsShaderVariableElement)*elementCount) +
+		DS_ALIGNED_SIZE(sizeof(dsShaderVariablePos)*elementCount);
 	void* buffer = dsAllocator_alloc(allocator, size);
 	if (!buffer)
 		return NULL;
@@ -56,26 +54,21 @@ dsShaderVariableGroupDesc* dsDefaultShaderVariableGroupDesc_create(
 	DS_ASSERT(groupDesc->elements);
 	memcpy(groupDesc->elements, elements, sizeof(dsShaderVariableElement)*elementCount);
 
-	if (useGfxBuffer)
+	groupDesc->positions = DS_ALLOCATE_OBJECT_ARRAY(&bufferAllocator, dsShaderVariablePos,
+		elementCount);
+	DS_ASSERT(groupDesc->positions);
+	size_t curSize = 0;
+	for (uint32_t i = 0; i < elementCount; ++i)
 	{
-		groupDesc->positions = DS_ALLOCATE_OBJECT_ARRAY(&bufferAllocator, dsShaderVariablePos,
-			elementCount);
-		DS_ASSERT(groupDesc->positions);
-		size_t curSize = 0;
-		for (uint32_t i = 0; i < elementCount; ++i)
-		{
-			groupDesc->positions[i].offset = (uint32_t)dsMaterialType_addElementBlockSize(&curSize,
-				elements[i].type, elements[i].count);
-			if (elements[i].count > 0)
-				groupDesc->positions[i].stride = dsMaterialType_blockSize(elements[i].type, true);
-			else
-				groupDesc->positions[i].stride = 0;
-			groupDesc->positions[i].matrixColStride = dsMaterialType_blockAlignment(
-				dsMaterialType_matrixColumnType(elements[i].type), true);
-		}
+		groupDesc->positions[i].offset = (uint32_t)dsMaterialType_addElementBlockSize(&curSize,
+			elements[i].type, elements[i].count);
+		if (elements[i].count > 0)
+			groupDesc->positions[i].stride = dsMaterialType_blockSize(elements[i].type, true);
+		else
+			groupDesc->positions[i].stride = 0;
+		groupDesc->positions[i].matrixColStride = dsMaterialType_blockAlignment(
+			dsMaterialType_matrixColumnType(elements[i].type), true);
 	}
-	else
-		groupDesc->positions = NULL;
 
 	return groupDesc;
 }
