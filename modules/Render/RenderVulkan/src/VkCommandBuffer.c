@@ -1102,6 +1102,9 @@ void dsVkCommandBuffer_clearUsedResources(dsCommandBuffer* commandBuffer)
 	vkCommandBuffer->readbackOffscreenCount = 0;
 	vkCommandBuffer->renderSurfaceCount = 0;
 	vkCommandBuffer->curTempBuffer = NULL;
+
+	dsVkSharedDescriptorSets_clearLastSet(&vkCommandBuffer->globalDescriptorSets);
+	dsVkSharedDescriptorSets_clearLastSet(&vkCommandBuffer->instanceDescriptorSets);
 }
 
 void dsVkCommandBuffer_submittedResources(dsCommandBuffer* commandBuffer, uint64_t submitCount)
@@ -1120,6 +1123,9 @@ void dsVkCommandBuffer_submittedResources(dsCommandBuffer* commandBuffer, uint64
 
 	vkCommandBuffer->usedResourceCount = 0;
 	vkCommandBuffer->curTempBuffer = NULL;
+
+	dsVkSharedDescriptorSets_clearLastSet(&vkCommandBuffer->globalDescriptorSets);
+	dsVkSharedDescriptorSets_clearLastSet(&vkCommandBuffer->instanceDescriptorSets);
 }
 
 void dsVkCommandBuffer_submittedReadbackOffscreens(dsCommandBuffer* commandBuffer,

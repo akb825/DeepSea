@@ -23,4 +23,5 @@ void dsVkSharedDescriptorSets_initialize(dsVkSharedDescriptorSets* descriptors,
 	dsRenderer* renderer, dsAllocator* allocator, dsMaterialBinding binding);
 VkDescriptorSet dsVkSharedDescriptorSets_createSet(dsVkSharedDescriptorSets* descriptors,
 	dsCommandBuffer* commandBuffer, dsShader* shader, const dsSharedMaterialValues* sharedValues);
+void dsVkSharedDescriptorSets_clearLastSet(dsVkSharedDescriptorSets* descriptors);
 void dsVkSharedDescriptorSets_shutdown(dsVkSharedDescriptorSets* descriptors);

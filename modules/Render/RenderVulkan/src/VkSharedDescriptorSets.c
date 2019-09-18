@@ -215,26 +215,6 @@ static bool setupElements(dsVkSharedDescriptorSets* descriptors, dsCommandBuffer
 	return true;
 }
 
-static void disposeLastDescriptor(dsVkSharedDescriptorSets* descriptors)
-{
-	if (!descriptors->lastDescriptor)
-		return;
-
-	dsMaterialDesc* materialDesc =
-		(dsMaterialDesc*)dsLifetime_acquire(descriptors->lastMaterialDesc);
-	if (materialDesc)
-	{
-		dsVkMaterialDesc_freeDescriptor(materialDesc, descriptors->lastDescriptor);
-		dsLifetime_release(descriptors->lastMaterialDesc);
-	}
-	else
-		dsVkRenderer_deleteMaterialDescriptor(descriptors->renderer, descriptors->lastDescriptor);
-
-	dsLifetime_freeRef(descriptors->lastMaterialDesc);
-	descriptors->lastMaterialDesc = NULL;
-	descriptors->lastDescriptor = NULL;
-}
-
 void dsVkSharedDescriptorSets_initialize(dsVkSharedDescriptorSets* descriptors,
 	dsRenderer* renderer, dsAllocator* allocator, dsMaterialBinding binding)
 {
@@ -269,7 +249,7 @@ VkDescriptorSet dsVkSharedDescriptorSets_createSet(dsVkSharedDescriptorSets* des
 		return descriptors->lastDescriptor->set;
 	}
 
-	disposeLastDescriptor(descriptors);
+	dsVkSharedDescriptorSets_clearLastSet(descriptors);
 	descriptors->lastDescriptor = dsVkMaterialDesc_createDescriptor(materialDesc,
 		descriptors->allocator, descriptors->binding);
 	if (!descriptors->lastDescriptor)
@@ -282,9 +262,29 @@ VkDescriptorSet dsVkSharedDescriptorSets_createSet(dsVkSharedDescriptorSets* des
 	return descriptors->lastDescriptor->set;
 }
 
+void dsVkSharedDescriptorSets_clearLastSet(dsVkSharedDescriptorSets* descriptors)
+{
+	if (!descriptors->lastDescriptor)
+		return;
+
+	dsMaterialDesc* materialDesc =
+		(dsMaterialDesc*)dsLifetime_acquire(descriptors->lastMaterialDesc);
+	if (materialDesc)
+	{
+		dsVkMaterialDesc_freeDescriptor(materialDesc, descriptors->lastDescriptor);
+		dsLifetime_release(descriptors->lastMaterialDesc);
+	}
+	else
+		dsVkRenderer_deleteMaterialDescriptor(descriptors->renderer, descriptors->lastDescriptor);
+
+	dsLifetime_freeRef(descriptors->lastMaterialDesc);
+	descriptors->lastMaterialDesc = NULL;
+	descriptors->lastDescriptor = NULL;
+}
+
 void dsVkSharedDescriptorSets_shutdown(dsVkSharedDescriptorSets* descriptors)
 {
-	disposeLastDescriptor(descriptors);
+	dsVkSharedDescriptorSets_clearLastSet(descriptors);
 	dsVkBindingMemory* bindings = &descriptors->bindingMemory;
 	DS_VERIFY(dsAllocator_free(descriptors->allocator, bindings->textures));
 	DS_VERIFY(dsAllocator_free(descriptors->allocator, bindings->buffers));
