@@ -1425,7 +1425,8 @@ bool dsVkTexture_clearDepthStencil(dsOffscreen* offscreen, dsCommandBuffer* comm
 		true, false);
 	VkPipelineStageFlags stageMask = dsVkReadImageStageFlags(renderer, usage, false) |
 		dsVkWriteImageStageFlags(renderer, usage, true, false);
-	VkImageAspectFlags aspectFlags = dsVkClearDepthStencilImageAspectFlags(
+	VkImageAspectFlags aspectFlags = dsVkImageAspectFlags(offscreen->info.format);
+	VkImageAspectFlags clearAspectFlags = dsVkClearDepthStencilImageAspectFlags(
 		renderer->surfaceDepthStencilFormat, surfaceParts);
 	VkImageLayout layout = dsVkTexture_imageLayout(offscreen);
 
@@ -1459,9 +1460,11 @@ bool dsVkTexture_clearDepthStencil(dsOffscreen* offscreen, dsCommandBuffer* comm
 
 	for (uint32_t i = 0; i < barrierCount; ++i)
 	{
+		VkImageSubresourceRange subresourceRange = barriers[i].subresourceRange;
+		subresourceRange.aspectMask = clearAspectFlags;
 		DS_VK_CALL(device->vkCmdClearDepthStencilImage)(vkCommandBuffer, barriers[i].image,
 			VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-			(const VkClearDepthStencilValue*)depthStencilValue, 1, &barriers[i].subresourceRange);
+			(const VkClearDepthStencilValue*)depthStencilValue, 1, &subresourceRange);
 
 		barriers[i].srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
 		barriers[i].dstAccessMask = accessMask;

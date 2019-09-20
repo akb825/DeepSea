@@ -645,8 +645,7 @@ bool dsVkRenderSurfaceData_clearDepthStencil(dsVkRenderSurfaceData* renderSurfac
 
 	VkAccessFlags accessMask = VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_TRANSFER_WRITE_BIT |
 		VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-	VkImageAspectFlags aspectFlags = dsVkClearDepthStencilImageAspectFlags(
-		renderer->surfaceDepthStencilFormat, surfaceParts);
+	VkImageAspectFlags aspectFlags = dsVkImageAspectFlags(renderer->surfaceDepthStencilFormat);
 
 	VkImageMemoryBarrier barrier =
 	{
@@ -667,9 +666,12 @@ bool dsVkRenderSurfaceData_clearDepthStencil(dsVkRenderSurfaceData* renderSurfac
 	DS_VK_CALL(device->vkCmdPipelineBarrier)(vkCommandBuffer, pipelineStages,
 		VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, NULL, 0, NULL, 1, &barrier);
 
+	VkImageSubresourceRange subresourceRange = barrier.subresourceRange;
+	subresourceRange.aspectMask = dsVkClearDepthStencilImageAspectFlags(
+		renderer->surfaceDepthStencilFormat, surfaceParts);
 	DS_VK_CALL(device->vkCmdClearDepthStencilImage)(vkCommandBuffer, barrier.image,
 		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, (const VkClearDepthStencilValue*)depthStencilValue, 1,
-		&barrier.subresourceRange);
+		&subresourceRange);
 
 	barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
 	barrier.dstAccessMask = accessMask;
