@@ -251,7 +251,13 @@ void dsVkMaterialDescriptor_update(dsVkMaterialDescriptor* descriptor, const dsS
 
 				if (texture)
 				{
-					imageInfo->imageView = vkTexture->deviceImageView;
+					// Depth/stencil textures should use the depth-only image view for cases where
+					// it's used as a shadow sampler, otherwise it will fail validation. (the image
+					// view must ONLY contain the depth aspect bit)
+					if (element->type == dsMaterialType_Texture && vkTexture->depthOnlyImageView)
+						imageInfo->imageView = vkTexture->depthOnlyImageView;
+					else
+						imageInfo->imageView = vkTexture->deviceImageView;
 					imageInfo->imageLayout = dsVkTexture_bindImageLayout(texture);
 				}
 				else

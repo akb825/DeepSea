@@ -336,6 +336,7 @@ typedef struct dsVkTexture
 	VkDeviceMemory deviceMemory;
 	VkImage deviceImage;
 	VkImageView deviceImageView;
+	VkImageView depthOnlyImageView;
 
 	VkDeviceMemory hostMemory;
 	VkDeviceSize hostMemorySize;

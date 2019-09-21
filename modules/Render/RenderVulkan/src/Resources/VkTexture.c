@@ -51,6 +51,12 @@ inline static void adjustAlignment(size_t alignment, VkDeviceSize totalSize, VkD
 	*size = dsMin(*size, totalSize - *offset);
 }
 
+static bool isCombinedDepthStencil(dsGfxFormat format)
+{
+	return format == dsGfxFormat_D16S8 || format == dsGfxFormat_D24S8 ||
+		format == dsGfxFormat_D32S8_Float;
+}
+
 static bool createHostImageBuffer(dsVkDevice* device,  dsVkTexture* texture, const void* data,
 	size_t dataSize)
 {
@@ -380,6 +386,23 @@ static dsTexture* createTextureImpl(dsResourceManager* resourceManager, dsAlloca
 		};
 		result = DS_VK_CALL(device->vkCreateImageView)(device->device, &imageViewCreateInfo,
 			instance->allocCallbacksPtr, &texture->deviceImageView);
+		if (!DS_HANDLE_VK_RESULT(result, "Couldn't create image view"))
+		{
+			dsVkTexture_destroyImpl(baseTexture);
+			return NULL;
+		}
+
+		if ((usage & dsTextureUsage_Texture) && isCombinedDepthStencil(info->format))
+		{
+			imageViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+			result = DS_VK_CALL(device->vkCreateImageView)(device->device, &imageViewCreateInfo,
+				instance->allocCallbacksPtr, &texture->depthOnlyImageView);
+			if (!DS_HANDLE_VK_RESULT(result, "Couldn't create image view"))
+			{
+				dsVkTexture_destroyImpl(baseTexture);
+				return NULL;
+			}
+		}
 	}
 
 	if (needsHostMemory && !createHostImageBuffer(device, texture, data, textureSize))
@@ -1492,6 +1515,11 @@ void dsVkTexture_destroyImpl(dsTexture* texture)
 	if (vkTexture->deviceImageView)
 	{
 		DS_VK_CALL(device->vkDestroyImageView)(device->device, vkTexture->deviceImageView,
+			instance->allocCallbacksPtr);
+	}
+	if (vkTexture->depthOnlyImageView)
+	{
+		DS_VK_CALL(device->vkDestroyImageView)(device->device, vkTexture->depthOnlyImageView,
 			instance->allocCallbacksPtr);
 	}
 	if (vkTexture->deviceImage)
