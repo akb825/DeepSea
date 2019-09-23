@@ -377,7 +377,11 @@ typedef enum dsVertexAttrib
 	dsVertexAttrib_TexCoord4,                           ///< Fifth texture coordinate.
 	dsVertexAttrib_TexCoord5,                           ///< Sixth texture coordinate.
 	dsVertexAttrib_TexCoord6,                           ///< Seventh texture coordinate.
-	dsVertexAttrib_TexCoord7                            ///< Eighth texture coordinate.
+	dsVertexAttrib_TexCoord7,                           ///< Eighth texture coordinate.
+
+	// Aliases
+	dsVectorAttrib_BlendIndices = dsVertexAttrib_TexCoord6, ///< Indices for blending transforms.
+	dsVectorAttrib_BlendWeights = dsVertexAttrib_TexCoord7  ///< Weights for blending transforms.
 } dsVertexAttrib;
 
 /**

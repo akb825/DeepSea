@@ -1,0 +1,274 @@
+include "SceneCommon.fbs";
+
+namespace DeepSeaScene;
+
+// Structure defining a buffer resource.
+table Buffer
+{
+	// The name to reference the buffer.
+	name : string (required);
+
+	// The usage flags for the buffer.
+	usage : uint;
+
+	// The memory flags for the buffer.
+	memoryHints : uint;
+
+	// The size of the buffer.
+	size : uint;
+
+	// The data for the buffer. This may be empty if the buffer is populated at runtime.
+	data : [ubyte];
+}
+
+// Info for a texture when not loaded from file.
+table TextureInfo
+{
+	// The main format of the texture.
+	format : TextureFormat;
+
+	// The decoration for the format decoration.
+	decoration : FormatDecoration;
+
+	// The width of the texture.
+	width : uint;
+
+	// The height of the texture.
+	height : uint;
+
+	// The depth or array layers of the texture. If 0, this is not a texture array.
+	depth : uint;
+
+	// The number of mipmap levels.
+	mipLevels : ubyte;
+}
+
+// Structure defining a texture resource.
+table Texture
+{
+	// The name to reference the texture.
+	name : string (required);
+
+	// The usage flags for the texture.
+	usage : uint;
+
+	// The memory flags for the texture.
+	memoryHints : uint;
+
+	// The path to the texture. If not set, then textureInfo must be set.
+	path : string;
+
+	// The info to create the texture with. If not set, then path must be set.
+	textureInfo : TextureInfo;
+}
+
+// Structure describing an element of a shader variable.
+table VariableElement
+{
+	// The name of the element.
+	name : string (required);
+
+	// The type of the element.
+	type : MaterialType;
+
+	// The number of array elements, or 0 if not an array.
+	count : uint;
+}
+
+// Structure describing a shader variable group description.
+table ShaderVariableGroupDesc
+{
+	// The name of the shader variable group description.
+	name : string (required);
+
+	// The elements for the variable group.
+	elements : [VariableElement] (required);
+}
+
+// Structure describing data for setting a shader variable or material value.
+table VariableData
+{
+	// The name of the element.
+	name : string (required);
+
+	// The type of the data.
+	type : MaterialType;
+
+	// The first element to set.
+	first : uint;
+
+	// The number of elements.
+	count : uint;
+
+	// The data to set.
+	data : [ubyte] (required);
+}
+
+// Enum for how to bind a material value.
+enum MaterialBinding : ubyte
+{
+	Material,
+	Global,
+	Instance
+}
+
+// Structure describing an element of a material variable.
+table MaterialElement
+{
+	// The name of the element.
+	name : string (required);
+
+	// The type of the element.
+	type : MaterialType;
+
+	// The number of array elements, or 0 if not an array.
+	count : uint;
+
+	// The binding of the element.
+	binding : MaterialBinding;
+
+	// The name of the shader variable group description. This is only used when type is
+	// VariableGroup.
+	shaderVariableGroupDesc : string;
+}
+
+// Structure describing a material description.
+table MaterialDesc
+{
+	// The name of the material description.
+	name : string (required);
+
+	// The elements for the material group.
+	elements : [MaterialElement] (required);
+}
+
+// Structure describing data for a shader variable group or material.
+table ShaderData
+{
+	// The name of the shader variable group.
+	name : string (required);
+
+	// The name of the ShaderVariableDesc or MaterialDesc to use.
+	description : string (required);
+
+	// The data for the variable group.
+	data : [VariableData];
+}
+
+// Structure describing a shader module
+table ShaderModule
+{
+	// The name of the shader module.
+	name : string (required);
+
+	// The path to the shader module.
+	path : string (required);
+}
+
+// Structure describing a shader.
+table Shader
+{
+	// The name of the shader.
+	name : string (required);
+
+	// The name of the shader module.
+	shaderModule : string (required);
+
+	// The name of the shader pipeline within the module. If unset, the name field will be used.
+	pipelineName : string;
+
+	// The name of the material description.
+	materialDesc : string (required);
+}
+
+// Structure describing a vertex attribute.
+struct VertexAttribute
+{
+	// The format for the vertex element.
+	format : VertexElementFormat;
+
+	// The decorator for the format.
+	decorator : FormatDecoration;
+}
+
+// Structure describing a vertex format.
+table VertexFormat
+{
+	// The vertex attributes.
+	attributes : [VertexAttribute] (required);
+
+	// Whether or not vertex format is instanced.
+	instanced : bool;
+}
+
+// Structure describing a vertex buffer.
+table VertexBuffer
+{
+	// The name of the buffer to use.
+	name : string (required);
+
+	// The offset into the buffer.
+	offset : uint;
+
+	// The format of the vertex buffer.
+	format : VertexFormat (required);
+}
+
+// Structure describing an index buffer.
+table IndexBuffer
+{
+	// The name of the buffer to use.
+	name : string (required);
+
+	// The offset into the buffer.
+	offset : uint;
+
+	// The size of the index buffer.
+	indexSize : ubyte;
+}
+
+// Structure describing geometry for drawing.
+table DrawGeometry
+{
+	// The name of the draw geometry.
+	name : string (required);
+
+	// Vertex buffers used to draw with.
+	vertexBuffers : [VertexBuffer] (required);
+
+	// Optional index buffer used to draw with.
+	indexBuffer : IndexBuffer;
+}
+
+// Structure defining scene resources.
+table ResourceSet
+{
+	// List of buffers.
+	buffers : [Buffer];
+
+	// List of textures.
+	textures : [Texture];
+
+	// List of shader variable group descriptions.
+	shaderVariableGroupDescs : [ShaderVariableGroupDesc];
+
+	// List of shader variable groups.
+	shaderVariableGroups : [ShaderData];
+
+	// List of shader material descriptions.
+	materialDescs : [MaterialDesc];
+
+	// List of materials.
+	materials : [ShaderData];
+
+	// List of shader modules.
+	shaderModules : [ShaderModule];
+
+	// List of shaders.
+	shaders : [Shader];
+
+	// List of draw geometries.
+	drawGeometries : [DrawGeometry];
+}
+
+root_type ResourceSet;
