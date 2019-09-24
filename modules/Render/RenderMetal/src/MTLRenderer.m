@@ -912,29 +912,29 @@ dsRenderer* dsMTLRenderer_create(dsAllocator* allocator, const dsRendererOptions
 		// 16 and 24-bit depth not always supported.
 		// First try 16 bit to fall back to 24 bit. Then try 24 bit to fall back to 32 bit.
 		if (depthFormat == dsGfxFormat_D16S8 &&
-			!dsGfxFormat_offscreenSupported(baseRenderer->resourceManager, depthFormat))
+			!dsGfxFormat_renderTargetSupported(baseRenderer->resourceManager, depthFormat))
 		{
 			depthFormat = dsGfxFormat_D24S8;
 		}
 		else if (depthFormat == dsGfxFormat_D16 &&
-			!dsGfxFormat_offscreenSupported(baseRenderer->resourceManager, depthFormat))
+			!dsGfxFormat_renderTargetSupported(baseRenderer->resourceManager, depthFormat))
 		{
 			depthFormat = dsGfxFormat_X8D24;
 		}
 
 		if (depthFormat == dsGfxFormat_D24S8 &&
-			!dsGfxFormat_offscreenSupported(baseRenderer->resourceManager, depthFormat))
+			!dsGfxFormat_renderTargetSupported(baseRenderer->resourceManager, depthFormat))
 		{
 			depthFormat = dsGfxFormat_D32S8_Float;
 		}
 		else if (depthFormat == dsGfxFormat_X8D24 &&
-			!dsGfxFormat_offscreenSupported(baseRenderer->resourceManager, depthFormat))
+			!dsGfxFormat_renderTargetSupported(baseRenderer->resourceManager, depthFormat))
 		{
 			depthFormat = dsGfxFormat_D32_Float;
 		}
 
 		if (depthFormat != dsGfxFormat_Unknown &&
-			!dsGfxFormat_offscreenSupported(baseRenderer->resourceManager, depthFormat))
+			!dsGfxFormat_renderTargetSupported(baseRenderer->resourceManager, depthFormat))
 		{
 			errno = EPERM;
 			DS_LOG_ERROR(DS_RENDER_METAL_LOG_TAG, "Can't draw to surface depth format.");
