@@ -121,7 +121,7 @@ static bool validateSurfacesFramebuffers(const dsResourceManager* resourceManage
 			return false;
 		}
 
-		if (!dsGfxFormat_offscreenSupported(resourceManager, surface->createInfo.format))
+		if (!dsGfxFormat_renderTargetSupported(resourceManager, surface->createInfo.format))
 		{
 			errno = EINVAL;
 			DS_LOG_ERROR(DS_SCENE_LOG_TAG, "Format not supported for offscreens or renderbuffers.");

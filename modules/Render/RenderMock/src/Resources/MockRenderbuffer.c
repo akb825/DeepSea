@@ -25,7 +25,7 @@ dsRenderbuffer* dsMockRenderbuffer_create(dsResourceManager* resourceManager,
 {
 	DS_ASSERT(resourceManager);
 	DS_ASSERT(allocator);
-	DS_ASSERT(dsGfxFormat_offscreenSupported(resourceManager, format));
+	DS_ASSERT(dsGfxFormat_renderTargetSupported(resourceManager, format));
 
 	dsRenderbuffer* renderbuffer = DS_ALLOCATE_OBJECT(allocator, dsRenderbuffer);
 	if (!renderbuffer)

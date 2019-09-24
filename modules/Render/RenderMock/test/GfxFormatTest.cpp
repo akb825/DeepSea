@@ -153,17 +153,6 @@ TEST_F(GfxFormatTest, TextureSupported)
 		dsGfxFormat_UNorm)));
 }
 
-TEST_F(GfxFormatTest, OffscreenSupported)
-{
-	EXPECT_FALSE(dsGfxFormat_offscreenSupported(nullptr, dsGfxFormat_X32));
-	EXPECT_FALSE(dsGfxFormat_offscreenSupported(resourceManager, dsGfxFormat_X32));
-	EXPECT_TRUE(dsGfxFormat_offscreenSupported(resourceManager, dsGfxFormat_decorate(dsGfxFormat_X32,
-		dsGfxFormat_Float)));
-	EXPECT_TRUE(dsGfxFormat_offscreenSupported(resourceManager, dsGfxFormat_D16));
-	EXPECT_FALSE(dsGfxFormat_offscreenSupported(resourceManager,
-		dsGfxFormat_decorate(dsGfxFormat_BC3, dsGfxFormat_UNorm)));
-}
-
 TEST_F(GfxFormatTest, TextureBufferSupported)
 {
 	EXPECT_FALSE(dsGfxFormat_textureBufferSupported(nullptr, dsGfxFormat_X32));
@@ -172,6 +161,29 @@ TEST_F(GfxFormatTest, TextureBufferSupported)
 		dsGfxFormat_decorate(dsGfxFormat_X32, dsGfxFormat_Float)));
 	EXPECT_FALSE(dsGfxFormat_textureBufferSupported(resourceManager, dsGfxFormat_D16));
 	EXPECT_FALSE(dsGfxFormat_textureBufferSupported(resourceManager,
+		dsGfxFormat_decorate(dsGfxFormat_BC3, dsGfxFormat_UNorm)));
+}
+
+TEST_F(GfxFormatTest, ImageSupported)
+{
+	EXPECT_FALSE(dsGfxFormat_imageSupported(nullptr, dsGfxFormat_X32));
+	EXPECT_FALSE(dsGfxFormat_imageSupported(resourceManager, dsGfxFormat_X32));
+	EXPECT_TRUE(dsGfxFormat_imageSupported(resourceManager,
+		dsGfxFormat_decorate(dsGfxFormat_X32, dsGfxFormat_Float)));
+	EXPECT_TRUE(dsGfxFormat_imageSupported(resourceManager, dsGfxFormat_B10G11R11_UFloat));
+	EXPECT_FALSE(dsGfxFormat_imageSupported(resourceManager, dsGfxFormat_D16));
+	EXPECT_FALSE(dsGfxFormat_imageSupported(resourceManager,
+		dsGfxFormat_decorate(dsGfxFormat_BC3, dsGfxFormat_UNorm)));
+}
+
+TEST_F(GfxFormatTest, RenderTargetSupported)
+{
+	EXPECT_FALSE(dsGfxFormat_renderTargetSupported(nullptr, dsGfxFormat_X32));
+	EXPECT_FALSE(dsGfxFormat_renderTargetSupported(resourceManager, dsGfxFormat_X32));
+	EXPECT_TRUE(dsGfxFormat_renderTargetSupported(resourceManager,
+		dsGfxFormat_decorate(dsGfxFormat_X32, dsGfxFormat_Float)));
+	EXPECT_TRUE(dsGfxFormat_renderTargetSupported(resourceManager, dsGfxFormat_D16));
+	EXPECT_FALSE(dsGfxFormat_renderTargetSupported(resourceManager,
 		dsGfxFormat_decorate(dsGfxFormat_BC3, dsGfxFormat_UNorm)));
 }
 

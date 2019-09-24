@@ -225,10 +225,10 @@ static bool createFramebuffer(TestRenderSubpass* testRenderSubpass)
 	dsRenderer* renderer = testRenderSubpass->renderer;
 	dsResourceManager* resourceManager = renderer->resourceManager;
 	dsGfxFormat depthFormat = dsGfxFormat_D24S8;
-	if (!dsGfxFormat_offscreenSupported(resourceManager, depthFormat))
+	if (!dsGfxFormat_renderTargetSupported(resourceManager, depthFormat))
 	{
 		depthFormat = dsGfxFormat_D32S8_Float;
-		if (!dsGfxFormat_offscreenSupported(resourceManager, depthFormat))
+		if (!dsGfxFormat_renderTargetSupported(resourceManager, depthFormat))
 			depthFormat = dsGfxFormat_D16;
 	}
 	dsGfxFormat colorFormat = dsGfxFormat_decorate(dsGfxFormat_R8, dsGfxFormat_UNorm);
@@ -516,13 +516,13 @@ static bool setup(TestRenderSubpass* testRenderSubpass, dsApplication* applicati
 	DS_VERIFY(dsWindow_setDrawFunction(testRenderSubpass->window, &draw, testRenderSubpass));
 
 	dsGfxFormat depthFormat = dsGfxFormat_D24S8;
-	if (!dsGfxFormat_offscreenSupported(resourceManager, depthFormat))
+	if (!dsGfxFormat_renderTargetSupported(resourceManager, depthFormat))
 	{
 		depthFormat = dsGfxFormat_D32S8_Float;
-		if (!dsGfxFormat_offscreenSupported(resourceManager, depthFormat))
+		if (!dsGfxFormat_renderTargetSupported(resourceManager, depthFormat))
 		{
 			depthFormat = dsGfxFormat_D16;
-			if (!dsGfxFormat_offscreenSupported(resourceManager, depthFormat))
+			if (!dsGfxFormat_renderTargetSupported(resourceManager, depthFormat))
 			{
 				DS_LOG_ERROR("TestRenderSubpass", "Depth offscreens not supported.");
 				return false;

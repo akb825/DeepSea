@@ -2274,14 +2274,19 @@ struct dsResourceManager
 	dsFormatSupportedFunction textureFormatSupportedFunc;
 
 	/**
-	 * @brief Offscreen format supported function.
-	 */
-	dsFormatSupportedFunction offscreenFormatSupportedFunc;
-
-	/**
 	 * @brief Texture buffer format supported function.
 	 */
 	dsFormatSupportedFunction textureBufferFormatSupportedFunc;
+
+	/**
+	 * @brief Image format supported function.
+	 */
+	dsFormatSupportedFunction imageFormatSupportedFunc;
+
+	/**
+	 * @brief Render target format supported function.
+	 */
+	dsFormatSupportedFunction renderTargetFormatSupportedFunc;
 
 	/**
 	 * @brief Texture mipmap generation validity check function.

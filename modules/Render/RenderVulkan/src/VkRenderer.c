@@ -2155,7 +2155,7 @@ dsRenderer* dsVkRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 
 	dsGfxFormat colorFormat = dsRenderer_optionsColorFormat(options,
 		useBGRASurface(baseRenderer->deviceName), true);
-	if (!dsGfxFormat_offscreenSupported(baseRenderer->resourceManager, colorFormat))
+	if (!dsGfxFormat_renderTargetSupported(baseRenderer->resourceManager, colorFormat))
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_VULKAN_LOG_TAG, "Can't draw to surface color format.");
@@ -2166,18 +2166,18 @@ dsRenderer* dsVkRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 	dsGfxFormat depthFormat = dsRenderer_optionsDepthFormat(options);
 	// AMD doesn't support 24-bit dpeth.
 	if (depthFormat == dsGfxFormat_D24S8 &&
-		!dsGfxFormat_offscreenSupported(baseRenderer->resourceManager, depthFormat))
+		!dsGfxFormat_renderTargetSupported(baseRenderer->resourceManager, depthFormat))
 	{
 		depthFormat = dsGfxFormat_D32S8_Float;
 	}
 	else if (depthFormat == dsGfxFormat_X8D24 &&
-		!dsGfxFormat_offscreenSupported(baseRenderer->resourceManager, depthFormat))
+		!dsGfxFormat_renderTargetSupported(baseRenderer->resourceManager, depthFormat))
 	{
 		depthFormat = dsGfxFormat_D32_Float;
 	}
 
 	if (depthFormat != dsGfxFormat_Unknown &&
-		!dsGfxFormat_offscreenSupported(baseRenderer->resourceManager, depthFormat))
+		!dsGfxFormat_renderTargetSupported(baseRenderer->resourceManager, depthFormat))
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_VULKAN_LOG_TAG, "Can't draw to surface depth format.");

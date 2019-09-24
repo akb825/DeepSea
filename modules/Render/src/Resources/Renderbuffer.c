@@ -66,7 +66,7 @@ dsRenderbuffer* dsRenderbuffer_create(dsResourceManager* resourceManager, dsAllo
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
-	if (!dsGfxFormat_offscreenSupported(resourceManager, format))
+	if (!dsGfxFormat_renderTargetSupported(resourceManager, format))
 	{
 		errno = EINVAL;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Format not supported for renderbuffers.");

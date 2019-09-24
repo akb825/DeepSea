@@ -690,7 +690,81 @@ bool dsMTLResourceManager_textureFormatSupported(const dsResourceManager* resour
 	return false;
 }
 
-bool dsMTLResourceManager_offscreenFormatSupported(const dsResourceManager* resourceManager,
+bool dsMTLResourceManager_generateMipmapFormatSupported(const dsResourceManager* resourceManager,
+	dsGfxFormat format)
+{
+	const dsMTLResourceManager* mtlResourceManager = (const dsMTLResourceManager*)resourceManager;
+	uint32_t standardIndex = dsGfxFormat_standardIndex(format);
+	if (standardIndex > 0)
+	{
+		uint32_t decoratorIndex = dsGfxFormat_decoratorIndex(format);
+		return mtlResourceManager->standardPixelFormats[standardIndex][decoratorIndex] !=
+			MTLVertexFormatInvalid;
+	}
+
+	return false;
+}
+
+bool dsMTLResourceManager_imageFormatSupported(const dsResourceManager* resourceManager,
+	dsGfxFormat format)
+{
+	@autoreleasepool
+	{
+		const dsMTLResourceManager* mtlResourceManager =
+			(const dsMTLResourceManager*)resourceManager;
+		dsMTLRenderer* mtlRenderer = (dsMTLRenderer*)resourceManager->renderer;
+		id<MTLDevice> device = (__bridge id<MTLDevice>)(mtlRenderer->device);
+		DS_UNUSED(device);
+		uint32_t standardIndex = dsGfxFormat_standardIndex(format);
+		if (standardIndex > 0)
+		{
+			if ((format & dsGfxFormat_DecoratorMask) == dsGfxFormat_SRGB)
+				return false;
+
+			switch (format & dsGfxFormat_StandardMask)
+			{
+				case dsGfxFormat_R4G4B4A4:
+				case dsGfxFormat_R5G6B5:
+				case dsGfxFormat_R5G5B5A1:
+				case dsGfxFormat_A1R5G5B5:
+					return false;
+#if __IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
+				case dsGfxFormat_A2R10G10B10:
+				case dsGfxFormat_A2B10G10R10:
+					if (![device supportsFeatureSet: MTLFeatureSet_iOS_GPUFamily3_v1])
+						return false;
+					break;
+#endif
+				default:
+					break;
+			}
+
+			uint32_t decoratorIndex = dsGfxFormat_decoratorIndex(format);
+			return mtlResourceManager->standardPixelFormats[standardIndex][decoratorIndex] !=
+				MTLVertexFormatInvalid;
+		}
+
+		if (format == dsGfxFormat_B10G11R11_UFloat)
+		{
+#if DS_MAC
+			return true;
+#elif __IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
+			return [device supportsFeatureSet: MTLFeatureSet_iOS_GPUFamily3_v1];
+#else
+			return false;
+#endif
+		}
+
+#if __IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
+		if (format == dsGfxFormat_E5B9G9R9_UFloat)
+			return [device supportsFeatureSet: MTLFeatureSet_iOS_GPUFamily3_v1];
+#endif
+
+		return false;
+	}
+}
+
+bool dsMTLResourceManager_renderTargetFormatSupported(const dsResourceManager* resourceManager,
 	dsGfxFormat format)
 {
 	const dsMTLResourceManager* mtlResourceManager = (const dsMTLResourceManager*)resourceManager;
@@ -705,21 +779,6 @@ bool dsMTLResourceManager_offscreenFormatSupported(const dsResourceManager* reso
 	uint32_t specialIndex = dsGfxFormat_specialIndex(format);
 	if (specialIndex > 0)
 		return isSpecialTextureFormatSupported(mtlResourceManager, format, specialIndex);
-
-	return false;
-}
-
-bool dsMTLResourceManager_generateMipmapFormatSupported(const dsResourceManager* resourceManager,
-	dsGfxFormat format)
-{
-	const dsMTLResourceManager* mtlResourceManager = (const dsMTLResourceManager*)resourceManager;
-	uint32_t standardIndex = dsGfxFormat_standardIndex(format);
-	if (standardIndex > 0)
-	{
-		uint32_t decoratorIndex = dsGfxFormat_decoratorIndex(format);
-		return mtlResourceManager->standardPixelFormats[standardIndex][decoratorIndex] !=
-			MTLVertexFormatInvalid;
-	}
 
 	return false;
 }
@@ -897,17 +956,18 @@ dsResourceManager* dsMTLResourceManager_create(dsAllocator* allocator, dsRendere
 	// Core functionality
 	baseResourceManager->vertexFormatSupportedFunc = &dsMTLResourceManager_vertexFormatSupported;
 	baseResourceManager->textureFormatSupportedFunc = &dsMTLResourceManager_textureFormatSupported;
-	baseResourceManager->offscreenFormatSupportedFunc =
-		&dsMTLResourceManager_offscreenFormatSupported;
 #if DS_IOS || __MAC_OS_X_VERSION_MIN_REQUIRED >= 101300
 	baseResourceManager->textureBufferFormatSupportedFunc =
 		&dsMTLResourceManager_textureFormatSupported;
 #endif
+	baseResourceManager->imageFormatSupportedFunc = &dsMTLResourceManager_imageFormatSupported;
+	baseResourceManager->renderTargetFormatSupportedFunc =
+		&dsMTLResourceManager_renderTargetFormatSupported;
 	baseResourceManager->generateMipmapFormatSupportedFunc =
 		&dsMTLResourceManager_generateMipmapFormatSupported;
 	baseResourceManager->textureCopyFormatsSupportedFunc =
 		&dsMTLResourceManager_textureCopyFormatsSupported;
-	// NOTE: Blitting between textures isn't supported. Can potentially use an offscreen in the
+	// NOTE: Blitting between textures isn't supported. Can potentially use an renderTarget in the
 	// future if *really* needed, though there may be some restrictions.
 	baseResourceManager->copyBufferToTextureSupportedFunc =
 		&dsMTLResourceManager_bufferTextureCopySupported;

@@ -190,21 +190,30 @@ DS_RENDER_EXPORT bool dsGfxFormat_textureSupported(const dsResourceManager* reso
 	dsGfxFormat format);
 
 /**
- * @brief Checks whether or not a graphics format is supported for offscreens.
- * @param resourceManager The resource manager.
- * @param format The graphics format to check.
- * @return True if the format can be used for offscreens.
- */
-DS_RENDER_EXPORT bool dsGfxFormat_offscreenSupported(const dsResourceManager* resourceManager,
-	dsGfxFormat format);
-
-/**
  * @brief Checks whether or not a graphics format is supported for texture buffers.
  * @param resourceManager The resource manager.
  * @param format The graphics format to check.
  * @return True if the format can be used for texture buffers.
  */
 DS_RENDER_EXPORT bool dsGfxFormat_textureBufferSupported(const dsResourceManager* resourceManager,
+	dsGfxFormat format);
+
+/**
+ * @brief Checks whether or not a graphics format is supported for images.
+ * @param resourceManager The resource manager.
+ * @param format The graphics format to check.
+ * @return True if the format can be used for images.
+ */
+DS_RENDER_EXPORT bool dsGfxFormat_imageSupported(const dsResourceManager* resourceManager,
+	dsGfxFormat format);
+
+/**
+ * @brief Checks whether or not a graphics format is supported for offscreens and renderbuffers.
+ * @param resourceManager The resource manager.
+ * @param format The graphics format to check.
+ * @return True if the format can be used for offscreens and renderbuffers.
+ */
+DS_RENDER_EXPORT bool dsGfxFormat_renderTargetSupported(const dsResourceManager* resourceManager,
 	dsGfxFormat format);
 
 /**

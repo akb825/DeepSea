@@ -403,17 +403,6 @@ bool dsGfxFormat_textureSupported(const dsResourceManager* resourceManager, dsGf
 	return resourceManager->textureFormatSupportedFunc(resourceManager, format);
 }
 
-bool dsGfxFormat_offscreenSupported(const dsResourceManager* resourceManager, dsGfxFormat format)
-{
-	if (!resourceManager || !resourceManager->offscreenFormatSupportedFunc ||
-		!dsGfxFormat_isValid(format))
-	{
-		return false;
-	}
-
-	return resourceManager->offscreenFormatSupportedFunc(resourceManager, format);
-}
-
 bool dsGfxFormat_textureBufferSupported(const dsResourceManager* resourceManager,
 	dsGfxFormat format)
 {
@@ -424,6 +413,28 @@ bool dsGfxFormat_textureBufferSupported(const dsResourceManager* resourceManager
 	}
 
 	return resourceManager->textureBufferFormatSupportedFunc(resourceManager, format);
+}
+
+bool dsGfxFormat_imageSupported(const dsResourceManager* resourceManager, dsGfxFormat format)
+{
+	if (!resourceManager || !resourceManager->imageFormatSupportedFunc ||
+		!dsGfxFormat_isValid(format))
+	{
+		return false;
+	}
+
+	return resourceManager->imageFormatSupportedFunc(resourceManager, format);
+}
+
+bool dsGfxFormat_renderTargetSupported(const dsResourceManager* resourceManager, dsGfxFormat format)
+{
+	if (!resourceManager || !resourceManager->renderTargetFormatSupportedFunc ||
+		!dsGfxFormat_isValid(format))
+	{
+		return false;
+	}
+
+	return resourceManager->renderTargetFormatSupportedFunc(resourceManager, format);
 }
 
 bool dsGfxFormat_generateMipmapsSupported(const dsResourceManager* resourceManager,

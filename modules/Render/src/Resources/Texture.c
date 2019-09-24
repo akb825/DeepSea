@@ -288,10 +288,27 @@ dsTexture* dsTexture_create(dsResourceManager* resourceManager, dsAllocator* all
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
-	if (!dsGfxFormat_textureSupported(resourceManager, texInfo.format))
+	bool textureSupported = dsGfxFormat_textureSupported(resourceManager, texInfo.format);
+	bool imageSupported = dsGfxFormat_imageSupported(resourceManager, texInfo.format);
+	if ((usage & dsTextureUsage_Texture) && !textureSupported)
 	{
 		errno = EINVAL;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Format not supported for textures.");
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
+	if ((usage & dsTextureUsage_Image) && !imageSupported)
+	{
+		errno = EINVAL;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Format not supported for images.");
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
+	if (!(usage & (dsTextureUsage_Texture | dsTextureUsage_Image)) && !textureSupported &&
+		!imageSupported)
+	{
+		errno = EINVAL;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Format not supported for textures or images.");
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
@@ -404,10 +421,26 @@ dsOffscreen* dsTexture_createOffscreen(dsResourceManager* resourceManager, dsAll
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
-	if (!dsGfxFormat_offscreenSupported(resourceManager, texInfo.format))
+	if (!dsGfxFormat_renderTargetSupported(resourceManager, texInfo.format))
 	{
 		errno = EINVAL;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Format not supported for offscreens.");
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
+	if ((usage & dsTextureUsage_Texture) &&
+		!dsGfxFormat_textureSupported(resourceManager, texInfo.format))
+	{
+		errno = EINVAL;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Format not supported for textures.");
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
+	if ((usage & dsTextureUsage_Image) &&
+		!dsGfxFormat_imageSupported(resourceManager, texInfo.format))
+	{
+		errno = EINVAL;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Format not supported for images.");
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 

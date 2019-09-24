@@ -49,17 +49,26 @@ static bool textureFormatSupported(const dsResourceManager* resourceManager, dsG
 	return true;
 }
 
-static bool offscreenFormatSupported(const dsResourceManager* resourceManager, dsGfxFormat format)
-{
-	DS_UNUSED(resourceManager);
-	return !dsGfxFormat_compressedIndex(format);
-}
-
 static bool textureBufferFormatSupported(const dsResourceManager* resourceManager,
 	dsGfxFormat format)
 {
 	DS_UNUSED(resourceManager);
 	return !dsGfxFormat_compressedIndex(format) && !dsGfxFormat_specialIndex(format);
+}
+
+static bool imageFormatSupported(const dsResourceManager* resourceManager,
+	dsGfxFormat format)
+{
+	DS_UNUSED(resourceManager);
+	return !dsGfxFormat_compressedIndex(format) &&
+		(!dsGfxFormat_specialIndex(format) || format == dsGfxFormat_B10G11R11_UFloat);
+}
+
+static bool renderTargetFormatSupported(const dsResourceManager* resourceManager,
+	dsGfxFormat format)
+{
+	DS_UNUSED(resourceManager);
+	return !dsGfxFormat_compressedIndex(format);
 }
 
 static bool copyFormatsSupported(const dsResourceManager* resourceManager, dsGfxFormat srcFormat,
@@ -72,8 +81,8 @@ static bool copyFormatsSupported(const dsResourceManager* resourceManager, dsGfx
 static bool blitFormatsSupported(const dsResourceManager* resourceManager, dsGfxFormat srcFormat,
 	dsGfxFormat dstFormat, dsBlitFilter filter)
 {
-	return offscreenFormatSupported(resourceManager, srcFormat) &&
-		offscreenFormatSupported(resourceManager, dstFormat) && srcFormat == dstFormat &&
+	return renderTargetFormatSupported(resourceManager, srcFormat) &&
+		renderTargetFormatSupported(resourceManager, dstFormat) && srcFormat == dstFormat &&
 		filter == dsBlitFilter_Nearest;
 }
 
@@ -171,8 +180,9 @@ dsResourceManager* dsMockResourceManager_create(dsRenderer* renderer, dsAllocato
 
 	resourceManager->vertexFormatSupportedFunc = &vertexFormatSupported;
 	resourceManager->textureFormatSupportedFunc = &textureFormatSupported;
-	resourceManager->offscreenFormatSupportedFunc = &offscreenFormatSupported;
 	resourceManager->textureBufferFormatSupportedFunc = &textureBufferFormatSupported;
+	resourceManager->imageFormatSupportedFunc = &imageFormatSupported;
+	resourceManager->renderTargetFormatSupportedFunc = &renderTargetFormatSupported;
 	resourceManager->generateMipmapFormatSupportedFunc = &generateMipmapsFormatSupported;
 	resourceManager->textureCopyFormatsSupportedFunc = &copyFormatsSupported;
 	resourceManager->surfaceBlitFormatsSupportedFunc = &blitFormatsSupported;

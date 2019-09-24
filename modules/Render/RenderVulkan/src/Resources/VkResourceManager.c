@@ -651,18 +651,6 @@ bool dsVkResourceManager_textureFormatSupported(const dsResourceManager* resourc
 		VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT) != 0;
 }
 
-bool dsVkResourceManager_offscreenFormatSupported(const dsResourceManager* resourceManager,
-	dsGfxFormat format)
-{
-	const dsVkFormatInfo* formatInfo = dsVkResourceManager_getFormat(resourceManager, format);
-	if (!formatInfo)
-		return false;
-
-	return (formatInfo->properties.optimalTilingFeatures & VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT) ||
-		(formatInfo->properties.optimalTilingFeatures &
-			VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
-}
-
 bool dsVkResourceManager_textureBufferFormatSupported(const dsResourceManager* resourceManager,
 	dsGfxFormat format)
 {
@@ -672,6 +660,30 @@ bool dsVkResourceManager_textureBufferFormatSupported(const dsResourceManager* r
 
 	return (formatInfo->properties.bufferFeatures &
 		VK_FORMAT_FEATURE_UNIFORM_TEXEL_BUFFER_BIT) != 0;
+}
+
+bool dsVkResourceManager_imageFormatSupported(const dsResourceManager* resourceManager,
+	dsGfxFormat format)
+{
+	const dsVkFormatInfo* formatInfo = dsVkResourceManager_getFormat(resourceManager, format);
+	if (!formatInfo)
+		return false;
+
+	return (formatInfo->properties.optimalTilingFeatures &
+		VK_FORMAT_FEATURE_STORAGE_IMAGE_BIT) != 0;
+}
+
+bool dsVkResourceManager_renderTargetFormatSupported(const dsResourceManager* resourceManager,
+	dsGfxFormat format)
+{
+	const dsVkFormatInfo* formatInfo = dsVkResourceManager_getFormat(resourceManager, format);
+	if (!formatInfo)
+		return false;
+
+	return (formatInfo->properties.optimalTilingFeatures &
+			VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT) ||
+		(formatInfo->properties.optimalTilingFeatures &
+			VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
 }
 
 bool dsVkResourceManager_surfaceBlitFormatsSupported(const dsResourceManager* resourceManager,
@@ -814,10 +826,11 @@ dsResourceManager* dsVkResourceManager_create(dsAllocator* allocator, dsVkRender
 	initializeFormats(resourceManager);
 	baseResourceManager->vertexFormatSupportedFunc = &dsVkResourceManager_vertexFormatSupported;
 	baseResourceManager->textureFormatSupportedFunc = &dsVkResourceManager_textureFormatSupported;
-	baseResourceManager->offscreenFormatSupportedFunc =
-		&dsVkResourceManager_offscreenFormatSupported;
 	baseResourceManager->textureBufferFormatSupportedFunc =
 		&dsVkResourceManager_textureBufferFormatSupported;
+	baseResourceManager->imageFormatSupportedFunc = &dsVkResourceManager_imageFormatSupported;
+	baseResourceManager->renderTargetFormatSupportedFunc =
+		&dsVkResourceManager_renderTargetFormatSupported;
 	baseResourceManager->generateMipmapFormatSupportedFunc =
 		&dsVkResourceManager_generateMipmapFormatSupported;
 	baseResourceManager->textureCopyFormatsSupportedFunc =
