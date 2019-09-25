@@ -317,6 +317,9 @@ bool dsVkRenderPassData_begin(const dsVkRenderPassData* renderPass,
 	const dsAlignedBox3f* viewport, const dsSurfaceClearValue* clearValues,
 	uint32_t clearValueCount)
 {
+	if (!dsVkCommandBuffer_addResource(commandBuffer, (dsVkResource*)&renderPass->resource))
+		return false;
+
 	dsVkRealFramebuffer* realFramebuffer = dsVkFramebuffer_getRealFramebuffer(
 		(dsFramebuffer*)framebuffer, commandBuffer, renderPass);
 	if (!realFramebuffer)
