@@ -29,7 +29,7 @@
 
 #define INVALID_INDEX (uint32_t)-1
 #define QUERY_POOL_SIZE 1000
-#define MAX_STRING_LENGTH 104
+#define MAX_STRING_LENGTH 32
 #define DELAY_FRAMES 2
 
 typedef struct QueryNode
