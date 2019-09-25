@@ -45,7 +45,7 @@ extern "C"
 /**
  * @brief Constant for the maximum length of a vector resource name, including the null terminator.
  */
-#define DS_MAX_VECTOR_RESOURCE_NAME_LENGTH 100U
+#define DS_MAX_VECTOR_RESOURCE_NAME_LENGTH 104U
 
 /**
  * @brief Constant for the maximum number of materials allowed for a single material set.

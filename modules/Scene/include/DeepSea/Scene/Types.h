@@ -43,7 +43,7 @@ extern "C"
 /**
  * @brief Constant for the maximum length of a scene resource name, including the null terminator.
  */
-#define DS_MAX_SCENE_RESOURCE_NAME_LENGTH 100U
+#define DS_MAX_SCENE_RESOURCE_NAME_LENGTH 104U
 
 /**
  * @brief Enum for the type of a resource stored in dsSceneResources.

@@ -29,6 +29,7 @@
 
 #define INVALID_INDEX (uint32_t)-1
 #define QUERY_POOL_SIZE 1000
+#define MAX_STRING_LENGTH 104
 #define DELAY_FRAMES 2
 
 typedef struct QueryNode
@@ -42,8 +43,8 @@ typedef struct QueryNode
 
 typedef struct QueryInfo
 {
-	const char* category;
-	const char* name;
+	char category[MAX_STRING_LENGTH];
+	char name[MAX_STRING_LENGTH];
 	uint64_t time;
 	uint32_t beginIndex;
 	QueryNode* node;
@@ -155,13 +156,6 @@ static QueryInfo* addQuery(dsGPUProfileContext* context, dsCommandBuffer* comman
 		dsGfxQueryPool_reset(pools->pools[poolIndex], commandBuffer, 0, QUERY_POOL_SIZE);
 	}
 
-	if (beginIndex != INVALID_INDEX)
-	{
-		QueryInfo* beginQuery = pools->queries + beginIndex;
-		category = beginQuery->category;
-		name = beginQuery->name;
-	}
-
 	uint32_t index = pools->queryCount;
 	if (!DS_RESIZEABLE_ARRAY_ADD(context->allocator, pools->queries, pools->queryCount,
 		pools->maxQueries, 1))
@@ -170,9 +164,18 @@ static QueryInfo* addQuery(dsGPUProfileContext* context, dsCommandBuffer* comman
 		return NULL;
 	}
 
+	if (beginIndex != INVALID_INDEX)
+	{
+		QueryInfo* beginQuery = pools->queries + beginIndex;
+		category = beginQuery->category;
+		name = beginQuery->name;
+	}
+
 	QueryInfo* query = pools->queries + index;
-	query->category = category;
-	query->name = name;
+	strncpy(query->category, category, MAX_STRING_LENGTH - 1);
+	strncpy(query->name, name, MAX_STRING_LENGTH - 1);
+	query->category[MAX_STRING_LENGTH - 1] = 0;
+	query->name[MAX_STRING_LENGTH - 1] = 0;
 	query->time = 0;
 	query->beginIndex = beginIndex;
 	query->node = NULL;
@@ -268,6 +271,8 @@ static void submitGPUProfileResults(dsGPUProfileContext* context, QueryPools* po
 		dsProfile_gpu(query->category, query->name, query->node->totalTime);
 		query->node->visited = true;
 	}
+
+	dsHashTable_clear(context->hashTable);
 
 	DS_PROFILE_FUNC_END();
 }

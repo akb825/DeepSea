@@ -45,7 +45,7 @@ extern "C"
 /**
  * @brief The maximum lenght of a face name, including the null terminator.
  */
-#define DS_MAX_FACE_NAME_LENGTH 100U
+#define DS_MAX_FACE_NAME_LENGTH 104U
 
 /**
  * @brief Gets the full allocation size fo a face group.
