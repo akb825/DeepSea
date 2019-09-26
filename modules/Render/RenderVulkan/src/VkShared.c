@@ -165,17 +165,15 @@ uint32_t dsVkMemoryIndexImpl(const dsVkDevice* device, const VkMemoryRequirement
 		if (memoryIndex == DS_INVALID_HEAP)
 			memoryIndex = i;
 
-		// Find the largest optimal heap.
-		if (size > memorySize)
+		// Find the largest optimal heap. If not optimal, then prefer larger heaps.
+		bool isLarger = size > memorySize;
+		if ((memoryType->propertyFlags & optimalFlags) == optimalFlags && (isLarger || !isOptimal))
 		{
-			if ((memoryType->propertyFlags & optimalFlags) == optimalFlags)
-			{
-				isOptimal = true;
-				memoryIndex = i;
-			}
-			else if (!isOptimal)
-				memoryIndex = i;
+			isOptimal = true;
+			memoryIndex = i;
 		}
+		else if (isLarger && !isOptimal)
+			memoryIndex = i;
 
 		if (memoryIndex == i)
 			memorySize = size;
@@ -254,8 +252,7 @@ bool dsVkHeapIsCoherent(const dsVkDevice* device, uint32_t memoryIndex)
 {
 	const VkPhysicalDeviceMemoryProperties* memoryProperties = &device->memoryProperties;
 	const VkMemoryType* memoryType = memoryProperties->memoryTypes + memoryIndex;
-	return (memoryProperties->memoryHeaps[memoryType->heapIndex].flags &
-		VK_MEMORY_PROPERTY_HOST_COHERENT_BIT) != 0;
+	return (memoryType->propertyFlags & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT) != 0;
 }
 
 VkSampleCountFlagBits dsVkSampleCount(uint32_t sampleCount)
