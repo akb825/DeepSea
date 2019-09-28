@@ -70,7 +70,9 @@ DS_SCENE_EXPORT uint32_t dsSceneResources_getRemainingResources(const dsSceneRes
  *     DS_MAX_SCENE_RESOURCE_NAME_LENGTH.
  * @param type The type of the resource to add.
  * @param resource The resource to add.
- * @param own True to take ownership of the resource.
+ * @param own True to take ownership of the resource. If the resource type is
+ *     dsSceneResourceType_SceneNode, the value of @c own will be ignored and the node will always
+ *     have its reference count incremented.
  * @return False if the resource couldn't be added.
  */
 DS_SCENE_EXPORT bool dsSceneResources_addResource(dsSceneResources* resources,

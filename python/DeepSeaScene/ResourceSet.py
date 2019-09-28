@@ -198,7 +198,27 @@ class ResourceSet(object):
             return self._tab.VectorLen(o)
         return 0
 
-def ResourceSetStart(builder): builder.StartObject(9)
+    # ResourceSet
+    def SceneNodes(self, j):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(22))
+        if o != 0:
+            x = self._tab.Vector(o)
+            x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * 4
+            x = self._tab.Indirect(x)
+            from .SceneNode import SceneNode
+            obj = SceneNode()
+            obj.Init(self._tab.Bytes, x)
+            return obj
+        return None
+
+    # ResourceSet
+    def SceneNodesLength(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(22))
+        if o != 0:
+            return self._tab.VectorLen(o)
+        return 0
+
+def ResourceSetStart(builder): builder.StartObject(10)
 def ResourceSetAddBuffers(builder, buffers): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(buffers), 0)
 def ResourceSetStartBuffersVector(builder, numElems): return builder.StartVector(4, numElems, 4)
 def ResourceSetAddTextures(builder, textures): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(textures), 0)
@@ -217,4 +237,6 @@ def ResourceSetAddShaders(builder, shaders): builder.PrependUOffsetTRelativeSlot
 def ResourceSetStartShadersVector(builder, numElems): return builder.StartVector(4, numElems, 4)
 def ResourceSetAddDrawGeometries(builder, drawGeometries): builder.PrependUOffsetTRelativeSlot(8, flatbuffers.number_types.UOffsetTFlags.py_type(drawGeometries), 0)
 def ResourceSetStartDrawGeometriesVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+def ResourceSetAddSceneNodes(builder, sceneNodes): builder.PrependUOffsetTRelativeSlot(9, flatbuffers.number_types.UOffsetTFlags.py_type(sceneNodes), 0)
+def ResourceSetStartSceneNodesVector(builder, numElems): return builder.StartVector(4, numElems, 4)
 def ResourceSetEnd(builder): return builder.EndObject()

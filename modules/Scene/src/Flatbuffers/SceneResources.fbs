@@ -240,6 +240,19 @@ table DrawGeometry
 	indexBuffer : IndexBuffer;
 }
 
+// Structure describing a scene node.
+table SceneNode
+{
+	// The name of the node.
+	name : string (required);
+
+	// The name of the node type.
+	type : string (required);
+
+	// The data for the node.
+	data : [ubyte] (required);
+}
+
 // Structure defining scene resources.
 table ResourceSet
 {
@@ -269,6 +282,9 @@ table ResourceSet
 
 	// List of draw geometries.
 	drawGeometries : [DrawGeometry];
+
+	// List of scene nodes.
+	sceneNodes : [SceneNode];
 }
 
 root_type ResourceSet;

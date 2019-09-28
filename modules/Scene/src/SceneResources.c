@@ -25,6 +25,7 @@
 #include <DeepSea/Core/Atomic.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
+
 #include <DeepSea/Render/Resources/DrawGeometry.h>
 #include <DeepSea/Render/Resources/GfxBuffer.h>
 #include <DeepSea/Render/Resources/Material.h>
@@ -34,6 +35,8 @@
 #include <DeepSea/Render/Resources/ShaderVariableGroup.h>
 #include <DeepSea/Render/Resources/ShaderVariableGroupDesc.h>
 #include <DeepSea/Render/Resources/Texture.h>
+
+#include <DeepSea/Scene/Nodes/SceneNode.h>
 
 #include <string.h>
 
@@ -185,6 +188,8 @@ bool dsSceneResources_addResource(dsSceneResources* resources, const char* name,
 	node->type = type;
 	node->owned = own;
 	DS_VERIFY(dsHashTable_insert(resources->resources, node->name, (dsHashTableNode*)node, NULL));
+	if (type == dsSceneResourceType_SceneNode)
+		dsSceneNode_addRef((dsSceneNode*)resource);
 	return true;
 }
 
@@ -203,7 +208,9 @@ bool dsSceneResource_removeResource(dsSceneResources* resources, const char* nam
 	}
 
 	DS_ASSERT(node->resource);
-	if (node->owned && !relinquish)
+	if (node->type == dsSceneResourceType_SceneNode)
+		dsSceneNode_freeRef((dsSceneNode*)node->resource);
+	else if (node->owned && !relinquish)
 	{
 		if (!destroyResource(node->type, node->resource))
 		{
@@ -255,7 +262,9 @@ void dsSceneResources_freeRef(dsSceneResources* resources)
 	for (dsListNode* node = resources->resources->list.head; node; node = node->next)
 	{
 		ResourceNode* resourceNode = (ResourceNode*)node;
-		if (resourceNode->owned)
+		if (resourceNode->type == dsSceneResourceType_SceneNode)
+			dsSceneNode_freeRef((dsSceneNode*)resourceNode->resource);
+		else if (resourceNode->owned)
 			destroyResource(resourceNode->type, resourceNode->resource);
 	}
 

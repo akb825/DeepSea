@@ -42,6 +42,8 @@ struct IndexBuffer;
 
 struct DrawGeometry;
 
+struct SceneNode;
+
 struct ResourceSet;
 
 enum class MaterialBinding : uint8_t {
@@ -1341,6 +1343,87 @@ inline flatbuffers::Offset<DrawGeometry> CreateDrawGeometryDirect(
       indexBuffer);
 }
 
+struct SceneNode FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_NAME = 4,
+    VT_TYPE = 6,
+    VT_DATA = 8
+  };
+  const flatbuffers::String *name() const {
+    return GetPointer<const flatbuffers::String *>(VT_NAME);
+  }
+  const flatbuffers::String *type() const {
+    return GetPointer<const flatbuffers::String *>(VT_TYPE);
+  }
+  const flatbuffers::Vector<uint8_t> *data() const {
+    return GetPointer<const flatbuffers::Vector<uint8_t> *>(VT_DATA);
+  }
+  bool Verify(flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffsetRequired(verifier, VT_NAME) &&
+           verifier.VerifyString(name()) &&
+           VerifyOffsetRequired(verifier, VT_TYPE) &&
+           verifier.VerifyString(type()) &&
+           VerifyOffsetRequired(verifier, VT_DATA) &&
+           verifier.VerifyVector(data()) &&
+           verifier.EndTable();
+  }
+};
+
+struct SceneNodeBuilder {
+  flatbuffers::FlatBufferBuilder &fbb_;
+  flatbuffers::uoffset_t start_;
+  void add_name(flatbuffers::Offset<flatbuffers::String> name) {
+    fbb_.AddOffset(SceneNode::VT_NAME, name);
+  }
+  void add_type(flatbuffers::Offset<flatbuffers::String> type) {
+    fbb_.AddOffset(SceneNode::VT_TYPE, type);
+  }
+  void add_data(flatbuffers::Offset<flatbuffers::Vector<uint8_t>> data) {
+    fbb_.AddOffset(SceneNode::VT_DATA, data);
+  }
+  explicit SceneNodeBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  SceneNodeBuilder &operator=(const SceneNodeBuilder &);
+  flatbuffers::Offset<SceneNode> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = flatbuffers::Offset<SceneNode>(end);
+    fbb_.Required(o, SceneNode::VT_NAME);
+    fbb_.Required(o, SceneNode::VT_TYPE);
+    fbb_.Required(o, SceneNode::VT_DATA);
+    return o;
+  }
+};
+
+inline flatbuffers::Offset<SceneNode> CreateSceneNode(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    flatbuffers::Offset<flatbuffers::String> name = 0,
+    flatbuffers::Offset<flatbuffers::String> type = 0,
+    flatbuffers::Offset<flatbuffers::Vector<uint8_t>> data = 0) {
+  SceneNodeBuilder builder_(_fbb);
+  builder_.add_data(data);
+  builder_.add_type(type);
+  builder_.add_name(name);
+  return builder_.Finish();
+}
+
+inline flatbuffers::Offset<SceneNode> CreateSceneNodeDirect(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    const char *name = nullptr,
+    const char *type = nullptr,
+    const std::vector<uint8_t> *data = nullptr) {
+  auto name__ = name ? _fbb.CreateString(name) : 0;
+  auto type__ = type ? _fbb.CreateString(type) : 0;
+  auto data__ = data ? _fbb.CreateVector<uint8_t>(*data) : 0;
+  return DeepSeaScene::CreateSceneNode(
+      _fbb,
+      name__,
+      type__,
+      data__);
+}
+
 struct ResourceSet FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_BUFFERS = 4,
@@ -1351,7 +1434,8 @@ struct ResourceSet FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_MATERIALS = 14,
     VT_SHADERMODULES = 16,
     VT_SHADERS = 18,
-    VT_DRAWGEOMETRIES = 20
+    VT_DRAWGEOMETRIES = 20,
+    VT_SCENENODES = 22
   };
   const flatbuffers::Vector<flatbuffers::Offset<Buffer>> *buffers() const {
     return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<Buffer>> *>(VT_BUFFERS);
@@ -1379,6 +1463,9 @@ struct ResourceSet FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   const flatbuffers::Vector<flatbuffers::Offset<DrawGeometry>> *drawGeometries() const {
     return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<DrawGeometry>> *>(VT_DRAWGEOMETRIES);
+  }
+  const flatbuffers::Vector<flatbuffers::Offset<SceneNode>> *sceneNodes() const {
+    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<SceneNode>> *>(VT_SCENENODES);
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -1409,6 +1496,9 @@ struct ResourceSet FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            VerifyOffset(verifier, VT_DRAWGEOMETRIES) &&
            verifier.VerifyVector(drawGeometries()) &&
            verifier.VerifyVectorOfTables(drawGeometries()) &&
+           VerifyOffset(verifier, VT_SCENENODES) &&
+           verifier.VerifyVector(sceneNodes()) &&
+           verifier.VerifyVectorOfTables(sceneNodes()) &&
            verifier.EndTable();
   }
 };
@@ -1443,6 +1533,9 @@ struct ResourceSetBuilder {
   void add_drawGeometries(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DrawGeometry>>> drawGeometries) {
     fbb_.AddOffset(ResourceSet::VT_DRAWGEOMETRIES, drawGeometries);
   }
+  void add_sceneNodes(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<SceneNode>>> sceneNodes) {
+    fbb_.AddOffset(ResourceSet::VT_SCENENODES, sceneNodes);
+  }
   explicit ResourceSetBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
@@ -1465,8 +1558,10 @@ inline flatbuffers::Offset<ResourceSet> CreateResourceSet(
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<ShaderData>>> materials = 0,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<ShaderModule>>> shaderModules = 0,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<Shader>>> shaders = 0,
-    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DrawGeometry>>> drawGeometries = 0) {
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DrawGeometry>>> drawGeometries = 0,
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<SceneNode>>> sceneNodes = 0) {
   ResourceSetBuilder builder_(_fbb);
+  builder_.add_sceneNodes(sceneNodes);
   builder_.add_drawGeometries(drawGeometries);
   builder_.add_shaders(shaders);
   builder_.add_shaderModules(shaderModules);
@@ -1489,7 +1584,8 @@ inline flatbuffers::Offset<ResourceSet> CreateResourceSetDirect(
     const std::vector<flatbuffers::Offset<ShaderData>> *materials = nullptr,
     const std::vector<flatbuffers::Offset<ShaderModule>> *shaderModules = nullptr,
     const std::vector<flatbuffers::Offset<Shader>> *shaders = nullptr,
-    const std::vector<flatbuffers::Offset<DrawGeometry>> *drawGeometries = nullptr) {
+    const std::vector<flatbuffers::Offset<DrawGeometry>> *drawGeometries = nullptr,
+    const std::vector<flatbuffers::Offset<SceneNode>> *sceneNodes = nullptr) {
   auto buffers__ = buffers ? _fbb.CreateVector<flatbuffers::Offset<Buffer>>(*buffers) : 0;
   auto textures__ = textures ? _fbb.CreateVector<flatbuffers::Offset<Texture>>(*textures) : 0;
   auto shaderVariableGroupDescs__ = shaderVariableGroupDescs ? _fbb.CreateVector<flatbuffers::Offset<ShaderVariableGroupDesc>>(*shaderVariableGroupDescs) : 0;
@@ -1499,6 +1595,7 @@ inline flatbuffers::Offset<ResourceSet> CreateResourceSetDirect(
   auto shaderModules__ = shaderModules ? _fbb.CreateVector<flatbuffers::Offset<ShaderModule>>(*shaderModules) : 0;
   auto shaders__ = shaders ? _fbb.CreateVector<flatbuffers::Offset<Shader>>(*shaders) : 0;
   auto drawGeometries__ = drawGeometries ? _fbb.CreateVector<flatbuffers::Offset<DrawGeometry>>(*drawGeometries) : 0;
+  auto sceneNodes__ = sceneNodes ? _fbb.CreateVector<flatbuffers::Offset<SceneNode>>(*sceneNodes) : 0;
   return DeepSeaScene::CreateResourceSet(
       _fbb,
       buffers__,
@@ -1509,7 +1606,8 @@ inline flatbuffers::Offset<ResourceSet> CreateResourceSetDirect(
       materials__,
       shaderModules__,
       shaders__,
-      drawGeometries__);
+      drawGeometries__,
+      sceneNodes__);
 }
 
 inline const DeepSeaScene::ResourceSet *GetResourceSet(const void *buf) {

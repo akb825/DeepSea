@@ -50,15 +50,16 @@ extern "C"
  */
 typedef enum dsSceneResourceType
 {
-	dsSceneResourceType_Buffer,
-	dsSceneResourceType_Texture,
-	dsSceneResourceType_ShaderVariableGroupDesc,
-	dsSceneResourceType_ShaderVariableGroup,
-	dsSceneResourceType_MaterialDesc,
-	dsSceneResourceType_Material,
-	dsSceneResourceType_ShaderModule,
-	dsSceneResourceType_Shader,
-	dsSceneResourceType_DrawGeometry
+	dsSceneResourceType_Buffer,                  ///< dsGfxBuffer
+	dsSceneResourceType_Texture,                 ///< dsTexture
+	dsSceneResourceType_ShaderVariableGroupDesc, ///< dsShadrVariableGroupDesc
+	dsSceneResourceType_ShaderVariableGroup,     ///< dsShaderVariableGroup
+	dsSceneResourceType_MaterialDesc,            ///< dsMaterialDesc
+	dsSceneResourceType_Material,                ///< dsMaterial
+	dsSceneResourceType_ShaderModule,            ///< dsShaderModule
+	dsSceneResourceType_Shader,                  ///< dsShader
+	dsSceneResourceType_DrawGeometry,            ///< dsDrawGeometry
+	dsSceneResourceType_SceneNode                ///< dsSceneNode
 } dsSceneResourceType;
 
 /**
