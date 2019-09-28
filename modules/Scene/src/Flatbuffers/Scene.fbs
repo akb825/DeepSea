@@ -1,0 +1,236 @@
+/*
+ * Copyright 2019 Aaron Barany
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+include "SceneCommon.fbs";
+
+namespace DeepSeaScene;
+
+// Object for processing a list of items in the scene.
+table SceneItemList
+{
+	// The name of the scene item list.
+	name : string (required);
+
+	// The type of the scene item list.
+	type : string (required);
+
+	// The data for the scene item list.
+	data : [ubyte] (required);
+}
+
+// Struct for an array of scene item lists.
+table SceneItemLists
+{
+	itemLists : [SceneItemList] (required);
+}
+
+// Struct for a clear color using floats.
+table ClearColorFloat
+{
+	// The red value.
+	red : float;
+
+	// The green value.
+	green : float;
+
+	// The blue value.
+	blue : float;
+
+	// The alpha value.
+	alpha : float;
+}
+
+// Struct for a clear color using ints.
+table ClearColorInt
+{
+	// The red value.
+	red : int;
+
+	// The green value.
+	green : int;
+
+	// The blue value.
+	blue : int;
+
+	// The alpha value.
+	alpha : int;
+}
+
+// Struct for a clear color using unsigned ints.
+table ClearColorUInt
+{
+	// The red value.
+	red : uint;
+
+	// The green value.
+	green : uint;
+
+	// The blue value.
+	blue : uint;
+
+	// The alpha value.
+	alpha : uint;
+}
+
+// Struct for a clear depth and stencil value.
+table ClearDepthStencil
+{
+	// The depth value.
+	depth : float;
+
+	// The stencil value.
+	stencil : uint;
+}
+
+// Union for clear values.
+union ClearValue
+{
+	ClearColorFloat,
+	ClearColorInt,
+	ClearColorUInt,
+	ClearDepthStencil
+}
+
+// Structure defining an attachment in a render pass.
+table AttachmentInfo
+{
+	// Bitmask for the attachment usage.
+	usage : uint;
+
+	// Format for the attachment.
+	format : TextureFormat;
+
+	// Number of anti-alias samples.
+	samples : uint;
+
+	// The clear value for the attachment.
+	clearValue : ClearValue;
+}
+
+// Structure defining a reference to an attachment.
+struct AttachmentRef
+{
+	// The index to the attachment.
+	index : uint;
+
+	// Whether or nto to resolve the attachment.
+	resolve : bool;
+}
+
+// Structure defining a subpass within a render pass.
+table RenderSubpass
+{
+	// The name of the subpass.
+	name : string (required);
+
+	// Indices to the input attachments.
+	inputAttachments : [uint];
+
+	// References to the color attachments.
+	colorAttachments : [AttachmentRef];
+
+	// Reference to the depth/stencil attachment.
+	depthStencilAttachment : [AttachmentRef];
+
+	// The item lists to draw within the subpass.
+	drawLists : [SceneItemList];
+}
+
+// Structure defining a dependency between subpasses.
+struct SubpassDependency
+{
+	// The index to the source subpass.
+	srcSubpass : uint;
+
+	// The bitmask for the source stages.
+	srcStages : uint;
+
+	// The bitmask for the source access types.
+	srcAccess : uint;
+
+	// The index to the destination subpass.
+	dstSubpass : uint;
+
+	// The bitmask for the destination stages.
+	dstStages : uint;
+
+	// The bitmask for the destination access types.
+	dstAccess : uint;
+
+	// Whether or not the dependency is by region.
+	regionDependency : bool;
+}
+
+// Structure defining a render pass.
+table RenderPass
+{
+	// The name of the render pass.
+	name : string (required);
+
+	framebuffer : string (required);
+
+	// The attachments for the render pass.
+	attachments : [AttachmentInfo];
+
+	// The subpasses in the render pass.
+	subpasses : [RenderSubpass] (required);
+
+	// Explicit subpass dependencies.
+	dependencies : [SubpassDependency];
+
+	// Whether or not to use default subpass dependencies.
+	defaultDependencies : bool;
+}
+
+// Union for a scene pipeline item, which can be a render pass or list of scene item lists for
+// compute items.
+union ScenePipelineItemUnion
+{
+	RenderPass,
+	SceneItemLists
+}
+
+// Wrapper for ScenePipelineItemUnion so it can be used in a vector.
+table ScenePipelineItem
+{
+	// The item for the pipeline.
+	item : ScenePipelineItemUnion;
+}
+
+// Struct describing global data used within the scene.
+table GlobalData
+{
+	// The type for the global data.
+	type : string (required);
+
+	// The data for the global data.
+	data : [ubyte] (required);
+}
+
+// Struct describing a scene.
+table Scene
+{
+	// The shared item lists.
+	sharedItems : [SceneItemLists];
+
+	// The render pipeline for the scene.
+	pipeline : [ScenePipelineItem] (required);
+
+	// The global data used within the scene.
+	globalData : [GlobalData];
+}
+
+root_type Scene;

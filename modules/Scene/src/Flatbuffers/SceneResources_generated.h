@@ -44,7 +44,7 @@ struct DrawGeometry;
 
 struct SceneNode;
 
-struct ResourceSet;
+struct SceneResources;
 
 enum class MaterialBinding : uint8_t {
   Material = 0,
@@ -1424,7 +1424,7 @@ inline flatbuffers::Offset<SceneNode> CreateSceneNodeDirect(
       data__);
 }
 
-struct ResourceSet FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+struct SceneResources FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_BUFFERS = 4,
     VT_TEXTURES = 6,
@@ -1503,52 +1503,52 @@ struct ResourceSet FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
 };
 
-struct ResourceSetBuilder {
+struct SceneResourcesBuilder {
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_buffers(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<Buffer>>> buffers) {
-    fbb_.AddOffset(ResourceSet::VT_BUFFERS, buffers);
+    fbb_.AddOffset(SceneResources::VT_BUFFERS, buffers);
   }
   void add_textures(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<Texture>>> textures) {
-    fbb_.AddOffset(ResourceSet::VT_TEXTURES, textures);
+    fbb_.AddOffset(SceneResources::VT_TEXTURES, textures);
   }
   void add_shaderVariableGroupDescs(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<ShaderVariableGroupDesc>>> shaderVariableGroupDescs) {
-    fbb_.AddOffset(ResourceSet::VT_SHADERVARIABLEGROUPDESCS, shaderVariableGroupDescs);
+    fbb_.AddOffset(SceneResources::VT_SHADERVARIABLEGROUPDESCS, shaderVariableGroupDescs);
   }
   void add_shaderVariableGroups(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<ShaderData>>> shaderVariableGroups) {
-    fbb_.AddOffset(ResourceSet::VT_SHADERVARIABLEGROUPS, shaderVariableGroups);
+    fbb_.AddOffset(SceneResources::VT_SHADERVARIABLEGROUPS, shaderVariableGroups);
   }
   void add_materialDescs(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<MaterialDesc>>> materialDescs) {
-    fbb_.AddOffset(ResourceSet::VT_MATERIALDESCS, materialDescs);
+    fbb_.AddOffset(SceneResources::VT_MATERIALDESCS, materialDescs);
   }
   void add_materials(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<ShaderData>>> materials) {
-    fbb_.AddOffset(ResourceSet::VT_MATERIALS, materials);
+    fbb_.AddOffset(SceneResources::VT_MATERIALS, materials);
   }
   void add_shaderModules(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<ShaderModule>>> shaderModules) {
-    fbb_.AddOffset(ResourceSet::VT_SHADERMODULES, shaderModules);
+    fbb_.AddOffset(SceneResources::VT_SHADERMODULES, shaderModules);
   }
   void add_shaders(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<Shader>>> shaders) {
-    fbb_.AddOffset(ResourceSet::VT_SHADERS, shaders);
+    fbb_.AddOffset(SceneResources::VT_SHADERS, shaders);
   }
   void add_drawGeometries(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DrawGeometry>>> drawGeometries) {
-    fbb_.AddOffset(ResourceSet::VT_DRAWGEOMETRIES, drawGeometries);
+    fbb_.AddOffset(SceneResources::VT_DRAWGEOMETRIES, drawGeometries);
   }
   void add_sceneNodes(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<SceneNode>>> sceneNodes) {
-    fbb_.AddOffset(ResourceSet::VT_SCENENODES, sceneNodes);
+    fbb_.AddOffset(SceneResources::VT_SCENENODES, sceneNodes);
   }
-  explicit ResourceSetBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit SceneResourcesBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  ResourceSetBuilder &operator=(const ResourceSetBuilder &);
-  flatbuffers::Offset<ResourceSet> Finish() {
+  SceneResourcesBuilder &operator=(const SceneResourcesBuilder &);
+  flatbuffers::Offset<SceneResources> Finish() {
     const auto end = fbb_.EndTable(start_);
-    auto o = flatbuffers::Offset<ResourceSet>(end);
+    auto o = flatbuffers::Offset<SceneResources>(end);
     return o;
   }
 };
 
-inline flatbuffers::Offset<ResourceSet> CreateResourceSet(
+inline flatbuffers::Offset<SceneResources> CreateSceneResources(
     flatbuffers::FlatBufferBuilder &_fbb,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<Buffer>>> buffers = 0,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<Texture>>> textures = 0,
@@ -1560,7 +1560,7 @@ inline flatbuffers::Offset<ResourceSet> CreateResourceSet(
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<Shader>>> shaders = 0,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DrawGeometry>>> drawGeometries = 0,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<SceneNode>>> sceneNodes = 0) {
-  ResourceSetBuilder builder_(_fbb);
+  SceneResourcesBuilder builder_(_fbb);
   builder_.add_sceneNodes(sceneNodes);
   builder_.add_drawGeometries(drawGeometries);
   builder_.add_shaders(shaders);
@@ -1574,7 +1574,7 @@ inline flatbuffers::Offset<ResourceSet> CreateResourceSet(
   return builder_.Finish();
 }
 
-inline flatbuffers::Offset<ResourceSet> CreateResourceSetDirect(
+inline flatbuffers::Offset<SceneResources> CreateSceneResourcesDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     const std::vector<flatbuffers::Offset<Buffer>> *buffers = nullptr,
     const std::vector<flatbuffers::Offset<Texture>> *textures = nullptr,
@@ -1596,7 +1596,7 @@ inline flatbuffers::Offset<ResourceSet> CreateResourceSetDirect(
   auto shaders__ = shaders ? _fbb.CreateVector<flatbuffers::Offset<Shader>>(*shaders) : 0;
   auto drawGeometries__ = drawGeometries ? _fbb.CreateVector<flatbuffers::Offset<DrawGeometry>>(*drawGeometries) : 0;
   auto sceneNodes__ = sceneNodes ? _fbb.CreateVector<flatbuffers::Offset<SceneNode>>(*sceneNodes) : 0;
-  return DeepSeaScene::CreateResourceSet(
+  return DeepSeaScene::CreateSceneResources(
       _fbb,
       buffers__,
       textures__,
@@ -1610,33 +1610,33 @@ inline flatbuffers::Offset<ResourceSet> CreateResourceSetDirect(
       sceneNodes__);
 }
 
-inline const DeepSeaScene::ResourceSet *GetResourceSet(const void *buf) {
-  return flatbuffers::GetRoot<DeepSeaScene::ResourceSet>(buf);
+inline const DeepSeaScene::SceneResources *GetSceneResources(const void *buf) {
+  return flatbuffers::GetRoot<DeepSeaScene::SceneResources>(buf);
 }
 
-inline const DeepSeaScene::ResourceSet *GetSizePrefixedResourceSet(const void *buf) {
-  return flatbuffers::GetSizePrefixedRoot<DeepSeaScene::ResourceSet>(buf);
+inline const DeepSeaScene::SceneResources *GetSizePrefixedSceneResources(const void *buf) {
+  return flatbuffers::GetSizePrefixedRoot<DeepSeaScene::SceneResources>(buf);
 }
 
-inline bool VerifyResourceSetBuffer(
+inline bool VerifySceneResourcesBuffer(
     flatbuffers::Verifier &verifier) {
-  return verifier.VerifyBuffer<DeepSeaScene::ResourceSet>(nullptr);
+  return verifier.VerifyBuffer<DeepSeaScene::SceneResources>(nullptr);
 }
 
-inline bool VerifySizePrefixedResourceSetBuffer(
+inline bool VerifySizePrefixedSceneResourcesBuffer(
     flatbuffers::Verifier &verifier) {
-  return verifier.VerifySizePrefixedBuffer<DeepSeaScene::ResourceSet>(nullptr);
+  return verifier.VerifySizePrefixedBuffer<DeepSeaScene::SceneResources>(nullptr);
 }
 
-inline void FinishResourceSetBuffer(
+inline void FinishSceneResourcesBuffer(
     flatbuffers::FlatBufferBuilder &fbb,
-    flatbuffers::Offset<DeepSeaScene::ResourceSet> root) {
+    flatbuffers::Offset<DeepSeaScene::SceneResources> root) {
   fbb.Finish(root);
 }
 
-inline void FinishSizePrefixedResourceSetBuffer(
+inline void FinishSizePrefixedSceneResourcesBuffer(
     flatbuffers::FlatBufferBuilder &fbb,
-    flatbuffers::Offset<DeepSeaScene::ResourceSet> root) {
+    flatbuffers::Offset<DeepSeaScene::SceneResources> root) {
   fbb.FinishSizePrefixed(root);
 }
 

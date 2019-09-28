@@ -4,21 +4,21 @@
 
 import flatbuffers
 
-class ResourceSet(object):
+class SceneResources(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsResourceSet(cls, buf, offset):
+    def GetRootAsSceneResources(cls, buf, offset):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
-        x = ResourceSet()
+        x = SceneResources()
         x.Init(buf, n + offset)
         return x
 
-    # ResourceSet
+    # SceneResources
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
 
-    # ResourceSet
+    # SceneResources
     def Buffers(self, j):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         if o != 0:
@@ -31,14 +31,14 @@ class ResourceSet(object):
             return obj
         return None
 
-    # ResourceSet
+    # SceneResources
     def BuffersLength(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         if o != 0:
             return self._tab.VectorLen(o)
         return 0
 
-    # ResourceSet
+    # SceneResources
     def Textures(self, j):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         if o != 0:
@@ -51,14 +51,14 @@ class ResourceSet(object):
             return obj
         return None
 
-    # ResourceSet
+    # SceneResources
     def TexturesLength(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         if o != 0:
             return self._tab.VectorLen(o)
         return 0
 
-    # ResourceSet
+    # SceneResources
     def ShaderVariableGroupDescs(self, j):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
         if o != 0:
@@ -71,14 +71,14 @@ class ResourceSet(object):
             return obj
         return None
 
-    # ResourceSet
+    # SceneResources
     def ShaderVariableGroupDescsLength(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
         if o != 0:
             return self._tab.VectorLen(o)
         return 0
 
-    # ResourceSet
+    # SceneResources
     def ShaderVariableGroups(self, j):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(10))
         if o != 0:
@@ -91,14 +91,14 @@ class ResourceSet(object):
             return obj
         return None
 
-    # ResourceSet
+    # SceneResources
     def ShaderVariableGroupsLength(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(10))
         if o != 0:
             return self._tab.VectorLen(o)
         return 0
 
-    # ResourceSet
+    # SceneResources
     def MaterialDescs(self, j):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(12))
         if o != 0:
@@ -111,14 +111,14 @@ class ResourceSet(object):
             return obj
         return None
 
-    # ResourceSet
+    # SceneResources
     def MaterialDescsLength(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(12))
         if o != 0:
             return self._tab.VectorLen(o)
         return 0
 
-    # ResourceSet
+    # SceneResources
     def Materials(self, j):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(14))
         if o != 0:
@@ -131,14 +131,14 @@ class ResourceSet(object):
             return obj
         return None
 
-    # ResourceSet
+    # SceneResources
     def MaterialsLength(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(14))
         if o != 0:
             return self._tab.VectorLen(o)
         return 0
 
-    # ResourceSet
+    # SceneResources
     def ShaderModules(self, j):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(16))
         if o != 0:
@@ -151,14 +151,14 @@ class ResourceSet(object):
             return obj
         return None
 
-    # ResourceSet
+    # SceneResources
     def ShaderModulesLength(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(16))
         if o != 0:
             return self._tab.VectorLen(o)
         return 0
 
-    # ResourceSet
+    # SceneResources
     def Shaders(self, j):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(18))
         if o != 0:
@@ -171,14 +171,14 @@ class ResourceSet(object):
             return obj
         return None
 
-    # ResourceSet
+    # SceneResources
     def ShadersLength(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(18))
         if o != 0:
             return self._tab.VectorLen(o)
         return 0
 
-    # ResourceSet
+    # SceneResources
     def DrawGeometries(self, j):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(20))
         if o != 0:
@@ -191,14 +191,14 @@ class ResourceSet(object):
             return obj
         return None
 
-    # ResourceSet
+    # SceneResources
     def DrawGeometriesLength(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(20))
         if o != 0:
             return self._tab.VectorLen(o)
         return 0
 
-    # ResourceSet
+    # SceneResources
     def SceneNodes(self, j):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(22))
         if o != 0:
@@ -211,32 +211,32 @@ class ResourceSet(object):
             return obj
         return None
 
-    # ResourceSet
+    # SceneResources
     def SceneNodesLength(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(22))
         if o != 0:
             return self._tab.VectorLen(o)
         return 0
 
-def ResourceSetStart(builder): builder.StartObject(10)
-def ResourceSetAddBuffers(builder, buffers): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(buffers), 0)
-def ResourceSetStartBuffersVector(builder, numElems): return builder.StartVector(4, numElems, 4)
-def ResourceSetAddTextures(builder, textures): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(textures), 0)
-def ResourceSetStartTexturesVector(builder, numElems): return builder.StartVector(4, numElems, 4)
-def ResourceSetAddShaderVariableGroupDescs(builder, shaderVariableGroupDescs): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(shaderVariableGroupDescs), 0)
-def ResourceSetStartShaderVariableGroupDescsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
-def ResourceSetAddShaderVariableGroups(builder, shaderVariableGroups): builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(shaderVariableGroups), 0)
-def ResourceSetStartShaderVariableGroupsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
-def ResourceSetAddMaterialDescs(builder, materialDescs): builder.PrependUOffsetTRelativeSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(materialDescs), 0)
-def ResourceSetStartMaterialDescsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
-def ResourceSetAddMaterials(builder, materials): builder.PrependUOffsetTRelativeSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(materials), 0)
-def ResourceSetStartMaterialsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
-def ResourceSetAddShaderModules(builder, shaderModules): builder.PrependUOffsetTRelativeSlot(6, flatbuffers.number_types.UOffsetTFlags.py_type(shaderModules), 0)
-def ResourceSetStartShaderModulesVector(builder, numElems): return builder.StartVector(4, numElems, 4)
-def ResourceSetAddShaders(builder, shaders): builder.PrependUOffsetTRelativeSlot(7, flatbuffers.number_types.UOffsetTFlags.py_type(shaders), 0)
-def ResourceSetStartShadersVector(builder, numElems): return builder.StartVector(4, numElems, 4)
-def ResourceSetAddDrawGeometries(builder, drawGeometries): builder.PrependUOffsetTRelativeSlot(8, flatbuffers.number_types.UOffsetTFlags.py_type(drawGeometries), 0)
-def ResourceSetStartDrawGeometriesVector(builder, numElems): return builder.StartVector(4, numElems, 4)
-def ResourceSetAddSceneNodes(builder, sceneNodes): builder.PrependUOffsetTRelativeSlot(9, flatbuffers.number_types.UOffsetTFlags.py_type(sceneNodes), 0)
-def ResourceSetStartSceneNodesVector(builder, numElems): return builder.StartVector(4, numElems, 4)
-def ResourceSetEnd(builder): return builder.EndObject()
+def SceneResourcesStart(builder): builder.StartObject(10)
+def SceneResourcesAddBuffers(builder, buffers): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(buffers), 0)
+def SceneResourcesStartBuffersVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+def SceneResourcesAddTextures(builder, textures): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(textures), 0)
+def SceneResourcesStartTexturesVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+def SceneResourcesAddShaderVariableGroupDescs(builder, shaderVariableGroupDescs): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(shaderVariableGroupDescs), 0)
+def SceneResourcesStartShaderVariableGroupDescsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+def SceneResourcesAddShaderVariableGroups(builder, shaderVariableGroups): builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(shaderVariableGroups), 0)
+def SceneResourcesStartShaderVariableGroupsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+def SceneResourcesAddMaterialDescs(builder, materialDescs): builder.PrependUOffsetTRelativeSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(materialDescs), 0)
+def SceneResourcesStartMaterialDescsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+def SceneResourcesAddMaterials(builder, materials): builder.PrependUOffsetTRelativeSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(materials), 0)
+def SceneResourcesStartMaterialsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+def SceneResourcesAddShaderModules(builder, shaderModules): builder.PrependUOffsetTRelativeSlot(6, flatbuffers.number_types.UOffsetTFlags.py_type(shaderModules), 0)
+def SceneResourcesStartShaderModulesVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+def SceneResourcesAddShaders(builder, shaders): builder.PrependUOffsetTRelativeSlot(7, flatbuffers.number_types.UOffsetTFlags.py_type(shaders), 0)
+def SceneResourcesStartShadersVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+def SceneResourcesAddDrawGeometries(builder, drawGeometries): builder.PrependUOffsetTRelativeSlot(8, flatbuffers.number_types.UOffsetTFlags.py_type(drawGeometries), 0)
+def SceneResourcesStartDrawGeometriesVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+def SceneResourcesAddSceneNodes(builder, sceneNodes): builder.PrependUOffsetTRelativeSlot(9, flatbuffers.number_types.UOffsetTFlags.py_type(sceneNodes), 0)
+def SceneResourcesStartSceneNodesVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+def SceneResourcesEnd(builder): return builder.EndObject()
