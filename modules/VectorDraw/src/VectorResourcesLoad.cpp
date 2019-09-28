@@ -45,14 +45,14 @@ dsVectorResources* dsVectorResources_loadImpl(dsAllocator* allocator, dsAllocato
 	const char* name)
 {
 	flatbuffers::Verifier verifier(reinterpret_cast<const uint8_t*>(data), size);
-	if (!DeepSeaVectorDraw::VerifyResourceSetBuffer(verifier))
+	if (!DeepSeaVectorDraw::VerifyVectorResourcesBuffer(verifier))
 	{
 		errno = EFORMAT;
 		printFlatbufferError(name);
 		return nullptr;
 	}
 
-	auto resourceSet = DeepSeaVectorDraw::GetResourceSet(data);
+	auto resourceSet = DeepSeaVectorDraw::GetVectorResources(data);
 	auto textures = resourceSet->textures();
 	auto faceGroups = resourceSet->faceGroups();
 	auto fonts = resourceSet->fonts();

@@ -26,7 +26,7 @@ from DeepSeaVectorDraw.Font import *
 from DeepSeaVectorDraw.FontCacheSize import *
 from DeepSeaVectorDraw.FontQuality import *
 from DeepSeaVectorDraw.Resource import *
-from DeepSeaVectorDraw.ResourceSet import *
+from DeepSeaVectorDraw.VectorResources import *
 
 class VectorResources:
 	"""Class containing the information for vector resources to be saved in FlatBuffer format."""
@@ -182,7 +182,7 @@ class VectorResources:
 			ResourceAddPath(builder, pathOffset)
 			textureOffsets.append(ResourceEnd(builder))
 
-		ResourceSetStartTexturesVector(builder, len(textureOffsets))
+		VectorResourcesStartTexturesVector(builder, len(textureOffsets))
 		for offset in reversed(textureOffsets):
 			builder.PrependUOffsetTRelative(offset)
 		texturesOffset = builder.EndVector(len(textureOffsets))
@@ -218,7 +218,7 @@ class VectorResources:
 			FaceGroupAddFaces(builder, facesOffset)
 			faceGroupOffsets.append(FaceGroupEnd(builder))
 
-		ResourceSetStartFaceGroupsVector(builder, len(faceGroupOffsets))
+		VectorResourcesStartFaceGroupsVector(builder, len(faceGroupOffsets))
 		for offset in reversed(faceGroupOffsets):
 			builder.PrependUOffsetTRelative(offset)
 		faceGroupsOffset = builder.EndVector(len(faceGroupOffsets))
@@ -253,16 +253,16 @@ class VectorResources:
 			FontAddCacheSize(builder, cacheSize)
 			fontOffsets.append(FontEnd(builder))
 
-		ResourceSetStartFontsVector(builder, len(fontOffsets))
+		VectorResourcesStartFontsVector(builder, len(fontOffsets))
 		for offset in reversed(fontOffsets):
 			builder.PrependUOffsetTRelative(offset)
 		fontsOffset = builder.EndVector(len(fontOffsets))
 
-		ResourceSetStart(builder)
-		ResourceSetAddTextures(builder, texturesOffset)
-		ResourceSetAddFaceGroups(builder, faceGroupsOffset)
-		ResourceSetAddFonts(builder, fontsOffset)
-		builder.Finish(ResourceSetEnd(builder))
+		VectorResourcesStart(builder)
+		VectorResourcesAddTextures(builder, texturesOffset)
+		VectorResourcesAddFaceGroups(builder, faceGroupsOffset)
+		VectorResourcesAddFonts(builder, fontsOffset)
+		builder.Finish(VectorResourcesEnd(builder))
 
 		with open(outputPath, 'wb') as f:
 			f.write(builder.Output())

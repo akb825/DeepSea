@@ -14,7 +14,7 @@ struct FaceGroup;
 
 struct Font;
 
-struct ResourceSet;
+struct VectorResources;
 
 enum class FontQuality : uint8_t {
   Low = 0,
@@ -321,7 +321,7 @@ inline flatbuffers::Offset<Font> CreateFontDirect(
       cacheSize);
 }
 
-struct ResourceSet FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+struct VectorResources FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_TEXTURES = 4,
     VT_FACEGROUPS = 6,
@@ -351,43 +351,43 @@ struct ResourceSet FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
 };
 
-struct ResourceSetBuilder {
+struct VectorResourcesBuilder {
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_textures(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<Resource>>> textures) {
-    fbb_.AddOffset(ResourceSet::VT_TEXTURES, textures);
+    fbb_.AddOffset(VectorResources::VT_TEXTURES, textures);
   }
   void add_faceGroups(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<FaceGroup>>> faceGroups) {
-    fbb_.AddOffset(ResourceSet::VT_FACEGROUPS, faceGroups);
+    fbb_.AddOffset(VectorResources::VT_FACEGROUPS, faceGroups);
   }
   void add_fonts(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<Font>>> fonts) {
-    fbb_.AddOffset(ResourceSet::VT_FONTS, fonts);
+    fbb_.AddOffset(VectorResources::VT_FONTS, fonts);
   }
-  explicit ResourceSetBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit VectorResourcesBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  ResourceSetBuilder &operator=(const ResourceSetBuilder &);
-  flatbuffers::Offset<ResourceSet> Finish() {
+  VectorResourcesBuilder &operator=(const VectorResourcesBuilder &);
+  flatbuffers::Offset<VectorResources> Finish() {
     const auto end = fbb_.EndTable(start_);
-    auto o = flatbuffers::Offset<ResourceSet>(end);
+    auto o = flatbuffers::Offset<VectorResources>(end);
     return o;
   }
 };
 
-inline flatbuffers::Offset<ResourceSet> CreateResourceSet(
+inline flatbuffers::Offset<VectorResources> CreateVectorResources(
     flatbuffers::FlatBufferBuilder &_fbb,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<Resource>>> textures = 0,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<FaceGroup>>> faceGroups = 0,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<Font>>> fonts = 0) {
-  ResourceSetBuilder builder_(_fbb);
+  VectorResourcesBuilder builder_(_fbb);
   builder_.add_fonts(fonts);
   builder_.add_faceGroups(faceGroups);
   builder_.add_textures(textures);
   return builder_.Finish();
 }
 
-inline flatbuffers::Offset<ResourceSet> CreateResourceSetDirect(
+inline flatbuffers::Offset<VectorResources> CreateVectorResourcesDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     const std::vector<flatbuffers::Offset<Resource>> *textures = nullptr,
     const std::vector<flatbuffers::Offset<FaceGroup>> *faceGroups = nullptr,
@@ -395,40 +395,40 @@ inline flatbuffers::Offset<ResourceSet> CreateResourceSetDirect(
   auto textures__ = textures ? _fbb.CreateVector<flatbuffers::Offset<Resource>>(*textures) : 0;
   auto faceGroups__ = faceGroups ? _fbb.CreateVector<flatbuffers::Offset<FaceGroup>>(*faceGroups) : 0;
   auto fonts__ = fonts ? _fbb.CreateVector<flatbuffers::Offset<Font>>(*fonts) : 0;
-  return DeepSeaVectorDraw::CreateResourceSet(
+  return DeepSeaVectorDraw::CreateVectorResources(
       _fbb,
       textures__,
       faceGroups__,
       fonts__);
 }
 
-inline const DeepSeaVectorDraw::ResourceSet *GetResourceSet(const void *buf) {
-  return flatbuffers::GetRoot<DeepSeaVectorDraw::ResourceSet>(buf);
+inline const DeepSeaVectorDraw::VectorResources *GetVectorResources(const void *buf) {
+  return flatbuffers::GetRoot<DeepSeaVectorDraw::VectorResources>(buf);
 }
 
-inline const DeepSeaVectorDraw::ResourceSet *GetSizePrefixedResourceSet(const void *buf) {
-  return flatbuffers::GetSizePrefixedRoot<DeepSeaVectorDraw::ResourceSet>(buf);
+inline const DeepSeaVectorDraw::VectorResources *GetSizePrefixedVectorResources(const void *buf) {
+  return flatbuffers::GetSizePrefixedRoot<DeepSeaVectorDraw::VectorResources>(buf);
 }
 
-inline bool VerifyResourceSetBuffer(
+inline bool VerifyVectorResourcesBuffer(
     flatbuffers::Verifier &verifier) {
-  return verifier.VerifyBuffer<DeepSeaVectorDraw::ResourceSet>(nullptr);
+  return verifier.VerifyBuffer<DeepSeaVectorDraw::VectorResources>(nullptr);
 }
 
-inline bool VerifySizePrefixedResourceSetBuffer(
+inline bool VerifySizePrefixedVectorResourcesBuffer(
     flatbuffers::Verifier &verifier) {
-  return verifier.VerifySizePrefixedBuffer<DeepSeaVectorDraw::ResourceSet>(nullptr);
+  return verifier.VerifySizePrefixedBuffer<DeepSeaVectorDraw::VectorResources>(nullptr);
 }
 
-inline void FinishResourceSetBuffer(
+inline void FinishVectorResourcesBuffer(
     flatbuffers::FlatBufferBuilder &fbb,
-    flatbuffers::Offset<DeepSeaVectorDraw::ResourceSet> root) {
+    flatbuffers::Offset<DeepSeaVectorDraw::VectorResources> root) {
   fbb.Finish(root);
 }
 
-inline void FinishSizePrefixedResourceSetBuffer(
+inline void FinishSizePrefixedVectorResourcesBuffer(
     flatbuffers::FlatBufferBuilder &fbb,
-    flatbuffers::Offset<DeepSeaVectorDraw::ResourceSet> root) {
+    flatbuffers::Offset<DeepSeaVectorDraw::VectorResources> root) {
   fbb.FinishSizePrefixed(root);
 }
 
