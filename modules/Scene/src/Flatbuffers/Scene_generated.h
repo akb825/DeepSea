@@ -622,15 +622,19 @@ struct AttachmentInfo FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_USAGE = 4,
     VT_FORMAT = 6,
-    VT_SAMPLES = 8,
-    VT_CLEARVALUE_TYPE = 10,
-    VT_CLEARVALUE = 12
+    VT_DECORATION = 8,
+    VT_SAMPLES = 10,
+    VT_CLEARVALUE_TYPE = 12,
+    VT_CLEARVALUE = 14
   };
   uint32_t usage() const {
     return GetField<uint32_t>(VT_USAGE, 0);
   }
   TextureFormat format() const {
     return static_cast<TextureFormat>(GetField<uint8_t>(VT_FORMAT, 0));
+  }
+  FormatDecoration decoration() const {
+    return static_cast<FormatDecoration>(GetField<uint8_t>(VT_DECORATION, 0));
   }
   uint32_t samples() const {
     return GetField<uint32_t>(VT_SAMPLES, 0);
@@ -658,6 +662,7 @@ struct AttachmentInfo FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     return VerifyTableStart(verifier) &&
            VerifyField<uint32_t>(verifier, VT_USAGE) &&
            VerifyField<uint8_t>(verifier, VT_FORMAT) &&
+           VerifyField<uint8_t>(verifier, VT_DECORATION) &&
            VerifyField<uint32_t>(verifier, VT_SAMPLES) &&
            VerifyField<uint8_t>(verifier, VT_CLEARVALUE_TYPE) &&
            VerifyOffset(verifier, VT_CLEARVALUE) &&
@@ -691,6 +696,9 @@ struct AttachmentInfoBuilder {
   void add_format(TextureFormat format) {
     fbb_.AddElement<uint8_t>(AttachmentInfo::VT_FORMAT, static_cast<uint8_t>(format), 0);
   }
+  void add_decoration(FormatDecoration decoration) {
+    fbb_.AddElement<uint8_t>(AttachmentInfo::VT_DECORATION, static_cast<uint8_t>(decoration), 0);
+  }
   void add_samples(uint32_t samples) {
     fbb_.AddElement<uint32_t>(AttachmentInfo::VT_SAMPLES, samples, 0);
   }
@@ -716,6 +724,7 @@ inline flatbuffers::Offset<AttachmentInfo> CreateAttachmentInfo(
     flatbuffers::FlatBufferBuilder &_fbb,
     uint32_t usage = 0,
     TextureFormat format = TextureFormat::R4G4,
+    FormatDecoration decoration = FormatDecoration::UNorm,
     uint32_t samples = 0,
     ClearValue clearValue_type = ClearValue::NONE,
     flatbuffers::Offset<void> clearValue = 0) {
@@ -724,6 +733,7 @@ inline flatbuffers::Offset<AttachmentInfo> CreateAttachmentInfo(
   builder_.add_samples(samples);
   builder_.add_usage(usage);
   builder_.add_clearValue_type(clearValue_type);
+  builder_.add_decoration(decoration);
   builder_.add_format(format);
   return builder_.Finish();
 }

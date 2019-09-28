@@ -33,22 +33,29 @@ class AttachmentInfo(object):
         return 0
 
     # AttachmentInfo
-    def Samples(self):
+    def Decoration(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
+        if o != 0:
+            return self._tab.Get(flatbuffers.number_types.Uint8Flags, o + self._tab.Pos)
+        return 0
+
+    # AttachmentInfo
+    def Samples(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(10))
         if o != 0:
             return self._tab.Get(flatbuffers.number_types.Uint32Flags, o + self._tab.Pos)
         return 0
 
     # AttachmentInfo
     def ClearValueType(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(10))
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(12))
         if o != 0:
             return self._tab.Get(flatbuffers.number_types.Uint8Flags, o + self._tab.Pos)
         return 0
 
     # AttachmentInfo
     def ClearValue(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(12))
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(14))
         if o != 0:
             from flatbuffers.table import Table
             obj = Table(bytearray(), 0)
@@ -56,10 +63,11 @@ class AttachmentInfo(object):
             return obj
         return None
 
-def AttachmentInfoStart(builder): builder.StartObject(5)
+def AttachmentInfoStart(builder): builder.StartObject(6)
 def AttachmentInfoAddUsage(builder, usage): builder.PrependUint32Slot(0, usage, 0)
 def AttachmentInfoAddFormat(builder, format): builder.PrependUint8Slot(1, format, 0)
-def AttachmentInfoAddSamples(builder, samples): builder.PrependUint32Slot(2, samples, 0)
-def AttachmentInfoAddClearValueType(builder, clearValueType): builder.PrependUint8Slot(3, clearValueType, 0)
-def AttachmentInfoAddClearValue(builder, clearValue): builder.PrependUOffsetTRelativeSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(clearValue), 0)
+def AttachmentInfoAddDecoration(builder, decoration): builder.PrependUint8Slot(2, decoration, 0)
+def AttachmentInfoAddSamples(builder, samples): builder.PrependUint32Slot(3, samples, 0)
+def AttachmentInfoAddClearValueType(builder, clearValueType): builder.PrependUint8Slot(4, clearValueType, 0)
+def AttachmentInfoAddClearValue(builder, clearValue): builder.PrependUOffsetTRelativeSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(clearValue), 0)
 def AttachmentInfoEnd(builder): return builder.EndObject()

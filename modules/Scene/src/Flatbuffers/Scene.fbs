@@ -113,6 +113,9 @@ table AttachmentInfo
 	// Format for the attachment.
 	format : TextureFormat;
 
+	// Decoration for the attachment format.
+	decoration : FormatDecoration;
+
 	// Number of anti-alias samples.
 	samples : uint;
 
