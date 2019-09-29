@@ -105,7 +105,7 @@ union ClearValue
 }
 
 // Structure defining an attachment in a render pass.
-table AttachmentInfo
+table Attachment
 {
 	// Bitmask for the attachment usage.
 	usage : uint;
@@ -186,7 +186,7 @@ table RenderPass
 	framebuffer : string (required);
 
 	// The attachments for the render pass.
-	attachments : [AttachmentInfo];
+	attachments : [Attachment];
 
 	// The subpasses in the render pass.
 	subpasses : [RenderSubpass] (required);

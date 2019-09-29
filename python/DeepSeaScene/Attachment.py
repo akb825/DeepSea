@@ -4,56 +4,56 @@
 
 import flatbuffers
 
-class AttachmentInfo(object):
+class Attachment(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsAttachmentInfo(cls, buf, offset):
+    def GetRootAsAttachment(cls, buf, offset):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
-        x = AttachmentInfo()
+        x = Attachment()
         x.Init(buf, n + offset)
         return x
 
-    # AttachmentInfo
+    # Attachment
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
 
-    # AttachmentInfo
+    # Attachment
     def Usage(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         if o != 0:
             return self._tab.Get(flatbuffers.number_types.Uint32Flags, o + self._tab.Pos)
         return 0
 
-    # AttachmentInfo
+    # Attachment
     def Format(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         if o != 0:
             return self._tab.Get(flatbuffers.number_types.Uint8Flags, o + self._tab.Pos)
         return 0
 
-    # AttachmentInfo
+    # Attachment
     def Decoration(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
         if o != 0:
             return self._tab.Get(flatbuffers.number_types.Uint8Flags, o + self._tab.Pos)
         return 0
 
-    # AttachmentInfo
+    # Attachment
     def Samples(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(10))
         if o != 0:
             return self._tab.Get(flatbuffers.number_types.Uint32Flags, o + self._tab.Pos)
         return 0
 
-    # AttachmentInfo
+    # Attachment
     def ClearValueType(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(12))
         if o != 0:
             return self._tab.Get(flatbuffers.number_types.Uint8Flags, o + self._tab.Pos)
         return 0
 
-    # AttachmentInfo
+    # Attachment
     def ClearValue(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(14))
         if o != 0:
@@ -63,11 +63,11 @@ class AttachmentInfo(object):
             return obj
         return None
 
-def AttachmentInfoStart(builder): builder.StartObject(6)
-def AttachmentInfoAddUsage(builder, usage): builder.PrependUint32Slot(0, usage, 0)
-def AttachmentInfoAddFormat(builder, format): builder.PrependUint8Slot(1, format, 0)
-def AttachmentInfoAddDecoration(builder, decoration): builder.PrependUint8Slot(2, decoration, 0)
-def AttachmentInfoAddSamples(builder, samples): builder.PrependUint32Slot(3, samples, 0)
-def AttachmentInfoAddClearValueType(builder, clearValueType): builder.PrependUint8Slot(4, clearValueType, 0)
-def AttachmentInfoAddClearValue(builder, clearValue): builder.PrependUOffsetTRelativeSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(clearValue), 0)
-def AttachmentInfoEnd(builder): return builder.EndObject()
+def AttachmentStart(builder): builder.StartObject(6)
+def AttachmentAddUsage(builder, usage): builder.PrependUint32Slot(0, usage, 0)
+def AttachmentAddFormat(builder, format): builder.PrependUint8Slot(1, format, 0)
+def AttachmentAddDecoration(builder, decoration): builder.PrependUint8Slot(2, decoration, 0)
+def AttachmentAddSamples(builder, samples): builder.PrependUint32Slot(3, samples, 0)
+def AttachmentAddClearValueType(builder, clearValueType): builder.PrependUint8Slot(4, clearValueType, 0)
+def AttachmentAddClearValue(builder, clearValue): builder.PrependUOffsetTRelativeSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(clearValue), 0)
+def AttachmentEnd(builder): return builder.EndObject()

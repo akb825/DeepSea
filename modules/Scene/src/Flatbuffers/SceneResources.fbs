@@ -43,8 +43,11 @@ table TextureInfo
 	// The main format of the texture.
 	format : TextureFormat;
 
-	// The decoration for the format decoration.
+	// The decoration for the format.
 	decoration : FormatDecoration;
+
+	// The dimension of the texture.
+	dimension : TextureDim;
 
 	// The width of the texture.
 	width : uint;
@@ -203,8 +206,8 @@ struct VertexAttribute
 	// The format for the vertex element.
 	format : VertexElementFormat;
 
-	// The decorator for the format.
-	decorator : FormatDecoration;
+	// The format decoration.
+	decoration : FormatDecoration;
 }
 
 // Structure describing a vertex format.

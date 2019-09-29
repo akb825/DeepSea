@@ -1,0 +1,125 @@
+/*
+ * Copyright 2019 Aaron Barany
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+include "SceneCommon.fbs";
+
+namespace DeepSeaScene;
+
+// Enum for the type of surface to create.
+enum SurfaceType : ubyte
+{
+	Renderbuffer,
+	Offscreen
+}
+
+// Struct describing a surface to create for a view.
+table Surface
+{
+	// The name of the surface.
+	name : string (required);
+
+	// The type of the surface.
+	type : SurfaceType;
+
+	// The usage flags for the surface.
+	usage : uint;
+
+	// The memory flags for the surface.
+	memoryHints : uint;
+
+	// The dimension of the surface when type is Offscreen.
+	dimension : TextureDim;
+
+	// The main format of the surface.
+	format : TextureFormat;
+
+	// The decoration for the format.
+	decoration : FormatDecoration;
+
+	// The depth or array layers of the surfaceif an offscreen. If 0, this is not a texture array.
+	depth : uint;
+
+	// The number of mipmap levels if an offscreen.
+	mipLevels : ubyte;
+
+	// The explicit width of the surface.
+	width : uint;
+
+	// The ratio of the width relative to the view's width when the explicit width is 0.
+	widthRatio : float;
+
+	// The explicit height of the surface.
+	height : uint;
+
+	// The ratio of the height relative to the view's height when the explicit height is 0.
+	heightRatio : float;
+
+	// The number of anti-alias samples.
+	samples : uint;
+
+	// Whether or not to resolve anti-alias samples if an offscreen.
+	resolve : bool;
+}
+
+// Struct describing a surface reference used by a framebuffer.
+table FramebufferSurface
+{
+	// The name of the surface to use.
+	name : string (required);
+
+	// The face for a cubemap offscreen.
+	face : CubeFace;
+
+	// The texture array level or 3D texture level to use for an offscree.
+	layer : uint;
+
+	// The mipmap level to use for an offscreen.
+	mipLevel : uint;
+}
+
+// Struct describing a framebuffer to create for a view.
+table Framebuffer
+{
+	// The name of the framebuffer.
+	name : string (required);
+
+	// The surfaces used in the framebuffer.
+	surfaces : [FramebufferSurface];
+
+	// The width if >= 0, or ratio of the width relative to the view's width when < 0.
+	width : float;
+
+	// The height if >= 0, or ratio of the height relative to the view's height when < 0.
+	height : float;
+
+	// The number of layers to render to.
+	layers : uint;
+
+	// The viewport as a fraction of the framebuffer size.
+	viewport : AlignedBox3f;
+}
+
+// Struct describing a view.
+table View
+{
+	// The surfaces to create for the view.
+	surfaces : [Surface];
+
+	// The framebuffers to create for the view.
+	framebuffers : [Framebuffer] (required);
+}
+
+root_type View;

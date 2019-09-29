@@ -22,7 +22,7 @@ struct ClearColorUInt;
 
 struct ClearDepthStencil;
 
-struct AttachmentInfo;
+struct Attachment;
 
 struct AttachmentRef;
 
@@ -618,7 +618,7 @@ inline flatbuffers::Offset<ClearDepthStencil> CreateClearDepthStencil(
   return builder_.Finish();
 }
 
-struct AttachmentInfo FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+struct Attachment FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_USAGE = 4,
     VT_FORMAT = 6,
@@ -671,56 +671,56 @@ struct AttachmentInfo FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
 };
 
-template<> inline const ClearColorFloat *AttachmentInfo::clearValue_as<ClearColorFloat>() const {
+template<> inline const ClearColorFloat *Attachment::clearValue_as<ClearColorFloat>() const {
   return clearValue_as_ClearColorFloat();
 }
 
-template<> inline const ClearColorInt *AttachmentInfo::clearValue_as<ClearColorInt>() const {
+template<> inline const ClearColorInt *Attachment::clearValue_as<ClearColorInt>() const {
   return clearValue_as_ClearColorInt();
 }
 
-template<> inline const ClearColorUInt *AttachmentInfo::clearValue_as<ClearColorUInt>() const {
+template<> inline const ClearColorUInt *Attachment::clearValue_as<ClearColorUInt>() const {
   return clearValue_as_ClearColorUInt();
 }
 
-template<> inline const ClearDepthStencil *AttachmentInfo::clearValue_as<ClearDepthStencil>() const {
+template<> inline const ClearDepthStencil *Attachment::clearValue_as<ClearDepthStencil>() const {
   return clearValue_as_ClearDepthStencil();
 }
 
-struct AttachmentInfoBuilder {
+struct AttachmentBuilder {
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_usage(uint32_t usage) {
-    fbb_.AddElement<uint32_t>(AttachmentInfo::VT_USAGE, usage, 0);
+    fbb_.AddElement<uint32_t>(Attachment::VT_USAGE, usage, 0);
   }
   void add_format(TextureFormat format) {
-    fbb_.AddElement<uint8_t>(AttachmentInfo::VT_FORMAT, static_cast<uint8_t>(format), 0);
+    fbb_.AddElement<uint8_t>(Attachment::VT_FORMAT, static_cast<uint8_t>(format), 0);
   }
   void add_decoration(FormatDecoration decoration) {
-    fbb_.AddElement<uint8_t>(AttachmentInfo::VT_DECORATION, static_cast<uint8_t>(decoration), 0);
+    fbb_.AddElement<uint8_t>(Attachment::VT_DECORATION, static_cast<uint8_t>(decoration), 0);
   }
   void add_samples(uint32_t samples) {
-    fbb_.AddElement<uint32_t>(AttachmentInfo::VT_SAMPLES, samples, 0);
+    fbb_.AddElement<uint32_t>(Attachment::VT_SAMPLES, samples, 0);
   }
   void add_clearValue_type(ClearValue clearValue_type) {
-    fbb_.AddElement<uint8_t>(AttachmentInfo::VT_CLEARVALUE_TYPE, static_cast<uint8_t>(clearValue_type), 0);
+    fbb_.AddElement<uint8_t>(Attachment::VT_CLEARVALUE_TYPE, static_cast<uint8_t>(clearValue_type), 0);
   }
   void add_clearValue(flatbuffers::Offset<void> clearValue) {
-    fbb_.AddOffset(AttachmentInfo::VT_CLEARVALUE, clearValue);
+    fbb_.AddOffset(Attachment::VT_CLEARVALUE, clearValue);
   }
-  explicit AttachmentInfoBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit AttachmentBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  AttachmentInfoBuilder &operator=(const AttachmentInfoBuilder &);
-  flatbuffers::Offset<AttachmentInfo> Finish() {
+  AttachmentBuilder &operator=(const AttachmentBuilder &);
+  flatbuffers::Offset<Attachment> Finish() {
     const auto end = fbb_.EndTable(start_);
-    auto o = flatbuffers::Offset<AttachmentInfo>(end);
+    auto o = flatbuffers::Offset<Attachment>(end);
     return o;
   }
 };
 
-inline flatbuffers::Offset<AttachmentInfo> CreateAttachmentInfo(
+inline flatbuffers::Offset<Attachment> CreateAttachment(
     flatbuffers::FlatBufferBuilder &_fbb,
     uint32_t usage = 0,
     TextureFormat format = TextureFormat::R4G4,
@@ -728,7 +728,7 @@ inline flatbuffers::Offset<AttachmentInfo> CreateAttachmentInfo(
     uint32_t samples = 0,
     ClearValue clearValue_type = ClearValue::NONE,
     flatbuffers::Offset<void> clearValue = 0) {
-  AttachmentInfoBuilder builder_(_fbb);
+  AttachmentBuilder builder_(_fbb);
   builder_.add_clearValue(clearValue);
   builder_.add_samples(samples);
   builder_.add_usage(usage);
@@ -861,8 +861,8 @@ struct RenderPass FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const flatbuffers::String *framebuffer() const {
     return GetPointer<const flatbuffers::String *>(VT_FRAMEBUFFER);
   }
-  const flatbuffers::Vector<flatbuffers::Offset<AttachmentInfo>> *attachments() const {
-    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<AttachmentInfo>> *>(VT_ATTACHMENTS);
+  const flatbuffers::Vector<flatbuffers::Offset<Attachment>> *attachments() const {
+    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<Attachment>> *>(VT_ATTACHMENTS);
   }
   const flatbuffers::Vector<flatbuffers::Offset<RenderSubpass>> *subpasses() const {
     return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<RenderSubpass>> *>(VT_SUBPASSES);
@@ -901,7 +901,7 @@ struct RenderPassBuilder {
   void add_framebuffer(flatbuffers::Offset<flatbuffers::String> framebuffer) {
     fbb_.AddOffset(RenderPass::VT_FRAMEBUFFER, framebuffer);
   }
-  void add_attachments(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<AttachmentInfo>>> attachments) {
+  void add_attachments(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<Attachment>>> attachments) {
     fbb_.AddOffset(RenderPass::VT_ATTACHMENTS, attachments);
   }
   void add_subpasses(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<RenderSubpass>>> subpasses) {
@@ -932,7 +932,7 @@ inline flatbuffers::Offset<RenderPass> CreateRenderPass(
     flatbuffers::FlatBufferBuilder &_fbb,
     flatbuffers::Offset<flatbuffers::String> name = 0,
     flatbuffers::Offset<flatbuffers::String> framebuffer = 0,
-    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<AttachmentInfo>>> attachments = 0,
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<Attachment>>> attachments = 0,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<RenderSubpass>>> subpasses = 0,
     flatbuffers::Offset<flatbuffers::Vector<const SubpassDependency *>> dependencies = 0,
     bool defaultDependencies = false) {
@@ -950,13 +950,13 @@ inline flatbuffers::Offset<RenderPass> CreateRenderPassDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     const char *name = nullptr,
     const char *framebuffer = nullptr,
-    const std::vector<flatbuffers::Offset<AttachmentInfo>> *attachments = nullptr,
+    const std::vector<flatbuffers::Offset<Attachment>> *attachments = nullptr,
     const std::vector<flatbuffers::Offset<RenderSubpass>> *subpasses = nullptr,
     const std::vector<SubpassDependency> *dependencies = nullptr,
     bool defaultDependencies = false) {
   auto name__ = name ? _fbb.CreateString(name) : 0;
   auto framebuffer__ = framebuffer ? _fbb.CreateString(framebuffer) : 0;
-  auto attachments__ = attachments ? _fbb.CreateVector<flatbuffers::Offset<AttachmentInfo>>(*attachments) : 0;
+  auto attachments__ = attachments ? _fbb.CreateVector<flatbuffers::Offset<Attachment>>(*attachments) : 0;
   auto subpasses__ = subpasses ? _fbb.CreateVector<flatbuffers::Offset<RenderSubpass>>(*subpasses) : 0;
   auto dependencies__ = dependencies ? _fbb.CreateVectorOfStructs<SubpassDependency>(*dependencies) : 0;
   return DeepSeaScene::CreateRenderPass(

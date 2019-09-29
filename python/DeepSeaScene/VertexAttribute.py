@@ -14,10 +14,10 @@ class VertexAttribute(object):
     # VertexAttribute
     def Format(self): return self._tab.Get(flatbuffers.number_types.Uint8Flags, self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(0))
     # VertexAttribute
-    def Decorator(self): return self._tab.Get(flatbuffers.number_types.Uint8Flags, self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(1))
+    def Decoration(self): return self._tab.Get(flatbuffers.number_types.Uint8Flags, self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(1))
 
-def CreateVertexAttribute(builder, format, decorator):
+def CreateVertexAttribute(builder, format, decoration):
     builder.Prep(1, 2)
-    builder.PrependUint8(decorator)
+    builder.PrependUint8(decoration)
     builder.PrependUint8(format)
     return builder.Offset()

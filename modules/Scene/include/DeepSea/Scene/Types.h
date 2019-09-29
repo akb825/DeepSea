@@ -316,8 +316,11 @@ typedef struct dsViewFramebufferInfo
 	/**
 	 * @brief The list of surfaces.
 	 *
-	 * The surface pointer must be the name of the surface from dsViewSurfaceInfo. The array and
-	 * surface names will be copied.
+	 * The surface pointer must be the name of the surface from dsViewSurfaceInfo. surfaceType may
+	 * be set to -1 to inherit the surface type from the found surface, otherwise it must match the
+	 * found surface's type.
+	 *
+	 * The array and surface names will be copied.
 	 */
 	const dsFramebufferSurface* surfaces;
 

@@ -103,6 +103,17 @@ enum TextureDim : ubyte
 	DimCube,
 }
 
+// Enum for the face of a cube map.
+enum CubeFace : ubyte
+{
+	PosX,
+	NegX,
+	PosY,
+	NegY,
+	PosZ,
+	NegZ
+}
+
 // Enum for the type of a material.
 enum MaterialType : ubyte
 {
@@ -190,4 +201,22 @@ enum FormatDecoration : ubyte
 	Float,
 	UFloat,
 	SRGB
+}
+
+// Struct describing a 3-dimentional vector.
+struct Vector3f
+{
+	x : float;
+	y : float;
+	z : float;
+}
+
+// Struct describing a 3-dimentional aligned box.
+struct AlignedBox3f
+{
+	// The minimum values for the box.
+	min : Vector3f;
+
+	// The maximum values for the box.
+	max : Vector3f;
 }

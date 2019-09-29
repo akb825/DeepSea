@@ -354,7 +354,9 @@ dsView* dsView_create(const dsScene* scene, dsAllocator* allocator,
 				return NULL;
 			}
 
-			if (privateView->surfaceInfos[node->index].surfaceType != surface->surfaceType)
+			if (surface->surfaceType == (dsGfxSurfaceType)-1)
+				surface->surfaceType = privateView->surfaceInfos[node->index].surfaceType;
+			else if (privateView->surfaceInfos[node->index].surfaceType != surface->surfaceType)
 			{
 				errno = EINVAL;
 				DS_LOG_ERROR_F(DS_SCENE_LOG_TAG,

@@ -82,21 +82,21 @@ inline const char *EnumNameMaterialBinding(MaterialBinding e) {
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(1) VertexAttribute FLATBUFFERS_FINAL_CLASS {
  private:
   uint8_t format_;
-  uint8_t decorator_;
+  uint8_t decoration_;
 
  public:
   VertexAttribute() {
     memset(static_cast<void *>(this), 0, sizeof(VertexAttribute));
   }
-  VertexAttribute(VertexElementFormat _format, FormatDecoration _decorator)
+  VertexAttribute(VertexElementFormat _format, FormatDecoration _decoration)
       : format_(flatbuffers::EndianScalar(static_cast<uint8_t>(_format))),
-        decorator_(flatbuffers::EndianScalar(static_cast<uint8_t>(_decorator))) {
+        decoration_(flatbuffers::EndianScalar(static_cast<uint8_t>(_decoration))) {
   }
   VertexElementFormat format() const {
     return static_cast<VertexElementFormat>(flatbuffers::EndianScalar(format_));
   }
-  FormatDecoration decorator() const {
-    return static_cast<FormatDecoration>(flatbuffers::EndianScalar(decorator_));
+  FormatDecoration decoration() const {
+    return static_cast<FormatDecoration>(flatbuffers::EndianScalar(decoration_));
   }
 };
 FLATBUFFERS_STRUCT_END(VertexAttribute, 2);
@@ -206,16 +206,20 @@ struct TextureInfo FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_FORMAT = 4,
     VT_DECORATION = 6,
-    VT_WIDTH = 8,
-    VT_HEIGHT = 10,
-    VT_DEPTH = 12,
-    VT_MIPLEVELS = 14
+    VT_DIMENSION = 8,
+    VT_WIDTH = 10,
+    VT_HEIGHT = 12,
+    VT_DEPTH = 14,
+    VT_MIPLEVELS = 16
   };
   TextureFormat format() const {
     return static_cast<TextureFormat>(GetField<uint8_t>(VT_FORMAT, 0));
   }
   FormatDecoration decoration() const {
     return static_cast<FormatDecoration>(GetField<uint8_t>(VT_DECORATION, 0));
+  }
+  TextureDim dimension() const {
+    return static_cast<TextureDim>(GetField<uint8_t>(VT_DIMENSION, 0));
   }
   uint32_t width() const {
     return GetField<uint32_t>(VT_WIDTH, 0);
@@ -233,6 +237,7 @@ struct TextureInfo FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     return VerifyTableStart(verifier) &&
            VerifyField<uint8_t>(verifier, VT_FORMAT) &&
            VerifyField<uint8_t>(verifier, VT_DECORATION) &&
+           VerifyField<uint8_t>(verifier, VT_DIMENSION) &&
            VerifyField<uint32_t>(verifier, VT_WIDTH) &&
            VerifyField<uint32_t>(verifier, VT_HEIGHT) &&
            VerifyField<uint32_t>(verifier, VT_DEPTH) &&
@@ -249,6 +254,9 @@ struct TextureInfoBuilder {
   }
   void add_decoration(FormatDecoration decoration) {
     fbb_.AddElement<uint8_t>(TextureInfo::VT_DECORATION, static_cast<uint8_t>(decoration), 0);
+  }
+  void add_dimension(TextureDim dimension) {
+    fbb_.AddElement<uint8_t>(TextureInfo::VT_DIMENSION, static_cast<uint8_t>(dimension), 0);
   }
   void add_width(uint32_t width) {
     fbb_.AddElement<uint32_t>(TextureInfo::VT_WIDTH, width, 0);
@@ -278,6 +286,7 @@ inline flatbuffers::Offset<TextureInfo> CreateTextureInfo(
     flatbuffers::FlatBufferBuilder &_fbb,
     TextureFormat format = TextureFormat::R4G4,
     FormatDecoration decoration = FormatDecoration::UNorm,
+    TextureDim dimension = TextureDim::Dim1D,
     uint32_t width = 0,
     uint32_t height = 0,
     uint32_t depth = 0,
@@ -287,6 +296,7 @@ inline flatbuffers::Offset<TextureInfo> CreateTextureInfo(
   builder_.add_height(height);
   builder_.add_width(width);
   builder_.add_mipLevels(mipLevels);
+  builder_.add_dimension(dimension);
   builder_.add_decoration(decoration);
   builder_.add_format(format);
   return builder_.Finish();

@@ -8,6 +8,10 @@
 
 namespace DeepSeaScene {
 
+struct Vector3f;
+
+struct AlignedBox3f;
+
 enum class TextureFormat : uint8_t {
   R4G4 = 0,
   R4G4B4A4 = 1,
@@ -285,6 +289,48 @@ inline const char *EnumNameTextureDim(TextureDim e) {
   if (e < TextureDim::Dim1D || e > TextureDim::DimCube) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesTextureDim()[index];
+}
+
+enum class CubeFace : uint8_t {
+  PosX = 0,
+  NegX = 1,
+  PosY = 2,
+  NegY = 3,
+  PosZ = 4,
+  NegZ = 5,
+  MIN = PosX,
+  MAX = NegZ
+};
+
+inline const CubeFace (&EnumValuesCubeFace())[6] {
+  static const CubeFace values[] = {
+    CubeFace::PosX,
+    CubeFace::NegX,
+    CubeFace::PosY,
+    CubeFace::NegY,
+    CubeFace::PosZ,
+    CubeFace::NegZ
+  };
+  return values;
+}
+
+inline const char * const *EnumNamesCubeFace() {
+  static const char * const names[] = {
+    "PosX",
+    "NegX",
+    "PosY",
+    "NegY",
+    "PosZ",
+    "NegZ",
+    nullptr
+  };
+  return names;
+}
+
+inline const char *EnumNameCubeFace(CubeFace e) {
+  if (e < CubeFace::PosX || e > CubeFace::NegZ) return "";
+  const size_t index = static_cast<size_t>(e);
+  return EnumNamesCubeFace()[index];
 }
 
 enum class MaterialType : uint8_t {
@@ -580,6 +626,55 @@ inline const char *EnumNameFormatDecoration(FormatDecoration e) {
   const size_t index = static_cast<size_t>(e);
   return EnumNamesFormatDecoration()[index];
 }
+
+FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Vector3f FLATBUFFERS_FINAL_CLASS {
+ private:
+  float x_;
+  float y_;
+  float z_;
+
+ public:
+  Vector3f() {
+    memset(static_cast<void *>(this), 0, sizeof(Vector3f));
+  }
+  Vector3f(float _x, float _y, float _z)
+      : x_(flatbuffers::EndianScalar(_x)),
+        y_(flatbuffers::EndianScalar(_y)),
+        z_(flatbuffers::EndianScalar(_z)) {
+  }
+  float x() const {
+    return flatbuffers::EndianScalar(x_);
+  }
+  float y() const {
+    return flatbuffers::EndianScalar(y_);
+  }
+  float z() const {
+    return flatbuffers::EndianScalar(z_);
+  }
+};
+FLATBUFFERS_STRUCT_END(Vector3f, 12);
+
+FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) AlignedBox3f FLATBUFFERS_FINAL_CLASS {
+ private:
+  Vector3f min_;
+  Vector3f max_;
+
+ public:
+  AlignedBox3f() {
+    memset(static_cast<void *>(this), 0, sizeof(AlignedBox3f));
+  }
+  AlignedBox3f(const Vector3f &_min, const Vector3f &_max)
+      : min_(_min),
+        max_(_max) {
+  }
+  const Vector3f &min() const {
+    return min_;
+  }
+  const Vector3f &max() const {
+    return max_;
+  }
+};
+FLATBUFFERS_STRUCT_END(AlignedBox3f, 24);
 
 }  // namespace DeepSeaScene
 
