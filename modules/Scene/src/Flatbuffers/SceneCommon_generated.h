@@ -8,9 +8,15 @@
 
 namespace DeepSeaScene {
 
+struct SceneNode;
+
 struct Vector3f;
 
+struct Vector4f;
+
 struct AlignedBox3f;
+
+struct Matrix44f;
 
 enum class TextureFormat : uint8_t {
   R4G4 = 0,
@@ -654,6 +660,38 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Vector3f FLATBUFFERS_FINAL_CLASS {
 };
 FLATBUFFERS_STRUCT_END(Vector3f, 12);
 
+FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Vector4f FLATBUFFERS_FINAL_CLASS {
+ private:
+  float x_;
+  float y_;
+  float z_;
+  float w_;
+
+ public:
+  Vector4f() {
+    memset(static_cast<void *>(this), 0, sizeof(Vector4f));
+  }
+  Vector4f(float _x, float _y, float _z, float _w)
+      : x_(flatbuffers::EndianScalar(_x)),
+        y_(flatbuffers::EndianScalar(_y)),
+        z_(flatbuffers::EndianScalar(_z)),
+        w_(flatbuffers::EndianScalar(_w)) {
+  }
+  float x() const {
+    return flatbuffers::EndianScalar(x_);
+  }
+  float y() const {
+    return flatbuffers::EndianScalar(y_);
+  }
+  float z() const {
+    return flatbuffers::EndianScalar(z_);
+  }
+  float w() const {
+    return flatbuffers::EndianScalar(w_);
+  }
+};
+FLATBUFFERS_STRUCT_END(Vector4f, 16);
+
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) AlignedBox3f FLATBUFFERS_FINAL_CLASS {
  private:
   Vector3f min_;
@@ -675,6 +713,119 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) AlignedBox3f FLATBUFFERS_FINAL_CLASS {
   }
 };
 FLATBUFFERS_STRUCT_END(AlignedBox3f, 24);
+
+FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Matrix44f FLATBUFFERS_FINAL_CLASS {
+ private:
+  Vector4f column0_;
+  Vector4f column1_;
+  Vector4f column2_;
+  Vector4f column3_;
+
+ public:
+  Matrix44f() {
+    memset(static_cast<void *>(this), 0, sizeof(Matrix44f));
+  }
+  Matrix44f(const Vector4f &_column0, const Vector4f &_column1, const Vector4f &_column2, const Vector4f &_column3)
+      : column0_(_column0),
+        column1_(_column1),
+        column2_(_column2),
+        column3_(_column3) {
+  }
+  const Vector4f &column0() const {
+    return column0_;
+  }
+  const Vector4f &column1() const {
+    return column1_;
+  }
+  const Vector4f &column2() const {
+    return column2_;
+  }
+  const Vector4f &column3() const {
+    return column3_;
+  }
+};
+FLATBUFFERS_STRUCT_END(Matrix44f, 64);
+
+struct SceneNode FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_NAME = 4,
+    VT_TYPE = 6,
+    VT_DATA = 8
+  };
+  const flatbuffers::String *name() const {
+    return GetPointer<const flatbuffers::String *>(VT_NAME);
+  }
+  const flatbuffers::String *type() const {
+    return GetPointer<const flatbuffers::String *>(VT_TYPE);
+  }
+  const flatbuffers::Vector<uint8_t> *data() const {
+    return GetPointer<const flatbuffers::Vector<uint8_t> *>(VT_DATA);
+  }
+  bool Verify(flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffsetRequired(verifier, VT_NAME) &&
+           verifier.VerifyString(name()) &&
+           VerifyOffsetRequired(verifier, VT_TYPE) &&
+           verifier.VerifyString(type()) &&
+           VerifyOffsetRequired(verifier, VT_DATA) &&
+           verifier.VerifyVector(data()) &&
+           verifier.EndTable();
+  }
+};
+
+struct SceneNodeBuilder {
+  flatbuffers::FlatBufferBuilder &fbb_;
+  flatbuffers::uoffset_t start_;
+  void add_name(flatbuffers::Offset<flatbuffers::String> name) {
+    fbb_.AddOffset(SceneNode::VT_NAME, name);
+  }
+  void add_type(flatbuffers::Offset<flatbuffers::String> type) {
+    fbb_.AddOffset(SceneNode::VT_TYPE, type);
+  }
+  void add_data(flatbuffers::Offset<flatbuffers::Vector<uint8_t>> data) {
+    fbb_.AddOffset(SceneNode::VT_DATA, data);
+  }
+  explicit SceneNodeBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  SceneNodeBuilder &operator=(const SceneNodeBuilder &);
+  flatbuffers::Offset<SceneNode> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = flatbuffers::Offset<SceneNode>(end);
+    fbb_.Required(o, SceneNode::VT_NAME);
+    fbb_.Required(o, SceneNode::VT_TYPE);
+    fbb_.Required(o, SceneNode::VT_DATA);
+    return o;
+  }
+};
+
+inline flatbuffers::Offset<SceneNode> CreateSceneNode(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    flatbuffers::Offset<flatbuffers::String> name = 0,
+    flatbuffers::Offset<flatbuffers::String> type = 0,
+    flatbuffers::Offset<flatbuffers::Vector<uint8_t>> data = 0) {
+  SceneNodeBuilder builder_(_fbb);
+  builder_.add_data(data);
+  builder_.add_type(type);
+  builder_.add_name(name);
+  return builder_.Finish();
+}
+
+inline flatbuffers::Offset<SceneNode> CreateSceneNodeDirect(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    const char *name = nullptr,
+    const char *type = nullptr,
+    const std::vector<uint8_t> *data = nullptr) {
+  auto name__ = name ? _fbb.CreateString(name) : 0;
+  auto type__ = type ? _fbb.CreateString(type) : 0;
+  auto data__ = data ? _fbb.CreateVector<uint8_t>(*data) : 0;
+  return DeepSeaScene::CreateSceneNode(
+      _fbb,
+      name__,
+      type__,
+      data__);
+}
 
 }  // namespace DeepSeaScene
 

@@ -203,12 +203,34 @@ enum FormatDecoration : ubyte
 	SRGB
 }
 
+// Structure describing a scene node.
+table SceneNode
+{
+	// The name of the node.
+	name : string (required);
+
+	// The name of the node type.
+	type : string (required);
+
+	// The data for the node.
+	data : [ubyte] (required);
+}
+
 // Struct describing a 3-dimentional vector.
 struct Vector3f
 {
 	x : float;
 	y : float;
 	z : float;
+}
+
+// Struct describing a 4-dimentional vector.
+struct Vector4f
+{
+	x : float;
+	y : float;
+	z : float;
+	w : float;
 }
 
 // Struct describing a 3-dimentional aligned box.
@@ -219,4 +241,13 @@ struct AlignedBox3f
 
 	// The maximum values for the box.
 	max : Vector3f;
+}
+
+// Struct describing a 4x4 transform matrix.
+struct Matrix44f
+{
+	column0 : Vector4f;
+	column1 : Vector4f;
+	column2 : Vector4f;
+	column3 : Vector4f;
 }

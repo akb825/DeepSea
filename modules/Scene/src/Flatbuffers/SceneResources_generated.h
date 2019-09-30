@@ -42,8 +42,6 @@ struct IndexBuffer;
 
 struct DrawGeometry;
 
-struct SceneNode;
-
 struct SceneResources;
 
 enum class MaterialBinding : uint8_t {
@@ -1351,87 +1349,6 @@ inline flatbuffers::Offset<DrawGeometry> CreateDrawGeometryDirect(
       name__,
       vertexBuffers__,
       indexBuffer);
-}
-
-struct SceneNode FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
-  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_NAME = 4,
-    VT_TYPE = 6,
-    VT_DATA = 8
-  };
-  const flatbuffers::String *name() const {
-    return GetPointer<const flatbuffers::String *>(VT_NAME);
-  }
-  const flatbuffers::String *type() const {
-    return GetPointer<const flatbuffers::String *>(VT_TYPE);
-  }
-  const flatbuffers::Vector<uint8_t> *data() const {
-    return GetPointer<const flatbuffers::Vector<uint8_t> *>(VT_DATA);
-  }
-  bool Verify(flatbuffers::Verifier &verifier) const {
-    return VerifyTableStart(verifier) &&
-           VerifyOffsetRequired(verifier, VT_NAME) &&
-           verifier.VerifyString(name()) &&
-           VerifyOffsetRequired(verifier, VT_TYPE) &&
-           verifier.VerifyString(type()) &&
-           VerifyOffsetRequired(verifier, VT_DATA) &&
-           verifier.VerifyVector(data()) &&
-           verifier.EndTable();
-  }
-};
-
-struct SceneNodeBuilder {
-  flatbuffers::FlatBufferBuilder &fbb_;
-  flatbuffers::uoffset_t start_;
-  void add_name(flatbuffers::Offset<flatbuffers::String> name) {
-    fbb_.AddOffset(SceneNode::VT_NAME, name);
-  }
-  void add_type(flatbuffers::Offset<flatbuffers::String> type) {
-    fbb_.AddOffset(SceneNode::VT_TYPE, type);
-  }
-  void add_data(flatbuffers::Offset<flatbuffers::Vector<uint8_t>> data) {
-    fbb_.AddOffset(SceneNode::VT_DATA, data);
-  }
-  explicit SceneNodeBuilder(flatbuffers::FlatBufferBuilder &_fbb)
-        : fbb_(_fbb) {
-    start_ = fbb_.StartTable();
-  }
-  SceneNodeBuilder &operator=(const SceneNodeBuilder &);
-  flatbuffers::Offset<SceneNode> Finish() {
-    const auto end = fbb_.EndTable(start_);
-    auto o = flatbuffers::Offset<SceneNode>(end);
-    fbb_.Required(o, SceneNode::VT_NAME);
-    fbb_.Required(o, SceneNode::VT_TYPE);
-    fbb_.Required(o, SceneNode::VT_DATA);
-    return o;
-  }
-};
-
-inline flatbuffers::Offset<SceneNode> CreateSceneNode(
-    flatbuffers::FlatBufferBuilder &_fbb,
-    flatbuffers::Offset<flatbuffers::String> name = 0,
-    flatbuffers::Offset<flatbuffers::String> type = 0,
-    flatbuffers::Offset<flatbuffers::Vector<uint8_t>> data = 0) {
-  SceneNodeBuilder builder_(_fbb);
-  builder_.add_data(data);
-  builder_.add_type(type);
-  builder_.add_name(name);
-  return builder_.Finish();
-}
-
-inline flatbuffers::Offset<SceneNode> CreateSceneNodeDirect(
-    flatbuffers::FlatBufferBuilder &_fbb,
-    const char *name = nullptr,
-    const char *type = nullptr,
-    const std::vector<uint8_t> *data = nullptr) {
-  auto name__ = name ? _fbb.CreateString(name) : 0;
-  auto type__ = type ? _fbb.CreateString(type) : 0;
-  auto data__ = data ? _fbb.CreateVector<uint8_t>(*data) : 0;
-  return DeepSeaScene::CreateSceneNode(
-      _fbb,
-      name__,
-      type__,
-      data__);
 }
 
 struct SceneResources FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
