@@ -10,7 +10,7 @@ endif()
 set(shaderConfigs)
 set(source TestScene.c LightData.c LightData.h TestScene.msl)
 if (TARGET deepsea_render_opengl)
-	list(APPEND shaderConfigs glsl-1.1 glsl-1.5 glsl-es-1.0)
+	list(APPEND shaderConfigs glsl-1.1 glsl-1.5 glsl-es-1.0 glsl-es-3.0)
 endif()
 if (TARGET deepsea_render_vulkan)
 	list(APPEND shaderConfigs spirv-1.0)
@@ -27,6 +27,11 @@ ds_add_executable(deepsea_test_scene_app WIN32 ${source})
 target_link_libraries(deepsea_test_scene_app PRIVATE
 	deepsea_render_bootstrap deepsea_scene deepsea_application_sdl)
 ds_link_main_lib(deepsea_test_scene_app deepsea_application_sdl_main)
+
+if (TARGET deepsea_easy_profiler)
+	target_link_libraries(deepsea_test_scene_app PRIVATE deepsea_easy_profiler)
+	target_compile_definitions(deepsea_test_scene_app PRIVATE DS_HAS_EASY_PROFILER=1)
+endif()
 
 # Cannot use generator expressions for the custom commands.
 set(shaderDir ${CMAKE_CURRENT_BINARY_DIR}/shaders)

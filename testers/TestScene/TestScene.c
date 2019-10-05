@@ -62,6 +62,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#if DS_HAS_EASY_PROFILER
+#include <DeepSea/EasyProfiler/EasyProfiler.h>
+#endif
+
 typedef struct TestScene
 {
 	dsAllocator* allocator;
@@ -908,6 +912,11 @@ static void shutdown(TestScene* testScene)
 
 int dsMain(int argc, const char** argv)
 {
+#if DS_HAS_EASY_PROFILER
+	dsEasyProfiler_start();
+	dsEasyProfiler_startListening(DS_DEFAULT_EASY_PROFILER_PORT);
+#endif
+
 	dsRendererType rendererType = dsRendererType_Default;
 	for (int i = 1; i < argc; ++i)
 	{
@@ -975,7 +984,8 @@ int dsMain(int argc, const char** argv)
 		{DS_MTL_RENDERER_ID, DS_ENCODE_VERSION(1, 1, 0)},
 		{DS_GL_RENDERER_ID, DS_ENCODE_VERSION(1, 1, 0)},
 		{DS_GL_RENDERER_ID, DS_ENCODE_VERSION(1, 5, 0)},
-		{DS_GLES_RENDERER_ID, DS_ENCODE_VERSION(1, 0, 0)}
+		{DS_GLES_RENDERER_ID, DS_ENCODE_VERSION(1, 0, 0)},
+		{DS_GLES_RENDERER_ID, DS_ENCODE_VERSION(3, 0, 0)}
 	};
 	DS_VERIFY(dsRenderer_shaderVersionToString(shaderDir, DS_ARRAY_SIZE(shaderDir), renderer,
 		dsRenderer_chooseShaderVersion(renderer, shaderVersions, DS_ARRAY_SIZE(shaderVersions))));
