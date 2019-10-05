@@ -195,7 +195,7 @@ dsRenderPass* dsVkRenderPass_create(dsRenderer* renderer, dsAllocator* allocator
 			vkDependency->srcStageMask =
 				dsVkPipelineStageFlags(renderer, curDependency->srcStages, true);
 			vkDependency->dstStageMask =
-				dsVkPipelineStageFlags(renderer, curDependency->dstStages, true);
+				dsVkPipelineStageFlags(renderer, curDependency->dstStages, false);
 			vkDependency->srcAccessMask = dsVkAccessFlags(curDependency->srcAccess);
 			vkDependency->dstAccessMask = dsVkAccessFlags(curDependency->dstAccess);
 

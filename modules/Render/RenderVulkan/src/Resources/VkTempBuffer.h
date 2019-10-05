@@ -21,6 +21,5 @@
 dsVkTempBuffer* dsVkTempBuffer_create(dsAllocator* allocator, dsVkDevice* device, size_t size);
 void* dsVkTempBuffer_allocate(size_t* outOffset, dsVkTempBuffer* buffer, size_t size,
 	uint32_t alignment);
-void dsVkTempBuffer_flush(dsVkTempBuffer* buffer, size_t offset, size_t size);
 bool dsVkTempBuffer_reset(dsVkTempBuffer* buffer, uint64_t finishedSubmitCount);
 void dsVkTempBuffer_destroy(dsVkTempBuffer* buffer);

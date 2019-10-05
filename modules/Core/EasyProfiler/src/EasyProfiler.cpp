@@ -337,7 +337,7 @@ void gpuValue(void*, const char* category, const char* name, uint64_t timeNs)
 extern "C"
 {
 
-bool dsEasyProfiler_start(void)
+bool dsEasyProfiler_start(bool beginCapture)
 {
 	const dsProfileFunctions* curFunctions = dsProfile_getFunctions();
 	if (curFunctions->pushFunc)
@@ -354,7 +354,8 @@ bool dsEasyProfiler_start(void)
 	dsProfile_setFunctions(NULL, &functions);
 
 	EASY_MAIN_THREAD;
-	profiler::startCapture();
+	if (beginCapture)
+		profiler::startCapture();
 	return true;
 }
 
@@ -395,7 +396,7 @@ bool dsEasyProfiler_dumpToFile(const char* filePath)
 extern "C"
 {
 
-bool dsEasyProfiler_start(void)
+bool dsEasyProfiler_start(bool)
 {
 	errno = EPERM;
 	return false;

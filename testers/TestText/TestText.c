@@ -1244,7 +1244,7 @@ static void shutdown(TestText* testText)
 int dsMain(int argc, const char** argv)
 {
 #if DS_HAS_EASY_PROFILER
-	dsEasyProfiler_start();
+	dsEasyProfiler_start(true);
 	dsEasyProfiler_startListening(DS_DEFAULT_EASY_PROFILER_PORT);
 #endif
 

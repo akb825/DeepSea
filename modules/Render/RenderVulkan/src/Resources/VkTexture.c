@@ -712,7 +712,6 @@ bool dsVkTexture_copyData(dsResourceManager* resourceManager, dsCommandBuffer* c
 		return false;
 
 	memcpy(tempData, data, size);
-	dsVkCommandBuffer_flushTempData(commandBuffer, offset, size);
 
 	dsVkRenderer_processTexture(renderer, texture);
 

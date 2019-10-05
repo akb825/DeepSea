@@ -41,9 +41,11 @@ extern "C"
 /**
  * @brief Starts profiling through easy_profiler.
  * @remark errno will be set on failure.
+ * @param beginCapture True to immediately begin capturing. This will allow profiling startup, but
+ *     may cause a large amount of builtup memory usage over time if EasyProfiler isn't connected.
  * @return False if an error occurred.
  */
-DS_EASYPROFILER_EXPORT bool dsEasyProfiler_start(void);
+DS_EASYPROFILER_EXPORT bool dsEasyProfiler_start(bool beginCapture);
 
 /**
  * @brief Stops profiling through easy_profiler.

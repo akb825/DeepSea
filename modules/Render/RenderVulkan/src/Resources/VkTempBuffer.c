@@ -62,7 +62,7 @@ dsVkTempBuffer* dsVkTempBuffer_create(dsAllocator* allocator, dsVkDevice* device
 	VkMemoryRequirements memoryRequirements;
 	DS_VK_CALL(device->vkGetBufferMemoryRequirements)(device->device, buffer->buffer,
 		&memoryRequirements);
-	uint32_t memoryIndex = dsVkMemoryIndex(device, &memoryRequirements, 0);
+	uint32_t memoryIndex = dsVkMemoryIndex(device, &memoryRequirements, dsGfxMemory_Coherent);
 	if (memoryIndex == DS_INVALID_HEAP)
 	{
 		dsVkTempBuffer_destroy(buffer);
@@ -75,8 +75,6 @@ dsVkTempBuffer* dsVkTempBuffer_create(dsAllocator* allocator, dsVkDevice* device
 		dsVkTempBuffer_destroy(buffer);
 		return NULL;
 	}
-
-	buffer->coherent = dsVkHeapIsCoherent(device, memoryIndex);
 
 	result = DS_VK_CALL(device->vkMapMemory)(
 		device->device, buffer->memory, 0, VK_WHOLE_SIZE, 0, (void**)&buffer->contents);
@@ -113,23 +111,6 @@ void* dsVkTempBuffer_allocate(size_t* outOffset, dsVkTempBuffer* buffer, size_t 
 	buffer->size = offset + size;
 	*outOffset = offset;
 	return buffer->contents + offset;
-}
-
-void dsVkTempBuffer_flush(dsVkTempBuffer* buffer, size_t offset, size_t size)
-{
-	if (buffer->coherent)
-		return;
-
-	dsVkDevice* device = buffer->device;
-	size = DS_CUSTOM_ALIGNED_SIZE(size, (uint32_t)device->properties.limits.nonCoherentAtomSize);
-	VkMappedMemoryRange range =
-	{
-		VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE,
-		NULL,
-		buffer->memory,
-		offset, size
-	};
-	DS_VK_CALL(device->vkFlushMappedMemoryRanges)(device->device, 1, &range);
 }
 
 bool dsVkTempBuffer_reset(dsVkTempBuffer* buffer, uint64_t finishedSubmit)

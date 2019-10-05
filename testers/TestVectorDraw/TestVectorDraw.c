@@ -547,7 +547,7 @@ static void shutdown(TestVectorDraw* testVectorDraw)
 int dsMain(int argc, const char** argv)
 {
 #if DS_HAS_EASY_PROFILER
-	dsEasyProfiler_start();
+	dsEasyProfiler_start(false);
 	dsEasyProfiler_startListening(DS_DEFAULT_EASY_PROFILER_PORT);
 #endif
 

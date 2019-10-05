@@ -913,7 +913,7 @@ static void shutdown(TestScene* testScene)
 int dsMain(int argc, const char** argv)
 {
 #if DS_HAS_EASY_PROFILER
-	dsEasyProfiler_start();
+	dsEasyProfiler_start(false);
 	dsEasyProfiler_startListening(DS_DEFAULT_EASY_PROFILER_PORT);
 #endif
 
@@ -972,7 +972,7 @@ int dsMain(int argc, const char** argv)
 		return 2;
 	}
 
-	dsRenderer_setVsync(renderer, true);
+	//dsRenderer_setVsync(renderer, true);
 	dsRenderer_setDefaultAnisotropy(renderer, renderer->maxAnisotropy);
 #if DS_DEBUG
 	dsRenderer_setExtraDebugging(renderer, true);

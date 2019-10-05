@@ -65,13 +65,17 @@ void dsInstanceTransformData_populateData(void* userData, const dsView* view,
 	for (uint32_t i = 0, offset = 0; i < instanceCount; ++i, offset += stride)
 	{
 		const dsSceneInstanceInfo* instance = instances + i;
-		InstanceTransform* transform = (InstanceTransform*)(data + offset);
-		transform->world = instance->transform;
+		// The GPU memory can have some bad properties when accessing from the CPU, so first do all
+		// work on CPU memory and copy as one to the GPU buffer.
+		InstanceTransform transform;
+		transform.world = instance->transform;
 		dsMatrix44f inverseWorld;
-		dsMatrix44f_affineInvert(&inverseWorld, &transform->world);
-		dsMatrix44_transpose(transform->worldInvTrans, inverseWorld);
-		dsMatrix44_affineMul(transform->worldView, view->viewMatrix, instance->transform);
-		dsMatrix44_mul(transform->worldViewProj, view->projectionMatrix, transform->worldView);
+		dsMatrix44f_affineInvert(&inverseWorld, &transform.world);
+		dsMatrix44_transpose(transform.worldInvTrans, inverseWorld);
+		dsMatrix44_affineMul(transform.worldView, view->viewMatrix, instance->transform);
+		dsMatrix44_mul(transform.worldViewProj, view->projectionMatrix, transform.worldView);
+
+		*(InstanceTransform*)(data + offset) = transform;
 	}
 }
 

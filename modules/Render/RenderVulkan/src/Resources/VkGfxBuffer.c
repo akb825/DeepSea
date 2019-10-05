@@ -35,6 +35,129 @@
 #include <DeepSea/Render/Resources/GfxFormat.h>
 #include <string.h>
 
+static bool copyDataCommandBuffer(dsCommandBuffer* commandBuffer, dsGfxBuffer* buffer,
+	size_t offset, const void* data, size_t size)
+{
+	dsRenderer* renderer = commandBuffer->renderer;
+	dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
+	dsVkDevice* device = &vkRenderer->device;
+
+	VkCommandBuffer vkCommandBuffer = dsVkCommandBuffer_getCommandBuffer(commandBuffer);
+	if (!vkCommandBuffer)
+		return false;
+
+	dsVkGfxBufferData* bufferData = dsVkGfxBuffer_getData(buffer, commandBuffer);
+	if (!bufferData)
+		return false;
+
+	dsVkRenderer_processGfxBuffer(renderer, bufferData);
+	VkBuffer dstBuffer = dsVkGfxBufferData_getBuffer(bufferData);
+
+	bool canMapMainBuffer = dsVkGfxBufferData_canMapMainBuffer(bufferData);
+	VkBufferMemoryBarrier barrier =
+	{
+		VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER,
+		NULL,
+		dsVkReadBufferAccessFlags(buffer->usage) |
+			dsVkWriteBufferAccessFlags(bufferData->usage, canMapMainBuffer),
+		VK_ACCESS_TRANSFER_WRITE_BIT,
+		VK_QUEUE_FAMILY_IGNORED,
+		VK_QUEUE_FAMILY_IGNORED,
+		dstBuffer,
+		offset,
+		size
+	};
+	VkPipelineStageFlags stages = dsVkReadBufferStageFlags(renderer, buffer->usage) |
+		dsVkWriteBufferStageFlags(renderer, bufferData->usage, canMapMainBuffer);
+	DS_VK_CALL(device->vkCmdPipelineBarrier)(vkCommandBuffer, stages,
+		VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, NULL, 1, &barrier, 0, NULL);
+
+	DS_VK_CALL(device->vkCmdUpdateBuffer)(vkCommandBuffer, dstBuffer, offset, size, data);
+
+	barrier.dstAccessMask = barrier.srcAccessMask;
+	barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+	DS_VK_CALL(device->vkCmdPipelineBarrier)(vkCommandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT,
+		stages, 0, 0, NULL, 1, &barrier, 0, NULL);
+	return true;
+}
+
+static bool copyDataTempBuffer(dsCommandBuffer* commandBuffer, dsGfxBuffer* buffer,
+	size_t offset, const void* data, size_t size)
+{
+	dsRenderer* renderer = commandBuffer->renderer;
+	dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
+	dsVkDevice* device = &vkRenderer->device;
+
+	VkCommandBuffer vkCommandBuffer = dsVkCommandBuffer_getCommandBuffer(commandBuffer);
+	if (!vkCommandBuffer)
+		return false;
+
+	dsVkGfxBufferData* bufferData = dsVkGfxBuffer_getData(buffer, commandBuffer);
+	if (!bufferData)
+		return false;
+
+	// You would expect vkCmdUpdateBuffer() to be the proper function to call. However, some drivers
+	// (*cough* Qualcomm *cough*) take an obscenely large amount of time to copy even a trivial
+	// amount of data. (WHY does it take 1/3 ms to copy 200 bytes?) So do the copy ourselves.
+	size_t tempOffset = 0;
+	VkBuffer tempBuffer = 0;
+	void* tempData =
+		dsVkCommandBuffer_getTempData(&tempOffset, &tempBuffer, commandBuffer, size, 4);
+	if (!tempData)
+		return false;
+
+	memcpy(tempData, data, size);
+
+	dsVkRenderer_processGfxBuffer(renderer, bufferData);
+	VkBuffer dstBuffer = dsVkGfxBufferData_getBuffer(bufferData);
+
+	bool canMapMainBuffer = dsVkGfxBufferData_canMapMainBuffer(bufferData);
+	VkBufferMemoryBarrier barriers[] =
+	{
+		{
+			VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER,
+			NULL,
+			dsVkReadBufferAccessFlags(buffer->usage) |
+				dsVkWriteBufferAccessFlags(bufferData->usage, canMapMainBuffer),
+			VK_ACCESS_TRANSFER_WRITE_BIT,
+			VK_QUEUE_FAMILY_IGNORED,
+			VK_QUEUE_FAMILY_IGNORED,
+			dstBuffer,
+			offset,
+			size
+		},
+	{
+		VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER,
+		NULL,
+		VK_ACCESS_HOST_WRITE_BIT,
+		VK_ACCESS_TRANSFER_WRITE_BIT,
+		VK_QUEUE_FAMILY_IGNORED,
+		VK_QUEUE_FAMILY_IGNORED,
+		tempBuffer,
+		tempOffset,
+		size
+	}
+	};
+	VkPipelineStageFlags stages = dsVkReadBufferStageFlags(renderer, buffer->usage) |
+		dsVkWriteBufferStageFlags(renderer, bufferData->usage, canMapMainBuffer);
+	DS_VK_CALL(device->vkCmdPipelineBarrier)(vkCommandBuffer, stages,
+		VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, NULL, 2, barriers, 0, NULL);
+
+	VkBufferCopy copy =
+	{
+		tempOffset,
+		offset,
+		size
+	};
+	DS_VK_CALL(device->vkCmdCopyBuffer)(vkCommandBuffer, tempBuffer, dstBuffer, 1, &copy);
+
+	barriers[0].dstAccessMask = barriers[0].srcAccessMask;
+	barriers[0].srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+	DS_VK_CALL(device->vkCmdPipelineBarrier)(vkCommandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT,
+		stages, 0, 0, NULL, 1, barriers, 0, NULL);
+	return true;
+}
+
 static bool addCopyToImageBarriers(dsCommandBuffer* commandBuffer,
 	const dsGfxBufferTextureCopyRegion* regions, uint32_t regionCount,
 	dsVkGfxBufferData* srcBufferData, bool srcCanMap, dsTexture* dstTexture,
@@ -433,52 +556,12 @@ bool dsVkGfxBuffer_copyData(dsResourceManager* resourceManager, dsCommandBuffer*
 	dsGfxBuffer* buffer, size_t offset, const void* data, size_t size)
 {
 	dsRenderer* renderer = resourceManager->renderer;
-	dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
-	dsVkDevice* device = &vkRenderer->device;
-
-	VkCommandBuffer vkCommandBuffer = dsVkCommandBuffer_getCommandBuffer(commandBuffer);
-	if (!vkCommandBuffer)
-		return false;
-
-	dsVkGfxBufferData* bufferData = dsVkGfxBuffer_getData(buffer, commandBuffer);
-	if (!bufferData)
-		return false;
-
-	dsVkRenderer_processGfxBuffer(renderer, bufferData);
-	VkBuffer dstBuffer = dsVkGfxBufferData_getBuffer(bufferData);
-
-	bool canMapMainBuffer = dsVkGfxBufferData_canMapMainBuffer(bufferData);
-	VkBufferMemoryBarrier barrier =
-	{
-		VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER,
-		NULL,
-		dsVkReadBufferAccessFlags(buffer->usage) |
-			dsVkWriteBufferAccessFlags(bufferData->usage, canMapMainBuffer),
-		VK_ACCESS_TRANSFER_WRITE_BIT,
-		VK_QUEUE_FAMILY_IGNORED,
-		VK_QUEUE_FAMILY_IGNORED,
-		dstBuffer,
-		offset,
-		size
-	};
-	VkPipelineStageFlags stages = dsVkReadBufferStageFlags(renderer, buffer->usage) |
-		dsVkWriteBufferStageFlags(renderer, bufferData->usage, canMapMainBuffer);
-	DS_VK_CALL(device->vkCmdPipelineBarrier)(vkCommandBuffer, stages,
-		VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, NULL, 1, &barrier, 0, NULL);
-
-	const size_t maxSize = 65536;
-	for (size_t block = 0; block < size; block += maxSize)
-	{
-		size_t copySize = dsMin(maxSize, size - block);
-		DS_VK_CALL(device->vkCmdUpdateBuffer)(vkCommandBuffer, dstBuffer, offset + block, copySize,
-			(const uint8_t*)data + block);
-	}
-
-	barrier.dstAccessMask = barrier.srcAccessMask;
-	barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-	DS_VK_CALL(device->vkCmdPipelineBarrier)(vkCommandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT,
-		stages, 0, 0, NULL, 1, &barrier, 0, NULL);
-	return true;
+	const size_t maxCommandBufferSize = 65536;
+	// NOTE: Qualcomm's driver is obscenely slow with vkCmdUpdateBuffer().
+	if (size > maxCommandBufferSize || renderer->vendorID == DS_VENDOR_ID_QUALCOMM)
+		return copyDataTempBuffer(commandBuffer, buffer, offset, data, size);
+	else
+		return copyDataCommandBuffer(commandBuffer, buffer, offset, data, size);
 }
 
 bool dsVkGfxBuffer_copy(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,

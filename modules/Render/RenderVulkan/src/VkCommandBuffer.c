@@ -943,15 +943,6 @@ void* dsVkCommandBuffer_getTempData(size_t* outOffset, VkBuffer* outBuffer,
 	return dsVkTempBuffer_allocate(outOffset, buffer, size, alignment);
 }
 
-void dsVkCommandBuffer_flushTempData(dsCommandBuffer* commandBuffer, size_t offset, size_t size)
-{
-	commandBuffer = dsVkCommandBuffer_get(commandBuffer);
-	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
-	DS_ASSERT(vkCommandBuffer->curTempBuffer);
-	DS_ASSERT(offset + size == vkCommandBuffer->curTempBuffer->size);
-	dsVkTempBuffer_flush(vkCommandBuffer->curTempBuffer, offset, size);
-}
-
 VkImageMemoryBarrier* dsVkCommandBuffer_addImageBarrier(dsCommandBuffer* commandBuffer)
 {
 	commandBuffer = dsVkCommandBuffer_get(commandBuffer);
