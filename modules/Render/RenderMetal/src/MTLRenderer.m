@@ -1066,6 +1066,9 @@ dsGfxFenceResult dsMTLRenderer_waitForSubmit(const dsRenderer* renderer, uint64_
 	unsigned int milliseconds)
 {
 	const dsMTLRenderer* mtlRenderer = (const dsMTLRenderer*)renderer;
+	if (dsMTLRenderer_getFinishedSubmitCount(renderer) >= submitCount)
+		return dsGfxFenceResult_Success;
+
 	DS_VERIFY(dsMutex_lock(mtlRenderer->submitMutex));
 	if (mtlRenderer->submitCount <= submitCount)
 	{

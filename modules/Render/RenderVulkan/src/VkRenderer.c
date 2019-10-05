@@ -2293,15 +2293,14 @@ dsGfxFenceResult dsVkRenderer_waitForSubmit(dsRenderer* renderer, uint64_t submi
 	uint32_t fenceCount = 0;
 
 	dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
-	DS_VERIFY(dsMutex_lock(vkRenderer->submitLock));
-
-	if (vkRenderer->finishedSubmitCount >= submitCount)
+	if (dsVkRenderer_getFinishedSubmitCount(renderer) >= submitCount)
 	{
 		// Already synchronized to this submit.
-		DS_VERIFY(dsMutex_unlock(vkRenderer->submitLock));
 		return dsGfxFenceResult_Success;
 	}
-	else if (vkRenderer->submitCount <= submitCount)
+
+	DS_VERIFY(dsMutex_lock(vkRenderer->submitLock));
+	if (vkRenderer->submitCount <= submitCount)
 	{
 		// Haven't submitted this yet to Vulkan.
 		DS_VERIFY(dsMutex_unlock(vkRenderer->submitLock));
