@@ -15,6 +15,8 @@
  */
 
 #include "Resources/VkPipeline.h"
+
+#include "Resources/VkDrawGeometry.h"
 #include "Resources/VkResource.h"
 #include "Resources/VkResourceManager.h"
 #include "VkRenderPass.h"
@@ -29,17 +31,31 @@
 #include <DeepSea/Math/Core.h>
 #include <string.h>
 
-uint32_t dsVkPipeline_hash(uint32_t samples, float defaultAnisotropy,
-	dsPrimitiveType primitiveType, uint32_t vertexFormatHash, const dsRenderPass* renderPass,
+#if DS_64BIT
+DS_STATIC_ASSERT(sizeof(dsVkPipelineKey) == sizeof(void*)*4, unexpected_sizeof_dsVkPipelineKey);
+#else
+DS_STATIC_ASSERT(sizeof(dsVkPipelineKey) == sizeof(void*)*6, unexpected_sizeof_dsVkPipelineKey);
+#endif
+
+void dsVkPipeline_initializeKey(dsVkPipelineKey* outKey, uint32_t samples, float defaultAnisotropy,
+	dsPrimitiveType primitiveType, const dsDrawGeometry* geometry, const dsRenderPass* renderPass,
 	uint32_t subpass)
 {
-	uint32_t hash = dsHash32(&samples);
-	hash = dsHashCombineFloat(hash, &defaultAnisotropy);
-	uint32_t primitiveType32 = primitiveType;
-	hash = dsHashCombine32(hash, &primitiveType32);
-	hash = dsHashCombine(hash, vertexFormatHash);
-	hash = dsHashCombinePointer(hash, renderPass);
-	return dsHashCombine32(hash, &subpass);
+	outKey->samples = samples;
+	outKey->defaultAnisotropy = defaultAnisotropy;
+	outKey->primitiveType = primitiveType;
+	outKey->vertexFormatHash = ((const dsVkDrawGeometry*)geometry)->vertexHash;
+	outKey->renderPass = renderPass;
+#if DS_64BIT
+	// Set padding so hash and memcpy are consistent.
+	outKey->padding = 0;
+#endif
+	outKey->subpass = subpass;
+}
+
+uint32_t dsVkPipeline_hash(const dsVkPipelineKey* key)
+{
+	return dsHashBytes(key, sizeof(*key));
 }
 
 dsVkPipeline* dsVkPipeline_create(dsAllocator* allocator, dsShader* shader,
@@ -63,16 +79,14 @@ dsVkPipeline* dsVkPipeline_create(dsAllocator* allocator, dsShader* shader,
 	pipeline->device = device;
 	pipeline->pipeline = 0;
 	pipeline->hash = hash;
-	pipeline->samples = samples;
-	pipeline->defaultAnisotropy = defaultAnisotropy;
-	pipeline->primitiveType = primitiveType;
+	dsVkPipeline_initializeKey(&pipeline->key, samples, defaultAnisotropy, primitiveType,
+		geometry, renderPass, subpass);
 	for (uint32_t i = 0; i < DS_MAX_GEOMETRY_VERTEX_BUFFERS; ++i)
 	{
 		memcpy(pipeline->formats + i, &geometry->vertexBuffers[i].format,
 			sizeof(dsVertexFormat));
 	}
 	pipeline->renderPass = dsLifetime_addRef(renderPassData->lifetime);
-	pipeline->subpass = subpass;
 
 	uint32_t stageCount = 0;
 	VkPipelineShaderStageCreateInfo stages[mslStage_Count];
@@ -193,30 +207,16 @@ dsVkPipeline* dsVkPipeline_create(dsAllocator* allocator, dsShader* shader,
 	return pipeline;
 }
 
-bool dsVkPipeline_isEquivalent(const dsVkPipeline* pipeline, uint32_t hash, uint32_t samples,
-	float defaultAnisotropy, dsPrimitiveType primitiveType, const dsDrawGeometry* geometry,
-	const dsVkRenderPassData* renderPassData, uint32_t subpass)
+bool dsVkPipeline_isEquivalent(const dsVkPipeline* pipeline, uint32_t hash,
+	const dsVkPipelineKey* key, const dsDrawGeometry* geometry)
 {
 	if (pipeline->hash != hash)
 		return false;
 
-	if (pipeline->samples != samples || pipeline->defaultAnisotropy != defaultAnisotropy ||
-		pipeline->primitiveType != primitiveType || pipeline->subpass != subpass ||
-		pipeline->renderPass != renderPassData->lifetime)
-	{
+	if (memcmp(&pipeline->key, key, sizeof(dsVkPipelineKey)) != 0)
 		return false;
-	}
 
-	for (uint32_t i = 0; i < DS_MAX_GEOMETRY_VERTEX_BUFFERS; ++i)
-	{
-		if (memcmp(pipeline->formats + i, &geometry->vertexBuffers[i].format,
-				sizeof(dsVertexFormat)) != 0)
-		{
-			return false;
-		}
-	}
-
-	return true;
+	return dsVkDrawGeometry_equivalentVertexFormats(geometry, pipeline->formats);
 }
 
 void dsVkPipeline_destroy(dsVkPipeline* pipeline)

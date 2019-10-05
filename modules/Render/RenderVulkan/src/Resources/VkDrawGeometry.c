@@ -61,3 +61,18 @@ bool dsVkDrawGeometry_destroy(dsResourceManager* resourceManager, dsDrawGeometry
 		DS_VERIFY(dsAllocator_free(geometry->allocator, geometry));
 	return true;
 }
+
+bool dsVkDrawGeometry_equivalentVertexFormats(const dsDrawGeometry* geometry,
+	const dsVertexFormat formats[DS_MAX_GEOMETRY_VERTEX_BUFFERS])
+{
+	for (unsigned int i = 0; i < DS_MAX_GEOMETRY_VERTEX_BUFFERS; ++i)
+	{
+		if (geometry->vertexBuffers[i].buffer &&
+			memcmp(&geometry->vertexBuffers[i].format, formats + i, sizeof(dsVertexFormat)) != 0)
+		{
+			return false;
+		}
+	}
+
+	return true;
+}

@@ -19,14 +19,14 @@
 #include <DeepSea/Core/Config.h>
 #include "VkTypes.h"
 
-uint32_t dsVkPipeline_hash(uint32_t samples, float defaultAnisotropy,
-	dsPrimitiveType primitiveType, uint32_t vertexFormatHash, const dsRenderPass* renderPass,
+void dsVkPipeline_initializeKey(dsVkPipelineKey* outKey, uint32_t samples, float defaultAnisotropy,
+	dsPrimitiveType primitiveType, const dsDrawGeometry* geometry, const dsRenderPass* renderPass,
 	uint32_t subpass);
+uint32_t dsVkPipeline_hash(const dsVkPipelineKey* key);
 dsVkPipeline* dsVkPipeline_create(dsAllocator* allocator, dsShader* shader,
 	VkPipeline existingPipeline, uint32_t hash, uint32_t samples, float defaultAnisotropy,
 	dsPrimitiveType primitiveType, const dsDrawGeometry* geometry, const dsRenderPass* renderPass,
 	uint32_t subpass);
 bool dsVkPipeline_isEquivalent(const dsVkPipeline* pipeline, uint32_t hash,
-	uint32_t samples, float defaultAnisotropy, dsPrimitiveType primitiveType,
-	const dsDrawGeometry* geometry, const dsVkRenderPassData* renderPassData, uint32_t subpass);
+	const dsVkPipelineKey* key, const dsDrawGeometry* geometry);
 void dsVkPipeline_destroy(dsVkPipeline* pipeline);

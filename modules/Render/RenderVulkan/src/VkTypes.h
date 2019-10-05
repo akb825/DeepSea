@@ -528,6 +528,19 @@ typedef struct dsVkComputePipeline
 	VkPipeline pipeline;
 } dsVkComputePipeline;
 
+typedef struct dsVkPipelineKey
+{
+	uint32_t samples;
+	float defaultAnisotropy;
+	dsPrimitiveType primitiveType;
+	uint32_t vertexFormatHash;
+	uint32_t subpass;
+#if DS_64BIT
+	uint32_t padding;
+#endif
+	const dsRenderPass* renderPass;
+} dsVkPipelineKey;
+
 typedef struct dsVkPipeline
 {
 	dsAllocator* allocator;
@@ -537,10 +550,7 @@ typedef struct dsVkPipeline
 	VkPipeline pipeline;
 
 	uint32_t hash;
-	uint32_t samples;
-	float defaultAnisotropy;
-	uint32_t subpass;
-	dsPrimitiveType primitiveType;
+	dsVkPipelineKey key;
 	dsVertexFormat formats[DS_MAX_GEOMETRY_VERTEX_BUFFERS];
 	dsLifetime* renderPass;
 } dsVkPipeline;
@@ -934,6 +944,10 @@ struct dsVkCommandBuffer
 	VkFramebuffer activeFramebuffer;
 	VkRect2D renderArea;
 	dsVector2f depthRange;
+	dsPrimitiveType activePrimitiveType;
+	dsVertexFormat activeVertexFormats[DS_MAX_GEOMETRY_VERTEX_BUFFERS];
+	const dsShader* activeShader;
+	const dsShader* activeComputeShader;
 	VkPipeline activePipeline;
 	VkPipeline activeComputePipeline;
 	VkDescriptorSet activeDescriptorSets[2][3];

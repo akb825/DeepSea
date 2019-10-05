@@ -19,6 +19,7 @@
 
 #include "Platform/VkPlatform.h"
 #include "Resources/VkComputePipeline.h"
+#include "Resources/VkDrawGeometry.h"
 #include "Resources/VkFramebuffer.h"
 #include "Resources/VkGfxBuffer.h"
 #include "Resources/VkGfxBufferData.h"
@@ -1017,12 +1018,26 @@ static bool beginDraw(dsCommandBuffer* commandBuffer, VkCommandBuffer submitBuff
 	dsVkDevice* device = &((dsVkRenderer*)commandBuffer->renderer)->device;
 	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)dsVkCommandBuffer_get(commandBuffer);
 
-	VkPipeline pipeline = dsVkShader_getPipeline((dsShader*)commandBuffer->boundShader,
-		commandBuffer, primitiveType, geometry);
-	if (!pipeline)
-		return false;
+	// NOTE: If there are collisions with vertex hashes, then the full vertex formats need to be
+	// stored in the CommandBuffer since there's no guarantee that the dsDrawGeometry object is
+	// still active.
+	if (!vkCommandBuffer->activePipeline ||
+		vkCommandBuffer->activeShader != commandBuffer->boundShader ||
+		(vkCommandBuffer->activeVertexGeometry != geometry &&
+			!dsVkDrawGeometry_equivalentVertexFormats(geometry,
+				vkCommandBuffer->activeVertexFormats)))
+	{
+		VkPipeline pipeline = dsVkShader_getPipeline((dsShader*)commandBuffer->boundShader,
+			commandBuffer, primitiveType, geometry);
+		if (!pipeline)
+			return false;
 
-	dsVkCommandBuffer_bindPipeline(commandBuffer, submitBuffer, pipeline);
+		dsVkCommandBuffer_bindPipeline(commandBuffer, submitBuffer, pipeline);
+		vkCommandBuffer->activeShader = commandBuffer->boundShader;
+		vkCommandBuffer->activePrimitiveType = primitiveType;
+		for (unsigned int i = 0; i < DS_MAX_GEOMETRY_VERTEX_BUFFERS; ++i)
+			vkCommandBuffer->activeVertexFormats[i] = geometry->vertexBuffers[i].format;
+	}
 
 	if (vkCommandBuffer->activeVertexGeometry == geometry)
 		return true;
@@ -1098,12 +1113,18 @@ static bool beginIndexedDraw(dsCommandBuffer* commandBuffer, VkCommandBuffer sub
 static bool beginDispatch(dsRenderer* renderer, VkCommandBuffer submitBuffer,
 	dsCommandBuffer* commandBuffer)
 {
-	VkPipeline pipeline = dsVkShader_getComputePipeline(
-		(dsShader*)commandBuffer->boundComputeShader, commandBuffer);
-	if (!pipeline)
-		return false;
+	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)dsVkCommandBuffer_get(commandBuffer);
+	if (!vkCommandBuffer->activeComputeShader ||
+		vkCommandBuffer->activeComputeShader != commandBuffer->boundComputeShader)
+	{
+		VkPipeline pipeline = dsVkShader_getComputePipeline(
+			(dsShader*)commandBuffer->boundComputeShader, commandBuffer);
+		if (!pipeline)
+			return false;
 
-	dsVkCommandBuffer_bindComputePipeline(commandBuffer, submitBuffer, pipeline);
+		dsVkCommandBuffer_bindComputePipeline(commandBuffer, submitBuffer, pipeline);
+		vkCommandBuffer->activeComputeShader = commandBuffer->boundComputeShader;
+	}
 
 	VkPipelineStageFlagBits srcStages = VK_PIPELINE_STAGE_TRANSFER_BIT |
 		VK_PIPELINE_STAGE_HOST_BIT | VK_PIPELINE_STAGE_VERTEX_SHADER_BIT |

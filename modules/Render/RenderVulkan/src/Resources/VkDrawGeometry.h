@@ -23,3 +23,6 @@ dsDrawGeometry* dsVkDrawGeometry_create(dsResourceManager* resourceManager,
 	dsAllocator* allocator, dsVertexBuffer* vertexBuffers[DS_MAX_GEOMETRY_VERTEX_BUFFERS],
 	dsIndexBuffer* indexBuffer);
 bool dsVkDrawGeometry_destroy(dsResourceManager* resourceManager, dsDrawGeometry* geometry);
+
+bool dsVkDrawGeometry_equivalentVertexFormats(const dsDrawGeometry* geometry,
+	const dsVertexFormat formats[DS_MAX_GEOMETRY_VERTEX_BUFFERS]);

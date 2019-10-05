@@ -329,6 +329,7 @@ static bool beginSubpass(dsVkDevice* device, VkCommandBuffer commandBuffer,
 
 static void resetActiveRenderState(dsVkCommandBuffer* commandBuffer)
 {
+	commandBuffer->activeShader = NULL;
 	commandBuffer->activePipeline = 0;
 	commandBuffer->activeVertexGeometry = NULL;
 	commandBuffer->activeIndexBuffer = NULL;
@@ -339,6 +340,7 @@ static void resetActiveRenderState(dsVkCommandBuffer* commandBuffer)
 static void resetActiveRenderAndComputeState(dsVkCommandBuffer* commandBuffer)
 {
 	resetActiveRenderState(commandBuffer);
+	commandBuffer->activeComputeShader = NULL;
 	commandBuffer->activeComputePipeline = 0;
 	memset(commandBuffer->activeDescriptorSets[VK_PIPELINE_BIND_POINT_COMPUTE], 0,
 		sizeof(commandBuffer->activeDescriptorSets[VK_PIPELINE_BIND_POINT_COMPUTE]));

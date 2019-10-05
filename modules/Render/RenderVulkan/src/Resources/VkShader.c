@@ -1497,9 +1497,10 @@ VkPipeline dsVkShader_getPipeline(dsShader* shader, dsCommandBuffer* commandBuff
 	if (!vkShader->samplersHaveDefaultAnisotropy)
 		anisotropy = 1.0f;
 
-	const dsVkDrawGeometry* vkDrawGeometry = (dsVkDrawGeometry*)geometry;
-	uint32_t hash = dsVkPipeline_hash(samples, anisotropy, primitiveType,
-		vkDrawGeometry->vertexHash, renderPass, subpassIndex);
+	dsVkPipelineKey pipelineKey;
+	dsVkPipeline_initializeKey(&pipelineKey, samples, anisotropy, primitiveType, geometry,
+		renderPass, subpassIndex);
+	uint32_t hash = dsVkPipeline_hash(&pipelineKey);
 
 	DS_VERIFY(dsSpinlock_lock(&vkShader->pipelineLock));
 
@@ -1507,8 +1508,7 @@ VkPipeline dsVkShader_getPipeline(dsShader* shader, dsCommandBuffer* commandBuff
 	for (uint32_t i = 0; i < vkShader->pipelineCount; ++i)
 	{
 		dsVkPipeline* pipeline = vkShader->pipelines[i];
-		if (dsVkPipeline_isEquivalent(pipeline, hash, samples, anisotropy,
-			primitiveType, geometry, renderPassData, subpassIndex))
+		if (dsVkPipeline_isEquivalent(pipeline, hash, &pipelineKey, geometry))
 		{
 			VkPipeline vkPipeline = pipeline->pipeline;
 			if (!dsVkCommandBuffer_addResource(commandBuffer, &pipeline->resource))
