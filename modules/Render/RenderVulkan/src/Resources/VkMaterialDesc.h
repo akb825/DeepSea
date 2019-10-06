@@ -23,6 +23,8 @@ dsMaterialDesc* dsVkMaterialDesc_create(dsResourceManager* resourceManager, dsAl
 	const dsMaterialElement* elements, uint32_t elementCount);
 bool dsVkMaterialDesc_destroy(dsResourceManager* resourceManager, dsMaterialDesc* materialDesc);
 
+void dsVkMaterialDesc_initializeBindings(const dsMaterialDesc* materialDesc,
+	dsVkBindingMemory* bindingMemory, dsMaterialBinding binding);
 dsVkMaterialDescriptor* dsVkMaterialDesc_createDescriptor(const dsMaterialDesc* materialDesc,
 	dsAllocator* allocator, dsMaterialBinding binding);
 void dsVkMaterialDesc_freeDescriptor(const dsMaterialDesc* materialDesc,

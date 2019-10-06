@@ -611,6 +611,15 @@ static bool bindUniforms(const dsShader* shader, const dsMaterial* material,
 				id<MTLTexture> texture;
 				id<MTLSamplerState> sampler;
 				getTextureAndSampler(&texture, &sampler, shader, material, sharedValues, info);
+				if (!texture)
+				{
+					errno = EPERM;
+					DS_LOG_ERROR_F(DS_RENDER_METAL_LOG_TAG,
+						"Texture element '%s' is unset when binding to shader '%s'.", element->name,
+						shader->name);
+					return false;
+				}
+
 				if (!dsMTLCommandBuffer_bindTextureUniform(commandBuffer, texture, sampler,
 						vertexIndex, fragmentIndex))
 				{
@@ -623,6 +632,15 @@ static bool bindUniforms(const dsShader* shader, const dsMaterial* material,
 			{
 				id<MTLTexture> texture = getTextureBuffer(shader, material, sharedValues, info,
 					commandBuffer);
+				if (!texture)
+				{
+					errno = EPERM;
+					DS_LOG_ERROR_F(DS_RENDER_METAL_LOG_TAG,
+						"Buffer element '%s' is unset when binding to shader '%s'.", element->name,
+						shader->name);
+					return false;
+				}
+
 				if (!dsMTLCommandBuffer_bindTextureUniform(commandBuffer, texture, nil, vertexIndex,
 						fragmentIndex))
 				{
@@ -635,6 +653,15 @@ static bool bindUniforms(const dsShader* shader, const dsMaterial* material,
 				size_t offset;
 				id<MTLBuffer> buffer = getShaderVariableGroupBuffer(&offset, shader, material,
 					sharedValues, info, commandBuffer);
+				if (buffer)
+				{
+					errno = EPERM;
+					DS_LOG_ERROR_F(DS_RENDER_METAL_LOG_TAG,
+						"Shader variable group element '%s' is unset when binding to shader '%s'.",
+						element->name, shader->name);
+					return false;
+				}
+
 				if (!dsMTLCommandBuffer_bindBufferUniform(commandBuffer, buffer, offset,
 						vertexIndex, fragmentIndex))
 				{
@@ -648,6 +675,15 @@ static bool bindUniforms(const dsShader* shader, const dsMaterial* material,
 				size_t offset;
 				id<MTLBuffer> buffer = getBuffer(&offset, shader, material, sharedValues, info,
 					commandBuffer);
+				if (!buffer)
+				{
+					errno = EPERM;
+					DS_LOG_ERROR_F(DS_RENDER_METAL_LOG_TAG,
+						"Buffer element '%s' is unset when binding to shader '%s'.", element->name,
+						shader->name);
+					return false;
+				}
+
 				if (!dsMTLCommandBuffer_bindBufferUniform(commandBuffer, buffer, offset,
 						vertexIndex, fragmentIndex))
 				{
@@ -701,6 +737,15 @@ static bool bindComputeUniforms(const dsShader* shader, const dsMaterial* materi
 				id<MTLTexture> texture;
 				id<MTLSamplerState> sampler;
 				getTextureAndSampler(&texture, &sampler, shader, material, sharedValues, info);
+				if (!texture)
+				{
+					errno = EPERM;
+					DS_LOG_ERROR_F(DS_RENDER_METAL_LOG_TAG,
+						"Texture element '%s' is unset when binding to shader '%s'.", element->name,
+						shader->name);
+					return false;
+				}
+
 				if (!dsMTLCommandBuffer_bindComputeTextureUniform(commandBuffer, texture, sampler,
 						computeIndex))
 				{
@@ -713,6 +758,15 @@ static bool bindComputeUniforms(const dsShader* shader, const dsMaterial* materi
 			{
 				id<MTLTexture> texture = getTextureBuffer(shader, material, sharedValues, info,
 					commandBuffer);
+				if (!texture)
+				{
+					errno = EPERM;
+					DS_LOG_ERROR_F(DS_RENDER_METAL_LOG_TAG,
+						"Buffer element '%s' is unset when binding to shader '%s'.", element->name,
+						shader->name);
+					return false;
+				}
+
 				if (!dsMTLCommandBuffer_bindComputeTextureUniform(commandBuffer, texture, nil,
 						computeIndex))
 				{
@@ -725,6 +779,15 @@ static bool bindComputeUniforms(const dsShader* shader, const dsMaterial* materi
 				size_t offset;
 				id<MTLBuffer> buffer = getShaderVariableGroupBuffer(&offset, shader, material,
 					sharedValues, info, commandBuffer);
+				if (!buffer)
+				{
+					errno = EPERM;
+					DS_LOG_ERROR_F(DS_RENDER_METAL_LOG_TAG,
+						"Shader variable group element '%s' is unset when binding to shader '%s'.",
+						element->name, shader->name);
+					return false;
+				}
+
 				if (!dsMTLCommandBuffer_bindComputeBufferUniform(commandBuffer, buffer, offset,
 						computeIndex))
 				{
@@ -738,6 +801,15 @@ static bool bindComputeUniforms(const dsShader* shader, const dsMaterial* materi
 				size_t offset;
 				id<MTLBuffer> buffer = getBuffer(&offset, shader, material, sharedValues, info,
 					commandBuffer);
+				if (!buffer)
+				{
+					errno = EPERM;
+					DS_LOG_ERROR_F(DS_RENDER_METAL_LOG_TAG,
+						"Buffer element '%s' is unset when binding to shader '%s'.", element->name,
+						shader->name);
+					return false;
+				}
+
 				if (!dsMTLCommandBuffer_bindComputeBufferUniform(commandBuffer, buffer, offset,
 						computeIndex))
 				{

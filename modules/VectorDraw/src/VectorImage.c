@@ -1263,11 +1263,17 @@ bool dsVectorImage_draw(const dsVectorImage* vectorImage, dsCommandBuffer* comma
 		textureSizes.y = (float)materialInfoTexture->info.height;
 		textureSizes.z = (float)textOutlineMaterialInfoTexture->info.height;
 
+		// Need to have a non-NULL texture to bind. If the piece doesn't have a specific texture
+		// (i.e. not an image or texture element), just re-use the material color.
+		dsTexture* otherTexture = piece->texture;
+		if (!otherTexture)
+			otherTexture = materialColorTexture;
+
 		if (!dsMaterial_setElementData(material, shaderModule->textureSizesElement, &textureSizes,
 				dsMaterialType_Vec3, 0, 1) ||
 			!dsMaterial_setTexture(material, shaderModule->shapeInfoTextureElement,
 				piece->geometryInfo) ||
-			!dsMaterial_setTexture(material, shaderModule->otherTextureElement, piece->texture) ||
+			!dsMaterial_setTexture(material, shaderModule->otherTextureElement, otherTexture) ||
 			!dsMaterial_setTexture(material, shaderModule->materialInfoTextureElement,
 				materialInfoTexture) ||
 			!dsMaterial_setTexture(material, shaderModule->materialColorTextureElement,

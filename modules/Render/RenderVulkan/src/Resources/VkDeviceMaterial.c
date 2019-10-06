@@ -53,11 +53,8 @@ dsDeviceMaterial* dsVkDeviceMaterial_create(dsResourceManager* resourceManager,
 	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsDeviceMaterial)) +
 		DS_ALIGNED_SIZE(sizeof(VkWriteDescriptorSet)*bindingCounts->total) +
 		DS_ALIGNED_SIZE(sizeof(VkDescriptorImageInfo)*bindingCounts->textures) +
-		DS_ALIGNED_SIZE(sizeof(dsTexture*)*bindingCounts->textures) +
 		DS_ALIGNED_SIZE(sizeof(VkDescriptorBufferInfo)*bindingCounts->buffers) +
-		DS_ALIGNED_SIZE(sizeof(dsVkGfxBufferBinding)*bindingCounts->buffers) +
-		DS_ALIGNED_SIZE(sizeof(VkBufferView)*bindingCounts->texelBuffers) +
-		DS_ALIGNED_SIZE(sizeof(dsVkTexelBufferBinding)*bindingCounts->texelBuffers);
+		DS_ALIGNED_SIZE(sizeof(VkBufferView)*bindingCounts->texelBuffers);
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 		return NULL;
@@ -101,48 +98,33 @@ dsDeviceMaterial* dsVkDeviceMaterial_create(dsResourceManager* resourceManager,
 		bindingMemory->imageInfos = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, VkDescriptorImageInfo,
 			bindingCounts->textures);
 		DS_ASSERT(bindingMemory->imageInfos);
-
-		bindingMemory->textures = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsTexture*,
-			bindingCounts->textures);
-		DS_ASSERT(bindingMemory->textures);
+		memset(bindingMemory->imageInfos, 0, sizeof(VkDescriptorImageInfo)*bindingCounts->textures);
 	}
 	else
-	{
 		bindingMemory->imageInfos = NULL;
-		bindingMemory->textures = NULL;
-	}
 
 	if (bindingCounts->buffers > 0)
 	{
 		bindingMemory->bufferInfos = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, VkDescriptorBufferInfo,
 			bindingCounts->buffers);
 		DS_ASSERT(bindingMemory->bufferInfos);
-
-		bindingMemory->buffers = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsVkGfxBufferBinding,
-			bindingCounts->buffers);
-		DS_ASSERT(bindingMemory->buffers);
+		memset(bindingMemory->bufferInfos, 0,
+			sizeof(VkDescriptorBufferInfo)*bindingCounts->buffers);
 	}
 	else
-	{
 		bindingMemory->bufferInfos = NULL;
-		bindingMemory->buffers = NULL;
-	}
 
 	if (bindingCounts->texelBuffers > 0)
 	{
 		bindingMemory->bufferViews = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, VkBufferView,
 			bindingCounts->texelBuffers);
 		DS_ASSERT(bindingMemory->bufferViews);
-
-		bindingMemory->texelBuffers = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsVkTexelBufferBinding,
-			bindingCounts->texelBuffers);
-		DS_ASSERT(bindingMemory->texelBuffers);
+		memset(bindingMemory->bufferViews, 0, sizeof(VkBufferView)*bindingCounts->texelBuffers);
 	}
 	else
-	{
 		bindingMemory->bufferViews = NULL;
-		bindingMemory->texelBuffers = NULL;
-	}
+
+	dsVkMaterialDesc_initializeBindings(materialDesc, bindingMemory, dsMaterialBinding_Material);
 
 	dsSpinlock_initialize(&deviceMaterial->lock);
 	return deviceMaterial;
@@ -210,6 +192,7 @@ VkDescriptorSet dsVkDeviceMaterial_getDescriptorSet(dsCommandBuffer* commandBuff
 	dsDeviceMaterial* material, dsShader* shader)
 {
 	dsVkShader* vkShader = (dsVkShader*)shader;
+	dsVkRenderer* vkRenderer = (dsVkRenderer*)commandBuffer->renderer;
 	const dsMaterialDesc* materialDesc = dsMaterial_getDescription(material->material);
 	const dsVkMaterialDesc* vkMaterialDesc = (const dsVkMaterialDesc*)materialDesc;
 
@@ -253,9 +236,9 @@ VkDescriptorSet dsVkDeviceMaterial_getDescriptorSet(dsCommandBuffer* commandBuff
 	}
 
 	// Grab the list of resources needed to bind.
-	uint32_t textureIndex = 0;
-	uint32_t bufferIndex = 0;
-	uint32_t texelBufferIndex = 0;
+	uint32_t imageInfoIndex = 0;
+	uint32_t bufferInfoIndex = 0;
+	uint32_t bufferViewIndex = 0;
 	for (uint32_t i = 0; i < materialDesc->elementCount; ++i)
 	{
 		const dsMaterialElement* element = materialDesc->elements + i;
@@ -271,7 +254,7 @@ VkDescriptorSet dsVkDeviceMaterial_getDescriptorSet(dsCommandBuffer* commandBuff
 			case dsMaterialType_Image:
 			case dsMaterialType_SubpassInput:
 			{
-				DS_ASSERT(textureIndex < bindingMemory->counts.textures);
+				DS_ASSERT(imageInfoIndex < bindingMemory->counts.textures);
 				dsTexture* texture = dsMaterial_getTexture(material->material, i);
 				if (texture && !dsVkTexture_processAndAddResource(texture, commandBuffer))
 				{
@@ -279,97 +262,150 @@ VkDescriptorSet dsVkDeviceMaterial_getDescriptorSet(dsCommandBuffer* commandBuff
 					return 0;
 				}
 
-				bindingMemory->textures[textureIndex] = texture;
-				++textureIndex;
+				dsVkTexture* vkTexture = (dsVkTexture*)texture;
+				VkDescriptorImageInfo* imageInfo = bindingMemory->imageInfos + imageInfoIndex;
+
+				if (element->type == dsMaterialType_Texture)
+				{
+					uint32_t samplerIndex = samplers ? vkShader->samplerMapping[i].samplerIndex :
+						DS_MATERIAL_UNKNOWN;
+					if (samplerIndex == DS_MATERIAL_UNKNOWN || !samplers)
+						imageInfo->sampler = vkRenderer->defaultSampler;
+					else
+					{
+						DS_ASSERT(samplers && samplerIndex < samplers->samplerCount);
+						imageInfo->sampler = samplers->samplers[samplerIndex];
+					}
+				}
+				else
+					imageInfo->sampler = 0;
+
+				if (texture)
+				{
+					// Depth/stencil textures should use the depth-only image view for cases where
+					// it's used as a shadow sampler, otherwise it will fail validation. (the image
+					// view must ONLY contain the depth aspect bit)
+					if (element->type == dsMaterialType_Texture && vkTexture->depthOnlyImageView)
+						imageInfo->imageView = vkTexture->depthOnlyImageView;
+					else
+						imageInfo->imageView = vkTexture->deviceImageView;
+					imageInfo->imageLayout = dsVkTexture_bindImageLayout(texture);
+				}
+				else
+				{
+					DS_VERIFY(dsSpinlock_unlock(&material->lock));
+					errno = EPERM;
+					DS_LOG_ERROR_F(DS_RENDER_VULKAN_LOG_TAG,
+						"Texture element '%s' is unset when binding to shader '%s'.", element->name,
+						shader->name);
+					return 0;
+				}
+
+				++imageInfoIndex;
 				break;
 			}
 			case dsMaterialType_TextureBuffer:
 			case dsMaterialType_ImageBuffer:
 			{
-				DS_ASSERT(texelBufferIndex < bindingMemory->counts.texelBuffers);
-				dsVkTexelBufferBinding* binding = bindingMemory->texelBuffers + texelBufferIndex;
-				dsGfxBuffer* buffer = dsMaterial_getTextureBuffer(&binding->format,
-					&binding->offset, &binding->count, material->material, i);
+				DS_ASSERT(bufferViewIndex < bindingMemory->counts.texelBuffers);
+				dsGfxFormat format;
+				size_t offset;
+				size_t count;
+				dsGfxBuffer* buffer = dsMaterial_getTextureBuffer(&format, &offset, &count,
+					material->material, i);
 
 				if (buffer)
 				{
-					binding->buffer = dsVkGfxBuffer_getData(buffer, commandBuffer);
-					if (!binding->buffer)
+					dsVkGfxBufferData* bufferData = dsVkGfxBuffer_getData(buffer, commandBuffer);
+					if (!bufferData)
 					{
 						DS_VERIFY(dsSpinlock_unlock(&material->lock));
 						return 0;
 					}
 
-					dsVkRenderer_processGfxBuffer(commandBuffer->renderer, binding->buffer);
+					dsVkRenderer_processGfxBuffer(commandBuffer->renderer, bufferData);
+					bindingMemory->bufferViews[bufferViewIndex] = dsVkGfxBufferData_getBufferView(
+						bufferData, format, offset, count);
 				}
 				else
 				{
-					binding->buffer = NULL;
-					binding->format = 0;
-					binding->offset = 0;
-					binding->count = 0;
+					DS_VERIFY(dsSpinlock_unlock(&material->lock));
+					errno = EPERM;
+					DS_LOG_ERROR_F(DS_RENDER_VULKAN_LOG_TAG,
+						"Buffer element '%s' is unset when binding to shader '%s'.", element->name,
+						shader->name);
+					return 0;
 				}
-				++texelBufferIndex;
+
+				++bufferViewIndex;
 				break;
 			}
 			case dsMaterialType_VariableGroup:
 			{
-				DS_ASSERT(bufferIndex < bindingMemory->counts.buffers);
-				dsVkGfxBufferBinding* binding = bindingMemory->buffers + bufferIndex;
+				DS_ASSERT(bufferInfoIndex < bindingMemory->counts.buffers);
 				dsShaderVariableGroup* group = dsMaterial_getVariableGroup(material->material, i);
 				dsGfxBuffer* buffer;
 				if (group)
 					buffer = dsShaderVariableGroup_getGfxBuffer(group);
 				else
-					buffer = NULL;
-
-				if (buffer)
 				{
-					binding->buffer = dsVkGfxBuffer_getData(buffer, commandBuffer);
-					if (!binding->buffer)
-					{
-						DS_VERIFY(dsSpinlock_unlock(&material->lock));
-						return 0;
-					}
+					DS_VERIFY(dsSpinlock_unlock(&material->lock));
+					errno = EPERM;
+					DS_LOG_ERROR_F(DS_RENDER_VULKAN_LOG_TAG,
+						"Shader variable group element '%s' is unset when binding to shader '%s'.",
+						element->name, shader->name);
+					return 0;
+				}
 
-					binding->offset = 0;
-					binding->size = buffer->size;
-					dsVkRenderer_processGfxBuffer(commandBuffer->renderer, binding->buffer);
-				}
-				else
+				VkDescriptorBufferInfo* bufferInfo = bindingMemory->bufferInfos + bufferInfoIndex;
+				dsVkGfxBufferData* bufferData = dsVkGfxBuffer_getData(buffer, commandBuffer);
+				if (!bufferData)
 				{
-					binding->buffer = NULL;
-					binding->offset = 0;
-					binding->size = 0;
+					DS_VERIFY(dsSpinlock_unlock(&material->lock));
+					return 0;
 				}
-				++bufferIndex;
+
+				dsVkRenderer_processGfxBuffer(commandBuffer->renderer, bufferData);
+				bufferInfo->buffer = dsVkGfxBufferData_getBuffer(bufferData);
+				bufferInfo->offset = 0;
+				bufferInfo->range = buffer->size;
+
+				++bufferInfoIndex;
 				break;
 			}
 			case dsMaterialType_UniformBlock:
 			case dsMaterialType_UniformBuffer:
 			{
-				DS_ASSERT(bufferIndex < bindingMemory->counts.buffers);
-				dsVkGfxBufferBinding* binding = bindingMemory->buffers + bufferIndex;
-				dsGfxBuffer* buffer = dsMaterial_getBuffer(&binding->offset, &binding->size,
-					material->material, i);
+				DS_ASSERT(bufferInfoIndex < bindingMemory->counts.buffers);
+				size_t offset;
+				size_t size;
+				dsGfxBuffer* buffer = dsMaterial_getBuffer(&offset, &size, material->material, i);
 
+				VkDescriptorBufferInfo* bufferInfo = bindingMemory->bufferInfos + bufferInfoIndex;
 				if (buffer)
 				{
-					binding->buffer = dsVkGfxBuffer_getData(buffer, commandBuffer);
-					if (!binding->buffer)
+					dsVkGfxBufferData* bufferData = dsVkGfxBuffer_getData(buffer, commandBuffer);
+					if (!bufferData)
 					{
 						DS_VERIFY(dsSpinlock_unlock(&material->lock));
 						return 0;
 					}
-					dsVkRenderer_processGfxBuffer(commandBuffer->renderer, binding->buffer);
+
+					dsVkRenderer_processGfxBuffer(commandBuffer->renderer, bufferData);
+					bufferInfo->buffer = dsVkGfxBufferData_getBuffer(bufferData);
+					bufferInfo->offset = offset;
+					bufferInfo->range = size;
 				}
 				else
 				{
-					buffer = NULL;
-					binding->offset = 0;
-					binding->size = 0;
+					DS_VERIFY(dsSpinlock_unlock(&material->lock));
+					errno = EPERM;
+					DS_LOG_ERROR_F(DS_RENDER_VULKAN_LOG_TAG,
+						"Buffer element '%s' is unset when binding to shader '%s'.", element->name,
+						shader->name);
+					return 0;
 				}
-				++bufferIndex;
+				++bufferInfoIndex;
 				break;
 			}
 			default:
@@ -377,9 +413,9 @@ VkDescriptorSet dsVkDeviceMaterial_getDescriptorSet(dsCommandBuffer* commandBuff
 		}
 	}
 
-	DS_ASSERT(textureIndex == bindingMemory->counts.textures);
-	DS_ASSERT(bufferIndex == bindingMemory->counts.buffers);
-	DS_ASSERT(texelBufferIndex == bindingMemory->counts.texelBuffers);
+	DS_ASSERT(imageInfoIndex == bindingMemory->counts.textures);
+	DS_ASSERT(bufferInfoIndex == bindingMemory->counts.buffers);
+	DS_ASSERT(bufferViewIndex == bindingMemory->counts.texelBuffers);
 
 	// Create the descriptor if new or if the resources have changed.
 	dsVkMaterialDescriptor* descriptor = material->descriptors[index].descriptor;

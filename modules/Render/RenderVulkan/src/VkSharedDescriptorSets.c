@@ -39,8 +39,18 @@
 static bool setupElements(dsVkSharedDescriptorSets* descriptors, dsCommandBuffer* commandBuffer,
 	dsShader* shader, const dsSharedMaterialValues* sharedValues)
 {
+	dsVkRenderer* vkRenderer = (dsVkRenderer*)commandBuffer->renderer;
+	dsVkShader* vkShader = (dsVkShader*)shader;
 	const dsMaterialDesc* materialDesc = shader->materialDesc;
 	const dsVkMaterialDesc* vkMaterialDesc = (const dsVkMaterialDesc*)materialDesc;
+
+	dsVkSamplerList* samplers = NULL;
+	if (vkShader->samplerCount > 0)
+	{
+		samplers = dsVkShader_getSamplerList(shader, commandBuffer);
+		if (!samplers)
+			return false;
+	}
 
 	dsVkBindingMemory* bindingMemory = &descriptors->bindingMemory;
 	dsVkBindingCounts* bindingCounts = &bindingMemory->counts;
@@ -72,13 +82,49 @@ static bool setupElements(dsVkSharedDescriptorSets* descriptors, dsCommandBuffer
 					return false;
 
 				uint32_t index = bindingCounts->textures;
-				if (!DS_RESIZEABLE_ARRAY_ADD(descriptors->allocator, bindingMemory->textures,
-						bindingCounts->textures, descriptors->maxTextures, 1))
+				if (!DS_RESIZEABLE_ARRAY_ADD(descriptors->allocator, bindingMemory->imageInfos,
+						bindingCounts->textures, descriptors->maxImageInfos, 1))
 				{
 					return false;
 				}
 
-				bindingMemory->textures[index] = texture;
+				dsVkTexture* vkTexture = (dsVkTexture*)texture;
+				VkDescriptorImageInfo* imageInfo = bindingMemory->imageInfos + index;
+
+				if (element->type == dsMaterialType_Texture)
+				{
+					uint32_t samplerIndex = samplers ? vkShader->samplerMapping[i].samplerIndex :
+						DS_MATERIAL_UNKNOWN;
+					if (samplerIndex == DS_MATERIAL_UNKNOWN || !samplers)
+						imageInfo->sampler = vkRenderer->defaultSampler;
+					else
+					{
+						DS_ASSERT(samplers && samplerIndex < samplers->samplerCount);
+						imageInfo->sampler = samplers->samplers[samplerIndex];
+					}
+				}
+				else
+					imageInfo->sampler = 0;
+
+				if (texture)
+				{
+					// Depth/stencil textures should use the depth-only image view for cases where
+					// it's used as a shadow sampler, otherwise it will fail validation. (the image
+					// view must ONLY contain the depth aspect bit)
+					if (element->type == dsMaterialType_Texture && vkTexture->depthOnlyImageView)
+						imageInfo->imageView = vkTexture->depthOnlyImageView;
+					else
+						imageInfo->imageView = vkTexture->deviceImageView;
+					imageInfo->imageLayout = dsVkTexture_bindImageLayout(texture);
+				}
+				else
+				{
+					errno = EPERM;
+					DS_LOG_ERROR_F(DS_RENDER_VULKAN_LOG_TAG,
+						"Texture element '%s' is unset when binding to shader '%s'.", element->name,
+						shader->name);
+					return false;
+				}
 				break;
 			}
 			case dsMaterialType_TextureBuffer:
@@ -91,8 +137,8 @@ static bool setupElements(dsVkSharedDescriptorSets* descriptors, dsCommandBuffer
 					&count, sharedValues, element->nameID);
 
 				uint32_t index = bindingCounts->texelBuffers;
-				if (!DS_RESIZEABLE_ARRAY_ADD(descriptors->allocator, bindingMemory->texelBuffers,
-						bindingCounts->texelBuffers, descriptors->maxTexelBuffers, 1))
+				if (!DS_RESIZEABLE_ARRAY_ADD(descriptors->allocator, bindingMemory->bufferViews,
+						bindingCounts->texelBuffers, descriptors->maxBufferViews, 1))
 				{
 					return false;
 				}
@@ -103,20 +149,18 @@ static bool setupElements(dsVkSharedDescriptorSets* descriptors, dsCommandBuffer
 					if (!bufferData)
 						return false;
 
-					bindingMemory->texelBuffers[index].buffer = bufferData;
-					bindingMemory->texelBuffers[index].format = format;
-					bindingMemory->texelBuffers[index].offset = offset;
-					bindingMemory->texelBuffers[index].count = count;
 					dsVkRenderer_processGfxBuffer(commandBuffer->renderer, bufferData);
+					bindingMemory->bufferViews[index] = dsVkGfxBufferData_getBufferView(bufferData,
+						format, offset, count);
 				}
 				else
 				{
-					bindingMemory->texelBuffers[index].buffer = NULL;
-					bindingMemory->texelBuffers[index].format = 0;
-					bindingMemory->texelBuffers[index].offset = 0;
-					bindingMemory->texelBuffers[index].count = 0;
+					errno = EPERM;
+					DS_LOG_ERROR_F(DS_RENDER_VULKAN_LOG_TAG,
+						"Buffer element '%s' is unset when binding to shader '%s'.", element->name,
+						shader->name);
+					return false;
 				}
-
 				break;
 			}
 			case dsMaterialType_VariableGroup:
@@ -144,30 +188,40 @@ static bool setupElements(dsVkSharedDescriptorSets* descriptors, dsCommandBuffer
 					bindingOffset = offset;
 
 				uint32_t index = bindingCounts->buffers;
-				if (!DS_RESIZEABLE_ARRAY_ADD(descriptors->allocator, bindingMemory->buffers,
-						bindingCounts->buffers, descriptors->maxBuffers, 1))
+				if (!DS_RESIZEABLE_ARRAY_ADD(descriptors->allocator, bindingMemory->bufferInfos,
+						bindingCounts->buffers, descriptors->maxBufferInfos, 1))
 				{
 					return false;
 				}
 
+				VkDescriptorBufferInfo* bufferInfo = bindingMemory->bufferInfos + index;
 				if (buffer)
 				{
 					dsVkGfxBufferData* bufferData = dsVkGfxBuffer_getData(buffer, commandBuffer);
 					if (!bufferData)
-					{
 						return false;
-					}
 
-					bindingMemory->buffers[index].buffer = bufferData;
-					bindingMemory->buffers[index].offset = bindingOffset;
-					bindingMemory->buffers[index].size = size;
 					dsVkRenderer_processGfxBuffer(commandBuffer->renderer, bufferData);
+					bufferInfo->buffer = dsVkGfxBufferData_getBuffer(bufferData);
+					bufferInfo->offset = bindingOffset;
+					bufferInfo->range = size;
 				}
 				else
 				{
-					bindingMemory->buffers[index].buffer = NULL;
-					bindingMemory->buffers[index].offset = 0;
-					bindingMemory->buffers[index].size = 0;
+					errno = EPERM;
+					if (element->type == dsMaterialType_VariableGroup)
+					{
+						DS_LOG_ERROR_F(DS_RENDER_VULKAN_LOG_TAG, "Shader variable group element "
+							"'%s' is unset when binding to shader '%s'.", element->name,
+							shader->name);
+					}
+					else
+					{
+						DS_LOG_ERROR_F(DS_RENDER_VULKAN_LOG_TAG,
+							"Buffer element '%s' is unset when binding to shader '%s'.",
+							element->name, shader->name);
+					}
+					return false;
 				}
 				break;
 			}
@@ -180,25 +234,6 @@ static bool setupElements(dsVkSharedDescriptorSets* descriptors, dsCommandBuffer
 	if (!DS_RESIZEABLE_ARRAY_ADD(descriptors->allocator, bindingMemory->bindings,
 			bindingCounts->total, descriptors->maxBindings,
 			vkMaterialDesc->bindings[descriptors->binding].bindingCounts.total))
-	{
-		return false;
-	}
-
-	uint32_t dummyCount = 0;
-	if (!DS_RESIZEABLE_ARRAY_ADD(descriptors->allocator, bindingMemory->imageInfos, dummyCount,
-			descriptors->maxImageInfos, bindingCounts->textures))
-	{
-		return false;
-	}
-	dummyCount = 0;
-	if (!DS_RESIZEABLE_ARRAY_ADD(descriptors->allocator, bindingMemory->bufferInfos, dummyCount,
-			descriptors->maxBufferInfos, bindingCounts->buffers))
-	{
-		return false;
-	}
-	dummyCount = 0;
-	if (!DS_RESIZEABLE_ARRAY_ADD(descriptors->allocator, bindingMemory->bufferViews, dummyCount,
-			descriptors->maxBufferViews, bindingCounts->texelBuffers))
 	{
 		return false;
 	}
@@ -250,6 +285,8 @@ VkDescriptorSet dsVkSharedDescriptorSets_createSet(dsVkSharedDescriptorSets* des
 	}
 
 	dsVkSharedDescriptorSets_clearLastSet(descriptors);
+	dsVkMaterialDesc_initializeBindings(materialDesc, &descriptors->bindingMemory,
+		descriptors->binding);
 	descriptors->lastDescriptor = dsVkMaterialDesc_createDescriptor(materialDesc,
 		descriptors->allocator, descriptors->binding);
 	if (!descriptors->lastDescriptor)
@@ -286,9 +323,6 @@ void dsVkSharedDescriptorSets_shutdown(dsVkSharedDescriptorSets* descriptors)
 {
 	dsVkSharedDescriptorSets_clearLastSet(descriptors);
 	dsVkBindingMemory* bindings = &descriptors->bindingMemory;
-	DS_VERIFY(dsAllocator_free(descriptors->allocator, bindings->textures));
-	DS_VERIFY(dsAllocator_free(descriptors->allocator, bindings->buffers));
-	DS_VERIFY(dsAllocator_free(descriptors->allocator, bindings->texelBuffers));
 	DS_VERIFY(dsAllocator_free(descriptors->allocator, bindings->bindings));
 	DS_VERIFY(dsAllocator_free(descriptors->allocator, bindings->imageInfos));
 	DS_VERIFY(dsAllocator_free(descriptors->allocator, bindings->bufferInfos));

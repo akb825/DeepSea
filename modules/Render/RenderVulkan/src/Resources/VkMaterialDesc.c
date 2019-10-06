@@ -213,6 +213,76 @@ bool dsVkMaterialDesc_destroy(dsResourceManager* resourceManager, dsMaterialDesc
 	return true;
 }
 
+void dsVkMaterialDesc_initializeBindings(const dsMaterialDesc* materialDesc,
+	dsVkBindingMemory* bindingMemory, dsMaterialBinding binding)
+{
+	const dsVkMaterialDesc* vkMaterialDesc = (const dsVkMaterialDesc*)materialDesc;
+	uint32_t index = 0;
+	uint32_t imageInfoIndex = 0;
+	uint32_t bufferInfoIndex = 0;
+	uint32_t bufferViewIndex = 0;
+	for (uint32_t i = 0; i < materialDesc->elementCount; ++i)
+	{
+		const dsMaterialElement* element = materialDesc->elements + i;
+		if (element->binding != binding ||
+			vkMaterialDesc->elementMappings[i] == DS_MATERIAL_UNKNOWN)
+		{
+			continue;
+		}
+
+		DS_ASSERT(index < bindingMemory->counts.total);
+		VkWriteDescriptorSet* binding = bindingMemory->bindings + index;
+		binding->sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		binding->pNext = NULL;
+		binding->dstSet = 0;
+		binding->dstBinding = vkMaterialDesc->elementMappings[i];
+		binding->dstArrayElement = 0;
+		binding->descriptorCount = 1;
+		binding->descriptorType = dsVkDescriptorType(element->type, element->binding);
+		binding->pImageInfo = NULL;
+		binding->pBufferInfo = NULL;
+		binding->pTexelBufferView = NULL;
+		++index;
+
+		switch (element->type)
+		{
+			case dsMaterialType_Texture:
+			case dsMaterialType_Image:
+			case dsMaterialType_SubpassInput:
+			{
+				DS_ASSERT(imageInfoIndex < bindingMemory->counts.textures);
+				binding->pImageInfo = bindingMemory->imageInfos + imageInfoIndex;
+				++imageInfoIndex;
+				break;
+			}
+			case dsMaterialType_TextureBuffer:
+			case dsMaterialType_ImageBuffer:
+			{
+				DS_ASSERT(bufferViewIndex < bindingMemory->counts.texelBuffers);
+				binding->pTexelBufferView = bindingMemory->bufferViews + bufferViewIndex;
+				++bufferViewIndex;
+				break;
+			}
+			case dsMaterialType_VariableGroup:
+			case dsMaterialType_UniformBlock:
+			case dsMaterialType_UniformBuffer:
+			{
+				DS_ASSERT(bufferInfoIndex < bindingMemory->counts.buffers);
+				binding->pBufferInfo = bindingMemory->bufferInfos + bufferInfoIndex;
+				++bufferInfoIndex;
+				break;
+			}
+			default:
+				DS_ASSERT(false);
+		}
+	}
+
+	DS_ASSERT(index == bindingMemory->counts.total);
+	DS_ASSERT(imageInfoIndex == bindingMemory->counts.textures);
+	DS_ASSERT(bufferInfoIndex == bindingMemory->counts.buffers);
+	DS_ASSERT(bufferViewIndex == bindingMemory->counts.texelBuffers);
+}
+
 dsVkMaterialDescriptor* dsVkMaterialDesc_createDescriptor(const dsMaterialDesc* materialDesc,
 	dsAllocator* allocator, dsMaterialBinding binding)
 {

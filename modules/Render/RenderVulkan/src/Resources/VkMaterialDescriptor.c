@@ -36,9 +36,9 @@ dsVkMaterialDescriptor* dsVkMaterialDescriptor_create(dsRenderer* renderer, dsAl
 {
 	DS_ASSERT(counts->total > 0);
 	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsVkMaterialDescriptor)) +
-		DS_ALIGNED_SIZE(sizeof(dsTexture*)*counts->textures) +
-		DS_ALIGNED_SIZE(sizeof(dsVkGfxBufferBinding)*counts->buffers) +
-		DS_ALIGNED_SIZE(sizeof(dsVkTexelBufferBinding)*counts->texelBuffers);
+		DS_ALIGNED_SIZE(sizeof(VkDescriptorImageInfo)*counts->textures) +
+		DS_ALIGNED_SIZE(sizeof(VkDescriptorBufferInfo)*counts->buffers) +
+		DS_ALIGNED_SIZE(sizeof(VkBufferView)*counts->texelBuffers);
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 		return NULL;
@@ -63,29 +63,33 @@ dsVkMaterialDescriptor* dsVkMaterialDescriptor_create(dsRenderer* renderer, dsAl
 
 	if (counts->textures > 0)
 	{
-		descriptor->textures = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsTexture*, counts->textures);
-		DS_ASSERT(descriptor->textures);
+		descriptor->imageInfos = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, VkDescriptorImageInfo,
+			counts->textures);
+		DS_ASSERT(descriptor->imageInfos);
+		memset(descriptor->imageInfos, 0, sizeof(VkDescriptorImageInfo)*counts->textures);
 	}
 	else
-		descriptor->textures = NULL;
+		descriptor->imageInfos = NULL;
 
 	if (counts->buffers > 0)
 	{
-		descriptor->buffers = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsVkGfxBufferBinding,
+		descriptor->bufferInfos = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, VkDescriptorBufferInfo,
 			counts->buffers);
-		DS_ASSERT(descriptor->buffers);
+		DS_ASSERT(descriptor->bufferInfos);
+		memset(descriptor->bufferInfos, 0, sizeof(VkDescriptorBufferInfo)*counts->buffers);
 	}
 	else
-		descriptor->buffers = NULL;
+		descriptor->bufferInfos = NULL;
 
 	if (counts->texelBuffers > 0)
 	{
-		descriptor->texelBuffers = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsVkTexelBufferBinding,
+		descriptor->bufferViews = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, VkBufferView,
 			counts->texelBuffers);
-		DS_ASSERT(descriptor->texelBuffers);
+		DS_ASSERT(descriptor->bufferViews);
+		memset(descriptor->bufferViews, 0, sizeof(VkBufferView)*counts->texelBuffers);
 	}
 	else
-		descriptor->texelBuffers = NULL;
+		descriptor->bufferViews = NULL;
 
 	descriptor->counts = *counts;
 	descriptor->binding = binding;
@@ -169,12 +173,12 @@ bool dsVkMaterialDescriptor_isUpToDate(const dsVkMaterialDescriptor* descriptor,
 {
 	DS_ASSERT(memcmp(&descriptor->counts, &bindingMemory->counts, sizeof(dsVkBindingCounts)) == 0);
 	return samplers == descriptor->samplers &&
-		memcmp(descriptor->textures, bindingMemory->textures,
-			sizeof(dsTexture*)*descriptor->counts.textures) == 0 &&
-		memcmp(descriptor->buffers, bindingMemory->buffers,
-			sizeof(dsVkGfxBufferBinding)*descriptor->counts.buffers) == 0 &&
-		memcmp(descriptor->texelBuffers, bindingMemory->texelBuffers,
-			sizeof(dsVkTexelBufferBinding)*descriptor->counts.texelBuffers) == 0;
+		memcmp(descriptor->imageInfos, bindingMemory->imageInfos,
+			sizeof(VkDescriptorImageInfo)*descriptor->counts.textures) == 0 &&
+		memcmp(descriptor->bufferInfos, bindingMemory->bufferInfos,
+			sizeof(VkDescriptorBufferInfo)*descriptor->counts.buffers) == 0 &&
+		memcmp(descriptor->bufferViews, bindingMemory->bufferViews,
+			sizeof(VkBufferView)*descriptor->counts.texelBuffers) == 0;
 }
 
 void dsVkMaterialDescriptor_update(dsVkMaterialDescriptor* descriptor, const dsShader* shader,
@@ -184,148 +188,21 @@ void dsVkMaterialDescriptor_update(dsVkMaterialDescriptor* descriptor, const dsS
 	DS_ASSERT(memcmp(&descriptor->counts, &bindingMemory->counts, sizeof(dsVkBindingCounts)) == 0);
 	dsVkRenderer* vkRenderer = (dsVkRenderer*)descriptor->renderer;
 	dsVkDevice* device = &vkRenderer->device;
-	const dsVkMaterialDesc* vkMaterialDesc = (const dsVkMaterialDesc*)descriptor->materialDesc;
-	const dsVkShader* vkShader = (const dsVkShader*)shader;
 
-	memcpy(descriptor->textures, bindingMemory->textures,
-		sizeof(dsTexture*)*descriptor->counts.textures);
-	memcpy(descriptor->buffers, bindingMemory->buffers,
-		sizeof(dsVkGfxBufferBinding)*descriptor->counts.buffers);
-	memcpy(descriptor->texelBuffers, bindingMemory->texelBuffers,
-		sizeof(dsVkTexelBufferBinding)*descriptor->counts.texelBuffers);
+	memcpy(descriptor->imageInfos, bindingMemory->imageInfos,
+		sizeof(VkDescriptorImageInfo)*descriptor->counts.textures);
+	memcpy(descriptor->bufferInfos, bindingMemory->bufferInfos,
+		sizeof(VkDescriptorBufferInfo)*descriptor->counts.buffers);
+	memcpy(descriptor->bufferViews, bindingMemory->bufferViews,
+		sizeof(VkBufferView)*descriptor->counts.texelBuffers);
 	descriptor->samplers = samplers;
 
-	uint32_t index = 0;
-	uint32_t imageInfoIndex = 0;
-	uint32_t bufferInfoIndex = 0;
-	uint32_t bufferViewIndex = 0;
-	for (uint32_t i = 0; i < descriptor->materialDesc->elementCount; ++i)
+	for (uint32_t i = 0; i < bindingMemory->counts.total; ++i)
+		bindingMemory->bindings[i].dstSet = descriptor->set;
+
+	if (bindingMemory->counts.total > 0)
 	{
-		const dsMaterialElement* element = descriptor->materialDesc->elements + i;
-		if (element->binding != descriptor->binding ||
-			vkMaterialDesc->elementMappings[i] == DS_MATERIAL_UNKNOWN)
-		{
-			continue;
-		}
-
-		DS_ASSERT(index < descriptor->counts.total);
-		VkWriteDescriptorSet* binding = bindingMemory->bindings + index;
-		binding->sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-		binding->pNext = NULL;
-		binding->dstSet = descriptor->set;
-		binding->dstBinding = vkMaterialDesc->elementMappings[i];
-		binding->dstArrayElement = 0;
-		binding->descriptorCount = 1;
-		binding->descriptorType = dsVkDescriptorType(element->type, element->binding);
-		binding->pImageInfo = NULL;
-		binding->pBufferInfo = NULL;
-		binding->pTexelBufferView = NULL;
-		++index;
-
-		switch (element->type)
-		{
-			case dsMaterialType_Texture:
-			case dsMaterialType_Image:
-			case dsMaterialType_SubpassInput:
-			{
-				DS_ASSERT(imageInfoIndex < descriptor->counts.textures);
-
-				dsTexture* texture = descriptor->textures[imageInfoIndex];
-				dsVkTexture* vkTexture = (dsVkTexture*)texture;
-				VkDescriptorImageInfo* imageInfo = bindingMemory->imageInfos + imageInfoIndex;
-
-				if (element->type == dsMaterialType_Texture)
-				{
-					uint32_t samplerIndex = samplers ? vkShader->samplerMapping[i].samplerIndex :
-						DS_MATERIAL_UNKNOWN;
-					if (samplerIndex == DS_MATERIAL_UNKNOWN || !samplers)
-						imageInfo->sampler = vkRenderer->defaultSampler;
-					else
-					{
-						DS_ASSERT(samplers && samplerIndex < samplers->samplerCount);
-						imageInfo->sampler = samplers->samplers[samplerIndex];
-					}
-				}
-				else
-					imageInfo->sampler = 0;
-
-				if (texture)
-				{
-					// Depth/stencil textures should use the depth-only image view for cases where
-					// it's used as a shadow sampler, otherwise it will fail validation. (the image
-					// view must ONLY contain the depth aspect bit)
-					if (element->type == dsMaterialType_Texture && vkTexture->depthOnlyImageView)
-						imageInfo->imageView = vkTexture->depthOnlyImageView;
-					else
-						imageInfo->imageView = vkTexture->deviceImageView;
-					imageInfo->imageLayout = dsVkTexture_bindImageLayout(texture);
-				}
-				else
-				{
-					imageInfo->imageView = 0;
-					imageInfo->imageLayout = VK_IMAGE_LAYOUT_GENERAL;
-					--index;
-				}
-				binding->pImageInfo = imageInfo;
-				++imageInfoIndex;
-				break;
-			}
-			case dsMaterialType_TextureBuffer:
-			case dsMaterialType_ImageBuffer:
-			{
-				DS_ASSERT(bufferViewIndex < descriptor->counts.texelBuffers);
-				dsVkTexelBufferBinding* bufferBinding = descriptor->texelBuffers + bufferViewIndex;
-				if (bufferBinding->buffer)
-				{
-					bindingMemory->bufferViews[bufferViewIndex] = dsVkGfxBufferData_getBufferView(
-						bufferBinding->buffer, bufferBinding->format, bufferBinding->offset,
-						bufferBinding->count);
-				}
-				else
-				{
-					bindingMemory->bufferViews[bufferViewIndex] = 0;
-					--index;
-				}
-				binding->pTexelBufferView = bindingMemory->bufferViews + bufferViewIndex;
-				++bufferViewIndex;
-				break;
-			}
-			case dsMaterialType_VariableGroup:
-			case dsMaterialType_UniformBlock:
-			case dsMaterialType_UniformBuffer:
-			{
-				DS_ASSERT(bufferInfoIndex < descriptor->counts.buffers);
-				dsVkGfxBufferBinding* bufferBinding = descriptor->buffers + bufferInfoIndex;
-				VkDescriptorBufferInfo* bufferInfo = bindingMemory->bufferInfos + bufferInfoIndex;
-				if (bufferBinding->buffer)
-				{
-					bufferInfo->buffer = dsVkGfxBufferData_getBuffer(bufferBinding->buffer);
-				}
-				else
-				{
-					bufferInfo->buffer = 0;
-					--index;
-				}
-				bufferInfo->offset = bufferBinding->offset;
-				bufferInfo->range = bufferBinding->size;
-				binding->pBufferInfo = bufferInfo;
-				++bufferInfoIndex;
-				break;
-			}
-			default:
-				DS_ASSERT(false);
-		}
-	}
-
-	uint32_t bindingCount = index;
-	DS_ASSERT(bindingCount <= descriptor->counts.total);
-	DS_ASSERT(imageInfoIndex == descriptor->counts.textures);
-	DS_ASSERT(bufferInfoIndex == descriptor->counts.buffers);
-	DS_ASSERT(bufferViewIndex == descriptor->counts.texelBuffers);
-
-	if (bindingCount > 0)
-	{
-		DS_VK_CALL(device->vkUpdateDescriptorSets)(device->device, bindingCount,
+		DS_VK_CALL(device->vkUpdateDescriptorSets)(device->device, bindingMemory->counts.total,
 			bindingMemory->bindings, 0, NULL);
 	}
 }

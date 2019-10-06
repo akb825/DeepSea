@@ -39,11 +39,12 @@ static bool setSharedMaterialValues(dsCommandBuffer* commandBuffer,
 	DS_ASSERT(useGfxBuffers || glCommandBuffer->commitCountSize >= materialDesc->elementCount);
 	for (uint32_t i = 0; i < materialDesc->elementCount; ++i)
 	{
-		if (materialDesc->elements[i].binding != binding)
+		const dsMaterialElement* element = materialDesc->elements + i;
+		if (element->binding != binding)
 			continue;
 
-		uint32_t nameID = materialDesc->elements[i].nameID;
-		switch (materialDesc->elements[i].type)
+		uint32_t nameID = element->nameID;
+		switch (element->type)
 		{
 			case dsMaterialType_Texture:
 			case dsMaterialType_Image:
@@ -56,7 +57,13 @@ static bool setSharedMaterialValues(dsCommandBuffer* commandBuffer,
 				if (texture)
 					dsGLCommandBuffer_setTexture(commandBuffer, shader, i, texture);
 				else
-					dsGLCommandBuffer_setTexture(commandBuffer, shader, i, NULL);
+				{
+					errno = EPERM;
+					DS_LOG_ERROR_F(DS_RENDER_OPENGL_LOG_TAG,
+						"Texture element '%s' is unset when binding to shader '%s'.", element->name,
+						shader->name);
+					return false;
+				}
 				break;
 			}
 			case dsMaterialType_TextureBuffer:
@@ -75,7 +82,13 @@ static bool setSharedMaterialValues(dsCommandBuffer* commandBuffer,
 						format, offset, count);
 				}
 				else
-					dsGLCommandBuffer_setTexture(commandBuffer, shader, i, NULL);
+				{
+					errno = EPERM;
+					DS_LOG_ERROR_F(DS_RENDER_OPENGL_LOG_TAG,
+						"Buffer element '%s' is unset when binding to shader '%s'.", element->name,
+						shader->name);
+					return false;
+				}
 				break;
 			}
 			case dsMaterialType_UniformBlock:
@@ -91,8 +104,8 @@ static bool setSharedMaterialValues(dsCommandBuffer* commandBuffer,
 				{
 					errno = EPERM;
 					DS_LOG_ERROR_F(DS_RENDER_OPENGL_LOG_TAG,
-						"No buffer set for shared material value '%s'",
-						materialDesc->elements[i].name);
+						"Buffer element '%s' is unset when binding to shader '%s'.", element->name,
+						shader->name);
 					return false;
 				}
 				dsGLCommandBuffer_setShaderBuffer(commandBuffer, shader, i, buffer, offset, size);
@@ -112,8 +125,8 @@ static bool setSharedMaterialValues(dsCommandBuffer* commandBuffer,
 					{
 						errno = EPERM;
 						DS_LOG_ERROR_F(DS_RENDER_OPENGL_LOG_TAG,
-							"No buffer set for shared material value '%s'",
-							materialDesc->elements[i].name);
+							"Buffer element '%s' is unset when binding to shader '%s'.",
+							element->name, shader->name);
 						return false;
 					}
 					dsGLCommandBuffer_setShaderBuffer(commandBuffer, shader, i, buffer, offset,
@@ -126,9 +139,9 @@ static bool setSharedMaterialValues(dsCommandBuffer* commandBuffer,
 					if (!variableGroup)
 					{
 						errno = EPERM;
-						DS_LOG_ERROR_F(DS_RENDER_OPENGL_LOG_TAG,
-							"No variable group set for material value '%s'",
-							materialDesc->elements[i].name);
+						DS_LOG_ERROR_F(DS_RENDER_OPENGL_LOG_TAG, "Shader variable group element "
+							"'%s' is unset when binding to shader '%s'.", element->name,
+							shader->name);
 						return false;
 					}
 
@@ -177,10 +190,11 @@ static bool bindMaterial(dsCommandBuffer* commandBuffer, const dsShader* shader,
 	const dsMaterialDesc* materialDesc = shader->materialDesc;
 	for (uint32_t i = 0; i < materialDesc->elementCount; ++i)
 	{
-		if (materialDesc->elements[i].binding != dsMaterialBinding_Material)
+		const dsMaterialElement* element = materialDesc->elements + i;
+		if (element->binding != dsMaterialBinding_Material)
 			continue;
 
-		switch (materialDesc->elements[i].type)
+		switch (element->type)
 		{
 			case dsMaterialType_Texture:
 			case dsMaterialType_Image:
@@ -194,17 +208,11 @@ static bool bindMaterial(dsCommandBuffer* commandBuffer, const dsShader* shader,
 					dsGLCommandBuffer_setTexture(commandBuffer, shader, i, texture);
 				else
 				{
-					dsGfxFormat format;
-					size_t offset, count;
-					dsGfxBuffer* buffer = dsMaterial_getTextureBuffer(&format, &offset, &count,
-						material, i);
-					if (buffer)
-					{
-						dsGLCommandBuffer_setTextureBuffer(commandBuffer, shader, i, buffer,
-							format, offset, count);
-					}
-					else
-						dsGLCommandBuffer_setTexture(commandBuffer, shader, i, NULL);
+					errno = EPERM;
+					DS_LOG_ERROR_F(DS_RENDER_OPENGL_LOG_TAG,
+						"Texture element '%s' is unset when binding to shader '%s'.", element->name,
+						shader->name);
+					return false;
 				}
 				break;
 			}
@@ -216,15 +224,21 @@ static bool bindMaterial(dsCommandBuffer* commandBuffer, const dsShader* shader,
 
 				dsGfxFormat format;
 				size_t offset, count;
-				dsGfxBuffer* buffer = dsMaterial_getTextureBuffer(&format, &offset, &count, material,
-					i);
+				dsGfxBuffer* buffer = dsMaterial_getTextureBuffer(&format, &offset, &count,
+					material, i);
 				if (buffer)
 				{
 					dsGLCommandBuffer_setTextureBuffer(commandBuffer, shader, i, buffer,
 						format, offset, count);
 				}
 				else
-					dsGLCommandBuffer_setTexture(commandBuffer, shader, i, NULL);
+				{
+					errno = EPERM;
+					DS_LOG_ERROR_F(DS_RENDER_OPENGL_LOG_TAG,
+						"Buffer element '%s' is unset when binding to shader '%s'.", element->name,
+						shader->name);
+					return false;
+				}
 				break;
 			}
 			case dsMaterialType_UniformBlock:
@@ -239,7 +253,8 @@ static bool bindMaterial(dsCommandBuffer* commandBuffer, const dsShader* shader,
 				{
 					errno = EPERM;
 					DS_LOG_ERROR_F(DS_RENDER_OPENGL_LOG_TAG,
-						"No buffer set for material value '%s'", materialDesc->elements[i].name);
+						"Buffer element '%s' is unset when binding to shader '%s'.", element->name,
+						shader->name);
 					return false;
 				}
 				dsGLCommandBuffer_setShaderBuffer(commandBuffer, shader, i, buffer, offset, size);
@@ -251,9 +266,8 @@ static bool bindMaterial(dsCommandBuffer* commandBuffer, const dsShader* shader,
 				if (!variableGroup)
 				{
 					errno = EPERM;
-					DS_LOG_ERROR_F(DS_RENDER_OPENGL_LOG_TAG,
-						"No variable group set for material value '%s'",
-						materialDesc->elements[i].name);
+					DS_LOG_ERROR_F(DS_RENDER_OPENGL_LOG_TAG, "Shader variable group element '%s' "
+						"is unset when binding to shader '%s'.", element->name, shader->name);
 					return false;
 				}
 

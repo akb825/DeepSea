@@ -428,21 +428,6 @@ typedef struct dsVkBindingCounts
 	uint32_t total;
 } dsVkBindingCounts;
 
-typedef struct dsVkTexelBufferBinding
-{
-	dsVkGfxBufferData* buffer;
-	dsGfxFormat format;
-	size_t offset;
-	size_t count;
-} dsVkTexelBufferBinding;
-
-typedef struct dsVkGfxBufferBinding
-{
-	dsVkGfxBufferData* buffer;
-	size_t offset;
-	size_t size;
-} dsVkGfxBufferBinding;
-
 typedef struct dsVkMaterialDescriptor
 {
 	dsListNode node;
@@ -455,9 +440,9 @@ typedef struct dsVkMaterialDescriptor
 	dsVkBindingCounts counts;
 	dsMaterialBinding binding;
 
-	dsTexture** textures;
-	dsVkGfxBufferBinding* buffers;
-	dsVkTexelBufferBinding* texelBuffers;
+	VkDescriptorImageInfo* imageInfos;
+	VkDescriptorBufferInfo* bufferInfos;
+	VkBufferView* bufferViews;
 
 	VkDescriptorPool pool;
 	VkDescriptorSet set;
@@ -492,11 +477,6 @@ typedef struct dsVkMaterialDesc
 typedef struct dsVkBindingMemory
 {
 	dsVkBindingCounts counts;
-
-	dsTexture** textures;
-	dsVkGfxBufferBinding* buffers;
-	dsVkTexelBufferBinding* texelBuffers;
-
 	VkWriteDescriptorSet* bindings;
 	VkDescriptorImageInfo* imageInfos;
 	VkDescriptorBufferInfo* bufferInfos;
@@ -879,9 +859,6 @@ typedef struct dsVkSharedDescriptorSets
 
 	dsVkBindingMemory bindingMemory;
 	dsMaterialBinding binding;
-	uint32_t maxTextures;
-	uint32_t maxBuffers;
-	uint32_t maxTexelBuffers;
 	uint32_t maxBindings;
 	uint32_t maxImageInfos;
 	uint32_t maxBufferInfos;
