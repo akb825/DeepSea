@@ -52,6 +52,8 @@ struct dsSharedMaterialValues
 	dsAllocator* allocator;
 	dsPoolAllocator entryPool;
 	dsHashTable* hashTable;
+	uint32_t pointerVersion;
+	uint32_t offsetVersion;
 };
 
 static uint32_t identityHash(const void* key)
@@ -87,6 +89,16 @@ static bool setValue(dsSharedMaterialValues* values, uint32_t nameID, Type type,
 			return false;
 		}
 
+		// NOTE: For texture buffers, treat a change in offset as a pointer change, since it changes
+		// the texture pointer.
+		if (entry->value != value || entry->format != format || entry->size != size ||
+			(type == Type_TextureBuffer && entry->offset != offset))
+		{
+			++values->pointerVersion;
+		}
+		else if (entry->offset != offset)
+			++values->offsetVersion;
+
 		entry->value = value;
 		entry->format = format;
 		entry->offset = offset;
@@ -105,6 +117,7 @@ static bool setValue(dsSharedMaterialValues* values, uint32_t nameID, Type type,
 	entry->offset = offset;
 	entry->size = size;
 	DS_VERIFY(dsHashTable_insert(values->hashTable, &entry->key, &entry->node, NULL));
+	++values->pointerVersion;
 	return true;
 }
 
@@ -255,6 +268,8 @@ dsSharedMaterialValues* dsSharedMaterialValues_create(dsAllocator* allocator,
 		dsHashTable_fullAllocSize(tableSize));
 	DS_VERIFY(dsHashTable_initialize(materialValues->hashTable, tableSize, &identityHash,
 		&dsHash32Equal));
+	materialValues->pointerVersion = 0;
+	materialValues->offsetVersion = 0;
 	return materialValues;
 }
 
@@ -512,6 +527,22 @@ bool dsSharedMaterialValues_clear(dsSharedMaterialValues* values)
 	DS_VERIFY(dsHashTable_clear(values->hashTable));
 	DS_VERIFY(dsPoolAllocator_reset(&values->entryPool));
 	return true;
+}
+
+uint32_t dsSharedMaterialValues_getPointerVersion(const dsSharedMaterialValues* values)
+{
+	if (!values)
+		return 0;
+
+	return values->pointerVersion;
+}
+
+uint32_t dsSharedMaterialValues_getOffsetVersion(const dsSharedMaterialValues* values)
+{
+	if (!values)
+		return 0;
+
+	return values->offsetVersion;
 }
 
 void dsSharedMaterialValues_destroy(dsSharedMaterialValues* values)

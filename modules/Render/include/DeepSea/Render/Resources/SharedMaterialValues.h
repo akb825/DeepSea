@@ -322,6 +322,32 @@ DS_RENDER_EXPORT bool dsSharedMaterialValues_removeValueID(dsSharedMaterialValue
 DS_RENDER_EXPORT bool dsSharedMaterialValues_clear(dsSharedMaterialValues* values);
 
 /**
+ * @brief Gets the pointer version for the values.
+ *
+ * The pointer version is incremented every time a texture, buffer, or shader variable group pointer
+ * changes. This is not updated when only the offset changes. This can be used to determine if
+ * updates need to be processed without processing individual elements.
+ *
+ * @param values The shared material values to get the version from.
+ * @return False if values is NULL.
+ */
+DS_RENDER_EXPORT uint32_t dsSharedMaterialValues_getPointerVersion(
+	const dsSharedMaterialValues* values);
+
+/**
+ * @brief Gets the offset version for the values.
+ *
+ * The offset version is incremented every time a buffer offset is updated without changing the
+ * pointer. This can be used to determine if updates need to be processed without processing
+ * individual elements.
+ *
+ * @param values The shared material values to get the version from.
+ * @return False if values is NULL.
+ */
+DS_RENDER_EXPORT uint32_t dsSharedMaterialValues_getOffsetVersion(
+	const dsSharedMaterialValues* values);
+
+/**
  * @brief Destroys a shared material values instance.
  * @param values The shared material values to destroy.
  */

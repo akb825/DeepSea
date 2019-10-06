@@ -37,20 +37,12 @@
 #include <string.h>
 
 static bool setupElements(dsVkSharedDescriptorSets* descriptors, dsCommandBuffer* commandBuffer,
-	dsShader* shader, const dsSharedMaterialValues* sharedValues)
+	dsShader* shader, const dsSharedMaterialValues* sharedValues, dsVkSamplerList* samplers)
 {
 	dsVkRenderer* vkRenderer = (dsVkRenderer*)commandBuffer->renderer;
 	dsVkShader* vkShader = (dsVkShader*)shader;
 	const dsMaterialDesc* materialDesc = shader->materialDesc;
 	const dsVkMaterialDesc* vkMaterialDesc = (const dsVkMaterialDesc*)materialDesc;
-
-	dsVkSamplerList* samplers = NULL;
-	if (vkShader->samplerCount > 0)
-	{
-		samplers = dsVkShader_getSamplerList(shader, commandBuffer);
-		if (!samplers)
-			return false;
-	}
 
 	dsVkBindingMemory* bindingMemory = &descriptors->bindingMemory;
 	dsVkBindingCounts* bindingCounts = &bindingMemory->counts;
@@ -173,8 +165,26 @@ static bool setupElements(dsVkSharedDescriptorSets* descriptors, dsCommandBuffer
 				size_t size = 0;
 				buffer = dsSharedMaterialValues_getBufferID(&offset, &size, sharedValues,
 					element->nameID);
+				if (!buffer)
+				{
+					errno = EPERM;
+					if (element->type == dsMaterialType_VariableGroup)
+					{
+						DS_LOG_ERROR_F(DS_RENDER_VULKAN_LOG_TAG, "Shader variable group element "
+							"'%s' is unset when binding to shader '%s'.", element->name,
+							shader->name);
+					}
+					else
+					{
+						DS_LOG_ERROR_F(DS_RENDER_VULKAN_LOG_TAG,
+							"Buffer element '%s' is unset when binding to shader '%s'.",
+							element->name, shader->name);
+					}
+					return false;
+				}
+
 				// Dynamic offsets forinstance variables.
-				if (buffer && descriptors->binding == dsMaterialBinding_Instance)
+				if (descriptors->binding == dsMaterialBinding_Instance)
 				{
 					uint32_t offsetIndex = descriptors->offsetCount;
 					if (!DS_RESIZEABLE_ARRAY_ADD(descriptors->allocator, descriptors->offsets,
@@ -195,34 +205,14 @@ static bool setupElements(dsVkSharedDescriptorSets* descriptors, dsCommandBuffer
 				}
 
 				VkDescriptorBufferInfo* bufferInfo = bindingMemory->bufferInfos + index;
-				if (buffer)
-				{
-					dsVkGfxBufferData* bufferData = dsVkGfxBuffer_getData(buffer, commandBuffer);
-					if (!bufferData)
-						return false;
-
-					dsVkRenderer_processGfxBuffer(commandBuffer->renderer, bufferData);
-					bufferInfo->buffer = dsVkGfxBufferData_getBuffer(bufferData);
-					bufferInfo->offset = bindingOffset;
-					bufferInfo->range = size;
-				}
-				else
-				{
-					errno = EPERM;
-					if (element->type == dsMaterialType_VariableGroup)
-					{
-						DS_LOG_ERROR_F(DS_RENDER_VULKAN_LOG_TAG, "Shader variable group element "
-							"'%s' is unset when binding to shader '%s'.", element->name,
-							shader->name);
-					}
-					else
-					{
-						DS_LOG_ERROR_F(DS_RENDER_VULKAN_LOG_TAG,
-							"Buffer element '%s' is unset when binding to shader '%s'.",
-							element->name, shader->name);
-					}
+				dsVkGfxBufferData* bufferData = dsVkGfxBuffer_getData(buffer, commandBuffer);
+				if (!bufferData)
 					return false;
-				}
+
+				dsVkRenderer_processGfxBuffer(commandBuffer->renderer, bufferData);
+				bufferInfo->buffer = dsVkGfxBufferData_getBuffer(bufferData);
+				bufferInfo->offset = bindingOffset;
+				bufferInfo->range = size;
 				break;
 			}
 			default:
@@ -250,6 +240,70 @@ static bool setupElements(dsVkSharedDescriptorSets* descriptors, dsCommandBuffer
 	return true;
 }
 
+static bool setupOffsets(dsVkSharedDescriptorSets* descriptors, dsShader* shader,
+	const dsSharedMaterialValues* sharedValues)
+{
+	const dsMaterialDesc* materialDesc = shader->materialDesc;
+	const dsVkMaterialDesc* vkMaterialDesc = (const dsVkMaterialDesc*)materialDesc;
+
+	DS_ASSERT(descriptors->binding == dsMaterialBinding_Instance);
+	descriptors->offsetCount = 0;
+
+	for (uint32_t i = 0; i < materialDesc->elementCount; ++i)
+	{
+		const dsMaterialElement* element = materialDesc->elements + i;
+		if (element->binding != descriptors->binding ||
+			vkMaterialDesc->elementMappings[i] == DS_MATERIAL_UNKNOWN)
+		{
+			continue;
+		}
+
+		switch (element->type)
+		{
+			case dsMaterialType_VariableGroup:
+			case dsMaterialType_UniformBlock:
+			case dsMaterialType_UniformBuffer:
+			{
+				dsGfxBuffer* buffer = NULL;
+				size_t offset = 0;
+				size_t size = 0;
+				buffer = dsSharedMaterialValues_getBufferID(&offset, &size, sharedValues,
+					element->nameID);
+				if (!buffer)
+				{
+					errno = EPERM;
+					if (element->type == dsMaterialType_VariableGroup)
+					{
+						DS_LOG_ERROR_F(DS_RENDER_VULKAN_LOG_TAG, "Shader variable group element "
+							"'%s' is unset when binding to shader '%s'.", element->name,
+							shader->name);
+					}
+					else
+					{
+						DS_LOG_ERROR_F(DS_RENDER_VULKAN_LOG_TAG,
+							"Buffer element '%s' is unset when binding to shader '%s'.",
+							element->name, shader->name);
+					}
+					return false;
+				}
+
+				uint32_t offsetIndex = descriptors->offsetCount;
+				if (!DS_RESIZEABLE_ARRAY_ADD(descriptors->allocator, descriptors->offsets,
+						descriptors->offsetCount, descriptors->maxOffsets, 1))
+				{
+					return false;
+				}
+				descriptors->offsets[offsetIndex] = (uint32_t)offset;
+				break;
+			}
+			default:
+				DS_ASSERT(false);
+		}
+	}
+
+	return true;
+}
+
 void dsVkSharedDescriptorSets_initialize(dsVkSharedDescriptorSets* descriptors,
 	dsRenderer* renderer, dsAllocator* allocator, dsMaterialBinding binding)
 {
@@ -265,21 +319,51 @@ VkDescriptorSet dsVkSharedDescriptorSets_createSet(dsVkSharedDescriptorSets* des
 	const dsMaterialDesc* materialDesc = shader->materialDesc;
 	const dsVkMaterialDesc* vkMaterialDesc = (const dsVkMaterialDesc*)materialDesc;
 	dsVkShader* vkShader = (dsVkShader*)shader;
-	if (!setupElements(descriptors, commandBuffer, shader, sharedValues))
-		return 0;
 
 	dsVkSamplerList* samplers = NULL;
-	if (vkShader->samplerCount > false)
+	if (vkShader->samplerCount > 0)
 	{
 		samplers = dsVkShader_getSamplerList(shader, commandBuffer);
 		if (!samplers)
 			return 0;
 	}
 
-	if (descriptors->lastDescriptor && descriptors->lastDescriptor->materialDesc == materialDesc &&
-		dsVkMaterialDescriptor_isUpToDate(descriptors->lastDescriptor, &descriptors->bindingMemory,
-			samplers))
+	// Early out if the descriptors hasn't been updated.
+	bool needNewDescriptor = !descriptors->lastDescriptor ||
+		descriptors->lastDescriptor->materialDesc != materialDesc;
+	uint32_t pointerVersion = dsSharedMaterialValues_getPointerVersion(sharedValues);
+	uint32_t offsetVersion = dsSharedMaterialValues_getOffsetVersion(sharedValues);
+	if (!needNewDescriptor &&
+		!dsVkMaterialDescriptor_shouldCheckPointers(descriptors->lastDescriptor, samplers,
+			sharedValues, pointerVersion))
 	{
+		if (dsVkMaterialDescriptor_shouldCheckOffsets(descriptors->lastDescriptor, offsetVersion))
+		{
+			// Treat offsets changing the same as pointers changing if not instance binding.
+			if (descriptors->binding == dsMaterialBinding_Instance)
+			{
+				setupOffsets(descriptors, shader, sharedValues);
+				descriptors->lastDescriptor->offsetVersion = offsetVersion;
+				dsVkCommandBuffer_addResource(commandBuffer,
+					&descriptors->lastDescriptor->resource);
+				return descriptors->lastDescriptor->set;
+			}
+		}
+		else
+		{
+			dsVkCommandBuffer_addResource(commandBuffer, &descriptors->lastDescriptor->resource);
+			return descriptors->lastDescriptor->set;
+		}
+	}
+
+	if (!setupElements(descriptors, commandBuffer, shader, sharedValues, samplers))
+		return 0;
+
+	if (!needNewDescriptor &&
+		dsVkMaterialDescriptor_isUpToDate(descriptors->lastDescriptor, &descriptors->bindingMemory))
+	{
+		dsVkMaterialDescriptor_updateEarlyChecks(descriptors->lastDescriptor, samplers,
+			sharedValues, pointerVersion, offsetVersion);
 		dsVkCommandBuffer_addResource(commandBuffer, &descriptors->lastDescriptor->resource);
 		return descriptors->lastDescriptor->set;
 	}
@@ -294,7 +378,7 @@ VkDescriptorSet dsVkSharedDescriptorSets_createSet(dsVkSharedDescriptorSets* des
 
 	descriptors->lastMaterialDesc = dsLifetime_addRef(vkMaterialDesc->lifetime);
 	dsVkMaterialDescriptor_update(descriptors->lastDescriptor, shader, &descriptors->bindingMemory,
-		samplers);
+		samplers, sharedValues, pointerVersion, offsetVersion);
 	dsVkCommandBuffer_addResource(commandBuffer, &descriptors->lastDescriptor->resource);
 	return descriptors->lastDescriptor->set;
 }

@@ -435,7 +435,11 @@ typedef struct dsVkMaterialDescriptor
 	dsAllocator* allocator;
 	dsVkResource resource;
 	const dsMaterialDesc* materialDesc;
+
 	const dsVkSamplerList* samplers; // Only used for comparison
+	const void* refObject;
+	uint32_t pointerVersion;
+	uint32_t offsetVersion;
 
 	dsVkBindingCounts counts;
 	dsMaterialBinding binding;
@@ -496,6 +500,7 @@ struct dsDeviceMaterial
 	uint32_t maxDescriptors;
 
 	dsVkBindingMemory bindingMemory;
+	uint32_t materialVersion;
 
 	dsSpinlock lock;
 };

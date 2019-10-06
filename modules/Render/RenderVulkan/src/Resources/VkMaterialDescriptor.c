@@ -59,7 +59,11 @@ dsVkMaterialDescriptor* dsVkMaterialDescriptor_create(dsRenderer* renderer, dsAl
 	descriptor->allocator = dsAllocator_keepPointer(allocator);
 	dsVkResource_initialize(&descriptor->resource);
 	descriptor->materialDesc = materialDesc;
+
 	descriptor->samplers = NULL;
+	descriptor->refObject = NULL;
+	descriptor->pointerVersion = 0;
+	descriptor->offsetVersion = 0;
 
 	if (counts->textures > 0)
 	{
@@ -168,12 +172,24 @@ dsVkMaterialDescriptor* dsVkMaterialDescriptor_create(dsRenderer* renderer, dsAl
 	return descriptor;
 }
 
+bool dsVkMaterialDescriptor_shouldCheckPointers(const dsVkMaterialDescriptor* descriptor,
+	const dsVkSamplerList* samplers, const void* refObject, uint32_t pointerVersion)
+{
+	return descriptor->samplers != samplers || descriptor->refObject != refObject ||
+		descriptor->pointerVersion != pointerVersion;
+}
+
+bool dsVkMaterialDescriptor_shouldCheckOffsets(const dsVkMaterialDescriptor* descriptor,
+	uint32_t offsetVersion)
+{
+	return descriptor->offsetVersion != offsetVersion;
+}
+
 bool dsVkMaterialDescriptor_isUpToDate(const dsVkMaterialDescriptor* descriptor,
-	const dsVkBindingMemory* bindingMemory, const dsVkSamplerList* samplers)
+	const dsVkBindingMemory* bindingMemory)
 {
 	DS_ASSERT(memcmp(&descriptor->counts, &bindingMemory->counts, sizeof(dsVkBindingCounts)) == 0);
-	return samplers == descriptor->samplers &&
-		memcmp(descriptor->imageInfos, bindingMemory->imageInfos,
+	return memcmp(descriptor->imageInfos, bindingMemory->imageInfos,
 			sizeof(VkDescriptorImageInfo)*descriptor->counts.textures) == 0 &&
 		memcmp(descriptor->bufferInfos, bindingMemory->bufferInfos,
 			sizeof(VkDescriptorBufferInfo)*descriptor->counts.buffers) == 0 &&
@@ -181,8 +197,19 @@ bool dsVkMaterialDescriptor_isUpToDate(const dsVkMaterialDescriptor* descriptor,
 			sizeof(VkBufferView)*descriptor->counts.texelBuffers) == 0;
 }
 
+void dsVkMaterialDescriptor_updateEarlyChecks(dsVkMaterialDescriptor* descriptor,
+	const dsVkSamplerList* samplers, const void* refObject, uint32_t pointerVersion,
+	uint32_t offsetVersion)
+{
+	descriptor->samplers = samplers;
+	descriptor->refObject = refObject;
+	descriptor->pointerVersion = pointerVersion;
+	descriptor->offsetVersion = offsetVersion;
+}
+
 void dsVkMaterialDescriptor_update(dsVkMaterialDescriptor* descriptor, const dsShader* shader,
-	dsVkBindingMemory* bindingMemory, const dsVkSamplerList* samplers)
+	dsVkBindingMemory* bindingMemory, const dsVkSamplerList* samplers, const void* refObject,
+	uint32_t pointerVersion, uint32_t offsetVersion)
 {
 	DS_ASSERT(shader->materialDesc == descriptor->materialDesc);
 	DS_ASSERT(memcmp(&descriptor->counts, &bindingMemory->counts, sizeof(dsVkBindingCounts)) == 0);
@@ -195,7 +222,11 @@ void dsVkMaterialDescriptor_update(dsVkMaterialDescriptor* descriptor, const dsS
 		sizeof(VkDescriptorBufferInfo)*descriptor->counts.buffers);
 	memcpy(descriptor->bufferViews, bindingMemory->bufferViews,
 		sizeof(VkBufferView)*descriptor->counts.texelBuffers);
+
 	descriptor->samplers = samplers;
+	descriptor->refObject = refObject;
+	descriptor->pointerVersion = pointerVersion;
+	descriptor->offsetVersion = offsetVersion;
 
 	for (uint32_t i = 0; i < bindingMemory->counts.total; ++i)
 		bindingMemory->bindings[i].dstSet = descriptor->set;

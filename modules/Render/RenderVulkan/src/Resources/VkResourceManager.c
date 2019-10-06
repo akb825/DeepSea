@@ -911,6 +911,7 @@ dsResourceManager* dsVkResourceManager_create(dsAllocator* allocator, dsVkRender
 
 	// Device materials
 	baseResourceManager->createDeviceMaterialFunc = &dsVkDeviceMaterial_create;
+	baseResourceManager->materialElementChangedFunc = &dsVkDeviceMaterial_valueChanged;
 	baseResourceManager->destroyDeviceMaterialFunc = &dsVkDeviceMaterial_destroy;
 
 	// Shaders

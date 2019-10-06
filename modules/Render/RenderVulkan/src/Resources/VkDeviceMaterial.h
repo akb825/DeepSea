@@ -21,6 +21,8 @@
 
 dsDeviceMaterial* dsVkDeviceMaterial_create(dsResourceManager* resourceManager,
 	dsMaterial* material, dsAllocator* allocator);
+void dsVkDeviceMaterial_valueChanged(dsResourceManager* resourceManager, dsMaterial* material,
+	dsDeviceMaterial* deviceMaterial, uint32_t element);
 void dsVkDeviceMaterial_destroy(dsResourceManager* resourceManager, dsMaterial* material,
 	dsDeviceMaterial* deviceMaterial);
 
