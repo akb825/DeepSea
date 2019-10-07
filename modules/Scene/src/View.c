@@ -473,8 +473,9 @@ bool dsView_setSurface(dsView* view, const char* name, void* surface, dsGfxSurfa
 		return false;
 	}
 
-	if (surfaceInfo->surface == surface)
-		return true;
+	// NOTE: This check can fail if deleting and re-allocating objects.
+	/*if (surfaceInfo->surface == surface)
+		return true;*/
 
 	surfaceInfo->surface = surface;
 	privateView->surfaces[foundNode->index] = surface;
