@@ -456,6 +456,7 @@ typedef struct dsVkMaterialDescriptorRef
 {
 	dsVkMaterialDescriptor* descriptor;
 	dsLifetime* shader;
+	uint64_t lastSetFrame;
 } dsVkMaterialDescriptorRef;
 
 typedef struct dsVkMaterialDescBindings

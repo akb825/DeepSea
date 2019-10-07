@@ -1886,6 +1886,7 @@ bool dsVkRenderer_waitUntilIdle(dsRenderer* renderer)
 	dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
 	dsVkDevice* device = &vkRenderer->device;
 
+	// NOTE: Don't lock for submitCuont since waitUntilIdle() can only be called on the main thread.
 	uint64_t submitCount = vkRenderer->submitCount;
 	preFlush(renderer, true, false);
 	DS_VK_CALL(device->vkQueueWaitIdle)(device->queue);

@@ -214,7 +214,8 @@ VkDescriptorSet dsVkDeviceMaterial_getDescriptorSet(dsCommandBuffer* commandBuff
 	dsDeviceMaterial* material, dsShader* shader)
 {
 	dsVkShader* vkShader = (dsVkShader*)shader;
-	dsVkRenderer* vkRenderer = (dsVkRenderer*)commandBuffer->renderer;
+	dsRenderer* renderer = commandBuffer->renderer;
+	dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
 	const dsMaterialDesc* materialDesc = dsMaterial_getDescription(material->material);
 	const dsVkMaterialDesc* vkMaterialDesc = (const dsVkMaterialDesc*)materialDesc;
 
@@ -244,6 +245,8 @@ VkDescriptorSet dsVkDeviceMaterial_getDescriptorSet(dsCommandBuffer* commandBuff
 			break;
 	}
 
+	dsVkMaterialDescriptorRef* descriptorRef;
+	bool forceFullCheck = false;
 	if (index == material->descriptorCount)
 	{
 		if (!DS_RESIZEABLE_ARRAY_ADD(material->allocator, material->descriptors,
@@ -253,18 +256,31 @@ VkDescriptorSet dsVkDeviceMaterial_getDescriptorSet(dsCommandBuffer* commandBuff
 			return 0;
 		}
 
-		material->descriptors[index].descriptor = NULL;
-		material->descriptors[index].shader = dsLifetime_addRef(vkShader->lifetime);
+		descriptorRef = material->descriptors + index;
+		descriptorRef->descriptor = NULL;
+		descriptorRef->shader = dsLifetime_addRef(vkShader->lifetime);
+		descriptorRef->lastSetFrame = renderer->frameNumber;
+	}
+	else
+	{
+		descriptorRef = material->descriptors + index;
+		// Force a full check at least one update per frame. This helps prevent potential issues
+		// with pointers having the same value after free/reallocate or orphaned buffers.
+		forceFullCheck = descriptorRef->lastSetFrame != renderer->frameNumber;
 	}
 
-	dsVkMaterialDescriptor* descriptor = material->descriptors[index].descriptor;
+	dsVkMaterialDescriptor* descriptor = descriptorRef->descriptor;
 	// Check if the the material is already up to date based on the version.
-	if (descriptor && !dsVkMaterialDescriptor_shouldCheckPointers(descriptor, samplers,
-			NULL, material->materialVersion))
+	if (!forceFullCheck && descriptor && !dsVkMaterialDescriptor_shouldCheckPointers(descriptor,
+			samplers, NULL, material->materialVersion))
 	{
+		if (!dsVkCommandBuffer_addResource(commandBuffer, &descriptor->resource))
+			return 0;
 		DS_VERIFY(dsSpinlock_unlock(&material->lock));
 		return descriptor->set;
 	}
+
+	descriptorRef->lastSetFrame = renderer->frameNumber;
 
 	// Grab the list of resources needed to bind.
 	uint32_t imageInfoIndex = 0;
