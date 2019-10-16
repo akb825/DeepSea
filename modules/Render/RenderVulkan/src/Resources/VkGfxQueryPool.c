@@ -166,7 +166,32 @@ bool dsVkGfxQueryPool_getValues(dsResourceManager* resourceManager, dsGfxQueryPo
 {
 	DS_UNUSED(resourceManager);
 	dsVkGfxQueryPool* vkQueries = (dsVkGfxQueryPool*)queries;
-	dsVkDevice* device = &((dsVkRenderer*)resourceManager->renderer)->device;
+	dsRenderer* renderer = resourceManager->renderer;
+	dsVkDevice* device = &((dsVkRenderer*)renderer)->device;
+
+	// Need to wait for the results to be available.
+	DS_VERIFY(dsSpinlock_lock(&vkQueries->resource.lock));
+	uint64_t lastUsedSubmit = vkQueries->resource.lastUsedSubmit;
+	DS_VERIFY(dsSpinlock_unlock(&vkQueries->resource.lock));
+
+	if (lastUsedSubmit != DS_NOT_SUBMITTED)
+	{
+		dsGfxFenceResult fenceResult = dsVkRenderer_waitForSubmit(renderer, lastUsedSubmit,
+			DS_DEFAULT_WAIT_TIMEOUT);
+		if (fenceResult == dsGfxFenceResult_Timeout)
+		{
+			DS_LOG_ERROR(DS_RENDER_VULKAN_LOG_TAG, "Timed out waiting for query values.");
+			errno = ETIMEDOUT;
+			return false;
+		}
+		else if (fenceResult != dsGfxFenceResult_Success)
+		{
+			if (fenceResult == dsGfxFenceResult_WaitingToQueue)
+				DS_LOG_ERROR(DS_RENDER_VULKAN_LOG_TAG, "Query pool still queued to be rendered.");
+			errno = EPERM;
+			return false;
+		}
+	}
 
 	DS_ASSERT(elementSize == sizeof(uint32_t) || elementSize == sizeof(uint64_t));
 	VkQueryResultFlags flags = 0;

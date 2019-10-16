@@ -369,7 +369,7 @@ void* dsVkGfxBuffer_map(dsResourceManager* resourceManager, dsGfxBuffer* buffer,
 		DS_VERIFY(dsSpinlock_lock(&vkBuffer->lock));
 		DS_VERIFY(dsSpinlock_lock(&bufferData->resource.lock));
 
-		if (fenceResult == dsGfxFenceResult_WaitingToQueue)
+		if (fenceResult != dsGfxFenceResult_Success)
 		{
 			bufferData->mappedStart = 0;
 			bufferData->mappedSize = 0;
@@ -377,8 +377,19 @@ void* dsVkGfxBuffer_map(dsResourceManager* resourceManager, dsGfxBuffer* buffer,
 			DS_VERIFY(dsSpinlock_unlock(&bufferData->resource.lock));
 			DS_VERIFY(dsSpinlock_unlock(&vkBuffer->lock));
 
-			errno = EPERM;
-			DS_LOG_ERROR(DS_RENDER_VULKAN_LOG_TAG, "Buffer still queued to be rendered.");
+			if (fenceResult == dsGfxFenceResult_Timeout)
+			{
+				DS_LOG_ERROR(DS_RENDER_VULKAN_LOG_TAG,
+					"Timed out waiting for synchronized buffer.");
+				errno = ETIMEDOUT;
+			}
+			else
+			{
+				if (fenceResult == dsGfxFenceResult_WaitingToQueue)
+					DS_LOG_ERROR(DS_RENDER_VULKAN_LOG_TAG, "Buffer still queued to be rendered.");
+				errno = EPERM;
+			}
+
 			return NULL;
 		}
 
