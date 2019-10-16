@@ -240,8 +240,6 @@ VkDescriptorSet dsVkDeviceMaterial_getDescriptorSet(dsCommandBuffer* commandBuff
 	else
 		descriptorRef = material->descriptors + index;
 
-	dsVkMaterialDescriptor* descriptor = descriptorRef->descriptor;
-
 	// Grab the list of resources needed to bind.
 	uint32_t imageInfoIndex = 0;
 	uint32_t bufferInfoIndex = 0;
@@ -424,10 +422,11 @@ VkDescriptorSet dsVkDeviceMaterial_getDescriptorSet(dsCommandBuffer* commandBuff
 	DS_ASSERT(bufferInfoIndex == bindingMemory->counts.buffers);
 	DS_ASSERT(bufferViewIndex == bindingMemory->counts.texelBuffers);
 
-	// Create the descriptor if new or if the resources have changed.
-	if (descriptor && dsVkMaterialDescriptor_isUpToDate(descriptor, bindingMemory))
-		dsVkMaterialDescriptor_updateEarlyChecks(descriptor, samplers, NULL, 0, 0);
-	else
+	// Create the descriptor if new or if the resources have changed. No early checks for materials
+	// since it's difficult to catch cases where the results might be submitted in the middle of a
+	// frame, which can break resource tracking.
+	dsVkMaterialDescriptor* descriptor = descriptorRef->descriptor;
+	if (!descriptor || !dsVkMaterialDescriptor_isUpToDate(descriptor, bindingMemory))
 	{
 		dsVkMaterialDesc_freeDescriptor(materialDesc, descriptor);
 
