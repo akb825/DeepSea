@@ -172,8 +172,20 @@ static QueryInfo* addQuery(dsGPUProfileContext* context, dsCommandBuffer* comman
 	}
 
 	QueryInfo* query = pools->queries + index;
+
+	// This gets a little over-protective and there's no way to make this warning happy...
+#if DS_GCC && __GNUC__ >= 8
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wstringop-truncation"
+#endif
+
 	strncpy(query->category, category, MAX_STRING_LENGTH - 1);
 	strncpy(query->name, name, MAX_STRING_LENGTH - 1);
+
+#if DS_GCC && __GNUC__ >= 8
+#pragma GCC diagnostic pop
+#endif
+
 	query->category[MAX_STRING_LENGTH - 1] = 0;
 	query->name[MAX_STRING_LENGTH - 1] = 0;
 	query->time = 0;
@@ -383,7 +395,8 @@ void dsGPUProfileContext_beginSwapBuffers(dsGPUProfileContext* context)
 		QueryPools* pools = context->queryPools + context->queryPoolIndex;
 		addQuery(context, commandBuffer, NULL, NULL, pools->beginSwapIndex, context->swapCount);
 		pools->beginSwapIndex = pools->queryCount;
-		addQuery(context, commandBuffer, "Frame", "Swap buffers", INVALID_INDEX, context->swapCount);
+		addQuery(context, commandBuffer, "Frame", "Swap buffers", INVALID_INDEX,
+			context->swapCount);
 	}
 	dsSpinlock_unlock(&context->spinlock);
 }

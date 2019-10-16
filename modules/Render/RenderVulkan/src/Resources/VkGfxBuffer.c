@@ -448,10 +448,10 @@ bool dsVkGfxBuffer_unmap(dsResourceManager* resourceManager, dsGfxBuffer* buffer
 		return false;
 	}
 
-	// Need to mark the range as dirty to copy to the GPU when next used.
-	if (bufferData->mappedWrite && bufferData->deviceMemory)
+	if (bufferData->mappedWrite)
 	{
-		if (!bufferData->needsInitialCopy)
+		// Need to mark the range as dirty to copy to the GPU when next used.
+		if (bufferData->deviceMemory && !bufferData->needsInitialCopy)
 		{
 			uint32_t rangeIndex = bufferData->dirtyRangeCount;
 			if (DS_RESIZEABLE_ARRAY_ADD(bufferData->scratchAllocator, bufferData->dirtyRanges,

@@ -125,31 +125,9 @@ dsDeviceMaterial* dsVkDeviceMaterial_create(dsResourceManager* resourceManager,
 		bindingMemory->bufferViews = NULL;
 
 	dsVkMaterialDesc_initializeBindings(materialDesc, bindingMemory, dsMaterialBinding_Material);
-	deviceMaterial->materialVersion = 0;
 
 	dsSpinlock_initialize(&deviceMaterial->lock);
 	return deviceMaterial;
-}
-
-void dsVkDeviceMaterial_valueChanged(dsResourceManager* resourceManager, dsMaterial* material,
-	dsDeviceMaterial* deviceMaterial, uint32_t element)
-{
-	DS_UNUSED(resourceManager);
-	switch (dsMaterial_getDescription(material)->elements[element].type)
-	{
-		case dsMaterialType_Texture:
-		case dsMaterialType_Image:
-		case dsMaterialType_SubpassInput:
-		case dsMaterialType_TextureBuffer:
-		case dsMaterialType_ImageBuffer:
-		case dsMaterialType_VariableGroup:
-		case dsMaterialType_UniformBlock:
-		case dsMaterialType_UniformBuffer:
-			++deviceMaterial->materialVersion;
-			break;
-		default:
-			break;
-	}
 }
 
 void dsVkDeviceMaterial_destroy(dsResourceManager* resourceManager, dsMaterial* material,
@@ -246,7 +224,6 @@ VkDescriptorSet dsVkDeviceMaterial_getDescriptorSet(dsCommandBuffer* commandBuff
 	}
 
 	dsVkMaterialDescriptorRef* descriptorRef;
-	bool forceFullCheck = false;
 	if (index == material->descriptorCount)
 	{
 		if (!DS_RESIZEABLE_ARRAY_ADD(material->allocator, material->descriptors,
@@ -259,28 +236,11 @@ VkDescriptorSet dsVkDeviceMaterial_getDescriptorSet(dsCommandBuffer* commandBuff
 		descriptorRef = material->descriptors + index;
 		descriptorRef->descriptor = NULL;
 		descriptorRef->shader = dsLifetime_addRef(vkShader->lifetime);
-		descriptorRef->lastSetFrame = renderer->frameNumber;
 	}
 	else
-	{
 		descriptorRef = material->descriptors + index;
-		// Force a full check at least one update per frame. This helps prevent potential issues
-		// with pointers having the same value after free/reallocate or orphaned buffers.
-		forceFullCheck = descriptorRef->lastSetFrame != renderer->frameNumber;
-	}
 
 	dsVkMaterialDescriptor* descriptor = descriptorRef->descriptor;
-	// Check if the the material is already up to date based on the version.
-	if (!forceFullCheck && descriptor && !dsVkMaterialDescriptor_shouldCheckPointers(descriptor,
-			samplers, NULL, material->materialVersion))
-	{
-		if (!dsVkCommandBuffer_addResource(commandBuffer, &descriptor->resource))
-			return 0;
-		DS_VERIFY(dsSpinlock_unlock(&material->lock));
-		return descriptor->set;
-	}
-
-	descriptorRef->lastSetFrame = renderer->frameNumber;
 
 	// Grab the list of resources needed to bind.
 	uint32_t imageInfoIndex = 0;
@@ -370,7 +330,7 @@ VkDescriptorSet dsVkDeviceMaterial_getDescriptorSet(dsCommandBuffer* commandBuff
 						return 0;
 					}
 
-					dsVkRenderer_processGfxBuffer(commandBuffer->renderer, bufferData);
+					dsVkRenderer_processGfxBuffer(renderer, bufferData);
 					bindingMemory->bufferViews[bufferViewIndex] = dsVkGfxBufferData_getBufferView(
 						bufferData, format, offset, count);
 				}
@@ -412,7 +372,7 @@ VkDescriptorSet dsVkDeviceMaterial_getDescriptorSet(dsCommandBuffer* commandBuff
 					return 0;
 				}
 
-				dsVkRenderer_processGfxBuffer(commandBuffer->renderer, bufferData);
+				dsVkRenderer_processGfxBuffer(renderer, bufferData);
 				bufferInfo->buffer = dsVkGfxBufferData_getBuffer(bufferData);
 				bufferInfo->offset = 0;
 				bufferInfo->range = buffer->size;
@@ -438,7 +398,7 @@ VkDescriptorSet dsVkDeviceMaterial_getDescriptorSet(dsCommandBuffer* commandBuff
 						return 0;
 					}
 
-					dsVkRenderer_processGfxBuffer(commandBuffer->renderer, bufferData);
+					dsVkRenderer_processGfxBuffer(renderer, bufferData);
 					bufferInfo->buffer = dsVkGfxBufferData_getBuffer(bufferData);
 					bufferInfo->offset = offset;
 					bufferInfo->range = size;
@@ -466,10 +426,7 @@ VkDescriptorSet dsVkDeviceMaterial_getDescriptorSet(dsCommandBuffer* commandBuff
 
 	// Create the descriptor if new or if the resources have changed.
 	if (descriptor && dsVkMaterialDescriptor_isUpToDate(descriptor, bindingMemory))
-	{
-		dsVkMaterialDescriptor_updateEarlyChecks(descriptor, samplers, NULL,
-			material->materialVersion, 0);
-	}
+		dsVkMaterialDescriptor_updateEarlyChecks(descriptor, samplers, NULL, 0, 0);
 	else
 	{
 		dsVkMaterialDesc_freeDescriptor(materialDesc, descriptor);
@@ -483,8 +440,7 @@ VkDescriptorSet dsVkDeviceMaterial_getDescriptorSet(dsCommandBuffer* commandBuff
 			return 0;
 		}
 
-		dsVkMaterialDescriptor_update(descriptor, shader, bindingMemory, samplers,
-			NULL, material->materialVersion, 0);
+		dsVkMaterialDescriptor_update(descriptor, shader, bindingMemory, samplers, NULL, 0, 0);
 		material->descriptors[index].descriptor = descriptor;
 	}
 

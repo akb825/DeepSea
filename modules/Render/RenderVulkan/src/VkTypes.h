@@ -456,7 +456,6 @@ typedef struct dsVkMaterialDescriptorRef
 {
 	dsVkMaterialDescriptor* descriptor;
 	dsLifetime* shader;
-	uint64_t lastSetFrame;
 } dsVkMaterialDescriptorRef;
 
 typedef struct dsVkMaterialDescBindings
@@ -501,7 +500,6 @@ struct dsDeviceMaterial
 	uint32_t maxDescriptors;
 
 	dsVkBindingMemory bindingMemory;
-	uint32_t materialVersion;
 
 	dsSpinlock lock;
 };
