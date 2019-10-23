@@ -17,6 +17,11 @@
 #include <DeepSea/Geometry/AlignedBox2.h>
 #include <gtest/gtest.h>
 
+// Handle older versions of gtest.
+#ifndef TYPED_TEST_SUITE
+#define TYPED_TEST_SUITE TYPED_TEST_CASE
+#endif
+
 template <typename T>
 struct AlignedBox2TypeSelector;
 
