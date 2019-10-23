@@ -40,7 +40,7 @@ lowp float dsComputeTextDistance(lowp sampler2D fontTex, vec3 texCoords)
 lowp vec4 dsComputeTextColor(lowp float distance, lowp float embolden, lowp float antiAlias,
 	lowp vec4 textColor)
 {
-	textColor *= textColor.a;
+	textColor.rgb *= textColor.a;
 	lowp float insideThreshold = -embolden*0.5 + 0.5;
 	lowp float inside = smoothstep(insideThreshold - antiAlias, insideThreshold + antiAlias,
 		distance);

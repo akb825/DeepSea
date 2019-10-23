@@ -18,6 +18,11 @@
 #include <DeepSea/Math/Matrix44.h>
 #include <gtest/gtest.h>
 
+// Handle older versions of gtest.
+#ifndef TYPED_TEST_SUITE
+#define TYPED_TEST_SUITE TYPED_TEST_CASE
+#endif
+
 template <typename T>
 struct Plane3TypeSelector;
 
@@ -54,7 +59,7 @@ class Plane3Test : public testing::Test
 };
 
 using Plane3Types = testing::Types<float, double>;
-TYPED_TEST_CASE(Plane3Test, Plane3Types);
+TYPED_TEST_SUITE(Plane3Test, Plane3Types);
 
 inline void dsPlane3_normalize(dsPlane3f* result, const dsPlane3f* plane)
 {

@@ -38,6 +38,11 @@
 #include <thread>
 #include <vector>
 
+// Handle older versions of gtest.
+#ifndef INSTANTIATE_TEST_SUITE_P
+#define INSTANTIATE_TEST_SUITE_P INSTANTIATE_TEST_CASE_P
+#endif
+
 namespace
 {
 struct Vertex
@@ -269,7 +274,7 @@ public:
 	}
 };
 
-INSTANTIATE_TEST_CASE_P(ThreadedFunctional, ThreadedFunctionalTest,
+INSTANTIATE_TEST_SUITE_P(ThreadedFunctional, ThreadedFunctionalTest,
 	FixtureBase::getRendererTypes());
 
 TEST_P(ThreadedFunctionalTest, RenderMultithreaded)

@@ -20,6 +20,11 @@
 #include <gtest/gtest.h>
 #include <cmath>
 
+// Handle older versions of gtest.
+#ifndef TYPED_TEST_SUITE
+#define TYPED_TEST_SUITE TYPED_TEST_CASE
+#endif
+
 template <typename T>
 struct Matrix44TypeSelector;
 
@@ -54,7 +59,7 @@ class Matrix44Test : public testing::Test
 };
 
 using Matrix44Types = testing::Types<float, double>;
-TYPED_TEST_CASE(Matrix44Test, Matrix44Types);
+TYPED_TEST_SUITE(Matrix44Test, Matrix44Types);
 
 inline void dsMatrix44_affineInvert(dsMatrix44f* result, const dsMatrix44f* a)
 {

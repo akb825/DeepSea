@@ -20,6 +20,11 @@
 #include <DeepSea/Math/Core.h>
 #include <gtest/gtest.h>
 
+// Handle older versions of gtest.
+#ifndef INSTANTIATE_TEST_SUITE_P
+#define INSTANTIATE_TEST_SUITE_P INSTANTIATE_TEST_CASE_P
+#endif
+
 class SimpleHoledPolygonTest : public testing::Test
 {
 public:
@@ -46,7 +51,7 @@ class SimpleHoledPolygonStressTest : public SimpleHoledPolygonTest,
 {
 };
 
-INSTANTIATE_TEST_CASE_P(SimpleHoledPolygonStress, SimpleHoledPolygonStressTest,
+INSTANTIATE_TEST_SUITE_P(SimpleHoledPolygonStress, SimpleHoledPolygonStressTest,
 	testing::Values(100, 1000, 10000));
 
 TEST_F(SimpleHoledPolygonTest, Triangle)

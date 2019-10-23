@@ -22,6 +22,11 @@
 #include <utility>
 #include <vector>
 
+// Handle older versions of gtest.
+#ifndef TYPED_TEST_SUITE
+#define TYPED_TEST_SUITE TYPED_TEST_CASE
+#endif
+
 namespace
 {
 
@@ -118,7 +123,7 @@ public:
 };
 
 using CurveTypes = testing::Types<CurveSelector<2>, CurveSelector<3>>;
-TYPED_TEST_CASE(BezierCurveTest, CurveTypes);
+TYPED_TEST_SUITE(BezierCurveTest, CurveTypes);
 
 TYPED_TEST(BezierCurveTest, EvaluateCubic)
 {

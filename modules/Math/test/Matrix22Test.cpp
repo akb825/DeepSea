@@ -18,6 +18,11 @@
 #include <DeepSea/Math/Vector2.h>
 #include <gtest/gtest.h>
 
+// Handle older versions of gtest.
+#ifndef TYPED_TEST_SUITE
+#define TYPED_TEST_SUITE TYPED_TEST_CASE
+#endif
+
 template <typename T>
 struct Matrix22TypeSelector;
 
@@ -46,7 +51,7 @@ class Matrix22Test : public testing::Test
 };
 
 using Matrix22Types = testing::Types<float, double>;
-TYPED_TEST_CASE(Matrix22Test, Matrix22Types);
+TYPED_TEST_SUITE(Matrix22Test, Matrix22Types);
 
 inline void dsMatrix22_invert(dsMatrix22f* result, const dsMatrix22f* a)
 {

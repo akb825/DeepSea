@@ -20,6 +20,11 @@
 #include <DeepSea/Math/Core.h>
 #include <gtest/gtest.h>
 
+// Handle older versions of gtest.
+#ifndef INSTANTIATE_TEST_SUITE_P
+#define INSTANTIATE_TEST_SUITE_P INSTANTIATE_TEST_CASE_P
+#endif
+
 // NOTE: These test cases were made in image space, i.e. image space in upper-left. As a result,
 // most cases also use CW winding order for the triangulation, which would be CCW when rendered to
 // the screen.
@@ -50,7 +55,7 @@ class SimplePolygonStressTest : public SimplePolygonTest,
 {
 };
 
-INSTANTIATE_TEST_CASE_P(SimplePolygonStress, SimplePolygonStressTest,
+INSTANTIATE_TEST_SUITE_P(SimplePolygonStress, SimplePolygonStressTest,
 	testing::Values(100, 1000, 10000));
 
 TEST_F(SimplePolygonTest, TriangleCW)

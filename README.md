@@ -26,10 +26,10 @@ The `update.sh` script may be used to update the code, submodules, and download 
 
 The first time you run `update.sh`, pass in the `-t` option to download the tools. You can also pass the `-l` with the list of platforms to download the libraries for. Supported platforms are:
 
-* linux (Linux with glibc 2.19 for x86-64)
+* linux (Linux with glibc 2.23 for x86-64, e.g. Ubuntu 16.04)
 * mac (macOS 10.11 for x86-64)
-* win32 (Windows for x86)
-* win64 (Windows for x86-64)
+* win32 (Windows for x86, VS2017 runtime)
+* win64 (Windows for x86-64, VS2017 runtime)
 * android-x86 (Android for x86)
 * android-x86_64 (Android for x86-64)
 * android-armeabi-v7a (Android for ARM v7a)
@@ -65,7 +65,7 @@ The tests can be run by running the command:
 
 	DeepSea/build$ ctest
 
-> **Note:** When building on Linux, the freetype and harfbuzz libraries aren't installed with the pre-built library packages since they are installed on nearly all Linux systems already. The development packages for these libraries must be installed when building DeepSea. In the case of Ubuntu, the `libfreetype6-dev` and `harfbuzz-dev` should be installed.
+> **Note:** When building on Linux, the freetype harfbuzz, and SDL libraries aren't installed with the pre-built library packages since they are installed on nearly all Linux systems already. The development packages for these libraries must be installed when building DeepSea. In the case of Ubuntu, the `libfreetype6-dev`, `harfbuzz-dev`, and `libsdl2-dev` should be installed.
 
 ## macOS
 

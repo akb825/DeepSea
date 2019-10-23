@@ -18,6 +18,11 @@
 #include <DeepSea/Math/Matrix44.h>
 #include <gtest/gtest.h>
 
+// Handle older versions of gtest.
+#ifndef TYPED_TEST_SUITE
+#define TYPED_TEST_SUITE TYPED_TEST_CASE
+#endif
+
 template <typename T>
 struct OrientedBox3TypeSelector;
 
@@ -52,7 +57,7 @@ class OrientedBox3Test : public testing::Test
 };
 
 using OrientedBox3Types = testing::Types<float, double>;
-TYPED_TEST_CASE(OrientedBox3Test, OrientedBox3Types);
+TYPED_TEST_SUITE(OrientedBox3Test, OrientedBox3Types);
 
 inline bool dsOrientedBox3_transform(dsOrientedBox3f* box, const dsMatrix44f* transform)
 {

@@ -102,7 +102,7 @@ function(ds_compile_shaders container)
 		list(APPEND extraArgs -s)
 	endif()
 	if (ARGS_OPTIMIZE)
-		list(APPEND extraArgs -O)
+		list(APPEND extraArgs -O 2)
 	endif()
 
 	set(outputs)

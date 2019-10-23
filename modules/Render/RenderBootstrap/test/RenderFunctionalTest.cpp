@@ -30,6 +30,11 @@
 #include <DeepSea/Render/RenderPass.h>
 #include <DeepSea/Render/Renderer.h>
 
+// Handle older versions of gtest.
+#ifndef INSTANTIATE_TEST_SUITE_P
+#define INSTANTIATE_TEST_SUITE_P INSTANTIATE_TEST_CASE_P
+#endif
+
 namespace
 {
 class WriteOffscreenInfo
@@ -140,7 +145,7 @@ class RendererFunctionalTest : public FixtureBase
 {
 };
 
-INSTANTIATE_TEST_CASE_P(RendererFunctional, RendererFunctionalTest,
+INSTANTIATE_TEST_SUITE_P(RendererFunctional, RendererFunctionalTest,
 	FixtureBase::getRendererTypes());
 
 TEST_P(RendererFunctionalTest, ReadFromOffscreen)

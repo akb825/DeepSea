@@ -21,6 +21,11 @@
 #include <gtest/gtest.h>
 #include <cmath>
 
+// Handle older versions of gtest.
+#ifndef TYPED_TEST_SUITE
+#define TYPED_TEST_SUITE TYPED_TEST_CASE
+#endif
+
 namespace
 {
 
@@ -236,7 +241,7 @@ public:
 
 using BVHTypes = testing::Types<BVHSelector<2, float>, BVHSelector<2, double>, BVHSelector<2, int>,
 	BVHSelector<3, float>, BVHSelector<3, double>, BVHSelector<3, int>>;
-TYPED_TEST_CASE(BVHTest, BVHTypes);
+TYPED_TEST_SUITE(BVHTest, BVHTypes);
 
 TYPED_TEST(BVHTest, Create)
 {

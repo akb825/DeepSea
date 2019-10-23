@@ -21,11 +21,16 @@
 #include <DeepSea/Render/Resources/Texture.h>
 #include <DeepSea/Render/Renderer.h>
 
+// Handle older versions of gtest.
+#ifndef INSTANTIATE_TEST_SUITE_P
+#define INSTANTIATE_TEST_SUITE_P INSTANTIATE_TEST_CASE_P
+#endif
+
 class ResourceCopyTest : public FixtureBase
 {
 };
 
-INSTANTIATE_TEST_CASE_P(RendererFunctional, ResourceCopyTest, FixtureBase::getRendererTypes());
+INSTANTIATE_TEST_SUITE_P(RendererFunctional, ResourceCopyTest, FixtureBase::getRendererTypes());
 
 TEST_P(ResourceCopyTest, CopyBuffers)
 {

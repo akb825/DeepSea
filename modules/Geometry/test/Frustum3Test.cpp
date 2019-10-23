@@ -22,6 +22,11 @@
 #include <gtest/gtest.h>
 #include <cmath>
 
+// Handle older versions of gtest.
+#ifndef TYPED_TEST_SUITE
+#define TYPED_TEST_SUITE TYPED_TEST_CASE
+#endif
+
 template <typename T>
 struct Frustum3TypeSelector;
 
@@ -56,7 +61,7 @@ class Frustum3Test : public testing::Test
 };
 
 using Frustum3Types = testing::Types<float, double>;
-TYPED_TEST_CASE(Frustum3Test, Frustum3Types);
+TYPED_TEST_SUITE(Frustum3Test, Frustum3Types);
 
 inline void dsFrustum3_normalize(dsFrustum3f* frustum)
 {

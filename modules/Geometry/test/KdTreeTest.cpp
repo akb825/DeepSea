@@ -21,6 +21,11 @@
 #include <gtest/gtest.h>
 #include <cmath>
 
+// Handle older versions of gtest.
+#ifndef TYPED_TEST_SUITE
+#define TYPED_TEST_SUITE TYPED_TEST_CASE
+#endif
+
 namespace
 {
 
@@ -308,7 +313,7 @@ public:
 using KdTreeTypes = testing::Types<KdTreeSelector<2, float>, KdTreeSelector<2, double>,
 	KdTreeSelector<2, int>, KdTreeSelector<3, float>, KdTreeSelector<3, double>,
 	KdTreeSelector<3, int>>;
-TYPED_TEST_CASE(KdTreeTest, KdTreeTypes);
+TYPED_TEST_SUITE(KdTreeTest, KdTreeTypes);
 
 TYPED_TEST(KdTreeTest, Create)
 {

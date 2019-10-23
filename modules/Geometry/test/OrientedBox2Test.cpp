@@ -18,6 +18,11 @@
 #include <DeepSea/Math/Matrix33.h>
 #include <gtest/gtest.h>
 
+// Handle older versions of gtest.
+#ifndef TYPED_TEST_SUITE
+#define TYPED_TEST_SUITE TYPED_TEST_CASE
+#endif
+
 template <typename T>
 struct OrientedBox2TypeSelector;
 
@@ -52,7 +57,7 @@ class OrientedBox2Test : public testing::Test
 };
 
 using OrientedBox2Types = testing::Types<float, double>;
-TYPED_TEST_CASE(OrientedBox2Test, OrientedBox2Types);
+TYPED_TEST_SUITE(OrientedBox2Test, OrientedBox2Types);
 
 inline bool dsOrientedBox2_transform(dsOrientedBox2f* box, const dsMatrix33f* transform)
 {

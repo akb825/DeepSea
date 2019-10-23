@@ -17,6 +17,11 @@
 #include <DeepSea/Geometry/AlignedBox3.h>
 #include <gtest/gtest.h>
 
+// Handle older versions of gtest.
+#ifndef TYPED_TEST_SUITE
+#define TYPED_TEST_SUITE TYPED_TEST_CASE
+#endif
+
 template <typename T>
 struct AlignedBox3TypeSelector;
 
@@ -47,7 +52,7 @@ class AlignedBox3Test : public testing::Test
 };
 
 using AlignedBox3Types = testing::Types<float, double, int>;
-TYPED_TEST_CASE(AlignedBox3Test, AlignedBox3Types);
+TYPED_TEST_SUITE(AlignedBox3Test, AlignedBox3Types);
 
 inline void dsAlignedBox3_makeInvalid(dsAlignedBox3f* result)
 {

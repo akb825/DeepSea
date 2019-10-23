@@ -18,6 +18,11 @@
 #include <gtest/gtest.h>
 #include <cmath>
 
+// Handle older versions of gtest.
+#ifndef TYPED_TEST_SUITE
+#define TYPED_TEST_SUITE TYPED_TEST_CASE
+#endif
+
 template <typename T>
 struct Vector4TypeSelector;
 
@@ -36,7 +41,7 @@ class Vector4Test : public testing::Test
 };
 
 using Vector4Types = testing::Types<float, double, int>;
-TYPED_TEST_CASE(Vector4Test, Vector4Types);
+TYPED_TEST_SUITE(Vector4Test, Vector4Types);
 
 template <typename T>
 class Vector4FloatTest : public Vector4Test<T>
@@ -44,7 +49,7 @@ class Vector4FloatTest : public Vector4Test<T>
 };
 
 using Vector4FloatTypes = testing::Types<float, double>;
-TYPED_TEST_CASE(Vector4FloatTest, Vector4FloatTypes);
+TYPED_TEST_SUITE(Vector4FloatTest, Vector4FloatTypes);
 
 inline float dsVector4_len(dsVector4f* a)
 {

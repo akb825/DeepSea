@@ -47,7 +47,7 @@ class AlignedBox2Test : public testing::Test
 };
 
 using AlignedBox2Types = testing::Types<float, double, int>;
-TYPED_TEST_CASE(AlignedBox2Test, AlignedBox2Types);
+TYPED_TEST_SUITE(AlignedBox2Test, AlignedBox2Types);
 
 inline void dsAlignedBox2_makeInvalid(dsAlignedBox2f* result)
 {

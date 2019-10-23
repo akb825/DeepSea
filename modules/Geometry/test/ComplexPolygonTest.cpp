@@ -18,6 +18,11 @@
 #include <DeepSea/Geometry/ComplexPolygon.h>
 #include <gtest/gtest.h>
 
+// Handle older versions of gtest.
+#ifndef TYPED_TEST_SUITE
+#define TYPED_TEST_SUITE TYPED_TEST_CASE
+#endif
+
 namespace
 {
 
@@ -83,7 +88,7 @@ public:
 };
 
 using ComplexPolygonTypes = testing::Types<float, double, int>;
-TYPED_TEST_CASE(ComplexPolygonTest, ComplexPolygonTypes);
+TYPED_TEST_SUITE(ComplexPolygonTest, ComplexPolygonTypes);
 
 TYPED_TEST(ComplexPolygonTest, StarEvenOdd)
 {
