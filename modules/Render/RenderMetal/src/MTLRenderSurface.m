@@ -76,7 +76,7 @@ typedef UIView ViewType;
 		self.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
 #else
 		self.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
-		self.multipleTouchEnabled = true;
+		self.userInteractionEnabled = false;
 		self->contentsScale = scale;
 #endif
 		[self updateDrawableSize];
