@@ -1,0 +1,294 @@
+trigger:
+  - master
+variables:
+  - name: ctest.args
+    value: -E DeepSeaRenderBootstrapTest
+  - group: Common
+jobs:
+  - job: Linux
+    pool:
+        vmImage: ubuntu-16.04
+    workspace:
+        clean: all
+    strategy:
+        matrix:
+            static:
+                lib.type: Static
+                cmake.args: -DDEEPSEA_SHARED=OFF
+            shared:
+                lib.type: Shared
+                cmake.args: -DDEEPSEA_SHARED=ON
+            single_shared:
+                lib.type: Single-Shared
+                cmake.args: -DDEEPSEA_SINGLE_SHARED=ON
+    steps:
+      - script: |
+            ./update.sh -s -t -l linux
+            sudo apt-get install -y libfreetype6-dev libharfbuzz-dev libsdl2-dev libgl1-mesa-dev
+        displayName: Download submodules
+        workingDirectory: $(Build.SourcesDirectory)
+      - task: CMake@1
+        inputs:
+            workingDirectory: $(Build.BinariesDirectory)/Debug
+            cmakeArgs: >
+                -DCMAKE_BUILD_TYPE=Debug $(cmake.args) $(Build.SourcesDirectory)
+        displayName: Run CMake debug
+      - task: CMake@1
+        inputs:
+            workingDirectory: $(Build.BinariesDirectory)/Debug
+            cmakeArgs: --build . -j $(cores.count)
+        displayName: Build debug
+      - script: ctest $(ctest.args)
+        workingDirectory: $(Build.BinariesDirectory)/Debug
+        displayName: Run tests debug
+        continueOnError: true
+        timeoutInMinutes: 5
+      - task: PublishTestResults@2
+        inputs:
+            testResultsFormat: JUnit
+            testResultsFiles: '*.xml'
+            searchFolder: $(Common.TestResultsDirectory)
+            failTaskOnFailedTests: true
+            testRunTitle: Linux-$(lib.type)-Debug
+            buildConfiguration: $(lib.type)-Debug
+        displayName: Publish test results debug
+      - script: rm -r $(Common.TestResultsDirectory)/*
+        displayName: Clear test results
+      - task: CMake@1
+        inputs:
+            workingDirectory: $(Build.BinariesDirectory)/Release
+            cmakeArgs: >
+                -DCMAKE_BUILD_TYPE=Release $(cmake.args) $(Build.SourcesDirectory)
+        displayName: Run CMake release
+      - task: CMake@1
+        inputs:
+            workingDirectory: $(Build.BinariesDirectory)/Release
+            cmakeArgs: --build . -j $(cores.count)
+        displayName: Build release
+      - script: ctest $(ctest.args)
+        workingDirectory: $(Build.BinariesDirectory)/Release
+        displayName: Run tests release
+        continueOnError: true
+        timeoutInMinutes: 5
+      - task: PublishTestResults@2
+        inputs:
+            testResultsFormat: JUnit
+            testResultsFiles: '*.xml'
+            searchFolder: $(Common.TestResultsDirectory)
+            failTaskOnFailedTests: true
+            testRunTitle: Linux-$(lib.type)-Release
+            buildConfiguration: $(lib.type)-Release
+        displayName: Publish test results release
+  - job: Android
+    pool:
+        vmImage: ubuntu-16.04
+    workspace:
+        clean: all
+    strategy:
+        matrix:
+            debug:
+                config: Debug
+            release:
+                config: Release
+    steps:
+      - script: |
+            ./update.sh -s -t -l android-all
+        displayName: Download submodules
+        workingDirectory: $(Build.SourcesDirectory)
+      - script: ./gradlew bundle$(config)
+        workingDirectory: $(Build.SourcesDirectory)/android
+        displayName: Build
+  - job: Mac
+    pool:
+        vmImage: macOS-10.13
+    workspace:
+        clean: all
+    strategy:
+        matrix:
+            static:
+                lib.type: Static
+                cmake.args: -DDEEPSEA_SHARED=OFF
+            shared:
+                lib.type: Shared
+                cmake.args: -DDEEPSEA_SHARED=ON
+            single_shared:
+                lib.type: Single-Shared
+                cmake.args: -DDEEPSEA_SINGLE_SHARED=ON
+    steps:
+      - script: |
+            ./update.sh -s -t -l mac
+        displayName: Download submodules
+        workingDirectory: $(Build.SourcesDirectory)
+      - task: CMake@1
+        inputs:
+            workingDirectory: $(Build.BinariesDirectory)/Debug
+            cmakeArgs: >
+                -DCMAKE_BUILD_TYPE=Debug $(cmake.args) $(Build.SourcesDirectory)
+        displayName: Run CMake debug
+      - task: CMake@1
+        inputs:
+            workingDirectory: $(Build.BinariesDirectory)/Debug
+            cmakeArgs: --build . -j $(cores.count)
+        displayName: Build debug
+      - script: ctest $(ctest.args)
+        workingDirectory: $(Build.BinariesDirectory)/Debug
+        displayName: Run tests debug
+        continueOnError: true
+        timeoutInMinutes: 5
+      - task: PublishTestResults@2
+        inputs:
+            testResultsFormat: JUnit
+            testResultsFiles: '*.xml'
+            searchFolder: $(Common.TestResultsDirectory)
+            failTaskOnFailedTests: true
+            testRunTitle: Mac-$(lib.type)-Debug
+            buildConfiguration: $(lib.type)-Debug
+        displayName: Publish test results debug
+      - script: rm -r $(Common.TestResultsDirectory)/*
+        displayName: Clear test results
+      - task: CMake@1
+        inputs:
+            workingDirectory: $(Build.BinariesDirectory)/Release
+            cmakeArgs: >
+                -DCMAKE_BUILD_TYPE=Release $(cmake.args) $(Build.SourcesDirectory)
+        displayName: Run CMake release
+      - task: CMake@1
+        inputs:
+            workingDirectory: $(Build.BinariesDirectory)/Release
+            cmakeArgs: --build . -j $(cores.count)
+        displayName: Build release
+      - script: ctest $(ctest.args)
+        workingDirectory: $(Build.BinariesDirectory)/Release
+        displayName: Run tests release
+        continueOnError: true
+        timeoutInMinutes: 5
+      - task: PublishTestResults@2
+        inputs:
+            testResultsFormat: JUnit
+            testResultsFiles: '*.xml'
+            searchFolder: $(Common.TestResultsDirectory)
+            failTaskOnFailedTests: true
+            testRunTitle: Mac-$(lib.type)-Release
+            buildConfiguration: $(lib.type)-Release
+        displayName: Publish test results release
+# Disable iOS build because it requires code signing. Perhaps this will be set up later, but would
+# be a bit tricky to do securely given that it's a public project.
+#  - job: iOS
+#    pool:
+#        vmImage: macOS-10.13
+#    workspace:
+#        clean: all
+#    steps:
+#      - script: |
+#            ./update.sh -s -t -l ios
+#        displayName: Download submodules
+#        workingDirectory: $(Build.SourcesDirectory)
+#      - task: CMake@1
+#        inputs:
+#            workingDirectory: $(Build.BinariesDirectory)
+#            cmakeArgs: >
+#                -G Xcode -DCMAKE_TOOLCHAIN_FILE=$(Build.SourcesDirectory)/cmake/ios.toolchain.cmake
+#                $(Build.SourcesDirectory)
+#        displayName: Run CMake debug
+#      - task: CMake@1
+#        inputs:
+#            workingDirectory: $(Build.BinariesDirectory)
+#            cmakeArgs: --build . --config Debug
+#        displayName: Build debug
+#      - task: CMake@1
+#        inputs:
+#            workingDirectory: $(Build.BinariesDirectory)
+#            cmakeArgs: --build . --config Release
+#        displayName: Build release
+  - job: Windows
+    pool:
+        vmImage: vs2017-win2016
+    workspace:
+        clean: all
+    strategy:
+        matrix:
+            win32_static:
+                arch: Win32
+                libs: win32
+                lib.type: Static
+                cmake.args: -DDEEPSEA_SHARED=OFF
+            win32_shared:
+                arch: Win32
+                libs: win32
+                lib.type: Shared
+                cmake.args: -DDEEPSEA_SHARED=ON
+            win32_single_shared:
+                arch: Win32
+                libs: win32
+                lib.type: Single-Shared
+                cmake.args: -DDEEPSEA_SINGLE_SHARED=ON
+            win64_static:
+                arch: x64
+                libs: win64
+                lib.type: Static
+                cmake.args: -DDEEPSEA_SHARED=OFF
+            win64_shared:
+                arch: x64
+                libs: win64
+                lib.type: Shared
+                cmake.args: -DDEEPSEA_SHARED=ON
+            win64_single_shared:
+                arch: x64
+                libs: win64
+                lib.type: Single-Shared
+                cmake.args: -DDEEPSEA_SINGLE_SHARED=ON
+    steps:
+      - bash: |
+            ./update.sh -m -t -l $(libs)
+        displayName: Download submodules
+        workingDirectory: $(Build.SourcesDirectory)
+      - task: CMake@1
+        inputs:
+            workingDirectory: $(Build.BinariesDirectory)
+            cmakeArgs: $(cmake.args) -A $(arch) $(Build.SourcesDirectory)
+        displayName: Run CMake
+      - task: CMake@1
+        inputs:
+            workingDirectory: $(Build.BinariesDirectory)
+            cmakeArgs: --build . --config Debug
+        displayName: Build debug
+      - script: ctest $(ctest.args) -C Debug
+        workingDirectory: $(Build.BinariesDirectory)
+        displayName: Run tests debug
+        continueOnError: true
+        timeoutInMinutes: 5
+      - task: PublishTestResults@2
+        inputs:
+            testResultsFormat: JUnit
+            testResultsFiles: '*.xml'
+            searchFolder: $(Common.TestResultsDirectory)
+            failTaskOnFailedTests: true
+            testRunTitle: Windows-$(arch)-$(lib.type)
+            buildPlatform: $(arch)
+            buildConfiguration: $(lib.type)-Debug
+        displayName: Publish test results debug
+      - bash: rm -r *
+        displayName: Clear test results
+        workingDirectory: $(Common.TestResultsDirectory)
+      - task: CMake@1
+        inputs:
+            workingDirectory: $(Build.BinariesDirectory)
+            cmakeArgs: --build . --config Release
+        displayName: Build release
+      - script: ctest $(ctest.args) -C Release
+        workingDirectory: $(Build.BinariesDirectory)
+        displayName: Run tests debug
+        continueOnError: true
+        timeoutInMinutes: 5
+      - task: PublishTestResults@2
+        inputs:
+            testResultsFormat: JUnit
+            testResultsFiles: '*.xml'
+            searchFolder: $(Common.TestResultsDirectory)
+            failTaskOnFailedTests: true
+            testRunTitle: Windows-$(arch)-$(lib.type)
+            buildPlatform: $(arch)
+            buildConfiguration: $(lib.type)-Release
+        displayName: Publish test results release
+
+# vim: ts=4 sts=4 sw=4 et

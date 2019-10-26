@@ -34,6 +34,7 @@ static dsController* createController(dsApplication* application, uint32_t index
 	baseController->application = application;
 	baseController->allocator = application->allocator;
 	baseController->name = SDL_JoystickName(controller->joystick);
+#if SDL_VERSION_ATLEAST(2, 0, 6)
 	switch (SDL_JoystickGetType(controller->joystick))
 	{
 		case SDL_JOYSTICK_TYPE_GAMECONTROLLER:
@@ -67,6 +68,9 @@ static dsController* createController(dsApplication* application, uint32_t index
 			baseController->type = dsControllerType_Unknown;
 			break;
 	}
+#else
+	baseController->type = dsControllerType_Unknown;
+#endif
 	baseController->axisCount = SDL_JoystickNumAxes(controller->joystick);
 	baseController->buttonCount = SDL_JoystickNumButtons(controller->joystick);
 	baseController->ballCount = SDL_JoystickNumBalls(controller->joystick);

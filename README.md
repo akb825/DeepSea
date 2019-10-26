@@ -2,6 +2,8 @@
 
 DeepSea is a game engine written in C. It is designed to be modular, allowing only pieces of the engine to be taken. For example, you can only take the Graphics module (and dependencies) without compiling the other modules.
 
+[![Build Status](https://dev.azure.com/akb825/DeepSea/_apis/build/status/akb825.DeepSea?branchName=master)](https://dev.azure.com/akb825/DeepSea/_build/latest?definitionId=5&branchName=master)
+
 # Dependencies
 
 The following software is required to build DeepSea:
@@ -65,7 +67,7 @@ The tests can be run by running the command:
 
 	DeepSea/build$ ctest
 
-> **Note:** When building on Linux, the freetype harfbuzz, and SDL libraries aren't installed with the pre-built library packages since they are installed on nearly all Linux systems already. The development packages for these libraries must be installed when building DeepSea. In the case of Ubuntu, the `libfreetype6-dev`, `harfbuzz-dev`, and `libsdl2-dev` should be installed.
+> **Note:** When building on Linux, the freetype harfbuzz, and SDL libraries aren't installed with the pre-built library packages since they are installed on nearly all Linux systems already. The development packages for these libraries must be installed when building DeepSea. In the case of Ubuntu, the `libfreetype6-dev`, `libharfbuzz-dev`, and `libsdl2-dev` should be installed. The `libgl1-mesa-dev` package is also required to compile the OpenGL backend.
 
 ## macOS
 

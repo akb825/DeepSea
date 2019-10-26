@@ -20,5 +20,11 @@
 TEST(SDLKeyboardTest, KeyCode)
 {
 	for (int i = 0; i < dsKeyCode_Count; ++i)
-		EXPECT_EQ((dsKeyCode)i, dsFromSDLScancode(dsToSDLScancode((dsKeyCode)i)));
+	{
+		dsKeyCode keyCode = (dsKeyCode)i;
+		// Audio rewind/fast-forward isn't supported in all SDL versions.
+		if (keyCode == dsKeyCode_AudioRewind || keyCode == dsKeyCode_AudioFastForward)
+			continue;
+		EXPECT_EQ(keyCode, dsFromSDLScancode(dsToSDLScancode(keyCode)));
+	}
 }

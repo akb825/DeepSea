@@ -601,7 +601,7 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 	glGetIntegerv(GL_MAX_SAMPLES, &maxSamples);
 	maxSamples = dsMax(1, maxSamples);
 	baseRenderer->maxSurfaceSamples = dsMin(maxSamples, DS_MAX_ANTIALIAS_SAMPLES);
-	renderer->options.samples = dsMin(renderer->options.samples, (uint8_t)maxSamples);
+	renderer->options.samples = (uint8_t)dsMin(renderer->options.samples, maxSamples);
 
 	renderer->renderContext = dsCreateGLContext(allocator, display, renderer->renderConfig,
 		renderer->sharedContext);

@@ -502,10 +502,12 @@ dsKeyCode dsFromSDLScancode(SDL_Scancode scanCode)
 			return dsKeyCode_App1;
 		case SDL_SCANCODE_APP2:
 			return dsKeyCode_App2;
+#if SDL_VERSION_ATLEAST(2, 0, 6)
 		case SDL_SCANCODE_AUDIOREWIND:
 			return dsKeyCode_AudioRewind;
 		case SDL_SCANCODE_AUDIOFASTFORWARD:
 			return dsKeyCode_AudioFastForward;
+#endif
 		case SDL_NUM_SCANCODES:
 			return dsKeyCode_Count;
 	}
@@ -997,10 +999,16 @@ SDL_Scancode dsToSDLScancode(dsKeyCode keyCode)
 			return SDL_SCANCODE_APP1;
 		case dsKeyCode_App2:
 			return SDL_SCANCODE_APP2;
+#if SDL_VERSION_ATLEAST(2, 0, 6)
 		case dsKeyCode_AudioRewind:
 			return SDL_SCANCODE_AUDIOREWIND;
 		case dsKeyCode_AudioFastForward:
 			return SDL_SCANCODE_AUDIOFASTFORWARD;
+#else
+		case dsKeyCode_AudioRewind:
+		case dsKeyCode_AudioFastForward:
+			return SDL_SCANCODE_UNKNOWN;
+#endif
 		case dsKeyCode_Count:
 			return SDL_SCANCODE_UNKNOWN;
 	}
