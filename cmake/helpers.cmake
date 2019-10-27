@@ -12,6 +12,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# ds_config_binary_dir(output [path])
+#
+# Gets the current binary directory. When multiple configurations are used with the same generated
+# project (e.g. Visual Studio, Xcode), this will append the configuration name to the directory.
+# Note that this uses a generator expression, so the returned path is only valid for CMake commands
+# that support generator expressions.
+#
+# output - variable name to place the directory into
+# path - optional path to append after CMAKE_CURRENT_BINARY_DIR but before the config
+macro(ds_config_binary_dir output)
+	set(${output} ${CMAKE_CURRENT_BINARY_DIR})
+	if (${ARGC} GREATER 1)
+		set(${output} ${${output}}/${ARGV1})
+	endif()
+	if (CMAKE_CONFIGURATION_TYPES)
+		set(${output} ${${output}}/$<CONFIG>)
+	endif()
+endmacro()
+
 # ds_build_assets_dir(output)
 #
 # Gets the assets directory to build assets to.

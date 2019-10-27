@@ -57,7 +57,7 @@ if (TARGET deepsea_easy_profiler)
 	target_compile_definitions(deepsea_test_vector_draw_app PRIVATE DS_HAS_EASY_PROFILER=1)
 endif()
 
-set(shaderDir ${CMAKE_CURRENT_BINARY_DIR}/shaders)
+ds_config_binary_dir(shaderDir shaders)
 set(resourceDir ${CMAKE_CURRENT_BINARY_DIR}/resources)
 set(imageDir ${CMAKE_CURRENT_BINARY_DIR}/images)
 add_custom_target(deepsea_test_vector_draw_app_prepare
@@ -78,16 +78,14 @@ ds_compile_shaders(shaders FILE ${CMAKE_CURRENT_SOURCE_DIR}/VectorElementFill.ms
 	${CMAKE_CURRENT_SOURCE_DIR}/VectorElementTextColor.msl
 	${CMAKE_CURRENT_SOURCE_DIR}/VectorElementTextGradient.msl
 	OUTPUT TestVectorDraw.mslb
-	CONFIG ${shaderConfigs} ${shaderOptions}
-	STRIP OPTIMIZE)
+	CONFIG ${shaderConfigs} ${shaderOptions})
 ds_compile_shaders(shaders FILE ${CMAKE_CURRENT_SOURCE_DIR}/VectorElementFillSRGB.msl
 	${CMAKE_CURRENT_SOURCE_DIR}/VectorElementLineSRGB.msl
 	${CMAKE_CURRENT_SOURCE_DIR}/VectorElementImage.msl
 	${CMAKE_CURRENT_SOURCE_DIR}/VectorElementTextColorSRGB.msl
 	${CMAKE_CURRENT_SOURCE_DIR}/VectorElementTextGradientSRGB.msl
 	OUTPUT TestVectorDrawSRGB.mslb
-	CONFIG ${srgbShaderConfigs} ${shaderOptions}
-	STRIP OPTIMIZE)
+	CONFIG ${srgbShaderConfigs} ${shaderOptions})
 ds_compile_shaders_target(deepsea_test_vector_draw_app_shaders shaders
 	DEPENDS deepsea_test_vector_draw_app_prepare)
 

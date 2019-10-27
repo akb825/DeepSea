@@ -38,8 +38,7 @@ if (TARGET deepsea_easy_profiler)
 	target_compile_definitions(deepsea_test_text_app PRIVATE DS_HAS_EASY_PROFILER=1)
 endif()
 
-# Cannot use generator expressions for the custom commands.
-set(shaderDir ${CMAKE_CURRENT_BINARY_DIR}/shaders)
+ds_config_binary_dir(shaderDir shaders)
 add_custom_target(deepsea_test_text_app_prepare
 	COMMAND ${CMAKE_COMMAND} -E make_directory ${shaderDir})
 

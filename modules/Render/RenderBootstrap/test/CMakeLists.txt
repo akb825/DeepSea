@@ -26,8 +26,7 @@ ds_add_unittest(deepsea_render_bootstrap_test ${sources})
 target_include_directories(deepsea_render_bootstrap_test PRIVATE .)
 target_link_libraries(deepsea_render_bootstrap_test PRIVATE deepsea_render_bootstrap)
 
-# Cannot use generator expressions for the custom commands.
-set(shaderDir ${CMAKE_CURRENT_BINARY_DIR}/shaders)
+ds_config_binary_dir(shaderDir shaders)
 add_custom_target(deepsea_render_bootstrap_test_prepare
 	COMMAND ${CMAKE_COMMAND} -E make_directory ${shaderDir})
 

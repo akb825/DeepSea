@@ -33,10 +33,9 @@ endif()
 #                    [DEFINE define1[=value] [define2[=value] ...]]
 #                    [DEPENDENCY pattern1 [pattern2 ...]]
 #                    [DEPENDENCY_RECURSE pattern1 [pattern2 ...]]
+#                    [OPTIMIZE n]
 #                    [WARN_NONE]
 #                    [WARN_ERROR]
-#                    [STRIP]
-#                    [OPTIMIZE]
 #                    [WORKING_DIRECTORY dir])
 #
 # Compiles a list of shaders into a single shader module.
@@ -53,18 +52,19 @@ endif()
 # DEPENDENCY - list of patterns to be used as dependencies. A GLOB will be performed for each
 #              pattern.
 # DEPENDENCY_RECURSE - same as DEPENDENCY, except each pattern performs a GLOB_RECURSE.
+# OPTIMIZE - overrides the optimization level for Release builds. Values can be 0 (disable
+#            optimizations),  1 (simple optimizations), and 2 (full optimizations). Defaults to 2
+#            if not specified. This has no effect for Debug builds.
 # WARN_NONE - if specified, disables all warnings.
 # WARN_ERROR - if specified, treats warnings as errors. 
-# STRIP - if specified, strips symbols.
-# OPTIMIZE - if specified, enables optimizations.
 # WORKING_DIRECTORY - the working directory for running the shader compiler.
 function(ds_compile_shaders container)
 	if (NOT MSLC)
 		message(FATAL_ERROR "Program 'mslc' not found on the path.")
 	endif()
 
-	set(options WARN_NONE WARN_ERROR STRIP OPTIMIZE)
-	set(oneValueArgs OUTPUT OUTPUT_DIR WORKING_DIRECTORY)
+	set(options WARN_NONE WARN_ERROR)
+	set(oneValueArgs OUTPUT OUTPUT_DIR WORKING_DIRECTORY OPTIMIZE)
 	set(multiValueArgs FILE CONFIG INCLUDE DEFINE DEPENDENCY DEPENDENCY_RECURSE)
 	cmake_parse_arguments(ARGS "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 	if (NOT ARGS_OUTPUT)
@@ -88,7 +88,7 @@ function(ds_compile_shaders container)
 	if (ARGS_WORKING_DIRECTORY)
 		set(workingDir WORKING_DIRECTORY ${ARGS_WORKING_DIRECTORY})
 	else()
-		set(workingDir "")
+		set(workingDir)
 	endif()
 
 	set(extraArgs)
@@ -98,11 +98,16 @@ function(ds_compile_shaders container)
 	if (ARGS_WARN_ERROR)
 		list(APPEND extraArgs -W)
 	endif()
-	if (ARGS_STRIP)
-		list(APPEND extraArgs -s)
+	if (NOT ARGS_OPTIMIZE)
+		set(ARGS_OPTIMIZE 2)
 	endif()
-	if (ARGS_OPTIMIZE)
-		list(APPEND extraArgs -O 2)
+	list(APPEND extraArgs $<$<NOT:$<OR:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>>>:-s>)
+	list(APPEND extraArgs $<$<NOT:$<CONFIG:Debug>>:-O> $<$<NOT:$<CONFIG:Debug>>:${ARGS_OPTIMIZE}>)
+
+	if (CMAKE_CONFIGURATION_TYPES)
+		set(compilerConfigs ${CMAKE_CONFIGURATION_TYPES})
+	else()
+		set(compilerConfigs "")
 	endif()
 
 	set(outputs)
@@ -116,10 +121,10 @@ function(ds_compile_shaders container)
 		set(commandLineArgs ${ARGS_FILE} -c ${configPath})
 		if (ARGS_OUTPUT_DIR)
 			set(output ${ARGS_OUTPUT_DIR}/${config})
-			set(outputCommand COMMAND ${CMAKE_COMMAND} ARGS -E make_directory ${output})
+			set(outputCommand ${CMAKE_COMMAND} -E make_directory ${output})
 			set(output ${output}/${ARGS_OUTPUT})
 		else()
-			set(outputCommand "")
+			set(outputCommand)
 			set(output ${ARGS_OUTPUT})
 		endif()
 		list(APPEND commandLineArgs -o ${output})
@@ -133,12 +138,41 @@ function(ds_compile_shaders container)
 			list(APPEND commandLineArgs -D ${define})
 		endforeach()
 
-		add_custom_command(OUTPUT ${output}
-			${outputCommand}
-			COMMAND ${MSLC} ARGS ${commandLineArgs} ${extraArgs}
-			DEPENDS ${deps} ${recursiveDeps} ${ARGS_FILE} ${configPath} ${MSLC}
-			${workingDir}
-			COMMENT "Building ${config} shader: ${output}")
+		set(compileCommand ${MSLC} ${commandLineArgs} ${extraArgs})
+		set(dependsArgs DEPENDS ${deps} ${recursiveDeps} ${ARGS_FILE} ${configPath} ${MSLC}
+			${workingDir})
+
+		# NOTE: Output file doesn't support generator expressions, so need to manually expand it.
+		if (output MATCHES ".*\\$<CONFIG>.*")
+			foreach (compilerConfig ${compilerConfigs})
+				string(REPLACE "$<CONFIG>" ${compilerConfig} configOutput ${output})
+
+				# Need generator expression for each and every argument.
+				if (outputCommand)
+					set(configOutputCommand COMMAND)
+					foreach (command ${outputCommand})
+						list(APPEND configOutputCommand $<$<CONFIG:${compilerConfig}>:${command}>)
+					endforeach()
+				else()
+					set(configOutputCommand)
+				endif()
+
+				set(configCompileCommand COMMAND)
+				foreach (command ${compileCommand})
+					list(APPEND configCompileCommand $<$<CONFIG:${compilerConfig}>:${command}>)
+				endforeach()
+
+				add_custom_command(OUTPUT ${configOutput} ${configOutputCommand}
+					${configCompileCommand} ${dependsArgs}
+					COMMENT "Building ${config} shader: ${configOutput}")
+			endforeach()
+		else()
+			if (outputCommand)
+				set(outputCommand COMMAND ${outputCommand})
+			endif()
+			add_custom_command(OUTPUT ${output} ${outputCommand} COMMAND ${compileCommand}
+				${dependsArgs} COMMENT "Building ${config} shader: ${output}")
+		endif()
 	endforeach()
 
 	set(${container} ${${container}} ${outputs} PARENT_SCOPE)

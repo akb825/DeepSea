@@ -37,8 +37,7 @@ target_link_libraries(deepsea_test_cube_app PRIVATE
 	deepsea_render_bootstrap deepsea_application_sdl)
 ds_link_main_lib(deepsea_test_cube_app deepsea_application_sdl_main)
 
-# Cannot use generator expressions for the custom commands.
-set(shaderDir ${CMAKE_CURRENT_BINARY_DIR}/shaders)
+ds_config_binary_dir(shaderDir shaders)
 set(textureDir ${CMAKE_CURRENT_BINARY_DIR}/textues)
 add_custom_target(deepsea_test_cube_app_prepare
 	COMMAND ${CMAKE_COMMAND} -E make_directory ${shaderDir}
