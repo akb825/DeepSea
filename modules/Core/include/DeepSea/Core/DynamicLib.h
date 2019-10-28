@@ -56,6 +56,15 @@ extern "C"
 #define DS_LIBRARY_NAME(name) ( DS_LIBRARY_PREFIX name DS_LIBRARY_EXTENSION )
 
 /**
+ * @brief Macro to get the standard versined library name.
+ * @param name The name of the library. This should be a string literal.
+ * @param version The version of the library. This should be a string literal.
+ * @return The mangled library name.
+ */
+#define DS_VERSIONED_LIBRARY_NAME(name, version) \
+		( DS_LIBRARY_PREFIX name DS_LIBRARY_EXTENSION "." version )
+
+/**
  * @brief Opens a dynamic library.
  * @remark Rather than setting errno, this will set the error field of library with the error string
  *     on failure.

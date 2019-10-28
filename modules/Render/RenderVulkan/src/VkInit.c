@@ -30,6 +30,9 @@
 #define DS_VULKAN_LIBRARY DS_LIBRARY_NAME("vulkan-1")
 #else
 #define DS_VULKAN_LIBRARY DS_LIBRARY_NAME("vulkan")
+#if DS_LINUX
+#define DS_ALTERNATE_VULKAN_LIBRARY DS_VERSIONED_LIBRARY_NAME("vulkan", "1")
+#endif
 #endif
 
 #define DS_LOAD_VK_INSTANCE_FUNCTION(instance, function) \
@@ -626,13 +629,18 @@ bool dsCreateVkInstance(dsVkInstance* instance, const dsRendererOptions* options
 	dsDynamicLib* library = &instance->library;
 	if (!dsDynamicLib_open(library, DS_VULKAN_LIBRARY))
 	{
-		if (handleErrors)
+#ifdef DS_ALTERNATE_VULKAN_LIBRARY
+		if (!dsDynamicLib_open(library, DS_ALTERNATE_VULKAN_LIBRARY))
+#endif
 		{
-			DS_LOG_ERROR_F(DS_RENDER_VULKAN_LOG_TAG, "Couldn't open vulkan library: %s",
-				library->error);
-			errno = EPERM;
+			if (handleErrors)
+			{
+				DS_LOG_ERROR_F(DS_RENDER_VULKAN_LOG_TAG, "Couldn't open vulkan library: %s",
+					library->error);
+				errno = EPERM;
+			}
+			return false;
 		}
-		return false;
 	}
 
 	instance->vkGetInstanceProcAddr = (PFN_vkGetInstanceProcAddr)dsDynamicLib_loadSymbol(library,
@@ -649,9 +657,10 @@ bool dsCreateVkInstance(dsVkInstance* instance, const dsRendererOptions* options
 	if (!queryInstanceExtensions(instance))
 		return false;
 
+	bool wantValidation = enableValidation(options);
 	const char* enabledLayers[DS_MAX_ENABLED_EXTENSIONS];
 	uint32_t enabledLayerCount = 0;
-	addLayers(enabledLayers, &enabledLayerCount, enableValidation(options));
+	addLayers(enabledLayers, &enabledLayerCount, wantValidation);
 
 	const char* enabledExtensions[DS_MAX_ENABLED_EXTENSIONS];
 	uint32_t enabledExtensionCount = 0;
@@ -724,7 +733,6 @@ bool dsCreateVkInstance(dsVkInstance* instance, const dsRendererOptions* options
 
 	instance->debugCallback = 0;
 	instance->oldDebugCallback = 0;
-	bool wantValidation = enableValidation(options);
 	bool wantDebug = wantValidation || DS_PROFILING_ENABLED;
 	if (wantDebug && instanceExtensions.debug)
 	{
