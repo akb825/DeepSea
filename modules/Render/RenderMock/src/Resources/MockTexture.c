@@ -220,7 +220,8 @@ bool dsMockTexture_copyToBuffer(dsResourceManager* resourceManager,
 		if (bufferHeight == 0)
 			bufferHeight = region->textureHeight;
 
-		size_t textureXBlocks = (region->textureWidth + blockX- 1)/blockX;
+		size_t textureXBlocks = (region->textureWidth + blockX - 1)/blockX;
+		size_t textureYBlocks = (region->textureHeight + blockY - 1)/blockY;
 		size_t rowSize = textureXBlocks*formatSize;
 		size_t mipWidth = dsMax(1U, info->width >> position->mipLevel);
 		size_t mipXBlocks = (mipWidth + blockX - 1)/blockX;
@@ -238,7 +239,7 @@ bool dsMockTexture_copyToBuffer(dsResourceManager* resourceManager,
 				dsTexture_layerOffset(info, layerOffset + i, position->mipLevel) + texturePosOffset;
 			uint8_t* bufferData = mockDstBuffer->data + region->bufferOffset +
 				bufferLayerStride*i;
-			for (uint32_t y = 0; y < bufferYBlocks;
+			for (uint32_t y = 0; y < textureYBlocks;
 				++y, textureData += textureStride, bufferData += bufferStride)
 			{
 				memcpy(bufferData, textureData, rowSize);

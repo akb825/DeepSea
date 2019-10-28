@@ -511,7 +511,12 @@ void dsGPUProfileContext_nextSubpass(dsGPUProfileContext* context, dsCommandBuff
 				QueryPools* pools = context->queryPools + context->queryPoolIndex;
 				commandBuffer->_profileInfo.beginSubpassIndex = pools->queryCount;
 				commandBuffer->_profileInfo.beginSubpassSwapCount = context->swapCount;
-				addQuery(context, commandBuffer, query->category, subpassName, INVALID_INDEX,
+
+				// NOTE: The call to addQuery() might invalidate the memory for the category name,
+				// so need to make a copy.
+				char category[MAX_STRING_LENGTH];
+				memcpy(category, query->category, sizeof(category));
+				addQuery(context, commandBuffer, category, subpassName, INVALID_INDEX,
 					context->swapCount);
 			}
 		}
@@ -529,7 +534,8 @@ void dsGPUProfileContext_endSubpass(dsGPUProfileContext* context, dsCommandBuffe
 		dsSpinlock_lock(&context->spinlock);
 		if (!context->error)
 		{
-			addQuery(context, commandBuffer, NULL, NULL, commandBuffer->_profileInfo.beginSubpassIndex,
+			addQuery(context, commandBuffer, NULL, NULL,
+				commandBuffer->_profileInfo.beginSubpassIndex,
 				commandBuffer->_profileInfo.beginSubpassSwapCount);
 		}
 		dsSpinlock_unlock(&context->spinlock);
