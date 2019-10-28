@@ -61,5 +61,6 @@ pipeline Cube
 	vertex = vertexShader;
 	fragment = fragmentShader;
 	depth_test_enable = true;
+	early_fragment_tests = true;
 	cull_mode = back;
 }
