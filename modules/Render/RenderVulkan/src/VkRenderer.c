@@ -1357,8 +1357,7 @@ static VkSemaphore preFlush(dsRenderer* renderer, bool readback, bool useSemapho
 		{
 			dsVkRenderSurfaceData* surface = vkSubmitBuffer->renderSurfaces[i];
 			waitSemaphores[i] = surface->imageData[surface->imageDataIndex].semaphore;
-			waitStages[i] = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT |
-				VK_PIPELINE_STAGE_TRANSFER_BIT;
+			waitStages[i] = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 		}
 	}
 
