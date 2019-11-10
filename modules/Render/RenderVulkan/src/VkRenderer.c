@@ -2211,6 +2211,7 @@ dsRenderer* dsVkRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 
 	// Command buffer pools
 	baseRenderer->createCommandBufferPoolFunc = &dsVkCommandBufferPool_create;
+	baseRenderer->createCommandBuffersFunc = &dsVkCommandBufferPool_createCommandBuffers;
 	baseRenderer->destroyCommandBufferPoolFunc = &dsVkCommandBufferPool_destroy;
 	baseRenderer->resetCommandBufferPoolFunc = &dsVkCommandBufferPool_reset;
 

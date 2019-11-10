@@ -20,7 +20,8 @@
 #include "VkTypes.h"
 
 dsVkCommandPoolData* dsVkCommandPoolData_create(dsAllocator* allocator, dsRenderer* renderer,
-	dsCommandBufferUsage usage, uint32_t count);
+	dsCommandBufferUsage usage);
+bool dsVkCommandPoolData_createCommandBuffers(dsVkCommandPoolData* pool, uint32_t count);
 bool dsVkCommandPoolData_prepare(dsVkCommandPoolData* pool);
 void dsVkCommandPoolData_destroy(dsVkCommandPoolData* pool);
 

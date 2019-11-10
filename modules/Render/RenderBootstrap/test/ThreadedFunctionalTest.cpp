@@ -204,11 +204,11 @@ struct RenderInfo
 		ASSERT_TRUE(transformBuffer);
 
 		primaryCommands = dsCommandBufferPool_create(renderer, allocator,
-			dsCommandBufferUsage_Standard, 1);
+			dsCommandBufferUsage_Standard);
 		ASSERT_TRUE(primaryCommands);
 
 		secondaryCommands = dsCommandBufferPool_create(renderer, allocator,
-			dsCommandBufferUsage_Secondary, 2);
+			dsCommandBufferUsage_Secondary);
 		ASSERT_TRUE(secondaryCommands);
 
 		if (resourceManager->maxResourceContexts > 0)
@@ -305,47 +305,49 @@ TEST_P(ThreadedFunctionalTest, RenderMultithreaded)
 	clearValue.colorValue.floatValue.b = 1.0f;
 	clearValue.colorValue.floatValue.a = 1.0f;
 	dsDrawRange drawRange = {6, 1, 0, 0};
-	dsCommandBuffer* primaryCommands = info.primaryCommands->currentBuffers[0];
+	dsCommandBuffer** primaryCommands =
+		dsCommandBufferPool_createCommandBuffers(info.primaryCommands, 1);
 	std::thread renderThread([&]()
 		{
-			dsCommandBuffer* secondaryCommands = info.secondaryCommands->currentBuffers[0];
+			dsCommandBuffer** secondaryCommands =
+				dsCommandBufferPool_createCommandBuffers(info.secondaryCommands, 1);
 			std::thread drawThread([&]()
 				{
-					ASSERT_TRUE(dsCommandBuffer_beginSecondary(secondaryCommands, info.framebuffer,
+					ASSERT_TRUE(dsCommandBuffer_beginSecondary(*secondaryCommands, info.framebuffer,
 						info.renderPass, 0, NULL));
 					ASSERT_TRUE(dsSharedMaterialValues_setBufferID(info.instanceValues[0],
 						info.transformId, info.transformBuffer, 0, sizeof(dsMatrix44f)));
 
-					ASSERT_TRUE(dsShader_bind(info.shader, secondaryCommands, info.material, NULL,
+					ASSERT_TRUE(dsShader_bind(info.shader, *secondaryCommands, info.material, NULL,
 						NULL));
-					ASSERT_TRUE(dsShader_updateInstanceValues(info.shader, secondaryCommands,
+					ASSERT_TRUE(dsShader_updateInstanceValues(info.shader, *secondaryCommands,
 						info.instanceValues[0]));
-					ASSERT_TRUE(dsRenderer_draw(renderer, secondaryCommands, info.drawGeometry[0],
+					ASSERT_TRUE(dsRenderer_draw(renderer, *secondaryCommands, info.drawGeometry[0],
 						&drawRange, dsPrimitiveType_TriangleList));
 
 					ASSERT_TRUE(dsSharedMaterialValues_setBufferID(info.instanceValues[0],
 						info.transformId, info.transformBuffer, transformSize,
 						sizeof(dsMatrix44f)));
-					ASSERT_TRUE(dsShader_updateInstanceValues(info.shader, secondaryCommands,
+					ASSERT_TRUE(dsShader_updateInstanceValues(info.shader, *secondaryCommands,
 						info.instanceValues[0]));
-					ASSERT_TRUE(dsRenderer_draw(renderer, secondaryCommands, info.drawGeometry[1],
+					ASSERT_TRUE(dsRenderer_draw(renderer, *secondaryCommands, info.drawGeometry[1],
 						&drawRange, dsPrimitiveType_TriangleList));
 
-					EXPECT_TRUE(dsShader_unbind(info.shader, secondaryCommands));
-					EXPECT_TRUE(dsCommandBuffer_end(secondaryCommands));
+					EXPECT_TRUE(dsShader_unbind(info.shader, *secondaryCommands));
+					EXPECT_TRUE(dsCommandBuffer_end(*secondaryCommands));
 				});
 
-			ASSERT_TRUE(dsRenderPass_begin(info.renderPass, primaryCommands, info.framebuffer, NULL,
-				&clearValue, 1));
+			ASSERT_TRUE(dsRenderPass_begin(info.renderPass, *primaryCommands, info.framebuffer,
+				NULL, &clearValue, 1));
 
 			drawThread.join();
-			ASSERT_TRUE(dsCommandBuffer_submit(primaryCommands, secondaryCommands));
-			EXPECT_TRUE(dsRenderPass_end(info.renderPass, primaryCommands));
-			EXPECT_TRUE(dsCommandBuffer_end(primaryCommands));
+			ASSERT_TRUE(dsCommandBuffer_submit(*primaryCommands, *secondaryCommands));
+			EXPECT_TRUE(dsRenderPass_end(info.renderPass, *primaryCommands));
+			EXPECT_TRUE(dsCommandBuffer_end(*primaryCommands));
 		});
 	renderThread.join();
 
-	ASSERT_TRUE(dsCommandBuffer_submit(renderer->mainCommandBuffer, primaryCommands));
+	ASSERT_TRUE(dsCommandBuffer_submit(renderer->mainCommandBuffer, *primaryCommands));
 	EXPECT_TRUE(dsRenderer_flush(renderer));
 
 	dsColor colors[8];
@@ -393,11 +395,13 @@ TEST_P(ThreadedFunctionalTest, RenderMultithreaded)
 
 	ASSERT_TRUE(dsCommandBufferPool_reset(info.primaryCommands));
 	ASSERT_TRUE(dsCommandBufferPool_reset(info.secondaryCommands));
-	primaryCommands = info.primaryCommands->currentBuffers[0];
+	primaryCommands = dsCommandBufferPool_createCommandBuffers(info.primaryCommands, 1);
 	renderThread = std::thread([&]()
 		{
-			dsCommandBuffer* secondaryCommands0 = info.secondaryCommands->currentBuffers[0];
-			dsCommandBuffer* secondaryCommands1 = info.secondaryCommands->currentBuffers[1];
+			dsCommandBuffer** secondaryCommands =
+				dsCommandBufferPool_createCommandBuffers(info.secondaryCommands, 2);
+			dsCommandBuffer* secondaryCommands0 = secondaryCommands[0];
+			dsCommandBuffer* secondaryCommands1 = secondaryCommands[1];
 			std::thread drawThread([&]()
 				{
 					ASSERT_TRUE(dsCommandBuffer_beginSecondary(secondaryCommands0, info.framebuffer,
@@ -417,11 +421,11 @@ TEST_P(ThreadedFunctionalTest, RenderMultithreaded)
 					EXPECT_TRUE(dsCommandBuffer_end(secondaryCommands0));
 				});
 
-			ASSERT_TRUE(dsRenderPass_begin(info.renderPass, primaryCommands, info.framebuffer, NULL,
+			ASSERT_TRUE(dsRenderPass_begin(info.renderPass, *primaryCommands, info.framebuffer, NULL,
 				&clearValue, 1));
 
 			drawThread.join();
-			ASSERT_TRUE(dsCommandBuffer_submit(primaryCommands, secondaryCommands0));
+			ASSERT_TRUE(dsCommandBuffer_submit(*primaryCommands, secondaryCommands0));
 
 			drawThread = std::thread([&]()
 				{
@@ -442,14 +446,14 @@ TEST_P(ThreadedFunctionalTest, RenderMultithreaded)
 				});
 
 			drawThread.join();
-			ASSERT_TRUE(dsCommandBuffer_submit(primaryCommands, secondaryCommands1));
+			ASSERT_TRUE(dsCommandBuffer_submit(*primaryCommands, secondaryCommands1));
 
-			EXPECT_TRUE(dsRenderPass_end(info.renderPass, primaryCommands));
-			EXPECT_TRUE(dsCommandBuffer_end(primaryCommands));
+			EXPECT_TRUE(dsRenderPass_end(info.renderPass, *primaryCommands));
+			EXPECT_TRUE(dsCommandBuffer_end(*primaryCommands));
 		});
 	renderThread.join();
 
-	ASSERT_TRUE(dsCommandBuffer_submit(renderer->mainCommandBuffer, primaryCommands));
+	ASSERT_TRUE(dsCommandBuffer_submit(renderer->mainCommandBuffer, *primaryCommands));
 	EXPECT_TRUE(dsRenderer_flush(renderer));
 
 	ASSERT_TRUE(dsTexture_getData(colors, sizeof(colors), info.offscreen, &position, 4, 2));

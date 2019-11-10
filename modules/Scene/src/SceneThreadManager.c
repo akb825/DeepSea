@@ -39,7 +39,6 @@
 #include <DeepSea/Render/RenderPass.h>
 #include <string.h>
 
-#define COMMAND_BUFFER_POOL_SIZE 10
 // 512 KB
 #define THREAD_STACK_SIZE 524288
 
@@ -73,13 +72,8 @@ struct dsSceneThreadManager
 	uint32_t threadCount;
 	uint32_t finishedCount;
 
-	dsCommandBufferPool** computeCommandBuffers;
-	uint32_t computeCommandBufferCount;
-	uint32_t maxComputeCommandBuffers;
-
-	dsCommandBufferPool** subpassCommandBuffers;
-	uint32_t subpassCommandBufferCount;
-	uint32_t maxSubpassCommandBuffers;
+	dsCommandBufferPool* computeCommandBuffers;
+	dsCommandBufferPool* subpassCommandBuffers;
 
 	dsCommandBuffer** commandBufferPointers;
 	uint32_t commandBufferPointerCount;
@@ -315,72 +309,53 @@ static void triggerThreads(dsSceneThreadManager* threadManager, ThreadState stat
 
 static dsCommandBuffer* getComputeCommandBuffer(dsSceneThreadManager* threadManager)
 {
-	uint32_t curPool = threadManager->nextComputeCommandBuffer/COMMAND_BUFFER_POOL_SIZE;
-	uint32_t curBuffer = threadManager->nextComputeCommandBuffer % COMMAND_BUFFER_POOL_SIZE;
-	if (curBuffer == 0)
+	uint32_t curBuffer = threadManager->nextComputeCommandBuffer;
+	if (!threadManager->computeCommandBuffers)
 	{
-		if (curPool >= threadManager->computeCommandBufferCount)
-		{
-			if (!DS_RESIZEABLE_ARRAY_ADD(threadManager->allocator,
-					threadManager->computeCommandBuffers, threadManager->computeCommandBufferCount,
-					threadManager->maxComputeCommandBuffers, 1))
-			{
-				return NULL;
-			}
-
-			threadManager->computeCommandBuffers[curPool] =
-				dsCommandBufferPool_create(threadManager->renderer, threadManager->allocator,
-					dsCommandBufferUsage_Standard, COMMAND_BUFFER_POOL_SIZE);
-			if (!threadManager->computeCommandBuffers[curPool])
-			{
-				--threadManager->computeCommandBufferCount;
-				return NULL;
-			}
-		}
-		else
-		{
-			if (!dsCommandBufferPool_reset(threadManager->computeCommandBuffers[curPool]))
-				return NULL;
-		}
+		threadManager->computeCommandBuffers = dsCommandBufferPool_create(threadManager->renderer,
+			threadManager->allocator, dsCommandBufferUsage_Standard);
+		if (!threadManager->computeCommandBuffers)
+			return NULL;
 	}
+	else if (curBuffer == 0)
+	{
+		if (!dsCommandBufferPool_reset(threadManager->computeCommandBuffers))
+			return NULL;
+	}
+
+	dsCommandBuffer** commandBuffer =
+		dsCommandBufferPool_createCommandBuffers(threadManager->computeCommandBuffers, 1);
+	if (!commandBuffer)
+		return NULL;
 
 	++threadManager->nextComputeCommandBuffer;
-	return threadManager->computeCommandBuffers[curPool]->currentBuffers[curBuffer];
+	return *commandBuffer;
 }
 
-static dsCommandBuffer* getSubpassCommandBuffer(dsSceneThreadManager* threadManager)
+static dsCommandBuffer** getSubpassCommandBuffers(dsSceneThreadManager* threadManager,
+	uint32_t count)
 {
-	uint32_t curPool = threadManager->nextSubpassCommandBuffer/COMMAND_BUFFER_POOL_SIZE;
-	uint32_t curBuffer = threadManager->nextSubpassCommandBuffer % COMMAND_BUFFER_POOL_SIZE;
-	if (curBuffer == 0)
+	uint32_t curBuffer = threadManager->nextSubpassCommandBuffer;
+	if (!threadManager->subpassCommandBuffers)
 	{
-		if (curPool >= threadManager->subpassCommandBufferCount)
-		{
-			if (!DS_RESIZEABLE_ARRAY_ADD(threadManager->allocator,
-					threadManager->subpassCommandBuffers, threadManager->subpassCommandBufferCount,
-					threadManager->maxSubpassCommandBuffers, 1))
-			{
-				return NULL;
-			}
-
-			threadManager->subpassCommandBuffers[curPool] =
-				dsCommandBufferPool_create(threadManager->renderer, threadManager->allocator,
-					dsCommandBufferUsage_Secondary, COMMAND_BUFFER_POOL_SIZE);
-			if (!threadManager->subpassCommandBuffers[curPool])
-			{
-				--threadManager->subpassCommandBufferCount;
-				return NULL;
-			}
-		}
-		else
-		{
-			if (!dsCommandBufferPool_reset(threadManager->subpassCommandBuffers[curPool]))
-				return NULL;
-		}
+		threadManager->subpassCommandBuffers = dsCommandBufferPool_create(threadManager->renderer,
+			threadManager->allocator, dsCommandBufferUsage_Secondary);
+		if (!threadManager->subpassCommandBuffers)
+			return NULL;
+	}
+	else if (curBuffer == 0)
+	{
+		if (!dsCommandBufferPool_reset(threadManager->subpassCommandBuffers))
+			return NULL;
 	}
 
-	++threadManager->nextSubpassCommandBuffer;
-	return threadManager->subpassCommandBuffers[curPool]->currentBuffers[curBuffer];
+	dsCommandBuffer** commandBuffers =
+		dsCommandBufferPool_createCommandBuffers(threadManager->subpassCommandBuffers, count);
+	if (!commandBuffers)
+		return NULL;
+
+	threadManager->nextSubpassCommandBuffer += count;
+	return commandBuffers;
 }
 
 static bool setupForDraw(dsSceneThreadManager* threadManager, const dsScene* scene)
@@ -425,13 +400,13 @@ static bool setupForDraw(dsSceneThreadManager* threadManager, const dsScene* sce
 					return false;
 				}
 
-				for (uint32_t k = 0; k < drawLists->count; ++k, ++index)
-				{
-					threadManager->commandBufferPointers[index] =
-						getSubpassCommandBuffer(threadManager);
-					if (!threadManager->commandBufferPointers[index])
-						return false;
-				}
+				dsCommandBuffer** commandBuffers = getSubpassCommandBuffers(threadManager,
+					drawLists->count);
+				if (!commandBuffers)
+					return false;
+
+				memcpy(threadManager->commandBufferPointers + index, commandBuffers,
+					sizeof(dsCommandBuffer*)*drawLists->count);
 			}
 		}
 		else
@@ -683,26 +658,14 @@ bool dsSceneThreadManager_destroy(dsSceneThreadManager* threadManager)
 	if (!threadManager)
 		return true;
 
-	for (uint32_t i = 0; i < threadManager->computeCommandBufferCount; ++i)
-	{
-		if (!dsCommandBufferPool_destroy(threadManager->computeCommandBuffers[i]))
-		{
-			DS_ASSERT(i == 0);
-			return false;
-		}
-	}
-	DS_VERIFY(dsAllocator_free(threadManager->allocator, threadManager->computeCommandBuffers));
+	if (!dsCommandBufferPool_destroy(threadManager->computeCommandBuffers))
+		return false;
 
-	for (uint32_t i = 0; i < threadManager->subpassCommandBufferCount; ++i)
+	if (!dsCommandBufferPool_destroy(threadManager->subpassCommandBuffers))
 	{
-		if (!dsCommandBufferPool_destroy(threadManager->subpassCommandBuffers[i]))
-		{
-			DS_ASSERT(i == 0);
-			DS_ASSERT(threadManager->maxComputeCommandBuffers == 0);
-			return false;
-		}
+		DS_ASSERT(!threadManager->computeCommandBuffers);
+		return false;
 	}
-	DS_VERIFY(dsAllocator_free(threadManager->allocator, threadManager->subpassCommandBuffers));
 
 	DS_VERIFY(dsMutex_lock(threadManager->stateMutex));
 	for (uint32_t i = 0; i < threadManager->threadCount; ++i)

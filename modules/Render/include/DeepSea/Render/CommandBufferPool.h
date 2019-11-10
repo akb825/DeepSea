@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2019 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,26 +47,36 @@ extern "C"
  *     allocator as the renderer.
  * @param usage The usage flags for how to use the command buffers. This should be a combination of
  *     dsCommandBufferUsage flags, or 0 if none of the options are required.
- * @param count The number of command buffers to use.
  * @return The created command buffer pool, or NULL if it couldn't be created.
  */
 DS_RENDER_EXPORT dsCommandBufferPool* dsCommandBufferPool_create(dsRenderer* renderer,
-	dsAllocator* allocator, dsCommandBufferUsage usage, uint32_t count);
+	dsAllocator* allocator, dsCommandBufferUsage usage);
+
+/**
+ * @brief Creates multiple command buffers in the pool.
+ *
+ * This will add new command buffers to the pool, incrementing the count and potentially changing
+ * the commandBuffers pointer.
+ *
+ * @remark errno will be set on failure.
+ * @param pool The pool to create the command buffer with.
+ * @param count The number of command buffers to allocate.
+ * @return An array pointing to the first command buffer. This will be the same as offsetting
+ *     pool->commandBuffers by the count that was previously available. NULL will be returned on
+ *     failure.
+ */
+DS_RENDER_EXPORT dsCommandBuffer** dsCommandBufferPool_createCommandBuffers(
+	dsCommandBufferPool* pool, uint32_t count);
 
 /**
  * @brief Resets a command buffer pool.
  *
- * This will prepare the command buffers to be rendered to again, clearing the contents and
- * potentially swapping the array of command buffers.
- *
- * @remark The command buffer array may be swapped in some implementations even if double buffering
- * isn't requested. This is done on implementations that asynchronously execute the contents within
- * the driver.
+ * This clears out all currently active command buffers and returns them to the pool, resetting the
+ * count to 0.
  *
  * @remark errno will be set on failure.
  * @param pool The command buffer pool to reset.
  * @return False if the command buffer pool couldn't be reset.
- *
  */
 DS_RENDER_EXPORT bool dsCommandBufferPool_reset(dsCommandBufferPool* pool);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2019 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,8 @@
 #include <DeepSea/Render/Types.h>
 
 dsCommandBufferPool* dsMockCommandBufferPool_create(dsRenderer* renderer, dsAllocator* allocator,
-	dsCommandBufferUsage usage, uint32_t count);
+	dsCommandBufferUsage usage);
+bool dsMockCommandBufferPool_createCommandBuffers(dsRenderer* renderer, dsCommandBufferPool* pool,
+	uint32_t count);
 bool dsMockCommandBufferPool_reset(dsRenderer* renderer, dsCommandBufferPool* pool);
 bool dsMockCommandBufferPool_destroy(dsRenderer* renderer, dsCommandBufferPool* pool);

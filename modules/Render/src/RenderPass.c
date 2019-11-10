@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2018 Aaron Barany
+ * Copyright 2017-2019 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -621,6 +621,18 @@ bool dsRenderPass_begin(const dsRenderPass* renderPass, dsCommandBuffer* command
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Can't use dsAttachmentUsage_KeepAfter with a "
 				"dsRenderbuffer without the dsRenderbufferUsage_Continue or "
 				"dsRenderbufferUsage_BlitFrom usage flag.");
+			DS_PROFILE_FUNC_END();
+			endRenderPassScope(commandBuffer);
+			return false;
+		}
+
+		if ((commandBuffer->usage & dsCommandBufferUsage_MultiFrame) &&
+			framebuffer->surfaces[i].surfaceType >= dsGfxSurfaceType_ColorRenderSurface &&
+			framebuffer->surfaces[i].surfaceType <= dsGfxSurfaceType_DepthRenderSurfaceRight)
+		{
+			errno = EINVAL;
+			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Can't draw a render pass to a framebuffer containing "
+				"a render surface when using a multiframe command buffer.");
 			DS_PROFILE_FUNC_END();
 			endRenderPassScope(commandBuffer);
 			return false;

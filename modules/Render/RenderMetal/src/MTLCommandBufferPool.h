@@ -20,7 +20,9 @@
 #include "MTLTypes.h"
 
 dsCommandBufferPool* dsMTLCommandBufferPool_create(dsRenderer* renderer, dsAllocator* allocator,
-	dsCommandBufferUsage usage, uint32_t count);
+	dsCommandBufferUsage usage);
+bool dsMTLCommandBufferPool_createCommandBuffers(dsRenderer* renderer, dsCommandBufferPool* pool,
+	uint32_t count);
 bool dsMTLCommandBufferPool_reset(dsRenderer* renderer, dsCommandBufferPool* pool);
 bool dsMTLCommandBufferPool_destroy(dsRenderer* renderer, dsCommandBufferPool* pool);
 

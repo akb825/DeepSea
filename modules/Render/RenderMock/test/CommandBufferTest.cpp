@@ -26,7 +26,7 @@ class CommandBufferTest : public FixtureBase
 TEST_F(CommandBufferTest, BeginEnd)
 {
 	dsCommandBufferPool* pool = dsCommandBufferPool_create(renderer, NULL,
-		dsCommandBufferUsage_Standard, 1);
+		dsCommandBufferUsage_Standard);
 	ASSERT_TRUE(pool);
 
 	EXPECT_FALSE(dsCommandBuffer_begin(NULL));
@@ -34,8 +34,10 @@ TEST_F(CommandBufferTest, BeginEnd)
 	EXPECT_FALSE(dsCommandBuffer_begin(renderer->mainCommandBuffer));
 	EXPECT_FALSE(dsCommandBuffer_end(renderer->mainCommandBuffer));
 
-	EXPECT_TRUE(dsCommandBuffer_begin(pool->currentBuffers[0]));
-	EXPECT_TRUE(dsCommandBuffer_end(pool->currentBuffers[0]));
+	dsCommandBuffer** commandBuffer = dsCommandBufferPool_createCommandBuffers(pool, 1);
+	ASSERT_TRUE(commandBuffer);
+	EXPECT_TRUE(dsCommandBuffer_begin(*commandBuffer));
+	EXPECT_TRUE(dsCommandBuffer_end(*commandBuffer));
 
 	EXPECT_TRUE(dsCommandBufferPool_destroy(pool));
 }
@@ -62,21 +64,21 @@ TEST_F(CommandBufferTest, BeginEndSecondary)
 	ASSERT_TRUE(renderPass);
 
 	dsCommandBufferPool* pool = dsCommandBufferPool_create(renderer, NULL,
-		dsCommandBufferUsage_Secondary, 1);
+		dsCommandBufferUsage_Secondary);
 	ASSERT_TRUE(pool);
+
+	dsCommandBuffer** commandBuffer = dsCommandBufferPool_createCommandBuffers(pool, 1);
+	ASSERT_TRUE(commandBuffer);
 
 	dsAlignedBox3f viewport = {{{0.0f, 0.0f, 0.0f}}, {{10.0f, 15.0f, 1.0f}}};
 
-	EXPECT_FALSE(dsCommandBuffer_begin(pool->currentBuffers[0]));
-	EXPECT_FALSE(dsCommandBuffer_beginSecondary(pool->currentBuffers[0], NULL, NULL, 0, &viewport));
-	EXPECT_FALSE(dsCommandBuffer_beginSecondary(pool->currentBuffers[0], NULL, renderPass,
-		1, &viewport));
-	EXPECT_FALSE(dsCommandBuffer_beginSecondary(pool->currentBuffers[0], NULL, renderPass,
-		1, NULL));
+	EXPECT_FALSE(dsCommandBuffer_begin(*commandBuffer));
+	EXPECT_FALSE(dsCommandBuffer_beginSecondary(*commandBuffer, NULL, NULL, 0, &viewport));
+	EXPECT_FALSE(dsCommandBuffer_beginSecondary(*commandBuffer, NULL, renderPass, 1, &viewport));
+	EXPECT_FALSE(dsCommandBuffer_beginSecondary(*commandBuffer, NULL, renderPass, 1, NULL));
 
-	EXPECT_TRUE(dsCommandBuffer_beginSecondary(pool->currentBuffers[0], NULL, renderPass,
-		0, &viewport));
-	EXPECT_TRUE(dsCommandBuffer_end(pool->currentBuffers[0]));
+	EXPECT_TRUE(dsCommandBuffer_beginSecondary(*commandBuffer, NULL, renderPass, 0, &viewport));
+	EXPECT_TRUE(dsCommandBuffer_end(*commandBuffer));
 
 	EXPECT_TRUE(dsCommandBufferPool_destroy(pool));
 	EXPECT_TRUE(dsRenderPass_destroy(renderPass));
@@ -85,21 +87,27 @@ TEST_F(CommandBufferTest, BeginEndSecondary)
 TEST_F(CommandBufferTest, Submit)
 {
 	dsCommandBufferPool* pool = dsCommandBufferPool_create(renderer, NULL,
-		dsCommandBufferUsage_Standard, 1);
+		dsCommandBufferUsage_Standard);
 	ASSERT_TRUE(pool);
 
+	dsCommandBuffer** commandBuffer = dsCommandBufferPool_createCommandBuffers(pool, 1);
+	ASSERT_TRUE(commandBuffer);
+
 	dsCommandBufferPool* otherPool = dsCommandBufferPool_create(renderer, NULL,
-		dsCommandBufferUsage_MultiSubmit, 1);
+		dsCommandBufferUsage_MultiSubmit);
 	ASSERT_TRUE(otherPool);
 
-	EXPECT_FALSE(dsCommandBuffer_submit(NULL, NULL));
-	EXPECT_FALSE(dsCommandBuffer_submit(pool->currentBuffers[0], NULL));
-	EXPECT_FALSE(dsCommandBuffer_submit(NULL, pool->currentBuffers[0]));
-	EXPECT_FALSE(dsCommandBuffer_submit(pool->currentBuffers[0], renderer->mainCommandBuffer));
-	EXPECT_TRUE(dsCommandBuffer_submit(renderer->mainCommandBuffer, pool->currentBuffers[0]));
+	dsCommandBuffer** otherCommandBuffer = dsCommandBufferPool_createCommandBuffers(otherPool, 1);
+	ASSERT_TRUE(otherCommandBuffer);
 
-	EXPECT_TRUE(dsCommandBuffer_submit(pool->currentBuffers[0], otherPool->currentBuffers[0]));
-	EXPECT_FALSE(dsCommandBuffer_submit(otherPool->currentBuffers[0], pool->currentBuffers[0]));
+	EXPECT_FALSE(dsCommandBuffer_submit(NULL, NULL));
+	EXPECT_FALSE(dsCommandBuffer_submit(*commandBuffer, NULL));
+	EXPECT_FALSE(dsCommandBuffer_submit(NULL, *commandBuffer));
+	EXPECT_FALSE(dsCommandBuffer_submit(*commandBuffer, renderer->mainCommandBuffer));
+	EXPECT_TRUE(dsCommandBuffer_submit(renderer->mainCommandBuffer, *commandBuffer));
+
+	EXPECT_TRUE(dsCommandBuffer_submit(*commandBuffer, *otherCommandBuffer));
+	EXPECT_FALSE(dsCommandBuffer_submit(*otherCommandBuffer, *commandBuffer));
 
 	EXPECT_TRUE(dsCommandBufferPool_destroy(pool));
 	EXPECT_TRUE(dsCommandBufferPool_destroy(otherPool));

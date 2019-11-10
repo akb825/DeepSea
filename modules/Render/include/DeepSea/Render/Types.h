@@ -197,12 +197,7 @@ typedef enum dsCommandBufferUsage
 	dsCommandBufferUsage_Standard = 0,      ///< Standard usage.
 	dsCommandBufferUsage_Secondary = 0x1,   ///< Only used for draw calls within render subpasses.
 	dsCommandBufferUsage_MultiSubmit = 0x2, ///< Will be submitted multiple times in a frame.
-	dsCommandBufferUsage_MultiFrame = 0x4,  ///< Will be submitted across frames.
-	/**
-	 * Double-buffer the command buffers within the pool, allowing for writing to one set of buffers
-	 * in parallel to another set being submitted.
-	 */
-	dsCommandBufferUsage_DoubleBuffer = 0x8
+	dsCommandBufferUsage_MultiFrame = 0x4   ///< Will be submitted across frames.
 } dsCommandBufferUsage;
 
 /**
@@ -813,28 +808,12 @@ typedef struct dsCommandBufferPool
 	dsAllocator* allocator;
 
 	/**
-	 * @brief The current command buffers to use.
-	 * @remark Even of the dsCommandBufferUsage_DoubleBuffer flag isn't set, this may still change
-	 * between resets.
+	 * @brief The command buffers to use.
 	 */
-	dsCommandBuffer** currentBuffers;
+	dsCommandBuffer** commandBuffers;
 
 	/**
-	 * @brief The previous set of command buffers when double-buffering is enabled.
-	 *
-	 * When resetting the pool, the currentBuffers will be assigned to previousBuffers.
-	 *
-	 * @remark It's not guaranteed that previousBuffers and currentBuffers are strictly swapped. In
-	 * some implementations, there could be multiple lists managed internally.
-	 *
-	 * @remark It's possible for previousBuffers to be NULL even if it's double-buffered if no
-	 * command buffers have been used. This behavior my differ based on different graphics API
-	 * implementations.
-	 */
-	dsCommandBuffer** previousBuffers;
-
-	/**
-	 * @brief The number of command buffers in the pool.
+	 * @brief The number of active command buffers in the pool.
 	 */
 	uint32_t count;
 
@@ -1248,7 +1227,7 @@ typedef bool (*dsSwapRenderSurfaceBuffersFunction)(dsRenderer* renderer,
  * @return The command buffer pool.
  */
 typedef dsCommandBufferPool* (*dsCreateCommandBufferPoolFunction)(dsRenderer* renderer,
-	dsAllocator* allocator, dsCommandBufferUsage usage, uint32_t count);
+	dsAllocator* allocator, dsCommandBufferUsage usage);
 
 /**
  * @brief Function for destroying a command buffer pool.
@@ -1259,12 +1238,18 @@ typedef dsCommandBufferPool* (*dsCreateCommandBufferPoolFunction)(dsRenderer* re
 typedef bool (*dsDestroyCommandBufferPoolFunction)(dsRenderer* renderer, dsCommandBufferPool* pool);
 
 /**
+ * @brief Function for creating multiple command buffers from a command buffer pool.
+ * @param renderer The renderer the command buffer pool was created with.
+ * @param pool The command buffer pool create the command buffers with.
+ * @param count The number of command buffers to create
+ * @return False if the command buffers couldn't be created..
+ */
+typedef bool (*dsCommandBufferPoolCreateCommandBuffersFunction)(dsRenderer* renderer,
+	dsCommandBufferPool* pool, uint32_t count);
+
+/**
  * @brief Function for resetting a command buffer pool, preparing the command buffers to be built up
  *     with new render commands.
- *
- * It is the responsibility of the implementation to swap the command buffer arrays, since some
- * implementations have additional requirements and may need to tripple-buffer.
- *
  * @param renderer The renderer the command buffer pool was created with.
  * @param pool The command buffer pool to reset.
  * @return False if the command buffer pool couldn't be reset.
@@ -1915,6 +1900,11 @@ struct dsRenderer
 	 * @brief Command buffer pool destruction function.
 	 */
 	dsDestroyCommandBufferPoolFunction destroyCommandBufferPoolFunc;
+
+	/**
+	 * @brief Command buffer creation function.
+	 */
+	dsCommandBufferPoolCreateCommandBuffersFunction createCommandBuffersFunc;
 
 	/**
 	 * @brief Command buffer pool reset function.

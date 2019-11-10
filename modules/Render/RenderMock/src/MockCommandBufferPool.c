@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2019 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,81 +15,69 @@
  */
 
 #include "MockCommandBuffer.h"
+#include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
-#include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Assert.h>
 
+typedef struct dsMockCommandBufferPool
+{
+	dsCommandBufferPool commandBufferPool;
+	uint32_t createdCount;
+	uint32_t maxCommandBuffers;
+} dsMockCommandBufferPool;
+
 dsCommandBufferPool* dsMockCommandBufferPool_create(dsRenderer* renderer, dsAllocator* allocator,
-	dsCommandBufferUsage usage, uint32_t count)
+	dsCommandBufferUsage usage)
 {
 	DS_ASSERT(renderer);
 	DS_ASSERT(allocator);
-	DS_ASSERT(count);
 
-	unsigned int lists = usage & dsCommandBufferUsage_DoubleBuffer ? 2 : 1;
-
-	size_t totalSize = DS_ALIGNED_SIZE(sizeof(dsCommandBufferPool)) +
-		lists*(DS_ALIGNED_SIZE(sizeof(dsCommandBuffer*)*count) +
-			DS_ALIGNED_SIZE(sizeof(dsCommandBuffer))*count);
-	void* buffer = dsAllocator_alloc(allocator, totalSize);
-	if (!buffer)
+	dsMockCommandBufferPool* pool = DS_ALLOCATE_OBJECT(allocator, dsMockCommandBufferPool);
+	if (!pool)
 		return NULL;
 
-	dsBufferAllocator bufferAllocator;
-	DS_VERIFY(dsBufferAllocator_initialize(&bufferAllocator, buffer, totalSize));
+	dsCommandBufferPool* basePool = (dsCommandBufferPool*)pool;
+	basePool->renderer = renderer;
+	basePool->allocator = dsAllocator_keepPointer(allocator);
+	basePool->commandBuffers = NULL;
+	basePool->count = 0;
+	basePool->usage = usage;
+	pool->createdCount = 0;
+	pool->maxCommandBuffers = 0;
 
-	dsCommandBufferPool* pool = DS_ALLOCATE_OBJECT(&bufferAllocator, dsCommandBufferPool);
+	return basePool;
+}
+
+bool dsMockCommandBufferPool_createCommandBuffers(dsRenderer* renderer,
+	dsCommandBufferPool* pool, uint32_t count)
+{
+	DS_ASSERT(renderer);
 	DS_ASSERT(pool);
 
-	pool->renderer = renderer;
-	pool->allocator = dsAllocator_keepPointer(allocator);
-	pool->count = count;
-	pool->usage = usage;
-
-	pool->currentBuffers = DS_ALLOCATE_OBJECT_ARRAY(&bufferAllocator, dsCommandBuffer*, count);
-	DS_ASSERT(pool->currentBuffers);
-	for (uint32_t i = 0; i < count; ++i)
+	dsMockCommandBufferPool* mockPool = (dsMockCommandBufferPool*)pool;
+	if (!DS_RESIZEABLE_ARRAY_ADD(pool->allocator, pool->commandBuffers, pool->count,
+			mockPool->maxCommandBuffers, count))
 	{
-		dsCommandBuffer* commandBuffer = DS_ALLOCATE_OBJECT(&bufferAllocator, dsCommandBuffer);
-		DS_ASSERT(commandBuffer);
-		commandBuffer->renderer = renderer;
+		return false;
+	}
+
+	for (; mockPool->createdCount < pool->count; ++mockPool->createdCount)
+	{
+		dsCommandBuffer* commandBuffer = DS_ALLOCATE_OBJECT(pool->allocator, dsCommandBuffer);
+		if (!commandBuffer)
+		{
+			pool->count -= count;
+			return false;
+		}
+
+		// Only these members need to be initialized here.
+		commandBuffer->renderer = pool->renderer;
 		commandBuffer->allocator = pool->allocator;
 		commandBuffer->usage = pool->usage;
-		commandBuffer->frameActive = true;
-		commandBuffer->boundSurface = NULL;
-		commandBuffer->boundFramebuffer = NULL;
-		commandBuffer->boundRenderPass = NULL;
-		commandBuffer->activeRenderSubpass = 0;
-		commandBuffer->boundShader = NULL;
-		commandBuffer->boundComputeShader = NULL;
-		pool->currentBuffers[i] = commandBuffer;
+		pool->commandBuffers[mockPool->createdCount] = commandBuffer;
 	}
 
-	if (lists == 2)
-	{
-		pool->previousBuffers = DS_ALLOCATE_OBJECT_ARRAY(&bufferAllocator, dsCommandBuffer*, count);
-		DS_ASSERT(pool->currentBuffers);
-		for (uint32_t i = 0; i < count; ++i)
-		{
-			dsCommandBuffer* commandBuffer = DS_ALLOCATE_OBJECT(&bufferAllocator, dsCommandBuffer);
-			DS_ASSERT(commandBuffer);
-			commandBuffer->renderer = renderer;
-			commandBuffer->allocator = pool->allocator;
-			commandBuffer->usage = pool->usage;
-			commandBuffer->frameActive = true;
-			commandBuffer->boundSurface = NULL;
-			commandBuffer->boundFramebuffer = NULL;
-			commandBuffer->boundRenderPass = NULL;
-			commandBuffer->activeRenderSubpass = 0;
-			commandBuffer->boundShader = NULL;
-			commandBuffer->boundComputeShader = NULL;
-			pool->previousBuffers[i] = commandBuffer;
-		}
-	}
-	else
-		pool->previousBuffers = NULL;
-
-	return pool;
+	return true;
 }
 
 bool dsMockCommandBufferPool_reset(dsRenderer* renderer, dsCommandBufferPool* pool)
@@ -98,13 +86,7 @@ bool dsMockCommandBufferPool_reset(dsRenderer* renderer, dsCommandBufferPool* po
 	DS_UNUSED(renderer);
 	DS_ASSERT(pool);
 
-	if (pool->usage & dsCommandBufferUsage_DoubleBuffer)
-	{
-		dsCommandBuffer** temp = pool->currentBuffers;
-		pool->currentBuffers = pool->previousBuffers;
-		pool->previousBuffers = temp;
-	}
-
+	pool->count = 0;
 	return true;
 }
 
@@ -114,7 +96,10 @@ bool dsMockCommandBufferPool_destroy(dsRenderer* renderer, dsCommandBufferPool* 
 	DS_UNUSED(renderer);
 	DS_ASSERT(pool);
 
-	if (pool->allocator)
-		return dsAllocator_free(pool->allocator, pool);
+	dsMockCommandBufferPool* mockPool = (dsMockCommandBufferPool*)pool;
+	for (uint32_t i = 0; i < mockPool->createdCount; ++i)
+		DS_VERIFY(dsAllocator_free(pool->allocator, pool->commandBuffers[i]));
+	DS_VERIFY(dsAllocator_free(pool->allocator, pool->commandBuffers));
+	DS_VERIFY(dsAllocator_free(pool->allocator, pool));
 	return true;
 }

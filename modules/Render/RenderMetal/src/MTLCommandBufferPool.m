@@ -20,10 +20,17 @@
 #include "MTLHardwareCommandBuffer.h"
 #include "MTLSoftwareCommandBuffer.h"
 
+#include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
-#include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <string.h>
+
+typedef struct dsMTLCommandBufferPool
+{
+	dsCommandBufferPool commandBufferPool;
+	uint32_t createdCount;
+	uint32_t maxCommandBuffers;
+} dsMTLCommandBufferPool;
 
 inline static bool needsSoftwareCommandBuffer(dsCommandBufferUsage usage)
 {
@@ -31,110 +38,78 @@ inline static bool needsSoftwareCommandBuffer(dsCommandBufferUsage usage)
 		dsCommandBufferUsage_MultiFrame)) != 0;
 }
 
-static size_t fullAllocSize(dsCommandBufferUsage usage, uint32_t count)
-{
-	unsigned int lists = usage & dsCommandBufferUsage_DoubleBuffer ? 2 : 1;
-	size_t totalSize = DS_ALIGNED_SIZE(sizeof(dsCommandBufferPool)) +
-		DS_ALIGNED_SIZE(sizeof(dsCommandBuffer*)*count)*lists;
-	if (needsSoftwareCommandBuffer(usage))
-		totalSize += DS_ALIGNED_SIZE(sizeof(dsMTLSoftwareCommandBuffer))*count*lists;
-	else
-		totalSize += DS_ALIGNED_SIZE(sizeof(dsMTLHardwareCommandBuffer))*count*lists;
-	return totalSize;
-}
-
-static void createCommandBuffers(dsCommandBuffer** outCommandBuffers, dsRenderer* renderer,
-	dsAllocator* allocator, dsCommandBufferUsage usage, uint32_t count)
-{
-	if (needsSoftwareCommandBuffer(usage))
-	{
-		for (uint32_t i = 0; i < count; ++i)
-		{
-			dsMTLSoftwareCommandBuffer* commandBuffer = DS_ALLOCATE_OBJECT(allocator,
-				dsMTLSoftwareCommandBuffer);
-			DS_ASSERT(commandBuffer);
-			dsMTLSoftwareCommandBuffer_initialize(commandBuffer, renderer, renderer->allocator,
-				usage);
-			outCommandBuffers[i] = (dsCommandBuffer*)commandBuffer;
-		}
-	}
-	else
-	{
-		for (uint32_t i = 0; i < count; ++i)
-		{
-			dsMTLHardwareCommandBuffer* commandBuffer = DS_ALLOCATE_OBJECT(allocator,
-				dsMTLHardwareCommandBuffer);
-			DS_ASSERT(commandBuffer);
-			dsMTLHardwareCommandBuffer_initialize(commandBuffer, renderer, renderer->allocator,
-				usage);
-			outCommandBuffers[i] = (dsCommandBuffer*)commandBuffer;
-		}
-	}
-}
-
-static void shutdownCommandBuffers(dsCommandBufferUsage usage, dsCommandBuffer** commandBuffers,
-	uint32_t count)
-{
-	if (needsSoftwareCommandBuffer(usage))
-	{
-		for (uint32_t i = 0; i < count; ++i)
-			dsMTLSoftwareCommandBuffer_shutdown((dsMTLSoftwareCommandBuffer*)commandBuffers[i]);
-	}
-	else
-	{
-		for (uint32_t i = 0; i < count; ++i)
-			dsMTLHardwareCommandBuffer_shutdown((dsMTLHardwareCommandBuffer*)commandBuffers[i]);
-	}
-}
-
 dsCommandBufferPool* dsMTLCommandBufferPool_create(dsRenderer* renderer, dsAllocator* allocator,
-	dsCommandBufferUsage usage, uint32_t count)
+	dsCommandBufferUsage usage)
 {
-	size_t totalSize = fullAllocSize(usage, count);
-	void* buffer = dsAllocator_alloc(allocator, totalSize);
-	if (!buffer)
+	dsMTLCommandBufferPool* pool = DS_ALLOCATE_OBJECT(&allocator, dsMTLCommandBufferPool);
+	if (!pool)
 		return NULL;
 
-	dsBufferAllocator bufferAllocator;
-	DS_VERIFY(dsBufferAllocator_initialize(&bufferAllocator, buffer, totalSize));
+	dsCommandBufferPool* basePool = (dsCommandBufferPool*)pool;
+	basePool->renderer = renderer;
+	basePool->allocator = dsAllocator_keepPointer(allocator);
+	basePool->commandBuffers = NULL;
+	basePool->count = 0;
+	basePool->usage = usage;
+	pool->createdCount = 0;
+	pool->maxCommandBuffers = 0;
 
-	dsCommandBufferPool* pool = DS_ALLOCATE_OBJECT(&bufferAllocator, dsCommandBufferPool);
-	DS_ASSERT(pool);
+	return basePool;
+}
 
-	pool->renderer = renderer;
-	pool->allocator = dsAllocator_keepPointer(allocator);
-	pool->count = count;
-	pool->usage = usage;
-
-	pool->currentBuffers = DS_ALLOCATE_OBJECT_ARRAY(&bufferAllocator, dsCommandBuffer*, count);
-	DS_ASSERT(pool->currentBuffers);
-	createCommandBuffers(pool->currentBuffers, renderer, (dsAllocator*)&bufferAllocator, usage,
-		count);
-
-	if (usage & dsCommandBufferUsage_DoubleBuffer)
+bool dsMTLCommandBufferPool_createCommandBuffers(dsRenderer* renderer, dsCommandBufferPool* pool,
+	uint32_t count)
+{
+	dsMTLCommandBufferPool* mtlPool = (dsMTLCommandBufferPool*)pool;
+	if (!DS_RESIZEABLE_ARRAY_ADD(pool->allocator, pool->commandBuffers, pool->count,
+			mtlPool->maxCommandBuffers, count))
 	{
-		pool->previousBuffers = DS_ALLOCATE_OBJECT_ARRAY(&bufferAllocator, dsCommandBuffer*, count);
-		DS_ASSERT(pool->previousBuffers);
-		createCommandBuffers(pool->previousBuffers, renderer, (dsAllocator*)&bufferAllocator, usage,
-			count);
+		return false;
 	}
-	else
-		pool->previousBuffers = NULL;
 
-	return pool;
+	for (; mtlPool->createdCount < pool->count; ++mtlPool->createdCount)
+	{
+		dsCommandBuffer* commandBuffer;
+		if (needsSoftwareCommandBuffer(pool->usage))
+		{
+			dsMTLSoftwareCommandBuffer* mtlCommandBuffer = DS_ALLOCATE_OBJECT(pool->allocator,
+				dsMTLSoftwareCommandBuffer);
+			commandBuffer = (dsCommandBuffer*)mtlCommandBuffer;
+			if (mtlCommandBuffer)
+			{
+				dsMTLSoftwareCommandBuffer_initialize(mtlCommandBuffer, renderer,
+					renderer->allocator, pool->usage);
+			}
+		}
+		else
+		{
+			dsMTLHardwareCommandBuffer* mtlCommandBuffer = DS_ALLOCATE_OBJECT(pool->allocator,
+				dsMTLHardwareCommandBuffer);
+			commandBuffer = (dsCommandBuffer*)mtlCommandBuffer;
+			if (mtlCommandBuffer)
+			{
+				dsMTLHardwareCommandBuffer_initialize(mtlCommandBuffer, renderer,
+					renderer->allocator, pool->usage);
+			}
+		}
+
+		if (!commandBuffer)
+		{
+			pool->count -= count;
+			return false;
+		}
+
+		pool->commandBuffers[mtlPool->createdCount] = commandBuffer;
+	}
+
+	return true;
 }
 
 bool dsMTLCommandBufferPool_reset(dsRenderer* renderer, dsCommandBufferPool* pool)
 {
 	DS_UNUSED(renderer);
 
-	if (pool->usage & dsCommandBufferUsage_DoubleBuffer)
-	{
-		dsCommandBuffer** temp = pool->currentBuffers;
-		pool->currentBuffers = pool->previousBuffers;
-		pool->previousBuffers = temp;
-	}
-
+	pool->count = 0;
 	return true;
 }
 
@@ -142,11 +117,27 @@ bool dsMTLCommandBufferPool_destroy(dsRenderer* renderer, dsCommandBufferPool* p
 {
 	DS_UNUSED(renderer);
 
-	shutdownCommandBuffers(pool->usage, pool->currentBuffers, pool->count);
-	if (pool->previousBuffers)
-		shutdownCommandBuffers(pool->usage, pool->previousBuffers, pool->count);
+	dsMTLCommandBufferPool* mtlPool = (dsMTLCommandBufferPool*)pool;
+	if (needsSoftwareCommandBuffer(pool->usage))
+	{
+		for (uint32_t i = 0; i < mtlPool->createdCount; ++i)
+		{
+			dsMTLSoftwareCommandBuffer_shutdown(
+				(dsMTLSoftwareCommandBuffer*)pool->commandBuffers[i]);
+			DS_VERIFY(dsAllocator_free(pool->allocator, pool->commandBuffers[i]));
+		}
+	}
+	else
+	{
+		for (uint32_t i = 0; i < mtlPool->createdCount; ++i)
+		{
+			dsMTLHardwareCommandBuffer_shutdown(
+				(dsMTLHardwareCommandBuffer*)pool->commandBuffers[i]);
+			DS_VERIFY(dsAllocator_free(pool->allocator, pool->commandBuffers[i]));
+		}
+	}
 
-	if (pool->allocator)
-		DS_VERIFY(dsAllocator_free(pool->allocator, pool));
+	DS_VERIFY(dsAllocator_free(pool->allocator, pool->commandBuffers));
+	DS_VERIFY(dsAllocator_free(pool->allocator, pool));
 	return true;
 }

@@ -20,46 +20,53 @@
 #include "VkCommandBuffer.h"
 #include "VkShared.h"
 
+#include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
-#include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <string.h>
 
 dsVkCommandPoolData* dsVkCommandPoolData_create(dsAllocator* allocator, dsRenderer* renderer,
-	dsCommandBufferUsage usage, uint32_t count)
+	dsCommandBufferUsage usage)
 {
-	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsVkCommandPoolData)) +
-		DS_ALIGNED_SIZE(sizeof(dsVkCommandBuffer)*count) +
-		DS_ALIGNED_SIZE(sizeof(dsCommandBuffer*)*count);
-	void* buffer = dsAllocator_alloc(allocator, fullSize);
-	if (!buffer)
+	dsVkCommandPoolData* pool = DS_ALLOCATE_OBJECT(allocator, dsVkCommandPoolData);
+	if (!pool)
 		return NULL;
-
-	dsBufferAllocator bufferAlloc;
-	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, fullSize));
-	dsVkCommandPoolData* pool = DS_ALLOCATE_OBJECT(&bufferAlloc, dsVkCommandPoolData);
-	DS_ASSERT(pool);
 
 	pool->allocator = dsAllocator_keepPointer(allocator);
 	pool->renderer = renderer;
 	dsVkResource_initialize(&pool->resource);
-	pool->vkCommandBuffers = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsVkCommandBuffer, count);
-	DS_ASSERT(pool->vkCommandBuffers);
-	memset(pool->vkCommandBuffers, 0, sizeof(dsVkCommandBuffer)*count);
-	pool->commandBuffers = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsCommandBuffer*, count);
-	DS_ASSERT(pool->commandBuffers);
-	memset(pool->commandBuffers, 0, sizeof(dsCommandBuffer*)*count);
-	pool->count = count;
-
-	for (uint32_t i = 0; i < count; ++i)
-	{
-		dsVkCommandBuffer* commandBuffer = pool->vkCommandBuffers + i;
-		dsVkCommandBuffer_initialize(commandBuffer, renderer, renderer->allocator, usage);
-		commandBuffer->resource = &pool->resource;
-		pool->commandBuffers[i] = (dsCommandBuffer*)commandBuffer;;
-	}
+	pool->commandBuffers = NULL;
+	pool->usage = usage;
+	pool->count = 0;
+	pool->createdCount = 0;
+	pool->maxCommandBuffers = 0;
 
 	return pool;
+}
+
+bool dsVkCommandPoolData_createCommandBuffers(dsVkCommandPoolData* pool, uint32_t count)
+{
+	if (!DS_RESIZEABLE_ARRAY_ADD(pool->allocator, pool->commandBuffers, pool->count,
+			pool->maxCommandBuffers, count))
+	{
+		return false;
+	}
+
+	for (; pool->createdCount < pool->count; ++pool->createdCount)
+	{
+		dsVkCommandBuffer* commandBuffer = DS_ALLOCATE_OBJECT(pool->allocator, dsVkCommandBuffer);
+		if (!commandBuffer)
+		{
+			pool->count -= count;
+			return false;
+		}
+
+		dsVkCommandBuffer_initialize(commandBuffer, pool->renderer, pool->allocator, pool->usage);
+		commandBuffer->resource = &pool->resource;
+		pool->commandBuffers[pool->createdCount] = (dsCommandBuffer*)commandBuffer;
+	}
+
+	return true;
 }
 
 bool dsVkCommandPoolData_prepare(dsVkCommandPoolData* pool)
@@ -70,15 +77,19 @@ bool dsVkCommandPoolData_prepare(dsVkCommandPoolData* pool)
 	// drivers.
 	for (uint32_t i = 0; i < pool->count; ++i)
 		dsVkCommandBuffer_clearUsedResources(pool->commandBuffers[i]);
+	pool->count = 0;
 	return true;
 }
 
 void dsVkCommandPoolData_destroy(dsVkCommandPoolData* pool)
 {
-	for (uint32_t i = 0; i < pool->count; ++i)
-		dsVkCommandBuffer_shutdown(pool->vkCommandBuffers + i);
+	for (uint32_t i = 0; i < pool->createdCount; ++i)
+	{
+		dsVkCommandBuffer_shutdown((dsVkCommandBuffer*)pool->commandBuffers[i]);
+		DS_VERIFY(dsAllocator_free(pool->allocator, pool->commandBuffers[i]));
+	}
 
 	dsVkResource_shutdown(&pool->resource);
-	if (pool->allocator)
-		DS_VERIFY(dsAllocator_free(pool->allocator, pool));
+	DS_VERIFY(dsAllocator_free(pool->allocator, pool->commandBuffers));
+	DS_VERIFY(dsAllocator_free(pool->allocator, pool));
 }

@@ -956,6 +956,7 @@ dsRenderer* dsMTLRenderer_create(dsAllocator* allocator, const dsRendererOptions
 
 		// Command buffer pools
 		baseRenderer->createCommandBufferPoolFunc = &dsMTLCommandBufferPool_create;
+		baseRenderer->createCommandBuffersFunc = &dsMTLCommandBufferPool_createCommandBuffers;
 		baseRenderer->destroyCommandBufferPoolFunc = &dsMTLCommandBufferPool_destroy;
 		baseRenderer->resetCommandBufferPoolFunc = &dsMTLCommandBufferPool_reset;
 

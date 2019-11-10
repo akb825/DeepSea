@@ -23,23 +23,33 @@ class CommandBufferPoolTest : public FixtureBase
 
 TEST_F(CommandBufferPoolTest, Create)
 {
-	EXPECT_FALSE(dsCommandBufferPool_create(NULL, NULL, dsCommandBufferUsage_Standard, 4));
-	EXPECT_FALSE(dsCommandBufferPool_create(renderer, NULL, dsCommandBufferUsage_Standard, 0));
+	EXPECT_FALSE(dsCommandBufferPool_create(NULL, NULL, dsCommandBufferUsage_Standard));
 
 	dsCommandBufferPool* pool = dsCommandBufferPool_create(renderer, NULL,
-		dsCommandBufferUsage_Standard, 4);
+		dsCommandBufferUsage_Standard);
 	ASSERT_TRUE(pool);
-
-	EXPECT_TRUE(pool->currentBuffers);
-	EXPECT_FALSE(pool->previousBuffers);
 
 	EXPECT_TRUE(dsCommandBufferPool_destroy(pool));
+}
 
-	pool = dsCommandBufferPool_create(renderer, NULL, dsCommandBufferUsage_DoubleBuffer, 4);
+TEST_F(CommandBufferPoolTest, CreateCommandBuffers)
+{
+	EXPECT_FALSE(dsCommandBufferPool_create(NULL, NULL, dsCommandBufferUsage_Standard));
+
+	dsCommandBufferPool* pool = dsCommandBufferPool_create(renderer, NULL,
+		dsCommandBufferUsage_Standard);
 	ASSERT_TRUE(pool);
 
-	EXPECT_TRUE(pool->currentBuffers);
-	EXPECT_TRUE(pool->previousBuffers);
+	dsCommandBuffer** commandBuffers = dsCommandBufferPool_createCommandBuffers(pool, 1);
+	ASSERT_TRUE(commandBuffers);
+	EXPECT_EQ(commandBuffers, pool->commandBuffers);
+	ASSERT_EQ(1U, pool->count);
+
+	commandBuffers = dsCommandBufferPool_createCommandBuffers(pool, 2);
+	ASSERT_TRUE(commandBuffers);
+	EXPECT_EQ(commandBuffers, pool->commandBuffers + 1);
+	ASSERT_EQ(3U, pool->count);
+	ASSERT_TRUE(pool->commandBuffers);
 
 	EXPECT_TRUE(dsCommandBufferPool_destroy(pool));
 }
@@ -47,26 +57,16 @@ TEST_F(CommandBufferPoolTest, Create)
 TEST_F(CommandBufferPoolTest, Reset)
 {
 	dsCommandBufferPool* pool = dsCommandBufferPool_create(renderer, NULL,
-		dsCommandBufferUsage_Standard, 4);
+		dsCommandBufferUsage_Standard);
 	ASSERT_TRUE(pool);
+
+	dsCommandBuffer** commandBuffers = dsCommandBufferPool_createCommandBuffers(pool, 3);
+	ASSERT_TRUE(commandBuffers);
+	EXPECT_EQ(3U, pool->count);
 
 	EXPECT_FALSE(dsCommandBufferPool_reset(NULL));
 	EXPECT_TRUE(dsCommandBufferPool_reset(pool));
-
-	EXPECT_TRUE(pool->currentBuffers);
-	EXPECT_FALSE(pool->previousBuffers);
-
-	EXPECT_TRUE(dsCommandBufferPool_destroy(pool));
-
-	pool = dsCommandBufferPool_create(renderer, NULL, dsCommandBufferUsage_DoubleBuffer, 4);
-	ASSERT_TRUE(pool);
-
-	dsCommandBuffer** currentBuffers = pool->currentBuffers;
-	dsCommandBuffer** otherBuffers = pool->previousBuffers;
-
-	EXPECT_TRUE(dsCommandBufferPool_reset(pool));
-	EXPECT_EQ(otherBuffers, pool->currentBuffers);
-	EXPECT_EQ(currentBuffers, pool->previousBuffers);
+	EXPECT_EQ(0U, pool->count);
 
 	EXPECT_TRUE(dsCommandBufferPool_destroy(pool));
 }

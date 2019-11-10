@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2019 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,13 +23,12 @@
 #include <DeepSea/Core/Profile.h>
 
 dsCommandBufferPool* dsCommandBufferPool_create(dsRenderer* renderer, dsAllocator* allocator,
-	dsCommandBufferUsage usage, uint32_t count)
+	dsCommandBufferUsage usage)
 {
 	DS_PROFILE_FUNC_START();
 
 	if (!renderer || (!allocator && !renderer->allocator) ||
-		!renderer->createCommandBufferPoolFunc || !renderer->destroyCommandBufferPoolFunc ||
-		count == 0)
+		!renderer->createCommandBufferPoolFunc || !renderer->destroyCommandBufferPoolFunc)
 	{
 		errno = EINVAL;
 		DS_PROFILE_FUNC_RETURN(NULL);
@@ -38,25 +37,49 @@ dsCommandBufferPool* dsCommandBufferPool_create(dsRenderer* renderer, dsAllocato
 	if (!allocator)
 		allocator = renderer->allocator;
 
-	dsCommandBufferPool* pool = renderer->createCommandBufferPoolFunc(renderer, allocator, usage,
-		count);
-	if (!pool)
-		DS_PROFILE_FUNC_RETURN(pool);
-
-	// Internally managed states, so guarantee they are properly initialized.
-	for (uint32_t i = 0; i < pool->count; ++i)
+	if (!allocator->freeFunc)
 	{
-		dsCommandBuffer* commandBuffer = pool->currentBuffers[i];
-		DS_ASSERT(commandBuffer->usage == usage);
-		commandBuffer->frameActive = true;
-		commandBuffer->boundSurface = NULL;
-		commandBuffer->boundFramebuffer = NULL;
-		commandBuffer->boundRenderPass = NULL;
-		commandBuffer->activeRenderSubpass = 0;
-		commandBuffer->boundShader = NULL;
-		commandBuffer->boundComputeShader = NULL;
+		errno = EINVAL;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Command buffer pool allocator must support freeing memory.");
+		DS_PROFILE_FUNC_RETURN(NULL);
 	}
+
+	dsCommandBufferPool* pool = renderer->createCommandBufferPoolFunc(renderer, allocator, usage);
 	DS_PROFILE_FUNC_RETURN(pool);
+}
+
+dsCommandBuffer** dsCommandBufferPool_createCommandBuffers(dsCommandBufferPool* pool,
+	uint32_t count)
+{
+	DS_PROFILE_FUNC_START();
+
+	if (!pool || !pool->renderer || !pool->renderer->createCommandBuffersFunc || count == 0)
+	{
+		errno = EINVAL;
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
+	dsRenderer* renderer = pool->renderer;
+	uint32_t offset = pool->count;
+	if (!renderer->createCommandBuffersFunc(renderer, pool, count))
+		DS_PROFILE_FUNC_RETURN(NULL);
+
+	// Make sure that the internal state of the command buffer is properly initialized.
+	DS_ASSERT(pool->commandBuffers && pool->count == offset + count);
+	dsCommandBuffer** commandBuffers = pool->commandBuffers + offset;
+	for (uint32_t i = 0; i < count; ++i)
+	{
+		DS_ASSERT(commandBuffers[i] && commandBuffers[i]->usage == pool->usage);
+		commandBuffers[i]->frameActive = true;
+		commandBuffers[i]->boundSurface = NULL;
+		commandBuffers[i]->boundFramebuffer = NULL;
+		commandBuffers[i]->boundRenderPass = NULL;
+		commandBuffers[i]->activeRenderSubpass = 0;
+		commandBuffers[i]->boundShader = NULL;
+		commandBuffers[i]->boundComputeShader = NULL;
+	}
+	DS_PROFILE_FUNC_RETURN(commandBuffers);
 }
 
 bool dsCommandBufferPool_reset(dsCommandBufferPool* pool)
@@ -71,21 +94,6 @@ bool dsCommandBufferPool_reset(dsCommandBufferPool* pool)
 
 	dsRenderer* renderer = pool->renderer;
 	bool success = renderer->resetCommandBufferPoolFunc(renderer, pool);
-	if (!success)
-		DS_PROFILE_FUNC_RETURN(success);
-
-	// Guarantee that a freshly reset command buffer can bind a render pass.
-	for (uint32_t i = 0; i < pool->count; ++i)
-	{
-		dsCommandBuffer* commandBuffer = pool->currentBuffers[i];
-		commandBuffer->frameActive = true;
-		commandBuffer->boundSurface = NULL;
-		commandBuffer->boundFramebuffer = NULL;
-		commandBuffer->boundRenderPass = NULL;
-		commandBuffer->activeRenderSubpass = 0;
-		commandBuffer->boundShader = NULL;
-		commandBuffer->boundComputeShader = NULL;
-	}
 	DS_PROFILE_FUNC_RETURN(success);
 }
 

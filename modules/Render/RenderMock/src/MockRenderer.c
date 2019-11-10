@@ -443,6 +443,7 @@ dsRenderer* dsMockRenderer_create(dsAllocator* allocator)
 	renderer->swapRenderSurfaceBuffersFunc = &dsMockRenderSurface_swapBuffers;
 
 	renderer->createCommandBufferPoolFunc = &dsMockCommandBufferPool_create;
+	renderer->createCommandBuffersFunc = &dsMockCommandBufferPool_createCommandBuffers;
 	renderer->resetCommandBufferPoolFunc = &dsMockCommandBufferPool_reset;
 	renderer->destroyCommandBufferPoolFunc = &dsMockCommandBufferPool_destroy;
 

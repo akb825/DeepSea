@@ -719,9 +719,11 @@ typedef struct dsVkCommandPoolData
 	dsRenderer* renderer;
 	dsVkResource resource;
 
-	dsVkCommandBuffer* vkCommandBuffers;
 	dsCommandBuffer** commandBuffers;
+	dsCommandBufferUsage usage;
 	uint32_t count;
+	uint32_t createdCount;
+	uint32_t maxCommandBuffers;
 } dsVkCommandPoolData;
 
 typedef struct dsVkCommandBufferPool

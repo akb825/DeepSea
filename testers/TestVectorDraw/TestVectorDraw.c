@@ -270,7 +270,7 @@ static void draw(dsApplication* application, dsWindow* window, void* userData)
 
 	if (testVectorDraw->setupCommands)
 	{
-		dsCommandBuffer* setupCommands = testVectorDraw->setupCommands->currentBuffers[0];
+		dsCommandBuffer* setupCommands = testVectorDraw->setupCommands->commandBuffers[0];
 		DS_VERIFY(dsCommandBuffer_submit(commandBuffer, setupCommands));
 		DS_VERIFY(dsCommandBufferPool_destroy(testVectorDraw->setupCommands));
 		testVectorDraw->setupCommands = NULL;
@@ -331,15 +331,16 @@ static bool setup(TestVectorDraw* testVectorDraw, dsApplication* application,
 	testVectorDraw->renderer = renderer;
 
 	testVectorDraw->setupCommands = dsCommandBufferPool_create(renderer, allocator,
-		dsCommandBufferUsage_Standard, 1);
-	if (!testVectorDraw->setupCommands)
+		dsCommandBufferUsage_Standard);
+	if (!testVectorDraw->setupCommands ||
+		!dsCommandBufferPool_createCommandBuffers(testVectorDraw->setupCommands, 1))
 	{
 		DS_LOG_ERROR_F("TestText", "Couldn't create setup command buffer: %s",
 			dsErrorString(errno));
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	dsCommandBuffer* setupCommands = testVectorDraw->setupCommands->currentBuffers[0];
+	dsCommandBuffer* setupCommands = testVectorDraw->setupCommands->commandBuffers[0];
 	if (!dsCommandBuffer_begin(setupCommands))
 	{
 		DS_LOG_ERROR_F("TestText", "Couldn't begin setup command buffer: %s",

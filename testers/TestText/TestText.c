@@ -729,7 +729,7 @@ static void draw(dsApplication* application, dsWindow* window, void* userData)
 
 	if (testText->setupCommands)
 	{
-		dsCommandBuffer* setupCommands = testText->setupCommands->currentBuffers[0];
+		dsCommandBuffer* setupCommands = testText->setupCommands->commandBuffers[0];
 		DS_VERIFY(dsCommandBuffer_submit(commandBuffer, setupCommands));
 		DS_VERIFY(dsCommandBufferPool_destroy(testText->setupCommands));
 		testText->setupCommands = NULL;
@@ -1034,7 +1034,7 @@ static bool setupText(TestText* testText, dsTextQuality quality, const char* fon
 
 	dsTimer timer = dsTimer_create();
 	double startTime = dsTimer_time(timer);
-	if (!dsFont_preloadASCII(testText->font, testText->setupCommands->currentBuffers[0]))
+	if (!dsFont_preloadASCII(testText->font, testText->setupCommands->commandBuffers[0]))
 	{
 		DS_LOG_ERROR_F("TestText", "Couldn't create preload ASCII characters: %s",
 			dsErrorString(errno));
@@ -1101,15 +1101,16 @@ static bool setup(TestText* testText, dsApplication* application, dsAllocator* a
 	testText->renderer = renderer;
 
 	testText->setupCommands = dsCommandBufferPool_create(renderer, allocator,
-		dsCommandBufferUsage_Standard, 1);
-	if (!testText->setupCommands)
+		dsCommandBufferUsage_Standard);
+	if (!testText->setupCommands ||
+		!dsCommandBufferPool_createCommandBuffers(testText->setupCommands, 1))
 	{
 		DS_LOG_ERROR_F("TestText", "Couldn't create setup command buffer: %s",
 			dsErrorString(errno));
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	dsCommandBuffer* setupCommands = testText->setupCommands->currentBuffers[0];
+	dsCommandBuffer* setupCommands = testText->setupCommands->commandBuffers[0];
 	if (!dsCommandBuffer_begin(setupCommands))
 	{
 		DS_LOG_ERROR_F("TestText", "Couldn't begin setup command buffer: %s",

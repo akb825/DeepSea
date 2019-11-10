@@ -716,6 +716,7 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 	// Command buffers
 	baseRenderer->createCommandBufferPoolFunc = &dsGLCommandBufferPool_create;
 	baseRenderer->destroyCommandBufferPoolFunc = &dsGLCommandBufferPool_destroy;
+	baseRenderer->createCommandBuffersFunc = &dsGLCommandBufferPool_createCommandBuffers;
 	baseRenderer->resetCommandBufferPoolFunc = &dsGLCommandBufferPool_reset;
 	baseRenderer->beginCommandBufferFunc = &dsGLCommandBuffer_begin;
 	baseRenderer->beginSecondaryCommandBufferFunc = &dsGLCommandBuffer_beginSecondary;
