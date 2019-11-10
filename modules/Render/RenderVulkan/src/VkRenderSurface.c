@@ -214,12 +214,27 @@ bool dsVkRenderSurface_update(dsRenderer* renderer, dsRenderSurface* renderSurfa
 	// re-creating the render surface.
 	dsRenderer_waitUntilIdle(renderer);
 
-	VkSwapchainKHR prevSwapchain = vkSurface->surfaceData ? vkSurface->surfaceData->swapchain : 0;
+	VkSwapchainKHR prevSwapchain = 0;
+	if (vkSurface->surfaceData)
+	{
+		// Delete the previous surface data here regardless. If it fails to be created, the
+		// swapchain will become invalid, so it can't be re-used.
+		prevSwapchain = vkSurface->surfaceData->swapchain;
+		vkSurface->surfaceData->swapchain = 0;
+		dsVkRenderSurfaceData_destroy(vkSurface->surfaceData);
+		vkSurface->surfaceData = NULL;
+	}
+
 	dsVkRenderSurfaceData* surfaceData = dsVkRenderSurfaceData_create(vkSurface->scratchAllocator,
 		renderer, vkSurface->surface, renderer->vsync, prevSwapchain, vkSurface->clientRotations);
+	if (prevSwapchain)
+	{
+		DS_VK_CALL(device->vkDestroySwapchainKHR)(device->device, prevSwapchain,
+			instance->allocCallbacksPtr);
+	}
+
 	if (surfaceData)
 	{
-		dsVkRenderer_deleteRenderSurface(renderer, vkSurface->surfaceData);
 		vkSurface->surfaceData = surfaceData;
 
 		renderSurface->width = vkSurface->surfaceData->width;
@@ -331,15 +346,19 @@ bool dsVkRenderSurface_swapBuffers(dsRenderer* renderer, dsRenderSurface** rende
 
 bool dsVkRenderSurface_destroy(dsRenderer* renderer, dsRenderSurface* renderSurface)
 {
+	dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
 	dsVkRenderSurface* vkSurface = (dsVkRenderSurface*)renderSurface;
 	dsLifetime_destroy(vkSurface->lifetime);
 
-	dsVkRenderer_deleteRenderSurface(renderer, vkSurface->surfaceData);
+	// Make sure all draw calls to the surface are finished.
+	dsRenderer_waitUntilIdle(renderer);
+
+	dsVkRenderSurfaceData_destroy(vkSurface->surfaceData);
+	if (vkSurface->surface && renderSurface->surfaceType != dsRenderSurfaceType_Direct)
+		dsVkPlatform_destroySurface(&vkRenderer->platform, vkSurface->surface);
 	dsSpinlock_shutdown(&vkSurface->lock);
 	if (renderSurface->allocator)
 		DS_VERIFY(dsAllocator_free(renderSurface->allocator, renderSurface));
 
-	// Make sure it's fully destroyed.
-	dsRenderer_waitUntilIdle(renderer);
 	return true;
 }

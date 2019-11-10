@@ -780,10 +780,6 @@ typedef struct dsVkResourceList
 	uint32_t pipelineCount;
 	uint32_t maxPipelines;
 
-	dsVkRenderSurfaceData** renderSurfaces;
-	uint32_t renderSurfaceCount;
-	uint32_t maxRenderSurfaces;
-
 	dsVkCommandPoolData** commandPools;
 	uint32_t commandPoolCount;
 	uint32_t maxCommandPools;

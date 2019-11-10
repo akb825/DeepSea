@@ -314,17 +314,6 @@ static void freeAllResources(dsVkResourceList* deleteList, bool ignoreCommandBuf
 	deleteList->pipelineCount = finalCount;
 
 	finalCount = 0;
-	for (uint32_t i = 0; i < deleteList->renderSurfaceCount; ++i)
-	{
-		dsVkRenderSurfaceData* renderSurface = deleteList->renderSurfaces[i];
-		if (ignoreCommandBufferRefs || renderSurface->resource.commandBufferCount == 0)
-			dsVkRenderSurfaceData_destroy(renderSurface);
-		else
-			deleteList->renderSurfaces[finalCount++] = renderSurface;
-	}
-	deleteList->renderSurfaceCount = finalCount;
-
-	finalCount = 0;
 	for (uint32_t i = 0; i < deleteList->renderPassCount; ++i)
 	{
 		dsVkRenderPassData* renderPass = deleteList->renderPasses[i];
@@ -509,20 +498,6 @@ static void freeResources(dsVkRenderer* renderer, uint64_t finishedSubmitCount)
 		}
 
 		dsVkPipeline_destroy(pipeline);
-	}
-
-	for (uint32_t i = 0; i < prevDeleteList->renderSurfaceCount; ++i)
-	{
-		dsVkRenderSurfaceData* surface = prevDeleteList->renderSurfaces[i];
-		DS_ASSERT(surface);
-
-		if (dsVkResource_isInUse(&surface->resource, finishedSubmitCount))
-		{
-			dsVkRenderer_deleteRenderSurface(baseRenderer, surface);
-			continue;
-		}
-
-		dsVkRenderSurfaceData_destroy(surface);
 	}
 
 	for (uint32_t i = 0; i < prevDeleteList->commandPoolCount; ++i)
@@ -2600,19 +2575,6 @@ void dsVkRenderer_deletePipeline(dsRenderer* renderer, dsVkPipeline* pipeline)
 
 	dsVkResourceList* resourceList = vkRenderer->deleteResources + vkRenderer->curDeleteResources;
 	dsVkResourceList_addPipeline(resourceList, pipeline);
-	DS_VERIFY(dsSpinlock_unlock(&vkRenderer->deleteLock));
-}
-
-void dsVkRenderer_deleteRenderSurface(dsRenderer* renderer, dsVkRenderSurfaceData* surface)
-{
-	if (!surface)
-		return;
-
-	dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
-	DS_VERIFY(dsSpinlock_lock(&vkRenderer->deleteLock));
-
-	dsVkResourceList* resourceList = vkRenderer->deleteResources + vkRenderer->curDeleteResources;
-	dsVkResourceList_addRenderSurface(resourceList, surface);
 	DS_VERIFY(dsSpinlock_unlock(&vkRenderer->deleteLock));
 }
 

@@ -41,6 +41,5 @@ void dsVkRenderer_deleteMaterialDescriptor(dsRenderer* renderer,
 void dsVkRenderer_deleteSamplerList(dsRenderer* renderer, dsVkSamplerList* samplers);
 void dsVkRenderer_deleteComputePipeline(dsRenderer* renderer, dsVkComputePipeline* pipeline);
 void dsVkRenderer_deletePipeline(dsRenderer* renderer, dsVkPipeline* pipeline);
-void dsVkRenderer_deleteRenderSurface(dsRenderer* renderer, dsVkRenderSurfaceData* surface);
 void dsVkRenderer_deleteCommandPool(dsRenderer* renderer, dsVkCommandPoolData* pool);
 void dsVkRenderer_deleteRenderPass(dsRenderer* renderer, dsVkRenderPassData* renderPass);
