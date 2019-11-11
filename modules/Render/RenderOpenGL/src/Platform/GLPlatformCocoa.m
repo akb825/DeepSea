@@ -1,3 +1,19 @@
+/*
+ * Copyright 2017-2019 Aaron Barany
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 #include "Platform/GLPlatform.h"
 #include "AnyGL/AnyGL.h"
 #include <DeepSea/Core/Memory/Allocator.h>
@@ -199,21 +215,11 @@ bool dsGetGLSurfaceSize(uint32_t* outWidth, uint32_t* outHeight, void* display,
 void dsSwapGLBuffers(void* display, dsRenderSurface** renderSurfaces, uint32_t count, bool vsync)
 {
 	DS_UNUSED(display);
-	NSOpenGLContext* context = [NSOpenGLContext currentContext];
+	DS_UNUSED(vsync);
 
-	// vsync on the first surface to avoid waiting for multiple swaps with multiple surfaces.
-	GLint parameter = vsync;
-	[[NSOpenGLContext currentContext] setValues: &parameter
-		forParameter: NSOpenGLContextParameterSwapInterval];
+	NSOpenGLContext* context = [NSOpenGLContext currentContext];
 	for (size_t i = 0; i < count; ++i)
 	{
-		if (i == 1 && vsync)
-		{
-			parameter = false;
-			[[NSOpenGLContext currentContext] setValues: &parameter
-				forParameter: NSOpenGLContextParameterSwapInterval];
-		}
-
 		NSView* view = (__bridge NSView*)((dsGLRenderSurface*)renderSurfaces[i])->glSurface;
 		// Would normally call glFlush(), but dsGLRenderSurface_swapBuffers() already calls it.
 		if ([context view] != view)
@@ -269,6 +275,16 @@ void* dsGetCurrentGLContext(void* display)
 {
 	DS_UNUSED(display);
 	return (__bridge void*)[NSOpenGLContext currentContext];
+}
+
+void dsSetGLVSync(void* display, void* surface, bool vsync)
+{
+	DS_UNUSED(display);
+	DS_UNUSED(surface);
+
+	GLint parameter = vsync;
+	NSOpenGLContext* context = [NSOpenGLContext currentContext];
+	[context setValues: &parameter forParameter: NSOpenGLContextParameterSwapInterval];
 }
 
 #endif // DS_MAC

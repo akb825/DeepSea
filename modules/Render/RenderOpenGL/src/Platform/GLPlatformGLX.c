@@ -1,3 +1,19 @@
+/*
+ * Copyright 2017-2019 Aaron Barany
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 #include "Platform/GLPlatform.h"
 #include "AnyGL/AnyGL.h"
 #include <DeepSea/Core/Memory/Allocator.h>
@@ -357,8 +373,6 @@ void* dsCreateGLSurface(dsAllocator* allocator, void* display, void* config,
 			break;
 	}
 
-	if (ANYGL_SUPPORTED(glXJoinSwapGroupNV))
-		glXJoinSwapGroupNV(display, drawable, 1);
 	return (void*)drawable;
 }
 
@@ -376,27 +390,16 @@ bool dsGetGLSurfaceSize(uint32_t* outWidth, uint32_t* outHeight, void* display,
 
 void dsSwapGLBuffers(void* display, dsRenderSurface** renderSurfaces, uint32_t count, bool vsync)
 {
-	// vsync on the first surface to avoid waiting for multiple swaps with multiple surfaces.
-	// Allow vsync for all surfaces if swap groups are supported.
-	if (ANYGL_SUPPORTED(glXSwapIntervalEXT))
+	// Set the swap group when multiple vsynced surfaces are swapped to avoid waiting for multiple
+	// vsyncs.
+	bool setSwapGroup = vsync && count > 1 && ANYGL_SUPPORTED(glXJoinSwapGroupNV);
+	if (setSwapGroup)
 	{
-		if (ANYGL_SUPPORTED(glXJoinSwapGroupNV))
+		for (size_t i = 0; i < count; ++i)
 		{
-			for (size_t i = 0; i < count; ++i)
-			{
-				GLXDrawable drawable =
-					(GLXDrawable)((dsGLRenderSurface*)renderSurfaces[i])->glSurface;
-				glXSwapIntervalEXT(display, drawable, vsync);
-			}
-		}
-		else
-		{
-			for (size_t i = 0; i < count; ++i)
-			{
-				GLXDrawable drawable =
-					(GLXDrawable)((dsGLRenderSurface*)renderSurfaces[i])->glSurface;
-				glXSwapIntervalEXT(display, drawable, vsync && i == 0);
-			}
+			GLXDrawable drawable =
+				(GLXDrawable)((dsGLRenderSurface*)renderSurfaces[i])->glSurface;
+			glXJoinSwapGroupNV(display, drawable, 1);
 		}
 	}
 
@@ -406,15 +409,22 @@ void dsSwapGLBuffers(void* display, dsRenderSurface** renderSurfaces, uint32_t c
 			(GLXDrawable)((dsGLRenderSurface*)renderSurfaces[i])->glSurface;
 		glXSwapBuffers(display, drawable);
 	}
+
+	if (setSwapGroup)
+	{
+		for (size_t i = 0; i < count; ++i)
+		{
+			GLXDrawable drawable =
+				(GLXDrawable)((dsGLRenderSurface*)renderSurfaces[i])->glSurface;
+			glXJoinSwapGroupNV(display, drawable, 0);
+		}
+	}
 }
 
 void dsDestroyGLSurface(void* display, dsRenderSurfaceType surfaceType, void* surface)
 {
 	if (!surface)
 		return;
-
-	if (ANYGL_SUPPORTED(glXJoinSwapGroupNV))
-		glXJoinSwapGroupNV(display, (GLXDrawable)surface, 0);
 
 	switch (surfaceType)
 	{
@@ -434,7 +444,8 @@ void dsDestroyGLSurface(void* display, dsRenderSurfaceType surfaceType, void* su
 bool dsBindGLContext(void* display, void* context, void* surface)
 {
 	DS_PROFILE_FUNC_START();
-	if (!glXMakeCurrent(display, (GLXDrawable)surface, context))
+	GLXDrawable drawable = (GLXDrawable)surface;
+	if (!glXMakeCurrent(display, drawable, context))
 	{
 		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, "Couldn't bind GL context.");
 		DS_PROFILE_FUNC_RETURN(false);
@@ -447,6 +458,12 @@ void* dsGetCurrentGLContext(void* display)
 {
 	DS_UNUSED(display);
 	return glXGetCurrentContext();
+}
+
+void dsSetGLVSync(void* display, void* surface, bool vsync)
+{
+	if (ANYGL_SUPPORTED(glXSwapIntervalEXT))
+		glXSwapIntervalEXT(display, (GLXDrawable)surface, vsync);
 }
 
 #endif // ANYGL_LOAD

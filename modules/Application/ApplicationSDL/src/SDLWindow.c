@@ -120,6 +120,21 @@ bool dsSDLWindow_createComponents(dsWindow* window, const char* title, const cha
 	return true;
 }
 
+void dsSDLWindow_destroyComponents(dsWindow* window)
+{
+	dsSDLWindow* sdlWindow = (dsSDLWindow*)window;
+	dsApplication* application = window->application;
+
+	dsRenderSurface_destroy(window->surface);
+	window->surface = NULL;
+	if (sdlWindow->sdlWindow)
+	{
+		SDL_DestroyWindow(sdlWindow->sdlWindow);
+		dsRenderer_restoreGlobalState(application->renderer);
+		sdlWindow->sdlWindow = NULL;
+	}
+}
+
 bool dsSDLWindow_createSurfaceInternal(dsWindow* window, const char* surfaceName)
 {
 	dsSDLWindow* sdlWindow = (dsSDLWindow*)window;

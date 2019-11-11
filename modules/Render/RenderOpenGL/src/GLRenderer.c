@@ -760,10 +760,10 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 bool dsGLRenderer_bindSurface(dsRenderer* renderer, void* glSurface)
 {
 	dsGLRenderer* glRenderer = (dsGLRenderer*)renderer;
+	bool setVSync = glRenderer->curGLSurfaceVSync != renderer->vsync;
 	if (glSurface != glRenderer->curGLSurface)
 	{
-		if (!dsBindGLContext(glRenderer->options.display, glRenderer->renderContext,
-			glSurface))
+		if (!dsBindGLContext(glRenderer->options.display, glRenderer->renderContext, glSurface))
 		{
 			errno = EPERM;
 			DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, "Failed to bind render surface. It may have been"
@@ -777,7 +777,16 @@ bool dsGLRenderer_bindSurface(dsRenderer* renderer, void* glSurface)
 			glRenderer->renderContextReset = true;
 			dsGLMainCommandBuffer_resetState((dsGLMainCommandBuffer*)renderer->mainCommandBuffer);
 		}
+
+		setVSync = true;
 	}
+
+	if (setVSync)
+	{
+		dsSetGLVSync(glRenderer->options.display, glSurface, renderer->vsync);
+		glRenderer->curGLSurfaceVSync = renderer->vsync;
+	}
+
 	// Now that the context is bound, can destroy the deleted objects.
 	deleteDestroyedObjects(glRenderer);
 	return true;

@@ -263,6 +263,7 @@ typedef struct dsGLRenderer
 	dsSpinlock syncRefPoolLock;
 
 	void* curGLSurface;
+	bool curGLSurfaceVSync;
 	GLenum curTexture0Target;
 	GLuint curTexture0;
 

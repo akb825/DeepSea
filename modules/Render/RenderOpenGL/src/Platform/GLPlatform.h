@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2019 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,3 +39,5 @@ void dsDestroyGLSurface(void* display, dsRenderSurfaceType surfaceType, void* su
 
 bool dsBindGLContext(void* display, void* context, void* surface);
 void* dsGetCurrentGLContext(void* display);
+
+void dsSetGLVSync(void* display, void* surface, bool vsync);

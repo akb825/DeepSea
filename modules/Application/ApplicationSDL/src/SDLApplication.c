@@ -257,6 +257,10 @@ static void updateWindowSamples(dsApplication* application)
 	}
 	setSamples = true;
 
+	// Need to destroy the SDL windows before restarting video for X11 below.
+	for (unsigned int i = 0; i < application->windowCount; ++i)
+		dsSDLWindow_destroyComponents(application->windows[i]);
+
 #if DS_LINUX && !DS_ANDROID
 	dsRenderer* renderer = application->renderer;
 	if (renderer->platform != dsGfxPlatform_Wayland && renderer->surfaceConfig)
@@ -290,7 +294,7 @@ static void updateWindowSamples(dsApplication* application)
 		dsWindowStyle style = window->style;
 
 		if (!dsSDLWindow_createComponents(window, title, surfaceName, &sdlWindow->curPosition,
-			sdlWindow->curWidth, sdlWindow->curHeight, sdlWindow->curFlags))
+				sdlWindow->curWidth, sdlWindow->curHeight, sdlWindow->curFlags))
 		{
 			DS_LOG_FATAL_F(DS_APPLICATION_SDL_LOG_TAG, "Couldn't allocate window: %s",
 				dsErrorString(errno));
@@ -694,6 +698,11 @@ int dsSDLApplication_run(dsApplication* application)
 				dsRenderSurface_endDraw(window->surface, commandBuffer);
 				swapSurfaces[swapSurfaceCount++] = window->surface;
 			}
+
+			// Flush between windows. This avoids render commands for multiple windows being batched
+			// together, increasing the amount of GPU synchronization.
+			if (i > 0 && i < application->windowCount - 1)
+				dsRenderer_flush(application->renderer);
 		}
 		DS_PROFILE_SCOPE_END();
 

@@ -15,6 +15,7 @@
  */
 
 #include "GLRenderSurface.h"
+
 #include "Platform/GLPlatform.h"
 #include "GLCommandBuffer.h"
 #include "GLRendererInternal.h"

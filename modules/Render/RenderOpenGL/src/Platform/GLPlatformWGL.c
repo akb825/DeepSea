@@ -1,3 +1,19 @@
+/*
+ * Copyright 2017-2019 Aaron Barany
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 #include "Platform/GLPlatform.h"
 #include "AnyGL/AnyGL.h"
 #include <DeepSea/Core/Memory/Allocator.h>
@@ -367,8 +383,6 @@ void* dsCreateGLSurface(dsAllocator* allocator, void* display, void* config,
 			dc = (HDC)handle;
 	}
 
-	if (ANYGL_SUPPORTED(wglJoinSwapGroupNV))
-		wglJoinSwapGroupNV(dc, 1);
 	return dc;
 }
 
@@ -405,27 +419,30 @@ void dsSwapGLBuffers(void* display, dsRenderSurface** renderSurfaces, uint32_t c
 {
 	DS_UNUSED(display);
 
-	// vsync on the first surface to avoid waiting for multiple swaps with multiple surfaces.
-	// Allow vsync for all surfaces if swap groups are supported.
-	if (ANYGL_SUPPORTED(wglSwapIntervalEXT))
-		wglSwapIntervalEXT(vsync);
-	if (ANYGL_SUPPORTED(wglJoinSwapGroupNV))
+	// Set the swap group when multiple vsynced surfaces are swapped to avoid waiting for multiple
+	// vsyncs.
+	bool setSwapGroup = vsync && count > 1 && ANYGL_SUPPORTED(wglJoinSwapGroupNV);
+	if (setSwapGroup)
 	{
 		for (size_t i = 0; i < count; ++i)
 		{
 			HDC dc = (HDC)((dsGLRenderSurface*)renderSurfaces[i])->glSurface;
-			wglSwapLayerBuffers(dc, WGL_SWAP_MAIN_PLANE);
+			wglJoinSwapGroupNV(dc, 1);
 		}
 	}
-	else
+
+	for (size_t i = 0; i < count; ++i)
+	{
+		HDC dc = (HDC)((dsGLRenderSurface*)renderSurfaces[i])->glSurface;
+		wglSwapLayerBuffers(dc, WGL_SWAP_MAIN_PLANE);
+	}
+
+	if (setSwapGroup)
 	{
 		for (size_t i = 0; i < count; ++i)
 		{
-			if (i == 1 && vsync && ANYGL_SUPPORTED(wglSwapIntervalEXT))
-				wglSwapIntervalEXT(0);
-
 			HDC dc = (HDC)((dsGLRenderSurface*)renderSurfaces[i])->glSurface;
-			wglSwapLayerBuffers(dc, WGL_SWAP_MAIN_PLANE);
+			wglJoinSwapGroupNV(dc, 0);
 		}
 	}
 }
@@ -435,8 +452,6 @@ void dsDestroyGLSurface(void* display, dsRenderSurfaceType surfaceType, void* su
 	if (!surface)
 		return;
 
-	if (ANYGL_SUPPORTED(wglJoinSwapGroupNV))
-		wglJoinSwapGroupNV((HDC)surface, 0);
 	switch (surfaceType)
 	{
 		case dsRenderSurfaceType_Window:
@@ -471,6 +486,15 @@ void* dsGetCurrentGLContext(void* display)
 {
 	DS_UNUSED(display);
 	return wglGetCurrentContext();
+}
+
+void dsSetGLVSync(void* display, void* surface, bool vsync)
+{
+	DS_UNUSED(display);
+	DS_UNUSED(surface);
+
+	if (ANYGL_SUPPORTED(wglSwapIntervalEXT))
+		wglSwapIntervalEXT(vsync);
 }
 
 #endif // ANYGL_LOAD
