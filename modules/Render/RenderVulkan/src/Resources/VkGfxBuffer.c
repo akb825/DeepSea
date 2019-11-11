@@ -139,7 +139,8 @@ static bool copyDataTempBuffer(dsCommandBuffer* commandBuffer, dsGfxBuffer* buff
 	}
 	};
 	VkPipelineStageFlags stages = dsVkReadBufferStageFlags(renderer, buffer->usage) |
-		dsVkWriteBufferStageFlags(renderer, bufferData->usage, canMapMainBuffer);
+		dsVkWriteBufferStageFlags(renderer, bufferData->usage, canMapMainBuffer) |
+		VK_PIPELINE_STAGE_HOST_BIT;
 	DS_VK_CALL(device->vkCmdPipelineBarrier)(vkCommandBuffer, stages,
 		VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, NULL, 2, barriers, 0, NULL);
 
