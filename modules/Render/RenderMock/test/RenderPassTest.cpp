@@ -26,6 +26,247 @@ class RenderPassTest : public FixtureBase
 {
 };
 
+TEST_F(RenderPassTest, DefaultDependencies)
+{
+	// uint32_t input0[] = {};
+	dsAttachmentRef color0[] = {{0, false}, {1, false}};
+	dsAttachmentRef depthStencil0 = {2, false};
+	// uint32_t input1[] = {};
+	dsAttachmentRef color1[] = {{3, false}, {4, false}};
+	dsAttachmentRef depthStencil1 = {DS_NO_ATTACHMENT, false};
+	uint32_t input2[] = {1};
+	dsAttachmentRef color2[] = {{0, false}};
+	dsAttachmentRef depthStencil2 = {2, false};
+	uint32_t input3[] = {1};
+	dsAttachmentRef color3[] = {{4, false}};
+	dsAttachmentRef depthStencil3 = {DS_NO_ATTACHMENT, false};
+	// uint32_t input4[] = {};
+	dsAttachmentRef color4[] = {{5, true}};
+	dsAttachmentRef depthStencil4 = {6, false};
+	uint32_t input5[] = {0, 2, 4};
+	dsAttachmentRef color5[] = {{7, true}};
+	dsAttachmentRef depthStencil5 = {DS_NO_ATTACHMENT, false};
+
+	dsRenderSubpassInfo subpasses[] =
+	{
+		{
+			"0",
+			nullptr, //input0,
+			color0,
+			depthStencil0,
+			0, //DS_ARRAY_SIZE(input0),
+			DS_ARRAY_SIZE(color0)
+		},
+		{
+			"1",
+			nullptr, //input1,
+			color1,
+			depthStencil1,
+			0, //DS_ARRAY_SIZE(input1),
+			DS_ARRAY_SIZE(color1)
+		},
+		{
+			"2",
+			input2,
+			color2,
+			depthStencil2,
+			DS_ARRAY_SIZE(input2),
+			DS_ARRAY_SIZE(color2)
+		},
+		{
+			"3",
+			input3,
+			color3,
+			depthStencil3,
+			DS_ARRAY_SIZE(input3),
+			DS_ARRAY_SIZE(color3)
+		},
+		{
+			"4",
+			nullptr, // input4,
+			color4,
+			depthStencil4,
+			0, // DS_ARRAY_SIZE(input4),
+			DS_ARRAY_SIZE(color4)
+		},
+		{
+			"5",
+			input5,
+			color5,
+			depthStencil5,
+			DS_ARRAY_SIZE(input5),
+			DS_ARRAY_SIZE(color5)
+		}
+	};
+	uint32_t subpassCount = DS_ARRAY_SIZE(subpasses);
+
+	constexpr uint32_t dependencyCount = 12;
+	ASSERT_EQ(dependencyCount, dsRenderPass_countDefaultDependencies(subpasses, subpassCount));
+
+	// One higher to guarantee no out of bounds access when testing limit check.
+	dsSubpassDependency dependencies[dependencyCount + 1];
+	EXPECT_FALSE(dsRenderPass_setDefaultDependencies(NULL, dependencyCount, subpasses,
+		subpassCount));
+	EXPECT_FALSE(dsRenderPass_setDefaultDependencies(dependencies, dependencyCount, NULL,
+		subpassCount));
+	EXPECT_FALSE(dsRenderPass_setDefaultDependencies(dependencies, dependencyCount - 1, subpasses,
+		subpassCount));
+	EXPECT_FALSE(dsRenderPass_setDefaultDependencies(dependencies, dependencyCount + 1, subpasses,
+		subpassCount));
+	EXPECT_TRUE(dsRenderPass_setDefaultDependencies(dependencies, dependencyCount, subpasses,
+		subpassCount));
+
+	dsSubpassDependency referenceFirstDependency;
+	memset(&referenceFirstDependency, 0, sizeof(dsSubpassDependency));
+	referenceFirstDependency.srcSubpass = DS_EXTERNAL_SUBPASS;
+	referenceFirstDependency.dstSubpass = 0;
+	ASSERT_TRUE(dsRenderPass_addFirstSubpassDependencyFlags(&referenceFirstDependency));
+
+	dsSubpassDependency referenceLastDependency;
+	memset(&referenceLastDependency, 0, sizeof(dsSubpassDependency));
+	referenceLastDependency.srcSubpass = 0;
+	referenceLastDependency.dstSubpass = DS_EXTERNAL_SUBPASS;
+	ASSERT_TRUE(dsRenderPass_addLastSubpassDependencyFlags(&referenceLastDependency));
+
+	dsSubpassDependency* dependency = dependencies;
+	// Render subpass 0 external dependency.
+	EXPECT_EQ(DS_EXTERNAL_SUBPASS, dependency->srcSubpass);
+	EXPECT_EQ(referenceFirstDependency.srcStages, dependency->srcStages);
+	EXPECT_EQ(referenceFirstDependency.srcAccess, dependency->srcAccess);
+	EXPECT_EQ(0U, dependency->dstSubpass);
+	EXPECT_EQ(referenceFirstDependency.dstStages, dependency->dstStages);
+	EXPECT_EQ(referenceFirstDependency.dstAccess, dependency->dstAccess);
+	EXPECT_FALSE(dependency->regionDependency);
+	++dependency;
+
+	// Render subpass 1 external dependency.
+	EXPECT_EQ(DS_EXTERNAL_SUBPASS, dependency->srcSubpass);
+	EXPECT_EQ(referenceFirstDependency.srcStages, dependency->srcStages);
+	EXPECT_EQ(referenceFirstDependency.srcAccess, dependency->srcAccess);
+	EXPECT_EQ(1U, dependency->dstSubpass);
+	EXPECT_EQ(referenceFirstDependency.dstStages, dependency->dstStages);
+	EXPECT_EQ(referenceFirstDependency.dstAccess, dependency->dstAccess);
+	EXPECT_FALSE(dependency->regionDependency);
+	++dependency;
+
+	// Input, color, and depth/stencil dependencies for render subpass 0 to 2.
+	EXPECT_EQ(0U, dependency->srcSubpass);
+	EXPECT_EQ(dsGfxPipelineStage_ColorOutput | dsGfxPipelineStage_PreFragmentShaderTests |
+			dsGfxPipelineStage_PostFragmentShaderTests,
+		dependency->srcStages);
+	EXPECT_EQ(dsGfxAccess_ColorAttachmentRead | dsGfxAccess_ColorAttachmentWrite |
+			dsGfxAccess_DepthStencilAttachmentRead | dsGfxAccess_DepthStencilAttachmentWrite,
+		dependency->srcAccess);
+	EXPECT_EQ(2U, dependency->dstSubpass);
+	EXPECT_EQ(dsGfxPipelineStage_FragmentShader | dsGfxPipelineStage_ColorOutput |
+			dsGfxPipelineStage_PreFragmentShaderTests | dsGfxPipelineStage_PostFragmentShaderTests,
+		dependency->dstStages);
+	EXPECT_EQ(dsGfxAccess_InputAttachmentRead | dsGfxAccess_ColorAttachmentRead |
+			dsGfxAccess_ColorAttachmentWrite | dsGfxAccess_DepthStencilAttachmentRead |
+			dsGfxAccess_DepthStencilAttachmentWrite,
+		dependency->dstAccess);
+	EXPECT_TRUE(dependency->regionDependency);
+	++dependency;
+
+	// Input dependencies for render subpass 0 to 3.
+	EXPECT_EQ(0U, dependency->srcSubpass);
+	EXPECT_EQ(dsGfxPipelineStage_ColorOutput, dependency->srcStages);
+	EXPECT_EQ(dsGfxAccess_ColorAttachmentWrite, dependency->srcAccess);
+	EXPECT_EQ(3U, dependency->dstSubpass);
+	EXPECT_EQ(dsGfxPipelineStage_FragmentShader, dependency->dstStages);
+	EXPECT_EQ(dsGfxAccess_InputAttachmentRead, dependency->dstAccess);
+	EXPECT_TRUE(dependency->regionDependency);
+	++dependency;
+
+	// Color dependency for render subpass 1 to 3.
+	EXPECT_EQ(1U, dependency->srcSubpass);
+	EXPECT_EQ(dsGfxPipelineStage_ColorOutput, dependency->srcStages);
+	EXPECT_EQ(dsGfxAccess_ColorAttachmentRead | dsGfxAccess_ColorAttachmentWrite,
+		dependency->srcAccess);
+	EXPECT_EQ(3U, dependency->dstSubpass);
+	EXPECT_EQ(dsGfxPipelineStage_ColorOutput, dependency->dstStages);
+	EXPECT_EQ(dsGfxAccess_ColorAttachmentRead | dsGfxAccess_ColorAttachmentWrite,
+		dependency->dstAccess);
+	EXPECT_TRUE(dependency->regionDependency);
+	++dependency;
+
+	// Render subpass 4 external dependency.
+	EXPECT_EQ(DS_EXTERNAL_SUBPASS, dependency->srcSubpass);
+	EXPECT_EQ(referenceFirstDependency.srcStages, dependency->srcStages);
+	EXPECT_EQ(referenceFirstDependency.srcAccess, dependency->srcAccess);
+	EXPECT_EQ(4U, dependency->dstSubpass);
+	EXPECT_EQ(referenceFirstDependency.dstStages, dependency->dstStages);
+	EXPECT_EQ(referenceFirstDependency.dstAccess, dependency->dstAccess);
+	EXPECT_FALSE(dependency->regionDependency);
+	++dependency;
+
+	// Render subpass 4 external dependency.
+	EXPECT_EQ(4U, dependency->srcSubpass);
+	EXPECT_EQ(referenceLastDependency.srcStages, dependency->srcStages);
+	EXPECT_EQ(referenceLastDependency.srcAccess, dependency->srcAccess);
+	EXPECT_EQ(DS_EXTERNAL_SUBPASS, dependency->dstSubpass);
+	EXPECT_EQ(referenceLastDependency.dstStages, dependency->dstStages);
+	EXPECT_EQ(referenceLastDependency.dstAccess, dependency->dstAccess);
+	EXPECT_FALSE(dependency->regionDependency);
+	++dependency;
+
+	// Input dependency for render subpass 0 to 5.
+	EXPECT_EQ(0U, dependency->srcSubpass);
+	EXPECT_EQ(dsGfxPipelineStage_ColorOutput | dsGfxPipelineStage_PostFragmentShaderTests,
+		dependency->srcStages);
+	EXPECT_EQ(dsGfxAccess_ColorAttachmentWrite | dsGfxAccess_DepthStencilAttachmentWrite,
+		dependency->srcAccess);
+	EXPECT_EQ(5U, dependency->dstSubpass);
+	EXPECT_EQ(dsGfxPipelineStage_FragmentShader, dependency->dstStages);
+	EXPECT_EQ(dsGfxAccess_InputAttachmentRead, dependency->dstAccess);
+	EXPECT_TRUE(dependency->regionDependency);
+	++dependency;
+
+	// Input dependency for render subpass 1 to 5.
+	EXPECT_EQ(1U, dependency->srcSubpass);
+	EXPECT_EQ(dsGfxPipelineStage_ColorOutput, dependency->srcStages);
+	EXPECT_EQ(dsGfxAccess_ColorAttachmentWrite, dependency->srcAccess);
+	EXPECT_EQ(5U, dependency->dstSubpass);
+	EXPECT_EQ(dsGfxPipelineStage_FragmentShader, dependency->dstStages);
+	EXPECT_EQ(dsGfxAccess_InputAttachmentRead, dependency->dstAccess);
+	EXPECT_TRUE(dependency->regionDependency);
+	++dependency;
+
+	// Input dependency for render subpass 2 to 5.
+	EXPECT_EQ(2U, dependency->srcSubpass);
+	EXPECT_EQ(dsGfxPipelineStage_ColorOutput | dsGfxPipelineStage_PostFragmentShaderTests,
+		dependency->srcStages);
+	EXPECT_EQ(dsGfxAccess_ColorAttachmentWrite | dsGfxAccess_DepthStencilAttachmentWrite,
+		dependency->srcAccess);
+	EXPECT_EQ(5U, dependency->dstSubpass);
+	EXPECT_EQ(dsGfxPipelineStage_FragmentShader, dependency->dstStages);
+	EXPECT_EQ(dsGfxAccess_InputAttachmentRead, dependency->dstAccess);
+	EXPECT_TRUE(dependency->regionDependency);
+	++dependency;
+
+	// Input dependency for render subpass 3 to 5.
+	EXPECT_EQ(3U, dependency->srcSubpass);
+	EXPECT_EQ(dsGfxPipelineStage_ColorOutput, dependency->srcStages);
+	EXPECT_EQ(dsGfxAccess_ColorAttachmentWrite, dependency->srcAccess);
+	EXPECT_EQ(5U, dependency->dstSubpass);
+	EXPECT_EQ(dsGfxPipelineStage_FragmentShader, dependency->dstStages);
+	EXPECT_EQ(dsGfxAccess_InputAttachmentRead, dependency->dstAccess);
+	EXPECT_TRUE(dependency->regionDependency);
+	++dependency;
+
+	// Render subpass 4 external dependency.
+	EXPECT_EQ(5U, dependency->srcSubpass);
+	EXPECT_EQ(referenceLastDependency.srcStages, dependency->srcStages);
+	EXPECT_EQ(referenceLastDependency.srcAccess, dependency->srcAccess);
+	EXPECT_EQ(DS_EXTERNAL_SUBPASS, dependency->dstSubpass);
+	EXPECT_EQ(referenceLastDependency.dstStages, dependency->dstStages);
+	EXPECT_EQ(referenceLastDependency.dstAccess, dependency->dstAccess);
+	EXPECT_FALSE(dependency->regionDependency);
+	++dependency;
+
+	EXPECT_EQ(dependencies + dependencyCount, dependency);
+}
+
 TEST_F(RenderPassTest, Create)
 {
 	dsAttachmentInfo attachments[] =
@@ -143,7 +384,8 @@ TEST_F(RenderPassTest, Create)
 	renderPass = dsRenderPass_create(renderer, NULL, attachments, attachmentCount, subpasses,
 		subpassCount, NULL, DS_DEFAULT_SUBPASS_DEPENDENCIES);
 	ASSERT_TRUE(renderPass);
-	EXPECT_EQ(subpassCount + 1, renderPass->subpassDependencyCount);
+	EXPECT_EQ(dsRenderPass_countDefaultDependencies(subpasses, subpassCount),
+		renderPass->subpassDependencyCount);
 	EXPECT_TRUE(dsRenderPass_destroy(renderPass));
 }
 

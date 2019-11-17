@@ -21,6 +21,7 @@
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Assert.h>
+#include <DeepSea/Render/RenderPass.h>
 #include <string.h>
 
 dsRenderPass* dsGLRenderPass_create(dsRenderer* renderer, dsAllocator* allocator,
@@ -30,13 +31,16 @@ dsRenderPass* dsGLRenderPass_create(dsRenderer* renderer, dsAllocator* allocator
 {
 	DS_ASSERT(renderer);
 	DS_ASSERT(allocator);
-	// Ignore default dependencies.
-	if (dependencyCount == DS_DEFAULT_SUBPASS_DEPENDENCIES)
-		dependencyCount = 0;
+
+	uint32_t finalDependencyCount = dependencyCount;
+	if (dependencyCount == 0)
+		finalDependencyCount = 0;
+	else if (dependencyCount == DS_DEFAULT_SUBPASS_DEPENDENCIES)
+		finalDependencyCount = dsRenderPass_countDefaultDependencies(subpasses, subpassCount);
 
 	size_t attachmentArraySize = sizeof(dsAttachmentInfo)*attachmentCount;
 	size_t subpassArraySize = sizeof(dsRenderSubpassInfo)*subpassCount;
-	size_t dependencyArraySize = sizeof(dsSubpassDependency)*dependencyCount;
+	size_t dependencyArraySize = sizeof(dsSubpassDependency)*finalDependencyCount;
 	size_t clearSubpassArraySize = sizeof(uint32_t)*attachmentCount;
 	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsGLRenderPass)) +
 		DS_ALIGNED_SIZE(attachmentArraySize) + DS_ALIGNED_SIZE(subpassArraySize) +
@@ -140,16 +144,26 @@ dsRenderPass* dsGLRenderPass_create(dsRenderer* renderer, dsAllocator* allocator
 	if (dependencyCount > 0)
 	{
 		baseRenderPass->subpassDependencies = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc,
-			dsSubpassDependency, dependencyCount);
+			dsSubpassDependency, finalDependencyCount);
 		DS_ASSERT(baseRenderPass->subpassDependencies);
-		memcpy((void*)baseRenderPass->subpassDependencies, dependencies, dependencyArraySize);
+		if (dependencyCount == DS_DEFAULT_SUBPASS_DEPENDENCIES)
+		{
+			DS_VERIFY(dsRenderPass_setDefaultDependencies(
+				(dsSubpassDependency*)baseRenderPass->subpassDependencies, finalDependencyCount,
+				subpasses, subpassCount));
+		}
+		else
+		{
+			memcpy((void*)baseRenderPass->subpassDependencies, dependencies,
+				sizeof(dsSubpassDependency)*dependencyCount);
+		}
 	}
 	else
 		baseRenderPass->subpassDependencies = NULL;
 
 	baseRenderPass->attachmentCount = attachmentCount;
 	baseRenderPass->subpassCount = subpassCount;
-	baseRenderPass->subpassDependencyCount = dependencyCount;
+	baseRenderPass->subpassDependencyCount = finalDependencyCount;
 
 	dsGLResource_initialize(&renderPass->resource);
 	return baseRenderPass;

@@ -34,7 +34,87 @@ typedef enum SurfaceType
 	SurfaceType_Other = 0x4
 } SurfaceType;
 
+typedef enum AttachmentUsage
+{
+	AttachmentUsage_Unused = 0,
+	AttachmentUsage_Input = 0x1,
+	AttachmentUsage_Color = 0x2,
+	AttachmentUsage_DepthStencil = 0x4,
+} AttachmentUsage;
+
 #define SCOPE_SIZE 256
+
+static bool hasAttachment(const dsRenderSubpassInfo* subpass, uint32_t attachment, bool checkInputs)
+{
+	if (attachment == DS_NO_ATTACHMENT)
+		return false;
+
+	if (checkInputs)
+	{
+		for (uint32_t i = 0; i < subpass->inputAttachmentCount; ++i)
+		{
+			if (subpass->inputAttachments[i] == attachment)
+				return true;
+		}
+	}
+
+	for (uint32_t i = 0; i < subpass->colorAttachmentCount; ++i)
+	{
+		if (subpass->colorAttachments[i].attachmentIndex == attachment)
+			return true;
+	}
+
+	return subpass->depthStencilAttachment.attachmentIndex == attachment;
+}
+
+static AttachmentUsage getAttachmentUsage(const dsRenderSubpassInfo* subpass, uint32_t attachment)
+{
+	AttachmentUsage attachmentUsage = AttachmentUsage_Unused;
+	if (attachment == DS_NO_ATTACHMENT)
+		return attachmentUsage;
+
+	for (uint32_t i = 0; i < subpass->inputAttachmentCount; ++i)
+	{
+		if (subpass->inputAttachments[i] == attachment)
+		{
+			attachmentUsage |= AttachmentUsage_Input;
+			break;
+		}
+	}
+
+	for (uint32_t i = 0; i < subpass->colorAttachmentCount; ++i)
+	{
+		if (subpass->colorAttachments[i].attachmentIndex == attachment)
+		{
+			attachmentUsage |= AttachmentUsage_Color;
+			break;
+		}
+	}
+
+	if (subpass->depthStencilAttachment.attachmentIndex == attachment)
+		attachmentUsage |= AttachmentUsage_DepthStencil;
+
+	return attachmentUsage;
+}
+
+static bool sharesAttachments(const dsRenderSubpassInfo* firstSubpass,
+	const dsRenderSubpassInfo* secondSubpass)
+{
+	for (uint32_t i = 0; i < firstSubpass->inputAttachmentCount; ++i)
+	{
+		// Don't care about sharing input attachments.
+		if (hasAttachment(secondSubpass, firstSubpass->inputAttachments[i], false))
+			return true;
+	}
+
+	for (uint32_t i = 0; i < firstSubpass->colorAttachmentCount; ++i)
+	{
+		if (hasAttachment(secondSubpass, firstSubpass->colorAttachments[i].attachmentIndex, true))
+			return true;
+	}
+
+	return hasAttachment(secondSubpass, firstSubpass->depthStencilAttachment.attachmentIndex, true);
+}
 
 static bool startRenderPassScope(const dsRenderPass* renderPass, dsCommandBuffer* commandBuffer,
 	const dsFramebuffer* framebuffer, const dsAlignedBox3f* viewport)
@@ -332,6 +412,229 @@ bool dsRenderPass_addLastSubpassDependencyFlags(dsSubpassDependency* dependency)
 	dependency->srcAccess |= dsGfxAccess_InputAttachmentRead | dsGfxAccess_ColorAttachmentRead |
 		dsGfxAccess_ColorAttachmentWrite | dsGfxAccess_DepthStencilAttachmentRead |
 		dsGfxAccess_DepthStencilAttachmentWrite;
+	return true;
+}
+
+uint32_t dsRenderPass_countDefaultDependencies(const dsRenderSubpassInfo* subpasses,
+	uint32_t subpassCount)
+{
+	if (!subpasses || subpassCount == 0)
+		return 0;
+
+	uint32_t count = 0;
+	for (uint32_t i = 0; i < subpassCount; ++i)
+	{
+		// Add a dependency for each earlier subpass that shares attachments.
+		bool hasEarlierDependency = false;
+		for (uint32_t j = 0; j < i; ++j)
+		{
+			if (sharesAttachments(subpasses + i, subpasses + j))
+			{
+				++count;
+				hasEarlierDependency = true;
+			}
+		}
+
+		// Implicit dependency if no earlier dependencies.
+		if (!hasEarlierDependency)
+			++count;
+
+		// Implicit dependency if no later dependencies.
+		bool hasLaterDependency = false;
+		for (uint32_t j = i + 1; j < subpassCount; ++j)
+		{
+			if (sharesAttachments(subpasses + i, subpasses + j))
+			{
+				hasLaterDependency = true;
+				break;
+			}
+		}
+
+		if (!hasLaterDependency)
+			++count;
+	}
+
+	return count;
+}
+
+bool dsRenderPass_setDefaultDependencies(dsSubpassDependency* outDependencies,
+	uint32_t dependencyCount, const dsRenderSubpassInfo* subpasses, uint32_t subpassCount)
+{
+	if (!outDependencies || (subpassCount > 0 && !subpasses))
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	uint32_t index = 0;
+	for (uint32_t i = 0; i < subpassCount; ++i)
+	{
+		// Add a dependency for each earlier subpass that shares attachments.
+		bool hasEarlierDependency = false;
+		for (uint32_t j = 0; j < i; ++j)
+		{
+			AttachmentUsage prevUsage = AttachmentUsage_Unused;
+			AttachmentUsage curUsage = AttachmentUsage_Unused;
+			const dsRenderSubpassInfo* prevSubpass = subpasses + j;
+			const dsRenderSubpassInfo* curSubpass = subpasses + i;
+			// Check if we might write to an attachment that the previous subpass reads from.
+			bool writesPrevInput = false;
+
+			for (uint32_t k = 0; k < curSubpass->inputAttachmentCount; ++k)
+			{
+				AttachmentUsage thisPrevUsage = getAttachmentUsage(prevSubpass,
+					curSubpass->inputAttachments[k]);
+				if (thisPrevUsage)
+				{
+					prevUsage |= thisPrevUsage;
+					curUsage |= AttachmentUsage_Input;
+				}
+			}
+
+			for (uint32_t k = 0; k < curSubpass->colorAttachmentCount; ++k)
+			{
+				AttachmentUsage thisPrevUsage = getAttachmentUsage(prevSubpass,
+					curSubpass->colorAttachments[k].attachmentIndex);
+				if (thisPrevUsage)
+				{
+					if (thisPrevUsage & AttachmentUsage_Input)
+						writesPrevInput = true;
+					prevUsage |= thisPrevUsage;
+					curUsage |= AttachmentUsage_Color;
+				}
+			}
+
+
+			AttachmentUsage thisPrevUsage = getAttachmentUsage(prevSubpass,
+				curSubpass->depthStencilAttachment.attachmentIndex);
+			if (thisPrevUsage)
+			{
+				if (thisPrevUsage & AttachmentUsage_Input)
+					writesPrevInput = true;
+				prevUsage |= thisPrevUsage;
+				curUsage |= AttachmentUsage_DepthStencil;
+			}
+
+			// Check if either previous or current subpass can write to the attachment.
+			AttachmentUsage writeUses = AttachmentUsage_Color | AttachmentUsage_DepthStencil;
+			if (!(prevUsage & writeUses) && !(curUsage & writeUses))
+				continue;
+
+			if (index >= dependencyCount)
+			{
+				errno = ESIZE;
+				return false;
+			}
+
+			dsSubpassDependency* dependency = outDependencies + index++;
+			dependency->srcSubpass = j;
+			dependency->srcStages = 0;
+			dependency->srcAccess = 0;
+			if (writesPrevInput)
+			{
+				dependency->srcStages |= dsGfxPipelineStage_FragmentShader;
+				dependency->srcAccess |= dsGfxAccess_InputAttachmentRead;
+			}
+			if (prevUsage & AttachmentUsage_Color)
+			{
+				dependency->srcStages |= dsGfxPipelineStage_ColorOutput;
+				dependency->srcAccess |= dsGfxAccess_ColorAttachmentWrite;
+				if (curUsage & AttachmentUsage_Color)
+					dependency->srcAccess |= dsGfxAccess_ColorAttachmentRead;
+			}
+			if (prevUsage & AttachmentUsage_DepthStencil)
+			{
+				dependency->srcStages |= dsGfxPipelineStage_PostFragmentShaderTests;
+				dependency->srcAccess |= dsGfxAccess_DepthStencilAttachmentWrite;
+				if (curUsage & AttachmentUsage_DepthStencil)
+				{
+					dependency->srcStages |= dsGfxPipelineStage_PreFragmentShaderTests;
+					dependency->srcAccess |= dsGfxAccess_DepthStencilAttachmentRead;
+				}
+			}
+
+			dependency->dstSubpass = i;
+			dependency->dstStages = 0;
+			dependency->dstAccess = 0;
+			if (curUsage & AttachmentUsage_Input)
+			{
+				dependency->dstStages |= dsGfxPipelineStage_FragmentShader;
+				dependency->dstAccess |= dsGfxAccess_InputAttachmentRead;
+			}
+			if (curUsage & AttachmentUsage_Color)
+			{
+				dependency->dstStages |= dsGfxPipelineStage_ColorOutput;
+				dependency->dstAccess |= dsGfxAccess_ColorAttachmentRead |
+					dsGfxAccess_ColorAttachmentWrite;
+			}
+			if (curUsage & AttachmentUsage_DepthStencil)
+			{
+				dependency->dstStages |= dsGfxPipelineStage_PreFragmentShaderTests |
+					dsGfxPipelineStage_PostFragmentShaderTests;
+				dependency->dstAccess |= dsGfxAccess_DepthStencilAttachmentRead |
+					dsGfxAccess_DepthStencilAttachmentWrite;
+			}
+
+			dependency->regionDependency = true;
+			hasEarlierDependency = true;
+		}
+
+		// Implicit dependency if no earlier dependencies.
+		if (!hasEarlierDependency)
+		{
+			if (index >= dependencyCount)
+			{
+				errno = ESIZE;
+				return false;
+			}
+
+			dsSubpassDependency* dependency = outDependencies + index++;
+			dependency->srcSubpass = DS_EXTERNAL_SUBPASS;
+			dependency->srcStages = 0;
+			dependency->srcAccess = dsGfxAccess_None;
+			dependency->dstSubpass = i;
+			dependency->dstStages = 0;
+			dependency->dstAccess = dsGfxAccess_None;
+			dependency->regionDependency = false;
+			dsRenderPass_addFirstSubpassDependencyFlags(dependency);
+		}
+
+		// Implicit dependency if no later dependencies.
+		bool hasLaterDependency = false;
+		for (uint32_t j = i + 1; j < subpassCount; ++j)
+		{
+			if (sharesAttachments(subpasses + i, subpasses + j))
+			{
+				hasLaterDependency = true;
+				break;
+			}
+		}
+
+		if (!hasLaterDependency)
+		{
+			if (index >= dependencyCount)
+			{
+				errno = ESIZE;
+				return false;
+			}
+
+			dsSubpassDependency* dependency = outDependencies + index++;
+			dependency->srcSubpass = i;
+			dependency->srcStages = 0;
+			dependency->srcAccess = dsGfxAccess_None;
+			dependency->dstSubpass = DS_EXTERNAL_SUBPASS;
+			dependency->dstStages = 0;
+			dependency->dstAccess = dsGfxAccess_None;
+			dependency->regionDependency = false;
+			dsRenderPass_addLastSubpassDependencyFlags(dependency);
+		}
+	}
+
+	if (index != dependencyCount)
+	{
+		errno = ESIZE;
+		return false;
+	}
 	return true;
 }
 

@@ -60,7 +60,7 @@ dsRenderPass* dsVkRenderPass_create(dsRenderer* renderer, dsAllocator* allocator
 	if (dependencyCount == 0)
 		finalDependencyCount = 0;
 	else if (dependencyCount == DS_DEFAULT_SUBPASS_DEPENDENCIES)
-		finalDependencyCount = subpassCount + 1;
+		finalDependencyCount = dsRenderPass_countDefaultDependencies(subpasses, subpassCount);
 
 	size_t totalSize = fullAllocSize(attachmentCount, subpasses, subpassCount,
 		finalDependencyCount);
@@ -148,37 +148,12 @@ dsRenderPass* dsVkRenderPass_create(dsRenderer* renderer, dsAllocator* allocator
 		DS_ASSERT(baseRenderPass->subpassDependencies);
 		if (dependencyCount == DS_DEFAULT_SUBPASS_DEPENDENCIES)
 		{
-			for (uint32_t i = 0; i < subpassCount; ++i)
-			{
-				dsSubpassDependency* dependency =
-					(dsSubpassDependency*)(baseRenderPass->subpassDependencies + i);
-				dependency->srcSubpass = i == 0 ? DS_EXTERNAL_SUBPASS : i - 1;
-				dependency->srcStages = dsGfxPipelineStage_ColorOutput |
-					dsGfxPipelineStage_PostFragmentShaderTests;
-				dependency->srcAccess = dsGfxAccess_ColorAttachmentWrite |
-					dsGfxAccess_DepthStencilAttachmentWrite;
-				dependency->dstSubpass = i;
-				dependency->dstStages = dsGfxPipelineStage_FragmentShader;
-				dependency->dstAccess = dsGfxAccess_InputAttachmentRead;
-				dependency->regionDependency = i > 0;
-				if (i == 0)
-					DS_VERIFY(dsRenderPass_addFirstSubpassDependencyFlags(dependency));
-			}
-
-			dsSubpassDependency* lastDependency =
-				(dsSubpassDependency*)(baseRenderPass->subpassDependencies + subpassCount);
-			lastDependency->srcSubpass = subpassCount - 1;
-			lastDependency->srcStages = 0;
-			lastDependency->srcAccess = dsGfxAccess_None;
-			lastDependency->dstSubpass = DS_EXTERNAL_SUBPASS;
-			lastDependency->dstStages = 0;
-			lastDependency->dstAccess = dsGfxAccess_None;
-			lastDependency->regionDependency = false;
-			DS_VERIFY(dsRenderPass_addLastSubpassDependencyFlags(lastDependency));
+			DS_VERIFY(dsRenderPass_setDefaultDependencies(
+				(dsSubpassDependency*)baseRenderPass->subpassDependencies, finalDependencyCount,
+				subpasses, subpassCount));
 		}
 		else
 		{
-			DS_ASSERT(baseRenderPass->subpassDependencies);
 			memcpy((void*)baseRenderPass->subpassDependencies, dependencies,
 				sizeof(dsSubpassDependency)*dependencyCount);
 		}

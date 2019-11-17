@@ -28,17 +28,19 @@
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Render/Resources/Framebuffer.h>
+#include <DeepSea/Render/RenderPass.h>
 #include <string.h>
 
 #import <QuartzCore/CAMetalLayer.h>
 
 static size_t fullAllocSize(uint32_t attachmentCount, const dsRenderSubpassInfo* subpasses,
-	uint32_t subpassCount)
+	uint32_t subpassCount, uint32_t dependencyCount)
 {
 	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsMTLRenderPass)) +
 		DS_ALIGNED_SIZE(sizeof(dsAttachmentInfo)*attachmentCount) +
 		DS_ALIGNED_SIZE(sizeof(dsRenderSubpassInfo)*subpassCount) +
-		DS_ALIGNED_SIZE(sizeof(dsMTLSubpassInfo)*subpassCount);
+		DS_ALIGNED_SIZE(sizeof(dsMTLSubpassInfo)*subpassCount) +
+		DS_ALIGNED_SIZE(sizeof(dsSubpassDependency)*dependencyCount);
 	for (uint32_t i = 0; i < subpassCount; ++i)
 	{
 		fullSize += DS_ALIGNED_SIZE(sizeof(uint32_t)*subpasses[i].inputAttachmentCount) +
@@ -337,9 +339,14 @@ dsRenderPass* dsMTLRenderPass_create(dsRenderer* renderer, dsAllocator* allocato
 {
 	@autoreleasepool
 	{
-		DS_UNUSED(dependencies);
-		DS_UNUSED(dependencyCount);
-		size_t fullSize = fullAllocSize(attachmentCount, subpasses, subpassCount);
+		uint32_t finalDependencyCount = dependencyCount;
+		if (dependencyCount == 0)
+			finalDependencyCount = 0;
+		else if (dependencyCount == DS_DEFAULT_SUBPASS_DEPENDENCIES)
+			finalDependencyCount = dsRenderPass_countDefaultDependencies(subpasses, subpassCount);
+
+		size_t fullSize = fullAllocSize(attachmentCount, subpasses, subpassCount,
+			finalDependencyCount);
 		void* buffer = dsAllocator_alloc(allocator, fullSize);
 		if (!buffer)
 			return NULL;
@@ -430,11 +437,29 @@ dsRenderPass* dsMTLRenderPass_create(dsRenderer* renderer, dsAllocator* allocato
 			memcpy((void*)curSubpass->name, subpasses[i].name, nameLen);
 		}
 
-		baseRenderPass->subpassDependencies = NULL;
+		if (dependencyCount > 0)
+		{
+			baseRenderPass->subpassDependencies = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc,
+				dsSubpassDependency, finalDependencyCount);
+			DS_ASSERT(baseRenderPass->subpassDependencies);
+			if (dependencyCount == DS_DEFAULT_SUBPASS_DEPENDENCIES)
+			{
+				DS_VERIFY(dsRenderPass_setDefaultDependencies(
+					(dsSubpassDependency*)baseRenderPass->subpassDependencies, finalDependencyCount,
+					subpasses, subpassCount));
+			}
+			else
+			{
+				memcpy((void*)baseRenderPass->subpassDependencies, dependencies,
+					sizeof(dsSubpassDependency)*dependencyCount);
+			}
+		}
+		else
+			baseRenderPass->subpassDependencies = NULL;
 
 		baseRenderPass->attachmentCount = attachmentCount;
 		baseRenderPass->subpassCount = subpassCount;
-		baseRenderPass->subpassDependencyCount = 0;
+		baseRenderPass->subpassDependencyCount = finalDependencyCount;
 
 		renderPass->scratchAllocator = renderer->allocator;
 		renderPass->usedShaders = NULL;

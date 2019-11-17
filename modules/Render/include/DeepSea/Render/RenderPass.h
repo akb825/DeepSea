@@ -70,6 +70,32 @@ DS_RENDER_EXPORT bool dsRenderPass_addFirstSubpassDependencyFlags(dsSubpassDepen
 DS_RENDER_EXPORT bool dsRenderPass_addLastSubpassDependencyFlags(dsSubpassDependency* dependency);
 
 /**
+ * @brief Counts the default dependencies for a render pass.
+ *
+ * This is mostly used for implementations to determine how many dependencies to allocate when
+ * default dependencies are used.
+ *
+ * @param subpasses The subpasses used for the render pass.
+ * @param subpassCount The number of subpasses.
+ * @return The number of default dependencies.
+ */
+DS_RENDER_EXPORT uint32_t dsRenderPass_countDefaultDependencies(
+	const dsRenderSubpassInfo* subpasses, uint32_t subpassCount);
+
+/**
+ * @brief Sets the default dependencies on a dependency array.
+ * @remark errno will be set on failure.
+ * @param[out] outDependencies Output to receive the dependencies.
+ * @param dependencyCount The number of dependencies. This is expected to be the same as what is
+ *     returned from dsRenderPass_countDefaultDependencies().
+ * @param subpasses The subpasses used for the render pass.
+ * @param subpassCount The number of subpasses.
+ * @return False if an error occurred.
+ */
+DS_RENDER_EXPORT bool dsRenderPass_setDefaultDependencies(dsSubpassDependency* outDependencies,
+	uint32_t dependencyCount, const dsRenderSubpassInfo* subpasses, uint32_t subpassCount);
+
+/**
  * @brief Creates a render pass.
  * @remark errno will be set on failure.
  * @param renderer The renderer to draw the render pass with.
@@ -84,9 +110,8 @@ DS_RENDER_EXPORT bool dsRenderPass_addLastSubpassDependencyFlags(dsSubpassDepend
  * @param dependencies The dependencies between subpasses. If the implementation keeps the
  *     dependencies, this array will be copied.
  * @param dependencyCount The number of dependencies. This may be set to
- *     DS_DEFAULT_SUBPASS_DEPENDENCIES. Default dependencies have the first and lass subpasses have
- *     an external dependency for reading offscreens, while subsequent subpasses depend on the
- *     previous supbass for reading depth and color subpass inputs.
+ *     DS_DEFAULT_SUBPASS_DEPENDENCIES. Default dependencies are determined based on attachment
+ *     usage within the subpasses and should be sufficient for the vast majority of situations.
  * @return The created render pass, or NULL if it couldn't be created.
  */
 DS_RENDER_EXPORT dsRenderPass* dsRenderPass_create(dsRenderer* renderer, dsAllocator* allocator,

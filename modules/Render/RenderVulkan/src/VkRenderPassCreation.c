@@ -68,7 +68,7 @@ static void addLegacySubpassAttachmentUsageBits(AttachmentUsage* usages,
 
 static void findLegacyAttachmentsBeforeUses(AttachmentUsage* usages,
 	const VkSubpassDescription* subpasses, uint32_t subpassCount,
-	const VkSubpassDependency* dependencies, uint32_t dependencyCount, uint32_t curDependency,
+	const VkSubpassDependency* dependencies, uint32_t dependencyCount, uint32_t curDepSubpass,
 	uint32_t depth)
 {
 	if (depth >= subpassCount)
@@ -79,7 +79,7 @@ static void findLegacyAttachmentsBeforeUses(AttachmentUsage* usages,
 	for (uint32_t i = 0; i < dependencyCount; ++i)
 	{
 		const VkSubpassDependency* dependency = dependencies + i;
-		if (dependency->dstSubpass != curDependency ||
+		if (dependency->dstSubpass != curDepSubpass ||
 			dependency->srcSubpass == VK_SUBPASS_EXTERNAL)
 		{
 			continue;
@@ -96,7 +96,7 @@ static void findLegacyAttachmentsBeforeUses(AttachmentUsage* usages,
 
 static void findLegacyAttachmentsAfterUses(AttachmentUsage* usages,
 	const VkSubpassDescription* subpasses, uint32_t subpassCount,
-	const VkSubpassDependency* dependencies, uint32_t dependencyCount, uint32_t curDependency,
+	const VkSubpassDependency* dependencies, uint32_t dependencyCount, uint32_t curDepSubpass,
 	uint32_t depth)
 {
 	if (depth >= subpassCount)
@@ -107,7 +107,7 @@ static void findLegacyAttachmentsAfterUses(AttachmentUsage* usages,
 	for (uint32_t i = 0; i < dependencyCount; ++i)
 	{
 		const VkSubpassDependency* dependency = dependencies + i;
-		if (dependency->srcSubpass != curDependency ||
+		if (dependency->srcSubpass != curDepSubpass ||
 			dependency->dstSubpass == VK_SUBPASS_EXTERNAL)
 		{
 			continue;
@@ -433,7 +433,7 @@ static void addSubpassAttachmentUsageBits(AttachmentUsage* usages,
 
 static void findAttachmentsBeforeUses(AttachmentUsage* usages,
 	const VkSubpassDescription2KHR* subpasses, uint32_t subpassCount,
-	const VkSubpassDependency* dependencies, uint32_t dependencyCount, uint32_t curDependency,
+	const VkSubpassDependency* dependencies, uint32_t dependencyCount, uint32_t curDepSubpass,
 	uint32_t depth)
 {
 	if (depth >= subpassCount)
@@ -444,7 +444,7 @@ static void findAttachmentsBeforeUses(AttachmentUsage* usages,
 	for (uint32_t i = 0; i < dependencyCount; ++i)
 	{
 		const VkSubpassDependency* dependency = dependencies + i;
-		if (dependency->dstSubpass != curDependency ||
+		if (dependency->dstSubpass != curDepSubpass ||
 			dependency->srcSubpass == VK_SUBPASS_EXTERNAL)
 		{
 			continue;
@@ -461,7 +461,7 @@ static void findAttachmentsBeforeUses(AttachmentUsage* usages,
 
 static void findAttachmentsAfterUses(AttachmentUsage* usages,
 	const VkSubpassDescription2KHR* subpasses, uint32_t subpassCount,
-	const VkSubpassDependency* dependencies, uint32_t dependencyCount, uint32_t curDependency,
+	const VkSubpassDependency* dependencies, uint32_t dependencyCount, uint32_t curDepSubpass,
 	uint32_t depth)
 {
 	if (depth >= subpassCount)
@@ -472,7 +472,7 @@ static void findAttachmentsAfterUses(AttachmentUsage* usages,
 	for (uint32_t i = 0; i < dependencyCount; ++i)
 	{
 		const VkSubpassDependency* dependency = dependencies + i;
-		if (dependency->srcSubpass != curDependency ||
+		if (dependency->srcSubpass != curDepSubpass ||
 			dependency->dstSubpass == VK_SUBPASS_EXTERNAL)
 		{
 			continue;
