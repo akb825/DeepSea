@@ -721,7 +721,7 @@ bool dsView_draw(dsView* view, dsCommandBuffer* commandBuffer, dsSceneThreadMana
 			uint32_t clearValueCount =
 				sceneRenderPass->clearValues ? sceneRenderPass->renderPass->attachmentCount : 0;
 			if (!dsRenderPass_begin(renderPass, commandBuffer, framebuffer, &viewport,
-					sceneRenderPass->clearValues, clearValueCount))
+					sceneRenderPass->clearValues, clearValueCount, false))
 			{
 				DS_PROFILE_FUNC_RETURN(false);
 			}
@@ -736,7 +736,7 @@ bool dsView_draw(dsView* view, dsCommandBuffer* commandBuffer, dsSceneThreadMana
 				}
 
 				if (j != renderPass->subpassCount - 1)
-					DS_VERIFY(dsRenderPass_nextSubpass(renderPass, commandBuffer));
+					DS_VERIFY(dsRenderPass_nextSubpass(renderPass, commandBuffer, false));
 			}
 
 			DS_VERIFY(dsRenderPass_end(renderPass, commandBuffer));

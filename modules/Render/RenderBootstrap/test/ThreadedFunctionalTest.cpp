@@ -338,7 +338,7 @@ TEST_P(ThreadedFunctionalTest, RenderMultithreaded)
 				});
 
 			ASSERT_TRUE(dsRenderPass_begin(info.renderPass, *primaryCommands, info.framebuffer,
-				NULL, &clearValue, 1));
+				NULL, &clearValue, 1, true));
 
 			drawThread.join();
 			ASSERT_TRUE(dsCommandBuffer_submit(*primaryCommands, *secondaryCommands));
@@ -422,7 +422,7 @@ TEST_P(ThreadedFunctionalTest, RenderMultithreaded)
 				});
 
 			ASSERT_TRUE(dsRenderPass_begin(info.renderPass, *primaryCommands, info.framebuffer, NULL,
-				&clearValue, 1));
+				&clearValue, 1, true));
 
 			drawThread.join();
 			ASSERT_TRUE(dsCommandBuffer_submit(*primaryCommands, secondaryCommands0));

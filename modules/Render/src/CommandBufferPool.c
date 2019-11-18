@@ -72,6 +72,7 @@ dsCommandBuffer** dsCommandBufferPool_createCommandBuffers(dsCommandBufferPool* 
 	{
 		DS_ASSERT(commandBuffers[i] && commandBuffers[i]->usage == pool->usage);
 		commandBuffers[i]->frameActive = true;
+		commandBuffers[i]->secondaryRenderPassCommands = true;
 		commandBuffers[i]->boundSurface = NULL;
 		commandBuffers[i]->boundFramebuffer = NULL;
 		commandBuffers[i]->boundRenderPass = NULL;

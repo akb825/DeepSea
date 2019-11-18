@@ -655,6 +655,14 @@ bool dsShader_bind(const dsShader* shader, dsCommandBuffer* commandBuffer,
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
+	if (commandBuffer->secondaryRenderPassCommands)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Render commands cannot be submitted directly when inside "
+			"of a render subpass begun with the secondary flag set to true.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
 	if (commandBuffer->boundShader)
 	{
 		errno = EPERM;
@@ -691,6 +699,14 @@ bool dsShader_updateInstanceValues(const dsShader* shader, dsCommandBuffer* comm
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
+	if (commandBuffer->secondaryRenderPassCommands)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Render commands cannot be submitted directly when inside "
+			"of a render subpass begun with the secondary flag set to true.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
 	if (commandBuffer->boundShader != shader)
 	{
 		errno = EPERM;
@@ -714,6 +730,14 @@ bool dsShader_updateDynamicRenderStates(const dsShader* shader, dsCommandBuffer*
 		!shader->resourceManager->updateShaderDynamicRenderStatesFunc)
 	{
 		errno = EINVAL;
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	if (commandBuffer->secondaryRenderPassCommands)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Render commands cannot be submitted directly when inside "
+			"of a render subpass begun with the secondary flag set to true.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
@@ -747,6 +771,14 @@ bool dsShader_unbind(const dsShader* shader, dsCommandBuffer* commandBuffer)
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
 			"Shader unbinding must be performed inside of a render pass.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	if (commandBuffer->secondaryRenderPassCommands)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Render commands cannot be submitted directly when inside "
+			"of a render subpass begun with the secondary flag set to true.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 

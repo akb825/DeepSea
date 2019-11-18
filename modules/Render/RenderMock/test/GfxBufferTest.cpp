@@ -135,7 +135,7 @@ TEST_F(GfxBufferTest, CopyData)
 	EXPECT_FALSE(dsGfxBuffer_copyData(buffer, commandBuffer, 4, &copyData, sizeof(copyData)));
 	EXPECT_TRUE(dsGfxBuffer_copyData(buffer, commandBuffer, 0, &copyData, sizeof(copyData)));
 
-	EXPECT_TRUE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0));
+	EXPECT_TRUE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0, false));
 	EXPECT_FALSE(dsGfxBuffer_copyData(buffer, commandBuffer, 0, &copyData, sizeof(copyData)));
 	EXPECT_TRUE(dsRenderPass_end(renderPass, commandBuffer));
 
@@ -184,7 +184,7 @@ TEST_F(GfxBufferTest, Copy)
 	EXPECT_FALSE(dsGfxBuffer_copy(commandBuffer, fromBuffer, 0, toBuffer, 4, sizeof(testData)));
 	EXPECT_TRUE(dsGfxBuffer_copy(commandBuffer, fromBuffer, 0, toBuffer, 0, sizeof(testData)));
 
-	EXPECT_TRUE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0));
+	EXPECT_TRUE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0, false));
 	EXPECT_FALSE(dsGfxBuffer_copy(commandBuffer, fromBuffer, 0, toBuffer, 0, sizeof(testData)));
 	EXPECT_TRUE(dsRenderPass_end(renderPass, commandBuffer));
 
@@ -268,7 +268,7 @@ TEST_F(GfxBufferTest, CopyToTexture)
 		&toInfo, NULL, 0);
 	ASSERT_TRUE(toTexture);
 
-	EXPECT_TRUE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0));
+	EXPECT_TRUE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0, false));
 	EXPECT_FALSE(dsGfxBuffer_copyToTexture(commandBuffer, fromBuffer, toTexture, &copyRegion, 1));
 	EXPECT_TRUE(dsRenderPass_end(renderPass, commandBuffer));
 

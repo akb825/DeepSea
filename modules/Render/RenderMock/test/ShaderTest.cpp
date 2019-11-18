@@ -389,7 +389,7 @@ TEST_F(ShaderTest, BindAndUpdate)
 	EXPECT_TRUE(dsSharedMaterialValues_setVariableGroupName(instanceValues, "Transform",
 		transformGroup));
 
-	EXPECT_TRUE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0));
+	EXPECT_TRUE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0, false));
 
 	EXPECT_FALSE(dsShader_bind(shader, NULL, material, globalValues, NULL));
 	EXPECT_FALSE(dsShader_bind(NULL, commandBuffer, material, globalValues, NULL));
@@ -483,7 +483,7 @@ TEST_F(ShaderTest, BindAndUpdateBuffer)
 		(dsAllocator*)&allocator, DS_DEFAULT_MAX_SHARED_MATERIAL_VALUES);
 	ASSERT_TRUE(globalValues);
 
-	EXPECT_TRUE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0));
+	EXPECT_TRUE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0, false));
 
 	EXPECT_FALSE(dsShader_bind(shader, commandBuffer, material, globalValues, NULL));
 
@@ -555,7 +555,7 @@ TEST_F(ShaderTest, BindAndUpdateInstanceBuffer)
 		(dsAllocator*)&allocator, DS_DEFAULT_MAX_SHARED_MATERIAL_VALUES);
 	ASSERT_TRUE(instanceValues);
 
-	EXPECT_TRUE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0));
+	EXPECT_TRUE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0, false));
 	EXPECT_TRUE(dsShader_bind(shader, commandBuffer, material, NULL, NULL));
 
 	EXPECT_FALSE(dsShader_updateInstanceValues(shader, commandBuffer, instanceValues));
@@ -695,10 +695,10 @@ TEST_F(ShaderTest, BindAndUpdateCompute)
 	EXPECT_FALSE(dsShader_unbindCompute(shader, NULL));
 	EXPECT_FALSE(dsShader_unbindCompute(NULL, commandBuffer));
 
-	EXPECT_FALSE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0));
+	EXPECT_FALSE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0, false));
 	EXPECT_TRUE(dsShader_unbindCompute(shader, commandBuffer));
 
-	EXPECT_TRUE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0));
+	EXPECT_TRUE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0, false));
 	EXPECT_FALSE(dsShader_bindCompute(shader, commandBuffer, material, globalValues));
 	EXPECT_TRUE(dsRenderPass_end(renderPass, commandBuffer));
 
@@ -771,10 +771,10 @@ TEST_F(ShaderTest, BindAndUpdateComputeBuffer)
 	EXPECT_FALSE(dsShader_unbindCompute(shader, NULL));
 	EXPECT_FALSE(dsShader_unbindCompute(NULL, commandBuffer));
 
-	EXPECT_FALSE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0));
+	EXPECT_FALSE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0, false));
 	EXPECT_TRUE(dsShader_unbindCompute(shader, commandBuffer));
 
-	EXPECT_TRUE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0));
+	EXPECT_TRUE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0, false));
 	EXPECT_FALSE(dsShader_unbindCompute(shader, commandBuffer));
 	EXPECT_TRUE(dsRenderPass_end(renderPass, commandBuffer));
 
@@ -844,10 +844,10 @@ TEST_F(ShaderTest, BindAndUpdateComputeInstanceBuffer)
 	EXPECT_FALSE(dsShader_unbindCompute(shader, NULL));
 	EXPECT_FALSE(dsShader_unbindCompute(NULL, commandBuffer));
 
-	EXPECT_FALSE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0));
+	EXPECT_FALSE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0, false));
 	EXPECT_TRUE(dsShader_unbindCompute(shader, commandBuffer));
 
-	EXPECT_TRUE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0));
+	EXPECT_TRUE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0, false));
 	EXPECT_FALSE(dsShader_unbindCompute(shader, commandBuffer));
 	EXPECT_TRUE(dsRenderPass_end(renderPass, commandBuffer));
 

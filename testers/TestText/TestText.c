@@ -741,7 +741,7 @@ static void draw(dsApplication* application, dsWindow* window, void* userData)
 	clearValue.colorValue.floatValue.b = 0.2f;
 	clearValue.colorValue.floatValue.a = 1.0f;
 	DS_VERIFY(dsRenderPass_begin(testText->renderPass, commandBuffer, testText->framebuffer, NULL,
-		&clearValue, 1));
+		&clearValue, 1, false));
 
 	if (testText->text)
 	{

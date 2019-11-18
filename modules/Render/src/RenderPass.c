@@ -117,7 +117,7 @@ static bool sharesAttachments(const dsRenderSubpassInfo* firstSubpass,
 }
 
 static bool startRenderPassScope(const dsRenderPass* renderPass, dsCommandBuffer* commandBuffer,
-	const dsFramebuffer* framebuffer, const dsAlignedBox3f* viewport)
+	const dsFramebuffer* framebuffer, const dsAlignedBox3f* viewport, bool secondary)
 {
 	// Error checking for this will be later.
 	if (!renderPass || !commandBuffer || !framebuffer)
@@ -168,6 +168,7 @@ static bool startRenderPassScope(const dsRenderPass* renderPass, dsCommandBuffer
 
 #endif
 
+	commandBuffer->secondaryRenderPassCommands = secondary;
 	commandBuffer->boundFramebuffer = framebuffer;
 	commandBuffer->boundRenderPass = renderPass;
 	commandBuffer->activeRenderSubpass = 0;
@@ -185,7 +186,8 @@ static bool startRenderPassScope(const dsRenderPass* renderPass, dsCommandBuffer
 	return true;
 }
 
-static bool nextSubpassScope(const dsRenderPass* renderPass, dsCommandBuffer* commandBuffer)
+static bool nextSubpassScope(const dsRenderPass* renderPass, dsCommandBuffer* commandBuffer,
+	bool secondary)
 {
 	// Error checking for this will be later.
 	if (!renderPass || !commandBuffer)
@@ -213,6 +215,7 @@ static bool nextSubpassScope(const dsRenderPass* renderPass, dsCommandBuffer* co
 		return false;
 	}
 
+	commandBuffer->secondaryRenderPassCommands = secondary;
 	++commandBuffer->activeRenderSubpass;
 
 #if DS_PROFILING_ENABLED
@@ -859,9 +862,9 @@ dsRenderPass* dsRenderPass_create(dsRenderer* renderer, dsAllocator* allocator,
 
 bool dsRenderPass_begin(const dsRenderPass* renderPass, dsCommandBuffer* commandBuffer,
 	const dsFramebuffer* framebuffer, const dsAlignedBox3f* viewport,
-	const dsSurfaceClearValue* clearValues, uint32_t clearValueCount)
+	const dsSurfaceClearValue* clearValues, uint32_t clearValueCount, bool secondary)
 {
-	if (!startRenderPassScope(renderPass, commandBuffer, framebuffer, viewport))
+	if (!startRenderPassScope(renderPass, commandBuffer, framebuffer, viewport, secondary))
 		return false;
 
 	DS_PROFILE_FUNC_START();
@@ -1046,10 +1049,11 @@ bool dsRenderPass_begin(const dsRenderPass* renderPass, dsCommandBuffer* command
 	return success;
 }
 
-bool dsRenderPass_nextSubpass(const dsRenderPass* renderPass, dsCommandBuffer* commandBuffer)
+bool dsRenderPass_nextSubpass(const dsRenderPass* renderPass, dsCommandBuffer* commandBuffer,
+	bool secondary)
 {
 	// End the previous scope
-	if (!nextSubpassScope(renderPass, commandBuffer))
+	if (!nextSubpassScope(renderPass, commandBuffer, secondary))
 		return false;
 
 	DS_PROFILE_FUNC_START();

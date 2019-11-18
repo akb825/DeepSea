@@ -110,6 +110,7 @@ bool dsCommandBuffer_beginSecondary(dsCommandBuffer* commandBuffer,
 	if (!success)
 		DS_PROFILE_FUNC_RETURN(false);
 
+	commandBuffer->secondaryRenderPassCommands = false;
 	commandBuffer->boundFramebuffer = framebuffer;
 	commandBuffer->boundRenderPass = renderPass;
 	commandBuffer->activeRenderSubpass = subpass;
@@ -245,6 +246,14 @@ bool dsCommandBuffer_submit(dsCommandBuffer* commandBuffer, dsCommandBuffer* sub
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG,
 				"Secondary command buffer must have the same framebuffer, render pass, and subpass "
 				"as the command buffer it's being submitted to.");
+			DS_PROFILE_FUNC_RETURN(false);
+		}
+
+		if (!commandBuffer->secondaryRenderPassCommands)
+		{
+			errno = EPERM;
+			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "A render subpass must be begun with the secondary "
+				"flag set to true to accept secondary command buffers.");
 			DS_PROFILE_FUNC_RETURN(false);
 		}
 

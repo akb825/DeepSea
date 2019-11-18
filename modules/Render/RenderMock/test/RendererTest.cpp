@@ -198,7 +198,7 @@ TEST_F(RendererTest, ClearColorSurface)
 	EXPECT_FALSE(dsRenderer_clearColorSurface(renderer, commandBuffer, &surface, &colorValue));
 
 	surface.surfaceType = dsGfxSurfaceType_ColorRenderSurface;
-	EXPECT_TRUE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0));
+	EXPECT_TRUE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0, false));
 	EXPECT_FALSE(dsRenderer_clearColorSurface(renderer, commandBuffer, &surface, &colorValue));
 	EXPECT_TRUE(dsRenderPass_end(renderPass, commandBuffer));
 
@@ -282,7 +282,7 @@ TEST_F(RendererTest, ClearDepthStencilSurface)
 	EXPECT_TRUE(dsRenderer_clearDepthStencilSurface(renderer, commandBuffer, &surface,
 		dsClearDepthStencil_Both, &depthStencilValue));
 
-	EXPECT_TRUE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0));
+	EXPECT_TRUE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0, false));
 	EXPECT_FALSE(dsRenderer_clearDepthStencilSurface(renderer, commandBuffer, &surface,
 		dsClearDepthStencil_Both, &depthStencilValue));
 	EXPECT_TRUE(dsRenderPass_end(renderPass, commandBuffer));
@@ -319,7 +319,7 @@ TEST_F(RendererTest, Draw)
 		NULL);
 	ASSERT_TRUE(geometry);
 
-	EXPECT_TRUE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0));
+	EXPECT_TRUE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0, false));
 	EXPECT_TRUE(dsShader_bind(shader, commandBuffer, material, NULL, NULL));
 
 	dsDrawRange drawRange = {10, 1, 0, 0};
@@ -394,7 +394,7 @@ TEST_F(RendererTest, DrawIndexed)
 		NULL);
 	ASSERT_TRUE(geometry2);
 
-	EXPECT_TRUE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0));
+	EXPECT_TRUE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0, false));
 	EXPECT_TRUE(dsShader_bind(shader, commandBuffer, material, NULL, NULL));
 
 	dsDrawIndexedRange drawRange = {16, 1, 0, 0, 0};
@@ -468,7 +468,7 @@ TEST_F(RendererTest, DrawIndirect)
 		NULL);
 	ASSERT_TRUE(geometry);
 
-	EXPECT_TRUE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0));
+	EXPECT_TRUE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0, false));
 	EXPECT_TRUE(dsShader_bind(shader, commandBuffer, material, NULL, NULL));
 
 	EXPECT_FALSE(dsRenderer_drawIndirect(NULL, commandBuffer, geometry,
@@ -540,7 +540,7 @@ TEST_F(RendererTest, DrawIndexedIndirect)
 		NULL);
 	ASSERT_TRUE(geometry2);
 
-	EXPECT_TRUE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0));
+	EXPECT_TRUE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0, false));
 	EXPECT_TRUE(dsShader_bind(shader, commandBuffer, material, NULL, NULL));
 
 	EXPECT_FALSE(dsRenderer_drawIndexedIndirect(NULL, commandBuffer, geometry1, indirectBuffer, 0,
@@ -710,7 +710,7 @@ TEST_F(RendererTest, Blit)
 		&toInfo, NULL, 0);
 	ASSERT_TRUE(toTexture);
 
-	EXPECT_TRUE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0));
+	EXPECT_TRUE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0, false));
 	EXPECT_FALSE(dsRenderer_blitSurface(renderer, commandBuffer, dsGfxSurfaceType_Offscreen,
 		fromTexture, dsGfxSurfaceType_Offscreen, toTexture, &blitRegion, 1, dsBlitFilter_Nearest));
 	EXPECT_TRUE(dsRenderPass_end(renderPass, commandBuffer));

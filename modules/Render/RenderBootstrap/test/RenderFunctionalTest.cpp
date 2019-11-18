@@ -223,7 +223,7 @@ TEST_P(RendererFunctionalTest, ReadFromOffscreen)
 	clearValue.colorValue.floatValue.a = 1.0f;
 	dsCommandBuffer* commandBuffer = renderer->mainCommandBuffer;
 	ASSERT_TRUE(dsRenderPass_begin(info.renderPass, commandBuffer, info.framebuffer, NULL,
-		&clearValue, 1));
+		&clearValue, 1, false));
 	ASSERT_TRUE(dsShader_bind(info.shader, commandBuffer, info.material, NULL, NULL));
 
 	dsDrawRange drawRange = {6, 1, 0, 0};
@@ -259,7 +259,7 @@ TEST_P(RendererFunctionalTest, ReadFromOffscreen)
 	EXPECT_EQ(255, colors[3].a);
 
 	ASSERT_TRUE(dsRenderPass_begin(info.renderPass, commandBuffer, info.framebuffer, NULL,
-		&clearValue, 1));
+		&clearValue, 1, false));
 	ASSERT_TRUE(dsShader_bind(info.shader, commandBuffer, info.material, NULL, NULL));
 
 	ASSERT_TRUE(dsRenderer_draw(renderer, commandBuffer, otherDrawGeometry, &drawRange,
@@ -389,7 +389,7 @@ TEST_P(RendererFunctionalTest, DrawIndirect)
 	clearValue.colorValue.floatValue.a = 1.0f;
 	dsCommandBuffer* commandBuffer = renderer->mainCommandBuffer;
 	ASSERT_TRUE(dsRenderPass_begin(info.renderPass, commandBuffer, info.framebuffer, NULL,
-		&clearValue, 1));
+		&clearValue, 1, false));
 	ASSERT_TRUE(dsShader_bind(info.shader, commandBuffer, info.material, NULL, NULL));
 
 	ASSERT_TRUE(dsRenderer_drawIndirect(renderer, commandBuffer, drawGeometry, indirectBuffer, 0, 1,
@@ -494,7 +494,7 @@ TEST_P(RendererFunctionalTest, WriteToBuffer)
 	clearValue.colorValue.floatValue.a = 1.0f;
 	dsCommandBuffer* commandBuffer = renderer->mainCommandBuffer;
 	ASSERT_TRUE(dsRenderPass_begin(info.renderPass, commandBuffer, info.framebuffer, NULL,
-		&clearValue, 1));
+		&clearValue, 1, false));
 	ASSERT_TRUE(dsShader_bind(info.shader, commandBuffer, info.material, NULL, NULL));
 
 	dsDrawRange drawRange = {6, 1, 0, 0};
@@ -512,7 +512,7 @@ TEST_P(RendererFunctionalTest, WriteToBuffer)
 	EXPECT_TRUE(dsGfxBuffer_unmap(buffer));
 
 	ASSERT_TRUE(dsRenderPass_begin(info.renderPass, commandBuffer, info.framebuffer, NULL,
-		&clearValue, 1));
+		&clearValue, 1, false));
 	ASSERT_TRUE(dsShader_bind(info.shader, commandBuffer, info.material, NULL, NULL));
 
 	ASSERT_TRUE(dsRenderer_draw(renderer, commandBuffer, drawGeometry, &drawRange,
@@ -621,7 +621,7 @@ TEST_P(RendererFunctionalTest, OrphanBuffer)
 	clearValue.colorValue.floatValue.a = 1.0f;
 	dsCommandBuffer* commandBuffer = renderer->mainCommandBuffer;
 	ASSERT_TRUE(dsRenderPass_begin(info.renderPass, commandBuffer, info.framebuffer, NULL,
-		&clearValue, 1));
+		&clearValue, 1, false));
 	ASSERT_TRUE(dsShader_bind(info.shader, commandBuffer, info.material, NULL, NULL));
 
 	dsDrawRange drawRange = {6, 1, 0, 0};
@@ -637,7 +637,7 @@ TEST_P(RendererFunctionalTest, OrphanBuffer)
 	ASSERT_TRUE(dsGfxBuffer_unmap(buffer));
 
 	ASSERT_TRUE(dsRenderPass_begin(info.renderPass, commandBuffer, info.framebuffer, NULL,
-		&clearValue, 1));
+		&clearValue, 1, false));
 	ASSERT_TRUE(dsShader_bind(info.shader, commandBuffer, info.material, NULL, NULL));
 
 	ASSERT_TRUE(dsRenderer_draw(renderer, commandBuffer, drawGeometry, &drawRange,
@@ -742,7 +742,7 @@ TEST_P(RendererFunctionalTest, PersistentMapping)
 	clearValue.colorValue.floatValue.a = 1.0f;
 	dsCommandBuffer* commandBuffer = renderer->mainCommandBuffer;
 	ASSERT_TRUE(dsRenderPass_begin(info.renderPass, commandBuffer, info.framebuffer, NULL,
-		&clearValue, 1));
+		&clearValue, 1, false));
 	ASSERT_TRUE(dsShader_bind(info.shader, commandBuffer, info.material, NULL, NULL));
 
 	dsDrawRange drawRange = {6, 1, 0, 0};
@@ -758,7 +758,7 @@ TEST_P(RendererFunctionalTest, PersistentMapping)
 	dsGfxBuffer_flush(buffer, 0, buffer->size);
 
 	ASSERT_TRUE(dsRenderPass_begin(info.renderPass, commandBuffer, info.framebuffer, NULL,
-		&clearValue, 1));
+		&clearValue, 1, false));
 	ASSERT_TRUE(dsShader_bind(info.shader, commandBuffer, info.material, NULL, NULL));
 
 	ASSERT_TRUE(dsRenderer_draw(renderer, commandBuffer, drawGeometry, &drawRange,
@@ -846,7 +846,7 @@ TEST_P(RendererFunctionalTest, GenerateMipmaps)
 	clearValue.colorValue.floatValue.a = 1.0f;
 	dsCommandBuffer* commandBuffer = renderer->mainCommandBuffer;
 	ASSERT_TRUE(dsRenderPass_begin(info.renderPass, commandBuffer, info.framebuffer, NULL,
-		&clearValue, 1));
+		&clearValue, 1, false));
 	ASSERT_TRUE(dsShader_bind(info.shader, commandBuffer, info.material, NULL, NULL));
 
 	dsDrawRange drawRange = {6, 1, 0, 0};

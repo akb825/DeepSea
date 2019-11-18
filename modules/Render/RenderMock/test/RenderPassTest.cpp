@@ -509,48 +509,48 @@ TEST_F(RenderPassTest, BeginNextEnd)
 	};
 
 	EXPECT_FALSE(dsRenderPass_begin(renderPass, NULL, framebuffer1, NULL, clearValues,
-		clearValueCount));
+		clearValueCount, false));
 	EXPECT_FALSE(dsRenderPass_begin(NULL, renderer->mainCommandBuffer, framebuffer1, NULL,
-		clearValues, clearValueCount));
+		clearValues, clearValueCount, false));
 	EXPECT_FALSE(dsRenderPass_begin(renderPass, renderer->mainCommandBuffer, NULL, NULL,
-		clearValues, clearValueCount));
+		clearValues, clearValueCount, false));
 	EXPECT_FALSE(dsRenderPass_begin(renderPass, renderer->mainCommandBuffer, framebuffer1, NULL,
-		NULL, 0));
+		NULL, 0, false));
 	EXPECT_FALSE(dsRenderPass_begin(renderPass, renderer->mainCommandBuffer, framebuffer1, NULL,
-		clearValues, 2));
+		clearValues, 2, false));
 	EXPECT_FALSE(dsRenderPass_begin(renderPass, renderer->mainCommandBuffer, framebuffer2, NULL,
-		clearValues, clearValueCount));
+		clearValues, clearValueCount, false));
 	EXPECT_FALSE(dsRenderPass_begin(renderPass, renderer->mainCommandBuffer, framebuffer3, NULL,
-		clearValues, clearValueCount));
+		clearValues, clearValueCount, false));
 	EXPECT_FALSE(dsRenderPass_begin(renderPass, renderer->mainCommandBuffer, framebuffer1,
-		&invalidViewport, clearValues, clearValueCount));
+		&invalidViewport, clearValues, clearValueCount, false));
 
 	EXPECT_TRUE(dsRenderPass_begin(renderPass, renderer->mainCommandBuffer, framebuffer1, NULL,
-		clearValues, clearValueCount));
-	EXPECT_FALSE(dsRenderPass_nextSubpass(renderPass, NULL));
-	EXPECT_TRUE(dsRenderPass_nextSubpass(renderPass, renderer->mainCommandBuffer));
-	EXPECT_TRUE(dsRenderPass_nextSubpass(renderPass, renderer->mainCommandBuffer));
+		clearValues, clearValueCount, false));
+	EXPECT_FALSE(dsRenderPass_nextSubpass(renderPass, NULL, false));
+	EXPECT_TRUE(dsRenderPass_nextSubpass(renderPass, renderer->mainCommandBuffer, false));
+	EXPECT_TRUE(dsRenderPass_nextSubpass(renderPass, renderer->mainCommandBuffer, false));
 	EXPECT_FALSE(dsRenderPass_end(renderPass, NULL));
 	EXPECT_FALSE(dsRenderPass_end(NULL, renderer->mainCommandBuffer));
 	EXPECT_TRUE(dsRenderPass_end(renderPass, renderer->mainCommandBuffer));
 
 	EXPECT_TRUE(dsRenderPass_begin(renderPass, renderer->mainCommandBuffer, framebuffer1,
-		&validViewport, clearValues, clearValueCount));
-	EXPECT_TRUE(dsRenderPass_nextSubpass(renderPass, renderer->mainCommandBuffer));
-	EXPECT_TRUE(dsRenderPass_nextSubpass(renderPass, renderer->mainCommandBuffer));
+		&validViewport, clearValues, clearValueCount, false));
+	EXPECT_TRUE(dsRenderPass_nextSubpass(renderPass, renderer->mainCommandBuffer, false));
+	EXPECT_TRUE(dsRenderPass_nextSubpass(renderPass, renderer->mainCommandBuffer, false));
 	EXPECT_TRUE(dsRenderPass_end(renderPass, renderer->mainCommandBuffer));
 
 	EXPECT_TRUE(dsRenderPass_begin(renderPass, renderer->mainCommandBuffer, framebuffer4,
-		&validViewport, clearValues, clearValueCount));
+		&validViewport, clearValues, clearValueCount, false));
 	EXPECT_FALSE(dsRenderPass_end(renderPass, renderer->mainCommandBuffer));
-	EXPECT_TRUE(dsRenderPass_nextSubpass(renderPass, renderer->mainCommandBuffer));
-	EXPECT_TRUE(dsRenderPass_nextSubpass(renderPass, renderer->mainCommandBuffer));
-	EXPECT_FALSE(dsRenderPass_nextSubpass(renderPass, renderer->mainCommandBuffer));
+	EXPECT_TRUE(dsRenderPass_nextSubpass(renderPass, renderer->mainCommandBuffer, false));
+	EXPECT_TRUE(dsRenderPass_nextSubpass(renderPass, renderer->mainCommandBuffer, false));
+	EXPECT_FALSE(dsRenderPass_nextSubpass(renderPass, renderer->mainCommandBuffer, false));
 	EXPECT_TRUE(dsRenderPass_end(renderPass, renderer->mainCommandBuffer));
 
 	resourceManager->canMixWithRenderSurface = false;
 	EXPECT_FALSE(dsRenderPass_begin(renderPass, renderer->mainCommandBuffer, framebuffer4,
-		&validViewport, clearValues, clearValueCount));
+		&validViewport, clearValues, clearValueCount, false));
 
 	EXPECT_TRUE(dsRenderPass_destroy(renderPass));
 	EXPECT_TRUE(dsFramebuffer_destroy(framebuffer1));

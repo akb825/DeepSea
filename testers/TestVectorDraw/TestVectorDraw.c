@@ -289,7 +289,7 @@ static void draw(dsApplication* application, dsWindow* window, void* userData)
 	clearValue.colorValue.floatValue.b = 1.0f;
 	clearValue.colorValue.floatValue.a = 1.0f;
 	DS_VERIFY(dsRenderPass_begin(testVectorDraw->renderPass, commandBuffer,
-		testVectorDraw->framebuffer, NULL, &clearValue, 1));
+		testVectorDraw->framebuffer, NULL, &clearValue, 1, false));
 
 	dsVectorImage* image = testVectorDraw->vectorImages[testVectorDraw->curVectorImage];
 

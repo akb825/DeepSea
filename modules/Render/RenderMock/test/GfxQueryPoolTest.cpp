@@ -69,7 +69,7 @@ TEST_F(GfxQueryPoolTest, Reset)
 	EXPECT_FALSE(dsGfxQueryPool_reset(queries, commandBuffer, 3, 10));
 	EXPECT_TRUE(dsGfxQueryPool_reset(queries, commandBuffer, 0, 10));
 
-	EXPECT_TRUE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0));
+	EXPECT_TRUE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0, false));
 	EXPECT_FALSE(dsGfxQueryPool_reset(queries, commandBuffer, 0, 10));
 	EXPECT_TRUE(dsRenderPass_end(renderPass, commandBuffer));
 
@@ -211,7 +211,7 @@ TEST_F(GfxQueryPoolTest, CopyValues)
 	EXPECT_FALSE(dsGfxQueryPool_copyValues(queries, commandBuffer, 2, 3, buffer, 8, stride,
 		sizeof(uint64_t), true));
 
-	EXPECT_TRUE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0));
+	EXPECT_TRUE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0, false));
 	EXPECT_FALSE(dsGfxQueryPool_copyValues(queries, commandBuffer, 2, 3, buffer, 4, stride,
 		sizeof(uint32_t), false));
 	EXPECT_TRUE(dsRenderPass_end(renderPass, commandBuffer));

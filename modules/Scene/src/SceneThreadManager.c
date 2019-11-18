@@ -471,7 +471,7 @@ static bool submitCommandBuffers(dsSceneThreadManager* threadManager,
 			uint32_t clearValueCount =
 				sceneRenderPass->clearValues ? sceneRenderPass->renderPass->attachmentCount : 0;
 			if (!dsRenderPass_begin(renderPass, commandBuffer, framebuffer, &viewport,
-					sceneRenderPass->clearValues, clearValueCount))
+					sceneRenderPass->clearValues, clearValueCount, true))
 			{
 				return false;
 			}
@@ -488,7 +488,7 @@ static bool submitCommandBuffers(dsSceneThreadManager* threadManager,
 				}
 
 				if (j != renderPass->subpassCount - 1)
-					DS_VERIFY(dsRenderPass_nextSubpass(renderPass, commandBuffer));
+					DS_VERIFY(dsRenderPass_nextSubpass(renderPass, commandBuffer, true));
 			}
 
 			DS_VERIFY(dsRenderPass_end(renderPass, commandBuffer));

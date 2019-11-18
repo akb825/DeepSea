@@ -872,6 +872,12 @@ typedef struct dsCommandBuffer
 	bool frameActive;
 
 	/**
+	 * @brief True if secondary commands are used within a render pass, false if commands are
+	 * directly written.
+	 */
+	bool secondaryRenderPassCommands;
+
+	/**
 	 * @brief The currently bound render surface.
 	 * @remark This might be NULL even within a render pass for sub-command buffers.
 	 */

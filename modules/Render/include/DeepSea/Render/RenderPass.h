@@ -134,12 +134,14 @@ DS_RENDER_EXPORT dsRenderPass* dsRenderPass_create(dsRenderer* renderer, dsAlloc
  *     cleared.
  * @param clearValueCount The number of clear values. This must either be 0 if clearValues is NULL
  *     or equal to the number of attachments.
+ * @param secondary True if secondary command buffers will be used for render commands, false if
+ *     render commands will be directly sent on the same command buffer as the render pass.
  * @return False if the render pass couldn't be begun.
  */
 DS_RENDER_EXPORT bool dsRenderPass_begin(const dsRenderPass* renderPass,
 	dsCommandBuffer* commandBuffer, const dsFramebuffer* framebuffer,
 	const dsAlignedBox3f* viewport, const dsSurfaceClearValue* clearValues,
-	uint32_t clearValueCount);
+	uint32_t clearValueCount, bool secondary);
 
 /**
  * @brief Advances to the next subpass in a render pass.
@@ -148,10 +150,12 @@ DS_RENDER_EXPORT bool dsRenderPass_begin(const dsRenderPass* renderPass,
  *     scope or function active that will end before the next call to dsRenderPass_end().
  * @param renderPass The render pass to continue.
  * @param commandBuffer The command buffer to push the commands on.
+ * @param secondary True if secondary command buffers will be used for render commands, false if
+ *     render commands will be directly sent on the same command buffer as the render pass.
  * @return False if the render pass couldn't be advanced.
  */
 DS_RENDER_EXPORT bool dsRenderPass_nextSubpass(const dsRenderPass* renderPass,
-	dsCommandBuffer* commandBuffer);
+	dsCommandBuffer* commandBuffer, bool secondary);
 
 /**
  * @brief Ends drawing to a render pass.

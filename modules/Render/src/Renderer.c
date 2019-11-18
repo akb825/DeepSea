@@ -881,6 +881,14 @@ bool dsRenderer_draw(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
+	if (commandBuffer->secondaryRenderPassCommands)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Render commands cannot be submitted directly when inside "
+			"of a render subpass begun with the secondary flag set to true.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
 	if (!commandBuffer->boundShader)
 	{
 		errno = EPERM;
@@ -936,6 +944,14 @@ bool dsRenderer_drawIndexed(dsRenderer* renderer, dsCommandBuffer* commandBuffer
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
+	if (commandBuffer->secondaryRenderPassCommands)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Render commands cannot be submitted directly when inside "
+			"of a render subpass begun with the secondary flag set to true.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
 	if (!commandBuffer->boundShader)
 	{
 		errno = EPERM;
@@ -986,6 +1002,14 @@ bool dsRenderer_drawIndirect(dsRenderer* renderer, dsCommandBuffer* commandBuffe
 	{
 		errno = EINDEX;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Indirect draws outside of indirect buffer range.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	if (commandBuffer->secondaryRenderPassCommands)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Render commands cannot be submitted directly when inside "
+			"of a render subpass begun with the secondary flag set to true.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
@@ -1050,6 +1074,14 @@ bool dsRenderer_drawIndexedIndirect(dsRenderer* renderer, dsCommandBuffer* comma
 	{
 		errno = EINVAL;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Geometry must contain indices for indexed drawing.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	if (commandBuffer->secondaryRenderPassCommands)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Render commands cannot be submitted directly when inside "
+			"of a render subpass begun with the secondary flag set to true.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
