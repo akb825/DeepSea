@@ -109,7 +109,7 @@ static bool createCommandBuffers(dsVkRenderer* renderer)
 		dsVkSubmitInfo* submit = renderer->submits + i;
 		submit->submitIndex = DS_NOT_SUBMITTED;
 		if (!dsVkCommandBuffer_initialize(&submit->commandBuffer, baseRenderer,
-			baseRenderer->allocator, dsCommandBufferUsage_Standard))
+			baseRenderer->allocator, dsCommandBufferUsage_Standard, 0))
 		{
 			return false;
 		}

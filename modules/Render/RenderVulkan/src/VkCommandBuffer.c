@@ -358,7 +358,7 @@ static void resetActiveRenderAndComputeState(dsVkCommandBuffer* commandBuffer)
 }
 
 bool dsVkCommandBuffer_initialize(dsVkCommandBuffer* commandBuffer, dsRenderer* renderer,
-	dsAllocator* allocator, dsCommandBufferUsage usage)
+	dsAllocator* allocator, dsCommandBufferUsage usage, VkCommandPool commandPool)
 {
 	dsCommandBuffer* baseCommandBuffer = (dsCommandBuffer*)commandBuffer;
 	dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
@@ -371,18 +371,28 @@ bool dsVkCommandBuffer_initialize(dsVkCommandBuffer* commandBuffer, dsRenderer* 
 	baseCommandBuffer->allocator = allocator;
 	baseCommandBuffer->usage = usage;
 
-	VkCommandPoolCreateInfo commandPoolCreateInfo =
+	if (commandPool)
 	{
-		VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
-		NULL,
-		usage & dsCommandBufferUsage_MultiFrame  ? 0 : VK_COMMAND_POOL_CREATE_TRANSIENT_BIT,
-		device->queueFamilyIndex
-	};
+		commandBuffer->commandPool = commandPool;
+		commandBuffer->ownsCommandPool = false;
+	}
+	else
+	{
+		VkCommandPoolCreateInfo commandPoolCreateInfo =
+		{
+			VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+			NULL,
+			usage & dsCommandBufferUsage_MultiFrame  ? 0 : VK_COMMAND_POOL_CREATE_TRANSIENT_BIT,
+			device->queueFamilyIndex
+		};
 
-	VkResult result = DS_VK_CALL(device->vkCreateCommandPool)(device->device,
-		&commandPoolCreateInfo, instance->allocCallbacksPtr, &commandBuffer->commandPool);
-	if (!DS_HANDLE_VK_RESULT(result, "Couldn't create command pool"))
-		return false;
+		VkResult result = DS_VK_CALL(device->vkCreateCommandPool)(device->device,
+			&commandPoolCreateInfo, instance->allocCallbacksPtr, &commandBuffer->commandPool);
+		if (!DS_HANDLE_VK_RESULT(result, "Couldn't create command pool"))
+			return false;
+
+		commandBuffer->ownsCommandPool = true;
+	}
 
 	dsVkCommandBufferData_initialize(&commandBuffer->commandBufferData, allocator, device,
 		commandBuffer->commandPool, (usage & dsCommandBufferUsage_Secondary) != 0);
@@ -597,7 +607,8 @@ void dsVkCommandBuffer_prepare(dsCommandBuffer* commandBuffer)
 	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
 	dsVkDevice* device = &((dsVkRenderer*)commandBuffer->renderer)->device;
 
-	DS_VK_CALL(device->vkResetCommandPool)(device->device, vkCommandBuffer->commandPool, 0);
+	if (vkCommandBuffer->ownsCommandPool)
+		DS_VK_CALL(device->vkResetCommandPool)(device->device, vkCommandBuffer->commandPool, 0);
 	vkCommandBuffer->activeCommandBuffer = 0;
 	vkCommandBuffer->submitBufferCount = 0;
 	resetActiveRenderAndComputeState(vkCommandBuffer);
@@ -1150,7 +1161,7 @@ void dsVkCommandBuffer_shutdown(dsVkCommandBuffer* commandBuffer)
 	dsVkDevice* device = &((dsVkRenderer*)renderer)->device;
 	dsVkInstance* instance = &device->instance;
 
-	if (commandBuffer->commandPool)
+	if (commandBuffer->ownsCommandPool && commandBuffer->commandPool)
 	{
 		DS_VK_CALL(device->vkDestroyCommandPool)(device->device, commandBuffer->commandPool,
 			instance->allocCallbacksPtr);

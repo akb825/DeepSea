@@ -720,6 +720,7 @@ typedef struct dsVkCommandPoolData
 	dsVkResource resource;
 
 	dsCommandBuffer** commandBuffers;
+	VkCommandPool commandPool;
 	dsCommandBufferUsage usage;
 	uint32_t count;
 	uint32_t createdCount;
@@ -948,6 +949,7 @@ struct dsVkCommandBuffer
 	uint32_t maxImageCopies;
 	uint32_t maxPushConstantBytes;
 
+	bool ownsCommandPool;
 	bool fenceSet;
 	bool fenceReadback;
 };

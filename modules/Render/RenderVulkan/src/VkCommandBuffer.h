@@ -20,7 +20,7 @@
 #include "VkTypes.h"
 
 bool dsVkCommandBuffer_initialize(dsVkCommandBuffer* commandBuffer, dsRenderer* renderer,
-	dsAllocator* allocator, dsCommandBufferUsage usage);
+	dsAllocator* allocator, dsCommandBufferUsage usage, VkCommandPool commandPool);
 dsCommandBuffer* dsVkCommandBuffer_get(dsCommandBuffer* commandBuffer);
 
 bool dsVkCommandBuffer_begin(dsRenderer* renderer, dsCommandBuffer* commandBuffer);

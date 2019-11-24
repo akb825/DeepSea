@@ -28,6 +28,8 @@
 dsVkCommandPoolData* dsVkCommandPoolData_create(dsAllocator* allocator, dsRenderer* renderer,
 	dsCommandBufferUsage usage)
 {
+	dsVkDevice* device = &((dsVkRenderer*)renderer)->device;
+	dsVkInstance* instance = &device->instance;
 	dsVkCommandPoolData* pool = DS_ALLOCATE_OBJECT(allocator, dsVkCommandPoolData);
 	if (!pool)
 		return NULL;
@@ -37,9 +39,23 @@ dsVkCommandPoolData* dsVkCommandPoolData_create(dsAllocator* allocator, dsRender
 	dsVkResource_initialize(&pool->resource);
 	pool->commandBuffers = NULL;
 	pool->usage = usage;
+	pool->commandPool = 0;
 	pool->count = 0;
 	pool->createdCount = 0;
 	pool->maxCommandBuffers = 0;
+
+	VkCommandPoolCreateInfo commandPoolCreateInfo =
+	{
+		VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+		NULL,
+		usage & dsCommandBufferUsage_MultiFrame  ? 0 : VK_COMMAND_POOL_CREATE_TRANSIENT_BIT,
+		device->queueFamilyIndex
+	};
+
+	VkResult result = DS_VK_CALL(device->vkCreateCommandPool)(device->device,
+		&commandPoolCreateInfo, instance->allocCallbacksPtr, &pool->commandPool);
+	if (!DS_HANDLE_VK_RESULT(result, "Couldn't create command pool"))
+		return false;
 
 	return pool;
 }
@@ -61,7 +77,8 @@ bool dsVkCommandPoolData_createCommandBuffers(dsVkCommandPoolData* pool, uint32_
 			return false;
 		}
 
-		dsVkCommandBuffer_initialize(commandBuffer, pool->renderer, pool->allocator, pool->usage);
+		dsVkCommandBuffer_initialize(commandBuffer, pool->renderer, pool->allocator, pool->usage,
+			pool->commandPool);
 		commandBuffer->resource = &pool->resource;
 		pool->commandBuffers[pool->createdCount] = (dsCommandBuffer*)commandBuffer;
 	}
@@ -71,7 +88,9 @@ bool dsVkCommandPoolData_createCommandBuffers(dsVkCommandPoolData* pool, uint32_
 
 bool dsVkCommandPoolData_prepare(dsVkCommandPoolData* pool)
 {
+	dsVkDevice* device = &((dsVkRenderer*)pool->renderer)->device;
 	dsVkResource_waitUntilNotInUse(&pool->resource, pool->renderer);
+	DS_VK_CALL(device->vkResetCommandPool)(device->device, pool->commandPool, 0);
 	// Clear resources so they don't stick around, but delay calling dsVkCommandBuffer_prepare()
 	// until when begin is called on the command buffers to avoid performance issues on some
 	// drivers.
@@ -83,10 +102,19 @@ bool dsVkCommandPoolData_prepare(dsVkCommandPoolData* pool)
 
 void dsVkCommandPoolData_destroy(dsVkCommandPoolData* pool)
 {
+	dsVkDevice* device = &((dsVkRenderer*)pool->renderer)->device;
+	dsVkInstance* instance = &device->instance;
+
 	for (uint32_t i = 0; i < pool->createdCount; ++i)
 	{
 		dsVkCommandBuffer_shutdown((dsVkCommandBuffer*)pool->commandBuffers[i]);
 		DS_VERIFY(dsAllocator_free(pool->allocator, pool->commandBuffers[i]));
+	}
+
+	if (pool->commandPool)
+	{
+		DS_VK_CALL(device->vkDestroyCommandPool)(device->device, pool->commandPool,
+			instance->allocCallbacksPtr);
 	}
 
 	dsVkResource_shutdown(&pool->resource);
