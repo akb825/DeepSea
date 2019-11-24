@@ -172,22 +172,24 @@ dsRenderPass* dsGLRenderPass_create(dsRenderer* renderer, dsAllocator* allocator
 bool dsGLRenderPass_begin(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsRenderPass* renderPass, const dsFramebuffer* framebuffer,
 	const dsAlignedBox3f* viewport, const dsSurfaceClearValue* clearValues,
-	uint32_t clearValueCount)
+	uint32_t clearValueCount, bool secondary)
 {
 	DS_UNUSED(renderer);
 	DS_ASSERT(commandBuffer);
 	DS_ASSERT(framebuffer);
+	DS_UNUSED(secondary);
 
 	return dsGLCommandBuffer_beginRenderPass(commandBuffer, renderPass, framebuffer, viewport,
 		clearValues, clearValueCount);
 }
 
 bool dsGLRenderPass_nextSubpass(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
-	const dsRenderPass* renderPass, uint32_t index)
+	const dsRenderPass* renderPass, uint32_t index, bool secondary)
 {
 	DS_UNUSED(renderer);
 	DS_ASSERT(commandBuffer);
 	DS_ASSERT(renderPass);
+	DS_UNUSED(secondary);
 
 	return dsGLCommandBuffer_nextRenderSubpass(commandBuffer, renderPass, index);
 }

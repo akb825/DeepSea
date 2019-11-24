@@ -1344,12 +1344,14 @@ typedef bool (*dsDestroyRenderPassFunction)(dsRenderer* renderer, dsRenderPass* 
  *     cleared.
  * @param clearValueCount The number of clear values. This must either be 0 if clearValues is NULL
  *     or equal to the number of attachments.
+ * @param secondary True if secondary command buffers will be used for render commands, false if
+ *     render commands will be directly sent on the same command buffer as the render pass.
  * @return False if the render pass couldn't be begun.
  */
 typedef bool (*dsBeginRenderPassFunction)(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsRenderPass* renderPass, const dsFramebuffer* framebuffer,
 	const dsAlignedBox3f* viewport, const dsSurfaceClearValue* clearValues,
-	uint32_t clearValueCount);
+	uint32_t clearValueCount, bool secondary);
 
 /**
  * @brief Function for advancing to the next subpass within a render pass.
@@ -1357,10 +1359,12 @@ typedef bool (*dsBeginRenderPassFunction)(dsRenderer* renderer, dsCommandBuffer*
  * @param commandBuffer The command buffer to push the commands on.
  * @param renderPass The render pass to continue.
  * @param index The index of the subpass.
+ * @param secondary True if secondary command buffers will be used for render commands, false if
+ *     render commands will be directly sent on the same command buffer as the render pass.
  * @return False if the render pass couldn't be advanced.
  */
 typedef bool (*dsNextRenderSubpassFunction)(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
-	const dsRenderPass* renderPass, uint32_t index);
+	const dsRenderPass* renderPass, uint32_t index, bool secondary);
 
 /**
  * @brief Function for ending a render pass.

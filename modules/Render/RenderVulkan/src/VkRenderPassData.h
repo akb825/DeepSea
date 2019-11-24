@@ -24,9 +24,9 @@ dsVkRenderPassData* dsVkRenderPassData_create(dsAllocator* allocator, dsVkDevice
 bool dsVkRenderPassData_begin(const dsVkRenderPassData* renderPass,
 	dsCommandBuffer* commandBuffer, const dsFramebuffer* framebuffer,
 	const dsAlignedBox3f* viewport, const dsSurfaceClearValue* clearValues,
-	uint32_t clearValueCount);
+	uint32_t clearValueCount, bool secondary);
 bool dsVkRenderPassData_nextSubpass(const dsVkRenderPassData* renderPass,
-	dsCommandBuffer* commandBuffer, uint32_t index);
+	dsCommandBuffer* commandBuffer, uint32_t index, bool secondary);
 bool dsVkRenderPassData_end(const dsVkRenderPassData* renderPass, dsCommandBuffer* commandBuffer);
 
 bool dsVkRenderPassData_addShader(dsVkRenderPassData* renderPass, dsShader* shader);

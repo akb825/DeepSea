@@ -25,9 +25,9 @@ dsRenderPass* dsMockRenderPass_create(dsRenderer* renderer, dsAllocator* allocat
 bool dsMockRenderPass_begin(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsRenderPass* renderPass, const dsFramebuffer* framebuffer,
 	const dsAlignedBox3f* viewport, const dsSurfaceClearValue* clearValues,
-	uint32_t clearValueCount);
+	uint32_t clearValueCount, bool secondary);
 bool dsMockRenderPass_nextSubpass(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
-	const dsRenderPass* renderPass, uint32_t index);
+	const dsRenderPass* renderPass, uint32_t index, bool secondary);
 bool dsMockRenderPass_end(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsRenderPass* renderPass);
 bool dsMockRenderPass_destroy(dsRenderer* renderer, dsRenderPass* renderPass);

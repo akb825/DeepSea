@@ -890,24 +890,6 @@ typedef struct dsVkCommandBufferData
 	bool renderPass;
 } dsVkCommandBufferData;
 
-typedef struct dsVkSubpassBufferRange
-{
-	uint32_t start;
-	uint32_t count;
-} dsVkSubpassBufferRange;
-
-typedef struct dsVkSubpassBuffers
-{
-	dsAllocator* allocator;
-	VkCommandBuffer* commandBuffers;
-	uint32_t commandBufferCount;
-	uint32_t maxCommandBuffers;
-
-	dsVkSubpassBufferRange* subpasses;
-	uint32_t subpassCount;
-	uint32_t maxSubpasses;
-} dsVkSubpassBuffers;
-
 struct dsVkCommandBuffer
 {
 	dsCommandBuffer commandBuffer;
@@ -915,14 +897,9 @@ struct dsVkCommandBuffer
 
 	VkCommandPool commandPool;
 	dsVkCommandBufferData commandBufferData;
-	dsVkCommandBufferData subpassBufferData;
 
 	VkCommandBuffer activeCommandBuffer;
-	VkCommandBuffer activeSubpassBuffer;
 	VkRenderPass activeRenderPass;
-	VkFramebuffer activeFramebuffer;
-	VkRect2D renderArea;
-	dsVector2f depthRange;
 	dsPrimitiveType activePrimitiveType;
 	dsVertexFormat activeVertexFormats[DS_MAX_GEOMETRY_VERTEX_BUFFERS];
 	const dsShader* activeShader;
@@ -932,10 +909,6 @@ struct dsVkCommandBuffer
 	VkDescriptorSet activeDescriptorSets[2][3];
 	const dsDrawGeometry* activeVertexGeometry;
 	const dsIndexBuffer* activeIndexBuffer;
-
-	VkClearValue* clearValues;
-	uint32_t clearValueCount;
-	uint32_t maxClearValues;
 
 	dsVkBarrierList barriers;
 	dsVkSharedDescriptorSets globalDescriptorSets;
@@ -969,8 +942,6 @@ struct dsVkCommandBuffer
 	VkBufferMemoryBarrier* bufferBarriers;
 	uint32_t bufferBarrierCount;
 	uint32_t maxBufferBarriers;
-
-	dsVkSubpassBuffers subpassBuffers;
 
 	VkBufferImageCopy* imageCopies;
 	uint8_t* pushConstantBytes;

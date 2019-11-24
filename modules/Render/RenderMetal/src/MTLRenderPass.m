@@ -475,11 +475,12 @@ dsRenderPass* dsMTLRenderPass_create(dsRenderer* renderer, dsAllocator* allocato
 bool dsMTLRenderPass_begin(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsRenderPass* renderPass, const dsFramebuffer* framebuffer,
 	const dsAlignedBox3f* viewport, const dsSurfaceClearValue* clearValues,
-	uint32_t clearValueCount)
+	uint32_t clearValueCount, bool secondary)
 {
 	@autoreleasepool
 	{
 		DS_UNUSED(renderer);
+		DS_UNUSED(secondary);
 		if (!dsMTLCommandBuffer_copyClearValues(commandBuffer, clearValues, clearValueCount))
 			return false;
 
@@ -508,11 +509,12 @@ bool dsMTLRenderPass_begin(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 }
 
 bool dsMTLRenderPass_nextSubpass(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
-	const dsRenderPass* renderPass, uint32_t index)
+	const dsRenderPass* renderPass, uint32_t index, bool secondary)
 {
 	@autoreleasepool
 	{
 		DS_UNUSED(renderer);
+		DS_UNUSED(secondary);
 		dsMTLCommandBuffer* mtlCommandBuffer = (dsMTLCommandBuffer*)commandBuffer;
 		const dsFramebuffer* framebuffer = commandBuffer->boundFramebuffer;
 		DS_ASSERT(framebuffer);

@@ -1039,7 +1039,7 @@ bool dsRenderPass_begin(const dsRenderPass* renderPass, dsCommandBuffer* command
 	dsGPUProfileContext_beginSubpass(renderer->_profileContext, commandBuffer,
 		framebuffer->name, renderPass->subpasses[0].name);
 	bool success = renderer->beginRenderPassFunc(renderer, commandBuffer, renderPass, framebuffer,
-		viewport, clearValues, clearValueCount);
+		viewport, clearValues, clearValueCount, secondary);
 	DS_PROFILE_FUNC_END();
 	if (!success)
 	{
@@ -1069,7 +1069,7 @@ bool dsRenderPass_nextSubpass(const dsRenderPass* renderPass, dsCommandBuffer* c
 
 	dsRenderer* renderer = renderPass->renderer;
 	bool success = renderer->nextRenderSubpassFunc(renderer, commandBuffer, renderPass,
-		commandBuffer->activeRenderSubpass);
+		commandBuffer->activeRenderSubpass, secondary);
 	if (success)
 	{
 		dsGPUProfileContext_nextSubpass(renderer->_profileContext, commandBuffer,

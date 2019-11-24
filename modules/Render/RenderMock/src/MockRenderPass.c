@@ -136,7 +136,7 @@ dsRenderPass* dsMockRenderPass_create(dsRenderer* renderer, dsAllocator* allocat
 bool dsMockRenderPass_begin(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsRenderPass* renderPass, const dsFramebuffer* framebuffer,
 	const dsAlignedBox3f* viewport, const dsSurfaceClearValue* clearValues,
-	uint32_t clearValueCount)
+	uint32_t clearValueCount, bool secondary)
 {
 	DS_ASSERT(renderer);
 	DS_UNUSED(renderer);
@@ -149,12 +149,13 @@ bool dsMockRenderPass_begin(dsRenderer* renderer, dsCommandBuffer* commandBuffer
 	DS_UNUSED(viewport);
 	DS_UNUSED(clearValues);
 	DS_UNUSED(clearValueCount);
+	DS_UNUSED(secondary);
 
 	return true;
 }
 
 bool dsMockRenderPass_nextSubpass(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
-	const dsRenderPass* renderPass, uint32_t index)
+	const dsRenderPass* renderPass, uint32_t index, bool secondary)
 {
 	DS_ASSERT(renderer);
 	DS_UNUSED(renderer);
@@ -164,6 +165,7 @@ bool dsMockRenderPass_nextSubpass(dsRenderer* renderer, dsCommandBuffer* command
 	DS_UNUSED(renderPass);
 	DS_ASSERT(index < renderPass->subpassCount);
 	DS_UNUSED(index);
+	DS_UNUSED(secondary);
 
 	return true;
 }

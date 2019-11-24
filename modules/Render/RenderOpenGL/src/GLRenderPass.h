@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2019 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,9 +26,9 @@ dsRenderPass* dsGLRenderPass_create(dsRenderer* renderer, dsAllocator* allocator
 bool dsGLRenderPass_begin(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsRenderPass* renderPass, const dsFramebuffer* framebuffer,
 	const dsAlignedBox3f* viewport, const dsSurfaceClearValue* clearValues,
-	uint32_t clearValueCount);
+	uint32_t clearValueCount, bool secondary);
 bool dsGLRenderPass_nextSubpass(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
-	const dsRenderPass* renderPass, uint32_t index);
+	const dsRenderPass* renderPass, uint32_t index, bool secondary);
 bool dsGLRenderPass_end(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsRenderPass* renderPass);
 bool dsGLRenderPass_destroy(dsRenderer* renderer, dsRenderPass* renderPass);

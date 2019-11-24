@@ -315,7 +315,7 @@ dsVkRenderPassData* dsVkRenderPassData_create(dsAllocator* allocator, dsVkDevice
 bool dsVkRenderPassData_begin(const dsVkRenderPassData* renderPass,
 	dsCommandBuffer* commandBuffer, const dsFramebuffer* framebuffer,
 	const dsAlignedBox3f* viewport, const dsSurfaceClearValue* clearValues,
-	uint32_t clearValueCount)
+	uint32_t clearValueCount, bool secondary)
 {
 	if (!dsVkCommandBuffer_addResource(commandBuffer, (dsVkResource*)&renderPass->resource))
 		return false;
@@ -350,32 +350,30 @@ bool dsVkRenderPassData_begin(const dsVkRenderPassData* renderPass,
 		depthRange.y = 1.0f;
 	}
 
+	if (!beginFramebuffer(commandBuffer, framebuffer))
+	{
+		dsVkCommandBuffer_resetMemoryBarriers(commandBuffer);
+		return false;
+	}
+
 	// Same memory layout for dsSurfaceClearValue and VkClearValue
 	return dsVkCommandBuffer_beginRenderPass(commandBuffer, renderPass->vkRenderPass,
 		dsVkRealFramebuffer_getFramebuffer(realFramebuffer), &renderArea, &depthRange,
-		(const VkClearValue*)clearValues, clearValueCount);
+		(const VkClearValue*)clearValues, clearValueCount, secondary);
 }
 
 bool dsVkRenderPassData_nextSubpass(const dsVkRenderPassData* renderPass,
-	dsCommandBuffer* commandBuffer, uint32_t index)
+	dsCommandBuffer* commandBuffer, uint32_t index, bool secondary)
 {
 	DS_UNUSED(renderPass);
 	DS_UNUSED(index);
-	return dsVkCommandBuffer_nextSubpass(commandBuffer);
+	return dsVkCommandBuffer_nextSubpass(commandBuffer, secondary);
 }
 
 bool dsVkRenderPassData_end(const dsVkRenderPassData* renderPass, dsCommandBuffer* commandBuffer)
 {
 	DS_UNUSED(renderPass);
 	DS_ASSERT(commandBuffer->boundFramebuffer);
-	const dsFramebuffer* framebuffer = commandBuffer->boundFramebuffer;
-	DS_ASSERT(framebuffer);
-
-	if (!beginFramebuffer(commandBuffer, framebuffer))
-	{
-		dsVkCommandBuffer_resetMemoryBarriers(commandBuffer);
-		return false;
-	}
 
 	dsVkCommandBuffer_endRenderPass(commandBuffer);
 	if (!endFramebuffer(commandBuffer, commandBuffer->boundFramebuffer))
