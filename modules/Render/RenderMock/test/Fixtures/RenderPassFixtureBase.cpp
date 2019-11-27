@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2019 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ void RenderPassFixtureBase::SetUp()
 
 	dsAttachmentInfo attachments[] =
 	{
-		{dsAttachmentUsage_KeepAfter, renderer->surfaceDepthStencilFormat,
+		{dsAttachmentUsage_Standard, renderer->surfaceDepthStencilFormat,
 			DS_DEFAULT_ANTIALIAS_SAMPLES},
 		{dsAttachmentUsage_KeepAfter, renderer->surfaceColorFormat,
 			DS_DEFAULT_ANTIALIAS_SAMPLES}
@@ -41,7 +41,7 @@ void RenderPassFixtureBase::SetUp()
 	ASSERT_TRUE(renderPass);
 
 	renderSurface = dsRenderSurface_create(renderer, NULL, "test", NULL,
-		dsRenderSurfaceType_Direct, false);
+		dsRenderSurfaceType_Direct, dsRenderSurfaceUsage_Standard);
 	ASSERT_TRUE(renderSurface);
 
 	dsFramebufferSurface surfaces[] =

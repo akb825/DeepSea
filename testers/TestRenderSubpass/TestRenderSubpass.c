@@ -495,9 +495,12 @@ static bool setup(TestRenderSubpass* testRenderSubpass, dsApplication* applicati
 
 	uint32_t width = dsApplication_adjustWindowSize(application, 0, 800);
 	uint32_t height = dsApplication_adjustWindowSize(application, 0, 600);
+	dsRenderSurfaceUsage surfaceUsage = dsRenderSurfaceUsage_ClientRotations;
+	if (!NO_BLIT)
+		surfaceUsage |= dsRenderSurfaceUsage_BlitColorTo;
 	testRenderSubpass->window = dsWindow_create(application, allocator, "Test Render Subpass",
-		NULL, NULL, width, height, dsWindowFlags_Resizeable | dsWindowFlags_DelaySurfaceCreate |
-		dsWindowFlags_ClientRotations);
+		NULL, NULL, width, height, dsWindowFlags_Resizeable | dsWindowFlags_DelaySurfaceCreate,
+		surfaceUsage);
 	if (!testRenderSubpass->window)
 	{
 		DS_LOG_ERROR_F("TestRenderSubpass", "Couldn't create window: %s", dsErrorString(errno));

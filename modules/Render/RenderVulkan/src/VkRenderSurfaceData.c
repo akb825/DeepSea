@@ -123,6 +123,9 @@ static bool createResolveImage(dsVkRenderSurfaceData* surfaceData, VkFormat form
 	if (renderer->surfaceSamples <= 1)
 		return true;
 
+	VkImageUsageFlags usageFlags = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+	if (device->hasLazyAllocation)
+		usageFlags |= VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT;
 	VkImageCreateInfo imageCreateInfo =
 	{
 		VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
@@ -135,8 +138,7 @@ static bool createResolveImage(dsVkRenderSurfaceData* surfaceData, VkFormat form
 		1,
 		dsVkSampleCount(renderer->surfaceSamples),
 		VK_IMAGE_TILING_OPTIMAL,
-		VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT |
-			 VK_IMAGE_USAGE_TRANSFER_DST_BIT,
+		usageFlags,
 		VK_SHARING_MODE_EXCLUSIVE,
 		0, NULL,
 		VK_IMAGE_LAYOUT_UNDEFINED
@@ -184,7 +186,8 @@ static bool createResolveImage(dsVkRenderSurfaceData* surfaceData, VkFormat form
 	return DS_HANDLE_VK_RESULT(result, "Couldn't create image view");
 }
 
-static bool createDepthImage(dsVkRenderSurfaceData* surfaceData, uint32_t width, uint32_t height)
+static bool createDepthImage(dsVkRenderSurfaceData* surfaceData, uint32_t width, uint32_t height,
+	dsRenderSurfaceUsage usage)
 {
 	dsRenderer* renderer = surfaceData->renderer;
 	dsVkDevice* device = &((dsVkRenderer*)renderer)->device;
@@ -201,6 +204,13 @@ static bool createDepthImage(dsVkRenderSurfaceData* surfaceData, uint32_t width,
 		return false;
 	}
 
+	VkImageUsageFlags usageFlags = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+	if (usage & dsRenderSurfaceUsage_BlitDepthStencilFrom)
+		usageFlags |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+	if (usage & dsRenderSurfaceUsage_BlitDepthStencilTo)
+		usageFlags |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+	if (device->hasLazyAllocation && dsVkImageUsageSupportsTransient(usageFlags))
+		usageFlags |= VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT;
 	VkImageCreateInfo imageCreateInfo =
 	{
 		VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
@@ -213,8 +223,7 @@ static bool createDepthImage(dsVkRenderSurfaceData* surfaceData, uint32_t width,
 		1,
 		dsVkSampleCount(renderer->surfaceSamples),
 		VK_IMAGE_TILING_OPTIMAL,
-		VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT |
-			VK_IMAGE_USAGE_TRANSFER_DST_BIT,
+		usageFlags,
 		VK_SHARING_MODE_EXCLUSIVE,
 		0, NULL,
 		VK_IMAGE_LAYOUT_UNDEFINED
@@ -279,7 +288,7 @@ dsRenderSurfaceRotation dsVkRenderSurfaceData_getRotation(VkSurfaceTransformFlag
 }
 
 dsVkRenderSurfaceData* dsVkRenderSurfaceData_create(dsAllocator* allocator, dsRenderer* renderer,
-	VkSurfaceKHR surface, bool vsync, VkSwapchainKHR prevSwapchain, bool clientRotations)
+	VkSurfaceKHR surface, bool vsync, VkSwapchainKHR prevSwapchain, dsRenderSurfaceUsage usage)
 {
 	dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
 	dsVkDevice* device = &vkRenderer->device;
@@ -351,8 +360,11 @@ dsVkRenderSurfaceData* dsVkRenderSurfaceData_create(dsAllocator* allocator, dsRe
 		}
 	}
 
-	VkImageUsageFlags usageFlags = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
-		VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+	VkImageUsageFlags usageFlags = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+	if (usage & dsRenderSurfaceUsage_BlitColorFrom)
+		usageFlags |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+	if (usage & dsRenderSurfaceUsage_BlitColorTo)
+		usageFlags |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 
 	uint32_t imageCount = 3;
 	uint32_t maxImageCount = surfaceInfo.maxImageCount ? surfaceInfo.maxImageCount : UINT_MAX;
@@ -360,7 +372,7 @@ dsVkRenderSurfaceData* dsVkRenderSurfaceData_create(dsAllocator* allocator, dsRe
 
 	VkSurfaceTransformFlagBitsKHR transform = surfaceInfo.currentTransform;
 	dsRenderSurfaceRotation rotation = dsRenderSurfaceRotation_0;
-	if (clientRotations)
+	if (usage & dsRenderSurfaceUsage_ClientRotations)
 		rotation = dsVkRenderSurfaceData_getRotation(surfaceInfo.currentTransform);
 	// Rotation also set to 0 for unsupported transforms like mirror, so explicitly set to identity.
 	if (rotation == dsRenderSurfaceRotation_0)
@@ -520,7 +532,7 @@ dsVkRenderSurfaceData* dsVkRenderSurfaceData_create(dsAllocator* allocator, dsRe
 	uint32_t width = surfaceInfo.currentExtent.width;
 	uint32_t height = surfaceInfo.currentExtent.height;
 	if (!createResolveImage(surfaceData, colorFormat->vkFormat, width, height) ||
-		!createDepthImage(surfaceData, width, height))
+		!createDepthImage(surfaceData, width, height, usage))
 	{
 		dsVkRenderSurfaceData_destroy(surfaceData);
 		return NULL;
@@ -562,126 +574,6 @@ dsVkSurfaceResult dsVkRenderSurfaceData_acquireImage(dsVkRenderSurfaceData* surf
 		DS_PROFILE_FUNC_RETURN(dsVkSurfaceResult_Success);
 	else
 		DS_PROFILE_FUNC_RETURN(dsVkSurfaceResult_Error);
-}
-
-bool dsVkRenderSurfaceData_clearColor(dsVkRenderSurfaceData* renderSurface, bool rightSurface,
-	dsCommandBuffer* commandBuffer, const dsSurfaceColorValue* colorValue)
-{
-	dsVkDevice* device = &((dsVkRenderer*)renderSurface->renderer)->device;
-	if (!dsVkCommandBuffer_addResource(commandBuffer, &renderSurface->resource))
-		return false;
-
-	VkCommandBuffer vkCommandBuffer = dsVkCommandBuffer_getCommandBuffer(commandBuffer);
-	if (!vkCommandBuffer)
-		return false;
-
-	VkImageMemoryBarrier barriers[2];
-	uint32_t barrierCount = 1;
-
-	VkAccessFlags accessMask = VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_TRANSFER_WRITE_BIT |
-		VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-
-	barriers[0].sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-	barriers[0].pNext = NULL;
-	barriers[0].srcAccessMask = accessMask;
-	barriers[0].dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-	barriers[0].oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-	barriers[0].newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-	barriers[0].srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-	barriers[0].dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-	barriers[0].image = renderSurface->images[renderSurface->imageIndex];
-	barriers[0].subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-	barriers[0].subresourceRange.baseMipLevel = 0;
-	barriers[0].subresourceRange.baseMipLevel = VK_REMAINING_MIP_LEVELS;
-	barriers[0].subresourceRange.baseArrayLayer = rightSurface;
-	barriers[0].subresourceRange.layerCount = 1;
-
-	if (renderSurface->resolveImage)
-	{
-		++barrierCount;
-		barriers[1] = barriers[0];
-		barriers[1].image = renderSurface->resolveImage;
-		barriers[1].subresourceRange.baseArrayLayer = 0;
-	}
-
-	VkPipelineStageFlags pipelineStages = VK_PIPELINE_STAGE_TRANSFER_BIT |
-		VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-	DS_VK_CALL(device->vkCmdPipelineBarrier)(vkCommandBuffer, pipelineStages,
-		VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, NULL, 0, NULL, barrierCount, barriers);
-
-	for (uint32_t i = 0; i < barrierCount; ++i)
-	{
-		DS_VK_CALL(device->vkCmdClearColorImage)(vkCommandBuffer, barriers[i].image,
-			VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, (const VkClearColorValue*)colorValue, 1,
-			&barriers[i].subresourceRange);
-
-		barriers[i].srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-		barriers[i].dstAccessMask = accessMask;
-		barriers[i].oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-		barriers[i].newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-	}
-
-	DS_VK_CALL(device->vkCmdPipelineBarrier)(vkCommandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT,
-		pipelineStages, 0, 0, NULL, 0, NULL, barrierCount, barriers);
-
-	return true;
-}
-
-bool dsVkRenderSurfaceData_clearDepthStencil(dsVkRenderSurfaceData* renderSurface,
-	dsCommandBuffer* commandBuffer, dsClearDepthStencil surfaceParts,
-	const dsDepthStencilValue* depthStencilValue)
-{
-	if (!renderSurface->depthImage)
-		return true;
-
-	dsRenderer* renderer = renderSurface->renderer;
-	dsVkDevice* device = &((dsVkRenderer*)renderer)->device;
-	if (!dsVkCommandBuffer_addResource(commandBuffer, &renderSurface->resource))
-		return false;
-
-	VkCommandBuffer vkCommandBuffer = dsVkCommandBuffer_getCommandBuffer(commandBuffer);
-	if (!vkCommandBuffer)
-		return false;
-
-	VkAccessFlags accessMask = VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_TRANSFER_WRITE_BIT |
-		VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-	VkImageAspectFlags aspectFlags = dsVkImageAspectFlags(renderer->surfaceDepthStencilFormat);
-
-	VkImageMemoryBarrier barrier =
-	{
-		VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-		NULL,
-		accessMask,
-		VK_ACCESS_TRANSFER_WRITE_BIT,
-		VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
-		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-		VK_QUEUE_FAMILY_IGNORED,
-		VK_QUEUE_FAMILY_IGNORED,
-		renderSurface->depthImage,
-		{aspectFlags, 0, VK_REMAINING_MIP_LEVELS, 0, VK_REMAINING_ARRAY_LAYERS}
-	};
-
-	VkPipelineStageFlags pipelineStages = VK_PIPELINE_STAGE_TRANSFER_BIT |
-		VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
-	DS_VK_CALL(device->vkCmdPipelineBarrier)(vkCommandBuffer, pipelineStages,
-		VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, NULL, 0, NULL, 1, &barrier);
-
-	VkImageSubresourceRange subresourceRange = barrier.subresourceRange;
-	subresourceRange.aspectMask = dsVkClearDepthStencilImageAspectFlags(
-		renderer->surfaceDepthStencilFormat, surfaceParts);
-	DS_VK_CALL(device->vkCmdClearDepthStencilImage)(vkCommandBuffer, barrier.image,
-		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, (const VkClearDepthStencilValue*)depthStencilValue, 1,
-		&subresourceRange);
-
-	barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-	barrier.dstAccessMask = accessMask;
-	barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-	barrier.newLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-
-	DS_VK_CALL(device->vkCmdPipelineBarrier)(vkCommandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT,
-		pipelineStages, 0, 0, NULL, 0, NULL, 1, &barrier);
-
-	return true;
 }
 
 void dsVkRenderSurfaceData_destroy(dsVkRenderSurfaceData* surfaceData)

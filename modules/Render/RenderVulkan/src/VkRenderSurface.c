@@ -93,7 +93,7 @@ static bool transitionToPresentable(dsCommandBuffer* commandBuffer, dsVkRenderSu
 }
 
 dsRenderSurface* dsVkRenderSurface_create(dsRenderer* renderer, dsAllocator* allocator,
-	const char* name, void* osHandle, dsRenderSurfaceType type, bool clientRotations)
+	const char* name, void* osHandle, dsRenderSurfaceType type, dsRenderSurfaceUsage usage)
 {
 	dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
 	VkSurfaceKHR surface;
@@ -135,12 +135,12 @@ dsRenderSurface* dsVkRenderSurface_create(dsRenderer* renderer, dsAllocator* all
 	DS_ASSERT(baseRenderSurface->name);
 	memcpy((void*)baseRenderSurface->name, name, nameLen);
 	baseRenderSurface->surfaceType = type;
+	baseRenderSurface->usage = usage;
 
 	renderSurface->scratchAllocator = renderer->allocator;
 	renderSurface->lifetime = NULL;
 	renderSurface->surface = surface;
 	renderSurface->surfaceData = NULL;
-	renderSurface->clientRotations = clientRotations;
 	renderSurface->surfaceError = false;
 	renderSurface->updatedFrame = renderer->frameNumber - 1;
 	DS_VERIFY(dsSpinlock_initialize(&renderSurface->lock));
@@ -153,7 +153,7 @@ dsRenderSurface* dsVkRenderSurface_create(dsRenderer* renderer, dsAllocator* all
 	}
 
 	renderSurface->surfaceData = dsVkRenderSurfaceData_create(renderSurface->scratchAllocator,
-		renderer, surface, renderer->vsync, 0, clientRotations);
+		renderer, surface, renderer->vsync, 0, usage);
 	if (!renderSurface->surfaceData)
 	{
 		dsVkRenderSurface_destroy(renderer, baseRenderSurface);
@@ -186,7 +186,7 @@ bool dsVkRenderSurface_update(dsRenderer* renderer, dsRenderSurface* renderSurfa
 			uint32_t width = surfaceInfo.currentExtent.width;
 			uint32_t height = surfaceInfo.currentExtent.height;
 			dsRenderSurfaceRotation rotation = dsRenderSurfaceRotation_0;
-			if (vkSurface->clientRotations)
+			if (renderSurface->usage & dsRenderSurfaceUsage_ClientRotations)
 				rotation = dsVkRenderSurfaceData_getRotation(surfaceInfo.currentTransform);
 
 			if (width == vkSurface->surfaceData->width &&
@@ -226,7 +226,7 @@ bool dsVkRenderSurface_update(dsRenderer* renderer, dsRenderSurface* renderSurfa
 	}
 
 	dsVkRenderSurfaceData* surfaceData = dsVkRenderSurfaceData_create(vkSurface->scratchAllocator,
-		renderer, vkSurface->surface, renderer->vsync, prevSwapchain, vkSurface->clientRotations);
+		renderer, vkSurface->surface, renderer->vsync, prevSwapchain, renderSurface->usage);
 	if (prevSwapchain)
 	{
 		DS_VK_CALL(device->vkDestroySwapchainKHR)(device->device, prevSwapchain,

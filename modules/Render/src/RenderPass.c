@@ -341,16 +341,23 @@ static bool canResolveSurface(const dsFramebufferSurface* surface)
 	}
 }
 
-static bool canKeepRenderbuffer(const dsFramebufferSurface* surface)
+static bool canKeepSurface(const dsFramebufferSurface* surface)
 {
 	switch (surface->surfaceType)
 	{
 		case dsGfxSurfaceType_ColorRenderSurface:
 		case dsGfxSurfaceType_ColorRenderSurfaceLeft:
 		case dsGfxSurfaceType_ColorRenderSurfaceRight:
+			return true;
 		case dsGfxSurfaceType_DepthRenderSurface:
 		case dsGfxSurfaceType_DepthRenderSurfaceLeft:
 		case dsGfxSurfaceType_DepthRenderSurfaceRight:
+		{
+			const dsRenderSurface* renderSurface = (const dsRenderSurface*)surface->surface;
+			return (renderSurface->usage &
+				(dsRenderSurfaceUsage_ContinueDepthStencil |
+					dsRenderSurfaceUsage_BlitDepthStencilFrom)) != 0;
+		}
 		case dsGfxSurfaceType_Offscreen:
 			return true;
 		case dsGfxSurfaceType_Renderbuffer:
@@ -921,12 +928,11 @@ bool dsRenderPass_begin(const dsRenderPass* renderPass, dsCommandBuffer* command
 			needsClear = true;
 
 		if ((renderPass->attachments[i].usage & dsAttachmentUsage_KeepAfter) &&
-			!canKeepRenderbuffer(framebuffer->surfaces + i))
+			!canKeepSurface(framebuffer->surfaces + i))
 		{
 			errno = EINVAL;
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Can't use dsAttachmentUsage_KeepAfter with a "
-				"dsRenderbuffer without the dsRenderbufferUsage_Continue or "
-				"dsRenderbufferUsage_BlitFrom usage flag.");
+				"surface without the continue or blit from usage flag.");
 			DS_PROFILE_FUNC_END();
 			endRenderPassScope(commandBuffer);
 			return false;

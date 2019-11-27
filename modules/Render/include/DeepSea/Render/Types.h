@@ -161,6 +161,49 @@ typedef enum dsRenderSurfaceType
 } dsRenderSurfaceType;
 
 /**
+ * @brief Enum for how a render surface will be used.
+ *
+ * These are bitmask values, allowing a renderbuffer to be used for multiple purposes.
+ * @see RenderSurface.h
+ */
+typedef enum dsRenderSurfaceUsage
+{
+	dsRenderSurfaceUsage_Standard = 0x0, ///< Standard usage.
+	/**
+	 * Can blit from the color surface to another surface.
+	 */
+	dsRenderSurfaceUsage_BlitColorFrom = 0x1,
+	/**
+	 * Can blit from another surface to the color surface.
+	 */
+	dsRenderSurfaceUsage_BlitColorTo = 0x2,
+	/**
+	 * When set, rendering color may continue across multiple passes or subpasses. When not set, the
+	 * multisampled color contents may be discarded or never stored in the first place.
+	 */
+	dsRenderSurfaceUsage_ContinueColor = 0x4,
+	/**
+	 * Can blit from the depth/stencil surface to another surface.
+	 */
+	dsRenderSurfaceUsage_BlitDepthStencilFrom = 0x8,
+	/**
+	 * Can blit from another surface to the depth/stencil surface.
+	 */
+	dsRenderSurfaceUsage_BlitDepthStencilTo = 0x10,
+	/**
+	 * When set, rendering depth/stencil may continue across multiple passes or subpasses. When not
+	 * set, the depth/stencil contents may be discarded or never stored in the first place.
+	 */
+	dsRenderSurfaceUsage_ContinueDepthStencil = 0x20,
+	/**
+	 * Perform rotations client-side. This may increase performance in cases like phones and tablets
+	 * that allow screen rotation. If false, the rotation of the render surface will always be 0
+	 * degrees.
+	 */
+	dsRenderSurfaceUsage_ClientRotations = 0x40
+} dsRenderSurfaceUsage;
+
+/**
  * @brief The rotation to apply to the render surface.
  *
  * The client must apply this rotation to any geometry drawn to the render surface to display in the
@@ -541,6 +584,11 @@ typedef struct dsRenderSurface
 	 * @brief The type of the render surface.
 	 */
 	dsRenderSurfaceType surfaceType;
+
+	/**
+	 * @brief Usage flags for the surface.
+	 */
+	dsRenderSurfaceUsage usage;
 
 	/**
 	 * @brief The width of the surface.
@@ -981,6 +1029,67 @@ typedef union dsSurfaceClearValue
 } dsSurfaceClearValue;
 
 /**
+ * @brief Struct identifying an attachment to clear and the value to clear it with.
+ */
+typedef struct dsClearAttachment
+{
+	/**
+	 * @brief The index of the color attachment.
+	 *
+	 * If DS_NO_ATTACHMENT, then the depth/stencil attachment will be cleared instead.
+	 */
+	uint32_t colorAttachment;
+
+	/**
+	 * @brief Which values to clear when clearing the depth/stencil surface.
+	 */
+	dsClearDepthStencil clearDepthStencil;
+
+	/**
+	 * @brief The value to clear the surface with.
+	 */
+	dsSurfaceClearValue clearValue;
+} dsClearAttachment;
+
+/**
+ * @brief Struct defining the region to clear an attachment.
+ */
+typedef struct dsAttachmentClearRegion
+{
+	/**
+	 * @brief The x coordinate.
+	 */
+	uint32_t x;
+
+	/**
+	 * @brief The y coordinate.
+	 */
+	uint32_t y;
+
+	/**
+	 * @brief The width.
+	 */
+	uint32_t width;
+
+	/**
+	 * @brief The height.
+	 */
+	uint32_t height;
+
+	/**
+	 * @brief The layer to start clearing from.
+	 *
+	 * This is either the depth, array layer, or face.
+	 */
+	uint32_t layer;
+
+	/**
+	 * @brief The number of layers to clear.
+	 */
+	uint32_t layerCount;
+} dsAttachmentClearRegion;
+
+/**
  * @brief Structure defining the range of data to draw without an index buffer.
  * @see Renderer.h
  */
@@ -1171,12 +1280,12 @@ typedef void (*dsSetExtraRendererDebuggingFunction)(dsRenderer* renderer, bool e
  *     copy the string and store it with the render surface.
  * @param osHandle The OS handle, such as window handle.
  * @param type The type of the render surface.
- * @param clientRotations True to perform rotations on the client.
+ * @param usage Flags to determine how the render surface will be used.
  * @return The created render surface, or NULL if it couldn't be created.
  */
 typedef dsRenderSurface* (*dsCreateRenderSurfaceFunction)(dsRenderer* renderer,
 	dsAllocator* allocator, const char* name, void* osHandle, dsRenderSurfaceType type,
-	bool clientRotations);
+	dsRenderSurfaceUsage usage);
 
 /**
  * @brief Function for destroying a render surface.
@@ -1421,29 +1530,18 @@ typedef bool (*dsSetRenderVsyncFunction)(dsRenderer* renderer, bool vsync);
 typedef bool (*dsSetRenderDefaultAnisotropyFunction)(dsRenderer* renderer, float anisotropy);
 
 /**
- * @brief Function for clearing a color surface.
+ * @brief Function for clearing attachments.
  * @param renderer The renderer.
  * @param commandBuffer The command buffer to place the clear command on.
- * @param surface The surface to clear.
- * @param colorValue The color value to clear with.
- * @return False if the surface couldn't be cleared.
+ * @param attachments The attachments to clear with their values.
+ * @param attachmentCount The number of attachments to clear.
+ * @param regions The regions to clear.
+ * @param regionCount The number of regions to clear.
+ * @return False if the attachments couldn't be cleared.
  */
-typedef bool (*dsRenderClearColorSurfaceFunction)(dsRenderer* renderer,
-	dsCommandBuffer* commandBuffer, const dsFramebufferSurface* surface,
-	const dsSurfaceColorValue* colorValue);
-
-/**
- * @brief Function for clearing a depth-stencil surface.
- * @param renderer The renderer.
- * @param commandBuffer The command buffer to place the clear command on.
- * @param surface The surface to clear.
- * @param surfaceParts The parts of the surface to clear.
- * @param depthStencilValue The depth-stencil value to clear with.
- * @return False if the surface couldn't be cleared.
- */
-typedef bool (*dsRenderClearDepthStencilSurfaceFunction)(dsRenderer* renderer,
-	dsCommandBuffer* commandBuffer, const dsFramebufferSurface* surface,
-	dsClearDepthStencil surfaceParts, const dsDepthStencilValue* depthStencilValue);
+typedef bool (*dsRenderClearAttachmentsFunction)(dsRenderer* renderer,
+	dsCommandBuffer* commandBuffer, const dsClearAttachment* attachments, uint32_t attachmentCount,
+	const dsAttachmentClearRegion* regions, uint32_t regionCount);
 
 /**
  * @brief Function for drawing vertex geometry with the currently bound shader.
@@ -1992,14 +2090,9 @@ struct dsRenderer
 	dsSetRenderDefaultAnisotropyFunction setDefaultAnisotropyFunc;
 
 	/**
-	 * @brief Color surface clear function.
+	 * @brief Attachment clear function.
 	 */
-	dsRenderClearColorSurfaceFunction clearColorSurfaceFunc;
-
-	/**
-	 * @brief Depth-stencil surface clear function.
-	 */
-	dsRenderClearDepthStencilSurfaceFunction clearDepthStencilSurfaceFunc;
+	dsRenderClearAttachmentsFunction clearAttachmentsFunc;
 
 	/**
 	 * @brief Draw function.
@@ -2074,6 +2167,7 @@ struct dsRenderer
 // Needs to be after the extern "C" block.
 /// @cond
 DS_ENUM_BITMASK_OPERATORS(dsAttachmentUsage);
+DS_ENUM_BITMASK_OPERATORS(dsRenderSurfaceUsage);
 DS_ENUM_BITMASK_OPERATORS(dsCommandBufferUsage);
 DS_ENUM_BITMASK_OPERATORS(dsGfxPipelineStage);
 DS_ENUM_BITMASK_OPERATORS(dsGfxAccess);

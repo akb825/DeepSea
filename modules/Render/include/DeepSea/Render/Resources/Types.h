@@ -128,15 +128,10 @@ typedef enum dsRenderbufferUsage
 	dsRenderbufferUsage_BlitFrom = 0x1, ///< Can blit from the renderbuffer to another surface.
 	dsRenderbufferUsage_BlitTo = 0x2,   ///< Can blit from another surface to the renderbuffer.
 	/**
-	 * Can be cleared explicitly with dsRenderer_clearColorSurface() or
-	 * dsRenderer_clearDepthStencilSurface(). Clearing as part of a render pass is still allowed.
-	 */
-	dsRenderbufferUsage_Clear = 0x4,
-	/**
 	 * When used as an offscreen, rendering may continue across multiple passes or subpasses. When
 	 * not set, the contents may be discarded or never stored in the first place.
 	 */
-	dsRenderbufferUsage_Continue = 0x8
+	dsRenderbufferUsage_Continue = 0x4
 } dsRenderbufferUsage;
 
 /**

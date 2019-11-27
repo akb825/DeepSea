@@ -736,8 +736,7 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 	baseRenderer->setSurfaceSamplesFunc = &dsGLRenderer_setSurfaceSamples;
 	baseRenderer->setVsyncFunc = &dsGLRenderer_setVsync;
 	baseRenderer->setDefaultAnisotropyFunc = &dsGLRenderer_setDefaultAnisotropy;
-	baseRenderer->clearColorSurfaceFunc = &dsGLCommandBuffer_clearColorSurface;
-	baseRenderer->clearDepthStencilSurfaceFunc = &dsGLCommandBuffer_clearDepthStencilSurface;
+	baseRenderer->clearAttachmentsFunc = &dsGLCommandBuffer_clearAttachments;
 	baseRenderer->drawFunc = &dsGLCommandBuffer_draw;
 	baseRenderer->drawIndexedFunc = &dsGLCommandBuffer_drawIndexed;
 	baseRenderer->drawIndirectFunc = &dsGLCommandBuffer_drawIndirect;

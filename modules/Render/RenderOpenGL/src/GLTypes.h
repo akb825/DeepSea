@@ -331,12 +331,9 @@ typedef bool (*GLNextRenderSubpassFunction)(dsCommandBuffer* commandBuffer,
 typedef bool (*GLEndRenderPassFunction)(dsCommandBuffer* commandBuffer,
 	const dsRenderPass* renderPass);
 
-typedef bool (*GLClearColorSurfaceFunction)(dsCommandBuffer* commandBuffer,
-	const dsFramebufferSurface* surface, const dsSurfaceColorValue* colorValue);
-typedef bool (*GLClearDepthStencilSurfaceFunction)(dsCommandBuffer* commandBuffer,
-	const dsFramebufferSurface* surface, dsClearDepthStencil surfaceParts,
-	const dsDepthStencilValue* depthStencilValue);
-
+typedef bool (*GLClearAttachmentsFunction)(dsCommandBuffer* commandBuffer,
+	const dsClearAttachment* attachments, uint32_t attachmentCount,
+	const dsAttachmentClearRegion* regions, uint32_t regionCount);
 typedef bool (*GLDrawFunction)(dsCommandBuffer* commandBuffer, const dsDrawGeometry* geometry,
 	const dsDrawRange* drawRange, dsPrimitiveType primitiveType);
 typedef bool (*GLDrawIndexedFunction)(dsCommandBuffer* commandBuffer,
@@ -405,9 +402,7 @@ typedef struct CommandBufferFunctionTable
 	GLNextRenderSubpassFunction nextRenderSubpassFunc;
 	GLEndRenderPassFunction endRenderPassFunc;
 
-	GLClearColorSurfaceFunction clearColorSurfaceFunc;
-	GLClearDepthStencilSurfaceFunction clearDepthStencilSurfaceFunc;
-
+	GLClearAttachmentsFunction clearAttachmentsFunc;
 	GLDrawFunction drawFunc;
 	GLDrawIndexedFunction drawIndexedFunc;
 	GLDrawIndirectFunction drawIndirectFunc;

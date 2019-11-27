@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2019 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@
 
 dsWindow* dsWindow_create(dsApplication* application, dsAllocator* allocator, const char* title,
 	const char* surfaceName, const dsVector2i* position, uint32_t width, uint32_t height,
-	dsWindowFlags flags)
+	dsWindowFlags flags, dsRenderSurfaceUsage renderSurfaceUsage)
 {
 	if (!application || (!allocator && !application->allocator) || !application->createWindowFunc ||
 		!application->destroyWindowFunc || !title)
@@ -48,7 +48,7 @@ dsWindow* dsWindow_create(dsApplication* application, dsAllocator* allocator, co
 	}
 
 	dsWindow* window = application->createWindowFunc(application, allocator, title, surfaceName,
-		position, width, height, flags);
+		position, width, height, flags, renderSurfaceUsage);
 	if (!window)
 		return NULL;
 

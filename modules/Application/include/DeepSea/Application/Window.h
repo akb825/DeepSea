@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2019 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,12 +49,13 @@ extern "C"
  *     display index.
  * @param width The width of the window.
  * @param height The height of the window.
- * @param flags Combination of dsWindowFlags values.
+ * @param flags Flags to control the behavior of the window.
+ * @param renderSurfaceUsage Flags to determine how the render surface for the window will be used.
  * @return The created window or NULL if an error occurred.
  */
 DS_APPLICATION_EXPORT dsWindow* dsWindow_create(dsApplication* application, dsAllocator* allocator,
 	const char* title, const char* surfaceName, const dsVector2i* position, uint32_t width,
-	uint32_t height, dsWindowFlags flags);
+	uint32_t height, dsWindowFlags flags, dsRenderSurfaceUsage renderSurfaceUsage);
 
 /**
  * @brief Creates a surface that was delayed with the dsWindowFlags_DelaySurfaceCreate flag.

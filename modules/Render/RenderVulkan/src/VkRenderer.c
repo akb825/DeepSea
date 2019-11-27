@@ -1441,58 +1441,76 @@ bool dsVkRenderer_setDefaultAnisotropy(dsRenderer* renderer, float anisotropy)
 	return true;
 }
 
-bool dsVkRenderer_clearColorSurface(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
-	const dsFramebufferSurface* surface, const dsSurfaceColorValue* colorValue)
+bool dsVkRenderer_clearAttachments(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	const dsClearAttachment* attachments, uint32_t attachmentCount,
+	const dsAttachmentClearRegion* regions, uint32_t regionCount)
 {
-	DS_UNUSED(renderer);
-	switch (surface->surfaceType)
-	{
-		case dsGfxSurfaceType_ColorRenderSurface:
-		case dsGfxSurfaceType_ColorRenderSurfaceLeft:
-		case dsGfxSurfaceType_ColorRenderSurfaceRight:
-		{
-			dsVkRenderSurface* renderSurface = (dsVkRenderSurface*)surface->surface;
-			return dsVkRenderSurfaceData_clearColor(renderSurface->surfaceData,
-				surface->surfaceType == dsGfxSurfaceType_ColorRenderSurfaceRight, commandBuffer,
-				colorValue);
-		}
-		case dsGfxSurfaceType_Offscreen:
-			return dsVkTexture_clearColor((dsOffscreen*)surface->surface, commandBuffer,
-				colorValue);
-		case dsGfxSurfaceType_Renderbuffer:
-			return dsVkRenderbuffer_clearColor((dsRenderbuffer*)surface->surface, commandBuffer,
-				colorValue);
-		default:
-			DS_ASSERT(false);
-			return false;
-	}
-}
+	dsVkDevice* device = &((dsVkRenderer*)renderer)->device;
+	VkCommandBuffer submitBuffer = dsVkCommandBuffer_getCommandBuffer(commandBuffer);
+	if (!submitBuffer)
+		return false;
 
-bool dsVkRenderer_clearDepthStencilSurface(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
-	const dsFramebufferSurface* surface, dsClearDepthStencil surfaceParts,
-	const dsDepthStencilValue* depthStencilValue)
-{
-	DS_UNUSED(renderer);
-	switch (surface->surfaceType)
+	VkClearAttachment* vkAttachments = DS_ALLOCATE_STACK_OBJECT_ARRAY(VkClearAttachment,
+		attachmentCount);
+	const dsRenderPass* renderPass = commandBuffer->boundRenderPass;
+	const dsRenderSubpassInfo* subpass = renderPass->subpasses + commandBuffer->activeRenderSubpass;
+	VkImageAspectFlags depthStencilAspect = 0;
+	if (subpass->depthStencilAttachment.attachmentIndex != DS_NO_ATTACHMENT)
 	{
-		case dsGfxSurfaceType_ColorRenderSurface:
-		case dsGfxSurfaceType_ColorRenderSurfaceLeft:
-		case dsGfxSurfaceType_ColorRenderSurfaceRight:
-		{
-			dsVkRenderSurface* renderSurface = (dsVkRenderSurface*)surface->surface;
-			return dsVkRenderSurfaceData_clearDepthStencil(renderSurface->surfaceData,
-				commandBuffer, surfaceParts, depthStencilValue);
-		}
-		case dsGfxSurfaceType_Offscreen:
-			return dsVkTexture_clearDepthStencil((dsOffscreen*)surface->surface, commandBuffer,
-				surfaceParts, depthStencilValue);
-		case dsGfxSurfaceType_Renderbuffer:
-			return dsVkRenderbuffer_clearDepthStencil((dsRenderbuffer*)surface->surface,
-				commandBuffer, surfaceParts, depthStencilValue);
-		default:
-			DS_ASSERT(false);
-			return false;
+		depthStencilAspect = dsVkImageAspectFlags(
+			renderPass->attachments[subpass->depthStencilAttachment.attachmentIndex].format);
 	}
+
+	uint32_t vkAttachmentCount = 0;
+	for (uint32_t i = 0; i < attachmentCount; ++i)
+	{
+		const dsClearAttachment* attachment = attachments + i;
+		VkClearAttachment* vkAttachment = vkAttachments + vkAttachmentCount;
+		if (attachment->colorAttachment == DS_NO_ATTACHMENT)
+		{
+			vkAttachment->aspectMask = 0;
+			switch (attachment->clearDepthStencil)
+			{
+				case dsClearDepthStencil_Depth:
+					vkAttachment->aspectMask = depthStencilAspect & VK_IMAGE_ASPECT_DEPTH_BIT;
+					break;
+				case dsClearDepthStencil_Stencil:
+					vkAttachment->aspectMask = depthStencilAspect & VK_IMAGE_ASPECT_STENCIL_BIT;
+					break;
+				case dsClearDepthStencil_Both:
+					vkAttachment->aspectMask = depthStencilAspect;
+					break;
+			}
+			if (!vkAttachment->aspectMask)
+				continue;
+		}
+		else
+			vkAttachment->aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		vkAttachment->colorAttachment = attachment->colorAttachment;
+		// Clear value is the same memory layout.
+		vkAttachment->clearValue = *(VkClearValue*)&attachment->clearValue;
+		++vkAttachmentCount;
+	}
+
+	if (vkAttachmentCount == 0)
+		return true;
+
+	VkClearRect* vkRegions = DS_ALLOCATE_STACK_OBJECT_ARRAY(VkClearRect, regionCount);
+	for (uint32_t i = 0; i < regionCount; ++i)
+	{
+		const dsAttachmentClearRegion* region = regions + i;
+		VkClearRect* vkRegion = vkRegions + i;
+		vkRegion->rect.offset.x = region->x;
+		vkRegion->rect.offset.y = region->y;
+		vkRegion->rect.extent.width = region->width;
+		vkRegion->rect.extent.height = region->height;
+		vkRegion->baseArrayLayer = region->layer;
+		vkRegion->layerCount = region->layerCount;
+	}
+
+	DS_VK_CALL(device->vkCmdClearAttachments)(submitBuffer, vkAttachmentCount, vkAttachments,
+		regionCount, vkRegions);
+	return true;
 }
 
 bool dsVkRenderer_draw(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
@@ -2234,8 +2252,7 @@ dsRenderer* dsVkRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 	baseRenderer->setSurfaceSamplesFunc = &dsVkRenderer_setSurfaceSamples;
 	baseRenderer->setVsyncFunc = &dsVkRenderer_setVsync;
 	baseRenderer->setDefaultAnisotropyFunc = &dsVkRenderer_setDefaultAnisotropy;
-	baseRenderer->clearColorSurfaceFunc = &dsVkRenderer_clearColorSurface;
-	baseRenderer->clearDepthStencilSurfaceFunc = &dsVkRenderer_clearDepthStencilSurface;
+	baseRenderer->clearAttachmentsFunc = &dsVkRenderer_clearAttachments;
 	baseRenderer->drawFunc = &dsVkRenderer_draw;
 	baseRenderer->drawIndexedFunc = &dsVkRenderer_drawIndexed;
 	baseRenderer->drawIndirectFunc = &dsVkRenderer_drawIndirect;

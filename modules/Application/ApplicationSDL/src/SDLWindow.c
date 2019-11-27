@@ -184,7 +184,7 @@ bool dsSDLWindow_createSurfaceInternal(dsWindow* window, const char* surfaceName
 	}
 
 	window->surface = dsRenderSurface_create(application->renderer, window->allocator,
-		surfaceName, windowHandle, dsRenderSurfaceType_Window, sdlWindow->clientRotations);
+		surfaceName, windowHandle, dsRenderSurfaceType_Window, sdlWindow->renderSurfaceUsage);
 
 #if defined(SDL_VIDEO_DRIVER_COCOA)
 	if (info.subsystem == SDL_SYSWM_COCOA)
@@ -196,7 +196,7 @@ bool dsSDLWindow_createSurfaceInternal(dsWindow* window, const char* surfaceName
 
 dsWindow* dsSDLWindow_create(dsApplication* application, dsAllocator* allocator,
 	const char* title, const char* surfaceName, const dsVector2i* position, uint32_t width,
-	uint32_t height, dsWindowFlags flags)
+	uint32_t height, dsWindowFlags flags, dsRenderSurfaceUsage renderSurfaceUsage)
 {
 	dsSDLWindow* window = DS_ALLOCATE_OBJECT(allocator, dsSDLWindow);
 	if (!window)
@@ -220,7 +220,7 @@ dsWindow* dsSDLWindow_create(dsApplication* application, dsAllocator* allocator,
 	window->curPosition.x = 0;
 	window->curPosition.y = 0;
 	window->curFlags = 0;
-	window->clientRotations = (flags & dsWindowFlags_ClientRotations) != 0;
+	window->renderSurfaceUsage = renderSurfaceUsage;
 	window->hasFocus = false;
 
 	return baseWindow;

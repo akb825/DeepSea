@@ -1019,182 +1019,17 @@ bool dsMTLHardwareCommandBuffer_endRenderPass(dsCommandBuffer* commandBuffer)
 	return true;
 }
 
-bool dsMTLHardwareCommandBuffer_clearColorSurface(dsCommandBuffer* commandBuffer,
-	id<MTLTexture> texture, id<MTLTexture> resolveTexture, MTLClearColor clearColor)
+bool dsMTLHardwareCommandBuffer_clearAttachments(dsCommandBuffer* commandBuffer,
+	const dsClearAttachment* attachments, uint32_t attachmentCount,
+	const dsAttachmentClearRegion* regions, uint32_t regionCount)
 {
-	id<MTLCommandBuffer> submitBuffer = getCommandBuffer(commandBuffer);
-	if (!submitBuffer)
-		return false;
-
-	dsMTLHardwareCommandBuffer_endEncoding(commandBuffer);
-
-	MTLRenderPassDescriptor* descriptor = [MTLRenderPassDescriptor new];
-	if (!descriptor)
-		return false;
-
-	MTLRenderPassColorAttachmentDescriptor* colorAttachment = descriptor.colorAttachments[0];
-	if (!colorAttachment)
-		return false;
-
-	colorAttachment.loadAction = MTLLoadActionClear;
-	colorAttachment.storeAction = MTLStoreActionStore;
-	colorAttachment.clearColor = clearColor;
-	if (resolveTexture)
-	{
-		colorAttachment.texture = resolveTexture;
-		colorAttachment.storeAction = MTLStoreActionMultisampleResolve;
-		id<MTLRenderCommandEncoder> encoder =
-			[submitBuffer renderCommandEncoderWithDescriptor: descriptor];
-		if (!encoder)
-			return false;
-
-		[encoder endEncoding];
-	}
-
-	DS_ASSERT(texture);
-	colorAttachment.texture = texture;
-	uint32_t faceCount = texture.textureType == MTLTextureTypeCube ? 6 : 1;
-	for (uint32_t i = 0; i < texture.mipmapLevelCount; ++i)
-	{
-		for (uint32_t j = 0; j < texture.depth; ++j)
-		{
-			for (uint32_t k = 0; k < texture.arrayLength; ++k)
-			{
-				for (uint32_t l = 0; l < faceCount; ++l)
-				{
-					colorAttachment.level = i;
-					colorAttachment.depthPlane = j;
-					colorAttachment.slice = k*faceCount + l;
-
-					id<MTLRenderCommandEncoder> encoder =
-						[submitBuffer renderCommandEncoderWithDescriptor: descriptor];
-					if (!encoder)
-						return false;
-
-					[encoder endEncoding];
-				}
-			}
-		}
-	}
-
-	return true;
-}
-
-bool dsMTLHardwareCommandBuffer_clearDepthStencilSurface(dsCommandBuffer* commandBuffer,
-	id<MTLTexture> depthTexture, id<MTLTexture> resolveDepthTexture, float depthValue,
-	id<MTLTexture> stencilTexture, id<MTLTexture> resolveStencilTexture, uint32_t stencilValue)
-{
-	id<MTLCommandBuffer> submitBuffer = getCommandBuffer(commandBuffer);
-	if (!submitBuffer)
-		return false;
-
-	dsMTLHardwareCommandBuffer_endEncoding(commandBuffer);
-
-	MTLRenderPassDescriptor* descriptor = [MTLRenderPassDescriptor new];
-	if (!descriptor)
-		return false;
-
-	MTLRenderPassDepthAttachmentDescriptor* depthAttachment = NULL;
-	if (depthTexture)
-	{
-		depthAttachment = descriptor.depthAttachment;
-		if (!depthAttachment)
-			return false;
-
-		depthAttachment.loadAction = MTLLoadActionClear;
-		depthAttachment.storeAction = MTLStoreActionStore;
-		depthAttachment.clearDepth = depthValue;
-	}
-
-	MTLRenderPassStencilAttachmentDescriptor* stencilAttachment = NULL;
-	if (stencilTexture)
-	{
-		stencilAttachment = descriptor.stencilAttachment;
-		if (!stencilAttachment)
-			return false;
-
-		stencilAttachment.loadAction = MTLLoadActionClear;
-		stencilAttachment.storeAction = MTLStoreActionStore;
-		stencilAttachment.clearStencil = stencilValue;
-	}
-
-	if (resolveDepthTexture || resolveStencilTexture)
-	{
-		if (depthAttachment)
-		{
-			DS_ASSERT(resolveDepthTexture);
-			depthAttachment.storeAction = MTLStoreActionMultisampleResolve;
-			depthAttachment.texture = resolveDepthTexture;
-		}
-
-		id<MTLRenderCommandEncoder> encoder =
-			[submitBuffer renderCommandEncoderWithDescriptor: descriptor];
-		if (!encoder)
-			return false;
-
-		[encoder endEncoding];
-	}
-
-	uint32_t levelCount = 1;
-	uint32_t depth = 1;
-	uint32_t arrayLength = 1;
-	uint32_t faceCount = 1;
-	if (depthAttachment)
-	{
-		DS_ASSERT(depthTexture);
-		depthAttachment.texture = depthTexture;
-		levelCount = (uint32_t)depthTexture.mipmapLevelCount;
-		depth = (uint32_t)depthTexture.depth;
-		arrayLength = (uint32_t)depthTexture.arrayLength;
-		if (depthTexture.textureType == MTLTextureTypeCube)
-			faceCount = 6;
-	}
-
-	if (stencilAttachment)
-	{
-		DS_ASSERT(stencilTexture);
-		stencilAttachment.texture = stencilTexture;
-		levelCount = (uint32_t)stencilTexture.mipmapLevelCount;
-		depth = (uint32_t)stencilTexture.depth;
-		arrayLength = (uint32_t)stencilTexture.arrayLength;
-		if (depthTexture.textureType == MTLTextureTypeCube)
-			faceCount = 6;
-	}
-
-	for (uint32_t i = 0; i < levelCount; ++i)
-	{
-		for (uint32_t j = 0; j < depth; ++j)
-		{
-			for (uint32_t k = 0; k < arrayLength; ++k)
-			{
-				for (uint32_t l = 0; l < faceCount; ++l)
-				{
-					if (depthAttachment)
-					{
-						depthAttachment.level = i;
-						depthAttachment.depthPlane = j;
-						depthAttachment.slice = k*faceCount + l;
-					}
-
-					if (stencilAttachment)
-					{
-						stencilAttachment.level = i;
-						stencilAttachment.depthPlane = j;
-						stencilAttachment.slice = k*faceCount + l;
-					}
-
-					id<MTLRenderCommandEncoder> encoder =
-						[submitBuffer renderCommandEncoderWithDescriptor: descriptor];
-					if (!encoder)
-						return false;
-
-					[encoder endEncoding];
-				}
-			}
-		}
-	}
-
-	return true;
+	DS_UNUSED(commandBuffer);
+	DS_UNUSED(attachments);
+	DS_UNUSED(attachmentCount);
+	DS_UNUSED(regions);
+	DS_UNUSED(regionCount);
+	// TODO
+	return false;
 }
 
 bool dsMTLHardwareCommandBuffer_draw(dsCommandBuffer* commandBuffer,
@@ -1451,8 +1286,7 @@ static dsMTLCommandBufferFunctionTable hardwareCommandBufferFunctions =
 	&dsMTLHardwareCommandBuffer_bindComputeTextureUniform,
 	&dsMTLHardwareCommandBuffer_beginRenderPass,
 	&dsMTLHardwareCommandBuffer_endRenderPass,
-	&dsMTLHardwareCommandBuffer_clearColorSurface,
-	&dsMTLHardwareCommandBuffer_clearDepthStencilSurface,
+	&dsMTLHardwareCommandBuffer_clearAttachments,
 	&dsMTLHardwareCommandBuffer_draw,
 	&dsMTLHardwareCommandBuffer_drawIndexed,
 	&dsMTLHardwareCommandBuffer_drawIndirect,

@@ -130,12 +130,10 @@ static bool createHostImageBuffer(dsVkDevice* device,  dsVkTexture* texture, con
 
 static bool createSurfaceImage(dsVkDevice* device, const dsTextureInfo* info,
 	const dsVkFormatInfo* formatInfo, VkImageAspectFlags aspectMask, VkImageType imageType,
-	VkImageViewType imageViewType, dsVkTexture* texture, bool canClear)
+	VkImageViewType imageViewType, dsVkTexture* texture)
 {
 	dsVkInstance* instance = &device->instance;
 	VkImageUsageFlags usageFlags = 0;
-	if (canClear)
-		usageFlags |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 	if (dsGfxFormat_isDepthStencil(info->format))
 		usageFlags |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
 	else
@@ -412,7 +410,7 @@ static dsTexture* createTextureImpl(dsResourceManager* resourceManager, dsAlloca
 	}
 
 	if (resolve && !createSurfaceImage(device, info, formatInfo, aspectMask, imageType,
-			imageViewType, texture, (usage & dsTextureUsage_CopyTo) != 0))
+			imageViewType, texture))
 	{
 		dsVkTexture_destroyImpl(baseTexture);
 		return NULL;
@@ -1342,165 +1340,6 @@ bool dsVkTexture_processAndAddResource(dsTexture* texture, dsCommandBuffer* comm
 	dsVkTexture* vkTexture = (dsVkTexture*)texture;
 	dsVkRenderer_processTexture(commandBuffer->renderer, texture);
 	return dsVkCommandBuffer_addResource(commandBuffer, &vkTexture->resource);
-}
-
-bool dsVkTexture_clearColor(dsOffscreen* offscreen, dsCommandBuffer* commandBuffer,
-	const dsSurfaceColorValue* colorValue)
-{
-	dsVkTexture* vkTexture = (dsVkTexture*)offscreen;
-	dsRenderer* renderer = commandBuffer->renderer;
-	dsVkDevice* device = &((dsVkRenderer*)renderer)->device;
-	if (!dsVkCommandBuffer_addResource(commandBuffer, &vkTexture->resource))
-		return false;
-
-	VkCommandBuffer vkCommandBuffer = dsVkCommandBuffer_getCommandBuffer(commandBuffer);
-	if (!vkCommandBuffer)
-		return false;
-
-	dsVkRenderer_processTexture(renderer, offscreen);
-	if (dsVkTexture_canReadBack(offscreen) &&
-		!dsVkCommandBuffer_addReadbackOffscreen(commandBuffer, offscreen))
-	{
-		return false;
-	}
-
-	VkImageMemoryBarrier barriers[2];
-	uint32_t barrierCount = 1;
-
-	dsTextureUsage usage = offscreen->usage | dsTextureUsage_CopyTo;
-	VkAccessFlags accessMask = dsVkReadImageAccessFlags(usage) | dsVkWriteImageAccessFlags(usage,
-		true, false);
-	VkPipelineStageFlags stageMask = dsVkReadImageStageFlags(renderer, usage, false) |
-		dsVkWriteImageStageFlags(renderer, usage, true, false);
-	VkImageLayout layout = dsVkTexture_imageLayout(offscreen);
-
-	barriers[0].sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-	barriers[0].pNext = NULL;
-	barriers[0].srcAccessMask = accessMask;
-	barriers[0].dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-	barriers[0].oldLayout = layout;
-	barriers[0].newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-	barriers[0].srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-	barriers[0].dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-	barriers[0].image = vkTexture->deviceImage;
-	barriers[0].subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-	barriers[0].subresourceRange.baseMipLevel = 0;
-	barriers[0].subresourceRange.baseMipLevel = VK_REMAINING_MIP_LEVELS;
-	barriers[0].subresourceRange.baseArrayLayer = 0;
-	barriers[0].subresourceRange.layerCount = VK_REMAINING_ARRAY_LAYERS;
-
-	if (vkTexture->surfaceImage)
-	{
-		++barrierCount;
-		barriers[1] = barriers[0];
-		barriers[1].oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-		barriers[1].image = vkTexture->surfaceImage;
-	}
-
-	DS_VK_CALL(device->vkCmdPipelineBarrier)(vkCommandBuffer, stageMask,
-		VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, NULL, 0, NULL, barrierCount, barriers);
-
-	for (uint32_t i = 0; i < barrierCount; ++i)
-	{
-		DS_VK_CALL(device->vkCmdClearColorImage)(vkCommandBuffer, barriers[i].image,
-			VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, (const VkClearColorValue*)colorValue, 1,
-			&barriers[i].subresourceRange);
-
-		barriers[i].srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-		barriers[i].dstAccessMask = accessMask;
-		barriers[i].oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-	}
-	barriers[0].newLayout = layout;
-	barriers[1].newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-
-	DS_VK_CALL(device->vkCmdPipelineBarrier)(vkCommandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT,
-		stageMask, 0, 0, NULL, 0, NULL, barrierCount, barriers);
-
-	return true;
-}
-
-bool dsVkTexture_clearDepthStencil(dsOffscreen* offscreen, dsCommandBuffer* commandBuffer,
-	dsClearDepthStencil surfaceParts, const dsDepthStencilValue* depthStencilValue)
-{
-	dsVkTexture* vkTexture = (dsVkTexture*)offscreen;
-	dsRenderer* renderer = commandBuffer->renderer;
-	dsVkDevice* device = &((dsVkRenderer*)renderer)->device;
-	if (!dsVkCommandBuffer_addResource(commandBuffer, &vkTexture->resource))
-		return false;
-
-	VkCommandBuffer vkCommandBuffer = dsVkCommandBuffer_getCommandBuffer(commandBuffer);
-	if (!vkCommandBuffer)
-		return false;
-
-	dsVkRenderer_processTexture(renderer, offscreen);
-	if (dsVkTexture_canReadBack(offscreen) &&
-		!dsVkCommandBuffer_addReadbackOffscreen(commandBuffer, offscreen))
-	{
-		return false;
-	}
-
-	VkImageMemoryBarrier barriers[2];
-	uint32_t barrierCount = 1;
-
-	dsTextureUsage usage = offscreen->usage | dsTextureUsage_CopyTo;
-	VkAccessFlags accessMask = dsVkReadImageAccessFlags(usage) | dsVkWriteImageAccessFlags(usage,
-		true, false);
-	VkPipelineStageFlags stageMask = dsVkReadImageStageFlags(renderer, usage, false) |
-		dsVkWriteImageStageFlags(renderer, usage, true, false);
-	VkImageAspectFlags aspectFlags = dsVkImageAspectFlags(offscreen->info.format);
-	VkImageAspectFlags clearAspectFlags = dsVkClearDepthStencilImageAspectFlags(
-		renderer->surfaceDepthStencilFormat, surfaceParts);
-	VkImageLayout layout = dsVkTexture_imageLayout(offscreen);
-
-	barriers[0].sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-	barriers[0].pNext = NULL;
-	barriers[0].srcAccessMask = accessMask;
-	barriers[0].dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-	barriers[0].oldLayout = layout;
-	barriers[0].newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-	barriers[0].srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-	barriers[0].dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-	barriers[0].image = vkTexture->deviceImage;
-	barriers[0].subresourceRange.aspectMask = aspectFlags;
-	barriers[0].subresourceRange.baseMipLevel = 0;
-	barriers[0].subresourceRange.baseMipLevel = VK_REMAINING_MIP_LEVELS;
-	barriers[0].subresourceRange.baseArrayLayer = 0;
-	barriers[0].subresourceRange.layerCount = VK_REMAINING_ARRAY_LAYERS;
-
-	if (vkTexture->surfaceImage)
-	{
-		++barrierCount;
-		barriers[1] = barriers[0];
-		// Add read access bit for explicit multisample resolve of depth/stencil surfaces.
-		barriers[1].srcAccessMask |= VK_ACCESS_TRANSFER_READ_BIT;
-		barriers[1].oldLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-		barriers[1].image = vkTexture->surfaceImage;
-	}
-
-	DS_VK_CALL(device->vkCmdPipelineBarrier)(vkCommandBuffer, stageMask,
-		VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, NULL, 0, NULL, barrierCount, barriers);
-
-	for (uint32_t i = 0; i < barrierCount; ++i)
-	{
-		VkImageSubresourceRange subresourceRange = barriers[i].subresourceRange;
-		subresourceRange.aspectMask = clearAspectFlags;
-		DS_VK_CALL(device->vkCmdClearDepthStencilImage)(vkCommandBuffer, barriers[i].image,
-			VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-			(const VkClearDepthStencilValue*)depthStencilValue, 1, &subresourceRange);
-
-		barriers[i].srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-		barriers[i].dstAccessMask = accessMask;
-		barriers[i].oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-	}
-	barriers[0].newLayout = layout;
-	// Add read access bit for explicit multisample resolve of depth/stencil surfaces.
-	barriers[1].dstAccessMask |= VK_ACCESS_TRANSFER_READ_BIT;
-	barriers[1].newLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-
-	DS_VK_CALL(device->vkCmdPipelineBarrier)(vkCommandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT,
-		stageMask, 0, 0, NULL, 0, NULL, barrierCount, barriers);
-
-	return true;
 }
 
 void dsVkTexture_destroyImpl(dsTexture* texture)

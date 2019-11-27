@@ -92,13 +92,9 @@ bool dsGLCommandBuffer_nextRenderSubpass(dsCommandBuffer* commandBuffer,
 bool dsGLCommandBuffer_endRenderPass(dsCommandBuffer* commandBuffer,
 	const dsRenderPass* renderPass);
 
-bool dsGLCommandBuffer_clearColorSurface(dsRenderer* renderer,
-	dsCommandBuffer* commandBuffer, const dsFramebufferSurface* surface,
-	const dsSurfaceColorValue* colorValue);
-bool dsGLCommandBuffer_clearDepthStencilSurface(dsRenderer* renderer,
-	dsCommandBuffer* commandBuffer, const dsFramebufferSurface* surface,
-	dsClearDepthStencil surfaceParts, const dsDepthStencilValue* depthStencilValue);
-
+bool dsGLCommandBuffer_clearAttachments(dsRenderer* renderer,
+	dsCommandBuffer* commandBuffer, const dsClearAttachment* attachments, uint32_t attachmentCount,
+	const dsAttachmentClearRegion* regions, uint32_t regionCount);
 bool dsGLCommandBuffer_draw(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsDrawGeometry* geometry, const dsDrawRange* drawRange, dsPrimitiveType primitiveType);
 bool dsGLCommandBuffer_drawIndexed(dsRenderer* renderer, dsCommandBuffer* commandBuffer,

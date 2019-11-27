@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2018 Aaron Barany
+ * Copyright 2017-2019 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -133,7 +133,7 @@ bool dsRenderSurface_makeRotationMatrix(dsMatrix44f* result, dsRenderSurfaceRota
 }
 
 dsRenderSurface* dsRenderSurface_create(dsRenderer* renderer, dsAllocator* allocator,
-	const char* name, void* osHandle, dsRenderSurfaceType type, bool clientRotations)
+	const char* name, void* osHandle, dsRenderSurfaceType type, dsRenderSurfaceUsage usage)
 {
 	DS_PROFILE_FUNC_START();
 
@@ -155,7 +155,7 @@ dsRenderSurface* dsRenderSurface_create(dsRenderer* renderer, dsAllocator* alloc
 	}
 
 	dsRenderSurface* renderSurface = renderer->createRenderSurfaceFunc(renderer, allocator, name,
-		osHandle, type, clientRotations);
+		osHandle, type, usage);
 	DS_PROFILE_FUNC_RETURN(renderSurface);
 }
 

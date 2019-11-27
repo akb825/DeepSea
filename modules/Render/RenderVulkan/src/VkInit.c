@@ -1065,8 +1065,6 @@ bool dsCreateVkDevice(dsVkDevice* device, dsAllocator* allocator, const dsRender
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCmdCopyImage);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCmdCopyImageToBuffer);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCmdBlitImage);
-	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCmdClearColorImage);
-	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCmdClearDepthStencilImage);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCreateImageView);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkDestroyImageView);
 
@@ -1130,6 +1128,7 @@ bool dsCreateVkDevice(dsVkDevice* device, dsAllocator* allocator, const dsRender
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCmdSetStencilWriteMask);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCmdSetStencilReference);
 
+	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCmdClearAttachments);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCmdDraw);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCmdDrawIndexed);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCmdDrawIndirect);

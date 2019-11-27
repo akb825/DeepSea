@@ -355,8 +355,8 @@ static bool setup(TestVectorDraw* testVectorDraw, dsApplication* application,
 	float targetImageSize = dsApplication_adjustSize(application, 0, (float)TARGET_SIZE);
 	testVectorDraw->window = dsWindow_create(application, allocator, "Test Vector Draw", NULL,
 		NULL, targetWindowSize, targetWindowSize,
-		dsWindowFlags_Resizeable | dsWindowFlags_DelaySurfaceCreate |
-			dsWindowFlags_ClientRotations);
+		dsWindowFlags_Resizeable | dsWindowFlags_DelaySurfaceCreate,
+		dsRenderSurfaceUsage_ClientRotations);
 	if (!testVectorDraw->window)
 	{
 		DS_LOG_ERROR_F("TestVectorDraw", "Couldn't create window: %s", dsErrorString(errno));

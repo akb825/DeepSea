@@ -393,7 +393,7 @@ TEST_F(RenderPassTest, BeginNextEnd)
 {
 	dsAttachmentInfo attachments[] =
 	{
-		{dsAttachmentUsage_Clear | dsAttachmentUsage_KeepAfter, renderer->surfaceDepthStencilFormat,
+		{dsAttachmentUsage_Clear, renderer->surfaceDepthStencilFormat,
 			renderer->surfaceSamples},
 		{dsAttachmentUsage_Clear | dsAttachmentUsage_KeepAfter, renderer->surfaceColorFormat,
 			renderer->surfaceSamples},
@@ -433,7 +433,7 @@ TEST_F(RenderPassTest, BeginNextEnd)
 	ASSERT_TRUE(renderPass);
 
 	dsRenderSurface* renderSurface = dsRenderSurface_create(renderer, NULL, "test", NULL,
-		dsRenderSurfaceType_Direct, false);
+		dsRenderSurfaceType_Direct, dsRenderSurfaceUsage_Standard);
 	ASSERT_TRUE(renderSurface);
 
 	dsTextureInfo colorInfo = {renderer->surfaceColorFormat, dsTextureDim_2D, renderSurface->width,

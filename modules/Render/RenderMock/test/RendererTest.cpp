@@ -130,170 +130,6 @@ TEST_F(RendererTest, SetDefaultAnisotropy)
 	EXPECT_TRUE(dsRenderer_setDefaultAnisotropy(renderer, renderer->maxAnisotropy));
 }
 
-TEST_F(RendererTest, ClearColorSurface)
-{
-	dsCommandBuffer* commandBuffer = renderer->mainCommandBuffer;
-	dsTextureInfo colorInfo = {dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8,
-		dsGfxFormat_UNorm), dsTextureDim_2D, 1920, 1080, 0, 1, 4};
-	dsOffscreen* offscreen1 = dsTexture_createOffscreen(resourceManager, NULL,
-		dsTextureUsage_CopyTo, dsGfxMemory_Static, &colorInfo, true);
-	ASSERT_TRUE(offscreen1);
-
-	dsTextureInfo depthInfo = {dsGfxFormat_D24S8, dsTextureDim_2D, 1920, 1080, 0, 1, 4};
-	dsOffscreen* offscreen2 = dsTexture_createOffscreen(resourceManager, NULL,
-		dsTextureUsage_CopyTo, dsGfxMemory_Static, &depthInfo, true);
-	ASSERT_TRUE(offscreen2);
-
-	dsRenderbuffer* colorBuffer = dsRenderbuffer_create(resourceManager, NULL,
-		dsRenderbufferUsage_Clear, dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm),
-		1920, 1080, 4);
-	ASSERT_TRUE(colorBuffer);
-
-	dsRenderbuffer* depthBuffer = dsRenderbuffer_create(resourceManager, NULL,
-		dsRenderbufferUsage_Clear, dsGfxFormat_D24S8, 1920, 1080, 4);
-	ASSERT_TRUE(depthBuffer);
-
-	dsRenderSurface* renderSurface = dsRenderSurface_create(renderer, NULL, "test", NULL,
-		dsRenderSurfaceType_Direct, false);
-	ASSERT_TRUE(renderSurface);
-
-	dsSurfaceColorValue colorValue;
-	colorValue.floatValue.r = 0.0f;
-	colorValue.floatValue.g = 0.0f;
-	colorValue.floatValue.b = 0.0f;
-	colorValue.floatValue.a = 1.0f;
-
-	dsFramebufferSurface surface = {dsGfxSurfaceType_Offscreen, dsCubeFace_None, 0, 0,
-		offscreen1};
-	EXPECT_FALSE(dsRenderer_clearColorSurface(NULL, commandBuffer, &surface, &colorValue));
-	EXPECT_FALSE(dsRenderer_clearColorSurface(renderer, NULL, &surface, &colorValue));
-	EXPECT_FALSE(dsRenderer_clearColorSurface(renderer, commandBuffer, NULL, &colorValue));
-	EXPECT_FALSE(dsRenderer_clearColorSurface(renderer, commandBuffer, &surface, NULL));
-
-	surface.layer = 2;
-	EXPECT_FALSE(dsRenderer_clearColorSurface(renderer, commandBuffer, &surface, &colorValue));
-
-	surface.layer = 0;
-	surface.mipLevel = 2;
-	EXPECT_FALSE(dsRenderer_clearColorSurface(renderer, commandBuffer, &surface, &colorValue));
-
-	surface.mipLevel = 0;
-	EXPECT_TRUE(dsRenderer_clearColorSurface(renderer, commandBuffer, &surface, &colorValue));
-
-	surface.surface = offscreen2;
-	EXPECT_FALSE(dsRenderer_clearColorSurface(renderer, commandBuffer, &surface, &colorValue));
-
-	surface.surfaceType = dsGfxSurfaceType_Renderbuffer;
-	surface.surface = colorBuffer;
-	EXPECT_TRUE(dsRenderer_clearColorSurface(renderer, commandBuffer, &surface, &colorValue));
-
-	surface.surface = depthBuffer;
-	EXPECT_FALSE(dsRenderer_clearColorSurface(renderer, commandBuffer, &surface, &colorValue));
-
-	surface.surfaceType = dsGfxSurfaceType_ColorRenderSurface;
-	surface.surface = renderSurface;
-	EXPECT_TRUE(dsRenderer_clearColorSurface(renderer, commandBuffer, &surface, &colorValue));
-
-	surface.surfaceType = dsGfxSurfaceType_DepthRenderSurface;
-	EXPECT_FALSE(dsRenderer_clearColorSurface(renderer, commandBuffer, &surface, &colorValue));
-
-	surface.surfaceType = dsGfxSurfaceType_ColorRenderSurface;
-	EXPECT_TRUE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0, false));
-	EXPECT_FALSE(dsRenderer_clearColorSurface(renderer, commandBuffer, &surface, &colorValue));
-	EXPECT_TRUE(dsRenderPass_end(renderPass, commandBuffer));
-
-	EXPECT_TRUE(dsRenderSurface_destroy(renderSurface));
-	EXPECT_TRUE(dsRenderbuffer_destroy(depthBuffer));
-	EXPECT_TRUE(dsRenderbuffer_destroy(colorBuffer));
-	EXPECT_TRUE(dsTexture_destroy(offscreen1));
-	EXPECT_TRUE(dsTexture_destroy(offscreen2));
-}
-
-TEST_F(RendererTest, ClearDepthStencilSurface)
-{
-	dsCommandBuffer* commandBuffer = renderer->mainCommandBuffer;
-	dsTextureInfo depthInfo = {dsGfxFormat_D24S8, dsTextureDim_2D, 1920, 1080, 0, 1, 4};
-	dsOffscreen* offscreen1 = dsTexture_createOffscreen(resourceManager, NULL,
-		dsTextureUsage_CopyTo, dsGfxMemory_Static, &depthInfo, true);
-	ASSERT_TRUE(offscreen1);
-
-	dsTextureInfo colorInfo = {dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm),
-		dsTextureDim_2D, 1920, 1080, 0, 1, 4};
-	dsOffscreen* offscreen2 = dsTexture_createOffscreen(resourceManager, NULL,
-		dsTextureUsage_CopyTo, dsGfxMemory_Static, &colorInfo, true);
-	ASSERT_TRUE(offscreen2);
-
-	dsRenderbuffer* colorBuffer = dsRenderbuffer_create(resourceManager, NULL,
-		dsRenderbufferUsage_Clear, dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm),
-		1920, 1080, 4);
-	ASSERT_TRUE(colorBuffer);
-
-	dsRenderbuffer* depthBuffer = dsRenderbuffer_create(resourceManager, NULL,
-		dsRenderbufferUsage_Clear, dsGfxFormat_D24S8, 1920, 1080, 4);
-	ASSERT_TRUE(depthBuffer);
-
-	dsRenderSurface* renderSurface = dsRenderSurface_create(renderer, NULL, "test", NULL,
-		dsRenderSurfaceType_Direct, false);
-	ASSERT_TRUE(renderSurface);
-
-	dsDepthStencilValue depthStencilValue = {1.0f, 0};
-	dsFramebufferSurface surface = {dsGfxSurfaceType_Offscreen, dsCubeFace_None, 0, 0, offscreen1};
-	EXPECT_FALSE(dsRenderer_clearDepthStencilSurface(NULL, commandBuffer, &surface,
-		dsClearDepthStencil_Both, &depthStencilValue));
-	EXPECT_FALSE(dsRenderer_clearDepthStencilSurface(renderer, NULL, &surface,
-		dsClearDepthStencil_Both, &depthStencilValue));
-	EXPECT_FALSE(dsRenderer_clearDepthStencilSurface(renderer, commandBuffer, NULL,
-		dsClearDepthStencil_Both, &depthStencilValue));
-	EXPECT_FALSE(dsRenderer_clearDepthStencilSurface(renderer, commandBuffer,
-		&surface, dsClearDepthStencil_Both, NULL));
-
-	surface.layer = 2;
-	EXPECT_FALSE(dsRenderer_clearDepthStencilSurface(renderer, commandBuffer, &surface,
-		dsClearDepthStencil_Both, &depthStencilValue));
-
-	surface.layer = 0;
-	surface.mipLevel = 2;
-	EXPECT_FALSE(dsRenderer_clearDepthStencilSurface(renderer, commandBuffer, &surface,
-		dsClearDepthStencil_Both, &depthStencilValue));
-
-	surface.mipLevel = 0;
-	EXPECT_TRUE(dsRenderer_clearDepthStencilSurface(renderer, commandBuffer, &surface,
-		dsClearDepthStencil_Both, &depthStencilValue));
-
-	surface.surface = offscreen2;
-	EXPECT_FALSE(dsRenderer_clearDepthStencilSurface(renderer, commandBuffer,
-		&surface, dsClearDepthStencil_Both, &depthStencilValue));
-
-	surface.surfaceType = dsGfxSurfaceType_Renderbuffer;
-	surface.surface = colorBuffer;
-	EXPECT_FALSE(dsRenderer_clearDepthStencilSurface(renderer, commandBuffer,
-		&surface, dsClearDepthStencil_Both, &depthStencilValue));
-
-	surface.surface = depthBuffer;
-	EXPECT_TRUE(dsRenderer_clearDepthStencilSurface(renderer, commandBuffer, &surface,
-		dsClearDepthStencil_Both, &depthStencilValue));
-
-	surface.surfaceType = dsGfxSurfaceType_ColorRenderSurface;
-	surface.surface = renderSurface;
-	EXPECT_FALSE(dsRenderer_clearDepthStencilSurface(renderer, commandBuffer,
-		&surface, dsClearDepthStencil_Both, &depthStencilValue));
-
-	surface.surfaceType = dsGfxSurfaceType_DepthRenderSurface;
-	EXPECT_TRUE(dsRenderer_clearDepthStencilSurface(renderer, commandBuffer, &surface,
-		dsClearDepthStencil_Both, &depthStencilValue));
-
-	EXPECT_TRUE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0, false));
-	EXPECT_FALSE(dsRenderer_clearDepthStencilSurface(renderer, commandBuffer, &surface,
-		dsClearDepthStencil_Both, &depthStencilValue));
-	EXPECT_TRUE(dsRenderPass_end(renderPass, commandBuffer));
-
-	EXPECT_TRUE(dsRenderSurface_destroy(renderSurface));
-	EXPECT_TRUE(dsRenderbuffer_destroy(depthBuffer));
-	EXPECT_TRUE(dsRenderbuffer_destroy(colorBuffer));
-	EXPECT_TRUE(dsTexture_destroy(offscreen1));
-	EXPECT_TRUE(dsTexture_destroy(offscreen2));
-}
-
 TEST_F(RendererTest, Draw)
 {
 	dsCommandBuffer* commandBuffer = renderer->mainCommandBuffer;
@@ -574,6 +410,68 @@ TEST_F(RendererTest, DrawIndexedIndirect)
 	EXPECT_TRUE(dsGfxBuffer_destroy(vertexGfxBuffer));
 	EXPECT_TRUE(dsGfxBuffer_destroy(indexGfxBuffer));
 	EXPECT_TRUE(dsGfxBuffer_destroy(indirectBuffer));
+}
+
+TEST_F(RendererTest, ClearAttachments)
+{
+	dsCommandBuffer* commandBuffer = renderer->mainCommandBuffer;
+	dsClearAttachment clearAttachments[2];
+	clearAttachments[0].colorAttachment = 0;
+	clearAttachments[0].clearValue.colorValue.floatValue.r = 0.0f;
+	clearAttachments[0].clearValue.colorValue.floatValue.g = 0.0f;
+	clearAttachments[0].clearValue.colorValue.floatValue.b = 0.0f;
+	clearAttachments[0].clearValue.colorValue.floatValue.a = 1.0f;
+	clearAttachments[1].colorAttachment = DS_NO_ATTACHMENT;
+	clearAttachments[1].clearDepthStencil = dsClearDepthStencil_Both;
+	clearAttachments[1].clearValue.depthStencil.depth = 1.0f;
+	clearAttachments[1].clearValue.depthStencil.stencil = 0;
+
+	dsAttachmentClearRegion clearRegion =
+	{
+		0,
+		0,
+		framebuffer->width,
+		framebuffer->height,
+		0,
+		1
+	};
+
+	EXPECT_FALSE(dsRenderer_clearAttachments(renderer, commandBuffer, clearAttachments,
+		DS_ARRAY_SIZE(clearAttachments), &clearRegion, 1));
+
+	EXPECT_TRUE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0, false));
+
+	EXPECT_FALSE(dsRenderer_clearAttachments(NULL, commandBuffer, clearAttachments,
+		DS_ARRAY_SIZE(clearAttachments), &clearRegion, 1));
+	EXPECT_FALSE(dsRenderer_clearAttachments(renderer, NULL, clearAttachments,
+		DS_ARRAY_SIZE(clearAttachments), &clearRegion, 1));
+	EXPECT_FALSE(dsRenderer_clearAttachments(renderer, commandBuffer, NULL,
+		DS_ARRAY_SIZE(clearAttachments), &clearRegion, 1));
+	EXPECT_FALSE(dsRenderer_clearAttachments(renderer, commandBuffer, clearAttachments,
+		DS_ARRAY_SIZE(clearAttachments), NULL, 1));
+	EXPECT_TRUE(dsRenderer_clearAttachments(renderer, commandBuffer, clearAttachments,
+		DS_ARRAY_SIZE(clearAttachments), &clearRegion, 1));
+
+	clearAttachments[0].colorAttachment = 1;
+	EXPECT_FALSE(dsRenderer_clearAttachments(renderer, commandBuffer, clearAttachments,
+		DS_ARRAY_SIZE(clearAttachments), &clearRegion, 1));
+
+	clearAttachments[0].colorAttachment = 0;
+	clearRegion.x = 1;
+	EXPECT_FALSE(dsRenderer_clearAttachments(renderer, commandBuffer, clearAttachments,
+		DS_ARRAY_SIZE(clearAttachments), &clearRegion, 1));
+
+	clearRegion.x = 0;
+	clearRegion.y = 1;
+	EXPECT_FALSE(dsRenderer_clearAttachments(renderer, commandBuffer, clearAttachments,
+		DS_ARRAY_SIZE(clearAttachments), &clearRegion, 1));
+
+	clearRegion.y = 0;
+	clearRegion.layer = 1;
+	EXPECT_FALSE(dsRenderer_clearAttachments(renderer, commandBuffer, clearAttachments,
+		DS_ARRAY_SIZE(clearAttachments), &clearRegion, 1));
+
+	EXPECT_TRUE(dsRenderPass_end(renderPass, commandBuffer));
 }
 
 TEST_F(RendererTest, DispatchCompute)

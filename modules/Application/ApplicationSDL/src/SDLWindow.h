@@ -35,7 +35,7 @@ typedef struct dsSDLWindow
 
 	dsVector2i curPosition;
 	dsWindowFlags curFlags;
-	bool clientRotations;
+	dsRenderSurfaceUsage renderSurfaceUsage;
 	bool hasFocus;
 } dsSDLWindow;
 
@@ -46,7 +46,7 @@ bool dsSDLWindow_createSurfaceInternal(dsWindow* window, const char* surfaceName
 
 dsWindow* dsSDLWindow_create(dsApplication* application, dsAllocator* allocator,
 	const char* title, const char* surfaceName, const dsVector2i* position, uint32_t width,
-	uint32_t height, dsWindowFlags flags);
+	uint32_t height, dsWindowFlags flags, dsRenderSurfaceUsage renderSurfaceUsage);
 bool dsSDLWindow_createSurface(dsApplication* application, dsWindow* window);
 dsWindow* dsSDLWindow_getFocusWindow(const dsApplication* application);
 bool dsSDLWindow_setTitle(dsApplication* application, dsWindow* window, const char* title);

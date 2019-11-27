@@ -89,38 +89,6 @@ bool dsMockRenderer_setDefaultAnisotropy(dsRenderer* renderer, float anisotropy)
 	return true;
 }
 
-bool dsMockRenderer_clearColorSurface(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
-	const dsFramebufferSurface* surface, const dsSurfaceColorValue* colorValue)
-{
-	DS_ASSERT(renderer);
-	DS_UNUSED(renderer);
-	DS_ASSERT(commandBuffer);
-	DS_UNUSED(commandBuffer);
-	DS_ASSERT(surface);
-	DS_UNUSED(surface);
-	DS_ASSERT(colorValue);
-	DS_UNUSED(colorValue);
-
-	return true;
-}
-
-bool dsMockRenderer_clearDepthStencilSurface(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
-	const dsFramebufferSurface* surface, dsClearDepthStencil surfaceParts,
-	const dsDepthStencilValue* depthStencilValue)
-{
-	DS_ASSERT(renderer);
-	DS_UNUSED(renderer);
-	DS_ASSERT(commandBuffer);
-	DS_UNUSED(commandBuffer);
-	DS_ASSERT(surface);
-	DS_UNUSED(surface);
-	DS_UNUSED(surfaceParts);
-	DS_ASSERT(depthStencilValue);
-	DS_UNUSED(depthStencilValue);
-
-	return true;
-}
-
 bool dsMockRenderer_draw(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsDrawGeometry* geometry, const dsDrawRange* drawRange, dsPrimitiveType primitiveType)
 {
@@ -190,6 +158,26 @@ bool dsMockRenderer_drawIndexedIndirect(dsRenderer* renderer, dsCommandBuffer* c
 	DS_UNUSED(count);
 	DS_UNUSED(stride);
 	DS_UNUSED(primitiveType);
+
+	return true;
+}
+
+bool dsMockRenderer_clearAttachments(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	const dsClearAttachment* attachments, uint32_t attachmentCount,
+	const dsAttachmentClearRegion* regions, uint32_t regionCount)
+{
+	DS_ASSERT(renderer);
+	DS_UNUSED(renderer);
+	DS_ASSERT(commandBuffer);
+	DS_UNUSED(commandBuffer);
+	DS_ASSERT(attachments);
+	DS_UNUSED(attachments);
+	DS_ASSERT(attachmentCount > 0);
+	DS_UNUSED(attachmentCount);
+	DS_ASSERT(regions);
+	DS_UNUSED(regions);
+	DS_ASSERT(regionCount > 0);
+	DS_UNUSED(regionCount);
 
 	return true;
 }
@@ -463,12 +451,11 @@ dsRenderer* dsMockRenderer_create(dsAllocator* allocator)
 	renderer->setSurfaceSamplesFunc = &dsMockRenderer_setSurfaceSamples;
 	renderer->setVsyncFunc = &dsMockRenderer_setVsync;
 	renderer->setDefaultAnisotropyFunc = &dsMockRenderer_setDefaultAnisotropy;
-	renderer->clearColorSurfaceFunc = &dsMockRenderer_clearColorSurface;
-	renderer->clearDepthStencilSurfaceFunc = &dsMockRenderer_clearDepthStencilSurface;
 	renderer->drawFunc = &dsMockRenderer_draw;
 	renderer->drawIndexedFunc = &dsMockRenderer_drawIndexed;
 	renderer->drawIndirectFunc = &dsMockRenderer_drawIndirect;
 	renderer->drawIndexedIndirectFunc = &dsMockRenderer_drawIndexedIndirect;
+	renderer->clearAttachmentsFunc = &dsMockRenderer_clearAttachments;
 	renderer->dispatchComputeFunc = &dsMockRenderer_dispatchCompute;
 	renderer->dispatchComputeIndirectFunc = &dsMockRenderer_dispatchComputeIndirect;
 	renderer->blitSurfaceFunc = &dsMockRenderer_blitSurface;

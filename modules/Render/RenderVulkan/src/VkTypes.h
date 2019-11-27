@@ -146,8 +146,6 @@ typedef struct dsVkDevice
 	PFN_vkCmdCopyImage vkCmdCopyImage;
 	PFN_vkCmdCopyImageToBuffer vkCmdCopyImageToBuffer;
 	PFN_vkCmdBlitImage vkCmdBlitImage;
-	PFN_vkCmdClearColorImage vkCmdClearColorImage;
-	PFN_vkCmdClearDepthStencilImage vkCmdClearDepthStencilImage;
 	PFN_vkCreateImageView vkCreateImageView;
 	PFN_vkDestroyImageView vkDestroyImageView;
 
@@ -210,6 +208,7 @@ typedef struct dsVkDevice
 	PFN_vkCmdSetStencilWriteMask vkCmdSetStencilWriteMask;
 	PFN_vkCmdSetStencilReference vkCmdSetStencilReference;
 
+	PFN_vkCmdClearAttachments vkCmdClearAttachments;
 	PFN_vkCmdDraw vkCmdDraw;
 	PFN_vkCmdDrawIndexed vkCmdDrawIndexed;
 	PFN_vkCmdDrawIndirect vkCmdDrawIndirect;
@@ -705,7 +704,6 @@ typedef struct dsVkRenderSurface
 
 	VkSurfaceKHR surface;
 	dsVkRenderSurfaceData* surfaceData;
-	bool clientRotations;
 	bool surfaceError;
 	uint64_t updatedFrame;
 	dsSpinlock lock;

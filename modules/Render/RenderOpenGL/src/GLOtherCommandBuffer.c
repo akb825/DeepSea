@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2019 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,8 +64,7 @@ typedef enum CommandType
 	CommandType_BeginRenderPass,
 	CommandType_NextRenderSubpass,
 	CommandType_EndRenderPass,
-	CommandType_ClearColorSurface,
-	CommandType_ClearDepthStencilSurface,
+	CommandType_ClearAttachments,
 	CommandType_Draw,
 	CommandType_DrawIndexed,
 	CommandType_DrawIndirect,
@@ -271,20 +270,14 @@ typedef struct EndRenderPassCommand
 	const dsRenderPass* renderPass;
 } EndRenderPassCommand;
 
-typedef struct ClearColorSurfaceCommand
+typedef struct ClearAttachmentsCommand
 {
 	Command command;
-	dsFramebufferSurface surface;
-	dsSurfaceColorValue value;
-} ClearColorSurfaceCommand;
-
-typedef struct ClearDepthStencilSurfaceCommand
-{
-	Command command;
-	dsFramebufferSurface surface;
-	dsClearDepthStencil surfaceParts;
-	dsDepthStencilValue value;
-} ClearDepthStencilSurfaceCommand;
+	dsClearAttachment* attachments;
+	dsAttachmentClearRegion* regions;
+	uint32_t attachmentCount;
+	uint32_t regionCount;
+} ClearAttachmentsCommand;
 
 typedef struct DrawCommand
 {
@@ -591,25 +584,8 @@ void dsGLOtherCommandBuffer_reset(dsCommandBuffer* commandBuffer)
 				dsGLRenderPass_freeInternalRef((dsRenderPass*)thisCommand->renderPass);
 				break;
 			}
-			case CommandType_ClearColorSurface:
-			{
-				ClearColorSurfaceCommand* thisCommand = (ClearColorSurfaceCommand*)command;
-				if (thisCommand->surface.surfaceType == dsGfxSurfaceType_Offscreen)
-					dsGLTexture_freeInternalRef((dsTexture*)thisCommand->surface.surface);
-				else if (thisCommand->surface.surfaceType == dsGfxSurfaceType_Renderbuffer)
-					dsGLRenderbuffer_freeInternalRef((dsRenderbuffer*)thisCommand->surface.surface);
+			case CommandType_ClearAttachments:
 				break;
-			}
-			case CommandType_ClearDepthStencilSurface:
-			{
-				ClearDepthStencilSurfaceCommand* thisCommand =
-					(ClearDepthStencilSurfaceCommand*)command;
-				if (thisCommand->surface.surfaceType == dsGfxSurfaceType_Offscreen)
-					dsGLTexture_freeInternalRef((dsTexture*)thisCommand->surface.surface);
-				else if (thisCommand->surface.surfaceType == dsGfxSurfaceType_Renderbuffer)
-					dsGLRenderbuffer_freeInternalRef((dsRenderbuffer*)thisCommand->surface.surface);
-				break;
-			}
 			case CommandType_Draw:
 			{
 				DrawCommand* thisCommand = (DrawCommand*)command;
@@ -1104,40 +1080,35 @@ bool dsGLOtherCommandBuffer_endRenderPass(dsCommandBuffer* commandBuffer,
 	return true;
 }
 
-bool dsGLOtherCommandBuffer_clearColorSurface(dsCommandBuffer* commandBuffer,
-	const dsFramebufferSurface* surface, const dsSurfaceColorValue* colorValue)
+bool dsGLOtherCommandBuffer_clearAttachments(dsCommandBuffer* commandBuffer,
+	const dsClearAttachment* attachments, uint32_t attachmentCount,
+	const dsAttachmentClearRegion* regions, uint32_t regionCount)
 {
-	ClearColorSurfaceCommand* command = (ClearColorSurfaceCommand*)allocateCommand(commandBuffer,
-		CommandType_ClearColorSurface, sizeof(ClearColorSurfaceCommand));
+	DS_ASSERT(attachmentCount > 0);
+	DS_ASSERT(regionCount > 0);
+	size_t fullSize = DS_ALIGNED_SIZE(sizeof(ClearAttachmentsCommand)) +
+		DS_ALIGNED_SIZE(sizeof(dsClearAttachment)*attachmentCount) +
+		DS_ALIGNED_SIZE(sizeof(dsAttachmentClearRegion)*regionCount);
+	ClearAttachmentsCommand* command = (ClearAttachmentsCommand*)allocateCommand(commandBuffer,
+		CommandType_ClearAttachments, fullSize);
 	if (!command)
 		return false;
 
-	command->surface = *surface;
-	if (surface->surfaceType == dsGfxSurfaceType_Offscreen)
-		dsGLTexture_addInternalRef((dsTexture*)surface->surface);
-	else if (surface->surfaceType == dsGfxSurfaceType_Renderbuffer)
-		dsGLRenderbuffer_addInternalRef((dsRenderbuffer*)surface->surface);
-	command->value = *colorValue;
-	return true;
-}
+	dsBufferAllocator bufferAlloc;
+	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, command, fullSize));
+	DS_VERIFY(DS_ALLOCATE_OBJECT(&bufferAlloc, ClearAttachmentsCommand) == command);
 
-bool dsGLOtherCommandBuffer_clearDepthStencilSurface(dsCommandBuffer* commandBuffer,
-	const dsFramebufferSurface* surface, dsClearDepthStencil surfaceParts,
-	const dsDepthStencilValue* depthStencilValue)
-{
-	ClearDepthStencilSurfaceCommand* command = (ClearDepthStencilSurfaceCommand*)allocateCommand(
-		commandBuffer, CommandType_ClearDepthStencilSurface,
-		sizeof(ClearDepthStencilSurfaceCommand));
-	if (!command)
-		return false;
+	command->attachments = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsClearAttachment,
+		attachmentCount);
+	DS_ASSERT(command->attachments);
+	memcpy(command->attachments, attachments, sizeof(dsClearAttachment)*attachmentCount);
+	command->attachmentCount = attachmentCount;
 
-	command->surface = *surface;
-	if (surface->surfaceType == dsGfxSurfaceType_Offscreen)
-		dsGLTexture_addInternalRef((dsTexture*)surface->surface);
-	else if (surface->surfaceType == dsGfxSurfaceType_Renderbuffer)
-		dsGLRenderbuffer_addInternalRef((dsRenderbuffer*)surface->surface);
-	command->surfaceParts = surfaceParts;
-	command->value = *depthStencilValue;
+	command->regions = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsAttachmentClearRegion,
+		regionCount);
+	DS_ASSERT(command->regions);
+	memcpy(command->regions, regions, sizeof(dsAttachmentClearRegion)*regionCount);
+	command->regionCount = regionCount;
 	return true;
 }
 
@@ -1488,19 +1459,12 @@ bool dsGLOtherCommandBuffer_submit(dsCommandBuffer* commandBuffer, dsCommandBuff
 				dsGLCommandBuffer_endRenderPass(commandBuffer, thisCommand->renderPass);
 				break;
 			}
-			case CommandType_ClearColorSurface:
+			case CommandType_ClearAttachments:
 			{
-				ClearColorSurfaceCommand* thisCommand = (ClearColorSurfaceCommand*)command;
-				dsGLCommandBuffer_clearColorSurface(commandBuffer->renderer, commandBuffer,
-					&thisCommand->surface, &thisCommand->value);
-				break;
-			}
-			case CommandType_ClearDepthStencilSurface:
-			{
-				ClearDepthStencilSurfaceCommand* thisCommand =
-					(ClearDepthStencilSurfaceCommand*)command;
-				dsGLCommandBuffer_clearDepthStencilSurface(commandBuffer->renderer, commandBuffer,
-					&thisCommand->surface, thisCommand->surfaceParts, &thisCommand->value);
+				ClearAttachmentsCommand* thisCommand = (ClearAttachmentsCommand*)command;
+				dsGLCommandBuffer_clearAttachments(commandBuffer->renderer, commandBuffer,
+					thisCommand->attachments, thisCommand->attachmentCount, thisCommand->regions,
+					thisCommand->regionCount);
 				break;
 			}
 			case CommandType_Draw:
@@ -1625,8 +1589,7 @@ static CommandBufferFunctionTable functionTable =
 	&dsGLOtherCommandBuffer_beginRenderPass,
 	&dsGLOtherCommandBuffer_nextRenderSubpass,
 	&dsGLOtherCommandBuffer_endRenderPass,
-	&dsGLOtherCommandBuffer_clearColorSurface,
-	&dsGLOtherCommandBuffer_clearDepthStencilSurface,
+	&dsGLOtherCommandBuffer_clearAttachments,
 	&dsGLOtherCommandBuffer_draw,
 	&dsGLOtherCommandBuffer_drawIndexed,
 	&dsGLOtherCommandBuffer_drawIndirect,

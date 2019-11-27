@@ -29,13 +29,7 @@ typedef enum dsVkSurfaceResult
 
 dsRenderSurfaceRotation dsVkRenderSurfaceData_getRotation(VkSurfaceTransformFlagBitsKHR rotation);
 dsVkRenderSurfaceData* dsVkRenderSurfaceData_create(dsAllocator* allocator, dsRenderer* renderer,
-	VkSurfaceKHR surface, bool vsync, VkSwapchainKHR prevSwapchain, bool clientRotations);
+	VkSurfaceKHR surface, bool vsync, VkSwapchainKHR prevSwapchain, dsRenderSurfaceUsage usage);
 dsVkSurfaceResult dsVkRenderSurfaceData_acquireImage(dsVkRenderSurfaceData* surfaceData);
-
-bool dsVkRenderSurfaceData_clearColor(dsVkRenderSurfaceData* renderSurface, bool rightSurface,
-	dsCommandBuffer* commandBuffer, const dsSurfaceColorValue* colorValue);
-bool dsVkRenderSurfaceData_clearDepthStencil(dsVkRenderSurfaceData* renderSurface,
-	dsCommandBuffer* commandBuffer, dsClearDepthStencil surfaceParts,
-	const dsDepthStencilValue* depthStencilValue);
 
 void dsVkRenderSurfaceData_destroy(dsVkRenderSurfaceData* surfaceData);

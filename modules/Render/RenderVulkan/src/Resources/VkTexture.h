@@ -49,8 +49,4 @@ VkImageLayout dsVkTexture_bindImageLayout(const dsTexture* texture);
 void dsVkTexture_resetSubresourceLayouts(dsTexture* texture);
 bool dsVkTexture_canReadBack(const dsTexture* texture);
 bool dsVkTexture_processAndAddResource(dsTexture* texture, dsCommandBuffer* commandBuffer);
-bool dsVkTexture_clearColor(dsOffscreen* offscreen, dsCommandBuffer* commandBuffer,
-	const dsSurfaceColorValue* colorValue);
-bool dsVkTexture_clearDepthStencil(dsOffscreen* offscreen, dsCommandBuffer* commandBuffer,
-	dsClearDepthStencil surfaceParts, const dsDepthStencilValue* depthStencilValue);
 void dsVkTexture_destroyImpl(dsTexture* texture);

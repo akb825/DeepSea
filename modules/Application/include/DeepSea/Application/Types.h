@@ -147,8 +147,7 @@ typedef enum dsWindowFlags
 	dsWindowFlags_Maximized = 0x8,           ///< Window is maximized.
 	dsWindowFlags_GrabInput = 0x10,          ///< Grab input and lock to the window.
 	dsWindowFlags_Center = 0x20,             ///< Center the window on the target display.
-	dsWindowFlags_DelaySurfaceCreate = 0x40, ///< Delay surface creation until explicitly created.
-	dsWindowFlags_ClientRotations = 0x80     ///< Perform render surface rotations on client side.
+	dsWindowFlags_DelaySurfaceCreate = 0x40  ///< Delay surface creation until explicitly created.
 } dsWindowFlags;
 
 /**
@@ -734,11 +733,12 @@ typedef uint32_t (*dsGetApplicationPressedMouseButtonsFunction)(const dsApplicat
  * @param width The width of the window.
  * @param height The height of the window.
  * @param style The style of the window.
+ * @param renderSurfaceUsage Flags to determine how the render surface for the window will be used.
  * @param flags Combination of dsWindowFlags values to create the window.
  */
 typedef dsWindow* (*dsCreateWindowFunction)(dsApplication* application, dsAllocator* allocator,
 	const char* title, const char* surfaceName, const dsVector2i* position, uint32_t width,
-	uint32_t height, dsWindowFlags flags);
+	uint32_t height, dsWindowFlags flags, dsRenderSurfaceUsage renderSurfaceUsage);
 
 /**
  * @brief Function for destroying a window.

@@ -235,41 +235,20 @@ DS_RENDER_EXPORT bool dsRenderer_setVsync(dsRenderer* renderer, bool vsync);
 DS_RENDER_EXPORT bool dsRenderer_setDefaultAnisotropy(dsRenderer* renderer, float anisotropy);
 
 /**
- * @brief Clears a color surface.
- *
- * Offscreens must have the dsTextureUsage_CopyTo flag set, while renderbuffers must have the
- * dsRenderbufferUsage_Clear flag set.
- *
- * @remark This must be called outside of a render pass.
+ * @brief Clears attachments within a render pass.
+ * @remark This must be called inside of a render pass.
  * @remark errno will be set on failure.
  * @param renderer The renderer.
  * @param commandBuffer The command buffer to place the clear command on.
- * @param surface The surface to clear.
- * @param colorValue The color value to clear with.
+ * @param attachments The attachments to clear with their values.
+ * @param attachmentCount The number of attachments to clear.
+ * @param regions The regions to clear.
+ * @param regionCount The number of regions to clear.
  * @return False if the surface couldn't be cleared.
  */
-DS_RENDER_EXPORT bool dsRenderer_clearColorSurface(dsRenderer* renderer,
-	dsCommandBuffer* commandBuffer, const dsFramebufferSurface* surface,
-	const dsSurfaceColorValue* colorValue);
-
-/**
- * @brief Clears a depth-stencil surface.
- *
- * Offscreens must have the dsTextureUsage_CopyTo flag set, while renderbuffers must have the
- * dsRenderbufferUsage_Clear flag set.
- *
- * @remark This must be called outside of a render pass.
- * @remark errno will be set on failure.
- * @param renderer The renderer.
- * @param commandBuffer The command buffer to place the clear command on.
- * @param surface The surface to clear.
- * @param surfaceParts The parts of the surface to clear.
- * @param depthStencilValue The depth-stencil value to clear with.
- * @return False if the surface couldn't be cleared.
- */
-DS_RENDER_EXPORT bool dsRenderer_clearDepthStencilSurface(dsRenderer* renderer,
-	dsCommandBuffer* commandBuffer, const dsFramebufferSurface* surface,
-	dsClearDepthStencil surfaceParts, const dsDepthStencilValue* depthStencilValue);
+DS_RENDER_EXPORT bool dsRenderer_clearAttachments(dsRenderer* renderer,
+	dsCommandBuffer* commandBuffer, const dsClearAttachment* attachments, uint32_t attachmentCount,
+	const dsAttachmentClearRegion* regions, uint32_t regionCount);
 
 /**
  * @brief Draws vertex geometry with the currently bound shader.

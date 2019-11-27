@@ -20,7 +20,7 @@
 #include "VkTypes.h"
 
 dsRenderSurface* dsVkRenderSurface_create(dsRenderer* renderer, dsAllocator* allocator,
-	const char* name, void* osHandle, dsRenderSurfaceType type, bool clientRotations);
+	const char* name, void* osHandle, dsRenderSurfaceType type, dsRenderSurfaceUsage usage);
 bool dsVkRenderSurface_update(dsRenderer* renderer, dsRenderSurface* renderSurface);
 bool dsVkRenderSurface_beginDraw(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsRenderSurface* renderSurface);

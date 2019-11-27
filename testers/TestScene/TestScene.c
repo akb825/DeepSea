@@ -855,8 +855,8 @@ static bool setup(TestScene* testScene, dsApplication* application, dsAllocator*
 	uint32_t width = dsApplication_adjustWindowSize(application, 0, 800);
 	uint32_t height = dsApplication_adjustWindowSize(application, 0, 600);
 	testScene->window = dsWindow_create(application, allocator, "Test Scene", NULL,
-		NULL, width, height, dsWindowFlags_Resizeable | dsWindowFlags_DelaySurfaceCreate |
-			dsWindowFlags_ClientRotations);
+		NULL, width, height, dsWindowFlags_Resizeable | dsWindowFlags_DelaySurfaceCreate,
+		dsRenderSurfaceUsage_ClientRotations);
 	if (!testScene->window)
 	{
 		DS_LOG_ERROR_F("TestScene", "Couldn't create window: %s", dsErrorString(errno));

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2018 Aaron Barany
+ * Copyright 2017-2019 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,8 +39,6 @@
 #include <limits.h>
 #include <string.h>
 
-#define DS_TEMP_RENDERBUFFERS 4
-
 typedef struct TempRenderbuffer
 {
 	GLuint id;
@@ -59,13 +57,15 @@ struct dsGLMainCommandBuffer
 	uint32_t maxFenceSyncs;
 	bool bufferReadback;
 
+	GLint viewportX;
+	GLint viewportY;
+	GLsizei viewportWidth;
+	GLsizei viewportHeight;
+
 	const dsFramebuffer* curFramebuffer;
 	dsSurfaceClearValue* clearValues;
 	size_t curClearValues;
 	size_t maxClearValues;
-
-	TempRenderbuffer tempRenderbuffers[DS_TEMP_RENDERBUFFERS];
-	uint32_t tempRenderbufferCounter;
 
 	const dsDrawGeometry* curGeometry;
 	const dsGfxBuffer* curDrawIndirectBuffer;
@@ -185,7 +185,7 @@ static GLenum getClearMask(dsGfxFormat format)
 	}
 }
 
-static void setClearColor(dsGfxFormat format, const dsSurfaceClearValue* value)
+static void setClearValue(dsGfxFormat format, const dsSurfaceClearValue* value)
 {
 	switch (format)
 	{
@@ -211,22 +211,35 @@ static void setClearColor(dsGfxFormat format, const dsSurfaceClearValue* value)
 }
 
 static void clearDrawBuffer(dsGfxFormat format, uint32_t colorIndex,
-	const dsSurfaceClearValue* clearValue)
+	const dsSurfaceClearValue* clearValue, dsClearDepthStencil clearDepthStencil)
 {
 	switch (format)
 	{
 		case dsGfxFormat_D16:
 		case dsGfxFormat_X8D24:
-			glClearBufferfv(GL_DEPTH, 0, &clearValue->depthStencil.depth);
+			if (clearDepthStencil != dsClearDepthStencil_Stencil)
+				glClearBufferfv(GL_DEPTH, 0, &clearValue->depthStencil.depth);
 			break;
 		case dsGfxFormat_S8:
-			glClearBufferiv(GL_STENCIL, 0, (GLint*)&clearValue->depthStencil.stencil);
+			if (clearDepthStencil != dsClearDepthStencil_Depth)
+				glClearBufferiv(GL_STENCIL, 0, (GLint*)&clearValue->depthStencil.stencil);
 			break;
 		case dsGfxFormat_D16S8:
 		case dsGfxFormat_D24S8:
 		case dsGfxFormat_D32S8_Float:
-			glClearBufferfi(GL_DEPTH_STENCIL, 0, clearValue->depthStencil.depth,
-				clearValue->depthStencil.stencil);
+			switch (clearDepthStencil)
+			{
+				case dsClearDepthStencil_Depth:
+					glClearBufferfv(GL_DEPTH, 0, &clearValue->depthStencil.depth);
+					break;
+				case dsClearDepthStencil_Stencil:
+					glClearBufferiv(GL_STENCIL, 0, (GLint*)&clearValue->depthStencil.stencil);
+					break;
+				case dsClearDepthStencil_Both:
+					glClearBufferfi(GL_DEPTH_STENCIL, 0, clearValue->depthStencil.depth,
+						clearValue->depthStencil.stencil);
+					break;
+			}
 			break;
 		default:
 		{
@@ -239,38 +252,6 @@ static void clearDrawBuffer(dsGfxFormat format, uint32_t colorIndex,
 				glClearBufferfv(GL_COLOR, colorIndex, clearValue->colorValue.floatValue.values);
 			break;
 		}
-	}
-}
-
-static void clearDrawBufferPart(GLenum buffer, dsGfxFormat format, uint32_t colorIndex,
-	const dsSurfaceClearValue* clearValue)
-{
-	switch (buffer)
-	{
-		case GL_DEPTH:
-			glClearBufferfv(GL_DEPTH, 0, &clearValue->depthStencil.depth);
-			break;
-		case GL_STENCIL:
-			glClearBufferiv(GL_STENCIL, 0, (GLint*)&clearValue->depthStencil.stencil);
-			break;
-		case GL_DEPTH_STENCIL:
-			glClearBufferfi(GL_DEPTH_STENCIL, 0, clearValue->depthStencil.depth,
-				clearValue->depthStencil.stencil);
-			break;
-		case GL_COLOR:
-		{
-			dsGfxFormat decorator = (dsGfxFormat)(format & dsGfxFormat_DecoratorMask);
-			if (decorator == dsGfxFormat_UInt)
-				glClearBufferuiv(GL_COLOR, colorIndex, clearValue->colorValue.uintValue);
-			else if (decorator == dsGfxFormat_SInt)
-				glClearBufferiv(GL_COLOR, colorIndex, clearValue->colorValue.intValue);
-			else
-				glClearBufferfv(GL_COLOR, colorIndex, clearValue->colorValue.floatValue.values);
-			break;
-		}
-		default:
-			DS_ASSERT(false);
-			return;
 	}
 }
 
@@ -288,7 +269,7 @@ static void clearOtherFramebuffer(const dsRenderPass* renderPass, uint32_t subpa
 			glRenderPass->clearSubpass[attachment] == subpassIndex)
 		{
 			clearDrawBuffer(renderPass->attachments[attachment].format, i,
-				clearValues + attachment);
+				clearValues + attachment, dsClearDepthStencil_Both);
 		}
 	}
 
@@ -298,7 +279,7 @@ static void clearOtherFramebuffer(const dsRenderPass* renderPass, uint32_t subpa
 		if (glRenderPass->clearSubpass[depthStencilAttachment] == subpassIndex)
 		{
 			clearDrawBuffer(renderPass->attachments[depthStencilAttachment].format, 0,
-				clearValues + depthStencilAttachment);
+				clearValues + depthStencilAttachment, dsClearDepthStencil_Both);
 		}
 	}
 
@@ -323,7 +304,7 @@ static void clearMainFramebuffer(const dsRenderPass* renderPass, uint32_t subpas
 		}
 
 		clearMask |= getClearMask(renderPass->attachments[attachment].format);
-		setClearColor(renderPass->attachments[attachment].format, clearValues + attachment);
+		setClearValue(renderPass->attachments[attachment].format, clearValues + attachment);
 	}
 
 	uint32_t depthStencilAttachment = subpass->depthStencilAttachment.attachmentIndex;
@@ -332,7 +313,7 @@ static void clearMainFramebuffer(const dsRenderPass* renderPass, uint32_t subpas
 		if (glRenderPass->clearSubpass[depthStencilAttachment] == subpassIndex)
 		{
 			clearMask |= getClearMask(renderPass->attachments[depthStencilAttachment].format);
-			setClearColor(renderPass->attachments[depthStencilAttachment].format,
+			setClearValue(renderPass->attachments[depthStencilAttachment].format,
 				clearValues + depthStencilAttachment);
 		}
 	}
@@ -447,51 +428,6 @@ static bool endRenderSubpass(dsGLMainCommandBuffer* commandBuffer,
 	}
 
 	return true;
-}
-
-static GLuint createTempRenderbuffer(dsGLMainCommandBuffer* commandBuffer, uint32_t width,
-	uint32_t height, uint32_t samples)
-{
-	TempRenderbuffer* renderbuffers = commandBuffer->tempRenderbuffers;
-	unsigned int index = 0;
-	unsigned int prevCount = UINT_MAX;
-	for (unsigned int i = 0; i < DS_TEMP_RENDERBUFFERS; ++i)
-	{
-		if (!renderbuffers[i].id)
-		{
-			index = i;
-			prevCount = 0;
-			continue;
-		}
-
-		if (renderbuffers[i].width == width && renderbuffers[i].height == height &&
-			renderbuffers[i].samples == samples)
-		{
-			renderbuffers[i].lruCounter = commandBuffer->tempRenderbufferCounter++;
-			return renderbuffers[i].id;
-		}
-
-		if (renderbuffers[i].lruCounter < prevCount)
-		{
-			index = i;
-			prevCount = renderbuffers[i].lruCounter;
-		}
-	}
-
-	glGenRenderbuffers(1, &renderbuffers[index].id);
-	glBindRenderbuffer(GL_RENDERBUFFER, renderbuffers[index].id);
-	if (samples > 1)
-		glRenderbufferStorageMultisample(GL_RENDERBUFFER, samples, GL_RGBA, width, height);
-	else
-		glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA, width, height);
-	glBindRenderbuffer(GL_RENDERBUFFER, 0);
-
-	renderbuffers[index].width = width;
-	renderbuffers[index].height = height;
-	renderbuffers[index].samples = samples;
-	renderbuffers[index].width = width;
-	renderbuffers[index].lruCounter = commandBuffer->tempRenderbufferCounter++;
-	return renderbuffers[index].id;
 }
 
 static dsGfxFormat getSurfaceFormat(dsRenderer* renderer, dsGfxSurfaceType surfaceType,
@@ -1522,9 +1458,10 @@ bool dsGLMainCommandBuffer_beginRenderPass(dsCommandBuffer* commandBuffer,
 	// Set the viewport parameters.
 	if (viewport)
 	{
-		glViewport((GLint)viewport->min.x, framebuffer->height - (GLint)viewport->max.y,
-			(GLsizei)(viewport->max.x - viewport->min.x),
-			(GLsizei)(viewport->max.y - viewport->min.y));
+		glCommandBuffer->viewportX = (GLint)viewport->min.x;
+		glCommandBuffer->viewportY = framebuffer->height - (GLint)viewport->max.y;
+		glCommandBuffer->viewportWidth = (GLsizei)(viewport->max.x - viewport->min.x);
+		glCommandBuffer->viewportHeight = (GLsizei)(viewport->max.y - viewport->min.y);
 		if (ANYGL_SUPPORTED(glDepthRangef))
 			glDepthRangef(viewport->min.z, viewport->max.z);
 		else
@@ -1532,12 +1469,20 @@ bool dsGLMainCommandBuffer_beginRenderPass(dsCommandBuffer* commandBuffer,
 	}
 	else
 	{
-		glViewport(0, 0, framebuffer->width, framebuffer->height);
+		glCommandBuffer->viewportX = 0;
+		glCommandBuffer->viewportY = 0;
+		glCommandBuffer->viewportWidth = framebuffer->width;
+		glCommandBuffer->viewportHeight = framebuffer->height;
 		if (ANYGL_SUPPORTED(glDepthRangef))
 			glDepthRangef(0, 1);
 		else
 			glDepthRange(0, 1);
 	}
+
+	glViewport(glCommandBuffer->viewportX, glCommandBuffer->viewportY,
+		glCommandBuffer->viewportWidth, glCommandBuffer->viewportHeight);
+	glScissor(glCommandBuffer->viewportX, glCommandBuffer->viewportY,
+		glCommandBuffer->viewportWidth, glCommandBuffer->viewportHeight);
 
 	glCommandBuffer->curFramebuffer = framebuffer;
 	addSubpassBarrier(renderPass->subpassDependencies, renderPass->subpassDependencyCount,
@@ -1585,189 +1530,149 @@ bool dsGLMainCommandBuffer_endRenderPass(dsCommandBuffer* commandBuffer,
 	return true;
 }
 
-bool dsGLMainCommandBuffer_clearColorSurface(dsCommandBuffer* commandBuffer,
-	const dsFramebufferSurface* surface, const dsSurfaceColorValue* colorValue)
+bool dsGLMainCommandBuffer_clearAttachments(dsCommandBuffer* commandBuffer,
+	const dsClearAttachment* attachments, uint32_t attachmentCount,
+	const dsAttachmentClearRegion* regions, uint32_t regionCount)
 {
-	DS_ASSERT(surface);
-	dsGLCommandBuffer* glCommandBuffer = (dsGLCommandBuffer*)commandBuffer;
-	if (surface->surfaceType != dsGfxSurfaceType_Offscreen &&
-		surface->surfaceType != dsGfxSurfaceType_Renderbuffer)
+	dsRenderer* renderer = commandBuffer->renderer;
+	dsGLMainCommandBuffer* glCommandBuffer = (dsGLMainCommandBuffer*)commandBuffer;
+	const dsAttachmentInfo* attachmentInfos = commandBuffer->boundRenderPass->attachments;
+	const dsRenderSubpassInfo* subpass = commandBuffer->boundRenderPass->subpasses +
+		commandBuffer->activeRenderSubpass;
+
+	// Disable all color writes when multiple color buffers are supported but explicit clears are
+	// not.
+	bool setColorMasks = !ANYGL_SUPPORTED(glClearBufferfv) && renderer->maxColorAttachments > 0;
+	if (setColorMasks)
 	{
-		if (((dsGLRenderSurface*)surface->surface)->glSurface != glCommandBuffer->boundSurface)
+		for (uint32_t i = 0; i < renderer->maxColorAttachments; ++i)
+			glColorMaski(i, false, false, false, false);
+	}
+
+	bool setScissor = false;
+	bool success = true;
+	for (uint32_t i = 0; i < regionCount; ++i)
+	{
+		const dsAttachmentClearRegion* region = regions + i;
+		if (region->layer != 0 && region->layerCount != glCommandBuffer->curFramebuffer->layers)
 		{
 			errno = EPERM;
 			DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG,
-				"Only the currently bound surface can be cleared.");
-			return false;
+				"Clearing attachments in OpenGL currently requires all layers to be cleared.");
+			success = false;
+			break;
 		}
-	}
 
-
-	GLSurfaceType surfaceType = dsGLFramebuffer_getSurfaceType(surface->surfaceType);
-	dsSurfaceClearValue value;
-	value.colorValue = *colorValue;
-	if (surfaceType == GLSurfaceType_Framebuffer)
-	{
-		uint32_t fbo = dsGLRenderer_tempCopyFramebuffer(commandBuffer->renderer);
-		DS_ASSERT(fbo);
-		glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-		dsGfxFormat format;
-		if (surface->surfaceType == dsGfxSurfaceType_Offscreen)
+		GLint viewportX = region->x;
+		GLint viewportY = glCommandBuffer->curFramebuffer->height - region->y;
+		GLint viewportWidth = region->width;
+		GLint viewportHeight = region->height;
+		// Assume that more than one region menas that the viewport will have changed.
+		if (i > 0 || viewportX != glCommandBuffer->viewportX ||
+			viewportY != glCommandBuffer->viewportY ||
+			viewportWidth != glCommandBuffer->viewportWidth ||
+			viewportHeight != glCommandBuffer->viewportHeight)
 		{
-			dsTexture* texture = (dsTexture*)surface->surface;
-			format = texture->info.format;
-			format = ((dsRenderbuffer*)surface->surface)->format;
-			dsGLTexture_bindFramebuffer(texture, GL_FRAMEBUFFER, surface->mipLevel, surface->layer);
-		}
-		else
-		{
-			DS_ASSERT(surface->surfaceType == dsGfxSurfaceType_Renderbuffer);
-			format = ((dsRenderbuffer*)surface->surface)->format;
-			glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER,
-				((dsGLRenderbuffer*)surface->surface)->renderbufferId);
+			glScissor(viewportX, viewportY, viewportWidth, viewportHeight);
+			setScissor = true;
 		}
 
 		if (ANYGL_SUPPORTED(glClearBufferfv))
-			clearDrawBuffer(format, 0, &value);
-		else
 		{
-			dsGLRenderer_bindFramebuffer(commandBuffer->renderer, surfaceType, 0,
-				GLFramebufferFlags_Default);
-			setClearColor(format, &value);
-			glClear(GL_COLOR_BUFFER_BIT);
-		}
-
-		glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, 0, 0);
-		if (surface->surfaceType == dsGfxSurfaceType_Offscreen)
-		{
-			dsTexture* texture = (dsTexture*)surface->surface;
-			dsGLTexture_unbindFramebuffer(texture, GL_FRAMEBUFFER);
-		}
-		dsGLRenderer_restoreFramebuffer(commandBuffer->renderer);
-	}
-	else
-	{
-		dsGLRenderer_bindFramebuffer(commandBuffer->renderer, surfaceType, 0,
-			GLFramebufferFlags_Default);
-		setClearColor(commandBuffer->renderer->surfaceColorFormat, &value);
-		glClear(GL_COLOR_BUFFER_BIT);
-	}
-
-	return true;
-}
-
-bool dsGLMainCommandBuffer_clearDepthStencilSurface(dsCommandBuffer* commandBuffer,
-	const dsFramebufferSurface* surface, dsClearDepthStencil surfaceParts,
-	const dsDepthStencilValue* depthStencilValue)
-{
-	GLSurfaceType surfaceType = dsGLFramebuffer_getSurfaceType(surface->surfaceType);
-	dsSurfaceClearValue value;
-	value.depthStencil = *depthStencilValue;
-	if (surfaceType == GLSurfaceType_Framebuffer)
-	{
-		GLenum attachment = 0;
-		switch (surfaceParts)
-		{
-			case dsClearDepthStencil_Depth:
-				attachment = GL_DEPTH;
-				break;
-			case dsClearDepthStencil_Stencil:
-				attachment = GL_STENCIL;
-				break;
-			case dsClearDepthStencil_Both:
-				attachment = GL_DEPTH_STENCIL;
-				break;
-		}
-
-		uint32_t fbo = dsGLRenderer_tempCopyFramebuffer(commandBuffer->renderer);
-		DS_ASSERT(fbo);
-		glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-		dsGfxFormat format;
-		uint32_t width;
-		uint32_t height;
-		uint32_t samples;
-		if (surface->surfaceType == dsGfxSurfaceType_Offscreen)
-		{
-			dsTexture* texture = (dsTexture*)surface->surface;
-			format = texture->info.format;
-			width = dsMax(1U, texture->info.width >> surface->mipLevel);
-			height = dsMax(1U, texture->info.height >> surface->mipLevel);
-			samples = texture->info.samples;
-			dsGLTexture_bindFramebuffer(texture, GL_FRAMEBUFFER, surface->mipLevel, surface->layer);
-		}
-		else
-		{
-			DS_ASSERT(surface->surfaceType == dsGfxSurfaceType_Renderbuffer);
-			dsRenderbuffer* renderbuffer = (dsRenderbuffer*)surface->surface;
-			format = renderbuffer->format;
-			width = renderbuffer->width;
-			height = renderbuffer->height;
-			samples = renderbuffer->samples;
-			glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER,
-				((dsGLRenderbuffer*)surface->surface)->renderbufferId);
-		}
-
-		if (ANYGL_SUPPORTED(glClearBufferfv))
-			clearDrawBufferPart(attachment, format, 0, &value);
-		else
-		{
-			if (ANYGL_SUPPORTED(glDrawBuffer))
-				glDrawBuffer(GL_NONE);
-			else
+			for (uint32_t j = 0; j < attachmentCount; ++j)
 			{
-				glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER,
-					createTempRenderbuffer((dsGLMainCommandBuffer*)commandBuffer, width, height,
-						samples));
+				const dsClearAttachment* attachment = attachments + i;
+				uint32_t attachmentIndex;
+				if (attachment->colorAttachment == DS_NO_ATTACHMENT)
+					attachmentIndex = subpass->depthStencilAttachment.attachmentIndex;
+				else
+				{
+					attachmentIndex =
+						subpass->colorAttachments[attachment->colorAttachment].attachmentIndex;
+				}
+
+				DS_ASSERT(attachmentIndex != DS_NO_ATTACHMENT);
+				clearDrawBuffer(attachmentInfos[attachmentIndex].format,
+					attachment->colorAttachment, &attachment->clearValue,
+					attachment->clearDepthStencil);
+			}
+		}
+		else
+		{
+			if (setColorMasks)
+			{
+				for (uint32_t j = 0; j < renderer->maxColorAttachments; ++j)
+				{
+					if (attachments[j].colorAttachment != DS_NO_ATTACHMENT)
+						glColorMaski(attachments[j].colorAttachment, true, true, true, true);
+				}
 			}
 
-			setClearColor(commandBuffer->renderer->surfaceColorFormat, &value);
-			switch (surfaceParts)
+			GLbitfield clearBuffers = 0;
+			for (uint32_t j = 0; j < attachmentCount; ++j)
 			{
-				case dsClearDepthStencil_Depth:
-					glClear(GL_DEPTH_BUFFER_BIT);
-					break;
-				case dsClearDepthStencil_Stencil:
-					glClear(GL_STENCIL_BUFFER_BIT);
-					break;
-				case dsClearDepthStencil_Both:
-					glClear(GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-					break;
+				const dsClearAttachment* attachment = attachments + i;
+				uint32_t attachmentIndex;
+				if (attachment->colorAttachment == DS_NO_ATTACHMENT)
+				{
+					attachmentIndex = subpass->depthStencilAttachment.attachmentIndex;
+					switch (attachment->colorAttachment)
+					{
+						case dsClearDepthStencil_Depth:
+							clearBuffers |= GL_DEPTH_BUFFER_BIT;
+							break;
+						case dsClearDepthStencil_Stencil:
+							clearBuffers |= GL_STENCIL_BUFFER_BIT;
+							break;
+						case dsClearDepthStencil_Both:
+							clearBuffers |= GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT;
+							break;
+					}
+				}
+				else
+				{
+					attachmentIndex =
+						subpass->colorAttachments[attachment->colorAttachment].attachmentIndex;
+					clearBuffers |= GL_COLOR_BUFFER_BIT;
+				}
+
+				DS_ASSERT(attachmentIndex != DS_NO_ATTACHMENT);
+				setClearValue(attachmentInfos[attachmentIndex].format, &attachment->clearValue);
 			}
 
-			if (ANYGL_SUPPORTED(glDrawBuffer))
-				glDrawBuffer(GL_COLOR_ATTACHMENT0);
-			else
-				glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, 0, 0);
-		}
+			glClear(clearBuffers);
 
-		glFramebufferTexture(GL_FRAMEBUFFER, attachment, 0, 0);
-		if (surface->surfaceType == dsGfxSurfaceType_Offscreen)
-		{
-			dsTexture* texture = (dsTexture*)surface->surface;
-			dsGLTexture_unbindFramebuffer(texture, GL_FRAMEBUFFER);
+			// Only restore the write masks if more clears to process.
+			if (setColorMasks && i < regionCount - 1)
+			{
+				for (uint32_t j = 0; j < renderer->maxColorAttachments; ++j)
+				{
+					if (attachments[j].colorAttachment != DS_NO_ATTACHMENT)
+						glColorMaski(attachments[j].colorAttachment, true, true, true, true);
+				}
+			}
 		}
-		dsGLRenderer_restoreFramebuffer(commandBuffer->renderer);
 	}
-	else
+
+	if (setScissor)
 	{
-		dsGLRenderer_bindFramebuffer(commandBuffer->renderer, surfaceType, 0,
-			GLFramebufferFlags_Default);
-		setClearColor(commandBuffer->renderer->surfaceColorFormat, &value);
-		switch (surfaceParts)
+		glScissor(glCommandBuffer->viewportX, glCommandBuffer->viewportY,
+				glCommandBuffer->viewportWidth, glCommandBuffer->viewportHeight);
+	}
+
+	if (setColorMasks)
+	{
+		const mslRenderState* state = &glCommandBuffer->currentState;
+		for (uint32_t i = 0; i < renderer->maxColorAttachments; ++i)
 		{
-			case dsClearDepthStencil_Depth:
-				glClear(GL_DEPTH_BUFFER_BIT);
-				break;
-			case dsClearDepthStencil_Stencil:
-				glClear(GL_STENCIL_BUFFER_BIT);
-				break;
-			case dsClearDepthStencil_Both:
-				glClear(GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-				break;
+			mslColorMask colorMask = state->blendState.blendAttachments[i].colorWriteMask;
+			glColorMaski(i, (colorMask & mslColorMask_Red) != 0,
+				(colorMask & mslColorMask_Green) != 0, (colorMask & mslColorMask_Blue) != 0,
+				(colorMask & mslColorMask_Alpha) != 0);
 		}
 	}
 
-	return true;
+	return success;
 }
 
 bool dsGLMainCommandBuffer_draw(dsCommandBuffer* commandBuffer, const dsDrawGeometry* geometry,
@@ -2117,8 +2022,7 @@ static CommandBufferFunctionTable functionTable =
 	&dsGLMainCommandBuffer_beginRenderPass,
 	&dsGLMainCommandBuffer_nextRenderSubpass,
 	&dsGLMainCommandBuffer_endRenderPass,
-	&dsGLMainCommandBuffer_clearColorSurface,
-	&dsGLMainCommandBuffer_clearDepthStencilSurface,
+	&dsGLMainCommandBuffer_clearAttachments,
 	&dsGLMainCommandBuffer_draw,
 	&dsGLMainCommandBuffer_drawIndexed,
 	&dsGLMainCommandBuffer_drawIndirect,
@@ -2156,9 +2060,6 @@ dsGLMainCommandBuffer* dsGLMainCommandBuffer_create(dsRenderer* renderer, dsAllo
 	commandBuffer->curFenceSyncs = 0;
 	commandBuffer->maxFenceSyncs = 0;
 	commandBuffer->bufferReadback = false;
-
-	memset(commandBuffer->tempRenderbuffers, 0, sizeof(commandBuffer->tempRenderbuffers));
-	commandBuffer->tempRenderbufferCounter = 0;
 
 	commandBuffer->curGeometry = NULL;
 	commandBuffer->curDrawIndirectBuffer = NULL;

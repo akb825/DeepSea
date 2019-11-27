@@ -1124,7 +1124,8 @@ static bool setup(TestText* testText, dsApplication* application, dsAllocator* a
 	uint32_t width = dsApplication_adjustWindowSize(application, 0, 800);
 	uint32_t height = dsApplication_adjustWindowSize(application, 0, 600);
 	testText->window = dsWindow_create(application, allocator, "Test Text", NULL,
-		NULL, width, height, dsWindowFlags_Resizeable | dsWindowFlags_DelaySurfaceCreate);
+		NULL, width, height, dsWindowFlags_Resizeable | dsWindowFlags_DelaySurfaceCreate,
+		dsRenderSurfaceUsage_Standard);
 	if (!testText->window)
 	{
 		DS_LOG_ERROR_F("TestText", "Couldn't create window: %s", dsErrorString(errno));

@@ -625,25 +625,15 @@ bool dsGLCommandBuffer_endRenderPass(dsCommandBuffer* commandBuffer, const dsRen
 	return functions->endRenderPassFunc(commandBuffer, renderPass);
 }
 
-bool dsGLCommandBuffer_clearColorSurface(dsRenderer* renderer,
-	dsCommandBuffer* commandBuffer, const dsFramebufferSurface* surface,
-	const dsSurfaceColorValue* colorValue)
+bool dsGLCommandBuffer_clearAttachments(dsRenderer* renderer,
+	dsCommandBuffer* commandBuffer, const dsClearAttachment* attachments, uint32_t attachmentCount,
+	const dsAttachmentClearRegion* regions, uint32_t regionCount)
 {
 	DS_UNUSED(renderer);
 	dsGLCommandBuffer* glCommandBuffer = (dsGLCommandBuffer*)commandBuffer;
 	const CommandBufferFunctionTable* functions = glCommandBuffer->functions;
-	return functions->clearColorSurfaceFunc(commandBuffer, surface, colorValue);
-}
-
-bool dsGLCommandBuffer_clearDepthStencilSurface(dsRenderer* renderer,
-	dsCommandBuffer* commandBuffer, const dsFramebufferSurface* surface,
-	dsClearDepthStencil surfaceParts, const dsDepthStencilValue* depthStencilValue)
-{
-	DS_UNUSED(renderer);
-	dsGLCommandBuffer* glCommandBuffer = (dsGLCommandBuffer*)commandBuffer;
-	const CommandBufferFunctionTable* functions = glCommandBuffer->functions;
-	return functions->clearDepthStencilSurfaceFunc(commandBuffer, surface, surfaceParts,
-		depthStencilValue);
+	return functions->clearAttachmentsFunc(commandBuffer, attachments, attachmentCount, regions,
+		regionCount);
 }
 
 bool dsGLCommandBuffer_draw(dsRenderer* renderer, dsCommandBuffer* commandBuffer,

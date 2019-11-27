@@ -405,125 +405,6 @@ bool dsMTLRenderer_setDefaultAnisotropy(dsRenderer* renderer, float anisotropy)
 	return true;
 }
 
-bool dsMTLRenderer_clearColorSurface(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
-	const dsFramebufferSurface* surface, const dsSurfaceColorValue* colorValue)
-{
-	@autoreleasepool
-	{
-		id<MTLTexture> texture = nil;
-		id<MTLTexture> resolveTexture = nil;
-		dsGfxFormat format;
-		switch (surface->surfaceType)
-		{
-			case dsGfxSurfaceType_ColorRenderSurface:
-			case dsGfxSurfaceType_ColorRenderSurfaceLeft:
-			case dsGfxSurfaceType_ColorRenderSurfaceRight:
-			{
-				dsMTLRenderSurface* renderSurface = (dsMTLRenderSurface*)surface->surface;
-				id<CAMetalDrawable> drawable =
-					(__bridge id<CAMetalDrawable>)renderSurface->drawable;
-				texture = drawable.texture;
-				if (renderSurface->resolveSurface)
-					resolveTexture = (__bridge id<MTLTexture>)renderSurface->resolveSurface;
-				format = renderer->surfaceColorFormat;
-				break;
-			}
-			case dsGfxSurfaceType_Offscreen:
-			{
-				const dsOffscreen* offscreen = (const dsOffscreen*)surface->surface;
-				const dsMTLTexture* mtlTexture = (const dsMTLTexture*)offscreen;
-				texture = (__bridge id<MTLTexture>)mtlTexture->mtlTexture;
-				if (mtlTexture->resolveTexture)
-					resolveTexture = (__bridge id<MTLTexture>)mtlTexture->resolveTexture;
-				format = offscreen->info.format;
-				break;
-			}
-			case dsGfxSurfaceType_Renderbuffer:
-			{
-				const dsRenderbuffer* renderbuffer = (const dsRenderbuffer*)surface->surface;
-				const dsMTLRenderbuffer* mtlRenderbuffer = (const dsMTLRenderbuffer*)renderbuffer;
-				texture = (__bridge id<MTLTexture>)mtlRenderbuffer->surface;
-				format = renderbuffer->format;
-				break;
-			}
-			default:
-				DS_ASSERT(false);
-				return false;
-		}
-
-		return dsMTLCommandBuffer_clearColorSurface(commandBuffer, texture, resolveTexture,
-			dsGetMTLClearColor(format, colorValue));
-	}
-}
-
-bool dsMTLRenderer_clearDepthStencilSurface(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
-	const dsFramebufferSurface* surface, dsClearDepthStencil surfaceParts,
-	const dsDepthStencilValue* depthStencilValue)
-{
-	@autoreleasepool
-	{
-		id<MTLTexture> depthTexture = nil;
-		id<MTLTexture> resolveDepthTexture = nil;
-		id<MTLTexture> stencilTexture = nil;
-		id<MTLTexture> resolveStencilTexture = nil;
-		dsGfxFormat format;
-		switch (surface->surfaceType)
-		{
-			case dsGfxSurfaceType_DepthRenderSurface:
-			case dsGfxSurfaceType_DepthRenderSurfaceLeft:
-			case dsGfxSurfaceType_DepthRenderSurfaceRight:
-			{
-				dsMTLRenderSurface* renderSurface = (dsMTLRenderSurface*)surface->surface;
-				depthTexture = (__bridge id<MTLTexture>)renderSurface->depthSurface;
-				stencilTexture = (__bridge id<MTLTexture>)renderSurface->stencilSurface;
-				format = renderer->surfaceColorFormat;
-				break;
-			}
-			case dsGfxSurfaceType_Offscreen:
-			{
-				const dsOffscreen* offscreen = (const dsOffscreen*)surface->surface;
-				const dsMTLTexture* mtlTexture = (const dsMTLTexture*)offscreen;
-				depthTexture = (__bridge id<MTLTexture>)mtlTexture->mtlTexture;
-				stencilTexture = (__bridge id<MTLTexture>)mtlTexture->stencilTexture;
-				if (mtlTexture->resolveTexture)
-					resolveDepthTexture = (__bridge id<MTLTexture>)mtlTexture->resolveTexture;
-				if (mtlTexture->resolveStencilTexture)
-				{
-					resolveStencilTexture =
-						(__bridge id<MTLTexture>)mtlTexture->resolveStencilTexture;
-				}
-				break;
-			}
-			case dsGfxSurfaceType_Renderbuffer:
-			{
-				const dsRenderbuffer* renderbuffer = (const dsRenderbuffer*)surface->surface;
-				const dsMTLRenderbuffer* mtlRenderbuffer = (const dsMTLRenderbuffer*)renderbuffer;
-				depthTexture = (__bridge id<MTLTexture>)mtlRenderbuffer->surface;
-				stencilTexture = (__bridge id<MTLTexture>)mtlRenderbuffer->stencilSurface;
-				break;
-			}
-			default:
-				DS_ASSERT(false);
-				return false;
-		}
-
-		if (surfaceParts == dsClearDepthStencil_Depth)
-		{
-			stencilTexture = nil;
-			resolveStencilTexture = nil;
-		}
-		else if (surfaceParts == dsClearDepthStencil_Stencil)
-		{
-			depthTexture = nil;
-			resolveDepthTexture = nil;
-		}
-
-		return dsMTLCommandBuffer_clearDepthStencilSurface(commandBuffer, depthTexture,
-			resolveDepthTexture, depthStencilValue->depth, stencilTexture, resolveStencilTexture,
-			depthStencilValue->stencil);
-	}
-}
-
 bool dsMTLRenderer_draw(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsDrawGeometry* geometry, const dsDrawRange* drawRange, dsPrimitiveType primitiveType)
 {
@@ -979,8 +860,7 @@ dsRenderer* dsMTLRenderer_create(dsAllocator* allocator, const dsRendererOptions
 		baseRenderer->setSurfaceSamplesFunc = &dsMTLRenderer_setSurfaceSamples;
 		baseRenderer->setVsyncFunc = &dsMTLRenderer_setVsync;
 		baseRenderer->setDefaultAnisotropyFunc = &dsMTLRenderer_setDefaultAnisotropy;
-		baseRenderer->clearColorSurfaceFunc = &dsMTLRenderer_clearColorSurface;
-		baseRenderer->clearDepthStencilSurfaceFunc = &dsMTLRenderer_clearDepthStencilSurface;
+		baseRenderer->clearAttachmentsFunc = &dsMTLCommandBuffer_clearAttachments;
 		baseRenderer->drawFunc = &dsMTLRenderer_draw;
 		baseRenderer->drawIndexedFunc = &dsMTLRenderer_drawIndexed;
 		baseRenderer->drawIndirectFunc = &dsMTLRenderer_drawIndirect;

@@ -66,10 +66,11 @@ TEST_F(RenderSurfaceTest, Roation)
 
 TEST_F(RenderSurfaceTest, Create)
 {
-	EXPECT_FALSE(dsRenderSurface_create(NULL, NULL, NULL, NULL, dsRenderSurfaceType_Direct, false));
+	EXPECT_FALSE(dsRenderSurface_create(NULL, NULL, NULL, NULL, dsRenderSurfaceType_Direct,
+		dsRenderSurfaceUsage_Standard));
 
 	dsRenderSurface* renderSurface = dsRenderSurface_create(renderer, NULL, "test", NULL,
-		dsRenderSurfaceType_Direct, false);
+		dsRenderSurfaceType_Direct, dsRenderSurfaceUsage_Standard);
 	ASSERT_TRUE(renderSurface);
 
 	EXPECT_TRUE(dsRenderSurface_destroy(renderSurface));
@@ -78,7 +79,7 @@ TEST_F(RenderSurfaceTest, Create)
 TEST_F(RenderSurfaceTest, Update)
 {
 	dsRenderSurface* renderSurface = dsRenderSurface_create(renderer, NULL, "test", NULL,
-		dsRenderSurfaceType_Direct, false);
+		dsRenderSurfaceType_Direct, dsRenderSurfaceUsage_Standard);
 	ASSERT_TRUE(renderSurface);
 
 	EXPECT_FALSE(dsRenderSurface_update(NULL));
@@ -102,7 +103,7 @@ TEST_F(RenderSurfaceTest, BeginEnd)
 	dsCommandBuffer* commandBuffer = renderer->mainCommandBuffer;
 
 	dsRenderSurface* renderSurface = dsRenderSurface_create(renderer, NULL, "test", NULL,
-		dsRenderSurfaceType_Direct, false);
+		dsRenderSurfaceType_Direct, dsRenderSurfaceUsage_Standard);
 	ASSERT_TRUE(renderSurface);
 
 	EXPECT_FALSE(dsRenderSurface_beginDraw(renderSurface, NULL));
@@ -121,7 +122,7 @@ TEST_F(RenderSurfaceTest, BeginEnd)
 TEST_F(RenderSurfaceTest, SwapBuffers)
 {
 	dsRenderSurface* renderSurface = dsRenderSurface_create(renderer, NULL, "test", NULL,
-		dsRenderSurfaceType_Direct, false);
+		dsRenderSurfaceType_Direct, dsRenderSurfaceUsage_Standard);
 	ASSERT_TRUE(renderSurface);
 
 	EXPECT_TRUE(dsRenderSurface_swapBuffers(NULL, 0));

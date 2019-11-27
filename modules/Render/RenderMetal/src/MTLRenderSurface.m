@@ -313,9 +313,8 @@ static bool createExtraSurfaces(dsRenderer* renderer, dsRenderSurface* renderSur
 }
 
 dsRenderSurface* dsMTLRenderSurface_create(dsRenderer* renderer, dsAllocator* allocator,
-	const char* name, void* osHandle, dsRenderSurfaceType type, bool clientRotations)
+	const char* name, void* osHandle, dsRenderSurfaceType type, dsRenderSurfaceUsage usage)
 {
-	DS_UNUSED(clientRotations);
 	@autoreleasepool
 	{
 		dsMTLRenderer* mtlRenderer = (dsMTLRenderer*)renderer;
@@ -405,6 +404,7 @@ dsRenderSurface* dsMTLRenderSurface_create(dsRenderer* renderer, dsAllocator* al
 		DS_ASSERT(baseRenderSurface->name);
 		memcpy((void*)baseRenderSurface->name, name, nameLen);
 		baseRenderSurface->surfaceType = type;
+		baseRenderSurface->usage = usage;
 
 		CGSize size = layer.drawableSize;
 		baseRenderSurface->width = (uint32_t)size.width;

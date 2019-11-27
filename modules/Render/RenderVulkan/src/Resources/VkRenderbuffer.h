@@ -24,10 +24,4 @@ dsRenderbuffer* dsVkRenderbuffer_create(dsResourceManager* resourceManager, dsAl
 	uint32_t samples);
 bool dsVkRenderbuffer_destroy(dsResourceManager* resourceManager, dsRenderbuffer* renderbuffer);
 
-bool dsVkRenderbuffer_clearColor(dsRenderbuffer* renderbuffer, dsCommandBuffer* commandBuffer,
-	const dsSurfaceColorValue* colorValue);
-bool dsVkRenderbuffer_clearDepthStencil(dsRenderbuffer* renderbuffer,
-	dsCommandBuffer* commandBuffer, dsClearDepthStencil surfaceParts,
-	const dsDepthStencilValue* depthStencilValue);
-
 void dsVkRenderbuffer_destroyImpl(dsRenderbuffer* renderbuffer);

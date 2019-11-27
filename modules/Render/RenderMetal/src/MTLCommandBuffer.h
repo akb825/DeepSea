@@ -75,12 +75,9 @@ bool dsMTLCommandBuffer_beginRenderPass(dsCommandBuffer* commandBuffer,
 	MTLRenderPassDescriptor* renderPass, const dsAlignedBox3f* viewport);
 bool dsMTLCommandBuffer_endRenderPass(dsCommandBuffer* commandBuffer);
 
-bool dsMTLCommandBuffer_clearColorSurface(dsCommandBuffer* commandBuffer, id<MTLTexture> texture,
-	id<MTLTexture> resolveTexture, MTLClearColor clearColor);
-bool dsMTLCommandBuffer_clearDepthStencilSurface(dsCommandBuffer* commandBuffer,
-	id<MTLTexture> depthTexture, id<MTLTexture> resolveDepthTexture, float depthValue,
-	id<MTLTexture> stencilTexture, id<MTLTexture> resolveStencilTexture, uint32_t stencilValue);
-
+bool dsMTLCommandBuffer_clearAttachments(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	const dsClearAttachment* attachments, uint32_t attachmentCount,
+	const dsAttachmentClearRegion* regions, uint32_t regionCount);
 bool dsMTLCommandBuffer_draw(dsCommandBuffer* commandBuffer, id<MTLRenderPipelineState> pipeline,
 	const dsDrawRange* drawRange, dsPrimitiveType primitiveType);
 bool dsMTLCommandBuffer_drawIndexed(dsCommandBuffer* commandBuffer,

@@ -272,12 +272,9 @@ typedef bool (*BeginRenderPassFunction)(dsCommandBuffer* commandBuffer,
 	MTLRenderPassDescriptor* renderPass, const dsAlignedBox3f* viewport);
 typedef bool (*EndRenderPassFunction)(dsCommandBuffer* commandBuffer);
 
-typedef bool (*ClearColorSurfaceFunction)(dsCommandBuffer* commandBuffer, id<MTLTexture> texture,
-	id<MTLTexture> resolveTexture, MTLClearColor clearColor);
-typedef bool (*ClearDepthStencilSurfaceFunction)(dsCommandBuffer* commandBuffer,
-	id<MTLTexture> depthTexture, id<MTLTexture> resolveDepthTexture, float depthValue,
-	id<MTLTexture> stencilTexture, id<MTLTexture> resolveStencilTexture, uint32_t stenciLValue);
-
+typedef bool (*ClearAttachmentsFunction)(dsCommandBuffer* commandBuffer,
+	const dsClearAttachment* attachments, uint32_t attachmentCount,
+	const dsAttachmentClearRegion* regions, uint32_t regionCount);
 typedef bool (*DrawFunction)(dsCommandBuffer* commandBuffer, id<MTLRenderPipelineState> pipeline,
 	const dsDrawRange* drawRange, dsPrimitiveType primitiveType);
 typedef bool (*DrawIndexedFunction)(dsCommandBuffer* commandBuffer,
@@ -329,9 +326,7 @@ typedef struct dsMTLCommandBufferFunctionTable
 	BeginRenderPassFunction beginRenderPassFunc;
 	EndRenderPassFunction endRenderPassFunc;
 
-	ClearColorSurfaceFunction clearColorSurfaceFunc;
-	ClearDepthStencilSurfaceFunction clearDepthStencilSurfaceFunc;
-
+	ClearAttachmentsFunction clearAttachmentsFunc;
 	DrawFunction drawFunc;
 	DrawIndexedFunction drawIndexedFunc;
 	DrawIndirectFunction drawIndirectFunc;

@@ -69,6 +69,21 @@ static bool getBlitSurfaceInfo(dsGfxFormat* outFormat, dsTextureDim* outDim, uin
 			*outLayers = 1;
 			*outMipLevels = 1;
 
+			if (read && !(realSurface->usage & dsRenderSurfaceUsage_BlitColorFrom))
+			{
+				errno = EPERM;
+				DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Attempting to blit from a render surface without "
+					"the blit from color usage flag set.");
+				return false;
+			}
+			else if (!read && !(realSurface->usage & dsRenderSurfaceUsage_BlitColorTo))
+			{
+				errno = EPERM;
+				DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Attempting to blit to a render surface without "
+					"the blit color to usage flag set.");
+				return false;
+			}
+
 			if (renderer->surfaceSamples > 1)
 			{
 				errno = EPERM;
@@ -97,6 +112,21 @@ static bool getBlitSurfaceInfo(dsGfxFormat* outFormat, dsTextureDim* outDim, uin
 			*outHeight = realSurface->height;
 			*outLayers = 1;
 			*outMipLevels = 1;
+
+			if (read && !(realSurface->usage & dsRenderSurfaceUsage_BlitDepthStencilFrom))
+			{
+				errno = EPERM;
+				DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Attempting to blit from a render surface without "
+					"the blit from depth/stencil usage flag set.");
+				return false;
+			}
+			else if (!read && !(realSurface->usage & dsRenderSurfaceUsage_BlitDepthStencilTo))
+			{
+				errno = EPERM;
+				DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Attempting to blit to a render surface without "
+					"the blit depth/stencil to usage flag set.");
+				return false;
+			}
 
 			if (renderer->surfaceSamples > 1)
 			{
@@ -169,7 +199,7 @@ static bool getBlitSurfaceInfo(dsGfxFormat* outFormat, dsTextureDim* outDim, uin
 			{
 				errno = EPERM;
 				DS_LOG_ERROR(DS_RENDER_LOG_TAG,
-					"Attempting to blit to a texture without the blit to usage flag set.");
+					"Attempting to blit to a renderbuffer without the blit to usage flag set.");
 				return false;
 			}
 
@@ -629,219 +659,81 @@ bool dsRenderer_setDefaultAnisotropy(dsRenderer* renderer, float anisotropy)
 	return success;
 }
 
-bool dsRenderer_clearColorSurface(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
-	const dsFramebufferSurface* surface, const dsSurfaceColorValue* colorValue)
+bool dsRenderer_clearAttachments(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	const dsClearAttachment* attachments, uint32_t attachmentCount,
+	const dsAttachmentClearRegion* regions, uint32_t regionCount)
 {
 	DS_PROFILE_FUNC_START();
 
-	if (!renderer || !renderer->clearColorSurfaceFunc || !commandBuffer || !surface ||
-		!surface->surface || !colorValue)
+	if (!renderer || !renderer->clearAttachmentsFunc || !commandBuffer ||
+		(!attachments && attachmentCount > 0) || (!regions && regionCount > 0))
 	{
 		errno = EINVAL;
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	bool valid;
-	switch (surface->surfaceType)
-	{
-		case dsGfxSurfaceType_ColorRenderSurface:
-		case dsGfxSurfaceType_ColorRenderSurfaceLeft:
-		case dsGfxSurfaceType_ColorRenderSurfaceRight:
-			valid = true;
-			break;
-		case dsGfxSurfaceType_DepthRenderSurface:
-		case dsGfxSurfaceType_DepthRenderSurfaceLeft:
-		case dsGfxSurfaceType_DepthRenderSurfaceRight:
-			valid = false;
-			break;
-		case dsGfxSurfaceType_Offscreen:
-		{
-			dsOffscreen* offscreen = (dsOffscreen*)surface->surface;
-			if (!offscreen->offscreen)
-			{
-				errno = EINVAL;
-				DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Attempting to clear a non-offscreen texture.");
-				DS_PROFILE_FUNC_RETURN(false);
-			}
-
-			uint32_t surfaceLayers = dsMax(1U, offscreen->info.depth);
-			if (offscreen->info.dimension == dsTextureDim_Cube)
-				surfaceLayers *= 6;
-
-			if (surface->mipLevel >= offscreen->info.mipLevels)
-			{
-				errno = EINDEX;
-				DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Mip level out of range for offscreen.");
-				DS_PROFILE_FUNC_RETURN(false);
-			}
-
-			if (surface->layer >= surfaceLayers)
-			{
-				errno = EINDEX;
-				DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Texture layer out of range for offscreen.");
-				DS_PROFILE_FUNC_RETURN(false);
-			}
-
-			if (!(offscreen->usage & dsTextureUsage_CopyTo))
-			{
-				errno = EINVAL;
-				DS_LOG_ERROR(DS_RENDER_LOG_TAG,
-					"Clearing offscreens require the dsTextureUsage_CopyTo usage flag to be set.");
-				DS_PROFILE_FUNC_RETURN(false);
-			}
-
-			valid = !dsGfxFormat_isDepthStencil(offscreen->info.format);
-			break;
-		}
-		case dsGfxSurfaceType_Renderbuffer:
-		{
-			dsRenderbuffer* renderbuffer = (dsRenderbuffer*)surface->surface;
-			if (!(renderbuffer->usage & dsRenderbufferUsage_Clear))
-			{
-				errno = EINVAL;
-				DS_LOG_ERROR(DS_RENDER_LOG_TAG,
-					"Attempting to clear a renderbuffer without the clear usage flag set.");
-				DS_PROFILE_FUNC_RETURN(false);
-			}
-
-			valid = !dsGfxFormat_isDepthStencil(((dsRenderbuffer*)surface->surface)->format);
-			break;
-		}
-		default:
-			DS_ASSERT(false);
-			valid = false;
-			break;
-	}
-
-	if (!valid)
-	{
-		errno = EINVAL;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Cannot clear a depth-stencil surface as a color surface.");
-		DS_PROFILE_FUNC_RETURN(false);
-	}
-
-	if (!commandBuffer->frameActive)
+	if (!commandBuffer->boundRenderPass)
 	{
 		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Clearing must be performed inside of a frame.");
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Clearing attachments must be performed inside of a render pass.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	if (commandBuffer->boundRenderPass)
+	if (attachmentCount == 0 || regionCount == 0)
+		DS_PROFILE_FUNC_RETURN(true);
+
+	const dsRenderSubpassInfo* subpass = commandBuffer->boundRenderPass->subpasses +
+		commandBuffer->activeRenderSubpass;
+	for (uint32_t i = 0; i < attachmentCount; ++i)
 	{
-		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Clearing must be performed outside of a render pass.");
-		DS_PROFILE_FUNC_RETURN(false);
-	}
-
-	bool success = renderer->clearColorSurfaceFunc(renderer, commandBuffer, surface, colorValue);
-	DS_PROFILE_FUNC_RETURN(success);
-}
-
-bool dsRenderer_clearDepthStencilSurface(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
-	const dsFramebufferSurface* surface, dsClearDepthStencil surfaceParts,
-	const dsDepthStencilValue* depthStencilValue)
-{
-	DS_PROFILE_FUNC_START();
-
-	if (!renderer || !renderer->clearDepthStencilSurfaceFunc || !commandBuffer || !surface ||
-		!surface->surface || !depthStencilValue)
-	{
-		errno = EINVAL;
-		DS_PROFILE_FUNC_RETURN(false);
-	}
-
-	bool valid;
-	switch (surface->surfaceType)
-	{
-		case dsGfxSurfaceType_ColorRenderSurface:
-			valid = false;
-			break;
-		case dsGfxSurfaceType_DepthRenderSurface:
-			valid = true;
-			break;
-		case dsGfxSurfaceType_Offscreen:
+		const dsClearAttachment* attachment = attachments + i;
+		if (attachment->colorAttachment == DS_NO_ATTACHMENT)
 		{
-			dsOffscreen* offscreen = (dsOffscreen*)surface->surface;
-			if (!offscreen->offscreen)
+			if (subpass->depthStencilAttachment.attachmentIndex == DS_NO_ATTACHMENT)
 			{
-				errno = EINVAL;
-				DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Attempting to clear a non-offscreen texture.");
+				errno = EPERM;
+				DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Attempting to clear the depth/stencil value when "
+					"there is no depth/stencil attachment.");
 				DS_PROFILE_FUNC_RETURN(false);
 			}
-
-			uint32_t surfaceLayers = dsMax(1U, offscreen->info.depth);
-			if (offscreen->info.dimension == dsTextureDim_Cube)
-				surfaceLayers *= 6;
-
-			if (surface->mipLevel >= offscreen->info.mipLevels)
-			{
-				errno = EINDEX;
-				DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Mip level out of range for offscreen.");
-				DS_PROFILE_FUNC_RETURN(false);
-			}
-
-			if (surface->layer >= surfaceLayers)
-			{
-				errno = EINDEX;
-				DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Texture layer out of range for offscreen.");
-				DS_PROFILE_FUNC_RETURN(false);
-			}
-
-			if (!(offscreen->usage & dsTextureUsage_CopyTo))
-			{
-				errno = EINVAL;
-				DS_LOG_ERROR(DS_RENDER_LOG_TAG,
-					"Clearing offscreens require the dsTextureUsage_CopyTo usage flag to be set.");
-				DS_PROFILE_FUNC_RETURN(false);
-			}
-
-			valid = dsGfxFormat_isDepthStencil(offscreen->info.format);
-			break;
 		}
-		case dsGfxSurfaceType_Renderbuffer:
+		else
 		{
-			dsRenderbuffer* renderbuffer = (dsRenderbuffer*)surface->surface;
-			if (!(renderbuffer->usage & dsRenderbufferUsage_Clear))
+			if (attachment->colorAttachment >= subpass->colorAttachmentCount)
 			{
-				errno = EINVAL;
+				errno = EPERM;
 				DS_LOG_ERROR(DS_RENDER_LOG_TAG,
-					"Attempting to clear a renderbuffer without the clear usage flag set.");
+					"Attempting to clear a color attachment out of range.");
 				DS_PROFILE_FUNC_RETURN(false);
 			}
-
-			valid = dsGfxFormat_isDepthStencil(((dsRenderbuffer*)surface->surface)->format);
-			break;
+			else if (subpass->colorAttachments[attachment->colorAttachment].attachmentIndex ==
+					DS_NO_ATTACHMENT)
+			{
+				errno = EPERM;
+				DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Attempting to clear an unset color attachment.");
+				DS_PROFILE_FUNC_RETURN(false);
+			}
 		}
-		default:
-			DS_ASSERT(false);
-			valid = false;
-			break;
 	}
 
-	if (!valid)
+	const dsFramebuffer* framebuffer = commandBuffer->boundFramebuffer;
+	for (uint32_t i = 0; i < regionCount; ++i)
 	{
-		errno = EINVAL;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Cannot clear a color surface as a depth-stencil surface.");
-		DS_PROFILE_FUNC_RETURN(false);
+		const dsAttachmentClearRegion* region = regions + i;
+		if (region->x + region->width > framebuffer->width ||
+			region->y + region->height > framebuffer->height ||
+			region->layer + region->layerCount > framebuffer->layers)
+		{
+			errno = EPERM;
+			DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+				"Attempting to clear outside the range of the framebuffer.");
+			DS_PROFILE_FUNC_RETURN(false);
+		}
 	}
 
-	if (!commandBuffer->frameActive)
-	{
-		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Clearing must be performed inside of a frame.");
-		DS_PROFILE_FUNC_RETURN(false);
-	}
-
-	if (commandBuffer->boundRenderPass)
-	{
-		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Clearing must be performed outside of a render pass.");
-		DS_PROFILE_FUNC_RETURN(false);
-	}
-
-	bool success = renderer->clearDepthStencilSurfaceFunc(renderer, commandBuffer, surface,
-		surfaceParts, depthStencilValue);
+	bool success = renderer->clearAttachmentsFunc(renderer, commandBuffer, attachments,
+		attachmentCount, regions, regionCount);
 	DS_PROFILE_FUNC_RETURN(success);
 }
 

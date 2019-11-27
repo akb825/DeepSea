@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2019 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,14 +59,12 @@ DS_RENDER_EXPORT bool dsRenderSurface_makeRotationMatrix(dsMatrix44f* result,
  * @param osHandle The handle to the OS surface, such as the window handle. In the case of a
  *     macOS/iOS, it will actually be a view or Metal layer.
  * @param type The render surface type.
- * @param clientRotations True to perform rotations client-side. This may increase performance in
- *     cases like phones and tablets that allow screen rotation. If false, the rotation of the
- *     render surface will always be 0 degrees.
+ * @param usage Flags to determine how the render surface will be used.
  * @return The created renderbuffer, or NULL if it couldn't be created.
  */
 DS_RENDER_EXPORT dsRenderSurface* dsRenderSurface_create(dsRenderer* renderer,
 	dsAllocator* allocator, const char* name, void* osHandle, dsRenderSurfaceType type,
-	bool clientRotations);
+	dsRenderSurfaceUsage usage);
 
 /**
  * @brief Updates a render surface.

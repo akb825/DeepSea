@@ -314,8 +314,8 @@ static bool setup(TestCube* testCube, dsApplication* application, dsAllocator* a
 	uint32_t width = dsApplication_adjustWindowSize(application, 0, 800);
 	uint32_t height = dsApplication_adjustWindowSize(application, 0, 600);
 	testCube->window = dsWindow_create(application, allocator, "Test Cube", NULL,
-		NULL, width, height, dsWindowFlags_Resizeable | dsWindowFlags_DelaySurfaceCreate |
-		dsWindowFlags_ClientRotations);
+		NULL, width, height, dsWindowFlags_Resizeable | dsWindowFlags_DelaySurfaceCreate,
+		dsRenderSurfaceUsage_ClientRotations);
 	if (!testCube->window)
 	{
 		DS_LOG_ERROR_F("TestCube", "Couldn't create window: %s", dsErrorString(errno));

@@ -44,7 +44,7 @@ TEST_F(FramebufferTest, Create)
 	ASSERT_TRUE(depthBuffer);
 
 	dsRenderSurface* renderSurface = dsRenderSurface_create(renderer, NULL, "test", NULL,
-		dsRenderSurfaceType_Direct, false);
+		dsRenderSurfaceType_Direct, dsRenderSurfaceUsage_Standard);
 	ASSERT_TRUE(renderSurface);
 
 	dsFramebufferSurface surfaces[] =
@@ -163,7 +163,7 @@ TEST_F(FramebufferTest, NoColorSurface)
 TEST_F(FramebufferTest, Stereoscopic)
 {
 	dsRenderSurface* renderSurface = dsRenderSurface_create(renderer, NULL, "test", NULL,
-		dsRenderSurfaceType_Direct, false);
+		dsRenderSurfaceType_Direct, dsRenderSurfaceUsage_Standard);
 	ASSERT_TRUE(renderSurface);
 
 	dsFramebufferSurface surfaces[] =
