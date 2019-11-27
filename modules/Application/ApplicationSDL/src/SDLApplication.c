@@ -401,8 +401,6 @@ int dsSDLApplication_run(dsApplication* application)
 				window->surface->height != oldHeight ||
 				window->surface->rotation != oldRotation)
 			{
-				dsRenderSurface_update(window->surface);
-
 				sdlWindow->curWidth = newWidth;
 				sdlWindow->curHeight = newHeight;
 

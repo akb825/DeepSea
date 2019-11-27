@@ -395,6 +395,11 @@ struct dsView
 	uint32_t height;
 
 	/**
+	 * @brief The rotation of the window surface.
+	 */
+	dsRenderSurfaceRotation rotation;
+
+	/**
 	 * @brief The camera matrix, transforming from camera to world.
 	 */
 	dsMatrix44f cameraMatrix;

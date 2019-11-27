@@ -60,9 +60,11 @@ DS_SCENE_EXPORT dsView* dsView_create(const dsScene* scene, dsAllocator* allocat
  * @param view The view.
  * @param width The width of the view.
  * @param height The height of the view.
+ * @param rotation The rotation of the window surface.
  * @return False if parameters are invalid.
  */
-DS_SCENE_EXPORT bool dsView_setDimensions(dsView* view, uint32_t width, uint32_t height);
+DS_SCENE_EXPORT bool dsView_setDimensions(dsView* view, uint32_t width, uint32_t height,
+	dsRenderSurfaceRotation rotation);
 
 /**
  * @brief Gets a surface used within the view.

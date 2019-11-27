@@ -215,7 +215,7 @@ static bool processEvent(dsApplication* application, dsWindow* window, const dsE
 			// Fall through
 		case dsEventType_WindowResized:
 			DS_VERIFY(dsView_setDimensions(testScene->view, testScene->window->surface->width,
-				testScene->window->surface->height));
+				testScene->window->surface->height, testScene->window->surface->rotation));
 			updateProjectionMatrix(testScene->view, testScene->window->surface);
 			// Need to update the view again if the surfaces have been set.
 			if (event->type == dsEventType_SurfaceInvalidated)

@@ -417,7 +417,8 @@ dsView* dsView_create(const dsScene* scene, dsAllocator* allocator,
 	return view;
 }
 
-bool dsView_setDimensions(dsView* view, uint32_t width, uint32_t height)
+bool dsView_setDimensions(dsView* view, uint32_t width, uint32_t height,
+	dsRenderSurfaceRotation rotation)
 {
 	if (!view || width == 0 || height == 0)
 	{
@@ -425,12 +426,13 @@ bool dsView_setDimensions(dsView* view, uint32_t width, uint32_t height)
 		return false;
 	}
 
-	if (view->width == width && view->height == height)
+	if (view->width == width && view->height == height && view->rotation == rotation)
 		return true;
 
 	dsViewPrivate* privateView = (dsViewPrivate*)view;
 	view->width = width;
 	view->height = height;
+	view->rotation = rotation;
 	privateView->sizeUpdated = true;
 	return true;
 }
