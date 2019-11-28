@@ -1441,6 +1441,30 @@ bool dsVkRenderer_setDefaultAnisotropy(dsRenderer* renderer, float anisotropy)
 	return true;
 }
 
+bool dsVKRenderer_setViewport(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	const dsAlignedBox3f* viewport)
+{
+	dsVkDevice* device = &((dsVkRenderer*)renderer)->device;
+	VkCommandBuffer submitBuffer = dsVkCommandBuffer_getCommandBuffer(commandBuffer);
+	if (!submitBuffer)
+		return false;
+
+	const dsFramebuffer* framebuffer = commandBuffer->boundFramebuffer;
+	DS_ASSERT(framebuffer);
+	VkViewport vkViewport;
+	dsConvertVkViewport(&vkViewport, viewport, framebuffer->width, framebuffer->height);
+
+	VkRect2D renderArea =
+	{
+		{(int32_t)floorf(vkViewport.x), (int32_t)vkViewport.y},
+		{(uint32_t)ceilf(vkViewport.width), (uint32_t)ceilf(vkViewport.height)}
+	};
+
+	DS_VK_CALL(device->vkCmdSetViewport)(submitBuffer, 0, 1, &vkViewport);
+	DS_VK_CALL(device->vkCmdSetScissor)(submitBuffer, 0, 1, &renderArea);
+	return true;
+}
+
 bool dsVkRenderer_clearAttachments(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsClearAttachment* attachments, uint32_t attachmentCount,
 	const dsAttachmentClearRegion* regions, uint32_t regionCount)

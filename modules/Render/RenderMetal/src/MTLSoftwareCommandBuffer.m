@@ -47,6 +47,7 @@ typedef enum CommandType
 	CommandType_BindComputeTextureUniform,
 	CommandType_BeginRenderPass,
 	CommandType_EndRenderPass,
+	CommandType_SetViewport,
 	CommandType_ClearAttachments,
 	CommandType_Draw,
 	CommandType_DrawIndexed,
@@ -199,6 +200,13 @@ typedef struct BeginRenderPassCommand
 	CFTypeRef renderPass;
 	dsAlignedBox3f viewport;
 } BeginRenderPassCommand;
+
+typedef struct SetViewportCommand
+{
+	Command command;
+	dsAlignedBox3f viewport;
+	bool defaultViewport;
+} SetViewportCommand;
 
 typedef struct ClearAttachmentsCommand
 {
@@ -431,6 +439,8 @@ void dsMTLSoftwareCommandBuffer_clear(dsCommandBuffer* commandBuffer)
 			}
 			case CommandType_EndRenderPass:
 				break;
+			case CommandType_SetViewport:
+				break;
 			case CommandType_ClearAttachments:
 				break;
 			case CommandType_Draw:
@@ -644,6 +654,13 @@ bool dsMTLSoftwareCommandBuffer_submit(dsCommandBuffer* commandBuffer,
 			case CommandType_EndRenderPass:
 			{
 				result = dsMTLCommandBuffer_endRenderPass(commandBuffer);
+				break;
+			}
+			case CommandType_SetViewport:
+			{
+				SetViewportCommand* thisCommand = (SetViewportCommand*)command;
+				dsMTLCommandBuffer_setViewport(commandBuffer->renderer, commandBuffer,
+					thisCommand->defaultViewport ? NULL : &thisCommand->viewport);
 				break;
 			}
 			case CommandType_ClearAttachments:
@@ -989,6 +1006,24 @@ bool dsMTLSoftwareCommandBuffer_endRenderPass(dsCommandBuffer* commandBuffer)
 	return allocateCommand(commandBuffer, CommandType_EndRenderPass, sizeof(Command)) != NULL;
 }
 
+bool dsMTLSoftwareCommandBuffer_setViewport(dsCommandBuffer* commandBuffer,
+	const dsAlignedBox3f* viewport)
+{
+	SetViewportCommand* command = (SetViewportCommand*)allocateCommand(commandBuffer,
+		CommandType_SetViewport, sizeof(SetViewportCommand));
+	if (!command)
+		return false;
+
+	if (viewport)
+	{
+		command->viewport = *viewport;
+		command->defaultViewport = false;
+	}
+	else
+		command->defaultViewport = true;
+	return true;
+}
+
 bool dsMTLSoftwareCommandBuffer_clearAttachments(dsCommandBuffer* commandBuffer,
 	const dsClearAttachment* attachments, uint32_t attachmentCount,
 	const dsAttachmentClearRegion* regions, uint32_t regionCount)
@@ -1171,6 +1206,7 @@ static dsMTLCommandBufferFunctionTable softwareCommandBufferFunctions =
 	&dsMTLSoftwareCommandBuffer_bindComputeTextureUniform,
 	&dsMTLSoftwareCommandBuffer_beginRenderPass,
 	&dsMTLSoftwareCommandBuffer_endRenderPass,
+	&dsMTLSoftwareCommandBuffer_setViewport,
 	&dsMTLSoftwareCommandBuffer_clearAttachments,
 	&dsMTLSoftwareCommandBuffer_draw,
 	&dsMTLSoftwareCommandBuffer_drawIndexed,

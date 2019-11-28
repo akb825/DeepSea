@@ -1530,6 +1530,17 @@ typedef bool (*dsSetRenderVsyncFunction)(dsRenderer* renderer, bool vsync);
 typedef bool (*dsSetRenderDefaultAnisotropyFunction)(dsRenderer* renderer, float anisotropy);
 
 /**
+ * @brief Function for setting the viewport.
+ * @param renderer The renderer.
+ * @param renderer The renderer.
+ * @param commandBuffer The command buffer to place the command on.
+ * @param viewport The viewport to draw to.
+ * @return False if the viewport couldn't be set.
+ */
+typedef bool (*dsRenderSetViewportFunction)(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	const dsAlignedBox3f* viewport);
+
+/**
  * @brief Function for clearing attachments.
  * @param renderer The renderer.
  * @param commandBuffer The command buffer to place the clear command on.
@@ -2088,6 +2099,11 @@ struct dsRenderer
 	 * @brief Default anisotropy set function.
 	 */
 	dsSetRenderDefaultAnisotropyFunction setDefaultAnisotropyFunc;
+
+	/**
+	 * @brief Viewport set function.
+	 */
+	dsRenderSetViewportFunction setViewportFunc;
 
 	/**
 	 * @brief Attachment clear function.

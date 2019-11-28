@@ -162,6 +162,18 @@ bool dsMockRenderer_drawIndexedIndirect(dsRenderer* renderer, dsCommandBuffer* c
 	return true;
 }
 
+bool dsMockRenderer_setViewport(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	const dsAlignedBox3f* viewport)
+{
+	DS_UNUSED(renderer);
+	DS_ASSERT(renderer);
+	DS_UNUSED(commandBuffer);
+	DS_ASSERT(commandBuffer);
+	DS_UNUSED(viewport);
+
+	return true;
+}
+
 bool dsMockRenderer_clearAttachments(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsClearAttachment* attachments, uint32_t attachmentCount,
 	const dsAttachmentClearRegion* regions, uint32_t regionCount)
@@ -451,6 +463,7 @@ dsRenderer* dsMockRenderer_create(dsAllocator* allocator)
 	renderer->setSurfaceSamplesFunc = &dsMockRenderer_setSurfaceSamples;
 	renderer->setVsyncFunc = &dsMockRenderer_setVsync;
 	renderer->setDefaultAnisotropyFunc = &dsMockRenderer_setDefaultAnisotropy;
+	renderer->setViewportFunc = &dsMockRenderer_setViewport;
 	renderer->drawFunc = &dsMockRenderer_draw;
 	renderer->drawIndexedFunc = &dsMockRenderer_drawIndexed;
 	renderer->drawIndirectFunc = &dsMockRenderer_drawIndirect;

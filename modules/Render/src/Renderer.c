@@ -659,6 +659,29 @@ bool dsRenderer_setDefaultAnisotropy(dsRenderer* renderer, float anisotropy)
 	return success;
 }
 
+bool dsRenderer_setViewport(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	const dsAlignedBox3f* viewport)
+{
+	DS_PROFILE_FUNC_START();
+
+	if (!renderer || !renderer->setViewportFunc || !commandBuffer)
+	{
+		errno = EINVAL;
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	if (!commandBuffer->boundRenderPass)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Setting the viewport must be performed inside of a render pass.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	bool success = renderer->setViewportFunc(renderer, commandBuffer, viewport);
+	DS_PROFILE_FUNC_RETURN(success);
+}
+
 bool dsRenderer_clearAttachments(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsClearAttachment* attachments, uint32_t attachmentCount,
 	const dsAttachmentClearRegion* regions, uint32_t regionCount)

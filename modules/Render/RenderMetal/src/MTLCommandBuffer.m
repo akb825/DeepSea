@@ -316,6 +316,15 @@ bool dsMTLCommandBuffer_endRenderPass(dsCommandBuffer* commandBuffer)
 	return functions->endRenderPassFunc(commandBuffer);
 }
 
+bool dsMTLCommandBuffer_setViewport(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	const dsAlignedBox3f* viewport)
+{
+	DS_UNUSED(renderer);
+	const dsMTLCommandBufferFunctionTable* functions =
+		((dsMTLCommandBuffer*)commandBuffer)->functions;
+	return functions->setViewportFunc(commandBuffer, viewport);
+}
+
 bool dsMTLCommandBuffer_clearAttachments(dsRenderer* renderer,
 	dsCommandBuffer* commandBuffer, const dsClearAttachment* attachments, uint32_t attachmentCount,
 	const dsAttachmentClearRegion* regions, uint32_t regionCount)

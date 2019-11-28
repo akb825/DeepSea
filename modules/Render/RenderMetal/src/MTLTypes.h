@@ -272,6 +272,8 @@ typedef bool (*BeginRenderPassFunction)(dsCommandBuffer* commandBuffer,
 	MTLRenderPassDescriptor* renderPass, const dsAlignedBox3f* viewport);
 typedef bool (*EndRenderPassFunction)(dsCommandBuffer* commandBuffer);
 
+typedef bool (*SetViewportFunction)(dsCommandBuffer* commandBuffer,
+	const dsAlignedBox3f* viewport);
 typedef bool (*ClearAttachmentsFunction)(dsCommandBuffer* commandBuffer,
 	const dsClearAttachment* attachments, uint32_t attachmentCount,
 	const dsAttachmentClearRegion* regions, uint32_t regionCount);
@@ -326,6 +328,7 @@ typedef struct dsMTLCommandBufferFunctionTable
 	BeginRenderPassFunction beginRenderPassFunc;
 	EndRenderPassFunction endRenderPassFunc;
 
+	SetViewportFunction setViewportFunc;
 	ClearAttachmentsFunction clearAttachmentsFunc;
 	DrawFunction drawFunc;
 	DrawIndexedFunction drawIndexedFunc;

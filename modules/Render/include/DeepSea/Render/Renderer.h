@@ -226,13 +226,29 @@ DS_RENDER_EXPORT bool dsRenderer_setVsync(dsRenderer* renderer, bool vsync);
 /**
  * @brief Sets the default anisotropy for anisotropic filtering.
  * @remark This shouldn't be changed in the middle of drawing. Ideally it should be set between
- * frames.
+ *     frames.
  * @remark errno will be set on failure.
  * @param renderer The renderer.
  * @param anisotropy The default anisotropy.
  * @return False if the anisotropy couldn't be set.
  */
 DS_RENDER_EXPORT bool dsRenderer_setDefaultAnisotropy(dsRenderer* renderer, float anisotropy);
+
+/**
+ * @brief Sets the viewport.
+ *
+ * Use this function if you need to change the viewport in the middle of a render pass.
+ *
+ * @remark This must be called inside of a render pass.
+ * @remark errno will be set on failure.
+ * @param renderer The renderer.
+ * @param commandBuffer The command buffer to place the command on.
+ * @param viewport The viewport to draw to. The x/y values are in pixel space, while the z value is
+ *     in the range [0, 1]. If NULL, the full range is used.
+ * @return False if the viewport couldn't be set.
+ */
+DS_RENDER_EXPORT bool dsRenderer_setViewport(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	const dsAlignedBox3f* viewport);
 
 /**
  * @brief Clears attachments within a render pass.
@@ -244,7 +260,7 @@ DS_RENDER_EXPORT bool dsRenderer_setDefaultAnisotropy(dsRenderer* renderer, floa
  * @param attachmentCount The number of attachments to clear.
  * @param regions The regions to clear.
  * @param regionCount The number of regions to clear.
- * @return False if the surface couldn't be cleared.
+ * @return False if the attachments couldn't be cleared.
  */
 DS_RENDER_EXPORT bool dsRenderer_clearAttachments(dsRenderer* renderer,
 	dsCommandBuffer* commandBuffer, const dsClearAttachment* attachments, uint32_t attachmentCount,

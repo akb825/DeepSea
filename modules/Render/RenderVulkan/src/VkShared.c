@@ -667,3 +667,26 @@ VkPrimitiveTopology dsVkPrimitiveType(dsPrimitiveType type)
 			return 0;
 	}
 }
+
+void dsConvertVkViewport(VkViewport* outViewport, const dsAlignedBox3f* viewport, uint32_t width,
+	uint32_t height)
+{
+	if (viewport)
+	{
+		outViewport->x = viewport->min.x;
+		outViewport->y = viewport->min.y;
+		outViewport->width = viewport->max.x - viewport->min.x;
+		outViewport->height = viewport->max.y - viewport->min.y;
+		outViewport->minDepth = viewport->min.z;
+		outViewport->maxDepth = viewport->max.z;
+	}
+	else
+	{
+		outViewport->x = 0.0f;
+		outViewport->y = 0.0f;
+		outViewport->width = (float)width;
+		outViewport->height = (float)height;
+		outViewport->minDepth = 0.0f;
+		outViewport->maxDepth = 1.0f;
+	}
+}

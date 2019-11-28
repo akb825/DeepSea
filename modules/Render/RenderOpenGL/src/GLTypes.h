@@ -331,6 +331,8 @@ typedef bool (*GLNextRenderSubpassFunction)(dsCommandBuffer* commandBuffer,
 typedef bool (*GLEndRenderPassFunction)(dsCommandBuffer* commandBuffer,
 	const dsRenderPass* renderPass);
 
+typedef bool (*GLSetViewportFunction)(dsCommandBuffer* commandBuffer,
+	const dsAlignedBox3f* viewport);
 typedef bool (*GLClearAttachmentsFunction)(dsCommandBuffer* commandBuffer,
 	const dsClearAttachment* attachments, uint32_t attachmentCount,
 	const dsAttachmentClearRegion* regions, uint32_t regionCount);
@@ -402,6 +404,7 @@ typedef struct CommandBufferFunctionTable
 	GLNextRenderSubpassFunction nextRenderSubpassFunc;
 	GLEndRenderPassFunction endRenderPassFunc;
 
+	GLSetViewportFunction setViewportFunc;
 	GLClearAttachmentsFunction clearAttachmentsFunc;
 	GLDrawFunction drawFunc;
 	GLDrawIndexedFunction drawIndexedFunc;

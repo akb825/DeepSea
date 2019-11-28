@@ -1019,6 +1019,21 @@ bool dsMTLHardwareCommandBuffer_endRenderPass(dsCommandBuffer* commandBuffer)
 	return true;
 }
 
+bool dsMTLHardwareCommandBuffer_setViewport(dsCommandBuffer* commandBuffer,
+	const dsAlignedBox3f* viewport)
+{
+	dsMTLHardwareCommandBuffer* mtlCommandBuffer = (dsMTLHardwareCommandBuffer*)commandBuffer;
+	if (!mtlCommandBuffer->renderCommandEncoder)
+		return false;
+
+	id<MTLRenderCommandEncoder> encoder =
+		(__bridge id<MTLRenderCommandEncoder>)mtlCommandBuffer->renderCommandEncoder;
+	MTLViewport mtlViewport = {viewport->min.x, viewport->min.y, viewport->max.x - viewport->min.x,
+		viewport->max.y - viewport->min.y, viewport->min.z, viewport->max.z};
+	[encoder setViewport: mtlViewport];
+	return true;
+}
+
 bool dsMTLHardwareCommandBuffer_clearAttachments(dsCommandBuffer* commandBuffer,
 	const dsClearAttachment* attachments, uint32_t attachmentCount,
 	const dsAttachmentClearRegion* regions, uint32_t regionCount)
@@ -1286,6 +1301,7 @@ static dsMTLCommandBufferFunctionTable hardwareCommandBufferFunctions =
 	&dsMTLHardwareCommandBuffer_bindComputeTextureUniform,
 	&dsMTLHardwareCommandBuffer_beginRenderPass,
 	&dsMTLHardwareCommandBuffer_endRenderPass,
+	&dsMTLHardwareCommandBuffer_setViewport,
 	&dsMTLHardwareCommandBuffer_clearAttachments,
 	&dsMTLHardwareCommandBuffer_draw,
 	&dsMTLHardwareCommandBuffer_drawIndexed,

@@ -80,3 +80,6 @@ VkDescriptorType dsVkDescriptorType(dsMaterialType type, dsMaterialBinding bindi
 VkCompareOp dsVkCompareOp(mslCompareOp compareOp, VkCompareOp defaultOp);
 VkShaderStageFlagBits dsVkShaderStage(mslStage stage);
 VkPrimitiveTopology dsVkPrimitiveType(dsPrimitiveType type);
+
+void dsConvertVkViewport(VkViewport* outViewport, const dsAlignedBox3f* viewport, uint32_t width,
+	uint32_t height);

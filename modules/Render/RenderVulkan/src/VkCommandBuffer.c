@@ -288,7 +288,7 @@ static bool processOffscreenReadbacks(dsCommandBuffer* commandBuffer,
 
 static bool beginSubpass(dsVkDevice* device, VkCommandBuffer commandBuffer,
 	dsCommandBufferUsage usage, VkRenderPass renderPass, uint32_t subpass,
-	VkFramebuffer framebuffer, const VkRect2D* viewBounds, const dsVector2f* depthRange)
+	VkFramebuffer framebuffer, const VkViewport* viewport)
 {
 	VkCommandBufferUsageFlags usageFlags = VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT;
 	if (!(usage & (dsCommandBufferUsage_MultiSubmit | dsCommandBufferUsage_MultiFrame)))
@@ -323,17 +323,13 @@ static bool beginSubpass(dsVkDevice* device, VkCommandBuffer commandBuffer,
 	if (!DS_HANDLE_VK_RESULT(result, "Couldn't begin command buffer"))
 		return false;
 
-	VkViewport viewport =
+	VkRect2D renderArea =
 	{
-		(float)viewBounds->offset.x,
-		(float)viewBounds->offset.y,
-		(float)viewBounds->extent.width,
-		(float)viewBounds->extent.height,
-		depthRange->x,
-		depthRange->y
+		{(int32_t)floorf(viewport->x), (int32_t)viewport->y},
+		{(uint32_t)ceilf(viewport->width), (uint32_t)ceilf(viewport->height)}
 	};
-	DS_VK_CALL(device->vkCmdSetViewport)(commandBuffer, 0, 1, &viewport);
-	DS_VK_CALL(device->vkCmdSetScissor)(commandBuffer, 0, 1, viewBounds);
+	DS_VK_CALL(device->vkCmdSetViewport)(commandBuffer, 0, 1, viewport);
+	DS_VK_CALL(device->vkCmdSetScissor)(commandBuffer, 0, 1, &renderArea);
 
 	return true;
 }
@@ -458,30 +454,11 @@ bool dsVkCommandBuffer_beginSecondary(dsRenderer* renderer, dsCommandBuffer* com
 	if (!subpassBuffer)
 		return false;
 
-	VkRect2D renderArea;
-	dsVector2f depthRange;
-	if (viewport)
-	{
-		renderArea.offset.x = (int32_t)floorf((float)framebuffer->width*viewport->min.x);
-		renderArea.offset.y = (int32_t)floorf((float)framebuffer->height*viewport->min.y);
-		renderArea.extent.width = (uint32_t)ceilf((float)(viewport->max.x - viewport->min.x));
-		renderArea.extent.height = (uint32_t)ceilf((float)(viewport->max.y - viewport->min.y));
-		depthRange.x = viewport->min.z;
-		depthRange.y = viewport->max.z;
-	}
-	else
-	{
-		DS_ASSERT(framebuffer);
-		renderArea.offset.x = 0;
-		renderArea.offset.y = 0;
-		renderArea.extent.width = framebuffer->width;
-		renderArea.extent.height = framebuffer->height;
-		depthRange.x = 0.0f;
-		depthRange.y = 1.0f;
-	}
+	VkViewport vkViewport;
+	dsConvertVkViewport(&vkViewport, viewport, framebuffer->width, framebuffer->height);
 
 	if (!beginSubpass(&vkRenderer->device, subpassBuffer, commandBuffer->usage,
-			renderPassData->vkRenderPass, subpass, vkFramebuffer, &renderArea, &depthRange))
+			renderPassData->vkRenderPass, subpass, vkFramebuffer, &vkViewport))
 	{
 		--vkCommandBuffer->submitBufferCount;
 		vkCommandBuffer->activeCommandBuffer = 0;
@@ -717,7 +694,7 @@ bool dsVkCommandBuffer_endSubmitCommands(dsCommandBuffer* commandBuffer)
 }
 
 bool dsVkCommandBuffer_beginRenderPass(dsCommandBuffer* commandBuffer, VkRenderPass renderPass,
-	VkFramebuffer framebuffer, const VkRect2D* renderArea, const dsVector2f* depthRange,
+	VkFramebuffer framebuffer, const VkViewport* viewport,
 	const VkClearValue* clearValues, uint32_t clearValueCount, bool secondary)
 {
 	dsVkDevice* device = &((dsVkRenderer*)commandBuffer->renderer)->device;
@@ -728,13 +705,19 @@ bool dsVkCommandBuffer_beginRenderPass(dsCommandBuffer* commandBuffer, VkRenderP
 	if (!activeCommandBuffer)
 		return false;
 
+	VkRect2D renderArea =
+	{
+		{(int32_t)floorf(viewport->x), (int32_t)viewport->y},
+		{(uint32_t)ceilf(viewport->width), (uint32_t)ceilf(viewport->height)}
+	};
+
 	VkRenderPassBeginInfo beginInfo =
 	{
 		VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
 		NULL,
 		renderPass,
 		framebuffer,
-		*renderArea,
+		renderArea,
 		clearValueCount, clearValues
 	};
 
@@ -743,17 +726,8 @@ bool dsVkCommandBuffer_beginRenderPass(dsCommandBuffer* commandBuffer, VkRenderP
 
 	if (!secondary)
 	{
-		VkViewport viewport =
-		{
-			(float)renderArea->offset.x,
-			(float)renderArea->offset.y,
-			(float)renderArea->extent.width,
-			(float)renderArea->extent.height,
-			depthRange->x,
-			depthRange->y
-		};
-		DS_VK_CALL(device->vkCmdSetViewport)(activeCommandBuffer, 0, 1, &viewport);
-		DS_VK_CALL(device->vkCmdSetScissor)(activeCommandBuffer, 0, 1, renderArea);
+		DS_VK_CALL(device->vkCmdSetViewport)(activeCommandBuffer, 0, 1, viewport);
+		DS_VK_CALL(device->vkCmdSetScissor)(activeCommandBuffer, 0, 1, &renderArea);
 	}
 
 	vkCommandBuffer->activeRenderPass = renderPass;

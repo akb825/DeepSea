@@ -64,6 +64,7 @@ typedef enum CommandType
 	CommandType_BeginRenderPass,
 	CommandType_NextRenderSubpass,
 	CommandType_EndRenderPass,
+	CommandType_SetViewport,
 	CommandType_ClearAttachments,
 	CommandType_Draw,
 	CommandType_DrawIndexed,
@@ -269,6 +270,13 @@ typedef struct EndRenderPassCommand
 	Command command;
 	const dsRenderPass* renderPass;
 } EndRenderPassCommand;
+
+typedef struct SetViewportCommand
+{
+	Command command;
+	dsAlignedBox3f viewport;
+	bool defaultViewport;
+} SetViewportCommand;
 
 typedef struct ClearAttachmentsCommand
 {
@@ -584,6 +592,8 @@ void dsGLOtherCommandBuffer_reset(dsCommandBuffer* commandBuffer)
 				dsGLRenderPass_freeInternalRef((dsRenderPass*)thisCommand->renderPass);
 				break;
 			}
+			case CommandType_SetViewport:
+				break;
 			case CommandType_ClearAttachments:
 				break;
 			case CommandType_Draw:
@@ -1080,6 +1090,24 @@ bool dsGLOtherCommandBuffer_endRenderPass(dsCommandBuffer* commandBuffer,
 	return true;
 }
 
+bool dsGLOtherCommandBuffer_setViewport(dsCommandBuffer* commandBuffer,
+	const dsAlignedBox3f* viewport)
+{
+	SetViewportCommand* command = (SetViewportCommand*)allocateCommand(commandBuffer,
+		CommandType_SetViewport, sizeof(SetViewportCommand));
+	if (!command)
+		return false;
+
+	if (viewport)
+	{
+		command->viewport = *viewport;
+		command->defaultViewport = false;
+	}
+	else
+		command->defaultViewport = true;
+	return true;
+}
+
 bool dsGLOtherCommandBuffer_clearAttachments(dsCommandBuffer* commandBuffer,
 	const dsClearAttachment* attachments, uint32_t attachmentCount,
 	const dsAttachmentClearRegion* regions, uint32_t regionCount)
@@ -1459,6 +1487,13 @@ bool dsGLOtherCommandBuffer_submit(dsCommandBuffer* commandBuffer, dsCommandBuff
 				dsGLCommandBuffer_endRenderPass(commandBuffer, thisCommand->renderPass);
 				break;
 			}
+			case CommandType_SetViewport:
+			{
+				SetViewportCommand* thisCommand = (SetViewportCommand*)command;
+				dsGLCommandBuffer_setViewport(commandBuffer->renderer, commandBuffer,
+					thisCommand->defaultViewport ? NULL : &thisCommand->viewport);
+				break;
+			}
 			case CommandType_ClearAttachments:
 			{
 				ClearAttachmentsCommand* thisCommand = (ClearAttachmentsCommand*)command;
@@ -1589,6 +1624,7 @@ static CommandBufferFunctionTable functionTable =
 	&dsGLOtherCommandBuffer_beginRenderPass,
 	&dsGLOtherCommandBuffer_nextRenderSubpass,
 	&dsGLOtherCommandBuffer_endRenderPass,
+	&dsGLOtherCommandBuffer_setViewport,
 	&dsGLOtherCommandBuffer_clearAttachments,
 	&dsGLOtherCommandBuffer_draw,
 	&dsGLOtherCommandBuffer_drawIndexed,

@@ -625,6 +625,14 @@ bool dsGLCommandBuffer_endRenderPass(dsCommandBuffer* commandBuffer, const dsRen
 	return functions->endRenderPassFunc(commandBuffer, renderPass);
 }
 
+bool dsGLCommandBuffer_setViewport(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	const dsAlignedBox3f* viewport)
+{
+	DS_UNUSED(renderer);
+	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
+	return functions->setViewportFunc(commandBuffer, viewport);
+}
+
 bool dsGLCommandBuffer_clearAttachments(dsRenderer* renderer,
 	dsCommandBuffer* commandBuffer, const dsClearAttachment* attachments, uint32_t attachmentCount,
 	const dsAttachmentClearRegion* regions, uint32_t regionCount)

@@ -412,6 +412,17 @@ TEST_F(RendererTest, DrawIndexedIndirect)
 	EXPECT_TRUE(dsGfxBuffer_destroy(indirectBuffer));
 }
 
+TEST_F(RendererTest, SetViewport)
+{
+	dsCommandBuffer* commandBuffer = renderer->mainCommandBuffer;
+	dsAlignedBox3f viewport = {{{0.0f, 0.0f, 0.0f}}, {{1024.0f, 768.0f, 1.0f}}};
+	EXPECT_FALSE(dsRenderer_setViewport(renderer, commandBuffer, &viewport));
+
+	EXPECT_TRUE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0, false));
+	EXPECT_TRUE(dsRenderer_setViewport(renderer, commandBuffer, &viewport));
+	EXPECT_TRUE(dsRenderPass_end(renderPass, commandBuffer));
+}
+
 TEST_F(RendererTest, ClearAttachments)
 {
 	dsCommandBuffer* commandBuffer = renderer->mainCommandBuffer;

@@ -92,6 +92,8 @@ bool dsGLCommandBuffer_nextRenderSubpass(dsCommandBuffer* commandBuffer,
 bool dsGLCommandBuffer_endRenderPass(dsCommandBuffer* commandBuffer,
 	const dsRenderPass* renderPass);
 
+bool dsGLCommandBuffer_setViewport(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	const dsAlignedBox3f* viewport);
 bool dsGLCommandBuffer_clearAttachments(dsRenderer* renderer,
 	dsCommandBuffer* commandBuffer, const dsClearAttachment* attachments, uint32_t attachmentCount,
 	const dsAttachmentClearRegion* regions, uint32_t regionCount);

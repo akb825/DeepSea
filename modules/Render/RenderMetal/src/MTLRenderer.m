@@ -860,6 +860,7 @@ dsRenderer* dsMTLRenderer_create(dsAllocator* allocator, const dsRendererOptions
 		baseRenderer->setSurfaceSamplesFunc = &dsMTLRenderer_setSurfaceSamples;
 		baseRenderer->setVsyncFunc = &dsMTLRenderer_setVsync;
 		baseRenderer->setDefaultAnisotropyFunc = &dsMTLRenderer_setDefaultAnisotropy;
+		baseRenderer->setViewportFunc = &dsMTLCommandBuffer_setViewport;
 		baseRenderer->clearAttachmentsFunc = &dsMTLCommandBuffer_clearAttachments;
 		baseRenderer->drawFunc = &dsMTLRenderer_draw;
 		baseRenderer->drawIndexedFunc = &dsMTLRenderer_drawIndexed;

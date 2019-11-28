@@ -1422,6 +1422,41 @@ bool dsGLMainCommandBuffer_endRenderSurface(dsCommandBuffer* commandBuffer, void
 	return true;
 }
 
+bool dsGLMainCommandBuffer_setViewport(dsCommandBuffer* commandBuffer,
+	const dsAlignedBox3f* viewport)
+{
+	dsGLMainCommandBuffer* glCommandBuffer = (dsGLMainCommandBuffer*)commandBuffer;
+	const dsFramebuffer* framebuffer = glCommandBuffer->curFramebuffer;
+	if (viewport)
+	{
+		glCommandBuffer->viewportX = (GLint)viewport->min.x;
+		glCommandBuffer->viewportY = framebuffer->height - (GLint)viewport->max.y;
+		glCommandBuffer->viewportWidth = (GLsizei)(viewport->max.x - viewport->min.x);
+		glCommandBuffer->viewportHeight = (GLsizei)(viewport->max.y - viewport->min.y);
+		if (ANYGL_SUPPORTED(glDepthRangef))
+			glDepthRangef(viewport->min.z, viewport->max.z);
+		else
+			glDepthRange(viewport->min.z, viewport->max.z);
+	}
+	else
+	{
+		glCommandBuffer->viewportX = 0;
+		glCommandBuffer->viewportY = 0;
+		glCommandBuffer->viewportWidth = framebuffer->width;
+		glCommandBuffer->viewportHeight = framebuffer->height;
+		if (ANYGL_SUPPORTED(glDepthRangef))
+			glDepthRangef(0, 1);
+		else
+			glDepthRange(0, 1);
+	}
+
+	glViewport(glCommandBuffer->viewportX, glCommandBuffer->viewportY,
+		glCommandBuffer->viewportWidth, glCommandBuffer->viewportHeight);
+	glScissor(glCommandBuffer->viewportX, glCommandBuffer->viewportY,
+		glCommandBuffer->viewportWidth, glCommandBuffer->viewportHeight);
+	return true;
+}
+
 bool dsGLMainCommandBuffer_beginRenderPass(dsCommandBuffer* commandBuffer,
 	const dsRenderPass* renderPass, const dsFramebuffer* framebuffer,
 	const dsAlignedBox3f* viewport, const dsSurfaceClearValue* clearValues,
@@ -1455,36 +1490,8 @@ bool dsGLMainCommandBuffer_beginRenderPass(dsCommandBuffer* commandBuffer,
 			clearValueCount*sizeof(dsSurfaceClearValue));
 	}
 
-	// Set the viewport parameters.
-	if (viewport)
-	{
-		glCommandBuffer->viewportX = (GLint)viewport->min.x;
-		glCommandBuffer->viewportY = framebuffer->height - (GLint)viewport->max.y;
-		glCommandBuffer->viewportWidth = (GLsizei)(viewport->max.x - viewport->min.x);
-		glCommandBuffer->viewportHeight = (GLsizei)(viewport->max.y - viewport->min.y);
-		if (ANYGL_SUPPORTED(glDepthRangef))
-			glDepthRangef(viewport->min.z, viewport->max.z);
-		else
-			glDepthRange(viewport->min.z, viewport->max.z);
-	}
-	else
-	{
-		glCommandBuffer->viewportX = 0;
-		glCommandBuffer->viewportY = 0;
-		glCommandBuffer->viewportWidth = framebuffer->width;
-		glCommandBuffer->viewportHeight = framebuffer->height;
-		if (ANYGL_SUPPORTED(glDepthRangef))
-			glDepthRangef(0, 1);
-		else
-			glDepthRange(0, 1);
-	}
-
-	glViewport(glCommandBuffer->viewportX, glCommandBuffer->viewportY,
-		glCommandBuffer->viewportWidth, glCommandBuffer->viewportHeight);
-	glScissor(glCommandBuffer->viewportX, glCommandBuffer->viewportY,
-		glCommandBuffer->viewportWidth, glCommandBuffer->viewportHeight);
-
 	glCommandBuffer->curFramebuffer = framebuffer;
+	dsGLMainCommandBuffer_setViewport(commandBuffer, viewport);
 	addSubpassBarrier(renderPass->subpassDependencies, renderPass->subpassDependencyCount,
 		DS_EXTERNAL_SUBPASS, 0);
 	if (!beginRenderSubpass(glCommandBuffer, renderPass, 0))
@@ -2022,6 +2029,7 @@ static CommandBufferFunctionTable functionTable =
 	&dsGLMainCommandBuffer_beginRenderPass,
 	&dsGLMainCommandBuffer_nextRenderSubpass,
 	&dsGLMainCommandBuffer_endRenderPass,
+	&dsGLMainCommandBuffer_setViewport,
 	&dsGLMainCommandBuffer_clearAttachments,
 	&dsGLMainCommandBuffer_draw,
 	&dsGLMainCommandBuffer_drawIndexed,
