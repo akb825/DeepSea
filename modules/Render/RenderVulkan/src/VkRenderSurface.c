@@ -162,6 +162,8 @@ dsRenderSurface* dsVkRenderSurface_create(dsRenderer* renderer, dsAllocator* all
 
 	baseRenderSurface->width = renderSurface->surfaceData->width;
 	baseRenderSurface->height = renderSurface->surfaceData->height;
+	baseRenderSurface->preRotateWidth = renderSurface->surfaceData->preRotateWidth;
+	baseRenderSurface->preRotateHeight = renderSurface->surfaceData->preRotateHeight;
 	baseRenderSurface->rotation = renderSurface->surfaceData->rotation;
 
 	return baseRenderSurface;
@@ -239,6 +241,8 @@ bool dsVkRenderSurface_update(dsRenderer* renderer, dsRenderSurface* renderSurfa
 
 		renderSurface->width = vkSurface->surfaceData->width;
 		renderSurface->height = vkSurface->surfaceData->height;
+		renderSurface->preRotateWidth = vkSurface->surfaceData->preRotateWidth;
+		renderSurface->preRotateHeight = vkSurface->surfaceData->preRotateHeight;
 		renderSurface->rotation = vkSurface->surfaceData->rotation;
 		vkSurface->surfaceError = false;
 	}

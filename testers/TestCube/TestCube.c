@@ -168,6 +168,8 @@ static bool createFramebuffer(TestCube* testCube)
 {
 	uint32_t width = testCube->window->surface->width;
 	uint32_t height = testCube->window->surface->height;
+	uint32_t preRotateWidth = testCube->window->surface->preRotateWidth;
+	uint32_t preRotateHeight = testCube->window->surface->preRotateHeight;
 
 	dsFramebuffer_destroy(testCube->framebuffer);
 
@@ -178,7 +180,7 @@ static bool createFramebuffer(TestCube* testCube)
 		{dsGfxSurfaceType_DepthRenderSurface, dsCubeFace_None, 0, 0, surface}
 	};
 	testCube->framebuffer = dsFramebuffer_create(testCube->renderer->resourceManager,
-		testCube->allocator, "Main", surfaces, 2, width, height, 1);
+		testCube->allocator, "Main", surfaces, 2, preRotateWidth, preRotateHeight, 1);
 
 	if (!testCube->framebuffer)
 	{

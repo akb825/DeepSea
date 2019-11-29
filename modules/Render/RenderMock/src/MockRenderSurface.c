@@ -51,6 +51,8 @@ dsRenderSurface* dsMockRenderSurface_create(dsRenderer* renderer, dsAllocator* a
 	renderSurface->usage = usage;
 	renderSurface->width = 1920;
 	renderSurface->height = 1080;
+	renderSurface->preRotateWidth = renderSurface->width;
+	renderSurface->preRotateHeight = renderSurface->height;
 	renderSurface->rotation = dsRenderSurfaceRotation_0;
 	return renderSurface;
 }

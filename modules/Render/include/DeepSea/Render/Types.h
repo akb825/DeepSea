@@ -601,6 +601,24 @@ typedef struct dsRenderSurface
 	uint32_t height;
 
 	/**
+	 * @brief The width of the surface before applying rotation.
+	 *
+	 * This will be different from the width if rotation is 90 or 270 degrees. This is the dimension
+	 * that should be used for the framebuffer when used with this surface. This can be ignored if
+	 * the dsRenderSurfaceUsage_ClientRotations usage bit isn't set.
+	 */
+	uint32_t preRotateWidth;
+
+	/**
+	 * @brief The height of the render surface before applying rotation.
+	 *
+	 * This will be different from the height if rotation is 90 or 270 degrees. This is the
+	 * dimension that should be used for the framebuffer when used with this surface. This can be
+	 * ignored if the dsRenderSurfaceUsage_ClientRotations usage bit isn't set.
+	 */
+	uint32_t preRotateHeight;
+
+	/**
 	 * @brief The rotation to apply to the image.
 	 */
 	dsRenderSurfaceRotation rotation;

@@ -680,6 +680,8 @@ struct dsVkRenderSurfaceData
 
 	uint32_t width;
 	uint32_t height;
+	uint32_t preRotateWidth;
+	uint32_t preRotateHeight;
 	dsRenderSurfaceRotation rotation;
 
 	bool vsync;

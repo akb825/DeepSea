@@ -150,8 +150,8 @@ static bool validateAllocator(dsAllocator* allocator, const char* name)
 
 static bool createFramebuffer(TestVectorDraw* testVectorDraw)
 {
-	uint32_t width = testVectorDraw->window->surface->width;
-	uint32_t height = testVectorDraw->window->surface->height;
+	uint32_t width = testVectorDraw->window->surface->preRotateWidth;
+	uint32_t height = testVectorDraw->window->surface->preRotateHeight;
 
 	dsFramebuffer_destroy(testVectorDraw->framebuffer);
 

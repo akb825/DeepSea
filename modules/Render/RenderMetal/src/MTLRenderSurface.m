@@ -409,6 +409,8 @@ dsRenderSurface* dsMTLRenderSurface_create(dsRenderer* renderer, dsAllocator* al
 		CGSize size = layer.drawableSize;
 		baseRenderSurface->width = (uint32_t)size.width;
 		baseRenderSurface->height = (uint32_t)size.height;
+		baseRenderSurface->preRotateWidth = baseRenderSurface->width;
+		baseRenderSurface->preRotateHeight = baseRenderSurface->height;
 		baseRenderSurface->rotation = dsRenderSurfaceRotation_0;
 
 		DS_VERIFY(dsSpinlock_initialize(&renderSurface->lock));
@@ -449,6 +451,8 @@ bool dsMTLRenderSurface_update(dsRenderer* renderer, dsRenderSurface* renderSurf
 		CGSize size = layer.drawableSize;
 		renderSurface->width = (uint32_t)size.width;
 		renderSurface->height = (uint32_t)size.height;
+		renderSurface->preRotateWidth = renderSurface->width;
+		renderSurface->preRotateHeight = renderSurface->height;
 
 #if __MAC_OS_X_VERSION_MIN_REQUIRED >= 101300
 		if (layer.displaySyncEnabled != renderer->vsync)

@@ -64,8 +64,8 @@ static bool getBlitSurfaceInfo(dsGfxFormat* outFormat, dsTextureDim* outDim, uin
 			dsRenderSurface* realSurface = (dsRenderSurface*)surface;
 			*outFormat = renderer->surfaceColorFormat;
 			*outDim = dsTextureDim_2D;
-			*outWidth = realSurface->width;
-			*outHeight = realSurface->height;
+			*outWidth = realSurface->preRotateWidth;
+			*outHeight = realSurface->preRotateHeight;
 			*outLayers = 1;
 			*outMipLevels = 1;
 
@@ -108,8 +108,8 @@ static bool getBlitSurfaceInfo(dsGfxFormat* outFormat, dsTextureDim* outDim, uin
 			dsRenderSurface* realSurface = (dsRenderSurface*)surface;
 			*outFormat = renderer->surfaceDepthStencilFormat;
 			*outDim = dsTextureDim_2D;
-			*outWidth = realSurface->width;
-			*outHeight = realSurface->height;
+			*outWidth = realSurface->preRotateWidth;
+			*outHeight = realSurface->preRotateHeight;
 			*outLayers = 1;
 			*outMipLevels = 1;
 

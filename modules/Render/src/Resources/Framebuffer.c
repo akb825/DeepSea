@@ -91,8 +91,8 @@ dsFramebuffer* dsFramebuffer_create(dsResourceManager* resourceManager, dsAlloca
 				renderSurface = surface;
 
 				surfaceFormat = surface->renderer->surfaceColorFormat;
-				surfaceWidth = surface->width;
-				surfaceHeight = surface->height;
+				surfaceWidth = surface->preRotateWidth;
+				surfaceHeight = surface->preRotateHeight;
 				surfaceLayers = 1;
 				break;
 			}
@@ -120,8 +120,8 @@ dsFramebuffer* dsFramebuffer_create(dsResourceManager* resourceManager, dsAlloca
 				renderSurface = surface;
 
 				surfaceFormat = surface->renderer->surfaceDepthStencilFormat;
-				surfaceWidth = surface->width;
-				surfaceHeight = surface->height;
+				surfaceWidth = surface->preRotateWidth;
+				surfaceHeight = surface->preRotateHeight;
 				surfaceLayers = 1;
 				break;
 			}

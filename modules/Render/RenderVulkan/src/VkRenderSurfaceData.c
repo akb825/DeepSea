@@ -378,6 +378,22 @@ dsVkRenderSurfaceData* dsVkRenderSurfaceData_create(dsAllocator* allocator, dsRe
 	if (rotation == dsRenderSurfaceRotation_0)
 		transform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
 
+	uint32_t width = surfaceInfo.currentExtent.width;
+	uint32_t height = surfaceInfo.currentExtent.height;
+	uint32_t preRotateWidth, preRotateHeight;
+	switch (rotation)
+	{
+		case dsRenderSurfaceRotation_90:
+		case dsRenderSurfaceRotation_270:
+			preRotateWidth = height;
+			preRotateHeight = width;
+			break;
+		default:
+			preRotateWidth = width;
+			preRotateHeight = height;
+			break;
+	}
+
 	VkSwapchainCreateInfoKHR createInfo =
 	{
 		VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
@@ -387,7 +403,7 @@ dsVkRenderSurfaceData* dsVkRenderSurfaceData_create(dsAllocator* allocator, dsRe
 		imageCount,
 		colorFormat->vkFormat,
 		colorSpace,
-		surfaceInfo.currentExtent,
+		{preRotateWidth, preRotateHeight},
 		renderer->stereoscopic ? 2 : 1,
 		usageFlags,
 		VK_SHARING_MODE_EXCLUSIVE,
@@ -529,10 +545,8 @@ dsVkRenderSurfaceData* dsVkRenderSurfaceData_create(dsAllocator* allocator, dsRe
 
 	surfaceData->vsync = vsync;
 
-	uint32_t width = surfaceInfo.currentExtent.width;
-	uint32_t height = surfaceInfo.currentExtent.height;
-	if (!createResolveImage(surfaceData, colorFormat->vkFormat, width, height) ||
-		!createDepthImage(surfaceData, width, height, usage))
+	if (!createResolveImage(surfaceData, colorFormat->vkFormat, preRotateWidth, preRotateHeight) ||
+		!createDepthImage(surfaceData, preRotateWidth, preRotateHeight, usage))
 	{
 		dsVkRenderSurfaceData_destroy(surfaceData);
 		return NULL;
@@ -540,6 +554,8 @@ dsVkRenderSurfaceData* dsVkRenderSurfaceData_create(dsAllocator* allocator, dsRe
 
 	surfaceData->width = width;
 	surfaceData->height = height;
+	surfaceData->preRotateWidth = preRotateWidth;
+	surfaceData->preRotateHeight = preRotateHeight;
 	surfaceData->rotation = rotation;
 
 	// Queue processing immediately.

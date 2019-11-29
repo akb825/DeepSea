@@ -211,6 +211,8 @@ static bool createFramebuffer(TestRenderSubpass* testRenderSubpass)
 {
 	uint32_t width = testRenderSubpass->window->surface->width;
 	uint32_t height = testRenderSubpass->window->surface->height;
+	uint32_t preRotateWidth = testRenderSubpass->window->surface->preRotateWidth;
+	uint32_t preRotateHeight = testRenderSubpass->window->surface->preRotateHeight;
 
 	DS_VERIFY(dsFramebuffer_destroy(testRenderSubpass->framebuffer));
 	DS_VERIFY(dsTexture_destroy(testRenderSubpass->rColor));
@@ -232,7 +234,8 @@ static bool createFramebuffer(TestRenderSubpass* testRenderSubpass)
 			depthFormat = dsGfxFormat_D16;
 	}
 	dsGfxFormat colorFormat = dsGfxFormat_decorate(dsGfxFormat_R8, dsGfxFormat_UNorm);
-	dsTextureInfo texInfo = {colorFormat, dsTextureDim_2D, width, height, 0, 1, SAMPLE_COUNT};
+	dsTextureInfo texInfo = {colorFormat, dsTextureDim_2D, preRotateWidth, preRotateHeight, 0, 1,
+		SAMPLE_COUNT};
 	dsGfxFormat combinedColorFormat = renderer->surfaceColorFormat;
 	dsTextureUsage offscreenUsage = dsTextureUsage_SubpassInput;
 	if (!NO_BLIT)
@@ -251,11 +254,11 @@ static bool createFramebuffer(TestRenderSubpass* testRenderSubpass)
 	}
 
 	testRenderSubpass->rDepth = dsRenderbuffer_create(resourceManager, allocator,
-		dsRenderbufferUsage_Standard, depthFormat, width, height, SAMPLE_COUNT);
+		dsRenderbufferUsage_Standard, depthFormat, preRotateWidth, preRotateHeight, SAMPLE_COUNT);
 	testRenderSubpass->gDepth = dsRenderbuffer_create(resourceManager, allocator,
-		dsRenderbufferUsage_Standard, depthFormat, width, height, SAMPLE_COUNT);
+		dsRenderbufferUsage_Standard, depthFormat, preRotateWidth, preRotateHeight, SAMPLE_COUNT);
 	testRenderSubpass->bDepth = dsRenderbuffer_create(resourceManager, allocator,
-		dsRenderbufferUsage_Standard, depthFormat, width, height, SAMPLE_COUNT);
+		dsRenderbufferUsage_Standard, depthFormat, preRotateWidth, preRotateHeight, SAMPLE_COUNT);
 	if (!testRenderSubpass->rDepth || !testRenderSubpass->gDepth || !testRenderSubpass->bDepth)
 	{
 		DS_LOG_ERROR_F("TestRenderSubpass", "Couldn't create renderbuffer: %s",
@@ -268,7 +271,7 @@ static bool createFramebuffer(TestRenderSubpass* testRenderSubpass)
 		testRenderSubpass->renderer->surfaceColorFormat, dsBlitFilter_Linear) && !NO_BLIT)
 	{
 		testRenderSubpass->combinedColor = dsRenderbuffer_create(resourceManager, allocator,
-			dsRenderbufferUsage_BlitFrom, combinedColorFormat, width, height, 1);
+			dsRenderbufferUsage_BlitFrom, combinedColorFormat, preRotateWidth, preRotateHeight, 1);
 		if (!testRenderSubpass->combinedColor)
 		{
 			DS_LOG_ERROR_F("TestRenderSubpass", "Couldn't create renderbuffer: %s",
@@ -298,7 +301,7 @@ static bool createFramebuffer(TestRenderSubpass* testRenderSubpass)
 	uint32_t surfaceCount = DS_ARRAY_SIZE(surfaces);
 	testRenderSubpass->framebuffer = dsFramebuffer_create(
 		testRenderSubpass->renderer->resourceManager, testRenderSubpass->allocator, "Main",
-		surfaces, surfaceCount, width, height, 1);
+		surfaces, surfaceCount, preRotateWidth, preRotateHeight, 1);
 
 	if (!testRenderSubpass->framebuffer)
 	{
@@ -445,8 +448,8 @@ static void draw(dsApplication* application, dsWindow* window, void* userData)
 	// Blit the 3 sub buffers and final buffer to the window if supported.
 	if (testRenderSubpass->combinedColor)
 	{
-		uint32_t width, height;
-		DS_VERIFY(dsWindow_getSize(&width, &height, testRenderSubpass->window));
+		uint32_t width = window->surface->preRotateWidth;
+		uint32_t height = window->surface->preRotateHeight;
 		dsSurfaceBlitRegion region =
 		{
 			{dsCubeFace_None, 0, 0, 0, 0},

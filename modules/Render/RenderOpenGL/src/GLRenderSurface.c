@@ -69,6 +69,8 @@ dsRenderSurface* dsGLRenderSurface_create(dsRenderer* renderer, dsAllocator* all
 	baseSurface->rotation = dsRenderSurfaceRotation_0;
 	DS_VERIFY(dsGetGLSurfaceSize(&baseSurface->width, &baseSurface->height, display, type,
 		glSurface));
+	baseSurface->preRotateWidth = baseSurface->width;
+	baseSurface->preRotateHeight = baseSurface->height;
 
 	renderSurface->glSurface = glSurface;
 	return baseSurface;
@@ -90,6 +92,8 @@ bool dsGLRenderSurface_update(dsRenderer* renderer, dsRenderSurface* renderSurfa
 
 	renderSurface->width = width;
 	renderSurface->height = height;
+	renderSurface->preRotateWidth = width;
+	renderSurface->preRotateHeight = height;
 	return true;
 }
 
