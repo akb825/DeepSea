@@ -40,13 +40,23 @@ extern "C"
  */
 
 /**
- * @brief Creates a rotation matrix for the render surface rotation.
+ * @brief Creates a rotation matrix for the render surface rotation as a 2x2 matrix.
  * @remark errno will be set on failure.
  * @param[out] result The rotation matrix.
  * @param rotation The rotation to make the matrix for.
  * @return False if the parameters are invalid.
  */
-DS_RENDER_EXPORT bool dsRenderSurface_makeRotationMatrix(dsMatrix44f* result,
+DS_RENDER_EXPORT bool dsRenderSurface_makeRotationMatrix22(dsMatrix22f* result,
+	dsRenderSurfaceRotation rotation);
+
+/**
+ * @brief Creates a rotation matrix for the render surface rotation as a 4x4 matrix.
+ * @remark errno will be set on failure.
+ * @param[out] result The rotation matrix.
+ * @param rotation The rotation to make the matrix for.
+ * @return False if the parameters are invalid.
+ */
+DS_RENDER_EXPORT bool dsRenderSurface_makeRotationMatrix44(dsMatrix44f* result,
 	dsRenderSurfaceRotation rotation);
 
 /**

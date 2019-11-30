@@ -320,7 +320,7 @@ static bool createFramebuffer(TestRenderSubpass* testRenderSubpass)
 	dsMatrix44f baseProjection, surfaceRotation;
 	DS_VERIFY(dsRenderer_makePerspective(&baseProjection, testRenderSubpass->renderer,
 		(float)dsDegreesToRadians(45.0f), (float)width/(float)height, 0.1f, 100.0f));
-	DS_VERIFY(dsRenderSurface_makeRotationMatrix(&surfaceRotation,
+	DS_VERIFY(dsRenderSurface_makeRotationMatrix44(&surfaceRotation,
 		testRenderSubpass->window->surface->rotation));
 	dsMatrix44_mul(testRenderSubpass->projection, surfaceRotation, baseProjection);
 

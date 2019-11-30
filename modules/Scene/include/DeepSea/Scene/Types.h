@@ -293,6 +293,14 @@ typedef struct dsViewSurfaceInfo
 	bool resolve;
 
 	/**
+	 * @brief True if the surface is rotated with the window surface.
+	 *
+	 * Set this to true to follow the rotation of the view and window surface. This should be set
+	 * to true for any surface that's used in the same framebuffer as the window surface.
+	 */
+	bool rotated;
+
+	/**
 	 * @brief The existing surface.
 	 *
 	 * When NULL, a surface will be created based on createInfo. surfaceType must be
@@ -356,7 +364,8 @@ typedef struct dsViewFramebufferInfo
 	/**
 	 * The viewport to draw to.
 	 *
-	 * The x and y values will be treated as a fraction of the overall framebuffer dimensions.
+	 * The x and y values will be treated as a fraction of the overall framebuffer dimensions in the
+	 * the range [0, 1]. The viewport will automatically be adjusted based on the view rotation.
 	 */
 	dsAlignedBox3f viewport;
 } dsViewFramebufferInfo;
@@ -393,6 +402,24 @@ struct dsView
 	 * @brief The height of the view.
 	 */
 	uint32_t height;
+
+	/**
+	 * @brief The width of the view before applying rotation.
+	 *
+	 * This will be different from the width if rotation is 90 or 270 degrees. This is the dimension
+	 * that should be used for any surfaces that are used in the same framebuffer as a window render
+	 * surface.
+	 */
+	uint32_t preRotateWidth;
+
+	/**
+	 * @brief The height of the render surface before applying rotation.
+	 *
+	 * This will be different from the height if rotation is 90 or 270 degrees. This is the
+	 * dimension that should be used for any surfaces that are used in the same framebuffer as a
+	 * window render surface.
+	 */
+	uint32_t preRotateHeight;
 
 	/**
 	 * @brief The rotation of the window surface.

@@ -39,8 +39,28 @@ uniform ViewTransform
 	mat4 projection;
 
 	/**
+	 * @brief The rotation of the screen to apply for client rotations.
+	 *
+	 * This is a mat22 packed into a vec4 to avoid extra padding.
+	 */
+	vec4 screenRotation;
+
+	/**
 	 * @brief The size of the screen in pixels.
 	 */
 	ivec2 screenSize;
 } dsViewTransform;
 
+/**
+ * @brief Rotates the screen position.
+ *
+ * This handles the rotation for render surfaces with client rotations enabled.
+ *
+ * @param pos The xy position of the screen in normalized [-1, 1] coordinates.
+ * @return The rotated position.
+ */
+vec2 dsRotateScreenPosition(vec2 pos)
+{
+	return mat2(INSTANCE(dsViewTransform).screenRotation.xy,
+		INSTANCE(dsViewTransform).screenRotation.zw)*pos;
+}

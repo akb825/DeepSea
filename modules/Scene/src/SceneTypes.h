@@ -79,3 +79,9 @@ struct dsScene
 };
 
 extern dsSceneNodeType dsRootSceneNodeType;
+
+typedef struct dsRotatedFramebuffer
+{
+	dsFramebuffer* framebuffer;
+	bool rotated;
+} dsRotatedFramebuffer;

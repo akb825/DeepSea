@@ -305,7 +305,7 @@ static void draw(dsApplication* application, dsWindow* window, void* userData)
 
 	dsMatrix44f projection, surfaceRotation, matrix;
 	DS_VERIFY(dsRenderer_makeOrtho(&projection, renderer, 0.0f, size.x, 0.0f, size.y, 0.0f, 1.0f));
-	DS_VERIFY(dsRenderSurface_makeRotationMatrix(&surfaceRotation,
+	DS_VERIFY(dsRenderSurface_makeRotationMatrix44(&surfaceRotation,
 		testVectorDraw->window->surface->rotation));
 	dsMatrix44_mul(matrix, surfaceRotation, projection);
 

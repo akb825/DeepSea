@@ -15,6 +15,7 @@
  */
 
 #include <DeepSea/Scene/View.h>
+#include "ViewInternal.h"
 
 #include "SceneThreadManagerInternal.h"
 #include "SceneTypes.h"
@@ -50,7 +51,7 @@ typedef struct dsViewPrivate
 	dsViewSurfaceInfo* surfaceInfos;
 	void** surfaces;
 	dsViewFramebufferInfo* framebufferInfos;
-	dsFramebuffer** framebuffers;
+	dsRotatedFramebuffer* framebuffers;
 	uint32_t* pipelineFramebuffers;
 	uint32_t surfaceCount;
 	uint32_t framebufferCount;
@@ -110,7 +111,22 @@ static bool validateSurfacesFramebuffers(const dsResourceManager* resourceManage
 		}
 
 		if (surface->surface)
+		{
+			if (surface->surfaceType >= dsGfxSurfaceType_ColorRenderSurface &&
+				surface->surfaceType <= dsGfxSurfaceType_DepthRenderSurfaceRight)
+			{
+				dsRenderSurface* renderSurface = (dsRenderSurface*)surface->surface;
+				if ((renderSurface->usage & dsRenderSurfaceUsage_ClientRotations) &&
+					!surface->rotated)
+				{
+					errno = EINVAL;
+					DS_LOG_ERROR_F(DS_SCENE_LOG_TAG, "Window surface '%s' has client rotations "
+						"enabled, but does not have rotated set to true.", surface->name);
+					return false;
+				}
+			}
 			continue;
+		}
 
 		if (surface->surfaceType >= dsGfxSurfaceType_ColorRenderSurface &&
 			surface->surfaceType <= dsGfxSurfaceType_DepthRenderSurfaceRight)
@@ -124,21 +140,23 @@ static bool validateSurfacesFramebuffers(const dsResourceManager* resourceManage
 		if (!dsGfxFormat_renderTargetSupported(resourceManager, surface->createInfo.format))
 		{
 			errno = EINVAL;
-			DS_LOG_ERROR(DS_SCENE_LOG_TAG, "Format not supported for offscreens or renderbuffers.");
+			DS_LOG_ERROR_F(DS_SCENE_LOG_TAG,
+				"Format not supported for offscreens or renderbuffers for surface '%s'.",
+				surface->name);
 			return false;
 		}
 
 		if (surface->createInfo.width == 0 && surface->widthRatio <= 0.0f)
 		{
 			errno = EINVAL;
-			DS_LOG_ERROR(DS_SCENE_LOG_TAG, "Invalid surface width.");
+			DS_LOG_ERROR_F(DS_SCENE_LOG_TAG, "Invalid width for surface '%s'.", surface->name);
 			return false;
 		}
 
 		if (surface->createInfo.height == 0 && surface->heightRatio <= 0.0f)
 		{
 			errno = EINVAL;
-			DS_LOG_ERROR(DS_SCENE_LOG_TAG, "Invalid surface height.");
+			DS_LOG_ERROR_F(DS_SCENE_LOG_TAG, "Invalid height for surface '%s'.", surface->name);
 			return false;
 		}
 	}
@@ -186,6 +204,22 @@ static void destroyMidCreate(dsView* view)
 		DS_VERIFY(dsAllocator_free(view->allocator, view));
 }
 
+static void updatePreRotatedDimensions(dsView* view)
+{
+	switch (view->rotation)
+	{
+		case dsRenderSurfaceRotation_90:
+		case dsRenderSurfaceRotation_270:
+			view->preRotateWidth = view->height;
+			view->preRotateHeight = view->width;
+			break;
+		default:
+			view->preRotateWidth = view->width;
+			view->preRotateHeight = view->height;
+			break;
+	}
+}
+
 static void updatedCameraProjection(dsView* view)
 {
 	dsRenderer* renderer = view->scene->renderer;
@@ -197,7 +231,8 @@ static void updatedCameraProjection(dsView* view)
 dsView* dsView_create(const dsScene* scene, dsAllocator* allocator,
 	const dsViewSurfaceInfo* surfaces, uint32_t surfaceCount,
 	const dsViewFramebufferInfo* framebuffers, uint32_t framebufferCount, uint32_t width,
-	uint32_t height, void* userData, dsDestroySceneUserDataFunction destroyUserDataFunc)
+	uint32_t height, dsRenderSurfaceRotation rotation, void* userData,
+	dsDestroySceneUserDataFunction destroyUserDataFunc)
 {
 	if (!scene || !surfaces || surfaceCount == 0 || !framebuffers || framebufferCount == 0)
 	{
@@ -259,6 +294,8 @@ dsView* dsView_create(const dsScene* scene, dsAllocator* allocator,
 	view->destroyUserDataFunc = destroyUserDataFunc;
 	view->width = width;
 	view->height = height;
+	view->rotation = rotation;
+	updatePreRotatedDimensions(view);
 	dsMatrix44_identity(view->cameraMatrix);
 	dsMatrix44_identity(view->viewMatrix);
 	dsMatrix44_identity(view->projectionMatrix);
@@ -305,7 +342,7 @@ dsView* dsView_create(const dsScene* scene, dsAllocator* allocator,
 		IndexNode* node = surfaceNodes + i;
 		node->index = i;
 		if (!dsHashTable_insert(privateView->surfaceTable, surfaceInfo->name,
-			(dsHashTableNode*)node, NULL))
+				(dsHashTableNode*)node, NULL))
 		{
 			errno = EINVAL;
 			DS_LOG_ERROR_F(DS_SCENE_LOG_TAG, "Surface '%s' isn't unique within the view.",
@@ -321,10 +358,10 @@ dsView* dsView_create(const dsScene* scene, dsAllocator* allocator,
 	memcpy(privateView->framebufferInfos, framebuffers,
 		sizeof(dsViewFramebufferInfo)*framebufferCount);
 
-	privateView->framebuffers = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsFramebuffer*,
+	privateView->framebuffers = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsRotatedFramebuffer,
 		framebufferCount);
 	DS_ASSERT(privateView->framebuffers);
-	memset(privateView->framebuffers, 0, sizeof(dsFramebuffer*));
+	memset(privateView->framebuffers, 0, sizeof(dsRotatedFramebuffer));
 	privateView->framebufferCount = framebufferCount;
 
 	uint32_t maxSurfaces = 0;
@@ -340,6 +377,7 @@ dsView* dsView_create(const dsScene* scene, dsAllocator* allocator,
 		DS_ASSERT(framebufferInfo->surfaces);
 		memcpy((void*)framebufferInfo->surfaces, framebuffers[i].surfaces,
 			sizeof(dsFramebufferSurface)*framebuffers[i].surfaceCount);
+		bool rotated = false;
 		for (uint32_t j = 0; j < framebufferInfo->surfaceCount; ++j)
 		{
 			dsFramebufferSurface* surface = (dsFramebufferSurface*)framebufferInfo->surfaces + j;
@@ -354,9 +392,10 @@ dsView* dsView_create(const dsScene* scene, dsAllocator* allocator,
 				return NULL;
 			}
 
+			dsViewSurfaceInfo* surfaceInfo = privateView->surfaceInfos + node->index;
 			if (surface->surfaceType == (dsGfxSurfaceType)-1)
-				surface->surfaceType = privateView->surfaceInfos[node->index].surfaceType;
-			else if (privateView->surfaceInfos[node->index].surfaceType != surface->surfaceType)
+				surface->surfaceType = surfaceInfo->surfaceType;
+			else if (surfaceInfo->surfaceType != surface->surfaceType)
 			{
 				errno = EINVAL;
 				DS_LOG_ERROR_F(DS_SCENE_LOG_TAG,
@@ -370,8 +409,21 @@ dsView* dsView_create(const dsScene* scene, dsAllocator* allocator,
 			surface->surface = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, nameLen);
 			DS_ASSERT(surface->surface);
 			memcpy(surface->surface, surfaceName, nameLen);
+
+			if (j == 0)
+				rotated = surfaceInfo->rotated;
+			else if (surfaceInfo->rotated != rotated)
+			{
+				errno = EINVAL;
+				DS_LOG_ERROR_F(DS_SCENE_LOG_TAG,
+					"Framebuffer '%s' cannot contain surfaces both with and without rotation.",
+					framebufferInfo->name);
+				destroyMidCreate(view);
+				return NULL;
+			}
 		}
 
+		privateView->framebuffers[i].rotated = rotated;
 		maxSurfaces = dsMax(maxSurfaces, framebufferInfo->surfaceCount);
 	}
 
@@ -433,6 +485,7 @@ bool dsView_setDimensions(dsView* view, uint32_t width, uint32_t height,
 	view->width = width;
 	view->height = height;
 	view->rotation = rotation;
+	updatePreRotatedDimensions(view);
 	privateView->sizeUpdated = true;
 	return true;
 }
@@ -566,13 +619,19 @@ bool dsView_update(dsView* view)
 		if (surfaceInfo->createInfo.width > 0)
 			width = surfaceInfo->createInfo.width;
 		else
-			width = (uint32_t)roundf(surfaceInfo->widthRatio*(float)view->width);
+		{
+			width = surfaceInfo->rotated ? view->preRotateWidth : view->width;
+			width = (uint32_t)roundf(surfaceInfo->widthRatio*(float)width);
+		}
 
 		uint32_t height;
 		if (surfaceInfo->createInfo.height > 0)
 			height = surfaceInfo->createInfo.height;
 		else
-			height = (uint32_t)roundf(surfaceInfo->heightRatio*(float)view->height);
+		{
+			height = surfaceInfo->rotated ? view->preRotateHeight : view->height;
+			height = (uint32_t)roundf(surfaceInfo->heightRatio*(float)height);
+		}
 
 		switch (surfaceInfo->surfaceType)
 		{
@@ -616,18 +675,7 @@ bool dsView_update(dsView* view)
 	{
 		const dsViewFramebufferInfo* framebufferInfo = privateView->framebufferInfos + i;
 
-		uint32_t width;
-		if (framebufferInfo->width > 0)
-			width = (uint32_t)roundf(framebufferInfo->width);
-		else
-			width = (uint32_t)roundf(-framebufferInfo->width*(float)view->width);
-
-		uint32_t height;
-		if (framebufferInfo->height > 0)
-			height = (uint32_t)roundf(framebufferInfo->height);
-		else
-			height = (uint32_t)roundf(-framebufferInfo->height*(float)view->height);
-
+		bool rotated = false;
 		for (uint32_t j = 0; j < framebufferInfo->surfaceCount; ++j)
 		{
 			dsFramebufferSurface* surface = privateView->tempSurfaces + j;
@@ -639,6 +687,26 @@ bool dsView_update(dsView* view)
 			DS_ASSERT(privateView->surfaceInfos[foundNode->index].surfaceType ==
 				surface->surfaceType);
 			surface->surface = privateView->surfaces[foundNode->index];
+			DS_ASSERT(j == 0 || rotated == privateView->surfaceInfos->rotated);
+			rotated = privateView->surfaceInfos->rotated;
+		}
+
+		uint32_t width;
+		if (framebufferInfo->width > 0)
+			width = (uint32_t)roundf(framebufferInfo->width);
+		else
+		{
+			width = rotated ? view->preRotateWidth : view->width;
+			width = (uint32_t)roundf(-framebufferInfo->width*(float)width);
+		}
+
+		uint32_t height;
+		if (framebufferInfo->height > 0)
+			height = (uint32_t)roundf(framebufferInfo->height);
+		else
+		{
+			height = rotated ? view->preRotateHeight : view->height;
+			height = (uint32_t)roundf(-framebufferInfo->height*(float)height);
 		}
 
 		dsFramebuffer* framebuffer = dsFramebuffer_create(resourceManager, view->allocator,
@@ -647,8 +715,8 @@ bool dsView_update(dsView* view)
 		if (!framebuffer)
 			DS_PROFILE_FUNC_RETURN(false);
 
-		DS_VERIFY(dsFramebuffer_destroy(privateView->framebuffers[i]));
-		privateView->framebuffers[i] = framebuffer;
+		DS_VERIFY(dsFramebuffer_destroy(privateView->framebuffers[i].framebuffer));
+		privateView->framebuffers[i].framebuffer = framebuffer;
 	}
 
 	privateView->sizeUpdated = false;
@@ -707,13 +775,14 @@ bool dsView_draw(dsView* view, dsCommandBuffer* commandBuffer, dsSceneThreadMana
 			uint32_t framebufferIndex = privateView->pipelineFramebuffers[i];
 			const dsViewFramebufferInfo* framebufferInfo =
 				privateView->framebufferInfos + framebufferIndex;
-			dsFramebuffer* framebuffer = privateView->framebuffers[framebufferIndex];
+			const dsRotatedFramebuffer* framebuffer = privateView->framebuffers + framebufferIndex;
 
 			dsAlignedBox3f viewport = framebufferInfo->viewport;
-			float width = (float)framebuffer->width;
+			dsView_adjustViewport(&viewport, view, framebuffer->rotated);
+			float width = (float)framebuffer->framebuffer->width;
 			if (width < 0)
 				width *= (float)view->width;
-			float height = (float)framebuffer->height;
+			float height = (float)framebuffer->framebuffer->height;
 			if (height < 0)
 				height *= (float)view->height;
 			viewport.min.x *= width;
@@ -722,7 +791,7 @@ bool dsView_draw(dsView* view, dsCommandBuffer* commandBuffer, dsSceneThreadMana
 			viewport.max.y *= height;
 			uint32_t clearValueCount =
 				sceneRenderPass->clearValues ? sceneRenderPass->renderPass->attachmentCount : 0;
-			if (!dsRenderPass_begin(renderPass, commandBuffer, framebuffer, &viewport,
+			if (!dsRenderPass_begin(renderPass, commandBuffer, framebuffer->framebuffer, &viewport,
 					sceneRenderPass->clearValues, clearValueCount, false))
 			{
 				DS_PROFILE_FUNC_RETURN(false);
@@ -770,7 +839,7 @@ bool dsView_destroy(dsView* view)
 	dsViewPrivate* privateView = (dsViewPrivate*)view;
 	for (uint32_t i = 0; i < privateView->framebufferCount; ++i)
 	{
-		if (!dsFramebuffer_destroy(privateView->framebuffers[i]))
+		if (!dsFramebuffer_destroy(privateView->framebuffers[i].framebuffer))
 		{
 			DS_ASSERT(i == 0);
 			return false;
@@ -804,4 +873,48 @@ bool dsView_destroy(dsView* view)
 		DS_VERIFY(dsAllocator_free(view->allocator, view));
 
 	return true;
+}
+
+void dsView_adjustViewport(dsAlignedBox3f* viewport, const dsView* view, bool rotated)
+{
+	if (!rotated)
+		return;
+
+	switch (view->rotation)
+	{
+		case dsRenderSurfaceRotation_0:
+			break;
+		case dsRenderSurfaceRotation_90:
+		{
+			float tempX = viewport->min.x;
+			float tempY = viewport->min.y;
+			viewport->min.x = 1.0f - viewport->max.y;
+			viewport->min.y = tempX;
+			tempX = viewport->max.x;
+			viewport->max.x = 1.0f - tempY;
+			viewport->max.y = tempX;
+			break;
+		}
+		case dsRenderSurfaceRotation_180:
+		{
+			float tempX = viewport->min.x;
+			float tempY = viewport->min.y;
+			viewport->min.x = 1.0f - viewport->max.x;
+			viewport->min.y = 1.0f - viewport->max.y;
+			viewport->max.x = 1.0f - tempX;
+			viewport->max.y = 1.0f - tempY;
+			break;
+		}
+		case dsRenderSurfaceRotation_270:
+		{
+			float tempX = viewport->min.x;
+			float tempY = viewport->min.y;
+			viewport->min.x = tempY;
+			viewport->min.y = 1.0f - viewport->max.x;
+			tempY = viewport->max.y;
+			viewport->max.x = tempY;
+			viewport->max.y = 1.0f - tempX;
+			break;
+		}
+	}
 }

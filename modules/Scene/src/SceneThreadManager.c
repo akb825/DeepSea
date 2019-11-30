@@ -15,9 +15,10 @@
  */
 
 #include <DeepSea/Scene/SceneThreadManager.h>
-
 #include "SceneThreadManagerInternal.h"
+
 #include "SceneTypes.h"
+#include "ViewInternal.h"
 #include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
@@ -81,7 +82,7 @@ struct dsSceneThreadManager
 
 	const dsView* curView;
 	const dsViewFramebufferInfo* curFramebufferInfos;
-	dsFramebuffer** curFramebuffers;
+	const dsRotatedFramebuffer* curFramebuffers;
 	const uint32_t* curPipelineFramebuffers;
 
 	uint32_t nextComputeCommandBuffer;
@@ -142,7 +143,7 @@ static void processPipeline(dsSceneThreadManager* threadManager)
 		uint32_t subpass = 0;
 		uint32_t subpassItem = 0;
 		const dsViewFramebufferInfo* framebufferInfo = NULL;
-		dsFramebuffer* framebuffer = NULL;
+		const dsRotatedFramebuffer* framebuffer = NULL;
 		dsCommandBuffer* commandBuffer = NULL;
 
 		DS_VERIFY(dsSpinlock_lock(&threadManager->itemLock));
@@ -155,7 +156,7 @@ static void processPipeline(dsSceneThreadManager* threadManager)
 				uint32_t framebufferIndex =
 					threadManager->curPipelineFramebuffers[threadManager->nextItem];
 				framebufferInfo = threadManager->curFramebufferInfos + framebufferIndex;
-				framebuffer = threadManager->curFramebuffers[framebufferIndex];
+				framebuffer = threadManager->curFramebuffers + framebufferIndex;
 
 				subpass = threadManager->nextSubpass;
 				subpassItem = threadManager->nextSubpassItem++;
@@ -194,14 +195,15 @@ static void processPipeline(dsSceneThreadManager* threadManager)
 		if (item->renderPass)
 		{
 			dsAlignedBox3f viewport = framebufferInfo->viewport;
-			viewport.min.x *= (float)framebuffer->width;
-			viewport.max.x *= (float)framebuffer->width;
-			viewport.min.y *= (float)framebuffer->height;
-			viewport.max.y *= (float)framebuffer->height;
+			dsView_adjustViewport(&viewport, view, framebuffer->rotated);
+			viewport.min.x *= (float)framebuffer->framebuffer->width;
+			viewport.max.x *= (float)framebuffer->framebuffer->width;
+			viewport.min.y *= (float)framebuffer->framebuffer->height;
+			viewport.max.y *= (float)framebuffer->framebuffer->height;
 
 			dsRenderPass* renderPass = item->renderPass->renderPass;
-			if (!dsCommandBuffer_beginSecondary(commandBuffer, framebuffer, renderPass, subpass,
-					&viewport))
+			if (!dsCommandBuffer_beginSecondary(commandBuffer, framebuffer->framebuffer, renderPass,
+					subpass, &viewport))
 			{
 				continue;
 			}
@@ -461,16 +463,18 @@ static bool submitCommandBuffers(dsSceneThreadManager* threadManager,
 			uint32_t framebufferIndex = threadManager->curPipelineFramebuffers[i];
 			const dsViewFramebufferInfo* framebufferInfo =
 				threadManager->curFramebufferInfos + framebufferIndex;
-			dsFramebuffer* framebuffer = threadManager->curFramebuffers[framebufferIndex];
+			const dsRotatedFramebuffer* framebuffer = threadManager->curFramebuffers +
+				framebufferIndex;
 
 			dsAlignedBox3f viewport = framebufferInfo->viewport;
-			viewport.min.x *= (float)framebuffer->width;
-			viewport.max.x *= (float)framebuffer->width;
-			viewport.min.y *= (float)framebuffer->height;
-			viewport.max.y *= (float)framebuffer->height;
+			dsView_adjustViewport(&viewport, threadManager->curView, framebuffer->rotated);
+			viewport.min.x *= (float)framebuffer->framebuffer->width;
+			viewport.max.x *= (float)framebuffer->framebuffer->width;
+			viewport.min.y *= (float)framebuffer->framebuffer->height;
+			viewport.max.y *= (float)framebuffer->framebuffer->height;
 			uint32_t clearValueCount =
 				sceneRenderPass->clearValues ? sceneRenderPass->renderPass->attachmentCount : 0;
-			if (!dsRenderPass_begin(renderPass, commandBuffer, framebuffer, &viewport,
+			if (!dsRenderPass_begin(renderPass, commandBuffer, framebuffer->framebuffer, &viewport,
 					sceneRenderPass->clearValues, clearValueCount, true))
 			{
 				return false;
@@ -608,7 +612,7 @@ dsSceneThreadManager* dsSceneThreadManager_create(dsAllocator* allocator,
 
 bool dsSceneThreadManager_draw(dsSceneThreadManager* threadManager, const dsView* view,
 	dsCommandBuffer* commandBuffer, const dsViewFramebufferInfo* framebufferInfos,
-	dsFramebuffer** framebuffers, const uint32_t* pipelineFramebuffers)
+	const dsRotatedFramebuffer* framebuffers, const uint32_t* pipelineFramebuffers)
 {
 	const dsScene* scene = view->scene;
 	dsRenderer* renderer = scene->renderer;

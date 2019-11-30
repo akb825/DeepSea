@@ -42,6 +42,7 @@ extern "C"
  * @param framebufferCount The number of framebuffers.
  * @param width The width of the view.
  * @param height The height of the view.
+ * @param rotation The rotation of the window surface.
  * @param userData User data to hold with the view.
  * @param destroyUserDataFunc Function to destroy the user data for the view.
  * @return The view or NULL if an error occurred.
@@ -49,7 +50,8 @@ extern "C"
 DS_SCENE_EXPORT dsView* dsView_create(const dsScene* scene, dsAllocator* allocator,
 	const dsViewSurfaceInfo* surfaces, uint32_t surfaceCount,
 	const dsViewFramebufferInfo* framebuffers, uint32_t framebufferCount, uint32_t width,
-	uint32_t height, void* userData, dsDestroySceneUserDataFunction destroyUserDataFunc);
+	uint32_t height, dsRenderSurfaceRotation rotation, void* userData,
+	dsDestroySceneUserDataFunction destroyUserDataFunc);
 
 /**
  * @brief Sets the dimensions of the view.
@@ -70,7 +72,7 @@ DS_SCENE_EXPORT bool dsView_setDimensions(dsView* view, uint32_t width, uint32_t
  * @brief Gets a surface used within the view.
  * @param[out] outType The surface type.
  * @param view The view to get the surface from.
- * @param name The naem of the surface.
+ * @param name The name of the surface.
  * @return The surface or NULL if the surface wasn't found. The surface may also be NULL if
  *     dsView_update() was never called.
  */

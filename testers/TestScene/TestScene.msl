@@ -16,6 +16,7 @@
 
 #include <DeepSea/Render/Shaders/VertexAttributes.mslh>
 #include <DeepSea/Scene/Shaders/InstanceTransform.mslh>
+#include <DeepSea/Scene/Shaders/ViewTransform.mslh>
 
 uniform vec4 materialColor;
 
@@ -40,6 +41,7 @@ varying(vertex, fragment)
 void vertexShader()
 {
 	gl_Position = DS_ADJUST_CLIP(INSTANCE(dsInstanceTransform).worldViewProj*vec4(position, 1.0));
+	gl_Position.xy = dsRotateScreenPosition(gl_Position.xy);
 	vfNormal = (INSTANCE(dsInstanceTransform).worldInvTrans*vec4(normal, 0.0)).xyz;
 }
 

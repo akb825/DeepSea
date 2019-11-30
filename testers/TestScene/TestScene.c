@@ -183,14 +183,11 @@ static bool validateAllocator(dsAllocator* allocator, const char* name)
 	return false;
 }
 
-static void updateProjectionMatrix(dsView* view, dsRenderSurface* surface)
+static void updateProjectionMatrix(dsView* view)
 {
-	dsMatrix44f projection, baseProjection, surfaceRotation;
-	DS_VERIFY(dsRenderer_makePerspective(&baseProjection, dsScene_getRenderer(view->scene),
+	dsMatrix44f projection;
+	DS_VERIFY(dsRenderer_makePerspective(&projection, dsScene_getRenderer(view->scene),
 		(float)dsDegreesToRadians(45.0f), (float)view->width/(float)view->height, 0.1f, 100.0f));
-	DS_VERIFY(dsRenderSurface_makeRotationMatrix(&surfaceRotation,
-		surface->rotation));
-	dsMatrix44_mul(projection, surfaceRotation, baseProjection);
 	DS_VERIFY(dsView_setProjectionMatrix(view, &projection));
 }
 
@@ -216,7 +213,7 @@ static bool processEvent(dsApplication* application, dsWindow* window, const dsE
 		case dsEventType_WindowResized:
 			DS_VERIFY(dsView_setDimensions(testScene->view, testScene->window->surface->width,
 				testScene->window->surface->height, testScene->window->surface->rotation));
-			updateProjectionMatrix(testScene->view, testScene->window->surface);
+			updateProjectionMatrix(testScene->view);
 			// Need to update the view again if the surfaces have been set.
 			if (event->type == dsEventType_SurfaceInvalidated)
 				dsView_update(testScene->view);
@@ -647,9 +644,11 @@ static dsView* createView(dsAllocator* allocator, dsScene* scene, dsRenderSurfac
 	surfaces[0].name = "windowColor";
 	surfaces[0].surfaceType = dsGfxSurfaceType_ColorRenderSurface;
 	surfaces[0].surface = surface;
+	surfaces[0].rotated = true;
 	surfaces[1].name = "windowDepth";
 	surfaces[1].surfaceType = dsGfxSurfaceType_DepthRenderSurface;
 	surfaces[1].surface = surface;
+	surfaces[1].rotated = true;
 
 	dsFramebufferSurface framebufferSurfaces[2] =
 	{
@@ -661,7 +660,7 @@ static dsView* createView(dsAllocator* allocator, dsScene* scene, dsRenderSurfac
 		{{{0.0f, 0.0f, 0.0f}}, {{1.0f, 1.0f, 1.0f}}}};
 
 	dsView* view = dsView_create(scene, allocator, surfaces, DS_ARRAY_SIZE(surfaces),
-		&framebuffer, 1, surface->width, surface->height, NULL, NULL);
+		&framebuffer, 1, surface->width, surface->height, surface->rotation, NULL, NULL);
 	if (!view)
 	{
 		DS_LOG_ERROR_F(DS_SCENE_LOG_TAG, "Couldn't create view: %s", dsErrorString(errno));
@@ -674,7 +673,7 @@ static dsView* createView(dsAllocator* allocator, dsScene* scene, dsRenderSurfac
 	dsMatrix44f camera;
 	dsMatrix44f_lookAt(&camera, &eyePos, &lookAtPos, &upDir);
 	dsView_setCameraMatrix(view, &camera);
-	updateProjectionMatrix(view, surface);
+	updateProjectionMatrix(view);
 	return view;
 }
 

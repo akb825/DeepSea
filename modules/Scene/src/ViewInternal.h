@@ -19,6 +19,4 @@
 #include <DeepSea/Core/Config.h>
 #include "SceneTypes.h"
 
-bool dsSceneThreadManager_draw(dsSceneThreadManager* threadManager, const dsView* view,
-	dsCommandBuffer* commandBuffer, const dsViewFramebufferInfo* framebufferInfos,
-	const dsRotatedFramebuffer* framebuffers, const uint32_t* pipelineFramebuffers);
+void dsView_adjustViewport(dsAlignedBox3f* viewport, const dsView* view, bool rotated);

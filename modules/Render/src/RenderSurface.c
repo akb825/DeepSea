@@ -23,6 +23,7 @@
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Core/Profile.h>
+#include <DeepSea/Math/Matrix22.h>
 #include <DeepSea/Math/Matrix44.h>
 #include <stdio.h>
 
@@ -56,7 +57,47 @@ static void endSurfaceScope(const dsRenderSurface* renderSurface)
 #endif
 }
 
-bool dsRenderSurface_makeRotationMatrix(dsMatrix44f* result, dsRenderSurfaceRotation rotation)
+bool dsRenderSurface_makeRotationMatrix22(dsMatrix22f* result, dsRenderSurfaceRotation rotation)
+{
+	if (!result)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	switch (rotation)
+	{
+		case dsRenderSurfaceRotation_0:
+			dsMatrix22_identity(*result);
+			return true;
+		case dsRenderSurfaceRotation_90:
+			dsMatrix22_identity(*result);
+			result->columns[0].x = 0.0f;
+			result->columns[0].y = 1.0f;
+			result->columns[1].x = -1.0f;
+			result->columns[1].y = 0.0f;
+			return true;
+		case dsRenderSurfaceRotation_180:
+			dsMatrix22_identity(*result);
+			result->columns[0].x = -1.0f;
+			result->columns[0].y = 0.0f;
+			result->columns[1].x = 0.0f;
+			result->columns[1].y = -1.0f;
+			return true;
+		case dsRenderSurfaceRotation_270:
+			dsMatrix22_identity(*result);
+			result->columns[0].x = 0.0f;
+			result->columns[0].y = -1.0f;
+			result->columns[1].x = 1.0f;
+			result->columns[1].y = 0.0f;
+			return true;
+		default:
+			errno = EINVAL;
+			return false;
+	}
+}
+
+bool dsRenderSurface_makeRotationMatrix44(dsMatrix44f* result, dsRenderSurfaceRotation rotation)
 {
 	if (!result)
 	{

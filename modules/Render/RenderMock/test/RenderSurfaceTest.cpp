@@ -16,6 +16,7 @@
 
 #include "Fixtures/FixtureBase.h"
 #include <DeepSea/Math/Core.h>
+#include <DeepSea/Math/Matrix22.h>
 #include <DeepSea/Math/Matrix44.h>
 #include <DeepSea/Render/RenderSurface.h>
 #include <gtest/gtest.h>
@@ -26,12 +27,50 @@ class RenderSurfaceTest : public FixtureBase
 
 extern "C" DS_RENDERMOCK_EXPORT bool dsMockRenderSurface_changeSize;
 
-TEST_F(RenderSurfaceTest, Roation)
+TEST_F(RenderSurfaceTest, Roation22)
+{
+	dsMatrix22f rotation, expected;
+	EXPECT_FALSE(dsRenderSurface_makeRotationMatrix22(NULL, dsRenderSurfaceRotation_0));
+
+	EXPECT_TRUE(dsRenderSurface_makeRotationMatrix22(&rotation, dsRenderSurfaceRotation_0));
+	dsMatrix22_identity(expected);
+	for (unsigned int i = 0; i < 2; ++i)
+	{
+		for (unsigned int j = 0; j < 2; ++j)
+			EXPECT_NEAR(expected.values[i][j], rotation.values[i][j], 1e-6);
+	}
+
+	EXPECT_TRUE(dsRenderSurface_makeRotationMatrix22(&rotation, dsRenderSurfaceRotation_90));
+	dsMatrix22f_makeRotate(&expected, (float)M_PI_2);
+	for (unsigned int i = 0; i < 2; ++i)
+	{
+		for (unsigned int j = 0; j < 2; ++j)
+			EXPECT_NEAR(expected.values[i][j], rotation.values[i][j], 1e-6);
+	}
+
+	EXPECT_TRUE(dsRenderSurface_makeRotationMatrix22(&rotation, dsRenderSurfaceRotation_180));
+	dsMatrix22f_makeRotate(&expected, (float)M_PI);
+	for (unsigned int i = 0; i < 2; ++i)
+	{
+		for (unsigned int j = 0; j < 2; ++j)
+			EXPECT_NEAR(expected.values[i][j], rotation.values[i][j], 1e-6);
+	}
+
+	EXPECT_TRUE(dsRenderSurface_makeRotationMatrix22(&rotation, dsRenderSurfaceRotation_270));
+	dsMatrix22f_makeRotate(&expected, (float)(M_PI*1.5));
+	for (unsigned int i = 0; i < 2; ++i)
+	{
+		for (unsigned int j = 0; j < 2; ++j)
+			EXPECT_NEAR(expected.values[i][j], rotation.values[i][j], 1e-6);
+	}
+}
+
+TEST_F(RenderSurfaceTest, Roation44)
 {
 	dsMatrix44f rotation, expected;
-	EXPECT_FALSE(dsRenderSurface_makeRotationMatrix(NULL, dsRenderSurfaceRotation_0));
+	EXPECT_FALSE(dsRenderSurface_makeRotationMatrix44(NULL, dsRenderSurfaceRotation_0));
 
-	EXPECT_TRUE(dsRenderSurface_makeRotationMatrix(&rotation, dsRenderSurfaceRotation_0));
+	EXPECT_TRUE(dsRenderSurface_makeRotationMatrix44(&rotation, dsRenderSurfaceRotation_0));
 	dsMatrix44_identity(expected);
 	for (unsigned int i = 0; i < 4; ++i)
 	{
@@ -39,7 +78,7 @@ TEST_F(RenderSurfaceTest, Roation)
 			EXPECT_NEAR(expected.values[i][j], rotation.values[i][j], 1e-6);
 	}
 
-	EXPECT_TRUE(dsRenderSurface_makeRotationMatrix(&rotation, dsRenderSurfaceRotation_90));
+	EXPECT_TRUE(dsRenderSurface_makeRotationMatrix44(&rotation, dsRenderSurfaceRotation_90));
 	dsMatrix44f_makeRotate(&expected, 0.0f, 0.0f, (float)M_PI_2);
 	for (unsigned int i = 0; i < 4; ++i)
 	{
@@ -47,7 +86,7 @@ TEST_F(RenderSurfaceTest, Roation)
 			EXPECT_NEAR(expected.values[i][j], rotation.values[i][j], 1e-6);
 	}
 
-	EXPECT_TRUE(dsRenderSurface_makeRotationMatrix(&rotation, dsRenderSurfaceRotation_180));
+	EXPECT_TRUE(dsRenderSurface_makeRotationMatrix44(&rotation, dsRenderSurfaceRotation_180));
 	dsMatrix44f_makeRotate(&expected, 0.0f, 0.0f, (float)M_PI);
 	for (unsigned int i = 0; i < 4; ++i)
 	{
@@ -55,7 +94,7 @@ TEST_F(RenderSurfaceTest, Roation)
 			EXPECT_NEAR(expected.values[i][j], rotation.values[i][j], 1e-6);
 	}
 
-	EXPECT_TRUE(dsRenderSurface_makeRotationMatrix(&rotation, dsRenderSurfaceRotation_270));
+	EXPECT_TRUE(dsRenderSurface_makeRotationMatrix44(&rotation, dsRenderSurfaceRotation_270));
 	dsMatrix44f_makeRotate(&expected, 0.0f, 0.0f, (float)(M_PI*1.5));
 	for (unsigned int i = 0; i < 4; ++i)
 	{
