@@ -265,6 +265,10 @@ static bool enableValidation(const dsRendererOptions* options)
 	if (!options)
 		return false;
 
+	const char* env = getenv("DS_DISABLE_VULKAN_VALIDATIONS");
+	if (env && strcmp(env, "0") != 0)
+		return false;
+
 	// NOTE: RenderDoc will crash when adding the debug message function.
 	if (getenv("RENDERDOC_CAPFILE"))
 		return false;
