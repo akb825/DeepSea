@@ -40,6 +40,14 @@ The first time you run `update.sh`, pass in the `-t` option to download the tool
 
 After you have chosen the platforms to download libraries for, run `update.sh -a` at any point to pull the current branch and update the submodules, tools, and libraries to the proper versions. If you check out a specific revision or tag, you can run `update.sh -m` to update everything but the current git branch.
 
+For example, if you want to build for both 32-bit and 64-bit Windows, your first call to update.sh would be:
+
+	./update.sh -m -t -l win32 win64
+
+This will download the submodules, tools, and pre-built libraries. After this point, you can run either `./update.sh -a` to update git and all dependencies or `./update.sh -m` to just update the dependencies.
+
+> **Note:** When building on Linux, the freetype, harfbuzz, and SDL libraries aren't installed with the pre-built library packages since they are installed on nearly all Linux systems already. The development packages for these libraries must be installed when building DeepSea. In the case of Ubuntu, the `libfreetype6-dev`, `libharfbuzz-dev`, and `libsdl2-dev` should be installed. The `libgl1-mesa-dev` package is also required to compile the OpenGL backend.
+
 > **Note:** When updating on Windows, it's recommended to first run `git pull` followed by running `update.sh -m` instead of using `update.sh -a` for both steps. This is because Windows will lock the `update.sh` script when running it, causing errors if git attempts to update the script while it's running.
 
 # Platforms
@@ -67,7 +75,7 @@ The tests can be run by running the command:
 
 	DeepSea/build$ ctest
 
-> **Note:** When building on Linux, the freetype harfbuzz, and SDL libraries aren't installed with the pre-built library packages since they are installed on nearly all Linux systems already. The development packages for these libraries must be installed when building DeepSea. In the case of Ubuntu, the `libfreetype6-dev`, `libharfbuzz-dev`, and `libsdl2-dev` should be installed. The `libgl1-mesa-dev` package is also required to compile the OpenGL backend.
+The executables can all be found under the `output` directory relative to your build directory.
 
 ## macOS
 
