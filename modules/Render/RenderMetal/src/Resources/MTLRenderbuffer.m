@@ -104,7 +104,7 @@ dsRenderbuffer* dsMTLRenderbuffer_create(dsResourceManager* resourceManager, dsA
 		descriptor.usage = MTLTextureUsageRenderTarget;
 #endif
 #if __IPHONE_OS_VERSION_MIN_REQUIRED >= 100000
-		if (!(usage & (dsRenderbufferUsage_Continue | dsRenderbufferUsage_Clear)))
+		if (!(usage & dsRenderbufferUsage_Continue))
 			resourceOptions |= MTLResourceStorageModeMemoryless;
 #endif
 		descriptor.resourceOptions = resourceOptions;
