@@ -41,7 +41,7 @@ inline static bool needsSoftwareCommandBuffer(dsCommandBufferUsage usage)
 dsCommandBufferPool* dsMTLCommandBufferPool_create(dsRenderer* renderer, dsAllocator* allocator,
 	dsCommandBufferUsage usage)
 {
-	dsMTLCommandBufferPool* pool = DS_ALLOCATE_OBJECT(&allocator, dsMTLCommandBufferPool);
+	dsMTLCommandBufferPool* pool = DS_ALLOCATE_OBJECT(allocator, dsMTLCommandBufferPool);
 	if (!pool)
 		return NULL;
 
