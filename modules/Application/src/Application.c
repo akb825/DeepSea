@@ -24,8 +24,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-static uint32_t nextWindowResponderId;
-static uint32_t nextEventResponderId;
+static uint32_t nextWindowResponderID;
+static uint32_t nextEventResponderID;
 
 static void applicationLogWrapper(void* userData, dsLogLevel level, const char* tag,
 	const char* file, unsigned int line, const char* function, const char* message)
@@ -63,15 +63,15 @@ uint32_t dsApplication_addWindowResponder(dsApplication* application,
 		return 0;
 	}
 
-	uint32_t id = ++nextWindowResponderId;
+	uint32_t id = ++nextWindowResponderID;
 	application->windowResponders[index] = *responder;
-	application->windowResponders[index].responderId = id;
+	application->windowResponders[index].responderID = id;
 	return id;
 }
 
-bool dsApplication_removeWindowResponder(dsApplication* application, uint32_t responderId)
+bool dsApplication_removeWindowResponder(dsApplication* application, uint32_t responderID)
 {
-	if (!application || responderId == 0)
+	if (!application || responderID == 0)
 	{
 		errno = EINVAL;
 		return false;
@@ -79,7 +79,7 @@ bool dsApplication_removeWindowResponder(dsApplication* application, uint32_t re
 
 	for (uint32_t i = 0; i < application->windowResponderCount; ++i)
 	{
-		if (application->windowResponders[i].responderId == responderId)
+		if (application->windowResponders[i].responderID == responderID)
 		{
 			memmove(application->windowResponders + i, application->windowResponders + i + 1,
 				sizeof(dsWindowResponder)*(application->windowResponderCount - i - 1));
@@ -107,18 +107,18 @@ uint32_t dsApplication_addEventResponder(dsApplication* application, const dsEve
 		return 0;
 	}
 
-	uint32_t id = ++nextEventResponderId;
+	uint32_t id = ++nextEventResponderID;
 	application->eventResponders[index] = *responder;
-	application->eventResponders[index].responderId = id;
+	application->eventResponders[index].responderID = id;
 
 	qsort(application->eventResponders, application->eventResponderCount, sizeof(dsEventResponder),
 		&compareEventResponders);
 	return id;
 }
 
-bool dsApplication_removeEventResponder(dsApplication* application, uint32_t responderId)
+bool dsApplication_removeEventResponder(dsApplication* application, uint32_t responderID)
 {
-	if (!application || responderId == 0)
+	if (!application || responderID == 0)
 	{
 		errno = EINVAL;
 		return false;
@@ -126,7 +126,7 @@ bool dsApplication_removeEventResponder(dsApplication* application, uint32_t res
 
 	for (uint32_t i = 0; i < application->eventResponderCount; ++i)
 	{
-		if (application->eventResponders[i].responderId == responderId)
+		if (application->eventResponders[i].responderID == responderID)
 		{
 			memmove(application->eventResponders + i, application->eventResponders + i + 1,
 				sizeof(dsEventResponder)*(application->eventResponderCount - i - 1));
@@ -519,7 +519,7 @@ bool dsApplication_dispatchEvent(dsApplication* application, dsWindow* window,
 	}
 
 	if (event->type == dsEventType_Custom && event->custom.cleanupFunc)
-		event->custom.cleanupFunc(event->custom.eventId, event->custom.userData);
+		event->custom.cleanupFunc(event->custom.eventID, event->custom.userData);
 
 	return true;
 }

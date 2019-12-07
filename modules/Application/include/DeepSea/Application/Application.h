@@ -50,11 +50,11 @@ DS_APPLICATION_EXPORT uint32_t dsApplication_addWindowResponder(dsApplication* a
  * @brief Removes a window responder from an application.
  * @remark errno will be set on failure.
  * @param application The application.
- * @param responderId The ID of the responder to remove.
+ * @param responderID The ID of the responder to remove.
  * @return True if the responder was removed.
  */
 DS_APPLICATION_EXPORT bool dsApplication_removeWindowResponder(dsApplication* application,
-	uint32_t responderId);
+	uint32_t responderID);
 
 /**
  * @brief Adds an event responder to an application.
@@ -70,11 +70,11 @@ DS_APPLICATION_EXPORT uint32_t dsApplication_addEventResponder(dsApplication* ap
  * @brief Removes an event responder from an application.
  * @remark errno will be set on failure.
  * @param application The application.
- * @param responderId The ID of the responder to remove.
+ * @param responderID The ID of the responder to remove.
  * @return True if the responder was removed.
  */
 DS_APPLICATION_EXPORT bool dsApplication_removeEventResponder(dsApplication* application,
-	uint32_t responderId);
+	uint32_t responderID);
 
 /**
  * @brief Sets the update function for the application.

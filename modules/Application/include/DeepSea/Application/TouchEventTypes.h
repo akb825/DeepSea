@@ -37,12 +37,12 @@ typedef struct dsTouchEvent
 	/**
 	 * @brief ID for the touch.
 	 */
-	uint64_t touchId;
+	uint64_t touchID;
 
 	/**
 	 * @brief ID for the finger.
 	 */
-	uint64_t fingerId;
+	uint64_t fingerID;
 
 	/**
 	 * @brief The X position of the finger in normalized [0, 1] coordinates.
@@ -78,7 +78,7 @@ typedef struct dsMultiTouchEvent
 	/**
 	 * @brief ID for the touch.
 	 */
-	uint64_t touchId;
+	uint64_t touchID;
 
 	/**
 	 * @brief The rotation of the gesture in radians.

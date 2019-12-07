@@ -350,7 +350,7 @@ bool dsSDLApplication_addCustomEvent(dsApplication* application, dsWindow* windo
 		userEvent.user.windowID = SDL_GetWindowID(((dsSDLWindow*)window)->sdlWindow);
 	else
 		userEvent.user.windowID = 0;
-	userEvent.user.code = event->eventId;
+	userEvent.user.code = event->eventID;
 	userEvent.user.data1 = event->userData;
 	userEvent.user.data2 = event->cleanupFunc;
 
@@ -622,8 +622,8 @@ int dsSDLApplication_run(dsApplication* application)
 							DS_ASSERT(false);
 							break;
 					}
-					event.touch.touchId = sdlEvent.tfinger.touchId;
-					event.touch.fingerId = sdlEvent.tfinger.fingerId;
+					event.touch.touchID = sdlEvent.tfinger.touchId;
+					event.touch.fingerID = sdlEvent.tfinger.fingerId;
 					event.touch.x = sdlEvent.tfinger.x;
 					event.touch.y = sdlEvent.tfinger.y;
 					event.touch.deltaX = sdlEvent.tfinger.dx;
@@ -632,7 +632,7 @@ int dsSDLApplication_run(dsApplication* application)
 					break;
 				case SDL_MULTIGESTURE:
 					event.type = dsEventType_MultiTouch;
-					event.multiTouch.touchId = sdlEvent.mgesture.touchId;
+					event.multiTouch.touchID = sdlEvent.mgesture.touchId;
 					event.multiTouch.rotation = sdlEvent.mgesture.dTheta;
 					event.multiTouch.pinch = sdlEvent.mgesture.dDist;
 					event.multiTouch.x = sdlEvent.mgesture.x;
@@ -641,7 +641,7 @@ int dsSDLApplication_run(dsApplication* application)
 					break;
 				case SDL_USEREVENT:
 					event.type = dsEventType_Custom;
-					event.custom.eventId = sdlEvent.user.code;
+					event.custom.eventID = sdlEvent.user.code;
 					event.custom.userData = sdlEvent.user.data1;
 					event.custom.cleanupFunc = (dsCustomEventCleanupFunction)sdlEvent.user.data2;
 					break;

@@ -287,10 +287,10 @@ typedef struct dsResizeEvent
 
 /**
  * @brief Function for cleaning up a custom event.
- * @param eventId User-specified ID describing the event.
+ * @param eventID User-specified ID describing the event.
  * @param userData The user data to clean up.
  */
-typedef void (*dsCustomEventCleanupFunction)(uint32_t eventId, void* userData);
+typedef void (*dsCustomEventCleanupFunction)(uint32_t eventID, void* userData);
 
 /**
  * @brief Struct containing information about a custom event.
@@ -300,7 +300,7 @@ typedef struct dsCustomEvent
 	/**
 	 * @brief User-specified ID describing the event.
 	 */
-	uint32_t eventId;
+	uint32_t eventID;
 
 	/**
 	 * @brief User data provided with the event.
@@ -1009,7 +1009,7 @@ typedef struct dsWindowResponder
 	 *
 	 * This will be set when added to the application.
 	 */
-	uint32_t responderId;
+	uint32_t responderID;
 } dsWindowResponder;
 
 /**
@@ -1039,7 +1039,7 @@ typedef struct dsEventResponder
 	 *
 	 * This will be set when added to the application.
 	 */
-	uint32_t responderId;
+	uint32_t responderID;
 } dsEventResponder;
 
 /** @copydoc dsApplication */
