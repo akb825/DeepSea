@@ -25,4 +25,3 @@ bool dsMTLCommandBufferPool_createCommandBuffers(dsRenderer* renderer, dsCommand
 	uint32_t count);
 bool dsMTLCommandBufferPool_reset(dsRenderer* renderer, dsCommandBufferPool* pool);
 bool dsMTLCommandBufferPool_destroy(dsRenderer* renderer, dsCommandBufferPool* pool);
-

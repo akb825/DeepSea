@@ -24,6 +24,7 @@ jobs:
     steps:
       - script: |
             ./update.sh -s -t -l linux
+            sudo apt-get update
             sudo apt-get install -y libfreetype6-dev libharfbuzz-dev libsdl2-dev libgl1-mesa-dev
         displayName: Download submodules
         workingDirectory: $(Build.SourcesDirectory)
