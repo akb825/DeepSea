@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2019 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -871,6 +871,12 @@ dsApplication* dsSDLApplication_create(dsAllocator* allocator, dsRenderer* rende
 			"Application allocator must support freeing memory.");
 		return NULL;
 	}
+
+	// When available, tell SDL we are using an external context. This should be guaranteed to be
+	// available in the pre-built libraries for platforms it's required for.
+#ifdef SDL_HINT_VIDEO_EXTERNAL_CONTEXT
+	SDL_SetHint(SDL_HINT_VIDEO_EXTERNAL_CONTEXT, "1");
+#endif
 
 	if (SDL_Init(SDL_INIT_JOYSTICK | SDL_INIT_HAPTIC) != 0)
 	{
