@@ -426,6 +426,9 @@ typedef struct dsMTLHardwareCommandBuffer
 	CFTypeRef boundComputePipeline;
 
 	CFTypeRef boundPipeline;
+	CFTypeRef boundDepthStencil;
+	uint32_t curFrontStencilRef;
+	uint32_t curBackStencilRef;
 
 	dsMTLTempBuffer* curTempBuffer;
 	dsMTLTempBuffer** tempBufferPool;
@@ -464,12 +467,28 @@ typedef struct dsMTLResourceManager
 	CFTypeRef defaultSampler;
 } dsMTLResourceManager;
 
+typedef struct dsMTLClearPipeline
+{
+	MTLPixelFormat colorFormats[DS_MAX_ATTACHMENTS];
+	MTLPixelFormat depthFormat;
+	MTLPixelFormat stencilFormat;
+	bool layered;
+	uint8_t samples;
+	CFTypeRef pipeline;
+} dsMTLClearPipeline;
+
 typedef struct dsMTLRenderer
 {
 	dsRenderer renderer;
 
 	CFTypeRef device;
 	CFTypeRef commandQueue;
+
+	CFTypeRef clearNoDepthStencilState;
+	CFTypeRef clearDepthState;
+	CFTypeRef clearStencilState;
+	CFTypeRef clearDepthStencilState;
+	CFTypeRef clearVertices;
 
 	dsMTLHardwareCommandBuffer mainCommandBuffer;
 
@@ -487,6 +506,11 @@ typedef struct dsMTLRenderer
 	uint32_t processTextureCount;
 	uint32_t maxProcessTextures;
 
+	dsMTLClearPipeline* clearPipelines;
+	uint32_t clearPipelineCount;
+	uint32_t maxClearPipelines;
+
 	dsSpinlock processBuffersLock;
 	dsSpinlock processTexturesLock;
+	dsSpinlock clearPipelinesLock;
 } dsMTLRenderer;

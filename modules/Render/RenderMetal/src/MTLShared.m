@@ -16,6 +16,8 @@
 
 #include "MTLShared.h"
 
+#include "Resources/MTLResourceManager.h"
+
 MTLCompareFunction dsGetMTLCompareFunction(mslCompareOp compare, MTLCompareFunction defaultVal)
 {
 	switch (compare)
@@ -106,4 +108,58 @@ bool dsIsMTLFormatPVR(dsGfxFormat format)
 	dsGfxFormat compressedFormat = format & dsGfxFormat_CompressedMask;
 	return compressedFormat >= dsGfxFormat_PVRTC1_RGB_2BPP &&
 		compressedFormat <= dsGfxFormat_PVRTC2_RGBA_4BPP;
+}
+
+MTLPixelFormat dsGetMTLDepthFormat(const dsResourceManager* resourceManager, dsGfxFormat format)
+{
+	switch (format)
+	{
+		case dsGfxFormat_D16:
+		case dsGfxFormat_X8D24:
+		case dsGfxFormat_D32_Float:
+		case dsGfxFormat_D24S8:
+			return dsMTLResourceManager_getPixelFormat(resourceManager, format);
+		case dsGfxFormat_D16S8:
+		{
+			MTLPixelFormat pixelFormat = dsMTLResourceManager_getPixelFormat(resourceManager,
+				format);
+			if (pixelFormat == MTLPixelFormatInvalid)
+				pixelFormat = dsMTLResourceManager_getPixelFormat(resourceManager, dsGfxFormat_D16);
+			return pixelFormat;
+		}
+		case dsGfxFormat_D32S8_Float:
+		{
+			MTLPixelFormat pixelFormat = dsMTLResourceManager_getPixelFormat(resourceManager,
+				format);
+			if (pixelFormat == MTLPixelFormatInvalid)
+			{
+				pixelFormat = dsMTLResourceManager_getPixelFormat(resourceManager,
+					dsGfxFormat_D32_Float);
+			}
+			return pixelFormat;
+		}
+		default:
+			return MTLPixelFormatInvalid;
+	}
+}
+
+MTLPixelFormat dsGetMTLStencilFormat(const dsResourceManager* resourceManager, dsGfxFormat format)
+{
+	switch (format)
+	{
+		case dsGfxFormat_S8:
+		case dsGfxFormat_D24S8:
+			return dsMTLResourceManager_getPixelFormat(resourceManager, format);
+		case dsGfxFormat_D16S8:
+		case dsGfxFormat_D32S8_Float:
+		{
+			MTLPixelFormat pixelFormat = dsMTLResourceManager_getPixelFormat(resourceManager,
+				format);
+			if (pixelFormat == MTLPixelFormatInvalid)
+				pixelFormat = dsMTLResourceManager_getPixelFormat(resourceManager, dsGfxFormat_S8);
+			return pixelFormat;
+		}
+		default:
+			return MTLPixelFormatInvalid;
+	}
 }

@@ -16,6 +16,7 @@
 
 #include "Resources/MTLPipeline.h"
 #include "Resources/MTLResourceManager.h"
+#include "MTLShared.h"
 
 #include <DeepSea/Core/Containers/Hash.h>
 #include <DeepSea/Core/Memory/Allocator.h>
@@ -136,60 +137,6 @@ static MTLBlendFactor convertBlendFactor(mslBlendFactor factor, MTLBlendFactor d
 #endif
 		default:
 			return defaultValue;
-	}
-}
-
-static MTLPixelFormat getDepthFormat(const dsResourceManager* resourceManager, dsGfxFormat format)
-{
-	switch (format)
-	{
-		case dsGfxFormat_D16:
-		case dsGfxFormat_X8D24:
-		case dsGfxFormat_D32_Float:
-		case dsGfxFormat_D24S8:
-			return dsMTLResourceManager_getPixelFormat(resourceManager, format);
-		case dsGfxFormat_D16S8:
-		{
-			MTLPixelFormat pixelFormat = dsMTLResourceManager_getPixelFormat(resourceManager,
-				format);
-			if (pixelFormat == MTLPixelFormatInvalid)
-				pixelFormat = dsMTLResourceManager_getPixelFormat(resourceManager, dsGfxFormat_D16);
-			return pixelFormat;
-		}
-		case dsGfxFormat_D32S8_Float:
-		{
-			MTLPixelFormat pixelFormat = dsMTLResourceManager_getPixelFormat(resourceManager,
-				format);
-			if (pixelFormat == MTLPixelFormatInvalid)
-			{
-				pixelFormat = dsMTLResourceManager_getPixelFormat(resourceManager,
-					dsGfxFormat_D32_Float);
-			}
-			return pixelFormat;
-		}
-		default:
-			return MTLPixelFormatInvalid;
-	}
-}
-
-static MTLPixelFormat getStencilFormat(const dsResourceManager* resourceManager, dsGfxFormat format)
-{
-	switch (format)
-	{
-		case dsGfxFormat_S8:
-		case dsGfxFormat_D24S8:
-			return dsMTLResourceManager_getPixelFormat(resourceManager, format);
-		case dsGfxFormat_D16S8:
-		case dsGfxFormat_D32S8_Float:
-		{
-			MTLPixelFormat pixelFormat = dsMTLResourceManager_getPixelFormat(resourceManager,
-				format);
-			if (pixelFormat == MTLPixelFormatInvalid)
-				pixelFormat = dsMTLResourceManager_getPixelFormat(resourceManager, dsGfxFormat_S8);
-			return pixelFormat;
-		}
-		default:
-			return MTLPixelFormatInvalid;
 	}
 }
 
@@ -325,8 +272,10 @@ static void setupDepthStencilAttachment(dsShader* shader, MTLRenderPipelineDescr
 		return;
 
 	const dsAttachmentInfo* attachment = renderPass->attachments + depthStencilAttachment;
-	descriptor.depthAttachmentPixelFormat = getDepthFormat(resourceManager, attachment->format);
-	descriptor.stencilAttachmentPixelFormat = getStencilFormat(resourceManager, attachment->format);
+	descriptor.depthAttachmentPixelFormat =
+		dsGetMTLDepthFormat(resourceManager, attachment->format);
+	descriptor.stencilAttachmentPixelFormat =
+		dsGetMTLStencilFormat(resourceManager, attachment->format);
 }
 
 static void setupRasterState(dsShader* shader, MTLRenderPipelineDescriptor* descriptor,

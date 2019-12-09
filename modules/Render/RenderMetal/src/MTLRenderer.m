@@ -46,6 +46,7 @@
 
 #import <Metal/MTLBlitCommandEncoder.h>
 #import <Metal/MTLCommandQueue.h>
+#import <Metal/MTLLibrary.h>
 #import <QuartzCore/CAMetalLayer.h>
 
 #if DS_IOS && __IPHONE_OS_VERSION_MIN_REQUIRED < 80000
@@ -152,6 +153,109 @@ static uint32_t hasTessellationShaders(id<MTLDevice> device)
 	//return true;
 	return false;
 #endif
+}
+
+static bool createSharedResources(dsMTLRenderer* renderer, id<MTLDevice> device,
+	id<MTLCommandQueue> commandQueue)
+{
+	MTLDepthStencilDescriptor* depthStencilDescriptor = [MTLDepthStencilDescriptor new];
+	if (!depthStencilDescriptor)
+	{
+		errno = ENOMEM;
+		return false;
+	}
+
+	id<MTLDepthStencilState> clearNoDepthStencilState =
+		[device newDepthStencilStateWithDescriptor: depthStencilDescriptor];
+	if (!clearNoDepthStencilState)
+	{
+		errno = ENOMEM;
+		return false;
+	}
+
+	depthStencilDescriptor.depthWriteEnabled = true;
+	id<MTLDepthStencilState> clearDepthState =
+		[device newDepthStencilStateWithDescriptor: depthStencilDescriptor];
+	if (!clearDepthState)
+	{
+		errno = ENOMEM;
+		return false;
+	}
+
+	depthStencilDescriptor.frontFaceStencil.depthStencilPassOperation =
+		MTLStencilOperationReplace;
+	id<MTLDepthStencilState> clearDepthStencilState =
+		[device newDepthStencilStateWithDescriptor: depthStencilDescriptor];
+	if (!clearDepthStencilState)
+	{
+		errno = ENOMEM;
+		return false;
+	}
+
+	depthStencilDescriptor.depthWriteEnabled = false;
+	id<MTLDepthStencilState> clearStencilState =
+		[device newDepthStencilStateWithDescriptor: depthStencilDescriptor];
+	if (!clearStencilState)
+	{
+		errno = ENOMEM;
+		return false;
+	}
+
+	dsVector2f clearVertexData[] =
+	{
+		{{0.0f, 0.0f}},
+		{{0.0f, 1.0f}},
+		{{1.0f, 0.0f}},
+		{{1.0f, 0.0f}},
+		{{0.0f, 1.0f}},
+		{{1.0f, 1.0f}},
+	};
+	id<MTLBuffer> clearVertices = [device newBufferWithBytes: clearVertexData
+		length: sizeof(clearVertices) options: MTLResourceCPUCacheModeDefaultCache];
+	if (!clearVertices)
+	{
+		errno = ENOMEM;
+		return false;
+	}
+
+#if DS_MAC || __IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
+	id<MTLCommandBuffer> processCommandBuffer = [commandQueue commandBuffer];
+	if (!processCommandBuffer)
+	{
+		errno = ENOMEM;
+		return false;
+	}
+
+	id<MTLBlitCommandEncoder> encoder = [processCommandBuffer blitCommandEncoder];
+	if (!encoder)
+	{
+		errno = ENOMEM;
+		return false;
+	}
+
+	id<MTLBuffer> deviceClearVertices = [device newBufferWithLength: sizeof(clearVertices)
+		options: MTLResourceStorageModePrivate];
+	if (!deviceClearVertices)
+	{
+		errno = ENOMEM;
+		return false;
+	}
+
+	[encoder copyFromBuffer: clearVertices sourceOffset: 0 toBuffer: deviceClearVertices
+		destinationOffset: 0 size:  sizeof(clearVertices)];
+	[encoder endEncoding];
+	[processCommandBuffer commit];
+	clearVertices = deviceClearVertices;
+#else
+	DS_UNUSED(commandQueue);
+#endif
+
+	renderer->clearNoDepthStencilState = CFBridgingRetain(clearNoDepthStencilState);
+	renderer->clearDepthState = CFBridgingRetain(clearDepthState);
+	renderer->clearStencilState = CFBridgingRetain(clearStencilState);
+	renderer->clearDepthStencilState = CFBridgingRetain(clearDepthStencilState);
+	renderer->clearVertices = CFBridgingRetain(clearVertices);
+	return true;
 }
 
 static id<MTLCommandBuffer> processResources(dsMTLRenderer* renderer)
@@ -316,6 +420,17 @@ bool dsMTLRenderer_destroy(dsRenderer* renderer)
 		if (renderer->waitUntilIdleFunc)
 			dsRenderer_waitUntilIdle(renderer);
 
+		if (mtlRenderer->clearNoDepthStencilState)
+			CFRelease(mtlRenderer->clearNoDepthStencilState);
+		if (mtlRenderer->clearDepthState)
+			CFRelease(mtlRenderer->clearDepthState);
+		if (mtlRenderer->clearStencilState)
+			CFRelease(mtlRenderer->clearStencilState);
+		if (mtlRenderer->clearDepthStencilState)
+			CFRelease(mtlRenderer->clearDepthStencilState);
+		if (mtlRenderer->clearVertices)
+			CFRelease(mtlRenderer->clearVertices);
+
 		if (mtlRenderer->submitMutex)
 		{
 			DS_ASSERT(mtlRenderer->submitCondition);
@@ -337,6 +452,11 @@ bool dsMTLRenderer_destroy(dsRenderer* renderer)
 			dsLifetime_freeRef(mtlRenderer->processTextures[i]);
 		DS_VERIFY(dsAllocator_free(renderer->allocator, mtlRenderer->processTextures));
 		dsSpinlock_shutdown(&mtlRenderer->processTexturesLock);
+
+		for (uint32_t i = 0; i < mtlRenderer->clearPipelineCount; ++i)
+			CFRelease(mtlRenderer->clearPipelines[i].pipeline);
+		DS_VERIFY(dsAllocator_free(renderer->allocator, mtlRenderer->clearPipelines));
+		dsSpinlock_shutdown(&mtlRenderer->clearPipelinesLock);
 
 		dsMTLHardwareCommandBuffer_shutdown(&mtlRenderer->mainCommandBuffer);
 		dsMTLResourceManager_destroy(renderer->resourceManager);
@@ -675,11 +795,16 @@ dsRenderer* dsMTLRenderer_create(dsAllocator* allocator, const dsRendererOptions
 		dsMTLRenderer* renderer = DS_ALLOCATE_OBJECT(&bufferAlloc, dsMTLRenderer);
 		DS_ASSERT(renderer);
 		memset(renderer, 0, sizeof(*renderer));
+
 		dsRenderer* baseRenderer = (dsRenderer*)renderer;
+		DS_VERIFY(dsRenderer_initialize(baseRenderer));
+
+		baseRenderer->allocator = dsAllocator_keepPointer(allocator);
+
 		DS_VERIFY(dsSpinlock_initialize(&renderer->processBuffersLock));
 		DS_VERIFY(dsSpinlock_initialize(&renderer->processTexturesLock));
+		DS_VERIFY(dsSpinlock_initialize(&renderer->clearPipelinesLock));
 
-		DS_VERIFY(dsRenderer_initialize(baseRenderer));
 		renderer->device = CFBridgingRetain(device);
 
 		id<MTLCommandQueue> commandQueue = [device newCommandQueue];
@@ -692,14 +817,19 @@ dsRenderer* dsMTLRenderer_create(dsAllocator* allocator, const dsRendererOptions
 
 		renderer->commandQueue = CFBridgingRetain(commandQueue);
 
+		if (!createSharedResources(renderer, device, commandQueue))
+		{
+			dsMTLRenderer_destroy(baseRenderer);
+			errno = ENOMEM;
+			return NULL;
+		}
+
 		// Start at submit count 1 so it's ahead of the finished index.
 		renderer->submitCount = 1;
 		renderer->submitCondition = dsConditionVariable_create((dsAllocator*)&bufferAlloc,
 			"Render Submit Condition");
 		renderer->submitMutex = dsMutex_create((dsAllocator*)&bufferAlloc,
 			"Render Submit Mutex");
-
-		baseRenderer->allocator = dsAllocator_keepPointer(allocator);
 
 		dsMTLHardwareCommandBuffer_initialize(&renderer->mainCommandBuffer, baseRenderer, allocator,
 			dsCommandBufferUsage_Standard);
@@ -1027,4 +1157,186 @@ void dsMTLRenderer_processTexture(dsRenderer* renderer, dsTexture* texture)
 	DS_UNUSED(renderer);
 	DS_UNUSED(texture);
 #endif
+}
+
+id<MTLRenderPipelineState> dsMTLRenderer_getClearPipeline(dsRenderer* renderer,
+	MTLPixelFormat colorFormats[DS_MAX_ATTACHMENTS], MTLPixelFormat depthFormat,
+	MTLPixelFormat stencilFormat, bool layered, uint32_t samples)
+{
+	dsMTLRenderer* mtlRenderer = (dsMTLRenderer*)renderer;
+	DS_VERIFY(dsSpinlock_lock(&mtlRenderer->clearPipelinesLock));
+
+	for (uint32_t i = 0; i < mtlRenderer->clearPipelineCount; ++i)
+	{
+		dsMTLClearPipeline* clearPipeline = mtlRenderer->clearPipelines + i;
+		if (memcmp(clearPipeline->colorFormats, colorFormats,
+				sizeof(clearPipeline->colorFormats)) == 0 &&
+			clearPipeline->depthFormat == depthFormat &&
+			clearPipeline->stencilFormat == stencilFormat && clearPipeline->layered == layered &&
+			clearPipeline->samples == samples)
+		{
+			return (__bridge id<MTLRenderPipelineState>)clearPipeline->pipeline;
+		}
+	}
+
+	@autoreleasepool
+	{
+		id<MTLDevice> device = (__bridge id<MTLDevice>)mtlRenderer->device;
+		MTLCompileOptions* options = [MTLCompileOptions new];
+
+		NSMutableString* str = [NSMutableString stringWithCapacity: 2*1024];
+		[str appendString: @"#include <metal_stdlib>\n"];
+		[str appendString: @"using namespace metal;\n"];
+		[str appendString: @"\n"];
+		[str appendString: @"typedef struct {\n"];
+		[str appendString: @"    float2 position [[attribute(0)]];\n"];
+		[str appendString: @"} VertexInput;\n"];
+		[str appendString: @"\n"];
+		[str appendString: @"typedef struct {\n"];
+		[str appendString: @"    float4 bounds;\n"];
+		[str appendString: @"    float depth;\n"];
+		[str appendString: @"    uint layer;\n"];
+		[str appendString: @"} VertexData;\n"];
+		[str appendString: @"\n"];
+		[str appendString: @"typedef struct {\n"];
+		[str appendFormat: @"    float4 colors[%u];\n", DS_MAX_ATTACHMENTS];
+		[str appendString: @"} FragmentData;\n"];
+		[str appendString: @"\n"];
+		[str appendString: @"typedef struct {\n"];
+		[str appendString: @"    vec4 position [[position]];\n"];
+		if (layered)
+			[str appendString: @"    uint layer [[render_target_array_index]];\n"];
+		[str appendString: @"} VertexOutput;\n"];
+		[str appendString: @"\n"];
+		[str appendString: @"typedef struct {\n"];
+		for (uint32_t i = 0; i < DS_MAX_ATTACHMENTS; ++i)
+		{
+			if (colorFormats[i] != MTLPixelFormatInvalid)
+				[str appendFormat: @"    float4 color%u [[color(%u)]];\n", i, i];
+		}
+		[str appendString: @"} FragmentOutput;\n"];
+		[str appendString: @"\n"];
+		[str appendString: @"    vec4 position [[position]];\n"];
+		if (layered)
+			[str appendString: @"    uint layer [[render_target_array_index]];\n"];
+		[str appendString: @"} FragmentOutput;\n"];
+		[str appendString: @"\n"];
+		[str appendString: @"vertex VertexOutput vertexShader(VertexInput attributes [[stage_in]], "
+			@"constant VertexData& parameters [[buffer(0)]]) {\n"];
+		[str appendString: @"    VertexOutput vertexOut;\n"];
+		[str appendString: @"    vertexOut.position = float4(mix(parameters.bounds.xy, "
+			@"parameters.bounds.zw, attributes.position), parameters.depth, 1.0f);\n"];
+		if (layered)
+			[str appendString: @"    vertexOut.layer = parameters.layer;\n"];
+		[str appendString: @"    return vertexOut;\n"];
+		[str appendString: @"}\n"];
+		[str appendString: @"\n"];
+		[str appendString: @"fragment FragmentOutput fragmentShader("
+			@"VertexOutput vertexOut [[stage_in]], "
+			@"constant FragmentData& parameters [[buffer(0)]]) {\n"];
+		[str appendString: @"    FragmentOutput fragmentOut;\n"];
+		for (uint32_t i = 0; i < DS_MAX_ATTACHMENTS; ++i)
+		{
+			if (colorFormats[i] != MTLPixelFormatInvalid)
+				[str appendFormat: @"    fragmentOut.color%u = parameters.colors[%u];\n", i, i];
+		}
+		[str appendString: @"    return fragmentOut;\n"];
+		[str appendString: @"}\n"];
+
+		NSError* error = NULL;
+		id<MTLLibrary> library = [device newLibraryWithSource: str options: options error: &error];
+		if (error)
+		{
+			DS_LOG_ERROR_F(DS_RENDER_METAL_LOG_TAG,
+				"Error creating clear shader: %s", error.localizedDescription.UTF8String);
+			errno = EPERM;
+			DS_VERIFY(dsSpinlock_unlock(&mtlRenderer->clearPipelinesLock));
+			return nil;
+		}
+		else if (!library)
+		{
+			errno = EPERM;
+			DS_VERIFY(dsSpinlock_unlock(&mtlRenderer->clearPipelinesLock));
+			return nil;
+		}
+
+		id<MTLFunction> vertexFunction = [library newFunctionWithName: @"vertexShader"];
+		if (!vertexFunction)
+		{
+			errno = ENOMEM;
+			DS_VERIFY(dsSpinlock_unlock(&mtlRenderer->clearPipelinesLock));
+			return nil;
+		}
+
+		id<MTLFunction> fragmentFunction = [library newFunctionWithName: @"fragmentShader"];
+		if (!fragmentFunction)
+		{
+			errno = ENOMEM;
+			DS_VERIFY(dsSpinlock_unlock(&mtlRenderer->clearPipelinesLock));
+			return nil;
+		}
+
+		MTLRenderPipelineDescriptor* descriptor = [MTLRenderPipelineDescriptor new];
+		if (!descriptor)
+		{
+			errno = ENOMEM;
+			DS_VERIFY(dsSpinlock_unlock(&mtlRenderer->clearPipelinesLock));
+			return nil;
+		}
+
+		descriptor.vertexFunction = vertexFunction;
+		descriptor.fragmentFunction = fragmentFunction;
+		descriptor.vertexDescriptor.layouts[1].stride = sizeof(dsVector2f);
+		descriptor.vertexDescriptor.attributes[0].format = MTLVertexFormatFloat2;
+		descriptor.vertexDescriptor.attributes[0].bufferIndex = 1;
+		for (uint32_t i = 0; i < DS_MAX_ATTACHMENTS; ++i)
+		{
+			if (colorFormats[i] != MTLPixelFormatInvalid)
+				descriptor.colorAttachments[i].pixelFormat = colorFormats[i];
+		}
+#if __IPHONE_OS_VERSION_MIN_REQUIRED >= 110000 || __MAC_OS_X_VERSION_MIN_REQUIRED >= 101300
+		descriptor.rasterSampleCount = samples;
+#else
+		descriptor.sampleCount = samples;
+#endif
+		descriptor.depthAttachmentPixelFormat = depthFormat;
+		descriptor.stencilAttachmentPixelFormat = stencilFormat;
+
+		error = NULL;
+		id<MTLRenderPipelineState> pipeline =
+			[device newRenderPipelineStateWithDescriptor: descriptor error: &error];
+		if (error)
+		{
+			DS_LOG_ERROR_F(DS_RENDER_METAL_LOG_TAG,
+				"Error creating clear pipeline: %s", error.localizedDescription.UTF8String);
+			errno = EPERM;
+			DS_VERIFY(dsSpinlock_unlock(&mtlRenderer->clearPipelinesLock));
+			return nil;
+		}
+		else if (!pipeline)
+		{
+			errno = EPERM;
+			DS_VERIFY(dsSpinlock_unlock(&mtlRenderer->clearPipelinesLock));
+			return nil;
+		}
+
+		uint32_t index = mtlRenderer->clearPipelineCount;
+		if (!DS_RESIZEABLE_ARRAY_ADD(renderer->allocator, mtlRenderer->clearPipelines,
+				mtlRenderer->clearPipelineCount, mtlRenderer->maxClearPipelines, 1))
+		{
+			DS_VERIFY(dsSpinlock_unlock(&mtlRenderer->clearPipelinesLock));
+			return nil;
+		}
+
+		dsMTLClearPipeline* clearPipeline = mtlRenderer->clearPipelines + index;
+		memcpy(clearPipeline->colorFormats, colorFormats, sizeof(clearPipeline->colorFormats));
+		clearPipeline->depthFormat = depthFormat;
+		clearPipeline->stencilFormat = stencilFormat;
+		clearPipeline->layered = layered;
+		clearPipeline->samples = (uint8_t)samples;
+		clearPipeline->pipeline = CFBridgingRetain(pipeline);
+
+		DS_VERIFY(dsSpinlock_unlock(&mtlRenderer->clearPipelinesLock));
+		return pipeline;
+	}
 }

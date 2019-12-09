@@ -16,6 +16,7 @@
 
 #include "MTLHardwareCommandBuffer.h"
 
+#include "Resources/MTLResourceManager.h"
 #include "MTLCommandBuffer.h"
 #include "MTLRendererInternal.h"
 #include "MTLShared.h"
@@ -32,6 +33,13 @@
 #include <string.h>
 
 #import <Metal/MTLCommandQueue.h>
+
+typedef struct ClearVertexData
+{
+	dsVector4f bounds;
+	float depth;
+	uint32_t layer;
+} ClearVertexData;
 
 inline static void assertIsHardwareCommandBuffer(dsCommandBuffer* commandBuffer);
 
@@ -137,7 +145,8 @@ static void setRasterizationState(id<MTLRenderCommandEncoder> encoder,
 	[encoder setCullMode: cullMode];
 }
 
-static void setDepthStencilState(id<MTLRenderCommandEncoder> encoder,
+static id<MTLDepthStencilState> setDepthStencilState(uint32_t* outFrontStencilRef,
+	uint32_t* outBackStencilRef, id<MTLRenderCommandEncoder> encoder,
 	const mslRenderState* renderStates, id<MTLDepthStencilState> depthStencilState,
 	const dsDynamicRenderStates* dynamicStates, bool dynamicOnly)
 {
@@ -148,7 +157,7 @@ static void setDepthStencilState(id<MTLRenderCommandEncoder> encoder,
 	{
 		MTLDepthStencilDescriptor* descriptor = [MTLDepthStencilDescriptor new];
 		if (!descriptor)
-			return;
+			return nil;
 
 		bool depthEnabled = renderStates->depthStencilState.depthTestEnable == mslBool_True;
 		descriptor.depthCompareFunction = depthEnabled ?
@@ -166,7 +175,7 @@ static void setDepthStencilState(id<MTLRenderCommandEncoder> encoder,
 
 		depthStencilState = [[encoder device] newDepthStencilStateWithDescriptor: descriptor];
 		if (!depthStencilState)
-			return;
+			return nil;
 	}
 
 	if (renderStates->depthStencilState.stencilTestEnable == mslBool_True)
@@ -182,12 +191,15 @@ static void setDepthStencilState(id<MTLRenderCommandEncoder> encoder,
 #else
 		[encoder setStencilReferenceValue: frontReference];
 #endif
+		*outFrontStencilRef = frontReference;
+		*outBackStencilRef = backReference;
 	}
 
 	if (dynamicOnly)
-		return;
+		return nil;
 
 	[encoder setDepthStencilState: depthStencilState];
+	return depthStencilState;
 }
 
 static void setDynamicDepthState(id<MTLRenderCommandEncoder> encoder,
@@ -892,7 +904,17 @@ bool dsMTLHardwareCommandBuffer_setRenderStates(dsCommandBuffer* commandBuffer,
 	id<MTLRenderCommandEncoder> encoder =
 		(__bridge id<MTLRenderCommandEncoder>)mtlCommandBuffer->renderCommandEncoder;
 	setRasterizationState(encoder, renderStates, dynamicStates, dynamicOnly);
-	setDepthStencilState(encoder, renderStates, depthStencilState, dynamicStates, dynamicOnly);
+	id<MTLDepthStencilState> boundDepthStencilState =
+		setDepthStencilState(&mtlCommandBuffer->curFrontStencilRef,
+			&mtlCommandBuffer->curBackStencilRef, encoder, renderStates, depthStencilState,
+			dynamicStates, dynamicOnly);
+	if (boundDepthStencilState)
+	{
+		if (mtlCommandBuffer->boundDepthStencil)
+			CFRelease(mtlCommandBuffer->boundDepthStencil);
+		mtlCommandBuffer->boundDepthStencil = CFBridgingRetain(boundDepthStencilState);
+	}
+
 	setDynamicDepthState(encoder, renderStates, dynamicStates, dynamicOnly,
 		commandBuffer->renderer->hasDepthClamp);
 	return true;
@@ -1015,6 +1037,11 @@ bool dsMTLHardwareCommandBuffer_endRenderPass(dsCommandBuffer* commandBuffer)
 		memset(boundBuffers->buffers, 0, sizeof(dsMTLBoundBuffer)*boundBuffers->bufferCount);
 	}
 	mtlCommandBuffer->boundPipeline = NULL;
+	if (mtlCommandBuffer->boundDepthStencil)
+	{
+		CFRelease(mtlCommandBuffer->boundDepthStencil);
+		mtlCommandBuffer->boundDepthStencil = NULL;
+	}
 
 	return true;
 }
@@ -1022,29 +1049,180 @@ bool dsMTLHardwareCommandBuffer_endRenderPass(dsCommandBuffer* commandBuffer)
 bool dsMTLHardwareCommandBuffer_setViewport(dsCommandBuffer* commandBuffer,
 	const dsAlignedBox3f* viewport)
 {
-	dsMTLHardwareCommandBuffer* mtlCommandBuffer = (dsMTLHardwareCommandBuffer*)commandBuffer;
-	if (!mtlCommandBuffer->renderCommandEncoder)
-		return false;
+	// Hooked up directly to renderer function pointer, so need autorelease pool here.
+	@autoreleasepool
+	{
+		dsMTLHardwareCommandBuffer* mtlCommandBuffer = (dsMTLHardwareCommandBuffer*)commandBuffer;
+		if (!mtlCommandBuffer->renderCommandEncoder)
+			return false;
 
-	id<MTLRenderCommandEncoder> encoder =
-		(__bridge id<MTLRenderCommandEncoder>)mtlCommandBuffer->renderCommandEncoder;
-	MTLViewport mtlViewport = {viewport->min.x, viewport->min.y, viewport->max.x - viewport->min.x,
-		viewport->max.y - viewport->min.y, viewport->min.z, viewport->max.z};
-	[encoder setViewport: mtlViewport];
-	return true;
+		id<MTLRenderCommandEncoder> encoder =
+			(__bridge id<MTLRenderCommandEncoder>)mtlCommandBuffer->renderCommandEncoder;
+		MTLViewport mtlViewport = {viewport->min.x, viewport->min.y,
+			viewport->max.x - viewport->min.x, viewport->max.y - viewport->min.y, viewport->min.z,
+			viewport->max.z};
+		[encoder setViewport: mtlViewport];
+		return true;
+	}
 }
 
 bool dsMTLHardwareCommandBuffer_clearAttachments(dsCommandBuffer* commandBuffer,
 	const dsClearAttachment* attachments, uint32_t attachmentCount,
 	const dsAttachmentClearRegion* regions, uint32_t regionCount)
 {
-	DS_UNUSED(commandBuffer);
-	DS_UNUSED(attachments);
-	DS_UNUSED(attachmentCount);
-	DS_UNUSED(regions);
-	DS_UNUSED(regionCount);
-	// TODO
-	return false;
+	// Hooked up directly to renderer function pointer, so need autorelease pool here.
+	@autoreleasepool
+	{
+		dsRenderer* renderer = commandBuffer->renderer;
+		dsMTLRenderer* mtlRenderer = (dsMTLRenderer*)commandBuffer->renderer;
+		dsResourceManager* resourceManager = renderer->resourceManager;
+		const dsRenderPass* renderPass = commandBuffer->boundRenderPass;
+		const dsRenderSubpassInfo* subpass = renderPass->subpasses +
+			commandBuffer->activeRenderSubpass;
+		const dsFramebuffer* framebuffer = commandBuffer->boundFramebuffer;
+		dsMTLHardwareCommandBuffer* mtlCommandBuffer = (dsMTLHardwareCommandBuffer*)commandBuffer;
+		id<MTLRenderCommandEncoder> encoder =
+			(__bridge id<MTLRenderCommandEncoder>)mtlCommandBuffer->renderCommandEncoder;
+
+		uint32_t samples = DS_DEFAULT_ANTIALIAS_SAMPLES;
+		MTLPixelFormat colorFormats[DS_MAX_ATTACHMENTS];
+		for (uint32_t i = 0; i < DS_MAX_ATTACHMENTS; ++i)
+			colorFormats[i] = MTLPixelFormatInvalid;
+		MTLPixelFormat depthFormat = MTLPixelFormatInvalid;
+		MTLPixelFormat stencilFormat = MTLPixelFormatInvalid;
+
+		dsVector4f colors[DS_MAX_ATTACHMENTS] = {};
+		float depth = 1.0f;
+		uint32_t stencil = 0;
+
+		for (uint32_t i = 0; i < attachmentCount; ++i)
+		{
+			const dsClearAttachment* clearAttachment = attachments + i;
+			uint32_t attachmentIndex = DS_NO_ATTACHMENT;
+			if (clearAttachment->colorAttachment == DS_NO_ATTACHMENT)
+			{
+				attachmentIndex = subpass->depthStencilAttachment.attachmentIndex;
+				depth = clearAttachment->clearValue.depthStencil.depth;
+				stencil = clearAttachment->clearValue.depthStencil.stencil;
+
+				if (attachmentIndex != DS_NO_ATTACHMENT)
+				{
+					dsGfxFormat format = renderPass->attachments[attachmentIndex].format;
+					depthFormat = dsGetMTLDepthFormat(resourceManager, format);
+					stencilFormat = dsGetMTLDepthFormat(resourceManager, format);
+				}
+			}
+			else
+			{
+				attachmentIndex =
+					subpass->colorAttachments[clearAttachment->colorAttachment].attachmentIndex;
+
+				dsGfxFormat format = renderPass->attachments[attachmentIndex].format;
+				colorFormats[i] = dsMTLResourceManager_getPixelFormat(resourceManager, format);
+				switch (format & dsGfxFormat_DecoratorMask)
+				{
+					case dsGfxFormat_UInt:
+						colors[i].r = (float)clearAttachment->clearValue.colorValue.uintValue[0];
+						colors[i].g = (float)clearAttachment->clearValue.colorValue.uintValue[1];
+						colors[i].b = (float)clearAttachment->clearValue.colorValue.uintValue[2];
+						colors[i].a = (float)clearAttachment->clearValue.colorValue.uintValue[3];
+						break;
+					case dsGfxFormat_SInt:
+						colors[i].r = (float)clearAttachment->clearValue.colorValue.intValue[0];
+						colors[i].g = (float)clearAttachment->clearValue.colorValue.intValue[1];
+						colors[i].b = (float)clearAttachment->clearValue.colorValue.intValue[2];
+						colors[i].a = (float)clearAttachment->clearValue.colorValue.intValue[3];
+						break;
+					default:
+						colors[i] = clearAttachment->clearValue.colorValue.floatValue;
+						break;
+				}
+			}
+
+			if (attachmentIndex != DS_NO_ATTACHMENT)
+				samples = renderPass->attachments[attachmentIndex].samples;
+		}
+		if (samples == DS_DEFAULT_ANTIALIAS_SAMPLES)
+			samples = renderer->surfaceSamples;
+
+		id<MTLRenderPipelineState> pipeline = dsMTLRenderer_getClearPipeline(renderer, colorFormats,
+			depthFormat, stencilFormat, framebuffer->layers > 1, samples);
+		if (!pipeline)
+			return false;
+
+		[encoder setRenderPipelineState: pipeline];
+		if (depthFormat == MTLPixelFormatInvalid && stencilFormat == MTLPixelFormatInvalid)
+		{
+			[encoder setDepthStencilState:
+				(__bridge id<MTLDepthStencilState>)mtlRenderer->clearNoDepthStencilState];
+		}
+		else if (depthFormat != MTLPixelFormatInvalid && stencilFormat == MTLPixelFormatInvalid)
+		{
+			[encoder setDepthStencilState:
+				(__bridge id<MTLDepthStencilState>)mtlRenderer->clearDepthState];
+		}
+		else if (depthFormat == MTLPixelFormatInvalid && stencilFormat != MTLPixelFormatInvalid)
+		{
+			[encoder setDepthStencilState:
+				(__bridge id<MTLDepthStencilState>)mtlRenderer->clearStencilState];
+		}
+		else
+		{
+			[encoder setDepthStencilState:
+				(__bridge id<MTLDepthStencilState>)mtlRenderer->clearDepthStencilState];
+		}
+
+		if (stencilFormat != MTLPixelFormatInvalid)
+			[encoder setStencilReferenceValue: stencil];
+		[encoder setFragmentBytes: colors length: sizeof(colors) atIndex: 0];
+		[encoder setVertexBuffer: (__bridge id<MTLBuffer>)mtlRenderer->clearVertices offset: 0
+			atIndex: 1];
+
+		for (uint32_t i = 0; i < regionCount; ++i)
+		{
+			const dsAttachmentClearRegion* region = regions + i;
+			ClearVertexData data;
+			data.bounds.x = ((float)region->x/(float)framebuffer->width)*2.0f - 1.0f;
+			data.bounds.y = ((float)(framebuffer->height - (region->y + region->height))/
+				(float)framebuffer->height)*2.0f - 1.0f;
+			data.bounds.z = ((float)(region->x + region->height)/(float)framebuffer->width)*2.0f -
+				1.0f;
+			data.bounds.w = ((float)(framebuffer->height - region->y)/
+				(float)framebuffer->height)*2.0f - 1.0f;
+			data.depth = depth;
+			for (uint32_t j = 0; j < region->layerCount; ++j)
+			{
+				data.layer = j;
+				[encoder setVertexBytes: &data length: sizeof(data) atIndex: 0];
+				[encoder drawPrimitives: MTLPrimitiveTypeTriangle vertexStart: 0 vertexCount: 6];
+			}
+		}
+
+		// Dirty appropriate states.
+		mtlCommandBuffer->boundPipeline = NULL;
+		if (mtlCommandBuffer->boundDepthStencil)
+		{
+			[encoder setDepthStencilState:
+				(__bridge id<MTLDepthStencilState>)mtlCommandBuffer->boundDepthStencil];
+		}
+		if (stencilFormat != MTLPixelFormatInvalid)
+		{
+#if DS_MAC || __IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
+			[encoder setStencilFrontReferenceValue: mtlCommandBuffer->curFrontStencilRef
+				backReferenceValue: mtlCommandBuffer->curBackStencilRef];
+#else
+			[encoder setStencilReferenceValue: mtlCommandBuffer->curFrontStencilRef];
+#endif
+		}
+		for (uint32_t i = 0; i < 2; ++i)
+		{
+			if (i < mtlCommandBuffer->boundBuffers[0].bufferCount)
+				mtlCommandBuffer->boundBuffers[0].buffers[i].buffer = NULL;
+		}
+		if (mtlCommandBuffer->boundBuffers[1].bufferCount > 0)
+			mtlCommandBuffer->boundBuffers[1].buffers[0].buffer = NULL;
+		return true;
+	}
 }
 
 bool dsMTLHardwareCommandBuffer_draw(dsCommandBuffer* commandBuffer,
@@ -1487,6 +1665,9 @@ void dsMTLHardwareCommandBuffer_shutdown(dsMTLHardwareCommandBuffer* commandBuff
 	}
 	DS_VERIFY(dsAllocator_free(allocator, commandBuffer->boundComputeTextures.textures));
 	DS_VERIFY(dsAllocator_free(allocator, commandBuffer->boundComputeBuffers.buffers));
+
+	if (commandBuffer->boundDepthStencil)
+		CFRelease(commandBuffer->boundDepthStencil);
 
 	for (uint32_t i = 0; i < commandBuffer->tempBufferPoolCount; ++i)
 		dsMTLTempBuffer_destroy(commandBuffer->tempBufferPool[i]);

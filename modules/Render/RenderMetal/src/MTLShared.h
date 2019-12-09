@@ -27,3 +27,5 @@ MTLStencilDescriptor* dsCreateMTLStencilDescriptor(const mslStencilOpState* stat
 	uint32_t compareMask, uint32_t writeMask);
 MTLClearColor dsGetMTLClearColor(dsGfxFormat format, const dsSurfaceColorValue* value);
 bool dsIsMTLFormatPVR(dsGfxFormat format);
+MTLPixelFormat dsGetMTLDepthFormat(const dsResourceManager* resourceManager, dsGfxFormat format);
+MTLPixelFormat dsGetMTLStencilFormat(const dsResourceManager* resourceManager, dsGfxFormat format);
