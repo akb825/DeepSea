@@ -653,7 +653,7 @@ static bool bindUniforms(const dsShader* shader, const dsMaterial* material,
 				size_t offset;
 				id<MTLBuffer> buffer = getShaderVariableGroupBuffer(&offset, shader, material,
 					sharedValues, info, commandBuffer);
-				if (buffer)
+				if (!buffer)
 				{
 					errno = EPERM;
 					DS_LOG_ERROR_F(DS_RENDER_METAL_LOG_TAG,
