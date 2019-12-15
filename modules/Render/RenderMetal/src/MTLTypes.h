@@ -470,6 +470,7 @@ typedef struct dsMTLResourceManager
 typedef struct dsMTLClearPipeline
 {
 	MTLPixelFormat colorFormats[DS_MAX_ATTACHMENTS];
+	uint32_t colorMask;
 	MTLPixelFormat depthFormat;
 	MTLPixelFormat stencilFormat;
 	bool layered;

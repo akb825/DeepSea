@@ -41,22 +41,15 @@ namespace
 class WriteOffscreenInfo
 {
 public:
-	enum class TestMode
+	explicit WriteOffscreenInfo(const FixtureBase& fixture, bool depthStencil = false)
 	{
-		None,
-		Depth,
-		Stencil
-	};
-
-	explicit WriteOffscreenInfo(const FixtureBase& fixture, TestMode testMode = TestMode::None)
-	{
-		initialize(fixture, 2, 2, 1, testMode);
+		initialize(fixture, 2, 2, 1, depthStencil);
 	}
 
 	WriteOffscreenInfo(const FixtureBase& fixture, uint32_t width, uint32_t height,
-		uint32_t mipLevels, TestMode testMode = TestMode::None)
+		uint32_t mipLevels, bool depthStencil = false)
 	{
-		initialize(fixture, width, height, mipLevels, testMode);
+		initialize(fixture, width, height, mipLevels, depthStencil);
 	}
 
 	~WriteOffscreenInfo()
@@ -82,7 +75,7 @@ public:
 
 private:
 	void initialize(const FixtureBase& fixture, uint32_t width, uint32_t height, uint32_t mipLevels,
-		TestMode testMode)
+		bool depthStencil)
 	{
 		dsAllocator* allocator = (dsAllocator*)&fixture.allocator;
 		dsRenderer* renderer = fixture.renderer;
@@ -113,19 +106,7 @@ private:
 			"WriteOffscreen");
 		ASSERT_TRUE(shaderModule);
 
-		const char* shaderName;
-		switch (testMode)
-		{
-			case TestMode::Depth:
-				shaderName = "WriteOffscreenDepth";
-				break;
-			case TestMode::Stencil:
-				shaderName = "WriteOffscreenStencil";
-				break;
-			default:
-				shaderName = "WriteOffscreen";
-				break;
-		}
+		const char* shaderName = depthStencil ? "WriteOffscreenDepthStencil" : "WriteOffscreen";
 		shader = dsShader_createName(resourceManager, allocator, shaderModule, shaderName,
 			materialDesc);
 		ASSERT_TRUE(shader);
@@ -141,7 +122,7 @@ private:
 		dsGfxFormat depthFormat = dsGfxFormat_D24S8;
 		if (!dsGfxFormat_renderTargetSupported(resourceManager, depthFormat))
 			depthFormat = dsGfxFormat_D32S8_Float;
-		if (testMode != TestMode::None)
+		if (depthStencil)
 		{
 			depthBuffer = dsRenderbuffer_create(resourceManager, allocator,
 				dsRenderbufferUsage_Standard, depthFormat, width, height, 1);
@@ -1263,7 +1244,7 @@ TEST_P(RendererFunctionalTest, ClearAttachments)
 
 TEST_P(RendererFunctionalTest, ClearAttachmentsDepth)
 {
-	WriteOffscreenInfo info(*this, WriteOffscreenInfo::TestMode::Depth);
+	WriteOffscreenInfo info(*this, true);
 
 	Vertex vertices[] =
 	{
@@ -1337,7 +1318,6 @@ TEST_P(RendererFunctionalTest, ClearAttachmentsDepth)
 		dsPrimitiveType_TriangleList));
 
 	EXPECT_TRUE(dsShader_unbind(info.shader, commandBuffer));
-
 	EXPECT_TRUE(dsRenderPass_end(info.renderPass, commandBuffer));
 
 	EXPECT_TRUE(dsRenderer_flush(renderer));
@@ -1371,17 +1351,17 @@ TEST_P(RendererFunctionalTest, ClearAttachmentsDepth)
 
 TEST_P(RendererFunctionalTest, ClearAttachmentsStencil)
 {
-	WriteOffscreenInfo info(*this, WriteOffscreenInfo::TestMode::Stencil);
+	WriteOffscreenInfo info(*this, true);
 
 	Vertex vertices[] =
 	{
 		{{{0.0f, 0.0f}}, {{0, 0, 0, 255}}},
-	{{{1.0f, 0.0f}}, {{255, 0, 0, 255}}},
-	{{{1.0f, 1.0f}}, {{0, 0, 255, 255}}},
+		{{{1.0f, 0.0f}}, {{255, 0, 0, 255}}},
+		{{{1.0f, 1.0f}}, {{0, 0, 255, 255}}},
 
-	{{{1.0f, 1.0f}}, {{0, 0, 255, 255}}},
-	{{{0.0f, 1.0f}}, {{0, 255, 0, 255}}},
-	{{{0.0f, 0.0f}}, {{0, 0, 0, 255}}}
+		{{{1.0f, 1.0f}}, {{0, 0, 255, 255}}},
+		{{{0.0f, 1.0f}}, {{0, 255, 0, 255}}},
+		{{{0.0f, 0.0f}}, {{0, 0, 0, 255}}}
 	};
 	dsGfxBuffer* buffer = dsGfxBuffer_create(resourceManager, (dsAllocator*)&allocator,
 		dsGfxBufferUsage_Vertex, dsGfxMemory_Static | dsGfxMemory_Draw | dsGfxMemory_GPUOnly,
@@ -1445,7 +1425,6 @@ TEST_P(RendererFunctionalTest, ClearAttachmentsStencil)
 		dsPrimitiveType_TriangleList));
 
 	EXPECT_TRUE(dsShader_unbind(info.shader, commandBuffer));
-
 	EXPECT_TRUE(dsRenderPass_end(info.renderPass, commandBuffer));
 
 	EXPECT_TRUE(dsRenderer_flush(renderer));
@@ -1479,17 +1458,17 @@ TEST_P(RendererFunctionalTest, ClearAttachmentsStencil)
 
 TEST_P(RendererFunctionalTest, ClearAttachmentsColorAndDepth)
 {
-	WriteOffscreenInfo info(*this, WriteOffscreenInfo::TestMode::Depth);
+	WriteOffscreenInfo info(*this, true);
 
 	Vertex vertices[] =
 	{
 		{{{0.0f, 0.0f}}, {{0, 0, 0, 255}}},
-	{{{1.0f, 0.0f}}, {{255, 0, 0, 255}}},
-	{{{1.0f, 1.0f}}, {{0, 0, 255, 255}}},
+		{{{1.0f, 0.0f}}, {{255, 0, 0, 255}}},
+		{{{1.0f, 1.0f}}, {{0, 0, 255, 255}}},
 
-	{{{1.0f, 1.0f}}, {{0, 0, 255, 255}}},
-	{{{0.0f, 1.0f}}, {{0, 255, 0, 255}}},
-	{{{0.0f, 0.0f}}, {{0, 0, 0, 255}}}
+		{{{1.0f, 1.0f}}, {{0, 0, 255, 255}}},
+		{{{0.0f, 1.0f}}, {{0, 255, 0, 255}}},
+		{{{0.0f, 0.0f}}, {{0, 0, 0, 255}}}
 	};
 	dsGfxBuffer* buffer = dsGfxBuffer_create(resourceManager, (dsAllocator*)&allocator,
 		dsGfxBufferUsage_Vertex, dsGfxMemory_Static | dsGfxMemory_Draw | dsGfxMemory_GPUOnly,
@@ -1545,7 +1524,6 @@ TEST_P(RendererFunctionalTest, ClearAttachmentsColorAndDepth)
 	dsRenderer_clearAttachments(renderer, commandBuffer, clearAttachments,
 		DS_ARRAY_SIZE(clearAttachments), regions, DS_ARRAY_SIZE(regions));
 
-
 	ASSERT_TRUE(dsShader_bind(info.shader, commandBuffer, info.material, NULL, NULL));
 
 	dsDrawRange drawRange = {6, 1, 0, 0};
@@ -1553,7 +1531,6 @@ TEST_P(RendererFunctionalTest, ClearAttachmentsColorAndDepth)
 		dsPrimitiveType_TriangleList));
 
 	EXPECT_TRUE(dsShader_unbind(info.shader, commandBuffer));
-
 	EXPECT_TRUE(dsRenderPass_end(info.renderPass, commandBuffer));
 
 	EXPECT_TRUE(dsRenderer_flush(renderer));

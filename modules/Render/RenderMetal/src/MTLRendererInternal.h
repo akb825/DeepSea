@@ -26,5 +26,5 @@ dsGfxFenceResult dsMTLRenderer_waitForSubmit(const dsRenderer* renderer, uint64_
 void dsMTLRenderer_processBuffer(dsRenderer* renderer, dsMTLGfxBufferData* buffer);
 void dsMTLRenderer_processTexture(dsRenderer* renderer, dsTexture* texture);
 id<MTLRenderPipelineState> dsMTLRenderer_getClearPipeline(dsRenderer* renderer,
-	MTLPixelFormat colorFormats[DS_MAX_ATTACHMENTS], MTLPixelFormat depthFormat,
+	MTLPixelFormat colorFormats[DS_MAX_ATTACHMENTS], uint32_t colorMask, MTLPixelFormat depthFormat,
 	MTLPixelFormat stencilFormat, bool layered, uint32_t samples);

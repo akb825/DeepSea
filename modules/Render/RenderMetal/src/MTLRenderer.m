@@ -182,7 +182,10 @@ static bool createSharedResources(dsMTLRenderer* renderer, id<MTLDevice> device,
 		return false;
 	}
 
+	// Set both front and back so the cull state doesn't need to be set.
 	depthStencilDescriptor.frontFaceStencil.depthStencilPassOperation =
+		MTLStencilOperationReplace;
+	depthStencilDescriptor.backFaceStencil.depthStencilPassOperation =
 		MTLStencilOperationReplace;
 	id<MTLDepthStencilState> clearDepthStencilState =
 		[device newDepthStencilStateWithDescriptor: depthStencilDescriptor];
@@ -204,14 +207,14 @@ static bool createSharedResources(dsMTLRenderer* renderer, id<MTLDevice> device,
 	dsVector2f clearVertexData[] =
 	{
 		{{0.0f, 0.0f}},
-		{{0.0f, 1.0f}},
-		{{1.0f, 0.0f}},
 		{{1.0f, 0.0f}},
 		{{0.0f, 1.0f}},
+		{{1.0f, 0.0f}},
 		{{1.0f, 1.0f}},
+		{{0.0f, 1.0f}},
 	};
 	id<MTLBuffer> clearVertices = [device newBufferWithBytes: clearVertexData
-		length: sizeof(clearVertices) options: MTLResourceCPUCacheModeDefaultCache];
+		length: sizeof(clearVertexData) options: MTLResourceCPUCacheModeDefaultCache];
 	if (!clearVertices)
 	{
 		errno = ENOMEM;
@@ -233,7 +236,7 @@ static bool createSharedResources(dsMTLRenderer* renderer, id<MTLDevice> device,
 		return false;
 	}
 
-	id<MTLBuffer> deviceClearVertices = [device newBufferWithLength: sizeof(clearVertices)
+	id<MTLBuffer> deviceClearVertices = [device newBufferWithLength: sizeof(clearVertexData)
 		options: MTLResourceStorageModePrivate];
 	if (!deviceClearVertices)
 	{
@@ -242,7 +245,7 @@ static bool createSharedResources(dsMTLRenderer* renderer, id<MTLDevice> device,
 	}
 
 	[encoder copyFromBuffer: clearVertices sourceOffset: 0 toBuffer: deviceClearVertices
-		destinationOffset: 0 size:  sizeof(clearVertices)];
+		destinationOffset: 0 size: sizeof(clearVertexData)];
 	[encoder endEncoding];
 	[processCommandBuffer commit];
 	clearVertices = deviceClearVertices;
@@ -1160,7 +1163,7 @@ void dsMTLRenderer_processTexture(dsRenderer* renderer, dsTexture* texture)
 }
 
 id<MTLRenderPipelineState> dsMTLRenderer_getClearPipeline(dsRenderer* renderer,
-	MTLPixelFormat colorFormats[DS_MAX_ATTACHMENTS], MTLPixelFormat depthFormat,
+	MTLPixelFormat colorFormats[DS_MAX_ATTACHMENTS], uint32_t colorMask, MTLPixelFormat depthFormat,
 	MTLPixelFormat stencilFormat, bool layered, uint32_t samples)
 {
 	dsMTLRenderer* mtlRenderer = (dsMTLRenderer*)renderer;
@@ -1171,7 +1174,7 @@ id<MTLRenderPipelineState> dsMTLRenderer_getClearPipeline(dsRenderer* renderer,
 		dsMTLClearPipeline* clearPipeline = mtlRenderer->clearPipelines + i;
 		if (memcmp(clearPipeline->colorFormats, colorFormats,
 				sizeof(clearPipeline->colorFormats)) == 0 &&
-			clearPipeline->depthFormat == depthFormat &&
+			clearPipeline->colorMask == colorMask && clearPipeline->depthFormat == depthFormat &&
 			clearPipeline->stencilFormat == stencilFormat && clearPipeline->layered == layered &&
 			clearPipeline->samples == samples)
 		{
@@ -1203,7 +1206,7 @@ id<MTLRenderPipelineState> dsMTLRenderer_getClearPipeline(dsRenderer* renderer,
 		[str appendString: @"} FragmentData;\n"];
 		[str appendString: @"\n"];
 		[str appendString: @"typedef struct {\n"];
-		[str appendString: @"    vec4 position [[position]];\n"];
+		[str appendString: @"    float4 position [[position]];\n"];
 		if (layered)
 			[str appendString: @"    uint layer [[render_target_array_index]];\n"];
 		[str appendString: @"} VertexOutput;\n"];
@@ -1214,11 +1217,6 @@ id<MTLRenderPipelineState> dsMTLRenderer_getClearPipeline(dsRenderer* renderer,
 			if (colorFormats[i] != MTLPixelFormatInvalid)
 				[str appendFormat: @"    float4 color%u [[color(%u)]];\n", i, i];
 		}
-		[str appendString: @"} FragmentOutput;\n"];
-		[str appendString: @"\n"];
-		[str appendString: @"    vec4 position [[position]];\n"];
-		if (layered)
-			[str appendString: @"    uint layer [[render_target_array_index]];\n"];
 		[str appendString: @"} FragmentOutput;\n"];
 		[str appendString: @"\n"];
 		[str appendString: @"vertex VertexOutput vertexShader(VertexInput attributes [[stage_in]], "
@@ -1291,8 +1289,14 @@ id<MTLRenderPipelineState> dsMTLRenderer_getClearPipeline(dsRenderer* renderer,
 		descriptor.vertexDescriptor.attributes[0].bufferIndex = 1;
 		for (uint32_t i = 0; i < DS_MAX_ATTACHMENTS; ++i)
 		{
-			if (colorFormats[i] != MTLPixelFormatInvalid)
-				descriptor.colorAttachments[i].pixelFormat = colorFormats[i];
+			if (colorFormats[i] == MTLPixelFormatInvalid)
+				continue;
+
+			MTLRenderPipelineColorAttachmentDescriptor* colorDescriptor =
+				descriptor.colorAttachments[i];
+			colorDescriptor.pixelFormat = colorFormats[i];
+			if (!(colorMask & (1 << i)))
+				colorDescriptor.writeMask = MTLColorWriteMaskNone;
 		}
 #if __IPHONE_OS_VERSION_MIN_REQUIRED >= 110000 || __MAC_OS_X_VERSION_MIN_REQUIRED >= 101300
 		descriptor.rasterSampleCount = samples;

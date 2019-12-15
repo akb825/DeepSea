@@ -39,6 +39,7 @@ typedef struct ClearVertexData
 	dsVector4f bounds;
 	float depth;
 	uint32_t layer;
+	float padding[2];
 } ClearVertexData;
 
 inline static void assertIsHardwareCommandBuffer(dsCommandBuffer* commandBuffer);
@@ -181,15 +182,26 @@ static id<MTLDepthStencilState> setDepthStencilState(uint32_t* outFrontStencilRe
 	if (renderStates->depthStencilState.stencilTestEnable == mslBool_True)
 	{
 		uint32_t frontReference = renderStates->depthStencilState.frontStencil.reference;
-		if (frontReference == MSL_UNKNOWN && dynamicStates)
-			frontReference = dynamicStates->frontStencilReference;
+		if (frontReference == MSL_UNKNOWN)
+		{
+			if (dynamicStates)
+				frontReference = dynamicStates->frontStencilReference;
+			else
+				frontReference = 0;
+		}
 #if DS_MAC || __IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
 		uint32_t backReference = renderStates->depthStencilState.backStencil.reference;
-		if (backReference == MSL_UNKNOWN && dynamicStates)
-			backReference = dynamicStates->backStencilReference;
+		if (backReference == MSL_UNKNOWN)
+		{
+			if (dynamicStates)
+				backReference = dynamicStates->backStencilReference;
+			else
+				backReference = 0;
+		}
 		[encoder setStencilFrontReferenceValue: frontReference backReferenceValue: backReference];
 #else
 		[encoder setStencilReferenceValue: frontReference];
+		uint32_t backReference = frontReference;
 #endif
 		*outFrontStencilRef = frontReference;
 		*outBackStencilRef = backReference;
@@ -1086,10 +1098,31 @@ bool dsMTLHardwareCommandBuffer_clearAttachments(dsCommandBuffer* commandBuffer,
 
 		uint32_t samples = DS_DEFAULT_ANTIALIAS_SAMPLES;
 		MTLPixelFormat colorFormats[DS_MAX_ATTACHMENTS];
+		uint32_t colorMask = 0;
 		for (uint32_t i = 0; i < DS_MAX_ATTACHMENTS; ++i)
+		{
 			colorFormats[i] = MTLPixelFormatInvalid;
+			if (i >= subpass->colorAttachmentCount ||
+				subpass->colorAttachments[i].attachmentIndex == DS_NO_ATTACHMENT)
+			{
+				continue;
+			}
+
+			dsGfxFormat format =
+				renderPass->attachments[subpass->colorAttachments[i].attachmentIndex].format;
+			colorFormats[i] = dsMTLResourceManager_getPixelFormat(resourceManager, format);
+		}
 		MTLPixelFormat depthFormat = MTLPixelFormatInvalid;
 		MTLPixelFormat stencilFormat = MTLPixelFormatInvalid;
+		bool clearDepth = false;
+		bool clearStencil = false;
+		if (subpass->depthStencilAttachment.attachmentIndex != DS_NO_ATTACHMENT)
+		{
+			dsGfxFormat format =
+				renderPass->attachments[subpass->depthStencilAttachment.attachmentIndex].format;
+			depthFormat = dsGetMTLDepthFormat(resourceManager, format);
+			stencilFormat = dsGetMTLDepthFormat(resourceManager, format);
+		}
 
 		dsVector4f colors[DS_MAX_ATTACHMENTS] = {};
 		float depth = 1.0f;
@@ -1104,12 +1137,18 @@ bool dsMTLHardwareCommandBuffer_clearAttachments(dsCommandBuffer* commandBuffer,
 				attachmentIndex = subpass->depthStencilAttachment.attachmentIndex;
 				depth = clearAttachment->clearValue.depthStencil.depth;
 				stencil = clearAttachment->clearValue.depthStencil.stencil;
-
-				if (attachmentIndex != DS_NO_ATTACHMENT)
+				switch (clearAttachment->clearDepthStencil)
 				{
-					dsGfxFormat format = renderPass->attachments[attachmentIndex].format;
-					depthFormat = dsGetMTLDepthFormat(resourceManager, format);
-					stencilFormat = dsGetMTLDepthFormat(resourceManager, format);
+					case dsClearDepthStencil_Depth:
+						clearDepth = true;
+						break;
+					case dsClearDepthStencil_Stencil:
+						clearStencil = true;
+						break;
+					case dsClearDepthStencil_Both:
+						clearDepth = true;
+						clearStencil = true;
+						break;
 				}
 			}
 			else
@@ -1118,7 +1157,7 @@ bool dsMTLHardwareCommandBuffer_clearAttachments(dsCommandBuffer* commandBuffer,
 					subpass->colorAttachments[clearAttachment->colorAttachment].attachmentIndex;
 
 				dsGfxFormat format = renderPass->attachments[attachmentIndex].format;
-				colorFormats[i] = dsMTLResourceManager_getPixelFormat(resourceManager, format);
+				colorMask |= 1 << i;
 				switch (format & dsGfxFormat_DecoratorMask)
 				{
 					case dsGfxFormat_UInt:
@@ -1146,22 +1185,22 @@ bool dsMTLHardwareCommandBuffer_clearAttachments(dsCommandBuffer* commandBuffer,
 			samples = renderer->surfaceSamples;
 
 		id<MTLRenderPipelineState> pipeline = dsMTLRenderer_getClearPipeline(renderer, colorFormats,
-			depthFormat, stencilFormat, framebuffer->layers > 1, samples);
+			colorMask, depthFormat, stencilFormat, framebuffer->layers > 1, samples);
 		if (!pipeline)
 			return false;
 
 		[encoder setRenderPipelineState: pipeline];
-		if (depthFormat == MTLPixelFormatInvalid && stencilFormat == MTLPixelFormatInvalid)
+		if (clearDepth && clearStencil)
 		{
 			[encoder setDepthStencilState:
-				(__bridge id<MTLDepthStencilState>)mtlRenderer->clearNoDepthStencilState];
+				(__bridge id<MTLDepthStencilState>)mtlRenderer->clearDepthStencilState];
 		}
-		else if (depthFormat != MTLPixelFormatInvalid && stencilFormat == MTLPixelFormatInvalid)
+		else if (clearDepth && !clearStencil)
 		{
 			[encoder setDepthStencilState:
 				(__bridge id<MTLDepthStencilState>)mtlRenderer->clearDepthState];
 		}
-		else if (depthFormat == MTLPixelFormatInvalid && stencilFormat != MTLPixelFormatInvalid)
+		else if (!clearDepth && clearStencil)
 		{
 			[encoder setDepthStencilState:
 				(__bridge id<MTLDepthStencilState>)mtlRenderer->clearStencilState];
@@ -1169,10 +1208,10 @@ bool dsMTLHardwareCommandBuffer_clearAttachments(dsCommandBuffer* commandBuffer,
 		else
 		{
 			[encoder setDepthStencilState:
-				(__bridge id<MTLDepthStencilState>)mtlRenderer->clearDepthStencilState];
+				(__bridge id<MTLDepthStencilState>)mtlRenderer->clearNoDepthStencilState];
 		}
 
-		if (stencilFormat != MTLPixelFormatInvalid)
+		if (clearStencil)
 			[encoder setStencilReferenceValue: stencil];
 		[encoder setFragmentBytes: colors length: sizeof(colors) atIndex: 0];
 		[encoder setVertexBuffer: (__bridge id<MTLBuffer>)mtlRenderer->clearVertices offset: 0
@@ -1205,7 +1244,7 @@ bool dsMTLHardwareCommandBuffer_clearAttachments(dsCommandBuffer* commandBuffer,
 			[encoder setDepthStencilState:
 				(__bridge id<MTLDepthStencilState>)mtlCommandBuffer->boundDepthStencil];
 		}
-		if (stencilFormat != MTLPixelFormatInvalid)
+		if (clearStencil)
 		{
 #if DS_MAC || __IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
 			[encoder setStencilFrontReferenceValue: mtlCommandBuffer->curFrontStencilRef
