@@ -23,6 +23,7 @@
 #include <DeepSea/Render/Resources/GfxFormat.h>
 #include <DeepSea/Render/Resources/Material.h>
 #include <DeepSea/Render/Resources/MaterialDesc.h>
+#include <DeepSea/Render/Resources/Renderbuffer.h>
 #include <DeepSea/Render/Resources/Shader.h>
 #include <DeepSea/Render/Resources/ShaderModule.h>
 #include <DeepSea/Render/Resources/Texture.h>
@@ -40,21 +41,29 @@ namespace
 class WriteOffscreenInfo
 {
 public:
-	explicit WriteOffscreenInfo(const FixtureBase& fixture)
+	enum class TestMode
 	{
-		initialize(fixture, 2, 2, 1);
+		None,
+		Depth,
+		Stencil
+	};
+
+	explicit WriteOffscreenInfo(const FixtureBase& fixture, TestMode testMode = TestMode::None)
+	{
+		initialize(fixture, 2, 2, 1, testMode);
 	}
 
 	WriteOffscreenInfo(const FixtureBase& fixture, uint32_t width, uint32_t height,
-		uint32_t mipLevels)
+		uint32_t mipLevels, TestMode testMode = TestMode::None)
 	{
-		initialize(fixture, width, height, mipLevels);
+		initialize(fixture, width, height, mipLevels, testMode);
 	}
 
 	~WriteOffscreenInfo()
 	{
 		EXPECT_TRUE(dsRenderPass_destroy(renderPass));
 		EXPECT_TRUE(dsFramebuffer_destroy(framebuffer));
+		EXPECT_TRUE(dsRenderbuffer_destroy(depthBuffer));
 		EXPECT_TRUE(dsTexture_destroy(offscreen));
 		EXPECT_TRUE(dsShader_destroy(shader));
 		EXPECT_TRUE(dsShaderModule_destroy(shaderModule));
@@ -67,11 +76,13 @@ public:
 	dsShaderModule* shaderModule = nullptr;
 	dsShader* shader = nullptr;
 	dsOffscreen* offscreen = nullptr;
+	dsRenderbuffer* depthBuffer = nullptr;
 	dsFramebuffer* framebuffer = nullptr;
 	dsRenderPass* renderPass = nullptr;
 
 private:
-	void initialize(const FixtureBase& fixture, uint32_t width, uint32_t height, uint32_t mipLevels)
+	void initialize(const FixtureBase& fixture, uint32_t width, uint32_t height, uint32_t mipLevels,
+		TestMode testMode)
 	{
 		dsAllocator* allocator = (dsAllocator*)&fixture.allocator;
 		dsRenderer* renderer = fixture.renderer;
@@ -102,7 +113,20 @@ private:
 			"WriteOffscreen");
 		ASSERT_TRUE(shaderModule);
 
-		shader = dsShader_createName(resourceManager, allocator, shaderModule, "WriteOffscreen",
+		const char* shaderName;
+		switch (testMode)
+		{
+			case TestMode::None:
+				shaderName = "WriteOffscreen";
+				break;
+			case TestMode::Depth:
+				shaderName = "WriteOffscreenDepth";
+				break;
+			case TestMode::Stencil:
+				shaderName = "WriteOffscreenStencil";
+				break;
+		}
+		shader = dsShader_createName(resourceManager, allocator, shaderModule, shaderName,
 			materialDesc);
 		ASSERT_TRUE(shader);
 
@@ -114,22 +138,36 @@ private:
 			dsGfxMemory_Read, &offscreenInfo, true);
 		ASSERT_TRUE(offscreen);
 
-		dsFramebufferSurface surface = {dsGfxSurfaceType_Offscreen, dsCubeFace_None, 0, 0,
-			offscreen};
-		framebuffer = dsFramebuffer_create(resourceManager, allocator, "WriteOffscreen", &surface,
-			1, width, height, 1);
+		dsGfxFormat depthFormat = dsGfxFormat_D24S8;
+		if (!dsGfxFormat_renderTargetSupported(resourceManager, depthFormat))
+			depthFormat = dsGfxFormat_D32S8_Float;
+		if (testMode != TestMode::None)
+		{
+			depthBuffer = dsRenderbuffer_create(resourceManager, allocator,
+				dsRenderbufferUsage_Standard, depthFormat, width, height, 1);
+			ASSERT_TRUE(depthBuffer);
+		}
+
+		dsFramebufferSurface surfaces[] =
+		{
+			{dsGfxSurfaceType_Offscreen, dsCubeFace_None, 0, 0, offscreen},
+			{dsGfxSurfaceType_Renderbuffer, dsCubeFace_None, 0, 0, depthBuffer}
+		};
+		uint32_t surfaceCount = depthBuffer ? 2 : 1;
+		framebuffer = dsFramebuffer_create(resourceManager, allocator, "WriteOffscreen", surfaces,
+			surfaceCount, width, height, 1);
 		ASSERT_TRUE(framebuffer);
 
-		dsAttachmentInfo attachment =
+		dsAttachmentInfo attachments[] =
 		{
-			dsAttachmentUsage_Clear | dsAttachmentUsage_KeepAfter,
-			surfaceFormat, 1
+			{dsAttachmentUsage_Clear | dsAttachmentUsage_KeepAfter, surfaceFormat, 1},
+			{dsAttachmentUsage_Clear, depthFormat, 1},
 		};
 		dsAttachmentRef attachmentRef = {0, true};
 		dsRenderSubpassInfo subpass = {"WriteOffscreen", NULL, &attachmentRef,
-			{DS_NO_ATTACHMENT, false}, 0, 1};
-		renderPass = dsRenderPass_create(renderer, allocator, &attachment, 1, &subpass, 1, NULL,
-			DS_DEFAULT_SUBPASS_DEPENDENCIES);
+			{depthBuffer ? 1 : DS_NO_ATTACHMENT, false}, 0, 1};
+		renderPass = dsRenderPass_create(renderer, allocator, attachments, surfaceCount, &subpass,
+			1, NULL, DS_DEFAULT_SUBPASS_DEPENDENCIES);
 		ASSERT_TRUE(renderPass);
 	}
 };
@@ -1121,4 +1159,428 @@ TEST_P(RendererFunctionalTest, TextureBuffer)
 	DS_VERIFY(dsMaterialDesc_destroy(materialDesc));
 	DS_VERIFY(dsGfxBuffer_destroy(textureBuffer));
 	DS_VERIFY(dsGfxBuffer_destroy(buffer));
+}
+
+TEST_P(RendererFunctionalTest, ClearAttachments)
+{
+	WriteOffscreenInfo info(*this);
+
+	Vertex vertices[] =
+	{
+		{{{0.0f, 0.0f}}, {{0, 0, 0, 255}}},
+		{{{1.0f, 0.0f}}, {{255, 0, 0, 255}}},
+		{{{1.0f, 1.0f}}, {{0, 0, 255, 255}}},
+
+		{{{1.0f, 1.0f}}, {{0, 0, 255, 255}}},
+		{{{0.0f, 1.0f}}, {{0, 255, 0, 255}}},
+		{{{0.0f, 0.0f}}, {{0, 0, 0, 255}}}
+	};
+	dsGfxBuffer* buffer = dsGfxBuffer_create(resourceManager, (dsAllocator*)&allocator,
+		dsGfxBufferUsage_Vertex, dsGfxMemory_Static | dsGfxMemory_Draw | dsGfxMemory_GPUOnly,
+		vertices, sizeof(vertices));
+	ASSERT_TRUE(buffer);
+
+	dsVertexFormat format;
+	EXPECT_TRUE(dsVertexFormat_initialize(&format));
+	EXPECT_TRUE(dsVertexFormat_setAttribEnabled(&format, dsVertexAttrib_Position, true));
+	EXPECT_TRUE(dsVertexFormat_setAttribEnabled(&format, dsVertexAttrib_Color, true));
+	format.elements[dsVertexAttrib_Position].format =
+		dsGfxFormat_decorate(dsGfxFormat_X32Y32, dsGfxFormat_Float);
+	format.elements[dsVertexAttrib_Color].format =
+		dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm);
+	ASSERT_TRUE(dsVertexFormat_computeOffsetsAndSize(&format));
+
+	ASSERT_EQ(sizeof(Vertex), format.size);
+	ASSERT_EQ(offsetof(Vertex, position), format.elements[dsVertexAttrib_Position].offset);
+	ASSERT_EQ(offsetof(Vertex, color), format.elements[dsVertexAttrib_Color].offset);
+
+	dsDrawGeometry* drawGeometry;
+	{
+		dsVertexBuffer vertexBuffer = {buffer, 0, 6, format};
+		dsVertexBuffer* vertexBuffers[DS_MAX_GEOMETRY_VERTEX_BUFFERS] = {&vertexBuffer, nullptr,
+			nullptr, nullptr};
+		drawGeometry = dsDrawGeometry_create(resourceManager, (dsAllocator*)&allocator,
+			vertexBuffers, nullptr);
+		ASSERT_TRUE(drawGeometry);
+	}
+
+	dsSurfaceClearValue clearValue;
+	clearValue.colorValue.floatValue.r = 1.0f;
+	clearValue.colorValue.floatValue.g = 1.0f;
+	clearValue.colorValue.floatValue.b = 1.0f;
+	clearValue.colorValue.floatValue.a = 1.0f;
+	dsCommandBuffer* commandBuffer = renderer->mainCommandBuffer;
+	ASSERT_TRUE(dsRenderPass_begin(info.renderPass, commandBuffer, info.framebuffer, NULL,
+		&clearValue, 1, false));
+	ASSERT_TRUE(dsShader_bind(info.shader, commandBuffer, info.material, NULL, NULL));
+
+	dsDrawRange drawRange = {6, 1, 0, 0};
+	ASSERT_TRUE(dsRenderer_draw(renderer, commandBuffer, drawGeometry, &drawRange,
+		dsPrimitiveType_TriangleList));
+
+	EXPECT_TRUE(dsShader_unbind(info.shader, commandBuffer));
+
+	dsClearAttachment clearAttachment;
+	clearAttachment.colorAttachment = 0;
+	clearAttachment.clearValue.colorValue.floatValue.r = 0.490196f;
+	clearAttachment.clearValue.colorValue.floatValue.g = 0.494118f;
+	clearAttachment.clearValue.colorValue.floatValue.b = 0.498039f;
+	clearAttachment.clearValue.colorValue.floatValue.a = 0.501961f;
+	dsAttachmentClearRegion regions[] = {{0, 0, 1, 1, 0, 1}, {1, 1, 1, 1, 0, 1}};
+	dsRenderer_clearAttachments(renderer, commandBuffer, &clearAttachment, 1, regions,
+			DS_ARRAY_SIZE(regions));
+
+	EXPECT_TRUE(dsRenderPass_end(info.renderPass, commandBuffer));
+
+	EXPECT_TRUE(dsRenderer_flush(renderer));
+
+	dsColor colors[4];
+	dsTexturePosition position = {dsCubeFace_None, 0, 0, 0, 0};
+	ASSERT_TRUE(dsTexture_getData(colors, sizeof(colors), info.offscreen, &position, 2, 2));
+	EXPECT_EQ(125, colors[0].r);
+	EXPECT_EQ(126, colors[0].g);
+	EXPECT_EQ(127, colors[0].b);
+	EXPECT_EQ(128, colors[0].a);
+
+	EXPECT_EQ(0, colors[1].r);
+	EXPECT_EQ(0, colors[1].g);
+	EXPECT_EQ(255, colors[1].b);
+	EXPECT_EQ(255, colors[1].a);
+
+	EXPECT_EQ(0, colors[2].r);
+	EXPECT_EQ(0, colors[2].g);
+	EXPECT_EQ(0, colors[2].b);
+	EXPECT_EQ(255, colors[2].a);
+
+	EXPECT_EQ(125, colors[3].r);
+	EXPECT_EQ(126, colors[3].g);
+	EXPECT_EQ(127, colors[3].b);
+	EXPECT_EQ(128, colors[3].a);
+
+	EXPECT_TRUE(dsDrawGeometry_destroy(drawGeometry));
+	EXPECT_TRUE(dsGfxBuffer_destroy(buffer));
+}
+
+TEST_P(RendererFunctionalTest, ClearAttachmentsDepth)
+{
+	WriteOffscreenInfo info(*this, WriteOffscreenInfo::TestMode::Depth);
+
+	Vertex vertices[] =
+	{
+		{{{0.0f, 0.0f}}, {{0, 0, 0, 255}}},
+		{{{1.0f, 0.0f}}, {{255, 0, 0, 255}}},
+		{{{1.0f, 1.0f}}, {{0, 0, 255, 255}}},
+
+		{{{1.0f, 1.0f}}, {{0, 0, 255, 255}}},
+		{{{0.0f, 1.0f}}, {{0, 255, 0, 255}}},
+		{{{0.0f, 0.0f}}, {{0, 0, 0, 255}}}
+	};
+	dsGfxBuffer* buffer = dsGfxBuffer_create(resourceManager, (dsAllocator*)&allocator,
+		dsGfxBufferUsage_Vertex, dsGfxMemory_Static | dsGfxMemory_Draw | dsGfxMemory_GPUOnly,
+		vertices, sizeof(vertices));
+	ASSERT_TRUE(buffer);
+
+	dsVertexFormat format;
+	EXPECT_TRUE(dsVertexFormat_initialize(&format));
+	EXPECT_TRUE(dsVertexFormat_setAttribEnabled(&format, dsVertexAttrib_Position, true));
+	EXPECT_TRUE(dsVertexFormat_setAttribEnabled(&format, dsVertexAttrib_Color, true));
+	format.elements[dsVertexAttrib_Position].format =
+		dsGfxFormat_decorate(dsGfxFormat_X32Y32, dsGfxFormat_Float);
+	format.elements[dsVertexAttrib_Color].format =
+		dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm);
+	ASSERT_TRUE(dsVertexFormat_computeOffsetsAndSize(&format));
+
+	ASSERT_EQ(sizeof(Vertex), format.size);
+	ASSERT_EQ(offsetof(Vertex, position), format.elements[dsVertexAttrib_Position].offset);
+	ASSERT_EQ(offsetof(Vertex, color), format.elements[dsVertexAttrib_Color].offset);
+
+	dsDrawGeometry* drawGeometry;
+	{
+		dsVertexBuffer vertexBuffer = {buffer, 0, 6, format};
+		dsVertexBuffer* vertexBuffers[DS_MAX_GEOMETRY_VERTEX_BUFFERS] = {&vertexBuffer, nullptr,
+			nullptr, nullptr};
+		drawGeometry = dsDrawGeometry_create(resourceManager, (dsAllocator*)&allocator,
+			vertexBuffers, nullptr);
+		ASSERT_TRUE(drawGeometry);
+	}
+
+	dsSurfaceClearValue clearValues[2];
+	clearValues[0].colorValue.floatValue.r = 1.0f;
+	clearValues[0].colorValue.floatValue.g = 1.0f;
+	clearValues[0].colorValue.floatValue.b = 1.0f;
+	clearValues[0].colorValue.floatValue.a = 1.0f;
+	clearValues[1].depthStencil.depth = 1.0f;
+	clearValues[1].depthStencil.stencil = 0;
+	dsCommandBuffer* commandBuffer = renderer->mainCommandBuffer;
+	ASSERT_TRUE(dsRenderPass_begin(info.renderPass, commandBuffer, info.framebuffer, NULL,
+		clearValues, 2, false));
+
+	dsClearAttachment clearAttachment;
+	clearAttachment.colorAttachment = DS_NO_ATTACHMENT;
+	clearAttachment.clearDepthStencil = dsClearDepthStencil_Depth;
+	clearAttachment.clearValue.depthStencil.depth = 0.0f;
+	clearAttachment.clearValue.depthStencil.stencil = 1;
+	dsAttachmentClearRegion regions[] = {{0, 0, 1, 1, 0, 1}, {1, 1, 1, 1, 0, 1}};
+	dsRenderer_clearAttachments(renderer, commandBuffer, &clearAttachment, 1, regions,
+		DS_ARRAY_SIZE(regions));
+
+	clearAttachment.clearValue.depthStencil.depth = 1.0f;
+	regions[0].x = 1;
+	regions[1].x = 0;
+	dsRenderer_clearAttachments(renderer, commandBuffer, &clearAttachment, 1, regions,
+		DS_ARRAY_SIZE(regions));
+
+	ASSERT_TRUE(dsShader_bind(info.shader, commandBuffer, info.material, NULL, NULL));
+
+	dsDrawRange drawRange = {6, 1, 0, 0};
+	ASSERT_TRUE(dsRenderer_draw(renderer, commandBuffer, drawGeometry, &drawRange,
+		dsPrimitiveType_TriangleList));
+
+	EXPECT_TRUE(dsShader_unbind(info.shader, commandBuffer));
+
+	EXPECT_TRUE(dsRenderPass_end(info.renderPass, commandBuffer));
+
+	EXPECT_TRUE(dsRenderer_flush(renderer));
+
+	dsColor colors[4];
+	dsTexturePosition position = {dsCubeFace_None, 0, 0, 0, 0};
+	ASSERT_TRUE(dsTexture_getData(colors, sizeof(colors), info.offscreen, &position, 2, 2));
+	EXPECT_EQ(255, colors[0].r);
+	EXPECT_EQ(255, colors[0].g);
+	EXPECT_EQ(255, colors[0].b);
+	EXPECT_EQ(255, colors[0].a);
+
+	EXPECT_EQ(0, colors[1].r);
+	EXPECT_EQ(0, colors[1].g);
+	EXPECT_EQ(255, colors[1].b);
+	EXPECT_EQ(255, colors[1].a);
+
+	EXPECT_EQ(0, colors[2].r);
+	EXPECT_EQ(0, colors[2].g);
+	EXPECT_EQ(0, colors[2].b);
+	EXPECT_EQ(255, colors[2].a);
+
+	EXPECT_EQ(255, colors[3].r);
+	EXPECT_EQ(255, colors[3].g);
+	EXPECT_EQ(255, colors[3].b);
+	EXPECT_EQ(255, colors[3].a);
+
+	EXPECT_TRUE(dsDrawGeometry_destroy(drawGeometry));
+	EXPECT_TRUE(dsGfxBuffer_destroy(buffer));
+}
+
+TEST_P(RendererFunctionalTest, ClearAttachmentsStencil)
+{
+	WriteOffscreenInfo info(*this, WriteOffscreenInfo::TestMode::Stencil);
+
+	Vertex vertices[] =
+	{
+		{{{0.0f, 0.0f}}, {{0, 0, 0, 255}}},
+	{{{1.0f, 0.0f}}, {{255, 0, 0, 255}}},
+	{{{1.0f, 1.0f}}, {{0, 0, 255, 255}}},
+
+	{{{1.0f, 1.0f}}, {{0, 0, 255, 255}}},
+	{{{0.0f, 1.0f}}, {{0, 255, 0, 255}}},
+	{{{0.0f, 0.0f}}, {{0, 0, 0, 255}}}
+	};
+	dsGfxBuffer* buffer = dsGfxBuffer_create(resourceManager, (dsAllocator*)&allocator,
+		dsGfxBufferUsage_Vertex, dsGfxMemory_Static | dsGfxMemory_Draw | dsGfxMemory_GPUOnly,
+		vertices, sizeof(vertices));
+	ASSERT_TRUE(buffer);
+
+	dsVertexFormat format;
+	EXPECT_TRUE(dsVertexFormat_initialize(&format));
+	EXPECT_TRUE(dsVertexFormat_setAttribEnabled(&format, dsVertexAttrib_Position, true));
+	EXPECT_TRUE(dsVertexFormat_setAttribEnabled(&format, dsVertexAttrib_Color, true));
+	format.elements[dsVertexAttrib_Position].format =
+		dsGfxFormat_decorate(dsGfxFormat_X32Y32, dsGfxFormat_Float);
+	format.elements[dsVertexAttrib_Color].format =
+		dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm);
+	ASSERT_TRUE(dsVertexFormat_computeOffsetsAndSize(&format));
+
+	ASSERT_EQ(sizeof(Vertex), format.size);
+	ASSERT_EQ(offsetof(Vertex, position), format.elements[dsVertexAttrib_Position].offset);
+	ASSERT_EQ(offsetof(Vertex, color), format.elements[dsVertexAttrib_Color].offset);
+
+	dsDrawGeometry* drawGeometry;
+	{
+		dsVertexBuffer vertexBuffer = {buffer, 0, 6, format};
+		dsVertexBuffer* vertexBuffers[DS_MAX_GEOMETRY_VERTEX_BUFFERS] = {&vertexBuffer, nullptr,
+			nullptr, nullptr};
+		drawGeometry = dsDrawGeometry_create(resourceManager, (dsAllocator*)&allocator,
+			vertexBuffers, nullptr);
+		ASSERT_TRUE(drawGeometry);
+	}
+
+	dsSurfaceClearValue clearValues[2];
+	clearValues[0].colorValue.floatValue.r = 1.0f;
+	clearValues[0].colorValue.floatValue.g = 1.0f;
+	clearValues[0].colorValue.floatValue.b = 1.0f;
+	clearValues[0].colorValue.floatValue.a = 1.0f;
+	clearValues[1].depthStencil.depth = 1.0f;
+	clearValues[1].depthStencil.stencil = 0;
+	dsCommandBuffer* commandBuffer = renderer->mainCommandBuffer;
+	ASSERT_TRUE(dsRenderPass_begin(info.renderPass, commandBuffer, info.framebuffer, NULL,
+		clearValues, 2, false));
+
+	dsClearAttachment clearAttachment;
+	clearAttachment.colorAttachment = DS_NO_ATTACHMENT;
+	clearAttachment.clearDepthStencil = dsClearDepthStencil_Stencil;
+	clearAttachment.clearValue.depthStencil.depth = 0.0f;
+	clearAttachment.clearValue.depthStencil.stencil = 1;
+	dsAttachmentClearRegion regions[] = {{0, 0, 1, 1, 0, 1}, {1, 1, 1, 1, 0, 1}};
+	dsRenderer_clearAttachments(renderer, commandBuffer, &clearAttachment, 1, regions,
+		DS_ARRAY_SIZE(regions));
+
+	clearAttachment.clearValue.depthStencil.stencil = 0;
+	regions[0].x = 1;
+	regions[1].x = 0;
+	dsRenderer_clearAttachments(renderer, commandBuffer, &clearAttachment, 1, regions,
+		DS_ARRAY_SIZE(regions));
+
+	ASSERT_TRUE(dsShader_bind(info.shader, commandBuffer, info.material, NULL, NULL));
+
+	dsDrawRange drawRange = {6, 1, 0, 0};
+	ASSERT_TRUE(dsRenderer_draw(renderer, commandBuffer, drawGeometry, &drawRange,
+		dsPrimitiveType_TriangleList));
+
+	EXPECT_TRUE(dsShader_unbind(info.shader, commandBuffer));
+
+	EXPECT_TRUE(dsRenderPass_end(info.renderPass, commandBuffer));
+
+	EXPECT_TRUE(dsRenderer_flush(renderer));
+
+	dsColor colors[4];
+	dsTexturePosition position = {dsCubeFace_None, 0, 0, 0, 0};
+	ASSERT_TRUE(dsTexture_getData(colors, sizeof(colors), info.offscreen, &position, 2, 2));
+	EXPECT_EQ(255, colors[0].r);
+	EXPECT_EQ(255, colors[0].g);
+	EXPECT_EQ(255, colors[0].b);
+	EXPECT_EQ(255, colors[0].a);
+
+	EXPECT_EQ(0, colors[1].r);
+	EXPECT_EQ(0, colors[1].g);
+	EXPECT_EQ(255, colors[1].b);
+	EXPECT_EQ(255, colors[1].a);
+
+	EXPECT_EQ(0, colors[2].r);
+	EXPECT_EQ(0, colors[2].g);
+	EXPECT_EQ(0, colors[2].b);
+	EXPECT_EQ(255, colors[2].a);
+
+	EXPECT_EQ(255, colors[3].r);
+	EXPECT_EQ(255, colors[3].g);
+	EXPECT_EQ(255, colors[3].b);
+	EXPECT_EQ(255, colors[3].a);
+
+	EXPECT_TRUE(dsDrawGeometry_destroy(drawGeometry));
+	EXPECT_TRUE(dsGfxBuffer_destroy(buffer));
+}
+
+TEST_P(RendererFunctionalTest, ClearAttachmentsColorAndDepth)
+{
+	WriteOffscreenInfo info(*this, WriteOffscreenInfo::TestMode::Depth);
+
+	Vertex vertices[] =
+	{
+		{{{0.0f, 0.0f}}, {{0, 0, 0, 255}}},
+	{{{1.0f, 0.0f}}, {{255, 0, 0, 255}}},
+	{{{1.0f, 1.0f}}, {{0, 0, 255, 255}}},
+
+	{{{1.0f, 1.0f}}, {{0, 0, 255, 255}}},
+	{{{0.0f, 1.0f}}, {{0, 255, 0, 255}}},
+	{{{0.0f, 0.0f}}, {{0, 0, 0, 255}}}
+	};
+	dsGfxBuffer* buffer = dsGfxBuffer_create(resourceManager, (dsAllocator*)&allocator,
+		dsGfxBufferUsage_Vertex, dsGfxMemory_Static | dsGfxMemory_Draw | dsGfxMemory_GPUOnly,
+		vertices, sizeof(vertices));
+	ASSERT_TRUE(buffer);
+
+	dsVertexFormat format;
+	EXPECT_TRUE(dsVertexFormat_initialize(&format));
+	EXPECT_TRUE(dsVertexFormat_setAttribEnabled(&format, dsVertexAttrib_Position, true));
+	EXPECT_TRUE(dsVertexFormat_setAttribEnabled(&format, dsVertexAttrib_Color, true));
+	format.elements[dsVertexAttrib_Position].format =
+		dsGfxFormat_decorate(dsGfxFormat_X32Y32, dsGfxFormat_Float);
+	format.elements[dsVertexAttrib_Color].format =
+		dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm);
+	ASSERT_TRUE(dsVertexFormat_computeOffsetsAndSize(&format));
+
+	ASSERT_EQ(sizeof(Vertex), format.size);
+	ASSERT_EQ(offsetof(Vertex, position), format.elements[dsVertexAttrib_Position].offset);
+	ASSERT_EQ(offsetof(Vertex, color), format.elements[dsVertexAttrib_Color].offset);
+
+	dsDrawGeometry* drawGeometry;
+	{
+		dsVertexBuffer vertexBuffer = {buffer, 0, 6, format};
+		dsVertexBuffer* vertexBuffers[DS_MAX_GEOMETRY_VERTEX_BUFFERS] = {&vertexBuffer, nullptr,
+			nullptr, nullptr};
+		drawGeometry = dsDrawGeometry_create(resourceManager, (dsAllocator*)&allocator,
+			vertexBuffers, nullptr);
+		ASSERT_TRUE(drawGeometry);
+	}
+
+	dsSurfaceClearValue clearValues[2];
+	clearValues[0].colorValue.floatValue.r = 1.0f;
+	clearValues[0].colorValue.floatValue.g = 1.0f;
+	clearValues[0].colorValue.floatValue.b = 1.0f;
+	clearValues[0].colorValue.floatValue.a = 1.0f;
+	clearValues[1].depthStencil.depth = 1.0f;
+	clearValues[1].depthStencil.stencil = 0;
+	dsCommandBuffer* commandBuffer = renderer->mainCommandBuffer;
+	ASSERT_TRUE(dsRenderPass_begin(info.renderPass, commandBuffer, info.framebuffer, NULL,
+		clearValues, 2, false));
+
+	dsClearAttachment clearAttachments[2];
+	clearAttachments[0].colorAttachment = 0;
+	clearAttachments[0].clearValue.colorValue.floatValue.r = 0.490196f;
+	clearAttachments[0].clearValue.colorValue.floatValue.g = 0.494118f;
+	clearAttachments[0].clearValue.colorValue.floatValue.b = 0.498039f;
+	clearAttachments[0].clearValue.colorValue.floatValue.a = 0.501961f;
+	clearAttachments[1].colorAttachment = DS_NO_ATTACHMENT;
+	clearAttachments[1].clearDepthStencil = dsClearDepthStencil_Depth;
+	clearAttachments[1].clearValue.depthStencil.depth = 0.0f;
+	clearAttachments[1].clearValue.depthStencil.stencil = 1;
+	dsAttachmentClearRegion regions[] = {{0, 0, 1, 1, 0, 1}, {1, 1, 1, 1, 0, 1}};
+	dsRenderer_clearAttachments(renderer, commandBuffer, clearAttachments,
+		DS_ARRAY_SIZE(clearAttachments), regions, DS_ARRAY_SIZE(regions));
+
+
+	ASSERT_TRUE(dsShader_bind(info.shader, commandBuffer, info.material, NULL, NULL));
+
+	dsDrawRange drawRange = {6, 1, 0, 0};
+	ASSERT_TRUE(dsRenderer_draw(renderer, commandBuffer, drawGeometry, &drawRange,
+		dsPrimitiveType_TriangleList));
+
+	EXPECT_TRUE(dsShader_unbind(info.shader, commandBuffer));
+
+	EXPECT_TRUE(dsRenderPass_end(info.renderPass, commandBuffer));
+
+	EXPECT_TRUE(dsRenderer_flush(renderer));
+
+	dsColor colors[4];
+	dsTexturePosition position = {dsCubeFace_None, 0, 0, 0, 0};
+	ASSERT_TRUE(dsTexture_getData(colors, sizeof(colors), info.offscreen, &position, 2, 2));
+	EXPECT_EQ(125, colors[0].r);
+	EXPECT_EQ(126, colors[0].g);
+	EXPECT_EQ(127, colors[0].b);
+	EXPECT_EQ(128, colors[0].a);
+
+	EXPECT_EQ(0, colors[1].r);
+	EXPECT_EQ(0, colors[1].g);
+	EXPECT_EQ(255, colors[1].b);
+	EXPECT_EQ(255, colors[1].a);
+
+	EXPECT_EQ(0, colors[2].r);
+	EXPECT_EQ(0, colors[2].g);
+	EXPECT_EQ(0, colors[2].b);
+	EXPECT_EQ(255, colors[2].a);
+
+	EXPECT_EQ(125, colors[3].r);
+	EXPECT_EQ(126, colors[3].g);
+	EXPECT_EQ(127, colors[3].b);
+	EXPECT_EQ(128, colors[3].a);
+
+	EXPECT_TRUE(dsDrawGeometry_destroy(drawGeometry));
+	EXPECT_TRUE(dsGfxBuffer_destroy(buffer));
 }

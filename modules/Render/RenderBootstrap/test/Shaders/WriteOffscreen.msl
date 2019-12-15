@@ -46,3 +46,18 @@ pipeline WriteOffscreen
 	vertex = vertexShader;
 	fragment = fragmentShader;
 }
+
+pipeline WriteOffscreenDepth
+{
+	vertex = vertexShader;
+	fragment = fragmentShader;
+	depth_test_enable = true;
+}
+
+pipeline WriteOffscreenStencil
+{
+	vertex = vertexShader;
+	fragment = fragmentShader;
+	stencil_test_enable = true;
+    stencil_compare_op = equal;
+}

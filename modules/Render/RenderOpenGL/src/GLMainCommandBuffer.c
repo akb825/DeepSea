@@ -338,11 +338,13 @@ static bool beginRenderSubpass(dsGLMainCommandBuffer* commandBuffer,
 	// Clear the buffers for this framebuffer.
 	if (commandBuffer->curClearValues > 0)
 	{
+		glDisable(GL_SCISSOR_TEST);
 		DS_ASSERT(commandBuffer->curClearValues == renderPass->attachmentCount);
 		if (surfaceType == GLSurfaceType_Framebuffer && ANYGL_SUPPORTED(glClearBufferfv))
 			clearOtherFramebuffer(renderPass, subpassIndex, commandBuffer->clearValues);
 		else
 			clearMainFramebuffer(renderPass, subpassIndex, commandBuffer->clearValues);
+		glEnable(GL_SCISSOR_TEST);
 	}
 
 	return true;
@@ -1425,12 +1427,18 @@ bool dsGLMainCommandBuffer_endRenderSurface(dsCommandBuffer* commandBuffer, void
 bool dsGLMainCommandBuffer_setViewport(dsCommandBuffer* commandBuffer,
 	const dsAlignedBox3f* viewport)
 {
+	dsGLRenderer* glRenderer = (dsGLRenderer*)commandBuffer->renderer;
 	dsGLMainCommandBuffer* glCommandBuffer = (dsGLMainCommandBuffer*)commandBuffer;
 	const dsFramebuffer* framebuffer = glCommandBuffer->curFramebuffer;
 	if (viewport)
 	{
+		bool offscreen = glRenderer->curSurfaceType == GLSurfaceType_Framebuffer;
 		glCommandBuffer->viewportX = (GLint)viewport->min.x;
-		glCommandBuffer->viewportY = framebuffer->height - (GLint)viewport->max.y;
+		glCommandBuffer->viewportY = framebuffer->height - (GLint)viewport->max.y - 1;
+		if (offscreen)
+			glCommandBuffer->viewportY = (GLint)viewport->max.y;
+		else
+			glCommandBuffer->viewportY = framebuffer->height - (GLint)viewport->max.y - 1;
 		glCommandBuffer->viewportWidth = (GLsizei)(viewport->max.x - viewport->min.x);
 		glCommandBuffer->viewportHeight = (GLsizei)(viewport->max.y - viewport->min.y);
 		if (ANYGL_SUPPORTED(glDepthRangef))
@@ -1542,6 +1550,7 @@ bool dsGLMainCommandBuffer_clearAttachments(dsCommandBuffer* commandBuffer,
 	const dsAttachmentClearRegion* regions, uint32_t regionCount)
 {
 	dsRenderer* renderer = commandBuffer->renderer;
+	dsGLRenderer* glRenderer = (dsGLRenderer*)renderer;
 	dsGLMainCommandBuffer* glCommandBuffer = (dsGLMainCommandBuffer*)commandBuffer;
 	const dsAttachmentInfo* attachmentInfos = commandBuffer->boundRenderPass->attachments;
 	const dsRenderSubpassInfo* subpass = commandBuffer->boundRenderPass->subpasses +
@@ -1556,6 +1565,7 @@ bool dsGLMainCommandBuffer_clearAttachments(dsCommandBuffer* commandBuffer,
 			glColorMaski(i, false, false, false, false);
 	}
 
+	bool offscreen = glRenderer->curSurfaceType == GLSurfaceType_Framebuffer;
 	bool setScissor = false;
 	bool success = true;
 	for (uint32_t i = 0; i < regionCount; ++i)
@@ -1571,7 +1581,11 @@ bool dsGLMainCommandBuffer_clearAttachments(dsCommandBuffer* commandBuffer,
 		}
 
 		GLint viewportX = region->x;
-		GLint viewportY = glCommandBuffer->curFramebuffer->height - region->y;
+		GLint viewportY;
+		if (offscreen)
+			viewportY = region->y;
+		else
+			viewportY = glCommandBuffer->curFramebuffer->height - region->y - 1;
 		GLint viewportWidth = region->width;
 		GLint viewportHeight = region->height;
 		// Assume that more than one region menas that the viewport will have changed.
@@ -1588,7 +1602,7 @@ bool dsGLMainCommandBuffer_clearAttachments(dsCommandBuffer* commandBuffer,
 		{
 			for (uint32_t j = 0; j < attachmentCount; ++j)
 			{
-				const dsClearAttachment* attachment = attachments + i;
+				const dsClearAttachment* attachment = attachments + j;
 				uint32_t attachmentIndex;
 				if (attachment->colorAttachment == DS_NO_ATTACHMENT)
 					attachmentIndex = subpass->depthStencilAttachment.attachmentIndex;
@@ -1606,24 +1620,15 @@ bool dsGLMainCommandBuffer_clearAttachments(dsCommandBuffer* commandBuffer,
 		}
 		else
 		{
-			if (setColorMasks)
-			{
-				for (uint32_t j = 0; j < renderer->maxColorAttachments; ++j)
-				{
-					if (attachments[j].colorAttachment != DS_NO_ATTACHMENT)
-						glColorMaski(attachments[j].colorAttachment, true, true, true, true);
-				}
-			}
-
 			GLbitfield clearBuffers = 0;
 			for (uint32_t j = 0; j < attachmentCount; ++j)
 			{
-				const dsClearAttachment* attachment = attachments + i;
+				const dsClearAttachment* attachment = attachments + j;
 				uint32_t attachmentIndex;
 				if (attachment->colorAttachment == DS_NO_ATTACHMENT)
 				{
 					attachmentIndex = subpass->depthStencilAttachment.attachmentIndex;
-					switch (attachment->colorAttachment)
+					switch (attachment->clearDepthStencil)
 					{
 						case dsClearDepthStencil_Depth:
 							clearBuffers |= GL_DEPTH_BUFFER_BIT;
@@ -1641,6 +1646,7 @@ bool dsGLMainCommandBuffer_clearAttachments(dsCommandBuffer* commandBuffer,
 					attachmentIndex =
 						subpass->colorAttachments[attachment->colorAttachment].attachmentIndex;
 					clearBuffers |= GL_COLOR_BUFFER_BIT;
+					glColorMaski(j, true, true, true, true);
 				}
 
 				DS_ASSERT(attachmentIndex != DS_NO_ATTACHMENT);
@@ -1655,7 +1661,7 @@ bool dsGLMainCommandBuffer_clearAttachments(dsCommandBuffer* commandBuffer,
 				for (uint32_t j = 0; j < renderer->maxColorAttachments; ++j)
 				{
 					if (attachments[j].colorAttachment != DS_NO_ATTACHMENT)
-						glColorMaski(attachments[j].colorAttachment, true, true, true, true);
+						glColorMaski(j, false, false, false, false);
 				}
 			}
 		}
@@ -1664,7 +1670,7 @@ bool dsGLMainCommandBuffer_clearAttachments(dsCommandBuffer* commandBuffer,
 	if (setScissor)
 	{
 		glScissor(glCommandBuffer->viewportX, glCommandBuffer->viewportY,
-				glCommandBuffer->viewportWidth, glCommandBuffer->viewportHeight);
+			glCommandBuffer->viewportWidth, glCommandBuffer->viewportHeight);
 	}
 
 	if (setColorMasks)
@@ -2140,6 +2146,7 @@ void dsGLMainCommandBuffer_resetState(dsGLMainCommandBuffer* commandBuffer)
 	}
 
 	glDisable(GL_SAMPLE_ALPHA_TO_COVERAGE);
+	glEnable(GL_SCISSOR_TEST);
 
 	glDisable(GL_DEPTH_TEST);
 	glDepthMask(true);
