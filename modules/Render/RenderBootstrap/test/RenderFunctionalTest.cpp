@@ -116,14 +116,14 @@ private:
 		const char* shaderName;
 		switch (testMode)
 		{
-			case TestMode::None:
-				shaderName = "WriteOffscreen";
-				break;
 			case TestMode::Depth:
 				shaderName = "WriteOffscreenDepth";
 				break;
 			case TestMode::Stencil:
 				shaderName = "WriteOffscreenStencil";
+				break;
+			default:
+				shaderName = "WriteOffscreen";
 				break;
 		}
 		shader = dsShader_createName(resourceManager, allocator, shaderModule, shaderName,
