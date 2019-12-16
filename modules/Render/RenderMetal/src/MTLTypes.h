@@ -28,6 +28,7 @@
 #import <Metal/MTLDevice.h>
 #import <Metal/MTLPixelFormat.h>
 #import <Metal/MTLRenderPass.h>
+#import <Metal/MTLRenderCommandEncoder.h>
 #import <Metal/MTLVertexDescriptor.h>
 
 // This is used by SPIRV-Cross to create the shader.
@@ -427,6 +428,7 @@ typedef struct dsMTLHardwareCommandBuffer
 
 	CFTypeRef boundPipeline;
 	CFTypeRef boundDepthStencil;
+	MTLViewport curViewport;
 	uint32_t curFrontStencilRef;
 	uint32_t curBackStencilRef;
 

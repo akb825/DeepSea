@@ -36,10 +36,8 @@
 
 typedef struct ClearVertexData
 {
-	dsVector4f bounds;
 	float depth;
 	uint32_t layer;
-	float padding[2];
 } ClearVertexData;
 
 inline static void assertIsHardwareCommandBuffer(dsCommandBuffer* commandBuffer);
@@ -1025,6 +1023,7 @@ bool dsMTLHardwareCommandBuffer_beginRenderPass(dsCommandBuffer* commandBuffer,
 	mtlCommandBuffer->renderCommandEncoder = CFBridgingRetain(encoder);
 	MTLViewport mtlViewport = {viewport->min.x, viewport->min.y, viewport->max.x - viewport->min.x,
 		viewport->max.y - viewport->min.y, viewport->min.z, viewport->max.z};
+	mtlCommandBuffer->curViewport = mtlViewport;
 	[encoder setViewport: mtlViewport];
 	return true;
 }
@@ -1073,6 +1072,7 @@ bool dsMTLHardwareCommandBuffer_setViewport(dsCommandBuffer* commandBuffer,
 		MTLViewport mtlViewport = {viewport->min.x, viewport->min.y,
 			viewport->max.x - viewport->min.x, viewport->max.y - viewport->min.y, viewport->min.z,
 			viewport->max.z};
+		mtlCommandBuffer->curViewport = mtlViewport;
 		[encoder setViewport: mtlViewport];
 		return true;
 	}
@@ -1095,6 +1095,8 @@ bool dsMTLHardwareCommandBuffer_clearAttachments(dsCommandBuffer* commandBuffer,
 		dsMTLHardwareCommandBuffer* mtlCommandBuffer = (dsMTLHardwareCommandBuffer*)commandBuffer;
 		id<MTLRenderCommandEncoder> encoder =
 			(__bridge id<MTLRenderCommandEncoder>)mtlCommandBuffer->renderCommandEncoder;
+
+		MTLViewport curViewport = mtlCommandBuffer->curViewport;
 
 		uint32_t samples = DS_DEFAULT_ANTIALIAS_SAMPLES;
 		MTLPixelFormat colorFormats[DS_MAX_ATTACHMENTS];
@@ -1221,13 +1223,13 @@ bool dsMTLHardwareCommandBuffer_clearAttachments(dsCommandBuffer* commandBuffer,
 		{
 			const dsAttachmentClearRegion* region = regions + i;
 			ClearVertexData data;
-			data.bounds.x = ((float)region->x/(float)framebuffer->width)*2.0f - 1.0f;
-			data.bounds.y = ((float)(framebuffer->height - (region->y + region->height))/
-				(float)framebuffer->height)*2.0f - 1.0f;
-			data.bounds.z = ((float)(region->x + region->height)/(float)framebuffer->width)*2.0f -
-				1.0f;
-			data.bounds.w = ((float)(framebuffer->height - region->y)/
-				(float)framebuffer->height)*2.0f - 1.0f;
+			MTLViewport viewport = {region->x, region->y, region->width, region->height, 0.0, 1.0};
+			if (memcmp(&viewport, &curViewport, sizeof(MTLViewport)) != 0)
+			{
+				[encoder setViewport: viewport];
+				curViewport = viewport;
+			}
+
 			data.depth = depth;
 			for (uint32_t j = 0; j < region->layerCount; ++j)
 			{
@@ -1244,6 +1246,8 @@ bool dsMTLHardwareCommandBuffer_clearAttachments(dsCommandBuffer* commandBuffer,
 			[encoder setDepthStencilState:
 				(__bridge id<MTLDepthStencilState>)mtlCommandBuffer->boundDepthStencil];
 		}
+		if (memcmp(&mtlCommandBuffer->curViewport, &curViewport, sizeof(MTLViewport)) != 0)
+			[encoder setViewport: mtlCommandBuffer->curViewport];
 		if (clearStencil)
 		{
 #if DS_MAC || __IPHONE_OS_VERSION_MIN_REQUIRED >= 90000

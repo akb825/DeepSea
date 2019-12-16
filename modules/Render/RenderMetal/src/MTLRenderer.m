@@ -206,12 +206,12 @@ static bool createSharedResources(dsMTLRenderer* renderer, id<MTLDevice> device,
 
 	dsVector2f clearVertexData[] =
 	{
-		{{0.0f, 0.0f}},
-		{{1.0f, 0.0f}},
-		{{0.0f, 1.0f}},
-		{{1.0f, 0.0f}},
-		{{1.0f, 1.0f}},
-		{{0.0f, 1.0f}},
+		{{-1.0f, -1.0f}},
+		{{ 1.0f, -1.0f}},
+		{{-1.0f,  1.0f}},
+		{{ 1.0f, -1.0f}},
+		{{ 1.0f,  1.0f}},
+		{{-1.0f,  1.0f}}
 	};
 	id<MTLBuffer> clearVertices = [device newBufferWithBytes: clearVertexData
 		length: sizeof(clearVertexData) options: MTLResourceCPUCacheModeDefaultCache];
@@ -1196,7 +1196,6 @@ id<MTLRenderPipelineState> dsMTLRenderer_getClearPipeline(dsRenderer* renderer,
 		[str appendString: @"} VertexInput;\n"];
 		[str appendString: @"\n"];
 		[str appendString: @"typedef struct {\n"];
-		[str appendString: @"    float4 bounds;\n"];
 		[str appendString: @"    float depth;\n"];
 		[str appendString: @"    uint layer;\n"];
 		[str appendString: @"} VertexData;\n"];
@@ -1222,8 +1221,8 @@ id<MTLRenderPipelineState> dsMTLRenderer_getClearPipeline(dsRenderer* renderer,
 		[str appendString: @"vertex VertexOutput vertexShader(VertexInput attributes [[stage_in]], "
 			@"constant VertexData& parameters [[buffer(0)]]) {\n"];
 		[str appendString: @"    VertexOutput vertexOut;\n"];
-		[str appendString: @"    vertexOut.position = float4(mix(parameters.bounds.xy, "
-			@"parameters.bounds.zw, attributes.position), parameters.depth, 1.0f);\n"];
+		[str appendString:
+			@"    vertexOut.position = float4(attributes.position, parameters.depth, 1.0f);\n"];
 		if (layered)
 			[str appendString: @"    vertexOut.layer = parameters.layer;\n"];
 		[str appendString: @"    return vertexOut;\n"];
