@@ -25,6 +25,22 @@ class SceneNodeRef(object):
             return self._tab.String(o + self._tab.Pos)
         return None
 
-def SceneNodeRefStart(builder): builder.StartObject(1)
+    # SceneNodeRef
+    def ReferenceType(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
+        if o != 0:
+            return self._tab.Get(flatbuffers.number_types.Uint8Flags, o + self._tab.Pos)
+        return 0
+
+    # SceneNodeRef
+    def Type(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
+        if o != 0:
+            return self._tab.String(o + self._tab.Pos)
+        return None
+
+def SceneNodeRefStart(builder): builder.StartObject(3)
 def SceneNodeRefAddReference(builder, reference): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(reference), 0)
+def SceneNodeRefAddReferenceType(builder, referenceType): builder.PrependUint8Slot(1, referenceType, 0)
+def SceneNodeRefAddType(builder, type): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(type), 0)
 def SceneNodeRefEnd(builder): return builder.EndObject()

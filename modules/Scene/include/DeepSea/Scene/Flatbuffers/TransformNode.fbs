@@ -14,13 +14,18 @@
  * limitations under the License.
  */
 
+include "DeepSea/Scene/Flatbuffers/SceneCommon.fbs";
+
 namespace DeepSeaScene;
 
-// Struct describing a reference to another node, either by name in SceneResources or a path.
-table SceneNodeRef
+// Struct describing a transform scene node.
+table TransformNode
 {
-	// The reference name or path.
-	reference : string (required);
+	// The transform matrix for the node.
+	transform : Matrix44f;
+
+	// The child nodes for the transform.
+	children : [SceneNode];
 }
 
-root_type SceneNodeRef;
+root_type TransformNode;

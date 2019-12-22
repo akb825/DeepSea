@@ -6,8 +6,8 @@
 
 #include "flatbuffers/flatbuffers.h"
 
-#include "SceneCommon_generated.h"
-#include "SceneResources_generated.h"
+#include "DeepSea/Scene/Flatbuffers/SceneCommon_generated.h"
+#include "DeepSea/Scene/Flatbuffers/SceneResources_generated.h"
 
 namespace DeepSeaScene {
 

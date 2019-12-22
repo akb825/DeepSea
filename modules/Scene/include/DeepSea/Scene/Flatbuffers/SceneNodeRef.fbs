@@ -14,18 +14,26 @@
  * limitations under the License.
  */
 
-include "SceneCommon.fbs";
-
 namespace DeepSeaScene;
 
-// Struct describing a transform scene node.
-table TransformNode
+// Enum for whether a reference is a scene resource or file.
+enum NodeReferenceType : ubyte
 {
-	// The transform matrix for the node.
-	transform : Matrix44f;
-
-	// The child nodes for the transform.
-	children : [SceneNode];
+	SceneResource,
+	File
 }
 
-root_type TransformNode;
+// Struct describing a reference to another node, either by name in SceneResources or a path.
+table SceneNodeRef
+{
+	// The reference name or path.
+	reference : string (required);
+
+	// The type of resource.
+	referenceType : NodeReferenceType;
+
+	// The name of the node type.
+	type : string (required);
+}
+
+root_type SceneNodeRef;

@@ -10,17 +10,58 @@ namespace DeepSeaScene {
 
 struct SceneNodeRef;
 
+enum class NodeReferenceType : uint8_t {
+  SceneResource = 0,
+  File = 1,
+  MIN = SceneResource,
+  MAX = File
+};
+
+inline const NodeReferenceType (&EnumValuesNodeReferenceType())[2] {
+  static const NodeReferenceType values[] = {
+    NodeReferenceType::SceneResource,
+    NodeReferenceType::File
+  };
+  return values;
+}
+
+inline const char * const *EnumNamesNodeReferenceType() {
+  static const char * const names[] = {
+    "SceneResource",
+    "File",
+    nullptr
+  };
+  return names;
+}
+
+inline const char *EnumNameNodeReferenceType(NodeReferenceType e) {
+  if (e < NodeReferenceType::SceneResource || e > NodeReferenceType::File) return "";
+  const size_t index = static_cast<size_t>(e);
+  return EnumNamesNodeReferenceType()[index];
+}
+
 struct SceneNodeRef FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_REFERENCE = 4
+    VT_REFERENCE = 4,
+    VT_REFERENCETYPE = 6,
+    VT_TYPE = 8
   };
   const flatbuffers::String *reference() const {
     return GetPointer<const flatbuffers::String *>(VT_REFERENCE);
+  }
+  NodeReferenceType referenceType() const {
+    return static_cast<NodeReferenceType>(GetField<uint8_t>(VT_REFERENCETYPE, 0));
+  }
+  const flatbuffers::String *type() const {
+    return GetPointer<const flatbuffers::String *>(VT_TYPE);
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_REFERENCE) &&
            verifier.VerifyString(reference()) &&
+           VerifyField<uint8_t>(verifier, VT_REFERENCETYPE) &&
+           VerifyOffsetRequired(verifier, VT_TYPE) &&
+           verifier.VerifyString(type()) &&
            verifier.EndTable();
   }
 };
@@ -31,6 +72,12 @@ struct SceneNodeRefBuilder {
   void add_reference(flatbuffers::Offset<flatbuffers::String> reference) {
     fbb_.AddOffset(SceneNodeRef::VT_REFERENCE, reference);
   }
+  void add_referenceType(NodeReferenceType referenceType) {
+    fbb_.AddElement<uint8_t>(SceneNodeRef::VT_REFERENCETYPE, static_cast<uint8_t>(referenceType), 0);
+  }
+  void add_type(flatbuffers::Offset<flatbuffers::String> type) {
+    fbb_.AddOffset(SceneNodeRef::VT_TYPE, type);
+  }
   explicit SceneNodeRefBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
@@ -40,25 +87,35 @@ struct SceneNodeRefBuilder {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<SceneNodeRef>(end);
     fbb_.Required(o, SceneNodeRef::VT_REFERENCE);
+    fbb_.Required(o, SceneNodeRef::VT_TYPE);
     return o;
   }
 };
 
 inline flatbuffers::Offset<SceneNodeRef> CreateSceneNodeRef(
     flatbuffers::FlatBufferBuilder &_fbb,
-    flatbuffers::Offset<flatbuffers::String> reference = 0) {
+    flatbuffers::Offset<flatbuffers::String> reference = 0,
+    NodeReferenceType referenceType = NodeReferenceType::SceneResource,
+    flatbuffers::Offset<flatbuffers::String> type = 0) {
   SceneNodeRefBuilder builder_(_fbb);
+  builder_.add_type(type);
   builder_.add_reference(reference);
+  builder_.add_referenceType(referenceType);
   return builder_.Finish();
 }
 
 inline flatbuffers::Offset<SceneNodeRef> CreateSceneNodeRefDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
-    const char *reference = nullptr) {
+    const char *reference = nullptr,
+    NodeReferenceType referenceType = NodeReferenceType::SceneResource,
+    const char *type = nullptr) {
   auto reference__ = reference ? _fbb.CreateString(reference) : 0;
+  auto type__ = type ? _fbb.CreateString(type) : 0;
   return DeepSeaScene::CreateSceneNodeRef(
       _fbb,
-      reference__);
+      reference__,
+      referenceType,
+      type__);
 }
 
 inline const DeepSeaScene::SceneNodeRef *GetSceneNodeRef(const void *buf) {

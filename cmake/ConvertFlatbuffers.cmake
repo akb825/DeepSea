@@ -28,6 +28,7 @@ endif()
 # ds_convert_flatbuffers(container
 #                        FILE file1 [file2 ...]
 #                        DIRECTORY directory
+#                        [INCLUDE dir1 [dir2 ...]]
 #                        [PYTHON directory])
 #
 # Converts a list of flatbuffers into generated headers.
@@ -35,14 +36,15 @@ endif()
 # container - name of a variable to hold the generated headers.
 # FILE - the list of files to convert.
 # DIRECTORY - the directory to place the flatbuffers.
-# PYTHON - Additionally output python files to the specified directory.
+# INCLUDE - directories to search for includes.
+# PYTHON - additionally output python files to the specified directory.
 function(ds_convert_flatbuffers container)
 	if (NOT FLATC)
 		return()
 	endif()
 
 	set(oneValueArgs DIRECTORY PYTHON)
-	set(multiValueArgs FILE)
+	set(multiValueArgs FILE DEPENDS INCLUDE)
 	cmake_parse_arguments(ARGS "${optionArgs}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 	if (NOT ARGS_DIRECTORY)
 		message(FATAL_ERROR "Required option DIRECTORY not specified.")
@@ -53,6 +55,11 @@ function(ds_convert_flatbuffers container)
 		return()
 	endif()
 
+	set(includeDirs)
+	foreach (dir ${ARGS_INCLUDE})
+		list(APPEND includeDirs -I ${dir})
+	endforeach()
+
 	set(outputs)
 	foreach (file ${ARGS_FILE})
 		get_filename_component(filename ${file} NAME_WE)
@@ -61,12 +68,12 @@ function(ds_convert_flatbuffers container)
 
 		set(pythonCommand)
 		if (ARGS_PYTHON)
-			set(pythonCommand COMMAND ${FLATC} ARGS -o ${ARGS_PYTHON} -p ${file})
+			set(pythonCommand COMMAND ${FLATC} ARGS -o ${ARGS_PYTHON} -p ${includeDirs} ${file})
 		endif()
 
 		add_custom_command(OUTPUT ${output}
 			MAIN_DEPENDENCY ${file}
-			COMMAND ${FLATC} ARGS -c --scoped-enums ${file}
+			COMMAND ${FLATC} ARGS -c --scoped-enums --keep-prefix ${includeDirs} ${file}
 			${pythonCommand}
 			DEPENDS ${FLATC}
 			WORKING_DIRECTORY ${ARGS_DIRECTORY}

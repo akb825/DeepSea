@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-include "SceneCommon.fbs";
-include "SceneResources.fbs";
+include "DeepSea/Scene/Flatbuffers/SceneCommon.fbs";
+include "DeepSea/Scene/Flatbuffers/SceneResources.fbs";
 
 namespace DeepSeaScene;
 
