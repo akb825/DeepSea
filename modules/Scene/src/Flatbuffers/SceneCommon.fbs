@@ -216,6 +216,13 @@ table SceneNode
 	data : [ubyte] (required);
 }
 
+// Struct describing a 2-dimentional vector.
+struct Vector2f
+{
+	x : float;
+	y : float;
+}
+
 // Struct describing a 3-dimentional vector.
 struct Vector3f
 {
@@ -250,4 +257,26 @@ struct Matrix44f
 	column1 : Vector4f;
 	column2 : Vector4f;
 	column3 : Vector4f;
+}
+
+// Struct describing a 3x3 transform matrix.
+struct Matrix33f
+{
+	column0 : Vector3f;
+	column1 : Vector3f;
+	column2 : Vector3f;
+}
+
+// Struct describing a 3-dimentional oriented box.
+struct OrientedBox3f
+{
+	// The orientation of the box. This must contain only a rotation. This transforms from local
+	// aligned box space to world space.
+	orientation : Matrix33f;
+
+	// The center of the box.
+	center : Vector3f;
+
+	// The half width, height, and depth of the box.
+	halfExtents : Vector3f;
 }

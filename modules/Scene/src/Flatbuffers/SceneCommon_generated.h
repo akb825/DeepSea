@@ -10,6 +10,8 @@ namespace DeepSeaScene {
 
 struct SceneNode;
 
+struct Vector2f;
+
 struct Vector3f;
 
 struct Vector4f;
@@ -17,6 +19,10 @@ struct Vector4f;
 struct AlignedBox3f;
 
 struct Matrix44f;
+
+struct Matrix33f;
+
+struct OrientedBox3f;
 
 enum class TextureFormat : uint8_t {
   R4G4 = 0,
@@ -633,6 +639,28 @@ inline const char *EnumNameFormatDecoration(FormatDecoration e) {
   return EnumNamesFormatDecoration()[index];
 }
 
+FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Vector2f FLATBUFFERS_FINAL_CLASS {
+ private:
+  float x_;
+  float y_;
+
+ public:
+  Vector2f() {
+    memset(static_cast<void *>(this), 0, sizeof(Vector2f));
+  }
+  Vector2f(float _x, float _y)
+      : x_(flatbuffers::EndianScalar(_x)),
+        y_(flatbuffers::EndianScalar(_y)) {
+  }
+  float x() const {
+    return flatbuffers::EndianScalar(x_);
+  }
+  float y() const {
+    return flatbuffers::EndianScalar(y_);
+  }
+};
+FLATBUFFERS_STRUCT_END(Vector2f, 8);
+
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Vector3f FLATBUFFERS_FINAL_CLASS {
  private:
   float x_;
@@ -745,6 +773,60 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Matrix44f FLATBUFFERS_FINAL_CLASS {
   }
 };
 FLATBUFFERS_STRUCT_END(Matrix44f, 64);
+
+FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Matrix33f FLATBUFFERS_FINAL_CLASS {
+ private:
+  Vector3f column0_;
+  Vector3f column1_;
+  Vector3f column2_;
+
+ public:
+  Matrix33f() {
+    memset(static_cast<void *>(this), 0, sizeof(Matrix33f));
+  }
+  Matrix33f(const Vector3f &_column0, const Vector3f &_column1, const Vector3f &_column2)
+      : column0_(_column0),
+        column1_(_column1),
+        column2_(_column2) {
+  }
+  const Vector3f &column0() const {
+    return column0_;
+  }
+  const Vector3f &column1() const {
+    return column1_;
+  }
+  const Vector3f &column2() const {
+    return column2_;
+  }
+};
+FLATBUFFERS_STRUCT_END(Matrix33f, 36);
+
+FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) OrientedBox3f FLATBUFFERS_FINAL_CLASS {
+ private:
+  Matrix33f orientation_;
+  Vector3f center_;
+  Vector3f halfExtents_;
+
+ public:
+  OrientedBox3f() {
+    memset(static_cast<void *>(this), 0, sizeof(OrientedBox3f));
+  }
+  OrientedBox3f(const Matrix33f &_orientation, const Vector3f &_center, const Vector3f &_halfExtents)
+      : orientation_(_orientation),
+        center_(_center),
+        halfExtents_(_halfExtents) {
+  }
+  const Matrix33f &orientation() const {
+    return orientation_;
+  }
+  const Vector3f &center() const {
+    return center_;
+  }
+  const Vector3f &halfExtents() const {
+    return halfExtents_;
+  }
+};
+FLATBUFFERS_STRUCT_END(OrientedBox3f, 60);
 
 struct SceneNode FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {

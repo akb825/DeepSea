@@ -1,0 +1,121 @@
+/*
+ * Copyright 2019 Aaron Barany
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+include "SceneCommon.fbs";
+include "SceneResources.fbs";
+
+namespace DeepSeaScene;
+
+// Enum for the primitive type to draw with.
+enum PrimitiveType : ubyte
+{
+	PointList,
+	LineList,
+	LineStrip,
+	TriangleList,
+	TriangleStrip,
+	TriangleFan,
+	LineListAdjacency,
+	TriangleListAdjacency,
+	TriangleStripAdjacency,
+	PatchList
+}
+
+// Struct describing a draw range for primitives without an index buffer.
+table DrawRange
+{
+	// The number of vertices.
+	vertexCount : uint;
+
+	// The number of instances to draw.
+	instanceCount : uint;
+
+	// The first vertex to draw.
+	firstVertex : uint;
+
+	// The first instance to draw.
+	firstInstance : uint;
+}
+
+// Struct describing a draw range for primitives with an index buffer.
+table DrawIndexedRange
+{
+	// The number of indices to draw.
+	indexCount : uint;
+
+	// The number of instances to draw.
+	instanceCount : uint;
+
+	// The first index to draw.
+	firstIndex : uint;
+
+	// The offset to apply to each index value.
+	vertexOffset : uint;
+
+	// The first instance to draw.
+	firstInstance : uint;
+}
+
+// Union for the draw range within a model.
+union ModelDrawRange
+{
+	DrawRange,
+	DrawIndexedRange
+}
+
+// Struct describing what to draw inside a model node.
+table ModelInfo
+{
+	// The name of the shader to draw with.
+	shader : string (required);
+
+	// The name of the material to draw with.
+	material : string (required);
+
+	// The name of the geometry to draw.
+	geometry : string (required);
+
+	// The distance range to draw the model.
+	distanceRange : Vector2f;
+
+	// The draw range to draw within the geometry.
+	drawRange : ModelDrawRange (required);
+
+	// The primitive type to draw with.
+	primitiveType : PrimitiveType;
+
+	// The name of the list to use the model with.
+	listName : string (required);
+}
+
+// Struct describing a model scene node.
+table ModelNode
+{
+	// Resources embedded in this file.
+	embeddedResources : SceneResources;
+
+	// Extra item lists to add the node to.
+	extraItemLists : [string];
+
+	// The models to draw.
+	models : [ModelInfo] (required);
+
+	// The bounding box for the model.
+	bounds : OrientedBox3f;
+}
+
+root_type ModelNode;
+
