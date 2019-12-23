@@ -41,9 +41,11 @@ extern "C"
 #define DS_NO_SCENE_NODE (uint64_t)-1
 
 /**
- * @brief Constant for the maximum length of a scene resource name, including the null terminator.
+ * @brief Constant for the maximum length of a scene name, including the null terminator.
+ *
+ * This is used for names stored in dsSceneResources and registered with dsSceneLoadContext
  */
-#define DS_MAX_SCENE_RESOURCE_NAME_LENGTH 104U
+#define DS_MAX_SCENE_NAME_LENGTH 104U
 
 /**
  * @brief Enum for the type of a resource stored in dsSceneResources.
@@ -470,6 +472,62 @@ struct dsView
  * @see SceneThreadManager.h
  */
 typedef struct dsSceneThreadManager dsSceneThreadManager;
+
+/**
+ * @brief Function to load a scene node.
+ * @remark errno should be set on failure.
+ * @param userData User data registered with this function.
+ * @param data The data for the node.
+ * @param dataSize The size fo the data.
+ * @return The node or NULL if it couldn't be loaded.
+ */
+typedef dsSceneNode* (*dsLoadSceneNodeFunction)(void* userData, const uint8_t* data,
+	size_t dataSize);
+
+/**
+ * @brief Function to load a scene item list.
+ * @remark errno should be set on failure.
+ * @param userData User data registered with this function.
+ * @param name The name of the item list.
+ * @param data The data for the item list.
+ * @param dataSize The size fo the data.
+ * @return The item list or NULL if it couldn't be loaded.
+ */
+typedef dsSceneNode* (*dsLoadSceneItemListFunction)(void* userData, const char* name,
+	const uint8_t* data, size_t dataSize);
+
+/**
+ * @brief Function to load a scene global data.
+ * @remark errno should be set on failure.
+ * @param userData User data registered with this function.
+ * @param data The data for the global data.
+ * @param dataSize The size fo the data.
+ * @return The global data or NULL if it couldn't be loaded.
+ */
+typedef dsSceneGlobalData* (*dsLoadSceneGlobalDataFunction)(void* userData, const uint8_t* data,
+	size_t dataSize);
+
+/**
+ * @brief Struct for a context that contains information to aid in loading scenes from file.
+ *
+ * Custom node, item list, and global data types can be registered with the dsSceneLoadContext to
+ * support loading them from scene files.
+ *
+ * The load context is not when loading scene files, so it may be re-used across threads.
+ *
+ * @see SceneLoadContext.h
+ */
+typedef struct dsSceneLoadContext dsSceneLoadContext;
+
+/**
+ * @brief Struct containing temporary data used during loading of a scene.
+ *
+ * This object should not be used across multiple threads. It may be used across multiple loads to
+ * re-use the internal buffers and miniize re-allocations.
+ *
+ * @see SceneLoadScratchData.h
+ */
+typedef struct dsSceneLoadScratchData dsSceneLoadScratchData;
 
 #ifdef __cplusplus
 }

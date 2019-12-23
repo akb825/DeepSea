@@ -206,9 +206,6 @@ enum FormatDecoration : ubyte
 // Structure describing a scene node.
 table SceneNode
 {
-	// The name of the node.
-	name : string (required);
-
 	// The name of the node type.
 	type : string (required);
 

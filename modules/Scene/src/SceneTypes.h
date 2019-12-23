@@ -20,6 +20,9 @@
 #include <DeepSea/Core/Types.h>
 #include <DeepSea/Scene/Types.h>
 
+#define DS_MAX_SCENE_TYPES 128
+#define DS_SCENE_TYPE_TABLE_SIZE 173
+
 typedef struct dsSceneItemEntry
 {
 	dsSceneItemList* list;
@@ -85,3 +88,59 @@ typedef struct dsRotatedFramebuffer
 	dsFramebuffer* framebuffer;
 	bool rotated;
 } dsRotatedFramebuffer;
+
+typedef struct dsLoadSceneNodeItem
+{
+	dsHashTableNode node;
+	char name[DS_MAX_SCENE_NAME_LENGTH];
+	dsLoadSceneNodeFunction loadFunc;
+	void* userData;
+	dsDestroySceneUserDataFunction destroyUserDataFunc;
+} dsLoadSceneNodeItem;
+
+typedef struct dsLoadSceneItemListItem
+{
+	dsHashTableNode node;
+	char name[DS_MAX_SCENE_NAME_LENGTH];
+	dsLoadSceneItemListFunction loadFunc;
+	void* userData;
+	dsDestroySceneUserDataFunction destroyUserDataFunc;
+} dsLoadSceneItemListItem;
+
+typedef struct dsLoadSceneGlobalDataItem
+{
+	dsHashTableNode node;
+	char name[DS_MAX_SCENE_NAME_LENGTH];
+	dsLoadSceneGlobalDataFunction loadFunc;
+	void* userData;
+	dsDestroySceneUserDataFunction destroyUserDataFunc;
+} dsLoadSceneGlobalDataItem;
+
+struct dsSceneLoadContext
+{
+	dsAllocator* allocator;
+	dsLoadSceneNodeItem nodeTypes[DS_MAX_SCENE_TYPES];
+	dsLoadSceneItemListItem itemListTypes[DS_MAX_SCENE_TYPES];
+	dsLoadSceneGlobalDataItem globalDataTypes[DS_MAX_SCENE_TYPES];
+
+#if DS_CLANG
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wgnu-variable-sized-type-not-at-end"
+#endif
+
+	DS_STATIC_HASH_TABLE(DS_SCENE_TYPE_TABLE_SIZE) nodeTypeTable;
+	DS_STATIC_HASH_TABLE(DS_SCENE_TYPE_TABLE_SIZE) itemListTypeTable;
+	DS_STATIC_HASH_TABLE(DS_SCENE_TYPE_TABLE_SIZE) globalDataTypeTable;
+
+#if DS_CLANG
+#pragma GCC diagnostic pop
+#endif
+};
+
+struct dsSceneLoadScratchData
+{
+	dsAllocator* allocator;
+	uint8_t* data;
+	uint32_t dataSize;
+	uint32_t maxDataSize;
+};

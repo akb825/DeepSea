@@ -67,7 +67,7 @@ DS_SCENE_EXPORT uint32_t dsSceneResources_getRemainingResources(const dsSceneRes
  * @remark errno will be set on failure.
  * @param resources The scene resources.
  * @param name The name of the resource. The length, including the null terminator, must not exceed
- *     DS_MAX_SCENE_RESOURCE_NAME_LENGTH.
+ *     DS_MAX_SCENE_NAME_LENGTH.
  * @param type The type of the resource to add.
  * @param resource The resource to add.
  * @param own True to take ownership of the resource. If the resource type is

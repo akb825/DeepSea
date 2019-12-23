@@ -44,7 +44,7 @@ typedef struct ResourceNode
 {
 	dsHashTableNode node;
 	void* resource;
-	char name[DS_MAX_SCENE_RESOURCE_NAME_LENGTH];
+	char name[DS_MAX_SCENE_NAME_LENGTH];
 	dsSceneResourceType type;
 	bool owned;
 } ResourceNode;
@@ -158,11 +158,11 @@ bool dsSceneResources_addResource(dsSceneResources* resources, const char* name,
 	}
 
 	size_t nameLength = strlen(name);
-	if (nameLength >= DS_MAX_SCENE_RESOURCE_NAME_LENGTH)
+	if (nameLength >= DS_MAX_SCENE_NAME_LENGTH)
 	{
 		errno = EINVAL;
 		DS_LOG_ERROR_F(DS_SCENE_LOG_TAG, "Resource name '%s' exceeds maximum size of %u.",
-			name, DS_MAX_SCENE_RESOURCE_NAME_LENGTH);
+			name, DS_MAX_SCENE_NAME_LENGTH);
 		return false;
 	}
 
