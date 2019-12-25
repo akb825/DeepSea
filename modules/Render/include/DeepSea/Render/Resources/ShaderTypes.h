@@ -359,8 +359,7 @@ typedef struct dsShaderVariableElement
 	/**
 	 * @brief The name of the element.
 	 *
-	 * This must remain alive as long as the dsMaterialDesc instance that holds the element.
-	 * This can be done by using string literals or holding a table of strings in memory.
+	 * This will be copied when creating a dsShaderVariableGroupDesc.
 	 */
 	const char* name;
 

@@ -137,7 +137,7 @@ static bool arePushConstantsCompatible(dsResourceManager* resourceManager, const
 		if (structMember.arrayElementCount > 1)
 		{
 			DS_LOG_ERROR_F(DS_RENDER_LOG_TAG,
-				"Multi-dimentional arrays aren't supported for uniform '%s.%s'.",
+				"Multi-dimensional arrays aren't supported for uniform '%s.%s'.",
 				uniformName, structMember.name);
 			success = false;
 			continue;
@@ -190,7 +190,7 @@ static bool isShaderVariableGroupCompatible(const mslModule* module, uint32_t pi
 		if (structMember.arrayElementCount > 1)
 		{
 			DS_LOG_ERROR_F(DS_RENDER_LOG_TAG,
-				"Multi-dimentional arrays aren't supported for variable group member '%s.%s'.",
+				"Multi-dimensional arrays aren't supported for variable group member '%s.%s'.",
 				uniformName, structMember.name);
 			success = false;
 			continue;

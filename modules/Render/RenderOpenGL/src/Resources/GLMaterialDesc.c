@@ -32,6 +32,8 @@ dsMaterialDesc* dsGLMaterialDesc_create(dsResourceManager* resourceManager, dsAl
 
 	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsGLMaterialDesc)) +
 		DS_ALIGNED_SIZE(elementCount*sizeof(dsMaterialElement));
+	for (uint32_t i = 0; i < elementCount; ++i)
+		fullSize += DS_ALIGNED_SIZE(strlen(elements[i].name) + 1);
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 		return NULL;
@@ -51,6 +53,15 @@ dsMaterialDesc* dsGLMaterialDesc_create(dsResourceManager* resourceManager, dsAl
 			elementCount);
 		DS_ASSERT(baseMaterialDesc->elements);
 		memcpy(baseMaterialDesc->elements, elements, elementCount*sizeof(dsMaterialElement));
+
+		for (uint32_t i = 0; i < elementCount; ++i)
+		{
+			size_t nameLen = strlen(elements[i].name) + 1;
+			char* nameCopy = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, nameLen);
+			DS_ASSERT(nameCopy);
+			memcpy(nameCopy, elements[i].name, nameLen);
+			baseMaterialDesc->elements[i].name = nameCopy;
+		}
 	}
 	else
 		baseMaterialDesc->elements = NULL;

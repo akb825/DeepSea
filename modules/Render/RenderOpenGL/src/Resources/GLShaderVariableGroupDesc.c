@@ -34,6 +34,8 @@ dsShaderVariableGroupDesc* dsGLShaderVariableGroupDesc_create(dsResourceManager*
 	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsGLShaderVariableGroupDesc)) +
 		DS_ALIGNED_SIZE(elementCount*sizeof(dsShaderVariableElement)) +
 		DS_ALIGNED_SIZE(elementCount*sizeof(dsShaderVariablePos));
+	for (uint32_t i = 0; i < elementCount; ++i)
+		fullSize += DS_ALIGNED_SIZE(strlen(elements[i].name) + 1);
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 		return NULL;
@@ -60,6 +62,12 @@ dsShaderVariableGroupDesc* dsGLShaderVariableGroupDesc_create(dsResourceManager*
 	size_t curSize = 0;
 	for (uint32_t i = 0; i < elementCount; ++i)
 	{
+		size_t nameLen = strlen(elements[i].name) + 1;
+		char* nameCopy = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, nameLen);
+		DS_ASSERT(nameCopy);
+		memcpy(nameCopy, elements[i].name, nameLen);
+		baseGroupDesc->elements[i].name = nameCopy;
+
 		baseGroupDesc->positions[i].offset = (uint32_t)dsMaterialType_addElementBlockSize(
 			&curSize, elements[i].type, elements[i].count);
 		if (elements[i].count > 0)

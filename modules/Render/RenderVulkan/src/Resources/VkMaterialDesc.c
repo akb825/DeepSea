@@ -58,6 +58,8 @@ dsMaterialDesc* dsVkMaterialDesc_create(dsResourceManager* resourceManager, dsAl
 		DS_ALIGNED_SIZE(sizeof(VkDescriptorSetLayoutBinding)*bindingCounts[0]) +
 		DS_ALIGNED_SIZE(sizeof(VkDescriptorSetLayoutBinding)*bindingCounts[1]) +
 		DS_ALIGNED_SIZE(sizeof(VkDescriptorSetLayoutBinding)*bindingCounts[2]);
+	for (uint32_t i = 0; i < elementCount; ++i)
+		bufferSize += DS_ALIGNED_SIZE(strlen(elements[i].name) + 1);
 	void* buffer = dsAllocator_alloc(allocator, bufferSize);
 	if (!buffer)
 		return NULL;
@@ -78,6 +80,15 @@ dsMaterialDesc* dsVkMaterialDesc_create(dsResourceManager* resourceManager, dsAl
 			elementCount);
 		DS_ASSERT(baseMaterialDesc->elements);
 		memcpy(baseMaterialDesc->elements, elements, sizeof(dsMaterialElement)*elementCount);
+
+		for (uint32_t i = 0; i < elementCount; ++i)
+		{
+			size_t nameLen = strlen(elements[i].name) + 1;
+			char* nameCopy = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, nameLen);
+			DS_ASSERT(nameCopy);
+			memcpy(nameCopy, elements[i].name, nameLen);
+			baseMaterialDesc->elements[i].name = nameCopy;
+		}
 
 		materialDesc->elementMappings = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, uint32_t,
 			elementCount);

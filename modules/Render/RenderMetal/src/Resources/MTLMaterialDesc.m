@@ -25,14 +25,16 @@ dsMaterialDesc* dsMTLMaterialDesc_create(dsResourceManager* resourceManager,
 {
 	size_t size = DS_ALIGNED_SIZE(sizeof(dsMaterialDesc)) +
 		DS_ALIGNED_SIZE(sizeof(dsMaterialElement)*elementCount);
+	for (uint32_t i = 0; i < elementCount; ++i)
+		size += DS_ALIGNED_SIZE(strlen(elements[i].name) + 1);
 	void* buffer = dsAllocator_alloc(allocator, size);
 	if (!buffer)
 		return NULL;
 
-	dsBufferAllocator bufferAllocator;
-	DS_VERIFY(dsBufferAllocator_initialize(&bufferAllocator, buffer, size));
+	dsBufferAllocator bufferAlloc;
+	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, size));
 
-	dsMaterialDesc* materialDesc = DS_ALLOCATE_OBJECT(&bufferAllocator, dsMaterialDesc);
+	dsMaterialDesc* materialDesc = DS_ALLOCATE_OBJECT(&bufferAlloc, dsMaterialDesc);
 	DS_ASSERT(materialDesc);
 
 	materialDesc->resourceManager = resourceManager;
@@ -40,10 +42,19 @@ dsMaterialDesc* dsMTLMaterialDesc_create(dsResourceManager* resourceManager,
 	materialDesc->elementCount = elementCount;
 	if (elementCount > 0)
 	{
-		materialDesc->elements = DS_ALLOCATE_OBJECT_ARRAY(&bufferAllocator, dsMaterialElement,
+		materialDesc->elements = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsMaterialElement,
 			elementCount);
 		DS_ASSERT(materialDesc->elements);
 		memcpy(materialDesc->elements, elements, sizeof(dsMaterialElement)*elementCount);
+
+		for (uint32_t i = 0; i < elementCount; ++i)
+		{
+			size_t nameLen = strlen(elements[i].name) + 1;
+			char* nameCopy = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, nameLen);
+			DS_ASSERT(nameCopy);
+			memcpy(nameCopy, elements[i].name, nameLen);
+			materialDesc->elements[i].name = nameCopy;
+		}
 	}
 
 	return materialDesc;
