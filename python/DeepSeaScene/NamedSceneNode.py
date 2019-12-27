@@ -4,39 +4,39 @@
 
 import flatbuffers
 
-class ShaderModule(object):
+class NamedSceneNode(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsShaderModule(cls, buf, offset):
+    def GetRootAsNamedSceneNode(cls, buf, offset):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
-        x = ShaderModule()
+        x = NamedSceneNode()
         x.Init(buf, n + offset)
         return x
 
-    # ShaderModule
+    # NamedSceneNode
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
 
-    # ShaderModule
+    # NamedSceneNode
     def Name(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         if o != 0:
             return self._tab.String(o + self._tab.Pos)
         return None
 
-    # ShaderModule
-    def File(self):
+    # NamedSceneNode
+    def Node(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         if o != 0:
             x = self._tab.Indirect(o + self._tab.Pos)
-            from .FileReference import FileReference
-            obj = FileReference()
+            from .SceneNode import SceneNode
+            obj = SceneNode()
             obj.Init(self._tab.Bytes, x)
             return obj
         return None
 
-def ShaderModuleStart(builder): builder.StartObject(2)
-def ShaderModuleAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
-def ShaderModuleAddFile(builder, file): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(file), 0)
-def ShaderModuleEnd(builder): return builder.EndObject()
+def NamedSceneNodeStart(builder): builder.StartObject(2)
+def NamedSceneNodeAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+def NamedSceneNodeAddNode(builder, node): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(node), 0)
+def NamedSceneNodeEnd(builder): return builder.EndObject()

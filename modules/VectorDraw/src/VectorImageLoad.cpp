@@ -38,7 +38,7 @@ static void printFlatbufferError(const char* name)
 			"Invalid vector image flatbuffer format for '%s'.", name);
 	}
 	else
-		DS_LOG_ERROR_F(DS_VECTOR_DRAW_LOG_TAG, "Invalid vector image flatbuffer format.");
+		DS_LOG_ERROR(DS_VECTOR_DRAW_LOG_TAG, "Invalid vector image flatbuffer format.");
 }
 
 static dsGradient* readGradient(dsAllocator* allocator,

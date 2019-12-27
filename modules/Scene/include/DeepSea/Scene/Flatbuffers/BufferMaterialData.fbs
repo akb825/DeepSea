@@ -14,15 +14,19 @@
  * limitations under the License.
  */
 
-include "DeepSea/Scene/Flatbuffers/SceneCommon.fbs";
-
 namespace DeepSeaScene;
 
-// Struct describing a reference to another node, either by name in SceneResources or a path.
-table SceneNodeRef
+// Structure held in material data when material type is UniformBlock or UniformBuffer.
+table BufferMaterialData
 {
-	// The name of the node.
+	// The name of the buffer.
 	name : string (required);
+
+	// The offset into the buffer.
+	offset : uint;
+
+	// The size to bind within the buffer.
+	size: uint;
 }
 
-root_type SceneNodeRef;
+root_type BufferMaterialData;

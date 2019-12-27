@@ -31,7 +31,7 @@ extern "C"
  * @brief Functions for creating and manipulating bounding volume hierarchies.
  *
  * A BVH will use a hierarchy of axis-aligned bounding boxes. This can be used with 2 or 3
- * dimentional bounds of float, double, or int. (i.e. dsAlignedBox[23][fdi]) This allows a spacial
+ * dimensional bounds of float, double, or int. (i.e. dsAlignedBox[23][fdi]) This allows a spacial
  * lookup of objects in O(log(n)) time in the average case.
  *
  * Balancing may optionally be performed at build time to create more optimal intermediate bounds

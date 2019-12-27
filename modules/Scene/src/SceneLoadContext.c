@@ -16,6 +16,7 @@
 
 #include <DeepSea/Scene/SceneLoadContext.h>
 
+#include "SceneLoadContextInternal.h"
 #include "SceneTypes.h"
 #include <DeepSea/Core/Containers/Hash.h>
 #include <DeepSea/Core/Containers/HashTable.h>
@@ -36,9 +37,9 @@ size_t dsSceneLoadContext_fullAllocSize(void)
 	return DS_ALIGNED_SIZE(sizeof(dsSceneLoadContext));
 }
 
-dsSceneLoadContext* dsSceneLoadContext_create(dsAllocator* allocator)
+dsSceneLoadContext* dsSceneLoadContext_create(dsAllocator* allocator, dsRenderer* renderer)
 {
-	if (!allocator)
+	if (!allocator || !renderer)
 	{
 		errno = EINVAL;
 		return NULL;
@@ -49,13 +50,32 @@ dsSceneLoadContext* dsSceneLoadContext_create(dsAllocator* allocator)
 		return NULL;
 
 	context->allocator = dsAllocator_keepPointer(allocator);
+	context->renderer = renderer;
 	dsHashTable_initialize(&context->nodeTypeTable.hashTable, DS_SCENE_TYPE_TABLE_SIZE,
 		dsHashString, dsHashStringEqual);
 	dsHashTable_initialize(&context->itemListTypeTable.hashTable, DS_SCENE_TYPE_TABLE_SIZE,
 		dsHashString, dsHashStringEqual);
 	dsHashTable_initialize(&context->globalDataTypeTable.hashTable, DS_SCENE_TYPE_TABLE_SIZE,
 		dsHashString, dsHashStringEqual);
+
+	// Built-in types.
+	dsSceneLoadContext_registerNodeType(context, DS_SCENE_TRANSFORM_NODE_TYPE_NAME,
+		&dsSceneTransformNode_load, NULL, NULL);
+	dsSceneLoadContext_registerNodeType(context, DS_SCENE_REFERENCE_NODE_TYPE_NAME,
+		&dsSceneNodeRef_load, NULL, NULL);
+
 	return context;
+}
+
+dsRenderer* dsSceneLoadContext_getRenderer(const dsSceneLoadContext* context)
+{
+	if (!context)
+	{
+		errno = EINVAL;
+		return NULL;
+	}
+
+	return context->renderer;
 }
 
 bool dsSceneLoadContext_registerNodeType(dsSceneLoadContext* context, const char* name,

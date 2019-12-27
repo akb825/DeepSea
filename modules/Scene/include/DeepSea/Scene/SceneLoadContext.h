@@ -51,9 +51,19 @@ DS_SCENE_EXPORT size_t dsSceneLoadContext_fullAllocSize(void);
  *
  * @remark errno will be set on failure.
  * @param allocator The allocator to create the load context with.
+ * @param renderer The renderer to use for all graphics types created.
  * @return The load context or NULL if an error occurred.
  */
-DS_SCENE_EXPORT dsSceneLoadContext* dsSceneLoadContext_create(dsAllocator* allocator);
+DS_SCENE_EXPORT dsSceneLoadContext* dsSceneLoadContext_create(dsAllocator* allocator,
+	dsRenderer* renderer);
+
+/**
+ * @brief Gets the renderer for a load context.
+ * @remark errno will be set on failure.
+ * @param context The load context.
+ * @return The renderer, or NULL if context is NULL.
+ */
+DS_SCENE_EXPORT dsRenderer* dsSceneLoadContext_getRenderer(const dsSceneLoadContext* context);
 
 /**
  * @brief Registers a node type that can be loaded.

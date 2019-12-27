@@ -43,7 +43,11 @@ class Texture(object):
     def Path(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(10))
         if o != 0:
-            return self._tab.String(o + self._tab.Pos)
+            x = self._tab.Indirect(o + self._tab.Pos)
+            from .FileReference import FileReference
+            obj = FileReference()
+            obj.Init(self._tab.Bytes, x)
+            return obj
         return None
 
     # Texture

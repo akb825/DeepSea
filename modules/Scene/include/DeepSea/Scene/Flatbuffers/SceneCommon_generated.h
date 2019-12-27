@@ -18,11 +18,49 @@ struct Vector4f;
 
 struct AlignedBox3f;
 
-struct Matrix44f;
-
 struct Matrix33f;
 
+struct Matrix44f;
+
 struct OrientedBox3f;
+
+struct FileReference;
+
+enum class FileResourceType : uint8_t {
+  Embedded = 0,
+  Installed = 1,
+  Dynamic = 2,
+  External = 3,
+  MIN = Embedded,
+  MAX = External
+};
+
+inline const FileResourceType (&EnumValuesFileResourceType())[4] {
+  static const FileResourceType values[] = {
+    FileResourceType::Embedded,
+    FileResourceType::Installed,
+    FileResourceType::Dynamic,
+    FileResourceType::External
+  };
+  return values;
+}
+
+inline const char * const *EnumNamesFileResourceType() {
+  static const char * const names[] = {
+    "Embedded",
+    "Installed",
+    "Dynamic",
+    "External",
+    nullptr
+  };
+  return names;
+}
+
+inline const char *EnumNameFileResourceType(FileResourceType e) {
+  if (e < FileResourceType::Embedded || e > FileResourceType::External) return "";
+  const size_t index = static_cast<size_t>(e);
+  return EnumNamesFileResourceType()[index];
+}
 
 enum class TextureFormat : uint8_t {
   R4G4 = 0,
@@ -742,6 +780,33 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) AlignedBox3f FLATBUFFERS_FINAL_CLASS {
 };
 FLATBUFFERS_STRUCT_END(AlignedBox3f, 24);
 
+FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Matrix33f FLATBUFFERS_FINAL_CLASS {
+ private:
+  Vector3f column0_;
+  Vector3f column1_;
+  Vector3f column2_;
+
+ public:
+  Matrix33f() {
+    memset(static_cast<void *>(this), 0, sizeof(Matrix33f));
+  }
+  Matrix33f(const Vector3f &_column0, const Vector3f &_column1, const Vector3f &_column2)
+      : column0_(_column0),
+        column1_(_column1),
+        column2_(_column2) {
+  }
+  const Vector3f &column0() const {
+    return column0_;
+  }
+  const Vector3f &column1() const {
+    return column1_;
+  }
+  const Vector3f &column2() const {
+    return column2_;
+  }
+};
+FLATBUFFERS_STRUCT_END(Matrix33f, 36);
+
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Matrix44f FLATBUFFERS_FINAL_CLASS {
  private:
   Vector4f column0_;
@@ -773,33 +838,6 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Matrix44f FLATBUFFERS_FINAL_CLASS {
   }
 };
 FLATBUFFERS_STRUCT_END(Matrix44f, 64);
-
-FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Matrix33f FLATBUFFERS_FINAL_CLASS {
- private:
-  Vector3f column0_;
-  Vector3f column1_;
-  Vector3f column2_;
-
- public:
-  Matrix33f() {
-    memset(static_cast<void *>(this), 0, sizeof(Matrix33f));
-  }
-  Matrix33f(const Vector3f &_column0, const Vector3f &_column1, const Vector3f &_column2)
-      : column0_(_column0),
-        column1_(_column1),
-        column2_(_column2) {
-  }
-  const Vector3f &column0() const {
-    return column0_;
-  }
-  const Vector3f &column1() const {
-    return column1_;
-  }
-  const Vector3f &column2() const {
-    return column2_;
-  }
-};
-FLATBUFFERS_STRUCT_END(Matrix33f, 36);
 
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) OrientedBox3f FLATBUFFERS_FINAL_CLASS {
  private:
@@ -892,6 +930,69 @@ inline flatbuffers::Offset<SceneNode> CreateSceneNodeDirect(
       _fbb,
       type__,
       data__);
+}
+
+struct FileReference FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_TYPE = 4,
+    VT_PATH = 6
+  };
+  FileResourceType type() const {
+    return static_cast<FileResourceType>(GetField<uint8_t>(VT_TYPE, 0));
+  }
+  const flatbuffers::String *path() const {
+    return GetPointer<const flatbuffers::String *>(VT_PATH);
+  }
+  bool Verify(flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyField<uint8_t>(verifier, VT_TYPE) &&
+           VerifyOffsetRequired(verifier, VT_PATH) &&
+           verifier.VerifyString(path()) &&
+           verifier.EndTable();
+  }
+};
+
+struct FileReferenceBuilder {
+  flatbuffers::FlatBufferBuilder &fbb_;
+  flatbuffers::uoffset_t start_;
+  void add_type(FileResourceType type) {
+    fbb_.AddElement<uint8_t>(FileReference::VT_TYPE, static_cast<uint8_t>(type), 0);
+  }
+  void add_path(flatbuffers::Offset<flatbuffers::String> path) {
+    fbb_.AddOffset(FileReference::VT_PATH, path);
+  }
+  explicit FileReferenceBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  FileReferenceBuilder &operator=(const FileReferenceBuilder &);
+  flatbuffers::Offset<FileReference> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = flatbuffers::Offset<FileReference>(end);
+    fbb_.Required(o, FileReference::VT_PATH);
+    return o;
+  }
+};
+
+inline flatbuffers::Offset<FileReference> CreateFileReference(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    FileResourceType type = FileResourceType::Embedded,
+    flatbuffers::Offset<flatbuffers::String> path = 0) {
+  FileReferenceBuilder builder_(_fbb);
+  builder_.add_path(path);
+  builder_.add_type(type);
+  return builder_.Finish();
+}
+
+inline flatbuffers::Offset<FileReference> CreateFileReferenceDirect(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    FileResourceType type = FileResourceType::Embedded,
+    const char *path = nullptr) {
+  auto path__ = path ? _fbb.CreateString(path) : 0;
+  return DeepSeaScene::CreateFileReference(
+      _fbb,
+      type,
+      path__);
 }
 
 }  // namespace DeepSeaScene

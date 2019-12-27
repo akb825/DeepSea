@@ -18,11 +18,12 @@ include "DeepSea/Scene/Flatbuffers/SceneCommon.fbs";
 
 namespace DeepSeaScene;
 
-// Struct describing a reference to another node, either by name in SceneResources or a path.
-table SceneNodeRef
+// Structure held in material data referenced by a name. This is used when material type is Texture,
+// Image, SubpassInput, or VariableGroup.
+table NamedMaterialData
 {
-	// The name of the node.
+	// The name of the texture.
 	name : string (required);
 }
 
-root_type SceneNodeRef;
+root_type NamedMaterialData;

@@ -17,6 +17,7 @@
 #pragma once
 
 #include <DeepSea/Core/Config.h>
+#include <DeepSea/Core/Types.h>
 #include <DeepSea/Render/Types.h>
 #include <DeepSea/Scene/Export.h>
 #include <DeepSea/Scene/Types.h>
@@ -50,10 +51,72 @@ DS_SCENE_EXPORT size_t dsSceneResources_fullAllocSize(uint32_t maxResources);
  * @remark errno will be set on failure.
  * @param allocator The allocator to create the scene resources with.
  * @param maxResources The maximum number of resources that can be held.
- * @return The scene resources or NULL if an error occurred..
+ * @return The scene resources or NULL if an error occurred.
  */
 DS_SCENE_EXPORT dsSceneResources* dsSceneResources_create(dsAllocator* allocator,
 	uint32_t maxResources);
+
+/**
+ * @brief Loads scene resources from a file.
+ * @remark errno will be set on failure.
+ * @param allocator The allocator to create the scene resources.
+ * @param resourceAllocator The allocator to create graphics resources with. If NULL, it will use
+ *     the scene resources allocator.
+ * @param loadContext The scene load context.
+ * @param scratchData The scene scratch data.
+ * @param filePath The file path for the scene resources to load.
+ * @return The scene resources or NULL if an error occurred.
+ */
+DS_SCENE_EXPORT dsSceneResources* dsSceneResources_loadFile(dsAllocator* allocator,
+	dsAllocator* resourceAllocator, const dsSceneLoadContext* loadContext,
+	dsSceneLoadScratchData* scratchData, const char* filePath);
+
+/**
+ * @brief Loads scene resources from a resource file.
+ * @remark errno will be set on failure.
+ * @param allocator The allocator to create the scene resources.
+ * @param resourceAllocator The allocator to create graphics resources with. If NULL, it will use
+ *     the scene resources allocator.
+ * @param loadContext The scene load context.
+ * @param scratchData The scene scratch data.
+ * @param type The resource type.
+ * @param filePath The file path for the scene resources to load.
+ * @return The scene resources or NULL if an error occurred.
+ */
+DS_SCENE_EXPORT dsSceneResources* dsSceneResources_loadResource(dsAllocator* allocator,
+	dsAllocator* resourceAllocator, const dsSceneLoadContext* loadContext,
+	dsSceneLoadScratchData* scratchData, dsFileResourceType type, const char* filePath);
+
+/**
+ * @brief Loads scene resources from a stream.
+ * @remark errno will be set on failure.
+ * @param allocator The allocator to create the scene resources.
+ * @param resourceAllocator The allocator to create graphics resources with. If NULL, it will use
+ *     the scene resources allocator.
+ * @param loadContext The scene load context.
+ * @param scratchData The scene scratch data.
+ * @param stream The stream for the scene resources to load.
+ * @return The scene resources or NULL if an error occurred.
+ */
+DS_SCENE_EXPORT dsSceneResources* dsSceneResources_loadStream(dsAllocator* allocator,
+	dsAllocator* resourceAllocator, const dsSceneLoadContext* loadContext,
+	dsSceneLoadScratchData* scratchData, dsStream* stream);
+
+/**
+ * @brief Loads scene resources from a data buffer.
+ * @remark errno will be set on failure.
+ * @param allocator The allocator to create the scene resources.
+ * @param resourceAllocator The allocator to create graphics resources with. If NULL, it will use
+ *     the scene resources allocator.
+ * @param loadContext The scene load context.
+ * @param scratchData The scene scratch data.
+ * @param data The data for the scene resources. The data isn't used after this call.
+ * @param size The size of the data buffer.
+ * @return The scene resources or NULL if an error occurred.
+ */
+DS_SCENE_EXPORT dsSceneResources* dsSceneResources_loadData(dsAllocator* allocator,
+	dsAllocator* resourceAllocator, const dsSceneLoadContext* loadContext,
+	dsSceneLoadScratchData* scratchData, const void* data, size_t size);
 
 /**
  * @brief Gets the number of remaining resources that can be set.
@@ -70,9 +133,9 @@ DS_SCENE_EXPORT uint32_t dsSceneResources_getRemainingResources(const dsSceneRes
  *     DS_MAX_SCENE_NAME_LENGTH.
  * @param type The type of the resource to add.
  * @param resource The resource to add.
- * @param own True to take ownership of the resource. If the resource type is
- *     dsSceneResourceType_SceneNode, the value of @c own will be ignored and the node will always
- *     have its reference count incremented.
+ * @param own True to take ownership of the resource when the addition succeeds. If the resource
+ *     type is dsSceneResourceType_SceneNode, the value of @c own will be ignored and the node will
+ *     always have its reference count incremented.
  * @return False if the resource couldn't be added.
  */
 DS_SCENE_EXPORT bool dsSceneResources_addResource(dsSceneResources* resources,
@@ -91,7 +154,7 @@ DS_SCENE_EXPORT bool dsSceneResource_removeResource(dsSceneResources* resources,
 	const char* name, bool relinquish);
 
 /**
- * @brief Finds a buffer in the scene resources.
+ * @brief Finds a scene resource.
  * @param[out] outType The type of the resource.
  * @param[out] outResource The pointer of the resource.
  * @param resources The scene resources.

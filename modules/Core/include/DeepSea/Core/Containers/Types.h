@@ -171,8 +171,12 @@ typedef struct dsHashTable
 
 	/**
 	 * @brief The hash table.
+	 *
+	 * This is actually a flexible size array. A size of 1 is used to satisfy the compiler when used
+	 * with DS_STATIC_HASH_TABLE(), where it can complain that there's a flexible length array not
+	 * as the last member of a struct.
 	 */
-	dsHashTableNode* table[];
+	dsHashTableNode* table[1];
 } dsHashTable;
 
 /**

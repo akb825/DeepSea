@@ -18,11 +18,23 @@ include "DeepSea/Scene/Flatbuffers/SceneCommon.fbs";
 
 namespace DeepSeaScene;
 
-// Struct describing a reference to another node, either by name in SceneResources or a path.
-table SceneNodeRef
+// Structure held in material data when material type is TextureBuffer or ImageBuffer.
+table TextureBufferMaterialData
 {
-	// The name of the node.
+	// The name of the buffer.
 	name : string (required);
+
+	// The texture format.
+	format : TextureFormat;
+
+	// The decoration for the texture format.
+	decoration : FormatDecoration;
+
+	// The offset into the buffer.
+	offset : uint;
+
+	// The number of texels in the buffer.
+	count : uint;
 }
 
-root_type SceneNodeRef;
+root_type TextureBufferMaterialData;

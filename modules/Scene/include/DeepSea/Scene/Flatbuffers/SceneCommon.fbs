@@ -16,6 +16,15 @@
 
 namespace DeepSeaScene;
 
+// Emum for the type of file resource type to load.
+enum FileResourceType : ubyte
+{
+	Embedded,  // Resource embedded with the application package.
+	Installed, // Resource installed with the application.
+	Dynamic,   // Resource created locally.
+	External   // Resource external to the application.
+}
+
 // Enum for a texture format for textures that aren't loaded from file.
 enum TextureFormat : ubyte
 {
@@ -94,7 +103,7 @@ enum TextureFormat : ubyte
 	PVRTC2_RGBA_4BPP
 }
 
-// Enum for the dimention of a texture.
+// Enum for the dimension of a texture.
 enum TextureDim : ubyte
 {
 	Dim1D,
@@ -213,14 +222,14 @@ table SceneNode
 	data : [ubyte] (required);
 }
 
-// Struct describing a 2-dimentional vector.
+// Struct describing a 2-dimensional vector.
 struct Vector2f
 {
 	x : float;
 	y : float;
 }
 
-// Struct describing a 3-dimentional vector.
+// Struct describing a 3-dimensional vector.
 struct Vector3f
 {
 	x : float;
@@ -228,7 +237,7 @@ struct Vector3f
 	z : float;
 }
 
-// Struct describing a 4-dimentional vector.
+// Struct describing a 4-dimensional vector.
 struct Vector4f
 {
 	x : float;
@@ -237,7 +246,7 @@ struct Vector4f
 	w : float;
 }
 
-// Struct describing a 3-dimentional aligned box.
+// Struct describing a 3-dimensional aligned box.
 struct AlignedBox3f
 {
 	// The minimum values for the box.
@@ -245,6 +254,14 @@ struct AlignedBox3f
 
 	// The maximum values for the box.
 	max : Vector3f;
+}
+
+// Struct describing a 3x3 transform matrix.
+struct Matrix33f
+{
+	column0 : Vector3f;
+	column1 : Vector3f;
+	column2 : Vector3f;
 }
 
 // Struct describing a 4x4 transform matrix.
@@ -256,15 +273,7 @@ struct Matrix44f
 	column3 : Vector4f;
 }
 
-// Struct describing a 3x3 transform matrix.
-struct Matrix33f
-{
-	column0 : Vector3f;
-	column1 : Vector3f;
-	column2 : Vector3f;
-}
-
-// Struct describing a 3-dimentional oriented box.
+// Struct describing a 3-dimensional oriented box.
 struct OrientedBox3f
 {
 	// The orientation of the box. This must contain only a rotation. This transforms from local
@@ -276,4 +285,14 @@ struct OrientedBox3f
 
 	// The half width, height, and depth of the box.
 	halfExtents : Vector3f;
+}
+
+// Struct describing a reference to a file.
+table FileReference
+{
+	// The type of file resource the path describes.
+	type : FileResourceType;
+
+	// The path to the file.
+	path : string (required);
 }

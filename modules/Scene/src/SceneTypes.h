@@ -17,7 +17,8 @@
 #pragma once
 
 #include <DeepSea/Core/Config.h>
-#include <DeepSea/Core/Types.h>
+#include <DeepSea/Core/Containers/Types.h>
+#include <DeepSea/Core/Streams/Types.h>
 #include <DeepSea/Scene/Types.h>
 
 #define DS_MAX_SCENE_TYPES 128
@@ -119,28 +120,27 @@ typedef struct dsLoadSceneGlobalDataItem
 struct dsSceneLoadContext
 {
 	dsAllocator* allocator;
+	dsRenderer* renderer;
+
 	dsLoadSceneNodeItem nodeTypes[DS_MAX_SCENE_TYPES];
 	dsLoadSceneItemListItem itemListTypes[DS_MAX_SCENE_TYPES];
 	dsLoadSceneGlobalDataItem globalDataTypes[DS_MAX_SCENE_TYPES];
 
-#if DS_CLANG
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wgnu-variable-sized-type-not-at-end"
-#endif
-
 	DS_STATIC_HASH_TABLE(DS_SCENE_TYPE_TABLE_SIZE) nodeTypeTable;
 	DS_STATIC_HASH_TABLE(DS_SCENE_TYPE_TABLE_SIZE) itemListTypeTable;
 	DS_STATIC_HASH_TABLE(DS_SCENE_TYPE_TABLE_SIZE) globalDataTypeTable;
-
-#if DS_CLANG
-#pragma GCC diagnostic pop
-#endif
 };
 
 struct dsSceneLoadScratchData
 {
 	dsAllocator* allocator;
+	dsCommandBuffer* commandBuffer;
+
 	uint8_t* data;
 	uint32_t dataSize;
 	uint32_t maxDataSize;
+
+	dsSceneResources** sceneResources;
+	uint32_t sceneResourceCount;
+	uint32_t maxSceneResources;
 };

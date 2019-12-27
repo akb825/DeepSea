@@ -474,40 +474,6 @@ struct dsView
 typedef struct dsSceneThreadManager dsSceneThreadManager;
 
 /**
- * @brief Function to load a scene node.
- * @remark errno should be set on failure.
- * @param userData User data registered with this function.
- * @param data The data for the node.
- * @param dataSize The size fo the data.
- * @return The node or NULL if it couldn't be loaded.
- */
-typedef dsSceneNode* (*dsLoadSceneNodeFunction)(void* userData, const uint8_t* data,
-	size_t dataSize);
-
-/**
- * @brief Function to load a scene item list.
- * @remark errno should be set on failure.
- * @param userData User data registered with this function.
- * @param name The name of the item list.
- * @param data The data for the item list.
- * @param dataSize The size fo the data.
- * @return The item list or NULL if it couldn't be loaded.
- */
-typedef dsSceneNode* (*dsLoadSceneItemListFunction)(void* userData, const char* name,
-	const uint8_t* data, size_t dataSize);
-
-/**
- * @brief Function to load a scene global data.
- * @remark errno should be set on failure.
- * @param userData User data registered with this function.
- * @param data The data for the global data.
- * @param dataSize The size fo the data.
- * @return The global data or NULL if it couldn't be loaded.
- */
-typedef dsSceneGlobalData* (*dsLoadSceneGlobalDataFunction)(void* userData, const uint8_t* data,
-	size_t dataSize);
-
-/**
  * @brief Struct for a context that contains information to aid in loading scenes from file.
  *
  * Custom node, item list, and global data types can be registered with the dsSceneLoadContext to
@@ -528,6 +494,58 @@ typedef struct dsSceneLoadContext dsSceneLoadContext;
  * @see SceneLoadScratchData.h
  */
 typedef struct dsSceneLoadScratchData dsSceneLoadScratchData;
+
+/**
+ * @brief Function to load a scene node.
+ * @remark errno should be set on failure.
+ * @param loadContext The load context.
+ * @param scratchData The scratch data.
+ * @param allocator The allocator to create the node with.
+ * @param resourceAllocator The allocator to create graphics resources with. If NULL, it will use
+ *     the node allocator.
+ * @param userData User data registered with this function.
+ * @param data The data for the node.
+ * @param dataSize The size fo the data.
+ * @return The node or NULL if it couldn't be loaded.
+ */
+typedef dsSceneNode* (*dsLoadSceneNodeFunction)(const dsSceneLoadContext* loadContext,
+	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
+	void* userData, const uint8_t* data, size_t dataSize);
+
+/**
+ * @brief Function to load a scene item list.
+ * @remark errno should be set on failure.
+ * @param loadContext The load context.
+ * @param scratchData The scratch data.
+ * @param allocator The allocator to create the item list with.
+ * @param resourceAllocator The allocator to create graphics resources with. If NULL, it will use
+ *     the item list allocator.
+ * @param userData User data registered with this function.
+ * @param name The name of the item list.
+ * @param data The data for the item list.
+ * @param dataSize The size fo the data.
+ * @return The item list or NULL if it couldn't be loaded.
+ */
+typedef dsSceneNode* (*dsLoadSceneItemListFunction)(const dsSceneLoadContext* loadContext,
+	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
+	void* userData, const char* name, const uint8_t* data, size_t dataSize);
+
+/**
+ * @brief Function to load a scene global data.
+ * @remark errno should be set on failure.
+ * @param loadContext The load context.
+ * @param scratchData The scratch data.
+ * @param allocator The allocator to create the global data with.
+ * @param resourceAllocator The allocator to create graphics resources with. If NULL, it will use
+ *     the global data allocator.
+ * @param userData User data registered with this function.
+ * @param data The data for the global data.
+ * @param dataSize The size fo the data.
+ * @return The global data or NULL if it couldn't be loaded.
+ */
+typedef dsSceneGlobalData* (*dsLoadSceneGlobalDataFunction)(const dsSceneLoadContext* loadContext,
+	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
+	void* userData, const uint8_t* data, size_t dataSize);
 
 #ifdef __cplusplus
 }

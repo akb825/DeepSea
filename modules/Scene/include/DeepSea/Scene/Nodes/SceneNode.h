@@ -17,8 +17,8 @@
 #pragma once
 
 #include <DeepSea/Core/Config.h>
-#include <DeepSea/Scene/Nodes/Types.h>
 #include <DeepSea/Scene/Export.h>
+#include <DeepSea/Scene/Types.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -87,6 +87,23 @@ DS_SCENE_EXPORT size_t dsSceneNode_itemListsAllocSize(const char** itemLists,
  */
 DS_SCENE_EXPORT const dsSceneNodeType* dsSceneNode_setupParentType(dsSceneNodeType* type,
 	const dsSceneNodeType* parentType);
+
+/**
+ * @brief Loads a scene node hierarchy from a flatbuffer data buffer.
+ * @remark errno will be set on failure.
+ * @param allocator The allocator to create the scene nodes.
+ * @param resourceAllocator The allocator to create graphics resources with. If NULL, it will use
+ *     the scene node allocator.
+ * @param loadContext The scene load context.
+ * @param scratchData The scene scratch data.
+ * @param type The type name of the node to load.
+ * @param data The data for the scene node. The data isn't used after this call.
+ * @param size The size of the data buffer.
+ * @return The scene node hierarchy, or NULL if an error occurred.
+ */
+DS_SCENE_EXPORT dsSceneNode* dsSceneNode_load(dsAllocator* allocator,
+	dsAllocator* resourceAllocator, const dsSceneLoadContext* loadContext,
+	dsSceneLoadScratchData* scratchData, const char* type, const void* data, size_t size);
 
 /**
  * @brief Initializes a scene node.

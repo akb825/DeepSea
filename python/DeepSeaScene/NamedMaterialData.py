@@ -4,27 +4,27 @@
 
 import flatbuffers
 
-class SceneNodeRef(object):
+class NamedMaterialData(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsSceneNodeRef(cls, buf, offset):
+    def GetRootAsNamedMaterialData(cls, buf, offset):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
-        x = SceneNodeRef()
+        x = NamedMaterialData()
         x.Init(buf, n + offset)
         return x
 
-    # SceneNodeRef
+    # NamedMaterialData
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
 
-    # SceneNodeRef
+    # NamedMaterialData
     def Name(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         if o != 0:
             return self._tab.String(o + self._tab.Pos)
         return None
 
-def SceneNodeRefStart(builder): builder.StartObject(1)
-def SceneNodeRefAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
-def SceneNodeRefEnd(builder): return builder.EndObject()
+def NamedMaterialDataStart(builder): builder.StartObject(1)
+def NamedMaterialDataAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+def NamedMaterialDataEnd(builder): return builder.EndObject()

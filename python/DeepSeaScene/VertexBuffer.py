@@ -33,8 +33,15 @@ class VertexBuffer(object):
         return 0
 
     # VertexBuffer
-    def Format(self):
+    def Count(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
+        if o != 0:
+            return self._tab.Get(flatbuffers.number_types.Uint32Flags, o + self._tab.Pos)
+        return 0
+
+    # VertexBuffer
+    def Format(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(10))
         if o != 0:
             x = self._tab.Indirect(o + self._tab.Pos)
             from .VertexFormat import VertexFormat
@@ -43,8 +50,9 @@ class VertexBuffer(object):
             return obj
         return None
 
-def VertexBufferStart(builder): builder.StartObject(3)
+def VertexBufferStart(builder): builder.StartObject(4)
 def VertexBufferAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
 def VertexBufferAddOffset(builder, offset): builder.PrependUint32Slot(1, offset, 0)
-def VertexBufferAddFormat(builder, format): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(format), 0)
+def VertexBufferAddCount(builder, count): builder.PrependUint32Slot(2, count, 0)
+def VertexBufferAddFormat(builder, format): builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(format), 0)
 def VertexBufferEnd(builder): return builder.EndObject()

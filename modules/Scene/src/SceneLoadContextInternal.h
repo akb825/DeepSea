@@ -14,15 +14,23 @@
  * limitations under the License.
  */
 
-include "DeepSea/Scene/Flatbuffers/SceneCommon.fbs";
+#pragma once
 
-namespace DeepSeaScene;
+#include <DeepSea/Core/Config.h>
+#include "SceneTypes.h"
 
-// Struct describing a reference to another node, either by name in SceneResources or a path.
-table SceneNodeRef
+#ifdef __cplusplus
+extern "C"
 {
-	// The name of the node.
-	name : string (required);
-}
+#endif
 
-root_type SceneNodeRef;
+dsSceneNode* dsSceneNodeRef_load(const dsSceneLoadContext* loadContext,
+	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
+	void* userData, const uint8_t* data, size_t dataSize);
+dsSceneNode* dsSceneTransformNode_load(const dsSceneLoadContext* loadContext,
+	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
+	void* userData, const uint8_t* data, size_t dataSize);
+
+#ifdef __cplusplus
+}
+#endif

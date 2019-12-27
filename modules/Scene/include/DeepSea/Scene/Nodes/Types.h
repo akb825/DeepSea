@@ -30,6 +30,22 @@ extern "C"
  * @brief Includes all of the basic node types provided by the DeepSea/Scene library.
  */
 
+
+/**
+ * @brief The type name of the transform node.
+ */
+#define DS_SCENE_TRANSFORM_NODE_TYPE_NAME "TransformNode"
+
+/**
+ * @brief The type name of the model node.
+ */
+#define DS_SCENE_MODEL_NODE_TYPE_NAME "ModelNode"
+
+/**
+ * @brief The type name of the reference node.
+ */
+#define DS_SCENE_REFERENCE_NODE_TYPE_NAME "ReferenceNode"
+
 /**
  * @brief ID for a type of a scene node.
  *

@@ -31,7 +31,7 @@ extern "C"
  * @brief Functions for creating and manipulating Kd trees.
  *
  * A Kd tree will create separating planes between the provided data points. This can be used with 2
- * or 3 dimentional points of float, double, or int. (i.e. dsVector[23][fdi]) This allows a spacial
+ * or 3 dimensional points of float, double, or int. (i.e. dsVector[23][fdi]) This allows a spacial
  * lookup of objects in O(log(n)) time in the average case.
  *
  * @see dsKdTree

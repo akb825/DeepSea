@@ -21,10 +21,14 @@
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Memory/PoolAllocator.h>
+#include <DeepSea/Core/Streams/FileStream.h>
+#include <DeepSea/Core/Streams/ResourceStream.h>
+#include <DeepSea/Core/Streams/Stream.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Atomic.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
+#include <DeepSea/Core/Profile.h>
 
 #include <DeepSea/Render/Resources/DrawGeometry.h>
 #include <DeepSea/Render/Resources/GfxBuffer.h>
@@ -37,6 +41,7 @@
 #include <DeepSea/Render/Resources/Texture.h>
 
 #include <DeepSea/Scene/Nodes/SceneNode.h>
+#include <DeepSea/Scene/SceneLoadScratchData.h>
 
 #include <string.h>
 
@@ -96,6 +101,10 @@ static bool destroyResource(dsSceneResourceType type, void* resource)
 	}
 }
 
+dsSceneResources* dsSceneResources_loadImpl(dsAllocator* allocator, dsAllocator* resourceAllocator,
+	const dsSceneLoadContext* loadContext, dsSceneLoadScratchData* scratchData,
+	const void* data, size_t dataSize, const char* name);
+
 size_t dsSceneResources_sizeof(void)
 {
 	return sizeof(dsSceneResources);
@@ -137,6 +146,111 @@ dsSceneResources* dsSceneResources_create(dsAllocator* allocator, uint32_t maxRe
 
 	sceneResources->refCount = 1;
 	return sceneResources;
+}
+
+dsSceneResources* dsSceneResources_loadFile(dsAllocator* allocator, dsAllocator* resourceAllocator,
+	const dsSceneLoadContext* loadContext, dsSceneLoadScratchData* scratchData,
+	const char* filePath)
+{
+	DS_PROFILE_FUNC_START();
+
+	if (!allocator || !loadContext || !scratchData || !filePath)
+	{
+		errno = EINVAL;
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
+	if (!resourceAllocator)
+		resourceAllocator = allocator;
+
+	dsFileStream stream;
+	if (!dsFileStream_openPath(&stream, filePath, "rb"))
+	{
+		DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Couldn't open scene node file '%s'.", filePath);
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
+	uint32_t size;
+	void* buffer = dsSceneLoadScratchData_readUntilEnd(&size, scratchData, (dsStream*)&stream);
+	dsFileStream_close(&stream);
+	if (!buffer)
+		DS_PROFILE_FUNC_RETURN(NULL);
+
+	dsSceneResources* resources = dsSceneResources_loadImpl(allocator, resourceAllocator,
+		loadContext, scratchData, buffer, size, filePath);
+	DS_VERIFY(dsSceneLoadScratchData_popData(scratchData, size));
+	DS_PROFILE_FUNC_RETURN(resources);
+}
+
+dsSceneResources* dsSceneResources_loadResource(dsAllocator* allocator,
+	dsAllocator* resourceAllocator, const dsSceneLoadContext* loadContext,
+	dsSceneLoadScratchData* scratchData, dsFileResourceType type, const char* filePath)
+{
+	DS_PROFILE_FUNC_START();
+
+	if (!allocator || !loadContext || !scratchData || !filePath)
+	{
+		errno = EINVAL;
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
+	dsResourceStream stream;
+	if (!dsResourceStream_open(&stream, type, filePath, "rb"))
+	{
+		DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Couldn't open scene node file '%s'.", filePath);
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
+	uint32_t size;
+	void* buffer = dsSceneLoadScratchData_readUntilEnd(&size, scratchData, (dsStream*)&stream);
+	dsResourceStream_close(&stream);
+	if (!buffer)
+		DS_PROFILE_FUNC_RETURN(NULL);
+
+	dsSceneResources* resources = dsSceneResources_loadImpl(allocator, resourceAllocator,
+		loadContext, scratchData, buffer, size, filePath);
+	DS_VERIFY(dsSceneLoadScratchData_popData(scratchData, size));
+	DS_PROFILE_FUNC_RETURN(resources);
+}
+
+dsSceneResources* dsSceneResources_loadStream(dsAllocator* allocator,
+	dsAllocator* resourceAllocator, const dsSceneLoadContext* loadContext,
+	dsSceneLoadScratchData* scratchData, dsStream* stream)
+{
+	DS_PROFILE_FUNC_START();
+
+	if (!allocator || !loadContext || !scratchData || !stream)
+	{
+		errno = EINVAL;
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
+	uint32_t size;
+	void* buffer = dsSceneLoadScratchData_readUntilEnd(&size, scratchData, stream);
+	if (!buffer)
+		DS_PROFILE_FUNC_RETURN(NULL);
+
+	dsSceneResources* resources = dsSceneResources_loadImpl(allocator, resourceAllocator,
+		loadContext, scratchData, buffer, size, NULL);
+	DS_VERIFY(dsSceneLoadScratchData_popData(scratchData, size));
+	DS_PROFILE_FUNC_RETURN(resources);
+}
+
+dsSceneResources* dsSceneResources_loadData(dsAllocator* allocator, dsAllocator* resourceAllocator,
+	const dsSceneLoadContext* loadContext, dsSceneLoadScratchData* scratchData, const void* data,
+	size_t size)
+{
+	DS_PROFILE_FUNC_START();
+
+	if (!allocator || !loadContext || !scratchData || !data || size == 0)
+	{
+		errno = EINVAL;
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
+	dsSceneResources* resources = dsSceneResources_loadImpl(allocator, resourceAllocator,
+		loadContext, scratchData, data, size, NULL);
+	DS_PROFILE_FUNC_RETURN(resources);
 }
 
 uint32_t dsSceneResources_getRemainingResources(const dsSceneResources* resources)

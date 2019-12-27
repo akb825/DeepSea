@@ -75,7 +75,7 @@ table Texture
 	memoryHints : uint;
 
 	// The path to the texture. If not set, then textureInfo must be set.
-	path : string;
+	path : FileReference;
 
 	// The info to create the texture with. If not set, then path must be set.
 	textureInfo : TextureInfo;
@@ -119,7 +119,8 @@ table VariableData
 	// The number of elements.
 	count : uint;
 
-	// The data to set.
+	// The data to set. This may be NamedMaterialData, TextureBufferMaterialData,
+	// BufferMaterialData, or raw data (e.g. floats or integers) depending on type.
 	data : [ubyte] (required);
 }
 
@@ -180,8 +181,8 @@ table ShaderModule
 	// The name of the shader module.
 	name : string (required);
 
-	// The path to the shader module.
-	path : string (required);
+	// The file reference to the shader module.
+	file : FileReference (required);
 }
 
 // Structure describing a shader.
@@ -229,6 +230,9 @@ table VertexBuffer
 	// The offset into the buffer.
 	offset : uint;
 
+	// The number of vertices in the buffer.
+	count : uint;
+
 	// The format of the vertex buffer.
 	format : VertexFormat (required);
 }
@@ -241,6 +245,9 @@ table IndexBuffer
 
 	// The offset into the buffer.
 	offset : uint;
+
+	// The number of indices in the buffer.
+	count : uint;
 
 	// The size of the index buffer.
 	indexSize : ubyte;
@@ -257,6 +264,16 @@ table DrawGeometry
 
 	// Optional index buffer used to draw with.
 	indexBuffer : IndexBuffer;
+}
+
+// Structure defining a scene node with an associated name.
+table NamedSceneNode
+{
+	// The name of the node.
+	name : string (required);
+
+	// The scene node.
+	node : SceneNode (required);
 }
 
 // Structure defining scene resources.
@@ -290,7 +307,7 @@ table SceneResources
 	drawGeometries : [DrawGeometry];
 
 	// List of scene nodes.
-	sceneNodes : [SceneNode];
+	sceneNodes : [NamedSceneNode];
 }
 
 root_type SceneResources;
