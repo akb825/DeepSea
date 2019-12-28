@@ -19,15 +19,26 @@ class ModelNode(object):
         self._tab = flatbuffers.table.Table(buf, pos)
 
     # ModelNode
-    def EmbeddedResources(self):
+    def EmbeddedResources(self, j):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         if o != 0:
-            x = self._tab.Indirect(o + self._tab.Pos)
-            from .SceneResources import SceneResources
-            obj = SceneResources()
-            obj.Init(self._tab.Bytes, x)
-            return obj
-        return None
+            a = self._tab.Vector(o)
+            return self._tab.Get(flatbuffers.number_types.Uint8Flags, a + flatbuffers.number_types.UOffsetTFlags.py_type(j * 1))
+        return 0
+
+    # ModelNode
+    def EmbeddedResourcesAsNumpy(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
+        if o != 0:
+            return self._tab.GetVectorAsNumpy(flatbuffers.number_types.Uint8Flags, o)
+        return 0
+
+    # ModelNode
+    def EmbeddedResourcesLength(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
+        if o != 0:
+            return self._tab.VectorLen(o)
+        return 0
 
     # ModelNode
     def ExtraItemLists(self, j):
@@ -77,6 +88,7 @@ class ModelNode(object):
 
 def ModelNodeStart(builder): builder.StartObject(4)
 def ModelNodeAddEmbeddedResources(builder, embeddedResources): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(embeddedResources), 0)
+def ModelNodeStartEmbeddedResourcesVector(builder, numElems): return builder.StartVector(1, numElems, 1)
 def ModelNodeAddExtraItemLists(builder, extraItemLists): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(extraItemLists), 0)
 def ModelNodeStartExtraItemListsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
 def ModelNodeAddModels(builder, models): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(models), 0)

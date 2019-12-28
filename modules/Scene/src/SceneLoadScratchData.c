@@ -146,7 +146,7 @@ void* dsSceneLoadScratchData_readUntilEnd(uint32_t* outSize, dsSceneLoadScratchD
 bool dsSceneLoadScratchData_popData(dsSceneLoadScratchData* scratchData, uint32_t size)
 {
 	size = DS_ALIGNED_SIZE(size);
-	if (!scratchData || size == 0 || size > scratchData->dataSize)
+	if (!scratchData || size > scratchData->dataSize)
 	{
 		errno = EINVAL;
 		return false;

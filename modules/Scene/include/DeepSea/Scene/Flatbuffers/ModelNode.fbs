@@ -15,7 +15,6 @@
  */
 
 include "DeepSea/Scene/Flatbuffers/SceneCommon.fbs";
-include "DeepSea/Scene/Flatbuffers/SceneResources.fbs";
 
 namespace DeepSeaScene;
 
@@ -89,7 +88,7 @@ table ModelInfo
 	geometry : string (required);
 
 	// The distance range to draw the model.
-	distanceRange : Vector2f;
+	distanceRange : Vector2f (required);
 
 	// The draw range to draw within the geometry.
 	drawRange : ModelDrawRange (required);
@@ -104,8 +103,8 @@ table ModelInfo
 // Struct describing a model scene node.
 table ModelNode
 {
-	// Resources embedded in this file.
-	embeddedResources : SceneResources;
+	// Scene resources embedded in this file.
+	embeddedResources : [ubyte];
 
 	// Extra item lists to add the node to.
 	extraItemLists : [string];

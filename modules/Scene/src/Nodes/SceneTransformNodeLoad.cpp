@@ -16,6 +16,7 @@
 
 #include <DeepSea/Scene/Nodes/SceneTransformNode.h>
 
+#include "SceneLoadContextInternal.h"
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Scene/Flatbuffers/TransformNode_generated.h>

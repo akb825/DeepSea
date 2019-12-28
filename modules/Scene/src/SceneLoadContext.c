@@ -59,10 +59,12 @@ dsSceneLoadContext* dsSceneLoadContext_create(dsAllocator* allocator, dsRenderer
 		dsHashString, dsHashStringEqual);
 
 	// Built-in types.
-	dsSceneLoadContext_registerNodeType(context, DS_SCENE_TRANSFORM_NODE_TYPE_NAME,
-		&dsSceneTransformNode_load, NULL, NULL);
 	dsSceneLoadContext_registerNodeType(context, DS_SCENE_REFERENCE_NODE_TYPE_NAME,
 		&dsSceneNodeRef_load, NULL, NULL);
+	dsSceneLoadContext_registerNodeType(context, DS_SCENE_MODEL_NODE_TYPE_NAME,
+		&dsSceneModelNode_load, NULL, NULL);
+	dsSceneLoadContext_registerNodeType(context, DS_SCENE_TRANSFORM_NODE_TYPE_NAME,
+		&dsSceneTransformNode_load, NULL, NULL);
 
 	return context;
 }
