@@ -32,6 +32,11 @@ extern "C"
  */
 
 /**
+ * @brief The scene model list type name.
+ */
+DS_SCENE_EXPORT extern const char* const dsSceneModelList_typeName;
+
+/**
  * @brief Creates a scene model list.
  * @remark errno will be set on failure.
  * @param allocator The allocator to create the list with. This must support freeing memory.

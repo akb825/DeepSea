@@ -35,9 +35,9 @@ extern "C"
  */
 
 /**
- * @brief The shader variable group name used for the instance transform data.
+ * @brief The instance transform data type name.
  */
-DS_SCENE_EXPORT extern const char* const dsInstanceTransformData_shaderVariableGroupName;
+DS_SCENE_EXPORT extern const char* const dsInstanceTransformData_typeName;
 
 /**
  * @brief Creates the shader variable group description used to describe the variables for the

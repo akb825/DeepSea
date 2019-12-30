@@ -267,13 +267,13 @@ table DrawGeometry
 }
 
 // Structure defining a scene node with an associated name.
-table NamedSceneNode
+table SceneNode
 {
 	// The name of the node.
 	name : string (required);
 
 	// The scene node.
-	node : SceneNode (required);
+	node : ObjectData (required);
 }
 
 // Structure defining scene resources.
@@ -307,7 +307,7 @@ table SceneResources
 	drawGeometries : [DrawGeometry];
 
 	// List of scene nodes.
-	sceneNodes : [NamedSceneNode];
+	sceneNodes : [SceneNode];
 }
 
 root_type SceneResources;

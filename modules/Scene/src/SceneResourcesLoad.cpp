@@ -21,6 +21,11 @@
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 
+#include "Flatbuffers/BufferMaterialData_generated.h"
+#include "Flatbuffers/NamedMaterialData_generated.h"
+#include "Flatbuffers/SceneResources_generated.h"
+#include "Flatbuffers/TextureBufferMaterialData_generated.h"
+
 #include <DeepSea/Render/Resources/DrawGeometry.h>
 #include <DeepSea/Render/Resources/GfxBuffer.h>
 #include <DeepSea/Render/Resources/Material.h>
@@ -35,10 +40,6 @@
 #include <DeepSea/Render/Resources/VertexFormat.h>
 
 #include <DeepSea/Scene/Flatbuffers/SceneFlatbufferHelpers.h>
-#include <DeepSea/Scene/Flatbuffers/BufferMaterialData_generated.h>
-#include <DeepSea/Scene/Flatbuffers/NamedMaterialData_generated.h>
-#include <DeepSea/Scene/Flatbuffers/SceneResources_generated.h>
-#include <DeepSea/Scene/Flatbuffers/TextureBufferMaterialData_generated.h>
 #include <DeepSea/Scene/Nodes/SceneNode.h>
 #include <DeepSea/Scene/SceneLoadContext.h>
 #include <DeepSea/Scene/SceneLoadScratchData.h>
@@ -285,6 +286,8 @@ static bool loadShaderVariableGroups(dsSceneResources* resources,
 				reinterpret_cast<void**>(&groupDesc), scratchData, groupDescName) ||
 			resourceType != dsSceneResourceType_ShaderVariableGroupDesc)
 		{
+			// NOTE: ENOTFOUND not set when the type doesn't match, so set it manually.
+			errno = ENOTFOUND;
 			PRINT_FLATBUFFER_RESOURCE_NOT_FOUND("shader variable group", groupDescName, name);
 			return false;
 		}
@@ -399,6 +402,7 @@ static bool loadMaterialDescs(dsSceneResources* resources, dsResourceManager* re
 						groupDescName->c_str()) ||
 					resourceType != dsSceneResourceType_ShaderVariableGroupDesc)
 				{
+					errno = ENOTFOUND;
 					PRINT_FLATBUFFER_RESOURCE_NOT_FOUND("shader variable group",
 						groupDescName->c_str(), name);
 					DS_VERIFY(dsSceneLoadScratchData_popData(scratchData, elementSize));
@@ -456,6 +460,8 @@ static bool loadMaterialTexture(dsSceneLoadScratchData* scratchData, dsMaterial*
 			reinterpret_cast<void**>(&texture), scratchData, textureName) ||
 		resourceType != dsSceneResourceType_Texture)
 	{
+		// NOTE: ENOTFOUND not set when the type doesn't match, so set it manually.
+		errno = ENOTFOUND;
 		PRINT_FLATBUFFER_RESOURCE_NOT_FOUND("texture", textureName, name);
 		return false;
 	}
@@ -491,6 +497,8 @@ static bool loadMaterialTextureBuffer(dsSceneLoadScratchData* scratchData, dsMat
 			reinterpret_cast<void**>(&buffer), scratchData, bufferName) ||
 		resourceType != dsSceneResourceType_Buffer)
 	{
+		// NOTE: ENOTFOUND not set when the type doesn't match, so set it manually.
+		errno = ENOTFOUND;
 		PRINT_FLATBUFFER_RESOURCE_NOT_FOUND("buffer", bufferName, name);
 		return false;
 	}
@@ -528,6 +536,8 @@ static bool loadMaterialVariableGroup(dsSceneLoadScratchData* scratchData, dsMat
 			reinterpret_cast<void**>(&variableGroup), scratchData, textureName) ||
 		resourceType != dsSceneResourceType_ShaderVariableGroup)
 	{
+		// NOTE: ENOTFOUND not set when the type doesn't match, so set it manually.
+		errno = ENOTFOUND;
 		PRINT_FLATBUFFER_RESOURCE_NOT_FOUND("shader variable group", textureName, name);
 		return false;
 	}
@@ -563,6 +573,8 @@ static bool loadMaterialBuffer(dsSceneLoadScratchData* scratchData, dsMaterial* 
 			reinterpret_cast<void**>(&buffer), scratchData, bufferName) ||
 		resourceType != dsSceneResourceType_Buffer)
 	{
+		// NOTE: ENOTFOUND not set when the type doesn't match, so set it manually.
+		errno = ENOTFOUND;
 		PRINT_FLATBUFFER_RESOURCE_NOT_FOUND("buffer", bufferName, name);
 		return false;
 	}
@@ -619,6 +631,8 @@ static bool loadMaterials(dsSceneResources* resources, dsResourceManager* resour
 				reinterpret_cast<void**>(&materialDesc), scratchData, materialDescName) ||
 			resourceType != dsSceneResourceType_MaterialDesc)
 		{
+			// NOTE: ENOTFOUND not set when the type doesn't match, so set it manually.
+			errno = ENOTFOUND;
 			PRINT_FLATBUFFER_RESOURCE_NOT_FOUND("material", materialDescName, name);
 			return false;
 		}
@@ -746,6 +760,7 @@ static bool loadShaders(dsSceneResources* resources,
 		if (!fbShader)
 			continue;
 
+		// NOTE: ENOTFOUND not set when the type doesn't match, so set it manually.
 		const char* shaderModuleName = fbShader->shaderModule()->c_str();
 		dsShaderModule* shaderModule;
 		dsSceneResourceType resourceType;
@@ -753,6 +768,7 @@ static bool loadShaders(dsSceneResources* resources,
 				reinterpret_cast<void**>(&shaderModule), scratchData, shaderModuleName) ||
 			resourceType != dsSceneResourceType_ShaderModule)
 		{
+			errno = ENOTFOUND;
 			PRINT_FLATBUFFER_RESOURCE_NOT_FOUND("shader module", shaderModuleName, name);
 			return false;
 		}
@@ -763,6 +779,7 @@ static bool loadShaders(dsSceneResources* resources,
 				reinterpret_cast<void**>(&materialDesc), scratchData, materialDescName) ||
 			resourceType != dsSceneResourceType_MaterialDesc)
 		{
+			errno = ENOTFOUND;
 			PRINT_FLATBUFFER_RESOURCE_NOT_FOUND("material description", materialDescName, name);
 			return false;
 		}
@@ -830,6 +847,8 @@ static bool loadDrawGeometries(dsSceneResources* resources, dsResourceManager* r
 					reinterpret_cast<void**>(&vertexBuffer->buffer), scratchData, bufferName) ||
 				resourceType != dsSceneResourceType_Buffer)
 			{
+				// NOTE: ENOTFOUND not set when the type doesn't match, so set it manually.
+				errno = ENOTFOUND;
 				PRINT_FLATBUFFER_RESOURCE_NOT_FOUND("buffer", bufferName, name);
 				return false;
 			}
@@ -876,6 +895,8 @@ static bool loadDrawGeometries(dsSceneResources* resources, dsResourceManager* r
 					reinterpret_cast<void**>(&indexBuffer.buffer), scratchData, bufferName) ||
 				resourceType != dsSceneResourceType_Buffer)
 			{
+				// NOTE: ENOTFOUND not set when the type doesn't match, so set it manually.
+				errno = ENOTFOUND;
 				PRINT_FLATBUFFER_RESOURCE_NOT_FOUND("buffer", bufferName, name);
 				return false;
 			}
@@ -907,8 +928,8 @@ static bool loadDrawGeometries(dsSceneResources* resources, dsResourceManager* r
 
 static bool loadNodes(dsSceneResources* resources, dsAllocator* allocator,
 	dsAllocator* resourceAllocator, const dsSceneLoadContext* loadContext,
-	dsSceneLoadScratchData* scratchData,
-	const FlatbufferVector<DeepSeaScene::NamedSceneNode>* nodes, const char* name)
+	dsSceneLoadScratchData* scratchData, const FlatbufferVector<DeepSeaScene::SceneNode>* nodes,
+	const char* name)
 {
 	if (!nodes)
 		return true;

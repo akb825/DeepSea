@@ -32,6 +32,11 @@ extern "C"
  */
 
 /**
+ * @brief The type name for a reference node.
+ */
+DS_SCENE_EXPORT extern const char* const dsSceneNodeRef_typeName;
+
+/**
  * @brief Gets the allocated size for item lists.
  *
  * This can be added to the other node memory to combine with a single allocation. This assumes one

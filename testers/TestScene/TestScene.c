@@ -355,10 +355,10 @@ static dsSceneResources* createSceneResources(dsRenderer* renderer, dsAllocator*
 	++resourceCount;
 	dsMaterialElement materialElems[] =
 	{
-		{dsInstanceTransformData_shaderVariableGroupName, dsMaterialType_VariableGroup, 0,
-			instanceTransformDesc, dsMaterialBinding_Instance, 0},
-		{dsViewTransformData_shaderVariableGroupName, dsMaterialType_VariableGroup, 0,
-			viewTransformDesc, dsMaterialBinding_Global, 0},
+		{dsInstanceTransformData_typeName, dsMaterialType_VariableGroup, 0, instanceTransformDesc,
+			dsMaterialBinding_Instance, 0},
+		{dsViewTransformData_typeName, dsMaterialType_VariableGroup, 0, viewTransformDesc,
+			dsMaterialBinding_Global, 0},
 		{"Light", dsMaterialType_VariableGroup, 0, lightDesc, dsMaterialBinding_Global, 0},
 		{"materialColor", dsMaterialType_Vec4, 0, NULL, dsMaterialBinding_Material, 0}
 	};

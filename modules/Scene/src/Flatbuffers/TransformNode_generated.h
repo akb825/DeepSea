@@ -20,8 +20,8 @@ struct TransformNode FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const Matrix44f *transform() const {
     return GetStruct<const Matrix44f *>(VT_TRANSFORM);
   }
-  const flatbuffers::Vector<flatbuffers::Offset<SceneNode>> *children() const {
-    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<SceneNode>> *>(VT_CHILDREN);
+  const flatbuffers::Vector<flatbuffers::Offset<ObjectData>> *children() const {
+    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<ObjectData>> *>(VT_CHILDREN);
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -39,7 +39,7 @@ struct TransformNodeBuilder {
   void add_transform(const Matrix44f *transform) {
     fbb_.AddStruct(TransformNode::VT_TRANSFORM, transform);
   }
-  void add_children(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<SceneNode>>> children) {
+  void add_children(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<ObjectData>>> children) {
     fbb_.AddOffset(TransformNode::VT_CHILDREN, children);
   }
   explicit TransformNodeBuilder(flatbuffers::FlatBufferBuilder &_fbb)
@@ -57,7 +57,7 @@ struct TransformNodeBuilder {
 inline flatbuffers::Offset<TransformNode> CreateTransformNode(
     flatbuffers::FlatBufferBuilder &_fbb,
     const Matrix44f *transform = 0,
-    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<SceneNode>>> children = 0) {
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<ObjectData>>> children = 0) {
   TransformNodeBuilder builder_(_fbb);
   builder_.add_children(children);
   builder_.add_transform(transform);
@@ -67,8 +67,8 @@ inline flatbuffers::Offset<TransformNode> CreateTransformNode(
 inline flatbuffers::Offset<TransformNode> CreateTransformNodeDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     const Matrix44f *transform = 0,
-    const std::vector<flatbuffers::Offset<SceneNode>> *children = nullptr) {
-  auto children__ = children ? _fbb.CreateVector<flatbuffers::Offset<SceneNode>>(*children) : 0;
+    const std::vector<flatbuffers::Offset<ObjectData>> *children = nullptr) {
+  auto children__ = children ? _fbb.CreateVector<flatbuffers::Offset<ObjectData>>(*children) : 0;
   return DeepSeaScene::CreateTransformNode(
       _fbb,
       transform,

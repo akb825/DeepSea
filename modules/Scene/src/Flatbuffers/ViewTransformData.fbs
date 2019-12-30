@@ -14,18 +14,13 @@
  * limitations under the License.
  */
 
-include "DeepSea/Scene/Flatbuffers/SceneCommon.fbs";
-
 namespace DeepSeaScene;
 
-// Struct describing a transform scene node.
-table TransformNode
+// Struct describing view transform data.
+table ViewTransformData
 {
-	// The transform matrix for the node.
-	transform : Matrix44f;
-
-	// The child nodes for the transform.
-	children : [SceneNode];
+	// The name of the shader variable group description for the transform data.
+	variableGroupDescName : string (required);
 }
 
-root_type TransformNode;
+root_type ViewTransformData;

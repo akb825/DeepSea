@@ -78,6 +78,8 @@ static void populateItemList(const char** itemLists, uint32_t* hashes, uint32_t*
 	*itemListCount += extraItemListCount;
 }
 
+const char* const dsSceneModelNode_typeName = "ModelNode";
+
 const dsSceneNodeType* dsSceneModelNode_type(void)
 {
 	return &nodeType;

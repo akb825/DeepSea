@@ -17,7 +17,7 @@
 #pragma once
 
 #include <DeepSea/Core/Config.h>
-#include <DeepSea/Scene/ItemLists/Types.h>
+#include <DeepSea/Scene/Types.h>
 #include <DeepSea/Scene/Export.h>
 
 #ifdef __cplusplus
@@ -36,6 +36,23 @@ extern "C"
  *
  * @see dsSceneInstanceData
  */
+
+/**
+ * @brief Loads a scene instance data from a flatbuffer data buffer.
+ * @remark errno will be set on failure.
+ * @param allocator The allocator to create the scene nodes.
+ * @param resourceAllocator The allocator to create graphics resources with. If NULL, it will use
+ *     the instance data allocator.
+ * @param loadContext The scene load context.
+ * @param scratchData The scene scratch data.
+ * @param type The type name of the node to load.
+ * @param data The data for the instance data. The data isn't used after this call.
+ * @param size The size of the data buffer.
+ * @return The instance data, or NULL if an error occurred.
+ */
+DS_SCENE_EXPORT dsSceneInstanceData* dsSceneInstanceData_load(dsAllocator* allocator,
+	dsAllocator* resourceAllocator, const dsSceneLoadContext* loadContext,
+	dsSceneLoadScratchData* scratchData, const char* type, const void* data, size_t size);
 
 /**
  * @brief Populates the instance data.

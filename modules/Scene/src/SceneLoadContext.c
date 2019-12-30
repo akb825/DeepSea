@@ -25,6 +25,13 @@
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 
+#include <DeepSea/Scene/ItemLists/InstanceTransformData.h>
+#include <DeepSea/Scene/ItemLists/SceneModelList.h>
+#include <DeepSea/Scene/Nodes/SceneModelNode.h>
+#include <DeepSea/Scene/Nodes/SceneNode.h>
+#include <DeepSea/Scene/Nodes/SceneTransformNode.h>
+#include <DeepSea/Scene/ViewTransformData.h>
+
 #include <string.h>
 
 size_t dsSceneLoadContext_sizeof(void)
@@ -59,12 +66,21 @@ dsSceneLoadContext* dsSceneLoadContext_create(dsAllocator* allocator, dsRenderer
 		dsHashString, dsHashStringEqual);
 
 	// Built-in types.
-	dsSceneLoadContext_registerNodeType(context, DS_SCENE_REFERENCE_NODE_TYPE_NAME,
-		&dsSceneNodeRef_load, NULL, NULL);
-	dsSceneLoadContext_registerNodeType(context, DS_SCENE_MODEL_NODE_TYPE_NAME,
-		&dsSceneModelNode_load, NULL, NULL);
-	dsSceneLoadContext_registerNodeType(context, DS_SCENE_TRANSFORM_NODE_TYPE_NAME,
+	dsSceneLoadContext_registerNodeType(context, dsSceneNodeRef_typeName, &dsSceneNodeRef_load,
+		NULL, NULL);
+	dsSceneLoadContext_registerNodeType(context, dsSceneModelNode_typeName, &dsSceneModelNode_load,
+		NULL, NULL);
+	dsSceneLoadContext_registerNodeType(context, dsSceneTransformNode_typeName,
 		&dsSceneTransformNode_load, NULL, NULL);
+
+	dsSceneLoadContext_registerItemListType(context, dsSceneModelList_typeName,
+		&dsSceneModelList_load, NULL, NULL);
+
+	dsSceneLoadContext_registerInstanceDataType(context, dsInstanceTransformData_typeName,
+		&dsInstanceTransformData_load, NULL, NULL);
+
+	dsSceneLoadContext_registerGlobalDataType(context, dsViewTransformData_typeName,
+		&dsViewTransformData_load, NULL, NULL);
 
 	return context;
 }
@@ -108,7 +124,7 @@ bool dsSceneLoadContext_registerNodeType(dsSceneLoadContext* context, const char
 	}
 
 	dsLoadSceneNodeItem* nodeType = context->nodeTypes + index;
-	strncpy(nodeType->name, name, nameLength + 1);
+	memcpy(nodeType->name, name, nameLength + 1);
 	nodeType->loadFunc = loadFunc;
 	nodeType->userData = userData;
 	nodeType->destroyUserDataFunc = destroyUserDataFunc;
@@ -149,7 +165,7 @@ bool dsSceneLoadContext_registerItemListType(dsSceneLoadContext* context, const 
 	}
 
 	dsLoadSceneItemListItem* itemListType = context->itemListTypes + index;
-	strncpy(itemListType->name, name, nameLength + 1);
+	memcpy(itemListType->name, name, nameLength + 1);
 	itemListType->loadFunc = loadFunc;
 	itemListType->userData = userData;
 	itemListType->destroyUserDataFunc = destroyUserDataFunc;
@@ -157,6 +173,49 @@ bool dsSceneLoadContext_registerItemListType(dsSceneLoadContext* context, const 
 	{
 		errno = EPERM;
 		DS_LOG_ERROR_F(DS_SCENE_LOG_TAG, "Item list type '%s' has already been registered.", name);
+		return false;
+	}
+	return true;
+}
+
+bool dsSceneLoadContext_registerInstanceDataType(dsSceneLoadContext* context, const char* name,
+	dsLoadSceneInstanceDataFunction loadFunc, void* userData,
+	dsDestroySceneUserDataFunction destroyUserDataFunc)
+{
+	if (!context || !name || !loadFunc)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	dsHashTable* hashTable = &context->instanceDataTypeTable.hashTable;
+	size_t index = hashTable->list.length;
+	if (index >= DS_MAX_SCENE_TYPES)
+	{
+		errno = ENOMEM;
+		return false;
+	}
+
+	size_t nameLength = strlen(name);
+	if (nameLength >= DS_MAX_SCENE_NAME_LENGTH)
+	{
+		errno = EINVAL;
+		DS_LOG_ERROR_F(DS_SCENE_LOG_TAG, "Instance data type name '%s' exceeds maximum size of %u.",
+			name, DS_MAX_SCENE_NAME_LENGTH);
+		return false;
+	}
+
+	dsLoadSceneInstanceDataItem* instanceDataType = context->instanceDataTypes + index;
+	memcpy(instanceDataType->name, name, nameLength + 1);
+	instanceDataType->loadFunc = loadFunc;
+	instanceDataType->userData = userData;
+	instanceDataType->destroyUserDataFunc = destroyUserDataFunc;
+	if (!dsHashTable_insert(hashTable, instanceDataType->name, (dsHashTableNode*)instanceDataType,
+			NULL))
+	{
+		errno = EPERM;
+		DS_LOG_ERROR_F(DS_SCENE_LOG_TAG, "Instance data type '%s' has already been registered.",
+			name);
 		return false;
 	}
 	return true;
@@ -172,7 +231,7 @@ bool dsSceneLoadContext_registerGlobalDataType(dsSceneLoadContext* context, cons
 		return false;
 	}
 
-	dsHashTable* hashTable = &context->itemListTypeTable.hashTable;
+	dsHashTable* hashTable = &context->globalDataTypeTable.hashTable;
 	size_t index = hashTable->list.length;
 	if (index >= DS_MAX_SCENE_TYPES)
 	{
@@ -190,7 +249,7 @@ bool dsSceneLoadContext_registerGlobalDataType(dsSceneLoadContext* context, cons
 	}
 
 	dsLoadSceneGlobalDataItem* globalDataType = context->globalDataTypes + index;
-	strncpy(globalDataType->name, name, nameLength + 1);
+	memcpy(globalDataType->name, name, nameLength + 1);
 	globalDataType->loadFunc = loadFunc;
 	globalDataType->userData = userData;
 	globalDataType->destroyUserDataFunc = destroyUserDataFunc;
@@ -224,6 +283,14 @@ void dsSceneLoadContext_destroy(dsSceneLoadContext* context)
 		dsLoadSceneItemListItem* itemListType = (dsLoadSceneItemListItem*)node;
 		if (itemListType->destroyUserDataFunc)
 			itemListType->destroyUserDataFunc(itemListType->userData);
+	}
+
+	hashTable = &context->instanceDataTypeTable.hashTable;
+	for (dsListNode* node = hashTable->list.head; node; node = node->next)
+	{
+		dsLoadSceneInstanceDataItem* instanceDataType = (dsLoadSceneInstanceDataItem*)node;
+		if (instanceDataType->destroyUserDataFunc)
+			instanceDataType->destroyUserDataFunc(instanceDataType->userData);
 	}
 
 	hashTable = &context->globalDataTypeTable.hashTable;

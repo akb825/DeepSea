@@ -108,6 +108,15 @@ typedef struct dsLoadSceneItemListItem
 	dsDestroySceneUserDataFunction destroyUserDataFunc;
 } dsLoadSceneItemListItem;
 
+typedef struct dsLoadSceneInstanceDataItem
+{
+	dsHashTableNode node;
+	char name[DS_MAX_SCENE_NAME_LENGTH];
+	dsLoadSceneInstanceDataFunction loadFunc;
+	void* userData;
+	dsDestroySceneUserDataFunction destroyUserDataFunc;
+} dsLoadSceneInstanceDataItem;
+
 typedef struct dsLoadSceneGlobalDataItem
 {
 	dsHashTableNode node;
@@ -124,10 +133,12 @@ struct dsSceneLoadContext
 
 	dsLoadSceneNodeItem nodeTypes[DS_MAX_SCENE_TYPES];
 	dsLoadSceneItemListItem itemListTypes[DS_MAX_SCENE_TYPES];
+	dsLoadSceneInstanceDataItem instanceDataTypes[DS_MAX_SCENE_TYPES];
 	dsLoadSceneGlobalDataItem globalDataTypes[DS_MAX_SCENE_TYPES];
 
 	DS_STATIC_HASH_TABLE(DS_SCENE_TYPE_TABLE_SIZE) nodeTypeTable;
 	DS_STATIC_HASH_TABLE(DS_SCENE_TYPE_TABLE_SIZE) itemListTypeTable;
+	DS_STATIC_HASH_TABLE(DS_SCENE_TYPE_TABLE_SIZE) instanceDataTypeTable;
 	DS_STATIC_HASH_TABLE(DS_SCENE_TYPE_TABLE_SIZE) globalDataTypeTable;
 };
 

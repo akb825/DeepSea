@@ -17,7 +17,6 @@
 #include <DeepSea/Scene/Nodes/SceneNode.h>
 
 #include "Nodes/SceneTreeNode.h"
-#include "SceneLoadContextInternal.h"
 #include "SceneTypes.h"
 #include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
@@ -28,6 +27,8 @@
 #include <DeepSea/Scene/SceneLoadScratchData.h>
 
 #include <string.h>
+
+const char* const dsSceneNodeRef_typeName = "ReferenceNode";
 
 size_t dsSceneNode_itemListsAllocSize(const char** itemLists, uint32_t itemListCount)
 {

@@ -311,6 +311,8 @@ static void destroyInstanceData(dsSceneInstanceData* const* instanceData,
 		dsSceneInstanceData_destroy(instanceData[i]);
 }
 
+const char* const dsSceneModelList_typeName = "ModelList";
+
 uint64_t dsSceneModelList_addNode(dsSceneItemList* itemList, dsSceneNode* node,
 	const dsMatrix44f* transform, dsSceneNodeItemData* itemData, void** thisItemData)
 {

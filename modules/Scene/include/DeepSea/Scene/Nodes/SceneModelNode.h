@@ -32,6 +32,11 @@ extern "C"
  */
 
 /**
+ * @brief The type name for a model node.
+ */
+DS_SCENE_EXPORT extern const char* const dsSceneModelNode_typeName;
+
+/**
  * @brief Gets the type of a model node.
  * @return The type of a model node.
  */

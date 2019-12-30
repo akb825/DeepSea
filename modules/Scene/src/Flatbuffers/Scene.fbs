@@ -21,11 +21,11 @@ namespace DeepSeaScene;
 // Object for processing a list of items in the scene.
 table SceneItemList
 {
-	// The name of the scene item list.
-	name : string (required);
-
 	// The type of the scene item list.
 	type : string (required);
+
+	// The name of the scene item list.
+	name : string (required);
 
 	// The data for the scene item list.
 	data : [ubyte] (required);
@@ -183,6 +183,7 @@ table RenderPass
 	// The name of the render pass.
 	name : string (required);
 
+	// The name of the framebuffer to use.
 	framebuffer : string (required);
 
 	// The attachments for the render pass.
@@ -191,7 +192,7 @@ table RenderPass
 	// The subpasses in the render pass.
 	subpasses : [RenderSubpass] (required);
 
-	// Explicit subpass dependencies.
+	// Explicit subpass dependencies. If null, default dependencies will be used.
 	dependencies : [SubpassDependency];
 
 	// Whether or not to use default subpass dependencies.

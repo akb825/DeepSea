@@ -31,6 +31,8 @@ static void destroy(dsSceneNode* node)
 	DS_VERIFY(dsAllocator_free(node->allocator, node));
 }
 
+const char* const dsSceneTransformNode_typeName = "TransformNode";
+
 const dsSceneNodeType* dsSceneTransformNode_type(void)
 {
 	return &nodeType;

@@ -16,11 +16,11 @@
 
 #include <DeepSea/Scene/Nodes/SceneModelNode.h>
 
+#include "Flatbuffers/ModelNode_generated.h"
 #include "SceneLoadContextInternal.h"
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Log.h>
-#include <DeepSea/Scene/Flatbuffers/ModelNode_generated.h>
 #include <DeepSea/Scene/Flatbuffers/SceneFlatbufferHelpers.h>
 #include <DeepSea/Scene/Nodes/SceneNode.h>
 #include <DeepSea/Scene/SceneLoadScratchData.h>
@@ -66,14 +66,17 @@ dsSceneNode* dsSceneModelNode_load(const dsSceneLoadContext* loadContext,
 	uint32_t resourceCount = 0;
 	dsSceneResources** resources = nullptr;
 
-	if (fbExtraItemLists)
+	if (fbExtraItemLists && fbExtraItemLists->size() > 0)
 	{
 		extraItemCount = fbExtraItemLists->size();
 		extraItemListSize = static_cast<uint32_t>(sizeof(const char*)*extraItemCount);
 		extraItems = reinterpret_cast<const char**>(dsSceneLoadScratchData_allocate(scratchData,
 			extraItemListSize));
 		if (!extraItems)
+		{
+			extraItemListSize = 0;
 			goto finished;
+		}
 
 		for (uint32_t i = 0; i < extraItemCount; ++i)
 		{
@@ -84,6 +87,8 @@ dsSceneNode* dsSceneModelNode_load(const dsSceneLoadContext* loadContext,
 				DS_LOG_ERROR(DS_SCENE_LOG_TAG, "Model node extra item name is null.");
 				goto finished;
 			}
+
+			extraItems[i] = extraItem->c_str();
 		}
 	}
 
@@ -91,7 +96,10 @@ dsSceneNode* dsSceneModelNode_load(const dsSceneLoadContext* loadContext,
 	modelInfos = reinterpret_cast<dsSceneModelInitInfo*>(dsSceneLoadScratchData_allocate(
 		scratchData, modelInfoSize));
 	if (!modelInfos)
+	{
+		modelInfoSize = 0;
 		goto finished;
+	}
 
 	for (uint32_t i = 0; i < modelInfoCount; ++i)
 	{
@@ -103,6 +111,7 @@ dsSceneNode* dsSceneModelNode_load(const dsSceneLoadContext* loadContext,
 			goto finished;
 		}
 
+		// NOTE: ENOTFOUND not set when the type doesn't match, so set it manually.
 		dsSceneModelInitInfo* modelInfo = modelInfos + i;
 		const char* shaderName = fbModelInfo->shader()->c_str();
 		dsSceneResourceType resourceType;
@@ -110,6 +119,7 @@ dsSceneNode* dsSceneModelNode_load(const dsSceneLoadContext* loadContext,
 				reinterpret_cast<void**>(&modelInfo->shader), scratchData, shaderName) ||
 			resourceType != dsSceneResourceType_Shader)
 		{
+			errno = ENOTFOUND;
 			DS_LOG_INFO_F(DS_SCENE_LOG_TAG, "Couldn't find model shader '%s'.", shaderName);
 			goto finished;
 		}
@@ -119,6 +129,7 @@ dsSceneNode* dsSceneModelNode_load(const dsSceneLoadContext* loadContext,
 				reinterpret_cast<void**>(&modelInfo->material), scratchData, materialName) ||
 			resourceType != dsSceneResourceType_Material)
 		{
+			errno = ENOTFOUND;
 			DS_LOG_INFO_F(DS_SCENE_LOG_TAG, "Couldn't find model material '%s'.", materialName);
 			goto finished;
 		}
@@ -128,6 +139,7 @@ dsSceneNode* dsSceneModelNode_load(const dsSceneLoadContext* loadContext,
 				reinterpret_cast<void**>(&modelInfo->geometry), scratchData, geometryName) ||
 			resourceType != dsSceneResourceType_DrawGeometry)
 		{
+			errno = ENOTFOUND;
 			DS_LOG_INFO_F(DS_SCENE_LOG_TAG, "Couldn't find model geometry '%s'.", geometryName);
 			goto finished;
 		}

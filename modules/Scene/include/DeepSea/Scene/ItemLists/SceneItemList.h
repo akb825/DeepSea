@@ -17,7 +17,7 @@
 #pragma once
 
 #include <DeepSea/Core/Config.h>
-#include <DeepSea/Scene/ItemLists/Types.h>
+#include <DeepSea/Scene/Types.h>
 #include <DeepSea/Scene/Export.h>
 
 #ifdef __cplusplus
@@ -30,6 +30,25 @@ extern "C"
  * @brief Functions for manipulating scene item lists.
  * @see dsSceneItemLIst
  */
+
+/**
+ * @brief Loads a scene item list from a flatbuffer data buffer.
+ * @remark errno will be set on failure.
+ * @param allocator The allocator to create the item list.
+ * @param resourceAllocator The allocator to create graphics resources with. If NULL, it will use
+ *     the item list allocator.
+ * @param loadContext The scene load context.
+ * @param scratchData The scene scratch data.
+ * @param type The type name of the item list to load.
+ * @param name The name of the item list.
+ * @param data The data for the item list. The data isn't used after this call.
+ * @param size The size of the data buffer.
+ * @return The item list hierarchy, or NULL if an error occurred.
+ */
+DS_SCENE_EXPORT dsSceneItemList* dsSceneItemList_load(dsAllocator* allocator,
+	dsAllocator* resourceAllocator, const dsSceneLoadContext* loadContext,
+	dsSceneLoadScratchData* scratchData, const char* type, const char* name, const void* data,
+	size_t size);
 
 /**
  * @brief Destroys a scene item list.

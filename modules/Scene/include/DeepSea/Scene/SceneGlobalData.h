@@ -32,6 +32,23 @@ extern "C"
  */
 
 /**
+ * @brief Loads a scene global data from a flatbuffer data buffer.
+ * @remark errno will be set on failure.
+ * @param allocator The allocator to create the scene nodes.
+ * @param resourceAllocator The allocator to create graphics resources with. If NULL, it will use
+ *     the global data allocator.
+ * @param loadContext The scene load context.
+ * @param scratchData The scene scratch data.
+ * @param type The type name of the node to load.
+ * @param data The data for the global data. The data isn't used after this call.
+ * @param size The size of the data buffer.
+ * @return The global data, or NULL if an error occurred.
+ */
+DS_SCENE_EXPORT dsSceneGlobalData* dsSceneGlobalData_load(dsAllocator* allocator,
+	dsAllocator* resourceAllocator, const dsSceneLoadContext* loadContext,
+	dsSceneLoadScratchData* scratchData, const char* type, const void* data, size_t size);
+
+/**
  * @brief Destroys a scene global data object.
  * @remark errno will be set on failure.
  * @param globalData The global data to destroy.

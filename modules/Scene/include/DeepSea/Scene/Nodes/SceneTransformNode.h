@@ -32,6 +32,11 @@ extern "C"
  */
 
 /**
+ * @brief The type name for a transform node.
+ */
+DS_SCENE_EXPORT extern const char* const dsSceneTransformNode_typeName;
+
+/**
  * @brief Gets the type of a transform node.
  * @return The type of a transform node.
  */

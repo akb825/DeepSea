@@ -212,13 +212,13 @@ enum FormatDecoration : ubyte
 	SRGB
 }
 
-// Structure describing a scene node.
-table SceneNode
+// Structure describing object data.
+table ObjectData
 {
-	// The name of the node type.
+	// The type name of the object.
 	type : string (required);
 
-	// The data for the node.
+	// The data for the object.
 	data : [ubyte] (required);
 }
 
@@ -244,6 +244,15 @@ struct Vector4f
 	y : float;
 	z : float;
 	w : float;
+}
+
+// Struct describing a floating-point color.
+struct Color4f
+{
+	r : float;
+	g : float;
+	b : float;
+	a : float;
 }
 
 // Struct describing a 3-dimensional aligned box.

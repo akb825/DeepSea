@@ -227,25 +227,25 @@ FLATBUFFERS_STRUCT_END(SubpassDependency, 28);
 
 struct SceneItemList FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_NAME = 4,
-    VT_TYPE = 6,
+    VT_TYPE = 4,
+    VT_NAME = 6,
     VT_DATA = 8
   };
-  const flatbuffers::String *name() const {
-    return GetPointer<const flatbuffers::String *>(VT_NAME);
-  }
   const flatbuffers::String *type() const {
     return GetPointer<const flatbuffers::String *>(VT_TYPE);
+  }
+  const flatbuffers::String *name() const {
+    return GetPointer<const flatbuffers::String *>(VT_NAME);
   }
   const flatbuffers::Vector<uint8_t> *data() const {
     return GetPointer<const flatbuffers::Vector<uint8_t> *>(VT_DATA);
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyOffsetRequired(verifier, VT_NAME) &&
-           verifier.VerifyString(name()) &&
            VerifyOffsetRequired(verifier, VT_TYPE) &&
            verifier.VerifyString(type()) &&
+           VerifyOffsetRequired(verifier, VT_NAME) &&
+           verifier.VerifyString(name()) &&
            VerifyOffsetRequired(verifier, VT_DATA) &&
            verifier.VerifyVector(data()) &&
            verifier.EndTable();
@@ -255,11 +255,11 @@ struct SceneItemList FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 struct SceneItemListBuilder {
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
-  void add_name(flatbuffers::Offset<flatbuffers::String> name) {
-    fbb_.AddOffset(SceneItemList::VT_NAME, name);
-  }
   void add_type(flatbuffers::Offset<flatbuffers::String> type) {
     fbb_.AddOffset(SceneItemList::VT_TYPE, type);
+  }
+  void add_name(flatbuffers::Offset<flatbuffers::String> name) {
+    fbb_.AddOffset(SceneItemList::VT_NAME, name);
   }
   void add_data(flatbuffers::Offset<flatbuffers::Vector<uint8_t>> data) {
     fbb_.AddOffset(SceneItemList::VT_DATA, data);
@@ -272,8 +272,8 @@ struct SceneItemListBuilder {
   flatbuffers::Offset<SceneItemList> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<SceneItemList>(end);
-    fbb_.Required(o, SceneItemList::VT_NAME);
     fbb_.Required(o, SceneItemList::VT_TYPE);
+    fbb_.Required(o, SceneItemList::VT_NAME);
     fbb_.Required(o, SceneItemList::VT_DATA);
     return o;
   }
@@ -281,28 +281,28 @@ struct SceneItemListBuilder {
 
 inline flatbuffers::Offset<SceneItemList> CreateSceneItemList(
     flatbuffers::FlatBufferBuilder &_fbb,
-    flatbuffers::Offset<flatbuffers::String> name = 0,
     flatbuffers::Offset<flatbuffers::String> type = 0,
+    flatbuffers::Offset<flatbuffers::String> name = 0,
     flatbuffers::Offset<flatbuffers::Vector<uint8_t>> data = 0) {
   SceneItemListBuilder builder_(_fbb);
   builder_.add_data(data);
-  builder_.add_type(type);
   builder_.add_name(name);
+  builder_.add_type(type);
   return builder_.Finish();
 }
 
 inline flatbuffers::Offset<SceneItemList> CreateSceneItemListDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
-    const char *name = nullptr,
     const char *type = nullptr,
+    const char *name = nullptr,
     const std::vector<uint8_t> *data = nullptr) {
-  auto name__ = name ? _fbb.CreateString(name) : 0;
   auto type__ = type ? _fbb.CreateString(type) : 0;
+  auto name__ = name ? _fbb.CreateString(name) : 0;
   auto data__ = data ? _fbb.CreateVector<uint8_t>(*data) : 0;
   return DeepSeaScene::CreateSceneItemList(
       _fbb,
-      name__,
       type__,
+      name__,
       data__);
 }
 

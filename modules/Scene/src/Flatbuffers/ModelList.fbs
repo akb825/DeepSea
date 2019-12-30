@@ -1,0 +1,87 @@
+/*
+ * Copyright 2019 Aaron Barany
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+include "DeepSea/Scene/Flatbuffers/SceneCommon.fbs";
+
+namespace DeepSeaScene;
+
+// Enum for how to sort the items.
+enum SortType : ubyte
+{
+	None,
+	Material,
+	BackToFront,
+	FrontToBack
+}
+
+// Struct defining what render states are dynamically set. Only values needed by the shader are
+// used.
+table DynamicRenderStates
+{
+	// The width of line primitivies.
+	lineWidth : float;
+
+	// The depth bias constant factor.
+	depthBiasConstantFactor : float;
+
+	// The depth bias clamp.
+	depthBiasClamp : float;
+
+	// The depth bias slope factor.
+	depthBiasSlopeFactor : float;
+
+	// The blend constants.
+	blendConstants : Color4f;
+
+	// The minimum and maximum depth values.
+	depthBounds : Vector2f;
+
+	// The stencil compare mask for front faces.
+	frontStencilCompareMask : uint;
+
+	// The stencil compare mask for back faces.
+	backStencilCompareMask : uint;
+
+	// @brief The stencil write mask for front faces.
+	frontStencilWriteMask : uint;
+
+	// The stencil write mask for back faces.
+	backStencilWriteMask : uint;
+
+	// The stencil reference for front faces.
+	frontStencilReference : uint;
+
+	// The stencil reference for back faces.
+	backStencilReference : uint;
+}
+
+// Struct defining how to draw a list of models.
+table ModelList
+{
+	// List of instance data for the models.
+	instanceData : [ObjectData];
+
+	// How to sort the models.
+	sortType : SortType;
+
+	// Dynamic render states to apply when rendering.
+	dynamicRenderStates : DynamicRenderStates;
+
+	// The name of the item list to handle culling, or null if no culling is used.
+	cullName : string;
+}
+
+root_type ModelList;

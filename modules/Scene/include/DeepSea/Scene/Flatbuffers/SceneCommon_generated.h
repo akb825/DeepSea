@@ -8,13 +8,15 @@
 
 namespace DeepSeaScene {
 
-struct SceneNode;
+struct ObjectData;
 
 struct Vector2f;
 
 struct Vector3f;
 
 struct Vector4f;
+
+struct Color4f;
 
 struct AlignedBox3f;
 
@@ -758,6 +760,38 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Vector4f FLATBUFFERS_FINAL_CLASS {
 };
 FLATBUFFERS_STRUCT_END(Vector4f, 16);
 
+FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Color4f FLATBUFFERS_FINAL_CLASS {
+ private:
+  float r_;
+  float g_;
+  float b_;
+  float a_;
+
+ public:
+  Color4f() {
+    memset(static_cast<void *>(this), 0, sizeof(Color4f));
+  }
+  Color4f(float _r, float _g, float _b, float _a)
+      : r_(flatbuffers::EndianScalar(_r)),
+        g_(flatbuffers::EndianScalar(_g)),
+        b_(flatbuffers::EndianScalar(_b)),
+        a_(flatbuffers::EndianScalar(_a)) {
+  }
+  float r() const {
+    return flatbuffers::EndianScalar(r_);
+  }
+  float g() const {
+    return flatbuffers::EndianScalar(g_);
+  }
+  float b() const {
+    return flatbuffers::EndianScalar(b_);
+  }
+  float a() const {
+    return flatbuffers::EndianScalar(a_);
+  }
+};
+FLATBUFFERS_STRUCT_END(Color4f, 16);
+
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) AlignedBox3f FLATBUFFERS_FINAL_CLASS {
  private:
   Vector3f min_;
@@ -866,7 +900,7 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) OrientedBox3f FLATBUFFERS_FINAL_CLASS {
 };
 FLATBUFFERS_STRUCT_END(OrientedBox3f, 60);
 
-struct SceneNode FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+struct ObjectData FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_TYPE = 4,
     VT_DATA = 6
@@ -887,46 +921,46 @@ struct SceneNode FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
 };
 
-struct SceneNodeBuilder {
+struct ObjectDataBuilder {
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_type(flatbuffers::Offset<flatbuffers::String> type) {
-    fbb_.AddOffset(SceneNode::VT_TYPE, type);
+    fbb_.AddOffset(ObjectData::VT_TYPE, type);
   }
   void add_data(flatbuffers::Offset<flatbuffers::Vector<uint8_t>> data) {
-    fbb_.AddOffset(SceneNode::VT_DATA, data);
+    fbb_.AddOffset(ObjectData::VT_DATA, data);
   }
-  explicit SceneNodeBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit ObjectDataBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  SceneNodeBuilder &operator=(const SceneNodeBuilder &);
-  flatbuffers::Offset<SceneNode> Finish() {
+  ObjectDataBuilder &operator=(const ObjectDataBuilder &);
+  flatbuffers::Offset<ObjectData> Finish() {
     const auto end = fbb_.EndTable(start_);
-    auto o = flatbuffers::Offset<SceneNode>(end);
-    fbb_.Required(o, SceneNode::VT_TYPE);
-    fbb_.Required(o, SceneNode::VT_DATA);
+    auto o = flatbuffers::Offset<ObjectData>(end);
+    fbb_.Required(o, ObjectData::VT_TYPE);
+    fbb_.Required(o, ObjectData::VT_DATA);
     return o;
   }
 };
 
-inline flatbuffers::Offset<SceneNode> CreateSceneNode(
+inline flatbuffers::Offset<ObjectData> CreateObjectData(
     flatbuffers::FlatBufferBuilder &_fbb,
     flatbuffers::Offset<flatbuffers::String> type = 0,
     flatbuffers::Offset<flatbuffers::Vector<uint8_t>> data = 0) {
-  SceneNodeBuilder builder_(_fbb);
+  ObjectDataBuilder builder_(_fbb);
   builder_.add_data(data);
   builder_.add_type(type);
   return builder_.Finish();
 }
 
-inline flatbuffers::Offset<SceneNode> CreateSceneNodeDirect(
+inline flatbuffers::Offset<ObjectData> CreateObjectDataDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     const char *type = nullptr,
     const std::vector<uint8_t> *data = nullptr) {
   auto type__ = type ? _fbb.CreateString(type) : 0;
   auto data__ = data ? _fbb.CreateVector<uint8_t>(*data) : 0;
-  return DeepSeaScene::CreateSceneNode(
+  return DeepSeaScene::CreateObjectData(
       _fbb,
       type__,
       data__);

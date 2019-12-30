@@ -526,9 +526,27 @@ typedef dsSceneNode* (*dsLoadSceneNodeFunction)(const dsSceneLoadContext* loadCo
  * @param dataSize The size fo the data.
  * @return The item list or NULL if it couldn't be loaded.
  */
-typedef dsSceneNode* (*dsLoadSceneItemListFunction)(const dsSceneLoadContext* loadContext,
+typedef dsSceneItemList* (*dsLoadSceneItemListFunction)(const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
 	void* userData, const char* name, const uint8_t* data, size_t dataSize);
+
+/**
+ * @brief Function to load a scene instance data.
+ * @remark errno should be set on failure.
+ * @param loadContext The load context.
+ * @param scratchData The scratch data.
+ * @param allocator The allocator to create the instance data with.
+ * @param resourceAllocator The allocator to create graphics resources with. If NULL, it will use
+ *     the instance data allocator.
+ * @param userData User data registered with this function.
+ * @param data The data for the global data.
+ * @param dataSize The size fo the data.
+ * @return The instance data or NULL if it couldn't be loaded.
+ */
+typedef dsSceneInstanceData* (*dsLoadSceneInstanceDataFunction)(
+	const dsSceneLoadContext* loadContext, dsSceneLoadScratchData* scratchData,
+	dsAllocator* allocator, dsAllocator* resourceAllocator, void* userData, const uint8_t* data,
+	size_t dataSize);
 
 /**
  * @brief Function to load a scene global data.

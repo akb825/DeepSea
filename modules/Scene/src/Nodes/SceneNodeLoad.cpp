@@ -16,12 +16,12 @@
 
 #include <DeepSea/Scene/Nodes/SceneNode.h>
 
+#include "Flatbuffers/SceneNodeRef_generated.h"
 #include "SceneLoadContextInternal.h"
 #include <DeepSea/Core/Containers/HashTable.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Scene/Flatbuffers/SceneCommon_generated.h>
-#include <DeepSea/Scene/Flatbuffers/SceneNodeRef_generated.h>
 #include <DeepSea/Scene/SceneLoadScratchData.h>
 
 extern "C"
@@ -44,6 +44,8 @@ dsSceneNode* dsSceneNodeRef_load(const dsSceneLoadContext*, dsSceneLoadScratchDa
 			reinterpret_cast<void**>(&node), scratchData, name) ||
 		resourceType != dsSceneResourceType_Buffer)
 	{
+		// NOTE: ENOTFOUND not set when the type doesn't match, so set it manually.
+		errno = ENOTFOUND;
 		DS_LOG_ERROR_F(DS_SCENE_LOG_TAG, "Couldn't find node '%s'.", name);
 		return nullptr;
 	}
