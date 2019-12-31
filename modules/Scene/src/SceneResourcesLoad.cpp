@@ -218,6 +218,7 @@ static bool loadShaderVariableGroupDescs(dsSceneResources* resources,
 	if (!groupDescs)
 		return true;
 
+	uint32_t maxElements = 0;
 	for (auto fbGroupDesc : *groupDescs)
 	{
 		if (!fbGroupDesc)
@@ -227,12 +228,26 @@ static bool loadShaderVariableGroupDescs(dsSceneResources* resources,
 		if (!fbElements)
 			continue;
 
-		auto elementSize =
-			static_cast<uint32_t>(fbElements->size()*sizeof(dsShaderVariableElement));
-		auto elements = reinterpret_cast<dsShaderVariableElement*>(
-			dsSceneLoadScratchData_allocate(scratchData, elementSize));
-		if (!elements)
-			return false;
+		maxElements = std::max(fbElements->size(), maxElements);
+	}
+	if (maxElements == 0)
+		return true;
+
+	dsAllocator* scratchAllocator = dsSceneLoadScratchData_getAllocator(scratchData);
+	auto elements =
+		DS_ALLOCATE_OBJECT_ARRAY(scratchAllocator, dsShaderVariableElement, maxElements);
+	if (!elements)
+		return false;
+
+	bool success = true;
+	for (auto fbGroupDesc : *groupDescs)
+	{
+		if (!fbGroupDesc)
+			continue;
+
+		const auto fbElements = fbGroupDesc->elements();
+		if (!fbElements)
+			continue;
 
 		const char* groupDescName = fbGroupDesc->name()->c_str();
 		dsShaderVariableElement* curElement = elements;
@@ -246,24 +261,26 @@ static bool loadShaderVariableGroupDescs(dsSceneResources* resources,
 
 		dsShaderVariableGroupDesc* groupDesc = dsShaderVariableGroupDesc_create(resourceManager,
 			allocator, elements, fbElements->size());
-		DS_VERIFY(dsSceneLoadScratchData_popData(scratchData, elementSize));
 
 		if (!groupDesc)
 		{
 			PRINT_FLATBUFFER_RESOURCE_ERROR(
 				"Couldn't create shader variable group description '%s'", groupDescName, name);
-			return false;
+			success = false;
+			break;
 		}
 
 		if (!dsSceneResources_addResource(resources, groupDescName,
 				dsSceneResourceType_ShaderVariableGroupDesc, groupDesc, true))
 		{
 			DS_VERIFY(dsShaderVariableGroupDesc_destroy(groupDesc));
-			return false;
+			success = false;
+			break;
 		}
 	}
 
-	return true;
+	DS_VERIFY(dsAllocator_free(scratchAllocator, elements));
+	return success;
 }
 
 static bool loadShaderVariableGroups(dsSceneResources* resources,
@@ -370,6 +387,28 @@ static bool loadMaterialDescs(dsSceneResources* resources, dsResourceManager* re
 	if (!materialDescs)
 		return true;
 
+	uint32_t maxElements = 0;
+	for (auto fbGroupDesc : *materialDescs)
+	{
+		if (!fbGroupDesc)
+			continue;
+
+		const auto fbElements = fbGroupDesc->elements();
+		if (!fbElements)
+			continue;
+
+		maxElements = std::max(fbElements->size(), maxElements);
+	}
+	if (maxElements == 0)
+		return true;
+
+	dsAllocator* scratchAllocator = dsSceneLoadScratchData_getAllocator(scratchData);
+	auto elements =
+		DS_ALLOCATE_OBJECT_ARRAY(scratchAllocator, dsMaterialElement, maxElements);
+	if (!elements)
+		return false;
+
+	bool success = true;
 	for (auto fbMaterialDesc : *materialDescs)
 	{
 		if (!fbMaterialDesc)
@@ -378,12 +417,6 @@ static bool loadMaterialDescs(dsSceneResources* resources, dsResourceManager* re
 		const auto fbElements = fbMaterialDesc->elements();
 		if (!fbElements)
 			continue;
-
-		auto elementSize = static_cast<uint32_t>(fbElements->size()*sizeof(dsMaterialElement));
-		auto elements = reinterpret_cast<dsMaterialElement*>(
-			dsSceneLoadScratchData_allocate(scratchData, elementSize));
-		if (!elements)
-			return false;
 
 		const char* materialDescName = fbMaterialDesc->name()->c_str();
 		dsMaterialElement* curElement = elements;
@@ -405,8 +438,8 @@ static bool loadMaterialDescs(dsSceneResources* resources, dsResourceManager* re
 					errno = ENOTFOUND;
 					PRINT_FLATBUFFER_RESOURCE_NOT_FOUND("shader variable group",
 						groupDescName->c_str(), name);
-					DS_VERIFY(dsSceneLoadScratchData_popData(scratchData, elementSize));
-					return false;
+					success = false;
+					break;
 				}
 				curElement->shaderVariableGroupDesc = groupDesc;
 			}
@@ -416,26 +449,31 @@ static bool loadMaterialDescs(dsSceneResources* resources, dsResourceManager* re
 			++curElement;
 		}
 
+		if (!success)
+			break;
+
 		dsMaterialDesc* materialDesc = dsMaterialDesc_create(resourceManager, allocator, elements,
 			fbElements->size());
-		DS_VERIFY(dsSceneLoadScratchData_popData(scratchData, elementSize));
 
 		if (!materialDesc)
 		{
 			PRINT_FLATBUFFER_RESOURCE_ERROR(
 				"Couldn't create material description '%s'", materialDescName, name);
-			return false;
+			success = false;
+			break;
 		}
 
 		if (!dsSceneResources_addResource(resources, materialDescName,
 				dsSceneResourceType_MaterialDesc, materialDesc, true))
 		{
 			DS_VERIFY(dsMaterialDesc_destroy(materialDesc));
-			return false;
+			success = false;
+			break;
 		}
 	}
 
-	return true;
+	DS_VERIFY(dsAllocator_free(scratchAllocator, elements));
+	return success;
 }
 
 static bool loadMaterialTexture(dsSceneLoadScratchData* scratchData, dsMaterial* material,

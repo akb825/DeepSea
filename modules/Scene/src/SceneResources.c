@@ -166,11 +166,11 @@ dsSceneResources* dsSceneResources_loadFile(dsAllocator* allocator, dsAllocator*
 	dsFileStream stream;
 	if (!dsFileStream_openPath(&stream, filePath, "rb"))
 	{
-		DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Couldn't open scene node file '%s'.", filePath);
+		DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Couldn't open scene resources file '%s'.", filePath);
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
-	uint32_t size;
+	size_t size;
 	void* buffer = dsSceneLoadScratchData_readUntilEnd(&size, scratchData, (dsStream*)&stream);
 	dsFileStream_close(&stream);
 	if (!buffer)
@@ -178,7 +178,7 @@ dsSceneResources* dsSceneResources_loadFile(dsAllocator* allocator, dsAllocator*
 
 	dsSceneResources* resources = dsSceneResources_loadImpl(allocator, resourceAllocator,
 		loadContext, scratchData, buffer, size, filePath);
-	DS_VERIFY(dsSceneLoadScratchData_popData(scratchData, size));
+	DS_VERIFY(dsSceneLoadScratchData_freeReadBuffer(scratchData, buffer));
 	DS_PROFILE_FUNC_RETURN(resources);
 }
 
@@ -197,11 +197,11 @@ dsSceneResources* dsSceneResources_loadResource(dsAllocator* allocator,
 	dsResourceStream stream;
 	if (!dsResourceStream_open(&stream, type, filePath, "rb"))
 	{
-		DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Couldn't open scene node file '%s'.", filePath);
+		DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Couldn't open scene resources file '%s'.", filePath);
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
-	uint32_t size;
+	size_t size;
 	void* buffer = dsSceneLoadScratchData_readUntilEnd(&size, scratchData, (dsStream*)&stream);
 	dsResourceStream_close(&stream);
 	if (!buffer)
@@ -209,7 +209,7 @@ dsSceneResources* dsSceneResources_loadResource(dsAllocator* allocator,
 
 	dsSceneResources* resources = dsSceneResources_loadImpl(allocator, resourceAllocator,
 		loadContext, scratchData, buffer, size, filePath);
-	DS_VERIFY(dsSceneLoadScratchData_popData(scratchData, size));
+	DS_VERIFY(dsSceneLoadScratchData_freeReadBuffer(scratchData, buffer));
 	DS_PROFILE_FUNC_RETURN(resources);
 }
 
@@ -225,14 +225,14 @@ dsSceneResources* dsSceneResources_loadStream(dsAllocator* allocator,
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
-	uint32_t size;
+	size_t size;
 	void* buffer = dsSceneLoadScratchData_readUntilEnd(&size, scratchData, stream);
 	if (!buffer)
 		DS_PROFILE_FUNC_RETURN(NULL);
 
 	dsSceneResources* resources = dsSceneResources_loadImpl(allocator, resourceAllocator,
 		loadContext, scratchData, buffer, size, NULL);
-	DS_VERIFY(dsSceneLoadScratchData_popData(scratchData, size));
+	DS_VERIFY(dsSceneLoadScratchData_freeReadBuffer(scratchData, buffer));
 	DS_PROFILE_FUNC_RETURN(resources);
 }
 

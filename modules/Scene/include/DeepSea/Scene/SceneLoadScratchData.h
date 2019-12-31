@@ -44,37 +44,42 @@ DS_SCENE_EXPORT dsSceneLoadScratchData* dsSceneLoadScratchData_create(dsAllocato
 	dsCommandBuffer* commandBuffer);
 
 /**
- * @brief Allocates scratch data.
+ * @brief Gets the allocator for the scratch data.
+ *
+ * This may be used for arbitrary allocations.
+ *
  * @remark errno will be set on failure.
  * @param scratchData The scratch data to allocate from.
- * @param size The size to allocator.
- * @return The allocated data, or NULL if allocation failed.
+ * @return The allocator or NULL if scratchData is NULL.
  */
-DS_SCENE_EXPORT void* dsSceneLoadScratchData_allocate(dsSceneLoadScratchData* scratchData,
-	uint32_t size);
+DS_SCENE_EXPORT dsAllocator* dsSceneLoadScratchData_getAllocator(
+	dsSceneLoadScratchData* scratchData);
 
 /**
  * @brief Reads data from the stream until its end.
+ *
+ * This will attempt to re-use buffer memeory, but may need to allocate new memory when the previous
+ * buffer is still in use.
+ *
+ * @remark errno will be set on failure.
  * @param[out] outSize The size read from the stream. This should be popped after usage.
  * @param scratchData The scratch data.
  * @param stream The stream to read from.
- * @return The data, or NULL if it couldn't be allocated or read.
+ * @return The data, or NULL if it couldn't be allocated or read. This should be freed with
+ *     dsSceneLoadScratchData_freeReadBuffer().
  */
-DS_SCENE_EXPORT void* dsSceneLoadScratchData_readUntilEnd(uint32_t* outSize,
+DS_SCENE_EXPORT void* dsSceneLoadScratchData_readUntilEnd(size_t* outSize,
 	dsSceneLoadScratchData* scratchData, dsStream* stream);
 
 /**
- * @brief Pops allocated data from the scratch data.
- *
- * This deallocates the last allocated memory.
- *
+ * @brief Frees a buffer used for reading.
  * @remark errno will be set on failure.
- * @param scratchData The scratch data to pop from.
- * @param size The number of bytes from the previous allocation to remove.
- * @return False if the parameters are invalid.
+ * @param scratchData The scratch data.
+ * @param buffer The buffer provided by dsSceneLoadScratchData_readUntilEnd().
+ * @return False if an error occurred.
  */
-DS_SCENE_EXPORT bool dsSceneLoadScratchData_popData(dsSceneLoadScratchData* scratchData,
-	uint32_t size);
+DS_SCENE_EXPORT bool dsSceneLoadScratchData_freeReadBuffer(dsSceneLoadScratchData* scratchData,
+	void* buffer);
 
 /**
  * @brief Pushes scene resources to be used during load.

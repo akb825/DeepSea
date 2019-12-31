@@ -147,9 +147,9 @@ struct dsSceneLoadScratchData
 	dsAllocator* allocator;
 	dsCommandBuffer* commandBuffer;
 
-	uint8_t* data;
-	uint32_t dataSize;
-	uint32_t maxDataSize;
+	void* readBuffer;
+	size_t readBufferSize;
+	bool readBufferUsed;
 
 	dsSceneResources** sceneResources;
 	uint32_t sceneResourceCount;

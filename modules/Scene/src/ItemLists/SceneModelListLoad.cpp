@@ -44,7 +44,8 @@ dsSceneItemList* dsSceneModelList_load(const dsSceneLoadContext* loadContext,
 	auto fbDynamicRenderStates = fbModelList->dynamicRenderStates();
 	auto fbCullName = fbModelList->cullName();
 
-	uint32_t instanceDataSize = 0;
+	dsAllocator* scratchAllocator = dsSceneLoadScratchData_getAllocator(scratchData);
+	DS_ASSERT(scratchAllocator);
 	uint32_t instanceDataCount = 0;
 	dsSceneInstanceData** instanceData = nullptr;
 	dsDynamicRenderStates dynamicRenderStates;
@@ -53,12 +54,11 @@ dsSceneItemList* dsSceneModelList_load(const dsSceneLoadContext* loadContext,
 	if (fbInstanceData && fbInstanceData->size() > 0)
 	{
 		instanceDataCount = fbInstanceData->size();
-		instanceDataSize = static_cast<uint32_t>(instanceDataCount*sizeof(dsSceneInstanceData*));
-		instanceData = reinterpret_cast<dsSceneInstanceData**>(dsSceneLoadScratchData_allocate(
-			scratchData, instanceDataSize));
+		instanceData = DS_ALLOCATE_OBJECT_ARRAY(scratchAllocator, dsSceneInstanceData*,
+			instanceDataCount);
 		if (!instanceData)
 		{
-			instanceDataSize = 0;
+			instanceDataCount = 0;
 			goto finished;
 		}
 
@@ -148,9 +148,7 @@ finished:
 	// instanceDataCount should be the number that we need to clean up.
 	for (uint32_t i = 0; i < instanceDataCount; ++i)
 		dsSceneInstanceData_destroy(instanceData[i]);
-	dsSceneLoadScratchData_popData(scratchData, instanceDataSize);
+	DS_VERIFY(dsAllocator_free(scratchAllocator, instanceData));
 
 	return reinterpret_cast<dsSceneItemList*>(modelList);
 }
-
-

@@ -18,9 +18,12 @@
 
 #include "Flatbuffers/ModelNode_generated.h"
 #include "SceneLoadContextInternal.h"
+
+#include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Log.h>
+
 #include <DeepSea/Scene/Flatbuffers/SceneFlatbufferHelpers.h>
 #include <DeepSea/Scene/Nodes/SceneNode.h>
 #include <DeepSea/Scene/SceneLoadScratchData.h>
@@ -57,27 +60,32 @@ dsSceneNode* dsSceneModelNode_load(const dsSceneLoadContext* loadContext,
 	auto fbExtraItemLists = fbModelNode->extraItemLists();
 	auto fbModelInfos = fbModelNode->models();
 	auto fbBounds = fbModelNode->bounds();
-	uint32_t extraItemListSize = 0;
+
 	uint32_t extraItemCount = 0;
 	const char** extraItems = nullptr;
 	uint32_t modelInfoCount = fbModelInfos->size();
-	uint32_t modelInfoSize = 0;
 	dsSceneModelInitInfo* modelInfos = nullptr;
 	uint32_t resourceCount = 0;
 	dsSceneResources** resources = nullptr;
 
+	dsAllocator* scratchAllocator = dsSceneLoadScratchData_getAllocator(scratchData);
+	DS_ASSERT(scratchAllocator);
+
+	size_t tempSize = modelInfoCount*sizeof(dsSceneModelInitInfo);
+	if (fbExtraItemLists && fbExtraItemLists->size() > 0)
+		tempSize += fbExtraItemLists->size()*sizeof(const char*);
+	void* tempBuffer = dsAllocator_alloc(scratchAllocator, tempSize);
+	if (!tempBuffer)
+		return nullptr;
+
+	dsBufferAllocator bufferAlloc;
+	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, tempBuffer, tempSize));
+
 	if (fbExtraItemLists && fbExtraItemLists->size() > 0)
 	{
 		extraItemCount = fbExtraItemLists->size();
-		extraItemListSize = static_cast<uint32_t>(sizeof(const char*)*extraItemCount);
-		extraItems = reinterpret_cast<const char**>(dsSceneLoadScratchData_allocate(scratchData,
-			extraItemListSize));
-		if (!extraItems)
-		{
-			extraItemListSize = 0;
-			goto finished;
-		}
-
+		extraItems = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, const char*, extraItemCount);
+		DS_ASSERT(extraItems);
 		for (uint32_t i = 0; i < extraItemCount; ++i)
 		{
 			auto extraItem = (*fbExtraItemLists)[i];
@@ -92,15 +100,8 @@ dsSceneNode* dsSceneModelNode_load(const dsSceneLoadContext* loadContext,
 		}
 	}
 
-	modelInfoSize = static_cast<uint32_t>(modelInfoCount*sizeof(dsSceneModelInitInfo));
-	modelInfos = reinterpret_cast<dsSceneModelInitInfo*>(dsSceneLoadScratchData_allocate(
-		scratchData, modelInfoSize));
-	if (!modelInfos)
-	{
-		modelInfoSize = 0;
-		goto finished;
-	}
-
+	modelInfos = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsSceneModelInitInfo, modelInfoCount);
+	DS_ASSERT(modelInfos);
 	for (uint32_t i = 0; i < modelInfoCount; ++i)
 	{
 		auto fbModelInfo = (*fbModelInfos)[i];
@@ -176,8 +177,7 @@ dsSceneNode* dsSceneModelNode_load(const dsSceneLoadContext* loadContext,
 		fbBounds ? &DeepSeaScene::convert(*fbBounds) : nullptr));
 
 finished:
-	DS_VERIFY(dsSceneLoadScratchData_popData(scratchData, modelInfoSize));
-	DS_VERIFY(dsSceneLoadScratchData_popData(scratchData, extraItemListSize));
+	DS_VERIFY(dsAllocator_free(scratchAllocator, tempBuffer));
 	if (embeddedResources)
 		DS_VERIFY(dsSceneLoadScratchData_popSceneResources(scratchData, 1));
 

@@ -46,35 +46,27 @@ dsSceneLoadScratchData* dsSceneLoadScratchData_create(dsAllocator* allocator,
 
 	scratchData->allocator = dsAllocator_keepPointer(allocator);
 	scratchData->commandBuffer = commandBuffer;
-	scratchData->data = NULL;
-	scratchData->dataSize = 0;
-	scratchData->maxDataSize = 0;
+	scratchData->readBuffer = NULL;
+	scratchData->readBufferSize = 0;
+	scratchData->readBufferUsed = false;
 	scratchData->sceneResources = NULL;
 	scratchData->sceneResourceCount = 0;
 	scratchData->maxSceneResources = 0;
 	return scratchData;
 }
 
-void* dsSceneLoadScratchData_allocate(dsSceneLoadScratchData* scratchData, uint32_t size)
+dsAllocator* dsSceneLoadScratchData_getAllocator(dsSceneLoadScratchData* scratchData)
 {
-	size = DS_ALIGNED_SIZE(size);
-	if (!scratchData || size == 0)
+	if (!scratchData)
 	{
 		errno = EINVAL;
 		return NULL;
 	}
 
-	uint32_t offset = scratchData->dataSize;
-	if (!DS_RESIZEABLE_ARRAY_ADD(scratchData->allocator, scratchData->data, scratchData->dataSize,
-			scratchData->maxDataSize, size))
-	{
-		return NULL;
-	}
-
-	return scratchData->data + offset;
+	return scratchData->allocator;
 }
 
-void* dsSceneLoadScratchData_readUntilEnd(uint32_t* outSize, dsSceneLoadScratchData* scratchData,
+void* dsSceneLoadScratchData_readUntilEnd(size_t* outSize, dsSceneLoadScratchData* scratchData,
 	dsStream* stream)
 {
 	if (!outSize || !scratchData || !stream)
@@ -83,76 +75,36 @@ void* dsSceneLoadScratchData_readUntilEnd(uint32_t* outSize, dsSceneLoadScratchD
 		return NULL;
 	}
 
-	uint32_t offset = scratchData->dataSize;
-	if (stream->seekFunc && stream->tellFunc)
-	{
-		uint64_t position = dsStream_tell(stream);
-		if (position == DS_STREAM_INVALID_POS || !dsStream_seek(stream, 0, dsStreamSeekWay_End))
-			return NULL;
-
-		uint64_t end = dsStream_tell(stream);
-		if (end == DS_STREAM_INVALID_POS ||
-			!dsStream_seek(stream, position, dsStreamSeekWay_Beginning))
-		{
-			return NULL;
-		}
-
-		uint32_t readSize = (uint32_t)(end - position);
-		if (!DS_RESIZEABLE_ARRAY_ADD(scratchData->allocator, scratchData->data,
-				scratchData->dataSize, scratchData->maxDataSize, readSize))
-		{
-			return NULL;
-		}
-
-		size_t read = dsStream_read(stream, scratchData->data + offset, readSize);
-		if (read != readSize)
-		{
-			errno = EIO;
-			return NULL;
-		}
-	}
+	if (scratchData->readBufferUsed)
+		return dsStream_readUntilEnd(outSize, stream, scratchData->allocator);
 	else
 	{
-		uint8_t tempBuffer[1024];
-		do
+		if (!dsStream_readUntilEndReuse(&scratchData->readBuffer, outSize,
+				&scratchData->readBufferSize, stream, scratchData->allocator))
 		{
-			uint32_t readSize = (uint32_t)dsStream_read(stream, tempBuffer, sizeof(tempBuffer));
-			if (readSize == 0)
-				break;
+			return NULL;
+		}
 
-			uint32_t curOffset = scratchData->dataSize;
-			if (!DS_RESIZEABLE_ARRAY_ADD(scratchData->allocator, scratchData->data,
-					scratchData->dataSize, scratchData->maxDataSize, readSize))
-			{
-				return NULL;
-			}
-
-			memcpy(scratchData->data + curOffset, tempBuffer, readSize);
-		} while (true);
+		scratchData->readBufferUsed = true;
+		return scratchData->readBuffer;
 	}
-
-	*outSize = scratchData->dataSize - offset;
-
-	// Keep data aligned.
-	uint32_t alignedSize = DS_ALIGNED_SIZE(*outSize);
-	if (!DS_RESIZEABLE_ARRAY_ADD(scratchData->allocator, scratchData->data, scratchData->dataSize,
-			scratchData->maxDataSize, alignedSize - *outSize))
-	{
-		return NULL;
-	}
-	return scratchData->data + offset;
 }
 
-bool dsSceneLoadScratchData_popData(dsSceneLoadScratchData* scratchData, uint32_t size)
+bool dsSceneLoadScratchData_freeReadBuffer(dsSceneLoadScratchData* scratchData, void* buffer)
 {
-	size = DS_ALIGNED_SIZE(size);
-	if (!scratchData || size > scratchData->dataSize)
+	if (!scratchData)
 	{
 		errno = EINVAL;
 		return false;
 	}
 
-	scratchData->dataSize -= size;
+	if (buffer == scratchData->readBuffer)
+	{
+		DS_ASSERT(scratchData->readBufferUsed);
+		scratchData->readBufferUsed = false;
+	}
+	else
+		DS_VERIFY(dsAllocator_free(scratchData->allocator, buffer));
 	return true;
 }
 
@@ -259,7 +211,7 @@ void dsSceneLoadScratchData_destroy(dsSceneLoadScratchData* scratchData)
 	if (!scratchData)
 		return;
 
-	DS_VERIFY(dsAllocator_free(scratchData->allocator, scratchData->data));
+	DS_VERIFY(dsAllocator_free(scratchData->allocator, scratchData->readBuffer));
 	DS_VERIFY(dsAllocator_free(scratchData->allocator, scratchData->sceneResources));
 	DS_VERIFY(dsAllocator_free(scratchData->allocator, scratchData));
 }

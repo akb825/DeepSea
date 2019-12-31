@@ -17,7 +17,8 @@
 #pragma once
 
 #include <DeepSea/Core/Config.h>
-#include <DeepSea/Core/Types.h>
+
+#include <DeepSea/Core/Streams/Types.h>
 #include <DeepSea/Render/Types.h>
 #include <DeepSea/Scene/Export.h>
 #include <DeepSea/Scene/Types.h>
