@@ -762,32 +762,32 @@ FLATBUFFERS_STRUCT_END(Vector4f, 16);
 
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Color4f FLATBUFFERS_FINAL_CLASS {
  private:
-  float r_;
-  float g_;
-  float b_;
-  float a_;
+  float red_;
+  float green_;
+  float blue_;
+  float alpha_;
 
  public:
   Color4f() {
     memset(static_cast<void *>(this), 0, sizeof(Color4f));
   }
-  Color4f(float _r, float _g, float _b, float _a)
-      : r_(flatbuffers::EndianScalar(_r)),
-        g_(flatbuffers::EndianScalar(_g)),
-        b_(flatbuffers::EndianScalar(_b)),
-        a_(flatbuffers::EndianScalar(_a)) {
+  Color4f(float _red, float _green, float _blue, float _alpha)
+      : red_(flatbuffers::EndianScalar(_red)),
+        green_(flatbuffers::EndianScalar(_green)),
+        blue_(flatbuffers::EndianScalar(_blue)),
+        alpha_(flatbuffers::EndianScalar(_alpha)) {
   }
-  float r() const {
-    return flatbuffers::EndianScalar(r_);
+  float red() const {
+    return flatbuffers::EndianScalar(red_);
   }
-  float g() const {
-    return flatbuffers::EndianScalar(g_);
+  float green() const {
+    return flatbuffers::EndianScalar(green_);
   }
-  float b() const {
-    return flatbuffers::EndianScalar(b_);
+  float blue() const {
+    return flatbuffers::EndianScalar(blue_);
   }
-  float a() const {
-    return flatbuffers::EndianScalar(a_);
+  float alpha() const {
+    return flatbuffers::EndianScalar(alpha_);
   }
 };
 FLATBUFFERS_STRUCT_END(Color4f, 16);

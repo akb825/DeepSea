@@ -40,7 +40,7 @@ dsSceneItemList* dsSceneItemList_load(dsAllocator* allocator, dsAllocator* resou
 		resourceAllocator, foundType->userData, name, reinterpret_cast<const uint8_t*>(data), size);
 	if (!itemList)
 	{
-		DS_LOG_ERROR_F(DS_SCENE_LOG_TAG, "Failed to load scene item list '%s': %s.", type,
+		DS_LOG_ERROR_F(DS_SCENE_LOG_TAG, "Failed to load scene item list '%s': %s.", name,
 			dsErrorString(errno));
 	}
 	return itemList;

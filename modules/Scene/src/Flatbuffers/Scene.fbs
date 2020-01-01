@@ -146,10 +146,10 @@ table RenderSubpass
 	colorAttachments : [AttachmentRef];
 
 	// Reference to the depth/stencil attachment.
-	depthStencilAttachment : [AttachmentRef];
+	depthStencilAttachment : AttachmentRef;
 
 	// The item lists to draw within the subpass.
-	drawLists : [SceneItemList];
+	drawLists : [SceneItemList] (required);
 }
 
 // Structure defining a dependency between subpasses.
@@ -194,9 +194,6 @@ table RenderPass
 
 	// Explicit subpass dependencies. If null, default dependencies will be used.
 	dependencies : [SubpassDependency];
-
-	// Whether or not to use default subpass dependencies.
-	defaultDependencies : bool;
 }
 
 // Union for a scene pipeline item, which can be a render pass or list of scene item lists for
@@ -204,7 +201,7 @@ table RenderPass
 union ScenePipelineItemUnion
 {
 	RenderPass,
-	SceneItemLists
+	SceneItemList
 }
 
 // Wrapper for ScenePipelineItemUnion so it can be used in a vector.

@@ -17,6 +17,8 @@
 #pragma once
 
 #include <DeepSea/Core/Config.h>
+
+#include <DeepSea/Core/Streams/Types.h>
 #include <DeepSea/Scene/Export.h>
 #include <DeepSea/Scene/Types.h>
 
@@ -59,6 +61,77 @@ DS_SCENE_EXPORT dsScene* dsScene_create(dsAllocator* allocator, dsRenderer* rend
 	const dsScenePipelineItem* pipeline, uint32_t pipelineCount,
 	dsSceneGlobalData* const* globalData, uint32_t globalDataCount, void* userData,
 	dsDestroySceneUserDataFunction destroyUserDataFunc);
+
+/**
+ * @brief Loads a scene from a file.
+ * @remark errno will be set on failure.
+ * @param allocator The allocator to create the scene.
+ * @param resourceAllocator The allocator to create graphics resources with. If NULL, it will use
+ *     the scene allocator.
+ * @param loadContext The scene load context.
+ * @param scratchData The scene scratch data.
+ * @param filePath The file path for the scene to load.
+ * @param userData User data to hold with the scene.
+ * @param destroyUserDataFunc Function to destroy the user data for the scene.
+ * @return The scene or NULL if an error occurred.
+ */
+DS_SCENE_EXPORT dsScene* dsScene_loadFile(dsAllocator* allocator, dsAllocator* resourceAllocator,
+	const dsSceneLoadContext* loadContext, dsSceneLoadScratchData* scratchData,
+	const char* filePath, void* userData, dsDestroySceneUserDataFunction destroyUserDataFunc);
+
+/**
+ * @brief Loads a scene from a resource file.
+ * @remark errno will be set on failure.
+ * @param allocator The allocator to create the scene.
+ * @param resourceAllocator The allocator to create graphics resources with. If NULL, it will use
+ *     the scene allocator.
+ * @param loadContext The scene load context.
+ * @param scratchData The scene scratch data.
+ * @param type The resource type.
+ * @param filePath The file path for the scene to load.
+ * @param userData User data to hold with the scene.
+ * @param destroyUserDataFunc Function to destroy the user data for the scene.
+ * @return The scene or NULL if an error occurred.
+ */
+DS_SCENE_EXPORT dsScene* dsScene_loadResource(dsAllocator* allocator,
+	dsAllocator* resourceAllocator, const dsSceneLoadContext* loadContext,
+	dsSceneLoadScratchData* scratchData, dsFileResourceType type, const char* filePath,
+	void* userData, dsDestroySceneUserDataFunction destroyUserDataFunc);
+
+/**
+ * @brief Loads scene from a stream.
+ * @remark errno will be set on failure.
+ * @param allocator The allocator to create the scene.
+ * @param resourceAllocator The allocator to create graphics resources with. If NULL, it will use
+ *     the scene allocator.
+ * @param loadContext The scene load context.
+ * @param scratchData The scene scratch data.
+ * @param stream The stream for the scene to load.
+ * @param userData User data to hold with the scene.
+ * @param destroyUserDataFunc Function to destroy the user data for the scene.
+ * @return The scene or NULL if an error occurred.
+ */
+DS_SCENE_EXPORT dsScene* dsScene_loadStream(dsAllocator* allocator, dsAllocator* resourceAllocator,
+	const dsSceneLoadContext* loadContext, dsSceneLoadScratchData* scratchData, dsStream* stream,
+	void* userData, dsDestroySceneUserDataFunction destroyUserDataFunc);
+
+/**
+ * @brief Loads scene from a data buffer.
+ * @remark errno will be set on failure.
+ * @param allocator The allocator to create the scene.
+ * @param resourceAllocator The allocator to create graphics resources with. If NULL, it will use
+ *     the scene allocator.
+ * @param loadContext The scene load context.
+ * @param scratchData The scene scratch data.
+ * @param data The data for the scene. The data isn't used after this call.
+ * @param size The size of the data buffer.
+ * @param userData User data to hold with the scene.
+ * @param destroyUserDataFunc Function to destroy the user data for the scene.
+ * @return The scene or NULL if an error occurred.
+ */
+DS_SCENE_EXPORT dsScene* dsScene_loadData(dsAllocator* allocator, dsAllocator* resourceAllocator,
+	const dsSceneLoadContext* loadContext, dsSceneLoadScratchData* scratchData, const void* data,
+	size_t size, void* userData, dsDestroySceneUserDataFunction destroyUserDataFunc);
 
 /**
  * @brief Gets the allocator used for a scene.

@@ -67,23 +67,15 @@ class RenderSubpass(object):
         return 0
 
     # RenderSubpass
-    def DepthStencilAttachment(self, j):
+    def DepthStencilAttachment(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(10))
         if o != 0:
-            x = self._tab.Vector(o)
-            x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * 8
+            x = o + self._tab.Pos
             from .AttachmentRef import AttachmentRef
             obj = AttachmentRef()
             obj.Init(self._tab.Bytes, x)
             return obj
         return None
-
-    # RenderSubpass
-    def DepthStencilAttachmentLength(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(10))
-        if o != 0:
-            return self._tab.VectorLen(o)
-        return 0
 
     # RenderSubpass
     def DrawLists(self, j):
@@ -111,8 +103,7 @@ def RenderSubpassAddInputAttachments(builder, inputAttachments): builder.Prepend
 def RenderSubpassStartInputAttachmentsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
 def RenderSubpassAddColorAttachments(builder, colorAttachments): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(colorAttachments), 0)
 def RenderSubpassStartColorAttachmentsVector(builder, numElems): return builder.StartVector(8, numElems, 4)
-def RenderSubpassAddDepthStencilAttachment(builder, depthStencilAttachment): builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(depthStencilAttachment), 0)
-def RenderSubpassStartDepthStencilAttachmentVector(builder, numElems): return builder.StartVector(8, numElems, 4)
+def RenderSubpassAddDepthStencilAttachment(builder, depthStencilAttachment): builder.PrependStructSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(depthStencilAttachment), 0)
 def RenderSubpassAddDrawLists(builder, drawLists): builder.PrependUOffsetTRelativeSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(drawLists), 0)
 def RenderSubpassStartDrawListsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
 def RenderSubpassEnd(builder): return builder.EndObject()

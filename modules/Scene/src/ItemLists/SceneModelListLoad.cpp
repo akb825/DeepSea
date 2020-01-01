@@ -100,10 +100,10 @@ dsSceneItemList* dsSceneModelList_load(const dsSceneLoadContext* loadContext,
 		auto fbBlendConstants = fbDynamicRenderStates->blendConstants();
 		if (fbBlendConstants)
 		{
-			dynamicRenderStates.blendConstants.r = fbBlendConstants->r();
-			dynamicRenderStates.blendConstants.g = fbBlendConstants->g();
-			dynamicRenderStates.blendConstants.b = fbBlendConstants->b();
-			dynamicRenderStates.blendConstants.a = fbBlendConstants->a();
+			dynamicRenderStates.blendConstants.r = fbBlendConstants->red();
+			dynamicRenderStates.blendConstants.g = fbBlendConstants->green();
+			dynamicRenderStates.blendConstants.b = fbBlendConstants->blue();
+			dynamicRenderStates.blendConstants.a = fbBlendConstants->alpha();
 		}
 		else
 		{

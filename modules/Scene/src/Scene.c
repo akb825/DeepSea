@@ -22,13 +22,20 @@
 #include <DeepSea/Core/Containers/HashTable.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
+#include <DeepSea/Core/Streams/FileStream.h>
+#include <DeepSea/Core/Streams/ResourceStream.h>
+#include <DeepSea/Core/Streams/Stream.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
+#include <DeepSea/Core/Profile.h>
+
 #include <DeepSea/Math/Matrix44.h>
+
 #include <DeepSea/Scene/ItemLists/SceneItemList.h>
 #include <DeepSea/Scene/Nodes/SceneNode.h>
 #include <DeepSea/Scene/SceneGlobalData.h>
+#include <DeepSea/Scene/SceneLoadScratchData.h>
 #include <DeepSea/Scene/SceneRenderPass.h>
 
 #include <string.h>
@@ -152,6 +159,11 @@ static void dummyDestroyFunc(dsSceneNode* node)
 {
 	DS_UNUSED(node);
 }
+
+dsScene* dsScene_loadImpl(dsAllocator* allocator, dsAllocator* resourceAllocator,
+	const dsSceneLoadContext* loadContext, dsSceneLoadScratchData* scratchData, const void* data,
+	size_t dataSize, void* userData, dsDestroySceneUserDataFunction destroyUserDataFunc,
+	const char* name);
 
 dsScene* dsScene_create(dsAllocator* allocator, dsRenderer* renderer,
 	const dsSceneItemLists* sharedItems, uint32_t sharedItemCount,
@@ -332,6 +344,112 @@ dsScene* dsScene_create(dsAllocator* allocator, dsRenderer* renderer,
 	DS_ASSERT(curItems == nameCount);
 
 	return scene;
+}
+
+dsScene* dsScene_loadFile(dsAllocator* allocator, dsAllocator* resourceAllocator,
+	const dsSceneLoadContext* loadContext, dsSceneLoadScratchData* scratchData,
+	const char* filePath, void* userData, dsDestroySceneUserDataFunction destroyUserDataFunc)
+{
+	DS_PROFILE_FUNC_START();
+
+	if (!allocator || !loadContext || !scratchData || !filePath)
+	{
+		errno = EINVAL;
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
+	if (!resourceAllocator)
+		resourceAllocator = allocator;
+
+	dsFileStream stream;
+	if (!dsFileStream_openPath(&stream, filePath, "rb"))
+	{
+		DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Couldn't open scene file '%s'.", filePath);
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
+	size_t size;
+	void* buffer = dsSceneLoadScratchData_readUntilEnd(&size, scratchData, (dsStream*)&stream);
+	dsFileStream_close(&stream);
+	if (!buffer)
+		DS_PROFILE_FUNC_RETURN(NULL);
+
+	dsScene* scene = dsScene_loadImpl(allocator, resourceAllocator, loadContext, scratchData,
+		buffer, size, userData, destroyUserDataFunc, filePath);
+	DS_VERIFY(dsSceneLoadScratchData_freeReadBuffer(scratchData, buffer));
+	DS_PROFILE_FUNC_RETURN(scene);
+}
+
+dsScene* dsScene_loadResource(dsAllocator* allocator, dsAllocator* resourceAllocator,
+	const dsSceneLoadContext* loadContext, dsSceneLoadScratchData* scratchData,
+	dsFileResourceType type, const char* filePath,
+	void* userData, dsDestroySceneUserDataFunction destroyUserDataFunc)
+{
+	DS_PROFILE_FUNC_START();
+
+	if (!allocator || !loadContext || !scratchData || !filePath)
+	{
+		errno = EINVAL;
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
+	dsResourceStream stream;
+	if (!dsResourceStream_open(&stream, type, filePath, "rb"))
+	{
+		DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Couldn't open scene node file '%s'.", filePath);
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
+	size_t size;
+	void* buffer = dsSceneLoadScratchData_readUntilEnd(&size, scratchData, (dsStream*)&stream);
+	dsResourceStream_close(&stream);
+	if (!buffer)
+		DS_PROFILE_FUNC_RETURN(NULL);
+
+	dsScene* scene = dsScene_loadImpl(allocator, resourceAllocator, loadContext, scratchData,
+		buffer, size, userData, destroyUserDataFunc, filePath);
+	DS_VERIFY(dsSceneLoadScratchData_freeReadBuffer(scratchData, buffer));
+	DS_PROFILE_FUNC_RETURN(scene);
+}
+
+dsScene* dsScene_loadStream(dsAllocator* allocator, dsAllocator* resourceAllocator,
+	const dsSceneLoadContext* loadContext, dsSceneLoadScratchData* scratchData, dsStream* stream,
+	void* userData, dsDestroySceneUserDataFunction destroyUserDataFunc)
+{
+	DS_PROFILE_FUNC_START();
+
+	if (!allocator || !loadContext || !scratchData || !stream)
+	{
+		errno = EINVAL;
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
+	size_t size;
+	void* buffer = dsSceneLoadScratchData_readUntilEnd(&size, scratchData, stream);
+	if (!buffer)
+		DS_PROFILE_FUNC_RETURN(NULL);
+
+	dsScene* scene = dsScene_loadImpl(allocator, resourceAllocator, loadContext, scratchData,
+		buffer, size, userData, destroyUserDataFunc, NULL);
+	DS_VERIFY(dsSceneLoadScratchData_freeReadBuffer(scratchData, buffer));
+	DS_PROFILE_FUNC_RETURN(scene);
+}
+
+dsScene* dsScene_loadData(dsAllocator* allocator, dsAllocator* resourceAllocator,
+	const dsSceneLoadContext* loadContext, dsSceneLoadScratchData* scratchData, const void* data,
+	size_t size, void* userData, dsDestroySceneUserDataFunction destroyUserDataFunc)
+{
+	DS_PROFILE_FUNC_START();
+
+	if (!allocator || !loadContext || !scratchData || !data || size == 0)
+	{
+		errno = EINVAL;
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
+	dsScene* scene = dsScene_loadImpl(allocator, resourceAllocator, loadContext, scratchData, data,
+		size, userData, destroyUserDataFunc, NULL);
+	DS_PROFILE_FUNC_RETURN(scene);
 }
 
 dsAllocator* dsScene_getAllocator(const dsScene* scene)

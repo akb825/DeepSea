@@ -103,16 +103,16 @@ bool VerifyClearValueVector(flatbuffers::Verifier &verifier, const flatbuffers::
 enum class ScenePipelineItemUnion : uint8_t {
   NONE = 0,
   RenderPass = 1,
-  SceneItemLists = 2,
+  SceneItemList = 2,
   MIN = NONE,
-  MAX = SceneItemLists
+  MAX = SceneItemList
 };
 
 inline const ScenePipelineItemUnion (&EnumValuesScenePipelineItemUnion())[3] {
   static const ScenePipelineItemUnion values[] = {
     ScenePipelineItemUnion::NONE,
     ScenePipelineItemUnion::RenderPass,
-    ScenePipelineItemUnion::SceneItemLists
+    ScenePipelineItemUnion::SceneItemList
   };
   return values;
 }
@@ -121,14 +121,14 @@ inline const char * const *EnumNamesScenePipelineItemUnion() {
   static const char * const names[] = {
     "NONE",
     "RenderPass",
-    "SceneItemLists",
+    "SceneItemList",
     nullptr
   };
   return names;
 }
 
 inline const char *EnumNameScenePipelineItemUnion(ScenePipelineItemUnion e) {
-  if (e < ScenePipelineItemUnion::NONE || e > ScenePipelineItemUnion::SceneItemLists) return "";
+  if (e < ScenePipelineItemUnion::NONE || e > ScenePipelineItemUnion::SceneItemList) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesScenePipelineItemUnion()[index];
 }
@@ -141,8 +141,8 @@ template<> struct ScenePipelineItemUnionTraits<RenderPass> {
   static const ScenePipelineItemUnion enum_value = ScenePipelineItemUnion::RenderPass;
 };
 
-template<> struct ScenePipelineItemUnionTraits<SceneItemLists> {
-  static const ScenePipelineItemUnion enum_value = ScenePipelineItemUnion::SceneItemLists;
+template<> struct ScenePipelineItemUnionTraits<SceneItemList> {
+  static const ScenePipelineItemUnion enum_value = ScenePipelineItemUnion::SceneItemList;
 };
 
 bool VerifyScenePipelineItemUnion(flatbuffers::Verifier &verifier, const void *obj, ScenePipelineItemUnion type);
@@ -755,8 +755,8 @@ struct RenderSubpass FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const flatbuffers::Vector<const AttachmentRef *> *colorAttachments() const {
     return GetPointer<const flatbuffers::Vector<const AttachmentRef *> *>(VT_COLORATTACHMENTS);
   }
-  const flatbuffers::Vector<const AttachmentRef *> *depthStencilAttachment() const {
-    return GetPointer<const flatbuffers::Vector<const AttachmentRef *> *>(VT_DEPTHSTENCILATTACHMENT);
+  const AttachmentRef *depthStencilAttachment() const {
+    return GetStruct<const AttachmentRef *>(VT_DEPTHSTENCILATTACHMENT);
   }
   const flatbuffers::Vector<flatbuffers::Offset<SceneItemList>> *drawLists() const {
     return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<SceneItemList>> *>(VT_DRAWLISTS);
@@ -769,9 +769,8 @@ struct RenderSubpass FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            verifier.VerifyVector(inputAttachments()) &&
            VerifyOffset(verifier, VT_COLORATTACHMENTS) &&
            verifier.VerifyVector(colorAttachments()) &&
-           VerifyOffset(verifier, VT_DEPTHSTENCILATTACHMENT) &&
-           verifier.VerifyVector(depthStencilAttachment()) &&
-           VerifyOffset(verifier, VT_DRAWLISTS) &&
+           VerifyField<AttachmentRef>(verifier, VT_DEPTHSTENCILATTACHMENT) &&
+           VerifyOffsetRequired(verifier, VT_DRAWLISTS) &&
            verifier.VerifyVector(drawLists()) &&
            verifier.VerifyVectorOfTables(drawLists()) &&
            verifier.EndTable();
@@ -790,8 +789,8 @@ struct RenderSubpassBuilder {
   void add_colorAttachments(flatbuffers::Offset<flatbuffers::Vector<const AttachmentRef *>> colorAttachments) {
     fbb_.AddOffset(RenderSubpass::VT_COLORATTACHMENTS, colorAttachments);
   }
-  void add_depthStencilAttachment(flatbuffers::Offset<flatbuffers::Vector<const AttachmentRef *>> depthStencilAttachment) {
-    fbb_.AddOffset(RenderSubpass::VT_DEPTHSTENCILATTACHMENT, depthStencilAttachment);
+  void add_depthStencilAttachment(const AttachmentRef *depthStencilAttachment) {
+    fbb_.AddStruct(RenderSubpass::VT_DEPTHSTENCILATTACHMENT, depthStencilAttachment);
   }
   void add_drawLists(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<SceneItemList>>> drawLists) {
     fbb_.AddOffset(RenderSubpass::VT_DRAWLISTS, drawLists);
@@ -805,6 +804,7 @@ struct RenderSubpassBuilder {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<RenderSubpass>(end);
     fbb_.Required(o, RenderSubpass::VT_NAME);
+    fbb_.Required(o, RenderSubpass::VT_DRAWLISTS);
     return o;
   }
 };
@@ -814,7 +814,7 @@ inline flatbuffers::Offset<RenderSubpass> CreateRenderSubpass(
     flatbuffers::Offset<flatbuffers::String> name = 0,
     flatbuffers::Offset<flatbuffers::Vector<uint32_t>> inputAttachments = 0,
     flatbuffers::Offset<flatbuffers::Vector<const AttachmentRef *>> colorAttachments = 0,
-    flatbuffers::Offset<flatbuffers::Vector<const AttachmentRef *>> depthStencilAttachment = 0,
+    const AttachmentRef *depthStencilAttachment = 0,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<SceneItemList>>> drawLists = 0) {
   RenderSubpassBuilder builder_(_fbb);
   builder_.add_drawLists(drawLists);
@@ -830,19 +830,18 @@ inline flatbuffers::Offset<RenderSubpass> CreateRenderSubpassDirect(
     const char *name = nullptr,
     const std::vector<uint32_t> *inputAttachments = nullptr,
     const std::vector<AttachmentRef> *colorAttachments = nullptr,
-    const std::vector<AttachmentRef> *depthStencilAttachment = nullptr,
+    const AttachmentRef *depthStencilAttachment = 0,
     const std::vector<flatbuffers::Offset<SceneItemList>> *drawLists = nullptr) {
   auto name__ = name ? _fbb.CreateString(name) : 0;
   auto inputAttachments__ = inputAttachments ? _fbb.CreateVector<uint32_t>(*inputAttachments) : 0;
   auto colorAttachments__ = colorAttachments ? _fbb.CreateVectorOfStructs<AttachmentRef>(*colorAttachments) : 0;
-  auto depthStencilAttachment__ = depthStencilAttachment ? _fbb.CreateVectorOfStructs<AttachmentRef>(*depthStencilAttachment) : 0;
   auto drawLists__ = drawLists ? _fbb.CreateVector<flatbuffers::Offset<SceneItemList>>(*drawLists) : 0;
   return DeepSeaScene::CreateRenderSubpass(
       _fbb,
       name__,
       inputAttachments__,
       colorAttachments__,
-      depthStencilAttachment__,
+      depthStencilAttachment,
       drawLists__);
 }
 
@@ -852,8 +851,7 @@ struct RenderPass FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_FRAMEBUFFER = 6,
     VT_ATTACHMENTS = 8,
     VT_SUBPASSES = 10,
-    VT_DEPENDENCIES = 12,
-    VT_DEFAULTDEPENDENCIES = 14
+    VT_DEPENDENCIES = 12
   };
   const flatbuffers::String *name() const {
     return GetPointer<const flatbuffers::String *>(VT_NAME);
@@ -870,9 +868,6 @@ struct RenderPass FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const flatbuffers::Vector<const SubpassDependency *> *dependencies() const {
     return GetPointer<const flatbuffers::Vector<const SubpassDependency *> *>(VT_DEPENDENCIES);
   }
-  bool defaultDependencies() const {
-    return GetField<uint8_t>(VT_DEFAULTDEPENDENCIES, 0) != 0;
-  }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_NAME) &&
@@ -887,7 +882,6 @@ struct RenderPass FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            verifier.VerifyVectorOfTables(subpasses()) &&
            VerifyOffset(verifier, VT_DEPENDENCIES) &&
            verifier.VerifyVector(dependencies()) &&
-           VerifyField<uint8_t>(verifier, VT_DEFAULTDEPENDENCIES) &&
            verifier.EndTable();
   }
 };
@@ -910,9 +904,6 @@ struct RenderPassBuilder {
   void add_dependencies(flatbuffers::Offset<flatbuffers::Vector<const SubpassDependency *>> dependencies) {
     fbb_.AddOffset(RenderPass::VT_DEPENDENCIES, dependencies);
   }
-  void add_defaultDependencies(bool defaultDependencies) {
-    fbb_.AddElement<uint8_t>(RenderPass::VT_DEFAULTDEPENDENCIES, static_cast<uint8_t>(defaultDependencies), 0);
-  }
   explicit RenderPassBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
@@ -934,15 +925,13 @@ inline flatbuffers::Offset<RenderPass> CreateRenderPass(
     flatbuffers::Offset<flatbuffers::String> framebuffer = 0,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<Attachment>>> attachments = 0,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<RenderSubpass>>> subpasses = 0,
-    flatbuffers::Offset<flatbuffers::Vector<const SubpassDependency *>> dependencies = 0,
-    bool defaultDependencies = false) {
+    flatbuffers::Offset<flatbuffers::Vector<const SubpassDependency *>> dependencies = 0) {
   RenderPassBuilder builder_(_fbb);
   builder_.add_dependencies(dependencies);
   builder_.add_subpasses(subpasses);
   builder_.add_attachments(attachments);
   builder_.add_framebuffer(framebuffer);
   builder_.add_name(name);
-  builder_.add_defaultDependencies(defaultDependencies);
   return builder_.Finish();
 }
 
@@ -952,8 +941,7 @@ inline flatbuffers::Offset<RenderPass> CreateRenderPassDirect(
     const char *framebuffer = nullptr,
     const std::vector<flatbuffers::Offset<Attachment>> *attachments = nullptr,
     const std::vector<flatbuffers::Offset<RenderSubpass>> *subpasses = nullptr,
-    const std::vector<SubpassDependency> *dependencies = nullptr,
-    bool defaultDependencies = false) {
+    const std::vector<SubpassDependency> *dependencies = nullptr) {
   auto name__ = name ? _fbb.CreateString(name) : 0;
   auto framebuffer__ = framebuffer ? _fbb.CreateString(framebuffer) : 0;
   auto attachments__ = attachments ? _fbb.CreateVector<flatbuffers::Offset<Attachment>>(*attachments) : 0;
@@ -965,8 +953,7 @@ inline flatbuffers::Offset<RenderPass> CreateRenderPassDirect(
       framebuffer__,
       attachments__,
       subpasses__,
-      dependencies__,
-      defaultDependencies);
+      dependencies__);
 }
 
 struct ScenePipelineItem FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -984,8 +971,8 @@ struct ScenePipelineItem FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const RenderPass *item_as_RenderPass() const {
     return item_type() == ScenePipelineItemUnion::RenderPass ? static_cast<const RenderPass *>(item()) : nullptr;
   }
-  const SceneItemLists *item_as_SceneItemLists() const {
-    return item_type() == ScenePipelineItemUnion::SceneItemLists ? static_cast<const SceneItemLists *>(item()) : nullptr;
+  const SceneItemList *item_as_SceneItemList() const {
+    return item_type() == ScenePipelineItemUnion::SceneItemList ? static_cast<const SceneItemList *>(item()) : nullptr;
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -1000,8 +987,8 @@ template<> inline const RenderPass *ScenePipelineItem::item_as<RenderPass>() con
   return item_as_RenderPass();
 }
 
-template<> inline const SceneItemLists *ScenePipelineItem::item_as<SceneItemLists>() const {
-  return item_as_SceneItemLists();
+template<> inline const SceneItemList *ScenePipelineItem::item_as<SceneItemList>() const {
+  return item_as_SceneItemList();
 }
 
 struct ScenePipelineItemBuilder {
@@ -1229,8 +1216,8 @@ inline bool VerifyScenePipelineItemUnion(flatbuffers::Verifier &verifier, const 
       auto ptr = reinterpret_cast<const RenderPass *>(obj);
       return verifier.VerifyTable(ptr);
     }
-    case ScenePipelineItemUnion::SceneItemLists: {
-      auto ptr = reinterpret_cast<const SceneItemLists *>(obj);
+    case ScenePipelineItemUnion::SceneItemList: {
+      auto ptr = reinterpret_cast<const SceneItemList *>(obj);
       return verifier.VerifyTable(ptr);
     }
     default: return false;

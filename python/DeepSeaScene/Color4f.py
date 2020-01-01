@@ -12,18 +12,18 @@ class Color4f(object):
         self._tab = flatbuffers.table.Table(buf, pos)
 
     # Color4f
-    def R(self): return self._tab.Get(flatbuffers.number_types.Float32Flags, self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(0))
+    def Red(self): return self._tab.Get(flatbuffers.number_types.Float32Flags, self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(0))
     # Color4f
-    def G(self): return self._tab.Get(flatbuffers.number_types.Float32Flags, self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(4))
+    def Green(self): return self._tab.Get(flatbuffers.number_types.Float32Flags, self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(4))
     # Color4f
-    def B(self): return self._tab.Get(flatbuffers.number_types.Float32Flags, self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(8))
+    def Blue(self): return self._tab.Get(flatbuffers.number_types.Float32Flags, self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(8))
     # Color4f
-    def A(self): return self._tab.Get(flatbuffers.number_types.Float32Flags, self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(12))
+    def Alpha(self): return self._tab.Get(flatbuffers.number_types.Float32Flags, self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(12))
 
-def CreateColor4f(builder, r, g, b, a):
+def CreateColor4f(builder, red, green, blue, alpha):
     builder.Prep(4, 16)
-    builder.PrependFloat32(a)
-    builder.PrependFloat32(b)
-    builder.PrependFloat32(g)
-    builder.PrependFloat32(r)
+    builder.PrependFloat32(alpha)
+    builder.PrependFloat32(blue)
+    builder.PrependFloat32(green)
+    builder.PrependFloat32(red)
     return builder.Offset()

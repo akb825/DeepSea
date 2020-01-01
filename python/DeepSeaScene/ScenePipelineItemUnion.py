@@ -5,5 +5,5 @@
 class ScenePipelineItemUnion(object):
     NONE = 0
     RenderPass = 1
-    SceneItemLists = 2
+    SceneItemList = 2
 

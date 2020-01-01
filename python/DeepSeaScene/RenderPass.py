@@ -91,14 +91,7 @@ class RenderPass(object):
             return self._tab.VectorLen(o)
         return 0
 
-    # RenderPass
-    def DefaultDependencies(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(14))
-        if o != 0:
-            return bool(self._tab.Get(flatbuffers.number_types.BoolFlags, o + self._tab.Pos))
-        return False
-
-def RenderPassStart(builder): builder.StartObject(6)
+def RenderPassStart(builder): builder.StartObject(5)
 def RenderPassAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
 def RenderPassAddFramebuffer(builder, framebuffer): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(framebuffer), 0)
 def RenderPassAddAttachments(builder, attachments): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(attachments), 0)
@@ -107,5 +100,4 @@ def RenderPassAddSubpasses(builder, subpasses): builder.PrependUOffsetTRelativeS
 def RenderPassStartSubpassesVector(builder, numElems): return builder.StartVector(4, numElems, 4)
 def RenderPassAddDependencies(builder, dependencies): builder.PrependUOffsetTRelativeSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(dependencies), 0)
 def RenderPassStartDependenciesVector(builder, numElems): return builder.StartVector(28, numElems, 4)
-def RenderPassAddDefaultDependencies(builder, defaultDependencies): builder.PrependBoolSlot(5, defaultDependencies, 0)
 def RenderPassEnd(builder): return builder.EndObject()
