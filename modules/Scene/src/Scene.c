@@ -349,7 +349,7 @@ dsScene* dsScene_create(dsAllocator* allocator, dsRenderer* renderer,
 
 dsScene* dsScene_loadFile(dsAllocator* allocator, dsAllocator* resourceAllocator,
 	const dsSceneLoadContext* loadContext, dsSceneLoadScratchData* scratchData,
-	const char* filePath, void* userData, dsDestroySceneUserDataFunction destroyUserDataFunc)
+	void* userData, dsDestroySceneUserDataFunction destroyUserDataFunc, const char* filePath)
 {
 	DS_PROFILE_FUNC_START();
 
@@ -383,8 +383,8 @@ dsScene* dsScene_loadFile(dsAllocator* allocator, dsAllocator* resourceAllocator
 
 dsScene* dsScene_loadResource(dsAllocator* allocator, dsAllocator* resourceAllocator,
 	const dsSceneLoadContext* loadContext, dsSceneLoadScratchData* scratchData,
-	dsFileResourceType type, const char* filePath, void* userData,
-	dsDestroySceneUserDataFunction destroyUserDataFunc)
+	void* userData, dsDestroySceneUserDataFunction destroyUserDataFunc, dsFileResourceType type,
+	const char* filePath)
 {
 	DS_PROFILE_FUNC_START();
 
@@ -397,7 +397,7 @@ dsScene* dsScene_loadResource(dsAllocator* allocator, dsAllocator* resourceAlloc
 	dsResourceStream stream;
 	if (!dsResourceStream_open(&stream, type, filePath, "rb"))
 	{
-		DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Couldn't open scene file '%s'.", filePath);
+		DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Couldn't open scene node file '%s'.", filePath);
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
@@ -414,8 +414,8 @@ dsScene* dsScene_loadResource(dsAllocator* allocator, dsAllocator* resourceAlloc
 }
 
 dsScene* dsScene_loadStream(dsAllocator* allocator, dsAllocator* resourceAllocator,
-	const dsSceneLoadContext* loadContext, dsSceneLoadScratchData* scratchData, dsStream* stream,
-	void* userData, dsDestroySceneUserDataFunction destroyUserDataFunc)
+	const dsSceneLoadContext* loadContext, dsSceneLoadScratchData* scratchData, void* userData,
+	dsDestroySceneUserDataFunction destroyUserDataFunc, dsStream* stream)
 {
 	DS_PROFILE_FUNC_START();
 
@@ -437,8 +437,8 @@ dsScene* dsScene_loadStream(dsAllocator* allocator, dsAllocator* resourceAllocat
 }
 
 dsScene* dsScene_loadData(dsAllocator* allocator, dsAllocator* resourceAllocator,
-	const dsSceneLoadContext* loadContext, dsSceneLoadScratchData* scratchData, const void* data,
-	size_t size, void* userData, dsDestroySceneUserDataFunction destroyUserDataFunc)
+	const dsSceneLoadContext* loadContext, dsSceneLoadScratchData* scratchData, void* userData,
+	dsDestroySceneUserDataFunction destroyUserDataFunc, const void* data, size_t size)
 {
 	DS_PROFILE_FUNC_START();
 

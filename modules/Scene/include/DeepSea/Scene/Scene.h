@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Aaron Barany
+ * Copyright 2019-2020 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -70,14 +70,14 @@ DS_SCENE_EXPORT dsScene* dsScene_create(dsAllocator* allocator, dsRenderer* rend
  *     the scene allocator.
  * @param loadContext The scene load context.
  * @param scratchData The scene scratch data.
- * @param filePath The file path for the scene to load.
  * @param userData User data to hold with the scene.
  * @param destroyUserDataFunc Function to destroy the user data for the scene.
+ * @param filePath The file path for the scene to load.
  * @return The scene or NULL if an error occurred.
  */
 DS_SCENE_EXPORT dsScene* dsScene_loadFile(dsAllocator* allocator, dsAllocator* resourceAllocator,
 	const dsSceneLoadContext* loadContext, dsSceneLoadScratchData* scratchData,
-	const char* filePath, void* userData, dsDestroySceneUserDataFunction destroyUserDataFunc);
+	void* userData, dsDestroySceneUserDataFunction destroyUserDataFunc, const char* filePath);
 
 /**
  * @brief Loads a scene from a resource file.
@@ -87,16 +87,17 @@ DS_SCENE_EXPORT dsScene* dsScene_loadFile(dsAllocator* allocator, dsAllocator* r
  *     the scene allocator.
  * @param loadContext The scene load context.
  * @param scratchData The scene scratch data.
- * @param type The resource type.
- * @param filePath The file path for the scene to load.
  * @param userData User data to hold with the scene.
  * @param destroyUserDataFunc Function to destroy the user data for the scene.
+ * @param type The resource type.
+ * @param filePath The file path for the scene to load.
  * @return The scene or NULL if an error occurred.
  */
 DS_SCENE_EXPORT dsScene* dsScene_loadResource(dsAllocator* allocator,
 	dsAllocator* resourceAllocator, const dsSceneLoadContext* loadContext,
-	dsSceneLoadScratchData* scratchData, dsFileResourceType type, const char* filePath,
-	void* userData, dsDestroySceneUserDataFunction destroyUserDataFunc);
+	dsSceneLoadScratchData* scratchData, void* userData,
+	dsDestroySceneUserDataFunction destroyUserDataFunc, dsFileResourceType type,
+	const char* filePath);
 
 /**
  * @brief Loads scene from a stream.
@@ -106,14 +107,14 @@ DS_SCENE_EXPORT dsScene* dsScene_loadResource(dsAllocator* allocator,
  *     the scene allocator.
  * @param loadContext The scene load context.
  * @param scratchData The scene scratch data.
- * @param stream The stream for the scene to load.
  * @param userData User data to hold with the scene.
  * @param destroyUserDataFunc Function to destroy the user data for the scene.
+ * @param stream The stream for the scene to load.
  * @return The scene or NULL if an error occurred.
  */
 DS_SCENE_EXPORT dsScene* dsScene_loadStream(dsAllocator* allocator, dsAllocator* resourceAllocator,
-	const dsSceneLoadContext* loadContext, dsSceneLoadScratchData* scratchData, dsStream* stream,
-	void* userData, dsDestroySceneUserDataFunction destroyUserDataFunc);
+	const dsSceneLoadContext* loadContext, dsSceneLoadScratchData* scratchData, void* userData,
+	dsDestroySceneUserDataFunction destroyUserDataFunc, dsStream* stream);
 
 /**
  * @brief Loads scene from a data buffer.
@@ -123,15 +124,15 @@ DS_SCENE_EXPORT dsScene* dsScene_loadStream(dsAllocator* allocator, dsAllocator*
  *     the scene allocator.
  * @param loadContext The scene load context.
  * @param scratchData The scene scratch data.
- * @param data The data for the scene. The data isn't used after this call.
- * @param size The size of the data buffer.
  * @param userData User data to hold with the scene.
  * @param destroyUserDataFunc Function to destroy the user data for the scene.
+ * @param data The data for the scene. The data isn't used after this call.
+ * @param size The size of the data buffer.
  * @return The scene or NULL if an error occurred.
  */
 DS_SCENE_EXPORT dsScene* dsScene_loadData(dsAllocator* allocator, dsAllocator* resourceAllocator,
-	const dsSceneLoadContext* loadContext, dsSceneLoadScratchData* scratchData, const void* data,
-	size_t size, void* userData, dsDestroySceneUserDataFunction destroyUserDataFunc);
+	const dsSceneLoadContext* loadContext, dsSceneLoadScratchData* scratchData, void* userData,
+	dsDestroySceneUserDataFunction destroyUserDataFunc, const void* data, size_t size);
 
 /**
  * @brief Gets the allocator used for a scene.

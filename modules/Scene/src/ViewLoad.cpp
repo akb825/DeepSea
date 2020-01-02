@@ -82,10 +82,10 @@ static size_t getTempSize(const FlatbufferVector<DeepSeaScene::Surface>* fbSurfa
 }
 
 extern "C"
-dsView* dsView_loadImpl(dsAllocator* allocator, dsAllocator* resourceAllocator,
-	dsSceneLoadScratchData* scratchData, const void* data, size_t dataSize, const dsScene* scene,
-	const dsViewSurfaceInfo* surfaces, uint32_t surfaceCount, uint32_t width, uint32_t height,
-	dsRenderSurfaceRotation rotation, void* userData,
+dsView* dsView_loadImpl(const dsScene* scene, dsAllocator* allocator,
+	dsAllocator* resourceAllocator, dsSceneLoadScratchData* scratchData, const void* data,
+	size_t dataSize,  const dsViewSurfaceInfo* surfaces, uint32_t surfaceCount, uint32_t width,
+	uint32_t height, dsRenderSurfaceRotation rotation, void* userData,
 	dsDestroySceneUserDataFunction destroyUserDataFunc, const char* fileName)
 {
 	flatbuffers::Verifier verifier(reinterpret_cast<const uint8_t*>(data), dataSize);
