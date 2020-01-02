@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Aaron Barany
+ * Copyright 2019-2020 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,7 +40,7 @@
 		if (name) \
 			DS_LOG_ERROR_F(DS_SCENE_LOG_TAG, message " for '%s'.", name); \
 		else \
-			DS_LOG_ERROR_F(DS_SCENE_LOG_TAG, message); \
+			DS_LOG_ERROR_F(DS_SCENE_LOG_TAG, message "."); \
 	} while (false)
 
 template <typename T>
@@ -48,7 +48,7 @@ using FlatbufferVector = flatbuffers::Vector<flatbuffers::Offset<T>>;
 
 static size_t getTempSize(const FlatbufferVector<DeepSeaScene::SceneItemLists>* fbSharedItems,
 	const FlatbufferVector<DeepSeaScene::ScenePipelineItem>& fbPipeline,
-	const FlatbufferVector<DeepSeaScene::GlobalData>* fbGlobalData)
+	const FlatbufferVector<DeepSeaScene::GlobalData>* fbGlobalData, const char* fileName)
 {
 	size_t tempSize = 0;
 	if (fbSharedItems && fbSharedItems->size() > 0)
@@ -59,14 +59,14 @@ static size_t getTempSize(const FlatbufferVector<DeepSeaScene::SceneItemLists>* 
 		{
 			if (!fbItemsArray)
 			{
-				DS_LOG_ERROR(DS_SCENE_LOG_TAG, "Scene shared item list array is null.");
+				PRINT_FLATBUFFER_ERROR("Scene shared item list array is null", fileName);
 				return 0;
 			}
 
 			uint32_t itemCount = fbItemsArray->itemLists()->size();
 			if (itemCount == 0)
 			{
-				DS_LOG_ERROR(DS_SCENE_LOG_TAG, "Scene shared item list array is empty.");
+				PRINT_FLATBUFFER_ERROR("Scene shared item list array is empty", fileName);
 				return 0;
 			}
 			tempSize += DS_ALIGNED_SIZE(itemCount*sizeof(dsSceneItemList*));
@@ -76,7 +76,7 @@ static size_t getTempSize(const FlatbufferVector<DeepSeaScene::SceneItemLists>* 
 	uint32_t pipelineCount = fbPipeline.size();
 	if (pipelineCount == 0)
 	{
-		DS_LOG_ERROR(DS_SCENE_LOG_TAG, "Scene pipeline is empty.");
+		PRINT_FLATBUFFER_ERROR("Scene pipeline is empty", fileName);
 		return 0;
 	}
 	size_t maxRenderPassSize = 0;
@@ -84,7 +84,7 @@ static size_t getTempSize(const FlatbufferVector<DeepSeaScene::SceneItemLists>* 
 	{
 		if (!fbPipelineItem)
 		{
-			DS_LOG_ERROR(DS_SCENE_LOG_TAG, "Scene pipeline item is null.");
+			PRINT_FLATBUFFER_ERROR("Scene pipeline item is null", fileName);
 			return 0;
 		}
 
@@ -102,7 +102,7 @@ static size_t getTempSize(const FlatbufferVector<DeepSeaScene::SceneItemLists>* 
 			uint32_t subpassCount = fbSubpasses->size();
 			if (subpassCount == 0)
 			{
-				DS_LOG_ERROR(DS_SCENE_LOG_TAG, "Scene render pass subpass array is empty.");
+				PRINT_FLATBUFFER_ERROR("Scene render pass subpass array is empty", fileName);
 				return 0;
 			}
 
@@ -112,7 +112,7 @@ static size_t getTempSize(const FlatbufferVector<DeepSeaScene::SceneItemLists>* 
 			{
 				if (!fbSubpass)
 				{
-					DS_LOG_ERROR(DS_SCENE_LOG_TAG, "Scene subpass is null.");
+					PRINT_FLATBUFFER_ERROR("Scene subpass is null", fileName);
 					return 0;
 				}
 
@@ -133,7 +133,7 @@ static size_t getTempSize(const FlatbufferVector<DeepSeaScene::SceneItemLists>* 
 				uint32_t drawListCount = fbSubpass->drawLists()->size();
 				if (drawListCount > 0)
 				{
-					DS_LOG_ERROR(DS_SCENE_LOG_TAG, "Scene subpass draw list array is empty.");
+					PRINT_FLATBUFFER_ERROR("Scene subpass draw list array is empty", fileName);
 					return 0;
 				}
 
@@ -155,7 +155,7 @@ static size_t getTempSize(const FlatbufferVector<DeepSeaScene::SceneItemLists>* 
 		}
 		else
 		{
-			DS_LOG_ERROR(DS_SCENE_LOG_TAG, "Scene pipeline item is null.");
+			PRINT_FLATBUFFER_ERROR("Scene pipeline item is null", fileName);
 			return 0;
 		}
 	}
@@ -180,7 +180,7 @@ static void destroyItemLists(const dsSceneItemLists* itemLists, uint32_t itemLis
 static dsSceneRenderPass* createRenderPass(dsAllocator* allocator, dsAllocator* resourceAllocator,
 	const dsSceneLoadContext* loadContext, dsSceneLoadScratchData* scratchData,
 	dsAllocator* scratchAllocator, dsRenderer* renderer,
-	const DeepSeaScene::RenderPass& fbRenderPass)
+	const DeepSeaScene::RenderPass& fbRenderPass, const char* fileName)
 {
 	dsAttachmentInfo* attachments = nullptr;
 	dsSurfaceClearValue* clearValues = nullptr;
@@ -202,7 +202,7 @@ static dsSceneRenderPass* createRenderPass(dsAllocator* allocator, dsAllocator* 
 			if (!fbAttachment)
 			{
 				errno = EINVAL;
-				DS_LOG_ERROR(DS_SCENE_LOG_TAG, "Scene render pass attachment is null.");
+				PRINT_FLATBUFFER_ERROR("Scene render pass attachment is null", fileName);
 				return nullptr;
 			}
 
@@ -328,7 +328,7 @@ static dsSceneRenderPass* createRenderPass(dsAllocator* allocator, dsAllocator* 
 			if (!fbItemList)
 			{
 				errno = EINVAL;
-				DS_LOG_ERROR(DS_SCENE_LOG_TAG, "Scene render pass draw list is null.");
+				PRINT_FLATBUFFER_ERROR("Scene render pass draw list is null", fileName);
 				return nullptr;
 			}
 
@@ -366,7 +366,7 @@ static dsSceneRenderPass* createRenderPass(dsAllocator* allocator, dsAllocator* 
 				{
 					destroyItemLists(drawLists, subpassCount);
 					errno = EINVAL;
-					DS_LOG_ERROR(DS_SCENE_LOG_TAG, "Scene render subpass dependency is null.");
+					PRINT_FLATBUFFER_ERROR("Scene render subpass dependency is null", fileName);
 					return nullptr;
 				}
 
@@ -394,17 +394,19 @@ extern "C"
 dsScene* dsScene_loadImpl(dsAllocator* allocator, dsAllocator* resourceAllocator,
 	const dsSceneLoadContext* loadContext, dsSceneLoadScratchData* scratchData, const void* data,
 	size_t dataSize, void* userData, dsDestroySceneUserDataFunction destroyUserDataFunc,
-	const char* name)
+	const char* fileName)
 {
 	flatbuffers::Verifier verifier(reinterpret_cast<const uint8_t*>(data), dataSize);
 	if (!DeepSeaScene::VerifySceneBuffer(verifier))
 	{
 		errno = EFORMAT;
-		PRINT_FLATBUFFER_ERROR("Invalid scene resources flatbuffer format", name);
+		PRINT_FLATBUFFER_ERROR("Invalid scene flatbuffer format", fileName);
 		return nullptr;
 	}
 
 	dsRenderer* renderer = dsSceneLoadContext_getRenderer(loadContext);
+	if (!resourceAllocator)
+		resourceAllocator = allocator;
 
 	auto fbScene = DeepSeaScene::GetScene(data);
 	auto fbSharedItems = fbScene->sharedItems();
@@ -424,7 +426,7 @@ dsScene* dsScene_loadImpl(dsAllocator* allocator, dsAllocator* resourceAllocator
 
 	dsAllocator* scratchAllocator = dsSceneLoadScratchData_getAllocator(scratchData);
 	DS_ASSERT(scratchAllocator);
-	size_t tempSize = getTempSize(fbSharedItems, *fbPipeline, fbGlobalData);
+	size_t tempSize = getTempSize(fbSharedItems, *fbPipeline, fbGlobalData, fileName);
 	if (tempSize == 0)
 	{
 		errno = EFORMAT;
@@ -453,7 +455,8 @@ dsScene* dsScene_loadImpl(dsAllocator* allocator, dsAllocator* resourceAllocator
 			dsSceneItemLists* items = sharedItems + i;
 			items->count = fbItems->size();
 			DS_ASSERT(items->count > 0);
-			items->itemLists = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsSceneItemList*, items->count);
+			items->itemLists =
+				DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsSceneItemList*, items->count);
 			DS_ASSERT(items->itemLists);
 
 			for (uint32_t j = 0; j < items->count; ++j)
@@ -462,7 +465,7 @@ dsScene* dsScene_loadImpl(dsAllocator* allocator, dsAllocator* resourceAllocator
 				if (!fbItemList)
 				{
 					errno = EFORMAT;
-					DS_LOG_ERROR(DS_SCENE_LOG_TAG, "Scene shared item list is null.");
+					PRINT_FLATBUFFER_ERROR("Scene shared item list is null.", fileName);
 					// Only clear out what's been set so far.
 					sharedItemCount = i + 1;
 					items->count = j;
@@ -495,7 +498,7 @@ dsScene* dsScene_loadImpl(dsAllocator* allocator, dsAllocator* resourceAllocator
 			auto tempAllocator = reinterpret_cast<dsAllocator*>(&bufferAlloc);
 			size_t prevTempBufferSize = tempAllocator->size;
 			dsSceneRenderPass* renderPass = createRenderPass(allocator, resourceAllocator,
-				loadContext, scratchData, tempAllocator, renderer, *fbRenderPass);
+				loadContext, scratchData, tempAllocator, renderer, *fbRenderPass, fileName);
 			if (!renderPass)
 			{
 				// Only clear out what's been set so far.
@@ -535,7 +538,7 @@ dsScene* dsScene_loadImpl(dsAllocator* allocator, dsAllocator* resourceAllocator
 			if (!fbGlobalData)
 			{
 				errno = EFORMAT;
-				DS_LOG_ERROR(DS_SCENE_LOG_TAG, "Scene global data is null.");
+				PRINT_FLATBUFFER_ERROR("Scene global data is null.", fileName);
 				// Only clear out what's been set so far.
 				globalDataCount = i;
 				goto finished;

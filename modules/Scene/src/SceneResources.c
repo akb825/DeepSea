@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Aaron Barany
+ * Copyright 2019-2020 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -103,7 +103,7 @@ static bool destroyResource(dsSceneResourceType type, void* resource)
 
 dsSceneResources* dsSceneResources_loadImpl(dsAllocator* allocator, dsAllocator* resourceAllocator,
 	const dsSceneLoadContext* loadContext, dsSceneLoadScratchData* scratchData,
-	const void* data, size_t dataSize, const char* name);
+	const void* data, size_t dataSize, const char* fileName);
 
 size_t dsSceneResources_sizeof(void)
 {
@@ -159,9 +159,6 @@ dsSceneResources* dsSceneResources_loadFile(dsAllocator* allocator, dsAllocator*
 		errno = EINVAL;
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
-
-	if (!resourceAllocator)
-		resourceAllocator = allocator;
 
 	dsFileStream stream;
 	if (!dsFileStream_openPath(&stream, filePath, "rb"))

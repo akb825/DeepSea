@@ -64,7 +64,8 @@ struct Surface FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_HEIGHT = 26,
     VT_HEIGHTRATIO = 28,
     VT_SAMPLES = 30,
-    VT_RESOLVE = 32
+    VT_RESOLVE = 32,
+    VT_ROTATED = 34
   };
   const flatbuffers::String *name() const {
     return GetPointer<const flatbuffers::String *>(VT_NAME);
@@ -111,6 +112,9 @@ struct Surface FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   bool resolve() const {
     return GetField<uint8_t>(VT_RESOLVE, 0) != 0;
   }
+  bool rotated() const {
+    return GetField<uint8_t>(VT_ROTATED, 0) != 0;
+  }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_NAME) &&
@@ -129,6 +133,7 @@ struct Surface FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            VerifyField<float>(verifier, VT_HEIGHTRATIO) &&
            VerifyField<uint32_t>(verifier, VT_SAMPLES) &&
            VerifyField<uint8_t>(verifier, VT_RESOLVE) &&
+           VerifyField<uint8_t>(verifier, VT_ROTATED) &&
            verifier.EndTable();
   }
 };
@@ -181,6 +186,9 @@ struct SurfaceBuilder {
   void add_resolve(bool resolve) {
     fbb_.AddElement<uint8_t>(Surface::VT_RESOLVE, static_cast<uint8_t>(resolve), 0);
   }
+  void add_rotated(bool rotated) {
+    fbb_.AddElement<uint8_t>(Surface::VT_ROTATED, static_cast<uint8_t>(rotated), 0);
+  }
   explicit SurfaceBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
@@ -210,7 +218,8 @@ inline flatbuffers::Offset<Surface> CreateSurface(
     uint32_t height = 0,
     float heightRatio = 0.0f,
     uint32_t samples = 0,
-    bool resolve = false) {
+    bool resolve = false,
+    bool rotated = false) {
   SurfaceBuilder builder_(_fbb);
   builder_.add_samples(samples);
   builder_.add_heightRatio(heightRatio);
@@ -221,6 +230,7 @@ inline flatbuffers::Offset<Surface> CreateSurface(
   builder_.add_memoryHints(memoryHints);
   builder_.add_usage(usage);
   builder_.add_name(name);
+  builder_.add_rotated(rotated);
   builder_.add_resolve(resolve);
   builder_.add_mipLevels(mipLevels);
   builder_.add_decoration(decoration);
@@ -246,7 +256,8 @@ inline flatbuffers::Offset<Surface> CreateSurfaceDirect(
     uint32_t height = 0,
     float heightRatio = 0.0f,
     uint32_t samples = 0,
-    bool resolve = false) {
+    bool resolve = false,
+    bool rotated = false) {
   auto name__ = name ? _fbb.CreateString(name) : 0;
   return DeepSeaScene::CreateSurface(
       _fbb,
@@ -264,7 +275,8 @@ inline flatbuffers::Offset<Surface> CreateSurfaceDirect(
       height,
       heightRatio,
       samples,
-      resolve);
+      resolve,
+      rotated);
 }
 
 struct FramebufferSurface FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {

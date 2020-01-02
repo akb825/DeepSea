@@ -123,7 +123,14 @@ class Surface(object):
             return bool(self._tab.Get(flatbuffers.number_types.BoolFlags, o + self._tab.Pos))
         return False
 
-def SurfaceStart(builder): builder.StartObject(15)
+    # Surface
+    def Rotated(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(34))
+        if o != 0:
+            return bool(self._tab.Get(flatbuffers.number_types.BoolFlags, o + self._tab.Pos))
+        return False
+
+def SurfaceStart(builder): builder.StartObject(16)
 def SurfaceAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
 def SurfaceAddType(builder, type): builder.PrependUint8Slot(1, type, 0)
 def SurfaceAddUsage(builder, usage): builder.PrependUint32Slot(2, usage, 0)
@@ -139,4 +146,5 @@ def SurfaceAddHeight(builder, height): builder.PrependUint32Slot(11, height, 0)
 def SurfaceAddHeightRatio(builder, heightRatio): builder.PrependFloat32Slot(12, heightRatio, 0.0)
 def SurfaceAddSamples(builder, samples): builder.PrependUint32Slot(13, samples, 0)
 def SurfaceAddResolve(builder, resolve): builder.PrependBoolSlot(14, resolve, 0)
+def SurfaceAddRotated(builder, rotated): builder.PrependBoolSlot(15, rotated, 0)
 def SurfaceEnd(builder): return builder.EndObject()

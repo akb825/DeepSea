@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Aaron Barany
+ * Copyright 2019-2020 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -384,6 +384,11 @@ struct dsView
 	 * @brief The allocator for the view.
 	 */
 	dsAllocator* allocator;
+
+	/**
+	 * @brief The allocator for graphics resources in the view.
+	 */
+	dsAllocator* resourceAllocator;
 
 	/**
 	 * @brief User data for the view.

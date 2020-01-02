@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Aaron Barany
+ * Copyright 2019-2020 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,6 +72,10 @@ table Surface
 
 	// Whether or not to resolve anti-alias samples if an offscreen.
 	resolve : bool;
+
+	// Whether or not the surface is rotated with the window surface. This should be set to true for
+	// any surface that's used in the same framebuffer as the window surface.
+	rotated : bool;
 }
 
 // Struct describing a surface reference used by a framebuffer.

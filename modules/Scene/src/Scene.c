@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Aaron Barany
+ * Copyright 2019-2020 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@
 
 #include "Nodes/SceneTreeNode.h"
 #include "SceneTypes.h"
+
 #include <DeepSea/Core/Containers/Hash.h>
 #include <DeepSea/Core/Containers/HashTable.h>
 #include <DeepSea/Core/Memory/Allocator.h>
@@ -163,7 +164,7 @@ static void dummyDestroyFunc(dsSceneNode* node)
 dsScene* dsScene_loadImpl(dsAllocator* allocator, dsAllocator* resourceAllocator,
 	const dsSceneLoadContext* loadContext, dsSceneLoadScratchData* scratchData, const void* data,
 	size_t dataSize, void* userData, dsDestroySceneUserDataFunction destroyUserDataFunc,
-	const char* name);
+	const char* fileName);
 
 dsScene* dsScene_create(dsAllocator* allocator, dsRenderer* renderer,
 	const dsSceneItemLists* sharedItems, uint32_t sharedItemCount,
@@ -382,8 +383,8 @@ dsScene* dsScene_loadFile(dsAllocator* allocator, dsAllocator* resourceAllocator
 
 dsScene* dsScene_loadResource(dsAllocator* allocator, dsAllocator* resourceAllocator,
 	const dsSceneLoadContext* loadContext, dsSceneLoadScratchData* scratchData,
-	dsFileResourceType type, const char* filePath,
-	void* userData, dsDestroySceneUserDataFunction destroyUserDataFunc)
+	dsFileResourceType type, const char* filePath, void* userData,
+	dsDestroySceneUserDataFunction destroyUserDataFunc)
 {
 	DS_PROFILE_FUNC_START();
 
@@ -396,7 +397,7 @@ dsScene* dsScene_loadResource(dsAllocator* allocator, dsAllocator* resourceAlloc
 	dsResourceStream stream;
 	if (!dsResourceStream_open(&stream, type, filePath, "rb"))
 	{
-		DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Couldn't open scene node file '%s'.", filePath);
+		DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Couldn't open scene file '%s'.", filePath);
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Aaron Barany
+ * Copyright 2019-2020 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -659,7 +659,7 @@ static dsView* createView(dsAllocator* allocator, dsScene* scene, dsRenderSurfac
 		DS_ARRAY_SIZE(framebufferSurfaces), -1.0f, -1.0f, 1,
 		{{{0.0f, 0.0f, 0.0f}}, {{1.0f, 1.0f, 1.0f}}}};
 
-	dsView* view = dsView_create(scene, allocator, surfaces, DS_ARRAY_SIZE(surfaces),
+	dsView* view = dsView_create(scene, allocator, NULL, surfaces, DS_ARRAY_SIZE(surfaces),
 		&framebuffer, 1, surface->width, surface->height, surface->rotation, NULL, NULL);
 	if (!view)
 	{

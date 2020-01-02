@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Aaron Barany
+ * Copyright 2019-2020 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,23 +19,33 @@
 
 #include "SceneThreadManagerInternal.h"
 #include "SceneTypes.h"
+
 #include <DeepSea/Core/Containers/Hash.h>
 #include <DeepSea/Core/Containers/HashTable.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
+#include <DeepSea/Core/Streams/FileStream.h>
+#include <DeepSea/Core/Streams/ResourceStream.h>
+#include <DeepSea/Core/Streams/Stream.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Profile.h>
+
 #include <DeepSea/Geometry/Frustum3.h>
+
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Math/Matrix44.h>
+
 #include <DeepSea/Render/Resources/Framebuffer.h>
 #include <DeepSea/Render/Resources/GfxFormat.h>
 #include <DeepSea/Render/Resources/Renderbuffer.h>
 #include <DeepSea/Render/Resources/SharedMaterialValues.h>
 #include <DeepSea/Render/Resources/Texture.h>
 #include <DeepSea/Render/RenderPass.h>
+
 #include <DeepSea/Scene/SceneGlobalData.h>
+#include <DeepSea/Scene/SceneLoadScratchData.h>
+
 #include <string.h>
 
 typedef struct IndexNode
@@ -228,7 +238,13 @@ static void updatedCameraProjection(dsView* view)
 		renderer->clipInvertY);
 }
 
-dsView* dsView_create(const dsScene* scene, dsAllocator* allocator,
+dsView* dsView_loadImpl(dsAllocator* allocator, dsAllocator* resourceAllocator,
+	dsSceneLoadScratchData* scratchData, const void* data, size_t dataSize, const dsScene* scene,
+	const dsViewSurfaceInfo* surfaces, uint32_t surfaceCount, uint32_t width, uint32_t height,
+	dsRenderSurfaceRotation rotation, void* userData,
+	dsDestroySceneUserDataFunction destroyUserDataFunc, const char* fileName);
+
+dsView* dsView_create(const dsScene* scene, dsAllocator* allocator, dsAllocator* resourceAllocator,
 	const dsViewSurfaceInfo* surfaces, uint32_t surfaceCount,
 	const dsViewFramebufferInfo* framebuffers, uint32_t framebufferCount, uint32_t width,
 	uint32_t height, dsRenderSurfaceRotation rotation, void* userData,
@@ -253,11 +269,13 @@ dsView* dsView_create(const dsScene* scene, dsAllocator* allocator,
 
 	if (!allocator)
 		allocator = scene->allocator;
+	if (!resourceAllocator)
+		resourceAllocator = allocator;
 
-	if (!allocator->freeFunc)
+	if (!resourceAllocator->freeFunc)
 	{
 		errno = EINVAL;
-		DS_LOG_ERROR(DS_SCENE_LOG_TAG, "View allocator must support freeing memory.");
+		DS_LOG_ERROR(DS_SCENE_LOG_TAG, "View resource allocator must support freeing memory.");
 		if (destroyUserDataFunc)
 			destroyUserDataFunc(userData);
 		return NULL;
@@ -290,6 +308,7 @@ dsView* dsView_create(const dsScene* scene, dsAllocator* allocator,
 	dsView* view = (dsView*)privateView;
 	view->scene = scene;
 	view->allocator = dsAllocator_keepPointer(allocator);
+	view->resourceAllocator = dsAllocator_keepPointer(resourceAllocator);
 	view->userData = userData;
 	view->destroyUserDataFunc = destroyUserDataFunc;
 	view->width = width;
@@ -469,6 +488,119 @@ dsView* dsView_create(const dsScene* scene, dsAllocator* allocator,
 	return view;
 }
 
+dsView* dsView_loadFile(dsAllocator* allocator, dsAllocator* resourceAllocator,
+	dsSceneLoadScratchData* scratchData, const char* filePath, const dsScene* scene,
+	const dsViewSurfaceInfo* surfaces, uint32_t surfaceCount, uint32_t width, uint32_t height,
+	dsRenderSurfaceRotation rotation, void* userData,
+	dsDestroySceneUserDataFunction destroyUserDataFunc)
+{
+	DS_PROFILE_FUNC_START();
+
+	if (!allocator || !scratchData || !filePath || (!surfaces && surfaceCount > 0))
+	{
+		errno = EINVAL;
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
+	if (!resourceAllocator)
+		resourceAllocator = allocator;
+
+	dsFileStream stream;
+	if (!dsFileStream_openPath(&stream, filePath, "rb"))
+	{
+		DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Couldn't open view file '%s'.", filePath);
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
+	size_t size;
+	void* buffer = dsSceneLoadScratchData_readUntilEnd(&size, scratchData, (dsStream*)&stream);
+	dsFileStream_close(&stream);
+	if (!buffer)
+		DS_PROFILE_FUNC_RETURN(NULL);
+
+	dsView* view = dsView_loadImpl(allocator, resourceAllocator, scratchData, buffer, size, scene,
+		surfaces, surfaceCount, width, height, rotation, userData, destroyUserDataFunc, filePath);
+	DS_VERIFY(dsSceneLoadScratchData_freeReadBuffer(scratchData, buffer));
+	DS_PROFILE_FUNC_RETURN(view);
+}
+
+dsView* dsView_loadResource(dsAllocator* allocator, dsAllocator* resourceAllocator,
+	dsSceneLoadScratchData* scratchData, dsFileResourceType type, const char* filePath,
+	const dsScene* scene, const dsViewSurfaceInfo* surfaces, uint32_t surfaceCount, uint32_t width,
+	uint32_t height, dsRenderSurfaceRotation rotation, void* userData,
+	dsDestroySceneUserDataFunction destroyUserDataFunc)
+{
+	DS_PROFILE_FUNC_START();
+
+	if (!allocator || !scratchData || !filePath || (!surfaces && surfaceCount > 0))
+	{
+		errno = EINVAL;
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
+	dsResourceStream stream;
+	if (!dsResourceStream_open(&stream, type, filePath, "rb"))
+	{
+		DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Couldn't open view file '%s'.", filePath);
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
+	size_t size;
+	void* buffer = dsSceneLoadScratchData_readUntilEnd(&size, scratchData, (dsStream*)&stream);
+	dsResourceStream_close(&stream);
+	if (!buffer)
+		DS_PROFILE_FUNC_RETURN(NULL);
+
+	dsView* view = dsView_loadImpl(allocator, resourceAllocator, scratchData, buffer, size, scene,
+		surfaces, surfaceCount, width, height, rotation, userData, destroyUserDataFunc, filePath);
+	DS_VERIFY(dsSceneLoadScratchData_freeReadBuffer(scratchData, buffer));
+	DS_PROFILE_FUNC_RETURN(view);
+}
+
+dsView* dsView_loadStream(dsAllocator* allocator, dsAllocator* resourceAllocator,
+	dsSceneLoadScratchData* scratchData, dsStream* stream, const dsScene* scene,
+	const dsViewSurfaceInfo* surfaces, uint32_t surfaceCount, uint32_t width, uint32_t height,
+	dsRenderSurfaceRotation rotation, void* userData,
+	dsDestroySceneUserDataFunction destroyUserDataFunc)
+{
+	DS_PROFILE_FUNC_START();
+
+	if (!allocator || !scratchData || !stream || (!surfaces && surfaceCount > 0))
+	{
+		errno = EINVAL;
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
+	size_t size;
+	void* buffer = dsSceneLoadScratchData_readUntilEnd(&size, scratchData, stream);
+	if (!buffer)
+		DS_PROFILE_FUNC_RETURN(NULL);
+
+	dsView* view = dsView_loadImpl(allocator, resourceAllocator, scratchData, buffer, size, scene,
+		surfaces, surfaceCount, width, height, rotation, userData, destroyUserDataFunc, NULL);
+	DS_VERIFY(dsSceneLoadScratchData_freeReadBuffer(scratchData, buffer));
+	DS_PROFILE_FUNC_RETURN(view);
+}
+
+dsView* dsView_loadData(dsAllocator* allocator, dsAllocator* resourceAllocator,
+	dsSceneLoadScratchData* scratchData, const void* data, size_t size, const dsScene* scene,
+	const dsViewSurfaceInfo* surfaces, uint32_t surfaceCount, uint32_t width, uint32_t height,
+	dsRenderSurfaceRotation rotation, void* userData,
+	dsDestroySceneUserDataFunction destroyUserDataFunc)
+{
+	DS_PROFILE_FUNC_START();
+
+	if (!allocator || !scratchData || !data || size == 0 || (!surfaces && surfaceCount > 0))
+	{
+		errno = EINVAL;
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
+	dsView* view = dsView_loadImpl(allocator, resourceAllocator, scratchData, data, size, scene,
+		surfaces, surfaceCount, width, height, rotation, userData, destroyUserDataFunc, NULL);
+	DS_PROFILE_FUNC_RETURN(view);
+}
+
 bool dsView_setDimensions(dsView* view, uint32_t width, uint32_t height,
 	dsRenderSurfaceRotation rotation)
 {
@@ -640,9 +772,9 @@ bool dsView_update(dsView* view)
 				dsTextureInfo textureInfo = surfaceInfo->createInfo;
 				textureInfo.width = width;
 				textureInfo.height = height;
-				dsOffscreen* offscreen = dsTexture_createOffscreen(resourceManager, view->allocator,
-					surfaceInfo->usage, surfaceInfo->memoryHints, &textureInfo,
-					surfaceInfo->resolve);
+				dsOffscreen* offscreen = dsTexture_createOffscreen(resourceManager,
+					view->resourceAllocator, surfaceInfo->usage, surfaceInfo->memoryHints,
+					&textureInfo, surfaceInfo->resolve);
 				if (!offscreen)
 					DS_PROFILE_FUNC_RETURN(false);
 
@@ -653,8 +785,8 @@ bool dsView_update(dsView* view)
 			case dsGfxSurfaceType_Renderbuffer:
 			{
 				dsRenderbuffer* renderbuffer = dsRenderbuffer_create(resourceManager,
-					view->allocator, surfaceInfo->usage, surfaceInfo->createInfo.format, width,
-					height, surfaceInfo->createInfo.samples);
+					view->resourceAllocator, surfaceInfo->usage, surfaceInfo->createInfo.format,
+					width, height, surfaceInfo->createInfo.samples);
 				if (!renderbuffer)
 					DS_PROFILE_FUNC_RETURN(false);
 
@@ -709,9 +841,9 @@ bool dsView_update(dsView* view)
 			height = (uint32_t)roundf(-framebufferInfo->height*(float)height);
 		}
 
-		dsFramebuffer* framebuffer = dsFramebuffer_create(resourceManager, view->allocator,
-			framebufferInfo->name, privateView->tempSurfaces, framebufferInfo->surfaceCount, width,
-			height, framebufferInfo->layers);
+		dsFramebuffer* framebuffer = dsFramebuffer_create(resourceManager,
+			view->resourceAllocator, framebufferInfo->name, privateView->tempSurfaces,
+			framebufferInfo->surfaceCount, width, height, framebufferInfo->layers);
 		if (!framebuffer)
 			DS_PROFILE_FUNC_RETURN(false);
 
