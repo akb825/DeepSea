@@ -972,6 +972,11 @@ typedef struct dsHalfFloat
  */
 typedef union dsQuaternion4f
 {
+	/**
+	 * @brief The values fo the quaternion.
+	 */
+	float values[4];
+
 	struct
 	{
 		/**
@@ -994,11 +999,6 @@ typedef union dsQuaternion4f
 		 */
 		float k;
 	};
-
-	/**
-	 * @brief The values fo the quaternion..
-	 */
-	float values[4];
 } dsQuaternion4f;
 
 /**
@@ -1007,6 +1007,11 @@ typedef union dsQuaternion4f
  */
 typedef union dsQuaternion4d
 {
+	/**
+	 * @brief The values fo the quaternion.
+	 */
+	double values[4];
+
 	struct
 	{
 		/**
@@ -1029,11 +1034,6 @@ typedef union dsQuaternion4d
 		 */
 		double k;
 	};
-
-	/**
-	 * @brief The values fo the quaternion..
-	 */
-	double values[4];
 } dsQuaternion4d;
 
 #ifdef __cplusplus
