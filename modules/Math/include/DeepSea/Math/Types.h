@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Aaron Barany
+ * Copyright 2016-2020 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -965,6 +965,76 @@ typedef struct dsHalfFloat
 	 */
 	uint16_t data;
 } dsHalfFloat;
+
+/**
+ * @brief Structure that holds a quaternion, typically used for rotation, as floats.
+ * @see Quaternion.h
+ */
+typedef union dsQuaternion4f
+{
+	struct
+	{
+		/**
+		 * @brief The real coordinate.
+		 */
+		float r;
+
+		/**
+		 * @brief The i coordinate.
+		 */
+		float i;
+
+		/**
+		 * @brief The j coordinate.
+		 */
+		float j;
+
+		/**
+		 * @brief The k coordinate.
+		 */
+		float k;
+	};
+
+	/**
+	 * @brief The values fo the quaternion..
+	 */
+	float values[4];
+} dsQuaternion4f;
+
+/**
+ * @brief Structure that holds a quaternion, typically used for rotation, as doubles.
+ * @see Quaternion.h
+ */
+typedef union dsQuaternion4d
+{
+	struct
+	{
+		/**
+		 * @brief The real coordinate.
+		 */
+		double r;
+
+		/**
+		 * @brief The i coordinate.
+		 */
+		double i;
+
+		/**
+		 * @brief The j coordinate.
+		 */
+		double j;
+
+		/**
+		 * @brief The k coordinate.
+		 */
+		double k;
+	};
+
+	/**
+	 * @brief The values fo the quaternion..
+	 */
+	double values[4];
+} dsQuaternion4d;
 
 #ifdef __cplusplus
 }

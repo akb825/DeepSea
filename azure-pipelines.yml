@@ -278,7 +278,7 @@ jobs:
         displayName: Build release
       - script: ctest $(ctest.args) -C Release
         workingDirectory: $(Build.BinariesDirectory)
-        displayName: Run tests debug
+        displayName: Run tests release
         continueOnError: true
         timeoutInMinutes: 5
       - task: PublishTestResults@2
