@@ -51,7 +51,7 @@ typedef struct dsMallocInfo
 	uint64_t size : 48; // ~281 TB
 } dsMallocInfo;
 
-DS_STATIC_ASSERT(sizeof(dsMallocInfo) == sizeof(uint64_t), dsMallocInfo_size_mismatch);
+_Static_assert(sizeof(dsMallocInfo) == sizeof(uint64_t), "dsMallocInfo size mismatch.");
 #endif
 
 inline static size_t adjustSize(size_t size, unsigned int alignment)

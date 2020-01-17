@@ -498,16 +498,16 @@ int dsSDLApplication_run(dsApplication* application)
 					event.type = dsEventType_TextEdit;
 					event.textEdit.cursor = sdlEvent.edit.start;
 					event.textEdit.selectionLength = sdlEvent.edit.length;
-					DS_STATIC_ASSERT(sizeof(event.textEdit.text) >= sizeof(sdlEvent.edit.text),
-						invalid_sdl_text_size);
+					_Static_assert(sizeof(event.textEdit.text) >= sizeof(sdlEvent.edit.text),
+						"Invalid SDL text size.");
 					memcpy(event.textEdit.text, sdlEvent.edit.text, sizeof(sdlEvent.edit.text));
 					break;
 				}
 				case SDL_TEXTINPUT:
 				{
 					event.type = dsEventType_TextInput;
-					DS_STATIC_ASSERT(sizeof(event.textInput.text) >= sizeof(sdlEvent.text.text),
-						invalid_sdl_text_size);
+					_Static_assert(sizeof(event.textInput.text) >= sizeof(sdlEvent.text.text),
+						"Invalid SDL text size.");
 					memcpy(event.textInput.text, sdlEvent.text.text, sizeof(sdlEvent.text.text));
 					break;
 				}

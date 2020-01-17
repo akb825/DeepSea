@@ -32,9 +32,9 @@
 #include <string.h>
 
 #if DS_64BIT
-DS_STATIC_ASSERT(sizeof(dsVkPipelineKey) == sizeof(void*)*4, unexpected_sizeof_dsVkPipelineKey);
+_Static_assert(sizeof(dsVkPipelineKey) == sizeof(void*)*4, "Unexpected sizeof dsVkPipelineKey.");
 #else
-DS_STATIC_ASSERT(sizeof(dsVkPipelineKey) == sizeof(void*)*6, unexpected_sizeof_dsVkPipelineKey);
+_Static_assert(sizeof(dsVkPipelineKey) == sizeof(void*)*6, "Unexpected sizeof dsVkPipelineKey.");
 #endif
 
 void dsVkPipeline_initializeKey(dsVkPipelineKey* outKey, uint32_t samples, float defaultAnisotropy,

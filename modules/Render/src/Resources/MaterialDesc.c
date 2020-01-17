@@ -152,7 +152,7 @@ static const dsMaterialType materialTypeMap[] =
 	dsMaterialType_VariableGroup, // mslType_Struct (also UniformBlock or UniformBuffer)
 };
 
-DS_STATIC_ASSERT(DS_ARRAY_SIZE(materialTypeMap) == mslType_Count, material_type_map_mismatch);
+_Static_assert(DS_ARRAY_SIZE(materialTypeMap) == mslType_Count, "Material type map mismatch.");
 
 static bool hasDuplicates(const dsMaterialElement* elements, uint32_t elementCount)
 {

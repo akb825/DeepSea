@@ -78,15 +78,7 @@
 #define DS_VERIFY(x) (void)(x)
 #endif
 
-/**
-* @brief Asserts at compile time that a condition is true.
-* @param x The expression to assert on.
-* @param message A message to include with the assertion. This must not contain whitespace.
-*/
-#if DS_GCC || DS_CLANG
-#define DS_STATIC_ASSERT(x, message) \
-	typedef __attribute__((unused)) char static_assertion_failed_ ## message[(x) ? 1 : -1]
-#else
-#define DS_STATIC_ASSERT(x, message) \
-	typedef char static_assertion_failed_ ## message[(x) ? 1 : -1]
+#if DS_MSC || defined(__cplusplus)
+// Use C++ static assert when compiling as C++ or Visual Studio.
+#define _Static_assert static_assert
 #endif

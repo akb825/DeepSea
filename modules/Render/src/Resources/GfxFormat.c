@@ -89,8 +89,8 @@ unsigned int dsGfxFormat_size(dsGfxFormat format)
 		24, // dsGfxFormat_R64G64B64
 		32, // dsGfxFormat_R64G64B64A64
 	};
-	DS_STATIC_ASSERT(DS_ARRAY_SIZE(standardSizes) == dsGfxFormat_StandardCount,
-		standard_format_array_mismatch);
+	_Static_assert(DS_ARRAY_SIZE(standardSizes) == dsGfxFormat_StandardCount,
+		"Standard format array length mismatch.");
 
 	static unsigned int specialSizes[] =
 	{
@@ -105,8 +105,8 @@ unsigned int dsGfxFormat_size(dsGfxFormat format)
 		4, // dsGfxFormat_D24S8
 		5, // dsGfxFormat_D32S8_Float
 	};
-	DS_STATIC_ASSERT(DS_ARRAY_SIZE(specialSizes) == dsGfxFormat_SpecialCount,
-		special_format_array_mismatch);
+	_Static_assert(DS_ARRAY_SIZE(specialSizes) == dsGfxFormat_SpecialCount,
+		"Special format array length mismatch.");
 
 	static unsigned int compressedSizes[] =
 	{
@@ -146,8 +146,8 @@ unsigned int dsGfxFormat_size(dsGfxFormat format)
 		8,  // dsGfxFormat_PVRTC2_RGBA_2BPP
 		8,  // dsGfxFormat_PVRTC2_RGBA_4BPP
 	};
-	DS_STATIC_ASSERT(DS_ARRAY_SIZE(compressedSizes) == dsGfxFormat_CompressedCount,
-		compressed_format_array_mismatch);
+	_Static_assert(DS_ARRAY_SIZE(compressedSizes) == dsGfxFormat_CompressedCount,
+		"Compressed format array length mismatch.");
 
 	int index = dsGfxFormat_standardIndex(format);
 	if (index > 0)
@@ -217,8 +217,8 @@ bool dsGfxFormat_blockDimensions(unsigned int* outX, unsigned int* outY,
 		8,  // dsGfxFormat_PVRTC2_RGBA_2BPP
 		4,  // dsGfxFormat_PVRTC2_RGBA_4BPP
 	};
-	DS_STATIC_ASSERT(DS_ARRAY_SIZE(compressedX) == dsGfxFormat_CompressedCount,
-		compressed_format_x_array_mismatch);
+	_Static_assert(DS_ARRAY_SIZE(compressedX) == dsGfxFormat_CompressedCount,
+		"Compressed format x array length mismatch.");
 
 	static unsigned int compressedY[] =
 	{
@@ -258,8 +258,8 @@ bool dsGfxFormat_blockDimensions(unsigned int* outX, unsigned int* outY,
 		4,  // dsGfxFormat_PVRTC2_RGBA_2BPP
 		4,  // dsGfxFormat_PVRTC2_RGBA_4BPP
 	};
-	DS_STATIC_ASSERT(DS_ARRAY_SIZE(compressedY) == dsGfxFormat_CompressedCount,
-		compressed_format_y_array_mismatch);
+	_Static_assert(DS_ARRAY_SIZE(compressedY) == dsGfxFormat_CompressedCount,
+		"Compressed format y array length mismatch.");
 
 	unsigned int index = dsGfxFormat_compressedIndex(format);
 	if (index > 0)
@@ -321,8 +321,8 @@ bool dsGfxFormat_minDimensions(unsigned int* outX, unsigned int* outY,
 		16, // dsGfxFormat_PVRTC2_RGBA_2BPP
 		8,  // dsGfxFormat_PVRTC2_RGBA_4BPP
 	};
-	DS_STATIC_ASSERT(DS_ARRAY_SIZE(compressedX) == dsGfxFormat_CompressedCount,
-		compressed_format_x_array_mismatch);
+	_Static_assert(DS_ARRAY_SIZE(compressedX) == dsGfxFormat_CompressedCount,
+		"Compressed format x array length mismatch.");
 
 	static unsigned int compressedY[] =
 	{
@@ -362,8 +362,8 @@ bool dsGfxFormat_minDimensions(unsigned int* outX, unsigned int* outY,
 		8,  // dsGfxFormat_PVRTC2_RGBA_2BPP
 		8,  // dsGfxFormat_PVRTC2_RGBA_4BPP
 	};
-	DS_STATIC_ASSERT(DS_ARRAY_SIZE(compressedY) == dsGfxFormat_CompressedCount,
-		compressed_format_y_array_mismatch);
+	_Static_assert(DS_ARRAY_SIZE(compressedY) == dsGfxFormat_CompressedCount,
+		"Compressed format y array length mismatch.");
 
 	unsigned int index = dsGfxFormat_compressedIndex(format);
 	if (index > 0)

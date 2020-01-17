@@ -42,8 +42,8 @@ static const uint8_t bufferAlignment[] =
 	sizeof(int)*4,          // dsMaterialType_BVec3
 	sizeof(int)*4,          // dsMaterialType_BVec4
 };
-DS_STATIC_ASSERT(DS_ARRAY_SIZE(bufferAlignment) == dsMaterialType_Mat2,
-	buffer_alignment_array_enum_mismatch);
+_Static_assert(DS_ARRAY_SIZE(bufferAlignment) == dsMaterialType_Mat2,
+	"Buffer alignment array length mismatch.");
 
 uint8_t dsMaterialType_matrixRows(dsMaterialType type)
 {
@@ -225,7 +225,7 @@ uint8_t dsMaterialType_cpuSize(dsMaterialType type)
 		sizeof(void*), // dsMaterialType_UniformBlock
 		sizeof(void*), // dsMaterialType_UniformBuffer
 	};
-	DS_STATIC_ASSERT(DS_ARRAY_SIZE(size) == dsMaterialType_Count, array_enum_mismatch);
+	_Static_assert(DS_ARRAY_SIZE(size) == dsMaterialType_Count, "CPU size array length mismatch.");
 
 	if ((unsigned int)type >= dsMaterialType_Count)
 		return 0;
@@ -289,7 +289,8 @@ uint8_t dsMaterialType_cpuAlignment(dsMaterialType type)
 		sizeof(void*), // dsMaterialType_UniformBlock
 		sizeof(void*), // dsMaterialType_UniformBuffer
 	};
-	DS_STATIC_ASSERT(DS_ARRAY_SIZE(alignment) == dsMaterialType_Count, array_enum_mismatch);
+	_Static_assert(DS_ARRAY_SIZE(alignment) == dsMaterialType_Count,
+		"CPU alignment array length mismatch.");
 
 	if ((unsigned int)type >= dsMaterialType_Count)
 		return 0;

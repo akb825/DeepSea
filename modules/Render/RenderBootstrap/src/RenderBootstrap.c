@@ -55,8 +55,8 @@ static const char* blacklistedVulkanDrivers[] =
 };
 #endif
 
-DS_STATIC_ASSERT(DS_ARRAY_SIZE(rendererNames) == (uint32_t)dsRendererType_Default,
-	unexpected_names_size);
+_Static_assert(DS_ARRAY_SIZE(rendererNames) == (uint32_t)dsRendererType_Default,
+	"Unexpected length of renderNames.");
 
 static dsRendererType defaultRenderer = dsRendererType_Default;
 

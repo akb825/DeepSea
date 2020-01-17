@@ -76,7 +76,7 @@
 #define DS_MAX_DEVICES 16
 #define DS_MAX_QUEUE_FAMILIES 8
 
-DS_STATIC_ASSERT(DS_DEVICE_UUID_SIZE == VK_UUID_SIZE, unexpected_uuid_size);
+_Static_assert(DS_DEVICE_UUID_SIZE == VK_UUID_SIZE, "Unexpected UUID size.");
 
 typedef struct InstanceExtensions
 {

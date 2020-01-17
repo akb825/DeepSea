@@ -490,7 +490,7 @@ dsFont* dsFont_create(dsFaceGroup* group, dsResourceManager* resourceManager,
 	memset(geometry, 0, sizeof(dsGlyphGeometry));
 	geometry->allocator = dsFaceGroup_getScratchAllocator(font->group);
 
-	DS_STATIC_ASSERT(sizeof(dsGlyphKey) == sizeof(uint64_t), unexpected_glyph_key_size);
+	_Static_assert(sizeof(dsGlyphKey) == sizeof(uint64_t), "Unexpected glyph key size.");
 	DS_VERIFY(dsHashTable_initialize(&font->glyphTable.hashTable, DS_TABLE_SIZE,
 		&dsHash64, &dsHash64Equal));
 

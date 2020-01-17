@@ -40,7 +40,7 @@
 #endif
 
 
-DS_STATIC_ASSERT(DS_MAX_ATTACHMENTS == MSL_MAX_ATTACHMENTS, max_attachments_dont_match);
+_Static_assert(DS_MAX_ATTACHMENTS == MSL_MAX_ATTACHMENTS, "Max attachments don't match.");
 
 static bool getBlitSurfaceInfo(dsGfxFormat* outFormat, dsTextureDim* outDim, uint32_t* outWidth,
 	uint32_t* outHeight, uint32_t* outLayers, uint32_t* outMipLevels, const dsRenderer* renderer,

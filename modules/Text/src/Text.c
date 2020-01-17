@@ -93,7 +93,7 @@ static void createCharMappings(dsCharMapping* charMappings, uint32_t length, con
 
 static dsScriptInfo* getScriptInfo(dsText* text, uint32_t i)
 {
-	DS_STATIC_ASSERT(sizeof(dsScriptInfo) <= sizeof(dsTextRange), invalid_script_info_size);
+	_Static_assert(sizeof(dsScriptInfo) <= sizeof(dsTextRange), "Invalid script info size.");
 	return (dsScriptInfo*)(text->ranges + i);
 }
 

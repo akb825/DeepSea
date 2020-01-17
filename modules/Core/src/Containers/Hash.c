@@ -615,10 +615,10 @@ bool dsHash64Equal(const void* first, const void* second)
 uint32_t dsHashSizeT(const void* ptr)
 {
 #if DS_64BIT
-	DS_STATIC_ASSERT(sizeof(size_t) == sizeof(uint64_t), unexpected_sizeof_size_t);
+	_Static_assert(sizeof(size_t) == sizeof(uint64_t), "Unexpected sizeof(size_t).");
 	return dsHash64(ptr);
 #else
-	DS_STATIC_ASSERT(sizeof(size_t) == sizeof(uint32_t), unexpected_sizeof_size_t);
+	_Static_assert(sizeof(size_t) == sizeof(uint32_t), "Unexpected sizeof(size_t).");
 	return dsHash32(ptr);
 #endif
 }
@@ -626,10 +626,10 @@ uint32_t dsHashSizeT(const void* ptr)
 uint32_t dsHashCombineSizeT(uint32_t seed, const void* ptr)
 {
 #if DS_64BIT
-	DS_STATIC_ASSERT(sizeof(size_t) == sizeof(uint64_t), unexpected_sizeof_size_t);
+	_Static_assert(sizeof(size_t) == sizeof(uint64_t), "Unexpected sizeof(size_t).");
 	return dsHashCombine64(seed, ptr);
 #else
-	DS_STATIC_ASSERT(sizeof(size_t) == sizeof(uint32_t), unexpected_sizeof_size_t);
+	_Static_assert(sizeof(size_t) == sizeof(uint32_t), "Unexpected sizeof(size_t).");
 	return dsHashCombine32(seed, ptr);
 #endif
 }
@@ -647,10 +647,10 @@ bool dsHashSizeTEqual(const void* first, const void* second)
 uint32_t dsHashPointer(const void* ptr)
 {
 #if DS_64BIT
-	DS_STATIC_ASSERT(sizeof(void*) == sizeof(uint64_t), unexpected_sizeof_void_ptr);
+	_Static_assert(sizeof(void*) == sizeof(uint64_t), "Unexpected sizeof(void*).");
 	return dsHash64(&ptr);
 #else
-	DS_STATIC_ASSERT(sizeof(void*) == sizeof(uint32_t), unexpected_sizeof_void_ptr);
+	_Static_assert(sizeof(void*) == sizeof(uint32_t), "Unexpected sizeof(void*).");
 	return dsHash32(&ptr);
 #endif
 }
@@ -658,10 +658,10 @@ uint32_t dsHashPointer(const void* ptr)
 uint32_t dsHashCombinePointer(uint32_t seed, const void* ptr)
 {
 #if DS_64BIT
-	DS_STATIC_ASSERT(sizeof(void*) == sizeof(uint64_t), unexpected_sizeof_void_ptr);
+	_Static_assert(sizeof(void*) == sizeof(uint64_t), "Unexpected sizeof(void*).");
 	return dsHashCombine64(seed, &ptr);
 #else
-	DS_STATIC_ASSERT(sizeof(void*) == sizeof(uint32_t), unexpected_sizeof_void_ptr);
+	_Static_assert(sizeof(void*) == sizeof(uint32_t), "Unexpected sizeof(void*).");
 	return dsHashCombine32(seed, &ptr);
 #endif
 }

@@ -90,7 +90,7 @@ typedef enum PVRFormat
 	PVRFormatCount
 } PVRFormat;
 
-DS_STATIC_ASSERT(PVRFormatCount == 51, invalid_pvr_type_enum);
+_Static_assert(PVRFormatCount == 51, "Invalid PVR type enum.");
 
 static dsGfxFormat formatMap[] =
 {
@@ -147,7 +147,7 @@ static dsGfxFormat formatMap[] =
 	dsGfxFormat_Unknown,          // ASTC_6x6x6
 };
 
-DS_STATIC_ASSERT(DS_ARRAY_SIZE(formatMap) == PVRFormatCount, format_map_mismatch);
+_Static_assert(DS_ARRAY_SIZE(formatMap) == PVRFormatCount, "Format map array length mismatch.");
 
 typedef struct GenericFormat
 {
@@ -209,7 +209,7 @@ typedef enum PVRChannelType
 	PVRChannelTypeCount
 } PVRChannelType;
 
-DS_STATIC_ASSERT(PVRChannelTypeCount == 14, invalidpvr_channel_type_enum);
+_Static_assert(PVRChannelTypeCount == 14, "Invalid PVR channel type enum.");
 
 static void pvrError(const char* errorString, const char* filePath)
 {

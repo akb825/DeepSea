@@ -54,7 +54,7 @@
 #include <limits.h>
 #include <string.h>
 
-DS_STATIC_ASSERT(sizeof(VectorInfo) == 4*sizeof(dsVector4f), unexpected_VectorInfo_size);
+_Static_assert(sizeof(VectorInfo) == 4*sizeof(dsVector4f), "Unexpected sizeof(VectorInfo).");
 
 typedef enum BaseType
 {

@@ -82,17 +82,18 @@ extern "C"
 
 /**
  * @brief Converts from any structure that contains entirely floats (e.g. dsVector3f, dsMatrix44f)
- * to any corresponding structure that contains entirely doubles. (e.g. dsVector3d, dsMatrix44d)
+ *     to any corresponding structure that contains entirely doubles. (e.g. dsVector3d, dsMatrix44d)
  * @param[out] doubleStruct The double structure to convert to.
  * @param floatStruct The float struct.
  */
 #define dsConvertFloatToDouble(doubleStruct, floatStruct) \
 	do \
 	{ \
-		DS_STATIC_ASSERT(sizeof(doubleStruct) % sizeof(double) == 0, doubleStruct_must_be_double); \
-		DS_STATIC_ASSERT(sizeof(floatStruct) % sizeof(float) == 0, floatStruct_must_be_float); \
-		DS_STATIC_ASSERT(sizeof(doubleStruct)/sizeof(double) == \
-			sizeof(floatStruct)/sizeof(float), doubleStruct_elements_not_equal_to_floatStruct); \
+		_Static_assert(sizeof(doubleStruct) % sizeof(double) == 0, \
+			"doubleStruct must be double."); \
+		_Static_assert(sizeof(floatStruct) % sizeof(float) == 0, "floatStruct must be float."); \
+		_Static_assert(sizeof(doubleStruct)/sizeof(double) == \
+			sizeof(floatStruct)/sizeof(float), "doubleStruct elements not equal to floatStruct."); \
 		unsigned int _dsConvertLen = (unsigned int)(sizeof(floatStruct)/sizeof(float)); \
 		for (unsigned int _dsConvertI = 0; _dsConvertI < _dsConvertLen; ++_dsConvertI) \
 		{ \
@@ -103,17 +104,18 @@ extern "C"
 
 /**
  * @brief Converts from any structure that contains entirely doubles (e.g. dsVector3d, dsMatrix44d)
- * to any corresponding structure that contains entirely floats. (e.g. dsVector3f, dsMatrix44f)
+ *     to any corresponding structure that contains entirely floats. (e.g. dsVector3f, dsMatrix44f)
  * @param[out] floatStruct The float structure to convert to.
  * @param doubleStruct The double struct.
  */
 #define dsConvertDoubleToFloat(floatStruct, doubleStruct) \
 	do \
 	{ \
-		DS_STATIC_ASSERT(sizeof(doubleStruct) % sizeof(double) == 0, doubleStruct_must_be_double); \
-		DS_STATIC_ASSERT(sizeof(floatStruct) % sizeof(float) == 0, floatStruct_must_be_float); \
-		DS_STATIC_ASSERT(sizeof(doubleStruct)/sizeof(double) == \
-			sizeof(floatStruct)/sizeof(float), doubleStruct_elements_not_equal_to_floatStruct); \
+		_Static_assert(sizeof(doubleStruct) % sizeof(double) == 0, \
+			"doubleStruct must be double."); \
+		_Static_assert(sizeof(floatStruct) % sizeof(float) == 0, "floatStruct must be float."); \
+		_Static_assert(sizeof(doubleStruct)/sizeof(double) == \
+			sizeof(floatStruct)/sizeof(float), "doubleStruct elements not equal to floatStruct."); \
 		unsigned int _dsConvertLen = (unsigned int)(sizeof(floatStruct)/sizeof(float)); \
 		for (unsigned int _dsConvertI = 0; _dsConvertI < _dsConvertLen; ++_dsConvertI) \
 		{ \
@@ -124,17 +126,17 @@ extern "C"
 
 /**
  * @brief Converts from any structure that contains entirely floats (e.g. dsVector3f)
- * to any corresponding structure that contains entirely ints. (e.g. dsVector3i)
+ *     to any corresponding structure that contains entirely ints. (e.g. dsVector3i)
  * @param[out] intStruct The int structure to convert to.
  * @param floatStruct The float struct.
  */
 #define dsConvertFloatToInt(intStruct, floatStruct) \
 	do \
 	{ \
-		DS_STATIC_ASSERT(sizeof(intStruct) % sizeof(int) == 0, intStruct_must_be_int); \
-		DS_STATIC_ASSERT(sizeof(floatStruct) % sizeof(float) == 0, floatStruct_must_be_float); \
-		DS_STATIC_ASSERT(sizeof(intStruct)/sizeof(int) == \
-			sizeof(floatStruct)/sizeof(float), intStruct_elements_not_equal_to_floatStruct); \
+		_Static_assert(sizeof(intStruct) % sizeof(int) == 0, "intStruct must be int."); \
+		_Static_assert(sizeof(floatStruct) % sizeof(float) == 0, "floatStruct must be float."); \
+		_Static_assert(sizeof(intStruct)/sizeof(int) == \
+			sizeof(floatStruct)/sizeof(float), "intStruct elements not equal to floatStruct."); \
 		unsigned int _dsConvertLen = (unsigned int)(sizeof(floatStruct)/sizeof(float)); \
 		for (unsigned int _dsConvertI = 0; _dsConvertI < _dsConvertLen; ++_dsConvertI) \
 		{ \
@@ -145,17 +147,17 @@ extern "C"
 
 /**
  * @brief Converts from any structure that contains entirely ints (e.g. dsVector3i)
- * to any corresponding structure that contains entirely floats. (e.g. dsVector3f)
+ *     to any corresponding structure that contains entirely floats. (e.g. dsVector3f)
  * @param[out] floatStruct The float structure to convert to.
  * @param intStruct The int struct.
  */
 #define dsConvertIntToFloat(floatStruct, intStruct) \
 	do \
 	{ \
-		DS_STATIC_ASSERT(sizeof(intStruct) % sizeof(int) == 0, intStruct_must_be_int); \
-		DS_STATIC_ASSERT(sizeof(floatStruct) % sizeof(float) == 0, floatStruct_must_be_float); \
-		DS_STATIC_ASSERT(sizeof(intStruct)/sizeof(int) == \
-			sizeof(floatStruct)/sizeof(float), intStruct_elements_not_equal_to_floatStruct); \
+		_Static_assert(sizeof(intStruct) % sizeof(int) == 0, "intStruct must be int."); \
+		_Static_assert(sizeof(floatStruct) % sizeof(float) == 0, "floatStruct must be float."); \
+		_Static_assert(sizeof(intStruct)/sizeof(int) == \
+			sizeof(floatStruct)/sizeof(float), "intStruct elements not equal to floatStruct."); \
 		unsigned int _dsConvertLen = (unsigned int)(sizeof(floatStruct)/sizeof(float)); \
 		for (unsigned int _dsConvertI = 0; _dsConvertI < _dsConvertLen; ++_dsConvertI) \
 		{ \
@@ -166,17 +168,18 @@ extern "C"
 
 /**
  * @brief Converts from any structure that contains entirely doubles (e.g. dsVector3d)
- * to any corresponding structure that contains entirely ints. (e.g. dsVector3i)
+ *     to any corresponding structure that contains entirely ints. (e.g. dsVector3i)
  * @param[out] intStruct The int structure to convert to.
  * @param doubleStruct The double struct.
  */
 #define dsConvertDoubleToInt(intStruct, doubleStruct) \
 	do \
 	{ \
-		DS_STATIC_ASSERT(sizeof(intStruct) % sizeof(int) == 0, intStruct_must_be_int); \
-		DS_STATIC_ASSERT(sizeof(doubleStruct) % sizeof(double) == 0, doubleStruct_must_be_double); \
-		DS_STATIC_ASSERT(sizeof(intStruct)/sizeof(int) == \
-			sizeof(doubleStruct)/sizeof(double), intStruct_elements_not_equal_to_doubleStruct); \
+		_Static_assert(sizeof(intStruct) % sizeof(int) == 0, "intStruct must be int."); \
+		_Static_assert(sizeof(doubleStruct) % sizeof(double) == 0, \
+			"doubleStruct must be double."); \
+		_Static_assert(sizeof(intStruct)/sizeof(int) == \
+			sizeof(doubleStruct)/sizeof(double), "intStruct elements not equal to doubleStruct."); \
 		unsigned int _dsConvertLen = (unsigned int)(sizeof(doubleStruct)/sizeof(double)); \
 		for (unsigned int _dsConvertI = 0; _dsConvertI < _dsConvertLen; ++_dsConvertI) \
 		{ \
@@ -194,10 +197,11 @@ extern "C"
 #define dsConvertIntToDouble(doubleStruct, intStruct) \
 	do \
 	{ \
-		DS_STATIC_ASSERT(sizeof(intStruct) % sizeof(int) == 0, intStruct_must_be_int); \
-		DS_STATIC_ASSERT(sizeof(doubleStruct) % sizeof(double) == 0, doubleStruct_must_be_double); \
-		DS_STATIC_ASSERT(sizeof(intStruct)/sizeof(int) == \
-			sizeof(doubleStruct)/sizeof(double), intStruct_elements_not_equal_to_doubleStruct); \
+		_Static_assert(sizeof(intStruct) % sizeof(int) == 0, "intStruct must be int."); \
+		_Static_assert(sizeof(doubleStruct) % sizeof(double) == 0, \
+			"doubleStruct must be double."); \
+		_Static_assert(sizeof(intStruct)/sizeof(int) == \
+			sizeof(doubleStruct)/sizeof(double), "intStruct elements not equal to doubleStruct."); \
 		unsigned int _dsConvertLen = (unsigned int)(sizeof(doubleStruct)/sizeof(double)); \
 		for (unsigned int _dsConvertI = 0; _dsConvertI < _dsConvertLen; ++_dsConvertI) \
 		{ \
