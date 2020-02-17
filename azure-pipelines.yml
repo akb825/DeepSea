@@ -101,7 +101,7 @@ jobs:
         displayName: Build
   - job: Mac
     pool:
-        vmImage: macOS-10.13
+        vmImage: macOS-10.14
     workspace:
         clean: all
     strategy:
@@ -176,7 +176,7 @@ jobs:
 # be a bit tricky to do securely given that it's a public project.
 #  - job: iOS
 #    pool:
-#        vmImage: macOS-10.13
+#        vmImage: macOS-10.14
 #    workspace:
 #        clean: all
 #    steps:
