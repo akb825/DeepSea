@@ -1,5 +1,5 @@
-#!/usr/bin/python
-# Copyright 2018 Aaron Barany
+#!/usr/bin/env python
+# Copyright 2018-2020 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -40,9 +40,9 @@ class VectorResources:
 
 		self.cuttlefish = cuttlefishTool
 
-	def load(self, stream, basePath = None):
+	def load(self, contents, basePath = None):
 		"""
-		Loads the information for the VectorResources from a stream.
+		Loads the information for the VectorResources from a map.
 
 		basePath: The base path to load relative paths from, typically relative to the original
 		file.
@@ -97,7 +97,6 @@ class VectorResources:
 		"""
 
 		self.basePath = basePath
-		contents = json.load(stream)
 		if 'textures' in contents:
 			self.textures = contents['textures']
 		if 'faceGroups' in contents:
@@ -117,13 +116,21 @@ class VectorResources:
 			faces = faceGroupFaces[font['faceGroup']]
 			for face in font['faces']:
 				if face not in faces:
-					raise Exception('Face "' + face + '" not in face group "' + font['faceGroup'] +
-						'"')
+					raise Exception(
+						'Face "' + face + '" not in face group "' + font['faceGroup'] + '"')
+
+	def loadJson(self, json, basePath = None):
+		"""Loads from a string containing json data. See load() for expected json format."""
+		self.load(json.loads(json), basePath)
+
+	def loadStream(self, stream, basePath = None):
+		"""Loads from a stream containing json data. See load() for expected json format."""
+		self.load(json.load(stream), basePath)
 
 	def loadFile(self, jsonFile):
 		"""Loads from a json file. See load() for expected json format."""
 		with open(jsonFile) as f:
-			self.load(f, os.path.dirname(jsonFile))
+			self.load(json.load(f), os.path.dirname(jsonFile))
 
 	def save(self, outputPath, quiet = False, multithread = True):
 		"""
