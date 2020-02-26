@@ -28,6 +28,8 @@ struct OrientedBox3f;
 
 struct FileReference;
 
+struct RawData;
+
 enum class FileResourceType : uint8_t {
   Embedded = 0,
   Installed = 1,
@@ -679,6 +681,54 @@ inline const char *EnumNameFormatDecoration(FormatDecoration e) {
   return EnumNamesFormatDecoration()[index];
 }
 
+enum class FileOrData : uint8_t {
+  NONE = 0,
+  FileReference = 1,
+  RawData = 2,
+  MIN = NONE,
+  MAX = RawData
+};
+
+inline const FileOrData (&EnumValuesFileOrData())[3] {
+  static const FileOrData values[] = {
+    FileOrData::NONE,
+    FileOrData::FileReference,
+    FileOrData::RawData
+  };
+  return values;
+}
+
+inline const char * const *EnumNamesFileOrData() {
+  static const char * const names[] = {
+    "NONE",
+    "FileReference",
+    "RawData",
+    nullptr
+  };
+  return names;
+}
+
+inline const char *EnumNameFileOrData(FileOrData e) {
+  if (e < FileOrData::NONE || e > FileOrData::RawData) return "";
+  const size_t index = static_cast<size_t>(e);
+  return EnumNamesFileOrData()[index];
+}
+
+template<typename T> struct FileOrDataTraits {
+  static const FileOrData enum_value = FileOrData::NONE;
+};
+
+template<> struct FileOrDataTraits<FileReference> {
+  static const FileOrData enum_value = FileOrData::FileReference;
+};
+
+template<> struct FileOrDataTraits<RawData> {
+  static const FileOrData enum_value = FileOrData::RawData;
+};
+
+bool VerifyFileOrData(flatbuffers::Verifier &verifier, const void *obj, FileOrData type);
+bool VerifyFileOrDataVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<uint8_t> *types);
+
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Vector2f FLATBUFFERS_FINAL_CLASS {
  private:
   float x_;
@@ -1027,6 +1077,86 @@ inline flatbuffers::Offset<FileReference> CreateFileReferenceDirect(
       _fbb,
       type,
       path__);
+}
+
+struct RawData FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_DATA = 4
+  };
+  const flatbuffers::Vector<uint8_t> *data() const {
+    return GetPointer<const flatbuffers::Vector<uint8_t> *>(VT_DATA);
+  }
+  bool Verify(flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffsetRequired(verifier, VT_DATA) &&
+           verifier.VerifyVector(data()) &&
+           verifier.EndTable();
+  }
+};
+
+struct RawDataBuilder {
+  flatbuffers::FlatBufferBuilder &fbb_;
+  flatbuffers::uoffset_t start_;
+  void add_data(flatbuffers::Offset<flatbuffers::Vector<uint8_t>> data) {
+    fbb_.AddOffset(RawData::VT_DATA, data);
+  }
+  explicit RawDataBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  RawDataBuilder &operator=(const RawDataBuilder &);
+  flatbuffers::Offset<RawData> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = flatbuffers::Offset<RawData>(end);
+    fbb_.Required(o, RawData::VT_DATA);
+    return o;
+  }
+};
+
+inline flatbuffers::Offset<RawData> CreateRawData(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    flatbuffers::Offset<flatbuffers::Vector<uint8_t>> data = 0) {
+  RawDataBuilder builder_(_fbb);
+  builder_.add_data(data);
+  return builder_.Finish();
+}
+
+inline flatbuffers::Offset<RawData> CreateRawDataDirect(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    const std::vector<uint8_t> *data = nullptr) {
+  auto data__ = data ? _fbb.CreateVector<uint8_t>(*data) : 0;
+  return DeepSeaScene::CreateRawData(
+      _fbb,
+      data__);
+}
+
+inline bool VerifyFileOrData(flatbuffers::Verifier &verifier, const void *obj, FileOrData type) {
+  switch (type) {
+    case FileOrData::NONE: {
+      return true;
+    }
+    case FileOrData::FileReference: {
+      auto ptr = reinterpret_cast<const FileReference *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
+    case FileOrData::RawData: {
+      auto ptr = reinterpret_cast<const RawData *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
+    default: return false;
+  }
+}
+
+inline bool VerifyFileOrDataVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<uint8_t> *types) {
+  if (!values || !types) return !values && !types;
+  if (values->size() != types->size()) return false;
+  for (flatbuffers::uoffset_t i = 0; i < values->size(); ++i) {
+    if (!VerifyFileOrData(
+        verifier,  values->Get(i), types->GetEnum<FileOrData>(i))) {
+      return false;
+    }
+  }
+  return true;
 }
 
 }  // namespace DeepSeaScene

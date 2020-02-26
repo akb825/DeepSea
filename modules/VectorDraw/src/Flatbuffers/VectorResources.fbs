@@ -1,13 +1,34 @@
 namespace DeepSeaVectorDraw;
 
+// Struct describing a reference to a file.
+table FileReference
+{
+	// The path to the file.
+	path : string (required);
+}
+
+// Structure describing raw data.
+table RawData
+{
+	// The raw data.
+	data : [ubyte] (required);
+}
+
+// Union for either a file reference or embedded data.
+union FileOrData
+{
+	FileReference,
+	RawData
+}
+
 // Structure defining a reference to a resource.
 table Resource
 {
 	// The name to reference the resource.
 	name : string (required);
 
-	// The path to the resource.
-	path : string (required);
+	// The data for the resource.
+	data : FileOrData (required);
 }
 
 // Enum for the font render quality.

@@ -1,6 +1,7 @@
 /build
 /dependencies
 __pycache__
+.cmake
 .idea
 .vscode
 *.pyc

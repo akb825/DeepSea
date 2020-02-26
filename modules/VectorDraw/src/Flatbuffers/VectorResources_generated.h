@@ -8,6 +8,10 @@
 
 namespace DeepSeaVectorDraw {
 
+struct FileReference;
+
+struct RawData;
+
 struct Resource;
 
 struct FaceGroup;
@@ -15,6 +19,54 @@ struct FaceGroup;
 struct Font;
 
 struct VectorResources;
+
+enum class FileOrData : uint8_t {
+  NONE = 0,
+  FileReference = 1,
+  RawData = 2,
+  MIN = NONE,
+  MAX = RawData
+};
+
+inline const FileOrData (&EnumValuesFileOrData())[3] {
+  static const FileOrData values[] = {
+    FileOrData::NONE,
+    FileOrData::FileReference,
+    FileOrData::RawData
+  };
+  return values;
+}
+
+inline const char * const *EnumNamesFileOrData() {
+  static const char * const names[] = {
+    "NONE",
+    "FileReference",
+    "RawData",
+    nullptr
+  };
+  return names;
+}
+
+inline const char *EnumNameFileOrData(FileOrData e) {
+  if (e < FileOrData::NONE || e > FileOrData::RawData) return "";
+  const size_t index = static_cast<size_t>(e);
+  return EnumNamesFileOrData()[index];
+}
+
+template<typename T> struct FileOrDataTraits {
+  static const FileOrData enum_value = FileOrData::NONE;
+};
+
+template<> struct FileOrDataTraits<FileReference> {
+  static const FileOrData enum_value = FileOrData::FileReference;
+};
+
+template<> struct FileOrDataTraits<RawData> {
+  static const FileOrData enum_value = FileOrData::RawData;
+};
+
+bool VerifyFileOrData(flatbuffers::Verifier &verifier, const void *obj, FileOrData type);
+bool VerifyFileOrDataVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<uint8_t> *types);
 
 enum class FontQuality : uint8_t {
   Low = 0,
@@ -82,26 +134,148 @@ inline const char *EnumNameFontCacheSize(FontCacheSize e) {
   return EnumNamesFontCacheSize()[index];
 }
 
-struct Resource FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+struct FileReference FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_NAME = 4,
-    VT_PATH = 6
+    VT_PATH = 4
   };
-  const flatbuffers::String *name() const {
-    return GetPointer<const flatbuffers::String *>(VT_NAME);
-  }
   const flatbuffers::String *path() const {
     return GetPointer<const flatbuffers::String *>(VT_PATH);
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyOffsetRequired(verifier, VT_NAME) &&
-           verifier.VerifyString(name()) &&
            VerifyOffsetRequired(verifier, VT_PATH) &&
            verifier.VerifyString(path()) &&
            verifier.EndTable();
   }
 };
+
+struct FileReferenceBuilder {
+  flatbuffers::FlatBufferBuilder &fbb_;
+  flatbuffers::uoffset_t start_;
+  void add_path(flatbuffers::Offset<flatbuffers::String> path) {
+    fbb_.AddOffset(FileReference::VT_PATH, path);
+  }
+  explicit FileReferenceBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  FileReferenceBuilder &operator=(const FileReferenceBuilder &);
+  flatbuffers::Offset<FileReference> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = flatbuffers::Offset<FileReference>(end);
+    fbb_.Required(o, FileReference::VT_PATH);
+    return o;
+  }
+};
+
+inline flatbuffers::Offset<FileReference> CreateFileReference(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    flatbuffers::Offset<flatbuffers::String> path = 0) {
+  FileReferenceBuilder builder_(_fbb);
+  builder_.add_path(path);
+  return builder_.Finish();
+}
+
+inline flatbuffers::Offset<FileReference> CreateFileReferenceDirect(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    const char *path = nullptr) {
+  auto path__ = path ? _fbb.CreateString(path) : 0;
+  return DeepSeaVectorDraw::CreateFileReference(
+      _fbb,
+      path__);
+}
+
+struct RawData FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_DATA = 4
+  };
+  const flatbuffers::Vector<uint8_t> *data() const {
+    return GetPointer<const flatbuffers::Vector<uint8_t> *>(VT_DATA);
+  }
+  bool Verify(flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffsetRequired(verifier, VT_DATA) &&
+           verifier.VerifyVector(data()) &&
+           verifier.EndTable();
+  }
+};
+
+struct RawDataBuilder {
+  flatbuffers::FlatBufferBuilder &fbb_;
+  flatbuffers::uoffset_t start_;
+  void add_data(flatbuffers::Offset<flatbuffers::Vector<uint8_t>> data) {
+    fbb_.AddOffset(RawData::VT_DATA, data);
+  }
+  explicit RawDataBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  RawDataBuilder &operator=(const RawDataBuilder &);
+  flatbuffers::Offset<RawData> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = flatbuffers::Offset<RawData>(end);
+    fbb_.Required(o, RawData::VT_DATA);
+    return o;
+  }
+};
+
+inline flatbuffers::Offset<RawData> CreateRawData(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    flatbuffers::Offset<flatbuffers::Vector<uint8_t>> data = 0) {
+  RawDataBuilder builder_(_fbb);
+  builder_.add_data(data);
+  return builder_.Finish();
+}
+
+inline flatbuffers::Offset<RawData> CreateRawDataDirect(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    const std::vector<uint8_t> *data = nullptr) {
+  auto data__ = data ? _fbb.CreateVector<uint8_t>(*data) : 0;
+  return DeepSeaVectorDraw::CreateRawData(
+      _fbb,
+      data__);
+}
+
+struct Resource FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_NAME = 4,
+    VT_DATA_TYPE = 6,
+    VT_DATA = 8
+  };
+  const flatbuffers::String *name() const {
+    return GetPointer<const flatbuffers::String *>(VT_NAME);
+  }
+  FileOrData data_type() const {
+    return static_cast<FileOrData>(GetField<uint8_t>(VT_DATA_TYPE, 0));
+  }
+  const void *data() const {
+    return GetPointer<const void *>(VT_DATA);
+  }
+  template<typename T> const T *data_as() const;
+  const FileReference *data_as_FileReference() const {
+    return data_type() == FileOrData::FileReference ? static_cast<const FileReference *>(data()) : nullptr;
+  }
+  const RawData *data_as_RawData() const {
+    return data_type() == FileOrData::RawData ? static_cast<const RawData *>(data()) : nullptr;
+  }
+  bool Verify(flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffsetRequired(verifier, VT_NAME) &&
+           verifier.VerifyString(name()) &&
+           VerifyField<uint8_t>(verifier, VT_DATA_TYPE) &&
+           VerifyOffsetRequired(verifier, VT_DATA) &&
+           VerifyFileOrData(verifier, data(), data_type()) &&
+           verifier.EndTable();
+  }
+};
+
+template<> inline const FileReference *Resource::data_as<FileReference>() const {
+  return data_as_FileReference();
+}
+
+template<> inline const RawData *Resource::data_as<RawData>() const {
+  return data_as_RawData();
+}
 
 struct ResourceBuilder {
   flatbuffers::FlatBufferBuilder &fbb_;
@@ -109,8 +283,11 @@ struct ResourceBuilder {
   void add_name(flatbuffers::Offset<flatbuffers::String> name) {
     fbb_.AddOffset(Resource::VT_NAME, name);
   }
-  void add_path(flatbuffers::Offset<flatbuffers::String> path) {
-    fbb_.AddOffset(Resource::VT_PATH, path);
+  void add_data_type(FileOrData data_type) {
+    fbb_.AddElement<uint8_t>(Resource::VT_DATA_TYPE, static_cast<uint8_t>(data_type), 0);
+  }
+  void add_data(flatbuffers::Offset<void> data) {
+    fbb_.AddOffset(Resource::VT_DATA, data);
   }
   explicit ResourceBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
@@ -121,7 +298,7 @@ struct ResourceBuilder {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<Resource>(end);
     fbb_.Required(o, Resource::VT_NAME);
-    fbb_.Required(o, Resource::VT_PATH);
+    fbb_.Required(o, Resource::VT_DATA);
     return o;
   }
 };
@@ -129,23 +306,26 @@ struct ResourceBuilder {
 inline flatbuffers::Offset<Resource> CreateResource(
     flatbuffers::FlatBufferBuilder &_fbb,
     flatbuffers::Offset<flatbuffers::String> name = 0,
-    flatbuffers::Offset<flatbuffers::String> path = 0) {
+    FileOrData data_type = FileOrData::NONE,
+    flatbuffers::Offset<void> data = 0) {
   ResourceBuilder builder_(_fbb);
-  builder_.add_path(path);
+  builder_.add_data(data);
   builder_.add_name(name);
+  builder_.add_data_type(data_type);
   return builder_.Finish();
 }
 
 inline flatbuffers::Offset<Resource> CreateResourceDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     const char *name = nullptr,
-    const char *path = nullptr) {
+    FileOrData data_type = FileOrData::NONE,
+    flatbuffers::Offset<void> data = 0) {
   auto name__ = name ? _fbb.CreateString(name) : 0;
-  auto path__ = path ? _fbb.CreateString(path) : 0;
   return DeepSeaVectorDraw::CreateResource(
       _fbb,
       name__,
-      path__);
+      data_type,
+      data);
 }
 
 struct FaceGroup FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -400,6 +580,35 @@ inline flatbuffers::Offset<VectorResources> CreateVectorResourcesDirect(
       textures__,
       faceGroups__,
       fonts__);
+}
+
+inline bool VerifyFileOrData(flatbuffers::Verifier &verifier, const void *obj, FileOrData type) {
+  switch (type) {
+    case FileOrData::NONE: {
+      return true;
+    }
+    case FileOrData::FileReference: {
+      auto ptr = reinterpret_cast<const FileReference *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
+    case FileOrData::RawData: {
+      auto ptr = reinterpret_cast<const RawData *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
+    default: return false;
+  }
+}
+
+inline bool VerifyFileOrDataVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<uint8_t> *types) {
+  if (!values || !types) return !values && !types;
+  if (values->size() != types->size()) return false;
+  for (flatbuffers::uoffset_t i = 0; i < values->size(); ++i) {
+    if (!VerifyFileOrData(
+        verifier,  values->Get(i), types->GetEnum<FileOrData>(i))) {
+      return false;
+    }
+  }
+  return true;
 }
 
 inline const DeepSeaVectorDraw::VectorResources *GetVectorResources(const void *buf) {

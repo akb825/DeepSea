@@ -16,15 +16,16 @@
 
 #include <DeepSea/Scene/SceneResources.h>
 
-#include <DeepSea/Core/Memory/Allocator.h>
-#include <DeepSea/Core/Assert.h>
-#include <DeepSea/Core/Error.h>
-#include <DeepSea/Core/Log.h>
-
 #include "Flatbuffers/BufferMaterialData_generated.h"
 #include "Flatbuffers/NamedMaterialData_generated.h"
 #include "Flatbuffers/SceneResources_generated.h"
 #include "Flatbuffers/TextureBufferMaterialData_generated.h"
+
+#include <DeepSea/Core/Memory/Allocator.h>
+#include <DeepSea/Core/Streams/MemoryStream.h>
+#include <DeepSea/Core/Assert.h>
+#include <DeepSea/Core/Error.h>
+#include <DeepSea/Core/Log.h>
 
 #include <DeepSea/Render/Resources/DrawGeometry.h>
 #include <DeepSea/Render/Resources/GfxBuffer.h>
@@ -157,27 +158,25 @@ static bool loadTextures(dsSceneResources* resources, dsResourceManager* resourc
 			continue;
 
 		const char* textureName = fbTexture->name()->c_str();
-		auto texturePath = fbTexture->path();
-		auto fbTextureInfo = fbTexture->textureInfo();
-		if ((!texturePath && !fbTextureInfo) || (texturePath && fbTextureInfo))
-		{
-			errno = EFORMAT;
-			PRINT_FLATBUFFER_RESOURCE_ERROR(
-				"Either texture path or texture info must be provided for texture '%s'",
-				textureName, fileName);
-			return false;
-		}
-
 		auto usage = static_cast<dsTextureUsage>(fbTexture->usage());
 		auto memoryHints = static_cast<dsGfxMemory>(fbTexture->memoryHints());
 		dsTexture* texture;
-		if (texturePath)
+		if (auto fbFileRef = fbTexture->data_as_FileReference())
 		{
 			texture = dsTextureData_loadResourceToTexture(resourceManager, resourceAllocator,
-				allocator, DeepSeaScene::convert(texturePath->type()),
-				texturePath->path()->c_str(), nullptr, usage, memoryHints);
+				allocator, DeepSeaScene::convert(fbFileRef->type()),
+				fbFileRef->path()->c_str(), nullptr, usage, memoryHints);
 		}
-		else
+		else if (auto fbRawData = fbTexture->data_as_RawData())
+		{
+			auto fbData = fbRawData->data();
+			dsMemoryStream stream;
+			DS_VERIFY(dsMemoryStream_open(&stream, (void*)fbData->data(), fbData->size()));
+			texture = dsTextureData_loadStreamToTexture(resourceManager, resourceAllocator,
+				allocator, reinterpret_cast<dsStream*>(&stream), nullptr, usage, memoryHints);
+			DS_VERIFY(dsMemoryStream_close(&stream));
+		}
+		else if (auto fbTextureInfo = fbTexture->textureInfo())
 		{
 			dsTextureInfo textureInfo =
 			{
@@ -191,6 +190,14 @@ static bool loadTextures(dsSceneResources* resources, dsResourceManager* resourc
 			};
 			texture = dsTexture_create(resourceManager, resourceAllocator, usage, memoryHints,
 				&textureInfo, nullptr, 0);
+		}
+		else
+		{
+			errno = EFORMAT;
+			PRINT_FLATBUFFER_RESOURCE_ERROR(
+				"Either texture data or texture info must be provided for texture '%s'",
+				textureName, fileName);
+			return false;
 		}
 
 		if (!texture)
@@ -768,9 +775,27 @@ static bool loadShaderModules(dsSceneResources* resources, dsResourceManager* re
 			continue;
 
 		const char* shaderModuleName = fbShaderModule->name()->c_str();
-		auto file = fbShaderModule->file();
-		dsShaderModule* shaderModule = dsShaderModule_loadResource(resourceManager, allocator,
-			DeepSeaScene::convert(file->type()), file->path()->c_str(), shaderModuleName);
+		dsShaderModule* shaderModule;
+		if (auto fbFileRef = fbShaderModule->data_as_FileReference())
+		{
+			shaderModule = dsShaderModule_loadResource(resourceManager, allocator,
+				DeepSeaScene::convert(fbFileRef->type()), fbFileRef->path()->c_str(),
+				shaderModuleName);
+		}
+		else if (auto fbRawData = fbShaderModule->data_as_RawData())
+		{
+			auto fbData = fbRawData->data();
+			shaderModule = dsShaderModule_loadData(resourceManager, allocator, fbData->data(),
+				fbData->size(), shaderModuleName);
+		}
+		else
+		{
+			errno = EFORMAT;
+			PRINT_FLATBUFFER_RESOURCE_ERROR("No data provided for shader module '%s'",
+				shaderModuleName, fileName);
+			return false;
+		}
+
 		if (!shaderModule)
 		{
 			PRINT_FLATBUFFER_RESOURCE_ERROR(

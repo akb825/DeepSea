@@ -40,19 +40,25 @@ class Texture(object):
         return 0
 
     # Texture
-    def Path(self):
+    def DataType(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(10))
         if o != 0:
-            x = self._tab.Indirect(o + self._tab.Pos)
-            from .FileReference import FileReference
-            obj = FileReference()
-            obj.Init(self._tab.Bytes, x)
+            return self._tab.Get(flatbuffers.number_types.Uint8Flags, o + self._tab.Pos)
+        return 0
+
+    # Texture
+    def Data(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(12))
+        if o != 0:
+            from flatbuffers.table import Table
+            obj = Table(bytearray(), 0)
+            self._tab.Union(obj, o)
             return obj
         return None
 
     # Texture
     def TextureInfo(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(12))
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(14))
         if o != 0:
             x = self._tab.Indirect(o + self._tab.Pos)
             from .TextureInfo import TextureInfo
@@ -61,10 +67,11 @@ class Texture(object):
             return obj
         return None
 
-def TextureStart(builder): builder.StartObject(5)
+def TextureStart(builder): builder.StartObject(6)
 def TextureAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
 def TextureAddUsage(builder, usage): builder.PrependUint32Slot(1, usage, 0)
 def TextureAddMemoryHints(builder, memoryHints): builder.PrependUint32Slot(2, memoryHints, 0)
-def TextureAddPath(builder, path): builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(path), 0)
-def TextureAddTextureInfo(builder, textureInfo): builder.PrependUOffsetTRelativeSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(textureInfo), 0)
+def TextureAddDataType(builder, dataType): builder.PrependUint8Slot(3, dataType, 0)
+def TextureAddData(builder, data): builder.PrependUOffsetTRelativeSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(data), 0)
+def TextureAddTextureInfo(builder, textureInfo): builder.PrependUOffsetTRelativeSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(textureInfo), 0)
 def TextureEnd(builder): return builder.EndObject()

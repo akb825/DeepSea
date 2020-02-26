@@ -140,7 +140,7 @@ DS_TEXT_EXPORT bool dsFaceGroup_loadFaceStream(dsFaceGroup* group, dsAllocator* 
  *     DS_MAX_FACE_NAME_LENGTH.
  * @return True if the face was loaded.
  */
-DS_TEXT_EXPORT bool dsFaceGroup_loadFaceBuffer(dsFaceGroup* group, dsAllocator* allocator,
+DS_TEXT_EXPORT bool dsFaceGroup_loadFaceData(dsFaceGroup* group, dsAllocator* allocator,
 	const void* buffer, size_t size, const char* name);
 
 /**

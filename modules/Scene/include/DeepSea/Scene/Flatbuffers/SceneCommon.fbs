@@ -305,3 +305,17 @@ table FileReference
 	// The path to the file.
 	path : string (required);
 }
+
+// Structure describing raw data.
+table RawData
+{
+	// The raw data.
+	data : [ubyte] (required);
+}
+
+// Union for either a file reference or embedded data.
+union FileOrData
+{
+	FileReference,
+	RawData
+}

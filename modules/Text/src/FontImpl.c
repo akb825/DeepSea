@@ -1050,7 +1050,7 @@ bool dsFaceGroup_loadFaceStream(dsFaceGroup* group, dsAllocator* allocator,
 	return dsFaceGroup_loadFaceImpl(group, allocator, stream, name);
 }
 
-bool dsFaceGroup_loadFaceBuffer(dsFaceGroup* group, dsAllocator* allocator, const void* buffer,
+bool dsFaceGroup_loadFaceData(dsFaceGroup* group, dsAllocator* allocator, const void* buffer,
 	size_t size, const char* name)
 {
 	if (!group || !buffer || size == 0 || !name)

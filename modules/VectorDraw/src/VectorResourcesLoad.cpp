@@ -19,9 +19,11 @@
 #include "Flatbuffers/VectorResources_generated.h"
 
 #include <DeepSea/Core/Memory/StackAllocator.h>
+#include <DeepSea/Core/Streams/MemoryStream.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Core/Error.h>
+#include <DeepSea/Render/Resources/TextureData.h>
 #include <DeepSea/Text/FaceGroup.h>
 #include <DeepSea/Text/Font.h>
 #include <algorithm>
@@ -81,9 +83,31 @@ dsVectorResources* dsVectorResources_loadImpl(dsAllocator* allocator, dsAllocato
 			return nullptr;
 		}
 
-		dsTexture* texture = loadTextureFunc(loadUserData, resourceManager, allocator,
-			scratchAllocator, textureRef->path()->c_str(), dsTextureUsage_Texture,
-			(dsGfxMemory)(dsGfxMemory_Static | dsGfxMemory_GPUOnly));
+		dsTextureUsage usage = dsTextureUsage_Texture;
+		dsGfxMemory memoryHints = dsGfxMemory_Static | dsGfxMemory_GPUOnly;
+		dsTexture* texture;
+		if (auto fileRef = textureRef->data_as_FileReference())
+		{
+			texture = loadTextureFunc(loadUserData, resourceManager, allocator,
+				scratchAllocator, fileRef->path()->c_str(), usage, memoryHints);
+		}
+		else if (auto rawData = textureRef->data_as_RawData())
+		{
+			auto data = rawData->data();
+			dsMemoryStream stream;
+			DS_VERIFY(dsMemoryStream_open(&stream, (void*)data->data(), data->size()));
+			texture = dsTextureData_loadStreamToTexture(resourceManager, allocator,
+				scratchAllocator, reinterpret_cast<dsStream*>(&stream), nullptr, usage,
+				memoryHints);
+			DS_VERIFY(dsMemoryStream_close(&stream));
+		}
+		else
+		{
+			errno = EFORMAT;
+			printFlatbufferError(name);
+			return nullptr;
+		}
+
 		if (!texture)
 		{
 			DS_VERIFY(dsVectorResources_destroy(resources));
@@ -129,8 +153,26 @@ dsVectorResources* dsVectorResources_loadImpl(dsAllocator* allocator, dsAllocato
 				return nullptr;
 			}
 
-			if (!loadFontFaceFunc(loadUserData, faceGroup, faceRef->path()->c_str(),
-				faceRef->name()->c_str()))
+			bool success;
+			if (auto fileRef = faceRef->data_as_FileReference())
+			{
+				success = loadFontFaceFunc(loadUserData, faceGroup, fileRef->path()->c_str(),
+					faceRef->name()->c_str());
+			}
+			else if (auto rawData = faceRef->data_as_RawData())
+			{
+				auto data = rawData->data();
+				success = dsFaceGroup_loadFaceData(faceGroup, allocator, data->data(),
+					data->size(), faceRef->name()->c_str());
+			}
+			else
+			{
+				errno = EFORMAT;
+				printFlatbufferError(name);
+				return nullptr;
+			}
+
+			if (!success)
 			{
 				DS_VERIFY(dsVectorResources_destroy(resources));
 				return nullptr;

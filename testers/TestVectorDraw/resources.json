@@ -4,7 +4,8 @@
 		{
 			"path": "../Shared/SimpleTexture.png",
 			"format": "R8G8B8A8",
-			"type": "unorm"
+			"type": "unorm",
+			"embed": true
 		}
 	],
 	"faceGroups":
@@ -13,10 +14,23 @@
 			"name": "default",
 			"faces":
 			[
-				{"name": "sans", "path": "../Shared/Fonts/NotoSans-Regular.ttc"},
-				{"name": "arabic", "path": "../Shared/Fonts/NotoSansArabic-Regular.ttf"},
-				{"name": "thai", "path": "../Shared/Fonts/NotoSansThai-Regular.ttf"},
-				{"name": "serif", "path": "../Shared/Fonts/NotoSerif-Regular.ttf"}
+				{
+					"name": "sans",
+					"path": "../Shared/Fonts/NotoSans-Regular.ttc"
+				},
+				{
+					"name": "arabic",
+					"path": "../Shared/Fonts/NotoSansArabic-Regular.ttf",
+					"embed": true},
+				{
+					"name": "thai",
+					"path": "../Shared/Fonts/NotoSansThai-Regular.ttf",
+					"embed": true
+				},
+				{
+					"name": "serif",
+					"path": "../Shared/Fonts/NotoSerif-Regular.ttf"
+				}
 			]
 		}
 	],

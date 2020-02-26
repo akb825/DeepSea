@@ -19,12 +19,17 @@ import json
 import os
 import shutil
 import subprocess
+import sys
+import tempfile
 
 import flatbuffers
 from DeepSeaVectorDraw.FaceGroup import *
+from DeepSeaVectorDraw.FileOrData import *
+from DeepSeaVectorDraw.FileReference import *
 from DeepSeaVectorDraw.Font import *
 from DeepSeaVectorDraw.FontCacheSize import *
 from DeepSeaVectorDraw.FontQuality import *
+from DeepSeaVectorDraw.RawData import *
 from DeepSeaVectorDraw.Resource import *
 from DeepSeaVectorDraw.VectorResources import *
 
@@ -59,8 +64,9 @@ class VectorResources:
 					"type": "<texture channel type; see cuttlefish help for details>",
 					"srgb": <true|false> (optional, defaults to false),
 					"size": [<width>, <height>] (optional),
-					"quality": "<lowest|low|normal|high|highest>" (optional)
-					"container": "<pvr|dds|ktx>" (optional, defaults to pvr)
+					"quality": "<lowest|low|normal|high|highest>" (optional),
+					"container": "<pvr|dds|ktx>" (optional, defaults to pvr),
+					"embed": <true|false to embed in resource file> (optional, defaults to false)
 				},
 				...
 			],
@@ -90,7 +96,8 @@ class VectorResources:
 						...
 					],
 					"quality": "<low|medium|high|veryhigh>",
-					"cacheSize": "<small|large>" (optional, defaults to large)
+					"cacheSize": "<small|large>" (optional, defaults to large),
+					"embed": <true|false to embed in resource file> (optional, defaults to false)
 				}
 			]
 		}
@@ -144,50 +151,81 @@ class VectorResources:
 		(root, filename) = os.path.split(outputPath)
 		resourceDirName = os.path.splitext(filename)[0] + '_resources'
 		resourceDir = os.path.join(root, resourceDirName)
-		if not os.path.exists(resourceDir):
-			os.makedirs(resourceDir)
+
+		def createResourceDir():
+			if not os.path.exists(resourceDir):
+				os.makedirs(resourceDir)
+
+		def createResourceData(filePath, outputName, removeEmbedded = False):
+			if outputName:
+				pathOffset = builder.CreateString(outputName.replace('\\', '/'))
+				FileReferenceStart(builder)
+				FileReferenceAddPath(builder, pathOffset)
+				return FileOrData.FileReference, FileReferenceEnd(builder)
+			else:
+				with open(filePath, 'r+b') as dataFile:
+					dataOffset = builder.CreateByteVector(dataFile.read())
+				if removeEmbedded:
+					os.remove(filePath)
+				RawDataStart(builder)
+				RawDataAddData(builder, dataOffset)
+				return FileOrData.RawData, RawDataEnd(builder)
 
 		builder = flatbuffers.Builder(0)
 
 		textureOffsets = []
-		for texture in self.textures:
-			path = texture['path']
-			if 'name' in texture:
-				name = texture['name']
-			else:
-				name = os.path.splitext(os.path.basename(path))[0]
-			if 'container' in texture:
-				extension = '.' + texture['container']
-			else:
-				extension = '.pvr'
-			outputName = os.path.join(resourceDirName, name + extension)
-			textureOutputPath = os.path.join(root, outputName)
+		with tempfile.NamedTemporaryFile() as tempFile:
+			for texture in self.textures:
+				path = texture['path']
+				if 'name' in texture:
+					name = texture['name']
+				else:
+					name = os.path.splitext(os.path.basename(path))[0]
+				if 'container' in texture:
+					extension = '.' + texture['container']
+				else:
+					extension = '.pvr'
+				embed = 'embed' in texture and texture['embed']
+				if embed:
+					textureOutputPath = tempFile.name + extension
+					outputName = None
+				else:
+					createResourceDir()
+					outputName = os.path.join(resourceDirName, name + extension)
+					textureOutputPath = os.path.join(root, outputName)
 
-			commandLine = [self.cuttlefish, '-i', os.path.join(self.basePath, path),
-				'-o', textureOutputPath, '-f', texture['format'], '-t', texture['type']]
-			if quiet:
-				commandLine.append('-q')
-			if multithread:
-				commandLine.append('-j')
-			if 'srgb' in texture and texture['srgb']:
-				commandLine.append('--srgb')
-			if 'size' in texture:
-				size = texture['size']
-				commandLine.extend(['-r', size[0], size[1]])
-			if 'quality' in texture:
-				commandLine.extend(['-Q', texture['quality'].lower()])
+				commandLine = [self.cuttlefish, '-i', os.path.join(self.basePath, path),
+					'-o', textureOutputPath, '-f', texture['format'], '-t', texture['type']]
+				if quiet:
+					commandLine.append('-q')
+				if multithread:
+					commandLine.append('-j')
+				if 'srgb' in texture and texture['srgb']:
+					commandLine.append('--srgb')
+				if 'size' in texture:
+					size = texture['size']
+					commandLine.extend(['-r', size[0], size[1]])
+				if 'quality' in texture:
+					commandLine.extend(['-Q', texture['quality'].lower()])
 
-			if not quiet:
-				print('Converting texture "' + path + '"...')
-			subprocess.check_call(commandLine)
+				if not quiet:
+					print('Converting texture "' + path + '"...')
+				sys.stdout.flush()
 
-			nameOffset = builder.CreateString(name)
-			pathOffset = builder.CreateString(outputName.replace('\\', '/'))
+				try:
+					subprocess.check_call(commandLine)
+					nameOffset = builder.CreateString(name)
+					dataType, dataOffset = createResourceData(textureOutputPath, outputName, True)
+				except:
+					if os.path.isfile(textureOutputPath):
+						os.remove(textureOutputPath)
+					raise
 
-			ResourceStart(builder)
-			ResourceAddName(builder, nameOffset)
-			ResourceAddPath(builder, pathOffset)
-			textureOffsets.append(ResourceEnd(builder))
+				ResourceStart(builder)
+				ResourceAddName(builder, nameOffset)
+				ResourceAddDataType(builder, dataType)
+				ResourceAddData(builder, dataOffset)
+				textureOffsets.append(ResourceEnd(builder))
 
 		VectorResourcesStartTexturesVector(builder, len(textureOffsets))
 		for offset in reversed(textureOffsets):
@@ -203,16 +241,24 @@ class VectorResources:
 			for face in faces:
 				name = face['name']
 				path = face['path']
-				outputName = os.path.join(resourceDirName, name + os.path.splitext(extension)[1])
-				fontOutputPath = os.path.join(root, outputName)
-				shutil.copyfile(os.path.join(self.basePath, path), fontOutputPath)
+				embed = 'embed' in face and face['embed']
+				if embed:
+					outputName = None
+					fontOutputPath = os.path.join(self.basePath, path)
+				else:
+					outputName = os.path.join(resourceDirName,
+						name + os.path.splitext(extension)[1])
+					fontOutputPath = os.path.join(root, outputName)
+					createResourceDir()
+					shutil.copyfile(os.path.join(self.basePath, path), fontOutputPath)
 
 				faceNameOffset = builder.CreateString(name)
-				pathOffset = builder.CreateString(outputName.replace('\\', '/'))
+				dataType, dataOffset = createResourceData(fontOutputPath, outputName)
 
 				ResourceStart(builder)
 				ResourceAddName(builder, faceNameOffset)
-				ResourceAddPath(builder, pathOffset)
+				ResourceAddDataType(builder, dataType)
+				ResourceAddData(builder, dataOffset)
 				faceOffsets.append(ResourceEnd(builder))
 
 			FaceGroupStartFacesVector(builder, len(faceOffsets))

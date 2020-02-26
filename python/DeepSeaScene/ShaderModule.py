@@ -26,17 +26,24 @@ class ShaderModule(object):
         return None
 
     # ShaderModule
-    def File(self):
+    def DataType(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         if o != 0:
-            x = self._tab.Indirect(o + self._tab.Pos)
-            from .FileReference import FileReference
-            obj = FileReference()
-            obj.Init(self._tab.Bytes, x)
+            return self._tab.Get(flatbuffers.number_types.Uint8Flags, o + self._tab.Pos)
+        return 0
+
+    # ShaderModule
+    def Data(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
+        if o != 0:
+            from flatbuffers.table import Table
+            obj = Table(bytearray(), 0)
+            self._tab.Union(obj, o)
             return obj
         return None
 
-def ShaderModuleStart(builder): builder.StartObject(2)
+def ShaderModuleStart(builder): builder.StartObject(3)
 def ShaderModuleAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
-def ShaderModuleAddFile(builder, file): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(file), 0)
+def ShaderModuleAddDataType(builder, dataType): builder.PrependUint8Slot(1, dataType, 0)
+def ShaderModuleAddData(builder, data): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(data), 0)
 def ShaderModuleEnd(builder): return builder.EndObject()

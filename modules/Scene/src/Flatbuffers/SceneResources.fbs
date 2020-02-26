@@ -74,8 +74,8 @@ table Texture
 	// The memory flags for the texture.
 	memoryHints : uint;
 
-	// The path to the texture. If not set, then textureInfo must be set.
-	path : FileReference;
+	// The file reference or data for the texture. If not set, then textureInfo must be set.
+	data : FileOrData;
 
 	// The info to create the texture with. If not set, then path must be set.
 	textureInfo : TextureInfo;
@@ -181,8 +181,8 @@ table ShaderModule
 	// The name of the shader module.
 	name : string (required);
 
-	// The file reference to the shader module.
-	file : FileReference (required);
+	// The file reference or data for the shader module.
+	data : FileOrData (required);
 }
 
 // Structure describing a shader.

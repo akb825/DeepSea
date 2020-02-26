@@ -307,8 +307,9 @@ struct Texture FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_NAME = 4,
     VT_USAGE = 6,
     VT_MEMORYHINTS = 8,
-    VT_PATH = 10,
-    VT_TEXTUREINFO = 12
+    VT_DATA_TYPE = 10,
+    VT_DATA = 12,
+    VT_TEXTUREINFO = 14
   };
   const flatbuffers::String *name() const {
     return GetPointer<const flatbuffers::String *>(VT_NAME);
@@ -319,8 +320,18 @@ struct Texture FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   uint32_t memoryHints() const {
     return GetField<uint32_t>(VT_MEMORYHINTS, 0);
   }
-  const FileReference *path() const {
-    return GetPointer<const FileReference *>(VT_PATH);
+  FileOrData data_type() const {
+    return static_cast<FileOrData>(GetField<uint8_t>(VT_DATA_TYPE, 0));
+  }
+  const void *data() const {
+    return GetPointer<const void *>(VT_DATA);
+  }
+  template<typename T> const T *data_as() const;
+  const FileReference *data_as_FileReference() const {
+    return data_type() == FileOrData::FileReference ? static_cast<const FileReference *>(data()) : nullptr;
+  }
+  const RawData *data_as_RawData() const {
+    return data_type() == FileOrData::RawData ? static_cast<const RawData *>(data()) : nullptr;
   }
   const TextureInfo *textureInfo() const {
     return GetPointer<const TextureInfo *>(VT_TEXTUREINFO);
@@ -331,13 +342,22 @@ struct Texture FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            verifier.VerifyString(name()) &&
            VerifyField<uint32_t>(verifier, VT_USAGE) &&
            VerifyField<uint32_t>(verifier, VT_MEMORYHINTS) &&
-           VerifyOffset(verifier, VT_PATH) &&
-           verifier.VerifyTable(path()) &&
+           VerifyField<uint8_t>(verifier, VT_DATA_TYPE) &&
+           VerifyOffset(verifier, VT_DATA) &&
+           VerifyFileOrData(verifier, data(), data_type()) &&
            VerifyOffset(verifier, VT_TEXTUREINFO) &&
            verifier.VerifyTable(textureInfo()) &&
            verifier.EndTable();
   }
 };
+
+template<> inline const FileReference *Texture::data_as<FileReference>() const {
+  return data_as_FileReference();
+}
+
+template<> inline const RawData *Texture::data_as<RawData>() const {
+  return data_as_RawData();
+}
 
 struct TextureBuilder {
   flatbuffers::FlatBufferBuilder &fbb_;
@@ -351,8 +371,11 @@ struct TextureBuilder {
   void add_memoryHints(uint32_t memoryHints) {
     fbb_.AddElement<uint32_t>(Texture::VT_MEMORYHINTS, memoryHints, 0);
   }
-  void add_path(flatbuffers::Offset<FileReference> path) {
-    fbb_.AddOffset(Texture::VT_PATH, path);
+  void add_data_type(FileOrData data_type) {
+    fbb_.AddElement<uint8_t>(Texture::VT_DATA_TYPE, static_cast<uint8_t>(data_type), 0);
+  }
+  void add_data(flatbuffers::Offset<void> data) {
+    fbb_.AddOffset(Texture::VT_DATA, data);
   }
   void add_textureInfo(flatbuffers::Offset<TextureInfo> textureInfo) {
     fbb_.AddOffset(Texture::VT_TEXTUREINFO, textureInfo);
@@ -375,14 +398,16 @@ inline flatbuffers::Offset<Texture> CreateTexture(
     flatbuffers::Offset<flatbuffers::String> name = 0,
     uint32_t usage = 0,
     uint32_t memoryHints = 0,
-    flatbuffers::Offset<FileReference> path = 0,
+    FileOrData data_type = FileOrData::NONE,
+    flatbuffers::Offset<void> data = 0,
     flatbuffers::Offset<TextureInfo> textureInfo = 0) {
   TextureBuilder builder_(_fbb);
   builder_.add_textureInfo(textureInfo);
-  builder_.add_path(path);
+  builder_.add_data(data);
   builder_.add_memoryHints(memoryHints);
   builder_.add_usage(usage);
   builder_.add_name(name);
+  builder_.add_data_type(data_type);
   return builder_.Finish();
 }
 
@@ -391,7 +416,8 @@ inline flatbuffers::Offset<Texture> CreateTextureDirect(
     const char *name = nullptr,
     uint32_t usage = 0,
     uint32_t memoryHints = 0,
-    flatbuffers::Offset<FileReference> path = 0,
+    FileOrData data_type = FileOrData::NONE,
+    flatbuffers::Offset<void> data = 0,
     flatbuffers::Offset<TextureInfo> textureInfo = 0) {
   auto name__ = name ? _fbb.CreateString(name) : 0;
   return DeepSeaScene::CreateTexture(
@@ -399,7 +425,8 @@ inline flatbuffers::Offset<Texture> CreateTextureDirect(
       name__,
       usage,
       memoryHints,
-      path,
+      data_type,
+      data,
       textureInfo);
 }
 
@@ -899,23 +926,43 @@ inline flatbuffers::Offset<ShaderData> CreateShaderDataDirect(
 struct ShaderModule FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_NAME = 4,
-    VT_FILE = 6
+    VT_DATA_TYPE = 6,
+    VT_DATA = 8
   };
   const flatbuffers::String *name() const {
     return GetPointer<const flatbuffers::String *>(VT_NAME);
   }
-  const FileReference *file() const {
-    return GetPointer<const FileReference *>(VT_FILE);
+  FileOrData data_type() const {
+    return static_cast<FileOrData>(GetField<uint8_t>(VT_DATA_TYPE, 0));
+  }
+  const void *data() const {
+    return GetPointer<const void *>(VT_DATA);
+  }
+  template<typename T> const T *data_as() const;
+  const FileReference *data_as_FileReference() const {
+    return data_type() == FileOrData::FileReference ? static_cast<const FileReference *>(data()) : nullptr;
+  }
+  const RawData *data_as_RawData() const {
+    return data_type() == FileOrData::RawData ? static_cast<const RawData *>(data()) : nullptr;
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_NAME) &&
            verifier.VerifyString(name()) &&
-           VerifyOffsetRequired(verifier, VT_FILE) &&
-           verifier.VerifyTable(file()) &&
+           VerifyField<uint8_t>(verifier, VT_DATA_TYPE) &&
+           VerifyOffsetRequired(verifier, VT_DATA) &&
+           VerifyFileOrData(verifier, data(), data_type()) &&
            verifier.EndTable();
   }
 };
+
+template<> inline const FileReference *ShaderModule::data_as<FileReference>() const {
+  return data_as_FileReference();
+}
+
+template<> inline const RawData *ShaderModule::data_as<RawData>() const {
+  return data_as_RawData();
+}
 
 struct ShaderModuleBuilder {
   flatbuffers::FlatBufferBuilder &fbb_;
@@ -923,8 +970,11 @@ struct ShaderModuleBuilder {
   void add_name(flatbuffers::Offset<flatbuffers::String> name) {
     fbb_.AddOffset(ShaderModule::VT_NAME, name);
   }
-  void add_file(flatbuffers::Offset<FileReference> file) {
-    fbb_.AddOffset(ShaderModule::VT_FILE, file);
+  void add_data_type(FileOrData data_type) {
+    fbb_.AddElement<uint8_t>(ShaderModule::VT_DATA_TYPE, static_cast<uint8_t>(data_type), 0);
+  }
+  void add_data(flatbuffers::Offset<void> data) {
+    fbb_.AddOffset(ShaderModule::VT_DATA, data);
   }
   explicit ShaderModuleBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
@@ -935,7 +985,7 @@ struct ShaderModuleBuilder {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<ShaderModule>(end);
     fbb_.Required(o, ShaderModule::VT_NAME);
-    fbb_.Required(o, ShaderModule::VT_FILE);
+    fbb_.Required(o, ShaderModule::VT_DATA);
     return o;
   }
 };
@@ -943,22 +993,26 @@ struct ShaderModuleBuilder {
 inline flatbuffers::Offset<ShaderModule> CreateShaderModule(
     flatbuffers::FlatBufferBuilder &_fbb,
     flatbuffers::Offset<flatbuffers::String> name = 0,
-    flatbuffers::Offset<FileReference> file = 0) {
+    FileOrData data_type = FileOrData::NONE,
+    flatbuffers::Offset<void> data = 0) {
   ShaderModuleBuilder builder_(_fbb);
-  builder_.add_file(file);
+  builder_.add_data(data);
   builder_.add_name(name);
+  builder_.add_data_type(data_type);
   return builder_.Finish();
 }
 
 inline flatbuffers::Offset<ShaderModule> CreateShaderModuleDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     const char *name = nullptr,
-    flatbuffers::Offset<FileReference> file = 0) {
+    FileOrData data_type = FileOrData::NONE,
+    flatbuffers::Offset<void> data = 0) {
   auto name__ = name ? _fbb.CreateString(name) : 0;
   return DeepSeaScene::CreateShaderModule(
       _fbb,
       name__,
-      file);
+      data_type,
+      data);
 }
 
 struct Shader FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
