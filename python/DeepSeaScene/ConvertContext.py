@@ -13,8 +13,8 @@
 # limitations under the License.
 
 from .ObjectData import *
-from .TransformNodeConvert import *
-from .SceneNodeRefConvert import *
+from .TransformNodeConvert import convertTransformNode
+from .SceneNodeRefConvert import convertReferenceNode
 
 class ConvertContext:
 	"""
