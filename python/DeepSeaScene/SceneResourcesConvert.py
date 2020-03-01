@@ -12,7 +12,108 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import base64
+
+import flatbuffers
+from .Buffer import *
 from .SceneResources import *
+
+memoryHintsEnum = {
+	'GPUOnly': 0x1,
+	'Static': 0x2,
+	'Dynamic': 0x4,
+	'Stream': 0x8,
+	'Draw': 0x10,
+	'Read': 0x20,
+	'Persistent': 0x40,
+	'Coherent': 0x80,
+	'Synchronize': 0x100
+}
+
+bufferUsageEnum = {
+	'Index': 0x1,
+	'Vertex': 0x2,
+	'IndirectDraw': 0x4,
+	'IndirectDispatch': 0x8,
+	'UniformBlock': 0x10,
+	'UniformBuffer': 0x20,
+	'Texture': 0x40,
+	'Image': 0x80,
+	'CopyFrom': 0x100,
+	'CopyTo': 0x200
+}
+
+def convertSceneResourcesBuffers(builder, convertContext, data):
+	bufferOffsets = []
+	try:
+		for bufferData in data:
+			try:
+				name = str(data['name'])
+
+				try:
+					usage = 0
+					for usageEnum in data['usage']:
+						usage |= bufferUsageEnum[usageEnum]
+					if usage == 0:
+						raise Exception('SceneResources buffer "usage" must not be empty.')
+				except (ValueError, KeyError):
+					raise Exception('SceneResources buffer "usage" must be an array of valid '
+						'dsGfxBufferUsage enum values.')
+
+				try:
+					memoryHints = 0
+					for memoryEnum in data['memoryHints']:
+						memoryHints |= memoryHintsEnum[memoryEnum]
+					if memoryHints == 0:
+						raise Exception('SceneResources buffer "memoryHints" must not be empty.')
+				except (ValueError, KeyError):
+					raise Exception('SceneResources buffer "memoryHints" must be an array of valid '
+						'dsGfxMemory enum values.')
+
+				if 'data' in data:
+					dataStr = str(data['data'])
+					if dataStr.startswith('base64:'):
+						try:
+							bufferData = base64.b64decode(dataStr[7:])
+						except TypeError:
+							raise Exception(
+								'SceneResources buffer "data" uses incorrect base64 encoding.')
+					else:
+						with open(dataStr, 'rb') as stream:
+							bufferData = stream.read()
+					bufferSize = len(bufferData)
+				else:
+					bufferData = None
+					try:
+						bufferSize = int(data['size'])
+					except ValueError:
+						raise Exception('SceneResources buffer "size" must be an integer.')
+					except KeyError:
+						raise Exception('SceneResources buffer data must contain either "data" or '
+							'"size" element.')
+			except KeyError as e:
+				raise Exception(
+					'SceneResources buffer data doesn\'t contain element "' + str(e) + '".')
+
+			nameOffset = builder.CreateString(name)
+			if bufferData:
+				dataOffset = builder.CreateByteVector(bufferData)
+
+			BufferStart(builder)
+			BufferAddName(builder, nameOffset)
+			BufferAddUsage(builder, usage)
+			BufferAddMemoryHints(builder, memoryHints)
+			BufferAddSize(builder, bufferSize)
+			if bufferData:
+				BufferAddData(builder, dataOffset)
+			bufferOffsets.append(BufferEnd(builder))
+	except (TypeError, ValueError):
+		raise Exception('SceneResources "buffers" must be an array of objects.')
+
+	SceneResourcesStartBuffersVector(builder, len(bufferOffsets))
+	for offset in reversed(bufferOffsets):
+		builder.PrependUOffsetTRelative(offset)
+	return builder.EndVector(len(bufferOffsets))
 
 def convertSceneResources(convertContext, data):
 	"""
@@ -24,8 +125,8 @@ def convertSceneResources(convertContext, data):
 	    prefix. At least one must be provided.
 	  - memoryHints: array of memory hints. See the dsGfxMemory enum for values, removing the type
 	    prefix. At least one must be provided.
-	  - size: the size of the buffer. This can be ommitted if data is provided.
 	  - data: path to the buffer data or base64 encoded data prefixed with "base64:".
+	  - size: the size of the buffer. This is only used if no data is provided.
 	- texture: array of textures to include. Each element of the array has the following members:
 	  - name: the name of the texture.
 	  - usage: array of usage flags. See the dsGfxBufferUsage enum for values, removing the type
@@ -155,4 +256,19 @@ def convertSceneResources(convertContext, data):
 	  - data: the data for the node. What this member contains (e.g. a string or a dict with other
 	    members) depends on the node type.
 	"""
-	pass
+	builder = flatbuffers.Builder(0)
+
+	try:
+		if 'buffers' in data:
+			buffersOffset = convertSceneResourcesBuffers(builder, convertContext, data['buffers'])
+		else:
+			buffersOffset = None
+	except (TypeError, ValueError):
+		raise Exception('SceneResources must be an object.')
+
+	SceneResourcesStart(builder)
+	if buffersOffset is not None:
+		SceneResourcesAddBuffers(builder, buffersOffset)
+	SceneResourcesAddBuffers(builder, buffersOffset)
+	builder.Finish(SceneResourcesEnd(builder))
+	return builder.Output()
