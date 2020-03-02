@@ -107,7 +107,8 @@ struct Buffer FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_USAGE = 6,
     VT_MEMORYHINTS = 8,
     VT_SIZE = 10,
-    VT_DATA = 12
+    VT_DATA_TYPE = 12,
+    VT_DATA = 14
   };
   const flatbuffers::String *name() const {
     return GetPointer<const flatbuffers::String *>(VT_NAME);
@@ -121,8 +122,18 @@ struct Buffer FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   uint32_t size() const {
     return GetField<uint32_t>(VT_SIZE, 0);
   }
-  const flatbuffers::Vector<uint8_t> *data() const {
-    return GetPointer<const flatbuffers::Vector<uint8_t> *>(VT_DATA);
+  FileOrData data_type() const {
+    return static_cast<FileOrData>(GetField<uint8_t>(VT_DATA_TYPE, 0));
+  }
+  const void *data() const {
+    return GetPointer<const void *>(VT_DATA);
+  }
+  template<typename T> const T *data_as() const;
+  const FileReference *data_as_FileReference() const {
+    return data_type() == FileOrData::FileReference ? static_cast<const FileReference *>(data()) : nullptr;
+  }
+  const RawData *data_as_RawData() const {
+    return data_type() == FileOrData::RawData ? static_cast<const RawData *>(data()) : nullptr;
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -131,11 +142,20 @@ struct Buffer FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            VerifyField<uint32_t>(verifier, VT_USAGE) &&
            VerifyField<uint32_t>(verifier, VT_MEMORYHINTS) &&
            VerifyField<uint32_t>(verifier, VT_SIZE) &&
+           VerifyField<uint8_t>(verifier, VT_DATA_TYPE) &&
            VerifyOffset(verifier, VT_DATA) &&
-           verifier.VerifyVector(data()) &&
+           VerifyFileOrData(verifier, data(), data_type()) &&
            verifier.EndTable();
   }
 };
+
+template<> inline const FileReference *Buffer::data_as<FileReference>() const {
+  return data_as_FileReference();
+}
+
+template<> inline const RawData *Buffer::data_as<RawData>() const {
+  return data_as_RawData();
+}
 
 struct BufferBuilder {
   flatbuffers::FlatBufferBuilder &fbb_;
@@ -152,7 +172,10 @@ struct BufferBuilder {
   void add_size(uint32_t size) {
     fbb_.AddElement<uint32_t>(Buffer::VT_SIZE, size, 0);
   }
-  void add_data(flatbuffers::Offset<flatbuffers::Vector<uint8_t>> data) {
+  void add_data_type(FileOrData data_type) {
+    fbb_.AddElement<uint8_t>(Buffer::VT_DATA_TYPE, static_cast<uint8_t>(data_type), 0);
+  }
+  void add_data(flatbuffers::Offset<void> data) {
     fbb_.AddOffset(Buffer::VT_DATA, data);
   }
   explicit BufferBuilder(flatbuffers::FlatBufferBuilder &_fbb)
@@ -174,13 +197,15 @@ inline flatbuffers::Offset<Buffer> CreateBuffer(
     uint32_t usage = 0,
     uint32_t memoryHints = 0,
     uint32_t size = 0,
-    flatbuffers::Offset<flatbuffers::Vector<uint8_t>> data = 0) {
+    FileOrData data_type = FileOrData::NONE,
+    flatbuffers::Offset<void> data = 0) {
   BufferBuilder builder_(_fbb);
   builder_.add_data(data);
   builder_.add_size(size);
   builder_.add_memoryHints(memoryHints);
   builder_.add_usage(usage);
   builder_.add_name(name);
+  builder_.add_data_type(data_type);
   return builder_.Finish();
 }
 
@@ -190,16 +215,17 @@ inline flatbuffers::Offset<Buffer> CreateBufferDirect(
     uint32_t usage = 0,
     uint32_t memoryHints = 0,
     uint32_t size = 0,
-    const std::vector<uint8_t> *data = nullptr) {
+    FileOrData data_type = FileOrData::NONE,
+    flatbuffers::Offset<void> data = 0) {
   auto name__ = name ? _fbb.CreateString(name) : 0;
-  auto data__ = data ? _fbb.CreateVector<uint8_t>(*data) : 0;
   return DeepSeaScene::CreateBuffer(
       _fbb,
       name__,
       usage,
       memoryHints,
       size,
-      data__);
+      data_type,
+      data);
 }
 
 struct TextureInfo FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {

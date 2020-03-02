@@ -15,6 +15,7 @@
 import base64
 
 import flatbuffers
+from .FileOrDataConvert import convertFileOrData
 from .Buffer import *
 from .SceneResources import *
 
@@ -73,12 +74,14 @@ def convertSceneResourcesBuffers(builder, convertContext, data):
 				if 'data' in data:
 					dataStr = str(data['data'])
 					if dataStr.startswith('base64:'):
+						dataPath = None
 						try:
 							bufferData = base64.b64decode(dataStr[7:])
 						except TypeError:
 							raise Exception(
 								'SceneResources buffer "data" uses incorrect base64 encoding.')
 					else:
+						dataPath = dataStr
 						with open(dataStr, 'rb') as stream:
 							bufferData = stream.read()
 					bufferSize = len(bufferData)
@@ -96,16 +99,16 @@ def convertSceneResourcesBuffers(builder, convertContext, data):
 					'SceneResources buffer data doesn\'t contain element "' + str(e) + '".')
 
 			nameOffset = builder.CreateString(name)
-			if bufferData:
-				dataOffset = builder.CreateByteVector(bufferData)
+			dataType, dataOffset = convertFileOrData(builder, dataPath, bufferData,
+				data.get('outputPath'), data.get('outputRelativeDir'), data.get('resourceType'))
 
 			BufferStart(builder)
 			BufferAddName(builder, nameOffset)
 			BufferAddUsage(builder, usage)
 			BufferAddMemoryHints(builder, memoryHints)
 			BufferAddSize(builder, bufferSize)
-			if bufferData:
-				BufferAddData(builder, dataOffset)
+			BufferAddDataType(builder, dataType)
+			BufferAddData(builder, dataOffset)
 			bufferOffsets.append(BufferEnd(builder))
 	except (TypeError, ValueError):
 		raise Exception('SceneResources "buffers" must be an array of objects.')
@@ -125,8 +128,16 @@ def convertSceneResources(convertContext, data):
 	    prefix. At least one must be provided.
 	  - memoryHints: array of memory hints. See the dsGfxMemory enum for values, removing the type
 	    prefix. At least one must be provided.
-	  - data: path to the buffer data or base64 encoded data prefixed with "base64:".
 	  - size: the size of the buffer. This is only used if no data is provided.
+	  - data: path to the buffer data or base64 encoded data prefixed with "base64:".
+	  - path: the path to the image. This may be ommitted if no initial texture data is used.
+	    This may be an array of paths if converting a texture array or cubemap.
+	  - output: the path to the output the buffer. This can be ommitted if no input path is provided
+	    or if the buffer is embedded.
+	  - outputRelativeDir: the directory relative to output path. This will be removed from the path
+	    before adding the reference.
+	  - resourceType: the resource type. See the dsFileResourceType for values, removing the type
+	    prefix. Defaults to "Embedded".
 	- texture: array of textures to include. Each element of the array has the following members:
 	  - name: the name of the texture.
 	  - usage: array of usage flags. See the dsGfxBufferUsage enum for values, removing the type
@@ -136,7 +147,7 @@ def convertSceneResources(convertContext, data):
 	  - path: the path to the image. This may be ommitted if no initial texture data is used.
 	    This may be an array of paths if converting a texture array or cubemap.
 	  - output: the path to the output the texture. This can be ommitted if no input path is
-	    provided, or if the texture is embedded. When converting textures, the extension should
+	    provided or if the texture is embedded. When converting textures, the extension should
 	    match the desired output container format.
 	  - outputRelativeDir: the directory relative to output path. This will be removed from the path
 	    before adding the reference.

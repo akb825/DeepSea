@@ -33,8 +33,8 @@ table Buffer
 	// The size of the buffer.
 	size : uint;
 
-	// The data for the buffer. This may be empty if the buffer is populated at runtime.
-	data : [ubyte];
+	// The file reference or data for the buffer. This may be unset to leave the data uninitialized.
+	data : FileOrData;
 }
 
 // Info for a texture when not loaded from file.

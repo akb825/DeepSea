@@ -47,32 +47,27 @@ class Buffer(object):
         return 0
 
     # Buffer
-    def Data(self, j):
+    def DataType(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(12))
         if o != 0:
-            a = self._tab.Vector(o)
-            return self._tab.Get(flatbuffers.number_types.Uint8Flags, a + flatbuffers.number_types.UOffsetTFlags.py_type(j * 1))
+            return self._tab.Get(flatbuffers.number_types.Uint8Flags, o + self._tab.Pos)
         return 0
 
     # Buffer
-    def DataAsNumpy(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(12))
+    def Data(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(14))
         if o != 0:
-            return self._tab.GetVectorAsNumpy(flatbuffers.number_types.Uint8Flags, o)
-        return 0
+            from flatbuffers.table import Table
+            obj = Table(bytearray(), 0)
+            self._tab.Union(obj, o)
+            return obj
+        return None
 
-    # Buffer
-    def DataLength(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(12))
-        if o != 0:
-            return self._tab.VectorLen(o)
-        return 0
-
-def BufferStart(builder): builder.StartObject(5)
+def BufferStart(builder): builder.StartObject(6)
 def BufferAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
 def BufferAddUsage(builder, usage): builder.PrependUint32Slot(1, usage, 0)
 def BufferAddMemoryHints(builder, memoryHints): builder.PrependUint32Slot(2, memoryHints, 0)
 def BufferAddSize(builder, size): builder.PrependUint32Slot(3, size, 0)
-def BufferAddData(builder, data): builder.PrependUOffsetTRelativeSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(data), 0)
-def BufferStartDataVector(builder, numElems): return builder.StartVector(1, numElems, 1)
+def BufferAddDataType(builder, dataType): builder.PrependUint8Slot(4, dataType, 0)
+def BufferAddData(builder, data): builder.PrependUOffsetTRelativeSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(data), 0)
 def BufferEnd(builder): return builder.EndObject()

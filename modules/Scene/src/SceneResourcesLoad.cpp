@@ -23,6 +23,7 @@
 
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Streams/MemoryStream.h>
+#include <DeepSea/Core/Streams/ResourceStream.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
@@ -108,6 +109,9 @@ static bool loadBuffers(dsSceneResources* resources, dsResourceManager* resource
 	if (!buffers)
 		return true;
 
+	size_t tempDataCapacity = 0;
+	void* tempData = nullptr;
+	bool success = true;
 	for (auto fbBuffer : *buffers)
 	{
 		if (!fbBuffer)
@@ -115,34 +119,70 @@ static bool loadBuffers(dsSceneResources* resources, dsResourceManager* resource
 
 		const char* bufferName = fbBuffer->name()->c_str();
 		uint32_t bufferSize = fbBuffer->size();
-		auto bufferData = fbBuffer->data();
-		if (bufferData && bufferData->size() != bufferSize)
+		const void* bufferData = NULL;
+		size_t dataSize = bufferSize;
+		if (auto fbFileRef = fbBuffer->data_as_FileReference())
+		{
+			dsResourceStream stream;
+			if (!dsResourceStream_open(&stream, DeepSeaScene::convert(fbFileRef->type()),
+					fbFileRef->path()->c_str(), "rb"))
+			{
+				PRINT_FLATBUFFER_RESOURCE_ERROR("Couldn't open file for buffer '%s'", bufferName,
+					fileName);
+				success = false;
+				break;
+			}
+
+			if (!dsStream_readUntilEndReuse(&tempData, &dataSize, &tempDataCapacity,
+					reinterpret_cast<dsStream*>(&stream), allocator))
+			{
+				PRINT_FLATBUFFER_RESOURCE_ERROR("Couldn't read data for buffer '%s'", bufferName,
+					fileName);
+				success = false;
+				break;
+			}
+
+			bufferData = tempData;
+		}
+		else if (auto fbRawData = fbBuffer->data_as_RawData())
+		{
+			auto fbData = fbRawData->data();
+			bufferData = fbData->data();
+			dataSize = fbData->size();
+		}
+
+		if (dataSize != bufferSize)
 		{
 			errno = EFORMAT;
 			PRINT_FLATBUFFER_RESOURCE_ERROR(
 				"Mismatch between size and data size for buffer '%s'", bufferName, fileName);
-			return false;
+			success = false;
+			break;
 		}
 
 		dsGfxBuffer* buffer = dsGfxBuffer_create(resourceManager, allocator,
-			(dsGfxBufferUsage)fbBuffer->usage(), (dsGfxMemory)fbBuffer->memoryHints(),
-			bufferData ? bufferData->data() : nullptr, bufferSize);
+			(dsGfxBufferUsage)fbBuffer->usage(), (dsGfxMemory)fbBuffer->memoryHints(), bufferData,
+			bufferSize);
+
 		if (!buffer)
 		{
 			PRINT_FLATBUFFER_RESOURCE_ERROR(
 				"Couldn't create buffer '%s'", bufferName, fileName);
-			return false;
+			success = false;
+			break;
 		}
 
 		if (!dsSceneResources_addResource(
 				resources, bufferName, dsSceneResourceType_Buffer, buffer, true))
 		{
 			DS_VERIFY(dsGfxBuffer_destroy(buffer));
-			return false;
+			success = false;
+			break;
 		}
 	}
 
-	return true;
+	dsAllocator_free(allocator, tempData);
+	return success;
 }
 
 static bool loadTextures(dsSceneResources* resources, dsResourceManager* resourceManager,
