@@ -23,13 +23,14 @@ class ConvertContext:
 	Builtin types will all be registered with this automatically. Custom types may be registered to
 	extend scene conversion.
 	"""
-	def __init__(self, cuttlefishTool = 'cuttlefish', vfcTool = 'vfc'):
+	def __init__(self, cuttlefishTool = 'cuttlefish', vfcTool = 'vfc', multithread = True):
 		"""
 		Initializes this with the paths to the cuttlefish tool (for texture conversion) and vfc tool
 		(for vertex format conversion). By default the tool names to use them on the PATH.
 		"""
 		self.cuttlefish = cuttlefishTool
 		self.vfc = vfcTool
+		self.multithread = multithread
 
 		self.nodeTypeMap = {
 			'TransformNode': convertTransformNode,
