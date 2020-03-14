@@ -22,11 +22,14 @@ import flatbuffers
 from .Buffer import *
 from .FileOrDataConvert import convertFileOrData
 from .FormatDecoration import *
+from .MaterialType import *
 from .SceneResources import *
+from .ShaderVariableGroupDesc import *
 from .Texture import *
 from .TextureDim import *
 from .TextureFormat import *
 from .TextureInfo import *
+from .VariableElement import *
 
 memoryHintsEnum = {
 	'GPUOnly': 0x1,
@@ -151,11 +154,11 @@ def convertSceneResourcesTextures(builder, convertContext, data):
 	def readInt(value, name, minVal):
 		try:
 			intVal = int(value)
-			if intVal <= minVal:
+			if intVal < minVal:
 				raise Exception() # Common error handling in except block.
 			return intVal
 		except:
-			raise Exception('Invalid texture ' + name + ' "' + str(heightStr) + '".')
+			raise Exception('Invalid texture ' + name + ' "' + str(value) + '".')
 
 	def cleanup(tempFiles):
 		for tempFile in tempFiles:
@@ -451,6 +454,79 @@ def convertSceneResourcesTextures(builder, convertContext, data):
 		builder.PrependUOffsetTRelative(offset)
 	return builder.EndVector(len(textureOffsets))
 
+
+def convertSceneResourcesShaderVariableGroupDescs(builder, convertContext, data):
+	def readElement(elementData):
+		try:
+			name = str(elementData['name'])
+			typeStr = elementData['type']
+			try:
+				materialType = getattr(MaterialType, typeStr)
+			except AttributeError:
+				raise Exception('Invalid material type "' + typeStr + '".')
+
+			countStr = elementData.get('count', 0)
+			try:
+				count = int(countStr)
+				if count < 0:
+					raise Exception() # Common error handling in except block.
+			except:
+				raise Exception(
+					'Invalid shader variable group element count "' + str(countStr) + '".')
+
+			return name, materialType, count
+		except KeyError as e:
+			raise Exception(
+				'SceneResources shader variable group element data doesn\'t contain element "' +
+					str(e) + '".')
+
+	groupOffsets = []
+	try:
+		for groupData in data:
+			try:
+				name = str(groupData['name'])
+
+				elements = []
+				try:
+					for elementData in groupData['elements']:
+						elements.append(readElement(elementData))
+					if not elements:
+						raise Exception('Shader variable group desc "elements" must not be empty.')
+				except (TypeError, ValueError):
+					raise Exception(
+						'Shder variable group desc "elements" must be an array of objects.')
+			except KeyError as e:
+				raise Exception(
+					'SceneResources shader variable group desc data doesn\'t contain element "' +
+					str(e) + '".')
+
+			nameOffset = builder.CreateString(name)
+			elementOffsets = []
+			for elementName, elementType, elementCount in elements:
+				elementNameOffset = builder.CreateString(elementName)
+				VariableElementStart(builder)
+				VariableElementAddName(builder, elementNameOffset)
+				VariableElementAddType(builder, elementType)
+				VariableElementAddCount(builder, elementCount)
+				elementOffsets.append(VariableElementEnd(builder))
+
+			ShaderVariableGroupDescStartElementsVector(builder, len(elementOffsets))
+			for offset in reversed(elementOffsets):
+				builder.PrependUOffsetTRelative(offset)
+			elementsOffset = builder.EndVector(len(elementOffsets))
+
+			ShaderVariableGroupDescStart(builder)
+			ShaderVariableGroupDescAddName(builder, nameOffset)
+			ShaderVariableGroupDescAddElements(builder, elementsOffset)
+			groupOffsets.append(ShaderVariableGroupDescEnd(builder))
+	except (TypeError, ValueError):
+		raise Exception('SceneResources "shaderVariableGroupDescs" must be an array of objects.')
+
+	SceneResourcesStartShaderVariableGroupDescsVector(builder, len(groupOffsets))
+	for offset in reversed(groupOffsets):
+		builder.PrependUOffsetTRelative(offset)
+	return builder.EndVector(len(groupOffsets))
+
 def convertSceneResources(convertContext, data):
 	"""
 	Converts SceneResources. The data map is expected to contain the following optional element,
@@ -608,18 +684,25 @@ def convertSceneResources(convertContext, data):
 		if 'buffers' in data:
 			buffersOffset = convertSceneResourcesBuffers(builder, convertContext, data['buffers'])
 		else:
-			buffersOffset = None
+			buffersOffset = 0
 
 		if 'textures' in data:
 			texturesOffset = convertSceneResourcesTextures(builder, convertContext,
 				data['textures'])
 		else:
-			texturesOffset = None
+			texturesOffset = 0
+
+		if 'shaderVariableGroupDescs' in data:
+			shaderVariableGroupDescsOffset = convertSceneResourcesShaderVariableGroupDescs(builder,
+				convertContext, data['shaderVariableGroupDescs'])
+		else:
+			shaderVariableGroupDescsOffset = 0
 	except (TypeError, ValueError):
 		raise Exception('SceneResources must be an object.')
 
 	SceneResourcesStart(builder)
 	SceneResourcesAddBuffers(builder, buffersOffset)
 	SceneResourcesAddTextures(builder, texturesOffset)
+	SceneResourcesAddShaderVariableGroupDescs(builder, shaderVariableGroupDescsOffset)
 	builder.Finish(SceneResourcesEnd(builder))
 	return builder.Output()
