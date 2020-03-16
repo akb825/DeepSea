@@ -15,20 +15,27 @@
 import base64
 import os
 import re
+import struct
 import subprocess
+import sys
 from tempfile import NamedTemporaryFile
 
 import flatbuffers
 from .Buffer import *
+from .BufferMaterialData import *
 from .FileOrDataConvert import convertFileOrData
 from .FormatDecoration import *
 from .MaterialType import *
+from .NamedMaterialData import *
 from .SceneResources import *
+from .ShaderData import *
 from .ShaderVariableGroupDesc import *
 from .Texture import *
+from .TextureBufferMaterialData import *
 from .TextureDim import *
 from .TextureFormat import *
 from .TextureInfo import *
+from .VariableData import *
 from .VariableElement import *
 
 memoryHintsEnum = {
@@ -454,7 +461,6 @@ def convertSceneResourcesTextures(builder, convertContext, data):
 		builder.PrependUOffsetTRelative(offset)
 	return builder.EndVector(len(textureOffsets))
 
-
 def convertSceneResourcesShaderVariableGroupDescs(builder, convertContext, data):
 	def readElement(elementData):
 		try:
@@ -464,6 +470,9 @@ def convertSceneResourcesShaderVariableGroupDescs(builder, convertContext, data)
 				materialType = getattr(MaterialType, typeStr)
 			except AttributeError:
 				raise Exception('Invalid material type "' + typeStr + '".')
+			if materialType >= MaterialType.Texture:
+				raise Exception(
+					'Shader variable groups may only contain primitive, vector, and matrix types.')
 
 			countStr = elementData.get('count', 0)
 			try:
@@ -477,8 +486,8 @@ def convertSceneResourcesShaderVariableGroupDescs(builder, convertContext, data)
 			return name, materialType, count
 		except KeyError as e:
 			raise Exception(
-				'SceneResources shader variable group element data doesn\'t contain element "' +
-					str(e) + '".')
+				'SceneResources shader variable group desc element data doesn\'t contain element "'
+					+ str(e) + '".')
 
 	groupOffsets = []
 	try:
@@ -526,6 +535,410 @@ def convertSceneResourcesShaderVariableGroupDescs(builder, convertContext, data)
 	for offset in reversed(groupOffsets):
 		builder.PrependUOffsetTRelative(offset)
 	return builder.EndVector(len(groupOffsets))
+
+
+def convertSceneResourcesShaderData(builder, convertContext, data, memberName):
+	def readInt(value, name, minVal):
+		try:
+			intVal = int(value)
+			if intVal < minVal:
+				raise Exception() # Common error handling in except block.
+			return intVal
+		except:
+			raise Exception('Invalid shader data ' + name + ' value "' + str(value) + '".')
+
+	def convertVariableData(builder, materialType, dataArray):
+		if len(dataArray) == 0:
+			return 0, 0
+
+		if sys.version_info[0] >= 3:
+			bytesType = bytes
+		else:
+			bytesType = str
+
+		def packSingleElement(formatStr, name):
+			dataBytes = bytesType()
+			try:
+				for element in dataArray:
+					dataBytes += struct.pack(formatStr, element)
+			except:
+				if name[0] in ('a', 'e', 'i', 'o', 'u'):
+					raise Exception('Shader data must be an ' + name + '.')
+				else:
+					raise Exception('Shader data must be a ' + name + '.')
+			return dataBytes
+
+		def packVectorElement(formatStr, name, expectedLen):
+			dataBytes = bytesType()
+			try:
+				for elementArray in dataArray:
+					if len(elementArray) != expectedLen:
+						raise Exception() # Common error handling in except block.
+					for element in elementArray:
+						dataBytes += struct.pack(formatStr, element)
+			except:
+				raise Exception('Shader data must be an array of ' + str(expectedLen) +
+					' ' + name + 's.')
+			return dataBytes
+
+		def packMatrixElement(formatStr, name, expectedCol, expectedRow):
+			dataBytes = bytesType()
+			try:
+				for colArray in dataArray:
+					if len(colArray) != expectedCol:
+						raise Exception() # Common error handling in except block.
+					for col in colArray:
+						if len(col) != expectedRow:
+							raise Exception() # Common error handling in except block.
+						dataBytes += struct.pack(formatStr, element)
+			except:
+				raise Exception('Shader data must be an array of ' + str(expectedCol) +
+					' colomn arrays with ' + str(expectedRow) + ' ' + name + 's.')
+			return dataBytes
+
+		def packBool():
+			dataBytes = bytesType()
+			try:
+				for element in dataArray:
+					dataBytes += struct.pack(formatStr, int(bool(element)))
+			except:
+				raise Exception('Shader data must be a bool.')
+			return dataBytes
+
+		def packBoolVector(expectedLen):
+			dataBytes = bytesType()
+			try:
+				for elementArray in dataArray:
+					if len(elementArray) != expectedLen:
+						raise Exception() # Common error handling in except block.
+					for element in elementArray:
+						dataBytes += struct.pack(formatStr, int(bool(element)))
+			except:
+				raise Exception('Shader data must be an array of ' + str(expectedLen) +
+					' bools.')
+			return dataBytes
+
+		if materialType == MaterialType.Float:
+			dataBytes = packSingleElement('f', 'float')
+		elif materialType == MaterialType.Vec2:
+			dataBytes = packVectorElement('f', 'float', 2)
+		elif materialType == MaterialType.Vec3:
+			dataBytes = packVectorElement('f', 'float', 3)
+		elif materialType == MaterialType.Vec4:
+			dataBytes = packVectorElement('f', 'float', 4)
+		elif materialType == MaterialType.Double:
+			dataBytes = packSingleElement('d', 'double')
+		elif materialType == MaterialType.DVec2:
+			dataBytes = packVectorElement('d', 'double', 2)
+		elif materialType == MaterialType.DVec3:
+			dataBytes = packVectorElement('d', 'double', 3)
+		elif materialType == MaterialType.DVec4:
+			dataBytes = packVectorElement('d', 'double', 4)
+		elif materialType == MaterialType.Int:
+			dataBytes = packSingleElement('i', 'int')
+		elif materialType == MaterialType.IVec2:
+			dataBytes = packVectorElement('i', 'int', 2)
+		elif materialType == MaterialType.IVec3:
+			dataBytes = packVectorElement('i', 'int', 3)
+		elif materialType == MaterialType.IVec4:
+			dataBytes = packVectorElement('i', 'int', 4)
+		elif materialType == MaterialType.UInt:
+			dataBytes = packSingleElement('I', 'unsigned int')
+		elif materialType == MaterialType.UVec2:
+			dataBytes = packVectorElement('I', 'unsigned int', 2)
+		elif materialType == MaterialType.UVec3:
+			dataBytes = packVectorElement('I', 'unsigned int', 3)
+		elif materialType == MaterialType.UVec4:
+			dataBytes = packVectorElement('I', 'unsigned int', 4)
+		elif materialType == MaterialType.Bool:
+			dataBytes = packBool()
+		elif materialType == MaterialType.BVec2:
+			dataBytes = packBoolVector(2)
+		elif materialType == MaterialType.BVec3:
+			dataBytes = packBoolVector(3)
+		elif materialType == MaterialType.BVec4:
+			dataBytes = packBoolVector(4)
+		elif materialType == MaterialType.Mat2:
+			dataBytes = packMatrixElement('f', 'float', 2, 2)
+		elif materialType == MaterialType.Mat3:
+			dataBytes = packMatrixElement('f', 'float', 3, 3)
+		elif materialType == MaterialType.Mat4:
+			dataBytes = packMatrixElement('f', 'float', 4, 4)
+		elif materialType == MaterialType.Mat2x3:
+			dataBytes = packMatrixElement('f', 'float', 2, 3)
+		elif materialType == MaterialType.Mat2x4:
+			dataBytes = packMatrixElement('f', 'float', 2, 4)
+		elif materialType == MaterialType.Mat3x2:
+			dataBytes = packMatrixElement('f', 'float', 3, 2)
+		elif materialType == MaterialType.Mat3x4:
+			dataBytes = packMatrixElement('f', 'float', 3, 4)
+		elif materialType == MaterialType.Mat4x2:
+			dataBytes = packMatrixElement('f', 'float', 4, 2)
+		elif materialType == MaterialType.Mat4x3:
+			dataBytes = packMatrixElement('f', 'float', 4, 3)
+		elif materialType == MaterialType.DMat2:
+			dataBytes = packMatrixElement('d', 'double', 2, 2)
+		elif materialType == MaterialType.DMat3:
+			dataBytes = packMatrixElement('d', 'double', 3, 3)
+		elif materialType == MaterialType.DMat4:
+			dataBytes = packMatrixElement('d', 'double', 4, 4)
+		elif materialType == MaterialType.DMat2x3:
+			dataBytes = packMatrixElement('d', 'double', 2, 3)
+		elif materialType == MaterialType.DMat2x4:
+			dataBytes = packMatrixElement('d', 'double', 2, 4)
+		elif materialType == MaterialType.DMat3x2:
+			dataBytes = packMatrixElement('d', 'double', 3, 2)
+		elif materialType == MaterialType.DMat3x4:
+			dataBytes = packMatrixElement('d', 'double', 3, 4)
+		elif materialType == MaterialType.DMat4x2:
+			dataBytes = packMatrixElement('d', 'double', 4, 2)
+		elif materialType == MaterialType.DMat4x3:
+			dataBytes = packMatrixElement('d', 'double', 4, 3)
+		else:
+			if len(dataArray) != 1:
+				raise Exception('Shader data must not be an array for object types.')
+
+			dataElement = dataArray[0]
+			if materialType in (MaterialType.Texture, MaterialType.Image,
+					MaterialType.VariableGroup):
+				try:
+					textureName = str(dataElement)
+				except TypeError:
+					raise Exception('Shader data must be a string.')
+
+				tempBuilder = flatbuffers.Builder(0)
+				textureOffset = tempBuilder.CreateString(textureName)
+				NamedMaterialDataStart(tempBuilder)
+				NamedMaterialDataAddName(tempBuilder, textureOffset)
+				tempBuilder.Finish(NamedMaterialDataEnd(tempBuilder))
+				dataBytes = tempBuilder.Output()
+			elif materialType in (MaterialType.TextureBuffer, MaterialType.ImageBuffer):
+				try:
+					bufferName = str(dataElement['name'])
+
+					formatStr = dataElement['format']
+					try:
+						texFormat = getattr(TextureFormat, formatStr)
+						if texFormat >= TextureFormat.BC1_RGB:
+							raise Exception() # Common error handling in except block.
+					except:
+						raise Exception('Invalid texture buffer format "' + formatStr + '".')
+
+					decorationStr = dataElement['decoration']
+					try:
+						decoration = getattr(FormatDecoration, decorationStr)
+					except AttributeError:
+						raise Exception(
+							'Invalid texture buffer format decoration "' + decorationStr + '".')
+
+					offset = readInt(data.get('offset', 0), 'offset', 0)
+					count = readInt(data['count'], 'count', 1)
+				except KeyError as e:
+					raise Exception(
+						'SceneResources shader element data doesn\'t contain element "' +
+						str(e) + '".')
+				except (TypeError, ValueError):
+					raise Exception(
+						'SceneResources shader element data must be an object.')
+
+				tempBuilder = flatbuffers.Builder(0)
+				textureOffset = tempBuilder.CreateString(textureName)
+				TextureBufferMaterialDataStart(tempBuilder)
+				TextureBufferMaterialDataAddName(tempBuilder, textureOffset)
+				TextureBufferMaterialDataAddFormat(tempBuilder, texFormat)
+				TextureBufferMaterialDataAddDecoration(tempBuilder, decoration)
+				TextureBufferMaterialDataAddOffset(tempBuilder, offset)
+				TextureBufferMaterialDataAddCount(tempBuilder, count)
+				tempBuilder.Finish(TextureBufferMaterialDataEnd(tempBuilder))
+				dataBytes = tempBuilder.Output()
+			elif materialType in (MaterialType.UniformBlock, MaterialType.UniformBuffer):
+				try:
+					bufferName = str(dataElement['name'])
+					offset = readInt(data.get('offset', 0), 'offset', 0)
+					size = readInt(data['size'], 'size', 1)
+				except KeyError as e:
+					raise Exception(
+						'SceneResources shader element data doesn\'t contain element "' +
+						str(e) + '".')
+				except (TypeError, ValueError):
+					raise Exception(
+						'SceneResources shader element data must be an object.')
+
+				tempBuilder = flatbuffers.Builder(0)
+				textureOffset = tempBuilder.CreateString(textureName)
+				BufferMaterialDataStart(tempBuilder)
+				BufferMaterialDataAddName(tempBuilder, textureOffset)
+				BufferMaterialDataAddOffset(tempBuilder, offset)
+				BufferMaterialDataAddSize(tempBuilder, size)
+				tempBuilder.Finish(BufferMaterialDataEnd(tempBuilder))
+				dataBytes = tempBuilder.Output()
+
+		return dataBytes, len(dataArray)
+
+	def convertDataElement(builder, data):
+		try:
+			name = str(data['name'])
+			typeStr = data['type']
+			try:
+				materialType = getattr(MaterialType, typeStr)
+			except AttributeError:
+				raise Exception('Invalid material type "' + typeStr + '".')
+
+			first = readInt(data.get('first', 0), 'first', 0)
+
+			if 'data' in data and 'dataArray' in data:
+				raise Exception(
+					'SceneResources shader data element must contain one of "data" or "dataArray".')
+
+			if 'data' in data:
+				dataBytes, dataCount = convertVariableData(builder, materialType, [data['data']])
+			elif 'dataArray' in data:
+				try:
+					dataBytes, dataCount = convertVariableData(
+						builder, materialType, data['dataArray'])
+				except (TypeError, ValueError):
+					raise Exception(
+						'Shder data element "dataArray" must be an array of data values.')
+			else:
+				raise Exception(
+					'SceneResources shader data element must contain one of "data" or "dataArray".')
+		except KeyError as e:
+			raise Exception(
+				'SceneResources shader data element doesn\'t contain element "' + str(e) + '".')
+
+		nameOffset = builder.CreateString(name)
+		dataOffset = builder.CreateBytesVector(dataBytes)
+
+		VariableDataStart(builder)
+		VariableDataAddName(builder, nameOffset)
+		VariableDataAddType(builder, materialType)
+		VariableDataAddFirst(builder, first)
+		VariableDataAddCount(builder, dataCount)
+		VariableDataAddData(builder, dataOffset)
+		return VariableDataEnd(builder)
+
+	dataOffsets = []
+	try:
+		for dataElement in data:
+			try:
+				name = str(dataElement['name'])
+				description = str(dataElement['description'])
+
+				try:
+					elementDataOffsets = []
+					for dataValue in dataElement['data']:
+						elementDataOffsets.append(convertDataElement(builder, dataValue))
+				except (TypeError, ValueError):
+					raise Exception(
+						'SceneResources shader data "data" must be an array of objects.')
+			except KeyError as e:
+				raise Exception(
+					'SceneResources shader data doesn\'t contain element "' + str(e) + '".')
+
+			nameOffset = builder.CreateString(name)
+			descriptionOffset = builder.CreateString(description)
+
+			ShaderDataStartDataVector(builder, len(elementDataOffsets))
+			for offset in reversed(elementDataOffsets):
+				builder.PrependUOffsetTRelative(offset)
+			dataOffset = builder.EndVector(len(elementDataOffsets))
+
+			ShaderDataStart(builder)
+			ShaderDataAddName(builder, nameOffset)
+			ShaderDataAddDescription(builder, description)
+			ShaderDataAddData(builder, dataOffset)
+			dataOffsets.append(ShaderDataEnd(builder))
+	except (TypeError, ValueError):
+		raise Exception('SceneResources "' + memberName + '" must be an array of objects.')
+
+	return dataOffsets
+
+def convertSceneResourcesShaderVariableGroups(builder, convertContext, data):
+	dataOffsets = convertSceneResourcesShaderData(
+		builder, convertContext, data, 'shaderVariableGroups')
+
+	SceneResourcesStartShaderVariableGroupsVector(builder, len(dataOffsets))
+	for offset in reversed(dataOffsets):
+		builder.PrependUOffsetTRelative(offset)
+	return builder.EndVector(len(dataOffsets))
+
+def convertSceneResourcesMaterialDescs(builder, convertContext, data):
+	def readElement(elementData):
+		try:
+			name = str(elementData['name'])
+			typeStr = elementData['type']
+			try:
+				materialType = getattr(MaterialType, typeStr)
+			except AttributeError:
+				raise Exception('Invalid material type "' + typeStr + '".')
+
+			countStr = elementData.get('count', 0)
+			try:
+				count = int(countStr)
+				if count < 0:
+					raise Exception() # Common error handling in except block.
+			except:
+				raise Exception(
+					'Invalid material element count "' + str(countStr) + '".')
+
+			return name, materialType, count
+		except KeyError as e:
+			raise Exception(
+				'SceneResources material desc element data doesn\'t contain element "' +
+					str(e) + '".')
+
+	groupOffsets = []
+	try:
+		for groupData in data:
+			try:
+				name = str(groupData['name'])
+
+				elements = []
+				try:
+					for elementData in groupData['elements']:
+						elements.append(readElement(elementData))
+					if not elements:
+						raise Exception('Material desc "elements" must not be empty.')
+				except (TypeError, ValueError):
+					raise Exception('Material desc "elements" must be an array of objects.')
+			except KeyError as e:
+				raise Exception(
+					'Material desc data doesn\'t contain element "' + str(e) + '".')
+
+			nameOffset = builder.CreateString(name)
+			elementOffsets = []
+			for elementName, elementType, elementCount in elements:
+				elementNameOffset = builder.CreateString(elementName)
+				VariableElementStart(builder)
+				VariableElementAddName(builder, elementNameOffset)
+				VariableElementAddType(builder, elementType)
+				VariableElementAddCount(builder, elementCount)
+				elementOffsets.append(VariableElementEnd(builder))
+
+			ShaderVariableGroupDescStartElementsVector(builder, len(elementOffsets))
+			for offset in reversed(elementOffsets):
+				builder.PrependUOffsetTRelative(offset)
+			elementsOffset = builder.EndVector(len(elementOffsets))
+
+			ShaderVariableGroupDescStart(builder)
+			ShaderVariableGroupDescAddName(builder, nameOffset)
+			ShaderVariableGroupDescAddElements(builder, elementsOffset)
+			groupOffsets.append(ShaderVariableGroupDescEnd(builder))
+	except (TypeError, ValueError):
+		raise Exception('SceneResources "materialDescs" must be an array of objects.')
+
+	SceneResourcesStartMaterialDescsVector(builder, len(groupOffsets))
+	for offset in reversed(groupOffsets):
+		builder.PrependUOffsetTRelative(offset)
+	return builder.EndVector(len(groupOffsets))
+
+def convertSceneResourcesMaterials(builder, convertContext, data):
+	dataOffsets = convertSceneResourcesShaderData(builder, convertContext, data, 'materials')
+
+	SceneResourcesStartMaterialsVector(builder, len(dataOffsets))
+	for offset in reversed(dataOffsets):
+		builder.PrependUOffsetTRelative(offset)
+	return builder.EndVector(len(dataOffsets))
 
 def convertSceneResources(convertContext, data):
 	"""
@@ -609,9 +1022,21 @@ def convertSceneResources(convertContext, data):
 	    - type: the type of the element. See the dsMaterialType enum for values, removing the type
 	      prefix.
 	    - first: the index of the first element to set when it's an array. Defaults to 0 if not set.
-	    - data: the data to set, with the contents depending on the "type" that was set. Vector
-	      types are arrays, while matrix types are arrays of column vector arrays. Texture, image,
-	      buffer, and shader variable group types are string names.
+	    - data: the data to set, with the contents depending on the "type" that was set.
+	      - Vector types are arrays, while matrix types are arrays of column vector arrays.
+	      - Textures, images, and variable groups have the string name of the resource.
+	      - Buffers are objects with the following members:
+	        - name: the name of the buffer.
+	        - offset: integer byte offset into the buffer. Defaults to 0.
+	        - size: the integer bytes to bind within the buffer.
+	      - Texture buffers and image buffers are objects with the following members:
+	        - name: the name of the buffer.
+	        - format: the texture format. See the dsGfxFormat enum for values, removing the type
+	          prefix. The decorator and compressed values may not be used.
+	        - decoration: the decoration for the format. See the dsGfxFormat enum for values,
+	          removing the type prefix. Only the decorator values may be used.
+		    - offset: integer byte offset into the buffer. Defaults to 0.
+	        - count: integer number of texels in the buffer.
 	    - dataArray: this may be set in place of the data member to provide an array of data
 	      elements rather than a single one.
 	- materialDescs: array of material descriptions to include. Each element of the array has the
@@ -697,6 +1122,24 @@ def convertSceneResources(convertContext, data):
 				convertContext, data['shaderVariableGroupDescs'])
 		else:
 			shaderVariableGroupDescsOffset = 0
+
+		if 'shaderVariableGroups' in data:
+			shaderVariableGroupDescsOffset = convertSceneResourcesShaderVariableGroups(builder,
+				convertContext, data['shaderVariableGroups'])
+		else:
+			shaderVariableGroupsOffset = 0
+
+		if 'materialDescs' in data:
+			materialDescsOffset = convertSceneResourcesMaterialDescs(
+				builder, convertContext, data['materialDescs'])
+		else:
+			materialDescsOffset = 0
+
+		if 'materials' in data:
+			materialsOffset = convertSceneResourcesMaterials(
+				builder, convertContext, data['materials'])
+		else:
+			materialsOffset = 0
 	except (TypeError, ValueError):
 		raise Exception('SceneResources must be an object.')
 
@@ -704,5 +1147,8 @@ def convertSceneResources(convertContext, data):
 	SceneResourcesAddBuffers(builder, buffersOffset)
 	SceneResourcesAddTextures(builder, texturesOffset)
 	SceneResourcesAddShaderVariableGroupDescs(builder, shaderVariableGroupDescsOffset)
+	SceneResourcesAddShaderVariableGroups(builder, shaderVariableGroupsOffset)
+	SceneResourcesAddMaterialDescs(builder, materialDescsOffset)
+	SceneResourcesAddMaterials(builder, materialsOffset)
 	builder.Finish(SceneResourcesEnd(builder))
 	return builder.Output()
