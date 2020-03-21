@@ -28,7 +28,9 @@ from .FormatDecoration import *
 from .MaterialType import *
 from .NamedMaterialData import *
 from .SceneResources import *
+from .Shader import *
 from .ShaderData import *
+from .ShaderModule import *
 from .ShaderVariableGroupDesc import *
 from .Texture import *
 from .TextureBufferMaterialData import *
@@ -391,7 +393,6 @@ def convertSceneResourcesTextures(builder, convertContext, data):
 							textureType = 'array'
 					tempFiles.append(tempFile.name)
 					commandLine.extend(['-I', textureType, tempFile.name])
-
 				# Create a temporary file if not present.
 				textureFile = textureData.get('output')
 				if not textureFile:
@@ -940,6 +941,73 @@ def convertSceneResourcesMaterials(builder, convertContext, data):
 		builder.PrependUOffsetTRelative(offset)
 	return builder.EndVector(len(dataOffsets))
 
+def convertSceneResourcesShaderModules(builder, convertContext, data):
+	moduleOffsets = []
+	try:
+		for moduleData in data:
+			try:
+				name = str(moduleData['name'])
+
+				moduleStr = str(moduleData['module'])
+				try:
+					modulePath, moduleContents = readData(moduleStr)
+				except TypeError:
+					raise Exception(
+						'SceneResources shader module "module" uses incorrect base64 encoding.')
+			except KeyError as e:
+				raise Exception(
+					'Shader module data doesn\'t contain element "' + str(e) + '".')
+
+			nameOffset = builder.CreateString(name)
+			dataType, dataOffset = convertFileOrData(builder, modulePath, moduleContents,
+				moduleData.get('output'), moduleData.get('outputRelativeDir'),
+				moduleData.get('resourceType'))
+
+			ShaderModuleStart(builder)
+			ShaderModuleAddName(builder, nameOffset)
+			ShaderModuleAddDataType(builder, dataType)
+			ShaderModuleAddData(builder, dataOffset)
+			moduleOffsets.append(ShaderModuleEnd(builder))
+	except (TypeError, ValueError):
+		raise Exception('SceneResources "shaderModules" must be an array of objects.')
+
+	SceneResourcesStartShaderModulesVector(builder, len(moduleOffsets))
+	for offset in reversed(moduleOffsets):
+		builder.PrependUOffsetTRelative(offset)
+	return builder.EndVector(len(moduleOffsets))
+
+def convertSceneResourcesShaders(builder, convertContext, data):
+	shaderOffsets = []
+	try:
+		for shaderData in data:
+			try:
+				name = str(shaderData['name'])
+				module = str(shaderData['module'])
+				pipeline = str(shaderData.get('pipelineName', name))
+				materialDesc = str(shaderData['materialDesc'])
+			except KeyError as e:
+				raise Exception(
+					'Shader data doesn\'t contain element "' + str(e) + '".')
+
+			nameOffset = builder.CreateString(name)
+			moduleOffset = builder.CreateString(module)
+			pipelineOffset = builder.CreateString(pipeline)
+			materialDescOffset = builder.CreateString(materialDesc)
+
+			ShaderStart(builder)
+			ShaderAddName(builder, nameOffset)
+			ShaderAddShaderModule(builder, moduleOffset)
+			ShaderAddPipelineName(builder, pipelineOffset)
+			ShaderAddMaterialDesc(builder, materialDescOffset)
+			shaderOffsets.append(ShaderEnd(builder))
+	except (TypeError, ValueError):
+		raise Exception('SceneResources "shaders" must be an array of objects.')
+
+	SceneResourcesStartShadersVector(builder, len(shaderOffsets))
+	for offset in reversed(shaderOffsets):
+		builder.PrependUOffsetTRelative(offset)
+	return builder.EndVector(len(shaderOffsets))
+
 def convertSceneResources(convertContext, data):
 	"""
 	Converts SceneResources. The data map is expected to contain the following optional element,
@@ -1059,7 +1127,8 @@ def convertSceneResources(convertContext, data):
 	- shaderModules: array of shader modules to include. Each element of the array has the following
 	  members:
 	  - name: the name of the shader module.
-	  - path: the path to the shader module file compiled with Modular Shader Language (MSL).
+	  - module: path to the shader module or base64 encoded data prefixed with "base64:". The module
+	    is expected to have been compiled with Modular Shader Language (MSL).
 	  - output: the path to the location to copy the shader module to. This can be ommitted to embed
 	    the shader module directly.
 	  - outputRelativeDir: the directory relative to output path. This will be removed from the path
@@ -1140,6 +1209,18 @@ def convertSceneResources(convertContext, data):
 				builder, convertContext, data['materials'])
 		else:
 			materialsOffset = 0
+
+		if 'shaderModules' in data:
+			shaderModulesOffset = convertSceneResourcesShaderModules(
+				builder, convertContext, data['shaderModules'])
+		else:
+			shaderModulesOffset = 0
+
+		if 'shaders' in data:
+			shadersOffset = convertSceneResourcesShaders(
+				builder, convertContext, data['shaders'])
+		else:
+			shadersOffset = 0
 	except (TypeError, ValueError):
 		raise Exception('SceneResources must be an object.')
 
@@ -1150,5 +1231,7 @@ def convertSceneResources(convertContext, data):
 	SceneResourcesAddShaderVariableGroups(builder, shaderVariableGroupsOffset)
 	SceneResourcesAddMaterialDescs(builder, materialDescsOffset)
 	SceneResourcesAddMaterials(builder, materialsOffset)
+	SceneResourcesAddShaderModules(builder, shaderModulesOffset)
+	SceneResourcesAddShaders(builder, shadersOffset)
 	builder.Finish(SceneResourcesEnd(builder))
 	return builder.Output()
