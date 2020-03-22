@@ -23,10 +23,13 @@ from tempfile import NamedTemporaryFile
 import flatbuffers
 from .Buffer import *
 from .BufferMaterialData import *
+from .DrawGeometry import *
 from .FileOrDataConvert import convertFileOrData
 from .FormatDecoration import *
+from .IndexBuffer import *
 from .MaterialType import *
 from .NamedMaterialData import *
+from .SceneNode import *
 from .SceneResources import *
 from .Shader import *
 from .ShaderData import *
@@ -37,8 +40,12 @@ from .TextureBufferMaterialData import *
 from .TextureDim import *
 from .TextureFormat import *
 from .TextureInfo import *
+from .VertexAttribute import *
 from .VariableData import *
 from .VariableElement import *
+from .VertexBuffer import *
+from .VertexElementFormat import *
+from .VertexFormat import *
 
 memoryHintsEnum = {
 	'GPUOnly': 0x1,
@@ -955,8 +962,7 @@ def convertSceneResourcesShaderModules(builder, convertContext, data):
 					raise Exception(
 						'SceneResources shader module "module" uses incorrect base64 encoding.')
 			except KeyError as e:
-				raise Exception(
-					'Shader module data doesn\'t contain element "' + str(e) + '".')
+				raise Exception('Shader module data doesn\'t contain element "' + str(e) + '".')
 
 			nameOffset = builder.CreateString(name)
 			dataType, dataOffset = convertFileOrData(builder, modulePath, moduleContents,
@@ -986,8 +992,7 @@ def convertSceneResourcesShaders(builder, convertContext, data):
 				pipeline = str(shaderData.get('pipelineName', name))
 				materialDesc = str(shaderData['materialDesc'])
 			except KeyError as e:
-				raise Exception(
-					'Shader data doesn\'t contain element "' + str(e) + '".')
+				raise Exception('Shader data doesn\'t contain element "' + str(e) + '".')
 
 			nameOffset = builder.CreateString(name)
 			moduleOffset = builder.CreateString(module)
@@ -1007,6 +1012,197 @@ def convertSceneResourcesShaders(builder, convertContext, data):
 	for offset in reversed(shaderOffsets):
 		builder.PrependUOffsetTRelative(offset)
 	return builder.EndVector(len(shaderOffsets))
+
+def convertSceneResourcesDrawGeometries(builder, convertContext, data):
+	def readVertexBuffer(vertexBufferData):
+		def readInt(value, name, minVal):
+			try:
+				intVal = int(value)
+				if intVal < minVal:
+					raise Exception() # Common error handling in except block.
+				return intVal
+			except:
+				raise Exception('Invalid vertex buffer ' + name + ' "' + str(value) + '".')
+
+		try:
+			vertexBuffer = object()
+			vertexBuffer.name = str(vertexBufferData['name'])
+			vertexBuffer.offset = readInt(vertexBufferData.get('offset', 0), 'offset', 0)
+			vertexBuffer.count = readInt(vertexBufferData['count'], 'count', 1)
+
+			formatData = vertexBufferData['format']
+			try:
+				vertexBuffer.format = object()
+				vertexBuffer.format.attributes = []
+				try:
+					for attributeData in formatData['attributes']:
+						try:
+							attribute = object()
+
+							formatStr = attributeData['format']
+							try:
+								attribute.format = getattr(VertexElementFormat, formatStr)
+							except AttributeError:
+								raise Exception('Invalid vertex format "' + formatStr + '".')
+
+							decorationStr = attributeData['decoration']
+							try:
+								attribute.decoration = getattr(FormatDecoration, decorationStr)
+							except AttributeError:
+								raise Exception(
+									'Invalid vertex format decoration "' + decorationStr + '".')
+
+							vertexBuffer.format.attributes.append(attribute)
+						except KeyError as e:
+							raise Exception(
+								'Vertex buffer format attribute doesn\'t contain element "' +
+								str(e) + '".')
+				except (TypeError, ValueError):
+					raise Exception(
+						'Vertex buffer format "attributes" must be an array of objects.')
+
+				if not vertexBuffer.format.attributes:
+					raise Exception('Vertex format doesn\'t contain any attributes.')
+
+				vertexBuffer.format.instanced = bool(formatData.get('instanced', False))
+			except KeyError as e:
+				raise Exception('Vertex buffer format doesn\'t contain element "' + str(e) + '".')
+
+			return vertexBuffer
+		except KeyError as e:
+			raise Exception('Vertex buffer data doesn\'t contain element "' + str(e) + '".')
+
+	def readIndexBuffer(indexBufferData):
+		def readInt(value, name, minVal):
+			try:
+				intVal = int(value)
+				if intVal < minVal:
+					raise Exception() # Common error handling in except block.
+				return intVal
+			except:
+				raise Exception('Invalid index buffer ' + name + ' "' + str(value) + '".')
+
+		try:
+			indexBuffer = object()
+			indexBuffer.name = str(indexBufferData['name'])
+			indexBuffer.offset = readInt(indexBufferData.get('offset', 0), 'offset', 0)
+			indexBuffer.count = readInt(indexBufferData['count'], 'count', 1)
+			indexBuffer.indexSize = readInt(indexBufferData['indexSize'], 'indexSize', 0)
+			if indexBuffer.indexSize not in (2, 4):
+				raise Exception('Index buffer size must be 2 or 4.')
+
+			return indexBuffer
+		except KeyError as e:
+			raise Exception('Index buffer data doesn\'t contain element "' + str(e) + '".')
+
+	maxVertexBuffers = 4
+	geometryOffsets = []
+	try:
+		for geometryData in data:
+			try:
+				name = str(geometryData['name'])
+
+				vertexBuffers = []
+				try:
+					for vertexBufferData in geometryData['vertexBuffers']:
+						vertexBuffers.append(readVertexBuffer(vertexBufferData))
+				except (TypeError, ValueError):
+					raise Exception('Draw geometry "vertexBuffers" must be an array of objects.')
+
+				if not 0 < len(vertexBuffers) <= maxVertexBuffers:
+					raise Exception('Draw geometry must have between 1 and ' +
+						str(maxVertexBuffers) + ' vertex buffers.')
+
+				indexBufferData = geometryData.get('indexBuffer')
+				if indexBufferData:
+					indexBuffer = readIndexBuffer(indexBufferData)
+				else:
+					indexBuffer = None
+			except KeyError as e:
+				raise Exception('Draw geometry data doesn\'t contain element "' + str(e) + '".')
+
+			nameOffset = builder.CreateString(name)
+			vertexBufferOffsets = []
+			for vertexBuffer in vertexBuffers:
+				vertexBufferNameOffset = builder.CreateString(vertexBuffer.name)
+
+				attributeOffsets = []
+				for attribute in vertexBuffer.format.attributes:
+					attributeOffsets.append(
+						CreateVertexAttribute(builder, attribute.format, attribute.decoration))
+
+				VertexFormatStartAttributesVector(builder, len(attributeOffsets))
+				for offset in reversed(attributeOffsets):
+					builder.PrependUOffsetTRelative(offset)
+				attributesOffset = builder.EndVector(len(attributeOffsets))
+
+				VertexFormatStart(builder)
+				VertexFormatAddAttributes(builder, attributesOffset)
+				VertexFormatAddInstanced(builder, vertexBuffer.format.instanced)
+				formatOffset = VertexFormatEnd(builder)
+
+				VertexBufferStart(builder)
+				VertexBufferAddName(builder, vertexBufferNameOffset)
+				VertexBufferAddOffset(builder, vertexBuffer.offset)
+				VertexBufferAddCount(builder, vertexBuffer.count)
+				VertexBufferAddFormat(builder, formatOffset)
+				vertexBufferOffsets.append(VertexBufferEnd(builder))
+
+			DrawGeometryStartVertexBuffersVector(builder, len(vertexBufferOffsets))
+			for offset in reversed(vertexBufferOffsets):
+				builder.PrependUOffsetTRelative(offset)
+			vertexBuffersOffset = builder.EndVector(len(vertexBufferOffsets))
+
+			if indexBuffer:
+				indexBufferNameOffset = builder.CreateString(indexBuffer.name)
+
+				IndexBufferStart(builder)
+				IndexBufferAddName(builder, indexBufferNameOffset)
+				IndexBufferAddOffset(builder, indexBuffer.offset)
+				IndexBufferAddCount(builder, indexBuffer.count)
+				IndexBufferAddIndexSize(builder, indexBuffer.indexSize)
+				indexBufferOffset = IndexBufferEnd(builder)
+			else:
+				indexBufferOffset = 0
+
+			DrawGeometryStart(builder)
+			DrawGeometryAddName(builder, nameOffset)
+			DrawGeometryAddVertexBuffers(builder, vertexBuffersOffset)
+			DrawGeometryAddIndexBuffer(builder, indexBufferOffset)
+			geometryOffsets.append(DrawGeometryEnd(builder))
+	except (TypeError, ValueError):
+		raise Exception('SceneResources "drawGeometries" must be an array of objects.')
+
+	SceneResourcesStartDrawGeometriesVector(builder, len(geometryOffsets))
+	for offset in reversed(geometryOffsets):
+		builder.PrependUOffsetTRelative(offset)
+	return builder.EndVector(len(geometryOffsets))
+
+def convertSceneResourcesNodes(builder, convertContext, data):
+	nodeOffsets = []
+	try:
+		for nodeData in data:
+			try:
+				name = str(nodeData['name'])
+				nodeType = str(nodeData['type'])
+				nodeInfo = nodeData['data']
+			except KeyError as e:
+				raise Exception('Scene node data doesn\'t contain element "' + str(e) + '".')
+
+			nameOffset = builder.CreateString(name)
+			nodeDataOffset = convertContext.convertNode(builder, nodeType, nodeInfo)
+
+			SceneNodeStart(builder)
+			SceneNodeAddName(builder, nameOffset)
+			SceneNodeAddNode(builder, nodeDataOffset)
+			nodeOffsets.append(SceneNodeEnd(builder))
+	except (TypeError, ValueError):
+		raise Exception('SceneResources "drawGeometries" must be an array of objects.')
+
+	SceneResourcesStartSceneNodesVector(builder, len(nodeOffsets))
+	for offset in reversed(nodeOffsets):
+		builder.PrependUOffsetTRelative(offset)
+	return builder.EndVector(len(nodeOffsets))
 
 def convertSceneResources(convertContext, data):
 	"""
@@ -1149,7 +1345,7 @@ def convertSceneResources(convertContext, data):
 	    members:
 	    - name: the name of the buffer to use. The buffer may be in a different scene resources
 	      package.
-	    - offset: the offset in bytes into the buffer to the first vertex.
+	    - offset: the offset in bytes into the buffer to the first vertex. Defaults to 0.
 	    - count: the number of vertices in the buffer.
 	    - format: the vertex format. This is a dict with the following members:
 	      - attributes: array of attributes for the format. Each element has the following members:
@@ -1162,7 +1358,7 @@ def convertSceneResources(convertContext, data):
 	    with the following members:
 	    - name: the name of the buffer to use. The buffer may be in a different scene resources
 	      package.
-	    - offset: the offset in bytes into the buffer to the first index.
+	    - offset: the offset in bytes into the buffer to the first index. Defaults to 0.
 	    - count: the number of indices in the buffer.
 	    - indexSize: the size of the index in bytes. This must be either 2 or 4.
 	- sceneNodes: array of scene nodes to include. Each element of the array has the following
@@ -1221,6 +1417,17 @@ def convertSceneResources(convertContext, data):
 				builder, convertContext, data['shaders'])
 		else:
 			shadersOffset = 0
+
+		if 'drawGeometries' in data:
+			drawGeometriesOffset = convertSceneResourcesDrawGeometries(
+				builder, convertContext, data['drawGeometries'])
+		else:
+			drawGeometriesOffset = 0
+
+		if 'sceneNodes' in data:
+			nodesOffset = convertSceneResourcesNodes(builder, convertContext, data['sceneNodes'])
+		else:
+			nodesOffset = 0
 	except (TypeError, ValueError):
 		raise Exception('SceneResources must be an object.')
 
@@ -1233,5 +1440,7 @@ def convertSceneResources(convertContext, data):
 	SceneResourcesAddMaterials(builder, materialsOffset)
 	SceneResourcesAddShaderModules(builder, shaderModulesOffset)
 	SceneResourcesAddShaders(builder, shadersOffset)
+	SceneResourcesAddDrawGeometries(builder, drawGeometriesOffset)
+	SceneResourcesAddSceneNodes(builder, nodesOffset)
 	builder.Finish(SceneResourcesEnd(builder))
 	return builder.Output()
