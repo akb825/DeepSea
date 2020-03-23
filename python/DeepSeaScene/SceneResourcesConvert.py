@@ -299,7 +299,7 @@ def convertSceneResourcesTextures(builder, convertContext, data):
 
 						textureInfo.swizzle = baseTextureInfo.get('swizzle')
 						if textureInfo.swizzle and \
-								not re.fullmatch('[RGBAXrgbax]{4}', textureInfo.swizzle):
+								not re.match('^[RGBAXrgbax]{4}$', textureInfo.swizzle):
 							raise Exception(
 								'Invalid texture swizzle "' + textureInfo.swizzle + '".')
 
@@ -598,7 +598,8 @@ def convertSceneResourcesShaderData(builder, convertContext, data, memberName):
 					for col in colArray:
 						if len(col) != expectedRow:
 							raise Exception() # Common error handling in except block.
-						dataBytes += struct.pack(formatStr, element)
+						for element in col:
+							dataBytes += struct.pack(formatStr, element)
 			except:
 				raise Exception('Shader data must be an array of ' + str(expectedCol) +
 					' colomn arrays with ' + str(expectedRow) + ' ' + name + 's.')
