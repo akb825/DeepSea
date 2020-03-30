@@ -3,6 +3,8 @@
 # namespace: DeepSeaVectorDraw
 
 import flatbuffers
+from flatbuffers.compat import import_numpy
+np = import_numpy()
 
 class ArcCommand(object):
     __slots__ = ['_tab']
@@ -23,7 +25,7 @@ class ArcCommand(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         if o != 0:
             x = o + self._tab.Pos
-            from .Vector2f import Vector2f
+            from DeepSeaVectorDraw.Vector2f import Vector2f
             obj = Vector2f()
             obj.Init(self._tab.Bytes, x)
             return obj
@@ -55,7 +57,7 @@ class ArcCommand(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(12))
         if o != 0:
             x = o + self._tab.Pos
-            from .Vector2f import Vector2f
+            from DeepSeaVectorDraw.Vector2f import Vector2f
             obj = Vector2f()
             obj.Init(self._tab.Bytes, x)
             return obj

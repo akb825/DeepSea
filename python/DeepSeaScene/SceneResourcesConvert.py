@@ -81,6 +81,29 @@ textureUsageEnum = {
 	'OffscreenContinue': 0x20
 }
 
+modelVertexAttribEnum = {
+	'Position': 0,
+	'Position0': 0,
+	'Position1': 1,
+	'Normal': 2,
+	'Color': 3,
+	'Color0': 3,
+	'Color1': 4,
+	'FogCoord': 5,
+	'Tangent': 6,
+	'Bitangent': 7,
+	'TexCoord0': 8,
+	'TexCoord1': 9,
+	'TexCoord2': 10,
+	'TexCoord3': 11,
+	'TexCoord4': 12,
+	'TexCoord5': 13,
+	'TexCoord6': 14,
+	'TexCoord7': 15,
+	'BlendIndices': 14,
+	'BlendWeights': 15
+}
+
 def readData(dataStr):
 	if dataStr.startswith('base64:'):
 		dataPath = None
@@ -90,6 +113,14 @@ def readData(dataStr):
 		with open(dataStr, 'rb') as stream:
 			dataContents = stream.read()
 	return dataPath, dataContents
+
+def readVertexAttrib(attrib):
+	if not isinstance(attrib, int):
+		attribStr = str(attrib)
+		attrib = modelVertexAttribEnum.get(attribStr)
+		if attrib is None:
+			raise Exception('Invalid vertex attribute "' + attribStr + '".')
+	return attrib
 
 def convertSceneResourcesBuffers(builder, convertContext, data):
 	bufferOffsets = []
@@ -1040,6 +1071,8 @@ def convertSceneResourcesDrawGeometries(builder, convertContext, data):
 						try:
 							attribute = object()
 
+							vertexBuffer.attrib = readVertexAttrib(attributeData['attrib'])
+
 							formatStr = attributeData['format']
 							try:
 								attribute.format = getattr(VertexElementFormat, formatStr)
@@ -1350,6 +1383,8 @@ def convertSceneResources(convertContext, data):
 	    - count: the number of vertices in the buffer.
 	    - format: the vertex format. This is a dict with the following members:
 	      - attributes: array of attributes for the format. Each element has the following members:
+			- attrib: the attribute. This can either be an enum value from dsVertexAttrib, removing
+			  the type prefix, or the integer for the attribute.
 	        - format: the attribute format. See the dsGfxFormat enum for values, removing the type
 	          prefix. Only the "standard" formats may be used.
 	        - decoration: the decoration for the format. See the dsGfxFormat enum for values,

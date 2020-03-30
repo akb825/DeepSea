@@ -3,6 +3,8 @@
 # namespace: DeepSeaScene
 
 import flatbuffers
+from flatbuffers.compat import import_numpy
+np = import_numpy()
 
 class SceneResources(object):
     __slots__ = ['_tab']
@@ -25,7 +27,7 @@ class SceneResources(object):
             x = self._tab.Vector(o)
             x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * 4
             x = self._tab.Indirect(x)
-            from .Buffer import Buffer
+            from DeepSeaScene.Buffer import Buffer
             obj = Buffer()
             obj.Init(self._tab.Bytes, x)
             return obj
@@ -39,13 +41,18 @@ class SceneResources(object):
         return 0
 
     # SceneResources
+    def BuffersIsNone(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
+        return o == 0
+
+    # SceneResources
     def Textures(self, j):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         if o != 0:
             x = self._tab.Vector(o)
             x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * 4
             x = self._tab.Indirect(x)
-            from .Texture import Texture
+            from DeepSeaScene.Texture import Texture
             obj = Texture()
             obj.Init(self._tab.Bytes, x)
             return obj
@@ -59,13 +66,18 @@ class SceneResources(object):
         return 0
 
     # SceneResources
+    def TexturesIsNone(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
+        return o == 0
+
+    # SceneResources
     def ShaderVariableGroupDescs(self, j):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
         if o != 0:
             x = self._tab.Vector(o)
             x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * 4
             x = self._tab.Indirect(x)
-            from .ShaderVariableGroupDesc import ShaderVariableGroupDesc
+            from DeepSeaScene.ShaderVariableGroupDesc import ShaderVariableGroupDesc
             obj = ShaderVariableGroupDesc()
             obj.Init(self._tab.Bytes, x)
             return obj
@@ -79,13 +91,18 @@ class SceneResources(object):
         return 0
 
     # SceneResources
+    def ShaderVariableGroupDescsIsNone(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
+        return o == 0
+
+    # SceneResources
     def ShaderVariableGroups(self, j):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(10))
         if o != 0:
             x = self._tab.Vector(o)
             x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * 4
             x = self._tab.Indirect(x)
-            from .ShaderData import ShaderData
+            from DeepSeaScene.ShaderData import ShaderData
             obj = ShaderData()
             obj.Init(self._tab.Bytes, x)
             return obj
@@ -99,13 +116,18 @@ class SceneResources(object):
         return 0
 
     # SceneResources
+    def ShaderVariableGroupsIsNone(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(10))
+        return o == 0
+
+    # SceneResources
     def MaterialDescs(self, j):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(12))
         if o != 0:
             x = self._tab.Vector(o)
             x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * 4
             x = self._tab.Indirect(x)
-            from .MaterialDesc import MaterialDesc
+            from DeepSeaScene.MaterialDesc import MaterialDesc
             obj = MaterialDesc()
             obj.Init(self._tab.Bytes, x)
             return obj
@@ -119,13 +141,18 @@ class SceneResources(object):
         return 0
 
     # SceneResources
+    def MaterialDescsIsNone(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(12))
+        return o == 0
+
+    # SceneResources
     def Materials(self, j):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(14))
         if o != 0:
             x = self._tab.Vector(o)
             x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * 4
             x = self._tab.Indirect(x)
-            from .ShaderData import ShaderData
+            from DeepSeaScene.ShaderData import ShaderData
             obj = ShaderData()
             obj.Init(self._tab.Bytes, x)
             return obj
@@ -139,13 +166,18 @@ class SceneResources(object):
         return 0
 
     # SceneResources
+    def MaterialsIsNone(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(14))
+        return o == 0
+
+    # SceneResources
     def ShaderModules(self, j):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(16))
         if o != 0:
             x = self._tab.Vector(o)
             x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * 4
             x = self._tab.Indirect(x)
-            from .ShaderModule import ShaderModule
+            from DeepSeaScene.ShaderModule import ShaderModule
             obj = ShaderModule()
             obj.Init(self._tab.Bytes, x)
             return obj
@@ -159,13 +191,18 @@ class SceneResources(object):
         return 0
 
     # SceneResources
+    def ShaderModulesIsNone(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(16))
+        return o == 0
+
+    # SceneResources
     def Shaders(self, j):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(18))
         if o != 0:
             x = self._tab.Vector(o)
             x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * 4
             x = self._tab.Indirect(x)
-            from .Shader import Shader
+            from DeepSeaScene.Shader import Shader
             obj = Shader()
             obj.Init(self._tab.Bytes, x)
             return obj
@@ -179,13 +216,18 @@ class SceneResources(object):
         return 0
 
     # SceneResources
+    def ShadersIsNone(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(18))
+        return o == 0
+
+    # SceneResources
     def DrawGeometries(self, j):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(20))
         if o != 0:
             x = self._tab.Vector(o)
             x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * 4
             x = self._tab.Indirect(x)
-            from .DrawGeometry import DrawGeometry
+            from DeepSeaScene.DrawGeometry import DrawGeometry
             obj = DrawGeometry()
             obj.Init(self._tab.Bytes, x)
             return obj
@@ -199,13 +241,18 @@ class SceneResources(object):
         return 0
 
     # SceneResources
+    def DrawGeometriesIsNone(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(20))
+        return o == 0
+
+    # SceneResources
     def SceneNodes(self, j):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(22))
         if o != 0:
             x = self._tab.Vector(o)
             x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * 4
             x = self._tab.Indirect(x)
-            from .SceneNode import SceneNode
+            from DeepSeaScene.SceneNode import SceneNode
             obj = SceneNode()
             obj.Init(self._tab.Bytes, x)
             return obj
@@ -217,6 +264,11 @@ class SceneResources(object):
         if o != 0:
             return self._tab.VectorLen(o)
         return 0
+
+    # SceneResources
+    def SceneNodesIsNone(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(22))
+        return o == 0
 
 def SceneResourcesStart(builder): builder.StartObject(10)
 def SceneResourcesAddBuffers(builder, buffers): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(buffers), 0)

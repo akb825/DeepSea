@@ -3,6 +3,8 @@
 # namespace: DeepSeaScene
 
 import flatbuffers
+from flatbuffers.compat import import_numpy
+np = import_numpy()
 
 class DynamicRenderStates(object):
     __slots__ = ['_tab']
@@ -51,7 +53,7 @@ class DynamicRenderStates(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(12))
         if o != 0:
             x = o + self._tab.Pos
-            from .Color4f import Color4f
+            from DeepSeaScene.Color4f import Color4f
             obj = Color4f()
             obj.Init(self._tab.Bytes, x)
             return obj
@@ -62,7 +64,7 @@ class DynamicRenderStates(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(14))
         if o != 0:
             x = o + self._tab.Pos
-            from .Vector2f import Vector2f
+            from DeepSeaScene.Vector2f import Vector2f
             obj = Vector2f()
             obj.Init(self._tab.Bytes, x)
             return obj

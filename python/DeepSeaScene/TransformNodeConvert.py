@@ -49,6 +49,8 @@ def convertTransformNode(convertContext, data):
 					raise Exception('Child node data doesn\'t contain element "' + str(e) + '".')
 		except (TypeError, ValueError):
 			raise Exception('TransformNode "children" must be an array of objects.')
+	except (TypeError, ValueError):
+		raise Exception('TransformNode data must be an object.')
 	except KeyError as e:
 		raise Exception('TransformNode data doesn\'t contain element "' + str(e) + '".')
 

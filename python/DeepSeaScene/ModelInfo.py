@@ -3,6 +3,8 @@
 # namespace: DeepSeaScene
 
 import flatbuffers
+from flatbuffers.compat import import_numpy
+np = import_numpy()
 
 class ModelInfo(object):
     __slots__ = ['_tab']
@@ -44,7 +46,7 @@ class ModelInfo(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(10))
         if o != 0:
             x = o + self._tab.Pos
-            from .Vector2f import Vector2f
+            from DeepSeaScene.Vector2f import Vector2f
             obj = Vector2f()
             obj.Init(self._tab.Bytes, x)
             return obj

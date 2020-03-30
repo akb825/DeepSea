@@ -3,6 +3,8 @@
 # namespace: DeepSeaScene
 
 import flatbuffers
+from flatbuffers.compat import import_numpy
+np = import_numpy()
 
 class SceneItemLists(object):
     __slots__ = ['_tab']
@@ -25,7 +27,7 @@ class SceneItemLists(object):
             x = self._tab.Vector(o)
             x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * 4
             x = self._tab.Indirect(x)
-            from .SceneItemList import SceneItemList
+            from DeepSeaScene.SceneItemList import SceneItemList
             obj = SceneItemList()
             obj.Init(self._tab.Bytes, x)
             return obj
@@ -37,6 +39,11 @@ class SceneItemLists(object):
         if o != 0:
             return self._tab.VectorLen(o)
         return 0
+
+    # SceneItemLists
+    def ItemListsIsNone(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
+        return o == 0
 
 def SceneItemListsStart(builder): builder.StartObject(1)
 def SceneItemListsAddItemLists(builder, itemLists): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(itemLists), 0)

@@ -3,6 +3,8 @@
 # namespace: DeepSeaScene
 
 import flatbuffers
+from flatbuffers.compat import import_numpy
+np = import_numpy()
 
 class Scene(object):
     __slots__ = ['_tab']
@@ -25,7 +27,7 @@ class Scene(object):
             x = self._tab.Vector(o)
             x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * 4
             x = self._tab.Indirect(x)
-            from .SceneItemLists import SceneItemLists
+            from DeepSeaScene.SceneItemLists import SceneItemLists
             obj = SceneItemLists()
             obj.Init(self._tab.Bytes, x)
             return obj
@@ -39,13 +41,18 @@ class Scene(object):
         return 0
 
     # Scene
+    def SharedItemsIsNone(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
+        return o == 0
+
+    # Scene
     def Pipeline(self, j):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         if o != 0:
             x = self._tab.Vector(o)
             x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * 4
             x = self._tab.Indirect(x)
-            from .ScenePipelineItem import ScenePipelineItem
+            from DeepSeaScene.ScenePipelineItem import ScenePipelineItem
             obj = ScenePipelineItem()
             obj.Init(self._tab.Bytes, x)
             return obj
@@ -59,13 +66,18 @@ class Scene(object):
         return 0
 
     # Scene
+    def PipelineIsNone(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
+        return o == 0
+
+    # Scene
     def GlobalData(self, j):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
         if o != 0:
             x = self._tab.Vector(o)
             x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * 4
             x = self._tab.Indirect(x)
-            from .GlobalData import GlobalData
+            from DeepSeaScene.GlobalData import GlobalData
             obj = GlobalData()
             obj.Init(self._tab.Bytes, x)
             return obj
@@ -77,6 +89,11 @@ class Scene(object):
         if o != 0:
             return self._tab.VectorLen(o)
         return 0
+
+    # Scene
+    def GlobalDataIsNone(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
+        return o == 0
 
 def SceneStart(builder): builder.StartObject(3)
 def SceneAddSharedItems(builder, sharedItems): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(sharedItems), 0)

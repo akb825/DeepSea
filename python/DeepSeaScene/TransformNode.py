@@ -3,6 +3,8 @@
 # namespace: DeepSeaScene
 
 import flatbuffers
+from flatbuffers.compat import import_numpy
+np = import_numpy()
 
 class TransformNode(object):
     __slots__ = ['_tab']
@@ -23,7 +25,7 @@ class TransformNode(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         if o != 0:
             x = o + self._tab.Pos
-            from .Matrix44f import Matrix44f
+            from DeepSeaScene.Matrix44f import Matrix44f
             obj = Matrix44f()
             obj.Init(self._tab.Bytes, x)
             return obj
@@ -36,7 +38,7 @@ class TransformNode(object):
             x = self._tab.Vector(o)
             x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * 4
             x = self._tab.Indirect(x)
-            from .ObjectData import ObjectData
+            from DeepSeaScene.ObjectData import ObjectData
             obj = ObjectData()
             obj.Init(self._tab.Bytes, x)
             return obj
@@ -48,6 +50,11 @@ class TransformNode(object):
         if o != 0:
             return self._tab.VectorLen(o)
         return 0
+
+    # TransformNode
+    def ChildrenIsNone(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
+        return o == 0
 
 def TransformNodeStart(builder): builder.StartObject(2)
 def TransformNodeAddTransform(builder, transform): builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(transform), 0)

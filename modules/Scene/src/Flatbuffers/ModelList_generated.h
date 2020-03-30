@@ -11,8 +11,10 @@
 namespace DeepSeaScene {
 
 struct DynamicRenderStates;
+struct DynamicRenderStatesBuilder;
 
 struct ModelList;
+struct ModelListBuilder;
 
 enum class SortType : uint8_t {
   None = 0,
@@ -34,7 +36,7 @@ inline const SortType (&EnumValuesSortType())[4] {
 }
 
 inline const char * const *EnumNamesSortType() {
-  static const char * const names[] = {
+  static const char * const names[5] = {
     "None",
     "Material",
     "BackToFront",
@@ -45,12 +47,13 @@ inline const char * const *EnumNamesSortType() {
 }
 
 inline const char *EnumNameSortType(SortType e) {
-  if (e < SortType::None || e > SortType::FrontToBack) return "";
+  if (flatbuffers::IsOutRange(e, SortType::None, SortType::FrontToBack)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesSortType()[index];
 }
 
 struct DynamicRenderStates FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef DynamicRenderStatesBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_LINEWIDTH = 4,
     VT_DEPTHBIASCONSTANTFACTOR = 6,
@@ -77,11 +80,11 @@ struct DynamicRenderStates FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table 
   float depthBiasSlopeFactor() const {
     return GetField<float>(VT_DEPTHBIASSLOPEFACTOR, 0.0f);
   }
-  const Color4f *blendConstants() const {
-    return GetStruct<const Color4f *>(VT_BLENDCONSTANTS);
+  const DeepSeaScene::Color4f *blendConstants() const {
+    return GetStruct<const DeepSeaScene::Color4f *>(VT_BLENDCONSTANTS);
   }
-  const Vector2f *depthBounds() const {
-    return GetStruct<const Vector2f *>(VT_DEPTHBOUNDS);
+  const DeepSeaScene::Vector2f *depthBounds() const {
+    return GetStruct<const DeepSeaScene::Vector2f *>(VT_DEPTHBOUNDS);
   }
   uint32_t frontStencilCompareMask() const {
     return GetField<uint32_t>(VT_FRONTSTENCILCOMPAREMASK, 0);
@@ -107,8 +110,8 @@ struct DynamicRenderStates FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table 
            VerifyField<float>(verifier, VT_DEPTHBIASCONSTANTFACTOR) &&
            VerifyField<float>(verifier, VT_DEPTHBIASCLAMP) &&
            VerifyField<float>(verifier, VT_DEPTHBIASSLOPEFACTOR) &&
-           VerifyField<Color4f>(verifier, VT_BLENDCONSTANTS) &&
-           VerifyField<Vector2f>(verifier, VT_DEPTHBOUNDS) &&
+           VerifyField<DeepSeaScene::Color4f>(verifier, VT_BLENDCONSTANTS) &&
+           VerifyField<DeepSeaScene::Vector2f>(verifier, VT_DEPTHBOUNDS) &&
            VerifyField<uint32_t>(verifier, VT_FRONTSTENCILCOMPAREMASK) &&
            VerifyField<uint32_t>(verifier, VT_BACKSTENCILCOMPAREMASK) &&
            VerifyField<uint32_t>(verifier, VT_FRONTSTENCILWRITEMASK) &&
@@ -120,6 +123,7 @@ struct DynamicRenderStates FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table 
 };
 
 struct DynamicRenderStatesBuilder {
+  typedef DynamicRenderStates Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_lineWidth(float lineWidth) {
@@ -134,10 +138,10 @@ struct DynamicRenderStatesBuilder {
   void add_depthBiasSlopeFactor(float depthBiasSlopeFactor) {
     fbb_.AddElement<float>(DynamicRenderStates::VT_DEPTHBIASSLOPEFACTOR, depthBiasSlopeFactor, 0.0f);
   }
-  void add_blendConstants(const Color4f *blendConstants) {
+  void add_blendConstants(const DeepSeaScene::Color4f *blendConstants) {
     fbb_.AddStruct(DynamicRenderStates::VT_BLENDCONSTANTS, blendConstants);
   }
-  void add_depthBounds(const Vector2f *depthBounds) {
+  void add_depthBounds(const DeepSeaScene::Vector2f *depthBounds) {
     fbb_.AddStruct(DynamicRenderStates::VT_DEPTHBOUNDS, depthBounds);
   }
   void add_frontStencilCompareMask(uint32_t frontStencilCompareMask) {
@@ -176,8 +180,8 @@ inline flatbuffers::Offset<DynamicRenderStates> CreateDynamicRenderStates(
     float depthBiasConstantFactor = 0.0f,
     float depthBiasClamp = 0.0f,
     float depthBiasSlopeFactor = 0.0f,
-    const Color4f *blendConstants = 0,
-    const Vector2f *depthBounds = 0,
+    const DeepSeaScene::Color4f *blendConstants = 0,
+    const DeepSeaScene::Vector2f *depthBounds = 0,
     uint32_t frontStencilCompareMask = 0,
     uint32_t backStencilCompareMask = 0,
     uint32_t frontStencilWriteMask = 0,
@@ -201,20 +205,21 @@ inline flatbuffers::Offset<DynamicRenderStates> CreateDynamicRenderStates(
 }
 
 struct ModelList FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef ModelListBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_INSTANCEDATA = 4,
     VT_SORTTYPE = 6,
     VT_DYNAMICRENDERSTATES = 8,
     VT_CULLNAME = 10
   };
-  const flatbuffers::Vector<flatbuffers::Offset<ObjectData>> *instanceData() const {
-    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<ObjectData>> *>(VT_INSTANCEDATA);
+  const flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::ObjectData>> *instanceData() const {
+    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::ObjectData>> *>(VT_INSTANCEDATA);
   }
-  SortType sortType() const {
-    return static_cast<SortType>(GetField<uint8_t>(VT_SORTTYPE, 0));
+  DeepSeaScene::SortType sortType() const {
+    return static_cast<DeepSeaScene::SortType>(GetField<uint8_t>(VT_SORTTYPE, 0));
   }
-  const DynamicRenderStates *dynamicRenderStates() const {
-    return GetPointer<const DynamicRenderStates *>(VT_DYNAMICRENDERSTATES);
+  const DeepSeaScene::DynamicRenderStates *dynamicRenderStates() const {
+    return GetPointer<const DeepSeaScene::DynamicRenderStates *>(VT_DYNAMICRENDERSTATES);
   }
   const flatbuffers::String *cullName() const {
     return GetPointer<const flatbuffers::String *>(VT_CULLNAME);
@@ -234,15 +239,16 @@ struct ModelList FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 };
 
 struct ModelListBuilder {
+  typedef ModelList Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
-  void add_instanceData(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<ObjectData>>> instanceData) {
+  void add_instanceData(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::ObjectData>>> instanceData) {
     fbb_.AddOffset(ModelList::VT_INSTANCEDATA, instanceData);
   }
-  void add_sortType(SortType sortType) {
+  void add_sortType(DeepSeaScene::SortType sortType) {
     fbb_.AddElement<uint8_t>(ModelList::VT_SORTTYPE, static_cast<uint8_t>(sortType), 0);
   }
-  void add_dynamicRenderStates(flatbuffers::Offset<DynamicRenderStates> dynamicRenderStates) {
+  void add_dynamicRenderStates(flatbuffers::Offset<DeepSeaScene::DynamicRenderStates> dynamicRenderStates) {
     fbb_.AddOffset(ModelList::VT_DYNAMICRENDERSTATES, dynamicRenderStates);
   }
   void add_cullName(flatbuffers::Offset<flatbuffers::String> cullName) {
@@ -262,9 +268,9 @@ struct ModelListBuilder {
 
 inline flatbuffers::Offset<ModelList> CreateModelList(
     flatbuffers::FlatBufferBuilder &_fbb,
-    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<ObjectData>>> instanceData = 0,
-    SortType sortType = SortType::None,
-    flatbuffers::Offset<DynamicRenderStates> dynamicRenderStates = 0,
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::ObjectData>>> instanceData = 0,
+    DeepSeaScene::SortType sortType = DeepSeaScene::SortType::None,
+    flatbuffers::Offset<DeepSeaScene::DynamicRenderStates> dynamicRenderStates = 0,
     flatbuffers::Offset<flatbuffers::String> cullName = 0) {
   ModelListBuilder builder_(_fbb);
   builder_.add_cullName(cullName);
@@ -276,11 +282,11 @@ inline flatbuffers::Offset<ModelList> CreateModelList(
 
 inline flatbuffers::Offset<ModelList> CreateModelListDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
-    const std::vector<flatbuffers::Offset<ObjectData>> *instanceData = nullptr,
-    SortType sortType = SortType::None,
-    flatbuffers::Offset<DynamicRenderStates> dynamicRenderStates = 0,
+    const std::vector<flatbuffers::Offset<DeepSeaScene::ObjectData>> *instanceData = nullptr,
+    DeepSeaScene::SortType sortType = DeepSeaScene::SortType::None,
+    flatbuffers::Offset<DeepSeaScene::DynamicRenderStates> dynamicRenderStates = 0,
     const char *cullName = nullptr) {
-  auto instanceData__ = instanceData ? _fbb.CreateVector<flatbuffers::Offset<ObjectData>>(*instanceData) : 0;
+  auto instanceData__ = instanceData ? _fbb.CreateVector<flatbuffers::Offset<DeepSeaScene::ObjectData>>(*instanceData) : 0;
   auto cullName__ = cullName ? _fbb.CreateString(cullName) : 0;
   return DeepSeaScene::CreateModelList(
       _fbb,

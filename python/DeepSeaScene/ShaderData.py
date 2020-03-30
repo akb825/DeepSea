@@ -3,6 +3,8 @@
 # namespace: DeepSeaScene
 
 import flatbuffers
+from flatbuffers.compat import import_numpy
+np = import_numpy()
 
 class ShaderData(object):
     __slots__ = ['_tab']
@@ -39,7 +41,7 @@ class ShaderData(object):
             x = self._tab.Vector(o)
             x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * 4
             x = self._tab.Indirect(x)
-            from .VariableData import VariableData
+            from DeepSeaScene.VariableData import VariableData
             obj = VariableData()
             obj.Init(self._tab.Bytes, x)
             return obj
@@ -51,6 +53,11 @@ class ShaderData(object):
         if o != 0:
             return self._tab.VectorLen(o)
         return 0
+
+    # ShaderData
+    def DataIsNone(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
+        return o == 0
 
 def ShaderDataStart(builder): builder.StartObject(3)
 def ShaderDataAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)

@@ -3,6 +3,8 @@
 # namespace: DeepSeaVectorDraw
 
 import flatbuffers
+from flatbuffers.compat import import_numpy
+np = import_numpy()
 
 class FaceGroup(object):
     __slots__ = ['_tab']
@@ -32,7 +34,7 @@ class FaceGroup(object):
             x = self._tab.Vector(o)
             x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * 4
             x = self._tab.Indirect(x)
-            from .Resource import Resource
+            from DeepSeaVectorDraw.Resource import Resource
             obj = Resource()
             obj.Init(self._tab.Bytes, x)
             return obj
@@ -44,6 +46,11 @@ class FaceGroup(object):
         if o != 0:
             return self._tab.VectorLen(o)
         return 0
+
+    # FaceGroup
+    def FacesIsNone(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
+        return o == 0
 
 def FaceGroupStart(builder): builder.StartObject(2)
 def FaceGroupAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)

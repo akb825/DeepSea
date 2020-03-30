@@ -187,6 +187,8 @@ static int sortByMaterial(const void* left, const void* right)
 		return leftInfo->shader < rightInfo->shader ? -1 : 1;
 	if (leftInfo->material != rightInfo->material)
 		return leftInfo->material < rightInfo->material ? -1 : 1;
+	if (leftInfo->geometry != rightInfo->geometry)
+		return leftInfo->geometry < rightInfo->geometry ? -1 : 1;
 	return leftInfo->instance - rightInfo->instance;
 }
 

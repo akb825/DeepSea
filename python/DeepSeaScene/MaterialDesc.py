@@ -3,6 +3,8 @@
 # namespace: DeepSeaScene
 
 import flatbuffers
+from flatbuffers.compat import import_numpy
+np = import_numpy()
 
 class MaterialDesc(object):
     __slots__ = ['_tab']
@@ -32,7 +34,7 @@ class MaterialDesc(object):
             x = self._tab.Vector(o)
             x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * 4
             x = self._tab.Indirect(x)
-            from .MaterialElement import MaterialElement
+            from DeepSeaScene.MaterialElement import MaterialElement
             obj = MaterialElement()
             obj.Init(self._tab.Bytes, x)
             return obj
@@ -44,6 +46,11 @@ class MaterialDesc(object):
         if o != 0:
             return self._tab.VectorLen(o)
         return 0
+
+    # MaterialDesc
+    def ElementsIsNone(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
+        return o == 0
 
 def MaterialDescStart(builder): builder.StartObject(2)
 def MaterialDescAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)

@@ -3,6 +3,8 @@
 # namespace: DeepSeaVectorDraw
 
 import flatbuffers
+from flatbuffers.compat import import_numpy
+np = import_numpy()
 
 class TextCommand(object):
     __slots__ = ['_tab']
@@ -58,7 +60,7 @@ class TextCommand(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(14))
         if o != 0:
             x = o + self._tab.Pos
-            from .Matrix33f import Matrix33f
+            from DeepSeaVectorDraw.Matrix33f import Matrix33f
             obj = Matrix33f()
             obj.Init(self._tab.Bytes, x)
             return obj

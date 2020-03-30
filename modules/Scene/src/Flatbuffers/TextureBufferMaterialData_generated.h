@@ -11,8 +11,10 @@
 namespace DeepSeaScene {
 
 struct TextureBufferMaterialData;
+struct TextureBufferMaterialDataBuilder;
 
 struct TextureBufferMaterialData FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef TextureBufferMaterialDataBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_NAME = 4,
     VT_FORMAT = 6,
@@ -23,11 +25,11 @@ struct TextureBufferMaterialData FLATBUFFERS_FINAL_CLASS : private flatbuffers::
   const flatbuffers::String *name() const {
     return GetPointer<const flatbuffers::String *>(VT_NAME);
   }
-  TextureFormat format() const {
-    return static_cast<TextureFormat>(GetField<uint8_t>(VT_FORMAT, 0));
+  DeepSeaScene::TextureFormat format() const {
+    return static_cast<DeepSeaScene::TextureFormat>(GetField<uint8_t>(VT_FORMAT, 0));
   }
-  FormatDecoration decoration() const {
-    return static_cast<FormatDecoration>(GetField<uint8_t>(VT_DECORATION, 0));
+  DeepSeaScene::FormatDecoration decoration() const {
+    return static_cast<DeepSeaScene::FormatDecoration>(GetField<uint8_t>(VT_DECORATION, 0));
   }
   uint32_t offset() const {
     return GetField<uint32_t>(VT_OFFSET, 0);
@@ -48,15 +50,16 @@ struct TextureBufferMaterialData FLATBUFFERS_FINAL_CLASS : private flatbuffers::
 };
 
 struct TextureBufferMaterialDataBuilder {
+  typedef TextureBufferMaterialData Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_name(flatbuffers::Offset<flatbuffers::String> name) {
     fbb_.AddOffset(TextureBufferMaterialData::VT_NAME, name);
   }
-  void add_format(TextureFormat format) {
+  void add_format(DeepSeaScene::TextureFormat format) {
     fbb_.AddElement<uint8_t>(TextureBufferMaterialData::VT_FORMAT, static_cast<uint8_t>(format), 0);
   }
-  void add_decoration(FormatDecoration decoration) {
+  void add_decoration(DeepSeaScene::FormatDecoration decoration) {
     fbb_.AddElement<uint8_t>(TextureBufferMaterialData::VT_DECORATION, static_cast<uint8_t>(decoration), 0);
   }
   void add_offset(uint32_t offset) {
@@ -81,8 +84,8 @@ struct TextureBufferMaterialDataBuilder {
 inline flatbuffers::Offset<TextureBufferMaterialData> CreateTextureBufferMaterialData(
     flatbuffers::FlatBufferBuilder &_fbb,
     flatbuffers::Offset<flatbuffers::String> name = 0,
-    TextureFormat format = TextureFormat::R4G4,
-    FormatDecoration decoration = FormatDecoration::UNorm,
+    DeepSeaScene::TextureFormat format = DeepSeaScene::TextureFormat::R4G4,
+    DeepSeaScene::FormatDecoration decoration = DeepSeaScene::FormatDecoration::UNorm,
     uint32_t offset = 0,
     uint32_t count = 0) {
   TextureBufferMaterialDataBuilder builder_(_fbb);
@@ -97,8 +100,8 @@ inline flatbuffers::Offset<TextureBufferMaterialData> CreateTextureBufferMateria
 inline flatbuffers::Offset<TextureBufferMaterialData> CreateTextureBufferMaterialDataDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     const char *name = nullptr,
-    TextureFormat format = TextureFormat::R4G4,
-    FormatDecoration decoration = FormatDecoration::UNorm,
+    DeepSeaScene::TextureFormat format = DeepSeaScene::TextureFormat::R4G4,
+    DeepSeaScene::FormatDecoration decoration = DeepSeaScene::FormatDecoration::UNorm,
     uint32_t offset = 0,
     uint32_t count = 0) {
   auto name__ = name ? _fbb.CreateString(name) : 0;

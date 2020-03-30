@@ -3,6 +3,8 @@
 # namespace: DeepSeaVectorDraw
 
 import flatbuffers
+from flatbuffers.compat import import_numpy
+np = import_numpy()
 
 class RadialGradient(object):
     __slots__ = ['_tab']
@@ -31,7 +33,7 @@ class RadialGradient(object):
         if o != 0:
             x = self._tab.Vector(o)
             x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * 8
-            from .GradientStop import GradientStop
+            from DeepSeaVectorDraw.GradientStop import GradientStop
             obj = GradientStop()
             obj.Init(self._tab.Bytes, x)
             return obj
@@ -45,11 +47,16 @@ class RadialGradient(object):
         return 0
 
     # RadialGradient
+    def GradientIsNone(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
+        return o == 0
+
+    # RadialGradient
     def Center(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
         if o != 0:
             x = o + self._tab.Pos
-            from .Vector2f import Vector2f
+            from DeepSeaVectorDraw.Vector2f import Vector2f
             obj = Vector2f()
             obj.Init(self._tab.Bytes, x)
             return obj
@@ -67,7 +74,7 @@ class RadialGradient(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(12))
         if o != 0:
             x = o + self._tab.Pos
-            from .Vector2f import Vector2f
+            from DeepSeaVectorDraw.Vector2f import Vector2f
             obj = Vector2f()
             obj.Init(self._tab.Bytes, x)
             return obj
@@ -99,7 +106,7 @@ class RadialGradient(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(20))
         if o != 0:
             x = o + self._tab.Pos
-            from .Matrix33f import Matrix33f
+            from DeepSeaVectorDraw.Matrix33f import Matrix33f
             obj = Matrix33f()
             obj.Init(self._tab.Bytes, x)
             return obj

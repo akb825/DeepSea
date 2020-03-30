@@ -3,6 +3,8 @@
 # namespace: DeepSeaScene
 
 import flatbuffers
+from flatbuffers.compat import import_numpy
+np = import_numpy()
 
 class GlobalData(object):
     __slots__ = ['_tab']
@@ -46,6 +48,11 @@ class GlobalData(object):
         if o != 0:
             return self._tab.VectorLen(o)
         return 0
+
+    # GlobalData
+    def DataIsNone(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
+        return o == 0
 
 def GlobalDataStart(builder): builder.StartObject(2)
 def GlobalDataAddType(builder, type): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(type), 0)

@@ -11,8 +11,10 @@
 namespace DeepSeaScene {
 
 struct NamedMaterialData;
+struct NamedMaterialDataBuilder;
 
 struct NamedMaterialData FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef NamedMaterialDataBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_NAME = 4
   };
@@ -28,6 +30,7 @@ struct NamedMaterialData FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 };
 
 struct NamedMaterialDataBuilder {
+  typedef NamedMaterialData Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_name(flatbuffers::Offset<flatbuffers::String> name) {

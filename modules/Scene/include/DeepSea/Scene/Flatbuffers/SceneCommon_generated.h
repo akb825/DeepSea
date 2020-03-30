@@ -9,6 +9,7 @@
 namespace DeepSeaScene {
 
 struct ObjectData;
+struct ObjectDataBuilder;
 
 struct Vector2f;
 
@@ -27,8 +28,10 @@ struct Matrix44f;
 struct OrientedBox3f;
 
 struct FileReference;
+struct FileReferenceBuilder;
 
 struct RawData;
+struct RawDataBuilder;
 
 enum class FileResourceType : uint8_t {
   Embedded = 0,
@@ -50,7 +53,7 @@ inline const FileResourceType (&EnumValuesFileResourceType())[4] {
 }
 
 inline const char * const *EnumNamesFileResourceType() {
-  static const char * const names[] = {
+  static const char * const names[5] = {
     "Embedded",
     "Installed",
     "Dynamic",
@@ -61,7 +64,7 @@ inline const char * const *EnumNamesFileResourceType() {
 }
 
 inline const char *EnumNameFileResourceType(FileResourceType e) {
-  if (e < FileResourceType::Embedded || e > FileResourceType::External) return "";
+  if (flatbuffers::IsOutRange(e, FileResourceType::Embedded, FileResourceType::External)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesFileResourceType()[index];
 }
@@ -224,7 +227,7 @@ inline const TextureFormat (&EnumValuesTextureFormat())[73] {
 }
 
 inline const char * const *EnumNamesTextureFormat() {
-  static const char * const names[] = {
+  static const char * const names[74] = {
     "R4G4",
     "R4G4B4A4",
     "B4G4R4A4",
@@ -304,7 +307,7 @@ inline const char * const *EnumNamesTextureFormat() {
 }
 
 inline const char *EnumNameTextureFormat(TextureFormat e) {
-  if (e < TextureFormat::R4G4 || e > TextureFormat::PVRTC2_RGBA_4BPP) return "";
+  if (flatbuffers::IsOutRange(e, TextureFormat::R4G4, TextureFormat::PVRTC2_RGBA_4BPP)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesTextureFormat()[index];
 }
@@ -329,7 +332,7 @@ inline const TextureDim (&EnumValuesTextureDim())[4] {
 }
 
 inline const char * const *EnumNamesTextureDim() {
-  static const char * const names[] = {
+  static const char * const names[5] = {
     "Dim1D",
     "Dim2D",
     "Dim3D",
@@ -340,7 +343,7 @@ inline const char * const *EnumNamesTextureDim() {
 }
 
 inline const char *EnumNameTextureDim(TextureDim e) {
-  if (e < TextureDim::Dim1D || e > TextureDim::DimCube) return "";
+  if (flatbuffers::IsOutRange(e, TextureDim::Dim1D, TextureDim::DimCube)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesTextureDim()[index];
 }
@@ -369,7 +372,7 @@ inline const CubeFace (&EnumValuesCubeFace())[6] {
 }
 
 inline const char * const *EnumNamesCubeFace() {
-  static const char * const names[] = {
+  static const char * const names[7] = {
     "PosX",
     "NegX",
     "PosY",
@@ -382,7 +385,7 @@ inline const char * const *EnumNamesCubeFace() {
 }
 
 inline const char *EnumNameCubeFace(CubeFace e) {
-  if (e < CubeFace::PosX || e > CubeFace::NegZ) return "";
+  if (flatbuffers::IsOutRange(e, CubeFace::PosX, CubeFace::NegZ)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesCubeFace()[index];
 }
@@ -491,7 +494,7 @@ inline const MaterialType (&EnumValuesMaterialType())[46] {
 }
 
 inline const char * const *EnumNamesMaterialType() {
-  static const char * const names[] = {
+  static const char * const names[47] = {
     "Float",
     "Vec2",
     "Vec3",
@@ -544,7 +547,7 @@ inline const char * const *EnumNamesMaterialType() {
 }
 
 inline const char *EnumNameMaterialType(MaterialType e) {
-  if (e < MaterialType::Float || e > MaterialType::UniformBuffer) return "";
+  if (flatbuffers::IsOutRange(e, MaterialType::Float, MaterialType::UniformBuffer)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesMaterialType()[index];
 }
@@ -599,7 +602,7 @@ inline const VertexElementFormat (&EnumValuesVertexElementFormat())[19] {
 }
 
 inline const char * const *EnumNamesVertexElementFormat() {
-  static const char * const names[] = {
+  static const char * const names[20] = {
     "Unset",
     "X8",
     "X8Y8",
@@ -625,7 +628,7 @@ inline const char * const *EnumNamesVertexElementFormat() {
 }
 
 inline const char *EnumNameVertexElementFormat(VertexElementFormat e) {
-  if (e < VertexElementFormat::Unset || e > VertexElementFormat::X64Y64Z64W64) return "";
+  if (flatbuffers::IsOutRange(e, VertexElementFormat::Unset, VertexElementFormat::X64Y64Z64W64)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesVertexElementFormat()[index];
 }
@@ -660,7 +663,7 @@ inline const FormatDecoration (&EnumValuesFormatDecoration())[9] {
 }
 
 inline const char * const *EnumNamesFormatDecoration() {
-  static const char * const names[] = {
+  static const char * const names[10] = {
     "UNorm",
     "SNorm",
     "UScaled",
@@ -676,7 +679,7 @@ inline const char * const *EnumNamesFormatDecoration() {
 }
 
 inline const char *EnumNameFormatDecoration(FormatDecoration e) {
-  if (e < FormatDecoration::UNorm || e > FormatDecoration::SRGB) return "";
+  if (flatbuffers::IsOutRange(e, FormatDecoration::UNorm, FormatDecoration::SRGB)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesFormatDecoration()[index];
 }
@@ -699,7 +702,7 @@ inline const FileOrData (&EnumValuesFileOrData())[3] {
 }
 
 inline const char * const *EnumNamesFileOrData() {
-  static const char * const names[] = {
+  static const char * const names[4] = {
     "NONE",
     "FileReference",
     "RawData",
@@ -709,7 +712,7 @@ inline const char * const *EnumNamesFileOrData() {
 }
 
 inline const char *EnumNameFileOrData(FileOrData e) {
-  if (e < FileOrData::NONE || e > FileOrData::RawData) return "";
+  if (flatbuffers::IsOutRange(e, FileOrData::NONE, FileOrData::RawData)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesFileOrData()[index];
 }
@@ -718,11 +721,11 @@ template<typename T> struct FileOrDataTraits {
   static const FileOrData enum_value = FileOrData::NONE;
 };
 
-template<> struct FileOrDataTraits<FileReference> {
+template<> struct FileOrDataTraits<DeepSeaScene::FileReference> {
   static const FileOrData enum_value = FileOrData::FileReference;
 };
 
-template<> struct FileOrDataTraits<RawData> {
+template<> struct FileOrDataTraits<DeepSeaScene::RawData> {
   static const FileOrData enum_value = FileOrData::RawData;
 };
 
@@ -844,21 +847,21 @@ FLATBUFFERS_STRUCT_END(Color4f, 16);
 
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) AlignedBox3f FLATBUFFERS_FINAL_CLASS {
  private:
-  Vector3f min_;
-  Vector3f max_;
+  DeepSeaScene::Vector3f min_;
+  DeepSeaScene::Vector3f max_;
 
  public:
   AlignedBox3f() {
     memset(static_cast<void *>(this), 0, sizeof(AlignedBox3f));
   }
-  AlignedBox3f(const Vector3f &_min, const Vector3f &_max)
+  AlignedBox3f(const DeepSeaScene::Vector3f &_min, const DeepSeaScene::Vector3f &_max)
       : min_(_min),
         max_(_max) {
   }
-  const Vector3f &min() const {
+  const DeepSeaScene::Vector3f &min() const {
     return min_;
   }
-  const Vector3f &max() const {
+  const DeepSeaScene::Vector3f &max() const {
     return max_;
   }
 };
@@ -866,26 +869,26 @@ FLATBUFFERS_STRUCT_END(AlignedBox3f, 24);
 
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Matrix33f FLATBUFFERS_FINAL_CLASS {
  private:
-  Vector3f column0_;
-  Vector3f column1_;
-  Vector3f column2_;
+  DeepSeaScene::Vector3f column0_;
+  DeepSeaScene::Vector3f column1_;
+  DeepSeaScene::Vector3f column2_;
 
  public:
   Matrix33f() {
     memset(static_cast<void *>(this), 0, sizeof(Matrix33f));
   }
-  Matrix33f(const Vector3f &_column0, const Vector3f &_column1, const Vector3f &_column2)
+  Matrix33f(const DeepSeaScene::Vector3f &_column0, const DeepSeaScene::Vector3f &_column1, const DeepSeaScene::Vector3f &_column2)
       : column0_(_column0),
         column1_(_column1),
         column2_(_column2) {
   }
-  const Vector3f &column0() const {
+  const DeepSeaScene::Vector3f &column0() const {
     return column0_;
   }
-  const Vector3f &column1() const {
+  const DeepSeaScene::Vector3f &column1() const {
     return column1_;
   }
-  const Vector3f &column2() const {
+  const DeepSeaScene::Vector3f &column2() const {
     return column2_;
   }
 };
@@ -893,31 +896,31 @@ FLATBUFFERS_STRUCT_END(Matrix33f, 36);
 
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Matrix44f FLATBUFFERS_FINAL_CLASS {
  private:
-  Vector4f column0_;
-  Vector4f column1_;
-  Vector4f column2_;
-  Vector4f column3_;
+  DeepSeaScene::Vector4f column0_;
+  DeepSeaScene::Vector4f column1_;
+  DeepSeaScene::Vector4f column2_;
+  DeepSeaScene::Vector4f column3_;
 
  public:
   Matrix44f() {
     memset(static_cast<void *>(this), 0, sizeof(Matrix44f));
   }
-  Matrix44f(const Vector4f &_column0, const Vector4f &_column1, const Vector4f &_column2, const Vector4f &_column3)
+  Matrix44f(const DeepSeaScene::Vector4f &_column0, const DeepSeaScene::Vector4f &_column1, const DeepSeaScene::Vector4f &_column2, const DeepSeaScene::Vector4f &_column3)
       : column0_(_column0),
         column1_(_column1),
         column2_(_column2),
         column3_(_column3) {
   }
-  const Vector4f &column0() const {
+  const DeepSeaScene::Vector4f &column0() const {
     return column0_;
   }
-  const Vector4f &column1() const {
+  const DeepSeaScene::Vector4f &column1() const {
     return column1_;
   }
-  const Vector4f &column2() const {
+  const DeepSeaScene::Vector4f &column2() const {
     return column2_;
   }
-  const Vector4f &column3() const {
+  const DeepSeaScene::Vector4f &column3() const {
     return column3_;
   }
 };
@@ -925,32 +928,33 @@ FLATBUFFERS_STRUCT_END(Matrix44f, 64);
 
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) OrientedBox3f FLATBUFFERS_FINAL_CLASS {
  private:
-  Matrix33f orientation_;
-  Vector3f center_;
-  Vector3f halfExtents_;
+  DeepSeaScene::Matrix33f orientation_;
+  DeepSeaScene::Vector3f center_;
+  DeepSeaScene::Vector3f halfExtents_;
 
  public:
   OrientedBox3f() {
     memset(static_cast<void *>(this), 0, sizeof(OrientedBox3f));
   }
-  OrientedBox3f(const Matrix33f &_orientation, const Vector3f &_center, const Vector3f &_halfExtents)
+  OrientedBox3f(const DeepSeaScene::Matrix33f &_orientation, const DeepSeaScene::Vector3f &_center, const DeepSeaScene::Vector3f &_halfExtents)
       : orientation_(_orientation),
         center_(_center),
         halfExtents_(_halfExtents) {
   }
-  const Matrix33f &orientation() const {
+  const DeepSeaScene::Matrix33f &orientation() const {
     return orientation_;
   }
-  const Vector3f &center() const {
+  const DeepSeaScene::Vector3f &center() const {
     return center_;
   }
-  const Vector3f &halfExtents() const {
+  const DeepSeaScene::Vector3f &halfExtents() const {
     return halfExtents_;
   }
 };
 FLATBUFFERS_STRUCT_END(OrientedBox3f, 60);
 
 struct ObjectData FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef ObjectDataBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_TYPE = 4,
     VT_DATA = 6
@@ -972,6 +976,7 @@ struct ObjectData FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 };
 
 struct ObjectDataBuilder {
+  typedef ObjectData Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_type(flatbuffers::Offset<flatbuffers::String> type) {
@@ -1017,12 +1022,13 @@ inline flatbuffers::Offset<ObjectData> CreateObjectDataDirect(
 }
 
 struct FileReference FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef FileReferenceBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_TYPE = 4,
     VT_PATH = 6
   };
-  FileResourceType type() const {
-    return static_cast<FileResourceType>(GetField<uint8_t>(VT_TYPE, 0));
+  DeepSeaScene::FileResourceType type() const {
+    return static_cast<DeepSeaScene::FileResourceType>(GetField<uint8_t>(VT_TYPE, 0));
   }
   const flatbuffers::String *path() const {
     return GetPointer<const flatbuffers::String *>(VT_PATH);
@@ -1037,9 +1043,10 @@ struct FileReference FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 };
 
 struct FileReferenceBuilder {
+  typedef FileReference Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
-  void add_type(FileResourceType type) {
+  void add_type(DeepSeaScene::FileResourceType type) {
     fbb_.AddElement<uint8_t>(FileReference::VT_TYPE, static_cast<uint8_t>(type), 0);
   }
   void add_path(flatbuffers::Offset<flatbuffers::String> path) {
@@ -1060,7 +1067,7 @@ struct FileReferenceBuilder {
 
 inline flatbuffers::Offset<FileReference> CreateFileReference(
     flatbuffers::FlatBufferBuilder &_fbb,
-    FileResourceType type = FileResourceType::Embedded,
+    DeepSeaScene::FileResourceType type = DeepSeaScene::FileResourceType::Embedded,
     flatbuffers::Offset<flatbuffers::String> path = 0) {
   FileReferenceBuilder builder_(_fbb);
   builder_.add_path(path);
@@ -1070,7 +1077,7 @@ inline flatbuffers::Offset<FileReference> CreateFileReference(
 
 inline flatbuffers::Offset<FileReference> CreateFileReferenceDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
-    FileResourceType type = FileResourceType::Embedded,
+    DeepSeaScene::FileResourceType type = DeepSeaScene::FileResourceType::Embedded,
     const char *path = nullptr) {
   auto path__ = path ? _fbb.CreateString(path) : 0;
   return DeepSeaScene::CreateFileReference(
@@ -1080,6 +1087,7 @@ inline flatbuffers::Offset<FileReference> CreateFileReferenceDirect(
 }
 
 struct RawData FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef RawDataBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_DATA = 4
   };
@@ -1095,6 +1103,7 @@ struct RawData FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 };
 
 struct RawDataBuilder {
+  typedef RawData Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_data(flatbuffers::Offset<flatbuffers::Vector<uint8_t>> data) {
@@ -1136,14 +1145,14 @@ inline bool VerifyFileOrData(flatbuffers::Verifier &verifier, const void *obj, F
       return true;
     }
     case FileOrData::FileReference: {
-      auto ptr = reinterpret_cast<const FileReference *>(obj);
+      auto ptr = reinterpret_cast<const DeepSeaScene::FileReference *>(obj);
       return verifier.VerifyTable(ptr);
     }
     case FileOrData::RawData: {
-      auto ptr = reinterpret_cast<const RawData *>(obj);
+      auto ptr = reinterpret_cast<const DeepSeaScene::RawData *>(obj);
       return verifier.VerifyTable(ptr);
     }
-    default: return false;
+    default: return true;
   }
 }
 

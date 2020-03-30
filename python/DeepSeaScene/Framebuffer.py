@@ -3,6 +3,8 @@
 # namespace: DeepSeaScene
 
 import flatbuffers
+from flatbuffers.compat import import_numpy
+np = import_numpy()
 
 class Framebuffer(object):
     __slots__ = ['_tab']
@@ -32,7 +34,7 @@ class Framebuffer(object):
             x = self._tab.Vector(o)
             x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * 4
             x = self._tab.Indirect(x)
-            from .FramebufferSurface import FramebufferSurface
+            from DeepSeaScene.FramebufferSurface import FramebufferSurface
             obj = FramebufferSurface()
             obj.Init(self._tab.Bytes, x)
             return obj
@@ -44,6 +46,11 @@ class Framebuffer(object):
         if o != 0:
             return self._tab.VectorLen(o)
         return 0
+
+    # Framebuffer
+    def SurfacesIsNone(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
+        return o == 0
 
     # Framebuffer
     def Width(self):
@@ -71,7 +78,7 @@ class Framebuffer(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(14))
         if o != 0:
             x = o + self._tab.Pos
-            from .AlignedBox3f import AlignedBox3f
+            from DeepSeaScene.AlignedBox3f import AlignedBox3f
             obj = AlignedBox3f()
             obj.Init(self._tab.Bytes, x)
             return obj

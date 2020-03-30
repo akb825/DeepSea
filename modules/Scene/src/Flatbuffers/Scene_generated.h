@@ -11,32 +11,44 @@
 namespace DeepSeaScene {
 
 struct SceneItemList;
+struct SceneItemListBuilder;
 
 struct SceneItemLists;
+struct SceneItemListsBuilder;
 
 struct ClearColorFloat;
+struct ClearColorFloatBuilder;
 
 struct ClearColorInt;
+struct ClearColorIntBuilder;
 
 struct ClearColorUInt;
+struct ClearColorUIntBuilder;
 
 struct ClearDepthStencil;
+struct ClearDepthStencilBuilder;
 
 struct Attachment;
+struct AttachmentBuilder;
 
 struct AttachmentRef;
 
 struct RenderSubpass;
+struct RenderSubpassBuilder;
 
 struct SubpassDependency;
 
 struct RenderPass;
+struct RenderPassBuilder;
 
 struct ScenePipelineItem;
+struct ScenePipelineItemBuilder;
 
 struct GlobalData;
+struct GlobalDataBuilder;
 
 struct Scene;
+struct SceneBuilder;
 
 enum class ClearValue : uint8_t {
   NONE = 0,
@@ -60,7 +72,7 @@ inline const ClearValue (&EnumValuesClearValue())[5] {
 }
 
 inline const char * const *EnumNamesClearValue() {
-  static const char * const names[] = {
+  static const char * const names[6] = {
     "NONE",
     "ClearColorFloat",
     "ClearColorInt",
@@ -72,7 +84,7 @@ inline const char * const *EnumNamesClearValue() {
 }
 
 inline const char *EnumNameClearValue(ClearValue e) {
-  if (e < ClearValue::NONE || e > ClearValue::ClearDepthStencil) return "";
+  if (flatbuffers::IsOutRange(e, ClearValue::NONE, ClearValue::ClearDepthStencil)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesClearValue()[index];
 }
@@ -81,19 +93,19 @@ template<typename T> struct ClearValueTraits {
   static const ClearValue enum_value = ClearValue::NONE;
 };
 
-template<> struct ClearValueTraits<ClearColorFloat> {
+template<> struct ClearValueTraits<DeepSeaScene::ClearColorFloat> {
   static const ClearValue enum_value = ClearValue::ClearColorFloat;
 };
 
-template<> struct ClearValueTraits<ClearColorInt> {
+template<> struct ClearValueTraits<DeepSeaScene::ClearColorInt> {
   static const ClearValue enum_value = ClearValue::ClearColorInt;
 };
 
-template<> struct ClearValueTraits<ClearColorUInt> {
+template<> struct ClearValueTraits<DeepSeaScene::ClearColorUInt> {
   static const ClearValue enum_value = ClearValue::ClearColorUInt;
 };
 
-template<> struct ClearValueTraits<ClearDepthStencil> {
+template<> struct ClearValueTraits<DeepSeaScene::ClearDepthStencil> {
   static const ClearValue enum_value = ClearValue::ClearDepthStencil;
 };
 
@@ -118,7 +130,7 @@ inline const ScenePipelineItemUnion (&EnumValuesScenePipelineItemUnion())[3] {
 }
 
 inline const char * const *EnumNamesScenePipelineItemUnion() {
-  static const char * const names[] = {
+  static const char * const names[4] = {
     "NONE",
     "RenderPass",
     "SceneItemList",
@@ -128,7 +140,7 @@ inline const char * const *EnumNamesScenePipelineItemUnion() {
 }
 
 inline const char *EnumNameScenePipelineItemUnion(ScenePipelineItemUnion e) {
-  if (e < ScenePipelineItemUnion::NONE || e > ScenePipelineItemUnion::SceneItemList) return "";
+  if (flatbuffers::IsOutRange(e, ScenePipelineItemUnion::NONE, ScenePipelineItemUnion::SceneItemList)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesScenePipelineItemUnion()[index];
 }
@@ -137,11 +149,11 @@ template<typename T> struct ScenePipelineItemUnionTraits {
   static const ScenePipelineItemUnion enum_value = ScenePipelineItemUnion::NONE;
 };
 
-template<> struct ScenePipelineItemUnionTraits<RenderPass> {
+template<> struct ScenePipelineItemUnionTraits<DeepSeaScene::RenderPass> {
   static const ScenePipelineItemUnion enum_value = ScenePipelineItemUnion::RenderPass;
 };
 
-template<> struct ScenePipelineItemUnionTraits<SceneItemList> {
+template<> struct ScenePipelineItemUnionTraits<DeepSeaScene::SceneItemList> {
   static const ScenePipelineItemUnion enum_value = ScenePipelineItemUnion::SceneItemList;
 };
 
@@ -226,6 +238,7 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) SubpassDependency FLATBUFFERS_FINAL_CLASS
 FLATBUFFERS_STRUCT_END(SubpassDependency, 28);
 
 struct SceneItemList FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef SceneItemListBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_TYPE = 4,
     VT_NAME = 6,
@@ -253,6 +266,7 @@ struct SceneItemList FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 };
 
 struct SceneItemListBuilder {
+  typedef SceneItemList Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_type(flatbuffers::Offset<flatbuffers::String> type) {
@@ -307,11 +321,12 @@ inline flatbuffers::Offset<SceneItemList> CreateSceneItemListDirect(
 }
 
 struct SceneItemLists FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef SceneItemListsBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_ITEMLISTS = 4
   };
-  const flatbuffers::Vector<flatbuffers::Offset<SceneItemList>> *itemLists() const {
-    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<SceneItemList>> *>(VT_ITEMLISTS);
+  const flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::SceneItemList>> *itemLists() const {
+    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::SceneItemList>> *>(VT_ITEMLISTS);
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -323,9 +338,10 @@ struct SceneItemLists FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 };
 
 struct SceneItemListsBuilder {
+  typedef SceneItemLists Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
-  void add_itemLists(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<SceneItemList>>> itemLists) {
+  void add_itemLists(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::SceneItemList>>> itemLists) {
     fbb_.AddOffset(SceneItemLists::VT_ITEMLISTS, itemLists);
   }
   explicit SceneItemListsBuilder(flatbuffers::FlatBufferBuilder &_fbb)
@@ -343,7 +359,7 @@ struct SceneItemListsBuilder {
 
 inline flatbuffers::Offset<SceneItemLists> CreateSceneItemLists(
     flatbuffers::FlatBufferBuilder &_fbb,
-    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<SceneItemList>>> itemLists = 0) {
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::SceneItemList>>> itemLists = 0) {
   SceneItemListsBuilder builder_(_fbb);
   builder_.add_itemLists(itemLists);
   return builder_.Finish();
@@ -351,14 +367,15 @@ inline flatbuffers::Offset<SceneItemLists> CreateSceneItemLists(
 
 inline flatbuffers::Offset<SceneItemLists> CreateSceneItemListsDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
-    const std::vector<flatbuffers::Offset<SceneItemList>> *itemLists = nullptr) {
-  auto itemLists__ = itemLists ? _fbb.CreateVector<flatbuffers::Offset<SceneItemList>>(*itemLists) : 0;
+    const std::vector<flatbuffers::Offset<DeepSeaScene::SceneItemList>> *itemLists = nullptr) {
+  auto itemLists__ = itemLists ? _fbb.CreateVector<flatbuffers::Offset<DeepSeaScene::SceneItemList>>(*itemLists) : 0;
   return DeepSeaScene::CreateSceneItemLists(
       _fbb,
       itemLists__);
 }
 
 struct ClearColorFloat FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef ClearColorFloatBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_RED = 4,
     VT_GREEN = 6,
@@ -388,6 +405,7 @@ struct ClearColorFloat FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 };
 
 struct ClearColorFloatBuilder {
+  typedef ClearColorFloat Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_red(float red) {
@@ -429,6 +447,7 @@ inline flatbuffers::Offset<ClearColorFloat> CreateClearColorFloat(
 }
 
 struct ClearColorInt FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef ClearColorIntBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_RED = 4,
     VT_GREEN = 6,
@@ -458,6 +477,7 @@ struct ClearColorInt FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 };
 
 struct ClearColorIntBuilder {
+  typedef ClearColorInt Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_red(int32_t red) {
@@ -499,6 +519,7 @@ inline flatbuffers::Offset<ClearColorInt> CreateClearColorInt(
 }
 
 struct ClearColorUInt FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef ClearColorUIntBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_RED = 4,
     VT_GREEN = 6,
@@ -528,6 +549,7 @@ struct ClearColorUInt FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 };
 
 struct ClearColorUIntBuilder {
+  typedef ClearColorUInt Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_red(uint32_t red) {
@@ -569,6 +591,7 @@ inline flatbuffers::Offset<ClearColorUInt> CreateClearColorUInt(
 }
 
 struct ClearDepthStencil FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef ClearDepthStencilBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_DEPTH = 4,
     VT_STENCIL = 6
@@ -588,6 +611,7 @@ struct ClearDepthStencil FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 };
 
 struct ClearDepthStencilBuilder {
+  typedef ClearDepthStencil Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_depth(float depth) {
@@ -619,6 +643,7 @@ inline flatbuffers::Offset<ClearDepthStencil> CreateClearDepthStencil(
 }
 
 struct Attachment FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef AttachmentBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_USAGE = 4,
     VT_FORMAT = 6,
@@ -630,33 +655,33 @@ struct Attachment FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   uint32_t usage() const {
     return GetField<uint32_t>(VT_USAGE, 0);
   }
-  TextureFormat format() const {
-    return static_cast<TextureFormat>(GetField<uint8_t>(VT_FORMAT, 0));
+  DeepSeaScene::TextureFormat format() const {
+    return static_cast<DeepSeaScene::TextureFormat>(GetField<uint8_t>(VT_FORMAT, 0));
   }
-  FormatDecoration decoration() const {
-    return static_cast<FormatDecoration>(GetField<uint8_t>(VT_DECORATION, 0));
+  DeepSeaScene::FormatDecoration decoration() const {
+    return static_cast<DeepSeaScene::FormatDecoration>(GetField<uint8_t>(VT_DECORATION, 0));
   }
   uint32_t samples() const {
     return GetField<uint32_t>(VT_SAMPLES, 0);
   }
-  ClearValue clearValue_type() const {
-    return static_cast<ClearValue>(GetField<uint8_t>(VT_CLEARVALUE_TYPE, 0));
+  DeepSeaScene::ClearValue clearValue_type() const {
+    return static_cast<DeepSeaScene::ClearValue>(GetField<uint8_t>(VT_CLEARVALUE_TYPE, 0));
   }
   const void *clearValue() const {
     return GetPointer<const void *>(VT_CLEARVALUE);
   }
   template<typename T> const T *clearValue_as() const;
-  const ClearColorFloat *clearValue_as_ClearColorFloat() const {
-    return clearValue_type() == ClearValue::ClearColorFloat ? static_cast<const ClearColorFloat *>(clearValue()) : nullptr;
+  const DeepSeaScene::ClearColorFloat *clearValue_as_ClearColorFloat() const {
+    return clearValue_type() == DeepSeaScene::ClearValue::ClearColorFloat ? static_cast<const DeepSeaScene::ClearColorFloat *>(clearValue()) : nullptr;
   }
-  const ClearColorInt *clearValue_as_ClearColorInt() const {
-    return clearValue_type() == ClearValue::ClearColorInt ? static_cast<const ClearColorInt *>(clearValue()) : nullptr;
+  const DeepSeaScene::ClearColorInt *clearValue_as_ClearColorInt() const {
+    return clearValue_type() == DeepSeaScene::ClearValue::ClearColorInt ? static_cast<const DeepSeaScene::ClearColorInt *>(clearValue()) : nullptr;
   }
-  const ClearColorUInt *clearValue_as_ClearColorUInt() const {
-    return clearValue_type() == ClearValue::ClearColorUInt ? static_cast<const ClearColorUInt *>(clearValue()) : nullptr;
+  const DeepSeaScene::ClearColorUInt *clearValue_as_ClearColorUInt() const {
+    return clearValue_type() == DeepSeaScene::ClearValue::ClearColorUInt ? static_cast<const DeepSeaScene::ClearColorUInt *>(clearValue()) : nullptr;
   }
-  const ClearDepthStencil *clearValue_as_ClearDepthStencil() const {
-    return clearValue_type() == ClearValue::ClearDepthStencil ? static_cast<const ClearDepthStencil *>(clearValue()) : nullptr;
+  const DeepSeaScene::ClearDepthStencil *clearValue_as_ClearDepthStencil() const {
+    return clearValue_type() == DeepSeaScene::ClearValue::ClearDepthStencil ? static_cast<const DeepSeaScene::ClearDepthStencil *>(clearValue()) : nullptr;
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -671,38 +696,39 @@ struct Attachment FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
 };
 
-template<> inline const ClearColorFloat *Attachment::clearValue_as<ClearColorFloat>() const {
+template<> inline const DeepSeaScene::ClearColorFloat *Attachment::clearValue_as<DeepSeaScene::ClearColorFloat>() const {
   return clearValue_as_ClearColorFloat();
 }
 
-template<> inline const ClearColorInt *Attachment::clearValue_as<ClearColorInt>() const {
+template<> inline const DeepSeaScene::ClearColorInt *Attachment::clearValue_as<DeepSeaScene::ClearColorInt>() const {
   return clearValue_as_ClearColorInt();
 }
 
-template<> inline const ClearColorUInt *Attachment::clearValue_as<ClearColorUInt>() const {
+template<> inline const DeepSeaScene::ClearColorUInt *Attachment::clearValue_as<DeepSeaScene::ClearColorUInt>() const {
   return clearValue_as_ClearColorUInt();
 }
 
-template<> inline const ClearDepthStencil *Attachment::clearValue_as<ClearDepthStencil>() const {
+template<> inline const DeepSeaScene::ClearDepthStencil *Attachment::clearValue_as<DeepSeaScene::ClearDepthStencil>() const {
   return clearValue_as_ClearDepthStencil();
 }
 
 struct AttachmentBuilder {
+  typedef Attachment Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_usage(uint32_t usage) {
     fbb_.AddElement<uint32_t>(Attachment::VT_USAGE, usage, 0);
   }
-  void add_format(TextureFormat format) {
+  void add_format(DeepSeaScene::TextureFormat format) {
     fbb_.AddElement<uint8_t>(Attachment::VT_FORMAT, static_cast<uint8_t>(format), 0);
   }
-  void add_decoration(FormatDecoration decoration) {
+  void add_decoration(DeepSeaScene::FormatDecoration decoration) {
     fbb_.AddElement<uint8_t>(Attachment::VT_DECORATION, static_cast<uint8_t>(decoration), 0);
   }
   void add_samples(uint32_t samples) {
     fbb_.AddElement<uint32_t>(Attachment::VT_SAMPLES, samples, 0);
   }
-  void add_clearValue_type(ClearValue clearValue_type) {
+  void add_clearValue_type(DeepSeaScene::ClearValue clearValue_type) {
     fbb_.AddElement<uint8_t>(Attachment::VT_CLEARVALUE_TYPE, static_cast<uint8_t>(clearValue_type), 0);
   }
   void add_clearValue(flatbuffers::Offset<void> clearValue) {
@@ -723,10 +749,10 @@ struct AttachmentBuilder {
 inline flatbuffers::Offset<Attachment> CreateAttachment(
     flatbuffers::FlatBufferBuilder &_fbb,
     uint32_t usage = 0,
-    TextureFormat format = TextureFormat::R4G4,
-    FormatDecoration decoration = FormatDecoration::UNorm,
+    DeepSeaScene::TextureFormat format = DeepSeaScene::TextureFormat::R4G4,
+    DeepSeaScene::FormatDecoration decoration = DeepSeaScene::FormatDecoration::UNorm,
     uint32_t samples = 0,
-    ClearValue clearValue_type = ClearValue::NONE,
+    DeepSeaScene::ClearValue clearValue_type = DeepSeaScene::ClearValue::NONE,
     flatbuffers::Offset<void> clearValue = 0) {
   AttachmentBuilder builder_(_fbb);
   builder_.add_clearValue(clearValue);
@@ -739,6 +765,7 @@ inline flatbuffers::Offset<Attachment> CreateAttachment(
 }
 
 struct RenderSubpass FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef RenderSubpassBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_NAME = 4,
     VT_INPUTATTACHMENTS = 6,
@@ -752,14 +779,14 @@ struct RenderSubpass FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const flatbuffers::Vector<uint32_t> *inputAttachments() const {
     return GetPointer<const flatbuffers::Vector<uint32_t> *>(VT_INPUTATTACHMENTS);
   }
-  const flatbuffers::Vector<const AttachmentRef *> *colorAttachments() const {
-    return GetPointer<const flatbuffers::Vector<const AttachmentRef *> *>(VT_COLORATTACHMENTS);
+  const flatbuffers::Vector<const DeepSeaScene::AttachmentRef *> *colorAttachments() const {
+    return GetPointer<const flatbuffers::Vector<const DeepSeaScene::AttachmentRef *> *>(VT_COLORATTACHMENTS);
   }
-  const AttachmentRef *depthStencilAttachment() const {
-    return GetStruct<const AttachmentRef *>(VT_DEPTHSTENCILATTACHMENT);
+  const DeepSeaScene::AttachmentRef *depthStencilAttachment() const {
+    return GetStruct<const DeepSeaScene::AttachmentRef *>(VT_DEPTHSTENCILATTACHMENT);
   }
-  const flatbuffers::Vector<flatbuffers::Offset<SceneItemList>> *drawLists() const {
-    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<SceneItemList>> *>(VT_DRAWLISTS);
+  const flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::SceneItemList>> *drawLists() const {
+    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::SceneItemList>> *>(VT_DRAWLISTS);
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -769,7 +796,7 @@ struct RenderSubpass FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            verifier.VerifyVector(inputAttachments()) &&
            VerifyOffset(verifier, VT_COLORATTACHMENTS) &&
            verifier.VerifyVector(colorAttachments()) &&
-           VerifyField<AttachmentRef>(verifier, VT_DEPTHSTENCILATTACHMENT) &&
+           VerifyField<DeepSeaScene::AttachmentRef>(verifier, VT_DEPTHSTENCILATTACHMENT) &&
            VerifyOffsetRequired(verifier, VT_DRAWLISTS) &&
            verifier.VerifyVector(drawLists()) &&
            verifier.VerifyVectorOfTables(drawLists()) &&
@@ -778,6 +805,7 @@ struct RenderSubpass FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 };
 
 struct RenderSubpassBuilder {
+  typedef RenderSubpass Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_name(flatbuffers::Offset<flatbuffers::String> name) {
@@ -786,13 +814,13 @@ struct RenderSubpassBuilder {
   void add_inputAttachments(flatbuffers::Offset<flatbuffers::Vector<uint32_t>> inputAttachments) {
     fbb_.AddOffset(RenderSubpass::VT_INPUTATTACHMENTS, inputAttachments);
   }
-  void add_colorAttachments(flatbuffers::Offset<flatbuffers::Vector<const AttachmentRef *>> colorAttachments) {
+  void add_colorAttachments(flatbuffers::Offset<flatbuffers::Vector<const DeepSeaScene::AttachmentRef *>> colorAttachments) {
     fbb_.AddOffset(RenderSubpass::VT_COLORATTACHMENTS, colorAttachments);
   }
-  void add_depthStencilAttachment(const AttachmentRef *depthStencilAttachment) {
+  void add_depthStencilAttachment(const DeepSeaScene::AttachmentRef *depthStencilAttachment) {
     fbb_.AddStruct(RenderSubpass::VT_DEPTHSTENCILATTACHMENT, depthStencilAttachment);
   }
-  void add_drawLists(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<SceneItemList>>> drawLists) {
+  void add_drawLists(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::SceneItemList>>> drawLists) {
     fbb_.AddOffset(RenderSubpass::VT_DRAWLISTS, drawLists);
   }
   explicit RenderSubpassBuilder(flatbuffers::FlatBufferBuilder &_fbb)
@@ -813,9 +841,9 @@ inline flatbuffers::Offset<RenderSubpass> CreateRenderSubpass(
     flatbuffers::FlatBufferBuilder &_fbb,
     flatbuffers::Offset<flatbuffers::String> name = 0,
     flatbuffers::Offset<flatbuffers::Vector<uint32_t>> inputAttachments = 0,
-    flatbuffers::Offset<flatbuffers::Vector<const AttachmentRef *>> colorAttachments = 0,
-    const AttachmentRef *depthStencilAttachment = 0,
-    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<SceneItemList>>> drawLists = 0) {
+    flatbuffers::Offset<flatbuffers::Vector<const DeepSeaScene::AttachmentRef *>> colorAttachments = 0,
+    const DeepSeaScene::AttachmentRef *depthStencilAttachment = 0,
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::SceneItemList>>> drawLists = 0) {
   RenderSubpassBuilder builder_(_fbb);
   builder_.add_drawLists(drawLists);
   builder_.add_depthStencilAttachment(depthStencilAttachment);
@@ -829,13 +857,13 @@ inline flatbuffers::Offset<RenderSubpass> CreateRenderSubpassDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     const char *name = nullptr,
     const std::vector<uint32_t> *inputAttachments = nullptr,
-    const std::vector<AttachmentRef> *colorAttachments = nullptr,
-    const AttachmentRef *depthStencilAttachment = 0,
-    const std::vector<flatbuffers::Offset<SceneItemList>> *drawLists = nullptr) {
+    const std::vector<DeepSeaScene::AttachmentRef> *colorAttachments = nullptr,
+    const DeepSeaScene::AttachmentRef *depthStencilAttachment = 0,
+    const std::vector<flatbuffers::Offset<DeepSeaScene::SceneItemList>> *drawLists = nullptr) {
   auto name__ = name ? _fbb.CreateString(name) : 0;
   auto inputAttachments__ = inputAttachments ? _fbb.CreateVector<uint32_t>(*inputAttachments) : 0;
-  auto colorAttachments__ = colorAttachments ? _fbb.CreateVectorOfStructs<AttachmentRef>(*colorAttachments) : 0;
-  auto drawLists__ = drawLists ? _fbb.CreateVector<flatbuffers::Offset<SceneItemList>>(*drawLists) : 0;
+  auto colorAttachments__ = colorAttachments ? _fbb.CreateVectorOfStructs<DeepSeaScene::AttachmentRef>(*colorAttachments) : 0;
+  auto drawLists__ = drawLists ? _fbb.CreateVector<flatbuffers::Offset<DeepSeaScene::SceneItemList>>(*drawLists) : 0;
   return DeepSeaScene::CreateRenderSubpass(
       _fbb,
       name__,
@@ -846,6 +874,7 @@ inline flatbuffers::Offset<RenderSubpass> CreateRenderSubpassDirect(
 }
 
 struct RenderPass FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef RenderPassBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_NAME = 4,
     VT_FRAMEBUFFER = 6,
@@ -859,14 +888,14 @@ struct RenderPass FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const flatbuffers::String *framebuffer() const {
     return GetPointer<const flatbuffers::String *>(VT_FRAMEBUFFER);
   }
-  const flatbuffers::Vector<flatbuffers::Offset<Attachment>> *attachments() const {
-    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<Attachment>> *>(VT_ATTACHMENTS);
+  const flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::Attachment>> *attachments() const {
+    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::Attachment>> *>(VT_ATTACHMENTS);
   }
-  const flatbuffers::Vector<flatbuffers::Offset<RenderSubpass>> *subpasses() const {
-    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<RenderSubpass>> *>(VT_SUBPASSES);
+  const flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::RenderSubpass>> *subpasses() const {
+    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::RenderSubpass>> *>(VT_SUBPASSES);
   }
-  const flatbuffers::Vector<const SubpassDependency *> *dependencies() const {
-    return GetPointer<const flatbuffers::Vector<const SubpassDependency *> *>(VT_DEPENDENCIES);
+  const flatbuffers::Vector<const DeepSeaScene::SubpassDependency *> *dependencies() const {
+    return GetPointer<const flatbuffers::Vector<const DeepSeaScene::SubpassDependency *> *>(VT_DEPENDENCIES);
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -887,6 +916,7 @@ struct RenderPass FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 };
 
 struct RenderPassBuilder {
+  typedef RenderPass Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_name(flatbuffers::Offset<flatbuffers::String> name) {
@@ -895,13 +925,13 @@ struct RenderPassBuilder {
   void add_framebuffer(flatbuffers::Offset<flatbuffers::String> framebuffer) {
     fbb_.AddOffset(RenderPass::VT_FRAMEBUFFER, framebuffer);
   }
-  void add_attachments(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<Attachment>>> attachments) {
+  void add_attachments(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::Attachment>>> attachments) {
     fbb_.AddOffset(RenderPass::VT_ATTACHMENTS, attachments);
   }
-  void add_subpasses(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<RenderSubpass>>> subpasses) {
+  void add_subpasses(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::RenderSubpass>>> subpasses) {
     fbb_.AddOffset(RenderPass::VT_SUBPASSES, subpasses);
   }
-  void add_dependencies(flatbuffers::Offset<flatbuffers::Vector<const SubpassDependency *>> dependencies) {
+  void add_dependencies(flatbuffers::Offset<flatbuffers::Vector<const DeepSeaScene::SubpassDependency *>> dependencies) {
     fbb_.AddOffset(RenderPass::VT_DEPENDENCIES, dependencies);
   }
   explicit RenderPassBuilder(flatbuffers::FlatBufferBuilder &_fbb)
@@ -923,9 +953,9 @@ inline flatbuffers::Offset<RenderPass> CreateRenderPass(
     flatbuffers::FlatBufferBuilder &_fbb,
     flatbuffers::Offset<flatbuffers::String> name = 0,
     flatbuffers::Offset<flatbuffers::String> framebuffer = 0,
-    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<Attachment>>> attachments = 0,
-    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<RenderSubpass>>> subpasses = 0,
-    flatbuffers::Offset<flatbuffers::Vector<const SubpassDependency *>> dependencies = 0) {
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::Attachment>>> attachments = 0,
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::RenderSubpass>>> subpasses = 0,
+    flatbuffers::Offset<flatbuffers::Vector<const DeepSeaScene::SubpassDependency *>> dependencies = 0) {
   RenderPassBuilder builder_(_fbb);
   builder_.add_dependencies(dependencies);
   builder_.add_subpasses(subpasses);
@@ -939,14 +969,14 @@ inline flatbuffers::Offset<RenderPass> CreateRenderPassDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     const char *name = nullptr,
     const char *framebuffer = nullptr,
-    const std::vector<flatbuffers::Offset<Attachment>> *attachments = nullptr,
-    const std::vector<flatbuffers::Offset<RenderSubpass>> *subpasses = nullptr,
-    const std::vector<SubpassDependency> *dependencies = nullptr) {
+    const std::vector<flatbuffers::Offset<DeepSeaScene::Attachment>> *attachments = nullptr,
+    const std::vector<flatbuffers::Offset<DeepSeaScene::RenderSubpass>> *subpasses = nullptr,
+    const std::vector<DeepSeaScene::SubpassDependency> *dependencies = nullptr) {
   auto name__ = name ? _fbb.CreateString(name) : 0;
   auto framebuffer__ = framebuffer ? _fbb.CreateString(framebuffer) : 0;
-  auto attachments__ = attachments ? _fbb.CreateVector<flatbuffers::Offset<Attachment>>(*attachments) : 0;
-  auto subpasses__ = subpasses ? _fbb.CreateVector<flatbuffers::Offset<RenderSubpass>>(*subpasses) : 0;
-  auto dependencies__ = dependencies ? _fbb.CreateVectorOfStructs<SubpassDependency>(*dependencies) : 0;
+  auto attachments__ = attachments ? _fbb.CreateVector<flatbuffers::Offset<DeepSeaScene::Attachment>>(*attachments) : 0;
+  auto subpasses__ = subpasses ? _fbb.CreateVector<flatbuffers::Offset<DeepSeaScene::RenderSubpass>>(*subpasses) : 0;
+  auto dependencies__ = dependencies ? _fbb.CreateVectorOfStructs<DeepSeaScene::SubpassDependency>(*dependencies) : 0;
   return DeepSeaScene::CreateRenderPass(
       _fbb,
       name__,
@@ -957,22 +987,23 @@ inline flatbuffers::Offset<RenderPass> CreateRenderPassDirect(
 }
 
 struct ScenePipelineItem FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef ScenePipelineItemBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_ITEM_TYPE = 4,
     VT_ITEM = 6
   };
-  ScenePipelineItemUnion item_type() const {
-    return static_cast<ScenePipelineItemUnion>(GetField<uint8_t>(VT_ITEM_TYPE, 0));
+  DeepSeaScene::ScenePipelineItemUnion item_type() const {
+    return static_cast<DeepSeaScene::ScenePipelineItemUnion>(GetField<uint8_t>(VT_ITEM_TYPE, 0));
   }
   const void *item() const {
     return GetPointer<const void *>(VT_ITEM);
   }
   template<typename T> const T *item_as() const;
-  const RenderPass *item_as_RenderPass() const {
-    return item_type() == ScenePipelineItemUnion::RenderPass ? static_cast<const RenderPass *>(item()) : nullptr;
+  const DeepSeaScene::RenderPass *item_as_RenderPass() const {
+    return item_type() == DeepSeaScene::ScenePipelineItemUnion::RenderPass ? static_cast<const DeepSeaScene::RenderPass *>(item()) : nullptr;
   }
-  const SceneItemList *item_as_SceneItemList() const {
-    return item_type() == ScenePipelineItemUnion::SceneItemList ? static_cast<const SceneItemList *>(item()) : nullptr;
+  const DeepSeaScene::SceneItemList *item_as_SceneItemList() const {
+    return item_type() == DeepSeaScene::ScenePipelineItemUnion::SceneItemList ? static_cast<const DeepSeaScene::SceneItemList *>(item()) : nullptr;
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -983,18 +1014,19 @@ struct ScenePipelineItem FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
 };
 
-template<> inline const RenderPass *ScenePipelineItem::item_as<RenderPass>() const {
+template<> inline const DeepSeaScene::RenderPass *ScenePipelineItem::item_as<DeepSeaScene::RenderPass>() const {
   return item_as_RenderPass();
 }
 
-template<> inline const SceneItemList *ScenePipelineItem::item_as<SceneItemList>() const {
+template<> inline const DeepSeaScene::SceneItemList *ScenePipelineItem::item_as<DeepSeaScene::SceneItemList>() const {
   return item_as_SceneItemList();
 }
 
 struct ScenePipelineItemBuilder {
+  typedef ScenePipelineItem Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
-  void add_item_type(ScenePipelineItemUnion item_type) {
+  void add_item_type(DeepSeaScene::ScenePipelineItemUnion item_type) {
     fbb_.AddElement<uint8_t>(ScenePipelineItem::VT_ITEM_TYPE, static_cast<uint8_t>(item_type), 0);
   }
   void add_item(flatbuffers::Offset<void> item) {
@@ -1014,7 +1046,7 @@ struct ScenePipelineItemBuilder {
 
 inline flatbuffers::Offset<ScenePipelineItem> CreateScenePipelineItem(
     flatbuffers::FlatBufferBuilder &_fbb,
-    ScenePipelineItemUnion item_type = ScenePipelineItemUnion::NONE,
+    DeepSeaScene::ScenePipelineItemUnion item_type = DeepSeaScene::ScenePipelineItemUnion::NONE,
     flatbuffers::Offset<void> item = 0) {
   ScenePipelineItemBuilder builder_(_fbb);
   builder_.add_item(item);
@@ -1023,6 +1055,7 @@ inline flatbuffers::Offset<ScenePipelineItem> CreateScenePipelineItem(
 }
 
 struct GlobalData FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef GlobalDataBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_TYPE = 4,
     VT_DATA = 6
@@ -1044,6 +1077,7 @@ struct GlobalData FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 };
 
 struct GlobalDataBuilder {
+  typedef GlobalData Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_type(flatbuffers::Offset<flatbuffers::String> type) {
@@ -1089,19 +1123,20 @@ inline flatbuffers::Offset<GlobalData> CreateGlobalDataDirect(
 }
 
 struct Scene FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef SceneBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_SHAREDITEMS = 4,
     VT_PIPELINE = 6,
     VT_GLOBALDATA = 8
   };
-  const flatbuffers::Vector<flatbuffers::Offset<SceneItemLists>> *sharedItems() const {
-    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<SceneItemLists>> *>(VT_SHAREDITEMS);
+  const flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::SceneItemLists>> *sharedItems() const {
+    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::SceneItemLists>> *>(VT_SHAREDITEMS);
   }
-  const flatbuffers::Vector<flatbuffers::Offset<ScenePipelineItem>> *pipeline() const {
-    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<ScenePipelineItem>> *>(VT_PIPELINE);
+  const flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::ScenePipelineItem>> *pipeline() const {
+    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::ScenePipelineItem>> *>(VT_PIPELINE);
   }
-  const flatbuffers::Vector<flatbuffers::Offset<GlobalData>> *globalData() const {
-    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<GlobalData>> *>(VT_GLOBALDATA);
+  const flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::GlobalData>> *globalData() const {
+    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::GlobalData>> *>(VT_GLOBALDATA);
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -1119,15 +1154,16 @@ struct Scene FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 };
 
 struct SceneBuilder {
+  typedef Scene Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
-  void add_sharedItems(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<SceneItemLists>>> sharedItems) {
+  void add_sharedItems(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::SceneItemLists>>> sharedItems) {
     fbb_.AddOffset(Scene::VT_SHAREDITEMS, sharedItems);
   }
-  void add_pipeline(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<ScenePipelineItem>>> pipeline) {
+  void add_pipeline(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::ScenePipelineItem>>> pipeline) {
     fbb_.AddOffset(Scene::VT_PIPELINE, pipeline);
   }
-  void add_globalData(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<GlobalData>>> globalData) {
+  void add_globalData(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::GlobalData>>> globalData) {
     fbb_.AddOffset(Scene::VT_GLOBALDATA, globalData);
   }
   explicit SceneBuilder(flatbuffers::FlatBufferBuilder &_fbb)
@@ -1145,9 +1181,9 @@ struct SceneBuilder {
 
 inline flatbuffers::Offset<Scene> CreateScene(
     flatbuffers::FlatBufferBuilder &_fbb,
-    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<SceneItemLists>>> sharedItems = 0,
-    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<ScenePipelineItem>>> pipeline = 0,
-    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<GlobalData>>> globalData = 0) {
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::SceneItemLists>>> sharedItems = 0,
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::ScenePipelineItem>>> pipeline = 0,
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::GlobalData>>> globalData = 0) {
   SceneBuilder builder_(_fbb);
   builder_.add_globalData(globalData);
   builder_.add_pipeline(pipeline);
@@ -1157,12 +1193,12 @@ inline flatbuffers::Offset<Scene> CreateScene(
 
 inline flatbuffers::Offset<Scene> CreateSceneDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
-    const std::vector<flatbuffers::Offset<SceneItemLists>> *sharedItems = nullptr,
-    const std::vector<flatbuffers::Offset<ScenePipelineItem>> *pipeline = nullptr,
-    const std::vector<flatbuffers::Offset<GlobalData>> *globalData = nullptr) {
-  auto sharedItems__ = sharedItems ? _fbb.CreateVector<flatbuffers::Offset<SceneItemLists>>(*sharedItems) : 0;
-  auto pipeline__ = pipeline ? _fbb.CreateVector<flatbuffers::Offset<ScenePipelineItem>>(*pipeline) : 0;
-  auto globalData__ = globalData ? _fbb.CreateVector<flatbuffers::Offset<GlobalData>>(*globalData) : 0;
+    const std::vector<flatbuffers::Offset<DeepSeaScene::SceneItemLists>> *sharedItems = nullptr,
+    const std::vector<flatbuffers::Offset<DeepSeaScene::ScenePipelineItem>> *pipeline = nullptr,
+    const std::vector<flatbuffers::Offset<DeepSeaScene::GlobalData>> *globalData = nullptr) {
+  auto sharedItems__ = sharedItems ? _fbb.CreateVector<flatbuffers::Offset<DeepSeaScene::SceneItemLists>>(*sharedItems) : 0;
+  auto pipeline__ = pipeline ? _fbb.CreateVector<flatbuffers::Offset<DeepSeaScene::ScenePipelineItem>>(*pipeline) : 0;
+  auto globalData__ = globalData ? _fbb.CreateVector<flatbuffers::Offset<DeepSeaScene::GlobalData>>(*globalData) : 0;
   return DeepSeaScene::CreateScene(
       _fbb,
       sharedItems__,
@@ -1176,22 +1212,22 @@ inline bool VerifyClearValue(flatbuffers::Verifier &verifier, const void *obj, C
       return true;
     }
     case ClearValue::ClearColorFloat: {
-      auto ptr = reinterpret_cast<const ClearColorFloat *>(obj);
+      auto ptr = reinterpret_cast<const DeepSeaScene::ClearColorFloat *>(obj);
       return verifier.VerifyTable(ptr);
     }
     case ClearValue::ClearColorInt: {
-      auto ptr = reinterpret_cast<const ClearColorInt *>(obj);
+      auto ptr = reinterpret_cast<const DeepSeaScene::ClearColorInt *>(obj);
       return verifier.VerifyTable(ptr);
     }
     case ClearValue::ClearColorUInt: {
-      auto ptr = reinterpret_cast<const ClearColorUInt *>(obj);
+      auto ptr = reinterpret_cast<const DeepSeaScene::ClearColorUInt *>(obj);
       return verifier.VerifyTable(ptr);
     }
     case ClearValue::ClearDepthStencil: {
-      auto ptr = reinterpret_cast<const ClearDepthStencil *>(obj);
+      auto ptr = reinterpret_cast<const DeepSeaScene::ClearDepthStencil *>(obj);
       return verifier.VerifyTable(ptr);
     }
-    default: return false;
+    default: return true;
   }
 }
 
@@ -1213,14 +1249,14 @@ inline bool VerifyScenePipelineItemUnion(flatbuffers::Verifier &verifier, const 
       return true;
     }
     case ScenePipelineItemUnion::RenderPass: {
-      auto ptr = reinterpret_cast<const RenderPass *>(obj);
+      auto ptr = reinterpret_cast<const DeepSeaScene::RenderPass *>(obj);
       return verifier.VerifyTable(ptr);
     }
     case ScenePipelineItemUnion::SceneItemList: {
-      auto ptr = reinterpret_cast<const SceneItemList *>(obj);
+      auto ptr = reinterpret_cast<const DeepSeaScene::SceneItemList *>(obj);
       return verifier.VerifyTable(ptr);
     }
-    default: return false;
+    default: return true;
   }
 }
 

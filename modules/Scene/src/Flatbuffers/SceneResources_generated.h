@@ -11,40 +11,57 @@
 namespace DeepSeaScene {
 
 struct Buffer;
+struct BufferBuilder;
 
 struct TextureInfo;
+struct TextureInfoBuilder;
 
 struct Texture;
+struct TextureBuilder;
 
 struct VariableElement;
+struct VariableElementBuilder;
 
 struct ShaderVariableGroupDesc;
+struct ShaderVariableGroupDescBuilder;
 
 struct VariableData;
+struct VariableDataBuilder;
 
 struct MaterialElement;
+struct MaterialElementBuilder;
 
 struct MaterialDesc;
+struct MaterialDescBuilder;
 
 struct ShaderData;
+struct ShaderDataBuilder;
 
 struct ShaderModule;
+struct ShaderModuleBuilder;
 
 struct Shader;
+struct ShaderBuilder;
 
 struct VertexAttribute;
 
 struct VertexFormat;
+struct VertexFormatBuilder;
 
 struct VertexBuffer;
+struct VertexBufferBuilder;
 
 struct IndexBuffer;
+struct IndexBufferBuilder;
 
 struct DrawGeometry;
+struct DrawGeometryBuilder;
 
 struct SceneNode;
+struct SceneNodeBuilder;
 
 struct SceneResources;
+struct SceneResourcesBuilder;
 
 enum class MaterialBinding : uint8_t {
   Material = 0,
@@ -64,7 +81,7 @@ inline const MaterialBinding (&EnumValuesMaterialBinding())[3] {
 }
 
 inline const char * const *EnumNamesMaterialBinding() {
-  static const char * const names[] = {
+  static const char * const names[4] = {
     "Material",
     "Global",
     "Instance",
@@ -74,34 +91,43 @@ inline const char * const *EnumNamesMaterialBinding() {
 }
 
 inline const char *EnumNameMaterialBinding(MaterialBinding e) {
-  if (e < MaterialBinding::Material || e > MaterialBinding::Instance) return "";
+  if (flatbuffers::IsOutRange(e, MaterialBinding::Material, MaterialBinding::Instance)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesMaterialBinding()[index];
 }
 
-FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(1) VertexAttribute FLATBUFFERS_FINAL_CLASS {
+FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) VertexAttribute FLATBUFFERS_FINAL_CLASS {
  private:
+  uint32_t attrib_;
   uint8_t format_;
   uint8_t decoration_;
+  int16_t padding0__;
 
  public:
   VertexAttribute() {
     memset(static_cast<void *>(this), 0, sizeof(VertexAttribute));
   }
-  VertexAttribute(VertexElementFormat _format, FormatDecoration _decoration)
-      : format_(flatbuffers::EndianScalar(static_cast<uint8_t>(_format))),
-        decoration_(flatbuffers::EndianScalar(static_cast<uint8_t>(_decoration))) {
+  VertexAttribute(uint32_t _attrib, DeepSeaScene::VertexElementFormat _format, DeepSeaScene::FormatDecoration _decoration)
+      : attrib_(flatbuffers::EndianScalar(_attrib)),
+        format_(flatbuffers::EndianScalar(static_cast<uint8_t>(_format))),
+        decoration_(flatbuffers::EndianScalar(static_cast<uint8_t>(_decoration))),
+        padding0__(0) {
+    (void)padding0__;
   }
-  VertexElementFormat format() const {
-    return static_cast<VertexElementFormat>(flatbuffers::EndianScalar(format_));
+  uint32_t attrib() const {
+    return flatbuffers::EndianScalar(attrib_);
   }
-  FormatDecoration decoration() const {
-    return static_cast<FormatDecoration>(flatbuffers::EndianScalar(decoration_));
+  DeepSeaScene::VertexElementFormat format() const {
+    return static_cast<DeepSeaScene::VertexElementFormat>(flatbuffers::EndianScalar(format_));
+  }
+  DeepSeaScene::FormatDecoration decoration() const {
+    return static_cast<DeepSeaScene::FormatDecoration>(flatbuffers::EndianScalar(decoration_));
   }
 };
-FLATBUFFERS_STRUCT_END(VertexAttribute, 2);
+FLATBUFFERS_STRUCT_END(VertexAttribute, 8);
 
 struct Buffer FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef BufferBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_NAME = 4,
     VT_USAGE = 6,
@@ -122,18 +148,18 @@ struct Buffer FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   uint32_t size() const {
     return GetField<uint32_t>(VT_SIZE, 0);
   }
-  FileOrData data_type() const {
-    return static_cast<FileOrData>(GetField<uint8_t>(VT_DATA_TYPE, 0));
+  DeepSeaScene::FileOrData data_type() const {
+    return static_cast<DeepSeaScene::FileOrData>(GetField<uint8_t>(VT_DATA_TYPE, 0));
   }
   const void *data() const {
     return GetPointer<const void *>(VT_DATA);
   }
   template<typename T> const T *data_as() const;
-  const FileReference *data_as_FileReference() const {
-    return data_type() == FileOrData::FileReference ? static_cast<const FileReference *>(data()) : nullptr;
+  const DeepSeaScene::FileReference *data_as_FileReference() const {
+    return data_type() == DeepSeaScene::FileOrData::FileReference ? static_cast<const DeepSeaScene::FileReference *>(data()) : nullptr;
   }
-  const RawData *data_as_RawData() const {
-    return data_type() == FileOrData::RawData ? static_cast<const RawData *>(data()) : nullptr;
+  const DeepSeaScene::RawData *data_as_RawData() const {
+    return data_type() == DeepSeaScene::FileOrData::RawData ? static_cast<const DeepSeaScene::RawData *>(data()) : nullptr;
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -149,15 +175,16 @@ struct Buffer FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
 };
 
-template<> inline const FileReference *Buffer::data_as<FileReference>() const {
+template<> inline const DeepSeaScene::FileReference *Buffer::data_as<DeepSeaScene::FileReference>() const {
   return data_as_FileReference();
 }
 
-template<> inline const RawData *Buffer::data_as<RawData>() const {
+template<> inline const DeepSeaScene::RawData *Buffer::data_as<DeepSeaScene::RawData>() const {
   return data_as_RawData();
 }
 
 struct BufferBuilder {
+  typedef Buffer Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_name(flatbuffers::Offset<flatbuffers::String> name) {
@@ -172,7 +199,7 @@ struct BufferBuilder {
   void add_size(uint32_t size) {
     fbb_.AddElement<uint32_t>(Buffer::VT_SIZE, size, 0);
   }
-  void add_data_type(FileOrData data_type) {
+  void add_data_type(DeepSeaScene::FileOrData data_type) {
     fbb_.AddElement<uint8_t>(Buffer::VT_DATA_TYPE, static_cast<uint8_t>(data_type), 0);
   }
   void add_data(flatbuffers::Offset<void> data) {
@@ -197,7 +224,7 @@ inline flatbuffers::Offset<Buffer> CreateBuffer(
     uint32_t usage = 0,
     uint32_t memoryHints = 0,
     uint32_t size = 0,
-    FileOrData data_type = FileOrData::NONE,
+    DeepSeaScene::FileOrData data_type = DeepSeaScene::FileOrData::NONE,
     flatbuffers::Offset<void> data = 0) {
   BufferBuilder builder_(_fbb);
   builder_.add_data(data);
@@ -215,7 +242,7 @@ inline flatbuffers::Offset<Buffer> CreateBufferDirect(
     uint32_t usage = 0,
     uint32_t memoryHints = 0,
     uint32_t size = 0,
-    FileOrData data_type = FileOrData::NONE,
+    DeepSeaScene::FileOrData data_type = DeepSeaScene::FileOrData::NONE,
     flatbuffers::Offset<void> data = 0) {
   auto name__ = name ? _fbb.CreateString(name) : 0;
   return DeepSeaScene::CreateBuffer(
@@ -229,6 +256,7 @@ inline flatbuffers::Offset<Buffer> CreateBufferDirect(
 }
 
 struct TextureInfo FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef TextureInfoBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_FORMAT = 4,
     VT_DECORATION = 6,
@@ -238,14 +266,14 @@ struct TextureInfo FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_DEPTH = 14,
     VT_MIPLEVELS = 16
   };
-  TextureFormat format() const {
-    return static_cast<TextureFormat>(GetField<uint8_t>(VT_FORMAT, 0));
+  DeepSeaScene::TextureFormat format() const {
+    return static_cast<DeepSeaScene::TextureFormat>(GetField<uint8_t>(VT_FORMAT, 0));
   }
-  FormatDecoration decoration() const {
-    return static_cast<FormatDecoration>(GetField<uint8_t>(VT_DECORATION, 0));
+  DeepSeaScene::FormatDecoration decoration() const {
+    return static_cast<DeepSeaScene::FormatDecoration>(GetField<uint8_t>(VT_DECORATION, 0));
   }
-  TextureDim dimension() const {
-    return static_cast<TextureDim>(GetField<uint8_t>(VT_DIMENSION, 0));
+  DeepSeaScene::TextureDim dimension() const {
+    return static_cast<DeepSeaScene::TextureDim>(GetField<uint8_t>(VT_DIMENSION, 0));
   }
   uint32_t width() const {
     return GetField<uint32_t>(VT_WIDTH, 0);
@@ -273,15 +301,16 @@ struct TextureInfo FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 };
 
 struct TextureInfoBuilder {
+  typedef TextureInfo Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
-  void add_format(TextureFormat format) {
+  void add_format(DeepSeaScene::TextureFormat format) {
     fbb_.AddElement<uint8_t>(TextureInfo::VT_FORMAT, static_cast<uint8_t>(format), 0);
   }
-  void add_decoration(FormatDecoration decoration) {
+  void add_decoration(DeepSeaScene::FormatDecoration decoration) {
     fbb_.AddElement<uint8_t>(TextureInfo::VT_DECORATION, static_cast<uint8_t>(decoration), 0);
   }
-  void add_dimension(TextureDim dimension) {
+  void add_dimension(DeepSeaScene::TextureDim dimension) {
     fbb_.AddElement<uint8_t>(TextureInfo::VT_DIMENSION, static_cast<uint8_t>(dimension), 0);
   }
   void add_width(uint32_t width) {
@@ -310,9 +339,9 @@ struct TextureInfoBuilder {
 
 inline flatbuffers::Offset<TextureInfo> CreateTextureInfo(
     flatbuffers::FlatBufferBuilder &_fbb,
-    TextureFormat format = TextureFormat::R4G4,
-    FormatDecoration decoration = FormatDecoration::UNorm,
-    TextureDim dimension = TextureDim::Dim1D,
+    DeepSeaScene::TextureFormat format = DeepSeaScene::TextureFormat::R4G4,
+    DeepSeaScene::FormatDecoration decoration = DeepSeaScene::FormatDecoration::UNorm,
+    DeepSeaScene::TextureDim dimension = DeepSeaScene::TextureDim::Dim1D,
     uint32_t width = 0,
     uint32_t height = 0,
     uint32_t depth = 0,
@@ -329,6 +358,7 @@ inline flatbuffers::Offset<TextureInfo> CreateTextureInfo(
 }
 
 struct Texture FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef TextureBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_NAME = 4,
     VT_USAGE = 6,
@@ -346,21 +376,21 @@ struct Texture FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   uint32_t memoryHints() const {
     return GetField<uint32_t>(VT_MEMORYHINTS, 0);
   }
-  FileOrData data_type() const {
-    return static_cast<FileOrData>(GetField<uint8_t>(VT_DATA_TYPE, 0));
+  DeepSeaScene::FileOrData data_type() const {
+    return static_cast<DeepSeaScene::FileOrData>(GetField<uint8_t>(VT_DATA_TYPE, 0));
   }
   const void *data() const {
     return GetPointer<const void *>(VT_DATA);
   }
   template<typename T> const T *data_as() const;
-  const FileReference *data_as_FileReference() const {
-    return data_type() == FileOrData::FileReference ? static_cast<const FileReference *>(data()) : nullptr;
+  const DeepSeaScene::FileReference *data_as_FileReference() const {
+    return data_type() == DeepSeaScene::FileOrData::FileReference ? static_cast<const DeepSeaScene::FileReference *>(data()) : nullptr;
   }
-  const RawData *data_as_RawData() const {
-    return data_type() == FileOrData::RawData ? static_cast<const RawData *>(data()) : nullptr;
+  const DeepSeaScene::RawData *data_as_RawData() const {
+    return data_type() == DeepSeaScene::FileOrData::RawData ? static_cast<const DeepSeaScene::RawData *>(data()) : nullptr;
   }
-  const TextureInfo *textureInfo() const {
-    return GetPointer<const TextureInfo *>(VT_TEXTUREINFO);
+  const DeepSeaScene::TextureInfo *textureInfo() const {
+    return GetPointer<const DeepSeaScene::TextureInfo *>(VT_TEXTUREINFO);
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -377,15 +407,16 @@ struct Texture FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
 };
 
-template<> inline const FileReference *Texture::data_as<FileReference>() const {
+template<> inline const DeepSeaScene::FileReference *Texture::data_as<DeepSeaScene::FileReference>() const {
   return data_as_FileReference();
 }
 
-template<> inline const RawData *Texture::data_as<RawData>() const {
+template<> inline const DeepSeaScene::RawData *Texture::data_as<DeepSeaScene::RawData>() const {
   return data_as_RawData();
 }
 
 struct TextureBuilder {
+  typedef Texture Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_name(flatbuffers::Offset<flatbuffers::String> name) {
@@ -397,13 +428,13 @@ struct TextureBuilder {
   void add_memoryHints(uint32_t memoryHints) {
     fbb_.AddElement<uint32_t>(Texture::VT_MEMORYHINTS, memoryHints, 0);
   }
-  void add_data_type(FileOrData data_type) {
+  void add_data_type(DeepSeaScene::FileOrData data_type) {
     fbb_.AddElement<uint8_t>(Texture::VT_DATA_TYPE, static_cast<uint8_t>(data_type), 0);
   }
   void add_data(flatbuffers::Offset<void> data) {
     fbb_.AddOffset(Texture::VT_DATA, data);
   }
-  void add_textureInfo(flatbuffers::Offset<TextureInfo> textureInfo) {
+  void add_textureInfo(flatbuffers::Offset<DeepSeaScene::TextureInfo> textureInfo) {
     fbb_.AddOffset(Texture::VT_TEXTUREINFO, textureInfo);
   }
   explicit TextureBuilder(flatbuffers::FlatBufferBuilder &_fbb)
@@ -424,9 +455,9 @@ inline flatbuffers::Offset<Texture> CreateTexture(
     flatbuffers::Offset<flatbuffers::String> name = 0,
     uint32_t usage = 0,
     uint32_t memoryHints = 0,
-    FileOrData data_type = FileOrData::NONE,
+    DeepSeaScene::FileOrData data_type = DeepSeaScene::FileOrData::NONE,
     flatbuffers::Offset<void> data = 0,
-    flatbuffers::Offset<TextureInfo> textureInfo = 0) {
+    flatbuffers::Offset<DeepSeaScene::TextureInfo> textureInfo = 0) {
   TextureBuilder builder_(_fbb);
   builder_.add_textureInfo(textureInfo);
   builder_.add_data(data);
@@ -442,9 +473,9 @@ inline flatbuffers::Offset<Texture> CreateTextureDirect(
     const char *name = nullptr,
     uint32_t usage = 0,
     uint32_t memoryHints = 0,
-    FileOrData data_type = FileOrData::NONE,
+    DeepSeaScene::FileOrData data_type = DeepSeaScene::FileOrData::NONE,
     flatbuffers::Offset<void> data = 0,
-    flatbuffers::Offset<TextureInfo> textureInfo = 0) {
+    flatbuffers::Offset<DeepSeaScene::TextureInfo> textureInfo = 0) {
   auto name__ = name ? _fbb.CreateString(name) : 0;
   return DeepSeaScene::CreateTexture(
       _fbb,
@@ -457,6 +488,7 @@ inline flatbuffers::Offset<Texture> CreateTextureDirect(
 }
 
 struct VariableElement FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef VariableElementBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_NAME = 4,
     VT_TYPE = 6,
@@ -465,8 +497,8 @@ struct VariableElement FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const flatbuffers::String *name() const {
     return GetPointer<const flatbuffers::String *>(VT_NAME);
   }
-  MaterialType type() const {
-    return static_cast<MaterialType>(GetField<uint8_t>(VT_TYPE, 0));
+  DeepSeaScene::MaterialType type() const {
+    return static_cast<DeepSeaScene::MaterialType>(GetField<uint8_t>(VT_TYPE, 0));
   }
   uint32_t count() const {
     return GetField<uint32_t>(VT_COUNT, 0);
@@ -482,12 +514,13 @@ struct VariableElement FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 };
 
 struct VariableElementBuilder {
+  typedef VariableElement Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_name(flatbuffers::Offset<flatbuffers::String> name) {
     fbb_.AddOffset(VariableElement::VT_NAME, name);
   }
-  void add_type(MaterialType type) {
+  void add_type(DeepSeaScene::MaterialType type) {
     fbb_.AddElement<uint8_t>(VariableElement::VT_TYPE, static_cast<uint8_t>(type), 0);
   }
   void add_count(uint32_t count) {
@@ -509,7 +542,7 @@ struct VariableElementBuilder {
 inline flatbuffers::Offset<VariableElement> CreateVariableElement(
     flatbuffers::FlatBufferBuilder &_fbb,
     flatbuffers::Offset<flatbuffers::String> name = 0,
-    MaterialType type = MaterialType::Float,
+    DeepSeaScene::MaterialType type = DeepSeaScene::MaterialType::Float,
     uint32_t count = 0) {
   VariableElementBuilder builder_(_fbb);
   builder_.add_count(count);
@@ -521,7 +554,7 @@ inline flatbuffers::Offset<VariableElement> CreateVariableElement(
 inline flatbuffers::Offset<VariableElement> CreateVariableElementDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     const char *name = nullptr,
-    MaterialType type = MaterialType::Float,
+    DeepSeaScene::MaterialType type = DeepSeaScene::MaterialType::Float,
     uint32_t count = 0) {
   auto name__ = name ? _fbb.CreateString(name) : 0;
   return DeepSeaScene::CreateVariableElement(
@@ -532,6 +565,7 @@ inline flatbuffers::Offset<VariableElement> CreateVariableElementDirect(
 }
 
 struct ShaderVariableGroupDesc FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef ShaderVariableGroupDescBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_NAME = 4,
     VT_ELEMENTS = 6
@@ -539,8 +573,8 @@ struct ShaderVariableGroupDesc FLATBUFFERS_FINAL_CLASS : private flatbuffers::Ta
   const flatbuffers::String *name() const {
     return GetPointer<const flatbuffers::String *>(VT_NAME);
   }
-  const flatbuffers::Vector<flatbuffers::Offset<VariableElement>> *elements() const {
-    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<VariableElement>> *>(VT_ELEMENTS);
+  const flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::VariableElement>> *elements() const {
+    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::VariableElement>> *>(VT_ELEMENTS);
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -554,12 +588,13 @@ struct ShaderVariableGroupDesc FLATBUFFERS_FINAL_CLASS : private flatbuffers::Ta
 };
 
 struct ShaderVariableGroupDescBuilder {
+  typedef ShaderVariableGroupDesc Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_name(flatbuffers::Offset<flatbuffers::String> name) {
     fbb_.AddOffset(ShaderVariableGroupDesc::VT_NAME, name);
   }
-  void add_elements(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<VariableElement>>> elements) {
+  void add_elements(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::VariableElement>>> elements) {
     fbb_.AddOffset(ShaderVariableGroupDesc::VT_ELEMENTS, elements);
   }
   explicit ShaderVariableGroupDescBuilder(flatbuffers::FlatBufferBuilder &_fbb)
@@ -579,7 +614,7 @@ struct ShaderVariableGroupDescBuilder {
 inline flatbuffers::Offset<ShaderVariableGroupDesc> CreateShaderVariableGroupDesc(
     flatbuffers::FlatBufferBuilder &_fbb,
     flatbuffers::Offset<flatbuffers::String> name = 0,
-    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<VariableElement>>> elements = 0) {
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::VariableElement>>> elements = 0) {
   ShaderVariableGroupDescBuilder builder_(_fbb);
   builder_.add_elements(elements);
   builder_.add_name(name);
@@ -589,9 +624,9 @@ inline flatbuffers::Offset<ShaderVariableGroupDesc> CreateShaderVariableGroupDes
 inline flatbuffers::Offset<ShaderVariableGroupDesc> CreateShaderVariableGroupDescDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     const char *name = nullptr,
-    const std::vector<flatbuffers::Offset<VariableElement>> *elements = nullptr) {
+    const std::vector<flatbuffers::Offset<DeepSeaScene::VariableElement>> *elements = nullptr) {
   auto name__ = name ? _fbb.CreateString(name) : 0;
-  auto elements__ = elements ? _fbb.CreateVector<flatbuffers::Offset<VariableElement>>(*elements) : 0;
+  auto elements__ = elements ? _fbb.CreateVector<flatbuffers::Offset<DeepSeaScene::VariableElement>>(*elements) : 0;
   return DeepSeaScene::CreateShaderVariableGroupDesc(
       _fbb,
       name__,
@@ -599,6 +634,7 @@ inline flatbuffers::Offset<ShaderVariableGroupDesc> CreateShaderVariableGroupDes
 }
 
 struct VariableData FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef VariableDataBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_NAME = 4,
     VT_TYPE = 6,
@@ -609,8 +645,8 @@ struct VariableData FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const flatbuffers::String *name() const {
     return GetPointer<const flatbuffers::String *>(VT_NAME);
   }
-  MaterialType type() const {
-    return static_cast<MaterialType>(GetField<uint8_t>(VT_TYPE, 0));
+  DeepSeaScene::MaterialType type() const {
+    return static_cast<DeepSeaScene::MaterialType>(GetField<uint8_t>(VT_TYPE, 0));
   }
   uint32_t first() const {
     return GetField<uint32_t>(VT_FIRST, 0);
@@ -635,12 +671,13 @@ struct VariableData FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 };
 
 struct VariableDataBuilder {
+  typedef VariableData Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_name(flatbuffers::Offset<flatbuffers::String> name) {
     fbb_.AddOffset(VariableData::VT_NAME, name);
   }
-  void add_type(MaterialType type) {
+  void add_type(DeepSeaScene::MaterialType type) {
     fbb_.AddElement<uint8_t>(VariableData::VT_TYPE, static_cast<uint8_t>(type), 0);
   }
   void add_first(uint32_t first) {
@@ -669,7 +706,7 @@ struct VariableDataBuilder {
 inline flatbuffers::Offset<VariableData> CreateVariableData(
     flatbuffers::FlatBufferBuilder &_fbb,
     flatbuffers::Offset<flatbuffers::String> name = 0,
-    MaterialType type = MaterialType::Float,
+    DeepSeaScene::MaterialType type = DeepSeaScene::MaterialType::Float,
     uint32_t first = 0,
     uint32_t count = 0,
     flatbuffers::Offset<flatbuffers::Vector<uint8_t>> data = 0) {
@@ -685,7 +722,7 @@ inline flatbuffers::Offset<VariableData> CreateVariableData(
 inline flatbuffers::Offset<VariableData> CreateVariableDataDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     const char *name = nullptr,
-    MaterialType type = MaterialType::Float,
+    DeepSeaScene::MaterialType type = DeepSeaScene::MaterialType::Float,
     uint32_t first = 0,
     uint32_t count = 0,
     const std::vector<uint8_t> *data = nullptr) {
@@ -701,6 +738,7 @@ inline flatbuffers::Offset<VariableData> CreateVariableDataDirect(
 }
 
 struct MaterialElement FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef MaterialElementBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_NAME = 4,
     VT_TYPE = 6,
@@ -711,14 +749,14 @@ struct MaterialElement FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const flatbuffers::String *name() const {
     return GetPointer<const flatbuffers::String *>(VT_NAME);
   }
-  MaterialType type() const {
-    return static_cast<MaterialType>(GetField<uint8_t>(VT_TYPE, 0));
+  DeepSeaScene::MaterialType type() const {
+    return static_cast<DeepSeaScene::MaterialType>(GetField<uint8_t>(VT_TYPE, 0));
   }
   uint32_t count() const {
     return GetField<uint32_t>(VT_COUNT, 0);
   }
-  MaterialBinding binding() const {
-    return static_cast<MaterialBinding>(GetField<uint8_t>(VT_BINDING, 0));
+  DeepSeaScene::MaterialBinding binding() const {
+    return static_cast<DeepSeaScene::MaterialBinding>(GetField<uint8_t>(VT_BINDING, 0));
   }
   const flatbuffers::String *shaderVariableGroupDesc() const {
     return GetPointer<const flatbuffers::String *>(VT_SHADERVARIABLEGROUPDESC);
@@ -737,18 +775,19 @@ struct MaterialElement FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 };
 
 struct MaterialElementBuilder {
+  typedef MaterialElement Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_name(flatbuffers::Offset<flatbuffers::String> name) {
     fbb_.AddOffset(MaterialElement::VT_NAME, name);
   }
-  void add_type(MaterialType type) {
+  void add_type(DeepSeaScene::MaterialType type) {
     fbb_.AddElement<uint8_t>(MaterialElement::VT_TYPE, static_cast<uint8_t>(type), 0);
   }
   void add_count(uint32_t count) {
     fbb_.AddElement<uint32_t>(MaterialElement::VT_COUNT, count, 0);
   }
-  void add_binding(MaterialBinding binding) {
+  void add_binding(DeepSeaScene::MaterialBinding binding) {
     fbb_.AddElement<uint8_t>(MaterialElement::VT_BINDING, static_cast<uint8_t>(binding), 0);
   }
   void add_shaderVariableGroupDesc(flatbuffers::Offset<flatbuffers::String> shaderVariableGroupDesc) {
@@ -770,9 +809,9 @@ struct MaterialElementBuilder {
 inline flatbuffers::Offset<MaterialElement> CreateMaterialElement(
     flatbuffers::FlatBufferBuilder &_fbb,
     flatbuffers::Offset<flatbuffers::String> name = 0,
-    MaterialType type = MaterialType::Float,
+    DeepSeaScene::MaterialType type = DeepSeaScene::MaterialType::Float,
     uint32_t count = 0,
-    MaterialBinding binding = MaterialBinding::Material,
+    DeepSeaScene::MaterialBinding binding = DeepSeaScene::MaterialBinding::Material,
     flatbuffers::Offset<flatbuffers::String> shaderVariableGroupDesc = 0) {
   MaterialElementBuilder builder_(_fbb);
   builder_.add_shaderVariableGroupDesc(shaderVariableGroupDesc);
@@ -786,9 +825,9 @@ inline flatbuffers::Offset<MaterialElement> CreateMaterialElement(
 inline flatbuffers::Offset<MaterialElement> CreateMaterialElementDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     const char *name = nullptr,
-    MaterialType type = MaterialType::Float,
+    DeepSeaScene::MaterialType type = DeepSeaScene::MaterialType::Float,
     uint32_t count = 0,
-    MaterialBinding binding = MaterialBinding::Material,
+    DeepSeaScene::MaterialBinding binding = DeepSeaScene::MaterialBinding::Material,
     const char *shaderVariableGroupDesc = nullptr) {
   auto name__ = name ? _fbb.CreateString(name) : 0;
   auto shaderVariableGroupDesc__ = shaderVariableGroupDesc ? _fbb.CreateString(shaderVariableGroupDesc) : 0;
@@ -802,6 +841,7 @@ inline flatbuffers::Offset<MaterialElement> CreateMaterialElementDirect(
 }
 
 struct MaterialDesc FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef MaterialDescBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_NAME = 4,
     VT_ELEMENTS = 6
@@ -809,8 +849,8 @@ struct MaterialDesc FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const flatbuffers::String *name() const {
     return GetPointer<const flatbuffers::String *>(VT_NAME);
   }
-  const flatbuffers::Vector<flatbuffers::Offset<MaterialElement>> *elements() const {
-    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<MaterialElement>> *>(VT_ELEMENTS);
+  const flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::MaterialElement>> *elements() const {
+    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::MaterialElement>> *>(VT_ELEMENTS);
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -824,12 +864,13 @@ struct MaterialDesc FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 };
 
 struct MaterialDescBuilder {
+  typedef MaterialDesc Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_name(flatbuffers::Offset<flatbuffers::String> name) {
     fbb_.AddOffset(MaterialDesc::VT_NAME, name);
   }
-  void add_elements(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<MaterialElement>>> elements) {
+  void add_elements(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::MaterialElement>>> elements) {
     fbb_.AddOffset(MaterialDesc::VT_ELEMENTS, elements);
   }
   explicit MaterialDescBuilder(flatbuffers::FlatBufferBuilder &_fbb)
@@ -849,7 +890,7 @@ struct MaterialDescBuilder {
 inline flatbuffers::Offset<MaterialDesc> CreateMaterialDesc(
     flatbuffers::FlatBufferBuilder &_fbb,
     flatbuffers::Offset<flatbuffers::String> name = 0,
-    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<MaterialElement>>> elements = 0) {
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::MaterialElement>>> elements = 0) {
   MaterialDescBuilder builder_(_fbb);
   builder_.add_elements(elements);
   builder_.add_name(name);
@@ -859,9 +900,9 @@ inline flatbuffers::Offset<MaterialDesc> CreateMaterialDesc(
 inline flatbuffers::Offset<MaterialDesc> CreateMaterialDescDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     const char *name = nullptr,
-    const std::vector<flatbuffers::Offset<MaterialElement>> *elements = nullptr) {
+    const std::vector<flatbuffers::Offset<DeepSeaScene::MaterialElement>> *elements = nullptr) {
   auto name__ = name ? _fbb.CreateString(name) : 0;
-  auto elements__ = elements ? _fbb.CreateVector<flatbuffers::Offset<MaterialElement>>(*elements) : 0;
+  auto elements__ = elements ? _fbb.CreateVector<flatbuffers::Offset<DeepSeaScene::MaterialElement>>(*elements) : 0;
   return DeepSeaScene::CreateMaterialDesc(
       _fbb,
       name__,
@@ -869,6 +910,7 @@ inline flatbuffers::Offset<MaterialDesc> CreateMaterialDescDirect(
 }
 
 struct ShaderData FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef ShaderDataBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_NAME = 4,
     VT_DESCRIPTION = 6,
@@ -880,8 +922,8 @@ struct ShaderData FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const flatbuffers::String *description() const {
     return GetPointer<const flatbuffers::String *>(VT_DESCRIPTION);
   }
-  const flatbuffers::Vector<flatbuffers::Offset<VariableData>> *data() const {
-    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<VariableData>> *>(VT_DATA);
+  const flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::VariableData>> *data() const {
+    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::VariableData>> *>(VT_DATA);
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -897,6 +939,7 @@ struct ShaderData FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 };
 
 struct ShaderDataBuilder {
+  typedef ShaderData Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_name(flatbuffers::Offset<flatbuffers::String> name) {
@@ -905,7 +948,7 @@ struct ShaderDataBuilder {
   void add_description(flatbuffers::Offset<flatbuffers::String> description) {
     fbb_.AddOffset(ShaderData::VT_DESCRIPTION, description);
   }
-  void add_data(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<VariableData>>> data) {
+  void add_data(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::VariableData>>> data) {
     fbb_.AddOffset(ShaderData::VT_DATA, data);
   }
   explicit ShaderDataBuilder(flatbuffers::FlatBufferBuilder &_fbb)
@@ -926,7 +969,7 @@ inline flatbuffers::Offset<ShaderData> CreateShaderData(
     flatbuffers::FlatBufferBuilder &_fbb,
     flatbuffers::Offset<flatbuffers::String> name = 0,
     flatbuffers::Offset<flatbuffers::String> description = 0,
-    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<VariableData>>> data = 0) {
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::VariableData>>> data = 0) {
   ShaderDataBuilder builder_(_fbb);
   builder_.add_data(data);
   builder_.add_description(description);
@@ -938,10 +981,10 @@ inline flatbuffers::Offset<ShaderData> CreateShaderDataDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     const char *name = nullptr,
     const char *description = nullptr,
-    const std::vector<flatbuffers::Offset<VariableData>> *data = nullptr) {
+    const std::vector<flatbuffers::Offset<DeepSeaScene::VariableData>> *data = nullptr) {
   auto name__ = name ? _fbb.CreateString(name) : 0;
   auto description__ = description ? _fbb.CreateString(description) : 0;
-  auto data__ = data ? _fbb.CreateVector<flatbuffers::Offset<VariableData>>(*data) : 0;
+  auto data__ = data ? _fbb.CreateVector<flatbuffers::Offset<DeepSeaScene::VariableData>>(*data) : 0;
   return DeepSeaScene::CreateShaderData(
       _fbb,
       name__,
@@ -950,6 +993,7 @@ inline flatbuffers::Offset<ShaderData> CreateShaderDataDirect(
 }
 
 struct ShaderModule FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef ShaderModuleBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_NAME = 4,
     VT_DATA_TYPE = 6,
@@ -958,18 +1002,18 @@ struct ShaderModule FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const flatbuffers::String *name() const {
     return GetPointer<const flatbuffers::String *>(VT_NAME);
   }
-  FileOrData data_type() const {
-    return static_cast<FileOrData>(GetField<uint8_t>(VT_DATA_TYPE, 0));
+  DeepSeaScene::FileOrData data_type() const {
+    return static_cast<DeepSeaScene::FileOrData>(GetField<uint8_t>(VT_DATA_TYPE, 0));
   }
   const void *data() const {
     return GetPointer<const void *>(VT_DATA);
   }
   template<typename T> const T *data_as() const;
-  const FileReference *data_as_FileReference() const {
-    return data_type() == FileOrData::FileReference ? static_cast<const FileReference *>(data()) : nullptr;
+  const DeepSeaScene::FileReference *data_as_FileReference() const {
+    return data_type() == DeepSeaScene::FileOrData::FileReference ? static_cast<const DeepSeaScene::FileReference *>(data()) : nullptr;
   }
-  const RawData *data_as_RawData() const {
-    return data_type() == FileOrData::RawData ? static_cast<const RawData *>(data()) : nullptr;
+  const DeepSeaScene::RawData *data_as_RawData() const {
+    return data_type() == DeepSeaScene::FileOrData::RawData ? static_cast<const DeepSeaScene::RawData *>(data()) : nullptr;
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -982,21 +1026,22 @@ struct ShaderModule FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
 };
 
-template<> inline const FileReference *ShaderModule::data_as<FileReference>() const {
+template<> inline const DeepSeaScene::FileReference *ShaderModule::data_as<DeepSeaScene::FileReference>() const {
   return data_as_FileReference();
 }
 
-template<> inline const RawData *ShaderModule::data_as<RawData>() const {
+template<> inline const DeepSeaScene::RawData *ShaderModule::data_as<DeepSeaScene::RawData>() const {
   return data_as_RawData();
 }
 
 struct ShaderModuleBuilder {
+  typedef ShaderModule Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_name(flatbuffers::Offset<flatbuffers::String> name) {
     fbb_.AddOffset(ShaderModule::VT_NAME, name);
   }
-  void add_data_type(FileOrData data_type) {
+  void add_data_type(DeepSeaScene::FileOrData data_type) {
     fbb_.AddElement<uint8_t>(ShaderModule::VT_DATA_TYPE, static_cast<uint8_t>(data_type), 0);
   }
   void add_data(flatbuffers::Offset<void> data) {
@@ -1019,7 +1064,7 @@ struct ShaderModuleBuilder {
 inline flatbuffers::Offset<ShaderModule> CreateShaderModule(
     flatbuffers::FlatBufferBuilder &_fbb,
     flatbuffers::Offset<flatbuffers::String> name = 0,
-    FileOrData data_type = FileOrData::NONE,
+    DeepSeaScene::FileOrData data_type = DeepSeaScene::FileOrData::NONE,
     flatbuffers::Offset<void> data = 0) {
   ShaderModuleBuilder builder_(_fbb);
   builder_.add_data(data);
@@ -1031,7 +1076,7 @@ inline flatbuffers::Offset<ShaderModule> CreateShaderModule(
 inline flatbuffers::Offset<ShaderModule> CreateShaderModuleDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     const char *name = nullptr,
-    FileOrData data_type = FileOrData::NONE,
+    DeepSeaScene::FileOrData data_type = DeepSeaScene::FileOrData::NONE,
     flatbuffers::Offset<void> data = 0) {
   auto name__ = name ? _fbb.CreateString(name) : 0;
   return DeepSeaScene::CreateShaderModule(
@@ -1042,6 +1087,7 @@ inline flatbuffers::Offset<ShaderModule> CreateShaderModuleDirect(
 }
 
 struct Shader FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef ShaderBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_NAME = 4,
     VT_SHADERMODULE = 6,
@@ -1075,6 +1121,7 @@ struct Shader FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 };
 
 struct ShaderBuilder {
+  typedef Shader Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_name(flatbuffers::Offset<flatbuffers::String> name) {
@@ -1137,12 +1184,13 @@ inline flatbuffers::Offset<Shader> CreateShaderDirect(
 }
 
 struct VertexFormat FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef VertexFormatBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_ATTRIBUTES = 4,
     VT_INSTANCED = 6
   };
-  const flatbuffers::Vector<const VertexAttribute *> *attributes() const {
-    return GetPointer<const flatbuffers::Vector<const VertexAttribute *> *>(VT_ATTRIBUTES);
+  const flatbuffers::Vector<const DeepSeaScene::VertexAttribute *> *attributes() const {
+    return GetPointer<const flatbuffers::Vector<const DeepSeaScene::VertexAttribute *> *>(VT_ATTRIBUTES);
   }
   bool instanced() const {
     return GetField<uint8_t>(VT_INSTANCED, 0) != 0;
@@ -1157,9 +1205,10 @@ struct VertexFormat FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 };
 
 struct VertexFormatBuilder {
+  typedef VertexFormat Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
-  void add_attributes(flatbuffers::Offset<flatbuffers::Vector<const VertexAttribute *>> attributes) {
+  void add_attributes(flatbuffers::Offset<flatbuffers::Vector<const DeepSeaScene::VertexAttribute *>> attributes) {
     fbb_.AddOffset(VertexFormat::VT_ATTRIBUTES, attributes);
   }
   void add_instanced(bool instanced) {
@@ -1180,7 +1229,7 @@ struct VertexFormatBuilder {
 
 inline flatbuffers::Offset<VertexFormat> CreateVertexFormat(
     flatbuffers::FlatBufferBuilder &_fbb,
-    flatbuffers::Offset<flatbuffers::Vector<const VertexAttribute *>> attributes = 0,
+    flatbuffers::Offset<flatbuffers::Vector<const DeepSeaScene::VertexAttribute *>> attributes = 0,
     bool instanced = false) {
   VertexFormatBuilder builder_(_fbb);
   builder_.add_attributes(attributes);
@@ -1190,9 +1239,9 @@ inline flatbuffers::Offset<VertexFormat> CreateVertexFormat(
 
 inline flatbuffers::Offset<VertexFormat> CreateVertexFormatDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
-    const std::vector<VertexAttribute> *attributes = nullptr,
+    const std::vector<DeepSeaScene::VertexAttribute> *attributes = nullptr,
     bool instanced = false) {
-  auto attributes__ = attributes ? _fbb.CreateVectorOfStructs<VertexAttribute>(*attributes) : 0;
+  auto attributes__ = attributes ? _fbb.CreateVectorOfStructs<DeepSeaScene::VertexAttribute>(*attributes) : 0;
   return DeepSeaScene::CreateVertexFormat(
       _fbb,
       attributes__,
@@ -1200,6 +1249,7 @@ inline flatbuffers::Offset<VertexFormat> CreateVertexFormatDirect(
 }
 
 struct VertexBuffer FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef VertexBufferBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_NAME = 4,
     VT_OFFSET = 6,
@@ -1215,8 +1265,8 @@ struct VertexBuffer FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   uint32_t count() const {
     return GetField<uint32_t>(VT_COUNT, 0);
   }
-  const VertexFormat *format() const {
-    return GetPointer<const VertexFormat *>(VT_FORMAT);
+  const DeepSeaScene::VertexFormat *format() const {
+    return GetPointer<const DeepSeaScene::VertexFormat *>(VT_FORMAT);
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -1231,6 +1281,7 @@ struct VertexBuffer FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 };
 
 struct VertexBufferBuilder {
+  typedef VertexBuffer Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_name(flatbuffers::Offset<flatbuffers::String> name) {
@@ -1242,7 +1293,7 @@ struct VertexBufferBuilder {
   void add_count(uint32_t count) {
     fbb_.AddElement<uint32_t>(VertexBuffer::VT_COUNT, count, 0);
   }
-  void add_format(flatbuffers::Offset<VertexFormat> format) {
+  void add_format(flatbuffers::Offset<DeepSeaScene::VertexFormat> format) {
     fbb_.AddOffset(VertexBuffer::VT_FORMAT, format);
   }
   explicit VertexBufferBuilder(flatbuffers::FlatBufferBuilder &_fbb)
@@ -1264,7 +1315,7 @@ inline flatbuffers::Offset<VertexBuffer> CreateVertexBuffer(
     flatbuffers::Offset<flatbuffers::String> name = 0,
     uint32_t offset = 0,
     uint32_t count = 0,
-    flatbuffers::Offset<VertexFormat> format = 0) {
+    flatbuffers::Offset<DeepSeaScene::VertexFormat> format = 0) {
   VertexBufferBuilder builder_(_fbb);
   builder_.add_format(format);
   builder_.add_count(count);
@@ -1278,7 +1329,7 @@ inline flatbuffers::Offset<VertexBuffer> CreateVertexBufferDirect(
     const char *name = nullptr,
     uint32_t offset = 0,
     uint32_t count = 0,
-    flatbuffers::Offset<VertexFormat> format = 0) {
+    flatbuffers::Offset<DeepSeaScene::VertexFormat> format = 0) {
   auto name__ = name ? _fbb.CreateString(name) : 0;
   return DeepSeaScene::CreateVertexBuffer(
       _fbb,
@@ -1289,6 +1340,7 @@ inline flatbuffers::Offset<VertexBuffer> CreateVertexBufferDirect(
 }
 
 struct IndexBuffer FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef IndexBufferBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_NAME = 4,
     VT_OFFSET = 6,
@@ -1319,6 +1371,7 @@ struct IndexBuffer FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 };
 
 struct IndexBufferBuilder {
+  typedef IndexBuffer Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_name(flatbuffers::Offset<flatbuffers::String> name) {
@@ -1376,6 +1429,7 @@ inline flatbuffers::Offset<IndexBuffer> CreateIndexBufferDirect(
 }
 
 struct DrawGeometry FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef DrawGeometryBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_NAME = 4,
     VT_VERTEXBUFFERS = 6,
@@ -1384,11 +1438,11 @@ struct DrawGeometry FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const flatbuffers::String *name() const {
     return GetPointer<const flatbuffers::String *>(VT_NAME);
   }
-  const flatbuffers::Vector<flatbuffers::Offset<VertexBuffer>> *vertexBuffers() const {
-    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<VertexBuffer>> *>(VT_VERTEXBUFFERS);
+  const flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::VertexBuffer>> *vertexBuffers() const {
+    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::VertexBuffer>> *>(VT_VERTEXBUFFERS);
   }
-  const IndexBuffer *indexBuffer() const {
-    return GetPointer<const IndexBuffer *>(VT_INDEXBUFFER);
+  const DeepSeaScene::IndexBuffer *indexBuffer() const {
+    return GetPointer<const DeepSeaScene::IndexBuffer *>(VT_INDEXBUFFER);
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -1404,15 +1458,16 @@ struct DrawGeometry FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 };
 
 struct DrawGeometryBuilder {
+  typedef DrawGeometry Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_name(flatbuffers::Offset<flatbuffers::String> name) {
     fbb_.AddOffset(DrawGeometry::VT_NAME, name);
   }
-  void add_vertexBuffers(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<VertexBuffer>>> vertexBuffers) {
+  void add_vertexBuffers(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::VertexBuffer>>> vertexBuffers) {
     fbb_.AddOffset(DrawGeometry::VT_VERTEXBUFFERS, vertexBuffers);
   }
-  void add_indexBuffer(flatbuffers::Offset<IndexBuffer> indexBuffer) {
+  void add_indexBuffer(flatbuffers::Offset<DeepSeaScene::IndexBuffer> indexBuffer) {
     fbb_.AddOffset(DrawGeometry::VT_INDEXBUFFER, indexBuffer);
   }
   explicit DrawGeometryBuilder(flatbuffers::FlatBufferBuilder &_fbb)
@@ -1432,8 +1487,8 @@ struct DrawGeometryBuilder {
 inline flatbuffers::Offset<DrawGeometry> CreateDrawGeometry(
     flatbuffers::FlatBufferBuilder &_fbb,
     flatbuffers::Offset<flatbuffers::String> name = 0,
-    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<VertexBuffer>>> vertexBuffers = 0,
-    flatbuffers::Offset<IndexBuffer> indexBuffer = 0) {
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::VertexBuffer>>> vertexBuffers = 0,
+    flatbuffers::Offset<DeepSeaScene::IndexBuffer> indexBuffer = 0) {
   DrawGeometryBuilder builder_(_fbb);
   builder_.add_indexBuffer(indexBuffer);
   builder_.add_vertexBuffers(vertexBuffers);
@@ -1444,10 +1499,10 @@ inline flatbuffers::Offset<DrawGeometry> CreateDrawGeometry(
 inline flatbuffers::Offset<DrawGeometry> CreateDrawGeometryDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     const char *name = nullptr,
-    const std::vector<flatbuffers::Offset<VertexBuffer>> *vertexBuffers = nullptr,
-    flatbuffers::Offset<IndexBuffer> indexBuffer = 0) {
+    const std::vector<flatbuffers::Offset<DeepSeaScene::VertexBuffer>> *vertexBuffers = nullptr,
+    flatbuffers::Offset<DeepSeaScene::IndexBuffer> indexBuffer = 0) {
   auto name__ = name ? _fbb.CreateString(name) : 0;
-  auto vertexBuffers__ = vertexBuffers ? _fbb.CreateVector<flatbuffers::Offset<VertexBuffer>>(*vertexBuffers) : 0;
+  auto vertexBuffers__ = vertexBuffers ? _fbb.CreateVector<flatbuffers::Offset<DeepSeaScene::VertexBuffer>>(*vertexBuffers) : 0;
   return DeepSeaScene::CreateDrawGeometry(
       _fbb,
       name__,
@@ -1456,6 +1511,7 @@ inline flatbuffers::Offset<DrawGeometry> CreateDrawGeometryDirect(
 }
 
 struct SceneNode FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef SceneNodeBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_NAME = 4,
     VT_NODE = 6
@@ -1463,8 +1519,8 @@ struct SceneNode FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const flatbuffers::String *name() const {
     return GetPointer<const flatbuffers::String *>(VT_NAME);
   }
-  const ObjectData *node() const {
-    return GetPointer<const ObjectData *>(VT_NODE);
+  const DeepSeaScene::ObjectData *node() const {
+    return GetPointer<const DeepSeaScene::ObjectData *>(VT_NODE);
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -1477,12 +1533,13 @@ struct SceneNode FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 };
 
 struct SceneNodeBuilder {
+  typedef SceneNode Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_name(flatbuffers::Offset<flatbuffers::String> name) {
     fbb_.AddOffset(SceneNode::VT_NAME, name);
   }
-  void add_node(flatbuffers::Offset<ObjectData> node) {
+  void add_node(flatbuffers::Offset<DeepSeaScene::ObjectData> node) {
     fbb_.AddOffset(SceneNode::VT_NODE, node);
   }
   explicit SceneNodeBuilder(flatbuffers::FlatBufferBuilder &_fbb)
@@ -1502,7 +1559,7 @@ struct SceneNodeBuilder {
 inline flatbuffers::Offset<SceneNode> CreateSceneNode(
     flatbuffers::FlatBufferBuilder &_fbb,
     flatbuffers::Offset<flatbuffers::String> name = 0,
-    flatbuffers::Offset<ObjectData> node = 0) {
+    flatbuffers::Offset<DeepSeaScene::ObjectData> node = 0) {
   SceneNodeBuilder builder_(_fbb);
   builder_.add_node(node);
   builder_.add_name(name);
@@ -1512,7 +1569,7 @@ inline flatbuffers::Offset<SceneNode> CreateSceneNode(
 inline flatbuffers::Offset<SceneNode> CreateSceneNodeDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     const char *name = nullptr,
-    flatbuffers::Offset<ObjectData> node = 0) {
+    flatbuffers::Offset<DeepSeaScene::ObjectData> node = 0) {
   auto name__ = name ? _fbb.CreateString(name) : 0;
   return DeepSeaScene::CreateSceneNode(
       _fbb,
@@ -1521,6 +1578,7 @@ inline flatbuffers::Offset<SceneNode> CreateSceneNodeDirect(
 }
 
 struct SceneResources FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef SceneResourcesBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_BUFFERS = 4,
     VT_TEXTURES = 6,
@@ -1533,35 +1591,35 @@ struct SceneResources FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_DRAWGEOMETRIES = 20,
     VT_SCENENODES = 22
   };
-  const flatbuffers::Vector<flatbuffers::Offset<Buffer>> *buffers() const {
-    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<Buffer>> *>(VT_BUFFERS);
+  const flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::Buffer>> *buffers() const {
+    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::Buffer>> *>(VT_BUFFERS);
   }
-  const flatbuffers::Vector<flatbuffers::Offset<Texture>> *textures() const {
-    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<Texture>> *>(VT_TEXTURES);
+  const flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::Texture>> *textures() const {
+    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::Texture>> *>(VT_TEXTURES);
   }
-  const flatbuffers::Vector<flatbuffers::Offset<ShaderVariableGroupDesc>> *shaderVariableGroupDescs() const {
-    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<ShaderVariableGroupDesc>> *>(VT_SHADERVARIABLEGROUPDESCS);
+  const flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::ShaderVariableGroupDesc>> *shaderVariableGroupDescs() const {
+    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::ShaderVariableGroupDesc>> *>(VT_SHADERVARIABLEGROUPDESCS);
   }
-  const flatbuffers::Vector<flatbuffers::Offset<ShaderData>> *shaderVariableGroups() const {
-    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<ShaderData>> *>(VT_SHADERVARIABLEGROUPS);
+  const flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::ShaderData>> *shaderVariableGroups() const {
+    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::ShaderData>> *>(VT_SHADERVARIABLEGROUPS);
   }
-  const flatbuffers::Vector<flatbuffers::Offset<MaterialDesc>> *materialDescs() const {
-    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<MaterialDesc>> *>(VT_MATERIALDESCS);
+  const flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::MaterialDesc>> *materialDescs() const {
+    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::MaterialDesc>> *>(VT_MATERIALDESCS);
   }
-  const flatbuffers::Vector<flatbuffers::Offset<ShaderData>> *materials() const {
-    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<ShaderData>> *>(VT_MATERIALS);
+  const flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::ShaderData>> *materials() const {
+    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::ShaderData>> *>(VT_MATERIALS);
   }
-  const flatbuffers::Vector<flatbuffers::Offset<ShaderModule>> *shaderModules() const {
-    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<ShaderModule>> *>(VT_SHADERMODULES);
+  const flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::ShaderModule>> *shaderModules() const {
+    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::ShaderModule>> *>(VT_SHADERMODULES);
   }
-  const flatbuffers::Vector<flatbuffers::Offset<Shader>> *shaders() const {
-    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<Shader>> *>(VT_SHADERS);
+  const flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::Shader>> *shaders() const {
+    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::Shader>> *>(VT_SHADERS);
   }
-  const flatbuffers::Vector<flatbuffers::Offset<DrawGeometry>> *drawGeometries() const {
-    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<DrawGeometry>> *>(VT_DRAWGEOMETRIES);
+  const flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::DrawGeometry>> *drawGeometries() const {
+    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::DrawGeometry>> *>(VT_DRAWGEOMETRIES);
   }
-  const flatbuffers::Vector<flatbuffers::Offset<SceneNode>> *sceneNodes() const {
-    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<SceneNode>> *>(VT_SCENENODES);
+  const flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::SceneNode>> *sceneNodes() const {
+    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::SceneNode>> *>(VT_SCENENODES);
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -1600,36 +1658,37 @@ struct SceneResources FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 };
 
 struct SceneResourcesBuilder {
+  typedef SceneResources Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
-  void add_buffers(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<Buffer>>> buffers) {
+  void add_buffers(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::Buffer>>> buffers) {
     fbb_.AddOffset(SceneResources::VT_BUFFERS, buffers);
   }
-  void add_textures(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<Texture>>> textures) {
+  void add_textures(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::Texture>>> textures) {
     fbb_.AddOffset(SceneResources::VT_TEXTURES, textures);
   }
-  void add_shaderVariableGroupDescs(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<ShaderVariableGroupDesc>>> shaderVariableGroupDescs) {
+  void add_shaderVariableGroupDescs(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::ShaderVariableGroupDesc>>> shaderVariableGroupDescs) {
     fbb_.AddOffset(SceneResources::VT_SHADERVARIABLEGROUPDESCS, shaderVariableGroupDescs);
   }
-  void add_shaderVariableGroups(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<ShaderData>>> shaderVariableGroups) {
+  void add_shaderVariableGroups(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::ShaderData>>> shaderVariableGroups) {
     fbb_.AddOffset(SceneResources::VT_SHADERVARIABLEGROUPS, shaderVariableGroups);
   }
-  void add_materialDescs(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<MaterialDesc>>> materialDescs) {
+  void add_materialDescs(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::MaterialDesc>>> materialDescs) {
     fbb_.AddOffset(SceneResources::VT_MATERIALDESCS, materialDescs);
   }
-  void add_materials(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<ShaderData>>> materials) {
+  void add_materials(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::ShaderData>>> materials) {
     fbb_.AddOffset(SceneResources::VT_MATERIALS, materials);
   }
-  void add_shaderModules(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<ShaderModule>>> shaderModules) {
+  void add_shaderModules(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::ShaderModule>>> shaderModules) {
     fbb_.AddOffset(SceneResources::VT_SHADERMODULES, shaderModules);
   }
-  void add_shaders(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<Shader>>> shaders) {
+  void add_shaders(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::Shader>>> shaders) {
     fbb_.AddOffset(SceneResources::VT_SHADERS, shaders);
   }
-  void add_drawGeometries(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DrawGeometry>>> drawGeometries) {
+  void add_drawGeometries(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::DrawGeometry>>> drawGeometries) {
     fbb_.AddOffset(SceneResources::VT_DRAWGEOMETRIES, drawGeometries);
   }
-  void add_sceneNodes(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<SceneNode>>> sceneNodes) {
+  void add_sceneNodes(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::SceneNode>>> sceneNodes) {
     fbb_.AddOffset(SceneResources::VT_SCENENODES, sceneNodes);
   }
   explicit SceneResourcesBuilder(flatbuffers::FlatBufferBuilder &_fbb)
@@ -1646,16 +1705,16 @@ struct SceneResourcesBuilder {
 
 inline flatbuffers::Offset<SceneResources> CreateSceneResources(
     flatbuffers::FlatBufferBuilder &_fbb,
-    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<Buffer>>> buffers = 0,
-    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<Texture>>> textures = 0,
-    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<ShaderVariableGroupDesc>>> shaderVariableGroupDescs = 0,
-    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<ShaderData>>> shaderVariableGroups = 0,
-    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<MaterialDesc>>> materialDescs = 0,
-    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<ShaderData>>> materials = 0,
-    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<ShaderModule>>> shaderModules = 0,
-    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<Shader>>> shaders = 0,
-    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DrawGeometry>>> drawGeometries = 0,
-    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<SceneNode>>> sceneNodes = 0) {
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::Buffer>>> buffers = 0,
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::Texture>>> textures = 0,
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::ShaderVariableGroupDesc>>> shaderVariableGroupDescs = 0,
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::ShaderData>>> shaderVariableGroups = 0,
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::MaterialDesc>>> materialDescs = 0,
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::ShaderData>>> materials = 0,
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::ShaderModule>>> shaderModules = 0,
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::Shader>>> shaders = 0,
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::DrawGeometry>>> drawGeometries = 0,
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::SceneNode>>> sceneNodes = 0) {
   SceneResourcesBuilder builder_(_fbb);
   builder_.add_sceneNodes(sceneNodes);
   builder_.add_drawGeometries(drawGeometries);
@@ -1672,26 +1731,26 @@ inline flatbuffers::Offset<SceneResources> CreateSceneResources(
 
 inline flatbuffers::Offset<SceneResources> CreateSceneResourcesDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
-    const std::vector<flatbuffers::Offset<Buffer>> *buffers = nullptr,
-    const std::vector<flatbuffers::Offset<Texture>> *textures = nullptr,
-    const std::vector<flatbuffers::Offset<ShaderVariableGroupDesc>> *shaderVariableGroupDescs = nullptr,
-    const std::vector<flatbuffers::Offset<ShaderData>> *shaderVariableGroups = nullptr,
-    const std::vector<flatbuffers::Offset<MaterialDesc>> *materialDescs = nullptr,
-    const std::vector<flatbuffers::Offset<ShaderData>> *materials = nullptr,
-    const std::vector<flatbuffers::Offset<ShaderModule>> *shaderModules = nullptr,
-    const std::vector<flatbuffers::Offset<Shader>> *shaders = nullptr,
-    const std::vector<flatbuffers::Offset<DrawGeometry>> *drawGeometries = nullptr,
-    const std::vector<flatbuffers::Offset<SceneNode>> *sceneNodes = nullptr) {
-  auto buffers__ = buffers ? _fbb.CreateVector<flatbuffers::Offset<Buffer>>(*buffers) : 0;
-  auto textures__ = textures ? _fbb.CreateVector<flatbuffers::Offset<Texture>>(*textures) : 0;
-  auto shaderVariableGroupDescs__ = shaderVariableGroupDescs ? _fbb.CreateVector<flatbuffers::Offset<ShaderVariableGroupDesc>>(*shaderVariableGroupDescs) : 0;
-  auto shaderVariableGroups__ = shaderVariableGroups ? _fbb.CreateVector<flatbuffers::Offset<ShaderData>>(*shaderVariableGroups) : 0;
-  auto materialDescs__ = materialDescs ? _fbb.CreateVector<flatbuffers::Offset<MaterialDesc>>(*materialDescs) : 0;
-  auto materials__ = materials ? _fbb.CreateVector<flatbuffers::Offset<ShaderData>>(*materials) : 0;
-  auto shaderModules__ = shaderModules ? _fbb.CreateVector<flatbuffers::Offset<ShaderModule>>(*shaderModules) : 0;
-  auto shaders__ = shaders ? _fbb.CreateVector<flatbuffers::Offset<Shader>>(*shaders) : 0;
-  auto drawGeometries__ = drawGeometries ? _fbb.CreateVector<flatbuffers::Offset<DrawGeometry>>(*drawGeometries) : 0;
-  auto sceneNodes__ = sceneNodes ? _fbb.CreateVector<flatbuffers::Offset<SceneNode>>(*sceneNodes) : 0;
+    const std::vector<flatbuffers::Offset<DeepSeaScene::Buffer>> *buffers = nullptr,
+    const std::vector<flatbuffers::Offset<DeepSeaScene::Texture>> *textures = nullptr,
+    const std::vector<flatbuffers::Offset<DeepSeaScene::ShaderVariableGroupDesc>> *shaderVariableGroupDescs = nullptr,
+    const std::vector<flatbuffers::Offset<DeepSeaScene::ShaderData>> *shaderVariableGroups = nullptr,
+    const std::vector<flatbuffers::Offset<DeepSeaScene::MaterialDesc>> *materialDescs = nullptr,
+    const std::vector<flatbuffers::Offset<DeepSeaScene::ShaderData>> *materials = nullptr,
+    const std::vector<flatbuffers::Offset<DeepSeaScene::ShaderModule>> *shaderModules = nullptr,
+    const std::vector<flatbuffers::Offset<DeepSeaScene::Shader>> *shaders = nullptr,
+    const std::vector<flatbuffers::Offset<DeepSeaScene::DrawGeometry>> *drawGeometries = nullptr,
+    const std::vector<flatbuffers::Offset<DeepSeaScene::SceneNode>> *sceneNodes = nullptr) {
+  auto buffers__ = buffers ? _fbb.CreateVector<flatbuffers::Offset<DeepSeaScene::Buffer>>(*buffers) : 0;
+  auto textures__ = textures ? _fbb.CreateVector<flatbuffers::Offset<DeepSeaScene::Texture>>(*textures) : 0;
+  auto shaderVariableGroupDescs__ = shaderVariableGroupDescs ? _fbb.CreateVector<flatbuffers::Offset<DeepSeaScene::ShaderVariableGroupDesc>>(*shaderVariableGroupDescs) : 0;
+  auto shaderVariableGroups__ = shaderVariableGroups ? _fbb.CreateVector<flatbuffers::Offset<DeepSeaScene::ShaderData>>(*shaderVariableGroups) : 0;
+  auto materialDescs__ = materialDescs ? _fbb.CreateVector<flatbuffers::Offset<DeepSeaScene::MaterialDesc>>(*materialDescs) : 0;
+  auto materials__ = materials ? _fbb.CreateVector<flatbuffers::Offset<DeepSeaScene::ShaderData>>(*materials) : 0;
+  auto shaderModules__ = shaderModules ? _fbb.CreateVector<flatbuffers::Offset<DeepSeaScene::ShaderModule>>(*shaderModules) : 0;
+  auto shaders__ = shaders ? _fbb.CreateVector<flatbuffers::Offset<DeepSeaScene::Shader>>(*shaders) : 0;
+  auto drawGeometries__ = drawGeometries ? _fbb.CreateVector<flatbuffers::Offset<DeepSeaScene::DrawGeometry>>(*drawGeometries) : 0;
+  auto sceneNodes__ = sceneNodes ? _fbb.CreateVector<flatbuffers::Offset<DeepSeaScene::SceneNode>>(*sceneNodes) : 0;
   return DeepSeaScene::CreateSceneResources(
       _fbb,
       buffers__,

@@ -3,6 +3,8 @@
 # namespace: DeepSeaScene
 
 import flatbuffers
+from flatbuffers.compat import import_numpy
+np = import_numpy()
 
 class DrawGeometry(object):
     __slots__ = ['_tab']
@@ -32,7 +34,7 @@ class DrawGeometry(object):
             x = self._tab.Vector(o)
             x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * 4
             x = self._tab.Indirect(x)
-            from .VertexBuffer import VertexBuffer
+            from DeepSeaScene.VertexBuffer import VertexBuffer
             obj = VertexBuffer()
             obj.Init(self._tab.Bytes, x)
             return obj
@@ -46,11 +48,16 @@ class DrawGeometry(object):
         return 0
 
     # DrawGeometry
+    def VertexBuffersIsNone(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
+        return o == 0
+
+    # DrawGeometry
     def IndexBuffer(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
         if o != 0:
             x = self._tab.Indirect(o + self._tab.Pos)
-            from .IndexBuffer import IndexBuffer
+            from DeepSeaScene.IndexBuffer import IndexBuffer
             obj = IndexBuffer()
             obj.Init(self._tab.Bytes, x)
             return obj

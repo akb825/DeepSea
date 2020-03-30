@@ -11,21 +11,23 @@
 namespace DeepSeaScene {
 
 struct TransformNode;
+struct TransformNodeBuilder;
 
 struct TransformNode FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef TransformNodeBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_TRANSFORM = 4,
     VT_CHILDREN = 6
   };
-  const Matrix44f *transform() const {
-    return GetStruct<const Matrix44f *>(VT_TRANSFORM);
+  const DeepSeaScene::Matrix44f *transform() const {
+    return GetStruct<const DeepSeaScene::Matrix44f *>(VT_TRANSFORM);
   }
-  const flatbuffers::Vector<flatbuffers::Offset<ObjectData>> *children() const {
-    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<ObjectData>> *>(VT_CHILDREN);
+  const flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::ObjectData>> *children() const {
+    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::ObjectData>> *>(VT_CHILDREN);
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyField<Matrix44f>(verifier, VT_TRANSFORM) &&
+           VerifyField<DeepSeaScene::Matrix44f>(verifier, VT_TRANSFORM) &&
            VerifyOffset(verifier, VT_CHILDREN) &&
            verifier.VerifyVector(children()) &&
            verifier.VerifyVectorOfTables(children()) &&
@@ -34,12 +36,13 @@ struct TransformNode FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 };
 
 struct TransformNodeBuilder {
+  typedef TransformNode Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
-  void add_transform(const Matrix44f *transform) {
+  void add_transform(const DeepSeaScene::Matrix44f *transform) {
     fbb_.AddStruct(TransformNode::VT_TRANSFORM, transform);
   }
-  void add_children(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<ObjectData>>> children) {
+  void add_children(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::ObjectData>>> children) {
     fbb_.AddOffset(TransformNode::VT_CHILDREN, children);
   }
   explicit TransformNodeBuilder(flatbuffers::FlatBufferBuilder &_fbb)
@@ -56,8 +59,8 @@ struct TransformNodeBuilder {
 
 inline flatbuffers::Offset<TransformNode> CreateTransformNode(
     flatbuffers::FlatBufferBuilder &_fbb,
-    const Matrix44f *transform = 0,
-    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<ObjectData>>> children = 0) {
+    const DeepSeaScene::Matrix44f *transform = 0,
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::ObjectData>>> children = 0) {
   TransformNodeBuilder builder_(_fbb);
   builder_.add_children(children);
   builder_.add_transform(transform);
@@ -66,9 +69,9 @@ inline flatbuffers::Offset<TransformNode> CreateTransformNode(
 
 inline flatbuffers::Offset<TransformNode> CreateTransformNodeDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
-    const Matrix44f *transform = 0,
-    const std::vector<flatbuffers::Offset<ObjectData>> *children = nullptr) {
-  auto children__ = children ? _fbb.CreateVector<flatbuffers::Offset<ObjectData>>(*children) : 0;
+    const DeepSeaScene::Matrix44f *transform = 0,
+    const std::vector<flatbuffers::Offset<DeepSeaScene::ObjectData>> *children = nullptr) {
+  auto children__ = children ? _fbb.CreateVector<flatbuffers::Offset<DeepSeaScene::ObjectData>>(*children) : 0;
   return DeepSeaScene::CreateTransformNode(
       _fbb,
       transform,

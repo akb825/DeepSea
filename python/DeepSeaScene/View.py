@@ -3,6 +3,8 @@
 # namespace: DeepSeaScene
 
 import flatbuffers
+from flatbuffers.compat import import_numpy
+np = import_numpy()
 
 class View(object):
     __slots__ = ['_tab']
@@ -25,7 +27,7 @@ class View(object):
             x = self._tab.Vector(o)
             x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * 4
             x = self._tab.Indirect(x)
-            from .Surface import Surface
+            from DeepSeaScene.Surface import Surface
             obj = Surface()
             obj.Init(self._tab.Bytes, x)
             return obj
@@ -39,13 +41,18 @@ class View(object):
         return 0
 
     # View
+    def SurfacesIsNone(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
+        return o == 0
+
+    # View
     def Framebuffers(self, j):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         if o != 0:
             x = self._tab.Vector(o)
             x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * 4
             x = self._tab.Indirect(x)
-            from .Framebuffer import Framebuffer
+            from DeepSeaScene.Framebuffer import Framebuffer
             obj = Framebuffer()
             obj.Init(self._tab.Bytes, x)
             return obj
@@ -57,6 +64,11 @@ class View(object):
         if o != 0:
             return self._tab.VectorLen(o)
         return 0
+
+    # View
+    def FramebuffersIsNone(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
+        return o == 0
 
 def ViewStart(builder): builder.StartObject(2)
 def ViewAddSurfaces(builder, surfaces): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(surfaces), 0)

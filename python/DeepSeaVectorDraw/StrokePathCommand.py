@@ -3,6 +3,8 @@
 # namespace: DeepSeaVectorDraw
 
 import flatbuffers
+from flatbuffers.compat import import_numpy
+np = import_numpy()
 
 class StrokePathCommand(object):
     __slots__ = ['_tab']
@@ -65,7 +67,7 @@ class StrokePathCommand(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(16))
         if o != 0:
             x = o + self._tab.Pos
-            from .DashArray import DashArray
+            from DeepSeaVectorDraw.DashArray import DashArray
             obj = DashArray()
             obj.Init(self._tab.Bytes, x)
             return obj

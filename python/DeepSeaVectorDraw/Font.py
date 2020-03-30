@@ -3,6 +3,8 @@
 # namespace: DeepSeaVectorDraw
 
 import flatbuffers
+from flatbuffers.compat import import_numpy
+np = import_numpy()
 
 class Font(object):
     __slots__ = ['_tab']
@@ -46,6 +48,11 @@ class Font(object):
         if o != 0:
             return self._tab.VectorLen(o)
         return 0
+
+    # Font
+    def FacesIsNone(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
+        return o == 0
 
     # Font
     def Quality(self):

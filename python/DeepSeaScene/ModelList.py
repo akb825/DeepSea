@@ -3,6 +3,8 @@
 # namespace: DeepSeaScene
 
 import flatbuffers
+from flatbuffers.compat import import_numpy
+np = import_numpy()
 
 class ModelList(object):
     __slots__ = ['_tab']
@@ -25,7 +27,7 @@ class ModelList(object):
             x = self._tab.Vector(o)
             x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * 4
             x = self._tab.Indirect(x)
-            from .ObjectData import ObjectData
+            from DeepSeaScene.ObjectData import ObjectData
             obj = ObjectData()
             obj.Init(self._tab.Bytes, x)
             return obj
@@ -39,6 +41,11 @@ class ModelList(object):
         return 0
 
     # ModelList
+    def InstanceDataIsNone(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
+        return o == 0
+
+    # ModelList
     def SortType(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         if o != 0:
@@ -50,7 +57,7 @@ class ModelList(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
         if o != 0:
             x = self._tab.Indirect(o + self._tab.Pos)
-            from .DynamicRenderStates import DynamicRenderStates
+            from DeepSeaScene.DynamicRenderStates import DynamicRenderStates
             obj = DynamicRenderStates()
             obj.Init(self._tab.Bytes, x)
             return obj

@@ -37,16 +37,16 @@ class ConvertContext:
 			'ReferenceNode': convertReferenceNode
 		}
 
-	def addNodeType(self, typeName, loadFunc):
+	def addNodeType(self, typeName, convertFunc):
 		"""
-		Adds a node type with the name and the load function. The function should take the
+		Adds a node type with the name and the convert function. The function should take the
 		ConvertContext and dict for the data as parameters and return the flatbuffer bytes.
 
 		An exception will be raised if the type is already registered.
 		"""
 		if typeName in self.nodeTypeMap:
 			raise Exception('Node type "' + typeName + '" is already registered.')
-		self.nodeTypeMap[typeName] = loadFunc
+		self.nodeTypeMap[typeName] = convertFunc
 
 	def convertNode(self, builder, typeName, data):
 		"""

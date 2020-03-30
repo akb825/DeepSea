@@ -3,6 +3,8 @@
 # namespace: DeepSeaScene
 
 import flatbuffers
+from flatbuffers.compat import import_numpy
+np = import_numpy()
 
 class ShaderVariableGroupDesc(object):
     __slots__ = ['_tab']
@@ -32,7 +34,7 @@ class ShaderVariableGroupDesc(object):
             x = self._tab.Vector(o)
             x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * 4
             x = self._tab.Indirect(x)
-            from .VariableElement import VariableElement
+            from DeepSeaScene.VariableElement import VariableElement
             obj = VariableElement()
             obj.Init(self._tab.Bytes, x)
             return obj
@@ -44,6 +46,11 @@ class ShaderVariableGroupDesc(object):
         if o != 0:
             return self._tab.VectorLen(o)
         return 0
+
+    # ShaderVariableGroupDesc
+    def ElementsIsNone(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
+        return o == 0
 
 def ShaderVariableGroupDescStart(builder): builder.StartObject(2)
 def ShaderVariableGroupDescAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)

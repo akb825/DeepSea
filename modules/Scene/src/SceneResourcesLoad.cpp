@@ -965,20 +965,18 @@ static bool loadDrawGeometries(dsSceneResources* resources, dsResourceManager* r
 			auto fbVertexFormat = fbVertexBuffer->format();
 			DS_VERIFY(dsVertexFormat_initialize(&vertexBuffer->format));
 			vertexBuffer->format.instanced = fbVertexFormat->instanced();
-			uint32_t attribIndex = 0;
 			for (auto fbAttribute : *fbVertexFormat->attributes())
 			{
 				if (!fbAttribute)
-				{
-					++attribIndex;
 					continue;
-				}
 
+				uint32_t attribIndex = fbAttribute->attrib();
 				if (attribIndex > resourceManager->maxVertexAttribs)
 				{
 					errno = ESIZE;
 					PRINT_FLATBUFFER_RESOURCE_ERROR(
-						"Too many vertex attributes for vertex buffer '%s'", bufferName, fileName);
+						"Attribute index is out of range for vertex buffer '%s'", bufferName,
+						fileName);
 					return false;
 				}
 

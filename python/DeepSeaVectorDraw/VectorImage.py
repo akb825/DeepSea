@@ -3,6 +3,8 @@
 # namespace: DeepSeaVectorDraw
 
 import flatbuffers
+from flatbuffers.compat import import_numpy
+np = import_numpy()
 
 class VectorImage(object):
     __slots__ = ['_tab']
@@ -25,7 +27,7 @@ class VectorImage(object):
             x = self._tab.Vector(o)
             x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * 4
             x = self._tab.Indirect(x)
-            from .ColorMaterial import ColorMaterial
+            from DeepSeaVectorDraw.ColorMaterial import ColorMaterial
             obj = ColorMaterial()
             obj.Init(self._tab.Bytes, x)
             return obj
@@ -39,13 +41,18 @@ class VectorImage(object):
         return 0
 
     # VectorImage
+    def ColorMaterialsIsNone(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
+        return o == 0
+
+    # VectorImage
     def LinearGradients(self, j):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         if o != 0:
             x = self._tab.Vector(o)
             x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * 4
             x = self._tab.Indirect(x)
-            from .LinearGradient import LinearGradient
+            from DeepSeaVectorDraw.LinearGradient import LinearGradient
             obj = LinearGradient()
             obj.Init(self._tab.Bytes, x)
             return obj
@@ -59,13 +66,18 @@ class VectorImage(object):
         return 0
 
     # VectorImage
+    def LinearGradientsIsNone(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
+        return o == 0
+
+    # VectorImage
     def RadialGradients(self, j):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
         if o != 0:
             x = self._tab.Vector(o)
             x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * 4
             x = self._tab.Indirect(x)
-            from .RadialGradient import RadialGradient
+            from DeepSeaVectorDraw.RadialGradient import RadialGradient
             obj = RadialGradient()
             obj.Init(self._tab.Bytes, x)
             return obj
@@ -79,13 +91,18 @@ class VectorImage(object):
         return 0
 
     # VectorImage
+    def RadialGradientsIsNone(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
+        return o == 0
+
+    # VectorImage
     def Commands(self, j):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(10))
         if o != 0:
             x = self._tab.Vector(o)
             x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * 4
             x = self._tab.Indirect(x)
-            from .VectorCommand import VectorCommand
+            from DeepSeaVectorDraw.VectorCommand import VectorCommand
             obj = VectorCommand()
             obj.Init(self._tab.Bytes, x)
             return obj
@@ -99,11 +116,16 @@ class VectorImage(object):
         return 0
 
     # VectorImage
+    def CommandsIsNone(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(10))
+        return o == 0
+
+    # VectorImage
     def Size(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(12))
         if o != 0:
             x = o + self._tab.Pos
-            from .Vector2f import Vector2f
+            from DeepSeaVectorDraw.Vector2f import Vector2f
             obj = Vector2f()
             obj.Init(self._tab.Bytes, x)
             return obj

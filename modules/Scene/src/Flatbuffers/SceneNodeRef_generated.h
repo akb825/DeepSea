@@ -11,8 +11,10 @@
 namespace DeepSeaScene {
 
 struct SceneNodeRef;
+struct SceneNodeRefBuilder;
 
 struct SceneNodeRef FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef SceneNodeRefBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_NAME = 4
   };
@@ -28,6 +30,7 @@ struct SceneNodeRef FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 };
 
 struct SceneNodeRefBuilder {
+  typedef SceneNodeRef Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_name(flatbuffers::Offset<flatbuffers::String> name) {

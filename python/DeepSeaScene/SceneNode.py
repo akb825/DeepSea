@@ -3,6 +3,8 @@
 # namespace: DeepSeaScene
 
 import flatbuffers
+from flatbuffers.compat import import_numpy
+np = import_numpy()
 
 class SceneNode(object):
     __slots__ = ['_tab']
@@ -30,7 +32,7 @@ class SceneNode(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         if o != 0:
             x = self._tab.Indirect(o + self._tab.Pos)
-            from .ObjectData import ObjectData
+            from DeepSeaScene.ObjectData import ObjectData
             obj = ObjectData()
             obj.Init(self._tab.Bytes, x)
             return obj

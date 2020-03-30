@@ -9,8 +9,10 @@
 namespace DeepSeaScene {
 
 struct InstanceTransformData;
+struct InstanceTransformDataBuilder;
 
 struct InstanceTransformData FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef InstanceTransformDataBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_VARIABLEGROUPDESCNAME = 4
   };
@@ -26,6 +28,7 @@ struct InstanceTransformData FLATBUFFERS_FINAL_CLASS : private flatbuffers::Tabl
 };
 
 struct InstanceTransformDataBuilder {
+  typedef InstanceTransformData Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_variableGroupDescName(flatbuffers::Offset<flatbuffers::String> variableGroupDescName) {

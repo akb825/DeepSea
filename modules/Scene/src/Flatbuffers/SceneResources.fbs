@@ -204,6 +204,9 @@ table Shader
 // Structure describing a vertex attribute.
 struct VertexAttribute
 {
+	// The index of the attribute.
+	attrib: uint;
+
 	// The format for the vertex element.
 	format : VertexElementFormat;
 

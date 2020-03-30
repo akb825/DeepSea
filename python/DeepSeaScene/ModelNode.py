@@ -3,6 +3,8 @@
 # namespace: DeepSeaScene
 
 import flatbuffers
+from flatbuffers.compat import import_numpy
+np = import_numpy()
 
 class ModelNode(object):
     __slots__ = ['_tab']
@@ -41,6 +43,11 @@ class ModelNode(object):
         return 0
 
     # ModelNode
+    def EmbeddedResourcesIsNone(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
+        return o == 0
+
+    # ModelNode
     def ExtraItemLists(self, j):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         if o != 0:
@@ -56,13 +63,18 @@ class ModelNode(object):
         return 0
 
     # ModelNode
+    def ExtraItemListsIsNone(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
+        return o == 0
+
+    # ModelNode
     def Models(self, j):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
         if o != 0:
             x = self._tab.Vector(o)
             x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * 4
             x = self._tab.Indirect(x)
-            from .ModelInfo import ModelInfo
+            from DeepSeaScene.ModelInfo import ModelInfo
             obj = ModelInfo()
             obj.Init(self._tab.Bytes, x)
             return obj
@@ -76,11 +88,16 @@ class ModelNode(object):
         return 0
 
     # ModelNode
+    def ModelsIsNone(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
+        return o == 0
+
+    # ModelNode
     def Bounds(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(10))
         if o != 0:
             x = o + self._tab.Pos
-            from .OrientedBox3f import OrientedBox3f
+            from DeepSeaScene.OrientedBox3f import OrientedBox3f
             obj = OrientedBox3f()
             obj.Init(self._tab.Bytes, x)
             return obj

@@ -3,6 +3,8 @@
 # namespace: DeepSeaScene
 
 import flatbuffers
+from flatbuffers.compat import import_numpy
+np = import_numpy()
 
 class VariableData(object):
     __slots__ = ['_tab']
@@ -67,6 +69,11 @@ class VariableData(object):
         if o != 0:
             return self._tab.VectorLen(o)
         return 0
+
+    # VariableData
+    def DataIsNone(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(12))
+        return o == 0
 
 def VariableDataStart(builder): builder.StartObject(5)
 def VariableDataAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)

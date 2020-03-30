@@ -3,6 +3,8 @@
 # namespace: DeepSeaScene
 
 import flatbuffers
+from flatbuffers.compat import import_numpy
+np = import_numpy()
 
 class VertexFormat(object):
     __slots__ = ['_tab']
@@ -23,8 +25,8 @@ class VertexFormat(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         if o != 0:
             x = self._tab.Vector(o)
-            x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * 2
-            from .VertexAttribute import VertexAttribute
+            x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * 8
+            from DeepSeaScene.VertexAttribute import VertexAttribute
             obj = VertexAttribute()
             obj.Init(self._tab.Bytes, x)
             return obj
@@ -38,6 +40,11 @@ class VertexFormat(object):
         return 0
 
     # VertexFormat
+    def AttributesIsNone(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
+        return o == 0
+
+    # VertexFormat
     def Instanced(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         if o != 0:
@@ -46,6 +53,6 @@ class VertexFormat(object):
 
 def VertexFormatStart(builder): builder.StartObject(2)
 def VertexFormatAddAttributes(builder, attributes): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(attributes), 0)
-def VertexFormatStartAttributesVector(builder, numElems): return builder.StartVector(2, numElems, 1)
+def VertexFormatStartAttributesVector(builder, numElems): return builder.StartVector(8, numElems, 4)
 def VertexFormatAddInstanced(builder, instanced): builder.PrependBoolSlot(1, instanced, 0)
 def VertexFormatEnd(builder): return builder.EndObject()

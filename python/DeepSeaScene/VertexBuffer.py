@@ -3,6 +3,8 @@
 # namespace: DeepSeaScene
 
 import flatbuffers
+from flatbuffers.compat import import_numpy
+np = import_numpy()
 
 class VertexBuffer(object):
     __slots__ = ['_tab']
@@ -44,7 +46,7 @@ class VertexBuffer(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(10))
         if o != 0:
             x = self._tab.Indirect(o + self._tab.Pos)
-            from .VertexFormat import VertexFormat
+            from DeepSeaScene.VertexFormat import VertexFormat
             obj = VertexFormat()
             obj.Init(self._tab.Bytes, x)
             return obj

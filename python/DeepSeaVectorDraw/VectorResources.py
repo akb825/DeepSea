@@ -3,6 +3,8 @@
 # namespace: DeepSeaVectorDraw
 
 import flatbuffers
+from flatbuffers.compat import import_numpy
+np = import_numpy()
 
 class VectorResources(object):
     __slots__ = ['_tab']
@@ -25,7 +27,7 @@ class VectorResources(object):
             x = self._tab.Vector(o)
             x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * 4
             x = self._tab.Indirect(x)
-            from .Resource import Resource
+            from DeepSeaVectorDraw.Resource import Resource
             obj = Resource()
             obj.Init(self._tab.Bytes, x)
             return obj
@@ -39,13 +41,18 @@ class VectorResources(object):
         return 0
 
     # VectorResources
+    def TexturesIsNone(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
+        return o == 0
+
+    # VectorResources
     def FaceGroups(self, j):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         if o != 0:
             x = self._tab.Vector(o)
             x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * 4
             x = self._tab.Indirect(x)
-            from .FaceGroup import FaceGroup
+            from DeepSeaVectorDraw.FaceGroup import FaceGroup
             obj = FaceGroup()
             obj.Init(self._tab.Bytes, x)
             return obj
@@ -59,13 +66,18 @@ class VectorResources(object):
         return 0
 
     # VectorResources
+    def FaceGroupsIsNone(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
+        return o == 0
+
+    # VectorResources
     def Fonts(self, j):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
         if o != 0:
             x = self._tab.Vector(o)
             x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * 4
             x = self._tab.Indirect(x)
-            from .Font import Font
+            from DeepSeaVectorDraw.Font import Font
             obj = Font()
             obj.Init(self._tab.Bytes, x)
             return obj
@@ -77,6 +89,11 @@ class VectorResources(object):
         if o != 0:
             return self._tab.VectorLen(o)
         return 0
+
+    # VectorResources
+    def FontsIsNone(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
+        return o == 0
 
 def VectorResourcesStart(builder): builder.StartObject(3)
 def VectorResourcesAddTextures(builder, textures): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(textures), 0)

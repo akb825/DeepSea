@@ -3,6 +3,8 @@
 # namespace: DeepSeaScene
 
 import flatbuffers
+from flatbuffers.compat import import_numpy
+np = import_numpy()
 
 class RenderPass(object):
     __slots__ = ['_tab']
@@ -39,7 +41,7 @@ class RenderPass(object):
             x = self._tab.Vector(o)
             x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * 4
             x = self._tab.Indirect(x)
-            from .Attachment import Attachment
+            from DeepSeaScene.Attachment import Attachment
             obj = Attachment()
             obj.Init(self._tab.Bytes, x)
             return obj
@@ -53,13 +55,18 @@ class RenderPass(object):
         return 0
 
     # RenderPass
+    def AttachmentsIsNone(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
+        return o == 0
+
+    # RenderPass
     def Subpasses(self, j):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(10))
         if o != 0:
             x = self._tab.Vector(o)
             x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * 4
             x = self._tab.Indirect(x)
-            from .RenderSubpass import RenderSubpass
+            from DeepSeaScene.RenderSubpass import RenderSubpass
             obj = RenderSubpass()
             obj.Init(self._tab.Bytes, x)
             return obj
@@ -73,12 +80,17 @@ class RenderPass(object):
         return 0
 
     # RenderPass
+    def SubpassesIsNone(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(10))
+        return o == 0
+
+    # RenderPass
     def Dependencies(self, j):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(12))
         if o != 0:
             x = self._tab.Vector(o)
             x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * 28
-            from .SubpassDependency import SubpassDependency
+            from DeepSeaScene.SubpassDependency import SubpassDependency
             obj = SubpassDependency()
             obj.Init(self._tab.Bytes, x)
             return obj
@@ -90,6 +102,11 @@ class RenderPass(object):
         if o != 0:
             return self._tab.VectorLen(o)
         return 0
+
+    # RenderPass
+    def DependenciesIsNone(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(12))
+        return o == 0
 
 def RenderPassStart(builder): builder.StartObject(5)
 def RenderPassAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)

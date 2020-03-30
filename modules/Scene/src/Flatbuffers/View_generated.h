@@ -11,12 +11,16 @@
 namespace DeepSeaScene {
 
 struct Surface;
+struct SurfaceBuilder;
 
 struct FramebufferSurface;
+struct FramebufferSurfaceBuilder;
 
 struct Framebuffer;
+struct FramebufferBuilder;
 
 struct View;
+struct ViewBuilder;
 
 enum class SurfaceType : uint8_t {
   Renderbuffer = 0,
@@ -34,7 +38,7 @@ inline const SurfaceType (&EnumValuesSurfaceType())[2] {
 }
 
 inline const char * const *EnumNamesSurfaceType() {
-  static const char * const names[] = {
+  static const char * const names[3] = {
     "Renderbuffer",
     "Offscreen",
     nullptr
@@ -43,12 +47,13 @@ inline const char * const *EnumNamesSurfaceType() {
 }
 
 inline const char *EnumNameSurfaceType(SurfaceType e) {
-  if (e < SurfaceType::Renderbuffer || e > SurfaceType::Offscreen) return "";
+  if (flatbuffers::IsOutRange(e, SurfaceType::Renderbuffer, SurfaceType::Offscreen)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesSurfaceType()[index];
 }
 
 struct Surface FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef SurfaceBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_NAME = 4,
     VT_TYPE = 6,
@@ -70,8 +75,8 @@ struct Surface FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const flatbuffers::String *name() const {
     return GetPointer<const flatbuffers::String *>(VT_NAME);
   }
-  SurfaceType type() const {
-    return static_cast<SurfaceType>(GetField<uint8_t>(VT_TYPE, 0));
+  DeepSeaScene::SurfaceType type() const {
+    return static_cast<DeepSeaScene::SurfaceType>(GetField<uint8_t>(VT_TYPE, 0));
   }
   uint32_t usage() const {
     return GetField<uint32_t>(VT_USAGE, 0);
@@ -79,14 +84,14 @@ struct Surface FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   uint32_t memoryHints() const {
     return GetField<uint32_t>(VT_MEMORYHINTS, 0);
   }
-  TextureDim dimension() const {
-    return static_cast<TextureDim>(GetField<uint8_t>(VT_DIMENSION, 0));
+  DeepSeaScene::TextureDim dimension() const {
+    return static_cast<DeepSeaScene::TextureDim>(GetField<uint8_t>(VT_DIMENSION, 0));
   }
-  TextureFormat format() const {
-    return static_cast<TextureFormat>(GetField<uint8_t>(VT_FORMAT, 0));
+  DeepSeaScene::TextureFormat format() const {
+    return static_cast<DeepSeaScene::TextureFormat>(GetField<uint8_t>(VT_FORMAT, 0));
   }
-  FormatDecoration decoration() const {
-    return static_cast<FormatDecoration>(GetField<uint8_t>(VT_DECORATION, 0));
+  DeepSeaScene::FormatDecoration decoration() const {
+    return static_cast<DeepSeaScene::FormatDecoration>(GetField<uint8_t>(VT_DECORATION, 0));
   }
   uint32_t depth() const {
     return GetField<uint32_t>(VT_DEPTH, 0);
@@ -139,12 +144,13 @@ struct Surface FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 };
 
 struct SurfaceBuilder {
+  typedef Surface Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_name(flatbuffers::Offset<flatbuffers::String> name) {
     fbb_.AddOffset(Surface::VT_NAME, name);
   }
-  void add_type(SurfaceType type) {
+  void add_type(DeepSeaScene::SurfaceType type) {
     fbb_.AddElement<uint8_t>(Surface::VT_TYPE, static_cast<uint8_t>(type), 0);
   }
   void add_usage(uint32_t usage) {
@@ -153,13 +159,13 @@ struct SurfaceBuilder {
   void add_memoryHints(uint32_t memoryHints) {
     fbb_.AddElement<uint32_t>(Surface::VT_MEMORYHINTS, memoryHints, 0);
   }
-  void add_dimension(TextureDim dimension) {
+  void add_dimension(DeepSeaScene::TextureDim dimension) {
     fbb_.AddElement<uint8_t>(Surface::VT_DIMENSION, static_cast<uint8_t>(dimension), 0);
   }
-  void add_format(TextureFormat format) {
+  void add_format(DeepSeaScene::TextureFormat format) {
     fbb_.AddElement<uint8_t>(Surface::VT_FORMAT, static_cast<uint8_t>(format), 0);
   }
-  void add_decoration(FormatDecoration decoration) {
+  void add_decoration(DeepSeaScene::FormatDecoration decoration) {
     fbb_.AddElement<uint8_t>(Surface::VT_DECORATION, static_cast<uint8_t>(decoration), 0);
   }
   void add_depth(uint32_t depth) {
@@ -205,12 +211,12 @@ struct SurfaceBuilder {
 inline flatbuffers::Offset<Surface> CreateSurface(
     flatbuffers::FlatBufferBuilder &_fbb,
     flatbuffers::Offset<flatbuffers::String> name = 0,
-    SurfaceType type = SurfaceType::Renderbuffer,
+    DeepSeaScene::SurfaceType type = DeepSeaScene::SurfaceType::Renderbuffer,
     uint32_t usage = 0,
     uint32_t memoryHints = 0,
-    TextureDim dimension = TextureDim::Dim1D,
-    TextureFormat format = TextureFormat::R4G4,
-    FormatDecoration decoration = FormatDecoration::UNorm,
+    DeepSeaScene::TextureDim dimension = DeepSeaScene::TextureDim::Dim1D,
+    DeepSeaScene::TextureFormat format = DeepSeaScene::TextureFormat::R4G4,
+    DeepSeaScene::FormatDecoration decoration = DeepSeaScene::FormatDecoration::UNorm,
     uint32_t depth = 0,
     uint8_t mipLevels = 0,
     uint32_t width = 0,
@@ -243,12 +249,12 @@ inline flatbuffers::Offset<Surface> CreateSurface(
 inline flatbuffers::Offset<Surface> CreateSurfaceDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     const char *name = nullptr,
-    SurfaceType type = SurfaceType::Renderbuffer,
+    DeepSeaScene::SurfaceType type = DeepSeaScene::SurfaceType::Renderbuffer,
     uint32_t usage = 0,
     uint32_t memoryHints = 0,
-    TextureDim dimension = TextureDim::Dim1D,
-    TextureFormat format = TextureFormat::R4G4,
-    FormatDecoration decoration = FormatDecoration::UNorm,
+    DeepSeaScene::TextureDim dimension = DeepSeaScene::TextureDim::Dim1D,
+    DeepSeaScene::TextureFormat format = DeepSeaScene::TextureFormat::R4G4,
+    DeepSeaScene::FormatDecoration decoration = DeepSeaScene::FormatDecoration::UNorm,
     uint32_t depth = 0,
     uint8_t mipLevels = 0,
     uint32_t width = 0,
@@ -280,6 +286,7 @@ inline flatbuffers::Offset<Surface> CreateSurfaceDirect(
 }
 
 struct FramebufferSurface FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef FramebufferSurfaceBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_NAME = 4,
     VT_FACE = 6,
@@ -289,8 +296,8 @@ struct FramebufferSurface FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const flatbuffers::String *name() const {
     return GetPointer<const flatbuffers::String *>(VT_NAME);
   }
-  CubeFace face() const {
-    return static_cast<CubeFace>(GetField<uint8_t>(VT_FACE, 0));
+  DeepSeaScene::CubeFace face() const {
+    return static_cast<DeepSeaScene::CubeFace>(GetField<uint8_t>(VT_FACE, 0));
   }
   uint32_t layer() const {
     return GetField<uint32_t>(VT_LAYER, 0);
@@ -310,12 +317,13 @@ struct FramebufferSurface FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 };
 
 struct FramebufferSurfaceBuilder {
+  typedef FramebufferSurface Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_name(flatbuffers::Offset<flatbuffers::String> name) {
     fbb_.AddOffset(FramebufferSurface::VT_NAME, name);
   }
-  void add_face(CubeFace face) {
+  void add_face(DeepSeaScene::CubeFace face) {
     fbb_.AddElement<uint8_t>(FramebufferSurface::VT_FACE, static_cast<uint8_t>(face), 0);
   }
   void add_layer(uint32_t layer) {
@@ -340,7 +348,7 @@ struct FramebufferSurfaceBuilder {
 inline flatbuffers::Offset<FramebufferSurface> CreateFramebufferSurface(
     flatbuffers::FlatBufferBuilder &_fbb,
     flatbuffers::Offset<flatbuffers::String> name = 0,
-    CubeFace face = CubeFace::PosX,
+    DeepSeaScene::CubeFace face = DeepSeaScene::CubeFace::PosX,
     uint32_t layer = 0,
     uint32_t mipLevel = 0) {
   FramebufferSurfaceBuilder builder_(_fbb);
@@ -354,7 +362,7 @@ inline flatbuffers::Offset<FramebufferSurface> CreateFramebufferSurface(
 inline flatbuffers::Offset<FramebufferSurface> CreateFramebufferSurfaceDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     const char *name = nullptr,
-    CubeFace face = CubeFace::PosX,
+    DeepSeaScene::CubeFace face = DeepSeaScene::CubeFace::PosX,
     uint32_t layer = 0,
     uint32_t mipLevel = 0) {
   auto name__ = name ? _fbb.CreateString(name) : 0;
@@ -367,6 +375,7 @@ inline flatbuffers::Offset<FramebufferSurface> CreateFramebufferSurfaceDirect(
 }
 
 struct Framebuffer FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef FramebufferBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_NAME = 4,
     VT_SURFACES = 6,
@@ -378,8 +387,8 @@ struct Framebuffer FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const flatbuffers::String *name() const {
     return GetPointer<const flatbuffers::String *>(VT_NAME);
   }
-  const flatbuffers::Vector<flatbuffers::Offset<FramebufferSurface>> *surfaces() const {
-    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<FramebufferSurface>> *>(VT_SURFACES);
+  const flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::FramebufferSurface>> *surfaces() const {
+    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::FramebufferSurface>> *>(VT_SURFACES);
   }
   float width() const {
     return GetField<float>(VT_WIDTH, 0.0f);
@@ -390,8 +399,8 @@ struct Framebuffer FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   uint32_t layers() const {
     return GetField<uint32_t>(VT_LAYERS, 0);
   }
-  const AlignedBox3f *viewport() const {
-    return GetStruct<const AlignedBox3f *>(VT_VIEWPORT);
+  const DeepSeaScene::AlignedBox3f *viewport() const {
+    return GetStruct<const DeepSeaScene::AlignedBox3f *>(VT_VIEWPORT);
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -403,18 +412,19 @@ struct Framebuffer FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            VerifyField<float>(verifier, VT_WIDTH) &&
            VerifyField<float>(verifier, VT_HEIGHT) &&
            VerifyField<uint32_t>(verifier, VT_LAYERS) &&
-           VerifyField<AlignedBox3f>(verifier, VT_VIEWPORT) &&
+           VerifyField<DeepSeaScene::AlignedBox3f>(verifier, VT_VIEWPORT) &&
            verifier.EndTable();
   }
 };
 
 struct FramebufferBuilder {
+  typedef Framebuffer Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_name(flatbuffers::Offset<flatbuffers::String> name) {
     fbb_.AddOffset(Framebuffer::VT_NAME, name);
   }
-  void add_surfaces(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<FramebufferSurface>>> surfaces) {
+  void add_surfaces(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::FramebufferSurface>>> surfaces) {
     fbb_.AddOffset(Framebuffer::VT_SURFACES, surfaces);
   }
   void add_width(float width) {
@@ -426,7 +436,7 @@ struct FramebufferBuilder {
   void add_layers(uint32_t layers) {
     fbb_.AddElement<uint32_t>(Framebuffer::VT_LAYERS, layers, 0);
   }
-  void add_viewport(const AlignedBox3f *viewport) {
+  void add_viewport(const DeepSeaScene::AlignedBox3f *viewport) {
     fbb_.AddStruct(Framebuffer::VT_VIEWPORT, viewport);
   }
   explicit FramebufferBuilder(flatbuffers::FlatBufferBuilder &_fbb)
@@ -445,11 +455,11 @@ struct FramebufferBuilder {
 inline flatbuffers::Offset<Framebuffer> CreateFramebuffer(
     flatbuffers::FlatBufferBuilder &_fbb,
     flatbuffers::Offset<flatbuffers::String> name = 0,
-    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<FramebufferSurface>>> surfaces = 0,
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::FramebufferSurface>>> surfaces = 0,
     float width = 0.0f,
     float height = 0.0f,
     uint32_t layers = 0,
-    const AlignedBox3f *viewport = 0) {
+    const DeepSeaScene::AlignedBox3f *viewport = 0) {
   FramebufferBuilder builder_(_fbb);
   builder_.add_viewport(viewport);
   builder_.add_layers(layers);
@@ -463,13 +473,13 @@ inline flatbuffers::Offset<Framebuffer> CreateFramebuffer(
 inline flatbuffers::Offset<Framebuffer> CreateFramebufferDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     const char *name = nullptr,
-    const std::vector<flatbuffers::Offset<FramebufferSurface>> *surfaces = nullptr,
+    const std::vector<flatbuffers::Offset<DeepSeaScene::FramebufferSurface>> *surfaces = nullptr,
     float width = 0.0f,
     float height = 0.0f,
     uint32_t layers = 0,
-    const AlignedBox3f *viewport = 0) {
+    const DeepSeaScene::AlignedBox3f *viewport = 0) {
   auto name__ = name ? _fbb.CreateString(name) : 0;
-  auto surfaces__ = surfaces ? _fbb.CreateVector<flatbuffers::Offset<FramebufferSurface>>(*surfaces) : 0;
+  auto surfaces__ = surfaces ? _fbb.CreateVector<flatbuffers::Offset<DeepSeaScene::FramebufferSurface>>(*surfaces) : 0;
   return DeepSeaScene::CreateFramebuffer(
       _fbb,
       name__,
@@ -481,15 +491,16 @@ inline flatbuffers::Offset<Framebuffer> CreateFramebufferDirect(
 }
 
 struct View FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef ViewBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_SURFACES = 4,
     VT_FRAMEBUFFERS = 6
   };
-  const flatbuffers::Vector<flatbuffers::Offset<Surface>> *surfaces() const {
-    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<Surface>> *>(VT_SURFACES);
+  const flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::Surface>> *surfaces() const {
+    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::Surface>> *>(VT_SURFACES);
   }
-  const flatbuffers::Vector<flatbuffers::Offset<Framebuffer>> *framebuffers() const {
-    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<Framebuffer>> *>(VT_FRAMEBUFFERS);
+  const flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::Framebuffer>> *framebuffers() const {
+    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::Framebuffer>> *>(VT_FRAMEBUFFERS);
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -504,12 +515,13 @@ struct View FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 };
 
 struct ViewBuilder {
+  typedef View Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
-  void add_surfaces(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<Surface>>> surfaces) {
+  void add_surfaces(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::Surface>>> surfaces) {
     fbb_.AddOffset(View::VT_SURFACES, surfaces);
   }
-  void add_framebuffers(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<Framebuffer>>> framebuffers) {
+  void add_framebuffers(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::Framebuffer>>> framebuffers) {
     fbb_.AddOffset(View::VT_FRAMEBUFFERS, framebuffers);
   }
   explicit ViewBuilder(flatbuffers::FlatBufferBuilder &_fbb)
@@ -527,8 +539,8 @@ struct ViewBuilder {
 
 inline flatbuffers::Offset<View> CreateView(
     flatbuffers::FlatBufferBuilder &_fbb,
-    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<Surface>>> surfaces = 0,
-    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<Framebuffer>>> framebuffers = 0) {
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::Surface>>> surfaces = 0,
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::Framebuffer>>> framebuffers = 0) {
   ViewBuilder builder_(_fbb);
   builder_.add_framebuffers(framebuffers);
   builder_.add_surfaces(surfaces);
@@ -537,10 +549,10 @@ inline flatbuffers::Offset<View> CreateView(
 
 inline flatbuffers::Offset<View> CreateViewDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
-    const std::vector<flatbuffers::Offset<Surface>> *surfaces = nullptr,
-    const std::vector<flatbuffers::Offset<Framebuffer>> *framebuffers = nullptr) {
-  auto surfaces__ = surfaces ? _fbb.CreateVector<flatbuffers::Offset<Surface>>(*surfaces) : 0;
-  auto framebuffers__ = framebuffers ? _fbb.CreateVector<flatbuffers::Offset<Framebuffer>>(*framebuffers) : 0;
+    const std::vector<flatbuffers::Offset<DeepSeaScene::Surface>> *surfaces = nullptr,
+    const std::vector<flatbuffers::Offset<DeepSeaScene::Framebuffer>> *framebuffers = nullptr) {
+  auto surfaces__ = surfaces ? _fbb.CreateVector<flatbuffers::Offset<DeepSeaScene::Surface>>(*surfaces) : 0;
+  auto framebuffers__ = framebuffers ? _fbb.CreateVector<flatbuffers::Offset<DeepSeaScene::Framebuffer>>(*framebuffers) : 0;
   return DeepSeaScene::CreateView(
       _fbb,
       surfaces__,
