@@ -847,7 +847,7 @@ def convertSceneResourcesShaderData(builder, convertContext, data, memberName):
 				'SceneResources shader data element doesn\'t contain element "' + str(e) + '".')
 
 		nameOffset = builder.CreateString(name)
-		dataOffset = builder.CreateBytesVector(dataBytes)
+		dataOffset = builder.CreateByteVector(dataBytes)
 
 		VariableDataStart(builder)
 		VariableDataAddName(builder, nameOffset)
@@ -1163,7 +1163,8 @@ def convertSceneResourcesDrawGeometries(builder, convertContext, data):
 				attributeOffsets = []
 				for attribute in vertexBuffer.format.attributes:
 					attributeOffsets.append(
-						CreateVertexAttribute(builder, attribute.format, attribute.decoration))
+						CreateVertexAttribute(builder, attribute.attrib, attribute.format,
+							attribute.decoration))
 
 				VertexFormatStartAttributesVector(builder, len(attributeOffsets))
 				for offset in reversed(attributeOffsets):

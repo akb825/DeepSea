@@ -17,12 +17,19 @@ from copy import copy
 import json
 import flatbuffers
 from subprocess import Popen, PIPE
+from .DrawIndexedRange import *
+from .DrawRange import *
 from .FormatDecoration import *
 from .ModelDrawRange import *
+from .ModelInfo import *
 from .ModelNode import *
+from .OrientedBox3f import *
 from .PrimitiveType import *
 from .SceneResourcesConvert import convertSceneResources, readVertexAttrib
+from .Vector2f import *
 from .VertexFormat import *
+
+FLT_MAX = 3.402823466e38
 
 validModelVertexTransforms = {
 	'Identity',
@@ -104,7 +111,7 @@ def convertModelNodeGeometry(convertContext, modelGeometry, embeddedResources):
 				'" must be an array of objects.')
 
 	def convertGeometry(convertContext, modelType, path, vertexFormat, indexSize, primitiveType,
-			patchPoints, transforms, combinedBuffer):
+			patchPoints, transforms, combinedBuffer, modelBounds):
 		def getIndexType(indexSize):
 			if indexSize == 2:
 				return 'UInt16'
@@ -130,6 +137,11 @@ def convertModelNodeGeometry(convertContext, modelGeometry, embeddedResources):
 		vfcTransforms = []
 		for attrib, transform in transforms:
 			vfcTransforms.append({'name': str(attrib), 'transform': transform})
+
+		if primitiveType == 'TriangleListAdjacency':
+			primitiveType = 'TriangleList'
+		elif primitiveType == 'TriangleStripAdjacency':
+			primitiveType = 'TriangleStrip'
 
 		geometryDataList = convertContext.modelTypeMap[modelType](convertContext, path)
 		convertedGeometry = dict()
@@ -217,6 +229,15 @@ def convertModelNodeGeometry(convertContext, modelGeometry, embeddedResources):
 								indexBuffer.firstIndex = 0
 							indexBuffer.indexSize = indexSize
 							geometry.indexBuffers.append(indexBuffer)
+
+					# Update the bounds.
+					for attribFormat in vfcOutput['vertexFormat']:
+						if attribFormat['name'] == '0':
+							minValue = attribFormat['minValue']
+							maxValue = attribFormat['maxValue']
+							for i in range(3):
+								modelBounds[0][i] = min(modelBounds[0][i], minValue[i])
+								modelBounds[1][i] = max(modelBounds[1][i], maxValue[i])
 				except:
 					raise Exception('Internal error: unexpected output from vfc.')
 
@@ -232,6 +253,7 @@ def convertModelNodeGeometry(convertContext, modelGeometry, embeddedResources):
 	combinedBuffer = bytearray()
 	geometries = []
 	models = []
+	modelBounds = [[FLT_MAX, FLT_MAX, FLT_MAX], [-FLT_MAX, -FLT_MAX, -FLT_MAX]]
 	try:
 		for geometryData in modelGeometry:
 			try:
@@ -311,7 +333,7 @@ def convertModelNodeGeometry(convertContext, modelGeometry, embeddedResources):
 					'ModelNode "modelGeometry" doesn\'t contain element "' + str(e) + '".')
 
 			convertedGeometry = convertGeometry(convertContext, modelType, path, vfcVertexFormat,
-				indexSize, primitiveType, patchPoints, transforms, combinedBuffer)
+				indexSize, primitiveType, patchPoints, transforms, combinedBuffer, modelBounds)
 
 			# Geometries to be added to the embedded resources.
 			for name, geometry in convertedGeometry:
@@ -350,6 +372,8 @@ def convertModelNodeGeometry(convertContext, modelGeometry, embeddedResources):
 				geometries.append(geometryInfo)
 				convertedGeometry[name].geometryName = geometryName
 
+			# Add the models associating the shader, material, draw list, and draw range with the
+			# converted geometry.
 			try:
 				for info in drawInfo:
 					try:
@@ -359,8 +383,7 @@ def convertModelNodeGeometry(convertContext, modelGeometry, embeddedResources):
 						modelInfo.material = str(info['material'])
 						modelInfo.listName = str(info['listName'])
 
-						modelInfo.distanceRange = info.get('distanceRange',
-							[0.0, 3.402823466e38])
+						modelInfo.distanceRange = info.get('distanceRange', [0.0, FLT_MAX])
 						validateModelDistanceRange(modelInfo.distanceRange)
 					except KeyError as e:
 						raise Exception('Model geometry draw info doesn\'t contain element "' +
@@ -372,7 +395,7 @@ def convertModelNodeGeometry(convertContext, modelGeometry, embeddedResources):
 							path + '".')
 
 					modelInfo.geometry = baseGeometry.geometryName
-					modelInfo.primitiveType = baseGeometry.primitiveType
+					modelInfo.primitiveType = getattr(PrimitiveType, baseGeometry.primitiveType)
 
 					if baseGeometry.indexBuffers:
 						for indexBuffer in baseGeometry.indexBuffers:
@@ -408,6 +431,73 @@ def convertModelNodeGeometry(convertContext, modelGeometry, embeddedResources):
 	}
 	addModelEmbeddedResources(embeddedResources, 'buffers', [embeddedBuffer])
 	addModelEmbeddedResources(embeddedResources, 'drawGeometries', geometries)
+	return models, modelBounds
+
+def convertModelNodeModels(modelInfoList):
+	def convertDrawRange(drawRangeInfo):
+		def readInt(value, name, minVal):
+			try:
+				intVal = int(value)
+				if intVal < minVal:
+					raise Exception() # Common error handling in except block.
+				return intVal
+			except:
+				raise Exception('Invalid draw range ' + name + ' "' + str(value) + '".')
+
+		drawRange = object()
+		try:
+			hasIndexCount = 'indexCount' in drawRangeInfo
+			hasVertexCount = 'vertexCount' in drawRangeInfo
+			if hasIndexCount and not hasVertexCount:
+				drawRange.rangeType = ModelDrawRange.DrawIndexedRange
+				drawRange.indexCount = readInt(drawRangeInfo['indexCount'], 'indexCount', 1)
+				drawRange.firstIndex = readInt(drawRangeInfo.get('firstIndex', 0), 'firstIndex', 0)
+				drawRange.vertexOffset = readInt(drawRangeInfo.get('vertexOffset', 0),
+					'vertexOffset', 0)
+			elif not hasIndexCount and hasVertexCount:
+				drawRange.rangeType = ModelDrawRange.DrawRange
+				drawRange.vertexCount = readInt(drawRangeInfo['vertexCount'], 'vertexCount', 1)
+				drawRange.firstVertex = readInt(drawRangeInfo.get('firstVertex', 0),
+					'firstVertex', 0)
+			else:
+				raise Exception('Model draw range must have either "indexCount" or "vertexCount".')
+
+			drawRange.instanceCount = readInt(drawRangeInfo.get('instanceCount', 1),
+				'instanceCount', 1)
+			drawRange.firstInstance = readInt(drawRangeInfo.get('firstInstance', 0),
+				'firstInstance', 0)
+		except KeyError as e:
+			raise Exception('Model draw range doesn\'t contain element "' + str(e) + '".')
+		except (TypeError, ValueError):
+			raise Exception('Model draw range must be an object.')
+
+		return drawRange
+
+	models = []
+	try:
+		for info in modelInfoList:
+			try:
+				model = object()
+				model.shader = info['shader']
+				model.material = info['material']
+				model.geometry = info['geometry']
+				model.distanceRange = info.get('distanceRange', [0.0, FLT_MAX])
+				validateModelDistanceRange(model.distanceRange)
+				model.drawRange = convertDrawRange(info['drawRange'])
+
+				primitiveTypeStr = info.get('primitiveType', 'TriangleList')
+				try:
+					model.primitiveType = getattr(PrimitiveType, primitiveTypeStr)
+				except AttributeError:
+					raise Exception(
+						'Invalid geometry primitive type "' + str(primitiveTypeStr) + '".')
+
+				model.listName = info['listName']
+			except KeyError as e:
+				raise Exception('ModelNode "models" doesn\'t contain element "' + str(e) + '".')
+	except (TypeError, ValueError):
+		raise Exception('ModelNode "models" must be an array of objects.')
+
 	return models
 
 def convertModelNode(convertContext, data):
@@ -475,8 +565,6 @@ def convertModelNode(convertContext, data):
 	  will be automatically calculated from geometry in modelGeometry if unset. Otherwise if unset
 	  the model will have no explicit bounds for culling.
 	"""
-	builder = flatbuffers.Builder(0)
-
 	try:
 		embeddedResources = data.get('embeddedResources', dict())
 		if not isinstance(embeddedResources, dict):
@@ -484,10 +572,115 @@ def convertModelNode(convertContext, data):
 		
 		modelGeometry = data.get('modelGeometry')
 		if modelGeometry:
-			models = convertModelNodeGeometry(convertContext, modelGeometry, embeddedResources)
+			models, modelBounds = convertModelNodeGeometry(convertContext, modelGeometry,
+				embeddedResources)
 		else:
 			models = []
+			modelBounds = None
+
+		modelInfoList = data.get('models')
+		if modelInfoList:
+			models.extend(convertModelNodeModels(modelInfoList))
+
+		extraItemLists = data.get('extraItemLists')
+		if 'bounds' in data:
+			modelBounds = data['bounds']
+			try:
+				if len(modelBounds) != 2:
+					raise Exception()
+				for bound in modelBounds:
+					if len(bound) != 3:
+						raise Exception()
+					for val in bound:
+						if not isinstance(val, float):
+							raise Exception()
+			except:
+				raise Exception('Invalid model bounds "' + str(modelBounds) + '".')
 	except (TypeError, ValueError):
 		raise Exception('ModelNode data must be an object.')
 	except KeyError as e:
 		raise Exception('ModelNode data doesn\'t contain element "' + str(e) + '".')
+
+	builder = flatbuffers.Builder(0)
+	if embeddedResources:
+		embeddedResourcesData = convertSceneResources(convertContext, embeddedResources)
+		embeddedResourcesOffset = builder.CreateByteVector(embeddedResourcesData)
+	else:
+		embeddedResourcesOffset = 0
+
+	if extraItemLists:
+		extraItemListOffsets = []
+		try:
+			for item in extraItemLists:
+				extraItemListOffsets = builder.CreateString(str(item))
+		except (TypeError, ValueError):
+			raise Exception('ModelNode "extraItemLists" must be an array of strings.')
+
+		ModelNodeStartExtraItemListsVector(builder, len(extraItemListOffsets))
+		for offset in reversed(extraItemListOffsets):
+			builder.PrependUOffsetTRelative(offset)
+		extraItemListsOffset = builder.EndVector(len(extraItemListOffsets))
+	else:
+		extraItemListsOffset = 0
+
+	modelOffsets = []
+	for model in models:
+		shaderOffset = builder.CreateString(model.shader)
+		materialOffset = builder.CreateString(model.material)
+		geometryOffset = builder.CreateString(model.geometry)
+		distanceRangeOffset = CreateVector2f(builder, model.distanceRange[0],
+			model.distanceRange[1])
+
+		drawRange = model.drawRange
+		if drawRange.rangeType == ModelDrawRange.DrawIndexedRange:
+			DrawIndexedRangeStart(builder)
+			DrawIndexedRangeAddIndexCount(builder, drawRange.indexCount)
+			DrawIndexedRangeAddInstanceCount(builder, drawRange.instanceCount)
+			DrawIndexedRangeAddFirstIndex(builder, drawRange.firstIndex)
+			DrawIndexedRangeAddVertexOffset(builder, drawRange.vertexOffset)
+			DrawIndexedRangeAddFirstInstance(builder, drawRange.firstInstance)
+			drawRangeOffset = DrawIndexedRangeEnd(builder)
+		else:
+			DrawRangeStart(builder)
+			DrawRangeAddVertexCount(builder, drawRange.vertexCount)
+			DrawRangeAddInstanceCount(builder, drawRange.instanceCount)
+			DrawRangeAddFirstVertex(builder, drawRange.firstVertex)
+			DrawRangeAddFirstInstance(builder, drawRange.firstInstance)
+			drawRangeOffset = DrawRangeEnd(builder)
+
+		listNameOffset = builder.CreateString(model.listName)
+
+		ModelInfoStart(builder)
+		ModelInfoAddShader(builder, shaderOffset)
+		ModelInfoAddMaterial(builder, materialOffset)
+		ModelInfoAddGeometry(builder, geometryOffset)
+		ModelInfoAddDistanceRange(builder, distanceRangeOffset)
+		ModelInfoAddDrawRangeType(builder, drawRange.rangeType)
+		ModelInfoAddDrawRange(builder, drawRangeOffset)
+		ModelInfoAddPrimitiveType(builder, model.primitiveType)
+		ModelInfoAddListName(builder, listNameOffset)
+		modelOffsets.append(ModelInfoEnd(builder))
+
+	ModelNodeStartModelsVector(builder, len(modelOffsets))
+	for offset in reversed(modelOffsets):
+		builder.PrependUOffsetTRelative(offset)
+	modelsOffset = builder.EndVector(len(modelOffsets))
+
+	if modelBounds:
+		center = []
+		halfExtents = []
+		for i in range(0, 3):
+			center.append((modelBounds[0][i] + modelBounds[1][i])/2)
+			halfExtents.append((modelBounds[1][i] - modelBounds[0][i])/2)
+		boundsOffset = CreateOrientedBox3f(builder, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0,
+			center[0], center[1], center[2], halfExtents[0], halfExtents[1], halfExtents[2])
+	else:
+		boundsOffset = 0
+
+	ModelNodeStart(builder)
+	ModelNodeAddEmbeddedResources(builder, embeddedResourcesOffset)
+	ModelNodeAddExtraItemLists(builder, extraItemListsOffset)
+	ModelNodeAddModels(builder, modelsOffset)
+	ModelNodeAddBounds(builder, boundsOffset)
+	builder.Finish(ModelNodeEnd(builder))
+	return builder.Output()

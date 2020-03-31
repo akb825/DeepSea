@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from .ModelNodeConvert import convertModelNode
 from .ObjectData import *
 from .TransformNodeConvert import convertTransformNode
 from .SceneNodeRefConvert import convertReferenceNode
@@ -33,6 +34,7 @@ class ConvertContext:
 		self.multithread = multithread
 
 		self.nodeTypeMap = {
+			'ModelNode': convertModelNode,
 			'TransformNode': convertTransformNode,
 			'ReferenceNode': convertReferenceNode
 		}
