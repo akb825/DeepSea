@@ -13,8 +13,8 @@
 # limitations under the License.
 
 import flatbuffers
-from .Matrix44f import *
-from .TransformNode import *
+from ..Matrix44f import *
+from ..TransformNode import *
 
 def convertTransformNode(convertContext, data):
 	"""

@@ -17,17 +17,17 @@ from copy import copy
 import json
 import flatbuffers
 from subprocess import Popen, PIPE
-from .DrawIndexedRange import *
-from .DrawRange import *
-from .FormatDecoration import *
-from .ModelDrawRange import *
-from .ModelInfo import *
-from .ModelNode import *
-from .OrientedBox3f import *
-from .PrimitiveType import *
 from .SceneResourcesConvert import convertSceneResources, readVertexAttrib
-from .Vector2f import *
-from .VertexFormat import *
+from ..DrawIndexedRange import *
+from ..DrawRange import *
+from ..FormatDecoration import *
+from ..ModelDrawRange import *
+from ..ModelInfo import *
+from ..ModelNode import *
+from ..OrientedBox3f import *
+from ..PrimitiveType import *
+from ..Vector2f import *
+from ..VertexFormat import *
 
 FLT_MAX = 3.402823466e38
 

@@ -15,10 +15,10 @@
 import os.path
 import shutil
 
-from .FileOrData import *
-from .FileReference import *
-from .FileResourceType import *
-from .RawData import *
+from ..FileOrData import *
+from ..FileReference import *
+from ..FileResourceType import *
+from ..RawData import *
 
 def convertFileOrData(builder, inputPath, data, outputPath, outputRelativeDir, resourceType):
 	"""

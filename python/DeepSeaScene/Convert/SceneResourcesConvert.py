@@ -21,31 +21,31 @@ import sys
 from tempfile import NamedTemporaryFile
 
 import flatbuffers
-from .Buffer import *
-from .BufferMaterialData import *
-from .DrawGeometry import *
 from .FileOrDataConvert import convertFileOrData
-from .FormatDecoration import *
-from .IndexBuffer import *
-from .MaterialType import *
-from .NamedMaterialData import *
-from .SceneNode import *
-from .SceneResources import *
-from .Shader import *
-from .ShaderData import *
-from .ShaderModule import *
-from .ShaderVariableGroupDesc import *
-from .Texture import *
-from .TextureBufferMaterialData import *
-from .TextureDim import *
-from .TextureFormat import *
-from .TextureInfo import *
-from .VertexAttribute import *
-from .VariableData import *
-from .VariableElement import *
-from .VertexBuffer import *
-from .VertexElementFormat import *
-from .VertexFormat import *
+from ..Buffer import *
+from ..BufferMaterialData import *
+from ..DrawGeometry import *
+from ..FormatDecoration import *
+from ..IndexBuffer import *
+from ..MaterialType import *
+from ..NamedMaterialData import *
+from ..SceneNode import *
+from ..SceneResources import *
+from ..Shader import *
+from ..ShaderData import *
+from ..ShaderModule import *
+from ..ShaderVariableGroupDesc import *
+from ..Texture import *
+from ..TextureBufferMaterialData import *
+from ..TextureDim import *
+from ..TextureFormat import *
+from ..TextureInfo import *
+from ..VertexAttribute import *
+from ..VariableData import *
+from ..VariableElement import *
+from ..VertexBuffer import *
+from ..VertexElementFormat import *
+from ..VertexFormat import *
 
 memoryHintsEnum = {
 	'GPUOnly': 0x1,

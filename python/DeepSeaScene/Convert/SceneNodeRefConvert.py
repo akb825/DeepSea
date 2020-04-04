@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import flatbuffers
-from .SceneNodeRef import *
+from ..SceneNodeRef import *
 
 def convertReferenceNode(convertContext, data):
 	"""

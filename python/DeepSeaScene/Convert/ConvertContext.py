@@ -13,9 +13,9 @@
 # limitations under the License.
 
 from .ModelNodeConvert import convertModelNode
-from .ObjectData import *
 from .TransformNodeConvert import convertTransformNode
 from .SceneNodeRefConvert import convertReferenceNode
+from ..ObjectData import *
 
 class ConvertContext:
 	"""
