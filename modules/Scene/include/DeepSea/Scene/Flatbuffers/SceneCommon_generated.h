@@ -572,11 +572,29 @@ enum class VertexElementFormat : uint8_t {
   X64Y64 = 16,
   X64Y64Z64 = 17,
   X64Y64Z64W64 = 18,
+  R8 = 19,
+  R8G8 = 20,
+  R8G8B8 = 21,
+  R8G8B8A8 = 22,
+  A2R10G10B10 = 23,
+  A2B10G10R10 = 24,
+  R16 = 25,
+  R16G16 = 26,
+  R16G16B16 = 27,
+  R16G16B16A16 = 28,
+  R32 = 29,
+  R32G32 = 30,
+  R32G32B32 = 31,
+  R32G32B32A32 = 32,
+  R64 = 33,
+  R64G64 = 34,
+  R64G64B64 = 35,
+  R64G64B64A64 = 36,
   MIN = Unset,
-  MAX = X64Y64Z64W64
+  MAX = R64G64B64A64
 };
 
-inline const VertexElementFormat (&EnumValuesVertexElementFormat())[19] {
+inline const VertexElementFormat (&EnumValuesVertexElementFormat())[37] {
   static const VertexElementFormat values[] = {
     VertexElementFormat::Unset,
     VertexElementFormat::X8,
@@ -596,13 +614,31 @@ inline const VertexElementFormat (&EnumValuesVertexElementFormat())[19] {
     VertexElementFormat::X64,
     VertexElementFormat::X64Y64,
     VertexElementFormat::X64Y64Z64,
-    VertexElementFormat::X64Y64Z64W64
+    VertexElementFormat::X64Y64Z64W64,
+    VertexElementFormat::R8,
+    VertexElementFormat::R8G8,
+    VertexElementFormat::R8G8B8,
+    VertexElementFormat::R8G8B8A8,
+    VertexElementFormat::A2R10G10B10,
+    VertexElementFormat::A2B10G10R10,
+    VertexElementFormat::R16,
+    VertexElementFormat::R16G16,
+    VertexElementFormat::R16G16B16,
+    VertexElementFormat::R16G16B16A16,
+    VertexElementFormat::R32,
+    VertexElementFormat::R32G32,
+    VertexElementFormat::R32G32B32,
+    VertexElementFormat::R32G32B32A32,
+    VertexElementFormat::R64,
+    VertexElementFormat::R64G64,
+    VertexElementFormat::R64G64B64,
+    VertexElementFormat::R64G64B64A64
   };
   return values;
 }
 
 inline const char * const *EnumNamesVertexElementFormat() {
-  static const char * const names[20] = {
+  static const char * const names[38] = {
     "Unset",
     "X8",
     "X8Y8",
@@ -622,13 +658,31 @@ inline const char * const *EnumNamesVertexElementFormat() {
     "X64Y64",
     "X64Y64Z64",
     "X64Y64Z64W64",
+    "R8",
+    "R8G8",
+    "R8G8B8",
+    "R8G8B8A8",
+    "A2R10G10B10",
+    "A2B10G10R10",
+    "R16",
+    "R16G16",
+    "R16G16B16",
+    "R16G16B16A16",
+    "R32",
+    "R32G32",
+    "R32G32B32",
+    "R32G32B32A32",
+    "R64",
+    "R64G64",
+    "R64G64B64",
+    "R64G64B64A64",
     nullptr
   };
   return names;
 }
 
 inline const char *EnumNameVertexElementFormat(VertexElementFormat e) {
-  if (flatbuffers::IsOutRange(e, VertexElementFormat::Unset, VertexElementFormat::X64Y64Z64W64)) return "";
+  if (flatbuffers::IsOutRange(e, VertexElementFormat::Unset, VertexElementFormat::R64G64B64A64)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesVertexElementFormat()[index];
 }

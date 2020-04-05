@@ -120,7 +120,26 @@ static const dsGfxFormat vertexElementFormatMap[] =
 	dsGfxFormat_X64,
 	dsGfxFormat_X64Y64,
 	dsGfxFormat_X64Y64Z64,
-	dsGfxFormat_X64Y64Z64W64
+	dsGfxFormat_X64Y64Z64W64,
+
+	dsGfxFormat_R8,
+	dsGfxFormat_R8G8,
+	dsGfxFormat_R8G8B8,
+	dsGfxFormat_R8G8B8A8,
+	dsGfxFormat_A2R10G10B10,
+	dsGfxFormat_A2B10G10R10,
+	dsGfxFormat_R16,
+	dsGfxFormat_R16G16,
+	dsGfxFormat_R16G16B16,
+	dsGfxFormat_R16G16B16A16,
+	dsGfxFormat_R32,
+	dsGfxFormat_R32G32,
+	dsGfxFormat_R32G32B32,
+	dsGfxFormat_R32G32B32A32,
+	dsGfxFormat_R64,
+	dsGfxFormat_R64G64,
+	dsGfxFormat_R64G64B64,
+	dsGfxFormat_R64G64B64A64
 };
 
 static_assert(

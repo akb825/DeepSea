@@ -58,11 +58,20 @@ class ModelNodeGeometryData:
 	Class containing data for a piece of geometry. The following members are present:
 	- name: the name of the geometry.
 	- vertexStreams: array of ModelVertexStream objects for the vertices.
+	- primitiveType: the type of primitives to use.
+	- patchPoints: the number of patch points. This must be non-zero of primitiveType is
+	  'PatchList'.
 	"""
-	def __init__(self, name, vertexStreams):
+	def __init__(self, name, vertexStreams, primitiveType = 'TriangleList', patchPoints = 0):
 		self.name = name
 		self.vertexStreams = vertexStreams
-		
+		if not hasattr(PrimitiveType, primitiveType):
+			raise Exception('Invalid geometry primitive type "' + primitiveType + '".')
+		self.primitiveType = primitiveType
+		if primitiveType == 'PatchList' and patchPoints < 1:
+			raise Exception(
+				'Geometry patch points must be provided when primitiveType is "PatchPoints".')
+		self.patchPoints = patchPoints
 
 def addModelType(convertContext, typeName, convertFunc):
 	"""
@@ -110,8 +119,8 @@ def convertModelNodeGeometry(convertContext, modelGeometry, embeddedResources):
 			raise Exception('ModelNode embedded resource type "' + resourceType +
 				'" must be an array of objects.')
 
-	def convertGeometry(convertContext, modelType, path, vertexFormat, indexSize, primitiveType,
-			patchPoints, transforms, combinedBuffer, modelBounds):
+	def convertGeometry(convertContext, modelType, path, vertexFormat, indexSize, transforms,
+			combinedBuffer, modelBounds):
 		def getIndexType(indexSize):
 			if indexSize == 2:
 				return 'UInt16'
@@ -137,11 +146,6 @@ def convertModelNodeGeometry(convertContext, modelGeometry, embeddedResources):
 		vfcTransforms = []
 		for attrib, transform in transforms:
 			vfcTransforms.append({'name': str(attrib), 'transform': transform})
-
-		if primitiveType == 'TriangleListAdjacency':
-			primitiveType = 'TriangleList'
-		elif primitiveType == 'TriangleStripAdjacency':
-			primitiveType = 'TriangleStrip'
 
 		geometryDataList = convertContext.modelTypeMap[modelType](convertContext, path)
 		convertedGeometry = dict()
@@ -172,11 +176,16 @@ def convertModelNodeGeometry(convertContext, modelGeometry, embeddedResources):
 							base64.b64encode(vertexStream.indexData)
 					vertexStreams.append(vfcVertexStream)
 
+				primitiveType = geometryData.primitiveType
+				if primitiveType == 'TriangleListAdjacency':
+					primitiveType = 'TriangleList'
+				elif primitiveType == 'TriangleStripAdjacency':
+					primitiveType = 'TriangleStrip'
 				vfcInput = {
 					'vertexFormat': vfcVertexFormat,
 					'indexType': indexType,
 					'primitiveType': primitiveType,
-					'patchPoints': patchPoints,
+					'patchPoints': geometryData.patchPoints,
 					'vertexStreams': vertexStreams,
 					'vertexTransforms': vfcTransforms
 				}
@@ -209,7 +218,7 @@ def convertModelNodeGeometry(convertContext, modelGeometry, embeddedResources):
 					geometry.vertexData = appendBuffer(combinedBuffer,
 						base64.b64decode(vfcOutput['vertexData'][7:]))
 					geometry.vertexFormat = vertexFormat
-					geometry.primitiveType = primitiveType
+					geometry.primitiveType = geometryData.primitiveType
 
 					geometry.indexBuffers = []
 					if indexType:
@@ -290,22 +299,6 @@ def convertModelNodeGeometry(convertContext, modelGeometry, embeddedResources):
 				if indexSize not in (0, 2, 4):
 					raise Exception('Invalid geometry indexSize "' + str(indexSize) + '".')
 
-				primitiveType = geometryData.get('primitiveType', 'TriangleList')
-				if not hasattr(PrimitiveType, primitiveType):
-					raise Exception('Invalid geometry primitive type "' + str(primitiveType) + '".')
-
-				if primitiveType == 'PatchList':
-					patchPointsStr = geometryData['patchPoints']
-					try:
-						patchPoints = int(patchPointsStr)
-						if patchPoints < 1:
-							raise Exception() # Common error handling in except block.
-					except:
-						raise Exception(
-							'Invalid geometry patch points "' + str(patchPointsStr) + '".')
-				else:
-					patchPoints = 0
-
 				transforms = geometryData.get('transforms')
 				vfcTransforms = []
 				if transforms:
@@ -333,7 +326,7 @@ def convertModelNodeGeometry(convertContext, modelGeometry, embeddedResources):
 					'ModelNode "modelGeometry" doesn\'t contain element "' + str(e) + '".')
 
 			convertedGeometry = convertGeometry(convertContext, modelType, path, vfcVertexFormat,
-				indexSize, primitiveType, patchPoints, transforms, combinedBuffer, modelBounds)
+				indexSize, transforms, combinedBuffer, modelBounds)
 
 			# Geometries to be added to the embedded resources.
 			for name, geometry in convertedGeometry:
@@ -518,9 +511,6 @@ def convertModelNode(convertContext, data):
 	      removing the type prefix. Only the decorator values may be used.
 	  - indexSize: the size of the index in bytes. This must be either 2 or 4. If not set, no
 	    indices will be produced.
-	  - primitiveType: the type of primitives. See the dsPrimitiveType enum for values, removing the
-	    type prefix. Defaults to "TriangleList".
-	  - patchPoints: the number of points when primitiveType is "PatchList".
 	  - transforms: optional array of transforms to perform on the vertex values. Each element of
 	    the array has the following members:
 	    - attrib: the attribute, matching one of the attributes in vertexFormat.

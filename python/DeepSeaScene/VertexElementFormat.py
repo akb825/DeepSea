@@ -22,4 +22,22 @@ class VertexElementFormat(object):
     X64Y64 = 16
     X64Y64Z64 = 17
     X64Y64Z64W64 = 18
+    R8 = 19
+    R8G8 = 20
+    R8G8B8 = 21
+    R8G8B8A8 = 22
+    A2R10G10B10 = 23
+    A2B10G10R10 = 24
+    R16 = 25
+    R16G16 = 26
+    R16G16B16 = 27
+    R16G16B16A16 = 28
+    R32 = 29
+    R32G32 = 30
+    R32G32B32 = 31
+    R32G32B32A32 = 32
+    R64 = 33
+    R64G64 = 34
+    R64G64B64 = 35
+    R64G64B64A64 = 36
 

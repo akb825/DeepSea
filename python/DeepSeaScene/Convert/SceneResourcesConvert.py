@@ -590,16 +590,11 @@ def convertSceneResourcesShaderData(builder, convertContext, data, memberName):
 		if len(dataArray) == 0:
 			return 0, 0
 
-		if sys.version_info[0] >= 3:
-			bytesType = bytes
-		else:
-			bytesType = str
-
 		def packSingleElement(formatStr, name):
-			dataBytes = bytesType()
+			dataBytes = bytearray()
 			try:
 				for element in dataArray:
-					dataBytes += struct.pack(formatStr, element)
+					struct.pack_into(dataBytes, len(dataBytes), formatStr, element)
 			except:
 				if name[0] in ('a', 'e', 'i', 'o', 'u'):
 					raise Exception('Shader data must be an ' + name + '.')
@@ -608,20 +603,20 @@ def convertSceneResourcesShaderData(builder, convertContext, data, memberName):
 			return dataBytes
 
 		def packVectorElement(formatStr, name, expectedLen):
-			dataBytes = bytesType()
+			dataBytes = bytearray()
 			try:
 				for elementArray in dataArray:
 					if len(elementArray) != expectedLen:
 						raise Exception() # Common error handling in except block.
 					for element in elementArray:
-						dataBytes += struct.pack(formatStr, element)
+						struct.pack_into(dataBytes, len(dataBytes), element)
 			except:
 				raise Exception('Shader data must be an array of ' + str(expectedLen) +
 					' ' + name + 's.')
 			return dataBytes
 
 		def packMatrixElement(formatStr, name, expectedCol, expectedRow):
-			dataBytes = bytesType()
+			dataBytes = bytearray()
 			try:
 				for colArray in dataArray:
 					if len(colArray) != expectedCol:
@@ -630,29 +625,29 @@ def convertSceneResourcesShaderData(builder, convertContext, data, memberName):
 						if len(col) != expectedRow:
 							raise Exception() # Common error handling in except block.
 						for element in col:
-							dataBytes += struct.pack(formatStr, element)
+							struct.pack_into(dataBytes, len(dataBytes), element)
 			except:
 				raise Exception('Shader data must be an array of ' + str(expectedCol) +
 					' colomn arrays with ' + str(expectedRow) + ' ' + name + 's.')
 			return dataBytes
 
 		def packBool():
-			dataBytes = bytesType()
+			dataBytes = bytearray()
 			try:
 				for element in dataArray:
-					dataBytes += struct.pack(formatStr, int(bool(element)))
+					struct.pack_into(dataBytes, len(dataBytes), int(bool(element)))
 			except:
 				raise Exception('Shader data must be a bool.')
 			return dataBytes
 
 		def packBoolVector(expectedLen):
-			dataBytes = bytesType()
+			dataBytes = bytearray()
 			try:
 				for elementArray in dataArray:
 					if len(elementArray) != expectedLen:
 						raise Exception() # Common error handling in except block.
 					for element in elementArray:
-						dataBytes += struct.pack(formatStr, int(bool(element)))
+						struct.pack_into(dataBytes, len(dataBytes), int(bool(element)))
 			except:
 				raise Exception('Shader data must be an array of ' + str(expectedLen) +
 					' bools.')

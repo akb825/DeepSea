@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from .ModelNodeConvert import convertModelNode
+from .OBJModel import registerOBJType
 from .TransformNodeConvert import convertTransformNode
 from .SceneNodeRefConvert import convertReferenceNode
 from ..ObjectData import *
@@ -38,6 +39,8 @@ class ConvertContext:
 			'TransformNode': convertTransformNode,
 			'ReferenceNode': convertReferenceNode
 		}
+
+		registerOBJType(self)
 
 	def addNodeType(self, typeName, convertFunc):
 		"""
