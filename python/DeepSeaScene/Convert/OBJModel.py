@@ -21,16 +21,16 @@ def convertOBJModel(convertContext, path):
 	Converts an OBJ model for use with ModelNodeConvert.
 
 	Each object and group is a separate group name. The name will be:
-	* object.group (for object name and group name )when an object contains multiple groups.
-	* object name for objects that have no group.
-	* "<unnamed>" for no object or group.
+	- object.group (for object name and group name )when an object contains multiple groups.
+	- object name for objects that have no group.
+	- "<unnamed>" for no object or group.
 
 	Limitations:
-	* Faces must be triangles.
-	* Lines may only have two indices each.
-	* Smooth groups aren't supported.
-	* Free-form geometry (with "vp") isn't supported.
-	* Materials aren't read, and are instead provided in the DeepSea scene configuration.
+	- Faces must be triangles.
+	- Lines may only have two indices each.
+	- Smooth groups aren't supported.
+	- Free-form geometry (with "vp") isn't supported.
+	- Materials aren't read, and are instead provided in the DeepSea scene configuration.
 	"""
 
 	data = object()
@@ -165,7 +165,7 @@ def convertOBJModel(convertContext, path):
 	addGeometry()
 	return geometry
 
-def registerOBJType(convertContext):
+def registerOBJModelType(convertContext):
 	"""
 	Registers the OBJ model type under the name "obj".
 	"""

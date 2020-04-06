@@ -120,7 +120,7 @@ def convertModelNodeGeometry(convertContext, modelGeometry, embeddedResources):
 				'" must be an array of objects.')
 
 	def convertGeometry(convertContext, modelType, path, vertexFormat, indexSize, transforms,
-			combinedBuffer, modelBounds):
+			includedComponents, combinedBuffer, modelBounds):
 		def getIndexType(indexSize):
 			if indexSize == 2:
 				return 'UInt16'
@@ -151,6 +151,9 @@ def convertModelNodeGeometry(convertContext, modelGeometry, embeddedResources):
 		convertedGeometry = dict()
 		try:
 			for geometryData in geometryDataList:
+				if geometryData.name not in includedComponents:
+					continue
+
 				if geometryData.name in convertedGeometry:
 					raise Exception('Geometry data "' + geometryData.name + '" appears multiple '
 						'times in model "' + path + '".')
@@ -320,13 +323,23 @@ def convertModelNodeGeometry(convertContext, modelGeometry, embeddedResources):
 						raise Exception(
 							'ModelNode geometry "transforms" must be an array of objects.')
 
+				includedComponents = set()
 				drawInfo = geometryData['drawInfo']
+				try:
+					for info in drawInfo:
+						try:
+							includedComponents.add(str(info['name']))
+						except KeyError as e:
+							raise Exception('Model geometry draw info doesn\'t contain element "' +
+								str(e) + '".')
+				except (TypeError, ValueError):
+					raise Exception('Model geometry draw info must be an array of objects.')
 			except KeyError as e:
 				raise Exception(
 					'ModelNode "modelGeometry" doesn\'t contain element "' + str(e) + '".')
 
 			convertedGeometry = convertGeometry(convertContext, modelType, path, vfcVertexFormat,
-				indexSize, transforms, combinedBuffer, modelBounds)
+				indexSize, transforms, includedComponents, combinedBuffer, modelBounds)
 
 			# Geometries to be added to the embedded resources.
 			for name, geometry in convertedGeometry:
@@ -367,52 +380,49 @@ def convertModelNodeGeometry(convertContext, modelGeometry, embeddedResources):
 
 			# Add the models associating the shader, material, draw list, and draw range with the
 			# converted geometry.
-			try:
-				for info in drawInfo:
-					try:
-						modelInfo = object()
-						name = str(info['name'])
-						modelInfo.shader = str(info['shader'])
-						modelInfo.material = str(info['material'])
-						modelInfo.listName = str(info['listName'])
+			for info in drawInfo:
+				try:
+					modelInfo = object()
+					name = str(info['name'])
+					modelInfo.shader = str(info['shader'])
+					modelInfo.material = str(info['material'])
+					modelInfo.listName = str(info['listName'])
 
-						modelInfo.distanceRange = info.get('distanceRange', [0.0, FLT_MAX])
-						validateModelDistanceRange(modelInfo.distanceRange)
-					except KeyError as e:
-						raise Exception('Model geometry draw info doesn\'t contain element "' +
-							str(e) + '".')
+					modelInfo.distanceRange = info.get('distanceRange', [0.0, FLT_MAX])
+					validateModelDistanceRange(modelInfo.distanceRange)
+				except KeyError as e:
+					raise Exception('Model geometry draw info doesn\'t contain element "' +
+						str(e) + '".')
 
-					baseGeometry = convertedGeometry.get(name)
-					if not baseGeometry:
-						raise Exception('Model node geometry "' + name + '" isn\'t in the model "' +
-							path + '".')
+				baseGeometry = convertedGeometry.get(name)
+				if not baseGeometry:
+					raise Exception('Model node geometry "' + name + '" isn\'t in the model "' +
+						path + '".')
 
-					modelInfo.geometry = baseGeometry.geometryName
-					modelInfo.primitiveType = getattr(PrimitiveType, baseGeometry.primitiveType)
+				modelInfo.geometry = baseGeometry.geometryName
+				modelInfo.primitiveType = getattr(PrimitiveType, baseGeometry.primitiveType)
 
-					if baseGeometry.indexBuffers:
-						for indexBuffer in baseGeometry.indexBuffers:
-							curModelInfo = copy(modelInfo)
-							drawRange = object()
-							drawRange.rangeType = ModelDrawRange.DrawIndexedRange
-							drawRange.indexCount = indexBuffer.indexCount
-							drawRange.instanceCount = 1
-							drawRange.firstIndex = indexBuffer.firstIndex
-							drawRange.vertexOffset = indexBuffer.vertexOffset
-							drawRange.firstInstance = 0
-							curModelInfo.drawRange = drawRange
-							models.append(curModelInfo)
-					else:
+				if baseGeometry.indexBuffers:
+					for indexBuffer in baseGeometry.indexBuffers:
+						curModelInfo = copy(modelInfo)
 						drawRange = object()
-						drawRange.rangeType = ModelDrawRange.DrawRange
-						drawRange.vertexCount = baseGeometry.vertexCount
+						drawRange.rangeType = ModelDrawRange.DrawIndexedRange
+						drawRange.indexCount = indexBuffer.indexCount
 						drawRange.instanceCount = 1
-						drawRange.firstVertex = 0
-						drawRange.firstInstance = 1
-						modelInfo.drawRange = drawRange
-						models.append(modelInfo)
-			except (TypeError, ValueError):
-				raise Exception('Model geometry draw info must be an array of objects.')
+						drawRange.firstIndex = indexBuffer.firstIndex
+						drawRange.vertexOffset = indexBuffer.vertexOffset
+						drawRange.firstInstance = 0
+						curModelInfo.drawRange = drawRange
+						models.append(curModelInfo)
+				else:
+					drawRange = object()
+					drawRange.rangeType = ModelDrawRange.DrawRange
+					drawRange.vertexCount = baseGeometry.vertexCount
+					drawRange.instanceCount = 1
+					drawRange.firstVertex = 0
+					drawRange.firstInstance = 1
+					modelInfo.drawRange = drawRange
+					models.append(modelInfo)
 	except (TypeError, ValueError):
 		raise Exception('ModelNode "modelGeometry" must be an array of objects.')
 
@@ -521,7 +531,8 @@ def convertModelNode(convertContext, data):
 	      - SNormToUNorm: converts SNorm values to UNorm values.
 	  - drawInfo: array of definitions for drawing components of the geometry. Each element of the
 	    array has the following members:
-	    - name: the name of the model component.
+	    - name: the name of the model component. Note that only model components referenced in the
+		  drawInfo array will be included in the final model.
 	    - shader: te name of the shader to draw with.
 	    - material: the name of the material to draw with.
 	    - distanceRange: array of two floats for the minimum and maximum distance to draw at.

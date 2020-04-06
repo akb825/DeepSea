@@ -13,7 +13,8 @@
 # limitations under the License.
 
 from .ModelNodeConvert import convertModelNode
-from .OBJModel import registerOBJType
+from .GLTFModel import registerGLTFModelType
+from .OBJModel import registerOBJModelType
 from .TransformNodeConvert import convertTransformNode
 from .SceneNodeRefConvert import convertReferenceNode
 from ..ObjectData import *
@@ -40,7 +41,10 @@ class ConvertContext:
 			'ReferenceNode': convertReferenceNode
 		}
 
-		registerOBJType(self)
+		# Model types are considered an extension. However, register the builtin model types here
+		# for convenience similar to the node and item list types.
+		registerGLTFModelType(self)
+		registerOBJModelType(self)
 
 	def addNodeType(self, typeName, convertFunc):
 		"""
