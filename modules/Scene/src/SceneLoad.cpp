@@ -48,7 +48,7 @@ using FlatbufferVector = flatbuffers::Vector<flatbuffers::Offset<T>>;
 
 static size_t getTempSize(const FlatbufferVector<DeepSeaScene::SceneItemLists>* fbSharedItems,
 	const FlatbufferVector<DeepSeaScene::ScenePipelineItem>& fbPipeline,
-	const FlatbufferVector<DeepSeaScene::GlobalData>* fbGlobalData, const char* fileName)
+	const FlatbufferVector<DeepSeaScene::ObjectData>* fbGlobalData, const char* fileName)
 {
 	size_t tempSize = 0;
 	if (fbSharedItems && fbSharedItems->size() > 0)

@@ -49,6 +49,21 @@ typedef struct dsViewCullList
 	uint64_t nextNodeID;
 } dsViewCullList;
 
+const char* const dsViewCullList_typeName = "ViewCullList";
+
+dsSceneItemList* dsViewCullList_load(const dsSceneLoadContext* loadContext,
+	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
+	void* userData, const char* name, const uint8_t* data, size_t dataSize)
+{
+	DS_UNUSED(loadContext);
+	DS_UNUSED(scratchData);
+	DS_UNUSED(resourceAllocator);
+	DS_UNUSED(userData);
+	DS_UNUSED(data);
+	DS_UNUSED(dataSize);
+	return dsViewCullList_create(allocator, name);
+}
+
 uint64_t dsViewCullList_addNode(dsSceneItemList* itemList, dsSceneNode* node,
 	const dsMatrix44f* transform, dsSceneNodeItemData* itemData, void** thisItemData)
 {

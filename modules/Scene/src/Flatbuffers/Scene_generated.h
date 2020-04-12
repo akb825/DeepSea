@@ -44,9 +44,6 @@ struct RenderPassBuilder;
 struct ScenePipelineItem;
 struct ScenePipelineItemBuilder;
 
-struct GlobalData;
-struct GlobalDataBuilder;
-
 struct Scene;
 struct SceneBuilder;
 
@@ -1054,74 +1051,6 @@ inline flatbuffers::Offset<ScenePipelineItem> CreateScenePipelineItem(
   return builder_.Finish();
 }
 
-struct GlobalData FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
-  typedef GlobalDataBuilder Builder;
-  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_TYPE = 4,
-    VT_DATA = 6
-  };
-  const flatbuffers::String *type() const {
-    return GetPointer<const flatbuffers::String *>(VT_TYPE);
-  }
-  const flatbuffers::Vector<uint8_t> *data() const {
-    return GetPointer<const flatbuffers::Vector<uint8_t> *>(VT_DATA);
-  }
-  bool Verify(flatbuffers::Verifier &verifier) const {
-    return VerifyTableStart(verifier) &&
-           VerifyOffsetRequired(verifier, VT_TYPE) &&
-           verifier.VerifyString(type()) &&
-           VerifyOffsetRequired(verifier, VT_DATA) &&
-           verifier.VerifyVector(data()) &&
-           verifier.EndTable();
-  }
-};
-
-struct GlobalDataBuilder {
-  typedef GlobalData Table;
-  flatbuffers::FlatBufferBuilder &fbb_;
-  flatbuffers::uoffset_t start_;
-  void add_type(flatbuffers::Offset<flatbuffers::String> type) {
-    fbb_.AddOffset(GlobalData::VT_TYPE, type);
-  }
-  void add_data(flatbuffers::Offset<flatbuffers::Vector<uint8_t>> data) {
-    fbb_.AddOffset(GlobalData::VT_DATA, data);
-  }
-  explicit GlobalDataBuilder(flatbuffers::FlatBufferBuilder &_fbb)
-        : fbb_(_fbb) {
-    start_ = fbb_.StartTable();
-  }
-  GlobalDataBuilder &operator=(const GlobalDataBuilder &);
-  flatbuffers::Offset<GlobalData> Finish() {
-    const auto end = fbb_.EndTable(start_);
-    auto o = flatbuffers::Offset<GlobalData>(end);
-    fbb_.Required(o, GlobalData::VT_TYPE);
-    fbb_.Required(o, GlobalData::VT_DATA);
-    return o;
-  }
-};
-
-inline flatbuffers::Offset<GlobalData> CreateGlobalData(
-    flatbuffers::FlatBufferBuilder &_fbb,
-    flatbuffers::Offset<flatbuffers::String> type = 0,
-    flatbuffers::Offset<flatbuffers::Vector<uint8_t>> data = 0) {
-  GlobalDataBuilder builder_(_fbb);
-  builder_.add_data(data);
-  builder_.add_type(type);
-  return builder_.Finish();
-}
-
-inline flatbuffers::Offset<GlobalData> CreateGlobalDataDirect(
-    flatbuffers::FlatBufferBuilder &_fbb,
-    const char *type = nullptr,
-    const std::vector<uint8_t> *data = nullptr) {
-  auto type__ = type ? _fbb.CreateString(type) : 0;
-  auto data__ = data ? _fbb.CreateVector<uint8_t>(*data) : 0;
-  return DeepSeaScene::CreateGlobalData(
-      _fbb,
-      type__,
-      data__);
-}
-
 struct Scene FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef SceneBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
@@ -1135,8 +1064,8 @@ struct Scene FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::ScenePipelineItem>> *pipeline() const {
     return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::ScenePipelineItem>> *>(VT_PIPELINE);
   }
-  const flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::GlobalData>> *globalData() const {
-    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::GlobalData>> *>(VT_GLOBALDATA);
+  const flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::ObjectData>> *globalData() const {
+    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::ObjectData>> *>(VT_GLOBALDATA);
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -1163,7 +1092,7 @@ struct SceneBuilder {
   void add_pipeline(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::ScenePipelineItem>>> pipeline) {
     fbb_.AddOffset(Scene::VT_PIPELINE, pipeline);
   }
-  void add_globalData(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::GlobalData>>> globalData) {
+  void add_globalData(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::ObjectData>>> globalData) {
     fbb_.AddOffset(Scene::VT_GLOBALDATA, globalData);
   }
   explicit SceneBuilder(flatbuffers::FlatBufferBuilder &_fbb)
@@ -1183,7 +1112,7 @@ inline flatbuffers::Offset<Scene> CreateScene(
     flatbuffers::FlatBufferBuilder &_fbb,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::SceneItemLists>>> sharedItems = 0,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::ScenePipelineItem>>> pipeline = 0,
-    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::GlobalData>>> globalData = 0) {
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::ObjectData>>> globalData = 0) {
   SceneBuilder builder_(_fbb);
   builder_.add_globalData(globalData);
   builder_.add_pipeline(pipeline);
@@ -1195,10 +1124,10 @@ inline flatbuffers::Offset<Scene> CreateSceneDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     const std::vector<flatbuffers::Offset<DeepSeaScene::SceneItemLists>> *sharedItems = nullptr,
     const std::vector<flatbuffers::Offset<DeepSeaScene::ScenePipelineItem>> *pipeline = nullptr,
-    const std::vector<flatbuffers::Offset<DeepSeaScene::GlobalData>> *globalData = nullptr) {
+    const std::vector<flatbuffers::Offset<DeepSeaScene::ObjectData>> *globalData = nullptr) {
   auto sharedItems__ = sharedItems ? _fbb.CreateVector<flatbuffers::Offset<DeepSeaScene::SceneItemLists>>(*sharedItems) : 0;
   auto pipeline__ = pipeline ? _fbb.CreateVector<flatbuffers::Offset<DeepSeaScene::ScenePipelineItem>>(*pipeline) : 0;
-  auto globalData__ = globalData ? _fbb.CreateVector<flatbuffers::Offset<DeepSeaScene::GlobalData>>(*globalData) : 0;
+  auto globalData__ = globalData ? _fbb.CreateVector<flatbuffers::Offset<DeepSeaScene::ObjectData>>(*globalData) : 0;
   return DeepSeaScene::CreateScene(
       _fbb,
       sharedItems__,

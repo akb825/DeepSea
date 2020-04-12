@@ -211,16 +211,6 @@ table ScenePipelineItem
 	item : ScenePipelineItemUnion;
 }
 
-// Struct describing global data used within the scene.
-table GlobalData
-{
-	// The type for the global data.
-	type : string (required);
-
-	// The data for the global data.
-	data : [ubyte] (required);
-}
-
 // Struct describing a scene.
 table Scene
 {
@@ -231,7 +221,7 @@ table Scene
 	pipeline : [ScenePipelineItem] (required);
 
 	// The global data used within the scene.
-	globalData : [GlobalData];
+	globalData : [ObjectData];
 }
 
 root_type Scene;

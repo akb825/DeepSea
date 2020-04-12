@@ -34,6 +34,11 @@ extern "C"
  */
 
 /**
+ * @brief The view cull list type name.
+ */
+DS_SCENE_EXPORT extern const char* const dsViewCullList_typeName;
+
+/**
  * @brief Creates a view cull list.
  * @remark errno will be set on failure.
  * @param allocator The allocator to create the list with. This must support freeing memory.
