@@ -1236,7 +1236,7 @@ def convertSceneResourcesNodes(builder, convertContext, data):
 
 def convertSceneResources(convertContext, data):
 	"""
-	Converts SceneResources. The data map is expected to contain the following optional element,
+	Converts SceneResources. The data map is expected to contain the following optional elements,
 	where empty arrays at the top level may be ommitted:
 	- buffers: array of buffers to embed. Each element of the array has the following members:
 	  - name: string name of the buffer.

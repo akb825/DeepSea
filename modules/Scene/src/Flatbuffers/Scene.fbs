@@ -129,7 +129,7 @@ struct AttachmentRef
 	// The index to the attachment.
 	index : uint;
 
-	// Whether or nto to resolve the attachment.
+	// Whether or not to resolve the attachment.
 	resolve : bool;
 }
 
