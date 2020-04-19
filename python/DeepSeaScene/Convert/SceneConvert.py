@@ -13,8 +13,21 @@
 # limitations under the License.
 
 import flatbuffers
+from ..Attachment import *
+from ..AttachmentRef import *
+from ..ClearValue import *
+from ..ClearColorFloat import *
+from ..ClearColorInt import *
+from ..ClearColorUInt import *
+from ..ClearDepthStencil import *
 from ..FormatDecoration import *
+from ..RenderPass import *
+from ..RenderSubpass import *
 from ..Scene import *
+from ..SceneItemLists import *
+from ..ScenePipelineItem import *
+from ..ScenePipelineItemUnion import *
+from ..SubpassDependency import *
 from ..TextureFormat import *
 
 attachmentUsageEnum = {
@@ -177,6 +190,228 @@ def convertScene(convertContext, data):
 		except:
 			raise Exception('Invalid ' + name + ' bool value "' + str(value) + '".')
 
+	def readAttachment(info):
+		attachment = object()
+		attachment.usage = 0
+		hasClear = False
+		try:
+			for usageEnum in info.get('usage', []):
+				try:
+					attachment.usage |= attachmentUsageEnum[usageEnum]
+					if usageEnum == 'Clear':
+						hasClear = True
+				except:
+					raise Exception('Invalid attachment usage value "' +
+						str(usageEnum) + '".')
+		except (TypeError, ValueError):
+			raise Exception('Attachment usage must be an array of valid '
+				'dsAttachmentUsage values.')
+
+		formatStr = info['format']
+		try:
+			attachment.format = getattr(TextureFormat, formatStr)
+		except AttributeError:
+			raise Exception('Invalid attachment format "' + formatStr + '".')
+
+		decorationStr = info['decoration']
+		try:
+			attachment.decoration = getattr(FormatDecoration, decorationStr)
+		except AttributeError:
+			raise Exception(
+				'Invalid attachment format decoration "' + decorationStr + '".')
+
+		attachment.samples = readUInt(info.get('samples'), 'attachment samples', unsetValue)
+
+		clearValueInfo = info.get('clearValue')
+		if clearValueInfo:
+			try:
+				if 'floatValues' in clearValueInfo:
+					floatValues = clearValueInfo['floatValues']
+					try:
+						if len(floatValues) != 4:
+							raise Exception()
+					except:
+						raise Exception(
+							'Attachment clear values "floatValues" must be an array of 4 floats.')
+
+					attachment.clearColorFloat = []
+					for f in floatValues:
+						attachment.clearColorFloat.append(readFloat(f, 'clear value'))
+				elif 'intValues' in clearValueInfo:
+					intValues = clearValueInfo['intValues']
+					try:
+						if len(intValues) != 4:
+							raise Exception()
+					except:
+						raise Exception(
+							'Attachment clear values "intValues" must be an array of 4 ints.')
+
+					attachment.clearColorInt = []
+					for i in intValues:
+						attachment.clearColorInt.append(readInt(i, 'clear value'))
+				elif 'uintValues' in clearValueInfo:
+					uintValues = clearValueInfo['uintValues']
+					try:
+						if len(uintValues) != 4:
+							raise Exception()
+					except:
+						raise Exception('Attachment clear values "uintValues" must be an array of '
+							'4 unsigned ints.')
+
+					attachment.clearColorUInt = []
+					for i in intValues:
+						attachment.clearColorUInt.append(readUInt(i, 'clear value'))
+				elif 'depth' in clearValueInfo or 'stencil' in clearValueInfo:
+					attachment.clearDepthStencil = (
+						readFloat(clearValueInfo.get('depth', 0.0), 'clear depth'),
+						readUInt(clearValueInfo.get('stencil', 0), 'clear stencil')
+					)
+				else:
+					raise Exception('Attachment clear values has no value.')
+			except (AttributeError, TypeError, ValueError):
+				raise Exception('Attachment clear values must be an object.')
+		elif hasClear:
+			raise Exception('Attachment is set to clear but has no clear value.')
+
+		return attachment
+
+	def readSubpass(info, renderPass):
+		subpass = object()
+		subpass.name = str(info['name'])
+
+		inputAttachmentInfos = info.get('inputAttachments', [])
+		subpass.inputAttachments = []
+		try:
+			for inputAttachment in inputAttachmentInfos:
+				index = readUInt(inputAttachment, 'input attachment')
+				if index >= len(renderPass.attachments):
+					raise Exception(
+						'Input attachment "' + str(index) + '" is out of range.')
+				subpass.inputAttachments.append(index)
+		except (TypeError, ValueError):
+			raise Exception('Input attachments must be an array of indices.')
+
+		colorAttachmentRefs = info.get('colorAttachments', [])
+		subpass.colorAttachments = []
+		try:
+			for colorRef in colorAttachmentRefs:
+				index = readUInt(colorRef['index'], 'color attachment')
+				if index >= len(renderPass.attachments):
+					raise Exception(
+						'Color attachment "' + str(index) + '" is out of range.')
+				subpass.colorAttachments.append((index,
+					readBool(colorRef.get('resolve', True), 'color attachment resolve')))
+		except KeyError as e:
+			raise Exception('Color attachment doesn\'t contain element "' + str(e) + '".')
+		except (TypeError, ValueError):
+			raise Exception('Color attachments must be an array of objects.')
+
+		depthStencilRef = info.get('depthStencilAttachment')
+		if depthStencilRef:
+			try:
+				index = readUInt(depthStencilRef['index'], 'depth/stencil attachment')
+				if index >= len(renderPass.attachments):
+					raise Exception(
+						'Depth/stencil attachment "' + str(index) + '" is out of range.')
+				subpass.depthStencilAttachment = (index,
+					readBool(depthStencilRef.get('resolve', True),
+						'depth/stencil attachment resolve'))
+			except KeyError as e:
+				raise Exception(
+					'Depth/stencil attachment doesn\'t contain element "' + str(e) + '".')
+			except (TypeError, ValueError):
+				raise Exception('Depth/stencil attachments must be an array of objects.')
+		else:
+			subpass.depthStencilAttachment = None
+
+		drawListInfos = info['drawLists']
+		subpass.drawLists = []
+		try:
+			for listInfo in drawListInfos:
+				drawList = object()
+				drawList.type = str(info['type'])
+				drawList.name = str(info['name'])
+				# Some item lists don't have data.
+				drawList.data = info.get('data')
+				subpass.drawLists.append(drawList)
+		except KeyError as e:
+			raise Exception('Draw list doesn\'t contain element "' + str(e) + '".')
+		except (TypeError, ValueError):
+			raise Exception('Draw lists must be an array of objects.')
+
+		if not subpass.drawLists:
+			raise Exception('Render subpass contains no draw lists.')
+
+		return subpass
+
+	def readDependency(info, renderPass):
+		dependency = object()
+		dependency.srcSubpass = readUInt(info.get('srcSubpass'),
+			'source subpass', unsetValue)
+		if dependency.srcSubpass != unsetValue and \
+				dependency.srcSubpass >= len(renderPass.subpasses):
+			raise Exception('Source subpass "' + str(dependency.srcSubpass) + '" is out of range.')
+
+		dependency.srcStages = 0
+		try:
+			for stageEnum in info.get('srcStages', []):
+				try:
+					dependency.srcStages |= pipelineStageEnum[stageEnum]
+				except:
+					raise Exception(
+						'Invalid source stage value "' + str(stageEnum) + '".')
+		except (TypeError, ValueError):
+			raise Exception(
+				'Source stages must be an array of valid dsGfxPipelineStage values.')
+		if not dependency.srcStages:
+			raise Exception('Dependency has no source stages.')
+
+		dependency.srcAccess = 0
+		try:
+			for accessEnum in info.get('srcAccess', []):
+				try:
+					dependency.srcAccess |= pipelineAccessEnum[accessEnum]
+				except:
+					raise Exception(
+						'Invalid source access value "' + str(accessEnum) + '".')
+		except (TypeError, ValueError):
+			raise Exception(
+				'Source access must be an array of valid dsGfxAccess values.')
+		if not dependency.srcStages:
+			raise Exception('Dependency has no source stages.')
+
+		dependency.dstStages = 0
+		try:
+			for stageEnum in info.get('dstStages', []):
+				try:
+					dependency.dstStages |= pipelineStageEnum[stageEnum]
+				except:
+					raise Exception(
+						'Invalid destination stage value "' + str(stageEnum) + '".')
+		except (TypeError, ValueError):
+			raise Exception('Destination stages must be an array of valid '
+				'dsGfxPipelineStage values.')
+		if not dependency.dstStages:
+			raise Exception('Dependency has no destination stages.')
+
+		dependency.dstAccess = 0
+		try:
+			for accessEnum in info.get('dstAccess', []):
+				try:
+					dependency.dstAccess |= pipelineAccessEnum[accessEnum]
+				except:
+					raise Exception(
+						'Invalid destination access value "' + str(accessEnum) + '".')
+		except (TypeError, ValueError):
+			raise Exception(
+				'Destination access must be an array of valid dsGfxAccess values.')
+		if not dependency.dstStages:
+			raise Exception('Dependency has no destination stages.')
+
+		dependency.regionDependency = readBool(info['regionDependency'],
+			'region dependency')
+		return dependency
+
 	def readRenderPass(info, item):
 		item.name = str(info['name'])
 		item.framebuffer = str(info['framebuffer'])
@@ -185,91 +420,7 @@ def convertScene(convertContext, data):
 		item.attachments = []
 		try:
 			for attachmentInfo in attachmentInfos:
-				attachment = object()
-				attachment.usage = 0
-				hasClear = False
-				try:
-					for usageEnum in attachmentInfo.get('usage', []):
-						try:
-							attachment.usage |= attachmentUsageEnum[usageEnum]
-							if usageEnum == 'Clear':
-								hasClear = True
-						except:
-							raise Exception('Invalid attachment usage value "' +
-								str(usageEnum) + '".')
-				except (TypeError, ValueError):
-					raise Exception('Attachment usage must be an array of valid '
-						'dsAttachmentUsage values.')
-
-				formatStr = attachmentInfo['format']
-				try:
-					attachment.format = getattr(TextureFormat, formatStr)
-				except AttributeError:
-					raise Exception('Invalid attachment format "' + formatStr + '".')
-
-				decorationStr = attachmentInfo['decoration']
-				try:
-					attachment.decoration = getattr(FormatDecoration, decorationStr)
-				except AttributeError:
-					raise Exception(
-						'Invalid attachment format decoration "' + decorationStr + '".')
-
-				attachment.samples = readUInt(attachmentInfo.get('samples'),
-					'attachment samples', unsetValue)
-
-				clearValueInfo = attachmentInfo.get('clearValue')
-				if clearValueInfo:
-					try:
-						if 'floatValues' in clearValueInfo:
-							floatValues = clearValueInfo['floatValues']
-							try:
-								if len(floatValues) != 4:
-									raise Exception()
-							except:
-								raise Exception('Attachment clear values "floatValues" '
-									'must be an array of 4 floats.')
-
-							attachment.clearValueFloat = []
-							for f in floatValues:
-								attachment.clearValueFloat.append(readFloat(f,
-									'clear value'))
-						elif 'intValues' in clearValueInfo:
-							intValues = clearValueInfo['intValues']
-							try:
-								if len(intValues) != 4:
-									raise Exception()
-							except:
-								raise Exception('Attachment clear values "intValues" '
-									'must be an array of 4 ints.')
-
-							attachment.clearValueInt = []
-							for i in intValues:
-								attachment.clearValueInt.append(readInt(i,
-									'clear value'))
-						elif 'uintValues' in clearValueInfo:
-							uintValues = clearValueInfo['uintValues']
-							try:
-								if len(uintValues) != 4:
-									raise Exception()
-							except:
-								raise Exception('Attachment clear values "uintValues" '
-									'must be an array of 4 unsigned ints.')
-
-							attachment.clearValueUInt = []
-							for i in intValues:
-								attachment.clearValueUInt.append(readUInt(i,
-									'clear value'))
-						elif 'depth' in clearValueInfo or 'stencil' in clearValueInfo:
-							attachment.clearValueDepthStencil = (
-								readFloat(clearValueInfo.get('depth', 0.0),
-									'clear depth'),
-								readUInt(clearValueInfo.get('stencil', 0),
-									'clear stencil')
-							)
-						else:
-							raise Exception('Attachment clear values has no value.')
-					except (AttributeError, TypeError, ValueError):
-						raise Exception('Attachment clear values must be an object.')
+				item.attachments.append(readAttachment(attachmentInfo))
 		except KeyError as e:
 			raise Exception('Attachments doesn\'t contain element "' + str(e) + '".')
 		except (TypeError, ValueError):
@@ -278,74 +429,8 @@ def convertScene(convertContext, data):
 		subpassInfos = pipelineInfo['subpasses']
 		item.subpasses = []
 		try:
-			for info in subpassInfos:
-				subpass = object()
-				subpass.name = str(info['name'])
-
-				inputAttachmentInfos = info.get('inputAttachments', [])
-				subpass.inputAttachments = []
-				try:
-					for inputAttachment in inputAttachmentInfos:
-						index = readUInt(inputAttachment, 'input attachment')
-						if index >= len(item.attachments):
-							raise Exception(
-								'Input attachment "' + str(index) + '" is out of range.')
-						subpass.inputAttachments.append(index)
-				except (TypeError, ValueError):
-					raise Exception('Input attachments must be an array of indices.')
-
-				colorAttachmentRefs = info.get('colorAttachments', [])
-				subpass.colorAttachments = []
-				try:
-					for colorRef in colorAttachmentRefs:
-						index = readUInt(colorRef['index'], 'color attachment')
-						if index >= len(item.attachments):
-							raise Exception(
-								'Color attachment "' + str(index) + '" is out of range.')
-						subpass.colorAttachments.append((index,
-							readBool(colorRef.get('resolve', True), 'color attachment resolve')))
-				except KeyError as e:
-					raise Exception('Color attachment doesn\'t contain element "' + str(e) + '".')
-				except (TypeError, ValueError):
-					raise Exception('Color attachments must be an array of objects.')
-
-				depthStencilRef = info.get('depthStencilAttachment')
-				if depthStencilRef:
-					try:
-						index = readUInt(depthStencilRef['index'], 'depth/stencil attachment')
-						if index >= len(item.attachments):
-							raise Exception(
-								'Depth/stencil attachment "' + str(index) + '" is out of range.')
-						subpass.depthStencilAttachment = (index,
-							readBool(depthStencilRef.get('resolve', True),
-								'depth/stencil attachment resolve'))
-					except KeyError as e:
-						raise Exception(
-							'Depth/stencil attachment doesn\'t contain element "' + str(e) + '".')
-					except (TypeError, ValueError):
-						raise Exception('Depth/stencil attachments must be an array of objects.')
-				else:
-					subpass.depthStencilAttachment = None
-
-				drawListInfos = info['drawLists']
-				subpass.drawLists = []
-				try:
-					for listInfo in drawListInfos:
-						drawList = object()
-						drawList.type = str(info['type'])
-						drawList.name = str(info['name'])
-						# Some item lists don't have data.
-						drawList.data = info.get('data')
-						subpass.drawLists.append(drawList)
-				except KeyError as e:
-					raise Exception('Draw list doesn\'t contain element "' + str(e) + '".')
-				except (TypeError, ValueError):
-					raise Exception('Draw lists must be an array of objects.')
-
-				if not subpass.drawLists:
-					raise Exception('Render subpass contains no draw lists.')
-
-				item.subpasses.append(subpass)
+			for subpassInfo in subpassInfos:
+				item.subpasses.append(readSubpass(subpassInfo, item))
 		except KeyError as e:
 			raise Exception('Subpasses doesn\'t contain element "' + str(e) + '".')
 		except (TypeError, ValueError):
@@ -359,81 +444,15 @@ def convertScene(convertContext, data):
 			item.dependencies = []
 			try:
 				for dependencyInfo in dependencyInfos:
-					dependency = object()
-
-					dependency.srcSubpass = readUInt(dependencyInfo.get('srcSubpass'),
-						'source subpass', unsetValue)
-					if dependency.srcSubpass != unsetValue and \
-							dependency.srcSubpass >= len(item.subpasses):
-						raise Exception('Source subpass "' + str(dependency.srcSubpass) +
-							'" is out of range.')
-
-					dependency.srcStages = 0
-					try:
-						for stageEnum in attachmentInfo.get('srcStages', []):
-							try:
-								dependency.srcStages |= pipelineStageEnum[stageEnum]
-							except:
-								raise Exception(
-									'Invalid source stage value "' + str(stageEnum) + '".')
-					except (TypeError, ValueError):
-						raise Exception(
-							'Source stages must be an array of valid dsGfxPipelineStage values.')
-					if not dependency.srcStages:
-						raise Exception('Dependency has no source stages.')
-
-					dependency.srcAccess = 0
-					try:
-						for accessEnum in attachmentInfo.get('srcAccess', []):
-							try:
-								dependency.srcAccess |= pipelineAccessEnum[accessEnum]
-							except:
-								raise Exception(
-									'Invalid source access value "' + str(accessEnum) + '".')
-					except (TypeError, ValueError):
-						raise Exception(
-							'Source access must be an array of valid dsGfxAccess values.')
-					if not dependency.srcStages:
-						raise Exception('Dependency has no source stages.')
-
-					dependency.dstStages = 0
-					try:
-						for stageEnum in attachmentInfo.get('dstStages', []):
-							try:
-								dependency.dstStages |= pipelineStageEnum[stageEnum]
-							except:
-								raise Exception(
-									'Invalid destination stage value "' + str(stageEnum) + '".')
-					except (TypeError, ValueError):
-						raise Exception('Destination stages must be an array of valid '
-							'dsGfxPipelineStage values.')
-					if not dependency.dstStages:
-						raise Exception('Dependency has no destination stages.')
-
-					dependency.dstAccess = 0
-					try:
-						for accessEnum in attachmentInfo.get('dstAccess', []):
-							try:
-								dependency.dstAccess |= pipelineAccessEnum[accessEnum]
-							except:
-								raise Exception(
-									'Invalid destination access value "' + str(accessEnum) + '".')
-					except (TypeError, ValueError):
-						raise Exception(
-							'Destination access must be an array of valid dsGfxAccess values.')
-					if not dependency.dstStages:
-						raise Exception('Dependency has no destination stages.')
-
-					dependency.regionDependency = readBool(attachmentInfo['regionDependency'],
-						'region dependency')
-
-					item.dependencies.append(dependency)
+					item.dependencies.append(readDependency(dependencyInfo, item))
 			except KeyError as e:
 				raise Exception('Dependencies doesn\'t contain element "' + str(e) + '".')
 			except (AttributeError, TypeError, ValueError):
 				raise Exception('Dependencies must be an array of objects.')
 		else:
 			item.dependencies = None
+
+		return
 
 	try:
 		sharedItemInfo = data.get('sharedItems', [])
@@ -472,6 +491,9 @@ def convertScene(convertContext, data):
 		except (TypeError, ValueError):
 			raise Exception('Scene "pipeline" must be an array of objects.')
 
+		if not pipeline:
+			raise Exception('Scene pipeline is empty.')
+
 		globalDataInfo = data.get('globalData', [])
 		globalData = []
 		try:
@@ -490,3 +512,194 @@ def convertScene(convertContext, data):
 		raise Exception('Scene doesn\'t contain element "' + str(e) + '".')
 	except (AttributeError, TypeError, ValueError):
 		raise Exception('Scene must be an object.')
+
+	builder = flatbuffers.Builder(0)
+
+	sharedItemsOffsets = []
+	for itemLists in sharedItems:
+		itemListOffsets = []
+		for item in itemLists:
+			itemListOffsets.append(convertContext.convertItemList(builder, item.type, item.name,
+				item.data))
+
+		SceneItemListsStartItemListsVector(builder, len(itemListOffsets))
+		for offset in reversed(itemListOffsets):
+			builder.PrependUOffsetTRelative(offset)
+		sharedItemsOffsets = builder.EndVector(len(itemListOffsets))
+
+	if sharedItemsOffsets:
+		SceneStartSharedItemsVector(builder, len(sharedItemsOffsets))
+		for offset in reversed(sharedItemsOffsets):
+			builder.PrependUOffsetTRelative(offset)
+		sharedItemsOffset = builder.EndVector(len(sharedItemsOffsets))
+	else:
+		sharedItemsOffset = 0
+
+	pipelineOffsets = []
+	for item in pipeline:
+		if hasattr(item, 'type'):
+			itemType = ScenePipelineItemUnion.SceneItemList
+			itemOffset = convertContext.convertSharedItemList(builder, item.type, item.name,
+				item.data)
+		else:
+			itemType = ScenePipelineItemUnion.RenderPass
+
+			nameOffset = builder.CreateString(item.name)
+			framebufferOffset = builder.CreateString(item.framebuffer)
+
+			attachmentOffsets = []
+			for attachment in item.attachments:
+				if hasattr(attachment, 'clearColorFloat'):
+					clearValueType = ClearValue.ClearColorFloat
+					ClearColorFloatStart(builder)
+					ClearColorFloatAddRed(builder, attachment.clearColorFloat[0])
+					ClearColorFloatAddGreen(builder, attachment.clearColorFloat[1])
+					ClearColorFloatAddBlue(builder, attachment.clearColorFloat[2])
+					ClearColorFloatAddAlpha(builder, attachment.clearColorFloat[3])
+					clearValueOffset = ClearColorFloatEnd(builder)
+				elif hasattr(attachment, 'clearColorInt'):
+					clearValueType = ClearValue.ClearColorInt
+					ClearColorIntStart(builder)
+					ClearColorIntAddRed(builder, attachment.clearColorInt[0])
+					ClearColorIntAddGreen(builder, attachment.clearColorInt[1])
+					ClearColorIntAddBlue(builder, attachment.clearColorInt[2])
+					ClearColorIntAddAlpha(builder, attachment.clearColorInt[3])
+					clearValueOffset = ClearColorIntEnd(builder)
+				elif hasattr(attachment, 'clearColorUInt'):
+					clearValueType = ClearValue.ClearColorUInt
+					ClearColorUIntStart(builder)
+					ClearColorUIntAddRed(builder, attachment.clearColorUInt[0])
+					ClearColorUIntAddGreen(builder, attachment.clearColorUInt[1])
+					ClearColorUIntAddBlue(builder, attachment.clearColorUInt[2])
+					ClearColorUIntAddAlpha(builder, attachment.clearColorUInt[3])
+					clearValueOffset = ClearColorUIntEnd(builder)
+				elif hasattr(attachment, 'clearDepthStencil'):
+					clearValueType = ClearValue.ClearDepthStencil
+					ClearDepthStencilStart(builder)
+					ClearDepthStencilAddDepth(builder, attachment.clearDepthStencil[0])
+					ClearDepthStencilAddStencil(builder, attachment.clearDepthStencil[1])
+					clearValueOffset = ClearDepthStencilEnd(builder)
+				else:
+					clearValueType = ClearValue.NONE
+					clearValueOffset = 0
+
+				AttachmentStart(builder)
+				AttachmentAddUsage(builder, attachment.usage)
+				AttachmentAddFormat(builder, attachment.format)
+				AttachmentAddDecoration(builder, attachment.decoration)
+				AttachmentAddSamples(builder, attachment.samples)
+				AttachmentAddClearValueType(builder, clearValueType)
+				AttachmentAddClearValue(builder, clearValueOffset)
+				attachmentOffsets.append(AttachmentEnd(builder))
+
+			if attachmentOffsets:
+				RenderPassStartAttachmentsVector(builder, len(attachmentOffsets))
+				for offset in reversed(attachmentOffsets):
+					builder.PrependUOffsetTRelative(offset)
+				attachmentsOffset = builder.EndVector(len(attachmentOffsets))
+			else:
+				attachmentsOffset = 0
+
+			subpassOffsets = []
+			for subpass in item.subpasses:
+				subpassNameOffset = builder.CreateString(subpass.string)
+
+				if subpass.inputAttachments:
+					RenderSubpassStartInputAttachmentsVector(builder, len(subpass.inputAttachments))
+					for attachment in reversed(subpass.inputAttachments):
+						builder.PrependUint32(attachment)
+					inputAttachmentsOffset = builder.EndVector(len(subpass.inputAttachments))
+				else:
+					inputAttachmentsOffset = 0
+
+				colorAttachmentOffsets = []
+				for attachment in subpass.colorAttachments:
+					colorAttachmentOffsets.append(CreateAttachmentRef(builder, *attachment))
+
+				if colorAttachmentOffsets:
+					RenderSubpassStartColorAttachmentsVector(builder, len(colorAttachmentOffsets))
+					for attachment in reversed(colorAttachmentOffsets):
+						builder.PrependUOffsetTRelative(offset)
+					colorAttachmentsOffset = builder.EndVector(len(colorAttachmentOffsets))
+				else:
+					colorAttachmentsOffset = 0
+
+				if subpass.depthStencilAttachment:
+					depthStencilAttachmentOffset = CreateAttachmentRef(builder,
+						*subpass.depthStencilAttachment)
+				else:
+					depthStencilAttachmentOffset = 0
+
+				drawListOffsets = []
+				for drawList in subpass.drawLists:
+					drawListOffsets.append(convertContext.convertItemList(builder, drawList.type,
+						drawList.name, drawList.data))
+
+				RenderSubpassStartDrawListsVector(builder, len(drawListOffsets))
+				for attachment in reversed(drawListOffsets):
+					builder.PrependUOffsetTRelative(offset)
+				drawListsOffset = builder.EndVector(len(drawListOffsets))
+
+				RenderSubpassStart(builder)
+				RenderSubpassAddName(builder, subpassNameOffset)
+				RenderSubpassAddInputAttachments(builder, inputAttachmentsOffset)
+				RenderSubpassAddColorAttachments(builder, colorAttachmentsOffset)
+				RenderSubpassAddDepthStencilAttachment(builder, depthStencilAttachmentOffset)
+				RenderSubpassAddDrawLists(builder, drawListsOffset)
+				subpassOffsets.append(RenderSubpassEnd(builder))
+
+			RenderPassStartSubpassesVector(builder, len(subpassOffsets))
+			for attachment in reversed(subpassOffsets):
+				builder.PrependUOffsetTRelative(offset)
+			subpassesOffset = builder.EndVector(len(subpassOffsets))
+
+			dependencyOffsets = []
+			for dependency in item.dependencies:
+				dependencyOffsets.append(CreateSubpassDependency(builder, dependency.srcSubpass,
+					dependency.srcStages, dependency.srcAccess, dependency.dstSubpass,
+					dependency.dstStages, dependency.dstAccess, dependency.regionDependency))
+
+			if dependencyOffsets:
+				RenderPassStartDependenciesVector(builder, len(dependencyOffsets))
+				for attachment in reversed(dependencyOffsets):
+					builder.PrependUOffsetTRelative(offset)
+				dependenciesOffset = builder.EndVector(len(dependencyOffsets))
+			else:
+				dependenciesOffset = 0
+
+			RenderPassStart(builder)
+			RenderPassAddName(builder, nameOffset)
+			RenderPassAddFramebuffer(builder, framebufferOffset)
+			RenderPassAddAttachments(builder, attachmentsOffset)
+			RenderPassAddSubpasses(builder, subpassesOffset)
+			RenderPassAddDependencies(builder, dependenciesOffset)
+			itemOffset = RenderPassEnd(builder)
+
+		ScenePipelineItemStart(builder)
+		ScenePipelineItemAddItemType(builder, itemType)
+		ScenePipelineItemAddItem(builder, itemOffset)
+		pipelineOffsets.append(ScenePipelineItemEnd(builder))
+
+	SceneStartPipelineVector(builder, len(pipelineOffsets))
+	for offset in reversed(pipelineOffsets):
+		builder.PrependUOffsetTRelative(offset)
+	pipelineOffset = builder.EndVector(len(pipelineOffsets))
+
+	globalDataOffsets = []
+	for item in globalData:
+		globalDataOffsets.append(convertContext.convertGlobalData(builder, item.type, item.data))
+
+	if globalDataOffsets:
+		SceneStartGlobalDataVector(builder, len(globalDataOffsets))
+		for offset in reversed(globalDataOffsets):
+			builder.PrependUOffsetTRelative(offset)
+		globalDataOffset = builder.EndVector(len(globalDataOffsets))
+	else:
+		globalDataOffset = 0
+
+	SceneStart(builder)
+	SceneAddSharedItems(builder, sharedItemsOffset)
+	SceneAddPipeline(builder, pipelineOffset)
+	SceneAddGlobalData(builder, globalDataOffset)
+	builder.Finish(SceneEnd(builder))
+	return builder.Output()
