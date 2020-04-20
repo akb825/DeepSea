@@ -263,20 +263,20 @@ def convertSceneResourcesTextures(builder, convertContext, data):
 				if baseTextureInfo:
 					textureInfo = object()
 					try:
-						formatStr = baseTextureInfo['format']
+						formatStr = str(baseTextureInfo['format'])
 						try:
 							textureInfo.format = getattr(TextureFormat, formatStr)
 						except AttributeError:
 							raise Exception('Invalid texture format "' + formatStr + '".')
 
-						decorationStr = baseTextureInfo['decoration']
+						decorationStr = str(baseTextureInfo['decoration'])
 						try:
 							textureInfo.decoration = getattr(FormatDecoration, decorationStr)
 						except AttributeError:
 							raise Exception(
 								'Invalid texture format decoration "' + decorationStr + '".')
 
-						dimensionStr = baseTextureInfo.get('dimension', 'Dim2D')
+						dimensionStr = str(baseTextureInfo.get('dimension', 'Dim2D'))
 						try:
 							textureInfo.dimension = getattr(TextureDim, dimensionStr)
 						except AttributeError:
@@ -287,7 +287,7 @@ def convertSceneResourcesTextures(builder, convertContext, data):
 							expectedDepth = expectedDepth/6
 
 						validConvertValues = (None, 'nextpo2', 'nearestpo2')
-						widthStr = baseTextureInfo.get('width')
+						widthStr = str(baseTextureInfo.get('width'))
 						if (path or paths) and widthStr in validConvertValues:
 							textureInfo.width = widthStr
 						elif widthStr is None:
@@ -295,7 +295,7 @@ def convertSceneResourcesTextures(builder, convertContext, data):
 						else:
 							textureInfo.width = readInt(widthStr, 'width', 1)
 
-						heightStr = baseTextureInfo.get('height')
+						heightStr = str(baseTextureInfo.get('height'))
 						if (path or paths) and heightStr in validConvertValues:
 							textureInfo.height = heightStr
 						elif heightStr is None:
@@ -306,7 +306,7 @@ def convertSceneResourcesTextures(builder, convertContext, data):
 						if textureInfo.width is None and textureInfo.height is None:
 							raise Exception('If texture width or height is set, both must be set.')
 
-						depthStr = baseTextureInfo.get('depth', expectedDepth)
+						depthStr = str(baseTextureInfo.get('depth', expectedDepth))
 						textureInfo.depth = readInt(heightStr, 'depth', 0)
 						if (path or paths) and textureInfo.depth != expectedDepth:
 							raise Exception(
@@ -321,7 +321,7 @@ def convertSceneResourcesTextures(builder, convertContext, data):
 							raise Exception(
 								'Invalid texture quality "' + textureInfo.quality + '".')
 
-						normalmapStr = baseTextureInfo.get('normalmap', 0.0)
+						normalmapStr = str(aseTextureInfo.get('normalmap', 0.0))
 						try:
 							textureInfo.normalmap = float(normalmapStr)
 						except:
@@ -504,7 +504,7 @@ def convertSceneResourcesShaderVariableGroupDescs(builder, convertContext, data)
 	def readElement(elementData):
 		try:
 			name = str(elementData['name'])
-			typeStr = elementData['type']
+			typeStr = str(elementData['type'])
 			try:
 				materialType = getattr(MaterialType, typeStr)
 			except AttributeError:
@@ -513,7 +513,7 @@ def convertSceneResourcesShaderVariableGroupDescs(builder, convertContext, data)
 				raise Exception(
 					'Shader variable groups may only contain primitive, vector, and matrix types.')
 
-			countStr = elementData.get('count', 0)
+			countStr = str(elementData.get('count', 0))
 			try:
 				count = int(countStr)
 				if count < 0:
@@ -751,7 +751,7 @@ def convertSceneResourcesShaderData(builder, convertContext, data, memberName):
 				try:
 					bufferName = str(dataElement['name'])
 
-					formatStr = dataElement['format']
+					formatStr = str(dataElement['format'])
 					try:
 						texFormat = getattr(TextureFormat, formatStr)
 						if texFormat >= TextureFormat.BC1_RGB:
@@ -759,7 +759,7 @@ def convertSceneResourcesShaderData(builder, convertContext, data, memberName):
 					except:
 						raise Exception('Invalid texture buffer format "' + formatStr + '".')
 
-					decorationStr = dataElement['decoration']
+					decorationStr = str(dataElement['decoration'])
 					try:
 						decoration = getattr(FormatDecoration, decorationStr)
 					except AttributeError:
@@ -813,7 +813,7 @@ def convertSceneResourcesShaderData(builder, convertContext, data, memberName):
 	def convertDataElement(builder, data):
 		try:
 			name = str(data['name'])
-			typeStr = data['type']
+			typeStr = str(data['type'])
 			try:
 				materialType = getattr(MaterialType, typeStr)
 			except AttributeError:
@@ -901,13 +901,13 @@ def convertSceneResourcesMaterialDescs(builder, convertContext, data):
 	def readElement(elementData):
 		try:
 			name = str(elementData['name'])
-			typeStr = elementData['type']
+			typeStr = str(elementData['type'])
 			try:
 				materialType = getattr(MaterialType, typeStr)
 			except AttributeError:
 				raise Exception('Invalid material type "' + typeStr + '".')
 
-			countStr = elementData.get('count', 0)
+			countStr = str(elementData.get('count', 0))
 			try:
 				count = int(countStr)
 				if count < 0:
@@ -1284,7 +1284,7 @@ def convertSceneResources(convertContext, data):
 	    - height: the height of the texture in pixels. When converting, may also be the string
 	      nextpo2 or nearestpo2. When converting, this can be ommitted to use the original image
 	      height.
-	    - depth: the depth or array layers of the textures. If 0 or ommitted, this is not a texture
+	    - depth: the depth or array layers of the texture. If 0 or ommitted, this is not a texture
 	      array.
 	    (the following elements are only used for texture conversion)
 	    - mipLevels: the number of mipmap levels.

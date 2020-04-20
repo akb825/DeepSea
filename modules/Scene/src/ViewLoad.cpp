@@ -162,18 +162,18 @@ dsView* dsView_loadImpl(const dsScene* scene, dsAllocator* allocator,
 		}
 		surface->usage = fbSurface->usage();
 		surface->memoryHints = static_cast<dsGfxMemory>(fbSurface->memoryHints());
-		surface->createInfo.dimension = DeepSeaScene::convert(fbSurface->dimension());
 		surface->createInfo.format =
 			DeepSeaScene::convert(fbSurface->format(), fbSurface->decoration());
-		surface->createInfo.depth = fbSurface->depth();
-		surface->createInfo.mipLevels = fbSurface->mipLevels();
+		surface->createInfo.dimension = DeepSeaScene::convert(fbSurface->dimension());
 		surface->createInfo.width = fbSurface->width();
 		surface->widthRatio = fbSurface->widthRatio();
 		surface->createInfo.height = fbSurface->height();
 		surface->heightRatio = fbSurface->heightRatio();
+		surface->createInfo.depth = fbSurface->depth();
+		surface->createInfo.mipLevels = fbSurface->mipLevels();
 		surface->createInfo.samples = fbSurface->samples();
 		surface->resolve = fbSurface->resolve();
-		surface->rotated = fbSurface->rotated();
+		surface->windowFramebuffer = fbSurface->windowFramebuffer();
 		surface->surface = nullptr;
 	}
 

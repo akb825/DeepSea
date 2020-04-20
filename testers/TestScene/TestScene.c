@@ -644,11 +644,11 @@ static dsView* createView(dsAllocator* allocator, dsScene* scene, dsRenderSurfac
 	surfaces[0].name = "windowColor";
 	surfaces[0].surfaceType = dsGfxSurfaceType_ColorRenderSurface;
 	surfaces[0].surface = surface;
-	surfaces[0].rotated = true;
+	surfaces[0].windowFramebuffer = true;
 	surfaces[1].name = "windowDepth";
 	surfaces[1].surfaceType = dsGfxSurfaceType_DepthRenderSurface;
 	surfaces[1].surface = surface;
-	surfaces[1].rotated = true;
+	surfaces[1].windowFramebuffer = true;
 
 	dsFramebufferSurface framebufferSurfaces[2] =
 	{

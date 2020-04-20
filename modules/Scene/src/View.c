@@ -127,11 +127,11 @@ static bool validateSurfacesFramebuffers(const dsResourceManager* resourceManage
 			{
 				dsRenderSurface* renderSurface = (dsRenderSurface*)surface->surface;
 				if ((renderSurface->usage & dsRenderSurfaceUsage_ClientRotations) &&
-					!surface->rotated)
+					!surface->windowFramebuffer)
 				{
 					errno = EINVAL;
 					DS_LOG_ERROR_F(DS_SCENE_LOG_TAG, "Window surface '%s' has client rotations "
-						"enabled, but does not have rotated set to true.", surface->name);
+						"enabled, but does not have windowFramebuffer set to true.", surface->name);
 					return false;
 				}
 			}
@@ -430,13 +430,12 @@ dsView* dsView_create(const dsScene* scene, dsAllocator* allocator, dsAllocator*
 			memcpy(surface->surface, surfaceName, nameLen);
 
 			if (j == 0)
-				rotated = surfaceInfo->rotated;
-			else if (surfaceInfo->rotated != rotated)
+				rotated = surfaceInfo->windowFramebuffer;
+			else if (surfaceInfo->windowFramebuffer != rotated)
 			{
 				errno = EINVAL;
-				DS_LOG_ERROR_F(DS_SCENE_LOG_TAG,
-					"Framebuffer '%s' cannot contain surfaces both with and without rotation.",
-					framebufferInfo->name);
+				DS_LOG_ERROR_F(DS_SCENE_LOG_TAG, "Framebuffer '%s' cannot contain surfaces both "
+					"with and without windowFramebuffer set.", framebufferInfo->name);
 				destroyMidCreate(view);
 				return NULL;
 			}
@@ -753,7 +752,7 @@ bool dsView_update(dsView* view)
 			width = surfaceInfo->createInfo.width;
 		else
 		{
-			width = surfaceInfo->rotated ? view->preRotateWidth : view->width;
+			width = surfaceInfo->windowFramebuffer ? view->preRotateWidth : view->width;
 			width = (uint32_t)roundf(surfaceInfo->widthRatio*(float)width);
 		}
 
@@ -762,7 +761,7 @@ bool dsView_update(dsView* view)
 			height = surfaceInfo->createInfo.height;
 		else
 		{
-			height = surfaceInfo->rotated ? view->preRotateHeight : view->height;
+			height = surfaceInfo->windowFramebuffer ? view->preRotateHeight : view->height;
 			height = (uint32_t)roundf(surfaceInfo->heightRatio*(float)height);
 		}
 
@@ -820,8 +819,8 @@ bool dsView_update(dsView* view)
 			DS_ASSERT(privateView->surfaceInfos[foundNode->index].surfaceType ==
 				surface->surfaceType);
 			surface->surface = privateView->surfaces[foundNode->index];
-			DS_ASSERT(j == 0 || rotated == privateView->surfaceInfos->rotated);
-			rotated = privateView->surfaceInfos->rotated;
+			DS_ASSERT(j == 0 || rotated == privateView->surfaceInfos->windowFramebuffer);
+			rotated = privateView->surfaceInfos->windowFramebuffer;
 		}
 
 		uint32_t width;

@@ -295,12 +295,11 @@ typedef struct dsViewSurfaceInfo
 	bool resolve;
 
 	/**
-	 * @brief True if the surface is rotated with the window surface.
+	 * @brief True if the surface is used in the same framebuffer as the window surface.
 	 *
-	 * Set this to true to follow the rotation of the view and window surface. This should be set
-	 * to true for any surface that's used in the same framebuffer as the window surface.
+	 * Set this to true to follow the rotation of the view and window surface.
 	 */
-	bool rotated;
+	bool windowFramebuffer;
 
 	/**
 	 * @brief The existing surface.

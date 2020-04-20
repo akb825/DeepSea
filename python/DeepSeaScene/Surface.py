@@ -49,67 +49,67 @@ class Surface(object):
         return 0
 
     # Surface
-    def Dimension(self):
+    def Format(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(12))
         if o != 0:
             return self._tab.Get(flatbuffers.number_types.Uint8Flags, o + self._tab.Pos)
         return 0
 
     # Surface
-    def Format(self):
+    def Decoration(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(14))
         if o != 0:
             return self._tab.Get(flatbuffers.number_types.Uint8Flags, o + self._tab.Pos)
         return 0
 
     # Surface
-    def Decoration(self):
+    def Dimension(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(16))
         if o != 0:
             return self._tab.Get(flatbuffers.number_types.Uint8Flags, o + self._tab.Pos)
         return 0
 
     # Surface
-    def Depth(self):
+    def Width(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(18))
         if o != 0:
             return self._tab.Get(flatbuffers.number_types.Uint32Flags, o + self._tab.Pos)
         return 0
 
     # Surface
-    def MipLevels(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(20))
-        if o != 0:
-            return self._tab.Get(flatbuffers.number_types.Uint8Flags, o + self._tab.Pos)
-        return 0
-
-    # Surface
-    def Width(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(22))
-        if o != 0:
-            return self._tab.Get(flatbuffers.number_types.Uint32Flags, o + self._tab.Pos)
-        return 0
-
-    # Surface
     def WidthRatio(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(24))
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(20))
         if o != 0:
             return self._tab.Get(flatbuffers.number_types.Float32Flags, o + self._tab.Pos)
         return 0.0
 
     # Surface
     def Height(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(26))
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(22))
         if o != 0:
             return self._tab.Get(flatbuffers.number_types.Uint32Flags, o + self._tab.Pos)
         return 0
 
     # Surface
     def HeightRatio(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(28))
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(24))
         if o != 0:
             return self._tab.Get(flatbuffers.number_types.Float32Flags, o + self._tab.Pos)
         return 0.0
+
+    # Surface
+    def Depth(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(26))
+        if o != 0:
+            return self._tab.Get(flatbuffers.number_types.Uint32Flags, o + self._tab.Pos)
+        return 0
+
+    # Surface
+    def MipLevels(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(28))
+        if o != 0:
+            return self._tab.Get(flatbuffers.number_types.Uint32Flags, o + self._tab.Pos)
+        return 0
 
     # Surface
     def Samples(self):
@@ -126,7 +126,7 @@ class Surface(object):
         return False
 
     # Surface
-    def Rotated(self):
+    def WindowFramebuffer(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(34))
         if o != 0:
             return bool(self._tab.Get(flatbuffers.number_types.BoolFlags, o + self._tab.Pos))
@@ -137,16 +137,16 @@ def SurfaceAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbu
 def SurfaceAddType(builder, type): builder.PrependUint8Slot(1, type, 0)
 def SurfaceAddUsage(builder, usage): builder.PrependUint32Slot(2, usage, 0)
 def SurfaceAddMemoryHints(builder, memoryHints): builder.PrependUint32Slot(3, memoryHints, 0)
-def SurfaceAddDimension(builder, dimension): builder.PrependUint8Slot(4, dimension, 0)
-def SurfaceAddFormat(builder, format): builder.PrependUint8Slot(5, format, 0)
-def SurfaceAddDecoration(builder, decoration): builder.PrependUint8Slot(6, decoration, 0)
-def SurfaceAddDepth(builder, depth): builder.PrependUint32Slot(7, depth, 0)
-def SurfaceAddMipLevels(builder, mipLevels): builder.PrependUint8Slot(8, mipLevels, 0)
-def SurfaceAddWidth(builder, width): builder.PrependUint32Slot(9, width, 0)
-def SurfaceAddWidthRatio(builder, widthRatio): builder.PrependFloat32Slot(10, widthRatio, 0.0)
-def SurfaceAddHeight(builder, height): builder.PrependUint32Slot(11, height, 0)
-def SurfaceAddHeightRatio(builder, heightRatio): builder.PrependFloat32Slot(12, heightRatio, 0.0)
+def SurfaceAddFormat(builder, format): builder.PrependUint8Slot(4, format, 0)
+def SurfaceAddDecoration(builder, decoration): builder.PrependUint8Slot(5, decoration, 0)
+def SurfaceAddDimension(builder, dimension): builder.PrependUint8Slot(6, dimension, 0)
+def SurfaceAddWidth(builder, width): builder.PrependUint32Slot(7, width, 0)
+def SurfaceAddWidthRatio(builder, widthRatio): builder.PrependFloat32Slot(8, widthRatio, 0.0)
+def SurfaceAddHeight(builder, height): builder.PrependUint32Slot(9, height, 0)
+def SurfaceAddHeightRatio(builder, heightRatio): builder.PrependFloat32Slot(10, heightRatio, 0.0)
+def SurfaceAddDepth(builder, depth): builder.PrependUint32Slot(11, depth, 0)
+def SurfaceAddMipLevels(builder, mipLevels): builder.PrependUint32Slot(12, mipLevels, 0)
 def SurfaceAddSamples(builder, samples): builder.PrependUint32Slot(13, samples, 0)
 def SurfaceAddResolve(builder, resolve): builder.PrependBoolSlot(14, resolve, 0)
-def SurfaceAddRotated(builder, rotated): builder.PrependBoolSlot(15, rotated, 0)
+def SurfaceAddWindowFramebuffer(builder, windowFramebuffer): builder.PrependBoolSlot(15, windowFramebuffer, 0)
 def SurfaceEnd(builder): return builder.EndObject()

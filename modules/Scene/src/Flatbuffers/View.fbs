@@ -40,20 +40,14 @@ table Surface
 	// The memory flags for the surface.
 	memoryHints : uint;
 
-	// The dimension of the surface when type is Offscreen.
-	dimension : TextureDim;
-
 	// The main format of the surface.
 	format : TextureFormat;
 
 	// The decoration for the format.
 	decoration : FormatDecoration;
 
-	// The depth or array layers of the surfaceif an offscreen. If 0, this is not a texture array.
-	depth : uint;
-
-	// The number of mipmap levels if an offscreen.
-	mipLevels : ubyte;
+	// The dimension of the surface when type is Offscreen.
+	dimension : TextureDim;
 
 	// The explicit width of the surface.
 	width : uint;
@@ -67,15 +61,21 @@ table Surface
 	// The ratio of the height relative to the view's height when the explicit height is 0.
 	heightRatio : float;
 
+	// The depth or array layers of the surfaceif an offscreen. If 0, this is not a texture array.
+	depth : uint;
+
+	// The number of mipmap levels if an offscreen.
+	mipLevels : uint;
+
 	// The number of anti-alias samples.
 	samples : uint;
 
 	// Whether or not to resolve anti-alias samples if an offscreen.
 	resolve : bool;
 
-	// Whether or not the surface is rotated with the window surface. This should be set to true for
-	// any surface that's used in the same framebuffer as the window surface.
-	rotated : bool;
+	// Whether or not the surface is used in the same framebuffer as the window surface. When true,
+	// the surface will follow the rotation of the view and window surface.
+	windowFramebuffer : bool;
 }
 
 // Struct describing a surface reference used by a framebuffer.

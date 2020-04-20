@@ -59,18 +59,18 @@ struct Surface FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_TYPE = 6,
     VT_USAGE = 8,
     VT_MEMORYHINTS = 10,
-    VT_DIMENSION = 12,
-    VT_FORMAT = 14,
-    VT_DECORATION = 16,
-    VT_DEPTH = 18,
-    VT_MIPLEVELS = 20,
-    VT_WIDTH = 22,
-    VT_WIDTHRATIO = 24,
-    VT_HEIGHT = 26,
-    VT_HEIGHTRATIO = 28,
+    VT_FORMAT = 12,
+    VT_DECORATION = 14,
+    VT_DIMENSION = 16,
+    VT_WIDTH = 18,
+    VT_WIDTHRATIO = 20,
+    VT_HEIGHT = 22,
+    VT_HEIGHTRATIO = 24,
+    VT_DEPTH = 26,
+    VT_MIPLEVELS = 28,
     VT_SAMPLES = 30,
     VT_RESOLVE = 32,
-    VT_ROTATED = 34
+    VT_WINDOWFRAMEBUFFER = 34
   };
   const flatbuffers::String *name() const {
     return GetPointer<const flatbuffers::String *>(VT_NAME);
@@ -84,20 +84,14 @@ struct Surface FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   uint32_t memoryHints() const {
     return GetField<uint32_t>(VT_MEMORYHINTS, 0);
   }
-  DeepSeaScene::TextureDim dimension() const {
-    return static_cast<DeepSeaScene::TextureDim>(GetField<uint8_t>(VT_DIMENSION, 0));
-  }
   DeepSeaScene::TextureFormat format() const {
     return static_cast<DeepSeaScene::TextureFormat>(GetField<uint8_t>(VT_FORMAT, 0));
   }
   DeepSeaScene::FormatDecoration decoration() const {
     return static_cast<DeepSeaScene::FormatDecoration>(GetField<uint8_t>(VT_DECORATION, 0));
   }
-  uint32_t depth() const {
-    return GetField<uint32_t>(VT_DEPTH, 0);
-  }
-  uint8_t mipLevels() const {
-    return GetField<uint8_t>(VT_MIPLEVELS, 0);
+  DeepSeaScene::TextureDim dimension() const {
+    return static_cast<DeepSeaScene::TextureDim>(GetField<uint8_t>(VT_DIMENSION, 0));
   }
   uint32_t width() const {
     return GetField<uint32_t>(VT_WIDTH, 0);
@@ -111,14 +105,20 @@ struct Surface FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   float heightRatio() const {
     return GetField<float>(VT_HEIGHTRATIO, 0.0f);
   }
+  uint32_t depth() const {
+    return GetField<uint32_t>(VT_DEPTH, 0);
+  }
+  uint32_t mipLevels() const {
+    return GetField<uint32_t>(VT_MIPLEVELS, 0);
+  }
   uint32_t samples() const {
     return GetField<uint32_t>(VT_SAMPLES, 0);
   }
   bool resolve() const {
     return GetField<uint8_t>(VT_RESOLVE, 0) != 0;
   }
-  bool rotated() const {
-    return GetField<uint8_t>(VT_ROTATED, 0) != 0;
+  bool windowFramebuffer() const {
+    return GetField<uint8_t>(VT_WINDOWFRAMEBUFFER, 0) != 0;
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -127,18 +127,18 @@ struct Surface FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            VerifyField<uint8_t>(verifier, VT_TYPE) &&
            VerifyField<uint32_t>(verifier, VT_USAGE) &&
            VerifyField<uint32_t>(verifier, VT_MEMORYHINTS) &&
-           VerifyField<uint8_t>(verifier, VT_DIMENSION) &&
            VerifyField<uint8_t>(verifier, VT_FORMAT) &&
            VerifyField<uint8_t>(verifier, VT_DECORATION) &&
-           VerifyField<uint32_t>(verifier, VT_DEPTH) &&
-           VerifyField<uint8_t>(verifier, VT_MIPLEVELS) &&
+           VerifyField<uint8_t>(verifier, VT_DIMENSION) &&
            VerifyField<uint32_t>(verifier, VT_WIDTH) &&
            VerifyField<float>(verifier, VT_WIDTHRATIO) &&
            VerifyField<uint32_t>(verifier, VT_HEIGHT) &&
            VerifyField<float>(verifier, VT_HEIGHTRATIO) &&
+           VerifyField<uint32_t>(verifier, VT_DEPTH) &&
+           VerifyField<uint32_t>(verifier, VT_MIPLEVELS) &&
            VerifyField<uint32_t>(verifier, VT_SAMPLES) &&
            VerifyField<uint8_t>(verifier, VT_RESOLVE) &&
-           VerifyField<uint8_t>(verifier, VT_ROTATED) &&
+           VerifyField<uint8_t>(verifier, VT_WINDOWFRAMEBUFFER) &&
            verifier.EndTable();
   }
 };
@@ -159,20 +159,14 @@ struct SurfaceBuilder {
   void add_memoryHints(uint32_t memoryHints) {
     fbb_.AddElement<uint32_t>(Surface::VT_MEMORYHINTS, memoryHints, 0);
   }
-  void add_dimension(DeepSeaScene::TextureDim dimension) {
-    fbb_.AddElement<uint8_t>(Surface::VT_DIMENSION, static_cast<uint8_t>(dimension), 0);
-  }
   void add_format(DeepSeaScene::TextureFormat format) {
     fbb_.AddElement<uint8_t>(Surface::VT_FORMAT, static_cast<uint8_t>(format), 0);
   }
   void add_decoration(DeepSeaScene::FormatDecoration decoration) {
     fbb_.AddElement<uint8_t>(Surface::VT_DECORATION, static_cast<uint8_t>(decoration), 0);
   }
-  void add_depth(uint32_t depth) {
-    fbb_.AddElement<uint32_t>(Surface::VT_DEPTH, depth, 0);
-  }
-  void add_mipLevels(uint8_t mipLevels) {
-    fbb_.AddElement<uint8_t>(Surface::VT_MIPLEVELS, mipLevels, 0);
+  void add_dimension(DeepSeaScene::TextureDim dimension) {
+    fbb_.AddElement<uint8_t>(Surface::VT_DIMENSION, static_cast<uint8_t>(dimension), 0);
   }
   void add_width(uint32_t width) {
     fbb_.AddElement<uint32_t>(Surface::VT_WIDTH, width, 0);
@@ -186,14 +180,20 @@ struct SurfaceBuilder {
   void add_heightRatio(float heightRatio) {
     fbb_.AddElement<float>(Surface::VT_HEIGHTRATIO, heightRatio, 0.0f);
   }
+  void add_depth(uint32_t depth) {
+    fbb_.AddElement<uint32_t>(Surface::VT_DEPTH, depth, 0);
+  }
+  void add_mipLevels(uint32_t mipLevels) {
+    fbb_.AddElement<uint32_t>(Surface::VT_MIPLEVELS, mipLevels, 0);
+  }
   void add_samples(uint32_t samples) {
     fbb_.AddElement<uint32_t>(Surface::VT_SAMPLES, samples, 0);
   }
   void add_resolve(bool resolve) {
     fbb_.AddElement<uint8_t>(Surface::VT_RESOLVE, static_cast<uint8_t>(resolve), 0);
   }
-  void add_rotated(bool rotated) {
-    fbb_.AddElement<uint8_t>(Surface::VT_ROTATED, static_cast<uint8_t>(rotated), 0);
+  void add_windowFramebuffer(bool windowFramebuffer) {
+    fbb_.AddElement<uint8_t>(Surface::VT_WINDOWFRAMEBUFFER, static_cast<uint8_t>(windowFramebuffer), 0);
   }
   explicit SurfaceBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
@@ -214,34 +214,34 @@ inline flatbuffers::Offset<Surface> CreateSurface(
     DeepSeaScene::SurfaceType type = DeepSeaScene::SurfaceType::Renderbuffer,
     uint32_t usage = 0,
     uint32_t memoryHints = 0,
-    DeepSeaScene::TextureDim dimension = DeepSeaScene::TextureDim::Dim1D,
     DeepSeaScene::TextureFormat format = DeepSeaScene::TextureFormat::R4G4,
     DeepSeaScene::FormatDecoration decoration = DeepSeaScene::FormatDecoration::UNorm,
-    uint32_t depth = 0,
-    uint8_t mipLevels = 0,
+    DeepSeaScene::TextureDim dimension = DeepSeaScene::TextureDim::Dim1D,
     uint32_t width = 0,
     float widthRatio = 0.0f,
     uint32_t height = 0,
     float heightRatio = 0.0f,
+    uint32_t depth = 0,
+    uint32_t mipLevels = 0,
     uint32_t samples = 0,
     bool resolve = false,
-    bool rotated = false) {
+    bool windowFramebuffer = false) {
   SurfaceBuilder builder_(_fbb);
   builder_.add_samples(samples);
+  builder_.add_mipLevels(mipLevels);
+  builder_.add_depth(depth);
   builder_.add_heightRatio(heightRatio);
   builder_.add_height(height);
   builder_.add_widthRatio(widthRatio);
   builder_.add_width(width);
-  builder_.add_depth(depth);
   builder_.add_memoryHints(memoryHints);
   builder_.add_usage(usage);
   builder_.add_name(name);
-  builder_.add_rotated(rotated);
+  builder_.add_windowFramebuffer(windowFramebuffer);
   builder_.add_resolve(resolve);
-  builder_.add_mipLevels(mipLevels);
+  builder_.add_dimension(dimension);
   builder_.add_decoration(decoration);
   builder_.add_format(format);
-  builder_.add_dimension(dimension);
   builder_.add_type(type);
   return builder_.Finish();
 }
@@ -252,18 +252,18 @@ inline flatbuffers::Offset<Surface> CreateSurfaceDirect(
     DeepSeaScene::SurfaceType type = DeepSeaScene::SurfaceType::Renderbuffer,
     uint32_t usage = 0,
     uint32_t memoryHints = 0,
-    DeepSeaScene::TextureDim dimension = DeepSeaScene::TextureDim::Dim1D,
     DeepSeaScene::TextureFormat format = DeepSeaScene::TextureFormat::R4G4,
     DeepSeaScene::FormatDecoration decoration = DeepSeaScene::FormatDecoration::UNorm,
-    uint32_t depth = 0,
-    uint8_t mipLevels = 0,
+    DeepSeaScene::TextureDim dimension = DeepSeaScene::TextureDim::Dim1D,
     uint32_t width = 0,
     float widthRatio = 0.0f,
     uint32_t height = 0,
     float heightRatio = 0.0f,
+    uint32_t depth = 0,
+    uint32_t mipLevels = 0,
     uint32_t samples = 0,
     bool resolve = false,
-    bool rotated = false) {
+    bool windowFramebuffer = false) {
   auto name__ = name ? _fbb.CreateString(name) : 0;
   return DeepSeaScene::CreateSurface(
       _fbb,
@@ -271,18 +271,18 @@ inline flatbuffers::Offset<Surface> CreateSurfaceDirect(
       type,
       usage,
       memoryHints,
-      dimension,
       format,
       decoration,
-      depth,
-      mipLevels,
+      dimension,
       width,
       widthRatio,
       height,
       heightRatio,
+      depth,
+      mipLevels,
       samples,
       resolve,
-      rotated);
+      windowFramebuffer);
 }
 
 struct FramebufferSurface FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
