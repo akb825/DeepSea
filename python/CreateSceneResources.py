@@ -34,7 +34,7 @@ if __name__ == '__main__':
 		help = 'path to the vfc tool for vertex format conversion')
 	parser.add_argument('-j', '--multithread', default = False, action = 'store_true',
 		help = 'multithread texture conversion')
-	parser.add_argument('-e', '--extension', nargs = '*', default = [],
+	parser.add_argument('-e', '--extensions', nargs = '*', default = [],
 		help = 'list of module names for extensions. Eeach extension should have a '
 			'deepSeaSceneExtension(convertContext) function to register the custom types with the'
 			'convert context.')

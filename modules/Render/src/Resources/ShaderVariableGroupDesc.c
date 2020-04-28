@@ -47,6 +47,34 @@ static bool hasDuplicates(const dsShaderVariableElement* elements, uint32_t elem
 	return hasDuplicate;
 }
 
+bool dsShaderVariableGroup_areElementsEqual(
+	const dsShaderVariableElement* firstElements, uint32_t firstElementCount,
+	const dsShaderVariableElement* secondElements, uint32_t secondElementCount)
+{
+	if (firstElementCount != secondElementCount)
+		return false;
+
+	if (firstElements == secondElements)
+		return true;
+
+	if (!firstElements || !secondElements)
+		return false;
+
+	for (uint32_t i = 0; i  < firstElementCount; ++i)
+	{
+		const dsShaderVariableElement* firstElement = firstElements + i;
+		const dsShaderVariableElement* secondElement = secondElements + i;
+		if (strcmp(firstElement->name, secondElement->name) != 0 ||
+			firstElement->type != secondElement->type ||
+			firstElement->count != secondElement->count)
+		{
+			return false;
+		}
+	}
+
+	return true;
+}
+
 dsShaderVariableGroupDesc* dsShaderVariableGroupDesc_create(dsResourceManager* resourceManager,
 	dsAllocator* allocator, const dsShaderVariableElement* elements, uint32_t elementCount)
 {

@@ -43,9 +43,13 @@ from ..TextureInfo import *
 from ..VertexAttribute import *
 from ..VariableData import *
 from ..VariableElement import *
+from ..VersionedShaderModule import *
 from ..VertexBuffer import *
 from ..VertexElementFormat import *
 from ..VertexFormat import *
+
+class Object:
+	pass
 
 memoryHintsEnum = {
 	'GPUOnly': 0x1,
@@ -234,7 +238,7 @@ def convertSceneResourcesTextures(builder, convertContext, data):
 
 				try:
 					memoryHints = 0
-					memoryHintsArray = textureData.get('memoryHints', ['GPUOnly', 'Static'])
+					memoryHintsArray = textureData.get('memoryHints', ['GPUOnly'])
 					for memoryEnum in memoryHintsArray:
 						try:
 							memoryHints |= memoryHintsEnum[memoryEnum]
@@ -261,7 +265,7 @@ def convertSceneResourcesTextures(builder, convertContext, data):
 
 				baseTextureInfo = textureData.get('textureData')
 				if baseTextureInfo:
-					textureInfo = object()
+					textureInfo = Object()
 					try:
 						formatStr = str(baseTextureInfo['format'])
 						try:
@@ -321,7 +325,7 @@ def convertSceneResourcesTextures(builder, convertContext, data):
 							raise Exception(
 								'Invalid texture quality "' + textureInfo.quality + '".')
 
-						normalmapStr = str(aseTextureInfo.get('normalmap', 0.0))
+						normalmapStr = str(baseTextureInfo.get('normalmap', 0.0))
 						try:
 							textureInfo.normalmap = float(normalmapStr)
 						except:
@@ -449,7 +453,7 @@ def convertSceneResourcesTextures(builder, convertContext, data):
 					cleanup(tempFiles)
 					raise
 			elif path:
-				textureFile = path
+				texturePath = path
 			elif paths:
 				raise Exception('SceneResources texture "pathArray" may only be used when '
 					'converting textures.')
@@ -590,11 +594,17 @@ def convertSceneResourcesShaderData(builder, convertContext, data, memberName):
 		if len(dataArray) == 0:
 			return 0, 0
 
+		def getFormatSize(formatStr):
+			return 8 if formatStr == "double" else 4
+
 		def packSingleElement(formatStr, name):
-			dataBytes = bytearray()
+			dataSize = getFormatSize(formatStr)
+			offset = 0
+			dataBytes = bytearray(len(dataArray)*dataSize)
 			try:
 				for element in dataArray:
-					struct.pack_into(dataBytes, len(dataBytes), formatStr, element)
+					struct.pack_into(formatStr, dataBytes, offset, formatStr, element)
+					offset += dataSize
 			except:
 				if name[0] in ('a', 'e', 'i', 'o', 'u'):
 					raise Exception('Shader data must be an ' + name + '.')
@@ -603,20 +613,26 @@ def convertSceneResourcesShaderData(builder, convertContext, data, memberName):
 			return dataBytes
 
 		def packVectorElement(formatStr, name, expectedLen):
-			dataBytes = bytearray()
+			dataSize = getFormatSize(formatStr)
+			offset = 0
+			dataBytes = bytearray(len(dataArray)*expectedLen*dataSize)
 			try:
 				for elementArray in dataArray:
 					if len(elementArray) != expectedLen:
 						raise Exception() # Common error handling in except block.
+
 					for element in elementArray:
-						struct.pack_into(dataBytes, len(dataBytes), element)
+						struct.pack_into(formatStr, dataBytes, offset, element)
+						offset += dataSize
 			except:
 				raise Exception('Shader data must be an array of ' + str(expectedLen) +
 					' ' + name + 's.')
 			return dataBytes
 
 		def packMatrixElement(formatStr, name, expectedCol, expectedRow):
-			dataBytes = bytearray()
+			dataSize = getFormatSize(formatStr)
+			offset = 0
+			dataBytes = bytearray(len(dataArray)*expectedCol*expectedRow*datasize)
 			try:
 				for colArray in dataArray:
 					if len(colArray) != expectedCol:
@@ -625,29 +641,35 @@ def convertSceneResourcesShaderData(builder, convertContext, data, memberName):
 						if len(col) != expectedRow:
 							raise Exception() # Common error handling in except block.
 						for element in col:
-							struct.pack_into(dataBytes, len(dataBytes), element)
+							struct.pack_into(formatStr, dataBytes, offset, element)
+							offset += dataSize
 			except:
 				raise Exception('Shader data must be an array of ' + str(expectedCol) +
 					' colomn arrays with ' + str(expectedRow) + ' ' + name + 's.')
 			return dataBytes
 
 		def packBool():
-			dataBytes = bytearray()
+			dataSize = 4
+			offset = 0
+			dataBytes = bytearray(len(dataArray)*datasize)
 			try:
 				for element in dataArray:
-					struct.pack_into(dataBytes, len(dataBytes), int(bool(element)))
+					struct.pack_into('i', dataBytes, dataSize, int(bool(element)))
+					offset += dataSize
 			except:
 				raise Exception('Shader data must be a bool.')
 			return dataBytes
 
 		def packBoolVector(expectedLen):
-			dataBytes = bytearray()
+			dataSize = 4
+			offset = 0
+			dataBytes = bytearray(len(dataArray)*expectedLen*datasize)
 			try:
 				for elementArray in dataArray:
 					if len(elementArray) != expectedLen:
 						raise Exception() # Common error handling in except block.
 					for element in elementArray:
-						struct.pack_into(dataBytes, len(dataBytes), int(bool(element)))
+						struct.pack_into('i', dataBytes, len(dataBytes), int(bool(element)))
 			except:
 				raise Exception('Shader data must be an array of ' + str(expectedLen) +
 					' bools.')
@@ -859,9 +881,10 @@ def convertSceneResourcesShaderData(builder, convertContext, data, memberName):
 				name = str(dataElement['name'])
 				description = str(dataElement['description'])
 
+				memberData = dataElement.get('data', [])
 				try:
 					elementDataOffsets = []
-					for dataValue in dataElement['data']:
+					for dataValue in memberData:
 						elementDataOffsets.append(convertDataElement(builder, dataValue))
 				except (TypeError, ValueError):
 					raise Exception(
@@ -880,7 +903,7 @@ def convertSceneResourcesShaderData(builder, convertContext, data, memberName):
 
 			ShaderDataStart(builder)
 			ShaderDataAddName(builder, nameOffset)
-			ShaderDataAddDescription(builder, description)
+			ShaderDataAddDescription(builder, descriptionOffset)
 			ShaderDataAddData(builder, dataOffset)
 			dataOffsets.append(ShaderDataEnd(builder))
 	except (TypeError, ValueError):
@@ -982,24 +1005,54 @@ def convertSceneResourcesShaderModules(builder, convertContext, data):
 			try:
 				name = str(moduleData['name'])
 
-				moduleStr = str(moduleData['module'])
+				modules = moduleData['modules']
+				versionedModules = []
 				try:
-					modulePath, moduleContents = readData(moduleStr)
-				except TypeError:
-					raise Exception(
-						'SceneResources shader module "module" uses incorrect base64 encoding.')
+					for versionedModuleData in modules:
+						version = str(versionedModuleData['version'])
+						moduleStr = str(versionedModuleData['module'])
+						try:
+							modulePath, moduleContents = readData(moduleStr)
+						except TypeError:
+							raise Exception('SceneResources shader module "module" uses incorrect '
+								'base64 encoding.')
+
+						dataType, dataOffset = convertFileOrData(builder, modulePath,
+							moduleContents, versionedModuleData.get('output'),
+							versionedModuleData.get('outputRelativeDir'),
+							versionedModuleData.get('resourceType'))
+						versionedModules.append((version, dataType, dataOffset))
+				except KeyError as e:
+					raise Exception('Versioned shader module data doesn\'t contain element "' +
+						str(e) + '".')
+				except (TypeError, ValueError):
+					raise Exception('Versioned shader module list must be an array of objects.')
+
+				if not versionedModules:
+					raise Exception('Shader module must contain at least one versioned module.')
 			except KeyError as e:
 				raise Exception('Shader module data doesn\'t contain element "' + str(e) + '".')
 
 			nameOffset = builder.CreateString(name)
-			dataType, dataOffset = convertFileOrData(builder, modulePath, moduleContents,
-				moduleData.get('output'), moduleData.get('outputRelativeDir'),
-				moduleData.get('resourceType'))
+
+			versionedModuleOffsets = []
+			for version, dataType, dataOffset in versionedModules:
+				versionOffset = builder.CreateString(version)
+
+				VersionedShaderModuleStart(builder)
+				VersionedShaderModuleAddVersion(builder, versionOffset)
+				VersionedShaderModuleAddDataType(builder, dataType)
+				VersionedShaderModuleAddData(builder, dataOffset)
+				versionedModuleOffsets.append(VersionedShaderModuleEnd(builder))
+
+			ShaderModuleStartModulesVector(builder, len(versionedModuleOffsets))
+			for offset in reversed(versionedModuleOffsets):
+				builder.PrependUOffsetTRelative(offset)
+			modulesOffset = builder.EndVector(len(versionedModuleOffsets))
 
 			ShaderModuleStart(builder)
 			ShaderModuleAddName(builder, nameOffset)
-			ShaderModuleAddDataType(builder, dataType)
-			ShaderModuleAddData(builder, dataOffset)
+			ShaderModuleAddModules(builder, modulesOffset)
 			moduleOffsets.append(ShaderModuleEnd(builder))
 	except (TypeError, ValueError):
 		raise Exception('SceneResources "shaderModules" must be an array of objects.')
@@ -1052,21 +1105,21 @@ def convertSceneResourcesDrawGeometries(builder, convertContext, data):
 				raise Exception('Invalid vertex buffer ' + name + ' "' + str(value) + '".')
 
 		try:
-			vertexBuffer = object()
+			vertexBuffer = Object()
 			vertexBuffer.name = str(vertexBufferData['name'])
 			vertexBuffer.offset = readInt(vertexBufferData.get('offset', 0), 'offset', 0)
 			vertexBuffer.count = readInt(vertexBufferData['count'], 'count', 1)
 
 			formatData = vertexBufferData['format']
 			try:
-				vertexBuffer.format = object()
+				vertexBuffer.format = Object()
 				vertexBuffer.format.attributes = []
 				try:
 					for attributeData in formatData['attributes']:
 						try:
-							attribute = object()
+							attribute = Object()
 
-							vertexBuffer.attrib = readVertexAttrib(attributeData['attrib'])
+							attribute.attrib = readVertexAttrib(attributeData['attrib'])
 
 							formatStr = attributeData['format']
 							try:
@@ -1112,7 +1165,7 @@ def convertSceneResourcesDrawGeometries(builder, convertContext, data):
 				raise Exception('Invalid index buffer ' + name + ' "' + str(value) + '".')
 
 		try:
-			indexBuffer = object()
+			indexBuffer = Object()
 			indexBuffer.name = str(indexBufferData['name'])
 			indexBuffer.offset = readInt(indexBufferData.get('offset', 0), 'offset', 0)
 			indexBuffer.count = readInt(indexBufferData['count'], 'count', 1)
@@ -1253,12 +1306,12 @@ def convertSceneResources(convertContext, data):
 	    before adding the reference.
 	  - resourceType: the resource type. See the dsFileResourceType for values, removing the type
 	    prefix. Defaults to "Embedded".
-	- texture: array of textures to include. Each element of the array has the following members:
+	- textures: array of textures to include. Each element of the array has the following members:
 	  - name: the name of the texture.
 	  - usage: array of usage flags. See the dsGfxBufferUsage enum for values, removing the type
 	    prefix. Defaults to ["Texture"]. If set, at least one must be provided.
 	  - memoryHints: array of memory hints. See the dsGfxMemory enum for values, removing the type
-	    prefix. Defaults to ["GPUOnly", "Static"]. If set, at least one must be provided.
+	    prefix. Defaults to ["GPUOnly"]. If set, at least one must be provided.
 	  - path: path to the texture image. This may be ommitted if no initial texture data is used.
 	  - pathArray: array of paths to texture images. Use this in place of "path" for texture arrays
 	    or cubemaps.
@@ -1340,8 +1393,7 @@ def convertSceneResources(convertContext, data):
 	    members:
 	    - name: the name of the element.
 	    - type: the type of the element. See dsMaterialType enum for values, removing the type
-	      prefix.
-	    - count: the number of array elements. If 0 or ommitted, this is not an array.
+	      prefix count: the number of array elements. If 0 or ommitted, this is not an array.
 		- binding: the binding type for the element. See the dsMaaterialBinding enum for values,
 	      removing the type prefix. This is only used for texture, image, buffer, and shader
 		  variable group types.
@@ -1353,18 +1405,22 @@ def convertSceneResources(convertContext, data):
 	- shaderModules: array of shader modules to include. Each element of the array has the following
 	  members:
 	  - name: the name of the shader module.
-	  - module: path to the shader module or base64 encoded data prefixed with "base64:". The module
-	    is expected to have been compiled with Modular Shader Language (MSL).
-	  - output: the path to the location to copy the shader module to. This can be ommitted to embed
-	    the shader module directly.
-	  - outputRelativeDir: the directory relative to output path. This will be removed from the path
-	    before adding the reference.
-	  - resourceType: the resource type. See the dsFileResourceType for values, removing the type
-	    prefix. Defaults to "Embedded".
+	  - modules: array of versioned shader modules. The appropriate model based on the graphics API
+	    version being used will be chosen at runtime. Each element of the array has the following
+	    members:
+		- version: the version of the shader as a standard config. (e.g. glsl-4.1, spirv-1.0)
+	    - module: path to the shader module or base64 encoded data prefixed with "base64:". The
+	      module is expected to have been compiled with Modular Shader Language (MSL).
+	    - output: the path to the location to copy the shader module to. This can be ommitted to
+	      embed the shader module directly.
+	    - outputRelativeDir: the directory relative to output path. This will be removed from the
+	      path before adding the reference.
+	    - resourceType: the resource type. See the dsFileResourceType for values, removing the type
+	      prefix. Defaults to "Embedded".
 	- shaders: array of shaders to include. Each element of the array has the following members:
 	  - name: the name of the shader.
-	  - shaderModule: the name of the shader module the shader resides in. The shader module may be
-	    in a different scene resources package.
+	  - module: the name of the shader module the shader resides in. The shader module may be in a
+	    different scene resources package.
 	  - pipelineName: the name of the shader pipeline within the shader module.
 	  - materialDesc: The name of the material description for materials that will be used with the
 	    shader. The material may be in a different scene resources package.

@@ -16,6 +16,9 @@ import struct
 from .ModelNodeConvert import ModelNodeVertexStream, ModelNodeGeometryData, addModelType
 from .SceneResourcesConvert import modelVertexAttribEnum
 
+class Object:
+	pass
+
 def convertOBJModel(convertContext, path):
 	"""
 	Converts an OBJ model for use with ModelNodeConvert.
@@ -33,7 +36,7 @@ def convertOBJModel(convertContext, path):
 	- Materials aren't read, and are instead provided in the DeepSea scene configuration.
 	"""
 
-	data = object()
+	data = Object()
 	data.positions = bytearray()
 	data.positionCount = 0
 	data.positionIndices = bytearray()
@@ -56,18 +59,18 @@ def convertOBJModel(convertContext, path):
 		if not data.primitiveType:
 			return
 
-		streams = [ModelNodeVertexStream((modelVertexAttribEnum['Position'], 'X32Y32Z32W32',
-			'Float'), data.positions, 4, data.positionIndices)]
+		streams = [ModelNodeVertexStream([(modelVertexAttribEnum['Position'], 'X32Y32Z32W32',
+			'Float')], data.positions, 4, data.positionIndices)]
 		data.positionIndices = bytearray()
 
 		if data.texCoordIndices:
-			streams.append(ModelNodeVertexStream((modelVertexAttribEnum['TexCoord0'], 'X32Y32Z32',
-				'Float'), data.texCoords, 4, data.texCoordIndices))
+			streams.append(ModelNodeVertexStream([(modelVertexAttribEnum['TexCoord0'], 'X32Y32Z32',
+				'Float')], data.texCoords, 4, data.texCoordIndices))
 			data.texCoordIndices = bytearray()
 
 		if data.normalIndices:
-			streams.append(ModelNodeVertexStream((modelVertexAttribEnum['Normal'], 'X32Y32Z32',
-				'Float'), data.texCoords, 4, data.texCoordIndices))
+			streams.append(ModelNodeVertexStream([(modelVertexAttribEnum['Normal'], 'X32Y32Z32',
+				'Float')], data.texCoords, 4, data.normalIndices))
 			data.normalIndices = bytearray()
 
 		if groupName:
@@ -118,7 +121,10 @@ def convertOBJModel(convertContext, path):
 						w = float(tokens[4])
 					else:
 						w = 1.0
-					struct.pack_into(data.positions, len(data.positions), '4f', x, y, z, w)
+
+					offset = len(data.positions)
+					data.positions.extend([0]*16)
+					struct.pack_into('4f', data.positions, offset, x, y, z, w)
 					data.positionCount += 1
 				elif command == 'vt':
 					u = float(tokens[1])
@@ -130,13 +136,19 @@ def convertOBJModel(convertContext, path):
 						w = float(tokens[3])
 					else:
 						w = 0.0
-					struct.pack_into(data.texCoords, len(data.texCoords), '3f', u, v, w)
+
+					offset = len(data.texCoords)
+					data.texCoords.extend([0]*12)
+					struct.pack_into('3f', data.texCoords, offset, u, v, w)
 					data.texCoordCount += 1
 				elif command == 'vn':
 					x = float(tokens[1])
 					y = float(tokens[2])
 					z = float(tokens[3])
-					struct.pack_into(data.normals, len(data.normals), '3f', x, y, z)
+
+					offset = len(data.normals)
+					data.normals.extend([0]*12)
+					struct.pack_into('3f', data.normals, offset, x, y, z)
 					data.normalCount += 1
 				elif command == 'f':
 					setPrimitiveType('TriangleList')
@@ -145,18 +157,26 @@ def convertOBJModel(convertContext, path):
 						if not indices or len(indices) > 3:
 							raise IndexError()
 
-						struct.pack_into(data.positionIndices, len(data.positionIndices), 'u',
+						offset = len(data.positionIndices)
+						data.positionIndices.extend([0]*4)
+						struct.pack_into('I', data.positionIndices, offset,
 							resolveIndex(int(indices[0]), data.positionCount, 'position'))
 						if len(indices) > 1 and indices[1]:
-							struct.pack_into(data.texCoordIndices, len(data.texCoordIndices), 'u',
+							offset = len(data.texCoordIndices)
+							data.texCoordIndices.extend([0]*4)
+							struct.pack_into('I', data.texCoordIndices, offset,
 								resolveIndex(int(indices[1]), data.texCoordCount, 'tex coord'))
 						if len(indices) > 2:
-							struct.pack_into(data.normalIndices, len(data.normalIndices), 'u',
+							offset = len(data.normalIndices)
+							data.normalIndices.extend([0]*4)
+							struct.pack_into('I', data.normalIndices, offset,
 								resolveIndex(int(indices[2]), data.normalCount, 'normal'))
 				elif command == 'l':
 					setPrimitiveType('LineList')
 					for index in (tokens[1], tokens[2]):
-						struct.pack_into(data.positionIndices, len(data.positionIndices), 'u',
+						offset = len(data.positionIndices)
+						data.positionIndices.extend([0]*4)
+						struct.pack_into('I', data.positionIndices, offset,
 							resolveIndex(int(index), data.positionCount, 'position'))
 			except (IndexError, TypeError):
 				raise Exception('Invalid OBJ file "' + path + '".')

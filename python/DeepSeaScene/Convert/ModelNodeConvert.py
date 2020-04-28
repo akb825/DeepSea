@@ -15,8 +15,10 @@
 import base64
 from copy import copy
 import json
-import flatbuffers
+import os
 from subprocess import Popen, PIPE
+
+import flatbuffers
 from .SceneResourcesConvert import convertSceneResources, readVertexAttrib
 from ..DrawIndexedRange import *
 from ..DrawRange import *
@@ -27,7 +29,11 @@ from ..ModelNode import *
 from ..OrientedBox3f import *
 from ..PrimitiveType import *
 from ..Vector2f import *
+from ..VertexElementFormat import *
 from ..VertexFormat import *
+
+class Object:
+	pass
 
 FLT_MAX = 3.402823466e38
 
@@ -171,12 +177,12 @@ def convertModelNodeGeometry(convertContext, modelGeometry, embeddedResources):
 
 					vfcVertexStream = {
 						'vertexFormat': streamVertexFormat,
-						'vertexData': 'base64:' + base64.b64encode(vertexStream.vertexData)
+						'vertexData': 'base64:' + base64.b64encode(vertexStream.vertexData).decode()
 					}
 					if vertexStream.indexSize > 0:
 						vfcVertexStream['indexType'] = getIndexType(vertexStream.indexSize)
 						vfcVertexStream['indexData'] = 'base64:' + \
-							base64.b64encode(vertexStream.indexData)
+							base64.b64encode(vertexStream.indexData).decode()
 					vertexStreams.append(vfcVertexStream)
 
 				primitiveType = geometryData.primitiveType
@@ -204,19 +210,19 @@ def convertModelNodeGeometry(convertContext, modelGeometry, embeddedResources):
 					stdinStr = None
 					stdoutStr += stdoutData
 					stderrStr += stderrData
-					if vfc.returnCode is None:
+					if vfc.returncode is None:
 						continue
 
-					if vfc.returnCode == 0:
-						vfcOutput = json.loads(stdinStr)
+					if vfc.returncode == 0:
+						vfcOutput = json.loads(stdoutStr)
 						break
 					else:
 						raise Exception('Error converting geometry data "' + path + '":\n' + 
-							stderrStr.replace('stdin: ', ''))
+							stderrStr.replace('stdin: ', '').replace('error: ', ''))
 
 				try:
 					# Parse the final geometry info.
-					geometry = object()
+					geometry = Object()
 					geometry.vertexCount = vfcOutput['vertexCount']
 					geometry.vertexData = appendBuffer(combinedBuffer,
 						base64.b64decode(vfcOutput['vertexData'][7:]))
@@ -225,13 +231,14 @@ def convertModelNodeGeometry(convertContext, modelGeometry, embeddedResources):
 
 					geometry.indexBuffers = []
 					if indexType:
-						for vfcIndexBuffer in vfcOutput.indexBuffers:
-							indexBuffer = object()
+						for vfcIndexBuffer in vfcOutput['indexBuffers']:
+							indexBuffer = Object()
 							indexBuffer.indexCount = vfcIndexBuffer['indexCount']
 							indexBuffer.vertexOffset = vfcIndexBuffer['baseVertex']
+							indexBuffer.offset = len(combinedBuffer)
 							indexData = appendBuffer(combinedBuffer,
-								base64.b64decode(vfcIndexBuffer['indexData'][7:],
-								len(geometry.indexBuffers) == 0))
+								base64.b64decode(vfcIndexBuffer['indexData'][7:]),
+								len(geometry.indexBuffers) == 0)
 							if geometry.indexBuffers:
 								indexBuffer.indexData = geometry.indexBuffers[0].indexData
 								indexBuffer.firstIndex = \
@@ -269,9 +276,14 @@ def convertModelNodeGeometry(convertContext, modelGeometry, embeddedResources):
 	try:
 		for geometryData in modelGeometry:
 			try:
-				name = str(geometryData['name'])
-				modelType = str(geometryData['type'])
 				path = str(geometryData['path'])
+				modelType = str(geometryData.get('type', ''))
+				if not modelType:
+					modelType = os.path.splitext(path)[1]
+					if modelType:
+						modelType = modelType[1:]
+					if not modelType:
+						raise Exception('Model geometry has no known model type.')
 
 				vertexFormat = geometryData['vertexFormat']
 				vfcVertexFormat = []
@@ -281,7 +293,7 @@ def convertModelNodeGeometry(convertContext, modelGeometry, embeddedResources):
 							attrib = readVertexAttrib(vertexAttrib['attrib'])
 
 							attribFormat = str(vertexAttrib['format'])
-							if not hasattr(VertexFormat, attribFormat):
+							if not hasattr(VertexElementFormat, attribFormat):
 								raise Exception('Invalid vertex format "' + attribFormat + '".')
 
 							decoration = str(vertexAttrib['decoration'])
@@ -324,9 +336,9 @@ def convertModelNodeGeometry(convertContext, modelGeometry, embeddedResources):
 							'ModelNode geometry "transforms" must be an array of objects.')
 
 				includedComponents = set()
-				drawInfo = geometryData['drawInfo']
+				drawInfos = geometryData['drawInfos']
 				try:
-					for info in drawInfo:
+					for info in drawInfos:
 						try:
 							includedComponents.add(str(info['name']))
 						except KeyError as e:
@@ -339,10 +351,10 @@ def convertModelNodeGeometry(convertContext, modelGeometry, embeddedResources):
 					'ModelNode "modelGeometry" doesn\'t contain element "' + str(e) + '".')
 
 			convertedGeometry = convertGeometry(convertContext, modelType, path, vfcVertexFormat,
-				indexSize, transforms, includedComponents, combinedBuffer, modelBounds)
+				indexSize, vfcTransforms, includedComponents, combinedBuffer, modelBounds)
 
 			# Geometries to be added to the embedded resources.
-			for name, geometry in convertedGeometry:
+			for geometry in convertedGeometry.values():
 				vertexAttributes = []
 				for attrib, attribFormat, decoration in geometry.vertexFormat:
 					vertexAttributes.append({
@@ -376,13 +388,13 @@ def convertModelNodeGeometry(convertContext, modelGeometry, embeddedResources):
 					}
 
 				geometries.append(geometryInfo)
-				convertedGeometry[name].geometryName = geometryName
+				geometry.geometryName = geometryName
 
 			# Add the models associating the shader, material, draw list, and draw range with the
 			# converted geometry.
-			for info in drawInfo:
+			for info in drawInfos:
 				try:
-					modelInfo = object()
+					modelInfo = Object()
 					name = str(info['name'])
 					modelInfo.shader = str(info['shader'])
 					modelInfo.material = str(info['material'])
@@ -405,7 +417,7 @@ def convertModelNodeGeometry(convertContext, modelGeometry, embeddedResources):
 				if baseGeometry.indexBuffers:
 					for indexBuffer in baseGeometry.indexBuffers:
 						curModelInfo = copy(modelInfo)
-						drawRange = object()
+						drawRange = Object()
 						drawRange.rangeType = ModelDrawRange.DrawIndexedRange
 						drawRange.indexCount = indexBuffer.indexCount
 						drawRange.instanceCount = 1
@@ -415,7 +427,7 @@ def convertModelNodeGeometry(convertContext, modelGeometry, embeddedResources):
 						curModelInfo.drawRange = drawRange
 						models.append(curModelInfo)
 				else:
-					drawRange = object()
+					drawRange = Object()
 					drawRange.rangeType = ModelDrawRange.DrawRange
 					drawRange.vertexCount = baseGeometry.vertexCount
 					drawRange.instanceCount = 1
@@ -430,7 +442,7 @@ def convertModelNodeGeometry(convertContext, modelGeometry, embeddedResources):
 		'name': embeddedBufferName,
 		'usage': ['Index', 'Vertex'],
 		'memoryHints': ['GPUOnly', 'Static', 'Draw'],
-		'data': 'base64:' + base64.b64encode(combinedBuffer),
+		'data': 'base64:' + base64.b64encode(combinedBuffer).decode(),
 	}
 	addModelEmbeddedResources(embeddedResources, 'buffers', [embeddedBuffer])
 	addModelEmbeddedResources(embeddedResources, 'drawGeometries', geometries)
@@ -447,7 +459,7 @@ def convertModelNodeModels(modelInfoList):
 			except:
 				raise Exception('Invalid draw range ' + name + ' "' + str(value) + '".')
 
-		drawRange = object()
+		drawRange = Object()
 		try:
 			hasIndexCount = 'indexCount' in drawRangeInfo
 			hasVertexCount = 'vertexCount' in drawRangeInfo
@@ -480,7 +492,7 @@ def convertModelNodeModels(modelInfoList):
 	try:
 		for info in modelInfoList:
 			try:
-				model = object()
+				model = Object()
 				model.shader = info['shader']
 				model.material = info['material']
 				model.geometry = info['geometry']
@@ -509,7 +521,8 @@ def convertModelNode(convertContext, data):
 	- embeddedResources: optional set of resources to embed with the node. This is a map containing
 	  the elements as expected by SceneResourcesConvert.convertSceneResources().
 	- modelGeometry: array of model geometry. Each element of the array has the following members:
-	  - type: the name of the geometry type, such as "obj" or "gltf".
+	  - type: the name of the geometry type, such as "obj" or "gltf". If ommitted, the type is
+	    inferred from the path extension.
 	  - path: the path to the geometry.
 	  - vertexFormat: array of vertex attributes defining the vertex format. Each element of the
 	    array has the following members:
@@ -529,7 +542,7 @@ def convertModelNode(convertContext, data):
 	      - Bounds: normalizes the values based on the original value's bounds
 	      - UNormToSNorm: converts UNorm values to SNorm values.
 	      - SNormToUNorm: converts SNorm values to UNorm values.
-	  - drawInfo: array of definitions for drawing components of the geometry. Each element of the
+	  - drawInfos: array of definitions for drawing components of the geometry. Each element of the
 	    array has the following members:
 	    - name: the name of the model component. Note that only model components referenced in the
 		  drawInfo array will be included in the final model.
@@ -537,7 +550,7 @@ def convertModelNode(convertContext, data):
 	    - material: the name of the material to draw with.
 	    - distanceRange: array of two floats for the minimum and maximum distance to draw at.
 	      Defaults to [0, 3.402823466e38].
-	    - listName The name of the item list to draw the model with.
+	    - listName: the name of the item list to draw the model with.
 	- models: array of models to draw with manually provided geometry. (i.e. not converted from
 	  the modelGeometry array) Each element of the array has the following members:
 	  - shader: the name of the shader to draw with.
@@ -613,7 +626,7 @@ def convertModelNode(convertContext, data):
 		extraItemListOffsets = []
 		try:
 			for item in extraItemLists:
-				extraItemListOffsets = builder.CreateString(str(item))
+				extraItemListOffsets.append(builder.CreateString(str(item)))
 		except (TypeError, ValueError):
 			raise Exception('ModelNode "extraItemLists" must be an array of strings.')
 
@@ -629,8 +642,6 @@ def convertModelNode(convertContext, data):
 		shaderOffset = builder.CreateString(model.shader)
 		materialOffset = builder.CreateString(model.material)
 		geometryOffset = builder.CreateString(model.geometry)
-		distanceRangeOffset = CreateVector2f(builder, model.distanceRange[0],
-			model.distanceRange[1])
 
 		drawRange = model.drawRange
 		if drawRange.rangeType == ModelDrawRange.DrawIndexedRange:
@@ -655,7 +666,8 @@ def convertModelNode(convertContext, data):
 		ModelInfoAddShader(builder, shaderOffset)
 		ModelInfoAddMaterial(builder, materialOffset)
 		ModelInfoAddGeometry(builder, geometryOffset)
-		ModelInfoAddDistanceRange(builder, distanceRangeOffset)
+		ModelInfoAddDistanceRange(builder, CreateVector2f(builder, model.distanceRange[0],
+			model.distanceRange[1]))
 		ModelInfoAddDrawRangeType(builder, drawRange.rangeType)
 		ModelInfoAddDrawRange(builder, drawRangeOffset)
 		ModelInfoAddPrimitiveType(builder, model.primitiveType)
@@ -667,6 +679,11 @@ def convertModelNode(convertContext, data):
 		builder.PrependUOffsetTRelative(offset)
 	modelsOffset = builder.EndVector(len(modelOffsets))
 
+	ModelNodeStart(builder)
+	ModelNodeAddEmbeddedResources(builder, embeddedResourcesOffset)
+	ModelNodeAddExtraItemLists(builder, extraItemListsOffset)
+	ModelNodeAddModels(builder, modelsOffset)
+
 	if modelBounds:
 		center = []
 		halfExtents = []
@@ -677,11 +694,7 @@ def convertModelNode(convertContext, data):
 			center[0], center[1], center[2], halfExtents[0], halfExtents[1], halfExtents[2])
 	else:
 		boundsOffset = 0
-
-	ModelNodeStart(builder)
-	ModelNodeAddEmbeddedResources(builder, embeddedResourcesOffset)
-	ModelNodeAddExtraItemLists(builder, extraItemListsOffset)
-	ModelNodeAddModels(builder, modelsOffset)
 	ModelNodeAddBounds(builder, boundsOffset)
+
 	builder.Finish(ModelNodeEnd(builder))
 	return builder.Output()

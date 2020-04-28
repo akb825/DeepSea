@@ -46,7 +46,7 @@ ds_compile_shaders(shaders FILE ${CMAKE_CURRENT_SOURCE_DIR}/Font.msl
 	${CMAKE_CURRENT_SOURCE_DIR}/FontTess.msl ${CMAKE_CURRENT_SOURCE_DIR}/Box.msl
 	OUTPUT TestText.mslb CONFIG ${shaderConfigs} OUTPUT_DIR ${shaderDir}
 	INCLUDE ${DEEPSEA_MODULE_DIR}/Render/include ${DEEPSEA_MODULE_DIR}/Text/include
-	DEPENDENCY_RECURSE ${DEEPSEA_MODULE_DIR}/Render/include/*.mslh
+	DEPENDS_RECURSE ${DEEPSEA_MODULE_DIR}/Render/include/*.mslh
 		${DEEPSEA_MODULE_DIR}/Text/include/*.mslh)
 ds_compile_shaders_target(deepsea_test_text_app_shaders shaders
 	DEPENDS deepsea_test_text_app_prepare)

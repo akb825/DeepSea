@@ -37,6 +37,9 @@ struct MaterialDescBuilder;
 struct ShaderData;
 struct ShaderDataBuilder;
 
+struct VersionedShaderModule;
+struct VersionedShaderModuleBuilder;
+
 struct ShaderModule;
 struct ShaderModuleBuilder;
 
@@ -992,15 +995,15 @@ inline flatbuffers::Offset<ShaderData> CreateShaderDataDirect(
       data__);
 }
 
-struct ShaderModule FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
-  typedef ShaderModuleBuilder Builder;
+struct VersionedShaderModule FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef VersionedShaderModuleBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_NAME = 4,
+    VT_VERSION = 4,
     VT_DATA_TYPE = 6,
     VT_DATA = 8
   };
-  const flatbuffers::String *name() const {
-    return GetPointer<const flatbuffers::String *>(VT_NAME);
+  const flatbuffers::String *version() const {
+    return GetPointer<const flatbuffers::String *>(VT_VERSION);
   }
   DeepSeaScene::FileOrData data_type() const {
     return static_cast<DeepSeaScene::FileOrData>(GetField<uint8_t>(VT_DATA_TYPE, 0));
@@ -1017,8 +1020,8 @@ struct ShaderModule FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyOffsetRequired(verifier, VT_NAME) &&
-           verifier.VerifyString(name()) &&
+           VerifyOffsetRequired(verifier, VT_VERSION) &&
+           verifier.VerifyString(version()) &&
            VerifyField<uint8_t>(verifier, VT_DATA_TYPE) &&
            VerifyOffsetRequired(verifier, VT_DATA) &&
            VerifyFileOrData(verifier, data(), data_type()) &&
@@ -1026,13 +1029,88 @@ struct ShaderModule FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
 };
 
-template<> inline const DeepSeaScene::FileReference *ShaderModule::data_as<DeepSeaScene::FileReference>() const {
+template<> inline const DeepSeaScene::FileReference *VersionedShaderModule::data_as<DeepSeaScene::FileReference>() const {
   return data_as_FileReference();
 }
 
-template<> inline const DeepSeaScene::RawData *ShaderModule::data_as<DeepSeaScene::RawData>() const {
+template<> inline const DeepSeaScene::RawData *VersionedShaderModule::data_as<DeepSeaScene::RawData>() const {
   return data_as_RawData();
 }
+
+struct VersionedShaderModuleBuilder {
+  typedef VersionedShaderModule Table;
+  flatbuffers::FlatBufferBuilder &fbb_;
+  flatbuffers::uoffset_t start_;
+  void add_version(flatbuffers::Offset<flatbuffers::String> version) {
+    fbb_.AddOffset(VersionedShaderModule::VT_VERSION, version);
+  }
+  void add_data_type(DeepSeaScene::FileOrData data_type) {
+    fbb_.AddElement<uint8_t>(VersionedShaderModule::VT_DATA_TYPE, static_cast<uint8_t>(data_type), 0);
+  }
+  void add_data(flatbuffers::Offset<void> data) {
+    fbb_.AddOffset(VersionedShaderModule::VT_DATA, data);
+  }
+  explicit VersionedShaderModuleBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  VersionedShaderModuleBuilder &operator=(const VersionedShaderModuleBuilder &);
+  flatbuffers::Offset<VersionedShaderModule> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = flatbuffers::Offset<VersionedShaderModule>(end);
+    fbb_.Required(o, VersionedShaderModule::VT_VERSION);
+    fbb_.Required(o, VersionedShaderModule::VT_DATA);
+    return o;
+  }
+};
+
+inline flatbuffers::Offset<VersionedShaderModule> CreateVersionedShaderModule(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    flatbuffers::Offset<flatbuffers::String> version = 0,
+    DeepSeaScene::FileOrData data_type = DeepSeaScene::FileOrData::NONE,
+    flatbuffers::Offset<void> data = 0) {
+  VersionedShaderModuleBuilder builder_(_fbb);
+  builder_.add_data(data);
+  builder_.add_version(version);
+  builder_.add_data_type(data_type);
+  return builder_.Finish();
+}
+
+inline flatbuffers::Offset<VersionedShaderModule> CreateVersionedShaderModuleDirect(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    const char *version = nullptr,
+    DeepSeaScene::FileOrData data_type = DeepSeaScene::FileOrData::NONE,
+    flatbuffers::Offset<void> data = 0) {
+  auto version__ = version ? _fbb.CreateString(version) : 0;
+  return DeepSeaScene::CreateVersionedShaderModule(
+      _fbb,
+      version__,
+      data_type,
+      data);
+}
+
+struct ShaderModule FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef ShaderModuleBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_NAME = 4,
+    VT_MODULES = 6
+  };
+  const flatbuffers::String *name() const {
+    return GetPointer<const flatbuffers::String *>(VT_NAME);
+  }
+  const flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::VersionedShaderModule>> *modules() const {
+    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::VersionedShaderModule>> *>(VT_MODULES);
+  }
+  bool Verify(flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffsetRequired(verifier, VT_NAME) &&
+           verifier.VerifyString(name()) &&
+           VerifyOffsetRequired(verifier, VT_MODULES) &&
+           verifier.VerifyVector(modules()) &&
+           verifier.VerifyVectorOfTables(modules()) &&
+           verifier.EndTable();
+  }
+};
 
 struct ShaderModuleBuilder {
   typedef ShaderModule Table;
@@ -1041,11 +1119,8 @@ struct ShaderModuleBuilder {
   void add_name(flatbuffers::Offset<flatbuffers::String> name) {
     fbb_.AddOffset(ShaderModule::VT_NAME, name);
   }
-  void add_data_type(DeepSeaScene::FileOrData data_type) {
-    fbb_.AddElement<uint8_t>(ShaderModule::VT_DATA_TYPE, static_cast<uint8_t>(data_type), 0);
-  }
-  void add_data(flatbuffers::Offset<void> data) {
-    fbb_.AddOffset(ShaderModule::VT_DATA, data);
+  void add_modules(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::VersionedShaderModule>>> modules) {
+    fbb_.AddOffset(ShaderModule::VT_MODULES, modules);
   }
   explicit ShaderModuleBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
@@ -1056,7 +1131,7 @@ struct ShaderModuleBuilder {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<ShaderModule>(end);
     fbb_.Required(o, ShaderModule::VT_NAME);
-    fbb_.Required(o, ShaderModule::VT_DATA);
+    fbb_.Required(o, ShaderModule::VT_MODULES);
     return o;
   }
 };
@@ -1064,26 +1139,23 @@ struct ShaderModuleBuilder {
 inline flatbuffers::Offset<ShaderModule> CreateShaderModule(
     flatbuffers::FlatBufferBuilder &_fbb,
     flatbuffers::Offset<flatbuffers::String> name = 0,
-    DeepSeaScene::FileOrData data_type = DeepSeaScene::FileOrData::NONE,
-    flatbuffers::Offset<void> data = 0) {
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::VersionedShaderModule>>> modules = 0) {
   ShaderModuleBuilder builder_(_fbb);
-  builder_.add_data(data);
+  builder_.add_modules(modules);
   builder_.add_name(name);
-  builder_.add_data_type(data_type);
   return builder_.Finish();
 }
 
 inline flatbuffers::Offset<ShaderModule> CreateShaderModuleDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     const char *name = nullptr,
-    DeepSeaScene::FileOrData data_type = DeepSeaScene::FileOrData::NONE,
-    flatbuffers::Offset<void> data = 0) {
+    const std::vector<flatbuffers::Offset<DeepSeaScene::VersionedShaderModule>> *modules = nullptr) {
   auto name__ = name ? _fbb.CreateString(name) : 0;
+  auto modules__ = modules ? _fbb.CreateVector<flatbuffers::Offset<DeepSeaScene::VersionedShaderModule>>(*modules) : 0;
   return DeepSeaScene::CreateShaderModule(
       _fbb,
       name__,
-      data_type,
-      data);
+      modules__);
 }
 
 struct Shader FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {

@@ -12,13 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-find_package(PythonInterp QUIET)
-
 # ds_create_vector_resources(container
 #                            FILE file
 #                            OUTPUT ARGS_OUTPUT
-#                            [DEPENDENCY pattern1 [pattern2 ...]]
-#                            [DEPENDENCY_RECURSE pattern1 [pattern2 ...]]
+#                            [DEPENDS pattern1 [pattern2 ...]]
+#                            [DEPENDS_RECURSE pattern1 [pattern2 ...]]
 #                            [WORKING_DIRECTORY dir])
 #
 # Creates vector resources to be shared among vector images.
@@ -26,9 +24,8 @@ find_package(PythonInterp QUIET)
 # container - name of a variable to hold the vector resources that will be created.
 # FILE - the input json file to describe the resources
 # OUTPUT - the path of the vector resources, typiclly with the .dsvr extension.
-# DEPENDENCY - list of patterns to be used as dependencies. A GLOB will be performed for each
-#              pattern.
-# DEPENDENCY_RECURSE - same as DEPENDENCY, except each pattern performs a GLOB_RECURSE.
+# DEPENDS - list of patterns to be used as dependencies. A GLOB will be performed for each pattern.
+# DEPENDS_RECURSE - same as DEPENDS, except each pattern performs a GLOB_RECURSE.
 # WORKING_DIRECTORY - the working directory for creating the vector resources.
 function(ds_create_vector_resources container)
 	if (NOT PYTHONINTERP_FOUND)
@@ -39,7 +36,7 @@ function(ds_create_vector_resources container)
 	endif()
 
 	set(oneValueArgs FILE OUTPUT WORKING_DIRECTORY)
-	set(multiValueArgs DEFINE DEPENDENCY DEPENDENCY_RECURSE)
+	set(multiValueArgs DEPENDS DEPENDS_RECURSE)
 	cmake_parse_arguments(ARGS "" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 	if (NOT ARGS_FILE)
 		message(FATAL_ERROR "Required option FILE not specified.")
@@ -50,8 +47,8 @@ function(ds_create_vector_resources container)
 		return()
 	endif()
 
-	file(GLOB deps ${ARGS_DEPENDENCY})
-	file(GLOB_RECURSE recursiveDeps ${ARGS_DEPENDENCY_RECURSE})
+	file(GLOB deps ${ARGS_DEPENDS})
+	file(GLOB_RECURSE recursiveDeps ${ARGS_DEPENDS_RECURSE})
 	if (ARGS_WORKING_DIRECTORY)
 		set(workingDir WORKING_DIRECTORY ${ARGS_WORKING_DIRECTORY})
 	else()
@@ -65,7 +62,7 @@ function(ds_create_vector_resources container)
 	set(createVectorResources ${DEEPSEA_PYTHON_DIR}/CreateVectorResources.py)
 	add_custom_command(OUTPUT ${ARGS_OUTPUT}
 		COMMAND ${PYTHON_EXECUTABLE} ARGS ${createVectorResources}
-			-i ${ARGS_FILE} -o ${ARGS_OUTPUT} -c ${CUTTLEFISH} -j
+			-i ${ARGS_FILE} -o ${ARGS_OUTPUT} -c ${CUTTLEFISH}
 		DEPENDS ${deps} ${recursiveDeps} ${ARGS_FILE} ${CUTTLEFISH} ${createVectorResources}
 		${workingDir}
 		COMMENT "Creating vector resources: ${ARGS_OUTPUT}")

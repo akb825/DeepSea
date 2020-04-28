@@ -17,6 +17,7 @@
 #include <DeepSea/Render/Renderer.h>
 
 #include "GPUProfileContext.h"
+#include <DeepSea/Core/Memory/StackAllocator.h>
 #include <DeepSea/Core/Thread/Thread.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
@@ -30,6 +31,7 @@
 #include <DeepSea/Render/Resources/ResourceManager.h>
 
 #include <MSL/Client/ModuleC.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -386,6 +388,32 @@ const dsShaderVersion* dsRenderer_chooseShaderVersion(const dsRenderer* renderer
 	return curVersion;
 }
 
+const char* dsRenderer_chooseShaderVersionString(uint32_t* outIndex, const dsRenderer* renderer,
+	const char** versions, uint32_t versionCount)
+{
+	if (!renderer || !versions || versionCount == 0)
+		return NULL;
+
+	uint32_t curVersion = 0;
+	const char* curVersionStr = NULL;
+	for (uint32_t i = 0; i < versionCount; ++i)
+	{
+		dsShaderVersion version;
+		if (!dsRenderer_shaderVersionFromString(&version, renderer, versions[i]))
+			continue;
+
+		if (version.version <= renderer->shaderVersion &&
+			(!curVersionStr || version.version >= curVersion))
+		{
+			curVersionStr = versions[i];
+			if (outIndex)
+				*outIndex = i;
+		}
+	}
+
+	return curVersionStr;
+}
+
 bool dsRenderer_shaderVersionToString(char* outBuffer, uint32_t bufferSize,
 	const dsRenderer* renderer, const dsShaderVersion* version)
 {
@@ -414,6 +442,32 @@ bool dsRenderer_shaderVersionToString(char* outBuffer, uint32_t bufferSize,
 		return false;
 	}
 
+	return true;
+}
+
+bool dsRenderer_shaderVersionFromString(dsShaderVersion* outVersion, const dsRenderer* renderer,
+	const char* versionString)
+{
+	if (!outVersion || !renderer || !versionString)
+		return false;
+
+	const char* formatSuffix = "-%u.%u";
+	size_t languageStrLen = strlen(renderer->shaderLanguage);
+	size_t suffixStrLen = strlen(formatSuffix);
+	size_t totalLen = languageStrLen + suffixStrLen + 1;
+	char* formatStr = DS_ALLOCATE_STACK_OBJECT_ARRAY(char, totalLen);
+
+	// Use memcpy for max efficiency and avoid compiler warnings when lengths are already
+	// well-defined.
+	memcpy(formatStr, renderer->shaderLanguage, languageStrLen);
+	memcpy(formatStr + languageStrLen, formatSuffix, suffixStrLen + 1);
+
+	unsigned int majorVer, minorVer;
+	if (sscanf(versionString, formatStr, &majorVer, &minorVer) != 2)
+		return false;
+
+	outVersion->rendererID = renderer->rendererID;
+	outVersion->version = DS_ENCODE_VERSION(majorVer, minorVer, 0);
 	return true;
 }
 

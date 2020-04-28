@@ -32,6 +32,18 @@ extern "C"
  */
 
 /**
+ * @brief Checks if two arrays of elements are equivalent.
+ * @param firstElements The first set of elements to check.
+ * @param firstElementCount The number of first elements.
+ * @param secondElements The second set of elements to check.
+ * @param secondElementCount The number of second elements.
+ * @return True if the elements are equal.
+ */
+DS_RENDER_EXPORT bool dsShaderVariableGroup_areElementsEqual(
+	const dsShaderVariableElement* firstElements, uint32_t firstElementCount,
+	const dsShaderVariableElement* secondElements, uint32_t secondElementCount);
+
+/**
  * @brief Creates a shader variable group description.
  * @remark errno will be set on failure.
  * @param resourceManager The resource manager to create the shader variable group description from.

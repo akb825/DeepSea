@@ -22,6 +22,7 @@
 #include "Flatbuffers/TextureBufferMaterialData_generated.h"
 
 #include <DeepSea/Core/Memory/Allocator.h>
+#include <DeepSea/Core/Memory/StackAllocator.h>
 #include <DeepSea/Core/Streams/MemoryStream.h>
 #include <DeepSea/Core/Streams/ResourceStream.h>
 #include <DeepSea/Core/Assert.h>
@@ -40,6 +41,7 @@
 #include <DeepSea/Render/Resources/Texture.h>
 #include <DeepSea/Render/Resources/TextureData.h>
 #include <DeepSea/Render/Resources/VertexFormat.h>
+#include <DeepSea/Render/Renderer.h>
 
 #include <DeepSea/Scene/Flatbuffers/SceneFlatbufferHelpers.h>
 #include <DeepSea/Scene/Nodes/SceneNode.h>
@@ -802,6 +804,54 @@ static bool loadMaterials(dsSceneResources* resources, dsResourceManager* resour
 	return true;
 }
 
+static dsShaderModule* loadShaderModule(dsResourceManager* resourceManager, dsAllocator* allocator,
+	const FlatbufferVector<DeepSeaScene::VersionedShaderModule>* shaderModules,
+	const char* shaderModuleName, const char* fileName)
+{
+	if (!shaderModules)
+		return nullptr;
+
+	uint32_t shaderModuleCount = shaderModules->size();
+	auto versionStrings = DS_ALLOCATE_STACK_OBJECT_ARRAY(const char*, shaderModuleCount);
+	for (uint32_t i = 0; i < shaderModuleCount; ++i)
+	{
+		auto fbShaderModule = (*shaderModules)[i];
+		versionStrings[i] = fbShaderModule ? fbShaderModule->version()->c_str() : nullptr;
+	}
+
+	uint32_t versionIndex;
+	const char* versionString = dsRenderer_chooseShaderVersionString(&versionIndex,
+		resourceManager->renderer, versionStrings, shaderModuleCount);
+	if (!versionString)
+	{
+		errno = ENOTFOUND;
+		PRINT_FLATBUFFER_RESOURCE_ERROR("No supported version found for shader module '%s'",
+			shaderModuleName, fileName);
+		return NULL;
+	}
+
+	auto fbShaderModule = (*shaderModules)[versionIndex];
+	if (auto fbFileRef = fbShaderModule->data_as_FileReference())
+	{
+		return dsShaderModule_loadResource(resourceManager, allocator,
+			DeepSeaScene::convert(fbFileRef->type()), fbFileRef->path()->c_str(),
+			shaderModuleName);
+	}
+	else if (auto fbRawData = fbShaderModule->data_as_RawData())
+	{
+		auto fbData = fbRawData->data();
+		return dsShaderModule_loadData(resourceManager, allocator, fbData->data(), fbData->size(),
+			shaderModuleName);
+	}
+	else
+	{
+		errno = EFORMAT;
+		PRINT_FLATBUFFER_RESOURCE_ERROR("No data provided for shader module '%s'",
+			shaderModuleName, fileName);
+		return NULL;
+	}
+}
+
 static bool loadShaderModules(dsSceneResources* resources, dsResourceManager* resourceManager,
 	dsAllocator* allocator, const FlatbufferVector<DeepSeaScene::ShaderModule>* shaderModules,
 	const char* fileName)
@@ -815,26 +865,8 @@ static bool loadShaderModules(dsSceneResources* resources, dsResourceManager* re
 			continue;
 
 		const char* shaderModuleName = fbShaderModule->name()->c_str();
-		dsShaderModule* shaderModule;
-		if (auto fbFileRef = fbShaderModule->data_as_FileReference())
-		{
-			shaderModule = dsShaderModule_loadResource(resourceManager, allocator,
-				DeepSeaScene::convert(fbFileRef->type()), fbFileRef->path()->c_str(),
-				shaderModuleName);
-		}
-		else if (auto fbRawData = fbShaderModule->data_as_RawData())
-		{
-			auto fbData = fbRawData->data();
-			shaderModule = dsShaderModule_loadData(resourceManager, allocator, fbData->data(),
-				fbData->size(), shaderModuleName);
-		}
-		else
-		{
-			errno = EFORMAT;
-			PRINT_FLATBUFFER_RESOURCE_ERROR("No data provided for shader module '%s'",
-				shaderModuleName, fileName);
-			return false;
-		}
+		dsShaderModule* shaderModule = loadShaderModule(resourceManager, allocator,
+			fbShaderModule->modules(), shaderModuleName, fileName);
 
 		if (!shaderModule)
 		{

@@ -83,6 +83,17 @@ DS_RENDER_EXPORT const dsShaderVersion* dsRenderer_chooseShaderVersion(const dsR
 	const dsShaderVersion* versions, uint32_t versionCount);
 
 /**
+ * @brief Chooses the shader version to use by name.
+ * @param[out] outIndex The index of the found element. This may be NULL if the index isn't needed.
+ * @param renderer The renderer to choose the shader version for.
+ * @param versions The list of shader version strings.
+ * @param versionCount The number of shader versions.
+ * @return The shader version string to use, or NULL if no suitable version could be found.
+ */
+DS_RENDER_EXPORT const char* dsRenderer_chooseShaderVersionString(uint32_t* outIndex,
+	const dsRenderer* renderer, const char** versions, uint32_t versionCount);
+
+/**
  * @brief Gets the string for a shader version.
  *
  * This should match the standard shader configuration names provided by the standard renderers,
@@ -97,6 +108,20 @@ DS_RENDER_EXPORT const dsShaderVersion* dsRenderer_chooseShaderVersion(const dsR
  */
 DS_RENDER_EXPORT bool dsRenderer_shaderVersionToString(char* outBuffer, uint32_t bufferSize,
 	const dsRenderer* renderer, const dsShaderVersion* version);
+
+/**
+ * @brief Gets the shader version from a string.
+ *
+ * The string should match the standard shader directory names. This will only succeed for the
+ * shader language for the current renderer.
+ *
+ * @param[out] outVersion The shader version.
+ * @param renderer The renderer to get the version for.
+ * @param versionString The shader version string.
+ * @return False if the shader version string doesn't match what's valid for the current renderer.
+ */
+DS_RENDER_EXPORT bool dsRenderer_shaderVersionFromString(dsShaderVersion* outVersion,
+	const dsRenderer* renderer, const char* versionString);
 
 /**
  * @brief Makes an orthographic projection matrix.

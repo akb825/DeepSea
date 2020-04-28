@@ -19,6 +19,9 @@ import struct
 from .ModelNodeConvert import ModelNodeVertexStream, ModelNodeGeometryData, addModelType
 from .SceneResourcesConvert import modelVertexAttribEnum
 
+class Object:
+	pass
+
 gltfVertexAttribEnum = {
 	'POSITION': modelVertexAttribEnum['Position'],
 	'NORMAL': modelVertexAttribEnum['Normal'],
@@ -72,7 +75,8 @@ def convertGLTFModel(convertContext, path):
 	Converts an GLTF model for use with ModelNodeConvert.
 
 	If the "name" element is provided for a mesh, it will be used for the name of the model
-	geometry. Otherwise, the name will be "mesh#", where # is the index of the mesh.
+	geometry. Otherwise, the name will be "mesh#", where # is the index of the mesh. If multiple
+	sets of primitives are used, the index will be appended to the name, separated with '.'.
 
 	Limitations:
 	- Only meshes and dependent data (accessors, buffer views, and buffers) are extracted. All other
@@ -117,7 +121,7 @@ def convertGLTFModel(convertContext, path):
 		bufferViewInfos = data['bufferViews']
 		try:
 			for bufferViewInfo in bufferViewInfos:
-				bufferView = object()
+				bufferView = Object()
 				try:
 					bufferData = buffers[bufferViewInfo['buffer']]
 				except (IndexError, TypeError):
@@ -141,7 +145,7 @@ def convertGLTFModel(convertContext, path):
 		accessorInfos = data['accessors']
 		try:
 			for accessorInfo in accessorInfos:
-				accessor = object()
+				accessor = Object()
 				try:
 					accessor.bufferView = bufferViews[accessorInfo['bufferView']]
 				except (IndexError, TypeError):
@@ -171,50 +175,58 @@ def convertGLTFModel(convertContext, path):
 		try:
 			meshIndex = 0
 			for meshInfo in meshInfos:
-				mesh = object()
-				mesh.name = meshInfo.get('name', 'mesh' + str(meshIndex))
+				meshName = meshInfo.get('name', 'mesh' + str(meshIndex))
 
-				primitiveInfo = meshInfo['primitives']
-				mesh.attributes = []
+				primitiveInfos = meshInfo['primitives']
 				try:
-					try:
-						for attrib, index in primitiveInfo['attributes']:
-							if attrib not in gltfVertexAttribEnum:
-								raise Exception('Unsupported attribute "' + str(attrib) +
-									'" for GLTF file "' + path + '".')
-							try:
-								mesh.attributes.append((gltfVertexAttribEnum[attrib],
-									accessors[index]))
-							except (IndexError, TypeError):
-								raise Exception('Invalid accessor index for GLTF file "' +
-									path + '".')
-					except (TypeError, ValueError):
-						raise Exception(
-							'Mesh primitives attributes must be an object containing attribute '
-							'mappings for GLTF file "' + path + '".')
+					primitiveIndex = 0
+					for primitiveInfo in primitiveInfos:
+						mesh = Object()
+						mesh.attributes = []
+						mesh.name = meshName
+						if len(primitiveInfos) > 1:
+							mesh.name += '.' + str(primitiveIndex)
+							primitiveIndex += 1
 
-					if 'indices' in meshInfo:
 						try:
-							mesh.indices = accessors[meshInfo['index']]
-						except (IndexError, TypeError):
+							for attrib, index in primitiveInfo['attributes'].items():
+								if attrib not in gltfVertexAttribEnum:
+									raise Exception('Unsupported attribute "' + str(attrib) +
+										'" for GLTF file "' + path + '".')
+								try:
+									mesh.attributes.append((gltfVertexAttribEnum[attrib],
+										accessors[index]))
+								except (IndexError, TypeError):
+									raise Exception('Invalid accessor index for GLTF file "' +
+										path + '".')
+						except (TypeError, ValueError):
 							raise Exception(
-								'Invalid accessor index for GLTF file "' + path + '".')
-					else:
-						mesh.indices = None
+								'Mesh primitives attributes must be an object containing attribute '
+								'mappings for GLTF file "' + path + '".')
 
-					mode = meshInfo.get('mode', 4)
-					try:
-						mesh.primitiveType = gltfPrimitiveTypeMap[mode]
-					except (IndexError, TypeError):
-						raise Exception('Unsupported primitive mode for GLTF file "' + path + '".')
+						if 'indices' in primitiveInfo:
+							try:
+								mesh.indices = accessors[primitiveInfo['indices']]
+							except (IndexError, TypeError):
+								raise Exception(
+									'Invalid accessor index for GLTF file "' + path + '".')
+						else:
+							mesh.indices = None
+
+						mode = primitiveInfo.get('mode', 4)
+						try:
+							mesh.primitiveType = gltfPrimitiveTypeMap[mode]
+						except (IndexError, TypeError):
+							raise Exception('Unsupported primitive mode for GLTF file "' + path + '".')
+
+						meshes.append(mesh)
 				except (TypeError, ValueError):
 					raise Exception(
-						'Mesh primitives must be an object for GLTF file "' + path + '".')
+						'Mesh primitives must be an array of objects for GLTF file "' + path + '".')
 				except KeyError as e:
 					raise Exception('Mesh primitives doesn\'t contain element "' + str(e) +
 						'" for GLTF file "' + path + '".')
 
-				meshes.append(mesh)
 				meshIndex += 1
 		except (TypeError, ValueError):
 			raise Exception('Meshes must be an array of objects for GLTF file "' + path + '".')

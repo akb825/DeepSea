@@ -106,8 +106,8 @@ dsSceneGlobalData* dsViewTransformData_create(dsAllocator* allocator,
 		return NULL;
 	}
 
-	if (transformDesc->elementCount != DS_ARRAY_SIZE(elements) ||
-		memcmp(transformDesc->elements, elements, sizeof(elements)) != 0)
+	if (!dsShaderVariableGroup_areElementsEqual(elements, DS_ARRAY_SIZE(elements),
+			transformDesc->elements, transformDesc->elementCount))
 	{
 		errno = EINVAL;
 		DS_LOG_ERROR(DS_SCENE_LOG_TAG,

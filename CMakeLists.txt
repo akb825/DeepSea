@@ -91,6 +91,7 @@ if (DEEPSEA_BUILD_DOCS)
 	endif()
 endif()
 
+find_package(PythonInterp QUIET)
 set(DEEPSEA_PYTHON_DIR ${DEEPSEA_SOURCE_DIR}/python)
 if (DEEPSEA_INSTALL)
 	install(DIRECTORY python DESTINATION share/deepsea COMPONENT dev USE_SOURCE_PERMISSIONS

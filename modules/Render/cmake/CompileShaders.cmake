@@ -31,8 +31,8 @@ endif()
 #                    [OUTPUT_DIR outputDir]
 #                    [INCLUDE include1 [include2 ...]]
 #                    [DEFINE define1[=value] [define2[=value] ...]]
-#                    [DEPENDENCY pattern1 [pattern2 ...]]
-#                    [DEPENDENCY_RECURSE pattern1 [pattern2 ...]]
+#                    [DEPENDS pattern1 [pattern2 ...]]
+#                    [DEPENDS_RECURSE pattern1 [pattern2 ...]]
 #                    [OPTIMIZE n]
 #                    [WARN_NONE]
 #                    [WARN_ERROR]
@@ -49,9 +49,9 @@ endif()
 # OUTPUT_DIR - the directory of the output. If specified, the config name will be appended.
 # INCLUDE - list of include paths for compilation.
 # DEFINE - list of defines to apply for compilation.
-# DEPENDENCY - list of patterns to be used as dependencies. A GLOB will be performed for each
+# DEPENDS - list of patterns to be used as dependencies. A GLOB will be performed for each
 #              pattern.
-# DEPENDENCY_RECURSE - same as DEPENDENCY, except each pattern performs a GLOB_RECURSE.
+# DEPENDS_RECURSE - same as DEPENDS, except each pattern performs a GLOB_RECURSE.
 # OPTIMIZE - overrides the optimization level for Release builds. Values can be 0 (disable
 #            optimizations),  1 (simple optimizations), and 2 (full optimizations). Defaults to 2
 #            if not specified. This has no effect for Debug builds.
@@ -65,7 +65,7 @@ function(ds_compile_shaders container)
 
 	set(options WARN_NONE WARN_ERROR)
 	set(oneValueArgs OUTPUT OUTPUT_DIR WORKING_DIRECTORY OPTIMIZE)
-	set(multiValueArgs FILE CONFIG INCLUDE DEFINE DEPENDENCY DEPENDENCY_RECURSE)
+	set(multiValueArgs FILE CONFIG INCLUDE DEFINE DEPENDS DEPENDS_RECURSE)
 	cmake_parse_arguments(ARGS "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 	if (NOT ARGS_OUTPUT)
 		message(FATAL_ERROR "Required option OUTPUT not specified.")
@@ -83,8 +83,8 @@ function(ds_compile_shaders container)
 		message(FATAL_ERROR "Unknown arguments: ${ARGS_UNPARSED_ARGUMENTS}")
 	endif()
 
-	file(GLOB deps ${ARGS_DEPENDENCY})
-	file(GLOB_RECURSE recursiveDeps ${ARGS_DEPENDENCY_RECURSE})
+	file(GLOB deps ${ARGS_DEPENDS})
+	file(GLOB_RECURSE recursiveDeps ${ARGS_DEPENDS_RECURSE})
 	if (ARGS_WORKING_DIRECTORY)
 		set(workingDir WORKING_DIRECTORY ${ARGS_WORKING_DIRECTORY})
 	else()

@@ -12,12 +12,6 @@ if (NOT CUTTLEFISH)
 	return()
 endif()
 
-find_package(PythonInterp QUIET)
-if (NOT PYTHONINTERP_FOUND)
-	message("Python not found, skipping TestVectorDraw.")
-	return()
-endif()
-
 set(shaderConfigs)
 set(srgbShaderConfigs)
 set(source TestVectorDraw.c
@@ -70,7 +64,7 @@ add_custom_target(deepsea_test_vector_draw_app_prepare
 set(shaderOptions OUTPUT_DIR ${shaderDir}
 	INCLUDE ${DEEPSEA_MODULE_DIR}/Render/include ${DEEPSEA_MODULE_DIR}/Text/include
 		${DEEPSEA_MODULE_DIR}/VectorDraw/include
-	DEPENDENCY_RECURSE ${DEEPSEA_MODULE_DIR}/Render/include/*.mslh
+	DEPENDS_RECURSE ${DEEPSEA_MODULE_DIR}/Render/include/*.mslh
 		${DEEPSEA_MODULE_DIR}/Text/include/*.mslh ${DEEPSEA_MODULE_DIR}/VectorDraw/include/*.mslh)
 ds_compile_shaders(shaders FILE ${CMAKE_CURRENT_SOURCE_DIR}/VectorElementFill.msl
 	${CMAKE_CURRENT_SOURCE_DIR}/VectorElementLine.msl

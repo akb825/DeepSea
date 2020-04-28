@@ -28,13 +28,13 @@ if __name__ == '__main__':
 		help = 'input json description of the resources')
 	parser.add_argument('-o', '--output', required = True,
 		help = 'output file name, typically with the extension ".dsv"')
-	parser.add_argument('-e', '--extension', nargs = '*', default = [],
+	parser.add_argument('-e', '--extensions', nargs = '*', default = [],
 		help = 'list of module names for extensions. Eeach extension should have a '
 			'deepSeaSceneExtension(convertContext) function to register the custom types with the'
 			'convert context.')
 
 	args = parser.parse_args()
-	convertContext = ConvertContext(args.cuttlefish, args.vfc, args.multithread)
+	convertContext = ConvertContext()
 	for extension in args.extensions:
 		import_module(extension).deepSeaSceneExtension(convertContext)
 

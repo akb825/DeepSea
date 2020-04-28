@@ -28,24 +28,32 @@ class ShaderModule(object):
         return None
 
     # ShaderModule
-    def DataType(self):
+    def Modules(self, j):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         if o != 0:
-            return self._tab.Get(flatbuffers.number_types.Uint8Flags, o + self._tab.Pos)
-        return 0
-
-    # ShaderModule
-    def Data(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
-        if o != 0:
-            from flatbuffers.table import Table
-            obj = Table(bytearray(), 0)
-            self._tab.Union(obj, o)
+            x = self._tab.Vector(o)
+            x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * 4
+            x = self._tab.Indirect(x)
+            from DeepSeaScene.VersionedShaderModule import VersionedShaderModule
+            obj = VersionedShaderModule()
+            obj.Init(self._tab.Bytes, x)
             return obj
         return None
 
-def ShaderModuleStart(builder): builder.StartObject(3)
+    # ShaderModule
+    def ModulesLength(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
+        if o != 0:
+            return self._tab.VectorLen(o)
+        return 0
+
+    # ShaderModule
+    def ModulesIsNone(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
+        return o == 0
+
+def ShaderModuleStart(builder): builder.StartObject(2)
 def ShaderModuleAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
-def ShaderModuleAddDataType(builder, dataType): builder.PrependUint8Slot(1, dataType, 0)
-def ShaderModuleAddData(builder, data): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(data), 0)
+def ShaderModuleAddModules(builder, modules): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(modules), 0)
+def ShaderModuleStartModulesVector(builder, numElems): return builder.StartVector(4, numElems, 4)
 def ShaderModuleEnd(builder): return builder.EndObject()

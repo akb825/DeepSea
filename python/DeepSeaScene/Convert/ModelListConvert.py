@@ -20,6 +20,9 @@ from ..ModelList import *
 from ..SortType import *
 from ..Vector2f import *
 
+class Object:
+	pass
+
 def convertModelList(convertContext, data):
 	"""
 	Converts a ModelList. The data map is expected to contain the following elements:
@@ -85,7 +88,7 @@ def convertModelList(convertContext, data):
 
 		dynamicRenderStateInfo = data.get('dynamicRenderStates')
 		if dynamicRenderStateInfo:
-			dynamicRenderStates = object()
+			dynamicRenderStates = Object
 			dynamicRenderStates.lineWidth = readFloat(dynamicRenderStateInfo.get('lineWidth', 1.0),
 				'line width')
 			dynamicRenderStates.depthBiasConstantFactor = readFloat(
@@ -159,9 +162,6 @@ def convertModelList(convertContext, data):
 		instanceDataOffset = 0
 
 	if dynamicRenderStates:
-		blendConstantsOffset = CreateColor4f(builder, *dynamicRenderStates.blendConstants)
-		depthBoundsOffset = CreateVector2f(builder, *dynamicRenderStates.depthBounds)
-
 		DynamicRenderStatesStart(builder)
 		DynamicRenderStatesAddLineWidth(builder, dynamicRenderStates.lineWidth)
 		DynamicRenderStatesAddDepthBiasConstantFactor(builder,
@@ -169,8 +169,10 @@ def convertModelList(convertContext, data):
 		DynamicRenderStatesAddDepthBiasClamp(builder, dynamicRenderStates.depthBiasClamp)
 		DynamicRenderStatesAddDepthBiasSlopeFactor(builder,
 			dynamicRenderStates.depthBiasSlopeFactor)
-		DynamicRenderStatesAddBlendConstants(builder, blendConstantsOffset)
-		DynamicRenderStatesAddDepthBounds(builder, depthBoundsOffset)
+		DynamicRenderStatesAddBlendConstants(builder,
+			CreateColor4f(builder, *dynamicRenderStates.blendConstants))
+		DynamicRenderStatesAddDepthBounds(builder,
+			CreateVector2f(builder, *dynamicRenderStates.depthBounds))
 		DynamicRenderStatesAddFrontStencilCompareMask(builder,
 			dynamicRenderStates.frontStencilCompareMask)
 		DynamicRenderStatesAddBackStencilCompareMask(builder,

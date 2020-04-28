@@ -25,6 +25,9 @@ from ..TextureDim import *
 from ..TextureFormat import *
 from ..View import *
 
+class Object:
+	pass
+
 renderbufferUsageEnum = {
 	'Standard': 0x0,
 	'BlitFrom': 0x1,
@@ -131,7 +134,7 @@ def convertView(convertContext, data):
 			raise Exception('Invalid ' + name + ' bool value "' + str(value) + '".')
 
 	def readSurface(info):
-		surface = object()
+		surface = Object()
 		surface.name = str(info['name'])
 
 		typeStr = str(info['type'])
@@ -233,7 +236,7 @@ def convertView(convertContext, data):
 		return surface
 
 	def readFramebufferSurface(info):
-		surface = object()
+		surface = Object()
 		surface.name = str(info['name'])
 
 		faceStr = str(info.get('face', 'PosX'))
@@ -247,7 +250,7 @@ def convertView(convertContext, data):
 		return surface
 
 	def readFramebuffer(info):
-		framebuffer = object()
+		framebuffer = Object()
 		framebuffer.name = str(info['name'])
 
 		framebufferSurfaceInfos = info.get('surfaces', [])
@@ -381,18 +384,19 @@ def convertView(convertContext, data):
 		else:
 			framebufferSurfacesOffset = 0
 
-		if framebuffer.viewport:
-			viewportOffset = CreateAlignedBox3f(builder, *framebuffer.viewport)
-		else:
-			viewportOffset = 0
-
 		FramebufferStart(builder)
 		FramebufferAddName(builder, nameOffset)
 		FramebufferAddSurfaces(builder, framebufferSurfacesOffset)
 		FramebufferAddWidth(builder, framebuffer.width)
 		FramebufferAddHeight(builder, framebuffer.height)
 		FramebufferAddLayers(builder, framebuffer.layers)
+
+		if framebuffer.viewport:
+			viewportOffset = CreateAlignedBox3f(builder, *framebuffer.viewport)
+		else:
+			viewportOffset = 0
 		FramebufferAddViewport(builder, viewportOffset)
+
 		framebufferOffsets.append(FramebufferEnd(builder))
 
 	ViewStartFramebuffersVector(builder, len(framebufferOffsets))

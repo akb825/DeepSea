@@ -30,6 +30,9 @@ from ..ScenePipelineItemUnion import *
 from ..SubpassDependency import *
 from ..TextureFormat import *
 
+class Object:
+	pass
+
 attachmentUsageEnum = {
 	'Standard': 0,
 	'Clear': 0x1,
@@ -191,7 +194,7 @@ def convertScene(convertContext, data):
 			raise Exception('Invalid ' + name + ' bool value "' + str(value) + '".')
 
 	def readAttachment(info):
-		attachment = object()
+		attachment = Object()
 		attachment.usage = 0
 		hasClear = False
 		try:
@@ -276,7 +279,7 @@ def convertScene(convertContext, data):
 		return attachment
 
 	def readSubpass(info, renderPass):
-		subpass = object()
+		subpass = Object()
 		subpass.name = str(info['name'])
 
 		inputAttachmentInfos = info.get('inputAttachments', [])
@@ -328,7 +331,7 @@ def convertScene(convertContext, data):
 		subpass.drawLists = []
 		try:
 			for listInfo in drawListInfos:
-				drawList = object()
+				drawList = Object()
 				drawList.type = str(info['type'])
 				drawList.name = str(info['name'])
 				# Some item lists don't have data.
@@ -345,7 +348,7 @@ def convertScene(convertContext, data):
 		return subpass
 
 	def readDependency(info, renderPass):
-		dependency = object()
+		dependency = Object()
 		dependency.srcSubpass = readUInt(info.get('srcSubpass'),
 			'source subpass', unsetValue)
 		if dependency.srcSubpass != unsetValue and \
@@ -461,7 +464,7 @@ def convertScene(convertContext, data):
 			for infoArray in sharedItemInfo:
 				itemArray = []
 				for info in infoArray:
-					sharedItem = object()
+					sharedItem = Object()
 					sharedItem.type = str(info['type'])
 					sharedItem.name = str(info['name'])
 					# Some item lists don't have data.
@@ -477,7 +480,7 @@ def convertScene(convertContext, data):
 		pipeline = []
 		try:
 			for info in pipelineInfo:
-				item = object()
+				item = Object()
 				if 'type' in info:
 					item.type = str(info['type'])
 					item.name = str(info['name'])
@@ -498,7 +501,7 @@ def convertScene(convertContext, data):
 		globalData = []
 		try:
 			for info in globalDataInfo:
-				item = object()
+				item = Object()
 				item.type = str(info['type'])
 				# Some item lists don't have data.
 				item.data = info.get('data')
@@ -612,23 +615,13 @@ def convertScene(convertContext, data):
 				else:
 					inputAttachmentsOffset = 0
 
-				colorAttachmentOffsets = []
-				for attachment in subpass.colorAttachments:
-					colorAttachmentOffsets.append(CreateAttachmentRef(builder, *attachment))
-
-				if colorAttachmentOffsets:
-					RenderSubpassStartColorAttachmentsVector(builder, len(colorAttachmentOffsets))
-					for attachment in reversed(colorAttachmentOffsets):
-						builder.PrependUOffsetTRelative(offset)
-					colorAttachmentsOffset = builder.EndVector(len(colorAttachmentOffsets))
+				if subpass.colorAttachments:
+					RenderSubpassStartColorAttachmentsVector(builder, len(subpass.colorAttachments))
+					for attachment in reversed(subpass.colorAttachments):
+						builder.PrependUOffsetTRelative(CreateAttachmentRef(builder, *attachment))
+					colorAttachmentsOffset = builder.EndVector(len(subpass.colorAttachments))
 				else:
 					colorAttachmentsOffset = 0
-
-				if subpass.depthStencilAttachment:
-					depthStencilAttachmentOffset = CreateAttachmentRef(builder,
-						*subpass.depthStencilAttachment)
-				else:
-					depthStencilAttachmentOffset = 0
 
 				drawListOffsets = []
 				for drawList in subpass.drawLists:
@@ -644,7 +637,14 @@ def convertScene(convertContext, data):
 				RenderSubpassAddName(builder, subpassNameOffset)
 				RenderSubpassAddInputAttachments(builder, inputAttachmentsOffset)
 				RenderSubpassAddColorAttachments(builder, colorAttachmentsOffset)
+
+				if subpass.depthStencilAttachment:
+					depthStencilAttachmentOffset = CreateAttachmentRef(builder,
+						*subpass.depthStencilAttachment)
+				else:
+					depthStencilAttachmentOffset = 0
 				RenderSubpassAddDepthStencilAttachment(builder, depthStencilAttachmentOffset)
+
 				RenderSubpassAddDrawLists(builder, drawListsOffset)
 				subpassOffsets.append(RenderSubpassEnd(builder))
 
@@ -653,17 +653,14 @@ def convertScene(convertContext, data):
 				builder.PrependUOffsetTRelative(offset)
 			subpassesOffset = builder.EndVector(len(subpassOffsets))
 
-			dependencyOffsets = []
-			for dependency in item.dependencies:
-				dependencyOffsets.append(CreateSubpassDependency(builder, dependency.srcSubpass,
-					dependency.srcStages, dependency.srcAccess, dependency.dstSubpass,
-					dependency.dstStages, dependency.dstAccess, dependency.regionDependency))
-
-			if dependencyOffsets:
-				RenderPassStartDependenciesVector(builder, len(dependencyOffsets))
-				for attachment in reversed(dependencyOffsets):
-					builder.PrependUOffsetTRelative(offset)
-				dependenciesOffset = builder.EndVector(len(dependencyOffsets))
+			if item.dependencies:
+				RenderPassStartDependenciesVector(builder, len(item.dependencies))
+				for dependencyt in reversed(item.dependencies):
+					builder.PrependUOffsetTRelative(CreateSubpassDependency(builder,
+						dependency.srcSubpass, dependency.srcStages, dependency.srcAccess,
+						dependency.dstSubpass, dependency.dstStages, dependency.dstAccess,
+						dependency.regionDependency))
+				dependenciesOffset = builder.EndVector(len(item.dependencies))
 			else:
 				dependenciesOffset = 0
 
