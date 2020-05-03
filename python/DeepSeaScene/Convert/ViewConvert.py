@@ -59,9 +59,11 @@ def convertView(convertContext, data):
 	  - dimension: dimension for an offscreen. See the dsTextureDim enum for values, removing the
 	    type prefix. Defaults to Dim2D.
 	  - format: the texture format. See the dsGfxFormat enum for values, removing the type prefix.
-	    The decorator values may not be used.
+	    The decorator values may not be used. May also be "SurfaceColor" or "SurfaceDepthStencil"
+	    to use the color or depth/stencil format for render surfaces.
 	  - decoration: the decoration for the format. See the dsGfxFormat enum for values, removing the
-	    type prefix. Only the decorator values may be used.
+	    type prefix. Only the decorator values may be used. May also be "Unset" in cases where a
+	    decorator isn't valid.
 	  - width: the explicit width of the surface.
 	  - widthRatio: the ratio of the width relative to the view width. "width" should be ommitted
 	    when this is used.

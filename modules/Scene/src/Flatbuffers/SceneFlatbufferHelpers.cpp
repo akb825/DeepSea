@@ -94,7 +94,9 @@ static const dsGfxFormat textureFormatMap[] =
 	dsGfxFormat_PVRTC1_RGB_4BPP,
 	dsGfxFormat_PVRTC1_RGBA_4BPP,
 	dsGfxFormat_PVRTC2_RGBA_2BPP,
-	dsGfxFormat_PVRTC2_RGBA_4BPP
+	dsGfxFormat_PVRTC2_RGBA_4BPP,
+	dsGfxFormat_Unknown,
+	dsGfxFormat_Unknown
 };
 
 static_assert(DS_ARRAY_SIZE(textureFormatMap) == static_cast<uint32_t>(TextureFormat::MAX) + 1,
@@ -156,14 +158,16 @@ static const dsGfxFormat formatDecorationMap[] =
 	dsGfxFormat_SInt,
 	dsGfxFormat_Float,
 	dsGfxFormat_UFloat,
-	dsGfxFormat_SRGB
+	dsGfxFormat_SRGB,
+	(dsGfxFormat)0
 };
 
 static_assert(
 	DS_ARRAY_SIZE(formatDecorationMap) == static_cast<uint32_t>(FormatDecoration::MAX) + 1,
 	"Invalid format decoration map size.");
 
-dsGfxFormat convert(TextureFormat format, FormatDecoration decoration)
+dsGfxFormat convert(const dsRenderer* renderer,
+	TextureFormat format, FormatDecoration decoration)
 {
 	auto formatIndex = static_cast<uint32_t>(format);
 	auto decorationIndex = static_cast<uint32_t>(decoration);
@@ -172,6 +176,11 @@ dsGfxFormat convert(TextureFormat format, FormatDecoration decoration)
 	{
 		return dsGfxFormat_Unknown;
 	}
+
+	if (format == TextureFormat::SurfaceColor)
+		return renderer ? renderer->surfaceColorFormat : dsGfxFormat_Unknown;
+	else if (format == TextureFormat::SurfaceDepthStencil)
+		return renderer ? renderer->surfaceDepthStencilFormat : dsGfxFormat_Unknown;
 
 	return dsGfxFormat_decorate(textureFormatMap[formatIndex],
 		formatDecorationMap[decorationIndex]);

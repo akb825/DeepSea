@@ -1381,7 +1381,8 @@ def convertSceneResources(convertContext, data):
 	        - format: the texture format. See the dsGfxFormat enum for values, removing the type
 	          prefix. The decorator and compressed values may not be used.
 	        - decoration: the decoration for the format. See the dsGfxFormat enum for values,
-	          removing the type prefix. Only the decorator values may be used.
+	          removing the type prefix. Only the decorator values may be used. May also be "Unset"
+	          in cases where a decorator isn't valid.
 		    - offset: integer byte offset into the buffer. Defaults to 0.
 	        - count: integer number of texels in the buffer.
 	    - dataArray: this may be set in place of the data member to provide an array of data

@@ -143,11 +143,13 @@ enum class TextureFormat : uint8_t {
   PVRTC1_RGBA_4BPP = 70,
   PVRTC2_RGBA_2BPP = 71,
   PVRTC2_RGBA_4BPP = 72,
+  SurfaceColor = 73,
+  SurfaceDepthStencil = 74,
   MIN = R4G4,
-  MAX = PVRTC2_RGBA_4BPP
+  MAX = SurfaceDepthStencil
 };
 
-inline const TextureFormat (&EnumValuesTextureFormat())[73] {
+inline const TextureFormat (&EnumValuesTextureFormat())[75] {
   static const TextureFormat values[] = {
     TextureFormat::R4G4,
     TextureFormat::R4G4B4A4,
@@ -221,13 +223,15 @@ inline const TextureFormat (&EnumValuesTextureFormat())[73] {
     TextureFormat::PVRTC1_RGB_4BPP,
     TextureFormat::PVRTC1_RGBA_4BPP,
     TextureFormat::PVRTC2_RGBA_2BPP,
-    TextureFormat::PVRTC2_RGBA_4BPP
+    TextureFormat::PVRTC2_RGBA_4BPP,
+    TextureFormat::SurfaceColor,
+    TextureFormat::SurfaceDepthStencil
   };
   return values;
 }
 
 inline const char * const *EnumNamesTextureFormat() {
-  static const char * const names[74] = {
+  static const char * const names[76] = {
     "R4G4",
     "R4G4B4A4",
     "B4G4R4A4",
@@ -301,13 +305,15 @@ inline const char * const *EnumNamesTextureFormat() {
     "PVRTC1_RGBA_4BPP",
     "PVRTC2_RGBA_2BPP",
     "PVRTC2_RGBA_4BPP",
+    "SurfaceColor",
+    "SurfaceDepthStencil",
     nullptr
   };
   return names;
 }
 
 inline const char *EnumNameTextureFormat(TextureFormat e) {
-  if (flatbuffers::IsOutRange(e, TextureFormat::R4G4, TextureFormat::PVRTC2_RGBA_4BPP)) return "";
+  if (flatbuffers::IsOutRange(e, TextureFormat::R4G4, TextureFormat::SurfaceDepthStencil)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesTextureFormat()[index];
 }
@@ -697,11 +703,12 @@ enum class FormatDecoration : uint8_t {
   Float = 6,
   UFloat = 7,
   SRGB = 8,
+  Unset = 9,
   MIN = UNorm,
-  MAX = SRGB
+  MAX = Unset
 };
 
-inline const FormatDecoration (&EnumValuesFormatDecoration())[9] {
+inline const FormatDecoration (&EnumValuesFormatDecoration())[10] {
   static const FormatDecoration values[] = {
     FormatDecoration::UNorm,
     FormatDecoration::SNorm,
@@ -711,13 +718,14 @@ inline const FormatDecoration (&EnumValuesFormatDecoration())[9] {
     FormatDecoration::SInt,
     FormatDecoration::Float,
     FormatDecoration::UFloat,
-    FormatDecoration::SRGB
+    FormatDecoration::SRGB,
+    FormatDecoration::Unset
   };
   return values;
 }
 
 inline const char * const *EnumNamesFormatDecoration() {
-  static const char * const names[10] = {
+  static const char * const names[11] = {
     "UNorm",
     "SNorm",
     "UScaled",
@@ -727,13 +735,14 @@ inline const char * const *EnumNamesFormatDecoration() {
     "Float",
     "UFloat",
     "SRGB",
+    "Unset",
     nullptr
   };
   return names;
 }
 
 inline const char *EnumNameFormatDecoration(FormatDecoration e) {
-  if (flatbuffers::IsOutRange(e, FormatDecoration::UNorm, FormatDecoration::SRGB)) return "";
+  if (flatbuffers::IsOutRange(e, FormatDecoration::UNorm, FormatDecoration::Unset)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesFormatDecoration()[index];
 }

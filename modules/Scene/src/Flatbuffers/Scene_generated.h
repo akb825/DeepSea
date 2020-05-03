@@ -873,15 +873,11 @@ inline flatbuffers::Offset<RenderSubpass> CreateRenderSubpassDirect(
 struct RenderPass FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef RenderPassBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_NAME = 4,
-    VT_FRAMEBUFFER = 6,
-    VT_ATTACHMENTS = 8,
-    VT_SUBPASSES = 10,
-    VT_DEPENDENCIES = 12
+    VT_FRAMEBUFFER = 4,
+    VT_ATTACHMENTS = 6,
+    VT_SUBPASSES = 8,
+    VT_DEPENDENCIES = 10
   };
-  const flatbuffers::String *name() const {
-    return GetPointer<const flatbuffers::String *>(VT_NAME);
-  }
   const flatbuffers::String *framebuffer() const {
     return GetPointer<const flatbuffers::String *>(VT_FRAMEBUFFER);
   }
@@ -896,8 +892,6 @@ struct RenderPass FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyOffsetRequired(verifier, VT_NAME) &&
-           verifier.VerifyString(name()) &&
            VerifyOffsetRequired(verifier, VT_FRAMEBUFFER) &&
            verifier.VerifyString(framebuffer()) &&
            VerifyOffset(verifier, VT_ATTACHMENTS) &&
@@ -916,9 +910,6 @@ struct RenderPassBuilder {
   typedef RenderPass Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
-  void add_name(flatbuffers::Offset<flatbuffers::String> name) {
-    fbb_.AddOffset(RenderPass::VT_NAME, name);
-  }
   void add_framebuffer(flatbuffers::Offset<flatbuffers::String> framebuffer) {
     fbb_.AddOffset(RenderPass::VT_FRAMEBUFFER, framebuffer);
   }
@@ -939,7 +930,6 @@ struct RenderPassBuilder {
   flatbuffers::Offset<RenderPass> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<RenderPass>(end);
-    fbb_.Required(o, RenderPass::VT_NAME);
     fbb_.Required(o, RenderPass::VT_FRAMEBUFFER);
     fbb_.Required(o, RenderPass::VT_SUBPASSES);
     return o;
@@ -948,7 +938,6 @@ struct RenderPassBuilder {
 
 inline flatbuffers::Offset<RenderPass> CreateRenderPass(
     flatbuffers::FlatBufferBuilder &_fbb,
-    flatbuffers::Offset<flatbuffers::String> name = 0,
     flatbuffers::Offset<flatbuffers::String> framebuffer = 0,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::Attachment>>> attachments = 0,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::RenderSubpass>>> subpasses = 0,
@@ -958,25 +947,21 @@ inline flatbuffers::Offset<RenderPass> CreateRenderPass(
   builder_.add_subpasses(subpasses);
   builder_.add_attachments(attachments);
   builder_.add_framebuffer(framebuffer);
-  builder_.add_name(name);
   return builder_.Finish();
 }
 
 inline flatbuffers::Offset<RenderPass> CreateRenderPassDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
-    const char *name = nullptr,
     const char *framebuffer = nullptr,
     const std::vector<flatbuffers::Offset<DeepSeaScene::Attachment>> *attachments = nullptr,
     const std::vector<flatbuffers::Offset<DeepSeaScene::RenderSubpass>> *subpasses = nullptr,
     const std::vector<DeepSeaScene::SubpassDependency> *dependencies = nullptr) {
-  auto name__ = name ? _fbb.CreateString(name) : 0;
   auto framebuffer__ = framebuffer ? _fbb.CreateString(framebuffer) : 0;
   auto attachments__ = attachments ? _fbb.CreateVector<flatbuffers::Offset<DeepSeaScene::Attachment>>(*attachments) : 0;
   auto subpasses__ = subpasses ? _fbb.CreateVector<flatbuffers::Offset<DeepSeaScene::RenderSubpass>>(*subpasses) : 0;
   auto dependencies__ = dependencies ? _fbb.CreateVectorOfStructs<DeepSeaScene::SubpassDependency>(*dependencies) : 0;
   return DeepSeaScene::CreateRenderPass(
       _fbb,
-      name__,
       framebuffer__,
       attachments__,
       subpasses__,

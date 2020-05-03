@@ -101,16 +101,17 @@ def convertScene(convertContext, data):
 	  - data: the data for the item list. What this member contains (e.g. a string or a dict with
 	    other members) depends on the instance data type.
 	  (For a render pass):
-	  - name: the name of the render pass.
 	  - framebuffer: the name of the framebuffer to use when rendering.
 	  - attachments: array of attachments to use during the render pass. Each element of the array
 	    has the following members:
 	    - usage: array of usage flags. See the dsAttachmentUsage enum for values, removing the type
 	      prefix. Defaults to ['Standard'].
 	    - format: the attachment format. See the dsGfxFormat enum for values, removing the type
-		  prefix. The decorator values may not be used.
+		  prefix. The decorator values may not be used. May also be "SurfaceColor" or
+	      "SurfaceDepthStencil" to use the color or depth/stencil format for render surfaces.
 	    - decoration: the decoration for the format. See the dsGfxFormat enum for values, removing
-	      the type prefix. Only the decorator values may be used.
+	      the type prefix. Only the decorator values may be used. May also be "Unset" in cases where a
+	      decorator isn't valid.
 	    - samples: the number of anti-alias samples. When ommitted, this uses the number of samples
 	      set on the renderer for window surfaces.
 	    - clearValue: a dict with one of the following members:
@@ -119,42 +120,42 @@ def convertScene(convertContext, data):
 	      - uintValues: array of 4 unsigned int values.
 	      - depth: float depth value. This may be paired with "stencil".
 	      - stencil: unsigned int stencil value. This may be paired with "depth".
-	    - subpasses: array of subpasses in the render pass. Each element of the array has the
-	      following members:
-	      - name: the name of the subpass.
-	      - inputAttachments: array of indices into the attachment arrays for the attachments to use
-	        as subpass inputs.
-	      - colorAttachments: array of attachments to write to for color. Each element of the array
-	        has the following members:
-	        - index: the index into the attachment array.
-	        - resolve: whether or not to resolve multisampled results. Defaults to true.
-	      - depthStencilAttachment: if set, the attachment to write to for depth/stencil. Each
-	        element has the following members:
-	        - index: the index into the attachment array.
-	        - resolve: whether or not to resolve multisampled results. Defaults to true.
-	      - drawLists: array of item lists to draw within the subpass. Each element of the array has
-	        the following members:
-	        - type: the name of the item list type.
-	        - name: the name of the item list.
-	        - data: the data for the item list. What this member contains (e.g. a string or a dict
-	          with other members) depends on the instance data type.
-	    - dependencies: optionall array of dependencies between subpasses. If ommitted, default
-	      dependencies will be used, which should be sufficient for all but very specialized use
-	      cases. Each element of the array has the following members:
-	      - srcSubpass: the index to the source subpass. If ommitted, the dependency will be before
-	        the render pass.
-	      - srcStages: array of stages for the source dependency. See the dsGfxPipelineStage enum
-	        for values, removing the type prefix.
-	      - srcAccess: array of access types for the source dependency. See the dsGfxAccess enum for
-	        values, removing the type prefix.
-	      - dstSubpass: the index to the destination subpass. If ommitted, the dependency will be
-	        after the render pass.
-	      - dstStages: array of stages for the destination dependency. See the dsGfxPipelineStage
-	        enum for values, removing the type prefix.
-	      - dstAccess: array of access types for the destination dependency. See the dsGfxAccess
-	        enum for values, removing the type prefix.
-	      - regionDependency: true to have the dependency can be applied separately for different
-	        regions of the attachment, false if it must be applied for the entire subpass.
+	  - subpasses: array of subpasses in the render pass. Each element of the array has the
+	    following members:
+	    - name: the name of the subpass.
+	    - inputAttachments: array of indices into the attachment arrays for the attachments to use
+	      as subpass inputs.
+	    - colorAttachments: array of attachments to write to for color. Each element of the array
+	      has the following members:
+	      - index: the index into the attachment array.
+	      - resolve: whether or not to resolve multisampled results. Defaults to true.
+	    - depthStencilAttachment: if set, the attachment to write to for depth/stencil. Each
+	      element has the following members:
+	      - index: the index into the attachment array.
+	      - resolve: whether or not to resolve multisampled results. Defaults to true.
+	    - drawLists: array of item lists to draw within the subpass. Each element of the array has
+	      the following members:
+	      - type: the name of the item list type.
+	      - name: the name of the item list.
+	      - data: the data for the item list. What this member contains (e.g. a string or a dict
+	        with other members) depends on the instance data type.
+	  - dependencies: optionall array of dependencies between subpasses. If ommitted, default
+	    dependencies will be used, which should be sufficient for all but very specialized use
+	    cases. Each element of the array has the following members:
+	    - srcSubpass: the index to the source subpass. If ommitted, the dependency will be before
+	      the render pass.
+	    - srcStages: array of stages for the source dependency. See the dsGfxPipelineStage enum for
+	      values, removing the type prefix.
+	    - srcAccess: array of access types for the source dependency. See the dsGfxAccess enum for
+	      values, removing the type prefix.
+	    - dstSubpass: the index to the destination subpass. If ommitted, the dependency will be
+	      after the render pass.
+	    - dstStages: array of stages for the destination dependency. See the dsGfxPipelineStage enum
+	      for values, removing the type prefix.
+	    - dstAccess: array of access types for the destination dependency. See the dsGfxAccess enum
+	      for values, removing the type prefix.
+	    - regionDependency: true to have the dependency can be applied separately for different
+	      regions of the attachment, false if it must be applied for the entire subpass.
 	- globalData: optional array of items to store data globally in the scene. Each element of the
 	  array has the following members:
 	  - type: the name of the global data type.
@@ -332,10 +333,10 @@ def convertScene(convertContext, data):
 		try:
 			for listInfo in drawListInfos:
 				drawList = Object()
-				drawList.type = str(info['type'])
-				drawList.name = str(info['name'])
+				drawList.type = str(listInfo['type'])
+				drawList.name = str(listInfo['name'])
 				# Some item lists don't have data.
-				drawList.data = info.get('data')
+				drawList.data = listInfo.get('data')
 				subpass.drawLists.append(drawList)
 		except KeyError as e:
 			raise Exception('Draw list doesn\'t contain element "' + str(e) + '".')
@@ -416,7 +417,6 @@ def convertScene(convertContext, data):
 		return dependency
 
 	def readRenderPass(info, item):
-		item.name = str(info['name'])
 		item.framebuffer = str(info['framebuffer'])
 		attachmentInfos = info.get('attachments', [])
 
@@ -429,7 +429,7 @@ def convertScene(convertContext, data):
 		except (TypeError, ValueError):
 			raise Exception('Attachments must be an array of objects.')
 
-		subpassInfos = pipelineInfo['subpasses']
+		subpassInfos = info['subpasses']
 		item.subpasses = []
 		try:
 			for subpassInfo in subpassInfos:
@@ -505,7 +505,7 @@ def convertScene(convertContext, data):
 				item.type = str(info['type'])
 				# Some item lists don't have data.
 				item.data = info.get('data')
-				globalData.append(globalData)
+				globalData.append(item)
 		except KeyError as e:
 			raise Exception('Scene "globalData" doesn\'t contain element "' + str(e) + '".')
 		except (TypeError, ValueError):
@@ -528,7 +528,7 @@ def convertScene(convertContext, data):
 		SceneItemListsStartItemListsVector(builder, len(itemListOffsets))
 		for offset in reversed(itemListOffsets):
 			builder.PrependUOffsetTRelative(offset)
-		sharedItemsOffsets = builder.EndVector(len(itemListOffsets))
+		sharedItemsOffsets.append(builder.EndVector(len(itemListOffsets)))
 
 	if sharedItemsOffsets:
 		SceneStartSharedItemsVector(builder, len(sharedItemsOffsets))
@@ -546,8 +546,6 @@ def convertScene(convertContext, data):
 				item.data)
 		else:
 			itemType = ScenePipelineItemUnion.RenderPass
-
-			nameOffset = builder.CreateString(item.name)
 			framebufferOffset = builder.CreateString(item.framebuffer)
 
 			attachmentOffsets = []
@@ -605,7 +603,7 @@ def convertScene(convertContext, data):
 
 			subpassOffsets = []
 			for subpass in item.subpasses:
-				subpassNameOffset = builder.CreateString(subpass.string)
+				subpassNameOffset = builder.CreateString(subpass.name)
 
 				if subpass.inputAttachments:
 					RenderSubpassStartInputAttachmentsVector(builder, len(subpass.inputAttachments))
@@ -665,7 +663,6 @@ def convertScene(convertContext, data):
 				dependenciesOffset = 0
 
 			RenderPassStart(builder)
-			RenderPassAddName(builder, nameOffset)
 			RenderPassAddFramebuffer(builder, framebufferOffset)
 			RenderPassAddAttachments(builder, attachmentsOffset)
 			RenderPassAddSubpasses(builder, subpassesOffset)

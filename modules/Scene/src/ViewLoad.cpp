@@ -27,6 +27,7 @@
 
 #include <DeepSea/Scene/Flatbuffers/SceneFlatbufferHelpers.h>
 #include <DeepSea/Scene/SceneLoadScratchData.h>
+#include <DeepSea/Scene/Scene.h>
 
 #include <string.h>
 
@@ -163,7 +164,8 @@ dsView* dsView_loadImpl(const dsScene* scene, dsAllocator* allocator,
 		surface->usage = fbSurface->usage();
 		surface->memoryHints = static_cast<dsGfxMemory>(fbSurface->memoryHints());
 		surface->createInfo.format =
-			DeepSeaScene::convert(fbSurface->format(), fbSurface->decoration());
+			DeepSeaScene::convert(dsScene_getRenderer(scene), fbSurface->format(),
+			fbSurface->decoration());
 		surface->createInfo.dimension = DeepSeaScene::convert(fbSurface->dimension());
 		surface->createInfo.width = fbSurface->width();
 		surface->widthRatio = fbSurface->widthRatio();

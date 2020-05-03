@@ -52,11 +52,11 @@ class ConvertContext:
 		}
 
 		self.instanceDataTypeMap = {
-			'InstanceTransformDataConvert': convertInstanceTransformData
+			'InstanceTransformData': convertInstanceTransformData
 		}
 
 		self.globalDataTypeMap = {
-			'ViewTransformDataConvert': convertViewTransformData
+			'ViewTransformData': convertViewTransformData
 		}
 
 		# Model types are considered an extension. However, register the builtin model types here
@@ -124,7 +124,7 @@ class ConvertContext:
 		SceneItemListAddData(builder, dataOffset)
 		return SceneItemListEnd(builder)
 
-	def instanceDataType(self, typeName, convertFunc):
+	def addInstanceDataType(self, typeName, convertFunc):
 		"""
 		Adds an instance data type with the name and the convert function. The function should take
 		the ConvertContext and dict for the data as parameters and return the flatbuffer bytes.
@@ -153,7 +153,7 @@ class ConvertContext:
 		ObjectDataAddData(builder, dataOffset)
 		return ObjectDataEnd(builder)
 
-	def globalDataType(self, typeName, convertFunc):
+	def addGlobalDataType(self, typeName, convertFunc):
 		"""
 		Adds a global data type with the name and the convert function. The function should take the
 		ConvertContext and dict for the data as parameters and return the flatbuffer bytes.

@@ -208,7 +208,7 @@ static dsSceneRenderPass* createRenderPass(dsAllocator* allocator, dsAllocator* 
 
 			dsAttachmentInfo* attachment = attachments + i;
 			attachment->usage = static_cast<dsAttachmentUsage>(fbAttachment->usage());
-			attachment->format = DeepSeaScene::convert(fbAttachment->format(),
+			attachment->format = DeepSeaScene::convert(renderer, fbAttachment->format(),
 				fbAttachment->decoration());
 			attachment->samples = fbAttachment->samples();
 

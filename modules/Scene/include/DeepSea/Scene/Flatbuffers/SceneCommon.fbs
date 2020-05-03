@@ -100,7 +100,9 @@ enum TextureFormat : ubyte
 	PVRTC1_RGB_4BPP,
 	PVRTC1_RGBA_4BPP,
 	PVRTC2_RGBA_2BPP,
-	PVRTC2_RGBA_4BPP
+	PVRTC2_RGBA_4BPP,
+	SurfaceColor,
+	SurfaceDepthStencil
 }
 
 // Enum for the dimension of a texture.
@@ -228,7 +230,8 @@ enum FormatDecoration : ubyte
 	SInt,
 	Float,
 	UFloat,
-	SRGB
+	SRGB,
+	Unset
 }
 
 // Structure describing object data.

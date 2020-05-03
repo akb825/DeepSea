@@ -222,7 +222,8 @@ static bool loadTextures(dsSceneResources* resources, dsResourceManager* resourc
 		{
 			dsTextureInfo textureInfo =
 			{
-				DeepSeaScene::convert(fbTextureInfo->format(), fbTextureInfo->decoration()),
+				DeepSeaScene::convert(resourceManager->renderer, fbTextureInfo->format(),
+					fbTextureInfo->decoration()),
 				DeepSeaScene::convert(fbTextureInfo->dimension()),
 				fbTextureInfo->width(),
 				fbTextureInfo->height(),
@@ -563,9 +564,9 @@ static bool loadMaterialTexture(dsSceneLoadScratchData* scratchData, dsMaterial*
 	return true;
 }
 
-static bool loadMaterialTextureBuffer(dsSceneLoadScratchData* scratchData, dsMaterial* material,
-	uint32_t element, const uint8_t* data, uint32_t dataSize, const char* dataName,
-	const char* fileName)
+static bool loadMaterialTextureBuffer(dsSceneLoadScratchData* scratchData,
+	const dsRenderer* renderer, dsMaterial* material, uint32_t element, const uint8_t* data,
+	uint32_t dataSize, const char* dataName, const char* fileName)
 {
 	flatbuffers::Verifier verifier(data, dataSize);
 	if (!DeepSeaScene::VerifyTextureBufferMaterialDataBuffer(verifier))
@@ -593,7 +594,7 @@ static bool loadMaterialTextureBuffer(dsSceneLoadScratchData* scratchData, dsMat
 	}
 
 	if (!dsMaterial_setTextureBuffer(material, element, buffer,
-			DeepSeaScene::convert(materialData->format(), materialData->decoration()),
+			DeepSeaScene::convert(renderer, materialData->format(), materialData->decoration()),
 			materialData->offset(), materialData->count()))
 	{
 		PRINT_FLATBUFFER_MATERIAL_ERROR("Couldn't set texture buffer '%s'", dataName, fileName);
@@ -776,8 +777,8 @@ static bool loadMaterials(dsSceneResources* resources, dsResourceManager* resour
 					break;
 				case dsMaterialType_TextureBuffer:
 				case dsMaterialType_ImageBuffer:
-					success = loadMaterialTextureBuffer(scratchData, material, element,
-						data->data(), data->size(), dataName, fileName);
+					success = loadMaterialTextureBuffer(scratchData, resourceManager->renderer,
+						material, element, data->data(), data->size(), dataName, fileName);
 					break;
 				case dsMaterialType_VariableGroup:
 					success = loadMaterialVariableGroup(scratchData, material, element,

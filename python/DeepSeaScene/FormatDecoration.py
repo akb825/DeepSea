@@ -12,4 +12,5 @@ class FormatDecoration(object):
     Float = 6
     UFloat = 7
     SRGB = 8
+    Unset = 9
 

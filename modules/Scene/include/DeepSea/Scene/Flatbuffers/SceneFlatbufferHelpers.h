@@ -42,11 +42,13 @@ inline dsFileResourceType convert(FileResourceType resourceType)
 
 /**
  * @brief Converts from a flatbuffer texture format to a dsGfxFormat.
+ * @param renderer The renderer.
  * @param format The texture format.
  * @param decoration The decoration for the texture format.
  * @return The converted format.
  */
-DS_SCENE_EXPORT dsGfxFormat convert(TextureFormat format, FormatDecoration decoration);
+DS_SCENE_EXPORT dsGfxFormat convert(const dsRenderer* renderer, TextureFormat format,
+	FormatDecoration decoration);
 
 /**
  * @brief Converts from a flatbuffer texture dimension to a dsTextureDim.

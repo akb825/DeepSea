@@ -78,7 +78,7 @@ function(ds_create_scene container)
 
 	set(createScene ${DEEPSEA_PYTHON_DIR}/CreateScene.py)
 	add_custom_command(OUTPUT ${ARGS_OUTPUT}
-		COMMAND ${CMAKE_COMMAND} ARGS env ${moduleDirs} ${PYTHON_EXECUTABLE} ${createScene}
+		COMMAND ${CMAKE_COMMAND} ARGS -E env ${moduleDirs} ${PYTHON_EXECUTABLE} ${createScene}
 			-i ${ARGS_FILE} -o ${ARGS_OUTPUT} ${extensions}
 		DEPENDS ${deps} ${recursiveDeps} ${ARGS_FILE} ${createScene}
 		${workingDir}

@@ -180,9 +180,6 @@ struct SubpassDependency
 // Structure defining a render pass.
 table RenderPass
 {
-	// The name of the render pass.
-	name : string (required);
-
 	// The name of the framebuffer to use.
 	framebuffer : string (required);
 
