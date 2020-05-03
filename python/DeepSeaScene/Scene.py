@@ -95,11 +95,33 @@ class Scene(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
         return o == 0
 
-def SceneStart(builder): builder.StartObject(3)
+    # Scene
+    def Nodes(self, j):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(10))
+        if o != 0:
+            a = self._tab.Vector(o)
+            return self._tab.String(a + flatbuffers.number_types.UOffsetTFlags.py_type(j * 4))
+        return ""
+
+    # Scene
+    def NodesLength(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(10))
+        if o != 0:
+            return self._tab.VectorLen(o)
+        return 0
+
+    # Scene
+    def NodesIsNone(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(10))
+        return o == 0
+
+def SceneStart(builder): builder.StartObject(4)
 def SceneAddSharedItems(builder, sharedItems): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(sharedItems), 0)
 def SceneStartSharedItemsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
 def SceneAddPipeline(builder, pipeline): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(pipeline), 0)
 def SceneStartPipelineVector(builder, numElems): return builder.StartVector(4, numElems, 4)
 def SceneAddGlobalData(builder, globalData): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(globalData), 0)
 def SceneStartGlobalDataVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+def SceneAddNodes(builder, nodes): builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(nodes), 0)
+def SceneStartNodesVector(builder, numElems): return builder.StartVector(4, numElems, 4)
 def SceneEnd(builder): return builder.EndObject()

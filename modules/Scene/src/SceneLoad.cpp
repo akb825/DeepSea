@@ -412,6 +412,7 @@ dsScene* dsScene_loadImpl(dsAllocator* allocator, dsAllocator* resourceAllocator
 	auto fbSharedItems = fbScene->sharedItems();
 	auto fbPipeline = fbScene->pipeline();
 	auto fbGlobalData = fbScene->globalData();
+	auto fbNodes = fbScene->nodes();
 
 	uint32_t sharedItemCount = 0;
 	dsSceneItemLists* sharedItems = nullptr;
@@ -558,6 +559,44 @@ dsScene* dsScene_loadImpl(dsAllocator* allocator, dsAllocator* resourceAllocator
 
 	scene = dsScene_create(allocator, renderer, sharedItems, sharedItemCount, pipeline,
 		pipelineCount, globalData, globalDataCount, userData, destroyUserDataFunc);
+
+	if (fbNodes)
+	{
+		for (const auto* fbNode : *fbNodes)
+		{
+			if (!fbNode)
+			{
+				errno = EFORMAT;
+				PRINT_FLATBUFFER_ERROR("Scene node name is null.", fileName);
+				dsScene_destroy(scene);
+				goto finished;
+			}
+
+			dsSceneNode* node;
+			dsSceneResourceType type;
+			const char* nodeName = fbNode->c_str();
+			if (!dsSceneLoadScratchData_findResource(&type, reinterpret_cast<void**>(&node),
+					scratchData, nodeName) || type != dsSceneResourceType_SceneNode)
+			{
+				errno = ENOTFOUND;
+				if (fileName)
+				{
+					DS_LOG_ERROR_F(DS_SCENE_LOG_TAG, "Scene node '%s' not found for '%s'.",
+						nodeName, fileName);
+				}
+				else
+					DS_LOG_ERROR_F(DS_SCENE_LOG_TAG, "Scene node '%s' not found.", nodeName);
+				dsScene_destroy(scene);
+				goto finished;
+			}
+
+			if (!dsScene_addNode(scene, node))
+			{
+				dsScene_destroy(scene);
+				goto finished;
+			}
+		}
+	}
 
 finished:
 	// Counts contain the items that need to be cleaned up.

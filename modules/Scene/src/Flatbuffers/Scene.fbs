@@ -219,6 +219,9 @@ table Scene
 
 	// The global data used within the scene.
 	globalData : [ObjectData];
+
+	// List of nodes names to use within the scene.
+	nodes : [string];
 }
 
 root_type Scene;
