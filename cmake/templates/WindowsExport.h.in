@@ -1,0 +1,6 @@
+#pragma once
+#ifdef @buildMacro@
+#define DS_@moduleUpper@_EXPORT __declspec(dllexport)
+#else
+#define DS_@moduleUpper@_EXPORT __declspec(dllimport)
+#endif

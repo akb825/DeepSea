@@ -64,26 +64,17 @@ function(ds_install_library)
 					set_property(TARGET ${ARGS_TARGET} APPEND PROPERTY COMPILE_DEFINITIONS
 						DS_${moduleUpper}_BUILD)
 				endif()
-				file(WRITE ${exportPath}
-					"#pragma once\n\n"
-					"#ifdef ${buildMacro}\n"
-					"#define DS_${moduleUpper}_EXPORT __declspec(dllexport)\n"
-					"#else\n"
-					"#define DS_${moduleUpper}_EXPORT __declspec(dllimport)\n"
-					"#endif\n")
+				configure_file(${DEEPSEA_SOURCE_DIR}/cmake/templates/WindowsExport.h.in
+					${exportPath} @ONLY)
 			elseif (CMAKE_C_COMPILER_ID MATCHES "GNU" OR CMAKE_C_COMPILER_ID MATCHES "Clang")
-				file(WRITE ${exportPath}
-					"#pragma once\n\n"
-					"#define DS_${moduleUpper}_EXPORT __attribute__((visibility(\"default\")))\n")
+				configure_file(${DEEPSEA_SOURCE_DIR}/cmake/templates/UnixExportShared.h.in
+					${exportPath} @ONLY)
 			else()
-				file(WRITE ${exportPath}
-					"#pragma once\n\n"
-					"#define DS_${moduleUpper}_EXPORT\n")
+				configure_file(${DEEPSEA_SOURCE_DIR}/cmake/templates/NoExport.h.in ${exportPath}
+					@ONLY)
 			endif()
 		else()
-			file(WRITE ${exportPath}
-				"#pragma once\n\n"
-				"#define DS_${moduleUpper}_EXPORT\n")
+			configure_file(${DEEPSEA_SOURCE_DIR}/cmake/templates/NoExport.h.in ${exportPath} @ONLY)
 		endif()
 	endif()
 
@@ -237,7 +228,7 @@ endif()")
 	else()
 		set(configPackageDir lib/cmake/DeepSea)
 	endif()
-	configure_file(${DEEPSEA_SOURCE_DIR}/cmake/DeepSeaConfig.cmake.in
+	configure_file(${DEEPSEA_SOURCE_DIR}/cmake/templates/DeepSeaConfig.cmake.in
 		${DEEPSEA_EXPORTS_DIR}/DeepSeaConfig.cmake @ONLY)
 	install(FILES ${DEEPSEA_EXPORTS_DIR}/DeepSeaConfig.cmake
 		${DEEPSEA_SOURCE_DIR}/cmake/helpers.cmake ${versionPath}
