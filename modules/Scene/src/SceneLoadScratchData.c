@@ -212,6 +212,8 @@ void dsSceneLoadScratchData_destroy(dsSceneLoadScratchData* scratchData)
 		return;
 
 	DS_VERIFY(dsAllocator_free(scratchData->allocator, scratchData->readBuffer));
+	for (uint32_t i = 0; i < scratchData->sceneResourceCount; ++i)
+		dsSceneResources_freeRef(scratchData->sceneResources[i]);
 	DS_VERIFY(dsAllocator_free(scratchData->allocator, scratchData->sceneResources));
 	DS_VERIFY(dsAllocator_free(scratchData->allocator, scratchData));
 }

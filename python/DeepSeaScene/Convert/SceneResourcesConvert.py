@@ -27,6 +27,9 @@ from ..BufferMaterialData import *
 from ..DrawGeometry import *
 from ..FormatDecoration import *
 from ..IndexBuffer import *
+from ..MaterialBinding import *
+from ..MaterialDesc import *
+from ..MaterialElement import *
 from ..MaterialType import *
 from ..NamedMaterialData import *
 from ..SceneNode import *
@@ -166,7 +169,7 @@ def convertSceneResourcesBuffers(builder, convertContext, data):
 					except TypeError:
 						raise Exception(
 							'SceneResources buffer "data" uses incorrect base64 encoding.')
-					bufferSize = len(bufferData)
+					bufferSize = len(dataContents)
 				else:
 					bufferContents = None
 					try:
@@ -263,7 +266,7 @@ def convertSceneResourcesTextures(builder, convertContext, data):
 					paths = None
 					expectedDepth = 0
 
-				baseTextureInfo = textureData.get('textureData')
+				baseTextureInfo = textureData.get('textureInfo')
 				if baseTextureInfo:
 					textureInfo = Object()
 					try:
@@ -291,27 +294,29 @@ def convertSceneResourcesTextures(builder, convertContext, data):
 							expectedDepth = expectedDepth/6
 
 						validConvertValues = (None, 'nextpo2', 'nearestpo2')
-						widthStr = str(baseTextureInfo.get('width'))
-						if (path or paths) and widthStr in validConvertValues:
-							textureInfo.width = widthStr
-						elif widthStr is None:
-							raise KeyError('width')
-						else:
+						widthStr = str(baseTextureInfo.get('width', ''))
+						if widthStr:
 							textureInfo.width = readInt(widthStr, 'width', 1)
-
-						heightStr = str(baseTextureInfo.get('height'))
-						if (path or paths) and heightStr in validConvertValues:
-							textureInfo.height = heightStr
-						elif heightStr is None:
-							raise KeyError('height')
 						else:
+							if path or paths:
+								textureInfo.width = None
+							else:
+								raise KeyError('width')
+
+						heightStr = str(baseTextureInfo.get('height', ''))
+						if heightStr:
 							textureInfo.height = readInt(heightStr, 'height', 1)
+						else:
+							if path or paths:
+								textureInfo.height = heightStr
+							else:
+								raise KeyError('height')
 
 						if textureInfo.width is None and textureInfo.height is None:
 							raise Exception('If texture width or height is set, both must be set.')
 
 						depthStr = str(baseTextureInfo.get('depth', expectedDepth))
-						textureInfo.depth = readInt(heightStr, 'depth', 0)
+						textureInfo.depth = readInt(depthStr, 'depth', 0)
 						if (path or paths) and textureInfo.depth != expectedDepth:
 							raise Exception(
 								"Unexpected texture depth for number of image paths.")
@@ -390,7 +395,7 @@ def convertSceneResourcesTextures(builder, convertContext, data):
 
 				commandLine = [convertContext.cuttlefish, '-q', '-f', formatStr,
 					'-t', decorationStr, '-m', str(textureInfo.mipLevels),
-					'-Q', textureInfo.quality, '-r', textureInfo.rotate]
+					'-Q', textureInfo.quality, '--rotate', textureInfo.rotate]
 
 				if convertContext.multithread:
 					commandLine.append('-j')
@@ -436,16 +441,16 @@ def convertSceneResourcesTextures(builder, convertContext, data):
 					tempFiles.append(tempFile.name)
 					commandLine.extend(['-I', textureType, tempFile.name])
 				# Create a temporary file if not present.
-				textureFile = textureData.get('output')
-				if not textureFile:
+				texturePath = textureData.get('output')
+				if not texturePath:
 					try:
 						with NamedTemporaryFile() as tempFile:
-							textureFile = tempFile.name + '.pvr'
-						tempFiles.append(textureFile)
+							texturePath = tempFile.name + '.pvr'
+						tempFiles.append(texturePath)
 					except:
 						cleanup(tempFiles)
 						raise
-				commandLine.extend(['-o', textureFile])
+				commandLine.extend(['-o', texturePath])
 
 				try:
 					subprocess.check_call(commandLine)
@@ -495,7 +500,7 @@ def convertSceneResourcesTextures(builder, convertContext, data):
 			TextureAddDataType(builder, dataType)
 			TextureAddData(builder, dataOffset)
 			TextureAddTextureInfo(builder, textureInfoOffset)
-			textureOffset = TextureEnd(builder)
+			textureOffsets.append(TextureEnd(builder))
 	except (TypeError, ValueError):
 		raise Exception('SceneResources "textures" must be an array of objects.')
 
@@ -939,7 +944,15 @@ def convertSceneResourcesMaterialDescs(builder, convertContext, data):
 				raise Exception(
 					'Invalid material element count "' + str(countStr) + '".')
 
-			return name, materialType, count
+			bindingStr = str(elementData.get('binding', 'Material'))
+			try:
+				binding = getattr(MaterialBinding, bindingStr)
+			except AttributeError:
+				raise Exception('Invalid material binding "' + bindingStr + '".')
+
+			shaderVariableGroupDesc = str(elementData.get('shaderVariableGroupDesc', ''))
+
+			return name, materialType, count, binding, shaderVariableGroupDesc
 		except KeyError as e:
 			raise Exception(
 				'SceneResources material desc element data doesn\'t contain element "' +
@@ -965,23 +978,28 @@ def convertSceneResourcesMaterialDescs(builder, convertContext, data):
 
 			nameOffset = builder.CreateString(name)
 			elementOffsets = []
-			for elementName, elementType, elementCount in elements:
+			for elementName, elementType, elementCount, binding, shaderVariableGroupDesc in \
+					elements:
 				elementNameOffset = builder.CreateString(elementName)
-				VariableElementStart(builder)
-				VariableElementAddName(builder, elementNameOffset)
-				VariableElementAddType(builder, elementType)
-				VariableElementAddCount(builder, elementCount)
-				elementOffsets.append(VariableElementEnd(builder))
+				shaderVariableGroupDescOffset = builder.CreateString(shaderVariableGroupDesc) if \
+					shaderVariableGroupDesc else 0
+				MaterialElementStart(builder)
+				MaterialElementAddName(builder, elementNameOffset)
+				MaterialElementAddType(builder, elementType)
+				MaterialElementAddCount(builder, elementCount)
+				MaterialElementAddBinding(builder, binding)
+				MaterialElementAddShaderVariableGroupDesc(builder, shaderVariableGroupDescOffset)
+				elementOffsets.append(MaterialElementEnd(builder))
 
-			ShaderVariableGroupDescStartElementsVector(builder, len(elementOffsets))
+			MaterialDescStartElementsVector(builder, len(elementOffsets))
 			for offset in reversed(elementOffsets):
 				builder.PrependUOffsetTRelative(offset)
 			elementsOffset = builder.EndVector(len(elementOffsets))
 
-			ShaderVariableGroupDescStart(builder)
-			ShaderVariableGroupDescAddName(builder, nameOffset)
-			ShaderVariableGroupDescAddElements(builder, elementsOffset)
-			groupOffsets.append(ShaderVariableGroupDescEnd(builder))
+			MaterialDescStart(builder)
+			MaterialDescAddName(builder, nameOffset)
+			MaterialDescAddElements(builder, elementsOffset)
+			groupOffsets.append(MaterialDescEnd(builder))
 	except (TypeError, ValueError):
 		raise Exception('SceneResources "materialDescs" must be an array of objects.')
 
@@ -1208,16 +1226,11 @@ def convertSceneResourcesDrawGeometries(builder, convertContext, data):
 			for vertexBuffer in vertexBuffers:
 				vertexBufferNameOffset = builder.CreateString(vertexBuffer.name)
 
-				attributeOffsets = []
-				for attribute in vertexBuffer.format.attributes:
-					attributeOffsets.append(
-						CreateVertexAttribute(builder, attribute.attrib, attribute.format,
-							attribute.decoration))
-
-				VertexFormatStartAttributesVector(builder, len(attributeOffsets))
-				for offset in reversed(attributeOffsets):
-					builder.PrependUOffsetTRelative(offset)
-				attributesOffset = builder.EndVector(len(attributeOffsets))
+				VertexFormatStartAttributesVector(builder, len(vertexBuffer.format.attributes))
+				for attribute in reversed(vertexBuffer.format.attributes):
+					CreateVertexAttribute(builder, attribute.attrib, attribute.format,
+						attribute.decoration)
+				attributesOffset = builder.EndVector(len(vertexBuffer.format.attributes))
 
 				VertexFormatStart(builder)
 				VertexFormatAddAttributes(builder, attributesOffset)

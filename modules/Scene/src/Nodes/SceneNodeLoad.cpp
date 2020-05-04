@@ -42,7 +42,7 @@ dsSceneNode* dsSceneNodeRef_load(const dsSceneLoadContext*, dsSceneLoadScratchDa
 	dsSceneResourceType resourceType;
 	if (!dsSceneLoadScratchData_findResource(&resourceType,
 			reinterpret_cast<void**>(&node), scratchData, name) ||
-		resourceType != dsSceneResourceType_Buffer)
+		resourceType != dsSceneResourceType_SceneNode)
 	{
 		// NOTE: ENOTFOUND not set when the type doesn't match, so set it manually.
 		errno = ENOTFOUND;
@@ -50,7 +50,7 @@ dsSceneNode* dsSceneNodeRef_load(const dsSceneLoadContext*, dsSceneLoadScratchDa
 		return nullptr;
 	}
 
-	return node;
+	return dsSceneNode_addRef(node);
 }
 
 extern "C"

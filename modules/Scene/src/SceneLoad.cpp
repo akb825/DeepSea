@@ -131,7 +131,7 @@ static size_t getTempSize(const FlatbufferVector<DeepSeaScene::SceneItemLists>* 
 					renderPassSize += DS_ALIGNED_SIZE(sizeof(dsAttachmentRef));
 
 				uint32_t drawListCount = fbSubpass->drawLists()->size();
-				if (drawListCount > 0)
+				if (drawListCount == 0)
 				{
 					PRINT_FLATBUFFER_ERROR("Scene subpass draw list array is empty", fileName);
 					return 0;
@@ -278,7 +278,7 @@ static dsSceneRenderPass* createRenderPass(dsAllocator* allocator, dsAllocator* 
 		auto fbColorAttachments = fbSubpass->colorAttachments();
 		if (fbColorAttachments && fbColorAttachments->size() > 0)
 		{
-			subpass->colorAttachmentCount = fbInputAttachments->size();
+			subpass->colorAttachmentCount = fbColorAttachments->size();
 			subpass->colorAttachments = DS_ALLOCATE_OBJECT_ARRAY(scratchAllocator, dsAttachmentRef,
 				subpass->colorAttachmentCount);
 			DS_ASSERT(subpass->colorAttachments);
@@ -532,7 +532,7 @@ dsScene* dsScene_loadImpl(dsAllocator* allocator, dsAllocator* resourceAllocator
 	{
 		globalDataCount = fbGlobalData->size();
 		globalData =
-			DS_ALLOCATE_OBJECT_ARRAY(scratchAllocator, dsSceneGlobalData*, globalDataCount);
+			DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsSceneGlobalData*, globalDataCount);
 		for (uint32_t i = 0; i < globalDataCount; ++i)
 		{
 			auto fbGlobalDataItem = (*fbGlobalData)[i];
@@ -569,6 +569,7 @@ dsScene* dsScene_loadImpl(dsAllocator* allocator, dsAllocator* resourceAllocator
 				errno = EFORMAT;
 				PRINT_FLATBUFFER_ERROR("Scene node name is null.", fileName);
 				dsScene_destroy(scene);
+				scene = NULL;
 				goto finished;
 			}
 
@@ -587,16 +588,23 @@ dsScene* dsScene_loadImpl(dsAllocator* allocator, dsAllocator* resourceAllocator
 				else
 					DS_LOG_ERROR_F(DS_SCENE_LOG_TAG, "Scene node '%s' not found.", nodeName);
 				dsScene_destroy(scene);
+				scene = NULL;
 				goto finished;
 			}
 
 			if (!dsScene_addNode(scene, node))
 			{
 				dsScene_destroy(scene);
+				scene = NULL;
 				goto finished;
 			}
 		}
 	}
+
+	// Succeeded: don't delete items.
+	sharedItemCount = 0;
+	pipelineCount = 0;
+	globalDataCount = 0;
 
 finished:
 	// Counts contain the items that need to be cleaned up.

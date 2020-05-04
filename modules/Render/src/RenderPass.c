@@ -386,7 +386,6 @@ static bool isResolveValid(const dsRenderer* renderer, const dsAttachmentInfo* a
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
 			"Color attachment set to resolve used with unresolvable framebuffer surface.");
-		DS_PROFILE_FUNC_END();
 		return false;
 	}
 
@@ -1007,6 +1006,7 @@ bool dsRenderPass_begin(const dsRenderPass* renderPass, dsCommandBuffer* command
 			if (attachment != DS_NO_ATTACHMENT &&
 				!isResolveValid(renderer, renderPass->attachments, framebuffer, attachment))
 			{
+				DS_PROFILE_FUNC_END();
 				endRenderPassScope(commandBuffer);
 				return false;
 			}
@@ -1016,6 +1016,7 @@ bool dsRenderPass_begin(const dsRenderPass* renderPass, dsCommandBuffer* command
 			depthStencilAttachment->resolve && !isResolveValid(renderer, renderPass->attachments,
 				framebuffer, depthStencilAttachment->attachmentIndex))
 		{
+			DS_PROFILE_FUNC_END();
 			endRenderPassScope(commandBuffer);
 			return false;
 		}

@@ -63,6 +63,8 @@ dsSceneLoadContext* dsSceneLoadContext_create(dsAllocator* allocator, dsRenderer
 		dsHashString, dsHashStringEqual);
 	dsHashTable_initialize(&context->itemListTypeTable.hashTable, DS_SCENE_TYPE_TABLE_SIZE,
 		dsHashString, dsHashStringEqual);
+	dsHashTable_initialize(&context->instanceDataTypeTable.hashTable, DS_SCENE_TYPE_TABLE_SIZE,
+		dsHashString, dsHashStringEqual);
 	dsHashTable_initialize(&context->globalDataTypeTable.hashTable, DS_SCENE_TYPE_TABLE_SIZE,
 		dsHashString, dsHashStringEqual);
 

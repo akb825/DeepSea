@@ -21,7 +21,7 @@
  * @brief Uniforms for instance transform matrices.
  */
 
-uniform InstanceTransform
+uniform InstanceTransformData
 {
 	/**
 	 * @brief The world matrix.

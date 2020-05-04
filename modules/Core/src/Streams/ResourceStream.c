@@ -209,6 +209,39 @@ bool dsResourceStream_setContext(void* globalContext, void* applicationContext,
 	return true;
 }
 
+const char* dsResourceStream_getEmbeddedDir(void)
+{
+	return gEmbeddedDir;
+}
+
+void dsResourceStream_setEmbeddedDir(const char* dir)
+{
+	if (dir)
+		strncpy(gEmbeddedDir, dir, sizeof(gEmbeddedDir) - 1);
+}
+
+const char* dsResourceStream_getLocalDir(void)
+{
+	return gLocalDir;
+}
+
+void dsResourceStream_setLocalDir(const char* dir)
+{
+	if (dir)
+		strncpy(gLocalDir, dir, sizeof(gLocalDir) - 1);
+}
+
+const char* dsResourceStream_getDynamicDir(void)
+{
+	return gDynamicDir;
+}
+
+void dsResourceStream_setDynamicDir(const char* dir)
+{
+	if (dir)
+		strncpy(gDynamicDir, dir, sizeof(gDynamicDir) - 1);
+}
+
 bool dsResourceStream_isFile(dsFileResourceType type)
 {
 #if DS_ANDROID

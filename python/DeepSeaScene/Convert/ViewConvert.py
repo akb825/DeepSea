@@ -66,16 +66,16 @@ def convertView(convertContext, data):
 	    decorator isn't valid.
 	  - width: the explicit width of the surface.
 	  - widthRatio: the ratio of the width relative to the view width. "width" should be ommitted
-	    when this is used.
+	    when this is used. Defaults to 1.0 if neither width nor widthRatio is set.
 	  - height: the explicit height of the surface.
 	  - heightRatio: the ratio of the height relative to the view height. "height" should be ommitted
-	    when this is used.
+	    when this is used. Defaults to 1.0 if neither height nor heightRatio is set.
 	  - depth: the depth or array layers of the surface if an offscreen. If 0 or ommitted, this is
 	    not a texture array.
 	  - mipLevels: the number of mipmap levels for an offscreen. Defaults to 1.
 	  - samples: the number of anti-alias samples. When ommitted, this uses the number of samples
 	    set on the renderer for window surfaces.
-	  - resolve: whether or not to resolve multisampled results. Defaults to true.
+	  - resolve: whether or not to resolve multisampled results.
 	  - windowFramebuffer: Whether or not the surface is used in the same framebuffer as the window
 	    surface. When true, the surface will follow the rotation of the view and window surface.
 	    Defaults to true.
@@ -92,10 +92,10 @@ def convertView(convertContext, data):
 	    - mipLevel: the mip level to use for an offscreen. Defaults to 0.
 	  - width: the explicit width of the framebuffer.
 	  - widthRatio: the ratio of the width relative to the view width. "width" should be ommitted
-	    when this is used.
+	    when this is used. Defaults to 1.0 if neither width nor widthRatio is set.
 	  - height: the explicit height of the framebuffer.
 	  - heightRatio: the ratio of the height relative to the view height. "height" should be
-	    ommitted when this is used.
+	    ommitted when this is used. Defaults to 1.0 if neither height nor heightRatio is set.
 	  - layers: the number of layers in the framebuffer. Defaults to 1.
 	  - viewport: the viewport to use. This is a dict with the following elements.
 	    - minX: the minimum X value for the upper-left position as a fraction of the width. Defaults 
@@ -214,7 +214,7 @@ def convertView(convertContext, data):
 			surface.widthRatio = 0.0
 
 		if not surface.width and not surface.widthRatio:
-			raise Exception('View Surface must contain non-zero "width" or "widthRatio".')
+			surface.widthRatio = -1.0
 
 		if 'height' in info:
 			surface.height = readInt(info['height'], 'surface height', 0)
@@ -227,13 +227,14 @@ def convertView(convertContext, data):
 			surface.heightRatio = 0.0
 
 		if not surface.height and not surface.heightRatio:
-			raise Exception('View Surface must contain non-zero "height" or "heightRatio".')
+			surface.heightRatio = -1.0
 
 		surface.depth = readInt(info.get('depth', 0), 'surface depth', 0)
 		surface.mipLevels = readInt(info.get('mipLevels', 1), 'surface mip levels', 1)
 		surface.samples = readInt(info.get('samples', unsetValue), 'surface samples', 1)
-		surface.resolve = readBool(info.get('resolve', True), 'surface resolve')
-		surface.windowFramebuffer = readBool(info.get('window framebuffer', True),
+		surface.resolve = readBool(info['resolve'], 'surface resolve')
+		print(surface.resolve)
+		surface.windowFramebuffer = readBool(info.get('windowFramebuffer', True),
 			'window framebuffer')
 		return surface
 
@@ -243,7 +244,7 @@ def convertView(convertContext, data):
 
 		faceStr = str(info.get('face', 'PosX'))
 		try:
-			surface.face = CubeFace.getattr(faceStr)
+			surface.face = getattr(CubeFace, faceStr)
 		except AttributeError:
 			raise Exception('Invalid framebuffer surface face "' + faceStr + '".')
 
@@ -270,14 +271,14 @@ def convertView(convertContext, data):
 		elif 'width' in info:
 			framebuffer.width = float(readInt(info['width'], 'framebuffer width', 1))
 		else:
-			raise Exception('View Framebuffer must contain "width" or "widthRatio".')
+			framebuffer.width = -1.0
 
 		if 'heightRatio' in info:
 			framebuffer.height = -readFloat(info['heightRatio'], 'framebuffer height ratio', 0.0)
 		elif 'height' in info:
 			framebuffer.height = float(readInt(info['height'], 'framebuffer height', 1))
 		else:
-			raise Exception('View Framebuffer must contain "height" or "heightRatio".')
+			framebuffer.height = -1.0
 			
 		framebuffer.layers = readInt(info.get('layers', 1), 'framebuffer layers', 1)
 

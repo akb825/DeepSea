@@ -28,7 +28,7 @@ dsSceneItemList* dsSceneItemList_load(dsAllocator* allocator, dsAllocator* resou
 	const char* name, const void* data, size_t size)
 {
 	auto foundType = reinterpret_cast<dsLoadSceneItemListItem*>(
-		dsHashTable_find(&loadContext->nodeTypeTable.hashTable, type));
+		dsHashTable_find(&loadContext->itemListTypeTable.hashTable, type));
 	if (!foundType)
 	{
 		errno = ENOTFOUND;

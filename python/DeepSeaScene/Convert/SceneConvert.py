@@ -128,11 +128,11 @@ def convertScene(convertContext, data):
 	    - colorAttachments: array of attachments to write to for color. Each element of the array
 	      has the following members:
 	      - index: the index into the attachment array.
-	      - resolve: whether or not to resolve multisampled results. Defaults to true.
+	      - resolve: whether or not to resolve multisampled results.
 	    - depthStencilAttachment: if set, the attachment to write to for depth/stencil. Each
 	      element has the following members:
 	      - index: the index into the attachment array.
-	      - resolve: whether or not to resolve multisampled results. Defaults to true.
+	      - resolve: whether or not to resolve multisampled results.
 	    - drawLists: array of item lists to draw within the subpass. Each element of the array has
 	      the following members:
 	      - type: the name of the item list type.
@@ -305,7 +305,7 @@ def convertScene(convertContext, data):
 					raise Exception(
 						'Color attachment "' + str(index) + '" is out of range.')
 				subpass.colorAttachments.append((index,
-					readBool(colorRef.get('resolve', True), 'color attachment resolve')))
+					readBool(colorRef['resolve'], 'color attachment resolve')))
 		except KeyError as e:
 			raise Exception('Color attachment doesn\'t contain element "' + str(e) + '".')
 		except (TypeError, ValueError):
@@ -319,8 +319,7 @@ def convertScene(convertContext, data):
 					raise Exception(
 						'Depth/stencil attachment "' + str(index) + '" is out of range.')
 				subpass.depthStencilAttachment = (index,
-					readBool(depthStencilRef.get('resolve', True),
-						'depth/stencil attachment resolve'))
+					readBool(depthStencilRef['resolve'], 'depth/stencil attachment resolve'))
 			except KeyError as e:
 				raise Exception(
 					'Depth/stencil attachment doesn\'t contain element "' + str(e) + '".')
@@ -537,7 +536,11 @@ def convertScene(convertContext, data):
 		SceneItemListsStartItemListsVector(builder, len(itemListOffsets))
 		for offset in reversed(itemListOffsets):
 			builder.PrependUOffsetTRelative(offset)
-		sharedItemsOffsets.append(builder.EndVector(len(itemListOffsets)))
+		itemListOffset = builder.EndVector(len(itemListOffsets))
+
+		SceneItemListsStart(builder)
+		SceneItemListsAddItemLists(builder, itemListOffset)
+		sharedItemsOffsets.append(SceneItemListsEnd(builder))
 
 	if sharedItemsOffsets:
 		SceneStartSharedItemsVector(builder, len(sharedItemsOffsets))
@@ -625,7 +628,7 @@ def convertScene(convertContext, data):
 				if subpass.colorAttachments:
 					RenderSubpassStartColorAttachmentsVector(builder, len(subpass.colorAttachments))
 					for attachment in reversed(subpass.colorAttachments):
-						builder.PrependUOffsetTRelative(CreateAttachmentRef(builder, *attachment))
+						CreateAttachmentRef(builder, *attachment)
 					colorAttachmentsOffset = builder.EndVector(len(subpass.colorAttachments))
 				else:
 					colorAttachmentsOffset = 0
@@ -636,7 +639,7 @@ def convertScene(convertContext, data):
 						drawList.name, drawList.data))
 
 				RenderSubpassStartDrawListsVector(builder, len(drawListOffsets))
-				for attachment in reversed(drawListOffsets):
+				for offset in reversed(drawListOffsets):
 					builder.PrependUOffsetTRelative(offset)
 				drawListsOffset = builder.EndVector(len(drawListOffsets))
 
@@ -656,17 +659,16 @@ def convertScene(convertContext, data):
 				subpassOffsets.append(RenderSubpassEnd(builder))
 
 			RenderPassStartSubpassesVector(builder, len(subpassOffsets))
-			for attachment in reversed(subpassOffsets):
+			for offset in reversed(subpassOffsets):
 				builder.PrependUOffsetTRelative(offset)
 			subpassesOffset = builder.EndVector(len(subpassOffsets))
 
 			if item.dependencies:
 				RenderPassStartDependenciesVector(builder, len(item.dependencies))
 				for dependency in reversed(item.dependencies):
-					builder.PrependUOffsetTRelative(CreateSubpassDependency(builder,
-						dependency.srcSubpass, dependency.srcStages, dependency.srcAccess,
-						dependency.dstSubpass, dependency.dstStages, dependency.dstAccess,
-						dependency.regionDependency))
+					CreateSubpassDependency(builder, dependency.srcSubpass, dependency.srcStages,
+						dependency.srcAccess, dependency.dstSubpass, dependency.dstStages,
+						dependency.dstAccess, dependency.regionDependency)
 				dependenciesOffset = builder.EndVector(len(item.dependencies))
 			else:
 				dependenciesOffset = 0

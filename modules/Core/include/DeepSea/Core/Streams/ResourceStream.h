@@ -42,6 +42,42 @@ DS_CORE_EXPORT bool dsResourceStream_setContext(void* globalContext, void* appli
 	const char* embeddedDir, const char* localDir, const char* dynamicDir);
 
 /**
+ * @brief Gets the directory for embedded resources.
+ * @return The embedded directory.
+ */
+DS_CORE_EXPORT const char* dsResourceStream_getEmbeddedDir(void);
+
+/**
+ * @brief Sets the directory for embedded resources.
+ * @param dir The embedded directory.
+ */
+DS_CORE_EXPORT void dsResourceStream_setEmbeddedDir(const char* dir);
+
+/**
+ * @brief Gets the directory for local resources.
+ * @return The local directory.
+ */
+DS_CORE_EXPORT const char* dsResourceStream_getLocalDir(void);
+
+/**
+ * @brief Sets the directory for local resources.
+ * @param dir The local directory.
+ */
+DS_CORE_EXPORT void dsResourceStream_setLocalDir(const char* dir);
+
+/**
+ * @brief Gets the directory for dynamic resources.
+ * @return The dynamic directory.
+ */
+DS_CORE_EXPORT const char* dsResourceStream_getDynamicDir(void);
+
+/**
+ * @brief Sets the directory for dynamic resources.
+ * @param dir The dynamic directory.
+ */
+DS_CORE_EXPORT void dsResourceStream_setDynamicDir(const char* dir);
+
+/**
  * @brief Gets whether or not a resource type will be a file.
  * @param type The resource type.
  * @return True if the resource will be a file.

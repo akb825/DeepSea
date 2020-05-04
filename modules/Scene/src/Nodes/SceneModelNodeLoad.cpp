@@ -44,15 +44,18 @@ dsSceneNode* dsSceneModelNode_load(const dsSceneLoadContext* loadContext,
 	}
 
 	auto fbModelNode = DeepSeaScene::GetModelNode(data);
-	auto embeddedResources = fbModelNode->embeddedResources();
-	if (embeddedResources)
+	auto fbEmbeddedResources = fbModelNode->embeddedResources();
+	dsSceneResources* embeddedResources = NULL;
+	if (fbEmbeddedResources)
 	{
-		dsSceneResources* sceneResources = dsSceneResources_loadData(allocator, resourceAllocator,
-			loadContext, scratchData, embeddedResources->data(), embeddedResources->size());
-		if (!sceneResources)
+		embeddedResources = dsSceneResources_loadData(allocator, resourceAllocator,
+			loadContext, scratchData, fbEmbeddedResources->data(), fbEmbeddedResources->size());
+		if (!embeddedResources)
 			return nullptr;
 
-		if (!dsSceneLoadScratchData_pushSceneResources(scratchData, &sceneResources, 1))
+		bool pushed = dsSceneLoadScratchData_pushSceneResources(scratchData, &embeddedResources, 1);
+		dsSceneResources_freeRef(embeddedResources);
+		if (!pushed)
 			return nullptr;
 	}
 
@@ -65,8 +68,6 @@ dsSceneNode* dsSceneModelNode_load(const dsSceneLoadContext* loadContext,
 	const char** extraItems = nullptr;
 	uint32_t modelInfoCount = fbModelInfos->size();
 	dsSceneModelInitInfo* modelInfos = nullptr;
-	uint32_t resourceCount = 0;
-	dsSceneResources** resources = nullptr;
 
 	dsAllocator* scratchAllocator = dsSceneLoadScratchData_getAllocator(scratchData);
 	DS_ASSERT(scratchAllocator);
@@ -171,9 +172,10 @@ dsSceneNode* dsSceneModelNode_load(const dsSceneLoadContext* loadContext,
 		modelInfo->listName = fbModelInfo->listName()->c_str();
 	}
 
-	resources = dsSceneLoadScratchData_getSceneResources(&resourceCount, scratchData);
+	// NOTE: May need to add more resources to the reference count later. Don't add all resources
+	// since it would make circular references.
 	node = reinterpret_cast<dsSceneNode*>(dsSceneModelNode_create(allocator, modelInfos,
-		modelInfoCount, extraItems, extraItemCount, resources, resourceCount,
+		modelInfoCount, extraItems, extraItemCount, &embeddedResources, embeddedResources ? 1 : 0,
 		fbBounds ? &DeepSeaScene::convert(*fbBounds) : nullptr));
 
 finished:

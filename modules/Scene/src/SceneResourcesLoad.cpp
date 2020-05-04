@@ -338,7 +338,7 @@ static bool loadShaderVariableGroups(dsSceneResources* resources,
 	const FlatbufferVector<DeepSeaScene::ShaderData>* groups, const char* fileName)
 {
 	if (!groups)
-		return false;
+		return true;
 
 	dsCommandBuffer* commandBuffer = dsSceneLoadScratchData_getCommandBuffer(scratchData);
 	for (auto fbGroup : *groups)
@@ -708,7 +708,7 @@ static bool loadMaterials(dsSceneResources* resources, dsResourceManager* resour
 	const FlatbufferVector<DeepSeaScene::ShaderData>* materials, const char* fileName)
 {
 	if (!materials)
-		return false;
+		return true;
 
 	for (auto fbMaterial : *materials)
 	{
@@ -740,7 +740,7 @@ static bool loadMaterials(dsSceneResources* resources, dsResourceManager* resour
 		// NOTE: This takes ownership on success, so errors after this point won't destroy the
 		// material.
 		if (!dsSceneResources_addResource(
-				resources, materialName, dsSceneResourceType_Material, materialDesc, true))
+				resources, materialName, dsSceneResourceType_Material, material, true))
 		{
 			dsMaterial_destroy(material);
 			return false;
@@ -962,6 +962,7 @@ static bool loadDrawGeometries(dsSceneResources* resources, dsResourceManager* r
 		uint32_t vertexBufferIndex = 0;
 		dsVertexBuffer vertexBuffers[DS_MAX_GEOMETRY_VERTEX_BUFFERS];
 		dsVertexBuffer* vertexBufferPtrs[DS_MAX_GEOMETRY_VERTEX_BUFFERS];
+		memset(vertexBufferPtrs, 0, sizeof(vertexBufferPtrs));
 		for (auto fbVertexBuffer : *fbGeometry->vertexBuffers())
 		{
 			if (vertexBufferIndex > DS_MAX_GEOMETRY_VERTEX_BUFFERS)
@@ -1019,6 +1020,7 @@ static bool loadDrawGeometries(dsSceneResources* resources, dsResourceManager* r
 			}
 			DS_VERIFY(dsVertexFormat_computeOffsetsAndSize(&vertexBuffer->format));
 
+			vertexBufferPtrs[vertexBufferIndex] = vertexBuffers + vertexBufferIndex;
 			++vertexBufferIndex;
 		}
 
@@ -1155,7 +1157,8 @@ dsSceneResources* dsSceneResources_loadImpl(dsAllocator* allocator, dsAllocator*
 
 	if (!dsSceneLoadScratchData_pushSceneResources(scratchData, &resources, 1) ||
 		!loadBuffers(resources, resourceManager, resourceAllocator, buffers, fileName) ||
-		!loadTextures(resources, resourceManager, allocator, resourceAllocator, textures, fileName) ||
+		!loadTextures(resources, resourceManager, allocator, resourceAllocator, textures,
+			fileName) ||
 		!loadShaderVariableGroupDescs(resources, resourceManager, resourceAllocator, scratchData,
 			groupDescs, fileName) ||
 		!loadShaderVariableGroups(resources, resourceManager, resourceAllocator, scratchData,
@@ -1164,11 +1167,14 @@ dsSceneResources* dsSceneResources_loadImpl(dsAllocator* allocator, dsAllocator*
 			materialDescs, fileName) ||
 		!loadMaterials(
 			resources, resourceManager, resourceAllocator, scratchData, materials, fileName) ||
-		!loadShaderModules(resources, resourceManager, resourceAllocator, shaderModules, fileName) ||
-		!loadShaders(resources, resourceManager, resourceAllocator, scratchData, shaders, fileName) ||
+		!loadShaderModules(
+			resources, resourceManager, resourceAllocator, shaderModules, fileName) ||
+		!loadShaders(
+			resources, resourceManager, resourceAllocator, scratchData, shaders, fileName) ||
 		!loadDrawGeometries(
 			resources, resourceManager, resourceAllocator, scratchData, geometries, fileName) ||
-		!loadNodes(resources, allocator, resourceAllocator, loadContext, scratchData, nodes, fileName))
+		!loadNodes(
+			resources, allocator, resourceAllocator, loadContext, scratchData, nodes, fileName))
 	{
 		dsSceneResources_freeRef(resources);
 		DS_VERIFY(dsSceneLoadScratchData_popSceneResources(scratchData, 1));

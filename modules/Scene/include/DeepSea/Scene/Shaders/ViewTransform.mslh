@@ -21,7 +21,7 @@
  * @brief Uniforms for view transform matrices.
  */
 
-uniform ViewTransform
+uniform ViewTransformData
 {
 	/**
 	 * @brief The view matrix.

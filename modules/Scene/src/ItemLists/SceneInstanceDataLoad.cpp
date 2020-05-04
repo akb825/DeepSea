@@ -28,7 +28,7 @@ dsSceneInstanceData* dsSceneInstanceData_load(dsAllocator* allocator,
 	dsSceneLoadScratchData* scratchData, const char* type, const void* data, size_t size)
 {
 	auto foundType = reinterpret_cast<dsLoadSceneInstanceDataItem*>(
-		dsHashTable_find(&loadContext->nodeTypeTable.hashTable, type));
+		dsHashTable_find(&loadContext->instanceDataTypeTable.hashTable, type));
 	if (!foundType)
 	{
 		errno = ENOTFOUND;

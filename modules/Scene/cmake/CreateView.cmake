@@ -97,7 +97,7 @@ function(ds_create_view container)
 	set(createView ${DEEPSEA_PYTHON_DIR}/CreateView.py)
 	add_custom_command(OUTPUT ${ARGS_OUTPUT}
 		COMMAND ${CMAKE_COMMAND} ARGS -E env ${moduleDirs} ${PYTHON_EXECUTABLE} ${createView}
-			-i ${ARGS_FILE} -o ${ARGS_OUTPUT} -c ${CUTTLEFISH} -v ${VFC} ${extensions}
+			-i ${ARGS_FILE} -o ${ARGS_OUTPUT} ${extensions}
 		DEPENDS ${deps} ${recursiveDeps} ${ARGS_FILE} ${CUTTLEFISH} ${VFC} ${createView}
 		${workingDir}
 		COMMENT "Creating view: ${ARGS_OUTPUT}")

@@ -112,7 +112,7 @@ def convertModelNodeGeometry(convertContext, modelGeometry, embeddedResources):
 				combinedBuffer.append(0)
 
 		offset = len(combinedBuffer)
-		combinedBuffer.extend(combinedBuffer)
+		combinedBuffer.extend(data)
 		return offset
 
 	def addModelEmbeddedResources(embeddedResources, resourceType, resources):

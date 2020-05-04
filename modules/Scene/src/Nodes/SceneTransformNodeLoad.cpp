@@ -69,7 +69,7 @@ dsSceneNode* dsSceneTransformNode_load(const dsSceneLoadContext* loadContext,
 			}
 
 			bool success = dsSceneNode_addChild(node, child);
-			dsSceneNode_freeRef(node);
+			dsSceneNode_freeRef(child);
 			if (!success)
 				return nullptr;
 		}

@@ -34,7 +34,7 @@ static dsShaderVariableElement elements[] =
 	{"worldViewProj", dsMaterialType_Mat4, 0}
 };
 
-const char* const dsInstanceTransformData_typeName = "InstanceTransform";
+const char* const dsInstanceTransformData_typeName = "InstanceTransformData";
 
 typedef struct InstanceTransform
 {

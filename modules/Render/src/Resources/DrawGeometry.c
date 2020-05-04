@@ -108,7 +108,7 @@ dsDrawGeometry* dsDrawGeometry_create(dsResourceManager* resourceManager,
 		}
 
 		if (!DS_IS_BUFFER_RANGE_VALID(vertexBuffers[i]->offset,
-			vertexBuffers[i]->count*format->size, vertexBuffers[i]->buffer->size))
+				vertexBuffers[i]->count*format->size, vertexBuffers[i]->buffer->size))
 		{
 			errno = EINDEX;
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG,

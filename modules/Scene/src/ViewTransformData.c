@@ -39,7 +39,7 @@ static dsShaderVariableElement elements[] =
 	{"screenSize", dsMaterialType_IVec2, 0}
 };
 
-const char* const dsViewTransformData_typeName = "ViewTransform";
+const char* const dsViewTransformData_typeName = "ViewTransformData";
 
 typedef struct dsViewTransformData
 {

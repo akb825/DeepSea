@@ -262,7 +262,7 @@ bool dsSceneResources_addResource(dsSceneResources* resources, const char* name,
 	dsSceneResourceType type, void* resource, bool own)
 {
 	if (!resources || !name || type < dsSceneResourceType_Buffer ||
-		type > dsSceneResourceType_DrawGeometry || !resource)
+		type > dsSceneResourceType_SceneNode || !resource)
 	{
 		errno = EINVAL;
 		return false;
