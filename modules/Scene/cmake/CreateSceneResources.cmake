@@ -122,13 +122,31 @@ function(ds_create_scene_resources container)
 	endif()
 
 	set(createSceneResources ${DEEPSEA_PYTHON_DIR}/CreateSceneResources.py)
-	add_custom_command(OUTPUT ${ARGS_OUTPUT}
-		COMMAND ${CMAKE_COMMAND} ARGS -E env ${moduleDirs} ${PYTHON_EXECUTABLE}
-			${createSceneResources} -i ${ARGS_FILE} -o ${ARGS_OUTPUT} -c ${CUTTLEFISH} -v ${VFC}
-			${extensions}
-		DEPENDS ${deps} ${recursiveDeps} ${ARGS_FILE} ${CUTTLEFISH} ${VFC} ${createSceneResources}
-		${workingDir}
-		COMMENT "Creating scene resources: ${ARGS_OUTPUT}")
+	set(buildCommand ${CMAKE_COMMAND} -E env ${moduleDirs} ${PYTHON_EXECUTABLE}
+		${createSceneResources} -i ${ARGS_FILE} -o ${ARGS_OUTPUT} -c ${CUTTLEFISH} -v ${VFC}
+		${extensions})
+
+	# NOTE: Output file doesn't support generator expressions, so need to manually expand it.
+	if (ARGS_OUTPUT MATCHES ".*\\$<CONFIG>.*")
+		foreach (compilerConfig ${CMAKE_CONFIGURATION_TYPES})
+			string(REPLACE "$<CONFIG>" ${compilerConfig} configOutput ${ARGS_OUTPUT})
+			set(configCommand)
+			foreach (command ${buildCommand})
+				list(APPEND configCommand $<$<CONFIG:${compilerConfig}>:${command}>)
+			endforeach()
+			add_custom_command(OUTPUT ${configOutput} COMMAND ${configCommand}
+				DEPENDS ${deps} ${recursiveDeps} ${ARGS_FILE} ${CUTTLEFISH} ${VFC}
+					${createSceneResources}
+				${workingDir}
+				COMMENT "Creating scene resources: ${configOutput}")
+		endforeach()
+	else()
+		add_custom_command(OUTPUT ${ARGS_OUTPUT} COMMAND ${buildCommand}
+			DEPENDS ${deps} ${recursiveDeps} ${ARGS_FILE} ${CUTTLEFISH} ${VFC}
+				${createSceneResources}
+			${workingDir}
+			COMMENT "Creating scene resources: ${ARGS_OUTPUT}")
+	endif()
 
 	set(${container} ${${container}} ${ARGS_OUTPUT} PARENT_SCOPE)
 endfunction()

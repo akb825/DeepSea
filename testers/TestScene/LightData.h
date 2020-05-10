@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Aaron Barany
+ * Copyright 2019-2020 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,10 +19,20 @@
 #include <DeepSea/Core/Config.h>
 #include <DeepSea/Scene/Types.h>
 
-dsShaderVariableGroupDesc* dsLightData_createShaderVariableGroupDesc(
-	dsResourceManager* resourceManager, dsAllocator* allocator);
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
+dsSceneGlobalData* dsLightData_load(const dsSceneLoadContext* loadContext,
+	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator*, void*,
+	const uint8_t* data, size_t dataSize);
 dsSceneGlobalData* dsLightData_create(dsAllocator* allocator,
 	dsResourceManager* resourceManager, const dsShaderVariableGroupDesc* lightDesc);
 void dsLightData_setDirection(dsSceneGlobalData* globalData, const dsVector3f* direction);
 void dsLightData_setColor(dsSceneGlobalData* globalData, const dsVector3f* color);
 void dsLightData_setAmbientColor(dsSceneGlobalData* globalData, const dsVector3f* color);
+
+#ifdef __cplusplus
+}
+#endif

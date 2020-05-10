@@ -104,12 +104,6 @@ function(ds_compile_shaders container)
 	list(APPEND extraArgs $<$<NOT:$<OR:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>>>:-s>)
 	list(APPEND extraArgs $<$<NOT:$<CONFIG:Debug>>:-O> $<$<NOT:$<CONFIG:Debug>>:${ARGS_OPTIMIZE}>)
 
-	if (CMAKE_CONFIGURATION_TYPES)
-		set(compilerConfigs ${CMAKE_CONFIGURATION_TYPES})
-	else()
-		set(compilerConfigs "")
-	endif()
-
 	set(outputs)
 	foreach (config ${ARGS_CONFIG})
 		get_property(configPath GLOBAL PROPERTY ${config})
@@ -144,7 +138,7 @@ function(ds_compile_shaders container)
 
 		# NOTE: Output file doesn't support generator expressions, so need to manually expand it.
 		if (output MATCHES ".*\\$<CONFIG>.*")
-			foreach (compilerConfig ${compilerConfigs})
+			foreach (compilerConfig ${CMAKE_CONFIGURATION_TYPES})
 				string(REPLACE "$<CONFIG>" ${compilerConfig} configOutput ${output})
 
 				# Need generator expression for each and every argument.

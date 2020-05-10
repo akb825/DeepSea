@@ -31,7 +31,7 @@ macro(ds_config_binary_dir output)
 	endif()
 endmacro()
 
-# ds_build_assets_dir(output)
+# ds_build_assets_dir(output target)
 #
 # Gets the assets directory to build assets to.
 #
@@ -93,4 +93,53 @@ function(ds_link_main_lib target mainLib)
 	else()
 		target_link_libraries(${target} PRIVATE ${mainLib})
 	endif()
+endfunction()
+
+# ds_configure_file(inputFile outputFile
+#                   [CONFIG_VAR var1 [var2 ...]])
+#
+# Same as configure_file(), but handles different configurations set with the $<CONFIG> generator
+# expression.
+#
+# inputFile - The input file to configure.
+# outputFile - The output file to configure. If this contains $<CONFIG>, it will be processed for
+#              each configuration.
+# CONFIG_VAR - Variables that contain $<CONFIG> to be replaced.
+# All remaining parameters will be forwarded to configure_file().
+function(ds_configure_file inputFile outputFile)
+	set(options COPYONLY ESCAPE_QUOTES @ONLY)
+	set(oneValueArgs NEWLINE_STYLE )
+	set(multiValueArgs CONFIG_VAR)
+	cmake_parse_arguments(ARGS "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+	
+	set(forwardedArgs)
+	foreach (arg ${options})
+		if (ARGS_${arg})
+			list(APPEND forwardedArgs ${arg})
+		endif()
+	endforeach()
+	
+	foreach (arg ${oneValueArgs})
+		if (ARGS_${arg})
+			list(APPEND forwardedArgs ${arg} ${ARGS_${arg}})
+		endif()
+	endforeach()
+	
+	if (NOT outputFile MATCHES ".*\\$<CONFIG>.*")
+		configure_file(${inputFile} ${outputFile} ${forwardedArgs})
+		return()
+	endif()
+	
+	foreach (configVar ${ARGS_CONFIG_VAR})
+		set(${configVar}_ORIG ${${configVar}})
+	endforeach()
+	
+	foreach (compilerConfig ${CMAKE_CONFIGURATION_TYPES})
+		string(REPLACE "$<CONFIG>" ${compilerConfig} configOutputFile ${outputFile})
+		foreach (configVar ${ARGS_CONFIG_VAR})
+			string(REPLACE "$<CONFIG>" ${compilerConfig} ${configVar} ${${configVar}_ORIG})
+		endforeach()
+
+		configure_file(${inputFile} ${configOutputFile} ${forwardedArgs})
+	endforeach()
 endfunction()

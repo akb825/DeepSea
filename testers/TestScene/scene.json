@@ -1,0 +1,80 @@
+{
+	"sharedItems":
+	[
+		[
+			{
+				"type": "ViewCullList",
+				"name": "cullList"
+			}
+		]
+	],
+	"pipeline":
+	[
+		{
+			"framebuffer": "window",
+			"attachments":
+			[
+				{
+					"usage": ["Clear", "KeepAfter"],
+					"format": "SurfaceColor",
+					"decoration": "Unset",
+					"clearValue": {"floatValues": [0.0, 0.1, 0.2, 1.0]}
+				},
+				{
+					"usage": ["Clear"],
+					"format": "SurfaceDepthStencil",
+					"decoration": "Unset",
+					"clearValue": {"depth": 1.0, "stencil": 0}
+				}
+			],
+			"subpasses":
+			[
+				{
+					"name": "TestScene",
+					"colorAttachments": [{"index": 0, "resolve": true}],
+					"depthStencilAttachment": {"index": 1, "resolve": false},
+					"drawLists":
+					[
+						{
+							"type": "ModelList",
+							"name": "modelList",
+							"data":
+							{
+								"instanceData":
+								[
+									{
+										"type": "InstanceTransformData",
+										"data":
+										{
+											"variableGroupDescName": "instanceTransformDesc"
+										}
+									}
+								],
+								"sortType": "Material",
+								"cullName": "cullList"
+							}
+						}
+					]
+				}
+			]
+		}
+	],
+	"globalData":
+	[
+		{
+			"type": "ViewTransformData",
+			"data": {"variableGroupDescName": "viewTransformDesc"}
+		},
+		{
+			"type": "LightData",
+			"data":
+			{
+				"variableGroupDescName": "lightDesc",
+				"direction": [-0.3, 1.0, 0.6],
+				"color": [1.0, 1.0, 1.0],
+				"ambient": [0.2, 0.2, 0.2]
+			}
+		}
+	],
+	"nodes": ["primaryTransform", "groundNode"]
+}

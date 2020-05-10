@@ -12,26 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-find_program(VFC_LOCAL vfc PATHS ${DEEPSEA_PREBUILT_TOOLS_DIR}/bin NO_DEFAULT_PATH)
-if (VFC_LOCAL)
-	set(VFC ${VFC_LOCAL} CACHE FILEPATH "vfc vertex format converter tool")
-else()
-	find_program(VFC_SYSTEM vfc NO_CMAKE_FIND_ROOT_PATH)
-	if (VFC_SYSTEM)
-		set(VFC ${VFC_SYSTEM} CACHE FILEPATH "vfc vertex format converter tool")
-	else()
-		set(VFC VFC-NOTFOUND)
-	endif()
-endif()
-
 # ds_create_view(container
-#                           FILE file
-#                           OUTPUT ARGS_OUTPUT
-#                           [DEPENDS pattern1 [pattern2 ...]]
-#                           [DEPENDS_RECURSE pattern1 [pattern2 ...]]
-#                           [WORKING_DIRECTORY dir]
-#                           [MODULE_DIRECTORIES dir1 [dir2 ... ]]
-#                           [EXTENSIONS extension1 [extension2  ...]])
+#                FILE file
+#                OUTPUT ARGS_OUTPUT
+#                [DEPENDS pattern1 [pattern2 ...]]
+#                [DEPENDS_RECURSE pattern1 [pattern2 ...]]
+#                [WORKING_DIRECTORY dir]
+#                [MODULE_DIRECTORIES dir1 [dir2 ... ]]
+#                [EXTENSIONS extension1 [extension2  ...]])
 #
 # Creates view to be loaded at runtime.
 #
@@ -46,12 +34,6 @@ endif()
 function(ds_create_view container)
 	if (NOT PYTHONINTERP_FOUND)
 		message(FATAL_ERROR "Python not found on the path.")
-	endif()
-	if (NOT CUTTLEFISH)
-		message(FATAL_ERROR "Program 'cuttlefish' not found on the path.")
-	endif()
-	if (NOT VFC)
-		message(FATAL_ERROR "Program 'vfc' not found on the path.")
 	endif()
 
 	set(oneValueArgs FILE OUTPUT WORKING_DIRECTORY)
@@ -95,12 +77,28 @@ function(ds_create_view container)
 	endif()
 
 	set(createView ${DEEPSEA_PYTHON_DIR}/CreateView.py)
-	add_custom_command(OUTPUT ${ARGS_OUTPUT}
-		COMMAND ${CMAKE_COMMAND} ARGS -E env ${moduleDirs} ${PYTHON_EXECUTABLE} ${createView}
-			-i ${ARGS_FILE} -o ${ARGS_OUTPUT} ${extensions}
-		DEPENDS ${deps} ${recursiveDeps} ${ARGS_FILE} ${CUTTLEFISH} ${VFC} ${createView}
-		${workingDir}
-		COMMENT "Creating view: ${ARGS_OUTPUT}")
+	set(buildCommand  ${CMAKE_COMMAND} -E env ${moduleDirs} ${PYTHON_EXECUTABLE} ${createView}
+		-i ${ARGS_FILE} -o ${ARGS_OUTPUT} ${extensions})
+
+	# NOTE: Output file doesn't support generator expressions, so need to manually expand it.
+	if (ARGS_OUTPUT MATCHES ".*\\$<CONFIG>.*")
+		foreach (compilerConfig ${CMAKE_CONFIGURATION_TYPES})
+			string(REPLACE "$<CONFIG>" ${compilerConfig} configOutput ${ARGS_OUTPUT})
+			set(configCommand)
+			foreach (command ${buildCommand})
+				list(APPEND configCommand $<$<CONFIG:${compilerConfig}>:${command}>)
+			endforeach()
+			add_custom_command(OUTPUT ${configOutput} COMMAND ${configCommand}
+				DEPENDS ${deps} ${recursiveDeps} ${ARGS_FILE} ${createView}
+				${workingDir}
+				COMMENT "Creating view: ${configOutput}")
+		endforeach()
+	else()
+		add_custom_command(OUTPUT ${ARGS_OUTPUT} COMMAND ${buildCommand}
+			DEPENDS ${deps} ${recursiveDeps} ${ARGS_FILE} ${createView}
+			${workingDir}
+			COMMENT "Creating view: ${ARGS_OUTPUT}")
+	endif()
 
 	set(${container} ${${container}} ${ARGS_OUTPUT} PARENT_SCOPE)
 endfunction()

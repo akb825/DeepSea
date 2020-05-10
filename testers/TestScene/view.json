@@ -1,0 +1,9 @@
+{
+	"framebuffers":
+	[
+		{
+			"name": "window",
+			"surfaces": [{"name": "windowColor"}, {"name": "windowDepth"}]
+		}
+	]
+}
