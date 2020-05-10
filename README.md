@@ -17,7 +17,8 @@ The following software is required to build DeepSea:
 * [SheenBidi](https://github.com/mta452/SheenBidi) (required for text, provided as submodule)
 * [doxygen](http://www.stack.nl/~dimitri/doxygen/) (optional)
 * [gtest](https://github.com/google/googletest) (optional)
-* [Cuttlefish](https://github.com/akb825/Cuttlefish) (recommended to create textures)
+* [Cuttlefish](https://github.com/akb825/Cuttlefish) (recommended to create textures, required for scene and vector image conversion scripts)
+* [VertexFormatConvert](https://github.com/akb825/VertexFormatConvert) (required for scene conversion scripts)
 * [python](https://www.python.org/) 2.7 or 3.x (optional for flatbuffer converters)
 
 The `update.sh` script may be used to update the code, submodules, and download pre-built binaries for the tools used for building and libraries. In the case of Windows, this script should be run in `git bash` (installed with Git for Windows) or similar environment. Apart from git, it will call into the following tools, which should be installed on most systems already:
@@ -29,7 +30,7 @@ The `update.sh` script may be used to update the code, submodules, and download 
 The first time you run `update.sh`, pass in the `-t` option to download the tools. You can also pass the `-l` with the list of platforms to download the libraries for. Supported platforms are:
 
 * linux (Linux with glibc 2.23 for x86-64, e.g. Ubuntu 16.04)
-* mac (macOS 10.11 for x86-64)
+* mac (macOS 10.13 for x86-64)
 * win32 (Windows for x86, VS2017 runtime)
 * win64 (Windows for x86-64, VS2017 runtime)
 * android-x86 (Android for x86)

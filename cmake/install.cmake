@@ -66,11 +66,8 @@ function(ds_install_library)
 				endif()
 				configure_file(${DEEPSEA_SOURCE_DIR}/cmake/templates/WindowsExport.h.in
 					${exportPath} @ONLY)
-			elseif (CMAKE_C_COMPILER_ID MATCHES "GNU" OR CMAKE_C_COMPILER_ID MATCHES "Clang")
-				configure_file(${DEEPSEA_SOURCE_DIR}/cmake/templates/UnixExportShared.h.in
-					${exportPath} @ONLY)
 			else()
-				configure_file(${DEEPSEA_SOURCE_DIR}/cmake/templates/NoExport.h.in ${exportPath}
+				configure_file(${DEEPSEA_SOURCE_DIR}/cmake/templates/UnixExport.h.in ${exportPath}
 					@ONLY)
 			endif()
 		else()
