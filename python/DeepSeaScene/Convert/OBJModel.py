@@ -70,7 +70,7 @@ def convertOBJModel(convertContext, path):
 
 		if data.normalIndices:
 			streams.append(ModelNodeVertexStream([(modelVertexAttribEnum['Normal'], 'X32Y32Z32',
-				'Float')], data.texCoords, 4, data.normalIndices))
+				'Float')], data.normals, 4, data.normalIndices))
 			data.normalIndices = bytearray()
 
 		if groupName:
