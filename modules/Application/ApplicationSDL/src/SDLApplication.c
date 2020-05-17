@@ -1090,7 +1090,7 @@ dsApplication* dsSDLApplication_create(dsAllocator* allocator, dsRenderer* rende
 #if DS_ANDROID
 	DS_UNUSED(orgName);
 	DS_UNUSED(appName);
-	dsResourceStream_setContext(SDL_AndroidGetJNIEnv(), SDL_AndroidGetActivity(), NULL,
+	dsResourceStream_setContext(SDL_AndroidGetJNIEnv(), SDL_AndroidGetActivity(), "",
 		SDL_AndroidGetInternalStoragePath(), SDL_AndroidGetExternalStoragePath());
 #else
 	char* basePath = SDL_GetBasePath();

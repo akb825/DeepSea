@@ -342,7 +342,7 @@ bool dsResourceStream_open(dsResourceStream* stream, dsFileResourceType type, co
 				return false;
 			}
 
-			AAsset* asset = AAssetManager_open(gAssetManager, path, AASSET_MODE_RANDOM);
+			AAsset* asset = AAssetManager_open(gAssetManager, finalPath, AASSET_MODE_RANDOM);
 			if (!asset)
 			{
 				errno = ENOTFOUND;

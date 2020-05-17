@@ -10,29 +10,42 @@ public class DeepSeaActivity extends SDLActivity
 		File libDir = new File(getApplicationInfo().nativeLibraryDir);
 		File[] libFiles = libDir.listFiles();
 		String[] libraries = new String[libFiles.length];
-		int sdlIndex = 0;
+		int hidapiIndex = -1;
+		int sdlIndex = -1;
 		for (int i = 0; i < libFiles.length; ++i)
 		{
 			String fileName = libFiles[i].getName();
 			// Strip lib prefix and .so suffix.
 			libraries[i] = fileName.substring(3, fileName.length() - 3);
-			if (libraries[i].equals("SDL2"))
+			if (libraries[i].equals("hidapi"))
+				hidapiIndex = i;
+			else if (libraries[i].equals("SDL2"))
 				sdlIndex = i;
 		}
 
-		// Expects SDL to be first.
-		String temp = libraries[0];
-		libraries[0] = libraries[sdlIndex];
-		libraries[sdlIndex] = temp;
+		// Expects HIDAPI to be first, SDL to be second.
+		int index = 0;
+		if (hidapiIndex >= 0)
+		{
+			String temp = libraries[index];
+			libraries[index] = libraries[hidapiIndex];
+			libraries[hidapiIndex] = temp;
+			++index;
+		}
+		if (sdlIndex >= 0)
+		{
+			String temp = libraries[index];
+			libraries[index] = libraries[sdlIndex];
+			libraries[sdlIndex] = temp;
+		}
 
 		// Expects the "main" library to be last.
-		int mainIndex = -1;
 		for (int i = 0; i < libraries.length; ++i)
 		{
 			if (libraries[i].contains("app") || libraries[i].contains("main"))
 			{
 				int newMainIndex = libraries.length - 1;
-				temp = libraries[i];
+				String temp = libraries[i];
 				libraries[i] = libraries[newMainIndex];
 				libraries[newMainIndex] = temp;
 				break;

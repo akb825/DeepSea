@@ -34,19 +34,27 @@ android {
         }
     }
     task copyArm32Libraries(type: Copy) {
-        from "${projectDir}/../../dependencies/libs/android-armeabi-v7a/lib/libSDL2.so"
+        from ("${projectDir}/../../dependencies/libs/android-armeabi-v7a/lib") {
+            include "*.so"
+        }
         into "${projectDir}/src/main/jniLibs/armeabi-v7a"
     }
     task copyArm64Libraries(type: Copy) {
-        from "${projectDir}/../../dependencies/libs/android-arm64-v8a/lib/libSDL2.so"
+        from ("${projectDir}/../../dependencies/libs/android-arm64-v8a/lib") {
+            include "*.so"
+        }
         into "${projectDir}/src/main/jniLibs/arm64-v8a"
     }
     task copyX86Libraries(type: Copy) {
-        from "${projectDir}/../../dependencies/libs/android-x86/lib/libSDL2.so"
+        from ("${projectDir}/../../dependencies/libs/android-x86/lib") {
+            include "*.so"
+        }
         into "${projectDir}/src/main/jniLibs/x86"
     }
     task copyX86_64Libraries(type: Copy) {
-        from "${projectDir}/../../dependencies/libs/android-x86_64/lib/libSDL2.so"
+        from ("${projectDir}/../../dependencies/libs/android-x86_64/lib") {
+            include "*.so"
+        }
         into "${projectDir}/src/main/jniLibs/x86_64"
     }
     flavorDimensions "tester"

@@ -175,7 +175,7 @@ IF(SDL2_LIBRARY_TEMP)
 	ENDIF(MINGW)
 	
 	IF(WIN32)
-		SET(SDL2_LIBRARY_TEMP ${SDL2_LIBRARY_TEMP} winmm imm32 version uuid)
+		SET(SDL2_LIBRARY_TEMP ${SDL2_LIBRARY_TEMP} winmm imm32 version uuid setupapi)
 	ENDIF()
 
 	# Set the final string here so the GUI reflects the final state.
