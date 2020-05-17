@@ -142,7 +142,10 @@ fi
 
 if [ $GIT -ne 0 ]; then
 	echo "Updating git..."
-	git pull
+	if ! git pull; then
+		# Sometimes a submodule update will cause this to fail the first time.
+		git pull
+	fi
 fi
 
 if [ $SUBMODULES -ne 0 ]; then
