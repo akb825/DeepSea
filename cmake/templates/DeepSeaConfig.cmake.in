@@ -19,6 +19,7 @@ if(_IMPORT_PREFIX STREQUAL "/")
 endif()
 
 # Useful variables.
+find_package(PythonInterp QUIET)
 set(DEEPSEA_PYTHON_DIR "${_IMPORT_PREFIX}/share/deepsea/python")
 set(DEEPSEA_INCLUDE_DIR "${_IMPORT_PREFIX}/include")
 
