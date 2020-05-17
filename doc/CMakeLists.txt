@@ -13,6 +13,18 @@ foreach (docProject ${modules})
 	set(dependencies ${dependencies} ${theseDependencies} ${thisDir}/README.md)
 endforeach()
 
+# Remove all generated files.
+set(removeItems)
+foreach (file ${dependencies})
+	if (file MATCHES ".*_generated\.h")
+		list(APPEND removeItems ${file})
+	endif()
+endforeach()
+
+if (removeItems)
+	list(REMOVE_ITEM dependencies ${removeItems})
+endif()
+
 configure_file(Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
 set(outputFile ${CMAKE_CURRENT_BINARY_DIR}/html/index.html)
 add_custom_command(OUTPUT ${outputFile}
