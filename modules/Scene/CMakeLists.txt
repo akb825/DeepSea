@@ -14,7 +14,7 @@ ds_install_library(TARGET deepsea_scene MODULE Scene DEPENDS Render
 	CONFIG_LINES
 		"include(\${CMAKE_CURRENT_LIST_DIR}/CreateSceneResources.cmake)"
 		"include(\${CMAKE_CURRENT_LIST_DIR}/CreateScene.cmake)"
-		"include(\${CMAKE_CURRENT_LIST_DIR}/ViewScene.cmake)")
+		"include(\${CMAKE_CURRENT_LIST_DIR}/CreateView.cmake)")
 
 include(ConvertFlatbuffers)
 ds_convert_flatbuffers(generatedFlatbuffers FILE ${publicFlatbuffers}
