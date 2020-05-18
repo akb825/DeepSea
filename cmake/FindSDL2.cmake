@@ -18,10 +18,10 @@
 # module will automatically add the -framework Cocoa on your behalf.
 #
 #
-# Additional Note: If you see an empty SDL2_LIBRARY_TEMP in your configuration
+# Additional Note: If you see an empty SDL2_LIBRARY in your configuration
 # and no SDL2_LIBRARY, it means CMake did not find your SDL2 library
 # (SDL2.dll, libsdl2.so, SDL2.framework, etc).
-# Set SDL2_LIBRARY_TEMP to point to your SDL2 library, and configure again.
+# Set SDL2_LIBRARY to point to your SDL2 library, and configure again.
 # Similarly, if you see an empty SDL2MAIN_LIBRARY, you should set this value
 # as appropriate. These values are used to generate the final SDL2_LIBRARY
 # variable, but when these values are unset, SDL2_LIBRARY does not get created.
@@ -93,7 +93,7 @@ else()
 	set(PATH_SUFFIXES lib/x86 lib)
 endif() 
 
-FIND_LIBRARY(SDL2_LIBRARY_TEMP
+FIND_LIBRARY(SDL2_LIBRARY
 	NAMES SDL2
 	HINTS
 	$ENV{SDL2DIR}
@@ -131,9 +131,8 @@ IF(MINGW)
 	SET(MINGW32_LIBRARY mingw32 "-mwindows" CACHE STRING "mwindows for MinGW")
 ENDIF(MINGW)
 
-IF(SDL2_LIBRARY_TEMP)
-	# Set the temp variable to INTERNAL so it is not seen in the CMake GUI
-	SET(SDL2_LIBRARY_TEMP "${SDL2_LIBRARY_TEMP}" CACHE INTERNAL "")
+IF(SDL2_LIBRARY)
+	SET(SDL2_LIBRARY)
 	
 	# Libraries required for Apple for static linking.
 	IF(APPLE)
@@ -144,6 +143,8 @@ IF(SDL2_LIBRARY_TEMP)
 			set(SDL2_FF)
 			FIND_LIBRARY(SDL2_GAMECONTROLLER GameController)
 			FIND_LIBRARY(SDL2_COREMOTION CoreMotion)
+			FIND_LIBRARY(SDL2_COREBLUETOOTH CoreBluetooth)
+			FIND_LIBRARY(SDL2_COREGRAPHICS CoreGraphics)
 			set(SDL2_OPENGL)
 		ELSE()
 			FIND_LIBRARY(SDL2_COCOA Cocoa)
@@ -152,35 +153,34 @@ IF(SDL2_LIBRARY_TEMP)
 			FIND_LIBRARY(SDL2_FF ForceFeedback)
 			set(SDL2_GAMECONTROLLER)
 			set(SDL2_COREMOTION)
+			set(SDL2_COREBLUETOOTH)
+			set(SDL2_COREGRAPHICS)
 			FIND_LIBRARY(SDL2_OPENGL OpenGL)
 		ENDIF()
 		FIND_LIBRARY(SDL2_COREVIDEO CoreVideo)
 		FIND_LIBRARY(SDL2_IOKIT IOKit)
 		FIND_LIBRARY(SDL2_ICONV iconv)
-		SET(SDL2_LIBRARY_TEMP ${SDL2_LIBRARY_TEMP} ${SDL2_COCOA} ${SDL2_CARBON} ${SDL2_COREVIDEO}
-			${SDL2_GAMECONTROLLER} ${SDL2_COREMOTION} ${SDL2_APPKIT} ${SDL2_IOKIT} ${SDL2_FF}
-			${SDL2_ICONV} ${SDL2_OPENGL})
+		SET(SDL2_LIBRARY ${SDL2_LIBRARY} ${SDL2_COCOA} ${SDL2_CARBON} ${SDL2_COREVIDEO}
+			${SDL2_GAMECONTROLLER} ${SDL2_COREMOTION} ${SDL2_COREBLUETOOTH} ${SDL2_COREGRAPHICS}
+			${SDL2_APPKIT} ${SDL2_IOKIT} ${SDL2_FF} ${SDL2_ICONV} ${SDL2_OPENGL})
 	ENDIF(APPLE)
 
 	# For threads, as mentioned Apple doesn't need this.
 	# In fact, there seems to be a problem if I used the Threads package
 	# and try using this line, so I'm just skipping it entirely for OS X.
 	IF(NOT APPLE)
-		SET(SDL2_LIBRARY_TEMP ${SDL2_LIBRARY_TEMP} ${CMAKE_THREAD_LIBS_INIT})
+		SET(SDL2_LIBRARY ${SDL2_LIBRARY} ${CMAKE_THREAD_LIBS_INIT})
 	ENDIF(NOT APPLE)
 
 	# For MinGW library
 	IF(MINGW)
-		SET(SDL2_LIBRARY_TEMP ${MINGW32_LIBRARY} ${SDL2_LIBRARY_TEMP})
+		SET(SDL2_LIBRARY ${MINGW32_LIBRARY} ${SDL2_LIBRARY})
 	ENDIF(MINGW)
 	
 	IF(WIN32)
-		SET(SDL2_LIBRARY_TEMP ${SDL2_LIBRARY_TEMP} winmm imm32 version uuid setupapi)
+		SET(SDL2_LIBRARY ${SDL2_LIBRARY} winmm imm32 version uuid setupapi)
 	ENDIF()
-
-	# Set the final string here so the GUI reflects the final state.
-	SET(SDL2_LIBRARY ${SDL2_LIBRARY_TEMP} CACHE STRING "Where the SDL2 Library can be found")
-ENDIF(SDL2_LIBRARY_TEMP)
+ENDIF(SDL2_LIBRARY)
 
 # message("</FindSDL2.cmake>")
 
