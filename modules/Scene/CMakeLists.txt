@@ -7,8 +7,7 @@ file(GLOB_RECURSE publicFlatbuffers include/*.fbs)
 file(GLOB_RECURSE privateFlatbuffers src/*.fbs)
 ds_add_library(deepsea_scene MODULE Scene FILES ${sources} ${publicFlatbuffers}
 	${privateFlatbuffers} DEPENDS deepsea_render)
-ds_target_include_directories(deepsea_scene PRIVATE ${DEEPSEA_MODULE_DIR}/Scene/src
-	${FLATBUFFERS_INCLUDE_DIRS})
+ds_target_include_directories(deepsea_scene PRIVATE src ${FLATBUFFERS_INCLUDE_DIRS})
 ds_install_library(TARGET deepsea_scene MODULE Scene DEPENDS Render
 	CONFIG_FILES cmake/CreateSceneResources.cmake cmake/CreateScene.cmake cmake/CreateView.cmake
 	CONFIG_LINES

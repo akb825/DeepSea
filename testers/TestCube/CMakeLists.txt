@@ -45,7 +45,7 @@ add_custom_target(deepsea_test_cube_app_prepare
 
 ds_compile_shaders(shaders FILE ${CMAKE_CURRENT_SOURCE_DIR}/TestCube.msl
 	OUTPUT TestCube.mslb CONFIG ${shaderConfigs} OUTPUT_DIR ${shaderDir}
-	INCLUDE ${DEEPSEA_MODULE_DIR}/Render/include)
+	INCLUDE ${DEEPSEA_MODULE_DIR}/Render/Render/include)
 ds_compile_shaders_target(deepsea_test_cube_app_shaders shaders
 	DEPENDS deepsea_test_cube_app_prepare)
 

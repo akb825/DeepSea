@@ -57,9 +57,9 @@ add_custom_target(deepsea_test_scene_app_prepare
 ds_compile_shaders(shaders FILE ${CMAKE_CURRENT_SOURCE_DIR}/TestSceneCube.msl
 	${CMAKE_CURRENT_SOURCE_DIR}/TestSceneGround.msl
 	OUTPUT TestScene.mslb CONFIG ${shaderConfigs} OUTPUT_DIR ${shaderDir}
-	DEPENDS_RECURSE ${DEEPSEA_MODULE_DIR}/Render/include/*.mslh
+	DEPENDS_RECURSE ${DEEPSEA_MODULE_DIR}/Render/Render/include/*.mslh
 		${DEEPSEA_MODULE_DIR}/Scene/include/*.mslh
-	INCLUDE ${DEEPSEA_MODULE_DIR}/Render/include ${DEEPSEA_MODULE_DIR}/Scene/include)
+	INCLUDE ${DEEPSEA_MODULE_DIR}/Render/Render/include ${DEEPSEA_MODULE_DIR}/Scene/include)
 ds_compile_shaders_target(deepsea_test_scene_app_shaders shaders
 	DEPENDS deepsea_test_scene_app_prepare)
 

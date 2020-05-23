@@ -111,6 +111,7 @@ To build the examples, an Android Studio project is provided in the android subd
 * `-DCMAKE_BUILD_TYPE=Debug|Release`: Building in `Debug` or `Release`. This should always be specified.
 * `-DCMAKE_INSTALL_PREFIX=path`: Sets the path to install to when running make install.
 * `-DDEEPSEA_SHARED=ON|OFF`: Set to `ON` to build with shared libraries, `OFF` to build with static libraries. Default is `OFF`.
+* `-DDEEPSEA_SHARED=ON|OFF`: Set to `ON` to build all libraries into a single shared library. Default is `OFF`.
 * `-DDEEPSEA_PROFILING=ON|OFF`: Set to `ON` to enable profiling of code, `OFF` to compile out all profiling macros. Default is `ON`.
 * `-DDEEPSEA_GPU_PROFILING=ON|OFF`: Set to `ON` to enable profiling of the GPU, `OFF` to remove all GPU timing instrumentation. This can be used to independently disable GPU profiling while still leaving CPU profiling enabled. If `DEEPSEA_PROFILING` is set to `OFF`, then GPU profiling will also be disabled. Default is `OFF`.
 * `-DDEEPSEA_SYSTEM_MSL=ON|OFF`: Set to `ON` to use the system installed version of Modular Shader Language, `OFF` to build the embedded submodule. Setting this to `ON` is useful when creating system packages, such as for a Linux distribution, but `OFF` is usually desired when cross-compiling for multiple platforms. When set to `ON`, you may need to have the lib/cmake/MSL directory (relative to the MSL install path) in `CMAKE_PREFIX_PATH`. Default is `OFF`.
@@ -158,10 +159,10 @@ Libraries and include directories can be found through the `DeepSeaModule_LIBRAR
 
 DeepSea contains the following modules:
 
-* [Core](modules/Core/README.md): Core functionality including logging, debugging, memory managment, threading, and Streams. See Core for general notes about the object and memory model used throughout all modules.
+* [Core](modules/Core/Core/README.md): Core functionality including logging, debugging, memory managment, threading, and Streams. See Core for general notes about the object and memory model used throughout all modules.
 * [Math](modules/Math/README.md): Math structures and functions used throughout DeepSea.
 * [Geometry](modules/Geometry/README.md): (Optional) Geometry classes typically used in graphics applications. This will be built with the graphics libraries.
-* [Render](modules/Render/README.md): Interface to the rendering engine. This provides the interface that will be implemented for various system graphics APIs.
+* [Render](modules/Render/Render/README.md): Interface to the rendering engine. This provides the interface that will be implemented for various system graphics APIs.
 * [RenderMock](modules/Render/RenderMock/README.md): Mock implementation of the Render library, used for unit tests.
 * [RenderOpenGL](modules/Render/RenderOpenGL/README.md): OpenGL implementation of the Render library. This supports both desktop OpenGL and OpenGL ES.
 * [RenderVulkan](modules/Render/RenderVulkan/README.md): Vulkan implementation of the Render library.
@@ -170,7 +171,7 @@ DeepSea contains the following modules:
 * [Text](modules/Text/README.md): Draws Unicode text.
 * [VectorDraw](modules/VectorDraw/README.md): Draws vector graphics.
 * [Scene](modules/Scene/README.md): Scene library for creating scene graphs mixed with render passes and operations to perform each frame as a part of rendering.
-* [Application](modules/Application/README.md): Application library, providing functionality such as input and window events.
+* [Application](modules/Application/Application/README.md): Application library, providing functionality such as input and window events.
 * [ApplicationSDL](modules/Application/ApplicationSDL/README.md): SDL implementation of the Application library.
 
 The directory structure of the include files is:

@@ -62,9 +62,9 @@ add_custom_target(deepsea_test_vector_draw_app_prepare
 # Shaders
 # Strip symbols and optimize to verify that this works with non-trivial shaders.
 set(shaderOptions OUTPUT_DIR ${shaderDir}
-	INCLUDE ${DEEPSEA_MODULE_DIR}/Render/include ${DEEPSEA_MODULE_DIR}/Text/include
+	INCLUDE ${DEEPSEA_MODULE_DIR}/Render/Render/include ${DEEPSEA_MODULE_DIR}/Text/include
 		${DEEPSEA_MODULE_DIR}/VectorDraw/include
-	DEPENDS_RECURSE ${DEEPSEA_MODULE_DIR}/Render/include/*.mslh
+	DEPENDS_RECURSE ${DEEPSEA_MODULE_DIR}/Render/Render/include/*.mslh
 		${DEEPSEA_MODULE_DIR}/Text/include/*.mslh ${DEEPSEA_MODULE_DIR}/VectorDraw/include/*.mslh)
 ds_compile_shaders(shaders FILE ${CMAKE_CURRENT_SOURCE_DIR}/VectorElementFill.msl
 	${CMAKE_CURRENT_SOURCE_DIR}/VectorElementLine.msl

@@ -7,9 +7,7 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/msl-config/ConfigPaths.cmake)
 
 file(GLOB_RECURSE sources src/*.c src/*.h include/*.h)
 ds_add_library(deepsea_render_vulkan MODULE RenderVulkan FILES ${sources} DEPENDS deepsea_render)
-ds_target_include_directories(deepsea_render_vulkan
-	PRIVATE ${DEEPSEA_MODULE_DIR}/Render/RenderVulkan/external
-	${DEEPSEA_MODULE_DIR}/Render/RenderVulkan/src)
+ds_target_include_directories(deepsea_render_vulkan PRIVATE external src)
 ds_target_link_libraries(deepsea_render_vulkan PRIVATE msl_client)
 
 if (UNIX AND NOT APPLE)

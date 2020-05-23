@@ -1,7 +1,7 @@
 ds_start_modules()
 
 # Required libraries.
-ds_add_module(Core)
+ds_add_module(Core/Core)
 ds_add_module(Math)
 
 # Profiling
@@ -12,7 +12,7 @@ endif()
 # Render libraries
 if (DEEPSEA_BUILD_RENDER)
 	ds_add_module(Geometry)
-	ds_add_module(Render)
+	ds_add_module(Render/Render)
 	if (DEEPSEA_BUILD_RENDER_MOCK)
 		ds_add_module(Render/RenderMock)
 	endif()
@@ -39,7 +39,7 @@ if (DEEPSEA_BUILD_RENDER)
 	endif()
 
 	if (DEEPSEA_BUILD_APPLICATION)
-		ds_add_module(Application)
+		ds_add_module(Application/Application)
 		if (DEEPSEA_BUILD_APPLICATION_SDL)
 			ds_add_module(Application/ApplicationSDL)
 		endif()
