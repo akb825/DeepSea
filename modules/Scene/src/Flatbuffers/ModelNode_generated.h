@@ -281,15 +281,19 @@ inline flatbuffers::Offset<DrawIndexedRange> CreateDrawIndexedRange(
 struct ModelInfo FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef ModelInfoBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_SHADER = 4,
-    VT_MATERIAL = 6,
-    VT_GEOMETRY = 8,
-    VT_DISTANCERANGE = 10,
-    VT_DRAWRANGE_TYPE = 12,
-    VT_DRAWRANGE = 14,
-    VT_PRIMITIVETYPE = 16,
-    VT_LISTNAME = 18
+    VT_NAME = 4,
+    VT_SHADER = 6,
+    VT_MATERIAL = 8,
+    VT_GEOMETRY = 10,
+    VT_DISTANCERANGE = 12,
+    VT_DRAWRANGE_TYPE = 14,
+    VT_DRAWRANGE = 16,
+    VT_PRIMITIVETYPE = 18,
+    VT_LISTNAME = 20
   };
+  const flatbuffers::String *name() const {
+    return GetPointer<const flatbuffers::String *>(VT_NAME);
+  }
   const flatbuffers::String *shader() const {
     return GetPointer<const flatbuffers::String *>(VT_SHADER);
   }
@@ -323,6 +327,8 @@ struct ModelInfo FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
+           VerifyOffset(verifier, VT_NAME) &&
+           verifier.VerifyString(name()) &&
            VerifyOffsetRequired(verifier, VT_SHADER) &&
            verifier.VerifyString(shader()) &&
            VerifyOffsetRequired(verifier, VT_MATERIAL) &&
@@ -352,6 +358,9 @@ struct ModelInfoBuilder {
   typedef ModelInfo Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
+  void add_name(flatbuffers::Offset<flatbuffers::String> name) {
+    fbb_.AddOffset(ModelInfo::VT_NAME, name);
+  }
   void add_shader(flatbuffers::Offset<flatbuffers::String> shader) {
     fbb_.AddOffset(ModelInfo::VT_SHADER, shader);
   }
@@ -396,6 +405,7 @@ struct ModelInfoBuilder {
 
 inline flatbuffers::Offset<ModelInfo> CreateModelInfo(
     flatbuffers::FlatBufferBuilder &_fbb,
+    flatbuffers::Offset<flatbuffers::String> name = 0,
     flatbuffers::Offset<flatbuffers::String> shader = 0,
     flatbuffers::Offset<flatbuffers::String> material = 0,
     flatbuffers::Offset<flatbuffers::String> geometry = 0,
@@ -411,6 +421,7 @@ inline flatbuffers::Offset<ModelInfo> CreateModelInfo(
   builder_.add_geometry(geometry);
   builder_.add_material(material);
   builder_.add_shader(shader);
+  builder_.add_name(name);
   builder_.add_primitiveType(primitiveType);
   builder_.add_drawRange_type(drawRange_type);
   return builder_.Finish();
@@ -418,6 +429,7 @@ inline flatbuffers::Offset<ModelInfo> CreateModelInfo(
 
 inline flatbuffers::Offset<ModelInfo> CreateModelInfoDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
+    const char *name = nullptr,
     const char *shader = nullptr,
     const char *material = nullptr,
     const char *geometry = nullptr,
@@ -426,12 +438,14 @@ inline flatbuffers::Offset<ModelInfo> CreateModelInfoDirect(
     flatbuffers::Offset<void> drawRange = 0,
     DeepSeaScene::PrimitiveType primitiveType = DeepSeaScene::PrimitiveType::PointList,
     const char *listName = nullptr) {
+  auto name__ = name ? _fbb.CreateString(name) : 0;
   auto shader__ = shader ? _fbb.CreateString(shader) : 0;
   auto material__ = material ? _fbb.CreateString(material) : 0;
   auto geometry__ = geometry ? _fbb.CreateString(geometry) : 0;
   auto listName__ = listName ? _fbb.CreateString(listName) : 0;
   return DeepSeaScene::CreateModelInfo(
       _fbb,
+      name__,
       shader__,
       material__,
       geometry__,

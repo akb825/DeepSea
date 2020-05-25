@@ -395,7 +395,7 @@ def convertModelNodeGeometry(convertContext, modelGeometry, embeddedResources):
 			for info in drawInfos:
 				try:
 					modelInfo = Object()
-					name = str(info['name'])
+					modelInfo.name = str(info['name'])
 					modelInfo.shader = str(info['shader'])
 					modelInfo.material = str(info['material'])
 					modelInfo.listName = str(info['listName'])
@@ -406,10 +406,10 @@ def convertModelNodeGeometry(convertContext, modelGeometry, embeddedResources):
 					raise Exception('Model geometry draw info doesn\'t contain element "' +
 						str(e) + '".')
 
-				baseGeometry = convertedGeometry.get(name)
+				baseGeometry = convertedGeometry.get(modelInfo.name)
 				if not baseGeometry:
-					raise Exception('Model node geometry "' + name + '" isn\'t in the model "' +
-						path + '".')
+					raise Exception('Model node geometry "' + modelInfo.name +
+						'" isn\'t in the model "' + path + '".')
 
 				modelInfo.geometry = baseGeometry.geometryName
 				modelInfo.primitiveType = getattr(PrimitiveType, baseGeometry.primitiveType)
@@ -493,6 +493,7 @@ def convertModelNodeModels(modelInfoList):
 		for info in modelInfoList:
 			try:
 				model = Object()
+				model.name = info.get('name')
 				model.shader = info['shader']
 				model.material = info['material']
 				model.geometry = info['geometry']
@@ -553,6 +554,7 @@ def convertModelNode(convertContext, data):
 	    - listName: the name of the item list to draw the model with.
 	- models: array of models to draw with manually provided geometry. (i.e. not converted from
 	  the modelGeometry array) Each element of the array has the following members:
+	  - name: optional name for the model for use with material remapping.
 	  - shader: the name of the shader to draw with.
 	  - material: the name of the material to draw with.
 	  - geometry: the name of the geometry to draw.
@@ -639,6 +641,10 @@ def convertModelNode(convertContext, data):
 
 	modelOffsets = []
 	for model in models:
+		if model.name:
+			modelNameOffset = builder.CreateString(model.name)
+		else:
+			modelNameOffset = 0
 		shaderOffset = builder.CreateString(model.shader)
 		materialOffset = builder.CreateString(model.material)
 		geometryOffset = builder.CreateString(model.geometry)
@@ -663,6 +669,7 @@ def convertModelNode(convertContext, data):
 		listNameOffset = builder.CreateString(model.listName)
 
 		ModelInfoStart(builder)
+		ModelInfoAddName(builder, modelNameOffset)
 		ModelInfoAddShader(builder, shaderOffset)
 		ModelInfoAddMaterial(builder, materialOffset)
 		ModelInfoAddGeometry(builder, geometryOffset)

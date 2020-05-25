@@ -1,0 +1,44 @@
+/*
+ * Copyright 2020 Aaron Barany
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+include "DeepSea/Scene/Flatbuffers/SceneCommon.fbs";
+
+namespace DeepSeaScene;
+
+// Struct describing a remapping of a new shader and material for a model.
+table MaterialRemap
+{
+	// brief The name of the model to replace the material.
+	name : string (required);
+
+	// The new shader to use, or unset to leave the same.
+	shader : string;
+
+	// The new material to use, or unset to leave the same.
+	material : string;
+}
+
+// Struct describing how to clone an existing model node.
+table ModelNodeClone
+{
+	// The name of the model node to clone.
+	name : string (required);
+
+	// List of remaps to apply to the materials when cloning.
+	materialRemaps : [MaterialRemap];
+}
+
+root_type ModelNodeClone;

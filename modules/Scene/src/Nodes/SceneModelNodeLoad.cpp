@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Aaron Barany
+ * Copyright 2019-2020 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@
 #include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
+#include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 
 #include <DeepSea/Scene/Flatbuffers/SceneFlatbufferHelpers.h>
@@ -115,6 +116,12 @@ dsSceneNode* dsSceneModelNode_load(const dsSceneLoadContext* loadContext,
 
 		// NOTE: ENOTFOUND not set when the type doesn't match, so set it manually.
 		dsSceneModelInitInfo* modelInfo = modelInfos + i;
+		auto fbName = fbModelInfo->name();
+		if (fbName)
+			modelInfo->name = fbName->c_str();
+		else
+			modelInfo->name = nullptr;
+
 		const char* shaderName = fbModelInfo->shader()->c_str();
 		dsSceneResourceType resourceType;
 		if (!dsSceneLoadScratchData_findResource(&resourceType,

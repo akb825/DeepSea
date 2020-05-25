@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Aaron Barany
+ * Copyright 2019-2020 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -78,6 +78,9 @@ union ModelDrawRange
 // Struct describing what to draw inside a model node.
 table ModelInfo
 {
+	// The name of the model.
+	name : string;
+
 	// The name of the shader to draw with.
 	shader : string (required);
 

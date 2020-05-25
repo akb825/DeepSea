@@ -31,14 +31,38 @@
 
 #define EXPECTED_MAX_NODES 256
 
-static dsSceneNodeType nodeType;
-
 static size_t fullAllocSize(size_t structSize, const char** drawLists, uint32_t drawListCount,
-	uint32_t modelCount, uint32_t resourceCount)
+	const dsSceneModelInitInfo* models, uint32_t modelCount, uint32_t resourceCount)
 {
-	return DS_ALIGNED_SIZE(structSize) + dsSceneNode_itemListsAllocSize(drawLists, drawListCount) +
+	size_t fullSize = DS_ALIGNED_SIZE(structSize) +
+		dsSceneNode_itemListsAllocSize(drawLists, drawListCount) +
 		DS_ALIGNED_SIZE(sizeof(dsSceneModelInfo)*modelCount) +
 		DS_ALIGNED_SIZE(sizeof(dsSceneResources*)*resourceCount);
+	for (uint32_t i = 0; i < modelCount; ++i)
+	{
+		const char* name = models[i].name;
+		if (name)
+			fullSize += DS_ALIGNED_SIZE(strlen(name) + 1);
+	}
+
+	return fullSize;
+}
+
+static size_t cloneFullAllocSize(size_t structSize, const dsSceneModelNode* model)
+{
+	const dsSceneNode* node = (const dsSceneNode*)model;
+	size_t fullSize = DS_ALIGNED_SIZE(structSize) +
+		dsSceneNode_itemListsAllocSize(node->itemLists, node->itemListCount) +
+		DS_ALIGNED_SIZE(sizeof(dsSceneModelInfo)*model->modelCount) +
+		DS_ALIGNED_SIZE(sizeof(dsSceneResources*)*model->resourceCount);
+	for (uint32_t i = 0; i < model->modelCount; ++i)
+	{
+		const char* name = model->models[i].name;
+		if (name)
+			fullSize += DS_ALIGNED_SIZE(strlen(name) + 1);
+	}
+
+	return fullSize;
 }
 
 static void populateItemList(const char** itemLists, uint32_t* hashes, uint32_t* itemListCount,
@@ -79,6 +103,9 @@ static void populateItemList(const char** itemLists, uint32_t* hashes, uint32_t*
 }
 
 const char* const dsSceneModelNode_typeName = "ModelNode";
+const char* const dsSceneModelNode_cloneTypeName = "ModelNodeClone";
+
+static dsSceneNodeType nodeType;
 
 const dsSceneNodeType* dsSceneModelNode_type(void)
 {
@@ -170,7 +197,7 @@ dsSceneModelNode* dsSceneModelNode_createBase(dsAllocator* allocator, size_t str
 	if (tempStringHashList != tempStringHashListData)
 		DS_VERIFY(dsAllocator_free(allocator, tempStringHashList));
 
-	size_t fullSize = fullAllocSize(structSize, itemLists, itemListCount, modelCount,
+	size_t fullSize = fullAllocSize(structSize, itemLists, itemListCount, models, modelCount,
 		resourceCount);
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
@@ -213,6 +240,15 @@ dsSceneModelNode* dsSceneModelNode_createBase(dsAllocator* allocator, size_t str
 	{
 		const dsSceneModelInitInfo* initInfo = models + i;
 		dsSceneModelInfo* model = node->models + i;
+		if (initInfo->name)
+		{
+			size_t nameLen = strlen(initInfo->name) + 1;
+			char* name = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, nameLen);
+			memcpy(name, initInfo->name, nameLen);
+			model->name = name;
+		}
+		else
+			model->name = NULL;
 		model->shader = initInfo->shader;
 		model->material = initInfo->material;
 		model->geometry = initInfo->geometry;
@@ -246,6 +282,137 @@ dsSceneModelNode* dsSceneModelNode_createBase(dsAllocator* allocator, size_t str
 		dsOrientedBox3_makeInvalid(node->bounds);
 
 	return node;
+}
+
+dsSceneModelNode* dsSceneModelNode_clone(dsAllocator* allocator, const dsSceneModelNode* origModel,
+	const dsSceneMaterialRemap* remaps, uint32_t remapCount)
+{
+	return dsSceneModelNode_cloneBase(allocator, sizeof(dsSceneModelNode), origModel, remaps,
+		remapCount);
+}
+
+dsSceneModelNode* dsSceneModelNode_cloneBase(dsAllocator* allocator, size_t structSize,
+	const dsSceneModelNode* origModel, const dsSceneMaterialRemap* remaps, uint32_t remapCount)
+{
+	if (!allocator || structSize < sizeof(dsSceneModelNode) || !origModel ||
+		(!remaps && remapCount > 0))
+	{
+		errno = EINVAL;
+		return NULL;
+	}
+
+	for (uint32_t i = 0; i < remapCount; ++i)
+	{
+		const dsSceneMaterialRemap* remap = remaps + i;
+		if (!remap->name)
+		{
+			errno = EINVAL;
+			return NULL;
+		}
+	}
+
+	size_t fullSize = cloneFullAllocSize(structSize, origModel);
+	void* buffer = dsAllocator_alloc(allocator, fullSize);
+	if (!buffer)
+		return NULL;
+
+	dsBufferAllocator bufferAlloc;
+	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, fullSize));
+
+	const dsSceneNode* origNode = (const dsSceneNode*)origModel;
+	dsSceneModelNode* node =
+		(dsSceneModelNode*)dsAllocator_alloc((dsAllocator*)&bufferAlloc, structSize);
+	DS_ASSERT(node);
+
+	uint32_t itemListCount = origNode->itemListCount;
+	char** itemListsCopy = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char*, itemListCount);
+	DS_ASSERT(itemListsCopy);
+	for (uint32_t i = 0; i < itemListCount; ++i)
+	{
+		const char* origList = origNode->itemLists[i];
+		size_t length = strlen(origList);
+		itemListsCopy[i] = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, length + 1);
+		memcpy(itemListsCopy[i], origList, length + 1);
+	}
+
+	if (!dsSceneNode_initialize((dsSceneNode*)node, allocator, dsSceneModelNode_type(),
+			(const char**)itemListsCopy, itemListCount, &dsSceneModelNode_destroy))
+	{
+		if (allocator->freeFunc)
+			DS_VERIFY(dsAllocator_free(allocator, node));
+		return NULL;
+	}
+
+	node->models = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsSceneModelInfo, origModel->modelCount);
+	DS_ASSERT(node->models);
+	for (uint32_t i = 0; i < origModel->modelCount; ++i)
+	{
+		dsSceneModelInfo* model = node->models + i;
+		*model = origModel->models[i];
+		if (model->name)
+		{
+			size_t nameLen = strlen(model->name) + 1;
+			char* name = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, nameLen);
+			memcpy(name, model->name, nameLen);
+			model->name = name;
+		}
+		else
+			model->name = NULL;
+	}
+	node->modelCount = origModel->modelCount;
+
+	if (origModel->resourceCount > 0)
+	{
+		node->resources = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsSceneResources*,
+			origModel->resourceCount);
+		DS_ASSERT(node->resources);
+		for (uint32_t i = 0; i <origModel-> resourceCount; ++i)
+			node->resources[i] = dsSceneResources_addRef(origModel->resources[i]);
+		node->resourceCount = origModel->resourceCount;
+	}
+	else
+	{
+		node->resources = NULL;
+		node->resourceCount = 0;
+	}
+
+	node->bounds = origModel->bounds;
+	DS_VERIFY(dsSceneModelNode_remapMaterials(node, remaps, remapCount));
+	return node;
+}
+
+bool dsSceneModelNode_remapMaterials(dsSceneModelNode* node, const dsSceneMaterialRemap* remaps,
+	uint32_t remapCount)
+{
+	if (!node || (!remaps && remapCount > 0))
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	for (uint32_t i = 0; i < remapCount; ++i)
+	{
+		const dsSceneMaterialRemap* remap = remaps + i;
+		if (!remap->name)
+		{
+			errno = EINVAL;
+			return false;
+		}
+
+		for (uint32_t j = 0; j < node->modelCount; ++j)
+		{
+			dsSceneModelInfo* model = node->models + i;
+			if (!model->name || strcmp(model->name, remap->name) != 0)
+				continue;
+
+			if (remap->shader)
+				model->shader = remap->shader;
+			if (remap->material)
+				model->material = remap->material;
+		}
+	}
+
+	return true;
 }
 
 void dsSceneModelNode_destroy(dsSceneNode* node)

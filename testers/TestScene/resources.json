@@ -170,6 +170,50 @@
 	"sceneNodes":
 	[
 		{
+			"name": "cubeModelNode",
+			"type": "ModelNode",
+			"data":
+			{
+				"modelGeometry":
+				[
+					{
+						"path": "@srcDir@/cube.obj",
+						"vertexFormat":
+						[
+							{
+								"attrib": "Position",
+								"format": "X32Y32Z32",
+								"decoration": "Float"
+							},
+							{
+								"attrib": "Normal",
+								"format": "W2Z10Y10X10",
+								"decoration": "UNorm"
+							}
+						],
+						"indexSize": 2,
+						"transforms":
+						[
+							{
+								"attrib": "Normal",
+								"transform": "SNormToUNorm"
+							}
+						],
+						"drawInfos":
+						[
+							{
+								"name": "Cube",
+								"shader": "cubeShader",
+								"material": "innerCubeMat",
+								"listName": "modelList"
+							}
+						]
+					}
+				],
+				"extraItemLists": ["cullList"]
+			}
+		},
+		{
 			"name": "innerOuterCubeNode",
 			"type": "TransformNode",
 			"data":
@@ -177,49 +221,7 @@
 				"transformList": [{"type": "Scale", "value": [2.0, 2.0, 2.0]}],
 				"children":
 				[
-					{
-						"type": "ModelNode",
-						"data":
-						{
-							"modelGeometry":
-							[
-								{
-									"path": "@srcDir@/cube.obj",
-									"vertexFormat":
-									[
-										{
-											"attrib": "Position",
-											"format": "X32Y32Z32",
-											"decoration": "Float"
-										},
-										{
-											"attrib": "Normal",
-											"format": "W2Z10Y10X10",
-											"decoration": "UNorm"
-										}
-									],
-									"indexSize": 2,
-									"transforms":
-									[
-										{
-											"attrib": "Normal",
-											"transform": "SNormToUNorm"
-										}
-									],
-									"drawInfos":
-									[
-										{
-											"name": "Cube",
-											"shader": "cubeShader",
-											"material": "innerCubeMat",
-											"listName": "modelList"
-										}
-									]
-								}
-							],
-							"extraItemLists": ["cullList"]
-						}
-					},
+					{"type": "ReferenceNode", "data": "cubeModelNode"},
 					{
 						"type": "TransformNode",
 						"data":
@@ -233,46 +235,14 @@
 							"children":
 							[
 								{
-									"type": "ModelNode",
+									"type": "ModelNodeClone",
 									"data":
 									{
-										"modelGeometry":
+										"name": "cubeModelNode",
+										"materialRemaps":
 										[
-											{
-												"path": "@srcDir@/cube.obj",
-												"vertexFormat":
-												[
-													{
-														"attrib": "Position",
-														"format": "X32Y32Z32",
-														"decoration": "Float"
-													},
-													{
-														"attrib": "Normal",
-														"format": "W2Z10Y10X10",
-														"decoration": "UNorm"
-													}
-												],
-												"indexSize": 2,
-												"transforms":
-												[
-													{
-														"attrib": "Normal",
-														"transform": "SNormToUNorm"
-													}
-												],
-												"drawInfos":
-												[
-													{
-														"name": "Cube",
-														"shader": "cubeShader",
-														"material": "outerCubeMat",
-														"listName": "modelList"
-													}
-												]
-											}
-										],
-										"extraItemLists": ["cullList"]
+											{"name": "Cube", "material": "outerCubeMat"}
+										]
 									}
 								}
 							]

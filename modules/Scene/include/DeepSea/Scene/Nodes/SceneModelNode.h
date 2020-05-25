@@ -37,6 +37,13 @@ extern "C"
 DS_SCENE_EXPORT extern const char* const dsSceneModelNode_typeName;
 
 /**
+ * @brief The type name for a model node when performing a clone.
+ *
+ * This is used to determine which loader implementation to use when loading from file.
+ */
+DS_SCENE_EXPORT extern const char* const dsSceneModelNode_cloneTypeName;
+
+/**
  * @brief Gets the type of a model node.
  * @return The type of a model node.
  */
@@ -90,6 +97,44 @@ DS_SCENE_EXPORT dsSceneModelNode* dsSceneModelNode_createBase(dsAllocator* alloc
 	size_t structSize, const dsSceneModelInitInfo* models, uint32_t modelCount,
 	const char** extraItemLists, uint32_t extraItemListCount,  dsSceneResources** resources,
 	uint32_t resourceCount, const dsOrientedBox3f* bounds);
+
+/**
+ * @brief Clones a model node, optionally remapping the materials.
+ * @remark errno will be set on failure.
+ * @param allocator The allocator to create the model node with.
+ * @param origModel The existing model to clone.
+ * @param remaps The materials to remap.
+ * @param remapCount The number of material remaps.
+ * @return The cloned model or NULL if an error occurred.
+ */
+DS_SCENE_EXPORT dsSceneModelNode* dsSceneModelNode_clone(dsAllocator* allocator,
+	const dsSceneModelNode* origModel, const dsSceneMaterialRemap* remaps, uint32_t remapCount);
+
+/**
+ * @brief Clones a model node as the base class for another model type, optionally remapping the
+ *     materials.
+ * @remark errno will be set on failure.
+ * @param allocator The allocator to create the model node with.
+ * @param structSize The size of the struct.
+ * @param origModel The existing model to clone.
+ * @param remaps The materials to remap.
+ * @param remapCount The number of material remaps.
+ * @return The cloned model or NULL if an error occurred.
+ */
+DS_SCENE_EXPORT dsSceneModelNode* dsSceneModelNode_cloneBase(dsAllocator* allocator,
+	size_t structSize, const dsSceneModelNode* origModel, const dsSceneMaterialRemap* remaps,
+	uint32_t remapCount);
+
+/**
+ * @brief Remaps the materials for a model.
+ * @remark errno will be set on failure.
+ * @param node The node to remap the materials on.
+ * @param remaps The materials to remap.
+ * @param remapCount The number of material remaps.
+ * @return False if the parameters are invalid.
+ */
+DS_SCENE_EXPORT bool dsSceneModelNode_remapMaterials(dsSceneModelNode* node,
+	const dsSceneMaterialRemap* remaps, uint32_t remapCount);
 
 /**
  * @brief Destroys a model node.

@@ -205,6 +205,14 @@ typedef struct dsSceneTransformNode
 typedef struct dsSceneModelInitInfo
 {
 	/**
+	 * @brief The name of the model info.
+	 *
+	 * This is optional, and can be used for material remapping when set. The string will be copied
+	 * when set.
+	 */
+	const char* name;
+
+	/**
 	 * @brief The shader to draw the model with.
 	 */
 	dsShader* shader;
@@ -261,6 +269,13 @@ typedef struct dsSceneModelInitInfo
  */
 typedef struct dsSceneModelInfo
 {
+	/**
+	 * @brief The name of the model info.
+	 *
+	 * This is optional, and can be used for material remapping when set.
+	 */
+	const char* name;
+
 	/**
 	 * @brief The shader to draw the model with.
 	 */
@@ -351,6 +366,28 @@ typedef struct dsSceneModelNode
 	 */
 	dsOrientedBox3f bounds;
 } dsSceneModelNode;
+
+/**
+ * @brief Struct defining remapping for a material.
+ * @see ModelNode.h
+ */
+typedef struct dsSceneMaterialRemap
+{
+	/**
+	 * @brief The name of the model to replace the material.
+	 */
+	const char* name;
+
+	/**
+	 * @brief The new shader to use, or NULL to leave the same.
+	 */
+	dsShader* shader;
+
+	/**
+	 * @brief The new material to use, or NULL to leave the same.
+	 */
+	dsMaterial* material;
+} dsSceneMaterialRemap;
 
 /**
  * @brief Struct holding data for an item in a scene item list.

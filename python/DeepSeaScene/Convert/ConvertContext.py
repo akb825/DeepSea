@@ -12,10 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .ModelNodeConvert import convertModelNode
 from .GLTFModel import registerGLTFModelType
 from .InstanceTransformDataConvert import convertInstanceTransformData
 from .ModelListConvert import convertModelList
+from .ModelNodeCloneConvert import convertModelNodeClone
+from .ModelNodeConvert import convertModelNode
 from .OBJModel import registerOBJModelType
 from .SceneNodeRefConvert import convertReferenceNode
 from .TransformNodeConvert import convertTransformNode
@@ -42,6 +43,7 @@ class ConvertContext:
 
 		self.nodeTypeMap = {
 			'ModelNode': convertModelNode,
+			'ModelNodeClone': convertModelNodeClone,
 			'TransformNode': convertTransformNode,
 			'ReferenceNode': convertReferenceNode
 		}
