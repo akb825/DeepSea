@@ -575,7 +575,7 @@ def convertModelNode(convertContext, data):
 	    - firstIstance: the first instance to draw. Defaults to 0.
 	  - primitiveType: the primitive type to draw with. See the dsPrimitiveType enum for values,
 	    removing the type prefix. Defaults to "TriangleList".
-	  - listName The name of the item list to draw the model with.
+	  - listName: The name of the item list to draw the model with.
 	- extraItemLists: array of extra item list names to add the node to.
 	- bounds: 2x3 array of float values for the minimum and maximum values for the positions. This
 	  will be automatically calculated from geometry in modelGeometry if unset. Otherwise if unset

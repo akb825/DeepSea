@@ -53,9 +53,9 @@ def convertView(convertContext, data):
 	  - type: the type of the surface. May either be "Renderbuffer" or "Offscreen".
 	  - usage: array of usage flags. See the dsRenderbufferUsage enum (for renderbuffers) and 
 	    dsTextureUsage enum (for offscreens) for values, removing the type prefix. Defaults to
-	    ['Standard'] for renderbuffers or ['Texture'] for offscreens.
+	    ["Standard"] for renderbuffers or ["Texture"] for offscreens.
 	  - memoryHints: array of memory hints. See the dsGfxMemory enum for values, removing the type
-	    prefix. Defaults to ['GPUOnly'].
+	    prefix. Defaults to ["GPUOnly"].
 	  - dimension: dimension for an offscreen. See the dsTextureDim enum for values, removing the
 	    type prefix. Defaults to Dim2D.
 	  - format: the texture format. See the dsGfxFormat enum for values, removing the type prefix.
@@ -65,15 +65,15 @@ def convertView(convertContext, data):
 	    type prefix. Only the decorator values may be used. May also be "Unset" in cases where a
 	    decorator isn't valid.
 	  - width: the explicit width of the surface.
-	  - widthRatio: the ratio of the width relative to the view width. "width" should be ommitted
+	  - widthRatio: the ratio of the width relative to the view width. "width" should be omitted
 	    when this is used. Defaults to 1.0 if neither width nor widthRatio is set.
 	  - height: the explicit height of the surface.
-	  - heightRatio: the ratio of the height relative to the view height. "height" should be ommitted
+	  - heightRatio: the ratio of the height relative to the view height. "height" should be omitted
 	    when this is used. Defaults to 1.0 if neither height nor heightRatio is set.
-	  - depth: the depth or array layers of the surface if an offscreen. If 0 or ommitted, this is
+	  - depth: the depth or array layers of the surface if an offscreen. If 0 or omitted, this is
 	    not a texture array.
 	  - mipLevels: the number of mipmap levels for an offscreen. Defaults to 1.
-	  - samples: the number of anti-alias samples. When ommitted, this uses the number of samples
+	  - samples: the number of anti-alias samples. When omitted, this uses the number of samples
 	    set on the renderer for window surfaces.
 	  - resolve: whether or not to resolve multisampled results.
 	  - windowFramebuffer: Whether or not the surface is used in the same framebuffer as the window
@@ -91,11 +91,11 @@ def convertView(convertContext, data):
 	    - layer: the texture array or 3D texture level to use for an offscreen. Defaults to 0.
 	    - mipLevel: the mip level to use for an offscreen. Defaults to 0.
 	  - width: the explicit width of the framebuffer.
-	  - widthRatio: the ratio of the width relative to the view width. "width" should be ommitted
+	  - widthRatio: the ratio of the width relative to the view width. "width" should be omitted
 	    when this is used. Defaults to 1.0 if neither width nor widthRatio is set.
 	  - height: the explicit height of the framebuffer.
 	  - heightRatio: the ratio of the height relative to the view height. "height" should be
-	    ommitted when this is used. Defaults to 1.0 if neither height nor heightRatio is set.
+	    omitted when this is used. Defaults to 1.0 if neither height nor heightRatio is set.
 	  - layers: the number of layers in the framebuffer. Defaults to 1.
 	  - viewport: the viewport to use. This is a dict with the following elements.
 	    - minX: the minimum X value for the upper-left position as a fraction of the width. Defaults 

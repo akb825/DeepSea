@@ -1303,7 +1303,7 @@ def convertSceneResourcesNodes(builder, convertContext, data):
 def convertSceneResources(convertContext, data):
 	"""
 	Converts SceneResources. The data map is expected to contain the following optional elements,
-	where empty arrays at the top level may be ommitted:
+	where empty arrays at the top level may be omitted:
 	- buffers: array of buffers to embed. Each element of the array has the following members:
 	  - name: string name of the buffer.
 	  - usage: array of usage flags. See the dsGfxBufferUsage enum for values, removing the type
@@ -1312,8 +1312,8 @@ def convertSceneResources(convertContext, data):
 	    prefix. At least one must be provided.
 	  - size: the size of the buffer. This is only used if no data is provided.
 	  - data: path to the buffer data or base64 encoded data prefixed with "base64:". This may be
-	    ommitted to leave the buffer data uninitialized.
-	  - output: the path to the output the buffer. This can be ommitted if no input path is provided
+	    omitted to leave the buffer data uninitialized.
+	  - output: the path to the output the buffer. This can be omitted if no input path is provided
 	    or if the buffer is embedded.
 	  - outputRelativeDir: the directory relative to output path. This will be removed from the path
 	    before adding the reference.
@@ -1325,10 +1325,10 @@ def convertSceneResources(convertContext, data):
 	    prefix. Defaults to ["Texture"]. If set, at least one must be provided.
 	  - memoryHints: array of memory hints. See the dsGfxMemory enum for values, removing the type
 	    prefix. Defaults to ["GPUOnly"]. If set, at least one must be provided.
-	  - path: path to the texture image. This may be ommitted if no initial texture data is used.
+	  - path: path to the texture image. This may be omitted if no initial texture data is used.
 	  - pathArray: array of paths to texture images. Use this in place of "path" for texture arrays
 	    or cubemaps.
-	  - output: the path to the output the texture. This can be ommitted if no input path is
+	  - output: the path to the output the texture. This can be omitted if no input path is
 	    provided or if the texture is embedded. When converting textures, the extension should
 	    match the desired output container format.
 	  - outputRelativeDir: the directory relative to output path. This will be removed from the path
@@ -1341,16 +1341,17 @@ def convertSceneResources(convertContext, data):
 	    - format: the texture format. See the dsGfxFormat enum for values, removing the type prefix.
 	      The decorator values may not be used.
 	    - decoration: the decoration for the format. See the dsGfxFormat enum for values, removing
-	      the type prefix. Only the decorator values may be used.
+	      the type prefix. Only the decorator values may be used. May also be "Unset" in cases where
+	      a decorator isn't valid.
 	    - dimension: the dimension of the texture. See the dsTextureDim enum for values, removing
 	      the type prefix and starting with "Dim". "Dim2D" is used by default.
 	    - width: the width of the texture in pixels. When converting, may also be the string
-	      nextpo2 or nearestpo2. When converting, this can be ommitted to use the original image
+	      nextpo2 or nearestpo2. When converting, this can be omitted to use the original image
 	      width.
 	    - height: the height of the texture in pixels. When converting, may also be the string
-	      nextpo2 or nearestpo2. When converting, this can be ommitted to use the original image
+	      nextpo2 or nearestpo2. When converting, this can be omitted to use the original image
 	      height.
-	    - depth: the depth or array layers of the texture. If 0 or ommitted, this is not a texture
+	    - depth: the depth or array layers of the texture. If 0 or omitted, this is not a texture
 	      array.
 	    (the following elements are only used for texture conversion)
 	    - mipLevels: the number of mipmap levels.
@@ -1371,7 +1372,7 @@ def convertSceneResources(convertContext, data):
 	    - name: the name of the element.
 	    - type: the type of the element. See dsMaterialType enum for values, removing the type
 	      prefix.
-	    - count: the number of array elements. If 0 or ommitted, this is not an array.
+	    - count: the number of array elements. If 0 or omitted, this is not an array.
 	- shaderVariableGroups: array of shader variable groups to include. Each element of the array
 	  has the following members:
 	  - name: the name of the element.
@@ -1407,7 +1408,7 @@ def convertSceneResources(convertContext, data):
 	    members:
 	    - name: the name of the element.
 	    - type: the type of the element. See dsMaterialType enum for values, removing the type
-	      prefix count: the number of array elements. If 0 or ommitted, this is not an array.
+	      prefix count: the number of array elements. If 0 or omitted, this is not an array.
 		- binding: the binding type for the element. See the dsMaaterialBinding enum for values,
 	      removing the type prefix. This is only used for texture, image, buffer, and shader
 		  variable group types.
@@ -1425,7 +1426,7 @@ def convertSceneResources(convertContext, data):
 		- version: the version of the shader as a standard config. (e.g. glsl-4.1, spirv-1.0)
 	    - module: path to the shader module or base64 encoded data prefixed with "base64:". The
 	      module is expected to have been compiled with Modular Shader Language (MSL).
-	    - output: the path to the location to copy the shader module to. This can be ommitted to
+	    - output: the path to the location to copy the shader module to. This can be omitted to
 	      embed the shader module directly.
 	    - outputRelativeDir: the directory relative to output path. This will be removed from the
 	      path before adding the reference.

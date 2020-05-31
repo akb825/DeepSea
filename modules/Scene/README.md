@@ -77,7 +77,7 @@ The `dsSceneResources` holds onto resources that can be referenced by name. It i
 
 All of the main types can be loaded from file using an optimized file format implemented with [flatbuffers](https://google.github.io/flatbuffers/). These can be created with the `CreateSceneResources.py`, `CreateScene.py`, and `CreateView.py` python scripts. These can be hooked into the CMake build with the `ds_create_scene_resources()`, `ds_create_scene()`, and `ds_create_view()` functions. See the TestScene GUI tester for an example.
 
-Input is typically done through JSON files, though the Python can be used directly with dicts in the same format as deserializing the JSON data.
+Input for conversion, whether through the Python or CMake functions, is typically provided by JSON files. When calling the Python code directly the data can also be provided with dicts in the same format as deserializing the JSON data. See the [conversion documentation](README-conversion.md) for more information for the expected input data.
 
 ## Extending the file format
 

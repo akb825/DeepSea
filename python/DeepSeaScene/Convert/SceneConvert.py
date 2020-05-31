@@ -105,14 +105,14 @@ def convertScene(convertContext, data):
 	  - attachments: array of attachments to use during the render pass. Each element of the array
 	    has the following members:
 	    - usage: array of usage flags. See the dsAttachmentUsage enum for values, removing the type
-	      prefix. Defaults to ['Standard'].
+	      prefix. Defaults to ["Standard"].
 	    - format: the attachment format. See the dsGfxFormat enum for values, removing the type
 		  prefix. The decorator values may not be used. May also be "SurfaceColor" or
 	      "SurfaceDepthStencil" to use the color or depth/stencil format for render surfaces.
 	    - decoration: the decoration for the format. See the dsGfxFormat enum for values, removing
 	      the type prefix. Only the decorator values may be used. May also be "Unset" in cases where a
 	      decorator isn't valid.
-	    - samples: the number of anti-alias samples. When ommitted, this uses the number of samples
+	    - samples: the number of anti-alias samples. When omitted, this uses the number of samples
 	      set on the renderer for window surfaces.
 	    - clearValue: a dict with one of the following members:
 	      - floatValues: array of 4 float values.
@@ -139,16 +139,16 @@ def convertScene(convertContext, data):
 	      - name: the name of the item list.
 	      - data: the data for the item list. What this member contains (e.g. a string or a dict
 	        with other members) depends on the instance data type.
-	  - dependencies: optionall array of dependencies between subpasses. If ommitted, default
+	  - dependencies: optionall array of dependencies between subpasses. If omitted, default
 	    dependencies will be used, which should be sufficient for all but very specialized use
 	    cases. Each element of the array has the following members:
-	    - srcSubpass: the index to the source subpass. If ommitted, the dependency will be before
+	    - srcSubpass: the index to the source subpass. If omitted, the dependency will be before
 	      the render pass.
 	    - srcStages: array of stages for the source dependency. See the dsGfxPipelineStage enum for
 	      values, removing the type prefix.
 	    - srcAccess: array of access types for the source dependency. See the dsGfxAccess enum for
 	      values, removing the type prefix.
-	    - dstSubpass: the index to the destination subpass. If ommitted, the dependency will be
+	    - dstSubpass: the index to the destination subpass. If omitted, the dependency will be
 	      after the render pass.
 	    - dstStages: array of stages for the destination dependency. See the dsGfxPipelineStage enum
 	      for values, removing the type prefix.
@@ -161,7 +161,7 @@ def convertScene(convertContext, data):
 	  - type: the name of the global data type.
 	  - data: the data for the global data. What this member contains (e.g. a string or a dict with
 	    other members) depends on the instance data type.
-	- nodes: list of string node names to set on the scene.
+	- nodes: array of string node names to set on the scene.
 	"""
 	unsetValue = 0xFFFFFFFF
 
