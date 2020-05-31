@@ -126,6 +126,17 @@ typedef struct dsLoadSceneGlobalDataItem
 	dsDestroySceneUserDataFunction destroyUserDataFunc;
 } dsLoadSceneGlobalDataItem;
 
+typedef struct dsLoadCustomSceneResourceItem
+{
+	dsHashTableNode node;
+	char name[DS_MAX_SCENE_NAME_LENGTH];
+	const dsCustomSceneResourceType* type;
+	dsLoadCustomSceneResourceFunction loadFunc;
+	dsDestroyCustomSceneResourceFunction destroyResourceFunc;
+	void* userData;
+	dsDestroySceneUserDataFunction destroyUserDataFunc;
+} dsLoadCustomSceneResourceItem;
+
 struct dsSceneLoadContext
 {
 	dsAllocator* allocator;
@@ -135,11 +146,13 @@ struct dsSceneLoadContext
 	dsLoadSceneItemListItem itemListTypes[DS_MAX_SCENE_TYPES];
 	dsLoadSceneInstanceDataItem instanceDataTypes[DS_MAX_SCENE_TYPES];
 	dsLoadSceneGlobalDataItem globalDataTypes[DS_MAX_SCENE_TYPES];
+	dsLoadCustomSceneResourceItem customResourceTypes[DS_MAX_SCENE_TYPES];
 
 	DS_STATIC_HASH_TABLE(DS_SCENE_TYPE_TABLE_SIZE) nodeTypeTable;
 	DS_STATIC_HASH_TABLE(DS_SCENE_TYPE_TABLE_SIZE) itemListTypeTable;
 	DS_STATIC_HASH_TABLE(DS_SCENE_TYPE_TABLE_SIZE) instanceDataTypeTable;
 	DS_STATIC_HASH_TABLE(DS_SCENE_TYPE_TABLE_SIZE) globalDataTypeTable;
+	DS_STATIC_HASH_TABLE(DS_SCENE_TYPE_TABLE_SIZE) customResourceTypeTable;
 };
 
 struct dsSceneLoadScratchData

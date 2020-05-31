@@ -61,6 +61,8 @@ class ConvertContext:
 			'ViewTransformData': convertViewTransformData
 		}
 
+		self.customResourceTypeMap = dict()
+
 		# Model types are considered an extension. However, register the builtin model types here
 		# for convenience similar to the node and item list types.
 		registerGLTFModelType(self)
@@ -175,6 +177,35 @@ class ConvertContext:
 			raise Exception('Global data type "' + typeName + '" hasn\'t been registered.')
 
 		convertedData = self.globalDataTypeMap[typeName](self, data)
+
+		typeNameOffset = builder.CreateString(typeName)
+		dataOffset = builder.CreateByteVector(convertedData)
+
+		ObjectDataStart(builder)
+		ObjectDataAddType(builder, typeNameOffset)
+		ObjectDataAddData(builder, dataOffset)
+		return ObjectDataEnd(builder)
+
+	def addCustomResourceType(self, typeName, convertFunc):
+		"""
+		Adds a custom resource type with the name and the convert function. The function should
+		take the ConvertContext and dict for the data as parameters and return the flatbuffer bytes.
+
+		An exception will be raised if the type is already registered.
+		"""
+		if typeName in self.customResourceTypeMap:
+			raise Exception('Custom resource type "' + typeName + '" is already registered.')
+		self.customResourceTypeMap[typeName] = convertFunc
+
+	def convertCustomResource(self, builder, typeName, data):
+		"""
+		Converts a custom resource based on its type and dict for the data. This will return the
+		offset to the ObjectData added to the builder.
+		"""
+		if typeName not in self.customResourceTypeMap:
+			raise Exception('Custom resource type "' + typeName + '" hasn\'t been registered.')
+
+		convertedData = self.customResourceTypeMap[typeName](self, data)
 
 		typeNameOffset = builder.CreateString(typeName)
 		dataOffset = builder.CreateByteVector(convertedData)

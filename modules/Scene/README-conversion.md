@@ -123,6 +123,10 @@ Scene resources provide the resources that will be drawn inside of scenes. The J
 	* `name`: the name of the node.
 	* `type`: the name of the node type.
 	* `data`: the data for the node. What this member contains (e.g. a string or a dict with other members) depends on the node type.
+* `customResources`: array of custom resources to include. Each element of the array has the following members:
+	* `name`: the name of the custom resource.
+	* `type`: the name of the custom resource type.
+	* `data`: the data for the custom resource. What this member contains (e.g. a string or a dict with other members) depends on the custom resource type.
 
 The different types for scene nodes are documented below.
 

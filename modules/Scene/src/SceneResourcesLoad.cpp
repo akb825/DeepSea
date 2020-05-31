@@ -45,6 +45,7 @@
 
 #include <DeepSea/Scene/Flatbuffers/SceneFlatbufferHelpers.h>
 #include <DeepSea/Scene/Nodes/SceneNode.h>
+#include <DeepSea/Scene/CustomSceneResource.h>
 #include <DeepSea/Scene/SceneLoadContext.h>
 #include <DeepSea/Scene/SceneLoadScratchData.h>
 #include <DeepSea/Scene/Types.h>
@@ -1085,13 +1086,48 @@ static bool loadNodes(dsSceneResources* resources, dsAllocator* allocator,
 			fbNode->type()->c_str(), data->data(), data->size());
 		if (!node)
 		{
-			PRINT_FLATBUFFER_RESOURCE_ERROR("Couldn't load node '%s'", nodeName, fileName);
+			PRINT_FLATBUFFER_RESOURCE_ERROR("Couldn't load scene node '%s'", nodeName, fileName);
 			return false;
 		}
 
 		bool success = dsSceneResources_addResource(
 			resources, nodeName, dsSceneResourceType_SceneNode, node, true);
 		dsSceneNode_freeRef(node);
+		if (!success)
+			return false;
+	}
+
+	return true;
+}
+
+static bool loadCustomResources(dsSceneResources* resources, dsAllocator* allocator,
+	dsAllocator* resourceAllocator, const dsSceneLoadContext* loadContext,
+	dsSceneLoadScratchData* scratchData,
+	const FlatbufferVector<DeepSeaScene::CustomResource>* customResources, const char* fileName)
+{
+	if (!customResources)
+		return true;
+
+	for (auto fbNamedResource : *customResources)
+	{
+		if (!fbNamedResource)
+			continue;
+
+		const char* resourceName = fbNamedResource->name()->c_str();
+		auto fbResource = fbNamedResource->resource();
+		auto data = fbResource->data();
+		dsCustomSceneResource* customResource = dsCustomSceneResource_load(allocator,
+			resourceAllocator, loadContext, scratchData, fbResource->type()->c_str(), data->data(),
+			data->size());
+		if (!customResource)
+		{
+			PRINT_FLATBUFFER_RESOURCE_ERROR("Couldn't load custom scene resource '%s'",
+				resourceName, fileName);
+			return false;
+		}
+
+		bool success = dsSceneResources_addResource(
+			resources, resourceName, dsSceneResourceType_Custom, customResource, true);
 		if (!success)
 			return false;
 	}
@@ -1150,6 +1186,9 @@ dsSceneResources* dsSceneResources_loadImpl(dsAllocator* allocator, dsAllocator*
 	auto nodes = fbSceneResources->sceneNodes();
 	if (nodes)
 		totalCount += nodes->size();
+	auto customResources = fbSceneResources->customResources();
+	if (customResources)
+		totalCount += customResources->size();
 
 	dsSceneResources* resources = dsSceneResources_create(allocator, totalCount);
 	if (!resources)
@@ -1174,7 +1213,9 @@ dsSceneResources* dsSceneResources_loadImpl(dsAllocator* allocator, dsAllocator*
 		!loadDrawGeometries(
 			resources, resourceManager, resourceAllocator, scratchData, geometries, fileName) ||
 		!loadNodes(
-			resources, allocator, resourceAllocator, loadContext, scratchData, nodes, fileName))
+			resources, allocator, resourceAllocator, loadContext, scratchData, nodes, fileName) ||
+		!loadCustomResources(resources, allocator, resourceAllocator, loadContext, scratchData,
+			customResources, fileName))
 	{
 		dsSceneResources_freeRef(resources);
 		DS_VERIFY(dsSceneLoadScratchData_popSceneResources(scratchData, 1));

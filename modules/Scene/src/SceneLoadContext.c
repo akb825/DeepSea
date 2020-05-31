@@ -67,6 +67,8 @@ dsSceneLoadContext* dsSceneLoadContext_create(dsAllocator* allocator, dsRenderer
 		dsHashString, dsHashStringEqual);
 	dsHashTable_initialize(&context->globalDataTypeTable.hashTable, DS_SCENE_TYPE_TABLE_SIZE,
 		dsHashString, dsHashStringEqual);
+	dsHashTable_initialize(&context->customResourceTypeTable.hashTable, DS_SCENE_TYPE_TABLE_SIZE,
+		dsHashString, dsHashStringEqual);
 
 	// Built-in types.
 	dsSceneLoadContext_registerNodeType(context, dsSceneNodeRef_typeName, &dsSceneNodeRef_load,
@@ -271,6 +273,53 @@ bool dsSceneLoadContext_registerGlobalDataType(dsSceneLoadContext* context, cons
 	return true;
 }
 
+bool dsSceneLoadContext_registerCustomResourceType(dsSceneLoadContext* context, const char* name,
+	const dsCustomSceneResourceType* type, dsLoadCustomSceneResourceFunction loadFunc,
+	dsDestroyCustomSceneResourceFunction destroyResourceFunc, void* userData,
+	dsDestroySceneUserDataFunction destroyUserDataFunc)
+{
+	if (!context || !name || !type || !loadFunc)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	dsHashTable* hashTable = &context->customResourceTypeTable.hashTable;
+	size_t index = hashTable->list.length;
+	if (index >= DS_MAX_SCENE_TYPES)
+	{
+		errno = ENOMEM;
+		return false;
+	}
+
+	size_t nameLength = strlen(name);
+	if (nameLength >= DS_MAX_SCENE_NAME_LENGTH)
+	{
+		errno = EINVAL;
+		DS_LOG_ERROR_F(DS_SCENE_LOG_TAG,
+			"Custom scene resource type name '%s' exceeds maximum size of %u.", name,
+			DS_MAX_SCENE_NAME_LENGTH);
+		return false;
+	}
+
+	dsLoadCustomSceneResourceItem* customResourceType = context->customResourceTypes + index;
+	memcpy(customResourceType->name, name, nameLength + 1);
+	customResourceType->type = type;
+	customResourceType->loadFunc = loadFunc;
+	customResourceType->destroyResourceFunc = destroyResourceFunc;
+	customResourceType->userData = userData;
+	customResourceType->destroyUserDataFunc = destroyUserDataFunc;
+	if (!dsHashTable_insert(hashTable, customResourceType->name,
+			(dsHashTableNode*)customResourceType, NULL))
+	{
+		errno = EPERM;
+		DS_LOG_ERROR_F(DS_SCENE_LOG_TAG,
+			"Custom scene resource type '%s' has already been registered.", name);
+		return false;
+	}
+	return true;
+}
+
 void dsSceneLoadContext_destroy(dsSceneLoadContext* context)
 {
 	if (!context)
@@ -306,6 +355,14 @@ void dsSceneLoadContext_destroy(dsSceneLoadContext* context)
 		dsLoadSceneGlobalDataItem* globalDataType = (dsLoadSceneGlobalDataItem*)node;
 		if (globalDataType->destroyUserDataFunc)
 			globalDataType->destroyUserDataFunc(globalDataType->userData);
+	}
+
+	hashTable = &context->customResourceTypeTable.hashTable;
+	for (dsListNode* node = hashTable->list.head; node; node = node->next)
+	{
+		dsLoadCustomSceneResourceItem* customResourceType = (dsLoadCustomSceneResourceItem*)node;
+		if (customResourceType->destroyUserDataFunc)
+			customResourceType->destroyUserDataFunc(customResourceType->userData);
 	}
 
 	if (context->allocator)

@@ -153,6 +153,31 @@ DS_SCENE_EXPORT bool dsSceneLoadContext_registerGlobalDataType(dsSceneLoadContex
 	dsDestroySceneUserDataFunction destroyUserDataFunc);
 
 /**
+ * @brief Registers a custom resource type that can be loaded.
+ *
+ * Up to 128 custom resource types can be registered within a single dsSceneLoadContext. This is
+ * intended to be enough to support any reasonable situation. If this isn't enough for specialized
+ * situations, multiple load contexts can be maintained to load different files with a subset of the
+ * types.
+ *
+ * @remark errno will be set on failure.
+ * @param context The context to register the type with.
+ * @param name The name of the type. The length, including the null terminator, must not exceed
+ *     DS_MAX_SCENE_NAME_LENGTH.
+ * @param type The type of the resource
+ * @param loadFunc The function to call to perform the load.
+ * @param destroyResourceFunc The function to destroy resources of this type.
+ * @param userData The user data associated with the type. Any modifications made to this should be
+ *     thread-safe if the same dsSceneLoadContext is used across multiple threads. This may be NULL.
+ * @param destroyUserDataFunc The function to destroy the user data. This may be NULL.
+ * @return False if the type couldn't be registered.
+ */
+DS_SCENE_EXPORT bool dsSceneLoadContext_registerCustomSceneResourceType(dsSceneLoadContext* context,
+	const char* name, const dsCustomSceneResourceType* type, dsLoadSceneGlobalDataFunction loadFunc,
+	dsDestroyCustomSceneResourceFunction destroyResourceFunc, void* userData,
+	dsDestroySceneUserDataFunction destroyUserDataFunc);
+
+/**
  * @brief Destroys a scene load context.
  * @param context The context to destroy.
  */

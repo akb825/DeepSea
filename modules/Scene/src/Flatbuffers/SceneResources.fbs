@@ -289,6 +289,16 @@ table SceneNode
 	node : ObjectData (required);
 }
 
+// Structure defining a custom resource.
+table CustomResource
+{
+	// The name of the resource.
+	name : string (required);
+
+	// The resource.
+	resource : ObjectData (required);
+}
+
 // Structure defining scene resources.
 table SceneResources
 {
@@ -321,6 +331,9 @@ table SceneResources
 
 	// List of scene nodes.
 	sceneNodes : [SceneNode];
+
+	// List of custom resources.
+	customResources : [CustomResource];
 }
 
 root_type SceneResources;

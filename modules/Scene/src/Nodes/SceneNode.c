@@ -17,7 +17,9 @@
 #include <DeepSea/Scene/Nodes/SceneNode.h>
 
 #include "Nodes/SceneTreeNode.h"
+#include "SceneLoadContextInternal.h"
 #include "SceneTypes.h"
+#include <DeepSea/Core/Containers/HashTable.h>
 #include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
@@ -53,6 +55,35 @@ const dsSceneNodeType* dsSceneNode_setupParentType(dsSceneNodeType* type,
 	dsSceneNodeType* expectedParent = NULL;
 	DS_ATOMIC_COMPARE_EXCHANGE_PTR(&type->parent, &expectedParent, &parentType, false);
 	return type;
+}
+
+dsSceneNode* dsSceneNode_load(dsAllocator* allocator, dsAllocator* resourceAllocator,
+	const dsSceneLoadContext* loadContext, dsSceneLoadScratchData* scratchData, const char* type,
+	const void* data, size_t size)
+{
+	if (!allocator || !loadContext || !scratchData || !type || (!data && size > 0))
+	{
+		errno = EINVAL;
+		return NULL;
+	}
+
+	dsLoadSceneNodeItem* foundType =
+		(dsLoadSceneNodeItem*)dsHashTable_find(&loadContext->nodeTypeTable.hashTable, type);
+	if (!foundType)
+	{
+		errno = ENOTFOUND;
+		DS_LOG_ERROR_F(DS_SCENE_LOG_TAG, "Unknown scene node type '%s'.", type);
+		return NULL;
+	}
+
+	dsSceneNode* node = foundType->loadFunc(loadContext, scratchData, allocator, resourceAllocator,
+		foundType->userData, (const uint8_t*)data, size);
+	if (!node)
+	{
+		DS_LOG_ERROR_F(DS_SCENE_LOG_TAG, "Failed to load scene node '%s': %s.", type,
+			dsErrorString(errno));
+	}
+	return node;
 }
 
 bool dsSceneNode_initialize(dsSceneNode* node, dsAllocator* allocator,

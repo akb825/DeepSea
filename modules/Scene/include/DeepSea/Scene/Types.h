@@ -61,7 +61,8 @@ typedef enum dsSceneResourceType
 	dsSceneResourceType_ShaderModule,            ///< dsShaderModule
 	dsSceneResourceType_Shader,                  ///< dsShader
 	dsSceneResourceType_DrawGeometry,            ///< dsDrawGeometry
-	dsSceneResourceType_SceneNode                ///< dsSceneNode
+	dsSceneResourceType_SceneNode,               ///< dsSceneNode
+	dsSceneResourceType_Custom                   ///< dsCustomSceneResource
 } dsSceneResourceType;
 
 /**
@@ -90,7 +91,58 @@ typedef struct dsView dsView;
 typedef struct dsSceneResources dsSceneResources;
 
 /**
- * @brief Function to destroy the user data stored within various scene objects..
+ * @brief Arbitrary type used to denote a custom resource type.
+ *
+ * Declare this as a static variable and take the address to denote the type. e.g.
+ *
+ * ```
+ * static dsCustomResourceType myResourceType;
+ * const dsSceneResourceType* dsMyResourceType_getType(void)
+ * {
+ *     return &myResourceType;
+ * }
+ * ```
+ */
+typedef int dsCustomSceneResourceType;
+
+/**
+ * @brief Function to destroy a custom scene resource.
+ * @param resource The resource to destroy.
+ * @return False if the resource couldn't be destroyed.
+ */
+typedef bool (*dsDestroyCustomSceneResourceFunction)(void* resource);
+
+/**
+ * @brief Struct containing the information for a custom resource.
+ * @see CustomSceneResource.h
+ */
+typedef struct dsCustomSceneResource
+{
+	/**
+	 * @brief The allocator this was created with.
+	 */
+	dsAllocator* allocator;
+
+	/**
+	 * @brief The type of the resource.
+	 */
+	const dsCustomSceneResourceType* type;
+
+	/**
+	 * @brief The pointer to the resource.
+	 */
+	void* resource;
+
+	/**
+	 * @brief The function to destroy the resource.
+	 *
+	 * This may be NULL if the resource will not be destroyed.
+	 */
+	dsDestroyCustomSceneResourceFunction destroyFunc;
+} dsCustomSceneResource;
+
+/**
+ * @brief Function to destroy the user data stored within various scene objects.
  * @param userData The user data to destroy.
  */
 typedef void (*dsDestroySceneUserDataFunction)(void* userData);
@@ -566,6 +618,23 @@ typedef dsSceneInstanceData* (*dsLoadSceneInstanceDataFunction)(
  * @return The global data or NULL if it couldn't be loaded.
  */
 typedef dsSceneGlobalData* (*dsLoadSceneGlobalDataFunction)(const dsSceneLoadContext* loadContext,
+	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
+	void* userData, const uint8_t* data, size_t dataSize);
+
+/**
+ * @brief Function to load a custom scene resource.
+ * @remark errno should be set on failure.
+ * @param loadContext The load context.
+ * @param scratchData The scratch data.
+ * @param allocator The allocator to create the custom resource with.
+ * @param resourceAllocator The allocator to create graphics resources with. If NULL, it will use
+ *     the custom resource allocator.
+ * @param userData User data registered with this function.
+ * @param data The data for the custom resource.
+ * @param dataSize The size fo the data.
+ * @return The custom resource or NULL if it couldn't be loaded.
+ */
+typedef void* (*dsLoadCustomSceneResourceFunction)(const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
 	void* userData, const uint8_t* data, size_t dataSize);
 

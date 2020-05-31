@@ -63,6 +63,9 @@ struct DrawGeometryBuilder;
 struct SceneNode;
 struct SceneNodeBuilder;
 
+struct CustomResource;
+struct CustomResourceBuilder;
+
 struct SceneResources;
 struct SceneResourcesBuilder;
 
@@ -1649,6 +1652,73 @@ inline flatbuffers::Offset<SceneNode> CreateSceneNodeDirect(
       node);
 }
 
+struct CustomResource FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef CustomResourceBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_NAME = 4,
+    VT_RESOURCE = 6
+  };
+  const flatbuffers::String *name() const {
+    return GetPointer<const flatbuffers::String *>(VT_NAME);
+  }
+  const DeepSeaScene::ObjectData *resource() const {
+    return GetPointer<const DeepSeaScene::ObjectData *>(VT_RESOURCE);
+  }
+  bool Verify(flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffsetRequired(verifier, VT_NAME) &&
+           verifier.VerifyString(name()) &&
+           VerifyOffsetRequired(verifier, VT_RESOURCE) &&
+           verifier.VerifyTable(resource()) &&
+           verifier.EndTable();
+  }
+};
+
+struct CustomResourceBuilder {
+  typedef CustomResource Table;
+  flatbuffers::FlatBufferBuilder &fbb_;
+  flatbuffers::uoffset_t start_;
+  void add_name(flatbuffers::Offset<flatbuffers::String> name) {
+    fbb_.AddOffset(CustomResource::VT_NAME, name);
+  }
+  void add_resource(flatbuffers::Offset<DeepSeaScene::ObjectData> resource) {
+    fbb_.AddOffset(CustomResource::VT_RESOURCE, resource);
+  }
+  explicit CustomResourceBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  CustomResourceBuilder &operator=(const CustomResourceBuilder &);
+  flatbuffers::Offset<CustomResource> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = flatbuffers::Offset<CustomResource>(end);
+    fbb_.Required(o, CustomResource::VT_NAME);
+    fbb_.Required(o, CustomResource::VT_RESOURCE);
+    return o;
+  }
+};
+
+inline flatbuffers::Offset<CustomResource> CreateCustomResource(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    flatbuffers::Offset<flatbuffers::String> name = 0,
+    flatbuffers::Offset<DeepSeaScene::ObjectData> resource = 0) {
+  CustomResourceBuilder builder_(_fbb);
+  builder_.add_resource(resource);
+  builder_.add_name(name);
+  return builder_.Finish();
+}
+
+inline flatbuffers::Offset<CustomResource> CreateCustomResourceDirect(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    const char *name = nullptr,
+    flatbuffers::Offset<DeepSeaScene::ObjectData> resource = 0) {
+  auto name__ = name ? _fbb.CreateString(name) : 0;
+  return DeepSeaScene::CreateCustomResource(
+      _fbb,
+      name__,
+      resource);
+}
+
 struct SceneResources FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef SceneResourcesBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
@@ -1661,7 +1731,8 @@ struct SceneResources FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_SHADERMODULES = 16,
     VT_SHADERS = 18,
     VT_DRAWGEOMETRIES = 20,
-    VT_SCENENODES = 22
+    VT_SCENENODES = 22,
+    VT_CUSTOMRESOURCES = 24
   };
   const flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::Buffer>> *buffers() const {
     return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::Buffer>> *>(VT_BUFFERS);
@@ -1692,6 +1763,9 @@ struct SceneResources FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   const flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::SceneNode>> *sceneNodes() const {
     return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::SceneNode>> *>(VT_SCENENODES);
+  }
+  const flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::CustomResource>> *customResources() const {
+    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::CustomResource>> *>(VT_CUSTOMRESOURCES);
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -1725,6 +1799,9 @@ struct SceneResources FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            VerifyOffset(verifier, VT_SCENENODES) &&
            verifier.VerifyVector(sceneNodes()) &&
            verifier.VerifyVectorOfTables(sceneNodes()) &&
+           VerifyOffset(verifier, VT_CUSTOMRESOURCES) &&
+           verifier.VerifyVector(customResources()) &&
+           verifier.VerifyVectorOfTables(customResources()) &&
            verifier.EndTable();
   }
 };
@@ -1763,6 +1840,9 @@ struct SceneResourcesBuilder {
   void add_sceneNodes(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::SceneNode>>> sceneNodes) {
     fbb_.AddOffset(SceneResources::VT_SCENENODES, sceneNodes);
   }
+  void add_customResources(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::CustomResource>>> customResources) {
+    fbb_.AddOffset(SceneResources::VT_CUSTOMRESOURCES, customResources);
+  }
   explicit SceneResourcesBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
@@ -1786,8 +1866,10 @@ inline flatbuffers::Offset<SceneResources> CreateSceneResources(
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::ShaderModule>>> shaderModules = 0,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::Shader>>> shaders = 0,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::DrawGeometry>>> drawGeometries = 0,
-    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::SceneNode>>> sceneNodes = 0) {
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::SceneNode>>> sceneNodes = 0,
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::CustomResource>>> customResources = 0) {
   SceneResourcesBuilder builder_(_fbb);
+  builder_.add_customResources(customResources);
   builder_.add_sceneNodes(sceneNodes);
   builder_.add_drawGeometries(drawGeometries);
   builder_.add_shaders(shaders);
@@ -1812,7 +1894,8 @@ inline flatbuffers::Offset<SceneResources> CreateSceneResourcesDirect(
     const std::vector<flatbuffers::Offset<DeepSeaScene::ShaderModule>> *shaderModules = nullptr,
     const std::vector<flatbuffers::Offset<DeepSeaScene::Shader>> *shaders = nullptr,
     const std::vector<flatbuffers::Offset<DeepSeaScene::DrawGeometry>> *drawGeometries = nullptr,
-    const std::vector<flatbuffers::Offset<DeepSeaScene::SceneNode>> *sceneNodes = nullptr) {
+    const std::vector<flatbuffers::Offset<DeepSeaScene::SceneNode>> *sceneNodes = nullptr,
+    const std::vector<flatbuffers::Offset<DeepSeaScene::CustomResource>> *customResources = nullptr) {
   auto buffers__ = buffers ? _fbb.CreateVector<flatbuffers::Offset<DeepSeaScene::Buffer>>(*buffers) : 0;
   auto textures__ = textures ? _fbb.CreateVector<flatbuffers::Offset<DeepSeaScene::Texture>>(*textures) : 0;
   auto shaderVariableGroupDescs__ = shaderVariableGroupDescs ? _fbb.CreateVector<flatbuffers::Offset<DeepSeaScene::ShaderVariableGroupDesc>>(*shaderVariableGroupDescs) : 0;
@@ -1823,6 +1906,7 @@ inline flatbuffers::Offset<SceneResources> CreateSceneResourcesDirect(
   auto shaders__ = shaders ? _fbb.CreateVector<flatbuffers::Offset<DeepSeaScene::Shader>>(*shaders) : 0;
   auto drawGeometries__ = drawGeometries ? _fbb.CreateVector<flatbuffers::Offset<DeepSeaScene::DrawGeometry>>(*drawGeometries) : 0;
   auto sceneNodes__ = sceneNodes ? _fbb.CreateVector<flatbuffers::Offset<DeepSeaScene::SceneNode>>(*sceneNodes) : 0;
+  auto customResources__ = customResources ? _fbb.CreateVector<flatbuffers::Offset<DeepSeaScene::CustomResource>>(*customResources) : 0;
   return DeepSeaScene::CreateSceneResources(
       _fbb,
       buffers__,
@@ -1834,7 +1918,8 @@ inline flatbuffers::Offset<SceneResources> CreateSceneResourcesDirect(
       shaderModules__,
       shaders__,
       drawGeometries__,
-      sceneNodes__);
+      sceneNodes__,
+      customResources__);
 }
 
 inline const DeepSeaScene::SceneResources *GetSceneResources(const void *buf) {

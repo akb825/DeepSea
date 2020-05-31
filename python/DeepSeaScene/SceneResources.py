@@ -270,7 +270,32 @@ class SceneResources(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(22))
         return o == 0
 
-def SceneResourcesStart(builder): builder.StartObject(10)
+    # SceneResources
+    def CustomResources(self, j):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(24))
+        if o != 0:
+            x = self._tab.Vector(o)
+            x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * 4
+            x = self._tab.Indirect(x)
+            from DeepSeaScene.CustomResource import CustomResource
+            obj = CustomResource()
+            obj.Init(self._tab.Bytes, x)
+            return obj
+        return None
+
+    # SceneResources
+    def CustomResourcesLength(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(24))
+        if o != 0:
+            return self._tab.VectorLen(o)
+        return 0
+
+    # SceneResources
+    def CustomResourcesIsNone(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(24))
+        return o == 0
+
+def SceneResourcesStart(builder): builder.StartObject(11)
 def SceneResourcesAddBuffers(builder, buffers): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(buffers), 0)
 def SceneResourcesStartBuffersVector(builder, numElems): return builder.StartVector(4, numElems, 4)
 def SceneResourcesAddTextures(builder, textures): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(textures), 0)
@@ -291,4 +316,6 @@ def SceneResourcesAddDrawGeometries(builder, drawGeometries): builder.PrependUOf
 def SceneResourcesStartDrawGeometriesVector(builder, numElems): return builder.StartVector(4, numElems, 4)
 def SceneResourcesAddSceneNodes(builder, sceneNodes): builder.PrependUOffsetTRelativeSlot(9, flatbuffers.number_types.UOffsetTFlags.py_type(sceneNodes), 0)
 def SceneResourcesStartSceneNodesVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+def SceneResourcesAddCustomResources(builder, customResources): builder.PrependUOffsetTRelativeSlot(10, flatbuffers.number_types.UOffsetTFlags.py_type(customResources), 0)
+def SceneResourcesStartCustomResourcesVector(builder, numElems): return builder.StartVector(4, numElems, 4)
 def SceneResourcesEnd(builder): return builder.EndObject()

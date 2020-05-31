@@ -24,6 +24,7 @@ import flatbuffers
 from .FileOrDataConvert import convertFileOrData
 from ..Buffer import *
 from ..BufferMaterialData import *
+from ..CustomResource import *
 from ..DrawGeometry import *
 from ..FormatDecoration import *
 from ..IndexBuffer import *
@@ -637,7 +638,7 @@ def convertSceneResourcesShaderData(builder, convertContext, data, memberName):
 		def packMatrixElement(formatStr, name, expectedCol, expectedRow):
 			dataSize = getFormatSize(formatStr)
 			offset = 0
-			dataBytes = bytearray(len(dataArray)*expectedCol*expectedRow*datasize)
+			dataBytes = bytearray(len(dataArray)*expectedCol*expectedRow*dataSize)
 			try:
 				for colArray in dataArray:
 					if len(colArray) != expectedCol:
@@ -656,7 +657,7 @@ def convertSceneResourcesShaderData(builder, convertContext, data, memberName):
 		def packBool():
 			dataSize = 4
 			offset = 0
-			dataBytes = bytearray(len(dataArray)*datasize)
+			dataBytes = bytearray(len(dataArray)*dataSize)
 			try:
 				for element in dataArray:
 					struct.pack_into('i', dataBytes, dataSize, int(bool(element)))
@@ -668,7 +669,7 @@ def convertSceneResourcesShaderData(builder, convertContext, data, memberName):
 		def packBoolVector(expectedLen):
 			dataSize = 4
 			offset = 0
-			dataBytes = bytearray(len(dataArray)*expectedLen*datasize)
+			dataBytes = bytearray(len(dataArray)*expectedLen*dataSize)
 			try:
 				for elementArray in dataArray:
 					if len(elementArray) != expectedLen:
@@ -1293,12 +1294,39 @@ def convertSceneResourcesNodes(builder, convertContext, data):
 			SceneNodeAddNode(builder, nodeDataOffset)
 			nodeOffsets.append(SceneNodeEnd(builder))
 	except (TypeError, ValueError):
-		raise Exception('SceneResources "drawGeometries" must be an array of objects.')
+		raise Exception('SceneResources "sceneNodes" must be an array of objects.')
 
 	SceneResourcesStartSceneNodesVector(builder, len(nodeOffsets))
 	for offset in reversed(nodeOffsets):
 		builder.PrependUOffsetTRelative(offset)
 	return builder.EndVector(len(nodeOffsets))
+
+def convertSceneResourcesCustomResources(builder, convertContext, data):
+	resourceOffsets = []
+	try:
+		for resourceData in data:
+			try:
+				name = str(resourceData['name'])
+				resourceType = str(resourceData['type'])
+				resourceInfo = resourceData['data']
+			except KeyError as e:
+				raise Exception('Custom resource data doesn\'t contain element "' + str(e) + '".')
+
+			nameOffset = builder.CreateString(name)
+			resourceDataOffset = convertContext.convertCustomResource(builder, resourceType,
+				resourceInfo)
+
+			CustomResourceStart(builder)
+			CustomResourceAddName(builder, nameOffset)
+			CustomResourceAddResource(builder, resourceDataOffset)
+			resourceOffsets.append(CustomResourceEnd(builder))
+	except (TypeError, ValueError):
+		raise Exception('SceneResources "customResources" must be an array of objects.')
+
+	SceneResourcesStartCustomResourcesVector(builder, len(resourceOffsets))
+	for offset in reversed(resourceOffsets):
+		builder.PrependUOffsetTRelative(offset)
+	return builder.EndVector(len(resourceOffsets))
 
 def convertSceneResources(convertContext, data):
 	"""
@@ -1470,6 +1498,12 @@ def convertSceneResources(convertContext, data):
 	  - type: the name of the node type.
 	  - data: the data for the node. What this member contains (e.g. a string or a dict with other
 	    members) depends on the node type.
+	- customResources: array of custom resources to include. Each element of the array has the
+	  following members:
+	  - name: the name of the custom resource.
+	  - type: the name of the custom resource type.
+	  - data: the data for the custom resource. What this member contains (e.g. a string or a dict
+	    with other members) depends on the custom resource type.
 	"""
 	builder = flatbuffers.Builder(0)
 
@@ -1531,6 +1565,12 @@ def convertSceneResources(convertContext, data):
 			nodesOffset = convertSceneResourcesNodes(builder, convertContext, data['sceneNodes'])
 		else:
 			nodesOffset = 0
+
+		if 'customResources' in data:
+			customResourcesOffset = convertSceneResourcesCustomResources(builder, convertContext,
+				data['customResources'])
+		else:
+			customResourcesOffset = 0
 	except (TypeError, ValueError):
 		raise Exception('SceneResources must be an object.')
 
@@ -1545,5 +1585,6 @@ def convertSceneResources(convertContext, data):
 	SceneResourcesAddShaders(builder, shadersOffset)
 	SceneResourcesAddDrawGeometries(builder, drawGeometriesOffset)
 	SceneResourcesAddSceneNodes(builder, nodesOffset)
+	SceneResourcesAddCustomResources(builder, customResourcesOffset)
 	builder.Finish(SceneResourcesEnd(builder))
 	return builder.Output()
