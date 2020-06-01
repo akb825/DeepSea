@@ -36,7 +36,7 @@ One of the most commonly item list types is `dsSceneModelList` for drawing model
 
 ## Instance data
 
-Each `dsSceneModelList` can have an array of `dsSceneInstanceData` instances. This allows data to be bound before drawing each instance.
+Some item list types, such as `dsSceneModelList`, contain a list of `dsSceneInstanceData` instances. This allows data to be bound before drawing each instance.
 
 The most common type to use is `dsSceneInstanceVariables`, which places shader variable data into a buffer and binds the offset to the shader. `dsInstanceTransformData` is a helper for creating a `dsSceneInstanceVariables` instance that contains standard transform matrices for each instance.
 

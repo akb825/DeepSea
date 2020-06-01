@@ -10,8 +10,9 @@ These are the different types supported for conversion in the scene library. The
 * [Scene](#scene)
 	* [Item Lists](#item-lists)
 		* [Model List](#model-list)
-			* [Instance Transform Data](#instance-transform-data)
 		* [View Cull List](#view-cull-list)
+	* [Instance Data](#instance-data)
+		* [Instance Transform Data](#instance-transform-data)
 	* [Global Data](#global-data)
 		* [View Transform Data](#view-transform-data)
 * [View](#view)
@@ -293,9 +294,11 @@ Model lists have the type name "ModelList" and define how to draw models that re
 	* `backStencilReference`: int reference for just the back stencil.
 * `cullName`: optional name for the item list to handle culling.
 
-Buitin instance data types are documented below.
+## Instance Data
 
-#### Instance Transform Data
+Instance data is typically included in specific item lists that utilize them. Builtin instance data specifications are documented below.
+
+### Instance Transform Data
 
 Instance transform data has the type name "InstanceTransformData" and sets standard transform matrices for each item that's drawn. It contains the following members:
 
