@@ -56,8 +56,13 @@ function(ds_convert_flatbuffers container)
 	endif()
 
 	set(includeDirs)
+	set(includeDepends)
 	foreach (dir ${ARGS_INCLUDE})
 		list(APPEND includeDirs -I ${dir})
+		file(GLOB_RECURSE fbsFiles ${dir}/*.fbs)
+		if (fbsFiles)
+			list(APPEND includeDepends ${fbsFiles})
+		endif()
 	endforeach()
 
 	set(outputs)
@@ -75,7 +80,7 @@ function(ds_convert_flatbuffers container)
 			MAIN_DEPENDENCY ${file}
 			COMMAND ${FLATC} ARGS -c --scoped-enums --keep-prefix ${includeDirs} ${file}
 			${pythonCommand}
-			DEPENDS ${FLATC}
+			DEPENDS ${FLATC} ${includeDepends}
 			WORKING_DIRECTORY ${ARGS_DIRECTORY}
 			COMMENT "Generating flat buffer: ${file}")
 	endforeach()

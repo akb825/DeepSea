@@ -35,7 +35,10 @@ if (DEEPSEA_BUILD_RENDER)
 	endif()
 
 	if (DEEPSEA_BUILD_SCENE)
-		ds_add_module(Scene)
+		ds_add_module(Scene/Scene)
+		if (TARGET deepsea_vector_draw)
+			ds_add_module(Scene/VectorDrawScene)
+		endif()
 	endif()
 
 	if (DEEPSEA_BUILD_APPLICATION)

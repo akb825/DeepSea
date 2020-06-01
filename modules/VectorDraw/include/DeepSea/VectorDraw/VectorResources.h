@@ -36,11 +36,6 @@ extern "C"
  */
 
 /**
- * @brief Constant for the size of the text quality remap array.
- */
-#define DS_TEXT_QUALITY_REMAP_SIZE (dsTextQuality_VeryHigh + 1)
-
-/**
  * @brief Gets the full allocation size of vector resources.
  * @param maxTextures The maximum textures to store.
  * @param maxFaceGroups The maximum face groups to store.

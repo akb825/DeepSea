@@ -170,7 +170,8 @@ DeepSea contains the following modules:
 * [RenderBootstrap](modules/Render/RenderBootstrap/README.md): Library that aids in creating one of the various renderers based on what is supported.
 * [Text](modules/Text/README.md): Draws Unicode text.
 * [VectorDraw](modules/VectorDraw/README.md): Draws vector graphics.
-* [Scene](modules/Scene/README.md): Scene library for creating scene graphs mixed with render passes and operations to perform each frame as a part of rendering.
+* [Scene](modules/Scene/Scene/README.md): Scene library for creating scene graphs mixed with render passes and operations to perform each frame as a part of rendering.
+* [VectorDrawScene](modules/Scene/VectorDrawScene/README.md): Library for draw vector images and text within a scene.
 * [Application](modules/Application/Application/README.md): Application library, providing functionality such as input and window events.
 * [ApplicationSDL](modules/Application/ApplicationSDL/README.md): SDL implementation of the Application library.
 

@@ -57,9 +57,7 @@ add_custom_target(deepsea_test_scene_app_prepare
 ds_compile_shaders(shaders FILE ${CMAKE_CURRENT_SOURCE_DIR}/TestSceneCube.msl
 	${CMAKE_CURRENT_SOURCE_DIR}/TestSceneGround.msl
 	OUTPUT TestScene.mslb CONFIG ${shaderConfigs} OUTPUT_DIR ${shaderDir}
-	DEPENDS_RECURSE ${DEEPSEA_MODULE_DIR}/Render/Render/include/*.mslh
-		${DEEPSEA_MODULE_DIR}/Scene/include/*.mslh
-	INCLUDE ${DEEPSEA_MODULE_DIR}/Render/Render/include ${DEEPSEA_MODULE_DIR}/Scene/include)
+	INCLUDE ${DEEPSEA_MODULE_DIR}/Render/Render/include ${DEEPSEA_MODULE_DIR}/Scene/Scene/include)
 ds_compile_shaders_target(deepsea_test_scene_app_shaders shaders
 	DEPENDS deepsea_test_scene_app_prepare)
 
@@ -90,7 +88,7 @@ ds_create_scene_target(deepsea_test_scene_app_scene scene DEPENDS deepsea_test_s
 ds_create_view(view FILE ${CMAKE_CURRENT_SOURCE_DIR}/view.json OUTPUT ${assetsDir}/view.dsv)
 ds_create_view_target(deepsea_test_scene_app_view view DEPENDS deepsea_test_scene_app_prepare)
 
-# Copy 
+# Copy
 ds_build_assets_dir(finalAssetsDir deepsea_test_scene_app)
 set(finalAssetsDir ${finalAssetsDir}/TestScene-assets)
 add_custom_target(deepsea_test_scene_app_assets

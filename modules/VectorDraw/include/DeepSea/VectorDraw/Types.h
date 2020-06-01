@@ -35,7 +35,7 @@ extern "C"
 /**
  * @brief Log tag used by the vector draw library.
  */
-#define DS_VECTOR_DRAW_LOG_TAG "vector"
+#define DS_VECTOR_DRAW_LOG_TAG "vectordraw"
 
 /**
  * @brief Constant for no clipping path to be applied.
@@ -51,6 +51,11 @@ extern "C"
  * @brief Constant for the maximum number of materials allowed for a single material set.
  */
 #define DS_MAX_ALLOWED_VECTOR_MATERIALS 1024U
+
+/**
+ * @brief Constant for the size of the text quality remap array.
+ */
+#define DS_TEXT_QUALITY_REMAP_SIZE (dsTextQuality_VeryHigh + 1)
 
 /**
  * @brief Enum for a command for vector drawing.

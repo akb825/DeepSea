@@ -273,8 +273,9 @@ bool dsSceneLoadContext_registerGlobalDataType(dsSceneLoadContext* context, cons
 	return true;
 }
 
-bool dsSceneLoadContext_registerCustomResourceType(dsSceneLoadContext* context, const char* name,
-	const dsCustomSceneResourceType* type, dsLoadCustomSceneResourceFunction loadFunc,
+bool dsSceneLoadContext_registerCustomSceneResourceType(dsSceneLoadContext* context,
+	const char* name, const dsCustomSceneResourceType* type,
+	dsLoadCustomSceneResourceFunction loadFunc,
 	dsDestroyCustomSceneResourceFunction destroyResourceFunc, void* userData,
 	dsDestroySceneUserDataFunction destroyUserDataFunc)
 {

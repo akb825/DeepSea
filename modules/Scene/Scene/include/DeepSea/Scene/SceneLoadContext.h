@@ -173,7 +173,8 @@ DS_SCENE_EXPORT bool dsSceneLoadContext_registerGlobalDataType(dsSceneLoadContex
  * @return False if the type couldn't be registered.
  */
 DS_SCENE_EXPORT bool dsSceneLoadContext_registerCustomSceneResourceType(dsSceneLoadContext* context,
-	const char* name, const dsCustomSceneResourceType* type, dsLoadSceneGlobalDataFunction loadFunc,
+	const char* name, const dsCustomSceneResourceType* type,
+	dsLoadCustomSceneResourceFunction loadFunc,
 	dsDestroyCustomSceneResourceFunction destroyResourceFunc, void* userData,
 	dsDestroySceneUserDataFunction destroyUserDataFunc);
 

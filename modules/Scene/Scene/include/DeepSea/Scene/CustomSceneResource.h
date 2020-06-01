@@ -26,6 +26,12 @@ extern "C"
 #endif
 
 /**
+ * @file
+ * @brief Functions for creating custom scene resources.
+ * @see dsCustomSceneResources
+ */
+
+/**
  * @brief Creates a custom resource.
  * @remark errno will be set on failure.
  * @param allocator The allocator to create the custom resource with.

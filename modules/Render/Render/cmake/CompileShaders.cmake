@@ -50,7 +50,7 @@ endif()
 # INCLUDE - list of include paths for compilation.
 # DEFINE - list of defines to apply for compilation.
 # DEPENDS - list of patterns to be used as dependencies. A GLOB will be performed for each
-#              pattern.
+#           pattern.
 # DEPENDS_RECURSE - same as DEPENDS, except each pattern performs a GLOB_RECURSE.
 # OPTIMIZE - overrides the optimization level for Release builds. Values can be 0 (disable
 #            optimizations),  1 (simple optimizations), and 2 (full optimizations). Defaults to 2
@@ -104,6 +104,15 @@ function(ds_compile_shaders container)
 	list(APPEND extraArgs $<$<NOT:$<OR:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>>>:-s>)
 	list(APPEND extraArgs $<$<NOT:$<CONFIG:Debug>>:-O> $<$<NOT:$<CONFIG:Debug>>:${ARGS_OPTIMIZE}>)
 
+	set(includeDeps)
+	foreach (dir ${ARGS_INCLUDE})
+		list(APPEND extraArgs -I ${dir})
+		file(GLOB_RECURSE mslhFiles ${dir}/*.mslh)
+		if (mslhFiles)
+			list(APPEND includeDeps ${mslhFiles})
+		endif()
+	endforeach()
+
 	set(outputs)
 	foreach (config ${ARGS_CONFIG})
 		get_property(configPath GLOBAL PROPERTY ${config})
@@ -124,17 +133,13 @@ function(ds_compile_shaders container)
 		list(APPEND commandLineArgs -o ${output})
 		list(APPEND outputs ${output})
 
-		foreach (inc ${ARGS_INCLUDE})
-			list(APPEND commandLineArgs -I ${inc})
-		endforeach()
-
 		foreach (define ${ARGS_DEFINE})
 			list(APPEND commandLineArgs -D ${define})
 		endforeach()
 
 		set(compileCommand ${MSLC} ${commandLineArgs} ${extraArgs})
-		set(dependsArgs DEPENDS ${deps} ${recursiveDeps} ${ARGS_FILE} ${configPath} ${MSLC}
-			${workingDir})
+		set(dependsArgs DEPENDS ${deps} ${includeDeps} ${recursiveDeps} ${ARGS_FILE} ${configPath}
+			${MSLC})
 
 		# NOTE: Output file doesn't support generator expressions, so need to manually expand it.
 		if (output MATCHES ".*\\$<CONFIG>.*")
@@ -157,7 +162,7 @@ function(ds_compile_shaders container)
 				endforeach()
 
 				add_custom_command(OUTPUT ${configOutput} ${configOutputCommand}
-					${configCompileCommand} ${dependsArgs}
+					${configCompileCommand} ${dependsArgs} ${workingDir}
 					COMMENT "Building ${config} shader: ${configOutput}")
 			endforeach()
 		else()
@@ -165,7 +170,7 @@ function(ds_compile_shaders container)
 				set(outputCommand COMMAND ${outputCommand})
 			endif()
 			add_custom_command(OUTPUT ${output} ${outputCommand} COMMAND ${compileCommand}
-				${dependsArgs} COMMENT "Building ${config} shader: ${output}")
+				${dependsArgs} ${workingDir} COMMENT "Building ${config} shader: ${output}")
 		endif()
 	endforeach()
 
