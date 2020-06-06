@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-#include <DeepSea/VectorDrawScene/VectorDrawSceneLoadContext.h>
+#include <DeepSea/VectorDrawScene/VectorSceneLoadContext.h>
 
-#include "VectorDrawSceneResourcesLoad.h"
+#include "VectorSceneResourcesLoad.h"
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Scene/SceneLoadContext.h>
 #include <DeepSea/VectorDraw/VectorResources.h>
+#include <DeepSea/VectorDrawScene/VectorSceneResources.h>
 
 #include <string.h>
 
@@ -34,14 +35,8 @@ void VectorResourcesUserData_destroy(void* userData)
 		DS_VERIFY(dsAllocator_free(vectorResourcesUserData->allocator, userData));
 }
 
-static dsCustomSceneResourceType resourceType;
-const dsCustomSceneResourceType* dsVectorDrawSceneLoadContext_getVectorResourcesType(void)
-{
-	return &resourceType;
-}
-
-bool dsVectorDrawSceneLoadConext_registerTypes(dsSceneLoadContext* loadContext,
-	dsAllocator* allocator, const dsTextQuality* qualityRemap)
+bool dsVectorSceneLoadConext_registerTypes(dsSceneLoadContext* loadContext, dsAllocator* allocator,
+	const dsTextQuality* qualityRemap)
 {
 	if (!loadContext || (qualityRemap && !allocator))
 	{
@@ -63,7 +58,7 @@ bool dsVectorDrawSceneLoadConext_registerTypes(dsSceneLoadContext* loadContext,
 		}
 
 		if (!dsSceneLoadContext_registerCustomSceneResourceType(loadContext, "VectorResources",
-				&resourceType, &dsVectorDrawSceneResources_load,
+				dsVectorSceneResources_getType(), &dsVectorDrawSceneResources_load,
 				(dsDestroyCustomSceneResourceFunction)&dsVectorResources_destroy, userData,
 				&VectorResourcesUserData_destroy))
 		{

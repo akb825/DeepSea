@@ -25,27 +25,24 @@ extern "C"
 
 /**
  * @file
- * @brief Function for registering the VectorDrawScene types with a dsSceneLoadContext.
+ * @brief Function for registering dsVectorResources with dsSceneResources.
  */
 
 /**
  * @brief Gets the type for the dsVectorResources custom type for storage in dsSceneResources.
  * @return The custom type.
  */
-DS_VECTORDRAWSCENE_EXPORT const dsCustomSceneResourceType*
-	dsVectorDrawSceneLoadContext_getVectorResourcesType(void);
+DS_VECTORDRAWSCENE_EXPORT const dsCustomSceneResourceType* dsVectorSceneResources_getType(void);
 
 /**
- * @brief Registers the vector draw scene types for loading.
+ * @brief Creates a custom resource to wrap a dsVectorResource.
  * @remark errno will be set on failure.
- * @param loadContext The load context to register the types with.
- * @param allocator The allocator to use for copying extra data passed into this function.
- * @param qualityRemap Array to remap text qualities, or NULL to use values as-is. If not NULL,
- *     it must be of size DS_TEXT_QUALITY_REMAP_SIZE.
- * @return False if not all of the types could be registered.
+ * @param allocator The allocator to create the custom resource.
+ * @param resources The vector resources to wrap.
+ * @return The custom resource or NULL if an error occurred.
  */
-DS_VECTORDRAWSCENE_EXPORT bool dsVectorDrawSceneLoadConext_registerTypes(
-	dsSceneLoadContext* loadContext, dsAllocator* allocator, const dsTextQuality* qualityRemap);
+DS_VECTORDRAWSCENE_EXPORT dsCustomSceneResource* dsVectorSceneResources_create(
+	dsAllocator* allocator, dsVectorResources* resources);
 
 #ifdef __cplusplus
 }

@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-#include "VectorDrawSceneResourcesLoad.h"
+#include "VectorSceneResourcesLoad.h"
 
-#include "Flatbuffers/VectorDrawSceneResources_generated.h"
+#include "Flatbuffers/VectorSceneResources_generated.h"
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
