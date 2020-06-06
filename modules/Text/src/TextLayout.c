@@ -17,6 +17,7 @@
 #include <DeepSea/Text/TextLayout.h>
 
 #include "FontImpl.h"
+#include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Assert.h>
@@ -24,9 +25,11 @@
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Core/Profile.h>
 #include <DeepSea/Geometry/AlignedBox2.h>
+#include <DeepSea/Math/Core.h>
 #include <DeepSea/Math/Vector2.h>
 #include <DeepSea/Text/Font.h>
 #include <DeepSea/Text/Text.h>
+
 #include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
@@ -51,20 +54,30 @@ static const dsTextRange* findRange(const dsTextRange* ranges, uint32_t rangeCou
 
 static void finishLine(dsTextLayout* layout, dsAlignedBox2f* lineBounds, float lineY,
 	dsTextAlign alignment, dsGlyphLayout* glyphs, const uint32_t* glyphsLineOrdered,
-	uint32_t sectionStart, uint32_t sectionEnd)
+	uint32_t sectionStart, uint32_t sectionEnd, uint32_t* lineCount)
 {
 	if (!dsAlignedBox2f_isValid(lineBounds))
 		return;
 
+	dsTextLine* line = layout->lines ? layout->lines + *lineCount : NULL;
+	++*lineCount;
+
 	// Handle alignment.
+	uint32_t minCharIndex = UINT_MAX;
+	uint32_t maxCharIndex = 0;
 	switch (alignment)
 	{
 		case dsTextAlign_Right:
 			for (uint32_t i = sectionStart; i < sectionEnd; ++i)
 			{
-				dsGlyphLayout* glyph = glyphs + glyphsLineOrdered[i];
+				uint32_t glyphIndex = glyphsLineOrdered[i];
+				dsGlyphLayout* glyph = glyphs + glyphIndex;
 				glyph->position.x -= lineBounds->max.x;
 				glyph->position.y = lineY;
+
+				uint32_t charIndex = layout->text->glyphs[glyphIndex].charIndex;
+				minCharIndex = dsMin(minCharIndex, charIndex);
+				maxCharIndex = dsMax(maxCharIndex, charIndex);
 			}
 			lineBounds->min.x -= lineBounds->max.x;
 			lineBounds->max.x -= 0.0f;
@@ -74,9 +87,14 @@ static void finishLine(dsTextLayout* layout, dsAlignedBox2f* lineBounds, float l
 			float alignmentOffset = lineBounds->max.x/2.0f;
 			for (uint32_t i = sectionStart; i < sectionEnd; ++i)
 			{
-				dsGlyphLayout* glyph = glyphs + glyphsLineOrdered[i];
+				uint32_t glyphIndex = glyphsLineOrdered[i];
+				dsGlyphLayout* glyph = glyphs + glyphIndex;
 				glyph->position.x -= alignmentOffset;
 				glyph->position.y = lineY;
+
+				uint32_t charIndex = layout->text->glyphs[glyphIndex].charIndex;
+				minCharIndex = dsMin(minCharIndex, charIndex);
+				maxCharIndex = dsMax(maxCharIndex, charIndex);
 			}
 			lineBounds->min.x -= alignmentOffset;
 			lineBounds->max.x -= alignmentOffset;
@@ -85,8 +103,13 @@ static void finishLine(dsTextLayout* layout, dsAlignedBox2f* lineBounds, float l
 		default:
 			for (uint32_t i = sectionStart; i < sectionEnd; ++i)
 			{
-				dsGlyphLayout* glyph = glyphs + glyphsLineOrdered[i];
+				uint32_t glyphIndex = glyphsLineOrdered[i];
+				dsGlyphLayout* glyph = glyphs + glyphIndex;
 				glyph->position.y = lineY;
+
+				uint32_t charIndex = layout->text->glyphs[glyphIndex].charIndex;
+				minCharIndex = dsMin(minCharIndex, charIndex);
+				maxCharIndex = dsMax(maxCharIndex, charIndex);
 			}
 			break;
 	}
@@ -94,6 +117,14 @@ static void finishLine(dsTextLayout* layout, dsAlignedBox2f* lineBounds, float l
 	lineBounds->min.y += lineY;
 	lineBounds->max.y += lineY;
 	dsAlignedBox2_addBox(layout->bounds, *lineBounds);
+
+	if (line)
+	{
+		line->start = minCharIndex;
+		line->count = maxCharIndex - minCharIndex + 1;
+		line->bounds = *lineBounds;
+	}
+
 	dsAlignedBox2f_makeInvalid(lineBounds);
 }
 
@@ -221,9 +252,12 @@ dsTextLayout* dsTextLayout_create(dsAllocator* allocator, const dsText* text,
 		layout->glyphsLineOrdered = NULL;
 	}
 
+	layout->lines = NULL;
 	layout->styles = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsTextStyle, styleCount);
 	DS_ASSERT(layout->styles);
 	memcpy(layout->styles, styles, styleCount*sizeof(dsTextStyle));
+	layout->lineCount = 0;
+	layout->maxLines = 0;
 	layout->styleCount = styleCount;
 
 	dsAlignedBox2f_makeInvalid(&layout->bounds);
@@ -471,6 +505,18 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 			glyphs[charMapping->firstGlyph + j].position = position;
 	}
 
+	// Allocate lines if there's an allocator.
+	if (layout->allocator)
+	{
+		uint32_t lineCount = (uint32_t)position.y + 1;
+		layout->lineCount = 0;
+		if (!DS_RESIZEABLE_ARRAY_ADD(layout->allocator, layout->lines, layout->lineCount,
+				layout->maxLines, lineCount))
+		{
+			DS_PROFILE_FUNC_RETURN(true);
+		}
+	}
+
 	// Done with the lock at this point.
 	dsFaceGroup_unlock(font->group);
 
@@ -502,6 +548,7 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 	float lineY = 0.0f;
 	uint32_t sectionStart = 0;
 	float offset = 0;
+	uint32_t lineCount = 0;
 	for (uint32_t i = 0; i < text->glyphCount; ++i)
 	{
 		// Skip glyphs on an invalid line.
@@ -520,7 +567,7 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 			float lastYIndex = lastY;
 			lastY = glyph->position.y;
 			finishLine(layout, &lineBounds, lineY, alignment, glyphs, glyphsLineOrdered,
-				sectionStart, i);
+				sectionStart, i, &lineCount);
 
 			lineY += lastScale*lineScale*(curYIndex - lastYIndex - 1.0f);
 			sectionStart = i;
@@ -564,7 +611,13 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 	if (sectionStart != 0)
 		lineY += lastScale*lineScale;
 	finishLine(layout, &lineBounds, lineY, alignment, glyphs, glyphsLineOrdered, sectionStart,
-		text->glyphCount);
+		text->glyphCount, &lineCount);
+	if (layout->lines)
+	{
+		// Actual line count may be less due to empty lines.
+		DS_ASSERT(lineCount <= layout->lineCount);
+		layout->lineCount = lineCount;
+	}
 
 	// Fifth pass: add padding to the bounds and compute the final texture coordinates.
 	uint32_t paddedGlyphSize = font->glyphSize + windowSize*2;
@@ -697,5 +750,8 @@ void dsTextLayout_destroyLayoutAndText(dsTextLayout* layout)
 
 	dsText_destroy((dsText*)layout->text);
 	if (layout->allocator)
+	{
+		dsAllocator_free(layout->allocator, layout->lines);
 		dsAllocator_free(layout->allocator, layout);
+	}
 }

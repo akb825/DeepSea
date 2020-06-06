@@ -864,7 +864,7 @@ dsVectorImage* dsVectorImage_create(dsAllocator* allocator, dsAllocator* resourc
 
 	dsVectorScratchData* scratchData = initResources->scratchData;
 	if (!processCommands(scratchData, initResources->commandBuffer, commands, commandCount,
-		initResources->sharedMaterials, localMaterials, pixelSize))
+			initResources->sharedMaterials, localMaterials, pixelSize))
 	{
 		dsVectorScratchData_reset(scratchData);
 		DS_PROFILE_FUNC_RETURN(NULL);
@@ -893,8 +893,10 @@ dsVectorImage* dsVectorImage_create(dsAllocator* allocator, dsAllocator* resourc
 	image->allocator = dsAllocator_keepPointer(allocator);
 
 	dsResourceManager* resourceManager = initResources->resourceManager;
+	// If no info textures, the image is empty.
 	if (infoTextureCount > 0)
 	{
+		// Create the info textures.
 		DS_ASSERT(scratchData->maxVectorInfos % INFOS_PER_TEXTURE == 0);
 		dsTextureInfo infoTexInfo = {infoFormat, dsTextureDim_2D, 4, 0, 0, 1, 1};
 		image->infoTextures = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsTexture*, infoTextureCount);
@@ -920,6 +922,7 @@ dsVectorImage* dsVectorImage_create(dsAllocator* allocator, dsAllocator* resourc
 			}
 		}
 
+		// Create the geometry for the shapes and images in a single combined buffer.
 		if (dsVectorScratchData_hasGeometry(scratchData))
 		{
 			image->buffer = dsVectorScratchData_createGfxBuffer(scratchData, resourceManager,
@@ -940,6 +943,7 @@ dsVectorImage* dsVectorImage_create(dsAllocator* allocator, dsAllocator* resourc
 			}
 		}
 
+		// Create the pieces to define each draw call.
 		DS_ASSERT(scratchData->pieceCount > 0);
 		image->imagePieces = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, VectorImagePiece,
 			scratchData->pieceCount);
@@ -959,8 +963,10 @@ dsVectorImage* dsVectorImage_create(dsAllocator* allocator, dsAllocator* resourc
 		image->pieceCount = scratchData->pieceCount;
 		DS_ASSERT(infoTextureCount > 0);
 
+		// Create the text objects.
 		if (scratchData->textLayoutCount > 0)
 		{
+			// Move the text layouts from the scratch data to the image.
 			image->textLayoutCount = scratchData->textLayoutCount;
 			image->textLayouts = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsTextLayout*,
 				image->textLayoutCount);
@@ -969,6 +975,7 @@ dsVectorImage* dsVectorImage_create(dsAllocator* allocator, dsAllocator* resourc
 				sizeof(dsTextLayout*)*image->textLayoutCount);
 			dsVectorScratchData_relinquishText(scratchData);
 
+			// Get the draw infos for the different ranges of text with different materials.
 			DS_ASSERT(scratchData->textDrawInfoCount > 0);
 			image->textDrawInfoCount = scratchData->textDrawInfoCount;
 			image->textDrawInfos = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, TextDrawInfo,
@@ -985,6 +992,8 @@ dsVectorImage* dsVectorImage_create(dsAllocator* allocator, dsAllocator* resourc
 				DS_PROFILE_FUNC_RETURN(NULL);
 			}
 
+			// Create the text renders for each piece of text, tying the vector image data with the
+			// draw info for how to draw the text itself.
 			for (uint32_t i = 0; i < image->pieceCount; ++i)
 			{
 				if (image->imagePieces[i].type != dsVectorShaderType_TextColor &&

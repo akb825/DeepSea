@@ -378,6 +378,28 @@ typedef struct dsGlyphLayout
 } dsGlyphLayout;
 
 /**
+ * @brief Struct defining a line of text.
+ * @see TextLayout.h
+ */
+typedef struct dsTextLine
+{
+	/**
+	 * @brief The first character in the range for the line.
+	 */
+	uint32_t start;
+
+	/**
+	 * @brief The number of characters in the range for the line.
+	 */
+	uint32_t count;
+
+	/**
+	 * @brief The bounds for the line.
+	 */
+	dsAlignedBox2f bounds;
+} dsTextLine;
+
+/**
  * @brief Struct containing layout information for a piece of text
  * @see TextLayout.h
  */
@@ -406,12 +428,30 @@ typedef struct dsTextLayout
 	const uint32_t* glyphsLineOrdered;
 
 	/**
+	 * @brief The lines of text.
+	 *
+	 * This will only be computed if the allocator supports freeing memory. Only lines that contain
+	 * characters (i.e. non-empty lines) are included.
+	 */
+	dsTextLine* lines;
+
+	/**
 	 * @brief The styles that are used with the text.
 	 *
 	 * The style values may be changed after the layout has been created. However, the ranges should
 	 * remain the same.
 	 */
 	dsTextStyle* styles;
+
+	/**
+	 * @brief The number of lines.
+	 */
+	uint32_t lineCount;
+
+	/**
+	 * @brief The maximum number of lines.
+	 */
+	uint32_t maxLines;
 
 	/**
 	 * @brief The number of styles.

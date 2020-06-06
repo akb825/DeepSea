@@ -53,6 +53,9 @@ extern "C"
 
 /**
  * @brief Gets the full allocation size for dsTextLayout.
+ *
+ * This won't include any memory for computing the lines.
+ *
  * @param text The text that will be used to create the layout.
  * @param styleCount The number of styles.
  * @return The full allocation size or 0 if invalid.
