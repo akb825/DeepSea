@@ -14,24 +14,24 @@
  * limitations under the License.
  */
 
-#include <DeepSea/VectorDrawScene/VectorSceneResources.h>
+#include <DeepSea/VectorDrawScene/VectorSceneMaterialSet.h>
 
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Error.h>
-#include <DeepSea/VectorDraw/VectorResources.h>
+#include <DeepSea/VectorDraw/VectorMaterialSet.h>
 
-const char* const dsVectorSceneResources_typeName = "VectorResources";
+const char* const dsVectorSceneMaterialSet_typeName = "VectorMaterialSet";
 
 static dsCustomSceneResourceType resourceType;
-const dsCustomSceneResourceType* dsVectorSceneResources_type(void)
+const dsCustomSceneResourceType* dsVectorSceneMaterialSet_type(void)
 {
 	return &resourceType;
 }
 
-dsCustomSceneResource* dsVectorSceneResources_create(dsAllocator* allocator,
-	dsVectorResources* resources)
+dsCustomSceneResource* dsVectorSceneMaterialSet_create(dsAllocator* allocator,
+	dsVectorMaterialSet* materialSet)
 {
-	if (!allocator || !resources)
+	if (!allocator || !materialSet)
 	{
 		errno = EINVAL;
 		return NULL;
@@ -43,7 +43,8 @@ dsCustomSceneResource* dsVectorSceneResources_create(dsAllocator* allocator,
 
 	customResource->allocator = dsAllocator_keepPointer(allocator);
 	customResource->type = &resourceType;
-	customResource->resource = resources;
-	customResource->destroyFunc = (dsDestroyCustomSceneResourceFunction)&dsVectorResources_destroy;
+	customResource->resource = materialSet;
+	customResource->destroyFunc =
+		(dsDestroyCustomSceneResourceFunction)&dsVectorMaterialSet_destroy;
 	return customResource;
 }

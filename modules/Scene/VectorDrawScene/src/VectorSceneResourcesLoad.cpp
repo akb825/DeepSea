@@ -20,7 +20,6 @@
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
-#include <DeepSea/Scene/Flatbuffers/SceneCommon_generated.h>
 #include <DeepSea/Scene/Flatbuffers/SceneFlatbufferHelpers.h>
 #include <DeepSea/Scene/SceneLoadContext.h>
 #include <DeepSea/Scene/SceneLoadScratchData.h>
@@ -43,7 +42,7 @@ static bool loadFontFace(void*, dsFaceGroup*, const char*, const char*)
 	return false;
 }
 
-void* dsVectorDrawSceneResources_load(const dsSceneLoadContext* loadContext,
+void* dsVectorSceneResources_load(const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator*, void* userData,
 	const uint8_t* data, size_t dataSize)
 {

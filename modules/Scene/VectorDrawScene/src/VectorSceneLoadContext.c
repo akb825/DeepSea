@@ -17,10 +17,13 @@
 #include <DeepSea/VectorDrawScene/VectorSceneLoadContext.h>
 
 #include "VectorSceneResourcesLoad.h"
+#include "VectorSceneMaterialSetLoad.h"
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Scene/SceneLoadContext.h>
+#include <DeepSea/VectorDraw/VectorMaterialSet.h>
 #include <DeepSea/VectorDraw/VectorResources.h>
+#include <DeepSea/VectorDrawScene/VectorSceneMaterialSet.h>
 #include <DeepSea/VectorDrawScene/VectorSceneResources.h>
 
 #include <string.h>
@@ -57,14 +60,23 @@ bool dsVectorSceneLoadConext_registerTypes(dsSceneLoadContext* loadContext, dsAl
 				sizeof(dsTextQuality)*DS_TEXT_QUALITY_REMAP_SIZE);
 		}
 
-		if (!dsSceneLoadContext_registerCustomSceneResourceType(loadContext, "VectorResources",
-				dsVectorSceneResources_getType(), &dsVectorDrawSceneResources_load,
+		if (!dsSceneLoadContext_registerCustomSceneResourceType(loadContext,
+				dsVectorSceneResources_typeName, dsVectorSceneResources_type(),
+				&dsVectorSceneResources_load,
 				(dsDestroyCustomSceneResourceFunction)&dsVectorResources_destroy, userData,
 				&VectorResourcesUserData_destroy))
 		{
 			VectorResourcesUserData_destroy(userData);
 			return false;
 		}
+	}
+
+	if (!dsSceneLoadContext_registerCustomSceneResourceType(loadContext,
+			dsVectorSceneMaterialSet_typeName, dsVectorSceneMaterialSet_type(),
+			&dsVectorSceneMaterialSet_load,
+			(dsDestroyCustomSceneResourceFunction)&dsVectorMaterialSet_destroy, NULL, NULL))
+	{
+		return false;
 	}
 	return true;
 }

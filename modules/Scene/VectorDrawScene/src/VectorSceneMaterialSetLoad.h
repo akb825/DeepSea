@@ -22,13 +22,7 @@ extern "C"
 {
 #endif
 
-typedef struct VectorResourcesUserData
-{
-	dsAllocator* allocator;
-	dsTextQuality qualityRemap[DS_TEXT_QUALITY_REMAP_SIZE];
-} VectorResourcesUserData;
-
-void* dsVectorSceneResources_load(const dsSceneLoadContext* loadContext,
+void* dsVectorSceneMaterialSet_load(const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
 	void* userData, const uint8_t* data, size_t dataSize);
 

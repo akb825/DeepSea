@@ -97,7 +97,7 @@ typedef struct dsSceneResources dsSceneResources;
  *
  * ```
  * static dsCustomResourceType myResourceType;
- * const dsSceneResourceType* dsMyResourceType_getType(void)
+ * const dsSceneResourceType* dsMyResourceType_type(void)
  * {
  *     return &myResourceType;
  * }

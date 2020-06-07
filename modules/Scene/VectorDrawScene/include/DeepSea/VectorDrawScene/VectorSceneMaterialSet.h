@@ -25,30 +25,31 @@ extern "C"
 
 /**
  * @file
- * @brief Function for registering dsVectorResources with dsSceneResources.
+ * @brief Function for registering dsVectorMaterialSet with dsSceneResources.
  */
 
 /**
- * @brief The type name for vector scene resources.
+ * @brief The type name for vector scene material set.
  */
-DS_VECTORDRAWSCENE_EXPORT extern const char* const dsVectorSceneResources_typeName;
+DS_VECTORDRAWSCENE_EXPORT extern const char* const dsVectorSceneMaterialSet_typeName;
 
 /**
- * @brief Gets the type for the dsVectorResources custom type for storage in dsSceneResources.
+ * @brief Gets the type for the dsVectorMaterialSet custom type for storage in dsSceneResources.
  * @return The custom type.
  */
-DS_VECTORDRAWSCENE_EXPORT const dsCustomSceneResourceType* dsVectorSceneResources_type(void);
+DS_VECTORDRAWSCENE_EXPORT const dsCustomSceneResourceType* dsVectorSceneMaterialSet_type(void);
 
 /**
- * @brief Creates a custom resource to wrap a dsVectorResource.
+ * @brief Creates a custom resource to wrap a dsVectorMaterialSet.
  * @remark errno will be set on failure.
  * @param allocator The allocator to create the custom resource.
- * @param resources The vector resources to wrap.
+ * @param materialSet The vector material set to wrap.
  * @return The custom resource or NULL if an error occurred.
  */
-DS_VECTORDRAWSCENE_EXPORT dsCustomSceneResource* dsVectorSceneResources_create(
-	dsAllocator* allocator, dsVectorResources* resources);
+DS_VECTORDRAWSCENE_EXPORT dsCustomSceneResource* dsVectorSceneMaterialSet_create(
+	dsAllocator* allocator, dsVectorMaterialSet* materialSet);
 
 #ifdef __cplusplus
 }
 #endif
+
