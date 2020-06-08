@@ -18,6 +18,7 @@
 
 #include "VectorSceneResourcesLoad.h"
 #include "VectorSceneMaterialSetLoad.h"
+#include "VectorSceneShadersLoad.h"
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Scene/SceneLoadContext.h>
@@ -25,6 +26,7 @@
 #include <DeepSea/VectorDraw/VectorResources.h>
 #include <DeepSea/VectorDrawScene/VectorSceneMaterialSet.h>
 #include <DeepSea/VectorDrawScene/VectorSceneResources.h>
+#include <DeepSea/VectorDrawScene/VectorSceneShaders.h>
 
 #include <string.h>
 
@@ -78,5 +80,13 @@ bool dsVectorSceneLoadConext_registerTypes(dsSceneLoadContext* loadContext, dsAl
 	{
 		return false;
 	}
+
+	if (!dsSceneLoadContext_registerCustomSceneResourceType(loadContext,
+			dsVectorSceneShaders_typeName, dsVectorSceneShaders_type(), &dsVectorSceneShaders_load,
+			dsVectorSceneShaders_destroy, NULL, NULL))
+	{
+		return false;
+	}
+
 	return true;
 }

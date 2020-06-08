@@ -497,7 +497,7 @@ static bool loadMaterialDescs(dsSceneResources* resources, dsResourceManager* re
 			}
 			else
 				curElement->shaderVariableGroupDesc = nullptr;
-			curElement->binding = static_cast<dsMaterialBinding>(fbElement->binding());
+			curElement->binding = DeepSeaScene::convert(fbElement->binding());
 			++curElement;
 		}
 

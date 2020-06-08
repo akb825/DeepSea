@@ -176,6 +176,14 @@ enum MaterialType : ubyte
 	UniformBuffer
 }
 
+// Enum for how to bind a material value.
+enum MaterialBinding : ubyte
+{
+	Material,
+	Global,
+	Instance
+}
+
 // Enum for the format of a vertex element
 enum VertexElementFormat : ubyte
 {

@@ -124,14 +124,6 @@ table VariableData
 	data : [ubyte] (required);
 }
 
-// Enum for how to bind a material value.
-enum MaterialBinding : ubyte
-{
-	Material,
-	Global,
-	Instance
-}
-
 // Structure describing an element of a material variable.
 table MaterialElement
 {

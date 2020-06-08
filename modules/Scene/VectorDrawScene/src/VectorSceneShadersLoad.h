@@ -14,27 +14,21 @@
  * limitations under the License.
  */
 
-#pragma once
-
 #include <DeepSea/Core/Config.h>
-#include <DeepSea/Scene/Types.h>
-#include <DeepSea/VectorDraw/Types.h>
+#include <DeepSea/VectorDrawScene/Types.h>
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
 
-/**
- * @file
- * @brief Includes all of the types used in the DeepSea/VectorDrawScene library.
- */
+bool dsVectorSceneShaders_destroy(void* customResource);
 
-/**
- * @brief Log tag used by the vector draw scene library.
- */
-#define DS_VECTOR_DRAW_SCENE_LOG_TAG "vectordraw-scene"
+void* dsVectorSceneShaders_load(const dsSceneLoadContext* loadContext,
+	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
+	void* userData, const uint8_t* data, size_t dataSize);
 
 #ifdef __cplusplus
 }
 #endif
+

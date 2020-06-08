@@ -69,39 +69,6 @@ struct CustomResourceBuilder;
 struct SceneResources;
 struct SceneResourcesBuilder;
 
-enum class MaterialBinding : uint8_t {
-  Material = 0,
-  Global = 1,
-  Instance = 2,
-  MIN = Material,
-  MAX = Instance
-};
-
-inline const MaterialBinding (&EnumValuesMaterialBinding())[3] {
-  static const MaterialBinding values[] = {
-    MaterialBinding::Material,
-    MaterialBinding::Global,
-    MaterialBinding::Instance
-  };
-  return values;
-}
-
-inline const char * const *EnumNamesMaterialBinding() {
-  static const char * const names[4] = {
-    "Material",
-    "Global",
-    "Instance",
-    nullptr
-  };
-  return names;
-}
-
-inline const char *EnumNameMaterialBinding(MaterialBinding e) {
-  if (flatbuffers::IsOutRange(e, MaterialBinding::Material, MaterialBinding::Instance)) return "";
-  const size_t index = static_cast<size_t>(e);
-  return EnumNamesMaterialBinding()[index];
-}
-
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) VertexAttribute FLATBUFFERS_FINAL_CLASS {
  private:
   uint32_t attrib_;

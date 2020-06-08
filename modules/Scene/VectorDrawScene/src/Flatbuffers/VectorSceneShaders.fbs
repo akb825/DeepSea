@@ -1,0 +1,79 @@
+/*
+ * Copyright 2020 Aaron Barany
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+include "DeepSea/Scene/Flatbuffers/SceneCommon.fbs";
+
+namespace DeepSeaVectorDrawScene;
+
+// Struct describing an extra material element ot add to the vector shader module.
+table MeterialElement
+{
+	// The name of the element.
+	name : string (required);
+
+	// The type of the element.
+	type : DeepSeaScene.MaterialType;
+
+	// The number of array elements, or 0 if not an array.
+	count : uint;
+
+	// The binding of the element.
+	binding : DeepSeaScene.MaterialBinding;
+
+	// The name of the shader variable group description. This is only used when type is
+	// VariableGroup. The shader variable group is found in one of the scene resources.
+	shaderVariableGroupDesc : string;
+}
+
+// Struct describing the shaders used for a vector. Any shader name may be unset to use the default
+// name.
+table VectorShaders
+{
+	// The shader module, either as a file reference or embedded data.
+	shaderModule : DeepSeaScene.FileOrData (required);
+
+	// Extra material elements to add for the shader module.
+	extraElements : [MeterialElement] (required);
+
+	// The name of the shader for filling with a solid color.
+	fillColor : string;
+
+	// The name of the shader for filling with a linear gradient.
+	fillLinearGradient : string;
+
+	// The name of the shader for filling with a radial gradient.
+	fillRadialGradient : string;
+
+	// The name of the shader for a line with a color or gradient.
+	line : string;
+
+	// The name of the shader for a texture applied as an image.
+	image : string;
+
+	// The name of the shader for standard single-color text.
+	textColor : string;
+
+	// The name of the shader for standard single-color text with a single-colored outline.
+	textColorOutline : string;
+
+	// The name of the shader for text using a gradient.
+	textGradient : string;
+
+	// The name of the shader for text with an outline using a gradient.
+	textGradientOutline : string;
+}
+
+root_type VectorShaders;

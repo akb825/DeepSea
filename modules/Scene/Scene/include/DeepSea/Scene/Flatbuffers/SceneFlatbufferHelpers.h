@@ -81,6 +81,16 @@ inline dsMaterialType convert(MaterialType materialType)
 }
 
 /**
+ * @brief Converts from a flatbuffer material binding to a dsMaterialBinding.
+ * @param materialBinding The material binding.
+ * @return The converted material binding.
+ */
+inline dsMaterialBinding convert(MaterialBinding materialBinding)
+{
+	return static_cast<dsMaterialBinding>(materialBinding);
+}
+
+/**
  * @brief Converts from a flatbuffer vertex element format to a dsGfxFormat.
  * @param format The vertex format.
  * @param decoration The decoration for the vertex format.

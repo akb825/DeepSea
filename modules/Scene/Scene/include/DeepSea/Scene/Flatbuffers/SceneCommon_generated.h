@@ -558,6 +558,39 @@ inline const char *EnumNameMaterialType(MaterialType e) {
   return EnumNamesMaterialType()[index];
 }
 
+enum class MaterialBinding : uint8_t {
+  Material = 0,
+  Global = 1,
+  Instance = 2,
+  MIN = Material,
+  MAX = Instance
+};
+
+inline const MaterialBinding (&EnumValuesMaterialBinding())[3] {
+  static const MaterialBinding values[] = {
+    MaterialBinding::Material,
+    MaterialBinding::Global,
+    MaterialBinding::Instance
+  };
+  return values;
+}
+
+inline const char * const *EnumNamesMaterialBinding() {
+  static const char * const names[4] = {
+    "Material",
+    "Global",
+    "Instance",
+    nullptr
+  };
+  return names;
+}
+
+inline const char *EnumNameMaterialBinding(MaterialBinding e) {
+  if (flatbuffers::IsOutRange(e, MaterialBinding::Material, MaterialBinding::Instance)) return "";
+  const size_t index = static_cast<size_t>(e);
+  return EnumNamesMaterialBinding()[index];
+}
+
 enum class VertexElementFormat : uint8_t {
   Unset = 0,
   X8 = 1,
