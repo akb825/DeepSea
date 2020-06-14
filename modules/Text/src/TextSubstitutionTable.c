@@ -61,19 +61,19 @@ static inline bool addChar(dsTextSubstitutionData* data, uint32_t* len, char c)
 	return true;
 }
 
-static void adjustRanges(uint32_t start, int32_t lenDiff, dsTextRange* ranges, uint32_t rangeCount)
+static void adjustRanges(uint32_t start, int32_t lenDiff, dsTextStyle* ranges, uint32_t rangeCount)
 {
 	for (uint32_t i = 0; i < rangeCount; ++i)
 	{
-		dsTextRange* range = ranges + i;
-		uint32_t rangeEnd = range->firstChar + range->charCount;
+		dsTextStyle* range = ranges + i;
+		uint32_t rangeEnd = range->start + range->count;
 		if (rangeEnd < start)
 			continue;
 
-		if (range->firstChar > start)
-			range->firstChar += lenDiff;
-		else if (range->firstChar < start && rangeEnd > start)
-			range->glyphCount += lenDiff;
+		if (range->start > start)
+			range->start += lenDiff;
+		else if (range->start <= start && rangeEnd > start)
+			range->count += lenDiff;
 	}
 }
 
@@ -225,6 +225,9 @@ const char* dsTextSubstitutionTable_getString(dsTextSubstitutionTable* table, co
 		return NULL;
 
 	SubstitutionNode* node = (SubstitutionNode*)dsHashTable_find(table->table, name);
+	if (!node)
+		return NULL;
+
 	return node->stringData + node->nameLen;
 }
 
@@ -243,7 +246,7 @@ bool dsTextSubstitutionTable_removeString(dsTextSubstitutionTable* table, const 
 }
 
 const char* dsTextSubstitutionTable_substitute(const dsTextSubstitutionTable* table,
-	dsTextSubstitutionData* data, const char* string, dsTextRange* ranges, uint32_t rangeCount)
+	dsTextSubstitutionData* data, const char* string, dsTextStyle* ranges, uint32_t rangeCount)
 {
 	if (!table || !data || !string || (!ranges && rangeCount > 0))
 	{
@@ -297,7 +300,7 @@ const char* dsTextSubstitutionTable_substitute(const dsTextSubstitutionTable* ta
 
 			const char* substitution = node->stringData + node->nameLen;
 			uint32_t substitutionLen = (uint32_t)strlen(substitution);
-			uint32_t nextLen = varLen + substitutionLen;
+			uint32_t nextLen = varStart + substitutionLen;
 			if (nextLen > len)
 			{
 				len = varStart;
@@ -311,8 +314,9 @@ const char* dsTextSubstitutionTable_substitute(const dsTextSubstitutionTable* ta
 			else
 				len = nextLen;
 
-			memcpy(node->stringData + varStart, substitution, substitutionLen);
+			memcpy(data->stringData + varStart, substitution, substitutionLen);
 			adjustRanges(varStart, substitutionLen - varLen, ranges, rangeCount);
+			insideVar = false;
 			continue;
 		}
 

@@ -92,11 +92,11 @@ DS_TEXT_EXPORT bool dsTextSubstitutionTable_removeString(dsTextSubstitutionTable
  *     this data is destroyed or used for another call to substitute. It is suggested to re-use the
  *     same data instance as much as possible to avoid re-allocations.
  * @param string The string to substitute.
- * @param ranges The text ranges to adjust based on the substitutions.
+ * @param ranges The style ranges to adjust based on the substitutions.
  * @param rangeCount The number of ranges.
  */
 DS_TEXT_EXPORT const char* dsTextSubstitutionTable_substitute(const dsTextSubstitutionTable* table,
-	dsTextSubstitutionData* data, const char* string, dsTextRange* ranges, uint32_t rangeCount);
+	dsTextSubstitutionData* data, const char* string, dsTextStyle* ranges, uint32_t rangeCount);
 
 /**
  * @brief Destroys a substitution table.
