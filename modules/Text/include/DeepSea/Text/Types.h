@@ -529,6 +529,18 @@ typedef struct dsTextRenderBuffer
 	void* tempData;
 } dsTextRenderBuffer;
 
+/**
+ * @brief Struct defining a substititon table, substituting variable names for their strings.
+ * @see TextSubstitutionTable.h
+ */
+typedef struct dsTextSubstitutionTable dsTextSubstitutionTable;
+
+/**
+ * @brief Struct holiding data used for substitution.
+ * @see TextSubstitutionData.h
+ */
+typedef struct dsTextSubstitutionData dsTextSubstitutionData;
+
 #ifdef __cplusplus
 }
 #endif

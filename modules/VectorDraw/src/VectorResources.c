@@ -739,6 +739,9 @@ bool dsVectorResources_destroy(dsVectorResources* resources)
 		}
 	}
 
+	dsPoolAllocator_shutdown(&resources->texturePool);
+	dsPoolAllocator_shutdown(&resources->faceGroupPool);
+	dsPoolAllocator_shutdown(&resources->fontPool);
 	if (resources->allocator)
 		DS_VERIFY(dsAllocator_free(resources->allocator, resources));
 	return true;

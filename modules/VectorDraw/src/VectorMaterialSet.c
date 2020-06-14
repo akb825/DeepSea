@@ -505,6 +505,7 @@ bool dsVectorMaterialSet_destroy(dsVectorMaterialSet* materials)
 			dsGradient_destroy((dsGradient*)gradient);
 	}
 
+	dsPoolAllocator_shutdown(&materials->materialPool);
 	if (materials->allocator)
 		DS_VERIFY(dsAllocator_free(materials->allocator, materials));
 	return true;

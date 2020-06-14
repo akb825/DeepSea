@@ -254,7 +254,12 @@ bool dsGLRenderer_destroy(dsRenderer* renderer)
 	if (glRenderer->syncPools)
 	{
 		for (size_t i = 0; i < glRenderer->curSyncPools; ++i)
-			DS_VERIFY(dsAllocator_free(renderer->allocator, glRenderer->syncPools[i].buffer));
+		{
+			dsPoolAllocator* pool = glRenderer->syncPools + i;
+			void* buffer = pool->buffer;
+			dsPoolAllocator_shutdown(pool);
+			DS_VERIFY(dsAllocator_free(renderer->allocator, buffer));
+		}
 		DS_VERIFY(dsAllocator_free(renderer->allocator, glRenderer->syncPools));
 	}
 	dsSpinlock_shutdown(&glRenderer->syncPoolLock);
@@ -262,7 +267,12 @@ bool dsGLRenderer_destroy(dsRenderer* renderer)
 	if (glRenderer->syncRefPools)
 	{
 		for (size_t i = 0; i < glRenderer->curSyncRefPools; ++i)
-			DS_VERIFY(dsAllocator_free(renderer->allocator, glRenderer->syncRefPools[i].buffer));
+		{
+			dsPoolAllocator* pool = glRenderer->syncRefPools + i;
+			void* buffer = pool->buffer;
+			dsPoolAllocator_shutdown(pool);
+			DS_VERIFY(dsAllocator_free(renderer->allocator, buffer));
+		}
 		DS_VERIFY(dsAllocator_free(renderer->allocator, glRenderer->syncRefPools));
 	}
 	dsSpinlock_shutdown(&glRenderer->syncRefPoolLock);

@@ -399,6 +399,7 @@ void dsSceneResources_freeRef(dsSceneResources* resources)
 		}
 	}
 
+	dsPoolAllocator_shutdown(&resources->nodePool);
 	if (resources->allocator)
 		DS_VERIFY(dsAllocator_free(resources->allocator, resources));
 }

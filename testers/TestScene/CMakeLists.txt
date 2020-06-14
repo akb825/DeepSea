@@ -42,7 +42,7 @@ endif()
 include(ConvertFlatbuffers)
 ds_convert_flatbuffers(generatedFlatbuffers FILE ${CMAKE_CURRENT_SOURCE_DIR}/LightData.fbs
 	DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-	INCLUDE ${DEEPSEA_MODULE_DIR}/Scene/include
+	INCLUDE ${DEEPSEA_MODULE_DIR}/Scene/Scene/include
 	PYTHON ${CMAKE_CURRENT_SOURCE_DIR}/python)
 ds_convert_flatbuffers_target(deepsea_test_scene_app_flatbuffers generatedFlatbuffers)
 add_dependencies(deepsea_test_scene_app deepsea_test_scene_app_flatbuffers)
