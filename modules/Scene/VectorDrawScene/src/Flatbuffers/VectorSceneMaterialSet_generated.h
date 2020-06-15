@@ -7,11 +7,12 @@
 #include "flatbuffers/flatbuffers.h"
 
 #include "DeepSea/Scene/Flatbuffers/SceneCommon_generated.h"
+#include "VectorSceneCommon_generated.h"
 
 namespace DeepSeaVectorDrawScene {
 
-struct Color;
-struct ColorBuilder;
+struct ColorTable;
+struct ColorTableBuilder;
 
 struct GradientStop;
 struct GradientStopBuilder;
@@ -93,7 +94,7 @@ inline const char *EnumNameMaterialSpace(MaterialSpace e) {
 
 enum class MaterialValue : uint8_t {
   NONE = 0,
-  Color = 1,
+  ColorTable = 1,
   LinearGradient = 2,
   RadialGradient = 3,
   MIN = NONE,
@@ -103,7 +104,7 @@ enum class MaterialValue : uint8_t {
 inline const MaterialValue (&EnumValuesMaterialValue())[4] {
   static const MaterialValue values[] = {
     MaterialValue::NONE,
-    MaterialValue::Color,
+    MaterialValue::ColorTable,
     MaterialValue::LinearGradient,
     MaterialValue::RadialGradient
   };
@@ -113,7 +114,7 @@ inline const MaterialValue (&EnumValuesMaterialValue())[4] {
 inline const char * const *EnumNamesMaterialValue() {
   static const char * const names[5] = {
     "NONE",
-    "Color",
+    "ColorTable",
     "LinearGradient",
     "RadialGradient",
     nullptr
@@ -131,8 +132,8 @@ template<typename T> struct MaterialValueTraits {
   static const MaterialValue enum_value = MaterialValue::NONE;
 };
 
-template<> struct MaterialValueTraits<DeepSeaVectorDrawScene::Color> {
-  static const MaterialValue enum_value = MaterialValue::Color;
+template<> struct MaterialValueTraits<DeepSeaVectorDrawScene::ColorTable> {
+  static const MaterialValue enum_value = MaterialValue::ColorTable;
 };
 
 template<> struct MaterialValueTraits<DeepSeaVectorDrawScene::LinearGradient> {
@@ -146,8 +147,8 @@ template<> struct MaterialValueTraits<DeepSeaVectorDrawScene::RadialGradient> {
 bool VerifyMaterialValue(flatbuffers::Verifier &verifier, const void *obj, MaterialValue type);
 bool VerifyMaterialValueVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<uint8_t> *types);
 
-struct Color FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
-  typedef ColorBuilder Builder;
+struct ColorTable FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef ColorTableBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_RED = 4,
     VT_GREEN = 6,
@@ -176,41 +177,41 @@ struct Color FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
 };
 
-struct ColorBuilder {
-  typedef Color Table;
+struct ColorTableBuilder {
+  typedef ColorTable Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_red(uint8_t red) {
-    fbb_.AddElement<uint8_t>(Color::VT_RED, red, 0);
+    fbb_.AddElement<uint8_t>(ColorTable::VT_RED, red, 0);
   }
   void add_green(uint8_t green) {
-    fbb_.AddElement<uint8_t>(Color::VT_GREEN, green, 0);
+    fbb_.AddElement<uint8_t>(ColorTable::VT_GREEN, green, 0);
   }
   void add_blue(uint8_t blue) {
-    fbb_.AddElement<uint8_t>(Color::VT_BLUE, blue, 0);
+    fbb_.AddElement<uint8_t>(ColorTable::VT_BLUE, blue, 0);
   }
   void add_alpha(uint8_t alpha) {
-    fbb_.AddElement<uint8_t>(Color::VT_ALPHA, alpha, 0);
+    fbb_.AddElement<uint8_t>(ColorTable::VT_ALPHA, alpha, 0);
   }
-  explicit ColorBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit ColorTableBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  ColorBuilder &operator=(const ColorBuilder &);
-  flatbuffers::Offset<Color> Finish() {
+  ColorTableBuilder &operator=(const ColorTableBuilder &);
+  flatbuffers::Offset<ColorTable> Finish() {
     const auto end = fbb_.EndTable(start_);
-    auto o = flatbuffers::Offset<Color>(end);
+    auto o = flatbuffers::Offset<ColorTable>(end);
     return o;
   }
 };
 
-inline flatbuffers::Offset<Color> CreateColor(
+inline flatbuffers::Offset<ColorTable> CreateColorTable(
     flatbuffers::FlatBufferBuilder &_fbb,
     uint8_t red = 0,
     uint8_t green = 0,
     uint8_t blue = 0,
     uint8_t alpha = 0) {
-  ColorBuilder builder_(_fbb);
+  ColorTableBuilder builder_(_fbb);
   builder_.add_alpha(alpha);
   builder_.add_blue(blue);
   builder_.add_green(green);
@@ -228,13 +229,12 @@ struct GradientStop FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     return GetField<float>(VT_POSITION, 0.0f);
   }
   const DeepSeaVectorDrawScene::Color *color() const {
-    return GetPointer<const DeepSeaVectorDrawScene::Color *>(VT_COLOR);
+    return GetStruct<const DeepSeaVectorDrawScene::Color *>(VT_COLOR);
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<float>(verifier, VT_POSITION) &&
-           VerifyOffsetRequired(verifier, VT_COLOR) &&
-           verifier.VerifyTable(color()) &&
+           VerifyFieldRequired<DeepSeaVectorDrawScene::Color>(verifier, VT_COLOR) &&
            verifier.EndTable();
   }
 };
@@ -246,8 +246,8 @@ struct GradientStopBuilder {
   void add_position(float position) {
     fbb_.AddElement<float>(GradientStop::VT_POSITION, position, 0.0f);
   }
-  void add_color(flatbuffers::Offset<DeepSeaVectorDrawScene::Color> color) {
-    fbb_.AddOffset(GradientStop::VT_COLOR, color);
+  void add_color(const DeepSeaVectorDrawScene::Color *color) {
+    fbb_.AddStruct(GradientStop::VT_COLOR, color);
   }
   explicit GradientStopBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
@@ -265,7 +265,7 @@ struct GradientStopBuilder {
 inline flatbuffers::Offset<GradientStop> CreateGradientStop(
     flatbuffers::FlatBufferBuilder &_fbb,
     float position = 0.0f,
-    flatbuffers::Offset<DeepSeaVectorDrawScene::Color> color = 0) {
+    const DeepSeaVectorDrawScene::Color *color = 0) {
   GradientStopBuilder builder_(_fbb);
   builder_.add_color(color);
   builder_.add_position(position);
@@ -541,8 +541,8 @@ struct Material FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     return GetPointer<const void *>(VT_VALUE);
   }
   template<typename T> const T *value_as() const;
-  const DeepSeaVectorDrawScene::Color *value_as_Color() const {
-    return value_type() == DeepSeaVectorDrawScene::MaterialValue::Color ? static_cast<const DeepSeaVectorDrawScene::Color *>(value()) : nullptr;
+  const DeepSeaVectorDrawScene::ColorTable *value_as_ColorTable() const {
+    return value_type() == DeepSeaVectorDrawScene::MaterialValue::ColorTable ? static_cast<const DeepSeaVectorDrawScene::ColorTable *>(value()) : nullptr;
   }
   const DeepSeaVectorDrawScene::LinearGradient *value_as_LinearGradient() const {
     return value_type() == DeepSeaVectorDrawScene::MaterialValue::LinearGradient ? static_cast<const DeepSeaVectorDrawScene::LinearGradient *>(value()) : nullptr;
@@ -561,8 +561,8 @@ struct Material FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
 };
 
-template<> inline const DeepSeaVectorDrawScene::Color *Material::value_as<DeepSeaVectorDrawScene::Color>() const {
-  return value_as_Color();
+template<> inline const DeepSeaVectorDrawScene::ColorTable *Material::value_as<DeepSeaVectorDrawScene::ColorTable>() const {
+  return value_as_ColorTable();
 }
 
 template<> inline const DeepSeaVectorDrawScene::LinearGradient *Material::value_as<DeepSeaVectorDrawScene::LinearGradient>() const {
@@ -696,8 +696,8 @@ inline bool VerifyMaterialValue(flatbuffers::Verifier &verifier, const void *obj
     case MaterialValue::NONE: {
       return true;
     }
-    case MaterialValue::Color: {
-      auto ptr = reinterpret_cast<const DeepSeaVectorDrawScene::Color *>(obj);
+    case MaterialValue::ColorTable: {
+      auto ptr = reinterpret_cast<const DeepSeaVectorDrawScene::ColorTable *>(obj);
       return verifier.VerifyTable(ptr);
     }
     case MaterialValue::LinearGradient: {

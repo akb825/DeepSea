@@ -14,23 +14,13 @@
  * limitations under the License.
  */
 
-#pragma once
+namespace DeepSeaVectorDrawScene;
 
-#include <DeepSea/Core/Config.h>
-#include <DeepSea/VectorDrawScene/Types.h>
-
-#ifdef __cplusplus
-extern "C"
+// Struct describing a color.
+struct Color
 {
-#endif
-
-bool dsVectorSceneShaders_destroy(void* customResource);
-
-void* dsVectorSceneShaders_load(const dsSceneLoadContext* loadContext,
-	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
-	void* userData, const uint8_t* data, size_t dataSize);
-
-#ifdef __cplusplus
+	red : uint8;
+	green : uint8;
+	blue : uint8;
+	alpha : uint8;
 }
-#endif
-

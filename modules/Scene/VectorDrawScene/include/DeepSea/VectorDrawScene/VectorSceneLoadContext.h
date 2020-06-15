@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+#pragma once
+
 #include <DeepSea/Core/Config.h>
 #include <DeepSea/VectorDrawScene/Export.h>
 #include <DeepSea/VectorDrawScene/Types.h>

@@ -9,48 +9,23 @@ np = import_numpy()
 class Color(object):
     __slots__ = ['_tab']
 
-    @classmethod
-    def GetRootAsColor(cls, buf, offset):
-        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
-        x = Color()
-        x.Init(buf, n + offset)
-        return x
-
     # Color
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
 
     # Color
-    def Red(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
-        if o != 0:
-            return self._tab.Get(flatbuffers.number_types.Uint8Flags, o + self._tab.Pos)
-        return 0
-
+    def Red(self): return self._tab.Get(flatbuffers.number_types.Uint8Flags, self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(0))
     # Color
-    def Green(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
-        if o != 0:
-            return self._tab.Get(flatbuffers.number_types.Uint8Flags, o + self._tab.Pos)
-        return 0
-
+    def Green(self): return self._tab.Get(flatbuffers.number_types.Uint8Flags, self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(1))
     # Color
-    def Blue(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
-        if o != 0:
-            return self._tab.Get(flatbuffers.number_types.Uint8Flags, o + self._tab.Pos)
-        return 0
-
+    def Blue(self): return self._tab.Get(flatbuffers.number_types.Uint8Flags, self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(2))
     # Color
-    def Alpha(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(10))
-        if o != 0:
-            return self._tab.Get(flatbuffers.number_types.Uint8Flags, o + self._tab.Pos)
-        return 0
+    def Alpha(self): return self._tab.Get(flatbuffers.number_types.Uint8Flags, self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(3))
 
-def ColorStart(builder): builder.StartObject(4)
-def ColorAddRed(builder, red): builder.PrependUint8Slot(0, red, 0)
-def ColorAddGreen(builder, green): builder.PrependUint8Slot(1, green, 0)
-def ColorAddBlue(builder, blue): builder.PrependUint8Slot(2, blue, 0)
-def ColorAddAlpha(builder, alpha): builder.PrependUint8Slot(3, alpha, 0)
-def ColorEnd(builder): return builder.EndObject()
+def CreateColor(builder, red, green, blue, alpha):
+    builder.Prep(1, 4)
+    builder.PrependUint8(alpha)
+    builder.PrependUint8(blue)
+    builder.PrependUint8(green)
+    builder.PrependUint8(red)
+    return builder.Offset()

@@ -15,11 +15,12 @@
  */
 
 include "DeepSea/Scene/Flatbuffers/SceneCommon.fbs";
+include "VectorSceneCommon.fbs";
 
 namespace DeepSeaVectorDrawScene;
 
-// Struct describing a color.
-table Color
+// Struct describing a color. This uses a flatbuffer table to use within a union.
+table ColorTable
 {
 	red : uint8;
 	green : uint8;
@@ -105,7 +106,7 @@ table RadialGradient
 // Union for a material value.
 union MaterialValue
 {
-	Color,
+	ColorTable,
 	LinearGradient,
 	RadialGradient
 }

@@ -99,7 +99,7 @@ void* dsVectorSceneMaterialSet_load(const dsSceneLoadContext* loadContext,
 		}
 
 		dsVectorMaterial material;
-		if (auto fbColor = fbMaterial->value_as_Color())
+		if (auto fbColor = fbMaterial->value_as_ColorTable())
 		{
 			material.materialType = dsVectorMaterialType_Color;
 			material.color.r = fbColor->red();

@@ -31,7 +31,7 @@ class GradientStop(object):
     def Color(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         if o != 0:
-            x = self._tab.Indirect(o + self._tab.Pos)
+            x = o + self._tab.Pos
             from DeepSeaVectorDrawScene.Color import Color
             obj = Color()
             obj.Init(self._tab.Bytes, x)
@@ -40,5 +40,5 @@ class GradientStop(object):
 
 def GradientStopStart(builder): builder.StartObject(2)
 def GradientStopAddPosition(builder, position): builder.PrependFloat32Slot(0, position, 0.0)
-def GradientStopAddColor(builder, color): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(color), 0)
+def GradientStopAddColor(builder, color): builder.PrependStructSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(color), 0)
 def GradientStopEnd(builder): return builder.EndObject()

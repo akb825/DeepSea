@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+#pragma once
+
 #include <DeepSea/Core/Config.h>
 #include <DeepSea/VectorDrawScene/Export.h>
 #include <DeepSea/VectorDrawScene/Types.h>
@@ -52,4 +54,3 @@ DS_VECTORDRAWSCENE_EXPORT dsCustomSceneResource* dsVectorSceneMaterialSet_create
 #ifdef __cplusplus
 }
 #endif
-

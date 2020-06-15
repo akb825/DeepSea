@@ -4,7 +4,7 @@
 
 class MaterialValue(object):
     NONE = 0
-    Color = 1
+    ColorTable = 1
     LinearGradient = 2
     RadialGradient = 3
 
