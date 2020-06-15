@@ -76,6 +76,7 @@ include(cmake/config.cmake)
 include(cmake/helpers.cmake)
 include(cmake/install.cmake)
 include(cmake/prebuilt.cmake)
+include(cmake/ConvertFlatbuffers.cmake)
 
 if (DEEPSEA_BUILD_TESTS)
 	find_package(GTest QUIET)

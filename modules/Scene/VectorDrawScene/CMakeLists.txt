@@ -5,7 +5,6 @@ ds_add_library(deepsea_vector_draw_scene MODULE VectorDrawScene FILES ${sources}
 ds_target_include_directories(deepsea_vector_draw_scene PRIVATE src ${FLATBUFFERS_INCLUDE_DIRS})
 ds_install_library(TARGET deepsea_vector_draw_scene MODULE VectorDrawScene DEPENDS VectorDraw Scene)
 
-include(ConvertFlatbuffers)
 ds_convert_flatbuffers(generatedFlatbuffers FILE ${flatbuffers}
 	DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/src/Flatbuffers
 	INCLUDE ${DEEPSEA_MODULE_DIR}/Scene/Scene/include

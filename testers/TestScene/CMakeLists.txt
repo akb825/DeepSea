@@ -39,7 +39,6 @@ if (TARGET deepsea_easy_profiler)
 	target_compile_definitions(deepsea_test_scene_app PRIVATE DS_HAS_EASY_PROFILER=1)
 endif()
 
-include(ConvertFlatbuffers)
 ds_convert_flatbuffers(generatedFlatbuffers FILE ${CMAKE_CURRENT_SOURCE_DIR}/LightData.fbs
 	DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 	INCLUDE ${DEEPSEA_MODULE_DIR}/Scene/Scene/include
