@@ -37,10 +37,12 @@ extern "C"
  * @param allocator The allocator to use for copying extra data passed into this function.
  * @param qualityRemap Array to remap text qualities, or NULL to use values as-is. If not NULL,
  *     it must be of size DS_TEXT_QUALITY_REMAP_SIZE.
+ * @param substitutionTable The text substitution table.
  * @return False if not all of the types could be registered.
  */
 DS_VECTORDRAWSCENE_EXPORT bool dsVectorSceneLoadConext_registerTypes(
-	dsSceneLoadContext* loadContext, dsAllocator* allocator, const dsTextQuality* qualityRemap);
+	dsSceneLoadContext* loadContext, dsAllocator* allocator, const dsTextQuality* qualityRemap,
+	const dsTextSubstitutionTable* substitutionTable);
 
 #ifdef __cplusplus
 }

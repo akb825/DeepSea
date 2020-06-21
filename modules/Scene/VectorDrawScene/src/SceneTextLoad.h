@@ -14,23 +14,27 @@
  * limitations under the License.
  */
 
-namespace DeepSeaVectorDrawScene;
+#pragma once
 
-// Struct describing a color.
-struct Color
+#include <DeepSea/Core/Config.h>
+#include <DeepSea/VectorDrawScene/Types.h>
+
+#ifdef __cplusplus
+extern "C"
 {
-	red : uint8;
-	green : uint8;
-	blue : uint8;
-	alpha : uint8;
-}
+#endif
 
-// Struct describing a reference to a vector resource.
-table VectorResourceRef
+typedef struct SceneTextUserData
 {
-	// The name of the vector resources.
-	resources : string (required);
+	dsAllocator* allocator;
+	const dsTextSubstitutionTable* substitutionTable;
+	dsTextSubstitutionData* substitutionData;
+} SceneTextUserData;
 
-	// The name of the resource.
-	name : string (required);
+void* dsSceneText_load(const dsSceneLoadContext* loadContext, dsSceneLoadScratchData* scratchData,
+	dsAllocator* allocator, dsAllocator* resourceAllocator, void* userData, const uint8_t* data,
+	size_t dataSize);
+
+#ifdef __cplusplus
 }
+#endif

@@ -10,6 +10,9 @@ namespace DeepSeaVectorDrawScene {
 
 struct Color;
 
+struct VectorResourceRef;
+struct VectorResourceRefBuilder;
+
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(1) Color FLATBUFFERS_FINAL_CLASS {
  private:
   uint8_t red_;
@@ -41,6 +44,74 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(1) Color FLATBUFFERS_FINAL_CLASS {
   }
 };
 FLATBUFFERS_STRUCT_END(Color, 4);
+
+struct VectorResourceRef FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef VectorResourceRefBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_RESOURCES = 4,
+    VT_NAME = 6
+  };
+  const flatbuffers::String *resources() const {
+    return GetPointer<const flatbuffers::String *>(VT_RESOURCES);
+  }
+  const flatbuffers::String *name() const {
+    return GetPointer<const flatbuffers::String *>(VT_NAME);
+  }
+  bool Verify(flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffsetRequired(verifier, VT_RESOURCES) &&
+           verifier.VerifyString(resources()) &&
+           VerifyOffsetRequired(verifier, VT_NAME) &&
+           verifier.VerifyString(name()) &&
+           verifier.EndTable();
+  }
+};
+
+struct VectorResourceRefBuilder {
+  typedef VectorResourceRef Table;
+  flatbuffers::FlatBufferBuilder &fbb_;
+  flatbuffers::uoffset_t start_;
+  void add_resources(flatbuffers::Offset<flatbuffers::String> resources) {
+    fbb_.AddOffset(VectorResourceRef::VT_RESOURCES, resources);
+  }
+  void add_name(flatbuffers::Offset<flatbuffers::String> name) {
+    fbb_.AddOffset(VectorResourceRef::VT_NAME, name);
+  }
+  explicit VectorResourceRefBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  VectorResourceRefBuilder &operator=(const VectorResourceRefBuilder &);
+  flatbuffers::Offset<VectorResourceRef> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = flatbuffers::Offset<VectorResourceRef>(end);
+    fbb_.Required(o, VectorResourceRef::VT_RESOURCES);
+    fbb_.Required(o, VectorResourceRef::VT_NAME);
+    return o;
+  }
+};
+
+inline flatbuffers::Offset<VectorResourceRef> CreateVectorResourceRef(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    flatbuffers::Offset<flatbuffers::String> resources = 0,
+    flatbuffers::Offset<flatbuffers::String> name = 0) {
+  VectorResourceRefBuilder builder_(_fbb);
+  builder_.add_name(name);
+  builder_.add_resources(resources);
+  return builder_.Finish();
+}
+
+inline flatbuffers::Offset<VectorResourceRef> CreateVectorResourceRefDirect(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    const char *resources = nullptr,
+    const char *name = nullptr) {
+  auto resources__ = resources ? _fbb.CreateString(resources) : 0;
+  auto name__ = name ? _fbb.CreateString(name) : 0;
+  return DeepSeaVectorDrawScene::CreateVectorResourceRef(
+      _fbb,
+      resources__,
+      name__);
+}
 
 }  // namespace DeepSeaVectorDrawScene
 

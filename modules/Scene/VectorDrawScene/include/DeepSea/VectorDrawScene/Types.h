@@ -35,6 +35,33 @@ extern "C"
  */
 #define DS_VECTOR_DRAW_SCENE_LOG_TAG "vectordraw-scene"
 
+/**
+ * @brief Struct describing text used within a scene.
+ * @see SceneText.h
+ */
+typedef struct dsSceneText
+{
+	/**
+	 * @brief The allocator this was created with.
+	 */
+	dsAllocator* allocator;
+
+	/**
+	 * @brief The text that has gone through initial processing, but not yet formatted.
+	 */
+	dsText* text;
+
+	/**
+	 * @brief The styles for the text.
+	 */
+	dsTextStyle* styles;
+
+	/**
+	 * @brief The number of styles for the text.
+	 */
+	uint32_t styleCount;
+} dsSceneText;
+
 #ifdef __cplusplus
 }
 #endif

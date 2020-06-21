@@ -56,6 +56,9 @@ table SceneTextStyle
 // Struct defining text for use within a scene.
 table SceneText
 {
+	// Reference to the font to use with the text.
+	font : VectorResourceRef (required);
+
 	// The text to use.
 	text : string (required);
 

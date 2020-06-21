@@ -16,21 +16,24 @@
 
 #include <DeepSea/VectorDrawScene/VectorSceneLoadContext.h>
 
+#include "SceneTextLoad.h"
 #include "VectorSceneResourcesLoad.h"
 #include "VectorSceneMaterialSetLoad.h"
 #include "VectorSceneShadersLoad.h"
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Scene/SceneLoadContext.h>
+#include <DeepSea/Text/TextSubstitutionData.h>
 #include <DeepSea/VectorDraw/VectorMaterialSet.h>
 #include <DeepSea/VectorDraw/VectorResources.h>
+#include <DeepSea/VectorDrawScene/SceneText.h>
 #include <DeepSea/VectorDrawScene/VectorSceneMaterialSet.h>
 #include <DeepSea/VectorDrawScene/VectorSceneResources.h>
 #include <DeepSea/VectorDrawScene/VectorSceneShaders.h>
 
 #include <string.h>
 
-void VectorResourcesUserData_destroy(void* userData)
+static void VectorResourcesUserData_destroy(void* userData)
 {
 	if (!userData)
 		return;
@@ -40,10 +43,27 @@ void VectorResourcesUserData_destroy(void* userData)
 		DS_VERIFY(dsAllocator_free(vectorResourcesUserData->allocator, userData));
 }
 
-bool dsVectorSceneLoadConext_registerTypes(dsSceneLoadContext* loadContext, dsAllocator* allocator,
-	const dsTextQuality* qualityRemap)
+static void SceneTextUserData_destroy(void* userData)
 {
-	if (!loadContext || (qualityRemap && !allocator))
+	if (!userData)
+		return;
+
+	SceneTextUserData* sceneTextUserData = (SceneTextUserData*)userData;
+	dsTextSubstitutionData_destroy(sceneTextUserData->substitutionData);
+	if (sceneTextUserData->allocator)
+		DS_VERIFY(dsAllocator_free(sceneTextUserData->allocator, userData));
+}
+
+static bool destroySceneText(void* text)
+{
+	dsSceneText_destroy((dsSceneText*)text);
+	return true;
+}
+
+bool dsVectorSceneLoadConext_registerTypes(dsSceneLoadContext* loadContext, dsAllocator* allocator,
+	const dsTextQuality* qualityRemap, const dsTextSubstitutionTable* substitutionTable)
+{
+	if (!loadContext || ((qualityRemap || substitutionTable) && !allocator))
 	{
 		errno = EINVAL;
 		return false;
@@ -86,6 +106,36 @@ bool dsVectorSceneLoadConext_registerTypes(dsSceneLoadContext* loadContext, dsAl
 			dsVectorSceneShaders_destroy, NULL, NULL))
 	{
 		return false;
+	}
+
+	{
+		SceneTextUserData* userData = NULL;
+		if (substitutionTable)
+		{
+			userData = DS_ALLOCATE_OBJECT(allocator, SceneTextUserData);
+			if (!userData)
+				return false;
+
+			dsTextSubstitutionData* substitutionData = dsTextSubstitutionData_create(allocator);
+			if (!substitutionData)
+			{
+				if (allocator->freeFunc)
+					DS_VERIFY(dsAllocator_free(allocator, userData));
+				return false;
+			}
+
+			userData->allocator = dsAllocator_keepPointer(allocator);
+			userData->substitutionTable = substitutionTable;
+			userData->substitutionData = substitutionData;
+		}
+
+		if (!dsSceneLoadContext_registerCustomSceneResourceType(loadContext,
+				dsSceneText_typeName, dsSceneText_type(), &dsSceneText_load, destroySceneText,
+				userData, &SceneTextUserData_destroy))
+		{
+			SceneTextUserData_destroy(userData);
+			return false;
+		}
 	}
 
 	return true;
