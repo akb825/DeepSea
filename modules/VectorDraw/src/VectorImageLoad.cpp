@@ -25,6 +25,7 @@
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Math/Vector2.h>
+#include <DeepSea/Text/Font.h>
 #include <DeepSea/VectorDraw/Gradient.h>
 #include <DeepSea/VectorDraw/VectorMaterial.h>
 #include <DeepSea/VectorDraw/VectorMaterialSet.h>

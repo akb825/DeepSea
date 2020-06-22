@@ -35,14 +35,21 @@ extern "C"
  * @remark errno will be set on failure.
  * @param loadContext The load context to register the types with.
  * @param allocator The allocator to use for copying extra data passed into this function.
+ * @param commandBuffer Command buffer to place graphics commands when loading vector images. If
+ *     NULL, vector images will not be loadable.
  * @param qualityRemap Array to remap text qualities, or NULL to use values as-is. If not NULL,
  *     it must be of size DS_TEXT_QUALITY_REMAP_SIZE.
- * @param substitutionTable The text substitution table.
+ * @param substitutionTable The text substitution table used when creating dsSceneText instances.
+ *     This may be NULL if no text substitution is performed.
+ * @param pixelSize The size of a pixel in the local coordinate space for the vector images and
+ *     text. This will be used to determine tessellation quality and amount to smooth text for
+ *     ant-aliasing.
  * @return False if not all of the types could be registered.
  */
 DS_VECTORDRAWSCENE_EXPORT bool dsVectorSceneLoadConext_registerTypes(
-	dsSceneLoadContext* loadContext, dsAllocator* allocator, const dsTextQuality* qualityRemap,
-	const dsTextSubstitutionTable* substitutionTable);
+	dsSceneLoadContext* loadContext, dsAllocator* allocator, dsCommandBuffer* commandBuffer,
+	const dsTextQuality* qualityRemap, const dsTextSubstitutionTable* substitutionTable,
+	float pixelSize);
 
 #ifdef __cplusplus
 }

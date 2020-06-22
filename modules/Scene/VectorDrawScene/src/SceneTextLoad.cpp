@@ -23,6 +23,7 @@
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Scene/SceneLoadScratchData.h>
 #include <DeepSea/Scene/SceneResources.h>
+#include <DeepSea/Text/Font.h>
 #include <DeepSea/Text/Text.h>
 #include <DeepSea/Text/TextSubstitutionTable.h>
 #include <DeepSea/VectorDraw/VectorResources.h>
@@ -46,8 +47,9 @@ void* dsSceneText_load(const dsSceneLoadContext*, dsSceneLoadScratchData* scratc
 	auto fbFont = fbSceneText->font();
 	dsSceneResourceType resourceType;
 	dsCustomSceneResource* fontResource;
-	if (!dsSceneLoadScratchData_findResource(&resourceType, (void**)&fontResource, scratchData,
-			fbFont->resources()->c_str()) || resourceType != dsSceneResourceType_Custom ||
+	if (!dsSceneLoadScratchData_findResource(&resourceType, reinterpret_cast<void**>(&fontResource),
+			scratchData, fbFont->resources()->c_str()) ||
+		resourceType != dsSceneResourceType_Custom ||
 		fontResource->type != dsVectorSceneResources_type())
 	{
 		errno = ENOTFOUND;
@@ -81,7 +83,8 @@ void* dsSceneText_load(const dsSceneLoadContext*, dsSceneLoadScratchData* scratc
 		style.slant = fbStyle->slant();
 		style.outlineThickness = 0.5f + style.embolden*0.5f;
 		style.outlineThickness = fbStyle->outlineWidth();
-		style.antiAlias = fbStyle->fuziness();
+		DS_VERIFY(dsFont_applyHintingAndAntiAliasing(font, &style, sceneTextUserData->pixelScale,
+			fbStyle->fuziness()));
 
 		auto fbColor = fbStyle->color();
 		style.color.r = fbColor->red();

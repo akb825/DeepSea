@@ -24,17 +24,17 @@ extern "C"
 {
 #endif
 
-typedef struct SceneTextUserData
+typedef struct SceneVectorImageUserData
 {
 	dsAllocator* allocator;
-	const dsTextSubstitutionTable* substitutionTable;
-	dsTextSubstitutionData* substitutionData;
-	float pixelScale;
-} SceneTextUserData;
+	dsCommandBuffer* commandBuffer;
+	dsVectorScratchData* scratchData;
+	float pixelSize;
+} SceneVectorImageUserData;
 
-void* dsSceneText_load(const dsSceneLoadContext* loadContext, dsSceneLoadScratchData* scratchData,
-	dsAllocator* allocator, dsAllocator* resourceAllocator, void* userData, const uint8_t* data,
-	size_t dataSize);
+void* dsSceneVectorImage_load(const dsSceneLoadContext* loadContext,
+	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
+	void* userData, const uint8_t* data, size_t dataSize);
 
 #ifdef __cplusplus
 }

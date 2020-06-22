@@ -17,6 +17,7 @@
 #include <DeepSea/VectorDrawScene/VectorSceneLoadContext.h>
 
 #include "SceneTextLoad.h"
+#include "SceneVectorImageLoad.h"
 #include "VectorSceneResourcesLoad.h"
 #include "VectorSceneMaterialSetLoad.h"
 #include "VectorSceneShadersLoad.h"
@@ -24,9 +25,12 @@
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Scene/SceneLoadContext.h>
 #include <DeepSea/Text/TextSubstitutionData.h>
+#include <DeepSea/VectorDraw/VectorImage.h>
 #include <DeepSea/VectorDraw/VectorMaterialSet.h>
 #include <DeepSea/VectorDraw/VectorResources.h>
+#include <DeepSea/VectorDraw/VectorScratchData.h>
 #include <DeepSea/VectorDrawScene/SceneText.h>
+#include <DeepSea/VectorDrawScene/SceneVectorImage.h>
 #include <DeepSea/VectorDrawScene/VectorSceneMaterialSet.h>
 #include <DeepSea/VectorDrawScene/VectorSceneResources.h>
 #include <DeepSea/VectorDrawScene/VectorSceneShaders.h>
@@ -54,6 +58,17 @@ static void SceneTextUserData_destroy(void* userData)
 		DS_VERIFY(dsAllocator_free(sceneTextUserData->allocator, userData));
 }
 
+static void SceneVectorImageUserData_destroy(void* userData)
+{
+	if (!userData)
+		return;
+
+	SceneVectorImageUserData* vectorImageUserData = (SceneVectorImageUserData*)userData;
+	dsVectorScratchData_destroy(vectorImageUserData->scratchData);
+	if (vectorImageUserData->allocator)
+		DS_VERIFY(dsAllocator_free(vectorImageUserData->allocator, userData));
+}
+
 static bool destroySceneText(void* text)
 {
 	dsSceneText_destroy((dsSceneText*)text);
@@ -61,9 +76,11 @@ static bool destroySceneText(void* text)
 }
 
 bool dsVectorSceneLoadConext_registerTypes(dsSceneLoadContext* loadContext, dsAllocator* allocator,
-	const dsTextQuality* qualityRemap, const dsTextSubstitutionTable* substitutionTable)
+	dsCommandBuffer* commandBuffer, const dsTextQuality* qualityRemap,
+	const dsTextSubstitutionTable* substitutionTable, float pixelSize)
 {
-	if (!loadContext || ((qualityRemap || substitutionTable) && !allocator))
+	if (!loadContext || (!allocator && (commandBuffer || qualityRemap || substitutionTable)) ||
+		pixelSize <= 0.0f)
 	{
 		errno = EINVAL;
 		return false;
@@ -127,6 +144,7 @@ bool dsVectorSceneLoadConext_registerTypes(dsSceneLoadContext* loadContext, dsAl
 			userData->allocator = dsAllocator_keepPointer(allocator);
 			userData->substitutionTable = substitutionTable;
 			userData->substitutionData = substitutionData;
+			userData->pixelScale = 1.0f/pixelSize;
 		}
 
 		if (!dsSceneLoadContext_registerCustomSceneResourceType(loadContext,
@@ -134,6 +152,33 @@ bool dsVectorSceneLoadConext_registerTypes(dsSceneLoadContext* loadContext, dsAl
 				userData, &SceneTextUserData_destroy))
 		{
 			SceneTextUserData_destroy(userData);
+			return false;
+		}
+	}
+
+	if (commandBuffer)
+	{
+		dsVectorScratchData* scratchData = dsVectorScratchData_create(allocator);
+
+		SceneVectorImageUserData* userData =
+			DS_ALLOCATE_OBJECT(allocator, SceneVectorImageUserData);
+		if (!userData)
+		{
+			dsVectorScratchData_destroy(scratchData);
+			return false;
+		}
+
+		userData->allocator = dsAllocator_keepPointer(allocator);
+		userData->commandBuffer = commandBuffer;
+		userData->scratchData = scratchData;
+		userData->pixelSize = pixelSize;
+
+		if (!dsSceneLoadContext_registerCustomSceneResourceType(loadContext,
+				dsSceneVectorImage_typeName, dsSceneVectorImage_type(), &dsSceneVectorImage_load,
+				(dsDestroyCustomSceneResourceFunction)&dsVectorImage_destroy,
+				userData, &SceneVectorImageUserData_destroy))
+		{
+			SceneVectorImageUserData_destroy(userData);
 			return false;
 		}
 	}

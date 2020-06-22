@@ -68,7 +68,7 @@ void* dsVectorSceneMaterialSet_load(const dsSceneLoadContext* loadContext,
 	{
 		errno = EFORMAT;
 		DS_LOG_ERROR(DS_VECTOR_DRAW_SCENE_LOG_TAG,
-			"Invalid vector material set flatbuffer format.");
+			"Invalid vector scene material set flatbuffer format.");
 		return nullptr;
 	}
 
