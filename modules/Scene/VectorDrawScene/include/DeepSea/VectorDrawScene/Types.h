@@ -62,6 +62,63 @@ typedef struct dsSceneText
 	uint32_t styleCount;
 } dsSceneText;
 
+/**
+ * @brief Struct describing a node with vector drawing.
+ */
+typedef struct dsSceneVectorNode
+{
+	/**
+	 * @brief The node as a base class.
+	 */
+	dsSceneNode node;
+
+	/**
+	 * @brief The z level for the image used for sorting.
+	 */
+	int32_t z;
+} dsSceneVectorNode;
+
+/**
+ * @brief Text with info required to create a dsTextRenderBuffer with a dsSceneVectorItemList.
+ * @see SceneVectorItemList.h
+ */
+typedef struct dsSceneTextRenderBufferInfo
+{
+	/**
+	 * @brief The vertex format used for text.
+	 */
+	const dsVertexFormat* vertexFormat;
+
+	/**
+	 * @brief The function to populate glyph data.
+	 */
+	dsGlyphDataFunction glyphDataFunc;
+
+	/**
+	 * @brief User data to provide with the glyph function.
+	 */
+	void* userData;
+
+	/**
+	 * @brief The maximum number of glyphs that can be drawn at once.
+	 */
+	uint32_t maxGlyphs;
+
+	/**
+	 * @brief Whether or not a tessellation shader is used.
+	 */
+	bool tessellationShader;
+} dsSceneTextRenderBufferInfo;
+
+/**
+ * @brief Scene item list implementation for drawing vector images and text.
+ *
+ * This will hold information from dsSceneVectorNode node types.
+ *
+ * @see SceneVectorItemList.h
+ */
+typedef struct dsSceneVectorItemList dsSceneVectorItemList;
+
 #ifdef __cplusplus
 }
 #endif

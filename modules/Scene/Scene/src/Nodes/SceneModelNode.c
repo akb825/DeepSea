@@ -106,7 +106,6 @@ const char* const dsSceneModelNode_typeName = "ModelNode";
 const char* const dsSceneModelNode_cloneTypeName = "ModelNodeClone";
 
 static dsSceneNodeType nodeType;
-
 const dsSceneNodeType* dsSceneModelNode_type(void)
 {
 	return &nodeType;

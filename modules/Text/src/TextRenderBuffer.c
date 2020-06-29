@@ -283,7 +283,7 @@ bool dsTextRenderBuffer_draw(dsTextRenderBuffer* renderBuffer, dsCommandBuffer* 
 	{
 		dsDrawRange drawRange = {renderBuffer->queuedGlyphs, 1, 0, 0};
 		if (!dsRenderer_draw(commandBuffer->renderer, commandBuffer, renderBuffer->geometry,
-			&drawRange, dsPrimitiveType_PatchList))
+				&drawRange, dsPrimitiveType_PatchList))
 		{
 			DS_PROFILE_FUNC_RETURN(false);
 		}
@@ -292,7 +292,7 @@ bool dsTextRenderBuffer_draw(dsTextRenderBuffer* renderBuffer, dsCommandBuffer* 
 	{
 		dsDrawIndexedRange drawRange = {renderBuffer->queuedGlyphs*6, 1, 0, 0, 0};
 		if (!dsRenderer_drawIndexed(commandBuffer->renderer, commandBuffer, renderBuffer->geometry,
-			&drawRange, dsPrimitiveType_TriangleList))
+				&drawRange, dsPrimitiveType_TriangleList))
 		{
 			DS_PROFILE_FUNC_RETURN(false);
 		}

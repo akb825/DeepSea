@@ -939,7 +939,6 @@ static bool setupText(TestText* testText, dsTextQuality quality, const char* fon
 
 	if (renderer->hasTessellationShaders)
 	{
-
 		DS_VERIFY(dsVertexFormat_initialize(&vertexFormat));
 		vertexFormat.elements[dsVertexAttrib_Position0].format = dsGfxFormat_decorate(
 			dsGfxFormat_X32Y32Z32W32, dsGfxFormat_Float);
