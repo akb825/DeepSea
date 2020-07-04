@@ -95,7 +95,7 @@ DS_SCENE_EXPORT dsSceneModelNode* dsSceneModelNode_create(dsAllocator* allocator
  */
 DS_SCENE_EXPORT dsSceneModelNode* dsSceneModelNode_createBase(dsAllocator* allocator,
 	size_t structSize, const dsSceneModelInitInfo* models, uint32_t modelCount,
-	const char** extraItemLists, uint32_t extraItemListCount,  dsSceneResources** resources,
+	const char** extraItemLists, uint32_t extraItemListCount, dsSceneResources** resources,
 	uint32_t resourceCount, const dsOrientedBox3f* bounds);
 
 /**

@@ -73,6 +73,18 @@ typedef struct dsSceneVectorNode
 	dsSceneNode node;
 
 	/**
+	 * @brief The resources to keep a reference to.
+	 *
+	 * This will ensure that any resources used within this node are kept alive.
+	 */
+	dsSceneResources** resources;
+
+	/**
+	 * @brief The number of resources.
+	 */
+	uint32_t resourceCount;
+
+	/**
 	 * @brief The z level for the image used for sorting.
 	 */
 	int32_t z;

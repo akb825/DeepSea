@@ -416,6 +416,7 @@ bool dsSceneModelNode_remapMaterials(dsSceneModelNode* node, const dsSceneMateri
 
 void dsSceneModelNode_destroy(dsSceneNode* node)
 {
+	DS_ASSERT(dsSceneNode_isOfType(node, dsSceneModelNode_type()));
 	dsSceneModelNode* modelNode = (dsSceneModelNode*)node;
 	for (uint32_t i = 0; i < modelNode->resourceCount; ++i)
 		dsSceneResources_freeRef(modelNode->resources[i]);
