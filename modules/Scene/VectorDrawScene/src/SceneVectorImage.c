@@ -46,4 +46,3 @@ dsCustomSceneResource* dsSceneVectorImage_create(dsAllocator* allocator, dsVecto
 	customResource->destroyFunc = (dsDestroyCustomSceneResourceFunction)&dsVectorImage_destroy;
 	return customResource;
 }
-

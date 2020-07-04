@@ -64,6 +64,7 @@ typedef struct dsSceneText
 
 /**
  * @brief Struct describing a node with vector drawing.
+ * @see SceneVectorNode.h
  */
 typedef struct dsSceneVectorNode
 {
@@ -89,6 +90,33 @@ typedef struct dsSceneVectorNode
 	 */
 	int32_t z;
 } dsSceneVectorNode;
+
+/**
+ * @brief Struct for a vector node subclass to display a vector image.
+ * @see SceneVectorImageNode.h
+ */
+typedef struct dsSceneVectorImageNode
+{
+	/**
+	 * @brief The node as a base class.
+	 */
+	dsSceneVectorNode node;
+
+	/**
+	 * @brief The vector image to draw.
+	 */
+	dsVectorImage* vectorImage;
+
+	/**
+	 * @brief The vector shaders to draw with.
+	 */
+	const dsVectorShaders* shaders;
+
+	/**
+	 * @brief The material to draw with.
+	 */
+	dsMaterial* material;
+} dsSceneVectorImageNode;
 
 /**
  * @brief Text with info required to create a dsTextRenderBuffer with a dsSceneVectorItemList.

@@ -36,6 +36,7 @@
 #include <DeepSea/Scene/Nodes/SceneNodeItemData.h>
 #include <DeepSea/Text/TextRenderBuffer.h>
 #include <DeepSea/VectorDraw/VectorImage.h>
+#include <DeepSea/VectorDrawScene/SceneVectorImageNode.h>
 #include <DeepSea/VectorDrawScene/SceneVectorNode.h>
 
 #include <stdlib.h>
@@ -153,6 +154,8 @@ static bool addInstances(dsSceneItemList* itemList)
 		return false;
 	}
 
+	const dsSceneNodeType* vectorImageType = dsSceneVectorImageNode_type();
+	DS_UNUSED(vectorImageType);
 	for (uint32_t i = 0; i < vectorList->entryCount; ++i)
 	{
 		const Entry* entry = vectorList->entries + i;
@@ -160,7 +163,13 @@ static bool addInstances(dsSceneItemList* itemList)
 		DrawItem* drawItem = vectorList->drawItems + i;
 		drawItem->z = entry->node->z;
 		drawItem->instance = i;
-		// TODO: Other DrawItem
+		// TODO: Text node
+		DS_ASSERT(dsSceneNode_isOfType((const dsSceneNode*)entry->node, vectorImageType));
+		const dsSceneVectorImageNode* node =(const dsSceneVectorImageNode*)entry->node;
+		drawItem->type = DrawType_Image;
+		drawItem->image.image = node->vectorImage;
+		drawItem->image.shaders = node->shaders;
+		drawItem->material = node->material;
 
 		dsSceneInstanceInfo* instance = vectorList->instances + i;
 		instance->node = (const dsSceneNode*)entry->node;

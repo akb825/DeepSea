@@ -38,9 +38,9 @@ extern "C"
 DS_VECTORDRAWSCENE_EXPORT const dsSceneNodeType* dsSceneVectorNode_type(void);
 
 /**
- * @brief Creates a scene node as a base class of another node type.
+ * @brief Creates a vector node as a base class of another node type.
  * @remark errno will be set on failure.
- * @param allocator The allocator to create the model node with.
+ * @param allocator The allocator to create the vector node with.
  * @param structSize The size of the struct.
  * @param itemLists List of item list names to add the node to. The array will be copied.
  * @param itemListCount The number of item lists.
@@ -53,7 +53,7 @@ DS_VECTORDRAWSCENE_EXPORT dsSceneVectorNode* dsSceneVectorNode_create(dsAllocato
 	dsSceneResources** resources, uint32_t resourceCount);
 
 /**
- * @brief Destroys a model node.
+ * @brief Destroys a vector node.
  * @remark This should only be called as part of a subclass' destroy function.
  * @param node The node to destroy.
  */
