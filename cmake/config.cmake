@@ -153,6 +153,7 @@ macro(ds_add_library target)
 	if (DEEPSEA_SINGLE_SHARED)
 		add_library(${target} INTERFACE)
 		target_link_libraries(${target} INTERFACE deepsea ${ARGS_DEPENDS})
+		add_dependencies(deepsea ${target})
 
 		set_property(GLOBAL APPEND PROPERTY DEEPSEA_SOURCES ${ARGS_FILES})
 		set_property(GLOBAL APPEND PROPERTY DEEPSEA_EXTERNAL_SOURCES ${ARGS_EXTERNAL_FILES})

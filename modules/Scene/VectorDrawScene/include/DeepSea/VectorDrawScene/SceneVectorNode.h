@@ -57,7 +57,7 @@ DS_VECTORDRAWSCENE_EXPORT dsSceneVectorNode* dsSceneVectorNode_create(dsAllocato
  * @remark This should only be called as part of a subclass' destroy function.
  * @param node The node to destroy.
  */
-DS_VECTORDRAWSCENE_EXPORT void dsSceneModelNode_destroy(dsSceneNode* node);
+DS_VECTORDRAWSCENE_EXPORT void dsSceneVectorNode_destroy(dsSceneNode* node);
 
 #ifdef __cplusplus
 }

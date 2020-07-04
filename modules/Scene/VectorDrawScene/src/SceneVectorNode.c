@@ -86,7 +86,7 @@ dsSceneVectorNode* dsSceneVectorNode_create(dsAllocator* allocator, size_t struc
 	}
 
 	if (!dsSceneNode_initialize((dsSceneNode*)node, allocator, dsSceneVectorNode_type(),
-			(const char**)itemListsCopy, itemListCount, &dsSceneModelNode_destroy))
+			(const char**)itemListsCopy, itemListCount, &dsSceneVectorNode_destroy))
 	{
 		if (allocator->freeFunc)
 			DS_VERIFY(dsAllocator_free(allocator, node));
@@ -110,7 +110,7 @@ dsSceneVectorNode* dsSceneVectorNode_create(dsAllocator* allocator, size_t struc
 	return node;
 }
 
-void dsSceneModelNode_destroy(dsSceneNode* node)
+void dsSceneVectorNode_destroy(dsSceneNode* node)
 {
 	DS_ASSERT(dsSceneNode_isOfType(node, dsSceneVectorNode_type()));
 	dsSceneVectorNode* vectorNode = (dsSceneVectorNode*)node;
