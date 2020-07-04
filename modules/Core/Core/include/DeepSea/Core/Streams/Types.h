@@ -40,7 +40,7 @@ extern "C"
  */
 
 #if DS_WINDOWS
-#define DS_PATH_MAX _MAX_PATH
+#define DS_PATH_MAX (_MAX_PATH + 1)
 #define DS_PATH_SEPARATOR '\\'
 #define DS_PATH_ALT_SEPARATOR '/'
 #else
@@ -49,8 +49,10 @@ extern "C"
  *
  * There are cases on some filesystems where the length can exceed this path, but this should be
  * sufficient for typical cases.
+ *
+ * This includes space for the NULL terminator at the end of the string.
  */
-#define DS_PATH_MAX PATH_MAX
+#define DS_PATH_MAX (PATH_MAX + 1)
 
 /**
  * @brief The main path separator for the current platform.
