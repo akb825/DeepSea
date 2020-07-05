@@ -32,6 +32,11 @@ extern "C"
  */
 
 /**
+ * @brief The type name for a vector image node.
+ */
+DS_VECTORDRAWSCENE_EXPORT extern const char* const dsSceneVectorImageNode_typeName;
+
+/**
  * @brief Gets the type of a vector image node.
  * @return The type of a vector image node.
  */
@@ -46,36 +51,20 @@ DS_VECTORDRAWSCENE_EXPORT const dsSceneNodeType* dsSceneVectorImageNode_setupPar
 	dsSceneNodeType* type);
 
 /**
- * @file
- * @brief Function for registering dsVectorImage with dsSceneResources.
- */
-
-/**
- * @brief The type name for a scene vector image.
- */
-DS_VECTORDRAWSCENE_EXPORT extern const char* const dsSceneVectorImage_typeName;
-
-/**
- * @brief Gets the type for the dsVectorImage custom type for storage in dsSceneResources.
- * @return The custom type.
- */
-DS_VECTORDRAWSCENE_EXPORT const dsCustomSceneResourceType* dsSceneVectorImage_type(void);
-
-/**
  * @brief Creates a vector image node.
  * @remark errno will be set on failure.
  * @param allocator The allocator to create the vector image node with.
  * @param vectorImage The vector image to draw.
- * @param shaders The vector shaders.
+ * @param shaders The vector shaders to draw with.
  * @param material The material to draw with.
  * @param itemLists List of item list names to add the node to. The array will be copied.
  * @param itemListCount The number of item lists.
  * @param resources The resources to keep a reference to.
  * @param resourceCount The number of resources.
- * @return The vector node or NULL if an error occurred.
+ * @return The vector image node or NULL if an error occurred.
  */
 DS_VECTORDRAWSCENE_EXPORT dsSceneVectorImageNode* dsSceneVectorImageNode_create(
-	dsAllocator* allocator, dsVectorImage* vectorImage, const dsVectorShaders* shaders,
+	dsAllocator* allocator, const dsVectorImage* vectorImage, const dsVectorShaders* shaders,
 	dsMaterial* material, const char** itemLists, uint32_t itemListCount,
 	dsSceneResources** resources, uint32_t resourceCount);
 
@@ -85,16 +74,16 @@ DS_VECTORDRAWSCENE_EXPORT dsSceneVectorImageNode* dsSceneVectorImageNode_create(
  * @param allocator The allocator to create the model node with.
  * @param structSize The size of the struct.
  * @param vectorImage The vector image to draw.
- * @param shaders The vector shaders.
+ * @param shaders The vector shaders to draw with.
  * @param material The material to draw with.
  * @param itemLists List of item list names to add the node to. The array will be copied.
  * @param itemListCount The number of item lists.
  * @param resources The resources to keep a reference to.
  * @param resourceCount The number of resources.
- * @return The vector node or NULL if an error occurred.
+ * @return The vector image node or NULL if an error occurred.
  */
 DS_VECTORDRAWSCENE_EXPORT dsSceneVectorImageNode* dsSceneVectorImageNode_createBase(
-	dsAllocator* allocator, size_t structSize, dsVectorImage* vectorImage,
+	dsAllocator* allocator, size_t structSize, const dsVectorImage* vectorImage,
 	const dsVectorShaders* shaders, dsMaterial* material, const char** itemLists,
 	uint32_t itemListCount, dsSceneResources** resources, uint32_t resourceCount);
 

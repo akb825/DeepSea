@@ -34,9 +34,11 @@
 #include <DeepSea/Scene/ItemLists/SceneInstanceData.h>
 #include <DeepSea/Scene/Nodes/SceneNode.h>
 #include <DeepSea/Scene/Nodes/SceneNodeItemData.h>
+#include <DeepSea/Text/TextLayout.h>
 #include <DeepSea/Text/TextRenderBuffer.h>
 #include <DeepSea/VectorDraw/VectorImage.h>
 #include <DeepSea/VectorDrawScene/SceneVectorImageNode.h>
+#include <DeepSea/VectorDrawScene/SceneVectorTextNode.h>
 #include <DeepSea/VectorDrawScene/SceneVectorNode.h>
 
 #include <stdlib.h>
@@ -72,6 +74,8 @@ typedef struct Entry
 	const dsSceneVectorNode* node;
 	const dsMatrix44f* transform;
 	dsSceneNodeItemData* itemData;
+	dsTextLayout* layout;
+	uint32_t layoutVersion;
 	uint64_t nodeID;
 } Entry;
 
@@ -136,47 +140,77 @@ static void glyphPosition(dsVector2f* outPos, const dsVector2f* basePos,
 	outPos->x -= geometryPos->y*slant;
 }
 
-static bool addInstances(dsSceneItemList* itemList)
+static bool addInstances(dsSceneItemList* itemList, dsCommandBuffer* commandBuffer)
 {
+	DS_PROFILE_FUNC_START();
+
 	dsSceneVectorItemList* vectorList = (dsSceneVectorItemList*)itemList;
 
 	uint32_t dummyCount = 0;
 	if (!DS_RESIZEABLE_ARRAY_ADD(itemList->allocator, vectorList->drawItems, dummyCount,
 			vectorList->entryCount, vectorList->maxDrawItems))
 	{
-		return false;
+		DS_PROFILE_FUNC_RETURN(false);
 	}
 
 	dummyCount = 0;
 	if (!DS_RESIZEABLE_ARRAY_ADD(itemList->allocator, vectorList->instances, dummyCount,
 			vectorList->entryCount, vectorList->maxInstances))
 	{
-		return false;
+		DS_PROFILE_FUNC_RETURN(false);
 	}
 
+	const dsSceneNodeType* textType = dsSceneVectorTextNode_type();
 	const dsSceneNodeType* vectorImageType = dsSceneVectorImageNode_type();
 	DS_UNUSED(vectorImageType);
 	for (uint32_t i = 0; i < vectorList->entryCount; ++i)
 	{
-		const Entry* entry = vectorList->entries + i;
+		Entry* entry = vectorList->entries + i;
 
 		DrawItem* drawItem = vectorList->drawItems + i;
 		drawItem->z = entry->node->z;
 		drawItem->instance = i;
-		// TODO: Text node
-		DS_ASSERT(dsSceneNode_isOfType((const dsSceneNode*)entry->node, vectorImageType));
-		const dsSceneVectorImageNode* node =(const dsSceneVectorImageNode*)entry->node;
-		drawItem->type = DrawType_Image;
-		drawItem->image.image = node->vectorImage;
-		drawItem->image.shaders = node->shaders;
-		drawItem->material = node->material;
+		if (dsSceneNode_isOfType((const dsSceneNode*)entry->node, textType))
+		{
+			const dsSceneVectorTextNode* node = (const dsSceneVectorTextNode*)entry->node;
+			drawItem->type = DrawType_Text;
+			if (entry->layoutVersion == node->layoutVersion)
+			{
+				DS_CHECK(DS_VECTOR_DRAW_SCENE_LOG_TAG,
+					dsTextLayout_refresh(entry->layout, commandBuffer));
+			}
+			else
+			{
+				DS_CHECK(DS_VECTOR_DRAW_SCENE_LOG_TAG,
+					dsTextLayout_layout(entry->layout, commandBuffer, node->alignment,
+						node->maxWidth, node->lineScale));
+				entry->layoutVersion = node->layoutVersion;
+			}
+
+			drawItem->text.shader = node->shader;
+			drawItem->text.text = entry->layout;
+			drawItem->text.textUserData = node->textUserData;
+			drawItem->text.styles = node->styles;
+			drawItem->text.styleCount = node->styleCount;
+			drawItem->text.firstChar = node->firstChar;
+			drawItem->text.charCount = node->charCount;
+		}
+		else
+		{
+			DS_ASSERT(dsSceneNode_isOfType((const dsSceneNode*)entry->node, vectorImageType));
+			const dsSceneVectorImageNode* node = (const dsSceneVectorImageNode*)entry->node;
+			drawItem->type = DrawType_Image;
+			drawItem->image.image = node->vectorImage;
+			drawItem->image.shaders = node->shaders;
+			drawItem->material = node->material;
+		}
 
 		dsSceneInstanceInfo* instance = vectorList->instances + i;
 		instance->node = (const dsSceneNode*)entry->node;
 		instance->transform = *entry->transform;
 	}
 
-	return true;
+	DS_PROFILE_FUNC_RETURN(true);
 }
 
 static void setupInstances(dsSceneVectorItemList* vectorList, const dsView* view,
@@ -457,7 +491,6 @@ void dsSceneVectorItemList_defaultGlyphDataFunc(void* userData, const dsTextLayo
 	vertices[3].style.w = style->antiAlias;
 }
 
-
 void dsSceneVectorItemList_defaultTessGlyphDataFunc(void* userData,
 	const dsTextLayout* layout, void* layoutUserData, uint32_t glyphIndex, void* vertexData,
 	const dsVertexFormat* format, uint32_t vertexCount)
@@ -505,6 +538,13 @@ uint64_t dsSceneVectorItemList_addNode(dsSceneItemList* itemList, dsSceneNode* n
 		return DS_NO_SCENE_NODE;
 
 	dsSceneVectorItemList* modelList = (dsSceneVectorItemList*)itemList;
+	bool isText = dsSceneNode_isOfType(node, dsSceneVectorTextNode_type());
+	if (!modelList->textRenderBuffer && isText)
+	{
+		DS_LOG_WARNING(DS_VECTOR_DRAW_LOG_TAG,
+			"Trying to add a text node to a vector item list that doesn't support text rendering.");
+		return DS_NO_SCENE_NODE;
+	}
 
 	uint32_t index = modelList->entryCount;
 	if (!DS_RESIZEABLE_ARRAY_ADD(itemList->allocator, modelList->entries, modelList->entryCount,
@@ -518,6 +558,27 @@ uint64_t dsSceneVectorItemList_addNode(dsSceneItemList* itemList, dsSceneNode* n
 	entry->transform = transform;
 	entry->itemData = itemData;
 	entry->nodeID = modelList->nextNodeID++;
+
+	if (isText)
+	{
+		dsSceneVectorTextNode* textNode = (dsSceneVectorTextNode*)node;
+		entry->layout = dsTextLayout_create(itemList->allocator, textNode->text, textNode->styles,
+			textNode->styleCount);
+		if (!entry->layout)
+		{
+			--modelList->entryCount;
+			return DS_NO_SCENE_NODE;
+		}
+
+		// Force a re-layout the first time.
+		entry->layoutVersion = textNode->layoutVersion - 1;
+	}
+	else
+	{
+		entry->layout = NULL;
+		entry->layoutVersion = 0;
+	}
+
 	return entry->nodeID;
 }
 
@@ -528,6 +589,8 @@ void dsSceneVectorItemList_removeNode(dsSceneItemList* itemList, uint64_t nodeID
 	{
 		if (vectorList->entries[i].nodeID != nodeID)
 			continue;
+
+		dsTextLayout_destroy(vectorList->entries[i].layout);
 
 		// Order shouldn't matter, so use constant-time removal.
 		vectorList->entries[i] = vectorList->entries[vectorList->entryCount - 1];
@@ -545,7 +608,7 @@ void dsSceneVectorItemList_commit(dsSceneItemList* itemList, const dsView* view,
 	dsSceneVectorItemList* vectorList = (dsSceneVectorItemList*)itemList;
 	uint32_t instanceCount = 0;
 	uint32_t drawItemCount = 0;
-	addInstances(itemList);
+	addInstances(itemList, commandBuffer);
 	setupInstances(vectorList, view, instanceCount);
 	sortItems(vectorList);
 	drawItems(vectorList, drawItemCount, view, commandBuffer);
@@ -698,8 +761,10 @@ void dsSceneVectorItemList_destroy(dsSceneVectorItemList* vectorList)
 	if (!vectorList)
 		return;
 
-	dsSceneItemList* itemList = (dsSceneItemList*)vectorList;
+	for (uint32_t i = 0; i < vectorList->entryCount; ++i)
+		dsTextLayout_destroy(vectorList->entries[i].layout);
 
+	dsSceneItemList* itemList = (dsSceneItemList*)vectorList;
 	destroyInstanceData(vectorList->instanceData, vectorList->instanceDataCount);
 	dsSharedMaterialValues_destroy(vectorList->instanceValues);
 	DS_VERIFY(dsTextRenderBuffer_destroy(vectorList->textRenderBuffer));

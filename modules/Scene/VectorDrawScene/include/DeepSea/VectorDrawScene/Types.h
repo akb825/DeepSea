@@ -105,7 +105,7 @@ typedef struct dsSceneVectorImageNode
 	/**
 	 * @brief The vector image to draw.
 	 */
-	dsVectorImage* vectorImage;
+	const dsVectorImage* vectorImage;
 
 	/**
 	 * @brief The vector shaders to draw with.
@@ -117,6 +117,82 @@ typedef struct dsSceneVectorImageNode
 	 */
 	dsMaterial* material;
 } dsSceneVectorImageNode;
+
+/**
+ * @brief Struct for a vector node subclass to display text.
+ * @see SceneVectorTextNode.h
+ */
+typedef struct dsSceneVectorTextNode
+{
+	/**
+	 * @brief The node as a base class.
+	 */
+	dsSceneVectorNode node;
+
+	/**
+	 * @brief The text to display.
+	 *
+	 * This should not be re-assigned.
+	 */
+	const dsText* text;
+
+	/**
+	 * @brief User data to pass with the text.
+	 */
+	void* textUserData;
+
+	/**
+	 * @brief The shader to draw with.
+	 */
+	dsShader* shader;
+
+	/**
+	 * @brief The material to draw with.
+	 */
+	dsMaterial* material;
+
+	/**
+	 * @brief The styles to apply to the text.
+	 */
+	dsTextStyle* styles;
+
+	/**
+	 * @brief The number of styles.
+	 */
+	uint32_t styleCount;
+
+	/**
+	 * @brief The alignment of the text.
+	 */
+	dsTextAlign alignment;
+
+	/**
+	 * @brief The maximum width of the text when aligning.
+	 */
+	float maxWidth;
+
+	/**
+	 * @brief The scale to apply to the distance between each line.
+	 *
+	 * Set to 1 to use the base font height directly.
+	 */
+	float lineScale;
+
+	/**
+	 * @brief The first character to display.
+	 */
+	uint32_t firstChar;
+
+	/**
+	 * @brief The number of characters to display.
+	 */
+	uint32_t charCount;
+
+	/**
+	 * @brief Version number to determine when the layout needs to be be re-calculated.
+	 */
+	uint32_t layoutVersion;
+} dsSceneVectorTextNode;
 
 /**
  * @brief Text with info required to create a dsTextRenderBuffer with a dsSceneVectorItemList.

@@ -20,6 +20,8 @@
 #include <DeepSea/Scene/Nodes/SceneNode.h>
 #include <DeepSea/VectorDrawScene/SceneVectorNode.h>
 
+const char* const dsSceneVectorImageNode_typeName = "VectorImageNode";
+
 static dsSceneNodeType nodeType;
 const dsSceneNodeType* dsSceneVectorImageNode_type(void)
 {
@@ -33,7 +35,7 @@ const dsSceneNodeType* dsSceneVectorImageNode_setupParentType(dsSceneNodeType* t
 }
 
 dsSceneVectorImageNode* dsSceneVectorImageNode_create(dsAllocator* allocator,
-	dsVectorImage* vectorImage, const dsVectorShaders* shaders, dsMaterial* material,
+	const dsVectorImage* vectorImage, const dsVectorShaders* shaders, dsMaterial* material,
 	const char** itemLists, uint32_t itemListCount, dsSceneResources** resources,
 	uint32_t resourceCount)
 {
@@ -42,7 +44,7 @@ dsSceneVectorImageNode* dsSceneVectorImageNode_create(dsAllocator* allocator,
 }
 
 dsSceneVectorImageNode* dsSceneVectorImageNode_createBase(
-	dsAllocator* allocator, size_t structSize, dsVectorImage* vectorImage,
+	dsAllocator* allocator, size_t structSize, const dsVectorImage* vectorImage,
 	const dsVectorShaders* shaders, dsMaterial* material, const char** itemLists,
 	uint32_t itemListCount, dsSceneResources** resources, uint32_t resourceCount)
 {
@@ -56,6 +58,9 @@ dsSceneVectorImageNode* dsSceneVectorImageNode_createBase(
 		allocator, structSize, itemLists, itemListCount, resources, resourceCount);
 	if (!node)
 		return NULL;
+
+	dsSceneNode* baseNode = (dsSceneNode*)node;
+	baseNode->type = dsSceneVectorImageNode_setupParentType(NULL);
 
 	node->vectorImage = vectorImage;
 	node->shaders = shaders;
