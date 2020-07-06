@@ -48,12 +48,13 @@ DS_VECTORDRAWSCENE_EXPORT const dsCustomSceneResourceType* dsSceneText_type(void
  * @param allocator The allocator to create the scene text with.
  * @param text The text to use within the scene. This will take ownership of the text and destroy
  *     it if creation fails.
+ * @param userData User data to store with the text.
  * @param styles The styles to use with the text.
  * @param styleCount The number of styles.
  * @return The scene text or NULL if an error occurred.
  */
 DS_VECTORDRAWSCENE_EXPORT dsSceneText* dsSceneText_create(dsAllocator* allocator, dsText* text,
-	const dsTextStyle* styles, uint32_t styleCount);
+	void* userData, const dsTextStyle* styles, uint32_t styleCount);
 
 /**
  * @brief Destroys a scene text.

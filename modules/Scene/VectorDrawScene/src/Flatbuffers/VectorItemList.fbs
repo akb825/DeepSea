@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Aaron Barany
+ * Copyright 2020 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,31 +16,16 @@
 
 include "DeepSea/Scene/Flatbuffers/SceneCommon.fbs";
 
-namespace DeepSeaScene;
+namespace DeepSeaVectorDrawScene;
 
-// Enum for how to sort the items.
-enum SortType : ubyte
+// Struct defining how to draw a list of vector items.
+table VectorItemList
 {
-	None,
-	Material,
-	BackToFront,
-	FrontToBack
-}
-
-// Struct defining how to draw a list of models.
-table ModelList
-{
-	// List of instance data for the models.
-	instanceData : [ObjectData];
-
-	// How to sort the models.
-	sortType : SortType;
+	// List of instance data for the vector items.
+	instanceData : [DeepSeaScene.ObjectData];
 
 	// Dynamic render states to apply when rendering.
-	dynamicRenderStates : DynamicRenderStates;
-
-	// The name of the item list to handle culling, or null if no culling is used.
-	cullName : string;
+	dynamicRenderStates : DeepSeaScene.DynamicRenderStates;
 }
 
-root_type ModelList;
+root_type VectorItemList;

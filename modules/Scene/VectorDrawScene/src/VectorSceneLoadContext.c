@@ -17,10 +17,14 @@
 #include <DeepSea/VectorDrawScene/VectorSceneLoadContext.h>
 
 #include "SceneTextLoad.h"
+#include "SceneTextNodeLoad.h"
 #include "SceneVectorImageLoad.h"
+#include "SceneVectorImageNodeLoad.h"
+#include "SceneVectorItemListLoad.h"
 #include "VectorSceneResourcesLoad.h"
 #include "VectorSceneMaterialSetLoad.h"
 #include "VectorSceneShadersLoad.h"
+
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Scene/SceneLoadContext.h>
@@ -30,7 +34,10 @@
 #include <DeepSea/VectorDraw/VectorResources.h>
 #include <DeepSea/VectorDraw/VectorScratchData.h>
 #include <DeepSea/VectorDrawScene/SceneText.h>
+#include <DeepSea/VectorDrawScene/SceneTextNode.h>
 #include <DeepSea/VectorDrawScene/SceneVectorImage.h>
+#include <DeepSea/VectorDrawScene/SceneVectorImageNode.h>
+#include <DeepSea/VectorDrawScene/SceneVectorItemList.h>
 #include <DeepSea/VectorDrawScene/VectorSceneMaterialSet.h>
 #include <DeepSea/VectorDrawScene/VectorSceneResources.h>
 #include <DeepSea/VectorDrawScene/VectorSceneShaders.h>
@@ -69,6 +76,16 @@ static void SceneVectorImageUserData_destroy(void* userData)
 		DS_VERIFY(dsAllocator_free(vectorImageUserData->allocator, userData));
 }
 
+static void SceneVectorItemListUserData_destroy(void* userData)
+{
+	if (!userData)
+		return;
+
+	SceneVectorItemListUserData* vectorItemListUserData = (SceneVectorItemListUserData*)userData;
+	if (vectorItemListUserData->allocator)
+		DS_VERIFY(dsAllocator_free(vectorItemListUserData->allocator, vectorItemListUserData));
+}
+
 static bool destroySceneText(void* text)
 {
 	dsSceneText_destroy((dsSceneText*)text);
@@ -77,7 +94,8 @@ static bool destroySceneText(void* text)
 
 bool dsVectorSceneLoadConext_registerTypes(dsSceneLoadContext* loadContext, dsAllocator* allocator,
 	dsCommandBuffer* commandBuffer, const dsTextQuality* qualityRemap,
-	const dsTextSubstitutionTable* substitutionTable, float pixelSize)
+	const dsTextSubstitutionTable* substitutionTable,
+	const dsSceneTextRenderBufferInfo* textRenderInfo, float pixelSize)
 {
 	if (!loadContext || (!allocator && (commandBuffer || qualityRemap || substitutionTable)) ||
 		pixelSize <= 0.0f)
@@ -181,6 +199,38 @@ bool dsVectorSceneLoadConext_registerTypes(dsSceneLoadContext* loadContext, dsAl
 			SceneVectorImageUserData_destroy(userData);
 			return false;
 		}
+	}
+
+	{
+		SceneVectorItemListUserData* userData = NULL;
+		if (textRenderInfo)
+		{
+			userData = DS_ALLOCATE_OBJECT(allocator, SceneVectorItemListUserData);
+			if (!userData)
+				return false;
+
+			userData->allocator = dsAllocator_keepPointer(allocator);
+			userData->textRenderInfo = *textRenderInfo;
+		}
+
+		if (!dsSceneLoadContext_registerItemListType(loadContext, dsSceneVectorItemList_typeName,
+				&dsSceneVectorItemList_load, userData, &SceneVectorItemListUserData_destroy))
+		{
+			SceneVectorItemListUserData_destroy(userData);
+			return false;
+		}
+	}
+
+	if (!dsSceneLoadContext_registerNodeType(loadContext, dsSceneTextNode_typeName,
+			&dsSceneTextNode_load, NULL, NULL))
+	{
+		return false;
+	}
+
+	if (!dsSceneLoadContext_registerNodeType(loadContext, dsSceneVectorImageNode_typeName,
+			&dsSceneVectorImageNode_load, NULL, NULL))
+	{
+		return false;
 	}
 
 	return true;

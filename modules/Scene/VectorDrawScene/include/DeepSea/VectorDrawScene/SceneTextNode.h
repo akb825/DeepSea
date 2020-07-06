@@ -28,26 +28,26 @@ extern "C"
 /**
  * @file
  * @brief Functions to create and manipulate text nodes.
- * @see dsSceneVectorTextNode
+ * @see dsSceneTextNode
  */
 
 /**
  * @brief The type name for a text node.
  */
-DS_VECTORDRAWSCENE_EXPORT extern const char* const dsSceneVectorText_typeName;
+DS_VECTORDRAWSCENE_EXPORT extern const char* const dsSceneTextNode_typeName;
 
 /**
  * @brief Gets the type of a text node.
  * @return The type of a text node.
  */
-DS_VECTORDRAWSCENE_EXPORT const dsSceneNodeType* dsSceneVectorTextNode_type(void);
+DS_VECTORDRAWSCENE_EXPORT const dsSceneNodeType* dsSceneTextNode_type(void);
 
 /**
- * @brief Sets up the parent type for a node type subclassing from dsSceneVectorTextNode.
- * @param type The subclass type for dsSceneVectorTextNode.
- * @return The type parameter or the type for dsSceneVectorTextNode if type is NULL.
+ * @brief Sets up the parent type for a node type subclassing from dsSceneTextNode.
+ * @param type The subclass type for dsSceneTextNode.
+ * @return The type parameter or the type for dsSceneTextNode if type is NULL.
  */
-DS_VECTORDRAWSCENE_EXPORT const dsSceneNodeType* dsSceneVectorTextNode_setupParentType(
+DS_VECTORDRAWSCENE_EXPORT const dsSceneNodeType* dsSceneTextNode_setupParentType(
 	dsSceneNodeType* type);
 
 /**
@@ -56,7 +56,7 @@ DS_VECTORDRAWSCENE_EXPORT const dsSceneNodeType* dsSceneVectorTextNode_setupPare
  * @param allocator The allocator to create the text node with.
  * @param text The text to draw.
  * @param textUserData User data to provide with the text.
- * @param styles The styles to apply to the text.
+ * @param styles The styles to apply to the text. The array will be copied.
  * @param styleCount The number of styles.
  * @param alignment The alignmnet of the text.
  * @param maxWidth The maximum width of the text when laying out.
@@ -72,8 +72,8 @@ DS_VECTORDRAWSCENE_EXPORT const dsSceneNodeType* dsSceneVectorTextNode_setupPare
  * @param resourceCount The number of resources.
  * @return The vector text node or NULL if an error occurred.
  */
-DS_VECTORDRAWSCENE_EXPORT dsSceneVectorTextNode* dsSceneVectorTextNode_create(
-	dsAllocator* allocator, const dsText* text, void* textUserData, dsTextStyle* styles,
+DS_VECTORDRAWSCENE_EXPORT dsSceneTextNode* dsSceneTextNode_create(
+	dsAllocator* allocator, const dsText* text, void* textUserData, const dsTextStyle* styles,
 	uint32_t styleCount, dsTextAlign alignment, float maxWidth, float lineScale, uint32_t firstChar,
 	uint32_t charCount, dsShader* shader, dsMaterial* material, const char** itemLists,
 	uint32_t itemListCount, dsSceneResources** resources, uint32_t resourceCount);
@@ -85,7 +85,7 @@ DS_VECTORDRAWSCENE_EXPORT dsSceneVectorTextNode* dsSceneVectorTextNode_create(
  * @param structSize The size of the struct.
  * @param text The text to draw.
  * @param textUserData User data to provide with the text.
- * @param styles The styles to apply to the text.
+ * @param styles The styles to apply to the text. The array will be copied.
  * @param styleCount The number of styles.
  * @param alignment The alignmnet of the text.
  * @param maxWidth The maximum width of the text when laying out.
@@ -101,9 +101,9 @@ DS_VECTORDRAWSCENE_EXPORT dsSceneVectorTextNode* dsSceneVectorTextNode_create(
  * @param resourceCount The number of resources.
  * @return The vector text node or NULL if an error occurred.
  */
-DS_VECTORDRAWSCENE_EXPORT dsSceneVectorTextNode* dsSceneVectorTextNode_createBase(
+DS_VECTORDRAWSCENE_EXPORT dsSceneTextNode* dsSceneTextNode_createBase(
 	dsAllocator* allocator, size_t structSize, const dsText* text, void* textUserData,
-	dsTextStyle* styles, uint32_t styleCount, dsTextAlign alignment, float maxWidth,
+	const dsTextStyle* styles, uint32_t styleCount, dsTextAlign alignment, float maxWidth,
 	float lineScale, uint32_t firstChar, uint32_t charCount, dsShader* shader, dsMaterial* material,
 	const char** itemLists, uint32_t itemListCount, dsSceneResources** resources,
 	uint32_t resourceCount);
@@ -119,7 +119,7 @@ DS_VECTORDRAWSCENE_EXPORT dsSceneVectorTextNode* dsSceneVectorTextNode_createBas
  *
  * @param node The node to update.
  */
-DS_VECTORDRAWSCENE_EXPORT void dsSceneVectorTextNode_updateLayout(dsSceneVectorTextNode* node);
+DS_VECTORDRAWSCENE_EXPORT void dsSceneTextNode_updateLayout(dsSceneTextNode* node);
 
 #ifdef __cplusplus
 }

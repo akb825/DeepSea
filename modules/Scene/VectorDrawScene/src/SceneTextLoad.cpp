@@ -119,5 +119,5 @@ void* dsSceneText_load(const dsSceneLoadContext*, dsSceneLoadScratchData* scratc
 	if (!text)
 		return nullptr;
 
-	return dsSceneText_create(allocator, text, styles, styleCount);
+	return dsSceneText_create(allocator, text, nullptr, styles, styleCount);
 }

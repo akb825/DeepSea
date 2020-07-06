@@ -33,6 +33,9 @@ struct FileReferenceBuilder;
 struct RawData;
 struct RawDataBuilder;
 
+struct DynamicRenderStates;
+struct DynamicRenderStatesBuilder;
+
 enum class FileResourceType : uint8_t {
   Embedded = 0,
   Installed = 1,
@@ -1233,6 +1236,158 @@ inline flatbuffers::Offset<RawData> CreateRawDataDirect(
   return DeepSeaScene::CreateRawData(
       _fbb,
       data__);
+}
+
+struct DynamicRenderStates FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef DynamicRenderStatesBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_LINEWIDTH = 4,
+    VT_DEPTHBIASCONSTANTFACTOR = 6,
+    VT_DEPTHBIASCLAMP = 8,
+    VT_DEPTHBIASSLOPEFACTOR = 10,
+    VT_BLENDCONSTANTS = 12,
+    VT_DEPTHBOUNDS = 14,
+    VT_FRONTSTENCILCOMPAREMASK = 16,
+    VT_BACKSTENCILCOMPAREMASK = 18,
+    VT_FRONTSTENCILWRITEMASK = 20,
+    VT_BACKSTENCILWRITEMASK = 22,
+    VT_FRONTSTENCILREFERENCE = 24,
+    VT_BACKSTENCILREFERENCE = 26
+  };
+  float lineWidth() const {
+    return GetField<float>(VT_LINEWIDTH, 0.0f);
+  }
+  float depthBiasConstantFactor() const {
+    return GetField<float>(VT_DEPTHBIASCONSTANTFACTOR, 0.0f);
+  }
+  float depthBiasClamp() const {
+    return GetField<float>(VT_DEPTHBIASCLAMP, 0.0f);
+  }
+  float depthBiasSlopeFactor() const {
+    return GetField<float>(VT_DEPTHBIASSLOPEFACTOR, 0.0f);
+  }
+  const DeepSeaScene::Color4f *blendConstants() const {
+    return GetStruct<const DeepSeaScene::Color4f *>(VT_BLENDCONSTANTS);
+  }
+  const DeepSeaScene::Vector2f *depthBounds() const {
+    return GetStruct<const DeepSeaScene::Vector2f *>(VT_DEPTHBOUNDS);
+  }
+  uint32_t frontStencilCompareMask() const {
+    return GetField<uint32_t>(VT_FRONTSTENCILCOMPAREMASK, 0);
+  }
+  uint32_t backStencilCompareMask() const {
+    return GetField<uint32_t>(VT_BACKSTENCILCOMPAREMASK, 0);
+  }
+  uint32_t frontStencilWriteMask() const {
+    return GetField<uint32_t>(VT_FRONTSTENCILWRITEMASK, 0);
+  }
+  uint32_t backStencilWriteMask() const {
+    return GetField<uint32_t>(VT_BACKSTENCILWRITEMASK, 0);
+  }
+  uint32_t frontStencilReference() const {
+    return GetField<uint32_t>(VT_FRONTSTENCILREFERENCE, 0);
+  }
+  uint32_t backStencilReference() const {
+    return GetField<uint32_t>(VT_BACKSTENCILREFERENCE, 0);
+  }
+  bool Verify(flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyField<float>(verifier, VT_LINEWIDTH) &&
+           VerifyField<float>(verifier, VT_DEPTHBIASCONSTANTFACTOR) &&
+           VerifyField<float>(verifier, VT_DEPTHBIASCLAMP) &&
+           VerifyField<float>(verifier, VT_DEPTHBIASSLOPEFACTOR) &&
+           VerifyField<DeepSeaScene::Color4f>(verifier, VT_BLENDCONSTANTS) &&
+           VerifyField<DeepSeaScene::Vector2f>(verifier, VT_DEPTHBOUNDS) &&
+           VerifyField<uint32_t>(verifier, VT_FRONTSTENCILCOMPAREMASK) &&
+           VerifyField<uint32_t>(verifier, VT_BACKSTENCILCOMPAREMASK) &&
+           VerifyField<uint32_t>(verifier, VT_FRONTSTENCILWRITEMASK) &&
+           VerifyField<uint32_t>(verifier, VT_BACKSTENCILWRITEMASK) &&
+           VerifyField<uint32_t>(verifier, VT_FRONTSTENCILREFERENCE) &&
+           VerifyField<uint32_t>(verifier, VT_BACKSTENCILREFERENCE) &&
+           verifier.EndTable();
+  }
+};
+
+struct DynamicRenderStatesBuilder {
+  typedef DynamicRenderStates Table;
+  flatbuffers::FlatBufferBuilder &fbb_;
+  flatbuffers::uoffset_t start_;
+  void add_lineWidth(float lineWidth) {
+    fbb_.AddElement<float>(DynamicRenderStates::VT_LINEWIDTH, lineWidth, 0.0f);
+  }
+  void add_depthBiasConstantFactor(float depthBiasConstantFactor) {
+    fbb_.AddElement<float>(DynamicRenderStates::VT_DEPTHBIASCONSTANTFACTOR, depthBiasConstantFactor, 0.0f);
+  }
+  void add_depthBiasClamp(float depthBiasClamp) {
+    fbb_.AddElement<float>(DynamicRenderStates::VT_DEPTHBIASCLAMP, depthBiasClamp, 0.0f);
+  }
+  void add_depthBiasSlopeFactor(float depthBiasSlopeFactor) {
+    fbb_.AddElement<float>(DynamicRenderStates::VT_DEPTHBIASSLOPEFACTOR, depthBiasSlopeFactor, 0.0f);
+  }
+  void add_blendConstants(const DeepSeaScene::Color4f *blendConstants) {
+    fbb_.AddStruct(DynamicRenderStates::VT_BLENDCONSTANTS, blendConstants);
+  }
+  void add_depthBounds(const DeepSeaScene::Vector2f *depthBounds) {
+    fbb_.AddStruct(DynamicRenderStates::VT_DEPTHBOUNDS, depthBounds);
+  }
+  void add_frontStencilCompareMask(uint32_t frontStencilCompareMask) {
+    fbb_.AddElement<uint32_t>(DynamicRenderStates::VT_FRONTSTENCILCOMPAREMASK, frontStencilCompareMask, 0);
+  }
+  void add_backStencilCompareMask(uint32_t backStencilCompareMask) {
+    fbb_.AddElement<uint32_t>(DynamicRenderStates::VT_BACKSTENCILCOMPAREMASK, backStencilCompareMask, 0);
+  }
+  void add_frontStencilWriteMask(uint32_t frontStencilWriteMask) {
+    fbb_.AddElement<uint32_t>(DynamicRenderStates::VT_FRONTSTENCILWRITEMASK, frontStencilWriteMask, 0);
+  }
+  void add_backStencilWriteMask(uint32_t backStencilWriteMask) {
+    fbb_.AddElement<uint32_t>(DynamicRenderStates::VT_BACKSTENCILWRITEMASK, backStencilWriteMask, 0);
+  }
+  void add_frontStencilReference(uint32_t frontStencilReference) {
+    fbb_.AddElement<uint32_t>(DynamicRenderStates::VT_FRONTSTENCILREFERENCE, frontStencilReference, 0);
+  }
+  void add_backStencilReference(uint32_t backStencilReference) {
+    fbb_.AddElement<uint32_t>(DynamicRenderStates::VT_BACKSTENCILREFERENCE, backStencilReference, 0);
+  }
+  explicit DynamicRenderStatesBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  DynamicRenderStatesBuilder &operator=(const DynamicRenderStatesBuilder &);
+  flatbuffers::Offset<DynamicRenderStates> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = flatbuffers::Offset<DynamicRenderStates>(end);
+    return o;
+  }
+};
+
+inline flatbuffers::Offset<DynamicRenderStates> CreateDynamicRenderStates(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    float lineWidth = 0.0f,
+    float depthBiasConstantFactor = 0.0f,
+    float depthBiasClamp = 0.0f,
+    float depthBiasSlopeFactor = 0.0f,
+    const DeepSeaScene::Color4f *blendConstants = 0,
+    const DeepSeaScene::Vector2f *depthBounds = 0,
+    uint32_t frontStencilCompareMask = 0,
+    uint32_t backStencilCompareMask = 0,
+    uint32_t frontStencilWriteMask = 0,
+    uint32_t backStencilWriteMask = 0,
+    uint32_t frontStencilReference = 0,
+    uint32_t backStencilReference = 0) {
+  DynamicRenderStatesBuilder builder_(_fbb);
+  builder_.add_backStencilReference(backStencilReference);
+  builder_.add_frontStencilReference(frontStencilReference);
+  builder_.add_backStencilWriteMask(backStencilWriteMask);
+  builder_.add_frontStencilWriteMask(frontStencilWriteMask);
+  builder_.add_backStencilCompareMask(backStencilCompareMask);
+  builder_.add_frontStencilCompareMask(frontStencilCompareMask);
+  builder_.add_depthBounds(depthBounds);
+  builder_.add_blendConstants(blendConstants);
+  builder_.add_depthBiasSlopeFactor(depthBiasSlopeFactor);
+  builder_.add_depthBiasClamp(depthBiasClamp);
+  builder_.add_depthBiasConstantFactor(depthBiasConstantFactor);
+  builder_.add_lineWidth(lineWidth);
+  return builder_.Finish();
 }
 
 inline bool VerifyFileOrData(flatbuffers::Verifier &verifier, const void *obj, FileOrData type) {

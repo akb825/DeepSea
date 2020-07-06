@@ -38,7 +38,7 @@
 #include <DeepSea/Text/TextRenderBuffer.h>
 #include <DeepSea/VectorDraw/VectorImage.h>
 #include <DeepSea/VectorDrawScene/SceneVectorImageNode.h>
-#include <DeepSea/VectorDrawScene/SceneVectorTextNode.h>
+#include <DeepSea/VectorDrawScene/SceneTextNode.h>
 #include <DeepSea/VectorDrawScene/SceneVectorNode.h>
 
 #include <stdlib.h>
@@ -160,7 +160,7 @@ static bool addInstances(dsSceneItemList* itemList, dsCommandBuffer* commandBuff
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	const dsSceneNodeType* textType = dsSceneVectorTextNode_type();
+	const dsSceneNodeType* textType = dsSceneTextNode_type();
 	const dsSceneNodeType* vectorImageType = dsSceneVectorImageNode_type();
 	DS_UNUSED(vectorImageType);
 	for (uint32_t i = 0; i < vectorList->entryCount; ++i)
@@ -172,7 +172,7 @@ static bool addInstances(dsSceneItemList* itemList, dsCommandBuffer* commandBuff
 		drawItem->instance = i;
 		if (dsSceneNode_isOfType((const dsSceneNode*)entry->node, textType))
 		{
-			const dsSceneVectorTextNode* node = (const dsSceneVectorTextNode*)entry->node;
+			const dsSceneTextNode* node = (const dsSceneTextNode*)entry->node;
 			drawItem->type = DrawType_Text;
 			if (entry->layoutVersion == node->layoutVersion)
 			{
@@ -538,7 +538,7 @@ uint64_t dsSceneVectorItemList_addNode(dsSceneItemList* itemList, dsSceneNode* n
 		return DS_NO_SCENE_NODE;
 
 	dsSceneVectorItemList* modelList = (dsSceneVectorItemList*)itemList;
-	bool isText = dsSceneNode_isOfType(node, dsSceneVectorTextNode_type());
+	bool isText = dsSceneNode_isOfType(node, dsSceneTextNode_type());
 	if (!modelList->textRenderBuffer && isText)
 	{
 		DS_LOG_WARNING(DS_VECTOR_DRAW_LOG_TAG,
@@ -561,7 +561,7 @@ uint64_t dsSceneVectorItemList_addNode(dsSceneItemList* itemList, dsSceneNode* n
 
 	if (isText)
 	{
-		dsSceneVectorTextNode* textNode = (dsSceneVectorTextNode*)node;
+		dsSceneTextNode* textNode = (dsSceneTextNode*)node;
 		entry->layout = dsTextLayout_create(itemList->allocator, textNode->text, textNode->styles,
 			textNode->styleCount);
 		if (!entry->layout)

@@ -41,6 +41,7 @@ extern "C"
  *     it must be of size DS_TEXT_QUALITY_REMAP_SIZE.
  * @param substitutionTable The text substitution table used when creating dsSceneText instances.
  *     This may be NULL if no text substitution is performed.
+ * @param textRenderInfo Info for how to render text in vector item lists.
  * @param pixelSize The size of a pixel in the local coordinate space for the vector images and
  *     text. This will be used to determine tessellation quality and amount to smooth text for
  *     ant-aliasing.
@@ -49,7 +50,7 @@ extern "C"
 DS_VECTORDRAWSCENE_EXPORT bool dsVectorSceneLoadConext_registerTypes(
 	dsSceneLoadContext* loadContext, dsAllocator* allocator, dsCommandBuffer* commandBuffer,
 	const dsTextQuality* qualityRemap, const dsTextSubstitutionTable* substitutionTable,
-	float pixelSize);
+	const dsSceneTextRenderBufferInfo* textRenderInfo, float pixelSize);
 
 #ifdef __cplusplus
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include <DeepSea/VectorDrawScene/SceneVectorTextNode.h>
+#include <DeepSea/VectorDrawScene/SceneTextNode.h>
 
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Scene/Nodes/SceneNode.h>
@@ -22,33 +22,33 @@
 
 #include <string.h>
 
-const char* const dsSceneVectorText_typeName = "TextNode";
+const char* const dsSceneTextNode_typeName = "TextNode";
 
 static dsSceneNodeType nodeType;
-const dsSceneNodeType* dsSceneVectorTextNode_type(void)
+const dsSceneNodeType* dsSceneTextNode_type(void)
 {
 	return &nodeType;
 }
 
-const dsSceneNodeType* dsSceneVectorTextNode_setupParentType(dsSceneNodeType* type)
+const dsSceneNodeType* dsSceneTextNode_setupParentType(dsSceneNodeType* type)
 {
-	dsSceneNode_setupParentType(&nodeType, dsSceneVectorTextNode_type());
+	dsSceneNode_setupParentType(&nodeType, dsSceneTextNode_type());
 	return dsSceneNode_setupParentType(type, &nodeType);
 }
 
-dsSceneVectorTextNode* dsSceneVectorTextNode_create(dsAllocator* allocator, const dsText* text,
-	void* textUserData, dsTextStyle* styles, uint32_t styleCount, dsTextAlign alignment,
+dsSceneTextNode* dsSceneTextNode_create(dsAllocator* allocator, const dsText* text,
+	void* textUserData, const dsTextStyle* styles, uint32_t styleCount, dsTextAlign alignment,
 	float maxWidth, float lineScale, uint32_t firstChar, uint32_t charCount, dsShader* shader,
 	dsMaterial* material, const char** itemLists, uint32_t itemListCount,
 	dsSceneResources** resources, uint32_t resourceCount)
 {
-	return dsSceneVectorTextNode_createBase(allocator, sizeof(dsSceneVectorTextNode), text,
+	return dsSceneTextNode_createBase(allocator, sizeof(dsSceneTextNode), text,
 		textUserData, styles, styleCount, alignment, maxWidth, lineScale, firstChar, charCount,
 		shader, material, itemLists, itemListCount, resources, resourceCount);
 }
 
-dsSceneVectorTextNode* dsSceneVectorTextNode_createBase(dsAllocator* allocator, size_t structSize,
-	const dsText* text, void* textUserData, dsTextStyle* styles, uint32_t styleCount,
+dsSceneTextNode* dsSceneTextNode_createBase(dsAllocator* allocator, size_t structSize,
+	const dsText* text, void* textUserData, const dsTextStyle* styles, uint32_t styleCount,
 	dsTextAlign alignment, float maxWidth, float lineScale, uint32_t firstChar, uint32_t charCount,
 	dsShader* shader, dsMaterial* material, const char** itemLists, uint32_t itemListCount,
 	dsSceneResources** resources, uint32_t resourceCount)
@@ -70,13 +70,13 @@ dsSceneVectorTextNode* dsSceneVectorTextNode_createBase(dsAllocator* allocator, 
 	size_t styleOffset = DS_ALIGNED_SIZE(structSize);
 	size_t finalStructSize = styleOffset + DS_ALIGNED_SIZE(sizeof(dsTextStyle)*styleCount);
 
-	dsSceneVectorTextNode* node = (dsSceneVectorTextNode*)dsSceneVectorNode_create(
+	dsSceneTextNode* node = (dsSceneTextNode*)dsSceneVectorNode_create(
 		allocator, finalStructSize, itemLists, itemListCount, resources, resourceCount);
 	if (!node)
 		return NULL;
 
 	dsSceneNode* baseNode = (dsSceneNode*)node;
-	baseNode->type = dsSceneVectorTextNode_setupParentType(NULL);
+	baseNode->type = dsSceneTextNode_setupParentType(NULL);
 
 	node->text = text;
 	node->textUserData = textUserData;
@@ -94,7 +94,7 @@ dsSceneVectorTextNode* dsSceneVectorTextNode_createBase(dsAllocator* allocator, 
 	return node;
 }
 
-void dsSceneVectorTextNode_updateLayout(dsSceneVectorTextNode* node)
+void dsSceneTextNode_updateLayout(dsSceneTextNode* node)
 {
 	if (node)
 		++node->layoutVersion;

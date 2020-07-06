@@ -52,6 +52,11 @@ typedef struct dsSceneText
 	dsText* text;
 
 	/**
+	 * @brief User data to use with the text.
+	 */
+	void* userData;
+
+	/**
 	 * @brief The styles for the text.
 	 */
 	dsTextStyle* styles;
@@ -120,9 +125,9 @@ typedef struct dsSceneVectorImageNode
 
 /**
  * @brief Struct for a vector node subclass to display text.
- * @see SceneVectorTextNode.h
+ * @see SceneTextNode.h
  */
-typedef struct dsSceneVectorTextNode
+typedef struct dsSceneTextNode
 {
 	/**
 	 * @brief The node as a base class.
@@ -192,7 +197,7 @@ typedef struct dsSceneVectorTextNode
 	 * @brief Version number to determine when the layout needs to be be re-calculated.
 	 */
 	uint32_t layoutVersion;
-} dsSceneVectorTextNode;
+} dsSceneTextNode;
 
 /**
  * @brief Text with info required to create a dsTextRenderBuffer with a dsSceneVectorItemList.

@@ -38,8 +38,8 @@ const dsCustomSceneResourceType* dsSceneText_type(void)
 	return &resourceType;
 }
 
-dsSceneText* dsSceneText_create(dsAllocator* allocator, dsText* text, const dsTextStyle* styles,
-	uint32_t styleCount)
+dsSceneText* dsSceneText_create(dsAllocator* allocator, dsText* text, void* userData,
+	const dsTextStyle* styles, uint32_t styleCount)
 {
 	if (!allocator || !text || (!styles && styleCount > 0))
 	{
@@ -65,6 +65,7 @@ dsSceneText* dsSceneText_create(dsAllocator* allocator, dsText* text, const dsTe
 
 	sceneText->allocator = dsAllocator_keepPointer(allocator);
 	sceneText->text = text;
+	sceneText->userData = userData;
 
 	if (styleCount > 0)
 	{

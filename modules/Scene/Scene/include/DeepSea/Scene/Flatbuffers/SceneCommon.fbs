@@ -349,3 +349,44 @@ union FileOrData
 	FileReference,
 	RawData
 }
+
+// Struct defining what render states are dynamically set. Only values needed by the shader are
+// used.
+table DynamicRenderStates
+{
+	// The width of line primitivies.
+	lineWidth : float;
+
+	// The depth bias constant factor.
+	depthBiasConstantFactor : float;
+
+	// The depth bias clamp.
+	depthBiasClamp : float;
+
+	// The depth bias slope factor.
+	depthBiasSlopeFactor : float;
+
+	// The blend constants.
+	blendConstants : Color4f;
+
+	// The minimum and maximum depth values.
+	depthBounds : Vector2f;
+
+	// The stencil compare mask for front faces.
+	frontStencilCompareMask : uint;
+
+	// The stencil compare mask for back faces.
+	backStencilCompareMask : uint;
+
+	// @brief The stencil write mask for front faces.
+	frontStencilWriteMask : uint;
+
+	// The stencil write mask for back faces.
+	backStencilWriteMask : uint;
+
+	// The stencil reference for front faces.
+	frontStencilReference : uint;
+
+	// The stencil reference for back faces.
+	backStencilReference : uint;
+}

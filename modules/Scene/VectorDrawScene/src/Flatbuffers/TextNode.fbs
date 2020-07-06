@@ -1,0 +1,67 @@
+/*
+ * Copyright 2020 Aaron Barany
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+include "DeepSea/Scene/Flatbuffers/SceneCommon.fbs";
+include "VectorSceneCommon.fbs";
+
+namespace DeepSeaVectorDrawScene;
+
+// Enum for alignment of the text.
+enum TextAlign : uint8
+{
+	Start, // Align in the side of the bounds at the start of the text.
+	End,   // Align in the side of the bounds at the end of the text.
+	Left,  // Align in the left of the bounds.
+	Right, // Align in the right of the bounds.
+	Center // Align in the center of the bounds.
+}
+
+// Struct describing a text node.
+table TextNode
+{
+	// Scene resources embedded in this file.
+	embeddedResources : [ubyte];
+
+	// The name of the text.
+	text : string (required);
+
+	// The alignment of the text.
+	alignment : TextAlign;
+
+	// The maximum width of the text.
+	maxWidth : float;
+
+	// The scale to apply to the distance between each line. Set to 1 to use the base font height
+	// directly.
+	lineScale : float;
+
+	// The first character to display.
+	firstChar : uint32;
+
+	// The number of characters to display.
+	charCount : uint32;
+
+	// The name of the shader to draw with.
+	shader : string (required);
+
+	// The name to the material to draw with.
+	material : string (required);
+
+	// Item lists to add the node to.
+	itemLists : [string];
+}
+
+root_type TextNode;
