@@ -33,7 +33,7 @@ const dsSceneNodeType* dsSceneVectorNode_type(void)
 	return &nodeType;
 }
 
-dsSceneVectorNode* dsSceneVectorNode_create(dsAllocator* allocator, size_t structSize,
+dsSceneVectorNode* dsSceneVectorNode_create(dsAllocator* allocator, size_t structSize, int32_t z,
 	const char** itemLists, uint32_t itemListCount, dsSceneResources** resources,
 	uint32_t resourceCount)
 {
@@ -106,6 +106,8 @@ dsSceneVectorNode* dsSceneVectorNode_create(dsAllocator* allocator, size_t struc
 		node->resources = NULL;
 		node->resourceCount = 0;
 	}
+
+	node->z = z;
 
 	return node;
 }

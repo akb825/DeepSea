@@ -48,6 +48,9 @@ table TextNode
 	// directly.
 	lineScale : float;
 
+	// The Z value used for sorting text and vector elements.
+	z : int32;
+
 	// The first character to display.
 	firstChar : uint32;
 

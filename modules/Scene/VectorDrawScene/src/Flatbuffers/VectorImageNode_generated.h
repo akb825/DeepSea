@@ -19,15 +19,19 @@ struct VectorImageNode FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_EMBEDDEDRESOURCES = 4,
     VT_VECTORIMAGE = 6,
-    VT_VECTORSHADERS = 8,
-    VT_MATERIAL = 10,
-    VT_ITEMLISTS = 12
+    VT_Z = 8,
+    VT_VECTORSHADERS = 10,
+    VT_MATERIAL = 12,
+    VT_ITEMLISTS = 14
   };
   const flatbuffers::Vector<uint8_t> *embeddedResources() const {
     return GetPointer<const flatbuffers::Vector<uint8_t> *>(VT_EMBEDDEDRESOURCES);
   }
   const flatbuffers::String *vectorImage() const {
     return GetPointer<const flatbuffers::String *>(VT_VECTORIMAGE);
+  }
+  int32_t z() const {
+    return GetField<int32_t>(VT_Z, 0);
   }
   const flatbuffers::String *vectorShaders() const {
     return GetPointer<const flatbuffers::String *>(VT_VECTORSHADERS);
@@ -44,6 +48,7 @@ struct VectorImageNode FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            verifier.VerifyVector(embeddedResources()) &&
            VerifyOffsetRequired(verifier, VT_VECTORIMAGE) &&
            verifier.VerifyString(vectorImage()) &&
+           VerifyField<int32_t>(verifier, VT_Z) &&
            VerifyOffsetRequired(verifier, VT_VECTORSHADERS) &&
            verifier.VerifyString(vectorShaders()) &&
            VerifyOffsetRequired(verifier, VT_MATERIAL) &&
@@ -64,6 +69,9 @@ struct VectorImageNodeBuilder {
   }
   void add_vectorImage(flatbuffers::Offset<flatbuffers::String> vectorImage) {
     fbb_.AddOffset(VectorImageNode::VT_VECTORIMAGE, vectorImage);
+  }
+  void add_z(int32_t z) {
+    fbb_.AddElement<int32_t>(VectorImageNode::VT_Z, z, 0);
   }
   void add_vectorShaders(flatbuffers::Offset<flatbuffers::String> vectorShaders) {
     fbb_.AddOffset(VectorImageNode::VT_VECTORSHADERS, vectorShaders);
@@ -93,6 +101,7 @@ inline flatbuffers::Offset<VectorImageNode> CreateVectorImageNode(
     flatbuffers::FlatBufferBuilder &_fbb,
     flatbuffers::Offset<flatbuffers::Vector<uint8_t>> embeddedResources = 0,
     flatbuffers::Offset<flatbuffers::String> vectorImage = 0,
+    int32_t z = 0,
     flatbuffers::Offset<flatbuffers::String> vectorShaders = 0,
     flatbuffers::Offset<flatbuffers::String> material = 0,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>> itemLists = 0) {
@@ -100,6 +109,7 @@ inline flatbuffers::Offset<VectorImageNode> CreateVectorImageNode(
   builder_.add_itemLists(itemLists);
   builder_.add_material(material);
   builder_.add_vectorShaders(vectorShaders);
+  builder_.add_z(z);
   builder_.add_vectorImage(vectorImage);
   builder_.add_embeddedResources(embeddedResources);
   return builder_.Finish();
@@ -109,6 +119,7 @@ inline flatbuffers::Offset<VectorImageNode> CreateVectorImageNodeDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     const std::vector<uint8_t> *embeddedResources = nullptr,
     const char *vectorImage = nullptr,
+    int32_t z = 0,
     const char *vectorShaders = nullptr,
     const char *material = nullptr,
     const std::vector<flatbuffers::Offset<flatbuffers::String>> *itemLists = nullptr) {
@@ -121,6 +132,7 @@ inline flatbuffers::Offset<VectorImageNode> CreateVectorImageNodeDirect(
       _fbb,
       embeddedResources__,
       vectorImage__,
+      z,
       vectorShaders__,
       material__,
       itemLists__);

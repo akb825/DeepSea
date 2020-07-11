@@ -129,8 +129,8 @@ dsSceneNode* dsSceneTextNode_load(const dsSceneLoadContext* loadContext,
 	node = reinterpret_cast<dsSceneNode*>(dsSceneTextNode_create(allocator, text->text,
 		text->userData, text->styles, text->styleCount,
 		static_cast<dsTextAlign>(fbTextNode->alignment()), fbTextNode->maxWidth(),
-		fbTextNode->lineScale(), fbTextNode->firstChar(), fbTextNode->charCount(), shader, material,
-		itemLists, itemListCount, &embeddedResources, embeddedResources ? 1 : 0));
+		fbTextNode->lineScale(), fbTextNode->z(), fbTextNode->firstChar(), fbTextNode->charCount(),
+		shader, material, itemLists, itemListCount, &embeddedResources, embeddedResources ? 1 : 0));
 
 finished:
 	if (embeddedResources)

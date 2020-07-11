@@ -76,36 +76,43 @@ class TextNode(object):
         return 0.0
 
     # TextNode
-    def FirstChar(self):
+    def Z(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(14))
         if o != 0:
-            return self._tab.Get(flatbuffers.number_types.Uint32Flags, o + self._tab.Pos)
+            return self._tab.Get(flatbuffers.number_types.Int32Flags, o + self._tab.Pos)
         return 0
 
     # TextNode
-    def CharCount(self):
+    def FirstChar(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(16))
         if o != 0:
             return self._tab.Get(flatbuffers.number_types.Uint32Flags, o + self._tab.Pos)
         return 0
 
     # TextNode
-    def Shader(self):
+    def CharCount(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(18))
         if o != 0:
-            return self._tab.String(o + self._tab.Pos)
-        return None
+            return self._tab.Get(flatbuffers.number_types.Uint32Flags, o + self._tab.Pos)
+        return 0
 
     # TextNode
-    def Material(self):
+    def Shader(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(20))
         if o != 0:
             return self._tab.String(o + self._tab.Pos)
         return None
 
     # TextNode
-    def ItemLists(self, j):
+    def Material(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(22))
+        if o != 0:
+            return self._tab.String(o + self._tab.Pos)
+        return None
+
+    # TextNode
+    def ItemLists(self, j):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(24))
         if o != 0:
             a = self._tab.Vector(o)
             return self._tab.String(a + flatbuffers.number_types.UOffsetTFlags.py_type(j * 4))
@@ -113,27 +120,28 @@ class TextNode(object):
 
     # TextNode
     def ItemListsLength(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(22))
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(24))
         if o != 0:
             return self._tab.VectorLen(o)
         return 0
 
     # TextNode
     def ItemListsIsNone(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(22))
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(24))
         return o == 0
 
-def TextNodeStart(builder): builder.StartObject(10)
+def TextNodeStart(builder): builder.StartObject(11)
 def TextNodeAddEmbeddedResources(builder, embeddedResources): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(embeddedResources), 0)
 def TextNodeStartEmbeddedResourcesVector(builder, numElems): return builder.StartVector(1, numElems, 1)
 def TextNodeAddText(builder, text): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(text), 0)
 def TextNodeAddAlignment(builder, alignment): builder.PrependUint8Slot(2, alignment, 0)
 def TextNodeAddMaxWidth(builder, maxWidth): builder.PrependFloat32Slot(3, maxWidth, 0.0)
 def TextNodeAddLineScale(builder, lineScale): builder.PrependFloat32Slot(4, lineScale, 0.0)
-def TextNodeAddFirstChar(builder, firstChar): builder.PrependUint32Slot(5, firstChar, 0)
-def TextNodeAddCharCount(builder, charCount): builder.PrependUint32Slot(6, charCount, 0)
-def TextNodeAddShader(builder, shader): builder.PrependUOffsetTRelativeSlot(7, flatbuffers.number_types.UOffsetTFlags.py_type(shader), 0)
-def TextNodeAddMaterial(builder, material): builder.PrependUOffsetTRelativeSlot(8, flatbuffers.number_types.UOffsetTFlags.py_type(material), 0)
-def TextNodeAddItemLists(builder, itemLists): builder.PrependUOffsetTRelativeSlot(9, flatbuffers.number_types.UOffsetTFlags.py_type(itemLists), 0)
+def TextNodeAddZ(builder, z): builder.PrependInt32Slot(5, z, 0)
+def TextNodeAddFirstChar(builder, firstChar): builder.PrependUint32Slot(6, firstChar, 0)
+def TextNodeAddCharCount(builder, charCount): builder.PrependUint32Slot(7, charCount, 0)
+def TextNodeAddShader(builder, shader): builder.PrependUOffsetTRelativeSlot(8, flatbuffers.number_types.UOffsetTFlags.py_type(shader), 0)
+def TextNodeAddMaterial(builder, material): builder.PrependUOffsetTRelativeSlot(9, flatbuffers.number_types.UOffsetTFlags.py_type(material), 0)
+def TextNodeAddItemLists(builder, itemLists): builder.PrependUOffsetTRelativeSlot(10, flatbuffers.number_types.UOffsetTFlags.py_type(itemLists), 0)
 def TextNodeStartItemListsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
 def TextNodeEnd(builder): return builder.EndObject()

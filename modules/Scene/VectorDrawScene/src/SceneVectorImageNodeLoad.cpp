@@ -132,8 +132,8 @@ dsSceneNode* dsSceneVectorImageNode_load(const dsSceneLoadContext* loadContext,
 	// NOTE: May need to add more resources to the reference count later. Don't add all resources
 	// since it would make circular references.
 	node = reinterpret_cast<dsSceneNode*>(dsSceneVectorImageNode_create(allocator, vectorImage,
-		vectorShaders, material, itemLists, itemListCount, &embeddedResources,
-		embeddedResources ? 1 : 0));
+		fbVectorImageNode->z(), vectorShaders, material, itemLists, itemListCount,
+		&embeddedResources, embeddedResources ? 1 : 0));
 
 finished:
 	if (embeddedResources)

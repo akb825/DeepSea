@@ -42,6 +42,7 @@ DS_VECTORDRAWSCENE_EXPORT const dsSceneNodeType* dsSceneVectorNode_type(void);
  * @remark errno will be set on failure.
  * @param allocator The allocator to create the vector node with.
  * @param structSize The size of the struct.
+ * @param z The Z value used for sorting vector nodes
  * @param itemLists List of item list names to add the node to. The array will be copied.
  * @param itemListCount The number of item lists.
  * @param resources The resources to keep a reference to.
@@ -49,7 +50,7 @@ DS_VECTORDRAWSCENE_EXPORT const dsSceneNodeType* dsSceneVectorNode_type(void);
  * @return The vector node or NULL if an error occurred.
  */
 DS_VECTORDRAWSCENE_EXPORT dsSceneVectorNode* dsSceneVectorNode_create(dsAllocator* allocator,
-	size_t structSize, const char** itemLists, uint32_t itemListCount,
+	size_t structSize, int32_t z, const char** itemLists, uint32_t itemListCount,
 	dsSceneResources** resources, uint32_t resourceCount);
 
 /**

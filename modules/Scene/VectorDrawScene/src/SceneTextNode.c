@@ -38,20 +38,20 @@ const dsSceneNodeType* dsSceneTextNode_setupParentType(dsSceneNodeType* type)
 
 dsSceneTextNode* dsSceneTextNode_create(dsAllocator* allocator, const dsText* text,
 	void* textUserData, const dsTextStyle* styles, uint32_t styleCount, dsTextAlign alignment,
-	float maxWidth, float lineScale, uint32_t firstChar, uint32_t charCount, dsShader* shader,
-	dsMaterial* material, const char** itemLists, uint32_t itemListCount,
+	float maxWidth, float lineScale, int32_t z, uint32_t firstChar, uint32_t charCount,
+	dsShader* shader, dsMaterial* material, const char** itemLists, uint32_t itemListCount,
 	dsSceneResources** resources, uint32_t resourceCount)
 {
 	return dsSceneTextNode_createBase(allocator, sizeof(dsSceneTextNode), text,
-		textUserData, styles, styleCount, alignment, maxWidth, lineScale, firstChar, charCount,
+		textUserData, styles, styleCount, alignment, maxWidth, lineScale, z, firstChar, charCount,
 		shader, material, itemLists, itemListCount, resources, resourceCount);
 }
 
 dsSceneTextNode* dsSceneTextNode_createBase(dsAllocator* allocator, size_t structSize,
 	const dsText* text, void* textUserData, const dsTextStyle* styles, uint32_t styleCount,
-	dsTextAlign alignment, float maxWidth, float lineScale, uint32_t firstChar, uint32_t charCount,
-	dsShader* shader, dsMaterial* material, const char** itemLists, uint32_t itemListCount,
-	dsSceneResources** resources, uint32_t resourceCount)
+	dsTextAlign alignment, float maxWidth, float lineScale, int32_t z, uint32_t firstChar,
+	uint32_t charCount, dsShader* shader, dsMaterial* material, const char** itemLists,
+	uint32_t itemListCount, dsSceneResources** resources, uint32_t resourceCount)
 {
 	if (!allocator || !text || !styles || styleCount == 0 || !shader || !material ||
 		(!itemLists && itemListCount > 0) || (!resources && resourceCount == 0))
@@ -71,7 +71,7 @@ dsSceneTextNode* dsSceneTextNode_createBase(dsAllocator* allocator, size_t struc
 	size_t finalStructSize = styleOffset + DS_ALIGNED_SIZE(sizeof(dsTextStyle)*styleCount);
 
 	dsSceneTextNode* node = (dsSceneTextNode*)dsSceneVectorNode_create(
-		allocator, finalStructSize, itemLists, itemListCount, resources, resourceCount);
+		allocator, finalStructSize, z, itemLists, itemListCount, resources, resourceCount);
 	if (!node)
 		return NULL;
 

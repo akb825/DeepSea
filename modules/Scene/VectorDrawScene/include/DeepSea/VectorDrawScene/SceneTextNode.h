@@ -62,6 +62,7 @@ DS_VECTORDRAWSCENE_EXPORT const dsSceneNodeType* dsSceneTextNode_setupParentType
  * @param maxWidth The maximum width of the text when laying out.
  * @param lineScale The scale to apply to the distance between each line. Set to 1 to use the base
  *     font height directly.
+ * @param z The Z value used for sorting vector nodes.
  * @param firstChar The first character to draw.
  * @param charCount The number of characters to draw.
  * @param shader The shader to draw with.
@@ -74,9 +75,10 @@ DS_VECTORDRAWSCENE_EXPORT const dsSceneNodeType* dsSceneTextNode_setupParentType
  */
 DS_VECTORDRAWSCENE_EXPORT dsSceneTextNode* dsSceneTextNode_create(
 	dsAllocator* allocator, const dsText* text, void* textUserData, const dsTextStyle* styles,
-	uint32_t styleCount, dsTextAlign alignment, float maxWidth, float lineScale, uint32_t firstChar,
-	uint32_t charCount, dsShader* shader, dsMaterial* material, const char** itemLists,
-	uint32_t itemListCount, dsSceneResources** resources, uint32_t resourceCount);
+	uint32_t styleCount, dsTextAlign alignment, float maxWidth, float lineScale, int32_t z,
+	uint32_t firstChar, uint32_t charCount, dsShader* shader, dsMaterial* material,
+	const char** itemLists, uint32_t itemListCount, dsSceneResources** resources,
+	uint32_t resourceCount);
 
 /**
  * @brief Creates a text node as a base class of another node type.
@@ -91,6 +93,7 @@ DS_VECTORDRAWSCENE_EXPORT dsSceneTextNode* dsSceneTextNode_create(
  * @param maxWidth The maximum width of the text when laying out.
  * @param lineScale The scale to apply to the distance between each line. Set to 1 to use the base
  *     font height directly.
+ * @param z The Z value used for sorting vector nodes.
  * @param firstChar The first character to draw.
  * @param charCount The number of characters to draw.
  * @param shader The shader to draw with.
@@ -104,9 +107,9 @@ DS_VECTORDRAWSCENE_EXPORT dsSceneTextNode* dsSceneTextNode_create(
 DS_VECTORDRAWSCENE_EXPORT dsSceneTextNode* dsSceneTextNode_createBase(
 	dsAllocator* allocator, size_t structSize, const dsText* text, void* textUserData,
 	const dsTextStyle* styles, uint32_t styleCount, dsTextAlign alignment, float maxWidth,
-	float lineScale, uint32_t firstChar, uint32_t charCount, dsShader* shader, dsMaterial* material,
-	const char** itemLists, uint32_t itemListCount, dsSceneResources** resources,
-	uint32_t resourceCount);
+	float lineScale, int32_t z, uint32_t firstChar, uint32_t charCount, dsShader* shader,
+	dsMaterial* material, const char** itemLists, uint32_t itemListCount,
+	dsSceneResources** resources, uint32_t resourceCount);
 
 /**
  * @brief Triggers an update for layout when next drawn.

@@ -161,8 +161,8 @@ static uint32_t buildBVHBalancedRec(dsBVH* bvh, uint32_t start, uint32_t count,
 	if (rightNode == INVALID_NODE)
 		return INVALID_NODE;
 
-	// Reset pointer due to possible re-allocations of the array.
-	bvhNode = getNode(bvh->nodes, bvh->nodeSize, node);
+	// Recursive operations shouldn't have invalidated the pointer.
+	DS_ASSERT(bvhNode == getNode(bvh->nodes, bvh->nodeSize, node));
 	bvhNode->leftNode = leftNode;
 	bvhNode->rightNode = rightNode;
 	bvhNode->object = NULL;
@@ -190,8 +190,11 @@ static uint32_t buildBVHRec(dsBVH* bvh, const void* objects, uint32_t start, uin
 
 	// Bounds for all current nodes. dsAlignedBox3d is the maximum storage size
 	dsAlignedBox3d bounds;
-	if (!bvh->objectBoundsFunc(&bounds, bvh, dsSpatialStructure_getObject(objects, objectSize, start)))
+	if (!bvh->objectBoundsFunc(&bounds, bvh,
+			dsSpatialStructure_getObject(objects, objectSize, start)))
+	{
 		return INVALID_NODE;
+	}
 
 	for (uint32_t i = 1; i < count; ++i)
 	{
@@ -216,8 +219,8 @@ static uint32_t buildBVHRec(dsBVH* bvh, const void* objects, uint32_t start, uin
 	if (rightNode == INVALID_NODE)
 		return INVALID_NODE;
 
-	// Reset pointer due to possible re-allocations of the array.
-	bvhNode = getNode(bvh->nodes, bvh->nodeSize, node);
+	// Recursive operations shouldn't have invalidated the pointer.
+	DS_ASSERT(bvhNode == getNode(bvh->nodes, bvh->nodeSize, node));
 	bvhNode->leftNode = leftNode;
 	bvhNode->rightNode = rightNode;
 	bvhNode->object = NULL;
@@ -417,7 +420,7 @@ bool dsBVH_build(dsBVH* bvh, const void* objects, uint32_t objectCount, size_t o
 	// (where n is number of nodes, l is number of leaves)
 	uint32_t nodeCount = objectCount*2 - 1;
 	if (!dsResizeableArray_add(bvh->allocator, (void**)&bvh->nodes, &bvh->nodeCount,
-		&bvh->maxNodes, bvh->nodeSize, nodeCount))
+			&bvh->maxNodes, bvh->nodeSize, nodeCount))
 	{
 		return false;
 	}

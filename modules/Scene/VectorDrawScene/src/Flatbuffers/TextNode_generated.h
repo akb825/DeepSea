@@ -61,11 +61,12 @@ struct TextNode FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_ALIGNMENT = 8,
     VT_MAXWIDTH = 10,
     VT_LINESCALE = 12,
-    VT_FIRSTCHAR = 14,
-    VT_CHARCOUNT = 16,
-    VT_SHADER = 18,
-    VT_MATERIAL = 20,
-    VT_ITEMLISTS = 22
+    VT_Z = 14,
+    VT_FIRSTCHAR = 16,
+    VT_CHARCOUNT = 18,
+    VT_SHADER = 20,
+    VT_MATERIAL = 22,
+    VT_ITEMLISTS = 24
   };
   const flatbuffers::Vector<uint8_t> *embeddedResources() const {
     return GetPointer<const flatbuffers::Vector<uint8_t> *>(VT_EMBEDDEDRESOURCES);
@@ -81,6 +82,9 @@ struct TextNode FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   float lineScale() const {
     return GetField<float>(VT_LINESCALE, 0.0f);
+  }
+  int32_t z() const {
+    return GetField<int32_t>(VT_Z, 0);
   }
   uint32_t firstChar() const {
     return GetField<uint32_t>(VT_FIRSTCHAR, 0);
@@ -106,6 +110,7 @@ struct TextNode FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            VerifyField<uint8_t>(verifier, VT_ALIGNMENT) &&
            VerifyField<float>(verifier, VT_MAXWIDTH) &&
            VerifyField<float>(verifier, VT_LINESCALE) &&
+           VerifyField<int32_t>(verifier, VT_Z) &&
            VerifyField<uint32_t>(verifier, VT_FIRSTCHAR) &&
            VerifyField<uint32_t>(verifier, VT_CHARCOUNT) &&
            VerifyOffsetRequired(verifier, VT_SHADER) &&
@@ -137,6 +142,9 @@ struct TextNodeBuilder {
   }
   void add_lineScale(float lineScale) {
     fbb_.AddElement<float>(TextNode::VT_LINESCALE, lineScale, 0.0f);
+  }
+  void add_z(int32_t z) {
+    fbb_.AddElement<int32_t>(TextNode::VT_Z, z, 0);
   }
   void add_firstChar(uint32_t firstChar) {
     fbb_.AddElement<uint32_t>(TextNode::VT_FIRSTCHAR, firstChar, 0);
@@ -175,6 +183,7 @@ inline flatbuffers::Offset<TextNode> CreateTextNode(
     DeepSeaVectorDrawScene::TextAlign alignment = DeepSeaVectorDrawScene::TextAlign::Start,
     float maxWidth = 0.0f,
     float lineScale = 0.0f,
+    int32_t z = 0,
     uint32_t firstChar = 0,
     uint32_t charCount = 0,
     flatbuffers::Offset<flatbuffers::String> shader = 0,
@@ -186,6 +195,7 @@ inline flatbuffers::Offset<TextNode> CreateTextNode(
   builder_.add_shader(shader);
   builder_.add_charCount(charCount);
   builder_.add_firstChar(firstChar);
+  builder_.add_z(z);
   builder_.add_lineScale(lineScale);
   builder_.add_maxWidth(maxWidth);
   builder_.add_text(text);
@@ -201,6 +211,7 @@ inline flatbuffers::Offset<TextNode> CreateTextNodeDirect(
     DeepSeaVectorDrawScene::TextAlign alignment = DeepSeaVectorDrawScene::TextAlign::Start,
     float maxWidth = 0.0f,
     float lineScale = 0.0f,
+    int32_t z = 0,
     uint32_t firstChar = 0,
     uint32_t charCount = 0,
     const char *shader = nullptr,
@@ -218,6 +229,7 @@ inline flatbuffers::Offset<TextNode> CreateTextNodeDirect(
       alignment,
       maxWidth,
       lineScale,
+      z,
       firstChar,
       charCount,
       shader__,
