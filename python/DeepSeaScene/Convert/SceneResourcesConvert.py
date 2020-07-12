@@ -21,7 +21,7 @@ import sys
 from tempfile import NamedTemporaryFile
 
 import flatbuffers
-from .FileOrDataConvert import convertFileOrData
+from .FileOrDataConvert import convertFileOrData, readDataOrPath
 from ..Buffer import *
 from ..BufferMaterialData import *
 from ..CustomResource import *
@@ -112,16 +112,6 @@ modelVertexAttribEnum = {
 	'BlendWeights': 15
 }
 
-def readData(dataStr):
-	if dataStr.startswith('base64:'):
-		dataPath = None
-		dataContents = base64.b64decode(dataStr[7:])
-	else:
-		dataPath = dataStr
-		with open(dataStr, 'rb') as stream:
-			dataContents = stream.read()
-	return dataPath, dataContents
-
 def readVertexAttrib(attrib):
 	if not isinstance(attrib, int):
 		attribStr = str(attrib)
@@ -166,7 +156,7 @@ def convertSceneResourcesBuffers(builder, convertContext, data):
 				if 'data' in bufferData:
 					dataStr = str(bufferData['data'])
 					try:
-						dataPath, dataContents = readData(dataStr)
+						dataPath, dataContents = readDataOrPath(dataStr)
 					except TypeError:
 						raise Exception(
 							'SceneResources buffer "data" uses incorrect base64 encoding.')
@@ -1031,7 +1021,7 @@ def convertSceneResourcesShaderModules(builder, convertContext, data):
 						version = str(versionedModuleData['version'])
 						moduleStr = str(versionedModuleData['module'])
 						try:
-							modulePath, moduleContents = readData(moduleStr)
+							modulePath, moduleContents = readDataOrPath(moduleStr)
 						except TypeError:
 							raise Exception('SceneResources shader module "module" uses incorrect '
 								'base64 encoding.')

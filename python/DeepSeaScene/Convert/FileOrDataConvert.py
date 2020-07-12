@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import base64
 import os.path
 import shutil
 
@@ -19,6 +20,19 @@ from ..FileOrData import *
 from ..FileReference import *
 from ..FileResourceType import *
 from ..RawData import *
+
+def readDataOrPath(dataStr):
+	"""
+	Reads in either base64 data or a path.
+	"""
+	if dataStr.startswith('base64:'):
+		dataPath = None
+		dataContents = base64.b64decode(dataStr[7:])
+	else:
+		dataPath = dataStr
+		with open(dataStr, 'rb') as stream:
+			dataContents = stream.read()
+	return dataPath, dataContents
 
 def convertFileOrData(builder, inputPath, data, outputPath, outputRelativeDir, resourceType):
 	"""

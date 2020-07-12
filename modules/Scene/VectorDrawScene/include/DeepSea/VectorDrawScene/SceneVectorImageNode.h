@@ -55,7 +55,7 @@ DS_VECTORDRAWSCENE_EXPORT const dsSceneNodeType* dsSceneVectorImageNode_setupPar
  * @remark errno will be set on failure.
  * @param allocator The allocator to create the vector image node with.
  * @param vectorImage The vector image to draw.
- * @param z The Z value used for sorting vector nodes
+ * @param z The Z value used for sorting vector nodes.
  * @param shaders The vector shaders to draw with.
  * @param material The material to draw with.
  * @param itemLists List of item list names to add the node to. The array will be copied.
@@ -74,7 +74,7 @@ DS_VECTORDRAWSCENE_EXPORT dsSceneVectorImageNode* dsSceneVectorImageNode_create(
  * @remark errno will be set on failure.
  * @param allocator The allocator to create the model node with.
  * @param structSize The size of the struct.
- * @param z The Z value used for sorting vector nodes
+ * @param z The Z value used for sorting vector nodes.
  * @param vectorImage The vector image to draw.
  * @param shaders The vector shaders to draw with.
  * @param material The material to draw with.
