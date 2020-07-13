@@ -99,8 +99,9 @@ DS_GEOMETRY_EXPORT void dsComplexPolygon_setEpsilon(dsComplexPolygon* polygon, d
 /**
  * @brief Simplifies a complex polygon into simple polygons.
  *
- * After simplification, you can query the results with dsComplexPolygon_getLoopCount() and
- * dsComplexPolygon_getLoop().
+ * After simplification, you can query the results with dsComplexPolygon_getHoledPolygonCount(),
+ * dsComplexPolygon_getHoledPolygonLoopCount(), dsComplexPolygon_getHoledPolygonLoops(),
+ * dsComplexPolygon_getHoledPolygonPointCount(), and dsComplexPolygon_getHoledPolygonPoints().
  *
  * @remark The output polygon loops may be very different from the input loops. Additionally, the
  * points that do match may be off by a small epsilon. (for tests with doubles in the range
@@ -146,8 +147,9 @@ DS_GEOMETRY_EXPORT uint32_t dsComplexPolygon_getHoledPolygonLoopCount(
  * @remark errno will be set on failure.
  * @param polygon The complex polygon that's been simplified.
  * @param index The index of the holed polygon.
- * @return The polygon loops, or NULL if the parameters were invalid. The first loop will always be
- *     the outer loop, while the following loops are holes.
+ * @return The polygon loops, or NULL if the parameters were invalid. The return value is an array
+ *     where the size can be queried with dsComplexPolygon_getHoledPolygonLoopCount(). The first
+ *     loop will always be the outer loop, while the following loops are holes.
  */
 DS_GEOMETRY_EXPORT const dsSimplePolygonLoop* dsComplexPolygon_getHoledPolygonLoops(
 	const dsComplexPolygon* polygon, uint32_t index);

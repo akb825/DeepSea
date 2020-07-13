@@ -203,19 +203,19 @@ static bool processPolygon(dsComplexPolygon* polygon, const Paths& paths, cInt e
 	countPolyTree(outPolygonCount, outLoopCount, outPointCount, result);
 
 	if (!DS_RESIZEABLE_ARRAY_ADD(polygon->allocator, polygon->outPolygons, polygon->outPolygonCount,
-		polygon->maxOutPolygons, outPolygonCount))
+			polygon->maxOutPolygons, outPolygonCount))
 	{
 		return false;
 	}
 
 	if (!DS_RESIZEABLE_ARRAY_ADD(polygon->allocator, polygon->outLoops, polygon->outLoopCount,
-		polygon->maxOutLoops, outLoopCount))
+			polygon->maxOutLoops, outLoopCount))
 	{
 		return false;
 	}
 
 	if (!dsResizeableArray_add(polygon->allocator, (void**)&polygon->outPoints,
-		&polygon->outPointCount, &polygon->maxOutPoints, polygon->pointSize, outPointCount))
+			&polygon->outPointCount, &polygon->maxOutPoints, polygon->pointSize, outPointCount))
 	{
 		return false;
 	}

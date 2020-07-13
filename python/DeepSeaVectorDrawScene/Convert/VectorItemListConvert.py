@@ -14,13 +14,9 @@
 
 import flatbuffers
 from ..VectorItemList import *
-from DeepSeaScene.Color4f import *
+from DeepSeaScene.Convert.DynamicRenderStatesConvert import convertDynamicRenderStates
 from DeepSeaScene.DynamicRenderStates import *
 from DeepSeaScene.InstanceTransformData import *
-from DeepSeaScene.Vector2f import *
-
-class Object:
-	pass
 
 def convertVectorItemlList(convertContext, data):
 	"""
@@ -49,21 +45,6 @@ def convertVectorItemlList(convertContext, data):
 	  - frontStencilReference: int reference for just the front stencil.
 	  - backStencilReference: int reference for just the back stencil.
 	"""
-	def readFloat(value, name):
-		try:
-			return float(value)
-		except:
-			raise Exception('Invalid ' + name + ' float value "' + str(value) + '".')
-
-	def readUInt(value, name):
-		try:
-			intVal = int(value)
-			if intVal < 0:
-				raise Exception()
-			return intVal
-		except:
-			raise Exception('Invalid ' + name + ' unsigned int value "' + str(value) + '".')
-
 	try:
 		instanceDataInfo = data.get('instanceData', [])
 		instanceData = []
@@ -79,57 +60,9 @@ def convertVectorItemlList(convertContext, data):
 
 		dynamicRenderStateInfo = data.get('dynamicRenderStates')
 		if dynamicRenderStateInfo:
-			dynamicRenderStates = Object
-			dynamicRenderStates.lineWidth = readFloat(dynamicRenderStateInfo.get('lineWidth', 1.0),
-				'line width')
-			dynamicRenderStates.depthBiasConstantFactor = readFloat(
-				dynamicRenderStateInfo.get('depthBiasConstantFactor', 0.0),
-					'depth bias constant factor')
-			dynamicRenderStates.depthBiasClamp = readFloat(
-				dynamicRenderStateInfo.get('depthBiasClamp', 0.0), 'depth bias clamp')
-			dynamicRenderStates.depthBiasSlopeFactor = readFloat(
-				dynamicRenderStateInfo.get('depthBiasSlopeFactor', 0.0),
-					'depth bias slope factor')
-
-			colorValue = dynamicRenderStateInfo.get('blendConstants', [0.0, 0.0, 0.0, 0.0])
-			try:
-				if len(colorValue) != 4:
-					raise Exception()
-			except:
-				raise Exception('Blend constants value must be an array of 4 floats.')
-			dynamicRenderStates.blendConstants = []
-			for c in colorValue:
-				dynamicRenderStates.blendConstants.append(readFloat(c, 'blend constant'))
-
-			depthBoundsValue = dynamicRenderStateInfo.get('depthBounds', [0.0, 1.0])
-			try:
-				if len(depthBoundsValue) != 2:
-					raise Exception()
-			except:
-				raise Exception('Depth bounds value must be an array of 2 floats.')
-			dynamicRenderStates.depthBounds = []
-			for b in depthBoundsValue:
-				dynamicRenderStates.depthBounds.append(readFloat(b, 'depth bounds'))
-
-			stencilCompareMask = dynamicRenderStateInfo.get('stencilCompareMask', 0xFFFFFFFF)
-			dynamicRenderStates.frontStencilCompareMask = readUInt(dynamicRenderStateInfo.get(
-				'frontStencilCompareMask', stencilCompareMask), 'stencil compare mask')
-			dynamicRenderStates.backStencilCompareMask = readUInt(dynamicRenderStateInfo.get(
-				'backStencilCompareMask', stencilCompareMask), 'stencil compare mask')
-
-			stencilWriteMask = dynamicRenderStateInfo.get('stencilWriteMask', 0)
-			dynamicRenderStates.frontStencilWriteMask = readUInt(dynamicRenderStateInfo.get(
-				'frontStencilWriteMask', stencilWriteMask), 'stencil write mask')
-			dynamicRenderStates.backStencilWriteMask = readUInt(dynamicRenderStateInfo.get(
-				'backStencilWriteMask', stencilWriteMask), 'stencil write mask')
-
-			stencilReference = dynamicRenderStateInfo.get('stencilReference', 0)
-			dynamicRenderStates.frontStencilReference = readUInt(dynamicRenderStateInfo.get(
-				'frontStencilReference', stencilReference), 'stencil reference')
-			dynamicRenderStates.backStencilReference = readUInt(dynamicRenderStateInfo.get(
-				'backStencilReference', stencilReference), 'stencil reference')
+			dynamicRenderStatesOffset = convertDynamicRenderStates(dynamicRenderStateInfo, builder)
 		else:
-			dynamicRenderStates = None
+			dynamicRenderStatesOffset = 0
 
 		cullName = data.get('cullName')
 	except KeyError as e:
@@ -151,34 +84,6 @@ def convertVectorItemlList(convertContext, data):
 		instanceDataOffset = builder.EndVector(len(instanceDataOffsets))
 	else:
 		instanceDataOffset = 0
-
-	if dynamicRenderStates:
-		DynamicRenderStatesStart(builder)
-		DynamicRenderStatesAddLineWidth(builder, dynamicRenderStates.lineWidth)
-		DynamicRenderStatesAddDepthBiasConstantFactor(builder,
-			dynamicRenderStates.depthBiasConstantFactor)
-		DynamicRenderStatesAddDepthBiasClamp(builder, dynamicRenderStates.depthBiasClamp)
-		DynamicRenderStatesAddDepthBiasSlopeFactor(builder,
-			dynamicRenderStates.depthBiasSlopeFactor)
-		DynamicRenderStatesAddBlendConstants(builder,
-			CreateColor4f(builder, *dynamicRenderStates.blendConstants))
-		DynamicRenderStatesAddDepthBounds(builder,
-			CreateVector2f(builder, *dynamicRenderStates.depthBounds))
-		DynamicRenderStatesAddFrontStencilCompareMask(builder,
-			dynamicRenderStates.frontStencilCompareMask)
-		DynamicRenderStatesAddBackStencilCompareMask(builder,
-			dynamicRenderStates.backStencilCompareMask)
-		DynamicRenderStatesAddFrontStencilWriteMask(builder,
-			dynamicRenderStates.frontStencilWriteMask)
-		DynamicRenderStatesAddBackStencilWriteMask(builder,
-			dynamicRenderStates.backStencilWriteMask)
-		DynamicRenderStatesAddFrontStencilReference(builder,
-			dynamicRenderStates.frontStencilReference)
-		DynamicRenderStatesAddBackStencilReference(builder,
-			dynamicRenderStates.backStencilReference)
-		dynamicRenderStatesOffset = DynamicRenderStatesEnd(builder)
-	else:
-		dynamicRenderStatesOffset = 0
 
 	VectorItemListStart(builder)
 	VectorItemListAddInstanceData(builder, instanceDataOffset)
