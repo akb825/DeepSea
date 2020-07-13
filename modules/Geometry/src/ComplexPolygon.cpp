@@ -84,7 +84,7 @@ static bool defaultGetPointInt(void* outPosition, const dsComplexPolygon* polygo
 	return true;
 }
 
-static bool simplifyPolygon(PolyTree& result, const Paths& paths, cInt epsilon,
+static bool simplifyPolygon(PolyTree& result, const Paths& paths, cInt xEpsilon, cInt yEpsilon,
 	dsPolygonFillRule fillRule)
 {
 	PolyFillType clipperFillType = pftEvenOdd;
@@ -103,10 +103,10 @@ static bool simplifyPolygon(PolyTree& result, const Paths& paths, cInt epsilon,
 	while (node)
 	{
 		auto newEnd = std::unique(node->Contour.begin(), node->Contour.end(),
-			[epsilon](const IntPoint& left, const IntPoint& right)
+			[xEpsilon, yEpsilon](const IntPoint& left, const IntPoint& right)
 			{
-				return std::abs(left.X - right.X) <= epsilon &&
-					std::abs(left.Y - right.Y) <= epsilon;
+				return std::abs(left.X - right.X) <= xEpsilon &&
+					std::abs(left.Y - right.Y) <= yEpsilon;
 			});
 		node->Contour.erase(newEnd, node->Contour.end());
 		node = node->GetNext();
@@ -192,11 +192,11 @@ static void populatePolyTree(dsComplexPolygon* polygon, uint32_t& outPolygonInde
 }
 
 template <typename F>
-static bool processPolygon(dsComplexPolygon* polygon, const Paths& paths, cInt epsilon,
-	dsPolygonFillRule fillRule, F&& copyPointsFunc)
+static bool processPolygon(dsComplexPolygon* polygon, const Paths& paths, cInt xEpsilon,
+	cInt yEpsilon, dsPolygonFillRule fillRule, F&& copyPointsFunc)
 {
 	PolyTree result;
-	if (!simplifyPolygon(result, paths, epsilon, fillRule))
+	if (!simplifyPolygon(result, paths, xEpsilon, yEpsilon, fillRule))
 		return false;
 
 	uint32_t outPolygonCount = 0, outLoopCount = 0, outPointCount = 0;
@@ -273,8 +273,9 @@ static bool simplifyFloat(dsComplexPolygon* polygon, const dsComplexPolygonLoop*
 		}
 	}
 
-	cInt epsilon = (cInt)(polygon->epsilon*limit);
-	return processPolygon(polygon, paths, epsilon, fillRule,
+	cInt xEpsilon = (cInt)ceil(polygon->epsilon*limit*invScale.x);
+	cInt yEpsilon = (cInt)ceil(polygon->epsilon*limit*invScale.y);
+	return processPolygon(polygon, paths, xEpsilon, yEpsilon, fillRule,
 		[&](dsComplexPolygon* polygon, const Path& path, uint32_t firstPoint, uint32_t pointCount)
 		{
 			dsVector2f* points = (dsVector2f*)polygon->outPoints + firstPoint;
@@ -331,8 +332,9 @@ static bool simplifyDouble(dsComplexPolygon* polygon, const dsComplexPolygonLoop
 		}
 	}
 
-	cInt epsilon = (cInt)(polygon->epsilon*limit);
-	return processPolygon(polygon, paths, epsilon, fillRule,
+	cInt xEpsilon = (cInt)ceil(polygon->epsilon*limit*invScale.x);
+	cInt yEpsilon = (cInt)ceil(polygon->epsilon*limit*invScale.y);
+	return processPolygon(polygon, paths, xEpsilon, yEpsilon, fillRule,
 		[&](dsComplexPolygon* polygon, const Path& path, uint32_t firstPoint, uint32_t pointCount)
 		{
 			dsVector2d* points = (dsVector2d*)polygon->outPoints + firstPoint;
@@ -363,7 +365,7 @@ static bool simplifyInt(dsComplexPolygon* polygon, const dsComplexPolygonLoop* l
 		}
 	}
 
-	return processPolygon(polygon, paths, 0, fillRule,
+	return processPolygon(polygon, paths, 0, 0, fillRule,
 		[](dsComplexPolygon* polygon, const Path& path, uint32_t firstPoint, uint32_t pointCount)
 		{
 			dsVector2i* points = (dsVector2i*)polygon->outPoints + firstPoint;
