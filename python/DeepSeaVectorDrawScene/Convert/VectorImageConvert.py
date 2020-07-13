@@ -13,8 +13,8 @@
 # limitations under the License.
 
 import flatbuffers
-from ..VectorImage import convertFileOrData, readDataOrPath
-from DeepSeaScene.Convert.FileOrDataConvert import *
+from ..VectorImage import *
+from DeepSeaScene.Convert.FileOrDataConvert import convertFileOrData, readDataOrPath
 from DeepSeaScene.Vector2f import *
 
 def convertVectorImage(convertContext, data):
@@ -62,9 +62,9 @@ def convertVectorImage(convertContext, data):
 			raise Exception('Invalid vector image resources "' + str(resources) + '".')
 
 		srgb = bool(data.get('srgb'))
-	except (AttributeError, KeyError) as e:
+	except KeyError as e:
 		raise Exception('VectorImage doesn\'t contain element "' + str(e) + '".')
-	except (TypeError, ValueError):
+	except (AttributeError, TypeError, ValueError):
 		raise Exception('VectorImage must be an object.')
 
 	sizeOffset = CreateVector2f(builder, size[0], size[1])

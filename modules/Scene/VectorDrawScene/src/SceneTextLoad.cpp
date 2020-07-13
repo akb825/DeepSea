@@ -87,10 +87,20 @@ void* dsSceneText_load(const dsSceneLoadContext*, dsSceneLoadScratchData* scratc
 			fbStyle->fuziness()));
 
 		auto fbColor = fbStyle->color();
-		style.color.r = fbColor->red();
-		style.color.g = fbColor->green();
-		style.color.b = fbColor->blue();
-		style.color.a = fbColor->alpha();
+		if (fbColor)
+		{
+			style.color.r = fbColor->red();
+			style.color.g = fbColor->green();
+			style.color.b = fbColor->blue();
+			style.color.a = fbColor->alpha();
+		}
+		else
+		{
+			style.color.r = 255;
+			style.color.g = 255;
+			style.color.b = 255;
+			style.color.a = 255;
+		}
 
 		fbColor = fbStyle->outlineColor();
 		if (fbColor)

@@ -958,16 +958,16 @@ def writeRectangle(builder, transform, style, upperLeft, rectSize, radius):
 	offsets.extend(style.write(builder))
 	return offsets
 
-def writeText(builder, transform, style, text, rangeCount):
+def writeText(builder, transform, font, text, rangeCount):
 	textOffset = builder.CreateString(text)
-	fontOffset = builder.CreateString(style.font.font)
+	fontOffset = builder.CreateString(font.font)
 
 	TextCommandStart(builder)
 	TextCommandAddText(builder, textOffset)
 	TextCommandAddFont(builder, fontOffset)
-	TextCommandAddAlignment(builder, style.font.alignment)
-	TextCommandAddMaxLength(builder, style.font.maxLength if style.font.maxLength else 3.402823e+38)
-	TextCommandAddLineHeight(builder, style.font.lineHeight)
+	TextCommandAddAlignment(builder, font.alignment)
+	TextCommandAddMaxLength(builder, font.maxLength if font.maxLength else 3.402823e+38)
+	TextCommandAddLineHeight(builder, font.lineHeight)
 	TextCommandAddTransform(builder, transform.createMatrix33f(builder))
 	TextCommandAddRangeCount(builder, rangeCount)
 	commandOffset = TextCommandEnd(builder)
@@ -1031,7 +1031,7 @@ def readMaterials(node, materials, size, diagonalSize):
 
 def readText(node, defaultFont, size, diagonalSize, materials, style = None):
 	if node.tagName != 'text':
-		return None
+		return None, None, None
 
 	rootStyle = Style.create(node, materials, diagonalSize, style, defaultFont = defaultFont, \
 		width = size[0], text = True)
@@ -1095,7 +1095,7 @@ def readText(node, defaultFont, size, diagonalSize, materials, style = None):
 						TextPosition.Offset, rootStyle))
 				text += curText
 
-	return rootStyle, text, ranges
+	return rootStyle.font, text, ranges
 
 def readShapes(node, defaultFont, materials, size, diagonalSize, transform, style = None):
 	commands = []
@@ -1174,12 +1174,12 @@ def readShapes(node, defaultFont, materials, size, diagonalSize, transform, styl
 				if node.hasAttribute('rx') else (0.0, 0.0):
 			writeRectangle(builder, transform, style, upperLeft, rectSize, radius))
 	elif node.tagName == 'text':
-		rootStyle, text, ranges = readText(node, defaultFont, size, diagonalSize, materials, style)
+		font, text, ranges = readText(node, defaultFont, size, diagonalSize, materials, style)
 
 		commands.append(lambda builder,
 			transform = transform*Transform.fromNode(node),
-			style = rootStyle, text = text, rangeCount = len(ranges):
-			writeText(builder, transform, style, text, rangeCount))
+			font = font, text = text, rangeCount = len(ranges):
+			writeText(builder, transform, font, text, rangeCount))
 		for textRange in ranges:
 			commands.append(lambda builder, textRange = textRange:
 				writeTextRange(builder, textRange))

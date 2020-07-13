@@ -70,7 +70,7 @@ struct SceneTextStyle FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            VerifyField<float>(verifier, VT_OUTLINEWIDTH) &&
            VerifyField<float>(verifier, VT_FUZINESS) &&
            VerifyField<float>(verifier, VT_VERTICALOFFSET) &&
-           VerifyFieldRequired<DeepSeaVectorDrawScene::Color>(verifier, VT_COLOR) &&
+           VerifyField<DeepSeaVectorDrawScene::Color>(verifier, VT_COLOR) &&
            VerifyField<DeepSeaVectorDrawScene::Color>(verifier, VT_OUTLINECOLOR) &&
            verifier.EndTable();
   }
@@ -118,7 +118,6 @@ struct SceneTextStyleBuilder {
   flatbuffers::Offset<SceneTextStyle> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<SceneTextStyle>(end);
-    fbb_.Required(o, SceneTextStyle::VT_COLOR);
     return o;
   }
 };

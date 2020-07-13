@@ -49,13 +49,13 @@ table TextNode
 	lineScale : float;
 
 	// The Z value used for sorting text and vector elements.
-	z : int32;
+	z : int;
 
 	// The first character to display.
-	firstChar : uint32;
+	firstChar : uint;
 
 	// The number of characters to display.
-	charCount : uint32;
+	charCount : uint;
 
 	// The name of the shader to draw with.
 	shader : string (required);

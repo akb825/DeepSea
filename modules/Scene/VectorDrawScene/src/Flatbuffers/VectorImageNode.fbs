@@ -29,7 +29,7 @@ table VectorImageNode
 	vectorImage : string (required);
 
 	// The Z value used for sorting text and vector elements.
-	z : int32;
+	z : int;
 
 	// The name of the vector shaders to draw with.
 	vectorShaders : string (required);

@@ -47,7 +47,7 @@ table SceneTextStyle
 	verticalOffset : float;
 
 	// The color of the text.
-	color : Color (required);
+	color : Color;
 
 	// The color of the text outline.
 	outlineColor : Color;
