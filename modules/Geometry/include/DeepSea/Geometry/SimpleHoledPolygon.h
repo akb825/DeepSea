@@ -30,7 +30,7 @@ extern "C"
  * @file
  * @brief Functions for creating and triangulating simple polygons with holes.
  *
- * This is very simple to dsSimplePolygon, except it additionally allows simple polygons to be used
+ * This is very similar to dsSimplePolygon, except it additionally allows simple polygons to be used
  * unternally as holes. During triangulation, triangles will only occupy space within the simple
  * polygon that isn't taken by a hole. Holes may not intersect, though vertices are allowed to
  * touch, and each hole must itself be a simple polygon. Additionally, a hole may not be interior

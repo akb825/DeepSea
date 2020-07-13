@@ -131,12 +131,12 @@ static void countPolyTree(uint32_t& outPolygonCount, uint32_t& outLoopCount,
 
 template <typename F>
 static void populatePolyTree(dsComplexPolygon* polygon, uint32_t& outPolygonIndex,
-	uint32_t& outLoopCount, uint32_t& outPointCount, const PolyNode& node, const F& copyPointsFunc);
+	uint32_t& outLoopCount, uint32_t& outPointCount, const PolyNode& node, F&& copyPointsFunc);
 
 template <typename F>
 static void populatePolyTreeHoles(dsComplexPolygon* polygon, uint32_t& outPolygonIndex,
 	uint32_t& outLoopIndex, uint32_t& outPointIndex, uint32_t loopPointIndex, const PolyNode& node,
-	const F& copyPointsFunc)
+	F&& copyPointsFunc)
 {
 	for (PolyNode* child : node.Childs)
 	{
@@ -166,7 +166,7 @@ static void populatePolyTreeHoles(dsComplexPolygon* polygon, uint32_t& outPolygo
 
 template <typename F>
 static void populatePolyTree(dsComplexPolygon* polygon, uint32_t& outPolygonIndex,
-	uint32_t& outLoopIndex, uint32_t& outPointIndex, const PolyNode& node, const F& copyPointsFunc)
+	uint32_t& outLoopIndex, uint32_t& outPointIndex, const PolyNode& node, F&& copyPointsFunc)
 {
 	for (PolyNode* child : node.Childs)
 	{
@@ -193,7 +193,7 @@ static void populatePolyTree(dsComplexPolygon* polygon, uint32_t& outPolygonInde
 
 template <typename F>
 static bool processPolygon(dsComplexPolygon* polygon, const Paths& paths, cInt epsilon,
-	dsPolygonFillRule fillRule, const F& copyPointsFunc)
+	dsPolygonFillRule fillRule, F&& copyPointsFunc)
 {
 	PolyTree result;
 	if (!simplifyPolygon(result, paths, epsilon, fillRule))
@@ -273,7 +273,7 @@ static bool simplifyFloat(dsComplexPolygon* polygon, const dsComplexPolygonLoop*
 		}
 	}
 
-	cInt epsilon =(cInt)(polygon->epsilon*limit);
+	cInt epsilon = (cInt)(polygon->epsilon*limit);
 	return processPolygon(polygon, paths, epsilon, fillRule,
 		[&](dsComplexPolygon* polygon, const Path& path, uint32_t firstPoint, uint32_t pointCount)
 		{
@@ -331,7 +331,7 @@ static bool simplifyDouble(dsComplexPolygon* polygon, const dsComplexPolygonLoop
 		}
 	}
 
-	cInt epsilon =(cInt)(polygon->epsilon*limit);
+	cInt epsilon = (cInt)(polygon->epsilon*limit);
 	return processPolygon(polygon, paths, epsilon, fillRule,
 		[&](dsComplexPolygon* polygon, const Path& path, uint32_t firstPoint, uint32_t pointCount)
 		{

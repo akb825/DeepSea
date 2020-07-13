@@ -96,10 +96,10 @@ void* dsSceneText_load(const dsSceneLoadContext*, dsSceneLoadScratchData* scratc
 		}
 		else
 		{
-			style.color.r = 255;
-			style.color.g = 255;
-			style.color.b = 255;
-			style.color.a = 255;
+			style.color.r = 0;
+			style.color.g = 0;
+			style.color.b = 0;
+			style.color.a = 0;
 		}
 
 		fbColor = fbStyle->outlineColor();
