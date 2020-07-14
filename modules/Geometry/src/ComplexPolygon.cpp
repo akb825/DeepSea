@@ -268,8 +268,8 @@ static bool simplifyFloat(dsComplexPolygon* polygon, const dsComplexPolygonLoop*
 
 			dsVector2_sub(point, point, offset);
 			dsVector2_mul(point, point, invScale);
-			paths[i][j].X = (cInt)round((double)point.x*limit);
-			paths[i][j].Y = (cInt)round((double)point.y*limit);
+			paths[i][j].X = (cInt)round((double)dsClamp(point.x, -1.0f, 1.0f)*limit);
+			paths[i][j].Y = (cInt)round((double)dsClamp(point.y, -1.0f, 1.0f)*limit);
 		}
 	}
 
@@ -327,8 +327,8 @@ static bool simplifyDouble(dsComplexPolygon* polygon, const dsComplexPolygonLoop
 
 			dsVector2_sub(point, point, offset);
 			dsVector2_mul(point, point, invScale);
-			paths[i][j].X = (cInt)round(point.x*limit);
-			paths[i][j].Y = (cInt)round(point.y*limit);
+			paths[i][j].X = (cInt)round(dsClamp(point.x, -1.0, 1.0)*limit);
+			paths[i][j].Y = (cInt)round(dsClamp(point.y, -1.0, 1.0)*limit);
 		}
 	}
 
