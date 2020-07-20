@@ -102,7 +102,7 @@ static bool addVerticesAndEdges(dsBasePolygon* polygon, const void* points, uint
 	}
 
 	if (dsVector2d_epsilonEqual(&polygon->vertices[0].point,
-		&polygon->vertices[polygon->vertexCount - 1].point, polygon->equalEpsilon))
+			&polygon->vertices[polygon->vertexCount - 1].point, polygon->equalEpsilon))
 	{
 		errno = EINVAL;
 		DS_LOG_ERROR(DS_GEOMETRY_LOG_TAG, "Polygon may not duplicate the first and last point.");
@@ -157,7 +157,7 @@ static bool isPolygonCCW(dsBasePolygon* polygon)
 		&polygon->vertices[p1Vert].point, &polygon->vertices[p2Vert].point);
 }
 
-static bool findPolygonLoops(dsBasePolygon* polygon, bool ccw)
+static bool findMonotonicLoops(dsBasePolygon* polygon, bool ccw)
 {
 	for (uint32_t i = 0; i < polygon->vertexCount; ++i)
 	{
@@ -170,6 +170,7 @@ static bool findPolygonLoops(dsBasePolygon* polygon, bool ccw)
 		bool nextLeft =
 			isLeft(&polygon->vertices[next].point, &polygon->vertices[*sortedVert].point);
 
+		// Find inflection points in the X direction.
 		if (prevLeft != nextLeft)
 			continue;
 
@@ -500,7 +501,7 @@ const uint32_t* dsSimplePolygon_triangulate(uint32_t* outIndexCount,
 
 	// Add separating edges for monotone polygons.
 	bool ccw = isPolygonCCW(base);
-	if (!findPolygonLoops(base, ccw))
+	if (!findMonotonicLoops(base, ccw))
 		return NULL;
 
 	// Triangulate each loop.

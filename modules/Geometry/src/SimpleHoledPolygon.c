@@ -90,7 +90,7 @@ static bool addVertices(dsSimpleHoledPolygon* polygon, const void* points,
 	dsBasePolygon* base = &polygon->base;
 	DS_ASSERT(base->vertexCount == 0);
 	if (!DS_RESIZEABLE_ARRAY_ADD(base->allocator, base->vertices, base->vertexCount,
-		base->maxVertices, pointCount))
+			base->maxVertices, pointCount))
 	{
 		return false;
 	}
@@ -140,7 +140,7 @@ static bool addLoopEdges(dsSimpleHoledPolygon* polygon, const dsSimplePolygonLoo
 
 	DS_ASSERT(base->edgeCount == 0);
 	if (!DS_RESIZEABLE_ARRAY_ADD(base->allocator, base->edges, base->edgeCount, base->maxEdges,
-		edgeCount))
+			edgeCount))
 	{
 		return false;
 	}
@@ -186,7 +186,7 @@ static bool addLoopEdges(dsSimpleHoledPolygon* polygon, const dsSimplePolygonLoo
 		}
 
 		if (dsVector2d_epsilonEqual(&base->vertices[loop->firstPoint].point,
-			&base->vertices[loop->firstPoint + loop->pointCount - 1].point, base->equalEpsilon))
+				&base->vertices[loop->firstPoint + loop->pointCount - 1].point, base->equalEpsilon))
 		{
 			errno = EINVAL;
 			DS_LOG_ERROR(DS_GEOMETRY_LOG_TAG,
@@ -289,7 +289,7 @@ static bool canConnectEdge(const dsSimpleHoledPolygon* polygon, uint32_t fromVer
 			otherEdge->nextVertex == fromVertIdx || otherEdge->nextVertex == toVertIdx)
 		{
 			continue;
-		};
+		}
 
 		const dsVector2d* otherFrom = &base->vertices[otherEdge->prevVertex].point;
 		const dsVector2d* otherTo = &base->vertices[otherEdge->nextVertex].point;
@@ -367,7 +367,7 @@ static bool initializeLoops(dsSimpleHoledPolygon* polygon, const dsSimplePolygon
 	dsBasePolygon* base = &polygon->base;
 	polygon->loopCount = 0;
 	if (!DS_RESIZEABLE_ARRAY_ADD(base->allocator, polygon->loops, polygon->loopCount,
-		polygon->maxLoops, loopCount))
+			polygon->maxLoops, loopCount))
 	{
 		return false;
 	}

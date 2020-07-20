@@ -292,7 +292,7 @@ bool dsBasePolygon_buildEdgeBVH(dsBasePolygon* polygon)
 	// Use indices since the edge array may be re-allocated, invalidating the pointers into
 	// the array.
 	if (!dsBVH_build(polygon->edgeBVH, NULL, polygon->edgeCount, DS_GEOMETRY_OBJECT_INDICES,
-		&getEdgeBounds, false))
+			&getEdgeBounds, false))
 	{
 		return false;
 	}
@@ -354,7 +354,7 @@ bool dsBasePolygon_addSeparatingEdge(dsBasePolygon* polygon, uint32_t from, uint
 	uint32_t firstEdgeIdx = polygon->edgeCount;
 	uint32_t secondEdgeIdx = polygon->edgeCount + 1;
 	if (!DS_RESIZEABLE_ARRAY_ADD(polygon->allocator, polygon->edges, polygon->edgeCount,
-		polygon->maxEdges, 2))
+			polygon->maxEdges, 2))
 	{
 		return false;
 	}
@@ -364,7 +364,7 @@ bool dsBasePolygon_addSeparatingEdge(dsBasePolygon* polygon, uint32_t from, uint
 	uint32_t fromSecondConnectionIdx = polygon->edgeConnectionCount + 2;
 	uint32_t toSecondConnectionIdx = polygon->edgeConnectionCount + 3;
 	if (!DS_RESIZEABLE_ARRAY_ADD(polygon->allocator, polygon->edgeConnections,
-		polygon->edgeConnectionCount, polygon->maxEdgeConnections, 4))
+			polygon->edgeConnectionCount, polygon->maxEdgeConnections, 4))
 	{
 		return false;
 	}
