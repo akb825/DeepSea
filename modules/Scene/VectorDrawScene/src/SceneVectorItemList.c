@@ -303,16 +303,22 @@ static void drawItems(dsSceneVectorItemList* vectorList, uint32_t drawItemCount,
 				}
 
 				// Try to add to the current buffer. If this fails, flush it and try again.
-				if (!dsTextRenderBuffer_addTextRange(textRenderBuffer, drawItem->text.text,
-						drawItem->text.textUserData, drawItem->text.firstChar,
-						drawItem->text.charCount))
+				const dsText* text = drawItem->text.text->text;
+				uint32_t firstChar = drawItem->text.firstChar;
+				uint32_t charCount = drawItem->text.charCount;
+				if (firstChar < text->characterCount && charCount > 0)
 				{
-					DS_CHECK(DS_VECTOR_DRAW_SCENE_LOG_TAG,
-						dsTextRenderBuffer_draw(textRenderBuffer, commandBuffer));
-					DS_CHECK(DS_VECTOR_DRAW_SCENE_LOG_TAG,
-						dsTextRenderBuffer_addTextRange(textRenderBuffer, drawItem->text.text,
-							drawItem->text.textUserData, drawItem->text.firstChar,
-							drawItem->text.charCount));
+					uint32_t maxCharCount = text->characterCount - firstChar;
+					charCount = dsMin(charCount, maxCharCount);
+					if (!dsTextRenderBuffer_addTextRange(textRenderBuffer, drawItem->text.text,
+							drawItem->text.textUserData, firstChar, charCount))
+					{
+						DS_CHECK(DS_VECTOR_DRAW_SCENE_LOG_TAG,
+							dsTextRenderBuffer_draw(textRenderBuffer, commandBuffer));
+						DS_CHECK(DS_VECTOR_DRAW_SCENE_LOG_TAG,
+							dsTextRenderBuffer_addTextRange(textRenderBuffer, drawItem->text.text,
+								drawItem->text.textUserData, firstChar, charCount));
+					}
 				}
 			}
 			case DrawType_Image:

@@ -21,6 +21,12 @@ from importlib import import_module
 from DeepSeaScene.Convert.ConvertContext import ConvertContext
 from DeepSeaScene.Convert.SceneResourcesConvert import convertSceneResources
 
+from DeepSeaVectorDrawScene.Convert.SceneTextConvert import convertSceneText
+from DeepSeaVectorDrawScene.Convert.TextNodeConvert import convertTextNode
+from DeepSeaVectorDrawScene.Convert.VectorImageConvert import convertVectorImage
+from DeepSeaVectorDrawScene.Convert.VectorImageNodeConvert import convertVectorImageNode
+from DeepSeaVectorDrawScene.Convert.VectorItemListConvert import convertVectorItemList
+
 if __name__ == '__main__':
 	parser = argparse.ArgumentParser(description =
 		'Create scene resources to be used by Deep Sea.')
@@ -41,6 +47,14 @@ if __name__ == '__main__':
 
 	args = parser.parse_args()
 	convertContext = ConvertContext(args.cuttlefish, args.vfc, args.multithread)
+
+	# Vector draw scene types.
+	convertContext.addNodeType('TextNode', convertTextNode)
+	convertContext.addNodeType('VectorImageNode', convertVectorImage)
+	convertContext.addItemListType('VectorItemList', convertVectorItemList)
+	convertContext.addCustomResourceType('SceneText', convertSceneText)
+	convertContext.addCustomResourceType('VectorImage', convertVectorImage)
+
 	for extension in args.extensions:
 		import_module(extension).deepSeaSceneExtension(convertContext)
 

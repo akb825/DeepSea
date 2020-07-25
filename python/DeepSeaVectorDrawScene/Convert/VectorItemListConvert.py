@@ -18,7 +18,7 @@ from DeepSeaScene.Convert.DynamicRenderStatesConvert import convertDynamicRender
 from DeepSeaScene.DynamicRenderStates import *
 from DeepSeaScene.InstanceTransformData import *
 
-def convertVectorItemlList(convertContext, data):
+def convertVectorItemList(convertContext, data):
 	"""
 	Converts a VectorItemList. The data map is expected to contain the following elements:
 	- instanceData: optional list of instance data to include with the item list. Each element of
