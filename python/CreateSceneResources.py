@@ -26,6 +26,7 @@ from DeepSeaVectorDrawScene.Convert.TextNodeConvert import convertTextNode
 from DeepSeaVectorDrawScene.Convert.VectorImageConvert import convertVectorImage
 from DeepSeaVectorDrawScene.Convert.VectorImageNodeConvert import convertVectorImageNode
 from DeepSeaVectorDrawScene.Convert.VectorItemListConvert import convertVectorItemList
+from DeepSeaVectorDrawScene.Convert.VectorResourcesConvert import convertVectorResources
 
 if __name__ == '__main__':
 	parser = argparse.ArgumentParser(description =
@@ -54,6 +55,7 @@ if __name__ == '__main__':
 	convertContext.addItemListType('VectorItemList', convertVectorItemList)
 	convertContext.addCustomResourceType('SceneText', convertSceneText)
 	convertContext.addCustomResourceType('VectorImage', convertVectorImage)
+	convertContext.addCustomResourceType('VectorResources', convertVectorResources)
 
 	for extension in args.extensions:
 		import_module(extension).deepSeaSceneExtension(convertContext)
