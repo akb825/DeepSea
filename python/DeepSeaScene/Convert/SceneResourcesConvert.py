@@ -513,14 +513,14 @@ def convertSceneResourcesShaderVariableGroupDescs(builder, convertContext, data)
 				raise Exception(
 					'Shader variable groups may only contain primitive, vector, and matrix types.')
 
-			countStr = str(elementData.get('count', 0))
+			countValue = elementData.get('count', 0)
 			try:
-				count = int(countStr)
+				count = int(countValue)
 				if count < 0:
 					raise Exception() # Common error handling in except block.
 			except:
 				raise Exception(
-					'Invalid shader variable group element count "' + str(countStr) + '".')
+					'Invalid shader variable group element count "' + str(countValue) + '".')
 
 			return name, materialType, count
 		except KeyError as e:
@@ -926,14 +926,14 @@ def convertSceneResourcesMaterialDescs(builder, convertContext, data):
 			except AttributeError:
 				raise Exception('Invalid material type "' + typeStr + '".')
 
-			countStr = str(elementData.get('count', 0))
+			countValue = elementData.get('count', 0)
 			try:
-				count = int(countStr)
+				count = int(countValue)
 				if count < 0:
 					raise Exception() # Common error handling in except block.
 			except:
 				raise Exception(
-					'Invalid material element count "' + str(countStr) + '".')
+					'Invalid material element count "' + str(countValue) + '".')
 
 			bindingStr = str(elementData.get('binding', 'Material'))
 			try:
@@ -1427,7 +1427,7 @@ def convertSceneResources(convertContext, data):
 	    - name: the name of the element.
 	    - type: the type of the element. See dsMaterialType enum for values, removing the type
 	      prefix count: the number of array elements. If 0 or omitted, this is not an array.
-		- binding: the binding type for the element. See the dsMaaterialBinding enum for values,
+		- binding: the binding type for the element. See the dsMaterialBinding enum for values,
 	      removing the type prefix. This is only used for texture, image, buffer, and shader
 		  variable group types.
 	    - shaderVariableGroupDesc: the name of the shader variable group description when the type

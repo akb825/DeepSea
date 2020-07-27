@@ -23,7 +23,7 @@ def convertVectorResources(convertContext, data):
 	"""
 	Converts vector resources used in a scene. The data map is expected to contain the following
 	elements:
-	- path: path to the vector resources.
+	- resources: path to the vector resources.
 	- output: the path to the output the vector resources. This can be omitted if vector resources
 	  are embedded.
 	- outputRelativeDir: the directory relative to output path. This will be removed from the path
@@ -34,12 +34,12 @@ def convertVectorResources(convertContext, data):
 	builder = flatbuffers.Builder(0)
 
 	try:
-		path = str(data['path'])
+		path = str(data['resources'])
 
 		fileName = os.path.splitext(os.path.basename(path))[0]
 		parentDir = os.path.dirname(path)
 		resourcesDirName = fileName + '_resources'
-		resourcesDir = os.path.join(parentDir, resourcesDirName)
+		resourcesDir = os.path.abspath(os.path.join(parentDir, resourcesDirName))
 		hasResourcesDir = os.path.isdir(resourcesDir)
 
 		outputPath = data.get('output')
@@ -48,15 +48,18 @@ def convertVectorResources(convertContext, data):
 
 		dataType, dataOffset = convertFileOrData(builder, path, None, outputPath,
 			data.get('outputRelativeDir'), data.get('resourceType'))
-		if hasResourcesDir:
-			outputDir = os.path.dirname(outputPath)
-			outputResourcesDir = os.path.join(outputDir, resourcesDirName)
-			shutil.rmtree(outputResourcesDir, ignore_errors=True)
-			shutil.copytree(resourcesDir, outputResourcesDir)
 	except KeyError as e:
 		raise Exception('VectorResources doesn\'t contain element "' + str(e) + '".')
 	except (AttributeError, TypeError, ValueError):
 		raise Exception('VectorResources must be an object.')
+
+	# Copy resources directory if it's not to the same location.
+	if hasResourcesDir:
+		outputDir = os.path.dirname(outputPath)
+		outputResourcesDir = os.path.abspath(os.path.join(outputDir, resourcesDirName))
+		if resourcesDir != outputResourcesDir:
+			shutil.rmtree(outputResourcesDir, ignore_errors=True)
+			shutil.copytree(resourcesDir, outputResourcesDir)
 
 	VectorResourcesStart(builder)
 	VectorResourcesAddResourcesType(builder, dataType)

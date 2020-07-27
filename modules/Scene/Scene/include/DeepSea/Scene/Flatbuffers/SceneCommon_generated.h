@@ -33,6 +33,9 @@ struct FileReferenceBuilder;
 struct RawData;
 struct RawDataBuilder;
 
+struct VersionedShaderModule;
+struct VersionedShaderModuleBuilder;
+
 struct DynamicRenderStates;
 struct DynamicRenderStatesBuilder;
 
@@ -1236,6 +1239,100 @@ inline flatbuffers::Offset<RawData> CreateRawDataDirect(
   return DeepSeaScene::CreateRawData(
       _fbb,
       data__);
+}
+
+struct VersionedShaderModule FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef VersionedShaderModuleBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_VERSION = 4,
+    VT_DATA_TYPE = 6,
+    VT_DATA = 8
+  };
+  const flatbuffers::String *version() const {
+    return GetPointer<const flatbuffers::String *>(VT_VERSION);
+  }
+  DeepSeaScene::FileOrData data_type() const {
+    return static_cast<DeepSeaScene::FileOrData>(GetField<uint8_t>(VT_DATA_TYPE, 0));
+  }
+  const void *data() const {
+    return GetPointer<const void *>(VT_DATA);
+  }
+  template<typename T> const T *data_as() const;
+  const DeepSeaScene::FileReference *data_as_FileReference() const {
+    return data_type() == DeepSeaScene::FileOrData::FileReference ? static_cast<const DeepSeaScene::FileReference *>(data()) : nullptr;
+  }
+  const DeepSeaScene::RawData *data_as_RawData() const {
+    return data_type() == DeepSeaScene::FileOrData::RawData ? static_cast<const DeepSeaScene::RawData *>(data()) : nullptr;
+  }
+  bool Verify(flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffsetRequired(verifier, VT_VERSION) &&
+           verifier.VerifyString(version()) &&
+           VerifyField<uint8_t>(verifier, VT_DATA_TYPE) &&
+           VerifyOffsetRequired(verifier, VT_DATA) &&
+           VerifyFileOrData(verifier, data(), data_type()) &&
+           verifier.EndTable();
+  }
+};
+
+template<> inline const DeepSeaScene::FileReference *VersionedShaderModule::data_as<DeepSeaScene::FileReference>() const {
+  return data_as_FileReference();
+}
+
+template<> inline const DeepSeaScene::RawData *VersionedShaderModule::data_as<DeepSeaScene::RawData>() const {
+  return data_as_RawData();
+}
+
+struct VersionedShaderModuleBuilder {
+  typedef VersionedShaderModule Table;
+  flatbuffers::FlatBufferBuilder &fbb_;
+  flatbuffers::uoffset_t start_;
+  void add_version(flatbuffers::Offset<flatbuffers::String> version) {
+    fbb_.AddOffset(VersionedShaderModule::VT_VERSION, version);
+  }
+  void add_data_type(DeepSeaScene::FileOrData data_type) {
+    fbb_.AddElement<uint8_t>(VersionedShaderModule::VT_DATA_TYPE, static_cast<uint8_t>(data_type), 0);
+  }
+  void add_data(flatbuffers::Offset<void> data) {
+    fbb_.AddOffset(VersionedShaderModule::VT_DATA, data);
+  }
+  explicit VersionedShaderModuleBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  VersionedShaderModuleBuilder &operator=(const VersionedShaderModuleBuilder &);
+  flatbuffers::Offset<VersionedShaderModule> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = flatbuffers::Offset<VersionedShaderModule>(end);
+    fbb_.Required(o, VersionedShaderModule::VT_VERSION);
+    fbb_.Required(o, VersionedShaderModule::VT_DATA);
+    return o;
+  }
+};
+
+inline flatbuffers::Offset<VersionedShaderModule> CreateVersionedShaderModule(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    flatbuffers::Offset<flatbuffers::String> version = 0,
+    DeepSeaScene::FileOrData data_type = DeepSeaScene::FileOrData::NONE,
+    flatbuffers::Offset<void> data = 0) {
+  VersionedShaderModuleBuilder builder_(_fbb);
+  builder_.add_data(data);
+  builder_.add_version(version);
+  builder_.add_data_type(data_type);
+  return builder_.Finish();
+}
+
+inline flatbuffers::Offset<VersionedShaderModule> CreateVersionedShaderModuleDirect(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    const char *version = nullptr,
+    DeepSeaScene::FileOrData data_type = DeepSeaScene::FileOrData::NONE,
+    flatbuffers::Offset<void> data = 0) {
+  auto version__ = version ? _fbb.CreateString(version) : 0;
+  return DeepSeaScene::CreateVersionedShaderModule(
+      _fbb,
+      version__,
+      data_type,
+      data);
 }
 
 struct DynamicRenderStates FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {

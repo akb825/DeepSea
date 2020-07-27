@@ -170,13 +170,24 @@ DS_SCENE_EXPORT bool dsSceneLoadContext_registerGlobalDataType(dsSceneLoadContex
  * @param userData The user data associated with the type. Any modifications made to this should be
  *     thread-safe if the same dsSceneLoadContext is used across multiple threads. This may be NULL.
  * @param destroyUserDataFunc The function to destroy the user data. This may be NULL.
+ * @param additionalResources The number of additional resources that will be added by the custom
+ *     resource on load.
  * @return False if the type couldn't be registered.
  */
 DS_SCENE_EXPORT bool dsSceneLoadContext_registerCustomSceneResourceType(dsSceneLoadContext* context,
 	const char* name, const dsCustomSceneResourceType* type,
 	dsLoadCustomSceneResourceFunction loadFunc,
 	dsDestroyCustomSceneResourceFunction destroyResourceFunc, void* userData,
-	dsDestroySceneUserDataFunction destroyUserDataFunc);
+	dsDestroySceneUserDataFunction destroyUserDataFunc, uint32_t additionalResources);
+
+/**
+ * @brief Gets the number of additional resources added for a custom resource.
+ * @param context The context the type is registered with.
+ * @param name The name of the custom resource type.
+ * @return The number of additional resources.
+ */
+DS_SCENE_EXPORT uint32_t dsSceneLoadContext_getCustomResourceAdditionalResources(
+	const dsSceneLoadContext* context, const char* name);
 
 /**
  * @brief Destroys a scene load context.

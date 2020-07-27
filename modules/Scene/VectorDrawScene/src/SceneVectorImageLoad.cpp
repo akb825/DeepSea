@@ -47,7 +47,14 @@ void* dsSceneVectorImage_load(const dsSceneLoadContext* loadContext,
 	auto vectorImageUserData = reinterpret_cast<SceneVectorImageUserData*>(userData);
 	auto fbVectorImage = DeepSeaVectorDrawScene::GetVectorImage(data);
 
-	auto size = DeepSeaScene::convert(*fbVectorImage->size());
+	auto fbSize = fbVectorImage->size();
+	dsVector2f size;
+	bool hasSize = false;
+	if (fbSize)
+	{
+		size = DeepSeaScene::convert(*fbSize);
+		hasSize = true;
+	}
 
 	auto fbSharedMaterials = fbVectorImage->sharedMaterials();
 	dsVectorMaterialSet* sharedMaterials = nullptr;
@@ -141,13 +148,13 @@ void* dsSceneVectorImage_load(const dsSceneLoadContext* loadContext,
 	{
 		vectorImage = dsVectorImage_loadResource(allocator, resourceAllocator, &initResources,
 			DeepSeaScene::convert(fileRef->type()), fileRef->path()->c_str(),
-			vectorImageUserData->pixelSize, &size);
+			vectorImageUserData->pixelSize, hasSize ? &size : nullptr);
 	}
 	else if (auto rawData = fbVectorImage->image_as_RawData())
 	{
 		auto data = rawData->data();
 		vectorImage = dsVectorImage_loadData(allocator, resourceAllocator, &initResources,
-			data->data(), data->size(), vectorImageUserData->pixelSize, &size);
+			data->data(), data->size(), vectorImageUserData->pixelSize, hasSize ? &size : nullptr);
 	}
 	else
 	{

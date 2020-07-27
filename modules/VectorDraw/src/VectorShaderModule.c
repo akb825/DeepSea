@@ -67,7 +67,7 @@ static bool targetSupported(dsResourceManager* resourceManager)
 }
 
 static dsVectorShaderModule* createVectorShaderModule(dsResourceManager* resourceManager,
-	dsAllocator* allocator, dsShaderModule* module, dsMaterialElement* customElements,
+	dsAllocator* allocator, dsShaderModule* module, const dsMaterialElement* customElements,
 	uint32_t customElementCount)
 {
 	if (!allocator)
@@ -166,7 +166,7 @@ static dsVectorShaderModule* createVectorShaderModule(dsResourceManager* resourc
 }
 
 dsVectorShaderModule* dsVectorShaderModule_loadFile(dsResourceManager* resourceManager,
-	dsAllocator* allocator, const char* filePath, dsMaterialElement* customElements,
+	dsAllocator* allocator, const char* filePath, const dsMaterialElement* customElements,
 	uint32_t customElementCount)
 {
 	if (!targetSupported(resourceManager))
@@ -183,7 +183,7 @@ dsVectorShaderModule* dsVectorShaderModule_loadFile(dsResourceManager* resourceM
 
 dsVectorShaderModule* dsVectorShaderModule_loadResource(dsResourceManager* resourceManager,
 	dsAllocator* allocator, dsFileResourceType type, const char* filePath,
-	dsMaterialElement* customElements, uint32_t customElementCount)
+	const dsMaterialElement* customElements, uint32_t customElementCount)
 {
 	if (!targetSupported(resourceManager))
 		return NULL;
@@ -198,7 +198,7 @@ dsVectorShaderModule* dsVectorShaderModule_loadResource(dsResourceManager* resou
 }
 
 dsVectorShaderModule* dsVectorShaderModule_loadStream(dsResourceManager* resourceManager,
-	dsAllocator* allocator, dsStream* stream, dsMaterialElement* customElements,
+	dsAllocator* allocator, dsStream* stream, const dsMaterialElement* customElements,
 	uint32_t customElementCount)
 {
 	if (!targetSupported(resourceManager))
@@ -214,7 +214,7 @@ dsVectorShaderModule* dsVectorShaderModule_loadStream(dsResourceManager* resourc
 }
 
 dsVectorShaderModule* dsVectorShaderModule_loadData(dsResourceManager* resourceManager,
-	dsAllocator* allocator, const void* data, size_t size, dsMaterialElement* customElements,
+	dsAllocator* allocator, const void* data, size_t size, const dsMaterialElement* customElements,
 	uint32_t customElementCount)
 {
 	if (!targetSupported(resourceManager))

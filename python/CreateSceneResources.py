@@ -21,12 +21,13 @@ from importlib import import_module
 from DeepSeaScene.Convert.ConvertContext import ConvertContext
 from DeepSeaScene.Convert.SceneResourcesConvert import convertSceneResources
 
-from DeepSeaVectorDrawScene.Convert.SceneTextConvert import convertSceneText
+from DeepSeaVectorDrawScene.Convert.TextConvert import convertText
 from DeepSeaVectorDrawScene.Convert.TextNodeConvert import convertTextNode
 from DeepSeaVectorDrawScene.Convert.VectorImageConvert import convertVectorImage
 from DeepSeaVectorDrawScene.Convert.VectorImageNodeConvert import convertVectorImageNode
 from DeepSeaVectorDrawScene.Convert.VectorItemListConvert import convertVectorItemList
 from DeepSeaVectorDrawScene.Convert.VectorResourcesConvert import convertVectorResources
+from DeepSeaVectorDrawScene.Convert.VectorShadersConvert import convertVectorShaders
 
 if __name__ == '__main__':
 	parser = argparse.ArgumentParser(description =
@@ -53,9 +54,10 @@ if __name__ == '__main__':
 	convertContext.addNodeType('TextNode', convertTextNode)
 	convertContext.addNodeType('VectorImageNode', convertVectorImage)
 	convertContext.addItemListType('VectorItemList', convertVectorItemList)
-	convertContext.addCustomResourceType('SceneText', convertSceneText)
+	convertContext.addCustomResourceType('Text', convertText)
 	convertContext.addCustomResourceType('VectorImage', convertVectorImage)
 	convertContext.addCustomResourceType('VectorResources', convertVectorResources)
+	convertContext.addCustomResourceType('VectorShaders', convertVectorShaders)
 
 	for extension in args.extensions:
 		import_module(extension).deepSeaSceneExtension(convertContext)

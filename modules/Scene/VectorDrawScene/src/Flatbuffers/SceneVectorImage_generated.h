@@ -57,7 +57,7 @@ struct VectorImage FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            VerifyField<uint8_t>(verifier, VT_IMAGE_TYPE) &&
            VerifyOffsetRequired(verifier, VT_IMAGE) &&
            VerifyFileOrData(verifier, image(), image_type()) &&
-           VerifyFieldRequired<DeepSeaScene::Vector2f>(verifier, VT_SIZE) &&
+           VerifyField<DeepSeaScene::Vector2f>(verifier, VT_SIZE) &&
            VerifyOffset(verifier, VT_SHAREDMATERIALS) &&
            verifier.VerifyString(sharedMaterials()) &&
            VerifyOffsetRequired(verifier, VT_SHADER) &&
@@ -112,7 +112,6 @@ struct VectorImageBuilder {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<VectorImage>(end);
     fbb_.Required(o, VectorImage::VT_IMAGE);
-    fbb_.Required(o, VectorImage::VT_SIZE);
     fbb_.Required(o, VectorImage::VT_SHADER);
     return o;
   }

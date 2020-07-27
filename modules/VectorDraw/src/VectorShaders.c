@@ -59,8 +59,8 @@ static dsVectorShaders* dsVectorShaders_createImpl(dsResourceManager* resourceMa
 		i <= dsVectorShaderType_TextGradientOutline; ++i)
 	{
 		if (dsShaderModule_shaderIndexHasStage(shaderModule->shaderModule,
-			shaderModule->shaderIndices[i],
-			dsShaderStage_TessellationEvaluation) != textHasTessellation)
+				shaderModule->shaderIndices[i],
+				dsShaderStage_TessellationEvaluation) != textHasTessellation)
 		{
 			errno = EPERM;
 			DS_LOG_ERROR(DS_VECTOR_DRAW_LOG_TAG,

@@ -135,6 +135,7 @@ typedef struct dsLoadCustomSceneResourceItem
 	dsDestroyCustomSceneResourceFunction destroyResourceFunc;
 	void* userData;
 	dsDestroySceneUserDataFunction destroyUserDataFunc;
+	uint32_t additionalResources;
 } dsLoadCustomSceneResourceItem;
 
 struct dsSceneLoadContext

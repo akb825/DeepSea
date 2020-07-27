@@ -27,11 +27,12 @@ def convertVectorImage(convertContext, data):
 	  before adding the reference.
 	- resourceType: the resource type. See the dsFileResourceType for values, removing the type
 	  prefix. Defaults to "Embedded".
-	- size: the size of the vector image as an array of two floats.
+	- size: the size of the vector image as an array of two floats. Defaults to the original image
+	  size.
 	- sharedMaterials: the name of the vector material set for shared material data.
 	- shader: the name of the vector material set for shared material data.
-	- resources: list of strings for the names of the vector resources to get textures and fonts
-	  from.
+	- vectorResources: list of strings for the names of the vector resources to get textures and
+	  fonts from.
 	- srgb: bool for whether or not the embedded materials should be treated as sRGB and converted
 	  to linear when drawing. Defaults to false.
 	"""
@@ -46,16 +47,17 @@ def convertVectorImage(convertContext, data):
 		imageType, imageOffset = convertFileOrData(builder, imagePath, imageContents,
 			data.get('output'), data.get('outputRelativeDir'), data.get('resourceType'))
 
-		size = data['size']
-		try:
-			if len(size) != 2:
-				raise Exception() # Common error handling in except block.
-			size[0] = float(size[0])
-			size[1] = float(size[1])
-		except:
-			raise Exception('Invalid vector image size "' + str(size) + '".')
+		size = data.get('size')
+		if size:
+			try:
+				if len(size) != 2:
+					raise Exception() # Common error handling in except block.
+				size[0] = float(size[0])
+				size[1] = float(size[1])
+			except:
+				raise Exception('Invalid vector image size "' + str(size) + '".')
 
-		sharedMaterials = str(data['sharedMaterials'])
+		sharedMaterials = str(data.get('sharedMaterials', ''))
 		shader = str(data['shader'])
 		resources = data['resources']
 		if not isinstance(resources, list):
@@ -67,8 +69,16 @@ def convertVectorImage(convertContext, data):
 	except (AttributeError, TypeError, ValueError):
 		raise Exception('VectorImage must be an object.')
 
-	sizeOffset = CreateVector2f(builder, size[0], size[1])
-	sharedMaterialsOffset = builder.CreateString(sharedMaterials)
+	if size:
+		sizeOffset = CreateVector2f(builder, size[0], size[1])
+	else:
+		sizeOffset = 0
+
+	if sharedMaterials:
+		sharedMaterialsOffset = builder.CreateString(sharedMaterials)
+	else:
+		sharedMaterialsOffset = 0
+
 	shaderOffset = builder.CreateString(shader)
 
 	resourceOffsets = []

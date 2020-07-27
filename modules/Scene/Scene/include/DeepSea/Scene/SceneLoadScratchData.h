@@ -102,6 +102,18 @@ DS_SCENE_EXPORT bool dsSceneLoadScratchData_popSceneResources(dsSceneLoadScratch
 	uint32_t resourceCount);
 
 /**
+ * @brief Gets the scene resources at the top of the stack.
+ *
+ * When loading resources as part of a dsSceneResources load, the top element will be the instance
+ * being loaded.
+ *
+ * @param scratchData The scratch data.
+ * @return The top dsSceneResources instance on the stack or NULL if the stack is empty.
+ */
+DS_SCENE_EXPORT dsSceneResources* dsSceneLoadScratchData_getTopSceneResources(
+	const dsSceneLoadScratchData* scratchData);
+
+/**
  * @brief Gets the scene resources currently pushed on the scratch data.
  * @param[out] outResourceCount Output variable for the number of resources.
  * @param scratchData The scratch data to get the resources from.

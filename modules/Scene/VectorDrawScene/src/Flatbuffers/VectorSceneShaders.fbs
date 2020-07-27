@@ -19,7 +19,7 @@ include "DeepSea/Scene/Flatbuffers/SceneCommon.fbs";
 namespace DeepSeaVectorDrawScene;
 
 // Struct describing an extra material element ot add to the vector shader module.
-table MeterialElement
+table MaterialElement
 {
 	// The name of the element.
 	name : string (required);
@@ -42,11 +42,14 @@ table MeterialElement
 // name.
 table VectorShaders
 {
-	// The shader module, either as a file reference or embedded data.
-	shaderModule : DeepSeaScene.FileOrData (required);
+	// The list of shader modules by version.
+	modules : [DeepSeaScene.VersionedShaderModule] (required);
 
-	// Extra material elements to add for the shader module.
-	extraElements : [MeterialElement] (required);
+	// Extra material elements to add for the material description.
+	extraElements : [MaterialElement] (required);
+
+	// The name of the material description to register.
+	materialDescName : string (required);
 
 	// The name of the shader for filling with a solid color.
 	fillColor : string;

@@ -22,16 +22,70 @@
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
+#include <DeepSea/Render/Resources/ShaderModule.h>
+#include <DeepSea/Render/Renderer.h>
 #include <DeepSea/Scene/Flatbuffers/SceneFlatbufferHelpers.h>
 #include <DeepSea/Scene/SceneLoadContext.h>
 #include <DeepSea/Scene/SceneLoadScratchData.h>
+#include <DeepSea/Scene/SceneResources.h>
 #include <DeepSea/VectorDraw/VectorShaderModule.h>
 #include <DeepSea/VectorDraw/VectorShaders.h>
+
+template <typename T>
+using FlatbufferVector = flatbuffers::Vector<flatbuffers::Offset<T>>;
 
 static void setString(const char*& string, const flatbuffers::String* fbString)
 {
 	if (fbString)
 		string = fbString->c_str();
+}
+
+static dsVectorShaderModule* loadShaderModule(
+	dsResourceManager* resourceManager, dsAllocator* allocator,
+	const FlatbufferVector<DeepSeaScene::VersionedShaderModule>* shaderModules,
+	const dsMaterialElement* extraElements, uint32_t extraElementCount)
+{
+	if (!shaderModules)
+		return nullptr;
+
+	uint32_t shaderModuleCount = shaderModules->size();
+	auto versionStrings = DS_ALLOCATE_STACK_OBJECT_ARRAY(const char*, shaderModuleCount);
+	for (uint32_t i = 0; i < shaderModuleCount; ++i)
+	{
+		auto fbShaderModule = (*shaderModules)[i];
+		versionStrings[i] = fbShaderModule ? fbShaderModule->version()->c_str() : nullptr;
+	}
+
+	uint32_t versionIndex;
+	const char* versionString = dsRenderer_chooseShaderVersionString(&versionIndex,
+		resourceManager->renderer, versionStrings, shaderModuleCount);
+	if (!versionString)
+	{
+		errno = ENOTFOUND;
+		DS_LOG_ERROR(DS_VECTOR_DRAW_SCENE_LOG_TAG,
+			"No supported version found for vector shader module.");
+		return nullptr;
+	}
+
+	auto fbShaderModule = (*shaderModules)[versionIndex];
+	if (auto fbFileRef = fbShaderModule->data_as_FileReference())
+	{
+		return dsVectorShaderModule_loadResource(resourceManager, allocator,
+			DeepSeaScene::convert(fbFileRef->type()), fbFileRef->path()->c_str(), extraElements,
+			extraElementCount);
+	}
+	else if (auto fbRawData = fbShaderModule->data_as_RawData())
+	{
+		auto fbData = fbRawData->data();
+		return dsVectorShaderModule_loadData(resourceManager, allocator, fbData->data(),
+			fbData->size(), extraElements, extraElementCount);
+	}
+	else
+	{
+		errno = EFORMAT;
+		DS_LOG_ERROR(DS_VECTOR_DRAW_SCENE_LOG_TAG, "No data provided for vector shader module.");
+		return nullptr;
+	}
 }
 
 void* dsVectorSceneShaders_load(const dsSceneLoadContext* loadContext,
@@ -78,7 +132,7 @@ void* dsVectorSceneShaders_load(const dsSceneLoadContext* loadContext,
 				{
 					errno = ENOTFOUND;
 					DS_LOG_ERROR_F(DS_VECTOR_DRAW_SCENE_LOG_TAG,
-						"Couldn't find shader variable group description '%s'",
+						"Couldn't find shader variable group description '%s'.",
 						fbGroupDescName->c_str());
 					return nullptr;
 				}
@@ -90,26 +144,8 @@ void* dsVectorSceneShaders_load(const dsSceneLoadContext* loadContext,
 		}
 	}
 
-	dsVectorShaderModule* shaderModule;
-	if (auto fileRef = fbVectorShaders->shaderModule_as_FileReference())
-	{
-		shaderModule = dsVectorShaderModule_loadResource(resourceManager, resourceAllocator,
-			DeepSeaScene::convert(fileRef->type()), fileRef->path()->c_str(), extraElements,
-			extraElementCount);
-	}
-	else if (auto rawData = fbVectorShaders->shaderModule_as_RawData())
-	{
-		auto data = rawData->data();
-		shaderModule = dsVectorShaderModule_loadData(resourceManager, resourceAllocator,
-			data->data(), data->size(), extraElements, extraElementCount);
-	}
-	else
-	{
-		errno = EFORMAT;
-		DS_LOG_ERROR(DS_VECTOR_DRAW_SCENE_LOG_TAG, "No data provided for vector shader module");
-		return nullptr;
-	}
-
+	dsVectorShaderModule* shaderModule = loadShaderModule(resourceManager, resourceAllocator,
+		fbVectorShaders->modules(), extraElements, extraElementCount);
 	if (!shaderModule)
 		return nullptr;
 
@@ -132,6 +168,23 @@ void* dsVectorSceneShaders_load(const dsSceneLoadContext* loadContext,
 	dsVectorShaders* shaders = dsVectorShaders_createCustom(resourceManager, resourceAllocator,
 		shaderModule, shaderNames);
 	if (!shaders)
+	{
+		DS_VERIFY(dsVectorShaderModule_destroy(shaderModule));
+		return nullptr;
+	}
+
+	dsSceneResources* resources = dsSceneLoadScratchData_getTopSceneResources(scratchData);
+	if (!resources)
+	{
+		errno = EINVAL;
+		DS_LOG_ERROR(DS_VECTOR_DRAW_SCENE_LOG_TAG,
+			"Loading dsVectorShaders outside of a dsSceneResources instance.");
+		DS_VERIFY(dsVectorShaderModule_destroy(shaderModule));
+		return nullptr;
+	}
+
+	if (!dsSceneResources_addResource(resources, fbVectorShaders->materialDescName()->c_str(),
+			dsSceneResourceType_MaterialDesc, shaderModule->materialDesc, false))
 	{
 		DS_VERIFY(dsVectorShaderModule_destroy(shaderModule));
 		return nullptr;

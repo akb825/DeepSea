@@ -28,7 +28,7 @@ def convertTextNode(convertContext, data):
 	- alignment: the alignment of the text. May be Start, End, Left, Right, or Center. Defaults to
 	  Start.
 	- maxWidth: the maximum width of the text. Defaults to no maximum.
-	- lineScale: the scale to apply to the distance between each line. Defaults to 1.
+	- lineScale: the scale to apply to the distance between each line. Defaults to 1.2.
 	- z: the Z value used for sorting text and vector elements as a signed int.
 	- firstChar: the first character to display. Defaults to 0.
 	- charCount: the number of characters to display. Defaults to all characters.
@@ -74,7 +74,7 @@ def convertTextNode(convertContext, data):
 			raise Exception('Invalid text alignment "' + alignmentStr + '".')
 
 		maxWidth = readFloat(data.get('maxWidth', FLT_MAX), 'maxWidth')
-		lineScale = readFloat(data.get('lineScale', 1.0), 'lineScale')
+		lineScale = readFloat(data.get('lineScale', 1.2), 'lineScale')
 		z = readInt(data['z'], 'z')
 		firstChar = readUInt(data.get('firstChar', 0), 'firstChar')
 		charCount = readUInt(data.get('charCount', 0xFFFFFFFF), 'charCount')

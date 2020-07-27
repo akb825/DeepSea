@@ -277,7 +277,7 @@ bool dsSceneLoadContext_registerCustomSceneResourceType(dsSceneLoadContext* cont
 	const char* name, const dsCustomSceneResourceType* type,
 	dsLoadCustomSceneResourceFunction loadFunc,
 	dsDestroyCustomSceneResourceFunction destroyResourceFunc, void* userData,
-	dsDestroySceneUserDataFunction destroyUserDataFunc)
+	dsDestroySceneUserDataFunction destroyUserDataFunc, uint32_t additionalResources)
 {
 	if (!context || !name || !type || !loadFunc)
 	{
@@ -310,6 +310,7 @@ bool dsSceneLoadContext_registerCustomSceneResourceType(dsSceneLoadContext* cont
 	customResourceType->destroyResourceFunc = destroyResourceFunc;
 	customResourceType->userData = userData;
 	customResourceType->destroyUserDataFunc = destroyUserDataFunc;
+	customResourceType->additionalResources = additionalResources;
 	if (!dsHashTable_insert(hashTable, customResourceType->name,
 			(dsHashTableNode*)customResourceType, NULL))
 	{
@@ -319,6 +320,20 @@ bool dsSceneLoadContext_registerCustomSceneResourceType(dsSceneLoadContext* cont
 		return false;
 	}
 	return true;
+}
+
+uint32_t dsSceneLoadContext_getCustomResourceAdditionalResources(const dsSceneLoadContext* context,
+	const char* name)
+{
+	if (!context || !name)
+		return 0;
+
+	dsLoadCustomSceneResourceItem* foundType = (dsLoadCustomSceneResourceItem*)dsHashTable_find(
+		&context->customResourceTypeTable.hashTable, name);
+	if (!foundType)
+		return 0;
+
+	return foundType->additionalResources;
 }
 
 void dsSceneLoadContext_destroy(dsSceneLoadContext* context)

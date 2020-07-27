@@ -117,11 +117,12 @@ bool dsVectorSceneLoadConext_registerTypes(dsSceneLoadContext* loadContext, dsAl
 				sizeof(dsTextQuality)*DS_TEXT_QUALITY_REMAP_SIZE);
 		}
 
+		// One additional resource for registering the material description.
 		if (!dsSceneLoadContext_registerCustomSceneResourceType(loadContext,
 				dsVectorSceneResources_typeName, dsVectorSceneResources_type(),
 				&dsVectorSceneResources_load,
 				(dsDestroyCustomSceneResourceFunction)&dsVectorResources_destroy, userData,
-				&VectorResourcesUserData_destroy))
+				&VectorResourcesUserData_destroy, 1))
 		{
 			VectorResourcesUserData_destroy(userData);
 			return false;
@@ -131,14 +132,14 @@ bool dsVectorSceneLoadConext_registerTypes(dsSceneLoadContext* loadContext, dsAl
 	if (!dsSceneLoadContext_registerCustomSceneResourceType(loadContext,
 			dsVectorSceneMaterialSet_typeName, dsVectorSceneMaterialSet_type(),
 			&dsVectorSceneMaterialSet_load,
-			(dsDestroyCustomSceneResourceFunction)&dsVectorMaterialSet_destroy, NULL, NULL))
+			(dsDestroyCustomSceneResourceFunction)&dsVectorMaterialSet_destroy, NULL, NULL, 0))
 	{
 		return false;
 	}
 
 	if (!dsSceneLoadContext_registerCustomSceneResourceType(loadContext,
 			dsVectorSceneShaders_typeName, dsVectorSceneShaders_type(), &dsVectorSceneShaders_load,
-			dsVectorSceneShaders_destroy, NULL, NULL))
+			dsVectorSceneShaders_destroy, NULL, NULL, 0))
 	{
 		return false;
 	}
@@ -167,7 +168,7 @@ bool dsVectorSceneLoadConext_registerTypes(dsSceneLoadContext* loadContext, dsAl
 
 		if (!dsSceneLoadContext_registerCustomSceneResourceType(loadContext,
 				dsSceneText_typeName, dsSceneText_type(), &dsSceneText_load, destroySceneText,
-				userData, &SceneTextUserData_destroy))
+				userData, &SceneTextUserData_destroy, 0))
 		{
 			SceneTextUserData_destroy(userData);
 			return false;
@@ -194,7 +195,7 @@ bool dsVectorSceneLoadConext_registerTypes(dsSceneLoadContext* loadContext, dsAl
 		if (!dsSceneLoadContext_registerCustomSceneResourceType(loadContext,
 				dsSceneVectorImage_typeName, dsSceneVectorImage_type(), &dsSceneVectorImage_load,
 				(dsDestroyCustomSceneResourceFunction)&dsVectorImage_destroy,
-				userData, &SceneVectorImageUserData_destroy))
+				userData, &SceneVectorImageUserData_destroy, 0))
 		{
 			SceneVectorImageUserData_destroy(userData);
 			return false;

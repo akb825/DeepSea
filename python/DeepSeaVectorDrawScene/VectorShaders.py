@@ -21,46 +21,61 @@ class VectorShaders(object):
         self._tab = flatbuffers.table.Table(buf, pos)
 
     # VectorShaders
-    def ShaderModuleType(self):
+    def Modules(self, j):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
-        if o != 0:
-            return self._tab.Get(flatbuffers.number_types.Uint8Flags, o + self._tab.Pos)
-        return 0
-
-    # VectorShaders
-    def ShaderModule(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
-        if o != 0:
-            from flatbuffers.table import Table
-            obj = Table(bytearray(), 0)
-            self._tab.Union(obj, o)
-            return obj
-        return None
-
-    # VectorShaders
-    def ExtraElements(self, j):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
         if o != 0:
             x = self._tab.Vector(o)
             x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * 4
             x = self._tab.Indirect(x)
-            from DeepSeaVectorDrawScene.MeterialElement import MeterialElement
-            obj = MeterialElement()
+            from DeepSeaScene.VersionedShaderModule import VersionedShaderModule
+            obj = VersionedShaderModule()
+            obj.Init(self._tab.Bytes, x)
+            return obj
+        return None
+
+    # VectorShaders
+    def ModulesLength(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
+        if o != 0:
+            return self._tab.VectorLen(o)
+        return 0
+
+    # VectorShaders
+    def ModulesIsNone(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
+        return o == 0
+
+    # VectorShaders
+    def ExtraElements(self, j):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
+        if o != 0:
+            x = self._tab.Vector(o)
+            x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * 4
+            x = self._tab.Indirect(x)
+            from DeepSeaVectorDrawScene.MaterialElement import MaterialElement
+            obj = MaterialElement()
             obj.Init(self._tab.Bytes, x)
             return obj
         return None
 
     # VectorShaders
     def ExtraElementsLength(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         if o != 0:
             return self._tab.VectorLen(o)
         return 0
 
     # VectorShaders
     def ExtraElementsIsNone(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         return o == 0
+
+    # VectorShaders
+    def MaterialDescName(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
+        if o != 0:
+            return self._tab.String(o + self._tab.Pos)
+        return None
 
     # VectorShaders
     def FillColor(self):
@@ -126,10 +141,11 @@ class VectorShaders(object):
         return None
 
 def VectorShadersStart(builder): builder.StartObject(12)
-def VectorShadersAddShaderModuleType(builder, shaderModuleType): builder.PrependUint8Slot(0, shaderModuleType, 0)
-def VectorShadersAddShaderModule(builder, shaderModule): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(shaderModule), 0)
-def VectorShadersAddExtraElements(builder, extraElements): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(extraElements), 0)
+def VectorShadersAddModules(builder, modules): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(modules), 0)
+def VectorShadersStartModulesVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+def VectorShadersAddExtraElements(builder, extraElements): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(extraElements), 0)
 def VectorShadersStartExtraElementsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+def VectorShadersAddMaterialDescName(builder, materialDescName): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(materialDescName), 0)
 def VectorShadersAddFillColor(builder, fillColor): builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(fillColor), 0)
 def VectorShadersAddFillLinearGradient(builder, fillLinearGradient): builder.PrependUOffsetTRelativeSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(fillLinearGradient), 0)
 def VectorShadersAddFillRadialGradient(builder, fillRadialGradient): builder.PrependUOffsetTRelativeSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(fillRadialGradient), 0)

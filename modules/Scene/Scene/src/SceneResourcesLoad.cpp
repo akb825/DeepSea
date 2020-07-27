@@ -122,7 +122,7 @@ static bool loadBuffers(dsSceneResources* resources, dsResourceManager* resource
 
 		const char* bufferName = fbBuffer->name()->c_str();
 		uint32_t bufferSize = fbBuffer->size();
-		const void* bufferData = NULL;
+		const void* bufferData = nullptr;
 		size_t dataSize = bufferSize;
 		if (auto fbFileRef = fbBuffer->data_as_FileReference())
 		{
@@ -829,7 +829,7 @@ static dsShaderModule* loadShaderModule(dsResourceManager* resourceManager, dsAl
 		errno = ENOTFOUND;
 		PRINT_FLATBUFFER_RESOURCE_ERROR("No supported version found for shader module '%s'",
 			shaderModuleName, fileName);
-		return NULL;
+		return nullptr;
 	}
 
 	auto fbShaderModule = (*shaderModules)[versionIndex];
@@ -850,7 +850,7 @@ static dsShaderModule* loadShaderModule(dsResourceManager* resourceManager, dsAl
 		errno = EFORMAT;
 		PRINT_FLATBUFFER_RESOURCE_ERROR("No data provided for shader module '%s'",
 			shaderModuleName, fileName);
-		return NULL;
+		return nullptr;
 	}
 }
 
@@ -1188,13 +1188,34 @@ dsSceneResources* dsSceneResources_loadImpl(dsAllocator* allocator, dsAllocator*
 		totalCount += nodes->size();
 	auto customResources = fbSceneResources->customResources();
 	if (customResources)
-		totalCount += customResources->size();
+	{
+		uint32_t customResourceCount = customResources->size();
+		totalCount += customResourceCount;
+		for (uint32_t i = 0; i < customResourceCount; ++i)
+		{
+			auto customResource = (*customResources)[i];
+			if (!customResource)
+				continue;
+
+			auto fbResource = customResource->resource();
+			totalCount += dsSceneLoadContext_getCustomResourceAdditionalResources(loadContext,
+				fbResource->type()->c_str());
+		}
+	}
 
 	dsSceneResources* resources = dsSceneResources_create(allocator, totalCount);
 	if (!resources)
 		return nullptr;
 
+	/*
+	 * Resources won't be available to request untill they've been loaded and added. Always load
+	 * descriptions before the objects that use them. Load custom resources first since they may add
+	 * additional first-class resources. Load nodes last since they may reference any other resource
+	 * type.
+	 */
 	if (!dsSceneLoadScratchData_pushSceneResources(scratchData, &resources, 1) ||
+		!loadCustomResources(resources, allocator, resourceAllocator, loadContext, scratchData,
+			customResources, fileName) ||
 		!loadBuffers(resources, resourceManager, resourceAllocator, buffers, fileName) ||
 		!loadTextures(resources, resourceManager, allocator, resourceAllocator, textures,
 			fileName) ||
@@ -1213,9 +1234,7 @@ dsSceneResources* dsSceneResources_loadImpl(dsAllocator* allocator, dsAllocator*
 		!loadDrawGeometries(
 			resources, resourceManager, resourceAllocator, scratchData, geometries, fileName) ||
 		!loadNodes(
-			resources, allocator, resourceAllocator, loadContext, scratchData, nodes, fileName) ||
-		!loadCustomResources(resources, allocator, resourceAllocator, loadContext, scratchData,
-			customResources, fileName))
+			resources, allocator, resourceAllocator, loadContext, scratchData, nodes, fileName))
 	{
 		dsSceneResources_freeRef(resources);
 		DS_VERIFY(dsSceneLoadScratchData_popSceneResources(scratchData, 1));

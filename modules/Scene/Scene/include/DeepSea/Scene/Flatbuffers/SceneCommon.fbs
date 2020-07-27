@@ -350,6 +350,16 @@ union FileOrData
 	RawData
 }
 
+// Structure desribing a shader module for a specific shader version.
+table VersionedShaderModule
+{
+	// The version of the shader as a standard config. (e.g. glsl-4.1, spirv-1.0)
+	version : string (required);
+
+	// The file reference or data for the shader module.
+	data : FileOrData (required);
+}
+
 // Struct defining what render states are dynamically set. Only values needed by the shader are
 // used.
 table DynamicRenderStates

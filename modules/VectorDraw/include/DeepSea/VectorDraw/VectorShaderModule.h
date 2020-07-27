@@ -48,7 +48,7 @@ extern "C"
  */
 DS_VECTORDRAW_EXPORT dsVectorShaderModule* dsVectorShaderModule_loadFile(
 	dsResourceManager* resourceManager, dsAllocator* allocator, const char* filePath,
-	dsMaterialElement* customElements, uint32_t customElementCount);
+	const dsMaterialElement* customElements, uint32_t customElementCount);
 
 /**
  * @brief Creates the vector shader module from a resource file.
@@ -68,7 +68,7 @@ DS_VECTORDRAW_EXPORT dsVectorShaderModule* dsVectorShaderModule_loadFile(
  */
 DS_VECTORDRAW_EXPORT dsVectorShaderModule* dsVectorShaderModule_loadResource(
 	dsResourceManager* resourceManager, dsAllocator* allocator, dsFileResourceType type,
-	const char* filePath, dsMaterialElement* customElements, uint32_t customElementCount);
+	const char* filePath, const dsMaterialElement* customElements, uint32_t customElementCount);
 
 /**
  * @brief Creates the vector shader module from a stream.
@@ -88,7 +88,7 @@ DS_VECTORDRAW_EXPORT dsVectorShaderModule* dsVectorShaderModule_loadResource(
  */
 DS_VECTORDRAW_EXPORT dsVectorShaderModule* dsVectorShaderModule_loadStream(
 	dsResourceManager* resourceManager, dsAllocator* allocator, dsStream* stream,
-	dsMaterialElement* customElements, uint32_t customElementCount);
+	const dsMaterialElement* customElements, uint32_t customElementCount);
 
 /**
  * @brief Creates the vector shader module from a data buffer.
@@ -108,7 +108,7 @@ DS_VECTORDRAW_EXPORT dsVectorShaderModule* dsVectorShaderModule_loadStream(
  */
 DS_VECTORDRAW_EXPORT dsVectorShaderModule* dsVectorShaderModule_loadData(
 	dsResourceManager* resourceManager, dsAllocator* allocator, const void* data, size_t size,
-	dsMaterialElement* customElements, uint32_t customElementCount);
+	const dsMaterialElement* customElements, uint32_t customElementCount);
 
 /**
  * @brief Creates a material to be used when drawing a vector image with a shader module.

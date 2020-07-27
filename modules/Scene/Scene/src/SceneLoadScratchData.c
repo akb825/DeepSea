@@ -141,6 +141,15 @@ bool dsSceneLoadScratchData_pushSceneResources(dsSceneLoadScratchData* scratchDa
 	return true;
 }
 
+dsSceneResources* dsSceneLoadScratchData_getTopSceneResources(
+	const dsSceneLoadScratchData* scratchData)
+{
+	if (!scratchData || scratchData->sceneResourceCount == 0)
+		return NULL;
+
+	return scratchData->sceneResources[scratchData->sceneResourceCount - 1];
+}
+
 bool dsSceneLoadScratchData_popSceneResources(dsSceneLoadScratchData* scratchData,
 	uint32_t resourceCount)
 {

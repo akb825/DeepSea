@@ -38,10 +38,10 @@ def createColor(colorMaterials, style, builder):
 
 	return CreateColor(builder, color[0], color[1], color[2], alpha)
 
-def convertSceneText(convertContext, data):
+def convertText(convertContext, data):
 	"""
 	Converts text for use in a scene. The data map is expected to contain the following elements:
-	- vectorResources: the name of the vector resources to get the font from.
+	- resources: the name of the vector resources to get the font from.
 	- font: the name of the font to use if not provided by the text XML element. Defaults to
 	  'serif'.
 	- text: the text. This can either be a path to a .xml file or embedded XML string. The XML
