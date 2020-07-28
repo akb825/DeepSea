@@ -23,6 +23,8 @@
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 
+#include <DeepSea/Render/Resources/Material.h>
+#include <DeepSea/Render/Resources/MaterialDesc.h>
 #include <DeepSea/Scene/Flatbuffers/SceneFlatbufferHelpers.h>
 #include <DeepSea/Scene/Nodes/SceneNode.h>
 #include <DeepSea/Scene/SceneLoadScratchData.h>
@@ -70,6 +72,10 @@ dsSceneNode* dsSceneTextNode_load(const dsSceneLoadContext* loadContext,
 	dsSceneText* text;
 	dsShader* shader;
 	dsMaterial* material;
+	const dsMaterialDesc* materialDesc;
+	const char* fontTextureName;
+	uint32_t fontTextureElement;
+	const dsMaterialElement* fontTextureMatElement;
 	const char** itemLists = nullptr;
 	uint32_t itemListCount = 0;
 
@@ -124,13 +130,30 @@ dsSceneNode* dsSceneTextNode_load(const dsSceneLoadContext* loadContext,
 		}
 	}
 
+	materialDesc = dsMaterial_getDescription(material);
+	DS_ASSERT(materialDesc);
+
+	fontTextureName = fbTextNode->fontTextureName()->c_str();
+	fontTextureElement = dsMaterialDesc_findElement(materialDesc, fontTextureName);
+	fontTextureMatElement = materialDesc->elements + fontTextureElement;
+	if (fontTextureElement >= materialDesc->elementCount ||
+		fontTextureMatElement->type != dsMaterialType_Texture ||
+		fontTextureMatElement->binding != dsMaterialBinding_Instance)
+	{
+		errno = ENOTFOUND;
+		DS_LOG_ERROR_F(DS_VECTOR_DRAW_SCENE_LOG_TAG,
+			"Font texture '%s' must be a texture with instance binding.", fontTextureName);
+		return nullptr;
+	}
+
 	// NOTE: May need to add more resources to the reference count later. Don't add all resources
 	// since it would make circular references.
 	node = reinterpret_cast<dsSceneNode*>(dsSceneTextNode_create(allocator, text->text,
 		text->userData, text->styles, text->styleCount,
 		static_cast<dsTextAlign>(fbTextNode->alignment()), fbTextNode->maxWidth(),
 		fbTextNode->lineScale(), fbTextNode->z(), fbTextNode->firstChar(), fbTextNode->charCount(),
-		shader, material, itemLists, itemListCount, &embeddedResources, embeddedResources ? 1 : 0));
+		shader, material, fontTextureElement, itemLists, itemListCount, &embeddedResources,
+		embeddedResources ? 1 : 0));
 
 finished:
 	if (embeddedResources)

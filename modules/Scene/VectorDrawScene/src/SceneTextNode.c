@@ -16,7 +16,10 @@
 
 #include <DeepSea/VectorDrawScene/SceneTextNode.h>
 
+#include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
+#include <DeepSea/Core/Log.h>
+#include <DeepSea/Render/Resources/Material.h>
 #include <DeepSea/Scene/Nodes/SceneNode.h>
 #include <DeepSea/VectorDrawScene/SceneVectorNode.h>
 
@@ -39,19 +42,20 @@ const dsSceneNodeType* dsSceneTextNode_setupParentType(dsSceneNodeType* type)
 dsSceneTextNode* dsSceneTextNode_create(dsAllocator* allocator, const dsText* text,
 	void* textUserData, const dsTextStyle* styles, uint32_t styleCount, dsTextAlign alignment,
 	float maxWidth, float lineScale, int32_t z, uint32_t firstChar, uint32_t charCount,
-	dsShader* shader, dsMaterial* material, const char** itemLists, uint32_t itemListCount,
-	dsSceneResources** resources, uint32_t resourceCount)
+	dsShader* shader, dsMaterial* material, uint32_t fontTextureElement, const char** itemLists,
+	uint32_t itemListCount, dsSceneResources** resources, uint32_t resourceCount)
 {
 	return dsSceneTextNode_createBase(allocator, sizeof(dsSceneTextNode), text,
 		textUserData, styles, styleCount, alignment, maxWidth, lineScale, z, firstChar, charCount,
-		shader, material, itemLists, itemListCount, resources, resourceCount);
+		shader, material, fontTextureElement, itemLists, itemListCount, resources, resourceCount);
 }
 
 dsSceneTextNode* dsSceneTextNode_createBase(dsAllocator* allocator, size_t structSize,
 	const dsText* text, void* textUserData, const dsTextStyle* styles, uint32_t styleCount,
 	dsTextAlign alignment, float maxWidth, float lineScale, int32_t z, uint32_t firstChar,
-	uint32_t charCount, dsShader* shader, dsMaterial* material, const char** itemLists,
-	uint32_t itemListCount, dsSceneResources** resources, uint32_t resourceCount)
+	uint32_t charCount, dsShader* shader, dsMaterial* material, uint32_t fontTextureElement,
+	const char** itemLists, uint32_t itemListCount, dsSceneResources** resources,
+	uint32_t resourceCount)
 {
 	if (!allocator || !text || !styles || styleCount == 0 || !shader || !material ||
 		(!itemLists && itemListCount > 0) || (!resources && resourceCount == 0))
@@ -63,6 +67,19 @@ dsSceneTextNode* dsSceneTextNode_createBase(dsAllocator* allocator, size_t struc
 	if (!DS_IS_BUFFER_RANGE_VALID(firstChar, charCount, text->characterCount))
 	{
 		errno = ERANGE;
+		return NULL;
+	}
+
+	const dsMaterialDesc* materialDesc = dsMaterial_getDescription(material);
+	DS_ASSERT(materialDesc);
+	const dsMaterialElement* fontTextureMatElement = materialDesc->elements + fontTextureElement;
+	if (fontTextureElement >= materialDesc->elementCount ||
+		fontTextureMatElement->type != dsMaterialType_Texture ||
+		fontTextureMatElement->binding != dsMaterialBinding_Instance)
+	{
+		errno = ENOTFOUND;
+		DS_LOG_ERROR(DS_VECTOR_DRAW_SCENE_LOG_TAG,
+			"Font texture element must be a texture with instance binding.");
 		return NULL;
 	}
 
@@ -85,6 +102,7 @@ dsSceneTextNode* dsSceneTextNode_createBase(dsAllocator* allocator, size_t struc
 	node->styles = (dsTextStyle*)((uint8_t*)node + styleOffset);
 	memcpy(node->styles, styles, sizeof(dsTextStyle)*styleCount);
 	node->styleCount = styleCount;
+	node->fontTextureElement = fontTextureElement;
 	node->alignment = alignment;
 	node->maxWidth = maxWidth;
 	node->lineScale = lineScale;

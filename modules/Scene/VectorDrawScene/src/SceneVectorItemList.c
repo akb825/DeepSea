@@ -34,6 +34,7 @@
 #include <DeepSea/Scene/ItemLists/SceneInstanceData.h>
 #include <DeepSea/Scene/Nodes/SceneNode.h>
 #include <DeepSea/Scene/Nodes/SceneNodeItemData.h>
+#include <DeepSea/Text/Font.h>
 #include <DeepSea/Text/TextLayout.h>
 #include <DeepSea/Text/TextRenderBuffer.h>
 #include <DeepSea/VectorDraw/VectorImage.h>
@@ -86,6 +87,7 @@ typedef struct TextInfo
 	void* textUserData;
 	const dsTextStyle* styles;
 	uint32_t styleCount;
+	uint32_t fontTextureElement;
 	uint32_t firstChar;
 	uint32_t charCount;
 } TextInfo;
@@ -192,6 +194,7 @@ static bool addInstances(dsSceneItemList* itemList, dsCommandBuffer* commandBuff
 			drawItem->text.textUserData = node->textUserData;
 			drawItem->text.styles = node->styles;
 			drawItem->text.styleCount = node->styleCount;
+			drawItem->text.fontTextureElement = node->fontTextureElement;
 			drawItem->text.firstChar = node->firstChar;
 			drawItem->text.charCount = node->charCount;
 		}
@@ -278,6 +281,11 @@ static void drawItems(dsSceneVectorItemList* vectorList, uint32_t drawItemCount,
 		{
 			case DrawType_Text:
 			{
+				const dsText* text = drawItem->text.text->text;
+				dsFont* font = text->font;
+				DS_CHECK(DS_VECTOR_DRAW_SCENE_LOG_TAG,
+					dsSharedMaterialValues_setTextureID(vectorList->instanceValues,
+						drawItem->text.fontTextureElement, dsFont_getTexture(font)));
 				if (lastTextShader != drawItem->text.shader ||
 					lastTextMaterial != drawItem->material)
 				{
@@ -303,7 +311,6 @@ static void drawItems(dsSceneVectorItemList* vectorList, uint32_t drawItemCount,
 				}
 
 				// Try to add to the current buffer. If this fails, flush it and try again.
-				const dsText* text = drawItem->text.text->text;
 				uint32_t firstChar = drawItem->text.firstChar;
 				uint32_t charCount = drawItem->text.charCount;
 				if (firstChar < text->characterCount && charCount > 0)

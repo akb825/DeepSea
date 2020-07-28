@@ -67,6 +67,7 @@ DS_VECTORDRAWSCENE_EXPORT const dsSceneNodeType* dsSceneTextNode_setupParentType
  * @param charCount The number of characters to draw.
  * @param shader The shader to draw with.
  * @param material The material to draw with.
+ * @param fontTextureElement The element index for the font texture in the material.
  * @param itemLists List of item list names to add the node to. The array will be copied.
  * @param itemListCount The number of item lists.
  * @param resources The resources to keep a reference to.
@@ -77,8 +78,8 @@ DS_VECTORDRAWSCENE_EXPORT dsSceneTextNode* dsSceneTextNode_create(
 	dsAllocator* allocator, const dsText* text, void* textUserData, const dsTextStyle* styles,
 	uint32_t styleCount, dsTextAlign alignment, float maxWidth, float lineScale, int32_t z,
 	uint32_t firstChar, uint32_t charCount, dsShader* shader, dsMaterial* material,
-	const char** itemLists, uint32_t itemListCount, dsSceneResources** resources,
-	uint32_t resourceCount);
+	uint32_t fontTextureElement, const char** itemLists, uint32_t itemListCount,
+	dsSceneResources** resources, uint32_t resourceCount);
 
 /**
  * @brief Creates a text node as a base class of another node type.
@@ -98,6 +99,7 @@ DS_VECTORDRAWSCENE_EXPORT dsSceneTextNode* dsSceneTextNode_create(
  * @param charCount The number of characters to draw.
  * @param shader The shader to draw with.
  * @param material The material to draw with.
+ * @param fontTextureElement The element index for the font texture in the material.
  * @param itemLists List of item list names to add the node to. The array will be copied.
  * @param itemListCount The number of item lists.
  * @param resources The resources to keep a reference to.
@@ -108,8 +110,8 @@ DS_VECTORDRAWSCENE_EXPORT dsSceneTextNode* dsSceneTextNode_createBase(
 	dsAllocator* allocator, size_t structSize, const dsText* text, void* textUserData,
 	const dsTextStyle* styles, uint32_t styleCount, dsTextAlign alignment, float maxWidth,
 	float lineScale, int32_t z, uint32_t firstChar, uint32_t charCount, dsShader* shader,
-	dsMaterial* material, const char** itemLists, uint32_t itemListCount,
-	dsSceneResources** resources, uint32_t resourceCount);
+	dsMaterial* material, uint32_t fontTextureElement, const char** itemLists,
+	uint32_t itemListCount, dsSceneResources** resources, uint32_t resourceCount);
 
 /**
  * @brief Triggers an update for layout when next drawn.

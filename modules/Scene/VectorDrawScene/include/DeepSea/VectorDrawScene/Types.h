@@ -167,6 +167,11 @@ typedef struct dsSceneTextNode
 	uint32_t styleCount;
 
 	/**
+	 * @brief The element index for the font texture in the material.
+	 */
+	uint32_t fontTextureElement;
+
+	/**
 	 * @brief The alignment of the text.
 	 */
 	dsTextAlign alignment;
