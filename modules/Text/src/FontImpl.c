@@ -852,7 +852,7 @@ dsTextDirection dsFaceGroup_textDirection(uint32_t script)
 
 size_t dsFaceGroup_fullAllocSize(uint32_t maxFaces)
 {
-	return DS_ALIGNED_SIZE(sizeof(dsFaceGroup) + sizeof(dsFontFace)*maxFaces) +
+	return DS_ALIGNED_SIZE(sizeof(dsFaceGroup)) + DS_ALIGNED_SIZE(sizeof(dsFontFace)*maxFaces) +
 		dsMutex_fullAllocSize() + dsHashTable_fullAllocSize(dsHashTable_getTableSize(maxFaces));
 }
 

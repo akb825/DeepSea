@@ -16,6 +16,7 @@
 from __future__ import print_function
 import argparse
 import json
+import sys
 from importlib import import_module
 
 from DeepSeaScene.Convert.ConvertContext import ConvertContext
@@ -25,7 +26,6 @@ from DeepSeaVectorDrawScene.Convert.TextConvert import convertText
 from DeepSeaVectorDrawScene.Convert.TextNodeConvert import convertTextNode
 from DeepSeaVectorDrawScene.Convert.VectorImageConvert import convertVectorImage
 from DeepSeaVectorDrawScene.Convert.VectorImageNodeConvert import convertVectorImageNode
-from DeepSeaVectorDrawScene.Convert.VectorItemListConvert import convertVectorItemList
 from DeepSeaVectorDrawScene.Convert.VectorResourcesConvert import convertVectorResources
 from DeepSeaVectorDrawScene.Convert.VectorShadersConvert import convertVectorShaders
 
@@ -52,8 +52,7 @@ if __name__ == '__main__':
 
 	# Vector draw scene types.
 	convertContext.addNodeType('TextNode', convertTextNode)
-	convertContext.addNodeType('VectorImageNode', convertVectorImage)
-	convertContext.addItemListType('VectorItemList', convertVectorItemList)
+	convertContext.addNodeType('VectorImageNode', convertVectorImageNode)
 	convertContext.addCustomResourceType('Text', convertText)
 	convertContext.addCustomResourceType('VectorImage', convertVectorImage)
 	convertContext.addCustomResourceType('VectorResources', convertVectorResources)
@@ -62,8 +61,12 @@ if __name__ == '__main__':
 	for extension in args.extensions:
 		import_module(extension).deepSeaSceneExtension(convertContext)
 
-	with open(args.input) as f:
-		data = json.load(f)
+	try:
+		with open(args.input) as f:
+			data = json.load(f)
 
-	with open(args.output, 'wb') as f:
-		f.write(convertSceneResources(convertContext, data))
+		with open(args.output, 'wb') as f:
+			f.write(convertSceneResources(convertContext, data))
+	except Exception as e:
+		print(args.input + ': error: ' + str(e), file=sys.stderr)
+		exit(1)

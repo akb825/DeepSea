@@ -1,0 +1,170 @@
+{
+	"customResources":
+	[
+		{
+			"type": "VectorResources",
+			"name": "resources",
+			"data":
+			{
+				"resources": "@assetsDir@/VectorResources.dsvr",
+				"output": "@assetsDir@/VectorResources.dsvr",
+				"outputRelativeDir": "@assetsDir@"
+			}
+		},
+		{
+			"type": "VectorShaders",
+			"name": "vectorShaders",
+			"data":
+			{
+				"modules": @vectorModule@,
+				"materialDescName": "vectorMaterialDesc"
+			}
+		},
+		{
+			"type": "VectorImage",
+			"name": "tiger",
+			"data":
+			{
+				"image": "@assetsDir@/Ghostscript_Tiger.dsvi",
+				"vectorShaders": "vectorShaders",
+				"size": [50, 50]
+			}
+		},
+		{
+			"type": "Text",
+			"name": "figure",
+			"data":
+			{
+				"vectorResources": "resources",
+				"font": "sans-serif",
+				"text": "<text font-size=\"16\" fill=\"white\"><tspan font-style=\"italic\">Figure ${tigerNum}:</tspan> an SVG tiger.</text>"
+			}
+		}
+	],
+	"shaderVariableGroupDescs":
+	[
+		{
+			"name": "instanceTransformDesc",
+			"elements":
+			[
+				{"name": "world", "type": "Mat4"},
+				{"name": "worldInvTrans", "type": "Mat4"},
+				{"name": "worldView", "type": "Mat4"},
+				{"name": "worldViewProj", "type": "Mat4"}
+			]
+		}
+	],
+	"materialDescs":
+	[
+		{
+			"name": "textMaterialDesc",
+			"elements":
+			[
+				{
+					"name": "InstanceTransformData",
+					"type": "VariableGroup",
+					"binding": "Instance",
+					"shaderVariableGroupDesc": "instanceTransformDesc"
+				},
+				{
+					"name": "fontTex",
+					"type": "Texture",
+					"binding": "Instance"
+				}
+			]
+		}
+	],
+	"materials":
+	[
+		{
+			"name": "vectorMat",
+			"description": "vectorMaterialDesc"
+		},
+		{
+			"name": "textMat",
+			"description": "textMaterialDesc"
+		}
+	],
+	"shaderModules":
+	[
+		{
+
+			"name": "textModule",
+			"modules": @textModule@
+		}
+	],
+	"shaders":
+	[
+		{
+			"name": "textShader",
+			"module": "textModule",
+			"pipelineName": "Text",
+			"materialDesc": "textMaterialDesc"
+		}
+	],
+	"sceneNodes":
+	[
+		{
+			"type": "TransformNode",
+			"name": "tigerTransform",
+			"data":
+			{
+				"transformList":
+				[
+					{
+						"type": "Translate",
+						"value": [-25, 25, 0]
+					}
+				],
+				"children":
+				[
+					{
+						"type": "VectorImageNode",
+						"data":
+						{
+							"vectorImage": "tiger",
+							"vectorShaders": "vectorShaders",
+							"material": "vectorMat",
+							"z": 0,
+							"itemLists": ["vectorList"]
+						}
+					}
+				]
+			}
+		},
+		{
+			"type": "TextNode",
+			"name": "figureNode",
+			"data":
+			{
+				"text": "figure",
+				"alignment": "Center",
+				"maxWidth": 30,
+				"lineScale": 1.2,
+				"shader": "textShader",
+				"material": "textMat",
+				"fontTextureName": "fontTex",
+				"z": 1,
+				"itemLists": ["vectorList"]
+			}
+		},
+		{
+			"type": "TransformNode",
+			"name": "figureTransform",
+			"data":
+			{
+				"transformList":
+				[
+					{
+						"type": "Translate",
+						"value": [0, -41, 0] 
+					}
+				],
+				"children":
+				[
+					{"type": "ReferenceNode", "data": "figureNode"}
+				]
+			}
+		}
+	]
+}

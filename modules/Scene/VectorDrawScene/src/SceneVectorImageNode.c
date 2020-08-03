@@ -30,7 +30,7 @@ const dsSceneNodeType* dsSceneVectorImageNode_type(void)
 
 const dsSceneNodeType* dsSceneVectorImageNode_setupParentType(dsSceneNodeType* type)
 {
-	dsSceneNode_setupParentType(&nodeType, dsSceneVectorImageNode_type());
+	dsSceneNode_setupParentType(&nodeType, dsSceneVectorNode_type());
 	return dsSceneNode_setupParentType(type, &nodeType);
 }
 

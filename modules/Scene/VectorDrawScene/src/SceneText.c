@@ -69,7 +69,7 @@ dsSceneText* dsSceneText_create(dsAllocator* allocator, dsText* text, void* user
 
 	if (styleCount > 0)
 	{
-		sceneText->styles = DS_ALLOCATE_OBJECT_ARRAY(allocator, dsTextStyle, styleCount);
+		sceneText->styles = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsTextStyle, styleCount);
 		DS_ASSERT(sceneText->styles);
 		memcpy(sceneText->styles, styles, sizeof(dsTextStyle)*styleCount);
 	}

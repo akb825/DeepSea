@@ -104,12 +104,9 @@ class VectorResources:
 		"""
 
 		self.basePath = basePath
-		if 'textures' in contents:
-			self.textures = contents['textures']
-		if 'faceGroups' in contents:
-			self.faceGroups = contents['faceGroups']
-		if 'fonts' in contents:
-			self.fonts = contents['fonts']
+		self.textures = contents.get('textures', [])
+		self.faceGroups = contents.get('faceGroups', [])
+		self.fonts = contents.get('fonts', [])
 
 		faceGroupFaces = {}
 		for faceGroup in self.faceGroups:
@@ -247,7 +244,7 @@ class VectorResources:
 					fontOutputPath = os.path.join(self.basePath, path)
 				else:
 					outputName = os.path.join(resourceDirName,
-						name + os.path.splitext(extension)[1])
+						name + os.path.splitext(path)[1])
 					fontOutputPath = os.path.join(root, outputName)
 					createResourceDir()
 					shutil.copyfile(os.path.join(self.basePath, path), fontOutputPath)
@@ -333,6 +330,11 @@ if __name__ == '__main__':
 		help = 'multithread texture conversion')
 
 	args = parser.parse_args()
-	resources = VectorResources(args.cuttlefish)
-	resources.loadFile(args.input)
-	resources.save(args.output)
+
+	try:
+		resources = VectorResources(args.cuttlefish)
+		resources.loadFile(args.input)
+		resources.save(args.output)
+	except Exception as e:
+		print(args.input + ': error: ' + str(e), file=sys.stderr)
+		exit(1)

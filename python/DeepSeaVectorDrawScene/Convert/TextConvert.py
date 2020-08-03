@@ -69,7 +69,7 @@ def convertText(convertContext, data):
 		textXml = minidom.parse(textData)
 
 	materials = Materials('text')
-	font, text, ranges = readText(textXml, defaultFont, [0.0, 0.0], 0.0, materials)
+	font, text, ranges = readText(textXml.firstChild, defaultFont, [0.0, 0.0], 0.0, materials)
 	if not text:
 		raise Exception('Invalid SVG text data.')
 
@@ -90,15 +90,6 @@ def convertText(convertContext, data):
 	rangeOffsets = []
 	for textRange in ranges:
 		style = textRange.style
-		if style.fill:
-			colorOffset = createColor(colorMaterials, style.fill, builder)
-		else:
-			colorOffset = 0
-			 
-		if style.stroke:
-			outlineColorOffset = createColor(colorMaterials, style.stroke, builder)
-		else:
-			outlineColorOffset = 0
 
 		SceneTextStyleStart(builder)
 		SceneTextStyleAddStart(builder, textRange.start)
@@ -110,8 +101,20 @@ def convertText(convertContext, data):
 		SceneTextStyleAddFuziness(builder, 1.0)
 		SceneTextStyleAddVerticalOffset(builder,
 			textRange.position[1] if textRange.positionType == TextPosition.Offset else 0.0)
+
+		if style.fill:
+			colorOffset = createColor(colorMaterials, style.fill, builder)
+		else:
+			colorOffset = 0
+
 		SceneTextStyleAddColor(builder, colorOffset)
-		SceneTextStyleAddOutlineColor(builder, outlineColorOffset)
+
+		if style.stroke:
+			colorOffset = createColor(colorMaterials, style.stroke, builder)
+		else:
+			colorOffset = 0
+
+		SceneTextStyleAddOutlineColor(builder, colorOffset)
 		rangeOffsets.append(SceneTextStyleEnd(builder))
 
 	SceneTextStartStylesVector(builder, len(rangeOffsets))

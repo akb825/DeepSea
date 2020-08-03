@@ -30,7 +30,7 @@ def convertVectorImage(convertContext, data):
 	- size: the size of the vector image as an array of two floats. Defaults to the original image
 	  size.
 	- sharedMaterials: the name of the vector material set for shared material data.
-	- shader: the name of the vector material set for shared material data.
+	- vectorShaders: the name of the vector material set for shared material data.
 	- vectorResources: list of strings for the names of the vector resources to get textures and
 	  fonts from.
 	- srgb: bool for whether or not the embedded materials should be treated as sRGB and converted
@@ -58,8 +58,8 @@ def convertVectorImage(convertContext, data):
 				raise Exception('Invalid vector image size "' + str(size) + '".')
 
 		sharedMaterials = str(data.get('sharedMaterials', ''))
-		shader = str(data['shader'])
-		resources = data['resources']
+		shaders = str(data['vectorShaders'])
+		resources = data.get('resources', [])
 		if not isinstance(resources, list):
 			raise Exception('Invalid vector image resources "' + str(resources) + '".')
 
@@ -79,7 +79,7 @@ def convertVectorImage(convertContext, data):
 	else:
 		sharedMaterialsOffset = 0
 
-	shaderOffset = builder.CreateString(shader)
+	shadersOffset = builder.CreateString(shaders)
 
 	resourceOffsets = []
 	for resource in resources:
@@ -94,7 +94,7 @@ def convertVectorImage(convertContext, data):
 	VectorImageAddImageType(builder, imageType)
 	VectorImageAddImage(builder, imageOffset)
 	VectorImageAddSharedMaterials(builder, sharedMaterialsOffset)
-	VectorImageAddShader(builder, shaderOffset)
+	VectorImageAddVectorShaders(builder, shadersOffset)
 	VectorImageAddResources(builder, resourcesOffset)
 	VectorImageAddSrgb(builder, srgb)
 	builder.Finish(VectorImageEnd(builder))

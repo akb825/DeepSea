@@ -155,8 +155,10 @@ def convertVectorShaders(convertContext, data):
 
 	modulesOffsets = []
 	for version, dataType, dataOffset in versionedModules:
+		versionOffset = builder.CreateString(version)
+
 		VersionedShaderModuleStart(builder)
-		VersionedShaderModuleAddVersion(builder, version)
+		VersionedShaderModuleAddVersion(builder, versionOffset)
 		VersionedShaderModuleAddDataType(builder, dataType)
 		VersionedShaderModuleAddData(builder, dataOffset)
 		modulesOffsets.append(VersionedShaderModuleEnd(builder))
@@ -185,7 +187,7 @@ def convertVectorShaders(convertContext, data):
 		builder.PrependUOffsetTRelative(offset)
 	extraElementsOffset = builder.EndVector(len(extraElementsOffsets))
 
-	materialDescNameOffset = builder.CreateString(builder, materialDescName)
+	materialDescNameOffset = builder.CreateString(materialDescName)
 	fillColorOffset = createOptionalString(builder, fillColor)
 	fillLinearGradientOffset = createOptionalString(builder, fillLinearGradient)
 	fillRadialGradientOffset = createOptionalString(builder, fillRadialGradient)

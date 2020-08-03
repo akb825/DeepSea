@@ -1,0 +1,24 @@
+{
+	"faceGroups":
+	[
+		{
+			"name": "default",
+			"faces":
+			[
+				{
+					"name": "sans",
+					"path": "../Shared/Fonts/NotoSans-Regular.ttc"
+				}
+			]
+		}
+	],
+	"fonts":
+	[
+		{
+			"name": "sans-serif",
+			"faceGroup": "default",
+			"faces": ["sans"],
+			"quality": "high"
+		}
+	]
+}

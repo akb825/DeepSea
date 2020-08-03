@@ -31,7 +31,7 @@ table VectorImage
 	sharedMaterials : string;
 
 	// The name of the vector shader to draw with.
-	shader : string (required);
+	vectorShaders : string (required);
 
 	// List of vector resources to get textures and fonts from.
 	resources : [string];

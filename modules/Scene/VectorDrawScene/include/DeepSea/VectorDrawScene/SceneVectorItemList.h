@@ -51,7 +51,8 @@ DS_VECTORDRAWSCENE_EXPORT extern const char* const dsSceneVectorItemList_typeNam
  * @param[out] outFormat The vertex format to opulate.
  * @return False if outFormat is NULL.
  */
-DS_VECTORDRAWSCENE_EXPORT bool dsSceneVectorItemList_defaultVertexFormat(dsVertexFormat* outFormat);
+DS_VECTORDRAWSCENE_EXPORT bool dsSceneVectorItemList_defaultTextVertexFormat(
+	dsVertexFormat* outFormat);
 
 /**
  * @brief Gets the default vertex format for text when used with tessellation shaders.
@@ -69,7 +70,7 @@ DS_VECTORDRAWSCENE_EXPORT bool dsSceneVectorItemList_defaultVertexFormat(dsVerte
  * @param[out] outFormat The vertex format to opulate.
  * @return False if outFormat is NULL.
  */
-DS_VECTORDRAWSCENE_EXPORT bool dsSceneVectorItemList_defaultTessVertexFormat(
+DS_VECTORDRAWSCENE_EXPORT bool dsSceneVectorItemList_defaultTessTextVertexFormat(
 	dsVertexFormat* outFormat);
 
 /**

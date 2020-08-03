@@ -218,7 +218,7 @@ dsVectorResources* dsVectorReosurces_create(dsAllocator* allocator, uint32_t max
 		void* pool = dsAllocator_alloc((dsAllocator*)&bufferAlloc, poolSize);
 		DS_ASSERT(pool);
 		DS_VERIFY(dsPoolAllocator_initialize(&resources->faceGroupPool, sizeof(dsFaceGroupNode),
-			maxTextures, pool, poolSize));
+			maxFaceGroups, pool, poolSize));
 	}
 	else
 	{
@@ -710,6 +710,7 @@ bool dsVectorResources_destroy(dsVectorResources* resources)
 				firstDestroyed = false;
 			}
 		}
+		dsPoolAllocator_shutdown(&resources->texturePool);
 	}
 
 	if (resources->fontTable)
@@ -727,6 +728,7 @@ bool dsVectorResources_destroy(dsVectorResources* resources)
 				firstDestroyed = false;
 			}
 		}
+		dsPoolAllocator_shutdown(&resources->faceGroupPool);
 	}
 
 	if (resources->faceGroupTable)
@@ -737,11 +739,9 @@ bool dsVectorResources_destroy(dsVectorResources* resources)
 			if (node->owned)
 				dsFaceGroup_destroy(node->faceGroup);
 		}
+		dsPoolAllocator_shutdown(&resources->fontPool);
 	}
 
-	dsPoolAllocator_shutdown(&resources->texturePool);
-	dsPoolAllocator_shutdown(&resources->faceGroupPool);
-	dsPoolAllocator_shutdown(&resources->fontPool);
 	if (resources->allocator)
 		DS_VERIFY(dsAllocator_free(resources->allocator, resources));
 	return true;

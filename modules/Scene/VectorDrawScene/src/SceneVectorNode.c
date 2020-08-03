@@ -37,8 +37,8 @@ dsSceneVectorNode* dsSceneVectorNode_create(dsAllocator* allocator, size_t struc
 	const char** itemLists, uint32_t itemListCount, dsSceneResources** resources,
 	uint32_t resourceCount)
 {
-	if (!allocator || structSize < sizeof(dsSceneModelNode) || (!itemLists && itemListCount > 0) ||
-		(!resources && resourceCount > 0))
+	if (!allocator || structSize < sizeof(dsSceneVectorImageNode) ||
+		(!itemLists && itemListCount > 0) || (!resources && resourceCount > 0))
 	{
 		errno = EINVAL;
 		return NULL;
@@ -76,13 +76,17 @@ dsSceneVectorNode* dsSceneVectorNode_create(dsAllocator* allocator, size_t struc
 		(dsSceneVectorNode*)dsAllocator_alloc((dsAllocator*)&bufferAlloc, structSize);
 	DS_ASSERT(node);
 
-	char** itemListsCopy = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char*, itemListCount);
-	DS_ASSERT(itemListsCopy);
-	for (uint32_t i = 0; i < itemListCount; ++i)
+	char** itemListsCopy = NULL;
+	if (itemListCount > 0)
 	{
-		size_t length = strlen(itemLists[i]);
-		itemListsCopy[i] = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, length + 1);
-		memcpy(itemListsCopy[i], itemLists[i], length + 1);
+		itemListsCopy = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char*, itemListCount);
+		DS_ASSERT(itemListsCopy);
+		for (uint32_t i = 0; i < itemListCount; ++i)
+		{
+			size_t length = strlen(itemLists[i]);
+			itemListsCopy[i] = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, length + 1);
+			memcpy(itemListsCopy[i], itemLists[i], length + 1);
+		}
 	}
 
 	if (!dsSceneNode_initialize((dsSceneNode*)node, allocator, dsSceneVectorNode_type(),

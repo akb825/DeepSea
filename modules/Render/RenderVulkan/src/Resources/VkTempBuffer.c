@@ -76,6 +76,8 @@ dsVkTempBuffer* dsVkTempBuffer_create(dsAllocator* allocator, dsVkDevice* device
 		return NULL;
 	}
 
+	buffer->coherent = dsVkHeapIsCoherent(device, memoryIndex);
+
 	result = DS_VK_CALL(device->vkMapMemory)(
 		device->device, buffer->memory, 0, VK_WHOLE_SIZE, 0, (void**)&buffer->contents);
 	if (!DS_HANDLE_VK_RESULT(result, "Couldn't map buffer memory"))

@@ -213,13 +213,17 @@ dsSceneModelNode* dsSceneModelNode_createBase(dsAllocator* allocator, size_t str
 		(dsSceneModelNode*)dsAllocator_alloc((dsAllocator*)&bufferAlloc, structSize);
 	DS_ASSERT(node);
 
-	char** itemListsCopy = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char*, itemListCount);
-	DS_ASSERT(itemListsCopy);
-	for (uint32_t i = 0; i < itemListCount; ++i)
+	char** itemListsCopy = NULL;
+	if (itemListCount > 0)
 	{
-		size_t length = strlen(itemLists[i]);
-		itemListsCopy[i] = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, length + 1);
-		memcpy(itemListsCopy[i], itemLists[i], length + 1);
+		itemListsCopy = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char*, itemListCount);
+		DS_ASSERT(itemListsCopy);
+		for (uint32_t i = 0; i < itemListCount; ++i)
+		{
+			size_t length = strlen(itemLists[i]);
+			itemListsCopy[i] = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, length + 1);
+			memcpy(itemListsCopy[i], itemLists[i], length + 1);
+		}
 	}
 
 	if (itemLists != tempStringListData)
@@ -324,14 +328,18 @@ dsSceneModelNode* dsSceneModelNode_cloneBase(dsAllocator* allocator, size_t stru
 	DS_ASSERT(node);
 
 	uint32_t itemListCount = origNode->itemListCount;
-	char** itemListsCopy = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char*, itemListCount);
-	DS_ASSERT(itemListsCopy);
-	for (uint32_t i = 0; i < itemListCount; ++i)
+	char** itemListsCopy = NULL;
+	if (itemListCount > 0)
 	{
-		const char* origList = origNode->itemLists[i];
-		size_t length = strlen(origList);
-		itemListsCopy[i] = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, length + 1);
-		memcpy(itemListsCopy[i], origList, length + 1);
+		itemListsCopy = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char*, itemListCount);
+		DS_ASSERT(itemListsCopy);
+		for (uint32_t i = 0; i < itemListCount; ++i)
+		{
+			const char* origList = origNode->itemLists[i];
+			size_t length = strlen(origList);
+			itemListsCopy[i] = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, length + 1);
+			memcpy(itemListsCopy[i], origList, length + 1);
+		}
 	}
 
 	if (!dsSceneNode_initialize((dsSceneNode*)node, allocator, dsSceneModelNode_type(),

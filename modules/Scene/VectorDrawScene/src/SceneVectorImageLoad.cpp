@@ -110,19 +110,19 @@ void* dsSceneVectorImage_load(const dsSceneLoadContext* loadContext,
 		}
 	}
 
-	auto fbShader = fbVectorImage->shader();
+	auto fbShaders = fbVectorImage->vectorShaders();
 	dsVectorShaders* shaders;
 	{
 		dsCustomSceneResource* resource;
 		dsSceneResourceType resourceType;
 		if (!dsSceneLoadScratchData_findResource(&resourceType,
-				reinterpret_cast<void**>(&resource), scratchData, fbShader->c_str()) ||
+				reinterpret_cast<void**>(&resource), scratchData, fbShaders->c_str()) ||
 			resourceType != dsSceneResourceType_Custom ||
 			resource->type != dsVectorSceneShaders_type())
 		{
 			errno = ENOTFOUND;
 			DS_LOG_ERROR_F(DS_VECTOR_DRAW_SCENE_LOG_TAG,
-				"Couldn't find vector scene shaders '%s'.", fbShader->c_str());
+				"Couldn't find vector scene shaders '%s'.", fbShaders->c_str());
 			return nullptr;
 		}
 

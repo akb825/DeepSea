@@ -16,6 +16,7 @@
 from __future__ import print_function
 import argparse
 import json
+import sys
 from importlib import import_module
 
 from DeepSeaScene.Convert.ConvertContext import ConvertContext
@@ -38,8 +39,12 @@ if __name__ == '__main__':
 	for extension in args.extensions:
 		import_module(extension).deepSeaSceneExtension(convertContext)
 
-	with open(args.input) as f:
-		data = json.load(f)
+	try:
+		with open(args.input) as f:
+			data = json.load(f)
 
-	with open(args.output, 'wb') as f:
-		f.write(convertView(convertContext, data))
+		with open(args.output, 'wb') as f:
+			f.write(convertView(convertContext, data))
+	except Exception as e:
+		print(args.input + ': error: ' + str(e), file=sys.stderr)
+		exit(1)

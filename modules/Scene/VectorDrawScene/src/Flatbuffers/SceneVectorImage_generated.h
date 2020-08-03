@@ -20,7 +20,7 @@ struct VectorImage FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_IMAGE = 6,
     VT_SIZE = 8,
     VT_SHAREDMATERIALS = 10,
-    VT_SHADER = 12,
+    VT_VECTORSHADERS = 12,
     VT_RESOURCES = 14,
     VT_SRGB = 16
   };
@@ -43,8 +43,8 @@ struct VectorImage FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const flatbuffers::String *sharedMaterials() const {
     return GetPointer<const flatbuffers::String *>(VT_SHAREDMATERIALS);
   }
-  const flatbuffers::String *shader() const {
-    return GetPointer<const flatbuffers::String *>(VT_SHADER);
+  const flatbuffers::String *vectorShaders() const {
+    return GetPointer<const flatbuffers::String *>(VT_VECTORSHADERS);
   }
   const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *resources() const {
     return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *>(VT_RESOURCES);
@@ -60,8 +60,8 @@ struct VectorImage FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            VerifyField<DeepSeaScene::Vector2f>(verifier, VT_SIZE) &&
            VerifyOffset(verifier, VT_SHAREDMATERIALS) &&
            verifier.VerifyString(sharedMaterials()) &&
-           VerifyOffsetRequired(verifier, VT_SHADER) &&
-           verifier.VerifyString(shader()) &&
+           VerifyOffsetRequired(verifier, VT_VECTORSHADERS) &&
+           verifier.VerifyString(vectorShaders()) &&
            VerifyOffset(verifier, VT_RESOURCES) &&
            verifier.VerifyVector(resources()) &&
            verifier.VerifyVectorOfStrings(resources()) &&
@@ -94,8 +94,8 @@ struct VectorImageBuilder {
   void add_sharedMaterials(flatbuffers::Offset<flatbuffers::String> sharedMaterials) {
     fbb_.AddOffset(VectorImage::VT_SHAREDMATERIALS, sharedMaterials);
   }
-  void add_shader(flatbuffers::Offset<flatbuffers::String> shader) {
-    fbb_.AddOffset(VectorImage::VT_SHADER, shader);
+  void add_vectorShaders(flatbuffers::Offset<flatbuffers::String> vectorShaders) {
+    fbb_.AddOffset(VectorImage::VT_VECTORSHADERS, vectorShaders);
   }
   void add_resources(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>> resources) {
     fbb_.AddOffset(VectorImage::VT_RESOURCES, resources);
@@ -112,7 +112,7 @@ struct VectorImageBuilder {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<VectorImage>(end);
     fbb_.Required(o, VectorImage::VT_IMAGE);
-    fbb_.Required(o, VectorImage::VT_SHADER);
+    fbb_.Required(o, VectorImage::VT_VECTORSHADERS);
     return o;
   }
 };
@@ -123,12 +123,12 @@ inline flatbuffers::Offset<VectorImage> CreateVectorImage(
     flatbuffers::Offset<void> image = 0,
     const DeepSeaScene::Vector2f *size = 0,
     flatbuffers::Offset<flatbuffers::String> sharedMaterials = 0,
-    flatbuffers::Offset<flatbuffers::String> shader = 0,
+    flatbuffers::Offset<flatbuffers::String> vectorShaders = 0,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>> resources = 0,
     bool srgb = false) {
   VectorImageBuilder builder_(_fbb);
   builder_.add_resources(resources);
-  builder_.add_shader(shader);
+  builder_.add_vectorShaders(vectorShaders);
   builder_.add_sharedMaterials(sharedMaterials);
   builder_.add_size(size);
   builder_.add_image(image);
@@ -143,11 +143,11 @@ inline flatbuffers::Offset<VectorImage> CreateVectorImageDirect(
     flatbuffers::Offset<void> image = 0,
     const DeepSeaScene::Vector2f *size = 0,
     const char *sharedMaterials = nullptr,
-    const char *shader = nullptr,
+    const char *vectorShaders = nullptr,
     const std::vector<flatbuffers::Offset<flatbuffers::String>> *resources = nullptr,
     bool srgb = false) {
   auto sharedMaterials__ = sharedMaterials ? _fbb.CreateString(sharedMaterials) : 0;
-  auto shader__ = shader ? _fbb.CreateString(shader) : 0;
+  auto vectorShaders__ = vectorShaders ? _fbb.CreateString(vectorShaders) : 0;
   auto resources__ = resources ? _fbb.CreateVector<flatbuffers::Offset<flatbuffers::String>>(*resources) : 0;
   return DeepSeaVectorDrawScene::CreateVectorImage(
       _fbb,
@@ -155,7 +155,7 @@ inline flatbuffers::Offset<VectorImage> CreateVectorImageDirect(
       image,
       size,
       sharedMaterials__,
-      shader__,
+      vectorShaders__,
       resources__,
       srgb);
 }

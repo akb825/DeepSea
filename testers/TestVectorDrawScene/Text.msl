@@ -1,0 +1,78 @@
+/*
+ * Copyright 2020 Aaron Barany
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#include <DeepSea/Render/Shaders/VertexAttributes.mslh>
+#include <DeepSea/Scene/Shaders/InstanceTransform.mslh>
+#include <DeepSea/Text/Text.mslh>
+
+uniform sampler2D fontTex;
+sampler_state fontTex
+{
+	address_mode_u = clamp_to_edge;
+	address_mode_v = clamp_to_edge;
+	min_filter = linear;
+	mag_filter = linear;
+	mip_filter = nearest;
+}
+
+[[vertex]] layout(location = DS_POSITION) in vec2 vertexPos;
+[[vertex]] layout(location = DS_COLOR0) in vec4 textColor;
+[[vertex]] layout(location = DS_COLOR1) in vec4 outlineColor;
+[[vertex]] layout(location = DS_TEXCOORD0) in vec3 texCoords;
+[[vertex]] layout(location = DS_TEXCOORD1) in vec4 style;
+
+varying(vertex, fragment)
+{
+	vec4 vfTextColor;
+	vec4 vfOutlineColor;
+	vec3 vfTexCoords;
+	vec4 vfStyle;
+}
+
+[[fragment]] out vec4 color;
+
+[[vertex]]
+void vertexShader()
+{
+	vfTextColor = textColor;
+	vfOutlineColor = outlineColor;
+	vfTexCoords = texCoords;
+	vfStyle = style;
+
+	gl_Position = DS_ADJUST_CLIP(INSTANCE(dsInstanceTransform).worldViewProj*
+		vec4(vertexPos, 0.0, 1.0));
+}
+
+[[fragment]]
+void fragmentShader()
+{
+	float distance = dsComputeTextDistance(fontTex, vfTexCoords);
+	color = dsComputeTextColor(distance, vfStyle.x, vfStyle.y, vfStyle.z, vfStyle.w, vfTextColor,
+		vfOutlineColor);
+}
+
+pipeline Text
+{
+	vertex = vertexShader;
+	fragment = fragmentShader;
+
+	blend_enable = true;
+	// Pre-multiply alpha.
+	src_blend_factor = one;
+	dst_blend_factor = one_minus_src_alpha;
+	alpha_blend_op = add;
+	cull_mode = back;
+}

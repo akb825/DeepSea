@@ -79,6 +79,7 @@ static size_t getTempSize(const FlatbufferVector<DeepSeaScene::SceneItemLists>* 
 		PRINT_FLATBUFFER_ERROR("Scene pipeline is empty", fileName);
 		return 0;
 	}
+	tempSize += DS_ALIGNED_SIZE(pipelineCount*sizeof(dsScenePipelineItem));
 	size_t maxRenderPassSize = 0;
 	for (auto fbPipelineItem : fbPipeline)
 	{
@@ -127,9 +128,6 @@ static size_t getTempSize(const FlatbufferVector<DeepSeaScene::SceneItemLists>* 
 						DS_ALIGNED_SIZE(fbColorAttachments->size()*sizeof(dsAttachmentRef));
 				}
 
-				if (fbSubpass->depthStencilAttachment())
-					renderPassSize += DS_ALIGNED_SIZE(sizeof(dsAttachmentRef));
-
 				uint32_t drawListCount = fbSubpass->drawLists()->size();
 				if (drawListCount == 0)
 				{
@@ -137,7 +135,7 @@ static size_t getTempSize(const FlatbufferVector<DeepSeaScene::SceneItemLists>* 
 					return 0;
 				}
 
-				renderPassSize += DS_ALIGNED_SIZE(drawListCount*sizeof(dsSceneItemLists));
+				renderPassSize += DS_ALIGNED_SIZE(drawListCount*sizeof(dsSceneItemList*));
 			}
 
 			auto fbDependencies = fbRenderPass->dependencies();

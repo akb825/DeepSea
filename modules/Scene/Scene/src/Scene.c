@@ -279,6 +279,8 @@ dsScene* dsScene_create(dsAllocator* allocator, dsRenderer* renderer,
 		for (uint32_t i = 0; i < globalDataCount; ++i)
 			scene->globalValueCount += globalData[i]->valueCount;
 	}
+	else
+		scene->globalData = NULL;
 	scene->globalDataCount = globalDataCount;
 
 	uint32_t tableSize = dsHashTable_getTableSize(nameCount);

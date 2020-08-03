@@ -43,7 +43,7 @@ def convertVectorResources(convertContext, data):
 		hasResourcesDir = os.path.isdir(resourcesDir)
 
 		outputPath = data.get('output')
-		if outputPath and hasResourcesDir:
+		if not outputPath and hasResourcesDir:
 			raise Exception("Can't embed vector resources that has non-embedded resources.")
 
 		dataType, dataOffset = convertFileOrData(builder, path, None, outputPath,

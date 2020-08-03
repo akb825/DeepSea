@@ -38,7 +38,7 @@ bool dsVectorSceneShaders_destroy(void* customResource)
 	return true;
 }
 
-const char* const dsVectorSceneShaders_typeName = "VectorShaderBundle";
+const char* const dsVectorSceneShaders_typeName = "VectorShaders";
 
 static dsCustomSceneResourceType resourceType;
 const dsCustomSceneResourceType* dsVectorSceneShaders_type(void)

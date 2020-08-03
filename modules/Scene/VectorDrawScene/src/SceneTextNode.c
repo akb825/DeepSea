@@ -35,7 +35,7 @@ const dsSceneNodeType* dsSceneTextNode_type(void)
 
 const dsSceneNodeType* dsSceneTextNode_setupParentType(dsSceneNodeType* type)
 {
-	dsSceneNode_setupParentType(&nodeType, dsSceneTextNode_type());
+	dsSceneNode_setupParentType(&nodeType, dsSceneVectorNode_type());
 	return dsSceneNode_setupParentType(type, &nodeType);
 }
 
@@ -61,12 +61,6 @@ dsSceneTextNode* dsSceneTextNode_createBase(dsAllocator* allocator, size_t struc
 		(!itemLists && itemListCount > 0) || (!resources && resourceCount == 0))
 	{
 		errno = EINVAL;
-		return NULL;
-	}
-
-	if (!DS_IS_BUFFER_RANGE_VALID(firstChar, charCount, text->characterCount))
-	{
-		errno = ERANGE;
 		return NULL;
 	}
 

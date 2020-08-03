@@ -1030,7 +1030,7 @@ def readMaterials(node, materials, size, diagonalSize):
 			materials.addRadialGradient(gradient)
 
 def readText(node, defaultFont, size, diagonalSize, materials, style = None):
-	if node.tagName != 'text':
+	if not node or node.tagName != 'text':
 		return None, None, None
 
 	rootStyle = Style.create(node, materials, diagonalSize, style, defaultFont = defaultFont, \

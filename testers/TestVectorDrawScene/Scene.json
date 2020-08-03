@@ -1,0 +1,45 @@
+{
+	"pipeline":
+	[
+		{
+			"framebuffer": "window",
+			"attachments":
+			[
+				{
+					"usage": ["Clear", "KeepAfter"],
+					"format": "SurfaceColor",
+					"decoration": "Unset",
+					"clearValue": {"floatValues": [1.0, 1.0, 1.0, 1.0]}
+				}
+			],
+			"subpasses":
+			[
+				{
+					"name": "TestVectorDrawScene",
+					"colorAttachments": [{"index": 0, "resolve": true}],
+					"drawLists":
+					[
+						{
+							"type": "VectorItemList",
+							"name": "vectorItemList",
+							"data":
+							{
+								"instanceData":
+								[
+									{
+										"type": "InstanceTransformData",
+										"data":
+										{
+											"variableGroupDescName": "instanceTransformDesc"
+										}
+									}
+								]
+							}
+						}
+					]
+				}
+			]
+		}
+	],
+	"nodes": ["tigerTransform", "figureTransform"]
+}

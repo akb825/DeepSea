@@ -376,7 +376,7 @@ static void destroyInstanceData(dsSceneInstanceData* const* instanceData,
 
 const char* const dsSceneVectorItemList_typeName = "VectorItemList";
 
-bool dsSceneVectorItemList_defaultVertexFormat(dsVertexFormat* outFormat)
+bool dsSceneVectorItemList_defaultTextVertexFormat(dsVertexFormat* outFormat)
 {
 	if (!dsVertexFormat_initialize(outFormat))
 		return false;
@@ -401,7 +401,7 @@ bool dsSceneVectorItemList_defaultVertexFormat(dsVertexFormat* outFormat)
 	return true;
 }
 
-bool dsSceneVectorItemList_defaultTessVertexFormat(dsVertexFormat* outFormat)
+bool dsSceneVectorItemList_defaultTessVertexTextFormat(dsVertexFormat* outFormat)
 {
 	if (!dsVertexFormat_initialize(outFormat))
 		return false;
@@ -745,6 +745,7 @@ dsSceneVectorItemList* dsSceneVectorItemList_create(dsAllocator* allocator, cons
 	vectorList->drawItems = NULL;
 	vectorList->maxInstances = 0;
 	vectorList->maxDrawItems = 0;
+	vectorList->textRenderBuffer = textRenderBuffer;
 	return vectorList;
 }
 
