@@ -60,12 +60,32 @@ function(ds_create_vector_resources container)
 	endif()
 
 	set(createVectorResources ${DEEPSEA_PYTHON_DIR}/CreateVectorResources.py)
-	add_custom_command(OUTPUT ${ARGS_OUTPUT}
-		COMMAND ${PYTHON_EXECUTABLE} ARGS ${createVectorResources}
-			-i ${ARGS_FILE} -o ${ARGS_OUTPUT} -c ${CUTTLEFISH}
-		DEPENDS ${deps} ${recursiveDeps} ${ARGS_FILE} ${CUTTLEFISH} ${createVectorResources}
-		${workingDir}
-		COMMENT "Creating vector resources: ${ARGS_OUTPUT}")
+	set(command ${PYTHON_EXECUTABLE} ${createVectorResources} -i ${ARGS_FILE} -o ${ARGS_OUTPUT}
+		-c ${CUTTLEFISH})
+
+	# NOTE: Output file doesn't support generator expressions, so need to manually expand it.
+	if (ARGS_OUTPUT MATCHES ".*\\$<CONFIG>.*")
+		foreach (config ${CMAKE_CONFIGURATION_TYPES})
+			string(REPLACE "$<CONFIG>" ${config} configOutput ${ARGS_OUTPUT})
+
+			# Need generator expression for each and every argument.
+			set(configCommand)
+			foreach (arg ${command})
+				list(APPEND configCommand $<$<CONFIG:${config}>:${arg}>)
+			endforeach()
+
+			add_custom_command(OUTPUT ${configOutput} COMMAND ${configCommand}
+				DEPENDS ${deps} ${recursiveDeps} ${ARGS_FILE} ${convertSvg}
+				${workingDir}
+				COMMENT "Creating ${config} vector image: ${ARGS_OUTPUT}")
+		endforeach()
+	else()
+		add_custom_command(OUTPUT ${ARGS_OUTPUT}
+			COMMAND ${command}
+			DEPENDS ${deps} ${recursiveDeps} ${ARGS_FILE} ${CUTTLEFISH} ${createVectorResources}
+			${workingDir}
+			COMMENT "Creating vector resources: ${ARGS_OUTPUT}")
+	endif()
 
 	set(${container} ${${container}} ${ARGS_OUTPUT} PARENT_SCOPE)
 endfunction()

@@ -242,11 +242,30 @@ function(ds_convert_texture container)
 		set(workingDir "")
 	endif()
 
-	add_custom_command(OUTPUT ${ARGS_OUTPUT}
-		COMMAND ${CUTTLEFISH} ARGS ${args}
-		DEPENDS ${dependencies} ${CUTTLEFISH}
-		${workingDir}
-		COMMENT "Converting image to ${ARGS_FORMAT}: ${output}")
+	# NOTE: Output file doesn't support generator expressions, so need to manually expand it.
+	if (ARGS_OUTPUT MATCHES ".*\\$<CONFIG>.*")
+		foreach (compilerConfig ${CMAKE_CONFIGURATION_TYPES})
+			string(REPLACE "$<CONFIG>" ${compilerConfig} configOutput ${ARGS_OUTPUT})
+
+			# Need generator expression for each and every argument.
+			set(configCommand ${CUTTLEFISH})
+			foreach (arg ${args})
+				list(APPEND configCommand $<$<CONFIG:${compilerConfig}>:${arg}>)
+			endforeach()
+
+			add_custom_command(OUTPUT ${configOutput}
+				COMMAND ${configCommand}
+				DEPENDS ${dependencies} ${CUTTLEFISH}
+				${workingDir}
+				COMMENT "Converting ${config} image to ${ARGS_FORMAT}: ${output}")
+		endforeach()
+	else()
+		add_custom_command(OUTPUT ${ARGS_OUTPUT}
+			COMMAND ${CUTTLEFISH} ${args}
+			DEPENDS ${dependencies} ${CUTTLEFISH}
+			${workingDir}
+			COMMENT "Converting image to ${ARGS_FORMAT}: ${output}")
+	endif()
 
 	set(${container} ${${container}} ${ARGS_OUTPUT} PARENT_SCOPE)
 endfunction()

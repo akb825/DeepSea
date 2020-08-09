@@ -57,12 +57,30 @@ function(ds_convert_svg container)
 	endif()
 
 	set(convertSvg ${DEEPSEA_PYTHON_DIR}/ConvertSVG.py)
-	add_custom_command(OUTPUT ${ARGS_OUTPUT}
-		COMMAND ${PYTHON_EXECUTABLE} ARGS ${convertSvg}
-			-i ${ARGS_FILE} -o ${ARGS_OUTPUT}
-		DEPENDS ${deps} ${recursiveDeps} ${ARGS_FILE} ${convertSvg}
-		${workingDir}
-		COMMENT "Creating vector image: ${ARGS_OUTPUT}")
+	set(command ${PYTHON_EXECUTABLE} ${convertSvg} -i ${ARGS_FILE} -o ${ARGS_OUTPUT})
+
+	# NOTE: Output file doesn't support generator expressions, so need to manually expand it.
+	if (ARGS_OUTPUT MATCHES ".*\\$<CONFIG>.*")
+		foreach (config ${CMAKE_CONFIGURATION_TYPES})
+			string(REPLACE "$<CONFIG>" ${config} configOutput ${ARGS_OUTPUT})
+
+			# Need generator expression for each and every argument.
+			set(configCommand)
+			foreach (arg ${command})
+				list(APPEND configCommand $<$<CONFIG:${config}>:${arg}>)
+			endforeach()
+
+			add_custom_command(OUTPUT ${configOutput} COMMAND ${configCommand}
+				DEPENDS ${deps} ${recursiveDeps} ${ARGS_FILE} ${convertSvg}
+				${workingDir}
+				COMMENT "Creating ${config} vector image: ${ARGS_OUTPUT}")
+		endforeach()
+	else()
+		add_custom_command(OUTPUT ${ARGS_OUTPUT} COMMAND ${command}
+			DEPENDS ${deps} ${recursiveDeps} ${ARGS_FILE} ${convertSvg}
+			${workingDir}
+			COMMENT "Creating vector image: ${ARGS_OUTPUT}")
+	endif()
 
 	set(${container} ${${container}} ${ARGS_OUTPUT} PARENT_SCOPE)
 endfunction()

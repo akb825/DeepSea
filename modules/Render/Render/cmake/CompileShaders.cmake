@@ -163,7 +163,7 @@ function(ds_compile_shaders container)
 
 				add_custom_command(OUTPUT ${configOutput} ${configOutputCommand}
 					${configCompileCommand} ${dependsArgs} ${workingDir}
-					COMMENT "Building ${config} shader: ${configOutput}")
+					COMMENT "Building ${compilerConfig} shader: ${configOutput}")
 			endforeach()
 		else()
 			if (outputCommand)
