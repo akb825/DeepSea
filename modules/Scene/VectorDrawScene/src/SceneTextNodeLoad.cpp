@@ -37,7 +37,7 @@
 
 dsSceneNode* dsSceneTextNode_load(const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
-	void*, const uint8_t* data, size_t dataSize)
+	void* userData, const uint8_t* data, size_t dataSize)
 {
 	flatbuffers::Verifier verifier(data, dataSize);
 	if (!DeepSeaVectorDrawScene::VerifyTextNodeBuffer(verifier))
@@ -49,6 +49,7 @@ dsSceneNode* dsSceneTextNode_load(const dsSceneLoadContext* loadContext,
 
 	auto fbTextNode = DeepSeaVectorDrawScene::GetTextNode(data);
 	auto fbEmbeddedResources = fbTextNode->embeddedResources();
+	auto textUserData = static_cast<SceneTextNodeUserData*>(userData);
 	dsSceneResources* embeddedResources = NULL;
 	if (fbEmbeddedResources)
 	{
@@ -152,8 +153,8 @@ dsSceneNode* dsSceneTextNode_load(const dsSceneLoadContext* loadContext,
 		text->userData, text->styles, text->styleCount,
 		static_cast<dsTextAlign>(fbTextNode->alignment()), fbTextNode->maxWidth(),
 		fbTextNode->lineScale(), fbTextNode->z(), fbTextNode->firstChar(), fbTextNode->charCount(),
-		shader, material, fontTextureElement, itemLists, itemListCount, &embeddedResources,
-		embeddedResources ? 1 : 0));
+		shader, material, fontTextureElement, &textUserData->textRenderInfo, itemLists,
+		itemListCount, &embeddedResources, embeddedResources ? 1 : 0));
 
 finished:
 	if (embeddedResources)

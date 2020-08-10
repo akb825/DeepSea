@@ -72,6 +72,14 @@ DS_TEXT_EXPORT bool dsTextRenderBuffer_addTextRange(dsTextRenderBuffer* renderBu
 	const dsTextLayout* layout, void* layoutUserData, uint32_t firstChar, uint32_t charCount);
 
 /**
+ * @brief Gets the number of remaining glyphs that can be rendered.
+ * @param renderBuffer The render buffer.
+ * @return The number of remaining glyphs.
+ */
+DS_TEXT_EXPORT uint32_t dsTextRenderBuffer_getRemainingGlyphs(
+	const dsTextRenderBuffer* renderBuffer);
+
+/**
  * @brief Commits added text to be rendered.
  * @remark This must be called outside of a render pass.
  * @remark errno will be set on failure.
@@ -99,6 +107,21 @@ DS_TEXT_EXPORT bool dsTextRenderBuffer_clear(dsTextRenderBuffer* renderBuffer);
  */
 DS_TEXT_EXPORT bool dsTextRenderBuffer_draw(dsTextRenderBuffer* renderBuffer,
 	dsCommandBuffer* commandBuffer);
+
+/**
+ * @brief Draws a range of text that has been placed onto the buffer.
+ *
+ * Note that glyphs that have a bounds of size 0 will be skipped.
+ *
+ * @remark errno will be set on failure.
+ * @param renderBuffer The text render buffer.
+ * @param commandBuffer The command buffer to queue commands onto.
+ * @param firstGlyph The first glyph to draw.
+ * @param glyphCount The number of glyphs to draw.
+ * @return False if an error occurred.
+ */
+DS_TEXT_EXPORT bool dsTextRenderBuffer_drawRange(dsTextRenderBuffer* renderBuffer,
+	dsCommandBuffer* commandBuffer, uint32_t firstGlyph, uint32_t glyphCount);
 
 /**
  * @brief Destroy a text render buffer.

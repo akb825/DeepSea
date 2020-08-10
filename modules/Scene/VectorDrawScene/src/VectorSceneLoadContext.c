@@ -78,12 +78,12 @@ static void SceneVectorImageUserData_destroy(void* userData)
 		DS_VERIFY(dsAllocator_free(vectorImageUserData->allocator, userData));
 }
 
-static void SceneVectorItemListUserData_destroy(void* userData)
+static void SceneTextNodeUserData_destroy(void* userData)
 {
 	if (!userData)
 		return;
 
-	SceneVectorItemListUserData* vectorItemListUserData = (SceneVectorItemListUserData*)userData;
+	SceneTextNodeUserData* vectorItemListUserData = (SceneTextNodeUserData*)userData;
 	if (vectorItemListUserData->allocator)
 		DS_VERIFY(dsAllocator_free(vectorItemListUserData->allocator, vectorItemListUserData));
 }
@@ -99,7 +99,8 @@ bool dsVectorSceneLoadConext_registerTypes(dsSceneLoadContext* loadContext, dsAl
 	const dsTextSubstitutionTable* substitutionTable,
 	const dsSceneTextRenderBufferInfo* textRenderInfo, float pixelSize)
 {
-	if (!loadContext || (!allocator && (commandBuffer || qualityRemap || substitutionTable)) ||
+	if (!loadContext ||
+		(!allocator && (commandBuffer || qualityRemap || substitutionTable || textRenderInfo)) ||
 		pixelSize <= 0.0f)
 	{
 		errno = EINVAL;
@@ -204,24 +205,10 @@ bool dsVectorSceneLoadConext_registerTypes(dsSceneLoadContext* loadContext, dsAl
 		}
 	}
 
+	if (!dsSceneLoadContext_registerItemListType(loadContext, dsSceneVectorItemList_typeName,
+			&dsSceneVectorItemList_load, NULL, NULL))
 	{
-		SceneVectorItemListUserData* userData = NULL;
-		if (textRenderInfo)
-		{
-			userData = DS_ALLOCATE_OBJECT(allocator, SceneVectorItemListUserData);
-			if (!userData)
-				return false;
-
-			userData->allocator = dsAllocator_keepPointer(allocator);
-			userData->textRenderInfo = *textRenderInfo;
-		}
-
-		if (!dsSceneLoadContext_registerItemListType(loadContext, dsSceneVectorItemList_typeName,
-				&dsSceneVectorItemList_load, userData, &SceneVectorItemListUserData_destroy))
-		{
-			SceneVectorItemListUserData_destroy(userData);
-			return false;
-		}
+		return false;
 	}
 
 	if (!dsSceneLoadContext_registerItemListType(loadContext, dsSceneVectorPrepareList_typeName,
@@ -230,14 +217,40 @@ bool dsVectorSceneLoadConext_registerTypes(dsSceneLoadContext* loadContext, dsAl
 		return false;
 	}
 
-	if (!dsSceneLoadContext_registerNodeType(loadContext, dsSceneTextNode_typeName,
-			&dsSceneTextNode_load, NULL, NULL))
+	if (textRenderInfo && !dsVectorSceneLoadContext_registerCustomTextNodeType(loadContext,
+			allocator, dsSceneTextNode_typeName, textRenderInfo))
 	{
 		return false;
 	}
 
 	if (!dsSceneLoadContext_registerNodeType(loadContext, dsSceneVectorImageNode_typeName,
 			&dsSceneVectorImageNode_load, NULL, NULL))
+	{
+		return false;
+	}
+
+	return true;
+}
+
+bool dsVectorSceneLoadContext_registerCustomTextNodeType(
+	dsSceneLoadContext* loadContext, dsAllocator* allocator, const char* name,
+	const dsSceneTextRenderBufferInfo* textRenderInfo)
+{
+	if (!loadContext || !allocator || !name || !textRenderInfo)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	SceneTextNodeUserData* userData = DS_ALLOCATE_OBJECT(allocator, SceneTextNodeUserData);
+	if (!userData)
+		return false;
+
+	userData->allocator = dsAllocator_keepPointer(allocator);
+	userData->textRenderInfo = *textRenderInfo;
+
+	if (!dsSceneLoadContext_registerNodeType(loadContext, name, &dsSceneTextNode_load, userData,
+			&SceneTextNodeUserData_destroy))
 	{
 		return false;
 	}

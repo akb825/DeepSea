@@ -37,79 +37,6 @@ extern "C"
 DS_VECTORDRAWSCENE_EXPORT extern const char* const dsSceneVectorItemList_typeName;
 
 /**
- * @brief Gets the default vertex format for text.
- *
- * This has the following elements:
- * - Position: 2D position as a 2-element float.
- * - Color0: text color as an RGBA8
- * - Color1: outine color as an RGB8
- * - TexCoord0: texture coordinate and LOD index as 3-element float.
- * - TexCoord1: style parameters (embolden, outline position, outline thickness, anti-alias) as
- *   4-element float.
- *
- * @remark errno will be set on failure.
- * @param[out] outFormat The vertex format to opulate.
- * @return False if outFormat is NULL.
- */
-DS_VECTORDRAWSCENE_EXPORT bool dsSceneVectorItemList_defaultTextVertexFormat(
-	dsVertexFormat* outFormat);
-
-/**
- * @brief Gets the default vertex format for text when used with tessellation shaders.
- *
- * This has the following elements:
- * - Position0: 2D position, mip level, and anti-alias value as a 4-element float.
- * - Position1: 2D bounding box for the glyph as a 4-element float.
- * - Color0: text color as an RGBA8.
- * - Color1: outine color as an RGB8.
- * - TexCoord0: bounding box of the texture coordinates of the glyph as a 4-element float.
- * - TexCoord1: style parameters (embolden, outline position, outline thickness, anti-alias) as
- *   4-element float.
- *
- * @remark errno will be set on failure.
- * @param[out] outFormat The vertex format to opulate.
- * @return False if outFormat is NULL.
- */
-DS_VECTORDRAWSCENE_EXPORT bool dsSceneVectorItemList_defaultTessTextVertexFormat(
-	dsVertexFormat* outFormat);
-
-/**
- * @brief Default glyph data function.
- * @param userData The user data for the function.
- * @param layout The text layout that will be added.
- * @param layoutUserData The user data provided with the layout.
- * @param glyphIndex The index of the glyph to add.
- * @param vertexData The vertex data to write to. You should write vertexCount vertices to this
- *     array depending on if it's 4 vertices for a quad or 1 for a tessellation shader. When writing
- *     4 vertices for a quad, it will typically be a clockwise loop. (since Y points down, the
- *     shader will typically flip it to become counter-clockwise)
- * @param format The vertex format.
- * @param vertexCount The number of vertices to write. This will either be 4 vertices for a quad,
- *     which should follow winding order, or 1 vertex when using the tessellation shader.
- */
-DS_VECTORDRAWSCENE_EXPORT void dsSceneVectorItemList_defaultGlyphDataFunc(void* userData,
-	const dsTextLayout* layout, void* layoutUserData, uint32_t glyphIndex, void* vertexData,
-	const dsVertexFormat* format, uint32_t vertexCount);
-
-/**
- * @brief Default glyph data function for tessellated text.
- * @param userData The user data for the function.
- * @param layout The text layout that will be added.
- * @param layoutUserData The user data provided with the layout.
- * @param glyphIndex The index of the glyph to add.
- * @param vertexData The vertex data to write to. You should write vertexCount vertices to this
- *     array depending on if it's 4 vertices for a quad or 1 for a tessellation shader. When writing
- *     4 vertices for a quad, it will typically be a clockwise loop. (since Y points down, the
- *     shader will typically flip it to become counter-clockwise)
- * @param format The vertex format.
- * @param vertexCount The number of vertices to write. This will either be 4 vertices for a quad,
- *     which should follow winding order, or 1 vertex when using the tessellation shader.
- */
-DS_VECTORDRAWSCENE_EXPORT void dsSceneVectorItemList_defaultTessGlyphDataFunc(void* userData,
-	const dsTextLayout* layout, void* layoutUserData, uint32_t glyphIndex, void* vertexData,
-	const dsVertexFormat* format, uint32_t vertexCount);
-
-/**
  * @brief Creates a scene vector item list.
  * @remark errno will be set on failure.
  * @param allocator The allocator to create the list with. This must support freeing memory.
@@ -118,15 +45,12 @@ DS_VECTORDRAWSCENE_EXPORT void dsSceneVectorItemList_defaultTessGlyphDataFunc(vo
  * @param instanceData The list of instance datas to use. The array will be copied, and this will
  *     take ownership of each instance data. The instances will be destroyed if an error occurrs.
  * @param instanceDataCount The number of instance datas.
- * @param textRenderBufferInfo The info for creating a dsSceneTextRenderBuffer. If NULL, this won't
- *     support drawing text outside of dsVectorImage.
  * @param renderStates The render states to use, or NULL if no special render states are needed.
  * @return The vector item list or NULL if an error occurred.
  */
 DS_VECTORDRAWSCENE_EXPORT dsSceneVectorItemList* dsSceneVectorItemList_create(
 	dsAllocator* allocator, const char* name, dsResourceManager* resourceManager,
 	dsSceneInstanceData* const* instanceData, uint32_t instanceDataCount,
-	const dsSceneTextRenderBufferInfo* textRenderBufferInfo,
 	const dsDynamicRenderStates* renderStates);
 
 /**

@@ -24,12 +24,6 @@ extern "C"
 {
 #endif
 
-typedef struct SceneVectorItemListUserData
-{
-	dsAllocator* allocator;
-	dsSceneTextRenderBufferInfo textRenderInfo;
-} SceneVectorItemListUserData;
-
 dsSceneItemList* dsSceneVectorItemList_load(const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
 	void*, const char* name, const uint8_t* data, size_t dataSize);

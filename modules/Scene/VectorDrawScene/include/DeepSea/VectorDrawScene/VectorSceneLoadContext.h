@@ -41,7 +41,7 @@ extern "C"
  *     it must be of size DS_TEXT_QUALITY_REMAP_SIZE.
  * @param substitutionTable The text substitution table used when creating dsSceneText instances.
  *     This may be NULL if no text substitution is performed.
- * @param textRenderInfo Info for how to render text in vector item lists.
+ * @param textRenderInfo Info for how to render text.
  * @param pixelSize The size of a pixel in the local coordinate space for the vector images and
  *     text. This will be used to determine tessellation quality and amount to smooth text for
  *     ant-aliasing.
@@ -51,6 +51,23 @@ DS_VECTORDRAWSCENE_EXPORT bool dsVectorSceneLoadConext_registerTypes(
 	dsSceneLoadContext* loadContext, dsAllocator* allocator, dsCommandBuffer* commandBuffer,
 	const dsTextQuality* qualityRemap, const dsTextSubstitutionTable* substitutionTable,
 	const dsSceneTextRenderBufferInfo* textRenderInfo, float pixelSize);
+
+/**
+ * @brief Registers a custom text node type.
+ *
+ * This can be used to use a different type name to create a dsSceneTextNode with a different
+ * vertex format or glyph creation function.
+ *
+ * @remark errno will be set on failure.
+ * @param loadContext The load context to register the type with.
+ * @param allocator The allocator to use for creating the user data with.
+ * @param name The name of the text node type.
+ * @param textRenderInfo Info for how to render text.
+ * @return False if an error occurred.
+ */
+DS_VECTORDRAWSCENE_EXPORT bool dsVectorSceneLoadContext_registerCustomTextNodeType(
+	dsSceneLoadContext* loadContext, dsAllocator* allocator, const char* name,
+	const dsSceneTextRenderBufferInfo* textRenderInfo);
 
 #ifdef __cplusplus
 }

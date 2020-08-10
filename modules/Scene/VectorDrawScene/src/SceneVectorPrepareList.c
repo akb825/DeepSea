@@ -26,6 +26,7 @@
 #include <DeepSea/Core/Profile.h>
 #include <DeepSea/Scene/Nodes/SceneNode.h>
 #include <DeepSea/Text/TextLayout.h>
+#include <DeepSea/Text/TextRenderBuffer.h>
 #include <DeepSea/VectorDraw/VectorImage.h>
 #include <DeepSea/VectorDrawScene/SceneTextNode.h>
 #include <DeepSea/VectorDrawScene/SceneVectorImageNode.h>
@@ -141,6 +142,12 @@ void dsSceneVectorPrepareList_commit(dsSceneItemList* itemList, const dsView* vi
 				DS_CHECK(DS_VECTOR_DRAW_SCENE_LOG_TAG,
 					dsTextLayout_layout(node->layout, commandBuffer, node->alignment,
 						node->maxWidth, node->lineScale));
+				DS_VERIFY(dsTextRenderBuffer_clear(node->renderBuffer));
+				DS_CHECK(DS_VECTOR_DRAW_SCENE_LOG_TAG,
+					dsTextRenderBuffer_addText(node->renderBuffer, node->layout,
+						node->textUserData));
+				DS_CHECK(DS_VECTOR_DRAW_SCENE_LOG_TAG,
+					dsTextRenderBuffer_commit(node->renderBuffer, commandBuffer));
 				entry->layoutVersion = node->layoutVersion;
 			}
 		}
@@ -194,7 +201,7 @@ dsSceneItemList* dsSceneVectorPrepareList_create(dsAllocator* allocator, const c
 	itemList->name = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, nameLen + 1);
 	memcpy((void*)itemList->name, name, nameLen + 1);
 	itemList->nameID = dsHashString(name);
-	itemList->needsCommandBuffer = false;
+	itemList->needsCommandBuffer = true;
 	itemList->addNodeFunc = &dsSceneVectorPrepareList_addNode;
 	itemList->updateNodeFunc = NULL;
 	itemList->removeNodeFunc = &dsSceneVectorPrepareList_removeNode;

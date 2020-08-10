@@ -25,11 +25,9 @@
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Core/Profile.h>
 #include <DeepSea/Math/Matrix44.h>
-#include <DeepSea/Math/Vector2.h>
-#include <DeepSea/Render/Resources/GfxFormat.h>
+#include <DeepSea/Math/Core.h>
 #include <DeepSea/Render/Resources/Shader.h>
 #include <DeepSea/Render/Resources/SharedMaterialValues.h>
-#include <DeepSea/Render/Resources/VertexFormat.h>
 #include <DeepSea/Render/Renderer.h>
 #include <DeepSea/Scene/ItemLists/SceneInstanceData.h>
 #include <DeepSea/Scene/Nodes/SceneNode.h>
@@ -44,25 +42,6 @@
 
 #include <stdlib.h>
 #include <string.h>
-
-typedef struct TextVertex
-{
-	dsVector2f position;
-	dsColor textColor;
-	dsColor outlineColor;
-	dsVector3f texCoords;
-	dsVector4f style;
-} TextVertex;
-
-typedef struct TessTextVertexx
-{
-	dsVector4f position;
-	dsAlignedBox2f geometry;
-	dsColor textColor;
-	dsColor outlineColor;
-	dsAlignedBox2f texCoords;
-	dsVector4f style;
-} TessTextVertex;
 
 typedef enum DrawType
 {
@@ -82,10 +61,11 @@ typedef struct TextInfo
 {
 	dsShader* shader;
 	const dsTextLayout* layout;
+	dsTextRenderBuffer* renderBuffer;
 	void* textUserData;
 	const dsTextStyle* styles;
 	uint32_t styleCount;
-	uint32_t fontTextureElement;
+	uint32_t fontTextureID;
 	uint32_t firstChar;
 	uint32_t charCount;
 } TextInfo;
@@ -129,15 +109,35 @@ struct dsSceneVectorItemList
 	DrawItem* drawItems;
 	uint32_t maxInstances;
 	uint32_t maxDrawItems;
-
-	dsTextRenderBuffer* textRenderBuffer;
 };
 
-static void glyphPosition(dsVector2f* outPos, const dsVector2f* basePos,
-	const dsVector2f* geometryPos, float slant)
+static void getGlyphRange(uint32_t* outFirstGlyph, uint32_t* outGlyphCount,
+	const dsTextLayout* layout, uint32_t firstChar, uint32_t charCount)
 {
-	dsVector2_add(*outPos, *basePos, *geometryPos);
-	outPos->x -= geometryPos->y*slant;
+	*outFirstGlyph = 0;
+	uint32_t maxChar = firstChar + charCount;
+	uint32_t glyphIndex = 0;
+	for (uint32_t i = 0; i < maxChar; ++i)
+	{
+		if (i == firstChar)
+			*outFirstGlyph = glyphIndex;
+
+		const dsCharMapping* charMapping = layout->text->charMappings + i;
+		for (uint32_t j = 0; j < charMapping->glyphCount; ++j)
+		{
+			const dsGlyphLayout* glyph = layout->glyphs + charMapping->firstGlyph + j;
+
+			// Skip empty glyphs.
+			if (glyph->geometry.min.x == glyph->geometry.max.x ||
+				glyph->geometry.min.y == glyph->geometry.max.y)
+			{
+				continue;
+			}
+
+			++glyphIndex;
+		}
+	}
+	*outGlyphCount = glyphIndex - *outFirstGlyph;
 }
 
 static bool addInstances(dsSceneItemList* itemList)
@@ -177,10 +177,11 @@ static bool addInstances(dsSceneItemList* itemList)
 			drawItem->material = node->material;
 			drawItem->text.shader = node->shader;
 			drawItem->text.layout = node->layout;
+			drawItem->text.renderBuffer = node->renderBuffer;
 			drawItem->text.textUserData = node->textUserData;
 			drawItem->text.styles = node->styles;
 			drawItem->text.styleCount = node->styleCount;
-			drawItem->text.fontTextureElement = node->fontTextureElement;
+			drawItem->text.fontTextureID = node->fontTextureID;
 			drawItem->text.firstChar = node->firstChar;
 			drawItem->text.charCount = node->charCount;
 		}
@@ -252,7 +253,6 @@ static void drawItems(dsSceneVectorItemList* vectorList, const dsView* view,
 	dsMaterial* lastTextMaterial = NULL;
 	dsDynamicRenderStates* renderStates =
 		vectorList->hasRenderStates ? &vectorList->renderStates : NULL;
-	dsTextRenderBuffer* textRenderBuffer = vectorList->textRenderBuffer;
 
 	for (uint32_t i = 0; i < vectorList->entryCount; ++i)
 	{
@@ -268,34 +268,31 @@ static void drawItems(dsSceneVectorItemList* vectorList, const dsView* view,
 			case DrawType_Text:
 			{
 				const dsTextLayout* layout = drawItem->text.layout;
+				dsTextRenderBuffer* renderBuffer = drawItem->text.renderBuffer;
 				const dsText* text = layout->text;
 				dsFont* font = text->font;
 				DS_CHECK(DS_VECTOR_DRAW_SCENE_LOG_TAG,
 					dsSharedMaterialValues_setTextureID(vectorList->instanceValues,
-						drawItem->text.fontTextureElement, dsFont_getTexture(font)));
+						drawItem->text.fontTextureID, dsFont_getTexture(font)));
 				if (lastTextShader != drawItem->text.shader ||
 					lastTextMaterial != drawItem->material)
 				{
 					if (lastTextShader)
 					{
 						DS_CHECK(DS_VECTOR_DRAW_SCENE_LOG_TAG,
-							dsTextRenderBuffer_draw(textRenderBuffer, commandBuffer));
-						DS_CHECK(DS_VECTOR_DRAW_SCENE_LOG_TAG,
 							dsShader_unbind(lastTextShader, commandBuffer));
 					}
 
 					DS_CHECK(DS_VECTOR_DRAW_SCENE_LOG_TAG,
 						dsShader_bind(drawItem->text.shader, commandBuffer, drawItem->material,
-							vectorList->instanceValues, renderStates));
+							view->globalValues, renderStates));
 					lastTextShader = drawItem->text.shader;
 					lastTextMaterial = drawItem->material;
 				}
-				else
-				{
-					DS_CHECK(DS_VECTOR_DRAW_SCENE_LOG_TAG,
-						dsShader_updateInstanceValues(lastTextShader, commandBuffer,
-							vectorList->instanceValues));
-				}
+
+				DS_CHECK(DS_VECTOR_DRAW_SCENE_LOG_TAG,
+					dsShader_updateInstanceValues(lastTextShader, commandBuffer,
+						vectorList->instanceValues));
 
 				// Try to add to the current buffer. If this fails, flush it and try again.
 				uint32_t firstChar = drawItem->text.firstChar;
@@ -304,23 +301,18 @@ static void drawItems(dsSceneVectorItemList* vectorList, const dsView* view,
 				{
 					uint32_t maxCharCount = text->characterCount - firstChar;
 					charCount = dsMin(charCount, maxCharCount);
-					if (!dsTextRenderBuffer_addTextRange(textRenderBuffer, layout,
-							drawItem->text.textUserData, firstChar, charCount))
-					{
-						DS_CHECK(DS_VECTOR_DRAW_SCENE_LOG_TAG,
-							dsTextRenderBuffer_draw(textRenderBuffer, commandBuffer));
-						DS_CHECK(DS_VECTOR_DRAW_SCENE_LOG_TAG,
-							dsTextRenderBuffer_addTextRange(textRenderBuffer, layout,
-								drawItem->text.textUserData, firstChar, charCount));
-					}
+					uint32_t firstGlyph, glyphCount;
+					getGlyphRange(&firstGlyph, &glyphCount, layout, firstChar, charCount);
+					DS_CHECK(DS_VECTOR_DRAW_SCENE_LOG_TAG,
+						dsTextRenderBuffer_drawRange(renderBuffer, commandBuffer, firstGlyph,
+							glyphCount));
 				}
+				break;
 			}
 			case DrawType_Image:
 			{
 				if (lastTextShader)
 				{
-					DS_CHECK(DS_VECTOR_DRAW_SCENE_LOG_TAG,
-						dsTextRenderBuffer_draw(textRenderBuffer, commandBuffer));
 					dsShader_unbind(lastTextShader, commandBuffer);
 					lastTextShader = NULL;
 					lastTextMaterial = NULL;
@@ -332,18 +324,14 @@ static void drawItems(dsSceneVectorItemList* vectorList, const dsView* view,
 				DS_CHECK(DS_VECTOR_DRAW_SCENE_LOG_TAG,
 					dsVectorImage_draw(drawItem->image.image, commandBuffer,
 						drawItem->image.shaders, drawItem->material, &modelViewProjection,
-						vectorList->instanceValues, renderStates));
+						view->globalValues, renderStates));
 				break;
 			}
 		}
 	}
 
 	if (lastTextShader)
-	{
-		DS_CHECK(DS_VECTOR_DRAW_SCENE_LOG_TAG,
-			dsTextRenderBuffer_draw(textRenderBuffer, commandBuffer));
 		dsShader_unbind(lastTextShader, commandBuffer);
-	}
 
 	DS_PROFILE_FUNC_RETURN_VOID();
 }
@@ -363,173 +351,6 @@ static void destroyInstanceData(dsSceneInstanceData* const* instanceData,
 
 const char* const dsSceneVectorItemList_typeName = "VectorItemList";
 
-bool dsSceneVectorItemList_defaultTextVertexFormat(dsVertexFormat* outFormat)
-{
-	if (!dsVertexFormat_initialize(outFormat))
-		return false;
-
-	outFormat->elements[dsVertexAttrib_Position].format =
-		dsGfxFormat_decorate(dsGfxFormat_X32Y32, dsGfxFormat_Float);
-	outFormat->elements[dsVertexAttrib_Color0].format =
-		dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm);
-	outFormat->elements[dsVertexAttrib_Color1].format =
-		dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm);
-	outFormat->elements[dsVertexAttrib_TexCoord0].format = dsGfxFormat_decorate(
-		dsGfxFormat_X32Y32Z32, dsGfxFormat_Float);
-	outFormat->elements[dsVertexAttrib_TexCoord1].format = dsGfxFormat_decorate(
-		dsGfxFormat_X32Y32Z32W32, dsGfxFormat_Float);
-
-	DS_VERIFY(dsVertexFormat_setAttribEnabled(outFormat, dsVertexAttrib_Position, true));
-	DS_VERIFY(dsVertexFormat_setAttribEnabled(outFormat, dsVertexAttrib_Color0, true));
-	DS_VERIFY(dsVertexFormat_setAttribEnabled(outFormat, dsVertexAttrib_Color1, true));
-	DS_VERIFY(dsVertexFormat_setAttribEnabled(outFormat, dsVertexAttrib_TexCoord0, true));
-	DS_VERIFY(dsVertexFormat_setAttribEnabled(outFormat, dsVertexAttrib_TexCoord1, true));
-	DS_VERIFY(dsVertexFormat_computeOffsetsAndSize(outFormat));
-	return true;
-}
-
-bool dsSceneVectorItemList_defaultTessVertexTextFormat(dsVertexFormat* outFormat)
-{
-	if (!dsVertexFormat_initialize(outFormat))
-		return false;
-
-	outFormat->elements[dsVertexAttrib_Position0].format = dsGfxFormat_decorate(
-		dsGfxFormat_X32Y32Z32W32, dsGfxFormat_Float);
-	outFormat->elements[dsVertexAttrib_Position1].format = dsGfxFormat_decorate(
-		dsGfxFormat_X32Y32Z32W32, dsGfxFormat_Float);
-	outFormat->elements[dsVertexAttrib_Color0].format = dsGfxFormat_decorate(
-		dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm);
-	outFormat->elements[dsVertexAttrib_Color1].format = dsGfxFormat_decorate(
-		dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm);
-	outFormat->elements[dsVertexAttrib_TexCoord0].format = dsGfxFormat_decorate(
-		dsGfxFormat_X32Y32Z32W32, dsGfxFormat_Float);
-	outFormat->elements[dsVertexAttrib_TexCoord1].format = dsGfxFormat_decorate(
-		dsGfxFormat_X32Y32Z32W32, dsGfxFormat_Float);
-
-	DS_VERIFY(dsVertexFormat_setAttribEnabled(outFormat, dsVertexAttrib_Position0, true));
-	DS_VERIFY(dsVertexFormat_setAttribEnabled(outFormat, dsVertexAttrib_Position1, true));
-	DS_VERIFY(dsVertexFormat_setAttribEnabled(outFormat, dsVertexAttrib_Color0, true));
-	DS_VERIFY(dsVertexFormat_setAttribEnabled(outFormat, dsVertexAttrib_Color1, true));
-	DS_VERIFY(dsVertexFormat_setAttribEnabled(outFormat, dsVertexAttrib_TexCoord0, true));
-	DS_VERIFY(dsVertexFormat_setAttribEnabled(outFormat, dsVertexAttrib_TexCoord1, true));
-	DS_VERIFY(dsVertexFormat_computeOffsetsAndSize(outFormat));
-	return true;
-}
-
-void dsSceneVectorItemList_defaultGlyphDataFunc(void* userData, const dsTextLayout* layout,
-	void* layoutUserData, uint32_t glyphIndex, void* vertexData, const dsVertexFormat* format,
-	uint32_t vertexCount)
-{
-	DS_UNUSED(userData);
-	DS_UNUSED(layoutUserData);
-	DS_UNUSED(format);
-	DS_UNUSED(vertexCount);
-	DS_ASSERT(format->elements[dsVertexAttrib_Position].offset == offsetof(TextVertex, position));
-	DS_ASSERT(format->elements[dsVertexAttrib_Color0].offset == offsetof(TextVertex, textColor));
-	DS_ASSERT(format->elements[dsVertexAttrib_Color1].offset == offsetof(TextVertex, outlineColor));
-	DS_ASSERT(format->elements[dsVertexAttrib_TexCoord0].offset == offsetof(TextVertex, texCoords));
-	DS_ASSERT(format->elements[dsVertexAttrib_TexCoord1].offset == offsetof(TextVertex, style));
-	DS_ASSERT(format->size == sizeof(TextVertex));
-	DS_ASSERT(vertexCount == 4);
-
-	const dsTextStyle* style = layout->styles + layout->glyphs[glyphIndex].styleIndex;
-	const dsGlyphLayout* glyph = layout->glyphs + glyphIndex;
-	dsVector2f position = layout->glyphs[glyphIndex].position;
-
-	dsVector2f geometryPos;
-	TextVertex* vertices = (TextVertex*)vertexData;
-	geometryPos.x = glyph->geometry.min.x;
-	geometryPos.y = glyph->geometry.min.y;
-	glyphPosition(&vertices[0].position, &position, &geometryPos, style->slant);
-	vertices[0].textColor = style->color;
-	vertices[0].outlineColor = style->outlineColor;
-	vertices[0].texCoords.x = glyph->texCoords.min.x;
-	vertices[0].texCoords.y = glyph->texCoords.min.y;
-	vertices[0].texCoords.z = (float)glyph->mipLevel;
-	vertices[0].style.x = style->embolden;
-	vertices[0].style.y = style->outlinePosition;
-	vertices[0].style.z = style->outlineThickness;
-	vertices[0].style.w = style->antiAlias;
-
-	geometryPos.x = glyph->geometry.min.x;
-	geometryPos.y = glyph->geometry.max.y;
-	glyphPosition(&vertices[1].position, &position, &geometryPos, style->slant);
-	vertices[1].textColor = style->color;
-	vertices[1].outlineColor = style->outlineColor;
-	vertices[1].texCoords.x = glyph->texCoords.min.x;
-	vertices[1].texCoords.y = glyph->texCoords.max.y;
-	vertices[1].texCoords.z = (float)glyph->mipLevel;
-	vertices[1].style.x = style->embolden;
-	vertices[1].style.y = style->outlinePosition;
-	vertices[1].style.z = style->outlineThickness;
-	vertices[1].style.w = style->antiAlias;
-
-	geometryPos.x = glyph->geometry.max.x;
-	geometryPos.y = glyph->geometry.max.y;
-	glyphPosition(&vertices[2].position, &position, &geometryPos, style->slant);
-	vertices[2].textColor = style->color;
-	vertices[2].outlineColor = style->outlineColor;
-	vertices[2].texCoords.x = glyph->texCoords.max.x;
-	vertices[2].texCoords.y = glyph->texCoords.max.y;
-	vertices[2].texCoords.z = (float)glyph->mipLevel;
-	vertices[2].style.x = style->embolden;
-	vertices[2].style.y = style->outlinePosition;
-	vertices[2].style.z = style->outlineThickness;
-	vertices[2].style.w = style->antiAlias;
-
-	geometryPos.x = glyph->geometry.max.x;
-	geometryPos.y = glyph->geometry.min.y;
-	glyphPosition(&vertices[3].position, &position, &geometryPos, style->slant);
-	vertices[3].textColor = style->color;
-	vertices[3].outlineColor = style->outlineColor;
-	vertices[3].texCoords.x = glyph->texCoords.max.x;
-	vertices[3].texCoords.y = glyph->texCoords.min.y;
-	vertices[3].texCoords.z = (float)glyph->mipLevel;
-	vertices[3].style.x = style->embolden;
-	vertices[3].style.y = style->outlinePosition;
-	vertices[3].style.z = style->outlineThickness;
-	vertices[3].style.w = style->antiAlias;
-}
-
-void dsSceneVectorItemList_defaultTessGlyphDataFunc(void* userData,
-	const dsTextLayout* layout, void* layoutUserData, uint32_t glyphIndex, void* vertexData,
-	const dsVertexFormat* format, uint32_t vertexCount)
-{
-	DS_UNUSED(userData);
-	DS_UNUSED(layoutUserData);
-	DS_UNUSED(format);
-	DS_UNUSED(vertexCount);
-	DS_ASSERT(format->elements[dsVertexAttrib_Position0].offset ==
-		offsetof(TessTextVertex, position));
-	DS_ASSERT(format->elements[dsVertexAttrib_Position1].offset ==
-		offsetof(TessTextVertex, geometry));
-	DS_ASSERT(format->elements[dsVertexAttrib_Color0].offset ==
-		offsetof(TessTextVertex, textColor));
-	DS_ASSERT(format->elements[dsVertexAttrib_Color1].offset ==
-		offsetof(TessTextVertex, outlineColor));
-	DS_ASSERT(format->elements[dsVertexAttrib_TexCoord0].offset ==
-		offsetof(TessTextVertex, texCoords));
-	DS_ASSERT(format->elements[dsVertexAttrib_TexCoord1].offset == offsetof(TessTextVertex, style));
-	DS_ASSERT(format->size == sizeof(TessTextVertex));
-	DS_ASSERT(vertexCount == 1);
-
-	TessTextVertex* vertex = (TessTextVertex*)vertexData;
-	const dsTextStyle* style = layout->styles + layout->glyphs[glyphIndex].styleIndex;
-	const dsGlyphLayout* glyph = layout->glyphs + glyphIndex;
-	vertex->position.x = layout->glyphs[glyphIndex].position.x;
-	vertex->position.y = layout->glyphs[glyphIndex].position.y;
-	vertex->position.z = (float)layout->glyphs[glyphIndex].mipLevel;
-	vertex->position.w = style->antiAlias;
-	vertex->geometry = glyph->geometry;
-	vertex->texCoords = glyph->texCoords;
-	vertex->textColor = style->color;
-	vertex->outlineColor = style->outlineColor;
-	vertex->style.x = style->slant;
-	vertex->style.y = style->embolden;
-	vertex->style.z = style->outlinePosition;
-	vertex->style.w = style->outlineThickness;
-}
-
 uint64_t dsSceneVectorItemList_addNode(dsSceneItemList* itemList, dsSceneNode* node,
 	const dsMatrix44f* transform, dsSceneNodeItemData* itemData, void** thisItemData)
 {
@@ -538,14 +359,6 @@ uint64_t dsSceneVectorItemList_addNode(dsSceneItemList* itemList, dsSceneNode* n
 		return DS_NO_SCENE_NODE;
 
 	dsSceneVectorItemList* modelList = (dsSceneVectorItemList*)itemList;
-	bool isText = dsSceneNode_isOfType(node, dsSceneTextNode_type());
-	if (!modelList->textRenderBuffer && isText)
-	{
-		DS_LOG_WARNING(DS_VECTOR_DRAW_LOG_TAG,
-			"Trying to add a text node to a vector item list that doesn't support text rendering.");
-		return DS_NO_SCENE_NODE;
-	}
-
 	uint32_t index = modelList->entryCount;
 	if (!DS_RESIZEABLE_ARRAY_ADD(itemList->allocator, modelList->entries, modelList->entryCount,
 			modelList->maxEntries, 1))
@@ -596,8 +409,7 @@ void dsSceneVectorItemList_commit(dsSceneItemList* itemList, const dsView* view,
 
 dsSceneVectorItemList* dsSceneVectorItemList_create(dsAllocator* allocator, const char* name,
 	dsResourceManager* resourceManager, dsSceneInstanceData* const* instanceData,
-	uint32_t instanceDataCount, const dsSceneTextRenderBufferInfo* textRenderBufferInfo,
-	const dsDynamicRenderStates* renderStates)
+	uint32_t instanceDataCount, const dsDynamicRenderStates* renderStates)
 {
 	if (!allocator || !name || !resourceManager || (!instanceData && instanceDataCount > 0))
 	{
@@ -625,20 +437,6 @@ dsSceneVectorItemList* dsSceneVectorItemList_create(dsAllocator* allocator, cons
 		valueCount += instanceData[i]->valueCount;
 	}
 
-	dsTextRenderBuffer* textRenderBuffer = NULL;
-	if (textRenderBufferInfo)
-	{
-		textRenderBuffer = dsTextRenderBuffer_create(allocator, resourceManager,
-			textRenderBufferInfo->maxGlyphs, textRenderBufferInfo->vertexFormat,
-			textRenderBufferInfo->tessellationShader, textRenderBufferInfo->glyphDataFunc,
-			textRenderBufferInfo->userData);
-		if (!textRenderBuffer)
-		{
-			destroyInstanceData(instanceData, instanceDataCount);
-			return NULL;
-		}
-	}
-
 	size_t nameLen = strlen(name);
 	size_t globalDataSize = dsSharedMaterialValues_fullAllocSize(valueCount);
 	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsSceneVectorItemList)) +
@@ -648,7 +446,6 @@ dsSceneVectorItemList* dsSceneVectorItemList_create(dsAllocator* allocator, cons
 	if (!buffer)
 	{
 		destroyInstanceData(instanceData, instanceDataCount);
-		dsTextRenderBuffer_destroy(textRenderBuffer);
 		return NULL;
 	}
 
@@ -700,7 +497,6 @@ dsSceneVectorItemList* dsSceneVectorItemList_create(dsAllocator* allocator, cons
 	vectorList->drawItems = NULL;
 	vectorList->maxInstances = 0;
 	vectorList->maxDrawItems = 0;
-	vectorList->textRenderBuffer = textRenderBuffer;
 	return vectorList;
 }
 
@@ -733,7 +529,6 @@ void dsSceneVectorItemList_destroy(dsSceneVectorItemList* vectorList)
 	dsSceneItemList* itemList = (dsSceneItemList*)vectorList;
 	destroyInstanceData(vectorList->instanceData, vectorList->instanceDataCount);
 	dsSharedMaterialValues_destroy(vectorList->instanceValues);
-	DS_VERIFY(dsTextRenderBuffer_destroy(vectorList->textRenderBuffer));
 	DS_VERIFY(dsAllocator_free(itemList->allocator, vectorList->entries));
 	DS_VERIFY(dsAllocator_free(itemList->allocator, vectorList->instances));
 	DS_VERIFY(dsAllocator_free(itemList->allocator, vectorList->drawItems));

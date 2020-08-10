@@ -140,6 +140,13 @@ typedef struct dsSceneTextNode
 	dsTextLayout* layout;
 
 	/**
+	 * @brief Render buffer to draw the text.
+	 *
+	 * This will be populated whenever the layout is updated.
+	 */
+	dsTextRenderBuffer* renderBuffer;
+
+	/**
 	 * @brief User data to pass with the text.
 	 */
 	void* textUserData;
@@ -165,9 +172,9 @@ typedef struct dsSceneTextNode
 	uint32_t styleCount;
 
 	/**
-	 * @brief The element index for the font texture in the material.
+	 * @brief The name ID for the font texture in the material.
 	 */
-	uint32_t fontTextureElement;
+	uint32_t fontTextureID;
 
 	/**
 	 * @brief The alignment of the text.
@@ -222,16 +229,6 @@ typedef struct dsSceneTextRenderBufferInfo
 	 * @brief User data to provide with the glyph function.
 	 */
 	void* userData;
-
-	/**
-	 * @brief The maximum number of glyphs that can be drawn at once.
-	 */
-	uint32_t maxGlyphs;
-
-	/**
-	 * @brief Whether or not a tessellation shader is used.
-	 */
-	bool tessellationShader;
 } dsSceneTextRenderBufferInfo;
 
 /**

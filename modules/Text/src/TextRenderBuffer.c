@@ -52,9 +52,9 @@ dsTextRenderBuffer* dsTextRenderBuffer_create(dsAllocator* allocator,
 	dsGfxBufferUsage usage = dsGfxBufferUsage_Vertex | dsGfxBufferUsage_CopyTo;
 	if (!tessellationShader)
 		usage |= dsGfxBufferUsage_Index;
+	size_t bufferSize = vertexBufferSize + indexBufferSize;
 	dsGfxBuffer* gfxBuffer = dsGfxBuffer_create(resourceManager, allocator, usage,
-		dsGfxMemory_Stream | dsGfxMemory_Draw | dsGfxMemory_GPUOnly, NULL,
-		vertexBufferSize + indexBufferSize);
+		dsGfxMemory_Stream | dsGfxMemory_Draw | dsGfxMemory_GPUOnly, NULL, bufferSize);
 	if (!gfxBuffer)
 		return NULL;
 
@@ -91,8 +91,7 @@ dsTextRenderBuffer* dsTextRenderBuffer_create(dsAllocator* allocator,
 	renderBuffer->userData = userData;
 	renderBuffer->maxGlyphs = maxGlyphs;
 	renderBuffer->queuedGlyphs = 0;
-	renderBuffer->tempData = dsAllocator_alloc((dsAllocator*)&bufferAlloc,
-		vertexBufferSize + indexBufferSize);
+	renderBuffer->tempData = dsAllocator_alloc((dsAllocator*)&bufferAlloc, bufferSize);
 	DS_ASSERT(renderBuffer->tempData);
 
 	return renderBuffer;
@@ -202,6 +201,14 @@ bool dsTextRenderBuffer_addTextRange(dsTextRenderBuffer* renderBuffer,
 	DS_PROFILE_FUNC_RETURN(true);
 }
 
+uint32_t dsTextRenderBuffer_getRemainingGlyphs(const dsTextRenderBuffer* renderBuffer)
+{
+	if (!renderBuffer)
+		return 0;
+
+	return renderBuffer->maxGlyphs - renderBuffer->queuedGlyphs;
+}
+
 bool dsTextRenderBuffer_commit(dsTextRenderBuffer* renderBuffer, dsCommandBuffer* commandBuffer)
 {
 	DS_PROFILE_FUNC_START();
@@ -225,8 +232,7 @@ bool dsTextRenderBuffer_commit(dsTextRenderBuffer* renderBuffer, dsCommandBuffer
 	if (renderBuffer->queuedGlyphs >= renderBuffer->maxGlyphs/4*3)
 	{
 		if (!dsGfxBuffer_copyData(gfxBuffer, commandBuffer, 0, renderBuffer->tempData,
-				renderBuffer->geometry->vertexBuffers[0].count*vertexSize +
-				renderBuffer->geometry->indexBuffer.count*indexSize))
+				gfxBuffer->size))
 		{
 			DS_PROFILE_FUNC_RETURN(false);
 		}
@@ -268,11 +274,29 @@ bool dsTextRenderBuffer_clear(dsTextRenderBuffer* renderBuffer)
 
 bool dsTextRenderBuffer_draw(dsTextRenderBuffer* renderBuffer, dsCommandBuffer* commandBuffer)
 {
+	if (!renderBuffer || !commandBuffer)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	return dsTextRenderBuffer_drawRange(renderBuffer, commandBuffer, 0, renderBuffer->queuedGlyphs);
+}
+
+bool dsTextRenderBuffer_drawRange(dsTextRenderBuffer* renderBuffer,
+	dsCommandBuffer* commandBuffer, uint32_t firstGlyph, uint32_t glyphCount)
+{
 	DS_PROFILE_FUNC_START();
 
 	if (!renderBuffer || !commandBuffer)
 	{
 		errno = EINVAL;
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	if (!DS_IS_BUFFER_RANGE_VALID(firstGlyph, glyphCount, renderBuffer->queuedGlyphs))
+	{
+		errno = ERANGE;
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
@@ -282,7 +306,7 @@ bool dsTextRenderBuffer_draw(dsTextRenderBuffer* renderBuffer, dsCommandBuffer* 
 	uint32_t indexSize = renderBuffer->geometry->indexBuffer.indexSize;
 	if (indexSize == 0)
 	{
-		dsDrawRange drawRange = {renderBuffer->queuedGlyphs, 1, 0, 0};
+		dsDrawRange drawRange = {glyphCount, 1, firstGlyph, 0};
 		if (!dsRenderer_draw(commandBuffer->renderer, commandBuffer, renderBuffer->geometry,
 				&drawRange, dsPrimitiveType_PatchList))
 		{
@@ -291,7 +315,7 @@ bool dsTextRenderBuffer_draw(dsTextRenderBuffer* renderBuffer, dsCommandBuffer* 
 	}
 	else
 	{
-		dsDrawIndexedRange drawRange = {renderBuffer->queuedGlyphs*6, 1, 0, 0, 0};
+		dsDrawIndexedRange drawRange = {glyphCount*6, 1, firstGlyph*6, 0, 0};
 		if (!dsRenderer_drawIndexed(commandBuffer->renderer, commandBuffer, renderBuffer->geometry,
 				&drawRange, dsPrimitiveType_TriangleList))
 		{

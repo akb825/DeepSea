@@ -273,14 +273,12 @@ static bool setup(TestVectorDrawScene* testVectorDrawScene, dsApplication* appli
 	}
 
 	dsVertexFormat textVertexFormat;
-	DS_VERIFY(dsSceneVectorItemList_defaultTextVertexFormat(&textVertexFormat));
+	DS_VERIFY(dsSceneTextNode_defaultTextVertexFormat(&textVertexFormat));
 	dsSceneTextRenderBufferInfo textRenderInfo =
 	{
 		&textVertexFormat,
-		dsSceneVectorItemList_defaultGlyphDataFunc,
-		NULL,
-		1000,
-		false
+		dsSceneTextNode_defaultGlyphDataFunc,
+		NULL
 	};
 
 	float pixelSize = (float)testVectorDrawScene->window->surface->height/200.0f;

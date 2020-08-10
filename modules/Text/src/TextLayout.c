@@ -740,6 +740,7 @@ void dsTextLayout_destroy(dsTextLayout* layout)
 	if (!layout || !layout->allocator)
 		return;
 
+	dsAllocator_free(layout->allocator, layout->lines);
 	dsAllocator_free(layout->allocator, layout);
 }
 

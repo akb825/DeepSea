@@ -29,7 +29,7 @@
 
 dsSceneItemList* dsSceneVectorItemList_load(const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
-	void* userData, const char* name, const uint8_t* data, size_t dataSize)
+	void*, const char* name, const uint8_t* data, size_t dataSize)
 {
 	flatbuffers::Verifier verifier(data, dataSize);
 	if (!DeepSeaVectorDrawScene::VerifyVectorItemListBuffer(verifier))
@@ -45,7 +45,6 @@ dsSceneItemList* dsSceneVectorItemList_load(const dsSceneLoadContext* loadContex
 
 	dsAllocator* scratchAllocator = dsSceneLoadScratchData_getAllocator(scratchData);
 	DS_ASSERT(scratchAllocator);
-	SceneVectorItemListUserData* vectorItemListUserData = (SceneVectorItemListUserData*)userData;
 	uint32_t instanceDataCount = 0;
 	dsSceneInstanceData** instanceData = nullptr;
 	dsDynamicRenderStates dynamicRenderStates;
@@ -139,8 +138,7 @@ dsSceneItemList* dsSceneVectorItemList_load(const dsSceneLoadContext* loadContex
 	}
 
 	vectorList = dsSceneVectorItemList_create(allocator, name, resourceManager, instanceData,
-		instanceDataCount, vectorItemListUserData ? &vectorItemListUserData->textRenderInfo : NULL,
-		fbDynamicRenderStates ? &dynamicRenderStates : nullptr);
+		instanceDataCount, fbDynamicRenderStates ? &dynamicRenderStates : nullptr);
 	// Took ownership of instance data even if creation failed, so zero out instanceDataCount to
 	// prevent anycleanup.
 	instanceDataCount = 0;
