@@ -159,7 +159,7 @@ static void update(dsApplication* application, double lastFrameTime, void* userD
 	const double clearTime = 1.0;
 	testVectorDrawScene->changeTime += lastFrameTime;
 	if (testVectorDrawScene->figureNode->charCount >=
-		testVectorDrawScene->figureNode->text->characterCount)
+		testVectorDrawScene->figureNode->layout->text->characterCount)
 	{
 		if (testVectorDrawScene->changeTime >= clearTime)
 		{

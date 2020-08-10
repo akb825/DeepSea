@@ -110,7 +110,7 @@ typedef struct dsSceneVectorImageNode
 	/**
 	 * @brief The vector image to draw.
 	 */
-	const dsVectorImage* vectorImage;
+	dsVectorImage* vectorImage;
 
 	/**
 	 * @brief The vector shaders to draw with.
@@ -135,11 +135,9 @@ typedef struct dsSceneTextNode
 	dsSceneVectorNode node;
 
 	/**
-	 * @brief The text to display.
-	 *
-	 * This should not be re-assigned.
+	 * @brief The text layout to draw.
 	 */
-	const dsText* text;
+	dsTextLayout* layout;
 
 	/**
 	 * @brief User data to pass with the text.
@@ -239,7 +237,7 @@ typedef struct dsSceneTextRenderBufferInfo
 /**
  * @brief Scene item list implementation for drawing vector images and text.
  *
- * This will hold information from dsSceneVectorNode node types.
+ * This will handle drawing for dsSceneVectorNode node types.
  *
  * @see SceneVectorItemList.h
  */

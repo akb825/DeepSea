@@ -225,8 +225,8 @@ bool dsTextRenderBuffer_commit(dsTextRenderBuffer* renderBuffer, dsCommandBuffer
 	if (renderBuffer->queuedGlyphs >= renderBuffer->maxGlyphs/4*3)
 	{
 		if (!dsGfxBuffer_copyData(gfxBuffer, commandBuffer, 0, renderBuffer->tempData,
-			renderBuffer->geometry->vertexBuffers[0].count*vertexSize +
-			renderBuffer->geometry->indexBuffer.count*indexSize))
+				renderBuffer->geometry->vertexBuffers[0].count*vertexSize +
+				renderBuffer->geometry->indexBuffer.count*indexSize))
 		{
 			DS_PROFILE_FUNC_RETURN(false);
 		}
@@ -234,7 +234,7 @@ bool dsTextRenderBuffer_commit(dsTextRenderBuffer* renderBuffer, dsCommandBuffer
 	else
 	{
 		if (!dsGfxBuffer_copyData(gfxBuffer, commandBuffer, 0, renderBuffer->tempData,
-			renderBuffer->queuedGlyphs*vertexSize*vertexCount))
+				renderBuffer->queuedGlyphs*vertexSize*vertexCount))
 		{
 			DS_PROFILE_FUNC_RETURN(false);
 		}
@@ -243,7 +243,8 @@ bool dsTextRenderBuffer_commit(dsTextRenderBuffer* renderBuffer, dsCommandBuffer
 		{
 			size_t offset = renderBuffer->geometry->indexBuffer.offset;
 			if (!dsGfxBuffer_copyData(gfxBuffer, commandBuffer, offset,
-				(uint8_t*)renderBuffer->tempData + offset, renderBuffer->queuedGlyphs*indexSize*6))
+					(uint8_t*)renderBuffer->tempData + offset,
+					renderBuffer->queuedGlyphs*indexSize*6))
 			{
 				DS_PROFILE_FUNC_RETURN(false);
 			}

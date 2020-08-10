@@ -35,18 +35,18 @@ const dsSceneNodeType* dsSceneVectorImageNode_setupParentType(dsSceneNodeType* t
 }
 
 dsSceneVectorImageNode* dsSceneVectorImageNode_create(dsAllocator* allocator,
-	const dsVectorImage* vectorImage, int32_t z, const dsVectorShaders* shaders,
-	dsMaterial* material, const char** itemLists, uint32_t itemListCount,
-	dsSceneResources** resources, uint32_t resourceCount)
+	dsVectorImage* vectorImage, int32_t z, const dsVectorShaders* shaders, dsMaterial* material,
+	const char** itemLists, uint32_t itemListCount, dsSceneResources** resources,
+	uint32_t resourceCount)
 {
 	return dsSceneVectorImageNode_createBase(allocator, sizeof(dsSceneVectorImageNode), vectorImage,
 		z, shaders, material, itemLists, itemListCount, resources, resourceCount);
 }
 
 dsSceneVectorImageNode* dsSceneVectorImageNode_createBase(dsAllocator* allocator, size_t structSize,
-	const dsVectorImage* vectorImage, int32_t z, const dsVectorShaders* shaders,
-	dsMaterial* material, const char** itemLists, uint32_t itemListCount,
-	dsSceneResources** resources, uint32_t resourceCount)
+	dsVectorImage* vectorImage, int32_t z, const dsVectorShaders* shaders, dsMaterial* material,
+	const char** itemLists, uint32_t itemListCount, dsSceneResources** resources,
+	uint32_t resourceCount)
 {
 	if (!vectorImage || !shaders || !material)
 	{

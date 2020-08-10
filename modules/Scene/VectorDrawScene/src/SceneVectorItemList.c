@@ -75,15 +75,13 @@ typedef struct Entry
 	const dsSceneVectorNode* node;
 	const dsMatrix44f* transform;
 	dsSceneNodeItemData* itemData;
-	dsTextLayout* layout;
-	uint32_t layoutVersion;
 	uint64_t nodeID;
 } Entry;
 
 typedef struct TextInfo
 {
 	dsShader* shader;
-	const dsTextLayout* text;
+	const dsTextLayout* layout;
 	void* textUserData;
 	const dsTextStyle* styles;
 	uint32_t styleCount;
@@ -142,7 +140,7 @@ static void glyphPosition(dsVector2f* outPos, const dsVector2f* basePos,
 	outPos->x -= geometryPos->y*slant;
 }
 
-static bool addInstances(dsSceneItemList* itemList, dsCommandBuffer* commandBuffer)
+static bool addInstances(dsSceneItemList* itemList)
 {
 	DS_PROFILE_FUNC_START();
 
@@ -150,14 +148,14 @@ static bool addInstances(dsSceneItemList* itemList, dsCommandBuffer* commandBuff
 
 	uint32_t dummyCount = 0;
 	if (!DS_RESIZEABLE_ARRAY_ADD(itemList->allocator, vectorList->drawItems, dummyCount,
-			vectorList->entryCount, vectorList->maxDrawItems))
+			vectorList->maxDrawItems, vectorList->entryCount))
 	{
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
 	dummyCount = 0;
 	if (!DS_RESIZEABLE_ARRAY_ADD(itemList->allocator, vectorList->instances, dummyCount,
-			vectorList->entryCount, vectorList->maxInstances))
+			vectorList->maxInstances, vectorList->entryCount))
 	{
 		DS_PROFILE_FUNC_RETURN(false);
 	}
@@ -176,21 +174,9 @@ static bool addInstances(dsSceneItemList* itemList, dsCommandBuffer* commandBuff
 		{
 			const dsSceneTextNode* node = (const dsSceneTextNode*)entry->node;
 			drawItem->type = DrawType_Text;
-			if (entry->layoutVersion == node->layoutVersion)
-			{
-				DS_CHECK(DS_VECTOR_DRAW_SCENE_LOG_TAG,
-					dsTextLayout_refresh(entry->layout, commandBuffer));
-			}
-			else
-			{
-				DS_CHECK(DS_VECTOR_DRAW_SCENE_LOG_TAG,
-					dsTextLayout_layout(entry->layout, commandBuffer, node->alignment,
-						node->maxWidth, node->lineScale));
-				entry->layoutVersion = node->layoutVersion;
-			}
-
+			drawItem->material = node->material;
 			drawItem->text.shader = node->shader;
-			drawItem->text.text = entry->layout;
+			drawItem->text.layout = node->layout;
 			drawItem->text.textUserData = node->textUserData;
 			drawItem->text.styles = node->styles;
 			drawItem->text.styleCount = node->styleCount;
@@ -203,6 +189,7 @@ static bool addInstances(dsSceneItemList* itemList, dsCommandBuffer* commandBuff
 			DS_ASSERT(dsSceneNode_isOfType((const dsSceneNode*)entry->node, vectorImageType));
 			const dsSceneVectorImageNode* node = (const dsSceneVectorImageNode*)entry->node;
 			drawItem->type = DrawType_Image;
+			drawItem->material = node->material;
 			drawItem->image.image = node->vectorImage;
 			drawItem->image.shaders = node->shaders;
 			drawItem->material = node->material;
@@ -216,15 +203,14 @@ static bool addInstances(dsSceneItemList* itemList, dsCommandBuffer* commandBuff
 	DS_PROFILE_FUNC_RETURN(true);
 }
 
-static void setupInstances(dsSceneVectorItemList* vectorList, const dsView* view,
-	uint32_t instanceCount)
+static void setupInstances(dsSceneVectorItemList* vectorList, const dsView* view)
 {
 	DS_PROFILE_FUNC_START();
 
 	for (uint32_t i = 0; i < vectorList->instanceDataCount; ++i)
 	{
 		dsSceneInstanceData_populateData(vectorList->instanceData[i], view, vectorList->instances,
-			instanceCount);
+			vectorList->entryCount);
 	}
 
 	DS_PROFILE_FUNC_RETURN_VOID();
@@ -257,7 +243,7 @@ static void sortItems(dsSceneVectorItemList* vectorList)
 	DS_PROFILE_FUNC_RETURN_VOID();
 }
 
-static void drawItems(dsSceneVectorItemList* vectorList, uint32_t drawItemCount, const dsView* view,
+static void drawItems(dsSceneVectorItemList* vectorList, const dsView* view,
 	dsCommandBuffer* commandBuffer)
 {
 	DS_PROFILE_FUNC_START();
@@ -268,7 +254,7 @@ static void drawItems(dsSceneVectorItemList* vectorList, uint32_t drawItemCount,
 		vectorList->hasRenderStates ? &vectorList->renderStates : NULL;
 	dsTextRenderBuffer* textRenderBuffer = vectorList->textRenderBuffer;
 
-	for (uint32_t i = 0; i < drawItemCount; ++i)
+	for (uint32_t i = 0; i < vectorList->entryCount; ++i)
 	{
 		const DrawItem* drawItem = vectorList->drawItems + i;
 		for (uint32_t j = 0; j < vectorList->instanceDataCount; ++j)
@@ -281,7 +267,8 @@ static void drawItems(dsSceneVectorItemList* vectorList, uint32_t drawItemCount,
 		{
 			case DrawType_Text:
 			{
-				const dsText* text = drawItem->text.text->text;
+				const dsTextLayout* layout = drawItem->text.layout;
+				const dsText* text = layout->text;
 				dsFont* font = text->font;
 				DS_CHECK(DS_VECTOR_DRAW_SCENE_LOG_TAG,
 					dsSharedMaterialValues_setTextureID(vectorList->instanceValues,
@@ -317,13 +304,13 @@ static void drawItems(dsSceneVectorItemList* vectorList, uint32_t drawItemCount,
 				{
 					uint32_t maxCharCount = text->characterCount - firstChar;
 					charCount = dsMin(charCount, maxCharCount);
-					if (!dsTextRenderBuffer_addTextRange(textRenderBuffer, drawItem->text.text,
+					if (!dsTextRenderBuffer_addTextRange(textRenderBuffer, layout,
 							drawItem->text.textUserData, firstChar, charCount))
 					{
 						DS_CHECK(DS_VECTOR_DRAW_SCENE_LOG_TAG,
 							dsTextRenderBuffer_draw(textRenderBuffer, commandBuffer));
 						DS_CHECK(DS_VECTOR_DRAW_SCENE_LOG_TAG,
-							dsTextRenderBuffer_addTextRange(textRenderBuffer, drawItem->text.text,
+							dsTextRenderBuffer_addTextRange(textRenderBuffer, layout,
 								drawItem->text.textUserData, firstChar, charCount));
 					}
 				}
@@ -572,26 +559,6 @@ uint64_t dsSceneVectorItemList_addNode(dsSceneItemList* itemList, dsSceneNode* n
 	entry->itemData = itemData;
 	entry->nodeID = modelList->nextNodeID++;
 
-	if (isText)
-	{
-		dsSceneTextNode* textNode = (dsSceneTextNode*)node;
-		entry->layout = dsTextLayout_create(itemList->allocator, textNode->text, textNode->styles,
-			textNode->styleCount);
-		if (!entry->layout)
-		{
-			--modelList->entryCount;
-			return DS_NO_SCENE_NODE;
-		}
-
-		// Force a re-layout the first time.
-		entry->layoutVersion = textNode->layoutVersion - 1;
-	}
-	else
-	{
-		entry->layout = NULL;
-		entry->layoutVersion = 0;
-	}
-
 	return entry->nodeID;
 }
 
@@ -602,8 +569,6 @@ void dsSceneVectorItemList_removeNode(dsSceneItemList* itemList, uint64_t nodeID
 	{
 		if (vectorList->entries[i].nodeID != nodeID)
 			continue;
-
-		dsTextLayout_destroy(vectorList->entries[i].layout);
 
 		// Order shouldn't matter, so use constant-time removal.
 		vectorList->entries[i] = vectorList->entries[vectorList->entryCount - 1];
@@ -619,12 +584,10 @@ void dsSceneVectorItemList_commit(dsSceneItemList* itemList, const dsView* view,
 	dsRenderer_pushDebugGroup(commandBuffer->renderer, commandBuffer, itemList->name);
 
 	dsSceneVectorItemList* vectorList = (dsSceneVectorItemList*)itemList;
-	uint32_t instanceCount = 0;
-	uint32_t drawItemCount = 0;
-	addInstances(itemList, commandBuffer);
-	setupInstances(vectorList, view, instanceCount);
+	addInstances(itemList);
+	setupInstances(vectorList, view);
 	sortItems(vectorList);
-	drawItems(vectorList, drawItemCount, view, commandBuffer);
+	drawItems(vectorList, view, commandBuffer);
 	cleanup(vectorList);
 
 	dsRenderer_popDebugGroup(commandBuffer->renderer, commandBuffer);
@@ -650,7 +613,7 @@ dsSceneVectorItemList* dsSceneVectorItemList_create(dsAllocator* allocator, cons
 		return NULL;
 	}
 
-	uint32_t valueCount = 0;
+	uint32_t valueCount = 1;
 	for (uint32_t i = 0; i < instanceDataCount; ++i)
 	{
 		if (!instanceData[i])
@@ -677,8 +640,7 @@ dsSceneVectorItemList* dsSceneVectorItemList_create(dsAllocator* allocator, cons
 	}
 
 	size_t nameLen = strlen(name);
-	size_t globalDataSize = instanceDataCount > 0 ?
-		dsSharedMaterialValues_fullAllocSize(instanceDataCount) : 0;
+	size_t globalDataSize = dsSharedMaterialValues_fullAllocSize(valueCount);
 	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsSceneVectorItemList)) +
 		DS_ALIGNED_SIZE(nameLen + 1) +
 		DS_ALIGNED_SIZE(sizeof(dsSceneInstanceData*)*instanceDataCount) + globalDataSize;
@@ -714,16 +676,12 @@ dsSceneVectorItemList* dsSceneVectorItemList_create(dsAllocator* allocator, cons
 	else
 		vectorList->hasRenderStates = false;
 
+	vectorList->instanceValues = dsSharedMaterialValues_create((dsAllocator*)&bufferAlloc,
+		valueCount);
+	DS_ASSERT(vectorList->instanceValues);
+
 	if (instanceDataCount > 0)
 	{
-		if (valueCount > 0)
-		{
-			vectorList->instanceValues = dsSharedMaterialValues_create((dsAllocator*)&bufferAlloc,
-				instanceDataCount);
-			DS_ASSERT(vectorList->instanceValues);
-		}
-		else
-			vectorList->instanceValues = NULL;
 		vectorList->instanceData = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsSceneInstanceData*,
 			instanceDataCount);
 		DS_ASSERT(vectorList->instanceData);
@@ -731,10 +689,7 @@ dsSceneVectorItemList* dsSceneVectorItemList_create(dsAllocator* allocator, cons
 			sizeof(dsSceneInstanceData*)*instanceDataCount);
 	}
 	else
-	{
-		vectorList->instanceValues = NULL;
 		vectorList->instanceData = NULL;
-	}
 	vectorList->instanceDataCount = instanceDataCount;
 
 	vectorList->entries = NULL;
@@ -774,9 +729,6 @@ void dsSceneVectorItemList_destroy(dsSceneVectorItemList* vectorList)
 {
 	if (!vectorList)
 		return;
-
-	for (uint32_t i = 0; i < vectorList->entryCount; ++i)
-		dsTextLayout_destroy(vectorList->entries[i].layout);
 
 	dsSceneItemList* itemList = (dsSceneItemList*)vectorList;
 	destroyInstanceData(vectorList->instanceData, vectorList->instanceDataCount);

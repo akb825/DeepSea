@@ -121,7 +121,7 @@ DS_VECTORDRAWSCENE_EXPORT void dsSceneVectorItemList_defaultTessGlyphDataFunc(vo
  * @param textRenderBufferInfo The info for creating a dsSceneTextRenderBuffer. If NULL, this won't
  *     support drawing text outside of dsVectorImage.
  * @param renderStates The render states to use, or NULL if no special render states are needed.
- * @return The model list or NULL if an error occurred.
+ * @return The vector item list or NULL if an error occurred.
  */
 DS_VECTORDRAWSCENE_EXPORT dsSceneVectorItemList* dsSceneVectorItemList_create(
 	dsAllocator* allocator, const char* name, dsResourceManager* resourceManager,

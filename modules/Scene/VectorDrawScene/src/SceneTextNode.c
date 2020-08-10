@@ -21,6 +21,7 @@
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Render/Resources/Material.h>
 #include <DeepSea/Scene/Nodes/SceneNode.h>
+#include <DeepSea/Text/TextLayout.h>
 #include <DeepSea/VectorDrawScene/SceneVectorNode.h>
 
 #include <string.h>
@@ -77,6 +78,10 @@ dsSceneTextNode* dsSceneTextNode_createBase(dsAllocator* allocator, size_t struc
 		return NULL;
 	}
 
+	dsTextLayout* layout = dsTextLayout_create(allocator, text, styles, styleCount);
+	if (!layout)
+		return NULL;
+
 	// Add the style array to the struct size to pool allocations.
 	size_t styleOffset = DS_ALIGNED_SIZE(structSize);
 	size_t finalStructSize = styleOffset + DS_ALIGNED_SIZE(sizeof(dsTextStyle)*styleCount);
@@ -84,12 +89,15 @@ dsSceneTextNode* dsSceneTextNode_createBase(dsAllocator* allocator, size_t struc
 	dsSceneTextNode* node = (dsSceneTextNode*)dsSceneVectorNode_create(
 		allocator, finalStructSize, z, itemLists, itemListCount, resources, resourceCount);
 	if (!node)
+	{
+		dsTextLayout_destroy(layout);
 		return NULL;
+	}
 
 	dsSceneNode* baseNode = (dsSceneNode*)node;
 	baseNode->type = dsSceneTextNode_setupParentType(NULL);
 
-	node->text = text;
+	node->layout = layout;
 	node->textUserData = textUserData;
 	node->shader = shader;
 	node->material = material;
@@ -103,6 +111,7 @@ dsSceneTextNode* dsSceneTextNode_createBase(dsAllocator* allocator, size_t struc
 	node->firstChar = firstChar;
 	node->charCount = charCount;
 	node->layoutVersion = 0;
+
 	return node;
 }
 
@@ -110,4 +119,11 @@ void dsSceneTextNode_updateLayout(dsSceneTextNode* node)
 {
 	if (node)
 		++node->layoutVersion;
+}
+
+void dsSceneTextNode_destroy(dsSceneNode* node)
+{
+	DS_ASSERT(dsSceneNode_isOfType(node, dsSceneTextNode_type()));
+	dsSceneTextNode* textNode = (dsSceneTextNode*)node;
+	dsTextLayout_destroy(textNode->layout);
 }

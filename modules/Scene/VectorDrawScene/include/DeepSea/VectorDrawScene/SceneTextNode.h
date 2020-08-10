@@ -114,7 +114,7 @@ DS_VECTORDRAWSCENE_EXPORT dsSceneTextNode* dsSceneTextNode_createBase(
 	uint32_t itemListCount, dsSceneResources** resources, uint32_t resourceCount);
 
 /**
- * @brief Triggers an update for layout when next drawn.
+ * @brief Triggers an update for layout when it's next updated.
  *
  * This should be called when the following changes:
  * - contents of the styles
@@ -125,6 +125,14 @@ DS_VECTORDRAWSCENE_EXPORT dsSceneTextNode* dsSceneTextNode_createBase(
  * @param node The node to update.
  */
 DS_VECTORDRAWSCENE_EXPORT void dsSceneTextNode_updateLayout(dsSceneTextNode* node);
+
+/**
+ * @brief Destroys a text node.
+ * @remark This should only be called as part of a subclass' destroy function, never to explicitly
+ *     a model node instance since nodes are reference counted.
+ * @param node The node to destroy.
+ */
+DS_VECTORDRAWSCENE_EXPORT void dsSceneTextNode_destroy(dsSceneNode* node);
 
 #ifdef __cplusplus
 }

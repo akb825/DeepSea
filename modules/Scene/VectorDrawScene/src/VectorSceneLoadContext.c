@@ -21,6 +21,7 @@
 #include "SceneVectorImageLoad.h"
 #include "SceneVectorImageNodeLoad.h"
 #include "SceneVectorItemListLoad.h"
+#include "SceneVectorPrepareListLoad.h"
 #include "VectorSceneResourcesLoad.h"
 #include "VectorSceneMaterialSetLoad.h"
 #include "VectorSceneShadersLoad.h"
@@ -38,6 +39,7 @@
 #include <DeepSea/VectorDrawScene/SceneVectorImage.h>
 #include <DeepSea/VectorDrawScene/SceneVectorImageNode.h>
 #include <DeepSea/VectorDrawScene/SceneVectorItemList.h>
+#include <DeepSea/VectorDrawScene/SceneVectorPrepareList.h>
 #include <DeepSea/VectorDrawScene/VectorSceneMaterialSet.h>
 #include <DeepSea/VectorDrawScene/VectorSceneResources.h>
 #include <DeepSea/VectorDrawScene/VectorSceneShaders.h>
@@ -220,6 +222,12 @@ bool dsVectorSceneLoadConext_registerTypes(dsSceneLoadContext* loadContext, dsAl
 			SceneVectorItemListUserData_destroy(userData);
 			return false;
 		}
+	}
+
+	if (!dsSceneLoadContext_registerItemListType(loadContext, dsSceneVectorPrepareList_typeName,
+			&dsSceneVectorPrepareList_load, NULL, NULL))
+	{
+		return false;
 	}
 
 	if (!dsSceneLoadContext_registerNodeType(loadContext, dsSceneTextNode_typeName,

@@ -126,7 +126,7 @@
 							"vectorShaders": "vectorShaders",
 							"material": "vectorMat",
 							"z": 0,
-							"itemLists": ["vectorList"]
+							"itemLists": ["vectorPrepareList", "vectorItemList"]
 						}
 					}
 				]
@@ -145,7 +145,7 @@
 				"material": "textMat",
 				"fontTextureName": "fontTex",
 				"z": 1,
-				"itemLists": ["vectorList"]
+				"itemLists": ["vectorPrepareList", "vectorItemList"]
 			}
 		},
 		{

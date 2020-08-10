@@ -1,4 +1,5 @@
 {
+	"sharedItems": [[{"type": "VectorPrepareList", "name": "vectorPrepareList"}]],
 	"pipeline":
 	[
 		{

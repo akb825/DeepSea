@@ -23,6 +23,7 @@ from DeepSeaScene.Convert.ConvertContext import ConvertContext
 from DeepSeaScene.Convert.SceneConvert import convertScene
 
 from DeepSeaVectorDrawScene.Convert.VectorItemListConvert import convertVectorItemList
+from DeepSeaVectorDrawScene.Convert.VectorPrepareListConvert import convertVectorPrepareList
 
 if __name__ == '__main__':
 	parser = argparse.ArgumentParser(description =
@@ -41,6 +42,7 @@ if __name__ == '__main__':
 
 	# Vector draw scene types.
 	convertContext.addItemListType('VectorItemList', convertVectorItemList)
+	convertContext.addItemListType('VectorPrepareList', convertVectorPrepareList)
 
 	for extension in args.extensions:
 		import_module(extension).deepSeaSceneExtension(convertContext)
