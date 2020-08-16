@@ -55,29 +55,40 @@ class VectorImageNode(object):
         return None
 
     # VectorImageNode
-    def Z(self):
+    def Size(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
+        if o != 0:
+            x = o + self._tab.Pos
+            from DeepSeaScene.Vector2f import Vector2f
+            obj = Vector2f()
+            obj.Init(self._tab.Bytes, x)
+            return obj
+        return None
+
+    # VectorImageNode
+    def Z(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(10))
         if o != 0:
             return self._tab.Get(flatbuffers.number_types.Int32Flags, o + self._tab.Pos)
         return 0
 
     # VectorImageNode
     def VectorShaders(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(10))
-        if o != 0:
-            return self._tab.String(o + self._tab.Pos)
-        return None
-
-    # VectorImageNode
-    def Material(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(12))
         if o != 0:
             return self._tab.String(o + self._tab.Pos)
         return None
 
     # VectorImageNode
-    def ItemLists(self, j):
+    def Material(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(14))
+        if o != 0:
+            return self._tab.String(o + self._tab.Pos)
+        return None
+
+    # VectorImageNode
+    def ItemLists(self, j):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(16))
         if o != 0:
             a = self._tab.Vector(o)
             return self._tab.String(a + flatbuffers.number_types.UOffsetTFlags.py_type(j * 4))
@@ -85,23 +96,24 @@ class VectorImageNode(object):
 
     # VectorImageNode
     def ItemListsLength(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(14))
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(16))
         if o != 0:
             return self._tab.VectorLen(o)
         return 0
 
     # VectorImageNode
     def ItemListsIsNone(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(14))
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(16))
         return o == 0
 
-def VectorImageNodeStart(builder): builder.StartObject(6)
+def VectorImageNodeStart(builder): builder.StartObject(7)
 def VectorImageNodeAddEmbeddedResources(builder, embeddedResources): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(embeddedResources), 0)
 def VectorImageNodeStartEmbeddedResourcesVector(builder, numElems): return builder.StartVector(1, numElems, 1)
 def VectorImageNodeAddVectorImage(builder, vectorImage): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(vectorImage), 0)
-def VectorImageNodeAddZ(builder, z): builder.PrependInt32Slot(2, z, 0)
-def VectorImageNodeAddVectorShaders(builder, vectorShaders): builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(vectorShaders), 0)
-def VectorImageNodeAddMaterial(builder, material): builder.PrependUOffsetTRelativeSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(material), 0)
-def VectorImageNodeAddItemLists(builder, itemLists): builder.PrependUOffsetTRelativeSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(itemLists), 0)
+def VectorImageNodeAddSize(builder, size): builder.PrependStructSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(size), 0)
+def VectorImageNodeAddZ(builder, z): builder.PrependInt32Slot(3, z, 0)
+def VectorImageNodeAddVectorShaders(builder, vectorShaders): builder.PrependUOffsetTRelativeSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(vectorShaders), 0)
+def VectorImageNodeAddMaterial(builder, material): builder.PrependUOffsetTRelativeSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(material), 0)
+def VectorImageNodeAddItemLists(builder, itemLists): builder.PrependUOffsetTRelativeSlot(6, flatbuffers.number_types.UOffsetTFlags.py_type(itemLists), 0)
 def VectorImageNodeStartItemListsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
 def VectorImageNodeEnd(builder): return builder.EndObject()

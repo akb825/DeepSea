@@ -27,7 +27,7 @@
 			{
 				"image": "@assetsDir@/Ghostscript_Tiger.dsvi",
 				"vectorShaders": "vectorShaders",
-				"size": [50, 50]
+				"targetSize": [150, 150]
 			}
 		},
 		{
@@ -37,7 +37,7 @@
 			{
 				"vectorResources": "resources",
 				"font": "sans-serif",
-				"text": "<text font-size=\"16\" fill=\"white\"><tspan font-style=\"italic\">Figure ${tigerNum}:</tspan> an SVG tiger.</text>"
+				"text": "<text font-size=\"16\" fill=\"black\"><tspan font-style=\"italic\">Figure ${tigerNum}:</tspan> an SVG tiger.</text>"
 			}
 		}
 	],
@@ -113,7 +113,7 @@
 				[
 					{
 						"type": "Translate",
-						"value": [-25, 25, 0]
+						"value": [-75, -60, 0]
 					}
 				],
 				"children":
@@ -125,6 +125,7 @@
 							"vectorImage": "tiger",
 							"vectorShaders": "vectorShaders",
 							"material": "vectorMat",
+							"size": [150, 150],
 							"z": 0,
 							"itemLists": ["vectorPrepareList", "vectorItemList"]
 						}
@@ -139,7 +140,7 @@
 			{
 				"text": "figure",
 				"alignment": "Center",
-				"maxWidth": 30,
+				"maxWidth": 100,
 				"lineScale": 1.2,
 				"shader": "textShader",
 				"material": "textMat",
@@ -157,7 +158,7 @@
 				[
 					{
 						"type": "Translate",
-						"value": [0, -41, 0] 
+						"value": [0, -76, 0] 
 					}
 				],
 				"children":

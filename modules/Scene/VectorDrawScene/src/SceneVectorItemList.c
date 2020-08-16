@@ -74,6 +74,7 @@ typedef struct ImageInfo
 {
 	const dsVectorShaders* shaders;
 	const dsVectorImage* image;
+	dsVector2f size;
 } ImageInfo;
 
 typedef struct DrawItem
@@ -193,6 +194,7 @@ static bool addInstances(dsSceneItemList* itemList)
 			drawItem->material = node->material;
 			drawItem->image.image = node->vectorImage;
 			drawItem->image.shaders = node->shaders;
+			drawItem->image.size = node->size;
 			drawItem->material = node->material;
 		}
 
@@ -318,9 +320,20 @@ static void drawItems(dsSceneVectorItemList* vectorList, const dsView* view,
 					lastTextMaterial = NULL;
 				}
 
+				dsVector2f imageSize;
+				DS_VERIFY(dsVectorImage_getSize(&imageSize, drawItem->image.image));
+
+				dsMatrix44f scale;
+				dsMatrix44f_makeScale(&scale, drawItem->image.size.x/imageSize.x,
+					drawItem->image.size.y/imageSize.y, 1.0f);
+
+				dsMatrix44f transform;
+				dsMatrix44_mul(transform, vectorList->instances[drawItem->instance].transform,
+					scale);
+
 				dsMatrix44f modelViewProjection;
-				dsMatrix44_mul(modelViewProjection, view->viewProjectionMatrix,
-					vectorList->instances[drawItem->instance].transform);
+				dsMatrix44_mul(modelViewProjection, view->viewProjectionMatrix, transform);
+
 				DS_CHECK(DS_VECTOR_DRAW_SCENE_LOG_TAG,
 					dsVectorImage_draw(drawItem->image.image, commandBuffer,
 						drawItem->image.shaders, drawItem->material, &modelViewProjection,

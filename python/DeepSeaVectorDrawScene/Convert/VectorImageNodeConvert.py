@@ -14,6 +14,7 @@
 
 import flatbuffers
 from DeepSeaScene.Convert.SceneResourcesConvert import convertSceneResources
+from DeepSeaScene.Vector2f import *
 from ..VectorImageNode import *
 
 def convertVectorImageNode(convertContext, data):
@@ -22,6 +23,8 @@ def convertVectorImageNode(convertContext, data):
 	- embeddedResources: optional set of resources to embed with the node. This is a map containing
 	  the elements as expected by SceneResourcesConvert.convertSceneResources().
 	- vectorImage: the name of the vector image to draw.
+	- size: the size to draw the vector image as an array of two floats. Defaults to the original
+	  image size.
 	- z: the Z value used for sorting text and vector elements as a signed int.
 	- vectorShaders: the name of the vector shaders to draw with.
 	- material: the name of the material to draw with.
@@ -37,6 +40,17 @@ def convertVectorImageNode(convertContext, data):
 		embeddedResources = data.get('embeddedResources', dict())
 		if not isinstance(embeddedResources, dict):
 			raise Exception ('TextNode "embeddedResources" must be an object.')
+
+		size = data.get('size')
+		print(size)
+		if size:
+			try:
+				if len(size) != 2:
+					raise Exception() # Common error handling in except block.
+				size[0] = float(size[0])
+				size[1] = float(size[1])
+			except:
+				raise Exception('Invalid vector image node size "' + str(size) + '".')
 
 		vectorImage = str(data['vectorImage'])
 		z = readInt(data['z'], 'z')
@@ -77,6 +91,13 @@ def convertVectorImageNode(convertContext, data):
 	VectorImageNodeStart(builder)
 	VectorImageNodeAddEmbeddedResources(builder, embeddedResourcesOffset)
 	VectorImageNodeAddVectorImage(builder, vectorImageOffset)
+
+	if size:
+		sizeOffset = CreateVector2f(builder, size[0], size[1])
+	else:
+		sizeOffset = 0
+	VectorImageNodeAddSize(builder, sizeOffset)
+
 	VectorImageNodeAddZ(builder, z)
 	VectorImageNodeAddVectorShaders(builder, vectorShadersOffset)
 	VectorImageNodeAddMaterial(builder, materialOffset)

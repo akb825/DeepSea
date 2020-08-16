@@ -47,7 +47,7 @@ void* dsSceneVectorImage_load(const dsSceneLoadContext* loadContext,
 	auto vectorImageUserData = reinterpret_cast<SceneVectorImageUserData*>(userData);
 	auto fbVectorImage = DeepSeaVectorDrawScene::GetVectorImage(data);
 
-	auto fbSize = fbVectorImage->size();
+	auto fbSize = fbVectorImage->targetSize();
 	dsVector2f size;
 	bool hasSize = false;
 	if (fbSize)
@@ -141,7 +141,6 @@ void* dsSceneVectorImage_load(const dsSceneLoadContext* loadContext,
 		resourceCount,
 		fbVectorImage->srgb()
 	};
-
 
 	dsVectorImage* vectorImage;
 	if (auto fileRef = fbVectorImage->image_as_FileReference())

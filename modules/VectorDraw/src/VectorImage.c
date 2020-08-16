@@ -843,8 +843,8 @@ dsVectorImage* dsVectorImage_create(dsAllocator* allocator, dsAllocator* resourc
 {
 	DS_PROFILE_FUNC_START();
 
-	if (!allocator || !initResourcesValid(initResources) || !commands || commandCount == 0 || !size
-		|| size->x <= 0.0f || size->y <= 0.0f || pixelSize <= 0.0f)
+	if (!allocator || !initResourcesValid(initResources) || !commands || commandCount == 0 ||
+		!size || size->x <= 0.0f || size->y <= 0.0f || pixelSize <= 0.0f)
 	{
 		errno = EINVAL;
 		DS_PROFILE_FUNC_RETURN(NULL);

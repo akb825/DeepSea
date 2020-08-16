@@ -619,7 +619,7 @@ static void createText(TestText* testText, dsCommandBuffer* commandBuffer)
 			DS_PROFILE_FUNC_RETURN_VOID();
 		}
 		if (!dsTextLayout_layout(testText->tessText, commandBuffer, textStrings[index].alignment,
-			textStrings[index].maxWidth, textStrings[index].lineScale))
+				textStrings[index].maxWidth, textStrings[index].lineScale))
 		{
 			DS_LOG_ERROR_F("TestText", "Couldn't layout text: %s", dsErrorString(errno));
 			DS_PROFILE_FUNC_RETURN_VOID();
@@ -985,7 +985,7 @@ static bool setupText(TestText* testText, dsTextQuality quality, const char* fon
 		fontPath = path;
 	}
 	if (!dsFaceGroup_loadFaceResource(testText->faceGroup, allocator, dsFileResourceType_Embedded,
-		fontPath, "Latin"))
+			fontPath, "Latin"))
 	{
 		DS_LOG_ERROR_F("TestText", "Couldn't load font face: %s", dsErrorString(errno));
 		DS_PROFILE_FUNC_RETURN(false);

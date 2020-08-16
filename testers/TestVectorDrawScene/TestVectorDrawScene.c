@@ -281,7 +281,7 @@ static bool setup(TestVectorDrawScene* testVectorDrawScene, dsApplication* appli
 		NULL
 	};
 
-	float pixelSize = (float)testVectorDrawScene->window->surface->height/200.0f;
+	float pixelSize = 200.0f/(float)testVectorDrawScene->window->surface->height;
 	if (!dsVectorSceneLoadConext_registerTypes(loadContext, allocator,
 			testVectorDrawScene->initCommandBuffer, NULL, substitutionTable, &textRenderInfo,
 			pixelSize))

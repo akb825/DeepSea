@@ -18,7 +18,7 @@ struct VectorImage FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_IMAGE_TYPE = 4,
     VT_IMAGE = 6,
-    VT_SIZE = 8,
+    VT_TARGETSIZE = 8,
     VT_SHAREDMATERIALS = 10,
     VT_VECTORSHADERS = 12,
     VT_RESOURCES = 14,
@@ -37,8 +37,8 @@ struct VectorImage FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const DeepSeaScene::RawData *image_as_RawData() const {
     return image_type() == DeepSeaScene::FileOrData::RawData ? static_cast<const DeepSeaScene::RawData *>(image()) : nullptr;
   }
-  const DeepSeaScene::Vector2f *size() const {
-    return GetStruct<const DeepSeaScene::Vector2f *>(VT_SIZE);
+  const DeepSeaScene::Vector2f *targetSize() const {
+    return GetStruct<const DeepSeaScene::Vector2f *>(VT_TARGETSIZE);
   }
   const flatbuffers::String *sharedMaterials() const {
     return GetPointer<const flatbuffers::String *>(VT_SHAREDMATERIALS);
@@ -57,7 +57,7 @@ struct VectorImage FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            VerifyField<uint8_t>(verifier, VT_IMAGE_TYPE) &&
            VerifyOffsetRequired(verifier, VT_IMAGE) &&
            VerifyFileOrData(verifier, image(), image_type()) &&
-           VerifyField<DeepSeaScene::Vector2f>(verifier, VT_SIZE) &&
+           VerifyField<DeepSeaScene::Vector2f>(verifier, VT_TARGETSIZE) &&
            VerifyOffset(verifier, VT_SHAREDMATERIALS) &&
            verifier.VerifyString(sharedMaterials()) &&
            VerifyOffsetRequired(verifier, VT_VECTORSHADERS) &&
@@ -88,8 +88,8 @@ struct VectorImageBuilder {
   void add_image(flatbuffers::Offset<void> image) {
     fbb_.AddOffset(VectorImage::VT_IMAGE, image);
   }
-  void add_size(const DeepSeaScene::Vector2f *size) {
-    fbb_.AddStruct(VectorImage::VT_SIZE, size);
+  void add_targetSize(const DeepSeaScene::Vector2f *targetSize) {
+    fbb_.AddStruct(VectorImage::VT_TARGETSIZE, targetSize);
   }
   void add_sharedMaterials(flatbuffers::Offset<flatbuffers::String> sharedMaterials) {
     fbb_.AddOffset(VectorImage::VT_SHAREDMATERIALS, sharedMaterials);
@@ -121,7 +121,7 @@ inline flatbuffers::Offset<VectorImage> CreateVectorImage(
     flatbuffers::FlatBufferBuilder &_fbb,
     DeepSeaScene::FileOrData image_type = DeepSeaScene::FileOrData::NONE,
     flatbuffers::Offset<void> image = 0,
-    const DeepSeaScene::Vector2f *size = 0,
+    const DeepSeaScene::Vector2f *targetSize = 0,
     flatbuffers::Offset<flatbuffers::String> sharedMaterials = 0,
     flatbuffers::Offset<flatbuffers::String> vectorShaders = 0,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>> resources = 0,
@@ -130,7 +130,7 @@ inline flatbuffers::Offset<VectorImage> CreateVectorImage(
   builder_.add_resources(resources);
   builder_.add_vectorShaders(vectorShaders);
   builder_.add_sharedMaterials(sharedMaterials);
-  builder_.add_size(size);
+  builder_.add_targetSize(targetSize);
   builder_.add_image(image);
   builder_.add_srgb(srgb);
   builder_.add_image_type(image_type);
@@ -141,7 +141,7 @@ inline flatbuffers::Offset<VectorImage> CreateVectorImageDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     DeepSeaScene::FileOrData image_type = DeepSeaScene::FileOrData::NONE,
     flatbuffers::Offset<void> image = 0,
-    const DeepSeaScene::Vector2f *size = 0,
+    const DeepSeaScene::Vector2f *targetSize = 0,
     const char *sharedMaterials = nullptr,
     const char *vectorShaders = nullptr,
     const std::vector<flatbuffers::Offset<flatbuffers::String>> *resources = nullptr,
@@ -153,7 +153,7 @@ inline flatbuffers::Offset<VectorImage> CreateVectorImageDirect(
       _fbb,
       image_type,
       image,
-      size,
+      targetSize,
       sharedMaterials__,
       vectorShaders__,
       resources__,

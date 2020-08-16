@@ -28,6 +28,9 @@ table VectorImageNode
 	// The name of the vector image.
 	vectorImage : string (required);
 
+	// The size to draw the image as.
+	size : DeepSeaScene.Vector2f;
+
 	// The Z value used for sorting text and vector elements.
 	z : int;
 

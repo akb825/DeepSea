@@ -38,7 +38,7 @@ class VectorImage(object):
         return None
 
     # VectorImage
-    def Size(self):
+    def TargetSize(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
         if o != 0:
             x = o + self._tab.Pos
@@ -92,7 +92,7 @@ class VectorImage(object):
 def VectorImageStart(builder): builder.StartObject(7)
 def VectorImageAddImageType(builder, imageType): builder.PrependUint8Slot(0, imageType, 0)
 def VectorImageAddImage(builder, image): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(image), 0)
-def VectorImageAddSize(builder, size): builder.PrependStructSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(size), 0)
+def VectorImageAddTargetSize(builder, targetSize): builder.PrependStructSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(targetSize), 0)
 def VectorImageAddSharedMaterials(builder, sharedMaterials): builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(sharedMaterials), 0)
 def VectorImageAddVectorShaders(builder, vectorShaders): builder.PrependUOffsetTRelativeSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(vectorShaders), 0)
 def VectorImageAddResources(builder, resources): builder.PrependUOffsetTRelativeSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(resources), 0)

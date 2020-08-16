@@ -73,6 +73,15 @@ dsSceneNode* dsSceneVectorImageNode_load(const dsSceneLoadContext* loadContext,
 	const char** itemLists = nullptr;
 	uint32_t itemListCount = 0;
 
+	auto fbSize = fbVectorImageNode->size();
+	dsVector2f size;
+	bool hasSize = false;
+	if (fbSize)
+	{
+		size = DeepSeaScene::convert(*fbSize);
+		hasSize = true;
+	}
+
 	dsSceneResourceType resourceType;
 	dsCustomSceneResource* customResource;
 	if (!dsSceneLoadScratchData_findResource(&resourceType,
@@ -132,8 +141,8 @@ dsSceneNode* dsSceneVectorImageNode_load(const dsSceneLoadContext* loadContext,
 	// NOTE: May need to add more resources to the reference count later. Don't add all resources
 	// since it would make circular references.
 	node = reinterpret_cast<dsSceneNode*>(dsSceneVectorImageNode_create(allocator, vectorImage,
-		fbVectorImageNode->z(), vectorShaders, material, itemLists, itemListCount,
-		&embeddedResources, embeddedResources ? 1 : 0));
+		hasSize ? &size : nullptr, fbVectorImageNode->z(), vectorShaders, material, itemLists,
+		itemListCount, &embeddedResources, embeddedResources ? 1 : 0));
 
 finished:
 	if (embeddedResources)

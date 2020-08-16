@@ -113,6 +113,11 @@ typedef struct dsSceneVectorImageNode
 	dsVectorImage* vectorImage;
 
 	/**
+	 * @brief The size to draw the image as.
+	 */
+	dsVector2f size;
+
+	/**
 	 * @brief The vector shaders to draw with.
 	 */
 	const dsVectorShaders* shaders;

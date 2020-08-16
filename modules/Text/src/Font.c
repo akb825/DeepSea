@@ -600,7 +600,7 @@ bool dsFont_applyHintingAndAntiAliasing(const dsFont* font, dsTextStyle* style, 
 		style->outlineThickness += embolding*0.5f;
 	}
 
-	t = 1.0f/sqrtf(pixels*style->scale);
+	t = 1.0f/pixels;
 	style->antiAlias = t*antiAliasFactor;
 	return true;
 }

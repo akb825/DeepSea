@@ -18,6 +18,7 @@
 
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Scene/Nodes/SceneNode.h>
+#include <DeepSea/VectorDraw/VectorImage.h>
 #include <DeepSea/VectorDrawScene/SceneVectorNode.h>
 
 const char* const dsSceneVectorImageNode_typeName = "VectorImageNode";
@@ -35,18 +36,18 @@ const dsSceneNodeType* dsSceneVectorImageNode_setupParentType(dsSceneNodeType* t
 }
 
 dsSceneVectorImageNode* dsSceneVectorImageNode_create(dsAllocator* allocator,
-	dsVectorImage* vectorImage, int32_t z, const dsVectorShaders* shaders, dsMaterial* material,
-	const char** itemLists, uint32_t itemListCount, dsSceneResources** resources,
-	uint32_t resourceCount)
+	dsVectorImage* vectorImage, const dsVector2f* size, int32_t z, const dsVectorShaders* shaders,
+	dsMaterial* material, const char** itemLists, uint32_t itemListCount,
+	dsSceneResources** resources, uint32_t resourceCount)
 {
 	return dsSceneVectorImageNode_createBase(allocator, sizeof(dsSceneVectorImageNode), vectorImage,
-		z, shaders, material, itemLists, itemListCount, resources, resourceCount);
+		size, z, shaders, material, itemLists, itemListCount, resources, resourceCount);
 }
 
 dsSceneVectorImageNode* dsSceneVectorImageNode_createBase(dsAllocator* allocator, size_t structSize,
-	dsVectorImage* vectorImage, int32_t z, const dsVectorShaders* shaders, dsMaterial* material,
-	const char** itemLists, uint32_t itemListCount, dsSceneResources** resources,
-	uint32_t resourceCount)
+	dsVectorImage* vectorImage, const dsVector2f* size, int32_t z, const dsVectorShaders* shaders,
+	dsMaterial* material, const char** itemLists, uint32_t itemListCount,
+	dsSceneResources** resources, uint32_t resourceCount)
 {
 	if (!vectorImage || !shaders || !material)
 	{
@@ -63,6 +64,10 @@ dsSceneVectorImageNode* dsSceneVectorImageNode_createBase(dsAllocator* allocator
 	baseNode->type = dsSceneVectorImageNode_setupParentType(NULL);
 
 	node->vectorImage = vectorImage;
+	if (size)
+		node->size = *size;
+	else
+		dsVectorImage_getSize(&node->size, node->vectorImage);
 	node->shaders = shaders;
 	node->material = material;
 	return node;

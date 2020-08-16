@@ -55,6 +55,7 @@ DS_VECTORDRAWSCENE_EXPORT const dsSceneNodeType* dsSceneVectorImageNode_setupPar
  * @remark errno will be set on failure.
  * @param allocator The allocator to create the vector image node with.
  * @param vectorImage The vector image to draw.
+ * @param size The size of the image, or NULL to use the default size.
  * @param z The Z value used for sorting vector nodes.
  * @param shaders The vector shaders to draw with.
  * @param material The material to draw with.
@@ -65,15 +66,16 @@ DS_VECTORDRAWSCENE_EXPORT const dsSceneNodeType* dsSceneVectorImageNode_setupPar
  * @return The vector image node or NULL if an error occurred.
  */
 DS_VECTORDRAWSCENE_EXPORT dsSceneVectorImageNode* dsSceneVectorImageNode_create(
-	dsAllocator* allocator, dsVectorImage* vectorImage, int32_t z, const dsVectorShaders* shaders,
-	dsMaterial* material, const char** itemLists, uint32_t itemListCount,
-	dsSceneResources** resources, uint32_t resourceCount);
+	dsAllocator* allocator, dsVectorImage* vectorImage, const dsVector2f* size, int32_t z,
+	const dsVectorShaders* shaders, dsMaterial* material, const char** itemLists,
+	uint32_t itemListCount, dsSceneResources** resources, uint32_t resourceCount);
 
 /**
  * @brief Creates a vector image node as a base class of another node type.
  * @remark errno will be set on failure.
  * @param allocator The allocator to create the model node with.
  * @param structSize The size of the struct.
+ * @param size The size of the image, or NULL to use the default size.
  * @param z The Z value used for sorting vector nodes.
  * @param vectorImage The vector image to draw.
  * @param shaders The vector shaders to draw with.
@@ -85,8 +87,8 @@ DS_VECTORDRAWSCENE_EXPORT dsSceneVectorImageNode* dsSceneVectorImageNode_create(
  * @return The vector image node or NULL if an error occurred.
  */
 DS_VECTORDRAWSCENE_EXPORT dsSceneVectorImageNode* dsSceneVectorImageNode_createBase(
-	dsAllocator* allocator, size_t structSize, dsVectorImage* vectorImage, int32_t z,
-	const dsVectorShaders* shaders, dsMaterial* material, const char** itemLists,
+	dsAllocator* allocator, size_t structSize, dsVectorImage* vectorImage, const dsVector2f* size,
+	int32_t z, const dsVectorShaders* shaders, dsMaterial* material, const char** itemLists,
 	uint32_t itemListCount, dsSceneResources** resources, uint32_t resourceCount);
 
 #ifdef __cplusplus

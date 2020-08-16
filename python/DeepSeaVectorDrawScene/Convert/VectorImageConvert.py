@@ -27,8 +27,8 @@ def convertVectorImage(convertContext, data):
 	  before adding the reference.
 	- resourceType: the resource type. See the dsFileResourceType for values, removing the type
 	  prefix. Defaults to "Embedded".
-	- size: the size of the vector image as an array of two floats. Defaults to the original image
-	  size.
+	- targetSize: the target size of the vector image for the tessellation quality as an array of
+	  two floats. Defaults to the original image size.
 	- sharedMaterials: the name of the vector material set for shared material data.
 	- vectorShaders: the name of the vector material set for shared material data.
 	- vectorResources: list of strings for the names of the vector resources to get textures and
@@ -47,7 +47,7 @@ def convertVectorImage(convertContext, data):
 		imageType, imageOffset = convertFileOrData(builder, imagePath, imageContents,
 			data.get('output'), data.get('outputRelativeDir'), data.get('resourceType'))
 
-		size = data.get('size')
+		size = data.get('targetSize')
 		if size:
 			try:
 				if len(size) != 2:
@@ -55,7 +55,7 @@ def convertVectorImage(convertContext, data):
 				size[0] = float(size[0])
 				size[1] = float(size[1])
 			except:
-				raise Exception('Invalid vector image size "' + str(size) + '".')
+				raise Exception('Invalid vector image target size "' + str(size) + '".')
 
 		sharedMaterials = str(data.get('sharedMaterials', ''))
 		shaders = str(data['vectorShaders'])
@@ -68,11 +68,6 @@ def convertVectorImage(convertContext, data):
 		raise Exception('VectorImage doesn\'t contain element "' + str(e) + '".')
 	except (AttributeError, TypeError, ValueError):
 		raise Exception('VectorImage must be an object.')
-
-	if size:
-		sizeOffset = CreateVector2f(builder, size[0], size[1])
-	else:
-		sizeOffset = 0
 
 	if sharedMaterials:
 		sharedMaterialsOffset = builder.CreateString(sharedMaterials)
@@ -93,6 +88,13 @@ def convertVectorImage(convertContext, data):
 	VectorImageStart(builder)
 	VectorImageAddImageType(builder, imageType)
 	VectorImageAddImage(builder, imageOffset)
+
+	if size:
+		sizeOffset = CreateVector2f(builder, size[0], size[1])
+	else:
+		sizeOffset = 0
+	VectorImageAddTargetSize(builder, sizeOffset)
+
 	VectorImageAddSharedMaterials(builder, sharedMaterialsOffset)
 	VectorImageAddVectorShaders(builder, shadersOffset)
 	VectorImageAddResources(builder, resourcesOffset)

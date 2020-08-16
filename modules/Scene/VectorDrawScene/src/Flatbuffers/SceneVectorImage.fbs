@@ -24,8 +24,8 @@ table VectorImage
 	// Reference to the vector image file or embedded data.
 	image : DeepSeaScene.FileOrData (required);
 
-	// The size of the image.
-	size : DeepSeaScene.Vector2f;
+	// The target size of the image for the tessellation quality.
+	targetSize : DeepSeaScene.Vector2f;
 
 	// The name of the vector material set for shared material data.
 	sharedMaterials : string;

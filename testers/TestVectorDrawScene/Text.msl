@@ -52,8 +52,9 @@ void vertexShader()
 	vfTexCoords = texCoords;
 	vfStyle = style;
 
+	// Text coordinate space has +Y pointing down.
 	gl_Position = DS_ADJUST_CLIP(INSTANCE(dsInstanceTransform).worldViewProj*
-		vec4(vertexPos, 0.0, 1.0));
+		vec4(vertexPos.x, -vertexPos.y, 0.0, 1.0));
 }
 
 [[fragment]]
