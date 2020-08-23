@@ -316,7 +316,7 @@ static void updateWindowSamples(dsApplication* application)
 			dsSDLWindow_raise(application, window);
 
 		dsEvent event;
-		event.type = dsEventType_SurfaceInvalidated;
+		event.type = dsAppEventType_SurfaceInvalidated;
 		dsApplication_dispatchEvent(application, window, &event);
 	}
 }
@@ -333,7 +333,7 @@ static void invalidateWindowSurfaces(dsApplication* application)
 		dsSDLWindow_createSurfaceInternal(window, surfaceName);
 
 		dsEvent event;
-		event.type = dsEventType_SurfaceInvalidated;
+		event.type = dsAppEventType_SurfaceInvalidated;
 		dsApplication_dispatchEvent(application, window, &event);
 	}
 }
@@ -405,7 +405,7 @@ int dsSDLApplication_run(dsApplication* application)
 				sdlWindow->curHeight = newHeight;
 
 				dsEvent event;
-				event.type = dsEventType_WindowResized;
+				event.type = dsAppEventType_WindowResized;
 				event.resize.width = window->surface->width;
 				event.resize.height = window->surface->height;
 				dsApplication_dispatchEvent(application, window, &event);
@@ -423,16 +423,16 @@ int dsSDLApplication_run(dsApplication* application)
 				case SDL_APP_TERMINATING:
 					return sdlApplication->exitCode;
 				case SDL_APP_WILLENTERBACKGROUND:
-					event.type = dsEventType_WillEnterBackground;
+					event.type = dsAppEventType_WillEnterBackground;
 					break;
 				case SDL_APP_DIDENTERBACKGROUND:
-					event.type = dsEventType_DidEnterBackground;
+					event.type = dsAppEventType_DidEnterBackground;
 					break;
 				case SDL_APP_WILLENTERFOREGROUND:
-					event.type = dsEventType_WillEnterForeground;
+					event.type = dsAppEventType_WillEnterForeground;
 					break;
 				case SDL_APP_DIDENTERFOREGROUND:
-					event.type = dsEventType_DidEnterForeground;
+					event.type = dsAppEventType_DidEnterForeground;
 #if DS_ANDROID
 					invalidateWindowSurfaces(application);
 					// Make sure invalidated surfaces fully go through the GPU.
@@ -447,34 +447,34 @@ int dsSDLApplication_run(dsApplication* application)
 					switch (sdlEvent.window.event)
 					{
 						case SDL_WINDOWEVENT_SHOWN:
-							event.type = dsEventType_WindowShown;
+							event.type = dsAppEventType_WindowShown;
 							break;
 						case SDL_WINDOWEVENT_HIDDEN:
-							event.type = dsEventType_WindowHidden;
+							event.type = dsAppEventType_WindowHidden;
 							break;
 						case SDL_WINDOWEVENT_MINIMIZED:
-							event.type = dsEventType_WindowMinimized;
+							event.type = dsAppEventType_WindowMinimized;
 							break;
 						case SDL_WINDOWEVENT_RESTORED:
-							event.type = dsEventType_WindowRestored;
+							event.type = dsAppEventType_WindowRestored;
 							break;
 						case SDL_WINDOWEVENT_ENTER:
-							event.type = dsEventType_MouseEntered;
+							event.type = dsAppEventType_MouseEntered;
 							break;
 						case SDL_WINDOWEVENT_LEAVE:
-							event.type = dsEventType_MouseLeft;
+							event.type = dsAppEventType_MouseLeft;
 							break;
 						case SDL_WINDOWEVENT_FOCUS_GAINED:
-							event.type = dsEventType_FocusGained;
+							event.type = dsAppEventType_FocusGained;
 							break;
 						case SDL_WINDOWEVENT_FOCUS_LOST:
-							event.type = dsEventType_FocusLost;
+							event.type = dsAppEventType_FocusLost;
 							break;
 						case SDL_WINDOWEVENT_CLOSE:
 							if (!window->closeFunc ||
 								window->closeFunc(window, window->closeUserData))
 							{
-								event.type = dsEventType_WindowClosed;
+								event.type = dsAppEventType_WindowClosed;
 								dsWindow_setHidden(window, true);
 							}
 							else
@@ -487,15 +487,15 @@ int dsSDLApplication_run(dsApplication* application)
 				}
 				case SDL_KEYDOWN:
 				case SDL_KEYUP:
-					event.type = sdlEvent.type == SDL_KEYDOWN ? dsEventType_KeyDown :
-						dsEventType_KeyUp;
+					event.type = sdlEvent.type == SDL_KEYDOWN ? dsAppEventType_KeyDown :
+						dsAppEventType_KeyUp;
 					event.key.key = dsFromSDLScancode(sdlEvent.key.keysym.scancode);
 					event.key.modifiers = dsFromSDLKeyMod((SDL_Keymod)sdlEvent.key.keysym.mod);
 					event.key.repeat = sdlEvent.key.repeat != 0;
 					break;
 				case SDL_TEXTEDITING:
 				{
-					event.type = dsEventType_TextEdit;
+					event.type = dsAppEventType_TextEdit;
 					event.textEdit.cursor = sdlEvent.edit.start;
 					event.textEdit.selectionLength = sdlEvent.edit.length;
 					_Static_assert(sizeof(event.textEdit.text) >= sizeof(sdlEvent.edit.text),
@@ -505,7 +505,7 @@ int dsSDLApplication_run(dsApplication* application)
 				}
 				case SDL_TEXTINPUT:
 				{
-					event.type = dsEventType_TextInput;
+					event.type = dsAppEventType_TextInput;
 					_Static_assert(sizeof(event.textInput.text) >= sizeof(sdlEvent.text.text),
 						"Invalid SDL text size.");
 					memcpy(event.textInput.text, sdlEvent.text.text, sizeof(sdlEvent.text.text));
@@ -515,7 +515,7 @@ int dsSDLApplication_run(dsApplication* application)
 					if (sdlEvent.motion.which == SDL_TOUCH_MOUSEID)
 						continue;
 
-					event.type = dsEventType_MouseMove;
+					event.type = dsAppEventType_MouseMove;
 					event.mouseMove.x = sdlEvent.motion.x;
 					event.mouseMove.y = sdlEvent.motion.y;
 					event.mouseMove.deltaX = sdlEvent.motion.xrel;
@@ -526,8 +526,8 @@ int dsSDLApplication_run(dsApplication* application)
 					if (sdlEvent.button.which == SDL_TOUCH_MOUSEID)
 						continue;
 
-					event.type = sdlEvent.type == SDL_MOUSEBUTTONUP ? dsEventType_MouseButtonUp :
-						dsEventType_MouseButtonDown;
+					event.type = sdlEvent.type == SDL_MOUSEBUTTONUP ? dsAppEventType_MouseButtonUp :
+						dsAppEventType_MouseButtonDown;
 					event.mouseButton.button = DS_MOUSE_BUTTON(sdlEvent.button.button);
 					event.mouseButton.x = sdlEvent.button.x;
 					event.mouseButton.y = sdlEvent.button.y;
@@ -536,7 +536,7 @@ int dsSDLApplication_run(dsApplication* application)
 					if (sdlEvent.wheel.which == SDL_TOUCH_MOUSEID)
 						continue;
 
-					event.type = dsEventType_MouseWheel;
+					event.type = dsAppEventType_MouseWheel;
 					SDL_GetMouseState(&event.mouseWheel.x, &event.mouseWheel.y);
 					if (window)
 					{
@@ -551,7 +551,7 @@ int dsSDLApplication_run(dsApplication* application)
 					event.mouseWheel.yFlipped = sdlEvent.wheel.direction == SDL_MOUSEWHEEL_FLIPPED;
 					break;
 				case SDL_JOYAXISMOTION:
-					event.type = dsEventType_ControllerAxis;
+					event.type = dsAppEventType_ControllerAxis;
 					event.controllerAxis.controller = findController(application,
 						sdlEvent.jaxis.which);
 					DS_ASSERT(event.controllerAxis.controller);
@@ -559,7 +559,7 @@ int dsSDLApplication_run(dsApplication* application)
 					event.controllerAxis.value = dsSDLController_getAxisValue(sdlEvent.jaxis.value);
 					break;
 				case SDL_JOYBALLMOTION:
-					event.type = dsEventType_JoystickBall;
+					event.type = dsAppEventType_JoystickBall;
 					event.joystickBall.controller = findController(application,
 						sdlEvent.jaxis.which);
 					DS_ASSERT(event.joystickBall.controller);
@@ -567,7 +567,7 @@ int dsSDLApplication_run(dsApplication* application)
 					event.joystickBall.deltaY = sdlEvent.jball.yrel;
 					break;
 				case SDL_JOYHATMOTION:
-					event.type = dsEventType_JoystickHat;
+					event.type = dsAppEventType_JoystickHat;
 					event.joystickHat.controller = findController(application,
 						sdlEvent.jhat.which);
 					DS_ASSERT(event.joystickHat.controller);
@@ -576,8 +576,8 @@ int dsSDLApplication_run(dsApplication* application)
 					break;
 				case SDL_JOYBUTTONDOWN:
 				case SDL_JOYBUTTONUP:
-					event.type = sdlEvent.type == SDL_JOYBUTTONUP ? dsEventType_ControllerButtonUp :
-						dsEventType_ControllerButtonDown;
+					event.type = sdlEvent.type == SDL_JOYBUTTONUP ? dsAppEventType_ControllerButtonUp :
+						dsAppEventType_ControllerButtonDown;
 					event.controllerButton.controller = findController(application,
 						sdlEvent.jbutton.which);
 					DS_ASSERT(event.controllerButton.controller);
@@ -594,12 +594,12 @@ int dsSDLApplication_run(dsApplication* application)
 						continue;
 					}
 
-					event.type = dsEventType_ControllerConnected;
+					event.type = dsAppEventType_ControllerConnected;
 					event.controllerConnect.controller = controller;
 					break;
 				}
 				case SDL_JOYDEVICEREMOVED:
-					event.type = dsEventType_ControllerDisconnected;
+					event.type = dsAppEventType_ControllerDisconnected;
 					event.controllerConnect.controller = findController(application,
 						sdlEvent.jdevice.which);
 					DS_ASSERT(event.controllerConnect.controller);
@@ -610,13 +610,13 @@ int dsSDLApplication_run(dsApplication* application)
 					switch (sdlEvent.type)
 					{
 						case SDL_FINGERDOWN:
-							event.type = dsEventType_TouchFingerDown;
+							event.type = dsAppEventType_TouchFingerDown;
 							break;
 						case SDL_FINGERUP:
-							event.type = dsEventType_TouchFingerUp;
+							event.type = dsAppEventType_TouchFingerUp;
 							break;
 						case SDL_FINGERMOTION:
-							event.type = dsEventType_TouchMoved;
+							event.type = dsAppEventType_TouchMoved;
 							break;
 						default:
 							DS_ASSERT(false);
@@ -631,7 +631,7 @@ int dsSDLApplication_run(dsApplication* application)
 					event.touch.pressure = sdlEvent.tfinger.pressure;
 					break;
 				case SDL_MULTIGESTURE:
-					event.type = dsEventType_MultiTouch;
+					event.type = dsAppEventType_MultiTouch;
 					event.multiTouch.touchID = sdlEvent.mgesture.touchId;
 					event.multiTouch.rotation = sdlEvent.mgesture.dTheta;
 					event.multiTouch.pinch = sdlEvent.mgesture.dDist;
@@ -640,7 +640,7 @@ int dsSDLApplication_run(dsApplication* application)
 					event.multiTouch.fingerCount = sdlEvent.mgesture.numFingers;
 					break;
 				case SDL_USEREVENT:
-					event.type = dsEventType_Custom;
+					event.type = dsAppEventType_Custom;
 					event.custom.eventID = sdlEvent.user.code;
 					event.custom.userData = sdlEvent.user.data1;
 					event.custom.cleanupFunc = (dsCustomEventCleanupFunction)sdlEvent.user.data2;

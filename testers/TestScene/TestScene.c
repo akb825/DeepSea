@@ -107,26 +107,26 @@ static bool processEvent(dsApplication* application, dsWindow* window, const dsE
 	DS_ASSERT(!window || window == testScene->window);
 	switch (event->type)
 	{
-		case dsEventType_WindowClosed:
+		case dsAppEventType_WindowClosed:
 			DS_VERIFY(dsWindow_destroy(window));
 			testScene->window = NULL;
 			return false;
-		case dsEventType_SurfaceInvalidated:
+		case dsAppEventType_SurfaceInvalidated:
 			DS_VERIFY(dsView_setSurface(testScene->view, "windowColor", testScene->window->surface,
 				dsGfxSurfaceType_ColorRenderSurface));
 			DS_VERIFY(dsView_setSurface(testScene->view, "windowDepth", testScene->window->surface,
 				dsGfxSurfaceType_DepthRenderSurface));
 			testScene->invalidatedFrame = renderer->frameNumber;
 			// Fall through
-		case dsEventType_WindowResized:
+		case dsAppEventType_WindowResized:
 			DS_VERIFY(dsView_setDimensions(testScene->view, testScene->window->surface->width,
 				testScene->window->surface->height, testScene->window->surface->rotation));
 			updateProjectionMatrix(testScene->view);
 			// Need to update the view again if the surfaces have been set.
-			if (event->type == dsEventType_SurfaceInvalidated)
+			if (event->type == dsAppEventType_SurfaceInvalidated)
 				dsView_update(testScene->view);
 			return true;
-		case dsEventType_KeyDown:
+		case dsAppEventType_KeyDown:
 			if (event->key.repeat)
 				return false;
 

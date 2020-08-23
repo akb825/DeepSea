@@ -68,6 +68,7 @@ typedef struct TestVectorDrawScene
 	dsView* view;
 
 	double changeTime;
+	unsigned int skipCount;
 } TestVectorDrawScene;
 
 static void printHelp(const char* programPath)
@@ -110,25 +111,29 @@ static bool processEvent(dsApplication* application, dsWindow* window, const dsE
 	DS_ASSERT(!window || window == testVectorDrawScene->window);
 	switch (event->type)
 	{
-		case dsEventType_WindowClosed:
+		case dsAppEventType_WindowClosed:
 			DS_VERIFY(dsWindow_destroy(window));
 			testVectorDrawScene->window = NULL;
 			return false;
-		case dsEventType_SurfaceInvalidated:
+		case dsAppEventType_SurfaceInvalidated:
 			DS_VERIFY(dsView_setSurface(testVectorDrawScene->view, "windowColor",
 				testVectorDrawScene->window->surface, dsGfxSurfaceType_ColorRenderSurface));
 			// Fall through
-		case dsEventType_WindowResized:
+		case dsAppEventType_WindowResized:
 			DS_VERIFY(dsView_setDimensions(testVectorDrawScene->view,
 				testVectorDrawScene->window->surface->width,
 				testVectorDrawScene->window->surface->height,
 				testVectorDrawScene->window->surface->rotation));
 			updateProjectionMatrix(testVectorDrawScene->view);
 			// Need to update the view again if the surfaces have been set.
-			if (event->type == dsEventType_SurfaceInvalidated)
+			if (event->type == dsAppEventType_SurfaceInvalidated)
 				dsView_update(testVectorDrawScene->view);
 			return true;
-		case dsEventType_KeyDown:
+		case dsAppEventType_DidEnterForeground:
+			// Takes two frames to go through the bad frame time values.
+			testVectorDrawScene->skipCount = 2;
+			return false;
+		case dsAppEventType_KeyDown:
 			if (event->key.repeat)
 				return false;
 
@@ -157,7 +162,10 @@ static void update(dsApplication* application, double lastFrameTime, void* userD
 
 	const double newCharTime = 0.1;
 	const double clearTime = 1.0;
-	testVectorDrawScene->changeTime += lastFrameTime;
+	if (testVectorDrawScene->skipCount > 0)
+		--testVectorDrawScene->skipCount;
+	else
+		testVectorDrawScene->changeTime += lastFrameTime;
 	if (testVectorDrawScene->figureNode->charCount >=
 		testVectorDrawScene->figureNode->layout->text->characterCount)
 	{

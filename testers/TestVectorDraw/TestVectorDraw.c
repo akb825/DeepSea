@@ -198,16 +198,16 @@ static bool processEvent(dsApplication* application, dsWindow* window, const dsE
 	DS_ASSERT(!window || window == testVectorDraw->window);
 	switch (event->type)
 	{
-		case dsEventType_WindowClosed:
+		case dsAppEventType_WindowClosed:
 			DS_VERIFY(dsWindow_destroy(window));
 			testVectorDraw->window = NULL;
 			return false;
-		case dsEventType_WindowResized:
-		case dsEventType_SurfaceInvalidated:
+		case dsAppEventType_WindowResized:
+		case dsAppEventType_SurfaceInvalidated:
 			if (!createFramebuffer(testVectorDraw))
 				abort();
 			return true;
-		case dsEventType_KeyDown:
+		case dsAppEventType_KeyDown:
 			switch (event->key.key)
 			{
 				case dsKeyCode_Right:
@@ -225,12 +225,12 @@ static bool processEvent(dsApplication* application, dsWindow* window, const dsE
 				default:
 					return true;
 			}
-		case dsEventType_TouchFingerDown:
+		case dsAppEventType_TouchFingerDown:
 			++testVectorDraw->fingerCount;
 			testVectorDraw->maxFingers = dsMax(testVectorDraw->fingerCount,
 				testVectorDraw->maxFingers);
 			return true;
-		case dsEventType_TouchFingerUp:
+		case dsAppEventType_TouchFingerUp:
 			if (testVectorDraw->fingerCount == 0)
 				return true;
 

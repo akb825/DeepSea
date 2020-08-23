@@ -206,17 +206,17 @@ static bool processEvent(dsApplication* application, dsWindow* window, const dsE
 	DS_ASSERT(!window || window == testCube->window);
 	switch (event->type)
 	{
-		case dsEventType_WindowClosed:
+		case dsAppEventType_WindowClosed:
 			DS_VERIFY(dsWindow_destroy(window));
 			testCube->window = NULL;
 			return false;
-		case dsEventType_WindowResized:
-		case dsEventType_SurfaceInvalidated:
+		case dsAppEventType_WindowResized:
+		case dsAppEventType_SurfaceInvalidated:
 			if (!createFramebuffer(testCube))
 				abort();
 			testCube->invalidatedFrame = renderer->frameNumber;
 			return true;
-		case dsEventType_KeyDown:
+		case dsAppEventType_KeyDown:
 			if (event->key.repeat)
 				return false;
 

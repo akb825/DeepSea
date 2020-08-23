@@ -664,16 +664,16 @@ static bool processEvent(dsApplication* application, dsWindow* window, const dsE
 	DS_ASSERT(!window || window == testText->window);
 	switch (event->type)
 	{
-		case dsEventType_WindowClosed:
+		case dsAppEventType_WindowClosed:
 			DS_VERIFY(dsWindow_destroy(window));
 			testText->window = NULL;
 			return false;
-		case dsEventType_WindowResized:
-		case dsEventType_SurfaceInvalidated:
+		case dsAppEventType_WindowResized:
+		case dsAppEventType_SurfaceInvalidated:
 			if (!createFramebuffer(testText, testText->renderer->mainCommandBuffer))
 				abort();
 			return true;
-		case dsEventType_KeyDown:
+		case dsAppEventType_KeyDown:
 			switch (event->key.key)
 			{
 				case dsKeyCode_Right:
@@ -688,11 +688,11 @@ static bool processEvent(dsApplication* application, dsWindow* window, const dsE
 				default:
 					return true;
 			}
-		case dsEventType_TouchFingerDown:
+		case dsAppEventType_TouchFingerDown:
 			++testText->fingerCount;
 			testText->maxFingers = dsMax(testText->fingerCount, testText->maxFingers);
 			return true;
-		case dsEventType_TouchFingerUp:
+		case dsAppEventType_TouchFingerUp:
 			if (testText->fingerCount == 0)
 				return true;
 

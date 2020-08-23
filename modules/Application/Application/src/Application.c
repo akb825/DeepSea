@@ -518,7 +518,7 @@ bool dsApplication_dispatchEvent(dsApplication* application, dsWindow* window,
 			break;
 	}
 
-	if (event->type == dsEventType_Custom && event->custom.cleanupFunc)
+	if (event->type == dsAppEventType_Custom && event->custom.cleanupFunc)
 		event->custom.cleanupFunc(event->custom.eventID, event->custom.userData);
 
 	return true;

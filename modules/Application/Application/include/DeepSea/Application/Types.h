@@ -56,69 +56,74 @@ extern "C"
 #define DS_APPLICATION_LOG_TAG "application"
 
 /**
- * @brief Enum for the type of an event.
+ * @brief Enum for the type of an applicatio event.
  */
-typedef enum dsEventType
+typedef enum dsAppEventType
 {
-	dsEventType_MouseButtonDown, ///< Mouse button was pressed. The mouseButton field will be set.
-	dsEventType_MouseButtonUp,   ///< Mouse button was released. The mouseButton field will be set.
-	dsEventType_MouseMove,       ///< Mouse was moved. The mouseMove field will be set.
-	dsEventType_MouseWheel,      ///< Mouse scroll wheel was moved. The mouseMove field will be set.
-	dsEventType_KeyDown,         ///< Keyboard key was pressed. The key field will be set.
-	dsEventType_KeyUp,           ///< Keyboard key was released. The key field will be set.
-	dsEventType_TextEdit,        ///< Text is being edited. The textEdit field will be set.
-	dsEventType_TextInput,       ///< Text has been input. The textInput field will be set.
-	dsEventType_TouchFingerDown, ///< A finger was pressed on the touchscreen.. The touch field will
-	                             ///< be set.
-	dsEventType_TouchFingerUp,   ///< A finger was released on the touchscreen.. The touch field
-	                             ///< will be set.
-	dsEventType_TouchMoved,      ///< Fingers moved on the touchscreen. The touch event will be set.
-	dsEventType_MultiTouch,      ///< Multi-touch gesture was input. The multiTouch field will be
-	                             ///< set.
+	dsAppEventType_MouseButtonDown, ///< Mouse button was pressed. The mouseButton field will be
+	                                ///< set.
+	dsAppEventType_MouseButtonUp,   ///< Mouse button was released. The mouseButton field will be
+	                                ///< set.
+	dsAppEventType_MouseMove,       ///< Mouse was moved. The mouseMove field will be set.
+	dsAppEventType_MouseWheel,      ///< Mouse scroll wheel was moved. The mouseMove field will be
+	                                ///< set.
+	dsAppEventType_KeyDown,         ///< Keyboard key was pressed. The key field will be set.
+	dsAppEventType_KeyUp,           ///< Keyboard key was released. The key field will be set.
+	dsAppEventType_TextEdit,        ///< Text is being edited. The textEdit field will be set.
+	dsAppEventType_TextInput,       ///< Text has been input. The textInput field will be set.
+	dsAppEventType_TouchFingerDown, ///< A finger was pressed on the touchscreen.. The touch field
+	                                ///< will be set.
+	dsAppEventType_TouchFingerUp,   ///< A finger was released on the touchscreen.. The touch field
+	                                ///< will be set.
+	dsAppEventType_TouchMoved,      ///< Fingers moved on the touchscreen. The touch event will be
+	                                ///< set.
+	dsAppEventType_MultiTouch,      ///< Multi-touch gesture was input. The multiTouch field will be
+	                                ///< set.
 
-	dsEventType_ControllerConnected,    ///< A controller was disconnected. The controllerConnect
+	dsAppEventType_ControllerConnected,    ///< A controller was disconnected. The controllerConnect
+	                                       ///< field will be set.
+	dsAppEventType_ControllerDisconnected, ///< A controller was connected. The controllerConnect
+	                                       ///< field will be set.
+	dsAppEventType_ControllerAxis,         ///< A controller axis was moved. The controllerAxis
+	                                       ///< field will be set.
+	dsAppEventType_ControllerButtonDown,   ///< A controller axis was pressed. The controllerButton
+	                                       ///< field will be set.
+	dsAppEventType_ControllerButtonUp,     ///< A controller axis was released. The controllerButton
+	                                       ///< field will be set.
+	dsAppEventType_JoystickBall,           ///< A joystick ball was moved. The joystickBall field
+	                                       ///< will be set.
+	dsAppEventType_JoystickHat,            ///< A joystick hat was moved. The joystickHat field will
+	                                       ///< be set.
+
+	dsAppEventType_WindowShown,     ///< A window has been shown. No event field will be set.
+	dsAppEventType_WindowHidden,    ///< A window has been hidden. No event field will be set.
+	dsAppEventType_WindowMinimized, ///< A window has been minimized. No event field will be set.
+	dsAppEventType_WindowRestored,  ///< A window has been restored after minimized. No event field
+	                                ///< will be set.
+	dsAppEventType_WindowResized,   ///< A window has been resized. The resize field will be set.
+	                                ///< will be set.
+	dsAppEventType_WindowClosed,    ///< A window has been closed. The window will be hidden, and
+	                                ///< may either be kept or destroyed. No event field will be
+	                                ///< set.
+	dsAppEventType_MouseEntered,    ///< Mouse has entered a window. No event field will be set.
+	dsAppEventType_MouseLeft,       ///< Mouse has leaved a window. No event field will be set.
+	dsAppEventType_FocusGained,     ///< Window focus has been gained. No event field will be set.
+	dsAppEventType_FocusLost,       ///< Window focus has been lost. No event field will be set.
+
+	dsAppEventType_SurfaceInvalidated,  ///< A window surface has been invalidated and re-created.
+	                                    ///< Any references to the surface must be updated. No event
 	                                    ///< field will be set.
-	dsEventType_ControllerDisconnected, ///< A controller was connected. The controllerConnect field
-	                                    ///< will be set.
-	dsEventType_ControllerAxis,         ///< A controller axis was moved. The controllerAxis field
-	                                    ///< will be set.
-	dsEventType_ControllerButtonDown,   ///< A controller axis was pressed. The controllerButton
+	dsAppEventType_WillEnterBackground, ///< The application will enter the background. This No
+	                                    ///< event field will be set.
+	dsAppEventType_DidEnterBackground,  ///< The application did enter the background. This No event
 	                                    ///< field will be set.
-	dsEventType_ControllerButtonUp,     ///< A controller axis was released. The controllerButton
+	dsAppEventType_WillEnterForeground, ///< The application will enter the foreground. This No
+									    ///< event field will be set.
+	dsAppEventType_DidEnterForeground,  ///< The application did enter the foreground. This No event
 	                                    ///< field will be set.
-	dsEventType_JoystickBall,           ///< A joystick ball was moved. The joystickBall field will
-	                                    ///< be set.
-	dsEventType_JoystickHat,            ///< A joystick hat was moved. The joystickHat field will
-	                                    ///< be set.
 
-	dsEventType_WindowShown,     ///< A window has been shown. No event field will be set.
-	dsEventType_WindowHidden,    ///< A window has been hidden. No event field will be set.
-	dsEventType_WindowMinimized, ///< A window has been minimized. No event field will be set.
-	dsEventType_WindowRestored,  ///< A window has been restored after minimized. No event field
-	                             ///< will be set.
-	dsEventType_WindowResized,   ///< A window has been resized. The resize field will be set.
-	                             ///< will be set.
-	dsEventType_WindowClosed,    ///< A window has been closed. The window will be hidden, and may
-	                             ///< either be kept or destroyed. No event field will be set.
-	dsEventType_MouseEntered,    ///< Mouse has entered a window. No event field will be set.
-	dsEventType_MouseLeft,       ///< Mouse has leaved a window. No event field will be set.
-	dsEventType_FocusGained,     ///< Window focus has been gained. No event field will be set.
-	dsEventType_FocusLost,       ///< Window focus has been lost. No event field will be set.
-
-	dsEventType_SurfaceInvalidated,  ///< A window surface has been invalidated and re-created.
-	                                 ///< Any references to the surface must be updated. No event
-	                                 ///< field will be set.
-	dsEventType_WillEnterBackground, ///< The application will enter the background. This No event
-	                                 ///< field will be set.
-	dsEventType_DidEnterBackground,  ///< The application did enter the background. This No event
-	                                 ///< field will be set.
-	dsEventType_WillEnterForeground, ///< The application will enter the foreground. This No event
-	                                 ///< field will be set.
-	dsEventType_DidEnterForeground,  ///< The application did enter the foreground. This No event
-	                                 ///< field will be set.
-
-	dsEventType_Custom,          ///< Custom event. The custom field will be set.
-} dsEventType;
+	dsAppEventType_Custom,          ///< Custom event. The custom field will be set.
+} dsAppEventType;
 
 /**
  * @brief Enum describing the style of a window.
@@ -347,113 +352,113 @@ typedef struct dsEvent
 	/**
 	 * @brief The type of the event.
 	 */
-	dsEventType type;
+	dsAppEventType type;
 
 	union
 	{
 		/**
 		 * @brief Information about a mouse button press or release.
 		 *
-		 * This is set for dsEventType_MouseButtonDown and dsEventType_MouseButtonUp.
+		 * This is set for dsAppEventType_MouseButtonDown and dsAppEventType_MouseButtonUp.
 		 */
 		dsMouseButtonEvent mouseButton;
 
 		/**
 		 * @brief Information about a mouse movement.
 		 *
-		 * This is set for dsEventType_MouseMove.
+		 * This is set for dsAppEventType_MouseMove.
 		 */
 		dsMouseMoveEvent mouseMove;
 
 		/**
 		 * @brief Information about a mouse movement.
 		 *
-		 * This is set for dsEventType_MouseWheel.
+		 * This is set for dsAppEventType_MouseWheel.
 		 */
 		dsMouseMoveEvent mouseWheel;
 
 		/**
 		 * @brief Information about a key press or release.
 		 *
-		 * This is set for dsEventType_KeyDown and dsEventType_KeyUp.
+		 * This is set for dsAppEventType_KeyDown and dsAppEventType_KeyUp.
 		 */
 		dsKeyEvent key;
 
 		/**
 		 * @brief Information about text being edited.
 		 *
-		 * This is set for dsEventType_TextEdit.
+		 * This is set for dsAppEventType_TextEdit.
 		 */
 		dsTextEditEvent textEdit;
 
 		/**
 		 * @brief Information about text being input.
 		 *
-		 * This is set for dsEventType_TextInput.
+		 * This is set for dsAppEventType_TextInput.
 		 */
 		dsTextInputEvent textInput;
 
 		/**
 		 * @brief Information about a touch input.
 		 *
-		 * This is set for dsEventType_TouchFingerDown, dsEventType_TouchFingerUp, and
-		 * dsEventType_TouchMoved.
+		 * This is set for dsAppEventType_TouchFingerDown, dsAppEventType_TouchFingerUp, and
+		 * dsAppEventType_TouchMoved.
 		 */
 		dsTouchEvent touch;
 
 		/**
 		 * @brief Information about a mutli-touch gesture.
 		 *
-		 * This is set for dsEventType_MultiTouch.
+		 * This is set for dsAppEventType_MultiTouch.
 		 */
 		dsMultiTouchEvent multiTouch;
 
 		/**
 		 * @brief Information about a controller being connected or disconnected.
 		 *
-		 * This is set for dsEventType_ControllerConnected and dsEventType_ControllerDisconnected.
+		 * This is set for dsAppEventType_ControllerConnected and dsAppEventType_ControllerDisconnected.
 		 */
 		dsControllerConnectEvent controllerConnect;
 
 		/**
 		 * @brief Information about a controller axis being moved.
 		 *
-		 * This is set for dsEventType_ControllerAxis.
+		 * This is set for dsAppEventType_ControllerAxis.
 		 */
 		dsControllerAxisEvent controllerAxis;
 
 		/**
 		 * @brief Information about a controller button being pressed or released.
 		 *
-		 * This is set for dsEventType_ControllerButtonDown and dsEventType_ControllerButtonDown.
+		 * This is set for dsAppEventType_ControllerButtonDown and dsAppEventType_ControllerButtonDown.
 		 */
 		dsControllerButtonEvent controllerButton;
 
 		/**
 		 * @brief Information about a joystick ball being moved.
 		 *
-		 * This is set for dsEventType_JoystickBall.
+		 * This is set for dsAppEventType_JoystickBall.
 		 */
 		dsJoystickBallEvent joystickBall;
 
 		/**
 		 * @brief Information about a joystick hat being moved.
 		 *
-		 * This is set for dsEventType_JoystickHat.
+		 * This is set for dsAppEventType_JoystickHat.
 		 */
 		dsJoystickHatEvent joystickHat;
 
 		/**
 		 * @brief Information about a window resize.
 		 *
-		 * This is set for dsEventType_Resize.
+		 * This is set for dsAppEventType_Resize.
 		 */
 		dsResizeEvent resize;
 
 		/**
 		 * @brief Information about a custom event.
 		 *
-		 * This is set for dsEventType_Custom.
+		 * This is set for dsAppEventType_Custom.
 		 */
 		dsCustomEvent custom;
 	};

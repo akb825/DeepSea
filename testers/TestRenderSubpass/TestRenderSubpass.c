@@ -336,16 +336,16 @@ static bool processEvent(dsApplication* application, dsWindow* window, const dsE
 	DS_ASSERT(!window || window == testRenderSubpass->window);
 	switch (event->type)
 	{
-		case dsEventType_WindowClosed:
+		case dsAppEventType_WindowClosed:
 			DS_VERIFY(dsWindow_destroy(window));
 			testRenderSubpass->window = NULL;
 			return false;
-		case dsEventType_WindowResized:
-		case dsEventType_SurfaceInvalidated:
+		case dsAppEventType_WindowResized:
+		case dsAppEventType_SurfaceInvalidated:
 			if (!createFramebuffer(testRenderSubpass))
 				abort();
 			return true;
-		case dsEventType_KeyDown:
+		case dsAppEventType_KeyDown:
 			if (event->key.key == dsKeyCode_ACBack)
 				dsApplication_quit(application, 0);
 			return false;
