@@ -477,12 +477,15 @@ bool dsMTLRenderSurface_beginDraw(dsRenderer* renderer, dsCommandBuffer* command
 		return true;
 	}
 
-	CAMetalLayer* layer = (__bridge CAMetalLayer*)mtlRenderSurface->layer;
-	mtlRenderSurface->drawable = CFBridgingRetain([layer nextDrawable]);
-	DS_ASSERT(mtlRenderSurface->drawable);
-	dsMTLRenderSurface_update(renderer, (dsRenderSurface*)renderSurface);
-	DS_VERIFY(dsSpinlock_unlock(&mtlRenderSurface->lock));
-	return true;
+	@autoreleasepool
+	{
+		CAMetalLayer* layer = (__bridge CAMetalLayer*)mtlRenderSurface->layer;
+		mtlRenderSurface->drawable = CFBridgingRetain([layer nextDrawable]);
+		DS_ASSERT(mtlRenderSurface->drawable);
+		dsMTLRenderSurface_update(renderer, (dsRenderSurface*)renderSurface);
+		DS_VERIFY(dsSpinlock_unlock(&mtlRenderSurface->lock));
+		return true;
+	}
 }
 
 bool dsMTLRenderSurface_endDraw(dsRenderer* renderer, dsCommandBuffer* commandBuffer,

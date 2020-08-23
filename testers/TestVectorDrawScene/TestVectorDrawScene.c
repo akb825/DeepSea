@@ -129,7 +129,7 @@ static bool processEvent(dsApplication* application, dsWindow* window, const dsE
 			if (event->type == dsAppEventType_SurfaceInvalidated)
 				dsView_update(testVectorDrawScene->view);
 			return true;
-		case dsAppEventType_DidEnterForeground:
+		case dsAppEventType_WillEnterForeground:
 			// Takes two frames to go through the bad frame time values.
 			testVectorDrawScene->skipCount = 2;
 			return false;

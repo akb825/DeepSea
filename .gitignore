@@ -1,6 +1,7 @@
 /build
 /dependencies
 __pycache__
+.DS_Store
 .cmake
 .idea
 .vscode
