@@ -107,7 +107,7 @@ void* dsVectorSceneShaders_load(const dsSceneLoadContext* loadContext,
 	auto fbExtraElements = fbVectorShaders->extraElements();
 	dsMaterialElement* extraElements = nullptr;
 	uint32_t extraElementCount = 0;
-	if (!fbExtraElements)
+	if (fbExtraElements)
 	{
 		extraElementCount = fbExtraElements->size();
 		extraElements = DS_ALLOCATE_STACK_OBJECT_ARRAY(dsMaterialElement, extraElementCount);
@@ -128,7 +128,7 @@ void* dsVectorSceneShaders_load(const dsSceneLoadContext* loadContext,
 				if (!dsSceneLoadScratchData_findResource(&resourceType,
 						reinterpret_cast<void**>(&groupDesc), scratchData,
 						fbGroupDescName->c_str()) ||
-					resourceType != dsSceneResourceType_ShaderVariableGroup)
+					resourceType != dsSceneResourceType_ShaderVariableGroupDesc)
 				{
 					errno = ENOTFOUND;
 					DS_LOG_ERROR_F(DS_VECTOR_DRAW_SCENE_LOG_TAG,

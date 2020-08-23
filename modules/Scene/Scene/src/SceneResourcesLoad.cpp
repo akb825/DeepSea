@@ -1209,22 +1209,21 @@ dsSceneResources* dsSceneResources_loadImpl(dsAllocator* allocator, dsAllocator*
 
 	/*
 	 * Resources won't be available to request untill they've been loaded and added. Always load
-	 * descriptions before the objects that use them. Load custom resources first since they may add
-	 * additional first-class resources. Load nodes last since they may reference any other resource
-	 * type.
+	 * descriptions first. Load custom after since they may add additional first-class resources.
+	 * Load nodes last since they may reference any other resource type.
 	 */
 	if (!dsSceneLoadScratchData_pushSceneResources(scratchData, &resources, 1) ||
+		!loadShaderVariableGroupDescs(resources, resourceManager, resourceAllocator, scratchData,
+			groupDescs, fileName) ||
+		!loadMaterialDescs(resources, resourceManager, resourceAllocator, scratchData,
+			materialDescs, fileName) ||
 		!loadCustomResources(resources, allocator, resourceAllocator, loadContext, scratchData,
 			customResources, fileName) ||
 		!loadBuffers(resources, resourceManager, resourceAllocator, buffers, fileName) ||
 		!loadTextures(resources, resourceManager, allocator, resourceAllocator, textures,
 			fileName) ||
-		!loadShaderVariableGroupDescs(resources, resourceManager, resourceAllocator, scratchData,
-			groupDescs, fileName) ||
 		!loadShaderVariableGroups(resources, resourceManager, resourceAllocator, scratchData,
 			groups, fileName) ||
-		!loadMaterialDescs(resources, resourceManager, resourceAllocator, scratchData,
-			materialDescs, fileName) ||
 		!loadMaterials(
 			resources, resourceManager, resourceAllocator, scratchData, materials, fileName) ||
 		!loadShaderModules(

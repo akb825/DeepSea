@@ -14,19 +14,20 @@
  * limitations under the License.
  */
 
+#include <DeepSea/Scene/Shaders/ViewTransform.mslh>
 #include <DeepSea/VectorDraw/Shaders/VectorElementLine.mslh>
+
+[[vertex]]
+void vectorLineVertex()
+{
+	dsVectorElementLine_processVertex(gl_Position);
+	gl_Position.xy = dsRotateScreenPosition(gl_Position.xy);
+	gl_Position = DS_ADJUST_CLIP(gl_Position);
+}
 
 pipeline dsVectorLine
 {
-	vertex = dsVectorElementLine_defaultVertex;
+	vertex = vectorLineVertex;
 	fragment = dsVectorElementLine_defaultFragment;
 	DS_DEFAULT_VECTOR_ELEMENT_LINE_RENDER_STATES;
-}
-
-pipeline dsVectorLineWireframe
-{
-	vertex = dsVectorElementLine_defaultVertex;
-	fragment = dsVectorElementLine_defaultFragment;
-	DS_DEFAULT_VECTOR_ELEMENT_LINE_RENDER_STATES;
-	polygon_mode = line;
 }

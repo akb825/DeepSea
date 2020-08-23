@@ -2,6 +2,7 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 28
+    ndkVersion "21.3.6528147"
     defaultConfig {
         applicationId "com.akb825.deepsea"
         minSdkVersion 18
@@ -33,27 +34,28 @@ android {
             path "${projectDir}/../../CMakeLists.txt"
         }
     }
+    // Only include libraries that aren't referenced directly in CMake.
     task copyArm32Libraries(type: Copy) {
         from ("${projectDir}/../../dependencies/libs/android-armeabi-v7a/lib") {
-            include "*.so"
+            include "libhidapi.so"
         }
         into "${projectDir}/src/main/jniLibs/armeabi-v7a"
     }
     task copyArm64Libraries(type: Copy) {
         from ("${projectDir}/../../dependencies/libs/android-arm64-v8a/lib") {
-            include "*.so"
+            include "libhidapi.so"
         }
         into "${projectDir}/src/main/jniLibs/arm64-v8a"
     }
     task copyX86Libraries(type: Copy) {
         from ("${projectDir}/../../dependencies/libs/android-x86/lib") {
-            include "*.so"
+            include "libhidapi.so"
         }
         into "${projectDir}/src/main/jniLibs/x86"
     }
     task copyX86_64Libraries(type: Copy) {
         from ("${projectDir}/../../dependencies/libs/android-x86_64/lib") {
-            include "*.so"
+            include "libhidapi.so"
         }
         into "${projectDir}/src/main/jniLibs/x86_64"
     }
@@ -114,6 +116,17 @@ android {
             applicationIdSuffix ".testscene"
             versionNameSuffix "-TestScene"
             resValue "string", "app_name", "TestScene"
+        }
+        TestVectorDrawScene {
+            externalNativeBuild {
+                cmake {
+                    targets "deepsea_test_vector_draw_scene_app"
+                }
+            }
+            dimension "tester"
+            applicationIdSuffix ".testvectordrawscene"
+            versionNameSuffix "-TestVectorDrawScene"
+            resValue "string", "app_name", "TestVectorDrawScene"
         }
     }
     compileOptions {

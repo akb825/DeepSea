@@ -57,8 +57,8 @@ ds_compile_shaders(shaders FILE ${srcDir}/VectorElementFill.msl
 	${srcDir}/VectorElementTextColor.msl
 	${srcDir}/VectorElementTextGradient.msl
 	OUTPUT Vector.mslb CONFIG ${shaderConfigs} OUTPUT_DIR ${shaderDir}
-	INCLUDE ${DEEPSEA_MODULE_DIR}/Render/Render/include ${DEEPSEA_MODULE_DIR}/Text/include
-		${DEEPSEA_MODULE_DIR}/VectorDraw/include)
+	INCLUDE ${DEEPSEA_MODULE_DIR}/Render/Render/include ${DEEPSEA_MODULE_DIR}/Scene/Scene/include
+		${DEEPSEA_MODULE_DIR}/Text/include ${DEEPSEA_MODULE_DIR}/VectorDraw/include)
 ds_compile_shaders_target(deepsea_test_vector_draw_scene_app_shaders shaders
 	DEPENDS deepsea_test_vector_draw_scene_app_prepare)
 

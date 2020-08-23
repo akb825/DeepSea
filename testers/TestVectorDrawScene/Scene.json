@@ -42,5 +42,12 @@
 			]
 		}
 	],
+	"globalData":
+	[
+		{
+			"type": "ViewTransformData",
+			"data": {"variableGroupDescName": "viewTransformDesc"}
+		}
+	],
 	"nodes": ["tigerTransform", "figureTransform"]
 }

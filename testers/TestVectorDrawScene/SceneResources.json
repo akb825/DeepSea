@@ -1,4 +1,54 @@
 {
+	"shaderVariableGroupDescs":
+	[
+		{
+			"name": "viewTransformDesc",
+			"elements":
+			[
+				{"name": "view", "type": "Mat4"},
+				{"name": "camera", "type": "Mat4"},
+				{"name": "projection", "type": "Mat4"},
+				{"name": "screenRotation", "type": "Vec4"},
+				{"name": "screenSize", "type": "IVec2"}
+			]
+		},
+		{
+			"name": "instanceTransformDesc",
+			"elements":
+			[
+				{"name": "world", "type": "Mat4"},
+				{"name": "worldInvTrans", "type": "Mat4"},
+				{"name": "worldView", "type": "Mat4"},
+				{"name": "worldViewProj", "type": "Mat4"}
+			]
+		}
+	],
+	"materialDescs":
+	[
+		{
+			"name": "textMaterialDesc",
+			"elements":
+			[
+				{
+					"name": "ViewTransformData",
+					"type": "VariableGroup",
+					"binding": "Global",
+					"shaderVariableGroupDesc": "viewTransformDesc"
+				},
+				{
+					"name": "InstanceTransformData",
+					"type": "VariableGroup",
+					"binding": "Instance",
+					"shaderVariableGroupDesc": "instanceTransformDesc"
+				},
+				{
+					"name": "fontTex",
+					"type": "Texture",
+					"binding": "Instance"
+				}
+			]
+		}
+	],
 	"customResources":
 	[
 		{
@@ -17,7 +67,16 @@
 			"data":
 			{
 				"modules": @vectorModule@,
-				"materialDescName": "vectorMaterialDesc"
+				"materialDescName": "vectorMaterialDesc",
+				"extraElements":
+				[
+					{
+						"name": "ViewTransformData",
+						"type": "VariableGroup",
+						"binding": "Global",
+						"shaderVariableGroupDesc": "viewTransformDesc"
+					}
+				]
 			}
 		},
 		{
@@ -39,39 +98,6 @@
 				"font": "sans-serif",
 				"text": "<text font-size=\"16\" fill=\"black\"><tspan font-style=\"italic\">Figure ${tigerNum}:</tspan> an SVG tiger.</text>"
 			}
-		}
-	],
-	"shaderVariableGroupDescs":
-	[
-		{
-			"name": "instanceTransformDesc",
-			"elements":
-			[
-				{"name": "world", "type": "Mat4"},
-				{"name": "worldInvTrans", "type": "Mat4"},
-				{"name": "worldView", "type": "Mat4"},
-				{"name": "worldViewProj", "type": "Mat4"}
-			]
-		}
-	],
-	"materialDescs":
-	[
-		{
-			"name": "textMaterialDesc",
-			"elements":
-			[
-				{
-					"name": "InstanceTransformData",
-					"type": "VariableGroup",
-					"binding": "Instance",
-					"shaderVariableGroupDesc": "instanceTransformDesc"
-				},
-				{
-					"name": "fontTex",
-					"type": "Texture",
-					"binding": "Instance"
-				}
-			]
 		}
 	],
 	"materials":

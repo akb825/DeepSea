@@ -14,49 +14,34 @@
  * limitations under the License.
  */
 
+#include <DeepSea/Scene/Shaders/ViewTransform.mslh>
 #include <DeepSea/VectorDraw/Shaders/VectorElementFill.mslh>
+
+[[vertex]]
+void vectorFillVertex()
+{
+	dsVectorElementFill_processVertex(gl_Position);
+	gl_Position.xy = dsRotateScreenPosition(gl_Position.xy);
+	gl_Position = DS_ADJUST_CLIP(gl_Position);
+}
 
 pipeline dsVectorFillColor
 {
-	vertex = dsVectorElementFill_defaultVertexColor;
+	vertex = vectorFillVertex;
 	fragment = dsVectorElementFill_defaultFragmentColor;
 	DS_DEFAULT_VECTOR_ELEMENT_FILL_RENDER_STATES;
 }
 
 pipeline dsVectorFillLinearGradient
 {
-	vertex = dsVectorElementFill_defaultVertex;
+	vertex = vectorFillVertex;
 	fragment = dsVectorElementFill_defaultFragmentLinearGradient;
 	DS_DEFAULT_VECTOR_ELEMENT_FILL_RENDER_STATES;
 }
 
 pipeline dsVectorFillRadialGradient
 {
-	vertex = dsVectorElementFill_defaultVertex;
+	vertex = vectorFillVertex;
 	fragment = dsVectorElementFill_defaultFragmentRadialGradient;
 	DS_DEFAULT_VECTOR_ELEMENT_FILL_RENDER_STATES;
-}
-
-pipeline dsVectorFillColorWireframe
-{
-	vertex = dsVectorElementFill_defaultVertexColor;
-	fragment = dsVectorElementFill_defaultFragmentColor;
-	DS_DEFAULT_VECTOR_ELEMENT_FILL_RENDER_STATES;
-	polygon_mode = line;
-}
-
-pipeline dsVectorFillLinearGradientWireframe
-{
-	vertex = dsVectorElementFill_defaultVertex;
-	fragment = dsVectorElementFill_defaultFragmentLinearGradient;
-	DS_DEFAULT_VECTOR_ELEMENT_FILL_RENDER_STATES;
-	polygon_mode = line;
-}
-
-pipeline dsVectorFillRadialGradientWireframe
-{
-	vertex = dsVectorElementFill_defaultVertex;
-	fragment = dsVectorElementFill_defaultFragmentRadialGradient;
-	DS_DEFAULT_VECTOR_ELEMENT_FILL_RENDER_STATES;
-	polygon_mode = line;
-}
+}]

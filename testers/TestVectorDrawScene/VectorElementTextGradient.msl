@@ -14,18 +14,27 @@
  * limitations under the License.
  */
 
+#include <DeepSea/Scene/Shaders/ViewTransform.mslh>
 #include <DeepSea/VectorDraw/Shaders/VectorElementTextGradient.mslh>
+
+[[vertex]]
+void vectorTextGradientVertex()
+{
+	dsVectorElementText_processVertex(gl_Position);
+	gl_Position.xy = dsRotateScreenPosition(gl_Position.xy);
+	gl_Position = DS_ADJUST_CLIP(gl_Position);
+}
 
 pipeline dsVectorTextGradient
 {
-	vertex = dsVectorElementText_defaultVertexGradient;
+	vertex = vectorTextGradientVertex;
 	fragment = dsVectorElementText_defaultFragmentGradient;
 	DS_DEFAULT_VECTOR_ELEMENT_TEXT_RENDER_STATES;
 }
 
 pipeline dsVectorTextGradientOutline
 {
-	vertex = dsVectorElementText_defaultVertexGradient;
+	vertex = vectorTextGradientVertex;
 	fragment = dsVectorElementText_defaultFragmentGradientOutline;
 	DS_DEFAULT_VECTOR_ELEMENT_TEXT_RENDER_STATES;
 }

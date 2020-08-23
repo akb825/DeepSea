@@ -14,18 +14,27 @@
  * limitations under the License.
  */
 
+#include <DeepSea/Scene/Shaders/ViewTransform.mslh>
 #include <DeepSea/VectorDraw/Shaders/VectorElementTextColor.mslh>
+
+[[vertex]]
+void vectorTextColorVertex()
+{
+	dsVectorElementText_processVertex(gl_Position);
+	gl_Position.xy = dsRotateScreenPosition(gl_Position.xy);
+	gl_Position = DS_ADJUST_CLIP(gl_Position);
+}
 
 pipeline dsVectorTextColor
 {
-	vertex = dsVectorElementText_defaultVertexColor;
+	vertex = vectorTextColorVertex;
 	fragment = dsVectorElementText_defaultFragmentColor;
 	DS_DEFAULT_VECTOR_ELEMENT_TEXT_RENDER_STATES;
 }
 
 pipeline dsVectorTextColorOutline
 {
-	vertex = dsVectorElementText_defaultVertexColor;
+	vertex = vectorTextColorVertex;
 	fragment = dsVectorElementText_defaultFragmentColorOutline;
 	DS_DEFAULT_VECTOR_ELEMENT_TEXT_RENDER_STATES;
 }

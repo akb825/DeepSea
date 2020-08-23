@@ -102,7 +102,18 @@ function(ds_compile_shaders container)
 		set(ARGS_OPTIMIZE 2)
 	endif()
 	list(APPEND extraArgs $<$<NOT:$<OR:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>>>:-s>)
-	list(APPEND extraArgs $<$<NOT:$<CONFIG:Debug>>:-O> $<$<NOT:$<CONFIG:Debug>>:${ARGS_OPTIMIZE}>)
+
+	if (ANDROID)
+		# Qualcomm's sad excuse for drivers fail to link some shaders with SPIR-V unless they're
+		# optimized. This was observed with text shaders due to the usage of smoothstep(). The
+		# optimized shader still uses smoothstep(), but it inlines the functions, which magically
+		# works. As a workaround, always optimize shaders. Since debugging will typically be done
+		# first on desktop platforms, this shouldn't be a huge issue.
+		list(APPEND extraArgs -O ${ARGS_OPTIMIZE})
+	else()
+		list(APPEND extraArgs $<$<NOT:$<CONFIG:Debug>>:-O>
+			$<$<NOT:$<CONFIG:Debug>>:${ARGS_OPTIMIZE}>)
+	endif()
 
 	set(includeDeps)
 	foreach (dir ${ARGS_INCLUDE})
