@@ -124,6 +124,19 @@ table VariableData
 	data : [ubyte] (required);
 }
 
+// Structure describing data for a shader variable group.
+table ShaderVariableGroup
+{
+	// The name of the shader variable group.
+	name : string (required);
+
+	// The name of the ShaderVariableDesc to use.
+	description : string (required);
+
+	// The data for the variable group.
+	data : [VariableData];
+}
+
 // Structure describing an element of a material variable.
 table MaterialElement
 {
@@ -154,16 +167,16 @@ table MaterialDesc
 	elements : [MaterialElement] (required);
 }
 
-// Structure describing data for a shader variable group or material.
-table ShaderData
+// Structure describing data for a material.
+table Material
 {
-	// The name of the shader variable group.
+	// The name of the material.
 	name : string (required);
 
-	// The name of the ShaderVariableDesc or MaterialDesc to use.
+	// The name of the MaterialDesc to use.
 	description : string (required);
 
-	// The data for the variable group.
+	// The data for the material.
 	data : [VariableData];
 }
 
@@ -281,41 +294,33 @@ table CustomResource
 	resource : ObjectData (required);
 }
 
-// Structure defining scene resources.
+// Union for an individual resource in the scene.
+union SceneResourceUnion
+{
+	Buffer,
+	Texture,
+	ShaderVariableGroupDesc,
+	ShaderVariableGroup,
+	MaterialDesc,
+	Material,
+	ShaderModule,
+	Shader,
+	DrawGeometry,
+	SceneNode,
+	CustomResource
+}
+
+// Structure for a scene resource, required since arrays of unions aren't supported.
+table SceneResource
+{
+	resource : SceneResourceUnion;
+}
+
+// Structure for a list of scene resources.
 table SceneResources
 {
-	// List of buffers.
-	buffers : [Buffer];
-
-	// List of textures.
-	textures : [Texture];
-
-	// List of shader variable group descriptions.
-	shaderVariableGroupDescs : [ShaderVariableGroupDesc];
-
-	// List of shader variable groups.
-	shaderVariableGroups : [ShaderData];
-
-	// List of shader material descriptions.
-	materialDescs : [MaterialDesc];
-
-	// List of materials.
-	materials : [ShaderData];
-
-	// List of shader modules.
-	shaderModules : [ShaderModule];
-
-	// List of shaders.
-	shaders : [Shader];
-
-	// List of draw geometries.
-	drawGeometries : [DrawGeometry];
-
-	// List of scene nodes.
-	sceneNodes : [SceneNode];
-
-	// List of custom resources.
-	customResources : [CustomResource];
+	// List of resources.
+	resources : [SceneResource];
 }
 
 root_type SceneResources;

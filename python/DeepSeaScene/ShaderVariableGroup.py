@@ -6,35 +6,35 @@ import flatbuffers
 from flatbuffers.compat import import_numpy
 np = import_numpy()
 
-class ShaderData(object):
+class ShaderVariableGroup(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsShaderData(cls, buf, offset):
+    def GetRootAsShaderVariableGroup(cls, buf, offset):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
-        x = ShaderData()
+        x = ShaderVariableGroup()
         x.Init(buf, n + offset)
         return x
 
-    # ShaderData
+    # ShaderVariableGroup
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
 
-    # ShaderData
+    # ShaderVariableGroup
     def Name(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         if o != 0:
             return self._tab.String(o + self._tab.Pos)
         return None
 
-    # ShaderData
+    # ShaderVariableGroup
     def Description(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         if o != 0:
             return self._tab.String(o + self._tab.Pos)
         return None
 
-    # ShaderData
+    # ShaderVariableGroup
     def Data(self, j):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
         if o != 0:
@@ -47,21 +47,21 @@ class ShaderData(object):
             return obj
         return None
 
-    # ShaderData
+    # ShaderVariableGroup
     def DataLength(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
         if o != 0:
             return self._tab.VectorLen(o)
         return 0
 
-    # ShaderData
+    # ShaderVariableGroup
     def DataIsNone(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
         return o == 0
 
-def ShaderDataStart(builder): builder.StartObject(3)
-def ShaderDataAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
-def ShaderDataAddDescription(builder, description): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(description), 0)
-def ShaderDataAddData(builder, data): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(data), 0)
-def ShaderDataStartDataVector(builder, numElems): return builder.StartVector(4, numElems, 4)
-def ShaderDataEnd(builder): return builder.EndObject()
+def ShaderVariableGroupStart(builder): builder.StartObject(3)
+def ShaderVariableGroupAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+def ShaderVariableGroupAddDescription(builder, description): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(description), 0)
+def ShaderVariableGroupAddData(builder, data): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(data), 0)
+def ShaderVariableGroupStartDataVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+def ShaderVariableGroupEnd(builder): return builder.EndObject()

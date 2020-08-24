@@ -21,6 +21,7 @@
 #include "Flatbuffers/SceneResources_generated.h"
 #include "Flatbuffers/TextureBufferMaterialData_generated.h"
 
+#include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/StackAllocator.h>
 #include <DeepSea/Core/Streams/MemoryStream.h>
@@ -105,427 +106,351 @@
 template <typename T>
 using FlatbufferVector = flatbuffers::Vector<flatbuffers::Offset<T>>;
 
-static bool loadBuffers(dsSceneResources* resources, dsResourceManager* resourceManager,
-	dsAllocator* allocator, const FlatbufferVector<DeepSeaScene::Buffer>* buffers,
-	const char* fileName)
+static bool loadBuffer(dsSceneResources* resources, dsResourceManager* resourceManager,
+	dsAllocator* allocator, const DeepSeaScene::Buffer* fbBuffer, const char* fileName,
+	dsAllocator* scratchAllocator, void*& tempData, size_t& tempDataSize)
 {
-	if (!buffers)
-		return true;
-
-	size_t tempDataCapacity = 0;
-	void* tempData = nullptr;
-	bool success = true;
-	for (auto fbBuffer : *buffers)
+	const char* bufferName = fbBuffer->name()->c_str();
+	uint32_t bufferSize = fbBuffer->size();
+	const void* bufferData = nullptr;
+	size_t dataSize = bufferSize;
+	if (auto fbFileRef = fbBuffer->data_as_FileReference())
 	{
-		if (!fbBuffer)
-			continue;
-
-		const char* bufferName = fbBuffer->name()->c_str();
-		uint32_t bufferSize = fbBuffer->size();
-		const void* bufferData = nullptr;
-		size_t dataSize = bufferSize;
-		if (auto fbFileRef = fbBuffer->data_as_FileReference())
+		dsResourceStream stream;
+		if (!dsResourceStream_open(&stream, DeepSeaScene::convert(fbFileRef->type()),
+				fbFileRef->path()->c_str(), "rb"))
 		{
-			dsResourceStream stream;
-			if (!dsResourceStream_open(&stream, DeepSeaScene::convert(fbFileRef->type()),
-					fbFileRef->path()->c_str(), "rb"))
-			{
-				PRINT_FLATBUFFER_RESOURCE_ERROR("Couldn't open file for buffer '%s'", bufferName,
-					fileName);
-				success = false;
-				break;
-			}
-
-			if (!dsStream_readUntilEndReuse(&tempData, &dataSize, &tempDataCapacity,
-					reinterpret_cast<dsStream*>(&stream), allocator))
-			{
-				PRINT_FLATBUFFER_RESOURCE_ERROR("Couldn't read data for buffer '%s'", bufferName,
-					fileName);
-				success = false;
-				break;
-			}
-
-			bufferData = tempData;
-		}
-		else if (auto fbRawData = fbBuffer->data_as_RawData())
-		{
-			auto fbData = fbRawData->data();
-			bufferData = fbData->data();
-			dataSize = fbData->size();
-		}
-
-		if (dataSize != bufferSize)
-		{
-			errno = EFORMAT;
-			PRINT_FLATBUFFER_RESOURCE_ERROR(
-				"Mismatch between size and data size for buffer '%s'", bufferName, fileName);
-			success = false;
-			break;
-		}
-
-		dsGfxBuffer* buffer = dsGfxBuffer_create(resourceManager, allocator,
-			(dsGfxBufferUsage)fbBuffer->usage(), (dsGfxMemory)fbBuffer->memoryHints(), bufferData,
-			bufferSize);
-
-		if (!buffer)
-		{
-			PRINT_FLATBUFFER_RESOURCE_ERROR(
-				"Couldn't create buffer '%s'", bufferName, fileName);
-			success = false;
-			break;
-		}
-
-		if (!dsSceneResources_addResource(
-				resources, bufferName, dsSceneResourceType_Buffer, buffer, true))
-		{
-			DS_VERIFY(dsGfxBuffer_destroy(buffer));
-			success = false;
-			break;
-		}
-	}
-
-	dsAllocator_free(allocator, tempData);
-	return success;
-}
-
-static bool loadTextures(dsSceneResources* resources, dsResourceManager* resourceManager,
-	dsAllocator* allocator, dsAllocator* resourceAllocator,
-	const FlatbufferVector<DeepSeaScene::Texture>* textures, const char* fileName)
-{
-	if (!textures)
-		return true;
-
-	for (auto fbTexture : *textures)
-	{
-		if (!fbTexture)
-			continue;
-
-		const char* textureName = fbTexture->name()->c_str();
-		auto usage = static_cast<dsTextureUsage>(fbTexture->usage());
-		auto memoryHints = static_cast<dsGfxMemory>(fbTexture->memoryHints());
-		dsTexture* texture;
-		if (auto fbFileRef = fbTexture->data_as_FileReference())
-		{
-			texture = dsTextureData_loadResourceToTexture(resourceManager, resourceAllocator,
-				allocator, DeepSeaScene::convert(fbFileRef->type()),
-				fbFileRef->path()->c_str(), nullptr, usage, memoryHints);
-		}
-		else if (auto fbRawData = fbTexture->data_as_RawData())
-		{
-			auto fbData = fbRawData->data();
-			dsMemoryStream stream;
-			DS_VERIFY(dsMemoryStream_open(&stream, (void*)fbData->data(), fbData->size()));
-			texture = dsTextureData_loadStreamToTexture(resourceManager, resourceAllocator,
-				allocator, reinterpret_cast<dsStream*>(&stream), nullptr, usage, memoryHints);
-			DS_VERIFY(dsMemoryStream_close(&stream));
-		}
-		else if (auto fbTextureInfo = fbTexture->textureInfo())
-		{
-			dsTextureInfo textureInfo =
-			{
-				DeepSeaScene::convert(resourceManager->renderer, fbTextureInfo->format(),
-					fbTextureInfo->decoration()),
-				DeepSeaScene::convert(fbTextureInfo->dimension()),
-				fbTextureInfo->width(),
-				fbTextureInfo->height(),
-				fbTextureInfo->depth(),
-				fbTextureInfo->mipLevels(),
-				1
-			};
-			texture = dsTexture_create(resourceManager, resourceAllocator, usage, memoryHints,
-				&textureInfo, nullptr, 0);
-		}
-		else
-		{
-			errno = EFORMAT;
-			PRINT_FLATBUFFER_RESOURCE_ERROR(
-				"Either texture data or texture info must be provided for texture '%s'",
-				textureName, fileName);
-			return false;
-		}
-
-		if (!texture)
-		{
-			PRINT_FLATBUFFER_RESOURCE_ERROR(
-				"Couldn't create texture '%s'", textureName, fileName);
-			return false;
-		}
-
-		if (!dsSceneResources_addResource(
-				resources, textureName, dsSceneResourceType_Texture, texture, true))
-		{
-			DS_VERIFY(dsTexture_destroy(texture));
-			return false;
-		}
-	}
-
-	return true;
-}
-
-static bool loadShaderVariableGroupDescs(dsSceneResources* resources,
-	dsResourceManager* resourceManager, dsAllocator* allocator, dsSceneLoadScratchData* scratchData,
-	const FlatbufferVector<DeepSeaScene::ShaderVariableGroupDesc>* groupDescs, const char* fileName)
-{
-	if (!groupDescs)
-		return true;
-
-	uint32_t maxElements = 0;
-	for (auto fbGroupDesc : *groupDescs)
-	{
-		if (!fbGroupDesc)
-			continue;
-
-		const auto fbElements = fbGroupDesc->elements();
-		if (!fbElements)
-			continue;
-
-		maxElements = std::max(fbElements->size(), maxElements);
-	}
-	if (maxElements == 0)
-		return true;
-
-	dsAllocator* scratchAllocator = dsSceneLoadScratchData_getAllocator(scratchData);
-	auto elements =
-		DS_ALLOCATE_OBJECT_ARRAY(scratchAllocator, dsShaderVariableElement, maxElements);
-	if (!elements)
-		return false;
-
-	bool success = true;
-	for (auto fbGroupDesc : *groupDescs)
-	{
-		if (!fbGroupDesc)
-			continue;
-
-		const auto fbElements = fbGroupDesc->elements();
-		if (!fbElements)
-			continue;
-
-		const char* groupDescName = fbGroupDesc->name()->c_str();
-		dsShaderVariableElement* curElement = elements;
-		for (auto fbElement : *fbElements)
-		{
-			curElement->name = fbElement->name()->c_str();
-			curElement->type = DeepSeaScene::convert(fbElement->type());
-			curElement->count = fbElement->count();
-			++curElement;
-		}
-
-		dsShaderVariableGroupDesc* groupDesc = dsShaderVariableGroupDesc_create(resourceManager,
-			allocator, elements, fbElements->size());
-
-		if (!groupDesc)
-		{
-			PRINT_FLATBUFFER_RESOURCE_ERROR(
-				"Couldn't create shader variable group description '%s'", groupDescName, fileName);
-			success = false;
-			break;
-		}
-
-		if (!dsSceneResources_addResource(resources, groupDescName,
-				dsSceneResourceType_ShaderVariableGroupDesc, groupDesc, true))
-		{
-			DS_VERIFY(dsShaderVariableGroupDesc_destroy(groupDesc));
-			success = false;
-			break;
-		}
-	}
-
-	DS_VERIFY(dsAllocator_free(scratchAllocator, elements));
-	return success;
-}
-
-static bool loadShaderVariableGroups(dsSceneResources* resources,
-	dsResourceManager* resourceManager, dsAllocator* allocator, dsSceneLoadScratchData* scratchData,
-	const FlatbufferVector<DeepSeaScene::ShaderData>* groups, const char* fileName)
-{
-	if (!groups)
-		return true;
-
-	dsCommandBuffer* commandBuffer = dsSceneLoadScratchData_getCommandBuffer(scratchData);
-	for (auto fbGroup : *groups)
-	{
-		if (!fbGroup)
-			return false;
-
-		const char* groupDescName = fbGroup->description()->c_str();
-		dsShaderVariableGroupDesc* groupDesc;
-		dsSceneResourceType resourceType;
-		if (!dsSceneLoadScratchData_findResource(&resourceType,
-				reinterpret_cast<void**>(&groupDesc), scratchData, groupDescName) ||
-			resourceType != dsSceneResourceType_ShaderVariableGroupDesc)
-		{
-			// NOTE: ENOTFOUND not set when the type doesn't match, so set it manually.
-			errno = ENOTFOUND;
-			PRINT_FLATBUFFER_RESOURCE_NOT_FOUND("shader variable group", groupDescName, fileName);
-			return false;
-		}
-
-		const char* groupName = fbGroup->name()->c_str();
-		dsShaderVariableGroup* group = dsShaderVariableGroup_create(resourceManager, allocator,
-			nullptr, groupDesc);
-		if (!group)
-		{
-			PRINT_FLATBUFFER_RESOURCE_ERROR(
-				"Couldn't create shader variable group '%s'", groupName, fileName);
-			return false;
-		}
-
-		// NOTE: This takes ownership on success, so errors after this point won't destroy the
-		// variable group.
-		if (!dsSceneResources_addResource(
-				resources, groupName, dsSceneResourceType_ShaderVariableGroup, groupDesc, true))
-		{
-			DS_VERIFY(dsShaderVariableGroup_destroy(group));
-			return false;
-		}
-
-		auto* variableData = fbGroup->data();
-		if (!variableData)
-			continue;
-
-		if (!commandBuffer)
-		{
-			PRINT_FLATBUFFER_RESOURCE_ERROR(
-				"Command buffer not available to set data on variable group '%s'", groupName,
+			PRINT_FLATBUFFER_RESOURCE_ERROR("Couldn't open file for buffer '%s'", bufferName,
 				fileName);
 			return false;
 		}
 
-		for (auto fbData : *variableData)
+		bool readData = dsStream_readUntilEndReuse(&tempData, &dataSize, &tempDataSize,
+			reinterpret_cast<dsStream*>(&stream), scratchAllocator);
+		if (!readData)
 		{
-			if (!fbData)
-				continue;
-
-			const char* dataName = fbData->name()->c_str();
-			uint32_t element = dsShaderVariableGroupDesc_findElement(groupDesc, dataName);
-			if (element == DS_MATERIAL_UNKNOWN)
-			{
-				PRINT_FLATBUFFER_MATERIAL_ERROR(
-					"Couldn't find shader variable group element '%s'", dataName, fileName);
-				return false;
-			}
-
-			auto data = fbData->data();
-			dsMaterialType type = DeepSeaScene::convert(fbData->type());
-			uint32_t count = fbData->count();
-			uint32_t expectedSize = dsMaterialType_cpuSize(type)*count;
-			if (data->size() != expectedSize)
-			{
-				PRINT_FLATBUFFER_MATERIAL_ERROR(
-					"Incorrect data size for shader variable group element '%s'", dataName,
-					fileName);
-				return false;
-			}
-
-			if (!dsShaderVariableGroup_setElementData(group, element, data->data(),
-					type, fbData->first(), count))
-			{
-				PRINT_FLATBUFFER_MATERIAL_ERROR(
-					"Couldn't set shader variable group element '%s'", dataName, fileName);
-				return false;
-			}
+			PRINT_FLATBUFFER_RESOURCE_ERROR("Couldn't read data for buffer '%s'", bufferName,
+				fileName);
+			return false;
 		}
 
-		dsShaderVariableGroup_commit(group, commandBuffer);
+		bufferData = &tempData;
+	}
+	else if (auto fbRawData = fbBuffer->data_as_RawData())
+	{
+		auto fbData = fbRawData->data();
+		bufferData = fbData->data();
+		dataSize = fbData->size();
+	}
+
+	if (dataSize != bufferSize)
+	{
+		errno = EFORMAT;
+		PRINT_FLATBUFFER_RESOURCE_ERROR(
+			"Mismatch between size and data size for buffer '%s'", bufferName, fileName);
+		return false;
+	}
+
+	dsGfxBuffer* buffer = dsGfxBuffer_create(resourceManager, allocator,
+		(dsGfxBufferUsage)fbBuffer->usage(), (dsGfxMemory)fbBuffer->memoryHints(), bufferData,
+		bufferSize);
+
+	if (!buffer)
+	{
+		PRINT_FLATBUFFER_RESOURCE_ERROR(
+			"Couldn't create buffer '%s'", bufferName, fileName);
+		return false;
+	}
+
+	if (!dsSceneResources_addResource(
+			resources, bufferName, dsSceneResourceType_Buffer, buffer, true))
+	{
+		DS_VERIFY(dsGfxBuffer_destroy(buffer));
+		return false;
 	}
 
 	return true;
 }
 
-static bool loadMaterialDescs(dsSceneResources* resources, dsResourceManager* resourceManager,
-	dsAllocator* allocator, dsSceneLoadScratchData* scratchData,
-	const FlatbufferVector<DeepSeaScene::MaterialDesc>* materialDescs, const char* fileName)
+static bool loadTexture(dsSceneResources* resources, dsResourceManager* resourceManager,
+	dsAllocator* allocator, dsAllocator* resourceAllocator, const DeepSeaScene::Texture* fbTexture,
+	const char* fileName)
 {
-	if (!materialDescs)
-		return true;
-
-	uint32_t maxElements = 0;
-	for (auto fbGroupDesc : *materialDescs)
+	const char* textureName = fbTexture->name()->c_str();
+	auto usage = static_cast<dsTextureUsage>(fbTexture->usage());
+	auto memoryHints = static_cast<dsGfxMemory>(fbTexture->memoryHints());
+	dsTexture* texture;
+	if (auto fbFileRef = fbTexture->data_as_FileReference())
 	{
-		if (!fbGroupDesc)
-			continue;
-
-		const auto fbElements = fbGroupDesc->elements();
-		if (!fbElements)
-			continue;
-
-		maxElements = std::max(fbElements->size(), maxElements);
+		texture = dsTextureData_loadResourceToTexture(resourceManager, resourceAllocator,
+			allocator, DeepSeaScene::convert(fbFileRef->type()),
+			fbFileRef->path()->c_str(), nullptr, usage, memoryHints);
 	}
-	if (maxElements == 0)
-		return true;
-
-	dsAllocator* scratchAllocator = dsSceneLoadScratchData_getAllocator(scratchData);
-	auto elements =
-		DS_ALLOCATE_OBJECT_ARRAY(scratchAllocator, dsMaterialElement, maxElements);
-	if (!elements)
+	else if (auto fbRawData = fbTexture->data_as_RawData())
+	{
+		auto fbData = fbRawData->data();
+		dsMemoryStream stream;
+		DS_VERIFY(dsMemoryStream_open(&stream, (void*)fbData->data(), fbData->size()));
+		texture = dsTextureData_loadStreamToTexture(resourceManager, resourceAllocator,
+			allocator, reinterpret_cast<dsStream*>(&stream), nullptr, usage, memoryHints);
+		DS_VERIFY(dsMemoryStream_close(&stream));
+	}
+	else if (auto fbTextureInfo = fbTexture->textureInfo())
+	{
+		dsTextureInfo textureInfo =
+		{
+			DeepSeaScene::convert(resourceManager->renderer, fbTextureInfo->format(),
+				fbTextureInfo->decoration()),
+			DeepSeaScene::convert(fbTextureInfo->dimension()),
+			fbTextureInfo->width(),
+			fbTextureInfo->height(),
+			fbTextureInfo->depth(),
+			fbTextureInfo->mipLevels(),
+			1
+		};
+		texture = dsTexture_create(resourceManager, resourceAllocator, usage, memoryHints,
+			&textureInfo, nullptr, 0);
+	}
+	else
+	{
+		errno = EFORMAT;
+		PRINT_FLATBUFFER_RESOURCE_ERROR(
+			"Either texture data or texture info must be provided for texture '%s'",
+			textureName, fileName);
 		return false;
+	}
 
-	bool success = true;
-	for (auto fbMaterialDesc : *materialDescs)
+	if (!texture)
 	{
-		if (!fbMaterialDesc)
+		PRINT_FLATBUFFER_RESOURCE_ERROR(
+			"Couldn't create texture '%s'", textureName, fileName);
+		return false;
+	}
+
+	if (!dsSceneResources_addResource(
+			resources, textureName, dsSceneResourceType_Texture, texture, true))
+	{
+		DS_VERIFY(dsTexture_destroy(texture));
+		return false;
+	}
+
+	return true;
+}
+
+static bool loadShaderVariableGroupDesc(dsSceneResources* resources,
+	dsResourceManager* resourceManager, dsAllocator* allocator,
+	const DeepSeaScene::ShaderVariableGroupDesc* fbGroupDesc, const char* fileName,
+	dsAllocator* scratchAllocator, void*& tempData, size_t& tempDataSize)
+{
+	const auto fbElements = fbGroupDesc->elements();
+	if (!fbElements)
+		return true;;
+
+	const char* groupDescName = fbGroupDesc->name()->c_str();
+	uint32_t elementCount = fbElements->size();
+	if (elementCount == 0)
+		return true;
+
+	uint32_t dummyCount;
+	uint32_t maxElements = static_cast<uint32_t>(tempDataSize/sizeof(dsShaderVariableElement));
+	if (!dsResizeableArray_add(scratchAllocator, &tempData, &dummyCount, &maxElements,
+			sizeof(dsShaderVariableElement), elementCount))
+	{
+		return false;
+	}
+
+	tempDataSize = maxElements*sizeof(dsShaderVariableElement);
+	auto elements = reinterpret_cast<dsShaderVariableElement*>(tempData);
+
+	dsShaderVariableElement* curElement = elements;
+	for (auto fbElement : *fbElements)
+	{
+		curElement->name = fbElement->name()->c_str();
+		curElement->type = DeepSeaScene::convert(fbElement->type());
+		curElement->count = fbElement->count();
+		++curElement;
+	}
+
+	dsShaderVariableGroupDesc* groupDesc = dsShaderVariableGroupDesc_create(resourceManager,
+		allocator, elements, fbElements->size());
+
+	if (!groupDesc)
+	{
+		PRINT_FLATBUFFER_RESOURCE_ERROR(
+			"Couldn't create shader variable group description '%s'", groupDescName, fileName);
+		return false;
+	}
+
+	if (!dsSceneResources_addResource(resources, groupDescName,
+			dsSceneResourceType_ShaderVariableGroupDesc, groupDesc, true))
+	{
+		DS_VERIFY(dsShaderVariableGroupDesc_destroy(groupDesc));
+		return false;
+	}
+
+	return true;
+}
+
+static bool loadShaderVariableGroup(dsSceneResources* resources,
+	dsResourceManager* resourceManager, dsAllocator* allocator, dsSceneLoadScratchData* scratchData,
+	const DeepSeaScene::ShaderVariableGroup* fbGroup, const char* fileName)
+{
+	dsCommandBuffer* commandBuffer = dsSceneLoadScratchData_getCommandBuffer(scratchData);
+	const char* groupName = fbGroup->name()->c_str();
+	if (!commandBuffer)
+	{
+		errno = EPERM;
+		PRINT_FLATBUFFER_RESOURCE_ERROR(
+			"Command buffer not available to set data on variable group '%s'", groupName, fileName);
+		return false;
+	}
+
+	const char* groupDescName = fbGroup->description()->c_str();
+	dsShaderVariableGroupDesc* groupDesc;
+	dsSceneResourceType resourceType;
+	if (!dsSceneLoadScratchData_findResource(&resourceType,
+			reinterpret_cast<void**>(&groupDesc), scratchData, groupDescName) ||
+		resourceType != dsSceneResourceType_ShaderVariableGroupDesc)
+	{
+		// NOTE: ENOTFOUND not set when the type doesn't match, so set it manually.
+		errno = ENOTFOUND;
+		PRINT_FLATBUFFER_RESOURCE_NOT_FOUND("shader variable group", groupDescName, fileName);
+		return false;
+	}
+
+	dsShaderVariableGroup* group = dsShaderVariableGroup_create(resourceManager, allocator,
+		nullptr, groupDesc);
+	if (!group)
+	{
+		PRINT_FLATBUFFER_RESOURCE_ERROR(
+			"Couldn't create shader variable group '%s'", groupName, fileName);
+		return false;
+	}
+
+	// NOTE: This takes ownership on success, so errors after this point won't destroy the
+	// variable group.
+	if (!dsSceneResources_addResource(
+			resources, groupName, dsSceneResourceType_ShaderVariableGroup, groupDesc, true))
+	{
+		DS_VERIFY(dsShaderVariableGroup_destroy(group));
+		return false;
+	}
+
+	auto* variableData = fbGroup->data();
+	if (!variableData)
+		return true;
+
+	for (auto fbData : *variableData)
+	{
+		if (!fbData)
 			continue;
 
-		const auto fbElements = fbMaterialDesc->elements();
-		if (!fbElements)
-			continue;
-
-		const char* materialDescName = fbMaterialDesc->name()->c_str();
-		dsMaterialElement* curElement = elements;
-		for (auto fbElement : *fbElements)
+		const char* dataName = fbData->name()->c_str();
+		uint32_t element = dsShaderVariableGroupDesc_findElement(groupDesc, dataName);
+		if (element == DS_MATERIAL_UNKNOWN)
 		{
-			curElement->name = fbElement->name()->c_str();
-			curElement->type = DeepSeaScene::convert(fbElement->type());
-			curElement->count = fbElement->count();
-			auto groupDescName = fbElement->shaderVariableGroupDesc();
-			if (groupDescName)
-			{
-				dsShaderVariableGroupDesc* groupDesc;
-				dsSceneResourceType resourceType;
-				if (!dsSceneLoadScratchData_findResource(&resourceType,
-						reinterpret_cast<void**>(&groupDesc), scratchData,
-						groupDescName->c_str()) ||
-					resourceType != dsSceneResourceType_ShaderVariableGroupDesc)
-				{
-					errno = ENOTFOUND;
-					PRINT_FLATBUFFER_RESOURCE_NOT_FOUND("shader variable group",
-						groupDescName->c_str(), fileName);
-					success = false;
-					break;
-				}
-				curElement->shaderVariableGroupDesc = groupDesc;
-			}
-			else
-				curElement->shaderVariableGroupDesc = nullptr;
-			curElement->binding = DeepSeaScene::convert(fbElement->binding());
-			++curElement;
+			PRINT_FLATBUFFER_MATERIAL_ERROR(
+				"Couldn't find shader variable group element '%s'", dataName, fileName);
+			return false;
 		}
 
-		if (!success)
-			break;
-
-		dsMaterialDesc* materialDesc = dsMaterialDesc_create(resourceManager, allocator, elements,
-			fbElements->size());
-
-		if (!materialDesc)
+		auto data = fbData->data();
+		dsMaterialType type = DeepSeaScene::convert(fbData->type());
+		uint32_t count = fbData->count();
+		uint32_t expectedSize = dsMaterialType_cpuSize(type)*count;
+		if (data->size() != expectedSize)
 		{
-			PRINT_FLATBUFFER_RESOURCE_ERROR(
-				"Couldn't create material description '%s'", materialDescName, fileName);
-			success = false;
-			break;
+			PRINT_FLATBUFFER_MATERIAL_ERROR(
+				"Incorrect data size for shader variable group element '%s'", dataName,
+				fileName);
+			return false;
 		}
 
-		if (!dsSceneResources_addResource(resources, materialDescName,
-				dsSceneResourceType_MaterialDesc, materialDesc, true))
+		if (!dsShaderVariableGroup_setElementData(group, element, data->data(),
+				type, fbData->first(), count))
 		{
-			DS_VERIFY(dsMaterialDesc_destroy(materialDesc));
-			success = false;
-			break;
+			PRINT_FLATBUFFER_MATERIAL_ERROR(
+				"Couldn't set shader variable group element '%s'", dataName, fileName);
+			return false;
 		}
 	}
 
-	DS_VERIFY(dsAllocator_free(scratchAllocator, elements));
-	return success;
+	dsShaderVariableGroup_commit(group, commandBuffer);
+	return true;
+}
+
+static bool loadMaterialDesc(dsSceneResources* resources, dsResourceManager* resourceManager,
+	dsAllocator* allocator, dsSceneLoadScratchData* scratchData,
+	const DeepSeaScene::MaterialDesc* fbMaterialDesc, const char* fileName,
+	dsAllocator* scratchAllocator, void*& tempData, size_t& tempDataSize)
+{
+	const auto fbElements = fbMaterialDesc->elements();
+	if (!fbElements)
+		return true;;
+
+	uint32_t elementCount = fbElements->size();
+	if (elementCount == 0)
+		return true;
+
+	uint32_t dummyCount;
+	uint32_t maxElements = static_cast<uint32_t>(tempDataSize/sizeof(dsMaterialElement));
+	if (!dsResizeableArray_add(scratchAllocator, &tempData, &dummyCount, &maxElements,
+			sizeof(dsMaterialElement), elementCount))
+	{
+		return false;
+	}
+
+	tempDataSize = maxElements*sizeof(dsMaterialElement);
+	auto elements = reinterpret_cast<dsMaterialElement*>(tempData);
+
+	const char* materialDescName = fbMaterialDesc->name()->c_str();
+	dsMaterialElement* curElement = elements;
+	for (auto fbElement : *fbElements)
+	{
+		curElement->name = fbElement->name()->c_str();
+		curElement->type = DeepSeaScene::convert(fbElement->type());
+		curElement->count = fbElement->count();
+		auto groupDescName = fbElement->shaderVariableGroupDesc();
+		if (groupDescName)
+		{
+			dsShaderVariableGroupDesc* groupDesc;
+			dsSceneResourceType resourceType;
+			if (!dsSceneLoadScratchData_findResource(&resourceType,
+					reinterpret_cast<void**>(&groupDesc), scratchData,
+					groupDescName->c_str()) ||
+				resourceType != dsSceneResourceType_ShaderVariableGroupDesc)
+			{
+				errno = ENOTFOUND;
+				PRINT_FLATBUFFER_RESOURCE_NOT_FOUND("shader variable group", groupDescName->c_str(),
+					fileName);
+				return false;
+			}
+			curElement->shaderVariableGroupDesc = groupDesc;
+		}
+		else
+			curElement->shaderVariableGroupDesc = nullptr;
+		curElement->binding = DeepSeaScene::convert(fbElement->binding());
+		++curElement;
+	}
+
+	dsMaterialDesc* materialDesc = dsMaterialDesc_create(resourceManager, allocator, elements,
+		fbElements->size());
+
+	if (!materialDesc)
+	{
+		PRINT_FLATBUFFER_RESOURCE_ERROR(
+			"Couldn't create material description '%s'", materialDescName, fileName);
+		return false;
+	}
+
+	if (!dsSceneResources_addResource(resources, materialDescName,
+			dsSceneResourceType_MaterialDesc, materialDesc, true))
+	{
+		DS_VERIFY(dsMaterialDesc_destroy(materialDesc));
+		return false;
+	}
+
+	return true;
 }
 
 static bool loadMaterialTexture(dsSceneLoadScratchData* scratchData, dsMaterial* material,
@@ -704,103 +629,94 @@ static bool loadMaterialData(dsMaterial* material, uint32_t element, dsMaterialT
 	return true;
 }
 
-static bool loadMaterials(dsSceneResources* resources, dsResourceManager* resourceManager,
+static bool loadMaterial(dsSceneResources* resources, dsResourceManager* resourceManager,
 	dsAllocator* allocator, dsSceneLoadScratchData* scratchData,
-	const FlatbufferVector<DeepSeaScene::ShaderData>* materials, const char* fileName)
+	const DeepSeaScene::Material* fbMaterial, const char* fileName)
 {
-	if (!materials)
+	const char* materialDescName = fbMaterial->description()->c_str();
+	dsMaterialDesc* materialDesc;
+	dsSceneResourceType resourceType;
+	if (!dsSceneLoadScratchData_findResource(&resourceType,
+			reinterpret_cast<void**>(&materialDesc), scratchData, materialDescName) ||
+		resourceType != dsSceneResourceType_MaterialDesc)
+	{
+		// NOTE: ENOTFOUND not set when the type doesn't match, so set it manually.
+		errno = ENOTFOUND;
+		PRINT_FLATBUFFER_RESOURCE_NOT_FOUND("material", materialDescName, fileName);
+		return false;
+	}
+
+	const char* materialName = fbMaterial->name()->c_str();
+	dsMaterial* material = dsMaterial_create(resourceManager, allocator, materialDesc);
+	if (!material)
+	{
+		PRINT_FLATBUFFER_RESOURCE_ERROR(
+			"Couldn't create material '%s'", materialName, fileName);
+		return false;
+	}
+
+	// NOTE: This takes ownership on success, so errors after this point won't destroy the
+	// material.
+	if (!dsSceneResources_addResource(
+			resources, materialName, dsSceneResourceType_Material, material, true))
+	{
+		dsMaterial_destroy(material);
+		return false;
+	}
+
+	auto* variableData = fbMaterial->data();
+	if (!variableData)
 		return true;
 
-	for (auto fbMaterial : *materials)
+	for (auto fbData : *variableData)
 	{
-		if (!fbMaterial)
-			return false;
-
-		const char* materialDescName = fbMaterial->description()->c_str();
-		dsMaterialDesc* materialDesc;
-		dsSceneResourceType resourceType;
-		if (!dsSceneLoadScratchData_findResource(&resourceType,
-				reinterpret_cast<void**>(&materialDesc), scratchData, materialDescName) ||
-			resourceType != dsSceneResourceType_MaterialDesc)
-		{
-			// NOTE: ENOTFOUND not set when the type doesn't match, so set it manually.
-			errno = ENOTFOUND;
-			PRINT_FLATBUFFER_RESOURCE_NOT_FOUND("material", materialDescName, fileName);
-			return false;
-		}
-
-		const char* materialName = fbMaterial->name()->c_str();
-		dsMaterial* material = dsMaterial_create(resourceManager, allocator, materialDesc);
-		if (!material)
-		{
-			PRINT_FLATBUFFER_RESOURCE_ERROR(
-				"Couldn't create material '%s'", materialName, fileName);
-			return false;
-		}
-
-		// NOTE: This takes ownership on success, so errors after this point won't destroy the
-		// material.
-		if (!dsSceneResources_addResource(
-				resources, materialName, dsSceneResourceType_Material, material, true))
-		{
-			dsMaterial_destroy(material);
-			return false;
-		}
-
-		auto* variableData = fbMaterial->data();
-		if (!variableData)
+		if (!fbData)
 			continue;
 
-		for (auto fbData : *variableData)
+		const char* dataName = fbData->name()->c_str();
+		uint32_t element = dsMaterialDesc_findElement(materialDesc, dataName);
+		if (element == DS_MATERIAL_UNKNOWN)
 		{
-			if (!fbData)
-				continue;
-
-			const char* dataName = fbData->name()->c_str();
-			uint32_t element = dsMaterialDesc_findElement(materialDesc, dataName);
-			if (element == DS_MATERIAL_UNKNOWN)
-			{
-				PRINT_FLATBUFFER_MATERIAL_ERROR(
-					"Couldn't find material element '%s'", dataName, fileName);
-				return false;
-			}
-
-			auto data = fbData->data();
-			dsMaterialType type = DeepSeaScene::convert(fbData->type());
-			bool success;
-			switch (type)
-			{
-				case dsMaterialType_Texture:
-				case dsMaterialType_Image:
-				case dsMaterialType_SubpassInput:
-					success = loadMaterialTexture(scratchData, material, element, data->data(),
-						data->size(), dataName, fileName);
-					break;
-				case dsMaterialType_TextureBuffer:
-				case dsMaterialType_ImageBuffer:
-					success = loadMaterialTextureBuffer(scratchData, resourceManager->renderer,
-						material, element, data->data(), data->size(), dataName, fileName);
-					break;
-				case dsMaterialType_VariableGroup:
-					success = loadMaterialVariableGroup(scratchData, material, element,
-						data->data(), data->size(), dataName, fileName);
-					break;
-				case dsMaterialType_UniformBlock:
-				case dsMaterialType_UniformBuffer:
-					success = loadMaterialBuffer(scratchData, material, element, data->data(),
-						data->size(), dataName, fileName);
-					break;
-				default:
-				{
-					success = loadMaterialData(material, element, type, fbData->first(),
-						fbData->count(), data->data(), data->size(), dataName, fileName);
-					break;
-				}
-			}
-
-			if (!success)
-				return false;
+			PRINT_FLATBUFFER_MATERIAL_ERROR(
+				"Couldn't find material element '%s'", dataName, fileName);
+			return false;
 		}
+
+		auto data = fbData->data();
+		dsMaterialType type = DeepSeaScene::convert(fbData->type());
+		bool success;
+		switch (type)
+		{
+			case dsMaterialType_Texture:
+			case dsMaterialType_Image:
+			case dsMaterialType_SubpassInput:
+				success = loadMaterialTexture(scratchData, material, element, data->data(),
+					data->size(), dataName, fileName);
+				break;
+			case dsMaterialType_TextureBuffer:
+			case dsMaterialType_ImageBuffer:
+				success = loadMaterialTextureBuffer(scratchData, resourceManager->renderer,
+					material, element, data->data(), data->size(), dataName, fileName);
+				break;
+			case dsMaterialType_VariableGroup:
+				success = loadMaterialVariableGroup(scratchData, material, element,
+					data->data(), data->size(), dataName, fileName);
+				break;
+			case dsMaterialType_UniformBlock:
+			case dsMaterialType_UniformBuffer:
+				success = loadMaterialBuffer(scratchData, material, element, data->data(),
+					data->size(), dataName, fileName);
+				break;
+			default:
+			{
+				success = loadMaterialData(material, element, type, fbData->first(),
+					fbData->count(), data->data(), data->size(), dataName, fileName);
+				break;
+			}
+		}
+
+		if (!success)
+			return false;
 	}
 
 	return true;
@@ -854,282 +770,240 @@ static dsShaderModule* loadShaderModule(dsResourceManager* resourceManager, dsAl
 	}
 }
 
-static bool loadShaderModules(dsSceneResources* resources, dsResourceManager* resourceManager,
-	dsAllocator* allocator, const FlatbufferVector<DeepSeaScene::ShaderModule>* shaderModules,
+static bool loadShaderModule(dsSceneResources* resources, dsResourceManager* resourceManager,
+	dsAllocator* allocator, const DeepSeaScene::ShaderModule* fbShaderModule,
 	const char* fileName)
 {
-	if (!shaderModules)
-		return true;
+	const char* shaderModuleName = fbShaderModule->name()->c_str();
+	dsShaderModule* shaderModule = loadShaderModule(resourceManager, allocator,
+		fbShaderModule->modules(), shaderModuleName, fileName);
 
-	for (auto fbShaderModule : *shaderModules)
+	if (!shaderModule)
 	{
-		if (!fbShaderModule)
-			continue;
+		PRINT_FLATBUFFER_RESOURCE_ERROR(
+			"Couldn't load shader module '%s'", shaderModuleName, fileName);
+		return false;
+	}
 
-		const char* shaderModuleName = fbShaderModule->name()->c_str();
-		dsShaderModule* shaderModule = loadShaderModule(resourceManager, allocator,
-			fbShaderModule->modules(), shaderModuleName, fileName);
-
-		if (!shaderModule)
-		{
-			PRINT_FLATBUFFER_RESOURCE_ERROR(
-				"Couldn't load shader module '%s'", shaderModuleName, fileName);
-			return false;
-		}
-
-		if (!dsSceneResources_addResource(resources, shaderModuleName,
-				dsSceneResourceType_ShaderModule, shaderModule, true))
-		{
-			DS_VERIFY(dsShaderModule_destroy(shaderModule));
-			return false;
-		}
+	if (!dsSceneResources_addResource(resources, shaderModuleName,
+			dsSceneResourceType_ShaderModule, shaderModule, true))
+	{
+		DS_VERIFY(dsShaderModule_destroy(shaderModule));
+		return false;
 	}
 
 	return true;
 }
 
-static bool loadShaders(dsSceneResources* resources,
-	dsResourceManager* resourceManager, dsAllocator* allocator, dsSceneLoadScratchData* scratchData,
-	const FlatbufferVector<DeepSeaScene::Shader>* shaders, const char* fileName)
+static bool loadShader(dsSceneResources* resources, dsResourceManager* resourceManager,
+	dsAllocator* allocator, dsSceneLoadScratchData* scratchData,
+	const DeepSeaScene::Shader* fbShader, const char* fileName)
 {
-	if (!shaders)
-		return true;
-
-	for (auto fbShader : *shaders)
+	const char* shaderModuleName = fbShader->shaderModule()->c_str();
+	dsShaderModule* shaderModule;
+	dsSceneResourceType resourceType;
+	if (!dsSceneLoadScratchData_findResource(&resourceType,
+			reinterpret_cast<void**>(&shaderModule), scratchData, shaderModuleName) ||
+		resourceType != dsSceneResourceType_ShaderModule)
 	{
-		if (!fbShader)
-			continue;
-
 		// NOTE: ENOTFOUND not set when the type doesn't match, so set it manually.
-		const char* shaderModuleName = fbShader->shaderModule()->c_str();
-		dsShaderModule* shaderModule;
+		errno = ENOTFOUND;
+		PRINT_FLATBUFFER_RESOURCE_NOT_FOUND("shader module", shaderModuleName, fileName);
+		return false;
+	}
+
+	const char* materialDescName = fbShader->materialDesc()->c_str();
+	dsMaterialDesc* materialDesc;
+	if (!dsSceneLoadScratchData_findResource(&resourceType,
+			reinterpret_cast<void**>(&materialDesc), scratchData, materialDescName) ||
+		resourceType != dsSceneResourceType_MaterialDesc)
+	{
+		errno = ENOTFOUND;
+		PRINT_FLATBUFFER_RESOURCE_NOT_FOUND("material description", materialDescName, fileName);
+		return false;
+	}
+
+	const char* shaderName = fbShader->name()->c_str();
+	auto fbPipelineName = fbShader->pipelineName();
+	const char* pipelineName = fbPipelineName ? fbPipelineName->c_str() : shaderName;
+	dsShader* shader = dsShader_createName(resourceManager, allocator, shaderModule,
+		pipelineName, materialDesc);
+	if (!shader)
+	{
+		PRINT_FLATBUFFER_RESOURCE_ERROR(
+			"Couldn't create shader '%s'", shaderName, fileName);
+		return false;
+	}
+
+	if (!dsSceneResources_addResource(
+			resources, shaderName, dsSceneResourceType_Shader, shader, true))
+	{
+		DS_VERIFY(dsShader_destroy(shader));
+		return false;
+	}
+
+	return true;
+}
+
+static bool loadDrawGeometry(dsSceneResources* resources, dsResourceManager* resourceManager,
+	dsAllocator* allocator, dsSceneLoadScratchData* scratchData,
+	const DeepSeaScene::DrawGeometry* fbGeometry, const char* fileName)
+{
+	const char* geometryName = fbGeometry->name()->c_str();
+	uint32_t vertexBufferIndex = 0;
+	dsVertexBuffer vertexBuffers[DS_MAX_GEOMETRY_VERTEX_BUFFERS];
+	dsVertexBuffer* vertexBufferPtrs[DS_MAX_GEOMETRY_VERTEX_BUFFERS];
+	memset(vertexBufferPtrs, 0, sizeof(vertexBufferPtrs));
+	for (auto fbVertexBuffer : *fbGeometry->vertexBuffers())
+	{
+		if (vertexBufferIndex > DS_MAX_GEOMETRY_VERTEX_BUFFERS)
+		{
+			errno = ESIZE;
+			PRINT_FLATBUFFER_RESOURCE_ERROR(
+				"Too many vertex buffers for geometry '%s'", geometryName, fileName);
+			return false;
+		}
+
+		dsVertexBuffer* vertexBuffer = vertexBuffers + vertexBufferIndex;
+		if (!fbVertexBuffer)
+		{
+			vertexBufferPtrs[vertexBufferIndex] = nullptr;
+			++vertexBufferIndex;
+			continue;
+		}
+
+		const char* bufferName = fbVertexBuffer->name()->c_str();
 		dsSceneResourceType resourceType;
 		if (!dsSceneLoadScratchData_findResource(&resourceType,
-				reinterpret_cast<void**>(&shaderModule), scratchData, shaderModuleName) ||
-			resourceType != dsSceneResourceType_ShaderModule)
+				reinterpret_cast<void**>(&vertexBuffer->buffer), scratchData, bufferName) ||
+			resourceType != dsSceneResourceType_Buffer)
 		{
+			// NOTE: ENOTFOUND not set when the type doesn't match, so set it manually.
 			errno = ENOTFOUND;
-			PRINT_FLATBUFFER_RESOURCE_NOT_FOUND("shader module", shaderModuleName, fileName);
+			PRINT_FLATBUFFER_RESOURCE_NOT_FOUND("buffer", bufferName, fileName);
 			return false;
 		}
 
-		const char* materialDescName = fbShader->materialDesc()->c_str();
-		dsMaterialDesc* materialDesc;
-		if (!dsSceneLoadScratchData_findResource(&resourceType,
-				reinterpret_cast<void**>(&materialDesc), scratchData, materialDescName) ||
-			resourceType != dsSceneResourceType_MaterialDesc)
+		vertexBuffer->offset = fbVertexBuffer->offset();
+		vertexBuffer->count = fbVertexBuffer->count();
+
+		auto fbVertexFormat = fbVertexBuffer->format();
+		DS_VERIFY(dsVertexFormat_initialize(&vertexBuffer->format));
+		vertexBuffer->format.instanced = fbVertexFormat->instanced();
+		for (auto fbAttribute : *fbVertexFormat->attributes())
 		{
-			errno = ENOTFOUND;
-			PRINT_FLATBUFFER_RESOURCE_NOT_FOUND("material description", materialDescName, fileName);
-			return false;
-		}
+			if (!fbAttribute)
+				continue;
 
-		const char* shaderName = fbShader->name()->c_str();
-		auto fbPipelineName = fbShader->pipelineName();
-		const char* pipelineName = fbPipelineName ? fbPipelineName->c_str() : shaderName;
-		dsShader* shader = dsShader_createName(resourceManager, allocator, shaderModule,
-			pipelineName, materialDesc);
-		if (!shader)
-		{
-			PRINT_FLATBUFFER_RESOURCE_ERROR(
-				"Couldn't create shader '%s'", shaderName, fileName);
-			return false;
-		}
-
-		if (!dsSceneResources_addResource(
-				resources, shaderName, dsSceneResourceType_Shader, shader, true))
-		{
-			DS_VERIFY(dsShader_destroy(shader));
-			return false;
-		}
-	}
-
-	return true;
-}
-
-static bool loadDrawGeometries(dsSceneResources* resources, dsResourceManager* resourceManager,
-	dsAllocator* allocator, dsSceneLoadScratchData* scratchData,
-	const FlatbufferVector<DeepSeaScene::DrawGeometry>* geometries, const char* fileName)
-{
-	if (!geometries)
-		return true;
-
-	for (auto fbGeometry : *geometries)
-	{
-		if (!fbGeometry)
-			continue;
-
-		const char* geometryName = fbGeometry->name()->c_str();
-		uint32_t vertexBufferIndex = 0;
-		dsVertexBuffer vertexBuffers[DS_MAX_GEOMETRY_VERTEX_BUFFERS];
-		dsVertexBuffer* vertexBufferPtrs[DS_MAX_GEOMETRY_VERTEX_BUFFERS];
-		memset(vertexBufferPtrs, 0, sizeof(vertexBufferPtrs));
-		for (auto fbVertexBuffer : *fbGeometry->vertexBuffers())
-		{
-			if (vertexBufferIndex > DS_MAX_GEOMETRY_VERTEX_BUFFERS)
+			uint32_t attribIndex = fbAttribute->attrib();
+			if (attribIndex > resourceManager->maxVertexAttribs)
 			{
 				errno = ESIZE;
 				PRINT_FLATBUFFER_RESOURCE_ERROR(
-					"Too many vertex buffers for geometry '%s'", geometryName, fileName);
+					"Attribute index is out of range for vertex buffer '%s'", bufferName,
+					fileName);
 				return false;
 			}
 
-			dsVertexBuffer* vertexBuffer = vertexBuffers + vertexBufferIndex;
-			if (!fbVertexBuffer)
-			{
-				vertexBufferPtrs[vertexBufferIndex] = nullptr;
-				++vertexBufferIndex;
-				continue;
-			}
-
-			const char* bufferName = fbVertexBuffer->name()->c_str();
-			dsSceneResourceType resourceType;
-			if (!dsSceneLoadScratchData_findResource(&resourceType,
-					reinterpret_cast<void**>(&vertexBuffer->buffer), scratchData, bufferName) ||
-				resourceType != dsSceneResourceType_Buffer)
-			{
-				// NOTE: ENOTFOUND not set when the type doesn't match, so set it manually.
-				errno = ENOTFOUND;
-				PRINT_FLATBUFFER_RESOURCE_NOT_FOUND("buffer", bufferName, fileName);
-				return false;
-			}
-
-			vertexBuffer->offset = fbVertexBuffer->offset();
-			vertexBuffer->count = fbVertexBuffer->count();
-
-			auto fbVertexFormat = fbVertexBuffer->format();
-			DS_VERIFY(dsVertexFormat_initialize(&vertexBuffer->format));
-			vertexBuffer->format.instanced = fbVertexFormat->instanced();
-			for (auto fbAttribute : *fbVertexFormat->attributes())
-			{
-				if (!fbAttribute)
-					continue;
-
-				uint32_t attribIndex = fbAttribute->attrib();
-				if (attribIndex > resourceManager->maxVertexAttribs)
-				{
-					errno = ESIZE;
-					PRINT_FLATBUFFER_RESOURCE_ERROR(
-						"Attribute index is out of range for vertex buffer '%s'", bufferName,
-						fileName);
-					return false;
-				}
-
-				dsVertexFormat_setAttribEnabled(&vertexBuffer->format, attribIndex, true);
-				vertexBuffer->format.elements[attribIndex].format = DeepSeaScene::convert(
-					fbAttribute->format(), fbAttribute->decoration());
-			}
-			DS_VERIFY(dsVertexFormat_computeOffsetsAndSize(&vertexBuffer->format));
-
-			vertexBufferPtrs[vertexBufferIndex] = vertexBuffers + vertexBufferIndex;
-			++vertexBufferIndex;
+			dsVertexFormat_setAttribEnabled(&vertexBuffer->format, attribIndex, true);
+			vertexBuffer->format.elements[attribIndex].format = DeepSeaScene::convert(
+				fbAttribute->format(), fbAttribute->decoration());
 		}
+		DS_VERIFY(dsVertexFormat_computeOffsetsAndSize(&vertexBuffer->format));
 
-		auto fbIndexBuffer = fbGeometry->indexBuffer();
-		dsIndexBuffer indexBuffer;
-		if (fbIndexBuffer)
+		vertexBufferPtrs[vertexBufferIndex] = vertexBuffers + vertexBufferIndex;
+		++vertexBufferIndex;
+	}
+
+	auto fbIndexBuffer = fbGeometry->indexBuffer();
+	dsIndexBuffer indexBuffer;
+	if (fbIndexBuffer)
+	{
+		const char* bufferName = fbIndexBuffer->name()->c_str();
+		dsSceneResourceType resourceType;
+		if (!dsSceneLoadScratchData_findResource(&resourceType,
+				reinterpret_cast<void**>(&indexBuffer.buffer), scratchData, bufferName) ||
+			resourceType != dsSceneResourceType_Buffer)
 		{
-			const char* bufferName = fbIndexBuffer->name()->c_str();
-			dsSceneResourceType resourceType;
-			if (!dsSceneLoadScratchData_findResource(&resourceType,
-					reinterpret_cast<void**>(&indexBuffer.buffer), scratchData, bufferName) ||
-				resourceType != dsSceneResourceType_Buffer)
-			{
-				// NOTE: ENOTFOUND not set when the type doesn't match, so set it manually.
-				errno = ENOTFOUND;
-				PRINT_FLATBUFFER_RESOURCE_NOT_FOUND("buffer", bufferName, fileName);
-				return false;
-			}
-
-			indexBuffer.offset = fbIndexBuffer->offset();
-			indexBuffer.count = fbIndexBuffer->count();
-			indexBuffer.indexSize = fbIndexBuffer->indexSize();
-		}
-
-		dsDrawGeometry* geometry = dsDrawGeometry_create(resourceManager, allocator,
-			vertexBufferPtrs, fbIndexBuffer ? &indexBuffer : nullptr);
-		if (!geometry)
-		{
-			PRINT_FLATBUFFER_RESOURCE_ERROR(
-				"Couldn't create geometry '%s'", geometryName, fileName);
+			// NOTE: ENOTFOUND not set when the type doesn't match, so set it manually.
+			errno = ENOTFOUND;
+			PRINT_FLATBUFFER_RESOURCE_NOT_FOUND("buffer", bufferName, fileName);
 			return false;
 		}
 
-		if (!dsSceneResources_addResource(
-				resources, geometryName, dsSceneResourceType_DrawGeometry, geometry, true))
-		{
-			DS_VERIFY(dsDrawGeometry_destroy(geometry));
-			return false;
-		}
+		indexBuffer.offset = fbIndexBuffer->offset();
+		indexBuffer.count = fbIndexBuffer->count();
+		indexBuffer.indexSize = fbIndexBuffer->indexSize();
+	}
+
+	dsDrawGeometry* geometry = dsDrawGeometry_create(resourceManager, allocator,
+		vertexBufferPtrs, fbIndexBuffer ? &indexBuffer : nullptr);
+	if (!geometry)
+	{
+		PRINT_FLATBUFFER_RESOURCE_ERROR(
+			"Couldn't create geometry '%s'", geometryName, fileName);
+		return false;
+	}
+
+	if (!dsSceneResources_addResource(
+			resources, geometryName, dsSceneResourceType_DrawGeometry, geometry, true))
+	{
+		DS_VERIFY(dsDrawGeometry_destroy(geometry));
+		return false;
 	}
 
 	return true;
 }
 
-static bool loadNodes(dsSceneResources* resources, dsAllocator* allocator,
+static bool loadSceneNode(dsSceneResources* resources, dsAllocator* allocator,
 	dsAllocator* resourceAllocator, const dsSceneLoadContext* loadContext,
-	dsSceneLoadScratchData* scratchData, const FlatbufferVector<DeepSeaScene::SceneNode>* nodes,
+	dsSceneLoadScratchData* scratchData, const DeepSeaScene::SceneNode* fbNamedNode,
 	const char* fileName)
 {
-	if (!nodes)
-		return true;
-
-	for (auto fbNamedNode : *nodes)
+	const char* nodeName = fbNamedNode->name()->c_str();
+	auto fbNode = fbNamedNode->node();
+	auto data = fbNode->data();
+	dsSceneNode* node = dsSceneNode_load(allocator, resourceAllocator, loadContext, scratchData,
+		fbNode->type()->c_str(), data->data(), data->size());
+	if (!node)
 	{
-		if (!fbNamedNode)
-			continue;
-
-		const char* nodeName = fbNamedNode->name()->c_str();
-		auto fbNode = fbNamedNode->node();
-		auto data = fbNode->data();
-		dsSceneNode* node = dsSceneNode_load(allocator, resourceAllocator, loadContext, scratchData,
-			fbNode->type()->c_str(), data->data(), data->size());
-		if (!node)
-		{
-			PRINT_FLATBUFFER_RESOURCE_ERROR("Couldn't load scene node '%s'", nodeName, fileName);
-			return false;
-		}
-
-		bool success = dsSceneResources_addResource(
-			resources, nodeName, dsSceneResourceType_SceneNode, node, true);
-		dsSceneNode_freeRef(node);
-		if (!success)
-			return false;
+		PRINT_FLATBUFFER_RESOURCE_ERROR("Couldn't load scene node '%s'", nodeName, fileName);
+		return false;
 	}
+
+	bool success = dsSceneResources_addResource(
+		resources, nodeName, dsSceneResourceType_SceneNode, node, true);
+	dsSceneNode_freeRef(node);
+	if (!success)
+		return false;
 
 	return true;
 }
 
-static bool loadCustomResources(dsSceneResources* resources, dsAllocator* allocator,
+static bool loadCustomResource(dsSceneResources* resources, dsAllocator* allocator,
 	dsAllocator* resourceAllocator, const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData,
-	const FlatbufferVector<DeepSeaScene::CustomResource>* customResources, const char* fileName)
+	const DeepSeaScene::CustomResource* fbCustoResource, const char* fileName)
 {
-	if (!customResources)
-		return true;
-
-	for (auto fbNamedResource : *customResources)
+	const char* resourceName = fbCustoResource->name()->c_str();
+	auto fbResource = fbCustoResource->resource();
+	auto data = fbResource->data();
+	dsCustomSceneResource* customResource = dsCustomSceneResource_load(allocator,
+		resourceAllocator, loadContext, scratchData, fbResource->type()->c_str(), data->data(),
+		data->size());
+	if (!customResource)
 	{
-		if (!fbNamedResource)
-			continue;
+		PRINT_FLATBUFFER_RESOURCE_ERROR("Couldn't load custom scene resource '%s'",
+			resourceName, fileName);
+		return false;
+	}
 
-		const char* resourceName = fbNamedResource->name()->c_str();
-		auto fbResource = fbNamedResource->resource();
-		auto data = fbResource->data();
-		dsCustomSceneResource* customResource = dsCustomSceneResource_load(allocator,
-			resourceAllocator, loadContext, scratchData, fbResource->type()->c_str(), data->data(),
-			data->size());
-		if (!customResource)
-		{
-			PRINT_FLATBUFFER_RESOURCE_ERROR("Couldn't load custom scene resource '%s'",
-				resourceName, fileName);
-			return false;
-		}
-
-		bool success = dsSceneResources_addResource(
-			resources, resourceName, dsSceneResourceType_Custom, customResource, true);
-		if (!success)
-			return false;
+	bool success = dsSceneResources_addResource(
+		resources, resourceName, dsSceneResourceType_Custom, customResource, true);
+	if (!success)
+	{
+		DS_VERIFY(dsCustomSceneResource_destroy(customResource));
+		return false;
 	}
 
 	return true;
@@ -1156,50 +1030,25 @@ dsSceneResources* dsSceneResources_loadImpl(dsAllocator* allocator, dsAllocator*
 	auto fbSceneResources = DeepSeaScene::GetSceneResources(data);
 
 	uint32_t totalCount = 0;
-	auto buffers = fbSceneResources->buffers();
-	if (buffers)
-		totalCount += buffers->size();
-	auto textures = fbSceneResources->textures();
-	if (textures)
-		totalCount += textures->size();
-	auto groupDescs = fbSceneResources->shaderVariableGroupDescs();
-	if (groupDescs)
-		totalCount += groupDescs->size();
-	auto groups = fbSceneResources->shaderVariableGroups();
-	if (groups)
-		totalCount += groups->size();
-	auto materialDescs = fbSceneResources->materialDescs();
-	if (materialDescs)
-		totalCount += materialDescs->size();
-	auto materials = fbSceneResources->materials();
-	if (materials)
-		totalCount += materials->size();
-	auto shaderModules = fbSceneResources->shaderModules();
-	if (shaderModules)
-		totalCount += shaderModules->size();
-	auto shaders = fbSceneResources->shaders();
-	if (shaders)
-		totalCount += shaders->size();
-	auto geometries = fbSceneResources->drawGeometries();
-	if (geometries)
-		totalCount += geometries->size();
-	auto nodes = fbSceneResources->sceneNodes();
-	if (nodes)
-		totalCount += nodes->size();
-	auto customResources = fbSceneResources->customResources();
-	if (customResources)
+	auto fbResources = fbSceneResources->resources();
+	if (fbResources)
 	{
-		uint32_t customResourceCount = customResources->size();
-		totalCount += customResourceCount;
-		for (uint32_t i = 0; i < customResourceCount; ++i)
+		for (auto fbResource : *fbResources)
 		{
-			auto customResource = (*customResources)[i];
-			if (!customResource)
+			if (!fbResource)
 				continue;
 
-			auto fbResource = customResource->resource();
+			++totalCount;
+			auto fbCustomResource = fbResource->resource_as_CustomResource();
+			if (!fbCustomResource)
+				continue;
+
+			auto fbResourceInfo = fbCustomResource->resource();
+			if (!fbResourceInfo)
+				continue;
+
 			totalCount += dsSceneLoadContext_getCustomResourceAdditionalResources(loadContext,
-				fbResource->type()->c_str());
+				fbResourceInfo->type()->c_str());
 		}
 	}
 
@@ -1207,39 +1056,92 @@ dsSceneResources* dsSceneResources_loadImpl(dsAllocator* allocator, dsAllocator*
 	if (!resources)
 		return nullptr;
 
-	/*
-	 * Resources won't be available to request untill they've been loaded and added. Always load
-	 * descriptions first. Load custom after since they may add additional first-class resources.
-	 * Load nodes last since they may reference any other resource type.
-	 */
-	if (!dsSceneLoadScratchData_pushSceneResources(scratchData, &resources, 1) ||
-		!loadShaderVariableGroupDescs(resources, resourceManager, resourceAllocator, scratchData,
-			groupDescs, fileName) ||
-		!loadMaterialDescs(resources, resourceManager, resourceAllocator, scratchData,
-			materialDescs, fileName) ||
-		!loadCustomResources(resources, allocator, resourceAllocator, loadContext, scratchData,
-			customResources, fileName) ||
-		!loadBuffers(resources, resourceManager, resourceAllocator, buffers, fileName) ||
-		!loadTextures(resources, resourceManager, allocator, resourceAllocator, textures,
-			fileName) ||
-		!loadShaderVariableGroups(resources, resourceManager, resourceAllocator, scratchData,
-			groups, fileName) ||
-		!loadMaterials(
-			resources, resourceManager, resourceAllocator, scratchData, materials, fileName) ||
-		!loadShaderModules(
-			resources, resourceManager, resourceAllocator, shaderModules, fileName) ||
-		!loadShaders(
-			resources, resourceManager, resourceAllocator, scratchData, shaders, fileName) ||
-		!loadDrawGeometries(
-			resources, resourceManager, resourceAllocator, scratchData, geometries, fileName) ||
-		!loadNodes(
-			resources, allocator, resourceAllocator, loadContext, scratchData, nodes, fileName))
+	if (totalCount == 0)
+		return resources;
+
+	if (!dsSceneLoadScratchData_pushSceneResources(scratchData, &resources, 1))
 	{
 		dsSceneResources_freeRef(resources);
 		DS_VERIFY(dsSceneLoadScratchData_popSceneResources(scratchData, 1));
 		return nullptr;
 	}
 
+	dsAllocator* scratchAllocator = dsSceneLoadScratchData_getAllocator(scratchData);
+	void* tempData = nullptr;
+	size_t tempDataSize = 0;
+	bool success = true;
+	for (auto fbResource : *fbResources)
+	{
+		if (!fbResource)
+			continue;
+
+		if (auto fbBuffer = fbResource->resource_as_Buffer())
+		{
+			success = loadBuffer(resources, resourceManager, resourceAllocator, fbBuffer, fileName,
+				scratchAllocator, tempData, tempDataSize);
+		}
+		else if (auto fbTexture = fbResource->resource_as_Texture())
+		{
+			success = loadTexture(resources, resourceManager, allocator, resourceAllocator,
+				fbTexture, fileName);
+		}
+		else if (auto fbShaderVariableGroupDesc = fbResource->resource_as_ShaderVariableGroupDesc())
+		{
+			success = loadShaderVariableGroupDesc(resources, resourceManager, resourceAllocator,
+				fbShaderVariableGroupDesc, fileName, scratchAllocator, tempData, tempDataSize);
+		}
+		else if (auto fbShaderVariableGroup = fbResource->resource_as_ShaderVariableGroup())
+		{
+			success = loadShaderVariableGroup(resources, resourceManager, allocator,
+				scratchData, fbShaderVariableGroup, fileName);
+		}
+		else if (auto fbMaterialDesc = fbResource->resource_as_MaterialDesc())
+		{
+			success = loadMaterialDesc(resources, resourceManager, resourceAllocator, scratchData,
+				fbMaterialDesc, fileName, scratchAllocator, tempData, tempDataSize);
+		}
+		else if (auto fbMaterial = fbResource->resource_as_Material())
+		{
+			success = loadMaterial(resources, resourceManager, allocator, scratchData, fbMaterial,
+				fileName);
+		}
+		else if (auto fbShaderModule = fbResource->resource_as_ShaderModule())
+		{
+			success = loadShaderModule(resources, resourceManager, resourceAllocator,
+				fbShaderModule, fileName);
+		}
+		else if (auto fbShader = fbResource->resource_as_Shader())
+		{
+			success = loadShader(resources, resourceManager, resourceAllocator, scratchData,
+				fbShader, fileName);
+		}
+		else if (auto fbDrawGeometry = fbResource->resource_as_DrawGeometry())
+		{
+			success = loadDrawGeometry(resources, resourceManager, resourceAllocator, scratchData,
+				fbDrawGeometry, fileName);
+		}
+		else if (auto fbSceneNode = fbResource->resource_as_SceneNode())
+		{
+			success = loadSceneNode(resources, allocator, resourceAllocator, loadContext,
+				scratchData, fbSceneNode, fileName);
+		}
+		else if (auto fbCustomResource = fbResource->resource_as_CustomResource())
+		{
+			success = loadCustomResource(resources, allocator, resourceAllocator, loadContext,
+				scratchData, fbCustomResource, fileName);
+		}
+
+		if (!success)
+			break;
+	}
+
+	DS_VERIFY(dsAllocator_free(scratchAllocator, tempData));
 	DS_VERIFY(dsSceneLoadScratchData_popSceneResources(scratchData, 1));
+	if (!success)
+	{
+		dsSceneResources_freeRef(resources);
+		return nullptr;
+	}
+
 	return resources;
 }
