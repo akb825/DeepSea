@@ -91,15 +91,13 @@ def convertScene(convertContext, data):
 	  array with the following members:
 	  - type: the name of the item list type.
 	  - name: the name of the item list.
-	  - data: the data for the item list. What this member contains (e.g. a string or a dict with
-	    other members) depends on the instance data type.
+	  - Remaining members depend on the value of type.
 	- pipeline: array of stages to define the pipeline to process when drawing the scene. Each
 	  element of the array has one of the the following set members.
 	  (For an item list):
 	  - type: the name of the item list type.
 	  - name: the name of the item list.
-	  - data: the data for the item list. What this member contains (e.g. a string or a dict with
-	    other members) depends on the instance data type.
+	  - Remaining members depend on the value of type.
 	  (For a render pass):
 	  - framebuffer: the name of the framebuffer to use when rendering.
 	  - attachments: array of attachments to use during the render pass. Each element of the array
@@ -137,8 +135,7 @@ def convertScene(convertContext, data):
 	      the following members:
 	      - type: the name of the item list type.
 	      - name: the name of the item list.
-	      - data: the data for the item list. What this member contains (e.g. a string or a dict
-	        with other members) depends on the instance data type.
+	      - Remaining members depend on the value of type.
 	  - dependencies: optionall array of dependencies between subpasses. If omitted, default
 	    dependencies will be used, which should be sufficient for all but very specialized use
 	    cases. Each element of the array has the following members:
@@ -159,8 +156,7 @@ def convertScene(convertContext, data):
 	- globalData: optional array of items to store data globally in the scene. Each element of the
 	  array has the following members:
 	  - type: the name of the global data type.
-	  - data: the data for the global data. What this member contains (e.g. a string or a dict with
-	    other members) depends on the instance data type.
+	  - Remaining members depend on the value of type.
 	- nodes: array of string node names to set on the scene.
 	"""
 	unsetValue = 0xFFFFFFFF
@@ -307,7 +303,7 @@ def convertScene(convertContext, data):
 				subpass.colorAttachments.append((index,
 					readBool(colorRef['resolve'], 'color attachment resolve')))
 		except KeyError as e:
-			raise Exception('Color attachment doesn\'t contain element "' + str(e) + '".')
+			raise Exception('Color attachment doesn\'t contain element ' + str(e) + '.')
 		except (TypeError, ValueError):
 			raise Exception('Color attachments must be an array of objects.')
 
@@ -322,7 +318,7 @@ def convertScene(convertContext, data):
 					readBool(depthStencilRef['resolve'], 'depth/stencil attachment resolve'))
 			except KeyError as e:
 				raise Exception(
-					'Depth/stencil attachment doesn\'t contain element "' + str(e) + '".')
+					'Depth/stencil attachment doesn\'t contain element ' + str(e) + '.')
 			except (TypeError, ValueError):
 				raise Exception('Depth/stencil attachments must be an array of objects.')
 		else:
@@ -335,11 +331,10 @@ def convertScene(convertContext, data):
 				drawList = Object()
 				drawList.type = str(listInfo['type'])
 				drawList.name = str(listInfo['name'])
-				# Some item lists don't have data.
-				drawList.data = listInfo.get('data')
+				drawList.data = listInfo
 				subpass.drawLists.append(drawList)
 		except KeyError as e:
-			raise Exception('Draw list doesn\'t contain element "' + str(e) + '".')
+			raise Exception('Draw list doesn\'t contain element ' + str(e) + '.')
 		except (TypeError, ValueError):
 			raise Exception('Draw lists must be an array of objects.')
 
@@ -425,7 +420,7 @@ def convertScene(convertContext, data):
 			for attachmentInfo in attachmentInfos:
 				item.attachments.append(readAttachment(attachmentInfo))
 		except KeyError as e:
-			raise Exception('Attachments doesn\'t contain element "' + str(e) + '".')
+			raise Exception('Attachments doesn\'t contain element ' + str(e) + '.')
 		except (TypeError, ValueError):
 			raise Exception('Attachments must be an array of objects.')
 
@@ -435,7 +430,7 @@ def convertScene(convertContext, data):
 			for subpassInfo in subpassInfos:
 				item.subpasses.append(readSubpass(subpassInfo, item))
 		except KeyError as e:
-			raise Exception('Subpasses doesn\'t contain element "' + str(e) + '".')
+			raise Exception('Subpasses doesn\'t contain element ' + str(e) + '.')
 		except (TypeError, ValueError):
 			raise Exception('Subpasses must be an array of objects.')
 
@@ -449,7 +444,7 @@ def convertScene(convertContext, data):
 				for dependencyInfo in dependencyInfos:
 					item.dependencies.append(readDependency(dependencyInfo, item))
 			except KeyError as e:
-				raise Exception('Dependencies doesn\'t contain element "' + str(e) + '".')
+				raise Exception('Dependencies doesn\'t contain element ' + str(e) + '.')
 			except (AttributeError, TypeError, ValueError):
 				raise Exception('Dependencies must be an array of objects.')
 		else:
@@ -468,11 +463,11 @@ def convertScene(convertContext, data):
 					sharedItem.type = str(info['type'])
 					sharedItem.name = str(info['name'])
 					# Some item lists don't have data.
-					sharedItem.data = info.get('data')
+					sharedItem.data = info
 					itemArray.append(sharedItem)
 				sharedItems.append(itemArray)
 		except KeyError as e:
-			raise Exception('Scene "sharedItems" doesn\'t contain element "' + str(e) + '".')
+			raise Exception('Scene "sharedItems" doesn\'t contain element ' + str(e) + '.')
 		except (TypeError, ValueError):
 			raise Exception('Scene "sharedItems" must be an array of array of objects.')
 
@@ -485,12 +480,12 @@ def convertScene(convertContext, data):
 					item.type = str(info['type'])
 					item.name = str(info['name'])
 					# Some item lists don't have data.
-					item.data = info.get('data')
+					item.data = info
 				else:
 					readRenderPass(info, item)
 				pipeline.append(item)
 		except KeyError as e:
-			raise Exception('Scene "pipeline" doesn\'t contain element "' + str(e) + '".')
+			raise Exception('Scene "pipeline" doesn\'t contain element ' + str(e) + '.')
 		except (TypeError, ValueError):
 			raise Exception('Scene "pipeline" must be an array of objects.')
 
@@ -504,10 +499,10 @@ def convertScene(convertContext, data):
 				item = Object()
 				item.type = str(info['type'])
 				# Some item lists don't have data.
-				item.data = info.get('data')
+				item.data = info
 				globalData.append(item)
 		except KeyError as e:
-			raise Exception('Scene "globalData" doesn\'t contain element "' + str(e) + '".')
+			raise Exception('Scene "globalData" doesn\'t contain element ' + str(e) + '.')
 		except (TypeError, ValueError):
 			raise Exception('Scene "globalData" must be an array of objects.')
 
@@ -520,7 +515,7 @@ def convertScene(convertContext, data):
 			raise Exception('Scene "nodes" must be an array of strings.')
 
 	except KeyError as e:
-		raise Exception('Scene doesn\'t contain element "' + str(e) + '".')
+		raise Exception('Scene doesn\'t contain element ' + str(e) + '.')
 	except (AttributeError, TypeError, ValueError):
 		raise Exception('Scene must be an object.')
 

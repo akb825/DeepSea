@@ -65,6 +65,8 @@ def convertModelList(convertContext, data):
 			raise Exception('ModelList "instanceData" must be an array of objects.')
 
 		sortTypeStr = data.get('sortType', 'None')
+		if sortTypeStr == 'None':
+			sortTypeStr += '_'
 		if not hasattr(SortType, sortTypeStr):
 			raise Exception('Invalid model sort type "' + str(sortTypeStr) + '".')
 		sortType = getattr(SortType, sortTypeStr)
@@ -77,7 +79,7 @@ def convertModelList(convertContext, data):
 
 		cullName = data.get('cullName')
 	except KeyError as e:
-		raise Exception('ModelList doesn\'t contain element "' + str(e) + '".')
+		raise Exception('ModelList doesn\'t contain element ' + str(e) + '.')
 	except (AttributeError, TypeError, ValueError):
 		raise Exception('ModelList must be an object.')
 

@@ -23,7 +23,7 @@ def convertInstanceTransformData(convertContext, data):
 	try:
 		variableGroupDescName = str(data['variableGroupDescName'])
 	except KeyError as e:
-		raise Exception('InstanceTransformData doesn\'t contain element "' + str(e) + '".')
+		raise Exception('InstanceTransformData doesn\'t contain element ' + str(e) + '.')
 	except (TypeError, ValueError):
 		raise Exception('InstanceTransformData must be an object.')
 

@@ -86,7 +86,7 @@ def convertTextNode(convertContext, data):
 	except (TypeError, ValueError):
 		raise Exception('TextNode data must be an object.')
 	except KeyError as e:
-		raise Exception('TextNode data doesn\'t contain element "' + str(e) + '".')
+		raise Exception('TextNode data doesn\'t contain element ' + str(e) + '.')
 
 	builder = flatbuffers.Builder(0)
 	if embeddedResources:

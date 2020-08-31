@@ -20,8 +20,8 @@ from ..VectorImageNode import *
 def convertVectorImageNode(convertContext, data):
 	"""
 	Converts a VectorImageNode. The data map is expected to contain the following elements:
-	- embeddedResources: optional set of resources to embed with the node. This is a map containing
-	  the elements as expected by SceneResourcesConvert.convertSceneResources().
+	- embeddedResources: optional set of resources to embed with the node. This is an array of maps
+	  as expected by SceneResourcesConvert.convertSceneResources().
 	- vectorImage: the name of the vector image to draw.
 	- size: the size to draw the vector image as an array of two floats. Defaults to the original
 	  image size.
@@ -60,7 +60,7 @@ def convertVectorImageNode(convertContext, data):
 	except (TypeError, ValueError):
 		raise Exception('VectorImageNode data must be an object.')
 	except KeyError as e:
-		raise Exception('VectorImageNode data doesn\'t contain element "' + str(e) + '".')
+		raise Exception('VectorImageNode data doesn\'t contain element ' + str(e) + '.')
 
 	builder = flatbuffers.Builder(0)
 	if embeddedResources:

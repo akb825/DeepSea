@@ -95,8 +95,8 @@ def convertVectorShaders(convertContext, data):
 					versionedModuleData.get('resourceType'))
 				versionedModules.append((version, dataType, dataOffset))
 		except KeyError as e:
-			raise Exception('Versioned shader module data doesn\'t contain element "' +
-				str(e) + '".')
+			raise Exception('Versioned shader module data doesn\'t contain element ' +
+				str(e) + '.')
 		except (TypeError, ValueError):
 			raise Exception('Versioned shader module list must be an array of objects.')
 
@@ -132,8 +132,8 @@ def convertVectorShaders(convertContext, data):
 					elementData.get('shaderVariableGroupDesc', ''))
 				extraElements.append(element)
 		except KeyError as e:
-			raise Exception('Versioned shader module data doesn\'t contain element "' +
-				str(e) + '".')
+			raise Exception('Versioned shader module data doesn\'t contain element ' +
+				str(e) + '.')
 		except (TypeError, ValueError):
 			raise Exception('Versioned shader module list must be an array of objects.')
 
@@ -149,7 +149,7 @@ def convertVectorShaders(convertContext, data):
 		textGradient = str(data.get('textGradient', ''))
 		textGradientOutline = str(data.get('textGradientOutline', ''))
 	except KeyError as e:
-		raise Exception('VectorShaders doesn\'t contain element "' + str(e) + '".')
+		raise Exception('VectorShaders doesn\'t contain element ' + str(e) + '.')
 	except (AttributeError, TypeError, ValueError):
 		raise Exception('VectorShaders must be an object.')
 

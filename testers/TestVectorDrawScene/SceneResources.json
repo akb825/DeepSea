@@ -1,197 +1,161 @@
-{
-	"shaderVariableGroupDescs":
-	[
-		{
-			"name": "viewTransformDesc",
-			"elements":
-			[
-				{"name": "view", "type": "Mat4"},
-				{"name": "camera", "type": "Mat4"},
-				{"name": "projection", "type": "Mat4"},
-				{"name": "screenRotation", "type": "Vec4"},
-				{"name": "screenSize", "type": "IVec2"}
-			]
-		},
-		{
-			"name": "instanceTransformDesc",
-			"elements":
-			[
-				{"name": "world", "type": "Mat4"},
-				{"name": "worldInvTrans", "type": "Mat4"},
-				{"name": "worldView", "type": "Mat4"},
-				{"name": "worldViewProj", "type": "Mat4"}
-			]
-		}
-	],
-	"materialDescs":
-	[
-		{
-			"name": "textMaterialDesc",
-			"elements":
-			[
-				{
-					"name": "ViewTransformData",
-					"type": "VariableGroup",
-					"binding": "Global",
-					"shaderVariableGroupDesc": "viewTransformDesc"
-				},
-				{
-					"name": "InstanceTransformData",
-					"type": "VariableGroup",
-					"binding": "Instance",
-					"shaderVariableGroupDesc": "instanceTransformDesc"
-				},
-				{
-					"name": "fontTex",
-					"type": "Texture",
-					"binding": "Instance"
-				}
-			]
-		}
-	],
-	"customResources":
-	[
-		{
-			"type": "VectorResources",
-			"name": "resources",
-			"data":
+[
+	{
+		"type": "ShaderVariableGroupDesc",
+		"name": "viewTransformDesc",
+		"elements":
+		[
+			{"name": "view", "type": "Mat4"},
+			{"name": "camera", "type": "Mat4"},
+			{"name": "projection", "type": "Mat4"},
+			{"name": "screenRotation", "type": "Vec4"},
+			{"name": "screenSize", "type": "IVec2"}
+		]
+	},
+	{
+		"type": "ShaderVariableGroupDesc",
+		"name": "instanceTransformDesc",
+		"elements":
+		[
+			{"name": "world", "type": "Mat4"},
+			{"name": "worldInvTrans", "type": "Mat4"},
+			{"name": "worldView", "type": "Mat4"},
+			{"name": "worldViewProj", "type": "Mat4"}
+		]
+	},
+	{
+		"type": "MaterialDesc",
+		"name": "textMaterialDesc",
+		"elements":
+		[
 			{
-				"resources": "@assetsDir@/VectorResources.dsvr",
-				"output": "@assetsDir@/VectorResources.dsvr",
-				"outputRelativeDir": "@assetsDir@"
+				"name": "ViewTransformData",
+				"type": "VariableGroup",
+				"binding": "Global",
+				"shaderVariableGroupDesc": "viewTransformDesc"
+			},
+			{
+				"name": "InstanceTransformData",
+				"type": "VariableGroup",
+				"binding": "Instance",
+				"shaderVariableGroupDesc": "instanceTransformDesc"
+			},
+			{
+				"name": "fontTex",
+				"type": "Texture",
+				"binding": "Instance"
 			}
-		},
-		{
-			"type": "VectorShaders",
-			"name": "vectorShaders",
-			"data":
+		]
+	},
+	{
+		"type": "VectorResources",
+		"name": "resources",
+		"resources": "@assetsDir@/VectorResources.dsvr",
+		"output": "@assetsDir@/VectorResources.dsvr",
+		"outputRelativeDir": "@assetsDir@"
+	},
+	{
+		"type": "VectorShaders",
+		"name": "vectorShaders",
+		"modules": @vectorModule@,
+		"materialDescName": "vectorMaterialDesc",
+		"extraElements":
+		[
 			{
-				"modules": @vectorModule@,
-				"materialDescName": "vectorMaterialDesc",
-				"extraElements":
-				[
-					{
-						"name": "ViewTransformData",
-						"type": "VariableGroup",
-						"binding": "Global",
-						"shaderVariableGroupDesc": "viewTransformDesc"
-					}
-				]
+				"name": "ViewTransformData",
+				"type": "VariableGroup",
+				"binding": "Global",
+				"shaderVariableGroupDesc": "viewTransformDesc"
 			}
-		},
-		{
-			"type": "VectorImage",
-			"name": "tiger",
-			"data":
+		]
+	},
+	{
+		"type": "VectorImage",
+		"name": "tiger",
+		"image": "@assetsDir@/Ghostscript_Tiger.dsvi",
+		"vectorShaders": "vectorShaders",
+		"targetSize": [150, 150]
+	},
+	{
+		"type": "Text",
+		"name": "figure",
+		"vectorResources": "resources",
+		"font": "sans-serif",
+		"text": "<text font-size=\"16\" fill=\"black\"><tspan font-style=\"italic\">Figure ${tigerNum}:</tspan> an SVG tiger.</text>"
+	},
+	{
+		"type": "Material",
+		"name": "vectorMat",
+		"description": "vectorMaterialDesc"
+	},
+	{
+		"type": "Material",
+		"name": "textMat",
+		"description": "textMaterialDesc"
+	},
+	{
+		"type": "ShaderModule",
+		"name": "textModule",
+		"modules": @textModule@
+	},
+	{
+		"type": "Shader",
+		"name": "textShader",
+		"module": "textModule",
+		"pipelineName": "Text",
+		"materialDesc": "textMaterialDesc"
+	},
+	{
+		"type": "SceneNode",
+		"nodeType": "TransformNode",
+		"name": "tigerTransform",
+		"transformList":
+		[
 			{
-				"image": "@assetsDir@/Ghostscript_Tiger.dsvi",
+				"type": "Translate",
+				"value": [-75, -60, 0]
+			}
+		],
+		"children":
+		[
+			{
+				"nodeType": "VectorImageNode",
+				"vectorImage": "tiger",
 				"vectorShaders": "vectorShaders",
-				"targetSize": [150, 150]
-			}
-		},
-		{
-			"type": "Text",
-			"name": "figure",
-			"data":
-			{
-				"vectorResources": "resources",
-				"font": "sans-serif",
-				"text": "<text font-size=\"16\" fill=\"black\"><tspan font-style=\"italic\">Figure ${tigerNum}:</tspan> an SVG tiger.</text>"
-			}
-		}
-	],
-	"materials":
-	[
-		{
-			"name": "vectorMat",
-			"description": "vectorMaterialDesc"
-		},
-		{
-			"name": "textMat",
-			"description": "textMaterialDesc"
-		}
-	],
-	"shaderModules":
-	[
-		{
-
-			"name": "textModule",
-			"modules": @textModule@
-		}
-	],
-	"shaders":
-	[
-		{
-			"name": "textShader",
-			"module": "textModule",
-			"pipelineName": "Text",
-			"materialDesc": "textMaterialDesc"
-		}
-	],
-	"sceneNodes":
-	[
-		{
-			"type": "TransformNode",
-			"name": "tigerTransform",
-			"data":
-			{
-				"transformList":
-				[
-					{
-						"type": "Translate",
-						"value": [-75, -60, 0]
-					}
-				],
-				"children":
-				[
-					{
-						"type": "VectorImageNode",
-						"data":
-						{
-							"vectorImage": "tiger",
-							"vectorShaders": "vectorShaders",
-							"material": "vectorMat",
-							"size": [150, 150],
-							"z": 0,
-							"itemLists": ["vectorPrepareList", "vectorItemList"]
-						}
-					}
-				]
-			}
-		},
-		{
-			"type": "TextNode",
-			"name": "figureNode",
-			"data":
-			{
-				"text": "figure",
-				"alignment": "Center",
-				"maxWidth": 100,
-				"lineScale": 1.2,
-				"shader": "textShader",
-				"material": "textMat",
-				"fontTextureName": "fontTex",
-				"z": 1,
+				"material": "vectorMat",
+				"size": [150, 150],
+				"z": 0,
 				"itemLists": ["vectorPrepareList", "vectorItemList"]
 			}
-		},
-		{
-			"type": "TransformNode",
-			"name": "figureTransform",
-			"data":
+		]
+	},
+	{
+		"type": "SceneNode",
+		"nodeType": "TextNode",
+		"name": "figureNode",
+		"text": "figure",
+		"alignment": "Center",
+		"maxWidth": 100,
+		"lineScale": 1.2,
+		"shader": "textShader",
+		"material": "textMat",
+		"fontTextureName": "fontTex",
+		"z": 1,
+		"itemLists": ["vectorPrepareList", "vectorItemList"]
+	},
+	{
+		"type": "SceneNode",
+		"nodeType": "TransformNode",
+		"name": "figureTransform",
+		"transformList":
+		[
 			{
-				"transformList":
-				[
-					{
-						"type": "Translate",
-						"value": [0, -76, 0] 
-					}
-				],
-				"children":
-				[
-					{"type": "ReferenceNode", "data": "figureNode"}
-				]
+				"type": "Translate",
+				"value": [0, -76, 0] 
 			}
-		}
-	]
-}
+		],
+		"children":
+		[
+			{"nodeType": "ReferenceNode", "ref": "figureNode"}
+		]
+	}
+]

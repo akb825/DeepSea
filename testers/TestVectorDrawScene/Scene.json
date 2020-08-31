@@ -23,19 +23,16 @@
 						{
 							"type": "VectorItemList",
 							"name": "vectorItemList",
-							"data":
-							{
-								"instanceData":
-								[
+							"instanceData":
+							[
+								{
+									"type": "InstanceTransformData",
+									"data":
 									{
-										"type": "InstanceTransformData",
-										"data":
-										{
-											"variableGroupDescName": "instanceTransformDesc"
-										}
+										"variableGroupDescName": "instanceTransformDesc"
 									}
-								]
-							}
+								}
+							]
 						}
 					]
 				}
@@ -46,7 +43,7 @@
 	[
 		{
 			"type": "ViewTransformData",
-			"data": {"variableGroupDescName": "viewTransformDesc"}
+			"variableGroupDescName": "viewTransformDesc"
 		}
 	],
 	"nodes": ["tigerTransform", "figureTransform"]

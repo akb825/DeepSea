@@ -251,7 +251,7 @@ static bool loadShaderVariableGroupDesc(dsSceneResources* resources,
 	if (elementCount == 0)
 		return true;
 
-	uint32_t dummyCount;
+	uint32_t dummyCount = 0;
 	uint32_t maxElements = static_cast<uint32_t>(tempDataSize/sizeof(dsShaderVariableElement));
 	if (!dsResizeableArray_add(scratchAllocator, &tempData, &dummyCount, &maxElements,
 			sizeof(dsShaderVariableElement), elementCount))
@@ -392,7 +392,7 @@ static bool loadMaterialDesc(dsSceneResources* resources, dsResourceManager* res
 	if (elementCount == 0)
 		return true;
 
-	uint32_t dummyCount;
+	uint32_t dummyCount = 0;
 	uint32_t maxElements = static_cast<uint32_t>(tempDataSize/sizeof(dsMaterialElement));
 	if (!dsResizeableArray_add(scratchAllocator, &tempData, &dummyCount, &maxElements,
 			sizeof(dsMaterialElement), elementCount))

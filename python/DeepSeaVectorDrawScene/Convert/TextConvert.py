@@ -57,7 +57,7 @@ def convertText(convertContext, data):
 		defaultFont = str(data.get('font', 'serif'))
 		textData = str(data['text']).strip()
 	except KeyError as e:
-		raise Exception('SceneText doesn\'t contain element "' + str(e) + '".')
+		raise Exception('SceneText doesn\'t contain element ' + str(e) + '.')
 	except (AttributeError, TypeError, ValueError):
 		raise Exception('SceneText must be an object.')
 

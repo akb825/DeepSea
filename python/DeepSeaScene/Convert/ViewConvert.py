@@ -177,7 +177,7 @@ def convertView(convertContext, data):
 				try:
 					surface.memoryHints |= memoryHintsEnum[memoryEnum]
 				except KeyError as e:
-					raise Exception('Invalid dsMemoryUsage enum value "' + str(e) + '".')
+					raise Exception('Invalid dsMemoryUsage enum value ' + str(e) + '.')
 			if surface.memoryHints == 0:
 				raise Exception('View surface "memoryHints" must not be empty.')
 		except (ValueError, KeyError):
@@ -262,7 +262,7 @@ def convertView(convertContext, data):
 			for surfaceInfo in framebufferSurfaceInfos:
 				framebuffer.surfaces.append(readFramebufferSurface(surfaceInfo))
 		except KeyError as e:
-			raise Exception('Framebuffer surface doesn\'t contain element "' + str(e) + '".')
+			raise Exception('Framebuffer surface doesn\'t contain element ' + str(e) + '.')
 		except (TypeError, ValueError):
 			raise Exception('Framebuffer surfaces must be an array of objects.')
 
@@ -313,7 +313,7 @@ def convertView(convertContext, data):
 			for surfaceInfo in surfaceInfos:
 				surfaces.append(readSurface(surfaceInfo))
 		except KeyError as e:
-			raise Exception('View "surfaces" doesn\'t contain element "' + str(e) + '".')
+			raise Exception('View "surfaces" doesn\'t contain element ' + str(e) + '.')
 		except (TypeError, ValueError):
 			raise Exception('View "surfaces" must be an array of array of objects.')
 
@@ -323,11 +323,11 @@ def convertView(convertContext, data):
 			for framebufferInfo in framebufferInfos:
 				framebuffers.append(readFramebuffer(framebufferInfo))
 		except KeyError as e:
-			raise Exception('View "framebuffers" doesn\'t contain element "' + str(e) + '".')
+			raise Exception('View "framebuffers" doesn\'t contain element ' + str(e) + '.')
 		except (TypeError, ValueError):
 			raise Exception('View "framebuffers" must be an array of array of objects.')
 	except KeyError as e:
-		raise Exception('View doesn\'t contain element "' + str(e) + '".')
+		raise Exception('View doesn\'t contain element ' + str(e) + '.')
 	except (AttributeError, TypeError, ValueError):
 		raise Exception('View must be an object.')
 

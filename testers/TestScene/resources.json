@@ -1,183 +1,255 @@
-{
-	"textures":
-	[
+[
+	{
+		"type": "Texture",
+		"name": "SimpleTexture",
+		"path": "@sharedDir@/SimpleTexture.png",
+		"textureInfo":
 		{
-			"name": "SimpleTexture",
-			"path": "@sharedDir@/SimpleTexture.png",
-			"textureInfo":
+			"format": "@textureFormat@",
+			"decoration": "@textureDecoration@",
+			"mipLevels": 1000
+		}
+	},
+	{
+		"type": "ShaderVariableGroupDesc",
+		"name": "viewTransformDesc",
+		"elements":
+		[
+			{"name": "view", "type": "Mat4"},
+			{"name": "camera", "type": "Mat4"},
+			{"name": "projection", "type": "Mat4"},
+			{"name": "screenRotation", "type": "Vec4"},
+			{"name": "screenSize", "type": "IVec2"}
+		]
+	},
+	{
+		"type": "ShaderVariableGroupDesc",
+		"name": "instanceTransformDesc",
+		"elements":
+		[
+			{"name": "world", "type": "Mat4"},
+			{"name": "worldInvTrans", "type": "Mat4"},
+			{"name": "worldView", "type": "Mat4"},
+			{"name": "worldViewProj", "type": "Mat4"}
+		]
+	},
+	{
+		"type": "ShaderVariableGroupDesc",
+		"name": "lightDesc",
+		"elements":
+		[
+			{"name": "direction", "type": "Vec3"},
+			{"name": "color", "type": "Vec3"},
+			{"name": "ambient", "type": "Vec3"}
+		]
+	},
+	{
+		"type": "MaterialDesc",
+		"name": "cubeDesc",
+		"elements":
+		[
 			{
-				"format": "@textureFormat@",
-				"decoration": "@textureDecoration@",
-				"mipLevels": 1000
+				"name": "ViewTransformData",
+				"type": "VariableGroup",
+				"binding": "Global",
+				"shaderVariableGroupDesc": "viewTransformDesc"
+			},
+			{
+				"name": "InstanceTransformData",
+				"type": "VariableGroup",
+				"binding": "Instance",
+				"shaderVariableGroupDesc": "instanceTransformDesc"
+			},
+			{
+				"name": "LightData",
+				"type": "VariableGroup",
+				"binding": "Global",
+				"shaderVariableGroupDesc": "lightDesc"
+			},
+			{
+				"name": "materialColor",
+				"type": "Vec4",
+				"binding": "Material"
 			}
-		}
-	],
-	"shaderVariableGroupDescs":
-	[
-		{
-			"name": "viewTransformDesc",
-			"elements":
-			[
-				{"name": "view", "type": "Mat4"},
-				{"name": "camera", "type": "Mat4"},
-				{"name": "projection", "type": "Mat4"},
-				{"name": "screenRotation", "type": "Vec4"},
-				{"name": "screenSize", "type": "IVec2"}
-			]
-		},
-		{
-			"name": "instanceTransformDesc",
-			"elements":
-			[
-				{"name": "world", "type": "Mat4"},
-				{"name": "worldInvTrans", "type": "Mat4"},
-				{"name": "worldView", "type": "Mat4"},
-				{"name": "worldViewProj", "type": "Mat4"}
-			]
-		},
-		{
-			"name": "lightDesc",
-			"elements":
-			[
-				{"name": "direction", "type": "Vec3"},
-				{"name": "color", "type": "Vec3"},
-				{"name": "ambient", "type": "Vec3"}
-			]
-		}
-	],
-	"materialDescs":
-	[
-		{
-			"name": "cubeDesc",
-			"elements":
-			[
-				{
-					"name": "ViewTransformData",
-					"type": "VariableGroup",
-					"binding": "Global",
-					"shaderVariableGroupDesc": "viewTransformDesc"
-				},
-				{
-					"name": "InstanceTransformData",
-					"type": "VariableGroup",
-					"binding": "Instance",
-					"shaderVariableGroupDesc": "instanceTransformDesc"
-				},
-				{
-					"name": "LightData",
-					"type": "VariableGroup",
-					"binding": "Global",
-					"shaderVariableGroupDesc": "lightDesc"
-				},
-				{
-					"name": "materialColor",
-					"type": "Vec4",
-					"binding": "Material"
-				}
-			]
-		},
-		{
-			"name": "groundDesc",
-			"elements":
-			[
-				{
-					"name": "ViewTransformData",
-					"type": "VariableGroup",
-					"binding": "Global",
-					"shaderVariableGroupDesc": "viewTransformDesc"
-				},
-				{
-					"name": "InstanceTransformData",
-					"type": "VariableGroup",
-					"binding": "Instance",
-					"shaderVariableGroupDesc": "instanceTransformDesc"
-				},
-				{
-					"name": "LightData",
-					"type": "VariableGroup",
-					"binding": "Global",
-					"shaderVariableGroupDesc": "lightDesc"
-				},
-				{
-					"name": "diffuseTex",
-					"type": "Texture",
-					"binding": "Material"
-				}
-			]
-		}
-	],
-	"materials":
-	[
-		{
-			"name": "innerCubeMat",
-			"description": "cubeDesc",
-			"data":
-			[
-				{
-					"name": "materialColor",
-					"type": "Vec4",
-					"data": [1.0, 0.0, 0.0,1.0]
-				}
-			]
-		},
-		{
-			"name": "outerCubeMat",
-			"description": "cubeDesc",
-			"data":
-			[
-				{
-					"name": "materialColor",
-					"type": "Vec4",
-					"data": [0.0, 1.0, 0.0,1.0]
-				}
-			]
-		},
-		{
-			"name": "groundMat",
-			"description": "groundDesc",
-			"data":
-			[
-				{
-					"name": "diffuseTex",
-					"type": "Texture",
-					"data": "SimpleTexture"
-				}
-			]
-		}
-	],
-	"shaderModules":
-	[
-		{
-			"name": "testSceneModule",
-			"modules": @testSceneModule@
-		}
-	],
-	"shaders":
-	[
-		{
-			"name": "cubeShader",
-			"module": "testSceneModule",
-			"pipelineName": "Cube",
-			"materialDesc": "cubeDesc"
-		},
-		{
-			"name": "groundShader",
-			"module": "testSceneModule",
-			"pipelineName": "Ground",
-			"materialDesc": "groundDesc"
-		}
-	],
-	"sceneNodes":
-	[
-		{
-			"name": "cubeModelNode",
-			"type": "ModelNode",
-			"data":
+		]
+	},
+	{
+		"type": "MaterialDesc",
+		"name": "groundDesc",
+		"elements":
+		[
 			{
+				"name": "ViewTransformData",
+				"type": "VariableGroup",
+				"binding": "Global",
+				"shaderVariableGroupDesc": "viewTransformDesc"
+			},
+			{
+				"name": "InstanceTransformData",
+				"type": "VariableGroup",
+				"binding": "Instance",
+				"shaderVariableGroupDesc": "instanceTransformDesc"
+			},
+			{
+				"name": "LightData",
+				"type": "VariableGroup",
+				"binding": "Global",
+				"shaderVariableGroupDesc": "lightDesc"
+			},
+			{
+				"name": "diffuseTex",
+				"type": "Texture",
+				"binding": "Material"
+			}
+		]
+	},
+	{
+		"type": "Material",
+		"name": "innerCubeMat",
+		"description": "cubeDesc",
+		"data":
+		[
+			{
+				"name": "materialColor",
+				"type": "Vec4",
+				"data": [1.0, 0.0, 0.0,1.0]
+			}
+		]
+	},
+	{
+		"type": "Material",
+		"name": "outerCubeMat",
+		"description": "cubeDesc",
+		"data":
+		[
+			{
+				"name": "materialColor",
+				"type": "Vec4",
+				"data": [0.0, 1.0, 0.0,1.0]
+			}
+		]
+	},
+	{
+		"type": "Material",
+		"name": "groundMat",
+		"description": "groundDesc",
+		"data":
+		[
+			{
+				"name": "diffuseTex",
+				"type": "Texture",
+				"data": "SimpleTexture"
+			}
+		]
+	},
+	{
+		"type": "ShaderModule",
+		"name": "testSceneModule",
+		"modules": @testSceneModule@
+	},
+	{
+		"type": "Shader",
+		"name": "cubeShader",
+		"module": "testSceneModule",
+		"pipelineName": "Cube",
+		"materialDesc": "cubeDesc"
+	},
+	{
+		"type": "Shader",
+		"name": "groundShader",
+		"module": "testSceneModule",
+		"pipelineName": "Ground",
+		"materialDesc": "groundDesc"
+	},
+	{
+		"type": "SceneNode",
+		"name": "cubeModelNode",
+		"nodeType": "ModelNode",
+		"modelGeometry":
+		[
+			{
+				"path": "@srcDir@/cube.obj",
+				"vertexFormat":
+				[
+					{
+						"attrib": "Position",
+						"format": "X32Y32Z32",
+						"decoration": "Float"
+					},
+					{
+						"attrib": "Normal",
+						"format": "W2Z10Y10X10",
+						"decoration": "UNorm"
+					}
+				],
+				"indexSize": 2,
+				"transforms":
+				[
+					{
+						"attrib": "Normal",
+						"transform": "SNormToUNorm"
+					}
+				],
+				"drawInfos":
+				[
+					{
+						"name": "Cube",
+						"shader": "cubeShader",
+						"material": "innerCubeMat",
+						"listName": "modelList"
+					}
+				]
+			}
+		],
+		"extraItemLists": ["cullList"]
+	},
+	{
+		"type": "SceneNode",
+		"name": "innerOuterCubeNode",
+		"nodeType": "TransformNode",
+		"transformList": [{"type": "Scale", "value": [2.0, 2.0, 2.0]}],
+		"children":
+		[
+			{"nodeType": "ReferenceNode", "ref": "cubeModelNode"},
+			{
+				"nodeType": "TransformNode",
+				"transformList":
+				[
+					{"type": "Scale", "value": [1.5, 0.75, 0.5]},
+					{"type": "Rotate", "value": [20.0, -40.0, 60.0]},
+					{"type": "Translate", "value": [4.0, -1.0, 3.0]}
+				],
+				"children":
+				[
+					{
+						"nodeType": "ModelNodeClone",
+						"name": "cubeModelNode",
+						"materialRemaps":
+						[
+							{"name": "Cube", "material": "outerCubeMat"}
+						]
+					}
+				]
+			}
+		]
+	},
+	{
+		"type": "SceneNode",
+		"name": "groundNode",
+		"nodeType": "TransformNode",
+		"transformList":
+		[
+			{"type": "Scale", "value": [10.0, 1.0, 10.0]},
+			{"type": "Translate", "value": [0.0, -5.0, 0.0]}
+		],
+		"children":
+		[
+			{
+				"nodeType": "ModelNode",
 				"modelGeometry":
 				[
 					{
-						"path": "@srcDir@/cube.obj",
+						"path": "@srcDir@/ground.gltf",
 						"vertexFormat":
 						[
 							{
@@ -188,6 +260,11 @@
 							{
 								"attrib": "Normal",
 								"format": "W2Z10Y10X10",
+								"decoration": "UNorm"
+							},
+							{
+								"attrib": "TexCoord0",
+								"format": "X16Y16",
 								"decoration": "UNorm"
 							}
 						],
@@ -202,9 +279,9 @@
 						"drawInfos":
 						[
 							{
-								"name": "Cube",
-								"shader": "cubeShader",
-								"material": "innerCubeMat",
+								"name": "Plane",
+								"shader": "groundShader",
+								"material": "groundMat",
 								"listName": "modelList"
 							}
 						]
@@ -212,141 +289,33 @@
 				],
 				"extraItemLists": ["cullList"]
 			}
-		},
-		{
-			"name": "innerOuterCubeNode",
-			"type": "TransformNode",
-			"data":
+		]
+	},
+	{
+		"type": "SceneNode",
+		"name": "secondaryTransform",
+		"nodeType": "TransformNode",
+		"children":
+		[
 			{
-				"transformList": [{"type": "Scale", "value": [2.0, 2.0, 2.0]}],
-				"children":
-				[
-					{"type": "ReferenceNode", "data": "cubeModelNode"},
-					{
-						"type": "TransformNode",
-						"data":
-						{
-							"transformList":
-							[
-								{"type": "Scale", "value": [1.5, 0.75, 0.5]},
-								{"type": "Rotate", "value": [20.0, -40.0, 60.0]},
-								{"type": "Translate", "value": [4.0, -1.0, 3.0]}
-							],
-							"children":
-							[
-								{
-									"type": "ModelNodeClone",
-									"data":
-									{
-										"name": "cubeModelNode",
-										"materialRemaps":
-										[
-											{"name": "Cube", "material": "outerCubeMat"}
-										]
-									}
-								}
-							]
-						}
-					}
-				]
-			}
-		},
-		{
-			"name": "groundNode",
-			"type": "TransformNode",
-			"data":
-			{
+			"nodeType": "TransformNode",
 				"transformList":
 				[
-					{"type": "Scale", "value": [10.0, 1.0, 10.0]},
-					{"type": "Translate", "value": [0.0, -5.0, 0.0]}
+					{"type": "Rotate", "value": [-20.0, 70.0, 35.0]},
+					{"type": "Translate", "value": [5.0, 4.0, -2.0]}
 				],
-				"children":
-				[
-					{
-						"type": "ModelNode",
-						"data":
-						{
-							"modelGeometry":
-							[
-								{
-									"path": "@srcDir@/ground.gltf",
-									"vertexFormat":
-									[
-										{
-											"attrib": "Position",
-											"format": "X32Y32Z32",
-											"decoration": "Float"
-										},
-										{
-											"attrib": "Normal",
-											"format": "W2Z10Y10X10",
-											"decoration": "UNorm"
-										},
-										{
-											"attrib": "TexCoord0",
-											"format": "X16Y16",
-											"decoration": "UNorm"
-										}
-									],
-									"indexSize": 2,
-									"transforms":
-									[
-										{
-											"attrib": "Normal",
-											"transform": "SNormToUNorm"
-										}
-									],
-									"drawInfos":
-									[
-										{
-											"name": "Plane",
-											"shader": "groundShader",
-											"material": "groundMat",
-											"listName": "modelList"
-										}
-									]
-								}
-							],
-							"extraItemLists": ["cullList"]
-						}
-					}
-				]
+				"children": [{"nodeType": "ReferenceNode", "ref": "innerOuterCubeNode"}]
 			}
-		},
-		{
-			"name": "secondaryTransform",
-			"type": "TransformNode",
-			"data":
-			{
-				"children":
-				[
-					{
-						"type": "TransformNode",
-						"data":
-						{
-							"transformList":
-							[
-								{"type": "Rotate", "value": [-20.0, 70.0, 35.0]},
-								{"type": "Translate", "value": [5.0, 4.0, -2.0]}
-							],
-							"children": [{"type": "ReferenceNode", "data": "innerOuterCubeNode"}]
-						}
-					}
-				]
-			}
-		},
-		{
-			"name": "primaryTransform",
-			"type": "TransformNode",
-			"data":
-			{
-				"children":
-				[
-					{"type": "ReferenceNode", "data": "innerOuterCubeNode"},
-					{"type": "ReferenceNode", "data": "secondaryTransform"}
-				]
-			}
-		}
-	]
-}
+		]
+	},
+	{
+		"type": "SceneNode",
+		"name": "primaryTransform",
+		"nodeType": "TransformNode",
+		"children":
+		[
+			{"nodeType": "ReferenceNode", "ref": "innerOuterCubeNode"},
+			{"nodeType": "ReferenceNode", "ref": "secondaryTransform"}
+		]
+	}
+]

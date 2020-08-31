@@ -49,7 +49,7 @@ def convertVectorResources(convertContext, data):
 		dataType, dataOffset = convertFileOrData(builder, path, None, outputPath,
 			data.get('outputRelativeDir'), data.get('resourceType'))
 	except KeyError as e:
-		raise Exception('VectorResources doesn\'t contain element "' + str(e) + '".')
+		raise Exception('VectorResources doesn\'t contain element ' + str(e) + '.')
 	except (AttributeError, TypeError, ValueError):
 		raise Exception('VectorResources must be an object.')
 

@@ -39,11 +39,11 @@ def convertModelNodeClone(convertContext, data):
 				'ModelNodeClone "materialRemaps" must be an array of objects.')
 		except KeyError as e:
 			raise Exception(
-				'ModelNodeClone material remaps doesn\'t contain element "' + str(e) + '".')
+				'ModelNodeClone material remaps doesn\'t contain element ' + str(e) + '.')
 	except (TypeError, ValueError):
 		raise Exception('ModelNodeClone data must be an object.')
 	except KeyError as e:
-		raise Exception('ModelNodeClone data doesn\'t contain element "' + str(e) + '".')
+		raise Exception('ModelNodeClone data doesn\'t contain element ' + str(e) + '.')
 
 	builder = flatbuffers.Builder(0)
 

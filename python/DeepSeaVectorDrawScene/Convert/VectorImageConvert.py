@@ -65,7 +65,7 @@ def convertVectorImage(convertContext, data):
 
 		srgb = bool(data.get('srgb'))
 	except KeyError as e:
-		raise Exception('VectorImage doesn\'t contain element "' + str(e) + '".')
+		raise Exception('VectorImage doesn\'t contain element ' + str(e) + '.')
 	except (AttributeError, TypeError, ValueError):
 		raise Exception('VectorImage must be an object.')
 

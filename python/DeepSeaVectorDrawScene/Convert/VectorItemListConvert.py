@@ -54,7 +54,7 @@ def convertVectorItemList(convertContext, data):
 					instanceData.append((str(info['type']), info['data']))
 				except KeyError as e:
 					raise Exception(
-						'VectorItemList "instanceData" doesn\'t contain element "' + str(e) + '".')
+						'VectorItemList "instanceData" doesn\'t contain element ' + str(e) + '.')
 		except (TypeError, ValueError):
 			raise Exception('VectorItemList "instanceData" must be an array of objects.')
 
@@ -66,7 +66,7 @@ def convertVectorItemList(convertContext, data):
 
 		cullName = data.get('cullName')
 	except KeyError as e:
-		raise Exception('VectorItemList doesn\'t contain element "' + str(e) + '".')
+		raise Exception('VectorItemList doesn\'t contain element ' + str(e) + '.')
 	except (AttributeError, TypeError, ValueError):
 		raise Exception('VectorItemList must be an object.')
 

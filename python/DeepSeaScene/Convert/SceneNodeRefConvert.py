@@ -17,10 +17,18 @@ from ..SceneNodeRef import *
 
 def convertReferenceNode(convertContext, data):
 	"""
-	Converts a ReferenceNode. The data is expected to simply be a string for the reference.
+	Converts a ReferenceNode. The data map is expected to contain the following elements:
+	- ref: string name of the node that's referenced.
 	"""
+	try:
+		refName = str(data['ref'])
+	except KeyError as e:
+		raise Exception('ReferenceNode doesn\'t contain element ' + str(e) + '.')
+	except (TypeError, ValueError):
+		raise Exception('ReferenceNode must be an object.')
+
 	builder = flatbuffers.Builder(0)
-	nameOffset = builder.CreateString(str(data))
+	nameOffset = builder.CreateString(refName)
 	SceneNodeRefStart(builder)
 	SceneNodeRefAddName(builder, nameOffset)
 	builder.Finish(SceneNodeRefEnd(builder))

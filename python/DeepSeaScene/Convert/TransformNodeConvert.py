@@ -30,7 +30,7 @@ def convertTransformNode(convertContext, data):
 	    - Translate: array of 3 floats for the translation along X, Y, and Z.
 	    - Matrix: a 4x4 array of floats for a matrix. Each inner array is a column of the matrix.
 	- children: an array of child nodes. Each element is an object with the following elements:
-	  - type: the name of the node type.
+	  - nodeType: the name of the node type.
 	  - data: the data for the node.
 	"""
 	def multiplyMatrix(a, b):
@@ -159,7 +159,7 @@ def convertTransformNode(convertContext, data):
 				matrixValues.extend(col)
 		except KeyError as e:
 			raise Exception(
-				'TransformNode "transformList" doesn\'t contain element "' + str(e) + '".')
+				'TransformNode "transformList" doesn\'t contain element ' + str(e) + '.')
 		except (TypeError, ValueError):
 			raise Exception('TransformNode "transform" must be an array of objects.')
 
@@ -168,15 +168,14 @@ def convertTransformNode(convertContext, data):
 		try:
 			for child in children:
 				try:
-					childType = str(child['type'])
-					childData = child['data']
-					childOffsets.append(convertContext.convertNode(builder, childType, childData))
+					childType = str(child['nodeType'])
+					childOffsets.append(convertContext.convertNode(builder, childType, child))
 				except KeyError as e:
-					raise Exception('Child node data doesn\'t contain element "' + str(e) + '".')
+					raise Exception('Child node data doesn\'t contain element ' + str(e) + '.')
 		except (TypeError, ValueError):
 			raise Exception('TransformNode "children" must be an array of objects.')
 	except KeyError as e:
-		raise Exception('TransformNode data doesn\'t contain element "' + str(e) + '".')
+		raise Exception('TransformNode data doesn\'t contain element ' + str(e) + '.')
 	except (TypeError, ValueError):
 		raise Exception('TransformNode data must be an object.')
 

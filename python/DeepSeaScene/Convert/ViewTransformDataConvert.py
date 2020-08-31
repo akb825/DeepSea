@@ -23,9 +23,9 @@ def convertViewTransformData(convertContext, data):
 	try:
 		variableGroupDescName = str(data['variableGroupDescName'])
 	except KeyError as e:
-		raise Exception('ViewTransformData doesn\'t contain element "' + str(e) + '".')
+		raise Exception('ViewTransform doesn\'t contain element ' + str(e) + '.')
 	except (TypeError, ValueError):
-		raise Exception('ViewTransformData must be an object.')
+		raise Exception('ViewTransform must be an object.')
 
 	builder = flatbuffers.Builder(0)
 	variableGroupDescNameOffset = builder.CreateString(variableGroupDescName)

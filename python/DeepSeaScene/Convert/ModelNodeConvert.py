@@ -115,16 +115,6 @@ def convertModelNodeGeometry(convertContext, modelGeometry, embeddedResources):
 		combinedBuffer.extend(data)
 		return offset
 
-	def addModelEmbeddedResources(embeddedResources, resourceType, resources):
-		try:
-			if resourceType in embeddedResources:
-				embeddedResources[resourceType].extend(resources)
-			else:
-				embeddedResources[resourceType] = resources
-		except:
-			raise Exception('ModelNode embedded resource type "' + resourceType +
-				'" must be an array of objects.')
-
 	def convertGeometry(convertContext, modelType, path, vertexFormat, indexSize, transforms,
 			includedComponents, combinedBuffer, modelBounds):
 		def getIndexType(indexSize):
@@ -304,8 +294,8 @@ def convertModelNodeGeometry(convertContext, modelGeometry, embeddedResources):
 							vfcVertexFormat.append((attrib, attribFormat, decoration))
 						except KeyError as e:
 							raise Exception(
-								'ModelNode geometry vertex format doesn\'t contain element "' +
-								str(e) + '".')
+								'ModelNode geometry vertex format doesn\'t contain element ' +
+								str(e) + '.')
 				except (TypeError, ValueError):
 					raise Exception(
 						'ModelNode geometry "vertexFormat" must be an array of objects.')
@@ -329,8 +319,8 @@ def convertModelNodeGeometry(convertContext, modelGeometry, embeddedResources):
 								vfcTransforms.append((attrib, transformType))
 							except KeyError as e:
 								raise Exception(
-									'ModelNode geometry transform doesn\'t contain element "' +
-									str(e) + '".')
+									'ModelNode geometry transform doesn\'t contain element ' +
+									str(e) + '.')
 					except (TypeError, ValueError):
 						raise Exception(
 							'ModelNode geometry "transforms" must be an array of objects.')
@@ -342,13 +332,13 @@ def convertModelNodeGeometry(convertContext, modelGeometry, embeddedResources):
 						try:
 							includedComponents.add(str(info['name']))
 						except KeyError as e:
-							raise Exception('Model geometry draw info doesn\'t contain element "' +
-								str(e) + '".')
+							raise Exception('Model geometry draw info doesn\'t contain element ' +
+								str(e) + '.')
 				except (TypeError, ValueError):
 					raise Exception('Model geometry draw info must be an array of objects.')
 			except KeyError as e:
 				raise Exception(
-					'ModelNode "modelGeometry" doesn\'t contain element "' + str(e) + '".')
+					'ModelNode "modelGeometry" doesn\'t contain element ' + str(e) + '.')
 
 			convertedGeometry = convertGeometry(convertContext, modelType, path, vfcVertexFormat,
 				indexSize, vfcTransforms, includedComponents, combinedBuffer, modelBounds)
@@ -373,6 +363,7 @@ def convertModelNodeGeometry(convertContext, modelGeometry, embeddedResources):
 
 				geometryName = embeddedGeometryName + str(len(geometries))
 				geometryInfo = {
+					'type': 'DrawGeometry',
 					'name': geometryName,
 					'vertexBuffers': [vertexBuffer]
 				}
@@ -403,8 +394,8 @@ def convertModelNodeGeometry(convertContext, modelGeometry, embeddedResources):
 					modelInfo.distanceRange = info.get('distanceRange', [0.0, FLT_MAX])
 					validateModelDistanceRange(modelInfo.distanceRange)
 				except KeyError as e:
-					raise Exception('Model geometry draw info doesn\'t contain element "' +
-						str(e) + '".')
+					raise Exception('Model geometry draw info doesn\'t contain element ' +
+						str(e) + '.')
 
 				baseGeometry = convertedGeometry.get(modelInfo.name)
 				if not baseGeometry:
@@ -439,13 +430,17 @@ def convertModelNodeGeometry(convertContext, modelGeometry, embeddedResources):
 		raise Exception('ModelNode "modelGeometry" must be an array of objects.')
 
 	embeddedBuffer = {
+		'type': 'Buffer',
 		'name': embeddedBufferName,
 		'usage': ['Index', 'Vertex'],
 		'memoryHints': ['GPUOnly', 'Static', 'Draw'],
 		'data': 'base64:' + base64.b64encode(combinedBuffer).decode(),
 	}
-	addModelEmbeddedResources(embeddedResources, 'buffers', [embeddedBuffer])
-	addModelEmbeddedResources(embeddedResources, 'drawGeometries', geometries)
+	try:
+		embeddedResources.append(embeddedBuffer)
+		embeddedResources.extend(geometries)
+	except:
+		raise Exception('ModelNode embedded resources must be an array of objects.')
 	return models, modelBounds
 
 def convertModelNodeModels(modelInfoList):
@@ -482,7 +477,7 @@ def convertModelNodeModels(modelInfoList):
 			drawRange.firstInstance = readInt(drawRangeInfo.get('firstInstance', 0),
 				'firstInstance', 0)
 		except KeyError as e:
-			raise Exception('Model draw range doesn\'t contain element "' + str(e) + '".')
+			raise Exception('Model draw range doesn\'t contain element ' + str(e) + '.')
 		except (TypeError, ValueError):
 			raise Exception('Model draw range must be an object.')
 
@@ -510,7 +505,7 @@ def convertModelNodeModels(modelInfoList):
 
 				model.listName = info['listName']
 			except KeyError as e:
-				raise Exception('ModelNode "models" doesn\'t contain element "' + str(e) + '".')
+				raise Exception('ModelNode "models" doesn\'t contain element ' + str(e) + '.')
 	except (TypeError, ValueError):
 		raise Exception('ModelNode "models" must be an array of objects.')
 
@@ -519,8 +514,8 @@ def convertModelNodeModels(modelInfoList):
 def convertModelNode(convertContext, data):
 	"""
 	Converts a ModelNode. The data map is expected to contain the following elements:
-	- embeddedResources: optional set of resources to embed with the node. This is a map containing
-	  the elements as expected by SceneResourcesConvert.convertSceneResources().
+	- embeddedResources: optional set of resources to embed with the node. This is an array of maps
+	  as expected by SceneResourcesConvert.convertSceneResources().
 	- modelGeometry: array of model geometry. Each element of the array has the following members:
 	  - type: the name of the geometry type, such as "obj" or "gltf". If ommitted, the type is
 	    inferred from the path extension.
@@ -582,9 +577,9 @@ def convertModelNode(convertContext, data):
 	  the model will have no explicit bounds for culling.
 	"""
 	try:
-		embeddedResources = data.get('embeddedResources', dict())
-		if not isinstance(embeddedResources, dict):
-			raise Exception ('ModelNode "embeddedResources" must be an object.')
+		embeddedResources = data.get('embeddedResources', list())
+		if not isinstance(embeddedResources, list):
+			raise Exception ('ModelNode "embeddedResources" must be an array of objects.')
 		
 		modelGeometry = data.get('modelGeometry')
 		if modelGeometry:
@@ -615,7 +610,7 @@ def convertModelNode(convertContext, data):
 	except (TypeError, ValueError):
 		raise Exception('ModelNode data must be an object.')
 	except KeyError as e:
-		raise Exception('ModelNode data doesn\'t contain element "' + str(e) + '".')
+		raise Exception('ModelNode data doesn\'t contain element ' + str(e) + '.')
 
 	builder = flatbuffers.Builder(0)
 	if embeddedResources:
