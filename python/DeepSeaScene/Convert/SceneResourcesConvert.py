@@ -1277,12 +1277,12 @@ def convertSceneResources(convertContext, data):
 	      a decorator isn't valid.
 	    - dimension: the dimension of the texture. See the dsTextureDim enum for values, removing
 	      the type prefix and starting with "Dim". "Dim2D" is used by default.
-	    - width: the width of the texture in pixels. When converting, may also be the string
-	      nextpo2 or nearestpo2. When converting, this can be omitted to use the original image
-	      width.
-	    - height: the height of the texture in pixels. When converting, may also be the string
-	      nextpo2 or nearestpo2. When converting, this can be omitted to use the original image
-	      height.
+	    - width: the width of the texture in pixels. When converting, it may also be a string as
+	      documented with cuttlefish's -r, --resize option. This may also be omitted when
+		  converting.
+	    - height: the height of the texture in pixels. When converting, it may also be a string as
+	      documented with cuttlefish's -r, --resize option. This may also be omitted when
+		  converting.
 	    - depth: the depth or array layers of the texture. If 0 or omitted, this is not a texture
 	      array.
 	    (the following elements are only used for texture conversion)
@@ -1340,7 +1340,7 @@ def convertSceneResources(convertContext, data):
 		  variable group types.
 	    - shaderVariableGroupDesc: the name of the shader variable group description when the type
 	      is a shader variable group. The description may be in a different scene resources package.
-	- "Material" See ShaderVariableGroup for a description of the object  members, except the
+	- "Material": See "ShaderVariableGroup" for a description of the object members, except the
 	  "description" element is for a material description rather than a shader variable group
 	  description.
 	- "ShaderModule"

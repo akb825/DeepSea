@@ -37,8 +37,8 @@ def convertVectorImageNode(convertContext, data):
 			raise Exception('Invalid ' + name + ' int value "' + str(value) + '".')
 
 	try:
-		embeddedResources = data.get('embeddedResources', dict())
-		if not isinstance(embeddedResources, dict):
+		embeddedResources = data.get('embeddedResources', list())
+		if not isinstance(embeddedResources, list):
 			raise Exception ('TextNode "embeddedResources" must be an object.')
 
 		size = data.get('size')

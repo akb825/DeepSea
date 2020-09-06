@@ -19,54 +19,55 @@ These are the different types supported for conversion in the scene library. The
 
 # Scene Resources
 
-Scene resources provide the resources that will be drawn inside of scenes. The JSON object (or Python dict supplied directly) has the following elements. Any of the top-level arrays may be omitted.
+Scene resources provide the resources that will be drawn inside of scenes. When provided by JSON the document is an array, or a Python list when provided by code. Each element of the array is a JSON object (or Python dict), each with the following members:
 
-* `buffers`: array of buffers to embed. Each element of the array has the following members:
-	* `name`: string name of the buffer.
+* `type`: string for the resource type.
+* `name`: string name to reference the resource.
+
+The remaining members of each element depends on the value of `type`. The builtin type strings and their extra members are:
+
+* `"Buffer"`
 	* `usage`: array of usage flags. See the `dsGfxBufferUsage` enum for values, removing the type prefix. At least one must be provided.
 	* `memoryHints`: array of memory hints. See the `dsGfxMemory` enum for values, removing the type prefix. At least one must be provided.
 	* `size`: the size of the buffer. This is only used if no data is provided.
-	* `data`: path to the buffer data or base64 encoded data prefixed with "base64:". This may be omitted to leave the buffer data uninitialized.
+	* `data`: path to the buffer data or base64 encoded data prefixed with `base64:`. This may be omitted to leave the buffer data uninitialized.
 	* `output`: the path to the output the buffer. This can be omitted if no input path is provided or if the buffer is embedded.
 	* `outputRelativeDir`: the directory relative to output path. This will be removed from the path before adding the reference.
-	* `resourceType`: the resource type. See the `dsFileResourceType` for values, removing the type prefix. Defaults to `Embedded`.
-* `textures`: array of textures to include. Each element of the array has the following members:
-	* `name`: the name of the texture.
-	* `usage`: array of usage flags. See the dsGfxBufferUsage enum for values, removing the type prefix. Defaults to `["Texture"]`. If set, at least one must be provided.
+	* `resourceType`: the resource type. See the `dsFileResourceType` for values, removing the type prefix. Defaults to `"Embedded"`.
+* `"Texture"`
+	* `usage`: array of usage flags. See the `dsGfxBufferUsage` enum for values, removing the type prefix. Defaults to `["Texture"]`. If set, at least one must be provided.
 	* `memoryHints`: array of memory hints. See the `dsGfxMemory` enum for values, removing the type prefix. Defaults to `["GPUOnly"]`. If set, at least one must be provided.
 	* `path`: path to the texture image. This may be omitted if no initial texture data is used.
 	* `pathArray`: array of paths to texture images. Use this in place of `path` for texture arrays or cubemaps.
 	* `output`: the path to the output the texture. This can be omitted if no input path is provided or if the texture is embedded. When converting textures, the extension should match the desired output container format.
 	* `outputRelativeDir`: the directory relative to output path. This will be removed from the path before adding the reference.
-	* `resourceType`: the resource type. See the `dsFileResourceType` for values, removing the type prefix. Defaults to `Embedded`.
+	* `resourceType`: the resource type. See the `dsFileResourceType` for values, removing the type prefix. Defaults to `"Embedded"`.
 	* `textureInfo`: the info to describe the texture. This must be provided if no image path is provided or if the image from the input path is to be converted. This is expected to have the following elements:
-		* `format`: the texture format. See the `dsGfxFormat` enum for values, removing the type prefix. The decorator values may not be used.
-		* `decoration`: the decoration for the format. See the `dsGfxFormat` enum for values, removing the type prefix. Only the decorator values may be used. May also be `Unset` in cases where a decorator isn't valid.
-		* `dimension`: the dimension of the texture. See the `dsTextureDim` enum for values, removing the type prefix and starting with "Dim". `Dim2D` is used by default.
-		* `width`: the width of the texture in pixels. When converting, may also be the string `nextpo2` or `nearestpo2`. When converting, this can be omitted to use the original image width.
-		* `height`: the height of the texture in pixels. When converting, may also be the string `nextpo2` or `nearestpo2`. When converting, this can be omitted to use the original image height.
+		* `format`: the texture format. See the `dsGfxFormat` enum for values, removing the type pre The decorator values may not be used.
+		* `decoration`: the decoration for the format. See the `dsGfxFormat` enum for values, removing the type prefix. Only the decorator values may be used. May also be `"Unset"` in cases where a decorator isn't valid.
+		* `dimension`: the dimension of the texture. See the `dsTextureDim` enum for values, removing the type prefix and starting with "Dim". `"Dim2D"` is used by default.
+		* `width`: the width of the texture in pixels. When converting, it may also be a string as documented with cuttlefish's `-r, --resize` option. This may also be omitted when converting.
+		* `height`: the height of the texture in pixels. When converting, it may also be a string as documented with cuttlefish's `-r, --resize` option. This may also be omitted when converting.
 		* `depth`: the depth or array layers of the texture. If 0 or omitted, this is not a texture array.
-		* The following elements are only used for texture conversion.
-			* `mipLevels`: the number of mipmap levels.
-			* `quality`: the quality to use during conversion. May be one of `lowest`, `low`, `normal`, `high`, or `highest`. Defaults to `normal`.
-			* `normalmap`: float value for a height to use to convert to a normalmap.
-			* `swizzle`: string of R, G, B, A, or X values to swizzle the color channels.
-			* `rotate`: angle to rotate. Must be a multile of 90 degrees in the range \[-270, 270\].
-			* `alpha`: the alpha mode to use. Must be: `none`, `standard`, `pre-multiplied`, or `encoded`. Default value is `standard`.
-			* `transforms`: array of transforms to apply. Valid values are: `flipx`, `flipy`, `srgb`,
-			`grayscale`, and `pre-multiply`. Note that `srgb` is implied if the decorator is `srgb`.
-* `shaderVariableGroupDescs`: array of shader variable group descriptions to include. Each element of the array has the following members:
-	* `name`: the name of the shader variable group description.
+	    * (the following elements are only used for texture conversion)
+		* `mipLevels`: the number of mipmap levels.
+		* `quality`: the quality to use during conversion. May be one of `"lowest"`, `"low"`, `"normal"`, `"high"`, or `"highest"`. Defaults to `"normal"`.
+		* `normalmap`: float value for a height to use to convert to a normalmap.
+		* `swizzle`: string of `R`, `G`, `B`, `A`, or `X` values to swizzle the color channels.
+		* `rotate`: angle to rotate. Must be a multile of 90 degrees in the range \[-270, 270\].
+		* `alpha`: the alpha mode to use. Must be: `"none"`, `"standard"`, `"pre-multiplied"`, or `"encoded"`. Default value is `"standard"`.
+		* `transforms`: array of transforms to apply. Valid values are: `"flipx"`, `"flipy"`, `"srgb"`, `"grayscale"`, and `"pre-multiply"`. Note that `"srgb "`is implied if the decorator is srgb.
+* `"ShaderVariableGroupDesc"`
 	* `elements`: array of elements for the shader variable group. Each element of the array has the following members:
 		* `name`: the name of the element.
-		* `type`: the type of the element. See dsMaterialType enum for values, removing the type prefix.
+		* `type`: the type of the element. See `dsMaterialType `enum for values, removing the type prefix.
 		* `count`: the number of array elements. If 0 or omitted, this is not an array.
-* `shaderVariableGroups`: array of shader variable groups to include. Each element of the array has the following members:
-	* `name`: the name of the element.
-	* `description`: the name of the description defined in `shaderVariableGroupDescs`. The description may be in a different scene resources package.
+* `"ShaderVariableGroup"`
+	* `description`: the name of the description defined in `shaderVariableGroupDescs`. The
+	    description may be in a different scene resources package.
 	* `data`: array of data elements to set. Each element of the array has the following members:
 		* `name`: the name of the data element.
-		* `type`: the type of the element. See the `dsMaterialType `enum for values, removing the type prefix.
+		* `type`: the type of the element. See the `dsMaterialType` enum for values, removing the type prefix.
 		* `first`: the index of the first element to set when it's an array. Defaults to 0 if not set.
 		* `data`: the data to set, with the contents depending on the `type` that was set.
 			* Vector types are arrays, while matrix types are arrays of column vector arrays.
@@ -77,57 +78,50 @@ Scene resources provide the resources that will be drawn inside of scenes. The J
 				* `size`: the integer bytes to bind within the buffer.
 			* Texture buffers and image buffers are objects with the following members:
 				* `name`: the name of the buffer.
-				* `format`: the texture format. See the `dsGfxFormat` enum for values, removing the type prefix. The decorator and compressed values may not be used.
-				* `decoration`: the decoration for the format. See the `dsGfxFormat` enum for values, removing the type prefix. Only the decorator values may be used. May also be `Unset` in cases where a decorator isn't valid.
-				* `offset`: integer byte offset into the buffer. Defaults to 0.
+				* `format`: the texture format. See the dsGfxFormat enum for values, removing the type prefix. The decorator and compressed values may not be used.
+				* `decoration`: the decoration for the format. See the `dsGfxFormat` enum for values, removing the type prefix. Only the decorator values may be used. May also be `"Unset"` in cases where a decorator isn't valid.
+			* `offset`: integer byte offset into the buffer. Defaults to 0.
 				* `count`: integer number of texels in the buffer.
 		* `dataArray`: this may be set in place of the data member to provide an array of data elements rather than a single one.
-* `materialDescs`: array of material descriptions to include. Each element of the array has the following members:
-	* `name`: the name of the material description.
+* `"MaterialDesc"`
 	* `elements`: array of elements for the material. Each element of the array has the following members:
 		* `name`: the name of the element.
-		* `type`: the type of the element. See dsMaterialType enum for values, removing the type prefix count: the number of array elements. If 0 or omitted, this is not an array.
-		* `binding`: the binding type for the element. See the `dsMaaterialBinding` enum for values, removing the type prefix. This is only used for texture, image, buffer, and shader variable group types.
+		* `type`: the type of the element. See `dsMaterialType` enum for values, removing the type prefix count: the number of array elements. If 0 or omitted, this is not an array.
+	* `binding`: the binding type for the element. See the `dsMaterialBinding` enum for values, removing the type prefix. This is only used for texture, image, buffer, and shader variable group types.
 		* `shaderVariableGroupDesc`: the name of the shader variable group description when the type is a shader variable group. The description may be in a different scene resources package.
-* `materials`: array of materials to include. See `shaderVariableGroups` for a description of the array members, except the `description` element is for a material description rather than a shader variable group description.
-* `shaderModules`: array of shader modules to include. Each element of the array has the following members:
-	* `name`: the name of the shader module.
+* `"Material"`: See `"ShaderVariableGroup"` for a description of the object members, except the
+	  "description" element is for a material description rather than a shader variable group
+	  description.
+* `"ShaderModule"`
 	* `modules`: array of versioned shader modules. The appropriate model based on the graphics API version being used will be chosen at runtime. Each element of the array has the following members:
-	* `version`: the version of the shader as a standard config. (e.g. glsl-4.1, spirv-1.0)
-	* `module`: path to the shader module or base64 encoded data prefixed with "base64:". The module is expected to have been compiled with Modular Shader Language (MSL).
-	* `output`: the path to the location to copy the shader module to. This can be omitted to embed the shader module directly.
-	* `outputRelativeDir`: the directory relative to output path. This will be removed from the path before adding the reference.
-	* `resourceType`: the resource type. See the `dsFileResourceType` for values, removing the type prefix. Defaults to `Embedded`.
-* `shaders`: array of shaders to include. Each element of the array has the following members:
-	* `name`: the name of the shader.
+	* `version`: the version of the shader as a standard config. (e.g. `"glsl-4.1"`, `"spirv-1.0"`)
+		* `module`: path to the shader module or base64 encoded data prefixed with `base64:`. The module is expected to have been compiled with Modular Shader Language (MSL).
+		* `output`: the path to the location to copy the shader module to. This can be omitted to embed the shader module directly.
+		* `outputRelativeDir`: the directory relative to output path. This will be removed from the path before adding the reference.
+		* `resourceType`: the resource type. See the dsFileResourceType for values, removing the type prefix. Defaults to "Embedded".
+* `"Shader"`
 	* `module`: the name of the shader module the shader resides in. The shader module may be in a different scene resources package.
 	* `pipelineName`: the name of the shader pipeline within the shader module.
 	* `materialDesc`: The name of the material description for materials that will be used with the shader. The material may be in a different scene resources package.
-* `drawGeometries`: array of draw geometries to include. Each element of the array has the following members:
-	* `name`: the name of the draw geometry.
+* `"DrawGeometry"`
 	* `vertexBuffers`: array of vertex buffers. This can have up to 4 elements with the following members:
 		* `name`: the name of the buffer to use. The buffer may be in a different scene resources package.
 		* `offset`: the offset in bytes into the buffer to the first vertex. Defaults to 0.
 		* `count`: the number of vertices in the buffer.
 		* `format`: the vertex format. This is a dict with the following members:
-		* `attributes`: array of attributes for the format. Each element has the following members:
-		* `attrib`: the attribute. This can either be an enum value from `dsVertexAttrib`, removing the type prefix, or the integer for the attribute.
-		* `format`: the attribute format. See the `dsGfxFormat` enum for values, removing the type prefix. Only the "standard" formats may be used.
-		* `decoration`: the decoration for the format. See the `dsGfxFormat` enum for values, removing the type prefix. Only the decorator values may be used.
-		* `instanced`: true if the vertex data is instanced. Defaults to `false`.
+			* `attributes`: array of attributes for the format. Each element has the following members:
+				* `attrib`: the attribute. This can either be an enum value from `dsVertexAttrib`, removing the type prefix, or the integer for the attribute.
+				* `format`: the attribute format. See the dsGfxFormat enum for values, removing the type prefix. Only the "standard" formats may be used.
+				* `decoration`: the decoration for the format. See the `dsGfxFormat` enum for values, removing the type prefix. Only the decorator values may be used.
+			* `instanced`: true if the vertex data is instanced. Defaults to false.
 	* `indexBuffer`: the index buffer. If not set, the draw geometry isn't indexed. This is a dict with the following members:
 		* `name`: the name of the buffer to use. The buffer may be in a different scene resources package.
 		* `offset`: the offset in bytes into the buffer to the first index. Defaults to 0.
 		* `count`: the number of indices in the buffer.
 		* `indexSize`: the size of the index in bytes. This must be either 2 or 4.
-* `sceneNodes`: array of scene nodes to include. Each element of the array has the following members:
-	* `name`: the name of the node.
-	* `type`: the name of the node type.
-	* `data`: the data for the node. What this member contains (e.g. a string or a dict with other members) depends on the node type.
-* `customResources`: array of custom resources to include. Each element of the array has the following members:
-	* `name`: the name of the custom resource.
-	* `type`: the name of the custom resource type.
-	* `data`: the data for the custom resource. What this member contains (e.g. a string or a dict with other members) depends on the custom resource type.
+* `"SceneNode"`
+	* `nodeType`: the name of the node type.
+	* Remaining members depend on the value of `nodeType`.
 
 The different types for scene nodes are documented below.
 
@@ -204,11 +198,13 @@ Transform nodes have the type string "TransformNode" and contains the following 
 		* `Matrix`: a 4x4 array of floats for a matrix. Each inner array is a column of the matrix.
 * `children`: an array of child nodes. Each element is an object with the following elements:
 	* `type`: the name of the node type.
-	* `data`: the data for the node.
+	* Remaining members depend on the value of `nodeType`.
 	
 ## Reference Node
 
-Reference nodes have the type name "ReferenceNode" and references an existing node by name. The `data` element is simply the string name of the node.
+Reference nodes have the type name "ReferenceNode" and contains the following members:
+
+* `ref`: string name of the node that's referenced.
 
 # Scene
 
@@ -217,12 +213,12 @@ The scene describes the how to process and draw a scene, as well as the list of 
 * `sharedItems`: an optional array of shared item lists. Each element of the array is itself an array with the following members:
 	* `type`: the name of the item list type.
 	* `name`: the name of the item list.
-	* `data`: the data for the item list. What this member contains (e.g. a string or a dict with other members) depends on the instance data type.
+	* Remaining members depend on the value of `type`.
 * `pipeline`: array of stages to define the pipeline to process when drawing the scene. Each element of the array has one of the the following set members.
 	* For an item list:
 		* `type`: the name of the item list type.
 		* `name`: the name of the item list.
-		* `data`: the data for the item list. What this member contains (e.g. a string or a dict with other members) depends on the instance data type.
+		* Remaining members depend on the value of `type`.
 	* For a render pass:
 		* `framebuffer`: the name of the framebuffer to use when rendering.
 		* `attachments`: array of attachments to use during the render pass. Each element of the array has the following members:
@@ -248,7 +244,7 @@ The scene describes the how to process and draw a scene, as well as the list of 
 		* `drawLists`: array of item lists to draw within the subpass. Each element of the array has the following members:
 			* `type`: the name of the item list type.
 			* `name`: the name of the item list.
-			* `data`: the data for the item list. What this member contains (e.g. a string or a dict with other members) depends on the instance data type.
+			* Remaining members depend on the value of `type`.
 		* `dependencies`: optionall array of dependencies between subpasses. If omitted, default dependencies will be used, which should be sufficient for all but very specialized use cases. Each element of the array has the following members:
 			* `srcSubpass`: the index to the source subpass. If omitted, the dependency will be before the render pass.
 			* `srcStages`: array of stages for the source dependency. See the `dsGfxPipelineStage` enum for values, removing the type prefix.
@@ -260,8 +256,8 @@ The scene describes the how to process and draw a scene, as well as the list of 
 * `globalData`: optional array of items to store data globally in the scene. Each element of the
 	  array has the following members:
 	* `type`: the name of the global data type.
-	* `data`: the data for the global data. What this member contains (e.g. a string or a dict with other members) depends on the instance data type.
-	* `nodes`: array of string node names to set on the scene.
+	* Remaining members depend on the value of `type`.
+* `nodes`: array of string node names to set on the scene.
 	
 ## Item Lists
 
