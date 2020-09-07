@@ -269,8 +269,7 @@ Model lists have the type name "ModelList" and define how to draw models that re
 
 * `instanceData`: optional list of instance data to include with the model list. Each element of the array has the following members:
 	* `type`: the name of the instance data type.
-	* `data`: the data for the instance data. What this member contains (e.g. a string or a dict
-	    with other members) depends on the instance data type.
+	* Remaining members depend on the value of `type`.
 * `sortType`: the method to sort the models. See the `dsModelSortType` enum for values, removing the type prefix. Defaults to `None`.
 * `dynamicRenderStates`: dynamic render states to apply when rendering. This may be omitted if no dynamic render states are used. This is expected to contain any of the following members:
 	* `lineWidth`: float width for the line. Defaults to 1.
