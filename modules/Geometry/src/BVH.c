@@ -188,26 +188,6 @@ static uint32_t buildBVHRec(dsBVH* bvh, const void* objects, uint32_t start, uin
 		return node;
 	}
 
-	// Bounds for all current nodes. dsAlignedBox3d is the maximum storage size
-	dsAlignedBox3d bounds;
-	if (!bvh->objectBoundsFunc(&bounds, bvh,
-			dsSpatialStructure_getObject(objects, objectSize, start)))
-	{
-		return INVALID_NODE;
-	}
-
-	for (uint32_t i = 1; i < count; ++i)
-	{
-		dsAlignedBox3d curBounds;
-		if (!bvh->objectBoundsFunc(&curBounds, bvh, dsSpatialStructure_getObject(objects,
-			objectSize, start + i)))
-		{
-			return INVALID_NODE;
-		}
-
-		addBoxFunc(&bounds, &curBounds);
-	}
-
 	// Recursively add the nodes.
 	uint32_t middle = (uint32_t)count/2;
 	uint32_t leftNode = buildBVHRec(bvh, objects, start, middle, objectSize, addBoxFunc);
@@ -224,7 +204,8 @@ static uint32_t buildBVHRec(dsBVH* bvh, const void* objects, uint32_t start, uin
 	bvhNode->leftNode = leftNode;
 	bvhNode->rightNode = rightNode;
 	bvhNode->object = NULL;
-	memcpy(bvhNode->bounds, &bounds, bvh->boundsSize);
+	memcpy(bvhNode->bounds, getNode(bvh->nodes, bvh->nodeSize, leftNode)->bounds, bvh->boundsSize);
+	addBoxFunc(bvhNode->bounds, getNode(bvh->nodes, bvh->nodeSize, rightNode)->bounds);
 	return node;
 }
 
