@@ -26,3 +26,6 @@ double dsWrapd(double x, double min, double max);
 
 bool dsEpsilonEqualf(float x, float y, float epsilon);
 bool dsEpsilonEquald(double x, double y, double epsilon);
+
+bool dsEpsilonEqualsZerof(float x, float epsilon);
+bool dsEpsilonEqualsZerod(double x, double epsilon);

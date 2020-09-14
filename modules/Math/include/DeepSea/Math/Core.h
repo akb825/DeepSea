@@ -258,6 +258,17 @@ DS_MATH_EXPORT inline bool dsEpsilonEqualf(float x, float y, float epsilon);
 /** @copydoc dsEpsilonEqualf() */
 DS_MATH_EXPORT inline bool dsEpsilonEquald(double x, double y, double epsilon);
 
+/**
+ * @brief Checks to see if a value is equal to zero within an epsilon.
+ * @param x The value.
+ * @param epsilon The epsilon to compare with.
+ * @return True the values of x is within epsilon of zero.
+ */
+DS_MATH_EXPORT inline bool dsEpsilonEqualsZerof(float x, float epsilon);
+
+/** @copydoc dsEpsilonEqualsZerof() */
+DS_MATH_EXPORT inline bool dsEpsilonEqualsZerod(double x, double epsilon);
+
 DS_MATH_EXPORT inline double dsDegreesToRadians(double degrees)
 {
 	return degrees*M_PI/180;
@@ -304,6 +315,16 @@ DS_MATH_EXPORT inline bool dsEpsilonEqualf(float x, float y, float epsilon)
 DS_MATH_EXPORT inline bool dsEpsilonEquald(double x, double y, double epsilon)
 {
 	return fabs(x - y) <= epsilon;
+}
+
+DS_MATH_EXPORT inline bool dsEpsilonEqualsZerof(float x, float epsilon)
+{
+	return fabsf(x) <= epsilon;
+}
+
+DS_MATH_EXPORT inline bool dsEpsilonEqualsZerod(double x, double epsilon)
+{
+	return fabs(x) <= epsilon;
 }
 
 #ifdef __cplusplus

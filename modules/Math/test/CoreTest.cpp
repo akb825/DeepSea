@@ -145,3 +145,23 @@ TEST(Core, EpsilonEquald)
 
 	EXPECT_FALSE(dsEpsilonEquald(-2.345, 2.345, 1e-3));
 }
+
+TEST(Core, EpsilonEqualsZerof)
+{
+	EXPECT_TRUE(dsEpsilonEqualsZerof(0.0f, 1e-3f));
+	EXPECT_TRUE(dsEpsilonEqualsZerof(1e-3f, 1e-3f));
+	EXPECT_TRUE(dsEpsilonEqualsZerof(-1e-3f, 1e-3f));
+
+	EXPECT_FALSE(dsEpsilonEqualsZerof(1e-2f, 1e-3f));
+	EXPECT_FALSE(dsEpsilonEqualsZerof(-1e-2f, 1e-3f));
+}
+
+TEST(Core, EpsilonEqualsZerod)
+{
+	EXPECT_TRUE(dsEpsilonEqualsZerod(0.0, 1e-3));
+	EXPECT_TRUE(dsEpsilonEqualsZerod(1e-3, 1e-3));
+	EXPECT_TRUE(dsEpsilonEqualsZerod(-1e-3, 1e-3));
+
+	EXPECT_FALSE(dsEpsilonEqualsZerod(1e-2, 1e-3));
+	EXPECT_FALSE(dsEpsilonEqualsZerod(-1e-2, 1e-3));
+}
