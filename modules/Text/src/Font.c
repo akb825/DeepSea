@@ -70,31 +70,44 @@ static PolygonResult intersectScanline(const dsVector2f* point, const dsVector2f
 {
 	// https://en.wikipedia.org/wiki/Line%E2%80%93line_intersection
 	// Optimized for a ray in the direction (1, 0).
-	if (from->x + INTERSECT_EPSILON < point->x && to->x + INTERSECT_EPSILON < point->x)
+	float slightlyLeftX = point->x - INTERSECT_EPSILON;
+	if (from->x < slightlyLeftX && to->x < slightlyLeftX)
 		return PolygonResult_Outside;
 
 	// Check if bottom Y is equal. This is inside if point is to the left of the edge, on edge if
 	// point is on the right and top Y is also equal, othewise outside. If parallel and the point
 	// is to the left of the point, consider outside since it enters and leaves the edge.
+	float slightlyRightX = point->x + INTERSECT_EPSILON;
 	if (dsEpsilonEqualf(point->y, from->y, INTERSECT_EPSILON))
 	{
-		bool parallel = dsEpsilonEqualf(point->y, to->y, INTERSECT_EPSILON);
-		if (from->x < point->x + INTERSECT_EPSILON)
+		if (dsEpsilonEqualf(point->x, from->x, INTERSECT_EPSILON))
+			return PolygonResult_OnEdge;
+
+		if (dsEpsilonEqualf(point->y, to->y, INTERSECT_EPSILON))
 		{
-			if (parallel)
+			// Check against both from and to points for parallel lines since we can't be sure of
+			// the ordering of X values, since the Y values could be off by an epsilon. We only need
+			// to check for the left boundary since we know that the point isn't to the right of
+			// both edges from the first check in the function.
+			if (from->x < slightlyRightX || to->x < slightlyRightX)
 				return PolygonResult_OnEdge;
 			return PolygonResult_Outside;
 		}
 
-		if (parallel)
+		if (from->x < slightlyLeftX)
 			return PolygonResult_Outside;
 		return PolygonResult_Inside;
 	}
 
 	// Since we explicitly check for the bottm Y for intersection, don't intersect if top Y is equal
-	// to avoid double intersection in neighboring edge.
+	// to avoid double intersection in neighboring edge. An exception is made for when the point is
+	// exactly equal.
 	if (dsEpsilonEqualf(point->y, to->y, INTERSECT_EPSILON))
+	{
+		if (dsEpsilonEqualf(point->x, to->x, INTERSECT_EPSILON))
+			return PolygonResult_OnEdge;
 		return PolygonResult_Outside;
+	}
 
 	// Parallel lines. Above code already handled if parallel lines intersected.
 	if (dsEpsilonEqualf(from->y, to->y, INTERSECT_EPSILON))
@@ -104,9 +117,9 @@ static PolygonResult intersectScanline(const dsVector2f* point, const dsVector2f
 	float intersectX =
 		(point->y*(from->x - to->x) - (from->x*to->y - from->y*to->x))/(from->y - to->y);
 
-	if (intersectX + INTERSECT_EPSILON < point->x)
+	if (intersectX < slightlyLeftX)
 		return PolygonResult_Outside;
-	else if ((intersectX <  point->x + INTERSECT_EPSILON))
+	else if (intersectX <= slightlyRightX)
 		return PolygonResult_OnEdge;
 	return PolygonResult_Inside;
 }
@@ -126,10 +139,10 @@ static PolygonResult pointInsideGlyph(const dsVector2f* point, const dsGlyphGeom
 	for (uint32_t i = 0; i < geometry->edgeCount; ++i)
 	{
 		const dsOrderedGlyphEdge* edge = geometry->sortedEdges + i;
-		if (edge->minPoint.y > point->y + INTERSECT_EPSILON)
-			break;
-		else if (edge->maxPoint.y + INTERSECT_EPSILON < point->y)
+		if (edge->maxPoint.y + INTERSECT_EPSILON < point->y)
 			continue;
+		else if (edge->minPoint.y > point->y + INTERSECT_EPSILON)
+			break;
 
 		// Shoot a ray to the right to see if it intersects.
 		PolygonResult result = intersectScanline(point, &edge->minPoint, &edge->maxPoint);

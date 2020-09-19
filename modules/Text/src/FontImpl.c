@@ -313,8 +313,7 @@ static bool sortGlyphEdges(dsGlyphGeometry* geometry)
 			const dsVector2f* secondPos = &point->nextPos;
 
 			dsOrderedGlyphEdge* edge = geometry->sortedEdges + edgeIndex;
-			if (firstPos->y < secondPos->y ||
-				(firstPos->y == secondPos->y && firstPos->x < secondPos->x))
+			if (firstPos->y < secondPos->y)
 			{
 				edge->minPoint = *firstPos;
 				edge->maxPoint = *secondPos;
