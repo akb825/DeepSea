@@ -35,6 +35,7 @@ struct Frustum3TypeSelector<float>
 {
 	typedef dsMatrix44f Matrix44Type;
 	typedef dsPlane3f Plane3Type;
+	typedef dsVector3f Vector3Type;
 	typedef dsAlignedBox3f AlignedBox3Type;
 	typedef dsOrientedBox3f OrientedBox3Type;
 	typedef dsFrustum3f Frustum3Type;
@@ -46,6 +47,7 @@ struct Frustum3TypeSelector<double>
 {
 	typedef dsMatrix44d Matrix44Type;
 	typedef dsPlane3d Plane3Type;
+	typedef dsVector3d Vector3Type;
 	typedef dsAlignedBox3d AlignedBox3Type;
 	typedef dsOrientedBox3d OrientedBox3Type;
 	typedef dsFrustum3d Frustum3Type;
@@ -115,6 +117,18 @@ inline dsIntersectResult dsFrustum3_intersectOrientedBox(const dsFrustum3d* frus
 	const dsOrientedBox3d* box)
 {
 	return dsFrustum3d_intersectOrientedBox(frustum, box);
+}
+
+inline dsIntersectResult dsFrustum3_intersectSphere(const dsFrustum3f* frustum,
+	const dsVector3f* center, float radius)
+{
+	return dsFrustum3f_intersectSphere(frustum, center, radius);
+}
+
+inline dsIntersectResult dsFrustum3_intersectSphere(const dsFrustum3d* frustum,
+	const dsVector3d* center, double radius)
+{
+	return dsFrustum3d_intersectSphere(frustum, center, radius);
 }
 
 inline void dsMatrix44_makeRotate(dsMatrix44f* result, float x, float y, float z)
@@ -725,6 +739,7 @@ TYPED_TEST(Frustum3Test, IntersectAlignedBox)
 	typedef typename Frustum3TypeSelector<TypeParam>::AlignedBox3Type AlignedBox3Type;
 	typedef typename Frustum3TypeSelector<TypeParam>::Frustum3Type Frustum3Type;
 
+	// NOTE: Z is inverted for ortho matrices.
 	Matrix44Type matrix;
 	dsMatrix44_makeOrtho(&matrix, -2, 3, -4, 5, -6, 7, false, false);
 
@@ -805,13 +820,14 @@ TYPED_TEST(Frustum3Test, IntersectAlignedBox)
 	EXPECT_EQ(dsIntersectResult_Intersects, dsFrustum3_intersectAlignedBox(&frustum, &box));
 }
 
-TYPED_TEST(Frustum3Test, OrientedAlignedBox)
+TYPED_TEST(Frustum3Test, IntersectedOrientedBox)
 {
 	typedef typename Frustum3TypeSelector<TypeParam>::Matrix44Type Matrix44Type;
 	typedef typename Frustum3TypeSelector<TypeParam>::AlignedBox3Type AlignedBox3Type;
 	typedef typename Frustum3TypeSelector<TypeParam>::OrientedBox3Type OrientedBox3Type;
 	typedef typename Frustum3TypeSelector<TypeParam>::Frustum3Type Frustum3Type;
 
+	// NOTE: Z is inverted for ortho matrices.
 	Matrix44Type matrix;
 	dsMatrix44_makeOrtho(&matrix, -2, 3, -4, 5, -6, 7, false, false);
 
@@ -875,4 +891,72 @@ TYPED_TEST(Frustum3Test, OrientedAlignedBox)
 	box.halfExtents.y = 11;
 	box.halfExtents.z = 15;
 	EXPECT_EQ(dsIntersectResult_Intersects, dsFrustum3_intersectOrientedBox(&frustum, &box));
+}
+
+TYPED_TEST(Frustum3Test, IntersectedSphere)
+{
+	typedef typename Frustum3TypeSelector<TypeParam>::Matrix44Type Matrix44Type;
+	typedef typename Frustum3TypeSelector<TypeParam>::Vector3Type Vector3Type;
+	typedef typename Frustum3TypeSelector<TypeParam>::Frustum3Type Frustum3Type;
+
+	// NOTE: Z is inverted for ortho matrices.
+	Matrix44Type matrix;
+	dsMatrix44_makeOrtho(&matrix, -2, 3, -4, 5, -6, 7, false, false);
+
+	Frustum3Type frustum;
+	dsFrustum3_fromMatrix(frustum, matrix, false, false);
+	dsFrustum3_normalize(&frustum);
+
+	Vector3Type center = {{0, 1, 2}};
+	TypeParam radius = 1;
+
+	EXPECT_EQ(dsIntersectResult_Inside, dsFrustum3_intersectSphere(&frustum, &center, radius));
+
+	// Intersect
+	center.x = TypeParam(-2.5);
+	EXPECT_EQ(dsIntersectResult_Intersects, dsFrustum3_intersectSphere(&frustum, &center, radius));
+
+	center.x = TypeParam(3.5);
+	EXPECT_EQ(dsIntersectResult_Intersects, dsFrustum3_intersectSphere(&frustum, &center, radius));
+
+	center.x = 0;
+	center.y = TypeParam(-4.5);
+	EXPECT_EQ(dsIntersectResult_Intersects, dsFrustum3_intersectSphere(&frustum, &center, radius));
+
+	center.y = TypeParam(5.5);
+	EXPECT_EQ(dsIntersectResult_Intersects, dsFrustum3_intersectSphere(&frustum, &center, radius));
+
+	center.y = 1;
+	center.z = TypeParam(6.5);
+	EXPECT_EQ(dsIntersectResult_Intersects, dsFrustum3_intersectSphere(&frustum, &center, radius));
+
+	center.z = TypeParam(-7.5);
+	EXPECT_EQ(dsIntersectResult_Intersects, dsFrustum3_intersectSphere(&frustum, &center, radius));
+
+	// Outsude
+	center.z = 3;
+	center.x = TypeParam(-3.5);
+	EXPECT_EQ(dsIntersectResult_Outside, dsFrustum3_intersectSphere(&frustum, &center, radius));
+
+	center.x = TypeParam(4.5);
+	EXPECT_EQ(dsIntersectResult_Outside, dsFrustum3_intersectSphere(&frustum, &center, radius));
+
+	center.x = 0;
+	center.y = TypeParam(-5.5);
+	EXPECT_EQ(dsIntersectResult_Outside, dsFrustum3_intersectSphere(&frustum, &center, radius));
+
+	center.y = TypeParam(6.5);
+	EXPECT_EQ(dsIntersectResult_Outside, dsFrustum3_intersectSphere(&frustum, &center, radius));
+
+	center.y = 1;
+	center.z = TypeParam(7.5);
+	EXPECT_EQ(dsIntersectResult_Outside, dsFrustum3_intersectSphere(&frustum, &center, radius));
+
+	center.z = TypeParam(-8.5);
+	EXPECT_EQ(dsIntersectResult_Outside, dsFrustum3_intersectSphere(&frustum, &center, radius));
+
+	// Surrounding
+	center.z = 3;
+	radius = 20;
+	EXPECT_EQ(dsIntersectResult_Intersects, dsFrustum3_intersectSphere(&frustum, &center, radius));
 }

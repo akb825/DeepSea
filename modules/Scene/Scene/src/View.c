@@ -236,6 +236,7 @@ static void updatedCameraProjection(dsView* view)
 	dsMatrix44_mul(view->viewProjectionMatrix, view->projectionMatrix, view->viewMatrix);
 	dsFrustum3_fromMatrix(view->viewFrustum, view->viewProjectionMatrix, renderer->clipHalfDepth,
 		renderer->clipInvertY);
+	dsFrustum3f_normalize(&view->viewFrustum);
 }
 
 dsView* dsView_loadImpl(const dsScene* scene, dsAllocator* allocator,
@@ -321,6 +322,7 @@ dsView* dsView_create(const dsScene* scene, dsAllocator* allocator, dsAllocator*
 	dsMatrix44_identity(view->viewProjectionMatrix);
 	dsFrustum3_fromMatrix(view->viewFrustum, view->viewProjectionMatrix, renderer->clipHalfDepth,
 		renderer->clipInvertY);
+	dsFrustum3f_normalize(&view->viewFrustum);
 
 	if (scene->globalValueCount > 0)
 	{

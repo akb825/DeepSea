@@ -238,8 +238,8 @@ static void cacheVertexFormats(dsGLResourceManager* resourceManager)
 	}
 	if (d3dPackedInt)
 	{
-		setStandardVertexFormat(resourceManager, dsGfxFormat_W2Z10Y10X10, dsGfxFormat_UNorm,
-			GL_UNSIGNED_INT_2_10_10_10_REV, GL_RGBA);
+		setStandardVertexFormat(resourceManager, dsGfxFormat_W2X10Y10Z10, dsGfxFormat_UNorm,
+			GL_UNSIGNED_INT_2_10_10_10_REV, GL_BGRA);
 	}
 
 	// SNorm
@@ -267,8 +267,8 @@ static void cacheVertexFormats(dsGLResourceManager* resourceManager)
 	}
 	if (d3dPackedInt)
 	{
-		setStandardVertexFormat(resourceManager, dsGfxFormat_W2Z10Y10X10, dsGfxFormat_SNorm,
-			GL_UNSIGNED_INT_2_10_10_10_REV, GL_RGBA);
+		setStandardVertexFormat(resourceManager, dsGfxFormat_W2X10Y10Z10, dsGfxFormat_SNorm,
+			GL_UNSIGNED_INT_2_10_10_10_REV, GL_BGRA);
 	}
 
 	// UScaled

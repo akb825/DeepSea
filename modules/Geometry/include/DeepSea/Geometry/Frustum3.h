@@ -44,7 +44,7 @@ extern "C"
 /**
  * @brief Makes a frustum from a projection matrix.
  *
- * The matrix may also contain an orthographic projection.
+ * The matrix may be a perspective or orthographic projection.
  *
  * @remark The planes aren't guaranteed to be normalized.
  * @param[out] result The resulting frustum.
@@ -176,9 +176,25 @@ DS_GEOMETRY_EXPORT dsIntersectResult dsFrustum3d_intersectAlignedBox(const dsFru
 DS_GEOMETRY_EXPORT dsIntersectResult dsFrustum3f_intersectOrientedBox(const dsFrustum3f* frustum,
 	const dsOrientedBox3f* box);
 
-/** @copydoc dsFrustum3f_intersectAlignedBox() */
+/** @copydoc dsFrustum3f_intersectOrientedBox() */
 DS_GEOMETRY_EXPORT dsIntersectResult dsFrustum3d_intersectOrientedBox(const dsFrustum3d* frustum,
 	const dsOrientedBox3d* box);
+
+/**
+ * @brief Intersects a sphere with a frustum.
+ * @remark This will only give accurate results for normalized frustums.
+ * @param frustum The frustum to intersect.
+ * @param center The center of the sphere.
+ * @param radius The radius of the sphere.
+ * @return The intersection result. Inside and outside is with respect to the frustum. If the box
+ * fully contains the frustum, dsIntersectResult_Intersects will be returned.
+ */
+DS_GEOMETRY_EXPORT dsIntersectResult dsFrustum3f_intersectSphere(const dsFrustum3f* frustum,
+	const dsVector3f* center, float radius);
+
+/** @copydoc dsFrustum3f_intersectSphere() */
+DS_GEOMETRY_EXPORT dsIntersectResult dsFrustum3d_intersectSphere(const dsFrustum3d* frustum,
+	const dsVector3d* center, double radius);
 
 /** @copydoc dsFrustum3_fromMatrix() */
 DS_GEOMETRY_EXPORT inline void dsFrustum3f_fromMatrix(dsFrustum3f* result,

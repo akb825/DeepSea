@@ -226,6 +226,52 @@ dsIntersectResult dsFrustum3d_intersectOrientedBox(const dsFrustum3d* frustum,
 	return intersects ? dsIntersectResult_Intersects : dsIntersectResult_Inside;
 }
 
+dsIntersectResult dsFrustum3f_intersectSphere(const dsFrustum3f* frustum, const dsVector3f* center,
+	float radius)
+{
+	DS_ASSERT(frustum);
+	DS_ASSERT(center);
+
+	dsVector3f zero = {{0.0f, 0.0f, 0.0f}};
+	bool intersects = false;
+	for (int i = 0; i < dsFrustumPlanes_Count; ++i)
+	{
+		if (dsVector3_equal(frustum->planes[i].n, zero))
+			continue;
+
+		float distance = dsPlane3_distanceToPoint(frustum->planes[i], *center);
+		if (distance < -radius)
+			return dsIntersectResult_Outside;
+		else if (distance <= radius)
+			intersects = true;
+	}
+
+	return intersects ? dsIntersectResult_Intersects : dsIntersectResult_Inside;
+}
+
+dsIntersectResult dsFrustum3d_intersectSphere(const dsFrustum3d* frustum, const dsVector3d* center,
+	double radius)
+{
+	DS_ASSERT(frustum);
+	DS_ASSERT(center);
+
+	dsVector3d zero = {{0.0, 0.0, 0.0}};
+	bool intersects = false;
+	for (int i = 0; i < dsFrustumPlanes_Count; ++i)
+	{
+		if (dsVector3_equal(frustum->planes[i].n, zero))
+			continue;
+
+		double distance = dsPlane3_distanceToPoint(frustum->planes[i], *center);
+		if (distance < -radius)
+			return dsIntersectResult_Outside;
+		else if (distance <= radius)
+			intersects = true;
+	}
+
+	return intersects ? dsIntersectResult_Intersects : dsIntersectResult_Inside;
+}
+
 void dsFrustum3f_fromMatrix(dsFrustum3f* result, const dsMatrix44f* matrix, bool halfDepth,
 	bool invertY);
 void dsFrustum3d_fromMatrix(dsFrustum3d* result, const dsMatrix44d* matrix, bool halfDepth,

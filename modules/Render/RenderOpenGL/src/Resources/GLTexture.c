@@ -152,11 +152,16 @@ dsTexture* dsGLTexture_create(dsResourceManager* resourceManager, dsAllocator* a
 
 		if (data)
 		{
+			dsTextureInfo levelInfo = *info;
+			levelInfo.mipLevels = 1;
 			for (uint32_t i = 0; i < info->mipLevels; ++i)
 			{
 				uint32_t mipWidth = dsMax(1U, info->width >> i);
 				uint32_t mipHeight = dsMax(1U, info->height >> i);
 				size_t offset = dsTexture_surfaceOffset(info, dsCubeFace_None, 0, i);
+				levelInfo.width = mipWidth;
+				levelInfo.height = mipHeight;
+				size_t surfaceSize = dsTexture_size(&levelInfo);
 
 				switch (info->dimension)
 				{
@@ -166,7 +171,7 @@ dsTexture* dsGLTexture_create(dsResourceManager* resourceManager, dsAllocator* a
 							if (compressed)
 							{
 								glCompressedTexSubImage2D(GL_TEXTURE_1D_ARRAY, i, 0, 0,
-									mipWidth, info->depth, internalFormat, (GLsizei)size,
+									mipWidth, info->depth, internalFormat, (GLsizei)surfaceSize,
 									dataBytes + offset);
 							}
 							else
@@ -180,7 +185,7 @@ dsTexture* dsGLTexture_create(dsResourceManager* resourceManager, dsAllocator* a
 							if (compressed)
 							{
 								glCompressedTexSubImage1D(GL_TEXTURE_1D, i, 0, mipWidth,
-									internalFormat, (GLsizei)size, dataBytes + offset);
+									internalFormat, (GLsizei)surfaceSize, dataBytes + offset);
 							}
 							else
 							{
@@ -195,8 +200,8 @@ dsTexture* dsGLTexture_create(dsResourceManager* resourceManager, dsAllocator* a
 							if (compressed)
 							{
 								glCompressedTexSubImage3D(GL_TEXTURE_2D_ARRAY, i, 0, 0, 0,
-									mipWidth, mipHeight, info->depth, internalFormat, (GLsizei)size,
-									dataBytes + offset);
+									mipWidth, mipHeight, info->depth, internalFormat,
+									(GLsizei)surfaceSize, dataBytes + offset);
 							}
 							else
 							{
@@ -209,7 +214,7 @@ dsTexture* dsGLTexture_create(dsResourceManager* resourceManager, dsAllocator* a
 							if (compressed)
 							{
 								glCompressedTexSubImage2D(GL_TEXTURE_2D, i, 0, 0, mipWidth,
-									mipHeight, internalFormat, (GLsizei)size,
+									mipHeight, internalFormat, (GLsizei)surfaceSize,
 									dataBytes + offset);
 							}
 							else
@@ -225,7 +230,7 @@ dsTexture* dsGLTexture_create(dsResourceManager* resourceManager, dsAllocator* a
 						if (compressed)
 						{
 							glCompressedTexSubImage3D(GL_TEXTURE_3D, i, 0, 0, 0, mipWidth,
-								mipHeight, mipDepth, internalFormat, (GLsizei)size,
+								mipHeight, mipDepth, internalFormat, (GLsizei)surfaceSize,
 								dataBytes + offset);
 						}
 						else
@@ -242,7 +247,7 @@ dsTexture* dsGLTexture_create(dsResourceManager* resourceManager, dsAllocator* a
 							{
 								glCompressedTexSubImage3D(GL_TEXTURE_CUBE_MAP_ARRAY, i, 0, 0, 0,
 									mipWidth, mipHeight, info->depth*faces, internalFormat,
-									(GLsizei)size, dataBytes + offset);
+									(GLsizei)surfaceSize, dataBytes + offset);
 							}
 							else
 							{
@@ -258,8 +263,8 @@ dsTexture* dsGLTexture_create(dsResourceManager* resourceManager, dsAllocator* a
 								if (compressed)
 								{
 									glCompressedTexSubImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + j, i,
-										0, 0, mipWidth, mipHeight, internalFormat, (GLsizei)size,
-										dataBytes + offset);
+										0, 0, mipWidth, mipHeight, internalFormat,
+										(GLsizei)surfaceSize, dataBytes + offset);
 								}
 								else
 								{

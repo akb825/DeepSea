@@ -60,7 +60,8 @@ extern "C"
  * @param plane The plane to calculate the distance from.
  * @param point The point to calculate the distance to.
  * @return The distance from the plane to the point. This will be negative if it is behind the
- * plane.
+ * plane. The distance will be scaled based on the length of the normal, so it will only give an
+ * accurate result for normalized planes.
  */
 #define dsPlane3_distanceToPoint(plane, point) \
 	(dsVector3_dot((plane).n, point) - (plane).d)
