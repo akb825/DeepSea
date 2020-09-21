@@ -72,6 +72,8 @@ bool dsSceneLight_makeDirectional(dsSceneLight* outLight, const dsVector3f* dire
 	outLight->direction = *direction;
 	outLight->color = *color;
 	outLight->intensity = intensity;
+	outLight->linearFalloff = 0;
+	outLight->quadraticFalloff = 0;
 	outLight->innerSpotCosAngle = 0;
 	outLight->outerSpotCosAngle = 0;
 	return true;
@@ -176,7 +178,12 @@ bool dsSceneLight_computeBounds(dsAlignedBox3f* outBounds, const dsSceneLight* l
 
 	if (light->type == dsSceneLightType_Directional)
 	{
-		dsAlignedBox3f_makeInvalid(outBounds);
+		outBounds->min.x = -FLT_MAX;
+		outBounds->min.y = -FLT_MAX;
+		outBounds->min.z = -FLT_MAX;
+		outBounds->max.x = FLT_MAX;
+		outBounds->max.y = FLT_MAX;
+		outBounds->max.z = FLT_MAX;
 		return true;
 	}
 

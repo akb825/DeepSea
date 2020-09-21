@@ -12,3 +12,5 @@ ds_install_library(TARGET deepsea_scene_lighting MODULE SceneLighting DEPENDS Sc
 #ds_convert_flatbuffers_target(deepsea_vector_draw_scene_flatbuffers generatedFlatbuffers)
 #add_dependencies(deepsea_vector_draw_scene deepsea_vector_draw_scene_flatbuffers)
 #ds_set_folder(deepsea_vector_draw_scene_flatbuffers modules/Flatbuffers)
+
+add_subdirectory(test)
