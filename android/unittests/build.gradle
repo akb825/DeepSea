@@ -45,45 +45,6 @@ android {
             resValue "string", "app_name", "CoreUnitTests"
         }
 
-        MathUnitTests {
-            externalNativeBuild {
-                cmake {
-                    targets "deepsea_math_test"
-                }
-            }
-            dimension "unittest"
-
-            applicationIdSuffix ".math"
-            versionNameSuffix "-Math"
-            resValue "string", "app_name", "MathUnitTests"
-        }
-
-        GeometryUnitTests {
-            externalNativeBuild {
-                cmake {
-                    targets "deepsea_geometry_test"
-                }
-            }
-            dimension "unittest"
-
-            applicationIdSuffix ".geometry"
-            versionNameSuffix "-Geometry"
-            resValue "string", "app_name", "GeometryUnitTests"
-        }
-
-        RenderMockUnitTests {
-            externalNativeBuild {
-                cmake {
-                    targets "deepsea_render_mock_test"
-                }
-            }
-            dimension "unittest"
-
-            applicationIdSuffix ".render_mock"
-            versionNameSuffix "-RenderMock"
-            resValue "string", "app_name", "RenderMockUnitTests"
-        }
-
         RenderBootstrapUnitTests {
             externalNativeBuild {
                 cmake {
@@ -95,45 +56,6 @@ android {
             applicationIdSuffix ".render_bootstrap"
             versionNameSuffix "-RenderBootstrap"
             resValue "string", "app_name", "RenderBootstrapUnitTests"
-        }
-
-        TextUnitTests {
-            externalNativeBuild {
-                cmake {
-                    targets "deepsea_text_test"
-                }
-            }
-            dimension "unittest"
-
-            applicationIdSuffix ".text"
-            versionNameSuffix "-Text"
-            resValue "string", "app_name", "TextUnitTests"
-        }
-
-        VectorDrawUnitTests {
-            externalNativeBuild {
-                cmake {
-                    targets "deepsea_vector_draw_test"
-                }
-            }
-            dimension "unittest"
-
-            applicationIdSuffix ".vector_draw"
-            versionNameSuffix "-VectorDraw"
-            resValue "string", "app_name", "VectorDrawUnitTests"
-        }
-
-        SceneUnitTests {
-            externalNativeBuild {
-                cmake {
-                    targets "deepsea_scene_test"
-                }
-            }
-            dimension "unittest"
-
-            applicationIdSuffix ".scene"
-            versionNameSuffix "-Scene"
-            resValue "string", "app_name", "SceneUnitTests"
         }
     }
     compileOptions {
