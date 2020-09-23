@@ -30,6 +30,9 @@ extern "C"
 /**
  * @file
  * @brief Functions for packing float values into integers and half floats.
+ *
+ * Integer values are normalized in the range [0, 1] for unsigned values and [-1, 1] for signed
+ * values.
  */
 
 /**

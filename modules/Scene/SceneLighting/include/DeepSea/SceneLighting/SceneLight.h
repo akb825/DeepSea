@@ -18,6 +18,7 @@
 
 #include <DeepSea/Core/Config.h>
 #include <DeepSea/Geometry/Types.h>
+#include <DeepSea/Render/Types.h>
 #include <DeepSea/SceneLighting/Export.h>
 #include <DeepSea/SceneLighting/Types.h>
 #include <stdbool.h>
@@ -33,10 +34,65 @@ extern "C"
 #define DS_DEFAULT_SCENE_LIGHT_INTENSITY_THRESHOLD 0.1f
 
 /**
+ * @brief The number of vertices for a directional light.
+ */
+#define DS_DIRECTIONAL_LIGHT_VERTEX_COUNT 4
+
+/**
+ * @brief The number of indices for a directional light.
+ */
+#define DS_DIRECTIONAL_LIGHT_INDEX_COUNT 6
+
+/**
+ * @brief The number of vertices for a point light.
+ */
+#define DS_POINT_LIGHT_VERTEX_COUNT 8
+
+/**
+ * @brief The number of vertices for a point light.
+ */
+#define DS_POINT_LIGHT_INDEX_COUNT 36
+
+/**
+ * @brief The number of vertices for a spot light.
+ */
+#define DS_SPOT_LIGHT_VERTEX_COUNT 5
+
+/**
+ * @brief The number of indices for a spot light.
+ */
+#define DS_SPOT_LIGHT_INDEX_COUNT 18
+
+/**
  * @file
  * @brief Functions for manipulating scene lights.
  * @see dsSceneLight
  */
+
+/**
+ * @brief Gets the vertex format for a directinal light.
+ * @remark errno will be set on failure.
+ * @param[out] outFormat The vertex format.
+ * @return False if the format is null.
+ */
+DS_SCENELIGHTING_EXPORT bool dsSceneLight_getDirectionalLightVertexFormat(
+	dsVertexFormat* outFormat);
+
+/**
+ * @brief Gets the vertex format for a point light.
+ * @remark errno will be set on failure.
+ * @param[out] outFormat The vertex format.
+ * @return False if the format is null.
+ */
+DS_SCENELIGHTING_EXPORT bool dsSceneLight_getPointLightVertexFormat(dsVertexFormat* outFormat);
+
+/**
+ * @brief Gets the vertex format for a spot light.
+ * @remark errno will be set on failure.
+ * @param[out] outFormat The vertex format.
+ * @return False if the format is null.
+ */
+DS_SCENELIGHTING_EXPORT bool dsSceneLight_getSpotLightVertexFormat(dsVertexFormat* outFormat);
 
 /**
  * @brief Makes a directional light.
@@ -118,6 +174,72 @@ DS_SCENELIGHTING_EXPORT float dsSceneLight_getIntensity(const dsSceneLight* ligh
  */
 DS_SCENELIGHTING_EXPORT bool dsSceneLight_computeBounds(dsAlignedBox3f* outBounds,
 	const dsSceneLight* light, float intensityThreshold);
+
+/**
+ * @brief Checks whether a light intersects witha frustum.
+ *
+ * This can be a relatively loose check to avoid expensive computations, but is tighter compared
+ * to computing the aligned bounds.
+ *
+ * @param light The light to check.
+ * @param frustum The frustum to comapre the light to. This frustum should be normalized.
+ * @param intensityThreshold The threshold below which the light is considered out of view.
+ *     Use DS_DEFAULT_SCENE_LIGHT_INTENSITY_THRESHOLD for the default value.
+ * @return True if the light is visible inside of the frustum.
+ */
+DS_SCENELIGHTING_EXPORT bool dsSceneLight_isInFrustum(const dsSceneLight* light,
+	const dsFrustum3f* frustum, float intensityThreshold);
+
+/**
+ * @brief Gets the vertices for a directional light.
+ * @remark errno will be set on failure.
+ * @param[out] outVertices The vertices for the light.
+ * @param vertexCount The number of vertices. Ths must be at least
+ *     DS_DIRECTIONAL_LIGHT_VERTEX_COUNT.
+ * @param[out] outIndices The indices for the light.
+ * @param indexCount The number of indices. Ths must be at least
+ *     DS_DIRECTIONAL_LIGHT_INDEX_COUNT.
+ * @param light The light to get the vertices for.
+ * @param firstIndex The first index value.
+ * @return False if the parameters are invalid.
+ */
+DS_SCENELIGHTING_EXPORT bool dsSceneLight_getDirectionalLightVertices(
+	dsDirectionLightVertex* outVertices, uint32_t vertexCount, uint16_t* outIndices,
+	uint32_t indexCount, const dsSceneLight* light, uint16_t firstIndex);
+
+/**
+ * @brief Gets the vertices for a point light.
+ * @remark errno will be set on failure.
+ * @param[out] outVertices The vertices for the light.
+ * @param vertexCount The number of vertices. Ths must be at least DS_POINT_LIGHT_VERTEX_COUNT.
+ * @param[out] outIndices The indices for the light.
+ * @param indexCount The number of indices. Ths must be at least DS_POINT_LIGHT_INDEX_COUNT.
+ * @param light The light to get the vertices for.
+ * @param intensityThreshold The threshold below which the light is considered out of view. This
+ *     must be > 0. Use DS_DEFAULT_SCENE_LIGHT_INTENSITY_THRESHOLD for the default value.
+ * @param firstIndex The first index value.
+ * @return False if the parameters are invalid.
+ */
+DS_SCENELIGHTING_EXPORT bool dsSceneLight_getPointLightVertices(
+	dsPointLightVertex* outVertices, uint32_t vertexCount, uint16_t* outIndices,
+	uint32_t indexCount, const dsSceneLight* light, float intensityThreshold, uint16_t firstIndex);
+
+/**
+ * @brief Gets the vertices for a spot light.
+ * @remark errno will be set on failure.
+ * @param[out] outVertices The vertices for the light.
+ * @param vertexCount The number of vertices. Ths must be at least DS_SPOT_LIGHT_VERTEX_COUNT.
+ * @param[out] outIndices The indices for the light.
+ * @param indexCount The number of indices. Ths must be at least DS_SPOT_LIGHT_INDEX_COUNT.
+ * @param light The light to get the vertices for.
+ * @param intensityThreshold The threshold below which the light is considered out of view. This
+ *     must be > 0. Use DS_DEFAULT_SCENE_LIGHT_INTENSITY_THRESHOLD for the default value.
+ * @param firstIndex The first index value.
+ * @return False if the parameters are invalid.
+ */
+DS_SCENELIGHTING_EXPORT bool dsSceneLight_getSpotLightVertices(
+	dsSpotLightVertex* outVertices, uint32_t vertexCount, uint16_t* outIndices,
+	uint32_t indexCount, const dsSceneLight* light, float intensityThreshold, uint16_t firstIndex);
 
 #ifdef __cplusplus
 }

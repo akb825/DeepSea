@@ -113,6 +113,75 @@ typedef struct dsSceneLight
  */
 typedef struct dsSceneLightSet dsSceneLightSet;
 
+/**
+ * @brief Struct defining the vertex elements when drawing a direction light.
+ */
+typedef struct dsDirectionLightVertex
+{
+	/**
+	 * @brief The screen position of the light as a -1 or 1 value.
+	 */
+	int16_t position[2];
+
+	/**
+	 * @brief The direction as normalized integer values.
+	 */
+	int16_t direction[4];
+
+	/**
+	 * @brief The color of the light as half floats.
+	 */
+	dsHalfFloat color[4];
+} dsDirectionLightVertex;
+
+/**
+ * @brief Struct defining the vertex elements when drawing a point light.
+ */
+typedef struct dsPointLightVertex
+{
+	/**
+	 * @brief The position of the light.
+	 */
+	dsVector3f position;
+
+	/**
+	 * @brief The color of the light.
+	 */
+	dsHalfFloat color[4];
+
+	/**
+	 * @brief The linear and quadratic falloff factors.
+	 */
+	dsHalfFloat falloff[2];
+} dsPointLightVertex;
+
+/**
+ * @brief Struct defining the vertex elements when drawing a spot light.
+ */
+typedef struct dsSpotLightVertex
+{
+	/**
+	 * @brief The position of the light.
+	 */
+	dsVector3f position;
+
+	/**
+	 * @brief The direction as normalized integer values.
+	 */
+	int16_t direction[4];
+
+	/**
+	 * @brief The color of the light.
+	 */
+	dsHalfFloat color[4];
+
+	/**
+	 * @brief The linear and quadratic falloff factors and cosine of the inner and outer spot
+	 *     angles.
+	 */
+	dsHalfFloat falloffAndSpotAngles[4];
+} dsSpotLightVertex;
+
 #ifdef __cplusplus
 }
 #endif
