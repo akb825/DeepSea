@@ -43,6 +43,8 @@ static void spotPerpAxes(dsVector3f* outX, dsVector3f* outY, const dsSceneLight*
 static float getLightRadius(const dsSceneLight* light, float intensityThreshold)
 {
 	float intensity = dsColor3f_grayscale(&light->color)*light->intensity;
+	if (intensity < intensityThreshold)
+		return 0.0f;
 
 	/*
 	 * target = intensity/(1 + linear*distance + quadratic*distance^2)
@@ -55,7 +57,7 @@ static float getLightRadius(const dsSceneLight* light, float intensityThreshold)
 
 	float innerRoot = dsPow2(b) - 4.0f*a*c;
 	if (innerRoot < 0)
-		return -1;
+		return 0.0f;
 
 	// Guaranteed that a factor is > 0, so only need to check "+" and not "-" of quadratic formula.
 	// (the "-" factor will always be < 0)
@@ -261,7 +263,7 @@ bool dsSceneLight_computeBounds(dsAlignedBox3f* outBounds, const dsSceneLight* l
 	}
 
 	float radius = getLightRadius(light, intensityThreshold);
-	if (radius < 0)
+	if (radius <= 0)
 	{
 		dsAlignedBox3f_makeInvalid(outBounds);
 		return true;
@@ -318,7 +320,7 @@ bool dsSceneLight_isInFrustum(const dsSceneLight* light, const dsFrustum3f* frus
 	if (!light || !frustum)
 		return false;
 
-	if (intensityThreshold <= 0.0f)
+	if (intensityThreshold <= 0)
 		return true;
 
 	switch (light->type)
@@ -326,13 +328,22 @@ bool dsSceneLight_isInFrustum(const dsSceneLight* light, const dsFrustum3f* frus
 		case dsSceneLightType_Directional:
 			return dsColor3f_grayscale(&light->color)*light->intensity >= intensityThreshold;
 		case dsSceneLightType_Point:
-			return dsFrustum3f_intersectSphere(frustum, &light->position,
-				getLightRadius(light, intensityThreshold)) != dsIntersectResult_Outside;
+		{
+			float radius = getLightRadius(light, intensityThreshold);
+			if (radius <= 0)
+				return false;
+
+			return dsFrustum3f_intersectSphere(frustum, &light->position, radius) !=
+				dsIntersectResult_Outside;
+		}
 		case dsSceneLightType_Spot:
 		{
 			// Use an oriented box as the simplest approximation.
 			dsOrientedBox3f bounds;
 			float radius = getLightRadius(light, intensityThreshold);
+			if (radius <= 0)
+				return false;
+
 			spotPerpAxes(bounds.orientation.columns, bounds.orientation.columns + 1, light);
 			dsVector3_neg(bounds.orientation.columns[2], light->direction);
 
@@ -427,7 +438,7 @@ bool dsSceneLight_getPointLightVertices(
 	uint32_t indexCount, const dsSceneLight* light, float intensityThreshold, uint16_t firstIndex)
 {
 	if (!outVertices || !outIndices || !light || light->type != dsSceneLightType_Point ||
-		intensityThreshold <= 0.0f)
+		intensityThreshold <= 0)
 	{
 		errno = EINVAL;
 		return false;
@@ -446,7 +457,7 @@ bool dsSceneLight_getPointLightVertices(
 	}
 
 	float radius = getLightRadius(light, intensityThreshold);
-	if (radius < 0)
+	if (radius <= 0)
 	{
 		errno = EINVAL;
 		return false;
@@ -579,7 +590,7 @@ bool dsSceneLight_getSpotLightVertices(dsSpotLightVertex* outVertices, uint32_t 
 	uint16_t firstIndex)
 {
 	if (!outVertices || !outIndices || !light || light->type != dsSceneLightType_Spot ||
-		intensityThreshold <= 0.0f)
+		intensityThreshold <= 0)
 	{
 		errno = EINVAL;
 		return false;
@@ -598,7 +609,7 @@ bool dsSceneLight_getSpotLightVertices(dsSpotLightVertex* outVertices, uint32_t 
 	}
 
 	float radius = getLightRadius(light, intensityThreshold);
-	if (radius < 0)
+	if (radius <= 0)
 	{
 		errno = EINVAL;
 		return false;
