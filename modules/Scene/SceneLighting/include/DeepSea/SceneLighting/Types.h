@@ -35,6 +35,11 @@ extern "C"
 #define DS_SCENE_LIGHTING_LOG_TAG "scene-lighting"
 
 /**
+ * @brief The default intensity threshold below which a light is considered out of view.
+ */
+#define DS_DEFAULT_SCENE_LIGHT_INTENSITY_THRESHOLD 0.1f
+
+/**
  * @brief Enum for the type of a light.
  */
 typedef enum dsSceneLightType
@@ -109,12 +114,8 @@ typedef struct dsSceneLight
 } dsSceneLight;
 
 /**
- * Struct defining the set of lights used in a scene.
- */
-typedef struct dsSceneLightSet dsSceneLightSet;
-
-/**
  * @brief Struct defining the vertex elements when drawing a direction light.
+ * @see SceneLight.h
  */
 typedef struct dsDirectionLightVertex
 {
@@ -136,6 +137,7 @@ typedef struct dsDirectionLightVertex
 
 /**
  * @brief Struct defining the vertex elements when drawing a point light.
+ * @see SceneLight.h
  */
 typedef struct dsPointLightVertex
 {
@@ -157,6 +159,7 @@ typedef struct dsPointLightVertex
 
 /**
  * @brief Struct defining the vertex elements when drawing a spot light.
+ * @see SceneLight.h
  */
 typedef struct dsSpotLightVertex
 {
@@ -181,6 +184,17 @@ typedef struct dsSpotLightVertex
 	 */
 	dsHalfFloat falloffAndSpotAngles[4];
 } dsSpotLightVertex;
+
+/**
+ * @brief Struct defining the set of lights used in a scene.
+ *
+ * This is typically stored as a scene resource to provide the full set of lights for a scene. This
+ * can be used to search for the brightest lights at a point for standard forward lighting or get
+ * the lights in view for deferred lighting.
+ *
+ * @see SceneLightSet.h
+ */
+typedef struct dsSceneLightSet dsSceneLightSet;
 
 #ifdef __cplusplus
 }

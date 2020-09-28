@@ -325,10 +325,16 @@ void* dsBVH_getUserData(const dsBVH* bvh)
 	return bvh->userData;
 }
 
-void dsBVH_setUserData(dsBVH* bvh, void* userData)
+bool dsBVH_setUserData(dsBVH* bvh, void* userData)
 {
-	if (bvh)
-		bvh->userData = userData;
+	if (!bvh)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	bvh->userData = userData;
+	return true;
 }
 
 bool dsBVH_build(dsBVH* bvh, const void* objects, uint32_t objectCount, size_t objectSize,

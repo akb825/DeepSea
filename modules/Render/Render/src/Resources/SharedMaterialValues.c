@@ -228,15 +228,14 @@ size_t dsSharedMaterialValues_sizeof(void)
 	return sizeof(dsSharedMaterialValues);
 }
 
-size_t dsSharedMaterialValues_fullAllocSize(unsigned int maxValues)
+size_t dsSharedMaterialValues_fullAllocSize(uint32_t maxValues)
 {
 	return DS_ALIGNED_SIZE(sizeof(dsSharedMaterialValues)) +
 		DS_ALIGNED_SIZE(dsPoolAllocator_bufferSize(sizeof(Entry), maxValues)) +
 		dsHashTable_fullAllocSize(dsHashTable_getTableSize(maxValues));
 }
 
-dsSharedMaterialValues* dsSharedMaterialValues_create(dsAllocator* allocator,
-	unsigned int maxValues)
+dsSharedMaterialValues* dsSharedMaterialValues_create(dsAllocator* allocator, uint32_t maxValues)
 {
 	if (!allocator || !maxValues)
 	{
@@ -273,20 +272,12 @@ dsSharedMaterialValues* dsSharedMaterialValues_create(dsAllocator* allocator,
 	return materialValues;
 }
 
-unsigned int dsSharedMaterialValues_getValueCount(const dsSharedMaterialValues* values)
+uint32_t dsSharedMaterialValues_getRemainingValues(const dsSharedMaterialValues* values)
 {
 	if (!values)
 		return 0;
 
-	return (unsigned int)values->hashTable->list.length;
-}
-
-unsigned int dsSharedMaterialValues_getMaxValueCount(const dsSharedMaterialValues* values)
-{
-	if (!values)
-		return 0;
-
-	return (unsigned int)values->entryPool.chunkCount;
+	return (uint32_t)values->entryPool.freeCount;
 }
 
 dsTexture* dsSharedMaterialValues_getTextureName(const dsSharedMaterialValues* values,

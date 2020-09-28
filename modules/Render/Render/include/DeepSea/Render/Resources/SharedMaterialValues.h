@@ -70,7 +70,7 @@ DS_RENDER_EXPORT size_t dsSharedMaterialValues_sizeof(void);
  * @param maxValues The maximum number of values that can be stored.
  * @return The full allocated size of dsSharedMaterialValues.
  */
-DS_RENDER_EXPORT size_t dsSharedMaterialValues_fullAllocSize(unsigned int maxValues);
+DS_RENDER_EXPORT size_t dsSharedMaterialValues_fullAllocSize(uint32_t maxValues);
 
 /**
  * @brief Creates a shared material values instance.
@@ -79,23 +79,14 @@ DS_RENDER_EXPORT size_t dsSharedMaterialValues_fullAllocSize(unsigned int maxVal
  * @param maxValues The maximum number of values to use.
  */
 DS_RENDER_EXPORT dsSharedMaterialValues* dsSharedMaterialValues_create(dsAllocator* allocator,
-	unsigned int maxValues);
+	uint32_t maxValues);
 
 /**
- * @brief Gets the number of values stored in a shared material values instance.
+ * @brief Gets the number of remaining material values that can be set.
  * @param values The shared material values.
- * @return The number of values.
+ * @return The number of remaining material values.
  */
-DS_RENDER_EXPORT unsigned int dsSharedMaterialValues_getValueCount(
-	const dsSharedMaterialValues* values);
-
-/**
- * @brief Gets the maximum number of values that can be stored in a shared material values
- *     instance.
- * @param values The shared material values.
- * @return The maximum number of values.
- */
-DS_RENDER_EXPORT unsigned int dsSharedMaterialValues_getMaxValueCount(
+DS_RENDER_EXPORT uint32_t dsSharedMaterialValues_getRemainingValues(
 	const dsSharedMaterialValues* values);
 
 /**

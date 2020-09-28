@@ -50,7 +50,7 @@ extern "C"
  * @param axisCount The number of axes for the bounding boxes. This must be 2 or 3.
  * @param element The type for each bounds element.
  * @param userData User data associated with the BVH.
- * @return The created BVH, or NULL if it couldn't be created.
+ * @return The created BVH or NULL if it couldn't be created.
  */
 DS_GEOMETRY_EXPORT dsBVH* dsBVH_create(dsAllocator* allocator, uint8_t axisCount,
 	dsGeometryElement element, void* userData);
@@ -78,10 +78,12 @@ DS_GEOMETRY_EXPORT void* dsBVH_getUserData(const dsBVH* bvh);
 
 /**
  * @brief Sets the user data for the BVH.
+ * @remark errno will be set on failure.
  * @param bvh The BVH.
  * @param userData The user data.
+ * @return False if the BVH is NULL.
  */
-DS_GEOMETRY_EXPORT void dsBVH_setUserData(dsBVH* bvh, void* userData);
+DS_GEOMETRY_EXPORT bool dsBVH_setUserData(dsBVH* bvh, void* userData);
 
 /**
  * @brief Builds the hierarchy for a BVH.

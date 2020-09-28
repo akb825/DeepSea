@@ -29,9 +29,10 @@ extern "C"
 #endif
 
 /**
- * @brief The default intensity threshold below which a light is considered out of view.
+ * @file
+ * @brief Functions for manipulating scene lights.
+ * @see dsSceneLight
  */
-#define DS_DEFAULT_SCENE_LIGHT_INTENSITY_THRESHOLD 0.1f
 
 /**
  * @brief The number of vertices for a directional light.
@@ -62,12 +63,6 @@ extern "C"
  * @brief The number of indices for a spot light.
  */
 #define DS_SPOT_LIGHT_INDEX_COUNT 18
-
-/**
- * @file
- * @brief Functions for manipulating scene lights.
- * @see dsSceneLight
- */
 
 /**
  * @brief Gets the vertex format for a directinal light.
