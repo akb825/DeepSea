@@ -95,12 +95,15 @@ extern "C"
 
 /**
  * @brief Enum for the result of an intersection.
+ *
+ * This is set up so if you were to cast a bool to dsIntersectResult a value of true will return
+ * dsIntersectResult_Intersects and a value of false will return dsIntersectResult_Outside.
  */
 typedef enum dsIntersectResult
 {
-	dsIntersectResult_Inside,    ///< Lies fully inside the shape boundary.
-	dsIntersectResult_Outside,   ///< Lies fully outside the shape boundary.
-	dsIntersectResult_Intersects ///< Intersects the shape boundary.
+	dsIntersectResult_Outside,    ///< Lies fully outside the shape boundary.
+	dsIntersectResult_Intersects, ///< Intersects the shape boundary.
+	dsIntersectResult_Inside      ///< Lies fully inside the shape boundary.
 } dsIntersectResult;
 
 /**
@@ -445,8 +448,8 @@ typedef bool (*dsBVHObjectBoundsFunction)(void* outBounds, const dsBVH* bvh, con
  * @param bvh The BVH that the intersection was performed with.
  * @param object The object that was visited. This should be cast to size_t when
  *     DS_GEOMETRY_OBJECT_INDICES is used.
- * @param bounds The bounds being checked. This should be cast to the appropriate dsAlignedBounds*
- *     type based on the axis count and precision queried from bvh.
+ * @param volume The volume being checked. This should be cast to the appropriate type based on what
+ *     what was passed to dsBVH_intersectBounds() or dsBVH_intersectFrustum().
  * @return True to continue traversal, false to stop traversal.
  * @see BVH.h
  */

@@ -332,10 +332,10 @@ static bool triangulateLoop(dsSimplePolygon* polygon, uint32_t startEdge, bool c
 
 			totalTriangles += addedTriangles;
 			polygon->vertStackCount -= addedTriangles;
-			pushVertex(polygon, i);
 		}
-		else if (polygon->vertStackCount)
+		else
 		{
+			DS_ASSERT(polygon->vertStackCount > 0);
 			for (uint32_t j = 0; j < polygon->vertStackCount - 1; ++j)
 			{
 				uint32_t p1Vert = polygon->vertexStack[j];
@@ -363,8 +363,9 @@ static bool triangulateLoop(dsSimplePolygon* polygon, uint32_t startEdge, bool c
 			totalTriangles += polygon->vertStackCount - 1;
 			polygon->vertStackCount = 0;
 			pushVertex(polygon, top);
-			pushVertex(polygon, i);
 		}
+
+		pushVertex(polygon, i);
 	}
 
 	if (totalTriangles != polygon->loopVertCount - 2)

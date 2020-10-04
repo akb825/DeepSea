@@ -325,7 +325,7 @@ bool dsBasePolygon_canConnectEdge(const dsBasePolygon* polygon, uint32_t fromVer
 
 	EdgeIntersectInfo info = {fromVert->point, toVert->point, polygon->intersectEpsilon,
 		fromVertIdx, toVertIdx, false};
-	dsBVH_intersect(polygon->edgeBVH, &edgeBounds, &testEdgeIntersect, &info);
+	dsBVH_intersectBounds(polygon->edgeBVH, &edgeBounds, &testEdgeIntersect, &info);
 	return !info.intersects;
 }
 

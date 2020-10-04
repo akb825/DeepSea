@@ -138,7 +138,21 @@ DS_GEOMETRY_EXPORT bool dsBVH_update(dsBVH* bvh);
  * @param userData User data to pass to the visitor function.
  * @return The number of objects that intersected.
  */
-DS_GEOMETRY_EXPORT uint32_t dsBVH_intersect(const dsBVH* bvh, const void* bounds,
+DS_GEOMETRY_EXPORT uint32_t dsBVH_intersectBounds(const dsBVH* bvh, const void* bounds,
+	dsBVHVisitFunction visitor, void* userData);
+
+/**
+ * @brief Intersects a frustum with the BVH.
+ * @remark This will always return 0 if the number of axes is 2 or integers.
+ * @param bvh The BVH to intersect.
+ * @param frustum The frustum to intersect. The type should be a dsFrustum3* type appropriate for
+ *     the precision.
+ * @param visitor A visitor function to call for each intersecting object. This may be NULL if you
+ *     only want to know how many objects intersect.
+ * @param userData User data to pass to the visitor function.
+ * @return The number of objects that intersected.
+ */
+DS_GEOMETRY_EXPORT uint32_t dsBVH_intersectFrustum(const dsBVH* bvh, const void* frustum,
 	dsBVHVisitFunction visitor, void* userData);
 
 /**

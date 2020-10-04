@@ -59,6 +59,7 @@ typedef struct FindBrightestData
 	uint32_t* lightCount;
 	const dsVector3f* position;
 	uint32_t maxLights;
+	float intensityThreshold;
 } FindBrightestData;
 
 static uint32_t identityHash(const void* key)
@@ -99,6 +100,9 @@ static bool visitBrightestLights(void* userData, const dsBVH* bvh, const void* o
 	const FindBrightestData* data = (const FindBrightestData*)userData;
 
 	float intensity = dsSceneLight_getIntensity(light, data->position);
+	if (intensity < data->intensityThreshold)
+		return true;
+
 	if (*data->lightCount < data->maxLights)
 	{
 		data->intensities[*data->lightCount] = intensity;
@@ -415,8 +419,8 @@ bool dsSceneLightSet_findBrightestLights(const dsSceneLight** outBrightestLights
 	// Then check the spatial lights.
 	dsAlignedBox3f bounds = {*position, *position};
 	FindBrightestData visitData = {outBrightestLights, intensities, &lightCount, position,
-		*inoutLightCount};
-	if (!dsBVH_intersect(lightSet->spatialLights, &bounds, &visitBrightestLights, &visitData))
+		*inoutLightCount, lightSet->intensityThreshold};
+	if (!dsBVH_intersectBounds(lightSet->spatialLights, &bounds, &visitBrightestLights, &visitData))
 		return false;
 
 	// Set up the final count, nulling out any unset lights.
