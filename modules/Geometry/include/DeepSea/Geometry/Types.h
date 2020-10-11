@@ -454,7 +454,7 @@ typedef bool (*dsBVHObjectBoundsFunction)(void* outBounds, const dsBVH* bvh, con
  * @see BVH.h
  */
 typedef bool (*dsBVHVisitFunction)(void* userData, const dsBVH* bvh, const void* object,
-	const void* bounds);
+	const void* volume);
 
 /**
  * @brief Structure for a Kd tree spacial data structure.

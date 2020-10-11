@@ -18,6 +18,7 @@
 
 #include <DeepSea/Core/Config.h>
 #include <DeepSea/Math/Types.h>
+#include <stdbool.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -195,6 +196,16 @@ typedef struct dsSpotLightVertex
  * @see SceneLightSet.h
  */
 typedef struct dsSceneLightSet dsSceneLightSet;
+
+/**
+ * @brief Function for visiting a light within a light set.
+ * @param userData User data forwarded for the function.
+ * @param lightSet The light set the light is from.
+ * @param light The light being visited.
+ * @return True to continue visiting lights, false to stop.
+ */
+typedef bool (*dsSceneLightVisitFunction)(void* userData, const dsSceneLightSet* lightSet,
+	const dsSceneLight* light);
 
 #ifdef __cplusplus
 }

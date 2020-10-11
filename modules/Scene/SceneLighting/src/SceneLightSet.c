@@ -62,9 +62,23 @@ typedef struct FindBrightestData
 	float intensityThreshold;
 } FindBrightestData;
 
+typedef struct VisitLightData
+{
+	dsSceneLightVisitFunction visitFunc;
+	const dsSceneLightSet* lightSet;
+	void* userData;
+	uint32_t count;
+} VisitLightData;
+
 static uint32_t identityHash(const void* key)
 {
 	return *(const uint32_t*)key;
+}
+
+static bool destroyResource(void* resource)
+{
+	dsSceneLightSet_destroy((dsSceneLightSet*)resource);
+	return true;
 }
 
 static bool getLightBounds(void* outBounds, const dsBVH* bvh, const void* object)
@@ -119,6 +133,31 @@ static bool visitBrightestLights(void* userData, const dsBVH* bvh, const void* o
 	}
 
 	return true;
+}
+
+static bool visitLightFunc(void* userData, const dsBVH* bvh, const void* object,
+	const void* frustum)
+{
+	DS_UNUSED(bvh);
+	VisitLightData* lightData = (VisitLightData*)userData;
+	const dsSceneLight* light = (const dsSceneLight*)object;
+	// Do a more precise check first.
+	if (!dsSceneLight_isInFrustum(light, (const dsFrustum3f*)frustum,
+			lightData->lightSet->intensityThreshold))
+	{
+		return true;
+	}
+
+	++lightData->count;
+	return lightData->visitFunc(lightData->userData, lightData->lightSet, light);
+}
+
+const char* const dsSceneLightSet_typeName = "LightSet";
+
+static dsCustomSceneResourceType resourceType;
+const dsCustomSceneResourceType* dsSceneLightSet_type(void)
+{
+	return &resourceType;
 }
 
 dsSceneLightSet* dsSceneLightSet_create(dsAllocator* allocator, uint32_t maxLights,
@@ -182,6 +221,26 @@ dsSceneLightSet* dsSceneLightSet_create(dsAllocator* allocator, uint32_t maxLigh
 	lightSet->intensityThreshold = 0.0f;
 
 	return lightSet;
+}
+
+dsCustomSceneResource* dsSceneLightSet_createResource(dsAllocator* allocator,
+	dsSceneLightSet* lightSet)
+{
+	if (!allocator || !lightSet)
+	{
+		errno = EINVAL;
+		return NULL;
+	}
+
+	dsCustomSceneResource* customResource = DS_ALLOCATE_OBJECT(allocator, dsCustomSceneResource);
+	if (!customResource)
+		return NULL;
+
+	customResource->allocator = dsAllocator_keepPointer(allocator);
+	customResource->type = &resourceType;
+	customResource->resource = lightSet;
+	customResource->destroyFunc = &destroyResource;
+	return customResource;
 }
 
 uint32_t dsSceneLightSet_getRemainingLights(const dsSceneLightSet* lightSet)
@@ -428,6 +487,26 @@ bool dsSceneLightSet_findBrightestLights(const dsSceneLight** outBrightestLights
 		outBrightestLights[i] = NULL;
 	*inoutLightCount = lightCount;
 	return true;
+}
+
+uint32_t dsSceneLightSet_forEachLightInFrustum(const dsSceneLightSet* lightSet,
+	const dsFrustum3f* frustum, dsSceneLightVisitFunction visitor, void* userData)
+{
+	if (!lightSet || !frustum)
+		return 0;
+
+	uint32_t directionalCount = 0;
+	for (uint32_t i = 0; i < lightSet->directionalLightCount; ++i)
+	{
+		++directionalCount;
+		if (visitor && !visitor(userData, lightSet, lightSet->directionalLights[i]))
+			return directionalCount;
+	}
+
+	VisitLightData lightData = {visitor, lightSet, userData, directionalCount};
+	dsBVH_intersectFrustum(lightSet->spatialLights, frustum, visitor ? &visitLightFunc : NULL,
+		&lightData);
+	return lightData.count;
 }
 
 void dsSceneLightSet_destroy(dsSceneLightSet* lightSet)

@@ -18,6 +18,8 @@
 
 #include <DeepSea/Core/Config.h>
 #include <DeepSea/Core/Types.h>
+#include <DeepSea/Geometry/Types.h>
+#include <DeepSea/Scene/Types.h>
 #include <DeepSea/SceneLighting/Export.h>
 #include <DeepSea/SceneLighting/Types.h>
 
@@ -37,6 +39,17 @@ extern "C"
  */
 
 /**
+ * @brief The type name for a scene light set.
+ */
+DS_SCENELIGHTING_EXPORT extern const char* const dsSceneLightSet_typeName;
+
+/**
+ * @brief Gets the type for the dsSceneLightSet custom type for storage in dsSceneResources.
+ * @return The custom type.
+ */
+DS_SCENELIGHTING_EXPORT const dsCustomSceneResourceType* dsSceneLightSet_type(void);
+
+/**
  * @brief Creates a light set.
  * @remark errno will be set on failure.
  * @param allocator The allocator to create the light set with. This must support freeing memory.
@@ -47,6 +60,16 @@ extern "C"
  */
 DS_SCENELIGHTING_EXPORT dsSceneLightSet* dsSceneLightSet_create(dsAllocator* allocator,
 	uint32_t maxLights, const dsColor3f* ambientColor, float ambientIntensity);
+
+/**
+ * @brief Creates a custom resource to wrap a dsSceneLightSet.
+ * @remark errno will be set on failure.
+ * @param allocator The allocator to create the custom resource.
+ * @param lightSet The light set to wrap.
+ * @return The custom resource or NULL if an error occurred.
+ */
+DS_SCENELIGHTING_EXPORT dsCustomSceneResource* dsSceneLightSet_createResource(
+	dsAllocator* allocator, dsSceneLightSet* lightSet);
 
 /**
  * @brief Gets the number of remaining lgiths that can be set.
@@ -196,6 +219,19 @@ DS_SCENELIGHTING_EXPORT bool dsSceneLightSet_prepare(dsSceneLightSet* lightSet,
 DS_SCENELIGHTING_EXPORT bool dsSceneLightSet_findBrightestLights(
 	const dsSceneLight** outBrightestLights, uint32_t* inoutLightCount,
 	const dsSceneLightSet* lightSet, const dsVector3f* position);
+
+/**
+ * @brief Visits each light that's inside a frustum.
+ * @param lightSet The light set.
+ * @param frustum The frustum to intersect with the lights.
+ * @param visitor The function to call for each light. This may be NULL if you only want to know
+ *     how many lights intersect.
+ * @param userData User data to pass to the visitor function.
+ * @return The number of lights that intersect with the frustum.
+ */
+DS_SCENELIGHTING_EXPORT uint32_t dsSceneLightSet_forEachLightInFrustum(
+	const dsSceneLightSet* lightSet, const dsFrustum3f* frustum,
+	dsSceneLightVisitFunction visitor, void* userData);
 
 /**
  * @brief Destroys a light set.

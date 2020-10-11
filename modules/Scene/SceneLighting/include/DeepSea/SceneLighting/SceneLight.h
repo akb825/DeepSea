@@ -21,7 +21,6 @@
 #include <DeepSea/Render/Types.h>
 #include <DeepSea/SceneLighting/Export.h>
 #include <DeepSea/SceneLighting/Types.h>
-#include <stdbool.h>
 
 #ifdef __cplusplus
 extern "C"
