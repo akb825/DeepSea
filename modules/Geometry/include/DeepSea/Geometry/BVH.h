@@ -129,6 +129,12 @@ DS_GEOMETRY_EXPORT bool dsBVH_build(dsBVH* bvh, const void* objects, uint32_t ob
 DS_GEOMETRY_EXPORT bool dsBVH_update(dsBVH* bvh);
 
 /**
+ * @brief Returns whether or not the BVH is empty.
+ * @return True if the BVH is empty.
+ */
+DS_GEOMETRY_EXPORT bool dsBVH_empty(const dsBVH* bvh);
+
+/**
  * @brief Intersects a bounding box with the BVH.
  * @param bvh The BVH to intersect.
  * @param bounds The bounds to intersect. The type should be a dsAlignedBox* type appropriate for

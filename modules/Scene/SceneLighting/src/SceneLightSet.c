@@ -325,6 +325,20 @@ bool dsSceneLightSet_removeLightID(dsSceneLightSet* lightSet, uint32_t nameID)
 	return true;
 }
 
+bool dsSceneLightSet_clearLights(dsSceneLightSet* lightSet)
+{
+	if (!lightSet)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	for (dsListNode* node = lightSet->lightTable->list.head; node; node = node->next)
+		DS_VERIFY(dsAllocator_free((dsAllocator*)&lightSet->lightAllocator, node));
+	DS_VERIFY(dsHashTable_clear(lightSet->lightTable));
+	return true;
+}
+
 const dsColor3f* dsSceneLightSet_getAmbientColor(const dsSceneLightSet* lightSet)
 {
 	if (!lightSet)
@@ -407,7 +421,7 @@ bool dsSceneLightSet_prepare(dsSceneLightSet* lightSet, float intensityThreshold
 	dsListNode* node = lightSet->lightTable->list.head;
 	while (node)
 	{
-		dsSceneLight* light = &((LightNode*)&node)->light;
+		dsSceneLight* light = &((LightNode*)node)->light;
 		node = node->next;
 
 		float intensity = dsColor3f_grayscale(&light->color)*light->intensity;
@@ -479,8 +493,11 @@ bool dsSceneLightSet_findBrightestLights(const dsSceneLight** outBrightestLights
 	dsAlignedBox3f bounds = {*position, *position};
 	FindBrightestData visitData = {outBrightestLights, intensities, &lightCount, position,
 		*inoutLightCount, lightSet->intensityThreshold};
-	if (!dsBVH_intersectBounds(lightSet->spatialLights, &bounds, &visitBrightestLights, &visitData))
+	if (!dsBVH_empty(lightSet->spatialLights) &&
+		!dsBVH_intersectBounds(lightSet->spatialLights, &bounds, &visitBrightestLights, &visitData))
+	{
 		return false;
+	}
 
 	// Set up the final count, nulling out any unset lights.
 	for (uint32_t i = lightCount; i < *inoutLightCount; ++i)

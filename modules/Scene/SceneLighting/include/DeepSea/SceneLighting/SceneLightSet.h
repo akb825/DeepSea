@@ -138,6 +138,14 @@ DS_SCENELIGHTING_EXPORT bool dsSceneLightSet_removeLightID(dsSceneLightSet* ligh
 	uint32_t nameID);
 
 /**
+ * @brief Clears all the lights a light set.
+ * @remark errno will be set on failure.
+ * @param lightSet The light set.
+ * @return False if lightSet is NULL.
+ */
+DS_SCENELIGHTING_EXPORT bool dsSceneLightSet_clearLights(dsSceneLightSet* lightSet);
+
+/**
  * @brief Gets the ambient color for the light set.
  * @remark errno will be set on failure.
  * @param lightSet The light set.

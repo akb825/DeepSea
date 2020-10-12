@@ -21,6 +21,11 @@
 #include <DeepSea/Core/Streams/Types.h>
 #include <DeepSea/Scene/Types.h>
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 #define DS_MAX_SCENE_TYPES 128
 #define DS_SCENE_TYPE_TABLE_SIZE 173
 
@@ -169,3 +174,7 @@ struct dsSceneLoadScratchData
 	uint32_t sceneResourceCount;
 	uint32_t maxSceneResources;
 };
+
+#ifdef __cplusplus
+}
+#endif

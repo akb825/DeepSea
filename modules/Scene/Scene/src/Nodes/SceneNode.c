@@ -30,6 +30,12 @@
 
 #include <string.h>
 
+// NOTE: This would ideally be in Scene.c, but this seems to expose an issue on Mac when static
+// linking. My guess is it only looks at functions to decide which object files to bring in, so if
+// only this global variable is referenced for Scene.o, SceneNode.o doesn't bring in this variable.
+// Since Scene.o will reference functions in SceneNode.o, this *should* always work.
+dsSceneNodeType dsRootSceneNodeType;
+
 const char* const dsSceneNodeRef_typeName = "ReferenceNode";
 
 size_t dsSceneNode_itemListsAllocSize(const char** itemLists, uint32_t itemListCount)

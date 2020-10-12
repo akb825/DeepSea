@@ -348,8 +348,10 @@ TYPED_TEST(BVHTest, SeparateBoxes)
 		{TestFixture::createBounds( 1,  1, 0,  2,  2, 0), 3}
 	};
 
+	EXPECT_TRUE(dsBVH_empty(bvh));
 	EXPECT_TRUE(dsBVH_build(bvh, data, DS_ARRAY_SIZE(data), sizeof(TestObject),
 		&TestFixture::getBounds, false));
+	EXPECT_FALSE(dsBVH_empty(bvh));
 
 	AlignedBoxType testBounds = TestFixture::createBounds(0, 0, 0, 0, 0, 0);
 	EXPECT_EQ(0U, dsBVH_intersectBounds(bvh, &testBounds, nullptr, nullptr));
@@ -432,8 +434,10 @@ TYPED_TEST(BVHTest, SeparateBoxesBalanced)
 		{TestFixture::createBounds( 1,  1, 0,  2,  2, 0), 3}
 	};
 
+	EXPECT_TRUE(dsBVH_empty(bvh));
 	EXPECT_TRUE(dsBVH_build(bvh, data, DS_ARRAY_SIZE(data), sizeof(TestObject),
 		&TestFixture::getBounds, true));
+	EXPECT_FALSE(dsBVH_empty(bvh));
 
 	AlignedBoxType testBounds = TestFixture::createBounds(0, 0, 0, 0, 0, 0);
 	EXPECT_EQ(0U, dsBVH_intersectBounds(bvh, &testBounds, nullptr, nullptr));
@@ -520,8 +524,10 @@ TYPED_TEST(BVHTest, OverlappingBoxes)
 		{TestFixture::createBounds(-2, -2, 0,  2,  2, 0), 4}
 	};
 
+	EXPECT_TRUE(dsBVH_empty(bvh));
 	EXPECT_TRUE(dsBVH_build(bvh, data, DS_ARRAY_SIZE(data), sizeof(TestObject),
 		&TestFixture::getBounds, false));
+	EXPECT_FALSE(dsBVH_empty(bvh));
 
 	AlignedBoxType testBounds;
 	{
@@ -620,8 +626,10 @@ TYPED_TEST(BVHTest, OverlappingBoxesBalanced)
 		{TestFixture::createBounds(-2, -2, 0,  2,  2, 0), 4}
 	};
 
+	EXPECT_TRUE(dsBVH_empty(bvh));
 	EXPECT_TRUE(dsBVH_build(bvh, data, DS_ARRAY_SIZE(data), sizeof(TestObject),
 		&TestFixture::getBounds, true));
+	EXPECT_FALSE(dsBVH_empty(bvh));
 
 	AlignedBoxType testBounds;
 	{
@@ -719,8 +727,10 @@ TYPED_TEST(BVHTest, ObjectPointer)
 		new TestObject{TestFixture::createBounds( 1,  1, 0,  2,  2, 0), 3}
 	};
 
+	EXPECT_TRUE(dsBVH_empty(bvh));
 	EXPECT_TRUE(dsBVH_build(bvh, data, DS_ARRAY_SIZE(data), DS_GEOMETRY_OBJECT_POINTERS,
 		&TestFixture::getBounds, false));
+	EXPECT_FALSE(dsBVH_empty(bvh));
 
 	AlignedBoxType testBounds = TestFixture::createBounds(0, 0, 0, 0, 0, 0);
 	EXPECT_EQ(0U, dsBVH_intersectBounds(bvh, &testBounds, nullptr, nullptr));
@@ -792,8 +802,10 @@ TYPED_TEST(BVHTest, ObjectIndex)
 		TestFixture::element(), data);
 	ASSERT_TRUE(bvh);
 
+	EXPECT_TRUE(dsBVH_empty(bvh));
 	EXPECT_TRUE(dsBVH_build(bvh, NULL, DS_ARRAY_SIZE(data), DS_GEOMETRY_OBJECT_INDICES,
 		&TestFixture::getBoundsIndex, false));
+	EXPECT_FALSE(dsBVH_empty(bvh));
 
 	AlignedBoxType testBounds = TestFixture::createBounds(0, 0, 0, 0, 0, 0);
 	EXPECT_EQ(0U, dsBVH_intersectBounds(bvh, &testBounds, nullptr, nullptr));
@@ -862,8 +874,10 @@ TYPED_TEST(BVHTest, SeparateBoxesFrustum)
 		{TestFixture::createBounds( 1,  1, 0,  2,  2, 0), 3}
 	};
 
+	EXPECT_TRUE(dsBVH_empty(bvh));
 	EXPECT_TRUE(dsBVH_build(bvh, data, DS_ARRAY_SIZE(data), sizeof(TestObject),
 		&TestFixture::getBounds, false));
+	EXPECT_FALSE(dsBVH_empty(bvh));
 
 	bool hasIntersects = TestFixture::axisCount() == 3 &&
 		TestFixture::element() != dsGeometryElement_Int;
@@ -947,8 +961,10 @@ TYPED_TEST(BVHTest, OverlappingBoxesFrustum)
 		{TestFixture::createBounds(-2, -2, 0,  2,  2, 0), 4}
 	};
 
+	EXPECT_TRUE(dsBVH_empty(bvh));
 	EXPECT_TRUE(dsBVH_build(bvh, data, DS_ARRAY_SIZE(data), sizeof(TestObject),
 		&TestFixture::getBounds, false));
+	EXPECT_FALSE(dsBVH_empty(bvh));
 
 	bool hasIntersects = TestFixture::axisCount() == 3 &&
 		TestFixture::element() != dsGeometryElement_Int;
@@ -1043,8 +1059,10 @@ TYPED_TEST(BVHTest, Update)
 		{TestFixture::createBounds( 1,  1, 0,  2,  2, 0), 3}
 	};
 
+	EXPECT_TRUE(dsBVH_empty(bvh));
 	EXPECT_TRUE(dsBVH_build(bvh, data, DS_ARRAY_SIZE(data), sizeof(TestObject),
 		&TestFixture::getBounds, false));
+	EXPECT_FALSE(dsBVH_empty(bvh));
 
 	std::swap(data[0].bounds, data[1].bounds);
 	std::swap(data[2].bounds, data[3].bounds);

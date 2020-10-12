@@ -549,6 +549,11 @@ bool dsBVH_update(dsBVH* bvh)
 	return updateBVHRec(bvh, bvh->nodes, addBoxFunc);
 }
 
+bool dsBVH_empty(const dsBVH* bvh)
+{
+	return !bvh || bvh->nodeCount == 0;
+}
+
 uint32_t dsBVH_intersectBounds(const dsBVH* bvh, const void* bounds, dsBVHVisitFunction visitor,
 	void* userData)
 {

@@ -41,8 +41,6 @@
 
 #include <string.h>
 
-dsSceneNodeType dsRootSceneNodeType;
-
 static void destroyObjects(const dsSceneItemLists* sharedItems, uint32_t sharedItemCount,
 	const dsScenePipelineItem* pipeline, uint32_t pipelineCount,
 	dsSceneGlobalData* const* globalData, uint32_t globalDataCount, void* userData,
