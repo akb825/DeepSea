@@ -1,4 +1,4 @@
-file(GLOB_RECURSE sources src/*.c src/*.cpp src/*.h include/*.h)
+file(GLOB_RECURSE sources src/*.c src/*.cpp src/*.h include/*.h include/*.mslh)
 file(GLOB_RECURSE flatbuffers src/*.fbs)
 ds_add_library(deepsea_scene_lighting MODULE SceneLighting FILES ${sources}
 	${flatbuffers} DEPENDS deepsea_scene)

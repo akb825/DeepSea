@@ -1,0 +1,77 @@
+/*
+ * Copyright 2020 Aaron Barany
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#pragma once
+
+/**
+ * @file
+ * @brief Uniforms for forward lighting.
+ */
+
+/**
+ * @brief The number of forward lights.
+ *
+ * This can be defined before including this file to control the number of lights, otherwise it
+ * defaults to 4.
+ */
+#ifndef DS_FORWARD_LIGHT_COUNT
+#define DS_FORWARD_LIGHT_COUNT 4
+#endif
+
+/**
+ * @brief Constant for an unset light.
+ */
+#define DS_UNSET_LIGHT 0
+
+/**
+ * @brief Constant for a directional light.
+ */
+#define DS_DIRECTIONAL_LIGHT 1
+
+/**
+ * @brief Constant for a point light.
+ */
+#define DS_POINT_LIGHT 2
+
+/**
+ * @brief Constant for a spot light.
+ */
+#define DS_SPOT_LIGHT 3
+
+uniform ForwardLights
+{
+	/**
+	 * @brief Light position on xyz and type on w.
+	 */
+	vec4 positionAndType[DS_FORWARD_LIGHT_COUNT];
+
+	/**
+	 * @brief Direction to the light on xyz and linear falloff factor on w.
+	 *
+	 * The direction is guaranteed to be normalized.
+	 */
+	lowp vec4 directionAndLinearFalloff[DS_FORWARD_LIGHT_COUNT];
+
+	/**
+	 * @brief Light color on rgb and quadratic falloff factor on w.
+	 */
+	vec4 colorAndQuadraticFalloff[DS_FORWARD_LIGHT_COUNT];
+
+	/**
+	 * @brief Cosine of the spot angles for spot lights.
+	 */
+	lowp vec2 spotCosAngles[DS_FORWARD_LIGHT_COUNT];
+} dsForwardLights;
