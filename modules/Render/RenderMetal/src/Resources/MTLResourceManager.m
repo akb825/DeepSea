@@ -805,8 +805,8 @@ bool dsMTLResourceManager_textureCopyFormatsSupported(const dsResourceManager* r
 		dsGfxFormat srcDecorator = srcFormat & dsGfxFormat_DecoratorMask;
 		dsGfxFormat dstDecorator = srcFormat & dsGfxFormat_DecoratorMask;
 		return srcDecorator == dstDecorator ||
-			(srcDecorator == dsGfxFormat_SRGB && srcDecorator == dsGfxFormat_UNorm) ||
-			(srcDecorator == dsGfxFormat_UNorm && srcDecorator == dsGfxFormat_SRGB);
+			(srcDecorator == dsGfxFormat_SRGB && dstDecorator == dsGfxFormat_UNorm) ||
+			(srcDecorator == dsGfxFormat_UNorm && dstDecorator == dsGfxFormat_SRGB);
 	}
 
 	return true;

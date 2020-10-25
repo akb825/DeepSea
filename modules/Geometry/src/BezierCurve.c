@@ -104,7 +104,7 @@ static bool tessellateRec(const dsBezierCurve* curve, double chordalTolerance,
 bool dsBezierCurve_initialize(dsBezierCurve* curve, uint32_t axisCount,
 	const void* p0, const void* p1, const void* p2, const void* p3)
 {
-	if (!curve || (axisCount < 2 && axisCount > 3) || !p0 || !p1 || !p2 || !p3)
+	if (!curve || axisCount < 2 || axisCount > 3 || !p0 || !p1 || !p2 || !p3)
 	{
 		errno = EINVAL;
 		return false;
@@ -125,7 +125,7 @@ bool dsBezierCurve_initialize(dsBezierCurve* curve, uint32_t axisCount,
 bool dsBezierCurve_initializeQuadratic(dsBezierCurve* curve, uint32_t axisCount,
 	const void* p0, const void* p1, const void* p2)
 {
-	if (!curve || (axisCount < 2 && axisCount > 3) || !p0 || !p1 || !p2)
+	if (!curve || axisCount < 2 || axisCount > 3 || !p0 || !p1 || !p2)
 	{
 		errno = EINVAL;
 		return false;
