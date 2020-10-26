@@ -215,17 +215,15 @@ DS_SCENELIGHTING_EXPORT bool dsSceneLightSet_prepare(dsSceneLightSet* lightSet,
 
 /**
  * @brief Finds the brightest lights at a position.
- * @remark errno will be set on failure.
  * @param[out] outBrightestLights The output to contain the brightest lights.
- * @param[inout] inoutLightCount The light count. The initial value should be the maximum number
- *     that can be stored in outBrightestLights, and it will be updated for the number of lights
- *     actually assigned. Remaining values will be set to NULL.
+ * @param outLightCount The maximum number of lights in outBrightestLIghts.
  * @param lightSet The light set.
  * @param position The position to use to evaluate which lights are brightest.
- * @return False if an error occurred.
+ * @return The number of lights. If this is less than outLightCount, any remaining lights will
+ *     be NULL.
  */
-DS_SCENELIGHTING_EXPORT bool dsSceneLightSet_findBrightestLights(
-	const dsSceneLight** outBrightestLights, uint32_t* inoutLightCount,
+DS_SCENELIGHTING_EXPORT uint32_t dsSceneLightSet_findBrightestLights(
+	const dsSceneLight** outBrightestLights, uint32_t outLightCount,
 	const dsSceneLightSet* lightSet, const dsVector3f* position);
 
 /**

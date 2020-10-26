@@ -58,11 +58,13 @@ dsShaderVariableGroupDesc* dsInstanceTransformData_createShaderVariableGroupDesc
 }
 
 void dsInstanceTransformData_populateData(void* userData, const dsView* view,
-	const dsSceneInstanceInfo* instances, uint32_t instanceCount, uint8_t* data, uint32_t stride)
+	const dsSceneInstanceInfo* instances, uint32_t instanceCount,
+	const dsShaderVariableGroupDesc* dataDesc, uint8_t* data, uint32_t stride)
 {
 	DS_UNUSED(userData);
+	DS_UNUSED(dataDesc);
 	DS_ASSERT(stride >= sizeof(InstanceTransform));
-	for (uint32_t i = 0, offset = 0; i < instanceCount; ++i, offset += stride)
+	for (uint32_t i = 0; i < instanceCount; ++i, data += stride)
 	{
 		const dsSceneInstanceInfo* instance = instances + i;
 		// The GPU memory can have some bad properties when accessing from the CPU, so first do all
@@ -75,7 +77,7 @@ void dsInstanceTransformData_populateData(void* userData, const dsView* view,
 		dsMatrix44_affineMul(transform.worldView, view->viewMatrix, instance->transform);
 		dsMatrix44_mul(transform.worldViewProj, view->projectionMatrix, transform.worldView);
 
-		*(InstanceTransform*)(data + offset) = transform;
+		*(InstanceTransform*)(data) = transform;
 	}
 }
 

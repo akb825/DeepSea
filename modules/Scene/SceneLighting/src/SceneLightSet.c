@@ -453,27 +453,24 @@ bool dsSceneLightSet_prepare(dsSceneLightSet* lightSet, float intensityThreshold
 	return true;
 }
 
-bool dsSceneLightSet_findBrightestLights(const dsSceneLight** outBrightestLights,
-	uint32_t* inoutLightCount, const dsSceneLightSet* lightSet, const dsVector3f* position)
+uint32_t dsSceneLightSet_findBrightestLights(const dsSceneLight** outBrightestLights,
+	uint32_t outLightCount, const dsSceneLightSet* lightSet, const dsVector3f* position)
 {
-	if (!outBrightestLights || !inoutLightCount || !lightSet || !position)
+	if (!outBrightestLights || !lightSet || !position)
 	{
 		errno = EINVAL;
-		return false;
+		return 0;
 	}
 
-	if (*inoutLightCount == 0)
-		return true;
-
 	uint32_t lightCount = 0;
-	float* intensities = DS_ALLOCATE_STACK_OBJECT_ARRAY(float, *inoutLightCount);
+	float* intensities = DS_ALLOCATE_STACK_OBJECT_ARRAY(float, outLightCount);
 
 	// First check the directional lights.
 	for (uint32_t i = 0; i < lightSet->directionalLightCount; ++i)
 	{
 		const dsSceneLight* light = lightSet->directionalLights[i];
 		float intensity = dsColor3f_grayscale(&light->color)*light->intensity;
-		if (lightCount < *inoutLightCount)
+		if (lightCount < outLightCount)
 		{
 			intensities[lightCount] = intensity;
 			outBrightestLights[lightCount++] = light;
@@ -492,18 +489,17 @@ bool dsSceneLightSet_findBrightestLights(const dsSceneLight** outBrightestLights
 	// Then check the spatial lights.
 	dsAlignedBox3f bounds = {*position, *position};
 	FindBrightestData visitData = {outBrightestLights, intensities, &lightCount, position,
-		*inoutLightCount, lightSet->intensityThreshold};
+		outLightCount, lightSet->intensityThreshold};
 	if (!dsBVH_empty(lightSet->spatialLights) &&
 		!dsBVH_intersectBounds(lightSet->spatialLights, &bounds, &visitBrightestLights, &visitData))
 	{
-		return false;
+		return 0;
 	}
 
 	// Set up the final count, nulling out any unset lights.
-	for (uint32_t i = lightCount; i < *inoutLightCount; ++i)
+	for (uint32_t i = lightCount; i < lightCount; ++i)
 		outBrightestLights[i] = NULL;
-	*inoutLightCount = lightCount;
-	return true;
+	return lightCount;
 }
 
 uint32_t dsSceneLightSet_forEachLightInFrustum(const dsSceneLightSet* lightSet,

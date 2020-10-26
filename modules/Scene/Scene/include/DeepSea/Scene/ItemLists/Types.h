@@ -165,13 +165,15 @@ struct dsSceneInstanceData
  * @param view The view being drawn.
  * @param instances The instances to populate the data for.
  * @param instanceCount The number of instances.
+ * @param dataDesc The shader variable group description for the data.
  * @param data The data to populate.
  * @param stride The stride between each instance in the data.
  *
  * @see SceneInstanceVariables.h
  */
 typedef void (*dsPopulateSceneInstanceVariablesFunction)(void* userData, const dsView* view,
-	const dsSceneInstanceInfo* instances, uint32_t instanceCount, uint8_t* data, uint32_t stride);
+	const dsSceneInstanceInfo* instances, uint32_t instanceCount,
+	const dsShaderVariableGroupDesc* dataDesc, uint8_t* data, uint32_t stride);
 
 /**
  * @brief Function for adding a node to the item list.

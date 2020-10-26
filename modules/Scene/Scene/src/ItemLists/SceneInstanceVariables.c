@@ -176,7 +176,7 @@ bool dsSceneInstanceVariables_populateData(dsSceneInstanceData* instanceData,
 
 	variables->curInstanceCount = instanceCount;
 	variables->populateDataFunc(variables->userData, view, instances, instanceCount,
-		variables->curBufferData, variables->stride);
+		variables->dataDesc, variables->curBufferData, variables->stride);
 	BufferInfo* curBuffer = variables->curBuffer;
 	if (curBuffer)
 		DS_VERIFY(dsGfxBuffer_unmap(curBuffer->buffer));
