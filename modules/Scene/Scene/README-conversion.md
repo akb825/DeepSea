@@ -83,6 +83,7 @@ The remaining members of each element depends on the value of `type`. The builti
 			* `offset`: integer byte offset into the buffer. Defaults to 0.
 				* `count`: integer number of texels in the buffer.
 		* `dataArray`: this may be set in place of the data member to provide an array of data elements rather than a single one.
+		* `srgb`: set to true to consider the data values as sRGB colors that will be converted to linear space. Defaults to false.
 * `"MaterialDesc"`
 	* `elements`: array of elements for the material. Each element of the array has the following members:
 		* `name`: the name of the element.

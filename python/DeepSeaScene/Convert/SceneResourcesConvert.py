@@ -567,9 +567,14 @@ def convertSceneResourcesShaderDataArray(builder, convertContext, data, startVec
 		except:
 			raise Exception('Invalid shader data ' + name + ' value "' + str(value) + '".')
 
-	def convertVariableData(builder, materialType, dataArray):
+	def convertVariableData(builder, materialType, dataArray, srgb):
 		if len(dataArray) == 0:
 			return 0, 0
+
+		def linearFromSRGB(c):
+			if c <= 0.04045:
+				return c/12.92
+			return pow((c + 0.055)/1.055, 2.4)
 
 		def getFormatSize(formatStr):
 			return 8 if formatStr == "double" else 4
@@ -653,12 +658,29 @@ def convertSceneResourcesShaderDataArray(builder, convertContext, data, startVec
 			return dataBytes
 
 		if materialType == MaterialType.Float:
+			if srgb:
+				for i in range(len(dataArray)):
+					dataArray[i] = linearFromSRGB(dataArray[i])
 			dataBytes = packSingleElement('f', 'float')
 		elif materialType == MaterialType.Vec2:
+			if srgb:
+				for i in range(len(dataArray)):
+					dataArray[i][0] = linearFromSRGB(dataArray[i][0])
+					dataArray[i][1] = linearFromSRGB(dataArray[i][1])
 			dataBytes = packVectorElement('f', 'float', 2)
 		elif materialType == MaterialType.Vec3:
+			if srgb:
+				for i in range(len(dataArray)):
+					dataArray[i][0] = linearFromSRGB(dataArray[i][0])
+					dataArray[i][1] = linearFromSRGB(dataArray[i][1])
+					dataArray[i][2] = linearFromSRGB(dataArray[i][2])
 			dataBytes = packVectorElement('f', 'float', 3)
 		elif materialType == MaterialType.Vec4:
+			if srgb:
+				for i in range(len(dataArray)):
+					dataArray[i][0] = linearFromSRGB(dataArray[i][0])
+					dataArray[i][1] = linearFromSRGB(dataArray[i][1])
+					dataArray[i][2] = linearFromSRGB(dataArray[i][2])
 			dataBytes = packVectorElement('f', 'float', 4)
 		elif materialType == MaterialType.Double:
 			dataBytes = packSingleElement('d', 'double')
@@ -819,17 +841,19 @@ def convertSceneResourcesShaderDataArray(builder, convertContext, data, startVec
 				raise Exception('Invalid material type "' + typeStr + '".')
 
 			first = readInt(data.get('first', 0), 'first', 0)
+			srgb = bool(data.get('srgb', False))
 
 			if 'data' in data and 'dataArray' in data:
 				raise Exception(
 					'SceneResources shader data element must contain one of "data" or "dataArray".')
 
 			if 'data' in data:
-				dataBytes, dataCount = convertVariableData(builder, materialType, [data['data']])
+				dataBytes, dataCount = convertVariableData(builder, materialType, [data['data']],
+					srgb)
 			elif 'dataArray' in data:
 				try:
 					dataBytes, dataCount = convertVariableData(
-						builder, materialType, data['dataArray'])
+						builder, materialType, data['dataArray'], srgb)
 				except (TypeError, ValueError):
 					raise Exception(
 						'Shder data element "dataArray" must be an array of data values.')
@@ -1329,6 +1353,8 @@ def convertSceneResources(convertContext, data):
 	        - count: integer number of texels in the buffer.
 	    - dataArray: this may be set in place of the data member to provide an array of data
 	      elements rather than a single one.
+		- srgb: set to true to consider the data values as sRGB colors that will be converted to
+	      linear space. Defaults to false.
 	- "MaterialDesc"
 	  - elements: array of elements for the material. Each element of the array has the following
 	    members:
