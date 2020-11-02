@@ -48,8 +48,8 @@ dsSceneGlobalData* dsViewTransformData_load(const dsSceneLoadContext* loadContex
 	{
 		// NOTE: ENOTFOUND not set when the type doesn't match, so set it manually.
 		errno = ENOTFOUND;
-		DS_LOG_ERROR_F(DS_SCENE_LOG_TAG, "Couldn't find variable group description '%s'.",
-			groupDescName);
+		DS_LOG_ERROR_F(DS_SCENE_LOG_TAG,
+			"Couldn't find view transform shader variable group description '%s'.", groupDescName);
 		return nullptr;
 	}
 

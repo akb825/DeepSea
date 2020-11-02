@@ -17,6 +17,8 @@ struct Vector3f;
 
 struct Vector4f;
 
+struct Color3f;
+
 struct Color4f;
 
 struct AlignedBox3f;
@@ -914,6 +916,33 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Vector4f FLATBUFFERS_FINAL_CLASS {
   }
 };
 FLATBUFFERS_STRUCT_END(Vector4f, 16);
+
+FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Color3f FLATBUFFERS_FINAL_CLASS {
+ private:
+  float red_;
+  float green_;
+  float blue_;
+
+ public:
+  Color3f() {
+    memset(static_cast<void *>(this), 0, sizeof(Color3f));
+  }
+  Color3f(float _red, float _green, float _blue)
+      : red_(flatbuffers::EndianScalar(_red)),
+        green_(flatbuffers::EndianScalar(_green)),
+        blue_(flatbuffers::EndianScalar(_blue)) {
+  }
+  float red() const {
+    return flatbuffers::EndianScalar(red_);
+  }
+  float green() const {
+    return flatbuffers::EndianScalar(green_);
+  }
+  float blue() const {
+    return flatbuffers::EndianScalar(blue_);
+  }
+};
+FLATBUFFERS_STRUCT_END(Color3f, 12);
 
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Color4f FLATBUFFERS_FINAL_CLASS {
  private:

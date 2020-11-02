@@ -129,6 +129,26 @@ inline const dsVector4f& convert(const Vector4f& vector)
 }
 
 /**
+ * @brief Converts from a flatbuffer Color3f to a dsColor3f.
+ * @param color The color to convert.
+ * @return The converted color.
+ */
+inline const dsColor3f& convert(const Color3f& color)
+{
+	return reinterpret_cast<const dsColor3f&>(color);
+}
+
+/**
+ * @brief Converts from a flatbuffer Color4f to a dsColor4f.
+ * @param color The color to convert.
+ * @return The converted color.
+ */
+inline const dsColor4f& convert(const Color4f& color)
+{
+	return reinterpret_cast<const dsColor4f&>(color);
+}
+
+/**
  * @brief Converts from a flatbuffer AlignedBox3f to a dsAlignedBox3f.
  * @param box The box to convert.
  * @return The converted box.

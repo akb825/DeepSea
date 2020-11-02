@@ -276,6 +276,14 @@ struct Vector4f
 	w : float;
 }
 
+// Struct describing a floating-point color without alpha.
+struct Color3f
+{
+	red : float;
+	green : float;
+	blue : float;
+}
+
 // Struct describing a floating-point color.
 struct Color4f
 {
