@@ -59,7 +59,7 @@ static bool isLightDescValid(const dsShaderVariableGroupDesc* lightDesc)
 	return true;
 }
 
-const char* const dsInstanceForwardLightData_typeName = "InstanceTransformData";
+const char* const dsInstanceForwardLightData_typeName = "InstanceForwardLightData";
 
 dsShaderVariableGroupDesc* dsInstanceForwardLightData_createShaderVariableGroupDesc(
 	dsResourceManager* resourceManager, dsAllocator* allocator, uint32_t lightCount)

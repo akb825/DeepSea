@@ -22,6 +22,8 @@ from importlib import import_module
 from DeepSeaScene.Convert.ConvertContext import ConvertContext
 from DeepSeaScene.Convert.SceneConvert import convertScene
 
+from DeepSeaSceneLighting.Convert.InstanceForwardLightDataConvert import convertInstanceForwardLightData
+
 from DeepSeaVectorDrawScene.Convert.VectorItemListConvert import convertVectorItemList
 from DeepSeaVectorDrawScene.Convert.VectorPrepareListConvert import convertVectorPrepareList
 
@@ -39,6 +41,9 @@ if __name__ == '__main__':
 
 	args = parser.parse_args()
 	convertContext = ConvertContext()
+
+	# Lighting scene types.
+	convertContext.addInstanceDataType('InstanceForwardLightData', convertInstanceForwardLightData)
 
 	# Vector draw scene types.
 	convertContext.addItemListType('VectorItemList', convertVectorItemList)

@@ -55,7 +55,7 @@ dsSceneInstanceData* dsInstanceForwardLightData_load(const dsSceneLoadContext* l
 		return nullptr;
 	}
 
-	const char* lightSetName = fbLightData->lightSet()->c_str();
+	const char* lightSetName = fbLightData->lightSetName()->c_str();
 	dsCustomSceneResource* lightSetResource;
 	if (!dsSceneLoadScratchData_findResource(&resourceType,
 			reinterpret_cast<void**>(&lightSetResource), scratchData, lightSetName) ||

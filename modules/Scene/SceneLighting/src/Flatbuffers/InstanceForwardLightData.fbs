@@ -23,7 +23,7 @@ table InstanceForwardLightData
 	variableGroupDescName : string (required);
 
 	// The name of the light set to get lights from.
-	lightSet : string (required);
+	lightSetName : string (required);
 }
 
 root_type InstanceForwardLightData;

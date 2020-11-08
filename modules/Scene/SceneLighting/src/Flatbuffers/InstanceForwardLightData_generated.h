@@ -15,20 +15,20 @@ struct InstanceForwardLightData FLATBUFFERS_FINAL_CLASS : private flatbuffers::T
   typedef InstanceForwardLightDataBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_VARIABLEGROUPDESCNAME = 4,
-    VT_LIGHTSET = 6
+    VT_LIGHTSETNAME = 6
   };
   const flatbuffers::String *variableGroupDescName() const {
     return GetPointer<const flatbuffers::String *>(VT_VARIABLEGROUPDESCNAME);
   }
-  const flatbuffers::String *lightSet() const {
-    return GetPointer<const flatbuffers::String *>(VT_LIGHTSET);
+  const flatbuffers::String *lightSetName() const {
+    return GetPointer<const flatbuffers::String *>(VT_LIGHTSETNAME);
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_VARIABLEGROUPDESCNAME) &&
            verifier.VerifyString(variableGroupDescName()) &&
-           VerifyOffsetRequired(verifier, VT_LIGHTSET) &&
-           verifier.VerifyString(lightSet()) &&
+           VerifyOffsetRequired(verifier, VT_LIGHTSETNAME) &&
+           verifier.VerifyString(lightSetName()) &&
            verifier.EndTable();
   }
 };
@@ -40,8 +40,8 @@ struct InstanceForwardLightDataBuilder {
   void add_variableGroupDescName(flatbuffers::Offset<flatbuffers::String> variableGroupDescName) {
     fbb_.AddOffset(InstanceForwardLightData::VT_VARIABLEGROUPDESCNAME, variableGroupDescName);
   }
-  void add_lightSet(flatbuffers::Offset<flatbuffers::String> lightSet) {
-    fbb_.AddOffset(InstanceForwardLightData::VT_LIGHTSET, lightSet);
+  void add_lightSetName(flatbuffers::Offset<flatbuffers::String> lightSetName) {
+    fbb_.AddOffset(InstanceForwardLightData::VT_LIGHTSETNAME, lightSetName);
   }
   explicit InstanceForwardLightDataBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
@@ -52,7 +52,7 @@ struct InstanceForwardLightDataBuilder {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<InstanceForwardLightData>(end);
     fbb_.Required(o, InstanceForwardLightData::VT_VARIABLEGROUPDESCNAME);
-    fbb_.Required(o, InstanceForwardLightData::VT_LIGHTSET);
+    fbb_.Required(o, InstanceForwardLightData::VT_LIGHTSETNAME);
     return o;
   }
 };
@@ -60,9 +60,9 @@ struct InstanceForwardLightDataBuilder {
 inline flatbuffers::Offset<InstanceForwardLightData> CreateInstanceForwardLightData(
     flatbuffers::FlatBufferBuilder &_fbb,
     flatbuffers::Offset<flatbuffers::String> variableGroupDescName = 0,
-    flatbuffers::Offset<flatbuffers::String> lightSet = 0) {
+    flatbuffers::Offset<flatbuffers::String> lightSetName = 0) {
   InstanceForwardLightDataBuilder builder_(_fbb);
-  builder_.add_lightSet(lightSet);
+  builder_.add_lightSetName(lightSetName);
   builder_.add_variableGroupDescName(variableGroupDescName);
   return builder_.Finish();
 }
@@ -70,13 +70,13 @@ inline flatbuffers::Offset<InstanceForwardLightData> CreateInstanceForwardLightD
 inline flatbuffers::Offset<InstanceForwardLightData> CreateInstanceForwardLightDataDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     const char *variableGroupDescName = nullptr,
-    const char *lightSet = nullptr) {
+    const char *lightSetName = nullptr) {
   auto variableGroupDescName__ = variableGroupDescName ? _fbb.CreateString(variableGroupDescName) : 0;
-  auto lightSet__ = lightSet ? _fbb.CreateString(lightSet) : 0;
+  auto lightSetName__ = lightSetName ? _fbb.CreateString(lightSetName) : 0;
   return DeepSeaSceneLighting::CreateInstanceForwardLightData(
       _fbb,
       variableGroupDescName__,
-      lightSet__);
+      lightSetName__);
 }
 
 inline const DeepSeaSceneLighting::InstanceForwardLightData *GetInstanceForwardLightData(const void *buf) {
