@@ -74,7 +74,6 @@ void* dsSceneLightSet_load(const dsSceneLoadContext*, dsSceneLoadScratchData*,
 
 	if (fbLights)
 	{
-		const float degToRad = static_cast<float>(M_PI/180);
 		uint32_t lightCount = fbLights->size();
 		for (uint32_t i = 0; i < lightCount; ++i)
 		{
@@ -121,8 +120,8 @@ void* dsSceneLightSet_load(const dsSceneLoadContext*, dsSceneLoadScratchData*,
 				dsVector3f position = DeepSeaScene::convert(*fbSpotLight->position());
 				dsVector3f direction = DeepSeaScene::convert(*fbSpotLight->direction());
 				dsVector3f_normalize(&direction, &direction);
-				float cosInnerSpotAngle = cosf(fbSpotLight->innerSpotAngle()*degToRad);
-				float cosOuterSpotAngle = cosf(fbSpotLight->outerSpotAngle()*degToRad);
+				float cosInnerSpotAngle = cosf(fbSpotLight->innerSpotAngle());
+				float cosOuterSpotAngle = cosf(fbSpotLight->outerSpotAngle());
 				dsColor3f color = DeepSeaScene::convert(*fbSpotLight->color());
 				if (!dsSceneLight_makeSpot(light, &position, &direction, &color,
 						fbSpotLight->intensity(), fbSpotLight->linearFalloff(),

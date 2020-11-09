@@ -22,7 +22,8 @@ from importlib import import_module
 from DeepSeaScene.Convert.ConvertContext import ConvertContext
 from DeepSeaScene.Convert.SceneConvert import convertScene
 
-from DeepSeaSceneLighting.Convert.InstanceForwardLightDataConvert import convertInstanceForwardLightData
+from DeepSeaSceneLighting.Convert.InstanceForwardLightDataConvert \
+	import convertInstanceForwardLightData
 
 from DeepSeaVectorDrawScene.Convert.VectorItemListConvert import convertVectorItemList
 from DeepSeaVectorDrawScene.Convert.VectorPrepareListConvert import convertVectorPrepareList

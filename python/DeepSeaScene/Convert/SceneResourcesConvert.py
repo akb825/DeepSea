@@ -565,7 +565,7 @@ def convertSceneResourcesShaderDataArray(builder, convertContext, data, startVec
 				raise Exception() # Common error handling in except block.
 			return intVal
 		except:
-			raise Exception('Invalid shader data ' + name + ' value "' + str(value) + '".')
+			raise Exception('Invalid shader data ' + name + ' "' + str(value) + '".')
 
 	def convertVariableData(builder, materialType, dataArray, srgb):
 		if len(dataArray) == 0:

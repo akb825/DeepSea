@@ -22,6 +22,8 @@ from importlib import import_module
 from DeepSeaScene.Convert.ConvertContext import ConvertContext
 from DeepSeaScene.Convert.SceneResourcesConvert import convertSceneResources
 
+from DeepSeaSceneLighting.Convert.LightSetConvert import convertLightSet
+
 from DeepSeaVectorDrawScene.Convert.TextConvert import convertText
 from DeepSeaVectorDrawScene.Convert.TextNodeConvert import convertTextNode
 from DeepSeaVectorDrawScene.Convert.VectorImageConvert import convertVectorImage
@@ -49,6 +51,9 @@ if __name__ == '__main__':
 
 	args = parser.parse_args()
 	convertContext = ConvertContext(args.cuttlefish, args.vfc, args.multithread)
+
+	# Lighting scene types.
+	convertContext.addCustomResourceType('LightSet', convertLightSet)
 
 	# Vector draw scene types.
 	convertContext.addNodeType('TextNode', convertTextNode)

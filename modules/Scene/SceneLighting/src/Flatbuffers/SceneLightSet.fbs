@@ -71,10 +71,10 @@ table SpotLight
 	// The quadratic falloff factor.
 	quadraticFalloff : float;
 
-	// The angle in degrees of the spot light where it starts to fade out.
+	// The angle in radians of the spot light where it starts to fade out.
 	innerSpotAngle : float;
 
-	// The angle in degrees of the spot light where it finishes fading out.
+	// The angle in radians of the spot light where it finishes fading out.
 	outerSpotAngle : float;
 }
 
