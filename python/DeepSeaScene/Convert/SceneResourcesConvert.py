@@ -324,6 +324,12 @@ def convertSceneResourcesTexture(builder, convertContext, data, name):
 					raise Exception(
 						'Invalid texture normalmap height "' + normalmapStr + '".')
 
+				textureInfo.normalWrap = baseTextureInfo.get('normalWrap')
+				if textureInfo.normalWrap and str(textureInfo.normalWrap).lower() not in \
+						('wrap', 'wrapx', 'wrapy'):
+					raise Exception(
+						'Invalid normal wrap "' + textureInfo.normalWrap + '".')
+
 				textureInfo.swizzle = baseTextureInfo.get('swizzle')
 				if textureInfo.swizzle and \
 						not re.match('^[RGBAXrgbax]{4}$', textureInfo.swizzle):
@@ -406,7 +412,10 @@ def convertSceneResourcesTexture(builder, convertContext, data, name):
 			commandLine.append('2')
 
 		if textureInfo.normalmap != 0.0:
-			commandLine.extend(['-n', str(textureInfo.normalmap)])
+			if textureInfo.normalWrap:
+				commandLine.extend(['-n', textureInfo.normalWrap, str(textureInfo.normalmap)])
+			else:
+				commandLine.extend(['-n', str(textureInfo.normalmap)])
 
 		if textureInfo.swizzle:
 			commandLine.extend('-s', textureInfo.swizzle)
@@ -1313,7 +1322,9 @@ def convertSceneResources(convertContext, data):
 	    - mipLevels: the number of mipmap levels.
 	    - quality: the quality to use during conversion. May be one of lowest, low, normal, high,
 	      or highest. Defaults to normal.
-	    - normalmap: float value for a height to use to convert to a normalmap.
+	    - normalmap: float value for the max height of a bumpmap to convert to a normalmap.
+	    - normalWrap: set to wrap values when computing the normalmap. May be one of wrap, wrapx,
+	      or wrapy. Dosn't wrap if unset.
 	    - swizzle: string of R, G, B, A, or X values to swizzle the color channels.
 	    - rotate: angle to rotate. Must be a multile of 90 degrees in the range [-270, 270].
 	    - alpha: the alpha mode to use. Must be: none, standard, pre-multiplied, or encoded. Default

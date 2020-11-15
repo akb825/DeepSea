@@ -52,7 +52,8 @@ The remaining members of each element depends on the value of `type`. The builti
 	    * (the following elements are only used for texture conversion)
 		* `mipLevels`: the number of mipmap levels.
 		* `quality`: the quality to use during conversion. May be one of `"lowest"`, `"low"`, `"normal"`, `"high"`, or `"highest"`. Defaults to `"normal"`.
-		* `normalmap`: float value for a height to use to convert to a normalmap.
+		* `normalmap`: float value for the max height of a bumpmap to convert to a normalmap.
+		* `normalWrap`: set to wrap values when computing the normalmap. May be one of `"wrap"`, `"wrapx"`, or `"wrapy"`. Dosn't wrap if unset.
 		* `swizzle`: string of `R`, `G`, `B`, `A`, or `X` values to swizzle the color channels.
 		* `rotate`: angle to rotate. Must be a multile of 90 degrees in the range \[-270, 270\].
 		* `alpha`: the alpha mode to use. Must be: `"none"`, `"standard"`, `"pre-multiplied"`, or `"encoded"`. Default value is `"standard"`.
