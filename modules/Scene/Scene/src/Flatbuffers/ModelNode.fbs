@@ -69,10 +69,17 @@ table DrawIndexedRange
 }
 
 // Union for the draw range within a model.
-union ModelDrawRange
+union ModelDrawRangeUnion
 {
 	DrawRange,
 	DrawIndexedRange
+}
+
+// Struct containing the draw range union.
+table ModelDrawRange
+{
+	// The draw range.
+	drawRange : ModelDrawRangeUnion (required);
 }
 
 // Struct describing what to draw inside a model node.
@@ -81,11 +88,11 @@ table ModelInfo
 	// The name of the model.
 	name : string;
 
-	// The name of the shader to draw with.
-	shader : string (required);
+	// The name of the shader to draw with. This may be empty if only used for cloning.
+	shader : string;
 
-	// The name of the material to draw with.
-	material : string (required);
+	// The name of the material to draw with. This may be empty if only used for cloning.
+	material : string;
 
 	// The name of the geometry to draw.
 	geometry : string (required);
@@ -93,14 +100,14 @@ table ModelInfo
 	// The distance range to draw the model.
 	distanceRange : Vector2f (required);
 
-	// The draw range to draw within the geometry.
-	drawRange : ModelDrawRange (required);
+	// The draw ranges to draw within the geometry.
+	drawRanges : [ModelDrawRange] (required);
 
 	// The primitive type to draw with.
 	primitiveType : PrimitiveType;
 
-	// The name of the list to use the model with.
-	listName : string (required);
+	// The name of the list to use the model with. This may be empty if only used for cloning.
+	listName : string;
 }
 
 // Struct describing a model scene node.

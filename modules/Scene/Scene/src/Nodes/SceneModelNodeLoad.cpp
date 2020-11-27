@@ -68,12 +68,28 @@ dsSceneNode* dsSceneModelNode_load(const dsSceneLoadContext* loadContext,
 	uint32_t extraItemCount = 0;
 	const char** extraItems = nullptr;
 	uint32_t modelInfoCount = fbModelInfos->size();
+	uint32_t drawRangeCount = 0;
 	dsSceneModelInitInfo* modelInfos = nullptr;
+	dsSceneModelDrawRange* drawRanges = nullptr;
+
+	for (uint32_t i = 0; i < modelInfoCount; ++i)
+	{
+		auto fbModelInfo = (*fbModelInfos)[i];
+		if (!fbModelInfo)
+		{
+			errno = EFORMAT;
+			DS_LOG_ERROR(DS_SCENE_LOG_TAG, "Model info item is null.");
+			return nullptr;
+		}
+
+		drawRangeCount += (*fbModelInfos)[i]->drawRanges()->size();
+	}
 
 	dsAllocator* scratchAllocator = dsSceneLoadScratchData_getAllocator(scratchData);
 	DS_ASSERT(scratchAllocator);
 
-	size_t tempSize = DS_ALIGNED_SIZE(modelInfoCount*sizeof(dsSceneModelInitInfo));
+	size_t tempSize = DS_ALIGNED_SIZE(modelInfoCount*sizeof(dsSceneModelInitInfo)) +
+		DS_ALIGNED_SIZE(drawRangeCount*sizeof(dsSceneModelDrawRange));
 	if (fbExtraItemLists && fbExtraItemLists->size() > 0)
 		tempSize += DS_ALIGNED_SIZE(fbExtraItemLists->size()*sizeof(const char*));
 	void* tempBuffer = dsAllocator_alloc(scratchAllocator, tempSize);
@@ -104,15 +120,12 @@ dsSceneNode* dsSceneModelNode_load(const dsSceneLoadContext* loadContext,
 
 	modelInfos = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsSceneModelInitInfo, modelInfoCount);
 	DS_ASSERT(modelInfos);
+	drawRanges = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsSceneModelDrawRange, drawRangeCount);
+	DS_ASSERT(drawRanges);
 	for (uint32_t i = 0; i < modelInfoCount; ++i)
 	{
 		auto fbModelInfo = (*fbModelInfos)[i];
-		if (!fbModelInfo)
-		{
-			errno = EFORMAT;
-			DS_LOG_ERROR(DS_SCENE_LOG_TAG, "Model info item name is null.");
-			goto finished;
-		}
+		DS_ASSERT(fbModelInfo);
 
 		// NOTE: ENOTFOUND not set when the type doesn't match, so set it manually.
 		dsSceneModelInitInfo* modelInfo = modelInfos + i;
@@ -154,25 +167,61 @@ dsSceneNode* dsSceneModelNode_load(const dsSceneLoadContext* loadContext,
 		}
 
 		modelInfo->distanceRange = DeepSeaScene::convert(*fbModelInfo->distanceRange());
-		if (auto fbDrawRange = fbModelInfo->drawRange_as_DrawRange())
+
+		auto fbDrawRanges = fbModelInfo->drawRanges();
+		modelInfo->drawRangeCount = fbDrawRanges->size();
+		modelInfo->drawRanges = drawRanges;
+		drawRanges += modelInfo->drawRangeCount;
+		for (uint32_t j = 0; j < modelInfo->drawRangeCount; ++j)
 		{
-			modelInfo->drawRange.vertexCount = fbDrawRange->vertexCount();
-			modelInfo->drawRange.instanceCount = fbDrawRange->instanceCount();
-			modelInfo->drawRange.firstVertex = fbDrawRange->firstVertex();
-			modelInfo->drawRange.firstInstance = fbDrawRange->firstInstance();
-		}
-		else if (auto fbDrawIndexedRarnge = fbModelInfo->drawRange_as_DrawIndexedRange())
-		{
-			modelInfo->drawIndexedRange.indexCount = fbDrawIndexedRarnge->indexCount();
-			modelInfo->drawIndexedRange.instanceCount = fbDrawIndexedRarnge->instanceCount();
-			modelInfo->drawIndexedRange.firstIndex = fbDrawIndexedRarnge->firstIndex();
-			modelInfo->drawIndexedRange.vertexOffset = fbDrawIndexedRarnge->vertexOffset();
-			modelInfo->drawIndexedRange.firstInstance = fbDrawIndexedRarnge->firstInstance();
-		}
-		else
-		{
-			DS_LOG_INFO(DS_SCENE_LOG_TAG, "No valid model draw range.");
-			goto finished;
+			auto fbModelDrawRange = (*fbDrawRanges)[j];
+			if (!fbModelDrawRange)
+			{
+				errno = EFORMAT;
+				DS_LOG_INFO(DS_SCENE_LOG_TAG, "No valid model draw range.");
+				goto finished;
+			}
+
+			if (auto fbDrawRange = fbModelDrawRange->drawRange_as_DrawRange())
+			{
+				if (modelInfo->geometry->indexBuffer.buffer)
+				{
+					errno = EFORMAT;
+					DS_LOG_INFO(DS_SCENE_LOG_TAG,
+						"Cannot use a DrawRange with geometry with an index buffer.");
+					goto finished;
+				}
+
+				auto drawRange = const_cast<dsDrawRange*>(&modelInfo->drawRanges[i].drawRange);
+				drawRange->vertexCount = fbDrawRange->vertexCount();
+				drawRange->instanceCount = fbDrawRange->instanceCount();
+				drawRange->firstVertex = fbDrawRange->firstVertex();
+				drawRange->firstInstance = fbDrawRange->firstInstance();
+			}
+			else if (auto fbDrawIndexedRarnge = fbModelDrawRange->drawRange_as_DrawIndexedRange())
+			{
+				if (!modelInfo->geometry->indexBuffer.buffer)
+				{
+					errno = EFORMAT;
+					DS_LOG_INFO(DS_SCENE_LOG_TAG,
+						"Cannot use a IndexedDrawRange with geometry without an index buffer.");
+					goto finished;
+				}
+
+				auto drawRange =
+					const_cast<dsDrawIndexedRange*>(&modelInfo->drawRanges[i].drawIndexedRange);
+				drawRange->indexCount = fbDrawIndexedRarnge->indexCount();
+				drawRange->instanceCount = fbDrawIndexedRarnge->instanceCount();
+				drawRange->firstIndex = fbDrawIndexedRarnge->firstIndex();
+				drawRange->vertexOffset = fbDrawIndexedRarnge->vertexOffset();
+				drawRange->firstInstance = fbDrawIndexedRarnge->firstInstance();
+			}
+			else
+			{
+				errno = EFORMAT;
+				DS_LOG_INFO(DS_SCENE_LOG_TAG, "No valid model draw range.");
+				goto finished;
+			}
 		}
 
 		modelInfo->primitiveType = static_cast<dsPrimitiveType>(fbModelInfo->primitiveType());

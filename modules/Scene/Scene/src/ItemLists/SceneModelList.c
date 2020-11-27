@@ -55,11 +55,8 @@ typedef struct DrawItem
 	float flatDistance;
 
 	dsDrawGeometry* geometry;
-	union
-	{
-		dsDrawRange drawRange;
-		dsDrawIndexedRange drawIndexedRange;
-	};
+	const dsSceneModelDrawRange* drawRanges;
+	uint32_t drawRangeCount;
 	dsPrimitiveType primitiveType;
 } DrawItem;
 
@@ -117,6 +114,9 @@ static void addInstances(dsSceneItemList* itemList, const dsView* view, uint32_t
 		for (uint32_t j = 0; j < modelNode->modelCount; ++j)
 		{
 			dsSceneModelInfo* model = modelNode->models + j;
+			if (!model->shader || !model->material)
+				continue;
+
 			if (model->listNameID != itemList->nameID)
 				continue;
 
@@ -135,6 +135,7 @@ static void addInstances(dsSceneItemList* itemList, const dsView* view, uint32_t
 			}
 
 			hasAny = true;
+
 			DrawItem* item = modelList->drawItems + itemIndex;
 			item->shader = model->shader;
 			item->material = model->material;
@@ -142,10 +143,8 @@ static void addInstances(dsSceneItemList* itemList, const dsView* view, uint32_t
 			item->instance = instanceIndex;
 
 			item->geometry = model->geometry;
-			if (item->geometry->indexBuffer.buffer)
-				item->drawIndexedRange = model->drawIndexedRange;
-			else
-				item->drawRange = model->drawRange;
+			item->drawRanges = model->drawRanges;
+			item->drawRangeCount = model->drawRangeCount;
 			item->primitiveType = model->primitiveType;
 		}
 
@@ -284,13 +283,21 @@ static void drawGeometry(dsSceneModelList* modelList, uint32_t drawItemCount, co
 
 		if (drawItem->geometry->indexBuffer.buffer)
 		{
-			DS_CHECK(DS_SCENE_LOG_TAG, dsRenderer_drawIndexed(renderer, commandBuffer,
-				drawItem->geometry, &drawItem->drawIndexedRange, drawItem->primitiveType));
+			for (uint32_t j = 0; j < drawItem->drawRangeCount; ++j)
+			{
+				DS_CHECK(DS_SCENE_LOG_TAG, dsRenderer_drawIndexed(renderer, commandBuffer,
+					drawItem->geometry, &drawItem->drawRanges[j].drawIndexedRange,
+					drawItem->primitiveType));
+			}
 		}
 		else
 		{
-			DS_CHECK(DS_SCENE_LOG_TAG, dsRenderer_draw(renderer, commandBuffer,
-				drawItem->geometry, &drawItem->drawRange, drawItem->primitiveType));
+			for (uint32_t j = 0; j < drawItem->drawRangeCount; ++j)
+			{
+				DS_CHECK(DS_SCENE_LOG_TAG, dsRenderer_draw(renderer, commandBuffer,
+					drawItem->geometry, &drawItem->drawRanges[j].drawRange,
+					drawItem->primitiveType));
+			}
 		}
 	}
 

@@ -38,14 +38,16 @@ static size_t fullAllocSize(size_t structSize, const char** drawLists, uint32_t 
 		dsSceneNode_itemListsAllocSize(drawLists, drawListCount) +
 		DS_ALIGNED_SIZE(sizeof(dsSceneModelInfo)*modelCount) +
 		DS_ALIGNED_SIZE(sizeof(dsSceneResources*)*resourceCount);
+	uint32_t drawRangeCount = 0;
 	for (uint32_t i = 0; i < modelCount; ++i)
 	{
 		const char* name = models[i].name;
 		if (name)
 			fullSize += DS_ALIGNED_SIZE(strlen(name) + 1);
+		drawRangeCount += models[i].drawRangeCount;
 	}
 
-	return fullSize;
+	return fullSize + DS_ALIGNED_SIZE(sizeof(dsSceneModelDrawRange)*drawRangeCount);
 }
 
 static size_t cloneFullAllocSize(size_t structSize, const dsSceneModelNode* model)
@@ -55,14 +57,16 @@ static size_t cloneFullAllocSize(size_t structSize, const dsSceneModelNode* mode
 		dsSceneNode_itemListsAllocSize(node->itemLists, node->itemListCount) +
 		DS_ALIGNED_SIZE(sizeof(dsSceneModelInfo)*model->modelCount) +
 		DS_ALIGNED_SIZE(sizeof(dsSceneResources*)*model->resourceCount);
+	uint32_t drawRangeCount = 0;
 	for (uint32_t i = 0; i < model->modelCount; ++i)
 	{
 		const char* name = model->models[i].name;
 		if (name)
 			fullSize += DS_ALIGNED_SIZE(strlen(name) + 1);
+		drawRangeCount += model->models[i].drawRangeCount;
 	}
 
-	return fullSize;
+	return fullSize + DS_ALIGNED_SIZE(sizeof(dsSceneModelDrawRange)*drawRangeCount);
 }
 
 static void populateItemList(const char** itemLists, uint32_t* hashes, uint32_t* itemListCount,
@@ -139,23 +143,34 @@ dsSceneModelNode* dsSceneModelNode_createBase(dsAllocator* allocator, size_t str
 		return false;
 	}
 
+	uint32_t drawRangeCount = 0;
 	for (uint32_t i = 0; i < modelCount; ++i)
 	{
 		const dsSceneModelInitInfo* model = models + i;
-		if (!model->shader || !model->material || !model->geometry || !model->listName)
+		if (!model->geometry || !model->listName)
 		{
 			errno = EINVAL;
-			DS_LOG_ERROR(DS_SCENE_LOG_TAG, "All scene models must have a valid shader, material, "
-				"geometry, and draw list name.");
+			DS_LOG_ERROR(DS_SCENE_LOG_TAG,
+				"All scene models must have a valid geometry and draw list name.");
 			return NULL;
 		}
 
-		if (model->shader->materialDesc != dsMaterial_getDescription(model->material))
+		if (model->shader && model->material &&
+			model->shader->materialDesc != dsMaterial_getDescription(model->material))
 		{
 			errno = EPERM;
-			DS_LOG_ERROR(DS_SCENE_LOG_TAG, "Shader and material are incompatible.");
+			DS_LOG_ERROR(DS_SCENE_LOG_TAG, "Model shader and material are incompatible.");
 			return NULL;
 		}
+
+		if (!model->drawRanges || model->drawRangeCount == 0)
+		{
+			errno = EINVAL;
+			DS_LOG_ERROR_F(DS_SCENE_LOG_TAG, "Model doesn't have any draw ranges.");
+			return NULL;
+		}
+
+		drawRangeCount += model->drawRangeCount;
 	}
 
 	for (uint32_t i = 0; i < resourceCount; ++i)
@@ -239,6 +254,9 @@ dsSceneModelNode* dsSceneModelNode_createBase(dsAllocator* allocator, size_t str
 
 	node->models = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsSceneModelInfo, modelCount);
 	DS_ASSERT(node->models);
+	dsSceneModelDrawRange* drawRanges = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc,
+		dsSceneModelDrawRange, drawRangeCount);
+	DS_ASSERT(drawRanges);
 	for (uint32_t i = 0; i < modelCount; ++i)
 	{
 		const dsSceneModelInitInfo* initInfo = models + i;
@@ -256,10 +274,11 @@ dsSceneModelNode* dsSceneModelNode_createBase(dsAllocator* allocator, size_t str
 		model->material = initInfo->material;
 		model->geometry = initInfo->geometry;
 		model->distanceRange = initInfo->distanceRange;
-		if (model->geometry->indexBuffer.buffer)
-			model->drawIndexedRange = initInfo->drawIndexedRange;
-		else
-			model->drawRange = initInfo->drawRange;
+		model->drawRanges = drawRanges;
+		model->drawRangeCount = initInfo->drawRangeCount;
+		memcpy((void*)model->drawRanges, initInfo->drawRanges,
+			sizeof(dsSceneModelDrawRange)*initInfo->drawRangeCount);
+		drawRanges += model->drawRangeCount;
 		model->primitiveType = initInfo->primitiveType;
 		model->listNameID = dsHashString(initInfo->listName);
 	}
@@ -314,6 +333,10 @@ dsSceneModelNode* dsSceneModelNode_cloneBase(dsAllocator* allocator, size_t stru
 		}
 	}
 
+	uint32_t drawRangeCount = 0;
+	for (uint32_t i = 0; i < origModel->modelCount; ++i)
+		drawRangeCount += origModel->models[i].drawRangeCount;
+
 	size_t fullSize = cloneFullAllocSize(structSize, origModel);
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
@@ -352,6 +375,9 @@ dsSceneModelNode* dsSceneModelNode_cloneBase(dsAllocator* allocator, size_t stru
 
 	node->models = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsSceneModelInfo, origModel->modelCount);
 	DS_ASSERT(node->models);
+	dsSceneModelDrawRange* drawRanges = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc,
+		dsSceneModelDrawRange, drawRangeCount);
+	DS_ASSERT(drawRanges);
 	for (uint32_t i = 0; i < origModel->modelCount; ++i)
 	{
 		dsSceneModelInfo* model = node->models + i;
@@ -365,6 +391,11 @@ dsSceneModelNode* dsSceneModelNode_cloneBase(dsAllocator* allocator, size_t stru
 		}
 		else
 			model->name = NULL;
+
+		model->drawRanges = drawRanges;
+		memcpy((void*)model->drawRanges, origModel->models[i].drawRanges,
+			model->drawRangeCount*sizeof(dsSceneModelDrawRange));
+		drawRanges += model->drawRangeCount;
 	}
 	node->modelCount = origModel->modelCount;
 

@@ -21,7 +21,7 @@ namespace DeepSeaScene;
 // Struct describing a remapping of a new shader and material for a model.
 table MaterialRemap
 {
-	// brief The name of the model to replace the material.
+	// The name of the model to replace the material.
 	name : string (required);
 
 	// The new shader to use, or unset to leave the same.

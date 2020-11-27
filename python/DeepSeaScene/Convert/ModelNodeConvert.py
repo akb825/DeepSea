@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import base64
-from copy import copy
 import json
 import os
 from subprocess import Popen, PIPE
@@ -24,6 +23,7 @@ from ..DrawIndexedRange import *
 from ..DrawRange import *
 from ..FormatDecoration import *
 from ..ModelDrawRange import *
+from ..ModelDrawRangeUnion import *
 from ..ModelInfo import *
 from ..ModelNode import *
 from ..OrientedBox3f import *
@@ -406,26 +406,25 @@ def convertModelNodeGeometry(convertContext, modelGeometry, embeddedResources):
 				modelInfo.primitiveType = getattr(PrimitiveType, baseGeometry.primitiveType)
 
 				if baseGeometry.indexBuffers:
+					modelInfo.drawRanges = []
 					for indexBuffer in baseGeometry.indexBuffers:
-						curModelInfo = copy(modelInfo)
 						drawRange = Object()
-						drawRange.rangeType = ModelDrawRange.DrawIndexedRange
+						drawRange.rangeType = ModelDrawRangeUnion.DrawIndexedRange
 						drawRange.indexCount = indexBuffer.indexCount
 						drawRange.instanceCount = 1
 						drawRange.firstIndex = indexBuffer.firstIndex
 						drawRange.vertexOffset = indexBuffer.vertexOffset
 						drawRange.firstInstance = 0
-						curModelInfo.drawRange = drawRange
-						models.append(curModelInfo)
+						modelInfo.drawRanges.append(drawRange)
 				else:
 					drawRange = Object()
-					drawRange.rangeType = ModelDrawRange.DrawRange
+					drawRange.rangeType = ModelDrawRangeUnion.DrawRange
 					drawRange.vertexCount = baseGeometry.vertexCount
 					drawRange.instanceCount = 1
 					drawRange.firstVertex = 0
 					drawRange.firstInstance = 1
-					modelInfo.drawRange = drawRange
-					models.append(modelInfo)
+					modelInfo.drawRanges = [drawRange]
+				models.append(modelInfo)
 	except (TypeError, ValueError):
 		raise Exception('ModelNode "modelGeometry" must be an array of objects.')
 
@@ -459,13 +458,13 @@ def convertModelNodeModels(modelInfoList):
 			hasIndexCount = 'indexCount' in drawRangeInfo
 			hasVertexCount = 'vertexCount' in drawRangeInfo
 			if hasIndexCount and not hasVertexCount:
-				drawRange.rangeType = ModelDrawRange.DrawIndexedRange
+				drawRange.rangeType = ModelDrawRangeUnion.DrawIndexedRange
 				drawRange.indexCount = readInt(drawRangeInfo['indexCount'], 'indexCount', 1)
 				drawRange.firstIndex = readInt(drawRangeInfo.get('firstIndex', 0), 'firstIndex', 0)
 				drawRange.vertexOffset = readInt(drawRangeInfo.get('vertexOffset', 0),
 					'vertexOffset', 0)
 			elif not hasIndexCount and hasVertexCount:
-				drawRange.rangeType = ModelDrawRange.DrawRange
+				drawRange.rangeType = ModelDrawRangeUnion.DrawRange
 				drawRange.vertexCount = readInt(drawRangeInfo['vertexCount'], 'vertexCount', 1)
 				drawRange.firstVertex = readInt(drawRangeInfo.get('firstVertex', 0),
 					'firstVertex', 0)
@@ -494,7 +493,14 @@ def convertModelNodeModels(modelInfoList):
 				model.geometry = info['geometry']
 				model.distanceRange = info.get('distanceRange', [0.0, FLT_MAX])
 				validateModelDistanceRange(model.distanceRange)
-				model.drawRange = convertDrawRange(info['drawRange'])
+
+				model.drawRanges = []
+				drawRangeInfos = info['drawRanges']
+				try:
+					for drawRangeInfo in drawRangeInfos:
+						model.drawRanges.append(convertDrawRange(drawRangeInfo))
+				except (TypeError, ValueError):
+					raise Exception('Model "drawRanges" must be an array of objects.')
 
 				primitiveTypeStr = info.get('primitiveType', 'TriangleList')
 				try:
@@ -555,8 +561,8 @@ def convertModelNode(convertContext, data):
 	  - geometry: the name of the geometry to draw.
 	  - distanceRange: array of two floats for the minimum and maximum distance to draw at. Defaults
 	    to [0, 3.402823466e38].
-	  - drawRange: the range of the geometry to draw. This is an object with the following members,
-	    depending on if the geometry is indexed or not:
+	  - drawRanges: the array of ranges of the geometry to draw. This is an array of object with the
+	    following members, depending on if the geometry is indexed or not:
 	    Indexed geometry:
 	    - indexCount: the number of indices to draw.
 	    - instanceCount: the number of instances to draw. Defaults to 1.
@@ -644,22 +650,34 @@ def convertModelNode(convertContext, data):
 		materialOffset = builder.CreateString(model.material)
 		geometryOffset = builder.CreateString(model.geometry)
 
-		drawRange = model.drawRange
-		if drawRange.rangeType == ModelDrawRange.DrawIndexedRange:
-			DrawIndexedRangeStart(builder)
-			DrawIndexedRangeAddIndexCount(builder, drawRange.indexCount)
-			DrawIndexedRangeAddInstanceCount(builder, drawRange.instanceCount)
-			DrawIndexedRangeAddFirstIndex(builder, drawRange.firstIndex)
-			DrawIndexedRangeAddVertexOffset(builder, drawRange.vertexOffset)
-			DrawIndexedRangeAddFirstInstance(builder, drawRange.firstInstance)
-			drawRangeOffset = DrawIndexedRangeEnd(builder)
-		else:
-			DrawRangeStart(builder)
-			DrawRangeAddVertexCount(builder, drawRange.vertexCount)
-			DrawRangeAddInstanceCount(builder, drawRange.instanceCount)
-			DrawRangeAddFirstVertex(builder, drawRange.firstVertex)
-			DrawRangeAddFirstInstance(builder, drawRange.firstInstance)
-			drawRangeOffset = DrawRangeEnd(builder)
+		drawRanges = model.drawRanges
+		drawRangesOffsets = []
+		for drawRange in drawRanges:
+			if drawRange.rangeType == ModelDrawRangeUnion.DrawIndexedRange:
+				DrawIndexedRangeStart(builder)
+				DrawIndexedRangeAddIndexCount(builder, drawRange.indexCount)
+				DrawIndexedRangeAddInstanceCount(builder, drawRange.instanceCount)
+				DrawIndexedRangeAddFirstIndex(builder, drawRange.firstIndex)
+				DrawIndexedRangeAddVertexOffset(builder, drawRange.vertexOffset)
+				DrawIndexedRangeAddFirstInstance(builder, drawRange.firstInstance)
+				drawRangeOffset = DrawIndexedRangeEnd(builder)
+			else:
+				DrawRangeStart(builder)
+				DrawRangeAddVertexCount(builder, drawRange.vertexCount)
+				DrawRangeAddInstanceCount(builder, drawRange.instanceCount)
+				DrawRangeAddFirstVertex(builder, drawRange.firstVertex)
+				DrawRangeAddFirstInstance(builder, drawRange.firstInstance)
+				drawRangeOffset = DrawRangeEnd(builder)
+
+			ModelDrawRangeStart(builder)
+			ModelDrawRangeAddDrawRangeType(builder, drawRange.rangeType)
+			ModelDrawRangeAddDrawRange(builder, drawRangeOffset)
+			drawRangesOffsets.append(ModelDrawRangeEnd(builder))
+
+		ModelInfoStartDrawRangesVector(builder, len(drawRangesOffsets))
+		for offset in reversed(drawRangesOffsets):
+			builder.PrependUOffsetTRelative(offset)
+		drawRangesOffset = builder.EndVector(len(drawRangesOffsets))
 
 		listNameOffset = builder.CreateString(model.listName)
 
@@ -670,8 +688,7 @@ def convertModelNode(convertContext, data):
 		ModelInfoAddGeometry(builder, geometryOffset)
 		ModelInfoAddDistanceRange(builder, CreateVector2f(builder, model.distanceRange[0],
 			model.distanceRange[1]))
-		ModelInfoAddDrawRangeType(builder, drawRange.rangeType)
-		ModelInfoAddDrawRange(builder, drawRangeOffset)
+		ModelInfoAddDrawRanges(builder, drawRangesOffset)
 		ModelInfoAddPrimitiveType(builder, model.primitiveType)
 		ModelInfoAddListName(builder, listNameOffset)
 		modelOffsets.append(ModelInfoEnd(builder))

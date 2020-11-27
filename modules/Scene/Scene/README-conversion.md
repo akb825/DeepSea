@@ -160,7 +160,7 @@ Model nodes have the type string "ModelNode" and contains the following data mem
 	* `material`: the name of the material to draw with.
 	* `geometry`: the name of the geometry to draw.
 	* `distanceRange`: array of two floats for the minimum and maximum distance to draw at. Defaults to `[0, 3.402823466e38]`.
-	* `drawRange`: the range of the geometry to draw. This is an object with the following members, depending on if the geometry is indexed or not:
+	* `drawRanges`: the array of ranges of the geometry to draw. This is an array of object with the following members, depending on if the geometry is indexed or not:
 	    * Indexed geometry:
 			* `indexCount`: the number of indices to draw.
 			* `instanceCount`: the number of instances to draw. Defaults to 1.

@@ -16,6 +16,9 @@ struct DrawRangeBuilder;
 struct DrawIndexedRange;
 struct DrawIndexedRangeBuilder;
 
+struct ModelDrawRange;
+struct ModelDrawRangeBuilder;
+
 struct ModelInfo;
 struct ModelInfoBuilder;
 
@@ -76,7 +79,7 @@ inline const char *EnumNamePrimitiveType(PrimitiveType e) {
   return EnumNamesPrimitiveType()[index];
 }
 
-enum class ModelDrawRange : uint8_t {
+enum class ModelDrawRangeUnion : uint8_t {
   NONE = 0,
   DrawRange = 1,
   DrawIndexedRange = 2,
@@ -84,16 +87,16 @@ enum class ModelDrawRange : uint8_t {
   MAX = DrawIndexedRange
 };
 
-inline const ModelDrawRange (&EnumValuesModelDrawRange())[3] {
-  static const ModelDrawRange values[] = {
-    ModelDrawRange::NONE,
-    ModelDrawRange::DrawRange,
-    ModelDrawRange::DrawIndexedRange
+inline const ModelDrawRangeUnion (&EnumValuesModelDrawRangeUnion())[3] {
+  static const ModelDrawRangeUnion values[] = {
+    ModelDrawRangeUnion::NONE,
+    ModelDrawRangeUnion::DrawRange,
+    ModelDrawRangeUnion::DrawIndexedRange
   };
   return values;
 }
 
-inline const char * const *EnumNamesModelDrawRange() {
+inline const char * const *EnumNamesModelDrawRangeUnion() {
   static const char * const names[4] = {
     "NONE",
     "DrawRange",
@@ -103,26 +106,26 @@ inline const char * const *EnumNamesModelDrawRange() {
   return names;
 }
 
-inline const char *EnumNameModelDrawRange(ModelDrawRange e) {
-  if (flatbuffers::IsOutRange(e, ModelDrawRange::NONE, ModelDrawRange::DrawIndexedRange)) return "";
+inline const char *EnumNameModelDrawRangeUnion(ModelDrawRangeUnion e) {
+  if (flatbuffers::IsOutRange(e, ModelDrawRangeUnion::NONE, ModelDrawRangeUnion::DrawIndexedRange)) return "";
   const size_t index = static_cast<size_t>(e);
-  return EnumNamesModelDrawRange()[index];
+  return EnumNamesModelDrawRangeUnion()[index];
 }
 
-template<typename T> struct ModelDrawRangeTraits {
-  static const ModelDrawRange enum_value = ModelDrawRange::NONE;
+template<typename T> struct ModelDrawRangeUnionTraits {
+  static const ModelDrawRangeUnion enum_value = ModelDrawRangeUnion::NONE;
 };
 
-template<> struct ModelDrawRangeTraits<DeepSeaScene::DrawRange> {
-  static const ModelDrawRange enum_value = ModelDrawRange::DrawRange;
+template<> struct ModelDrawRangeUnionTraits<DeepSeaScene::DrawRange> {
+  static const ModelDrawRangeUnion enum_value = ModelDrawRangeUnion::DrawRange;
 };
 
-template<> struct ModelDrawRangeTraits<DeepSeaScene::DrawIndexedRange> {
-  static const ModelDrawRange enum_value = ModelDrawRange::DrawIndexedRange;
+template<> struct ModelDrawRangeUnionTraits<DeepSeaScene::DrawIndexedRange> {
+  static const ModelDrawRangeUnion enum_value = ModelDrawRangeUnion::DrawIndexedRange;
 };
 
-bool VerifyModelDrawRange(flatbuffers::Verifier &verifier, const void *obj, ModelDrawRange type);
-bool VerifyModelDrawRangeVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<uint8_t> *types);
+bool VerifyModelDrawRangeUnion(flatbuffers::Verifier &verifier, const void *obj, ModelDrawRangeUnion type);
+bool VerifyModelDrawRangeUnionVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<uint8_t> *types);
 
 struct DrawRange FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef DrawRangeBuilder Builder;
@@ -278,6 +281,75 @@ inline flatbuffers::Offset<DrawIndexedRange> CreateDrawIndexedRange(
   return builder_.Finish();
 }
 
+struct ModelDrawRange FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef ModelDrawRangeBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_DRAWRANGE_TYPE = 4,
+    VT_DRAWRANGE = 6
+  };
+  DeepSeaScene::ModelDrawRangeUnion drawRange_type() const {
+    return static_cast<DeepSeaScene::ModelDrawRangeUnion>(GetField<uint8_t>(VT_DRAWRANGE_TYPE, 0));
+  }
+  const void *drawRange() const {
+    return GetPointer<const void *>(VT_DRAWRANGE);
+  }
+  template<typename T> const T *drawRange_as() const;
+  const DeepSeaScene::DrawRange *drawRange_as_DrawRange() const {
+    return drawRange_type() == DeepSeaScene::ModelDrawRangeUnion::DrawRange ? static_cast<const DeepSeaScene::DrawRange *>(drawRange()) : nullptr;
+  }
+  const DeepSeaScene::DrawIndexedRange *drawRange_as_DrawIndexedRange() const {
+    return drawRange_type() == DeepSeaScene::ModelDrawRangeUnion::DrawIndexedRange ? static_cast<const DeepSeaScene::DrawIndexedRange *>(drawRange()) : nullptr;
+  }
+  bool Verify(flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyField<uint8_t>(verifier, VT_DRAWRANGE_TYPE) &&
+           VerifyOffsetRequired(verifier, VT_DRAWRANGE) &&
+           VerifyModelDrawRangeUnion(verifier, drawRange(), drawRange_type()) &&
+           verifier.EndTable();
+  }
+};
+
+template<> inline const DeepSeaScene::DrawRange *ModelDrawRange::drawRange_as<DeepSeaScene::DrawRange>() const {
+  return drawRange_as_DrawRange();
+}
+
+template<> inline const DeepSeaScene::DrawIndexedRange *ModelDrawRange::drawRange_as<DeepSeaScene::DrawIndexedRange>() const {
+  return drawRange_as_DrawIndexedRange();
+}
+
+struct ModelDrawRangeBuilder {
+  typedef ModelDrawRange Table;
+  flatbuffers::FlatBufferBuilder &fbb_;
+  flatbuffers::uoffset_t start_;
+  void add_drawRange_type(DeepSeaScene::ModelDrawRangeUnion drawRange_type) {
+    fbb_.AddElement<uint8_t>(ModelDrawRange::VT_DRAWRANGE_TYPE, static_cast<uint8_t>(drawRange_type), 0);
+  }
+  void add_drawRange(flatbuffers::Offset<void> drawRange) {
+    fbb_.AddOffset(ModelDrawRange::VT_DRAWRANGE, drawRange);
+  }
+  explicit ModelDrawRangeBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ModelDrawRangeBuilder &operator=(const ModelDrawRangeBuilder &);
+  flatbuffers::Offset<ModelDrawRange> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = flatbuffers::Offset<ModelDrawRange>(end);
+    fbb_.Required(o, ModelDrawRange::VT_DRAWRANGE);
+    return o;
+  }
+};
+
+inline flatbuffers::Offset<ModelDrawRange> CreateModelDrawRange(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    DeepSeaScene::ModelDrawRangeUnion drawRange_type = DeepSeaScene::ModelDrawRangeUnion::NONE,
+    flatbuffers::Offset<void> drawRange = 0) {
+  ModelDrawRangeBuilder builder_(_fbb);
+  builder_.add_drawRange(drawRange);
+  builder_.add_drawRange_type(drawRange_type);
+  return builder_.Finish();
+}
+
 struct ModelInfo FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef ModelInfoBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
@@ -286,10 +358,9 @@ struct ModelInfo FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_MATERIAL = 8,
     VT_GEOMETRY = 10,
     VT_DISTANCERANGE = 12,
-    VT_DRAWRANGE_TYPE = 14,
-    VT_DRAWRANGE = 16,
-    VT_PRIMITIVETYPE = 18,
-    VT_LISTNAME = 20
+    VT_DRAWRANGES = 14,
+    VT_PRIMITIVETYPE = 16,
+    VT_LISTNAME = 18
   };
   const flatbuffers::String *name() const {
     return GetPointer<const flatbuffers::String *>(VT_NAME);
@@ -306,18 +377,8 @@ struct ModelInfo FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const DeepSeaScene::Vector2f *distanceRange() const {
     return GetStruct<const DeepSeaScene::Vector2f *>(VT_DISTANCERANGE);
   }
-  DeepSeaScene::ModelDrawRange drawRange_type() const {
-    return static_cast<DeepSeaScene::ModelDrawRange>(GetField<uint8_t>(VT_DRAWRANGE_TYPE, 0));
-  }
-  const void *drawRange() const {
-    return GetPointer<const void *>(VT_DRAWRANGE);
-  }
-  template<typename T> const T *drawRange_as() const;
-  const DeepSeaScene::DrawRange *drawRange_as_DrawRange() const {
-    return drawRange_type() == DeepSeaScene::ModelDrawRange::DrawRange ? static_cast<const DeepSeaScene::DrawRange *>(drawRange()) : nullptr;
-  }
-  const DeepSeaScene::DrawIndexedRange *drawRange_as_DrawIndexedRange() const {
-    return drawRange_type() == DeepSeaScene::ModelDrawRange::DrawIndexedRange ? static_cast<const DeepSeaScene::DrawIndexedRange *>(drawRange()) : nullptr;
+  const flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::ModelDrawRange>> *drawRanges() const {
+    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::ModelDrawRange>> *>(VT_DRAWRANGES);
   }
   DeepSeaScene::PrimitiveType primitiveType() const {
     return static_cast<DeepSeaScene::PrimitiveType>(GetField<uint8_t>(VT_PRIMITIVETYPE, 0));
@@ -329,30 +390,22 @@ struct ModelInfo FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_NAME) &&
            verifier.VerifyString(name()) &&
-           VerifyOffsetRequired(verifier, VT_SHADER) &&
+           VerifyOffset(verifier, VT_SHADER) &&
            verifier.VerifyString(shader()) &&
-           VerifyOffsetRequired(verifier, VT_MATERIAL) &&
+           VerifyOffset(verifier, VT_MATERIAL) &&
            verifier.VerifyString(material()) &&
            VerifyOffsetRequired(verifier, VT_GEOMETRY) &&
            verifier.VerifyString(geometry()) &&
            VerifyFieldRequired<DeepSeaScene::Vector2f>(verifier, VT_DISTANCERANGE) &&
-           VerifyField<uint8_t>(verifier, VT_DRAWRANGE_TYPE) &&
-           VerifyOffsetRequired(verifier, VT_DRAWRANGE) &&
-           VerifyModelDrawRange(verifier, drawRange(), drawRange_type()) &&
+           VerifyOffsetRequired(verifier, VT_DRAWRANGES) &&
+           verifier.VerifyVector(drawRanges()) &&
+           verifier.VerifyVectorOfTables(drawRanges()) &&
            VerifyField<uint8_t>(verifier, VT_PRIMITIVETYPE) &&
-           VerifyOffsetRequired(verifier, VT_LISTNAME) &&
+           VerifyOffset(verifier, VT_LISTNAME) &&
            verifier.VerifyString(listName()) &&
            verifier.EndTable();
   }
 };
-
-template<> inline const DeepSeaScene::DrawRange *ModelInfo::drawRange_as<DeepSeaScene::DrawRange>() const {
-  return drawRange_as_DrawRange();
-}
-
-template<> inline const DeepSeaScene::DrawIndexedRange *ModelInfo::drawRange_as<DeepSeaScene::DrawIndexedRange>() const {
-  return drawRange_as_DrawIndexedRange();
-}
 
 struct ModelInfoBuilder {
   typedef ModelInfo Table;
@@ -373,11 +426,8 @@ struct ModelInfoBuilder {
   void add_distanceRange(const DeepSeaScene::Vector2f *distanceRange) {
     fbb_.AddStruct(ModelInfo::VT_DISTANCERANGE, distanceRange);
   }
-  void add_drawRange_type(DeepSeaScene::ModelDrawRange drawRange_type) {
-    fbb_.AddElement<uint8_t>(ModelInfo::VT_DRAWRANGE_TYPE, static_cast<uint8_t>(drawRange_type), 0);
-  }
-  void add_drawRange(flatbuffers::Offset<void> drawRange) {
-    fbb_.AddOffset(ModelInfo::VT_DRAWRANGE, drawRange);
+  void add_drawRanges(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::ModelDrawRange>>> drawRanges) {
+    fbb_.AddOffset(ModelInfo::VT_DRAWRANGES, drawRanges);
   }
   void add_primitiveType(DeepSeaScene::PrimitiveType primitiveType) {
     fbb_.AddElement<uint8_t>(ModelInfo::VT_PRIMITIVETYPE, static_cast<uint8_t>(primitiveType), 0);
@@ -393,12 +443,9 @@ struct ModelInfoBuilder {
   flatbuffers::Offset<ModelInfo> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<ModelInfo>(end);
-    fbb_.Required(o, ModelInfo::VT_SHADER);
-    fbb_.Required(o, ModelInfo::VT_MATERIAL);
     fbb_.Required(o, ModelInfo::VT_GEOMETRY);
     fbb_.Required(o, ModelInfo::VT_DISTANCERANGE);
-    fbb_.Required(o, ModelInfo::VT_DRAWRANGE);
-    fbb_.Required(o, ModelInfo::VT_LISTNAME);
+    fbb_.Required(o, ModelInfo::VT_DRAWRANGES);
     return o;
   }
 };
@@ -410,20 +457,18 @@ inline flatbuffers::Offset<ModelInfo> CreateModelInfo(
     flatbuffers::Offset<flatbuffers::String> material = 0,
     flatbuffers::Offset<flatbuffers::String> geometry = 0,
     const DeepSeaScene::Vector2f *distanceRange = 0,
-    DeepSeaScene::ModelDrawRange drawRange_type = DeepSeaScene::ModelDrawRange::NONE,
-    flatbuffers::Offset<void> drawRange = 0,
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::ModelDrawRange>>> drawRanges = 0,
     DeepSeaScene::PrimitiveType primitiveType = DeepSeaScene::PrimitiveType::PointList,
     flatbuffers::Offset<flatbuffers::String> listName = 0) {
   ModelInfoBuilder builder_(_fbb);
   builder_.add_listName(listName);
-  builder_.add_drawRange(drawRange);
+  builder_.add_drawRanges(drawRanges);
   builder_.add_distanceRange(distanceRange);
   builder_.add_geometry(geometry);
   builder_.add_material(material);
   builder_.add_shader(shader);
   builder_.add_name(name);
   builder_.add_primitiveType(primitiveType);
-  builder_.add_drawRange_type(drawRange_type);
   return builder_.Finish();
 }
 
@@ -434,14 +479,14 @@ inline flatbuffers::Offset<ModelInfo> CreateModelInfoDirect(
     const char *material = nullptr,
     const char *geometry = nullptr,
     const DeepSeaScene::Vector2f *distanceRange = 0,
-    DeepSeaScene::ModelDrawRange drawRange_type = DeepSeaScene::ModelDrawRange::NONE,
-    flatbuffers::Offset<void> drawRange = 0,
+    const std::vector<flatbuffers::Offset<DeepSeaScene::ModelDrawRange>> *drawRanges = nullptr,
     DeepSeaScene::PrimitiveType primitiveType = DeepSeaScene::PrimitiveType::PointList,
     const char *listName = nullptr) {
   auto name__ = name ? _fbb.CreateString(name) : 0;
   auto shader__ = shader ? _fbb.CreateString(shader) : 0;
   auto material__ = material ? _fbb.CreateString(material) : 0;
   auto geometry__ = geometry ? _fbb.CreateString(geometry) : 0;
+  auto drawRanges__ = drawRanges ? _fbb.CreateVector<flatbuffers::Offset<DeepSeaScene::ModelDrawRange>>(*drawRanges) : 0;
   auto listName__ = listName ? _fbb.CreateString(listName) : 0;
   return DeepSeaScene::CreateModelInfo(
       _fbb,
@@ -450,8 +495,7 @@ inline flatbuffers::Offset<ModelInfo> CreateModelInfoDirect(
       material__,
       geometry__,
       distanceRange,
-      drawRange_type,
-      drawRange,
+      drawRanges__,
       primitiveType,
       listName__);
 }
@@ -551,16 +595,16 @@ inline flatbuffers::Offset<ModelNode> CreateModelNodeDirect(
       bounds);
 }
 
-inline bool VerifyModelDrawRange(flatbuffers::Verifier &verifier, const void *obj, ModelDrawRange type) {
+inline bool VerifyModelDrawRangeUnion(flatbuffers::Verifier &verifier, const void *obj, ModelDrawRangeUnion type) {
   switch (type) {
-    case ModelDrawRange::NONE: {
+    case ModelDrawRangeUnion::NONE: {
       return true;
     }
-    case ModelDrawRange::DrawRange: {
+    case ModelDrawRangeUnion::DrawRange: {
       auto ptr = reinterpret_cast<const DeepSeaScene::DrawRange *>(obj);
       return verifier.VerifyTable(ptr);
     }
-    case ModelDrawRange::DrawIndexedRange: {
+    case ModelDrawRangeUnion::DrawIndexedRange: {
       auto ptr = reinterpret_cast<const DeepSeaScene::DrawIndexedRange *>(obj);
       return verifier.VerifyTable(ptr);
     }
@@ -568,12 +612,12 @@ inline bool VerifyModelDrawRange(flatbuffers::Verifier &verifier, const void *ob
   }
 }
 
-inline bool VerifyModelDrawRangeVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<uint8_t> *types) {
+inline bool VerifyModelDrawRangeUnionVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<uint8_t> *types) {
   if (!values || !types) return !values && !types;
   if (values->size() != types->size()) return false;
   for (flatbuffers::uoffset_t i = 0; i < values->size(); ++i) {
-    if (!VerifyModelDrawRange(
-        verifier,  values->Get(i), types->GetEnum<ModelDrawRange>(i))) {
+    if (!VerifyModelDrawRangeUnion(
+        verifier,  values->Get(i), types->GetEnum<ModelDrawRangeUnion>(i))) {
       return false;
     }
   }

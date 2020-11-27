@@ -199,6 +199,26 @@ typedef struct dsSceneTransformNode
 } dsSceneTransformNode;
 
 /**
+ * @brief Union for the draw range of a model.
+ */
+typedef union dsSceneModelDrawRange
+{
+	/**
+	* @brief The draw range.
+	*
+	* This will be used if geometry doesn't have an index buffer.
+	*/
+	dsDrawRange drawRange;
+
+	/**
+	* @brief The indexed draw range.
+	*
+	* This will be used if geometry has an index buffer.
+	*/
+	dsDrawIndexedRange drawIndexedRange;
+} dsSceneModelDrawRange;
+
+/**
  * @brief Info for what to draw inside a model node when initializing.
  * @see SceneDrawNode.h
  */
@@ -235,22 +255,15 @@ typedef struct dsSceneModelInitInfo
 	 */
 	dsVector2f distanceRange;
 
-	union
-	{
-		/**
-		 * @brief The draw range.
-		 *
-		 * This will be used if geometry doesn't have an index buffer.
-		 */
-		dsDrawRange drawRange;
+	/**
+	 * @brief The draw ranges for the model.
+	 */
+	const dsSceneModelDrawRange* drawRanges;
 
-		/**
-		 * @brief The indexed draw range.
-		 *
-		 * This will be used if geometry has an index buffer.
-		 */
-		dsDrawIndexedRange drawIndexedRange;
-	};
+	/**
+	 * @brief The number of draw ranges.
+	 */
+	uint32_t drawRangeCount;
 
 	/**
 	 * @brief The primitive type for the draw.
@@ -299,22 +312,15 @@ typedef struct dsSceneModelInfo
 	 */
 	dsVector2f distanceRange;
 
-	union
-	{
-		/**
-		 * @brief The draw range.
-		 *
-		 * This will be used if geometry doesn't have an index buffer.
-		 */
-		dsDrawRange drawRange;
+	/**
+	 * @brief The draw ranges for the model.
+	 */
+	const dsSceneModelDrawRange* drawRanges;
 
-		/**
-		 * @brief The indexed draw range.
-		 *
-		 * This will be used if geometry has an index buffer.
-		 */
-		dsDrawIndexedRange drawIndexedRange;
-	};
+	/**
+	 * @brief The number of draw ranges.
+	 */
+	uint32_t drawRangeCount;
 
 	/**
 	 * @brief The primitive type for the draw.

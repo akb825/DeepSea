@@ -60,44 +60,52 @@ class ModelInfo(object):
         return None
 
     # ModelInfo
-    def DrawRangeType(self):
+    def DrawRanges(self, j):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(14))
         if o != 0:
-            return self._tab.Get(flatbuffers.number_types.Uint8Flags, o + self._tab.Pos)
-        return 0
-
-    # ModelInfo
-    def DrawRange(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(16))
-        if o != 0:
-            from flatbuffers.table import Table
-            obj = Table(bytearray(), 0)
-            self._tab.Union(obj, o)
+            x = self._tab.Vector(o)
+            x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * 4
+            x = self._tab.Indirect(x)
+            from DeepSeaScene.ModelDrawRange import ModelDrawRange
+            obj = ModelDrawRange()
+            obj.Init(self._tab.Bytes, x)
             return obj
         return None
 
     # ModelInfo
+    def DrawRangesLength(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(14))
+        if o != 0:
+            return self._tab.VectorLen(o)
+        return 0
+
+    # ModelInfo
+    def DrawRangesIsNone(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(14))
+        return o == 0
+
+    # ModelInfo
     def PrimitiveType(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(18))
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(16))
         if o != 0:
             return self._tab.Get(flatbuffers.number_types.Uint8Flags, o + self._tab.Pos)
         return 0
 
     # ModelInfo
     def ListName(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(20))
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(18))
         if o != 0:
             return self._tab.String(o + self._tab.Pos)
         return None
 
-def ModelInfoStart(builder): builder.StartObject(9)
+def ModelInfoStart(builder): builder.StartObject(8)
 def ModelInfoAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
 def ModelInfoAddShader(builder, shader): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(shader), 0)
 def ModelInfoAddMaterial(builder, material): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(material), 0)
 def ModelInfoAddGeometry(builder, geometry): builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(geometry), 0)
 def ModelInfoAddDistanceRange(builder, distanceRange): builder.PrependStructSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(distanceRange), 0)
-def ModelInfoAddDrawRangeType(builder, drawRangeType): builder.PrependUint8Slot(5, drawRangeType, 0)
-def ModelInfoAddDrawRange(builder, drawRange): builder.PrependUOffsetTRelativeSlot(6, flatbuffers.number_types.UOffsetTFlags.py_type(drawRange), 0)
-def ModelInfoAddPrimitiveType(builder, primitiveType): builder.PrependUint8Slot(7, primitiveType, 0)
-def ModelInfoAddListName(builder, listName): builder.PrependUOffsetTRelativeSlot(8, flatbuffers.number_types.UOffsetTFlags.py_type(listName), 0)
+def ModelInfoAddDrawRanges(builder, drawRanges): builder.PrependUOffsetTRelativeSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(drawRanges), 0)
+def ModelInfoStartDrawRangesVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+def ModelInfoAddPrimitiveType(builder, primitiveType): builder.PrependUint8Slot(6, primitiveType, 0)
+def ModelInfoAddListName(builder, listName): builder.PrependUOffsetTRelativeSlot(7, flatbuffers.number_types.UOffsetTFlags.py_type(listName), 0)
 def ModelInfoEnd(builder): return builder.EndObject()
