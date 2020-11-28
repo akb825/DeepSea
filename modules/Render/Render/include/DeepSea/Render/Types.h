@@ -526,6 +526,14 @@ typedef struct dsRendererOptions
 	uint8_t deviceUUID[DS_DEVICE_UUID_SIZE];
 
 	/**
+	 * @brief The name of the device to use.
+	 *
+	 * This will do a case-insensitive substring search based on the device name. This will be
+	 * performed after searching for the device UUID. If not found, the default device will be used.
+	 */
+	const char* deviceName;
+
+	/**
 	 * @brief The allocator to use for the graphics API when supported.
 	 */
 	dsAllocator* gfxAPIAllocator;

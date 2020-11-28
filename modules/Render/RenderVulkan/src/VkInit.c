@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+#define _GNU_SOURCE // Expose strcasestr for GNU libc.
+
 #include "VkInit.h"
 #include "VkShared.h"
 
@@ -27,6 +29,11 @@
 #include <string.h>
 
 #if DS_WINDOWS
+#include <shlwapi.h>
+#pragma comment(lib, "shlwapi")
+
+#define strcasestr(a, b) StrStrIA(a, b)
+
 #define DS_VULKAN_LIBRARY DS_LIBRARY_NAME("vulkan-1")
 #else
 #define DS_VULKAN_LIBRARY DS_LIBRARY_NAME("vulkan")
@@ -478,8 +485,9 @@ static VkPhysicalDevice findPhysicalDevice(dsVkInstance* instance,
 
 	dsRenderDeviceType defaultDeviceType = dsRenderDeviceType_Unknown;
 	VkPhysicalDevice fallbackDefaultDevice = NULL;
-	VkPhysicalDevice prevDefaultDevice = NULL;
+	VkPhysicalDevice defaultDevice = NULL;
 	VkPhysicalDevice explicitDevice = NULL;
+	VkPhysicalDevice namedDevice = NULL;
 
 	// Find the explicit device.
 	uint32_t deviceCount = 0;
@@ -539,11 +547,17 @@ static VkPhysicalDevice findPhysicalDevice(dsVkInstance* instance,
 			if (memcmp(deviceID.deviceUUID, extraDeviceInfo[defaultPhysicalDevice].uuid,
 					DS_DEVICE_UUID_SIZE) == 0)
 			{
-				prevDefaultDevice = devices[i];
+				defaultDevice = devices[i];
 			}
 
 			if (memcmp(deviceID.deviceUUID, options->deviceUUID, DS_DEVICE_UUID_SIZE) == 0)
 				explicitDevice = devices[i];
+
+			if (options->deviceName && !namedDevice &&
+					strcasestr(properties2.properties.deviceName, options->deviceName))
+			{
+				namedDevice = devices[i];
+			}
 		}
 
 		// Fallback default, used in case the devices have changed for some reason or if device info
@@ -561,8 +575,10 @@ static VkPhysicalDevice findPhysicalDevice(dsVkInstance* instance,
 
 	if (explicitDevice)
 		return explicitDevice;
-	if (prevDefaultDevice)
-		return prevDefaultDevice;
+	if (namedDevice)
+		return namedDevice;
+	if (defaultDevice)
+		return defaultDevice;
 	return fallbackDefaultDevice;
 }
 

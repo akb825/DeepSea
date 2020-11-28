@@ -253,6 +253,7 @@ void dsRenderer_defaultOptions(dsRendererOptions* options, const char* applicati
 	options->maxResourceThreads = 0;
 	options->shaderCacheDir = NULL;
 	memset(options->deviceUUID, 0, sizeof(options->deviceUUID));
+	options->deviceName = NULL;
 	options->gfxAPIAllocator = NULL;
 
 	const char* debugEnv = getenv("DEEPSEA_GRAPHICS_DEBUG");

@@ -82,6 +82,7 @@ static void printHelp(const char* programPath)
 		printf("                                 %s\n",
 			dsRenderBootstrap_rendererName((dsRendererType)i));
 	}
+	printf("  -d, --device <device>        use a graphics device by name\n");
 }
 
 static bool validateAllocator(dsAllocator* allocator, const char* name)
@@ -394,6 +395,7 @@ int dsMain(int argc, const char** argv)
 #endif
 
 	dsRendererType rendererType = dsRendererType_Default;
+	const char* deviceName = NULL;
 	for (int i = 1; i < argc; ++i)
 	{
 		if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0)
@@ -417,6 +419,16 @@ int dsMain(int argc, const char** argv)
 				return 1;
 			}
 		}
+		else if (strcmp(argv[i], "-d") == 0 || strcmp(argv[i], "--device") == 0)
+		{
+			if (i == argc - 1)
+			{
+				printf("--device option requires an argument\n");
+				printHelp(argv[0]);
+				return 1;
+			}
+			deviceName = argv[++i];
+		}
 		else if (*argv[i])
 		{
 			printf("Unknown option: %s\n", argv[i]);
@@ -437,6 +449,7 @@ int dsMain(int argc, const char** argv)
 
 	dsRendererOptions rendererOptions;
 	dsRenderer_defaultOptions(&rendererOptions, "TestVectorDrawScene", 0);
+	rendererOptions.deviceName = deviceName;
 	rendererOptions.maxResourceThreads = 1;
 	dsRenderer* renderer = dsRenderBootstrap_createRenderer(rendererType,
 		(dsAllocator*)&renderAllocator, &rendererOptions);
