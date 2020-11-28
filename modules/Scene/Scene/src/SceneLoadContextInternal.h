@@ -27,7 +27,7 @@ extern "C"
 dsSceneNode* dsSceneModelNode_load(const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
 	void* userData, const uint8_t* data, size_t dataSize);
-dsSceneNode* dsSceneModelNode_loadClone(const dsSceneLoadContext* loadContext,
+dsSceneNode* dsSceneModelNode_loadRemap(const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
 	void* userData, const uint8_t* data, size_t dataSize);
 dsSceneNode* dsSceneNodeRef_load(const dsSceneLoadContext* loadContext,

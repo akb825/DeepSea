@@ -107,7 +107,7 @@ static void populateItemList(const char** itemLists, uint32_t* hashes, uint32_t*
 }
 
 const char* const dsSceneModelNode_typeName = "ModelNode";
-const char* const dsSceneModelNode_cloneTypeName = "ModelNodeClone";
+const char* const dsSceneModelNode_remapTypeName = "ModelNodeRemap";
 
 static dsSceneNodeType nodeType;
 const dsSceneNodeType* dsSceneModelNode_type(void)
@@ -306,14 +306,14 @@ dsSceneModelNode* dsSceneModelNode_createBase(dsAllocator* allocator, size_t str
 	return node;
 }
 
-dsSceneModelNode* dsSceneModelNode_clone(dsAllocator* allocator, const dsSceneModelNode* origModel,
-	const dsSceneMaterialRemap* remaps, uint32_t remapCount)
+dsSceneModelNode* dsSceneModelNode_cloneRemap(dsAllocator* allocator,
+	const dsSceneModelNode* origModel, const dsSceneMaterialRemap* remaps, uint32_t remapCount)
 {
-	return dsSceneModelNode_cloneBase(allocator, sizeof(dsSceneModelNode), origModel, remaps,
+	return dsSceneModelNode_cloneRemapBase(allocator, sizeof(dsSceneModelNode), origModel, remaps,
 		remapCount);
 }
 
-dsSceneModelNode* dsSceneModelNode_cloneBase(dsAllocator* allocator, size_t structSize,
+dsSceneModelNode* dsSceneModelNode_cloneRemapBase(dsAllocator* allocator, size_t structSize,
 	const dsSceneModelNode* origModel, const dsSceneMaterialRemap* remaps, uint32_t remapCount)
 {
 	if (!allocator || structSize < sizeof(dsSceneModelNode) || !origModel ||
@@ -437,11 +437,18 @@ bool dsSceneModelNode_remapMaterials(dsSceneModelNode* node, const dsSceneMateri
 			return false;
 		}
 
+		uint32_t listNameID = 0;
+		if (remap->listName)
+			listNameID = dsHashString(remap->listName);
+
 		for (uint32_t j = 0; j < node->modelCount; ++j)
 		{
 			dsSceneModelInfo* model = node->models + i;
-			if (!model->name || strcmp(model->name, remap->name) != 0)
+			if (!model->name || strcmp(model->name, remap->name) != 0 ||
+				(remap->listName && model->listNameID != listNameID))
+			{
 				continue;
+			}
 
 			if (remap->shader)
 				model->shader = remap->shader;

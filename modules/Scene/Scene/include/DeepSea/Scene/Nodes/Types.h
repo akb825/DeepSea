@@ -385,6 +385,14 @@ typedef struct dsSceneMaterialRemap
 	const char* name;
 
 	/**
+	 * @brief The name of the item list the model is drawn with.
+	 *
+	 * If set, only the model entries that draw to this list will be remapped. If set to NULL, all
+	 * models that match the name will be replaced.
+	 */
+	const char* listName;
+
+	/**
 	 * @brief The new shader to use, or NULL to leave the same.
 	 */
 	dsShader* shader;

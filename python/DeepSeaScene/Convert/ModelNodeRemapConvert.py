@@ -14,16 +14,18 @@
 
 import flatbuffers
 from ..MaterialRemap import *
-from ..ModelNodeClone import *
+from ..ModelNodeRemap import *
 
-def convertModelNodeClone(convertContext, data):
+def convertModelNodeRemap(convertContext, data):
 	"""
-	Converts a ModelNodeClone, which clones an existing model node with optional remapping of
+	Converts a ModelNodeRemap, which clones an existing model node with optional remapping of
 	materials. The data map is expected to contain the following elements:
 	- name: the name of the model node to clone.
 	- materialRemaps: optional array of material remaps to apply. Each element of the array has the
 	  following members:
 	  - name: the name of the model inside the node to replace the material with.
+	  - listName: the name of the item list the model is drawn with. If unset, all models matching
+	    the name will be remapped.
 	  - shader: the name of the shader to use. If unset, the shader will remain unchanged.
 	  - material: the name of the material to use. If unset, the material will remain unchanged.
 	"""
@@ -33,17 +35,18 @@ def convertModelNodeClone(convertContext, data):
 		remaps = []
 		try:
 			for remap in data.get('materialRemaps', []):
-				remaps.append((remap['name'], remap.get('shader'), remap.get('material')))
+				remaps.append((remap['name'], remap.get('listName'), remap.get('shader'),
+					remap.get('material')))
 		except (TypeError, ValueError):
 			raise Exception(
-				'ModelNodeClone "materialRemaps" must be an array of objects.')
+				'ModelNodeRemap "materialRemaps" must be an array of objects.')
 		except KeyError as e:
 			raise Exception(
-				'ModelNodeClone material remaps doesn\'t contain element ' + str(e) + '.')
+				'ModelNodeRemap material remaps doesn\'t contain element ' + str(e) + '.')
 	except (TypeError, ValueError):
-		raise Exception('ModelNodeClone data must be an object.')
+		raise Exception('ModelNodeRemap data must be an object.')
 	except KeyError as e:
-		raise Exception('ModelNodeClone data doesn\'t contain element ' + str(e) + '.')
+		raise Exception('ModelNodeRemap data doesn\'t contain element ' + str(e) + '.')
 
 	builder = flatbuffers.Builder(0)
 
@@ -51,8 +54,13 @@ def convertModelNodeClone(convertContext, data):
 
 	if remaps:
 		remapsOffsets = []
-		for modelName, shader, material in remaps:
+		for modelName, listName, shader, material in remaps:
 			modelNameOffset = builder.CreateString(modelName)
+
+			if listName:
+				listNameOffset = builder.CreateString(listName)
+			else:
+				listNameOffset = 0
 
 			if shader:
 				shaderOffset = builder.CreateString(shader)
@@ -66,19 +74,20 @@ def convertModelNodeClone(convertContext, data):
 
 			MaterialRemapStart(builder)
 			MaterialRemapAddName(builder, modelNameOffset)
+			MaterialRemapAddListName(builder, listNameOffset)
 			MaterialRemapAddShader(builder, shaderOffset)
 			MaterialRemapAddMaterial(builder, materialOffset)
 			remapsOffsets.append(MaterialRemapEnd(builder))
 
-		ModelNodeCloneStartMaterialRemapsVector(builder, len(remapsOffsets))
+		ModelNodeRemapStartMaterialRemapsVector(builder, len(remapsOffsets))
 		for offset in reversed(remapsOffsets):
 			builder.PrependUOffsetTRelative(offset)
 		remapsOffset = builder.EndVector(len(remapsOffsets))
 	else:
 		remapsOffset = 0
 
-	ModelNodeCloneStart(builder)
-	ModelNodeCloneAddName(builder, nameOffset)
-	ModelNodeCloneAddMaterialRemaps(builder, remapsOffset)
-	builder.Finish(ModelNodeCloneEnd(builder))
+	ModelNodeRemapStart(builder)
+	ModelNodeRemapAddName(builder, nameOffset)
+	ModelNodeRemapAddMaterialRemaps(builder, remapsOffset)
+	builder.Finish(ModelNodeRemapEnd(builder))
 	return builder.Output()

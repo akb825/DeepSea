@@ -16,7 +16,7 @@
 
 #include <DeepSea/Scene/Nodes/SceneModelNode.h>
 
-#include "Flatbuffers/ModelNodeClone_generated.h"
+#include "Flatbuffers/ModelNodeRemap_generated.h"
 #include "SceneLoadContextInternal.h"
 
 #include <DeepSea/Core/Memory/StackAllocator.h>
@@ -31,19 +31,19 @@
 
 
 extern "C"
-dsSceneNode* dsSceneModelNode_loadClone(const dsSceneLoadContext*,
+dsSceneNode* dsSceneModelNode_loadRemap(const dsSceneLoadContext*,
 	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator*,
 	void*, const uint8_t* data, size_t dataSize)
 {
 	flatbuffers::Verifier verifier(data, dataSize);
-	if (!DeepSeaScene::VerifyModelNodeCloneBuffer(verifier))
+	if (!DeepSeaScene::VerifyModelNodeRemapBuffer(verifier))
 	{
 		errno = EFORMAT;
-		DS_LOG_ERROR(DS_SCENE_LOG_TAG, "Invalid model node flatbuffer format.");
+		DS_LOG_ERROR(DS_SCENE_LOG_TAG, "Invalid model node remap flatbuffer format.");
 		return nullptr;
 	}
 
-	auto fbModelNode = DeepSeaScene::GetModelNodeClone(data);
+	auto fbModelNode = DeepSeaScene::GetModelNodeRemap(data);
 
 	const char* name = fbModelNode->name()->c_str();
 	dsSceneNode* origNode;
@@ -71,6 +71,12 @@ dsSceneNode* dsSceneModelNode_loadClone(const dsSceneLoadContext*,
 			if (fbRemap)
 			{
 				remap.name = fbRemap->name()->c_str();
+
+				auto fbListName = fbRemap->listName();
+				if (fbListName)
+					remap.listName = fbListName->c_str();
+				else
+					remap.listName = nullptr;
 
 				auto fbShader = fbRemap->shader();
 				if (fbShader)
@@ -110,12 +116,13 @@ dsSceneNode* dsSceneModelNode_loadClone(const dsSceneLoadContext*,
 			{
 				// Prevent invalid param errors.
 				remap.name = "";
+				remap.listName = nullptr;
 				remap.shader = nullptr;
 				remap.material = nullptr;
 			}
 		}
 	}
 
-	return reinterpret_cast<dsSceneNode*>(dsSceneModelNode_clone(allocator,
+	return reinterpret_cast<dsSceneNode*>(dsSceneModelNode_cloneRemap(allocator,
 		reinterpret_cast<dsSceneModelNode*>(origNode), remaps, remapCount));
 }

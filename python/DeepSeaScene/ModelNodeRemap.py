@@ -6,28 +6,28 @@ import flatbuffers
 from flatbuffers.compat import import_numpy
 np = import_numpy()
 
-class ModelNodeClone(object):
+class ModelNodeRemap(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsModelNodeClone(cls, buf, offset):
+    def GetRootAsModelNodeRemap(cls, buf, offset):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
-        x = ModelNodeClone()
+        x = ModelNodeRemap()
         x.Init(buf, n + offset)
         return x
 
-    # ModelNodeClone
+    # ModelNodeRemap
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
 
-    # ModelNodeClone
+    # ModelNodeRemap
     def Name(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         if o != 0:
             return self._tab.String(o + self._tab.Pos)
         return None
 
-    # ModelNodeClone
+    # ModelNodeRemap
     def MaterialRemaps(self, j):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         if o != 0:
@@ -40,20 +40,20 @@ class ModelNodeClone(object):
             return obj
         return None
 
-    # ModelNodeClone
+    # ModelNodeRemap
     def MaterialRemapsLength(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         if o != 0:
             return self._tab.VectorLen(o)
         return 0
 
-    # ModelNodeClone
+    # ModelNodeRemap
     def MaterialRemapsIsNone(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         return o == 0
 
-def ModelNodeCloneStart(builder): builder.StartObject(2)
-def ModelNodeCloneAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
-def ModelNodeCloneAddMaterialRemaps(builder, materialRemaps): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(materialRemaps), 0)
-def ModelNodeCloneStartMaterialRemapsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
-def ModelNodeCloneEnd(builder): return builder.EndObject()
+def ModelNodeRemapStart(builder): builder.StartObject(2)
+def ModelNodeRemapAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+def ModelNodeRemapAddMaterialRemaps(builder, materialRemaps): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(materialRemaps), 0)
+def ModelNodeRemapStartMaterialRemapsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+def ModelNodeRemapEnd(builder): return builder.EndObject()

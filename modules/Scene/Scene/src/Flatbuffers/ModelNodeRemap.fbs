@@ -24,6 +24,11 @@ table MaterialRemap
 	// The name of the model to replace the material.
 	name : string (required);
 
+	// The name of the item list the model is drawn with. This can be used to fine-tune replacements
+	// if the same model is drawn in multiple lists. If unset, all models matching the name will
+	// be replaced.
+	listName : string;
+
 	// The new shader to use, or unset to leave the same.
 	shader : string;
 
@@ -31,8 +36,8 @@ table MaterialRemap
 	material : string;
 }
 
-// Struct describing how to clone an existing model node.
-table ModelNodeClone
+// Struct describing how to clone an existing model node, remapping the materials.
+table ModelNodeRemap
 {
 	// The name of the model node to clone.
 	name : string (required);
@@ -41,4 +46,4 @@ table ModelNodeClone
 	materialRemaps : [MaterialRemap];
 }
 
-root_type ModelNodeClone;
+root_type ModelNodeRemap;

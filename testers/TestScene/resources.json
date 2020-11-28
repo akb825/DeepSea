@@ -222,7 +222,7 @@
 				"children":
 				[
 					{
-						"nodeType": "ModelNodeClone",
+						"nodeType": "ModelNodeRemap",
 						"name": "cubeModelNode",
 						"materialRemaps":
 						[

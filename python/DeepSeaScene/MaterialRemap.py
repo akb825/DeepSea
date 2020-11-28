@@ -28,21 +28,29 @@ class MaterialRemap(object):
         return None
 
     # MaterialRemap
-    def Shader(self):
+    def ListName(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         if o != 0:
             return self._tab.String(o + self._tab.Pos)
         return None
 
     # MaterialRemap
-    def Material(self):
+    def Shader(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
         if o != 0:
             return self._tab.String(o + self._tab.Pos)
         return None
 
-def MaterialRemapStart(builder): builder.StartObject(3)
+    # MaterialRemap
+    def Material(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(10))
+        if o != 0:
+            return self._tab.String(o + self._tab.Pos)
+        return None
+
+def MaterialRemapStart(builder): builder.StartObject(4)
 def MaterialRemapAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
-def MaterialRemapAddShader(builder, shader): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(shader), 0)
-def MaterialRemapAddMaterial(builder, material): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(material), 0)
+def MaterialRemapAddListName(builder, listName): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(listName), 0)
+def MaterialRemapAddShader(builder, shader): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(shader), 0)
+def MaterialRemapAddMaterial(builder, material): builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(material), 0)
 def MaterialRemapEnd(builder): return builder.EndObject()

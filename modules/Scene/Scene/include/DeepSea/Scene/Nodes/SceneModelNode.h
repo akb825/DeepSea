@@ -37,11 +37,11 @@ extern "C"
 DS_SCENE_EXPORT extern const char* const dsSceneModelNode_typeName;
 
 /**
- * @brief The type name for a model node when performing a clone.
+ * @brief The type name for a model node when performing a clone with remapping materials.
  *
  * This is used to determine which loader implementation to use when loading from file.
  */
-DS_SCENE_EXPORT extern const char* const dsSceneModelNode_cloneTypeName;
+DS_SCENE_EXPORT extern const char* const dsSceneModelNode_remapTypeName;
 
 /**
  * @brief Gets the type of a model node.
@@ -107,7 +107,7 @@ DS_SCENE_EXPORT dsSceneModelNode* dsSceneModelNode_createBase(dsAllocator* alloc
  * @param remapCount The number of material remaps.
  * @return The cloned model or NULL if an error occurred.
  */
-DS_SCENE_EXPORT dsSceneModelNode* dsSceneModelNode_clone(dsAllocator* allocator,
+DS_SCENE_EXPORT dsSceneModelNode* dsSceneModelNode_cloneRemap(dsAllocator* allocator,
 	const dsSceneModelNode* origModel, const dsSceneMaterialRemap* remaps, uint32_t remapCount);
 
 /**
@@ -121,7 +121,7 @@ DS_SCENE_EXPORT dsSceneModelNode* dsSceneModelNode_clone(dsAllocator* allocator,
  * @param remapCount The number of material remaps.
  * @return The cloned model or NULL if an error occurred.
  */
-DS_SCENE_EXPORT dsSceneModelNode* dsSceneModelNode_cloneBase(dsAllocator* allocator,
+DS_SCENE_EXPORT dsSceneModelNode* dsSceneModelNode_cloneRemapBase(dsAllocator* allocator,
 	size_t structSize, const dsSceneModelNode* origModel, const dsSceneMaterialRemap* remaps,
 	uint32_t remapCount);
 
