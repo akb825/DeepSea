@@ -17,7 +17,9 @@ set(CMAKE_C_STANDARD 11)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 if (MSVC)
-	add_compile_options(/W3 /WX /wd4146 /MP)
+	# NOTE: Warning 5105 is to work around an (embarrassing) bug win the Windows headers for
+	# Visual Studio 2019 16.8.0.
+	add_compile_options(/W3 /WX /wd4146 /wd5105 /MP)
 	add_definitions(-D_CRT_SECURE_NO_WARNINGS -D_CRT_NONSTDC_NO_WARNINGS)
 
 	# Disable RTTI, but enable exceptions
