@@ -48,28 +48,8 @@ class ModelNode(object):
         return o == 0
 
     # ModelNode
-    def ExtraItemLists(self, j):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
-        if o != 0:
-            a = self._tab.Vector(o)
-            return self._tab.String(a + flatbuffers.number_types.UOffsetTFlags.py_type(j * 4))
-        return ""
-
-    # ModelNode
-    def ExtraItemListsLength(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
-        if o != 0:
-            return self._tab.VectorLen(o)
-        return 0
-
-    # ModelNode
-    def ExtraItemListsIsNone(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
-        return o == 0
-
-    # ModelNode
     def Models(self, j):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         if o != 0:
             x = self._tab.Vector(o)
             x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * 4
@@ -82,13 +62,33 @@ class ModelNode(object):
 
     # ModelNode
     def ModelsLength(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         if o != 0:
             return self._tab.VectorLen(o)
         return 0
 
     # ModelNode
     def ModelsIsNone(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
+        return o == 0
+
+    # ModelNode
+    def ExtraItemLists(self, j):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
+        if o != 0:
+            a = self._tab.Vector(o)
+            return self._tab.String(a + flatbuffers.number_types.UOffsetTFlags.py_type(j * 4))
+        return ""
+
+    # ModelNode
+    def ExtraItemListsLength(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
+        if o != 0:
+            return self._tab.VectorLen(o)
+        return 0
+
+    # ModelNode
+    def ExtraItemListsIsNone(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
         return o == 0
 
@@ -106,9 +106,9 @@ class ModelNode(object):
 def ModelNodeStart(builder): builder.StartObject(4)
 def ModelNodeAddEmbeddedResources(builder, embeddedResources): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(embeddedResources), 0)
 def ModelNodeStartEmbeddedResourcesVector(builder, numElems): return builder.StartVector(1, numElems, 1)
-def ModelNodeAddExtraItemLists(builder, extraItemLists): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(extraItemLists), 0)
-def ModelNodeStartExtraItemListsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
-def ModelNodeAddModels(builder, models): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(models), 0)
+def ModelNodeAddModels(builder, models): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(models), 0)
 def ModelNodeStartModelsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+def ModelNodeAddExtraItemLists(builder, extraItemLists): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(extraItemLists), 0)
+def ModelNodeStartExtraItemListsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
 def ModelNodeAddBounds(builder, bounds): builder.PrependStructSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(bounds), 0)
 def ModelNodeEnd(builder): return builder.EndObject()

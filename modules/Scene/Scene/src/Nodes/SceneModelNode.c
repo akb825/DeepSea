@@ -50,7 +50,7 @@ static size_t fullAllocSize(size_t structSize, const char** drawLists, uint32_t 
 	return fullSize + DS_ALIGNED_SIZE(sizeof(dsSceneModelDrawRange)*drawRangeCount);
 }
 
-static size_t cloneFullAllocSize(size_t structSize, const dsSceneModelNode* model)
+static size_t cloneRemapFullAllocSize(size_t structSize, const dsSceneModelNode* model)
 {
 	const dsSceneNode* node = (const dsSceneNode*)model;
 	size_t fullSize = DS_ALIGNED_SIZE(structSize) +
@@ -108,6 +108,7 @@ static void populateItemList(const char** itemLists, uint32_t* hashes, uint32_t*
 
 const char* const dsSceneModelNode_typeName = "ModelNode";
 const char* const dsSceneModelNode_remapTypeName = "ModelNodeRemap";
+const char* const dsSceneModelNode_reconfigTypeName = "ModelNodeReconfig";
 
 static dsSceneNodeType nodeType;
 const dsSceneNodeType* dsSceneModelNode_type(void)
@@ -280,7 +281,10 @@ dsSceneModelNode* dsSceneModelNode_createBase(dsAllocator* allocator, size_t str
 			sizeof(dsSceneModelDrawRange)*initInfo->drawRangeCount);
 		drawRanges += model->drawRangeCount;
 		model->primitiveType = initInfo->primitiveType;
-		model->listNameID = dsHashString(initInfo->listName);
+		if (initInfo->listName)
+			model->listNameID = dsHashString(initInfo->listName);
+		else
+			model->listNameID = 0;
 	}
 	node->modelCount = modelCount;
 
@@ -337,7 +341,7 @@ dsSceneModelNode* dsSceneModelNode_cloneRemapBase(dsAllocator* allocator, size_t
 	for (uint32_t i = 0; i < origModel->modelCount; ++i)
 		drawRangeCount += origModel->models[i].drawRangeCount;
 
-	size_t fullSize = cloneFullAllocSize(structSize, origModel);
+	size_t fullSize = cloneRemapFullAllocSize(structSize, origModel);
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 		return NULL;
@@ -417,6 +421,94 @@ dsSceneModelNode* dsSceneModelNode_cloneRemapBase(dsAllocator* allocator, size_t
 	node->bounds = origModel->bounds;
 	DS_VERIFY(dsSceneModelNode_remapMaterials(node, remaps, remapCount));
 	return node;
+}
+
+dsSceneModelNode* dsSceneModelNode_cloneReconfig(dsAllocator* allocator,
+	const dsSceneModelNode* origModel, const dsSceneModelReconfig* models, uint32_t modelCount,
+	const char** extraItemLists, uint32_t extraItemListCount)
+{
+	return dsSceneModelNode_cloneReconfigBase(allocator, sizeof(dsSceneModelNode), origModel,
+		models, modelCount, extraItemLists, extraItemListCount);
+}
+
+dsSceneModelNode* dsSceneModelNode_cloneReconfigBase(dsAllocator* allocator,
+	size_t structSize, const dsSceneModelNode* origModel, const dsSceneModelReconfig* models,
+	uint32_t modelCount, const char** extraItemLists, uint32_t extraItemListCount)
+{
+	if (!allocator || structSize < sizeof(dsSceneModelNode) || !origModel || !models ||
+		modelCount == 0 || (!extraItemLists && extraItemListCount > 0))
+	{
+		errno = EINVAL;
+		return NULL;
+	}
+
+	if (!allocator->freeFunc)
+	{
+		errno = EINVAL;
+		DS_LOG_ERROR(DS_SCENE_LOG_TAG, "Scene node allocator must support freeing memory.");
+		return false;
+	}
+
+	dsSceneModelInitInfo tempModelInits[EXPECTED_MAX_NODES];
+	dsSceneModelInitInfo* modelInits = tempModelInits;
+	if (modelCount > EXPECTED_MAX_NODES)
+	{
+		modelInits = DS_ALLOCATE_OBJECT_ARRAY(allocator, dsSceneModelInitInfo, modelCount);
+		if (!modelInits)
+			return NULL;
+	}
+
+	for (uint32_t i = 0; i < modelCount; ++i)
+	{
+		dsSceneModelInitInfo* initInfo = modelInits + i;
+		const dsSceneModelReconfig* reconfig = models + i;
+		if (!reconfig->name || !reconfig->listName || !reconfig->shader || !reconfig->material)
+		{
+			errno = EINVAL;
+			DS_LOG_ERROR(DS_SCENE_LOG_TAG,
+				"All scene models must have a valid name, draw list name, shader, and material.");
+			goto error;
+		}
+
+		const dsSceneModelInfo* baseInfo = NULL;
+		for (uint32_t j = 0; j < origModel->modelCount; ++j)
+		{
+			const dsSceneModelInfo* curInfo = origModel->models + j;
+			if (curInfo->name && strcmp(curInfo->name, reconfig->name) == 0)
+			{
+				baseInfo = curInfo;
+				break;
+			}
+		}
+
+		if (!baseInfo)
+		{
+			errno = ENOTFOUND;
+			DS_LOG_ERROR_F(DS_SCENE_LOG_TAG, "Reconfigured model '%s' not found.", reconfig->name);
+			goto error;
+		}
+
+		initInfo->name = reconfig->name;
+		initInfo->shader = reconfig->shader;
+		initInfo->material = reconfig->material;
+		initInfo->geometry = baseInfo->geometry;
+		initInfo->distanceRange = reconfig->distanceRange;
+		initInfo->drawRanges = baseInfo->drawRanges;
+		initInfo->drawRangeCount = baseInfo->drawRangeCount;
+		initInfo->primitiveType = baseInfo->primitiveType;
+		initInfo->listName = reconfig->listName;
+	}
+
+	dsSceneModelNode* model = dsSceneModelNode_createBase(allocator, structSize, modelInits,
+		modelCount, extraItemLists, extraItemListCount, origModel->resources,
+		origModel->resourceCount, &origModel->bounds);
+	if (model)
+		return model;
+
+error:
+	if (modelInits != tempModelInits)
+		DS_VERIFY(dsAllocator_free(allocator, modelInits));
+	return NULL;
 }
 
 bool dsSceneModelNode_remapMaterials(dsSceneModelNode* node, const dsSceneMaterialRemap* remaps,

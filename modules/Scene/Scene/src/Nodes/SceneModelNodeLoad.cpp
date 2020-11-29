@@ -99,25 +99,6 @@ dsSceneNode* dsSceneModelNode_load(const dsSceneLoadContext* loadContext,
 	dsBufferAllocator bufferAlloc;
 	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, tempBuffer, tempSize));
 
-	if (fbExtraItemLists && fbExtraItemLists->size() > 0)
-	{
-		extraItemCount = fbExtraItemLists->size();
-		extraItems = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, const char*, extraItemCount);
-		DS_ASSERT(extraItems);
-		for (uint32_t i = 0; i < extraItemCount; ++i)
-		{
-			auto extraItem = (*fbExtraItemLists)[i];
-			if (!extraItem)
-			{
-				errno = EFORMAT;
-				DS_LOG_ERROR(DS_SCENE_LOG_TAG, "Model node extra item name is null.");
-				goto finished;
-			}
-
-			extraItems[i] = extraItem->c_str();
-		}
-	}
-
 	modelInfos = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsSceneModelInitInfo, modelInfoCount);
 	DS_ASSERT(modelInfos);
 	drawRanges = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsSceneModelDrawRange, drawRangeCount);
@@ -226,6 +207,25 @@ dsSceneNode* dsSceneModelNode_load(const dsSceneLoadContext* loadContext,
 
 		modelInfo->primitiveType = static_cast<dsPrimitiveType>(fbModelInfo->primitiveType());
 		modelInfo->listName = fbModelInfo->listName()->c_str();
+	}
+
+	if (fbExtraItemLists && fbExtraItemLists->size() > 0)
+	{
+		extraItemCount = fbExtraItemLists->size();
+		extraItems = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, const char*, extraItemCount);
+		DS_ASSERT(extraItems);
+		for (uint32_t i = 0; i < extraItemCount; ++i)
+		{
+			auto extraItem = (*fbExtraItemLists)[i];
+			if (!extraItem)
+			{
+				errno = EFORMAT;
+				DS_LOG_ERROR(DS_SCENE_LOG_TAG, "Model node extra item name is null.");
+				goto finished;
+			}
+
+			extraItems[i] = extraItem->c_str();
+		}
 	}
 
 	// NOTE: May need to add more resources to the reference count later. Don't add all resources

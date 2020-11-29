@@ -404,6 +404,41 @@ typedef struct dsSceneMaterialRemap
 } dsSceneMaterialRemap;
 
 /**
+ * @brief Struct defining a reconfiguration of a model node.
+ * @see ModelNode.h
+ */
+typedef struct dsSceneModelReconfig
+{
+	/**
+	 * @brief The name of the model to configure.
+	 */
+	const char* name;
+
+	/**
+	 * @brief The new shader to use.
+	 */
+	dsShader* shader;
+
+	/**
+	 * @brief The new material to use.
+	 */
+	dsMaterial* material;
+
+	/**
+	 * @brief The distance range to draw the model.
+	 *
+	 * Lower range is inclusive, upperrange is exclusive. If the x value is larger than the y value,
+	 * then the model will always be drawn.
+	 */
+	dsVector2f distanceRange;
+
+	/**
+	 * @brief The name of the item list the model is drawn with.
+	 */
+	const char* listName;
+} dsSceneModelReconfig;
+
+/**
  * @brief Struct holding data for an item in a scene item list.
  */
 typedef struct dsSceneItemData

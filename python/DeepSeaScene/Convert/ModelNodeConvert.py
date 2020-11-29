@@ -625,21 +625,6 @@ def convertModelNode(convertContext, data):
 	else:
 		embeddedResourcesOffset = 0
 
-	if extraItemLists:
-		extraItemListOffsets = []
-		try:
-			for item in extraItemLists:
-				extraItemListOffsets.append(builder.CreateString(str(item)))
-		except (TypeError, ValueError):
-			raise Exception('ModelNode "extraItemLists" must be an array of strings.')
-
-		ModelNodeStartExtraItemListsVector(builder, len(extraItemListOffsets))
-		for offset in reversed(extraItemListOffsets):
-			builder.PrependUOffsetTRelative(offset)
-		extraItemListsOffset = builder.EndVector(len(extraItemListOffsets))
-	else:
-		extraItemListsOffset = 0
-
 	modelOffsets = []
 	for model in models:
 		if model.name:
@@ -698,10 +683,25 @@ def convertModelNode(convertContext, data):
 		builder.PrependUOffsetTRelative(offset)
 	modelsOffset = builder.EndVector(len(modelOffsets))
 
+	if extraItemLists:
+		extraItemListOffsets = []
+		try:
+			for item in extraItemLists:
+				extraItemListOffsets.append(builder.CreateString(str(item)))
+		except (TypeError, ValueError):
+			raise Exception('ModelNode "extraItemLists" must be an array of strings.')
+
+		ModelNodeStartExtraItemListsVector(builder, len(extraItemListOffsets))
+		for offset in reversed(extraItemListOffsets):
+			builder.PrependUOffsetTRelative(offset)
+		extraItemListsOffset = builder.EndVector(len(extraItemListOffsets))
+	else:
+		extraItemListsOffset = 0
+
 	ModelNodeStart(builder)
 	ModelNodeAddEmbeddedResources(builder, embeddedResourcesOffset)
-	ModelNodeAddExtraItemLists(builder, extraItemListsOffset)
 	ModelNodeAddModels(builder, modelsOffset)
+	ModelNodeAddExtraItemLists(builder, extraItemListsOffset)
 
 	if modelBounds:
 		center = []

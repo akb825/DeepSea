@@ -44,6 +44,13 @@ DS_SCENE_EXPORT extern const char* const dsSceneModelNode_typeName;
 DS_SCENE_EXPORT extern const char* const dsSceneModelNode_remapTypeName;
 
 /**
+ * @brief The type name for a model node when performing a clone with re-configuring the layout.
+ *
+ * This is used to determine which loader implementation to use when loading from file.
+ */
+DS_SCENE_EXPORT extern const char* const dsSceneModelNode_reconfigTypeName;
+
+/**
  * @brief Gets the type of a model node.
  * @return The type of a model node.
  */
@@ -124,6 +131,44 @@ DS_SCENE_EXPORT dsSceneModelNode* dsSceneModelNode_cloneRemap(dsAllocator* alloc
 DS_SCENE_EXPORT dsSceneModelNode* dsSceneModelNode_cloneRemapBase(dsAllocator* allocator,
 	size_t structSize, const dsSceneModelNode* origModel, const dsSceneMaterialRemap* remaps,
 	uint32_t remapCount);
+
+/**
+ * @brief Clones a model node, re-configuring the layout based on the original geometry.
+ * @remark errno will be set on failure.
+ * @param allocator The allocator to create the model node with.
+ * @param origModel The existing model to clone.
+ * @param models The new configuration of models. All model names in the reconfig list must be
+ *     available in origModel, re-using the geometry and draw ranges while using the new shader,
+ *     material, item list, and draw range.
+ * @param modelCount The number of models.
+ * @param extraItemLists List of item list names to add the node to. This is in addition to the list
+ *     of draw lists from the models array, such as for cull lists. The array will be copied.
+ * @param extraItemListCount The number of item lists.
+ * @return The cloned model or NULL if an error occurred.
+ */
+DS_SCENE_EXPORT dsSceneModelNode* dsSceneModelNode_cloneReconfig(dsAllocator* allocator,
+	const dsSceneModelNode* origModel, const dsSceneModelReconfig* models, uint32_t modelCount,
+	const char** extraItemLists, uint32_t extraItemListCount);
+
+/**
+ * @brief Clones a model node as the base class for another model type, re-configuring the layout
+ *    based on the original geometry.
+ * @remark errno will be set on failure.
+ * @param allocator The allocator to create the model node with.
+ * @param structSize The size of the struct.
+ * @param origModel The existing model to clone.
+ * @param models The new configuration of models. All model names in the reconfig list must be
+ *     available in origModel, re-using the geometry and draw ranges while using the new shader,
+ *     material, item list, and draw range.
+ * @param modelCount The number of models.
+ * @param extraItemLists List of item list names to add the node to. This is in addition to the list
+ *     of draw lists from the models array, such as for cull lists. The array will be copied.
+ * @param extraItemListCount The number of item lists.
+ * @return The cloned model or NULL if an error occurred.
+ */
+DS_SCENE_EXPORT dsSceneModelNode* dsSceneModelNode_cloneReconfigBase(dsAllocator* allocator,
+	size_t structSize, const dsSceneModelNode* origModel, const dsSceneModelReconfig* models,
+	uint32_t modelCount, const char** extraItemLists, uint32_t extraItemListCount);
 
 /**
  * @brief Remaps the materials for a model.

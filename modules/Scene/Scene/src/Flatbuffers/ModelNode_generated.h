@@ -504,18 +504,18 @@ struct ModelNode FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef ModelNodeBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_EMBEDDEDRESOURCES = 4,
-    VT_EXTRAITEMLISTS = 6,
-    VT_MODELS = 8,
+    VT_MODELS = 6,
+    VT_EXTRAITEMLISTS = 8,
     VT_BOUNDS = 10
   };
   const flatbuffers::Vector<uint8_t> *embeddedResources() const {
     return GetPointer<const flatbuffers::Vector<uint8_t> *>(VT_EMBEDDEDRESOURCES);
   }
-  const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *extraItemLists() const {
-    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *>(VT_EXTRAITEMLISTS);
-  }
   const flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::ModelInfo>> *models() const {
     return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::ModelInfo>> *>(VT_MODELS);
+  }
+  const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *extraItemLists() const {
+    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *>(VT_EXTRAITEMLISTS);
   }
   const DeepSeaScene::OrientedBox3f *bounds() const {
     return GetStruct<const DeepSeaScene::OrientedBox3f *>(VT_BOUNDS);
@@ -524,12 +524,12 @@ struct ModelNode FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_EMBEDDEDRESOURCES) &&
            verifier.VerifyVector(embeddedResources()) &&
-           VerifyOffset(verifier, VT_EXTRAITEMLISTS) &&
-           verifier.VerifyVector(extraItemLists()) &&
-           verifier.VerifyVectorOfStrings(extraItemLists()) &&
            VerifyOffsetRequired(verifier, VT_MODELS) &&
            verifier.VerifyVector(models()) &&
            verifier.VerifyVectorOfTables(models()) &&
+           VerifyOffset(verifier, VT_EXTRAITEMLISTS) &&
+           verifier.VerifyVector(extraItemLists()) &&
+           verifier.VerifyVectorOfStrings(extraItemLists()) &&
            VerifyField<DeepSeaScene::OrientedBox3f>(verifier, VT_BOUNDS) &&
            verifier.EndTable();
   }
@@ -542,11 +542,11 @@ struct ModelNodeBuilder {
   void add_embeddedResources(flatbuffers::Offset<flatbuffers::Vector<uint8_t>> embeddedResources) {
     fbb_.AddOffset(ModelNode::VT_EMBEDDEDRESOURCES, embeddedResources);
   }
-  void add_extraItemLists(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>> extraItemLists) {
-    fbb_.AddOffset(ModelNode::VT_EXTRAITEMLISTS, extraItemLists);
-  }
   void add_models(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::ModelInfo>>> models) {
     fbb_.AddOffset(ModelNode::VT_MODELS, models);
+  }
+  void add_extraItemLists(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>> extraItemLists) {
+    fbb_.AddOffset(ModelNode::VT_EXTRAITEMLISTS, extraItemLists);
   }
   void add_bounds(const DeepSeaScene::OrientedBox3f *bounds) {
     fbb_.AddStruct(ModelNode::VT_BOUNDS, bounds);
@@ -567,13 +567,13 @@ struct ModelNodeBuilder {
 inline flatbuffers::Offset<ModelNode> CreateModelNode(
     flatbuffers::FlatBufferBuilder &_fbb,
     flatbuffers::Offset<flatbuffers::Vector<uint8_t>> embeddedResources = 0,
-    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>> extraItemLists = 0,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::ModelInfo>>> models = 0,
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>> extraItemLists = 0,
     const DeepSeaScene::OrientedBox3f *bounds = 0) {
   ModelNodeBuilder builder_(_fbb);
   builder_.add_bounds(bounds);
-  builder_.add_models(models);
   builder_.add_extraItemLists(extraItemLists);
+  builder_.add_models(models);
   builder_.add_embeddedResources(embeddedResources);
   return builder_.Finish();
 }
@@ -581,17 +581,17 @@ inline flatbuffers::Offset<ModelNode> CreateModelNode(
 inline flatbuffers::Offset<ModelNode> CreateModelNodeDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     const std::vector<uint8_t> *embeddedResources = nullptr,
-    const std::vector<flatbuffers::Offset<flatbuffers::String>> *extraItemLists = nullptr,
     const std::vector<flatbuffers::Offset<DeepSeaScene::ModelInfo>> *models = nullptr,
+    const std::vector<flatbuffers::Offset<flatbuffers::String>> *extraItemLists = nullptr,
     const DeepSeaScene::OrientedBox3f *bounds = 0) {
   auto embeddedResources__ = embeddedResources ? _fbb.CreateVector<uint8_t>(*embeddedResources) : 0;
-  auto extraItemLists__ = extraItemLists ? _fbb.CreateVector<flatbuffers::Offset<flatbuffers::String>>(*extraItemLists) : 0;
   auto models__ = models ? _fbb.CreateVector<flatbuffers::Offset<DeepSeaScene::ModelInfo>>(*models) : 0;
+  auto extraItemLists__ = extraItemLists ? _fbb.CreateVector<flatbuffers::Offset<flatbuffers::String>>(*extraItemLists) : 0;
   return DeepSeaScene::CreateModelNode(
       _fbb,
       embeddedResources__,
-      extraItemLists__,
       models__,
+      extraItemLists__,
       bounds);
 }
 

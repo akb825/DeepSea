@@ -116,11 +116,11 @@ table ModelNode
 	// Scene resources embedded in this file.
 	embeddedResources : [ubyte];
 
-	// Extra item lists to add the node to.
-	extraItemLists : [string];
-
 	// The models to draw.
 	models : [ModelInfo] (required);
+
+	// Extra item lists to add the node to.
+	extraItemLists : [string];
 
 	// The bounding box for the model.
 	bounds : OrientedBox3f;
