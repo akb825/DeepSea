@@ -387,9 +387,9 @@ def convertModelNodeGeometry(convertContext, modelGeometry, embeddedResources):
 				try:
 					modelInfo = Object()
 					modelInfo.name = str(info['name'])
-					modelInfo.shader = str(info['shader'])
-					modelInfo.material = str(info['material'])
-					modelInfo.listName = str(info['listName'])
+					modelInfo.shader = info['shader']
+					modelInfo.material = info['material']
+					modelInfo.listName = info['listName']
 
 					modelInfo.distanceRange = info.get('distanceRange', [0.0, FLT_MAX])
 					validateModelDistanceRange(modelInfo.distanceRange)
@@ -487,10 +487,10 @@ def convertModelNodeModels(modelInfoList):
 		for info in modelInfoList:
 			try:
 				model = Object()
-				model.name = info.get('name')
+				model.name = str(info.get('name', ''))
 				model.shader = info['shader']
 				model.material = info['material']
-				model.geometry = info['geometry']
+				model.geometry = str(info['geometry'])
 				model.distanceRange = info.get('distanceRange', [0.0, FLT_MAX])
 				validateModelDistanceRange(model.distanceRange)
 
@@ -548,16 +548,21 @@ def convertModelNode(convertContext, data):
 	    array has the following members:
 	    - name: the name of the model component. Note that only model components referenced in the
 		  drawInfo array will be included in the final model.
-	    - shader: te name of the shader to draw with.
-	    - material: the name of the material to draw with.
+	    - shader: te name of the shader to draw with. This may be set to null if the model is only
+	      used for cloning.
+	    - material: the name of the material to draw with. This may be set to null if the model is
+	      only used for cloning.
 	    - distanceRange: array of two floats for the minimum and maximum distance to draw at.
 	      Defaults to [0, 3.402823466e38].
-	    - listName: the name of the item list to draw the model with.
+	    - listName: the name of the item list to draw the model with. This may be set to null if the
+	      model is only used for cloning.
 	- models: array of models to draw with manually provided geometry. (i.e. not converted from
 	  the modelGeometry array) Each element of the array has the following members:
 	  - name: optional name for the model for use with material remapping.
-	  - shader: the name of the shader to draw with.
-	  - material: the name of the material to draw with.
+	  - shader: the name of the shader to draw with. This may be set to null if the model is only
+	    used for cloning.
+	  - material: the name of the material to draw with. This may be set to null if the model is
+	    only used for cloning.
 	  - geometry: the name of the geometry to draw.
 	  - distanceRange: array of two floats for the minimum and maximum distance to draw at. Defaults
 	    to [0, 3.402823466e38].
@@ -576,7 +581,8 @@ def convertModelNode(convertContext, data):
 	    - firstIstance: the first instance to draw. Defaults to 0.
 	  - primitiveType: the primitive type to draw with. See the dsPrimitiveType enum for values,
 	    removing the type prefix. Defaults to "TriangleList".
-	  - listName: The name of the item list to draw the model with.
+	  - listName: The name of the item list to draw the model with. This may be set to null if the
+	    model is only used for cloning.
 	- extraItemLists: array of extra item list names to add the node to.
 	- bounds: 2x3 array of float values for the minimum and maximum values for the positions. This
 	  will be automatically calculated from geometry in modelGeometry if unset. Otherwise if unset
@@ -631,8 +637,17 @@ def convertModelNode(convertContext, data):
 			modelNameOffset = builder.CreateString(model.name)
 		else:
 			modelNameOffset = 0
-		shaderOffset = builder.CreateString(model.shader)
-		materialOffset = builder.CreateString(model.material)
+
+		if model.shader:
+			shaderOffset = builder.CreateString(str(model.shader))
+		else:
+			shaderOffset = 0
+
+		if model.material:
+			materialOffset = builder.CreateString(str(model.material))
+		else:
+			materialOffset = 0
+
 		geometryOffset = builder.CreateString(model.geometry)
 
 		drawRanges = model.drawRanges
@@ -664,7 +679,10 @@ def convertModelNode(convertContext, data):
 			builder.PrependUOffsetTRelative(offset)
 		drawRangesOffset = builder.EndVector(len(drawRangesOffsets))
 
-		listNameOffset = builder.CreateString(model.listName)
+		if model.listName:
+			listNameOffset = builder.CreateString(str(model.listName))
+		else:
+			listNameOffset = 0
 
 		ModelInfoStart(builder)
 		ModelInfoAddName(builder, modelNameOffset)

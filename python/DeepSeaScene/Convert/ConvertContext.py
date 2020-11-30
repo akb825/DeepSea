@@ -15,6 +15,7 @@
 from .GLTFModel import registerGLTFModelType
 from .InstanceTransformDataConvert import convertInstanceTransformData
 from .ModelListConvert import convertModelList
+from .ModelNodeReconfigConvert import convertModelNodeReconfig
 from .ModelNodeRemapConvert import convertModelNodeRemap
 from .ModelNodeConvert import convertModelNode
 from .OBJModel import registerOBJModelType
@@ -43,6 +44,7 @@ class ConvertContext:
 
 		self.nodeTypeMap = {
 			'ModelNode': convertModelNode,
+			'ModelNodeReconfig': convertModelNodeReconfig,
 			'ModelNodeRemap': convertModelNodeRemap,
 			'TransformNode': convertTransformNode,
 			'ReferenceNode': convertReferenceNode

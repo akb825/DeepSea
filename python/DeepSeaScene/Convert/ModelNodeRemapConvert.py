@@ -35,8 +35,8 @@ def convertModelNodeRemap(convertContext, data):
 		remaps = []
 		try:
 			for remap in data.get('materialRemaps', []):
-				remaps.append((remap['name'], remap.get('listName'), remap.get('shader'),
-					remap.get('material')))
+				remaps.append((str(remap['name']), str(remap.get('listName', '')),
+					str(remap.get('shader', '')), str(remap.get('material', ''))))
 		except (TypeError, ValueError):
 			raise Exception(
 				'ModelNodeRemap "materialRemaps" must be an array of objects.')
