@@ -1371,7 +1371,8 @@ def convertSceneResources(convertContext, data):
 	    members:
 	    - name: the name of the element.
 	    - type: the type of the element. See dsMaterialType enum for values, removing the type
-	      prefix count: the number of array elements. If 0 or omitted, this is not an array.
+	      prefix.
+		- count: the number of array elements. If 0 or omitted, this is not an array.
 		- binding: the binding type for the element. See the dsMaterialBinding enum for values,
 	      removing the type prefix. This is only used for texture, image, buffer, and shader
 		  variable group types.

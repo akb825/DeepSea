@@ -88,8 +88,9 @@ The remaining members of each element depends on the value of `type`. The builti
 * `"MaterialDesc"`
 	* `elements`: array of elements for the material. Each element of the array has the following members:
 		* `name`: the name of the element.
-		* `type`: the type of the element. See `dsMaterialType` enum for values, removing the type prefix count: the number of array elements. If 0 or omitted, this is not an array.
-	* `binding`: the binding type for the element. See the `dsMaterialBinding` enum for values, removing the type prefix. This is only used for texture, image, buffer, and shader variable group types.
+		* `type`: the type of the element. See `dsMaterialType` enum for values, removing the type prefix.
+		* `count`: the number of array elements. If 0 or omitted, this is not an array.
+		* `binding`: the binding type for the element. See the `dsMaterialBinding` enum for values, removing the type prefix. This is only used for texture, image, buffer, and shader variable group types.
 		* `shaderVariableGroupDesc`: the name of the shader variable group description when the type is a shader variable group. The description may be in a different scene resources package.
 * `"Material"`: See `"ShaderVariableGroup"` for a description of the object members, except the
 	  "description" element is for a material description rather than a shader variable group
@@ -181,7 +182,7 @@ Model nodes have the type string "ModelNode" and contains the following data mem
 
 Model node clones with materrial remapping have the type name "ModelNodeRemap" and clone an existing model node, optionally remapping the materials, containing the following members:
 
-* `name`: the name of the model node to clone.
+* `baseName`: the name of the model node to clone.
 * `materialRemaps`: optional array of material remaps to apply. Each element of the array has the following members:
 	* `name`: the name of the model inside the node to replace the material with.
 	* `shader`: the name of the shader to use. If unset, the shader will remain unchanged.
@@ -191,7 +192,7 @@ Model node clones with materrial remapping have the type name "ModelNodeRemap" a
 
 Model node clones with reconfiguration have the type name "ModelNodeReconfig" and clone an existing model node and reconfigures its layout. This will use the geometry from the existing model, but can completely change the item shader, material, and item list layout. It contains the following members:
 
-* `name`: the name of the model node to clone.
+* `baseName`: the name of the model node to clone.
 * `models`: array of models to reconfigure to apply. Each element of the array has the following members:
 	* `name`: the name of the model inside the node to use.
 	* `shader`: the name of the shader to use.

@@ -20,7 +20,7 @@ def convertModelNodeRemap(convertContext, data):
 	"""
 	Converts a ModelNodeRemap, which clones an existing model node with optional remapping of
 	materials. The data map is expected to contain the following elements:
-	- name: the name of the model node to clone.
+	- baseName: the name of the model node to clone.
 	- materialRemaps: optional array of material remaps to apply. Each element of the array has the
 	  following members:
 	  - name: the name of the model inside the node to replace the material with.
@@ -30,7 +30,7 @@ def convertModelNodeRemap(convertContext, data):
 	  - material: the name of the material to use. If unset, the material will remain unchanged.
 	"""
 	try:
-		name = data['name']
+		name = data['baseName']
 
 		remaps = []
 		try:

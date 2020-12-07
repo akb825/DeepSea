@@ -223,7 +223,7 @@
 				[
 					{
 						"nodeType": "ModelNodeRemap",
-						"name": "cubeModelNode",
+						"baseName": "cubeModelNode",
 						"materialRemaps":
 						[
 							{"name": "Cube", "material": "outerCubeMat"}

@@ -58,6 +58,11 @@ The following custom scene resource types are provided with the members that are
 	* `vectorShaders`: the name of the vector material set for shared material data.
 	* `vectorResources`: list of strings for the names of the vector resources to get textures and fonts from.
 	* `srgb`: bool for whether or not the embedded materials should be treated as sRGB and converted to linear when drawing. Defaults to `false`.
+
+## Scene Nodes
+
+The following scene node types are provided with the members that are expected:
+
 * `"TextNode"`
 	* `embeddedResources`: optional set of resources to embed with the node. This is a map containing the elements as expected by `SceneResourcesConvert.convertSceneResources()`.
 	* `text`: the name of the text element to draw. 

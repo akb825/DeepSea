@@ -22,10 +22,10 @@ def convertModelNodeReconfig(convertContext, data):
 	"""
 	Converts a ModelNodeReconfig, which clones an existing model node while reconfiguring its
 	layout. The data map is expected to contain the following elements:
-	- name: the name of the model node to clone.
+	- baseName: the name of the model node to clone.
 	- models: array of models to reconfigure to apply. Each element of the array has the
 	  following members:
-	  - name: the name of the model inside the node to use.
+	  - baseName: the name of the model inside the node to use.
 	  - shader: the name of the shader to use.
 	  - material: the name of the material to use.
 	  - distanceRange: array of two floats for the minimum and maximum distance to draw at.
@@ -34,7 +34,7 @@ def convertModelNodeReconfig(convertContext, data):
 	- extraItemLists: array of extra item list names to add the node to.
 	"""
 	try:
-		name = data['name']
+		name = data['baseName']
 
 		models = []
 		try:
