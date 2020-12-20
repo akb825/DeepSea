@@ -108,8 +108,8 @@ def convertScene(convertContext, data):
 		  prefix. The decorator values may not be used. May also be "SurfaceColor" or
 	      "SurfaceDepthStencil" to use the color or depth/stencil format for render surfaces.
 	    - decoration: the decoration for the format. See the dsGfxFormat enum for values, removing
-	      the type prefix. Only the decorator values may be used. May also be "Unset" in cases where a
-	      decorator isn't valid.
+	      the type prefix. Only the decorator values may be used. May also be "Unset" in cases where
+	      a decorator isn't valid.
 	    - samples: the number of anti-alias samples. When omitted, this uses the number of samples
 	      set on the renderer for window surfaces.
 	    - clearValue: a dict with one of the following members:

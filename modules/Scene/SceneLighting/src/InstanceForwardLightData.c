@@ -21,6 +21,7 @@
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
+#include <DeepSea/Math/Matrix44.h>
 #include <DeepSea/Render/Resources/MaterialType.h>
 #include <DeepSea/Render/Resources/ShaderVariableGroupDesc.h>
 #include <DeepSea/Scene/ItemLists/SceneInstanceVariables.h>
@@ -119,14 +120,15 @@ void dsInstanceForwardLightData_populateData(void* userData, const dsView* view,
 		{
 			const dsSceneLight* light = brightestLights[j];
 			DS_ASSERT(light);
-			positionAndType[j].x = light->position.x;
-			positionAndType[j].y = light->position.y;
-			positionAndType[j].z = light->position.z;
+			dsVector4f tempVec = {{light->position.x, light->position.y, light->position.z, 1.0}};
+			dsMatrix44_transform(positionAndType[j], view->viewMatrix, tempVec);
 			positionAndType[j].w = (float)(light->type + 1);
 
-			directionAndLinearFalloff[j].x = light->direction.x;
-			directionAndLinearFalloff[j].y = light->direction.y;
-			directionAndLinearFalloff[j].z = light->direction.z;
+			tempVec.x = light->direction.x;
+			tempVec.y = light->direction.y;
+			tempVec.z = light->direction.z;
+			tempVec.w = 0.0f;
+			dsMatrix44_transform(directionAndLinearFalloff[j], view->viewMatrix, tempVec);
 			directionAndLinearFalloff[j].w = light->linearFalloff;
 
 			colorAndQuadraticFalloff[j].r = light->color.r*light->intensity;

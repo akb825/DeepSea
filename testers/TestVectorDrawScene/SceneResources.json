@@ -17,8 +17,8 @@
 		"elements":
 		[
 			{"name": "world", "type": "Mat4"},
-			{"name": "worldInvTrans", "type": "Mat4"},
 			{"name": "worldView", "type": "Mat4"},
+			{"name": "worldViewInvTrans", "type": "Mat4"},
 			{"name": "worldViewProj", "type": "Mat4"}
 		]
 	},
@@ -150,7 +150,7 @@
 		[
 			{
 				"type": "Translate",
-				"value": [0, -76, 0] 
+				"value": [0, -76, 0]
 			}
 		],
 		"children":

@@ -29,14 +29,14 @@ uniform InstanceTransformData
 	mat4 world;
 
 	/**
-	 * @brief The inverse-transpose of the world matrix.
-	 */
-	mat4 worldInvTrans;
-
-	/**
 	 * @brief The world view matrix, transforming from local to view space.
 	 */
 	mat4 worldView;
+
+	/**
+	 * @brief The inverse-transpose of the world view matrix.
+	 */
+	mat4 worldViewInvTrans;
 
 	/**
 	 * @brief The world view projection matrix, transforming from local to clip space.

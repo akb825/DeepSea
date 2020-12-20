@@ -20,6 +20,7 @@
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Assert.h>
+#include <DeepSea/Math/Matrix44.h>
 #include <DeepSea/Math/Vector3.h>
 #include <DeepSea/Render/Resources/ShaderVariableGroup.h>
 #include <DeepSea/Render/Resources/ShaderVariableGroupDesc.h>
@@ -34,6 +35,7 @@ typedef struct dsLightData
 {
 	dsSceneGlobalData globalData;
 	dsShaderVariableGroup* variableGroup;
+	dsVector3f direction;
 	uint32_t nameID;
 } dsLightData;
 
@@ -41,6 +43,12 @@ bool dsLightData_populateData(dsSceneGlobalData* globalData, const dsView* view,
 	dsCommandBuffer* commandBuffer)
 {
 	dsLightData* lightData = (dsLightData*)globalData;
+	dsVector4f direction =
+		{{lightData->direction.x, lightData->direction.y, lightData->direction.z, 0.0f}};
+	dsVector4f viewDirection;
+	dsMatrix44_transform(viewDirection, view->viewMatrix, direction);
+	DS_VERIFY(dsShaderVariableGroup_setElementData(lightData->variableGroup, 0, &viewDirection,
+		dsMaterialType_Vec3, 0, 1));
 	if (!dsShaderVariableGroup_commit(lightData->variableGroup, commandBuffer))
 		return false;
 
@@ -149,10 +157,7 @@ void dsLightData_setDirection(dsSceneGlobalData* globalData, const dsVector3f* d
 	DS_VERIFY(globalData);
 	DS_VERIFY(direction);
 	dsLightData* lightData = (dsLightData*)globalData;
-	dsVector3f normDir;
-	dsVector3f_normalize(&normDir, direction);
-	DS_VERIFY(dsShaderVariableGroup_setElementData(lightData->variableGroup, 0, &normDir,
-		dsMaterialType_Vec3, 0, 1));
+	dsVector3f_normalize(&lightData->direction, direction);
 }
 
 void dsLightData_setColor(dsSceneGlobalData* globalData, const dsVector3f* color)

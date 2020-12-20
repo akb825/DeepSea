@@ -54,12 +54,12 @@
 uniform ForwardLights
 {
 	/**
-	 * @brief Light position on xyz and type on w.
+	 * @brief Light view space position on xyz and type on w.
 	 */
 	vec4 positionAndType[DS_FORWARD_LIGHT_COUNT];
 
 	/**
-	 * @brief Direction to the light on xyz and linear falloff factor on w.
+	 * @brief Direction to the light in view space on xyz and linear falloff factor on w.
 	 *
 	 * The direction is guaranteed to be normalized.
 	 */

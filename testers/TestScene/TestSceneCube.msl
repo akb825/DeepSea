@@ -42,8 +42,8 @@ void vertexShader()
 {
 	gl_Position = DS_ADJUST_CLIP(INSTANCE(dsInstanceTransform).worldViewProj*vec4(position, 1.0));
 	gl_Position.xy = dsRotateScreenPosition(gl_Position.xy);
-	vec3 normal = normal*2.0 - vec3(1.0);
-	vfNormal = (INSTANCE(dsInstanceTransform).worldInvTrans*vec4(normal, 0.0)).xyz;
+	vec3 fixedNormal = normal*2.0 - vec3(1.0);
+	vfNormal = (INSTANCE(dsInstanceTransform).worldViewInvTrans*vec4(fixedNormal, 0.0)).xyz;
 }
 
 [[fragment]]

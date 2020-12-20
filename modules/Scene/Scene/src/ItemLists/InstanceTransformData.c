@@ -29,8 +29,8 @@
 static dsShaderVariableElement elements[] =
 {
 	{"world", dsMaterialType_Mat4, 0},
-	{"worldInvTrans", dsMaterialType_Mat4, 0},
 	{"worldView", dsMaterialType_Mat4, 0},
+	{"worldViewInvTrans", dsMaterialType_Mat4, 0},
 	{"worldViewProj", dsMaterialType_Mat4, 0}
 };
 
@@ -39,8 +39,8 @@ const char* const dsInstanceTransformData_typeName = "InstanceTransformData";
 typedef struct InstanceTransform
 {
 	dsMatrix44f world;
-	dsMatrix44f worldInvTrans;
 	dsMatrix44f worldView;
+	dsMatrix44f worldViewInvTrans;
 	dsMatrix44f worldViewProj;
 } InstanceTransform;
 
@@ -71,10 +71,12 @@ void dsInstanceTransformData_populateData(void* userData, const dsView* view,
 		// work on CPU memory and copy as one to the GPU buffer.
 		InstanceTransform transform;
 		transform.world = instance->transform;
-		dsMatrix44f inverseWorld;
-		dsMatrix44f_affineInvert(&inverseWorld, &transform.world);
-		dsMatrix44_transpose(transform.worldInvTrans, inverseWorld);
 		dsMatrix44_affineMul(transform.worldView, view->viewMatrix, instance->transform);
+
+		dsMatrix44f inverseWorldView;
+		dsMatrix44f_affineInvert(&inverseWorldView, &transform.worldView);
+		dsMatrix44_transpose(transform.worldViewInvTrans, inverseWorldView);
+
 		dsMatrix44_mul(transform.worldViewProj, view->projectionMatrix, transform.worldView);
 
 		*(InstanceTransform*)(data) = transform;
