@@ -23,7 +23,8 @@ if (NOT IOS)
 	# Main defined in primary SDL library for iOS.
 	target_link_libraries(deepsea_application_sdl_main PUBLIC ${SDL2MAIN_LIBRARY})
 endif()
-target_include_directories(deepsea_application_sdl_main PRIVATE ${SDL2_INCLUDE_DIR})
+target_include_directories(deepsea_application_sdl_main
+	PRIVATE ${SDL2_INCLUDE_DIR} ${DEEPSEA_MODULE_DIR}/Core/Core/include)
 ds_set_folder(deepsea_application_sdl_main modules)
 
 ds_install_library(TARGET deepsea_application_sdl_main MODULE ApplicationSDLMain)

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+#include <DeepSea/Core/Config.h>
 #include <SDL_main.h>
 
 // Make sure the main function is visible on Android.
@@ -21,6 +22,11 @@
 #define DS_MAIN_EXPORT __attribute__((visibility("default")))
 #else
 #define DS_MAIN_EXPORT
+#endif
+
+#if DS_WINDOWS
+__declspec(dllexport) uint32_t NvOptimusEnablement = 1;
+__declspec(dllexport) uint32_t AmdPowerXpressRequestHighPerformance = 1;
 #endif
 
 extern int dsMain(int argc, const char** argv);

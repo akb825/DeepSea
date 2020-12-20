@@ -18,6 +18,16 @@
 #include <DeepSea/Core/Streams/ResourceStream.h>
 #include <gtest/gtest.h>
 
+#if DS_WINDOWS
+extern "C"
+{
+	// Mimick the "real world" case of preferring the descrete GPU. This also helps where Intel
+	// drivers are a complete bugfest and fail some of the bootstrap tests.
+	__declspec(dllexport) uint32_t NvOptimusEnablement = 1;
+	__declspec(dllexport) uint32_t AmdPowerXpressRequestHighPerformance = 1;
+}
+#endif
+
 int main(int argc, char** argv)
 {
 	testing::InitGoogleTest(&argc, argv);
