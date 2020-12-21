@@ -34,7 +34,8 @@ static dsShaderVariableElement baseElements[] =
 	{"positionAndType", dsMaterialType_Vec4, 0},
 	{"directionAndLinearFalloff", dsMaterialType_Vec4, 0},
 	{"colorAndQuadraticFalloff", dsMaterialType_Vec4, 0},
-	{"spotCosAngles", dsMaterialType_Vec2, 0}
+	{"spotCosAngles", dsMaterialType_Vec2, 0},
+	{"ambientColor", dsMaterialType_Vec3, 0}
 };
 
 static bool isLightDescValid(const dsShaderVariableGroupDesc* lightDesc)
@@ -76,7 +77,8 @@ dsShaderVariableGroupDesc* dsInstanceForwardLightData_createShaderVariableGroupD
 	for (uint32_t i = 0; i < elementCount; ++i)
 	{
 		elements[i] = baseElements[i];
-		elements[i].count = lightCount;
+		if (i < elementCount - 1)
+			elements[i].count = lightCount;
 	}
 
 	return dsShaderVariableGroupDesc_create(resourceManager, allocator, elements, elementCount);
@@ -101,7 +103,11 @@ void dsInstanceForwardLightData_populateData(void* userData, const dsView* view,
 		dsMaterialType_Vec4, lightCount);
 	size_t spotCosAnglesOffset = dsMaterialType_addElementBlockSize(&size, dsMaterialType_Vec2,
 		lightCount);
+	size_t ambientColorOffset = dsMaterialType_addElementBlockSize(&size, dsMaterialType_Vec3, 0);
 	DS_ASSERT(size == stride);
+
+	dsColor3f ambient;
+	DS_VERIFY(dsSceneLightSet_getAmbient(&ambient, lightSet));
 
 	const dsSceneLight** brightestLights =
 		DS_ALLOCATE_STACK_OBJECT_ARRAY(const dsSceneLight*, lightCount);
@@ -112,6 +118,7 @@ void dsInstanceForwardLightData_populateData(void* userData, const dsView* view,
 			(dsVector4f*)(data + directionAndLinearFalloffOffset);
 		dsVector4f* colorAndQuadraticFalloff = (dsVector4f*)(data + colorAndQuadraticFalloffOffset);
 		dsVector2f* spotCosAngles = (dsVector2f*)(data + spotCosAnglesOffset);
+		dsColor3f* ambientColor = (dsColor3f*)(data + ambientColorOffset);
 
 		const dsVector3f* position = (const dsVector3f*)(instances[i].transform.columns + 3);
 		uint32_t brightestLightCount = dsSceneLightSet_findBrightestLights(brightestLights,
@@ -139,6 +146,8 @@ void dsInstanceForwardLightData_populateData(void* userData, const dsView* view,
 			spotCosAngles[j].x = light->innerSpotCosAngle;
 			spotCosAngles[j].y = light->outerSpotCosAngle;
 		}
+
+		*ambientColor = ambient;
 
 		// Unset lights can be zero-initialized.
 		uint32_t unsetCount = lightCount - brightestLightCount;

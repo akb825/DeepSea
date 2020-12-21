@@ -64,7 +64,7 @@ gltfTypeMap = {
 	('VEC4', 5121): ('X8Y8Z8W8', 'UInt'),
 	('VEC4', 5122): ('X16Y16Z16W16', 'Int'),
 	('VEC4', 5123): ('X16Y16Z16W16', 'UInt'),
-	('VEC4', 5126): ('X32Y32Z32W42', 'Float')
+	('VEC4', 5126): ('X32Y32Z32W32', 'Float')
 }
 
 gltfPrimitiveTypeMap = ['PointList', 'LineList', 'LineStrip', 'LineStrip', 'TriangleList',

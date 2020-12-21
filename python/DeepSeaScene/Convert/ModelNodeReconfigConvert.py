@@ -38,11 +38,11 @@ def convertModelNodeReconfig(convertContext, data):
 
 		models = []
 		try:
-			for model in data[models]:
+			for model in data['models']:
 				distanceRange = model.get('distanceRange', [0.0, FLT_MAX])
 				validateModelDistanceRange(distanceRange)
 
-				models.append((str(model['name']), str(model['shader']),
+				models.append((str(model['baseName']), str(model['shader']),
 					str(model['material']), distanceRange, str(model.get('listName', ''))))
 
 			extraItemLists = data.get('extraItemLists')
@@ -53,7 +53,7 @@ def convertModelNodeReconfig(convertContext, data):
 				raise Exception("ModelNodeReconfig doesn't contain any models.")
 		except (TypeError, ValueError):
 			raise Exception(
-				'ModelNodeReconfig "imodels" must be an array of objects.')
+				'ModelNodeReconfig "models" must be an array of objects.')
 		except KeyError as e:
 			raise Exception(
 				'ModelNodeReconfig model doesn\'t contain element ' + str(e) + '.')
@@ -67,7 +67,7 @@ def convertModelNodeReconfig(convertContext, data):
 	nameOffset = builder.CreateString(name)
 
 	modelsOffsets = []
-	for modelName, shader, material, distanceRange, listName in model:
+	for modelName, shader, material, distanceRange, listName in models:
 		modelNameOffset = builder.CreateString(modelName)
 		shaderOffset = builder.CreateString(shader)
 		materialOffset = builder.CreateString(material)

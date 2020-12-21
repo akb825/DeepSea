@@ -79,7 +79,7 @@ lowp float dsPointDiffuseLight(out lowp float falloff, out lowp vec3 surfaceDire
  * @param outerSpotCosAngle The cosine of the outer angle of the spot light.
  * @return The diffuse lighting factor.
  */
-lowp float dsPointDiffuseLight(out lowp float falloff, out lowp vec3 surfaceDirection,
+lowp float dsSpotDiffuseLight(out lowp float falloff, out lowp vec3 surfaceDirection,
 	vec3 lightPosition, lowp vec3 lightDirection, vec3 surfacePosition, lowp vec3 normal,
 	lowp float linearFalloff, lowp float quadraticFalloff, lowp float innerSpotCosAngle,
 	lowp float outerSpotCosAngle)

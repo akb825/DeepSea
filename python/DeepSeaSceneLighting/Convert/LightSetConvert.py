@@ -202,14 +202,14 @@ def convertLightSet(convertContext, data):
 
 		LightStart(builder)
 		LightAddName(builder, nameOffset)
-		LightAddLightType(builder, lightType)
+		LightAddLightType(builder, light.type)
 		LightAddLight(builder, lightUnionOffset)
 		lightOffsets.append(LightEnd(builder))
 
 	if lightOffsets:
 		SceneLightSetStartLightsVector(builder, len(lightOffsets))
 		for offset in reversed(lightOffsets):
-			builder.PrependUOffsetTRelative(lightOffsets)
+			builder.PrependUOffsetTRelative(offset)
 		lightsOffset = builder.EndVector(len(lightOffsets))
 	else:
 		lightsOffset

@@ -594,7 +594,7 @@ def convertSceneResourcesShaderDataArray(builder, convertContext, data, startVec
 			dataBytes = bytearray(len(dataArray)*dataSize)
 			try:
 				for element in dataArray:
-					struct.pack_into(formatStr, dataBytes, offset, formatStr, element)
+					struct.pack_into(formatStr, dataBytes, offset, element)
 					offset += dataSize
 			except:
 				if name[0] in ('a', 'e', 'i', 'o', 'u'):
