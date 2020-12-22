@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@
 #include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Render/Resources/ShaderModule.h>
-#include <DeepSea/Render/Resources/Shader.h>
 #include <MSL/Client/ModuleC.h>
 #include <string.h>
 
@@ -32,12 +31,7 @@ dsShader* dsMockShader_create(dsResourceManager* resourceManager, dsAllocator* a
 	DS_ASSERT(shaderIndex < dsShaderModule_shaderCount(module));
 	DS_ASSERT(materialDesc);
 
-	uint32_t subpassInputCount = 0;
-	for (uint32_t i = 0; i < materialDesc->elementCount; ++i)
-		subpassInputCount += materialDesc->elements[i].type == dsMaterialType_SubpassInput;
-
-	size_t size = DS_ALIGNED_SIZE(sizeof(dsShader)) + DS_ALIGNED_SIZE(sizeof(mslPipeline)) +
-		DS_ALIGNED_SIZE(sizeof(dsShaderSubpassInput)*subpassInputCount);
+	size_t size = DS_ALIGNED_SIZE(sizeof(dsShader)) + DS_ALIGNED_SIZE(sizeof(mslPipeline));
 	void* buffer = dsAllocator_alloc(allocator, size);
 	if (!buffer)
 		return NULL;
@@ -57,18 +51,6 @@ dsShader* dsMockShader_create(dsResourceManager* resourceManager, dsAllocator* a
 	DS_VERIFY(mslModule_pipeline(shader->pipeline, module->module, shaderIndex));
 	shader->name = shader->pipeline->name;
 	shader->materialDesc = materialDesc;
-	if (subpassInputCount > 0)
-	{
-		dsShaderSubpassInput* subpassInputs =
-			DS_ALLOCATE_OBJECT_ARRAY(&bufferAllocator, dsShaderSubpassInput, subpassInputCount);
-		DS_ASSERT(subpassInputs);
-		DS_VERIFY(dsShader_findShaderSubpassInputs(subpassInputs, subpassInputCount, module,
-			shaderIndex, shader->pipeline->uniformCount, materialDesc));
-		shader->subpassInputs = subpassInputs;
-	}
-	else
-		shader->subpassInputs = NULL;
-	shader->subpassInputCount = subpassInputCount;
 
 	return shader;
 }

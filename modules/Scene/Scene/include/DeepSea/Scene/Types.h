@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 Aaron Barany
+ * Copyright 2019-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -297,6 +297,9 @@ typedef struct dsViewSurfaceInfo
 
 	/**
 	 * @brief The type of the surface.
+	 *
+	 * If the surface is an offscreen, it will be bound as a global shader variable using the
+	 * surface name.
 	 */
 	dsGfxSurfaceType surfaceType;
 

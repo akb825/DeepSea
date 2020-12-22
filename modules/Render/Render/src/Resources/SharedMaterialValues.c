@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -484,58 +484,6 @@ bool dsSharedMaterialValues_setBufferID(dsSharedMaterialValues* values, uint32_t
 		return false;
 
 	return setValue(values, nameID, Type_Buffer, buffer, dsGfxFormat_Unknown, offset, size);
-}
-
-bool dsSharedMaterialValues_setSubpassInputs(dsSharedMaterialValues* values, const dsShader* shader,
-	const dsRenderSubpassInfo* subpass, const dsFramebuffer* framebuffer, dsMaterialBinding binding)
-{
-	if (!values || !shader || !subpass || !framebuffer || binding == dsMaterialBinding_Material)
-	{
-		errno = EINVAL;
-		return false;
-	}
-
-	const dsMaterialDesc* materialDesc = shader->materialDesc;
-	for (uint32_t i = 0; i < shader->subpassInputCount; ++i)
-	{
-		const dsShaderSubpassInput* subpassInput = shader->subpassInputs + i;
-		DS_ASSERT(subpassInput->element < materialDesc->elementCount);
-		const dsMaterialElement* element = materialDesc->elements + subpassInput->element;
-		if (element->binding != binding)
-			continue;
-
-		if (subpassInput->inputAttachment >= subpass->inputAttachmentCount)
-		{
-			errno = EINDEX;
-			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Shader and subpass are incompatible.");
-			return false;
-		}
-
-		uint32_t attachment = subpass->inputAttachments[subpassInput->inputAttachment];
-		if (attachment >= framebuffer->surfaceCount)
-		{
-			errno = EINDEX;
-			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Subpass and framebuffer are incompatible.");
-			return false;
-		}
-
-		const dsFramebufferSurface* surface = framebuffer->surfaces + i;
-		if (surface->surfaceType != dsGfxSurfaceType_Offscreen)
-		{
-			errno = EINVAL;
-			DS_LOG_ERROR(DS_RENDER_LOG_TAG,
-				"Framebuffer surface used for subpass input isn't a texture.");
-			return false;
-		}
-
-		if (!dsSharedMaterialValues_setTextureID(values, element->nameID,
-				(dsTexture*)surface->surface))
-		{
-			return false;
-		}
-	}
-
-	return true;
 }
 
 bool dsSharedMaterialValues_removeValueName(dsSharedMaterialValues* values, const char* name)

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Aaron Barany
+ * Copyright 2020-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 #include <DeepSea/Render/Shaders/VertexAttributes.mslh>
 #include <DeepSea/Render/Shaders/Color.mslh>
 
-[[fragment]] uniform subpassInput(0) inputColor;
+[[fragment]] uniform subpassInput(0) mainColor;
 
 [[vertex]] layout(location = DS_POSITION) in vec2 position;
 
@@ -32,7 +32,7 @@ void vertexShader()
 [[fragment]]
 void fragmentShader()
 {
-	vec4 linearColor = subpassLoad(inputColor);
+	vec4 linearColor = subpassLoad(mainColor);
 	color.rgb = dsSRGBFromLinear(linearColor.rgb);
 	color.a = linearColor.a;
 }

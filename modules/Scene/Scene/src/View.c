@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 Aaron Barany
+ * Copyright 2019-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,9 +48,6 @@
 
 #include <string.h>
 
-// I certainly hope there's no program with more than 100 subpass input variable names...
-#define DS_MAX_SUBPASS_INPUT_VARS 100
-
 typedef struct IndexNode
 {
 	dsHashTableNode node;
@@ -77,9 +74,17 @@ typedef struct dsViewPrivate
 	bool surfaceSet;
 } dsViewPrivate;
 
-static size_t fullAllocSize(const dsScene* scene, const dsViewSurfaceInfo* surfaces,
-	uint32_t surfaceCount, const dsViewFramebufferInfo* framebuffers, uint32_t framebufferCount)
+static size_t fullAllocSize(uint32_t* outOffscreenSurfaceCount, const dsScene* scene,
+	const dsViewSurfaceInfo* surfaces, uint32_t surfaceCount,
+	const dsViewFramebufferInfo* framebuffers, uint32_t framebufferCount)
 {
+	*outOffscreenSurfaceCount = 0;
+	for (uint32_t i = 0; i < surfaceCount; ++i)
+	{
+		if (surfaces[i].surfaceType == dsGfxSurfaceType_Offscreen)
+			++*outOffscreenSurfaceCount;
+	}
+
 	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsViewPrivate)) +
 		DS_ALIGNED_SIZE(sizeof(dsViewSurfaceInfo)*surfaceCount) +
 		DS_ALIGNED_SIZE(sizeof(void*)*surfaceCount) +
@@ -88,7 +93,7 @@ static size_t fullAllocSize(const dsScene* scene, const dsViewSurfaceInfo* surfa
 		DS_ALIGNED_SIZE(sizeof(dsViewFramebufferInfo)*framebufferCount) +
 		DS_ALIGNED_SIZE(sizeof(dsFramebuffer*)*framebufferCount) +
 		DS_ALIGNED_SIZE(sizeof(uint32_t)*scene->pipelineCount) +
-		dsSharedMaterialValues_fullAllocSize(scene->globalValueCount + DS_MAX_SUBPASS_INPUT_VARS);
+		dsSharedMaterialValues_fullAllocSize(scene->globalValueCount + *outOffscreenSurfaceCount);
 
 	for (uint32_t i = 0; i < surfaceCount; ++i)
 		fullSize += DS_ALIGNED_SIZE(strlen(surfaces[i].name) + 1);
@@ -241,6 +246,25 @@ static void updatedCameraProjection(dsView* view)
 	dsFrustum3f_normalize(&view->viewFrustum);
 }
 
+static bool bindOffscreenVariables(dsView* view)
+{
+	dsViewPrivate* viewPrivate = (dsViewPrivate*)view;
+	for (uint32_t i = 0; i < viewPrivate->surfaceCount; ++i)
+	{
+		const dsViewSurfaceInfo* surfaceInfo = viewPrivate->surfaceInfos + i;
+		if (surfaceInfo->surfaceType == dsGfxSurfaceType_Offscreen &&
+			!dsSharedMaterialValues_setTextureName(view->globalValues, surfaceInfo->name,
+				(dsTexture*)viewPrivate->surfaces[i]))
+		{
+			DS_LOG_ERROR_F(DS_SCENE_LOG_TAG, "Couldn't bind view offscreen '%s'.",
+				surfaceInfo->name);
+			return false;
+		}
+	}
+
+	return true;
+}
+
 dsView* dsView_loadImpl(const dsScene* scene, dsAllocator* allocator,
 	dsAllocator* resourceAllocator, dsSceneLoadScratchData* scratchData, const void* data,
 	size_t dataSize,  const dsViewSurfaceInfo* surfaces, uint32_t surfaceCount, uint32_t width,
@@ -292,7 +316,9 @@ dsView* dsView_create(const dsScene* scene, dsAllocator* allocator, dsAllocator*
 		return NULL;
 	}
 
-	size_t fullSize = fullAllocSize(scene, surfaces, surfaceCount, framebuffers, framebufferCount);
+	uint32_t offscreenSurfaceCount;
+	size_t fullSize = fullAllocSize(&offscreenSurfaceCount, scene, surfaces, surfaceCount,
+		framebuffers, framebufferCount);
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 	{
@@ -326,9 +352,15 @@ dsView* dsView_create(const dsScene* scene, dsAllocator* allocator, dsAllocator*
 		renderer->clipInvertY);
 	dsFrustum3f_normalize(&view->viewFrustum);
 
-	view->globalValues = dsSharedMaterialValues_create((dsAllocator*)&bufferAlloc,
-		scene->globalValueCount + DS_MAX_SUBPASS_INPUT_VARS);
-	DS_ASSERT(view->globalValues);
+	uint32_t variableCount = scene->globalValueCount + offscreenSurfaceCount;
+	if (variableCount > 0)
+	{
+		view->globalValues = dsSharedMaterialValues_create((dsAllocator*)&bufferAlloc,
+			variableCount);
+		DS_ASSERT(view->globalValues);
+	}
+	else
+		view->globalValues = NULL;
 
 	privateView->surfaceInfos = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsViewSurfaceInfo,
 		surfaceCount);
@@ -869,6 +901,9 @@ bool dsView_draw(dsView* view, dsCommandBuffer* commandBuffer, dsSceneThreadMana
 	const dsScene* scene = view->scene;
 
 	// First setup the global data.
+	if (!bindOffscreenVariables(view))
+		DS_PROFILE_FUNC_RETURN(false);
+
 	for (uint32_t i = 0; i < scene->globalDataCount; ++i)
 	{
 		dsSceneGlobalData* globalData = scene->globalData[i];

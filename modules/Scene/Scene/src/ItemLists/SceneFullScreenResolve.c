@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Aaron Barany
+ * Copyright 2020-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -79,12 +79,7 @@ static void dsCommitSceneItemList_commit(dsSceneItemList* itemList, const dsView
 	dsSceneFullScreenResolve* resolve = (dsSceneFullScreenResolve*)itemList;
 	dsDynamicRenderStates* renderStates =
 		resolve->hasRenderStates ? &resolve->renderStates : NULL;
-	const dsRenderSubpassInfo* curSubpass = commandBuffer->boundRenderPass->subpasses +
-		commandBuffer->activeRenderSubpass;
-	if (!DS_CHECK(DS_SCENE_LOG_TAG, dsSharedMaterialValues_setSubpassInputs(
-			view->globalValues, resolve->shader, curSubpass,
-			commandBuffer->boundFramebuffer, dsMaterialBinding_Global)) ||
-		!DS_CHECK(DS_SCENE_LOG_TAG, dsShader_bind(resolve->shader, commandBuffer,
+	if (!DS_CHECK(DS_SCENE_LOG_TAG, dsShader_bind(resolve->shader, commandBuffer,
 			resolve->material, view->globalValues, renderStates)))
 	{
 		return;

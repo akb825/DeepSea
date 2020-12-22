@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Aaron Barany
+ * Copyright 2017-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -775,16 +775,11 @@ dsShader* dsGLShader_create(dsResourceManager* resourceManager, dsAllocator* all
 			pipeline.pushConstantStruct));
 	}
 
-	uint32_t subpassInputCount = 0;
-	for (uint32_t i = 0; i < materialDesc->elementCount; ++i)
-		subpassInputCount += materialDesc->elements[i].type == dsMaterialType_SubpassInput;
-
 	bool hasSamplers = ANYGL_SUPPORTED(glGenSamplers);
 	bool useGfxBuffers = dsShaderVariableGroup_useGfxBuffer(resourceManager);
 	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsGLShader)) +
 		DS_ALIGNED_SIZE(sizeof(mslSamplerState)*pipeline.samplerStateCount) +
-		DS_ALIGNED_SIZE(sizeof(dsGLUniformInfo)*materialDesc->elementCount) +
-		DS_ALIGNED_SIZE(sizeof(dsShaderSubpassInput)*subpassInputCount);
+		DS_ALIGNED_SIZE(sizeof(dsGLUniformInfo)*materialDesc->elementCount);
 	if (hasSamplers)
 		fullSize += DS_ALIGNED_SIZE(sizeof(GLuint)*pipeline.samplerStateCount);
 	if (!useGfxBuffers)
@@ -815,24 +810,6 @@ dsShader* dsGLShader_create(dsResourceManager* resourceManager, dsAllocator* all
 	baseShader->pipelineIndex = shaderIndex;
 	baseShader->pipeline = &shader->pipeline;
 	baseShader->materialDesc = materialDesc;
-	bool failed = false;
-	if (subpassInputCount > 0)
-	{
-		dsShaderSubpassInput* subpassInputs =
-			DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsShaderSubpassInput, subpassInputCount);
-		DS_ASSERT(subpassInputs);
-		if (!dsShader_findShaderSubpassInputs(subpassInputs, subpassInputCount, module,
-				shaderIndex, pipeline.uniformCount, materialDesc))
-		{
-			DS_LOG_ERROR_F(DS_RENDER_OPENGL_LOG_TAG,
-				"Coudn't find subpass inputs for shader '%s'.", pipeline.name);
-			failed = true;
-		}
-		baseShader->subpassInputs = subpassInputs;
-	}
-	else
-		baseShader->subpassInputs = NULL;
-	baseShader->subpassInputCount = subpassInputCount;
 
 	bool prevChecksEnabled = AnyGL_getErrorCheckingEnabled();
 	AnyGL_setErrorCheckingEnabled(false);
@@ -842,13 +819,6 @@ dsShader* dsGLShader_create(dsResourceManager* resourceManager, dsAllocator* all
 	shader->pipeline = pipeline;
 	shader->defaultAnisotropy = resourceManager->renderer->defaultAnisotropy;
 	shader->programId = 0;
-
-	// At this point it's safe to destory if failed.
-	if (failed)
-	{
-		dsGLShader_destroy(resourceManager, baseShader);
-		return NULL;
-	}
 
 	if (hasSamplers && pipeline.samplerStateCount > 0)
 	{

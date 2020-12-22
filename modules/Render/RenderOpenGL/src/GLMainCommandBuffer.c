@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Aaron Barany
+ * Copyright 2017-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1167,7 +1167,7 @@ bool dsGLMainCommandBuffer_bindShader(dsCommandBuffer* commandBuffer, const dsSh
 		float invertY = offscreen ? -1.0f : 1.0f;
 		float height = (float)glCommandBuffer->curFramebuffer->height;
 		float invWidth = 1.0f/(float)glCommandBuffer->curFramebuffer->width;
-		float invHeight = invertY/height;
+		float invHeight = -1.0f/height;
 		glUniform4f(glShader->internalUniform, invertY, height, invWidth, invHeight);
 	}
 	return true;

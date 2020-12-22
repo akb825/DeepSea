@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Aaron Barany
+ * Copyright 2019-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,18 +37,16 @@
 #include <DeepSea/Render/Resources/Material.h>
 #include <DeepSea/Render/Resources/MaterialDesc.h>
 #include <DeepSea/Render/Resources/MaterialType.h>
-#include <DeepSea/Render/Resources/Shader.h>
 #include <DeepSea/Render/Resources/ShaderVariableGroup.h>
 #include <DeepSea/Render/Resources/SharedMaterialValues.h>
 
 #include <MSL/Client/ModuleC.h>
 #include <string.h>
 
-static size_t fullAllocSize(const mslPipeline* pipeline, uint32_t subpassInputCount,
-	uint32_t elementCount, uint32_t pushConstantCount)
+static size_t fullAllocSize(const mslPipeline* pipeline, uint32_t elementCount,
+	uint32_t pushConstantCount)
 {
-	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsMTLShader)) +
-		DS_ALIGNED_SIZE(sizeof(dsShaderSubpassInput)*subpassInputCount);
+	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsMTLShader));
 
 	for (int i = 0; i < mslStage_Count; ++i)
 	{
@@ -847,11 +845,7 @@ dsShader* dsMTLShader_create(dsResourceManager* resourceManager, dsAllocator* al
 				pipeline.pushConstantStruct));
 		}
 
-		uint32_t subpassInputCount = 0;
-		for (uint32_t i = 0; i < materialDesc->elementCount; ++i)
-			subpassInputCount += materialDesc->elements[i].type == dsMaterialType_SubpassInput;
-
-		size_t fullSize = fullAllocSize(&pipeline, subpassInputCount, materialDesc->elementCount,
+		size_t fullSize = fullAllocSize(&pipeline, materialDesc->elementCount,
 			pushConstantStruct.memberCount);
 		void* buffer = dsAllocator_alloc(allocator, fullSize);
 		if (!buffer)
@@ -870,18 +864,6 @@ dsShader* dsMTLShader_create(dsResourceManager* resourceManager, dsAllocator* al
 		baseShader->pipelineIndex = shaderIndex;
 		baseShader->pipeline = &shader->pipeline;
 		baseShader->materialDesc = materialDesc;
-		if (subpassInputCount > 0)
-		{
-			dsShaderSubpassInput* subpassInputs =
-				DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsShaderSubpassInput, subpassInputCount);
-			DS_ASSERT(subpassInputs);
-			DS_VERIFY(dsShader_findShaderSubpassInputs(subpassInputs, subpassInputCount, module,
-				shaderIndex, pipeline.uniformCount, materialDesc));
-			baseShader->subpassInputs = subpassInputs;
-		}
-		else
-			baseShader->subpassInputs = NULL;
-		baseShader->subpassInputCount = subpassInputCount;
 
 		shader->scratchAllocator = resourceManager->allocator;
 		shader->lifetime = NULL;
