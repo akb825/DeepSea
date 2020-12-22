@@ -37,6 +37,7 @@
 #include <DeepSea/Render/Resources/Material.h>
 #include <DeepSea/Render/Resources/MaterialDesc.h>
 #include <DeepSea/Render/Resources/MaterialType.h>
+#include <DeepSea/Render/Resources/Shader.h>
 
 #include <MSL/Client/ModuleC.h>
 #include <string.h>
@@ -256,9 +257,11 @@ static void copyBlendAttachmentState(VkPipelineColorBlendAttachmentState* vkBlen
 }
 
 static size_t fullAllocSize(const mslModule* module, const mslPipeline* pipeline,
-	const dsMaterialDesc* materialDesc, uint32_t pushConstantCount, uint32_t samplerCount)
+	const dsMaterialDesc* materialDesc, uint32_t subpassInputCount, uint32_t pushConstantCount,
+	uint32_t samplerCount)
 {
 	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsVkShader)) +
+		DS_ALIGNED_SIZE(sizeof(dsShaderSubpassInput)*subpassInputCount) +
 		DS_ALIGNED_SIZE(sizeof(dsVkPushConstantMapping)*pushConstantCount) +
 		(samplerCount > 0 ?
 			DS_ALIGNED_SIZE(sizeof(dsVkSamplerMapping)*materialDesc->elementCount) : 0U);
@@ -921,8 +924,12 @@ dsShader* dsVkShader_create(dsResourceManager* resourceManager, dsAllocator* all
 	if (!scratchAllocator->freeFunc)
 		scratchAllocator = resourceManager->allocator;
 
-	size_t fullSize = fullAllocSize(module->module, &pipeline, materialDesc, pushConstantCount,
-		samplerCount);
+	uint32_t subpassInputCount = 0;
+	for (uint32_t i = 0; i < materialDesc->elementCount; ++i)
+		subpassInputCount += materialDesc->elements[i].type == dsMaterialType_SubpassInput;
+
+	size_t fullSize = fullAllocSize(module->module, &pipeline, materialDesc, subpassInputCount,
+		pushConstantCount, samplerCount);
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 		return NULL;
@@ -949,6 +956,18 @@ dsShader* dsVkShader_create(dsResourceManager* resourceManager, dsAllocator* all
 	baseShader->pipelineIndex = shaderIndex;
 	baseShader->pipeline = &shader->pipeline;
 	baseShader->materialDesc = materialDesc;
+	if (subpassInputCount > 0)
+	{
+		dsShaderSubpassInput* subpassInputs =
+			DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsShaderSubpassInput, subpassInputCount);
+		DS_ASSERT(subpassInputs);
+		DS_VERIFY(dsShader_findShaderSubpassInputs(subpassInputs, subpassInputCount, module,
+			shaderIndex, pipeline.uniformCount, materialDesc));
+		baseShader->subpassInputs = subpassInputs;
+	}
+	else
+		baseShader->subpassInputs = NULL;
+	baseShader->subpassInputCount = subpassInputCount;
 
 	shader->scratchAllocator = scratchAllocator;
 	shader->lifetime = lifetime;

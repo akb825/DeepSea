@@ -182,8 +182,23 @@ dsGfxFormat convert(const dsRenderer* renderer,
 	else if (format == TextureFormat::SurfaceDepthStencil)
 		return renderer ? renderer->surfaceDepthStencilFormat : dsGfxFormat_Unknown;
 
-	return dsGfxFormat_decorate(textureFormatMap[formatIndex],
+	dsGfxFormat gfxFormat = dsGfxFormat_decorate(textureFormatMap[formatIndex],
 		formatDecorationMap[decorationIndex]);
+
+	// Some platforms don't support 24-bit depth. Convert to 32-bit float here automatically to
+	// make configuration files not have to worry about it.
+	if (gfxFormat == dsGfxFormat_D24S8 &&
+		!dsGfxFormat_renderTargetSupported(renderer->resourceManager, gfxFormat))
+	{
+		gfxFormat = dsGfxFormat_D32S8_Float;
+	}
+	else if (gfxFormat == dsGfxFormat_X8D24 &&
+		!dsGfxFormat_renderTargetSupported(renderer->resourceManager, gfxFormat))
+	{
+		gfxFormat = dsGfxFormat_D32_Float;
+	}
+
+	return gfxFormat;
 }
 
 dsGfxFormat convert(VertexElementFormat format, FormatDecoration decoration)

@@ -17,7 +17,7 @@
 #pragma once
 
 #include <DeepSea/Core/Config.h>
-#include <DeepSea/Render/Resources/Types.h>
+#include <DeepSea/Render/Types.h>
 #include <DeepSea/Render/Export.h>
 
 #ifdef __cplusplus
@@ -285,6 +285,25 @@ DS_RENDER_EXPORT bool dsSharedMaterialValues_setBufferName(dsSharedMaterialValue
  */
 DS_RENDER_EXPORT bool dsSharedMaterialValues_setBufferID(dsSharedMaterialValues* values,
 	uint32_t nameID, dsGfxBuffer* buffer, size_t offset, size_t size);
+
+/**
+ * @brief Sets the variables for subpass inputs for a shader and framebuffer.
+ *
+ * This can be used to automatically assign the shader variables for subpass inputs without having to
+ * know which specific values to use.
+ *
+ * @remark errno will be set on failure.
+ * @param values The shared material values.
+ * @param shader The shader to use the values for.
+ * @param subpass The subpass that will be drawn with.
+ * @param framebuffer The framebuffer to grab the subpass input attachments from.
+ * @param binding The material binding used for these material values. This must be either global or
+ *     instance.
+ * @return False if an error occurred.
+ */
+DS_RENDER_EXPORT bool dsSharedMaterialValues_setSubpassInputs(dsSharedMaterialValues* values,
+	const dsShader* shader, const dsRenderSubpassInfo* subpass, const dsFramebuffer* framebuffer,
+	dsMaterialBinding binding);
 
 /**
  * @brief Removes a shared material value by name.

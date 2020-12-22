@@ -324,14 +324,11 @@ dsView* dsView_create(const dsScene* scene, dsAllocator* allocator, dsAllocator*
 		renderer->clipInvertY);
 	dsFrustum3f_normalize(&view->viewFrustum);
 
-	if (scene->globalValueCount > 0)
-	{
-		view->globalValues = dsSharedMaterialValues_create((dsAllocator*)&bufferAlloc,
-			scene->globalValueCount);
-		DS_ASSERT(view->globalValues);
-	}
-	else
-		view->globalValues = NULL;
+	// I certainly hope there's no program with more than 100 subpass input variable names...
+	const uint32_t maxSubpassInputVars = 100;
+	view->globalValues = dsSharedMaterialValues_create((dsAllocator*)&bufferAlloc,
+		scene->globalValueCount + maxSubpassInputVars);
+	DS_ASSERT(view->globalValues);
 
 	privateView->surfaceInfos = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsViewSurfaceInfo,
 		surfaceCount);

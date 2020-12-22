@@ -205,6 +205,24 @@ DS_RENDER_EXPORT bool dsShader_prepareCacheDirectory(const char* cacheDir);
 DS_RENDER_EXPORT bool dsShader_cacheFileName(char* result, size_t resultSize,
 	const dsShader* shader, const char* cacheDir, const char* extension);
 
+/**
+ * @brief Finds the shader subpass inputs.
+ *
+ * This is typically only used by renderer implementations.
+ *
+ * @remark errno will be set on failure.
+ * @param[out] outSubpassInputs The subpass inputs to populate.
+ * @param subpassInputCount The number of subpass inputs.
+ * @param shaderModule The shader module.
+ * @param shaderIndex The index of the shader in the module.
+ * @param uniformCount The number of uniforms in the shader pipeline.
+ * @param materialDesc The material description.
+ * @return False if an error occurred.
+ */
+DS_RENDER_EXPORT bool dsShader_findShaderSubpassInputs(dsShaderSubpassInput* outSubpassInputs,
+	uint32_t subpassInputCount, const dsShaderModule* shaderModule, uint32_t shaderIndex,
+	uint32_t uniformCount, const dsMaterialDesc* materialDesc);
+
 #ifdef __cplusplus
 }
 #endif

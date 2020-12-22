@@ -1042,3 +1042,73 @@ bool dsShader_cacheFileName(char* result, size_t resultSize, const dsShader* sha
 	memcpy(result + pathLength, extension, extensionLength + 1);
 	return true;
 }
+
+bool dsShader_findShaderSubpassInputs(dsShaderSubpassInput* outSubpassInputs,
+	uint32_t subpassInputCount, const dsShaderModule* shaderModule, uint32_t shaderIndex,
+	uint32_t uniformCount, const dsMaterialDesc* materialDesc)
+{
+	if ((!outSubpassInputs && subpassInputCount > 0) ||
+		(subpassInputCount > 0 && uniformCount == 0) || !shaderModule || !materialDesc)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	if (subpassInputCount == 0)
+		return true;
+
+	uint32_t index = 0;
+	for (uint32_t i = 0; i < materialDesc->elementCount; ++i)
+	{
+		const dsMaterialElement* element = materialDesc->elements + i;
+		if (element->type != dsMaterialType_SubpassInput)
+			continue;
+
+		if (index > subpassInputCount)
+		{
+			errno = EINDEX;
+			return false;
+		}
+
+		outSubpassInputs[index].element = i;
+		bool found = false;
+		for (uint32_t j = 0; j < uniformCount; ++j)
+		{
+			mslUniform uniform;
+			if (!mslModule_uniform(&uniform, shaderModule->module, shaderIndex, j))
+			{
+				errno = EINVAL;
+				return false;
+			}
+
+			if (strcmp(uniform.name, element->name) != 0)
+				continue;
+
+			if (uniform.inputAttachmentIndex == MSL_UNKNOWN)
+			{
+				errno = EINVAL;
+				return false;
+			}
+
+			outSubpassInputs[index].inputAttachment = uniform.inputAttachmentIndex;
+			found = true;
+			break;
+		}
+
+		if (!found)
+		{
+			errno = ENOTFOUND;
+			return false;
+		}
+
+		++index;
+	}
+
+	if (index != subpassInputCount)
+	{
+		errno = EINDEX;
+		return false;
+	}
+
+	return true;
+}

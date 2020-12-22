@@ -202,6 +202,22 @@ typedef struct dsShaderModule
 } dsShaderModule;
 
 /**
+ * @brief Struct containing info for a subpass input variable within a shader.
+ */
+typedef struct dsShaderSubpassInput
+{
+	/**
+	 * @brief The material element for the subpass input.
+	 */
+	uint32_t element;
+
+	/**
+	 * @brief The index of the input attachment.
+	 */
+	uint32_t inputAttachment;
+} dsShaderSubpassInput;
+
+/**
  * @brief Struct for a shader.
  *
  * Render implementations can effectively subclass this type by having it as the first member of
@@ -249,6 +265,16 @@ typedef struct dsShader
 	 * @brief A description of the materials that can be used with this shader.
 	 */
 	const dsMaterialDesc* materialDesc;
+
+	/**
+	 * @brief The list of subpass inputs for the shader.
+	 */
+	const dsShaderSubpassInput* subpassInputs;
+
+	/**
+	 * @brief The number of subpass inputs.
+	 */
+	uint32_t subpassInputCount;
 } dsShader;
 
 /**

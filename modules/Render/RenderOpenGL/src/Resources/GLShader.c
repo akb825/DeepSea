@@ -775,11 +775,16 @@ dsShader* dsGLShader_create(dsResourceManager* resourceManager, dsAllocator* all
 			pipeline.pushConstantStruct));
 	}
 
+	uint32_t subpassInputCount = 0;
+	for (uint32_t i = 0; i < materialDesc->elementCount; ++i)
+		subpassInputCount += materialDesc->elements[i].type == dsMaterialType_SubpassInput;
+
 	bool hasSamplers = ANYGL_SUPPORTED(glGenSamplers);
 	bool useGfxBuffers = dsShaderVariableGroup_useGfxBuffer(resourceManager);
 	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsGLShader)) +
 		DS_ALIGNED_SIZE(sizeof(mslSamplerState)*pipeline.samplerStateCount) +
-		DS_ALIGNED_SIZE(sizeof(dsGLUniformInfo)*materialDesc->elementCount);
+		DS_ALIGNED_SIZE(sizeof(dsGLUniformInfo)*materialDesc->elementCount) +
+		DS_ALIGNED_SIZE(sizeof(dsShaderSubpassInput)*subpassInputCount);
 	if (hasSamplers)
 		fullSize += DS_ALIGNED_SIZE(sizeof(GLuint)*pipeline.samplerStateCount);
 	if (!useGfxBuffers)
@@ -810,6 +815,18 @@ dsShader* dsGLShader_create(dsResourceManager* resourceManager, dsAllocator* all
 	baseShader->pipelineIndex = shaderIndex;
 	baseShader->pipeline = &shader->pipeline;
 	baseShader->materialDesc = materialDesc;
+	if (subpassInputCount > 0)
+	{
+		dsShaderSubpassInput* subpassInputs =
+			DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsShaderSubpassInput, subpassInputCount);
+		DS_ASSERT(subpassInputs);
+		DS_VERIFY(dsShader_findShaderSubpassInputs(subpassInputs, subpassInputCount, module,
+			shaderIndex, pipeline.uniformCount, materialDesc));
+		baseShader->subpassInputs = subpassInputs;
+	}
+	else
+		baseShader->subpassInputs = NULL;
+	baseShader->subpassInputCount = subpassInputCount;
 
 	bool prevChecksEnabled = AnyGL_getErrorCheckingEnabled();
 	AnyGL_setErrorCheckingEnabled(false);

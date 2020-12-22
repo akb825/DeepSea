@@ -237,6 +237,8 @@ static void drawGeometry(dsSceneModelList* modelList, uint32_t drawItemCount, co
 	DS_PROFILE_FUNC_START();
 
 	dsRenderer* renderer = commandBuffer->renderer;
+	const dsRenderSubpassInfo* curSubpass = commandBuffer->boundRenderPass->subpasses +
+		commandBuffer->activeRenderSubpass;
 	dsShader* lastShader = NULL;
 	dsMaterial* lastMaterial = NULL;
 	uint32_t lastInstance = (uint32_t)-1;
@@ -252,7 +254,10 @@ static void drawGeometry(dsSceneModelList* modelList, uint32_t drawItemCount, co
 			if (lastShader)
 				dsShader_unbind(lastShader, commandBuffer);
 
-			if (!DS_CHECK(DS_SCENE_LOG_TAG, dsShader_bind(drawItem->shader, commandBuffer,
+			if (!DS_CHECK(DS_SCENE_LOG_TAG, dsSharedMaterialValues_setSubpassInputs(
+					view->globalValues, drawItem->shader, curSubpass,
+					commandBuffer->boundFramebuffer, dsMaterialBinding_Global)) ||
+				!DS_CHECK(DS_SCENE_LOG_TAG, dsShader_bind(drawItem->shader, commandBuffer,
 					drawItem->material, view->globalValues, renderStates)))
 			{
 				continue;
