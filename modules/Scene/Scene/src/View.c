@@ -48,6 +48,9 @@
 
 #include <string.h>
 
+// I certainly hope there's no program with more than 100 subpass input variable names...
+#define DS_MAX_SUBPASS_INPUT_VARS 100
+
 typedef struct IndexNode
 {
 	dsHashTableNode node;
@@ -84,9 +87,8 @@ static size_t fullAllocSize(const dsScene* scene, const dsViewSurfaceInfo* surfa
 		dsHashTable_fullAllocSize(dsHashTable_getTableSize(surfaceCount)) +
 		DS_ALIGNED_SIZE(sizeof(dsViewFramebufferInfo)*framebufferCount) +
 		DS_ALIGNED_SIZE(sizeof(dsFramebuffer*)*framebufferCount) +
-		DS_ALIGNED_SIZE(sizeof(uint32_t)*scene->pipelineCount);
-	if (scene->globalValueCount > 0)
-		fullSize += dsSharedMaterialValues_fullAllocSize(scene->globalValueCount);
+		DS_ALIGNED_SIZE(sizeof(uint32_t)*scene->pipelineCount) +
+		dsSharedMaterialValues_fullAllocSize(scene->globalValueCount + DS_MAX_SUBPASS_INPUT_VARS);
 
 	for (uint32_t i = 0; i < surfaceCount; ++i)
 		fullSize += DS_ALIGNED_SIZE(strlen(surfaces[i].name) + 1);
@@ -324,10 +326,8 @@ dsView* dsView_create(const dsScene* scene, dsAllocator* allocator, dsAllocator*
 		renderer->clipInvertY);
 	dsFrustum3f_normalize(&view->viewFrustum);
 
-	// I certainly hope there's no program with more than 100 subpass input variable names...
-	const uint32_t maxSubpassInputVars = 100;
 	view->globalValues = dsSharedMaterialValues_create((dsAllocator*)&bufferAlloc,
-		scene->globalValueCount + maxSubpassInputVars);
+		scene->globalValueCount + DS_MAX_SUBPASS_INPUT_VARS);
 	DS_ASSERT(view->globalValues);
 
 	privateView->surfaceInfos = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsViewSurfaceInfo,

@@ -476,80 +476,80 @@ TEST(SceneLightTest, GetPointLightVertices)
 	// front
 	computeNormal(normal, lightVertices[lightIndices[0]].position,
 		lightVertices[lightIndices[1]].position, lightVertices[lightIndices[2]].position);
-	EXPECT_NEAR(0, normal.x, epsilon);
-	EXPECT_NEAR(0, normal.y, epsilon);
-	EXPECT_GT(0, normal.z);
+	EXPECT_NEAR(0.0f, normal.x, epsilon);
+	EXPECT_NEAR(0.0f, normal.y, epsilon);
+	EXPECT_GT(0.0f, normal.z);
 
 	computeNormal(normal, lightVertices[lightIndices[3]].position,
 		lightVertices[lightIndices[4]].position, lightVertices[lightIndices[5]].position);
-	EXPECT_NEAR(0, normal.x, epsilon);
-	EXPECT_NEAR(0, normal.y, epsilon);
-	EXPECT_GT(0, normal.z);
+	EXPECT_NEAR(0.0f, normal.x, epsilon);
+	EXPECT_NEAR(0.0f, normal.y, epsilon);
+	EXPECT_GT(0.0f, normal.z);
 
 	// right
 	computeNormal(normal, lightVertices[lightIndices[6]].position,
 		lightVertices[lightIndices[7]].position, lightVertices[lightIndices[8]].position);
-	EXPECT_GT(0, normal.x);
-	EXPECT_NEAR(0, normal.y, epsilon);
-	EXPECT_NEAR(0, normal.z, epsilon);
+	EXPECT_GT(0.0f, normal.x);
+	EXPECT_NEAR(0.0f, normal.y, epsilon);
+	EXPECT_NEAR(0.0f, normal.z, epsilon);
 
 	computeNormal(normal, lightVertices[lightIndices[9]].position,
 		lightVertices[lightIndices[10]].position, lightVertices[lightIndices[11]].position);
-	EXPECT_GT(0, normal.x);
-	EXPECT_NEAR(0, normal.y, epsilon);
-	EXPECT_NEAR(0, normal.z, epsilon);
+	EXPECT_GT(0.0f, normal.x);
+	EXPECT_NEAR(0.0f, normal.y, epsilon);
+	EXPECT_NEAR(0.0f, normal.z, epsilon);
 
 	// back
 	computeNormal(normal, lightVertices[lightIndices[12]].position,
 		lightVertices[lightIndices[13]].position, lightVertices[lightIndices[14]].position);
-	EXPECT_NEAR(0, normal.x, epsilon);
-	EXPECT_NEAR(0, normal.y, epsilon);
-	EXPECT_LT(0, normal.z);
+	EXPECT_NEAR(0.0f, normal.x, epsilon);
+	EXPECT_NEAR(0.0f, normal.y, epsilon);
+	EXPECT_LT(0.0f, normal.z);
 
 	computeNormal(normal, lightVertices[lightIndices[15]].position,
 		lightVertices[lightIndices[16]].position, lightVertices[lightIndices[17]].position);
-	EXPECT_NEAR(0, normal.x, epsilon);
-	EXPECT_NEAR(0, normal.y, epsilon);
-	EXPECT_LT(0, normal.z);
+	EXPECT_NEAR(0.0f, normal.x, epsilon);
+	EXPECT_NEAR(0.0f, normal.y, epsilon);
+	EXPECT_LT(0.0f, normal.z);
 
 	// left
 	computeNormal(normal, lightVertices[lightIndices[18]].position,
 		lightVertices[lightIndices[19]].position, lightVertices[lightIndices[20]].position);
-	EXPECT_LT(0, normal.x);
-	EXPECT_NEAR(0, normal.y, epsilon);
-	EXPECT_NEAR(0, normal.z, epsilon);
+	EXPECT_LT(0.0f, normal.x);
+	EXPECT_NEAR(0.0f, normal.y, epsilon);
+	EXPECT_NEAR(0.0f, normal.z, epsilon);
 
 	computeNormal(normal, lightVertices[lightIndices[21]].position,
 		lightVertices[lightIndices[22]].position, lightVertices[lightIndices[23]].position);
-	EXPECT_LT(0, normal.x);
-	EXPECT_NEAR(0, normal.y, epsilon);
-	EXPECT_NEAR(0, normal.z, epsilon);
+	EXPECT_LT(0.0f, normal.x);
+	EXPECT_NEAR(0.0f, normal.y, epsilon);
+	EXPECT_NEAR(0.0f, normal.z, epsilon);
 
 	// bottom
 	computeNormal(normal, lightVertices[lightIndices[24]].position,
 		lightVertices[lightIndices[25]].position, lightVertices[lightIndices[26]].position);
-	EXPECT_NEAR(0, normal.x, epsilon);
-	EXPECT_LT(0, normal.y);
-	EXPECT_NEAR(0, normal.z, epsilon);
+	EXPECT_NEAR(0.0f, normal.x, epsilon);
+	EXPECT_LT(0.0f, normal.y);
+	EXPECT_NEAR(0.0f, normal.z, epsilon);
 
 	computeNormal(normal, lightVertices[lightIndices[27]].position,
 		lightVertices[lightIndices[28]].position, lightVertices[lightIndices[29]].position);
-	EXPECT_NEAR(0, normal.x, epsilon);
-	EXPECT_LT(0, normal.y);
-	EXPECT_NEAR(0, normal.z, epsilon);
+	EXPECT_NEAR(0.0f, normal.x, epsilon);
+	EXPECT_LT(0.0f, normal.y);
+	EXPECT_NEAR(0.0f, normal.z, epsilon);
 
 	// top
 	computeNormal(normal, lightVertices[lightIndices[30]].position,
 		lightVertices[lightIndices[31]].position, lightVertices[lightIndices[32]].position);
-	EXPECT_NEAR(0, normal.x, epsilon);
-	EXPECT_GT(0, normal.y);
-	EXPECT_NEAR(0, normal.z, epsilon);
+	EXPECT_NEAR(0.0f, normal.x, epsilon);
+	EXPECT_GT(0.0f, normal.y);
+	EXPECT_NEAR(0.0f, normal.z, epsilon);
 
 	computeNormal(normal, lightVertices[lightIndices[33]].position,
 		lightVertices[lightIndices[34]].position, lightVertices[lightIndices[35]].position);
-	EXPECT_NEAR(0, normal.x, epsilon);
-	EXPECT_GT(0, normal.y);
-	EXPECT_NEAR(0, normal.z, epsilon);
+	EXPECT_NEAR(0.0f, normal.x, epsilon);
+	EXPECT_GT(0.0f, normal.y);
+	EXPECT_NEAR(0.0f, normal.z, epsilon);
 
 	EXPECT_TRUE(dsSceneLight_makeSpot(&light, &position, &direction, &color, intensity,
 		linearFalloff, quadraticFalloff, innerSpotCosAngle, outerSpotCosAngle));
@@ -633,41 +633,41 @@ TEST(SceneLightTest, GetSpotLightVertices)
 	// left
 	computeNormal(normal, lightVertices[lightIndices[0]].position,
 		lightVertices[lightIndices[1]].position, lightVertices[lightIndices[2]].position);
-	EXPECT_LT(0, normal.x);
-	EXPECT_NEAR(0, normal.y, epsilon);
-	EXPECT_LT(0, normal.z);
+	EXPECT_LT(0.0f, normal.x);
+	EXPECT_NEAR(0.0f, normal.y, epsilon);
+	EXPECT_LT(0.0f, normal.z);
 
 	// bottom
 	computeNormal(normal, lightVertices[lightIndices[3]].position,
 		lightVertices[lightIndices[4]].position, lightVertices[lightIndices[5]].position);
-	EXPECT_LT(0, normal.x);
-	EXPECT_LT(0, normal.y);
-	EXPECT_NEAR(0, normal.z, epsilon);
+	EXPECT_LT(0.0f, normal.x);
+	EXPECT_LT(0.0f, normal.y);
+	EXPECT_NEAR(0.0f, normal.z, epsilon);
 
 	// right
 	computeNormal(normal, lightVertices[lightIndices[6]].position,
 		lightVertices[lightIndices[7]].position, lightVertices[lightIndices[8]].position);
-	EXPECT_LT(0, normal.x);
-	EXPECT_NEAR(0, normal.y, epsilon);
-	EXPECT_GT(0, normal.z);
+	EXPECT_LT(0.0f, normal.x);
+	EXPECT_NEAR(0.0f, normal.y, epsilon);
+	EXPECT_GT(0.0f, normal.z);
 
 	// left
 	computeNormal(normal, lightVertices[lightIndices[9]].position,
 		lightVertices[lightIndices[10]].position, lightVertices[lightIndices[11]].position);
-	EXPECT_LT(0, normal.x);
-	EXPECT_GT(0, normal.y);
-	EXPECT_NEAR(0, normal.z, epsilon);
+	EXPECT_LT(0.0f, normal.x);
+	EXPECT_GT(0.0f, normal.y);
+	EXPECT_NEAR(0.0f, normal.z, epsilon);
 
 	// back
 	computeNormal(normal, lightVertices[lightIndices[12]].position,
 		lightVertices[lightIndices[13]].position, lightVertices[lightIndices[14]].position);
-	EXPECT_GT(0, normal.x);
-	EXPECT_NEAR(0, normal.y, epsilon);
-	EXPECT_NEAR(0, normal.z, epsilon);
+	EXPECT_GT(0.0f, normal.x);
+	EXPECT_NEAR(0.0f, normal.y, epsilon);
+	EXPECT_NEAR(0.0f, normal.z, epsilon);
 
 	computeNormal(normal, lightVertices[lightIndices[15]].position,
 		lightVertices[lightIndices[16]].position, lightVertices[lightIndices[17]].position);
-	EXPECT_GT(0, normal.x);
-	EXPECT_NEAR(0, normal.y, epsilon);
-	EXPECT_NEAR(0, normal.z, epsilon);
+	EXPECT_GT(0.0f, normal.x);
+	EXPECT_NEAR(0.0f, normal.y, epsilon);
+	EXPECT_NEAR(0.0f, normal.z, epsilon);
 }
