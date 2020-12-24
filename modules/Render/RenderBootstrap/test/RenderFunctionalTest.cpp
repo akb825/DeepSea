@@ -881,12 +881,13 @@ TEST_P(RendererFunctionalTest, GenerateMipmaps)
 	dsColor color;
 	dsTexturePosition position = {dsCubeFace_None, 0, 1, 0, 2};
 	ASSERT_TRUE(dsTexture_getData(&color, sizeof(color), info.offscreen, &position, 1, 1));
+	// This can have a very wide range of values on different platforms.
 	EXPECT_LT(45, color.r);
-	EXPECT_GT(180, color.r);
+	EXPECT_GT(195, color.r);
 	EXPECT_LT(45, color.g);
-	EXPECT_GT(180, color.g);
+	EXPECT_GT(195, color.g);
 	EXPECT_LT(45, color.b);
-	EXPECT_GT(180, color.b);
+	EXPECT_GT(195, color.b);
 	EXPECT_EQ(255, color.a);
 
 	EXPECT_TRUE(dsDrawGeometry_destroy(drawGeometry));
@@ -1218,10 +1219,10 @@ TEST_P(RendererFunctionalTest, ClearAttachments)
 	dsColor colors[4];
 	dsTexturePosition position = {dsCubeFace_None, 0, 0, 0, 0};
 	ASSERT_TRUE(dsTexture_getData(colors, sizeof(colors), info.offscreen, &position, 2, 2));
-	EXPECT_EQ(125, colors[0].r);
-	EXPECT_EQ(126, colors[0].g);
-	EXPECT_EQ(127, colors[0].b);
-	EXPECT_EQ(128, colors[0].a);
+	EXPECT_NEAR(125, colors[0].r, 1);
+	EXPECT_NEAR(126, colors[0].g, 1);
+	EXPECT_NEAR(127, colors[0].b, 1);
+	EXPECT_NEAR(128, colors[0].a, 1);
 
 	EXPECT_EQ(0, colors[1].r);
 	EXPECT_EQ(0, colors[1].g);
@@ -1233,10 +1234,10 @@ TEST_P(RendererFunctionalTest, ClearAttachments)
 	EXPECT_EQ(0, colors[2].b);
 	EXPECT_EQ(255, colors[2].a);
 
-	EXPECT_EQ(125, colors[3].r);
-	EXPECT_EQ(126, colors[3].g);
-	EXPECT_EQ(127, colors[3].b);
-	EXPECT_EQ(128, colors[3].a);
+	EXPECT_NEAR(125, colors[3].r, 1);
+	EXPECT_NEAR(126, colors[3].g, 1);
+	EXPECT_NEAR(127, colors[3].b, 1);
+	EXPECT_NEAR(128, colors[3].a, 1);
 
 	EXPECT_TRUE(dsDrawGeometry_destroy(drawGeometry));
 	EXPECT_TRUE(dsGfxBuffer_destroy(buffer));
@@ -1538,10 +1539,10 @@ TEST_P(RendererFunctionalTest, ClearAttachmentsColorAndDepth)
 	dsColor colors[4];
 	dsTexturePosition position = {dsCubeFace_None, 0, 0, 0, 0};
 	ASSERT_TRUE(dsTexture_getData(colors, sizeof(colors), info.offscreen, &position, 2, 2));
-	EXPECT_EQ(125, colors[0].r);
-	EXPECT_EQ(126, colors[0].g);
-	EXPECT_EQ(127, colors[0].b);
-	EXPECT_EQ(128, colors[0].a);
+	EXPECT_NEAR(125, colors[0].r, 1);
+	EXPECT_NEAR(126, colors[0].g, 1);
+	EXPECT_NEAR(127, colors[0].b, 1);
+	EXPECT_NEAR(128, colors[0].a, 1);
 
 	EXPECT_EQ(0, colors[1].r);
 	EXPECT_EQ(0, colors[1].g);
@@ -1553,10 +1554,10 @@ TEST_P(RendererFunctionalTest, ClearAttachmentsColorAndDepth)
 	EXPECT_EQ(0, colors[2].b);
 	EXPECT_EQ(255, colors[2].a);
 
-	EXPECT_EQ(125, colors[3].r);
-	EXPECT_EQ(126, colors[3].g);
-	EXPECT_EQ(127, colors[3].b);
-	EXPECT_EQ(128, colors[3].a);
+	EXPECT_NEAR(125, colors[3].r, 1);
+	EXPECT_NEAR(126, colors[3].g, 1);
+	EXPECT_NEAR(127, colors[3].b, 1);
+	EXPECT_NEAR(128, colors[3].a, 1);
 
 	EXPECT_TRUE(dsDrawGeometry_destroy(drawGeometry));
 	EXPECT_TRUE(dsGfxBuffer_destroy(buffer));
