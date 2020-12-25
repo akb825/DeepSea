@@ -87,7 +87,7 @@ DS_SCENE_EXPORT void dsSceneModelList_setRenderStates(dsSceneModelList* modelLis
 	const dsDynamicRenderStates* renderStates);
 
 /**
- * @brief Destroys the model list.
+ * @brief Destroys a model list.
  * @param modelList The model list.
  */
 DS_SCENE_EXPORT void dsSceneModelList_destroy(dsSceneModelList* modelList);

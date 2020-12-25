@@ -23,6 +23,7 @@
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 
+#include <DeepSea/Scene/Flatbuffers/SceneFlatbufferHelpers.h>
 #include <DeepSea/Scene/ItemLists/SceneInstanceData.h>
 #include <DeepSea/Scene/SceneLoadScratchData.h>
 
@@ -90,51 +91,7 @@ dsSceneItemList* dsSceneModelList_load(const dsSceneLoadContext* loadContext,
 	}
 
 	if (fbDynamicRenderStates)
-	{
-		dynamicRenderStates.lineWidth = fbDynamicRenderStates->lineWidth();
-		dynamicRenderStates.depthBiasConstantFactor =
-			fbDynamicRenderStates->depthBiasConstantFactor();
-		dynamicRenderStates.depthBiasClamp = fbDynamicRenderStates->depthBiasClamp();
-		dynamicRenderStates.depthBiasSlopeFactor = fbDynamicRenderStates->depthBiasSlopeFactor();
-
-		auto fbBlendConstants = fbDynamicRenderStates->blendConstants();
-		if (fbBlendConstants)
-		{
-			dynamicRenderStates.blendConstants.r = fbBlendConstants->red();
-			dynamicRenderStates.blendConstants.g = fbBlendConstants->green();
-			dynamicRenderStates.blendConstants.b = fbBlendConstants->blue();
-			dynamicRenderStates.blendConstants.a = fbBlendConstants->alpha();
-		}
-		else
-		{
-			dynamicRenderStates.blendConstants.r = 0.0f;
-			dynamicRenderStates.blendConstants.g = 0.0f;
-			dynamicRenderStates.blendConstants.b = 0.0f;
-			dynamicRenderStates.blendConstants.a = 1.0f;
-		}
-
-		auto fbDepthBounds = fbDynamicRenderStates->depthBounds();
-		if (fbDepthBounds)
-		{
-			dynamicRenderStates.depthBounds.x = fbDepthBounds->x();
-			dynamicRenderStates.depthBounds.y = fbDepthBounds->y();
-		}
-		else
-		{
-			dynamicRenderStates.depthBounds.x = 0.0f;
-			dynamicRenderStates.depthBounds.y = 1.0f;
-		}
-
-		dynamicRenderStates.frontStencilCompareMask =
-			fbDynamicRenderStates->frontStencilCompareMask();
-		dynamicRenderStates.backStencilCompareMask =
-			fbDynamicRenderStates->backStencilCompareMask();
-		dynamicRenderStates.frontStencilWriteMask =
-			fbDynamicRenderStates->frontStencilWriteMask();
-		dynamicRenderStates.backStencilWriteMask = fbDynamicRenderStates->backStencilWriteMask();
-		dynamicRenderStates.frontStencilReference = fbDynamicRenderStates->frontStencilReference();
-		dynamicRenderStates.backStencilReference = fbDynamicRenderStates->backStencilReference();
-	}
+		dynamicRenderStates = DeepSeaScene::convert(*fbDynamicRenderStates);
 
 	modelList = dsSceneModelList_create(allocator, name, instanceData, instanceDataCount,
 		static_cast<dsModelSortType>(fbModelList->sortType()),

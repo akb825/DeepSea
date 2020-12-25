@@ -27,6 +27,7 @@
 
 #include <DeepSea/Scene/ItemLists/InstanceTransformData.h>
 #include <DeepSea/Scene/ItemLists/SceneModelList.h>
+#include <DeepSea/Scene/ItemLists/SceneFullScreenResolve.h>
 #include <DeepSea/Scene/ItemLists/ViewCullList.h>
 #include <DeepSea/Scene/Nodes/SceneModelNode.h>
 #include <DeepSea/Scene/Nodes/SceneNode.h>
@@ -80,6 +81,8 @@ dsSceneLoadContext* dsSceneLoadContext_create(dsAllocator* allocator, dsRenderer
 	dsSceneLoadContext_registerNodeType(context, dsSceneTransformNode_typeName,
 		&dsSceneTransformNode_load, NULL, NULL);
 
+	dsSceneLoadContext_registerItemListType(context, dsSceneFullScreenResolve_typeName,
+		&dsSceneFullScreenResolve_load, NULL, NULL);
 	dsSceneLoadContext_registerItemListType(context, dsSceneModelList_typeName,
 		&dsSceneModelList_load, NULL, NULL);
 	dsSceneLoadContext_registerItemListType(context, dsViewCullList_typeName,

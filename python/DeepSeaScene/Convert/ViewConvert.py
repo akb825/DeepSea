@@ -171,18 +171,21 @@ def convertView(convertContext, data):
 			if not surface.usage:
 				raise Exception('View surface "usage" must not be empty for offscreens.')
 
-		surface.memoryHints = 0
-		try:
-			for memoryEnum in info['memoryHints']:
-				try:
-					surface.memoryHints |= memoryHintsEnum[memoryEnum]
-				except KeyError as e:
-					raise Exception('Invalid dsMemoryUsage enum value ' + str(e) + '.')
-			if surface.memoryHints == 0:
-				raise Exception('View surface "memoryHints" must not be empty.')
-		except (ValueError, KeyError):
-			raise Exception('SceneResources buffer "memoryHints" must be an array of valid '
-				'dsGfxMemory enum values.')
+		if 'memoryHints' in info:
+			surface.memoryHints = 0
+			try:
+				for memoryEnum in info['memoryHints']:
+					try:
+						surface.memoryHints |= memoryHintsEnum[memoryEnum]
+					except KeyError as e:
+						raise Exception('Invalid dsMemoryUsage enum value ' + str(e) + '.')
+				if surface.memoryHints == 0:
+					raise Exception('View surface "memoryHints" must not be empty.')
+			except (ValueError, KeyError):
+				raise Exception('SceneResources buffer "memoryHints" must be an array of valid '
+					'dsGfxMemory enum values.')
+		else:
+			surface.memoryHints = memoryHintsEnum['GPUOnly']
 
 		dimensionStr = info.get('dimension', 'Dim2D')
 		try:
@@ -353,7 +356,7 @@ def convertView(convertContext, data):
 		SurfaceAddMipLevels(builder, surface.mipLevels)
 		SurfaceAddSamples(builder, surface.samples)
 		SurfaceAddResolve(builder, surface.resolve)
-		SurfaceAddWindowFramebuffer(builder, surface.WindowFramebuffer)
+		SurfaceAddWindowFramebuffer(builder, surface.windowFramebuffer)
 		surfaceOffsets.append(SurfaceEnd(builder))
 
 	if surfaceOffsets:

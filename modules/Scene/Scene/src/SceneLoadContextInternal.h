@@ -40,6 +40,9 @@ dsSceneNode* dsSceneTransformNode_load(const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
 	void* userData, const uint8_t* data, size_t dataSize);
 
+dsSceneItemList* dsSceneFullScreenResolve_load(const dsSceneLoadContext* loadContext,
+	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
+	void* userData, const char* name, const uint8_t* data, size_t dataSize);
 dsSceneItemList* dsSceneModelList_load(const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
 	void* userData, const char* name, const uint8_t* data, size_t dataSize);

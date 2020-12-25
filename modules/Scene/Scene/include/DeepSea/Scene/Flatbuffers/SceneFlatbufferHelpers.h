@@ -188,4 +188,11 @@ inline const dsOrientedBox3f& convert(const OrientedBox3f& box)
 	return reinterpret_cast<const dsOrientedBox3f&>(box);
 }
 
+/**
+ * @brief Converts from a flatbuffer DynamicRenderStates to a dsDynamicRenderStates.
+ * @param renderStates The render states to convert.
+ * @return The converted render states.
+ */
+DS_SCENE_EXPORT dsDynamicRenderStates convert(const DynamicRenderStates& renderStates);
+
 } // namespace DeepSeaScene

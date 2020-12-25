@@ -216,4 +216,50 @@ dsGfxFormat convert(VertexElementFormat format, FormatDecoration decoration)
 		formatDecorationMap[decorationIndex]);
 }
 
+dsDynamicRenderStates convert(const DynamicRenderStates& renderStates)
+{
+	dsDynamicRenderStates dynamicRenderStates;
+	dynamicRenderStates.lineWidth = renderStates.lineWidth();
+	dynamicRenderStates.depthBiasConstantFactor = renderStates.depthBiasConstantFactor();
+	dynamicRenderStates.depthBiasClamp = renderStates.depthBiasClamp();
+	dynamicRenderStates.depthBiasSlopeFactor = renderStates.depthBiasSlopeFactor();
+
+	auto fbBlendConstants = renderStates.blendConstants();
+	if (fbBlendConstants)
+	{
+		dynamicRenderStates.blendConstants.r = fbBlendConstants->red();
+		dynamicRenderStates.blendConstants.g = fbBlendConstants->green();
+		dynamicRenderStates.blendConstants.b = fbBlendConstants->blue();
+		dynamicRenderStates.blendConstants.a = fbBlendConstants->alpha();
+	}
+	else
+	{
+		dynamicRenderStates.blendConstants.r = 0.0f;
+		dynamicRenderStates.blendConstants.g = 0.0f;
+		dynamicRenderStates.blendConstants.b = 0.0f;
+		dynamicRenderStates.blendConstants.a = 1.0f;
+	}
+
+	auto fbDepthBounds = renderStates.depthBounds();
+	if (fbDepthBounds)
+	{
+		dynamicRenderStates.depthBounds.x = fbDepthBounds->x();
+		dynamicRenderStates.depthBounds.y = fbDepthBounds->y();
+	}
+	else
+	{
+		dynamicRenderStates.depthBounds.x = 0.0f;
+		dynamicRenderStates.depthBounds.y = 1.0f;
+	}
+
+	dynamicRenderStates.frontStencilCompareMask = renderStates.frontStencilCompareMask();
+	dynamicRenderStates.backStencilCompareMask = renderStates.backStencilCompareMask();
+	dynamicRenderStates.frontStencilWriteMask = renderStates.frontStencilWriteMask();
+	dynamicRenderStates.backStencilWriteMask = renderStates.backStencilWriteMask();
+	dynamicRenderStates.frontStencilReference = renderStates.frontStencilReference();
+	dynamicRenderStates.backStencilReference = renderStates.backStencilReference();
+
+	return dynamicRenderStates;
+}
+
 } // namespace DeepSeaScene
