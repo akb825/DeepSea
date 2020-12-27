@@ -50,6 +50,7 @@ def convertModelList(convertContext, data):
 	  - backStencilReference: int reference for just the back stencil.
 	- cullName: optional name for the item list to handle culling.
 	"""
+	builder = flatbuffers.Builder(0)
 	try:
 		instanceDataInfo = data.get('instanceData', [])
 		instanceData = []
@@ -81,8 +82,6 @@ def convertModelList(convertContext, data):
 		raise Exception('ModelList doesn\'t contain element ' + str(e) + '.')
 	except (AttributeError, TypeError, ValueError):
 		raise Exception('ModelList must be an object.')
-
-	builder = flatbuffers.Builder(0)
 
 	instanceDataOffsets = []
 	for instanceType, instance in instanceData:
