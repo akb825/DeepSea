@@ -1,0 +1,113 @@
+{
+	"sharedItems":
+	[
+		[{"type": "ViewCullList", "name": "cullList" }]
+	],
+	"pipeline":
+	[
+		{
+			"framebuffer": "window",
+			"attachments":
+			[
+				{
+					"usage": ["Clear"],
+					"format": "SurfaceColor",
+					"decoration": "Unset",
+					"clearValue": {"floatValues": [0.0, 0.1, 0.2, 1.0]}
+				},
+				{
+					"usage": ["Clear"],
+					"format": "X8D24",
+					"decoration": "Unset",
+					"clearValue": {"depth": 1.0}
+				},
+				{
+					"usage": ["KeepAfter"],
+					"format": "SurfaceColor",
+					"decoration": "Unset"
+				}
+			],
+			"subpasses":
+			[
+				{
+					"name": "ForwardLighting",
+					"colorAttachments": [{"index": 0, "resolve": true}],
+					"depthStencilAttachment": {"index": 1, "resolve": false},
+					"drawLists":
+					[
+						{
+							"type": "ModelList",
+							"name": "opaqueList",
+							"instanceData":
+							[
+								{
+									"type": "InstanceTransformData",
+									"data":
+									{
+										"variableGroupDescName": "instanceTransformDesc"
+									}
+								},
+								{
+									"type": "InstanceForwardLightData",
+									"data":
+									{
+										"variableGroupDescName": "instanceForwardLightDesc",
+										"lightSetName": "lightSet"
+									}
+								}
+							],
+							"sortType": "Material",
+							"cullName": "cullList"
+						},
+						{
+							"type": "ModelList",
+							"name": "transparentList",
+							"instanceData":
+							[
+								{
+									"type": "InstanceTransformData",
+									"data":
+									{
+										"variableGroupDescName": "instanceTransformDesc"
+									}
+								},
+								{
+									"type": "InstanceForwardLightData",
+									"data":
+									{
+										"variableGroupDescName": "instanceForwardLightDesc",
+										"lightSetName": "lightSet"
+									}
+								}
+							],
+							"sortType": "BackToFront",
+							"cullName": "cullList"
+						}
+					]
+				},
+				{
+					"name": "sRGB",
+					"inputAttachments": [0],
+					"colorAttachments": [{"index": 2, "resolve": true}],
+					"drawLists":
+					[
+						{
+							"type": "FullScreenResolve",
+							"name": "sRGBResolve",
+							"shaderName": "sRGBShader",
+							"materialName": "sRGBMaterial"
+						}
+					]
+				}
+			]
+		}
+	],
+	"globalData":
+	[
+		{
+			"type": "ViewTransformData",
+			"variableGroupDescName": "viewTransformDesc"
+		}
+	],
+	"nodes": ["rootNode"]
+}

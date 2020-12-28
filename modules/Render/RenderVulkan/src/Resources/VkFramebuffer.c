@@ -45,7 +45,7 @@ static const dsVkRenderSurface* getRenderSurface(const dsFramebufferSurface* sur
 			case dsGfxSurfaceType_DepthRenderSurface:
 			case dsGfxSurfaceType_DepthRenderSurfaceLeft:
 			case dsGfxSurfaceType_DepthRenderSurfaceRight:
-				return (dsVkRenderSurface*)surfaces->surface;
+				return (dsVkRenderSurface*)surfaces[i].surface;
 			default:
 				continue;
 		}

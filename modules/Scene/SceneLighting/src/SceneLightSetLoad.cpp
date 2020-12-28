@@ -53,7 +53,7 @@ void* dsSceneLightSet_load(const dsSceneLoadContext*, dsSceneLoadScratchData*,
 		DS_LOG_ERROR(DS_SCENE_LIGHTING_LOG_TAG, "Scene light set has no maximum lights.");
 		return nullptr;
 	}
-	else if (fbLights && fbLights->size() < maxLights)
+	else if (fbLights && maxLights < fbLights->size())
 	{
 		errno = EFORMAT;
 		DS_LOG_ERROR_F(DS_SCENE_LIGHTING_LOG_TAG,

@@ -1,0 +1,471 @@
+[
+	{
+		"type": "SceneNode",
+		"nodeType": "ModelNode",
+		"name": "groundModelBase",
+		"modelGeometry":
+		[
+			{
+				"path": "@srcDir@/Assets/Ground.gltf",
+				"vertexFormat":
+				[
+					{
+						"attrib": "Position",
+						"format": "X32Y32Z32",
+						"decoration": "Float"
+					},
+					{
+						"attrib": "Normal",
+						"format": "W2Z10Y10X10",
+						"decoration": "UNorm"
+					},
+					{
+						"attrib": "Tangent",
+						"format": "W2Z10Y10X10",
+						"decoration": "UNorm"
+					},
+					{
+						"attrib": "TexCoord0",
+						"format": "X16Y16",
+						"decoration": "Float"
+					}
+				],
+				"indexSize": 2,
+				"transforms":
+				[
+					{
+						"attrib": "Normal",
+						"transform": "SNormToUNorm"
+					},
+					{
+						"attrib": "Tangent",
+						"transform": "SNormToUNorm"
+					}
+				],
+				"drawInfos":
+				[
+					{
+						"name": "Ground",
+						"shader": null,
+						"material": null,
+						"listName": null
+					}
+				]
+			}
+		]
+	},
+	{
+		"type": "SceneNode",
+		"nodeType": "ModelNode",
+		"name": "archwayModelBase",
+		"modelGeometry":
+		[
+			{
+				"path": "@srcDir@/Assets/Archway.gltf",
+				"vertexFormat":
+				[
+					{
+						"attrib": "Position",
+						"format": "X32Y32Z32",
+						"decoration": "Float"
+					},
+					{
+						"attrib": "Normal",
+						"format": "W2Z10Y10X10",
+						"decoration": "UNorm"
+					},
+					{
+						"attrib": "Tangent",
+						"format": "W2Z10Y10X10",
+						"decoration": "UNorm"
+					},
+					{
+						"attrib": "TexCoord0",
+						"format": "X16Y16",
+						"decoration": "Float"
+					}
+				],
+				"indexSize": 2,
+				"transforms":
+				[
+					{
+						"attrib": "Normal",
+						"transform": "SNormToUNorm"
+					},
+					{
+						"attrib": "Tangent",
+						"transform": "SNormToUNorm"
+					}
+				],
+				"drawInfos":
+				[
+					{
+						"name": "Archway",
+						"shader": null,
+						"material": null,
+						"listName": null
+					}
+				]
+			}
+		]
+	},
+	{
+		"type": "SceneNode",
+		"nodeType": "ModelNode",
+		"name": "pedastleModelBase",
+		"modelGeometry":
+		[
+			{
+				"path": "@srcDir@/Assets/Pedastle.gltf",
+				"vertexFormat":
+				[
+					{
+						"attrib": "Position",
+						"format": "X32Y32Z32",
+						"decoration": "Float"
+					},
+					{
+						"attrib": "Normal",
+						"format": "W2Z10Y10X10",
+						"decoration": "UNorm"
+					},
+					{
+						"attrib": "Tangent",
+						"format": "W2Z10Y10X10",
+						"decoration": "UNorm"
+					},
+					{
+						"attrib": "TexCoord0",
+						"format": "X16Y16",
+						"decoration": "Float"
+					}
+				],
+				"indexSize": 2,
+				"transforms":
+				[
+					{
+						"attrib": "Normal",
+						"transform": "SNormToUNorm"
+					},
+					{
+						"attrib": "Tangent",
+						"transform": "SNormToUNorm"
+					}
+				],
+				"drawInfos":
+				[
+					{
+						"name": "Pedastle",
+						"shader": null,
+						"material": null,
+						"listName": null
+					}
+				]
+			}
+		]
+	},
+	{
+		"type": "SceneNode",
+		"nodeType": "ModelNode",
+		"name": "sphereModelBase",
+		"modelGeometry":
+		[
+			{
+				"path": "@srcDir@/Assets/Sphere.gltf",
+				"vertexFormat":
+				[
+					{
+						"attrib": "Position",
+						"format": "X32Y32Z32",
+						"decoration": "Float"
+					},
+					{
+						"attrib": "Normal",
+						"format": "W2Z10Y10X10",
+						"decoration": "UNorm"
+					},
+					{
+						"attrib": "Tangent",
+						"format": "W2Z10Y10X10",
+						"decoration": "UNorm"
+					},
+					{
+						"attrib": "TexCoord0",
+						"format": "X16Y16",
+						"decoration": "Float"
+					}
+				],
+				"indexSize": 2,
+				"transforms":
+				[
+					{
+						"attrib": "Normal",
+						"transform": "SNormToUNorm"
+					},
+					{
+						"attrib": "Tangent",
+						"transform": "SNormToUNorm"
+					}
+				],
+				"drawInfos":
+				[
+					{
+						"name": "Sphere",
+						"shader": null,
+						"material": null,
+						"listName": null
+					}
+				]
+			}
+		]
+	},
+	{
+		"type": "Texture",
+		"name": "brickColor",
+		"path": "@srcDir@/Assets/BrickColor.png",
+		"textureInfo":
+		{
+			"format": "@rgbFormat@",
+			"decoration": "SRGB",
+			"mipLevels": 1000
+		}
+	},
+	{
+		"type": "Texture",
+		"name": "brickNormal",
+		"path": "@srcDir@/Assets/BrickBump.png",
+		"textureInfo":
+		{
+			"format": "@normalFormat@",
+			"decoration": "UNorm",
+			"normalmap": 1.0,
+			"normalWrap": "wrap",
+			"mipLevels": 1000
+		}
+	},
+	{
+		"type": "Texture",
+		"name": "brickSpecular",
+		"path": "@srcDir@/Assets/BrickSpecular.png",
+		"textureInfo":
+		{
+			"format": "@rgbFormat@",
+			"decoration": "UNorm",
+			"mipLevels": 1000
+		}
+	},
+	{
+		"type": "Texture",
+		"name": "concreteColor",
+		"path": "@srcDir@/Assets/BrickColor.png",
+		"textureInfo":
+		{
+			"format": "@rgbFormat@",
+			"decoration": "SRGB",
+			"mipLevels": 1000
+		}
+	},
+	{
+		"type": "Texture",
+		"name": "concreteNormal",
+		"path": "@srcDir@/Assets/Concrete.png",
+		"textureInfo":
+		{
+			"format": "@normalFormat@",
+			"decoration": "UNorm",
+			"normalmap": 1.0,
+			"normalWrap": "wrap",
+			"mipLevels": 1000
+		}
+	},
+	{
+		"type": "Texture",
+		"name": "concreteSpecular",
+		"path": "@srcDir@/Assets/ConcreteSpecular.png",
+		"textureInfo":
+		{
+			"format": "@rgbFormat@",
+			"decoration": "UNorm",
+			"mipLevels": 1000
+		}
+	},
+	{
+		"type": "Texture",
+		"name": "grassColor",
+		"path": "@srcDir@/Assets/GrassColor.png",
+		"textureInfo":
+		{
+			"format": "@rgbFormat@",
+			"decoration": "SRGB",
+			"mipLevels": 1000
+		}
+	},
+	{
+		"type": "Texture",
+		"name": "grassNormal",
+		"path": "@srcDir@/Assets/GrassBump.png",
+		"textureInfo":
+		{
+			"format": "@normalFormat@",
+			"decoration": "UNorm",
+			"normalmap": 1.0,
+			"normalWrap": "wrap",
+			"mipLevels": 1000
+		}
+	},
+	{
+		"type": "Texture",
+		"name": "grassSpecular",
+		"path": "@srcDir@/Assets/GrassSpecular.png",
+		"textureInfo":
+		{
+			"format": "@rgbFormat@",
+			"decoration": "UNorm",
+			"mipLevels": 1000
+		}
+	},
+	{
+		"type": "Texture",
+		"name": "marbleColor",
+		"path": "@srcDir@/Assets/Marble.png",
+		"textureInfo":
+		{
+			"format": "@rgbFormat@",
+			"decoration": "SRGB",
+			"mipLevels": 1000
+		}
+	},
+	{
+		"type": "Texture",
+		"name": "marbleNormal",
+		"path": "@srcDir@/Assets/MarbleBump.png",
+		"textureInfo":
+		{
+			"format": "@normalFormat@",
+			"decoration": "UNorm",
+			"normalmap": 1.0,
+			"normalWrap": "wrap",
+			"mipLevels": 1000
+		}
+	},
+	{
+		"type": "Texture",
+		"name": "marbleSpecular",
+		"path": "@srcDir@/Assets/MarbleSpecular.png",
+		"textureInfo":
+		{
+			"format": "@rgbFormat@",
+			"decoration": "UNorm",
+			"mipLevels": 1000
+		}
+	},
+	{
+		"type": "ShaderModule",
+		"name": "glassShaderModule",
+		"modules": @glassShaderModule@
+	},
+	{
+		"type": "ShaderModule",
+		"name": "sRGBShaderModule",
+		"modules": @sRGBShaderModule@
+	},
+	{
+		"type": "MaterialDesc",
+		"name": "glassMaterialDesc",
+		"elements":
+		[
+			{
+				"name": "color",
+				"type": "Vec4",
+				"binding": "Material"
+			},
+			{
+				"name": "shininess",
+				"type": "Float",
+				"binding": "Material"
+			},
+			{
+				"name": "InstanceTransformData",
+				"type": "VariableGroup",
+				"binding": "Instance",
+				"shaderVariableGroupDesc": "instanceTransformDesc"
+			},
+			{
+				"name": "ViewTransformData",
+				"type": "VariableGroup",
+				"binding": "Global",
+				"shaderVariableGroupDesc": "viewTransformDesc"
+			},
+			{
+				"name": "InstanceForwardLightData",
+				"type": "VariableGroup",
+				"binding": "Instance",
+				"shaderVariableGroupDesc": "instanceForwardLightDesc"
+			}
+		]
+	},
+	{
+		"type": "MaterialDesc",
+		"name": "sRGBMaterialDesc",
+		"elements":
+		[
+			{
+				"name": "inputColor",
+				"type": "SubpassInput",
+				"binding": "Global"
+			},
+			{
+				"name": "ViewTransformData",
+				"type": "VariableGroup",
+				"binding": "Global",
+				"shaderVariableGroupDesc": "viewTransformDesc"
+			}
+		]
+	},
+	{
+		"type": "Shader",
+		"name": "glassShader",
+		"module": "glassShaderModule",
+		"pipelineName": "Glass",
+		"materialDesc": "glassMaterialDesc"
+	},
+	{
+		"type": "Shader",
+		"name": "sRGBShader",
+		"module": "sRGBShaderModule",
+		"pipelineName": "sRGB",
+		"materialDesc": "sRGBMaterialDesc"
+	},
+	{
+		"type": "Material",
+		"name": "sRGBMaterial",
+		"description": "sRGBMaterialDesc"
+	},
+	{
+		"type": "LightSet",
+		"name": "lightSet",
+		"lights":
+		[
+			{
+				"name": "sun",
+				"color": [1.0, 1.0, 0.8],
+				"intensity": 3.0,
+				"type": "Directional",
+				"direction": [0.5, 0.5, -1.0]
+			},
+			{
+				"name": "center",
+				"color": [1.0, 0.8, 0.8],
+				"intensity": 4.0,
+				"type": "Point",
+				"position": [0.0, 0.0, 2.0],
+				"linearFalloff": 1.0,
+				"quadraticFalloff": 1.0
+			}
+		],
+		"maxLights": 100,
+		"ambientColor": [0.8, 0.8, 1.0],
+		"ambientLight": 0.2,
+		"srgb": true
+	}
+]

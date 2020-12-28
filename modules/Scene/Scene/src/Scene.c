@@ -322,7 +322,7 @@ dsScene* dsScene_create(dsAllocator* allocator, dsRenderer* renderer,
 				for (uint32_t k = 0; k < items->count; ++k)
 				{
 					dsSceneItemListNode* node = itemNodes + curItems++;
-					if (!insertSceneList(scene->itemLists, node, items->itemLists[i]))
+					if (!insertSceneList(scene->itemLists, node, items->itemLists[k]))
 					{
 						errno = EINVAL;
 						dsScene_destroy(scene);

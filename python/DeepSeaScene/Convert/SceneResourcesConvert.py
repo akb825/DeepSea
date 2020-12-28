@@ -949,6 +949,8 @@ def convertSceneResourcesMaterialDesc(builder, convertContext, data, name):
 				raise Exception('Invalid material binding "' + bindingStr + '".')
 
 			shaderVariableGroupDesc = str(elementData.get('shaderVariableGroupDesc', ''))
+			if materialType == MaterialType.VariableGroup and not shaderVariableGroupDesc:
+				raise Exception('VariableGroup "' + name + '" requires shaderVariableGroupDesc.')
 
 			return name, materialType, count, binding, shaderVariableGroupDesc
 		except KeyError as e:

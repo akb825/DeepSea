@@ -53,7 +53,7 @@
  */
 #define DS_SPOT_LIGHT 3
 
-uniform ForwardLights
+uniform InstanceForwardLightData
 {
 	/**
 	 * @brief Light view space position on xyz and type on w.

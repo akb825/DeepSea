@@ -217,7 +217,7 @@ def convertView(convertContext, data):
 			surface.widthRatio = 0.0
 
 		if not surface.width and not surface.widthRatio:
-			surface.widthRatio = -1.0
+			surface.widthRatio = 1.0
 
 		if 'height' in info:
 			surface.height = readInt(info['height'], 'surface height', 0)
@@ -230,13 +230,12 @@ def convertView(convertContext, data):
 			surface.heightRatio = 0.0
 
 		if not surface.height and not surface.heightRatio:
-			surface.heightRatio = -1.0
+			surface.heightRatio = 1.0
 
 		surface.depth = readInt(info.get('depth', 0), 'surface depth', 0)
 		surface.mipLevels = readInt(info.get('mipLevels', 1), 'surface mip levels', 1)
 		surface.samples = readInt(info.get('samples', unsetValue), 'surface samples', 1)
 		surface.resolve = readBool(info['resolve'], 'surface resolve')
-		print(surface.resolve)
 		surface.windowFramebuffer = readBool(info.get('windowFramebuffer', True),
 			'window framebuffer')
 		return surface

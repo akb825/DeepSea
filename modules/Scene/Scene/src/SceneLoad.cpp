@@ -282,7 +282,7 @@ static dsSceneRenderPass* createRenderPass(dsAllocator* allocator, dsAllocator* 
 			DS_ASSERT(subpass->colorAttachments);
 			for (uint32_t j = 0; j < subpass->colorAttachmentCount; ++j)
 			{
-				auto attachment = const_cast<dsAttachmentRef*>(subpass->colorAttachments + i);
+				auto attachment = const_cast<dsAttachmentRef*>(subpass->colorAttachments + j);
 				auto fbAttachment = (*fbColorAttachments)[j];
 				if (fbAttachment)
 				{
@@ -558,6 +558,11 @@ dsScene* dsScene_loadImpl(dsAllocator* allocator, dsAllocator* resourceAllocator
 	scene = dsScene_create(allocator, renderer, sharedItems, sharedItemCount, pipeline,
 		pipelineCount, globalData, globalDataCount, userData, destroyUserDataFunc);
 
+	// Scene creation takes posession of objects, even in failure.
+	sharedItemCount = 0;
+	pipelineCount = 0;
+	globalDataCount = 0;
+
 	if (fbNodes)
 	{
 		for (const auto* fbNode : *fbNodes)
@@ -598,11 +603,6 @@ dsScene* dsScene_loadImpl(dsAllocator* allocator, dsAllocator* resourceAllocator
 			}
 		}
 	}
-
-	// Succeeded: don't delete items.
-	sharedItemCount = 0;
-	pipelineCount = 0;
-	globalDataCount = 0;
 
 finished:
 	// Counts contain the items that need to be cleaned up.

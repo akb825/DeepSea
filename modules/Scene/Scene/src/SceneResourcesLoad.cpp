@@ -642,7 +642,7 @@ static bool loadMaterial(dsSceneResources* resources, dsResourceManager* resourc
 	{
 		// NOTE: ENOTFOUND not set when the type doesn't match, so set it manually.
 		errno = ENOTFOUND;
-		PRINT_FLATBUFFER_RESOURCE_NOT_FOUND("material", materialDescName, fileName);
+		PRINT_FLATBUFFER_RESOURCE_NOT_FOUND("material desc", materialDescName, fileName);
 		return false;
 	}
 

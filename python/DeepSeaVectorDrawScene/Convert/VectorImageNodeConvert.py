@@ -42,7 +42,6 @@ def convertVectorImageNode(convertContext, data):
 			raise Exception ('TextNode "embeddedResources" must be an object.')
 
 		size = data.get('size')
-		print(size)
 		if size:
 			try:
 				if len(size) != 2:

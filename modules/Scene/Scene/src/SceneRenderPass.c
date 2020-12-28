@@ -38,7 +38,7 @@ static void destroyObjects(dsRenderPass* renderPass, const dsSceneItemLists* sub
 			continue;
 
 		for (uint32_t j = 0; j < drawLists->count; ++j)
-			dsSceneItemList_destroy(drawLists->itemLists[i]);
+			dsSceneItemList_destroy(drawLists->itemLists[j]);
 	}
 }
 
@@ -61,7 +61,7 @@ size_t dsSceneRenderPass_fullAllocSize(const char* framebuffer, uint32_t clearVa
 		fullSize += DS_ALIGNED_SIZE(sizeof(dsSceneItemList*)*drawLists->count);
 		for (uint32_t j = 0; j < drawLists->count; ++j)
 		{
-			if (!drawLists->itemLists[i])
+			if (!drawLists->itemLists[j])
 				return 0;
 		}
 	}

@@ -116,25 +116,37 @@ dsSceneNode* dsSceneModelNode_load(const dsSceneLoadContext* loadContext,
 		else
 			modelInfo->name = nullptr;
 
-		const char* shaderName = fbModelInfo->shader()->c_str();
 		dsSceneResourceType resourceType;
-		if (!dsSceneLoadScratchData_findResource(&resourceType,
-				reinterpret_cast<void**>(&modelInfo->shader), scratchData, shaderName) ||
-			resourceType != dsSceneResourceType_Shader)
+		auto fbShaderName = fbModelInfo->shader();
+		if (fbShaderName)
 		{
-			errno = ENOTFOUND;
-			DS_LOG_INFO_F(DS_SCENE_LOG_TAG, "Couldn't find model shader '%s'.", shaderName);
-			goto finished;
+			if (!dsSceneLoadScratchData_findResource(&resourceType,
+					reinterpret_cast<void**>(&modelInfo->shader), scratchData,
+					fbShaderName->c_str()) ||
+				resourceType != dsSceneResourceType_Shader)
+			{
+				errno = ENOTFOUND;
+				DS_LOG_INFO_F(DS_SCENE_LOG_TAG, "Couldn't find model shader '%s'.",
+					fbShaderName->c_str());
+				goto finished;
+			}
 		}
+		else
+			modelInfo->shader = nullptr;
 
-		const char* materialName = fbModelInfo->material()->c_str();
-		if (!dsSceneLoadScratchData_findResource(&resourceType,
-				reinterpret_cast<void**>(&modelInfo->material), scratchData, materialName) ||
-			resourceType != dsSceneResourceType_Material)
+		auto fbMaterialName = fbModelInfo->material();
+		if (fbMaterialName)
 		{
-			errno = ENOTFOUND;
-			DS_LOG_INFO_F(DS_SCENE_LOG_TAG, "Couldn't find model material '%s'.", materialName);
-			goto finished;
+			if (!dsSceneLoadScratchData_findResource(&resourceType,
+					reinterpret_cast<void**>(&modelInfo->material), scratchData,
+					fbMaterialName->c_str()) ||
+				resourceType != dsSceneResourceType_Material)
+			{
+				errno = ENOTFOUND;
+				DS_LOG_INFO_F(DS_SCENE_LOG_TAG, "Couldn't find model material '%s'.",
+					fbMaterialName->c_str());
+				goto finished;
+			}
 		}
 
 		const char* geometryName = fbModelInfo->geometry()->c_str();
@@ -206,7 +218,11 @@ dsSceneNode* dsSceneModelNode_load(const dsSceneLoadContext* loadContext,
 		}
 
 		modelInfo->primitiveType = static_cast<dsPrimitiveType>(fbModelInfo->primitiveType());
-		modelInfo->listName = fbModelInfo->listName()->c_str();
+		auto fbListName = fbModelInfo->listName();
+		if (fbListName)
+			modelInfo->listName = fbListName->c_str();
+		else
+			modelInfo->listName = nullptr;
 	}
 
 	if (fbExtraItemLists && fbExtraItemLists->size() > 0)

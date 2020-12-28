@@ -1,0 +1,59 @@
+[
+	{
+		"type": "ShaderModule",
+		"name": "diffuseShaderModule",
+		"modules": @forwardLightShaderModule@
+	},
+	{
+		"type": "MaterialDesc",
+		"name": "diffuseMaterialDesc",
+		"elements":
+		[
+			{
+				"name": "diffuseTexture",
+				"type": "Texture",
+				"binding": "Material"
+			},
+			{
+				"name": "normalTexture",
+				"type": "Texture",
+				"binding": "Material"
+			},
+			{
+				"name": "specularTexture",
+				"type": "Texture",
+				"binding": "Material"
+			},
+			{
+				"name": "shininess",
+				"type": "Float",
+				"binding": "Material"
+			},
+			{
+				"name": "InstanceTransformData",
+				"type": "VariableGroup",
+				"binding": "Instance",
+				"shaderVariableGroupDesc": "instanceTransformDesc"
+			},
+			{
+				"name": "ViewTransformData",
+				"type": "VariableGroup",
+				"binding": "Global",
+				"shaderVariableGroupDesc": "viewTransformDesc"
+			},
+			{
+				"name": "InstanceForwardLightData",
+				"type": "VariableGroup",
+				"binding": "Instance",
+				"shaderVariableGroupDesc": "instanceForwardLightDesc"
+			}
+		]
+	},
+	{
+		"type": "Shader",
+		"name": "diffuseShader",
+		"module": "diffuseShaderModule",
+		"pipelineName": "Diffuse",
+		"materialDesc": "diffuseMaterialDesc"
+	}
+]

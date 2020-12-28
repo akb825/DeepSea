@@ -100,7 +100,7 @@ static bool reserveSpace(dsSceneInstanceVariables* variables, uint32_t maxInstan
 		return variables->curBufferData != NULL;
 	}
 
-	size_t requiredSize = (size_t)variables->instanceSize*maxInstances;
+	size_t requiredSize = (size_t)variables->stride*maxInstances;
 	dsResourceManager* resourceManager = variables->resourceManager;
 	uint64_t frameNumber = resourceManager->renderer->frameNumber;
 

@@ -84,6 +84,9 @@ static void populateItemList(const char** itemLists, uint32_t* hashes, uint32_t*
 	uint32_t start = extraItemListCount;
 	for (uint32_t i = 0; i < modelCount; ++i)
 	{
+		if (!models[i].listName)
+			continue;
+
 		bool unique = true;
 		for (uint32_t j = 0; j < *itemListCount; ++j)
 		{
@@ -148,11 +151,10 @@ dsSceneModelNode* dsSceneModelNode_createBase(dsAllocator* allocator, size_t str
 	for (uint32_t i = 0; i < modelCount; ++i)
 	{
 		const dsSceneModelInitInfo* model = models + i;
-		if (!model->geometry || !model->listName)
+		if (!model->geometry)
 		{
 			errno = EINVAL;
-			DS_LOG_ERROR(DS_SCENE_LOG_TAG,
-				"All scene models must have a valid geometry and draw list name.");
+			DS_LOG_ERROR(DS_SCENE_LOG_TAG, "All scene models must have valid geometry.");
 			return NULL;
 		}
 

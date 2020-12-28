@@ -1,0 +1,82 @@
+[
+	{
+		"type": "SceneNode",
+		"nodeType": "ModelNodeReconfig",
+		"name": "groundModel",
+		"baseName": "groundModelBase",
+		"models":
+		[
+			{
+				"baseName": "Ground",
+				"shader": "diffuseShader",
+				"material": "grassMaterial",
+				"listName": "opaqueList"
+			}
+		],
+		"extraItemLists": ["cullList"]
+	},
+	{
+		"type": "SceneNode",
+		"nodeType": "ModelNodeReconfig",
+		"name": "archwayModel",
+		"baseName": "archwayModelBase",
+		"models":
+		[
+			{
+				"baseName": "Archway",
+				"shader": "diffuseShader",
+				"material": "brickMaterial",
+				"listName": "opaqueList"
+			}
+		],
+		"extraItemLists": ["cullList"]
+	},
+	{
+		"type": "SceneNode",
+		"nodeType": "ModelNodeReconfig",
+		"name": "concreteSphereModel",
+		"baseName": "sphereModelBase",
+		"models":
+		[
+			{
+				"baseName": "Sphere",
+				"shader": "diffuseShader",
+				"material": "concreteMaterial",
+				"listName": "opaqueList"
+			}
+		],
+		"extraItemLists": ["cullList"]
+	},
+	{
+		"type": "SceneNode",
+		"nodeType": "ModelNodeReconfig",
+		"name": "glassSphereModel",
+		"baseName": "sphereModelBase",
+		"models":
+		[
+			{
+				"baseName": "Sphere",
+				"shader": "glassShader",
+				"material": "glassMaterial",
+				"listName": "transparentList"
+			}
+		],
+		"extraItemLists": ["cullList"]
+	},
+	{
+		"type": "SceneNode",
+		"nodeType": "ModelNodeReconfig",
+		"name": "pedastleModel",
+		"baseName": "pedastleModelBase",
+		"models":
+		[
+			{
+				"baseName": "Pedastle",
+				"shader": "diffuseShader",
+				"material": "marbleMaterial",
+				"listName": "opaqueList"
+			}
+		],
+		"extraItemLists": ["cullList"]
+	}
+]

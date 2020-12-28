@@ -76,6 +76,8 @@ dsSceneLoadContext* dsSceneLoadContext_create(dsAllocator* allocator, dsRenderer
 		NULL, NULL);
 	dsSceneLoadContext_registerNodeType(context, dsSceneModelNode_typeName, &dsSceneModelNode_load,
 		NULL, NULL);
+	dsSceneLoadContext_registerNodeType(context, dsSceneModelNode_reconfigTypeName,
+		&dsSceneModelNode_loadReconfig, NULL, NULL);
 	dsSceneLoadContext_registerNodeType(context, dsSceneModelNode_remapTypeName,
 		&dsSceneModelNode_loadRemap, NULL, NULL);
 	dsSceneLoadContext_registerNodeType(context, dsSceneTransformNode_typeName,

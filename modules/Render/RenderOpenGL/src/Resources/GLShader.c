@@ -815,13 +815,19 @@ dsShader* dsGLShader_create(dsResourceManager* resourceManager, dsAllocator* all
 	baseShader->pipelineIndex = shaderIndex;
 	baseShader->pipeline = &shader->pipeline;
 	baseShader->materialDesc = materialDesc;
+	bool failed = false;
 	if (subpassInputCount > 0)
 	{
 		dsShaderSubpassInput* subpassInputs =
 			DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsShaderSubpassInput, subpassInputCount);
 		DS_ASSERT(subpassInputs);
-		DS_VERIFY(dsShader_findShaderSubpassInputs(subpassInputs, subpassInputCount, module,
-			shaderIndex, pipeline.uniformCount, materialDesc));
+		if (!dsShader_findShaderSubpassInputs(subpassInputs, subpassInputCount, module,
+				shaderIndex, pipeline.uniformCount, materialDesc))
+		{
+			DS_LOG_ERROR_F(DS_RENDER_OPENGL_LOG_TAG,
+				"Coudn't find subpass inputs for shader '%s'.", pipeline.name);
+			failed = true;
+		}
 		baseShader->subpassInputs = subpassInputs;
 	}
 	else
@@ -836,6 +842,14 @@ dsShader* dsGLShader_create(dsResourceManager* resourceManager, dsAllocator* all
 	shader->pipeline = pipeline;
 	shader->defaultAnisotropy = resourceManager->renderer->defaultAnisotropy;
 	shader->programId = 0;
+
+	// At this point it's safe to destory if failed.
+	if (failed)
+	{
+		dsGLShader_destroy(resourceManager, baseShader);
+		return NULL;
+	}
+
 	if (hasSamplers && pipeline.samplerStateCount > 0)
 	{
 		shader->samplerIds = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, GLuint,

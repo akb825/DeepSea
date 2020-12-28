@@ -157,13 +157,14 @@ dsSceneItemList* dsSceneFullScreenResolve_create(dsAllocator* allocator, const c
 	}
 
 	dsVertexBuffer vertexBuffer;
-	vertexBuffer.buffer = buffer;
+	vertexBuffer.buffer = resolve->vertexData;
 	vertexBuffer.offset = 0;
 	vertexBuffer.count = 4;
 	DS_VERIFY(dsVertexFormat_initialize(&vertexBuffer.format));
 	DS_VERIFY(dsVertexFormat_setAttribEnabled(&vertexBuffer.format, dsVertexAttrib_Position, true));
 	vertexBuffer.format.elements[dsVertexAttrib_Position].format =
 		dsGfxFormat_decorate(dsGfxFormat_X16Y16, dsGfxFormat_UNorm);
+	DS_VERIFY(dsVertexFormat_computeOffsetsAndSize(&vertexBuffer.format));
 	dsVertexBuffer* vertexBuffers[DS_MAX_GEOMETRY_VERTEX_BUFFERS] =
 		{&vertexBuffer, NULL, NULL, NULL};
 

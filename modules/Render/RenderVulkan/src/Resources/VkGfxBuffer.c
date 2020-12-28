@@ -549,8 +549,6 @@ bool dsVkGfxBuffer_invalidate(dsResourceManager* resourceManager, dsGfxBuffer* b
 		return false;
 	}
 
-	DS_VERIFY(dsSpinlock_unlock(&vkBuffer->lock));
-
 	VkMappedMemoryRange range =
 	{
 		VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE,

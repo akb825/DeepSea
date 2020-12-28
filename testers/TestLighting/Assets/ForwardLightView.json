@@ -1,0 +1,36 @@
+{
+	"surfaces":
+	[
+		{
+			"name": "mainColor",
+			"type": "Offscreen",
+			"usage": ["SubpassInput"],
+			"format": "SurfaceColor",
+			"decoration": "Unset",
+			"samples": 4,
+			"resolve": true,
+			"windowFramebuffer": true
+		},
+		{
+			"name": "mainDepth",
+			"type": "Renderbuffer",
+			"format": "X8D24",
+			"decoration": "Unset",
+			"samples": 4,
+			"resolve": false,
+			"windowFramebuffer": true
+		}
+	],
+	"framebuffers":
+	[
+		{
+			"name": "window",
+			"surfaces":
+			[
+				{"name": "mainColor"},
+				{"name": "mainDepth"},
+				{"name": "windowColor"}
+			]
+		}
+	]
+}

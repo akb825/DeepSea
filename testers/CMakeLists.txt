@@ -1,4 +1,5 @@
 add_subdirectory(TestCube)
+add_subdirectory(TestLighting)
 add_subdirectory(TestRenderSubpass)
 add_subdirectory(TestScene)
 add_subdirectory(TestText)

@@ -52,7 +52,7 @@ static bool isLightDescValid(const dsShaderVariableGroupDesc* lightDesc)
 		const dsShaderVariableElement* baseElement = baseElements + i;
 		const dsShaderVariableElement* element = lightDesc->elements + i;
 		if (strcmp(element->name, baseElement->name) != 0 || element->type != baseElement->type ||
-			element->count != lightCount)
+			(i != lightDesc->elementCount - 1 && element->count != lightCount))
 		{
 			return false;
 		}
@@ -104,7 +104,7 @@ void dsInstanceForwardLightData_populateData(void* userData, const dsView* view,
 	size_t spotCosAnglesOffset = dsMaterialType_addElementBlockSize(&size, dsMaterialType_Vec2,
 		lightCount);
 	size_t ambientColorOffset = dsMaterialType_addElementBlockSize(&size, dsMaterialType_Vec3, 0);
-	DS_ASSERT(size == stride);
+	DS_ASSERT(size <= stride);
 
 	dsColor3f ambient;
 	DS_VERIFY(dsSceneLightSet_getAmbient(&ambient, lightSet));
