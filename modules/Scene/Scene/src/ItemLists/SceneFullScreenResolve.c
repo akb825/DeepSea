@@ -48,12 +48,12 @@ struct dsSceneFullScreenResolve
 
 const char* const dsSceneFullScreenResolve_typeName = "FullScreenResolve";
 
-static const uint16_t vertexData[] =
+static const int16_t vertexData[] =
 {
-	0, 0xFFFF,
-	0, 0,
-	0xFFFF, 0xFFFF,
-	0xFFFF, 0
+	-INT16_MAX, INT16_MAX,
+	-INT16_MAX, -INT16_MAX,
+	INT16_MAX, INT16_MAX,
+	INT16_MAX, -INT16_MAX
 };
 
 static uint64_t dsSceneFullScreenResolve_addNode(dsSceneItemList* itemList, dsSceneNode* node,
@@ -90,14 +90,14 @@ static void dsCommitSceneItemList_commit(dsSceneItemList* itemList, const dsView
 		return;
 	}
 
-	dsDrawRange drawRange = {4, 0, 0, 0};
+	dsDrawRange drawRange = {4, 1, 0, 0};
 	DS_CHECK(DS_SCENE_LOG_TAG, dsRenderer_draw(commandBuffer->renderer, commandBuffer,
-		resolve->geometry, &drawRange, dsPrimitiveType_TriangleFan));
+		resolve->geometry, &drawRange, dsPrimitiveType_TriangleStrip));
 
 	DS_CHECK(DS_SCENE_LOG_TAG, dsShader_unbind(resolve->shader, commandBuffer));
 }
 
-dsSceneItemList* dsSceneFullScreenResolve_create(dsAllocator* allocator, const char* name,
+dsSceneFullScreenResolve* dsSceneFullScreenResolve_create(dsAllocator* allocator, const char* name,
 	dsResourceManager* resourceManager, dsAllocator* resourceAllocator, dsShader* shader,
 	dsMaterial* material, const dsDynamicRenderStates* renderStates)
 {
@@ -163,7 +163,7 @@ dsSceneItemList* dsSceneFullScreenResolve_create(dsAllocator* allocator, const c
 	DS_VERIFY(dsVertexFormat_initialize(&vertexBuffer.format));
 	DS_VERIFY(dsVertexFormat_setAttribEnabled(&vertexBuffer.format, dsVertexAttrib_Position, true));
 	vertexBuffer.format.elements[dsVertexAttrib_Position].format =
-		dsGfxFormat_decorate(dsGfxFormat_X16Y16, dsGfxFormat_UNorm);
+		dsGfxFormat_decorate(dsGfxFormat_X16Y16, dsGfxFormat_SNorm);
 	DS_VERIFY(dsVertexFormat_computeOffsetsAndSize(&vertexBuffer.format));
 	dsVertexBuffer* vertexBuffers[DS_MAX_GEOMETRY_VERTEX_BUFFERS] =
 		{&vertexBuffer, NULL, NULL, NULL};
@@ -176,7 +176,7 @@ dsSceneItemList* dsSceneFullScreenResolve_create(dsAllocator* allocator, const c
 		return NULL;
 	}
 
-	return itemList;
+	return resolve;
 }
 
 void dsSceneFullScreenResolve_destroy(dsSceneFullScreenResolve* resolve)

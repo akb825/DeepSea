@@ -414,6 +414,7 @@ bool dsSceneLightSet_prepare(dsSceneLightSet* lightSet, float intensityThreshold
 		return false;
 
 	lightSet->intensityThreshold = intensityThreshold;
+	lightSet->directionalLightCount = 0;
 
 	// Use the remaining space in directionalLights for temporary storage for building the BVH.
 	uint32_t maxLights = (uint32_t)lightSet->lightAllocator.chunkCount;

@@ -240,7 +240,7 @@ void dsRenderer_defaultOptions(dsRendererOptions* options, const char* applicati
 	options->stencilBits = 8;
 	options->forcedColorFormat = dsGfxFormat_Unknown;
 	options->forcedDepthStencilFormat = dsGfxFormat_Unknown;
-	options->samples = 4;
+	options->samples = 1;
 	options->doubleBuffer = true;
 	options->srgb = false;
 	options->preferHalfDepthRange = false;

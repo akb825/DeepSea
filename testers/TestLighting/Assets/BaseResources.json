@@ -257,7 +257,7 @@
 	{
 		"type": "Texture",
 		"name": "concreteColor",
-		"path": "@srcDir@/Assets/BrickColor.png",
+		"path": "@srcDir@/Assets/Concrete.png",
 		"textureInfo":
 		{
 			"format": "@rgbFormat@",
@@ -413,12 +413,6 @@
 				"name": "inputColor",
 				"type": "SubpassInput",
 				"binding": "Global"
-			},
-			{
-				"name": "ViewTransformData",
-				"type": "VariableGroup",
-				"binding": "Global",
-				"shaderVariableGroupDesc": "viewTransformDesc"
 			}
 		]
 	},
@@ -465,7 +459,7 @@
 		],
 		"maxLights": 100,
 		"ambientColor": [0.8, 0.8, 1.0],
-		"ambientLight": 0.2,
+		"ambientIntensity": 0.2,
 		"srgb": true
 	}
 ]

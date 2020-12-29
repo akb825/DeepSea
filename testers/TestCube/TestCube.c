@@ -550,6 +550,7 @@ int dsMain(int argc, const char** argv)
 
 	dsRendererOptions rendererOptions;
 	dsRenderer_defaultOptions(&rendererOptions, "TestCube", 0);
+	rendererOptions.samples = 4;
 	rendererOptions.deviceName = deviceName;
 	dsRenderer* renderer = dsRenderBootstrap_createRenderer(rendererType,
 		(dsAllocator*)&renderAllocator, &rendererOptions);

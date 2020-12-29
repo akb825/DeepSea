@@ -14,32 +14,21 @@
  * limitations under the License.
  */
 
-#include <DeepSea/Render/Shaders/VertexAttributes.mslh>
-#include <DeepSea/Render/Shaders/Color.mslh>
+#pragma once
 
-[[fragment]] uniform subpassInput(0) inputColor;
+#include <DeepSea/Core/Config.h>
+#include <DeepSea/Scene/Types.h>
+#include <DeepSea/SceneLighting/Types.h>
 
-[[vertex]] layout(location = DS_POSITION) in vec2 position;
-
-[[fragment]] out vec4 color;
-
-[[vertex]]
-void vertexShader()
+#ifdef __cplusplus
+extern "C"
 {
-	gl_Position = DS_ADJUST_DIRECT_CLIP(vec4(position, 0.0, 1.0));
-}
+#endif
 
-[[fragment]]
-void fragmentShader()
-{
-	vec4 linearColor = subpassLoad(inputColor);
-	color.rgb = dsSRGBFromLinear(linearColor.rgb);
-	color.a = linearColor.a;
-}
+dsSceneItemList* dsSceneLightSetPrepare_load(const dsSceneLoadContext* loadContext,
+	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
+	void* userData, const char* name, const uint8_t* data, size_t dataSize);
 
-pipeline sRGB
-{
-	vertex = vertexShader;
-	fragment = fragmentShader;
-	cull_mode = back;
+#ifdef __cplusplus
 }
+#endif

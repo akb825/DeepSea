@@ -890,7 +890,7 @@ bool dsView_draw(dsView* view, dsCommandBuffer* commandBuffer, dsSceneThreadMana
 		dsSceneItemLists* sharedItems = scene->sharedItems + i;
 		for (uint32_t j = 0; j < sharedItems->count; ++j)
 		{
-			dsSceneItemList* itemList = sharedItems->itemLists[i];
+			dsSceneItemList* itemList = sharedItems->itemLists[j];
 			itemList->commitFunc(itemList, view, commandBuffer);
 		}
 	}

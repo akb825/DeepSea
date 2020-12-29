@@ -14,32 +14,16 @@
  * limitations under the License.
  */
 
-#include <DeepSea/Render/Shaders/VertexAttributes.mslh>
-#include <DeepSea/Render/Shaders/Color.mslh>
+namespace DeepSeaSceneLighting;
 
-[[fragment]] uniform subpassInput(0) inputColor;
-
-[[vertex]] layout(location = DS_POSITION) in vec2 position;
-
-[[fragment]] out vec4 color;
-
-[[vertex]]
-void vertexShader()
+// Struct describing a light set prepare.
+table LightSetPrepare
 {
-	gl_Position = DS_ADJUST_DIRECT_CLIP(vec4(position, 0.0, 1.0));
+	// Light sets to prepare.
+	lightSets : [string] (required);
+
+	// Intensity threshold for lights to take effect. Set to 0 to use the default value.
+	intensityThreshold : float;
 }
 
-[[fragment]]
-void fragmentShader()
-{
-	vec4 linearColor = subpassLoad(inputColor);
-	color.rgb = dsSRGBFromLinear(linearColor.rgb);
-	color.a = linearColor.a;
-}
-
-pipeline sRGB
-{
-	vertex = vertexShader;
-	fragment = fragmentShader;
-	cull_mode = back;
-}
+root_type LightSetPrepare;

@@ -18,12 +18,14 @@
 
 #include "InstanceForwardLightDataLoad.h"
 #include "SceneLightSetLoad.h"
+#include "SceneLightSetPrepareLoad.h"
 
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Scene/SceneLoadContext.h>
 #include <DeepSea/SceneLighting/InstanceForwardLightData.h>
 #include <DeepSea/SceneLighting/SceneLightSet.h>
+#include <DeepSea/SceneLighting/SceneLightSetPrepare.h>
 
 static bool destroySceneLightSet(void* lightSet)
 {
@@ -47,6 +49,12 @@ bool dsSceneLightingLoadConext_registerTypes(dsSceneLoadContext* loadContext)
 
 	if (!dsSceneLoadContext_registerInstanceDataType(loadContext,
 			dsInstanceForwardLightData_typeName, &dsInstanceForwardLightData_load, NULL, NULL))
+	{
+		return false;
+	}
+
+	if (!dsSceneLoadContext_registerItemListType(loadContext,
+			dsSceneLightSetPrepare_typeName, &dsSceneLightSetPrepare_load, NULL, NULL))
 	{
 		return false;
 	}

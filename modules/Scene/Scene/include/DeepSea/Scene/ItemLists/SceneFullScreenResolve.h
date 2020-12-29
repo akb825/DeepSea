@@ -49,7 +49,7 @@ DS_SCENE_EXPORT extern const char* const dsSceneFullScreenResolve_typeName;
  * @param renderStates The render states to use, or NULL if no special render states are needed.
  * @return The full screen resolve or NULL if an error occurred.
  */
-DS_SCENE_EXPORT dsSceneItemList* dsSceneFullScreenResolve_create(dsAllocator* allocator,
+DS_SCENE_EXPORT dsSceneFullScreenResolve* dsSceneFullScreenResolve_create(dsAllocator* allocator,
 	const char* name, dsResourceManager* resourceManager, dsAllocator* resourceAllocator,
 	dsShader* shader, dsMaterial* material, const dsDynamicRenderStates* renderStates);
 

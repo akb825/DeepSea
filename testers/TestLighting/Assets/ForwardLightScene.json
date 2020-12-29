@@ -1,7 +1,8 @@
 {
 	"sharedItems":
 	[
-		[{"type": "ViewCullList", "name": "cullList" }]
+		[{"type": "ViewCullList", "name": "cullList" }],
+		[{"type": "LightSetPrepare", "name": "lightSetPrepare", "lightSets": ["lightSet"]}]
 	],
 	"pipeline":
 	[
@@ -13,13 +14,15 @@
 					"usage": ["Clear"],
 					"format": "SurfaceColor",
 					"decoration": "Unset",
-					"clearValue": {"floatValues": [0.0, 0.1, 0.2, 1.0]}
+					"clearValue": {"floatValues": [0.0, 0.1, 0.2, 1.0]},
+					"samples": 4
 				},
 				{
 					"usage": ["Clear"],
 					"format": "X8D24",
 					"decoration": "Unset",
-					"clearValue": {"depth": 1.0}
+					"clearValue": {"depth": 1.0},
+					"samples": 4
 				},
 				{
 					"usage": ["KeepAfter"],

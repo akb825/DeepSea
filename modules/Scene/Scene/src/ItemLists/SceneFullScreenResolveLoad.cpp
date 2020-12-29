@@ -39,7 +39,8 @@ dsSceneItemList* dsSceneFullScreenResolve_load(const dsSceneLoadContext* loadCon
 		return nullptr;
 	}
 
-	dsResourceManager* resourceManager = dsSceneLoadContext_getRenderer(loadContext)->resourceManager;
+	dsResourceManager* resourceManager =
+		dsSceneLoadContext_getRenderer(loadContext)->resourceManager;
 	auto fbResolve = DeepSeaScene::GetFullScreenResolve(data);
 	const char* shaderName = fbResolve->shaderName()->c_str();
 	const char* materialName = fbResolve->materialName()->c_str();
@@ -74,6 +75,7 @@ dsSceneItemList* dsSceneFullScreenResolve_load(const dsSceneLoadContext* loadCon
 	if (fbDynamicRenderStates)
 		dynamicRenderStates = DeepSeaScene::convert(*fbDynamicRenderStates);
 
-	return dsSceneFullScreenResolve_create(allocator, name, resourceManager, resourceAllocator,
-		shader, material, fbDynamicRenderStates ? &dynamicRenderStates : NULL);
+	return reinterpret_cast<dsSceneItemList*>(dsSceneFullScreenResolve_create(allocator, name,
+		resourceManager, resourceAllocator, shader, material,
+		fbDynamicRenderStates ? &dynamicRenderStates : NULL));
 }
