@@ -491,14 +491,10 @@ uint32_t dsSceneLightSet_findBrightestLights(const dsSceneLight** outBrightestLi
 	dsAlignedBox3f bounds = {*position, *position};
 	FindBrightestData visitData = {outBrightestLights, intensities, &lightCount, position,
 		outLightCount, lightSet->intensityThreshold};
-	if (!dsBVH_empty(lightSet->spatialLights) &&
-		!dsBVH_intersectBounds(lightSet->spatialLights, &bounds, &visitBrightestLights, &visitData))
-	{
-		return 0;
-	}
+	dsBVH_intersectBounds(lightSet->spatialLights, &bounds, &visitBrightestLights, &visitData);
 
 	// Set up the final count, nulling out any unset lights.
-	for (uint32_t i = lightCount; i < lightCount; ++i)
+	for (uint32_t i = lightCount; i < outLightCount; ++i)
 		outBrightestLights[i] = NULL;
 	return lightCount;
 }

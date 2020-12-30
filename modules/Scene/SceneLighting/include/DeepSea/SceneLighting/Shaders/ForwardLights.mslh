@@ -116,16 +116,18 @@ void dsComputeForwardLighting(out vec3 outDiffuseColor, out vec3 outSpecularColo
 			{
 				lowp float falloff;
 				lowp vec3 surfaceDirection;
-				outDiffuseColor += lightColor*dsPointDiffuseLight(falloff, surfaceDirection,
-					lightPosition, position, normal, linearFalloff, quadraticFalloff);
+				float diffuse = dsPointDiffuseLight(falloff, surfaceDirection, lightPosition,
+					position, normal, linearFalloff, quadraticFalloff);
+				outDiffuseColor += lightColor*diffuse*falloff;
 			}
 			else if (type == DS_POINT_LIGHT)
 			{
 				lowp float falloff;
 				lowp vec3 surfaceDirection;
-				outDiffuseColor += lightColor*dsSpotDiffuseLight(falloff, surfaceDirection,
-					lightPosition, lightDirection, position, normal, linearFalloff,
-					quadraticFalloff, spotCosAngles.x, spotCosAngles.y);
+				float diffuse = dsSpotDiffuseLight(falloff, surfaceDirection, lightPosition,
+					lightDirection, position, normal, linearFalloff, quadraticFalloff,
+					spotCosAngles.x, spotCosAngles.y);
+				outDiffuseColor += lightColor*diffuse*falloff;
 			}
 			else
 				break;
@@ -152,8 +154,9 @@ void dsComputeForwardLighting(out vec3 outDiffuseColor, out vec3 outSpecularColo
 			{
 				lowp float falloff;
 				lowp vec3 surfaceDirection;
-				outDiffuseColor += lightColor*dsPointDiffuseLight(falloff, surfaceDirection,
-					lightPosition, position, normal, linearFalloff, quadraticFalloff);
+				float diffuse = dsPointDiffuseLight(falloff, surfaceDirection, lightPosition,
+					position, normal, linearFalloff, quadraticFalloff);
+				outDiffuseColor += lightColor*diffuse*falloff;
 				outSpecularColor += lightColor*dsGeneralSpecularLight(lightDirection, normal,
 					viewDirection, shininess)*falloff;
 			}
@@ -161,9 +164,9 @@ void dsComputeForwardLighting(out vec3 outDiffuseColor, out vec3 outSpecularColo
 			{
 				lowp float falloff;
 				lowp vec3 surfaceDirection;
-				outDiffuseColor += lightColor*dsSpotDiffuseLight(falloff, surfaceDirection,
-					lightPosition, lightDirection, position, normal, linearFalloff,
-					quadraticFalloff, spotCosAngles.x, spotCosAngles.y);
+				float diffuse = dsSpotDiffuseLight(falloff, surfaceDirection, lightPosition,
+					lightDirection, position, normal, linearFalloff, quadraticFalloff, spotCosAngles.x, spotCosAngles.y);
+				outDiffuseColor += lightColor*diffuse*falloff;
 				outSpecularColor += lightColor*dsGeneralSpecularLight(lightDirection, normal,
 					viewDirection, shininess)*falloff;
 			}

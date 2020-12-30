@@ -152,7 +152,7 @@ def convertTransformNode(convertContext, data):
 				else:
 					raise Exception('Invalid transform type "' + transformType + '".')
 
-				matrix = multiplyMatrix(transform, matrix)
+				matrix = multiplyMatrix(matrix, transform)
 			
 			matrixValues = []
 			for col in matrix:

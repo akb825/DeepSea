@@ -40,9 +40,15 @@ static void spotPerpAxes(dsVector3f* outX, dsVector3f* outY, const dsSceneLight*
 	dsVector3f_normalize(outY, outY);
 }
 
+static inline float getLightIntensity(const dsSceneLight* light)
+{
+	float maxRG = dsMax(light->color.r, light->color.g);
+	return light->intensity*dsMax(maxRG, light->color.b);
+}
+
 static float getLightRadius(const dsSceneLight* light, float intensityThreshold)
 {
-	float intensity = dsColor3f_grayscale(&light->color)*light->intensity;
+	float intensity = getLightIntensity(light);
 	if (intensity < intensityThreshold)
 		return 0.0f;
 
@@ -233,8 +239,7 @@ float dsSceneLight_getIntensity(const dsSceneLight* light, const dsVector3f* pos
 	if (!light || !position)
 		return 0.0f;
 
-	return dsSceneLight_getFalloff(light, position)*dsColor3f_grayscale(&light->color)*
-		light->intensity;
+	return dsSceneLight_getFalloff(light, position)*getLightIntensity(light);
 }
 
 bool dsSceneLight_computeBounds(dsAlignedBox3f* outBounds, const dsSceneLight* light,
@@ -248,7 +253,7 @@ bool dsSceneLight_computeBounds(dsAlignedBox3f* outBounds, const dsSceneLight* l
 
 	if (light->type == dsSceneLightType_Directional)
 	{
-		if (dsColor3f_grayscale(&light->color)*light->intensity >= intensityThreshold)
+		if (getLightIntensity(light) >= intensityThreshold)
 		{
 			outBounds->min.x = -FLT_MAX;
 			outBounds->min.y = -FLT_MAX;
@@ -326,7 +331,7 @@ bool dsSceneLight_isInFrustum(const dsSceneLight* light, const dsFrustum3f* frus
 	switch (light->type)
 	{
 		case dsSceneLightType_Directional:
-			return dsColor3f_grayscale(&light->color)*light->intensity >= intensityThreshold;
+			return getLightIntensity(light) >= intensityThreshold;
 		case dsSceneLightType_Point:
 		{
 			float radius = getLightRadius(light, intensityThreshold);

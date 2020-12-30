@@ -7,22 +7,22 @@
 		[
 			{
 				"nodeType": "TransformNode",
-				"transformList": [{"type": "Translate", "value": [0.0, 0.125, 0.0]}],
+				"transformList": [{"type": "Translate", "value": [0.0, 0.5, 0.0]}],
 				"children": [{"nodeType": "ReferenceNode", "ref": "concreteSphereModel"}]
 			},
 			{
 				"nodeType": "TransformNode",
-				"transformList": [{"type": "Translate", "value": [-0.25, -0.125, 0.0]}],
+				"transformList": [{"type": "Translate", "value": [-0.5, -0.5, 0.0]}],
 				"children": [{"nodeType": "ReferenceNode", "ref": "concreteSphereModel"}]
 			},
 			{
 				"nodeType": "TransformNode",
-				"transformList": [{"type": "Translate", "value": [0.25, 0.125, 0.0]}],
+				"transformList": [{"type": "Translate", "value": [0.5, -0.5, 0.0]}],
 				"children": [{"nodeType": "ReferenceNode", "ref": "concreteSphereModel"}]
 			},
 			{
 				"nodeType": "TransformNode",
-				"transformList": [{"type": "Translate", "value": [0.0, 0.0, 0.25]}],
+				"transformList": [{"type": "Translate", "value": [0.0, 0.0, 0.75]}],
 				"children": [{"nodeType": "ReferenceNode", "ref": "concreteSphereModel"}]
 			}
 		]
@@ -64,7 +64,7 @@
 			},
 			{
 				"nodeType": "TransformNode",
-				"transformList": [{"type": "Translate", "value": [0.0, -2.0, 1.5]}],
+				"transformList": [{"type": "Translate", "value": [0.0, -2.0, 1.0]}],
 				"children": [{"nodeType": "ReferenceNode", "ref": "glassSphereModel"}]
 			},
 			{

@@ -131,9 +131,9 @@ void dsInstanceForwardLightData_populateData(void* userData, const dsView* view,
 			dsMatrix44_transform(positionAndType[j], view->viewMatrix, tempVec);
 			positionAndType[j].w = (float)(light->type + 1);
 
-			tempVec.x = light->direction.x;
-			tempVec.y = light->direction.y;
-			tempVec.z = light->direction.z;
+			tempVec.x = -light->direction.x;
+			tempVec.y = -light->direction.y;
+			tempVec.z = -light->direction.z;
 			tempVec.w = 0.0f;
 			dsMatrix44_transform(directionAndLinearFalloff[j], view->viewMatrix, tempVec);
 			directionAndLinearFalloff[j].w = light->linearFalloff;

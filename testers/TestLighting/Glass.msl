@@ -54,8 +54,13 @@ void fragmentShader()
 	dsComputeForwardLighting(diffuseLight, specularLight, vfViewPosition, vfNormal,
 		uniforms.shininess, vec3(0, 0, 1));
 
-	float alpha = min(max(max(specularLight.r, specularLight.g),
-		max(specularLight.b, uniforms.color.a)), 1.0);
+	float maxSpecular = max(max(specularLight.r, specularLight.g), specularLight.b);
+	float baseAlpha = max(maxSpecular, uniforms.color.a);
+
+	// Poor-man's Fresnel based on view-space normal.
+	float fresnelLikeAlpha = 1.0 - abs(vfNormal.z);
+	fresnelLikeAlpha *= fresnelLikeAlpha;
+	float alpha = min(baseAlpha + fresnelLikeAlpha, 1.0);
 	outputColor = vec4(diffuseLight*uniforms.color.rgb + specularLight, alpha);
 }
 

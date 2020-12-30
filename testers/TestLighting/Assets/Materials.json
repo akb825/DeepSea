@@ -23,7 +23,7 @@
 			{
 				"name": "shininess",
 				"type": "Float",
-				"data": 50
+				"data": 20
 			}
 		]
 	},
@@ -120,13 +120,13 @@
 			{
 				"name": "color",
 				"type": "Vec4",
-				"data": [0.8, 0.8, 0.8, 0.1],
+				"data": [1.0, 1.0, 1.0, 0.1],
 				"srgb": true
 			},
 			{
 				"name": "shininess",
 				"type": "Float",
-				"data": 100
+				"data": 80
 			}
 		]
 	}

@@ -1,6 +1,6 @@
 {
     "asset" : {
-        "generator" : "Khronos glTF Blender I/O v1.3.48",
+        "generator" : "Khronos glTF Blender I/O v1.4.40",
         "version" : "2.0"
     },
     "scene" : 0,
@@ -15,12 +15,7 @@
     "nodes" : [
         {
             "mesh" : 0,
-            "name" : "Ground",
-            "scale" : [
-                10,
-                10,
-                10
-            ]
+            "name" : "Ground"
         }
     ],
     "meshes" : [
@@ -45,13 +40,13 @@
             "componentType" : 5126,
             "count" : 4,
             "max" : [
-                1,
-                1,
+                10,
+                10,
                 0
             ],
             "min" : [
-                -1,
-                -1,
+                -10,
+                -10,
                 0
             ],
             "type" : "VEC3"
@@ -111,7 +106,7 @@
     "buffers" : [
         {
             "byteLength" : 204,
-            "uri" : "data:application/octet-stream;base64,AACAvwAAgL8AAAAAAACAPwAAgL8AAAAAAACAPwAAgD8AAAAAAACAvwAAgD8AAAAAAAAAAAAAAAAAAIA/AAAAAAAAAAAAAIA/AAAAAAAAAAAAAIA/AAAAAAAAAAAAAIA/AACAPwAAAAAAAAAAAACAPwAAgD8AAAAAAAAAAAAAgD8AAIA/AAAAAAAAAAAAAIA/AACAPwAAAAAAAAAAAACAPwAAkMAAALBAAACwQAAAsEAAALBAAACQwAAAkMAAAJDAAAABAAIAAAACAAMA"
+            "uri" : "data:application/octet-stream;base64,AAAgwQAAIMEAAAAAAAAgQQAAIMEAAAAAAAAgwQAAIEEAAAAAAAAgQQAAIEEAAAAAAAAAAAAAAAAAAIA/AAAAAAAAAAAAAIA/AAAAAAAAAAAAAIA/AAAAAAAAAAAAAIA/AACAPwAAAAAAAAAAAACAPwAAgD8AAAAAAAAAAAAAgD8AAIA/AAAAAAAAAAAAAIA/AACAPwAAAAAAAAAAAACAPwAAkMAAALBAAACwQAAAsEAAAJDAAACQwAAAsEAAAJDAAAABAAMAAAADAAIA"
         }
     ]
 }

@@ -67,6 +67,8 @@ typedef struct TestLighting
 
 	dsScene* curScene;
 	dsView* curView;
+	float rotation;
+	bool stop;
 } TestLighting;
 
 static void printHelp(const char* programPath)
@@ -131,6 +133,8 @@ static bool processEvent(dsApplication* application, dsWindow* window, const dsE
 
 			if (event->key.key == dsKeyCode_ACBack)
 				dsApplication_quit(application, 0);
+			else if (event->key.key == dsKeyCode_Space)
+				testLighting->stop = !testLighting->stop;
 			return false;
 		default:
 			return true;
@@ -143,6 +147,23 @@ static void update(dsApplication* application, double lastFrameTime, void* userD
 	DS_UNUSED(lastFrameTime);
 
 	TestLighting* testLighting = (TestLighting*)userData;
+
+	const float speed = 0.4f;
+	const float xyDist = 7.0f;
+	const float height = 10.0f;
+	if (!testLighting->stop)
+	{
+		testLighting->rotation = dsWrapf(testLighting->rotation + (float)(lastFrameTime*speed),
+			0.0f, (float)(2*M_PI));
+	}
+	dsVector3f eyePos = {{sinf(testLighting->rotation)*xyDist, -cosf(testLighting->rotation)*xyDist,
+		height}};
+	dsVector3f lookAtPos = {{0.0f, 0.0f, 0.0f}};
+	dsVector3f upDir = {{0.0f, 0.0f, 1.0f}};
+	dsMatrix44f camera;
+	dsMatrix44f_lookAt(&camera, &eyePos, &lookAtPos, &upDir);
+	dsView_setCameraMatrix(testLighting->curView, &camera);
+	updateProjectionMatrix(testLighting->curView);
 
 	DS_VERIFY(dsScene_update(testLighting->curScene));
 	DS_VERIFY(dsView_update(testLighting->curView));
@@ -366,14 +387,6 @@ static bool setup(TestLighting* testLighting, dsApplication* application, dsAllo
 
 	testLighting->curScene = testLighting->forwardLightScene;
 	testLighting->curView = testLighting->forwardLightView;
-
-	dsVector3f eyePos = {{0.0f, 20.0f, 20.0f}};
-	dsVector3f lookAtPos = {{0.0f, 0.0f, 0.0f}};
-	dsVector3f upDir = {{0.0f, 1.0f, 0.0f}};
-	dsMatrix44f camera;
-	dsMatrix44f_lookAt(&camera, &eyePos, &lookAtPos, &upDir);
-	dsView_setCameraMatrix(testLighting->curView, &camera);
-	updateProjectionMatrix(testLighting->curView);
 
 	return true;
 }
