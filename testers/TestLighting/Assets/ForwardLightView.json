@@ -5,8 +5,8 @@
 			"name": "mainColor",
 			"type": "Offscreen",
 			"usage": ["SubpassInput"],
-			"format": "SurfaceColor",
-			"decoration": "Unset",
+			"format": "A2B10G10R10",
+			"decoration": "UNorm",
 			"samples": 4,
 			"resolve": true,
 			"windowFramebuffer": true

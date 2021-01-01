@@ -43,12 +43,12 @@ def convertLightSet(convertContext, data):
 	    - "Point"
 	      - position: position of the light as an array of three float values.
 	      - linearFalloff: amount the light falls off based on distance.
-	      - quadraticFalloff: amount the light falls off based on squared distance.
+	      - quadraticFalloff: amount the light falls off based on squared distance. Defaults to 1.
 	    - "Spot"
 	      - position: position of the light as an array of three float values.
 	      - direction: direction of the light as an array of three float values.
-	      - linearFalloff: amount the light falls off based on distance.
-	      - quadraticFalloff: amount the light falls off based on squared distance.
+	      - linearFalloff: amount the light falls off based on distance. Defaults to 1.
+	      - quadraticFalloff: amount the light falls off based on squared distance. Defaults to 1.
 	      - innerSpotAngle: the angle in degrees of the spot light where it starts to fade out.
 	      - outerSpotAngle: the angle in degrees of the spot light where it finishes fade out.
 	- maxLights: the maximum number of lights that can be stored. If unset, the number of elements
@@ -120,17 +120,17 @@ def convertLightSet(convertContext, data):
 					elif lightType == 'Point':
 						light.type = LightUnion.PointLight
 						light.position = readVector(lightData['position'], 'light position')
-						light.linearFalloff = readFloat(lightData['linearFalloff'],
+						light.linearFalloff = readFloat(lightData.get('linearFalloff', 1.0),
 							'light linear falloff', 0.0)
-						light.quadraticFalloff = readFloat(lightData['quadraticFalloff'],
+						light.quadraticFalloff = readFloat(lightData.get('quadraticFalloff', 1.0),
 							'light quadratic falloff', 0.0)
 					elif lightType == 'Spot':
 						light.type = LightUnion.SpotLight
 						light.position = readVector(lightData['position'], 'light position')
 						light.direction = readVector(lightData['direction'], 'light direction')
-						light.linearFalloff = readFloat(lightData['linearFalloff'],
+						light.linearFalloff = readFloat(lightData.get('linearFalloff', 1.0),
 							'light linear falloff', 0.0)
-						light.quadraticFalloff = readFloat(lightData['quadraticFalloff'],
+						light.quadraticFalloff = readFloat(lightData.get('quadraticFalloff', 1.0),
 							'light quadratic falloff', 0.0)
 						light.innerSpotAngle = math.radians(readFloat(lightData['innerSpotAngle'],
 							'inner spot angle', 0.0, 180.0))

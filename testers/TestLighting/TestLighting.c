@@ -150,7 +150,7 @@ static void update(dsApplication* application, double lastFrameTime, void* userD
 
 	const float speed = 0.4f;
 	const float xyDist = 7.0f;
-	const float height = 10.0f;
+	const float height = 9.0f;
 	if (!testLighting->stop)
 	{
 		testLighting->rotation = dsWrapf(testLighting->rotation + (float)(lastFrameTime*speed),

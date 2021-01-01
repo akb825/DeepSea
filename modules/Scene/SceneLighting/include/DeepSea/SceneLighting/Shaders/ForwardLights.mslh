@@ -120,7 +120,7 @@ void dsComputeForwardLighting(out vec3 outDiffuseColor, out vec3 outSpecularColo
 					position, normal, linearFalloff, quadraticFalloff);
 				outDiffuseColor += lightColor*diffuse*falloff;
 			}
-			else if (type == DS_POINT_LIGHT)
+			else if (type == DS_SPOT_LIGHT)
 			{
 				lowp float falloff;
 				lowp vec3 surfaceDirection;
@@ -157,15 +157,16 @@ void dsComputeForwardLighting(out vec3 outDiffuseColor, out vec3 outSpecularColo
 				float diffuse = dsPointDiffuseLight(falloff, surfaceDirection, lightPosition,
 					position, normal, linearFalloff, quadraticFalloff);
 				outDiffuseColor += lightColor*diffuse*falloff;
-				outSpecularColor += lightColor*dsGeneralSpecularLight(lightDirection, normal,
+				outSpecularColor += lightColor*dsGeneralSpecularLight(surfaceDirection, normal,
 					viewDirection, shininess)*falloff;
 			}
-			else if (type == DS_POINT_LIGHT)
+			else if (type == DS_SPOT_LIGHT)
 			{
 				lowp float falloff;
 				lowp vec3 surfaceDirection;
 				float diffuse = dsSpotDiffuseLight(falloff, surfaceDirection, lightPosition,
-					lightDirection, position, normal, linearFalloff, quadraticFalloff, spotCosAngles.x, spotCosAngles.y);
+					lightDirection, position, normal, linearFalloff, quadraticFalloff,
+					spotCosAngles.x, spotCosAngles.y);
 				outDiffuseColor += lightColor*diffuse*falloff;
 				outSpecularColor += lightColor*dsGeneralSpecularLight(lightDirection, normal,
 					viewDirection, shininess)*falloff;

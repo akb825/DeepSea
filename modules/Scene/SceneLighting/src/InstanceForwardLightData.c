@@ -117,7 +117,8 @@ void dsInstanceForwardLightData_populateData(void* userData, const dsView* view,
 		dsVector4f* directionAndLinearFalloff =
 			(dsVector4f*)(data + directionAndLinearFalloffOffset);
 		dsVector4f* colorAndQuadraticFalloff = (dsVector4f*)(data + colorAndQuadraticFalloffOffset);
-		dsVector2f* spotCosAngles = (dsVector2f*)(data + spotCosAnglesOffset);
+		// Due to padding, spotCosAngles has a stride of vec4.
+		dsVector4f* spotCosAngles = (dsVector4f*)(data + spotCosAnglesOffset);
 		dsColor3f* ambientColor = (dsColor3f*)(data + ambientColorOffset);
 
 		const dsVector3f* position = (const dsVector3f*)(instances[i].transform.columns + 3);
@@ -145,16 +146,23 @@ void dsInstanceForwardLightData_populateData(void* userData, const dsView* view,
 
 			spotCosAngles[j].x = light->innerSpotCosAngle;
 			spotCosAngles[j].y = light->outerSpotCosAngle;
+			spotCosAngles[j].z = 0.0f;
+			spotCosAngles[j].w = 0.0f;
 		}
 
 		*ambientColor = ambient;
 
 		// Unset lights can be zero-initialized.
 		uint32_t unsetCount = lightCount - brightestLightCount;
-		memset(positionAndType + brightestLightCount, 0, sizeof(dsVector4f)*unsetCount);
-		memset(directionAndLinearFalloff + brightestLightCount, 0, sizeof(dsVector4f)*unsetCount);
-		memset(colorAndQuadraticFalloff + brightestLightCount, 0, sizeof(dsVector4f)*unsetCount);
-		memset(spotCosAngles + brightestLightCount, 0, sizeof(dsVector2f)*unsetCount);
+		if (unsetCount > 0)
+		{
+			memset(positionAndType + brightestLightCount, 0, sizeof(*positionAndType)*unsetCount);
+			memset(directionAndLinearFalloff + brightestLightCount, 0,
+				sizeof(*directionAndLinearFalloff)*unsetCount);
+			memset(colorAndQuadraticFalloff + brightestLightCount, 0,
+				sizeof(*colorAndQuadraticFalloff)*unsetCount);
+			memset(spotCosAngles + brightestLightCount, 0, sizeof(*spotCosAngles)*unsetCount);
+		}
 	}
 }
 

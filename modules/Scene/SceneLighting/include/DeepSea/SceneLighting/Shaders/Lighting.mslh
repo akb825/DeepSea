@@ -84,8 +84,8 @@ lowp float dsSpotDiffuseLight(out lowp float falloff, out lowp vec3 surfaceDirec
 	lowp float linearFalloff, lowp float quadraticFalloff, lowp float innerSpotCosAngle,
 	lowp float outerSpotCosAngle)
 {
-	vec3 surfaceToLight = lightPosition - surfacePosition;
-	float distToLight2 = dot(surfaceToLight, surfaceToLight);
+	vec3 lightToSurface = lightPosition - surfacePosition;
+	float distToLight2 = dot(lightToSurface, lightToSurface);
 	if (distToLight2 < 1e-6)
 	{
 		surfaceDirection = vec3(0, 0, 0);
@@ -94,18 +94,16 @@ lowp float dsSpotDiffuseLight(out lowp float falloff, out lowp vec3 surfaceDirec
 	}
 
 	float distToLight = sqrt(distToLight2);
-	falloff = (1 + distToLight*linearFalloff + distToLight2*quadraticFalloff);
+	falloff = 1/(1 + distToLight*linearFalloff + distToLight2*quadraticFalloff);
 
-	surfaceDirection = surfaceToLight*(1/surfaceToLight);
+	surfaceDirection = lightToSurface*(1/distToLight);
 	lowp float cosAngle = dot(surfaceDirection, lightDirection);
-	if (cosAngle < innerSpotCosAngle)
-	{
-		lowp float angleFactor = clamp(cosAngle, innerSpotCosAngle, outerSpotCosAngle);
-		lowp float angleDenom = innerSpotCosAngle == outerSpotCosAngle ?
-			1/(innerSpotCosAngle - outerSpotCosAngle) : 1;
-		falloff *= angleFactor*angleDenom;
-	}
-	max(dot(lightDirection, normal), 0);
+	lowp float angleFactor = clamp(cosAngle, outerSpotCosAngle, innerSpotCosAngle) -
+		outerSpotCosAngle;
+	lowp float angleDenom = innerSpotCosAngle == outerSpotCosAngle ?
+		1 : 1/(innerSpotCosAngle - outerSpotCosAngle);
+	falloff *= angleFactor*angleDenom;
+	return max(dot(lightDirection, normal), 0);
 }
 
 /**
@@ -135,7 +133,7 @@ float dsDirectionalSpecularLight(lowp vec3 lightDirection, lowp vec3 normal,
 float dsGeneralSpecularLight(lowp vec3 lightDirection, lowp vec3 normal,
 	lowp vec3 viewDirection, mediump float shininess)
 {
-	lowp vec3 reflectDirection = reflect(lightDirection, normal);
+	lowp vec3 reflectDirection = reflect(-lightDirection, normal);
 	float specular = max(dot(reflectDirection, viewDirection), 0);
 	return pow(specular, shininess);
 }

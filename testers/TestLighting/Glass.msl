@@ -51,17 +51,14 @@ void vertexShader()
 void fragmentShader()
 {
 	vec3 diffuseLight, specularLight;
-	dsComputeForwardLighting(diffuseLight, specularLight, vfViewPosition, vfNormal,
+	dsComputeForwardLighting(diffuseLight, specularLight, vfViewPosition, normalize(vfNormal),
 		uniforms.shininess, vec3(0, 0, 1));
-
-	float maxSpecular = max(max(specularLight.r, specularLight.g), specularLight.b);
-	float baseAlpha = max(maxSpecular, uniforms.color.a);
 
 	// Poor-man's Fresnel based on view-space normal.
 	float fresnelLikeAlpha = 1.0 - abs(vfNormal.z);
 	fresnelLikeAlpha *= fresnelLikeAlpha;
-	float alpha = min(baseAlpha + fresnelLikeAlpha, 1.0);
-	outputColor = vec4(diffuseLight*uniforms.color.rgb + specularLight, alpha);
+	float alpha = min(uniforms.color.a + fresnelLikeAlpha, 1.0);
+	outputColor = vec4(diffuseLight*uniforms.color.rgb*fresnelLikeAlpha + specularLight, alpha);
 }
 
 pipeline Glass
@@ -71,8 +68,8 @@ pipeline Glass
 	depth_test_enable = true;
 	early_fragment_tests = true;
 	blend_enable = true;
-	src_color_blend_factor = src_alpha;
-	src_alpha_blend_factor = one;
+	// Alpha is pre-multiplied.
+	src_blend_factor = one;
 	dst_blend_factor = one_minus_src_alpha;
 	alpha_blend_op = add;
 	cull_mode = back;
