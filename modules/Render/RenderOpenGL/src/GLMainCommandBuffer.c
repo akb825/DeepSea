@@ -1434,11 +1434,11 @@ bool dsGLMainCommandBuffer_setViewport(dsCommandBuffer* commandBuffer,
 	{
 		bool offscreen = glRenderer->curSurfaceType == GLSurfaceType_Framebuffer;
 		glCommandBuffer->viewportX = (GLint)viewport->min.x;
-		glCommandBuffer->viewportY = framebuffer->height - (GLint)viewport->max.y - 1;
+		glCommandBuffer->viewportY = framebuffer->height - (GLint)viewport->max.y;
 		if (offscreen)
 			glCommandBuffer->viewportY = (GLint)viewport->max.y;
 		else
-			glCommandBuffer->viewportY = framebuffer->height - (GLint)viewport->max.y - 1;
+			glCommandBuffer->viewportY = framebuffer->height - (GLint)viewport->max.y;
 		glCommandBuffer->viewportWidth = (GLsizei)(viewport->max.x - viewport->min.x);
 		glCommandBuffer->viewportHeight = (GLsizei)(viewport->max.y - viewport->min.y);
 		if (ANYGL_SUPPORTED(glDepthRangef))
