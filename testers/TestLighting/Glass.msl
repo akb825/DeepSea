@@ -50,9 +50,10 @@ void vertexShader()
 [[fragment]]
 void fragmentShader()
 {
+	vec3 viewDirection = -normalize(vfViewPosition);
 	vec3 diffuseLight, specularLight;
 	dsComputeForwardLighting(diffuseLight, specularLight, vfViewPosition, normalize(vfNormal),
-		uniforms.shininess, vec3(0, 0, 1));
+		uniforms.shininess, viewDirection);
 
 	// Poor-man's Fresnel based on view-space normal.
 	float fresnelLikeAlpha = 1.0 - abs(vfNormal.z);

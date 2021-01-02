@@ -93,6 +93,7 @@ uniform InstanceForwardLightData
  * @param specularColor The specular color of the material. If 0, specular will be skipped.
  * @param shininess The shininess value for computing specular lighting. Set to 0 to not compute
  *     specular.
+ * @param viewDirection The direction to the view.
  */
 void dsComputeForwardLighting(out vec3 outDiffuseColor, out vec3 outSpecularColor, vec3 position,
 	lowp vec3 normal, mediump float shininess, lowp vec3 viewDirection)
