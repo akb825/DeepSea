@@ -926,8 +926,9 @@ int dsMain(int argc, const char** argv)
 	dsRendererOptions rendererOptions;
 	dsRenderer_defaultOptions(&rendererOptions, "TestRenderSubpass", 0);
 	rendererOptions.deviceName = deviceName;
-	rendererOptions.depthBits = 0;
 	rendererOptions.alphaBits = 8;
+	rendererOptions.depthBits = 0;
+	rendererOptions.stencilBits = 0;
 	dsRenderer* renderer = dsRenderBootstrap_createRenderer(rendererType,
 		(dsAllocator*)&renderAllocator, &rendererOptions);
 	if (!renderer)

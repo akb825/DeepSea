@@ -451,6 +451,7 @@ int dsMain(int argc, const char** argv)
 	dsRenderer_defaultOptions(&rendererOptions, "TestVectorDrawScene", 0);
 	rendererOptions.deviceName = deviceName;
 	rendererOptions.depthBits = 0;
+	rendererOptions.stencilBits = 0;
 	rendererOptions.samples = 4;
 	rendererOptions.maxResourceThreads = 1;
 	dsRenderer* renderer = dsRenderBootstrap_createRenderer(rendererType,

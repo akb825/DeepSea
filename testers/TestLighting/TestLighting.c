@@ -466,6 +466,7 @@ int dsMain(int argc, const char** argv)
 	dsRendererOptions rendererOptions;
 	dsRenderer_defaultOptions(&rendererOptions, "TestLighting", 0);
 	rendererOptions.depthBits = 0;
+	rendererOptions.stencilBits = 0;
 	rendererOptions.deviceName = deviceName;
 	dsRenderer* renderer = dsRenderBootstrap_createRenderer(rendererType,
 		(dsAllocator*)&renderAllocator, &rendererOptions);
