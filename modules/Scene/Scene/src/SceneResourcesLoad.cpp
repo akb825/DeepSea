@@ -824,7 +824,7 @@ static bool loadShader(dsSceneResources* resources, dsResourceManager* resourceM
 	}
 
 	const char* shaderName = fbShader->name()->c_str();
-	auto fbPipelineName = fbShader->pipelineName();
+	auto fbPipelineName = fbShader->pipeline();
 	const char* pipelineName = fbPipelineName ? fbPipelineName->c_str() : shaderName;
 	dsShader* shader = dsShader_createName(resourceManager, allocator, shaderModule,
 		pipelineName, materialDesc);

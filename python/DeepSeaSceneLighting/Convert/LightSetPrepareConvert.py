@@ -18,7 +18,7 @@ from ..LightSetPrepare import *
 def convertLightSetPrepare(convertContext, data):
 	"""
 	Converts a LightSetPrepare. The data map is expected to contain the following elements:
-	- lightSets: array of light set names to convert.
+	- lightSets: array of light set names to prepare.
 	- intensityThreshold: the threshold below which the light is considered out of view. If unset
 	  this will use the default.
 	"""

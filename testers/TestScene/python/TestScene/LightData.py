@@ -21,7 +21,7 @@ class LightData(object):
         self._tab = flatbuffers.table.Table(buf, pos)
 
     # LightData
-    def VariableGroupDescName(self):
+    def VariableGroupDesc(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         if o != 0:
             return self._tab.String(o + self._tab.Pos)
@@ -61,7 +61,7 @@ class LightData(object):
         return None
 
 def LightDataStart(builder): builder.StartObject(4)
-def LightDataAddVariableGroupDescName(builder, variableGroupDescName): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(variableGroupDescName), 0)
+def LightDataAddVariableGroupDesc(builder, variableGroupDesc): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(variableGroupDesc), 0)
 def LightDataAddDirection(builder, direction): builder.PrependStructSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(direction), 0)
 def LightDataAddColor(builder, color): builder.PrependStructSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(color), 0)
 def LightDataAddAmbient(builder, ambient): builder.PrependStructSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(ambient), 0)

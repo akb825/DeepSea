@@ -43,7 +43,7 @@ dsSceneItemList* dsSceneModelList_load(const dsSceneLoadContext* loadContext,
 	auto fbModelList = DeepSeaScene::GetModelList(data);
 	auto fbInstanceData = fbModelList->instanceData();
 	auto fbDynamicRenderStates = fbModelList->dynamicRenderStates();
-	auto fbCullName = fbModelList->cullName();
+	auto fbCullList = fbModelList->cullList();
 
 	dsAllocator* scratchAllocator = dsSceneLoadScratchData_getAllocator(scratchData);
 	DS_ASSERT(scratchAllocator);
@@ -96,7 +96,7 @@ dsSceneItemList* dsSceneModelList_load(const dsSceneLoadContext* loadContext,
 	modelList = dsSceneModelList_create(allocator, name, instanceData, instanceDataCount,
 		static_cast<dsModelSortType>(fbModelList->sortType()),
 		fbDynamicRenderStates ? &dynamicRenderStates : nullptr,
-		fbCullName ? fbCullName->c_str() : nullptr);
+		fbCullList ? fbCullList->c_str() : nullptr);
 	// Took ownership of instance data even if creation failed, so zero out instanceDataCount to
 	// prevent anycleanup.
 	instanceDataCount = 0;

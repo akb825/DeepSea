@@ -16,25 +16,25 @@ struct FullScreenResolveBuilder;
 struct FullScreenResolve FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef FullScreenResolveBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_SHADERNAME = 4,
-    VT_MATERIALNAME = 6,
+    VT_SHADER = 4,
+    VT_MATERIAL = 6,
     VT_DYNAMICRENDERSTATES = 8
   };
-  const flatbuffers::String *shaderName() const {
-    return GetPointer<const flatbuffers::String *>(VT_SHADERNAME);
+  const flatbuffers::String *shader() const {
+    return GetPointer<const flatbuffers::String *>(VT_SHADER);
   }
-  const flatbuffers::String *materialName() const {
-    return GetPointer<const flatbuffers::String *>(VT_MATERIALNAME);
+  const flatbuffers::String *material() const {
+    return GetPointer<const flatbuffers::String *>(VT_MATERIAL);
   }
   const DeepSeaScene::DynamicRenderStates *dynamicRenderStates() const {
     return GetPointer<const DeepSeaScene::DynamicRenderStates *>(VT_DYNAMICRENDERSTATES);
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyOffsetRequired(verifier, VT_SHADERNAME) &&
-           verifier.VerifyString(shaderName()) &&
-           VerifyOffsetRequired(verifier, VT_MATERIALNAME) &&
-           verifier.VerifyString(materialName()) &&
+           VerifyOffsetRequired(verifier, VT_SHADER) &&
+           verifier.VerifyString(shader()) &&
+           VerifyOffsetRequired(verifier, VT_MATERIAL) &&
+           verifier.VerifyString(material()) &&
            VerifyOffset(verifier, VT_DYNAMICRENDERSTATES) &&
            verifier.VerifyTable(dynamicRenderStates()) &&
            verifier.EndTable();
@@ -45,11 +45,11 @@ struct FullScreenResolveBuilder {
   typedef FullScreenResolve Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
-  void add_shaderName(flatbuffers::Offset<flatbuffers::String> shaderName) {
-    fbb_.AddOffset(FullScreenResolve::VT_SHADERNAME, shaderName);
+  void add_shader(flatbuffers::Offset<flatbuffers::String> shader) {
+    fbb_.AddOffset(FullScreenResolve::VT_SHADER, shader);
   }
-  void add_materialName(flatbuffers::Offset<flatbuffers::String> materialName) {
-    fbb_.AddOffset(FullScreenResolve::VT_MATERIALNAME, materialName);
+  void add_material(flatbuffers::Offset<flatbuffers::String> material) {
+    fbb_.AddOffset(FullScreenResolve::VT_MATERIAL, material);
   }
   void add_dynamicRenderStates(flatbuffers::Offset<DeepSeaScene::DynamicRenderStates> dynamicRenderStates) {
     fbb_.AddOffset(FullScreenResolve::VT_DYNAMICRENDERSTATES, dynamicRenderStates);
@@ -62,35 +62,35 @@ struct FullScreenResolveBuilder {
   flatbuffers::Offset<FullScreenResolve> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<FullScreenResolve>(end);
-    fbb_.Required(o, FullScreenResolve::VT_SHADERNAME);
-    fbb_.Required(o, FullScreenResolve::VT_MATERIALNAME);
+    fbb_.Required(o, FullScreenResolve::VT_SHADER);
+    fbb_.Required(o, FullScreenResolve::VT_MATERIAL);
     return o;
   }
 };
 
 inline flatbuffers::Offset<FullScreenResolve> CreateFullScreenResolve(
     flatbuffers::FlatBufferBuilder &_fbb,
-    flatbuffers::Offset<flatbuffers::String> shaderName = 0,
-    flatbuffers::Offset<flatbuffers::String> materialName = 0,
+    flatbuffers::Offset<flatbuffers::String> shader = 0,
+    flatbuffers::Offset<flatbuffers::String> material = 0,
     flatbuffers::Offset<DeepSeaScene::DynamicRenderStates> dynamicRenderStates = 0) {
   FullScreenResolveBuilder builder_(_fbb);
   builder_.add_dynamicRenderStates(dynamicRenderStates);
-  builder_.add_materialName(materialName);
-  builder_.add_shaderName(shaderName);
+  builder_.add_material(material);
+  builder_.add_shader(shader);
   return builder_.Finish();
 }
 
 inline flatbuffers::Offset<FullScreenResolve> CreateFullScreenResolveDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
-    const char *shaderName = nullptr,
-    const char *materialName = nullptr,
+    const char *shader = nullptr,
+    const char *material = nullptr,
     flatbuffers::Offset<DeepSeaScene::DynamicRenderStates> dynamicRenderStates = 0) {
-  auto shaderName__ = shaderName ? _fbb.CreateString(shaderName) : 0;
-  auto materialName__ = materialName ? _fbb.CreateString(materialName) : 0;
+  auto shader__ = shader ? _fbb.CreateString(shader) : 0;
+  auto material__ = material ? _fbb.CreateString(material) : 0;
   return DeepSeaScene::CreateFullScreenResolve(
       _fbb,
-      shaderName__,
-      materialName__,
+      shader__,
+      material__,
       dynamicRenderStates);
 }
 

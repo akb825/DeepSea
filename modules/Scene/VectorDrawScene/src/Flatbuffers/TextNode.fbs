@@ -64,7 +64,7 @@ table TextNode
 	material : string (required);
 
 	// The name of the texture for the font.
-	fontTextureName : string (required);
+	fontTexture : string (required);
 
 	// Item lists to add the node to.
 	itemLists : [string];

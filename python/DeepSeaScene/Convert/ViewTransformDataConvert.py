@@ -18,10 +18,10 @@ from ..ViewTransformData import *
 def convertViewTransformData(convertContext, data):
 	"""
 	Converts an ViewTransformData. The data map is expected to contain the following elements:
-	- variableGroupDescName: string name for the shader variable group to use.
+	- variableGroupDesc: string name for the shader variable group to use.
 	"""
 	try:
-		variableGroupDescName = str(data['variableGroupDescName'])
+		variableGroupDescName = str(data['variableGroupDesc'])
 	except KeyError as e:
 		raise Exception('ViewTransform doesn\'t contain element ' + str(e) + '.')
 	except (TypeError, ValueError):
@@ -30,6 +30,6 @@ def convertViewTransformData(convertContext, data):
 	builder = flatbuffers.Builder(0)
 	variableGroupDescNameOffset = builder.CreateString(variableGroupDescName)
 	ViewTransformDataStart(builder)
-	ViewTransformDataAddVariableGroupDescName(builder, variableGroupDescNameOffset)
+	ViewTransformDataAddVariableGroupDesc(builder, variableGroupDescNameOffset)
 	builder.Finish(ViewTransformDataEnd(builder))
 	return builder.Output()

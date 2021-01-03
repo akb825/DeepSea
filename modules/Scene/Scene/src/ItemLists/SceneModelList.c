@@ -67,7 +67,7 @@ struct dsSceneModelList
 	dsDynamicRenderStates renderStates;
 	bool hasRenderStates;
 	dsModelSortType sortType;
-	uint32_t cullNameID;
+	uint32_t cullListID;
 
 	dsSharedMaterialValues* instanceValues;
 	dsSceneInstanceData** instanceData;
@@ -96,8 +96,8 @@ static void addInstances(dsSceneItemList* itemList, const dsView* view, uint32_t
 		const Entry* entry = modelList->entries + i;
 		const dsSceneModelNode* modelNode = entry->node;
 		// Non-zero cull result means out of view.
-		if (modelList->cullNameID &&
-			dsSceneNodeItemData_findID(entry->itemData, modelList->cullNameID))
+		if (modelList->cullListID &&
+			dsSceneNodeItemData_findID(entry->itemData, modelList->cullListID))
 		{
 			continue;
 		}
@@ -117,7 +117,7 @@ static void addInstances(dsSceneItemList* itemList, const dsView* view, uint32_t
 			if (!model->shader || !model->material)
 				continue;
 
-			if (model->listNameID != itemList->nameID)
+			if (model->modelListID != itemList->nameID)
 				continue;
 
 			if (model->distanceRange.x <= model->distanceRange.y &&
@@ -382,7 +382,7 @@ void dsSceneModelList_commit(dsSceneItemList* itemList, const dsView* view,
 
 dsSceneModelList* dsSceneModelList_create(dsAllocator* allocator, const char* name,
 	dsSceneInstanceData* const* instanceData, uint32_t instanceDataCount, dsModelSortType sortType,
-	const dsDynamicRenderStates* renderStates, const char* cullName)
+	const dsDynamicRenderStates* renderStates, const char* cullList)
 {
 	if (!allocator || !name || (!instanceData && instanceDataCount > 0))
 	{
@@ -447,7 +447,7 @@ dsSceneModelList* dsSceneModelList_create(dsAllocator* allocator, const char* na
 	else
 		modelList->hasRenderStates = false;
 	modelList->sortType = sortType;
-	modelList->cullNameID = cullName ? dsHashString(cullName) : 0;
+	modelList->cullListID = cullList ? dsHashString(cullList) : 0;
 
 	if (instanceDataCount > 0)
 	{

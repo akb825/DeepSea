@@ -22,10 +22,10 @@ namespace DeepSeaScene;
 table FullScreenResolve
 {
 	// The name of the shader to draw with.
-	shaderName : string (required);
+	shader : string (required);
 
 	// The name of the material to draw with.
-	materialName : string (required);
+	material : string (required);
 
 	// Dynamic render states to draw with.
 	dynamicRenderStates : DynamicRenderStates;

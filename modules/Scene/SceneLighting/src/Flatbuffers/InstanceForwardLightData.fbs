@@ -20,10 +20,10 @@ namespace DeepSeaSceneLighting;
 table InstanceForwardLightData
 {
 	// The name of the shader variable group description for the forward light data.
-	variableGroupDescName : string (required);
+	variableGroupDesc : string (required);
 
 	// The name of the light set to get lights from.
-	lightSetName : string (required);
+	lightSet : string (required);
 }
 
 root_type InstanceForwardLightData;

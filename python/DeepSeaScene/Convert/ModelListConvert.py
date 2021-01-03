@@ -48,7 +48,7 @@ def convertModelList(convertContext, data):
 	  - stencilReference: int reference for both the front and back stencil. Defaults to 0.
 	  - frontStencilReference: int reference for just the front stencil.
 	  - backStencilReference: int reference for just the back stencil.
-	- cullName: optional name for the item list to handle culling.
+	- cullList: optional name for the item list to handle culling.
 	"""
 	builder = flatbuffers.Builder(0)
 	try:
@@ -77,7 +77,7 @@ def convertModelList(convertContext, data):
 		else:
 			dynamicRenderStatesOffset = 0
 
-		cullName = data.get('cullName')
+		cullList = data.get('cullList')
 	except KeyError as e:
 		raise Exception('ModelList doesn\'t contain element ' + str(e) + '.')
 	except (AttributeError, TypeError, ValueError):
@@ -96,15 +96,15 @@ def convertModelList(convertContext, data):
 	else:
 		instanceDataOffset = 0
 
-	if cullName:
-		cullNameOffset = builder.CreateString(str(cullName))
+	if cullList:
+		cullListOffset = builder.CreateString(str(cullList))
 	else:
-		cullNameOffset = 0
+		cullListOffset = 0
 
 	ModelListStart(builder)
 	ModelListAddInstanceData(builder, instanceDataOffset)
 	ModelListAddSortType(builder, sortType)
 	ModelListAddDynamicRenderStates(builder, dynamicRenderStatesOffset)
-	ModelListAddCullName(builder, cullNameOffset)
+	ModelListAddCullList(builder, cullListOffset)
 	builder.Finish(ModelListEnd(builder))
 	return builder.Output()

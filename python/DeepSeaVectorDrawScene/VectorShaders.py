@@ -71,7 +71,7 @@ class VectorShaders(object):
         return o == 0
 
     # VectorShaders
-    def MaterialDescName(self):
+    def MaterialDesc(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
         if o != 0:
             return self._tab.String(o + self._tab.Pos)
@@ -145,7 +145,7 @@ def VectorShadersAddModules(builder, modules): builder.PrependUOffsetTRelativeSl
 def VectorShadersStartModulesVector(builder, numElems): return builder.StartVector(4, numElems, 4)
 def VectorShadersAddExtraElements(builder, extraElements): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(extraElements), 0)
 def VectorShadersStartExtraElementsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
-def VectorShadersAddMaterialDescName(builder, materialDescName): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(materialDescName), 0)
+def VectorShadersAddMaterialDesc(builder, materialDesc): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(materialDesc), 0)
 def VectorShadersAddFillColor(builder, fillColor): builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(fillColor), 0)
 def VectorShadersAddFillLinearGradient(builder, fillLinearGradient): builder.PrependUOffsetTRelativeSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(fillLinearGradient), 0)
 def VectorShadersAddFillRadialGradient(builder, fillRadialGradient): builder.PrependUOffsetTRelativeSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(fillRadialGradient), 0)

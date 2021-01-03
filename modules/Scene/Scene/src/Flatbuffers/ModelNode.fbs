@@ -107,7 +107,7 @@ table ModelInfo
 	primitiveType : PrimitiveType;
 
 	// The name of the list to use the model with. This may be empty if only used for cloning.
-	listName : string;
+	modelList : string;
 }
 
 // Struct describing a model scene node.

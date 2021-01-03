@@ -35,7 +35,7 @@ class Shader(object):
         return None
 
     # Shader
-    def PipelineName(self):
+    def Pipeline(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
         if o != 0:
             return self._tab.String(o + self._tab.Pos)
@@ -51,6 +51,6 @@ class Shader(object):
 def ShaderStart(builder): builder.StartObject(4)
 def ShaderAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
 def ShaderAddShaderModule(builder, shaderModule): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(shaderModule), 0)
-def ShaderAddPipelineName(builder, pipelineName): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(pipelineName), 0)
+def ShaderAddPipeline(builder, pipeline): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(pipeline), 0)
 def ShaderAddMaterialDesc(builder, materialDesc): builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(materialDesc), 0)
 def ShaderEnd(builder): return builder.EndObject()

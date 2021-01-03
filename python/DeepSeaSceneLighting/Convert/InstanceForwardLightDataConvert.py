@@ -19,12 +19,12 @@ def convertInstanceForwardLightData(convertContext, data):
 	"""
 	Converts an InstanceForwardLightData. The data map is expected to contain the following
 	elements:
-	- variableGroupDescName: string name for the shader variable group to use.
-	- lightSetName: string name of the light set to use.
+	- variableGroupDesc: string name for the shader variable group to use.
+	- lightSet: string name of the light set to use.
 	"""
 	try:
-		variableGroupDescName = str(data['variableGroupDescName'])
-		lightSetName = str(data['lightSetName'])
+		variableGroupDescName = str(data['variableGroupDesc'])
+		lightSetName = str(data['lightSet'])
 	except KeyError as e:
 		raise Exception('InstanceForwardLightData doesn\'t contain element ' + str(e) + '.')
 	except (TypeError, ValueError):
@@ -35,7 +35,7 @@ def convertInstanceForwardLightData(convertContext, data):
 	lightSetNameOffset = builder.CreateString(lightSetName)
 
 	InstanceForwardLightDataStart(builder)
-	InstanceForwardLightDataAddVariableGroupDescName(builder, variableGroupDescNameOffset)
-	InstanceForwardLightDataAddLightSetName(builder, lightSetNameOffset)
+	InstanceForwardLightDataAddVariableGroupDesc(builder, variableGroupDescNameOffset)
+	InstanceForwardLightDataAddLightSet(builder, lightSetNameOffset)
 	builder.Finish(InstanceForwardLightDataEnd(builder))
 	return builder.Output()

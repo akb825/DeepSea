@@ -39,7 +39,7 @@ dsSceneInstanceData* dsInstanceForwardLightData_load(const dsSceneLoadContext* l
 	}
 
 	auto fbLightData = DeepSeaSceneLighting::GetInstanceForwardLightData(data);
-	const char* groupDescName = fbLightData->variableGroupDescName()->c_str();
+	const char* groupDescName = fbLightData->variableGroupDesc()->c_str();
 
 	dsShaderVariableGroupDesc* groupDesc;
 	dsSceneResourceType resourceType;
@@ -55,7 +55,7 @@ dsSceneInstanceData* dsInstanceForwardLightData_load(const dsSceneLoadContext* l
 		return nullptr;
 	}
 
-	const char* lightSetName = fbLightData->lightSetName()->c_str();
+	const char* lightSetName = fbLightData->lightSet()->c_str();
 	dsCustomSceneResource* lightSetResource;
 	if (!dsSceneLoadScratchData_findResource(&resourceType,
 			reinterpret_cast<void**>(&lightSetResource), scratchData, lightSetName) ||

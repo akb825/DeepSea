@@ -57,7 +57,7 @@
 		"type": "VectorShaders",
 		"name": "vectorShaders",
 		"modules": @vectorModule@,
-		"materialDescName": "vectorMaterialDesc",
+		"materialDesc": "vectorMaterialDesc",
 		"extraElements":
 		[
 			{
@@ -138,7 +138,7 @@
 		"lineScale": 1.2,
 		"shader": "textShader",
 		"material": "textMat",
-		"fontTextureName": "fontTex",
+		"fontTexture": "fontTex",
 		"z": 1,
 		"itemLists": ["vectorPrepareList", "vectorItemList"]
 	},

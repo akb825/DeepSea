@@ -21,12 +21,12 @@ class ViewTransformData(object):
         self._tab = flatbuffers.table.Table(buf, pos)
 
     # ViewTransformData
-    def VariableGroupDescName(self):
+    def VariableGroupDesc(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         if o != 0:
             return self._tab.String(o + self._tab.Pos)
         return None
 
 def ViewTransformDataStart(builder): builder.StartObject(1)
-def ViewTransformDataAddVariableGroupDescName(builder, variableGroupDescName): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(variableGroupDescName), 0)
+def ViewTransformDataAddVariableGroupDesc(builder, variableGroupDesc): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(variableGroupDesc), 0)
 def ViewTransformDataEnd(builder): return builder.EndObject()

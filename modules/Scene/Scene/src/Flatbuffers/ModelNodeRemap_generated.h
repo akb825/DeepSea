@@ -20,15 +20,15 @@ struct MaterialRemap FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef MaterialRemapBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_NAME = 4,
-    VT_LISTNAME = 6,
+    VT_MODELLIST = 6,
     VT_SHADER = 8,
     VT_MATERIAL = 10
   };
   const flatbuffers::String *name() const {
     return GetPointer<const flatbuffers::String *>(VT_NAME);
   }
-  const flatbuffers::String *listName() const {
-    return GetPointer<const flatbuffers::String *>(VT_LISTNAME);
+  const flatbuffers::String *modelList() const {
+    return GetPointer<const flatbuffers::String *>(VT_MODELLIST);
   }
   const flatbuffers::String *shader() const {
     return GetPointer<const flatbuffers::String *>(VT_SHADER);
@@ -40,8 +40,8 @@ struct MaterialRemap FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_NAME) &&
            verifier.VerifyString(name()) &&
-           VerifyOffset(verifier, VT_LISTNAME) &&
-           verifier.VerifyString(listName()) &&
+           VerifyOffset(verifier, VT_MODELLIST) &&
+           verifier.VerifyString(modelList()) &&
            VerifyOffset(verifier, VT_SHADER) &&
            verifier.VerifyString(shader()) &&
            VerifyOffset(verifier, VT_MATERIAL) &&
@@ -57,8 +57,8 @@ struct MaterialRemapBuilder {
   void add_name(flatbuffers::Offset<flatbuffers::String> name) {
     fbb_.AddOffset(MaterialRemap::VT_NAME, name);
   }
-  void add_listName(flatbuffers::Offset<flatbuffers::String> listName) {
-    fbb_.AddOffset(MaterialRemap::VT_LISTNAME, listName);
+  void add_modelList(flatbuffers::Offset<flatbuffers::String> modelList) {
+    fbb_.AddOffset(MaterialRemap::VT_MODELLIST, modelList);
   }
   void add_shader(flatbuffers::Offset<flatbuffers::String> shader) {
     fbb_.AddOffset(MaterialRemap::VT_SHADER, shader);
@@ -82,13 +82,13 @@ struct MaterialRemapBuilder {
 inline flatbuffers::Offset<MaterialRemap> CreateMaterialRemap(
     flatbuffers::FlatBufferBuilder &_fbb,
     flatbuffers::Offset<flatbuffers::String> name = 0,
-    flatbuffers::Offset<flatbuffers::String> listName = 0,
+    flatbuffers::Offset<flatbuffers::String> modelList = 0,
     flatbuffers::Offset<flatbuffers::String> shader = 0,
     flatbuffers::Offset<flatbuffers::String> material = 0) {
   MaterialRemapBuilder builder_(_fbb);
   builder_.add_material(material);
   builder_.add_shader(shader);
-  builder_.add_listName(listName);
+  builder_.add_modelList(modelList);
   builder_.add_name(name);
   return builder_.Finish();
 }
@@ -96,17 +96,17 @@ inline flatbuffers::Offset<MaterialRemap> CreateMaterialRemap(
 inline flatbuffers::Offset<MaterialRemap> CreateMaterialRemapDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     const char *name = nullptr,
-    const char *listName = nullptr,
+    const char *modelList = nullptr,
     const char *shader = nullptr,
     const char *material = nullptr) {
   auto name__ = name ? _fbb.CreateString(name) : 0;
-  auto listName__ = listName ? _fbb.CreateString(listName) : 0;
+  auto modelList__ = modelList ? _fbb.CreateString(modelList) : 0;
   auto shader__ = shader ? _fbb.CreateString(shader) : 0;
   auto material__ = material ? _fbb.CreateString(material) : 0;
   return DeepSeaScene::CreateMaterialRemap(
       _fbb,
       name__,
-      listName__,
+      modelList__,
       shader__,
       material__);
 }

@@ -34,10 +34,17 @@ The following custom scene resource types are provided with the members that are
 	* `ambientIntensity`: the intensity of the ambient light, which multiplies the color. Defaults to 0.
 	* `srgb`: true to treat all color values as sRGB values to be converted to linear space. Defaults to `false`.
 
+## Item Lists
+
+The following item list types are provided with the members that are expected:
+* `"LightSetPrepare"`:
+	* `lightSets`: array of light set names to prepare.
+	* `intensityThreshold`: the threshold below which the light is considered out of view. If unset this will use the default.
+
 ## Instance Data
 
 The following instance data types are provided with the members that are expected:
 
 * `"InstanceForwardLightData"`:
-	* `variableGroupDescName`: string name for the shader variable group to use.
-	* `lightSetName`: string name of the light set to use.
+	* `variableGroupDesc`: string name for the shader variable group to use.
+	* `lightSet`: string name of the light set to use.

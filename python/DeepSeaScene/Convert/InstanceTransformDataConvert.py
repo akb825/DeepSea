@@ -18,10 +18,10 @@ from ..InstanceTransformData import *
 def convertInstanceTransformData(convertContext, data):
 	"""
 	Converts an InstanceTransformData. The data map is expected to contain the following elements:
-	- variableGroupDescName: string name for the shader variable group to use.
+	- variableGroupDesc: string name for the shader variable group to use.
 	"""
 	try:
-		variableGroupDescName = str(data['variableGroupDescName'])
+		variableGroupDescName = str(data['variableGroupDesc'])
 	except KeyError as e:
 		raise Exception('InstanceTransformData doesn\'t contain element ' + str(e) + '.')
 	except (TypeError, ValueError):
@@ -30,6 +30,6 @@ def convertInstanceTransformData(convertContext, data):
 	builder = flatbuffers.Builder(0)
 	variableGroupDescNameOffset = builder.CreateString(variableGroupDescName)
 	InstanceTransformDataStart(builder)
-	InstanceTransformDataAddVariableGroupDescName(builder, variableGroupDescNameOffset)
+	InstanceTransformDataAddVariableGroupDesc(builder, variableGroupDescNameOffset)
 	builder.Finish(InstanceTransformDataEnd(builder))
 	return builder.Output()

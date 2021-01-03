@@ -104,7 +104,7 @@ The remaining members of each element depends on the value of `type`. The builti
 		* `resourceType`: the resource type. See the dsFileResourceType for values, removing the type prefix. Defaults to "Embedded".
 * `"Shader"`
 	* `module`: the name of the shader module the shader resides in. The shader module may be in a different scene resources package.
-	* `pipelineName`: the name of the shader pipeline within the shader module.
+	* `pipeline`: the name of the shader pipeline within the shader module.
 	* `materialDesc`: The name of the material description for materials that will be used with the shader. The material may be in a different scene resources package.
 * `"DrawGeometry"`
 	* `vertexBuffers`: array of vertex buffers. This can have up to 4 elements with the following members:
@@ -154,7 +154,7 @@ Model nodes have the type string "ModelNode" and contains the following data mem
 			* `shader`: te name of the shader to draw with. This may be set to `null` if the model is only used for cloning.
 			* `material`: the name of the material to draw with. This may be set to `null` if the model is only used for cloning.
 			* `distanceRange`: array of two floats for the minimum and maximum distance to draw at. Defaults to `[0, 3.402823466e38]`.
-			* `listName`: the name of the item list to draw the model with. This may be set to `null` if the model is only used for cloning.
+			* `modelList`: the name of the item list to draw the model with. This may be set to `null` if the model is only used for cloning.
 * `models`: array of models to draw with manually provided geometry. (i.e. not converted from the `modelGeometry` array) Each element of the array has the following members:
 	* `name`: optional name for the model for use with material remapping.
 	* `shader`: the name of the shader to draw with. This may be set to `null` if the model is only used for cloning.
@@ -174,7 +174,7 @@ Model nodes have the type string "ModelNode" and contains the following data mem
 			* `firstVertex`: the first vertex to draw. Defaults to 0.
 			* `firstIstance`: the first instance to draw. Defaults to 0.
 		* `primitiveType`: the primitive type to draw with. See the dsPrimitiveType enum for values, removing the type prefix. Defaults to "TriangleList".
-		* `listName`: The name of the item list to draw the model with. This may be set to `null` if the model is only used for cloning.
+		* `modelList`: The name of the item list to draw the model with. This may be set to `null` if the model is only used for cloning.
 * `extraItemLists`: array of extra item list names to add the node to.
 * `bounds`: 2x3 array of float values for the minimum and maximum values for the positions. This will be automatically calculated from geometry in `modelGeometry` if unset. Otherwise if unset the model will have no explicit bounds for culling.
 
@@ -198,7 +198,7 @@ Model node clones with reconfiguration have the type name "ModelNodeReconfig" an
 	* `shader`: the name of the shader to use.
 	* `material`: the name of the material to use.
 	* `distanceRange`: array of two floats for the minimum and maximum distance to draw at. Defaults to `[0, 3.402823466e38]`.
-	* `listName`: the name of the item list the model is drawn with.
+	* `modelList`: the name of the item list the model is drawn with.
 * `extraItemLists`: array of extra item list names to add the node to.
 
 ## Transform Node
@@ -303,7 +303,30 @@ Model lists have the type name "ModelList" and define how to draw models that re
 	* `stencilReference`: int reference for both the front and back stencil. Defaults to 0.
 	* `frontStencilReference`: int reference for just the front stencil.
 	* `backStencilReference`: int reference for just the back stencil.
-* `cullName`: optional name for the item list to handle culling.
+* `cullList`: optional name for the item list to handle culling.
+
+### Full Screen Resolve
+
+Full screen resolve draws a full screen quad with a shader and material. This is an item list for fitting in the scene layout, but doesn't draw any instances within the scene graph. It contains the following members:
+
+* `shader`: the name of the shader to draw with.
+* `material`: the name of the material to draw with.
+* `dynamicRenderStates`: dynamic render states to apply when drawing. This may be ommitted if no dynamic render states are used. This is expected to contain any of the following members:
+	* `lineWidth`: float width for the line. Defaults to 1.
+	* `depthBiasConstantFactor`: float value for the depth bias constant factor. Defaults to 0.
+	* `depthBiasClamp`: float value for the depth bias clamp. Defaults to 0.
+	* `depthBiasSlopeFactor`: float value for the depth bias slope factor. Defaults to 0.
+	* `blendConstants`: array of 4 floats for the blend color. Defaults to `[0, 0, 0, 0]`.
+	* `depthBounds`: array of 2 floats for the min and max depth value. Defaults to `[0, 1]`.
+	* `stencilCompareMask`: int compare mask for both the front and back stencil. Defaults to `0xFFFFFFFF`.
+	* `frontStencilCompareMask`: int compare mask for just the front stencil.
+	* `backStencilCompareMask`: int compare mask for just the back stencil.
+	* `stencilWriteMask`: int write mask for both the front and back stencil. Defaults to 0.
+	* `frontStencilWriteMask`: int write mask for just the front stencil.
+	* `backStencilWriteMask`: int write mask for just the back stencil.
+	* `stencilReference`: int reference for both the front and back stencil. Defaults to 0.
+	* `frontStencilReference`: int reference for just the front stencil.
+	* `backStencilReference`: int reference for just the back stencil.
 
 ## Instance Data
 
@@ -313,7 +336,7 @@ Instance data is typically included in specific item lists that utilize them. Bu
 
 Instance transform data has the type name "InstanceTransformData" and sets standard transform matrices for each item that's drawn. It contains the following members:
 
-* `variableGroupDescName`: string name for the shader variable group to use.
+* `variableGroupDesc`: string name for the shader variable group to use.
 
 ### View Cull List
 
@@ -327,7 +350,7 @@ Builtin global data specifications are documented below.
 
 View transform data has the type name "ViewTransformData" and sets standard view and projection transform matrices. It contains the following members:
 
-* `variableGroupDescName`: string name for the shader variable group to use.
+* `variableGroupDesc`: string name for the shader variable group to use.
 
 # View
 

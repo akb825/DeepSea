@@ -40,7 +40,7 @@ table ModelList
 	dynamicRenderStates : DynamicRenderStates;
 
 	// The name of the item list to handle culling, or null if no culling is used.
-	cullName : string;
+	cullList : string;
 }
 
 root_type ModelList;

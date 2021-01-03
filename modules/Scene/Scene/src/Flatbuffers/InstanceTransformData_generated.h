@@ -14,15 +14,15 @@ struct InstanceTransformDataBuilder;
 struct InstanceTransformData FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef InstanceTransformDataBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_VARIABLEGROUPDESCNAME = 4
+    VT_VARIABLEGROUPDESC = 4
   };
-  const flatbuffers::String *variableGroupDescName() const {
-    return GetPointer<const flatbuffers::String *>(VT_VARIABLEGROUPDESCNAME);
+  const flatbuffers::String *variableGroupDesc() const {
+    return GetPointer<const flatbuffers::String *>(VT_VARIABLEGROUPDESC);
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyOffsetRequired(verifier, VT_VARIABLEGROUPDESCNAME) &&
-           verifier.VerifyString(variableGroupDescName()) &&
+           VerifyOffsetRequired(verifier, VT_VARIABLEGROUPDESC) &&
+           verifier.VerifyString(variableGroupDesc()) &&
            verifier.EndTable();
   }
 };
@@ -31,8 +31,8 @@ struct InstanceTransformDataBuilder {
   typedef InstanceTransformData Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
-  void add_variableGroupDescName(flatbuffers::Offset<flatbuffers::String> variableGroupDescName) {
-    fbb_.AddOffset(InstanceTransformData::VT_VARIABLEGROUPDESCNAME, variableGroupDescName);
+  void add_variableGroupDesc(flatbuffers::Offset<flatbuffers::String> variableGroupDesc) {
+    fbb_.AddOffset(InstanceTransformData::VT_VARIABLEGROUPDESC, variableGroupDesc);
   }
   explicit InstanceTransformDataBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
@@ -42,26 +42,26 @@ struct InstanceTransformDataBuilder {
   flatbuffers::Offset<InstanceTransformData> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<InstanceTransformData>(end);
-    fbb_.Required(o, InstanceTransformData::VT_VARIABLEGROUPDESCNAME);
+    fbb_.Required(o, InstanceTransformData::VT_VARIABLEGROUPDESC);
     return o;
   }
 };
 
 inline flatbuffers::Offset<InstanceTransformData> CreateInstanceTransformData(
     flatbuffers::FlatBufferBuilder &_fbb,
-    flatbuffers::Offset<flatbuffers::String> variableGroupDescName = 0) {
+    flatbuffers::Offset<flatbuffers::String> variableGroupDesc = 0) {
   InstanceTransformDataBuilder builder_(_fbb);
-  builder_.add_variableGroupDescName(variableGroupDescName);
+  builder_.add_variableGroupDesc(variableGroupDesc);
   return builder_.Finish();
 }
 
 inline flatbuffers::Offset<InstanceTransformData> CreateInstanceTransformDataDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
-    const char *variableGroupDescName = nullptr) {
-  auto variableGroupDescName__ = variableGroupDescName ? _fbb.CreateString(variableGroupDescName) : 0;
+    const char *variableGroupDesc = nullptr) {
+  auto variableGroupDesc__ = variableGroupDesc ? _fbb.CreateString(variableGroupDesc) : 0;
   return DeepSeaScene::CreateInstanceTransformData(
       _fbb,
-      variableGroupDescName__);
+      variableGroupDesc__);
 }
 
 inline const DeepSeaScene::InstanceTransformData *GetInstanceTransformData(const void *buf) {

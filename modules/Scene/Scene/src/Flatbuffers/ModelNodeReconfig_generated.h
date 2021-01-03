@@ -23,7 +23,7 @@ struct ModelReconfig FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_SHADER = 6,
     VT_MATERIAL = 8,
     VT_DISTANCERANGE = 10,
-    VT_LISTNAME = 12
+    VT_MODELLIST = 12
   };
   const flatbuffers::String *name() const {
     return GetPointer<const flatbuffers::String *>(VT_NAME);
@@ -37,8 +37,8 @@ struct ModelReconfig FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const DeepSeaScene::Vector2f *distanceRange() const {
     return GetStruct<const DeepSeaScene::Vector2f *>(VT_DISTANCERANGE);
   }
-  const flatbuffers::String *listName() const {
-    return GetPointer<const flatbuffers::String *>(VT_LISTNAME);
+  const flatbuffers::String *modelList() const {
+    return GetPointer<const flatbuffers::String *>(VT_MODELLIST);
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -49,8 +49,8 @@ struct ModelReconfig FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            VerifyOffsetRequired(verifier, VT_MATERIAL) &&
            verifier.VerifyString(material()) &&
            VerifyFieldRequired<DeepSeaScene::Vector2f>(verifier, VT_DISTANCERANGE) &&
-           VerifyOffsetRequired(verifier, VT_LISTNAME) &&
-           verifier.VerifyString(listName()) &&
+           VerifyOffsetRequired(verifier, VT_MODELLIST) &&
+           verifier.VerifyString(modelList()) &&
            verifier.EndTable();
   }
 };
@@ -71,8 +71,8 @@ struct ModelReconfigBuilder {
   void add_distanceRange(const DeepSeaScene::Vector2f *distanceRange) {
     fbb_.AddStruct(ModelReconfig::VT_DISTANCERANGE, distanceRange);
   }
-  void add_listName(flatbuffers::Offset<flatbuffers::String> listName) {
-    fbb_.AddOffset(ModelReconfig::VT_LISTNAME, listName);
+  void add_modelList(flatbuffers::Offset<flatbuffers::String> modelList) {
+    fbb_.AddOffset(ModelReconfig::VT_MODELLIST, modelList);
   }
   explicit ModelReconfigBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
@@ -86,7 +86,7 @@ struct ModelReconfigBuilder {
     fbb_.Required(o, ModelReconfig::VT_SHADER);
     fbb_.Required(o, ModelReconfig::VT_MATERIAL);
     fbb_.Required(o, ModelReconfig::VT_DISTANCERANGE);
-    fbb_.Required(o, ModelReconfig::VT_LISTNAME);
+    fbb_.Required(o, ModelReconfig::VT_MODELLIST);
     return o;
   }
 };
@@ -97,9 +97,9 @@ inline flatbuffers::Offset<ModelReconfig> CreateModelReconfig(
     flatbuffers::Offset<flatbuffers::String> shader = 0,
     flatbuffers::Offset<flatbuffers::String> material = 0,
     const DeepSeaScene::Vector2f *distanceRange = 0,
-    flatbuffers::Offset<flatbuffers::String> listName = 0) {
+    flatbuffers::Offset<flatbuffers::String> modelList = 0) {
   ModelReconfigBuilder builder_(_fbb);
-  builder_.add_listName(listName);
+  builder_.add_modelList(modelList);
   builder_.add_distanceRange(distanceRange);
   builder_.add_material(material);
   builder_.add_shader(shader);
@@ -113,18 +113,18 @@ inline flatbuffers::Offset<ModelReconfig> CreateModelReconfigDirect(
     const char *shader = nullptr,
     const char *material = nullptr,
     const DeepSeaScene::Vector2f *distanceRange = 0,
-    const char *listName = nullptr) {
+    const char *modelList = nullptr) {
   auto name__ = name ? _fbb.CreateString(name) : 0;
   auto shader__ = shader ? _fbb.CreateString(shader) : 0;
   auto material__ = material ? _fbb.CreateString(material) : 0;
-  auto listName__ = listName ? _fbb.CreateString(listName) : 0;
+  auto modelList__ = modelList ? _fbb.CreateString(modelList) : 0;
   return DeepSeaScene::CreateModelReconfig(
       _fbb,
       name__,
       shader__,
       material__,
       distanceRange,
-      listName__);
+      modelList__);
 }
 
 struct ModelNodeReconfig FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {

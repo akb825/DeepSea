@@ -30,7 +30,7 @@ def convertModelNodeReconfig(convertContext, data):
 	  - material: the name of the material to use.
 	  - distanceRange: array of two floats for the minimum and maximum distance to draw at.
 	    Defaults to [0, 3.402823466e38].
-	  - listName: the name of the item list the model is drawn with.
+	  - modelList: the name of the item list the model is drawn with.
 	- extraItemLists: array of extra item list names to add the node to.
 	"""
 	try:
@@ -43,7 +43,7 @@ def convertModelNodeReconfig(convertContext, data):
 				validateModelDistanceRange(distanceRange)
 
 				models.append((str(model['baseName']), str(model['shader']),
-					str(model['material']), distanceRange, str(model.get('listName', ''))))
+					str(model['material']), distanceRange, str(model.get('modelList', ''))))
 
 			extraItemLists = data.get('extraItemLists')
 			if extraItemLists and not isinstance(extraItemLists, list):
@@ -67,15 +67,15 @@ def convertModelNodeReconfig(convertContext, data):
 	nameOffset = builder.CreateString(name)
 
 	modelsOffsets = []
-	for modelName, shader, material, distanceRange, listName in models:
+	for modelName, shader, material, distanceRange, modelList in models:
 		modelNameOffset = builder.CreateString(modelName)
 		shaderOffset = builder.CreateString(shader)
 		materialOffset = builder.CreateString(material)
 
-		if listName:
-			listNameOffset = builder.CreateString(listName)
+		if modelList:
+			modelListOffset = builder.CreateString(modelList)
 		else:
-			listNameOffset = 0
+			modelListOffset = 0
 
 		ModelReconfigStart(builder)
 		ModelReconfigAddName(builder, modelNameOffset)
@@ -83,7 +83,7 @@ def convertModelNodeReconfig(convertContext, data):
 		ModelReconfigAddMaterial(builder, materialOffset)
 		ModelReconfigAddDistanceRange(builder,
 			CreateVector2f(builder, distanceRange[0], distanceRange[1]))
-		ModelReconfigAddListName(builder, listNameOffset)
+		ModelReconfigAddModelList(builder, modelListOffset)
 		modelsOffsets.append(ModelReconfigEnd(builder))
 
 	ModelNodeReconfigStartModelsVector(builder, len(modelsOffsets))

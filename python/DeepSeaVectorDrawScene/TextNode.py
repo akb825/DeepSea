@@ -111,7 +111,7 @@ class TextNode(object):
         return None
 
     # TextNode
-    def FontTextureName(self):
+    def FontTexture(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(24))
         if o != 0:
             return self._tab.String(o + self._tab.Pos)
@@ -149,7 +149,7 @@ def TextNodeAddFirstChar(builder, firstChar): builder.PrependUint32Slot(6, first
 def TextNodeAddCharCount(builder, charCount): builder.PrependUint32Slot(7, charCount, 0)
 def TextNodeAddShader(builder, shader): builder.PrependUOffsetTRelativeSlot(8, flatbuffers.number_types.UOffsetTFlags.py_type(shader), 0)
 def TextNodeAddMaterial(builder, material): builder.PrependUOffsetTRelativeSlot(9, flatbuffers.number_types.UOffsetTFlags.py_type(material), 0)
-def TextNodeAddFontTextureName(builder, fontTextureName): builder.PrependUOffsetTRelativeSlot(10, flatbuffers.number_types.UOffsetTFlags.py_type(fontTextureName), 0)
+def TextNodeAddFontTexture(builder, fontTexture): builder.PrependUOffsetTRelativeSlot(10, flatbuffers.number_types.UOffsetTFlags.py_type(fontTexture), 0)
 def TextNodeAddItemLists(builder, itemLists): builder.PrependUOffsetTRelativeSlot(11, flatbuffers.number_types.UOffsetTFlags.py_type(itemLists), 0)
 def TextNodeStartItemListsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
 def TextNodeEnd(builder): return builder.EndObject()

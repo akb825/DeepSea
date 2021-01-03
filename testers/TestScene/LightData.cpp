@@ -81,7 +81,7 @@ dsSceneGlobalData* dsLightData_load(const dsSceneLoadContext* loadContext,
 	}
 
 	auto fbLightData = TestScene::GetLightData(data);
-	const char* groupDescName = fbLightData->variableGroupDescName()->c_str();
+	const char* groupDescName = fbLightData->variableGroupDesc()->c_str();
 	dsVector3f direction = *reinterpret_cast<const dsVector3f*>(fbLightData->direction());
 	dsVector3f color = *reinterpret_cast<const dsVector3f*>(fbLightData->color());
 	dsVector3f ambient = *reinterpret_cast<const dsVector3f*>(fbLightData->ambient());

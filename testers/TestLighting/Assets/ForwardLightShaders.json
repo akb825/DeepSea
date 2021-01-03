@@ -53,7 +53,7 @@
 		"type": "Shader",
 		"name": "diffuseShader",
 		"module": "diffuseShaderModule",
-		"pipelineName": "Diffuse",
+		"pipeline": "Diffuse",
 		"materialDesc": "diffuseMaterialDesc"
 	}
 ]

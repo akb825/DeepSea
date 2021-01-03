@@ -34,7 +34,7 @@ def convertTextNode(convertContext, data):
 	- charCount: the number of characters to display. Defaults to all characters.
 	- shader: the name of the shader to draw with.
 	- material: the name of the material to draw with.
-	- fontTextureName: the name of the texture for the font.
+	- fontTexture: the name of the texture for the font.
 	- itemLists: array of item list names to add the node to.
 	"""
 	def readFloat(value, name, minValue = 0.0):
@@ -81,7 +81,7 @@ def convertTextNode(convertContext, data):
 		charCount = readUInt(data.get('charCount', 0xFFFFFFFF), 'charCount')
 		shader = str(data['shader'])
 		material = str(data['material'])
-		fontTextureName = str(data['fontTextureName'])
+		fontTextureName = str(data['fontTexture'])
 		itemLists = data.get('itemLists')
 	except (TypeError, ValueError):
 		raise Exception('TextNode data must be an object.')
@@ -126,7 +126,7 @@ def convertTextNode(convertContext, data):
 	TextNodeAddCharCount(builder, charCount)
 	TextNodeAddShader(builder, shaderOffset)
 	TextNodeAddMaterial(builder, materialOffset)
-	TextNodeAddFontTextureName(builder, fontTextureNameOffset)
+	TextNodeAddFontTexture(builder, fontTextureNameOffset)
 	TextNodeAddItemLists(builder, itemListsOffset)
 	builder.Finish(TextNodeEnd(builder))
 	return builder.Output()

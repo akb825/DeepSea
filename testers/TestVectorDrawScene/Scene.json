@@ -29,7 +29,7 @@
 									"type": "InstanceTransformData",
 									"data":
 									{
-										"variableGroupDescName": "instanceTransformDesc"
+										"variableGroupDesc": "instanceTransformDesc"
 									}
 								}
 							]
@@ -43,7 +43,7 @@
 	[
 		{
 			"type": "ViewTransformData",
-			"variableGroupDescName": "viewTransformDesc"
+			"variableGroupDesc": "viewTransformDesc"
 		}
 	],
 	"nodes": ["tigerTransform", "figureTransform"]

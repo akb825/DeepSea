@@ -72,11 +72,11 @@ dsSceneNode* dsSceneModelNode_loadRemap(const dsSceneLoadContext*,
 			{
 				remap.name = fbRemap->name()->c_str();
 
-				auto fbListName = fbRemap->listName();
-				if (fbListName)
-					remap.listName = fbListName->c_str();
+				auto fbModelList = fbRemap->modelList();
+				if (fbModelList)
+					remap.modelList = fbModelList->c_str();
 				else
-					remap.listName = nullptr;
+					remap.modelList = nullptr;
 
 				auto fbShader = fbRemap->shader();
 				if (fbShader)
@@ -116,7 +116,7 @@ dsSceneNode* dsSceneModelNode_loadRemap(const dsSceneLoadContext*,
 			{
 				// Prevent invalid param errors.
 				remap.name = "";
-				remap.listName = nullptr;
+				remap.modelList = nullptr;
 				remap.shader = nullptr;
 				remap.material = nullptr;
 			}

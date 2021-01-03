@@ -53,7 +53,7 @@ class ModelReconfig(object):
         return None
 
     # ModelReconfig
-    def ListName(self):
+    def ModelList(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(12))
         if o != 0:
             return self._tab.String(o + self._tab.Pos)
@@ -64,5 +64,5 @@ def ModelReconfigAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, 
 def ModelReconfigAddShader(builder, shader): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(shader), 0)
 def ModelReconfigAddMaterial(builder, material): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(material), 0)
 def ModelReconfigAddDistanceRange(builder, distanceRange): builder.PrependStructSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(distanceRange), 0)
-def ModelReconfigAddListName(builder, listName): builder.PrependUOffsetTRelativeSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(listName), 0)
+def ModelReconfigAddModelList(builder, modelList): builder.PrependUOffsetTRelativeSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(modelList), 0)
 def ModelReconfigEnd(builder): return builder.EndObject()

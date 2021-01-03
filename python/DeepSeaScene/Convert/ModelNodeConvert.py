@@ -389,7 +389,7 @@ def convertModelNodeGeometry(convertContext, modelGeometry, embeddedResources):
 					modelInfo.name = str(info['name'])
 					modelInfo.shader = info['shader']
 					modelInfo.material = info['material']
-					modelInfo.listName = info['listName']
+					modelInfo.modelList = info['modelList']
 
 					modelInfo.distanceRange = info.get('distanceRange', [0.0, FLT_MAX])
 					validateModelDistanceRange(modelInfo.distanceRange)
@@ -509,7 +509,7 @@ def convertModelNodeModels(modelInfoList):
 					raise Exception(
 						'Invalid geometry primitive type "' + str(primitiveTypeStr) + '".')
 
-				model.listName = info['listName']
+				model.modelList = info['modelList']
 			except KeyError as e:
 				raise Exception('ModelNode "models" doesn\'t contain element ' + str(e) + '.')
 	except (TypeError, ValueError):
@@ -554,7 +554,7 @@ def convertModelNode(convertContext, data):
 	      only used for cloning.
 	    - distanceRange: array of two floats for the minimum and maximum distance to draw at.
 	      Defaults to [0, 3.402823466e38].
-	    - listName: the name of the item list to draw the model with. This may be set to null if the
+	    - list: the name of the item list to draw the model with. This may be set to null if the
 	      model is only used for cloning.
 	- models: array of models to draw with manually provided geometry. (i.e. not converted from
 	  the modelGeometry array) Each element of the array has the following members:
@@ -581,7 +581,7 @@ def convertModelNode(convertContext, data):
 	    - firstIstance: the first instance to draw. Defaults to 0.
 	  - primitiveType: the primitive type to draw with. See the dsPrimitiveType enum for values,
 	    removing the type prefix. Defaults to "TriangleList".
-	  - listName: The name of the item list to draw the model with. This may be set to null if the
+	  - modelList: The name of the item list to draw the model with. This may be set to null if the
 	    model is only used for cloning.
 	- extraItemLists: array of extra item list names to add the node to.
 	- bounds: 2x3 array of float values for the minimum and maximum values for the positions. This
@@ -679,10 +679,10 @@ def convertModelNode(convertContext, data):
 			builder.PrependUOffsetTRelative(offset)
 		drawRangesOffset = builder.EndVector(len(drawRangesOffsets))
 
-		if model.listName:
-			listNameOffset = builder.CreateString(str(model.listName))
+		if model.modelList:
+			modelListOffset = builder.CreateString(str(model.modelList))
 		else:
-			listNameOffset = 0
+			modelListOffset = 0
 
 		ModelInfoStart(builder)
 		ModelInfoAddName(builder, modelNameOffset)
@@ -693,7 +693,7 @@ def convertModelNode(convertContext, data):
 			model.distanceRange[1]))
 		ModelInfoAddDrawRanges(builder, drawRangesOffset)
 		ModelInfoAddPrimitiveType(builder, model.primitiveType)
-		ModelInfoAddListName(builder, listNameOffset)
+		ModelInfoAddModelList(builder, modelListOffset)
 		modelOffsets.append(ModelInfoEnd(builder))
 
 	ModelNodeStartModelsVector(builder, len(modelOffsets))

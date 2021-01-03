@@ -27,7 +27,7 @@ table MaterialRemap
 	// The name of the item list the model is drawn with. This can be used to fine-tune replacements
 	// if the same model is drawn in multiple lists. If unset, all models matching the name will
 	// be replaced.
-	listName : string;
+	modelList : string;
 
 	// The new shader to use, or unset to leave the same.
 	shader : string;

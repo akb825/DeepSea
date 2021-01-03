@@ -21,14 +21,14 @@ class FullScreenResolve(object):
         self._tab = flatbuffers.table.Table(buf, pos)
 
     # FullScreenResolve
-    def ShaderName(self):
+    def Shader(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         if o != 0:
             return self._tab.String(o + self._tab.Pos)
         return None
 
     # FullScreenResolve
-    def MaterialName(self):
+    def Material(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         if o != 0:
             return self._tab.String(o + self._tab.Pos)
@@ -46,7 +46,7 @@ class FullScreenResolve(object):
         return None
 
 def FullScreenResolveStart(builder): builder.StartObject(3)
-def FullScreenResolveAddShaderName(builder, shaderName): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(shaderName), 0)
-def FullScreenResolveAddMaterialName(builder, materialName): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(materialName), 0)
+def FullScreenResolveAddShader(builder, shader): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(shader), 0)
+def FullScreenResolveAddMaterial(builder, material): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(material), 0)
 def FullScreenResolveAddDynamicRenderStates(builder, dynamicRenderStates): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(dynamicRenderStates), 0)
 def FullScreenResolveEnd(builder): return builder.EndObject()

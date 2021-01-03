@@ -49,8 +49,8 @@ def convertVectorShaders(convertContext, data):
 	    group types.
 	  - shaderVariableGroupDesc: the name of the shader variable group description when the type
 	    is a shader variable group.
-	- materialDescName: the name of the material description to register. This can be referenced
-	  by other objects, such as creating materials used for drawing vector images.
+	- materialDesc: the name of the material description to register. This can be referenced by
+	  other objects, such as creating materials used for drawing vector images.
 	- fillColor: the name of the shader for filling with a solid color. Defaults to
 	  "dsVectorFillColor".
 	- fillLinearGradient: the name of the shader for filling with a linear gradient. Defaults to
@@ -137,7 +137,7 @@ def convertVectorShaders(convertContext, data):
 		except (TypeError, ValueError):
 			raise Exception('Versioned shader module list must be an array of objects.')
 
-		materialDescName = str(data['materialDescName'])
+		materialDescName = str(data['materialDesc'])
 
 		fillColor = str(data.get('fillColor', ''))
 		fillLinearGradient = str(data.get('fillLinearGradient', ''))
@@ -201,7 +201,7 @@ def convertVectorShaders(convertContext, data):
 	VectorShadersStart(builder)
 	VectorShadersAddModules(builder, modulesOffset)
 	VectorShadersAddExtraElements(builder, extraElementsOffset)
-	VectorShadersAddMaterialDescName(builder, materialDescNameOffset)
+	VectorShadersAddMaterialDesc(builder, materialDescNameOffset)
 	VectorShadersAddFillColor(builder, fillColorOffset)
 	VectorShadersAddFillLinearGradient(builder, fillLinearGradientOffset)
 	VectorShadersAddFillRadialGradient(builder, fillRadialGradientOffset)

@@ -20,8 +20,8 @@ from ..DynamicRenderStates import *
 def convertFullScreenResolve(convertContext, data):
 	"""
 	Converts a FullScreenResolve. The data map is expected to contain the following elements:
-	- shaderName: the name of the shader to draw with.
-	- materialName: the name of the material to draw with.
+	- shader: the name of the shader to draw with.
+	- material: the name of the material to draw with.
 	- dynamicRenderStates: dynamic render states to apply when drawing. This may be ommitted if no
 	  dynamic render states are used. This is expected to contain any of the following members:
 	  - lineWidth: float width for the line. Defaults to 1.
@@ -39,12 +39,12 @@ def convertFullScreenResolve(convertContext, data):
 	  - backStencilWriteMask: int write mask for just the back stencil.
 	  - stencilReference: int reference for both the front and back stencil. Defaults to 0.
 	  - frontStencilReference: int reference for just the front stencil.
-	  - backStencilReference: int reference for just the back stencil
+	  - backStencilReference: int reference for just the back stencil.
 	"""
 	builder = flatbuffers.Builder(0)
 	try:
-		shaderName = str(data['shaderName'])
-		materialName = str(data['materialName'])
+		shaderName = str(data['shader'])
+		materialName = str(data['material'])
 
 		dynamicRenderStateInfo = data.get('dynamicRenderStates')
 		if dynamicRenderStateInfo:
@@ -60,8 +60,8 @@ def convertFullScreenResolve(convertContext, data):
 	materialNameOffset = builder.CreateString(materialName)
 
 	FullScreenResolveStart(builder)
-	FullScreenResolveAddShaderName(builder, shaderNameOffset)
-	FullScreenResolveAddMaterialName(builder, materialNameOffset)
+	FullScreenResolveAddShader(builder, shaderNameOffset)
+	FullScreenResolveAddMaterial(builder, materialNameOffset)
 	FullScreenResolveAddDynamicRenderStates(builder, dynamicRenderStatesOffset)
 	builder.Finish(FullScreenResolveEnd(builder))
 	return builder.Output()

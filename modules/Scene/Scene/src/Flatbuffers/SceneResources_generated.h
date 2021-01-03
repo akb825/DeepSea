@@ -1236,7 +1236,7 @@ struct Shader FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_NAME = 4,
     VT_SHADERMODULE = 6,
-    VT_PIPELINENAME = 8,
+    VT_PIPELINE = 8,
     VT_MATERIALDESC = 10
   };
   const flatbuffers::String *name() const {
@@ -1245,8 +1245,8 @@ struct Shader FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const flatbuffers::String *shaderModule() const {
     return GetPointer<const flatbuffers::String *>(VT_SHADERMODULE);
   }
-  const flatbuffers::String *pipelineName() const {
-    return GetPointer<const flatbuffers::String *>(VT_PIPELINENAME);
+  const flatbuffers::String *pipeline() const {
+    return GetPointer<const flatbuffers::String *>(VT_PIPELINE);
   }
   const flatbuffers::String *materialDesc() const {
     return GetPointer<const flatbuffers::String *>(VT_MATERIALDESC);
@@ -1257,8 +1257,8 @@ struct Shader FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            verifier.VerifyString(name()) &&
            VerifyOffsetRequired(verifier, VT_SHADERMODULE) &&
            verifier.VerifyString(shaderModule()) &&
-           VerifyOffset(verifier, VT_PIPELINENAME) &&
-           verifier.VerifyString(pipelineName()) &&
+           VerifyOffset(verifier, VT_PIPELINE) &&
+           verifier.VerifyString(pipeline()) &&
            VerifyOffsetRequired(verifier, VT_MATERIALDESC) &&
            verifier.VerifyString(materialDesc()) &&
            verifier.EndTable();
@@ -1275,8 +1275,8 @@ struct ShaderBuilder {
   void add_shaderModule(flatbuffers::Offset<flatbuffers::String> shaderModule) {
     fbb_.AddOffset(Shader::VT_SHADERMODULE, shaderModule);
   }
-  void add_pipelineName(flatbuffers::Offset<flatbuffers::String> pipelineName) {
-    fbb_.AddOffset(Shader::VT_PIPELINENAME, pipelineName);
+  void add_pipeline(flatbuffers::Offset<flatbuffers::String> pipeline) {
+    fbb_.AddOffset(Shader::VT_PIPELINE, pipeline);
   }
   void add_materialDesc(flatbuffers::Offset<flatbuffers::String> materialDesc) {
     fbb_.AddOffset(Shader::VT_MATERIALDESC, materialDesc);
@@ -1300,11 +1300,11 @@ inline flatbuffers::Offset<Shader> CreateShader(
     flatbuffers::FlatBufferBuilder &_fbb,
     flatbuffers::Offset<flatbuffers::String> name = 0,
     flatbuffers::Offset<flatbuffers::String> shaderModule = 0,
-    flatbuffers::Offset<flatbuffers::String> pipelineName = 0,
+    flatbuffers::Offset<flatbuffers::String> pipeline = 0,
     flatbuffers::Offset<flatbuffers::String> materialDesc = 0) {
   ShaderBuilder builder_(_fbb);
   builder_.add_materialDesc(materialDesc);
-  builder_.add_pipelineName(pipelineName);
+  builder_.add_pipeline(pipeline);
   builder_.add_shaderModule(shaderModule);
   builder_.add_name(name);
   return builder_.Finish();
@@ -1314,17 +1314,17 @@ inline flatbuffers::Offset<Shader> CreateShaderDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     const char *name = nullptr,
     const char *shaderModule = nullptr,
-    const char *pipelineName = nullptr,
+    const char *pipeline = nullptr,
     const char *materialDesc = nullptr) {
   auto name__ = name ? _fbb.CreateString(name) : 0;
   auto shaderModule__ = shaderModule ? _fbb.CreateString(shaderModule) : 0;
-  auto pipelineName__ = pipelineName ? _fbb.CreateString(pipelineName) : 0;
+  auto pipeline__ = pipeline ? _fbb.CreateString(pipeline) : 0;
   auto materialDesc__ = materialDesc ? _fbb.CreateString(materialDesc) : 0;
   return DeepSeaScene::CreateShader(
       _fbb,
       name__,
       shaderModule__,
-      pipelineName__,
+      pipeline__,
       materialDesc__);
 }
 

@@ -183,7 +183,7 @@ void* dsVectorSceneShaders_load(const dsSceneLoadContext* loadContext,
 		return nullptr;
 	}
 
-	if (!dsSceneResources_addResource(resources, fbVectorShaders->materialDescName()->c_str(),
+	if (!dsSceneResources_addResource(resources, fbVectorShaders->materialDesc()->c_str(),
 			dsSceneResourceType_MaterialDesc, shaderModule->materialDesc, false))
 	{
 		DS_VERIFY(dsVectorShaderModule_destroy(shaderModule));

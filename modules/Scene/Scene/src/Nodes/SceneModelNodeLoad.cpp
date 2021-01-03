@@ -218,11 +218,11 @@ dsSceneNode* dsSceneModelNode_load(const dsSceneLoadContext* loadContext,
 		}
 
 		modelInfo->primitiveType = static_cast<dsPrimitiveType>(fbModelInfo->primitiveType());
-		auto fbListName = fbModelInfo->listName();
-		if (fbListName)
-			modelInfo->listName = fbListName->c_str();
+		auto fbModelList = fbModelInfo->modelList();
+		if (fbModelList)
+			modelInfo->modelList = fbModelList->c_str();
 		else
-			modelInfo->listName = nullptr;
+			modelInfo->modelList = nullptr;
 	}
 
 	if (fbExtraItemLists && fbExtraItemLists->size() > 0)

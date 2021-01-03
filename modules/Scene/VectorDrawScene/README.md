@@ -38,7 +38,7 @@ The following custom scene resource types are provided with the members that are
 		* `count`: the number of array elements. If 0 or omitted, this is not an array.
 		* `binding`: the binding type for the element. See the `dsMaterialBinding` enum for values, removing the type prefix. This is only used for texture, image, buffer, and shader variable group types.
 		* `shaderVariableGroupDesc`: the name of the shader variable group description when the type is a shader variable group.
-	* `materialDescName`: the name of the material description to register. This can be referenced by other objects, such as creating materials used for drawing vector images.
+	* `materialDesc`: the name of the material description to register. This can be referenced by other objects, such as creating materials used for drawing vector images.
 	* `fillColor`: the name of the shader for filling with a solid color. Defaults to `"dsVectorFillColor"`.
 	* `fillLinearGradient`: the name of the shader for filling with a linear gradient. Defaults to `"dsVectorFillLinearGradient"`.
 	* `fillRadialGradient`: the name of the shader for filling with a radial gradient. Defaults to `"dsVectorFillRadialGradient"`.
@@ -74,7 +74,7 @@ The following scene node types are provided with the members that are expected:
 	* `charCount`: the number of characters to display. Defaults to all characters.
 	* `shader`: the name of the shader to draw with.
 	* `material`: the name of the material to draw with.
-	* `fontTextureName`: the name of the texture for the font.
+	* `fontTexture`: the name of the texture for the font.
 	* `itemLists`: array of item list names to add the node to.
 * `"VectorImageNode"`
 	* `embeddedResources`: optional set of resources to embed with the node. This is an array of maps as expected by `SceneResourcesConvert.convertSceneResources()`.

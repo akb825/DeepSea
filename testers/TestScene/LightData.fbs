@@ -20,7 +20,7 @@ namespace TestScene;
 
 table LightData
 {
-	variableGroupDescName : string (required);
+	variableGroupDesc : string (required);
 	direction : DeepSeaScene.Vector3f (required);
 	color : DeepSeaScene.Vector3f (required);
 	ambient : DeepSeaScene.Vector3f (required);

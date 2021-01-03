@@ -34,7 +34,7 @@ table ModelReconfig
 	distanceRange : Vector2f (required);
 
 	// The name of the list to use the model with.
-	listName : string (required);
+	modelList : string (required);
 }
 
 // Struct describing how to clone an existing model node, reconfiguring its layout.

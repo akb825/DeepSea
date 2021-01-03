@@ -42,8 +42,8 @@ dsSceneItemList* dsSceneFullScreenResolve_load(const dsSceneLoadContext* loadCon
 	dsResourceManager* resourceManager =
 		dsSceneLoadContext_getRenderer(loadContext)->resourceManager;
 	auto fbResolve = DeepSeaScene::GetFullScreenResolve(data);
-	const char* shaderName = fbResolve->shaderName()->c_str();
-	const char* materialName = fbResolve->materialName()->c_str();
+	const char* shaderName = fbResolve->shader()->c_str();
+	const char* materialName = fbResolve->material()->c_str();
 	auto fbDynamicRenderStates = fbResolve->dynamicRenderStates();
 
 	dsShader* shader;

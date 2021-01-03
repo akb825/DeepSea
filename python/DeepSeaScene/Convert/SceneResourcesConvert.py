@@ -1071,7 +1071,7 @@ def convertSceneResourcesShaderModule(builder, convertContext, data, name):
 def convertSceneResourcesShader(builder, convertContext, data, name):
 	try:
 		module = str(data['module'])
-		pipeline = str(data.get('pipelineName', name))
+		pipeline = str(data.get('pipeline', name))
 		materialDesc = str(data['materialDesc'])
 	except KeyError as e:
 		raise Exception('SceneResources shader doesn\'t contain element ' + str(e) + '.')
@@ -1084,7 +1084,7 @@ def convertSceneResourcesShader(builder, convertContext, data, name):
 	ShaderStart(builder)
 	ShaderAddName(builder, nameOffset)
 	ShaderAddShaderModule(builder, moduleOffset)
-	ShaderAddPipelineName(builder, pipelineOffset)
+	ShaderAddPipeline(builder, pipelineOffset)
 	ShaderAddMaterialDesc(builder, materialDescOffset)
 	return ShaderEnd(builder), SceneResourceUnion.Shader
 
@@ -1399,7 +1399,7 @@ def convertSceneResources(convertContext, data):
 	- "Shader"
 	  - module: the name of the shader module the shader resides in. The shader module may be in a
 	    different scene resources package.
-	  - pipelineName: the name of the shader pipeline within the shader module.
+	  - pipeline: the name of the shader pipeline within the shader module.
 	  - materialDesc: The name of the material description for materials that will be used with the
 	    shader. The material may be in a different scene resources package.
 	- "DrawGeometry"

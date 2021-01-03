@@ -38,7 +38,7 @@ dsSceneInstanceData* dsInstanceTransformData_load(const dsSceneLoadContext* load
 	}
 
 	auto fbTransformData = DeepSeaScene::GetInstanceTransformData(data);
-	const char* groupDescName = fbTransformData->variableGroupDescName()->c_str();
+	const char* groupDescName = fbTransformData->variableGroupDesc()->c_str();
 
 	dsShaderVariableGroupDesc* groupDesc;
 	dsSceneResourceType resourceType;

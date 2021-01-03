@@ -79,12 +79,12 @@ static void populateItemList(const char** itemLists, uint32_t* hashes, uint32_t*
 		itemLists[i] = extraItemLists[i];
 
 	for (uint32_t i = 0; i < modelCount; ++i)
-		hashes[i] = dsHashString(models[i].listName);
+		hashes[i] = dsHashString(models[i].modelList);
 
 	uint32_t start = extraItemListCount;
 	for (uint32_t i = 0; i < modelCount; ++i)
 	{
-		if (!models[i].listName)
+		if (!models[i].modelList)
 			continue;
 
 		bool unique = true;
@@ -101,7 +101,7 @@ static void populateItemList(const char** itemLists, uint32_t* hashes, uint32_t*
 			continue;
 
 		uint32_t index = (*itemListCount)++;
-		itemLists[start + index] = models[i].listName;
+		itemLists[start + index] = models[i].modelList;
 		// Also make sure the assigned hashes match for faster uniqueness check.
 		hashes[index] = hashes[i];
 	}
@@ -283,10 +283,10 @@ dsSceneModelNode* dsSceneModelNode_createBase(dsAllocator* allocator, size_t str
 			sizeof(dsSceneModelDrawRange)*initInfo->drawRangeCount);
 		drawRanges += model->drawRangeCount;
 		model->primitiveType = initInfo->primitiveType;
-		if (initInfo->listName)
-			model->listNameID = dsHashString(initInfo->listName);
+		if (initInfo->modelList)
+			model->modelListID = dsHashString(initInfo->modelList);
 		else
-			model->listNameID = 0;
+			model->modelListID = 0;
 	}
 	node->modelCount = modelCount;
 
@@ -464,7 +464,7 @@ dsSceneModelNode* dsSceneModelNode_cloneReconfigBase(dsAllocator* allocator,
 	{
 		dsSceneModelInitInfo* initInfo = modelInits + i;
 		const dsSceneModelReconfig* reconfig = models + i;
-		if (!reconfig->name || !reconfig->listName || !reconfig->shader || !reconfig->material)
+		if (!reconfig->name || !reconfig->modelList || !reconfig->shader || !reconfig->material)
 		{
 			errno = EINVAL;
 			DS_LOG_ERROR(DS_SCENE_LOG_TAG,
@@ -498,7 +498,7 @@ dsSceneModelNode* dsSceneModelNode_cloneReconfigBase(dsAllocator* allocator,
 		initInfo->drawRanges = baseInfo->drawRanges;
 		initInfo->drawRangeCount = baseInfo->drawRangeCount;
 		initInfo->primitiveType = baseInfo->primitiveType;
-		initInfo->listName = reconfig->listName;
+		initInfo->modelList = reconfig->modelList;
 	}
 
 	dsSceneModelNode* model = dsSceneModelNode_createBase(allocator, structSize, modelInits,
@@ -531,15 +531,15 @@ bool dsSceneModelNode_remapMaterials(dsSceneModelNode* node, const dsSceneMateri
 			return false;
 		}
 
-		uint32_t listNameID = 0;
-		if (remap->listName)
-			listNameID = dsHashString(remap->listName);
+		uint32_t modelListID = 0;
+		if (remap->modelList)
+			modelListID = dsHashString(remap->modelList);
 
 		for (uint32_t j = 0; j < node->modelCount; ++j)
 		{
 			dsSceneModelInfo* model = node->models + i;
 			if (!model->name || strcmp(model->name, remap->name) != 0 ||
-				(remap->listName && model->listNameID != listNameID))
+				(remap->modelList && model->modelListID != modelListID))
 			{
 				continue;
 			}

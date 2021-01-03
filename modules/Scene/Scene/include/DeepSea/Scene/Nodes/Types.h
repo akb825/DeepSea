@@ -273,7 +273,7 @@ typedef struct dsSceneModelInitInfo
 	/**
 	 * @brief The name for the list to use the model with.
 	 */
-	const char* listName;
+	const char* modelList;
 } dsSceneModelInitInfo;
 
 /**
@@ -330,7 +330,7 @@ typedef struct dsSceneModelInfo
 	/**
 	 * @brief The name ID for the list to use the model with.
 	 */
-	uint32_t listNameID;
+	uint32_t modelListID;
 } dsSceneModelInfo;
 
 /**
@@ -390,7 +390,7 @@ typedef struct dsSceneMaterialRemap
 	 * If set, only the model entries that draw to this list will be remapped. If set to NULL, all
 	 * models that match the name will be replaced.
 	 */
-	const char* listName;
+	const char* modelList;
 
 	/**
 	 * @brief The new shader to use, or NULL to leave the same.
@@ -435,7 +435,7 @@ typedef struct dsSceneModelReconfig
 	/**
 	 * @brief The name of the item list the model is drawn with.
 	 */
-	const char* listName;
+	const char* modelList;
 } dsSceneModelReconfig;
 
 /**

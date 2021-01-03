@@ -48,7 +48,7 @@
 						"name": "Ground",
 						"shader": null,
 						"material": null,
-						"listName": null
+						"modelList": null
 					}
 				]
 			}
@@ -103,7 +103,7 @@
 						"name": "Archway",
 						"shader": null,
 						"material": null,
-						"listName": null
+						"modelList": null
 					}
 				]
 			}
@@ -158,7 +158,7 @@
 						"name": "Pedastle",
 						"shader": null,
 						"material": null,
-						"listName": null
+						"modelList": null
 					}
 				]
 			}
@@ -213,7 +213,7 @@
 						"name": "Sphere",
 						"shader": null,
 						"material": null,
-						"listName": null
+						"modelList": null
 					}
 				]
 			}
@@ -420,14 +420,14 @@
 		"type": "Shader",
 		"name": "glassShader",
 		"module": "glassShaderModule",
-		"pipelineName": "Glass",
+		"pipeline": "Glass",
 		"materialDesc": "glassMaterialDesc"
 	},
 	{
 		"type": "Shader",
 		"name": "sRGBShader",
 		"module": "sRGBShaderModule",
-		"pipelineName": "sRGB",
+		"pipeline": "sRGB",
 		"materialDesc": "sRGBMaterialDesc"
 	},
 	{

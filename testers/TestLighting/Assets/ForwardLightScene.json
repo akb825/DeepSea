@@ -47,20 +47,20 @@
 									"type": "InstanceTransformData",
 									"data":
 									{
-										"variableGroupDescName": "instanceTransformDesc"
+										"variableGroupDesc": "instanceTransformDesc"
 									}
 								},
 								{
 									"type": "InstanceForwardLightData",
 									"data":
 									{
-										"variableGroupDescName": "instanceForwardLightDesc",
-										"lightSetName": "lightSet"
+										"variableGroupDesc": "instanceForwardLightDesc",
+										"lightSet": "lightSet"
 									}
 								}
 							],
 							"sortType": "Material",
-							"cullName": "cullList"
+							"cullList": "cullList"
 						},
 						{
 							"type": "ModelList",
@@ -71,20 +71,20 @@
 									"type": "InstanceTransformData",
 									"data":
 									{
-										"variableGroupDescName": "instanceTransformDesc"
+										"variableGroupDesc": "instanceTransformDesc"
 									}
 								},
 								{
 									"type": "InstanceForwardLightData",
 									"data":
 									{
-										"variableGroupDescName": "instanceForwardLightDesc",
-										"lightSetName": "lightSet"
+										"variableGroupDesc": "instanceForwardLightDesc",
+										"lightSet": "lightSet"
 									}
 								}
 							],
 							"sortType": "BackToFront",
-							"cullName": "cullList"
+							"cullList": "cullList"
 						}
 					]
 				},
@@ -97,8 +97,8 @@
 						{
 							"type": "FullScreenResolve",
 							"name": "sRGBResolve",
-							"shaderName": "sRGBShader",
-							"materialName": "sRGBMaterial"
+							"shader": "sRGBShader",
+							"material": "sRGBMaterial"
 						}
 					]
 				}
@@ -109,7 +109,7 @@
 	[
 		{
 			"type": "ViewTransformData",
-			"variableGroupDescName": "viewTransformDesc"
+			"variableGroupDesc": "viewTransformDesc"
 		}
 	],
 	"nodes": ["rootNode"]

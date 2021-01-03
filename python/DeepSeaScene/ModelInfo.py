@@ -92,7 +92,7 @@ class ModelInfo(object):
         return 0
 
     # ModelInfo
-    def ListName(self):
+    def ModelList(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(18))
         if o != 0:
             return self._tab.String(o + self._tab.Pos)
@@ -107,5 +107,5 @@ def ModelInfoAddDistanceRange(builder, distanceRange): builder.PrependStructSlot
 def ModelInfoAddDrawRanges(builder, drawRanges): builder.PrependUOffsetTRelativeSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(drawRanges), 0)
 def ModelInfoStartDrawRangesVector(builder, numElems): return builder.StartVector(4, numElems, 4)
 def ModelInfoAddPrimitiveType(builder, primitiveType): builder.PrependUint8Slot(6, primitiveType, 0)
-def ModelInfoAddListName(builder, listName): builder.PrependUOffsetTRelativeSlot(7, flatbuffers.number_types.UOffsetTFlags.py_type(listName), 0)
+def ModelInfoAddModelList(builder, modelList): builder.PrependUOffsetTRelativeSlot(7, flatbuffers.number_types.UOffsetTFlags.py_type(modelList), 0)
 def ModelInfoEnd(builder): return builder.EndObject()

@@ -44,12 +44,12 @@
 									"type": "InstanceTransformData",
 									"data":
 									{
-										"variableGroupDescName": "instanceTransformDesc"
+										"variableGroupDesc": "instanceTransformDesc"
 									}
 								}
 							],
 							"sortType": "Material",
-							"cullName": "cullList"
+							"cullList": "cullList"
 						}
 					]
 				}
@@ -60,11 +60,11 @@
 	[
 		{
 			"type": "ViewTransformData",
-			"variableGroupDescName": "viewTransformDesc"
+			"variableGroupDesc": "viewTransformDesc"
 		},
 		{
 			"type": "LightData",
-			"variableGroupDescName": "lightDesc",
+			"variableGroupDesc": "lightDesc",
 			"direction": [-0.3, 1.0, 0.6],
 			"color": [1.0, 1.0, 1.0],
 			"ambient": [0.2, 0.2, 0.2]

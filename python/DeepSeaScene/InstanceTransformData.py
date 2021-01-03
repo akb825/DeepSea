@@ -21,12 +21,12 @@ class InstanceTransformData(object):
         self._tab = flatbuffers.table.Table(buf, pos)
 
     # InstanceTransformData
-    def VariableGroupDescName(self):
+    def VariableGroupDesc(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         if o != 0:
             return self._tab.String(o + self._tab.Pos)
         return None
 
 def InstanceTransformDataStart(builder): builder.StartObject(1)
-def InstanceTransformDataAddVariableGroupDescName(builder, variableGroupDescName): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(variableGroupDescName), 0)
+def InstanceTransformDataAddVariableGroupDesc(builder, variableGroupDesc): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(variableGroupDesc), 0)
 def InstanceTransformDataEnd(builder): return builder.EndObject()

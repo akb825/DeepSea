@@ -64,7 +64,7 @@ class ModelList(object):
         return None
 
     # ModelList
-    def CullName(self):
+    def CullList(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(10))
         if o != 0:
             return self._tab.String(o + self._tab.Pos)
@@ -75,5 +75,5 @@ def ModelListAddInstanceData(builder, instanceData): builder.PrependUOffsetTRela
 def ModelListStartInstanceDataVector(builder, numElems): return builder.StartVector(4, numElems, 4)
 def ModelListAddSortType(builder, sortType): builder.PrependUint8Slot(1, sortType, 0)
 def ModelListAddDynamicRenderStates(builder, dynamicRenderStates): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(dynamicRenderStates), 0)
-def ModelListAddCullName(builder, cullName): builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(cullName), 0)
+def ModelListAddCullList(builder, cullList): builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(cullList), 0)
 def ModelListEnd(builder): return builder.EndObject()

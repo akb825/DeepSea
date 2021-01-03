@@ -134,7 +134,7 @@ dsSceneNode* dsSceneTextNode_load(const dsSceneLoadContext* loadContext,
 	materialDesc = dsMaterial_getDescription(material);
 	DS_ASSERT(materialDesc);
 
-	fontTextureName = fbTextNode->fontTextureName()->c_str();
+	fontTextureName = fbTextNode->fontTexture()->c_str();
 	fontTextureElement = dsMaterialDesc_findElement(materialDesc, fontTextureName);
 	fontTextureMatElement = materialDesc->elements + fontTextureElement;
 	if (fontTextureElement >= materialDesc->elementCount ||

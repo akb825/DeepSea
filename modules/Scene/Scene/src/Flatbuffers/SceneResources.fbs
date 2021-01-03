@@ -200,7 +200,7 @@ table Shader
 	shaderModule : string (required);
 
 	// The name of the shader pipeline within the module. If unset, the name field will be used.
-	pipelineName : string;
+	pipeline : string;
 
 	// The name of the material description.
 	materialDesc : string (required);

@@ -24,7 +24,7 @@ def convertModelNodeRemap(convertContext, data):
 	- materialRemaps: optional array of material remaps to apply. Each element of the array has the
 	  following members:
 	  - name: the name of the model inside the node to replace the material with.
-	  - listName: the name of the item list the model is drawn with. If unset, all models matching
+	  - modelList: the name of the item list the model is drawn with. If unset, all models matching
 	    the name will be remapped.
 	  - shader: the name of the shader to use. If unset, the shader will remain unchanged.
 	  - material: the name of the material to use. If unset, the material will remain unchanged.
@@ -35,7 +35,7 @@ def convertModelNodeRemap(convertContext, data):
 		remaps = []
 		try:
 			for remap in data.get('materialRemaps', []):
-				remaps.append((str(remap['name']), str(remap.get('listName', '')),
+				remaps.append((str(remap['name']), str(remap.get('modelList', '')),
 					str(remap.get('shader', '')), str(remap.get('material', ''))))
 		except (TypeError, ValueError):
 			raise Exception(
@@ -54,13 +54,13 @@ def convertModelNodeRemap(convertContext, data):
 
 	if remaps:
 		remapsOffsets = []
-		for modelName, listName, shader, material in remaps:
+		for modelName, modelList, shader, material in remaps:
 			modelNameOffset = builder.CreateString(modelName)
 
-			if listName:
-				listNameOffset = builder.CreateString(listName)
+			if modelList:
+				modelListOffset = builder.CreateString(modelList)
 			else:
-				listNameOffset = 0
+				modelListOffset = 0
 
 			if shader:
 				shaderOffset = builder.CreateString(shader)
@@ -74,7 +74,7 @@ def convertModelNodeRemap(convertContext, data):
 
 			MaterialRemapStart(builder)
 			MaterialRemapAddName(builder, modelNameOffset)
-			MaterialRemapAddListName(builder, listNameOffset)
+			MaterialRemapAddModelList(builder, modelListOffset)
 			MaterialRemapAddShader(builder, shaderOffset)
 			MaterialRemapAddMaterial(builder, materialOffset)
 			remapsOffsets.append(MaterialRemapEnd(builder))

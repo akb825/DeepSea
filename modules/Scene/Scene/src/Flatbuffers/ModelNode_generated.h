@@ -360,7 +360,7 @@ struct ModelInfo FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_DISTANCERANGE = 12,
     VT_DRAWRANGES = 14,
     VT_PRIMITIVETYPE = 16,
-    VT_LISTNAME = 18
+    VT_MODELLIST = 18
   };
   const flatbuffers::String *name() const {
     return GetPointer<const flatbuffers::String *>(VT_NAME);
@@ -383,8 +383,8 @@ struct ModelInfo FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   DeepSeaScene::PrimitiveType primitiveType() const {
     return static_cast<DeepSeaScene::PrimitiveType>(GetField<uint8_t>(VT_PRIMITIVETYPE, 0));
   }
-  const flatbuffers::String *listName() const {
-    return GetPointer<const flatbuffers::String *>(VT_LISTNAME);
+  const flatbuffers::String *modelList() const {
+    return GetPointer<const flatbuffers::String *>(VT_MODELLIST);
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -401,8 +401,8 @@ struct ModelInfo FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            verifier.VerifyVector(drawRanges()) &&
            verifier.VerifyVectorOfTables(drawRanges()) &&
            VerifyField<uint8_t>(verifier, VT_PRIMITIVETYPE) &&
-           VerifyOffset(verifier, VT_LISTNAME) &&
-           verifier.VerifyString(listName()) &&
+           VerifyOffset(verifier, VT_MODELLIST) &&
+           verifier.VerifyString(modelList()) &&
            verifier.EndTable();
   }
 };
@@ -432,8 +432,8 @@ struct ModelInfoBuilder {
   void add_primitiveType(DeepSeaScene::PrimitiveType primitiveType) {
     fbb_.AddElement<uint8_t>(ModelInfo::VT_PRIMITIVETYPE, static_cast<uint8_t>(primitiveType), 0);
   }
-  void add_listName(flatbuffers::Offset<flatbuffers::String> listName) {
-    fbb_.AddOffset(ModelInfo::VT_LISTNAME, listName);
+  void add_modelList(flatbuffers::Offset<flatbuffers::String> modelList) {
+    fbb_.AddOffset(ModelInfo::VT_MODELLIST, modelList);
   }
   explicit ModelInfoBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
@@ -459,9 +459,9 @@ inline flatbuffers::Offset<ModelInfo> CreateModelInfo(
     const DeepSeaScene::Vector2f *distanceRange = 0,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::ModelDrawRange>>> drawRanges = 0,
     DeepSeaScene::PrimitiveType primitiveType = DeepSeaScene::PrimitiveType::PointList,
-    flatbuffers::Offset<flatbuffers::String> listName = 0) {
+    flatbuffers::Offset<flatbuffers::String> modelList = 0) {
   ModelInfoBuilder builder_(_fbb);
-  builder_.add_listName(listName);
+  builder_.add_modelList(modelList);
   builder_.add_drawRanges(drawRanges);
   builder_.add_distanceRange(distanceRange);
   builder_.add_geometry(geometry);
@@ -481,13 +481,13 @@ inline flatbuffers::Offset<ModelInfo> CreateModelInfoDirect(
     const DeepSeaScene::Vector2f *distanceRange = 0,
     const std::vector<flatbuffers::Offset<DeepSeaScene::ModelDrawRange>> *drawRanges = nullptr,
     DeepSeaScene::PrimitiveType primitiveType = DeepSeaScene::PrimitiveType::PointList,
-    const char *listName = nullptr) {
+    const char *modelList = nullptr) {
   auto name__ = name ? _fbb.CreateString(name) : 0;
   auto shader__ = shader ? _fbb.CreateString(shader) : 0;
   auto material__ = material ? _fbb.CreateString(material) : 0;
   auto geometry__ = geometry ? _fbb.CreateString(geometry) : 0;
   auto drawRanges__ = drawRanges ? _fbb.CreateVector<flatbuffers::Offset<DeepSeaScene::ModelDrawRange>>(*drawRanges) : 0;
-  auto listName__ = listName ? _fbb.CreateString(listName) : 0;
+  auto modelList__ = modelList ? _fbb.CreateString(modelList) : 0;
   return DeepSeaScene::CreateModelInfo(
       _fbb,
       name__,
@@ -497,7 +497,7 @@ inline flatbuffers::Offset<ModelInfo> CreateModelInfoDirect(
       distanceRange,
       drawRanges__,
       primitiveType,
-      listName__);
+      modelList__);
 }
 
 struct ModelNode FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {

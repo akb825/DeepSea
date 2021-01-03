@@ -28,7 +28,7 @@ class MaterialRemap(object):
         return None
 
     # MaterialRemap
-    def ListName(self):
+    def ModelList(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         if o != 0:
             return self._tab.String(o + self._tab.Pos)
@@ -50,7 +50,7 @@ class MaterialRemap(object):
 
 def MaterialRemapStart(builder): builder.StartObject(4)
 def MaterialRemapAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
-def MaterialRemapAddListName(builder, listName): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(listName), 0)
+def MaterialRemapAddModelList(builder, modelList): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(modelList), 0)
 def MaterialRemapAddShader(builder, shader): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(shader), 0)
 def MaterialRemapAddMaterial(builder, material): builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(material), 0)
 def MaterialRemapEnd(builder): return builder.EndObject()

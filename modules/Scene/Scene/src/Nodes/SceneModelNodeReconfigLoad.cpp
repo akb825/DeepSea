@@ -130,7 +130,7 @@ dsSceneNode* dsSceneModelNode_loadReconfig(const dsSceneLoadContext*,
 			model.material = nullptr;
 
 		model.distanceRange = DeepSeaScene::convert(*fbModel->distanceRange());
-		model.listName = fbModel->listName()->c_str();
+		model.modelList = fbModel->modelList()->c_str();
 	}
 
 	if (extraItemListCount > 0)

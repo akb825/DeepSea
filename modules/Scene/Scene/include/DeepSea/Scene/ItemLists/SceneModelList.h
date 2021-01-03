@@ -46,14 +46,14 @@ DS_SCENE_EXPORT extern const char* const dsSceneModelList_typeName;
  * @param instanceDataCount The number of instance datas.
  * @param sortType How to sort the geometry.
  * @param renderStates The render states to use, or NULL if no special render states are needed.
- * @param cullName The name of the cull item list to determine what models are in view, or NULL if
+ * @param cullList The name of the cull item list to determine what models are in view, or NULL if
  *     no culling is used. It's assumed that the void* for the item data directly relates to a zero
  *     if in view or non-zero if out of view.
  * @return The model list or NULL if an error occurred.
  */
 DS_SCENE_EXPORT dsSceneModelList* dsSceneModelList_create(dsAllocator* allocator, const char* name,
 	dsSceneInstanceData* const* instanceData, uint32_t instanceDataCount, dsModelSortType sortType,
-	const dsDynamicRenderStates* renderStates, const char* cullName);
+	const dsDynamicRenderStates* renderStates, const char* cullList);
 
 /**
  * @brief Gets the sort type for a model list.

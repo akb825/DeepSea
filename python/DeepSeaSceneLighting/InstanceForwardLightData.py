@@ -21,20 +21,20 @@ class InstanceForwardLightData(object):
         self._tab = flatbuffers.table.Table(buf, pos)
 
     # InstanceForwardLightData
-    def VariableGroupDescName(self):
+    def VariableGroupDesc(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         if o != 0:
             return self._tab.String(o + self._tab.Pos)
         return None
 
     # InstanceForwardLightData
-    def LightSetName(self):
+    def LightSet(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         if o != 0:
             return self._tab.String(o + self._tab.Pos)
         return None
 
 def InstanceForwardLightDataStart(builder): builder.StartObject(2)
-def InstanceForwardLightDataAddVariableGroupDescName(builder, variableGroupDescName): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(variableGroupDescName), 0)
-def InstanceForwardLightDataAddLightSetName(builder, lightSetName): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(lightSetName), 0)
+def InstanceForwardLightDataAddVariableGroupDesc(builder, variableGroupDesc): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(variableGroupDesc), 0)
+def InstanceForwardLightDataAddLightSet(builder, lightSet): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(lightSet), 0)
 def InstanceForwardLightDataEnd(builder): return builder.EndObject()
