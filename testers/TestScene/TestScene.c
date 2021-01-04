@@ -424,7 +424,7 @@ int dsMain(int argc, const char** argv)
 
 	dsRendererOptions rendererOptions;
 	dsRenderer_defaultOptions(&rendererOptions, "TestScene", 0);
-	rendererOptions.surfaceSamples = 1;
+	rendererOptions.surfaceSamples = 4;
 	rendererOptions.maxResourceThreads = 1;
 	rendererOptions.deviceName = deviceName;
 	dsRenderer* renderer = dsRenderBootstrap_createRenderer(rendererType,
