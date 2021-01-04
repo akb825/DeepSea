@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -101,6 +101,7 @@ bool dsSDLWindow_createComponents(dsWindow* window, const char* title, const cha
 	sdlWindow->surfaceName = surfaceName;
 	sdlWindow->sdlWindow = internalWindow;
 	sdlWindow->samples = application->renderer->surfaceSamples;
+	sdlWindow->vsync = application->renderer->vsync;
 	if (!(flags & dsWindowFlags_DelaySurfaceCreate) &&
 		!dsSDLWindow_createSurfaceInternal(window, surfaceName))
 	{

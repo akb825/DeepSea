@@ -237,7 +237,13 @@ static bool processEvent(dsApplication* application, dsWindow* window, const dsE
 				dsRenderer_setSamples(renderer, samples);
 			}
 			else if (event->key.key == dsKeyCode_2)
+			{
+				// The key down will be re-sent when re-creating the window.
+				if (testCube->invalidatedFrame + 2 > renderer->frameNumber)
+					return false;
+
 				dsRenderer_setVsync(renderer, !renderer->vsync);
+			}
 			else if (event->key.key == dsKeyCode_3)
 			{
 				float anisotropy = renderer->defaultAnisotropy;

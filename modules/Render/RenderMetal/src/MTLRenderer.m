@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Aaron Barany
+ * Copyright 2019-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -861,7 +861,8 @@ dsRenderer* dsMTLRenderer_create(dsAllocator* allocator, const dsRendererOptions
 		baseRenderer->maxColorAttachments = getMaxColorAttachments(device);
 		baseRenderer->maxSurfaceSamples = getMaxSurfaceSamples(device);
 		baseRenderer->maxAnisotropy = 16.0f;
-		baseRenderer->surfaceSamples = options->samples;
+		baseRenderer->surfaceSamples = options->surfaceSamples;
+		baseRenderer->defaultSamples = options->defaultSamples;
 		baseRenderer->doubleBuffer = true;
 		baseRenderer->stereoscopic = false;
 		baseRenderer->vsync = false;
