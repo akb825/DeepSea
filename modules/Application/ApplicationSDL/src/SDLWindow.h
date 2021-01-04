@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2021 Aaron Barany
+ * Copyright 2017 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,6 @@ typedef struct dsSDLWindow
 	const char* surfaceName;
 	SDL_Window* sdlWindow;
 	uint32_t samples;
-	bool vsync;
 	uint32_t curWidth;
 	uint32_t curHeight;
 

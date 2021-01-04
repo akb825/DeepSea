@@ -252,6 +252,7 @@ dsVkRealFramebuffer* dsVkRealFramebuffer_create(dsAllocator* allocator,
 	realFramebuffer->device = device;
 	realFramebuffer->renderPassData = dsLifetime_addRef(renderPassData->lifetime);
 	realFramebuffer->surfaceData = surfaceData;
+	realFramebuffer->swapchain = surfaceData ? surfaceData->swapchain : 0;
 
 	realFramebuffer->framebuffers = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, VkFramebuffer,
 		framebufferCount);

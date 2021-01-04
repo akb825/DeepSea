@@ -204,26 +204,21 @@ static bool setGLAttributes(dsRenderer* renderer)
 	return true;
 }
 
-static void updateWindows(dsApplication* application)
+static void updateWindowSamples(dsApplication* application)
 {
 	if (application->windowCount == 0)
 		return;
 
-	bool needUpdate = false;
+	bool setSamples = false;
 	for (unsigned int i = 0; i < application->windowCount; ++i)
 	{
 		dsWindow* window = application->windows[i];
 		dsSDLWindow* sdlWindow = (dsSDLWindow*)window;
-		// Technically don't have to re-create everything if vsync changes, but some drivers
-		// have problems when re-creating the internal surfaces.
-		if (sdlWindow->samples != application->renderer->surfaceSamples ||
-			sdlWindow->vsync != application->renderer->vsync)
-		{
-			needUpdate = true;
-		}
+		if (sdlWindow->samples != application->renderer->surfaceSamples)
+			setSamples = true;
 	}
 
-	if (!needUpdate)
+	if (!setSamples)
 		return;
 
 	// Cache existing window values.
@@ -232,6 +227,7 @@ static void updateWindows(dsApplication* application)
 		dsWindow* window = application->windows[i];
 		dsSDLWindow* sdlWindow = (dsSDLWindow*)window;
 
+		setSamples = true;
 		dsSDLWindow_getSize(&sdlWindow->curWidth, &sdlWindow->curHeight, application, window);
 		dsSDLWindow_getPosition(&sdlWindow->curPosition, application, window);
 
@@ -259,6 +255,7 @@ static void updateWindows(dsApplication* application)
 		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 0);
 		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0);
 	}
+	setSamples = true;
 
 	// Need to destroy the SDL windows before restarting video for X11 below.
 	for (unsigned int i = 0; i < application->windowCount; ++i)
@@ -674,7 +671,7 @@ int dsSDLApplication_run(dsApplication* application)
 
 		// If the samples have changed, need to re-create the windows. Do between update and draw
 		// since update is most likely to have changed the samples.
-		updateWindows(application);
+		updateWindowSamples(application);
 
 		DS_PROFILE_SCOPE_START("Draw");
 		uint32_t swapSurfaceCount = 0;

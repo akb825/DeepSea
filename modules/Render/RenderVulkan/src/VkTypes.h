@@ -375,6 +375,7 @@ typedef struct dsVkRealFramebuffer
 	VkFramebuffer* framebuffers;
 	dsLifetime* renderPassData;
 	const dsVkRenderSurfaceData* surfaceData;
+	VkSwapchainKHR swapchain;
 
 	VkImageView* imageViews;
 	bool* imageViewTemp;

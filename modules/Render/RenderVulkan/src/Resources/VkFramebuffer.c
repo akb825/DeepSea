@@ -157,6 +157,7 @@ dsVkRealFramebuffer* dsVkFramebuffer_getRealFramebuffer(dsFramebuffer* framebuff
 {
 	dsVkFramebuffer* vkFramebuffer = (dsVkFramebuffer*)framebuffer;
 	const dsVkRenderSurfaceData* surfaceData = NULL;
+	VkSwapchainKHR swapchain = 0;
 	if (vkFramebuffer->renderSurface)
 	{
 		const dsVkRenderSurface* renderSurface =
@@ -165,6 +166,8 @@ dsVkRealFramebuffer* dsVkFramebuffer_getRealFramebuffer(dsFramebuffer* framebuff
 			return NULL;
 
 		surfaceData = renderSurface->surfaceData;
+		if (surfaceData)
+			swapchain = surfaceData->swapchain;
 		dsLifetime_release(vkFramebuffer->renderSurface);
 	}
 
@@ -175,7 +178,9 @@ dsVkRealFramebuffer* dsVkFramebuffer_getRealFramebuffer(dsFramebuffer* framebuff
 		dsVkRealFramebuffer* realFramebuffer = vkFramebuffer->realFramebuffers[i];
 		if (realFramebuffer->renderPassData == renderPassData->lifetime)
 		{
-			if (realFramebuffer->surfaceData != surfaceData)
+			// Compare with swapchain rather than surfaceData since re-allocations can cause the
+			// same pointer to be used.
+			if (realFramebuffer->swapchain != swapchain)
 			{
 				realFramebuffer = dsVkRealFramebuffer_create(vkFramebuffer->scratchAllocator,
 					framebuffer, renderPassData, surfaceData);
