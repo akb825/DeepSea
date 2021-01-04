@@ -18,13 +18,15 @@
 					"usage": ["Clear", "KeepAfter"],
 					"format": "SurfaceColor",
 					"decoration": "Unset",
-					"clearValue": {"floatValues": [0.0, 0.1, 0.2, 1.0]}
+					"clearValue": {"floatValues": [0.0, 0.1, 0.2, 1.0]},
+					"samples": "Surface"
 				},
 				{
 					"usage": ["Clear"],
 					"format": "SurfaceDepthStencil",
 					"decoration": "Unset",
-					"clearValue": {"depth": 1.0, "stencil": 0}
+					"clearValue": {"depth": 1.0, "stencil": 0},
+					"samples": "Surface"
 				}
 			],
 			"subpasses":

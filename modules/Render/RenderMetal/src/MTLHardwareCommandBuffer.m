@@ -1183,8 +1183,10 @@ bool dsMTLHardwareCommandBuffer_clearAttachments(dsCommandBuffer* commandBuffer,
 			if (attachmentIndex != DS_NO_ATTACHMENT)
 				samples = renderPass->attachments[attachmentIndex].samples;
 		}
-		if (samples == DS_DEFAULT_ANTIALIAS_SAMPLES)
+		if (samples == DS_SURFACE_ANTIALIAS_SAMPLES)
 			samples = renderer->surfaceSamples;
+		else if (samples == DS_DEFAULT_ANTIALIAS_SAMPLES)
+			samples = renderer->defaultSamples;
 
 		id<MTLRenderPipelineState> pipeline = dsMTLRenderer_getClearPipeline(renderer, colorFormats,
 			colorMask, depthFormat, stencilFormat, framebuffer->layers > 1, samples);

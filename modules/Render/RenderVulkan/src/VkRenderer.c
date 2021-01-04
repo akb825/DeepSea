@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 Aaron Barany
+ * Copyright 2018-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1422,6 +1422,12 @@ bool dsVkRenderer_setSurfaceSamples(dsRenderer* renderer, uint32_t samples)
 	return true;
 }
 
+bool dsVkRenderer_setDefaultSamples(dsRenderer* renderer, uint32_t samples)
+{
+	renderer->defaultSamples = samples;
+	return true;
+}
+
 bool dsVkRenderer_setVsync(dsRenderer* renderer, bool vsync)
 {
 	if (renderer->vsync == vsync)
@@ -2160,7 +2166,10 @@ dsRenderer* dsVkRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 		DS_MAX_ANTIALIAS_SAMPLES);
 	baseRenderer->maxAnisotropy = limits->maxSamplerAnisotropy;
 
-	baseRenderer->surfaceSamples = dsClamp(options->samples, 1U, baseRenderer->maxSurfaceSamples);
+	baseRenderer->surfaceSamples = dsClamp(options->surfaceSamples, 1U,
+		baseRenderer->maxSurfaceSamples);
+	baseRenderer->defaultSamples = dsClamp(options->defaultSamples, 1U,
+		baseRenderer->maxSurfaceSamples);
 
 	baseRenderer->doubleBuffer = options->doubleBuffer;
 	baseRenderer->stereoscopic = options->stereoscopic;
@@ -2274,6 +2283,7 @@ dsRenderer* dsVkRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 	baseRenderer->beginFrameFunc = &dsVkRenderer_beginFrame;
 	baseRenderer->endFrameFunc = &dsVkRenderer_endFrame;
 	baseRenderer->setSurfaceSamplesFunc = &dsVkRenderer_setSurfaceSamples;
+	baseRenderer->setDefaultSamplesFunc = &dsVkRenderer_setDefaultSamples;
 	baseRenderer->setVsyncFunc = &dsVkRenderer_setVsync;
 	baseRenderer->setDefaultAnisotropyFunc = &dsVkRenderer_setDefaultAnisotropy;
 	baseRenderer->clearAttachmentsFunc = &dsVkRenderer_clearAttachments;

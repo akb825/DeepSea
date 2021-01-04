@@ -70,6 +70,7 @@ typedef struct dsViewPrivate
 	dsFramebufferSurface* tempSurfaces;
 
 	uint32_t lastSurfaceSamples;
+	uint32_t lastDefaultSamples;
 	bool sizeUpdated;
 	bool surfaceSet;
 } dsViewPrivate;
@@ -512,6 +513,7 @@ dsView* dsView_create(const dsScene* scene, dsAllocator* allocator, dsAllocator*
 	}
 
 	privateView->lastSurfaceSamples = renderer->surfaceSamples;
+	privateView->lastDefaultSamples = renderer->defaultSamples;
 	privateView->sizeUpdated = true;
 	privateView->surfaceSet = true;
 
@@ -758,8 +760,9 @@ bool dsView_update(dsView* view)
 	dsResourceManager* resourceManager = renderer->resourceManager;
 	bool sizeChanged = privateView->sizeUpdated;
 	bool surfaceSet = privateView->surfaceSet;
-	bool samplesChanged = privateView->lastSurfaceSamples != renderer->surfaceSamples;
-	if (!sizeChanged && !surfaceSet && !samplesChanged)
+	bool surfaceSamplesChanged = privateView->lastSurfaceSamples != renderer->surfaceSamples;
+	bool defaultSamplesChanged = privateView->lastDefaultSamples != renderer->defaultSamples;
+	if (!sizeChanged && !surfaceSet && !surfaceSamplesChanged && !defaultSamplesChanged)
 		DS_PROFILE_FUNC_RETURN(true);
 
 	for (uint32_t i = 0; i < privateView->surfaceCount; ++i)
@@ -773,7 +776,10 @@ bool dsView_update(dsView* view)
 		if (privateView->surfaces[i] &&
 			((surfaceInfo->createInfo.width > 0 && surfaceInfo->createInfo.height > 0) ||
 				!sizeChanged) &&
-			(surfaceInfo->createInfo.samples != DS_DEFAULT_ANTIALIAS_SAMPLES || !samplesChanged))
+			(surfaceInfo->createInfo.samples != DS_SURFACE_ANTIALIAS_SAMPLES ||
+				!surfaceSamplesChanged) &&
+			(surfaceInfo->createInfo.samples != DS_DEFAULT_ANTIALIAS_SAMPLES ||
+				!defaultSamplesChanged))
 		{
 			continue;
 		}
@@ -885,6 +891,7 @@ bool dsView_update(dsView* view)
 	privateView->sizeUpdated = false;
 	privateView->surfaceSet = false;
 	privateView->lastSurfaceSamples = renderer->surfaceSamples;
+	privateView->lastDefaultSamples = renderer->defaultSamples;
 	DS_PROFILE_FUNC_RETURN(true);
 }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 Aaron Barany
+ * Copyright 2019-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -144,7 +144,7 @@ static bool processEvent(dsApplication* application, dsWindow* window, const dsE
 					samples = 4;
 				else
 					samples = 1;
-				dsRenderer_setSurfaceSamples(renderer, samples);
+				dsRenderer_setSamples(renderer, samples);
 				DS_LOG_INFO_F("TestScene", "Togging anti-aliasing: %s",
 					samples == 1 ? "off" : "on");
 			}
@@ -424,7 +424,7 @@ int dsMain(int argc, const char** argv)
 
 	dsRendererOptions rendererOptions;
 	dsRenderer_defaultOptions(&rendererOptions, "TestScene", 0);
-	rendererOptions.samples = 1;
+	rendererOptions.surfaceSamples = 1;
 	rendererOptions.maxResourceThreads = 1;
 	rendererOptions.deviceName = deviceName;
 	dsRenderer* renderer = dsRenderBootstrap_createRenderer(rendererType,

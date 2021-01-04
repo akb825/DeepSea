@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 Aaron Barany
+ * Copyright 2018-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -94,7 +94,8 @@ dsRenderPass* dsVkRenderPass_create(dsRenderer* renderer, dsAllocator* allocator
 
 		for (uint32_t i = 0; i < attachmentCount; ++i)
 		{
-			if (attachments[i].samples == DS_DEFAULT_ANTIALIAS_SAMPLES)
+			if (attachments[i].samples == DS_SURFACE_ANTIALIAS_SAMPLES ||
+				attachments[i].samples == DS_DEFAULT_ANTIALIAS_SAMPLES)
 			{
 				renderPass->usesDefaultSamples = true;
 				break;
@@ -245,7 +246,8 @@ dsVkRenderPassData* dsVkRenderPass_getData(const dsRenderPass* renderPass)
 	dsRenderer* renderer = renderPass->renderer;
 	dsVkDevice* device = &((dsVkRenderer*)renderer)->device;
 	uint64_t frame = renderer->frameNumber;
-	uint32_t samples = renderer->surfaceSamples;
+	uint32_t surfaceSamples = renderer->surfaceSamples;
+	uint32_t defaultSamples = renderer->defaultSamples;
 
 	DS_VERIFY(dsSpinlock_lock(&vkRenderPass->lock));
 	if (vkRenderPass->lastCheckedFrame == frame)
@@ -254,7 +256,8 @@ dsVkRenderPassData* dsVkRenderPass_getData(const dsRenderPass* renderPass)
 		return vkRenderPass->renderPassData;
 	}
 
-	if (vkRenderPass->usesDefaultSamples && samples != vkRenderPass->defaultSamples)
+	if (vkRenderPass->usesDefaultSamples && (surfaceSamples != vkRenderPass->surfaceSamples ||
+			defaultSamples != vkRenderPass->defaultSamples))
 	{
 		dsVkRenderPassData* renderPassData = dsVkRenderPassData_create(
 			vkRenderPass->scratchAllocator, device, renderPass);
@@ -264,7 +267,8 @@ dsVkRenderPassData* dsVkRenderPass_getData(const dsRenderPass* renderPass)
 			vkRenderPass->renderPassData = renderPassData;
 		}
 
-		vkRenderPass->defaultSamples = samples;
+		vkRenderPass->surfaceSamples = surfaceSamples;
+		vkRenderPass->defaultSamples = defaultSamples;
 	}
 
 	vkRenderPass->lastCheckedFrame = frame;

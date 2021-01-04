@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Aaron Barany
+ * Copyright 2017-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -378,8 +378,10 @@ static bool isResolveValid(const dsRenderer* renderer, const dsAttachmentInfo* a
 	// Don't check for resolve when no anti-aliasing since offscreens no longer resolve,
 	// which would give a false positive.
 	uint32_t samples = attachments[attachment].samples;
-	if (samples == DS_DEFAULT_ANTIALIAS_SAMPLES)
+	if (samples == DS_SURFACE_ANTIALIAS_SAMPLES)
 		samples = renderer->surfaceSamples;
+	else if (samples == DS_DEFAULT_ANTIALIAS_SAMPLES)
+		samples = renderer->defaultSamples;
 
 	if (samples > 1 && !canResolveSurface(framebuffer->surfaces + attachment))
 	{
@@ -911,8 +913,10 @@ bool dsRenderPass_begin(const dsRenderPass* renderPass, dsCommandBuffer* command
 		}
 
 		uint32_t samples = renderPass->attachments[i].samples;
-		if (samples == DS_DEFAULT_ANTIALIAS_SAMPLES)
+		if (samples == DS_SURFACE_ANTIALIAS_SAMPLES)
 			samples = renderer->surfaceSamples;
+		else if (samples == DS_DEFAULT_ANTIALIAS_SAMPLES)
+			samples = renderer->defaultSamples;
 		if (getSurfaceSamples(renderer, framebuffer->surfaces + i) != samples)
 		{
 			errno = EINVAL;

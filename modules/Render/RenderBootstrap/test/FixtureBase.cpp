@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Aaron Barany
+ * Copyright 2019-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,7 +41,6 @@ void FixtureBase::SetUp()
 	dsSystemAllocator_initialize(&allocator, DS_ALLOCATOR_NO_LIMIT);
 	dsRendererOptions options;
 	dsRenderer_defaultOptions(&options, "deepsea_test_render_bootstrap", 0);
-	options.samples = 0;
 	adjustRendererOptions(options);
 	renderer = dsRenderBootstrap_createRenderer(GetParam(), &allocator.allocator, &options);
 	ASSERT_TRUE(renderer);

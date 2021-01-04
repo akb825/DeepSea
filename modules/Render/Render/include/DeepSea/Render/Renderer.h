@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2018 Aaron Barany
+ * Copyright 2017-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -222,9 +222,9 @@ DS_RENDER_EXPORT bool dsRenderer_beginFrame(dsRenderer* renderer);
 DS_RENDER_EXPORT bool dsRenderer_endFrame(dsRenderer* renderer);
 
 /**
- * @brief Sets the number of anti-alias samples for the default render surfaces.
+ * @brief Sets the number of anti-alias samples for render surfaces.
  *
- * This value will be used when the DS_DEFAULT_ANTIALIAS_SAMPLES constant is used. It is the
+ * This value will be used when the DS_SURFACE_ANTIALIAS_SAMPLES constant is used. It is the
  * responsibility of the caller to re-create any render surfaces, offscreens, renderbuffers, and
  * framebuffers to respect this change.
  *
@@ -236,6 +236,43 @@ DS_RENDER_EXPORT bool dsRenderer_endFrame(dsRenderer* renderer);
  * @return False if the number of samples couldn't be set.
  */
 DS_RENDER_EXPORT bool dsRenderer_setSurfaceSamples(dsRenderer* renderer, uint32_t samples);
+
+/**
+ * @brief Sets the default number of anti-alias samples for offscreens and renderbuffers.
+ *
+ * This value will be used when the DS_DEFAULT_ANTIALIAS_SAMPLES constant is used. It is the
+ * responsibility of the caller to re-create any offscreens, renderbuffers, and framebuffers to
+ * respect this change.
+ *
+ * @remark This shouldn't be changed in the middle of drawing. Ideally it should be set between
+ * frames.
+ * @remark errno will be set on failure.
+ * @param renderer The renderer.
+ * @param samples The number of anti-alias samples.
+ * @return False if the number of samples couldn't be set.
+ */
+DS_RENDER_EXPORT bool dsRenderer_setDefaultSamples(dsRenderer* renderer, uint32_t samples);
+
+/**
+ * @brief Sets the default number of anti-alias samples for render surfaces, offscreens, and
+ * renderbuffers.
+ *
+ * This is the same as calling both dsRenderer_setSurfaceSamples() and
+ * dsRenderer_setDefaultSamples() to set both the surface and default samples to the same value
+ * at the same time.
+ *
+ * This value will be used when the DS_SURFACE_ANTIALIAS_SAMPLES or DS_DEFAULT_ANTIALIAS_SAMPLES
+ * constant is used. It is the responsibility of the caller to re-create any render surfaces,
+ * offscreens, renderbuffers, and framebuffers to respect this change.
+ *
+ * @remark This shouldn't be changed in the middle of drawing. Ideally it should be set between
+ * frames.
+ * @remark errno will be set on failure.
+ * @param renderer The renderer.
+ * @param samples The number of anti-alias samples.
+ * @return False if the number of samples couldn't be set.
+ */
+DS_RENDER_EXPORT bool dsRenderer_setSamples(dsRenderer* renderer, uint32_t samples);
 
 /**
  * @brief Sets whether or not to wait for vsync.

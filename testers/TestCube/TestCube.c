@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -234,7 +234,7 @@ static bool processEvent(dsApplication* application, dsWindow* window, const dsE
 					samples = 4;
 				else
 					samples = 1;
-				dsRenderer_setSurfaceSamples(renderer, samples);
+				dsRenderer_setSamples(renderer, samples);
 			}
 			else if (event->key.key == dsKeyCode_2)
 				dsRenderer_setVsync(renderer, !renderer->vsync);
@@ -342,8 +342,8 @@ static bool setup(TestCube* testCube, dsApplication* application, dsAllocator* a
 	dsAttachmentInfo attachments[] =
 	{
 		{dsAttachmentUsage_Clear | dsAttachmentUsage_KeepAfter, renderer->surfaceColorFormat,
-			DS_DEFAULT_ANTIALIAS_SAMPLES},
-		{dsAttachmentUsage_Clear, renderer->surfaceDepthStencilFormat, DS_DEFAULT_ANTIALIAS_SAMPLES}
+			DS_SURFACE_ANTIALIAS_SAMPLES},
+		{dsAttachmentUsage_Clear, renderer->surfaceDepthStencilFormat, DS_SURFACE_ANTIALIAS_SAMPLES}
 	};
 
 	dsAttachmentRef colorAttachment = {0, true};
@@ -550,7 +550,7 @@ int dsMain(int argc, const char** argv)
 
 	dsRendererOptions rendererOptions;
 	dsRenderer_defaultOptions(&rendererOptions, "TestCube", 0);
-	rendererOptions.samples = 4;
+	rendererOptions.surfaceSamples = 4;
 	rendererOptions.deviceName = deviceName;
 	dsRenderer* renderer = dsRenderBootstrap_createRenderer(rendererType,
 		(dsAllocator*)&renderAllocator, &rendererOptions);

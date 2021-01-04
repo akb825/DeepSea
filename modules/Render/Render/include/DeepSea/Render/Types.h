@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,9 +54,14 @@ extern "C"
 #define DS_DEFAULT_SUBPASS_DEPENDENCIES (uint32_t)-1
 
 /**
+ * @brief Constant for the number of anti-alias samples of render surfaces.
+ */
+#define DS_SURFACE_ANTIALIAS_SAMPLES (uint32_t)-1
+
+/**
  * @brief Constant for the default number of anti-alias samples.
  */
-#define DS_DEFAULT_ANTIALIAS_SAMPLES (uint32_t)-1
+#define DS_DEFAULT_ANTIALIAS_SAMPLES (uint32_t)-2
 
 /**
  * @brief Constant for the maximum supported anti-alias samples.
@@ -466,12 +471,20 @@ typedef struct dsRendererOptions
 	dsGfxFormat forcedDepthStencilFormat;
 
 	/**
-	 * @brief The default number of anti-alias samples.
+	 * @brief The default number of anti-alias samples for render surfaces.
 	 *
-	 * This may be changed later, but all surfaces must be re-created. It will be clamped to the
+	 * This may be changed later, but render surfaces must re-created. It will be clamped to the
 	 * maximum number of supported samples.
 	 */
-	uint8_t samples;
+	uint8_t surfaceSamples;
+
+	/**
+	 * @brief The default number of anti-alias samples for offscreens and renderbuffers.
+	 *
+	 * This may be changed later, but offscreens and renderbuffers re-created. It will be clamped to
+	 * the maximum number of supported samples.
+	 */
+	uint8_t defaultSamples;
 
 	/**
 	 * @brief True to double-buffer rendering, false to single-buffer.
@@ -1526,18 +1539,18 @@ typedef bool (*dsBeginFrameFunction)(dsRenderer* renderer);
 typedef bool (*dsEndFrameFunction)(dsRenderer* renderer);
 
 /**
- * @brief Function for setting the number of anti-alias samples for the default render surfaces.
+ * @brief Function for setting the number of anti-alias samples.
  *
  * This should set the default value on the renderer on success. The implementation is responsible
  * for making any necessary changse to the render passes when the attachment info is set to
- * DS_DEFAULT_ANTIALIAS_SAMPLES. The caller is responsible for re-creating any render surfaces,
- * offscreens, renderbuffers, and framebuffers.
+ * DS_SURFACE_ANTIALIAS_SAMPLES or DS_DEFAULT_ANTIALIAS_SAMPLES. The caller is responsible for
+ * re-creating any render surfaces, offscreens, renderbuffers, and framebuffers.
  *
  * @param renderer The renderer.
  * @param samples The number of anti-alias samples.
  * @return False if the number of samples couldn't be set.
  */
-typedef bool (*dsSetRenderSurfaceSamplesFunction)(dsRenderer* renderer, uint32_t samples);
+typedef bool (*dsSetRenderSamplesFunction)(dsRenderer* renderer, uint32_t samples);
 
 /**
  * @brief Function for setting whether or not to wait for vsync.
@@ -1888,6 +1901,11 @@ struct dsRenderer
 	uint32_t surfaceSamples;
 
 	/**
+	 * @brief The number of samples for multisampling in offscreens and renderbuffers.
+	 */
+	uint32_t defaultSamples;
+
+	/**
 	 * @brief True if render surfaces are double-buffered.
 	 */
 	bool doubleBuffer;
@@ -2114,7 +2132,12 @@ struct dsRenderer
 	/**
 	 * @brief Surface anti-alias sample set function.
 	 */
-	dsSetRenderSurfaceSamplesFunction setSurfaceSamplesFunc;
+	dsSetRenderSamplesFunction setSurfaceSamplesFunc;
+
+	/**
+	 * @brief Default anti-alias sample set function.
+	 */
+	dsSetRenderSamplesFunction setDefaultSamplesFunc;
 
 	/**
 	 * @brief Vsync set function.

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Aaron Barany
+ * Copyright 2017-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1169,7 +1169,7 @@ static bool setup(TestText* testText, dsApplication* application, dsAllocator* a
 	DS_VERIFY(dsWindow_setDrawFunction(testText->window, &draw, testText));
 
 	dsAttachmentInfo attachment = {dsAttachmentUsage_Clear | dsAttachmentUsage_KeepAfter,
-		renderer->surfaceColorFormat, DS_DEFAULT_ANTIALIAS_SAMPLES};
+		renderer->surfaceColorFormat, DS_SURFACE_ANTIALIAS_SAMPLES};
 
 	dsAttachmentRef colorAttachment = {0, true};
 	uint32_t depthStencilAttachment = DS_NO_ATTACHMENT;
@@ -1327,7 +1327,7 @@ int dsMain(int argc, const char** argv)
 	rendererOptions.deviceName = deviceName;
 	rendererOptions.depthBits = 0;
 	rendererOptions.stencilBits = 0;
-	rendererOptions.samples = 4;
+	rendererOptions.surfaceSamples = 4;
 	dsRenderer* renderer = dsRenderBootstrap_createRenderer(rendererType,
 		(dsAllocator*)&renderAllocator, &rendererOptions);
 	if (!renderer)

@@ -1214,8 +1214,10 @@ id<MTLRenderPipelineState> dsMTLShader_getPipeline(dsShader* shader, dsCommandBu
 	if (referenceAttachment != DS_NO_ATTACHMENT)
 		samples = attachments[referenceAttachment].samples;
 
-	if (samples == DS_DEFAULT_ANTIALIAS_SAMPLES)
+	if (samples == DS_SURFACE_ANTIALIAS_SAMPLES)
 		samples = renderer->surfaceSamples;
+	else if (samples == DS_DEFAULT_ANTIALIAS_SAMPLES)
+		samples = renderer->defaultSamples;
 
 	const dsMTLDrawGeometry* mtlDrawGeometry = (dsMTLDrawGeometry*)geometry;
 	uint32_t hash = dsMTLPipeline_hash(samples, primitiveType, mtlDrawGeometry->vertexHash,

@@ -241,7 +241,7 @@ The scene describes the how to process and draw a scene, as well as the list of 
 		* `usage`: array of usage flags. See the dsAttachmentUsage enum for values, removing the type prefix. Defaults to `["Standard"]`.
 		* `format`: the attachment format. See the `dsGfxFormat` enum for values, removing the type prefix. The decorator values may not be used. May also be `SurfaceColor` or `SurfaceDepthStencil` to use the color or depth/stencil format for render surfaces.
 		* `decoration`: the decoration for the format. See the `dsGfxFormat` enum for values, removing the type prefix. Only the decorator values may be used. May also be `Unset` in cases where a decorator isn't valid.
-		* `samples`: the number of anti-alias samples. When omitted, this uses the number of samples set on the renderer for window surfaces.
+		* `samples`: the number of anti-alias samples. This should be an integer or the string `"Surface"` to use the number samples for render surfaces or `"Default"` for the default number of samples for offscreens and renderbuffers.
 		* `clearValue`: a dict with one of the following members:
 			* `floatValues`: array of 4 float values.
 			* `intValues`: array of 4 signed int values.
@@ -372,7 +372,7 @@ The view describes the layout of surfaces and framebuffers to draw to. The JSON 
 	* `heightRatio`: the ratio of the height relative to the view height. `height` should be omitted when this is used. Defaults to 1.0 if neither `height` nor `heightRatio` is set.
 	* `depth`: the depth or array layers of the surface if an offscreen. If 0 or omitted, this is not a texture array.
 	* `mipLevels`: the number of mipmap levels for an offscreen. Defaults to 1.
-	* `samples`: the number of anti-alias samples. When omitted, this uses the number of samples set on the renderer for window surfaces.
+	* `samples`: the number of anti-alias samples. This should be an integer or the string `"Surface"` to use the number samples for render surfaces or `"Default"` for the default number of samples for offscreens and renderbuffers.
 	* `resolve`: whether or not to resolve multisampled results.
 	* `windowFramebuffer`: Whether or not the surface is used in the same framebuffer as the window surface. When `true`, the surface will follow the rotation of the view and window surface. Defaults to `true`.
 * `framebuffers`: array of framebuffers to use in the view. Each element of the array has the following members:

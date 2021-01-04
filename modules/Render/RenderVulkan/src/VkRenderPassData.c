@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Aaron Barany
+ * Copyright 2019-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -228,7 +228,8 @@ dsVkRenderPassData* dsVkRenderPassData_create(dsAllocator* allocator, dsVkDevice
 		// Don't resolve default samples since we need space for the attachment when multisampling
 		// is disabled in case it's enabled later.
 		if (dsVkAttachmentHasResolve(renderPass->subpasses, renderPass->subpassCount, i,
-				renderPass->attachments[i].samples, renderer->surfaceSamples))
+				renderPass->attachments[i].samples, renderer->surfaceSamples,
+				renderer->defaultSamples))
 		{
 			++fullAttachmentCount;
 			++resolveAttachmentCount;
@@ -277,10 +278,12 @@ dsVkRenderPassData* dsVkRenderPassData_create(dsAllocator* allocator, dsVkDevice
 			}
 
 			uint32_t samples = attachment->samples;
-			if (samples == DS_DEFAULT_ANTIALIAS_SAMPLES)
+			if (samples == DS_SURFACE_ANTIALIAS_SAMPLES)
 				samples = renderer->surfaceSamples;
+			else if (samples == DS_DEFAULT_ANTIALIAS_SAMPLES)
+				samples = renderer->defaultSamples;
 			if (dsVkAttachmentHasResolve(renderPass->subpasses, renderPass->subpassCount, i,
-					attachment->samples, renderer->surfaceSamples))
+					attachment->samples, renderer->surfaceSamples, renderer->defaultSamples))
 			{
 				uint32_t resolveAttachmentIndex = attachmentCount + resolveIndex;
 				renderPassData->resolveIndices[i] = resolveAttachmentIndex;

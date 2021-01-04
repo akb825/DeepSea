@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Aaron Barany
+ * Copyright 2016-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -687,10 +687,11 @@ typedef struct dsTextureInfo
 	/**
 	 * @brief The number of samples used for multisampling.
 	 *
-	 * This will only be used for offscreens. This may be set to DS_DEFAULT_ANTIALIAS_SAMPLES to use
-	 * the default set on the renderer. The renderbuffer will need to be re-created by the caller if
-	 * the default changes. When multisampling isn't supported, this will silently fallback to no
-	 * multisampling for resolved surfaces or fail for non-resolved surfaces.
+	 * This will only be used for offscreens. This may be set to DS_SURFACE_ANTIALIAS_SAMPLES to use
+	 * the default for render surfaces or DS_DEFAULT_ANTIALIAS_SAMPLES to use the default set on the
+	 * renderer. The renderbuffer will need to be re-created by the caller if the default changes.
+	 * When multisampling isn't supported, this will silently fallback to no multisampling for
+	 * resolved surfaces or fail for non-resolved surfaces.
 	 */
 	uint32_t samples;
 } dsTextureInfo;

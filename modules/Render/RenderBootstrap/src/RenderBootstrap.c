@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -240,12 +240,12 @@ dsRenderer* dsRenderBootstrap_createRenderer(dsRendererType type, dsAllocator* a
 		{
 #if DS_HAS_RENDER_OPENGL
 			dsRenderer* renderer = dsGLRenderer_create(allocator, options);
-			if (!renderer && errno == EPERM && options->samples > 1)
+			if (!renderer && errno == EPERM && options->surfaceSamples > 1)
 			{
 				DS_LOG_INFO(DS_RENDER_BOOTSTRAP_LOG_TAG,
 					"Failed creating OpenGL renderer. Trying again without anti-aliasing.");
 				dsRendererOptions altOptions = *options;
-				altOptions.samples = 1;
+				altOptions.surfaceSamples = 1;
 				renderer = dsGLRenderer_create(allocator, &altOptions);
 			}
 			return renderer;

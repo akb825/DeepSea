@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,6 +65,15 @@ bool dsMockRenderer_endFrame(dsRenderer* renderer)
 }
 
 bool dsMockRenderer_setSurfaceSamples(dsRenderer* renderer, uint32_t samples)
+{
+	DS_ASSERT(renderer);
+	DS_UNUSED(renderer);
+	DS_UNUSED(samples);
+
+	return true;
+}
+
+bool dsMockRenderer_setDefaultSamples(dsRenderer* renderer, uint32_t samples)
 {
 	DS_ASSERT(renderer);
 	DS_UNUSED(renderer);
@@ -411,6 +420,7 @@ dsRenderer* dsMockRenderer_create(dsAllocator* allocator)
 	renderer->surfaceColorFormat = dsGfxFormat_decorate(dsGfxFormat_R8G8B8, dsGfxFormat_UNorm);
 	renderer->surfaceDepthStencilFormat = dsGfxFormat_D24S8;
 	renderer->surfaceSamples = 4;
+	renderer->defaultSamples = 4;
 	renderer->doubleBuffer = true;
 	renderer->stereoscopic = false;
 	renderer->vsync = true;
@@ -461,6 +471,7 @@ dsRenderer* dsMockRenderer_create(dsAllocator* allocator)
 	renderer->beginFrameFunc = &dsMockRenderer_beginFrame;
 	renderer->endFrameFunc = &dsMockRenderer_endFrame;
 	renderer->setSurfaceSamplesFunc = &dsMockRenderer_setSurfaceSamples;
+	renderer->setDefaultSamplesFunc = &dsMockRenderer_setDefaultSamples;
 	renderer->setVsyncFunc = &dsMockRenderer_setVsync;
 	renderer->setDefaultAnisotropyFunc = &dsMockRenderer_setDefaultAnisotropy;
 	renderer->setViewportFunc = &dsMockRenderer_setViewport;

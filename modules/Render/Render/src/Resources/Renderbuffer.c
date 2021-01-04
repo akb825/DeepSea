@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,6 +51,11 @@ dsRenderbuffer* dsRenderbuffer_create(dsResourceManager* resourceManager, dsAllo
 	if (!allocator)
 		allocator = resourceManager->allocator;
 
+	if (samples == DS_SURFACE_ANTIALIAS_SAMPLES)
+		samples = resourceManager->renderer->surfaceSamples;
+	else if (samples == DS_DEFAULT_ANTIALIAS_SAMPLES)
+		samples = resourceManager->renderer->defaultSamples;
+	samples = dsMax(1U, samples);
 	if (samples > resourceManager->renderer->maxSurfaceSamples)
 	{
 		errno = EINVAL;
@@ -80,9 +85,6 @@ dsRenderbuffer* dsRenderbuffer_create(dsResourceManager* resourceManager, dsAllo
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
-	if (samples == DS_DEFAULT_ANTIALIAS_SAMPLES)
-		samples = resourceManager->renderer->surfaceSamples;
-	samples = dsMax(1U, samples);
 	dsRenderbuffer* renderbuffer = resourceManager->createRenderbufferFunc(resourceManager,
 		allocator, usage, format, width, height, samples);
 	if (renderbuffer)

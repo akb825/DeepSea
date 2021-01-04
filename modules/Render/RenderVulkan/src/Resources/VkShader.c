@@ -1489,8 +1489,10 @@ VkPipeline dsVkShader_getPipeline(dsShader* shader, dsCommandBuffer* commandBuff
 	if (referenceAttachment != DS_NO_ATTACHMENT)
 		samples = attachments[referenceAttachment].samples;
 
-	if (samples == DS_DEFAULT_ANTIALIAS_SAMPLES)
+	if (samples == DS_SURFACE_ANTIALIAS_SAMPLES)
 		samples = renderer->surfaceSamples;
+	else if (samples == DS_DEFAULT_ANTIALIAS_SAMPLES)
+		samples = renderer->defaultSamples;
 
 	// Don't use default anisotropy if default isn't used within the shaders.
 	float anisotropy = renderer->defaultAnisotropy;

@@ -10,7 +10,8 @@
 					"usage": ["Clear", "KeepAfter"],
 					"format": "SurfaceColor",
 					"decoration": "Unset",
-					"clearValue": {"floatValues": [1.0, 1.0, 1.0, 1.0]}
+					"clearValue": {"floatValues": [1.0, 1.0, 1.0, 1.0]},
+					"samples": "Surface"
 				}
 			],
 			"subpasses":

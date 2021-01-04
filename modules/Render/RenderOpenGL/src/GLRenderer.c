@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2018 Aaron Barany
+ * Copyright 2017-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -326,7 +326,7 @@ bool dsGLRenderer_setSurfaceSamples(dsRenderer* renderer, uint32_t samples)
 
 	void* display = glRenderer->options.display;
 	dsRendererOptions newOptions = glRenderer->options;
-	newOptions.samples = (uint8_t)samples;
+	newOptions.surfaceSamples = (uint8_t)samples;
 	void* newConfig = dsCreateGLConfig(renderer->allocator, display, &newOptions, true);
 	if (!newConfig)
 	{
@@ -352,7 +352,7 @@ bool dsGLRenderer_setSurfaceSamples(dsRenderer* renderer, uint32_t samples)
 	glRenderer->renderContext = newContext;
 	glRenderer->renderContextBound = false;
 	glRenderer->renderContextReset = false;
-	glRenderer->options.samples = (uint8_t)samples;
+	glRenderer->options.surfaceSamples = (uint8_t)samples;
 	++glRenderer->contextCount;
 
 	renderer->surfaceConfig = dsGetPublicGLConfig(display, glRenderer->renderConfig);
@@ -365,6 +365,14 @@ bool dsGLRenderer_setSurfaceSamples(dsRenderer* renderer, uint32_t samples)
 
 	renderer->surfaceSamples = samples;
 
+	return true;
+}
+
+bool dsGLRenderer_setDefaultSamples(dsRenderer* renderer, uint32_t samples)
+{
+	dsGLRenderer* glRenderer = (dsGLRenderer*)renderer;
+	glRenderer->options.defaultSamples = (uint8_t)samples;
+	renderer->defaultSamples = samples;
 	return true;
 }
 
@@ -611,7 +619,8 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 	glGetIntegerv(GL_MAX_SAMPLES, &maxSamples);
 	maxSamples = dsMax(1, maxSamples);
 	baseRenderer->maxSurfaceSamples = dsMin(maxSamples, DS_MAX_ANTIALIAS_SAMPLES);
-	renderer->options.samples = (uint8_t)dsMin(renderer->options.samples, maxSamples);
+	renderer->options.surfaceSamples = (uint8_t)dsMin(renderer->options.surfaceSamples, maxSamples);
+	renderer->options.defaultSamples = (uint8_t)dsMin(renderer->options.defaultSamples, maxSamples);
 
 	renderer->renderContext = dsCreateGLContext(allocator, display, renderer->renderConfig,
 		renderer->sharedContext);
@@ -671,7 +680,8 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 	baseRenderer->surfaceDepthStencilFormat = depthFormat;
 	baseRenderer->surfaceConfig = dsGetPublicGLConfig(renderer->options.display,
 		renderer->renderConfig);
-	baseRenderer->surfaceSamples = options->samples;
+	baseRenderer->surfaceSamples = options->surfaceSamples;
+	baseRenderer->defaultSamples = options->defaultSamples;
 	baseRenderer->doubleBuffer = options->doubleBuffer;
 	baseRenderer->stereoscopic = options->stereoscopic;
 	baseRenderer->vsync = false;
@@ -744,6 +754,7 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 	baseRenderer->beginFrameFunc = &dsGLRenderer_beginFrame;
 	baseRenderer->endFrameFunc = &dsGLRenderer_endFrame;
 	baseRenderer->setSurfaceSamplesFunc = &dsGLRenderer_setSurfaceSamples;
+	baseRenderer->setDefaultSamplesFunc = &dsGLRenderer_setDefaultSamples;
 	baseRenderer->setVsyncFunc = &dsGLRenderer_setVsync;
 	baseRenderer->setDefaultAnisotropyFunc = &dsGLRenderer_setDefaultAnisotropy;
 	baseRenderer->clearAttachmentsFunc = &dsGLCommandBuffer_clearAttachments;

@@ -101,7 +101,7 @@
 		"type": "Shader",
 		"name": "textShader",
 		"module": "textModule",
-		"pipelineName": "Text",
+		"pipeline": "Text",
 		"materialDesc": "textMaterialDesc"
 	},
 	{

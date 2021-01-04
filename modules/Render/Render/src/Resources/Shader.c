@@ -469,7 +469,7 @@ dsShader* dsShader_createName(dsResourceManager* resourceManager, dsAllocator* a
 
 	if (index == shaderCount)
 	{
-		errno = EINVAL;
+		errno = ENOTFOUND;
 		DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Shader '%s' not found in shader module.", name);
 		return NULL;
 	}

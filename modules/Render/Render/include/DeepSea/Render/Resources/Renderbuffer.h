@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,6 +47,7 @@ extern "C"
  * @param width The width of the renderbuffer.
  * @param height The height of the renderbuffer.
  * @param samples The number of samples to use for multisampling. This may be set to
+ *     DS_SURFACE_ANTIALIAS_SAMPLES to use the default for render surfaces or
  *     DS_DEFAULT_ANTIALIAS_SAMPLES to use the default set on the renderer. The renderbuffer will
  *     need to be re-created by the caller if the default changes.
  * @return The created renderbuffer, or NULL if it couldn't be created.

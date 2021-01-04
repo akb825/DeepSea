@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 Aaron Barany
+ * Copyright 2018-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -652,6 +652,7 @@ typedef struct dsVkRenderPass
 	VkSubpassDependency* vkDependencies;
 
 	uint64_t lastCheckedFrame;
+	uint32_t surfaceSamples;
 	uint32_t defaultSamples;
 	bool usesDefaultSamples;
 

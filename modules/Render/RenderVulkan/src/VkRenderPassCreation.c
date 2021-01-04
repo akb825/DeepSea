@@ -1,3 +1,19 @@
+/*
+ * Copyright 2019-2021 Aaron Barany
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 #include "VkRenderPassCreation.h"
 
 #include "Resources/VkResourceManager.h"
@@ -21,10 +37,12 @@ static bool mustKeepMultisampledAttachment(dsAttachmentUsage usage, uint32_t sam
 		((usage & dsAttachmentUsage_KeepAfter) && (usage & dsAttachmentUsage_UseLater));
 }
 
-static bool needsResolve(uint32_t samples, uint32_t defaultSamples)
+static bool needsResolve(uint32_t samples, uint32_t surfaceSamples, uint32_t defaultSamples)
 {
-	return (samples == DS_DEFAULT_ANTIALIAS_SAMPLES && defaultSamples > 1) ||
-		(samples != DS_DEFAULT_ANTIALIAS_SAMPLES && samples > 1);
+	return (samples == DS_SURFACE_ANTIALIAS_SAMPLES && surfaceSamples > 1) ||
+		(samples == DS_DEFAULT_ANTIALIAS_SAMPLES && defaultSamples > 1) ||
+		(samples != DS_SURFACE_ANTIALIAS_SAMPLES && samples != DS_DEFAULT_ANTIALIAS_SAMPLES &&
+			samples > 1);
 }
 
 static void addLegacySubpassAttachmentUsageBits(AttachmentUsage* usages,
@@ -189,8 +207,10 @@ static bool createLegacyRenderPass(dsVkRenderPassData* renderPassData,
 			vkAttachment->flags = 0;
 			vkAttachment->format = format->vkFormat;
 			uint32_t samples = attachment->samples;
-			if (samples == DS_DEFAULT_ANTIALIAS_SAMPLES)
+			if (samples == DS_SURFACE_ANTIALIAS_SAMPLES)
 				samples = renderer->surfaceSamples;
+			else if (samples == DS_DEFAULT_ANTIALIAS_SAMPLES)
+				samples = renderer->defaultSamples;
 
 			vkAttachment->samples = dsVkSampleCount(samples);
 
@@ -218,7 +238,7 @@ static bool createLegacyRenderPass(dsVkRenderPassData* renderPassData,
 			vkAttachment->finalLayout = layout;
 
 			if (dsVkAttachmentHasResolve(renderPass->subpasses, renderPass->subpassCount, i,
-					attachment->samples, renderer->surfaceSamples))
+					attachment->samples, renderer->surfaceSamples, renderer->defaultSamples))
 			{
 				uint32_t resolveAttachmentIndex = renderPassData->attachmentCount + resolveIndex;
 				VkAttachmentDescription* vkResolveAttachment = vkAttachments +
@@ -301,7 +321,7 @@ static bool createLegacyRenderPass(dsVkRenderPassData* renderPassData,
 
 				if (attachmentIndex != DS_NO_ATTACHMENT && curAttachment->resolve &&
 					needsResolve(renderPass->attachments[curAttachment->attachmentIndex].samples,
-						renderer->surfaceSamples))
+						renderer->surfaceSamples, renderer->defaultSamples))
 				{
 					hasResolve = true;
 				}
@@ -320,7 +340,7 @@ static bool createLegacyRenderPass(dsVkRenderPassData* renderPassData,
 					if (attachmentIndex != DS_NO_ATTACHMENT && curAttachment->resolve &&
 						needsResolve(
 							renderPass->attachments[curAttachment->attachmentIndex].samples,
-							renderer->surfaceSamples))
+							renderer->surfaceSamples, renderer->defaultSamples))
 					{
 						uint32_t resolveAttachment =
 							renderPassData->resolveIndices[attachmentIndex];
@@ -555,8 +575,10 @@ static bool createRenderPass(dsVkRenderPassData* renderPassData, uint32_t resolv
 			vkAttachment->flags = 0;
 			vkAttachment->format = format->vkFormat;
 			uint32_t samples = attachment->samples;
-			if (samples == DS_DEFAULT_ANTIALIAS_SAMPLES)
+			if (samples == DS_SURFACE_ANTIALIAS_SAMPLES)
 				samples = renderer->surfaceSamples;
+			else if (samples == DS_DEFAULT_ANTIALIAS_SAMPLES)
+				samples = renderer->defaultSamples;
 
 			vkAttachment->samples = dsVkSampleCount(samples);
 
@@ -584,7 +606,7 @@ static bool createRenderPass(dsVkRenderPassData* renderPassData, uint32_t resolv
 			vkAttachment->finalLayout = layout;
 
 			if (dsVkAttachmentHasResolve(renderPass->subpasses, renderPass->subpassCount, i,
-					attachment->samples, renderer->surfaceSamples))
+					attachment->samples, renderer->surfaceSamples, renderer->defaultSamples))
 			{
 				uint32_t resolveAttachmentIndex = renderPassData->attachmentCount + resolveIndex;
 				VkAttachmentDescription2KHR* vkResolveAttachment = vkAttachments +
@@ -677,7 +699,7 @@ static bool createRenderPass(dsVkRenderPassData* renderPassData, uint32_t resolv
 
 				if (attachmentIndex != DS_NO_ATTACHMENT && curAttachment->resolve &&
 					needsResolve(renderPass->attachments[curAttachment->attachmentIndex].samples,
-						renderer->surfaceSamples))
+						renderer->surfaceSamples, renderer->defaultSamples))
 				{
 					hasResolve = true;
 				}
@@ -698,7 +720,7 @@ static bool createRenderPass(dsVkRenderPassData* renderPassData, uint32_t resolv
 					if (attachmentIndex != DS_NO_ATTACHMENT && curAttachment->resolve &&
 						needsResolve(
 							renderPass->attachments[curAttachment->attachmentIndex].samples,
-							renderer->surfaceSamples))
+							renderer->surfaceSamples, renderer->defaultSamples))
 					{
 						uint32_t resolveAttachment =
 							renderPassData->resolveIndices[attachmentIndex];
@@ -728,7 +750,7 @@ static bool createRenderPass(dsVkRenderPassData* renderPassData, uint32_t resolv
 
 			if (depthStencilAttachment->resolve && needsResolve(
 					renderPass->attachments[depthStencilAttachment->attachmentIndex].samples,
-					renderer->surfaceSamples))
+					renderer->surfaceSamples, renderer->defaultSamples))
 			{
 				uint32_t resolveAttachment =
 					renderPassData->resolveIndices[depthStencilAttachment->attachmentIndex];
@@ -812,10 +834,13 @@ static bool createRenderPass(dsVkRenderPassData* renderPassData, uint32_t resolv
 }
 
 bool dsVkAttachmentHasResolve(const dsRenderSubpassInfo* subpasses, uint32_t subpassCount,
-	uint32_t attachment, uint32_t samples, uint32_t defaultSamples)
+	uint32_t attachment, uint32_t samples, uint32_t surfaceSamples, uint32_t defaultSamples)
 {
-	if (samples == 1 || (samples == DS_DEFAULT_ANTIALIAS_SAMPLES && defaultSamples == 1))
+	if (samples == 1 || (samples == DS_SURFACE_ANTIALIAS_SAMPLES && surfaceSamples == 1) ||
+		(samples == DS_DEFAULT_ANTIALIAS_SAMPLES && defaultSamples == 1))
+	{
 		return false;
+	}
 
 	// Check to see if this will be resolved.
 	for (uint32_t i = 0; i < subpassCount; ++i)

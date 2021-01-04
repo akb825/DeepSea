@@ -107,6 +107,7 @@ static bool processEvent(dsApplication* application, dsWindow* window, const dsE
 	void* userData)
 {
 	TestLighting* testLighting = (TestLighting*)userData;
+	dsRenderer* renderer = testLighting->renderer;
 	DS_ASSERT(!window || window == testLighting->window);
 	switch (event->type)
 	{
@@ -135,6 +136,17 @@ static bool processEvent(dsApplication* application, dsWindow* window, const dsE
 				dsApplication_quit(application, 0);
 			else if (event->key.key == dsKeyCode_Space)
 				testLighting->stop = !testLighting->stop;
+			else if (event->key.key == dsKeyCode_1)
+			{
+				uint32_t samples = renderer->defaultSamples;
+				if (samples == 1)
+					samples = 4;
+				else
+					samples = 1;
+				dsRenderer_setDefaultSamples(renderer, samples);
+				DS_LOG_INFO_F("TestLighting", "Togging anti-aliasing: %s",
+					samples == 1 ? "off" : "on");
+			}
 			return false;
 		default:
 			return true;
@@ -455,6 +467,8 @@ int dsMain(int argc, const char** argv)
 	}
 
 	DS_LOG_INFO_F("TestLighting", "Render using %s", dsRenderBootstrap_rendererName(rendererType));
+	DS_LOG_INFO("TestLighting", "Press space to pause/unpause.");
+	DS_LOG_INFO("TestLighting", "Press '1' to toggle anti-aliasing for forward lighting.");
 
 	dsSystemAllocator renderAllocator;
 	DS_VERIFY(dsSystemAllocator_initialize(&renderAllocator, DS_ALLOCATOR_NO_LIMIT));
@@ -467,6 +481,7 @@ int dsMain(int argc, const char** argv)
 	dsRenderer_defaultOptions(&rendererOptions, "TestLighting", 0);
 	rendererOptions.depthBits = 0;
 	rendererOptions.stencilBits = 0;
+	rendererOptions.defaultSamples = 4;
 	rendererOptions.deviceName = deviceName;
 	dsRenderer* renderer = dsRenderBootstrap_createRenderer(rendererType,
 		(dsAllocator*)&renderAllocator, &rendererOptions);

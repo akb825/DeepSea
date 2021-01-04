@@ -1,4 +1,4 @@
-# Copyright 2020 Aaron Barany
+# Copyright 2020-2021 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -110,8 +110,9 @@ def convertScene(convertContext, data):
 	    - decoration: the decoration for the format. See the dsGfxFormat enum for values, removing
 	      the type prefix. Only the decorator values may be used. May also be "Unset" in cases where
 	      a decorator isn't valid.
-	    - samples: the number of anti-alias samples. When omitted, this uses the number of samples
-	      set on the renderer for window surfaces.
+	    - samples: the number of anti-alias samples. This should be an integer or the string
+	      "Surface" to use the number samples for render surfaces or "Default" for the default
+		  number of samples for offscreens and renderbuffers.
 	    - clearValue: a dict with one of the following members:
 	      - floatValues: array of 4 float values.
 	      - intValues: array of 4 signed int values.
@@ -160,6 +161,8 @@ def convertScene(convertContext, data):
 	- nodes: array of string node names to set on the scene.
 	"""
 	unsetValue = 0xFFFFFFFF
+	surfaceSamples = 0xFFFFFFFF
+	defaultSamples = 0xFFFFFFFE
 
 	def readFloat(value, name):
 		try:
@@ -221,7 +224,13 @@ def convertScene(convertContext, data):
 			raise Exception(
 				'Invalid attachment format decoration "' + decorationStr + '".')
 
-		attachment.samples = readUInt(info.get('samples'), 'attachment samples', unsetValue)
+		samplesValue = info['samples']
+		if samplesValue == 'Surface':
+			attachment.samples = surfaceSamples
+		elif samplesValue == 'Default':
+			attachment.samples = defaultSamples
+		else:
+			attachment.samples = readUInt(samplesValue, 'attachment samples')
 
 		clearValueInfo = info.get('clearValue')
 		if clearValueInfo:

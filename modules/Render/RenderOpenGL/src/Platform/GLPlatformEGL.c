@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Aaron Barany
+ * Copyright 2017-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -108,10 +108,10 @@ void* dsCreateGLConfig(dsAllocator* allocator, void* display, const dsRendererOp
 	addOption(attr, &optionCount, EGL_ALPHA_SIZE, options->alphaBits);
 	addOption(attr, &optionCount, EGL_DEPTH_SIZE, options->depthBits);
 	addOption(attr, &optionCount, EGL_STENCIL_SIZE, options->stencilBits);
-	if (render && options->samples > 1)
+	if (render && options->surfaceSamples > 1)
 	{
 		addOption(attr, &optionCount, EGL_SAMPLE_BUFFERS, 1);
-		addOption(attr, &optionCount, EGL_SAMPLES, options->samples);
+		addOption(attr, &optionCount, EGL_SAMPLES, options->surfaceSamples);
 	}
 	else
 	{

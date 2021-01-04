@@ -1,4 +1,4 @@
-# Copyright 2020 Aaron Barany
+# Copyright 2020-2021 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -73,8 +73,9 @@ def convertView(convertContext, data):
 	  - depth: the depth or array layers of the surface if an offscreen. If 0 or omitted, this is
 	    not a texture array.
 	  - mipLevels: the number of mipmap levels for an offscreen. Defaults to 1.
-	  - samples: the number of anti-alias samples. When omitted, this uses the number of samples
-	    set on the renderer for window surfaces.
+	  - samples: the number of anti-alias samples. This should be an integer or the string "Surface"
+	    to use the number samples for render surfaces or "Default" for the default number of samples
+	    for offscreens and renderbuffers.
 	  - resolve: whether or not to resolve multisampled results.
 	  - windowFramebuffer: Whether or not the surface is used in the same framebuffer as the window
 	    surface. When true, the surface will follow the rotation of the view and window surface.
@@ -110,6 +111,8 @@ def convertView(convertContext, data):
 	    - maxDepth: the maximum depth value. Defaults to 1.
 	"""
 	unsetValue = 0xFFFFFFFF
+	surfaceSamples = 0xFFFFFFFF
+	defaultSamples = 0xFFFFFFFE
 
 	def readFloat(value, name, minVal = None, maxVal = None):
 		try:
@@ -234,7 +237,15 @@ def convertView(convertContext, data):
 
 		surface.depth = readInt(info.get('depth', 0), 'surface depth', 0)
 		surface.mipLevels = readInt(info.get('mipLevels', 1), 'surface mip levels', 1)
-		surface.samples = readInt(info.get('samples', unsetValue), 'surface samples', 1)
+
+		samplesValue = info['samples']
+		if samplesValue == 'Surface':
+			surface.samples = surfaceSamples
+		elif samplesValue == 'Default':
+			surface.samples = defaultSamples
+		else:
+			surface.samples = readUInt(samplesValue, 'surface samples')
+
 		surface.resolve = readBool(info['resolve'], 'surface resolve')
 		surface.windowFramebuffer = readBool(info.get('windowFramebuffer', True),
 			'window framebuffer')

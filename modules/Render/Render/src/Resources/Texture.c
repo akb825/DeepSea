@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Aaron Barany
+ * Copyright 2016-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -466,8 +466,10 @@ dsOffscreen* dsTexture_createOffscreen(dsResourceManager* resourceManager, dsAll
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
-	if (texInfo.samples == DS_DEFAULT_ANTIALIAS_SAMPLES)
+	if (texInfo.samples == DS_SURFACE_ANTIALIAS_SAMPLES)
 		texInfo.samples = resourceManager->renderer->surfaceSamples;
+	else if (texInfo.samples == DS_DEFAULT_ANTIALIAS_SAMPLES)
+		texInfo.samples = resourceManager->renderer->defaultSamples;
 	texInfo.samples = dsMax(1U, texInfo.samples);
 	if (texInfo.samples == 1)
 		resolve = false;

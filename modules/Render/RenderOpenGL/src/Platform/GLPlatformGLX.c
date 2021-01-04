@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Aaron Barany
+ * Copyright 2017-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -134,10 +134,10 @@ void* dsCreateGLConfig(dsAllocator* allocator, void* display, const dsRendererOp
 	if (render && ((major > 1 || (major == 1 && minor >= 4)) ||
 		hasExtension(extensions, "GLX_ARB_multisample")))
 	{
-		if (options->samples > 1)
+		if (options->surfaceSamples > 1)
 		{
 			addOption2(attr, &optionCount, GLX_SAMPLE_BUFFERS, 1);
-			addOption2(attr, &optionCount, GLX_SAMPLES, options->samples);
+			addOption2(attr, &optionCount, GLX_SAMPLES, options->surfaceSamples);
 		}
 		else
 		{

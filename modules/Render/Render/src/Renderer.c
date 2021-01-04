@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2018 Aaron Barany
+ * Copyright 2017-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -240,7 +240,8 @@ void dsRenderer_defaultOptions(dsRendererOptions* options, const char* applicati
 	options->stencilBits = 8;
 	options->forcedColorFormat = dsGfxFormat_Unknown;
 	options->forcedDepthStencilFormat = dsGfxFormat_Unknown;
-	options->samples = 1;
+	options->surfaceSamples = 1;
+	options->defaultSamples = 1;
 	options->doubleBuffer = true;
 	options->srgb = false;
 	options->preferHalfDepthRange = false;
@@ -665,8 +666,61 @@ bool dsRenderer_setSurfaceSamples(dsRenderer* renderer, uint32_t samples)
 		return false;
 	}
 
-	bool success = renderer->setSurfaceSamplesFunc(renderer, dsMax(samples, 1U));
-	return success;
+	return renderer->setSurfaceSamplesFunc(renderer, dsMax(samples, 1U));
+}
+
+bool dsRenderer_setDefaultSamples(dsRenderer* renderer, uint32_t samples)
+{
+	if (!renderer || !renderer->setDefaultSamplesFunc)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	if (samples > renderer->maxSurfaceSamples)
+	{
+		errno = EINVAL;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Default samples is above the maximume.");
+		return false;
+	}
+
+	if (!dsThread_equal(dsThread_thisThreadID(), renderer->mainThread))
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Default samples may only be set on the main thread.");
+		return false;
+	}
+
+	return renderer->setDefaultSamplesFunc(renderer, dsMax(samples, 1U));
+}
+
+bool dsRenderer_setSamples(dsRenderer* renderer, uint32_t samples)
+{
+	if (!renderer || !renderer->setSurfaceSamplesFunc || !renderer->setDefaultSamplesFunc)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	if (samples > renderer->maxSurfaceSamples)
+	{
+		errno = EINVAL;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Samples is above the maximume.");
+		return false;
+	}
+
+	if (!dsThread_equal(dsThread_thisThreadID(), renderer->mainThread))
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Samples may only be set on the main thread.");
+		return false;
+	}
+
+	samples = dsMax(samples, 1U);
+	bool success = renderer->setSurfaceSamplesFunc(renderer, samples);
+	if (!success)
+		return false;
+	return renderer->setDefaultSamplesFunc(renderer, dsMax(samples, 1U));
 }
 
 bool dsRenderer_setVsync(dsRenderer* renderer, bool vsync)

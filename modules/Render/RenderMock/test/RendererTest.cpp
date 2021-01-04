@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -115,6 +115,20 @@ TEST_F(RendererTest, SetSurfaceSamples)
 	EXPECT_FALSE(dsRenderer_setSurfaceSamples(NULL, 1));
 	EXPECT_FALSE(dsRenderer_setSurfaceSamples(renderer, renderer->maxSurfaceSamples + 1));
 	EXPECT_TRUE(dsRenderer_setSurfaceSamples(renderer, renderer->maxSurfaceSamples));
+}
+
+TEST_F(RendererTest, SetDefaultSamples)
+{
+	EXPECT_FALSE(dsRenderer_setDefaultSamples(NULL, 1));
+	EXPECT_FALSE(dsRenderer_setDefaultSamples(renderer, renderer->maxSurfaceSamples + 1));
+	EXPECT_TRUE(dsRenderer_setDefaultSamples(renderer, renderer->maxSurfaceSamples));
+}
+
+TEST_F(RendererTest, SetSamples)
+{
+	EXPECT_FALSE(dsRenderer_setSamples(NULL, 1));
+	EXPECT_FALSE(dsRenderer_setSamples(renderer, renderer->maxSurfaceSamples + 1));
+	EXPECT_TRUE(dsRenderer_setSamples(renderer, renderer->maxSurfaceSamples));
 }
 
 TEST_F(RendererTest, SetVsync)

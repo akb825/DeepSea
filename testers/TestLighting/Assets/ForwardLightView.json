@@ -7,7 +7,7 @@
 			"usage": ["SubpassInput"],
 			"format": "A2B10G10R10",
 			"decoration": "UNorm",
-			"samples": 4,
+			"samples": "Default",
 			"resolve": true,
 			"windowFramebuffer": true
 		},
@@ -16,7 +16,7 @@
 			"type": "Renderbuffer",
 			"format": "X8D24",
 			"decoration": "Unset",
-			"samples": 4,
+			"samples": "Default",
 			"resolve": false,
 			"windowFramebuffer": true
 		}

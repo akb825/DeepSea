@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Aaron Barany
+ * Copyright 2017-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -91,10 +91,10 @@ void* dsCreateGLConfig(dsAllocator* allocator, void* display, const dsRendererOp
 		if (options->doubleBuffer)
 			addOption(attr, &optionCount, NSOpenGLPFADoubleBuffer);
 
-		if (render && options->samples > 1)
+		if (render && options->surfaceSamples > 1)
 		{
 			addOption2(attr, &optionCount, NSOpenGLPFASampleBuffers, 1);
-			addOption2(attr, &optionCount, NSOpenGLPFASamples, options->samples);
+			addOption2(attr, &optionCount, NSOpenGLPFASamples, options->surfaceSamples);
 		}
 		else
 		{
