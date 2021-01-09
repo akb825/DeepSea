@@ -516,6 +516,12 @@ bool dsMTLRenderer_setSurfaceSamples(dsRenderer* renderer, uint32_t samples)
 	return true;
 }
 
+bool dsMTLRenderer_setDefaultSamples(dsRenderer* renderer, uint32_t samples)
+{
+	renderer->defaultSamples = samples;
+	return true;
+}
+
 bool dsMTLRenderer_setVsync(dsRenderer* renderer, bool vsync)
 {
 	renderer->vsync = vsync;
@@ -861,7 +867,8 @@ dsRenderer* dsMTLRenderer_create(dsAllocator* allocator, const dsRendererOptions
 		baseRenderer->maxColorAttachments = getMaxColorAttachments(device);
 		baseRenderer->maxSurfaceSamples = getMaxSurfaceSamples(device);
 		baseRenderer->maxAnisotropy = 16.0f;
-		baseRenderer->surfaceSamples = options->samples;
+		baseRenderer->surfaceSamples = options->surfaceSamples;
+		baseRenderer->defaultSamples = options->defaultSamples;
 		baseRenderer->doubleBuffer = true;
 		baseRenderer->stereoscopic = false;
 		baseRenderer->vsync = false;
@@ -991,6 +998,7 @@ dsRenderer* dsMTLRenderer_create(dsAllocator* allocator, const dsRendererOptions
 		baseRenderer->beginFrameFunc = &dsMTLRenderer_beginFrame;
 		baseRenderer->endFrameFunc = &dsMTLRenderer_endFrame;
 		baseRenderer->setSurfaceSamplesFunc = &dsMTLRenderer_setSurfaceSamples;
+		baseRenderer->setDefaultSamplesFunc = &dsMTLRenderer_setDefaultSamples;
 		baseRenderer->setVsyncFunc = &dsMTLRenderer_setVsync;
 		baseRenderer->setDefaultAnisotropyFunc = &dsMTLRenderer_setDefaultAnisotropy;
 		baseRenderer->setViewportFunc = &dsMTLCommandBuffer_setViewport;
