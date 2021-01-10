@@ -118,13 +118,8 @@ void* dsCreateGLConfig(dsAllocator* allocator, void* display, const dsRendererOp
 		addOption(attr, &optionCount, EGL_SAMPLE_BUFFERS, 0);
 		addOption(attr, &optionCount, EGL_SAMPLES, 0);
 	}
-	if (atLeastVersion(1, 5))
-	{
-		if (options->srgb)
-			addOption(attr, &optionCount, EGL_COLORSPACE, EGL_COLORSPACE_sRGB);
-		else
-			addOption(attr, &optionCount, EGL_COLORSPACE, EGL_COLORSPACE_LINEAR);
-	}
+	if (atLeastVersion(1, 5) && options->srgb)
+		addOption(attr, &optionCount, EGL_COLORSPACE, EGL_COLORSPACE_sRGB);
 
 	DS_ASSERT(optionCount < MAX_OPTION_SIZE);
 	attr[optionCount] = EGL_NONE;
@@ -153,7 +148,10 @@ void* dsCreateGLConfig(dsAllocator* allocator, void* display, const dsRendererOp
 	}
 
 	if (!eglConfig)
+	{
+		errno = ENOTFOUND;
 		return NULL;
+	}
 
 	Config* config = DS_ALLOCATE_OBJECT(allocator, Config);
 	if (!config)

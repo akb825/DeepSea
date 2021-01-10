@@ -229,7 +229,7 @@ static void cacheVertexFormats(dsGLResourceManager* resourceManager)
 	setStandardVertexFormat(resourceManager, dsGfxFormat_X32Y32Z32W32, dsGfxFormat_UNorm,
 		GL_UNSIGNED_INT, 4);
 
-	bool packedInt = AnyGL_atLeastVersion(3, 0, false) || AnyGL_atLeastVersion(3, 0, false);
+	bool packedInt = AnyGL_atLeastVersion(3, 0, false) || AnyGL_atLeastVersion(3, 0, true);
 	bool d3dPackedInt = AnyGL_atLeastVersion(3, 2, false) || AnyGL_ARB_vertex_array_bgra;
 	if (packedInt)
 	{
