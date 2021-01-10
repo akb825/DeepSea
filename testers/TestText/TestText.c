@@ -1337,7 +1337,6 @@ int dsMain(int argc, const char** argv)
 	}
 
 	dsRenderer_setVsync(renderer, true);
-	dsRenderer_setDefaultAnisotropy(renderer, renderer->maxAnisotropy);
 #if DS_DEBUG
 	dsRenderer_setExtraDebugging(renderer, true);
 #endif

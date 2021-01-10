@@ -492,7 +492,7 @@ int dsMain(int argc, const char** argv)
 	}
 
 	dsRenderer_setVsync(renderer, true);
-	dsRenderer_setDefaultAnisotropy(renderer, renderer->maxAnisotropy);
+	dsRenderer_setDefaultAnisotropy(renderer, dsMin(4.0f, renderer->maxAnisotropy));
 #if DS_DEBUG
 	dsRenderer_setExtraDebugging(renderer, true);
 #endif

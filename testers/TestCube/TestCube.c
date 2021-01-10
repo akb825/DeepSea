@@ -242,7 +242,7 @@ static bool processEvent(dsApplication* application, dsWindow* window, const dsE
 			{
 				float anisotropy = renderer->defaultAnisotropy;
 				if (anisotropy == 1.0f)
-					anisotropy = 16.0f;
+					anisotropy = renderer->maxAnisotropy;
 				else
 					anisotropy = 1.0f;
 				dsRenderer_setDefaultAnisotropy(renderer, anisotropy);
