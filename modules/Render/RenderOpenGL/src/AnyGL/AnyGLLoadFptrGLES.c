@@ -2317,8 +2317,6 @@ int AnyGL_load(void)
 		AnyGL_glDepthRangeIndexed = (PFNANYGLDEPTHRANGEINDEXEDPROC)&glDepthRangeIndexed;
 		AnyGL_glGetFloati_v = (PFNANYGLGETFLOATI_VPROC)&glGetFloati_v;
 		AnyGL_glGetDoublei_v = (PFNANYGLGETDOUBLEI_VPROC)&glGetDoublei_v;
-		AnyGL_glDepthRangeArraydvNV = (PFNANYGLDEPTHRANGEARRAYDVNVPROC)&glDepthRangeArraydvNV;
-		AnyGL_glDepthRangeIndexeddNV = (PFNANYGLDEPTHRANGEINDEXEDDNVPROC)&glDepthRangeIndexeddNV;
 	}
 #endif /* GL_ARB_viewport_array */
 
