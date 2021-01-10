@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,9 @@ typedef struct dsSDLWindow
 	uint32_t samples;
 	uint32_t curWidth;
 	uint32_t curHeight;
+	uint32_t curSurfaceWidth;
+	uint32_t curSurfaceHeight;
+	dsRenderSurfaceRotation curSurfaceRotation;
 
 	dsVector2i curPosition;
 	dsWindowFlags curFlags;

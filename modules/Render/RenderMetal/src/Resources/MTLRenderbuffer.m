@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Aaron Barany
+ * Copyright 2019-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -121,6 +121,8 @@ dsRenderbuffer* dsMTLRenderbuffer_create(dsResourceManager* resourceManager, dsA
 			}
 			renderbuffer->surface = CFBridgingRetain(surface);
 		}
+		else
+			renderbuffer->surface = NULL;
 
 		if (stencilPixelFormat != MTLPixelFormatInvalid)
 		{
@@ -135,9 +137,9 @@ dsRenderbuffer* dsMTLRenderbuffer_create(dsResourceManager* resourceManager, dsA
 			renderbuffer->stencilSurface = CFBridgingRetain(surface);
 		}
 		else if (sharedStencil)
-		{
 			renderbuffer->stencilSurface = CFRetain(renderbuffer->surface);
-		}
+		else
+			renderbuffer->stencilSurface = NULL;
 
 		return baseRenderbuffer;
 	}

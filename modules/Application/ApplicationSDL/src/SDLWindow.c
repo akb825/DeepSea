@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -117,6 +117,9 @@ bool dsSDLWindow_createComponents(dsWindow* window, const char* title, const cha
 		application->displays[0].defaultMode];
 
 	dsSDLWindow_getSize(&sdlWindow->curWidth, &sdlWindow->curHeight, application, window);
+	sdlWindow->curSurfaceWidth = 0;
+	sdlWindow->curSurfaceHeight = 0;
+	sdlWindow->curSurfaceRotation = dsRenderSurfaceRotation_0;
 	return true;
 }
 
@@ -185,6 +188,13 @@ bool dsSDLWindow_createSurfaceInternal(dsWindow* window, const char* surfaceName
 
 	window->surface = dsRenderSurface_create(application->renderer, window->allocator,
 		surfaceName, windowHandle, dsRenderSurfaceType_Window, sdlWindow->renderSurfaceUsage);
+
+	if (window->surface)
+	{
+		sdlWindow->curSurfaceWidth = window->surface->width;
+		sdlWindow->curSurfaceHeight = window->surface->height;
+		sdlWindow->curSurfaceRotation = window->surface->rotation;
+	}
 
 #if defined(SDL_VIDEO_DRIVER_COCOA)
 	if (info.subsystem == SDL_SYSWM_COCOA)

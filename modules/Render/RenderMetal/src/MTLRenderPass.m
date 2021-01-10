@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Aaron Barany
+ * Copyright 2019-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -262,8 +262,8 @@ static MTLRenderPassDescriptor* createRenderPassDescriptor(const dsRenderPass* r
 			depthStencilAttachment->attachmentIndex;
 		dsGfxFormat format = dsFramebuffer_getSurfaceFormat(commandBuffer->renderer, surface);
 		if (format == dsGfxFormat_D16 || format == dsGfxFormat_X8D24 ||
-			format == dsGfxFormat_D16S8 || format == dsGfxFormat_D24S8 ||
-			format == dsGfxFormat_D32S8_Float)
+			format == dsGfxFormat_D32_Float || format == dsGfxFormat_D16S8 ||
+			format == dsGfxFormat_D24S8 || format == dsGfxFormat_D32S8_Float)
 		{
 			MTLRenderPassDepthAttachmentDescriptor* depthDescriptor = descriptor.depthAttachment;
 			if (!depthDescriptor)

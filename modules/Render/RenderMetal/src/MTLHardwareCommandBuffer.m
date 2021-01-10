@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Aaron Barany
+ * Copyright 2019-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -208,7 +208,6 @@ static id<MTLDepthStencilState> setDepthStencilState(uint32_t* outFrontStencilRe
 	if (dynamicOnly)
 		return nil;
 
-	[encoder setDepthStencilState: depthStencilState];
 	return depthStencilState;
 }
 
@@ -918,11 +917,13 @@ bool dsMTLHardwareCommandBuffer_setRenderStates(dsCommandBuffer* commandBuffer,
 		setDepthStencilState(&mtlCommandBuffer->curFrontStencilRef,
 			&mtlCommandBuffer->curBackStencilRef, encoder, renderStates, depthStencilState,
 			dynamicStates, dynamicOnly);
-	if (boundDepthStencilState)
+	if (boundDepthStencilState != mtlCommandBuffer->boundDepthStencil)
 	{
+		[encoder setDepthStencilState: depthStencilState];
 		if (mtlCommandBuffer->boundDepthStencil)
 			CFRelease(mtlCommandBuffer->boundDepthStencil);
-		mtlCommandBuffer->boundDepthStencil = CFBridgingRetain(boundDepthStencilState);
+		if (boundDepthStencilState)
+			mtlCommandBuffer->boundDepthStencil = CFBridgingRetain(boundDepthStencilState);
 	}
 
 	setDynamicDepthState(encoder, renderStates, dynamicStates, dynamicOnly,

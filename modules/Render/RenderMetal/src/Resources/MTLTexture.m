@@ -236,7 +236,7 @@ static dsTexture* createTextureImpl(dsResourceManager* resourceManager, dsAlloca
 		textureUsage |= MTLTextureUsageShaderWrite;
 	if (usage & dsTextureUsage_CopyFrom)
 		textureUsage |= MTLTextureUsagePixelFormatView;
-	if (offscreen && (!resolve || info->samples == 1))
+	if (offscreen)
 		textureUsage |= MTLTextureUsageRenderTarget;
 	descriptor.usage = textureUsage;
 

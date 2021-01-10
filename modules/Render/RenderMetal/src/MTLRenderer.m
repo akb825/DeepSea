@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Aaron Barany
+ * Copyright 2019-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -110,36 +110,36 @@ static uint32_t getMaxSurfaceSamples(id<MTLDevice> device)
 static uint32_t hasTessellationShaders(id<MTLDevice> device)
 {
 	/*
-	* Tessellation shaders on Metal are... strange... Apple in their infinite wisdom
-	* decided instead of making adjustments to their render pipeline structures to have
-	* it work like literally every other graphics API, they decided to shoehorn it in a
-	* very strange way that requires multiple manual pipieline stages:
-	* 1. Have a graphics pipeline with just a vertex shader for the initial vertex shader.
-	*    Use a buffer to capture the output to use later.
-	* 2. Run a compute shader for the tessellation control. This will require ending the
-	*    render encoding and starting a compute encoding to run the compute shader. The
-	*    vertex shader output is passed as an input, and the patch output is captured in
-	*    another buffer.
-	* 3. A new render encoding needs to be created, and uses the tessellation evaluation
-	*    shader as the "vertex" function. This pipeline has some properties set to run the
-	*    tessellation stage.
-	*
-	* Note that stopping/restartng the render encoder can make some optimizations
-	* impossible, such as memoryless render targets since the render contents need to be
-	* preserved between the render pass invocations.
-	*
-	* *Can* this be implemented? Sure, MoltenVK does it and it's obvious why it took so
-	* long to add tessellation shader support. *Will* this be implemented? Currently no.
-	*
-	* I don't see this as critical enough to spend the time to implement this, especially
-	* given that some Vulkan drivers (e.g. Qualcomm) don't implement tessellation.
-	* Tessellation already has its own set of performance issues (e.g. drawing text by
-	* tessellating points into quads is slower even on desktop GPUs), and having to
-	* stop/restart the rendering encoder and manage the buffers will make this even slower
-	* compared to the driver providing a proper interface.
-	*
-	* So for the time being, no tessellation on Metal.
-	*/
+	 * Tessellation shaders on Metal are... strange... Apple in their infinite wisdom
+	 * decided instead of making adjustments to their render pipeline structures to have
+	 * it work like literally every other graphics API, they decided to shoehorn it in a
+	 * very strange way that requires multiple manual pipieline stages:
+	 * 1. Have a graphics pipeline with just a vertex shader for the initial vertex shader.
+	 *    Use a buffer to capture the output to use later.
+	 * 2. Run a compute shader for the tessellation control. This will require ending the
+	 *    render encoding and starting a compute encoding to run the compute shader. The
+	 *    vertex shader output is passed as an input, and the patch output is captured in
+	 *    another buffer.
+	 * 3. A new render encoding needs to be created, and uses the tessellation evaluation
+	 *    shader as the "vertex" function. This pipeline has some properties set to run the
+	 *    tessellation stage.
+	 *
+	 * Note that stopping/restartng the render encoder can make some optimizations
+	 * impossible, such as memoryless render targets since the render contents need to be
+	 * preserved between the render pass invocations.
+	 *
+	 * *Can* this be implemented? Sure, MoltenVK does it and it's obvious why it took so
+	 * long to add tessellation shader support. *Will* this be implemented? Currently no.
+	 *
+	 * I don't see this as critical enough to spend the time to implement this, especially
+	 * given that some Vulkan drivers (e.g. Qualcomm) don't implement tessellation.
+	 * Tessellation already has its own set of performance issues (e.g. drawing text by
+	 * tessellating points into quads is slower even on desktop GPUs), and having to
+	 * stop/restart the rendering encoder and manage the buffers will make this even slower
+	 * compared to the driver providing a proper interface.
+	 *
+	 * So for the time being, no tessellation on Metal.
+	 */
 
 	DS_UNUSED(device);
 #if DS_IOS && __IPHONE_OS_VERSION_MIN_REQUIRED < 100000

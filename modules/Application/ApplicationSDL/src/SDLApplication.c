@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Aaron Barany
+ * Copyright 2017-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -392,17 +392,19 @@ int dsSDLApplication_run(dsApplication* application)
 			dsSDLWindow_getSize(&newWidth, &newHeight, application, window);
 
 			// NOTE: Sometimes the surface resize doesn't correspond with the window resize event.
-			uint32_t oldWidth = window->surface->width;
-			uint32_t oldHeight = window->surface->height;
-			dsRenderSurfaceRotation oldRotation = window->surface->rotation;
 			dsRenderSurface_update(window->surface);
 
-			if (window->surface->width != oldWidth ||
-				window->surface->height != oldHeight ||
-				window->surface->rotation != oldRotation)
+			// Sometimes the surface will be updated during rendering, so use the cached versions
+			// for compare rather than the surface values before update.
+			if (window->surface->width != sdlWindow->curSurfaceWidth ||
+				window->surface->height != sdlWindow->curSurfaceHeight ||
+				window->surface->rotation != sdlWindow->curSurfaceRotation)
 			{
 				sdlWindow->curWidth = newWidth;
 				sdlWindow->curHeight = newHeight;
+				sdlWindow->curSurfaceWidth = window->surface->width;
+				sdlWindow->curSurfaceHeight = window->surface->height;
+				sdlWindow->curSurfaceRotation = window->surface->rotation;
 
 				dsEvent event;
 				event.type = dsAppEventType_WindowResized;
