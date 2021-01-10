@@ -776,7 +776,8 @@ static void cacheTextureFormats(dsGLResourceManager* resourceManager)
 		}
 
 		// SRGB
-		if (AnyGL_atLeastVersion(2, 1, false) || AnyGL_EXT_texture_sRGB || AnyGL_EXT_sRGB)
+		if (AnyGL_atLeastVersion(2, 1, false) || AnyGL_atLeastVersion(3, 0, true) ||
+			AnyGL_EXT_texture_sRGB || AnyGL_EXT_sRGB)
 		{
 			setStandardFormat(resourceManager, dsGfxFormat_R8G8B8A8, dsGfxFormat_SRGB,
 				FormatBit_Texture | FormatBit_RenderTarget, GL_SRGB8_ALPHA8, GL_RGBA,
@@ -836,7 +837,7 @@ static void cacheTextureFormats(dsGLResourceManager* resourceManager)
 			FormatBit_Texture, GL_COMPRESSED_RGB_S3TC_DXT1_EXT, GL_RGB);
 		setCompressedFormat(resourceManager, dsGfxFormat_BC1_RGBA, dsGfxFormat_UNorm,
 			FormatBit_Texture, GL_COMPRESSED_RGBA_S3TC_DXT1_EXT, GL_RGBA);
-		if (AnyGL_EXT_texture_sRGB)
+		if (AnyGL_EXT_texture_sRGB || AnyGL_EXT_texture_compression_s3tc_srgb)
 		{
 			setCompressedFormat(resourceManager, dsGfxFormat_BC1_RGB, dsGfxFormat_SRGB,
 				FormatBit_Texture, GL_COMPRESSED_SRGB_S3TC_DXT1_EXT, GL_RGB);
@@ -851,7 +852,7 @@ static void cacheTextureFormats(dsGLResourceManager* resourceManager)
 			FormatBit_Texture, GL_COMPRESSED_RGBA_S3TC_DXT3_EXT, GL_RGBA);
 		setCompressedFormat(resourceManager, dsGfxFormat_BC3, dsGfxFormat_UNorm,
 			FormatBit_Texture, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, GL_RGBA);
-		if (AnyGL_EXT_texture_sRGB)
+		if (AnyGL_EXT_texture_sRGB || AnyGL_EXT_texture_compression_s3tc_srgb)
 		{
 			setCompressedFormat(resourceManager, dsGfxFormat_BC2, dsGfxFormat_SRGB,
 				FormatBit_Texture, GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT3_EXT, GL_RGB);

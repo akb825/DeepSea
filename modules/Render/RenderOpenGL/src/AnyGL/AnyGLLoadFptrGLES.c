@@ -2317,6 +2317,8 @@ int AnyGL_load(void)
 		AnyGL_glDepthRangeIndexed = (PFNANYGLDEPTHRANGEINDEXEDPROC)&glDepthRangeIndexed;
 		AnyGL_glGetFloati_v = (PFNANYGLGETFLOATI_VPROC)&glGetFloati_v;
 		AnyGL_glGetDoublei_v = (PFNANYGLGETDOUBLEI_VPROC)&glGetDoublei_v;
+		AnyGL_glDepthRangeArraydvNV = (PFNANYGLDEPTHRANGEARRAYDVNVPROC)&glDepthRangeArraydvNV;
+		AnyGL_glDepthRangeIndexeddNV = (PFNANYGLDEPTHRANGEINDEXEDDNVPROC)&glDepthRangeIndexeddNV;
 	}
 #endif /* GL_ARB_viewport_array */
 
@@ -3700,6 +3702,8 @@ int AnyGL_load(void)
 			AnyGL_glGetQueryObjecti64v = (PFNANYGLGETQUERYOBJECTI64VPROC)&glGetQueryObjecti64vEXT;
 		if (!AnyGL_glGetQueryObjectui64v)
 			AnyGL_glGetQueryObjectui64v = (PFNANYGLGETQUERYOBJECTUI64VPROC)&glGetQueryObjectui64vEXT;
+		if (!AnyGL_glGetInteger64v)
+			AnyGL_glGetInteger64v = (PFNANYGLGETINTEGER64VPROC)&glGetInteger64vEXT;
 	}
 #endif /* GL_EXT_disjoint_timer_query */
 
@@ -4130,6 +4134,10 @@ int AnyGL_load(void)
 	}
 #endif /* GL_EXT_multisampled_render_to_texture */
 
+#ifndef ANYGL_EXT_multisampled_render_to_texture2
+	AnyGL_EXT_multisampled_render_to_texture2 = AnyGL_queryExtension("GL_EXT_multisampled_render_to_texture2");
+#endif /* GL_EXT_multisampled_render_to_texture2 */
+
 #ifndef ANYGL_EXT_multiview_draw_buffers
 	AnyGL_EXT_multiview_draw_buffers = AnyGL_queryExtension("GL_EXT_multiview_draw_buffers");
 	if (AnyGL_EXT_multiview_draw_buffers)
@@ -4466,8 +4474,6 @@ int AnyGL_load(void)
 			AnyGL_glProgramUniform3uiv = (PFNANYGLPROGRAMUNIFORM3UIVPROC)&glProgramUniform3uivEXT;
 		if (!AnyGL_glProgramUniform4uiv)
 			AnyGL_glProgramUniform4uiv = (PFNANYGLPROGRAMUNIFORM4UIVPROC)&glProgramUniform4uivEXT;
-		if (!AnyGL_glProgramUniformMatrix4fv)
-			AnyGL_glProgramUniformMatrix4fv = (PFNANYGLPROGRAMUNIFORMMATRIX4FVPROC)&glProgramUniformMatrix4fvEXT;
 		if (!AnyGL_glProgramUniformMatrix2x3fv)
 			AnyGL_glProgramUniformMatrix2x3fv = (PFNANYGLPROGRAMUNIFORMMATRIX2X3FVPROC)&glProgramUniformMatrix2x3fvEXT;
 		if (!AnyGL_glProgramUniformMatrix3x2fv)

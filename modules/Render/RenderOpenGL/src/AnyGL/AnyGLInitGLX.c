@@ -221,6 +221,8 @@ int AnyGL_initialize(void)
 
 	/* GLX_EXT_framebuffer_sRGB */
 
+	/* GLX_EXT_get_drawable_type */
+
 	/* GLX_EXT_import_context */
 	AnyGL_glXGetCurrentDisplayEXT = (PFNANYGLXGETCURRENTDISPLAYEXTPROC)AnyGL_glXGetProcAddress((const GLubyte*)"glXGetCurrentDisplayEXT");
 	AnyGL_glXQueryContextInfoEXT = (PFNANYGLXQUERYCONTEXTINFOEXTPROC)AnyGL_glXGetProcAddress((const GLubyte*)"glXQueryContextInfoEXT");

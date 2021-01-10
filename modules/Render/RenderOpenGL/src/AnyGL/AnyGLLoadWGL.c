@@ -2958,6 +2958,8 @@ int AnyGL_load(void)
 		AnyGL_glDepthRangeIndexed = (PFNANYGLDEPTHRANGEINDEXEDPROC)wglGetProcAddress("glDepthRangeIndexed");
 		AnyGL_glGetFloati_v = (PFNANYGLGETFLOATI_VPROC)wglGetProcAddress("glGetFloati_v");
 		AnyGL_glGetDoublei_v = (PFNANYGLGETDOUBLEI_VPROC)wglGetProcAddress("glGetDoublei_v");
+		AnyGL_glDepthRangeArraydvNV = (PFNANYGLDEPTHRANGEARRAYDVNVPROC)wglGetProcAddress("glDepthRangeArraydvNV");
+		AnyGL_glDepthRangeIndexeddNV = (PFNANYGLDEPTHRANGEINDEXEDDNVPROC)wglGetProcAddress("glDepthRangeIndexeddNV");
 	}
 
 	/* GL_ARB_window_pos */
@@ -4280,6 +4282,8 @@ int AnyGL_load(void)
 			AnyGL_glGetQueryObjecti64v = (PFNANYGLGETQUERYOBJECTI64VPROC)wglGetProcAddress("glGetQueryObjecti64vEXT");
 		if (!AnyGL_glGetQueryObjectui64v)
 			AnyGL_glGetQueryObjectui64v = (PFNANYGLGETQUERYOBJECTUI64VPROC)wglGetProcAddress("glGetQueryObjectui64vEXT");
+		if (!AnyGL_glGetInteger64v)
+			AnyGL_glGetInteger64v = (PFNANYGLGETINTEGER64VPROC)wglGetProcAddress("glGetInteger64vEXT");
 	}
 
 	/* GL_EXT_draw_buffers */
@@ -4673,6 +4677,9 @@ int AnyGL_load(void)
 		AnyGL_glFramebufferTexture2DMultisampleEXT = (PFNANYGLFRAMEBUFFERTEXTURE2DMULTISAMPLEEXTPROC)wglGetProcAddress("glFramebufferTexture2DMultisampleEXT");
 	}
 
+	/* GL_EXT_multisampled_render_to_texture2 */
+	AnyGL_EXT_multisampled_render_to_texture2 = AnyGL_queryExtension("GL_EXT_multisampled_render_to_texture2");
+
 	/* GL_EXT_multiview_draw_buffers */
 	AnyGL_EXT_multiview_draw_buffers = AnyGL_queryExtension("GL_EXT_multiview_draw_buffers");
 	if (AnyGL_EXT_multiview_draw_buffers)
@@ -4971,8 +4978,6 @@ int AnyGL_load(void)
 			AnyGL_glProgramUniform3uiv = (PFNANYGLPROGRAMUNIFORM3UIVPROC)wglGetProcAddress("glProgramUniform3uivEXT");
 		if (!AnyGL_glProgramUniform4uiv)
 			AnyGL_glProgramUniform4uiv = (PFNANYGLPROGRAMUNIFORM4UIVPROC)wglGetProcAddress("glProgramUniform4uivEXT");
-		if (!AnyGL_glProgramUniformMatrix4fv)
-			AnyGL_glProgramUniformMatrix4fv = (PFNANYGLPROGRAMUNIFORMMATRIX4FVPROC)wglGetProcAddress("glProgramUniformMatrix4fvEXT");
 		if (!AnyGL_glProgramUniformMatrix2x3fv)
 			AnyGL_glProgramUniformMatrix2x3fv = (PFNANYGLPROGRAMUNIFORMMATRIX2X3FVPROC)wglGetProcAddress("glProgramUniformMatrix2x3fvEXT");
 		if (!AnyGL_glProgramUniformMatrix3x2fv)

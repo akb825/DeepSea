@@ -2135,6 +2135,12 @@ ANYGL_EXPORT extern int AnyGL_EXT_multisampled_compatibility;
 #endif
 ANYGL_EXPORT extern int AnyGL_EXT_multisampled_render_to_texture;
 
+#ifndef GL_EXT_multisampled_render_to_texture2
+#define GL_EXT_multisampled_render_to_texture2 1
+#define ANYGL_EXT_multisampled_render_to_texture2 1
+#endif
+ANYGL_EXPORT extern int AnyGL_EXT_multisampled_render_to_texture2;
+
 #ifndef GL_EXT_multiview_draw_buffers
 #define GL_EXT_multiview_draw_buffers 1
 #define ANYGL_EXT_multiview_draw_buffers 1
@@ -4802,6 +4808,18 @@ typedef void *GLeglClientBufferEXT;
 #define GL_MAX_COMBINED_CLIP_AND_CULL_DISTANCES 0x82FA
 #define GL_TEXTURE_TARGET                 0x1006
 #define GL_QUERY_TARGET                   0x82EA
+#define GL_COLOR_TABLE                    0x80D0
+#define GL_POST_CONVOLUTION_COLOR_TABLE   0x80D1
+#define GL_POST_COLOR_MATRIX_COLOR_TABLE  0x80D2
+#define GL_PROXY_COLOR_TABLE              0x80D3
+#define GL_PROXY_POST_CONVOLUTION_COLOR_TABLE 0x80D4
+#define GL_PROXY_POST_COLOR_MATRIX_COLOR_TABLE 0x80D5
+#define GL_CONVOLUTION_1D                 0x8010
+#define GL_CONVOLUTION_2D                 0x8011
+#define GL_SEPARABLE_2D                   0x8012
+#define GL_HISTOGRAM                      0x8024
+#define GL_PROXY_HISTOGRAM                0x8025
+#define GL_MINMAX                         0x802E
 #define GL_CONTEXT_RELEASE_BEHAVIOR       0x82FB
 #define GL_CONTEXT_RELEASE_BEHAVIOR_FLUSH 0x82FC
 #endif /* GL_VERSION_4_5 */
@@ -5042,9 +5060,6 @@ typedef void *GLeglClientBufferEXT;
 #endif /* GL_ARB_half_float_pixel */
 
 #ifdef ANYGL_ARB_imaging
-#define GL_CONVOLUTION_1D                 0x8010
-#define GL_CONVOLUTION_2D                 0x8011
-#define GL_SEPARABLE_2D                   0x8012
 #define GL_CONVOLUTION_BORDER_MODE        0x8013
 #define GL_CONVOLUTION_FILTER_SCALE       0x8014
 #define GL_CONVOLUTION_FILTER_BIAS        0x8015
@@ -5062,8 +5077,6 @@ typedef void *GLeglClientBufferEXT;
 #define GL_POST_CONVOLUTION_GREEN_BIAS    0x8021
 #define GL_POST_CONVOLUTION_BLUE_BIAS     0x8022
 #define GL_POST_CONVOLUTION_ALPHA_BIAS    0x8023
-#define GL_HISTOGRAM                      0x8024
-#define GL_PROXY_HISTOGRAM                0x8025
 #define GL_HISTOGRAM_WIDTH                0x8026
 #define GL_HISTOGRAM_FORMAT               0x8027
 #define GL_HISTOGRAM_RED_SIZE             0x8028
@@ -5072,7 +5085,6 @@ typedef void *GLeglClientBufferEXT;
 #define GL_HISTOGRAM_ALPHA_SIZE           0x802B
 #define GL_HISTOGRAM_LUMINANCE_SIZE       0x802C
 #define GL_HISTOGRAM_SINK                 0x802D
-#define GL_MINMAX                         0x802E
 #define GL_MINMAX_FORMAT                  0x802F
 #define GL_MINMAX_SINK                    0x8030
 #define GL_TABLE_TOO_LARGE                0x8031
@@ -5087,12 +5099,6 @@ typedef void *GLeglClientBufferEXT;
 #define GL_POST_COLOR_MATRIX_GREEN_BIAS   0x80B9
 #define GL_POST_COLOR_MATRIX_BLUE_BIAS    0x80BA
 #define GL_POST_COLOR_MATRIX_ALPHA_BIAS   0x80BB
-#define GL_COLOR_TABLE                    0x80D0
-#define GL_POST_CONVOLUTION_COLOR_TABLE   0x80D1
-#define GL_POST_COLOR_MATRIX_COLOR_TABLE  0x80D2
-#define GL_PROXY_COLOR_TABLE              0x80D3
-#define GL_PROXY_POST_CONVOLUTION_COLOR_TABLE 0x80D4
-#define GL_PROXY_POST_COLOR_MATRIX_COLOR_TABLE 0x80D5
 #define GL_COLOR_TABLE_SCALE              0x80D6
 #define GL_COLOR_TABLE_BIAS               0x80D7
 #define GL_COLOR_TABLE_FORMAT             0x80D8
@@ -7725,7 +7731,7 @@ typedef void (APIENTRY* PFNANYGLRELEASESHADERCOMPILERPROC)();
 typedef void (APIENTRY* PFNANYGLRENDERBUFFERSTORAGEPROC)(GLenum target, GLenum internalformat, GLsizei width, GLsizei height);
 typedef void (APIENTRY* PFNANYGLSAMPLECOVERAGEPROC)(GLfloat value, GLboolean invert);
 typedef void (APIENTRY* PFNANYGLSCISSORPROC)(GLint x, GLint y, GLsizei width, GLsizei height);
-typedef void (APIENTRY* PFNANYGLSHADERBINARYPROC)(GLsizei count, const GLuint *shaders, GLenum binaryformat, const void *binary, GLsizei length);
+typedef void (APIENTRY* PFNANYGLSHADERBINARYPROC)(GLsizei count, const GLuint *shaders, GLenum binaryFormat, const void *binary, GLsizei length);
 typedef void (APIENTRY* PFNANYGLSHADERSOURCEPROC)(GLuint shader, GLsizei count, const GLchar *const*string, const GLint *length);
 typedef void (APIENTRY* PFNANYGLSTENCILFUNCPROC)(GLenum func, GLint ref, GLuint mask);
 typedef void (APIENTRY* PFNANYGLSTENCILFUNCSEPARATEPROC)(GLenum face, GLenum func, GLint ref, GLuint mask);
@@ -8012,7 +8018,7 @@ ANYGL_EXPORT extern PFNANYGLVIEWPORTPROC AnyGL_glViewport;
 #define glRenderbufferStorage(target, internalformat, width, height) ANYGL_CALL(AnyGL_glRenderbufferStorage)(target, internalformat, width, height)
 #define glSampleCoverage(value, invert) ANYGL_CALL(AnyGL_glSampleCoverage)(value, invert)
 #define glScissor(x, y, width, height) ANYGL_CALL(AnyGL_glScissor)(x, y, width, height)
-#define glShaderBinary(count, shaders, binaryformat, binary, length) ANYGL_CALL(AnyGL_glShaderBinary)(count, shaders, binaryformat, binary, length)
+#define glShaderBinary(count, shaders, binaryFormat, binary, length) ANYGL_CALL(AnyGL_glShaderBinary)(count, shaders, binaryFormat, binary, length)
 #define glShaderSource(shader, count, string, length) ANYGL_CALL(AnyGL_glShaderSource)(shader, count, string, length)
 #define glStencilFunc(func, ref, mask) ANYGL_CALL(AnyGL_glStencilFunc)(func, ref, mask)
 #define glStencilFuncSeparate(face, func, ref, mask) ANYGL_CALL(AnyGL_glStencilFuncSeparate)(face, func, ref, mask)
@@ -8136,7 +8142,7 @@ typedef void (APIENTRY* PFNANYGLDELETESYNCPROC)(GLsync sync);
 typedef GLenum (APIENTRY* PFNANYGLCLIENTWAITSYNCPROC)(GLsync sync, GLbitfield flags, GLuint64 timeout);
 typedef void (APIENTRY* PFNANYGLWAITSYNCPROC)(GLsync sync, GLbitfield flags, GLuint64 timeout);
 typedef void (APIENTRY* PFNANYGLGETINTEGER64VPROC)(GLenum pname, GLint64 *data);
-typedef void (APIENTRY* PFNANYGLGETSYNCIVPROC)(GLsync sync, GLenum pname, GLsizei bufSize, GLsizei *length, GLint *values);
+typedef void (APIENTRY* PFNANYGLGETSYNCIVPROC)(GLsync sync, GLenum pname, GLsizei count, GLsizei *length, GLint *values);
 typedef void (APIENTRY* PFNANYGLGETINTEGER64I_VPROC)(GLenum target, GLuint index, GLint64 *data);
 typedef void (APIENTRY* PFNANYGLGETBUFFERPARAMETERI64VPROC)(GLenum target, GLenum pname, GLint64 *params);
 typedef void (APIENTRY* PFNANYGLGENSAMPLERSPROC)(GLsizei count, GLuint *samplers);
@@ -8163,7 +8169,7 @@ typedef void (APIENTRY* PFNANYGLINVALIDATEFRAMEBUFFERPROC)(GLenum target, GLsize
 typedef void (APIENTRY* PFNANYGLINVALIDATESUBFRAMEBUFFERPROC)(GLenum target, GLsizei numAttachments, const GLenum *attachments, GLint x, GLint y, GLsizei width, GLsizei height);
 typedef void (APIENTRY* PFNANYGLTEXSTORAGE2DPROC)(GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height);
 typedef void (APIENTRY* PFNANYGLTEXSTORAGE3DPROC)(GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth);
-typedef void (APIENTRY* PFNANYGLGETINTERNALFORMATIVPROC)(GLenum target, GLenum internalformat, GLenum pname, GLsizei bufSize, GLint *params);
+typedef void (APIENTRY* PFNANYGLGETINTERNALFORMATIVPROC)(GLenum target, GLenum internalformat, GLenum pname, GLsizei count, GLint *params);
 
 ANYGL_EXPORT extern PFNANYGLREADBUFFERPROC AnyGL_glReadBuffer;
 ANYGL_EXPORT extern PFNANYGLDRAWRANGEELEMENTSPROC AnyGL_glDrawRangeElements;
@@ -8347,7 +8353,7 @@ ANYGL_EXPORT extern PFNANYGLGETINTERNALFORMATIVPROC AnyGL_glGetInternalformativ;
 #define glClientWaitSync(sync, flags, timeout) ANYGL_CALL(AnyGL_glClientWaitSync)(sync, flags, timeout)
 #define glWaitSync(sync, flags, timeout) ANYGL_CALL(AnyGL_glWaitSync)(sync, flags, timeout)
 #define glGetInteger64v(pname, data) ANYGL_CALL(AnyGL_glGetInteger64v)(pname, data)
-#define glGetSynciv(sync, pname, bufSize, length, values) ANYGL_CALL(AnyGL_glGetSynciv)(sync, pname, bufSize, length, values)
+#define glGetSynciv(sync, pname, count, length, values) ANYGL_CALL(AnyGL_glGetSynciv)(sync, pname, count, length, values)
 #define glGetInteger64i_v(target, index, data) ANYGL_CALL(AnyGL_glGetInteger64i_v)(target, index, data)
 #define glGetBufferParameteri64v(target, pname, params) ANYGL_CALL(AnyGL_glGetBufferParameteri64v)(target, pname, params)
 #define glGenSamplers(count, samplers) ANYGL_CALL(AnyGL_glGenSamplers)(count, samplers)
@@ -8374,7 +8380,7 @@ ANYGL_EXPORT extern PFNANYGLGETINTERNALFORMATIVPROC AnyGL_glGetInternalformativ;
 #define glInvalidateSubFramebuffer(target, numAttachments, attachments, x, y, width, height) ANYGL_CALL(AnyGL_glInvalidateSubFramebuffer)(target, numAttachments, attachments, x, y, width, height)
 #define glTexStorage2D(target, levels, internalformat, width, height) ANYGL_CALL(AnyGL_glTexStorage2D)(target, levels, internalformat, width, height)
 #define glTexStorage3D(target, levels, internalformat, width, height, depth) ANYGL_CALL(AnyGL_glTexStorage3D)(target, levels, internalformat, width, height, depth)
-#define glGetInternalformativ(target, internalformat, pname, bufSize, params) ANYGL_CALL(AnyGL_glGetInternalformativ)(target, internalformat, pname, bufSize, params)
+#define glGetInternalformativ(target, internalformat, pname, count, params) ANYGL_CALL(AnyGL_glGetInternalformativ)(target, internalformat, pname, count, params)
 #endif /* ANYGL_NO_DEFINES */
 
 /* GL_ES_VERSION_3_1 */
@@ -8387,7 +8393,7 @@ typedef void (APIENTRY* PFNANYGLGETFRAMEBUFFERPARAMETERIVPROC)(GLenum target, GL
 typedef void (APIENTRY* PFNANYGLGETPROGRAMINTERFACEIVPROC)(GLuint program, GLenum programInterface, GLenum pname, GLint *params);
 typedef GLuint (APIENTRY* PFNANYGLGETPROGRAMRESOURCEINDEXPROC)(GLuint program, GLenum programInterface, const GLchar *name);
 typedef void (APIENTRY* PFNANYGLGETPROGRAMRESOURCENAMEPROC)(GLuint program, GLenum programInterface, GLuint index, GLsizei bufSize, GLsizei *length, GLchar *name);
-typedef void (APIENTRY* PFNANYGLGETPROGRAMRESOURCEIVPROC)(GLuint program, GLenum programInterface, GLuint index, GLsizei propCount, const GLenum *props, GLsizei bufSize, GLsizei *length, GLint *params);
+typedef void (APIENTRY* PFNANYGLGETPROGRAMRESOURCEIVPROC)(GLuint program, GLenum programInterface, GLuint index, GLsizei propCount, const GLenum *props, GLsizei count, GLsizei *length, GLint *params);
 typedef GLint (APIENTRY* PFNANYGLGETPROGRAMRESOURCELOCATIONPROC)(GLuint program, GLenum programInterface, const GLchar *name);
 typedef void (APIENTRY* PFNANYGLUSEPROGRAMSTAGESPROC)(GLuint pipeline, GLbitfield stages, GLuint program);
 typedef void (APIENTRY* PFNANYGLACTIVESHADERPROGRAMPROC)(GLuint pipeline, GLuint program);
@@ -8526,7 +8532,7 @@ ANYGL_EXPORT extern PFNANYGLVERTEXBINDINGDIVISORPROC AnyGL_glVertexBindingDiviso
 #define glGetProgramInterfaceiv(program, programInterface, pname, params) ANYGL_CALL(AnyGL_glGetProgramInterfaceiv)(program, programInterface, pname, params)
 #define glGetProgramResourceIndex(program, programInterface, name) ANYGL_CALL(AnyGL_glGetProgramResourceIndex)(program, programInterface, name)
 #define glGetProgramResourceName(program, programInterface, index, bufSize, length, name) ANYGL_CALL(AnyGL_glGetProgramResourceName)(program, programInterface, index, bufSize, length, name)
-#define glGetProgramResourceiv(program, programInterface, index, propCount, props, bufSize, length, params) ANYGL_CALL(AnyGL_glGetProgramResourceiv)(program, programInterface, index, propCount, props, bufSize, length, params)
+#define glGetProgramResourceiv(program, programInterface, index, propCount, props, count, length, params) ANYGL_CALL(AnyGL_glGetProgramResourceiv)(program, programInterface, index, propCount, props, count, length, params)
 #define glGetProgramResourceLocation(program, programInterface, name) ANYGL_CALL(AnyGL_glGetProgramResourceLocation)(program, programInterface, name)
 #define glUseProgramStages(pipeline, stages, program) ANYGL_CALL(AnyGL_glUseProgramStages)(pipeline, stages, program)
 #define glActiveShaderProgram(pipeline, program) ANYGL_CALL(AnyGL_glActiveShaderProgram)(pipeline, program)
@@ -10241,8 +10247,8 @@ typedef void (APIENTRY* PFNANYGLGETUNIFORMDVPROC)(GLuint program, GLint location
 typedef GLint (APIENTRY* PFNANYGLGETSUBROUTINEUNIFORMLOCATIONPROC)(GLuint program, GLenum shadertype, const GLchar *name);
 typedef GLuint (APIENTRY* PFNANYGLGETSUBROUTINEINDEXPROC)(GLuint program, GLenum shadertype, const GLchar *name);
 typedef void (APIENTRY* PFNANYGLGETACTIVESUBROUTINEUNIFORMIVPROC)(GLuint program, GLenum shadertype, GLuint index, GLenum pname, GLint *values);
-typedef void (APIENTRY* PFNANYGLGETACTIVESUBROUTINEUNIFORMNAMEPROC)(GLuint program, GLenum shadertype, GLuint index, GLsizei bufsize, GLsizei *length, GLchar *name);
-typedef void (APIENTRY* PFNANYGLGETACTIVESUBROUTINENAMEPROC)(GLuint program, GLenum shadertype, GLuint index, GLsizei bufsize, GLsizei *length, GLchar *name);
+typedef void (APIENTRY* PFNANYGLGETACTIVESUBROUTINEUNIFORMNAMEPROC)(GLuint program, GLenum shadertype, GLuint index, GLsizei bufSize, GLsizei *length, GLchar *name);
+typedef void (APIENTRY* PFNANYGLGETACTIVESUBROUTINENAMEPROC)(GLuint program, GLenum shadertype, GLuint index, GLsizei bufSize, GLsizei *length, GLchar *name);
 typedef void (APIENTRY* PFNANYGLUNIFORMSUBROUTINESUIVPROC)(GLenum shadertype, GLsizei count, const GLuint *indices);
 typedef void (APIENTRY* PFNANYGLGETUNIFORMSUBROUTINEUIVPROC)(GLenum shadertype, GLint location, GLuint *params);
 typedef void (APIENTRY* PFNANYGLGETPROGRAMSTAGEIVPROC)(GLuint program, GLenum shadertype, GLenum pname, GLint *values);
@@ -10308,8 +10314,8 @@ ANYGL_EXPORT extern PFNANYGLGETQUERYINDEXEDIVPROC AnyGL_glGetQueryIndexediv;
 #define glGetSubroutineUniformLocation(program, shadertype, name) ANYGL_CALL(AnyGL_glGetSubroutineUniformLocation)(program, shadertype, name)
 #define glGetSubroutineIndex(program, shadertype, name) ANYGL_CALL(AnyGL_glGetSubroutineIndex)(program, shadertype, name)
 #define glGetActiveSubroutineUniformiv(program, shadertype, index, pname, values) ANYGL_CALL(AnyGL_glGetActiveSubroutineUniformiv)(program, shadertype, index, pname, values)
-#define glGetActiveSubroutineUniformName(program, shadertype, index, bufsize, length, name) ANYGL_CALL(AnyGL_glGetActiveSubroutineUniformName)(program, shadertype, index, bufsize, length, name)
-#define glGetActiveSubroutineName(program, shadertype, index, bufsize, length, name) ANYGL_CALL(AnyGL_glGetActiveSubroutineName)(program, shadertype, index, bufsize, length, name)
+#define glGetActiveSubroutineUniformName(program, shadertype, index, bufSize, length, name) ANYGL_CALL(AnyGL_glGetActiveSubroutineUniformName)(program, shadertype, index, bufSize, length, name)
+#define glGetActiveSubroutineName(program, shadertype, index, bufSize, length, name) ANYGL_CALL(AnyGL_glGetActiveSubroutineName)(program, shadertype, index, bufSize, length, name)
 #define glUniformSubroutinesuiv(shadertype, count, indices) ANYGL_CALL(AnyGL_glUniformSubroutinesuiv)(shadertype, count, indices)
 #define glGetUniformSubroutineuiv(shadertype, location, params) ANYGL_CALL(AnyGL_glGetUniformSubroutineuiv)(shadertype, location, params)
 #define glGetProgramStageiv(program, shadertype, pname, values) ANYGL_CALL(AnyGL_glGetProgramStageiv)(program, shadertype, pname, values)
@@ -10468,7 +10474,7 @@ ANYGL_EXPORT extern PFNANYGLDRAWTRANSFORMFEEDBACKSTREAMINSTANCEDPROC AnyGL_glDra
 /* GL_VERSION_4_3 */
 typedef void (APIENTRY* PFNANYGLCLEARBUFFERDATAPROC)(GLenum target, GLenum internalformat, GLenum format, GLenum type, const void *data);
 typedef void (APIENTRY* PFNANYGLCLEARBUFFERSUBDATAPROC)(GLenum target, GLenum internalformat, GLintptr offset, GLsizeiptr size, GLenum format, GLenum type, const void *data);
-typedef void (APIENTRY* PFNANYGLGETINTERNALFORMATI64VPROC)(GLenum target, GLenum internalformat, GLenum pname, GLsizei bufSize, GLint64 *params);
+typedef void (APIENTRY* PFNANYGLGETINTERNALFORMATI64VPROC)(GLenum target, GLenum internalformat, GLenum pname, GLsizei count, GLint64 *params);
 typedef void (APIENTRY* PFNANYGLINVALIDATETEXSUBIMAGEPROC)(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth);
 typedef void (APIENTRY* PFNANYGLINVALIDATETEXIMAGEPROC)(GLuint texture, GLint level);
 typedef void (APIENTRY* PFNANYGLINVALIDATEBUFFERSUBDATAPROC)(GLuint buffer, GLintptr offset, GLsizeiptr length);
@@ -10497,7 +10503,7 @@ ANYGL_EXPORT extern PFNANYGLVERTEXATTRIBLFORMATPROC AnyGL_glVertexAttribLFormat;
 #ifndef ANYGL_NO_DEFINES
 #define glClearBufferData(target, internalformat, format, type, data) ANYGL_CALL(AnyGL_glClearBufferData)(target, internalformat, format, type, data)
 #define glClearBufferSubData(target, internalformat, offset, size, format, type, data) ANYGL_CALL(AnyGL_glClearBufferSubData)(target, internalformat, offset, size, format, type, data)
-#define glGetInternalformati64v(target, internalformat, pname, bufSize, params) ANYGL_CALL(AnyGL_glGetInternalformati64v)(target, internalformat, pname, bufSize, params)
+#define glGetInternalformati64v(target, internalformat, pname, count, params) ANYGL_CALL(AnyGL_glGetInternalformati64v)(target, internalformat, pname, count, params)
 #define glInvalidateTexSubImage(texture, level, xoffset, yoffset, zoffset, width, height, depth) ANYGL_CALL(AnyGL_glInvalidateTexSubImage)(texture, level, xoffset, yoffset, zoffset, width, height, depth)
 #define glInvalidateTexImage(texture, level) ANYGL_CALL(AnyGL_glInvalidateTexImage)(texture, level)
 #define glInvalidateBufferSubData(buffer, offset, length) ANYGL_CALL(AnyGL_glInvalidateBufferSubData)(buffer, offset, length)
@@ -12539,9 +12545,15 @@ ANYGL_EXPORT extern PFNANYGLVERTEXBLENDARBPROC AnyGL_glVertexBlendARB;
 #endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_viewport_array */
+typedef void (APIENTRY* PFNANYGLDEPTHRANGEARRAYDVNVPROC)(GLuint first, GLsizei count, const GLdouble *v);
+typedef void (APIENTRY* PFNANYGLDEPTHRANGEINDEXEDDNVPROC)(GLuint index, GLdouble n, GLdouble f);
 
+ANYGL_EXPORT extern PFNANYGLDEPTHRANGEARRAYDVNVPROC AnyGL_glDepthRangeArraydvNV;
+ANYGL_EXPORT extern PFNANYGLDEPTHRANGEINDEXEDDNVPROC AnyGL_glDepthRangeIndexeddNV;
 
 #ifndef ANYGL_NO_DEFINES
+#define glDepthRangeArraydvNV(first, count, v) ANYGL_CALL(AnyGL_glDepthRangeArraydvNV)(first, count, v)
+#define glDepthRangeIndexeddNV(index, n, f) ANYGL_CALL(AnyGL_glDepthRangeIndexeddNV)(index, n, f)
 #endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_window_pos */
@@ -12839,7 +12851,7 @@ ANYGL_EXPORT extern PFNANYGLVERTEX4BVOESPROC AnyGL_glVertex4bvOES;
 #define glDrawElementsBaseVertexOES(mode, count, type, indices, basevertex) ANYGL_CALL(AnyGL_glDrawElementsBaseVertex)(mode, count, type, indices, basevertex)
 #define glDrawRangeElementsBaseVertexOES(mode, start, end, count, type, indices, basevertex) ANYGL_CALL(AnyGL_glDrawRangeElementsBaseVertex)(mode, start, end, count, type, indices, basevertex)
 #define glDrawElementsInstancedBaseVertexOES(mode, count, type, indices, instancecount, basevertex) ANYGL_CALL(AnyGL_glDrawElementsInstancedBaseVertex)(mode, count, type, indices, instancecount, basevertex)
-#define glMultiDrawElementsBaseVertexEXT(mode, count, type, indices, primcount, basevertex) ANYGL_CALL(AnyGL_glMultiDrawElementsBaseVertex)(mode, count, type, indices, primcount, basevertex)
+#define glMultiDrawElementsBaseVertexEXT(mode, count, type, indices, drawcount, basevertex) ANYGL_CALL(AnyGL_glMultiDrawElementsBaseVertex)(mode, count, type, indices, drawcount, basevertex)
 #endif /* ANYGL_NO_DEFINES */
 
 /* GL_OES_draw_texture */
@@ -14710,6 +14722,7 @@ ANYGL_EXPORT extern PFNANYGLDISCARDFRAMEBUFFEREXTPROC AnyGL_glDiscardFramebuffer
 #define glGetQueryObjectuivEXT(id, pname, params) ANYGL_CALL(AnyGL_glGetQueryObjectuiv)(id, pname, params)
 #define glGetQueryObjecti64vEXT(id, pname, params) ANYGL_CALL(AnyGL_glGetQueryObjecti64v)(id, pname, params)
 #define glGetQueryObjectui64vEXT(id, pname, params) ANYGL_CALL(AnyGL_glGetQueryObjectui64v)(id, pname, params)
+#define glGetInteger64vEXT(pname, data) ANYGL_CALL(AnyGL_glGetInteger64v)(pname, data)
 #endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_draw_buffers */
@@ -15123,6 +15136,12 @@ ANYGL_EXPORT extern PFNANYGLFRAMEBUFFERTEXTURE2DMULTISAMPLEEXTPROC AnyGL_glFrame
 
 #ifndef ANYGL_NO_DEFINES
 #define glFramebufferTexture2DMultisampleEXT(target, attachment, textarget, texture, level, samples) ANYGL_CALL(AnyGL_glFramebufferTexture2DMultisampleEXT)(target, attachment, textarget, texture, level, samples)
+#endif /* ANYGL_NO_DEFINES */
+
+/* GL_EXT_multisampled_render_to_texture2 */
+
+
+#ifndef ANYGL_NO_DEFINES
 #endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_multiview_draw_buffers */

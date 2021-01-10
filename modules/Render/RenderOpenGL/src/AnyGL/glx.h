@@ -550,6 +550,13 @@ ANYGL_EXPORT extern PFNANYGLXBLITCONTEXTFRAMEBUFFERAMDPROC AnyGL_glXBlitContextF
 #define GLX_FRAMEBUFFER_SRGB_CAPABLE_EXT  0x20B2
 #endif /* ANYGL_NO_DEFINES */
 
+#ifndef GLX_EXT_get_drawable_type
+#define GLX_EXT_get_drawable_type 1
+#define ANYGLX_EXT_get_drawable_type 1
+
+
+#endif /* GLX_EXT_get_drawable_type */
+
 #ifndef GLX_EXT_import_context
 #define GLX_EXT_import_context 1
 #define ANYGLX_EXT_import_context 1
