@@ -33,26 +33,6 @@
 #define DS_FORWARD_LIGHT_COUNT 4
 #endif
 
-/**
- * @brief Constant for an unset light.
- */
-#define DS_UNSET_LIGHT 0
-
-/**
- * @brief Constant for a directional light.
- */
-#define DS_DIRECTIONAL_LIGHT 1
-
-/**
- * @brief Constant for a point light.
- */
-#define DS_POINT_LIGHT 2
-
-/**
- * @brief Constant for a spot light.
- */
-#define DS_SPOT_LIGHT 3
-
 uniform InstanceForwardLightData
 {
 	/**
@@ -90,7 +70,7 @@ uniform InstanceForwardLightData
  * @param position The position on the surface.
  * @param normal The normal on the surface.
  * @param diffuseColor The diffuse color of the material.
- * @param specularColor The specular color of the material. If 0, specular will be skipped.
+ * @param specularColor The specular color of the material.
  * @param shininess The shininess value for computing specular lighting. Set to 0 to not compute
  *     specular.
  * @param viewDirection The direction to the view.
@@ -100,80 +80,23 @@ void dsComputeForwardLighting(out vec3 outDiffuseColor, out vec3 outSpecularColo
 {
 	outDiffuseColor = INSTANCE(dsForwardLights).ambientColor;
 	outSpecularColor = vec3(0, 0, 0);
-	if (shininess == 0)
+	for (int i = 0; i < DS_FORWARD_LIGHT_COUNT; ++i)
 	{
-		for (int i = 0; i < DS_FORWARD_LIGHT_COUNT; ++i)
-		{
-			vec3 lightPosition = INSTANCE(dsForwardLights).positionAndType[i].xyz;
-			float type = INSTANCE(dsForwardLights).positionAndType[i].w;
-			lowp vec3 lightDirection = INSTANCE(dsForwardLights).directionAndLinearFalloff[i].xyz;
-			lowp float linearFalloff = INSTANCE(dsForwardLights).directionAndLinearFalloff[i].w;
-			vec3 lightColor = INSTANCE(dsForwardLights).colorAndQuadraticFalloff[i].xyz;
-			lowp float quadraticFalloff = INSTANCE(dsForwardLights).colorAndQuadraticFalloff[i].w;
-			lowp vec2 spotCosAngles = INSTANCE(dsForwardLights).spotCosAngles[i];
-			if (type == DS_DIRECTIONAL_LIGHT)
-				outDiffuseColor += lightColor*dsDirectionalDiffuseLight(lightDirection, normal);
-			else if (type == DS_POINT_LIGHT)
-			{
-				lowp float falloff;
-				lowp vec3 surfaceDirection;
-				float diffuse = dsPointDiffuseLight(falloff, surfaceDirection, lightPosition,
-					position, normal, linearFalloff, quadraticFalloff);
-				outDiffuseColor += lightColor*diffuse*falloff;
-			}
-			else if (type == DS_SPOT_LIGHT)
-			{
-				lowp float falloff;
-				lowp vec3 surfaceDirection;
-				float diffuse = dsSpotDiffuseLight(falloff, surfaceDirection, lightPosition,
-					lightDirection, position, normal, linearFalloff, quadraticFalloff,
-					spotCosAngles.x, spotCosAngles.y);
-				outDiffuseColor += lightColor*diffuse*falloff;
-			}
-			else
-				break;
-		}
-	}
-	else
-	{
-		for (int i = 0; i < DS_FORWARD_LIGHT_COUNT; ++i)
-		{
-			vec3 lightPosition = INSTANCE(dsForwardLights).positionAndType[i].xyz;
-			float type = INSTANCE(dsForwardLights).positionAndType[i].w;
-			lowp vec3 lightDirection = INSTANCE(dsForwardLights).directionAndLinearFalloff[i].xyz;
-			lowp float linearFalloff = INSTANCE(dsForwardLights).directionAndLinearFalloff[i].w;
-			vec3 lightColor = INSTANCE(dsForwardLights).colorAndQuadraticFalloff[i].xyz;
-			lowp float quadraticFalloff = INSTANCE(dsForwardLights).colorAndQuadraticFalloff[i].w;
-			lowp vec2 spotCosAngles = INSTANCE(dsForwardLights).spotCosAngles[i];
-			if (type == DS_DIRECTIONAL_LIGHT)
-			{
-				outDiffuseColor += lightColor*dsDirectionalDiffuseLight(lightDirection, normal);
-				outSpecularColor += lightColor*dsDirectionalSpecularLight(lightDirection, normal,
-					viewDirection, shininess);
-			}
-			else if (type == DS_POINT_LIGHT)
-			{
-				lowp float falloff;
-				lowp vec3 surfaceDirection;
-				float diffuse = dsPointDiffuseLight(falloff, surfaceDirection, lightPosition,
-					position, normal, linearFalloff, quadraticFalloff);
-				outDiffuseColor += lightColor*diffuse*falloff;
-				outSpecularColor += lightColor*dsGeneralSpecularLight(surfaceDirection, normal,
-					viewDirection, shininess)*falloff;
-			}
-			else if (type == DS_SPOT_LIGHT)
-			{
-				lowp float falloff;
-				lowp vec3 surfaceDirection;
-				float diffuse = dsSpotDiffuseLight(falloff, surfaceDirection, lightPosition,
-					lightDirection, position, normal, linearFalloff, quadraticFalloff,
-					spotCosAngles.x, spotCosAngles.y);
-				outDiffuseColor += lightColor*diffuse*falloff;
-				outSpecularColor += lightColor*dsGeneralSpecularLight(lightDirection, normal,
-					viewDirection, shininess)*falloff;
-			}
-			else
-				break;
-		}
+		vec3 lightPosition = INSTANCE(dsForwardLights).positionAndType[i].xyz;
+		int lightType = int(INSTANCE(dsForwardLights).positionAndType[i].w);
+		lowp vec3 lightDirection = INSTANCE(dsForwardLights).directionAndLinearFalloff[i].xyz;
+		lowp float linearFalloff = INSTANCE(dsForwardLights).directionAndLinearFalloff[i].w;
+		vec3 lightColor = INSTANCE(dsForwardLights).colorAndQuadraticFalloff[i].xyz;
+		lowp float quadraticFalloff = INSTANCE(dsForwardLights).colorAndQuadraticFalloff[i].w;
+		lowp vec2 spotCosAngles = INSTANCE(dsForwardLights).spotCosAngles[i];
+
+		lowp float falloff;
+		lowp vec3 surfaceDirection;
+		float diffuse = dsDiffuseLight(falloff, surfaceDirection, lightType, lightPosition,
+			lightDirection, position, normal, linearFalloff, quadraticFalloff, spotCosAngles.x,
+			spotCosAngles.y);
+		outDiffuseColor += lightColor*diffuse*falloff;
+		outSpecularColor += lightColor*dsSpecularLight(surfaceDirection, normal, viewDirection,
+			shininess)*falloff;
 	}
 }

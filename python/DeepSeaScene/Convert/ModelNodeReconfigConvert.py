@@ -43,7 +43,7 @@ def convertModelNodeReconfig(convertContext, data):
 				validateModelDistanceRange(distanceRange)
 
 				models.append((str(model['baseName']), str(model['shader']),
-					str(model['material']), distanceRange, str(model.get('modelList', ''))))
+					str(model['material']), distanceRange, str(model['modelList'])))
 
 			extraItemLists = data.get('extraItemLists')
 			if extraItemLists and not isinstance(extraItemLists, list):
@@ -71,11 +71,7 @@ def convertModelNodeReconfig(convertContext, data):
 		modelNameOffset = builder.CreateString(modelName)
 		shaderOffset = builder.CreateString(shader)
 		materialOffset = builder.CreateString(material)
-
-		if modelList:
-			modelListOffset = builder.CreateString(modelList)
-		else:
-			modelListOffset = 0
+		modelListOffset = builder.CreateString(modelList)
 
 		ModelReconfigStart(builder)
 		ModelReconfigAddName(builder, modelNameOffset)

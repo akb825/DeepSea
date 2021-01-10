@@ -60,7 +60,31 @@
 									}
 								}
 							],
-							"sortType": "Material",
+							"sortType": "FrontToBack",
+							"cullList": "cullList"
+						},
+						{
+							"type": "ModelList",
+							"name": "groundList",
+							"instanceData":
+							[
+								{
+									"type": "InstanceTransformData",
+									"data":
+									{
+										"variableGroupDesc": "instanceTransformDesc"
+									}
+								},
+								{
+									"type": "InstanceForwardLightData",
+									"data":
+									{
+										"variableGroupDesc": "instanceForwardLightDesc",
+										"lightSet": "lightSet"
+									}
+								}
+							],
+							"sortType": "FrontToBack",
 							"cullList": "cullList"
 						},
 						{

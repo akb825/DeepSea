@@ -20,6 +20,27 @@
  * @brief Functions for computing lighting.
  */
 
+
+/**
+ * @brief Constant for an unset light.
+ */
+#define DS_UNSET_LIGHT 0
+
+/**
+ * @brief Constant for a directional light.
+ */
+#define DS_DIRECTIONAL_LIGHT 1
+
+/**
+ * @brief Constant for a point light.
+ */
+#define DS_POINT_LIGHT 2
+
+/**
+ * @brief Constant for a spot light.
+ */
+#define DS_SPOT_LIGHT 3
+
 /**
  * @brief Computes the diffuse lighting factor of a directional light.
  * @param lightDirection The direction to the light.
@@ -50,13 +71,6 @@ lowp float dsPointDiffuseLight(out lowp float falloff, out lowp vec3 surfaceDire
 {
 	vec3 surfaceToLight = lightPosition - surfacePosition;
 	float distToLight2 = dot(surfaceToLight, surfaceToLight);
-	if (distToLight2 < 1e-6)
-	{
-		surfaceDirection = vec3(0, 0, 0);
-		falloff = 1;
-		return 1;
-	}
-
 	float distToLight = sqrt(distToLight2);
 	surfaceDirection = surfaceToLight*(1/distToLight);
 	falloff = 1/(1 + distToLight*linearFalloff + distToLight2*quadraticFalloff);
@@ -84,56 +98,80 @@ lowp float dsSpotDiffuseLight(out lowp float falloff, out lowp vec3 surfaceDirec
 	lowp float linearFalloff, lowp float quadraticFalloff, lowp float innerSpotCosAngle,
 	lowp float outerSpotCosAngle)
 {
-	vec3 lightToSurface = lightPosition - surfacePosition;
-	float distToLight2 = dot(lightToSurface, lightToSurface);
-	if (distToLight2 < 1e-6)
-	{
-		surfaceDirection = vec3(0, 0, 0);
-		falloff = 1;
-		return 1;
-	}
-
+	vec3 surfaceToLight = lightPosition - surfacePosition;
+	float distToLight2 = dot(surfaceToLight, surfaceToLight);
 	float distToLight = sqrt(distToLight2);
+	surfaceDirection = surfaceToLight*(1/distToLight);
 	falloff = 1/(1 + distToLight*linearFalloff + distToLight2*quadraticFalloff);
 
-	surfaceDirection = lightToSurface*(1/distToLight);
 	lowp float cosAngle = dot(surfaceDirection, lightDirection);
 	lowp float angleFactor = clamp(cosAngle, outerSpotCosAngle, innerSpotCosAngle) -
 		outerSpotCosAngle;
 	lowp float angleDenom = innerSpotCosAngle == outerSpotCosAngle ?
 		1 : 1/(innerSpotCosAngle - outerSpotCosAngle);
 	falloff *= angleFactor*angleDenom;
-	return max(dot(lightDirection, normal), 0);
+	return max(dot(surfaceDirection, normal), 0);
 }
 
 /**
- * @brief Computes the specular lighting factor of a directional light.
+ * @brief Computes the diffuse lighting factor of a directional, point, or spot light.
+ *
+ * This is optimized to avoid any branching, which can completely murder performance on some CPUs.
+ * This will be slower than calling the type-specific function, but much faster than choosing which
+ * one to call based on an if block.
+ *
+ * @param[out] falloff The falloff factor for the light. This should be used to multiply the final
+ *     lighting value.
+ * @param[out] surfaceDirection The direction of the surface to the light. This can be used if the
+ *     specular factor is computed afterward.
+ * @param lightType The type of the light.
+ * @param lightPosition The position of the light.
+ * @param lightDirection The direction to the light.
+ * @param surfacePosition The position of the surface.
+ * @param normal The normal of the surface.
+ * @param linearFalloff The linear falloff factor.
+ * @param quadraticFalloff The quadratic falloff factor.
+ * @param innerSpotCosAngle The cosine of the inner angle of a spot light.
+ * @param outerSpotCosAngle The cosine of the outer angle of a spot light.
+ * @return The diffuse lighting factor.
+ */
+lowp float dsDiffuseLight(out lowp float falloff, out lowp vec3 surfaceDirection, int lightType,
+	vec3 lightPosition, lowp vec3 lightDirection, vec3 surfacePosition, lowp vec3 normal,
+	lowp float linearFalloff, lowp float quadraticFalloff, lowp float innerSpotCosAngle,
+	lowp float outerSpotCosAngle)
+{
+	bool directional = lightType == DS_DIRECTIONAL_LIGHT;
+	bool spot = lightType == DS_SPOT_LIGHT;
+	bool validLight = lightType != DS_UNSET_LIGHT;
+
+	vec3 surfaceToLight = directional ? vec3(0.0) : lightPosition - surfacePosition;
+	float distToLight2 = dot(surfaceToLight, surfaceToLight);
+	float distToLight = sqrt(distToLight2);
+	float invDistToLight = 1/max(distToLight, 1e-6);
+	surfaceDirection = directional ? lightDirection : surfaceToLight*invDistToLight;
+	falloff = 1/(1 + distToLight*linearFalloff + distToLight2*quadraticFalloff);
+
+	lowp float cosAngle = dot(surfaceDirection, lightDirection);
+	lowp float angleFactor = clamp(cosAngle, outerSpotCosAngle, innerSpotCosAngle) -
+		outerSpotCosAngle;
+	lowp float angleDenom = innerSpotCosAngle == outerSpotCosAngle ?
+		1 : 1/(innerSpotCosAngle - outerSpotCosAngle);
+	falloff = spot ? falloff*angleFactor*angleDenom : falloff;
+	return max(dot(surfaceDirection, normal), 0)*float(validLight);
+}
+
+/**
+ * @brief Computes the specular lighting factor.
  * @param lightDirection The direction to the light.
  * @param normal The normal of the surface.
  * @param viewDirection The direction to the view.
  * @param shininess The shininess of the specular.
  * @return The specular lighting factor.
  */
-float dsDirectionalSpecularLight(lowp vec3 lightDirection, lowp vec3 normal,
+float dsSpecularLight(lowp vec3 lightDirection, lowp vec3 normal,
 	lowp vec3 viewDirection, mediump float shininess)
 {
 	lowp vec3 halfDirection = normalize(lightDirection + viewDirection);
 	float specular = max(dot(halfDirection, normal), 0);
-	return pow(specular, shininess);
-}
-
-/**
- * @brief Computes the specular lighting factor of a point or spot light.
- * @param lightDirection The direction to the light.
- * @param normal The normal of the surface.
- * @param viewDirection The direction to the view.
- * @param shininess The shininess of the specular.
- * @return The specular lighting factor.
- */
-float dsGeneralSpecularLight(lowp vec3 lightDirection, lowp vec3 normal,
-	lowp vec3 viewDirection, mediump float shininess)
-{
-	lowp vec3 reflectDirection = reflect(-lightDirection, normal);
-	float specular = max(dot(reflectDirection, viewDirection), 0);
 	return pow(specular, shininess);
 }
