@@ -130,12 +130,15 @@ def convertModelNodeGeometry(convertContext, modelGeometry, embeddedResources):
 			raise Exception('Model type"' + modelType + '" hasn\'t been registered.')
 
 		vfcVertexFormat = []
-		for attrib, attribFormat, decoration in vertexFormat:
-			vfcVertexFormat.append({
-				'name': str(attrib),
-				'layout': attribFormat,
-				'type': decoration
-			})
+		for streamFormat in vertexFormat:
+			vfcStreamFormat = []
+			for attrib, attribFormat, decoration in streamFormat:
+				vfcStreamFormat.append({
+					'name': str(attrib),
+					'layout': attribFormat,
+					'type': decoration
+				})
+			vfcVertexFormat.append(vfcStreamFormat)
 
 		indexType = getIndexType(indexSize)
 
@@ -214,9 +217,25 @@ def convertModelNodeGeometry(convertContext, modelGeometry, embeddedResources):
 					# Parse the final geometry info.
 					geometry = Object()
 					geometry.vertexCount = vfcOutput['vertexCount']
-					geometry.vertexData = appendBuffer(combinedBuffer,
-						base64.b64decode(vfcOutput['vertexData'][7:]))
-					geometry.vertexFormat = vertexFormat
+					geometry.vertices = []
+
+					vfcVertices = vfcOutput['vertices']
+					for i in range(len(vfcVertices)):
+						vertexInfo = Object()
+						vertexInfo.vertexFormat = vertexFormat[i]
+						vertexInfo.vertexData = appendBuffer(combinedBuffer,
+							base64.b64decode(vfcVertices[i]['vertexData'][7:]))
+						geometry.vertices.append(vertexInfo)
+
+						# Update the bounds.
+						for attribFormat in vfcVertices[i]['vertexFormat']:
+							if attribFormat['name'] == '0':
+								minValue = attribFormat['minValue']
+								maxValue = attribFormat['maxValue']
+								for i in range(3):
+									modelBounds[0][i] = min(modelBounds[0][i], minValue[i])
+									modelBounds[1][i] = max(modelBounds[1][i], maxValue[i])
+
 					geometry.primitiveType = geometryData.primitiveType
 
 					geometry.indexBuffers = []
@@ -238,16 +257,7 @@ def convertModelNodeGeometry(convertContext, modelGeometry, embeddedResources):
 								indexBuffer.firstIndex = 0
 							indexBuffer.indexSize = indexSize
 							geometry.indexBuffers.append(indexBuffer)
-
-					# Update the bounds.
-					for attribFormat in vfcOutput['vertexFormat']:
-						if attribFormat['name'] == '0':
-							minValue = attribFormat['minValue']
-							maxValue = attribFormat['maxValue']
-							for i in range(3):
-								modelBounds[0][i] = min(modelBounds[0][i], minValue[i])
-								modelBounds[1][i] = max(modelBounds[1][i], maxValue[i])
-				except:
+				except Exception as e:
 					raise Exception('Internal error: unexpected output from vfc.')
 
 				convertedGeometry[geometryData.name] = geometry
@@ -278,27 +288,35 @@ def convertModelNodeGeometry(convertContext, modelGeometry, embeddedResources):
 				vertexFormat = geometryData['vertexFormat']
 				vfcVertexFormat = []
 				try:
-					for vertexAttrib in vertexFormat:
-						try:
-							attrib = readVertexAttrib(vertexAttrib['attrib'])
+					if len(vertexFormat) > 4:
+						raise Exception(
+							'ModuleNode geometry "vertexFormat" must have at most 4 elements.')
 
-							attribFormat = str(vertexAttrib['format'])
-							if not hasattr(VertexElementFormat, attribFormat):
-								raise Exception('Invalid vertex format "' + attribFormat + '".')
+					for streamFormat in vertexFormat:
+						vfcStreamFormat = []
+						for vertexAttrib in streamFormat:
+							try:
+								attrib = readVertexAttrib(vertexAttrib['attrib'])
 
-							decoration = str(vertexAttrib['decoration'])
-							if not hasattr(FormatDecoration, decoration):
+								attribFormat = str(vertexAttrib['format'])
+								if not hasattr(VertexElementFormat, attribFormat):
+									raise Exception('Invalid vertex format "' + attribFormat + '".')
+
+								decoration = str(vertexAttrib['decoration'])
+								if not hasattr(FormatDecoration, decoration):
+									raise Exception(
+										'Invalid vertex format decoration "' + decoration + '".')
+
+								vfcStreamFormat.append((attrib, attribFormat, decoration))
+							except KeyError as e:
 								raise Exception(
-									'Invalid vertex format decoration "' + decoration + '".')
+									'ModelNode geometry vertex format doesn\'t contain element ' +
+									str(e) + '.')
 
-							vfcVertexFormat.append((attrib, attribFormat, decoration))
-						except KeyError as e:
-							raise Exception(
-								'ModelNode geometry vertex format doesn\'t contain element ' +
-								str(e) + '.')
+						vfcVertexFormat.append(vfcStreamFormat)
 				except (TypeError, ValueError):
 					raise Exception(
-						'ModelNode geometry "vertexFormat" must be an array of objects.')
+						'ModelNode geometry "vertexFormat" must be a 2D array of objects.')
 
 				indexSize = geometryData.get('indexSize', 0)
 				if indexSize not in (0, 2, 4):
@@ -345,27 +363,27 @@ def convertModelNodeGeometry(convertContext, modelGeometry, embeddedResources):
 
 			# Geometries to be added to the embedded resources.
 			for geometry in convertedGeometry.values():
-				vertexAttributes = []
-				for attrib, attribFormat, decoration in geometry.vertexFormat:
-					vertexAttributes.append({
-						'attrib': attrib,
-						'format': attribFormat,
-						'decoration': decoration
+				vertexBuffers = []
+				for vertexBufferInfo in geometry.vertices:
+					vertexAttributes = []
+					for attrib, attribFormat, decoration in vertexBufferInfo.vertexFormat:
+						vertexAttributes.append({
+							'attrib': attrib,
+							'format': attribFormat,
+							'decoration': decoration
+						})
+					vertexBuffers.append({
+						'name': embeddedBufferName,
+						'offset': vertexBufferInfo.vertexData,
+						'count': geometry.vertexCount,
+						'format': {'attributes': vertexAttributes}
 					})
-				vertexBuffer = {
-					'name': embeddedBufferName,
-					'offset': geometry.vertexData,
-					'count': geometry.vertexCount,
-					'format': {
-						'attributes': vertexAttributes,
-					}
-				}
 
 				geometryName = embeddedGeometryName + str(len(geometries))
 				geometryInfo = {
 					'type': 'DrawGeometry',
 					'name': geometryName,
-					'vertexBuffers': [vertexBuffer]
+					'vertexBuffers': vertexBuffers
 				}
 				if geometry.indexBuffers:
 					totalIndexCount = 0
@@ -526,8 +544,10 @@ def convertModelNode(convertContext, data):
 	  - type: the name of the geometry type, such as "obj" or "gltf". If ommitted, the type is
 	    inferred from the path extension.
 	  - path: the path to the geometry.
-	  - vertexFormat: array of vertex attributes defining the vertex format. Each element of the
-	    array has the following members:
+	  - vertexFormat: 2D array of vertex attributes defining the vertex format. There may be up to
+	    four outer array elements, corresponding to the vertex streams, with the inner arrays 
+	    defining the vertex elements in the string. Each element of the inner array has the
+	    following members:
 		- attrib: the attribute. This can either be an enum value from dsVertexAttrib, removing
 		  the type prefix, or the integer for the attribute.
 	    - format: the attribute format. See the dsGfxFormat enum for values, removing the type

@@ -1366,7 +1366,8 @@ typedef bool (*dsEndRenderSurfaceFunction)(dsRenderer* renderer, dsCommandBuffer
 /**
  * @brief Function for swapping buffers for a render surface.
  * @param renderer The renderer the render surface is used with.
- * @param renderSurface The render surface to swap the buffers on.
+ * @param renderSurfaces The render surfaces to swap the buffers on.
+ * @param count The number of render surfaces to swap.
  * @return False if the buffers couldn't be swapped.
  */
 typedef bool (*dsSwapRenderSurfaceBuffersFunction)(dsRenderer* renderer,
@@ -1377,7 +1378,6 @@ typedef bool (*dsSwapRenderSurfaceBuffersFunction)(dsRenderer* renderer,
  * @param renderer The renderer the command buffers will be used wtih.
  * @param allocator The allocator to create the command buffer pool.
  * @param usage The usage flags. Set to 0 if none of the usage options are needed.
- * @param count The number of command buffers to create in the pool.
  * @return The command buffer pool.
  */
 typedef dsCommandBufferPool* (*dsCreateCommandBufferPoolFunction)(dsRenderer* renderer,
@@ -1570,7 +1570,6 @@ typedef bool (*dsSetRenderDefaultAnisotropyFunction)(dsRenderer* renderer, float
 
 /**
  * @brief Function for setting the viewport.
- * @param renderer The renderer.
  * @param renderer The renderer.
  * @param commandBuffer The command buffer to place the command on.
  * @param viewport The viewport to draw to.

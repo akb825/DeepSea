@@ -136,7 +136,7 @@ Model nodes have the type string "ModelNode" and contains the following data mem
 * `modelGeometry`: array of model geometry. Each element of the array has the following members:
 	* `type`: the name of the geometry type, such as "obj" or "gltf". If omitted, the type is inferred from the path extension.
 	* `path`: the path to the geometry.
-	* `vertexFormat`: array of vertex attributes defining the vertex format. Each element of the array has the following members:
+	* `vertexFormat`: 2D array of vertex attributes defining the vertex format. There may be up to four outer array elements, corresponding to the vertex streams, with the inner arrays defining the vertex elements in the string. Each element of the inner array has the following members:
 		* `attrib`: the attribute. This can either be an enum value from `dsVertexAttrib`, removing the type prefix, or the integer for the attribute.
 		* `format`: the attribute format. See the `dsGfxFormat` enum for values, removing the type prefix. Only the "standard" formats may be used.
 		* `decoration`: the decoration for the format. See the `dsGfxFormat` enum for values,

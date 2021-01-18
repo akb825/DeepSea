@@ -1641,6 +1641,7 @@ typedef bool (*dsResetFenceFunction)(dsResourceManager* resourceManager,
  * @param resourceManager The resource manager to create the query pool from.
  * @param allocator The allocator to create the query pool with.
  * @param type The type of queries used by the pool.
+ * @param count The number of queries for the pool.
  * @return The created query pool, or NULL if it couldn't be created.
  */
 typedef dsGfxQueryPool* (*dsCreateQueryPoolFunction)(dsResourceManager* resourceManager,
@@ -1820,7 +1821,7 @@ typedef void (*dsDestroyDeviceMaterialFunction)(dsResourceManager* resourceManag
  * @param resourceManager The resource manager the material was created with.
  * @param material The material the device material was created with.
  * @param deviceMaterial The device material.
- * @param The material element that was changed.
+ * @param element The material element that was changed.
  */
 typedef void (*dsDeviceMaterialChangedFunction)(dsResourceManager* resourceManager,
 	dsMaterial* material, dsDeviceMaterial* deviceMaterial, uint32_t element);
@@ -1842,7 +1843,6 @@ typedef bool (*dsIsShaderUniformInternalFunction)(dsResourceManager* resourceMan
  * @param module The shader module that contains the shader.
  * @param shaderIndex The index of the shader.
  * @param materialDesc The description of the material type used by the shader.
- * @param primitiveType The type of primitives the shader will be drawn with.
  * @return The created shader, or NULL if it couldn't be created.
  */
 typedef dsShader* (*dsCreateShaderFunction)(dsResourceManager* resourceManager,
@@ -1906,6 +1906,7 @@ typedef bool (*dsUpdateShaderDynamicRenderStatesFunction)(dsResourceManager* res
  * @brief Function for un-binding the currently bound shader.
  * @param resourceManager The resource manager the shader was created with.
  * @param commandBuffer The command buffer to queue commands onto.
+ * @param shader The shader to unbind.
  * @return False if the values couldn't be unbound.
  */
 typedef bool (*dsUnbindShaderFunction)(dsResourceManager* resourceManager,

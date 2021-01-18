@@ -171,16 +171,18 @@
 				"path": "@srcDir@/cube.obj",
 				"vertexFormat":
 				[
-					{
-						"attrib": "Position",
-						"format": "X32Y32Z32",
-						"decoration": "Float"
-					},
-					{
-						"attrib": "Normal",
-						"format": "W2Z10Y10X10",
-						"decoration": "UNorm"
-					}
+					[
+						{
+							"attrib": "Position",
+							"format": "X32Y32Z32",
+							"decoration": "Float"
+						},
+						{
+							"attrib": "Normal",
+							"format": "W2Z10Y10X10",
+							"decoration": "UNorm"
+						}
+					]
 				],
 				"indexSize": 2,
 				"transforms":
@@ -252,21 +254,23 @@
 						"path": "@srcDir@/ground.gltf",
 						"vertexFormat":
 						[
-							{
-								"attrib": "Position",
-								"format": "X32Y32Z32",
-								"decoration": "Float"
-							},
-							{
-								"attrib": "Normal",
-								"format": "W2Z10Y10X10",
-								"decoration": "UNorm"
-							},
-							{
-								"attrib": "TexCoord0",
-								"format": "X16Y16",
-								"decoration": "UNorm"
-							}
+							[
+								{
+									"attrib": "Position",
+									"format": "X32Y32Z32",
+									"decoration": "Float"
+								},
+								{
+									"attrib": "Normal",
+									"format": "W2Z10Y10X10",
+									"decoration": "UNorm"
+								},
+								{
+									"attrib": "TexCoord0",
+									"format": "X16Y16",
+									"decoration": "UNorm"
+								}
+							]
 						],
 						"indexSize": 2,
 						"transforms":

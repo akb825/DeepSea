@@ -737,9 +737,8 @@ typedef uint32_t (*dsGetApplicationPressedMouseButtonsFunction)(const dsApplicat
  * @param position The position of the window, or NULL for the default position.
  * @param width The width of the window.
  * @param height The height of the window.
- * @param style The style of the window.
+ * @param flags The flags to control creation of the window.
  * @param renderSurfaceUsage Flags to determine how the render surface for the window will be used.
- * @param flags Combination of dsWindowFlags values to create the window.
  */
 typedef dsWindow* (*dsCreateWindowFunction)(dsApplication* application, dsAllocator* allocator,
 	const char* title, const char* surfaceName, const dsVector2i* position, uint32_t width,

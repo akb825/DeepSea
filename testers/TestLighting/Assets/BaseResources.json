@@ -9,26 +9,28 @@
 				"path": "@srcDir@/Assets/Ground.gltf",
 				"vertexFormat":
 				[
-					{
-						"attrib": "Position",
-						"format": "X32Y32Z32",
-						"decoration": "Float"
-					},
-					{
-						"attrib": "Normal",
-						"format": "W2Z10Y10X10",
-						"decoration": "UNorm"
-					},
-					{
-						"attrib": "Tangent",
-						"format": "W2Z10Y10X10",
-						"decoration": "UNorm"
-					},
-					{
-						"attrib": "TexCoord0",
-						"format": "X16Y16",
-						"decoration": "Float"
-					}
+					[
+						{
+							"attrib": "Position",
+							"format": "X32Y32Z32",
+							"decoration": "Float"
+						},
+						{
+							"attrib": "Normal",
+							"format": "W2Z10Y10X10",
+							"decoration": "UNorm"
+						},
+						{
+							"attrib": "Tangent",
+							"format": "W2Z10Y10X10",
+							"decoration": "UNorm"
+						},
+						{
+							"attrib": "TexCoord0",
+							"format": "X16Y16",
+							"decoration": "Float"
+						}
+					]
 				],
 				"indexSize": 2,
 				"transforms":
@@ -64,26 +66,30 @@
 				"path": "@srcDir@/Assets/Archway.gltf",
 				"vertexFormat":
 				[
-					{
-						"attrib": "Position",
-						"format": "X32Y32Z32",
-						"decoration": "Float"
-					},
-					{
-						"attrib": "Normal",
-						"format": "W2Z10Y10X10",
-						"decoration": "UNorm"
-					},
-					{
-						"attrib": "Tangent",
-						"format": "W2Z10Y10X10",
-						"decoration": "UNorm"
-					},
-					{
-						"attrib": "TexCoord0",
-						"format": "X16Y16",
-						"decoration": "Float"
-					}
+					[
+						{
+							"attrib": "Position",
+							"format": "X32Y32Z32",
+							"decoration": "Float"
+						}
+					],
+					[
+						{
+							"attrib": "Normal",
+							"format": "W2Z10Y10X10",
+							"decoration": "UNorm"
+						},
+						{
+							"attrib": "Tangent",
+							"format": "W2Z10Y10X10",
+							"decoration": "UNorm"
+						},
+						{
+							"attrib": "TexCoord0",
+							"format": "X16Y16",
+							"decoration": "Float"
+						}
+					]
 				],
 				"indexSize": 2,
 				"transforms":
@@ -119,26 +125,30 @@
 				"path": "@srcDir@/Assets/Pedastle.gltf",
 				"vertexFormat":
 				[
-					{
-						"attrib": "Position",
-						"format": "X32Y32Z32",
-						"decoration": "Float"
-					},
-					{
-						"attrib": "Normal",
-						"format": "W2Z10Y10X10",
-						"decoration": "UNorm"
-					},
-					{
-						"attrib": "Tangent",
-						"format": "W2Z10Y10X10",
-						"decoration": "UNorm"
-					},
-					{
-						"attrib": "TexCoord0",
-						"format": "X16Y16",
-						"decoration": "Float"
-					}
+					[
+						{
+							"attrib": "Position",
+							"format": "X32Y32Z32",
+							"decoration": "Float"
+						}
+					],
+					[
+						{
+							"attrib": "Normal",
+							"format": "W2Z10Y10X10",
+							"decoration": "UNorm"
+						},
+						{
+							"attrib": "Tangent",
+							"format": "W2Z10Y10X10",
+							"decoration": "UNorm"
+						},
+						{
+							"attrib": "TexCoord0",
+							"format": "X16Y16",
+							"decoration": "Float"
+						}
+					]
 				],
 				"indexSize": 2,
 				"transforms":
@@ -174,26 +184,30 @@
 				"path": "@srcDir@/Assets/Sphere.gltf",
 				"vertexFormat":
 				[
-					{
-						"attrib": "Position",
-						"format": "X32Y32Z32",
-						"decoration": "Float"
-					},
-					{
-						"attrib": "Normal",
-						"format": "W2Z10Y10X10",
-						"decoration": "UNorm"
-					},
-					{
-						"attrib": "Tangent",
-						"format": "W2Z10Y10X10",
-						"decoration": "UNorm"
-					},
-					{
-						"attrib": "TexCoord0",
-						"format": "X16Y16",
-						"decoration": "Float"
-					}
+					[
+						{
+							"attrib": "Position",
+							"format": "X32Y32Z32",
+							"decoration": "Float"
+						}
+					],
+					[
+						{
+							"attrib": "Normal",
+							"format": "W2Z10Y10X10",
+							"decoration": "UNorm"
+						},
+						{
+							"attrib": "Tangent",
+							"format": "W2Z10Y10X10",
+							"decoration": "UNorm"
+						},
+						{
+							"attrib": "TexCoord0",
+							"format": "X16Y16",
+							"decoration": "Float"
+						}
+					]
 				],
 				"indexSize": 2,
 				"transforms":
