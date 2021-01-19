@@ -374,10 +374,6 @@ int dsSDLApplication_run(dsApplication* application)
 	double lastTime = dsTimer_time(timer);
 	while (!sdlApplication->quit && application->windowCount > 0)
 	{
-		double curTime = dsTimer_time(timer);
-		double lastFrameTime = curTime - lastTime;
-		lastTime = curTime;
-
 		DS_VERIFY(dsRenderer_beginFrame(application->renderer));
 
 		DS_PROFILE_SCOPE_START("Process Events");
@@ -663,6 +659,11 @@ int dsSDLApplication_run(dsApplication* application)
 			}
 		}
 		DS_PROFILE_SCOPE_END();
+
+		// Functions above may block if the app is paused, so get the current time here.
+		double curTime = dsTimer_time(timer);
+		double lastFrameTime = curTime - lastTime;
+		lastTime = curTime;
 
 		if (application->updateFunc)
 		{

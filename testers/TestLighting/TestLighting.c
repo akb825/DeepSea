@@ -68,6 +68,7 @@ typedef struct TestLighting
 	dsScene* curScene;
 	dsView* curView;
 	float rotation;
+	bool ignoreTime;
 	bool stop;
 } TestLighting;
 
@@ -128,6 +129,9 @@ static bool processEvent(dsApplication* application, dsWindow* window, const dsE
 			if (event->type == dsAppEventType_SurfaceInvalidated)
 				dsView_update(testLighting->forwardLightView);
 			return true;
+		case dsAppEventType_WillEnterForeground:
+			testLighting->ignoreTime = true;
+			return true;
 		case dsAppEventType_KeyDown:
 			if (event->key.repeat)
 				return false;
@@ -163,11 +167,14 @@ static void update(dsApplication* application, double lastFrameTime, void* userD
 	const float speed = 0.4f;
 	const float xyDist = 7.0f;
 	const float height = 9.0f;
-	if (!testLighting->stop)
+	if (!testLighting->stop && !testLighting->ignoreTime)
 	{
 		testLighting->rotation = dsWrapf(testLighting->rotation + (float)(lastFrameTime*speed),
 			0.0f, (float)(2*M_PI));
 	}
+	if (testLighting->ignoreTime)
+		testLighting->ignoreTime = false;
+
 	dsVector3f eyePos = {{sinf(testLighting->rotation)*xyDist, -cosf(testLighting->rotation)*xyDist,
 		height}};
 	dsVector3f lookAtPos = {{0.0f, 0.0f, 0.0f}};

@@ -63,6 +63,7 @@ typedef struct TestScene
 	dsSceneThreadManager* threadManager;
 
 	uint64_t invalidatedFrame;
+	bool ignoreTime;
 	bool secondarySceneSet;
 	bool multithreadedRendering;
 	float rotation;
@@ -127,6 +128,9 @@ static bool processEvent(dsApplication* application, dsWindow* window, const dsE
 			if (event->type == dsAppEventType_SurfaceInvalidated)
 				dsView_update(testScene->view);
 			return true;
+		case dsAppEventType_WillEnterForeground:
+			testScene->ignoreTime = true;
+			return true;
 		case dsAppEventType_KeyDown:
 			if (event->key.repeat)
 				return false;
@@ -183,11 +187,16 @@ static void update(dsApplication* application, double lastFrameTime, void* userD
 
 	TestScene* testScene = (TestScene*)userData;
 
-	// radians/s
-	const double rate = M_PI_2;
-	testScene->rotation += (float)(lastFrameTime*rate);
-	while (testScene->rotation > 2*M_PI)
-		testScene->rotation = (float)(testScene->rotation - 2*M_PI);
+	if (testScene->ignoreTime)
+		testScene->ignoreTime = false;
+	else
+	{
+		// radians/s
+		const double rate = M_PI_2;
+		testScene->rotation += (float)(lastFrameTime*rate);
+		while (testScene->rotation > 2*M_PI)
+			testScene->rotation = (float)(testScene->rotation - 2*M_PI);
+	}
 
 	dsMatrix44f transform;
 	dsMatrix44f_makeRotate(&transform, 0, testScene->rotation, 0);
