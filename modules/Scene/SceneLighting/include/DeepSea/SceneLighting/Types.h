@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Aaron Barany
+ * Copyright 2020-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -115,10 +115,10 @@ typedef struct dsSceneLight
 } dsSceneLight;
 
 /**
- * @brief Struct defining the vertex elements when drawing a direction light.
+ * @brief Struct defining the vertex elements when drawing a directional light.
  * @see SceneLight.h
  */
-typedef struct dsDirectionLightVertex
+typedef struct dsDirectionalLightVertex
 {
 	/**
 	 * @brief The screen position of the light as a -1 or 1 value.
@@ -134,7 +134,7 @@ typedef struct dsDirectionLightVertex
 	 * @brief The color of the light as half floats.
 	 */
 	dsHalfFloat color[4];
-} dsDirectionLightVertex;
+} dsDirectionalLightVertex;
 
 /**
  * @brief Struct defining the vertex elements when drawing a point light.
@@ -143,9 +143,14 @@ typedef struct dsDirectionLightVertex
 typedef struct dsPointLightVertex
 {
 	/**
+	 * @brief The position of the vertex.
+	 */
+	dsVector3f vertexPosition;
+
+	/**
 	 * @brief The position of the light.
 	 */
-	dsVector3f position;
+	dsVector3f lightPosition;
 
 	/**
 	 * @brief The color of the light.
@@ -165,9 +170,14 @@ typedef struct dsPointLightVertex
 typedef struct dsSpotLightVertex
 {
 	/**
+	 * @brief The position of the vertex.
+	 */
+	dsVector3f vertexPosition;
+
+	/**
 	 * @brief The position of the light.
 	 */
-	dsVector3f position;
+	dsVector3f lightPosition;
 
 	/**
 	 * @brief The direction as normalized integer values.
@@ -206,6 +216,23 @@ typedef struct dsSceneLightSet dsSceneLightSet;
  */
 typedef bool (*dsSceneLightVisitFunction)(void* userData, const dsSceneLightSet* lightSet,
 	const dsSceneLight* light);
+
+/**
+ * @brief Struct defining a scene light set prepare.
+ *
+ * This will prepare provided scene light sets for use in the scene. These are an item list to fit
+ * in the scene layout, but doesn't interact with any nodes in the scene graph.
+ */
+typedef struct dsSceneLightSetPrepare dsSceneLightSetPrepare;
+
+/**
+ * @brief Struct defining a deferred light resolve.
+ *
+ * This will draw the lights to the screen in order to light the scene based on the gbuffers. This
+ * is an item list type in order to fit into the scene, but doesn't interact with any nodes in the
+ * scene graph.
+ */
+typedef struct dsDeferredLightResolve dsDeferredLightResolve;
 
 #ifdef __cplusplus
 }

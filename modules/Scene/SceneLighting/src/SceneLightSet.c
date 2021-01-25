@@ -243,6 +243,14 @@ dsCustomSceneResource* dsSceneLightSet_createResource(dsAllocator* allocator,
 	return customResource;
 }
 
+uint32_t dsSceneLightSet_getMaxLights(const dsSceneLightSet* lightSet)
+{
+	if (!lightSet)
+		return 0;
+
+	return (uint32_t)lightSet->lightAllocator.chunkCount;
+}
+
 uint32_t dsSceneLightSet_getRemainingLights(const dsSceneLightSet* lightSet)
 {
 	if (!lightSet)

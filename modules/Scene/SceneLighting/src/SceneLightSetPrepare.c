@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Aaron Barany
+ * Copyright 2020-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,13 +26,13 @@
 
 #include <string.h>
 
-typedef struct dsSceneLightSetPrepare
+struct dsSceneLightSetPrepare
 {
 	dsSceneItemList itemList;
 	dsSceneLightSet** lightSets;
 	uint32_t lightSetCount;
 	float intensityThreshold;
-} dsSceneLightSetPrepare;
+};
 
 const char* const dsSceneLightSetPrepare_typeName = "LightSetPrepare";
 
@@ -63,13 +63,7 @@ void dsSceneLightSetPrepare_commit(dsSceneItemList* itemList, const dsView* view
 		dsSceneLightSet_prepare(prepare->lightSets[i], prepare->intensityThreshold);
 }
 
-void dsSceneLightSetPrepare_destroy(dsSceneItemList* itemList)
-{
-	if (itemList->allocator)
-		dsAllocator_free(itemList->allocator, itemList);
-}
-
-dsSceneItemList* dsSceneLightSetPrepare_create(dsAllocator* allocator, const char* name,
+dsSceneLightSetPrepare* dsSceneLightSetPrepare_create(dsAllocator* allocator, const char* name,
 	dsSceneLightSet* const* lightSets, uint32_t lightSetCount, float intensityThreshold)
 {
 	if (!allocator || !name || !lightSets || lightSetCount == 0 || intensityThreshold <= 0)
@@ -102,7 +96,7 @@ dsSceneItemList* dsSceneLightSetPrepare_create(dsAllocator* allocator, const cha
 	itemList->updateNodeFunc = NULL;
 	itemList->removeNodeFunc = &dsSceneLightSetPrepare_removeNode;
 	itemList->commitFunc = &dsSceneLightSetPrepare_commit;
-	itemList->destroyFunc = &dsSceneLightSetPrepare_destroy;
+	itemList->destroyFunc = (dsDestroySceneItemListFunction)&dsSceneLightSetPrepare_destroy;
 
 	prepare->lightSets = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsSceneLightSet*, lightSetCount);
 	DS_ASSERT(prepare->lightSets);
@@ -110,5 +104,39 @@ dsSceneItemList* dsSceneLightSetPrepare_create(dsAllocator* allocator, const cha
 	prepare->lightSetCount = lightSetCount;
 	prepare->intensityThreshold = intensityThreshold;
 
-	return itemList;
+	return prepare;
+}
+
+float dsSceneLightSetPrepare_getIntensityThreshold(const dsSceneLightSetPrepare* prepare)
+{
+	if (!prepare)
+	{
+		errno = EINVAL;
+		return 0;
+	}
+
+	return prepare->intensityThreshold;
+}
+
+bool dsSceneLightSetPrepare_setIntensityThreshold(dsSceneLightSetPrepare* prepare,
+	float intensityThreshold)
+{
+	if (!prepare || intensityThreshold <= 0)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	prepare->intensityThreshold = intensityThreshold;
+	return true;
+}
+
+void dsSceneLightSetPrepare_destroy(dsSceneLightSetPrepare* prepare)
+{
+	if (!prepare)
+		return;
+
+	dsSceneItemList* itemList = (dsSceneItemList*)prepare;
+	if (itemList->allocator)
+		DS_VERIFY(dsAllocator_free(itemList->allocator, itemList));
 }

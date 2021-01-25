@@ -63,6 +63,7 @@ extern "C"
  *
  * @param tag The log tag for the message.
  * @param statement The statement to execute. This will usually be a function call.
+ * @return The bool result of the stement.
  */
 #define DS_CHECK(tag, statement) \
 	dsPerformCheck(tag, __FILE__, __LINE__, __FUNCTION__, (statement), #statement)

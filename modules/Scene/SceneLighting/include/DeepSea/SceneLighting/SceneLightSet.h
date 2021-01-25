@@ -72,7 +72,14 @@ DS_SCENELIGHTING_EXPORT dsCustomSceneResource* dsSceneLightSet_createResource(
 	dsAllocator* allocator, dsSceneLightSet* lightSet);
 
 /**
- * @brief Gets the number of remaining lgiths that can be set.
+ * @brief Gets the maximum number of lights that can be set.
+ * @param lightSet The light set.
+ * @return The maximum number of lights.
+ */
+DS_SCENELIGHTING_EXPORT uint32_t dsSceneLightSet_getMaxLights(const dsSceneLightSet* lightSet);
+
+/**
+ * @brief Gets the number of remaining lights that can be set.
  * @param lightSet The light set.
  * @return The number of remaining lights that can be set.
  */

@@ -45,17 +45,17 @@ TEST(SceneLightTest, GetDirectionalLightVertexFormat)
 
 	dsVertexFormat format;
 	dsSceneLight_getDirectionalLightVertexFormat(&format);
-	EXPECT_EQ(sizeof(dsDirectionLightVertex), format.size);
+	EXPECT_EQ(sizeof(dsDirectionalLightVertex), format.size);
 
 	EXPECT_TRUE(dsVertexFormat_getAttribEnabled(&format, dsVertexAttrib_Position));
 	EXPECT_TRUE(dsVertexFormat_getAttribEnabled(&format, dsVertexAttrib_Normal));
 	EXPECT_TRUE(dsVertexFormat_getAttribEnabled(&format, dsVertexAttrib_Color));
 
-	EXPECT_EQ(offsetof(dsDirectionLightVertex, position),
+	EXPECT_EQ(offsetof(dsDirectionalLightVertex, position),
 		format.elements[dsVertexAttrib_Position].offset);
-	EXPECT_EQ(offsetof(dsDirectionLightVertex, direction),
+	EXPECT_EQ(offsetof(dsDirectionalLightVertex, direction),
 		format.elements[dsVertexAttrib_Normal].offset);
-	EXPECT_EQ(offsetof(dsDirectionLightVertex, color),
+	EXPECT_EQ(offsetof(dsDirectionalLightVertex, color),
 		format.elements[dsVertexAttrib_Color].offset);
 }
 
@@ -67,12 +67,15 @@ TEST(SceneLightTest, GetPointLightVertexFormat)
 	dsSceneLight_getPointLightVertexFormat(&format);
 	EXPECT_EQ(sizeof(dsPointLightVertex), format.size);
 
-	EXPECT_TRUE(dsVertexFormat_getAttribEnabled(&format, dsVertexAttrib_Position));
+	EXPECT_TRUE(dsVertexFormat_getAttribEnabled(&format, dsVertexAttrib_Position0));
+	EXPECT_TRUE(dsVertexFormat_getAttribEnabled(&format, dsVertexAttrib_Position1));
 	EXPECT_TRUE(dsVertexFormat_getAttribEnabled(&format, dsVertexAttrib_Color));
 	EXPECT_TRUE(dsVertexFormat_getAttribEnabled(&format, dsVertexAttrib_TexCoord0));
 
-	EXPECT_EQ(offsetof(dsPointLightVertex, position),
-		format.elements[dsVertexAttrib_Position].offset);
+	EXPECT_EQ(offsetof(dsPointLightVertex, vertexPosition),
+		format.elements[dsVertexAttrib_Position0].offset);
+	EXPECT_EQ(offsetof(dsPointLightVertex, lightPosition),
+		format.elements[dsVertexAttrib_Position1].offset);
 	EXPECT_EQ(offsetof(dsPointLightVertex, color), format.elements[dsVertexAttrib_Color].offset);
 	EXPECT_EQ(offsetof(dsPointLightVertex, falloff),
 		format.elements[dsVertexAttrib_TexCoord0].offset);
@@ -86,13 +89,16 @@ TEST(SceneLightTest, GetSpotLightVertexFormat)
 	dsSceneLight_getSpotLightVertexFormat(&format);
 	EXPECT_EQ(sizeof(dsSpotLightVertex), format.size);
 
-	EXPECT_TRUE(dsVertexFormat_getAttribEnabled(&format, dsVertexAttrib_Position));
+	EXPECT_TRUE(dsVertexFormat_getAttribEnabled(&format, dsVertexAttrib_Position0));
+	EXPECT_TRUE(dsVertexFormat_getAttribEnabled(&format, dsVertexAttrib_Position1));
 	EXPECT_TRUE(dsVertexFormat_getAttribEnabled(&format, dsVertexAttrib_Normal));
 	EXPECT_TRUE(dsVertexFormat_getAttribEnabled(&format, dsVertexAttrib_Color));
 	EXPECT_TRUE(dsVertexFormat_getAttribEnabled(&format, dsVertexAttrib_TexCoord0));
 
-	EXPECT_EQ(offsetof(dsSpotLightVertex, position),
-		format.elements[dsVertexAttrib_Position].offset);
+	EXPECT_EQ(offsetof(dsSpotLightVertex, vertexPosition),
+		format.elements[dsVertexAttrib_Position0].offset);
+	EXPECT_EQ(offsetof(dsSpotLightVertex, lightPosition),
+		format.elements[dsVertexAttrib_Position1].offset);
 	EXPECT_EQ(offsetof(dsSpotLightVertex, direction),
 		format.elements[dsVertexAttrib_Normal].offset);
 	EXPECT_EQ(offsetof(dsSpotLightVertex, color), format.elements[dsVertexAttrib_Color].offset);
@@ -342,7 +348,7 @@ TEST(SceneLightTest, GetDirectionalLightVertices)
 	float innerSpotCosAngle = 0.75f;
 	float outerSpotCosAngle = 0.5f;
 
-	dsDirectionLightVertex lightVertices[DS_DIRECTIONAL_LIGHT_VERTEX_COUNT];
+	dsDirectionalLightVertex lightVertices[DS_DIRECTIONAL_LIGHT_VERTEX_COUNT];
 	uint16_t lightIndices[DS_DIRECTIONAL_LIGHT_INDEX_COUNT];
 
 	ASSERT_TRUE(dsSceneLight_makeDirectional(&light, &direction, &color, intensity));
@@ -474,79 +480,91 @@ TEST(SceneLightTest, GetPointLightVertices)
 
 	// Make sure that the box triangels face inward.
 	// front
-	computeNormal(normal, lightVertices[lightIndices[0]].position,
-		lightVertices[lightIndices[1]].position, lightVertices[lightIndices[2]].position);
+	computeNormal(normal, lightVertices[lightIndices[0]].vertexPosition,
+		lightVertices[lightIndices[1]].vertexPosition,
+		lightVertices[lightIndices[2]].vertexPosition);
 	EXPECT_NEAR(0.0f, normal.x, epsilon);
 	EXPECT_NEAR(0.0f, normal.y, epsilon);
 	EXPECT_GT(0.0f, normal.z);
 
-	computeNormal(normal, lightVertices[lightIndices[3]].position,
-		lightVertices[lightIndices[4]].position, lightVertices[lightIndices[5]].position);
+	computeNormal(normal, lightVertices[lightIndices[3]].vertexPosition,
+		lightVertices[lightIndices[4]].vertexPosition,
+		lightVertices[lightIndices[5]].vertexPosition);
 	EXPECT_NEAR(0.0f, normal.x, epsilon);
 	EXPECT_NEAR(0.0f, normal.y, epsilon);
 	EXPECT_GT(0.0f, normal.z);
 
 	// right
-	computeNormal(normal, lightVertices[lightIndices[6]].position,
-		lightVertices[lightIndices[7]].position, lightVertices[lightIndices[8]].position);
+	computeNormal(normal, lightVertices[lightIndices[6]].vertexPosition,
+		lightVertices[lightIndices[7]].vertexPosition,
+		lightVertices[lightIndices[8]].vertexPosition);
 	EXPECT_GT(0.0f, normal.x);
 	EXPECT_NEAR(0.0f, normal.y, epsilon);
 	EXPECT_NEAR(0.0f, normal.z, epsilon);
 
-	computeNormal(normal, lightVertices[lightIndices[9]].position,
-		lightVertices[lightIndices[10]].position, lightVertices[lightIndices[11]].position);
+	computeNormal(normal, lightVertices[lightIndices[9]].vertexPosition,
+		lightVertices[lightIndices[10]].vertexPosition,
+		lightVertices[lightIndices[11]].vertexPosition);
 	EXPECT_GT(0.0f, normal.x);
 	EXPECT_NEAR(0.0f, normal.y, epsilon);
 	EXPECT_NEAR(0.0f, normal.z, epsilon);
 
 	// back
-	computeNormal(normal, lightVertices[lightIndices[12]].position,
-		lightVertices[lightIndices[13]].position, lightVertices[lightIndices[14]].position);
+	computeNormal(normal, lightVertices[lightIndices[12]].vertexPosition,
+		lightVertices[lightIndices[13]].vertexPosition,
+		lightVertices[lightIndices[14]].vertexPosition);
 	EXPECT_NEAR(0.0f, normal.x, epsilon);
 	EXPECT_NEAR(0.0f, normal.y, epsilon);
 	EXPECT_LT(0.0f, normal.z);
 
-	computeNormal(normal, lightVertices[lightIndices[15]].position,
-		lightVertices[lightIndices[16]].position, lightVertices[lightIndices[17]].position);
+	computeNormal(normal, lightVertices[lightIndices[15]].vertexPosition,
+		lightVertices[lightIndices[16]].vertexPosition,
+		lightVertices[lightIndices[17]].vertexPosition);
 	EXPECT_NEAR(0.0f, normal.x, epsilon);
 	EXPECT_NEAR(0.0f, normal.y, epsilon);
 	EXPECT_LT(0.0f, normal.z);
 
 	// left
-	computeNormal(normal, lightVertices[lightIndices[18]].position,
-		lightVertices[lightIndices[19]].position, lightVertices[lightIndices[20]].position);
+	computeNormal(normal, lightVertices[lightIndices[18]].vertexPosition,
+		lightVertices[lightIndices[19]].vertexPosition,
+		lightVertices[lightIndices[20]].vertexPosition);
 	EXPECT_LT(0.0f, normal.x);
 	EXPECT_NEAR(0.0f, normal.y, epsilon);
 	EXPECT_NEAR(0.0f, normal.z, epsilon);
 
-	computeNormal(normal, lightVertices[lightIndices[21]].position,
-		lightVertices[lightIndices[22]].position, lightVertices[lightIndices[23]].position);
+	computeNormal(normal, lightVertices[lightIndices[21]].vertexPosition,
+		lightVertices[lightIndices[22]].vertexPosition,
+		lightVertices[lightIndices[23]].vertexPosition);
 	EXPECT_LT(0.0f, normal.x);
 	EXPECT_NEAR(0.0f, normal.y, epsilon);
 	EXPECT_NEAR(0.0f, normal.z, epsilon);
 
 	// bottom
-	computeNormal(normal, lightVertices[lightIndices[24]].position,
-		lightVertices[lightIndices[25]].position, lightVertices[lightIndices[26]].position);
+	computeNormal(normal, lightVertices[lightIndices[24]].vertexPosition,
+		lightVertices[lightIndices[25]].vertexPosition,
+		lightVertices[lightIndices[26]].vertexPosition);
 	EXPECT_NEAR(0.0f, normal.x, epsilon);
 	EXPECT_LT(0.0f, normal.y);
 	EXPECT_NEAR(0.0f, normal.z, epsilon);
 
-	computeNormal(normal, lightVertices[lightIndices[27]].position,
-		lightVertices[lightIndices[28]].position, lightVertices[lightIndices[29]].position);
+	computeNormal(normal, lightVertices[lightIndices[27]].vertexPosition,
+		lightVertices[lightIndices[28]].vertexPosition,
+		lightVertices[lightIndices[29]].vertexPosition);
 	EXPECT_NEAR(0.0f, normal.x, epsilon);
 	EXPECT_LT(0.0f, normal.y);
 	EXPECT_NEAR(0.0f, normal.z, epsilon);
 
 	// top
-	computeNormal(normal, lightVertices[lightIndices[30]].position,
-		lightVertices[lightIndices[31]].position, lightVertices[lightIndices[32]].position);
+	computeNormal(normal, lightVertices[lightIndices[30]].vertexPosition,
+		lightVertices[lightIndices[31]].vertexPosition,
+		lightVertices[lightIndices[32]].vertexPosition);
 	EXPECT_NEAR(0.0f, normal.x, epsilon);
 	EXPECT_GT(0.0f, normal.y);
 	EXPECT_NEAR(0.0f, normal.z, epsilon);
 
-	computeNormal(normal, lightVertices[lightIndices[33]].position,
-		lightVertices[lightIndices[34]].position, lightVertices[lightIndices[35]].position);
+	computeNormal(normal, lightVertices[lightIndices[33]].vertexPosition,
+		lightVertices[lightIndices[34]].vertexPosition,
+		lightVertices[lightIndices[35]].vertexPosition);
 	EXPECT_NEAR(0.0f, normal.x, epsilon);
 	EXPECT_GT(0.0f, normal.y);
 	EXPECT_NEAR(0.0f, normal.z, epsilon);
@@ -631,42 +649,48 @@ TEST(SceneLightTest, GetSpotLightVertices)
 
 	// Make sure that the box triangels face inward.
 	// left
-	computeNormal(normal, lightVertices[lightIndices[0]].position,
-		lightVertices[lightIndices[1]].position, lightVertices[lightIndices[2]].position);
+	computeNormal(normal, lightVertices[lightIndices[0]].vertexPosition,
+		lightVertices[lightIndices[1]].vertexPosition,
+		lightVertices[lightIndices[2]].vertexPosition);
 	EXPECT_LT(0.0f, normal.x);
 	EXPECT_NEAR(0.0f, normal.y, epsilon);
 	EXPECT_LT(0.0f, normal.z);
 
 	// bottom
-	computeNormal(normal, lightVertices[lightIndices[3]].position,
-		lightVertices[lightIndices[4]].position, lightVertices[lightIndices[5]].position);
+	computeNormal(normal, lightVertices[lightIndices[3]].vertexPosition,
+		lightVertices[lightIndices[4]].vertexPosition,
+		lightVertices[lightIndices[5]].vertexPosition);
 	EXPECT_LT(0.0f, normal.x);
 	EXPECT_LT(0.0f, normal.y);
 	EXPECT_NEAR(0.0f, normal.z, epsilon);
 
 	// right
-	computeNormal(normal, lightVertices[lightIndices[6]].position,
-		lightVertices[lightIndices[7]].position, lightVertices[lightIndices[8]].position);
+	computeNormal(normal, lightVertices[lightIndices[6]].vertexPosition,
+		lightVertices[lightIndices[7]].vertexPosition,
+		lightVertices[lightIndices[8]].vertexPosition);
 	EXPECT_LT(0.0f, normal.x);
 	EXPECT_NEAR(0.0f, normal.y, epsilon);
 	EXPECT_GT(0.0f, normal.z);
 
 	// left
-	computeNormal(normal, lightVertices[lightIndices[9]].position,
-		lightVertices[lightIndices[10]].position, lightVertices[lightIndices[11]].position);
+	computeNormal(normal, lightVertices[lightIndices[9]].vertexPosition,
+		lightVertices[lightIndices[10]].vertexPosition,
+		lightVertices[lightIndices[11]].vertexPosition);
 	EXPECT_LT(0.0f, normal.x);
 	EXPECT_GT(0.0f, normal.y);
 	EXPECT_NEAR(0.0f, normal.z, epsilon);
 
 	// back
-	computeNormal(normal, lightVertices[lightIndices[12]].position,
-		lightVertices[lightIndices[13]].position, lightVertices[lightIndices[14]].position);
+	computeNormal(normal, lightVertices[lightIndices[12]].vertexPosition,
+		lightVertices[lightIndices[13]].vertexPosition,
+		lightVertices[lightIndices[14]].vertexPosition);
 	EXPECT_GT(0.0f, normal.x);
 	EXPECT_NEAR(0.0f, normal.y, epsilon);
 	EXPECT_NEAR(0.0f, normal.z, epsilon);
 
-	computeNormal(normal, lightVertices[lightIndices[15]].position,
-		lightVertices[lightIndices[16]].position, lightVertices[lightIndices[17]].position);
+	computeNormal(normal, lightVertices[lightIndices[15]].vertexPosition,
+		lightVertices[lightIndices[16]].vertexPosition,
+		lightVertices[lightIndices[17]].vertexPosition);
 	EXPECT_GT(0.0f, normal.x);
 	EXPECT_NEAR(0.0f, normal.y, epsilon);
 	EXPECT_NEAR(0.0f, normal.z, epsilon);

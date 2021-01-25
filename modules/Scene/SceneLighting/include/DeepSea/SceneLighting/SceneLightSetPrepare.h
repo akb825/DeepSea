@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Aaron Barany
+ * Copyright 2020-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,9 +29,6 @@ extern "C"
 /**
  * @file
  * @brief Functions for creating and manipulating scene light set prepares.
- *
- * This will prepare provided scene light sets for use in the scene. These are an item list to fit
- * in the scene layout, but doesn't interact with any nodes in the scene graph.
  */
 
 /**
@@ -42,7 +39,7 @@ DS_SCENELIGHTING_EXPORT extern const char* const dsSceneLightSetPrepare_typeName
 /**
  * @brief Creates a scene light set prepare.
  * @remark errno will be set on failure.
- * @param allocator The allocator to create the list with. This must support freeing memory.
+ * @param allocator The allocator to create the light set prepare with.
  * @param name The name of the light set prepare. This will be copied.
  * @param lightSets The light sets to prepare.
  * @param lightSetCount The number of light sets.
@@ -50,9 +47,35 @@ DS_SCENELIGHTING_EXPORT extern const char* const dsSceneLightSetPrepare_typeName
  *     must be > 0. Use DS_DEFAULT_SCENE_LIGHT_INTENSITY_THRESHOLD for the default value.
  * @return The scene lighting prepare or NULL if an error occurred.
  */
-DS_SCENELIGHTING_EXPORT dsSceneItemList* dsSceneLightSetPrepare_create(dsAllocator* allocator,
-	const char* name, dsSceneLightSet* const* lightSets, uint32_t lightSetCount,
-	float intensityThreshold);
+DS_SCENELIGHTING_EXPORT dsSceneLightSetPrepare* dsSceneLightSetPrepare_create(
+	dsAllocator* allocator, const char* name, dsSceneLightSet* const* lightSets,
+	uint32_t lightSetCount, float intensityThreshold);
+
+/**
+ * @brief Gets the intensity threshold.
+ * @remark errno will be set on failure.
+ * @param prepare The scene light prepare.
+ * @return The intensity threshold or 0 if prepare is NULL.
+ */
+DS_SCENELIGHTING_EXPORT float dsSceneLightSetPrepare_getIntensityThreshold(
+	const dsSceneLightSetPrepare* prepare);
+
+/**
+ * @brief Sets the intensity threshold.
+ * @remark errno will be set on failure.
+ * @param prepare The scene light prepare.
+ * @param intensityThreshold The threshold below which the light is considered out of view. This
+ *     must be > 0. Use DS_DEFAULT_SCENE_LIGHT_INTENSITY_THRESHOLD for the default value.
+ * @return False if the parameters are invalid.
+ */
+DS_SCENELIGHTING_EXPORT bool dsSceneLightSetPrepare_setIntensityThreshold(
+	dsSceneLightSetPrepare* prepare, float intensityThreshold);
+
+/**
+ * @brief Destroys a scene light prepare.
+ * @param prepare The scene light prepare to destroy.
+ */
+DS_SCENELIGHTING_EXPORT void dsSceneLightSetPrepare_destroy(dsSceneLightSetPrepare* prepare);
 
 #ifdef __cplusplus
 }

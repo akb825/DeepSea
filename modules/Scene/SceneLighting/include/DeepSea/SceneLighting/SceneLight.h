@@ -198,7 +198,7 @@ DS_SCENELIGHTING_EXPORT bool dsSceneLight_isInFrustum(const dsSceneLight* light,
  * @return False if the parameters are invalid.
  */
 DS_SCENELIGHTING_EXPORT bool dsSceneLight_getDirectionalLightVertices(
-	dsDirectionLightVertex* outVertices, uint32_t vertexCount, uint16_t* outIndices,
+	dsDirectionalLightVertex* outVertices, uint32_t vertexCount, uint16_t* outIndices,
 	uint32_t indexCount, const dsSceneLight* light, uint16_t firstIndex);
 
 /**

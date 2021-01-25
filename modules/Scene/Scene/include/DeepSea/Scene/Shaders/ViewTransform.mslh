@@ -39,6 +39,11 @@ uniform ViewTransformData
 	mat4 projection;
 
 	/**
+	 * @brief The view projection matrix.
+	 */
+	mat4 viewProjection;
+
+	/**
 	 * @brief The rotation of the screen to apply for client rotations.
 	 *
 	 * This is a mat22 packed into a vec4 to avoid extra padding.

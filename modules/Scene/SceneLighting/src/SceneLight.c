@@ -96,14 +96,17 @@ bool dsSceneLight_getPointLightVertexFormat(dsVertexFormat* outFormat)
 	if (!dsVertexFormat_initialize(outFormat))
 		return false;
 
-	outFormat->elements[dsVertexAttrib_Position].format =
+	outFormat->elements[dsVertexAttrib_Position0].format =
+		dsGfxFormat_decorate(dsGfxFormat_X32Y32Z32, dsGfxFormat_Float);
+	outFormat->elements[dsVertexAttrib_Position1].format =
 		dsGfxFormat_decorate(dsGfxFormat_X32Y32Z32, dsGfxFormat_Float);
 	outFormat->elements[dsVertexAttrib_Color].format =
 		dsGfxFormat_decorate(dsGfxFormat_R16G16B16A16, dsGfxFormat_Float);
 	outFormat->elements[dsVertexAttrib_TexCoord0].format =
 		dsGfxFormat_decorate(dsGfxFormat_X16Y16, dsGfxFormat_Float);
 
-	DS_VERIFY(dsVertexFormat_setAttribEnabled(outFormat, dsVertexAttrib_Position, true));
+	DS_VERIFY(dsVertexFormat_setAttribEnabled(outFormat, dsVertexAttrib_Position0, true));
+	DS_VERIFY(dsVertexFormat_setAttribEnabled(outFormat, dsVertexAttrib_Position1, true));
 	DS_VERIFY(dsVertexFormat_setAttribEnabled(outFormat, dsVertexAttrib_Color, true));
 	DS_VERIFY(dsVertexFormat_setAttribEnabled(outFormat, dsVertexAttrib_TexCoord0, true));
 	DS_VERIFY(dsVertexFormat_computeOffsetsAndSize(outFormat));
@@ -116,7 +119,9 @@ bool dsSceneLight_getSpotLightVertexFormat(dsVertexFormat* outFormat)
 	if (!dsVertexFormat_initialize(outFormat))
 		return false;
 
-	outFormat->elements[dsVertexAttrib_Position].format =
+	outFormat->elements[dsVertexAttrib_Position0].format =
+		dsGfxFormat_decorate(dsGfxFormat_X32Y32Z32, dsGfxFormat_Float);
+	outFormat->elements[dsVertexAttrib_Position1].format =
 		dsGfxFormat_decorate(dsGfxFormat_X32Y32Z32, dsGfxFormat_Float);
 	outFormat->elements[dsVertexAttrib_Normal].format =
 		dsGfxFormat_decorate(dsGfxFormat_X16Y16Z16W16, dsGfxFormat_SNorm);
@@ -125,7 +130,8 @@ bool dsSceneLight_getSpotLightVertexFormat(dsVertexFormat* outFormat)
 	outFormat->elements[dsVertexAttrib_TexCoord0].format =
 		dsGfxFormat_decorate(dsGfxFormat_X16Y16Z16W16, dsGfxFormat_Float);
 
-	DS_VERIFY(dsVertexFormat_setAttribEnabled(outFormat, dsVertexAttrib_Position, true));
+	DS_VERIFY(dsVertexFormat_setAttribEnabled(outFormat, dsVertexAttrib_Position0, true));
+	DS_VERIFY(dsVertexFormat_setAttribEnabled(outFormat, dsVertexAttrib_Position1, true));
 	DS_VERIFY(dsVertexFormat_setAttribEnabled(outFormat, dsVertexAttrib_Normal, true));
 	DS_VERIFY(dsVertexFormat_setAttribEnabled(outFormat, dsVertexAttrib_Color, true));
 	DS_VERIFY(dsVertexFormat_setAttribEnabled(outFormat, dsVertexAttrib_TexCoord0, true));
@@ -369,7 +375,7 @@ bool dsSceneLight_isInFrustum(const dsSceneLight* light, const dsFrustum3f* frus
 	return false;
 }
 
-bool dsSceneLight_getDirectionalLightVertices(dsDirectionLightVertex* outVertices,
+bool dsSceneLight_getDirectionalLightVertices(dsDirectionalLightVertex* outVertices,
 	uint32_t vertexCount, uint16_t* outIndices, uint32_t indexCount, const dsSceneLight* light,
 	uint16_t firstIndex)
 {
@@ -485,51 +491,59 @@ bool dsSceneLight_getPointLightVertices(
 	falloff[0] = dsPackHalfFloat(light->linearFalloff);
 	falloff[1] = dsPackHalfFloat(light->quadraticFalloff);
 
-	outVertices[0].position.x = bounds.min.x;
-	outVertices[0].position.y = bounds.min.y;
-	outVertices[0].position.z = bounds.min.z;
+	outVertices[0].vertexPosition.x = bounds.min.x;
+	outVertices[0].vertexPosition.y = bounds.min.y;
+	outVertices[0].vertexPosition.z = bounds.min.z;
+	outVertices[0].lightPosition = light->position;
 	memcpy(outVertices[0].color, color, sizeof(color));
 	memcpy(outVertices[0].falloff, falloff, sizeof(falloff));
 
-	outVertices[1].position.x = bounds.min.x;
-	outVertices[1].position.y = bounds.min.y;
-	outVertices[1].position.z = bounds.max.z;
+	outVertices[1].vertexPosition.x = bounds.min.x;
+	outVertices[1].vertexPosition.y = bounds.min.y;
+	outVertices[1].vertexPosition.z = bounds.max.z;
+	outVertices[1].lightPosition = light->position;
 	memcpy(outVertices[1].color, color, sizeof(color));
 	memcpy(outVertices[1].falloff, falloff, sizeof(falloff));
 
-	outVertices[2].position.x = bounds.min.x;
-	outVertices[2].position.y = bounds.max.y;
-	outVertices[2].position.z = bounds.min.z;
+	outVertices[2].vertexPosition.x = bounds.min.x;
+	outVertices[2].vertexPosition.y = bounds.max.y;
+	outVertices[2].vertexPosition.z = bounds.min.z;
+	outVertices[2].lightPosition = light->position;
 	memcpy(outVertices[2].color, color, sizeof(color));
 	memcpy(outVertices[2].falloff, falloff, sizeof(falloff));
 
-	outVertices[3].position.x = bounds.min.x;
-	outVertices[3].position.y = bounds.max.y;
-	outVertices[3].position.z = bounds.max.z;
+	outVertices[3].vertexPosition.x = bounds.min.x;
+	outVertices[3].vertexPosition.y = bounds.max.y;
+	outVertices[3].vertexPosition.z = bounds.max.z;
+	outVertices[3].lightPosition = light->position;
 	memcpy(outVertices[3].color, color, sizeof(color));
 	memcpy(outVertices[3].falloff, falloff, sizeof(falloff));
 
-	outVertices[4].position.x = bounds.max.x;
-	outVertices[4].position.y = bounds.min.y;
-	outVertices[4].position.z = bounds.min.z;
+	outVertices[4].vertexPosition.x = bounds.max.x;
+	outVertices[4].vertexPosition.y = bounds.min.y;
+	outVertices[4].vertexPosition.z = bounds.min.z;
+	outVertices[4].lightPosition = light->position;
 	memcpy(outVertices[4].color, color, sizeof(color));
 	memcpy(outVertices[4].falloff, falloff, sizeof(falloff));
 
-	outVertices[5].position.x = bounds.max.x;
-	outVertices[5].position.y = bounds.min.y;
-	outVertices[5].position.z = bounds.max.z;
+	outVertices[5].vertexPosition.x = bounds.max.x;
+	outVertices[5].vertexPosition.y = bounds.min.y;
+	outVertices[5].vertexPosition.z = bounds.max.z;
+	outVertices[5].lightPosition = light->position;
 	memcpy(outVertices[5].color, color, sizeof(color));
 	memcpy(outVertices[5].falloff, falloff, sizeof(falloff));
 
-	outVertices[6].position.x = bounds.max.x;
-	outVertices[6].position.y = bounds.max.y;
-	outVertices[6].position.z = bounds.min.z;
+	outVertices[6].vertexPosition.x = bounds.max.x;
+	outVertices[6].vertexPosition.y = bounds.max.y;
+	outVertices[6].vertexPosition.z = bounds.min.z;
+	outVertices[6].lightPosition = light->position;
 	memcpy(outVertices[6].color, color, sizeof(color));
 	memcpy(outVertices[6].falloff, falloff, sizeof(falloff));
 
-	outVertices[7].position.x = bounds.max.x;
-	outVertices[7].position.y = bounds.max.y;
-	outVertices[7].position.z = bounds.max.z;
+	outVertices[7].vertexPosition.x = bounds.max.x;
+	outVertices[7].vertexPosition.y = bounds.max.y;
+	outVertices[7].vertexPosition.z = bounds.max.z;
+	outVertices[7].lightPosition = light->position;
 	memcpy(outVertices[7].color, color, sizeof(color));
 	memcpy(outVertices[7].falloff, falloff, sizeof(falloff));
 
@@ -643,7 +657,8 @@ bool dsSceneLight_getSpotLightVertices(dsSpotLightVertex* outVertices, uint32_t 
 	falloffAndSpotAngles[2] = dsPackHalfFloat(light->innerSpotCosAngle);
 	falloffAndSpotAngles[3] = dsPackHalfFloat(light->outerSpotCosAngle);
 
-	outVertices[0].position = light->position;
+	outVertices[0].vertexPosition = light->position;
+	outVertices[0].lightPosition = light->position;
 	memcpy(outVertices[0].direction, direction, sizeof(direction));
 	memcpy(outVertices[0].color, color, sizeof(color));
 	memcpy(outVertices[0].falloffAndSpotAngles, falloffAndSpotAngles, sizeof(falloffAndSpotAngles));
@@ -666,23 +681,27 @@ bool dsSceneLight_getSpotLightVertices(dsSpotLightVertex* outVertices, uint32_t 
 
 	dsVector3f extremeX;
 	dsVector3_sub(extremeX, middlePos, spotX);
-	dsVector3_sub(outVertices[1].position, extremeX, spotY);
+	dsVector3_sub(outVertices[1].vertexPosition, extremeX, spotY);
+	outVertices[1].lightPosition = light->position;
 	memcpy(outVertices[1].direction, direction, sizeof(direction));
 	memcpy(outVertices[1].color, color, sizeof(color));
 	memcpy(outVertices[1].falloffAndSpotAngles, falloffAndSpotAngles, sizeof(falloffAndSpotAngles));
 
-	dsVector3_add(outVertices[2].position, extremeX, spotY);
+	dsVector3_add(outVertices[2].vertexPosition, extremeX, spotY);
+	outVertices[2].lightPosition = light->position;
 	memcpy(outVertices[2].direction, direction, sizeof(direction));
 	memcpy(outVertices[2].color, color, sizeof(color));
 	memcpy(outVertices[2].falloffAndSpotAngles, falloffAndSpotAngles, sizeof(falloffAndSpotAngles));
 
 	dsVector3_add(extremeX, middlePos, spotX);
-	dsVector3_sub(outVertices[3].position, extremeX, spotY);
+	dsVector3_sub(outVertices[3].vertexPosition, extremeX, spotY);
+	outVertices[3].lightPosition = light->position;
 	memcpy(outVertices[3].direction, direction, sizeof(direction));
 	memcpy(outVertices[3].color, color, sizeof(color));
 	memcpy(outVertices[3].falloffAndSpotAngles, falloffAndSpotAngles, sizeof(falloffAndSpotAngles));
 
-	dsVector3_add(outVertices[4].position, extremeX, spotY);
+	dsVector3_add(outVertices[4].vertexPosition, extremeX, spotY);
+	outVertices[4].lightPosition = light->position;
 	memcpy(outVertices[4].direction, direction, sizeof(direction));
 	memcpy(outVertices[4].color, color, sizeof(color));
 	memcpy(outVertices[4].falloffAndSpotAngles, falloffAndSpotAngles, sizeof(falloffAndSpotAngles));

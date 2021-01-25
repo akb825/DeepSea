@@ -73,6 +73,6 @@ dsSceneItemList* dsSceneLightSetPrepare_load(const dsSceneLoadContext*,
 	float intensityThreshold = fbPrepare->intensityThreshold();
 	if (intensityThreshold <= 0)
 		intensityThreshold = DS_DEFAULT_SCENE_LIGHT_INTENSITY_THRESHOLD;
-	return dsSceneLightSetPrepare_create(allocator, name, lightSets, lightSetCount,
-		intensityThreshold);
+	return (dsSceneItemList*)dsSceneLightSetPrepare_create(allocator, name, lightSets,
+		lightSetCount, intensityThreshold);
 }
