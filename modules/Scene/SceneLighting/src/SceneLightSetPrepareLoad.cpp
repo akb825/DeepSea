@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Aaron Barany
+ * Copyright 2020-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,8 +34,7 @@ dsSceneItemList* dsSceneLightSetPrepare_load(const dsSceneLoadContext*,
 	if (!DeepSeaSceneLighting::VerifyLightSetPrepareBuffer(verifier))
 	{
 		errno = EFORMAT;
-		DS_LOG_ERROR(DS_SCENE_LIGHTING_LOG_TAG,
-			"Invalid full screen resolve data flatbuffer format.");
+		DS_LOG_ERROR(DS_SCENE_LIGHTING_LOG_TAG, "Invalid light set prepare flatbuffer format.");
 		return nullptr;
 	}
 

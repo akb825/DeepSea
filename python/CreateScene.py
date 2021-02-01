@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Copyright 2020 Aaron Barany
+# Copyright 2020-2021 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ from DeepSeaScene.Convert.SceneConvert import convertScene
 
 from DeepSeaSceneLighting.Convert.InstanceForwardLightDataConvert \
 	import convertInstanceForwardLightData
+from DeepSeaSceneLighting.Convert.DeferredLightResolveConvert import convertDeferredLightResolve
 from DeepSeaSceneLighting.Convert.LightSetPrepareConvert import convertLightSetPrepare
 
 from DeepSeaVectorDrawScene.Convert.VectorItemListConvert import convertVectorItemList
@@ -46,6 +47,7 @@ if __name__ == '__main__':
 
 	# Lighting scene types.
 	convertContext.addInstanceDataType('InstanceForwardLightData', convertInstanceForwardLightData)
+	convertContext.addItemListType('DeferredLightResolve', convertDeferredLightResolve)
 	convertContext.addItemListType('LightSetPrepare', convertLightSetPrepare)
 
 	# Vector draw scene types.
