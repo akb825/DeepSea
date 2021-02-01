@@ -34,6 +34,16 @@ extern "C"
  */
 
 /**
+ * @brief The number of vertices for a ambient light.
+ */
+#define DS_AMBIENT_LIGHT_VERTEX_COUNT 4
+
+/**
+ * @brief The number of indices for a ambient light.
+ */
+#define DS_AMBIENT_LIGHT_INDEX_COUNT 6
+
+/**
  * @brief The number of vertices for a directional light.
  */
 #define DS_DIRECTIONAL_LIGHT_VERTEX_COUNT 4
@@ -62,6 +72,14 @@ extern "C"
  * @brief The number of indices for a spot light.
  */
 #define DS_SPOT_LIGHT_INDEX_COUNT 18
+
+/**
+ * @brief Gets the vertex format for an ambient light.
+ * @remark errno will be set on failure.
+ * @param[out] outFormat The vertex format.
+ * @return False if the format is null.
+ */
+DS_SCENELIGHTING_EXPORT bool dsSceneLight_getAmbientLightVertexFormat(dsVertexFormat* outFormat);
 
 /**
  * @brief Gets the vertex format for a directinal light.
@@ -183,6 +201,21 @@ DS_SCENELIGHTING_EXPORT bool dsSceneLight_computeBounds(dsAlignedBox3f* outBound
  */
 DS_SCENELIGHTING_EXPORT bool dsSceneLight_isInFrustum(const dsSceneLight* light,
 	const dsFrustum3f* frustum, float intensityThreshold);
+
+/**
+ * @brief Gets the vertices for the ambient light.
+ * @remark errno will be set on failure.
+ * @param[out] outVertices The vertices for the light.
+ * @param vertexCount The number of vertices. Ths must be at least DS_AMBIENT_LIGHT_VERTEX_COUNT.
+ * @param[out] outIndices The indices for the light.
+ * @param indexCount The number of indices. Ths must be at least DS_AMBIENT_LIGHT_INDEX_COUNT.
+ * @param ambient The final ambient value.
+ * @param firstIndex The first index value.
+ * @return False if the parameters are invalid.
+ */
+DS_SCENELIGHTING_EXPORT bool dsSceneLight_getAmbientLightVertices(
+	dsAmbientLightVertex* outVertices, uint32_t vertexCount, uint16_t* outIndices,
+	uint32_t indexCount, const dsColor3f* ambient, uint16_t firstIndex);
 
 /**
  * @brief Gets the vertices for a directional light.

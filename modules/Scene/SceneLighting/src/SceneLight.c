@@ -71,6 +71,23 @@ static float getLightRadius(const dsSceneLight* light, float intensityThreshold)
 	return (-b + root)/(2.0f*a);
 }
 
+bool dsSceneLight_getAmbientLightVertexFormat(dsVertexFormat* outFormat)
+{
+	if (!dsVertexFormat_initialize(outFormat))
+		return false;
+
+	outFormat->elements[dsVertexAttrib_Position].format =
+		dsGfxFormat_decorate(dsGfxFormat_X16Y16, dsGfxFormat_SNorm);
+	outFormat->elements[dsVertexAttrib_Color].format =
+		dsGfxFormat_decorate(dsGfxFormat_R16G16B16A16, dsGfxFormat_Float);
+
+	DS_VERIFY(dsVertexFormat_setAttribEnabled(outFormat, dsVertexAttrib_Position, true));
+	DS_VERIFY(dsVertexFormat_setAttribEnabled(outFormat, dsVertexAttrib_Color, true));
+	DS_VERIFY(dsVertexFormat_computeOffsetsAndSize(outFormat));
+
+	return true;
+}
+
 bool dsSceneLight_getDirectionalLightVertexFormat(dsVertexFormat* outFormat)
 {
 	if (!dsVertexFormat_initialize(outFormat))
@@ -373,6 +390,63 @@ bool dsSceneLight_isInFrustum(const dsSceneLight* light, const dsFrustum3f* frus
 
 	DS_ASSERT(false);
 	return false;
+}
+
+bool dsSceneLight_getAmbientLightVertices(dsAmbientLightVertex* outVertices,
+	uint32_t vertexCount, uint16_t* outIndices, uint32_t indexCount, const dsColor3f* ambient,
+	uint16_t firstIndex)
+{
+	if (!outVertices || !outIndices || !ambient)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	if (vertexCount < DS_AMBIENT_LIGHT_VERTEX_COUNT ||
+		indexCount < DS_AMBIENT_LIGHT_INDEX_COUNT)
+	{
+		errno = EINDEX;
+		return false;
+	}
+
+	if (firstIndex + DS_AMBIENT_LIGHT_VERTEX_COUNT > UINT16_MAX)
+	{
+		errno = ERANGE;
+		return false;
+	}
+
+	dsHalfFloat color[4];
+	_Static_assert(sizeof(color) == sizeof(outVertices->color), "Unexpected color size.");
+	color[0] = dsPackHalfFloat(ambient->r);
+	color[1] = dsPackHalfFloat(ambient->g);
+	color[2] = dsPackHalfFloat(ambient->b);
+	color[3].data = 0;
+
+	outVertices[0].position[0] = (int16_t)0x8001;
+	outVertices[0].position[1] = (int16_t)0x8001;
+	memcpy(outVertices[0].color, color, sizeof(color));
+
+	outVertices[1].position[0] = (int16_t)0x7FFF;
+	outVertices[1].position[1] = (int16_t)0x8001;
+	memcpy(outVertices[1].color, color, sizeof(color));
+
+	outVertices[2].position[0] = (int16_t)0x7FFF;
+	outVertices[2].position[1] = (int16_t)0x7FFF;
+	memcpy(outVertices[2].color, color, sizeof(color));
+
+	outVertices[3].position[0] = (int16_t)0x8001;
+	outVertices[3].position[1] = (int16_t)0x7FFF;
+	memcpy(outVertices[3].color, color, sizeof(color));
+
+	outIndices[0] = (uint16_t)(firstIndex + 0);
+	outIndices[1] = (uint16_t)(firstIndex + 1);
+	outIndices[2] = (uint16_t)(firstIndex + 2);
+
+	outIndices[3] = (uint16_t)(firstIndex + 0);
+	outIndices[4] = (uint16_t)(firstIndex + 2);
+	outIndices[5] = (uint16_t)(firstIndex + 3);
+
+	return true;
 }
 
 bool dsSceneLight_getDirectionalLightVertices(dsDirectionalLightVertex* outVertices,

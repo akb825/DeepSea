@@ -23,8 +23,7 @@
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 
-#include <DeepSea/Math/Vector3.h>
-#include <DeepSea/Math/Packing.h>
+#include <DeepSea/Math/Core.h>
 
 #include <DeepSea/Render/Resources/DrawGeometry.h>
 #include <DeepSea/Render/Resources/GfxBuffer.h>
@@ -55,12 +54,6 @@ typedef struct BufferInfo
 	dsDrawGeometry* spotGometry;
 	uint64_t lastUsedFrame;
 } BufferInfo;
-
-typedef struct AmbientVertex
-{
-	uint16_t position[2];
-	dsHalfFloat color[4];
-} AmbientVertex;
 
 typedef struct TraverseData
 {
@@ -159,16 +152,7 @@ static BufferInfo* getDrawBuffers(dsDeferredLightResolve* resolve, dsRenderer* r
 	ambientVertices.buffer = buffers->buffer;
 	ambientVertices.offset = resolve->ambientVertexOffset;
 	ambientVertices.count = DS_DIRECTIONAL_LIGHT_VERTEX_COUNT;
-	DS_VERIFY(dsVertexFormat_initialize(&ambientVertices.format));
-	ambientVertices.format.elements[dsVertexAttrib_Position].format =
-		dsGfxFormat_decorate(dsGfxFormat_X16Y16, dsGfxFormat_SNorm);
-	ambientVertices.format.elements[dsVertexAttrib_Color].format =
-		dsGfxFormat_decorate(dsGfxFormat_R16G16B16A16, dsGfxFormat_Float);
-	DS_VERIFY(dsVertexFormat_setAttribEnabled(
-		&ambientVertices.format, dsVertexAttrib_Position, true));
-	DS_VERIFY(dsVertexFormat_setAttribEnabled(
-		&ambientVertices.format, dsVertexAttrib_Color, true));
-	DS_VERIFY(dsVertexFormat_computeOffsetsAndSize(&ambientVertices.format));
+	DS_VERIFY(dsSceneLight_getAmbientLightVertexFormat(&ambientVertices.format));
 
 	dsVertexBuffer* vertexBuffers[DS_MAX_GEOMETRY_VERTEX_BUFFERS] =
 		{&ambientVertices, NULL, NULL, NULL};
@@ -320,36 +304,11 @@ void dsDeferredLightResolve_commit(dsSceneItemList* itemList, const dsView* view
 	// Populate ambient data.
 	dsColor3f ambientColor;
 	DS_VERIFY(dsSceneLightSet_getAmbient(&ambientColor, resolve->lightSet));
-	dsHalfFloat packedColor[4];
-	for (unsigned int i = 0; i < 3; ++i)
-		packedColor[i] = dsPackHalfFloat(ambientColor.values[i]);
-	packedColor[3].data = 0;
-
-	AmbientVertex* ambientVerts = (AmbientVertex*)(dstData + resolve->ambientVertexOffset);
-	ambientVerts[0].position[0] = (int16_t)0x8001;
-	ambientVerts[0].position[1] = (int16_t)0x8001;
-	memcpy(ambientVerts[0].color, packedColor, sizeof(packedColor));
-
-	ambientVerts[1].position[0] = (int16_t)0x7FFF;
-	ambientVerts[1].position[1] = (int16_t)0x8001;
-	memcpy(ambientVerts[1].color, packedColor, sizeof(packedColor));
-
-	ambientVerts[2].position[0] = (int16_t)0x7FFF;
-	ambientVerts[2].position[1] = (int16_t)0x7FFF;
-	memcpy(ambientVerts[2].color, packedColor, sizeof(packedColor));
-
-	ambientVerts[3].position[0] = (int16_t)0x8001;
-	ambientVerts[3].position[1] = (int16_t)0x7FFF;
-	memcpy(ambientVerts[3].color, packedColor, sizeof(packedColor));
-
+	dsAmbientLightVertex* ambientVerts =
+		(dsAmbientLightVertex*)(dstData + resolve->ambientVertexOffset);
 	uint16_t* ambientIndices = (uint16_t*)(dstData + resolve->ambientIndexOffset);
-	ambientIndices[0] = 0;
-	ambientIndices[1] = 1;
-	ambientIndices[2] = 2;
-
-	ambientIndices[3] = 0;
-	ambientIndices[4] = 2;
-	ambientIndices[5] = 3;
+	DS_VERIFY(dsSceneLight_getAmbientLightVertices(ambientVerts, DS_AMBIENT_LIGHT_VERTEX_COUNT,
+		ambientIndices, DS_AMBIENT_LIGHT_INDEX_COUNT, &ambientColor, 0));
 
 	// Populate other light data.
 	TraverseData traverseData =
@@ -524,7 +483,7 @@ dsDeferredLightResolve* dsDeferredLightResolve_create(dsAllocator* allocator,
 	resolve->spotMaterial = spotMaterial;
 	resolve->intensityThreshold = intensityThreshold;
 
-	size_t ambientVertexSize = sizeof(AmbientVertex)*DS_DIRECTIONAL_LIGHT_VERTEX_COUNT;
+	size_t ambientVertexSize = sizeof(dsAmbientLightVertex)*DS_AMBIENT_LIGHT_VERTEX_COUNT;
 	size_t directionalVertexSize =
 		sizeof(dsDirectionalLightVertex)*DS_DIRECTIONAL_LIGHT_VERTEX_COUNT;
 	size_t pointVertexSize = sizeof(dsPointLightVertex)*DS_POINT_LIGHT_VERTEX_COUNT;

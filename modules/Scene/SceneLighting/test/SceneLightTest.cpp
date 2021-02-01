@@ -39,6 +39,22 @@ static void computeNormal(dsVector3f& outNormal, const dsVector3f& p0, const dsV
 	dsVector3_cross(outNormal, a, b);
 }
 
+TEST(SceneLightTest, GetAmbientLightVertexFormat)
+{
+	EXPECT_FALSE(dsSceneLight_getAmbientLightVertexFormat(nullptr));
+
+	dsVertexFormat format;
+	dsSceneLight_getAmbientLightVertexFormat(&format);
+	EXPECT_EQ(sizeof(dsAmbientLightVertex), format.size);
+
+	EXPECT_TRUE(dsVertexFormat_getAttribEnabled(&format, dsVertexAttrib_Position));
+	EXPECT_TRUE(dsVertexFormat_getAttribEnabled(&format, dsVertexAttrib_Color));
+
+	EXPECT_EQ(offsetof(dsAmbientLightVertex, position),
+		format.elements[dsVertexAttrib_Position].offset);
+	EXPECT_EQ(offsetof(dsAmbientLightVertex, color), format.elements[dsVertexAttrib_Color].offset);
+}
+
 TEST(SceneLightTest, GetDirectionalLightVertexFormat)
 {
 	EXPECT_FALSE(dsSceneLight_getDirectionalLightVertexFormat(nullptr));
@@ -334,6 +350,56 @@ TEST(SceneLightTest, IsInFrustum)
 	light.position.x = 3.1f;
 	EXPECT_FALSE(dsSceneLight_isInFrustum(&light, &frustum,
 		DS_DEFAULT_SCENE_LIGHT_INTENSITY_THRESHOLD));
+}
+
+TEST(SceneLightTest, GetAmbientLightVertices)
+{
+	dsColor3f color = {{0.1f, 0.2f, 0.3f}};
+
+	dsAmbientLightVertex lightVertices[DS_AMBIENT_LIGHT_VERTEX_COUNT];
+	uint16_t lightIndices[DS_AMBIENT_LIGHT_INDEX_COUNT];
+
+	EXPECT_FALSE(dsSceneLight_getAmbientLightVertices(nullptr,
+		DS_AMBIENT_LIGHT_VERTEX_COUNT, lightIndices, DS_AMBIENT_LIGHT_INDEX_COUNT, &color, 0));
+	EXPECT_FALSE(dsSceneLight_getAmbientLightVertices(lightVertices,
+		DS_AMBIENT_LIGHT_VERTEX_COUNT - 1, lightIndices, DS_AMBIENT_LIGHT_INDEX_COUNT, &color, 0));
+	EXPECT_FALSE(dsSceneLight_getAmbientLightVertices(lightVertices,
+		DS_AMBIENT_LIGHT_VERTEX_COUNT, nullptr, DS_AMBIENT_LIGHT_INDEX_COUNT, &color, 0));
+	EXPECT_FALSE(dsSceneLight_getAmbientLightVertices(lightVertices,
+		DS_AMBIENT_LIGHT_VERTEX_COUNT, lightIndices, DS_AMBIENT_LIGHT_INDEX_COUNT - 1, &color, 0));
+	EXPECT_FALSE(dsSceneLight_getAmbientLightVertices(lightVertices,
+		DS_AMBIENT_LIGHT_VERTEX_COUNT, lightIndices, DS_AMBIENT_LIGHT_INDEX_COUNT, nullptr, 0));
+
+	EXPECT_TRUE(dsSceneLight_getAmbientLightVertices(lightVertices,
+		DS_AMBIENT_LIGHT_VERTEX_COUNT, lightIndices, DS_AMBIENT_LIGHT_INDEX_COUNT, &color, 0));
+
+	dsHalfFloat expectedPackedColor[4] = {dsPackHalfFloat(color.r), dsPackHalfFloat(color.g),
+		dsPackHalfFloat(color.b), {0}};
+	for (unsigned int i = 0; i < DS_DIRECTIONAL_LIGHT_VERTEX_COUNT; ++i)
+	{
+		EXPECT_EQ(0, std::memcmp(expectedPackedColor, lightVertices[i].color,
+			sizeof(expectedPackedColor)));
+	}
+
+	EXPECT_EQ(dsPackInt16(-1), lightVertices[0].position[0]);
+	EXPECT_EQ(dsPackInt16(-1), lightVertices[0].position[1]);
+
+	EXPECT_EQ(dsPackInt16(1), lightVertices[1].position[0]);
+	EXPECT_EQ(dsPackInt16(-1), lightVertices[1].position[1]);
+
+	EXPECT_EQ(dsPackInt16(1), lightVertices[2].position[0]);
+	EXPECT_EQ(dsPackInt16(1), lightVertices[2].position[1]);
+
+	EXPECT_EQ(dsPackInt16(-1), lightVertices[3].position[0]);
+	EXPECT_EQ(dsPackInt16(1), lightVertices[3].position[1]);
+
+	EXPECT_EQ(0U, lightIndices[0]);
+	EXPECT_EQ(1U, lightIndices[1]);
+	EXPECT_EQ(2U, lightIndices[2]);
+
+	EXPECT_EQ(0U, lightIndices[3]);
+	EXPECT_EQ(2U, lightIndices[4]);
+	EXPECT_EQ(3U, lightIndices[5]);
 }
 
 TEST(SceneLightTest, GetDirectionalLightVertices)

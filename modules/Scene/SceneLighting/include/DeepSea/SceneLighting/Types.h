@@ -115,6 +115,23 @@ typedef struct dsSceneLight
 } dsSceneLight;
 
 /**
+ * @brief Struct defining the vertex elements when drawing an ambient light.
+ * @see SceneLight.h
+ */
+typedef struct dsAmbientLightVertex
+{
+	/**
+	 * @brief The screen position of the light as a -1 or 1 value.
+	 */
+	int16_t position[2];
+
+	/**
+	 * @brief The color of the light as half floats.
+	 */
+	dsHalfFloat color[4];
+} dsAmbientLightVertex;
+
+/**
  * @brief Struct defining the vertex elements when drawing a directional light.
  * @see SceneLight.h
  */
