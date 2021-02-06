@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 Aaron Barany
+ * Copyright 2018-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -76,7 +76,7 @@
 [[vertex]]
 void dsVectorElementText_defaultVertexColor()
 {
-	dsVectorElementText_processVertex(gl_Position);
+	gl_Position = dsVectorElementText_processVertex();
 }
 
 /**
@@ -104,7 +104,7 @@ void dsVectorElementText_defaultTessControlColor()
 [[tessellation_evaluation]]
 void dsVectorElementText_defaultTessEvalColor()
 {
-	dsVectorElementText_processTessellatedVertex(gl_Position);
+	gl_Position = dsVectorElementText_processTessellatedVertex();
 }
 
 /**

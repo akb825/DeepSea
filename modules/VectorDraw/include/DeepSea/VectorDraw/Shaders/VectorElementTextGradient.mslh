@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 Aaron Barany
+ * Copyright 2018-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -70,7 +70,7 @@
 [[vertex]]
 void dsVectorElementText_defaultVertexGradient()
 {
-	dsVectorElementText_processVertex(gl_Position);
+	gl_Position = dsVectorElementText_processVertex();
 
 	dsVectorText_getFillMaterialInfo(vfFillInfo0, vfFillInfo1, vfFillInfo2, vfFillInfo3,
 		int(viIndices.z));

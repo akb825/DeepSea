@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -126,25 +126,25 @@ varying(vertex, fragment)
 	src_color_blend_factor = src_alpha; \
 	src_alpha_blend_factor = one; \
 	dst_blend_factor = one_minus_src_alpha; \
-	alpha_blend_op = add
+	blend_op = add
 
 /**
  * @brief Creates the vertex output.
- * @param[out] position The output position in clip space.
+ * @return The output position in clip space.
  */
 [[vertex]]
-void dsVectorElementLine_processVertex(out vec4 position)
+vec4 dsVectorElementLine_processVertex()
 {
 	vec4 elementInfo[4];
 	dsVectorShared_getElementLineInfo(elementInfo, int(viMaterialIndex.x));
 	mat3 transform = dsVectorShared_getElementTransform(elementInfo);
 
 	vfPosition.xy = viPositionLineInfo.xy;
-	position = dsVectorShared_transform(vfPosition.zw, viPositionLineInfo.xy, transform);
 	vfLineDistancesOpacityMaterialIndex = vec4(viPositionLineInfo.zw, elementInfo[2].z,
 		viMaterialIndex.y);
 	vfShapeBounds = dsVectorShared_getElementBounds(elementInfo);
 	vfDashArray = elementInfo[3];
+	return dsVectorShared_transform(vfPosition.zw, viPositionLineInfo.xy, transform);
 }
 
 /**
@@ -153,7 +153,7 @@ void dsVectorElementLine_processVertex(out vec4 position)
 [[vertex]]
 void dsVectorElementLine_defaultVertex()
 {
-	dsVectorElementLine_processVertex(gl_Position);
+	gl_Position = dsVectorElementLine_processVertex();
 	dsVectorMaterial_getInfo(vfMatInfo0, vfMatInfo1, vfMatInfo2, vfMatInfo3,
 		int(viMaterialIndex.y));
 	gl_Position = DS_ADJUST_CLIP(gl_Position);

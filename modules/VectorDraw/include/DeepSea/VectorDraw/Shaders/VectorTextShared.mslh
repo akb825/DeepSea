@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 Aaron Barany
+ * Copyright 2018-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -192,7 +192,7 @@ varying(tessellation_evaluation, fragment)
 	blend_enable = true; \
 	src_blend_factor = one; \
 	dst_blend_factor = one_minus_src_alpha; \
-	alpha_blend_op = add
+	blend_op = add
 #else
 // Need to flip winding due to flipping the Y coordinate.
 #define DS_DEFAULT_VECTOR_ELEMENT_TEXT_RENDER_STATES \
@@ -202,21 +202,20 @@ varying(tessellation_evaluation, fragment)
 	blend_enable = true; \
 	src_blend_factor = one; \
 	dst_blend_factor = one_minus_src_alpha; \
-	alpha_blend_op = add
+	blend_op = add
 #endif
 
 /**
  * @brief Creates the vertex output.
- * @param[out] outPosition The output position in clip space.
+ * @return The output position in clip space.
  */
 [[vertex]]
-void dsVectorElementText_processVertex(out vec4 outPosition)
+vec4 dsVectorElementText_processVertex()
 {
-	outPosition = vec4(viPosition, 0.0, 1.0);
-
 	vtcGeometry = viGeometry;
 	vtcTexCoords = viTexCoords;
 	vtcIndices = viIndices;
+	return vec4(viPosition, 0.0, 1.0);
 }
 
 /**
@@ -225,7 +224,7 @@ void dsVectorElementText_processVertex(out vec4 outPosition)
  * @return The vertex output.
  */
 [[tessellation_evaluation]]
-void dsVectorElementText_processTessellatedVertex(out vec4 outPosition)
+vec4 dsVectorElementText_processTessellatedVertex()
 {
 	vec4 elementInfo[4];
 	dsVectorShared_getElementLineInfo(elementInfo, int(tceIndices.y));
@@ -236,11 +235,11 @@ void dsVectorElementText_processTessellatedVertex(out vec4 outPosition)
 
 	vfPosition.xy = dsVectorTextShared_finalPosition(gl_in[0].gl_Position.xy, offset,
 		elementInfo[3].y);
-	outPosition = dsVectorShared_transform(vfPosition.zw, vfPosition.xy, transform);
 	vfTexCoordEmbolden = vec4(texCoords, tceIndices.x, elementInfo[3].x);
 	vfOutlineAntiAlias = elementInfo[3].zw;
 	vfMaterialIndicesOpacities = vec4(tceIndices.zw, elementInfo[2].zw);
 	vfShapeBounds = dsVectorShared_getElementBounds(elementInfo);
+	return dsVectorShared_transform(vfPosition.zw, vfPosition.xy, transform);
 }
 
 #else // DS_TESS_TEXT
@@ -308,14 +307,14 @@ varying(vertex, fragment)
 	blend_enable = true; \
 	src_blend_factor = one; \
 	dst_blend_factor = one_minus_src_alpha; \
-	alpha_blend_op = add
+	blend_op = add
 
 /**
  * @brief Creates the vertex output.
- * @param[out] outPosition The output position in clip space.
+ * @return The output position in clip space.
  */
 [[vertex]]
-void dsVectorElementText_processVertex(out vec4 outPosition)
+vec4 dsVectorElementText_processVertex()
 {
 	vec4 elementInfo[4];
 	dsVectorShared_getElementLineInfo(elementInfo, int(viIndices.y));
@@ -323,10 +322,10 @@ void dsVectorElementText_processVertex(out vec4 outPosition)
 
 	vfPosition.xy = dsVectorTextShared_finalPosition(viPositionOffset.xy,
 		viPositionOffset.zw, elementInfo[3].y);
-	outPosition = dsVectorShared_transform(vfPosition.zw, vfPosition.xy, transform);
 	vfTexCoordEmbolden = vec4(viTexCoords, viIndices.x, elementInfo[3].x);
 	vfOutlineAntiAlias = elementInfo[3].zw;
 	vfMaterialIndicesOpacities = vec4(viIndices.zw, elementInfo[2].zw);
 	vfShapeBounds = dsVectorShared_getElementBounds(elementInfo);
+	return dsVectorShared_transform(vfPosition.zw, vfPosition.xy, transform);
 }
 #endif

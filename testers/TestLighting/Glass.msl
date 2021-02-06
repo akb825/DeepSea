@@ -72,6 +72,6 @@ pipeline Glass
 	// Alpha is pre-multiplied.
 	src_blend_factor = one;
 	dst_blend_factor = one_minus_src_alpha;
-	alpha_blend_op = add;
+	blend_op = add;
 	cull_mode = back;
 }

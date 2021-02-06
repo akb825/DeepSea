@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -104,21 +104,21 @@ varying(vertex, fragment)
 	src_color_blend_factor = src_alpha; \
 	src_alpha_blend_factor = one; \
 	dst_blend_factor = one_minus_src_alpha; \
-	alpha_blend_op = add
+	blend_op = add
 
 /**
  * @brief Creates the vertex output.
- * @param[out] position The output position in clip space.
+ * @return The output position in clip space.
  */
 [[vertex]]
-void dsVectorElementImage_getVectorInfo(out vec4 position)
+vec4 dsVectorElementImage_getVectorInfo()
 {
 	vec4 elementInfo[4];
 	dsVectorShared_getElementInfo(elementInfo, int(viTexCoordsElementIndex.z));
 	mat3 transform = dsVectorShared_getElementTransform(elementInfo);
 
-	position = dsVectorShared_transform(vfPosition, viPosition.xy, transform);
 	vfTexCoordsOpacity = vec3(viTexCoordsElementIndex.xy, elementInfo[2].z);
+	return dsVectorShared_transform(vfPosition, viPosition.xy, transform);
 }
 
 /**
@@ -127,7 +127,7 @@ void dsVectorElementImage_getVectorInfo(out vec4 position)
 [[vertex]]
 void dsVectorElementImage_defaultVertex()
 {
-	dsVectorElementImage_getVectorInfo(gl_Position);
+	gl_Position = dsVectorElementImage_getVectorInfo();
 	gl_Position = DS_ADJUST_CLIP(gl_Position);
 }
 

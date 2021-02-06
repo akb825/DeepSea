@@ -151,7 +151,7 @@ static BufferInfo* getDrawBuffers(dsDeferredLightResolve* resolve, dsRenderer* r
 	dsVertexBuffer ambientVertices;
 	ambientVertices.buffer = buffers->buffer;
 	ambientVertices.offset = resolve->ambientVertexOffset;
-	ambientVertices.count = DS_DIRECTIONAL_LIGHT_VERTEX_COUNT;
+	ambientVertices.count = DS_AMBIENT_LIGHT_VERTEX_COUNT;
 	DS_VERIFY(dsSceneLight_getAmbientLightVertexFormat(&ambientVertices.format));
 
 	dsVertexBuffer* vertexBuffers[DS_MAX_GEOMETRY_VERTEX_BUFFERS] =
@@ -335,10 +335,10 @@ void dsDeferredLightResolve_commit(dsSceneItemList* itemList, const dsView* view
 	}
 
 	dsDrawIndexedRange drawRange;
-	drawRange.indexCount = DS_DIRECTIONAL_LIGHT_INDEX_COUNT;
+	drawRange.indexCount = DS_AMBIENT_LIGHT_INDEX_COUNT;
 	drawRange.instanceCount = 1;
 	drawRange.firstIndex = 0;
-	drawRange.indexCount = DS_DIRECTIONAL_LIGHT_INDEX_COUNT;
+	drawRange.indexCount = DS_AMBIENT_LIGHT_INDEX_COUNT;
 	drawRange.vertexOffset = 0;
 	drawRange.firstInstance = 0;
 	DS_CHECK(DS_SCENE_LIGHTING_LOG_TAG, dsRenderer_drawIndexed(renderer, commandBuffer,
