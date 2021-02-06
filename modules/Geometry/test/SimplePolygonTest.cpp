@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1209,6 +1209,242 @@ TEST_F(SimplePolygonTest, SawtoothLeftCCW)
 	EXPECT_EQ(16U, indices[48]);
 	EXPECT_EQ(14U, indices[49]);
 	EXPECT_EQ(15U, indices[50]);
+}
+
+TEST_F(SimplePolygonTest, CollinearRightCW)
+{
+	dsVector2d points[] =
+	{
+		{{10.000000000000001, 2.0}},
+		{{9.999999999999999, 3.0}},
+		{{10.0, 4.0}},
+		{{11.0, 5.0}},
+		{{11.0, 6.0}},
+		{{11.0, 7.0}},
+		{{11.0, 8.0}},
+		{{0.0, 8.0}},
+		{{0.0, 0.0}},
+		{{10.0, 0.0}},
+		{{10.0, 1.0}}
+	};
+
+	uint32_t indexCount;
+	const uint32_t* indices = dsSimplePolygon_triangulate(&indexCount, polygon, points,
+		DS_ARRAY_SIZE(points), NULL, dsTriangulateWinding_CW);
+	ASSERT_EQ(27U, indexCount);
+	ASSERT_TRUE(indices);
+	EXPECT_EQ(9U, indices[0]);
+	EXPECT_EQ(8U, indices[1]);
+	EXPECT_EQ(7U, indices[2]);
+
+	EXPECT_EQ(10U, indices[3]);
+	EXPECT_EQ(9U, indices[4]);
+	EXPECT_EQ(7U, indices[5]);
+
+	EXPECT_EQ(0U, indices[6]);
+	EXPECT_EQ(10U, indices[7]);
+	EXPECT_EQ(7U, indices[8]);
+
+	EXPECT_EQ(1U, indices[9]);
+	EXPECT_EQ(0U, indices[10]);
+	EXPECT_EQ(7U, indices[11]);
+
+	EXPECT_EQ(2U, indices[12]);
+	EXPECT_EQ(1U, indices[13]);
+	EXPECT_EQ(7U, indices[14]);
+
+	EXPECT_EQ(3U, indices[15]);
+	EXPECT_EQ(2U, indices[16]);
+	EXPECT_EQ(7U, indices[17]);
+
+	EXPECT_EQ(4U, indices[18]);
+	EXPECT_EQ(3U, indices[19]);
+	EXPECT_EQ(7U, indices[20]);
+
+	EXPECT_EQ(5U, indices[21]);
+	EXPECT_EQ(4U, indices[22]);
+	EXPECT_EQ(7U, indices[23]);
+
+	EXPECT_EQ(6U, indices[24]);
+	EXPECT_EQ(5U, indices[25]);
+	EXPECT_EQ(7U, indices[26]);
+}
+
+TEST_F(SimplePolygonTest, CollinearRightCCW)
+{
+	dsVector2d points[] =
+	{
+		{{10.000000000000001, 2.0}},
+		{{9.999999999999999, 3.0}},
+		{{10.0, 4.0}},
+		{{11.0, 5.0}},
+		{{11.0, 6.0}},
+		{{11.0, 7.0}},
+		{{11.0, 8.0}},
+		{{0.0, 8.0}},
+		{{0.0, 0.0}},
+		{{10.0, 0.0}},
+		{{10.0, 1.0}}
+	};
+
+	uint32_t indexCount;
+	const uint32_t* indices = dsSimplePolygon_triangulate(&indexCount, polygon, points,
+		DS_ARRAY_SIZE(points), NULL, dsTriangulateWinding_CCW);
+	ASSERT_EQ(27U, indexCount);
+	ASSERT_TRUE(indices);
+	EXPECT_EQ(9U, indices[0]);
+	EXPECT_EQ(7U, indices[1]);
+	EXPECT_EQ(8U, indices[2]);
+
+	EXPECT_EQ(10U, indices[3]);
+	EXPECT_EQ(7U, indices[4]);
+	EXPECT_EQ(9U, indices[5]);
+
+	EXPECT_EQ(0U, indices[6]);
+	EXPECT_EQ(7U, indices[7]);
+	EXPECT_EQ(10U, indices[8]);
+
+	EXPECT_EQ(1U, indices[9]);
+	EXPECT_EQ(7U, indices[10]);
+	EXPECT_EQ(0U, indices[11]);
+
+	EXPECT_EQ(2U, indices[12]);
+	EXPECT_EQ(7U, indices[13]);
+	EXPECT_EQ(1U, indices[14]);
+
+	EXPECT_EQ(3U, indices[15]);
+	EXPECT_EQ(7U, indices[16]);
+	EXPECT_EQ(2U, indices[17]);
+
+	EXPECT_EQ(4U, indices[18]);
+	EXPECT_EQ(7U, indices[19]);
+	EXPECT_EQ(3U, indices[20]);
+
+	EXPECT_EQ(5U, indices[21]);
+	EXPECT_EQ(7U, indices[22]);
+	EXPECT_EQ(4U, indices[23]);
+
+	EXPECT_EQ(6U, indices[24]);
+	EXPECT_EQ(7U, indices[25]);
+	EXPECT_EQ(5U, indices[26]);
+}
+
+TEST_F(SimplePolygonTest, CollinearLeftCW)
+{
+	dsVector2d points[] =
+	{
+		{{0.000000000000001, 2.0}},
+		{{-0.000000000000001, 3.0}},
+		{{0.0, 4.0}},
+		{{1.0, 5.0}},
+		{{1.0, 6.0}},
+		{{1.0, 7.0}},
+		{{1.0, 8.0}},
+		{{10.0, 8.0}},
+		{{10.0, 0.0}},
+		{{0.0, 0.0}},
+		{{0.0, 1.0}}
+	};
+
+	uint32_t indexCount;
+	const uint32_t* indices = dsSimplePolygon_triangulate(&indexCount, polygon, points,
+		DS_ARRAY_SIZE(points), NULL, dsTriangulateWinding_CW);
+	ASSERT_EQ(27U, indexCount);
+	ASSERT_TRUE(indices);
+	EXPECT_EQ(3U, indices[0]);
+	EXPECT_EQ(1U, indices[1]);
+	EXPECT_EQ(2U, indices[2]);
+
+	EXPECT_EQ(3U, indices[3]);
+	EXPECT_EQ(0U, indices[4]);
+	EXPECT_EQ(1U, indices[5]);
+
+	EXPECT_EQ(3U, indices[6]);
+	EXPECT_EQ(10U, indices[7]);
+	EXPECT_EQ(0U, indices[8]);
+
+	EXPECT_EQ(3U, indices[9]);
+	EXPECT_EQ(9U, indices[10]);
+	EXPECT_EQ(10U, indices[11]);
+
+	EXPECT_EQ(8U, indices[12]);
+	EXPECT_EQ(9U, indices[13]);
+	EXPECT_EQ(3U, indices[14]);
+
+	EXPECT_EQ(8U, indices[15]);
+	EXPECT_EQ(3U, indices[16]);
+	EXPECT_EQ(4U, indices[17]);
+
+	EXPECT_EQ(8U, indices[18]);
+	EXPECT_EQ(4U, indices[19]);
+	EXPECT_EQ(5U, indices[20]);
+
+	EXPECT_EQ(8U, indices[21]);
+	EXPECT_EQ(5U, indices[22]);
+	EXPECT_EQ(6U, indices[23]);
+
+	EXPECT_EQ(7U, indices[24]);
+	EXPECT_EQ(8U, indices[25]);
+	EXPECT_EQ(6U, indices[26]);
+}
+
+TEST_F(SimplePolygonTest, CollinearLeftCCW)
+{
+	dsVector2d points[] =
+	{
+		{{0.000000000000001, 2.0}},
+		{{-0.000000000000001, 3.0}},
+		{{0.0, 4.0}},
+		{{1.0, 5.0}},
+		{{1.0, 6.0}},
+		{{1.0, 7.0}},
+		{{1.0, 8.0}},
+		{{10.0, 8.0}},
+		{{10.0, 0.0}},
+		{{0.0, 0.0}},
+		{{0.0, 1.0}}
+	};
+
+	uint32_t indexCount;
+	const uint32_t* indices = dsSimplePolygon_triangulate(&indexCount, polygon, points,
+		DS_ARRAY_SIZE(points), NULL, dsTriangulateWinding_CCW);
+	ASSERT_EQ(27U, indexCount);
+	ASSERT_TRUE(indices);
+	EXPECT_EQ(3U, indices[0]);
+	EXPECT_EQ(2U, indices[1]);
+	EXPECT_EQ(1U, indices[2]);
+
+	EXPECT_EQ(3U, indices[3]);
+	EXPECT_EQ(1U, indices[4]);
+	EXPECT_EQ(0U, indices[5]);
+
+	EXPECT_EQ(3U, indices[6]);
+	EXPECT_EQ(0U, indices[7]);
+	EXPECT_EQ(10U, indices[8]);
+
+	EXPECT_EQ(3U, indices[9]);
+	EXPECT_EQ(10U, indices[10]);
+	EXPECT_EQ(9U, indices[11]);
+
+	EXPECT_EQ(8U, indices[12]);
+	EXPECT_EQ(3U, indices[13]);
+	EXPECT_EQ(9U, indices[14]);
+
+	EXPECT_EQ(8U, indices[15]);
+	EXPECT_EQ(4U, indices[16]);
+	EXPECT_EQ(3U, indices[17]);
+
+	EXPECT_EQ(8U, indices[18]);
+	EXPECT_EQ(5U, indices[19]);
+	EXPECT_EQ(4U, indices[20]);
+
+	EXPECT_EQ(8U, indices[21]);
+	EXPECT_EQ(6U, indices[22]);
+	EXPECT_EQ(5U, indices[23]);
+
+	EXPECT_EQ(7U, indices[24]);
+	EXPECT_EQ(6U, indices[25]);
+	EXPECT_EQ(8U, indices[26]);
 }
 
 TEST_F(SimplePolygonTest, HoleCW)

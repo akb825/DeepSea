@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Core/Sort.h>
+#include <DeepSea/Math/Core.h>
 #include <string.h>
 
 // Basis of algorithm: https://www.cs.ucsb.edu/~suri/cs235/Triangulation.pdf
@@ -54,7 +55,16 @@ static int compareLoopVertex(const void* left, const void* right, void* context)
 	const LoopVertex* rightVert = (const LoopVertex*)right;
 	const dsVector2d* leftPos = &polygon->vertices[leftVert->vertIndex].point;
 	const dsVector2d* rightPos = &polygon->vertices[rightVert->vertIndex].point;
-	return dsComparePolygonPoints(leftPos, rightPos);
+
+	if (leftPos->x < rightPos->x - polygon->equalEpsilon)
+		return -1;
+	else if (leftPos->x > rightPos->x + polygon->equalEpsilon)
+		return 1;
+	else if (leftPos->y < rightPos->y - polygon->equalEpsilon)
+		return -1;
+	else if (leftPos->y > rightPos->y + polygon->equalEpsilon)
+		return 1;
+	return 0;
 }
 
 static bool addVerticesAndEdges(dsBasePolygon* polygon, const void* points, uint32_t pointCount,
@@ -112,9 +122,10 @@ static bool addVerticesAndEdges(dsBasePolygon* polygon, const void* points, uint
 	return dsBasePolygon_sortVertices(polygon);
 }
 
-static bool isLeft(const dsVector2d* point, const dsVector2d* reference)
+static bool isLeft(const dsVector2d* point, const dsVector2d* reference, double epsilon)
 {
-	return point->x < reference->x || (point->x == reference->x && point->y < reference->y);
+	return point->x < reference->x - epsilon || (dsEpsilonEquald(point->x, reference->x, epsilon) &&
+		point->y < reference->y);
 }
 
 static uint32_t findOtherPoint(const dsBasePolygon* polygon, const uint32_t* sortedVert,
@@ -165,10 +176,10 @@ static bool findMonotonicLoops(dsBasePolygon* polygon, bool ccw)
 		uint32_t prev = *sortedVert == 0 ? polygon->vertexCount - 1 : *sortedVert - 1;
 		uint32_t next = *sortedVert == polygon->vertexCount - 1 ? 0 : *sortedVert + 1;
 
-		bool prevLeft =
-			isLeft(&polygon->vertices[prev].point, &polygon->vertices[*sortedVert].point);
-		bool nextLeft =
-			isLeft(&polygon->vertices[next].point, &polygon->vertices[*sortedVert].point);
+		bool prevLeft = isLeft(&polygon->vertices[prev].point,
+			&polygon->vertices[*sortedVert].point, polygon->equalEpsilon);
+		bool nextLeft = isLeft(&polygon->vertices[next].point,
+			&polygon->vertices[*sortedVert].point, polygon->equalEpsilon);
 
 		// Find inflection points in the X direction.
 		if (prevLeft != nextLeft)
@@ -218,11 +229,11 @@ static bool addLoopVertex(dsSimplePolygon* polygon, uint32_t polygonEdge)
 		return false;
 	}
 
+	LoopVertex* loopVertex = polygon->loopVertices + index;
 	const dsBasePolygon* base = &polygon->base;
-	polygon->loopVertices[index].vertIndex = base->edges[polygonEdge].prevVertex;
-	polygon->loopVertices[index].prevVert =
-		base->edges[base->edges[polygonEdge].prevEdge].prevVertex;
-	polygon->loopVertices[index].nextVert = base->edges[polygonEdge].nextVertex;
+	loopVertex->vertIndex = base->edges[polygonEdge].prevVertex;
+	loopVertex->prevVert = base->edges[base->edges[polygonEdge].prevEdge].prevVertex;
+	loopVertex->nextVert = base->edges[polygonEdge].nextVertex;
 	return true;
 }
 
@@ -307,13 +318,18 @@ static bool triangulateLoop(dsSimplePolygon* polygon, uint32_t startEdge, bool c
 					polygon->loopVertices[p1Vert].vertIndex].point;
 				const dsVector2d* p2 = &base->vertices[
 					polygon->loopVertices[p2Vert].vertIndex].point;
-				// Add triangles along the chain so long as they are inside the polygon.
+				// Add triangles along the chain so long as they are inside the polygon and not
+				// degenerate.
 				bool expectedCCW = ccw;
 				if (!isNext)
 					expectedCCW = !expectedCCW;
 				bool triangleCCW = dsIsPolygonTriangleCCW(p0, p1, p2);
-				if (triangleCCW != expectedCCW)
+				if (triangleCCW != expectedCCW ||
+					(dsEpsilonEquald(p0->x, p1->x, base->equalEpsilon) &&
+						dsEpsilonEquald(p0->x, p2->x, base->equalEpsilon)))
+				{
 					break;
+				}
 
 				if (triangleCCW != targetCCW)
 				{

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,6 +38,13 @@ struct PolygonInfo
 	uint32_t pointCount;
 };
 
+struct PointRef
+{
+	IntPoint clipperPoint;
+	const void* points;
+	uint32_t index;
+};
+
 struct dsComplexPolygon
 {
 	dsAllocator* allocator;
@@ -58,7 +65,22 @@ struct dsComplexPolygon
 	dsSimplePolygonLoop* outLoops;
 	uint32_t outLoopCount;
 	uint32_t maxOutLoops;
+
+	// Uses a binary search for the points. This isn't expected to be a performance bottleneck, but
+	// if it does it can be converted to a hash table. This would need to be weighed against either
+	// complicated management with dsHashTable and a resizeable pool or poor allocation patterns
+	// of std::unordered_map.
+	PointRef* originalPoints;
+	uint32_t originalPointCount;
+	uint32_t maxOriginalPoints;
 };
+
+static bool operator<(const PointRef& left, const PointRef& right)
+{
+	if (left.clipperPoint.X == right.clipperPoint.X)
+		return left.clipperPoint.Y < right.clipperPoint.Y;
+	return left.clipperPoint.X < right.clipperPoint.X;
+}
 
 static bool defaultGetPointFloat(void* outPosition, const dsComplexPolygon* polygon,
 	const void* points, uint32_t index)
@@ -91,7 +113,7 @@ static bool simplifyPolygon(PolyTree& result, const Paths& paths, cInt xEpsilon,
 	if (fillRule == dsPolygonFillRule_NonZero)
 		clipperFillType = pftNonZero;
 
-	Clipper c(ioStrictlySimple);
+	Clipper c(ioStrictlySimple | ioPreserveCollinear);
 	for (const Path& path : paths)
 	{
 		if (path.size() > 2)
@@ -231,21 +253,45 @@ static bool processPolygon(dsComplexPolygon* polygon, const Paths& paths, cInt x
 	return true;
 }
 
+static const PointRef* findOriginalPoint(const dsComplexPolygon* polygon, const IntPoint& point)
+{
+	PointRef curPoint{point, nullptr, 0};
+	const PointRef* foundRef = std::lower_bound(polygon->originalPoints,
+		polygon->originalPoints + polygon->originalPointCount, curPoint);
+	if (foundRef == polygon->originalPoints + polygon->originalPointCount ||
+		foundRef->clipperPoint.X != point.X || foundRef->clipperPoint.Y != point.Y)
+	{
+		return nullptr;
+	}
+
+	return foundRef;
+}
+
 static bool simplifyFloat(dsComplexPolygon* polygon, const dsComplexPolygonLoop* loops,
 	uint32_t loopCount, dsComplexPolygonPointFunction pointFunc, dsPolygonFillRule fillRule)
 {
 	Paths paths(loopCount);
+	uint32_t totalPointCount = 0;
 	dsAlignedBox2f bounds;
 	dsAlignedBox2f_makeInvalid(&bounds);
 	for (uint32_t i = 0; i < loopCount; ++i)
 	{
-		for (uint32_t j = 0; j < loops[i].pointCount; ++j)
+		const dsComplexPolygonLoop* loop = loops + i;
+		totalPointCount += loop->pointCount;
+		for (uint32_t j = 0; j < loop->pointCount; ++j)
 		{
 			dsVector2f point;
-			if (!pointFunc(&point, polygon, loops[i].points, j))
+			if (!pointFunc(&point, polygon, loop->points, j))
 				return false;
 			dsAlignedBox2_addPoint(bounds, point);
 		}
+	}
+
+	polygon->originalPointCount = 0;
+	if (!DS_RESIZEABLE_ARRAY_ADD(polygon->allocator, polygon->originalPoints,
+			polygon->originalPointCount, polygon->maxOriginalPoints, totalPointCount))
+	{
+		return false;
 	}
 
 	// Normalize to range [-1, 1] to put in the integer limit.
@@ -257,21 +303,32 @@ static bool simplifyFloat(dsComplexPolygon* polygon, const dsComplexPolygonLoop*
 	dsAlignedBox2_extents(scale, bounds);
 	dsVector2_mul(scale, scale, half);
 	dsVector2_div(invScale, one, scale);
+	uint32_t curOrigPoint = 0;
 	for (uint32_t i = 0; i < loopCount; ++i)
 	{
-		paths[i].resize(loops[i].pointCount);
-		for (uint32_t j = 0; j < loops[i].pointCount; ++j)
+		const dsComplexPolygonLoop* loop = loops + i;
+		Path& path = paths[i];
+		path.resize(loop->pointCount);
+		for (uint32_t j = 0; j < loop->pointCount; ++j)
 		{
 			dsVector2f point;
-			if (!pointFunc(&point, polygon, loops[i].points, j))
+			if (!pointFunc(&point, polygon, loop->points, j))
 				return false;
 
 			dsVector2_sub(point, point, offset);
 			dsVector2_mul(point, point, invScale);
-			paths[i][j].X = (cInt)round((double)dsClamp(point.x, -1.0f, 1.0f)*limit);
-			paths[i][j].Y = (cInt)round((double)dsClamp(point.y, -1.0f, 1.0f)*limit);
+			path[j].X = (cInt)round((double)dsClamp(point.x, -1.0f, 1.0f)*limit);
+			path[j].Y = (cInt)round((double)dsClamp(point.y, -1.0f, 1.0f)*limit);
+
+			PointRef* pointRef = polygon->originalPoints + (curOrigPoint++);
+			pointRef->clipperPoint = path[j];
+			pointRef->points = loop->points;
+			pointRef->index = j;
 		}
 	}
+	DS_ASSERT(curOrigPoint == polygon->originalPointCount);
+
+	std::sort(polygon->originalPoints, polygon->originalPoints + polygon->originalPointCount);
 
 	cInt xEpsilon = (cInt)ceil(polygon->epsilon*limit*invScale.x);
 	cInt yEpsilon = (cInt)ceil(polygon->epsilon*limit*invScale.y);
@@ -281,10 +338,16 @@ static bool simplifyFloat(dsComplexPolygon* polygon, const dsComplexPolygonLoop*
 			dsVector2f* points = (dsVector2f*)polygon->outPoints + firstPoint;
 			for (uint32_t i = 0; i < pointCount; ++i)
 			{
-				dsVector2f point = {{(float)((double)path[i].X/limit),
-					(float)((double)path[i].Y/limit)}};
-				dsVector2_mul(point, point, scale);
-				dsVector2_add(points[i], point, offset);
+				const PointRef* origPoint = findOriginalPoint(polygon, path[i]);
+				if (origPoint)
+					DS_VERIFY(pointFunc(points + i, polygon, origPoint->points, origPoint->index));
+				else
+				{
+					dsVector2f point = {{(float)((double)path[i].X/limit),
+						(float)((double)path[i].Y/limit)}};
+					dsVector2_mul(point, point, scale);
+					dsVector2_add(points[i], point, offset);
+				}
 			}
 		});
 }
@@ -293,17 +356,27 @@ static bool simplifyDouble(dsComplexPolygon* polygon, const dsComplexPolygonLoop
 	uint32_t loopCount, dsComplexPolygonPointFunction pointFunc, dsPolygonFillRule fillRule)
 {
 	Paths paths(loopCount);
+	uint32_t totalPointCount = 0;
 	dsAlignedBox2d bounds;
 	dsAlignedBox2d_makeInvalid(&bounds);
 	for (uint32_t i = 0; i < loopCount; ++i)
 	{
-		for (uint32_t j = 0; j < loops[i].pointCount; ++j)
+		const dsComplexPolygonLoop* loop = loops + i;
+		totalPointCount += loop->pointCount;
+		for (uint32_t j = 0; j < loop->pointCount; ++j)
 		{
 			dsVector2d point;
-			if (!pointFunc(&point, polygon, loops[i].points, j))
+			if (!pointFunc(&point, polygon, loop->points, j))
 				return false;
 			dsAlignedBox2_addPoint(bounds, point);
 		}
+	}
+
+	polygon->originalPointCount = 0;
+	if (!DS_RESIZEABLE_ARRAY_ADD(polygon->allocator, polygon->originalPoints,
+			polygon->originalPointCount, polygon->maxOriginalPoints, totalPointCount))
+	{
+		return false;
 	}
 
 	// Normalize to range [-1, 1] to put in the integer limit. The hiRange constant is too large to
@@ -316,21 +389,32 @@ static bool simplifyDouble(dsComplexPolygon* polygon, const dsComplexPolygonLoop
 	dsAlignedBox2_extents(scale, bounds);
 	dsVector2_mul(scale, scale, half);
 	dsVector2_div(invScale, one, scale);
+	uint32_t curOrigPoint = 0;
 	for (uint32_t i = 0; i < loopCount; ++i)
 	{
-		paths[i].resize(loops[i].pointCount);
-		for (uint32_t j = 0; j < loops[i].pointCount; ++j)
+		const dsComplexPolygonLoop* loop = loops + i;
+		Path& path = paths[i];
+		path.resize(loop->pointCount);
+		for (uint32_t j = 0; j < loop->pointCount; ++j)
 		{
 			dsVector2d point;
-			if (!pointFunc(&point, polygon, loops[i].points, j))
+			if (!pointFunc(&point, polygon, loop->points, j))
 				return false;
 
 			dsVector2_sub(point, point, offset);
 			dsVector2_mul(point, point, invScale);
-			paths[i][j].X = (cInt)round(dsClamp(point.x, -1.0, 1.0)*limit);
-			paths[i][j].Y = (cInt)round(dsClamp(point.y, -1.0, 1.0)*limit);
+			path[j].X = (cInt)round(dsClamp(point.x, -1.0, 1.0)*limit);
+			path[j].Y = (cInt)round(dsClamp(point.y, -1.0, 1.0)*limit);
+
+			PointRef* pointRef = polygon->originalPoints + (curOrigPoint++);
+			pointRef->clipperPoint = path[j];
+			pointRef->points = loop->points;
+			pointRef->index = j;
 		}
 	}
+	DS_ASSERT(curOrigPoint == polygon->originalPointCount);
+
+	std::sort(polygon->originalPoints, polygon->originalPoints + polygon->originalPointCount);
 
 	cInt xEpsilon = (cInt)ceil(polygon->epsilon*limit*invScale.x);
 	cInt yEpsilon = (cInt)ceil(polygon->epsilon*limit*invScale.y);
@@ -340,9 +424,15 @@ static bool simplifyDouble(dsComplexPolygon* polygon, const dsComplexPolygonLoop
 			dsVector2d* points = (dsVector2d*)polygon->outPoints + firstPoint;
 			for (uint32_t i = 0; i < pointCount; ++i)
 			{
-				dsVector2d point = {{(double)path[i].X/limit, (double)path[i].Y/limit}};
-				dsVector2_mul(point, point, scale);
-				dsVector2_add(points[i], point, offset);
+				const PointRef* origPoint = findOriginalPoint(polygon, path[i]);
+				if (origPoint)
+					DS_VERIFY(pointFunc(points + i, polygon, origPoint->points, origPoint->index));
+				else
+				{
+					dsVector2d point = {{(double)path[i].X/limit, (double)path[i].Y/limit}};
+					dsVector2_mul(point, point, scale);
+					dsVector2_add(points[i], point, offset);
+				}
 			}
 		});
 }
@@ -567,6 +657,7 @@ void dsComplexPolygon_destroy(dsComplexPolygon* polygon)
 	DS_VERIFY(dsAllocator_free(polygon->allocator, polygon->outPolygons));
 	DS_VERIFY(dsAllocator_free(polygon->allocator, polygon->outPoints));
 	DS_VERIFY(dsAllocator_free(polygon->allocator, polygon->outLoops));
+	DS_VERIFY(dsAllocator_free(polygon->allocator, polygon->originalPoints));
 	DS_VERIFY(dsAllocator_free(polygon->allocator, polygon));
 }
 
