@@ -238,16 +238,16 @@ The scene describes the how to process and draw a scene, as well as the list of 
 	* For a render pass:
 		* `framebuffer`: the name of the framebuffer to use when rendering.
 		* `attachments`: array of attachments to use during the render pass. Each element of the array has the following members:
-		* `usage`: array of usage flags. See the dsAttachmentUsage enum for values, removing the type prefix. Defaults to `["Standard"]`.
-		* `format`: the attachment format. See the `dsGfxFormat` enum for values, removing the type prefix. The decorator values may not be used. May also be `SurfaceColor` or `SurfaceDepthStencil` to use the color or depth/stencil format for render surfaces.
-		* `decoration`: the decoration for the format. See the `dsGfxFormat` enum for values, removing the type prefix. Only the decorator values may be used. May also be `Unset` in cases where a decorator isn't valid.
-		* `samples`: the number of anti-alias samples. This should be an integer or the string `"Surface"` to use the number samples for render surfaces or `"Default"` for the default number of samples for offscreens and renderbuffers.
-		* `clearValue`: a dict with one of the following members:
-			* `floatValues`: array of 4 float values.
-			* `intValues`: array of 4 signed int values.
-			* `uintValues`: array of 4 unsigned int values.
-			* `depth`: float depth value. This may be paired with "stencil".
-			* `stencil`: unsigned int stencil value. This may be paired with "depth".
+			* `usage`: array of usage flags. See the dsAttachmentUsage enum for values, removing the type prefix. Defaults to `["Standard"]`.
+			* `format`: the attachment format. See the `dsGfxFormat` enum for values, removing the type prefix. The decorator values may not be used. May also be `SurfaceColor` or `SurfaceDepthStencil` to use the color or depth/stencil format for render surfaces.
+			* `decoration`: the decoration for the format. See the `dsGfxFormat` enum for values, removing the type prefix. Only the decorator values may be used. May also be `Unset` in cases where a decorator isn't valid.
+			* `samples`: the number of anti-alias samples. This should be an integer or the string `"Surface"` to use the number samples for render surfaces or `"Default"` for the default number of samples for offscreens and renderbuffers.
+			* `clearValue`: a dict with one of the following members:
+				* `floatValues`: array of 4 float values.
+				* `intValues`: array of 4 signed int values.
+				* `uintValues`: array of 4 unsigned int values.
+				* `depth`: float depth value. This may be paired with "stencil".
+				* `stencil`: unsigned int stencil value. This may be paired with "depth".
 		* `subpasses`: array of subpasses in the render pass. Each element of the array has the following members:
 			* `name`: the name of the subpass.
 			* `inputAttachments`: array of indices into the attachment arrays for the attachments to use as subpass inputs.

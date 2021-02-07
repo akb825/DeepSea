@@ -44,10 +44,7 @@
 							[
 								{
 									"type": "InstanceTransformData",
-									"data":
-									{
-										"variableGroupDesc": "instanceTransformDesc"
-									}
+									"variableGroupDesc": "instanceTransformDesc"
 								}
 							],
 							"sortType": "Material",

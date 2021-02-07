@@ -46,18 +46,12 @@
 							[
 								{
 									"type": "InstanceTransformData",
-									"data":
-									{
-										"variableGroupDesc": "instanceTransformDesc"
-									}
+									"variableGroupDesc": "instanceTransformDesc"
 								},
 								{
 									"type": "InstanceForwardLightData",
-									"data":
-									{
-										"variableGroupDesc": "instanceForwardLightDesc",
-										"lightSet": "lightSet"
-									}
+									"variableGroupDesc": "instanceForwardLightDesc",
+									"lightSet": "lightSet"
 								}
 							],
 							"sortType": "FrontToBack",
@@ -70,18 +64,12 @@
 							[
 								{
 									"type": "InstanceTransformData",
-									"data":
-									{
-										"variableGroupDesc": "instanceTransformDesc"
-									}
+									"variableGroupDesc": "instanceTransformDesc"
 								},
 								{
 									"type": "InstanceForwardLightData",
-									"data":
-									{
-										"variableGroupDesc": "instanceForwardLightDesc",
-										"lightSet": "lightSet"
-									}
+									"variableGroupDesc": "instanceForwardLightDesc",
+									"lightSet": "lightSet"
 								}
 							],
 							"sortType": "FrontToBack",
@@ -94,18 +82,12 @@
 							[
 								{
 									"type": "InstanceTransformData",
-									"data":
-									{
-										"variableGroupDesc": "instanceTransformDesc"
-									}
+									"variableGroupDesc": "instanceTransformDesc"
 								},
 								{
 									"type": "InstanceForwardLightData",
-									"data":
-									{
-										"variableGroupDesc": "instanceForwardLightDesc",
-										"lightSet": "lightSet"
-									}
+									"variableGroupDesc": "instanceForwardLightDesc",
+									"lightSet": "lightSet"
 								}
 							],
 							"sortType": "BackToFront",

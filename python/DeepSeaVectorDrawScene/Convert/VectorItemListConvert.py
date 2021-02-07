@@ -1,4 +1,4 @@
-# Copyright 2020 Aaron Barany
+# Copyright 2020-2021 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -24,8 +24,7 @@ def convertVectorItemList(convertContext, data):
 	- instanceData: optional list of instance data to include with the item list. Each element of
 	  the array has the following members:
 	  - type: the name of the instance data type.
-	  - data: the data for the instance data. What this member contains (e.g. a string or a dict
-	    with other members) depends on the instance data type.
+	  - Remaining members depend on the value of "type".
 	- dynamicRenderStates: dynamic render states to apply when rendering. This may be ommitted if
 	  no dynamic render states are used. This is expected to contain any of the following members:
 	  - lineWidth: float width for the line. Defaults to 1.
@@ -51,7 +50,7 @@ def convertVectorItemList(convertContext, data):
 		try:
 			for info in instanceDataInfo:
 				try:
-					instanceData.append((str(info['type']), info['data']))
+					instanceData.append((str(info['type']), info))
 				except KeyError as e:
 					raise Exception(
 						'VectorItemList "instanceData" doesn\'t contain element ' + str(e) + '.')

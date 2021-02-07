@@ -57,7 +57,7 @@ def convertModelList(convertContext, data):
 		try:
 			for info in instanceDataInfo:
 				try:
-					instanceData.append((str(info['type']), info['data']))
+					instanceData.append((str(info['type']), info))
 				except KeyError as e:
 					raise Exception(
 						'ModelList "instanceData" doesn\'t contain element "' + str(e) + '".')

@@ -264,7 +264,7 @@
 		"textureInfo":
 		{
 			"format": "@rgbFormat@",
-			"decoration": "UNorm",
+			"decoration": "SRGB",
 			"mipLevels": 1000
 		}
 	},
@@ -299,7 +299,7 @@
 		"textureInfo":
 		{
 			"format": "@rgbFormat@",
-			"decoration": "UNorm",
+			"decoration": "SRGB",
 			"mipLevels": 1000
 		}
 	},
@@ -334,7 +334,7 @@
 		"textureInfo":
 		{
 			"format": "@rgbFormat@",
-			"decoration": "UNorm",
+			"decoration": "SRGB",
 			"mipLevels": 1000
 		}
 	},
@@ -369,7 +369,7 @@
 		"textureInfo":
 		{
 			"format": "@rgbFormat@",
-			"decoration": "UNorm",
+			"decoration": "SRGB",
 			"mipLevels": 1000
 		}
 	},
