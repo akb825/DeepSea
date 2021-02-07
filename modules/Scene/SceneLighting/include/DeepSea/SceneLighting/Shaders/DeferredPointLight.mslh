@@ -1,0 +1,122 @@
+/*
+ * Copyright 2021 Aaron Barany
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#pragma once
+
+#include <DeepSea/Render/Shaders/VertexAttributes.mslh>
+#include <DeepSea/Scene/Shaders/Lighting.mslh>
+#include <DeepSea/Scene/Shaders/ViewTransform.mslh>
+
+/**
+ * @file
+ * @brief Shared shader functions for implementing deferred point lighting.
+ */
+
+/**
+ * @brief Common render states for deferred point light shaders.
+ */
+#define DS_DEFERRED_POINT_LIGHT_RENDER_STATES \
+	cull_mode = back; \
+	blend_enable = true; \
+	src_blend_factor = one; \
+	dst_color_blend_factor = one; \
+	dst_alpha_blend_factor = zero; \
+	blend_op = add
+
+/**
+ * @brief The position of the vertex.
+ */
+[[vertex]] layout(location = DS_POSITION0) in vec3 viPosition;
+
+/**
+ * @brief The position of the light.
+ */
+[[vertex]] layout(location = DS_POSITION1) in vec3 viLightPosition;
+
+/**
+ * @brief The color of the light.
+ */
+[[vertex]] layout(location = DS_COLOR) in vec3 viLightColor;
+
+/**
+ * @brief The linear and quadratic fallof factors of the light.
+ */
+[[vertex]] layout(location = DS_TEXCOORD0) in vec2 viLightFalloff;
+
+varying(vertex, fragment)
+{
+	/**
+	 * @brief The position of the light and linear falloff factor.
+	 */
+	vec4 vfLightPositionLinearFalloff;
+
+	/**
+	 * @brief The color of the light and quadratic falloff factor.
+	 */
+	vec4 vfLightColorQuadraticFallof;
+}
+
+/**
+ * @brief Processes the vertex for the deferred point light.
+ * @return The vertex position.
+ */
+[[vertex]]
+vec4 dsDeferredPointLight_processVertex()
+{
+	vfLightPositionLinearFalloff.xyz =
+		(INSTANCE(dsViewTransform).view*vec4(viLightPosition, 1.0)).xyz;
+	vfLightPositionLinearFalloff.w = viLightFalloff.x;
+	vfLightColorQuadraticFalloff.rgb = viLightColor;
+	vfLightColorQuadraticFalloff.w = viLightFalloff.y;
+
+	return INSTANCE(dsViewTransform).viewProjection*vec4(viPosition, 1.0);
+}
+
+/**
+ * @brief Default vertex shader entry point function.
+ */
+[[vertex]]
+void dsDeferredPointLight_defaultVertex()
+{
+	gl_Position = dsDeferredAmbient_processVertex();
+	// Force the Z to the max to avoid clippiing.
+	gl_Position.z = gl_Position.w;
+	gl_Position = DS_ADJUST_DIRECT_CLIP(gl_Position);
+}
+
+/**
+ * @brief Gets the point lighting for a surface.
+ * @param[out] outDiffuseColor The diffuse color for the light.
+ * @param[out] outSpecularColor The specular color for the light.
+ * @param color The color of the surface to light.
+ * @param position The position of the surface in view space.
+ * @param normal The normal of the surface in view space.
+ * @param viewDirection The direction from the surface to the view.
+ * @param shininess The shininess of the specular.
+ */
+[[fragment]]
+void dsDeferredPointLight_lightColor(out vec3 outDiffuseColor, out vec3 outSpecularColor,
+	vec3 position, lowp vec3 normal, lowp vec3 viewDirection, mediump float shininess)
+{
+	lowp float falloff
+	lowp vec3 surfaceDirection;
+	float diffuse = dsPointDiffuseLight(falloff, surfaceDirection,
+		vfLightPositionLinearFalloff.xyz, position, normal, vfLightPositionLinearFalloff.w,
+		vfLightColorQuadraticFalloff.w);
+	float specular = dsSpecularLight(vfLightDirection, surfaceDirection, viewDirection, shininess);
+	outDiffuseColor = vfLightColorQuadraticFalloff.rgb*diffuse*falloff;
+	outSpecularColor = vfLightColorQuadraticFalloff.rgb*specular*falloff;
+}

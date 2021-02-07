@@ -1,0 +1,106 @@
+/*
+ * Copyright 2021 Aaron Barany
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#pragma once
+
+#include <DeepSea/Render/Shaders/VertexAttributes.mslh>
+#include <DeepSea/Scene/Shaders/Lighting.mslh>
+#include <DeepSea/Scene/Shaders/ViewTransform.mslh>
+
+/**
+ * @file
+ * @brief Shared shader functions for implementing deferred directional lighting.
+ */
+
+/**
+ * @brief Common render states for deferred directional light shaders.
+ */
+#define DS_DEFERRED_DIRECTIONAL_LIGHT_RENDER_STATES \
+	cull_mode = back; \
+	blend_enable = true; \
+	src_blend_factor = one; \
+	dst_color_blend_factor = one; \
+	dst_alpha_blend_factor = zero; \
+	blend_op = add
+
+/**
+ * @brief The position of the vertex.
+ */
+[[vertex]] layout(location = DS_POSITION) in vec2 viPosition;
+
+/**
+ * @brief The direction to the light.
+ */
+[[vertex]] layout(location = DS_NORMAL) in vec3 viLightDirection;
+
+/**
+ * @brief The color of the light.
+ */
+[[vertex]] layout(location = DS_COLOR) in vec3 viLightColor;
+
+varying(vertex, fragment)
+{
+	/**
+	 * @brief The direction to the light.
+	 */
+	vec3 vfLightDirection;
+
+	/**
+	 * @brief The color of the light.
+	 */
+	vec3 vfLightColor;
+}
+
+/**
+ * @brief Processes the vertex for the deferred directional light.
+ * @return The vertex position. DS_ADJUST_DIRECT_CLIP() should be called on this position before the
+ *     end of the shader.
+ */
+[[vertex]]
+vec4 dsDeferredDirectionalLight_processVertex()
+{
+	vfLightDirection = mat3(INSTANCE(dsViewTransform).view)*viLightDirection;
+	vfLightColor = viLightColor;
+	return vec4(viPosition, 0.0, 1.0);
+}
+
+/**
+ * @brief Default vertex shader entry point function.
+ */
+[[vertex]]
+void dsDeferredDirectionalLight_defaultVertex()
+{
+	gl_Position = dsDeferredAmbient_processVertex();
+	gl_Position = DS_ADJUST_DIRECT_CLIP(gl_Position);
+}
+
+/**
+ * @brief Gets the directional lighting for a surface.
+ * @param[out] outDiffuseColor The diffuse color for the light.
+ * @param[out] outSpecularColor The specular color for the light.
+ * @param color The color of the surface to light.
+ * @param normal The normal of the surface in view space.
+ * @param viewDirection The direction from the surface to the view.
+ * @param shininess The shininess of the specular.
+ */
+[[fragment]]
+void dsDeferredDirectionalLight_lightColor(out vec3 outDiffuseColor, out vec3 outSpecularColor,
+	lowp vec3 normal, lowp vec3 viewDirection, mediump float shininess)
+{
+	outDiffuseColor = vfLightColor*dsDirectionalDiffuseLight(vfLightDirection, normal);
+	outSpecularColor =
+		vfLightColor*dsSpecularLight(vfLightDirection, normal, viewDirection, shininess);
+}

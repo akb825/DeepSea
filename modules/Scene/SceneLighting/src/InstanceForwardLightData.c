@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Aaron Barany
+ * Copyright 2020-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -88,7 +88,6 @@ void dsInstanceForwardLightData_populateData(void* userData, const dsView* view,
 	const dsSceneInstanceInfo* instances, uint32_t instanceCount,
 	const dsShaderVariableGroupDesc* dataDesc, uint8_t* data, uint32_t stride)
 {
-	DS_UNUSED(view);
 	DS_ASSERT(dataDesc->elementCount == DS_ARRAY_SIZE(baseElements));
 	const dsSceneLightSet* lightSet = (const dsSceneLightSet*)userData;
 	uint32_t lightCount = dataDesc->elements[0].count;
