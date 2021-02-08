@@ -1,12 +1,12 @@
 [
 	{
 		"type": "ShaderModule",
-		"name": "diffuseShaderModule",
+		"name": "forwardLightShaderModule",
 		"modules": @forwardLightShaderModule@
 	},
 	{
 		"type": "MaterialDesc",
-		"name": "diffuseMaterialDesc",
+		"name": "defaultMaterialDesc",
 		"elements":
 		[
 			{
@@ -51,9 +51,9 @@
 	},
 	{
 		"type": "Shader",
-		"name": "diffuseShader",
-		"module": "diffuseShaderModule",
-		"pipeline": "Diffuse",
-		"materialDesc": "diffuseMaterialDesc"
+		"name": "forwardLightShader",
+		"module": "forwardLightShaderModule",
+		"pipeline": "ForwardLight",
+		"materialDesc": "defaultMaterialDesc"
 	}
 ]

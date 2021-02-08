@@ -107,7 +107,7 @@ void fragmentShader()
 		diffuseColor.a);
 }
 
-pipeline Diffuse
+pipeline ForwardLight
 {
 	vertex = vertexShader;
 	fragment = fragmentShader;

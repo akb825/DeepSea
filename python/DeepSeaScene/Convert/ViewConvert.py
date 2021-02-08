@@ -244,7 +244,7 @@ def convertView(convertContext, data):
 		elif samplesValue == 'Default':
 			surface.samples = defaultSamples
 		else:
-			surface.samples = readUInt(samplesValue, 'surface samples')
+			surface.samples = readInt(samplesValue, 'surface samples', 0)
 
 		surface.resolve = readBool(info['resolve'], 'surface resolve')
 		surface.windowFramebuffer = readBool(info.get('windowFramebuffer', True),

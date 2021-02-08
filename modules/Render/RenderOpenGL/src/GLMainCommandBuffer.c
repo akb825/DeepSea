@@ -1162,13 +1162,15 @@ bool dsGLMainCommandBuffer_bindShader(dsCommandBuffer* commandBuffer, const dsSh
 	if (glShader->internalUniform >= 0)
 	{
 		DS_ASSERT(glCommandBuffer->curFramebuffer);
-		dsGLRenderer* renderer = (dsGLRenderer*)commandBuffer->renderer;
-		bool offscreen = renderer->curSurfaceType == GLSurfaceType_Framebuffer;
+		dsRenderer* renderer = commandBuffer->renderer;
+		dsGLRenderer* glRenderer = (dsGLRenderer*)renderer;
+		bool offscreen = glRenderer->curSurfaceType == GLSurfaceType_Framebuffer;
 		float invertY = offscreen ? -1.0f : 1.0f;
 		float height = (float)glCommandBuffer->curFramebuffer->height;
 		float invWidth = 1.0f/(float)glCommandBuffer->curFramebuffer->width;
 		float invHeight = -1.0f/height;
-		glUniform4f(glShader->internalUniform, invertY, height, invWidth, invHeight);
+		glUniform4f(glShader->internalUniform, renderer->clipHalfDepth, height*invertY, invWidth,
+			invHeight);
 	}
 	return true;
 }

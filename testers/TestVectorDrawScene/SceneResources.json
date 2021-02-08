@@ -8,6 +8,7 @@
 			{"name": "camera", "type": "Mat4"},
 			{"name": "projection", "type": "Mat4"},
 			{"name": "viewProjection", "type": "Mat4"},
+			{"name": "projectionInv", "type": "Mat4"},
 			{"name": "screenRotation", "type": "Vec4"},
 			{"name": "screenSize", "type": "IVec2"}
 		]

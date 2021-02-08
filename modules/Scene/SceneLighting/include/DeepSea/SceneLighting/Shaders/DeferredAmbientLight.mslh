@@ -67,7 +67,7 @@ vec4 dsDeferredAmbientLight_processVertex()
 [[vertex]]
 void dsDeferredAmbientLight_defaultVertex()
 {
-	gl_Position = dsDeferredAmbient_processVertex();
+	gl_Position = dsDeferredAmbientLight_processVertex();
 	gl_Position = DS_ADJUST_DIRECT_CLIP(gl_Position);
 }
 

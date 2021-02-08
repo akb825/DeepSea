@@ -36,6 +36,7 @@ static dsShaderVariableElement elements[] =
 	{"camera", dsMaterialType_Mat4, 0},
 	{"projection", dsMaterialType_Mat4, 0},
 	{"viewProjection", dsMaterialType_Mat4, 0},
+	{"projectionInv", dsMaterialType_Mat4, 0},
 	{"screenRotation", dsMaterialType_Vec4, 0},
 	{"screenSize", dsMaterialType_IVec2, 0}
 };
@@ -66,25 +67,28 @@ bool dsViewTransformData_populateData(dsSceneGlobalData* globalData, const dsVie
 	dsCommandBuffer* commandBuffer)
 {
 	dsViewTransformData* viewData = (dsViewTransformData*)globalData;
-	DS_VERIFY(dsShaderVariableGroup_setElementData(viewData->variableGroup, 0, &view->viewMatrix,
+	unsigned int i = 0;
+	DS_VERIFY(dsShaderVariableGroup_setElementData(viewData->variableGroup, i++, &view->viewMatrix,
 		dsMaterialType_Mat4, 0, 1));
-	DS_VERIFY(dsShaderVariableGroup_setElementData(viewData->variableGroup, 1, &view->cameraMatrix,
-		dsMaterialType_Mat4, 0, 1));
-	DS_VERIFY(dsShaderVariableGroup_setElementData(viewData->variableGroup, 2,
+	DS_VERIFY(dsShaderVariableGroup_setElementData(viewData->variableGroup, i++,
+		&view->cameraMatrix, dsMaterialType_Mat4, 0, 1));
+	DS_VERIFY(dsShaderVariableGroup_setElementData(viewData->variableGroup, i++,
 		&view->projectionMatrix, dsMaterialType_Mat4, 0, 1));
+	DS_VERIFY(dsShaderVariableGroup_setElementData(viewData->variableGroup, i++,
+		&view->viewProjectionMatrix, dsMaterialType_Mat4, 0, 1));
 
-	dsMatrix44f viewProjection;
-	dsMatrix44_mul(viewProjection, view->projectionMatrix, view->viewMatrix);
-	DS_VERIFY(dsShaderVariableGroup_setElementData(viewData->variableGroup, 3, &viewProjection,
+	dsMatrix44f projectionInv;
+	dsMatrix44f_invert(&projectionInv, &view->projectionMatrix);
+	DS_VERIFY(dsShaderVariableGroup_setElementData(viewData->variableGroup, i++, &projectionInv,
 		dsMaterialType_Mat4, 0, 1));
 
 	dsMatrix22f screenRotation;
 	DS_VERIFY(dsRenderSurface_makeRotationMatrix22(&screenRotation, view->rotation));
-	DS_VERIFY(dsShaderVariableGroup_setElementData(viewData->variableGroup, 4, &screenRotation,
+	DS_VERIFY(dsShaderVariableGroup_setElementData(viewData->variableGroup, i++, &screenRotation,
 		dsMaterialType_Vec4, 0, 1));
 
 	dsVector2i screenSize = {{view->width, view->height}};
-	DS_VERIFY(dsShaderVariableGroup_setElementData(viewData->variableGroup, 5, &screenSize,
+	DS_VERIFY(dsShaderVariableGroup_setElementData(viewData->variableGroup, i++, &screenSize,
 		dsMaterialType_IVec2, 0, 1));
 
 	if (!dsShaderVariableGroup_commit(viewData->variableGroup, commandBuffer))

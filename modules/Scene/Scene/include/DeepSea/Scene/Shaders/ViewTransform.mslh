@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Aaron Barany
+ * Copyright 2019-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,6 +44,11 @@ uniform ViewTransformData
 	mat4 viewProjection;
 
 	/**
+	 * @brief The inverse of the projection matrix.
+	 */
+	mat4 projectionInv;
+
+	/**
 	 * @brief The rotation of the screen to apply for client rotations.
 	 *
 	 * This is a mat22 packed into a vec4 to avoid extra padding.
@@ -68,4 +73,37 @@ vec2 dsRotateScreenPosition(vec2 pos)
 {
 	return mat2(INSTANCE(dsViewTransform).screenRotation.xy,
 		INSTANCE(dsViewTransform).screenRotation.zw)*pos;
+}
+
+/**
+ * @brief Gets the screen clip position for the current pixel.
+ * @return The screen clip position.
+ */
+[[fragment]]
+vec2 dsGetScreenClipPosition()
+{
+	vec2 screenPos = gl_FragCoord.xy/vec2(INSTANCE(dsViewTransform).screenSize);
+	screenPos = screenPos*vec2(2.0) - vec2(1.0);
+	return vec2(screenPos.x, -screenPos.y);
+}
+
+/**
+ * @brief Gets the view position from the clip position.
+ * @param clipPos The clip position in the range [-1, 1] for XY and [0, 1] for Z.
+ */
+vec3 dsGetViewPositionFromClip(vec3 clipPos)
+{
+	if (DS_CLIP_HALF_DEPTH == 0)
+		clipPos.z = clipPos.z*2.0 - 1.0;
+	return (INSTANCE(dsViewTransform).projectionInv*vec4(clipPos, 1.0)).xyz;
+}
+
+/**
+ * @brief Gets the view position from the screen position.
+ * @param depth The depth value.
+ */
+[[fragment]]
+vec3 dsGetViewPositionFromScreen(float depth)
+{
+	return dsGetViewPositionFromClip(vec3(dsGetScreenClipPosition(), depth));
 }

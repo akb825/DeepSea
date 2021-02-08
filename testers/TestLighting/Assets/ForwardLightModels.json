@@ -8,7 +8,7 @@
 		[
 			{
 				"baseName": "Ground",
-				"shader": "diffuseShader",
+				"shader": "forwardLightShader",
 				"material": "grassMaterial",
 				"modelList": "groundList"
 			}
@@ -24,7 +24,7 @@
 		[
 			{
 				"baseName": "Archway",
-				"shader": "diffuseShader",
+				"shader": "forwardLightShader",
 				"material": "brickMaterial",
 				"modelList": "opaqueList"
 			}
@@ -40,7 +40,7 @@
 		[
 			{
 				"baseName": "Sphere",
-				"shader": "diffuseShader",
+				"shader": "forwardLightShader",
 				"material": "concreteMaterial",
 				"modelList": "opaqueList"
 			}
@@ -72,7 +72,7 @@
 		[
 			{
 				"baseName": "Pedastle",
-				"shader": "diffuseShader",
+				"shader": "forwardLightShader",
 				"material": "marbleMaterial",
 				"modelList": "opaqueList"
 			}

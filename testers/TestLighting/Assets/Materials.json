@@ -2,7 +2,7 @@
 	{
 		"type": "Material",
 		"name": "grassMaterial",
-		"description": "diffuseMaterialDesc",
+		"description": "defaultMaterialDesc",
 		"data":
 		[
 			{
@@ -30,7 +30,7 @@
 	{
 		"type": "Material",
 		"name": "brickMaterial",
-		"description": "diffuseMaterialDesc",
+		"description": "defaultMaterialDesc",
 		"data":
 		[
 			{
@@ -58,7 +58,7 @@
 	{
 		"type": "Material",
 		"name": "concreteMaterial",
-		"description": "diffuseMaterialDesc",
+		"description": "defaultMaterialDesc",
 		"data":
 		[
 			{
@@ -86,7 +86,7 @@
 	{
 		"type": "Material",
 		"name": "marbleMaterial",
-		"description": "diffuseMaterialDesc",
+		"description": "defaultMaterialDesc",
 		"data":
 		[
 			{

@@ -57,7 +57,16 @@ Textures, images, uniform blocks, uniform buffers, and variable groups may be ma
 
 ## Render states
 
-Most render states are set by declaring the render state in the shader pipeline. These will be automatically applied when binding the shader. A subset of render states may be dynamically provided when binding a shader, and may be provided with a `dsDynamicRenderStates` instance
+Most render states are set by declaring the render state in the shader pipeline. These will be automatically applied when binding the shader. A subset of render states may be dynamically provided when binding a shader, and may be provided with a `dsDynamicRenderStates` instance.
+
+## Built-in defines
+
+The following built-in defines are available when writing shaders:
+
+* `DS_CLIP_HALF_DEPTH`: 0 if the depth values in clip space are in the range [-1, 1], 1 if in [0, 1]. This isn't guaranteed to be a compile-time constant.
+* `DS_ADJUST_CLIP(v)`: Call when assigning `gl_Position` at the end of the vertex shader to adjust for the current system's clip space. It's assumed that the position was computed with the projection matrix.
+* `DS_ADJUST_DIRECT_CLIP(v)`: Same as `DS_ADJUST_CLIP`, except for creating the position directly in clip space rather than using the projection matrix.
+* `DS_RG_SWZL`: Swizzle for RG channel textures. This takes into account older versions of OpenGL that use lumanance alpha for two-channel textures, which requires `ra` rather than `rg`.
 
 # CMake Helpers
 
