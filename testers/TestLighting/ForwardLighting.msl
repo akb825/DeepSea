@@ -95,7 +95,7 @@ void fragmentShader()
 
 	vec3 normal;
 	normal.xy = baseNormal*2.0 - vec2(1.0);
-	normal.z = 1.0 - length(normal.xy);
+	normal.z = sqrt(1.0 - dot(normal.xy, normal.xy));
 	// Normalize just the original normal as a trdeoff between performance and quality.
 	normal = mat3(vfTangentTexY.xyz, vfBitangent, normalize(vfNormalTexX.xyz))*normal;
 

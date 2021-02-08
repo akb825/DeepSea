@@ -17,8 +17,8 @@
 #pragma once
 
 #include <DeepSea/Render/Shaders/VertexAttributes.mslh>
-#include <DeepSea/Scene/Shaders/Lighting.mslh>
 #include <DeepSea/Scene/Shaders/ViewTransform.mslh>
+#include <DeepSea/SceneLighting/Shaders/Lighting.mslh>
 
 /**
  * @file
@@ -34,7 +34,7 @@
 	src_blend_factor = one; \
 	dst_color_blend_factor = one; \
 	dst_alpha_blend_factor = zero; \
-	blend_op = add
+	blend_op = add;
 
 /**
  * @brief The position of the vertex.
@@ -66,7 +66,7 @@ varying(vertex, fragment)
 	/**
 	 * @brief The color of the light and quadratic falloff factor.
 	 */
-	vec4 vfLightColorQuadraticFallof;
+	vec4 vfLightColorQuadraticFalloff;
 }
 
 /**
@@ -91,7 +91,7 @@ vec4 dsDeferredPointLight_processVertex()
 [[vertex]]
 void dsDeferredPointLight_defaultVertex()
 {
-	gl_Position = dsDeferredAmbient_processVertex();
+	gl_Position = dsDeferredPointLight_processVertex();
 	// Force the Z to the max to avoid clippiing.
 	gl_Position.z = gl_Position.w;
 	gl_Position = DS_ADJUST_DIRECT_CLIP(gl_Position);
@@ -111,12 +111,12 @@ void dsDeferredPointLight_defaultVertex()
 void dsDeferredPointLight_lightColor(out vec3 outDiffuseColor, out vec3 outSpecularColor,
 	vec3 position, lowp vec3 normal, lowp vec3 viewDirection, mediump float shininess)
 {
-	lowp float falloff
+	lowp float falloff;
 	lowp vec3 surfaceDirection;
 	float diffuse = dsPointDiffuseLight(falloff, surfaceDirection,
 		vfLightPositionLinearFalloff.xyz, position, normal, vfLightPositionLinearFalloff.w,
 		vfLightColorQuadraticFalloff.w);
-	float specular = dsSpecularLight(vfLightDirection, surfaceDirection, viewDirection, shininess);
+	float specular = dsSpecularLight(surfaceDirection, normal, viewDirection, shininess);
 	outDiffuseColor = vfLightColorQuadraticFalloff.rgb*diffuse*falloff;
 	outSpecularColor = vfLightColorQuadraticFalloff.rgb*specular*falloff;
 }

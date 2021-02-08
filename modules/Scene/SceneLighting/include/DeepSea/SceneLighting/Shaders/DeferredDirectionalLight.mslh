@@ -17,8 +17,8 @@
 #pragma once
 
 #include <DeepSea/Render/Shaders/VertexAttributes.mslh>
-#include <DeepSea/Scene/Shaders/Lighting.mslh>
 #include <DeepSea/Scene/Shaders/ViewTransform.mslh>
+#include <DeepSea/SceneLighting/Shaders/Lighting.mslh>
 
 /**
  * @file
@@ -34,7 +34,7 @@
 	src_blend_factor = one; \
 	dst_color_blend_factor = one; \
 	dst_alpha_blend_factor = zero; \
-	blend_op = add
+	blend_op = add;
 
 /**
  * @brief The position of the vertex.
@@ -83,7 +83,7 @@ vec4 dsDeferredDirectionalLight_processVertex()
 [[vertex]]
 void dsDeferredDirectionalLight_defaultVertex()
 {
-	gl_Position = dsDeferredAmbient_processVertex();
+	gl_Position = dsDeferredDirectionalLight_processVertex();
 	gl_Position = DS_ADJUST_DIRECT_CLIP(gl_Position);
 }
 
