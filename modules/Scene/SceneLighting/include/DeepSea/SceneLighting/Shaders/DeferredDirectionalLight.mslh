@@ -101,6 +101,6 @@ void dsDeferredDirectionalLight_lightColor(out vec3 outDiffuseColor, out vec3 ou
 	lowp vec3 normal, lowp vec3 viewDirection, mediump float shininess)
 {
 	outDiffuseColor = vfLightColor*dsDirectionalDiffuseLight(vfLightDirection, normal);
-	outSpecularColor = vec3(0.0);
+	outSpecularColor =
 		vfLightColor*dsSpecularLight(vfLightDirection, normal, viewDirection, shininess);
 }

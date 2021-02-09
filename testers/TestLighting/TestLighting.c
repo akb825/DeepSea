@@ -132,6 +132,9 @@ static bool processEvent(dsApplication* application, dsWindow* window, const dsE
 			DS_VERIFY(dsView_setDimensions(testLighting->forwardLightView,
 				testLighting->window->surface->width, testLighting->window->surface->height,
 				testLighting->window->surface->rotation));
+			DS_VERIFY(dsView_setDimensions(testLighting->deferredLightView,
+				testLighting->window->surface->width, testLighting->window->surface->height,
+				testLighting->window->surface->rotation));
 			updateProjectionMatrix(testLighting->forwardLightView);
 			updateProjectionMatrix(testLighting->deferredLightView);
 			// Need to update the view again if the surfaces have been set.
