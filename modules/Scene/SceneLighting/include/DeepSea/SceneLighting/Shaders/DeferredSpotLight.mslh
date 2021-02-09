@@ -106,9 +106,10 @@ vec4 dsDeferredSpotLight_processVertex()
 void dsDeferredSpotLight_defaultVertex()
 {
 	gl_Position = dsDeferredSpotLight_processVertex();
+	gl_Position.xy = dsRotateScreenPosition(gl_Position.xy);
 	// Force the Z to the max to avoid clippiing.
 	gl_Position.z = gl_Position.w;
-	gl_Position = DS_ADJUST_DIRECT_CLIP(gl_Position);
+	gl_Position = DS_ADJUST_CLIP(gl_Position);
 }
 
 /**

@@ -35,8 +35,9 @@ dsShaderModule* dsGLShaderModule_create(dsResourceManager* resourceManager, dsAl
 	DS_ASSERT(resourceManager);
 	DS_ASSERT(allocator);
 
+	size_t nameLen = strlen(name) + 1;
 	uint32_t shaderCount = mslModule_shaderCount(module);
-	size_t totalSize = DS_ALIGNED_SIZE(sizeof(dsGLShaderModule)) +
+	size_t totalSize = DS_ALIGNED_SIZE(sizeof(dsGLShaderModule)) + DS_ALIGNED_SIZE(nameLen) +
 		DS_ALIGNED_SIZE(sizeof(GLuint)*shaderCount);
 	void* buffer = dsAllocator_alloc(allocator, totalSize);
 	if (!buffer)
@@ -51,7 +52,11 @@ dsShaderModule* dsGLShaderModule_create(dsResourceManager* resourceManager, dsAl
 	baseShaderModule->resourceManager = resourceManager;
 	baseShaderModule->allocator = dsAllocator_keepPointer(allocator);
 	baseShaderModule->module = module;
-	baseShaderModule->name = name;
+
+	char* nameCopy = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, nameLen);
+	DS_ASSERT(nameCopy);
+	memcpy(nameCopy, name, nameLen);
+	baseShaderModule->name = nameCopy;
 
 	if (shaderCount > 0)
 	{

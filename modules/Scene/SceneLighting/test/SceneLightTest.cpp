@@ -439,8 +439,8 @@ TEST(SceneLightTest, GetDirectionalLightVertices)
 		DS_DIRECTIONAL_LIGHT_VERTEX_COUNT, lightIndices, DS_DIRECTIONAL_LIGHT_INDEX_COUNT,
 		&light, 0));
 
-	int16_t expectedPackedDirection[4] = {dsPackInt16(direction.x), dsPackInt16(direction.y),
-		dsPackInt16(direction.z), 0};
+	int16_t expectedPackedDirection[4] = {dsPackInt16(-direction.x), dsPackInt16(-direction.y),
+		dsPackInt16(-direction.z), 0};
 	dsHalfFloat expectedPackedColor[4] = {dsPackHalfFloat(color.r*intensity),
 		dsPackHalfFloat(color.g*intensity), dsPackHalfFloat(color.b*intensity), {0}};
 	for (unsigned int i = 0; i < DS_DIRECTIONAL_LIGHT_VERTEX_COUNT; ++i)
@@ -693,8 +693,8 @@ TEST(SceneLightTest, GetSpotLightVertices)
 		lightIndices, DS_SPOT_LIGHT_INDEX_COUNT, &light,
 		DS_DEFAULT_SCENE_LIGHT_INTENSITY_THRESHOLD, 0));
 
-	int16_t expectedPackedDirection[4] = {dsPackInt16(direction.x), dsPackInt16(direction.y),
-		dsPackInt16(direction.z), 0};
+	int16_t expectedPackedDirection[4] = {dsPackInt16(-direction.x), dsPackInt16(-direction.y),
+		dsPackInt16(-direction.z), 0};
 	dsHalfFloat expectedPackedColor[4] = {dsPackHalfFloat(color.r*intensity),
 		dsPackHalfFloat(color.g*intensity), dsPackHalfFloat(color.b*intensity), {0}};
 	dsHalfFloat expectedFalloffAndSpotAngles[4] = {dsPackHalfFloat(linearFalloff),

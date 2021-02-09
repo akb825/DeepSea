@@ -51,7 +51,7 @@
 	},
 	{
 		"type": "Shader",
-		"name": "forwardLightShader",
+		"name": "defaultModelShader",
 		"module": "forwardLightShaderModule",
 		"pipeline": "ForwardLight",
 		"materialDesc": "defaultMaterialDesc"

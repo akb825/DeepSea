@@ -1,0 +1,114 @@
+[
+	{
+		"type": "ShaderModule",
+		"name": "deferredLightShaderModule",
+		"modules": @deferredLightShaderModule@
+	},
+	{
+		"type": "MaterialDesc",
+		"name": "defaultMaterialDesc",
+		"elements":
+		[
+			{
+				"name": "diffuseTexture",
+				"type": "Texture",
+				"binding": "Material"
+			},
+			{
+				"name": "normalTexture",
+				"type": "Texture",
+				"binding": "Material"
+			},
+			{
+				"name": "specularTexture",
+				"type": "Texture",
+				"binding": "Material"
+			},
+			{
+				"name": "shininess",
+				"type": "Float",
+				"binding": "Material"
+			},
+			{
+				"name": "InstanceTransformData",
+				"type": "VariableGroup",
+				"binding": "Instance",
+				"shaderVariableGroupDesc": "instanceTransformDesc"
+			},
+			{
+				"name": "ViewTransformData",
+				"type": "VariableGroup",
+				"binding": "Global",
+				"shaderVariableGroupDesc": "viewTransformDesc"
+			}
+		]
+	},
+	{
+		"type": "Shader",
+		"name": "defaultModelShader",
+		"module": "deferredLightShaderModule",
+		"pipeline": "GBuffers",
+		"materialDesc": "defaultMaterialDesc"
+	},
+	{
+		"type": "MaterialDesc",
+		"name": "deferredLightMaterialDesc",
+		"elements":
+		[
+			{
+				"name": "materialColor",
+				"type": "SubpassInput",
+				"binding": "Global"
+			},
+			{
+				"name": "normalSpecular",
+				"type": "SubpassInput",
+				"binding": "Global"
+			},
+			{
+				"name": "surfaceDepth",
+				"type": "SubpassInput",
+				"binding": "Global"
+			},
+			{
+				"name": "ViewTransformData",
+				"type": "VariableGroup",
+				"binding": "Global",
+				"shaderVariableGroupDesc": "viewTransformDesc"
+			}
+		]
+	},
+	{
+		"type": "Shader",
+		"name": "ambientLightShader",
+		"module": "deferredLightShaderModule",
+		"pipeline": "AmbientLight",
+		"materialDesc": "deferredLightMaterialDesc"
+	},
+	{
+		"type": "Shader",
+		"name": "directionalLightShader",
+		"module": "deferredLightShaderModule",
+		"pipeline": "DirectionalLight",
+		"materialDesc": "deferredLightMaterialDesc"
+	},
+	{
+		"type": "Shader",
+		"name": "pointLightShader",
+		"module": "deferredLightShaderModule",
+		"pipeline": "PointLight",
+		"materialDesc": "deferredLightMaterialDesc"
+	},
+	{
+		"type": "Shader",
+		"name": "spotLightShader",
+		"module": "deferredLightShaderModule",
+		"pipeline": "SpotLight",
+		"materialDesc": "deferredLightMaterialDesc"
+	},
+	{
+		"type": "Material",
+		"name": "deferredLightMaterial",
+		"description": "deferredLightMaterialDesc"
+	}
+]

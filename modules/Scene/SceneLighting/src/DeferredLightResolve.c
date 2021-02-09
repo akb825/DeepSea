@@ -300,6 +300,8 @@ void dsDeferredLightResolve_commit(dsSceneItemList* itemList, const dsView* view
 
 	uint8_t* dstData = (uint8_t*)dsGfxBuffer_map(buffers->buffer, dsGfxBufferMap_Write, 0,
 		DS_MAP_FULL_BUFFER);
+	if (!DS_CHECK(DS_SCENE_LIGHTING_LOG_TAG, dstData != NULL))
+		return;
 
 	// Populate ambient data.
 	dsColor3f ambientColor;
@@ -326,6 +328,7 @@ void dsDeferredLightResolve_commit(dsSceneItemList* itemList, const dsView* view
 
 	dsSceneLightSet_forEachLightInFrustum(resolve->lightSet, &view->viewFrustum, &visitLights,
 		&traverseData);
+	DS_VERIFY(dsGfxBuffer_unmap(buffers->buffer));
 
 	// Draw each set of lights.
 	if (!DS_CHECK(DS_SCENE_LIGHTING_LOG_TAG, dsShader_bind(resolve->ambientShader, commandBuffer,
@@ -359,7 +362,7 @@ void dsDeferredLightResolve_commit(dsSceneItemList* itemList, const dsView* view
 		uint32_t maxLightIndices =
 			MAX_DIRECTIONAL_LIGHTS*DS_DIRECTIONAL_LIGHT_INDEX_COUNT;
 		uint32_t indexCount = traverseData.directionalCount*DS_DIRECTIONAL_LIGHT_INDEX_COUNT;
-		for (uint32_t vertOffset = 0, indexOffset = 0; indexOffset + maxLightIndices < indexCount;
+		for (uint32_t vertOffset = 0, indexOffset = 0; indexOffset < indexCount;
 			vertOffset += maxLightVerts, indexOffset += maxLightIndices)
 		{
 			drawRange.vertexOffset = vertOffset;
@@ -383,7 +386,7 @@ void dsDeferredLightResolve_commit(dsSceneItemList* itemList, const dsView* view
 		uint32_t maxLightVerts = MAX_POINT_LIGHTS*DS_POINT_LIGHT_VERTEX_COUNT;
 		uint32_t maxLightIndices = MAX_POINT_LIGHTS*DS_POINT_LIGHT_INDEX_COUNT;
 		uint32_t indexCount = traverseData.pointCount*DS_POINT_LIGHT_INDEX_COUNT;
-		for (uint32_t vertOffset = 0, indexOffset = 0; indexOffset + maxLightIndices < indexCount;
+		for (uint32_t vertOffset = 0, indexOffset = 0; indexOffset < indexCount;
 			vertOffset += maxLightVerts, indexOffset += maxLightIndices)
 		{
 			drawRange.vertexOffset = vertOffset;
@@ -407,7 +410,7 @@ void dsDeferredLightResolve_commit(dsSceneItemList* itemList, const dsView* view
 		uint32_t maxLightVerts = MAX_SPOT_LIGHTS*DS_SPOT_LIGHT_VERTEX_COUNT;
 		uint32_t maxLightIndices = MAX_SPOT_LIGHTS*DS_SPOT_LIGHT_INDEX_COUNT;
 		uint32_t indexCount = traverseData.spotCount*DS_SPOT_LIGHT_INDEX_COUNT;
-		for (uint32_t vertOffset = 0, indexOffset = 0; indexOffset + maxLightIndices < indexCount;
+		for (uint32_t vertOffset = 0, indexOffset = 0; indexOffset < indexCount;
 			vertOffset += maxLightVerts, indexOffset += maxLightIndices)
 		{
 			drawRange.vertexOffset = vertOffset;

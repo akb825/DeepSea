@@ -475,9 +475,9 @@ bool dsSceneLight_getDirectionalLightVertices(dsDirectionalLightVertex* outVerti
 	int16_t direction[4];
 	_Static_assert(sizeof(direction) == sizeof(outVertices->direction),
 		"Unexpected direction size.");
-	direction[0] = dsPackInt16(light->direction.x);
-	direction[1] = dsPackInt16(light->direction.y);
-	direction[2] = dsPackInt16(light->direction.z);
+	direction[0] = dsPackInt16(-light->direction.x);
+	direction[1] = dsPackInt16(-light->direction.y);
+	direction[2] = dsPackInt16(-light->direction.z);
 	direction[3] = 0;
 
 	dsHalfFloat color[4];
@@ -711,9 +711,9 @@ bool dsSceneLight_getSpotLightVertices(dsSpotLightVertex* outVertices, uint32_t 
 	int16_t direction[4];
 	_Static_assert(sizeof(direction) == sizeof(outVertices->direction),
 		"Unexpected direction size.");
-	direction[0] = dsPackInt16(light->direction.x);
-	direction[1] = dsPackInt16(light->direction.y);
-	direction[2] = dsPackInt16(light->direction.z);
+	direction[0] = dsPackInt16(-light->direction.x);
+	direction[1] = dsPackInt16(-light->direction.y);
+	direction[2] = dsPackInt16(-light->direction.z);
 	direction[3] = 0;
 
 	dsHalfFloat color[4];

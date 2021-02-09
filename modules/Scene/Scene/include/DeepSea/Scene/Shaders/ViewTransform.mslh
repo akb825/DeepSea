@@ -95,7 +95,12 @@ vec3 dsGetViewPositionFromClip(vec3 clipPos)
 {
 	if (DS_CLIP_HALF_DEPTH == 0)
 		clipPos.z = clipPos.z*2.0 - 1.0;
-	return (INSTANCE(dsViewTransform).projectionInv*vec4(clipPos, 1.0)).xyz;
+#ifdef SPIRV_VERSION
+	// Y is inverted in the projection matrix for Vulkan.
+	clipPos.y = -clipPos.y;
+#endif
+	vec4 unprojectedPos = INSTANCE(dsViewTransform).projectionInv*vec4(clipPos, 1.0);
+	return unprojectedPos.xyz/unprojectedPos.w;
 }
 
 /**

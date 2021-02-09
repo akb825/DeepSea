@@ -8,7 +8,8 @@ if (NOT MSLC)
 endif()
 
 set(shaderConfigs)
-set(source TestLighting.c ForwardLighting.msl Glass.msl sRGB.msl)
+set(source TestLighting.c AmbientLight.msl ForwardLighting.msl DirectionalLight.msl GBuffers.msl
+	PointLight.msl Glass.msl SpotLight.msl sRGB.msl)
 if (TARGET deepsea_render_opengl)
 	list(APPEND shaderConfigs glsl-1.5 glsl-es-3.0)
 endif()
@@ -46,6 +47,11 @@ add_custom_target(deepsea_test_lighting_app_prepare
 # Compile shaders.
 set(shaderIncludes ${DEEPSEA_MODULE_DIR}/Render/Render/include
 	${DEEPSEA_MODULE_DIR}/Scene/Scene/include ${DEEPSEA_MODULE_DIR}/Scene/SceneLighting/include)
+ds_compile_shaders(shaders FILE ${CMAKE_CURRENT_SOURCE_DIR}/AmbientLight.msl
+	${CMAKE_CURRENT_SOURCE_DIR}/DirectionalLight.msl ${CMAKE_CURRENT_SOURCE_DIR}/GBuffers.msl
+	${CMAKE_CURRENT_SOURCE_DIR}/PointLight.msl ${CMAKE_CURRENT_SOURCE_DIR}/SpotLight.msl
+	OUTPUT DeferredLighting.mslb CONFIG ${shaderConfigs} OUTPUT_DIR ${shaderDir}
+	INCLUDE ${shaderIncludes})
 ds_compile_shaders(shaders FILE ${CMAKE_CURRENT_SOURCE_DIR}/ForwardLighting.msl
 	OUTPUT ForwardLighting.mslb CONFIG ${shaderConfigs} OUTPUT_DIR ${shaderDir}
 	INCLUDE ${shaderIncludes})
@@ -71,6 +77,8 @@ else()
 endif()
 set(srcDir ${CMAKE_CURRENT_SOURCE_DIR})
 file(GLOB assetFiles Assets/*.png Assets/*.gltf)
+ds_scene_resource_shader_module_config(deferredLightShaderModule DeferredLighting.mslb
+	${assetsDir} ${shaderDir} ${shaderConfigs})
 ds_scene_resource_shader_module_config(forwardLightShaderModule ForwardLighting.mslb
 	${assetsDir} ${shaderDir} ${shaderConfigs})
 ds_scene_resource_shader_module_config(glassShaderModule Glass.mslb
@@ -81,29 +89,37 @@ ds_scene_resource_shader_module_config(sRGBShaderModule sRGB.mslb
 # These resources need to be configured based on CMake variables.
 ds_configure_file(Assets/BaseResources.json ${configDir}/BaseResources.json CONFIG_VAR
 	glassShaderModule sRGBShaderModule @ONLY)
+ds_configure_file(Assets/DeferredLightShaders.json ${configDir}/DeferredLightShaders.json CONFIG_VAR
+	deferredLightShaderModule @ONLY)
 ds_configure_file(Assets/ForwardLightShaders.json ${configDir}/ForwardLightShaders.json CONFIG_VAR
 	forwardLightShaderModule @ONLY)
 
 # Convert the scene resources.
 ds_create_scene_resources(resources FILE ${configDir}/BaseResources.json
 	OUTPUT ${assetsDir}/BaseResources.dssr DEPENDS ${assetFiles})
-ds_create_scene_resources(resources FILE ${srcDir}/Assets/Materials.json
-	OUTPUT ${assetsDir}/Materials.dssr)
+ds_create_scene_resources(resources FILE ${configDir}/DeferredLightShaders.json
+	OUTPUT ${assetsDir}/DeferredLightShaders.dssr)
 ds_create_scene_resources(resources FILE ${configDir}/ForwardLightShaders.json
 	OUTPUT ${assetsDir}/ForwardLightShaders.dssr)
-ds_create_scene_resources(resources FILE ${srcDir}/Assets/ForwardLightModels.json
-	OUTPUT ${assetsDir}/ForwardLightModels.dssr)
+ds_create_scene_resources(resources FILE ${srcDir}/Assets/Materials.json
+	OUTPUT ${assetsDir}/Materials.dssr)
+ds_create_scene_resources(resources FILE ${srcDir}/Assets/Models.json
+	OUTPUT ${assetsDir}/Models.dssr)
 ds_create_scene_resources(resources FILE ${srcDir}/Assets/SceneGraph.json
 	OUTPUT ${assetsDir}/SceneGraph.dssr)
 ds_create_scene_resources_target(deepsea_test_lighting_app_scene_resources resources
 	DEPENDS deepsea_test_lighting_app_shaders)
 
 # Convert the scenes and views.
+ds_create_scene(scene FILE ${srcDir}/Assets/DeferredLightScene.json
+	OUTPUT ${assetsDir}/DeferredLightScene.dss)
 ds_create_scene(scene FILE ${srcDir}/Assets/ForwardLightScene.json
 	OUTPUT ${assetsDir}/ForwardLightScene.dss)
 ds_create_scene_target(deepsea_test_lighting_app_scene scene
 	DEPENDS deepsea_test_lighting_app_prepare)
 
+ds_create_view(view FILE ${srcDir}/Assets/DeferredLightView.json
+	OUTPUT ${assetsDir}/DeferredLightView.dsv)
 ds_create_view(view FILE ${srcDir}/Assets/ForwardLightView.json
 	OUTPUT ${assetsDir}/ForwardLightView.dsv)
 ds_create_view_target(deepsea_test_lighting_app_view view DEPENDS deepsea_test_lighting_app_prepare)

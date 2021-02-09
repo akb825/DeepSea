@@ -29,8 +29,9 @@
 dsShaderModule* dsMTLShaderModule_create(dsResourceManager* resourceManager, dsAllocator* allocator,
 	mslModule* module, const char* name)
 {
+	size_t nameLen = strlen(name) + 1;
 	uint32_t shaderCount = mslModule_shaderCount(module);
-	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsMTLShaderModule)) +
+	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsMTLShaderModule)) + DS_ALIGNED_SIZE(nameLen) +
 		DS_ALIGNED_SIZE(sizeof(CFTypeRef)*shaderCount);
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
@@ -46,7 +47,11 @@ dsShaderModule* dsMTLShaderModule_create(dsResourceManager* resourceManager, dsA
 	baseShaderModule->resourceManager = resourceManager;
 	baseShaderModule->allocator = dsAllocator_keepPointer(allocator);
 	baseShaderModule->module = module;
-	baseShaderModule->name = name;
+
+	char* nameCopy = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, nameLen);
+	DS_ASSERT(nameCopy);
+	memcpy(nameCopy, name, nameLen);
+	baseShaderModule->name = nameCopy;
 
 	shaderModule->shaders = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, CFTypeRef, shaderCount);
 	DS_ASSERT(shaderModule->shaders);

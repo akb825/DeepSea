@@ -31,8 +31,8 @@
 static dsShader* findShader(dsSceneLoadScratchData* scratchData, const char* name)
 {
 	dsSceneResourceType type;
-	dsCustomSceneResource* resource;
-	if (!dsSceneLoadScratchData_findResource(&type, (void**)&resource, scratchData, name) ||
+	dsShader* shader;
+	if (!dsSceneLoadScratchData_findResource(&type, (void**)&shader, scratchData, name) ||
 		type != dsSceneResourceType_Shader)
 	{
 		errno = ENOTFOUND;
@@ -40,14 +40,14 @@ static dsShader* findShader(dsSceneLoadScratchData* scratchData, const char* nam
 		return nullptr;
 	}
 
-	return reinterpret_cast<dsShader*>(resource->resource);
+	return shader;
 }
 
 static dsMaterial* findMaterial(dsSceneLoadScratchData* scratchData, const char* name)
 {
 	dsSceneResourceType type;
-	dsCustomSceneResource* resource;
-	if (!dsSceneLoadScratchData_findResource(&type, (void**)&resource, scratchData, name) ||
+	dsMaterial* material;
+	if (!dsSceneLoadScratchData_findResource(&type, (void**)&material, scratchData, name) ||
 		type != dsSceneResourceType_Material)
 	{
 		errno = ENOTFOUND;
@@ -55,7 +55,7 @@ static dsMaterial* findMaterial(dsSceneLoadScratchData* scratchData, const char*
 		return nullptr;
 	}
 
-	return reinterpret_cast<dsMaterial*>(resource->resource);
+	return material;
 }
 
 extern "C"

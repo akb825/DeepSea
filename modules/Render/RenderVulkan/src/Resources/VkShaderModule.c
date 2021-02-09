@@ -17,6 +17,7 @@
 #include "Resources/VkShaderModule.h"
 #include "VkShared.h"
 #include <DeepSea/Core/Memory/Allocator.h>
+#include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Atomic.h>
 #include <DeepSea/Core/Log.h>
@@ -27,14 +28,26 @@
 dsShaderModule* dsVkShaderModule_create(dsResourceManager* resourceManager, dsAllocator* allocator,
 	mslModule* module, const char* name)
 {
-	dsShaderModule* shaderModule = DS_ALLOCATE_OBJECT(allocator, dsShaderModule);
-	if (!shaderModule)
+	size_t nameLen = strlen(name) + 1;
+	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsShaderModule)) + DS_ALIGNED_SIZE(nameLen);
+	void* buffer = dsAllocator_alloc(allocator, fullSize);
+	if (!buffer)
 		return NULL;
+
+	dsBufferAllocator bufferAlloc;
+	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, fullSize));
+
+	dsShaderModule* shaderModule = DS_ALLOCATE_OBJECT(&bufferAlloc, dsShaderModule);
+	DS_ASSERT(shaderModule);
 
 	shaderModule->resourceManager = resourceManager;
 	shaderModule->allocator = dsAllocator_keepPointer(allocator);
 	shaderModule->module = module;
-	shaderModule->name = name;
+
+	char* nameCopy = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, nameLen);
+	DS_ASSERT(nameCopy);
+	memcpy(nameCopy, name, nameLen);
+	shaderModule->name = nameCopy;
 
 	return shaderModule;
 }

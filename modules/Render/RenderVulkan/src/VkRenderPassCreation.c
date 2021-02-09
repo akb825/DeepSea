@@ -168,7 +168,7 @@ static void findLegacyPreserveAttachments(uint32_t* outAttachments, uint32_t* ou
 
 		// Add attachments that are used before and after, but not during, the current subpass.
 		if (usage == (AttachmentUsage_WriteBefore | AttachmentUsage_ReadAfter))
-			outAttachments[*outCount++] = i;
+			outAttachments[(*outCount)++] = i;
 	}
 }
 
@@ -369,9 +369,9 @@ static bool createLegacyRenderPass(dsVkRenderPassData* renderPassData,
 	// Set up dependencies after all of the subpasses are otherwise set up.
 	for (uint32_t i = 0; i < renderPass->subpassCount; ++i)
 	{
-		VkSubpassDescription* vkSubpass = vkSubpasses + i;;
+		VkSubpassDescription* vkSubpass = vkSubpasses + i;
 		uint32_t* preserveAttachments = DS_ALLOCATE_STACK_OBJECT_ARRAY(uint32_t,
-			renderPassData->attachmentCount);
+			renderPassData->fullAttachmentCount);
 		DS_ASSERT(preserveAttachments);
 		vkSubpass->pPreserveAttachments = preserveAttachments;
 		findLegacyPreserveAttachments(preserveAttachments, &vkSubpass->preserveAttachmentCount,
@@ -535,7 +535,7 @@ static void findPreserveAttachments(uint32_t* outAttachments, uint32_t* outCount
 
 		// Add attachments that are used before and after, but not during, the current subpass.
 		if (usage == (AttachmentUsage_WriteBefore | AttachmentUsage_ReadAfter))
-			outAttachments[*outCount++] = i;
+			outAttachments[(*outCount)++] = i;
 	}
 }
 
@@ -632,7 +632,7 @@ static bool createRenderPass(dsVkRenderPassData* renderPassData, uint32_t resolv
 	for (uint32_t i = 0; i < renderPass->subpassCount; ++i)
 	{
 		const dsRenderSubpassInfo* curSubpass = renderPass->subpasses + i;
-		VkSubpassDescription2KHR* vkSubpass = vkSubpasses + i;;
+		VkSubpassDescription2KHR* vkSubpass = vkSubpasses + i;
 
 		vkSubpass->sType = VK_STRUCTURE_TYPE_SUBPASS_DESCRIPTION_2_KHR;
 		vkSubpass->pNext = NULL;
@@ -788,9 +788,9 @@ static bool createRenderPass(dsVkRenderPassData* renderPassData, uint32_t resolv
 	// Set up dependencies after all of the subpasses are otherwise set up.
 	for (uint32_t i = 0; i < renderPass->subpassCount; ++i)
 	{
-		VkSubpassDescription2KHR* vkSubpass = vkSubpasses + i;;
+		VkSubpassDescription2KHR* vkSubpass = vkSubpasses + i;
 		uint32_t* preserveAttachments = DS_ALLOCATE_STACK_OBJECT_ARRAY(uint32_t,
-			renderPassData->attachmentCount);
+			renderPassData->fullAttachmentCount);
 		DS_ASSERT(preserveAttachments);
 		vkSubpass->pPreserveAttachments = preserveAttachments;
 		findPreserveAttachments(preserveAttachments, &vkSubpass->preserveAttachmentCount,

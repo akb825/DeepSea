@@ -75,7 +75,8 @@ dsRenderPass* dsVkRenderPass_create(dsRenderer* renderer, dsAllocator* allocator
 
 	renderPass->lastCheckedFrame = renderer->frameNumber;
 	renderPass->scratchAllocator = renderer->allocator;
-	renderPass->defaultSamples = renderer->surfaceSamples;
+	renderPass->surfaceSamples = renderer->surfaceSamples;
+	renderPass->defaultSamples = renderer->defaultSamples;
 	renderPass->usesDefaultSamples = false;
 	renderPass->renderPassData = NULL;
 	DS_VERIFY(dsSpinlock_initialize(&renderPass->lock));
