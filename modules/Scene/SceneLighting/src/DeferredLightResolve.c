@@ -735,9 +735,11 @@ void dsDeferredLightResolve_destroy(dsDeferredLightResolve* resolve)
 	if (!resolve)
 		return;
 
+	dsSceneItemList* itemList = (dsSceneItemList*)resolve;
+
 	for (uint32_t i = 0; i < resolve->bufferCount; ++i)
 		freeBuffers(resolve->buffers + i);
+	DS_VERIFY(dsAllocator_free(itemList->allocator, resolve->buffers));
 
-	dsSceneItemList* itemList = (dsSceneItemList*)resolve;
 	DS_VERIFY(dsAllocator_free(itemList->allocator, itemList));
 }
