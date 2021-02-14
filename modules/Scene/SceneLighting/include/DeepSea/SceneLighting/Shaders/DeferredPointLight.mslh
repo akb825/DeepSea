@@ -25,16 +25,41 @@
  * @brief Shared shader functions for implementing deferred point lighting.
  */
 
-/**
- * @brief Common render states for deferred point light shaders.
- */
-#define DS_DEFERRED_POINT_LIGHT_RENDER_STATES \
+#define DS_DEFERRED_POINT_LIGHT_RENDER_STATES_BASE \
 	cull_mode = back; \
+	depth_test_enable = true; \
+	depth_write_enable = false; \
+	early_fragment_tests = true; \
 	blend_enable = true; \
 	src_blend_factor = one; \
 	dst_color_blend_factor = one; \
 	dst_alpha_blend_factor = zero; \
 	blend_op = add;
+
+#ifdef DS_INVERTED_DEPTH
+#define DS_DEFERRED_POINT_LIGHT_RENDER_STATES_DEPTH DS_DEFERRED_POINT_LIGHT_RENDER_STATES_BASE \
+	depth_compare_op = less_or_equal;
+#else
+#define DS_DEFERRED_POINT_LIGHT_RENDER_STATES_DEPTH DS_DEFERRED_POINT_LIGHT_RENDER_STATES_BASE \
+	depth_compare_op = greater_or_equal;
+#endif
+
+/**
+ * @brief Common render states for deferred point light shaders.
+ *
+ * #define DS_INVERTED_DEPTH to use depth states for inverted depth, where closer objects have a
+ * higher depth value.
+ *
+ * #define DS_USE_DEPTH_CLAMP to use the depth_clamp_enable render state in place of manual
+ * clamping. This will provide more accurate results near the far clipping plane, but isn't
+ * available on all systems.
+ */
+#ifdef DS_USE_DEPTH_CLAMP
+#define DS_DEFERRED_POINT_LIGHT_RENDER_STATES DS_DEFERRED_POINT_LIGHT_RENDER_STATES_DEPTH \
+	depth_clamp_enable = true;
+#else
+#define DS_DEFERRED_POINT_LIGHT_RENDER_STATES DS_DEFERRED_POINT_LIGHT_RENDER_STATES_DEPTH
+#endif
 
 /**
  * @brief The position of the vertex.
@@ -93,8 +118,19 @@ void dsDeferredPointLight_defaultVertex()
 {
 	gl_Position = dsDeferredPointLight_processVertex();
 	gl_Position.xy = dsRotateScreenPosition(gl_Position.xy);
-	// Force the Z to the max to avoid clippiing.
-	gl_Position.z = gl_Position.w;
+#ifndef DS_USE_DEPTH_CLAMP
+	// Clamp the Z coordinate to ensure it doesn't get clipped by the far plane.
+	float z = gl_Position.z/gl_Position.w;
+#	ifdef DS_INVERTED_DEPTH
+	if (DS_CLIP_HALF_DEPTH)
+		z = max(z, 0.0);
+	else
+		z = max(z, -1.0);
+#	else
+	z = min(z, 1.0);
+#	endif
+	gl_Position.z = z*gl_Position.w;
+#endif
 	gl_Position = DS_ADJUST_CLIP(gl_Position);
 }
 

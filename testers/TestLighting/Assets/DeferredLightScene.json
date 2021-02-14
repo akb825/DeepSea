@@ -87,6 +87,7 @@
 					"name": "DeferredLighting",
 					"inputAttachments": [0, 1, 2],
 					"colorAttachments": [{"index": 3, "resolve": false}],
+					"depthStencilAttachment": {"index": 2, "resolve": false},
 					"drawLists":
 					[
 						{

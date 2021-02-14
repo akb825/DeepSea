@@ -318,10 +318,9 @@ bool dsSceneLight_computeBounds(dsAlignedBox3f* outBounds, const dsSceneLight* l
 	dsVector3_scale(middlePos, light->direction, radius);
 	dsVector3_add(middlePos, middlePos, light->position);
 
-	// sin of the angle multiplied by the distance is how far to extend by the X and Y perpendicular
+	// cos of the angle multiplied by the distance is how far to extend by the X and Y perpendicular
 	// axes for the spot light.
-	float outerSinAngle = sqrtf(1.0f - dsPow2(light->outerSpotCosAngle));
-	float spotEndDist = outerSinAngle*radius;
+	float spotEndDist = light->outerSpotCosAngle*radius;
 	dsVector3_scale(spotX, spotX, spotEndDist);
 	dsVector3_scale(spotY, spotY, spotEndDist);
 
@@ -746,10 +745,9 @@ bool dsSceneLight_getSpotLightVertices(dsSpotLightVertex* outVertices, uint32_t 
 	dsVector3_scale(middlePos, light->direction, radius);
 	dsVector3_add(middlePos, middlePos, light->position);
 
-	// sin of the angle multiplied by the distance is how far to extend by the X and Y perpendicular
+	// cos of the angle multiplied by the distance is how far to extend by the X and Y perpendicular
 	// axes for the spot light.
-	float outerSinAngle = sqrtf(1.0f - dsPow2(light->outerSpotCosAngle));
-	float spotEndDist = outerSinAngle*radius;
+	float spotEndDist = light->outerSpotCosAngle*radius;
 	dsVector3_scale(spotX, spotX, spotEndDist);
 	dsVector3_scale(spotY, spotY, spotEndDist);
 
