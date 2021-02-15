@@ -1479,9 +1479,6 @@ bool dsGLMainCommandBuffer_beginRenderPass(dsCommandBuffer* commandBuffer,
 	dsGLMainCommandBuffer* glCommandBuffer = (dsGLMainCommandBuffer*)commandBuffer;
 	if (clearValueCount > glCommandBuffer->maxClearValues)
 	{
-		if (glCommandBuffer->clearValues)
-			DS_VERIFY(dsAllocator_free(commandBuffer->allocator, glCommandBuffer->clearValues));
-
 		dsSurfaceClearValue* newClearValues = (dsSurfaceClearValue*)dsAllocator_reallocWithFallback(
 			commandBuffer->allocator, glCommandBuffer->clearValues, 0,
 			clearValueCount*sizeof(dsSurfaceClearValue));
