@@ -1,5 +1,5 @@
-if (IOS)
-	message("OpenGL not implemented for iOS")
+if (APPLE)
+	message("OpenGL skipped for Apple platforms.")
 	return()
 endif()
 

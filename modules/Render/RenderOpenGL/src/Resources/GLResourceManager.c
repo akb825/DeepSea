@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Aaron Barany
+ * Copyright 2017-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -785,8 +785,8 @@ static void cacheTextureFormats(dsGLResourceManager* resourceManager)
 			if (AnyGL_atLeastVersion(1, 2, false))
 			{
 				setStandardFormat(resourceManager, dsGfxFormat_B8G8R8A8, dsGfxFormat_SRGB,
-					FormatBit_Texture | FormatBit_RenderTarget | FormatBit_TextureBuffer, GL_SRGB8_ALPHA8,
-					GL_BGRA, GL_UNSIGNED_INT_8_8_8_8);
+					FormatBit_Texture | FormatBit_RenderTarget | FormatBit_TextureBuffer,
+					GL_SRGB8_ALPHA8, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8);
 				setStandardFormat(resourceManager, dsGfxFormat_A8B8G8R8, dsGfxFormat_SRGB,
 					FormatBit_Texture | FormatBit_RenderTarget | FormatBit_TextureBuffer,
 					GL_SRGB8_ALPHA8, GL_RGBA, GL_UNSIGNED_INT_8_8_8_8_REV);
@@ -837,7 +837,8 @@ static void cacheTextureFormats(dsGLResourceManager* resourceManager)
 			FormatBit_Texture, GL_COMPRESSED_RGB_S3TC_DXT1_EXT, GL_RGB);
 		setCompressedFormat(resourceManager, dsGfxFormat_BC1_RGBA, dsGfxFormat_UNorm,
 			FormatBit_Texture, GL_COMPRESSED_RGBA_S3TC_DXT1_EXT, GL_RGBA);
-		if (AnyGL_EXT_texture_sRGB || AnyGL_EXT_texture_compression_s3tc_srgb)
+		if (AnyGL_atLeastVersion(2, 1, false) || AnyGL_atLeastVersion(3, 0, true) ||
+			AnyGL_EXT_texture_sRGB || AnyGL_EXT_texture_compression_s3tc_srgb)
 		{
 			setCompressedFormat(resourceManager, dsGfxFormat_BC1_RGB, dsGfxFormat_SRGB,
 				FormatBit_Texture, GL_COMPRESSED_SRGB_S3TC_DXT1_EXT, GL_RGB);
@@ -852,7 +853,8 @@ static void cacheTextureFormats(dsGLResourceManager* resourceManager)
 			FormatBit_Texture, GL_COMPRESSED_RGBA_S3TC_DXT3_EXT, GL_RGBA);
 		setCompressedFormat(resourceManager, dsGfxFormat_BC3, dsGfxFormat_UNorm,
 			FormatBit_Texture, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, GL_RGBA);
-		if (AnyGL_EXT_texture_sRGB || AnyGL_EXT_texture_compression_s3tc_srgb)
+		if (AnyGL_atLeastVersion(2, 1, false) || AnyGL_atLeastVersion(3, 0, true) ||
+			AnyGL_EXT_texture_sRGB || AnyGL_EXT_texture_compression_s3tc_srgb)
 		{
 			setCompressedFormat(resourceManager, dsGfxFormat_BC2, dsGfxFormat_SRGB,
 				FormatBit_Texture, GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT3_EXT, GL_RGB);

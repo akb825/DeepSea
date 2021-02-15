@@ -76,6 +76,8 @@ typedef struct TestLighting
 	dsScene* curScene;
 	dsView* curView;
 	float rotation;
+	uint32_t fingerCount;
+	uint32_t maxFingers;
 	bool ignoreTime;
 	bool stop;
 } TestLighting;
@@ -180,6 +182,40 @@ static bool processEvent(dsApplication* application, dsWindow* window, const dsE
 					samples == 1 ? "off" : "on");
 			}
 			return false;
+		case dsAppEventType_TouchFingerDown:
+			++testLighting->fingerCount;
+			testLighting->maxFingers = dsMax(testLighting->fingerCount, testLighting->maxFingers);
+			return true;
+		case dsAppEventType_TouchFingerUp:
+			if (testLighting->fingerCount == 0)
+				return true;
+
+			--testLighting->fingerCount;
+			if (testLighting->fingerCount == 0)
+			{
+				switch (testLighting->maxFingers)
+				{
+					case 1:
+						testLighting->stop = !testLighting->stop;
+						break;
+					case 2:
+						if (testLighting->curScene == testLighting->forwardLightScene)
+						{
+							testLighting->curScene = testLighting->deferredLightScene;
+							testLighting->curView = testLighting->deferredLightView;
+						}
+						else
+						{
+							testLighting->curScene = testLighting->forwardLightScene;
+							testLighting->curView = testLighting->forwardLightView;
+						}
+						break;
+					default:
+						break;
+				}
+				testLighting->maxFingers = 0;
+			}
+			return true;
 		default:
 			return true;
 	}

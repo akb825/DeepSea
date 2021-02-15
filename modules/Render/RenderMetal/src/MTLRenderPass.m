@@ -65,6 +65,17 @@ static bool subpassHasAttachment(const dsRenderSubpassInfo* subpass, uint32_t at
 	return false;
 }
 
+static bool subpassHasInputAttachment(const dsRenderSubpassInfo* subpass, uint32_t attachment)
+{
+	for (uint32_t i = 0; i < subpass->inputAttachmentCount; ++i)
+	{
+		if (subpass->inputAttachments[i] == attachment)
+			return true;
+	}
+
+	return false;
+}
+
 static bool hasUsageBefore(uint32_t attachment, uint32_t subpass,
 	const dsRenderSubpassInfo* subpasses, uint32_t subpassCount)
 {
@@ -83,8 +94,11 @@ static bool hasUsageAfter(uint32_t attachment, uint32_t subpass,
 {
 	for (uint32_t i = subpass + 1; i < subpassCount; ++i)
 	{
-		if (subpassHasAttachment(subpasses + i, attachment))
+		if (subpassHasAttachment(subpasses + i, attachment) ||
+			subpassHasInputAttachment(subpasses + i, attachment))
+		{
 			return true;
+		}
 	}
 
 	return false;

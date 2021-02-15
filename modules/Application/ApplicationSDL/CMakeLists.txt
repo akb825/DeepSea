@@ -18,11 +18,7 @@ ds_target_link_libraries(deepsea_application_sdl PRIVATE ${SDL2_LIBRARY})
 file(GLOB_RECURSE mainSources main/*.c)
 add_library(deepsea_application_sdl_main STATIC ${mainSources})
 ds_setup_filters(SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/main FILES ${mainSources})
-target_link_libraries(deepsea_application_sdl_main PUBLIC ${SDL2_LIBRARY})
-if (NOT IOS)
-	# Main defined in primary SDL library for iOS.
-	target_link_libraries(deepsea_application_sdl_main PUBLIC ${SDL2MAIN_LIBRARY})
-endif()
+target_link_libraries(deepsea_application_sdl_main PUBLIC ${SDL2_LIBRARY} ${SDL2MAIN_LIBRARY})
 target_include_directories(deepsea_application_sdl_main
 	PRIVATE ${SDL2_INCLUDE_DIR} ${DEEPSEA_MODULE_DIR}/Core/Core/include)
 ds_set_folder(deepsea_application_sdl_main modules)
