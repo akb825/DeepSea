@@ -87,7 +87,18 @@ bool dsViewTransformData_populateData(dsSceneGlobalData* globalData, const dsVie
 	DS_VERIFY(dsShaderVariableGroup_setElementData(viewData->variableGroup, i++, &screenRotation,
 		dsMaterialType_Vec4, 0, 1));
 
-	dsVector2i screenSize = {{view->width, view->height}};
+	dsVector2i screenSize;
+	if (view->rotation == dsRenderSurfaceRotation_0 ||
+		view->rotation == dsRenderSurfaceRotation_180)
+	{
+		screenSize.x = view->width;
+		screenSize.y = view->height;
+	}
+	else
+	{
+		screenSize.x = view->height;
+		screenSize.y = view->width;
+	}
 	DS_VERIFY(dsShaderVariableGroup_setElementData(viewData->variableGroup, i++, &screenSize,
 		dsMaterialType_IVec2, 0, 1));
 

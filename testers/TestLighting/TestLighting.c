@@ -129,6 +129,8 @@ static bool processEvent(dsApplication* application, dsWindow* window, const dsE
 		case dsAppEventType_SurfaceInvalidated:
 			DS_VERIFY(dsView_setSurface(testLighting->forwardLightView, "windowColor",
 				testLighting->window->surface, dsGfxSurfaceType_ColorRenderSurface));
+			DS_VERIFY(dsView_setSurface(testLighting->deferredLightView, "windowColor",
+				testLighting->window->surface, dsGfxSurfaceType_ColorRenderSurface));
 			// Fall through
 		case dsAppEventType_WindowResized:
 			DS_VERIFY(dsView_setDimensions(testLighting->forwardLightView,

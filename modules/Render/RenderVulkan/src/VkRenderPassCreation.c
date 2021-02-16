@@ -33,8 +33,8 @@ typedef enum AttachmentUsage
 
 static bool mustKeepMultisampledAttachment(dsAttachmentUsage usage, uint32_t samples)
 {
-	return samples == 1 ||
-		((usage & dsAttachmentUsage_KeepAfter) && (usage & dsAttachmentUsage_UseLater));
+	return (usage & dsAttachmentUsage_KeepAfter) &&
+		(samples == 1 || (usage & dsAttachmentUsage_UseLater));
 }
 
 static bool needsResolve(uint32_t samples, uint32_t surfaceSamples, uint32_t defaultSamples)
@@ -359,9 +359,23 @@ static bool createLegacyRenderPass(dsVkRenderPassData* renderPassData,
 		const dsAttachmentRef* depthStencilAttachment = &curSubpass->depthStencilAttachment;
 		if (depthStencilAttachment->attachmentIndex != DS_NO_ATTACHMENT)
 		{
+			// Check if the depth is also used as an input, in which case this can be used for
+			// read-only depth checks.
+			bool isInput = false;
+			for (uint32_t j = 0; j < vkSubpass->inputAttachmentCount; ++j)
+			{
+				if (vkSubpass->pInputAttachments[j].attachment ==
+					depthStencilAttachment->attachmentIndex)
+				{
+					isInput = true;
+					break;
+				}
+			}
+
 			VkAttachmentReference* depthSubpass = DS_ALLOCATE_STACK_OBJECT(VkAttachmentReference);
 			depthSubpass->attachment = depthStencilAttachment->attachmentIndex;
-			depthSubpass->layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+			depthSubpass->layout = isInput ? VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL :
+				VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 			vkSubpass->pDepthStencilAttachment = depthSubpass;
 		}
 	}
@@ -740,17 +754,35 @@ static bool createRenderPass(dsVkRenderPassData* renderPassData, uint32_t resolv
 		const dsAttachmentRef* depthStencilAttachment = &curSubpass->depthStencilAttachment;
 		if (depthStencilAttachment->attachmentIndex != DS_NO_ATTACHMENT)
 		{
+			// Check if the depth is also used as an input, in which case this can be used for
+			// read-only depth checks.
+			bool resolve = depthStencilAttachment->resolve && needsResolve(
+				renderPass->attachments[depthStencilAttachment->attachmentIndex].samples,
+				renderer->surfaceSamples, renderer->defaultSamples);
+			bool isInput = false;
+			if (!resolve)
+			{
+				for (uint32_t j = 0; j < vkSubpass->inputAttachmentCount; ++j)
+				{
+					if (vkSubpass->pInputAttachments[j].attachment ==
+						depthStencilAttachment->attachmentIndex)
+					{
+						isInput = true;
+						break;
+					}
+				}
+			}
+
 			VkAttachmentReference2KHR* depthAttachment =
 				DS_ALLOCATE_STACK_OBJECT(VkAttachmentReference2KHR);
 			depthAttachment->sType = VK_STRUCTURE_TYPE_ATTACHMENT_REFERENCE_2_KHR;
 			depthAttachment->pNext = NULL;
 			depthAttachment->attachment = depthStencilAttachment->attachmentIndex;
-			depthAttachment->layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+			depthAttachment->layout = isInput ? VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL :
+				VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 			vkSubpass->pDepthStencilAttachment = depthAttachment;
 
-			if (depthStencilAttachment->resolve && needsResolve(
-					renderPass->attachments[depthStencilAttachment->attachmentIndex].samples,
-					renderer->surfaceSamples, renderer->defaultSamples))
+			if (resolve)
 			{
 				uint32_t resolveAttachment =
 					renderPassData->resolveIndices[depthStencilAttachment->attachmentIndex];

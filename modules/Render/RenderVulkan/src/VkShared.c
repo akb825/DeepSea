@@ -397,8 +397,13 @@ VkAccessFlags dsVkAccessFlags(dsGfxAccess access)
 		flags |= VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT;
 	if (access & dsGfxAccess_UniformBlockRead)
 		flags |= VK_ACCESS_UNIFORM_READ_BIT;
-	if (access & (dsGfxAccess_UniformBufferRead | dsGfxAccess_TextureRead | dsGfxAccess_ImageRead))
+	if (access & (dsGfxAccess_UniformBufferRead | dsGfxAccess_TextureRead | dsGfxAccess_ImageRead |
+			dsGfxAccess_InputAttachmentRead))
+	{
+		// NOTE: InputAttachmentRead *shouldn't* need this bit according to the Vulkan spec, but
+		// seems to be needed for depth input attachments on Adreno and Mali.
 		flags |= VK_ACCESS_SHADER_READ_BIT;
+	}
 	if (access & (dsGfxAccess_UniformBufferWrite | dsGfxAccess_ImageWrite))
 		flags |= VK_ACCESS_SHADER_WRITE_BIT;
 	if (access & dsGfxAccess_InputAttachmentRead)

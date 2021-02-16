@@ -555,13 +555,11 @@ bool dsRenderPass_setDefaultDependencies(dsSubpassDependency* outDependencies,
 			}
 			if (prevUsage & AttachmentUsage_DepthStencil)
 			{
-				dependency->srcStages |= dsGfxPipelineStage_PostFragmentShaderTests;
+				dependency->srcStages |= dsGfxPipelineStage_PostFragmentShaderTests |
+					dsGfxPipelineStage_PreFragmentShaderTests;
 				dependency->srcAccess |= dsGfxAccess_DepthStencilAttachmentWrite;
 				if (curUsage & AttachmentUsage_DepthStencil)
-				{
-					dependency->srcStages |= dsGfxPipelineStage_PreFragmentShaderTests;
 					dependency->srcAccess |= dsGfxAccess_DepthStencilAttachmentRead;
-				}
 			}
 
 			dependency->dstSubpass = i;

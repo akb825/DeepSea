@@ -212,8 +212,8 @@ TEST_F(RenderPassTest, DefaultDependencies)
 
 	// Input dependency for render subpass 0 to 5.
 	EXPECT_EQ(0U, dependency->srcSubpass);
-	EXPECT_EQ(dsGfxPipelineStage_ColorOutput | dsGfxPipelineStage_PostFragmentShaderTests,
-		dependency->srcStages);
+	EXPECT_EQ(dsGfxPipelineStage_ColorOutput | dsGfxPipelineStage_PreFragmentShaderTests |
+		dsGfxPipelineStage_PostFragmentShaderTests, dependency->srcStages);
 	EXPECT_EQ(dsGfxAccess_ColorAttachmentWrite | dsGfxAccess_DepthStencilAttachmentWrite,
 		dependency->srcAccess);
 	EXPECT_EQ(5U, dependency->dstSubpass);
@@ -234,8 +234,8 @@ TEST_F(RenderPassTest, DefaultDependencies)
 
 	// Input dependency for render subpass 2 to 5.
 	EXPECT_EQ(2U, dependency->srcSubpass);
-	EXPECT_EQ(dsGfxPipelineStage_ColorOutput | dsGfxPipelineStage_PostFragmentShaderTests,
-		dependency->srcStages);
+	EXPECT_EQ(dsGfxPipelineStage_ColorOutput | dsGfxPipelineStage_PreFragmentShaderTests |
+		dsGfxPipelineStage_PostFragmentShaderTests, dependency->srcStages);
 	EXPECT_EQ(dsGfxAccess_ColorAttachmentWrite | dsGfxAccess_DepthStencilAttachmentWrite,
 		dependency->srcAccess);
 	EXPECT_EQ(5U, dependency->dstSubpass);
