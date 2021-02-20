@@ -25,6 +25,11 @@
  * @brief Shared shader functions for implementing deferred spot lighting.
  */
 
+// NOTE: When running on Mali, if the depth/stencil is bound as both a subpass input and
+// depth/stencil attachment, early_fragment_tests breaks the subpassLoad() results. No amount of
+// added dependency stage and access flags get it to work. This may be device and/or driver
+// specific. Since the depth test is just for optimization, it's recommended to not bind the
+// depth buffer for Mali devices if it's an issue on target devices.
 #define DS_DEFERRED_SPOT_LIGHT_RENDER_STATES_BASE \
 	cull_mode = back; \
 	depth_test_enable = true; \
