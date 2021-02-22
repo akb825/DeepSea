@@ -42,13 +42,13 @@ The following item list types are provided with the members that are expected:
 	* `intensityThreshold`: the threshold below which the light is considered out of view. If unset this will use the default.
 * `"DeferredLightResolve"`:
 	* `lightSet`: name of the light set to draw the lights from.
-	* `ambientShader`: the name of the shader used for the ambient light.
+	* `ambientShader`: the name of the shader used for the ambient light. This may be null or ommitted to not draw ambient.
 	* `ambientMaterial`: the name of the material used for the ambient light.
-	* `drectionalShader`: the name of the shader used for directional lights.
+	* `drectionalShader`: the name of the shader used for directional lights. This may be null or ommitted to not draw directional lights.
 	* `drectionalMaterial`: the name of the material used for directional lights.
-	* `pointShader`: the name of the shader used for point lights.
+	* `pointShader`: the name of the shader used for point lights. This may be null or ommitted to not draw point lights.
 	* `pointMaterial`: the name of the material used for point lights.
-	* `spotShader`: the name of the shader used for spot lights.
+	* `spotShader`: the name of the shader used for spot lights. This may be null or ommitted to not draw spot lights.
 	* `spotMaterial`: the name of the material used for spot lights.
 	* `intensityThreshold`: the threshold below which the light is considered out of view. If unset this will use the default.
 

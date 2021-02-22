@@ -38,6 +38,8 @@ DS_SCENELIGHTING_EXPORT extern const char* const dsDeferredLightResolve_typeName
 
 /**
  * @brief Creates a deferred light resolve.
+ * @remark Any shader may be NULL to avoid drawing that type of light. For example, this can be used
+ *     to draw specific light types in different render passes.
  * @remark errno will be set on failure.
  * @param allocator The allocator to create the defferred light resolve with.This must support
  *     freeing memory.
@@ -49,19 +51,21 @@ DS_SCENELIGHTING_EXPORT extern const char* const dsDeferredLightResolve_typeName
  *     are:
  *     - position: vec2 clip-space [-1, 1] values.
  *     - color: vec3 ambient color.
- * @param ambientMaterial The material used for the ambient light.
+ * @param ambientMaterial The material used for the ambient light. This must be set if ambientShader
+ *     is set.
  * @param directionalShader The shader used for directional lights. The vertex elements for the
  *     shader are:
  *     - position: vec2 clip-space [-1, 1] values.
  *     - normal: vec3 normalized direction to the light.
  *     - color: vec3 light color.
- * @param directionalMaterial The material used for directional lights.
+ * @param directionalMaterial The material used for directional lights. This must be set if
+ *     directionalShader is set.
  * @param pointShader The shader used for point lights. The vertex elements for the shader are:
  *     - position0: vec3 world-space vertex position.
  *     - position1: vec3 world-space light position.
  *     - color: vec3 light color.
  *     - texcoord0: vec2 for linear and quadratic falloff.
- * @param pointMaterial The material used for point lights.
+ * @param pointMaterial The material used for point lights. This must be set if pointShader is set.
  * @param spotShader The shader used for spot lights. The vertex elements for the shader are:
  *     - position0: vec3 world-space vertex position.
  *     - position1: vec3 world-space light position.
@@ -82,7 +86,6 @@ DS_SCENELIGHTING_EXPORT dsDeferredLightResolve* dsDeferredLightResolve_create(
 
 /**
  * @brief Gets the ambient shader.
- * @remark errno will be set on failure.
  * @param resolve The deferred lighting resolve.
  * @return The shader or NULL if resolve is NULL.
  */
@@ -91,6 +94,7 @@ DS_SCENELIGHTING_EXPORT dsShader* dsDeferredLightResolve_getAmbientShader(
 
 /**
  * @brief Sets the ambient shader.
+ * @remark This may only be called if an ambient shader was previously set in the constructor.
  * @remark errno will be set on failure.
  * @param resolve The deferred lighting resolve.
  * @param shader The ambient shader. The vertex elements for the shader are:
@@ -103,7 +107,6 @@ DS_SCENELIGHTING_EXPORT bool dsDeferredLightResolve_setAmbientShader(
 
 /**
  * @brief Gets the ambient material.
- * @remark errno will be set on failure.
  * @param resolve The deferred lighting resolve.
  * @return The material or NULL if resolve is NULL.
  */
@@ -112,6 +115,7 @@ DS_SCENELIGHTING_EXPORT dsMaterial* dsDeferredLightResolve_getAmbientMaterial(
 
 /**
  * @brief Sets the ambient material.
+ * @remark This may only be called if an ambient shader was previously set in the constructor.
  * @remark errno will be set on failure.
  * @param resolve The deferred lighting resolve.
  * @param material The ambient material.
@@ -122,7 +126,6 @@ DS_SCENELIGHTING_EXPORT bool dsDeferredLightResolve_setAmbientMaterial(
 
 /**
  * @brief Gets the directional light shader.
- * @remark errno will be set on failure.
  * @param resolve The deferred lighting resolve.
  * @return The shader or NULL if resolve is NULL.
  */
@@ -131,6 +134,7 @@ DS_SCENELIGHTING_EXPORT dsShader* dsDeferredLightResolve_getDirectionalShader(
 
 /**
  * @brief Sets the directional light shader.
+ * @remark This may only be called if an directional shader was previously set in the constructor.
  * @remark errno will be set on failure.
  * @param resolve The deferred lighting resolve.
  * @param shader The directional light shader. The vertex elements for the shader are:
@@ -144,7 +148,6 @@ DS_SCENELIGHTING_EXPORT bool dsDeferredLightResolve_setDirectionalShader(
 
 /**
  * @brief Gets the directional light material.
- * @remark errno will be set on failure.
  * @param resolve The deferred lighting resolve.
  * @return The material or NULL if resolve is NULL.
  */
@@ -153,6 +156,7 @@ DS_SCENELIGHTING_EXPORT dsMaterial* dsDeferredLightResolve_getDirectionalMateria
 
 /**
  * @brief Sets the directional light material.
+ * @remark This may only be called if an directional shader was previously set in the constructor.
  * @remark errno will be set on failure.
  * @param resolve The deferred lighting resolve.
  * @param material The directional light material.
@@ -163,7 +167,6 @@ DS_SCENELIGHTING_EXPORT bool dsDeferredLightResolve_setDirectionalMaterial(
 
 /**
  * @brief Gets the point light shader.
- * @remark errno will be set on failure.
  * @param resolve The deferred lighting resolve.
  * @return The shader or NULL if resolve is NULL.
  */
@@ -172,6 +175,7 @@ DS_SCENELIGHTING_EXPORT dsShader* dsDeferredLightResolve_getPointShader(
 
 /**
  * @brief Sets the point light shader.
+ * @remark This may only be called if an point shader was previously set in the constructor.
  * @remark errno will be set on failure.
  * @param resolve The deferred lighting resolve.
  * @param shader The point light shader. The vertex elements for the shader are:
@@ -186,7 +190,6 @@ DS_SCENELIGHTING_EXPORT bool dsDeferredLightResolve_setPointShader(dsDeferredLig
 
 /**
  * @brief Gets the point light material.
- * @remark errno will be set on failure.
  * @param resolve The deferred lighting resolve.
  * @return The material or NULL if resolve is NULL.
  */
@@ -195,6 +198,7 @@ DS_SCENELIGHTING_EXPORT dsMaterial* dsDeferredLightResolve_getPointMaterial(
 
 /**
  * @brief Sets the point light material.
+ * @remark This may only be called if an point shader was previously set in the constructor.
  * @remark errno will be set on failure.
  * @param resolve The deferred lighting resolve.
  * @param material The point light material.
@@ -205,7 +209,6 @@ DS_SCENELIGHTING_EXPORT bool dsDeferredLightResolve_setPointMaterial(
 
 /**
  * @brief Gets the spot light shader.
- * @remark errno will be set on failure.
  * @param resolve The deferred lighting resolve.
  * @return The shader or NULL if resolve is NULL.
  */
@@ -214,6 +217,7 @@ DS_SCENELIGHTING_EXPORT dsShader* dsDeferredLightResolve_getSpotShader(
 
 /**
  * @brief Sets the spot light shader.
+ * @remark This may only be called if an spot shader was previously set in the constructor.
  * @remark errno will be set on failure.
  * @param resolve The deferred lighting resolve.
  * @param shader The spot light shader.
@@ -224,7 +228,6 @@ DS_SCENELIGHTING_EXPORT bool dsDeferredLightResolve_setSpotShader(dsDeferredLigh
 
 /**
  * @brief Gets the spot light material.
- * @remark errno will be set on failure.
  * @param resolve The deferred lighting resolve.
  * @return The material or NULL if resolve is NULL.
  */
@@ -233,6 +236,7 @@ DS_SCENELIGHTING_EXPORT dsMaterial* dsDeferredLightResolve_getSpotMaterial(
 
 /**
  * @brief Sets the spot light material.
+ * @remark This may only be called if an spot shader was previously set in the constructor.
  * @remark errno will be set on failure.
  * @param resolve The deferred lighting resolve.
  * @param material The spot light material.

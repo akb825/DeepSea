@@ -89,38 +89,84 @@ dsSceneItemList* dsDeferredLightResolve_load(const dsSceneLoadContext*,
 
 	dsSceneLightSet* lightSet = reinterpret_cast<dsSceneLightSet*>(resource->resource);
 
-	dsShader* ambientShader = findShader(scratchData, fbResolve->ambientShader()->c_str());
-	if (!ambientShader)
-		return nullptr;
+	auto fbAmbientShader = fbResolve->ambientShader();
+	dsShader* ambientShader = NULL;
+	dsMaterial* ambientMaterial = NULL;
+	if (fbAmbientShader)
+	{
+		ambientShader = findShader(scratchData, fbAmbientShader->c_str());
+		auto fbAmbientMaterial = fbResolve->ambientMaterial();
+		if (fbAmbientMaterial)
+			ambientMaterial = findMaterial(scratchData, fbAmbientMaterial->c_str());
+		else
+		{
+			errno = ENOTFOUND;
+			DS_LOG_ERROR(DS_SCENE_LIGHTING_LOG_TAG,
+				"No deferred light resolve ambient material set.");
+		}
 
-	dsMaterial* ambientMaterial = findMaterial(scratchData, fbResolve->ambientMaterial()->c_str());
-	if (!ambientMaterial)
-		return nullptr;
+		if (!ambientShader || !ambientMaterial)
+			return nullptr;
+	}
 
-	dsShader* directionalShader = findShader(scratchData, fbResolve->directionalShader()->c_str());
-	if (!directionalShader)
-		return nullptr;
+	auto fbDirectionalShader = fbResolve->directionalShader();
+	dsShader* directionalShader = NULL;
+	dsMaterial* directionalMaterial = NULL;
+	if (fbDirectionalShader)
+	{
+		directionalShader = findShader(scratchData, fbDirectionalShader->c_str());
+		auto fbDirectionalMaterial = fbResolve->directionalMaterial();
+		if (fbDirectionalMaterial)
+			directionalMaterial = findMaterial(scratchData, fbDirectionalMaterial->c_str());
+		else
+		{
+			errno = ENOTFOUND;
+			DS_LOG_ERROR(DS_SCENE_LIGHTING_LOG_TAG,
+				"No deferred light resolve directional material set.");
+		}
 
-	dsMaterial* directionalMaterial =
-		findMaterial(scratchData, fbResolve->directionalMaterial()->c_str());
-	if (!directionalMaterial)
-		return nullptr;
+		if (!directionalShader || !directionalMaterial)
+			return nullptr;
+	}
 
-	dsShader* pointShader = findShader(scratchData, fbResolve->pointShader()->c_str());
-	if (!pointShader)
-		return nullptr;
+	auto fbPointShader = fbResolve->pointShader();
+	dsShader* pointShader = NULL;
+	dsMaterial* pointMaterial = NULL;
+	if (fbPointShader)
+	{
+		pointShader = findShader(scratchData, fbPointShader->c_str());
+		auto fbPointMaterial = fbResolve->pointMaterial();
+		if (fbPointMaterial)
+			pointMaterial = findMaterial(scratchData, fbPointMaterial->c_str());
+		else
+		{
+			errno = ENOTFOUND;
+			DS_LOG_ERROR(DS_SCENE_LIGHTING_LOG_TAG,
+				"No deferred light resolve point material set.");
+		}
 
-	dsMaterial* pointMaterial = findMaterial(scratchData, fbResolve->pointMaterial()->c_str());
-	if (!pointMaterial)
-		return nullptr;
+		if (!pointShader || !pointMaterial)
+			return nullptr;
+	}
 
-	dsShader* spotShader = findShader(scratchData, fbResolve->spotShader()->c_str());
-	if (!spotShader)
-		return nullptr;
+	auto fbSpotShader = fbResolve->spotShader();
+	dsShader* spotShader = NULL;
+	dsMaterial* spotMaterial = NULL;
+	if (fbSpotShader)
+	{
+		spotShader = findShader(scratchData, fbSpotShader->c_str());
+		auto fbSpotMaterial = fbResolve->spotMaterial();
+		if (fbSpotMaterial)
+			spotMaterial = findMaterial(scratchData, fbSpotMaterial->c_str());
+		else
+		{
+			errno = ENOTFOUND;
+			DS_LOG_ERROR(DS_SCENE_LIGHTING_LOG_TAG, "No deferred light resolve spot material.");
+		}
 
-	dsMaterial* spotMaterial = findMaterial(scratchData, fbResolve->spotMaterial()->c_str());
-	if (!spotMaterial)
-		return nullptr;
+		if (!spotShader || !spotMaterial)
+			return nullptr;
+	}
 
 	float intensityThreshold = fbResolve->intensityThreshold();
 	if (intensityThreshold <= 0)

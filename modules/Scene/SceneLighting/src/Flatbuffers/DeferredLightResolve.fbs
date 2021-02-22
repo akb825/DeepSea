@@ -23,28 +23,28 @@ table DeferredLightResolve
 	lightSet : string (required);
 
 	// Name of the shader to process the ambient light.
-	ambientShader : string (required);
+	ambientShader : string;
 
 	// Name of the material to use with the ambient shader.
-	ambientMaterial : string (required);
+	ambientMaterial : string;
 
 	// Name of the shader to process directional lights.
-	directionalShader : string (required);
+	directionalShader : string;
 
 	// Name of the material to use with the directional shader.
-	directionalMaterial : string (required);
+	directionalMaterial : string;
 
 	// Name of the shader to process point lights.
-	pointShader : string (required);
+	pointShader : string;
 
 	// Name of the material to use with the point shader.
-	pointMaterial : string (required);
+	pointMaterial : string;
 
 	// Name of the shader to process spot lights.
-	spotShader : string (required);
+	spotShader : string;
 
 	// Name of the material to use with the spot shader.
-	spotMaterial : string (required);
+	spotMaterial : string;
 
 	// Intensity threshold for lights to take effect. Set to 0 to use the default value.
 	intensityThreshold : float;

@@ -59,21 +59,21 @@ struct DeferredLightResolve FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_LIGHTSET) &&
            verifier.VerifyString(lightSet()) &&
-           VerifyOffsetRequired(verifier, VT_AMBIENTSHADER) &&
+           VerifyOffset(verifier, VT_AMBIENTSHADER) &&
            verifier.VerifyString(ambientShader()) &&
-           VerifyOffsetRequired(verifier, VT_AMBIENTMATERIAL) &&
+           VerifyOffset(verifier, VT_AMBIENTMATERIAL) &&
            verifier.VerifyString(ambientMaterial()) &&
-           VerifyOffsetRequired(verifier, VT_DIRECTIONALSHADER) &&
+           VerifyOffset(verifier, VT_DIRECTIONALSHADER) &&
            verifier.VerifyString(directionalShader()) &&
-           VerifyOffsetRequired(verifier, VT_DIRECTIONALMATERIAL) &&
+           VerifyOffset(verifier, VT_DIRECTIONALMATERIAL) &&
            verifier.VerifyString(directionalMaterial()) &&
-           VerifyOffsetRequired(verifier, VT_POINTSHADER) &&
+           VerifyOffset(verifier, VT_POINTSHADER) &&
            verifier.VerifyString(pointShader()) &&
-           VerifyOffsetRequired(verifier, VT_POINTMATERIAL) &&
+           VerifyOffset(verifier, VT_POINTMATERIAL) &&
            verifier.VerifyString(pointMaterial()) &&
-           VerifyOffsetRequired(verifier, VT_SPOTSHADER) &&
+           VerifyOffset(verifier, VT_SPOTSHADER) &&
            verifier.VerifyString(spotShader()) &&
-           VerifyOffsetRequired(verifier, VT_SPOTMATERIAL) &&
+           VerifyOffset(verifier, VT_SPOTMATERIAL) &&
            verifier.VerifyString(spotMaterial()) &&
            VerifyField<float>(verifier, VT_INTENSITYTHRESHOLD) &&
            verifier.EndTable();
@@ -123,14 +123,6 @@ struct DeferredLightResolveBuilder {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<DeferredLightResolve>(end);
     fbb_.Required(o, DeferredLightResolve::VT_LIGHTSET);
-    fbb_.Required(o, DeferredLightResolve::VT_AMBIENTSHADER);
-    fbb_.Required(o, DeferredLightResolve::VT_AMBIENTMATERIAL);
-    fbb_.Required(o, DeferredLightResolve::VT_DIRECTIONALSHADER);
-    fbb_.Required(o, DeferredLightResolve::VT_DIRECTIONALMATERIAL);
-    fbb_.Required(o, DeferredLightResolve::VT_POINTSHADER);
-    fbb_.Required(o, DeferredLightResolve::VT_POINTMATERIAL);
-    fbb_.Required(o, DeferredLightResolve::VT_SPOTSHADER);
-    fbb_.Required(o, DeferredLightResolve::VT_SPOTMATERIAL);
     return o;
   }
 };
