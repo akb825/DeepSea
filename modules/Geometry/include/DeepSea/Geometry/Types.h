@@ -479,7 +479,8 @@ typedef bool (*dsKdTreeObjectPointFunction)(void* outPoint, const dsKdTree* kdTr
 /**
  * @brief Enum for which side of the Kd tree to follow when traversing.
  *
- * This is a bitmask between the left and right sides.
+ * This is a bitmask between the left and right sides. A special bit is also available to stop
+ * traversal altogether.
  */
 typedef enum dsKdTreeSide
 {
@@ -508,7 +509,7 @@ typedef enum dsKdTreeSide
  *     - dsKdTreeSide_Both if userData->point[axis] == point[axis]
  * @see KdTree.h
  */
-typedef unsigned int (*dsKdTreeTraverseFunction)(void* userData, const dsKdTree* kdTree,
+typedef dsKdTreeSide (*dsKdTreeTraverseFunction)(void* userData, const dsKdTree* kdTree,
 	const void* object, const void* point, uint8_t axis);
 
 /**

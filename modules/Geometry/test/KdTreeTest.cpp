@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -206,7 +206,7 @@ public:
 	}
 
 	template <typename T>
-	static unsigned int lambdaAdapterImpl(void* userData, const dsKdTree*, const void* object,
+	static dsKdTreeSide lambdaAdapterImpl(void* userData, const dsKdTree*, const void* object,
 		const void* point, uint8_t axis)
 	{
 		const auto& objectRef = *(const TestObject*)object;
@@ -221,7 +221,7 @@ public:
 	}
 
 	template <typename T>
-	static unsigned int indexLambdaAdapterImpl(void* userData, const dsKdTree* kdTree,
+	static dsKdTreeSide indexLambdaAdapterImpl(void* userData, const dsKdTree* kdTree,
 		const void* object, const void* point, uint8_t axis)
 	{
 		auto objects = (const TestObject*)dsKdTree_getUserData(kdTree);

@@ -178,7 +178,7 @@ static bool traverseKdTreeRec(const dsKdTree* kdTree, uint32_t curNode,
 {
 	const dsKdTreeNode* node = getNode(kdTree->nodes, kdTree->nodeSize, curNode);
 
-	unsigned int side = traverseFunc(userData, kdTree, node->object, node->point, axis);
+	dsKdTreeSide side = traverseFunc(userData, kdTree, node->object, node->point, axis);
 	if (side & dsKdTreeSide_Stop)
 		return false;
 
