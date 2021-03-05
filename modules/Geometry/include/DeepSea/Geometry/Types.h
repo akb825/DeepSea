@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Aaron Barany
+ * Copyright 2016-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -486,6 +486,7 @@ typedef enum dsKdTreeSide
 	dsKdTreeSide_None = 0x0,  /// < Don't follow either side, ending the traversal for this branch.
 	dsKdTreeSide_Left = 0x1,  /// < Follow the left branch.
 	dsKdTreeSide_Right = 0x2, /// < Follow the right branch.
+	dsKdTreeSide_Stop = 0x4,  /// < Stop traversing the tree.
 	dsKdTreeSide_Both = dsKdTreeSide_Left | dsKdTreeSide_Right, /// < Follow both branches.
 } dsKdTreeSide;
 

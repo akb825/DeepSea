@@ -354,7 +354,44 @@ TYPED_TEST(KdTreeTest, BuildAndTraverse)
 	for (uint32_t i = 0; i <= DS_ARRAY_SIZE(data); ++i)
 	{
 		EXPECT_TRUE(dsKdTree_build(kdTree, data, i, sizeof(TestObject),
-			&TestFixture::getPoint));
+			&TestFixture::getPoint, false));
+		EXPECT_EQ(i, TestFixture::countElements(kdTree));
+
+		for (uint32_t j = 0; j < i; ++j)
+			TestFixture::findObject(kdTree, data[j]);
+	}
+
+	dsKdTree_destroy(kdTree);
+}
+
+TYPED_TEST(KdTreeTest, BuildAndTraverseBalanced)
+{
+	using TestObject = typename TestFixture::TestObject;
+
+	TestFixture* fixture = this;
+	dsKdTree* kdTree = dsKdTree_create((dsAllocator*)&fixture->allocator, TestFixture::axisCount(),
+		TestFixture::element(), NULL);
+	ASSERT_TRUE(kdTree);
+
+	TestObject data[] =
+	{
+		{TestFixture::createPoint(-2, -2, -2), 0},
+		{TestFixture::createPoint(1, -2, 3), 1},
+		{TestFixture::createPoint(-1, 2, -3), 2},
+		{TestFixture::createPoint(1, 3, 3), 3},
+		{TestFixture::createPoint(-1, -2, 3), 4},
+		{TestFixture::createPoint(1, -3, -3), 5},
+		{TestFixture::createPoint(1, 2, -3), 6},
+		{TestFixture::createPoint(3, -2, 1), 7},
+		{TestFixture::createPoint(-3, 2, -1), 8},
+		{TestFixture::createPoint(2, -3, 1), 9},
+		{TestFixture::createPoint(-2, 3, -1), 10}
+	};
+
+	for (uint32_t i = 0; i <= DS_ARRAY_SIZE(data); ++i)
+	{
+		EXPECT_TRUE(dsKdTree_build(kdTree, data, i, sizeof(TestObject),
+			&TestFixture::getPoint, true));
 		EXPECT_EQ(i, TestFixture::countElements(kdTree));
 
 		for (uint32_t j = 0; j < i; ++j)
@@ -389,7 +426,7 @@ TYPED_TEST(KdTreeTest, ObjectPointer)
 	};
 
 	EXPECT_TRUE(dsKdTree_build(kdTree, data, DS_ARRAY_SIZE(data), DS_GEOMETRY_OBJECT_POINTERS,
-		&TestFixture::getPoint));
+		&TestFixture::getPoint, false));
 	EXPECT_EQ(DS_ARRAY_SIZE(data), TestFixture::countElements(kdTree));
 
 	for (uint32_t i = 0; i < DS_ARRAY_SIZE(data); ++i)
@@ -426,7 +463,7 @@ TYPED_TEST(KdTreeTest, ObjectIndices)
 	ASSERT_TRUE(kdTree);
 
 	EXPECT_TRUE(dsKdTree_build(kdTree, NULL, DS_ARRAY_SIZE(data), DS_GEOMETRY_OBJECT_INDICES,
-		&TestFixture::getPointIndex));
+		&TestFixture::getPointIndex, false));
 	EXPECT_EQ(DS_ARRAY_SIZE(data), TestFixture::indexCountElements(kdTree));
 
 	for (uint32_t i = 0; i < DS_ARRAY_SIZE(data); ++i)

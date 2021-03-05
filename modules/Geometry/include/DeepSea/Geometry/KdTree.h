@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -98,10 +98,12 @@ DS_GEOMETRY_EXPORT void dsKdTree_setUserData(dsKdTree* kdTree, void* userData);
  *       to the object. The void* provided for each object should be cast to size_t. When this is
  *       used, it is valid for the objects array to be NULL.
  * @param objectPointFunc The function to query the point from each object.
+ * @param balance True to balance the nodes within the Kd tree. This will improve lookup times, but
+ *     will increase the cost of building the Kd tree.
  * @return False if an error occurred. The current contents will be cleared on error.
  */
 DS_GEOMETRY_EXPORT bool dsKdTree_build(dsKdTree* kdTree, const void* objects, uint32_t objectCount,
-	size_t objectSize, dsKdTreeObjectPointFunction objectPointFunc);
+	size_t objectSize, dsKdTreeObjectPointFunction objectPointFunc, bool balance);
 
 /**
  * @brief Traverses a Kd tree.

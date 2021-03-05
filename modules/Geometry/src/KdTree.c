@@ -23,8 +23,6 @@
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Core/Sort.h>
-#include <DeepSea/Geometry/AlignedBox2.h>
-#include <DeepSea/Geometry/AlignedBox3.h>
 #include <DeepSea/Math/Vector2.h>
 #include <DeepSea/Math/Vector3.h>
 #include <string.h>
@@ -35,7 +33,6 @@ typedef struct dsKdTreeNode
 {
 	uint32_t leftNode;
 	uint32_t rightNode;
-	uint8_t axis;
 	const void* object;
 	// Double for worst-case alignment.
 	double point[];
@@ -62,9 +59,6 @@ typedef struct SortContext
 	uint8_t axis;
 	uint8_t pointOffset;
 } SortContext;
-
-typedef void (*AddPointFunction)(void* bounds, const void* point);
-typedef void (*MakeInvalidFunction)(void* bounds);
 
 inline static dsKdTreeNode* getNode(dsKdTreeNode* nodes, uint8_t nodeSize, uint32_t index)
 {
@@ -112,28 +106,19 @@ static int comparePointi(const void* left, const void* right, void* context)
 	return leftPoint[sortContext->axis] - rightPoint[sortContext->axis];
 }
 
-static uint32_t buildKdTreeRec(dsKdTree* kdTree, uint32_t start, uint32_t count,
-	MakeInvalidFunction makeInvalidFunc, AddPointFunction addPointFunc,
-	MaxAxisFunction maxAxisFunc, dsSortCompareFunction compareFunc)
+static uint32_t buildKdTreeBalancedRec(dsKdTree* kdTree, uint32_t start, uint32_t count,
+	uint8_t axis, dsSortCompareFunction compareFunc)
 {
 	if (count == 0)
 	{
 		dsKdTreeNode* node = getNode(kdTree->nodes, kdTree->nodeSize, start);
 		node->leftNode = INVALID_NODE;
 		node->rightNode = INVALID_NODE;
-		node->axis = 0;
 		return start;
 	}
 
-	// Bounds for all current nodes. dsAlignedBox3d is the maximum storage size
-	dsAlignedBox3d bounds;
-	makeInvalidFunc(&bounds);
-	for (uint32_t i = 0; i < count; ++i)
-		addPointFunc(&bounds, getNode(kdTree->nodes, kdTree->nodeSize, i)->point);
-
 	// Sort based on the maximum dimension.
-	uint8_t maxAxis = maxAxisFunc(&bounds);
-	SortContext context = {maxAxis, (uint8_t)(kdTree->nodeSize - kdTree->pointSize)};
+	SortContext context = {axis, (uint8_t)(kdTree->nodeSize - kdTree->pointSize)};
 	dsSort(getNode(kdTree->nodes, kdTree->nodeSize, start), count, kdTree->nodeSize, compareFunc,
 		&context);
 
@@ -143,37 +128,69 @@ static uint32_t buildKdTreeRec(dsKdTree* kdTree, uint32_t start, uint32_t count,
 	dsKdTreeNode* middleNode = getNode(kdTree->nodes, kdTree->nodeSize, middleNodeIndex);
 	uint32_t leftCount = middle;
 	uint32_t rightCount = middle == count - 1 ? 0 : count - middle - 1;
-	middleNode->axis = maxAxis;
 
+	uint8_t nextAxis = (uint8_t)((axis + 1) % kdTree->axisCount);
 	if (leftCount > 0)
 	{
-		middleNode->leftNode = buildKdTreeRec(kdTree, start, leftCount, makeInvalidFunc,
-			addPointFunc, maxAxisFunc, compareFunc);
+		middleNode->leftNode = buildKdTreeBalancedRec(kdTree, start, leftCount, nextAxis,
+			compareFunc);
 	}
-	else
-		middleNode->leftNode = INVALID_NODE;
 
 	if (rightCount > 0)
 	{
-		middleNode->rightNode = buildKdTreeRec(kdTree, start + middle + 1, rightCount,
-			makeInvalidFunc, addPointFunc, maxAxisFunc, compareFunc);
+		middleNode->rightNode = buildKdTreeBalancedRec(kdTree, start + middle + 1, rightCount,
+			nextAxis, compareFunc);
 	}
-	else
-		middleNode->rightNode = INVALID_NODE;
 
 	return middleNodeIndex;
 }
 
-static void traverseKdTreeRec(const dsKdTree* kdTree, uint32_t curNode,
-	dsKdTreeTraverseFunction traverseFunc, void* userData)
+static void insertKdTreeNodeRec(dsKdTree* kdTree, uint32_t current,	uint32_t newNodeIndex,
+	dsKdTreeNode* newNode, uint8_t axis, dsSortCompareFunction compareFunc)
+{
+	dsKdTreeNode* node = getNode(kdTree->nodes, kdTree->nodeSize, current);
+	SortContext context = {axis, (uint8_t)(kdTree->nodeSize - kdTree->pointSize)};
+	uint8_t nextAxis = (uint8_t)((axis + 1) % kdTree->axisCount);
+	if (compareFunc(newNode, node, &context) < 0)
+	{
+		if (node->leftNode == INVALID_NODE)
+			node->leftNode = newNodeIndex;
+		else
+		{
+			insertKdTreeNodeRec(kdTree, node->leftNode, newNodeIndex, newNode, nextAxis,
+				compareFunc);
+		}
+	}
+	else
+	{
+		if (node->rightNode == INVALID_NODE)
+			node->rightNode = newNodeIndex;
+		else
+		{
+			insertKdTreeNodeRec(kdTree, node->rightNode, newNodeIndex, newNode, nextAxis,
+				compareFunc);
+		}
+	}
+}
+
+static bool traverseKdTreeRec(const dsKdTree* kdTree, uint32_t curNode,
+	dsKdTreeTraverseFunction traverseFunc, void* userData, uint8_t axis)
 {
 	const dsKdTreeNode* node = getNode(kdTree->nodes, kdTree->nodeSize, curNode);
 
-	unsigned int side = traverseFunc(userData, kdTree, node->object, node->point, node->axis);
+	unsigned int side = traverseFunc(userData, kdTree, node->object, node->point, axis);
+	if (side & dsKdTreeSide_Stop)
+		return false;
+
+	uint8_t nextAxis = (uint8_t)((axis + 1) % kdTree->axisCount);
 	if ((side & dsKdTreeSide_Left) && node->leftNode != INVALID_NODE)
-		traverseKdTreeRec(kdTree, node->leftNode, traverseFunc, userData);
+	{
+		if (!traverseKdTreeRec(kdTree, node->leftNode, traverseFunc, userData, nextAxis))
+			return false;
+	}
 	if ((side & dsKdTreeSide_Right) && node->rightNode != INVALID_NODE)
-		traverseKdTreeRec(kdTree, node->rightNode, traverseFunc, userData);
+		return traverseKdTreeRec(kdTree, node->rightNode, traverseFunc, userData, nextAxis);
+	return true;
 }
 
 dsKdTree* dsKdTree_create(dsAllocator* allocator, uint8_t axisCount, dsGeometryElement element,
@@ -189,7 +206,7 @@ dsKdTree* dsKdTree_create(dsAllocator* allocator, uint8_t axisCount, dsGeometryE
 	if (!allocator->freeFunc)
 	{
 		errno = EINVAL;
-		DS_LOG_ERROR(DS_GEOMETRY_LOG_TAG, "BVH allocator must support freeing memory.");
+		DS_LOG_ERROR(DS_GEOMETRY_LOG_TAG, "Kd tree allocator must support freeing memory.");
 		return NULL;
 	}
 
@@ -256,7 +273,7 @@ void dsKdTree_setUserData(dsKdTree* kdTree, void* userData)
 }
 
 bool dsKdTree_build(dsKdTree* kdTree, const void* objects, uint32_t objectCount, size_t objectSize,
-	dsKdTreeObjectPointFunction objectPointFunc)
+	dsKdTreeObjectPointFunction objectPointFunc, bool balance)
 {
 	dsKdTree_clear(kdTree);
 	if (!kdTree || (!objects && objectCount > 0 && objectSize != DS_GEOMETRY_OBJECT_INDICES) ||
@@ -269,58 +286,16 @@ bool dsKdTree_build(dsKdTree* kdTree, const void* objects, uint32_t objectCount,
 	if (objectCount == 0)
 		return true;
 
-	MakeInvalidFunction makeInvalidFunc;
-	AddPointFunction addPointFunc;
-	MaxAxisFunction maxAxisFunc;
 	dsSortCompareFunction compareFunc;
 	switch (kdTree->element)
 	{
 		case dsGeometryElement_Float:
-			if (kdTree->axisCount == 2)
-			{
-				makeInvalidFunc = (MakeInvalidFunction)&dsAlignedBox2f_makeInvalid;
-				addPointFunc = (AddPointFunction)&dsAlignedBox2f_addPoint;
-				maxAxisFunc = &dsSpatialStructure_maxAxis2f;
-			}
-			else
-			{
-				DS_ASSERT(kdTree->axisCount == 3);
-				makeInvalidFunc = (MakeInvalidFunction)&dsAlignedBox3f_makeInvalid;
-				addPointFunc = (AddPointFunction)&dsAlignedBox3f_addPoint;
-				maxAxisFunc = &dsSpatialStructure_maxAxis3f;
-			}
 			compareFunc = &comparePointf;
 			break;
 		case dsGeometryElement_Double:
-			if (kdTree->axisCount == 2)
-			{
-				makeInvalidFunc = (MakeInvalidFunction)&dsAlignedBox2d_makeInvalid;
-				addPointFunc = (AddPointFunction)&dsAlignedBox2d_addPoint;
-				maxAxisFunc = &dsSpatialStructure_maxAxis2d;
-			}
-			else
-			{
-				DS_ASSERT(kdTree->axisCount == 3);
-				makeInvalidFunc = (MakeInvalidFunction)&dsAlignedBox3d_makeInvalid;
-				addPointFunc = (AddPointFunction)&dsAlignedBox3d_addPoint;
-				maxAxisFunc = &dsSpatialStructure_maxAxis3d;
-			}
 			compareFunc = &comparePointd;
 			break;
 		case dsGeometryElement_Int:
-			if (kdTree->axisCount == 2)
-			{
-				makeInvalidFunc = (MakeInvalidFunction)&dsAlignedBox2i_makeInvalid;
-				addPointFunc = (AddPointFunction)&dsAlignedBox2i_addPoint;
-				maxAxisFunc = &dsSpatialStructure_maxAxis2i;
-			}
-			else
-			{
-				DS_ASSERT(kdTree->axisCount == 3);
-				makeInvalidFunc = (MakeInvalidFunction)&dsAlignedBox2d_makeInvalid;
-				addPointFunc = (AddPointFunction)&dsAlignedBox3i_addPoint;
-				maxAxisFunc = &dsSpatialStructure_maxAxis3i;
-			}
 			compareFunc = &comparePointi;
 			break;
 		default:
@@ -345,9 +320,27 @@ bool dsKdTree_build(dsKdTree* kdTree, const void* objects, uint32_t objectCount,
 		}
 
 		node->object = object;
+		node->leftNode = INVALID_NODE;
+		node->rightNode = INVALID_NODE;
 	}
 
-	buildKdTreeRec(kdTree, 0, objectCount, makeInvalidFunc, addPointFunc, maxAxisFunc, compareFunc);
+	if (balance)
+		buildKdTreeBalancedRec(kdTree, 0, objectCount, 0, compareFunc);
+	else
+	{
+		// Keep the root node consistent with the balanced case.
+		uint32_t root = kdTree->nodeCount/2;
+		for (uint32_t i = 0; i < root; ++i)
+		{
+			insertKdTreeNodeRec(kdTree, root, i, getNode(kdTree->nodes, kdTree->nodeSize, i), 0,
+				compareFunc);
+		}
+		for (uint32_t i = root + 1; i < objectCount; ++i)
+		{
+			insertKdTreeNodeRec(kdTree, root, i, getNode(kdTree->nodes, kdTree->nodeSize, i), 0,
+				compareFunc);
+		}
+	}
 	return true;
 }
 
@@ -361,7 +354,7 @@ bool dsKdTree_traverse(const dsKdTree* kdTree, dsKdTreeTraverseFunction traverse
 	}
 
 	if (kdTree->nodeCount > 0)
-		traverseKdTreeRec(kdTree, kdTree->nodeCount/2, traverseFunc, userData);
+		traverseKdTreeRec(kdTree, kdTree->nodeCount/2, traverseFunc, userData, 0);
 	return true;
 }
 
