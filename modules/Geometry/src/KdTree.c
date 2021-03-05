@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,10 +29,12 @@
 #include <DeepSea/Math/Vector3.h>
 #include <string.h>
 
+#define INVALID_NODE (uint32_t)-1
+
 typedef struct dsKdTreeNode
 {
-	uint32_t leftCount;
-	uint32_t rightCount;
+	uint32_t leftNode;
+	uint32_t rightNode;
 	uint8_t axis;
 	const void* object;
 	// Double for worst-case alignment.
@@ -110,17 +112,17 @@ static int comparePointi(const void* left, const void* right, void* context)
 	return leftPoint[sortContext->axis] - rightPoint[sortContext->axis];
 }
 
-static void buildKdTreeRec(dsKdTree* kdTree, uint32_t start, uint32_t count,
+static uint32_t buildKdTreeRec(dsKdTree* kdTree, uint32_t start, uint32_t count,
 	MakeInvalidFunction makeInvalidFunc, AddPointFunction addPointFunc,
 	MaxAxisFunction maxAxisFunc, dsSortCompareFunction compareFunc)
 {
 	if (count == 0)
 	{
 		dsKdTreeNode* node = getNode(kdTree->nodes, kdTree->nodeSize, start);
-		node->leftCount = 0;
-		node->rightCount = 0;
+		node->leftNode = INVALID_NODE;
+		node->rightNode = INVALID_NODE;
 		node->axis = 0;
-		return;
+		return start;
 	}
 
 	// Bounds for all current nodes. dsAlignedBox3d is the maximum storage size
@@ -137,40 +139,41 @@ static void buildKdTreeRec(dsKdTree* kdTree, uint32_t start, uint32_t count,
 
 	// Recurse down the middle.
 	uint32_t middle = count/2;
-	dsKdTreeNode* middleNode = getNode(kdTree->nodes, kdTree->nodeSize, start + middle);
-	middleNode->leftCount = middle;
-	middleNode->rightCount = middle == count - 1 ? 0 : count - middle - 1;
+	uint32_t middleNodeIndex = start + middle;
+	dsKdTreeNode* middleNode = getNode(kdTree->nodes, kdTree->nodeSize, middleNodeIndex);
+	uint32_t leftCount = middle;
+	uint32_t rightCount = middle == count - 1 ? 0 : count - middle - 1;
 	middleNode->axis = maxAxis;
 
-	if (middleNode->leftCount > 0)
+	if (leftCount > 0)
 	{
-		buildKdTreeRec(kdTree, start, middleNode->leftCount, makeInvalidFunc, addPointFunc,
-			maxAxisFunc, compareFunc);
-	}
-
-	if (middleNode->rightCount > 0)
-	{
-		buildKdTreeRec(kdTree, start + middle + 1, middleNode->rightCount, makeInvalidFunc,
+		middleNode->leftNode = buildKdTreeRec(kdTree, start, leftCount, makeInvalidFunc,
 			addPointFunc, maxAxisFunc, compareFunc);
 	}
+	else
+		middleNode->leftNode = INVALID_NODE;
+
+	if (rightCount > 0)
+	{
+		middleNode->rightNode = buildKdTreeRec(kdTree, start + middle + 1, rightCount,
+			makeInvalidFunc, addPointFunc, maxAxisFunc, compareFunc);
+	}
+	else
+		middleNode->rightNode = INVALID_NODE;
+
+	return middleNodeIndex;
 }
 
 static void traverseKdTreeRec(const dsKdTree* kdTree, uint32_t curNode,
 	dsKdTreeTraverseFunction traverseFunc, void* userData)
 {
 	const dsKdTreeNode* node = getNode(kdTree->nodes, kdTree->nodeSize, curNode);
-	DS_ASSERT(node->leftCount <= curNode);
-	DS_ASSERT(curNode + node->rightCount < kdTree->nodeCount);
 
 	unsigned int side = traverseFunc(userData, kdTree, node->object, node->point, node->axis);
-	if (side & dsKdTreeSide_Left && node->leftCount > 0)
-	{
-		// NOTE: Not the same as curNode - node->leftCount/2 due to integer division.
-		traverseKdTreeRec(kdTree, curNode - node->leftCount + node->leftCount/2, traverseFunc,
-			userData);
-	}
-	if (side & dsKdTreeSide_Right && node->rightCount > 0)
-		traverseKdTreeRec(kdTree, curNode + 1 + node->rightCount/2, traverseFunc, userData);
+	if ((side & dsKdTreeSide_Left) && node->leftNode != INVALID_NODE)
+		traverseKdTreeRec(kdTree, node->leftNode, traverseFunc, userData);
+	if ((side & dsKdTreeSide_Right) && node->rightNode != INVALID_NODE)
+		traverseKdTreeRec(kdTree, node->rightNode, traverseFunc, userData);
 }
 
 dsKdTree* dsKdTree_create(dsAllocator* allocator, uint8_t axisCount, dsGeometryElement element,
@@ -326,7 +329,7 @@ bool dsKdTree_build(dsKdTree* kdTree, const void* objects, uint32_t objectCount,
 	}
 
 	if (!dsResizeableArray_add(kdTree->allocator, (void**)&kdTree->nodes, &kdTree->nodeCount,
-		&kdTree->maxNodes, kdTree->nodeSize, objectCount))
+			&kdTree->maxNodes, kdTree->nodeSize, objectCount))
 	{
 		return false;
 	}
