@@ -106,6 +106,14 @@ DS_GEOMETRY_EXPORT bool dsKdTree_build(dsKdTree* kdTree, const void* objects, ui
 	size_t objectSize, dsKdTreeObjectPointFunction objectPointFunc, bool balance);
 
 /**
+ * @brief Finds the object nearest to a point.
+ * @param kdTree The Kd tree to search in.
+ * @param point The point to find the nearest neighbor to.
+ * @return The nearest neighbor, or NULL if the Kd tree is empty or the parameters are invalid.
+ */
+DS_GEOMETRY_EXPORT const void*  dsKdTree_nearestNeighbor(const dsKdTree* kdTree, const void* point);
+
+/**
  * @brief Traverses a Kd tree.
  * @remark errno will be set on failure.
  * @param kdTree The Kd tree to traverse.

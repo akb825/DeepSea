@@ -25,6 +25,8 @@
 #include <DeepSea/Core/Sort.h>
 #include <DeepSea/Math/Vector2.h>
 #include <DeepSea/Math/Vector3.h>
+
+#include <float.h>
 #include <string.h>
 
 #define INVALID_NODE (uint32_t)-1
@@ -48,6 +50,8 @@ struct dsKdTree
 	uint8_t axisCount;
 	uint8_t nodeSize;
 	uint8_t pointSize;
+
+	uint32_t rootNode;
 
 	dsKdTreeNode* nodes;
 	uint32_t nodeCount;
@@ -109,13 +113,7 @@ static int comparePointi(const void* left, const void* right, void* context)
 static uint32_t buildKdTreeBalancedRec(dsKdTree* kdTree, uint32_t start, uint32_t count,
 	uint8_t axis, dsSortCompareFunction compareFunc)
 {
-	if (count == 0)
-	{
-		dsKdTreeNode* node = getNode(kdTree->nodes, kdTree->nodeSize, start);
-		node->leftNode = INVALID_NODE;
-		node->rightNode = INVALID_NODE;
-		return start;
-	}
+	DS_ASSERT(count > 0);
 
 	// Sort based on the maximum dimension.
 	SortContext context = {axis, (uint8_t)(kdTree->nodeSize - kdTree->pointSize)};
@@ -171,6 +169,231 @@ static void insertKdTreeNodeRec(dsKdTree* kdTree, uint32_t current,	uint32_t new
 				compareFunc);
 		}
 	}
+}
+
+static const void* nearestNeighborRecFloat(const dsKdTree* kdTree, uint32_t curNode,
+	const float* point, float* curDistance, uint8_t axis)
+{
+	const dsKdTreeNode* node = getNode(kdTree->nodes, kdTree->nodeSize, curNode);
+	const float* nodePoint = (const float*)node->point;
+
+	float distance = 0;
+	for (uint8_t i = 0; i < kdTree->axisCount; ++i)
+	{
+		float diff = point[i] - nodePoint[i];
+		distance += dsPow2(diff);
+	}
+	distance = sqrtf(distance);
+
+	if (node->leftNode == INVALID_NODE && node->rightNode == INVALID_NODE)
+	{
+		if (distance < *curDistance)
+		{
+			*curDistance = distance;
+			return node->object;
+		}
+		else
+			return NULL;
+	}
+
+	// First follow the proper child to find the closest leaf.
+	uint8_t nextAxis = (uint8_t)((axis + 1) % kdTree->axisCount);
+	bool leftPath = point[axis] < nodePoint[axis];
+	const void* closest = NULL;
+	if (leftPath)
+	{
+		if (node->leftNode != INVALID_NODE)
+			closest = nearestNeighborRecFloat(kdTree, node->leftNode, point, curDistance, nextAxis);
+	}
+	else
+	{
+		if (node->rightNode != INVALID_NODE)
+		{
+			closest = nearestNeighborRecFloat(kdTree, node->rightNode, point, curDistance,
+				nextAxis);
+		}
+	}
+
+	// Check the current node and other path if it's closer than the leaf.
+	if (distance < *curDistance)
+	{
+		*curDistance = distance;
+		closest = node->object;
+	}
+
+	// Check the path opposite of the previous one.
+	if (leftPath)
+	{
+		if (node->rightNode != INVALID_NODE && nodePoint[axis] <= point[axis] + *curDistance)
+		{
+			const void* pathClosest = nearestNeighborRecFloat(kdTree, node->rightNode, point,
+				curDistance, nextAxis);
+			if (pathClosest)
+				closest = pathClosest;
+		}
+	}
+	else
+	{
+		if (node->leftNode != INVALID_NODE && nodePoint[axis] >= point[axis] - *curDistance)
+		{
+			const void* pathClosest = nearestNeighborRecFloat(kdTree, node->leftNode, point,
+				curDistance, nextAxis);
+			if (pathClosest)
+				closest = pathClosest;
+		}
+	}
+
+	return closest;
+}
+
+static const void* nearestNeighborRecDouble(const dsKdTree* kdTree, uint32_t curNode,
+	const double* point, double* curDistance, uint8_t axis)
+{
+	const dsKdTreeNode* node = getNode(kdTree->nodes, kdTree->nodeSize, curNode);
+	const double* nodePoint = node->point;
+
+	double distance = 0;
+	for (uint8_t i = 0; i < kdTree->axisCount; ++i)
+	{
+		double diff = point[i] - nodePoint[i];
+		distance += dsPow2(diff);
+	}
+	distance = sqrt(distance);
+
+	if (node->leftNode == INVALID_NODE && node->rightNode == INVALID_NODE)
+	{
+		if (distance < *curDistance)
+		{
+			*curDistance = distance;
+			return node->object;
+		}
+		else
+			return NULL;
+	}
+
+	// First follow the proper child to find the closest leaf.
+	uint8_t nextAxis = (uint8_t)((axis + 1) % kdTree->axisCount);
+	bool leftPath = point[axis] < nodePoint[axis];
+	const void* closest = NULL;
+	if (leftPath)
+	{
+		if (node->leftNode != INVALID_NODE)
+		{
+			closest = nearestNeighborRecDouble(kdTree, node->leftNode, point, curDistance,
+				nextAxis);
+		}
+	}
+	else
+	{
+		if (node->rightNode != INVALID_NODE)
+		{
+			closest = nearestNeighborRecDouble(kdTree, node->rightNode, point, curDistance,
+				nextAxis);
+		}
+	}
+
+	// Check the current node and other path if it's closer than the leaf.
+	if (distance < *curDistance)
+	{
+		*curDistance = distance;
+		closest = node->object;
+	}
+
+	// Check the path opposite of the previous one.
+	if (leftPath)
+	{
+		if (node->rightNode != INVALID_NODE && nodePoint[axis] <= point[axis] + *curDistance)
+		{
+			const void* pathClosest = nearestNeighborRecDouble(kdTree, node->rightNode, point,
+				curDistance, nextAxis);
+			if (pathClosest)
+				closest = pathClosest;
+		}
+	}
+	else
+	{
+		if (node->leftNode != INVALID_NODE && nodePoint[axis] >= point[axis] - *curDistance)
+		{
+			const void* pathClosest = nearestNeighborRecDouble(kdTree, node->leftNode, point,
+				curDistance, nextAxis);
+			if (pathClosest)
+				closest = pathClosest;
+		}
+	}
+
+	return closest;
+}
+
+static const void* nearestNeighborRecInt(const dsKdTree* kdTree, uint32_t curNode,
+	const int* point, double* curDistance, uint8_t axis)
+{
+	const dsKdTreeNode* node = getNode(kdTree->nodes, kdTree->nodeSize, curNode);
+	const int* nodePoint = (const int*)node->point;
+
+	double distance = 0;
+	for (uint8_t i = 0; i < kdTree->axisCount; ++i)
+	{
+		double diff = point[i] - nodePoint[i];
+		distance += dsPow2(diff);
+	}
+	distance = sqrt(distance);
+
+	if (node->leftNode == INVALID_NODE && node->rightNode == INVALID_NODE)
+	{
+		if (distance < *curDistance)
+		{
+			*curDistance = distance;
+			return node->object;
+		}
+		else
+			return NULL;
+	}
+
+	// First follow the proper child to find the closest leaf.
+	uint8_t nextAxis = (uint8_t)((axis + 1) % kdTree->axisCount);
+	bool leftPath = point[axis] < nodePoint[axis];
+	const void* closest = NULL;
+	if (leftPath)
+	{
+		if (node->leftNode != INVALID_NODE)
+			closest = nearestNeighborRecInt(kdTree, node->leftNode, point, curDistance, nextAxis);
+	}
+	else
+	{
+		if (node->rightNode != INVALID_NODE)
+			closest = nearestNeighborRecInt(kdTree, node->rightNode, point, curDistance, nextAxis);
+	}
+
+	// Check the current node and other path if it's closer than the leaf.
+	if (distance < *curDistance)
+	{
+		*curDistance = distance;
+		closest = node->object;
+	}
+
+	// Check the path opposite of the previous one.
+	if (leftPath)
+	{
+		if (node->rightNode != INVALID_NODE && nodePoint[axis] <= point[axis] + *curDistance)
+		{
+			const void* pathClosest = nearestNeighborRecInt(kdTree, node->rightNode, point,
+				curDistance, nextAxis);
+			if (pathClosest)
+				closest = pathClosest;
+		}
+	}
+	else
+	{
+		if (node->leftNode != INVALID_NODE && nodePoint[axis] >= point[axis] - *curDistance)
+		{
+			const void* pathClosest = nearestNeighborRecInt(kdTree, node->leftNode, point,
+				curDistance, nextAxis);
+			if (pathClosest)
+				closest = pathClosest;
+		}
+	}
+
+	return closest;
 }
 
 static bool traverseKdTreeRec(const dsKdTree* kdTree, uint32_t curNode,
@@ -284,7 +507,10 @@ bool dsKdTree_build(dsKdTree* kdTree, const void* objects, uint32_t objectCount,
 	}
 
 	if (objectCount == 0)
+	{
+		kdTree->rootNode = 0;
 		return true;
+	}
 
 	dsSortCompareFunction compareFunc;
 	switch (kdTree->element)
@@ -325,23 +551,48 @@ bool dsKdTree_build(dsKdTree* kdTree, const void* objects, uint32_t objectCount,
 	}
 
 	if (balance)
-		buildKdTreeBalancedRec(kdTree, 0, objectCount, 0, compareFunc);
+		kdTree->rootNode = buildKdTreeBalancedRec(kdTree, 0, objectCount, 0, compareFunc);
 	else
 	{
-		// Keep the root node consistent with the balanced case.
-		uint32_t root = kdTree->nodeCount/2;
-		for (uint32_t i = 0; i < root; ++i)
+		kdTree->rootNode = 0;
+		for (uint32_t i = 1; i < objectCount; ++i)
 		{
-			insertKdTreeNodeRec(kdTree, root, i, getNode(kdTree->nodes, kdTree->nodeSize, i), 0,
-				compareFunc);
-		}
-		for (uint32_t i = root + 1; i < objectCount; ++i)
-		{
-			insertKdTreeNodeRec(kdTree, root, i, getNode(kdTree->nodes, kdTree->nodeSize, i), 0,
+			insertKdTreeNodeRec(kdTree, 0, i, getNode(kdTree->nodes, kdTree->nodeSize, i), 0,
 				compareFunc);
 		}
 	}
 	return true;
+}
+
+const void* dsKdTree_nearestNeighbor(const dsKdTree* kdTree, const void* point)
+{
+	if (!kdTree || !point || kdTree->nodeCount == 0)
+		return NULL;
+
+	switch (kdTree->element)
+	{
+		case dsGeometryElement_Float:
+		{
+			float distance = FLT_MAX;
+			return nearestNeighborRecFloat(kdTree, kdTree->rootNode, (const float*)point,
+				&distance, 0);
+		}
+		case dsGeometryElement_Double:
+		{
+			double distance = DBL_MAX;
+			return nearestNeighborRecDouble(kdTree, kdTree->rootNode, (const double*)point,
+				&distance, 0);
+		}
+		case dsGeometryElement_Int:
+		{
+			double distance = DBL_MAX;
+			return nearestNeighborRecInt(kdTree, kdTree->rootNode, (const int*)point,
+				&distance, 0);
+		}
+	}
+
+	DS_ASSERT(false);
+	return NULL;
 }
 
 bool dsKdTree_traverse(const dsKdTree* kdTree, dsKdTreeTraverseFunction traverseFunc,
@@ -354,7 +605,7 @@ bool dsKdTree_traverse(const dsKdTree* kdTree, dsKdTreeTraverseFunction traverse
 	}
 
 	if (kdTree->nodeCount > 0)
-		traverseKdTreeRec(kdTree, kdTree->nodeCount/2, traverseFunc, userData, 0);
+		traverseKdTreeRec(kdTree, kdTree->rootNode, traverseFunc, userData, 0);
 	return true;
 }
 
