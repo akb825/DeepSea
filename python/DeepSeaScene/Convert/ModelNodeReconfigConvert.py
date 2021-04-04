@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from copy import copy
 import flatbuffers
 from .ModelNodeConvert import validateModelDistanceRange, FLT_MAX
 from ..ModelReconfig import *
@@ -26,24 +27,40 @@ def convertModelNodeReconfig(convertContext, data):
 	- models: array of models to reconfigure to apply. Each element of the array has the
 	  following members:
 	  - baseName: the name of the model inside the node to use.
-	  - shader: the name of the shader to use.
-	  - material: the name of the material to use.
 	  - distanceRange: array of two floats for the minimum and maximum distance to draw at.
 	    Defaults to [0, 3.402823466e38].
-	  - modelList: the name of the item list the model is drawn with.
+	  - modelLists: array of objects describing the lists to draw the model with the shader and
+	    material to draw with. Each element of the array has the following members:
+	      - shader: the name of the shader to draw with
+	      - material: the name of the material to draw with.
+	      - list: the name of the item list to draw the model with.
 	- extraItemLists: array of extra item list names to add the node to.
 	"""
 	try:
 		name = data['baseName']
 
+		modelInfos = data['models']
 		models = []
 		try:
-			for model in data['models']:
+			for model in modelInfos:
 				distanceRange = model.get('distanceRange', [0.0, FLT_MAX])
 				validateModelDistanceRange(distanceRange)
+				baseName = str(model['baseName'])
 
-				models.append((str(model['baseName']), str(model['shader']),
-					str(model['material']), distanceRange, str(model['modelList'])))
+				modelListInfos = model['modelLists']
+				try:
+					for modelListInfo in modelListInfos:
+						try:
+							models.append((baseName, str(modelListInfo['shader']),
+								str(modelListInfo['material']), distanceRange,
+								str(modelListInfo['list'])))
+						except KeyError as e:
+							raise Exception(
+								'ModelNodeReconfig model list doesn\'t contain element ' +
+									str(e) + '.')
+				except (TypeError, ValueError):
+					raise Exception(
+						'ModelNodeReconfig "modelLists" must be an array of objects.')
 
 			extraItemLists = data.get('extraItemLists')
 			if extraItemLists and not isinstance(extraItemLists, list):

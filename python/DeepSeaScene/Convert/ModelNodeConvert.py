@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import base64
+from copy import copy
 import json
 import os
 from subprocess import Popen, PIPE
@@ -283,7 +284,7 @@ def convertModelNodeGeometry(convertContext, modelGeometry, embeddedResources):
 					if modelType:
 						modelType = modelType[1:]
 					if not modelType:
-						raise Exception('Model geometry has no known model type.')
+						raise Exception('ModelNode geometry has no known model type.')
 
 				vertexFormat = geometryData['vertexFormat']
 				vfcVertexFormat = []
@@ -350,10 +351,10 @@ def convertModelNodeGeometry(convertContext, modelGeometry, embeddedResources):
 						try:
 							includedComponents.add(str(info['name']))
 						except KeyError as e:
-							raise Exception('Model geometry draw info doesn\'t contain element ' +
+							raise Exception('ModelNode geometry draw info doesn\'t contain element ' +
 								str(e) + '.')
 				except (TypeError, ValueError):
-					raise Exception('Model geometry draw info must be an array of objects.')
+					raise Exception('ModelNode geometry draw info must be an array of objects.')
 			except KeyError as e:
 				raise Exception(
 					'ModelNode "modelGeometry" doesn\'t contain element ' + str(e) + '.')
@@ -405,19 +406,37 @@ def convertModelNodeGeometry(convertContext, modelGeometry, embeddedResources):
 				try:
 					modelInfo = Object()
 					modelInfo.name = str(info['name'])
-					modelInfo.shader = info['shader']
-					modelInfo.material = info['material']
-					modelInfo.modelList = info['modelList']
+
+					modelLists = []
+					modelListInfos = info['modelLists']
+					try:
+						for modelListInfo in modelListInfos:
+							try:
+								modelList = Object()
+								modelList.shader = modelListInfo['shader']
+								modelList.material = modelListInfo['material']
+								modelList.modelList = modelListInfo['list']
+								modelLists.append(modelList)
+							except KeyError as e:
+								raise Exception(
+									'ModelNode geometry draw info model list doesn\'t contain '
+										'element ' + str(e) + '.')
+					except (TypeError, ValueError):
+						raise Exception(
+							'ModelNode geometry draw info "modelLists" must be an array of objects.')
 
 					modelInfo.distanceRange = info.get('distanceRange', [0.0, FLT_MAX])
 					validateModelDistanceRange(modelInfo.distanceRange)
 				except KeyError as e:
-					raise Exception('Model geometry draw info doesn\'t contain element ' +
+					raise Exception('ModelNode geometry draw info doesn\'t contain element ' +
 						str(e) + '.')
+
+				if not modelLists:
+					raise Exception('ModelNode node geometry draw info "modelLists" is empty.')
 
 				baseGeometry = convertedGeometry.get(modelInfo.name)
 				if not baseGeometry:
-					raise Exception('Model node geometry "' + modelInfo.name +
+					raise Exception('ModelNode node geometry "' + modelInfo.name +
 						'" isn\'t in the model "' + path + '".')
 
 				modelInfo.geometry = baseGeometry.geometryName
@@ -442,7 +461,13 @@ def convertModelNodeGeometry(convertContext, modelGeometry, embeddedResources):
 					drawRange.firstVertex = 0
 					drawRange.firstInstance = 1
 					modelInfo.drawRanges = [drawRange]
-				models.append(modelInfo)
+
+				for modelList in modelLists:
+					curModelInfo = copy(modelInfo)
+					curModelInfo.shader = modelList.shader
+					curModelInfo.material = modelList.material
+					curModelInfo.modelList = modelList.modelList
+					models.append(curModelInfo)
 	except (TypeError, ValueError):
 		raise Exception('ModelNode "modelGeometry" must be an array of objects.')
 
@@ -487,16 +512,17 @@ def convertModelNodeModels(modelInfoList):
 				drawRange.firstVertex = readInt(drawRangeInfo.get('firstVertex', 0),
 					'firstVertex', 0)
 			else:
-				raise Exception('Model draw range must have either "indexCount" or "vertexCount".')
+				raise Exception(
+					'ModelNode draw range must have either "indexCount" or "vertexCount".')
 
 			drawRange.instanceCount = readInt(drawRangeInfo.get('instanceCount', 1),
 				'instanceCount', 1)
 			drawRange.firstInstance = readInt(drawRangeInfo.get('firstInstance', 0),
 				'firstInstance', 0)
 		except KeyError as e:
-			raise Exception('Model draw range doesn\'t contain element ' + str(e) + '.')
+			raise Exception('ModelNode draw range doesn\'t contain element ' + str(e) + '.')
 		except (TypeError, ValueError):
-			raise Exception('Model draw range must be an object.')
+			raise Exception('ModelNode draw range must be an object.')
 
 		return drawRange
 
@@ -518,7 +544,7 @@ def convertModelNodeModels(modelInfoList):
 					for drawRangeInfo in drawRangeInfos:
 						model.drawRanges.append(convertDrawRange(drawRangeInfo))
 				except (TypeError, ValueError):
-					raise Exception('Model "drawRanges" must be an array of objects.')
+					raise Exception('ModelNode "drawRanges" must be an array of objects.')
 
 				primitiveTypeStr = info.get('primitiveType', 'TriangleList')
 				try:
@@ -527,7 +553,32 @@ def convertModelNodeModels(modelInfoList):
 					raise Exception(
 						'Invalid geometry primitive type "' + str(primitiveTypeStr) + '".')
 
-				model.modelList = info['modelList']
+				modelLists = []
+				modelListInfos = info['modelLists']
+				try:
+					for modelListInfo in modelListInfos:
+						try:
+							modelList = Object()
+							modelList.shader = modelListInfo['shader']
+							modelList.material = modelListInfo['material']
+							modelList.modelList = modelListInfo['list']
+							modelLists.append(modelList)
+						except KeyError as e:
+							raise Exception(
+								'ModelNode model list doesn\'t contain element ' + str(e) + '.')
+				except (TypeError, ValueError):
+					raise Exception(
+						'ModelNode "modelLists" must be an array of objects.')
+
+				if not modelLists:
+					raise Exception('ModelNode "modelLists" is empty.')
+
+				for modelList in modelLists:
+					curModel = copy(model)
+					curModel.shader = modelList.shader
+					curModel.material = modelList.material
+					curModel.modelList = modelList.modelList
+					models.append(curModel)
 			except KeyError as e:
 				raise Exception('ModelNode "models" doesn\'t contain element ' + str(e) + '.')
 	except (TypeError, ValueError):
@@ -568,21 +619,19 @@ def convertModelNode(convertContext, data):
 	    array has the following members:
 	    - name: the name of the model component. Note that only model components referenced in the
 		  drawInfo array will be included in the final model.
-	    - shader: te name of the shader to draw with. This may be set to null if the model is only
-	      used for cloning.
-	    - material: the name of the material to draw with. This may be set to null if the model is
-	      only used for cloning.
 	    - distanceRange: array of two floats for the minimum and maximum distance to draw at.
 	      Defaults to [0, 3.402823466e38].
-	    - list: the name of the item list to draw the model with. This may be set to null if the
-	      model is only used for cloning.
+	    - modelLists: array of objects describing the lists to draw the model with the shader and
+	      material to draw with. Each element of the array has the following members:
+	        - shader: the name of the shader to draw with. This may be set to null if the model is
+	          only used for cloning.
+	        - material: the name of the material to draw with. This may be set to null if the model is
+	          only used for cloning.
+	        - list: the name of the item list to draw the model with. This may be set to null if the
+	          model is only used for cloning.
 	- models: array of models to draw with manually provided geometry. (i.e. not converted from
 	  the modelGeometry array) Each element of the array has the following members:
 	  - name: optional name for the model for use with material remapping.
-	  - shader: the name of the shader to draw with. This may be set to null if the model is only
-	    used for cloning.
-	  - material: the name of the material to draw with. This may be set to null if the model is
-	    only used for cloning.
 	  - geometry: the name of the geometry to draw.
 	  - distanceRange: array of two floats for the minimum and maximum distance to draw at. Defaults
 	    to [0, 3.402823466e38].
@@ -601,8 +650,14 @@ def convertModelNode(convertContext, data):
 	    - firstIstance: the first instance to draw. Defaults to 0.
 	  - primitiveType: the primitive type to draw with. See the dsPrimitiveType enum for values,
 	    removing the type prefix. Defaults to "TriangleList".
-	  - modelList: The name of the item list to draw the model with. This may be set to null if the
-	    model is only used for cloning.
+	  - modelLists: array of objects describing the lists to draw the model with the shader and
+	    material to draw with. Each element of the array has the following members:
+	      - shader: the name of the shader to draw with. This may be set to null if the model is
+	        only used for cloning.
+	      - material: the name of the material to draw with. This may be set to null if the model is
+	        only used for cloning.
+	      - list: the name of the item list to draw the model with. This may be set to null if the
+	        model is only used for cloning.
 	- extraItemLists: array of extra item list names to add the node to.
 	- bounds: 2x3 array of float values for the minimum and maximum values for the positions. This
 	  will be automatically calculated from geometry in modelGeometry if unset. Otherwise if unset

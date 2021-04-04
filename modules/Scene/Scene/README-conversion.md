@@ -151,14 +151,13 @@ Model nodes have the type string "ModelNode" and contains the following data mem
 			* `SNormToUNorm`: converts `SNorm` values to `UNorm` values.
 		* `drawInfos`: array of definitions for drawing components of the geometry. Each element of the array has the following members:
 			* `name`: the name of the model component. Note that only model components referenced in the drawInfo array will be included in the final model.
-			* `shader`: te name of the shader to draw with. This may be set to `null` if the model is only used for cloning.
-			* `material`: the name of the material to draw with. This may be set to `null` if the model is only used for cloning.
 			* `distanceRange`: array of two floats for the minimum and maximum distance to draw at. Defaults to `[0, 3.402823466e38]`.
-			* `modelList`: the name of the item list to draw the model with. This may be set to `null` if the model is only used for cloning.
+			* `modelLists`: array of objects describing the lists to draw the model with the shader and material to draw with. Each element of the array has the following members:
+				* `shader`: te name of the shader to draw with. This may be set to `null` if the model is only used for cloning.
+				* `material`: the name of the material to draw with. This may be set to `null` if the model is only used for cloning.
+				* `list`: the name of the item list to draw the model with. This may be set to `null` if the model is only used for cloning.
 * `models`: array of models to draw with manually provided geometry. (i.e. not converted from the `modelGeometry` array) Each element of the array has the following members:
 	* `name`: optional name for the model for use with material remapping.
-	* `shader`: the name of the shader to draw with. This may be set to `null` if the model is only used for cloning.
-	* `material`: the name of the material to draw with. This may be set to `null` if the model is only used for cloning.
 	* `geometry`: the name of the geometry to draw.
 	* `distanceRange`: array of two floats for the minimum and maximum distance to draw at. Defaults to `[0, 3.402823466e38]`.
 	* `drawRanges`: the array of ranges of the geometry to draw. This is an array of object with the following members, depending on if the geometry is indexed or not:
@@ -174,7 +173,10 @@ Model nodes have the type string "ModelNode" and contains the following data mem
 			* `firstVertex`: the first vertex to draw. Defaults to 0.
 			* `firstIstance`: the first instance to draw. Defaults to 0.
 		* `primitiveType`: the primitive type to draw with. See the dsPrimitiveType enum for values, removing the type prefix. Defaults to "TriangleList".
-		* `modelList`: The name of the item list to draw the model with. This may be set to `null` if the model is only used for cloning.
+		* `modelLists`: array of objects describing the lists to draw the model with the shader and material to draw with. Each element of the array has the following members:
+			* `shader`: the name of the shader to draw with. This may be set to `null` if the model is only used for cloning.
+			* `material`: the name of the material to draw with. This may be set to `null` if the model is only used for cloning.
+			* `list`: The name of the item list to draw the model with. This may be set to `null` if the model is only used for cloning.
 * `extraItemLists`: array of extra item list names to add the node to.
 * `bounds`: 2x3 array of float values for the minimum and maximum values for the positions. This will be automatically calculated from geometry in `modelGeometry` if unset. Otherwise if unset the model will have no explicit bounds for culling.
 
@@ -195,10 +197,11 @@ Model node clones with reconfiguration have the type name "ModelNodeReconfig" an
 * `baseName`: the name of the model node to clone.
 * `models`: array of models to reconfigure to apply. Each element of the array has the following members:
 	* `name`: the name of the model inside the node to use.
-	* `shader`: the name of the shader to use.
-	* `material`: the name of the material to use.
 	* `distanceRange`: array of two floats for the minimum and maximum distance to draw at. Defaults to `[0, 3.402823466e38]`.
-	* `modelList`: the name of the item list the model is drawn with.
+	* `modelLists`: array of objects describing the lists to draw the model with the shader and material to draw with. Each element of the array has the following members:
+		* `shader`: the name of the shader to draw with.
+		* `material`: the name of the material to draw with.
+		* `list`: The name of the item list to draw the model with.
 * `extraItemLists`: array of extra item list names to add the node to.
 
 ## Transform Node

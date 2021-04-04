@@ -8,9 +8,14 @@
 		[
 			{
 				"baseName": "Ground",
-				"shader": "defaultModelShader",
-				"material": "grassMaterial",
-				"modelList": "groundList"
+				"modelLists":
+				[
+					{
+						"shader": "defaultModelShader",
+						"material": "grassMaterial",
+						"list": "groundList"
+					}
+				]
 			}
 		],
 		"extraItemLists": ["cullList"]
@@ -24,9 +29,14 @@
 		[
 			{
 				"baseName": "Archway",
-				"shader": "defaultModelShader",
-				"material": "brickMaterial",
-				"modelList": "opaqueList"
+				"modelLists":
+				[
+					{
+						"shader": "defaultModelShader",
+						"material": "brickMaterial",
+						"list": "opaqueList"
+					}
+				]
 			}
 		],
 		"extraItemLists": ["cullList"]
@@ -40,9 +50,14 @@
 		[
 			{
 				"baseName": "Sphere",
-				"shader": "defaultModelShader",
-				"material": "concreteMaterial",
-				"modelList": "opaqueList"
+				"modelLists":
+				[
+					{
+						"shader": "defaultModelShader",
+						"material": "concreteMaterial",
+						"list": "opaqueList"
+					}
+				]
 			}
 		],
 		"extraItemLists": ["cullList"]
@@ -56,9 +71,14 @@
 		[
 			{
 				"baseName": "Sphere",
-				"shader": "glassShader",
-				"material": "glassMaterial",
-				"modelList": "transparentList"
+				"modelLists":
+				[
+					{
+						"shader": "glassShader",
+						"material": "glassMaterial",
+						"list": "transparentList"
+					}
+				]
 			}
 		],
 		"extraItemLists": ["cullList"]
@@ -72,9 +92,14 @@
 		[
 			{
 				"baseName": "Pedastle",
-				"shader": "defaultModelShader",
-				"material": "marbleMaterial",
-				"modelList": "opaqueList"
+				"modelLists":
+				[
+					{
+						"shader": "defaultModelShader",
+						"material": "marbleMaterial",
+						"list": "opaqueList"
+					}
+				]
 			}
 		],
 		"extraItemLists": ["cullList"]

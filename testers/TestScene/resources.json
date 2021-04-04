@@ -198,9 +198,14 @@
 				[
 					{
 						"name": "Cube",
-						"shader": "cubeShader",
-						"material": "innerCubeMat",
-						"modelList": "modelList"
+						"modelLists":
+						[
+							{
+								"shader": "cubeShader",
+								"material": "innerCubeMat",
+								"list": "modelList"
+							}
+						]
 					}
 				]
 			}
@@ -286,9 +291,14 @@
 						[
 							{
 								"name": "Plane",
-								"shader": "groundShader",
-								"material": "groundMat",
-								"modelList": "modelList"
+								"modelLists":
+								[
+									{
+										"shader": "groundShader",
+										"material": "groundMat",
+										"list": "modelList"
+									}
+								]
 							}
 						]
 					}
