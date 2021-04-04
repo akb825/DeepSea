@@ -515,6 +515,17 @@ struct dsView
 	dsFrustum3f viewFrustum;
 
 	/**
+	 * @brief The bias to apply when choosing which LOD to use.
+	 *
+	 * This will multiply the distance of the object when determining the distance to draw it at.
+	 * A value of 1 is default, while a value < 1 will consider the objects to be closer (using
+	 * higher LOD), while a value > 1 will consider the objects to be farther (using a lower LOD).
+	 *
+	 * @remark This member may be modified directly.
+	 */
+	float lodBias;
+
+	/**
 	 * @brief Global material values to do while drawing.
 	 *
 	 * The contents of this may be modified as needed.

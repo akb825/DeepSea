@@ -352,6 +352,7 @@ dsView* dsView_create(const dsScene* scene, dsAllocator* allocator, dsAllocator*
 	dsFrustum3_fromMatrix(view->viewFrustum, view->viewProjectionMatrix, renderer->clipHalfDepth,
 		renderer->clipInvertY);
 	dsFrustum3f_normalize(&view->viewFrustum);
+	view->lodBias = 1.0f;
 
 	uint32_t variableCount = scene->globalValueCount + offscreenSurfaceCount;
 	if (variableCount > 0)

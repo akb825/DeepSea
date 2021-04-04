@@ -102,8 +102,9 @@ static void addInstances(dsSceneItemList* itemList, const dsView* view, uint32_t
 			continue;
 		}
 
-		float distance2 = dsVector3_dist2(entry->transform->columns[3],
-			view->cameraMatrix.columns[3]);
+		// Use the dist2 macro to take the first 3 vectors of the dsVector4f columns.
+		float distance = sqrtf(dsVector3_dist2(entry->transform->columns[3],
+			view->cameraMatrix.columns[3]))*view->lodBias;
 
 		dsVector3f direction;
 		dsVector3_sub(direction, entry->transform->columns[3], view->cameraMatrix.columns[3]);
@@ -121,8 +122,7 @@ static void addInstances(dsSceneItemList* itemList, const dsView* view, uint32_t
 				continue;
 
 			if (model->distanceRange.x <= model->distanceRange.y &&
-				(distance2 < dsPow2(model->distanceRange.x) ||
-					distance2 >= dsPow2(model->distanceRange.y)))
+				(distance < model->distanceRange.x || distance >= model->distanceRange.y))
 			{
 				continue;
 			}
