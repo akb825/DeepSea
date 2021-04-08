@@ -380,8 +380,10 @@ static bool simplifyDouble(dsComplexPolygon* polygon, const dsComplexPolygonLoop
 	}
 
 	// Normalize to range [-1, 1] to put in the integer limit. The hiRange constant is too large to
-	// represent with a double, so use a 52-bit limit instead. (max bits of precision)
-	const double limit = (double)(0xFFFFFFFFFFFFFULL);
+	// represent with a double. Must be a maximum of 52 bits to represent the full +/- range in a
+	// double, but clipper will take the difference between points to store in a double, so use a
+	// 51-bit limit instead.
+	const double limit = (double)(0x7FFFFFFFFFFFFULL);
 	dsVector2d offset, scale, invScale;
 	dsVector2d one = {{1.0, 1.0}};
 	dsVector2d half = {{0.5, 0.5}};
