@@ -152,7 +152,7 @@ Model nodes have the type string "ModelNode" and contains the following data mem
 		* `drawInfos`: array of definitions for drawing components of the geometry. Each element of the array has the following members:
 			* `name`: the name of the model component. Note that only model components referenced in the drawInfo array will be included in the final model.
 			* `distanceRange`: array of two floats for the minimum and maximum distance to draw at. Defaults to `[0, 3.402823466e38]`.
-			* `modelLists`: array of objects describing the lists to draw the model with the shader and material to draw with. Each element of the array has the following members:
+			* `modelLists`: array of objects describing the lists to draw the model with the shader and material to draw with. This may be an explicitly empty list when used only for cloning. Each element of the array has the following members:
 				* `shader`: te name of the shader to draw with. This may be set to `null` if the model is only used for cloning.
 				* `material`: the name of the material to draw with. This may be set to `null` if the model is only used for cloning.
 				* `list`: the name of the item list to draw the model with. This may be set to `null` if the model is only used for cloning.
@@ -173,7 +173,7 @@ Model nodes have the type string "ModelNode" and contains the following data mem
 			* `firstVertex`: the first vertex to draw. Defaults to 0.
 			* `firstIstance`: the first instance to draw. Defaults to 0.
 		* `primitiveType`: the primitive type to draw with. See the dsPrimitiveType enum for values, removing the type prefix. Defaults to "TriangleList".
-		* `modelLists`: array of objects describing the lists to draw the model with the shader and material to draw with. Each element of the array has the following members:
+		* `modelLists`: array of objects describing the lists to draw the model with the shader and material to draw with. This may be an explicitly empty list when used only for cloning. Each element of the array has the following members:
 			* `shader`: the name of the shader to draw with. This may be set to `null` if the model is only used for cloning.
 			* `material`: the name of the material to draw with. This may be set to `null` if the model is only used for cloning.
 			* `list`: The name of the item list to draw the model with. This may be set to `null` if the model is only used for cloning.

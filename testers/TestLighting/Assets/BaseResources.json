@@ -48,14 +48,7 @@
 				[
 					{
 						"name": "Ground",
-						"modelLists":
-						[
-							{
-								"shader": null,
-								"material": null,
-								"list": null
-							}
-						]
+						"modelLists": []
 					}
 				]
 			}
@@ -112,14 +105,7 @@
 				[
 					{
 						"name": "Archway",
-						"modelLists":
-						[
-							{
-								"shader": null,
-								"material": null,
-								"list": null
-							}
-						]
+						"modelLists": []
 					}
 				]
 			}
@@ -176,14 +162,7 @@
 				[
 					{
 						"name": "Pedastle",
-						"modelLists":
-						[
-							{
-								"shader": null,
-								"material": null,
-								"list": null
-							}
-						]
+						"modelLists": []
 					}
 				]
 			}
@@ -240,14 +219,7 @@
 				[
 					{
 						"name": "Sphere",
-						"modelLists":
-						[
-							{
-								"shader": null,
-								"material": null,
-								"list": null
-							}
-						]
+						"modelLists": []
 					}
 				]
 			}

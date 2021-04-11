@@ -432,7 +432,11 @@ def convertModelNodeGeometry(convertContext, modelGeometry, embeddedResources):
 						str(e) + '.')
 
 				if not modelLists:
-					raise Exception('ModelNode node geometry draw info "modelLists" is empty.')
+					emptyModelList = Object()
+					emptyModelList.shader = None
+					emptyModelList.material = None
+					emptyModelList.modelList = None
+					modelLists.append(emptyModelList)
 
 				baseGeometry = convertedGeometry.get(modelInfo.name)
 				if not baseGeometry:
@@ -571,7 +575,11 @@ def convertModelNodeModels(modelInfoList):
 						'ModelNode "modelLists" must be an array of objects.')
 
 				if not modelLists:
-					raise Exception('ModelNode "modelLists" is empty.')
+					emptyModelList = Object()
+					emptyModelList.shader = None
+					emptyModelList.material = None
+					emptyModelList.modelList = None
+					modelLists.append(emptyModelList)
 
 				for modelList in modelLists:
 					curModel = copy(model)
@@ -622,7 +630,8 @@ def convertModelNode(convertContext, data):
 	    - distanceRange: array of two floats for the minimum and maximum distance to draw at.
 	      Defaults to [0, 3.402823466e38].
 	    - modelLists: array of objects describing the lists to draw the model with the shader and
-	      material to draw with. Each element of the array has the following members:
+	      material to draw with. This may be an explicitly empty list when used only for cloning.
+		  Each element of the array has the following members:
 	        - shader: the name of the shader to draw with. This may be set to null if the model is
 	          only used for cloning.
 	        - material: the name of the material to draw with. This may be set to null if the model is
@@ -651,7 +660,8 @@ def convertModelNode(convertContext, data):
 	  - primitiveType: the primitive type to draw with. See the dsPrimitiveType enum for values,
 	    removing the type prefix. Defaults to "TriangleList".
 	  - modelLists: array of objects describing the lists to draw the model with the shader and
-	    material to draw with. Each element of the array has the following members:
+	    material to draw with. This may be an explicitly empty list when used only for cloning.
+		Each element of the array has the following members:
 	      - shader: the name of the shader to draw with. This may be set to null if the model is
 	        only used for cloning.
 	      - material: the name of the material to draw with. This may be set to null if the model is
