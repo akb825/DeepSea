@@ -97,8 +97,8 @@ bool dsCommandBuffer_beginSecondary(dsCommandBuffer* commandBuffer,
 	}
 
 	if (viewport && (viewport->min.x < 0 || viewport->min.y < 0 || viewport->min.z < 0 ||
-		viewport->max.z > 1 || (framebuffer && (viewport->max.x > framebuffer->width ||
-			viewport->max.y > framebuffer->height))))
+		viewport->max.z > 1 || (framebuffer && (viewport->max.x > (float)framebuffer->width ||
+			viewport->max.y > (float)framebuffer->height))))
 	{
 		errno = ERANGE;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Viewport is out of range.");

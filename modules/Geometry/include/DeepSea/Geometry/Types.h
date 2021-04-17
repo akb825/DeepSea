@@ -375,6 +375,9 @@ typedef struct dsFrustum3f
 {
 	/**
 	 * @brief The planes for the frustum.
+	 *
+	 * Any plane with a normal of zero are considered infinite. This is typically done only for the
+	 * far plane, though may be used for other planes in special cases like shadow cull volumes.
 	 */
 	dsPlane3f planes[dsFrustumPlanes_Count];
 } dsFrustum3f;
@@ -387,6 +390,9 @@ typedef struct dsFrustum3d
 {
 	/**
 	 * @brief The planes for the frustum.
+	 *
+	 * Any plane with a normal of zero are considered infinite. This is typically done only for the
+	 * far plane, though may be used for other planes in special cases like shadow cull volumes.
 	 */
 	dsPlane3d planes[dsFrustumPlanes_Count];
 } dsFrustum3d;

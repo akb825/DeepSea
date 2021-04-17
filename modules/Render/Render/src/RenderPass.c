@@ -147,7 +147,7 @@ static bool startRenderPassScope(const dsRenderPass* renderPass, dsCommandBuffer
 	}
 
 	if (viewport && (viewport->min.x < 0 || viewport->min.y < 0 || viewport->min.z < 0 ||
-		viewport->max.x > framebuffer->width || viewport->max.y > framebuffer->height ||
+		viewport->max.x > (float)framebuffer->width || viewport->max.y > (float)framebuffer->height ||
 		viewport->max.z > 1))
 	{
 		errno = ERANGE;

@@ -296,7 +296,7 @@ bool dsTextRenderBuffer_drawRange(dsTextRenderBuffer* renderBuffer,
 
 	if (!DS_IS_BUFFER_RANGE_VALID(firstGlyph, glyphCount, renderBuffer->queuedGlyphs))
 	{
-		errno = ERANGE;
+		errno = ESIZE;
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 

@@ -29,15 +29,29 @@ Structs that don't need to be dynamically allocated have a `ds<Struct>_initializ
 
 # Error management
 
-DeepSea will set errno (either directly or indirectly) when a function fails. Typical values to look out for include:
+DeepSea will set `errno` (either directly or indirectly) when a function fails. Typical values to look out for, some of which are custom, include:
 
-* EINVAL: invalid arguments.
-* ENOMEM: failed to allocate memory.
-* EAGAIN: run out of thread or processess resources.
-* ENOENT: file not found.
-* EACCESS: permission denied reading a file.
-* EIO: IO error reading the a stream.
-* EILSEQ: invalid file format.
-* ERANGE: not enough space in the output.
+* `EINVAL`: invalid arguments.
+* `ENOMEM`: failed to allocate memory.
+* `EAGAIN`: run out of thread or processess resources.
+* `ENOENT`: file not found.
+* `EACCESS`: permission denied reading a file.
+* `EIO`: IO error reading the a stream.
+* `ERANGE`: math value is out of the expected range.
 
-In order to get a string for the error enum, use the dsErrorString() function found in DeepSea/Core/Error.h.
+Custom `errno` values are:
+
+* `EINDEX`: index out of range.
+* `ESIZE`: invalid data size.
+* `EFORMAT`: invalid file format.
+* `ENOTFOUND`: element not found.
+
+In order to get a string for the error enum, use the `dsErrorString()` function found in `DeepSea/Core/Error.h`.
+
+## Why `ERRNO`?
+
+`errno` "feels" dirty due to relying on a (thread-local) global value that may be inadvertently changed before you have a chance to inspect it. However, the alternative (explicit result codes) is very invasive and makes the interface awkward to use. (e.g. `Object* create()` vs. `ResultCode create(Object** outPtr)`)
+
+Nearly all code only cares about whether or not an operation succeeds, and the reason (communicated by `errno`) is only for informational purposes. While it's not *desirable* to have the possibility of reporting the incorrect reason if `errno` is changed before it's reported, it isn't critical to the execution of the program. It was decided that this is an acceptable cost compared to the added API complexity and extra work required to keep track of result codes in nested function calls.
+
+Specialized result enums are used for the rare functions where the exact reason must be communicated to ensure proper program execution.
