@@ -1256,6 +1256,60 @@ typedef struct dsGfxMemoryBarrier
 	dsGfxAccess afterAccess;
 } dsGfxMemoryBarrier;
 
+/**
+ * @brief Struct holding parameters used for computing a shadow projection matrix.
+ * @see ShadowProjection.h
+ */
+typedef struct dsShadowProjection
+{
+	/**
+	 * @brief Bounding box of the points in the shadow volume in shadow space.
+	 */
+	dsAlignedBox3f pointBounds;
+
+	/**
+	 * @brief Matrix defining the space shadows are computed in light projected space.
+	 */
+	dsMatrix44f shadowSpace;
+
+	/**
+	 * @brief Matrix to transform from world space to shadow space.
+	 */
+	dsMatrix44f worldToShadowSpace;
+
+	/**
+	 * @brief The light projection matrix for spot or point lights.
+	 */
+	dsMatrix44f lightProjection;
+
+	/**
+	 * @brief The sin of the angle between the view direction and light direction.
+	 */
+	float sinViewLight;
+
+	/**
+	 * @brief Whether or not lightProjection is set.
+	 */
+	bool hasLightProjection;
+
+	/**
+	 * @brief Whether or not to force uniform shadows.
+	 *
+	 * This is typically only used when shadowing a scene with an orthographic projection.
+	 */
+	bool uniform;
+
+	/**
+	 * @brief True if the depth range is [0, 1] instead of [-1, 1] in clip space.
+	 */
+	bool clipHalfDepth;
+
+	/**
+	 * @brief True if the Y coordinate of clip space is inverted.
+	 */
+	bool clipInvertY;
+} dsShadowProjection;
+
 /// @cond Doxygen_Suppress
 typedef struct dsGPUProfileContext dsGPUProfileContext;
 /// @endcond
