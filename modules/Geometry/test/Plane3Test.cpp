@@ -32,6 +32,7 @@ struct Plane3TypeSelector<float>
 	typedef dsVector3f Vector3Type;
 	typedef dsVector4f Vector4Type;
 	typedef dsPlane3f Plane3Type;
+	typedef dsRay3f Ray3Type;
 	typedef dsAlignedBox3f AlignedBox3Type;
 	typedef dsOrientedBox3f OrientedBox3Type;
 	typedef dsMatrix44f Matrix44Type;
@@ -44,6 +45,7 @@ struct Plane3TypeSelector<double>
 	typedef dsVector3d Vector3Type;
 	typedef dsVector4d Vector4Type;
 	typedef dsPlane3d Plane3Type;
+	typedef dsRay3d Ray3Type;
 	typedef dsAlignedBox3d AlignedBox3Type;
 	typedef dsOrientedBox3d OrientedBox3Type;
 	typedef dsMatrix44d Matrix44Type;
@@ -81,6 +83,30 @@ inline void dsPlane3_transform(dsPlane3d* result, const dsMatrix44d* transform,
 	const dsPlane3d* plane)
 {
 	dsPlane3d_transform(result, transform, plane);
+}
+
+inline bool dsPlane3_intersectingLine(dsRay3f* result, const dsPlane3f* firstPlane,
+	const dsPlane3f* secondPlane)
+{
+	return dsPlane3f_intersectingLine(result, firstPlane, secondPlane);
+}
+
+inline bool dsPlane3_intersectingLine(dsRay3d* result, const dsPlane3d* firstPlane,
+	const dsPlane3d* secondPlane)
+{
+	return dsPlane3d_intersectingLine(result, firstPlane, secondPlane);
+}
+
+inline bool dsPlane3_intersectingPoint(dsVector3f* result, const dsPlane3f* firstPlane,
+	const dsPlane3f* secondPlane, const dsPlane3f* thirdPlane)
+{
+	return dsPlane3f_intersectingPoint(result, firstPlane, secondPlane, thirdPlane);
+}
+
+inline bool dsPlane3_intersectingPoint(dsVector3d* result, const dsPlane3d* firstPlane,
+	const dsPlane3d* secondPlane, const dsPlane3d* thirdPlane)
+{
+	return dsPlane3d_intersectingPoint(result, firstPlane, secondPlane, thirdPlane);
 }
 
 inline void dsPlane3_transformInverseTranspose(dsPlane3f* result, const dsMatrix44f* transform,
@@ -236,6 +262,46 @@ TYPED_TEST(Plane3Test, Transform)
 	EXPECT_NEAR(newN.y, plane.n.y, epsilon);
 	EXPECT_NEAR(newN.z, plane.n.z, epsilon);
 	EXPECT_NEAR(dsVector3_dot(newN, transform.columns[3]) + 2, plane.d, epsilon);
+}
+
+TYPED_TEST(Plane3Test, IntersectingLine)
+{
+	typedef typename Plane3TypeSelector<TypeParam>::Plane3Type Plane3Type;
+	typedef typename Plane3TypeSelector<TypeParam>::Ray3Type Ray3Type;
+	TypeParam epsilon = Plane3TypeSelector<TypeParam>::epsilon;
+
+	Plane3Type firstPlane = {{{1, 0, 0}}, 2};
+	Plane3Type secondPlane = {{{0, 1, 0}}, 3};
+
+	Ray3Type ray;
+	EXPECT_FALSE(dsPlane3_intersectingLine(&ray, &firstPlane, &firstPlane));
+	EXPECT_TRUE(dsPlane3_intersectingLine(&ray, &firstPlane, &secondPlane));
+
+	EXPECT_NEAR(0, dsPlane3_distanceToPoint(firstPlane, ray.origin), epsilon);
+	EXPECT_NEAR(0, dsPlane3_distanceToPoint(secondPlane, ray.origin), epsilon);
+	EXPECT_NEAR(0, ray.direction.x, epsilon);
+	EXPECT_NEAR(0, ray.direction.y, epsilon);
+	EXPECT_NEAR(1, ray.direction.z, epsilon);
+}
+
+TYPED_TEST(Plane3Test, IntersectingPoint)
+{
+	typedef typename Plane3TypeSelector<TypeParam>::Plane3Type Plane3Type;
+	typedef typename Plane3TypeSelector<TypeParam>::Vector3Type Vector3Type;
+	TypeParam epsilon = Plane3TypeSelector<TypeParam>::epsilon;
+
+	Plane3Type firstPlane = {{{1, 0, 0}}, 2};
+	Plane3Type secondPlane = {{{0, 1, 0}}, 3};
+	Plane3Type thirdPlane = {{{0, 0, 1}}, 4};
+
+	Vector3Type point;
+	EXPECT_FALSE(dsPlane3_intersectingPoint(&point, &firstPlane, &firstPlane, &thirdPlane));
+	EXPECT_FALSE(dsPlane3_intersectingPoint(&point, &firstPlane, &secondPlane, &firstPlane));
+	EXPECT_TRUE(dsPlane3_intersectingPoint(&point, &firstPlane, &secondPlane, &thirdPlane));
+
+	EXPECT_NEAR(2, point.x, epsilon);
+	EXPECT_NEAR(3, point.y, epsilon);
+	EXPECT_NEAR(4, point.z, epsilon);
 }
 
 TYPED_TEST(Plane3Test, TransformInverseTranspose)

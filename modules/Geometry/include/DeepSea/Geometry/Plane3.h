@@ -108,6 +108,35 @@ DS_GEOMETRY_EXPORT void dsPlane3d_transformInverseTranspose(dsPlane3d* result,
 	const dsMatrix44d* transform, const dsPlane3d* plane);
 
 /**
+ * @brief Computes the intersecting line between two planes.
+ * @param[out] result The intersection ray between the two planes.
+ * @param firstPlane The first plane to intersect.
+ * @param secondPlane The second plane to intersect.
+ * @return False if the planes are parallel and don't intersect.
+ */
+DS_GEOMETRY_EXPORT bool dsPlane3f_intersectingLine(dsRay3f* result, const dsPlane3f* firstPlane,
+	const dsPlane3f* secondPlane);
+
+/** @copydoc dsPlane3f_intersectingLine() */
+DS_GEOMETRY_EXPORT bool dsPlane3d_intersectingLine(dsRay3d* result, const dsPlane3d* firstPlane,
+	const dsPlane3d* secondPlane);
+
+/**
+ * @brief Computes the intersecting point between three planes.
+ * @param[out] result The intersection point between the three planes.
+ * @param firstPlane The first plane to intersect.
+ * @param secondPlane The second plane to intersect.
+ * @param thirdPlane The third plane to intersect.
+ * @return False the planes don't intersect into a point.
+ */
+DS_GEOMETRY_EXPORT bool dsPlane3f_intersectingPoint(dsVector3f* result,
+	const dsPlane3f* firstPlane, const dsPlane3f* secondPlane, const dsPlane3f* thirdPlane);
+
+/** @copydoc dsPlane3f_intersectingPoint() */
+DS_GEOMETRY_EXPORT bool dsPlane3d_intersectingPoint(dsVector3d* result,
+	const dsPlane3d* firstPlane, const dsPlane3d* secondPlane, const dsPlane3d* thirdPlane);
+
+/**
  * @brief Intersects a plane with an aligned box.
  * @param plane The plane to intersect with the box.
  * @param box The box to intersect with the plane.

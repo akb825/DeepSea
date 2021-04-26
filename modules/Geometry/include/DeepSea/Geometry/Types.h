@@ -116,6 +116,40 @@ typedef enum dsGeometryElement
 	dsGeometryElement_Int     ///< int (e.g. dsVector2i)
 } dsGeometryElement;
 
+
+/**
+ * @brief Structure for a 3D ray using floats.
+ */
+typedef struct dsRay3f
+{
+	/**
+	 * @brief The origin of the ray.
+	 */
+	dsVector3f origin;
+
+	/**
+	 * @brief The direction of the ray.
+	 */
+	dsVector3f direction;
+} dsRay3f;
+
+
+/**
+ * @brief Structure for a 3D ray using doubles.
+ */
+typedef struct dsRay3d
+{
+	/**
+	 * @brief The origin of the ray.
+	 */
+	dsVector3d origin;
+
+	/**
+	 * @brief The direction of the ray.
+	 */
+	dsVector3d direction;
+} dsRay3d;
+
 /**
  * @brief Structure for 2D axis-aligned bounding box using floats.
  * @see AlignedBox2.h

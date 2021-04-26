@@ -122,6 +122,142 @@ void dsPlane3d_transformInverseTranspose(dsPlane3d* result, const dsMatrix44d* t
 	dsPlane3d_normalize(result, result);
 }
 
+bool dsPlane3f_intersectingLine(dsRay3f* result, const dsPlane3f* firstPlane,
+	const dsPlane3f* secondPlane)
+{
+	// http://geomalgorithms.com/a05-_intersect-1.html
+	// D is inverted due to using form A + B + C = D.
+	DS_ASSERT(result);
+	DS_ASSERT(firstPlane);
+	DS_ASSERT(secondPlane);
+
+	const float epsilon2 = dsPow2(1e-6f);
+	dsVector3_cross(result->direction, firstPlane->n, secondPlane->n);
+	float len2 = dsVector3_len2(result->direction);
+	if (len2 < epsilon2)
+		return false;
+
+	dsVector3f scaledFirstN;
+	dsVector3_scale(scaledFirstN, firstPlane->n, secondPlane->d);
+
+	dsVector3f scaledSecondN;
+	dsVector3_scale(scaledSecondN, secondPlane->n, firstPlane->d);
+
+	dsVector3f diff;
+	dsVector3_sub(diff, scaledSecondN, scaledFirstN);
+
+	float invLen2 = 1/len2;
+	dsVector3_cross(result->origin, diff, result->direction);
+	dsVector3_scale(result->origin, result->origin, invLen2);
+
+	float invLen = 1/sqrtf(len2);
+	dsVector3_scale(result->direction, result->direction, invLen);
+	return true;
+}
+
+bool dsPlane3d_intersectingLine(dsRay3d* result, const dsPlane3d* firstPlane,
+	const dsPlane3d* secondPlane)
+{
+	// http://geomalgorithms.com/a05-_intersect-1.html
+	// D is inverted due to using form A + B + C = D.
+	DS_ASSERT(result);
+	DS_ASSERT(firstPlane);
+	DS_ASSERT(secondPlane);
+
+	const double epsilon2 = dsPow2(1e-14);
+	dsVector3_cross(result->direction, firstPlane->n, secondPlane->n);
+	double len2 = dsVector3_len2(result->direction);
+	if (len2 < epsilon2)
+		return false;
+
+	dsVector3d scaledFirstN;
+	dsVector3_scale(scaledFirstN, firstPlane->n, secondPlane->d);
+
+	dsVector3d scaledSecondN;
+	dsVector3_scale(scaledSecondN, secondPlane->n, firstPlane->d);
+
+	dsVector3d diff;
+	dsVector3_sub(diff, scaledSecondN, scaledFirstN);
+
+	double invLen2 = 1/len2;
+	dsVector3_cross(result->origin, diff, result->direction);
+	dsVector3_scale(result->origin, result->origin, invLen2);
+
+	double invLen = 1/sqrt(len2);
+	dsVector3_scale(result->direction, result->direction, invLen);
+	return true;
+}
+
+bool dsPlane3f_intersectingPoint(dsVector3f* result, const dsPlane3f* firstPlane,
+	const dsPlane3f* secondPlane, const dsPlane3f* thirdPlane)
+{
+	// http://geomalgorithms.com/a05-_intersect-1.html
+	// D is inverted due to using form A + B + C = D.
+	DS_ASSERT(result);
+	DS_ASSERT(firstPlane);
+	DS_ASSERT(secondPlane);
+	DS_ASSERT(thirdPlane);
+
+	const float epsilon2 = dsPow2(1e-6f);
+	dsVector3f crossSecondThird;
+	dsVector3_cross(crossSecondThird, secondPlane->n, thirdPlane->n);
+	float denom = dsVector3_dot(firstPlane->n, crossSecondThird);
+	if (fabsf(denom) < epsilon2)
+		return false;
+
+	dsVector3_scale(crossSecondThird, crossSecondThird, firstPlane->d);
+
+	dsVector3f crossThirdFirst;
+	dsVector3_cross(crossThirdFirst, thirdPlane->n, firstPlane->n);
+	dsVector3_scale(crossThirdFirst, crossThirdFirst, secondPlane->d);
+
+	dsVector3f crossFirstSecond;
+	dsVector3_cross(crossFirstSecond, firstPlane->n, secondPlane->n);
+	dsVector3_scale(crossFirstSecond, crossFirstSecond, thirdPlane->d);
+
+	dsVector3_add(*result, crossSecondThird, crossThirdFirst);
+	dsVector3_add(*result, *result, crossFirstSecond);
+
+	float invDenom = 1/denom;
+	dsVector3_scale(*result, *result, invDenom);
+	return true;
+}
+
+bool dsPlane3d_intersectingPoint(dsVector3d* result, const dsPlane3d* firstPlane,
+	const dsPlane3d* secondPlane, const dsPlane3d* thirdPlane)
+{
+	// http://geomalgorithms.com/a05-_intersect-1.html
+	// D is inverted due to using form A + B + C = D.
+	DS_ASSERT(result);
+	DS_ASSERT(firstPlane);
+	DS_ASSERT(secondPlane);
+	DS_ASSERT(thirdPlane);
+
+	const double epsilon2 = dsPow2(1e-14f);
+	dsVector3d crossSecondThird;
+	dsVector3_cross(crossSecondThird, secondPlane->n, thirdPlane->n);
+	double denom = dsVector3_dot(firstPlane->n, crossSecondThird);
+	if (fabs(denom) < epsilon2)
+		return false;
+
+	dsVector3_scale(crossSecondThird, crossSecondThird, firstPlane->d);
+
+	dsVector3d crossThirdFirst;
+	dsVector3_cross(crossThirdFirst, thirdPlane->n, firstPlane->n);
+	dsVector3_scale(crossThirdFirst, crossThirdFirst, secondPlane->d);
+
+	dsVector3d crossFirstSecond;
+	dsVector3_cross(crossFirstSecond, firstPlane->n, secondPlane->n);
+	dsVector3_scale(crossFirstSecond, crossFirstSecond, thirdPlane->d);
+
+	dsVector3_add(*result, crossSecondThird, crossThirdFirst);
+	dsVector3_add(*result, *result, crossFirstSecond);
+
+	double invDenom = 1/denom;
+	dsVector3_scale(*result, *result, invDenom);
+	return true;
+}
+
 dsIntersectResult dsPlane3f_intersectAlignedBox(const dsPlane3f* plane, const dsAlignedBox3f* box)
 {
 	DS_ASSERT(plane);

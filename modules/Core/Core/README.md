@@ -33,7 +33,7 @@ DeepSea will set `errno` (either directly or indirectly) when a function fails. 
 
 * `EINVAL`: invalid arguments.
 * `ENOMEM`: failed to allocate memory.
-* `EAGAIN`: run out of thread or processess resources.
+* `EAGAIN`: run out of thread or processes resources.
 * `ENOENT`: file not found.
 * `EACCESS`: permission denied reading a file.
 * `EIO`: IO error reading the a stream.
