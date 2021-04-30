@@ -143,34 +143,6 @@ static uint32_t buildKdTreeBalancedRec(dsKdTree* kdTree, uint32_t start, uint32_
 	return middleNodeIndex;
 }
 
-static void insertKdTreeNodeRec(dsKdTree* kdTree, uint32_t current,	uint32_t newNodeIndex,
-	dsKdTreeNode* newNode, uint8_t axis, dsSortCompareFunction compareFunc)
-{
-	dsKdTreeNode* node = getNode(kdTree->nodes, kdTree->nodeSize, current);
-	SortContext context = {axis, (uint8_t)(kdTree->nodeSize - kdTree->pointSize)};
-	uint8_t nextAxis = (uint8_t)((axis + 1) % kdTree->axisCount);
-	if (compareFunc(newNode, node, &context) < 0)
-	{
-		if (node->leftNode == INVALID_NODE)
-			node->leftNode = newNodeIndex;
-		else
-		{
-			insertKdTreeNodeRec(kdTree, node->leftNode, newNodeIndex, newNode, nextAxis,
-				compareFunc);
-		}
-	}
-	else
-	{
-		if (node->rightNode == INVALID_NODE)
-			node->rightNode = newNodeIndex;
-		else
-		{
-			insertKdTreeNodeRec(kdTree, node->rightNode, newNodeIndex, newNode, nextAxis,
-				compareFunc);
-		}
-	}
-}
-
 static const void* nearestNeighborRecFloat(const dsKdTree* kdTree, uint32_t curNode,
 	const float* point, float* curDistance, uint8_t axis)
 {
@@ -496,7 +468,7 @@ void dsKdTree_setUserData(dsKdTree* kdTree, void* userData)
 }
 
 bool dsKdTree_build(dsKdTree* kdTree, const void* objects, uint32_t objectCount, size_t objectSize,
-	dsKdTreeObjectPointFunction objectPointFunc, bool balance)
+	dsKdTreeObjectPointFunction objectPointFunc)
 {
 	dsKdTree_clear(kdTree);
 	if (!kdTree || (!objects && objectCount > 0 && objectSize != DS_GEOMETRY_OBJECT_INDICES) ||
@@ -550,17 +522,7 @@ bool dsKdTree_build(dsKdTree* kdTree, const void* objects, uint32_t objectCount,
 		node->rightNode = INVALID_NODE;
 	}
 
-	if (balance)
-		kdTree->rootNode = buildKdTreeBalancedRec(kdTree, 0, objectCount, 0, compareFunc);
-	else
-	{
-		kdTree->rootNode = 0;
-		for (uint32_t i = 1; i < objectCount; ++i)
-		{
-			insertKdTreeNodeRec(kdTree, 0, i, getNode(kdTree->nodes, kdTree->nodeSize, i), 0,
-				compareFunc);
-		}
-	}
+	kdTree->rootNode = buildKdTreeBalancedRec(kdTree, 0, objectCount, 0, compareFunc);
 	return true;
 }
 
