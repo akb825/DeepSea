@@ -17,6 +17,7 @@
 #include <DeepSea/Geometry/Plane3.h>
 #include <DeepSea/Math/Matrix44.h>
 #include <gtest/gtest.h>
+#include <limits>
 
 // Handle older versions of gtest.
 #ifndef TYPED_TEST_SUITE
@@ -85,6 +86,18 @@ inline void dsPlane3_transform(dsPlane3d* result, const dsMatrix44d* transform,
 	dsPlane3d_transform(result, transform, plane);
 }
 
+inline void dsPlane3_transformInverseTranspose(dsPlane3f* result, const dsMatrix44f* transform,
+	const dsPlane3f* plane)
+{
+	dsPlane3f_transformInverseTranspose(result, transform, plane);
+}
+
+inline void dsPlane3_transformInverseTranspose(dsPlane3d* result, const dsMatrix44d* transform,
+	const dsPlane3d* plane)
+{
+	dsPlane3d_transformInverseTranspose(result, transform, plane);
+}
+
 inline bool dsPlane3_intersectingLine(dsRay3f* result, const dsPlane3f* firstPlane,
 	const dsPlane3f* secondPlane)
 {
@@ -109,16 +122,14 @@ inline bool dsPlane3_intersectingPoint(dsVector3d* result, const dsPlane3d* firs
 	return dsPlane3d_intersectingPoint(result, firstPlane, secondPlane, thirdPlane);
 }
 
-inline void dsPlane3_transformInverseTranspose(dsPlane3f* result, const dsMatrix44f* transform,
-	const dsPlane3f* plane)
+inline float dsPlane3_rayIntersection(const dsPlane3f* plane, const dsRay3f* ray)
 {
-	dsPlane3f_transformInverseTranspose(result, transform, plane);
+	return dsPlane3f_rayIntersection(plane, ray);
 }
 
-inline void dsPlane3_transformInverseTranspose(dsPlane3d* result, const dsMatrix44d* transform,
-	const dsPlane3d* plane)
+inline double dsPlane3_rayIntersection(const dsPlane3d* plane, const dsRay3d* ray)
 {
-	dsPlane3d_transformInverseTranspose(result, transform, plane);
+	return dsPlane3d_rayIntersection(plane, ray);
 }
 
 inline dsIntersectResult dsPlane3_intersectAlignedBox(const dsPlane3f* plane,
@@ -264,6 +275,35 @@ TYPED_TEST(Plane3Test, Transform)
 	EXPECT_NEAR(dsVector3_dot(newN, transform.columns[3]) + 2, plane.d, epsilon);
 }
 
+TYPED_TEST(Plane3Test, TransformInverseTranspose)
+{
+	typedef typename Plane3TypeSelector<TypeParam>::Plane3Type Plane3Type;
+	typedef typename Plane3TypeSelector<TypeParam>::Matrix44Type Matrix44Type;
+	typedef typename Plane3TypeSelector<TypeParam>::Vector4Type Vector4Type;
+	TypeParam epsilon = Plane3TypeSelector<TypeParam>::epsilon;
+
+	Plane3Type plane = {{{1, 0, 0}}, 2};
+
+	Matrix44Type rotate, translate, transform, inverseTranspose;
+
+	dsMatrix44_makeRotate(&rotate, (TypeParam)dsDegreesToRadians(30),
+		(TypeParam)dsDegreesToRadians(-15), (TypeParam)dsDegreesToRadians(60));
+	dsMatrix44_makeTranslate(&translate, -3, 5, -1);
+
+	dsMatrix44_mul(transform, translate, rotate);
+	dsMatrix44_inverseTranspose(&inverseTranspose, &transform);
+
+	Vector4Type origN = {{1, 0, 0, 0}};
+	Vector4Type newN;
+	dsMatrix44_transform(newN, transform, origN);
+
+	dsPlane3_transform(&plane, &transform, &plane);
+	EXPECT_NEAR(newN.x, plane.n.x, epsilon);
+	EXPECT_NEAR(newN.y, plane.n.y, epsilon);
+	EXPECT_NEAR(newN.z, plane.n.z, epsilon);
+	EXPECT_NEAR(dsVector3_dot(newN, transform.columns[3]) + 2, plane.d, epsilon);
+}
+
 TYPED_TEST(Plane3Test, IntersectingLine)
 {
 	typedef typename Plane3TypeSelector<TypeParam>::Plane3Type Plane3Type;
@@ -304,33 +344,23 @@ TYPED_TEST(Plane3Test, IntersectingPoint)
 	EXPECT_NEAR(4, point.z, epsilon);
 }
 
-TYPED_TEST(Plane3Test, TransformInverseTranspose)
+TYPED_TEST(Plane3Test, RayIntersection)
 {
 	typedef typename Plane3TypeSelector<TypeParam>::Plane3Type Plane3Type;
-	typedef typename Plane3TypeSelector<TypeParam>::Matrix44Type Matrix44Type;
-	typedef typename Plane3TypeSelector<TypeParam>::Vector4Type Vector4Type;
+	typedef typename Plane3TypeSelector<TypeParam>::Ray3Type Ray3Type;
 	TypeParam epsilon = Plane3TypeSelector<TypeParam>::epsilon;
 
 	Plane3Type plane = {{{1, 0, 0}}, 2};
+	Ray3Type ray = {{{1, 2, 3}}, {{-1, 0, 0}}};
 
-	Matrix44Type rotate, translate, transform, inverseTranspose;
+	EXPECT_NEAR(-1, dsPlane3_rayIntersection(&plane, &ray), epsilon);
 
-	dsMatrix44_makeRotate(&rotate, (TypeParam)dsDegreesToRadians(30),
-		(TypeParam)dsDegreesToRadians(-15), (TypeParam)dsDegreesToRadians(60));
-	dsMatrix44_makeTranslate(&translate, -3, 5, -1);
+	ray.origin.x = 3;
+	EXPECT_NEAR(1, dsPlane3_rayIntersection(&plane, &ray), epsilon);
 
-	dsMatrix44_mul(transform, translate, rotate);
-	dsMatrix44_inverseTranspose(&inverseTranspose, &transform);
-
-	Vector4Type origN = {{1, 0, 0, 0}};
-	Vector4Type newN;
-	dsMatrix44_transform(newN, transform, origN);
-
-	dsPlane3_transform(&plane, &transform, &plane);
-	EXPECT_NEAR(newN.x, plane.n.x, epsilon);
-	EXPECT_NEAR(newN.y, plane.n.y, epsilon);
-	EXPECT_NEAR(newN.z, plane.n.z, epsilon);
-	EXPECT_NEAR(dsVector3_dot(newN, transform.columns[3]) + 2, plane.d, epsilon);
+	ray.direction.x = 0;
+	ray.direction.y = 1;
+	EXPECT_EQ(std::numeric_limits<TypeParam>::max(), dsPlane3_rayIntersection(&plane, &ray));
 }
 
 TYPED_TEST(Plane3Test, IntersectAlignedBox)

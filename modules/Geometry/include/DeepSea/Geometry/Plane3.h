@@ -137,6 +137,22 @@ DS_GEOMETRY_EXPORT bool dsPlane3d_intersectingPoint(dsVector3d* result,
 	const dsPlane3d* firstPlane, const dsPlane3d* secondPlane, const dsPlane3d* thirdPlane);
 
 /**
+ * @brief Intersects a ray with a plane.
+ * @param plane The plane to intersect.
+ * @param ray The ray to intersect.
+ * @return The T value of the intersection, or FLT_MAX if the ray is parallel with the plane.
+ */
+DS_GEOMETRY_EXPORT float dsPlane3f_rayIntersection(const dsPlane3f* plane, const dsRay3f* ray);
+
+/**
+ * @brief Intersects a ray with a plane.
+ * @param plane The plane to intersect.
+ * @param ray The ray to intersect.
+ * @return The T value of the intersection, or DBL_MAX if the ray is parallel with the plane.
+ */
+DS_GEOMETRY_EXPORT double dsPlane3d_rayIntersection(const dsPlane3d* plane, const dsRay3d* ray);
+
+/**
  * @brief Intersects a plane with an aligned box.
  * @param plane The plane to intersect with the box.
  * @param box The box to intersect with the plane.

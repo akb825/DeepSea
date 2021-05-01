@@ -22,6 +22,8 @@
 #include <DeepSea/Math/Matrix33.h>
 #include <DeepSea/Math/Matrix44.h>
 
+#include <float.h>
+
 void dsPlane3f_normalize(dsPlane3f* result, const dsPlane3f* plane)
 {
 	DS_ASSERT(result);
@@ -233,7 +235,7 @@ bool dsPlane3d_intersectingPoint(dsVector3d* result, const dsPlane3d* firstPlane
 	DS_ASSERT(secondPlane);
 	DS_ASSERT(thirdPlane);
 
-	const double epsilon2 = dsPow2(1e-14f);
+	const double epsilon2 = dsPow2(1e-14);
 	dsVector3d crossSecondThird;
 	dsVector3_cross(crossSecondThird, secondPlane->n, thirdPlane->n);
 	double denom = dsVector3_dot(firstPlane->n, crossSecondThird);
@@ -256,6 +258,32 @@ bool dsPlane3d_intersectingPoint(dsVector3d* result, const dsPlane3d* firstPlane
 	double invDenom = 1/denom;
 	dsVector3_scale(*result, *result, invDenom);
 	return true;
+}
+
+float dsPlane3f_rayIntersection(const dsPlane3f* plane, const dsRay3f* ray)
+{
+	DS_ASSERT(plane);
+	DS_ASSERT(ray);
+
+	const float epsilon2 = dsPow2(1e-6f);
+	float denom = dsVector3_dot(plane->n, ray->direction);
+	if (fabsf(denom) < epsilon2)
+		return FLT_MAX;
+
+	return (-dsVector3_dot(plane->n, ray->origin) + plane->d)/denom;
+}
+
+double dsPlane3d_rayIntersection(const dsPlane3d* plane, const dsRay3d* ray)
+{
+	DS_ASSERT(plane);
+	DS_ASSERT(ray);
+
+	const double epsilon2 = dsPow2(1e-14);
+	double denom = dsVector3_dot(plane->n, ray->direction);
+	if (fabs(denom) < epsilon2)
+		return DBL_MAX;
+
+	return (-dsVector3_dot(plane->n, ray->origin) + plane->d)/denom;
 }
 
 dsIntersectResult dsPlane3f_intersectAlignedBox(const dsPlane3f* plane, const dsAlignedBox3f* box)
