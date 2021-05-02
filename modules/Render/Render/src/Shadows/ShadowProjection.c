@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include <DeepSea/Render/ShadowProjection.h>
+#include <DeepSea/Render/Shadows/ShadowProjection.h>
 
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>

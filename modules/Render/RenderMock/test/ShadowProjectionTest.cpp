@@ -17,8 +17,8 @@
 #include "Fixtures/FixtureBase.h"
 
 #include <DeepSea/Math/Matrix44.h>
+#include <DeepSea/Render/Shadows/ShadowProjection.h>
 #include <DeepSea/Render/Renderer.h>
-#include <DeepSea/Render/ShadowProjection.h>
 
 #include <gtest/gtest.h>
 
