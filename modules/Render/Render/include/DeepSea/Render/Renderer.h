@@ -188,6 +188,7 @@ DS_RENDER_EXPORT bool dsRenderer_makePerspective(dsMatrix44f* result, const dsRe
  * @brief Makes a frustum from a projection matrix.
  *
  * This will take the coordinate space of projection matricies for the renderer into account.
+ * The frustum will be normalized.
  *
  * @remark errno will be set on failure.
  * @remark The planes aren't guaranteed to be normalized.

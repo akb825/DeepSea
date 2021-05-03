@@ -41,6 +41,7 @@
 #include <DeepSea/Render/Resources/Renderbuffer.h>
 #include <DeepSea/Render/Resources/SharedMaterialValues.h>
 #include <DeepSea/Render/Resources/Texture.h>
+#include <DeepSea/Render/Renderer.h>
 #include <DeepSea/Render/RenderPass.h>
 
 #include <DeepSea/Scene/SceneGlobalData.h>
@@ -242,9 +243,8 @@ static void updatedCameraProjection(dsView* view)
 {
 	dsRenderer* renderer = view->scene->renderer;
 	dsMatrix44_mul(view->viewProjectionMatrix, view->projectionMatrix, view->viewMatrix);
-	dsFrustum3_fromMatrix(view->viewFrustum, view->viewProjectionMatrix, renderer->clipHalfDepth,
-		renderer->clipInvertY);
-	dsFrustum3f_normalize(&view->viewFrustum);
+	DS_VERIFY(dsRenderer_frustumFromMatrix(&view->viewFrustum, renderer,
+		&view->viewProjectionMatrix));
 }
 
 static bool bindOffscreenVariables(dsView* view)
@@ -349,9 +349,8 @@ dsView* dsView_create(const dsScene* scene, dsAllocator* allocator, dsAllocator*
 	dsMatrix44_identity(view->viewMatrix);
 	dsMatrix44_identity(view->projectionMatrix);
 	dsMatrix44_identity(view->viewProjectionMatrix);
-	dsFrustum3_fromMatrix(view->viewFrustum, view->viewProjectionMatrix, renderer->clipHalfDepth,
-		renderer->clipInvertY);
-	dsFrustum3f_normalize(&view->viewFrustum);
+	DS_VERIFY(dsRenderer_frustumFromMatrix(&view->viewFrustum, renderer,
+		&view->viewProjectionMatrix));
 	view->lodBias = 1.0f;
 
 	uint32_t variableCount = scene->globalValueCount + offscreenSurfaceCount;
@@ -836,7 +835,6 @@ bool dsView_update(dsView* view)
 				DS_ASSERT(false);
 				break;
 		}
-		surfaceSet = true;
 	}
 
 	// Re-create all framebuffers to avoid complicated logic to decide which ones specifically need

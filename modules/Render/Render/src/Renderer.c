@@ -525,6 +525,7 @@ bool dsRenderer_frustumFromMatrix(dsFrustum3f* result, const dsRenderer* rendere
 	}
 
 	dsFrustum3_fromMatrix(*result, *matrix, renderer->clipHalfDepth, renderer->clipInvertY);
+	dsFrustum3f_normalize(result);
 	return true;
 }
 
