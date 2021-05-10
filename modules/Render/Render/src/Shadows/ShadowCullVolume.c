@@ -63,6 +63,16 @@ static bool pointInVolume(const dsShadowCullVolume* volume, const dsPlane3d* pla
 	return true;
 }
 
+static double relaxedRayIntersection(const dsPlane3d* plane, const dsRay3d* ray, double epsilon)
+{
+	const double epsilon2 = dsPow2(epsilon);
+	double denom = dsVector3_dot(plane->n, ray->direction);
+	if (fabs(denom) < epsilon2)
+		return DBL_MAX;
+
+	return (-dsVector3_dot(plane->n, ray->origin) + plane->d)/denom;
+}
+
 static void getTRange(double* outMinT, uint32_t* outMinPlane, double* outMaxT,
 	uint32_t* outMaxPlane, const dsShadowCullVolume* volume, const dsPlane3d* planes,
 	const dsRay3d* ray, uint32_t firstPlane, uint32_t secondPlane)
@@ -77,7 +87,7 @@ static void getTRange(double* outMinT, uint32_t* outMinPlane, double* outMaxT,
 			continue;
 
 		const dsPlane3d* plane = planes + i;
-		double t = dsPlane3d_rayIntersection(plane, ray);
+		double t = relaxedRayIntersection(plane, ray, 1e-5);
 		if (t == DBL_MAX)
 			continue;
 
@@ -166,7 +176,7 @@ static void computeEdgesAndCorners(dsShadowCullVolume* volume, const dsPlane3d* 
 			uint32_t minPlane, maxPlane;
 			getTRange(&minT, &minPlane, &maxT, &maxPlane, volume, planes, &ray, i, j);
 			// If the T range is inverted, we're outside of the volume.
-			if (minT >= maxT - epsilon)
+			if (minT >= maxT + epsilon)
 				continue;
 
 			if (dsEpsilonEquald(minT, maxT, epsilon))

@@ -19,6 +19,7 @@
 #include <DeepSea/Geometry/Frustum3.h>
 #include <DeepSea/Render/Shadows/ShadowCullVolume.h>
 #include <DeepSea/Math/Core.h>
+#include <DeepSea/Math/Vector3.h>
 
 #include <gtest/gtest.h>
 
@@ -55,7 +56,7 @@ static bool hasCorner(const dsShadowCullVolume* volume, float x, float y, float 
 	uint32_t middleP = p2 < maxFirstP ? dsMax(minFirstP, p2) : dsMin(maxFirstP, p2);
 	uint32_t maxP = dsMax(maxFirstP, p2);
 
-	float epsilon = 1e-2f;
+	const float epsilon = 1e-2f;
 	for (uint32_t i = 0; i < volume->cornerCount; ++i)
 	{
 		const dsShadowCullCorner* corner = volume->corners + i;
@@ -71,6 +72,24 @@ static bool hasCorner(const dsShadowCullVolume* volume, float x, float y, float 
 	}
 
 	return false;
+}
+
+static uint32_t countCorners(const dsShadowCullVolume* volume, float x, float y, float z)
+{
+	const float epsilon = 1e-2f;
+	uint32_t count = 0;
+	for (uint32_t i = 0; i < volume->cornerCount; ++i)
+	{
+		const dsShadowCullCorner* corner = volume->corners + i;
+		if (dsEpsilonEqualf(corner->point.x, x, epsilon) &&
+			dsEpsilonEqualf(corner->point.y, y, epsilon) &&
+			dsEpsilonEqualf(corner->point.z, z, epsilon))
+		{
+			++count;
+		}
+	}
+
+	return count;
 }
 
 TEST_F(ShadowVolumeCullTest, DirectionalPerpendicular)
@@ -139,4 +158,64 @@ TEST_F(ShadowVolumeCullTest, DirectionalOrthoPerpendicular)
 	EXPECT_TRUE(hasCorner(&volume, 4.0f, -3.0f, -1.0f, right, bottom, near));
 	EXPECT_TRUE(hasCorner(&volume, -2.0f, -3.0f, -100.0f, left, bottom, far));
 	EXPECT_TRUE(hasCorner(&volume, 4.0f, -3.0f, -100.0f, right, bottom, far));
+}
+
+TEST_F(ShadowVolumeCullTest, DirectionalAngled)
+{
+	dsMatrix44f projection;
+	dsRenderer_makeFrustum(&projection, renderer, -0.5f, 0.7f, -0.9f, 1.1f, 1, 100);
+	dsFrustum3f frustum;
+	dsRenderer_frustumFromMatrix(&frustum, renderer, &projection);
+
+	dsVector3f lightDir = {{-0.75f, 1.0f, 0.5f}};
+	dsVector3f_normalize(&lightDir, &lightDir);
+	dsShadowCullVolume volume;
+	dsShadowCullVolume_buildDirectional(&volume, &frustum, &lightDir);
+
+	ASSERT_EQ(9U, volume.planeCount);
+	uint32_t left = findPlane(&volume, frustum.planes + dsFrustumPlanes_Left);
+	uint32_t right = findPlane(&volume, frustum.planes + dsFrustumPlanes_Right);
+	uint32_t bottom = findPlane(&volume, frustum.planes + dsFrustumPlanes_Bottom);
+	uint32_t top = findPlane(&volume, frustum.planes + dsFrustumPlanes_Top);
+	uint32_t near = findPlane(&volume, frustum.planes + dsFrustumPlanes_Near);
+	uint32_t far = findPlane(&volume, frustum.planes + dsFrustumPlanes_Far);
+	EXPECT_EQ(notFound, left);
+	EXPECT_NE(notFound, right);
+	EXPECT_NE(notFound, bottom);
+	EXPECT_EQ(notFound, top);
+	EXPECT_EQ(notFound, near);
+	EXPECT_NE(notFound, far);
+
+	ASSERT_EQ(15U, volume.edgeCount);
+
+	uint32_t cornerCount = 0;
+	uint32_t curCornerCount = countCorners(&volume, -0.5f, -0.9f, -1.0f);
+	EXPECT_LT(0U, curCornerCount);
+	cornerCount += curCornerCount;
+
+	curCornerCount = countCorners(&volume, 0.7f, -0.9f, -1.0f);
+	EXPECT_LT(0U, curCornerCount);
+	cornerCount += curCornerCount;
+
+	curCornerCount = countCorners(&volume, 0.7f, 1.1f, -1.0f);
+	EXPECT_LT(0U, curCornerCount);
+	cornerCount += curCornerCount;
+
+	curCornerCount = countCorners(&volume, -50.0f, -90.0f, -100.0f);
+	EXPECT_LT(0U, curCornerCount);
+	cornerCount += curCornerCount;
+
+	curCornerCount = countCorners(&volume, 70.0f, -90.0f, -100.0f);
+	EXPECT_LT(0U, curCornerCount);
+	cornerCount += curCornerCount;
+
+	curCornerCount = countCorners(&volume, -50.0f, 110.0f, -100.0f);
+	EXPECT_LT(0U, curCornerCount);
+	cornerCount += curCornerCount;
+
+	curCornerCount = countCorners(&volume, 70.0f, 110.0f, -100.0f);
+	EXPECT_LT(0U, curCornerCount);
+	cornerCount += curCornerCount;
+
+	EXPECT_EQ(volume.cornerCount, cornerCount);
 }
