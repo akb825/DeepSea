@@ -119,11 +119,11 @@ typedef struct dsShadowCullEdge
 	dsRay3f edge;
 
 	/**
-	 * @brief The indices of the planes for the edge intersection.
+	 * @brief Bitmask for the indices of the planes that intersect at the edge.
 	 *
-	 * The indices will be ordered lowest to highest.
+	 * There will alwyas be 2 bits set.
 	 */
-	uint32_t planes[2];
+	uint32_t planes;
 } dsShadowCullEdge;
 
 /**
@@ -138,11 +138,11 @@ typedef struct dsShadowCullCorner
 	dsVector3f point;
 
 	/**
-	 * @brief The indices of the planes for the point intersection.
+	 * @brief Bitmask for the indices of the planes that intersect at the corner.
 	 *
-	 * The indices will be ordered lowest to highest.
+	 * There will alwyas be 3 bits set.
 	 */
-	uint32_t planes[3];
+	uint32_t planes;
 } dsShadowCullCorner;
 
 /**

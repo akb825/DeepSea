@@ -50,17 +50,12 @@ static uint32_t findPlane(const dsShadowCullVolume* volume, const dsPlane3f* pla
 static bool hasCorner(const dsShadowCullVolume* volume, float x, float y, float z, uint32_t p0,
 	uint32_t p1, uint32_t p2)
 {
-	uint32_t minFirstP = dsMin(p0, p1);
-	uint32_t maxFirstP = dsMax(p0, p1);
-	uint32_t minP = dsMin(minFirstP, p2);
-	uint32_t middleP = p2 < maxFirstP ? dsMax(minFirstP, p2) : dsMin(maxFirstP, p2);
-	uint32_t maxP = dsMax(maxFirstP, p2);
-
+	uint32_t planes = (1 << p0) | (1 << p1) | (1 << p2);
 	const float epsilon = 1e-2f;
 	for (uint32_t i = 0; i < volume->cornerCount; ++i)
 	{
 		const dsShadowCullCorner* corner = volume->corners + i;
-		if (corner->planes[0] != minP || corner->planes[1] != middleP || corner->planes[2] != maxP)
+		if (corner->planes != planes)
 			continue;
 
 		if (dsEpsilonEqualf(corner->point.x, x, epsilon) &&

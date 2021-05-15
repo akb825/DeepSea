@@ -133,26 +133,18 @@ static void addCorner(dsShadowCullVolume* volume, const dsVector3d* point, uint3
 	uint32_t p2)
 {
 	DS_ASSERT(volume->cornerCount < DS_MAX_SHADOW_CULL_CORNERS);
-
-	uint32_t minFirstP = dsMin(p0, p1);
-	uint32_t maxFirstP = dsMax(p0, p1);
-	uint32_t minP = dsMin(minFirstP, p2);
-	uint32_t middleP = p2 < maxFirstP ? dsMax(minFirstP, p2) : dsMin(maxFirstP, p2);
-	uint32_t maxP = dsMax(maxFirstP, p2);
-
 	// Check if we already have a corner for the plane triplet.
+	uint32_t planes = (1 << p0) | (1 << p1) | (1 << p2);
 	for (uint32_t i = 0; i < volume->cornerCount; ++i)
 	{
 		const dsShadowCullCorner* corner = volume->corners + i;
-		if (corner->planes[0] == minP && corner->planes[1] == middleP && corner->planes[2] == maxP)
+		if (corner->planes == planes)
 			return;
 	}
 
 	dsShadowCullCorner* corner = volume->corners + (volume->cornerCount++);
 	dsConvertDoubleToFloat(corner->point, *point);
-	corner->planes[0] = minP;
-	corner->planes[1] = middleP;
-	corner->planes[2] = maxP;
+	corner->planes = planes;
 }
 
 static void computeEdgesAndCorners(dsShadowCullVolume* volume, const dsPlane3d* planes,
@@ -219,8 +211,7 @@ static void computeEdgesAndCorners(dsShadowCullVolume* volume, const dsPlane3d* 
 			DS_ASSERT(volume->edgeCount < DS_MAX_SHADOW_CULL_EDGES);
 			dsShadowCullEdge* edge = volume->edges + (volume->edgeCount++);
 			dsConvertDoubleToFloat(edge->edge, ray);
-			edge->planes[0] = i;
-			edge->planes[1] = j;
+			edge->planes = (1 << i) | (1 << j);
 		}
 	}
 }
@@ -229,19 +220,17 @@ void removeUnusedPlanes(dsShadowCullVolume* volume)
 {
 	for (uint32_t i = 0; i < volume->planeCount;)
 	{
+		uint32_t planeMask = 1 << i;
 		// Only need to check corners for plane referneces, since edges will only be added if they
 		// have a corresponding edge.
 		bool hasPlane = false;
-		for (uint32_t j = 0; j < volume->cornerCount && !hasPlane; ++j)
+		for (uint32_t j = 0; j < volume->cornerCount; ++j)
 		{
 			const dsShadowCullCorner* corner = volume->corners + j;
-			for (unsigned int k = 0; k < 3; ++k)
+			if (corner->planes & planeMask)
 			{
-				if (corner->planes[k] == i)
-				{
-					hasPlane = true;
-					break;
-				}
+				hasPlane = true;
+				break;
 			}
 		}
 
@@ -255,25 +244,20 @@ void removeUnusedPlanes(dsShadowCullVolume* volume)
 		for (uint32_t j = i + 1; j < volume->planeCount; ++j)
 			volume->planes[j - 1] = volume->planes[j];
 
-		// Also subtract one for each plane index greater than the one being removed.
+		// Also shift the bits for all higher index planes.
+		uint32_t prevPlanesMask = (1 << i) - 1;
 		for (uint32_t j = 0; j < volume->edgeCount; ++j)
 		{
 			dsShadowCullEdge* edge = volume->edges + j;
-			for (unsigned int k = 0; k < 2; ++k)
-			{
-				if (edge->planes[k] > i)
-					--edge->planes[k];
-			}
+			edge->planes = (edge->planes & prevPlanesMask) |
+				((edge->planes & ~prevPlanesMask) >> 1);
 		}
 
 		for (uint32_t j = 0; j < volume->cornerCount; ++j)
 		{
 			dsShadowCullCorner* corner = volume->corners + j;
-			for (unsigned int k = 0; k < 3; ++k)
-			{
-				if (corner->planes[k] > i)
-					--corner->planes[k];
-			}
+			corner->planes = (corner->planes & prevPlanesMask) |
+				((corner->planes & ~prevPlanesMask) >> 1);
 		}
 
 		--volume->planeCount;
