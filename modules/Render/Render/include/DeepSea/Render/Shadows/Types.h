@@ -140,7 +140,7 @@ typedef struct dsShadowCullCorner
 	/**
 	 * @brief Bitmask for the indices of the planes that intersect at the corner.
 	 *
-	 * There will alwyas be 3 bits set.
+	 * There will alwyas be at least 3 bits set.
 	 */
 	uint32_t planes;
 } dsShadowCullCorner;

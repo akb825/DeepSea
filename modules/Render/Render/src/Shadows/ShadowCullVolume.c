@@ -24,7 +24,7 @@
 
 #include <float.h>
 
-// Sicne the original computations were done with floats, be a bit loose with the epsilon values.
+// Since the original computations were done with floats, be a bit loose with the epsilon values.
 const double baseEpsilon = 1e-5;
 
 static double computeEpsilonf(const dsPlane3f* planes, uint32_t planeCount)
@@ -117,9 +117,7 @@ static void addPlane(dsShadowCullVolume* volume, dsPlane3d* planes, const dsPlan
 	for (uint32_t i = 0; i < volume->planeCount; ++i)
 	{
 		const dsPlane3d* curPlane = planes + i;
-		if (dsEpsilonEquald(curPlane->n.x, plane->n.x, baseEpsilon) &&
-			dsEpsilonEquald(curPlane->n.y, plane->n.y, baseEpsilon) &&
-			dsEpsilonEquald(curPlane->n.z, plane->n.z, baseEpsilon) &&
+		if (dsVector3d_epsilonEqual(&curPlane->n, &plane->n, baseEpsilon) &&
 			dsEpsilonEquald(curPlane->d, plane->d, baseEpsilon))
 		{
 			return;
@@ -129,19 +127,29 @@ static void addPlane(dsShadowCullVolume* volume, dsPlane3d* planes, const dsPlan
 	planes[volume->planeCount++] = *plane;
 }
 
-static void addCorner(dsShadowCullVolume* volume, const dsVector3d* point, uint32_t p0, uint32_t p1,
-	uint32_t p2)
+static uint32_t bitmaskTripple(uint32_t p0, uint32_t p1, uint32_t p2)
+{
+	return (1 << p0) | (1 << p1) | (1 << p2);
+}
+
+static void addCorner(dsShadowCullVolume* volume, dsVector3d* cornerPoints,
+	const dsVector3d* point, uint32_t planes, double epsilon)
 {
 	DS_ASSERT(volume->cornerCount < DS_MAX_SHADOW_CULL_CORNERS);
 	// Check if we already have a corner for the plane triplet.
-	uint32_t planes = (1 << p0) | (1 << p1) | (1 << p2);
 	for (uint32_t i = 0; i < volume->cornerCount; ++i)
 	{
-		const dsShadowCullCorner* corner = volume->corners + i;
-		if (corner->planes == planes)
+		dsShadowCullCorner* corner = volume->corners + i;
+		if ((corner->planes & planes) == planes)
 			return;
+		else if (dsVector3d_epsilonEqual(cornerPoints + i, point, epsilon))
+		{
+			corner->planes |= planes;
+			break;
+		}
 	}
 
+	cornerPoints[volume->cornerCount] = *point;
 	dsShadowCullCorner* corner = volume->corners + (volume->cornerCount++);
 	dsConvertDoubleToFloat(corner->point, *point);
 	corner->planes = planes;
@@ -154,6 +162,7 @@ static void computeEdgesAndCorners(dsShadowCullVolume* volume, const dsPlane3d* 
 		dsConvertDoubleToFloat(volume->planes[i], planes[i]);
 
 	// Find all intersecting lines between pairs of planes.
+	dsVector3d cornerPoints[DS_MAX_SHADOW_CULL_CORNERS];
 	for (uint32_t i = 0; i < volume->planeCount - 1; ++i)
 	{
 		const dsPlane3d* firstPlane = planes + i;
@@ -178,10 +187,8 @@ static void computeEdgesAndCorners(dsShadowCullVolume* volume, const dsPlane3d* 
 				dsVector3_add(point, point, ray.origin);
 				if (pointInVolume(volume, planes, &point, epsilon))
 				{
-					// Add the corner for each plane triplet to handle clamping even if they resolve
-					// to the same position.
-					addCorner(volume, &point, i, j, minPlane);
-					addCorner(volume, &point, i, j, maxPlane);
+					uint32_t planes = bitmaskTripple(i, j, minPlane) | (1 << maxPlane);
+					addCorner(volume, cornerPoints, &point, planes, epsilon);
 				}
 				continue;
 			}
@@ -195,7 +202,7 @@ static void computeEdgesAndCorners(dsShadowCullVolume* volume, const dsPlane3d* 
 				dsVector3_add(point, point, ray.origin);
 				if (!pointInVolume(volume, planes, &point, epsilon))
 					continue;
-				addCorner(volume, &point, i, j, minPlane);
+				addCorner(volume, cornerPoints, &point, bitmaskTripple(i, j, minPlane), epsilon);
 			}
 
 			if (maxT != DBL_MAX)
@@ -205,7 +212,7 @@ static void computeEdgesAndCorners(dsShadowCullVolume* volume, const dsPlane3d* 
 				dsVector3_add(point, point, ray.origin);
 				if (!pointInVolume(volume, planes, &point, epsilon))
 					continue;
-				addCorner(volume, &point, i, j, maxPlane);
+				addCorner(volume, cornerPoints, &point, bitmaskTripple(i, j, maxPlane), epsilon);
 			}
 
 			DS_ASSERT(volume->edgeCount < DS_MAX_SHADOW_CULL_EDGES);
