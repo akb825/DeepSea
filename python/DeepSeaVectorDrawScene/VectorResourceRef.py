@@ -10,12 +10,16 @@ class VectorResourceRef(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsVectorResourceRef(cls, buf, offset):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = VectorResourceRef()
         x.Init(buf, n + offset)
         return x
 
+    @classmethod
+    def GetRootAsVectorResourceRef(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
     # VectorResourceRef
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
@@ -34,7 +38,19 @@ class VectorResourceRef(object):
             return self._tab.String(o + self._tab.Pos)
         return None
 
-def VectorResourceRefStart(builder): builder.StartObject(2)
-def VectorResourceRefAddResources(builder, resources): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(resources), 0)
-def VectorResourceRefAddName(builder, name): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
-def VectorResourceRefEnd(builder): return builder.EndObject()
+def Start(builder): builder.StartObject(2)
+def VectorResourceRefStart(builder):
+    """This method is deprecated. Please switch to Start."""
+    return Start(builder)
+def AddResources(builder, resources): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(resources), 0)
+def VectorResourceRefAddResources(builder, resources):
+    """This method is deprecated. Please switch to AddResources."""
+    return AddResources(builder, resources)
+def AddName(builder, name): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+def VectorResourceRefAddName(builder, name):
+    """This method is deprecated. Please switch to AddName."""
+    return AddName(builder, name)
+def End(builder): return builder.EndObject()
+def VectorResourceRefEnd(builder):
+    """This method is deprecated. Please switch to End."""
+    return End(builder)

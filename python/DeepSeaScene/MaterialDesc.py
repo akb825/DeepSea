@@ -10,12 +10,16 @@ class MaterialDesc(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsMaterialDesc(cls, buf, offset):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = MaterialDesc()
         x.Init(buf, n + offset)
         return x
 
+    @classmethod
+    def GetRootAsMaterialDesc(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
     # MaterialDesc
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
@@ -52,8 +56,23 @@ class MaterialDesc(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         return o == 0
 
-def MaterialDescStart(builder): builder.StartObject(2)
-def MaterialDescAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
-def MaterialDescAddElements(builder, elements): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(elements), 0)
-def MaterialDescStartElementsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
-def MaterialDescEnd(builder): return builder.EndObject()
+def Start(builder): builder.StartObject(2)
+def MaterialDescStart(builder):
+    """This method is deprecated. Please switch to Start."""
+    return Start(builder)
+def AddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+def MaterialDescAddName(builder, name):
+    """This method is deprecated. Please switch to AddName."""
+    return AddName(builder, name)
+def AddElements(builder, elements): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(elements), 0)
+def MaterialDescAddElements(builder, elements):
+    """This method is deprecated. Please switch to AddElements."""
+    return AddElements(builder, elements)
+def StartElementsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+def MaterialDescStartElementsVector(builder, numElems):
+    """This method is deprecated. Please switch to Start."""
+    return StartElementsVector(builder, numElems)
+def End(builder): return builder.EndObject()
+def MaterialDescEnd(builder):
+    """This method is deprecated. Please switch to End."""
+    return End(builder)

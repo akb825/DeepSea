@@ -10,12 +10,16 @@ class VariableData(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsVariableData(cls, buf, offset):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = VariableData()
         x.Init(buf, n + offset)
         return x
 
+    @classmethod
+    def GetRootAsVariableData(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
     # VariableData
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
@@ -75,11 +79,35 @@ class VariableData(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(12))
         return o == 0
 
-def VariableDataStart(builder): builder.StartObject(5)
-def VariableDataAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
-def VariableDataAddType(builder, type): builder.PrependUint8Slot(1, type, 0)
-def VariableDataAddFirst(builder, first): builder.PrependUint32Slot(2, first, 0)
-def VariableDataAddCount(builder, count): builder.PrependUint32Slot(3, count, 0)
-def VariableDataAddData(builder, data): builder.PrependUOffsetTRelativeSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(data), 0)
-def VariableDataStartDataVector(builder, numElems): return builder.StartVector(1, numElems, 1)
-def VariableDataEnd(builder): return builder.EndObject()
+def Start(builder): builder.StartObject(5)
+def VariableDataStart(builder):
+    """This method is deprecated. Please switch to Start."""
+    return Start(builder)
+def AddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+def VariableDataAddName(builder, name):
+    """This method is deprecated. Please switch to AddName."""
+    return AddName(builder, name)
+def AddType(builder, type): builder.PrependUint8Slot(1, type, 0)
+def VariableDataAddType(builder, type):
+    """This method is deprecated. Please switch to AddType."""
+    return AddType(builder, type)
+def AddFirst(builder, first): builder.PrependUint32Slot(2, first, 0)
+def VariableDataAddFirst(builder, first):
+    """This method is deprecated. Please switch to AddFirst."""
+    return AddFirst(builder, first)
+def AddCount(builder, count): builder.PrependUint32Slot(3, count, 0)
+def VariableDataAddCount(builder, count):
+    """This method is deprecated. Please switch to AddCount."""
+    return AddCount(builder, count)
+def AddData(builder, data): builder.PrependUOffsetTRelativeSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(data), 0)
+def VariableDataAddData(builder, data):
+    """This method is deprecated. Please switch to AddData."""
+    return AddData(builder, data)
+def StartDataVector(builder, numElems): return builder.StartVector(1, numElems, 1)
+def VariableDataStartDataVector(builder, numElems):
+    """This method is deprecated. Please switch to Start."""
+    return StartDataVector(builder, numElems)
+def End(builder): return builder.EndObject()
+def VariableDataEnd(builder):
+    """This method is deprecated. Please switch to End."""
+    return End(builder)

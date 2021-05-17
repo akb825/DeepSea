@@ -10,12 +10,16 @@ class ClearColorInt(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsClearColorInt(cls, buf, offset):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = ClearColorInt()
         x.Init(buf, n + offset)
         return x
 
+    @classmethod
+    def GetRootAsClearColorInt(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
     # ClearColorInt
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
@@ -48,9 +52,27 @@ class ClearColorInt(object):
             return self._tab.Get(flatbuffers.number_types.Int32Flags, o + self._tab.Pos)
         return 0
 
-def ClearColorIntStart(builder): builder.StartObject(4)
-def ClearColorIntAddRed(builder, red): builder.PrependInt32Slot(0, red, 0)
-def ClearColorIntAddGreen(builder, green): builder.PrependInt32Slot(1, green, 0)
-def ClearColorIntAddBlue(builder, blue): builder.PrependInt32Slot(2, blue, 0)
-def ClearColorIntAddAlpha(builder, alpha): builder.PrependInt32Slot(3, alpha, 0)
-def ClearColorIntEnd(builder): return builder.EndObject()
+def Start(builder): builder.StartObject(4)
+def ClearColorIntStart(builder):
+    """This method is deprecated. Please switch to Start."""
+    return Start(builder)
+def AddRed(builder, red): builder.PrependInt32Slot(0, red, 0)
+def ClearColorIntAddRed(builder, red):
+    """This method is deprecated. Please switch to AddRed."""
+    return AddRed(builder, red)
+def AddGreen(builder, green): builder.PrependInt32Slot(1, green, 0)
+def ClearColorIntAddGreen(builder, green):
+    """This method is deprecated. Please switch to AddGreen."""
+    return AddGreen(builder, green)
+def AddBlue(builder, blue): builder.PrependInt32Slot(2, blue, 0)
+def ClearColorIntAddBlue(builder, blue):
+    """This method is deprecated. Please switch to AddBlue."""
+    return AddBlue(builder, blue)
+def AddAlpha(builder, alpha): builder.PrependInt32Slot(3, alpha, 0)
+def ClearColorIntAddAlpha(builder, alpha):
+    """This method is deprecated. Please switch to AddAlpha."""
+    return AddAlpha(builder, alpha)
+def End(builder): return builder.EndObject()
+def ClearColorIntEnd(builder):
+    """This method is deprecated. Please switch to End."""
+    return End(builder)

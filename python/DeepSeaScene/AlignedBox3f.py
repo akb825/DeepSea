@@ -9,6 +9,10 @@ np = import_numpy()
 class AlignedBox3f(object):
     __slots__ = ['_tab']
 
+    @classmethod
+    def SizeOf(cls):
+        return 24
+
     # AlignedBox3f
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)

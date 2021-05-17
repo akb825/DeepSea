@@ -10,12 +10,16 @@ class Material(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsMaterial(cls, buf, offset):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = Material()
         x.Init(buf, n + offset)
         return x
 
+    @classmethod
+    def GetRootAsMaterial(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
     # Material
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
@@ -44,8 +48,23 @@ class Material(object):
             return obj
         return None
 
-def MaterialStart(builder): builder.StartObject(3)
-def MaterialAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
-def MaterialAddValueType(builder, valueType): builder.PrependUint8Slot(1, valueType, 0)
-def MaterialAddValue(builder, value): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(value), 0)
-def MaterialEnd(builder): return builder.EndObject()
+def Start(builder): builder.StartObject(3)
+def MaterialStart(builder):
+    """This method is deprecated. Please switch to Start."""
+    return Start(builder)
+def AddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+def MaterialAddName(builder, name):
+    """This method is deprecated. Please switch to AddName."""
+    return AddName(builder, name)
+def AddValueType(builder, valueType): builder.PrependUint8Slot(1, valueType, 0)
+def MaterialAddValueType(builder, valueType):
+    """This method is deprecated. Please switch to AddValueType."""
+    return AddValueType(builder, valueType)
+def AddValue(builder, value): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(value), 0)
+def MaterialAddValue(builder, value):
+    """This method is deprecated. Please switch to AddValue."""
+    return AddValue(builder, value)
+def End(builder): return builder.EndObject()
+def MaterialEnd(builder):
+    """This method is deprecated. Please switch to End."""
+    return End(builder)

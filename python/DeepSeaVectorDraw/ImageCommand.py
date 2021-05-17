@@ -10,12 +10,16 @@ class ImageCommand(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsImageCommand(cls, buf, offset):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = ImageCommand()
         x.Init(buf, n + offset)
         return x
 
+    @classmethod
+    def GetRootAsImageCommand(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
     # ImageCommand
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
@@ -67,10 +71,31 @@ class ImageCommand(object):
             return obj
         return None
 
-def ImageCommandStart(builder): builder.StartObject(5)
-def ImageCommandAddImage(builder, image): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(image), 0)
-def ImageCommandAddUpperLeft(builder, upperLeft): builder.PrependStructSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(upperLeft), 0)
-def ImageCommandAddLowerRight(builder, lowerRight): builder.PrependStructSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(lowerRight), 0)
-def ImageCommandAddOpacity(builder, opacity): builder.PrependFloat32Slot(3, opacity, 0.0)
-def ImageCommandAddTransform(builder, transform): builder.PrependStructSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(transform), 0)
-def ImageCommandEnd(builder): return builder.EndObject()
+def Start(builder): builder.StartObject(5)
+def ImageCommandStart(builder):
+    """This method is deprecated. Please switch to Start."""
+    return Start(builder)
+def AddImage(builder, image): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(image), 0)
+def ImageCommandAddImage(builder, image):
+    """This method is deprecated. Please switch to AddImage."""
+    return AddImage(builder, image)
+def AddUpperLeft(builder, upperLeft): builder.PrependStructSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(upperLeft), 0)
+def ImageCommandAddUpperLeft(builder, upperLeft):
+    """This method is deprecated. Please switch to AddUpperLeft."""
+    return AddUpperLeft(builder, upperLeft)
+def AddLowerRight(builder, lowerRight): builder.PrependStructSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(lowerRight), 0)
+def ImageCommandAddLowerRight(builder, lowerRight):
+    """This method is deprecated. Please switch to AddLowerRight."""
+    return AddLowerRight(builder, lowerRight)
+def AddOpacity(builder, opacity): builder.PrependFloat32Slot(3, opacity, 0.0)
+def ImageCommandAddOpacity(builder, opacity):
+    """This method is deprecated. Please switch to AddOpacity."""
+    return AddOpacity(builder, opacity)
+def AddTransform(builder, transform): builder.PrependStructSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(transform), 0)
+def ImageCommandAddTransform(builder, transform):
+    """This method is deprecated. Please switch to AddTransform."""
+    return AddTransform(builder, transform)
+def End(builder): return builder.EndObject()
+def ImageCommandEnd(builder):
+    """This method is deprecated. Please switch to End."""
+    return End(builder)

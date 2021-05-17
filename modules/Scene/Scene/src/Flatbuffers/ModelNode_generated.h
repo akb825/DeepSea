@@ -177,7 +177,6 @@ struct DrawRangeBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  DrawRangeBuilder &operator=(const DrawRangeBuilder &);
   flatbuffers::Offset<DrawRange> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<DrawRange>(end);
@@ -257,7 +256,6 @@ struct DrawIndexedRangeBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  DrawIndexedRangeBuilder &operator=(const DrawIndexedRangeBuilder &);
   flatbuffers::Offset<DrawIndexedRange> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<DrawIndexedRange>(end);
@@ -331,7 +329,6 @@ struct ModelDrawRangeBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  ModelDrawRangeBuilder &operator=(const ModelDrawRangeBuilder &);
   flatbuffers::Offset<ModelDrawRange> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<ModelDrawRange>(end);
@@ -439,7 +436,6 @@ struct ModelInfoBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  ModelInfoBuilder &operator=(const ModelInfoBuilder &);
   flatbuffers::Offset<ModelInfo> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<ModelInfo>(end);
@@ -555,7 +551,6 @@ struct ModelNodeBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  ModelNodeBuilder &operator=(const ModelNodeBuilder &);
   flatbuffers::Offset<ModelNode> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<ModelNode>(end);

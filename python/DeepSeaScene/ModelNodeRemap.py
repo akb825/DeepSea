@@ -10,12 +10,16 @@ class ModelNodeRemap(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsModelNodeRemap(cls, buf, offset):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = ModelNodeRemap()
         x.Init(buf, n + offset)
         return x
 
+    @classmethod
+    def GetRootAsModelNodeRemap(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
     # ModelNodeRemap
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
@@ -52,8 +56,23 @@ class ModelNodeRemap(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         return o == 0
 
-def ModelNodeRemapStart(builder): builder.StartObject(2)
-def ModelNodeRemapAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
-def ModelNodeRemapAddMaterialRemaps(builder, materialRemaps): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(materialRemaps), 0)
-def ModelNodeRemapStartMaterialRemapsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
-def ModelNodeRemapEnd(builder): return builder.EndObject()
+def Start(builder): builder.StartObject(2)
+def ModelNodeRemapStart(builder):
+    """This method is deprecated. Please switch to Start."""
+    return Start(builder)
+def AddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+def ModelNodeRemapAddName(builder, name):
+    """This method is deprecated. Please switch to AddName."""
+    return AddName(builder, name)
+def AddMaterialRemaps(builder, materialRemaps): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(materialRemaps), 0)
+def ModelNodeRemapAddMaterialRemaps(builder, materialRemaps):
+    """This method is deprecated. Please switch to AddMaterialRemaps."""
+    return AddMaterialRemaps(builder, materialRemaps)
+def StartMaterialRemapsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+def ModelNodeRemapStartMaterialRemapsVector(builder, numElems):
+    """This method is deprecated. Please switch to Start."""
+    return StartMaterialRemapsVector(builder, numElems)
+def End(builder): return builder.EndObject()
+def ModelNodeRemapEnd(builder):
+    """This method is deprecated. Please switch to End."""
+    return End(builder)

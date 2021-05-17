@@ -38,7 +38,6 @@ struct InstanceTransformDataBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  InstanceTransformDataBuilder &operator=(const InstanceTransformDataBuilder &);
   flatbuffers::Offset<InstanceTransformData> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<InstanceTransformData>(end);

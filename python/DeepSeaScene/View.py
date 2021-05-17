@@ -10,12 +10,16 @@ class View(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsView(cls, buf, offset):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = View()
         x.Init(buf, n + offset)
         return x
 
+    @classmethod
+    def GetRootAsView(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
     # View
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
@@ -70,9 +74,27 @@ class View(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         return o == 0
 
-def ViewStart(builder): builder.StartObject(2)
-def ViewAddSurfaces(builder, surfaces): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(surfaces), 0)
-def ViewStartSurfacesVector(builder, numElems): return builder.StartVector(4, numElems, 4)
-def ViewAddFramebuffers(builder, framebuffers): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(framebuffers), 0)
-def ViewStartFramebuffersVector(builder, numElems): return builder.StartVector(4, numElems, 4)
-def ViewEnd(builder): return builder.EndObject()
+def Start(builder): builder.StartObject(2)
+def ViewStart(builder):
+    """This method is deprecated. Please switch to Start."""
+    return Start(builder)
+def AddSurfaces(builder, surfaces): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(surfaces), 0)
+def ViewAddSurfaces(builder, surfaces):
+    """This method is deprecated. Please switch to AddSurfaces."""
+    return AddSurfaces(builder, surfaces)
+def StartSurfacesVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+def ViewStartSurfacesVector(builder, numElems):
+    """This method is deprecated. Please switch to Start."""
+    return StartSurfacesVector(builder, numElems)
+def AddFramebuffers(builder, framebuffers): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(framebuffers), 0)
+def ViewAddFramebuffers(builder, framebuffers):
+    """This method is deprecated. Please switch to AddFramebuffers."""
+    return AddFramebuffers(builder, framebuffers)
+def StartFramebuffersVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+def ViewStartFramebuffersVector(builder, numElems):
+    """This method is deprecated. Please switch to Start."""
+    return StartFramebuffersVector(builder, numElems)
+def End(builder): return builder.EndObject()
+def ViewEnd(builder):
+    """This method is deprecated. Please switch to End."""
+    return End(builder)

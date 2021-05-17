@@ -63,7 +63,6 @@ struct VectorResourcesBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  VectorResourcesBuilder &operator=(const VectorResourcesBuilder &);
   flatbuffers::Offset<VectorResources> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<VectorResources>(end);

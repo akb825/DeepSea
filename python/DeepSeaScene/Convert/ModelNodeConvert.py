@@ -20,18 +20,17 @@ from subprocess import Popen, PIPE
 
 import flatbuffers
 from .SceneResourcesConvert import convertSceneResources, readVertexAttrib
-from ..DrawIndexedRange import *
-from ..DrawRange import *
-from ..FormatDecoration import *
-from ..ModelDrawRange import *
-from ..ModelDrawRangeUnion import *
-from ..ModelInfo import *
-from ..ModelNode import *
-from ..OrientedBox3f import *
-from ..PrimitiveType import *
-from ..Vector2f import *
-from ..VertexElementFormat import *
-from ..VertexFormat import *
+from .. import DrawIndexedRange
+from .. import DrawRange
+from ..FormatDecoration import FormatDecoration
+from .. import ModelDrawRange
+from ..ModelDrawRangeUnion import ModelDrawRangeUnion
+from .. import ModelInfo
+from .. import ModelNode
+from ..OrientedBox3f import CreateOrientedBox3f
+from ..PrimitiveType import PrimitiveType
+from ..Vector2f import CreateVector2f
+from ..VertexElementFormat import VertexElementFormat
 
 class Object:
 	pass
@@ -739,52 +738,52 @@ def convertModelNode(convertContext, data):
 		drawRangesOffsets = []
 		for drawRange in drawRanges:
 			if drawRange.rangeType == ModelDrawRangeUnion.DrawIndexedRange:
-				DrawIndexedRangeStart(builder)
-				DrawIndexedRangeAddIndexCount(builder, drawRange.indexCount)
-				DrawIndexedRangeAddInstanceCount(builder, drawRange.instanceCount)
-				DrawIndexedRangeAddFirstIndex(builder, drawRange.firstIndex)
-				DrawIndexedRangeAddVertexOffset(builder, drawRange.vertexOffset)
-				DrawIndexedRangeAddFirstInstance(builder, drawRange.firstInstance)
-				drawRangeOffset = DrawIndexedRangeEnd(builder)
+				DrawIndexedRange.Start(builder)
+				DrawIndexedRange.AddIndexCount(builder, drawRange.indexCount)
+				DrawIndexedRange.AddInstanceCount(builder, drawRange.instanceCount)
+				DrawIndexedRange.AddFirstIndex(builder, drawRange.firstIndex)
+				DrawIndexedRange.AddVertexOffset(builder, drawRange.vertexOffset)
+				DrawIndexedRange.AddFirstInstance(builder, drawRange.firstInstance)
+				drawRangeOffset = DrawIndexedRange.End(builder)
 			else:
-				DrawRangeStart(builder)
-				DrawRangeAddVertexCount(builder, drawRange.vertexCount)
-				DrawRangeAddInstanceCount(builder, drawRange.instanceCount)
-				DrawRangeAddFirstVertex(builder, drawRange.firstVertex)
-				DrawRangeAddFirstInstance(builder, drawRange.firstInstance)
-				drawRangeOffset = DrawRangeEnd(builder)
+				DrawRange.Start(builder)
+				DrawRange.AddVertexCount(builder, drawRange.vertexCount)
+				DrawRange.AddInstanceCount(builder, drawRange.instanceCount)
+				DrawRange.AddFirstVertex(builder, drawRange.firstVertex)
+				DrawRange.AddFirstInstance(builder, drawRange.firstInstance)
+				drawRangeOffset = DrawRange.End(builder)
 
-			ModelDrawRangeStart(builder)
-			ModelDrawRangeAddDrawRangeType(builder, drawRange.rangeType)
-			ModelDrawRangeAddDrawRange(builder, drawRangeOffset)
-			drawRangesOffsets.append(ModelDrawRangeEnd(builder))
+			ModelDrawRange.Start(builder)
+			ModelDrawRange.AddDrawRangeType(builder, drawRange.rangeType)
+			ModelDrawRange.AddDrawRange(builder, drawRangeOffset)
+			drawRangesOffsets.append(ModelDrawRange.End(builder))
 
-		ModelInfoStartDrawRangesVector(builder, len(drawRangesOffsets))
+		ModelInfo.StartDrawRangesVector(builder, len(drawRangesOffsets))
 		for offset in reversed(drawRangesOffsets):
 			builder.PrependUOffsetTRelative(offset)
-		drawRangesOffset = builder.EndVector(len(drawRangesOffsets))
+		drawRangesOffset = builder.EndVector()
 
 		if model.modelList:
 			modelListOffset = builder.CreateString(str(model.modelList))
 		else:
 			modelListOffset = 0
 
-		ModelInfoStart(builder)
-		ModelInfoAddName(builder, modelNameOffset)
-		ModelInfoAddShader(builder, shaderOffset)
-		ModelInfoAddMaterial(builder, materialOffset)
-		ModelInfoAddGeometry(builder, geometryOffset)
-		ModelInfoAddDistanceRange(builder, CreateVector2f(builder, model.distanceRange[0],
+		ModelInfo.Start(builder)
+		ModelInfo.AddName(builder, modelNameOffset)
+		ModelInfo.AddShader(builder, shaderOffset)
+		ModelInfo.AddMaterial(builder, materialOffset)
+		ModelInfo.AddGeometry(builder, geometryOffset)
+		ModelInfo.AddDistanceRange(builder, CreateVector2f(builder, model.distanceRange[0],
 			model.distanceRange[1]))
-		ModelInfoAddDrawRanges(builder, drawRangesOffset)
-		ModelInfoAddPrimitiveType(builder, model.primitiveType)
-		ModelInfoAddModelList(builder, modelListOffset)
-		modelOffsets.append(ModelInfoEnd(builder))
+		ModelInfo.AddDrawRanges(builder, drawRangesOffset)
+		ModelInfo.AddPrimitiveType(builder, model.primitiveType)
+		ModelInfo.AddModelList(builder, modelListOffset)
+		modelOffsets.append(ModelInfo.End(builder))
 
-	ModelNodeStartModelsVector(builder, len(modelOffsets))
+	ModelNode.StartModelsVector(builder, len(modelOffsets))
 	for offset in reversed(modelOffsets):
 		builder.PrependUOffsetTRelative(offset)
-	modelsOffset = builder.EndVector(len(modelOffsets))
+	modelsOffset = builder.EndVector()
 
 	if extraItemLists:
 		extraItemListOffsets = []
@@ -794,17 +793,17 @@ def convertModelNode(convertContext, data):
 		except (TypeError, ValueError):
 			raise Exception('ModelNode "extraItemLists" must be an array of strings.')
 
-		ModelNodeStartExtraItemListsVector(builder, len(extraItemListOffsets))
+		ModelNode.StartExtraItemListsVector(builder, len(extraItemListOffsets))
 		for offset in reversed(extraItemListOffsets):
 			builder.PrependUOffsetTRelative(offset)
-		extraItemListsOffset = builder.EndVector(len(extraItemListOffsets))
+		extraItemListsOffset = builder.EndVector()
 	else:
 		extraItemListsOffset = 0
 
-	ModelNodeStart(builder)
-	ModelNodeAddEmbeddedResources(builder, embeddedResourcesOffset)
-	ModelNodeAddModels(builder, modelsOffset)
-	ModelNodeAddExtraItemLists(builder, extraItemListsOffset)
+	ModelNode.Start(builder)
+	ModelNode.AddEmbeddedResources(builder, embeddedResourcesOffset)
+	ModelNode.AddModels(builder, modelsOffset)
+	ModelNode.AddExtraItemLists(builder, extraItemListsOffset)
 
 	if modelBounds:
 		center = []
@@ -816,7 +815,7 @@ def convertModelNode(convertContext, data):
 			center[0], center[1], center[2], halfExtents[0], halfExtents[1], halfExtents[2])
 	else:
 		boundsOffset = 0
-	ModelNodeAddBounds(builder, boundsOffset)
+	ModelNode.AddBounds(builder, boundsOffset)
 
-	builder.Finish(ModelNodeEnd(builder))
+	builder.Finish(ModelNode.End(builder))
 	return builder.Output()

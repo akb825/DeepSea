@@ -10,12 +10,16 @@ class DeferredLightResolve(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsDeferredLightResolve(cls, buf, offset):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = DeferredLightResolve()
         x.Init(buf, n + offset)
         return x
 
+    @classmethod
+    def GetRootAsDeferredLightResolve(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
     # DeferredLightResolve
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
@@ -90,15 +94,51 @@ class DeferredLightResolve(object):
             return self._tab.Get(flatbuffers.number_types.Float32Flags, o + self._tab.Pos)
         return 0.0
 
-def DeferredLightResolveStart(builder): builder.StartObject(10)
-def DeferredLightResolveAddLightSet(builder, lightSet): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(lightSet), 0)
-def DeferredLightResolveAddAmbientShader(builder, ambientShader): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(ambientShader), 0)
-def DeferredLightResolveAddAmbientMaterial(builder, ambientMaterial): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(ambientMaterial), 0)
-def DeferredLightResolveAddDirectionalShader(builder, directionalShader): builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(directionalShader), 0)
-def DeferredLightResolveAddDirectionalMaterial(builder, directionalMaterial): builder.PrependUOffsetTRelativeSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(directionalMaterial), 0)
-def DeferredLightResolveAddPointShader(builder, pointShader): builder.PrependUOffsetTRelativeSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(pointShader), 0)
-def DeferredLightResolveAddPointMaterial(builder, pointMaterial): builder.PrependUOffsetTRelativeSlot(6, flatbuffers.number_types.UOffsetTFlags.py_type(pointMaterial), 0)
-def DeferredLightResolveAddSpotShader(builder, spotShader): builder.PrependUOffsetTRelativeSlot(7, flatbuffers.number_types.UOffsetTFlags.py_type(spotShader), 0)
-def DeferredLightResolveAddSpotMaterial(builder, spotMaterial): builder.PrependUOffsetTRelativeSlot(8, flatbuffers.number_types.UOffsetTFlags.py_type(spotMaterial), 0)
-def DeferredLightResolveAddIntensityThreshold(builder, intensityThreshold): builder.PrependFloat32Slot(9, intensityThreshold, 0.0)
-def DeferredLightResolveEnd(builder): return builder.EndObject()
+def Start(builder): builder.StartObject(10)
+def DeferredLightResolveStart(builder):
+    """This method is deprecated. Please switch to Start."""
+    return Start(builder)
+def AddLightSet(builder, lightSet): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(lightSet), 0)
+def DeferredLightResolveAddLightSet(builder, lightSet):
+    """This method is deprecated. Please switch to AddLightSet."""
+    return AddLightSet(builder, lightSet)
+def AddAmbientShader(builder, ambientShader): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(ambientShader), 0)
+def DeferredLightResolveAddAmbientShader(builder, ambientShader):
+    """This method is deprecated. Please switch to AddAmbientShader."""
+    return AddAmbientShader(builder, ambientShader)
+def AddAmbientMaterial(builder, ambientMaterial): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(ambientMaterial), 0)
+def DeferredLightResolveAddAmbientMaterial(builder, ambientMaterial):
+    """This method is deprecated. Please switch to AddAmbientMaterial."""
+    return AddAmbientMaterial(builder, ambientMaterial)
+def AddDirectionalShader(builder, directionalShader): builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(directionalShader), 0)
+def DeferredLightResolveAddDirectionalShader(builder, directionalShader):
+    """This method is deprecated. Please switch to AddDirectionalShader."""
+    return AddDirectionalShader(builder, directionalShader)
+def AddDirectionalMaterial(builder, directionalMaterial): builder.PrependUOffsetTRelativeSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(directionalMaterial), 0)
+def DeferredLightResolveAddDirectionalMaterial(builder, directionalMaterial):
+    """This method is deprecated. Please switch to AddDirectionalMaterial."""
+    return AddDirectionalMaterial(builder, directionalMaterial)
+def AddPointShader(builder, pointShader): builder.PrependUOffsetTRelativeSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(pointShader), 0)
+def DeferredLightResolveAddPointShader(builder, pointShader):
+    """This method is deprecated. Please switch to AddPointShader."""
+    return AddPointShader(builder, pointShader)
+def AddPointMaterial(builder, pointMaterial): builder.PrependUOffsetTRelativeSlot(6, flatbuffers.number_types.UOffsetTFlags.py_type(pointMaterial), 0)
+def DeferredLightResolveAddPointMaterial(builder, pointMaterial):
+    """This method is deprecated. Please switch to AddPointMaterial."""
+    return AddPointMaterial(builder, pointMaterial)
+def AddSpotShader(builder, spotShader): builder.PrependUOffsetTRelativeSlot(7, flatbuffers.number_types.UOffsetTFlags.py_type(spotShader), 0)
+def DeferredLightResolveAddSpotShader(builder, spotShader):
+    """This method is deprecated. Please switch to AddSpotShader."""
+    return AddSpotShader(builder, spotShader)
+def AddSpotMaterial(builder, spotMaterial): builder.PrependUOffsetTRelativeSlot(8, flatbuffers.number_types.UOffsetTFlags.py_type(spotMaterial), 0)
+def DeferredLightResolveAddSpotMaterial(builder, spotMaterial):
+    """This method is deprecated. Please switch to AddSpotMaterial."""
+    return AddSpotMaterial(builder, spotMaterial)
+def AddIntensityThreshold(builder, intensityThreshold): builder.PrependFloat32Slot(9, intensityThreshold, 0.0)
+def DeferredLightResolveAddIntensityThreshold(builder, intensityThreshold):
+    """This method is deprecated. Please switch to AddIntensityThreshold."""
+    return AddIntensityThreshold(builder, intensityThreshold)
+def End(builder): return builder.EndObject()
+def DeferredLightResolveEnd(builder):
+    """This method is deprecated. Please switch to End."""
+    return End(builder)

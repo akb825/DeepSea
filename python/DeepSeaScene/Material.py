@@ -10,12 +10,16 @@ class Material(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsMaterial(cls, buf, offset):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = Material()
         x.Init(buf, n + offset)
         return x
 
+    @classmethod
+    def GetRootAsMaterial(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
     # Material
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
@@ -59,9 +63,27 @@ class Material(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
         return o == 0
 
-def MaterialStart(builder): builder.StartObject(3)
-def MaterialAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
-def MaterialAddDescription(builder, description): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(description), 0)
-def MaterialAddData(builder, data): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(data), 0)
-def MaterialStartDataVector(builder, numElems): return builder.StartVector(4, numElems, 4)
-def MaterialEnd(builder): return builder.EndObject()
+def Start(builder): builder.StartObject(3)
+def MaterialStart(builder):
+    """This method is deprecated. Please switch to Start."""
+    return Start(builder)
+def AddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+def MaterialAddName(builder, name):
+    """This method is deprecated. Please switch to AddName."""
+    return AddName(builder, name)
+def AddDescription(builder, description): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(description), 0)
+def MaterialAddDescription(builder, description):
+    """This method is deprecated. Please switch to AddDescription."""
+    return AddDescription(builder, description)
+def AddData(builder, data): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(data), 0)
+def MaterialAddData(builder, data):
+    """This method is deprecated. Please switch to AddData."""
+    return AddData(builder, data)
+def StartDataVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+def MaterialStartDataVector(builder, numElems):
+    """This method is deprecated. Please switch to Start."""
+    return StartDataVector(builder, numElems)
+def End(builder): return builder.EndObject()
+def MaterialEnd(builder):
+    """This method is deprecated. Please switch to End."""
+    return End(builder)

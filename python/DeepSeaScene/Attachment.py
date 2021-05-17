@@ -10,12 +10,16 @@ class Attachment(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsAttachment(cls, buf, offset):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = Attachment()
         x.Init(buf, n + offset)
         return x
 
+    @classmethod
+    def GetRootAsAttachment(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
     # Attachment
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
@@ -65,11 +69,35 @@ class Attachment(object):
             return obj
         return None
 
-def AttachmentStart(builder): builder.StartObject(6)
-def AttachmentAddUsage(builder, usage): builder.PrependUint32Slot(0, usage, 0)
-def AttachmentAddFormat(builder, format): builder.PrependUint8Slot(1, format, 0)
-def AttachmentAddDecoration(builder, decoration): builder.PrependUint8Slot(2, decoration, 0)
-def AttachmentAddSamples(builder, samples): builder.PrependUint32Slot(3, samples, 0)
-def AttachmentAddClearValueType(builder, clearValueType): builder.PrependUint8Slot(4, clearValueType, 0)
-def AttachmentAddClearValue(builder, clearValue): builder.PrependUOffsetTRelativeSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(clearValue), 0)
-def AttachmentEnd(builder): return builder.EndObject()
+def Start(builder): builder.StartObject(6)
+def AttachmentStart(builder):
+    """This method is deprecated. Please switch to Start."""
+    return Start(builder)
+def AddUsage(builder, usage): builder.PrependUint32Slot(0, usage, 0)
+def AttachmentAddUsage(builder, usage):
+    """This method is deprecated. Please switch to AddUsage."""
+    return AddUsage(builder, usage)
+def AddFormat(builder, format): builder.PrependUint8Slot(1, format, 0)
+def AttachmentAddFormat(builder, format):
+    """This method is deprecated. Please switch to AddFormat."""
+    return AddFormat(builder, format)
+def AddDecoration(builder, decoration): builder.PrependUint8Slot(2, decoration, 0)
+def AttachmentAddDecoration(builder, decoration):
+    """This method is deprecated. Please switch to AddDecoration."""
+    return AddDecoration(builder, decoration)
+def AddSamples(builder, samples): builder.PrependUint32Slot(3, samples, 0)
+def AttachmentAddSamples(builder, samples):
+    """This method is deprecated. Please switch to AddSamples."""
+    return AddSamples(builder, samples)
+def AddClearValueType(builder, clearValueType): builder.PrependUint8Slot(4, clearValueType, 0)
+def AttachmentAddClearValueType(builder, clearValueType):
+    """This method is deprecated. Please switch to AddClearValueType."""
+    return AddClearValueType(builder, clearValueType)
+def AddClearValue(builder, clearValue): builder.PrependUOffsetTRelativeSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(clearValue), 0)
+def AttachmentAddClearValue(builder, clearValue):
+    """This method is deprecated. Please switch to AddClearValue."""
+    return AddClearValue(builder, clearValue)
+def End(builder): return builder.EndObject()
+def AttachmentEnd(builder):
+    """This method is deprecated. Please switch to End."""
+    return End(builder)

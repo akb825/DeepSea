@@ -21,8 +21,11 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(1) Color FLATBUFFERS_FINAL_CLASS {
   uint8_t alpha_;
 
  public:
-  Color() {
-    memset(static_cast<void *>(this), 0, sizeof(Color));
+  Color()
+      : red_(0),
+        green_(0),
+        blue_(0),
+        alpha_(0) {
   }
   Color(uint8_t _red, uint8_t _green, uint8_t _blue, uint8_t _alpha)
       : red_(flatbuffers::EndianScalar(_red)),
@@ -81,7 +84,6 @@ struct VectorResourceRefBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  VectorResourceRefBuilder &operator=(const VectorResourceRefBuilder &);
   flatbuffers::Offset<VectorResourceRef> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<VectorResourceRef>(end);

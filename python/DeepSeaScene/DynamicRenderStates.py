@@ -10,12 +10,16 @@ class DynamicRenderStates(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsDynamicRenderStates(cls, buf, offset):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = DynamicRenderStates()
         x.Init(buf, n + offset)
         return x
 
+    @classmethod
+    def GetRootAsDynamicRenderStates(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
     # DynamicRenderStates
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
@@ -112,17 +116,59 @@ class DynamicRenderStates(object):
             return self._tab.Get(flatbuffers.number_types.Uint32Flags, o + self._tab.Pos)
         return 0
 
-def DynamicRenderStatesStart(builder): builder.StartObject(12)
-def DynamicRenderStatesAddLineWidth(builder, lineWidth): builder.PrependFloat32Slot(0, lineWidth, 0.0)
-def DynamicRenderStatesAddDepthBiasConstantFactor(builder, depthBiasConstantFactor): builder.PrependFloat32Slot(1, depthBiasConstantFactor, 0.0)
-def DynamicRenderStatesAddDepthBiasClamp(builder, depthBiasClamp): builder.PrependFloat32Slot(2, depthBiasClamp, 0.0)
-def DynamicRenderStatesAddDepthBiasSlopeFactor(builder, depthBiasSlopeFactor): builder.PrependFloat32Slot(3, depthBiasSlopeFactor, 0.0)
-def DynamicRenderStatesAddBlendConstants(builder, blendConstants): builder.PrependStructSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(blendConstants), 0)
-def DynamicRenderStatesAddDepthBounds(builder, depthBounds): builder.PrependStructSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(depthBounds), 0)
-def DynamicRenderStatesAddFrontStencilCompareMask(builder, frontStencilCompareMask): builder.PrependUint32Slot(6, frontStencilCompareMask, 0)
-def DynamicRenderStatesAddBackStencilCompareMask(builder, backStencilCompareMask): builder.PrependUint32Slot(7, backStencilCompareMask, 0)
-def DynamicRenderStatesAddFrontStencilWriteMask(builder, frontStencilWriteMask): builder.PrependUint32Slot(8, frontStencilWriteMask, 0)
-def DynamicRenderStatesAddBackStencilWriteMask(builder, backStencilWriteMask): builder.PrependUint32Slot(9, backStencilWriteMask, 0)
-def DynamicRenderStatesAddFrontStencilReference(builder, frontStencilReference): builder.PrependUint32Slot(10, frontStencilReference, 0)
-def DynamicRenderStatesAddBackStencilReference(builder, backStencilReference): builder.PrependUint32Slot(11, backStencilReference, 0)
-def DynamicRenderStatesEnd(builder): return builder.EndObject()
+def Start(builder): builder.StartObject(12)
+def DynamicRenderStatesStart(builder):
+    """This method is deprecated. Please switch to Start."""
+    return Start(builder)
+def AddLineWidth(builder, lineWidth): builder.PrependFloat32Slot(0, lineWidth, 0.0)
+def DynamicRenderStatesAddLineWidth(builder, lineWidth):
+    """This method is deprecated. Please switch to AddLineWidth."""
+    return AddLineWidth(builder, lineWidth)
+def AddDepthBiasConstantFactor(builder, depthBiasConstantFactor): builder.PrependFloat32Slot(1, depthBiasConstantFactor, 0.0)
+def DynamicRenderStatesAddDepthBiasConstantFactor(builder, depthBiasConstantFactor):
+    """This method is deprecated. Please switch to AddDepthBiasConstantFactor."""
+    return AddDepthBiasConstantFactor(builder, depthBiasConstantFactor)
+def AddDepthBiasClamp(builder, depthBiasClamp): builder.PrependFloat32Slot(2, depthBiasClamp, 0.0)
+def DynamicRenderStatesAddDepthBiasClamp(builder, depthBiasClamp):
+    """This method is deprecated. Please switch to AddDepthBiasClamp."""
+    return AddDepthBiasClamp(builder, depthBiasClamp)
+def AddDepthBiasSlopeFactor(builder, depthBiasSlopeFactor): builder.PrependFloat32Slot(3, depthBiasSlopeFactor, 0.0)
+def DynamicRenderStatesAddDepthBiasSlopeFactor(builder, depthBiasSlopeFactor):
+    """This method is deprecated. Please switch to AddDepthBiasSlopeFactor."""
+    return AddDepthBiasSlopeFactor(builder, depthBiasSlopeFactor)
+def AddBlendConstants(builder, blendConstants): builder.PrependStructSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(blendConstants), 0)
+def DynamicRenderStatesAddBlendConstants(builder, blendConstants):
+    """This method is deprecated. Please switch to AddBlendConstants."""
+    return AddBlendConstants(builder, blendConstants)
+def AddDepthBounds(builder, depthBounds): builder.PrependStructSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(depthBounds), 0)
+def DynamicRenderStatesAddDepthBounds(builder, depthBounds):
+    """This method is deprecated. Please switch to AddDepthBounds."""
+    return AddDepthBounds(builder, depthBounds)
+def AddFrontStencilCompareMask(builder, frontStencilCompareMask): builder.PrependUint32Slot(6, frontStencilCompareMask, 0)
+def DynamicRenderStatesAddFrontStencilCompareMask(builder, frontStencilCompareMask):
+    """This method is deprecated. Please switch to AddFrontStencilCompareMask."""
+    return AddFrontStencilCompareMask(builder, frontStencilCompareMask)
+def AddBackStencilCompareMask(builder, backStencilCompareMask): builder.PrependUint32Slot(7, backStencilCompareMask, 0)
+def DynamicRenderStatesAddBackStencilCompareMask(builder, backStencilCompareMask):
+    """This method is deprecated. Please switch to AddBackStencilCompareMask."""
+    return AddBackStencilCompareMask(builder, backStencilCompareMask)
+def AddFrontStencilWriteMask(builder, frontStencilWriteMask): builder.PrependUint32Slot(8, frontStencilWriteMask, 0)
+def DynamicRenderStatesAddFrontStencilWriteMask(builder, frontStencilWriteMask):
+    """This method is deprecated. Please switch to AddFrontStencilWriteMask."""
+    return AddFrontStencilWriteMask(builder, frontStencilWriteMask)
+def AddBackStencilWriteMask(builder, backStencilWriteMask): builder.PrependUint32Slot(9, backStencilWriteMask, 0)
+def DynamicRenderStatesAddBackStencilWriteMask(builder, backStencilWriteMask):
+    """This method is deprecated. Please switch to AddBackStencilWriteMask."""
+    return AddBackStencilWriteMask(builder, backStencilWriteMask)
+def AddFrontStencilReference(builder, frontStencilReference): builder.PrependUint32Slot(10, frontStencilReference, 0)
+def DynamicRenderStatesAddFrontStencilReference(builder, frontStencilReference):
+    """This method is deprecated. Please switch to AddFrontStencilReference."""
+    return AddFrontStencilReference(builder, frontStencilReference)
+def AddBackStencilReference(builder, backStencilReference): builder.PrependUint32Slot(11, backStencilReference, 0)
+def DynamicRenderStatesAddBackStencilReference(builder, backStencilReference):
+    """This method is deprecated. Please switch to AddBackStencilReference."""
+    return AddBackStencilReference(builder, backStencilReference)
+def End(builder): return builder.EndObject()
+def DynamicRenderStatesEnd(builder):
+    """This method is deprecated. Please switch to End."""
+    return End(builder)

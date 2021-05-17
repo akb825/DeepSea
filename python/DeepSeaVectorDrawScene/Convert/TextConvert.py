@@ -1,4 +1,4 @@
-# Copyright 2020 Aaron Barany
+# Copyright 2020-2021 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,12 +18,13 @@ import sys
 import xml.dom
 from xml.dom import minidom
 
+from ..Color import CreateColor
+from .. import SceneText
+from .. import SceneTextStyle
+from .. import VectorResourceRef
+
 from DeepSeaVectorDraw.Convert.SVG import readText, Materials
 from DeepSeaVectorDraw.TextPosition import TextPosition
-from ..Color import *
-from ..SceneText import *
-from ..SceneTextStyle import *
-from ..VectorResourceRef import *
 
 def createColor(colorMaterials, style, builder):
 	color = colorMaterials.get(style.material)
@@ -80,10 +81,10 @@ def convertText(convertContext, data):
 	vectorResourcesOffset = builder.CreateString(vectorResources)
 	fontOffset = builder.CreateString(font.font)
 
-	VectorResourceRefStart(builder)
-	VectorResourceRefAddResources(builder, vectorResourcesOffset)
-	VectorResourceRefAddName(builder, fontOffset)
-	vectorResourceRefOffset = VectorResourceRefEnd(builder)
+	VectorResourceRef.Start(builder)
+	VectorResourceRef.AddResources(builder, vectorResourcesOffset)
+	VectorResourceRef.AddName(builder, fontOffset)
+	vectorResourceRefOffset = VectorResourceRef.End(builder)
 
 	textOffset = builder.CreateString(text)
 
@@ -91,15 +92,15 @@ def convertText(convertContext, data):
 	for textRange in ranges:
 		style = textRange.style
 
-		SceneTextStyleStart(builder)
-		SceneTextStyleAddStart(builder, textRange.start)
-		SceneTextStyleAddCount(builder, textRange.count)
-		SceneTextStyleAddSize(builder, style.font.size)
-		SceneTextStyleAddEmbolden(builder, style.font.embolden)
-		SceneTextStyleAddSlant(builder, style.font.slant)
-		SceneTextStyleAddOutlineWidth(builder, style.stroke.width if style.stroke else 0.0)
-		SceneTextStyleAddFuziness(builder, 1.0)
-		SceneTextStyleAddVerticalOffset(builder,
+		SceneTextStyle.Start(builder)
+		SceneTextStyle.AddStart(builder, textRange.start)
+		SceneTextStyle.AddCount(builder, textRange.count)
+		SceneTextStyle.AddSize(builder, style.font.size)
+		SceneTextStyle.AddEmbolden(builder, style.font.embolden)
+		SceneTextStyle.AddSlant(builder, style.font.slant)
+		SceneTextStyle.AddOutlineWidth(builder, style.stroke.width if style.stroke else 0.0)
+		SceneTextStyle.AddFuziness(builder, 1.0)
+		SceneTextStyle.AddVerticalOffset(builder,
 			textRange.position[1] if textRange.positionType == TextPosition.Offset else 0.0)
 
 		if style.fill:
@@ -107,24 +108,24 @@ def convertText(convertContext, data):
 		else:
 			colorOffset = 0
 
-		SceneTextStyleAddColor(builder, colorOffset)
+		SceneTextStyle.AddColor(builder, colorOffset)
 
 		if style.stroke:
 			colorOffset = createColor(colorMaterials, style.stroke, builder)
 		else:
 			colorOffset = 0
 
-		SceneTextStyleAddOutlineColor(builder, colorOffset)
-		rangeOffsets.append(SceneTextStyleEnd(builder))
+		SceneTextStyle.AddOutlineColor(builder, colorOffset)
+		rangeOffsets.append(SceneTextStyle.End(builder))
 
-	SceneTextStartStylesVector(builder, len(rangeOffsets))
+	SceneText.StartStylesVector(builder, len(rangeOffsets))
 	for offset in reversed(rangeOffsets):
 		builder.PrependUOffsetTRelative(offset)
-	stylesOffset = builder.EndVector(len(rangeOffsets))
+	stylesOffset = builder.EndVector()
 
-	SceneTextStart(builder)
-	SceneTextAddFont(builder, vectorResourceRefOffset)
-	SceneTextAddText(builder, textOffset)
-	SceneTextAddStyles(builder, stylesOffset)
-	builder.Finish(SceneTextEnd(builder))
+	SceneText.Start(builder)
+	SceneText.AddFont(builder, vectorResourceRefOffset)
+	SceneText.AddText(builder, textOffset)
+	SceneText.AddStyles(builder, stylesOffset)
+	builder.Finish(SceneText.End(builder))
 	return builder.Output()

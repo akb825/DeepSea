@@ -13,12 +13,14 @@
 # limitations under the License.
 
 import flatbuffers
+
+from .. import MaterialElement
+from .. import VectorShaders
+
 from DeepSeaScene.Convert.FileOrDataConvert import convertFileOrData, readDataOrPath
-from DeepSeaScene.MaterialBinding import *
-from DeepSeaScene.MaterialType import *
-from DeepSeaScene.VersionedShaderModule import *
-from ..MaterialElement import *
-from ..VectorShaders import *
+from DeepSeaScene.MaterialBinding import MaterialBinding
+from DeepSeaScene.MaterialType import MaterialType
+from DeepSeaScene import VersionedShaderModule
 
 class Object:
 	pass
@@ -157,16 +159,16 @@ def convertVectorShaders(convertContext, data):
 	for version, dataType, dataOffset in versionedModules:
 		versionOffset = builder.CreateString(version)
 
-		VersionedShaderModuleStart(builder)
-		VersionedShaderModuleAddVersion(builder, versionOffset)
-		VersionedShaderModuleAddDataType(builder, dataType)
-		VersionedShaderModuleAddData(builder, dataOffset)
-		modulesOffsets.append(VersionedShaderModuleEnd(builder))
+		VersionedShaderModule.Start(builder)
+		VersionedShaderModule.AddVersion(builder, versionOffset)
+		VersionedShaderModule.AddDataType(builder, dataType)
+		VersionedShaderModule.AddData(builder, dataOffset)
+		modulesOffsets.append(VersionedShaderModule.End(builder))
 
-	VectorShadersStartModulesVector(builder, len(modulesOffsets))
+	VectorShaders.StartModulesVector(builder, len(modulesOffsets))
 	for offset in reversed(modulesOffsets):
 		builder.PrependUOffsetTRelative(offset)
-	modulesOffset = builder.EndVector(len(modulesOffsets))
+	modulesOffset = builder.EndVector()
 
 	extraElementsOffsets = []
 	for element in extraElements:
@@ -174,18 +176,18 @@ def convertVectorShaders(convertContext, data):
 		shaderVariableGroupDescOffset = createOptionalString(builder,
 			element.shaderVariableGroupDesc)
 
-		MaterialElementStart(builder)
-		MaterialElementAddName(builder, elementNameOffset)
-		MaterialElementAddType(builder, element.type)
-		MaterialElementAddCount(builder, element.count)
-		MaterialElementAddBinding(builder, element.binding)
-		MaterialElementAddShaderVariableGroupDesc(builder, shaderVariableGroupDescOffset)
-		extraElementsOffsets.append(MaterialElementEnd(builder))
+		MaterialElement.Start(builder)
+		MaterialElement.AddName(builder, elementNameOffset)
+		MaterialElement.AddType(builder, element.type)
+		MaterialElement.AddCount(builder, element.count)
+		MaterialElement.AddBinding(builder, element.binding)
+		MaterialElement.AddShaderVariableGroupDesc(builder, shaderVariableGroupDescOffset)
+		extraElementsOffsets.append(MaterialElement.End(builder))
 
-	VectorShadersStartExtraElementsVector(builder, len(extraElementsOffsets))
+	VectorShaders.StartExtraElementsVector(builder, len(extraElementsOffsets))
 	for offset in reversed(extraElementsOffsets):
 		builder.PrependUOffsetTRelative(offset)
-	extraElementsOffset = builder.EndVector(len(extraElementsOffsets))
+	extraElementsOffset = builder.EndVector()
 
 	materialDescNameOffset = builder.CreateString(materialDescName)
 	fillColorOffset = createOptionalString(builder, fillColor)
@@ -198,18 +200,18 @@ def convertVectorShaders(convertContext, data):
 	textGradientOffset = createOptionalString(builder, textGradient)
 	textGradientOutlineOffset = createOptionalString(builder, textGradientOutline)
 
-	VectorShadersStart(builder)
-	VectorShadersAddModules(builder, modulesOffset)
-	VectorShadersAddExtraElements(builder, extraElementsOffset)
-	VectorShadersAddMaterialDesc(builder, materialDescNameOffset)
-	VectorShadersAddFillColor(builder, fillColorOffset)
-	VectorShadersAddFillLinearGradient(builder, fillLinearGradientOffset)
-	VectorShadersAddFillRadialGradient(builder, fillRadialGradientOffset)
-	VectorShadersAddLine(builder, lineOffset)
-	VectorShadersAddImage(builder, imageOffset)
-	VectorShadersAddTextColor(builder, textColorOffset)
-	VectorShadersAddTextColorOutline(builder, textColorOutlineOffset)
-	VectorShadersAddTextGradient(builder, textGradientOffset)
-	VectorShadersAddTextGradientOutline(builder, textGradientOutlineOffset)
-	builder.Finish(VectorShadersEnd(builder))
+	VectorShaders.Start(builder)
+	VectorShaders.AddModules(builder, modulesOffset)
+	VectorShaders.AddExtraElements(builder, extraElementsOffset)
+	VectorShaders.AddMaterialDesc(builder, materialDescNameOffset)
+	VectorShaders.AddFillColor(builder, fillColorOffset)
+	VectorShaders.AddFillLinearGradient(builder, fillLinearGradientOffset)
+	VectorShaders.AddFillRadialGradient(builder, fillRadialGradientOffset)
+	VectorShaders.AddLine(builder, lineOffset)
+	VectorShaders.AddImage(builder, imageOffset)
+	VectorShaders.AddTextColor(builder, textColorOffset)
+	VectorShaders.AddTextColorOutline(builder, textColorOutlineOffset)
+	VectorShaders.AddTextGradient(builder, textGradientOffset)
+	VectorShaders.AddTextGradientOutline(builder, textGradientOutlineOffset)
+	builder.Finish(VectorShaders.End(builder))
 	return builder.Output()

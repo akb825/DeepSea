@@ -10,12 +10,16 @@ class Surface(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsSurface(cls, buf, offset):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = Surface()
         x.Init(buf, n + offset)
         return x
 
+    @classmethod
+    def GetRootAsSurface(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
     # Surface
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
@@ -132,21 +136,75 @@ class Surface(object):
             return bool(self._tab.Get(flatbuffers.number_types.BoolFlags, o + self._tab.Pos))
         return False
 
-def SurfaceStart(builder): builder.StartObject(16)
-def SurfaceAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
-def SurfaceAddType(builder, type): builder.PrependUint8Slot(1, type, 0)
-def SurfaceAddUsage(builder, usage): builder.PrependUint32Slot(2, usage, 0)
-def SurfaceAddMemoryHints(builder, memoryHints): builder.PrependUint32Slot(3, memoryHints, 0)
-def SurfaceAddFormat(builder, format): builder.PrependUint8Slot(4, format, 0)
-def SurfaceAddDecoration(builder, decoration): builder.PrependUint8Slot(5, decoration, 0)
-def SurfaceAddDimension(builder, dimension): builder.PrependUint8Slot(6, dimension, 0)
-def SurfaceAddWidth(builder, width): builder.PrependUint32Slot(7, width, 0)
-def SurfaceAddWidthRatio(builder, widthRatio): builder.PrependFloat32Slot(8, widthRatio, 0.0)
-def SurfaceAddHeight(builder, height): builder.PrependUint32Slot(9, height, 0)
-def SurfaceAddHeightRatio(builder, heightRatio): builder.PrependFloat32Slot(10, heightRatio, 0.0)
-def SurfaceAddDepth(builder, depth): builder.PrependUint32Slot(11, depth, 0)
-def SurfaceAddMipLevels(builder, mipLevels): builder.PrependUint32Slot(12, mipLevels, 0)
-def SurfaceAddSamples(builder, samples): builder.PrependUint32Slot(13, samples, 0)
-def SurfaceAddResolve(builder, resolve): builder.PrependBoolSlot(14, resolve, 0)
-def SurfaceAddWindowFramebuffer(builder, windowFramebuffer): builder.PrependBoolSlot(15, windowFramebuffer, 0)
-def SurfaceEnd(builder): return builder.EndObject()
+def Start(builder): builder.StartObject(16)
+def SurfaceStart(builder):
+    """This method is deprecated. Please switch to Start."""
+    return Start(builder)
+def AddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+def SurfaceAddName(builder, name):
+    """This method is deprecated. Please switch to AddName."""
+    return AddName(builder, name)
+def AddType(builder, type): builder.PrependUint8Slot(1, type, 0)
+def SurfaceAddType(builder, type):
+    """This method is deprecated. Please switch to AddType."""
+    return AddType(builder, type)
+def AddUsage(builder, usage): builder.PrependUint32Slot(2, usage, 0)
+def SurfaceAddUsage(builder, usage):
+    """This method is deprecated. Please switch to AddUsage."""
+    return AddUsage(builder, usage)
+def AddMemoryHints(builder, memoryHints): builder.PrependUint32Slot(3, memoryHints, 0)
+def SurfaceAddMemoryHints(builder, memoryHints):
+    """This method is deprecated. Please switch to AddMemoryHints."""
+    return AddMemoryHints(builder, memoryHints)
+def AddFormat(builder, format): builder.PrependUint8Slot(4, format, 0)
+def SurfaceAddFormat(builder, format):
+    """This method is deprecated. Please switch to AddFormat."""
+    return AddFormat(builder, format)
+def AddDecoration(builder, decoration): builder.PrependUint8Slot(5, decoration, 0)
+def SurfaceAddDecoration(builder, decoration):
+    """This method is deprecated. Please switch to AddDecoration."""
+    return AddDecoration(builder, decoration)
+def AddDimension(builder, dimension): builder.PrependUint8Slot(6, dimension, 0)
+def SurfaceAddDimension(builder, dimension):
+    """This method is deprecated. Please switch to AddDimension."""
+    return AddDimension(builder, dimension)
+def AddWidth(builder, width): builder.PrependUint32Slot(7, width, 0)
+def SurfaceAddWidth(builder, width):
+    """This method is deprecated. Please switch to AddWidth."""
+    return AddWidth(builder, width)
+def AddWidthRatio(builder, widthRatio): builder.PrependFloat32Slot(8, widthRatio, 0.0)
+def SurfaceAddWidthRatio(builder, widthRatio):
+    """This method is deprecated. Please switch to AddWidthRatio."""
+    return AddWidthRatio(builder, widthRatio)
+def AddHeight(builder, height): builder.PrependUint32Slot(9, height, 0)
+def SurfaceAddHeight(builder, height):
+    """This method is deprecated. Please switch to AddHeight."""
+    return AddHeight(builder, height)
+def AddHeightRatio(builder, heightRatio): builder.PrependFloat32Slot(10, heightRatio, 0.0)
+def SurfaceAddHeightRatio(builder, heightRatio):
+    """This method is deprecated. Please switch to AddHeightRatio."""
+    return AddHeightRatio(builder, heightRatio)
+def AddDepth(builder, depth): builder.PrependUint32Slot(11, depth, 0)
+def SurfaceAddDepth(builder, depth):
+    """This method is deprecated. Please switch to AddDepth."""
+    return AddDepth(builder, depth)
+def AddMipLevels(builder, mipLevels): builder.PrependUint32Slot(12, mipLevels, 0)
+def SurfaceAddMipLevels(builder, mipLevels):
+    """This method is deprecated. Please switch to AddMipLevels."""
+    return AddMipLevels(builder, mipLevels)
+def AddSamples(builder, samples): builder.PrependUint32Slot(13, samples, 0)
+def SurfaceAddSamples(builder, samples):
+    """This method is deprecated. Please switch to AddSamples."""
+    return AddSamples(builder, samples)
+def AddResolve(builder, resolve): builder.PrependBoolSlot(14, resolve, 0)
+def SurfaceAddResolve(builder, resolve):
+    """This method is deprecated. Please switch to AddResolve."""
+    return AddResolve(builder, resolve)
+def AddWindowFramebuffer(builder, windowFramebuffer): builder.PrependBoolSlot(15, windowFramebuffer, 0)
+def SurfaceAddWindowFramebuffer(builder, windowFramebuffer):
+    """This method is deprecated. Please switch to AddWindowFramebuffer."""
+    return AddWindowFramebuffer(builder, windowFramebuffer)
+def End(builder): return builder.EndObject()
+def SurfaceEnd(builder):
+    """This method is deprecated. Please switch to End."""
+    return End(builder)

@@ -10,12 +10,16 @@ class VectorImage(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsVectorImage(cls, buf, offset):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = VectorImage()
         x.Init(buf, n + offset)
         return x
 
+    @classmethod
+    def GetRootAsVectorImage(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
     # VectorImage
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
@@ -89,13 +93,43 @@ class VectorImage(object):
             return bool(self._tab.Get(flatbuffers.number_types.BoolFlags, o + self._tab.Pos))
         return False
 
-def VectorImageStart(builder): builder.StartObject(7)
-def VectorImageAddImageType(builder, imageType): builder.PrependUint8Slot(0, imageType, 0)
-def VectorImageAddImage(builder, image): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(image), 0)
-def VectorImageAddTargetSize(builder, targetSize): builder.PrependStructSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(targetSize), 0)
-def VectorImageAddSharedMaterials(builder, sharedMaterials): builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(sharedMaterials), 0)
-def VectorImageAddVectorShaders(builder, vectorShaders): builder.PrependUOffsetTRelativeSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(vectorShaders), 0)
-def VectorImageAddResources(builder, resources): builder.PrependUOffsetTRelativeSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(resources), 0)
-def VectorImageStartResourcesVector(builder, numElems): return builder.StartVector(4, numElems, 4)
-def VectorImageAddSrgb(builder, srgb): builder.PrependBoolSlot(6, srgb, 0)
-def VectorImageEnd(builder): return builder.EndObject()
+def Start(builder): builder.StartObject(7)
+def VectorImageStart(builder):
+    """This method is deprecated. Please switch to Start."""
+    return Start(builder)
+def AddImageType(builder, imageType): builder.PrependUint8Slot(0, imageType, 0)
+def VectorImageAddImageType(builder, imageType):
+    """This method is deprecated. Please switch to AddImageType."""
+    return AddImageType(builder, imageType)
+def AddImage(builder, image): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(image), 0)
+def VectorImageAddImage(builder, image):
+    """This method is deprecated. Please switch to AddImage."""
+    return AddImage(builder, image)
+def AddTargetSize(builder, targetSize): builder.PrependStructSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(targetSize), 0)
+def VectorImageAddTargetSize(builder, targetSize):
+    """This method is deprecated. Please switch to AddTargetSize."""
+    return AddTargetSize(builder, targetSize)
+def AddSharedMaterials(builder, sharedMaterials): builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(sharedMaterials), 0)
+def VectorImageAddSharedMaterials(builder, sharedMaterials):
+    """This method is deprecated. Please switch to AddSharedMaterials."""
+    return AddSharedMaterials(builder, sharedMaterials)
+def AddVectorShaders(builder, vectorShaders): builder.PrependUOffsetTRelativeSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(vectorShaders), 0)
+def VectorImageAddVectorShaders(builder, vectorShaders):
+    """This method is deprecated. Please switch to AddVectorShaders."""
+    return AddVectorShaders(builder, vectorShaders)
+def AddResources(builder, resources): builder.PrependUOffsetTRelativeSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(resources), 0)
+def VectorImageAddResources(builder, resources):
+    """This method is deprecated. Please switch to AddResources."""
+    return AddResources(builder, resources)
+def StartResourcesVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+def VectorImageStartResourcesVector(builder, numElems):
+    """This method is deprecated. Please switch to Start."""
+    return StartResourcesVector(builder, numElems)
+def AddSrgb(builder, srgb): builder.PrependBoolSlot(6, srgb, 0)
+def VectorImageAddSrgb(builder, srgb):
+    """This method is deprecated. Please switch to AddSrgb."""
+    return AddSrgb(builder, srgb)
+def End(builder): return builder.EndObject()
+def VectorImageEnd(builder):
+    """This method is deprecated. Please switch to End."""
+    return End(builder)

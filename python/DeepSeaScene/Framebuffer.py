@@ -10,12 +10,16 @@ class Framebuffer(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsFramebuffer(cls, buf, offset):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = Framebuffer()
         x.Init(buf, n + offset)
         return x
 
+    @classmethod
+    def GetRootAsFramebuffer(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
     # Framebuffer
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
@@ -84,12 +88,39 @@ class Framebuffer(object):
             return obj
         return None
 
-def FramebufferStart(builder): builder.StartObject(6)
-def FramebufferAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
-def FramebufferAddSurfaces(builder, surfaces): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(surfaces), 0)
-def FramebufferStartSurfacesVector(builder, numElems): return builder.StartVector(4, numElems, 4)
-def FramebufferAddWidth(builder, width): builder.PrependFloat32Slot(2, width, 0.0)
-def FramebufferAddHeight(builder, height): builder.PrependFloat32Slot(3, height, 0.0)
-def FramebufferAddLayers(builder, layers): builder.PrependUint32Slot(4, layers, 0)
-def FramebufferAddViewport(builder, viewport): builder.PrependStructSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(viewport), 0)
-def FramebufferEnd(builder): return builder.EndObject()
+def Start(builder): builder.StartObject(6)
+def FramebufferStart(builder):
+    """This method is deprecated. Please switch to Start."""
+    return Start(builder)
+def AddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+def FramebufferAddName(builder, name):
+    """This method is deprecated. Please switch to AddName."""
+    return AddName(builder, name)
+def AddSurfaces(builder, surfaces): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(surfaces), 0)
+def FramebufferAddSurfaces(builder, surfaces):
+    """This method is deprecated. Please switch to AddSurfaces."""
+    return AddSurfaces(builder, surfaces)
+def StartSurfacesVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+def FramebufferStartSurfacesVector(builder, numElems):
+    """This method is deprecated. Please switch to Start."""
+    return StartSurfacesVector(builder, numElems)
+def AddWidth(builder, width): builder.PrependFloat32Slot(2, width, 0.0)
+def FramebufferAddWidth(builder, width):
+    """This method is deprecated. Please switch to AddWidth."""
+    return AddWidth(builder, width)
+def AddHeight(builder, height): builder.PrependFloat32Slot(3, height, 0.0)
+def FramebufferAddHeight(builder, height):
+    """This method is deprecated. Please switch to AddHeight."""
+    return AddHeight(builder, height)
+def AddLayers(builder, layers): builder.PrependUint32Slot(4, layers, 0)
+def FramebufferAddLayers(builder, layers):
+    """This method is deprecated. Please switch to AddLayers."""
+    return AddLayers(builder, layers)
+def AddViewport(builder, viewport): builder.PrependStructSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(viewport), 0)
+def FramebufferAddViewport(builder, viewport):
+    """This method is deprecated. Please switch to AddViewport."""
+    return AddViewport(builder, viewport)
+def End(builder): return builder.EndObject()
+def FramebufferEnd(builder):
+    """This method is deprecated. Please switch to End."""
+    return End(builder)

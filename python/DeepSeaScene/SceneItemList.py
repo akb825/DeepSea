@@ -10,12 +10,16 @@ class SceneItemList(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsSceneItemList(cls, buf, offset):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = SceneItemList()
         x.Init(buf, n + offset)
         return x
 
+    @classmethod
+    def GetRootAsSceneItemList(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
     # SceneItemList
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
@@ -61,9 +65,27 @@ class SceneItemList(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
         return o == 0
 
-def SceneItemListStart(builder): builder.StartObject(3)
-def SceneItemListAddType(builder, type): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(type), 0)
-def SceneItemListAddName(builder, name): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
-def SceneItemListAddData(builder, data): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(data), 0)
-def SceneItemListStartDataVector(builder, numElems): return builder.StartVector(1, numElems, 1)
-def SceneItemListEnd(builder): return builder.EndObject()
+def Start(builder): builder.StartObject(3)
+def SceneItemListStart(builder):
+    """This method is deprecated. Please switch to Start."""
+    return Start(builder)
+def AddType(builder, type): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(type), 0)
+def SceneItemListAddType(builder, type):
+    """This method is deprecated. Please switch to AddType."""
+    return AddType(builder, type)
+def AddName(builder, name): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+def SceneItemListAddName(builder, name):
+    """This method is deprecated. Please switch to AddName."""
+    return AddName(builder, name)
+def AddData(builder, data): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(data), 0)
+def SceneItemListAddData(builder, data):
+    """This method is deprecated. Please switch to AddData."""
+    return AddData(builder, data)
+def StartDataVector(builder, numElems): return builder.StartVector(1, numElems, 1)
+def SceneItemListStartDataVector(builder, numElems):
+    """This method is deprecated. Please switch to Start."""
+    return StartDataVector(builder, numElems)
+def End(builder): return builder.EndObject()
+def SceneItemListEnd(builder):
+    """This method is deprecated. Please switch to End."""
+    return End(builder)

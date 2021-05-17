@@ -10,12 +10,16 @@ class DirectionalLight(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsDirectionalLight(cls, buf, offset):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = DirectionalLight()
         x.Init(buf, n + offset)
         return x
 
+    @classmethod
+    def GetRootAsDirectionalLight(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
     # DirectionalLight
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
@@ -49,8 +53,23 @@ class DirectionalLight(object):
             return self._tab.Get(flatbuffers.number_types.Float32Flags, o + self._tab.Pos)
         return 0.0
 
-def DirectionalLightStart(builder): builder.StartObject(3)
-def DirectionalLightAddDirection(builder, direction): builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(direction), 0)
-def DirectionalLightAddColor(builder, color): builder.PrependStructSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(color), 0)
-def DirectionalLightAddIntensity(builder, intensity): builder.PrependFloat32Slot(2, intensity, 0.0)
-def DirectionalLightEnd(builder): return builder.EndObject()
+def Start(builder): builder.StartObject(3)
+def DirectionalLightStart(builder):
+    """This method is deprecated. Please switch to Start."""
+    return Start(builder)
+def AddDirection(builder, direction): builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(direction), 0)
+def DirectionalLightAddDirection(builder, direction):
+    """This method is deprecated. Please switch to AddDirection."""
+    return AddDirection(builder, direction)
+def AddColor(builder, color): builder.PrependStructSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(color), 0)
+def DirectionalLightAddColor(builder, color):
+    """This method is deprecated. Please switch to AddColor."""
+    return AddColor(builder, color)
+def AddIntensity(builder, intensity): builder.PrependFloat32Slot(2, intensity, 0.0)
+def DirectionalLightAddIntensity(builder, intensity):
+    """This method is deprecated. Please switch to AddIntensity."""
+    return AddIntensity(builder, intensity)
+def End(builder): return builder.EndObject()
+def DirectionalLightEnd(builder):
+    """This method is deprecated. Please switch to End."""
+    return End(builder)

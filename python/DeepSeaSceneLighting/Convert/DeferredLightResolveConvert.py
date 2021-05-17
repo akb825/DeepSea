@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import flatbuffers
-from ..DeferredLightResolve import *
+from .. import DeferredLightResolve
 
 def convertDeferredLightResolve(convertContext, data):
 	"""
@@ -98,15 +98,15 @@ def convertDeferredLightResolve(convertContext, data):
 		spotShaderOffset = 0
 		spotMaterialOffset = 0
 
-	DeferredLightResolveStart(builder)
-	DeferredLightResolveAddLightSet(builder, lightSetOffset)
-	DeferredLightResolveAddAmbientShader(builder, ambientShaderOffset)
-	DeferredLightResolveAddAmbientMaterial(builder, ambientMaterialOffset)
-	DeferredLightResolveAddDirectionalShader(builder, directionalShaderOffset)
-	DeferredLightResolveAddDirectionalMaterial(builder, directionalMaterialOffset)
-	DeferredLightResolveAddPointShader(builder, pointShaderOffset)
-	DeferredLightResolveAddPointMaterial(builder, pointMaterialOffset)
-	DeferredLightResolveAddSpotShader(builder, spotShaderOffset)
-	DeferredLightResolveAddSpotMaterial(builder, spotMaterialOffset)
-	builder.Finish(DeferredLightResolveEnd(builder))
+	DeferredLightResolve.Start(builder)
+	DeferredLightResolve.AddLightSet(builder, lightSetOffset)
+	DeferredLightResolve.AddAmbientShader(builder, ambientShaderOffset)
+	DeferredLightResolve.AddAmbientMaterial(builder, ambientMaterialOffset)
+	DeferredLightResolve.AddDirectionalShader(builder, directionalShaderOffset)
+	DeferredLightResolve.AddDirectionalMaterial(builder, directionalMaterialOffset)
+	DeferredLightResolve.AddPointShader(builder, pointShaderOffset)
+	DeferredLightResolve.AddPointMaterial(builder, pointMaterialOffset)
+	DeferredLightResolve.AddSpotShader(builder, spotShaderOffset)
+	DeferredLightResolve.AddSpotMaterial(builder, spotMaterialOffset)
+	builder.Finish(DeferredLightResolve.End(builder))
 	return builder.Output()

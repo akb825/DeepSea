@@ -94,7 +94,6 @@ struct VectorImageNodeBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  VectorImageNodeBuilder &operator=(const VectorImageNodeBuilder &);
   flatbuffers::Offset<VectorImageNode> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<VectorImageNode>(end);

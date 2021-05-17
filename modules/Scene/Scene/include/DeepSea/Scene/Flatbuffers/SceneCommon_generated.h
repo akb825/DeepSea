@@ -842,8 +842,9 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Vector2f FLATBUFFERS_FINAL_CLASS {
   float y_;
 
  public:
-  Vector2f() {
-    memset(static_cast<void *>(this), 0, sizeof(Vector2f));
+  Vector2f()
+      : x_(0),
+        y_(0) {
   }
   Vector2f(float _x, float _y)
       : x_(flatbuffers::EndianScalar(_x)),
@@ -865,8 +866,10 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Vector3f FLATBUFFERS_FINAL_CLASS {
   float z_;
 
  public:
-  Vector3f() {
-    memset(static_cast<void *>(this), 0, sizeof(Vector3f));
+  Vector3f()
+      : x_(0),
+        y_(0),
+        z_(0) {
   }
   Vector3f(float _x, float _y, float _z)
       : x_(flatbuffers::EndianScalar(_x)),
@@ -893,8 +896,11 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Vector4f FLATBUFFERS_FINAL_CLASS {
   float w_;
 
  public:
-  Vector4f() {
-    memset(static_cast<void *>(this), 0, sizeof(Vector4f));
+  Vector4f()
+      : x_(0),
+        y_(0),
+        z_(0),
+        w_(0) {
   }
   Vector4f(float _x, float _y, float _z, float _w)
       : x_(flatbuffers::EndianScalar(_x)),
@@ -924,8 +930,10 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Color3f FLATBUFFERS_FINAL_CLASS {
   float blue_;
 
  public:
-  Color3f() {
-    memset(static_cast<void *>(this), 0, sizeof(Color3f));
+  Color3f()
+      : red_(0),
+        green_(0),
+        blue_(0) {
   }
   Color3f(float _red, float _green, float _blue)
       : red_(flatbuffers::EndianScalar(_red)),
@@ -952,8 +960,11 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Color4f FLATBUFFERS_FINAL_CLASS {
   float alpha_;
 
  public:
-  Color4f() {
-    memset(static_cast<void *>(this), 0, sizeof(Color4f));
+  Color4f()
+      : red_(0),
+        green_(0),
+        blue_(0),
+        alpha_(0) {
   }
   Color4f(float _red, float _green, float _blue, float _alpha)
       : red_(flatbuffers::EndianScalar(_red)),
@@ -982,8 +993,9 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) AlignedBox3f FLATBUFFERS_FINAL_CLASS {
   DeepSeaScene::Vector3f max_;
 
  public:
-  AlignedBox3f() {
-    memset(static_cast<void *>(this), 0, sizeof(AlignedBox3f));
+  AlignedBox3f()
+      : min_(),
+        max_() {
   }
   AlignedBox3f(const DeepSeaScene::Vector3f &_min, const DeepSeaScene::Vector3f &_max)
       : min_(_min),
@@ -1005,8 +1017,10 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Matrix33f FLATBUFFERS_FINAL_CLASS {
   DeepSeaScene::Vector3f column2_;
 
  public:
-  Matrix33f() {
-    memset(static_cast<void *>(this), 0, sizeof(Matrix33f));
+  Matrix33f()
+      : column0_(),
+        column1_(),
+        column2_() {
   }
   Matrix33f(const DeepSeaScene::Vector3f &_column0, const DeepSeaScene::Vector3f &_column1, const DeepSeaScene::Vector3f &_column2)
       : column0_(_column0),
@@ -1033,8 +1047,11 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Matrix44f FLATBUFFERS_FINAL_CLASS {
   DeepSeaScene::Vector4f column3_;
 
  public:
-  Matrix44f() {
-    memset(static_cast<void *>(this), 0, sizeof(Matrix44f));
+  Matrix44f()
+      : column0_(),
+        column1_(),
+        column2_(),
+        column3_() {
   }
   Matrix44f(const DeepSeaScene::Vector4f &_column0, const DeepSeaScene::Vector4f &_column1, const DeepSeaScene::Vector4f &_column2, const DeepSeaScene::Vector4f &_column3)
       : column0_(_column0),
@@ -1064,8 +1081,10 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) OrientedBox3f FLATBUFFERS_FINAL_CLASS {
   DeepSeaScene::Vector3f halfExtents_;
 
  public:
-  OrientedBox3f() {
-    memset(static_cast<void *>(this), 0, sizeof(OrientedBox3f));
+  OrientedBox3f()
+      : orientation_(),
+        center_(),
+        halfExtents_() {
   }
   OrientedBox3f(const DeepSeaScene::Matrix33f &_orientation, const DeepSeaScene::Vector3f &_center, const DeepSeaScene::Vector3f &_halfExtents)
       : orientation_(_orientation),
@@ -1120,7 +1139,6 @@ struct ObjectDataBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  ObjectDataBuilder &operator=(const ObjectDataBuilder &);
   flatbuffers::Offset<ObjectData> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<ObjectData>(end);
@@ -1187,7 +1205,6 @@ struct FileReferenceBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  FileReferenceBuilder &operator=(const FileReferenceBuilder &);
   flatbuffers::Offset<FileReference> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<FileReference>(end);
@@ -1244,7 +1261,6 @@ struct RawDataBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  RawDataBuilder &operator=(const RawDataBuilder &);
   flatbuffers::Offset<RawData> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<RawData>(end);
@@ -1329,7 +1345,6 @@ struct VersionedShaderModuleBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  VersionedShaderModuleBuilder &operator=(const VersionedShaderModuleBuilder &);
   flatbuffers::Offset<VersionedShaderModule> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<VersionedShaderModule>(end);
@@ -1478,7 +1493,6 @@ struct DynamicRenderStatesBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  DynamicRenderStatesBuilder &operator=(const DynamicRenderStatesBuilder &);
   flatbuffers::Offset<DynamicRenderStates> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<DynamicRenderStates>(end);

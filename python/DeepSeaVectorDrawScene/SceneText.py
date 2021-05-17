@@ -10,12 +10,16 @@ class SceneText(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsSceneText(cls, buf, offset):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = SceneText()
         x.Init(buf, n + offset)
         return x
 
+    @classmethod
+    def GetRootAsSceneText(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
     # SceneText
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
@@ -63,9 +67,27 @@ class SceneText(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
         return o == 0
 
-def SceneTextStart(builder): builder.StartObject(3)
-def SceneTextAddFont(builder, font): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(font), 0)
-def SceneTextAddText(builder, text): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(text), 0)
-def SceneTextAddStyles(builder, styles): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(styles), 0)
-def SceneTextStartStylesVector(builder, numElems): return builder.StartVector(4, numElems, 4)
-def SceneTextEnd(builder): return builder.EndObject()
+def Start(builder): builder.StartObject(3)
+def SceneTextStart(builder):
+    """This method is deprecated. Please switch to Start."""
+    return Start(builder)
+def AddFont(builder, font): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(font), 0)
+def SceneTextAddFont(builder, font):
+    """This method is deprecated. Please switch to AddFont."""
+    return AddFont(builder, font)
+def AddText(builder, text): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(text), 0)
+def SceneTextAddText(builder, text):
+    """This method is deprecated. Please switch to AddText."""
+    return AddText(builder, text)
+def AddStyles(builder, styles): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(styles), 0)
+def SceneTextAddStyles(builder, styles):
+    """This method is deprecated. Please switch to AddStyles."""
+    return AddStyles(builder, styles)
+def StartStylesVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+def SceneTextStartStylesVector(builder, numElems):
+    """This method is deprecated. Please switch to Start."""
+    return StartStylesVector(builder, numElems)
+def End(builder): return builder.EndObject()
+def SceneTextEnd(builder):
+    """This method is deprecated. Please switch to End."""
+    return End(builder)

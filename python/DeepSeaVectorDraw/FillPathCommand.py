@@ -10,12 +10,16 @@ class FillPathCommand(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsFillPathCommand(cls, buf, offset):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = FillPathCommand()
         x.Init(buf, n + offset)
         return x
 
+    @classmethod
+    def GetRootAsFillPathCommand(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
     # FillPathCommand
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
@@ -41,8 +45,23 @@ class FillPathCommand(object):
             return self._tab.Get(flatbuffers.number_types.Uint8Flags, o + self._tab.Pos)
         return 0
 
-def FillPathCommandStart(builder): builder.StartObject(3)
-def FillPathCommandAddMaterial(builder, material): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(material), 0)
-def FillPathCommandAddOpacity(builder, opacity): builder.PrependFloat32Slot(1, opacity, 0.0)
-def FillPathCommandAddFillRule(builder, fillRule): builder.PrependUint8Slot(2, fillRule, 0)
-def FillPathCommandEnd(builder): return builder.EndObject()
+def Start(builder): builder.StartObject(3)
+def FillPathCommandStart(builder):
+    """This method is deprecated. Please switch to Start."""
+    return Start(builder)
+def AddMaterial(builder, material): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(material), 0)
+def FillPathCommandAddMaterial(builder, material):
+    """This method is deprecated. Please switch to AddMaterial."""
+    return AddMaterial(builder, material)
+def AddOpacity(builder, opacity): builder.PrependFloat32Slot(1, opacity, 0.0)
+def FillPathCommandAddOpacity(builder, opacity):
+    """This method is deprecated. Please switch to AddOpacity."""
+    return AddOpacity(builder, opacity)
+def AddFillRule(builder, fillRule): builder.PrependUint8Slot(2, fillRule, 0)
+def FillPathCommandAddFillRule(builder, fillRule):
+    """This method is deprecated. Please switch to AddFillRule."""
+    return AddFillRule(builder, fillRule)
+def End(builder): return builder.EndObject()
+def FillPathCommandEnd(builder):
+    """This method is deprecated. Please switch to End."""
+    return End(builder)

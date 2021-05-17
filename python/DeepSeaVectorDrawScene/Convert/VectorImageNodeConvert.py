@@ -13,9 +13,11 @@
 # limitations under the License.
 
 import flatbuffers
+
+from .. import VectorImageNode
+
 from DeepSeaScene.Convert.SceneResourcesConvert import convertSceneResources
-from DeepSeaScene.Vector2f import *
-from ..VectorImageNode import *
+from DeepSeaScene.Vector2f import CreateVector2f
 
 def convertVectorImageNode(convertContext, data):
 	"""
@@ -80,26 +82,26 @@ def convertVectorImageNode(convertContext, data):
 		except (TypeError, ValueError):
 			raise Exception('VectorImageNode "itemLists" must be an array of strings.')
 
-		VectorImageNodeStartItemListsVector(builder, len(itemListOffsets))
+		VectorImageNode.StartItemListsVector(builder, len(itemListOffsets))
 		for offset in reversed(itemListOffsets):
 			builder.PrependUOffsetTRelative(offset)
-		itemListsOffset = builder.EndVector(len(itemListOffsets))
+		itemListsOffset = builder.EndVector()
 	else:
 		itemListsOffset = 0
 
-	VectorImageNodeStart(builder)
-	VectorImageNodeAddEmbeddedResources(builder, embeddedResourcesOffset)
-	VectorImageNodeAddVectorImage(builder, vectorImageOffset)
+	VectorImageNode.Start(builder)
+	VectorImageNode.AddEmbeddedResources(builder, embeddedResourcesOffset)
+	VectorImageNode.AddVectorImage(builder, vectorImageOffset)
 
 	if size:
 		sizeOffset = CreateVector2f(builder, size[0], size[1])
 	else:
 		sizeOffset = 0
-	VectorImageNodeAddSize(builder, sizeOffset)
+	VectorImageNode.AddSize(builder, sizeOffset)
 
-	VectorImageNodeAddZ(builder, z)
-	VectorImageNodeAddVectorShaders(builder, vectorShadersOffset)
-	VectorImageNodeAddMaterial(builder, materialOffset)
-	VectorImageNodeAddItemLists(builder, itemListsOffset)
-	builder.Finish(VectorImageNodeEnd(builder))
+	VectorImageNode.AddZ(builder, z)
+	VectorImageNode.AddVectorShaders(builder, vectorShadersOffset)
+	VectorImageNode.AddMaterial(builder, materialOffset)
+	VectorImageNode.AddItemLists(builder, itemListsOffset)
+	builder.Finish(VectorImageNode.End(builder))
 	return builder.Output()

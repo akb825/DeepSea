@@ -197,7 +197,6 @@ struct ColorTableBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  ColorTableBuilder &operator=(const ColorTableBuilder &);
   flatbuffers::Offset<ColorTable> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<ColorTable>(end);
@@ -253,7 +252,6 @@ struct GradientStopBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  GradientStopBuilder &operator=(const GradientStopBuilder &);
   flatbuffers::Offset<GradientStop> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<GradientStop>(end);
@@ -340,7 +338,6 @@ struct LinearGradientBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  LinearGradientBuilder &operator=(const LinearGradientBuilder &);
   flatbuffers::Offset<LinearGradient> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<LinearGradient>(end);
@@ -470,7 +467,6 @@ struct RadialGradientBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  RadialGradientBuilder &operator=(const RadialGradientBuilder &);
   flatbuffers::Offset<RadialGradient> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<RadialGradient>(end);
@@ -590,7 +586,6 @@ struct MaterialBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  MaterialBuilder &operator=(const MaterialBuilder &);
   flatbuffers::Offset<Material> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<Material>(end);
@@ -661,7 +656,6 @@ struct VectorMaterialSetBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  VectorMaterialSetBuilder &operator=(const VectorMaterialSetBuilder &);
   flatbuffers::Offset<VectorMaterialSet> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<VectorMaterialSet>(end);

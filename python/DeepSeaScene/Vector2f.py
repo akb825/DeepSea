@@ -9,6 +9,10 @@ np = import_numpy()
 class Vector2f(object):
     __slots__ = ['_tab']
 
+    @classmethod
+    def SizeOf(cls):
+        return 8
+
     # Vector2f
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)

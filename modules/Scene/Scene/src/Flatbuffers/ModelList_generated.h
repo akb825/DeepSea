@@ -103,7 +103,6 @@ struct ModelListBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  ModelListBuilder &operator=(const ModelListBuilder &);
   flatbuffers::Offset<ModelList> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<ModelList>(end);

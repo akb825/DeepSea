@@ -114,7 +114,6 @@ struct SceneTextStyleBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  SceneTextStyleBuilder &operator=(const SceneTextStyleBuilder &);
   flatbuffers::Offset<SceneTextStyle> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<SceneTextStyle>(end);
@@ -194,7 +193,6 @@ struct SceneTextBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  SceneTextBuilder &operator=(const SceneTextBuilder &);
   flatbuffers::Offset<SceneText> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<SceneText>(end);

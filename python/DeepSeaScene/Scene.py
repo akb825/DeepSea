@@ -10,12 +10,16 @@ class Scene(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsScene(cls, buf, offset):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = Scene()
         x.Init(buf, n + offset)
         return x
 
+    @classmethod
+    def GetRootAsScene(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
     # Scene
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
@@ -115,13 +119,43 @@ class Scene(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(10))
         return o == 0
 
-def SceneStart(builder): builder.StartObject(4)
-def SceneAddSharedItems(builder, sharedItems): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(sharedItems), 0)
-def SceneStartSharedItemsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
-def SceneAddPipeline(builder, pipeline): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(pipeline), 0)
-def SceneStartPipelineVector(builder, numElems): return builder.StartVector(4, numElems, 4)
-def SceneAddGlobalData(builder, globalData): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(globalData), 0)
-def SceneStartGlobalDataVector(builder, numElems): return builder.StartVector(4, numElems, 4)
-def SceneAddNodes(builder, nodes): builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(nodes), 0)
-def SceneStartNodesVector(builder, numElems): return builder.StartVector(4, numElems, 4)
-def SceneEnd(builder): return builder.EndObject()
+def Start(builder): builder.StartObject(4)
+def SceneStart(builder):
+    """This method is deprecated. Please switch to Start."""
+    return Start(builder)
+def AddSharedItems(builder, sharedItems): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(sharedItems), 0)
+def SceneAddSharedItems(builder, sharedItems):
+    """This method is deprecated. Please switch to AddSharedItems."""
+    return AddSharedItems(builder, sharedItems)
+def StartSharedItemsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+def SceneStartSharedItemsVector(builder, numElems):
+    """This method is deprecated. Please switch to Start."""
+    return StartSharedItemsVector(builder, numElems)
+def AddPipeline(builder, pipeline): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(pipeline), 0)
+def SceneAddPipeline(builder, pipeline):
+    """This method is deprecated. Please switch to AddPipeline."""
+    return AddPipeline(builder, pipeline)
+def StartPipelineVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+def SceneStartPipelineVector(builder, numElems):
+    """This method is deprecated. Please switch to Start."""
+    return StartPipelineVector(builder, numElems)
+def AddGlobalData(builder, globalData): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(globalData), 0)
+def SceneAddGlobalData(builder, globalData):
+    """This method is deprecated. Please switch to AddGlobalData."""
+    return AddGlobalData(builder, globalData)
+def StartGlobalDataVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+def SceneStartGlobalDataVector(builder, numElems):
+    """This method is deprecated. Please switch to Start."""
+    return StartGlobalDataVector(builder, numElems)
+def AddNodes(builder, nodes): builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(nodes), 0)
+def SceneAddNodes(builder, nodes):
+    """This method is deprecated. Please switch to AddNodes."""
+    return AddNodes(builder, nodes)
+def StartNodesVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+def SceneStartNodesVector(builder, numElems):
+    """This method is deprecated. Please switch to Start."""
+    return StartNodesVector(builder, numElems)
+def End(builder): return builder.EndObject()
+def SceneEnd(builder):
+    """This method is deprecated. Please switch to End."""
+    return End(builder)

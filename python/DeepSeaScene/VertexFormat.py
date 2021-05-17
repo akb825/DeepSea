@@ -10,12 +10,16 @@ class VertexFormat(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsVertexFormat(cls, buf, offset):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = VertexFormat()
         x.Init(buf, n + offset)
         return x
 
+    @classmethod
+    def GetRootAsVertexFormat(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
     # VertexFormat
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
@@ -51,8 +55,23 @@ class VertexFormat(object):
             return bool(self._tab.Get(flatbuffers.number_types.BoolFlags, o + self._tab.Pos))
         return False
 
-def VertexFormatStart(builder): builder.StartObject(2)
-def VertexFormatAddAttributes(builder, attributes): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(attributes), 0)
-def VertexFormatStartAttributesVector(builder, numElems): return builder.StartVector(8, numElems, 4)
-def VertexFormatAddInstanced(builder, instanced): builder.PrependBoolSlot(1, instanced, 0)
-def VertexFormatEnd(builder): return builder.EndObject()
+def Start(builder): builder.StartObject(2)
+def VertexFormatStart(builder):
+    """This method is deprecated. Please switch to Start."""
+    return Start(builder)
+def AddAttributes(builder, attributes): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(attributes), 0)
+def VertexFormatAddAttributes(builder, attributes):
+    """This method is deprecated. Please switch to AddAttributes."""
+    return AddAttributes(builder, attributes)
+def StartAttributesVector(builder, numElems): return builder.StartVector(8, numElems, 4)
+def VertexFormatStartAttributesVector(builder, numElems):
+    """This method is deprecated. Please switch to Start."""
+    return StartAttributesVector(builder, numElems)
+def AddInstanced(builder, instanced): builder.PrependBoolSlot(1, instanced, 0)
+def VertexFormatAddInstanced(builder, instanced):
+    """This method is deprecated. Please switch to AddInstanced."""
+    return AddInstanced(builder, instanced)
+def End(builder): return builder.EndObject()
+def VertexFormatEnd(builder):
+    """This method is deprecated. Please switch to End."""
+    return End(builder)

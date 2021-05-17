@@ -1,4 +1,4 @@
-# Copyright 2020 Aaron Barany
+# Copyright 2020-2021 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -24,8 +24,8 @@ from .SceneNodeRefConvert import convertReferenceNode
 from .TransformNodeConvert import convertTransformNode
 from .ViewCullListConvert import convertViewCullList
 from .ViewTransformDataConvert import convertViewTransformData
-from ..ObjectData import *
-from ..SceneItemList import *
+from .. import ObjectData
+from .. import SceneItemList
 
 class ConvertContext:
 	"""
@@ -96,10 +96,10 @@ class ConvertContext:
 		typeNameOffset = builder.CreateString(typeName)
 		dataOffset = builder.CreateByteVector(convertedData)
 
-		ObjectDataStart(builder)
-		ObjectDataAddType(builder, typeNameOffset)
-		ObjectDataAddData(builder, dataOffset)
-		return ObjectDataEnd(builder)
+		ObjectData.Start(builder)
+		ObjectData.AddType(builder, typeNameOffset)
+		ObjectData.AddData(builder, dataOffset)
+		return ObjectData.End(builder)
 
 	def addItemListType(self, typeName, convertFunc):
 		"""
@@ -126,11 +126,11 @@ class ConvertContext:
 		nameOffset = builder.CreateString(name)
 		dataOffset = builder.CreateByteVector(convertedData)
 
-		SceneItemListStart(builder)
-		SceneItemListAddType(builder, typeNameOffset)
-		SceneItemListAddName(builder, nameOffset)
-		SceneItemListAddData(builder, dataOffset)
-		return SceneItemListEnd(builder)
+		SceneItemList.Start(builder)
+		SceneItemList.AddType(builder, typeNameOffset)
+		SceneItemList.AddName(builder, nameOffset)
+		SceneItemList.AddData(builder, dataOffset)
+		return SceneItemList.End(builder)
 
 	def addInstanceDataType(self, typeName, convertFunc):
 		"""
@@ -156,10 +156,10 @@ class ConvertContext:
 		typeNameOffset = builder.CreateString(typeName)
 		dataOffset = builder.CreateByteVector(convertedData)
 
-		ObjectDataStart(builder)
-		ObjectDataAddType(builder, typeNameOffset)
-		ObjectDataAddData(builder, dataOffset)
-		return ObjectDataEnd(builder)
+		ObjectData.Start(builder)
+		ObjectData.AddType(builder, typeNameOffset)
+		ObjectData.AddData(builder, dataOffset)
+		return ObjectData.End(builder)
 
 	def addGlobalDataType(self, typeName, convertFunc):
 		"""
@@ -185,10 +185,10 @@ class ConvertContext:
 		typeNameOffset = builder.CreateString(typeName)
 		dataOffset = builder.CreateByteVector(convertedData)
 
-		ObjectDataStart(builder)
-		ObjectDataAddType(builder, typeNameOffset)
-		ObjectDataAddData(builder, dataOffset)
-		return ObjectDataEnd(builder)
+		ObjectData.Start(builder)
+		ObjectData.AddType(builder, typeNameOffset)
+		ObjectData.AddData(builder, dataOffset)
+		return ObjectData.End(builder)
 
 	def addCustomResourceType(self, typeName, convertFunc):
 		"""
@@ -214,7 +214,7 @@ class ConvertContext:
 		typeNameOffset = builder.CreateString(typeName)
 		dataOffset = builder.CreateByteVector(convertedData)
 
-		ObjectDataStart(builder)
-		ObjectDataAddType(builder, typeNameOffset)
-		ObjectDataAddData(builder, dataOffset)
-		return ObjectDataEnd(builder)
+		ObjectData.Start(builder)
+		ObjectData.AddType(builder, typeNameOffset)
+		ObjectData.AddData(builder, dataOffset)
+		return ObjectData.End(builder)

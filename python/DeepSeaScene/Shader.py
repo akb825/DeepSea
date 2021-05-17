@@ -10,12 +10,16 @@ class Shader(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsShader(cls, buf, offset):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = Shader()
         x.Init(buf, n + offset)
         return x
 
+    @classmethod
+    def GetRootAsShader(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
     # Shader
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
@@ -48,9 +52,27 @@ class Shader(object):
             return self._tab.String(o + self._tab.Pos)
         return None
 
-def ShaderStart(builder): builder.StartObject(4)
-def ShaderAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
-def ShaderAddShaderModule(builder, shaderModule): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(shaderModule), 0)
-def ShaderAddPipeline(builder, pipeline): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(pipeline), 0)
-def ShaderAddMaterialDesc(builder, materialDesc): builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(materialDesc), 0)
-def ShaderEnd(builder): return builder.EndObject()
+def Start(builder): builder.StartObject(4)
+def ShaderStart(builder):
+    """This method is deprecated. Please switch to Start."""
+    return Start(builder)
+def AddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+def ShaderAddName(builder, name):
+    """This method is deprecated. Please switch to AddName."""
+    return AddName(builder, name)
+def AddShaderModule(builder, shaderModule): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(shaderModule), 0)
+def ShaderAddShaderModule(builder, shaderModule):
+    """This method is deprecated. Please switch to AddShaderModule."""
+    return AddShaderModule(builder, shaderModule)
+def AddPipeline(builder, pipeline): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(pipeline), 0)
+def ShaderAddPipeline(builder, pipeline):
+    """This method is deprecated. Please switch to AddPipeline."""
+    return AddPipeline(builder, pipeline)
+def AddMaterialDesc(builder, materialDesc): builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(materialDesc), 0)
+def ShaderAddMaterialDesc(builder, materialDesc):
+    """This method is deprecated. Please switch to AddMaterialDesc."""
+    return AddMaterialDesc(builder, materialDesc)
+def End(builder): return builder.EndObject()
+def ShaderEnd(builder):
+    """This method is deprecated. Please switch to End."""
+    return End(builder)

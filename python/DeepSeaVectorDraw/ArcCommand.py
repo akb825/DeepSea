@@ -10,12 +10,16 @@ class ArcCommand(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsArcCommand(cls, buf, offset):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = ArcCommand()
         x.Init(buf, n + offset)
         return x
 
+    @classmethod
+    def GetRootAsArcCommand(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
     # ArcCommand
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
@@ -63,10 +67,31 @@ class ArcCommand(object):
             return obj
         return None
 
-def ArcCommandStart(builder): builder.StartObject(5)
-def ArcCommandAddRadius(builder, radius): builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(radius), 0)
-def ArcCommandAddRotation(builder, rotation): builder.PrependFloat32Slot(1, rotation, 0.0)
-def ArcCommandAddLargeArc(builder, largeArc): builder.PrependBoolSlot(2, largeArc, 0)
-def ArcCommandAddClockwise(builder, clockwise): builder.PrependBoolSlot(3, clockwise, 0)
-def ArcCommandAddEnd(builder, end): builder.PrependStructSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(end), 0)
-def ArcCommandEnd(builder): return builder.EndObject()
+def Start(builder): builder.StartObject(5)
+def ArcCommandStart(builder):
+    """This method is deprecated. Please switch to Start."""
+    return Start(builder)
+def AddRadius(builder, radius): builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(radius), 0)
+def ArcCommandAddRadius(builder, radius):
+    """This method is deprecated. Please switch to AddRadius."""
+    return AddRadius(builder, radius)
+def AddRotation(builder, rotation): builder.PrependFloat32Slot(1, rotation, 0.0)
+def ArcCommandAddRotation(builder, rotation):
+    """This method is deprecated. Please switch to AddRotation."""
+    return AddRotation(builder, rotation)
+def AddLargeArc(builder, largeArc): builder.PrependBoolSlot(2, largeArc, 0)
+def ArcCommandAddLargeArc(builder, largeArc):
+    """This method is deprecated. Please switch to AddLargeArc."""
+    return AddLargeArc(builder, largeArc)
+def AddClockwise(builder, clockwise): builder.PrependBoolSlot(3, clockwise, 0)
+def ArcCommandAddClockwise(builder, clockwise):
+    """This method is deprecated. Please switch to AddClockwise."""
+    return AddClockwise(builder, clockwise)
+def AddEnd(builder, end): builder.PrependStructSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(end), 0)
+def ArcCommandAddEnd(builder, end):
+    """This method is deprecated. Please switch to AddEnd."""
+    return AddEnd(builder, end)
+def End(builder): return builder.EndObject()
+def ArcCommandEnd(builder):
+    """This method is deprecated. Please switch to End."""
+    return End(builder)

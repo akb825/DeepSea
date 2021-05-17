@@ -10,12 +10,16 @@ class StartPathCommand(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsStartPathCommand(cls, buf, offset):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = StartPathCommand()
         x.Init(buf, n + offset)
         return x
 
+    @classmethod
+    def GetRootAsStartPathCommand(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
     # StartPathCommand
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
@@ -38,7 +42,19 @@ class StartPathCommand(object):
             return bool(self._tab.Get(flatbuffers.number_types.BoolFlags, o + self._tab.Pos))
         return False
 
-def StartPathCommandStart(builder): builder.StartObject(2)
-def StartPathCommandAddTransform(builder, transform): builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(transform), 0)
-def StartPathCommandAddSimple(builder, simple): builder.PrependBoolSlot(1, simple, 0)
-def StartPathCommandEnd(builder): return builder.EndObject()
+def Start(builder): builder.StartObject(2)
+def StartPathCommandStart(builder):
+    """This method is deprecated. Please switch to Start."""
+    return Start(builder)
+def AddTransform(builder, transform): builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(transform), 0)
+def StartPathCommandAddTransform(builder, transform):
+    """This method is deprecated. Please switch to AddTransform."""
+    return AddTransform(builder, transform)
+def AddSimple(builder, simple): builder.PrependBoolSlot(1, simple, 0)
+def StartPathCommandAddSimple(builder, simple):
+    """This method is deprecated. Please switch to AddSimple."""
+    return AddSimple(builder, simple)
+def End(builder): return builder.EndObject()
+def StartPathCommandEnd(builder):
+    """This method is deprecated. Please switch to End."""
+    return End(builder)

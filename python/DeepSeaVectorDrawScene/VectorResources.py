@@ -10,12 +10,16 @@ class VectorResources(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsVectorResources(cls, buf, offset):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = VectorResources()
         x.Init(buf, n + offset)
         return x
 
+    @classmethod
+    def GetRootAsVectorResources(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
     # VectorResources
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
@@ -37,7 +41,19 @@ class VectorResources(object):
             return obj
         return None
 
-def VectorResourcesStart(builder): builder.StartObject(2)
-def VectorResourcesAddResourcesType(builder, resourcesType): builder.PrependUint8Slot(0, resourcesType, 0)
-def VectorResourcesAddResources(builder, resources): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(resources), 0)
-def VectorResourcesEnd(builder): return builder.EndObject()
+def Start(builder): builder.StartObject(2)
+def VectorResourcesStart(builder):
+    """This method is deprecated. Please switch to Start."""
+    return Start(builder)
+def AddResourcesType(builder, resourcesType): builder.PrependUint8Slot(0, resourcesType, 0)
+def VectorResourcesAddResourcesType(builder, resourcesType):
+    """This method is deprecated. Please switch to AddResourcesType."""
+    return AddResourcesType(builder, resourcesType)
+def AddResources(builder, resources): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(resources), 0)
+def VectorResourcesAddResources(builder, resources):
+    """This method is deprecated. Please switch to AddResources."""
+    return AddResources(builder, resources)
+def End(builder): return builder.EndObject()
+def VectorResourcesEnd(builder):
+    """This method is deprecated. Please switch to End."""
+    return End(builder)

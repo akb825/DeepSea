@@ -10,12 +10,16 @@ class LightData(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsLightData(cls, buf, offset):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = LightData()
         x.Init(buf, n + offset)
         return x
 
+    @classmethod
+    def GetRootAsLightData(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
     # LightData
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
@@ -60,9 +64,27 @@ class LightData(object):
             return obj
         return None
 
-def LightDataStart(builder): builder.StartObject(4)
-def LightDataAddVariableGroupDesc(builder, variableGroupDesc): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(variableGroupDesc), 0)
-def LightDataAddDirection(builder, direction): builder.PrependStructSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(direction), 0)
-def LightDataAddColor(builder, color): builder.PrependStructSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(color), 0)
-def LightDataAddAmbient(builder, ambient): builder.PrependStructSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(ambient), 0)
-def LightDataEnd(builder): return builder.EndObject()
+def Start(builder): builder.StartObject(4)
+def LightDataStart(builder):
+    """This method is deprecated. Please switch to Start."""
+    return Start(builder)
+def AddVariableGroupDesc(builder, variableGroupDesc): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(variableGroupDesc), 0)
+def LightDataAddVariableGroupDesc(builder, variableGroupDesc):
+    """This method is deprecated. Please switch to AddVariableGroupDesc."""
+    return AddVariableGroupDesc(builder, variableGroupDesc)
+def AddDirection(builder, direction): builder.PrependStructSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(direction), 0)
+def LightDataAddDirection(builder, direction):
+    """This method is deprecated. Please switch to AddDirection."""
+    return AddDirection(builder, direction)
+def AddColor(builder, color): builder.PrependStructSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(color), 0)
+def LightDataAddColor(builder, color):
+    """This method is deprecated. Please switch to AddColor."""
+    return AddColor(builder, color)
+def AddAmbient(builder, ambient): builder.PrependStructSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(ambient), 0)
+def LightDataAddAmbient(builder, ambient):
+    """This method is deprecated. Please switch to AddAmbient."""
+    return AddAmbient(builder, ambient)
+def End(builder): return builder.EndObject()
+def LightDataEnd(builder):
+    """This method is deprecated. Please switch to End."""
+    return End(builder)

@@ -10,12 +10,16 @@ class Resource(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsResource(cls, buf, offset):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = Resource()
         x.Init(buf, n + offset)
         return x
 
+    @classmethod
+    def GetRootAsResource(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
     # Resource
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
@@ -44,8 +48,23 @@ class Resource(object):
             return obj
         return None
 
-def ResourceStart(builder): builder.StartObject(3)
-def ResourceAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
-def ResourceAddDataType(builder, dataType): builder.PrependUint8Slot(1, dataType, 0)
-def ResourceAddData(builder, data): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(data), 0)
-def ResourceEnd(builder): return builder.EndObject()
+def Start(builder): builder.StartObject(3)
+def ResourceStart(builder):
+    """This method is deprecated. Please switch to Start."""
+    return Start(builder)
+def AddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+def ResourceAddName(builder, name):
+    """This method is deprecated. Please switch to AddName."""
+    return AddName(builder, name)
+def AddDataType(builder, dataType): builder.PrependUint8Slot(1, dataType, 0)
+def ResourceAddDataType(builder, dataType):
+    """This method is deprecated. Please switch to AddDataType."""
+    return AddDataType(builder, dataType)
+def AddData(builder, data): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(data), 0)
+def ResourceAddData(builder, data):
+    """This method is deprecated. Please switch to AddData."""
+    return AddData(builder, data)
+def End(builder): return builder.EndObject()
+def ResourceEnd(builder):
+    """This method is deprecated. Please switch to End."""
+    return End(builder)

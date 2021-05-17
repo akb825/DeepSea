@@ -1,4 +1,4 @@
-# Copyright 2020 Aaron Barany
+# Copyright 2020-2021 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,10 +16,10 @@ import base64
 import os.path
 import shutil
 
-from ..FileOrData import *
-from ..FileReference import *
-from ..FileResourceType import *
-from ..RawData import *
+from ..FileOrData import FileOrData
+from .. import FileReference
+from ..FileResourceType import FileResourceType
+from .. import RawData
 
 def readDataOrPath(dataStr):
 	"""
@@ -66,16 +66,16 @@ def convertFileOrData(builder, inputPath, data, outputPath, outputRelativeDir, r
 			outputPath = os.path.relpath(outputPath, outputRelativeDir)
 
 		pathOffset = builder.CreateString(outputPath)
-		FileReferenceStart(builder)
-		FileReferenceAddType(builder, fbResourceType)
-		FileReferenceAddPath(builder, pathOffset)
-		return FileOrData.FileReference, FileReferenceEnd(builder)
+		FileReference.Start(builder)
+		FileReference.AddType(builder, fbResourceType)
+		FileReference.AddPath(builder, pathOffset)
+		return FileOrData.FileReference, FileReference.End(builder)
 	else:
 		if not data:
 			with open(inputPath, 'rb') as stream:
 				data = stream.read()
 
 		dataOffset = builder.CreateByteVector(data)
-		RawDataStart(builder)
-		RawDataAddData(builder, dataOffset)
-		return FileOrData.RawData, RawDataEnd(builder)
+		RawData.Start(builder)
+		RawData.AddData(builder, dataOffset)
+		return FileOrData.RawData, RawData.End(builder)

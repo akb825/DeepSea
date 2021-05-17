@@ -107,7 +107,6 @@ struct VectorImageBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  VectorImageBuilder &operator=(const VectorImageBuilder &);
   flatbuffers::Offset<VectorImage> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<VectorImage>(end);

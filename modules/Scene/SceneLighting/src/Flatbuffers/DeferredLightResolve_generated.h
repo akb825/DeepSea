@@ -118,7 +118,6 @@ struct DeferredLightResolveBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  DeferredLightResolveBuilder &operator=(const DeferredLightResolveBuilder &);
   flatbuffers::Offset<DeferredLightResolve> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<DeferredLightResolve>(end);

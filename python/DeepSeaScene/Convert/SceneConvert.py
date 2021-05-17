@@ -13,22 +13,22 @@
 # limitations under the License.
 
 import flatbuffers
-from ..Attachment import *
-from ..AttachmentRef import *
-from ..ClearValue import *
-from ..ClearColorFloat import *
-from ..ClearColorInt import *
-from ..ClearColorUInt import *
-from ..ClearDepthStencil import *
-from ..FormatDecoration import *
-from ..RenderPass import *
-from ..RenderSubpass import *
-from ..Scene import *
-from ..SceneItemLists import *
-from ..ScenePipelineItem import *
-from ..ScenePipelineItemUnion import *
-from ..SubpassDependency import *
-from ..TextureFormat import *
+from .. import Attachment
+from ..AttachmentRef import CreateAttachmentRef
+from ..ClearValue import ClearValue
+from .. import ClearColorFloat
+from .. import ClearColorInt
+from .. import ClearColorUInt
+from .. import ClearDepthStencil
+from ..FormatDecoration import FormatDecoration
+from .. import RenderPass
+from .. import RenderSubpass
+from .. import Scene
+from .. import SceneItemLists
+from .. import ScenePipelineItem
+from ..ScenePipelineItemUnion import ScenePipelineItemUnion
+from ..SubpassDependency import CreateSubpassDependency
+from ..TextureFormat import TextureFormat
 
 class Object:
 	pass
@@ -537,20 +537,20 @@ def convertScene(convertContext, data):
 			itemListOffsets.append(convertContext.convertItemList(builder, item.type, item.name,
 				item.data))
 
-		SceneItemListsStartItemListsVector(builder, len(itemListOffsets))
+		SceneItemLists.StartItemListsVector(builder, len(itemListOffsets))
 		for offset in reversed(itemListOffsets):
 			builder.PrependUOffsetTRelative(offset)
-		itemListOffset = builder.EndVector(len(itemListOffsets))
+		itemListOffset = builder.EndVector()
 
-		SceneItemListsStart(builder)
-		SceneItemListsAddItemLists(builder, itemListOffset)
-		sharedItemsOffsets.append(SceneItemListsEnd(builder))
+		SceneItemLists.Start(builder)
+		SceneItemLists.AddItemLists(builder, itemListOffset)
+		sharedItemsOffsets.append(SceneItemLists.End(builder))
 
 	if sharedItemsOffsets:
-		SceneStartSharedItemsVector(builder, len(sharedItemsOffsets))
+		Scene.StartSharedItemsVector(builder, len(sharedItemsOffsets))
 		for offset in reversed(sharedItemsOffsets):
 			builder.PrependUOffsetTRelative(offset)
-		sharedItemsOffset = builder.EndVector(len(sharedItemsOffsets))
+		sharedItemsOffset = builder.EndVector()
 	else:
 		sharedItemsOffset = 0
 
@@ -568,52 +568,52 @@ def convertScene(convertContext, data):
 			for attachment in item.attachments:
 				if hasattr(attachment, 'clearColorFloat'):
 					clearValueType = ClearValue.ClearColorFloat
-					ClearColorFloatStart(builder)
-					ClearColorFloatAddRed(builder, attachment.clearColorFloat[0])
-					ClearColorFloatAddGreen(builder, attachment.clearColorFloat[1])
-					ClearColorFloatAddBlue(builder, attachment.clearColorFloat[2])
-					ClearColorFloatAddAlpha(builder, attachment.clearColorFloat[3])
-					clearValueOffset = ClearColorFloatEnd(builder)
+					ClearColorFloat.Start(builder)
+					ClearColorFloat.AddRed(builder, attachment.clearColorFloat[0])
+					ClearColorFloat.AddGreen(builder, attachment.clearColorFloat[1])
+					ClearColorFloat.AddBlue(builder, attachment.clearColorFloat[2])
+					ClearColorFloat.AddAlpha(builder, attachment.clearColorFloat[3])
+					clearValueOffset = ClearColorFloat.End(builder)
 				elif hasattr(attachment, 'clearColorInt'):
 					clearValueType = ClearValue.ClearColorInt
-					ClearColorIntStart(builder)
-					ClearColorIntAddRed(builder, attachment.clearColorInt[0])
-					ClearColorIntAddGreen(builder, attachment.clearColorInt[1])
-					ClearColorIntAddBlue(builder, attachment.clearColorInt[2])
-					ClearColorIntAddAlpha(builder, attachment.clearColorInt[3])
-					clearValueOffset = ClearColorIntEnd(builder)
+					ClearColorInt.Start(builder)
+					ClearColorInt.AddRed(builder, attachment.clearColorInt[0])
+					ClearColorInt.AddGreen(builder, attachment.clearColorInt[1])
+					ClearColorInt.AddBlue(builder, attachment.clearColorInt[2])
+					ClearColorInt.AddAlpha(builder, attachment.clearColorInt[3])
+					clearValueOffset = ClearColorInt.End(builder)
 				elif hasattr(attachment, 'clearColorUInt'):
 					clearValueType = ClearValue.ClearColorUInt
-					ClearColorUIntStart(builder)
-					ClearColorUIntAddRed(builder, attachment.clearColorUInt[0])
-					ClearColorUIntAddGreen(builder, attachment.clearColorUInt[1])
-					ClearColorUIntAddBlue(builder, attachment.clearColorUInt[2])
-					ClearColorUIntAddAlpha(builder, attachment.clearColorUInt[3])
-					clearValueOffset = ClearColorUIntEnd(builder)
+					ClearColorUInt.Start(builder)
+					ClearColorUInt.AddRed(builder, attachment.clearColorUInt[0])
+					ClearColorUInt.AddGreen(builder, attachment.clearColorUInt[1])
+					ClearColorUInt.AddBlue(builder, attachment.clearColorUInt[2])
+					ClearColorUInt.AddAlpha(builder, attachment.clearColorUInt[3])
+					clearValueOffset = ClearColorUInt.End(builder)
 				elif hasattr(attachment, 'clearDepthStencil'):
 					clearValueType = ClearValue.ClearDepthStencil
-					ClearDepthStencilStart(builder)
-					ClearDepthStencilAddDepth(builder, attachment.clearDepthStencil[0])
-					ClearDepthStencilAddStencil(builder, attachment.clearDepthStencil[1])
-					clearValueOffset = ClearDepthStencilEnd(builder)
+					ClearDepthStencil.Start(builder)
+					ClearDepthStencil.AddDepth(builder, attachment.clearDepthStencil[0])
+					ClearDepthStencil.AddStencil(builder, attachment.clearDepthStencil[1])
+					clearValueOffset = ClearDepthStencil.End(builder)
 				else:
 					clearValueType = ClearValue.NONE
 					clearValueOffset = 0
 
-				AttachmentStart(builder)
-				AttachmentAddUsage(builder, attachment.usage)
-				AttachmentAddFormat(builder, attachment.format)
-				AttachmentAddDecoration(builder, attachment.decoration)
-				AttachmentAddSamples(builder, attachment.samples)
-				AttachmentAddClearValueType(builder, clearValueType)
-				AttachmentAddClearValue(builder, clearValueOffset)
-				attachmentOffsets.append(AttachmentEnd(builder))
+				Attachment.Start(builder)
+				Attachment.AddUsage(builder, attachment.usage)
+				Attachment.AddFormat(builder, attachment.format)
+				Attachment.AddDecoration(builder, attachment.decoration)
+				Attachment.AddSamples(builder, attachment.samples)
+				Attachment.AddClearValueType(builder, clearValueType)
+				Attachment.AddClearValue(builder, clearValueOffset)
+				attachmentOffsets.append(Attachment.End(builder))
 
 			if attachmentOffsets:
-				RenderPassStartAttachmentsVector(builder, len(attachmentOffsets))
+				RenderPass.StartAttachmentsVector(builder, len(attachmentOffsets))
 				for offset in reversed(attachmentOffsets):
 					builder.PrependUOffsetTRelative(offset)
-				attachmentsOffset = builder.EndVector(len(attachmentOffsets))
+				attachmentsOffset = builder.EndVector()
 			else:
 				attachmentsOffset = 0
 
@@ -622,18 +622,20 @@ def convertScene(convertContext, data):
 				subpassNameOffset = builder.CreateString(subpass.name)
 
 				if subpass.inputAttachments:
-					RenderSubpassStartInputAttachmentsVector(builder, len(subpass.inputAttachments))
+					RenderSubpass.StartInputAttachmentsVector(builder,
+						len(subpass.inputAttachments))
 					for attachment in reversed(subpass.inputAttachments):
 						builder.PrependUint32(attachment)
-					inputAttachmentsOffset = builder.EndVector(len(subpass.inputAttachments))
+					inputAttachmentsOffset = builder.EndVector()
 				else:
 					inputAttachmentsOffset = 0
 
 				if subpass.colorAttachments:
-					RenderSubpassStartColorAttachmentsVector(builder, len(subpass.colorAttachments))
+					RenderSubpass.StartColorAttachmentsVector(builder,
+						len(subpass.colorAttachments))
 					for attachment in reversed(subpass.colorAttachments):
 						CreateAttachmentRef(builder, *attachment)
-					colorAttachmentsOffset = builder.EndVector(len(subpass.colorAttachments))
+					colorAttachmentsOffset = builder.EndVector()
 				else:
 					colorAttachmentsOffset = 0
 
@@ -642,67 +644,67 @@ def convertScene(convertContext, data):
 					drawListOffsets.append(convertContext.convertItemList(builder, drawList.type,
 						drawList.name, drawList.data))
 
-				RenderSubpassStartDrawListsVector(builder, len(drawListOffsets))
+				RenderSubpass.StartDrawListsVector(builder, len(drawListOffsets))
 				for offset in reversed(drawListOffsets):
 					builder.PrependUOffsetTRelative(offset)
-				drawListsOffset = builder.EndVector(len(drawListOffsets))
+				drawListsOffset = builder.EndVector()
 
-				RenderSubpassStart(builder)
-				RenderSubpassAddName(builder, subpassNameOffset)
-				RenderSubpassAddInputAttachments(builder, inputAttachmentsOffset)
-				RenderSubpassAddColorAttachments(builder, colorAttachmentsOffset)
+				RenderSubpass.Start(builder)
+				RenderSubpass.AddName(builder, subpassNameOffset)
+				RenderSubpass.AddInputAttachments(builder, inputAttachmentsOffset)
+				RenderSubpass.AddColorAttachments(builder, colorAttachmentsOffset)
 
 				if subpass.depthStencilAttachment:
 					depthStencilAttachmentOffset = CreateAttachmentRef(builder,
 						*subpass.depthStencilAttachment)
 				else:
 					depthStencilAttachmentOffset = 0
-				RenderSubpassAddDepthStencilAttachment(builder, depthStencilAttachmentOffset)
+				RenderSubpass.AddDepthStencilAttachment(builder, depthStencilAttachmentOffset)
 
-				RenderSubpassAddDrawLists(builder, drawListsOffset)
-				subpassOffsets.append(RenderSubpassEnd(builder))
+				RenderSubpass.AddDrawLists(builder, drawListsOffset)
+				subpassOffsets.append(RenderSubpass.End(builder))
 
-			RenderPassStartSubpassesVector(builder, len(subpassOffsets))
+			RenderPass.StartSubpassesVector(builder, len(subpassOffsets))
 			for offset in reversed(subpassOffsets):
 				builder.PrependUOffsetTRelative(offset)
-			subpassesOffset = builder.EndVector(len(subpassOffsets))
+			subpassesOffset = builder.EndVector()
 
 			if item.dependencies:
-				RenderPassStartDependenciesVector(builder, len(item.dependencies))
+				RenderPass.StartDependenciesVector(builder, len(item.dependencies))
 				for dependency in reversed(item.dependencies):
 					CreateSubpassDependency(builder, dependency.srcSubpass, dependency.srcStages,
 						dependency.srcAccess, dependency.dstSubpass, dependency.dstStages,
 						dependency.dstAccess, dependency.regionDependency)
-				dependenciesOffset = builder.EndVector(len(item.dependencies))
+				dependenciesOffset = builder.EndVector()
 			else:
 				dependenciesOffset = 0
 
-			RenderPassStart(builder)
-			RenderPassAddFramebuffer(builder, framebufferOffset)
-			RenderPassAddAttachments(builder, attachmentsOffset)
-			RenderPassAddSubpasses(builder, subpassesOffset)
-			RenderPassAddDependencies(builder, dependenciesOffset)
-			itemOffset = RenderPassEnd(builder)
+			RenderPass.Start(builder)
+			RenderPass.AddFramebuffer(builder, framebufferOffset)
+			RenderPass.AddAttachments(builder, attachmentsOffset)
+			RenderPass.AddSubpasses(builder, subpassesOffset)
+			RenderPass.AddDependencies(builder, dependenciesOffset)
+			itemOffset = RenderPass.End(builder)
 
-		ScenePipelineItemStart(builder)
-		ScenePipelineItemAddItemType(builder, itemType)
-		ScenePipelineItemAddItem(builder, itemOffset)
-		pipelineOffsets.append(ScenePipelineItemEnd(builder))
+		ScenePipelineItem.Start(builder)
+		ScenePipelineItem.AddItemType(builder, itemType)
+		ScenePipelineItem.AddItem(builder, itemOffset)
+		pipelineOffsets.append(ScenePipelineItem.End(builder))
 
-	SceneStartPipelineVector(builder, len(pipelineOffsets))
+	Scene.StartPipelineVector(builder, len(pipelineOffsets))
 	for offset in reversed(pipelineOffsets):
 		builder.PrependUOffsetTRelative(offset)
-	pipelineOffset = builder.EndVector(len(pipelineOffsets))
+	pipelineOffset = builder.EndVector()
 
 	globalDataOffsets = []
 	for item in globalData:
 		globalDataOffsets.append(convertContext.convertGlobalData(builder, item.type, item.data))
 
 	if globalDataOffsets:
-		SceneStartGlobalDataVector(builder, len(globalDataOffsets))
+		Scene.StartGlobalDataVector(builder, len(globalDataOffsets))
 		for offset in reversed(globalDataOffsets):
 			builder.PrependUOffsetTRelative(offset)
-		globalDataOffset = builder.EndVector(len(globalDataOffsets))
+		globalDataOffset = builder.EndVector()
 	else:
 		globalDataOffset = 0
 
@@ -711,17 +713,17 @@ def convertScene(convertContext, data):
 		for node in nodes:
 			nodeOffsets.append(builder.CreateString(node))
 
-		SceneStartNodesVector(builder, len(nodeOffsets))
+		Scene.StartNodesVector(builder, len(nodeOffsets))
 		for offset in reversed(nodeOffsets):
 			builder.PrependUOffsetTRelative(offset)
-		nodesOffset = builder.EndVector(len(nodeOffsets))
+		nodesOffset = builder.EndVector()
 	else:
 		nodesOffset = 0
 
-	SceneStart(builder)
-	SceneAddSharedItems(builder, sharedItemsOffset)
-	SceneAddPipeline(builder, pipelineOffset)
-	SceneAddGlobalData(builder, globalDataOffset)
-	SceneAddNodes(builder, nodesOffset)
-	builder.Finish(SceneEnd(builder))
+	Scene.Start(builder)
+	Scene.AddSharedItems(builder, sharedItemsOffset)
+	Scene.AddPipeline(builder, pipelineOffset)
+	Scene.AddGlobalData(builder, globalDataOffset)
+	Scene.AddNodes(builder, nodesOffset)
+	builder.Finish(Scene.End(builder))
 	return builder.Output()

@@ -10,12 +10,16 @@ class LineCommand(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsLineCommand(cls, buf, offset):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = LineCommand()
         x.Init(buf, n + offset)
         return x
 
+    @classmethod
+    def GetRootAsLineCommand(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
     # LineCommand
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
@@ -31,6 +35,15 @@ class LineCommand(object):
             return obj
         return None
 
-def LineCommandStart(builder): builder.StartObject(1)
-def LineCommandAddEnd(builder, end): builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(end), 0)
-def LineCommandEnd(builder): return builder.EndObject()
+def Start(builder): builder.StartObject(1)
+def LineCommandStart(builder):
+    """This method is deprecated. Please switch to Start."""
+    return Start(builder)
+def AddEnd(builder, end): builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(end), 0)
+def LineCommandAddEnd(builder, end):
+    """This method is deprecated. Please switch to AddEnd."""
+    return AddEnd(builder, end)
+def End(builder): return builder.EndObject()
+def LineCommandEnd(builder):
+    """This method is deprecated. Please switch to End."""
+    return End(builder)

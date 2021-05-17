@@ -10,12 +10,16 @@ class Buffer(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsBuffer(cls, buf, offset):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = Buffer()
         x.Init(buf, n + offset)
         return x
 
+    @classmethod
+    def GetRootAsBuffer(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
     # Buffer
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
@@ -65,11 +69,35 @@ class Buffer(object):
             return obj
         return None
 
-def BufferStart(builder): builder.StartObject(6)
-def BufferAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
-def BufferAddUsage(builder, usage): builder.PrependUint32Slot(1, usage, 0)
-def BufferAddMemoryHints(builder, memoryHints): builder.PrependUint32Slot(2, memoryHints, 0)
-def BufferAddSize(builder, size): builder.PrependUint32Slot(3, size, 0)
-def BufferAddDataType(builder, dataType): builder.PrependUint8Slot(4, dataType, 0)
-def BufferAddData(builder, data): builder.PrependUOffsetTRelativeSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(data), 0)
-def BufferEnd(builder): return builder.EndObject()
+def Start(builder): builder.StartObject(6)
+def BufferStart(builder):
+    """This method is deprecated. Please switch to Start."""
+    return Start(builder)
+def AddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+def BufferAddName(builder, name):
+    """This method is deprecated. Please switch to AddName."""
+    return AddName(builder, name)
+def AddUsage(builder, usage): builder.PrependUint32Slot(1, usage, 0)
+def BufferAddUsage(builder, usage):
+    """This method is deprecated. Please switch to AddUsage."""
+    return AddUsage(builder, usage)
+def AddMemoryHints(builder, memoryHints): builder.PrependUint32Slot(2, memoryHints, 0)
+def BufferAddMemoryHints(builder, memoryHints):
+    """This method is deprecated. Please switch to AddMemoryHints."""
+    return AddMemoryHints(builder, memoryHints)
+def AddSize(builder, size): builder.PrependUint32Slot(3, size, 0)
+def BufferAddSize(builder, size):
+    """This method is deprecated. Please switch to AddSize."""
+    return AddSize(builder, size)
+def AddDataType(builder, dataType): builder.PrependUint8Slot(4, dataType, 0)
+def BufferAddDataType(builder, dataType):
+    """This method is deprecated. Please switch to AddDataType."""
+    return AddDataType(builder, dataType)
+def AddData(builder, data): builder.PrependUOffsetTRelativeSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(data), 0)
+def BufferAddData(builder, data):
+    """This method is deprecated. Please switch to AddData."""
+    return AddData(builder, data)
+def End(builder): return builder.EndObject()
+def BufferEnd(builder):
+    """This method is deprecated. Please switch to End."""
+    return End(builder)

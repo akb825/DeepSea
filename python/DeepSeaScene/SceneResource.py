@@ -10,12 +10,16 @@ class SceneResource(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsSceneResource(cls, buf, offset):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = SceneResource()
         x.Init(buf, n + offset)
         return x
 
+    @classmethod
+    def GetRootAsSceneResource(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
     # SceneResource
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
@@ -37,7 +41,19 @@ class SceneResource(object):
             return obj
         return None
 
-def SceneResourceStart(builder): builder.StartObject(2)
-def SceneResourceAddResourceType(builder, resourceType): builder.PrependUint8Slot(0, resourceType, 0)
-def SceneResourceAddResource(builder, resource): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(resource), 0)
-def SceneResourceEnd(builder): return builder.EndObject()
+def Start(builder): builder.StartObject(2)
+def SceneResourceStart(builder):
+    """This method is deprecated. Please switch to Start."""
+    return Start(builder)
+def AddResourceType(builder, resourceType): builder.PrependUint8Slot(0, resourceType, 0)
+def SceneResourceAddResourceType(builder, resourceType):
+    """This method is deprecated. Please switch to AddResourceType."""
+    return AddResourceType(builder, resourceType)
+def AddResource(builder, resource): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(resource), 0)
+def SceneResourceAddResource(builder, resource):
+    """This method is deprecated. Please switch to AddResource."""
+    return AddResource(builder, resource)
+def End(builder): return builder.EndObject()
+def SceneResourceEnd(builder):
+    """This method is deprecated. Please switch to End."""
+    return End(builder)

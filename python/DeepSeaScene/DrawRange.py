@@ -10,12 +10,16 @@ class DrawRange(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsDrawRange(cls, buf, offset):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = DrawRange()
         x.Init(buf, n + offset)
         return x
 
+    @classmethod
+    def GetRootAsDrawRange(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
     # DrawRange
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
@@ -48,9 +52,27 @@ class DrawRange(object):
             return self._tab.Get(flatbuffers.number_types.Uint32Flags, o + self._tab.Pos)
         return 0
 
-def DrawRangeStart(builder): builder.StartObject(4)
-def DrawRangeAddVertexCount(builder, vertexCount): builder.PrependUint32Slot(0, vertexCount, 0)
-def DrawRangeAddInstanceCount(builder, instanceCount): builder.PrependUint32Slot(1, instanceCount, 0)
-def DrawRangeAddFirstVertex(builder, firstVertex): builder.PrependUint32Slot(2, firstVertex, 0)
-def DrawRangeAddFirstInstance(builder, firstInstance): builder.PrependUint32Slot(3, firstInstance, 0)
-def DrawRangeEnd(builder): return builder.EndObject()
+def Start(builder): builder.StartObject(4)
+def DrawRangeStart(builder):
+    """This method is deprecated. Please switch to Start."""
+    return Start(builder)
+def AddVertexCount(builder, vertexCount): builder.PrependUint32Slot(0, vertexCount, 0)
+def DrawRangeAddVertexCount(builder, vertexCount):
+    """This method is deprecated. Please switch to AddVertexCount."""
+    return AddVertexCount(builder, vertexCount)
+def AddInstanceCount(builder, instanceCount): builder.PrependUint32Slot(1, instanceCount, 0)
+def DrawRangeAddInstanceCount(builder, instanceCount):
+    """This method is deprecated. Please switch to AddInstanceCount."""
+    return AddInstanceCount(builder, instanceCount)
+def AddFirstVertex(builder, firstVertex): builder.PrependUint32Slot(2, firstVertex, 0)
+def DrawRangeAddFirstVertex(builder, firstVertex):
+    """This method is deprecated. Please switch to AddFirstVertex."""
+    return AddFirstVertex(builder, firstVertex)
+def AddFirstInstance(builder, firstInstance): builder.PrependUint32Slot(3, firstInstance, 0)
+def DrawRangeAddFirstInstance(builder, firstInstance):
+    """This method is deprecated. Please switch to AddFirstInstance."""
+    return AddFirstInstance(builder, firstInstance)
+def End(builder): return builder.EndObject()
+def DrawRangeEnd(builder):
+    """This method is deprecated. Please switch to End."""
+    return End(builder)

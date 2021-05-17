@@ -10,12 +10,16 @@ class ShaderVariableGroupDesc(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsShaderVariableGroupDesc(cls, buf, offset):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = ShaderVariableGroupDesc()
         x.Init(buf, n + offset)
         return x
 
+    @classmethod
+    def GetRootAsShaderVariableGroupDesc(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
     # ShaderVariableGroupDesc
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
@@ -52,8 +56,23 @@ class ShaderVariableGroupDesc(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         return o == 0
 
-def ShaderVariableGroupDescStart(builder): builder.StartObject(2)
-def ShaderVariableGroupDescAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
-def ShaderVariableGroupDescAddElements(builder, elements): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(elements), 0)
-def ShaderVariableGroupDescStartElementsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
-def ShaderVariableGroupDescEnd(builder): return builder.EndObject()
+def Start(builder): builder.StartObject(2)
+def ShaderVariableGroupDescStart(builder):
+    """This method is deprecated. Please switch to Start."""
+    return Start(builder)
+def AddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+def ShaderVariableGroupDescAddName(builder, name):
+    """This method is deprecated. Please switch to AddName."""
+    return AddName(builder, name)
+def AddElements(builder, elements): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(elements), 0)
+def ShaderVariableGroupDescAddElements(builder, elements):
+    """This method is deprecated. Please switch to AddElements."""
+    return AddElements(builder, elements)
+def StartElementsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+def ShaderVariableGroupDescStartElementsVector(builder, numElems):
+    """This method is deprecated. Please switch to Start."""
+    return StartElementsVector(builder, numElems)
+def End(builder): return builder.EndObject()
+def ShaderVariableGroupDescEnd(builder):
+    """This method is deprecated. Please switch to End."""
+    return End(builder)

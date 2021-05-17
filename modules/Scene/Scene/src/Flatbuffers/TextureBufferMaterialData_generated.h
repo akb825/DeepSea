@@ -72,7 +72,6 @@ struct TextureBufferMaterialDataBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  TextureBufferMaterialDataBuilder &operator=(const TextureBufferMaterialDataBuilder &);
   flatbuffers::Offset<TextureBufferMaterialData> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<TextureBufferMaterialData>(end);

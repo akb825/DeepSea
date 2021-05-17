@@ -9,6 +9,10 @@ np = import_numpy()
 class SubpassDependency(object):
     __slots__ = ['_tab']
 
+    @classmethod
+    def SizeOf(cls):
+        return 28
+
     # SubpassDependency
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)

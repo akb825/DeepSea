@@ -10,12 +10,16 @@ class TransformNode(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsTransformNode(cls, buf, offset):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = TransformNode()
         x.Init(buf, n + offset)
         return x
 
+    @classmethod
+    def GetRootAsTransformNode(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
     # TransformNode
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
@@ -56,8 +60,23 @@ class TransformNode(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         return o == 0
 
-def TransformNodeStart(builder): builder.StartObject(2)
-def TransformNodeAddTransform(builder, transform): builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(transform), 0)
-def TransformNodeAddChildren(builder, children): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(children), 0)
-def TransformNodeStartChildrenVector(builder, numElems): return builder.StartVector(4, numElems, 4)
-def TransformNodeEnd(builder): return builder.EndObject()
+def Start(builder): builder.StartObject(2)
+def TransformNodeStart(builder):
+    """This method is deprecated. Please switch to Start."""
+    return Start(builder)
+def AddTransform(builder, transform): builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(transform), 0)
+def TransformNodeAddTransform(builder, transform):
+    """This method is deprecated. Please switch to AddTransform."""
+    return AddTransform(builder, transform)
+def AddChildren(builder, children): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(children), 0)
+def TransformNodeAddChildren(builder, children):
+    """This method is deprecated. Please switch to AddChildren."""
+    return AddChildren(builder, children)
+def StartChildrenVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+def TransformNodeStartChildrenVector(builder, numElems):
+    """This method is deprecated. Please switch to Start."""
+    return StartChildrenVector(builder, numElems)
+def End(builder): return builder.EndObject()
+def TransformNodeEnd(builder):
+    """This method is deprecated. Please switch to End."""
+    return End(builder)

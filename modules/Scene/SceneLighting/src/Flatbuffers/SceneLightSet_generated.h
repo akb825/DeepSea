@@ -122,7 +122,6 @@ struct DirectionalLightBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  DirectionalLightBuilder &operator=(const DirectionalLightBuilder &);
   flatbuffers::Offset<DirectionalLight> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<DirectionalLight>(end);
@@ -202,7 +201,6 @@ struct PointLightBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  PointLightBuilder &operator=(const PointLightBuilder &);
   flatbuffers::Offset<PointLight> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<PointLight>(end);
@@ -310,7 +308,6 @@ struct SpotLightBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  SpotLightBuilder &operator=(const SpotLightBuilder &);
   flatbuffers::Offset<SpotLight> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<SpotLight>(end);
@@ -409,7 +406,6 @@ struct LightBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  LightBuilder &operator=(const LightBuilder &);
   flatbuffers::Offset<Light> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<Light>(end);
@@ -496,7 +492,6 @@ struct SceneLightSetBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  SceneLightSetBuilder &operator=(const SceneLightSetBuilder &);
   flatbuffers::Offset<SceneLightSet> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<SceneLightSet>(end);

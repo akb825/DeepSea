@@ -9,6 +9,10 @@ np = import_numpy()
 class Color4f(object):
     __slots__ = ['_tab']
 
+    @classmethod
+    def SizeOf(cls):
+        return 16
+
     # Color4f
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)

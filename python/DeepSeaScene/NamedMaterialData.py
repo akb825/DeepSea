@@ -10,12 +10,16 @@ class NamedMaterialData(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsNamedMaterialData(cls, buf, offset):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = NamedMaterialData()
         x.Init(buf, n + offset)
         return x
 
+    @classmethod
+    def GetRootAsNamedMaterialData(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
     # NamedMaterialData
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
@@ -27,6 +31,15 @@ class NamedMaterialData(object):
             return self._tab.String(o + self._tab.Pos)
         return None
 
-def NamedMaterialDataStart(builder): builder.StartObject(1)
-def NamedMaterialDataAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
-def NamedMaterialDataEnd(builder): return builder.EndObject()
+def Start(builder): builder.StartObject(1)
+def NamedMaterialDataStart(builder):
+    """This method is deprecated. Please switch to Start."""
+    return Start(builder)
+def AddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+def NamedMaterialDataAddName(builder, name):
+    """This method is deprecated. Please switch to AddName."""
+    return AddName(builder, name)
+def End(builder): return builder.EndObject()
+def NamedMaterialDataEnd(builder):
+    """This method is deprecated. Please switch to End."""
+    return End(builder)

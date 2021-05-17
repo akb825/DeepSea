@@ -13,10 +13,8 @@
 # limitations under the License.
 
 import flatbuffers
-from ..VectorItemList import *
+from .. import VectorItemList
 from DeepSeaScene.Convert.DynamicRenderStatesConvert import convertDynamicRenderStates
-from DeepSeaScene.DynamicRenderStates import *
-from DeepSeaScene.InstanceTransformData import *
 
 def convertVectorItemList(convertContext, data):
 	"""
@@ -44,6 +42,7 @@ def convertVectorItemList(convertContext, data):
 	  - frontStencilReference: int reference for just the front stencil.
 	  - backStencilReference: int reference for just the back stencil.
 	"""
+	builder = flatbuffers.Builder(0)
 	try:
 		instanceDataInfo = data.get('instanceData', [])
 		instanceData = []
@@ -69,23 +68,21 @@ def convertVectorItemList(convertContext, data):
 	except (AttributeError, TypeError, ValueError):
 		raise Exception('VectorItemList must be an object.')
 
-	builder = flatbuffers.Builder(0)
-
 	instanceDataOffsets = []
 	for instanceType, instance in instanceData:
 		instanceDataOffsets.append(convertContext.convertInstanceData(builder, instanceType,
 			instance))
 
 	if instanceDataOffsets:
-		VectorItemListStartInstanceDataVector(builder, len(instanceDataOffsets))
+		VectorItemList.StartInstanceDataVector(builder, len(instanceDataOffsets))
 		for offset in reversed(instanceDataOffsets):
 			builder.PrependUOffsetTRelative(offset)
-		instanceDataOffset = builder.EndVector(len(instanceDataOffsets))
+		instanceDataOffset = builder.EndVector()
 	else:
 		instanceDataOffset = 0
 
-	VectorItemListStart(builder)
-	VectorItemListAddInstanceData(builder, instanceDataOffset)
-	VectorItemListAddDynamicRenderStates(builder, dynamicRenderStatesOffset)
-	builder.Finish(VectorItemListEnd(builder))
+	VectorItemList.Start(builder)
+	VectorItemList.AddInstanceData(builder, instanceDataOffset)
+	VectorItemList.AddDynamicRenderStates(builder, dynamicRenderStatesOffset)
+	builder.Finish(VectorItemList.End(builder))
 	return builder.Output()

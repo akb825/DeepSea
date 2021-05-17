@@ -47,7 +47,6 @@ struct LightSetPrepareBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  LightSetPrepareBuilder &operator=(const LightSetPrepareBuilder &);
   flatbuffers::Offset<LightSetPrepare> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<LightSetPrepare>(end);

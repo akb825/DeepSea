@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import flatbuffers
-from ..ViewTransformData import *
+from .. import ViewTransformData
 
 def convertViewTransformData(convertContext, data):
 	"""
@@ -29,7 +29,7 @@ def convertViewTransformData(convertContext, data):
 
 	builder = flatbuffers.Builder(0)
 	variableGroupDescNameOffset = builder.CreateString(variableGroupDescName)
-	ViewTransformDataStart(builder)
-	ViewTransformDataAddVariableGroupDesc(builder, variableGroupDescNameOffset)
-	builder.Finish(ViewTransformDataEnd(builder))
+	ViewTransformData.Start(builder)
+	ViewTransformData.AddVariableGroupDesc(builder, variableGroupDescNameOffset)
+	builder.Finish(ViewTransformData.End(builder))
 	return builder.Output()

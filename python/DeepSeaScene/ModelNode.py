@@ -10,12 +10,16 @@ class ModelNode(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsModelNode(cls, buf, offset):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = ModelNode()
         x.Init(buf, n + offset)
         return x
 
+    @classmethod
+    def GetRootAsModelNode(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
     # ModelNode
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
@@ -103,12 +107,39 @@ class ModelNode(object):
             return obj
         return None
 
-def ModelNodeStart(builder): builder.StartObject(4)
-def ModelNodeAddEmbeddedResources(builder, embeddedResources): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(embeddedResources), 0)
-def ModelNodeStartEmbeddedResourcesVector(builder, numElems): return builder.StartVector(1, numElems, 1)
-def ModelNodeAddModels(builder, models): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(models), 0)
-def ModelNodeStartModelsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
-def ModelNodeAddExtraItemLists(builder, extraItemLists): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(extraItemLists), 0)
-def ModelNodeStartExtraItemListsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
-def ModelNodeAddBounds(builder, bounds): builder.PrependStructSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(bounds), 0)
-def ModelNodeEnd(builder): return builder.EndObject()
+def Start(builder): builder.StartObject(4)
+def ModelNodeStart(builder):
+    """This method is deprecated. Please switch to Start."""
+    return Start(builder)
+def AddEmbeddedResources(builder, embeddedResources): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(embeddedResources), 0)
+def ModelNodeAddEmbeddedResources(builder, embeddedResources):
+    """This method is deprecated. Please switch to AddEmbeddedResources."""
+    return AddEmbeddedResources(builder, embeddedResources)
+def StartEmbeddedResourcesVector(builder, numElems): return builder.StartVector(1, numElems, 1)
+def ModelNodeStartEmbeddedResourcesVector(builder, numElems):
+    """This method is deprecated. Please switch to Start."""
+    return StartEmbeddedResourcesVector(builder, numElems)
+def AddModels(builder, models): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(models), 0)
+def ModelNodeAddModels(builder, models):
+    """This method is deprecated. Please switch to AddModels."""
+    return AddModels(builder, models)
+def StartModelsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+def ModelNodeStartModelsVector(builder, numElems):
+    """This method is deprecated. Please switch to Start."""
+    return StartModelsVector(builder, numElems)
+def AddExtraItemLists(builder, extraItemLists): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(extraItemLists), 0)
+def ModelNodeAddExtraItemLists(builder, extraItemLists):
+    """This method is deprecated. Please switch to AddExtraItemLists."""
+    return AddExtraItemLists(builder, extraItemLists)
+def StartExtraItemListsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+def ModelNodeStartExtraItemListsVector(builder, numElems):
+    """This method is deprecated. Please switch to Start."""
+    return StartExtraItemListsVector(builder, numElems)
+def AddBounds(builder, bounds): builder.PrependStructSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(bounds), 0)
+def ModelNodeAddBounds(builder, bounds):
+    """This method is deprecated. Please switch to AddBounds."""
+    return AddBounds(builder, bounds)
+def End(builder): return builder.EndObject()
+def ModelNodeEnd(builder):
+    """This method is deprecated. Please switch to End."""
+    return End(builder)

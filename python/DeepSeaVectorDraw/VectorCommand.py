@@ -10,12 +10,16 @@ class VectorCommand(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsVectorCommand(cls, buf, offset):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = VectorCommand()
         x.Init(buf, n + offset)
         return x
 
+    @classmethod
+    def GetRootAsVectorCommand(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
     # VectorCommand
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
@@ -37,7 +41,19 @@ class VectorCommand(object):
             return obj
         return None
 
-def VectorCommandStart(builder): builder.StartObject(2)
-def VectorCommandAddCommandType(builder, commandType): builder.PrependUint8Slot(0, commandType, 0)
-def VectorCommandAddCommand(builder, command): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(command), 0)
-def VectorCommandEnd(builder): return builder.EndObject()
+def Start(builder): builder.StartObject(2)
+def VectorCommandStart(builder):
+    """This method is deprecated. Please switch to Start."""
+    return Start(builder)
+def AddCommandType(builder, commandType): builder.PrependUint8Slot(0, commandType, 0)
+def VectorCommandAddCommandType(builder, commandType):
+    """This method is deprecated. Please switch to AddCommandType."""
+    return AddCommandType(builder, commandType)
+def AddCommand(builder, command): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(command), 0)
+def VectorCommandAddCommand(builder, command):
+    """This method is deprecated. Please switch to AddCommand."""
+    return AddCommand(builder, command)
+def End(builder): return builder.EndObject()
+def VectorCommandEnd(builder):
+    """This method is deprecated. Please switch to End."""
+    return End(builder)

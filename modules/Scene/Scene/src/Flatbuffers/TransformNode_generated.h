@@ -49,7 +49,6 @@ struct TransformNodeBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  TransformNodeBuilder &operator=(const TransformNodeBuilder &);
   flatbuffers::Offset<TransformNode> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<TransformNode>(end);

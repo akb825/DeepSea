@@ -14,16 +14,16 @@
 
 import flatbuffers
 from .SceneResourcesConvert import memoryHintsEnum
-from ..AlignedBox3f import *
-from ..CubeFace import *
-from ..FormatDecoration import *
-from ..Framebuffer import *
-from ..FramebufferSurface import *
-from ..Surface import *
-from ..SurfaceType import *
-from ..TextureDim import *
-from ..TextureFormat import *
-from ..View import *
+from ..AlignedBox3f import CreateAlignedBox3f
+from ..CubeFace import CubeFace
+from ..FormatDecoration import FormatDecoration
+from .. import Framebuffer
+from .. import FramebufferSurface
+from .. import Surface
+from ..SurfaceType import SurfaceType
+from ..TextureDim import TextureDim
+from ..TextureFormat import TextureFormat
+from .. import View
 
 class Object:
 	pass
@@ -350,30 +350,30 @@ def convertView(convertContext, data):
 	for surface in surfaces:
 		nameOffset = builder.CreateString(surface.name)
 
-		SurfaceStart(builder)
-		SurfaceAddName(builder, nameOffset)
-		SurfaceAddType(builder, surface.type)
-		SurfaceAddUsage(builder, surface.usage)
-		SurfaceAddMemoryHints(builder, surface.memoryHints)
-		SurfaceAddFormat(builder, surface.format)
-		SurfaceAddDecoration(builder, surface.decoration)
-		SurfaceAddDimension(builder, surface.dimension)
-		SurfaceAddWidth(builder, surface.width)
-		SurfaceAddWidthRatio(builder, surface.widthRatio)
-		SurfaceAddHeight(builder, surface.height)
-		SurfaceAddHeightRatio(builder, surface.heightRatio)
-		SurfaceAddDepth(builder, surface.depth)
-		SurfaceAddMipLevels(builder, surface.mipLevels)
-		SurfaceAddSamples(builder, surface.samples)
-		SurfaceAddResolve(builder, surface.resolve)
-		SurfaceAddWindowFramebuffer(builder, surface.windowFramebuffer)
-		surfaceOffsets.append(SurfaceEnd(builder))
+		Surface.Start(builder)
+		Surface.AddName(builder, nameOffset)
+		Surface.AddType(builder, surface.type)
+		Surface.AddUsage(builder, surface.usage)
+		Surface.AddMemoryHints(builder, surface.memoryHints)
+		Surface.AddFormat(builder, surface.format)
+		Surface.AddDecoration(builder, surface.decoration)
+		Surface.AddDimension(builder, surface.dimension)
+		Surface.AddWidth(builder, surface.width)
+		Surface.AddWidthRatio(builder, surface.widthRatio)
+		Surface.AddHeight(builder, surface.height)
+		Surface.AddHeightRatio(builder, surface.heightRatio)
+		Surface.AddDepth(builder, surface.depth)
+		Surface.AddMipLevels(builder, surface.mipLevels)
+		Surface.AddSamples(builder, surface.samples)
+		Surface.AddResolve(builder, surface.resolve)
+		Surface.AddWindowFramebuffer(builder, surface.windowFramebuffer)
+		surfaceOffsets.append(Surface.End(builder))
 
 	if surfaceOffsets:
-		ViewStartSurfacesVector(builder, len(surfaceOffsets))
+		View.StartSurfacesVector(builder, len(surfaceOffsets))
 		for offset in reversed(surfaceOffsets):
 			builder.PrependUOffsetTRelative(offset)
-		surfacesOffset = builder.EndVector(len(surfaceOffsets))
+		surfacesOffset = builder.EndVector()
 	else:
 		surfacesOffset = 0
 
@@ -385,43 +385,43 @@ def convertView(convertContext, data):
 		for surface in framebuffer.surfaces:
 			surfaceNameOffset = builder.CreateString(surface.name)
 
-			FramebufferSurfaceStart(builder)
-			FramebufferSurfaceAddName(builder, surfaceNameOffset)
-			FramebufferSurfaceAddFace(builder, surface.face)
-			FramebufferSurfaceAddLayer(builder, surface.layer)
-			FramebufferSurfaceAddMipLevel(builder, surface.mipLevel)
-			framebufferSurfaceOffsets.append(FramebufferSurfaceEnd(builder))
+			FramebufferSurface.Start(builder)
+			FramebufferSurface.AddName(builder, surfaceNameOffset)
+			FramebufferSurface.AddFace(builder, surface.face)
+			FramebufferSurface.AddLayer(builder, surface.layer)
+			FramebufferSurface.AddMipLevel(builder, surface.mipLevel)
+			framebufferSurfaceOffsets.append(FramebufferSurface.End(builder))
 
 		if framebufferSurfaceOffsets:
-			FramebufferStartSurfacesVector(builder, len(framebufferSurfaceOffsets))
+			Framebuffer.StartSurfacesVector(builder, len(framebufferSurfaceOffsets))
 			for offset in reversed(framebufferSurfaceOffsets):
 				builder.PrependUOffsetTRelative(offset)
-			framebufferSurfacesOffset = builder.EndVector(len(framebufferSurfaceOffsets))
+			framebufferSurfacesOffset = builder.EndVector()
 		else:
 			framebufferSurfacesOffset = 0
 
-		FramebufferStart(builder)
-		FramebufferAddName(builder, nameOffset)
-		FramebufferAddSurfaces(builder, framebufferSurfacesOffset)
-		FramebufferAddWidth(builder, framebuffer.width)
-		FramebufferAddHeight(builder, framebuffer.height)
-		FramebufferAddLayers(builder, framebuffer.layers)
+		Framebuffer.Start(builder)
+		Framebuffer.AddName(builder, nameOffset)
+		Framebuffer.AddSurfaces(builder, framebufferSurfacesOffset)
+		Framebuffer.AddWidth(builder, framebuffer.width)
+		Framebuffer.AddHeight(builder, framebuffer.height)
+		Framebuffer.AddLayers(builder, framebuffer.layers)
 
 		if framebuffer.viewport:
 			viewportOffset = CreateAlignedBox3f(builder, *framebuffer.viewport)
 		else:
 			viewportOffset = 0
-		FramebufferAddViewport(builder, viewportOffset)
+		Framebuffer.AddViewport(builder, viewportOffset)
 
-		framebufferOffsets.append(FramebufferEnd(builder))
+		framebufferOffsets.append(Framebuffer.End(builder))
 
-	ViewStartFramebuffersVector(builder, len(framebufferOffsets))
+	View.StartFramebuffersVector(builder, len(framebufferOffsets))
 	for offset in reversed(framebufferOffsets):
 		builder.PrependUOffsetTRelative(offset)
-	framebuffersOffset = builder.EndVector(len(framebufferOffsets))
+	framebuffersOffset = builder.EndVector()
 
-	ViewStart(builder)
-	ViewAddSurfaces(builder, surfacesOffset)
-	ViewAddFramebuffers(builder, framebuffersOffset)
-	builder.Finish(ViewEnd(builder))
+	View.Start(builder)
+	View.AddSurfaces(builder, surfacesOffset)
+	View.AddFramebuffers(builder, framebuffersOffset)
+	builder.Finish(View.End(builder))
 	return builder.Output()

@@ -10,12 +10,16 @@ class VectorItemList(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsVectorItemList(cls, buf, offset):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = VectorItemList()
         x.Init(buf, n + offset)
         return x
 
+    @classmethod
+    def GetRootAsVectorItemList(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
     # VectorItemList
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
@@ -56,8 +60,23 @@ class VectorItemList(object):
             return obj
         return None
 
-def VectorItemListStart(builder): builder.StartObject(2)
-def VectorItemListAddInstanceData(builder, instanceData): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(instanceData), 0)
-def VectorItemListStartInstanceDataVector(builder, numElems): return builder.StartVector(4, numElems, 4)
-def VectorItemListAddDynamicRenderStates(builder, dynamicRenderStates): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(dynamicRenderStates), 0)
-def VectorItemListEnd(builder): return builder.EndObject()
+def Start(builder): builder.StartObject(2)
+def VectorItemListStart(builder):
+    """This method is deprecated. Please switch to Start."""
+    return Start(builder)
+def AddInstanceData(builder, instanceData): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(instanceData), 0)
+def VectorItemListAddInstanceData(builder, instanceData):
+    """This method is deprecated. Please switch to AddInstanceData."""
+    return AddInstanceData(builder, instanceData)
+def StartInstanceDataVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+def VectorItemListStartInstanceDataVector(builder, numElems):
+    """This method is deprecated. Please switch to Start."""
+    return StartInstanceDataVector(builder, numElems)
+def AddDynamicRenderStates(builder, dynamicRenderStates): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(dynamicRenderStates), 0)
+def VectorItemListAddDynamicRenderStates(builder, dynamicRenderStates):
+    """This method is deprecated. Please switch to AddDynamicRenderStates."""
+    return AddDynamicRenderStates(builder, dynamicRenderStates)
+def End(builder): return builder.EndObject()
+def VectorItemListEnd(builder):
+    """This method is deprecated. Please switch to End."""
+    return End(builder)

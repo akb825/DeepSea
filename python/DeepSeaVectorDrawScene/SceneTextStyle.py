@@ -10,12 +10,16 @@ class SceneTextStyle(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsSceneTextStyle(cls, buf, offset):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = SceneTextStyle()
         x.Init(buf, n + offset)
         return x
 
+    @classmethod
+    def GetRootAsSceneTextStyle(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
     # SceneTextStyle
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
@@ -98,15 +102,51 @@ class SceneTextStyle(object):
             return obj
         return None
 
-def SceneTextStyleStart(builder): builder.StartObject(10)
-def SceneTextStyleAddStart(builder, start): builder.PrependUint32Slot(0, start, 0)
-def SceneTextStyleAddCount(builder, count): builder.PrependUint32Slot(1, count, 0)
-def SceneTextStyleAddSize(builder, size): builder.PrependFloat32Slot(2, size, 0.0)
-def SceneTextStyleAddEmbolden(builder, embolden): builder.PrependFloat32Slot(3, embolden, 0.0)
-def SceneTextStyleAddSlant(builder, slant): builder.PrependFloat32Slot(4, slant, 0.0)
-def SceneTextStyleAddOutlineWidth(builder, outlineWidth): builder.PrependFloat32Slot(5, outlineWidth, 0.0)
-def SceneTextStyleAddFuziness(builder, fuziness): builder.PrependFloat32Slot(6, fuziness, 0.0)
-def SceneTextStyleAddVerticalOffset(builder, verticalOffset): builder.PrependFloat32Slot(7, verticalOffset, 0.0)
-def SceneTextStyleAddColor(builder, color): builder.PrependStructSlot(8, flatbuffers.number_types.UOffsetTFlags.py_type(color), 0)
-def SceneTextStyleAddOutlineColor(builder, outlineColor): builder.PrependStructSlot(9, flatbuffers.number_types.UOffsetTFlags.py_type(outlineColor), 0)
-def SceneTextStyleEnd(builder): return builder.EndObject()
+def Start(builder): builder.StartObject(10)
+def SceneTextStyleStart(builder):
+    """This method is deprecated. Please switch to Start."""
+    return Start(builder)
+def AddStart(builder, start): builder.PrependUint32Slot(0, start, 0)
+def SceneTextStyleAddStart(builder, start):
+    """This method is deprecated. Please switch to AddStart."""
+    return AddStart(builder, start)
+def AddCount(builder, count): builder.PrependUint32Slot(1, count, 0)
+def SceneTextStyleAddCount(builder, count):
+    """This method is deprecated. Please switch to AddCount."""
+    return AddCount(builder, count)
+def AddSize(builder, size): builder.PrependFloat32Slot(2, size, 0.0)
+def SceneTextStyleAddSize(builder, size):
+    """This method is deprecated. Please switch to AddSize."""
+    return AddSize(builder, size)
+def AddEmbolden(builder, embolden): builder.PrependFloat32Slot(3, embolden, 0.0)
+def SceneTextStyleAddEmbolden(builder, embolden):
+    """This method is deprecated. Please switch to AddEmbolden."""
+    return AddEmbolden(builder, embolden)
+def AddSlant(builder, slant): builder.PrependFloat32Slot(4, slant, 0.0)
+def SceneTextStyleAddSlant(builder, slant):
+    """This method is deprecated. Please switch to AddSlant."""
+    return AddSlant(builder, slant)
+def AddOutlineWidth(builder, outlineWidth): builder.PrependFloat32Slot(5, outlineWidth, 0.0)
+def SceneTextStyleAddOutlineWidth(builder, outlineWidth):
+    """This method is deprecated. Please switch to AddOutlineWidth."""
+    return AddOutlineWidth(builder, outlineWidth)
+def AddFuziness(builder, fuziness): builder.PrependFloat32Slot(6, fuziness, 0.0)
+def SceneTextStyleAddFuziness(builder, fuziness):
+    """This method is deprecated. Please switch to AddFuziness."""
+    return AddFuziness(builder, fuziness)
+def AddVerticalOffset(builder, verticalOffset): builder.PrependFloat32Slot(7, verticalOffset, 0.0)
+def SceneTextStyleAddVerticalOffset(builder, verticalOffset):
+    """This method is deprecated. Please switch to AddVerticalOffset."""
+    return AddVerticalOffset(builder, verticalOffset)
+def AddColor(builder, color): builder.PrependStructSlot(8, flatbuffers.number_types.UOffsetTFlags.py_type(color), 0)
+def SceneTextStyleAddColor(builder, color):
+    """This method is deprecated. Please switch to AddColor."""
+    return AddColor(builder, color)
+def AddOutlineColor(builder, outlineColor): builder.PrependStructSlot(9, flatbuffers.number_types.UOffsetTFlags.py_type(outlineColor), 0)
+def SceneTextStyleAddOutlineColor(builder, outlineColor):
+    """This method is deprecated. Please switch to AddOutlineColor."""
+    return AddOutlineColor(builder, outlineColor)
+def End(builder): return builder.EndObject()
+def SceneTextStyleEnd(builder):
+    """This method is deprecated. Please switch to End."""
+    return End(builder)

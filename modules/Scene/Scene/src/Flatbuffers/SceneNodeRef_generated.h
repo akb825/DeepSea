@@ -40,7 +40,6 @@ struct SceneNodeRefBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  SceneNodeRefBuilder &operator=(const SceneNodeRefBuilder &);
   flatbuffers::Offset<SceneNodeRef> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<SceneNodeRef>(end);

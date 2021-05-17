@@ -10,12 +10,16 @@ class VariableElement(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsVariableElement(cls, buf, offset):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = VariableElement()
         x.Init(buf, n + offset)
         return x
 
+    @classmethod
+    def GetRootAsVariableElement(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
     # VariableElement
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
@@ -41,8 +45,23 @@ class VariableElement(object):
             return self._tab.Get(flatbuffers.number_types.Uint32Flags, o + self._tab.Pos)
         return 0
 
-def VariableElementStart(builder): builder.StartObject(3)
-def VariableElementAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
-def VariableElementAddType(builder, type): builder.PrependUint8Slot(1, type, 0)
-def VariableElementAddCount(builder, count): builder.PrependUint32Slot(2, count, 0)
-def VariableElementEnd(builder): return builder.EndObject()
+def Start(builder): builder.StartObject(3)
+def VariableElementStart(builder):
+    """This method is deprecated. Please switch to Start."""
+    return Start(builder)
+def AddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+def VariableElementAddName(builder, name):
+    """This method is deprecated. Please switch to AddName."""
+    return AddName(builder, name)
+def AddType(builder, type): builder.PrependUint8Slot(1, type, 0)
+def VariableElementAddType(builder, type):
+    """This method is deprecated. Please switch to AddType."""
+    return AddType(builder, type)
+def AddCount(builder, count): builder.PrependUint32Slot(2, count, 0)
+def VariableElementAddCount(builder, count):
+    """This method is deprecated. Please switch to AddCount."""
+    return AddCount(builder, count)
+def End(builder): return builder.EndObject()
+def VariableElementEnd(builder):
+    """This method is deprecated. Please switch to End."""
+    return End(builder)

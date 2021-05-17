@@ -199,7 +199,6 @@ struct SurfaceBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  SurfaceBuilder &operator=(const SurfaceBuilder &);
   flatbuffers::Offset<Surface> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<Surface>(end);
@@ -336,7 +335,6 @@ struct FramebufferSurfaceBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  FramebufferSurfaceBuilder &operator=(const FramebufferSurfaceBuilder &);
   flatbuffers::Offset<FramebufferSurface> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<FramebufferSurface>(end);
@@ -443,7 +441,6 @@ struct FramebufferBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  FramebufferBuilder &operator=(const FramebufferBuilder &);
   flatbuffers::Offset<Framebuffer> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<Framebuffer>(end);
@@ -528,7 +525,6 @@ struct ViewBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  ViewBuilder &operator=(const ViewBuilder &);
   flatbuffers::Offset<View> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<View>(end);

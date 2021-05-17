@@ -10,12 +10,16 @@ class ModelInfo(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsModelInfo(cls, buf, offset):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = ModelInfo()
         x.Init(buf, n + offset)
         return x
 
+    @classmethod
+    def GetRootAsModelInfo(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
     # ModelInfo
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
@@ -98,14 +102,47 @@ class ModelInfo(object):
             return self._tab.String(o + self._tab.Pos)
         return None
 
-def ModelInfoStart(builder): builder.StartObject(8)
-def ModelInfoAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
-def ModelInfoAddShader(builder, shader): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(shader), 0)
-def ModelInfoAddMaterial(builder, material): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(material), 0)
-def ModelInfoAddGeometry(builder, geometry): builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(geometry), 0)
-def ModelInfoAddDistanceRange(builder, distanceRange): builder.PrependStructSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(distanceRange), 0)
-def ModelInfoAddDrawRanges(builder, drawRanges): builder.PrependUOffsetTRelativeSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(drawRanges), 0)
-def ModelInfoStartDrawRangesVector(builder, numElems): return builder.StartVector(4, numElems, 4)
-def ModelInfoAddPrimitiveType(builder, primitiveType): builder.PrependUint8Slot(6, primitiveType, 0)
-def ModelInfoAddModelList(builder, modelList): builder.PrependUOffsetTRelativeSlot(7, flatbuffers.number_types.UOffsetTFlags.py_type(modelList), 0)
-def ModelInfoEnd(builder): return builder.EndObject()
+def Start(builder): builder.StartObject(8)
+def ModelInfoStart(builder):
+    """This method is deprecated. Please switch to Start."""
+    return Start(builder)
+def AddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+def ModelInfoAddName(builder, name):
+    """This method is deprecated. Please switch to AddName."""
+    return AddName(builder, name)
+def AddShader(builder, shader): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(shader), 0)
+def ModelInfoAddShader(builder, shader):
+    """This method is deprecated. Please switch to AddShader."""
+    return AddShader(builder, shader)
+def AddMaterial(builder, material): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(material), 0)
+def ModelInfoAddMaterial(builder, material):
+    """This method is deprecated. Please switch to AddMaterial."""
+    return AddMaterial(builder, material)
+def AddGeometry(builder, geometry): builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(geometry), 0)
+def ModelInfoAddGeometry(builder, geometry):
+    """This method is deprecated. Please switch to AddGeometry."""
+    return AddGeometry(builder, geometry)
+def AddDistanceRange(builder, distanceRange): builder.PrependStructSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(distanceRange), 0)
+def ModelInfoAddDistanceRange(builder, distanceRange):
+    """This method is deprecated. Please switch to AddDistanceRange."""
+    return AddDistanceRange(builder, distanceRange)
+def AddDrawRanges(builder, drawRanges): builder.PrependUOffsetTRelativeSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(drawRanges), 0)
+def ModelInfoAddDrawRanges(builder, drawRanges):
+    """This method is deprecated. Please switch to AddDrawRanges."""
+    return AddDrawRanges(builder, drawRanges)
+def StartDrawRangesVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+def ModelInfoStartDrawRangesVector(builder, numElems):
+    """This method is deprecated. Please switch to Start."""
+    return StartDrawRangesVector(builder, numElems)
+def AddPrimitiveType(builder, primitiveType): builder.PrependUint8Slot(6, primitiveType, 0)
+def ModelInfoAddPrimitiveType(builder, primitiveType):
+    """This method is deprecated. Please switch to AddPrimitiveType."""
+    return AddPrimitiveType(builder, primitiveType)
+def AddModelList(builder, modelList): builder.PrependUOffsetTRelativeSlot(7, flatbuffers.number_types.UOffsetTFlags.py_type(modelList), 0)
+def ModelInfoAddModelList(builder, modelList):
+    """This method is deprecated. Please switch to AddModelList."""
+    return AddModelList(builder, modelList)
+def End(builder): return builder.EndObject()
+def ModelInfoEnd(builder):
+    """This method is deprecated. Please switch to End."""
+    return End(builder)

@@ -38,7 +38,6 @@ struct ViewTransformDataBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  ViewTransformDataBuilder &operator=(const ViewTransformDataBuilder &);
   flatbuffers::Offset<ViewTransformData> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<ViewTransformData>(end);

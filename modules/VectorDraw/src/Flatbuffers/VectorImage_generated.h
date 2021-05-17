@@ -445,8 +445,11 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(1) Color FLATBUFFERS_FINAL_CLASS {
   uint8_t a_;
 
  public:
-  Color() {
-    memset(static_cast<void *>(this), 0, sizeof(Color));
+  Color()
+      : r_(0),
+        g_(0),
+        b_(0),
+        a_(0) {
   }
   Color(uint8_t _r, uint8_t _g, uint8_t _b, uint8_t _a)
       : r_(flatbuffers::EndianScalar(_r)),
@@ -475,8 +478,9 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Vector2f FLATBUFFERS_FINAL_CLASS {
   float y_;
 
  public:
-  Vector2f() {
-    memset(static_cast<void *>(this), 0, sizeof(Vector2f));
+  Vector2f()
+      : x_(0),
+        y_(0) {
   }
   Vector2f(float _x, float _y)
       : x_(flatbuffers::EndianScalar(_x)),
@@ -498,8 +502,10 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Vector3f FLATBUFFERS_FINAL_CLASS {
   float z_;
 
  public:
-  Vector3f() {
-    memset(static_cast<void *>(this), 0, sizeof(Vector3f));
+  Vector3f()
+      : x_(0),
+        y_(0),
+        z_(0) {
   }
   Vector3f(float _x, float _y, float _z)
       : x_(flatbuffers::EndianScalar(_x)),
@@ -525,8 +531,10 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Matrix33f FLATBUFFERS_FINAL_CLASS {
   DeepSeaVectorDraw::Vector3f column2_;
 
  public:
-  Matrix33f() {
-    memset(static_cast<void *>(this), 0, sizeof(Matrix33f));
+  Matrix33f()
+      : column0_(),
+        column1_(),
+        column2_() {
   }
   Matrix33f(const DeepSeaVectorDraw::Vector3f &_column0, const DeepSeaVectorDraw::Vector3f &_column1, const DeepSeaVectorDraw::Vector3f &_column2)
       : column0_(_column0),
@@ -553,8 +561,11 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) DashArray FLATBUFFERS_FINAL_CLASS {
   float gap1_;
 
  public:
-  DashArray() {
-    memset(static_cast<void *>(this), 0, sizeof(DashArray));
+  DashArray()
+      : solid0_(0),
+        gap0_(0),
+        solid1_(0),
+        gap1_(0) {
   }
   DashArray(float _solid0, float _gap0, float _solid1, float _gap1)
       : solid0_(flatbuffers::EndianScalar(_solid0)),
@@ -583,8 +594,9 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) GradientStop FLATBUFFERS_FINAL_CLASS {
   DeepSeaVectorDraw::Color color_;
 
  public:
-  GradientStop() {
-    memset(static_cast<void *>(this), 0, sizeof(GradientStop));
+  GradientStop()
+      : position_(0),
+        color_() {
   }
   GradientStop(float _position, const DeepSeaVectorDraw::Color &_color)
       : position_(flatbuffers::EndianScalar(_position)),
@@ -634,7 +646,6 @@ struct ColorMaterialBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  ColorMaterialBuilder &operator=(const ColorMaterialBuilder &);
   flatbuffers::Offset<ColorMaterial> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<ColorMaterial>(end);
@@ -741,7 +752,6 @@ struct LinearGradientBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  LinearGradientBuilder &operator=(const LinearGradientBuilder &);
   flatbuffers::Offset<LinearGradient> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<LinearGradient>(end);
@@ -888,7 +898,6 @@ struct RadialGradientBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  RadialGradientBuilder &operator=(const RadialGradientBuilder &);
   flatbuffers::Offset<RadialGradient> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<RadialGradient>(end);
@@ -985,7 +994,6 @@ struct StartPathCommandBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  StartPathCommandBuilder &operator=(const StartPathCommandBuilder &);
   flatbuffers::Offset<StartPathCommand> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<StartPathCommand>(end);
@@ -1030,7 +1038,6 @@ struct MoveCommandBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  MoveCommandBuilder &operator=(const MoveCommandBuilder &);
   flatbuffers::Offset<MoveCommand> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<MoveCommand>(end);
@@ -1073,7 +1080,6 @@ struct LineCommandBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  LineCommandBuilder &operator=(const LineCommandBuilder &);
   flatbuffers::Offset<LineCommand> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<LineCommand>(end);
@@ -1132,7 +1138,6 @@ struct BezierCommandBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  BezierCommandBuilder &operator=(const BezierCommandBuilder &);
   flatbuffers::Offset<BezierCommand> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<BezierCommand>(end);
@@ -1189,7 +1194,6 @@ struct QuadraticCommandBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  QuadraticCommandBuilder &operator=(const QuadraticCommandBuilder &);
   flatbuffers::Offset<QuadraticCommand> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<QuadraticCommand>(end);
@@ -1267,7 +1271,6 @@ struct ArcCommandBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  ArcCommandBuilder &operator=(const ArcCommandBuilder &);
   flatbuffers::Offset<ArcCommand> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<ArcCommand>(end);
@@ -1309,7 +1312,6 @@ struct ClosePathCommandBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  ClosePathCommandBuilder &operator=(const ClosePathCommandBuilder &);
   flatbuffers::Offset<ClosePathCommand> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<ClosePathCommand>(end);
@@ -1357,7 +1359,6 @@ struct EllipseCommandBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  EllipseCommandBuilder &operator=(const EllipseCommandBuilder &);
   flatbuffers::Offset<EllipseCommand> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<EllipseCommand>(end);
@@ -1419,7 +1420,6 @@ struct RectangleCommandBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  RectangleCommandBuilder &operator=(const RectangleCommandBuilder &);
   flatbuffers::Offset<RectangleCommand> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<RectangleCommand>(end);
@@ -1517,7 +1517,6 @@ struct StrokePathCommandBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  StrokePathCommandBuilder &operator=(const StrokePathCommandBuilder &);
   flatbuffers::Offset<StrokePathCommand> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<StrokePathCommand>(end);
@@ -1611,7 +1610,6 @@ struct FillPathCommandBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  FillPathCommandBuilder &operator=(const FillPathCommandBuilder &);
   flatbuffers::Offset<FillPathCommand> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<FillPathCommand>(end);
@@ -1721,7 +1719,6 @@ struct TextCommandBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  TextCommandBuilder &operator=(const TextCommandBuilder &);
   flatbuffers::Offset<TextCommand> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<TextCommand>(end);
@@ -1898,7 +1895,6 @@ struct TextRangeCommandBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  TextRangeCommandBuilder &operator=(const TextRangeCommandBuilder &);
   flatbuffers::Offset<TextRangeCommand> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<TextRangeCommand>(end);
@@ -2032,7 +2028,6 @@ struct ImageCommandBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  ImageCommandBuilder &operator=(const ImageCommandBuilder &);
   flatbuffers::Offset<ImageCommand> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<ImageCommand>(end);
@@ -2211,7 +2206,6 @@ struct VectorCommandBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  VectorCommandBuilder &operator=(const VectorCommandBuilder &);
   flatbuffers::Offset<VectorCommand> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<VectorCommand>(end);
@@ -2296,7 +2290,6 @@ struct VectorImageBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  VectorImageBuilder &operator=(const VectorImageBuilder &);
   flatbuffers::Offset<VectorImage> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<VectorImage>(end);

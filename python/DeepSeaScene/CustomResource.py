@@ -10,12 +10,16 @@ class CustomResource(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsCustomResource(cls, buf, offset):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = CustomResource()
         x.Init(buf, n + offset)
         return x
 
+    @classmethod
+    def GetRootAsCustomResource(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
     # CustomResource
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
@@ -38,7 +42,19 @@ class CustomResource(object):
             return obj
         return None
 
-def CustomResourceStart(builder): builder.StartObject(2)
-def CustomResourceAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
-def CustomResourceAddResource(builder, resource): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(resource), 0)
-def CustomResourceEnd(builder): return builder.EndObject()
+def Start(builder): builder.StartObject(2)
+def CustomResourceStart(builder):
+    """This method is deprecated. Please switch to Start."""
+    return Start(builder)
+def AddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+def CustomResourceAddName(builder, name):
+    """This method is deprecated. Please switch to AddName."""
+    return AddName(builder, name)
+def AddResource(builder, resource): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(resource), 0)
+def CustomResourceAddResource(builder, resource):
+    """This method is deprecated. Please switch to AddResource."""
+    return AddResource(builder, resource)
+def End(builder): return builder.EndObject()
+def CustomResourceEnd(builder):
+    """This method is deprecated. Please switch to End."""
+    return End(builder)

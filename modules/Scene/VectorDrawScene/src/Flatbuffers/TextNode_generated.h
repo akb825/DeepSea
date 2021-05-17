@@ -174,7 +174,6 @@ struct TextNodeBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  TextNodeBuilder &operator=(const TextNodeBuilder &);
   flatbuffers::Offset<TextNode> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<TextNode>(end);

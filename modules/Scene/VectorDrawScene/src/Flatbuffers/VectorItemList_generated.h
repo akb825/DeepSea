@@ -50,7 +50,6 @@ struct VectorItemListBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  VectorItemListBuilder &operator=(const VectorItemListBuilder &);
   flatbuffers::Offset<VectorItemList> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<VectorItemList>(end);

@@ -70,7 +70,6 @@ struct MaterialRemapBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  MaterialRemapBuilder &operator=(const MaterialRemapBuilder &);
   flatbuffers::Offset<MaterialRemap> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<MaterialRemap>(end);
@@ -148,7 +147,6 @@ struct ModelNodeRemapBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  ModelNodeRemapBuilder &operator=(const ModelNodeRemapBuilder &);
   flatbuffers::Offset<ModelNodeRemap> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<ModelNodeRemap>(end);

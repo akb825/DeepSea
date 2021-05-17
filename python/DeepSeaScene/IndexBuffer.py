@@ -10,12 +10,16 @@ class IndexBuffer(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsIndexBuffer(cls, buf, offset):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = IndexBuffer()
         x.Init(buf, n + offset)
         return x
 
+    @classmethod
+    def GetRootAsIndexBuffer(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
     # IndexBuffer
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
@@ -48,9 +52,27 @@ class IndexBuffer(object):
             return self._tab.Get(flatbuffers.number_types.Uint8Flags, o + self._tab.Pos)
         return 0
 
-def IndexBufferStart(builder): builder.StartObject(4)
-def IndexBufferAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
-def IndexBufferAddOffset(builder, offset): builder.PrependUint32Slot(1, offset, 0)
-def IndexBufferAddCount(builder, count): builder.PrependUint32Slot(2, count, 0)
-def IndexBufferAddIndexSize(builder, indexSize): builder.PrependUint8Slot(3, indexSize, 0)
-def IndexBufferEnd(builder): return builder.EndObject()
+def Start(builder): builder.StartObject(4)
+def IndexBufferStart(builder):
+    """This method is deprecated. Please switch to Start."""
+    return Start(builder)
+def AddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+def IndexBufferAddName(builder, name):
+    """This method is deprecated. Please switch to AddName."""
+    return AddName(builder, name)
+def AddOffset(builder, offset): builder.PrependUint32Slot(1, offset, 0)
+def IndexBufferAddOffset(builder, offset):
+    """This method is deprecated. Please switch to AddOffset."""
+    return AddOffset(builder, offset)
+def AddCount(builder, count): builder.PrependUint32Slot(2, count, 0)
+def IndexBufferAddCount(builder, count):
+    """This method is deprecated. Please switch to AddCount."""
+    return AddCount(builder, count)
+def AddIndexSize(builder, indexSize): builder.PrependUint8Slot(3, indexSize, 0)
+def IndexBufferAddIndexSize(builder, indexSize):
+    """This method is deprecated. Please switch to AddIndexSize."""
+    return AddIndexSize(builder, indexSize)
+def End(builder): return builder.EndObject()
+def IndexBufferEnd(builder):
+    """This method is deprecated. Please switch to End."""
+    return End(builder)

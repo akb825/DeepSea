@@ -10,12 +10,16 @@ class SceneNode(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsSceneNode(cls, buf, offset):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = SceneNode()
         x.Init(buf, n + offset)
         return x
 
+    @classmethod
+    def GetRootAsSceneNode(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
     # SceneNode
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
@@ -38,7 +42,19 @@ class SceneNode(object):
             return obj
         return None
 
-def SceneNodeStart(builder): builder.StartObject(2)
-def SceneNodeAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
-def SceneNodeAddNode(builder, node): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(node), 0)
-def SceneNodeEnd(builder): return builder.EndObject()
+def Start(builder): builder.StartObject(2)
+def SceneNodeStart(builder):
+    """This method is deprecated. Please switch to Start."""
+    return Start(builder)
+def AddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+def SceneNodeAddName(builder, name):
+    """This method is deprecated. Please switch to AddName."""
+    return AddName(builder, name)
+def AddNode(builder, node): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(node), 0)
+def SceneNodeAddNode(builder, node):
+    """This method is deprecated. Please switch to AddNode."""
+    return AddNode(builder, node)
+def End(builder): return builder.EndObject()
+def SceneNodeEnd(builder):
+    """This method is deprecated. Please switch to End."""
+    return End(builder)

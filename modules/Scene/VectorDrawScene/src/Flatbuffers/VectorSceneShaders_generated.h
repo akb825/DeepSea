@@ -76,7 +76,6 @@ struct MaterialElementBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  MaterialElementBuilder &operator=(const MaterialElementBuilder &);
   flatbuffers::Offset<MaterialElement> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<MaterialElement>(end);
@@ -247,7 +246,6 @@ struct VectorShadersBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  VectorShadersBuilder &operator=(const VectorShadersBuilder &);
   flatbuffers::Offset<VectorShaders> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<VectorShaders>(end);

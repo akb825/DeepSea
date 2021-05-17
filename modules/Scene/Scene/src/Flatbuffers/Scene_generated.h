@@ -164,15 +164,21 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) AttachmentRef FLATBUFFERS_FINAL_CLASS {
   int8_t padding0__;  int16_t padding1__;
 
  public:
-  AttachmentRef() {
-    memset(static_cast<void *>(this), 0, sizeof(AttachmentRef));
+  AttachmentRef()
+      : index_(0),
+        resolve_(0),
+        padding0__(0),
+        padding1__(0) {
+    (void)padding0__;
+    (void)padding1__;
   }
   AttachmentRef(uint32_t _index, bool _resolve)
       : index_(flatbuffers::EndianScalar(_index)),
         resolve_(flatbuffers::EndianScalar(static_cast<uint8_t>(_resolve))),
         padding0__(0),
         padding1__(0) {
-    (void)padding0__;    (void)padding1__;
+    (void)padding0__;
+    (void)padding1__;
   }
   uint32_t index() const {
     return flatbuffers::EndianScalar(index_);
@@ -195,8 +201,18 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) SubpassDependency FLATBUFFERS_FINAL_CLASS
   int8_t padding0__;  int16_t padding1__;
 
  public:
-  SubpassDependency() {
-    memset(static_cast<void *>(this), 0, sizeof(SubpassDependency));
+  SubpassDependency()
+      : srcSubpass_(0),
+        srcStages_(0),
+        srcAccess_(0),
+        dstSubpass_(0),
+        dstStages_(0),
+        dstAccess_(0),
+        regionDependency_(0),
+        padding0__(0),
+        padding1__(0) {
+    (void)padding0__;
+    (void)padding1__;
   }
   SubpassDependency(uint32_t _srcSubpass, uint32_t _srcStages, uint32_t _srcAccess, uint32_t _dstSubpass, uint32_t _dstStages, uint32_t _dstAccess, bool _regionDependency)
       : srcSubpass_(flatbuffers::EndianScalar(_srcSubpass)),
@@ -208,7 +224,8 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) SubpassDependency FLATBUFFERS_FINAL_CLASS
         regionDependency_(flatbuffers::EndianScalar(static_cast<uint8_t>(_regionDependency))),
         padding0__(0),
         padding1__(0) {
-    (void)padding0__;    (void)padding1__;
+    (void)padding0__;
+    (void)padding1__;
   }
   uint32_t srcSubpass() const {
     return flatbuffers::EndianScalar(srcSubpass_);
@@ -279,7 +296,6 @@ struct SceneItemListBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  SceneItemListBuilder &operator=(const SceneItemListBuilder &);
   flatbuffers::Offset<SceneItemList> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<SceneItemList>(end);
@@ -345,7 +361,6 @@ struct SceneItemListsBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  SceneItemListsBuilder &operator=(const SceneItemListsBuilder &);
   flatbuffers::Offset<SceneItemLists> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<SceneItemLists>(end);
@@ -421,7 +436,6 @@ struct ClearColorFloatBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  ClearColorFloatBuilder &operator=(const ClearColorFloatBuilder &);
   flatbuffers::Offset<ClearColorFloat> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<ClearColorFloat>(end);
@@ -493,7 +507,6 @@ struct ClearColorIntBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  ClearColorIntBuilder &operator=(const ClearColorIntBuilder &);
   flatbuffers::Offset<ClearColorInt> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<ClearColorInt>(end);
@@ -565,7 +578,6 @@ struct ClearColorUIntBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  ClearColorUIntBuilder &operator=(const ClearColorUIntBuilder &);
   flatbuffers::Offset<ClearColorUInt> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<ClearColorUInt>(end);
@@ -621,7 +633,6 @@ struct ClearDepthStencilBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  ClearDepthStencilBuilder &operator=(const ClearDepthStencilBuilder &);
   flatbuffers::Offset<ClearDepthStencil> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<ClearDepthStencil>(end);
@@ -735,7 +746,6 @@ struct AttachmentBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  AttachmentBuilder &operator=(const AttachmentBuilder &);
   flatbuffers::Offset<Attachment> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<Attachment>(end);
@@ -824,7 +834,6 @@ struct RenderSubpassBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  RenderSubpassBuilder &operator=(const RenderSubpassBuilder &);
   flatbuffers::Offset<RenderSubpass> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<RenderSubpass>(end);
@@ -926,7 +935,6 @@ struct RenderPassBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  RenderPassBuilder &operator=(const RenderPassBuilder &);
   flatbuffers::Offset<RenderPass> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<RenderPass>(end);
@@ -1018,7 +1026,6 @@ struct ScenePipelineItemBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  ScenePipelineItemBuilder &operator=(const ScenePipelineItemBuilder &);
   flatbuffers::Offset<ScenePipelineItem> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<ScenePipelineItem>(end);
@@ -1094,7 +1101,6 @@ struct SceneBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  SceneBuilder &operator=(const SceneBuilder &);
   flatbuffers::Offset<Scene> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<Scene>(end);

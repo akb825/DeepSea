@@ -14,8 +14,8 @@
 
 import flatbuffers
 from .DynamicRenderStatesConvert import convertDynamicRenderStates
-from ..FullScreenResolve import *
-from ..DynamicRenderStates import *
+from .. import FullScreenResolve
+from ..DynamicRenderStates import DynamicRenderStates
 
 def convertFullScreenResolve(convertContext, data):
 	"""
@@ -59,9 +59,9 @@ def convertFullScreenResolve(convertContext, data):
 	shaderNameOffset = builder.CreateString(shaderName)
 	materialNameOffset = builder.CreateString(materialName)
 
-	FullScreenResolveStart(builder)
-	FullScreenResolveAddShader(builder, shaderNameOffset)
-	FullScreenResolveAddMaterial(builder, materialNameOffset)
-	FullScreenResolveAddDynamicRenderStates(builder, dynamicRenderStatesOffset)
-	builder.Finish(FullScreenResolveEnd(builder))
+	FullScreenResolve.Start(builder)
+	FullScreenResolve.AddShader(builder, shaderNameOffset)
+	FullScreenResolve.AddMaterial(builder, materialNameOffset)
+	FullScreenResolve.AddDynamicRenderStates(builder, dynamicRenderStatesOffset)
+	builder.Finish(FullScreenResolve.End(builder))
 	return builder.Output()

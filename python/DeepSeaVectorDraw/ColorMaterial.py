@@ -10,12 +10,16 @@ class ColorMaterial(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsColorMaterial(cls, buf, offset):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = ColorMaterial()
         x.Init(buf, n + offset)
         return x
 
+    @classmethod
+    def GetRootAsColorMaterial(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
     # ColorMaterial
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
@@ -38,7 +42,19 @@ class ColorMaterial(object):
             return obj
         return None
 
-def ColorMaterialStart(builder): builder.StartObject(2)
-def ColorMaterialAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
-def ColorMaterialAddColor(builder, color): builder.PrependStructSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(color), 0)
-def ColorMaterialEnd(builder): return builder.EndObject()
+def Start(builder): builder.StartObject(2)
+def ColorMaterialStart(builder):
+    """This method is deprecated. Please switch to Start."""
+    return Start(builder)
+def AddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+def ColorMaterialAddName(builder, name):
+    """This method is deprecated. Please switch to AddName."""
+    return AddName(builder, name)
+def AddColor(builder, color): builder.PrependStructSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(color), 0)
+def ColorMaterialAddColor(builder, color):
+    """This method is deprecated. Please switch to AddColor."""
+    return AddColor(builder, color)
+def End(builder): return builder.EndObject()
+def ColorMaterialEnd(builder):
+    """This method is deprecated. Please switch to End."""
+    return End(builder)

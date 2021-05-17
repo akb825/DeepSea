@@ -10,12 +10,16 @@ class FaceGroup(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsFaceGroup(cls, buf, offset):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = FaceGroup()
         x.Init(buf, n + offset)
         return x
 
+    @classmethod
+    def GetRootAsFaceGroup(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
     # FaceGroup
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
@@ -52,8 +56,23 @@ class FaceGroup(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         return o == 0
 
-def FaceGroupStart(builder): builder.StartObject(2)
-def FaceGroupAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
-def FaceGroupAddFaces(builder, faces): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(faces), 0)
-def FaceGroupStartFacesVector(builder, numElems): return builder.StartVector(4, numElems, 4)
-def FaceGroupEnd(builder): return builder.EndObject()
+def Start(builder): builder.StartObject(2)
+def FaceGroupStart(builder):
+    """This method is deprecated. Please switch to Start."""
+    return Start(builder)
+def AddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+def FaceGroupAddName(builder, name):
+    """This method is deprecated. Please switch to AddName."""
+    return AddName(builder, name)
+def AddFaces(builder, faces): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(faces), 0)
+def FaceGroupAddFaces(builder, faces):
+    """This method is deprecated. Please switch to AddFaces."""
+    return AddFaces(builder, faces)
+def StartFacesVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+def FaceGroupStartFacesVector(builder, numElems):
+    """This method is deprecated. Please switch to Start."""
+    return StartFacesVector(builder, numElems)
+def End(builder): return builder.EndObject()
+def FaceGroupEnd(builder):
+    """This method is deprecated. Please switch to End."""
+    return End(builder)

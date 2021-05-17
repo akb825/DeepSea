@@ -22,38 +22,38 @@ from tempfile import NamedTemporaryFile
 
 import flatbuffers
 from .FileOrDataConvert import convertFileOrData, readDataOrPath
-from ..Buffer import *
-from ..BufferMaterialData import *
-from ..CustomResource import *
-from ..DrawGeometry import *
-from ..FormatDecoration import *
-from ..IndexBuffer import *
-from ..Material import *
-from ..MaterialBinding import *
-from ..MaterialDesc import *
-from ..MaterialElement import *
-from ..MaterialType import *
-from ..NamedMaterialData import *
-from ..SceneNode import *
-from ..SceneResource import *
-from ..SceneResources import *
-from ..SceneResourceUnion import *
-from ..Shader import *
-from ..ShaderModule import *
-from ..ShaderVariableGroup import *
-from ..ShaderVariableGroupDesc import *
-from ..Texture import *
-from ..TextureBufferMaterialData import *
-from ..TextureDim import *
-from ..TextureFormat import *
-from ..TextureInfo import *
-from ..VertexAttribute import *
-from ..VariableData import *
-from ..VariableElement import *
-from ..VersionedShaderModule import *
-from ..VertexBuffer import *
-from ..VertexElementFormat import *
-from ..VertexFormat import *
+from .. import Buffer
+from .. import BufferMaterialData
+from .. import CustomResource
+from .. import DrawGeometry
+from ..FormatDecoration import FormatDecoration
+from .. import IndexBuffer
+from .. import Material
+from ..MaterialBinding import MaterialBinding
+from .. import MaterialDesc
+from .. import MaterialElement
+from ..MaterialType import MaterialType
+from .. import NamedMaterialData
+from .. import SceneNode
+from .. import SceneResource
+from .. import SceneResources
+from ..SceneResourceUnion import SceneResourceUnion
+from .. import Shader
+from .. import ShaderModule
+from .. import ShaderVariableGroup
+from .. import ShaderVariableGroupDesc
+from .. import Texture
+from .. import TextureBufferMaterialData
+from ..TextureDim import TextureDim
+from ..TextureFormat import TextureFormat
+from .. import TextureInfo
+from ..VertexAttribute import CreateVertexAttribute
+from .. import VariableData
+from .. import VariableElement
+from .. import VersionedShaderModule
+from .. import VertexBuffer
+from ..VertexElementFormat import VertexElementFormat
+from .. import VertexFormat
 
 class Object:
 	pass
@@ -176,14 +176,14 @@ def convertSceneResourcesBuffer(builder, convertContext, data, name):
 	dataType, dataOffset = convertFileOrData(builder, dataPath, dataContents,
 		data.get('output'), data.get('outputRelativeDir'), data.get('resourceType'))
 
-	BufferStart(builder)
-	BufferAddName(builder, nameOffset)
-	BufferAddUsage(builder, usage)
-	BufferAddMemoryHints(builder, memoryHints)
-	BufferAddSize(builder, bufferSize)
-	BufferAddDataType(builder, dataType)
-	BufferAddData(builder, dataOffset)
-	return BufferEnd(builder), SceneResourceUnion.Buffer
+	Buffer.Start(builder)
+	Buffer.AddName(builder, nameOffset)
+	Buffer.AddUsage(builder, usage)
+	Buffer.AddMemoryHints(builder, memoryHints)
+	Buffer.AddSize(builder, bufferSize)
+	Buffer.AddDataType(builder, dataType)
+	Buffer.AddData(builder, dataOffset)
+	return Buffer.End(builder), SceneResourceUnion.Buffer
 
 def convertSceneResourcesTexture(builder, convertContext, data, name):
 	def readInt(value, name, minVal):
@@ -481,26 +481,26 @@ def convertSceneResourcesTexture(builder, convertContext, data, name):
 	# Only add texture info if no texture data at all. Otherwise it's used only for
 	# conversion.
 	if not texturePath and textureInfo:
-		TextureInfoStart(builder)
-		TextureInfoAddFormat(builder, textureInfo.format)
-		TextureInfoAddDecoration(builder, textureInfo.decoration)
-		TextureInfoAddDimension(builder, textureInfo.dimension)
-		TextureInfoAddWidth(builder, textureInfo.width)
-		TextureInfoAddHeight(builder, textureInfo.height)
-		TextureInfoAddDepth(builder, textureInfo.depth)
-		TextureInfoAddMipLevels(builder, textureInfo.mipLevels)
-		textureInfoOffset = TextureInfoEnd(builder)
+		TextureInfo.Start(builder)
+		TextureInfo.AddFormat(builder, textureInfo.format)
+		TextureInfo.AddDecoration(builder, textureInfo.decoration)
+		TextureInfo.AddDimension(builder, textureInfo.dimension)
+		TextureInfo.AddWidth(builder, textureInfo.width)
+		TextureInfo.AddHeight(builder, textureInfo.height)
+		TextureInfo.AddDepth(builder, textureInfo.depth)
+		TextureInfo.AddMipLevels(builder, textureInfo.mipLevels)
+		textureInfoOffset = TextureInfo.End(builder)
 	else:
 		textureInfoOffset = 0
 
-	TextureStart(builder)
-	TextureAddName(builder, nameOffset)
-	TextureAddUsage(builder, usage)
-	TextureAddMemoryHints(builder, memoryHints)
-	TextureAddDataType(builder, dataType)
-	TextureAddData(builder, dataOffset)
-	TextureAddTextureInfo(builder, textureInfoOffset)
-	return TextureEnd(builder), SceneResourceUnion.Texture
+	Texture.Start(builder)
+	Texture.AddName(builder, nameOffset)
+	Texture.AddUsage(builder, usage)
+	Texture.AddMemoryHints(builder, memoryHints)
+	Texture.AddDataType(builder, dataType)
+	Texture.AddData(builder, dataOffset)
+	Texture.AddTextureInfo(builder, textureInfoOffset)
+	return Texture.End(builder), SceneResourceUnion.Texture
 
 def convertSceneResourcesShaderVariableGroupDesc(builder, convertContext, data, name):
 	def readElement(elementData):
@@ -550,21 +550,21 @@ def convertSceneResourcesShaderVariableGroupDesc(builder, convertContext, data, 
 	elementOffsets = []
 	for elementName, elementType, elementCount in elements:
 		elementNameOffset = builder.CreateString(elementName)
-		VariableElementStart(builder)
-		VariableElementAddName(builder, elementNameOffset)
-		VariableElementAddType(builder, elementType)
-		VariableElementAddCount(builder, elementCount)
-		elementOffsets.append(VariableElementEnd(builder))
+		VariableElement.Start(builder)
+		VariableElement.AddName(builder, elementNameOffset)
+		VariableElement.AddType(builder, elementType)
+		VariableElement.AddCount(builder, elementCount)
+		elementOffsets.append(VariableElement.End(builder))
 
-	ShaderVariableGroupDescStartElementsVector(builder, len(elementOffsets))
+	ShaderVariableGroupDesc.StartElementsVector(builder, len(elementOffsets))
 	for offset in reversed(elementOffsets):
 		builder.PrependUOffsetTRelative(offset)
-	elementsOffset = builder.EndVector(len(elementOffsets))
+	elementsOffset = builder.EndVector()
 
-	ShaderVariableGroupDescStart(builder)
-	ShaderVariableGroupDescAddName(builder, nameOffset)
-	ShaderVariableGroupDescAddElements(builder, elementsOffset)
-	return ShaderVariableGroupDescEnd(builder), SceneResourceUnion.ShaderVariableGroupDesc
+	ShaderVariableGroupDesc.Start(builder)
+	ShaderVariableGroupDesc.AddName(builder, nameOffset)
+	ShaderVariableGroupDesc.AddElements(builder, elementsOffset)
+	return ShaderVariableGroupDesc.End(builder), SceneResourceUnion.ShaderVariableGroupDesc
 
 def convertSceneResourcesShaderDataArray(builder, convertContext, data, startVectorFunc):
 	def readInt(value, name, minVal):
@@ -773,9 +773,9 @@ def convertSceneResourcesShaderDataArray(builder, convertContext, data, startVec
 
 				tempBuilder = flatbuffers.Builder(0)
 				textureOffset = tempBuilder.CreateString(textureName)
-				NamedMaterialDataStart(tempBuilder)
-				NamedMaterialDataAddName(tempBuilder, textureOffset)
-				tempBuilder.Finish(NamedMaterialDataEnd(tempBuilder))
+				NamedMaterialData.Start(tempBuilder)
+				NamedMaterialData.AddName(tempBuilder, textureOffset)
+				tempBuilder.Finish(NamedMaterialData.End(tempBuilder))
 				dataBytes = tempBuilder.Output()
 			elif materialType in (MaterialType.TextureBuffer, MaterialType.ImageBuffer):
 				try:
@@ -808,13 +808,13 @@ def convertSceneResourcesShaderDataArray(builder, convertContext, data, startVec
 
 				tempBuilder = flatbuffers.Builder(0)
 				textureOffset = tempBuilder.CreateString(textureName)
-				TextureBufferMaterialDataStart(tempBuilder)
-				TextureBufferMaterialDataAddName(tempBuilder, textureOffset)
-				TextureBufferMaterialDataAddFormat(tempBuilder, texFormat)
-				TextureBufferMaterialDataAddDecoration(tempBuilder, decoration)
-				TextureBufferMaterialDataAddOffset(tempBuilder, offset)
-				TextureBufferMaterialDataAddCount(tempBuilder, count)
-				tempBuilder.Finish(TextureBufferMaterialDataEnd(tempBuilder))
+				TextureBufferMaterialData.Start(tempBuilder)
+				TextureBufferMaterialData.AddName(tempBuilder, textureOffset)
+				TextureBufferMaterialData.AddFormat(tempBuilder, texFormat)
+				TextureBufferMaterialData.AddDecoration(tempBuilder, decoration)
+				TextureBufferMaterialData.AddOffset(tempBuilder, offset)
+				TextureBufferMaterialData.AddCount(tempBuilder, count)
+				tempBuilder.Finish(TextureBufferMaterialData.End(tempBuilder))
 				dataBytes = tempBuilder.Output()
 			elif materialType in (MaterialType.UniformBlock, MaterialType.UniformBuffer):
 				try:
@@ -831,11 +831,11 @@ def convertSceneResourcesShaderDataArray(builder, convertContext, data, startVec
 
 				tempBuilder = flatbuffers.Builder(0)
 				textureOffset = tempBuilder.CreateString(textureName)
-				BufferMaterialDataStart(tempBuilder)
-				BufferMaterialDataAddName(tempBuilder, textureOffset)
-				BufferMaterialDataAddOffset(tempBuilder, offset)
-				BufferMaterialDataAddSize(tempBuilder, size)
-				tempBuilder.Finish(BufferMaterialDataEnd(tempBuilder))
+				BufferMaterialData.Start(tempBuilder)
+				BufferMaterialData.AddName(tempBuilder, textureOffset)
+				BufferMaterialData.AddOffset(tempBuilder, offset)
+				BufferMaterialData.AddSize(tempBuilder, size)
+				tempBuilder.Finish(BufferMaterialData.End(tempBuilder))
 				dataBytes = tempBuilder.Output()
 
 		return dataBytes, len(dataArray)
@@ -876,13 +876,13 @@ def convertSceneResourcesShaderDataArray(builder, convertContext, data, startVec
 		nameOffset = builder.CreateString(name)
 		dataOffset = builder.CreateByteVector(dataBytes)
 
-		VariableDataStart(builder)
-		VariableDataAddName(builder, nameOffset)
-		VariableDataAddType(builder, materialType)
-		VariableDataAddFirst(builder, first)
-		VariableDataAddCount(builder, dataCount)
-		VariableDataAddData(builder, dataOffset)
-		return VariableDataEnd(builder)
+		VariableData.Start(builder)
+		VariableData.AddName(builder, nameOffset)
+		VariableData.AddType(builder, materialType)
+		VariableData.AddFirst(builder, first)
+		VariableData.AddCount(builder, dataCount)
+		VariableData.AddData(builder, dataOffset)
+		return VariableData.End(builder)
 
 	try:
 		description = str(data['description'])
@@ -902,11 +902,11 @@ def convertSceneResourcesShaderDataArray(builder, convertContext, data, startVec
 	startVectorFunc(builder, len(elementDataOffsets))
 	for offset in reversed(elementDataOffsets):
 		builder.PrependUOffsetTRelative(offset)
-	return builder.EndVector(len(elementDataOffsets))
+	return builder.EndVector()
 
 def convertSceneResourcesShaderVariableGroup(builder, convertContext, data, name):
 	dataOffset = convertSceneResourcesShaderDataArray(
-		builder, convertContext, data, ShaderVariableGroupStartDataVector)
+		builder, convertContext, data, ShaderVariableGroup.StartDataVector)
 
 	try:
 		description = str(data['description'])
@@ -917,11 +917,11 @@ def convertSceneResourcesShaderVariableGroup(builder, convertContext, data, name
 	nameOffset = builder.CreateString(name)
 	descriptionOffset = builder.CreateString(description)
 
-	ShaderVariableGroupStart(builder)
-	ShaderVariableGroupAddName(builder, nameOffset)
-	ShaderVariableGroupAddDescription(builder, descriptionOffset)
-	ShaderVariableGroupAddData(builder, dataOffset)
-	return ShaderVariableGroupEnd(builder), SceneResourceUnion.ShaderVariableGroup
+	ShaderVariableGroup.Start(builder)
+	ShaderVariableGroup.AddName(builder, nameOffset)
+	ShaderVariableGroup.AddDescription(builder, descriptionOffset)
+	ShaderVariableGroup.AddData(builder, dataOffset)
+	return ShaderVariableGroup.End(builder), SceneResourceUnion.ShaderVariableGroup
 
 def convertSceneResourcesMaterialDesc(builder, convertContext, data, name):
 	def readElement(elementData):
@@ -978,27 +978,27 @@ def convertSceneResourcesMaterialDesc(builder, convertContext, data, name):
 		elementNameOffset = builder.CreateString(elementName)
 		shaderVariableGroupDescOffset = builder.CreateString(shaderVariableGroupDesc) if \
 			shaderVariableGroupDesc else 0
-		MaterialElementStart(builder)
-		MaterialElementAddName(builder, elementNameOffset)
-		MaterialElementAddType(builder, elementType)
-		MaterialElementAddCount(builder, elementCount)
-		MaterialElementAddBinding(builder, binding)
-		MaterialElementAddShaderVariableGroupDesc(builder, shaderVariableGroupDescOffset)
-		elementOffsets.append(MaterialElementEnd(builder))
+		MaterialElement.Start(builder)
+		MaterialElement.AddName(builder, elementNameOffset)
+		MaterialElement.AddType(builder, elementType)
+		MaterialElement.AddCount(builder, elementCount)
+		MaterialElement.AddBinding(builder, binding)
+		MaterialElement.AddShaderVariableGroupDesc(builder, shaderVariableGroupDescOffset)
+		elementOffsets.append(MaterialElement.End(builder))
 
-	MaterialDescStartElementsVector(builder, len(elementOffsets))
+	MaterialDesc.StartElementsVector(builder, len(elementOffsets))
 	for offset in reversed(elementOffsets):
 		builder.PrependUOffsetTRelative(offset)
-	elementsOffset = builder.EndVector(len(elementOffsets))
+	elementsOffset = builder.EndVector()
 
-	MaterialDescStart(builder)
-	MaterialDescAddName(builder, nameOffset)
-	MaterialDescAddElements(builder, elementsOffset)
-	return MaterialDescEnd(builder), SceneResourceUnion.MaterialDesc
+	MaterialDesc.Start(builder)
+	MaterialDesc.AddName(builder, nameOffset)
+	MaterialDesc.AddElements(builder, elementsOffset)
+	return MaterialDesc.End(builder), SceneResourceUnion.MaterialDesc
 
 def convertSceneResourcesMaterial(builder, convertContext, data, name):
 	dataOffset = convertSceneResourcesShaderDataArray(builder, convertContext, data,
-		MaterialStartDataVector)
+		Material.StartDataVector)
 
 	try:
 		description = str(data['description'])
@@ -1009,11 +1009,11 @@ def convertSceneResourcesMaterial(builder, convertContext, data, name):
 	nameOffset = builder.CreateString(name)
 	descriptionOffset = builder.CreateString(description)
 
-	MaterialStart(builder)
-	MaterialAddName(builder, nameOffset)
-	MaterialAddDescription(builder, descriptionOffset)
-	MaterialAddData(builder, dataOffset)
-	return MaterialEnd(builder), SceneResourceUnion.Material
+	Material.Start(builder)
+	Material.AddName(builder, nameOffset)
+	Material.AddDescription(builder, descriptionOffset)
+	Material.AddData(builder, dataOffset)
+	return Material.End(builder), SceneResourceUnion.Material
 
 def convertSceneResourcesShaderModule(builder, convertContext, data, name):
 	try:
@@ -1052,21 +1052,21 @@ def convertSceneResourcesShaderModule(builder, convertContext, data, name):
 	for version, dataType, dataOffset in versionedModules:
 		versionOffset = builder.CreateString(version)
 
-		VersionedShaderModuleStart(builder)
-		VersionedShaderModuleAddVersion(builder, versionOffset)
-		VersionedShaderModuleAddDataType(builder, dataType)
-		VersionedShaderModuleAddData(builder, dataOffset)
-		versionedModuleOffsets.append(VersionedShaderModuleEnd(builder))
+		VersionedShaderModule.Start(builder)
+		VersionedShaderModule.AddVersion(builder, versionOffset)
+		VersionedShaderModule.AddDataType(builder, dataType)
+		VersionedShaderModule.AddData(builder, dataOffset)
+		versionedModuleOffsets.append(VersionedShaderModule.End(builder))
 
-	ShaderModuleStartModulesVector(builder, len(versionedModuleOffsets))
+	ShaderModule.StartModulesVector(builder, len(versionedModuleOffsets))
 	for offset in reversed(versionedModuleOffsets):
 		builder.PrependUOffsetTRelative(offset)
-	modulesOffset = builder.EndVector(len(versionedModuleOffsets))
+	modulesOffset = builder.EndVector()
 
-	ShaderModuleStart(builder)
-	ShaderModuleAddName(builder, nameOffset)
-	ShaderModuleAddModules(builder, modulesOffset)
-	return ShaderModuleEnd(builder), SceneResourceUnion.ShaderModule
+	ShaderModule.Start(builder)
+	ShaderModule.AddName(builder, nameOffset)
+	ShaderModule.AddModules(builder, modulesOffset)
+	return ShaderModule.End(builder), SceneResourceUnion.ShaderModule
 
 def convertSceneResourcesShader(builder, convertContext, data, name):
 	try:
@@ -1081,12 +1081,12 @@ def convertSceneResourcesShader(builder, convertContext, data, name):
 	pipelineOffset = builder.CreateString(pipeline)
 	materialDescOffset = builder.CreateString(materialDesc)
 
-	ShaderStart(builder)
-	ShaderAddName(builder, nameOffset)
-	ShaderAddShaderModule(builder, moduleOffset)
-	ShaderAddPipeline(builder, pipelineOffset)
-	ShaderAddMaterialDesc(builder, materialDescOffset)
-	return ShaderEnd(builder), SceneResourceUnion.Shader
+	Shader.Start(builder)
+	Shader.AddName(builder, nameOffset)
+	Shader.AddShaderModule(builder, moduleOffset)
+	Shader.AddPipeline(builder, pipelineOffset)
+	Shader.AddMaterialDesc(builder, materialDescOffset)
+	return Shader.End(builder), SceneResourceUnion.Shader
 
 def convertSceneResourcesDrawGeometry(builder, convertContext, data, name):
 	def readVertexBuffer(vertexBufferData):
@@ -1200,46 +1200,46 @@ def convertSceneResourcesDrawGeometry(builder, convertContext, data, name):
 	for vertexBuffer in vertexBuffers:
 		vertexBufferNameOffset = builder.CreateString(vertexBuffer.name)
 
-		VertexFormatStartAttributesVector(builder, len(vertexBuffer.format.attributes))
+		VertexFormat.StartAttributesVector(builder, len(vertexBuffer.format.attributes))
 		for attribute in reversed(vertexBuffer.format.attributes):
 			CreateVertexAttribute(builder, attribute.attrib, attribute.format,
 				attribute.decoration)
-		attributesOffset = builder.EndVector(len(vertexBuffer.format.attributes))
+		attributesOffset = builder.EndVector()
 
-		VertexFormatStart(builder)
-		VertexFormatAddAttributes(builder, attributesOffset)
-		VertexFormatAddInstanced(builder, vertexBuffer.format.instanced)
-		formatOffset = VertexFormatEnd(builder)
+		VertexFormat.Start(builder)
+		VertexFormat.AddAttributes(builder, attributesOffset)
+		VertexFormat.AddInstanced(builder, vertexBuffer.format.instanced)
+		formatOffset = VertexFormat.End(builder)
 
-		VertexBufferStart(builder)
-		VertexBufferAddName(builder, vertexBufferNameOffset)
-		VertexBufferAddOffset(builder, vertexBuffer.offset)
-		VertexBufferAddCount(builder, vertexBuffer.count)
-		VertexBufferAddFormat(builder, formatOffset)
-		vertexBufferOffsets.append(VertexBufferEnd(builder))
+		VertexBuffer.Start(builder)
+		VertexBuffer.AddName(builder, vertexBufferNameOffset)
+		VertexBuffer.AddOffset(builder, vertexBuffer.offset)
+		VertexBuffer.AddCount(builder, vertexBuffer.count)
+		VertexBuffer.AddFormat(builder, formatOffset)
+		vertexBufferOffsets.append(VertexBuffer.End(builder))
 
-	DrawGeometryStartVertexBuffersVector(builder, len(vertexBufferOffsets))
+	DrawGeometry.StartVertexBuffersVector(builder, len(vertexBufferOffsets))
 	for offset in reversed(vertexBufferOffsets):
 		builder.PrependUOffsetTRelative(offset)
-	vertexBuffersOffset = builder.EndVector(len(vertexBufferOffsets))
+	vertexBuffersOffset = builder.EndVector()
 
 	if indexBuffer:
 		indexBufferNameOffset = builder.CreateString(indexBuffer.name)
 
-		IndexBufferStart(builder)
-		IndexBufferAddName(builder, indexBufferNameOffset)
-		IndexBufferAddOffset(builder, indexBuffer.offset)
-		IndexBufferAddCount(builder, indexBuffer.count)
-		IndexBufferAddIndexSize(builder, indexBuffer.indexSize)
-		indexBufferOffset = IndexBufferEnd(builder)
+		IndexBuffer.Start(builder)
+		IndexBuffer.AddName(builder, indexBufferNameOffset)
+		IndexBuffer.AddOffset(builder, indexBuffer.offset)
+		IndexBuffer.AddCount(builder, indexBuffer.count)
+		IndexBuffer.AddIndexSize(builder, indexBuffer.indexSize)
+		indexBufferOffset = IndexBuffer.End(builder)
 	else:
 		indexBufferOffset = 0
 
-	DrawGeometryStart(builder)
-	DrawGeometryAddName(builder, nameOffset)
-	DrawGeometryAddVertexBuffers(builder, vertexBuffersOffset)
-	DrawGeometryAddIndexBuffer(builder, indexBufferOffset)
-	return DrawGeometryEnd(builder), SceneResourceUnion.DrawGeometry
+	DrawGeometry.Start(builder)
+	DrawGeometry.AddName(builder, nameOffset)
+	DrawGeometry.AddVertexBuffers(builder, vertexBuffersOffset)
+	DrawGeometry.AddIndexBuffer(builder, indexBufferOffset)
+	return DrawGeometry.End(builder), SceneResourceUnion.DrawGeometry
 
 def convertSceneResourcesNode(builder, convertContext, data, name):
 	try:
@@ -1250,19 +1250,19 @@ def convertSceneResourcesNode(builder, convertContext, data, name):
 	nameOffset = builder.CreateString(name)
 	nodeDataOffset = convertContext.convertNode(builder, nodeType, data)
 
-	SceneNodeStart(builder)
-	SceneNodeAddName(builder, nameOffset)
-	SceneNodeAddNode(builder, nodeDataOffset)
-	return SceneNodeEnd(builder), SceneResourceUnion.SceneNode
+	SceneNode.Start(builder)
+	SceneNode.AddName(builder, nameOffset)
+	SceneNode.AddNode(builder, nodeDataOffset)
+	return SceneNode.End(builder), SceneResourceUnion.SceneNode
 
 def convertSceneResourcesCustomResource(builder, convertContext, data, resourceType, name):
 	nameOffset = builder.CreateString(name)
 	resourceDataOffset = convertContext.convertCustomResource(builder, resourceType, data)
 
-	CustomResourceStart(builder)
-	CustomResourceAddName(builder, nameOffset)
-	CustomResourceAddResource(builder, resourceDataOffset)
-	return CustomResourceEnd(builder), SceneResourceUnion.CustomResource
+	CustomResource.Start(builder)
+	CustomResource.AddName(builder, nameOffset)
+	CustomResource.AddResource(builder, resourceDataOffset)
+	return CustomResource.End(builder), SceneResourceUnion.CustomResource
 
 def convertSceneResources(convertContext, data):
 	"""
@@ -1471,22 +1471,22 @@ def convertSceneResources(convertContext, data):
 					resourceOffset, unionType = convertSceneResourcesCustomResource(
 						builder, convertContext, element, resourceType, name)
 
-				SceneResourceStart(builder)
-				SceneResourceAddResourceType(builder, unionType)
-				SceneResourceAddResource(builder, resourceOffset)
-				resourceOffsets.append(SceneResourceEnd(builder))
+				SceneResource.Start(builder)
+				SceneResource.AddResourceType(builder, unionType)
+				SceneResource.AddResource(builder, resourceOffset)
+				resourceOffsets.append(SceneResource.End(builder))
 			except KeyError as e:
 				raise Exception(
 					'SceneResources resource doesn\'t contain element ' + str(e) + '.')
 	except (TypeError, ValueError):
 		raise Exception('SceneResources must be an array of objects.')
 
-	SceneResourcesStartResourcesVector(builder, len(resourceOffsets))
+	SceneResources.StartResourcesVector(builder, len(resourceOffsets))
 	for offset in reversed(resourceOffsets):
 		builder.PrependUOffsetTRelative(offset)
-	resourceOffset = builder.EndVector(len(resourceOffsets))
+	resourceOffset = builder.EndVector()
 
-	SceneResourcesStart(builder)
-	SceneResourcesAddResources(builder, resourceOffset)
-	builder.Finish(SceneResourcesEnd(builder))
+	SceneResources.Start(builder)
+	SceneResources.AddResources(builder, resourceOffset)
+	builder.Finish(SceneResources.End(builder))
 	return builder.Output()

@@ -167,7 +167,6 @@ struct FileReferenceBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  FileReferenceBuilder &operator=(const FileReferenceBuilder &);
   flatbuffers::Offset<FileReference> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<FileReference>(end);
@@ -220,7 +219,6 @@ struct RawDataBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  RawDataBuilder &operator=(const RawDataBuilder &);
   flatbuffers::Offset<RawData> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<RawData>(end);
@@ -305,7 +303,6 @@ struct ResourceBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  ResourceBuilder &operator=(const ResourceBuilder &);
   flatbuffers::Offset<Resource> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<Resource>(end);
@@ -377,7 +374,6 @@ struct FaceGroupBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  FaceGroupBuilder &operator=(const FaceGroupBuilder &);
   flatbuffers::Offset<FaceGroup> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<FaceGroup>(end);
@@ -471,7 +467,6 @@ struct FontBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  FontBuilder &operator=(const FontBuilder &);
   flatbuffers::Offset<Font> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<Font>(end);
@@ -565,7 +560,6 @@ struct VectorResourcesBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  VectorResourcesBuilder &operator=(const VectorResourcesBuilder &);
   flatbuffers::Offset<VectorResources> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<VectorResources>(end);

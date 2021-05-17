@@ -10,12 +10,16 @@ class Texture(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsTexture(cls, buf, offset):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = Texture()
         x.Init(buf, n + offset)
         return x
 
+    @classmethod
+    def GetRootAsTexture(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
     # Texture
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
@@ -69,11 +73,35 @@ class Texture(object):
             return obj
         return None
 
-def TextureStart(builder): builder.StartObject(6)
-def TextureAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
-def TextureAddUsage(builder, usage): builder.PrependUint32Slot(1, usage, 0)
-def TextureAddMemoryHints(builder, memoryHints): builder.PrependUint32Slot(2, memoryHints, 0)
-def TextureAddDataType(builder, dataType): builder.PrependUint8Slot(3, dataType, 0)
-def TextureAddData(builder, data): builder.PrependUOffsetTRelativeSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(data), 0)
-def TextureAddTextureInfo(builder, textureInfo): builder.PrependUOffsetTRelativeSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(textureInfo), 0)
-def TextureEnd(builder): return builder.EndObject()
+def Start(builder): builder.StartObject(6)
+def TextureStart(builder):
+    """This method is deprecated. Please switch to Start."""
+    return Start(builder)
+def AddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+def TextureAddName(builder, name):
+    """This method is deprecated. Please switch to AddName."""
+    return AddName(builder, name)
+def AddUsage(builder, usage): builder.PrependUint32Slot(1, usage, 0)
+def TextureAddUsage(builder, usage):
+    """This method is deprecated. Please switch to AddUsage."""
+    return AddUsage(builder, usage)
+def AddMemoryHints(builder, memoryHints): builder.PrependUint32Slot(2, memoryHints, 0)
+def TextureAddMemoryHints(builder, memoryHints):
+    """This method is deprecated. Please switch to AddMemoryHints."""
+    return AddMemoryHints(builder, memoryHints)
+def AddDataType(builder, dataType): builder.PrependUint8Slot(3, dataType, 0)
+def TextureAddDataType(builder, dataType):
+    """This method is deprecated. Please switch to AddDataType."""
+    return AddDataType(builder, dataType)
+def AddData(builder, data): builder.PrependUOffsetTRelativeSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(data), 0)
+def TextureAddData(builder, data):
+    """This method is deprecated. Please switch to AddData."""
+    return AddData(builder, data)
+def AddTextureInfo(builder, textureInfo): builder.PrependUOffsetTRelativeSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(textureInfo), 0)
+def TextureAddTextureInfo(builder, textureInfo):
+    """This method is deprecated. Please switch to AddTextureInfo."""
+    return AddTextureInfo(builder, textureInfo)
+def End(builder): return builder.EndObject()
+def TextureEnd(builder):
+    """This method is deprecated. Please switch to End."""
+    return End(builder)

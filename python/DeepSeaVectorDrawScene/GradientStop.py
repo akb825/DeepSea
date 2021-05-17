@@ -10,12 +10,16 @@ class GradientStop(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsGradientStop(cls, buf, offset):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = GradientStop()
         x.Init(buf, n + offset)
         return x
 
+    @classmethod
+    def GetRootAsGradientStop(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
     # GradientStop
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
@@ -38,7 +42,19 @@ class GradientStop(object):
             return obj
         return None
 
-def GradientStopStart(builder): builder.StartObject(2)
-def GradientStopAddPosition(builder, position): builder.PrependFloat32Slot(0, position, 0.0)
-def GradientStopAddColor(builder, color): builder.PrependStructSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(color), 0)
-def GradientStopEnd(builder): return builder.EndObject()
+def Start(builder): builder.StartObject(2)
+def GradientStopStart(builder):
+    """This method is deprecated. Please switch to Start."""
+    return Start(builder)
+def AddPosition(builder, position): builder.PrependFloat32Slot(0, position, 0.0)
+def GradientStopAddPosition(builder, position):
+    """This method is deprecated. Please switch to AddPosition."""
+    return AddPosition(builder, position)
+def AddColor(builder, color): builder.PrependStructSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(color), 0)
+def GradientStopAddColor(builder, color):
+    """This method is deprecated. Please switch to AddColor."""
+    return AddColor(builder, color)
+def End(builder): return builder.EndObject()
+def GradientStopEnd(builder):
+    """This method is deprecated. Please switch to End."""
+    return End(builder)

@@ -40,7 +40,6 @@ struct NamedMaterialDataBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  NamedMaterialDataBuilder &operator=(const NamedMaterialDataBuilder &);
   flatbuffers::Offset<NamedMaterialData> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<NamedMaterialData>(end);

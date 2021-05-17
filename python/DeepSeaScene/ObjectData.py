@@ -10,12 +10,16 @@ class ObjectData(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsObjectData(cls, buf, offset):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = ObjectData()
         x.Init(buf, n + offset)
         return x
 
+    @classmethod
+    def GetRootAsObjectData(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
     # ObjectData
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
@@ -54,8 +58,23 @@ class ObjectData(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         return o == 0
 
-def ObjectDataStart(builder): builder.StartObject(2)
-def ObjectDataAddType(builder, type): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(type), 0)
-def ObjectDataAddData(builder, data): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(data), 0)
-def ObjectDataStartDataVector(builder, numElems): return builder.StartVector(1, numElems, 1)
-def ObjectDataEnd(builder): return builder.EndObject()
+def Start(builder): builder.StartObject(2)
+def ObjectDataStart(builder):
+    """This method is deprecated. Please switch to Start."""
+    return Start(builder)
+def AddType(builder, type): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(type), 0)
+def ObjectDataAddType(builder, type):
+    """This method is deprecated. Please switch to AddType."""
+    return AddType(builder, type)
+def AddData(builder, data): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(data), 0)
+def ObjectDataAddData(builder, data):
+    """This method is deprecated. Please switch to AddData."""
+    return AddData(builder, data)
+def StartDataVector(builder, numElems): return builder.StartVector(1, numElems, 1)
+def ObjectDataStartDataVector(builder, numElems):
+    """This method is deprecated. Please switch to Start."""
+    return StartDataVector(builder, numElems)
+def End(builder): return builder.EndObject()
+def ObjectDataEnd(builder):
+    """This method is deprecated. Please switch to End."""
+    return End(builder)

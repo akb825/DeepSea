@@ -14,12 +14,11 @@
 
 import flatbuffers
 from .DynamicRenderStatesConvert import convertDynamicRenderStates
-from ..Color4f import *
-from ..DynamicRenderStates import *
-from ..InstanceTransformData import *
-from ..ModelList import *
-from ..SortType import *
-from ..Vector2f import *
+from ..Color4f import CreateColor4f
+from ..DynamicRenderStates import DynamicRenderStates
+from .. import ModelList
+from ..SortType import SortType
+from ..Vector2f import CreateVector2f
 
 def convertModelList(convertContext, data):
 	"""
@@ -89,10 +88,10 @@ def convertModelList(convertContext, data):
 			instance))
 
 	if instanceDataOffsets:
-		ModelListStartInstanceDataVector(builder, len(instanceDataOffsets))
+		ModelList.StartInstanceDataVector(builder, len(instanceDataOffsets))
 		for offset in reversed(instanceDataOffsets):
 			builder.PrependUOffsetTRelative(offset)
-		instanceDataOffset = builder.EndVector(len(instanceDataOffsets))
+		instanceDataOffset = builder.EndVector()
 	else:
 		instanceDataOffset = 0
 
@@ -101,10 +100,10 @@ def convertModelList(convertContext, data):
 	else:
 		cullListOffset = 0
 
-	ModelListStart(builder)
-	ModelListAddInstanceData(builder, instanceDataOffset)
-	ModelListAddSortType(builder, sortType)
-	ModelListAddDynamicRenderStates(builder, dynamicRenderStatesOffset)
-	ModelListAddCullList(builder, cullListOffset)
-	builder.Finish(ModelListEnd(builder))
+	ModelList.Start(builder)
+	ModelList.AddInstanceData(builder, instanceDataOffset)
+	ModelList.AddSortType(builder, sortType)
+	ModelList.AddDynamicRenderStates(builder, dynamicRenderStatesOffset)
+	ModelList.AddCullList(builder, cullListOffset)
+	builder.Finish(ModelList.End(builder))
 	return builder.Output()

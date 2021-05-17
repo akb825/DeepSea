@@ -13,9 +13,11 @@
 # limitations under the License.
 
 import flatbuffers
+
+from ..TextAlign import TextAlign
+from .. import TextNode
+
 from DeepSeaScene.Convert.SceneResourcesConvert import convertSceneResources
-from ..TextAlign import *
-from ..TextNode import *
 
 FLT_MAX = 3.402823466e38
 
@@ -108,25 +110,25 @@ def convertTextNode(convertContext, data):
 		except (TypeError, ValueError):
 			raise Exception('TextNode "itemLists" must be an array of strings.')
 
-		TextNodeStartItemListsVector(builder, len(itemListOffsets))
+		TextNode.StartItemListsVector(builder, len(itemListOffsets))
 		for offset in reversed(itemListOffsets):
 			builder.PrependUOffsetTRelative(offset)
-		itemListsOffset = builder.EndVector(len(itemListOffsets))
+		itemListsOffset = builder.EndVector()
 	else:
 		itemListsOffset = 0
 
-	TextNodeStart(builder)
-	TextNodeAddEmbeddedResources(builder, embeddedResourcesOffset)
-	TextNodeAddText(builder, textOffset)
-	TextNodeAddAlignment(builder, alignment)
-	TextNodeAddMaxWidth(builder, maxWidth)
-	TextNodeAddLineScale(builder, lineScale)
-	TextNodeAddZ(builder, z)
-	TextNodeAddFirstChar(builder, firstChar)
-	TextNodeAddCharCount(builder, charCount)
-	TextNodeAddShader(builder, shaderOffset)
-	TextNodeAddMaterial(builder, materialOffset)
-	TextNodeAddFontTexture(builder, fontTextureNameOffset)
-	TextNodeAddItemLists(builder, itemListsOffset)
-	builder.Finish(TextNodeEnd(builder))
+	TextNode.Start(builder)
+	TextNode.AddEmbeddedResources(builder, embeddedResourcesOffset)
+	TextNode.AddText(builder, textOffset)
+	TextNode.AddAlignment(builder, alignment)
+	TextNode.AddMaxWidth(builder, maxWidth)
+	TextNode.AddLineScale(builder, lineScale)
+	TextNode.AddZ(builder, z)
+	TextNode.AddFirstChar(builder, firstChar)
+	TextNode.AddCharCount(builder, charCount)
+	TextNode.AddShader(builder, shaderOffset)
+	TextNode.AddMaterial(builder, materialOffset)
+	TextNode.AddFontTexture(builder, fontTextureNameOffset)
+	TextNode.AddItemLists(builder, itemListsOffset)
+	builder.Finish(TextNode.End(builder))
 	return builder.Output()

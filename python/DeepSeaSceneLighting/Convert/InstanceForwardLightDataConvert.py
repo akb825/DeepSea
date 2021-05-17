@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import flatbuffers
-from ..InstanceForwardLightData import *
+from .. import InstanceForwardLightData
 
 def convertInstanceForwardLightData(convertContext, data):
 	"""
@@ -34,8 +34,8 @@ def convertInstanceForwardLightData(convertContext, data):
 	variableGroupDescNameOffset = builder.CreateString(variableGroupDescName)
 	lightSetNameOffset = builder.CreateString(lightSetName)
 
-	InstanceForwardLightDataStart(builder)
-	InstanceForwardLightDataAddVariableGroupDesc(builder, variableGroupDescNameOffset)
-	InstanceForwardLightDataAddLightSet(builder, lightSetNameOffset)
-	builder.Finish(InstanceForwardLightDataEnd(builder))
+	InstanceForwardLightData.Start(builder)
+	InstanceForwardLightData.AddVariableGroupDesc(builder, variableGroupDescNameOffset)
+	InstanceForwardLightData.AddLightSet(builder, lightSetNameOffset)
+	builder.Finish(InstanceForwardLightData.End(builder))
 	return builder.Output()

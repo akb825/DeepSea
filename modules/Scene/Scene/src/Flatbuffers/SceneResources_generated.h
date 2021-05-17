@@ -191,8 +191,12 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) VertexAttribute FLATBUFFERS_FINAL_CLASS {
   int16_t padding0__;
 
  public:
-  VertexAttribute() {
-    memset(static_cast<void *>(this), 0, sizeof(VertexAttribute));
+  VertexAttribute()
+      : attrib_(0),
+        format_(0),
+        decoration_(0),
+        padding0__(0) {
+    (void)padding0__;
   }
   VertexAttribute(uint32_t _attrib, DeepSeaScene::VertexElementFormat _format, DeepSeaScene::FormatDecoration _decoration)
       : attrib_(flatbuffers::EndianScalar(_attrib)),
@@ -296,7 +300,6 @@ struct BufferBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  BufferBuilder &operator=(const BufferBuilder &);
   flatbuffers::Offset<Buffer> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<Buffer>(end);
@@ -416,7 +419,6 @@ struct TextureInfoBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  TextureInfoBuilder &operator=(const TextureInfoBuilder &);
   flatbuffers::Offset<TextureInfo> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<TextureInfo>(end);
@@ -528,7 +530,6 @@ struct TextureBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  TextureBuilder &operator=(const TextureBuilder &);
   flatbuffers::Offset<Texture> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<Texture>(end);
@@ -617,7 +618,6 @@ struct VariableElementBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  VariableElementBuilder &operator=(const VariableElementBuilder &);
   flatbuffers::Offset<VariableElement> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<VariableElement>(end);
@@ -688,7 +688,6 @@ struct ShaderVariableGroupDescBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  ShaderVariableGroupDescBuilder &operator=(const ShaderVariableGroupDescBuilder &);
   flatbuffers::Offset<ShaderVariableGroupDesc> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<ShaderVariableGroupDesc>(end);
@@ -780,7 +779,6 @@ struct VariableDataBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  VariableDataBuilder &operator=(const VariableDataBuilder &);
   flatbuffers::Offset<VariableData> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<VariableData>(end);
@@ -870,7 +868,6 @@ struct ShaderVariableGroupBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  ShaderVariableGroupBuilder &operator=(const ShaderVariableGroupBuilder &);
   flatbuffers::Offset<ShaderVariableGroup> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<ShaderVariableGroup>(end);
@@ -967,7 +964,6 @@ struct MaterialElementBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  MaterialElementBuilder &operator=(const MaterialElementBuilder &);
   flatbuffers::Offset<MaterialElement> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<MaterialElement>(end);
@@ -1047,7 +1043,6 @@ struct MaterialDescBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  MaterialDescBuilder &operator=(const MaterialDescBuilder &);
   flatbuffers::Offset<MaterialDesc> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<MaterialDesc>(end);
@@ -1125,7 +1120,6 @@ struct MaterialBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  MaterialBuilder &operator=(const MaterialBuilder &);
   flatbuffers::Offset<Material> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<Material>(end);
@@ -1199,7 +1193,6 @@ struct ShaderModuleBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  ShaderModuleBuilder &operator=(const ShaderModuleBuilder &);
   flatbuffers::Offset<ShaderModule> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<ShaderModule>(end);
@@ -1285,7 +1278,6 @@ struct ShaderBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  ShaderBuilder &operator=(const ShaderBuilder &);
   flatbuffers::Offset<Shader> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<Shader>(end);
@@ -1363,7 +1355,6 @@ struct VertexFormatBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  VertexFormatBuilder &operator=(const VertexFormatBuilder &);
   flatbuffers::Offset<VertexFormat> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<VertexFormat>(end);
@@ -1445,7 +1436,6 @@ struct VertexBufferBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  VertexBufferBuilder &operator=(const VertexBufferBuilder &);
   flatbuffers::Offset<VertexBuffer> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<VertexBuffer>(end);
@@ -1535,7 +1525,6 @@ struct IndexBufferBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  IndexBufferBuilder &operator=(const IndexBufferBuilder &);
   flatbuffers::Offset<IndexBuffer> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<IndexBuffer>(end);
@@ -1619,7 +1608,6 @@ struct DrawGeometryBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  DrawGeometryBuilder &operator=(const DrawGeometryBuilder &);
   flatbuffers::Offset<DrawGeometry> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<DrawGeometry>(end);
@@ -1691,7 +1679,6 @@ struct SceneNodeBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  SceneNodeBuilder &operator=(const SceneNodeBuilder &);
   flatbuffers::Offset<SceneNode> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<SceneNode>(end);
@@ -1758,7 +1745,6 @@ struct CustomResourceBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  CustomResourceBuilder &operator=(const CustomResourceBuilder &);
   flatbuffers::Offset<CustomResource> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<CustomResource>(end);
@@ -1902,7 +1888,6 @@ struct SceneResourceBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  SceneResourceBuilder &operator=(const SceneResourceBuilder &);
   flatbuffers::Offset<SceneResource> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<SceneResource>(end);
@@ -1948,7 +1933,6 @@ struct SceneResourcesBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  SceneResourcesBuilder &operator=(const SceneResourcesBuilder &);
   flatbuffers::Offset<SceneResources> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<SceneResources>(end);

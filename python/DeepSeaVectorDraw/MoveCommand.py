@@ -10,12 +10,16 @@ class MoveCommand(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsMoveCommand(cls, buf, offset):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = MoveCommand()
         x.Init(buf, n + offset)
         return x
 
+    @classmethod
+    def GetRootAsMoveCommand(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
     # MoveCommand
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
@@ -31,6 +35,15 @@ class MoveCommand(object):
             return obj
         return None
 
-def MoveCommandStart(builder): builder.StartObject(1)
-def MoveCommandAddPosition(builder, position): builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(position), 0)
-def MoveCommandEnd(builder): return builder.EndObject()
+def Start(builder): builder.StartObject(1)
+def MoveCommandStart(builder):
+    """This method is deprecated. Please switch to Start."""
+    return Start(builder)
+def AddPosition(builder, position): builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(position), 0)
+def MoveCommandAddPosition(builder, position):
+    """This method is deprecated. Please switch to AddPosition."""
+    return AddPosition(builder, position)
+def End(builder): return builder.EndObject()
+def MoveCommandEnd(builder):
+    """This method is deprecated. Please switch to End."""
+    return End(builder)

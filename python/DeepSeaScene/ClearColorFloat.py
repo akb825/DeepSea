@@ -10,12 +10,16 @@ class ClearColorFloat(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsClearColorFloat(cls, buf, offset):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = ClearColorFloat()
         x.Init(buf, n + offset)
         return x
 
+    @classmethod
+    def GetRootAsClearColorFloat(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
     # ClearColorFloat
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
@@ -48,9 +52,27 @@ class ClearColorFloat(object):
             return self._tab.Get(flatbuffers.number_types.Float32Flags, o + self._tab.Pos)
         return 0.0
 
-def ClearColorFloatStart(builder): builder.StartObject(4)
-def ClearColorFloatAddRed(builder, red): builder.PrependFloat32Slot(0, red, 0.0)
-def ClearColorFloatAddGreen(builder, green): builder.PrependFloat32Slot(1, green, 0.0)
-def ClearColorFloatAddBlue(builder, blue): builder.PrependFloat32Slot(2, blue, 0.0)
-def ClearColorFloatAddAlpha(builder, alpha): builder.PrependFloat32Slot(3, alpha, 0.0)
-def ClearColorFloatEnd(builder): return builder.EndObject()
+def Start(builder): builder.StartObject(4)
+def ClearColorFloatStart(builder):
+    """This method is deprecated. Please switch to Start."""
+    return Start(builder)
+def AddRed(builder, red): builder.PrependFloat32Slot(0, red, 0.0)
+def ClearColorFloatAddRed(builder, red):
+    """This method is deprecated. Please switch to AddRed."""
+    return AddRed(builder, red)
+def AddGreen(builder, green): builder.PrependFloat32Slot(1, green, 0.0)
+def ClearColorFloatAddGreen(builder, green):
+    """This method is deprecated. Please switch to AddGreen."""
+    return AddGreen(builder, green)
+def AddBlue(builder, blue): builder.PrependFloat32Slot(2, blue, 0.0)
+def ClearColorFloatAddBlue(builder, blue):
+    """This method is deprecated. Please switch to AddBlue."""
+    return AddBlue(builder, blue)
+def AddAlpha(builder, alpha): builder.PrependFloat32Slot(3, alpha, 0.0)
+def ClearColorFloatAddAlpha(builder, alpha):
+    """This method is deprecated. Please switch to AddAlpha."""
+    return AddAlpha(builder, alpha)
+def End(builder): return builder.EndObject()
+def ClearColorFloatEnd(builder):
+    """This method is deprecated. Please switch to End."""
+    return End(builder)

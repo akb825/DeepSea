@@ -9,6 +9,10 @@ np = import_numpy()
 class GradientStop(object):
     __slots__ = ['_tab']
 
+    @classmethod
+    def SizeOf(cls):
+        return 8
+
     # GradientStop
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)

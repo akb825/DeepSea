@@ -9,6 +9,10 @@ np = import_numpy()
 class Matrix33f(object):
     __slots__ = ['_tab']
 
+    @classmethod
+    def SizeOf(cls):
+        return 36
+
     # Matrix33f
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)

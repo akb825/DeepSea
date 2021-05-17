@@ -58,7 +58,6 @@ struct FullScreenResolveBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  FullScreenResolveBuilder &operator=(const FullScreenResolveBuilder &);
   flatbuffers::Offset<FullScreenResolve> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<FullScreenResolve>(end);

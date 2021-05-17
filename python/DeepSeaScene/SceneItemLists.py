@@ -10,12 +10,16 @@ class SceneItemLists(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsSceneItemLists(cls, buf, offset):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = SceneItemLists()
         x.Init(buf, n + offset)
         return x
 
+    @classmethod
+    def GetRootAsSceneItemLists(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
     # SceneItemLists
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
@@ -45,7 +49,19 @@ class SceneItemLists(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         return o == 0
 
-def SceneItemListsStart(builder): builder.StartObject(1)
-def SceneItemListsAddItemLists(builder, itemLists): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(itemLists), 0)
-def SceneItemListsStartItemListsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
-def SceneItemListsEnd(builder): return builder.EndObject()
+def Start(builder): builder.StartObject(1)
+def SceneItemListsStart(builder):
+    """This method is deprecated. Please switch to Start."""
+    return Start(builder)
+def AddItemLists(builder, itemLists): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(itemLists), 0)
+def SceneItemListsAddItemLists(builder, itemLists):
+    """This method is deprecated. Please switch to AddItemLists."""
+    return AddItemLists(builder, itemLists)
+def StartItemListsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+def SceneItemListsStartItemListsVector(builder, numElems):
+    """This method is deprecated. Please switch to Start."""
+    return StartItemListsVector(builder, numElems)
+def End(builder): return builder.EndObject()
+def SceneItemListsEnd(builder):
+    """This method is deprecated. Please switch to End."""
+    return End(builder)

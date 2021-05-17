@@ -10,12 +10,16 @@ class TextureInfo(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsTextureInfo(cls, buf, offset):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = TextureInfo()
         x.Init(buf, n + offset)
         return x
 
+    @classmethod
+    def GetRootAsTextureInfo(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
     # TextureInfo
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
@@ -69,12 +73,39 @@ class TextureInfo(object):
             return self._tab.Get(flatbuffers.number_types.Uint8Flags, o + self._tab.Pos)
         return 0
 
-def TextureInfoStart(builder): builder.StartObject(7)
-def TextureInfoAddFormat(builder, format): builder.PrependUint8Slot(0, format, 0)
-def TextureInfoAddDecoration(builder, decoration): builder.PrependUint8Slot(1, decoration, 0)
-def TextureInfoAddDimension(builder, dimension): builder.PrependUint8Slot(2, dimension, 0)
-def TextureInfoAddWidth(builder, width): builder.PrependUint32Slot(3, width, 0)
-def TextureInfoAddHeight(builder, height): builder.PrependUint32Slot(4, height, 0)
-def TextureInfoAddDepth(builder, depth): builder.PrependUint32Slot(5, depth, 0)
-def TextureInfoAddMipLevels(builder, mipLevels): builder.PrependUint8Slot(6, mipLevels, 0)
-def TextureInfoEnd(builder): return builder.EndObject()
+def Start(builder): builder.StartObject(7)
+def TextureInfoStart(builder):
+    """This method is deprecated. Please switch to Start."""
+    return Start(builder)
+def AddFormat(builder, format): builder.PrependUint8Slot(0, format, 0)
+def TextureInfoAddFormat(builder, format):
+    """This method is deprecated. Please switch to AddFormat."""
+    return AddFormat(builder, format)
+def AddDecoration(builder, decoration): builder.PrependUint8Slot(1, decoration, 0)
+def TextureInfoAddDecoration(builder, decoration):
+    """This method is deprecated. Please switch to AddDecoration."""
+    return AddDecoration(builder, decoration)
+def AddDimension(builder, dimension): builder.PrependUint8Slot(2, dimension, 0)
+def TextureInfoAddDimension(builder, dimension):
+    """This method is deprecated. Please switch to AddDimension."""
+    return AddDimension(builder, dimension)
+def AddWidth(builder, width): builder.PrependUint32Slot(3, width, 0)
+def TextureInfoAddWidth(builder, width):
+    """This method is deprecated. Please switch to AddWidth."""
+    return AddWidth(builder, width)
+def AddHeight(builder, height): builder.PrependUint32Slot(4, height, 0)
+def TextureInfoAddHeight(builder, height):
+    """This method is deprecated. Please switch to AddHeight."""
+    return AddHeight(builder, height)
+def AddDepth(builder, depth): builder.PrependUint32Slot(5, depth, 0)
+def TextureInfoAddDepth(builder, depth):
+    """This method is deprecated. Please switch to AddDepth."""
+    return AddDepth(builder, depth)
+def AddMipLevels(builder, mipLevels): builder.PrependUint8Slot(6, mipLevels, 0)
+def TextureInfoAddMipLevels(builder, mipLevels):
+    """This method is deprecated. Please switch to AddMipLevels."""
+    return AddMipLevels(builder, mipLevels)
+def End(builder): return builder.EndObject()
+def TextureInfoEnd(builder):
+    """This method is deprecated. Please switch to End."""
+    return End(builder)

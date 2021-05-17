@@ -10,12 +10,16 @@ class ModelNodeReconfig(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsModelNodeReconfig(cls, buf, offset):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = ModelNodeReconfig()
         x.Init(buf, n + offset)
         return x
 
+    @classmethod
+    def GetRootAsModelNodeReconfig(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
     # ModelNodeReconfig
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
@@ -72,10 +76,31 @@ class ModelNodeReconfig(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
         return o == 0
 
-def ModelNodeReconfigStart(builder): builder.StartObject(3)
-def ModelNodeReconfigAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
-def ModelNodeReconfigAddModels(builder, models): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(models), 0)
-def ModelNodeReconfigStartModelsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
-def ModelNodeReconfigAddExtraItemLists(builder, extraItemLists): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(extraItemLists), 0)
-def ModelNodeReconfigStartExtraItemListsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
-def ModelNodeReconfigEnd(builder): return builder.EndObject()
+def Start(builder): builder.StartObject(3)
+def ModelNodeReconfigStart(builder):
+    """This method is deprecated. Please switch to Start."""
+    return Start(builder)
+def AddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+def ModelNodeReconfigAddName(builder, name):
+    """This method is deprecated. Please switch to AddName."""
+    return AddName(builder, name)
+def AddModels(builder, models): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(models), 0)
+def ModelNodeReconfigAddModels(builder, models):
+    """This method is deprecated. Please switch to AddModels."""
+    return AddModels(builder, models)
+def StartModelsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+def ModelNodeReconfigStartModelsVector(builder, numElems):
+    """This method is deprecated. Please switch to Start."""
+    return StartModelsVector(builder, numElems)
+def AddExtraItemLists(builder, extraItemLists): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(extraItemLists), 0)
+def ModelNodeReconfigAddExtraItemLists(builder, extraItemLists):
+    """This method is deprecated. Please switch to AddExtraItemLists."""
+    return AddExtraItemLists(builder, extraItemLists)
+def StartExtraItemListsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+def ModelNodeReconfigStartExtraItemListsVector(builder, numElems):
+    """This method is deprecated. Please switch to Start."""
+    return StartExtraItemListsVector(builder, numElems)
+def End(builder): return builder.EndObject()
+def ModelNodeReconfigEnd(builder):
+    """This method is deprecated. Please switch to End."""
+    return End(builder)

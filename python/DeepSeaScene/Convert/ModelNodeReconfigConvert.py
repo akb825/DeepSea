@@ -15,9 +15,9 @@
 from copy import copy
 import flatbuffers
 from .ModelNodeConvert import validateModelDistanceRange, FLT_MAX
-from ..ModelReconfig import *
-from ..ModelNodeReconfig import *
-from ..Vector2f import *
+from .. import ModelReconfig
+from .. import ModelNodeReconfig
+from ..Vector2f import CreateVector2f
 
 def convertModelNodeReconfig(convertContext, data):
 	"""
@@ -90,32 +90,32 @@ def convertModelNodeReconfig(convertContext, data):
 		materialOffset = builder.CreateString(material)
 		modelListOffset = builder.CreateString(modelList)
 
-		ModelReconfigStart(builder)
-		ModelReconfigAddName(builder, modelNameOffset)
-		ModelReconfigAddShader(builder, shaderOffset)
-		ModelReconfigAddMaterial(builder, materialOffset)
-		ModelReconfigAddDistanceRange(builder,
+		ModelReconfig.Start(builder)
+		ModelReconfig.AddName(builder, modelNameOffset)
+		ModelReconfig.AddShader(builder, shaderOffset)
+		ModelReconfig.AddMaterial(builder, materialOffset)
+		ModelReconfig.AddDistanceRange(builder,
 			CreateVector2f(builder, distanceRange[0], distanceRange[1]))
-		ModelReconfigAddModelList(builder, modelListOffset)
-		modelsOffsets.append(ModelReconfigEnd(builder))
+		ModelReconfig.AddModelList(builder, modelListOffset)
+		modelsOffsets.append(ModelReconfig.End(builder))
 
-	ModelNodeReconfigStartModelsVector(builder, len(modelsOffsets))
+	ModelNodeReconfig.StartModelsVector(builder, len(modelsOffsets))
 	for offset in reversed(modelsOffsets):
 		builder.PrependUOffsetTRelative(offset)
-	modelsOffset = builder.EndVector(len(modelsOffsets))
+	modelsOffset = builder.EndVector()
 
 	extraItemListsOffsets = []
 	for itemList in extraItemLists:
 		extraItemListsOffsets.append(builder.CreateString(str(itemList)))
 
-	ModelNodeReconfigStartExtraItemListsVector(builder, len(extraItemListsOffsets))
+	ModelNodeReconfig.StartExtraItemListsVector(builder, len(extraItemListsOffsets))
 	for offset in reversed(extraItemListsOffsets):
 		builder.PrependUOffsetTRelative(offset)
-	extraItemListsOffset = builder.EndVector(len(extraItemListsOffsets))
+	extraItemListsOffset = builder.EndVector()
 
-	ModelNodeReconfigStart(builder)
-	ModelNodeReconfigAddName(builder, nameOffset)
-	ModelNodeReconfigAddModels(builder, modelsOffset)
-	ModelNodeReconfigAddExtraItemLists(builder, extraItemListsOffset)
-	builder.Finish(ModelNodeReconfigEnd(builder))
+	ModelNodeReconfig.Start(builder)
+	ModelNodeReconfig.AddName(builder, nameOffset)
+	ModelNodeReconfig.AddModels(builder, modelsOffset)
+	ModelNodeReconfig.AddExtraItemLists(builder, extraItemListsOffset)
+	builder.Finish(ModelNodeReconfig.End(builder))
 	return builder.Output()

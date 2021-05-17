@@ -10,12 +10,16 @@ class ViewTransformData(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsViewTransformData(cls, buf, offset):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = ViewTransformData()
         x.Init(buf, n + offset)
         return x
 
+    @classmethod
+    def GetRootAsViewTransformData(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
     # ViewTransformData
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
@@ -27,6 +31,15 @@ class ViewTransformData(object):
             return self._tab.String(o + self._tab.Pos)
         return None
 
-def ViewTransformDataStart(builder): builder.StartObject(1)
-def ViewTransformDataAddVariableGroupDesc(builder, variableGroupDesc): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(variableGroupDesc), 0)
-def ViewTransformDataEnd(builder): return builder.EndObject()
+def Start(builder): builder.StartObject(1)
+def ViewTransformDataStart(builder):
+    """This method is deprecated. Please switch to Start."""
+    return Start(builder)
+def AddVariableGroupDesc(builder, variableGroupDesc): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(variableGroupDesc), 0)
+def ViewTransformDataAddVariableGroupDesc(builder, variableGroupDesc):
+    """This method is deprecated. Please switch to AddVariableGroupDesc."""
+    return AddVariableGroupDesc(builder, variableGroupDesc)
+def End(builder): return builder.EndObject()
+def ViewTransformDataEnd(builder):
+    """This method is deprecated. Please switch to End."""
+    return End(builder)

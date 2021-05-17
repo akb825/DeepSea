@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Copyright 2018-2020 Aaron Barany
+# Copyright 2018-2021 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -23,15 +23,15 @@ import sys
 import tempfile
 
 import flatbuffers
-from DeepSeaVectorDraw.FaceGroup import *
-from DeepSeaVectorDraw.FileOrData import *
-from DeepSeaVectorDraw.FileReference import *
-from DeepSeaVectorDraw.Font import *
-from DeepSeaVectorDraw.FontCacheSize import *
-from DeepSeaVectorDraw.FontQuality import *
-from DeepSeaVectorDraw.RawData import *
-from DeepSeaVectorDraw.Resource import *
-from DeepSeaVectorDraw.VectorResources import *
+from DeepSeaVectorDraw import FaceGroup
+from DeepSeaVectorDraw.FileOrData import FileOrData
+from DeepSeaVectorDraw import FileReference
+from DeepSeaVectorDraw import Font
+from DeepSeaVectorDraw.FontCacheSize import FontCacheSize
+from DeepSeaVectorDraw.FontQuality import FontQuality
+from DeepSeaVectorDraw import RawData
+from DeepSeaVectorDraw import Resource
+from DeepSeaVectorDraw import VectorResources as VectorResourcesFB
 
 class VectorResources:
 	"""Class containing the information for vector resources to be saved in FlatBuffer format."""
@@ -156,17 +156,17 @@ class VectorResources:
 		def createResourceData(filePath, outputName, removeEmbedded = False):
 			if outputName:
 				pathOffset = builder.CreateString(outputName.replace('\\', '/'))
-				FileReferenceStart(builder)
-				FileReferenceAddPath(builder, pathOffset)
-				return FileOrData.FileReference, FileReferenceEnd(builder)
+				FileReference.Start(builder)
+				FileReference.AddPath(builder, pathOffset)
+				return FileOrData.FileReference, FileReference.End(builder)
 			else:
 				with open(filePath, 'r+b') as dataFile:
 					dataOffset = builder.CreateByteVector(dataFile.read())
 				if removeEmbedded:
 					os.remove(filePath)
-				RawDataStart(builder)
-				RawDataAddData(builder, dataOffset)
-				return FileOrData.RawData, RawDataEnd(builder)
+				RawData.Start(builder)
+				RawData.AddData(builder, dataOffset)
+				return FileOrData.RawData, RawData.End(builder)
 
 		builder = flatbuffers.Builder(0)
 
@@ -218,16 +218,16 @@ class VectorResources:
 						os.remove(textureOutputPath)
 					raise
 
-				ResourceStart(builder)
-				ResourceAddName(builder, nameOffset)
-				ResourceAddDataType(builder, dataType)
-				ResourceAddData(builder, dataOffset)
-				textureOffsets.append(ResourceEnd(builder))
+				Resource.Start(builder)
+				Resource.AddName(builder, nameOffset)
+				Resource.AddDataType(builder, dataType)
+				Resource.AddData(builder, dataOffset)
+				textureOffsets.append(Resource.End(builder))
 
-		VectorResourcesStartTexturesVector(builder, len(textureOffsets))
+		VectorResourcesFB.StartTexturesVector(builder, len(textureOffsets))
 		for offset in reversed(textureOffsets):
 			builder.PrependUOffsetTRelative(offset)
-		texturesOffset = builder.EndVector(len(textureOffsets))
+		texturesOffset = builder.EndVector()
 
 		faceGroupOffsets = []
 		for faceGroup in self.faceGroups:
@@ -252,26 +252,26 @@ class VectorResources:
 				faceNameOffset = builder.CreateString(name)
 				dataType, dataOffset = createResourceData(fontOutputPath, outputName)
 
-				ResourceStart(builder)
-				ResourceAddName(builder, faceNameOffset)
-				ResourceAddDataType(builder, dataType)
-				ResourceAddData(builder, dataOffset)
-				faceOffsets.append(ResourceEnd(builder))
+				Resource.Start(builder)
+				Resource.AddName(builder, faceNameOffset)
+				Resource.AddDataType(builder, dataType)
+				Resource.AddData(builder, dataOffset)
+				faceOffsets.append(Resource.End(builder))
 
-			FaceGroupStartFacesVector(builder, len(faceOffsets))
+			FaceGroup.StartFacesVector(builder, len(faceOffsets))
 			for offset in reversed(faceOffsets):
 				builder.PrependUOffsetTRelative(offset)
-			facesOffset = builder.EndVector(len(faceOffsets))
+			facesOffset = builder.EndVector()
 
-			FaceGroupStart(builder)
-			FaceGroupAddName(builder, nameOffset)
-			FaceGroupAddFaces(builder, facesOffset)
-			faceGroupOffsets.append(FaceGroupEnd(builder))
+			FaceGroup.Start(builder)
+			FaceGroup.AddName(builder, nameOffset)
+			FaceGroup.AddFaces(builder, facesOffset)
+			faceGroupOffsets.append(FaceGroup.End(builder))
 
-		VectorResourcesStartFaceGroupsVector(builder, len(faceGroupOffsets))
+		VectorResourcesFB.StartFaceGroupsVector(builder, len(faceGroupOffsets))
 		for offset in reversed(faceGroupOffsets):
 			builder.PrependUOffsetTRelative(offset)
-		faceGroupsOffset = builder.EndVector(len(faceGroupOffsets))
+		faceGroupsOffset = builder.EndVector()
 
 		fontOffsets = []
 		qualityValues = {'low': FontQuality.Low, 'medium': FontQuality.Medium, \
@@ -286,33 +286,33 @@ class VectorResources:
 			for face in faces:
 				faceOffsets.append(builder.CreateString(face))
 
-			FontStartFacesVector(builder, len(faceOffsets))
+			Font.StartFacesVector(builder, len(faceOffsets))
 			for offset in reversed(faceOffsets):
 				builder.PrependUOffsetTRelative(offset)
-			facesOffset = builder.EndVector(len(faceOffsets))
+			facesOffset = builder.EndVector()
 
-			FontStart(builder)
-			FontAddName(builder, nameOffset)
-			FontAddFaceGroup(builder, faceGroupOffset)
-			FontAddFaces(builder, facesOffset)
-			FontAddQuality(builder, qualityValues[font['quality'].lower()])
+			Font.Start(builder)
+			Font.AddName(builder, nameOffset)
+			Font.AddFaceGroup(builder, faceGroupOffset)
+			Font.AddFaces(builder, facesOffset)
+			Font.AddQuality(builder, qualityValues[font['quality'].lower()])
 			if 'cacheSize' in font:
 				cacheSize = cacheValues[font['cacheSize'].lower()]
 			else:
 				cacheSize = FontCacheSize.Large
-			FontAddCacheSize(builder, cacheSize)
-			fontOffsets.append(FontEnd(builder))
+			Font.AddCacheSize(builder, cacheSize)
+			fontOffsets.append(Font.End(builder))
 
-		VectorResourcesStartFontsVector(builder, len(fontOffsets))
+		VectorResourcesFB.StartFontsVector(builder, len(fontOffsets))
 		for offset in reversed(fontOffsets):
 			builder.PrependUOffsetTRelative(offset)
-		fontsOffset = builder.EndVector(len(fontOffsets))
+		fontsOffset = builder.EndVector()
 
-		VectorResourcesStart(builder)
-		VectorResourcesAddTextures(builder, texturesOffset)
-		VectorResourcesAddFaceGroups(builder, faceGroupsOffset)
-		VectorResourcesAddFonts(builder, fontsOffset)
-		builder.Finish(VectorResourcesEnd(builder))
+		VectorResourcesFB.Start(builder)
+		VectorResourcesFB.AddTextures(builder, texturesOffset)
+		VectorResourcesFB.AddFaceGroups(builder, faceGroupsOffset)
+		VectorResourcesFB.AddFonts(builder, fontsOffset)
+		builder.Finish(VectorResourcesFB.End(builder))
 
 		with open(outputPath, 'wb') as f:
 			f.write(builder.Output())

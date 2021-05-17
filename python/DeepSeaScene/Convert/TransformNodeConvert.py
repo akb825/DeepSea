@@ -1,4 +1,4 @@
-# Copyright 2020 Aaron Barany
+# Copyright 2020-2021 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,8 +14,8 @@
 
 import flatbuffers
 import math
-from ..Matrix44f import *
-from ..TransformNode import *
+from ..Matrix44f import CreateMatrix44f
+from .. import TransformNode
 
 def convertTransformNode(convertContext, data):
 	"""
@@ -179,13 +179,13 @@ def convertTransformNode(convertContext, data):
 	except (TypeError, ValueError):
 		raise Exception('TransformNode data must be an object.')
 
-	TransformNodeStartChildrenVector(builder, len(childOffsets))
+	TransformNode.StartChildrenVector(builder, len(childOffsets))
 	for offset in reversed(childOffsets):
 		builder.PrependUOffsetTRelative(offset)
-	childrenOffset = builder.EndVector(len(childOffsets))
+	childrenOffset = builder.EndVector()
 
-	TransformNodeStart(builder)
-	TransformNodeAddTransform(builder, CreateMatrix44f(builder, *matrixValues))
-	TransformNodeAddChildren(builder, childrenOffset)
-	builder.Finish(TransformNodeEnd(builder))
+	TransformNode.Start(builder)
+	TransformNode.AddTransform(builder, CreateMatrix44f(builder, *matrixValues))
+	TransformNode.AddChildren(builder, childrenOffset)
+	builder.Finish(TransformNode.End(builder))
 	return builder.Output()

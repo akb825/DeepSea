@@ -1,4 +1,4 @@
-# Copyright 2020 Aaron Barany
+# Copyright 2020-2021 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import flatbuffers
-from ..SceneNodeRef import *
+from .. import SceneNodeRef
 
 def convertReferenceNode(convertContext, data):
 	"""
@@ -29,7 +29,7 @@ def convertReferenceNode(convertContext, data):
 
 	builder = flatbuffers.Builder(0)
 	nameOffset = builder.CreateString(refName)
-	SceneNodeRefStart(builder)
-	SceneNodeRefAddName(builder, nameOffset)
-	builder.Finish(SceneNodeRefEnd(builder))
+	SceneNodeRef.Start(builder)
+	SceneNodeRef.AddName(builder, nameOffset)
+	builder.Finish(SceneNodeRef.End(builder))
 	return builder.Output()

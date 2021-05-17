@@ -15,15 +15,15 @@
 import flatbuffers
 import math
 
-from ..DirectionalLight import *
-from ..Light import *
-from ..LightUnion import *
-from ..PointLight import *
-from ..SceneLightSet import *
-from ..SpotLight import *
+from .. import DirectionalLight
+from .. import Light
+from ..LightUnion import LightUnion
+from .. import PointLight
+from .. import SceneLightSet
+from .. import SpotLight
 
-from DeepSeaScene.Color3f import *
-from DeepSeaScene.Vector3f import *
+from DeepSeaScene.Color3f import CreateColor3f
+from DeepSeaScene.Vector3f import CreateVector3f
 
 class Object:
 	pass
@@ -168,58 +168,58 @@ def convertLightSet(convertContext, data):
 	for light in lights:
 		nameOffset = builder.CreateString(light.name)
 		if light.type == LightUnion.DirectionalLight:
-			DirectionalLightStart(builder)
-			DirectionalLightAddDirection(builder, CreateVector3f(builder, light.direction[0],
+			DirectionalLight.Start(builder)
+			DirectionalLight.AddDirection(builder, CreateVector3f(builder, light.direction[0],
 				light.direction[1], light.direction[2]))
-			DirectionalLightAddColor(builder, CreateColor3f(builder, light.color[0], light.color[1],
-				light.color[2]))
-			DirectionalLightAddIntensity(builder, light.intensity)
-			lightUnionOffset = DirectionalLightEnd(builder)
+			DirectionalLight.AddColor(builder, CreateColor3f(builder, light.color[0],
+				light.color[1], light.color[2]))
+			DirectionalLight.AddIntensity(builder, light.intensity)
+			lightUnionOffset = DirectionalLight.End(builder)
 		elif light.type == LightUnion.PointLight:
-			PointLightStart(builder)
-			PointLightAddPosition(builder, CreateVector3f(builder, light.position[0],
+			PointLight.Start(builder)
+			PointLight.AddPosition(builder, CreateVector3f(builder, light.position[0],
 				light.position[1], light.position[2]))
-			PointLightAddColor(builder, CreateColor3f(builder, light.color[0], light.color[1],
+			PointLight.AddColor(builder, CreateColor3f(builder, light.color[0], light.color[1],
 				light.color[2]))
-			PointLightAddIntensity(builder, light.intensity)
-			PointLightAddLinearFalloff(builder, light.linearFalloff)
-			PointLightAddQuadraticFalloff(builder, light.quadraticFalloff)
-			lightUnionOffset = PointLightEnd(builder)
+			PointLight.AddIntensity(builder, light.intensity)
+			PointLight.AddLinearFalloff(builder, light.linearFalloff)
+			PointLight.AddQuadraticFalloff(builder, light.quadraticFalloff)
+			lightUnionOffset = PointLight.End(builder)
 		elif light.type == LightUnion.SpotLight:
-			SpotLightStart(builder)
-			SpotLightAddPosition(builder, CreateVector3f(builder, light.position[0],
+			SpotLight.Start(builder)
+			SpotLight.AddPosition(builder, CreateVector3f(builder, light.position[0],
 				light.position[1], light.position[2]))
-			SpotLightAddDirection(builder, CreateVector3f(builder, light.direction[0],
+			SpotLight.AddDirection(builder, CreateVector3f(builder, light.direction[0],
 				light.direction[1], light.direction[2]))
-			SpotLightAddColor(builder, CreateColor3f(builder, light.color[0], light.color[1],
+			SpotLight.AddColor(builder, CreateColor3f(builder, light.color[0], light.color[1],
 				light.color[2]))
-			SpotLightAddIntensity(builder, light.intensity)
-			SpotLightAddLinearFalloff(builder, light.linearFalloff)
-			SpotLightAddQuadraticFalloff(builder, light.quadraticFalloff)
-			SpotLightAddInnerSpotAngle(builder, light.innerSpotAngle)
-			SpotLightAddOuterSpotAngle(builder, light.outerSpotAngle)
-			lightUnionOffset = SpotLightEnd(builder)
+			SpotLight.AddIntensity(builder, light.intensity)
+			SpotLight.AddLinearFalloff(builder, light.linearFalloff)
+			SpotLight.AddQuadraticFalloff(builder, light.quadraticFalloff)
+			SpotLight.AddInnerSpotAngle(builder, light.innerSpotAngle)
+			SpotLight.AddOuterSpotAngle(builder, light.outerSpotAngle)
+			lightUnionOffset = SpotLight.End(builder)
 
-		LightStart(builder)
-		LightAddName(builder, nameOffset)
-		LightAddLightType(builder, light.type)
-		LightAddLight(builder, lightUnionOffset)
-		lightOffsets.append(LightEnd(builder))
+		Light.Start(builder)
+		Light.AddName(builder, nameOffset)
+		Light.AddLightType(builder, light.type)
+		Light.AddLight(builder, lightUnionOffset)
+		lightOffsets.append(Light.End(builder))
 
 	if lightOffsets:
-		SceneLightSetStartLightsVector(builder, len(lightOffsets))
+		SceneLightSet.StartLightsVector(builder, len(lightOffsets))
 		for offset in reversed(lightOffsets):
 			builder.PrependUOffsetTRelative(offset)
-		lightsOffset = builder.EndVector(len(lightOffsets))
+		lightsOffset = builder.EndVector()
 	else:
 		lightsOffset
 
-	SceneLightSetStart(builder)
-	SceneLightSetAddLights(builder, lightsOffset)
-	SceneLightSetAddMaxLights(builder, maxLights)
-	SceneLightSetAddAmbientColor(builder,
+	SceneLightSet.Start(builder)
+	SceneLightSet.AddLights(builder, lightsOffset)
+	SceneLightSet.AddMaxLights(builder, maxLights)
+	SceneLightSet.AddAmbientColor(builder,
 		CreateColor3f(builder, ambientColor[0], ambientColor[1], ambientColor[2]) if ambientColor
 			else 0)
-	SceneLightSetAddAmbientIntensity(builder, ambientIntensity)
-	builder.Finish(SceneLightSetEnd(builder))
+	SceneLightSet.AddAmbientIntensity(builder, ambientIntensity)
+	builder.Finish(SceneLightSet.End(builder))
 	return builder.Output()

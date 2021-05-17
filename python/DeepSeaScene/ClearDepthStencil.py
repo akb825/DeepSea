@@ -10,12 +10,16 @@ class ClearDepthStencil(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsClearDepthStencil(cls, buf, offset):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = ClearDepthStencil()
         x.Init(buf, n + offset)
         return x
 
+    @classmethod
+    def GetRootAsClearDepthStencil(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
     # ClearDepthStencil
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
@@ -34,7 +38,19 @@ class ClearDepthStencil(object):
             return self._tab.Get(flatbuffers.number_types.Uint32Flags, o + self._tab.Pos)
         return 0
 
-def ClearDepthStencilStart(builder): builder.StartObject(2)
-def ClearDepthStencilAddDepth(builder, depth): builder.PrependFloat32Slot(0, depth, 0.0)
-def ClearDepthStencilAddStencil(builder, stencil): builder.PrependUint32Slot(1, stencil, 0)
-def ClearDepthStencilEnd(builder): return builder.EndObject()
+def Start(builder): builder.StartObject(2)
+def ClearDepthStencilStart(builder):
+    """This method is deprecated. Please switch to Start."""
+    return Start(builder)
+def AddDepth(builder, depth): builder.PrependFloat32Slot(0, depth, 0.0)
+def ClearDepthStencilAddDepth(builder, depth):
+    """This method is deprecated. Please switch to AddDepth."""
+    return AddDepth(builder, depth)
+def AddStencil(builder, stencil): builder.PrependUint32Slot(1, stencil, 0)
+def ClearDepthStencilAddStencil(builder, stencil):
+    """This method is deprecated. Please switch to AddStencil."""
+    return AddStencil(builder, stencil)
+def End(builder): return builder.EndObject()
+def ClearDepthStencilEnd(builder):
+    """This method is deprecated. Please switch to End."""
+    return End(builder)

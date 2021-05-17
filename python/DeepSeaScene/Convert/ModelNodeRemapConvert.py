@@ -13,8 +13,8 @@
 # limitations under the License.
 
 import flatbuffers
-from ..MaterialRemap import *
-from ..ModelNodeRemap import *
+from .. import MaterialRemap
+from .. import ModelNodeRemap
 
 def convertModelNodeRemap(convertContext, data):
 	"""
@@ -72,22 +72,22 @@ def convertModelNodeRemap(convertContext, data):
 			else:
 				materialOffset = 0
 
-			MaterialRemapStart(builder)
-			MaterialRemapAddName(builder, modelNameOffset)
-			MaterialRemapAddModelList(builder, modelListOffset)
-			MaterialRemapAddShader(builder, shaderOffset)
-			MaterialRemapAddMaterial(builder, materialOffset)
-			remapsOffsets.append(MaterialRemapEnd(builder))
+			MaterialRemap.Start(builder)
+			MaterialRemap.AddName(builder, modelNameOffset)
+			MaterialRemap.AddModelList(builder, modelListOffset)
+			MaterialRemap.AddShader(builder, shaderOffset)
+			MaterialRemap.AddMaterial(builder, materialOffset)
+			remapsOffsets.append(MaterialRemap.End(builder))
 
-		ModelNodeRemapStartMaterialRemapsVector(builder, len(remapsOffsets))
+		ModelNodeRemap.StartMaterialRemapsVector(builder, len(remapsOffsets))
 		for offset in reversed(remapsOffsets):
 			builder.PrependUOffsetTRelative(offset)
-		remapsOffset = builder.EndVector(len(remapsOffsets))
+		remapsOffset = builder.EndVector()
 	else:
 		remapsOffset = 0
 
-	ModelNodeRemapStart(builder)
-	ModelNodeRemapAddName(builder, nameOffset)
-	ModelNodeRemapAddMaterialRemaps(builder, remapsOffset)
-	builder.Finish(ModelNodeRemapEnd(builder))
+	ModelNodeRemap.Start(builder)
+	ModelNodeRemap.AddName(builder, nameOffset)
+	ModelNodeRemap.AddMaterialRemaps(builder, remapsOffset)
+	builder.Finish(ModelNodeRemap.End(builder))
 	return builder.Output()

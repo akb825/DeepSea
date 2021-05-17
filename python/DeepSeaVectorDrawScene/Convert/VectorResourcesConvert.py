@@ -1,4 +1,4 @@
-# Copyright 2020 Aaron Barany
+# Copyright 2020-2021 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,10 +14,10 @@
 
 import os
 import shutil
-
 import flatbuffers
+
+from .. import VectorResources
 from DeepSeaScene.Convert.FileOrDataConvert import convertFileOrData, readDataOrPath
-from ..VectorResources import *
 
 def convertVectorResources(convertContext, data):
 	"""
@@ -61,8 +61,8 @@ def convertVectorResources(convertContext, data):
 			shutil.rmtree(outputResourcesDir, ignore_errors=True)
 			shutil.copytree(resourcesDir, outputResourcesDir)
 
-	VectorResourcesStart(builder)
-	VectorResourcesAddResourcesType(builder, dataType)
-	VectorResourcesAddResources(builder, dataOffset)
-	builder.Finish(VectorResourcesEnd(builder))
+	VectorResources.Start(builder)
+	VectorResources.AddResourcesType(builder, dataType)
+	VectorResources.AddResources(builder, dataOffset)
+	builder.Finish(VectorResources.End(builder))
 	return builder.Output()

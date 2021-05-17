@@ -10,12 +10,16 @@ class TextRangeCommand(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsTextRangeCommand(cls, buf, offset):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = TextRangeCommand()
         x.Init(buf, n + offset)
         return x
 
+    @classmethod
+    def GetRootAsTextRangeCommand(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
     # TextRangeCommand
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
@@ -115,18 +119,63 @@ class TextRangeCommand(object):
             return self._tab.Get(flatbuffers.number_types.Float32Flags, o + self._tab.Pos)
         return 0.0
 
-def TextRangeCommandStart(builder): builder.StartObject(13)
-def TextRangeCommandAddStart(builder, start): builder.PrependUint32Slot(0, start, 0)
-def TextRangeCommandAddCount(builder, count): builder.PrependUint32Slot(1, count, 0)
-def TextRangeCommandAddPositionType(builder, positionType): builder.PrependUint8Slot(2, positionType, 0)
-def TextRangeCommandAddPosition(builder, position): builder.PrependStructSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(position), 0)
-def TextRangeCommandAddFillMaterial(builder, fillMaterial): builder.PrependUOffsetTRelativeSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(fillMaterial), 0)
-def TextRangeCommandAddOutlineMaterial(builder, outlineMaterial): builder.PrependUOffsetTRelativeSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(outlineMaterial), 0)
-def TextRangeCommandAddFillOpacity(builder, fillOpacity): builder.PrependFloat32Slot(6, fillOpacity, 0.0)
-def TextRangeCommandAddOutlineOpacity(builder, outlineOpacity): builder.PrependFloat32Slot(7, outlineOpacity, 0.0)
-def TextRangeCommandAddSize(builder, size): builder.PrependFloat32Slot(8, size, 0.0)
-def TextRangeCommandAddEmbolden(builder, embolden): builder.PrependFloat32Slot(9, embolden, 0.0)
-def TextRangeCommandAddSlant(builder, slant): builder.PrependFloat32Slot(10, slant, 0.0)
-def TextRangeCommandAddOutlineWidth(builder, outlineWidth): builder.PrependFloat32Slot(11, outlineWidth, 0.0)
-def TextRangeCommandAddFuziness(builder, fuziness): builder.PrependFloat32Slot(12, fuziness, 0.0)
-def TextRangeCommandEnd(builder): return builder.EndObject()
+def Start(builder): builder.StartObject(13)
+def TextRangeCommandStart(builder):
+    """This method is deprecated. Please switch to Start."""
+    return Start(builder)
+def AddStart(builder, start): builder.PrependUint32Slot(0, start, 0)
+def TextRangeCommandAddStart(builder, start):
+    """This method is deprecated. Please switch to AddStart."""
+    return AddStart(builder, start)
+def AddCount(builder, count): builder.PrependUint32Slot(1, count, 0)
+def TextRangeCommandAddCount(builder, count):
+    """This method is deprecated. Please switch to AddCount."""
+    return AddCount(builder, count)
+def AddPositionType(builder, positionType): builder.PrependUint8Slot(2, positionType, 0)
+def TextRangeCommandAddPositionType(builder, positionType):
+    """This method is deprecated. Please switch to AddPositionType."""
+    return AddPositionType(builder, positionType)
+def AddPosition(builder, position): builder.PrependStructSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(position), 0)
+def TextRangeCommandAddPosition(builder, position):
+    """This method is deprecated. Please switch to AddPosition."""
+    return AddPosition(builder, position)
+def AddFillMaterial(builder, fillMaterial): builder.PrependUOffsetTRelativeSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(fillMaterial), 0)
+def TextRangeCommandAddFillMaterial(builder, fillMaterial):
+    """This method is deprecated. Please switch to AddFillMaterial."""
+    return AddFillMaterial(builder, fillMaterial)
+def AddOutlineMaterial(builder, outlineMaterial): builder.PrependUOffsetTRelativeSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(outlineMaterial), 0)
+def TextRangeCommandAddOutlineMaterial(builder, outlineMaterial):
+    """This method is deprecated. Please switch to AddOutlineMaterial."""
+    return AddOutlineMaterial(builder, outlineMaterial)
+def AddFillOpacity(builder, fillOpacity): builder.PrependFloat32Slot(6, fillOpacity, 0.0)
+def TextRangeCommandAddFillOpacity(builder, fillOpacity):
+    """This method is deprecated. Please switch to AddFillOpacity."""
+    return AddFillOpacity(builder, fillOpacity)
+def AddOutlineOpacity(builder, outlineOpacity): builder.PrependFloat32Slot(7, outlineOpacity, 0.0)
+def TextRangeCommandAddOutlineOpacity(builder, outlineOpacity):
+    """This method is deprecated. Please switch to AddOutlineOpacity."""
+    return AddOutlineOpacity(builder, outlineOpacity)
+def AddSize(builder, size): builder.PrependFloat32Slot(8, size, 0.0)
+def TextRangeCommandAddSize(builder, size):
+    """This method is deprecated. Please switch to AddSize."""
+    return AddSize(builder, size)
+def AddEmbolden(builder, embolden): builder.PrependFloat32Slot(9, embolden, 0.0)
+def TextRangeCommandAddEmbolden(builder, embolden):
+    """This method is deprecated. Please switch to AddEmbolden."""
+    return AddEmbolden(builder, embolden)
+def AddSlant(builder, slant): builder.PrependFloat32Slot(10, slant, 0.0)
+def TextRangeCommandAddSlant(builder, slant):
+    """This method is deprecated. Please switch to AddSlant."""
+    return AddSlant(builder, slant)
+def AddOutlineWidth(builder, outlineWidth): builder.PrependFloat32Slot(11, outlineWidth, 0.0)
+def TextRangeCommandAddOutlineWidth(builder, outlineWidth):
+    """This method is deprecated. Please switch to AddOutlineWidth."""
+    return AddOutlineWidth(builder, outlineWidth)
+def AddFuziness(builder, fuziness): builder.PrependFloat32Slot(12, fuziness, 0.0)
+def TextRangeCommandAddFuziness(builder, fuziness):
+    """This method is deprecated. Please switch to AddFuziness."""
+    return AddFuziness(builder, fuziness)
+def End(builder): return builder.EndObject()
+def TextRangeCommandEnd(builder):
+    """This method is deprecated. Please switch to End."""
+    return End(builder)

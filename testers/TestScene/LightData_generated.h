@@ -64,7 +64,6 @@ struct LightDataBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  LightDataBuilder &operator=(const LightDataBuilder &);
   flatbuffers::Offset<LightData> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<LightData>(end);

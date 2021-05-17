@@ -10,12 +10,16 @@ class VersionedShaderModule(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsVersionedShaderModule(cls, buf, offset):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = VersionedShaderModule()
         x.Init(buf, n + offset)
         return x
 
+    @classmethod
+    def GetRootAsVersionedShaderModule(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
     # VersionedShaderModule
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
@@ -44,8 +48,23 @@ class VersionedShaderModule(object):
             return obj
         return None
 
-def VersionedShaderModuleStart(builder): builder.StartObject(3)
-def VersionedShaderModuleAddVersion(builder, version): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(version), 0)
-def VersionedShaderModuleAddDataType(builder, dataType): builder.PrependUint8Slot(1, dataType, 0)
-def VersionedShaderModuleAddData(builder, data): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(data), 0)
-def VersionedShaderModuleEnd(builder): return builder.EndObject()
+def Start(builder): builder.StartObject(3)
+def VersionedShaderModuleStart(builder):
+    """This method is deprecated. Please switch to Start."""
+    return Start(builder)
+def AddVersion(builder, version): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(version), 0)
+def VersionedShaderModuleAddVersion(builder, version):
+    """This method is deprecated. Please switch to AddVersion."""
+    return AddVersion(builder, version)
+def AddDataType(builder, dataType): builder.PrependUint8Slot(1, dataType, 0)
+def VersionedShaderModuleAddDataType(builder, dataType):
+    """This method is deprecated. Please switch to AddDataType."""
+    return AddDataType(builder, dataType)
+def AddData(builder, data): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(data), 0)
+def VersionedShaderModuleAddData(builder, data):
+    """This method is deprecated. Please switch to AddData."""
+    return AddData(builder, data)
+def End(builder): return builder.EndObject()
+def VersionedShaderModuleEnd(builder):
+    """This method is deprecated. Please switch to End."""
+    return End(builder)

@@ -10,12 +10,16 @@ class BezierCommand(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsBezierCommand(cls, buf, offset):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = BezierCommand()
         x.Init(buf, n + offset)
         return x
 
+    @classmethod
+    def GetRootAsBezierCommand(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
     # BezierCommand
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
@@ -53,8 +57,23 @@ class BezierCommand(object):
             return obj
         return None
 
-def BezierCommandStart(builder): builder.StartObject(3)
-def BezierCommandAddControl1(builder, control1): builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(control1), 0)
-def BezierCommandAddControl2(builder, control2): builder.PrependStructSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(control2), 0)
-def BezierCommandAddEnd(builder, end): builder.PrependStructSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(end), 0)
-def BezierCommandEnd(builder): return builder.EndObject()
+def Start(builder): builder.StartObject(3)
+def BezierCommandStart(builder):
+    """This method is deprecated. Please switch to Start."""
+    return Start(builder)
+def AddControl1(builder, control1): builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(control1), 0)
+def BezierCommandAddControl1(builder, control1):
+    """This method is deprecated. Please switch to AddControl1."""
+    return AddControl1(builder, control1)
+def AddControl2(builder, control2): builder.PrependStructSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(control2), 0)
+def BezierCommandAddControl2(builder, control2):
+    """This method is deprecated. Please switch to AddControl2."""
+    return AddControl2(builder, control2)
+def AddEnd(builder, end): builder.PrependStructSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(end), 0)
+def BezierCommandAddEnd(builder, end):
+    """This method is deprecated. Please switch to AddEnd."""
+    return AddEnd(builder, end)
+def End(builder): return builder.EndObject()
+def BezierCommandEnd(builder):
+    """This method is deprecated. Please switch to End."""
+    return End(builder)

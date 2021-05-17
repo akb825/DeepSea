@@ -10,12 +10,16 @@ class ModelReconfig(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsModelReconfig(cls, buf, offset):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = ModelReconfig()
         x.Init(buf, n + offset)
         return x
 
+    @classmethod
+    def GetRootAsModelReconfig(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
     # ModelReconfig
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
@@ -59,10 +63,31 @@ class ModelReconfig(object):
             return self._tab.String(o + self._tab.Pos)
         return None
 
-def ModelReconfigStart(builder): builder.StartObject(5)
-def ModelReconfigAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
-def ModelReconfigAddShader(builder, shader): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(shader), 0)
-def ModelReconfigAddMaterial(builder, material): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(material), 0)
-def ModelReconfigAddDistanceRange(builder, distanceRange): builder.PrependStructSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(distanceRange), 0)
-def ModelReconfigAddModelList(builder, modelList): builder.PrependUOffsetTRelativeSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(modelList), 0)
-def ModelReconfigEnd(builder): return builder.EndObject()
+def Start(builder): builder.StartObject(5)
+def ModelReconfigStart(builder):
+    """This method is deprecated. Please switch to Start."""
+    return Start(builder)
+def AddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+def ModelReconfigAddName(builder, name):
+    """This method is deprecated. Please switch to AddName."""
+    return AddName(builder, name)
+def AddShader(builder, shader): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(shader), 0)
+def ModelReconfigAddShader(builder, shader):
+    """This method is deprecated. Please switch to AddShader."""
+    return AddShader(builder, shader)
+def AddMaterial(builder, material): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(material), 0)
+def ModelReconfigAddMaterial(builder, material):
+    """This method is deprecated. Please switch to AddMaterial."""
+    return AddMaterial(builder, material)
+def AddDistanceRange(builder, distanceRange): builder.PrependStructSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(distanceRange), 0)
+def ModelReconfigAddDistanceRange(builder, distanceRange):
+    """This method is deprecated. Please switch to AddDistanceRange."""
+    return AddDistanceRange(builder, distanceRange)
+def AddModelList(builder, modelList): builder.PrependUOffsetTRelativeSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(modelList), 0)
+def ModelReconfigAddModelList(builder, modelList):
+    """This method is deprecated. Please switch to AddModelList."""
+    return AddModelList(builder, modelList)
+def End(builder): return builder.EndObject()
+def ModelReconfigEnd(builder):
+    """This method is deprecated. Please switch to End."""
+    return End(builder)

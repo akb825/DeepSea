@@ -10,12 +10,16 @@ class MaterialElement(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsMaterialElement(cls, buf, offset):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = MaterialElement()
         x.Init(buf, n + offset)
         return x
 
+    @classmethod
+    def GetRootAsMaterialElement(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
     # MaterialElement
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
@@ -55,10 +59,31 @@ class MaterialElement(object):
             return self._tab.String(o + self._tab.Pos)
         return None
 
-def MaterialElementStart(builder): builder.StartObject(5)
-def MaterialElementAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
-def MaterialElementAddType(builder, type): builder.PrependUint8Slot(1, type, 0)
-def MaterialElementAddCount(builder, count): builder.PrependUint32Slot(2, count, 0)
-def MaterialElementAddBinding(builder, binding): builder.PrependUint8Slot(3, binding, 0)
-def MaterialElementAddShaderVariableGroupDesc(builder, shaderVariableGroupDesc): builder.PrependUOffsetTRelativeSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(shaderVariableGroupDesc), 0)
-def MaterialElementEnd(builder): return builder.EndObject()
+def Start(builder): builder.StartObject(5)
+def MaterialElementStart(builder):
+    """This method is deprecated. Please switch to Start."""
+    return Start(builder)
+def AddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+def MaterialElementAddName(builder, name):
+    """This method is deprecated. Please switch to AddName."""
+    return AddName(builder, name)
+def AddType(builder, type): builder.PrependUint8Slot(1, type, 0)
+def MaterialElementAddType(builder, type):
+    """This method is deprecated. Please switch to AddType."""
+    return AddType(builder, type)
+def AddCount(builder, count): builder.PrependUint32Slot(2, count, 0)
+def MaterialElementAddCount(builder, count):
+    """This method is deprecated. Please switch to AddCount."""
+    return AddCount(builder, count)
+def AddBinding(builder, binding): builder.PrependUint8Slot(3, binding, 0)
+def MaterialElementAddBinding(builder, binding):
+    """This method is deprecated. Please switch to AddBinding."""
+    return AddBinding(builder, binding)
+def AddShaderVariableGroupDesc(builder, shaderVariableGroupDesc): builder.PrependUOffsetTRelativeSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(shaderVariableGroupDesc), 0)
+def MaterialElementAddShaderVariableGroupDesc(builder, shaderVariableGroupDesc):
+    """This method is deprecated. Please switch to AddShaderVariableGroupDesc."""
+    return AddShaderVariableGroupDesc(builder, shaderVariableGroupDesc)
+def End(builder): return builder.EndObject()
+def MaterialElementEnd(builder):
+    """This method is deprecated. Please switch to End."""
+    return End(builder)

@@ -1,4 +1,4 @@
- # Copyright 2020 Aaron Barany
+ # Copyright 2020-2021 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from ..Color4f import *
-from ..DynamicRenderStates import *
-from ..Vector2f import *
+from ..Color4f import CreateColor4f
+from .. import DynamicRenderStates
+from ..Vector2f import CreateVector2f
 
 def convertDynamicRenderStates(data, builder):
 	"""
@@ -96,17 +96,17 @@ def convertDynamicRenderStates(data, builder):
 	backStencilReference = readUInt(data.get('backStencilReference', stencilReference),
 		'stencil reference')
 
-	DynamicRenderStatesStart(builder)
-	DynamicRenderStatesAddLineWidth(builder, lineWidth)
-	DynamicRenderStatesAddDepthBiasConstantFactor(builder, depthBiasConstantFactor)
-	DynamicRenderStatesAddDepthBiasClamp(builder, depthBiasClamp)
-	DynamicRenderStatesAddDepthBiasSlopeFactor(builder, depthBiasSlopeFactor)
-	DynamicRenderStatesAddBlendConstants(builder, CreateColor4f(builder, *blendConstants))
-	DynamicRenderStatesAddDepthBounds(builder, CreateVector2f(builder, *depthBounds))
-	DynamicRenderStatesAddFrontStencilCompareMask(builder, frontStencilCompareMask)
-	DynamicRenderStatesAddBackStencilCompareMask(builder, backStencilCompareMask)
-	DynamicRenderStatesAddFrontStencilWriteMask(builder, frontStencilWriteMask)
-	DynamicRenderStatesAddBackStencilWriteMask(builder, backStencilWriteMask)
-	DynamicRenderStatesAddFrontStencilReference(builder, frontStencilReference)
-	DynamicRenderStatesAddBackStencilReference(builder, backStencilReference)
-	return DynamicRenderStatesEnd(builder)
+	DynamicRenderStates.Start(builder)
+	DynamicRenderStates.AddLineWidth(builder, lineWidth)
+	DynamicRenderStates.AddDepthBiasConstantFactor(builder, depthBiasConstantFactor)
+	DynamicRenderStates.AddDepthBiasClamp(builder, depthBiasClamp)
+	DynamicRenderStates.AddDepthBiasSlopeFactor(builder, depthBiasSlopeFactor)
+	DynamicRenderStates.AddBlendConstants(builder, CreateColor4f(builder, *blendConstants))
+	DynamicRenderStates.AddDepthBounds(builder, CreateVector2f(builder, *depthBounds))
+	DynamicRenderStates.AddFrontStencilCompareMask(builder, frontStencilCompareMask)
+	DynamicRenderStates.AddBackStencilCompareMask(builder, backStencilCompareMask)
+	DynamicRenderStates.AddFrontStencilWriteMask(builder, frontStencilWriteMask)
+	DynamicRenderStates.AddBackStencilWriteMask(builder, backStencilWriteMask)
+	DynamicRenderStates.AddFrontStencilReference(builder, frontStencilReference)
+	DynamicRenderStates.AddBackStencilReference(builder, backStencilReference)
+	return DynamicRenderStates.End(builder)

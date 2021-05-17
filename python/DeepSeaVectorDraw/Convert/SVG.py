@@ -1,4 +1,4 @@
-# Copyright 2020 Aaron Barany
+# Copyright 2020-2021 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,40 +21,40 @@ import xml.dom
 from xml.dom import minidom
 
 import flatbuffers
-from .Colors import *
-from ..ArcCommand import *
-from ..BezierCommand import *
-from ..ClosePathCommand import *
-from ..Color import *
-from ..ColorMaterial import *
-from ..DashArray import *
-from ..EllipseCommand import *
-from ..FillPathCommand import *
-from ..FillRule import *
-from ..GradientEdge import *
-from ..GradientStop import *
-from ..ImageCommand import *
-from ..LinearGradient import *
-from ..LineCap import *
-from ..LineCommand import *
-from ..LineJoin import *
-from ..MaterialSpace import *
-from ..Matrix33f import *
-from ..MoveCommand import *
-from ..QuadraticCommand import *
-from ..RadialGradient import *
-from ..RectangleCommand import *
-from ..StartPathCommand import *
-from ..StrokePathCommand import *
-from ..TextCommand import *
-from ..TextAlign import *
-from ..TextPosition import *
-from ..TextRangeCommand import *
-from ..Vector2f import *
-from ..Vector3f import *
-from ..VectorCommand import *
-from ..VectorCommandUnion import *
-from ..VectorImage import *
+from .Colors import colorFromString
+from .. import ArcCommand
+from .. import BezierCommand
+from .. import ClosePathCommand
+from ..Color import CreateColor
+from .. import ColorMaterial
+from ..DashArray import CreateDashArray
+from .. import EllipseCommand
+from .. import FillPathCommand
+from ..FillRule import FillRule
+from ..GradientEdge import GradientEdge
+from ..GradientStop import CreateGradientStop
+from .. import ImageCommand
+from .. import LinearGradient
+from ..LineCap import LineCap
+from .. import LineCommand
+from ..LineJoin import LineJoin
+from ..MaterialSpace import MaterialSpace
+from ..Matrix33f import CreateMatrix33f
+from .. import MoveCommand
+from .. import QuadraticCommand
+from .. import RadialGradient
+from .. import RectangleCommand
+from .. import StartPathCommand
+from .. import StrokePathCommand
+from .. import TextCommand
+from ..TextAlign import TextAlign
+from ..TextPosition import TextPosition
+from .. import TextRangeCommand
+from ..Vector2f import CreateVector2f
+from ..Vector3f import CreateVector3f
+from .. import VectorCommand
+from ..VectorCommandUnion import VectorCommandUnion
+from .. import VectorImage
 
 lineJoinMap = {'miter': LineJoin.Miter, 'bevel': LineJoin.Bevel, 'round': LineJoin.Round}
 lineCapMap = {'butt': LineCap.Butt, 'round': LineCap.Round, 'square': LineCap.Square}
@@ -263,20 +263,20 @@ class LinearGradientMaterial(Gradient):
 
 	def write(self, builder):
 		nameOffset = builder.CreateString(self.name)
-		LinearGradientStartGradientVector(builder, len(self.stops))
+		LinearGradient.StartGradientVector(builder, len(self.stops))
 		for position, color in reversed(self.stops):
 			CreateGradientStop(builder, position, color[0], color[1], color[2], color[3])
-		gradientOffset = builder.EndVector(len(self.stops))
+		gradientOffset = builder.EndVector()
 
-		LinearGradientStart(builder)
-		LinearGradientAddName(builder, nameOffset)
-		LinearGradientAddGradient(builder, gradientOffset)
-		LinearGradientAddStart(builder, CreateVector2f(builder, self.start[0], self.start[1]))
-		LinearGradientAddEnd(builder, CreateVector2f(builder, self.end[0], self.end[1]))
-		LinearGradientAddEdge(builder, self.edge)
-		LinearGradientAddCoordinateSpace(builder, self.coordinateSpace)
-		LinearGradientAddTransform(builder, self.transform.createMatrix33f(builder))
-		return LinearGradientEnd(builder)
+		LinearGradient.Start(builder)
+		LinearGradient.AddName(builder, nameOffset)
+		LinearGradient.AddGradient(builder, gradientOffset)
+		LinearGradient.AddStart(builder, CreateVector2f(builder, self.start[0], self.start[1]))
+		LinearGradient.AddEnd(builder, CreateVector2f(builder, self.end[0], self.end[1]))
+		LinearGradient.AddEdge(builder, self.edge)
+		LinearGradient.AddCoordinateSpace(builder, self.coordinateSpace)
+		LinearGradient.AddTransform(builder, self.transform.createMatrix33f(builder))
+		return LinearGradient.End(builder)
 	
 class RadialGradientMaterial(Gradient):
 	"""Class describing a radial gradient."""
@@ -310,22 +310,22 @@ class RadialGradientMaterial(Gradient):
 
 	def write(self, builder):
 		nameOffset = builder.CreateString(self.name)
-		RadialGradientStartGradientVector(builder, len(self.stops))
+		RadialGradient.StartGradientVector(builder, len(self.stops))
 		for position, color in reversed(self.stops):
 			CreateGradientStop(builder, position, color[0], color[1], color[2], color[3])
-		gradientOffset = builder.EndVector(len(self.stops))
+		gradientOffset = builder.EndVector()
 
-		RadialGradientStart(builder)
-		RadialGradientAddName(builder, nameOffset)
-		RadialGradientAddGradient(builder, gradientOffset)
-		RadialGradientAddCenter(builder, CreateVector2f(builder, self.center[0], self.center[1]))
-		RadialGradientAddRadius(builder, self.radius)
-		RadialGradientAddFocus(builder, CreateVector2f(builder, self.focus[0], self.focus[1]))
-		RadialGradientAddFocusRadius(builder, self.focusRadius)
-		RadialGradientAddEdge(builder, self.edge)
-		RadialGradientAddCoordinateSpace(builder, self.coordinateSpace)
-		RadialGradientAddTransform(builder, self.transform.createMatrix33f(builder))
-		return RadialGradientEnd(builder)
+		RadialGradient.Start(builder)
+		RadialGradient.AddName(builder, nameOffset)
+		RadialGradient.AddGradient(builder, gradientOffset)
+		RadialGradient.AddCenter(builder, CreateVector2f(builder, self.center[0], self.center[1]))
+		RadialGradient.AddRadius(builder, self.radius)
+		RadialGradient.AddFocus(builder, CreateVector2f(builder, self.focus[0], self.focus[1]))
+		RadialGradient.AddFocusRadius(builder, self.focusRadius)
+		RadialGradient.AddEdge(builder, self.edge)
+		RadialGradient.AddCoordinateSpace(builder, self.coordinateSpace)
+		RadialGradient.AddTransform(builder, self.transform.createMatrix33f(builder))
+		return RadialGradient.End(builder)
 
 class Materials:
 	"""Class to hold the materials of an image."""
@@ -364,12 +364,12 @@ class Materials:
 		colorOffsets = []
 		for i in range(len(self.colors)):
 			nameOffset = builder.CreateString(self.getColorName(i))
-			ColorMaterialStart(builder)
-			ColorMaterialAddName(builder, nameOffset)
+			ColorMaterial.Start(builder)
+			ColorMaterial.AddName(builder, nameOffset)
 			color = self.colors[i]
-			ColorMaterialAddColor(builder,
+			ColorMaterial.AddColor(builder,
 				CreateColor(builder, color[0], color[1], color[2], color[3]))
-			colorOffsets.append(ColorMaterialEnd(builder))
+			colorOffsets.append(ColorMaterial.End(builder))
 
 		linearGradientOffsets = []
 		for gradient in self.linearGradients.values():
@@ -379,25 +379,25 @@ class Materials:
 		for gradient in self.radialGradients.values():
 			radialGradientOffsets.append(gradient.write(builder))
 
-		VectorImageStartColorMaterialsVector(builder, len(colorOffsets))
+		VectorImage.StartColorMaterialsVector(builder, len(colorOffsets))
 		for offset in reversed(colorOffsets):
 			builder.PrependUOffsetTRelative(offset)
-		self.colorsOffset = builder.EndVector(len(colorOffsets))
+		self.colorsOffset = builder.EndVector()
 
-		VectorImageStartLinearGradientsVector(builder, len(linearGradientOffsets))
+		VectorImage.StartLinearGradientsVector(builder, len(linearGradientOffsets))
 		for offset in reversed(linearGradientOffsets):
 			builder.PrependUOffsetTRelative(offset)
-		self.linearGradientsOffset = builder.EndVector(len(linearGradientOffsets))
+		self.linearGradientsOffset = builder.EndVector()
 
-		VectorImageStartRadialGradientsVector(builder, len(radialGradientOffsets))
+		VectorImage.StartRadialGradientsVector(builder, len(radialGradientOffsets))
 		for offset in reversed(radialGradientOffsets):
 			builder.PrependUOffsetTRelative(offset)
-		self.radialGradientsOffset =  builder.EndVector(len(radialGradientOffsets))
+		self.radialGradientsOffset =  builder.EndVector()
 
 	def writeToVectorImage(self, builder):
-		VectorImageAddColorMaterials(builder, self.colorsOffset)
-		VectorImageAddLinearGradients(builder, self.linearGradientsOffset)
-		VectorImageAddRadialGradients(builder, self.radialGradientsOffset)
+		VectorImage.AddColorMaterials(builder, self.colorsOffset)
+		VectorImage.AddLinearGradients(builder, self.linearGradientsOffset)
+		VectorImage.AddRadialGradients(builder, self.radialGradientsOffset)
 
 class Stroke:
 	"""Class that describes a stroke."""
@@ -603,35 +603,35 @@ class Style:
 		if self.fill:
 			materialOffset = builder.CreateString(self.fill.material)
 
-			FillPathCommandStart(builder)
-			FillPathCommandAddMaterial(builder, materialOffset)
-			FillPathCommandAddOpacity(builder, self.fill.opacity*self.opacity)
-			FillPathCommandAddFillRule(builder, self.fill.fillRule)
-			commandOffset = FillPathCommandEnd(builder)
+			FillPathCommand.Start(builder)
+			FillPathCommand.AddMaterial(builder, materialOffset)
+			FillPathCommand.AddOpacity(builder, self.fill.opacity*self.opacity)
+			FillPathCommand.AddFillRule(builder, self.fill.fillRule)
+			commandOffset = FillPathCommand.End(builder)
 
-			VectorCommandStart(builder)
-			VectorCommandAddCommandType(builder, VectorCommandUnion.FillPathCommand)
-			VectorCommandAddCommand(builder, commandOffset)
-			offsets.append(VectorCommandEnd(builder))
+			VectorCommand.Start(builder)
+			VectorCommand.AddCommandType(builder, VectorCommandUnion.FillPathCommand)
+			VectorCommand.AddCommand(builder, commandOffset)
+			offsets.append(VectorCommand.End(builder))
 		if self.stroke:
 			materialOffset = builder.CreateString(self.stroke.material)
 
-			StrokePathCommandStart(builder)
-			StrokePathCommandAddMaterial(builder, materialOffset)
-			StrokePathCommandAddOpacity(builder, self.stroke.opacity*self.opacity)
-			StrokePathCommandAddJoinType(builder, self.stroke.join)
-			StrokePathCommandAddCapType(builder, self.stroke.cap)
-			StrokePathCommandAddWidth(builder, self.stroke.width)
-			StrokePathCommandAddMiterLimit(builder, self.stroke.miterLimit)
-			StrokePathCommandAddDashArray(builder, CreateDashArray(builder,
+			StrokePathCommand.Start(builder)
+			StrokePathCommand.AddMaterial(builder, materialOffset)
+			StrokePathCommand.AddOpacity(builder, self.stroke.opacity*self.opacity)
+			StrokePathCommand.AddJoinType(builder, self.stroke.join)
+			StrokePathCommand.AddCapType(builder, self.stroke.cap)
+			StrokePathCommand.AddWidth(builder, self.stroke.width)
+			StrokePathCommand.AddMiterLimit(builder, self.stroke.miterLimit)
+			StrokePathCommand.AddDashArray(builder, CreateDashArray(builder,
 				self.stroke.dashArray[0], self.stroke.dashArray[1], self.stroke.dashArray[2],
 				self.stroke.dashArray[3]))
-			commandOffset = StrokePathCommandEnd(builder)
+			commandOffset = StrokePathCommand.End(builder)
 
-			VectorCommandStart(builder)
-			VectorCommandAddCommandType(builder, VectorCommandUnion.StrokePathCommand)
-			VectorCommandAddCommand(builder, commandOffset)
-			offsets.append(VectorCommandEnd(builder))
+			VectorCommand.Start(builder)
+			VectorCommand.AddCommandType(builder, VectorCommandUnion.StrokePathCommand)
+			VectorCommand.AddCommand(builder, commandOffset)
+			offsets.append(VectorCommand.End(builder))
 		return offsets
 
 class TextRange:
@@ -644,28 +644,28 @@ class TextRange:
 		self.style = style
 
 def writeStartPath(builder, transform, simple):
-	StartPathCommandStart(builder)
-	StartPathCommandAddTransform(builder, transform.createMatrix33f(builder))
-	StartPathCommandAddSimple(builder, simple)
-	commandOffset = StartPathCommandEnd(builder)
+	StartPathCommand.Start(builder)
+	StartPathCommand.AddTransform(builder, transform.createMatrix33f(builder))
+	StartPathCommand.AddSimple(builder, simple)
+	commandOffset = StartPathCommand.End(builder)
 
-	VectorCommandStart(builder)
-	VectorCommandAddCommandType(builder, VectorCommandUnion.StartPathCommand)
-	VectorCommandAddCommand(builder, commandOffset)
-	return [VectorCommandEnd(builder)]
+	VectorCommand.Start(builder)
+	VectorCommand.AddCommandType(builder, VectorCommandUnion.StartPathCommand)
+	VectorCommand.AddCommand(builder, commandOffset)
+	return [VectorCommand.End(builder)]
 
 def writeEllipse(builder, transform, style, center, radius):
 	offsets = writeStartPath(builder, transform, True)
 
-	EllipseCommandStart(builder)
-	EllipseCommandAddCenter(builder, CreateVector2f(builder, center[0], center[1]))
-	EllipseCommandAddRadius(builder, CreateVector2f(builder, radius[0], radius[1]))
-	commandOffset = EllipseCommandEnd(builder)
+	EllipseCommand.Start(builder)
+	EllipseCommand.AddCenter(builder, CreateVector2f(builder, center[0], center[1]))
+	EllipseCommand.AddRadius(builder, CreateVector2f(builder, radius[0], radius[1]))
+	commandOffset = EllipseCommand.End(builder)
 
-	VectorCommandStart(builder)
-	VectorCommandAddCommandType(builder, VectorCommandUnion.EllipseCommand)
-	VectorCommandAddCommand(builder, commandOffset)
-	offsets.append(VectorCommandEnd(builder))
+	VectorCommand.Start(builder)
+	VectorCommand.AddCommandType(builder, VectorCommandUnion.EllipseCommand)
+	VectorCommand.AddCommand(builder, commandOffset)
+	offsets.append(VectorCommand.End(builder))
 
 	offsets.extend(style.write(builder))
 	return offsets
@@ -674,19 +674,19 @@ def writeImage(builder, transform, style, upperLeft, size, location):
 	name = os.path.splitext(os.path.basename(location))[0]
 	nameOffset = builder.CreateString(name)
 
-	ImageCommandStart(builder)
-	ImageCommandAddImage(builder, nameOffset)
-	ImageCommandAddUpperLeft(builder, CreateVector2f(builder, upperLeft[0], upperLeft[1]))
-	ImageCommandAddLowerRight(builder, CreateVector2f(builder, upperLeft[0] + size[0],
+	ImageCommand.Start(builder)
+	ImageCommand.AddImage(builder, nameOffset)
+	ImageCommand.AddUpperLeft(builder, CreateVector2f(builder, upperLeft[0], upperLeft[1]))
+	ImageCommand.AddLowerRight(builder, CreateVector2f(builder, upperLeft[0] + size[0],
 		upperLeft[1] + size[1]))
-	ImageCommandAddOpacity(builder, 1.0 if not style else style.opacity)
-	ImageCommandAddTransform(builder, transform.createMatrix33f(builder))
-	commandOffset = ImageCommandEnd(builder)
+	ImageCommand.AddOpacity(builder, 1.0 if not style else style.opacity)
+	ImageCommand.AddTransform(builder, transform.createMatrix33f(builder))
+	commandOffset = ImageCommand.End(builder)
 
-	VectorCommandStart(builder)
-	VectorCommandAddCommandType(builder, VectorCommandUnion.ImageCommand)
-	VectorCommandAddCommand(builder, commandOffset)
-	return [VectorCommandEnd(builder)]
+	VectorCommand.Start(builder)
+	VectorCommand.AddCommandType(builder, VectorCommandUnion.ImageCommand)
+	VectorCommand.AddCommand(builder, commandOffset)
+	return [VectorCommand.End(builder)]
 
 def writeLines(builder, transform, style, points, closePath = False):
 	if not points:
@@ -694,33 +694,33 @@ def writeLines(builder, transform, style, points, closePath = False):
 
 	offsets = writeStartPath(builder, transform, False)
 
-	MoveCommandStart(builder)
-	MoveCommandAddPosition(builder, CreateVector2f(builder, points[0][0], points[0][1]))
-	commandOffset = MoveCommandEnd(builder)
+	MoveCommand.Start(builder)
+	MoveCommand.AddPosition(builder, CreateVector2f(builder, points[0][0], points[0][1]))
+	commandOffset = MoveCommand.End(builder)
 
-	VectorCommandStart(builder)
-	VectorCommandAddCommandType(builder, VectorCommandUnion.MoveCommand)
-	VectorCommandAddCommand(builder, commandOffset)
-	offsets.append(VectorCommandEnd(builder))
+	VectorCommand.Start(builder)
+	VectorCommand.AddCommandType(builder, VectorCommandUnion.MoveCommand)
+	VectorCommand.AddCommand(builder, commandOffset)
+	offsets.append(VectorCommand.End(builder))
 
 	for point in points[1:]:
-		LineCommandStart(builder)
-		LineCommandAddEnd(builder, CreateVector2f(builder, point[0], point[1]))
-		commandOffset = LineCommandEnd(builder)
+		LineCommand.Start(builder)
+		LineCommand.AddEnd(builder, CreateVector2f(builder, point[0], point[1]))
+		commandOffset = LineCommand.End(builder)
 
-		VectorCommandStart(builder)
-		VectorCommandAddCommandType(builder, VectorCommandUnion.LineCommand)
-		VectorCommandAddCommand(builder, commandOffset)
-		offsets.append(VectorCommandEnd(builder))
+		VectorCommand.Start(builder)
+		VectorCommand.AddCommandType(builder, VectorCommandUnion.LineCommand)
+		VectorCommand.AddCommand(builder, commandOffset)
+		offsets.append(VectorCommand.End(builder))
 
 	if closePath:
-		ClosePathCommandStart(builder)
-		commandOffset = ClosePathCommandEnd(builder)
+		ClosePathCommand.Start(builder)
+		commandOffset = ClosePathCommand.End(builder)
 
-		VectorCommandStart(builder)
-		VectorCommandAddCommandType(builder, VectorCommandUnion.ClosePathCommand)
-		VectorCommandAddCommand(builder, commandOffset)
-		offsets.append(VectorCommandEnd(builder))
+		VectorCommand.Start(builder)
+		VectorCommand.AddCommandType(builder, VectorCommandUnion.ClosePathCommand)
+		VectorCommand.AddCommand(builder, commandOffset)
+		offsets.append(VectorCommand.End(builder))
 
 	offsets.extend(style.write(builder))
 	return offsets
@@ -769,14 +769,14 @@ def writePath(builder, transform, style, path, size, diagonalSize):
 					pos = (x, y)
 					command = 'L'
 
-				MoveCommandStart(builder)
-				MoveCommandAddPosition(builder, CreateVector2f(builder, pos[0], pos[1]))
-				commandOffset = MoveCommandEnd(builder)
+				MoveCommand.Start(builder)
+				MoveCommand.AddPosition(builder, CreateVector2f(builder, pos[0], pos[1]))
+				commandOffset = MoveCommand.End(builder)
 
-				VectorCommandStart(builder)
-				VectorCommandAddCommandType(builder, VectorCommandUnion.MoveCommand)
-				VectorCommandAddCommand(builder, commandOffset)
-				offsets.append(VectorCommandEnd(builder))
+				VectorCommand.Start(builder)
+				VectorCommand.AddCommandType(builder, VectorCommandUnion.MoveCommand)
+				VectorCommand.AddCommand(builder, commandOffset)
+				offsets.append(VectorCommand.End(builder))
 			elif command == 'l' or command == 'L' or command == 'h' or command == 'H' or \
 				command == 'v' or command == 'V':
 				if command == 'l':
@@ -792,14 +792,14 @@ def writePath(builder, transform, style, path, size, diagonalSize):
 				elif command == 'V':
 					pos = (pos[0], x)
 
-				LineCommandStart(builder)
-				LineCommandAddEnd(builder, CreateVector2f(builder, pos[0], pos[1]))
-				commandOffset = LineCommandEnd(builder)
+				LineCommand.Start(builder)
+				LineCommand.AddEnd(builder, CreateVector2f(builder, pos[0], pos[1]))
+				commandOffset = LineCommand.End(builder)
 
-				VectorCommandStart(builder)
-				VectorCommandAddCommandType(builder, VectorCommandUnion.LineCommand)
-				VectorCommandAddCommand(builder, commandOffset)
-				offsets.append(VectorCommandEnd(builder))
+				VectorCommand.Start(builder)
+				VectorCommand.AddCommandType(builder, VectorCommandUnion.LineCommand)
+				VectorCommand.AddCommand(builder, commandOffset)
+				offsets.append(VectorCommand.End(builder))
 			elif command == 'c' or command == 'C' or command == 's' or command == 'S':
 				if command == 's' or command == 'S':
 					if lastControlPos:
@@ -835,16 +835,18 @@ def writePath(builder, transform, style, path, size, diagonalSize):
 				else:
 					end = (x, y)
 
-				BezierCommandStart(builder)
-				BezierCommandAddControl1(builder, CreateVector2f(builder, control1[0], control1[1]))
-				BezierCommandAddControl2(builder, CreateVector2f(builder, control2[0], control2[1]))
-				BezierCommandAddEnd(builder, CreateVector2f(builder, end[0], end[1]))
-				commandOffset = BezierCommandEnd(builder)
+				BezierCommand.Start(builder)
+				BezierCommand.AddControl1(builder, CreateVector2f(builder, control1[0],
+					control1[1]))
+				BezierCommand.AddControl2(builder, CreateVector2f(builder, control2[0],
+					control2[1]))
+				BezierCommand.AddEnd(builder, CreateVector2f(builder, end[0], end[1]))
+				commandOffset = BezierCommand.End(builder)
 
-				VectorCommandStart(builder)
-				VectorCommandAddCommandType(builder, VectorCommandUnion.BezierCommand)
-				VectorCommandAddCommand(builder, commandOffset)
-				offsets.append(VectorCommandEnd(builder))
+				VectorCommand.Start(builder)
+				VectorCommand.AddCommandType(builder, VectorCommandUnion.BezierCommand)
+				VectorCommand.AddCommand(builder, commandOffset)
+				offsets.append(VectorCommand.End(builder))
 
 				pos = end
 				lastControlPos = control2
@@ -870,15 +872,16 @@ def writePath(builder, transform, style, path, size, diagonalSize):
 				else:
 					end = (x, y)
 
-				QuadraticCommandStart(builder)
-				QuadraticCommandAddControl(builder, CreateVector2f(builder, control[0], control[1]))
-				QuadraticCommandAddEnd(builder, CreateVector2f(builder, end[0], end[1]))
-				commandOffset = QuadraticCommandEnd(builder)
+				QuadraticCommand.Start(builder)
+				QuadraticCommand.AddControl(builder, CreateVector2f(builder, control[0],
+					control[1]))
+				QuadraticCommand.AddEnd(builder, CreateVector2f(builder, end[0], end[1]))
+				commandOffset = QuadraticCommand.End(builder)
 
-				VectorCommandStart(builder)
-				VectorCommandAddCommandType(builder, VectorCommandUnion.QuadraticCommand)
-				VectorCommandAddCommand(builder, commandOffset)
-				offsets.append(VectorCommandEnd(builder))
+				VectorCommand.Start(builder)
+				VectorCommand.AddCommandType(builder, VectorCommandUnion.QuadraticCommand)
+				VectorCommand.AddCommand(builder, commandOffset)
+				offsets.append(VectorCommand.End(builder))
 
 				pos = end
 				lastQuadraticPos = control
@@ -899,31 +902,31 @@ def writePath(builder, transform, style, path, size, diagonalSize):
 				else:
 					end = (x, y)
 
-				ArcCommandStart(builder)
-				ArcCommandAddRadius(builder, CreateVector2f(builder, radius[0], radius[1]))
-				ArcCommandAddRotation(builder, rotation)
-				ArcCommandAddLargeArc(builder, largeArc)
-				ArcCommandAddClockwise(builder, sweep)
-				ArcCommandAddEnd(builder, CreateVector2f(builder, end[0], end[1]))
-				commandOffset = ArcCommandEnd(builder)
+				ArcCommand.Start(builder)
+				ArcCommand.AddRadius(builder, CreateVector2f(builder, radius[0], radius[1]))
+				ArcCommand.AddRotation(builder, rotation)
+				ArcCommand.AddLargeArc(builder, largeArc)
+				ArcCommand.AddClockwise(builder, sweep)
+				ArcCommand.AddEnd(builder, CreateVector2f(builder, end[0], end[1]))
+				commandOffset = ArcCommand.End(builder)
 
-				VectorCommandStart(builder)
-				VectorCommandAddCommandType(builder, VectorCommandUnion.ArcCommand)
-				VectorCommandAddCommand(builder, commandOffset)
-				offsets.append(VectorCommandEnd(builder))
+				VectorCommand.Start(builder)
+				VectorCommand.AddCommandType(builder, VectorCommandUnion.ArcCommand)
+				VectorCommand.AddCommand(builder, commandOffset)
+				offsets.append(VectorCommand.End(builder))
 
 				pos = end
 			elif command == 'b' or command == 'B':
 				raise Exception('Bearing currently not implemented. ' \
 					'It is generally not implemented by other SVG renderers either.')
 		elif tokens[index] == 'z' or tokens[index] == 'Z':
-			ClosePathCommandStart(builder)
-			commandOffset = ClosePathCommandEnd(builder)
+			ClosePathCommand.Start(builder)
+			commandOffset = ClosePathCommand.End(builder)
 
-			VectorCommandStart(builder)
-			VectorCommandAddCommandType(builder, VectorCommandUnion.ClosePathCommand)
-			VectorCommandAddCommand(builder, commandOffset)
-			offsets.append(VectorCommandEnd(builder))
+			VectorCommand.Start(builder)
+			VectorCommand.AddCommandType(builder, VectorCommandUnion.ClosePathCommand)
+			VectorCommand.AddCommand(builder, commandOffset)
+			offsets.append(VectorCommand.End(builder))
 
 			lastControlPos = None
 			lastQuadraticPos = None
@@ -943,17 +946,17 @@ def writePath(builder, transform, style, path, size, diagonalSize):
 def writeRectangle(builder, transform, style, upperLeft, rectSize, radius):
 	offsets = writeStartPath(builder, transform, True)
 
-	RectangleCommandStart(builder)
-	RectangleCommandAddUpperLeft(builder, CreateVector2f(builder, upperLeft[0], upperLeft[1]))
-	RectangleCommandAddLowerRight(builder, CreateVector2f(builder, upperLeft[0] + rectSize[0],
+	RectangleCommand.Start(builder)
+	RectangleCommand.AddUpperLeft(builder, CreateVector2f(builder, upperLeft[0], upperLeft[1]))
+	RectangleCommand.AddLowerRight(builder, CreateVector2f(builder, upperLeft[0] + rectSize[0],
 		upperLeft[1] + rectSize[1]))
-	RectangleCommandAddCornerRadius(builder, CreateVector2f(builder, radius[0], radius[1]))
-	commandOffset = RectangleCommandEnd(builder)
+	RectangleCommand.AddCornerRadius(builder, CreateVector2f(builder, radius[0], radius[1]))
+	commandOffset = RectangleCommand.End(builder)
 
-	VectorCommandStart(builder)
-	VectorCommandAddCommandType(builder, VectorCommandUnion.RectangleCommand)
-	VectorCommandAddCommand(builder, commandOffset)
-	offsets.append(VectorCommandEnd(builder))
+	VectorCommand.Start(builder)
+	VectorCommand.AddCommandType(builder, VectorCommandUnion.RectangleCommand)
+	VectorCommand.AddCommand(builder, commandOffset)
+	offsets.append(VectorCommand.End(builder))
 	
 	offsets.extend(style.write(builder))
 	return offsets
@@ -962,20 +965,20 @@ def writeText(builder, transform, font, text, rangeCount):
 	textOffset = builder.CreateString(text)
 	fontOffset = builder.CreateString(font.font)
 
-	TextCommandStart(builder)
-	TextCommandAddText(builder, textOffset)
-	TextCommandAddFont(builder, fontOffset)
-	TextCommandAddAlignment(builder, font.alignment)
-	TextCommandAddMaxLength(builder, font.maxLength if font.maxLength else 3.402823e+38)
-	TextCommandAddLineHeight(builder, font.lineHeight)
-	TextCommandAddTransform(builder, transform.createMatrix33f(builder))
-	TextCommandAddRangeCount(builder, rangeCount)
-	commandOffset = TextCommandEnd(builder)
+	TextCommand.Start(builder)
+	TextCommand.AddText(builder, textOffset)
+	TextCommand.AddFont(builder, fontOffset)
+	TextCommand.AddAlignment(builder, font.alignment)
+	TextCommand.AddMaxLength(builder, font.maxLength if font.maxLength else 3.402823e+38)
+	TextCommand.AddLineHeight(builder, font.lineHeight)
+	TextCommand.AddTransform(builder, transform.createMatrix33f(builder))
+	TextCommand.AddRangeCount(builder, rangeCount)
+	commandOffset = TextCommand.End(builder)
 
-	VectorCommandStart(builder)
-	VectorCommandAddCommandType(builder, VectorCommandUnion.TextCommand)
-	VectorCommandAddCommand(builder, commandOffset)
-	return [VectorCommandEnd(builder)]
+	VectorCommand.Start(builder)
+	VectorCommand.AddCommandType(builder, VectorCommandUnion.TextCommand)
+	VectorCommand.AddCommand(builder, commandOffset)
+	return [VectorCommand.End(builder)]
 
 def writeTextRange(builder, textRange):
 	style = textRange.style
@@ -994,27 +997,27 @@ def writeTextRange(builder, textRange):
 		sizeToWidthFactor = 1.5/style.font.size
 		outlineWidth = style.stroke.width*sizeToWidthFactor
 
-	TextRangeCommandStart(builder)
-	TextRangeCommandAddStart(builder, textRange.start)
-	TextRangeCommandAddCount(builder, textRange.count)
-	TextRangeCommandAddPositionType(builder, textRange.positionType)
-	TextRangeCommandAddPosition(builder, \
+	TextRangeCommand.Start(builder)
+	TextRangeCommand.AddStart(builder, textRange.start)
+	TextRangeCommand.AddCount(builder, textRange.count)
+	TextRangeCommand.AddPositionType(builder, textRange.positionType)
+	TextRangeCommand.AddPosition(builder, \
 		CreateVector2f(builder, textRange.position[0], textRange.position[1]))
-	TextRangeCommandAddFillMaterial(builder, fillMaterialOffset)
-	TextRangeCommandAddOutlineMaterial(builder, outlineMaterialOffset)
-	TextRangeCommandAddFillOpacity(builder, fillOpacity)
-	TextRangeCommandAddOutlineOpacity(builder, outlineOpacity)
-	TextRangeCommandAddSize(builder, style.font.size)
-	TextRangeCommandAddEmbolden(builder, style.font.embolden)
-	TextRangeCommandAddSlant(builder, style.font.slant)
-	TextRangeCommandAddOutlineWidth(builder, outlineWidth)
-	TextRangeCommandAddFuziness(builder, 1.0)
-	commandOffset = TextRangeCommandEnd(builder)
+	TextRangeCommand.AddFillMaterial(builder, fillMaterialOffset)
+	TextRangeCommand.AddOutlineMaterial(builder, outlineMaterialOffset)
+	TextRangeCommand.AddFillOpacity(builder, fillOpacity)
+	TextRangeCommand.AddOutlineOpacity(builder, outlineOpacity)
+	TextRangeCommand.AddSize(builder, style.font.size)
+	TextRangeCommand.AddEmbolden(builder, style.font.embolden)
+	TextRangeCommand.AddSlant(builder, style.font.slant)
+	TextRangeCommand.AddOutlineWidth(builder, outlineWidth)
+	TextRangeCommand.AddFuziness(builder, 1.0)
+	commandOffset = TextRangeCommand.End(builder)
 
-	VectorCommandStart(builder)
-	VectorCommandAddCommandType(builder, VectorCommandUnion.TextRangeCommand)
-	VectorCommandAddCommand(builder, commandOffset)
-	return [VectorCommandEnd(builder)]
+	VectorCommand.Start(builder)
+	VectorCommand.AddCommandType(builder, VectorCommandUnion.TextRangeCommand)
+	VectorCommand.AddCommand(builder, commandOffset)
+	return [VectorCommand.End(builder)]
 
 def readMaterials(node, materials, size, diagonalSize):
 	for defNode in node.childNodes:
@@ -1235,14 +1238,14 @@ def convertSVG(streamOrPath, name, defaultFont):
 	for command in commands:
 		commandOffsets.extend(command(builder))
 
-	VectorImageStartCommandsVector(builder, len(commandOffsets))
+	VectorImage.StartCommandsVector(builder, len(commandOffsets))
 	for offset in reversed(commandOffsets):
 		builder.PrependUOffsetTRelative(offset)
-	commandsOffset = builder.EndVector(len(commandOffsets))
+	commandsOffset = builder.EndVector()
 
-	VectorImageStart(builder)
+	VectorImage.Start(builder)
 	materials.writeToVectorImage(builder)
-	VectorImageAddCommands(builder, commandsOffset)
-	VectorImageAddSize(builder, CreateVector2f(builder, size[0], size[1]))
-	builder.Finish(VectorImageEnd(builder))
+	VectorImage.AddCommands(builder, commandsOffset)
+	VectorImage.AddSize(builder, CreateVector2f(builder, size[0], size[1]))
+	builder.Finish(VectorImage.End(builder))
 	return builder.Output()

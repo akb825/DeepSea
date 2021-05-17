@@ -54,7 +54,6 @@ struct BufferMaterialDataBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  BufferMaterialDataBuilder &operator=(const BufferMaterialDataBuilder &);
   flatbuffers::Offset<BufferMaterialData> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<BufferMaterialData>(end);

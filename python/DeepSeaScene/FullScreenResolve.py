@@ -10,12 +10,16 @@ class FullScreenResolve(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsFullScreenResolve(cls, buf, offset):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = FullScreenResolve()
         x.Init(buf, n + offset)
         return x
 
+    @classmethod
+    def GetRootAsFullScreenResolve(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
     # FullScreenResolve
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
@@ -45,8 +49,23 @@ class FullScreenResolve(object):
             return obj
         return None
 
-def FullScreenResolveStart(builder): builder.StartObject(3)
-def FullScreenResolveAddShader(builder, shader): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(shader), 0)
-def FullScreenResolveAddMaterial(builder, material): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(material), 0)
-def FullScreenResolveAddDynamicRenderStates(builder, dynamicRenderStates): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(dynamicRenderStates), 0)
-def FullScreenResolveEnd(builder): return builder.EndObject()
+def Start(builder): builder.StartObject(3)
+def FullScreenResolveStart(builder):
+    """This method is deprecated. Please switch to Start."""
+    return Start(builder)
+def AddShader(builder, shader): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(shader), 0)
+def FullScreenResolveAddShader(builder, shader):
+    """This method is deprecated. Please switch to AddShader."""
+    return AddShader(builder, shader)
+def AddMaterial(builder, material): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(material), 0)
+def FullScreenResolveAddMaterial(builder, material):
+    """This method is deprecated. Please switch to AddMaterial."""
+    return AddMaterial(builder, material)
+def AddDynamicRenderStates(builder, dynamicRenderStates): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(dynamicRenderStates), 0)
+def FullScreenResolveAddDynamicRenderStates(builder, dynamicRenderStates):
+    """This method is deprecated. Please switch to AddDynamicRenderStates."""
+    return AddDynamicRenderStates(builder, dynamicRenderStates)
+def End(builder): return builder.EndObject()
+def FullScreenResolveEnd(builder):
+    """This method is deprecated. Please switch to End."""
+    return End(builder)

@@ -10,12 +10,16 @@ class ColorTable(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsColorTable(cls, buf, offset):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = ColorTable()
         x.Init(buf, n + offset)
         return x
 
+    @classmethod
+    def GetRootAsColorTable(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
     # ColorTable
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
@@ -48,9 +52,27 @@ class ColorTable(object):
             return self._tab.Get(flatbuffers.number_types.Uint8Flags, o + self._tab.Pos)
         return 0
 
-def ColorTableStart(builder): builder.StartObject(4)
-def ColorTableAddRed(builder, red): builder.PrependUint8Slot(0, red, 0)
-def ColorTableAddGreen(builder, green): builder.PrependUint8Slot(1, green, 0)
-def ColorTableAddBlue(builder, blue): builder.PrependUint8Slot(2, blue, 0)
-def ColorTableAddAlpha(builder, alpha): builder.PrependUint8Slot(3, alpha, 0)
-def ColorTableEnd(builder): return builder.EndObject()
+def Start(builder): builder.StartObject(4)
+def ColorTableStart(builder):
+    """This method is deprecated. Please switch to Start."""
+    return Start(builder)
+def AddRed(builder, red): builder.PrependUint8Slot(0, red, 0)
+def ColorTableAddRed(builder, red):
+    """This method is deprecated. Please switch to AddRed."""
+    return AddRed(builder, red)
+def AddGreen(builder, green): builder.PrependUint8Slot(1, green, 0)
+def ColorTableAddGreen(builder, green):
+    """This method is deprecated. Please switch to AddGreen."""
+    return AddGreen(builder, green)
+def AddBlue(builder, blue): builder.PrependUint8Slot(2, blue, 0)
+def ColorTableAddBlue(builder, blue):
+    """This method is deprecated. Please switch to AddBlue."""
+    return AddBlue(builder, blue)
+def AddAlpha(builder, alpha): builder.PrependUint8Slot(3, alpha, 0)
+def ColorTableAddAlpha(builder, alpha):
+    """This method is deprecated. Please switch to AddAlpha."""
+    return AddAlpha(builder, alpha)
+def End(builder): return builder.EndObject()
+def ColorTableEnd(builder):
+    """This method is deprecated. Please switch to End."""
+    return End(builder)

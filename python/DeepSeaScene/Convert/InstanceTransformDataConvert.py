@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import flatbuffers
-from ..InstanceTransformData import *
+from .. import InstanceTransformData
 
 def convertInstanceTransformData(convertContext, data):
 	"""
@@ -29,7 +29,7 @@ def convertInstanceTransformData(convertContext, data):
 
 	builder = flatbuffers.Builder(0)
 	variableGroupDescNameOffset = builder.CreateString(variableGroupDescName)
-	InstanceTransformDataStart(builder)
-	InstanceTransformDataAddVariableGroupDesc(builder, variableGroupDescNameOffset)
-	builder.Finish(InstanceTransformDataEnd(builder))
+	InstanceTransformData.Start(builder)
+	InstanceTransformData.AddVariableGroupDesc(builder, variableGroupDescNameOffset)
+	builder.Finish(InstanceTransformData.End(builder))
 	return builder.Output()

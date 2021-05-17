@@ -78,7 +78,6 @@ struct ModelReconfigBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  ModelReconfigBuilder &operator=(const ModelReconfigBuilder &);
   flatbuffers::Offset<ModelReconfig> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<ModelReconfig>(end);
@@ -174,7 +173,6 @@ struct ModelNodeReconfigBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  ModelNodeReconfigBuilder &operator=(const ModelNodeReconfigBuilder &);
   flatbuffers::Offset<ModelNodeReconfig> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<ModelNodeReconfig>(end);

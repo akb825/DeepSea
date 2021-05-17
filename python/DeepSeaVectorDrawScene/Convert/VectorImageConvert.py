@@ -1,4 +1,4 @@
-# Copyright 2020 Aaron Barany
+# Copyright 2020-2021 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,9 +13,11 @@
 # limitations under the License.
 
 import flatbuffers
-from ..VectorImage import *
+
+from .. import VectorImage
+
 from DeepSeaScene.Convert.FileOrDataConvert import convertFileOrData, readDataOrPath
-from DeepSeaScene.Vector2f import *
+from DeepSeaScene.Vector2f import CreateVector2f
 
 def convertVectorImage(convertContext, data):
 	"""
@@ -80,24 +82,24 @@ def convertVectorImage(convertContext, data):
 	for resource in resources:
 		resourceOffsets.append(builder.CreateString(resource))
 
-	VectorImageStartResourcesVector(builder, len(resourceOffsets))
+	VectorImage.StartResourcesVector(builder, len(resourceOffsets))
 	for offset in reversed(resourceOffsets):
 		builder.PrependUOffsetTRelative(offset)
-	resourcesOffset = builder.EndVector(len(resourceOffsets))
+	resourcesOffset = builder.EndVector()
 
-	VectorImageStart(builder)
-	VectorImageAddImageType(builder, imageType)
-	VectorImageAddImage(builder, imageOffset)
+	VectorImage.Start(builder)
+	VectorImage.AddImageType(builder, imageType)
+	VectorImage.AddImage(builder, imageOffset)
 
 	if size:
 		sizeOffset = CreateVector2f(builder, size[0], size[1])
 	else:
 		sizeOffset = 0
-	VectorImageAddTargetSize(builder, sizeOffset)
+	VectorImage.AddTargetSize(builder, sizeOffset)
 
-	VectorImageAddSharedMaterials(builder, sharedMaterialsOffset)
-	VectorImageAddVectorShaders(builder, shadersOffset)
-	VectorImageAddResources(builder, resourcesOffset)
-	VectorImageAddSrgb(builder, srgb)
-	builder.Finish(VectorImageEnd(builder))
+	VectorImage.AddSharedMaterials(builder, sharedMaterialsOffset)
+	VectorImage.AddVectorShaders(builder, shadersOffset)
+	VectorImage.AddResources(builder, resourcesOffset)
+	VectorImage.AddSrgb(builder, srgb)
+	builder.Finish(VectorImage.End(builder))
 	return builder.Output()

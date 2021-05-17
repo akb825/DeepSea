@@ -10,12 +10,16 @@ class LightSetPrepare(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsLightSetPrepare(cls, buf, offset):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = LightSetPrepare()
         x.Init(buf, n + offset)
         return x
 
+    @classmethod
+    def GetRootAsLightSetPrepare(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
     # LightSetPrepare
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
@@ -47,8 +51,23 @@ class LightSetPrepare(object):
             return self._tab.Get(flatbuffers.number_types.Float32Flags, o + self._tab.Pos)
         return 0.0
 
-def LightSetPrepareStart(builder): builder.StartObject(2)
-def LightSetPrepareAddLightSets(builder, lightSets): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(lightSets), 0)
-def LightSetPrepareStartLightSetsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
-def LightSetPrepareAddIntensityThreshold(builder, intensityThreshold): builder.PrependFloat32Slot(1, intensityThreshold, 0.0)
-def LightSetPrepareEnd(builder): return builder.EndObject()
+def Start(builder): builder.StartObject(2)
+def LightSetPrepareStart(builder):
+    """This method is deprecated. Please switch to Start."""
+    return Start(builder)
+def AddLightSets(builder, lightSets): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(lightSets), 0)
+def LightSetPrepareAddLightSets(builder, lightSets):
+    """This method is deprecated. Please switch to AddLightSets."""
+    return AddLightSets(builder, lightSets)
+def StartLightSetsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+def LightSetPrepareStartLightSetsVector(builder, numElems):
+    """This method is deprecated. Please switch to Start."""
+    return StartLightSetsVector(builder, numElems)
+def AddIntensityThreshold(builder, intensityThreshold): builder.PrependFloat32Slot(1, intensityThreshold, 0.0)
+def LightSetPrepareAddIntensityThreshold(builder, intensityThreshold):
+    """This method is deprecated. Please switch to AddIntensityThreshold."""
+    return AddIntensityThreshold(builder, intensityThreshold)
+def End(builder): return builder.EndObject()
+def LightSetPrepareEnd(builder):
+    """This method is deprecated. Please switch to End."""
+    return End(builder)

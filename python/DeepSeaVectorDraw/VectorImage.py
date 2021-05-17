@@ -10,12 +10,16 @@ class VectorImage(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsVectorImage(cls, buf, offset):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = VectorImage()
         x.Init(buf, n + offset)
         return x
 
+    @classmethod
+    def GetRootAsVectorImage(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
     # VectorImage
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
@@ -131,14 +135,47 @@ class VectorImage(object):
             return obj
         return None
 
-def VectorImageStart(builder): builder.StartObject(5)
-def VectorImageAddColorMaterials(builder, colorMaterials): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(colorMaterials), 0)
-def VectorImageStartColorMaterialsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
-def VectorImageAddLinearGradients(builder, linearGradients): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(linearGradients), 0)
-def VectorImageStartLinearGradientsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
-def VectorImageAddRadialGradients(builder, radialGradients): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(radialGradients), 0)
-def VectorImageStartRadialGradientsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
-def VectorImageAddCommands(builder, commands): builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(commands), 0)
-def VectorImageStartCommandsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
-def VectorImageAddSize(builder, size): builder.PrependStructSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(size), 0)
-def VectorImageEnd(builder): return builder.EndObject()
+def Start(builder): builder.StartObject(5)
+def VectorImageStart(builder):
+    """This method is deprecated. Please switch to Start."""
+    return Start(builder)
+def AddColorMaterials(builder, colorMaterials): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(colorMaterials), 0)
+def VectorImageAddColorMaterials(builder, colorMaterials):
+    """This method is deprecated. Please switch to AddColorMaterials."""
+    return AddColorMaterials(builder, colorMaterials)
+def StartColorMaterialsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+def VectorImageStartColorMaterialsVector(builder, numElems):
+    """This method is deprecated. Please switch to Start."""
+    return StartColorMaterialsVector(builder, numElems)
+def AddLinearGradients(builder, linearGradients): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(linearGradients), 0)
+def VectorImageAddLinearGradients(builder, linearGradients):
+    """This method is deprecated. Please switch to AddLinearGradients."""
+    return AddLinearGradients(builder, linearGradients)
+def StartLinearGradientsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+def VectorImageStartLinearGradientsVector(builder, numElems):
+    """This method is deprecated. Please switch to Start."""
+    return StartLinearGradientsVector(builder, numElems)
+def AddRadialGradients(builder, radialGradients): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(radialGradients), 0)
+def VectorImageAddRadialGradients(builder, radialGradients):
+    """This method is deprecated. Please switch to AddRadialGradients."""
+    return AddRadialGradients(builder, radialGradients)
+def StartRadialGradientsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+def VectorImageStartRadialGradientsVector(builder, numElems):
+    """This method is deprecated. Please switch to Start."""
+    return StartRadialGradientsVector(builder, numElems)
+def AddCommands(builder, commands): builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(commands), 0)
+def VectorImageAddCommands(builder, commands):
+    """This method is deprecated. Please switch to AddCommands."""
+    return AddCommands(builder, commands)
+def StartCommandsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+def VectorImageStartCommandsVector(builder, numElems):
+    """This method is deprecated. Please switch to Start."""
+    return StartCommandsVector(builder, numElems)
+def AddSize(builder, size): builder.PrependStructSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(size), 0)
+def VectorImageAddSize(builder, size):
+    """This method is deprecated. Please switch to AddSize."""
+    return AddSize(builder, size)
+def End(builder): return builder.EndObject()
+def VectorImageEnd(builder):
+    """This method is deprecated. Please switch to End."""
+    return End(builder)

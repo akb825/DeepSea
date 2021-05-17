@@ -10,12 +10,16 @@ class Light(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsLight(cls, buf, offset):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = Light()
         x.Init(buf, n + offset)
         return x
 
+    @classmethod
+    def GetRootAsLight(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
     # Light
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
@@ -44,8 +48,23 @@ class Light(object):
             return obj
         return None
 
-def LightStart(builder): builder.StartObject(3)
-def LightAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
-def LightAddLightType(builder, lightType): builder.PrependUint8Slot(1, lightType, 0)
-def LightAddLight(builder, light): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(light), 0)
-def LightEnd(builder): return builder.EndObject()
+def Start(builder): builder.StartObject(3)
+def LightStart(builder):
+    """This method is deprecated. Please switch to Start."""
+    return Start(builder)
+def AddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+def LightAddName(builder, name):
+    """This method is deprecated. Please switch to AddName."""
+    return AddName(builder, name)
+def AddLightType(builder, lightType): builder.PrependUint8Slot(1, lightType, 0)
+def LightAddLightType(builder, lightType):
+    """This method is deprecated. Please switch to AddLightType."""
+    return AddLightType(builder, lightType)
+def AddLight(builder, light): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(light), 0)
+def LightAddLight(builder, light):
+    """This method is deprecated. Please switch to AddLight."""
+    return AddLight(builder, light)
+def End(builder): return builder.EndObject()
+def LightEnd(builder):
+    """This method is deprecated. Please switch to End."""
+    return End(builder)

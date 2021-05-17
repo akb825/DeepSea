@@ -10,12 +10,16 @@ class ShaderModule(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsShaderModule(cls, buf, offset):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = ShaderModule()
         x.Init(buf, n + offset)
         return x
 
+    @classmethod
+    def GetRootAsShaderModule(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
     # ShaderModule
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
@@ -52,8 +56,23 @@ class ShaderModule(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         return o == 0
 
-def ShaderModuleStart(builder): builder.StartObject(2)
-def ShaderModuleAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
-def ShaderModuleAddModules(builder, modules): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(modules), 0)
-def ShaderModuleStartModulesVector(builder, numElems): return builder.StartVector(4, numElems, 4)
-def ShaderModuleEnd(builder): return builder.EndObject()
+def Start(builder): builder.StartObject(2)
+def ShaderModuleStart(builder):
+    """This method is deprecated. Please switch to Start."""
+    return Start(builder)
+def AddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+def ShaderModuleAddName(builder, name):
+    """This method is deprecated. Please switch to AddName."""
+    return AddName(builder, name)
+def AddModules(builder, modules): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(modules), 0)
+def ShaderModuleAddModules(builder, modules):
+    """This method is deprecated. Please switch to AddModules."""
+    return AddModules(builder, modules)
+def StartModulesVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+def ShaderModuleStartModulesVector(builder, numElems):
+    """This method is deprecated. Please switch to Start."""
+    return StartModulesVector(builder, numElems)
+def End(builder): return builder.EndObject()
+def ShaderModuleEnd(builder):
+    """This method is deprecated. Please switch to End."""
+    return End(builder)

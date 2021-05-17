@@ -10,12 +10,16 @@ class EllipseCommand(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsEllipseCommand(cls, buf, offset):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = EllipseCommand()
         x.Init(buf, n + offset)
         return x
 
+    @classmethod
+    def GetRootAsEllipseCommand(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
     # EllipseCommand
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
@@ -42,7 +46,19 @@ class EllipseCommand(object):
             return obj
         return None
 
-def EllipseCommandStart(builder): builder.StartObject(2)
-def EllipseCommandAddCenter(builder, center): builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(center), 0)
-def EllipseCommandAddRadius(builder, radius): builder.PrependStructSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(radius), 0)
-def EllipseCommandEnd(builder): return builder.EndObject()
+def Start(builder): builder.StartObject(2)
+def EllipseCommandStart(builder):
+    """This method is deprecated. Please switch to Start."""
+    return Start(builder)
+def AddCenter(builder, center): builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(center), 0)
+def EllipseCommandAddCenter(builder, center):
+    """This method is deprecated. Please switch to AddCenter."""
+    return AddCenter(builder, center)
+def AddRadius(builder, radius): builder.PrependStructSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(radius), 0)
+def EllipseCommandAddRadius(builder, radius):
+    """This method is deprecated. Please switch to AddRadius."""
+    return AddRadius(builder, radius)
+def End(builder): return builder.EndObject()
+def EllipseCommandEnd(builder):
+    """This method is deprecated. Please switch to End."""
+    return End(builder)

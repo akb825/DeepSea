@@ -10,12 +10,16 @@ class QuadraticCommand(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsQuadraticCommand(cls, buf, offset):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = QuadraticCommand()
         x.Init(buf, n + offset)
         return x
 
+    @classmethod
+    def GetRootAsQuadraticCommand(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
     # QuadraticCommand
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
@@ -42,7 +46,19 @@ class QuadraticCommand(object):
             return obj
         return None
 
-def QuadraticCommandStart(builder): builder.StartObject(2)
-def QuadraticCommandAddControl(builder, control): builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(control), 0)
-def QuadraticCommandAddEnd(builder, end): builder.PrependStructSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(end), 0)
-def QuadraticCommandEnd(builder): return builder.EndObject()
+def Start(builder): builder.StartObject(2)
+def QuadraticCommandStart(builder):
+    """This method is deprecated. Please switch to Start."""
+    return Start(builder)
+def AddControl(builder, control): builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(control), 0)
+def QuadraticCommandAddControl(builder, control):
+    """This method is deprecated. Please switch to AddControl."""
+    return AddControl(builder, control)
+def AddEnd(builder, end): builder.PrependStructSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(end), 0)
+def QuadraticCommandAddEnd(builder, end):
+    """This method is deprecated. Please switch to AddEnd."""
+    return AddEnd(builder, end)
+def End(builder): return builder.EndObject()
+def QuadraticCommandEnd(builder):
+    """This method is deprecated. Please switch to End."""
+    return End(builder)

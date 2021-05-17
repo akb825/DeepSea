@@ -47,7 +47,6 @@ struct InstanceForwardLightDataBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  InstanceForwardLightDataBuilder &operator=(const InstanceForwardLightDataBuilder &);
   flatbuffers::Offset<InstanceForwardLightData> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<InstanceForwardLightData>(end);

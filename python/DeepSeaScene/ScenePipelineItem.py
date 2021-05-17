@@ -10,12 +10,16 @@ class ScenePipelineItem(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsScenePipelineItem(cls, buf, offset):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = ScenePipelineItem()
         x.Init(buf, n + offset)
         return x
 
+    @classmethod
+    def GetRootAsScenePipelineItem(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
     # ScenePipelineItem
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
@@ -37,7 +41,19 @@ class ScenePipelineItem(object):
             return obj
         return None
 
-def ScenePipelineItemStart(builder): builder.StartObject(2)
-def ScenePipelineItemAddItemType(builder, itemType): builder.PrependUint8Slot(0, itemType, 0)
-def ScenePipelineItemAddItem(builder, item): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(item), 0)
-def ScenePipelineItemEnd(builder): return builder.EndObject()
+def Start(builder): builder.StartObject(2)
+def ScenePipelineItemStart(builder):
+    """This method is deprecated. Please switch to Start."""
+    return Start(builder)
+def AddItemType(builder, itemType): builder.PrependUint8Slot(0, itemType, 0)
+def ScenePipelineItemAddItemType(builder, itemType):
+    """This method is deprecated. Please switch to AddItemType."""
+    return AddItemType(builder, itemType)
+def AddItem(builder, item): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(item), 0)
+def ScenePipelineItemAddItem(builder, item):
+    """This method is deprecated. Please switch to AddItem."""
+    return AddItem(builder, item)
+def End(builder): return builder.EndObject()
+def ScenePipelineItemEnd(builder):
+    """This method is deprecated. Please switch to End."""
+    return End(builder)

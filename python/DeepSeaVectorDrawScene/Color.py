@@ -9,6 +9,10 @@ np = import_numpy()
 class Color(object):
     __slots__ = ['_tab']
 
+    @classmethod
+    def SizeOf(cls):
+        return 4
+
     # Color
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)

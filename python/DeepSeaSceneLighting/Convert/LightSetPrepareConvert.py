@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import flatbuffers
-from ..LightSetPrepare import *
+from .. import LightSetPrepare
 
 def convertLightSetPrepare(convertContext, data):
 	"""
@@ -44,13 +44,13 @@ def convertLightSetPrepare(convertContext, data):
 	for lightSet in lightSets:
 		lightSetOffsets.append(builder.CreateString(lightSet))
 
-	LightSetPrepareStartLightSetsVector(builder, len(lightSetOffsets))
+	LightSetPrepare.StartLightSetsVector(builder, len(lightSetOffsets))
 	for offset in reversed(lightSetOffsets):
 		builder.PrependUOffsetTRelative(offset)
-	lightSetsOffset = builder.EndVector(len(lightSetOffsets))
+	lightSetsOffset = builder.EndVector()
 
-	LightSetPrepareStart(builder)
-	LightSetPrepareAddLightSets(builder, lightSetsOffset)
-	LightSetPrepareAddIntensityThreshold(builder, intensityThreshold)
-	builder.Finish(LightSetPrepareEnd(builder))
+	LightSetPrepare.Start(builder)
+	LightSetPrepare.AddLightSets(builder, lightSetsOffset)
+	LightSetPrepare.AddIntensityThreshold(builder, intensityThreshold)
+	builder.Finish(LightSetPrepare.End(builder))
 	return builder.Output()
