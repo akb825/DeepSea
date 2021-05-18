@@ -193,7 +193,7 @@ DS_MATH_EXPORT inline void dsColor3f_lerpSRGB(dsColor3f* outColor, const dsColor
 
 /**
  * @brief Get whether or not two colors are equal.
- * @remark The is the same as dsVector3f_equal(), nd is provided for completeness.
+ * @remark The is the same as dsVector3f_equal(), and is provided for completeness.
  * @param x The first color.
  * @param y The second color.
  * @return True if x == y.
@@ -202,7 +202,7 @@ DS_MATH_EXPORT inline bool dsColor3f_equal(const dsColor3f* x, const dsColor3f* 
 
 /**
  * @brief Get whether or not two colors are equal within an epsilon.
- * @remark The is the same as dsVector3f_epsilonEqual(), nd is provided for completeness.
+ * @remark The is the same as dsVector3f_epsilonEqual(), and is provided for completeness.
  * @param x The first color.
  * @param y The second color.
  * @param epsilon The epsilon to check within.
@@ -283,7 +283,7 @@ DS_MATH_EXPORT inline void dsColor4f_lerpSRGB(dsColor4f* outColor, const dsColor
 
 /**
  * @brief Get whether or not two colors are equal.
- * @remark The is the same as dsVector4f_equal(), nd is provided for completeness.
+ * @remark The is the same as dsVector4f_equal(), and is provided for completeness.
  * @param x The first color.
  * @param y The second color.
  * @return True if x == y.
@@ -292,7 +292,7 @@ DS_MATH_EXPORT inline bool dsColor4f_equal(const dsColor4f* x, const dsColor4f* 
 
 /**
  * @brief Get whether or not two colors are equal within an epsilon.
- * @remark The is the same as dsVector4f_epsilonEqual(), nd is provided for completeness.
+ * @remark The is the same as dsVector4f_epsilonEqual(), and is provided for completeness.
  * @param x The first color.
  * @param y The second color.
  * @param epsilon The epsilon to check within.
@@ -376,7 +376,7 @@ DS_MATH_EXPORT inline void dsHSVColor_lerpSRGB(dsHSVColor* outColor, const dsHSV
 
 /**
  * @brief Get whether or not two colors are equal.
- * @remark The is the same as dsVector3f_equal(), nd is provided for completeness.
+ * @remark The is the same as dsVector3f_equal(), and is provided for completeness.
  * @param x The first color.
  * @param y The second color.
  * @return True if x == y.
@@ -385,7 +385,7 @@ DS_MATH_EXPORT inline bool dsHSVColor_equal(const dsHSVColor* x, const dsHSVColo
 
 /**
  * @brief Get whether or not two colors are equal within an epsilon.
- * @remark The is the same as dsVector3f_epsilonEqual(), nd is provided for completeness.
+ * @remark The is the same as dsVector3f_epsilonEqual(), and is provided for completeness.
  * @param x The first color.
  * @param y The second color.
  * @param epsilon The epsilon to check within.
@@ -470,7 +470,7 @@ DS_MATH_EXPORT inline void dsHSLColor_lerpSRGB(dsHSLColor* outColor, const dsHSL
 
 /**
  * @brief Get whether or not two colors are equal.
- * @remark The is the same as dsVector3f_equal(), nd is provided for completeness.
+ * @remark The is the same as dsVector3f_equal(), and is provided for completeness.
  * @param x The first color.
  * @param y The second color.
  * @return True if x == y.
@@ -479,7 +479,7 @@ DS_MATH_EXPORT inline bool dsHSLColor_equal(const dsHSLColor* x, const dsHSLColo
 
 /**
  * @brief Get whether or not two colors are equal within an epsilon.
- * @remark The is the same as dsVector3f_epsilonEqual(), nd is provided for completeness.
+ * @remark The is the same as dsVector3f_epsilonEqual(), and is provided for completeness.
  * @param x The first color.
  * @param y The second color.
  * @param epsilon The epsilon to check within.

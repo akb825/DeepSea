@@ -73,3 +73,6 @@ void dsVector4d_normalize(dsVector4d* result, const dsVector4d* a);
 
 bool dsVector4f_epsilonEqual(const dsVector4f* a, const dsVector4f* b, float epsilon);
 bool dsVector4d_epsilonEqual(const dsVector4d* a, const dsVector4d* b, double epsilon);
+
+bool dsVector4f_relativeEpsilonEqual(const dsVector4f* a, const dsVector4f* b, float epsilon);
+bool dsVector4d_relativeEpsilonEqual(const dsVector4d* a, const dsVector4d* b, double epsilon);

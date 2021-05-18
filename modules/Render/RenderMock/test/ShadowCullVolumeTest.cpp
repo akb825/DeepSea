@@ -19,6 +19,7 @@
 #include <DeepSea/Geometry/Frustum3.h>
 #include <DeepSea/Render/Shadows/ShadowCullVolume.h>
 #include <DeepSea/Math/Core.h>
+#include <DeepSea/Math/Matrix44.h>
 #include <DeepSea/Math/Vector3.h>
 
 #include <gtest/gtest.h>
@@ -69,10 +70,9 @@ static bool hasCorner(const dsShadowCullVolume* volume, float x, float y, float 
 	return false;
 }
 
-static uint32_t countCorners(const dsShadowCullVolume* volume, float x, float y, float z)
+static bool hasCorner(const dsShadowCullVolume* volume, float x, float y, float z)
 {
 	const float epsilon = 1e-2f;
-	uint32_t count = 0;
 	for (uint32_t i = 0; i < volume->cornerCount; ++i)
 	{
 		const dsShadowCullCorner* corner = volume->corners + i;
@@ -80,11 +80,11 @@ static uint32_t countCorners(const dsShadowCullVolume* volume, float x, float y,
 			dsEpsilonEqualf(corner->point.y, y, epsilon) &&
 			dsEpsilonEqualf(corner->point.z, z, epsilon))
 		{
-			++count;
+			return true;
 		}
 	}
 
-	return count;
+	return false;
 }
 
 TEST_F(ShadowVolumeCullTest, DirectionalPerpendicular)
@@ -182,35 +182,40 @@ TEST_F(ShadowVolumeCullTest, DirectionalAngled)
 	EXPECT_NE(notFound, far);
 
 	ASSERT_EQ(15U, volume.edgeCount);
+	ASSERT_EQ(7U, volume.cornerCount);
 
-	uint32_t cornerCount = 0;
-	uint32_t curCornerCount = countCorners(&volume, -0.5f, -0.9f, -1.0f);
-	EXPECT_LT(0U, curCornerCount);
-	cornerCount += curCornerCount;
+	EXPECT_TRUE(hasCorner(&volume, -0.5f, -0.9f, -1.0f));
+	EXPECT_TRUE(hasCorner(&volume, 0.7f, -0.9f, -1.0f));
+	EXPECT_TRUE(hasCorner(&volume, 0.7f, 1.1f, -1.0f));
+	EXPECT_TRUE(hasCorner(&volume, -50.0f, -90.0f, -100.0f));
+	EXPECT_TRUE(hasCorner(&volume, 70.0f, -90.0f, -100.0f));
+	EXPECT_TRUE(hasCorner(&volume, -50.0f, 110.0f, -100.0f));
+	EXPECT_TRUE(hasCorner(&volume, 70.0f, 110.0f, -100.0f));
+}
 
-	curCornerCount = countCorners(&volume, 0.7f, -0.9f, -1.0f);
-	EXPECT_LT(0U, curCornerCount);
-	cornerCount += curCornerCount;
+TEST_F(ShadowVolumeCullTest, SpotNonIntersecting)
+{
+	dsMatrix44f projection;
+	dsRenderer_makeOrtho(&projection, renderer, -2, 4, -3, 5, 1, 100);
+	dsFrustum3f frustum;
+	dsRenderer_frustumFromMatrix(&frustum, renderer, &projection);
 
-	curCornerCount = countCorners(&volume, 0.7f, 1.1f, -1.0f);
-	EXPECT_LT(0U, curCornerCount);
-	cornerCount += curCornerCount;
+	dsMatrix44f baseLightProjection;
+	dsRenderer_makeFrustum(&baseLightProjection, renderer, -1, 1, -1, 1, 1, 100);
+	dsMatrix44f translate, rotate, transform;
+	dsMatrix44f_makeTranslate(&translate, 0, 0, 5);
+	dsMatrix44f_makeRotate(&rotate, 0, -float(M_PI)/2, 0);
+	dsMatrix44_mul(transform, translate, rotate);
 
-	curCornerCount = countCorners(&volume, -50.0f, -90.0f, -100.0f);
-	EXPECT_LT(0U, curCornerCount);
-	cornerCount += curCornerCount;
+	dsMatrix44f lightProjection;
+	dsMatrix44_mul(lightProjection, baseLightProjection, transform);
+	dsFrustum3f lightFrustum;
+	dsRenderer_frustumFromMatrix(&lightFrustum, renderer, &lightProjection);
 
-	curCornerCount = countCorners(&volume, 70.0f, -90.0f, -100.0f);
-	EXPECT_LT(0U, curCornerCount);
-	cornerCount += curCornerCount;
+	dsShadowCullVolume volume;
+	dsShadowCullVolume_buildSpot(&volume, &frustum, &lightFrustum);
 
-	curCornerCount = countCorners(&volume, -50.0f, 110.0f, -100.0f);
-	EXPECT_LT(0U, curCornerCount);
-	cornerCount += curCornerCount;
-
-	curCornerCount = countCorners(&volume, 70.0f, 110.0f, -100.0f);
-	EXPECT_LT(0U, curCornerCount);
-	cornerCount += curCornerCount;
-
-	EXPECT_EQ(volume.cornerCount, cornerCount);
+	EXPECT_EQ(0U, volume.planeCount);
+	EXPECT_EQ(0U, volume.edgeCount);
+	EXPECT_EQ(0U, volume.cornerCount);
 }

@@ -43,7 +43,7 @@ extern "C"
  * The worst case considered here is one box embedded in another and tilted so the corners poke
  * through.
  */
-#define DS_MAX_SHADOW_CULL_EDGES 48U
+#define DS_MAX_SHADOW_CULL_EDGES 36U
 
 /**
  * @brief Maximum number of corners in a shadow cull volume.

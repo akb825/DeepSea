@@ -73,3 +73,6 @@ void dsVector2d_normalize(dsVector2d* result, const dsVector2d* a);
 
 bool dsVector2f_epsilonEqual(const dsVector2f* a, const dsVector2f* b, float epsilon);
 bool dsVector2d_epsilonEqual(const dsVector2d* a, const dsVector2d* b, double epsilon);
+
+bool dsVector2f_relativeEpsilonEqual(const dsVector2f* a, const dsVector2f* b, float epsilon);
+bool dsVector2d_relativeEpsilonEqual(const dsVector2d* a, const dsVector2d* b, double epsilon);

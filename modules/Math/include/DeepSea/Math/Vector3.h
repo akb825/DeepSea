@@ -250,6 +250,20 @@ DS_MATH_EXPORT inline bool dsVector3f_epsilonEqual(const dsVector3f* a, const ds
 DS_MATH_EXPORT inline bool dsVector3d_epsilonEqual(const dsVector3d* a, const dsVector3d* b,
 	double epsilon);
 
+/**
+ * @brief Checks to see if two values are equal within a relative epsilon.
+ * @param a The first value.
+ * @param b The second value.
+ * @param epsilon The epsilon to compare with.
+ * @return True the values of a and b are within epsilon.
+ */
+DS_MATH_EXPORT inline bool dsVector3f_relativeEpsilonEqual(const dsVector3f* a, const dsVector3f* b,
+	float epsilon);
+
+/** @copydoc dsVector3f_relativeEpsilonEqual() */
+DS_MATH_EXPORT inline bool dsVector3d_relativeEpsilonEqual(const dsVector3d* a, const dsVector3d* b,
+	double epsilon);
+
 /** @copydoc dsVector3_add() */
 DS_MATH_EXPORT inline void dsVector3f_add(dsVector3f* result, const dsVector3f* a,
 	const dsVector3f* b)
@@ -642,6 +656,21 @@ inline bool dsVector3d_epsilonEqual(const dsVector3d* a, const dsVector3d* b, do
 	return dsEpsilonEquald(a->values[0], b->values[0], epsilon) &&
 		dsEpsilonEquald(a->values[1], b->values[1], epsilon) &&
 		dsEpsilonEquald(a->values[2], b->values[2], epsilon);
+}
+
+inline bool dsVector3f_relativeEpsilonEqual(const dsVector3f* a, const dsVector3f* b, float epsilon)
+{
+	return dsRelativeEpsilonEqualf(a->values[0], b->values[0], epsilon) &&
+		dsRelativeEpsilonEqualf(a->values[1], b->values[1], epsilon) &&
+		dsRelativeEpsilonEqualf(a->values[2], b->values[2], epsilon);
+}
+
+inline bool dsVector3d_relativeEpsilonEqual(const dsVector3d* a, const dsVector3d* b,
+	double epsilon)
+{
+	return dsRelativeEpsilonEquald(a->values[0], b->values[0], epsilon) &&
+		dsRelativeEpsilonEquald(a->values[1], b->values[1], epsilon) &&
+		dsRelativeEpsilonEquald(a->values[2], b->values[2], epsilon);
 }
 
 #ifdef __cplusplus

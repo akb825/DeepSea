@@ -101,6 +101,16 @@ inline bool dsVector3_epsilonEqual(const dsVector3d* a, const dsVector3d* b, dou
 	return dsVector3d_epsilonEqual(a, b, epsilon);
 }
 
+inline bool dsVector3_relativeEpsilonEqual(const dsVector3f* a, const dsVector3f* b, float epsilon)
+{
+	return dsVector3f_relativeEpsilonEqual(a, b, epsilon);
+}
+
+inline bool dsVector3_relativeEpsilonEqual(const dsVector3d* a, const dsVector3d* b, double epsilon)
+{
+	return dsVector3d_relativeEpsilonEqual(a, b, epsilon);
+}
+
 TYPED_TEST(Vector3Test, Initialize)
 {
 	typedef typename Vector3TypeSelector<TypeParam>::Type Vector3Type;
@@ -344,6 +354,23 @@ TYPED_TEST(Vector3FloatTest, EpsilonEqual)
 	EXPECT_FALSE(dsVector3_epsilonEqual(&a, &c, epsilon));
 	EXPECT_FALSE(dsVector3_epsilonEqual(&a, &d, epsilon));
 	EXPECT_FALSE(dsVector3_epsilonEqual(&a, &e, epsilon));
+}
+
+TYPED_TEST(Vector3FloatTest, RelativeEpsilonEqual)
+{
+	typedef typename Vector3TypeSelector<TypeParam>::Type Vector3Type;
+	TypeParam epsilon = (TypeParam)1e-3;
+
+	Vector3Type a = {{(TypeParam)-23.0, (TypeParam)45.0, (TypeParam)-67.0}};
+	Vector3Type b = {{(TypeParam)-23.001, (TypeParam)45.001, (TypeParam)-67.001}};
+	Vector3Type c = {{(TypeParam)-23.1, (TypeParam)45.0, (TypeParam)-67.0}};
+	Vector3Type d = {{(TypeParam)-23.0, (TypeParam)45.1, (TypeParam)-67.0}};
+	Vector3Type e = {{(TypeParam)-23.0, (TypeParam)45.0, (TypeParam)-67.1}};
+
+	EXPECT_TRUE(dsVector3_relativeEpsilonEqual(&a, &b, epsilon));
+	EXPECT_FALSE(dsVector3_relativeEpsilonEqual(&a, &c, epsilon));
+	EXPECT_FALSE(dsVector3_relativeEpsilonEqual(&a, &d, epsilon));
+	EXPECT_FALSE(dsVector3_relativeEpsilonEqual(&a, &e, epsilon));
 }
 
 TEST(Vector3, ConvertFloatToDouble)

@@ -259,6 +259,22 @@ DS_MATH_EXPORT inline bool dsEpsilonEqualf(float x, float y, float epsilon);
 DS_MATH_EXPORT inline bool dsEpsilonEquald(double x, double y, double epsilon);
 
 /**
+ * @brief Checks to see if two values are equal within a relative epislon.
+ *
+ * This will check first if the values are within epsilon of each-other, then scales the epsilon
+ * based on the maximum value passed in.
+ *
+ * @param x The first value.
+ * @param y The second value.
+ * @param epsilon The epsilon to compare with.
+ * @return True the values of x and y are within epsilon.
+ */
+DS_MATH_EXPORT inline bool dsRelativeEpsilonEqualf(float x, float y, float epsilon);
+
+/** @copydoc dsEpsilonEqualf() */
+DS_MATH_EXPORT inline bool dsRelativeEpsilonEquald(double x, double y, double epsilon);
+
+/**
  * @brief Checks to see if a value is equal to zero within an epsilon.
  * @param x The value.
  * @param epsilon The epsilon to compare with.
@@ -315,6 +331,28 @@ DS_MATH_EXPORT inline bool dsEpsilonEqualf(float x, float y, float epsilon)
 DS_MATH_EXPORT inline bool dsEpsilonEquald(double x, double y, double epsilon)
 {
 	return fabs(x - y) <= epsilon;
+}
+
+DS_MATH_EXPORT inline bool dsRelativeEpsilonEqualf(float x, float y, float epsilon)
+{
+	float diff = fabsf(x - y);
+	if (diff <= epsilon)
+		return true;
+
+	float absX = fabsf(x);
+	float absY = fabsf(y);
+	return diff <= dsMax(absX, absY)*epsilon;
+}
+
+DS_MATH_EXPORT inline bool dsRelativeEpsilonEquald(double x, double y, double epsilon)
+{
+	double diff = fabs(x - y);
+	if (diff <= epsilon)
+		return true;
+
+	double absX = fabs(x);
+	double absY = fabs(y);
+	return diff <= dsMax(absX, absY)*epsilon;
 }
 
 DS_MATH_EXPORT inline bool dsEpsilonEqualsZerof(float x, float epsilon)

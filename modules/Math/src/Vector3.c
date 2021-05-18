@@ -77,3 +77,6 @@ void dsVector3d_normalize(dsVector3d* result, const dsVector3d* a);
 
 bool dsVector3f_epsilonEqual(const dsVector3f* a, const dsVector3f* b, float epsilon);
 bool dsVector3d_epsilonEqual(const dsVector3d* a, const dsVector3d* b, double epsilon);
+
+bool dsVector3f_relativeEpsilonEqual(const dsVector3f* a, const dsVector3f* b, float epsilon);
+bool dsVector3d_relativeEpsilonEqual(const dsVector3d* a, const dsVector3d* b, double epsilon);

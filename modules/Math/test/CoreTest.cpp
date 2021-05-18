@@ -146,6 +146,62 @@ TEST(Core, EpsilonEquald)
 	EXPECT_FALSE(dsEpsilonEquald(-2.345, 2.345, 1e-3));
 }
 
+TEST(Core, RelativeEpsilonEqualf)
+{
+	EXPECT_TRUE(dsRelativeEpsilonEqualf(0.0f, 0.0f, 1e-3f));
+
+	EXPECT_TRUE(dsRelativeEpsilonEqualf(2.345f, 2.3456f, 1e-3f));
+	EXPECT_TRUE(dsRelativeEpsilonEqualf(2.345f, 2.3448f, 1e-3f));
+	EXPECT_FALSE(dsRelativeEpsilonEqualf(2.345f, 2.349f, 1e-3f));
+	EXPECT_FALSE(dsRelativeEpsilonEqualf(2.345f, 2.341f, 1e-3f));
+
+	EXPECT_TRUE(dsRelativeEpsilonEqualf(23.45f, 23.456f, 1e-3f));
+	EXPECT_TRUE(dsRelativeEpsilonEqualf(23.45f, 23.448f, 1e-3f));
+	EXPECT_FALSE(dsRelativeEpsilonEqualf(23.45f, 23.49f, 1e-3f));
+	EXPECT_FALSE(dsRelativeEpsilonEqualf(23.45f, 23.41f, 1e-3f));
+
+	EXPECT_TRUE(dsRelativeEpsilonEqualf(-2.345f, -2.3456f, 1e-3f));
+	EXPECT_TRUE(dsRelativeEpsilonEqualf(-2.345f, -2.3448f, 1e-3f));
+	EXPECT_FALSE(dsRelativeEpsilonEqualf(-2.345f, -2.349f, 1e-3f));
+	EXPECT_FALSE(dsRelativeEpsilonEqualf(-2.345f, -2.341f, 1e-3f));
+
+	EXPECT_TRUE(dsRelativeEpsilonEqualf(-23.45f, -23.456f, 1e-3f));
+	EXPECT_TRUE(dsRelativeEpsilonEqualf(-23.45f, -23.448f, 1e-3f));
+	EXPECT_FALSE(dsRelativeEpsilonEqualf(-23.45f, -23.49f, 1e-3f));
+	EXPECT_FALSE(dsRelativeEpsilonEqualf(-23.45f, -23.41f, 1e-3f));
+
+	EXPECT_FALSE(dsRelativeEpsilonEqualf(-2.345f, 2.345f, 1e-3f));
+	EXPECT_FALSE(dsRelativeEpsilonEqualf(-23.45f, 23.45f, 1e-3f));
+}
+
+TEST(Core, RelativeEpsilonEquald)
+{
+	EXPECT_TRUE(dsRelativeEpsilonEquald(0.0f, 0.0f, 1e-3f));
+
+	EXPECT_TRUE(dsRelativeEpsilonEquald(2.345, 2.3456, 1e-3));
+	EXPECT_TRUE(dsRelativeEpsilonEquald(2.345, 2.3448, 1e-3));
+	EXPECT_FALSE(dsRelativeEpsilonEquald(2.345, 2.349, 1e-3));
+	EXPECT_FALSE(dsRelativeEpsilonEquald(2.345, 2.341, 1e-3));
+
+	EXPECT_TRUE(dsRelativeEpsilonEquald(23.45, 23.456, 1e-3));
+	EXPECT_TRUE(dsRelativeEpsilonEquald(23.45, 23.448, 1e-3));
+	EXPECT_FALSE(dsRelativeEpsilonEquald(23.45, 23.49, 1e-3));
+	EXPECT_FALSE(dsRelativeEpsilonEquald(23.45, 23.41, 1e-3));
+
+	EXPECT_TRUE(dsRelativeEpsilonEquald(-2.345, -2.3456, 1e-3));
+	EXPECT_TRUE(dsRelativeEpsilonEquald(-2.345, -2.3448, 1e-3));
+	EXPECT_FALSE(dsRelativeEpsilonEquald(-2.345, -2.349, 1e-3));
+	EXPECT_FALSE(dsRelativeEpsilonEquald(-2.345, -2.341, 1e-3));
+
+	EXPECT_TRUE(dsRelativeEpsilonEquald(-23.45, -23.456, 1e-3));
+	EXPECT_TRUE(dsRelativeEpsilonEquald(-23.45, -23.448, 1e-3));
+	EXPECT_FALSE(dsRelativeEpsilonEquald(-23.45, -23.49, 1e-3));
+	EXPECT_FALSE(dsRelativeEpsilonEquald(-23.45, -23.41, 1e-3));
+
+	EXPECT_FALSE(dsRelativeEpsilonEquald(-2.345, 2.345, 1e-3));
+	EXPECT_FALSE(dsRelativeEpsilonEquald(-23.45, 23.45, 1e-3));
+}
+
 TEST(Core, EpsilonEqualsZerof)
 {
 	EXPECT_TRUE(dsEpsilonEqualsZerof(0.0f, 1e-3f));
