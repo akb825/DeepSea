@@ -48,6 +48,11 @@ static uint32_t findPlane(const dsShadowCullVolume* volume, const dsPlane3f* pla
 	return notFound;
 }
 
+static bool hasPlane(const dsShadowCullVolume* volume, const dsPlane3f* plane)
+{
+	return findPlane(volume, plane) != notFound;
+}
+
 static bool hasCorner(const dsShadowCullVolume* volume, float x, float y, float z, uint32_t p0,
 	uint32_t p1, uint32_t p2)
 {
@@ -70,7 +75,7 @@ static bool hasCorner(const dsShadowCullVolume* volume, float x, float y, float 
 	return false;
 }
 
-static bool hasCorner(const dsShadowCullVolume* volume, float x, float y, float z)
+static uint32_t findCorner(const dsShadowCullVolume* volume, float x, float y, float z)
 {
 	const float epsilon = 1e-2f;
 	for (uint32_t i = 0; i < volume->cornerCount; ++i)
@@ -80,11 +85,16 @@ static bool hasCorner(const dsShadowCullVolume* volume, float x, float y, float 
 			dsEpsilonEqualf(corner->point.y, y, epsilon) &&
 			dsEpsilonEqualf(corner->point.z, z, epsilon))
 		{
-			return true;
+			return i;
 		}
 	}
 
-	return false;
+	return notFound;
+}
+
+static bool hasCorner(const dsShadowCullVolume* volume, float x, float y, float z)
+{
+	return findCorner(volume, x, y, z) != notFound;
 }
 
 TEST_F(ShadowVolumeCullTest, DirectionalPerpendicular)
@@ -218,4 +228,55 @@ TEST_F(ShadowVolumeCullTest, SpotNonIntersecting)
 	EXPECT_EQ(0U, volume.planeCount);
 	EXPECT_EQ(0U, volume.edgeCount);
 	EXPECT_EQ(0U, volume.cornerCount);
+}
+
+TEST_F(ShadowVolumeCullTest, SpotIntersecting)
+{
+	dsMatrix44f projection;
+	dsRenderer_makeOrtho(&projection, renderer, -2, 4, -3, 5, 1, 100);
+	dsFrustum3f frustum;
+	dsRenderer_frustumFromMatrix(&frustum, renderer, &projection);
+
+	dsMatrix44f baseLightProjection;
+	dsRenderer_makeFrustum(&baseLightProjection, renderer, -1, 1, -1, 1, 1, 100);
+	dsMatrix44f translate, rotate, transform;
+	dsMatrix44f_makeTranslate(&translate, 0, 0, 10);
+	dsMatrix44f_makeRotate(&rotate, float(M_PI)/4, -float(M_PI)/4, float(M_PI)/4);
+	dsMatrix44_mul(transform, rotate, translate);
+
+	dsMatrix44f lightProjection;
+	dsMatrix44_mul(lightProjection, baseLightProjection, transform);
+	dsFrustum3f lightFrustum;
+	dsRenderer_frustumFromMatrix(&lightFrustum, renderer, &lightProjection);
+
+	dsShadowCullVolume volume;
+	dsShadowCullVolume_buildSpot(&volume, &frustum, &lightFrustum);
+
+	ASSERT_EQ(6U, volume.planeCount);
+	EXPECT_TRUE(hasPlane(&volume, frustum.planes + dsFrustumPlanes_Left));
+	EXPECT_TRUE(hasPlane(&volume, frustum.planes + dsFrustumPlanes_Bottom));
+
+	uint32_t lightLeft = findPlane(&volume, lightFrustum.planes + dsFrustumPlanes_Left);
+	uint32_t lightRight = findPlane(&volume, lightFrustum.planes + dsFrustumPlanes_Right);
+	uint32_t lightBottom = findPlane(&volume, lightFrustum.planes + dsFrustumPlanes_Bottom);
+	uint32_t lightTop = findPlane(&volume, lightFrustum.planes + dsFrustumPlanes_Top);
+	ASSERT_NE(notFound, lightLeft);
+	ASSERT_NE(notFound, lightRight);
+	ASSERT_NE(notFound, lightBottom);
+	ASSERT_NE(notFound, lightTop);
+
+	EXPECT_EQ(11U, volume.edgeCount);
+	EXPECT_EQ(7U, volume.cornerCount);
+
+	// Transform is world to local. Take inverse for local to world, where the last column is the
+	// light position in world space.
+	dsMatrix44f transformInv;
+	dsMatrix44f_affineInvert(&transformInv, &transform);
+
+	uint32_t lightPosCorner = findCorner(&volume, transformInv.values[3][0],
+		transformInv.values[3][1], transformInv.values[3][2]);
+	ASSERT_LT(lightPosCorner, volume.cornerCount);
+	uint32_t lightCornerPlanes = (1 << lightLeft) | (1 << lightRight) | (1 << lightTop) |
+		(1 << lightBottom);
+	EXPECT_EQ(lightCornerPlanes, volume.corners[lightPosCorner].planes);
 }
