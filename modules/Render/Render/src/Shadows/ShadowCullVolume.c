@@ -17,10 +17,17 @@
 #include <DeepSea/Render/Shadows/ShadowCullVolume.h>
 
 #include <DeepSea/Core/Assert.h>
+#include <DeepSea/Core/Bits.h>
 #include <DeepSea/Core/Error.h>
+
+#include <DeepSea/Geometry/AlignedBox3.h>
+#include <DeepSea/Geometry/OrientedBox3.h>
 #include <DeepSea/Geometry/Plane3.h>
+
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Math/Vector3.h>
+
+#include <DeepSea/Render/Shadows/ShadowProjection.h>
 
 #include <float.h>
 
@@ -212,7 +219,7 @@ static void computeEdgesAndCorners(dsShadowCullVolume* volume, const dsPlane3d* 
 	}
 }
 
-void removeUnusedPlanes(dsShadowCullVolume* volume)
+static void removeUnusedPlanes(dsShadowCullVolume* volume)
 {
 	for (uint32_t i = 0; i < volume->planeCount;)
 	{
@@ -258,6 +265,101 @@ void removeUnusedPlanes(dsShadowCullVolume* volume)
 
 		--volume->planeCount;
 	}
+}
+
+static void addPointsToProjection(const dsShadowCullVolume* volume, dsVector3f* points,
+	uint32_t pointCount, dsShadowProjection* shadowProj, bool intersects)
+{
+	if (!intersects)
+	{
+		DS_VERIFY(dsShadowProjection_addPoints(shadowProj, points, pointCount));
+		return;
+	}
+
+	for (uint32_t i = 0; i < pointCount; ++i)
+	{
+		// Find which planes the point is outside of.
+		dsVector3f* point = points + i;
+		uint32_t outsidePlanes = 0;
+		uint32_t outsideCount = 0;
+		for (uint32_t j = 0; j < volume->planeCount; ++j)
+		{
+			float distance = dsPlane3_distanceToPoint(volume->planes[j], *point);
+			if (distance < -baseEpsilon)
+			{
+				outsidePlanes |= 1 << j;
+				++outsideCount;
+			}
+		}
+
+		// All inside, leave the point alone.
+		if (outsidePlanes == 0)
+			continue;
+
+		// Volume should be a convex hull, so we should be able to identify corners or edges to
+		// clamp to based on the planes that are outside.
+		if (outsideCount >= 3)
+		{
+			bool found = false;
+			for (uint32_t j = 0; j < volume->cornerCount; ++j)
+			{
+				const dsShadowCullCorner* corner = volume->corners + j;
+				if ((outsidePlanes & corner->planes) == corner->planes)
+				{
+					*point = corner->point;
+					found = true;
+					break;
+				}
+			}
+
+			if (found)
+				continue;
+		}
+
+		// Failed to find a corner, so next find an edge.
+		if (outsideCount >= 2)
+		{
+			bool found = false;
+			for (uint32_t j = 0; j < volume->edgeCount; ++j)
+			{
+				const dsShadowCullEdge* edge = volume->edges + j;
+				if ((outsidePlanes & edge->planes) == edge->planes)
+				{
+					// Find the closest point on the line.
+					dsVector3f relativeDir;
+					dsVector3_sub(relativeDir, *point, edge->edge.origin);
+					float t = dsVector3_dot(relativeDir, edge->edge.direction);
+
+					dsVector3f offset;
+					dsVector3_scale(offset, edge->edge.direction, t);
+					dsVector3_add(*point, edge->edge.origin, offset);
+
+					found = true;
+					break;
+				}
+			}
+
+			if (found)
+				continue;
+		}
+
+		// Clamp to each plane it lies behind if we couldn't match against a corner or edge.
+		for (uint32_t mask = outsidePlanes; mask; mask = dsRemoveLastBit(mask))
+		{
+			uint32_t j = dsBitmaskIndex(mask);
+			const dsPlane3f* plane = volume->planes + j;
+			float distance = dsPlane3_distanceToPoint(*plane, *point);
+			// An earlier adjustment may have put it outside of the plane.
+			if (distance > 0)
+				continue;
+
+			dsVector3f offset;
+			dsVector3_scale(offset, plane->n, -distance);
+			dsVector3_add(*point, *point, offset);
+		}
+	}
+
+	DS_VERIFY(dsShadowProjection_addPoints(shadowProj, points, pointCount));
 }
 
 bool dsShadowCullVolume_buildDirectional(dsShadowCullVolume* volume,
@@ -369,4 +471,99 @@ bool dsShadowCullVolume_buildSpot(dsShadowCullVolume* volume, const dsFrustum3f*
 	computeEdgesAndCorners(volume, planes, baseEpsilon);
 	removeUnusedPlanes(volume);
 	return true;
+}
+
+dsIntersectResult dsShadowCullVolume_intersectAlignedBox(const dsShadowCullVolume* volume,
+	const dsAlignedBox3f* box, dsShadowProjection* shadowProj)
+{
+	if (!volume || !box)
+		return dsIntersectResult_Outside;
+
+	bool intersects = false;
+	for (uint32_t i = 0; i < volume->planeCount; ++i)
+	{
+		dsIntersectResult planeResult = dsPlane3f_intersectAlignedBox(volume->planes + i, box);
+		switch (planeResult)
+		{
+			case dsIntersectResult_Outside:
+				return dsIntersectResult_Outside;
+			case dsIntersectResult_Intersects:
+				intersects = true;
+				break;
+			default:
+				break;
+		}
+	}
+
+	if (shadowProj)
+	{
+		dsVector3f corners[DS_BOX3_CORNER_COUNT];
+		dsAlignedBox3_corners(corners, *box);
+		addPointsToProjection(volume, corners, DS_BOX3_CORNER_COUNT, shadowProj, intersects);
+	}
+
+	return intersects ? dsIntersectResult_Intersects : dsIntersectResult_Inside;
+}
+
+dsIntersectResult dsShadowCullVolume_intersectOrientedBox(const dsShadowCullVolume* volume,
+	const dsOrientedBox3f* box, dsShadowProjection* shadowProj)
+{
+	if (!volume || !box)
+		return dsIntersectResult_Outside;
+
+	bool intersects = false;
+	for (uint32_t i = 0; i < volume->planeCount; ++i)
+	{
+		dsIntersectResult planeResult = dsPlane3f_intersectOrientedBox(volume->planes + i, box);
+		switch (planeResult)
+		{
+			case dsIntersectResult_Outside:
+				return dsIntersectResult_Outside;
+			case dsIntersectResult_Intersects:
+				intersects = true;
+				break;
+			default:
+				break;
+		}
+	}
+
+	if (shadowProj)
+	{
+		dsVector3f corners[DS_BOX3_CORNER_COUNT];
+		dsOrientedBox3f_corners(corners, box);
+		addPointsToProjection(volume, corners, DS_BOX3_CORNER_COUNT, shadowProj, intersects);
+	}
+
+	return intersects ? dsIntersectResult_Intersects : dsIntersectResult_Inside;
+}
+
+dsIntersectResult dsShadowCullVolume_intersectSphere(const dsShadowCullVolume* volume,
+	const dsVector3f* center, float radius, dsShadowProjection* shadowProj)
+{
+	if (!volume || !center || radius < 0)
+		return dsIntersectResult_Outside;
+
+	bool intersects = false;
+	for (uint32_t i = 0; i < volume->planeCount; ++i)
+	{
+		float distance = dsPlane3_distanceToPoint(volume->planes[i], *center);
+		if (distance < -radius)
+			return dsIntersectResult_Outside;
+		else if (distance <= radius)
+			intersects = true;
+	}
+
+	if (shadowProj)
+	{
+		dsAlignedBox3f box;
+		dsVector3f radiusVec = {{radius, radius, radius}};
+		dsVector3_sub(box.min, *center, radiusVec);
+		dsVector3_add(box.max, *center, radiusVec);
+
+		dsVector3f corners[DS_BOX3_CORNER_COUNT];
+		dsAlignedBox3_corners(corners, box);
+		addPointsToProjection(volume, corners, DS_BOX3_CORNER_COUNT, shadowProj, intersects);
+	}
+
+	return intersects ? dsIntersectResult_Intersects : dsIntersectResult_Inside;
 }

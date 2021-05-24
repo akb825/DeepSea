@@ -67,6 +67,47 @@ DS_RENDER_EXPORT bool dsShadowCullVolume_buildDirectional(dsShadowCullVolume* vo
 DS_RENDER_EXPORT bool dsShadowCullVolume_buildSpot(dsShadowCullVolume* volume,
 	const dsFrustum3f* viewFrustum, const dsFrustum3f* lightFrustum);
 
+/**
+ * @brief Intersects an aligned box with a shadow cull volume.
+ * @param volume The cull volume to intersect.
+ * @param box The aligned box to intersect with.
+ * @param shadowProj Optional shadow projection to add the results to. If not NULL, and the box
+ *     intersects with the volume, the corners will be clamped to the volume and added to the
+ *     projection.
+ * @return The intersection result. Inside and outside is with respect to the volume. If the box
+ *     fully contains the frustum, dsIntersectResult_Intersects will be returned.
+ */
+DS_RENDER_EXPORT dsIntersectResult dsShadowCullVolume_intersectAlignedBox(
+	const dsShadowCullVolume* volume, const dsAlignedBox3f* box, dsShadowProjection* shadowProj);
+
+/**
+ * @brief Intersects an oriented box with a shadow cull volume.
+ * @param volume The cull volume to intersect.
+ * @param box The oriented box to intersect with.
+ * @param shadowProj Optional shadow projection to add the results to. If not NULL, and the box
+ *     intersects with the volume, the corners will be clamped to the volume and added to the
+ *     projection.
+ * @return The intersection result. Inside and outside is with respect to the volume. If the box
+ *     fully contains the frustum, dsIntersectResult_Intersects will be returned.
+ */
+DS_RENDER_EXPORT dsIntersectResult dsShadowCullVolume_intersectOrientedBox(
+	const dsShadowCullVolume* volume, const dsOrientedBox3f* box, dsShadowProjection* shadowProj);
+
+/**
+ * @brief Intersects a sphere a shadow cull volume.
+ * @param volume The cull volume to intersect.
+ * @param center The center of the sphere.
+ * @param radius The radius of the sphere.
+ * @param shadowProj Optional shadow projection to add the results to. If not NULL, and the sphere
+ *     intersects with the volume, the corners of a box fitting the sphere will be clamped to the
+ *     volume and added to the projection.
+ * @return The intersection result. Inside and outside is with respect to the volume. If the sphere
+ *     fully contains the frustum, dsIntersectResult_Intersects will be returned.
+ */
+DS_RENDER_EXPORT dsIntersectResult dsShadowCullVolume_intersectSphere(
+	const dsShadowCullVolume* volume, const dsVector3f* center, float radius,
+	dsShadowProjection* shadowProj);
+
 #ifdef __cplusplus
 }
 #endif
