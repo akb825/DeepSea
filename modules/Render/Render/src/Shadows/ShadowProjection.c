@@ -136,7 +136,7 @@ bool dsShadowProjection_initialize(dsShadowProjection* shadowProj, const dsRende
 		dsVector3_neg(viewDown, viewDown);
 
 		DS_ASSERT(camera->columns[3].w == 1);
-		dsMatrix44_transform(proj, *lightProjection, camera->columns[2]);
+		dsMatrix44_transform(proj, *lightProjection, camera->columns[3]);
 		float invW = 1/proj.w;
 		dsVector3_scale(viewPos, proj, invW);
 
