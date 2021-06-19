@@ -343,6 +343,18 @@ typedef enum dsPrimitiveType
 } dsPrimitiveType;
 
 /**
+ * @brief Enum for the type of a projection.
+ * @see dsProjectionParams
+ * @see ProjectionParams.h
+ */
+typedef enum dsProjectionType
+{
+	dsProjectionType_Ortho,      ///< Orthographic projection.
+	dsProjectionType_Frustum,    ///< Frustum with all planes explicitly given.
+	dsProjectionType_Perspective ///< Frustum with typical perspective parameters.
+} dsProjectionType;
+
+/**
  * @brief Base object for interfacing with the DeepSea Render library.
  *
  * To ensure a lack of contention for system resources, only one dsRenderer instance should be used
@@ -1256,6 +1268,101 @@ typedef struct dsGfxMemoryBarrier
 	 */
 	dsGfxAccess afterAccess;
 } dsGfxMemoryBarrier;
+
+/**
+ * @brief Struct containing the planes for an orthographic or frustum projection matrix.
+ * @see dsProjectionParams
+ * @see ProjectionParams.h
+ */
+typedef struct dsProjectionPlanes
+{
+	/**
+	 * @brief The left plane.
+	 */
+	float left;
+
+	/**
+	 * @brief The right plane.
+	 */
+	float right;
+
+	/**
+	 * @brief The bottom plane.
+	 */
+	float bottom;
+
+	/**
+	 * @brief The top plane.
+	 */
+	float top;
+
+	/**
+	 * @brief The near plane.
+	 */
+	float near;
+
+	/**
+	 * @brief The far plane.
+	 *
+	 * This may be INFINITY for the frustum projection type.
+	 */
+	float far;
+} dsProjectionPlanes;
+
+/**
+ * @brief Struct containing the parameters of a perspective projection matrix.
+ * @see dsProjectionParams
+ * @see ProjectionParams.h
+ */
+typedef struct dsPerspectiveParams
+{
+	/**
+	 * @brief he field of view in the Y direction in radians.
+	 */
+	float fovy;
+
+	/**
+	 * @brief The aspect ratio as X/Y.
+	 */
+	float aspect;
+
+	/**
+	 * @brief The near plane.
+	 */
+	float near;
+
+	/**
+	 * @brief The far plane.
+	 *
+	 * This may be INFINITY.
+	 */
+	float far;
+} dsPerspectiveParams;
+
+/**
+ * @brief Struct containing the parameters of a projection matrix.
+ * @see ProjectionParams.h
+ */
+typedef struct dsProjectionParams
+{
+	/**
+	 * @brief The type of the projection.
+	 */
+	dsProjectionType type;
+
+	union
+	{
+		/**
+		 * @brief The planes used for orthographic and frustum projection types.
+		 */
+		dsProjectionPlanes projectionPlanes;
+
+		/**
+		 * @brief Parameters for the perspective projection type.
+		 */
+		dsPerspectiveParams perspectiveParams;
+	};
+} dsProjectionParams;
 
 /// @cond Doxygen_Suppress
 typedef struct dsGPUProfileContext dsGPUProfileContext;

@@ -476,7 +476,7 @@ bool dsRenderer_shaderVersionFromString(dsShaderVersion* outVersion, const dsRen
 bool dsRenderer_makeOrtho(dsMatrix44f* result, const dsRenderer* renderer, float left, float right,
 	float bottom, float top, float near, float far)
 {
-	if (!result || !renderer ||  left == right || bottom == top || near == far)
+	if (!result || !renderer || left == right || bottom == top || near == far)
 	{
 		errno = EINVAL;
 		return false;
@@ -490,7 +490,7 @@ bool dsRenderer_makeOrtho(dsMatrix44f* result, const dsRenderer* renderer, float
 bool dsRenderer_makeFrustum(dsMatrix44f* result, const dsRenderer* renderer, float left,
 	float right, float bottom, float top, float near, float far)
 {
-	if (!result || !renderer ||  left == right || bottom == top || near == far)
+	if (!result || !renderer || left == right || bottom == top || near == far)
 	{
 		errno = EINVAL;
 		return false;
@@ -504,7 +504,7 @@ bool dsRenderer_makeFrustum(dsMatrix44f* result, const dsRenderer* renderer, flo
 bool dsRenderer_makePerspective(dsMatrix44f* result, const dsRenderer* renderer, float fovy,
 	float aspect, float near, float far)
 {
-	if (!result || !renderer ||  fovy == 0 || aspect == 0|| near == far)
+	if (!result || !renderer || fovy == 0 || aspect == 0|| near == far)
 	{
 		errno = EINVAL;
 		return false;

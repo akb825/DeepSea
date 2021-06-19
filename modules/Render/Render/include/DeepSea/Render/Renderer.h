@@ -191,9 +191,9 @@ DS_RENDER_EXPORT bool dsRenderer_makePerspective(dsMatrix44f* result, const dsRe
  * The frustum will be normalized.
  *
  * @remark errno will be set on failure.
- * @remark The planes aren't guaranteed to be normalized.
- * @param renderer The renderer to create the frustum for.
+ * @remark The planes will be normalized.
  * @param[out] result The resulting frustum.
+ * @param renderer The renderer to create the frustum for.
  * @param matrix The projection matrix to extract the frustum planes from.
  * @return False if the parameters are invalid.
  */
