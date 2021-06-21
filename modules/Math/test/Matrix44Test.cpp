@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -483,7 +483,7 @@ TYPED_TEST(Matrix44Test, MakeRotate)
 	TypeParam epsilon = Matrix44TypeSelector<TypeParam>::epsilon;
 
 	Matrix44Type rotateX;
-	dsMatrix44_makeRotate(&rotateX, (TypeParam)dsDegreesToRadians(30), 0, 0);
+	dsMatrix44_makeRotate(&rotateX, (TypeParam)dsDegreesToRadiansd(30), 0, 0);
 
 	EXPECT_EQ((TypeParam)1, rotateX.values[0][0]);
 	EXPECT_EQ((TypeParam)0, rotateX.values[0][1]);
@@ -506,7 +506,7 @@ TYPED_TEST(Matrix44Test, MakeRotate)
 	EXPECT_EQ((TypeParam)1, rotateX.values[3][3]);
 
 	Matrix44Type rotateY;
-	dsMatrix44_makeRotate(&rotateY, 0, (TypeParam)dsDegreesToRadians(-15), 0);
+	dsMatrix44_makeRotate(&rotateY, 0, (TypeParam)dsDegreesToRadiansd(-15), 0);
 
 	EXPECT_NEAR((TypeParam)0.9659258262890683, rotateY.values[0][0], epsilon);
 	EXPECT_EQ((TypeParam)0, rotateY.values[0][1]);
@@ -529,7 +529,7 @@ TYPED_TEST(Matrix44Test, MakeRotate)
 	EXPECT_EQ((TypeParam)1, rotateY.values[3][3]);
 
 	Matrix44Type rotateZ;
-	dsMatrix44_makeRotate(&rotateZ, 0, 0, (TypeParam)dsDegreesToRadians(60));
+	dsMatrix44_makeRotate(&rotateZ, 0, 0, (TypeParam)dsDegreesToRadiansd(60));
 
 	EXPECT_NEAR((TypeParam)0.5, rotateZ.values[0][0], epsilon);
 	EXPECT_NEAR((TypeParam)0.866025403784439, rotateZ.values[0][1], epsilon);
@@ -556,8 +556,8 @@ TYPED_TEST(Matrix44Test, MakeRotate)
 	dsMatrix44_mul(result, rotateZ, temp);
 
 	Matrix44Type rotateXYZ;
-	dsMatrix44_makeRotate(&rotateXYZ, (TypeParam)dsDegreesToRadians(30),
-		(TypeParam)dsDegreesToRadians(-15), (TypeParam)dsDegreesToRadians(60));
+	dsMatrix44_makeRotate(&rotateXYZ, (TypeParam)dsDegreesToRadiansd(30),
+		(TypeParam)dsDegreesToRadiansd(-15), (TypeParam)dsDegreesToRadiansd(60));
 
 	EXPECT_NEAR(result.values[0][0], rotateXYZ.values[0][0], epsilon);
 	EXPECT_NEAR(result.values[0][1], rotateXYZ.values[0][1], epsilon);
@@ -591,7 +591,7 @@ TYPED_TEST(Matrix44Test, MakeRotateAxisAngle)
 	dsVector3_normalize(&axis, &axis);
 	Matrix44Type matrix;
 	dsMatrix44_makeRotateAxisAngle(&matrix, &axis,
-		(TypeParam)dsDegreesToRadians(17.188733853924894));
+		(TypeParam)dsDegreesToRadiansd(17.188733853924894));
 
 	EXPECT_NEAR((TypeParam)0.96608673169969, matrix.values[0][0], epsilon);
 	EXPECT_NEAR((TypeParam)0.25673182392846, matrix.values[0][1], epsilon);
@@ -684,7 +684,7 @@ TYPED_TEST(Matrix44Test, LookAt)
 	dsMatrix44_lookAt(&matrix, &eyePos, &lookAtPos, &upDir);
 
 	Matrix44Type rotation, translation, reference;
-	dsMatrix44_makeRotate(&rotation, (TypeParam)dsDegreesToRadians(45), 0, 0);
+	dsMatrix44_makeRotate(&rotation, (TypeParam)dsDegreesToRadiansd(45), 0, 0);
 	dsMatrix44_makeTranslate(&translation, eyePos.x, eyePos.y, eyePos.z);
 	dsMatrix44_mul(reference, translation, rotation);
 
@@ -715,8 +715,8 @@ TYPED_TEST(Matrix44Test, FastInvert)
 	TypeParam epsilon = Matrix44TypeSelector<TypeParam>::epsilon;
 
 	Matrix44Type rotate;
-	dsMatrix44_makeRotate(&rotate, (TypeParam)dsDegreesToRadians(30),
-		(TypeParam)dsDegreesToRadians(-15), (TypeParam)dsDegreesToRadians(60));
+	dsMatrix44_makeRotate(&rotate, (TypeParam)dsDegreesToRadiansd(30),
+		(TypeParam)dsDegreesToRadiansd(-15), (TypeParam)dsDegreesToRadiansd(60));
 
 	Matrix44Type translate;
 	dsMatrix44_makeTranslate(&translate, (TypeParam)1.2, (TypeParam)-3.4, (TypeParam)5.6);
@@ -757,8 +757,8 @@ TYPED_TEST(Matrix44Test, AffineInvert)
 	TypeParam epsilon = Matrix44TypeSelector<TypeParam>::epsilon;
 
 	Matrix44Type rotate;
-	dsMatrix44_makeRotate(&rotate, (TypeParam)dsDegreesToRadians(30),
-		(TypeParam)dsDegreesToRadians(-15), (TypeParam)dsDegreesToRadians(60));
+	dsMatrix44_makeRotate(&rotate, (TypeParam)dsDegreesToRadiansd(30),
+		(TypeParam)dsDegreesToRadiansd(-15), (TypeParam)dsDegreesToRadiansd(60));
 
 	Matrix44Type translate;
 	dsMatrix44_makeTranslate(&translate, (TypeParam)1.2, (TypeParam)-3.4, (TypeParam)5.6);
@@ -805,8 +805,8 @@ TYPED_TEST(Matrix44Test, InverseTranspose)
 	TypeParam epsilon = Matrix44TypeSelector<TypeParam>::epsilon;
 
 	Matrix44Type rotate;
-	dsMatrix44_makeRotate(&rotate, (TypeParam)dsDegreesToRadians(30),
-		(TypeParam)dsDegreesToRadians(-15), (TypeParam)dsDegreesToRadians(60));
+	dsMatrix44_makeRotate(&rotate, (TypeParam)dsDegreesToRadiansd(30),
+		(TypeParam)dsDegreesToRadiansd(-15), (TypeParam)dsDegreesToRadiansd(60));
 
 	Matrix44Type translate;
 	dsMatrix44_makeTranslate(&translate, (TypeParam)1.2, (TypeParam)-3.4, (TypeParam)5.6);
@@ -1006,7 +1006,7 @@ TYPED_TEST(Matrix44Test, MakePerspective)
 	typedef typename Matrix44TypeSelector<TypeParam>::Vector4Type Vector4Type;
 	TypeParam epsilon = Matrix44TypeSelector<TypeParam>::epsilon;
 
-	TypeParam fov = (TypeParam)dsDegreesToRadians(30);
+	TypeParam fov = (TypeParam)dsDegreesToRadiansd(30);
 	TypeParam aspect = (TypeParam)1.5;
 	TypeParam halfHeight = std::tan(fov/2);
 	TypeParam halfWidth = aspect*halfHeight;

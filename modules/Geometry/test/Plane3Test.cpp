@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -258,8 +258,8 @@ TYPED_TEST(Plane3Test, Transform)
 
 	Matrix44Type rotate, translate, transform;
 
-	dsMatrix44_makeRotate(&rotate, (TypeParam)dsDegreesToRadians(30),
-		(TypeParam)dsDegreesToRadians(-15), (TypeParam)dsDegreesToRadians(60));
+	dsMatrix44_makeRotate(&rotate, (TypeParam)dsDegreesToRadiansd(30),
+		(TypeParam)dsDegreesToRadiansd(-15), (TypeParam)dsDegreesToRadiansd(60));
 	dsMatrix44_makeTranslate(&translate, -3, 5, -1);
 
 	dsMatrix44_mul(transform, translate, rotate);
@@ -286,8 +286,8 @@ TYPED_TEST(Plane3Test, TransformInverseTranspose)
 
 	Matrix44Type rotate, translate, transform, inverseTranspose;
 
-	dsMatrix44_makeRotate(&rotate, (TypeParam)dsDegreesToRadians(30),
-		(TypeParam)dsDegreesToRadians(-15), (TypeParam)dsDegreesToRadians(60));
+	dsMatrix44_makeRotate(&rotate, (TypeParam)dsDegreesToRadiansd(30),
+		(TypeParam)dsDegreesToRadiansd(-15), (TypeParam)dsDegreesToRadiansd(60));
 	dsMatrix44_makeTranslate(&translate, -3, 5, -1);
 
 	dsMatrix44_mul(transform, translate, rotate);

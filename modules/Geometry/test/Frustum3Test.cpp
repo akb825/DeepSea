@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -425,7 +425,7 @@ TYPED_TEST(Frustum3Test, FromPerspective)
 	typedef typename Frustum3TypeSelector<TypeParam>::Frustum3Type Frustum3Type;
 	TypeParam epsilon = Frustum3TypeSelector<TypeParam>::epsilon;
 
-	TypeParam fovY = (TypeParam)dsDegreesToRadians(30);
+	TypeParam fovY = (TypeParam)dsDegreesToRadiansd(30);
 	TypeParam aspect = (TypeParam)1.5;
 	TypeParam halfFovX = std::atan(std::tan(fovY/2)*aspect);
 	Matrix44Type matrix;
@@ -675,8 +675,8 @@ TYPED_TEST(Frustum3Test, Transform)
 	dsFrustum3_fromMatrix(frustum, matrix, false, false);
 
 	Matrix44Type rotate, translate, transform;
-	dsMatrix44_makeRotate(&rotate, (TypeParam)dsDegreesToRadians(30),
-		(TypeParam)dsDegreesToRadians(-15), (TypeParam)dsDegreesToRadians(60));
+	dsMatrix44_makeRotate(&rotate, (TypeParam)dsDegreesToRadiansd(30),
+		(TypeParam)dsDegreesToRadiansd(-15), (TypeParam)dsDegreesToRadiansd(60));
 	dsMatrix44_makeTranslate(&translate, -3, 5, -1);
 
 	dsMatrix44_mul(transform, translate, rotate);
@@ -710,8 +710,8 @@ TYPED_TEST(Frustum3Test, TransformInverseTranspose)
 	dsFrustum3_fromMatrix(frustum, matrix, false, false);
 
 	Matrix44Type rotate, translate, transform, inverseTranspose;
-	dsMatrix44_makeRotate(&rotate, (TypeParam)dsDegreesToRadians(30),
-		(TypeParam)dsDegreesToRadians(-15), (TypeParam)dsDegreesToRadians(60));
+	dsMatrix44_makeRotate(&rotate, (TypeParam)dsDegreesToRadiansd(30),
+		(TypeParam)dsDegreesToRadiansd(-15), (TypeParam)dsDegreesToRadiansd(60));
 	dsMatrix44_makeTranslate(&translate, -3, 5, -1);
 
 	dsMatrix44_mul(transform, translate, rotate);
@@ -837,8 +837,8 @@ TYPED_TEST(Frustum3Test, IntersectedOrientedBox)
 	AlignedBox3Type alignedBox = {{{0, 1, 2}}, {{1, (TypeParam)2.5, (TypeParam)3.5}}};
 	OrientedBox3Type box;
 	dsOrientedBox3_fromAlignedBox(box, alignedBox);
-	dsMatrix33_makeRotate3D(&box.orientation, (TypeParam)dsDegreesToRadians(30),
-		(TypeParam)dsDegreesToRadians(-15), (TypeParam)dsDegreesToRadians(60));
+	dsMatrix33_makeRotate3D(&box.orientation, (TypeParam)dsDegreesToRadiansd(30),
+		(TypeParam)dsDegreesToRadiansd(-15), (TypeParam)dsDegreesToRadiansd(60));
 
 	EXPECT_EQ(dsIntersectResult_Inside, dsFrustum3_intersectOrientedBox(&frustum, &box));
 

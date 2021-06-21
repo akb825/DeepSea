@@ -416,8 +416,8 @@ TYPED_TEST(OrientedBox3Test, Transform)
 
 	Matrix44Type rotate, translate, scale, temp, transform;
 
-	dsMatrix44_makeRotate(&rotate, (TypeParam)dsDegreesToRadians(30),
-		(TypeParam)dsDegreesToRadians(-15), (TypeParam)dsDegreesToRadians(60));
+	dsMatrix44_makeRotate(&rotate, (TypeParam)dsDegreesToRadiansd(30),
+		(TypeParam)dsDegreesToRadiansd(-15), (TypeParam)dsDegreesToRadiansd(60));
 	dsMatrix44_makeTranslate(&translate, -2, 5, -1);
 	dsMatrix44_makeScale(&scale, 7, 8, 6);
 
@@ -484,8 +484,8 @@ TYPED_TEST(OrientedBox3Test, TransformIncremental)
 
 	Matrix44Type rotate, translate, scale, temp, transform;
 
-	dsMatrix44_makeRotate(&rotate, (TypeParam)dsDegreesToRadians(30),
-		(TypeParam)dsDegreesToRadians(-15), (TypeParam)dsDegreesToRadians(60));
+	dsMatrix44_makeRotate(&rotate, (TypeParam)dsDegreesToRadiansd(30),
+		(TypeParam)dsDegreesToRadiansd(-15), (TypeParam)dsDegreesToRadiansd(60));
 	dsMatrix44_makeTranslate(&translate, -2, 5, -1);
 	dsMatrix44_makeScale(&scale, 7, 8, 6);
 
@@ -556,8 +556,8 @@ TYPED_TEST(OrientedBox3Test, AddBox)
 
 	Matrix44Type rotate, translate, scale, temp, transform;
 
-	dsMatrix44_makeRotate(&rotate, (TypeParam)dsDegreesToRadians(30),
-		(TypeParam)dsDegreesToRadians(-15), (TypeParam)dsDegreesToRadians(60));
+	dsMatrix44_makeRotate(&rotate, (TypeParam)dsDegreesToRadiansd(30),
+		(TypeParam)dsDegreesToRadiansd(-15), (TypeParam)dsDegreesToRadiansd(60));
 	dsMatrix44_makeTranslate(&translate, -2, 5, -1);
 	dsMatrix44_makeScale(&scale, 7, 8, 6);
 
@@ -601,8 +601,8 @@ TYPED_TEST(OrientedBox3Test, Intersects)
 	};
 
 	Matrix44Type rotate;
-	dsMatrix44_makeRotate(&rotate, (TypeParam)dsDegreesToRadians(30),
-		(TypeParam)dsDegreesToRadians(-15), (TypeParam)dsDegreesToRadians(60));
+	dsMatrix44_makeRotate(&rotate, (TypeParam)dsDegreesToRadiansd(30),
+		(TypeParam)dsDegreesToRadiansd(-15), (TypeParam)dsDegreesToRadiansd(60));
 	dsOrientedBox3_transform(&otherBox, &rotate);
 
 	otherBox.center.x = 6;

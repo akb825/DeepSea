@@ -351,7 +351,7 @@ TYPED_TEST(OrientedBox2Test, Transform)
 
 	Matrix33Type rotate, translate, scale, temp, transform;
 
-	dsMatrix33_makeRotate(&rotate, (TypeParam)dsDegreesToRadians(30));
+	dsMatrix33_makeRotate(&rotate, (TypeParam)dsDegreesToRadiansd(30));
 	dsMatrix33_makeTranslate(&translate, -2, 5);
 	dsMatrix33_makeScale(&scale, 7, 8);
 
@@ -409,7 +409,7 @@ TYPED_TEST(OrientedBox2Test, TransformIncremental)
 
 	Matrix33Type rotate, translate, scale, temp, transform;
 
-	dsMatrix33_makeRotate(&rotate, (TypeParam)dsDegreesToRadians(30));
+	dsMatrix33_makeRotate(&rotate, (TypeParam)dsDegreesToRadiansd(30));
 	dsMatrix33_makeTranslate(&translate, -2, 5);
 	dsMatrix33_makeScale(&scale, 7, 8);
 
@@ -471,7 +471,7 @@ TYPED_TEST(OrientedBox2Test, AddBox)
 
 	Matrix33Type rotate, translate, scale, temp, transform;
 
-	dsMatrix33_makeRotate(&rotate, (TypeParam)dsDegreesToRadians(30));
+	dsMatrix33_makeRotate(&rotate, (TypeParam)dsDegreesToRadiansd(30));
 	dsMatrix33_makeTranslate(&translate, -2, 5);
 	dsMatrix33_makeScale(&scale, 7, 8);
 
@@ -513,7 +513,7 @@ TYPED_TEST(OrientedBox2Test, Intersects)
 	};
 
 	Matrix33Type rotate;
-	dsMatrix33_makeRotate(&rotate, (TypeParam)dsDegreesToRadians(30));
+	dsMatrix33_makeRotate(&rotate, (TypeParam)dsDegreesToRadiansd(30));
 	dsOrientedBox2_transform(&otherBox, &rotate);
 
 	otherBox.center.x = 4;

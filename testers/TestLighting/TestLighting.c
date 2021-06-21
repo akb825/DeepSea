@@ -106,14 +106,6 @@ static bool validateAllocator(dsAllocator* allocator, const char* name)
 	return false;
 }
 
-static void updateProjectionMatrix(dsView* view)
-{
-	dsMatrix44f projection;
-	DS_VERIFY(dsRenderer_makePerspective(&projection, dsScene_getRenderer(view->scene),
-		(float)dsDegreesToRadians(45.0f), (float)view->width/(float)view->height, 0.1f, 100.0f));
-	DS_VERIFY(dsView_setProjectionMatrix(view, &projection));
-}
-
 static bool processEvent(dsApplication* application, dsWindow* window, const dsEvent* event,
 	void* userData)
 {
@@ -139,8 +131,6 @@ static bool processEvent(dsApplication* application, dsWindow* window, const dsE
 			DS_VERIFY(dsView_setDimensions(testLighting->deferredLightView,
 				testLighting->window->surface->width, testLighting->window->surface->height,
 				testLighting->window->surface->rotation));
-			updateProjectionMatrix(testLighting->forwardLightView);
-			updateProjectionMatrix(testLighting->deferredLightView);
 			// Need to update the view again if the surfaces have been set.
 			if (event->type == dsAppEventType_SurfaceInvalidated)
 			{
@@ -248,7 +238,6 @@ static void update(dsApplication* application, double lastFrameTime, void* userD
 	dsMatrix44f camera;
 	dsMatrix44f_lookAt(&camera, &eyePos, &lookAtPos, &upDir);
 	dsView_setCameraMatrix(testLighting->curView, &camera);
-	updateProjectionMatrix(testLighting->curView);
 
 	DS_VERIFY(dsScene_update(testLighting->curScene));
 	DS_VERIFY(dsView_update(testLighting->curView));
@@ -457,7 +446,7 @@ static bool setup(TestLighting* testLighting, dsApplication* application, dsAllo
 
 	uint32_t width = dsApplication_adjustWindowSize(application, 0, 800);
 	uint32_t height = dsApplication_adjustWindowSize(application, 0, 600);
-	testLighting->window = dsWindow_create(application, allocator, "Test Scene", NULL,
+	testLighting->window = dsWindow_create(application, allocator, "Test Lighting", NULL,
 		NULL, width, height, dsWindowFlags_Resizeable | dsWindowFlags_DelaySurfaceCreate,
 		dsRenderSurfaceUsage_ClientRotations);
 	if (!testLighting->window)
@@ -570,6 +559,11 @@ static bool setup(TestLighting* testLighting, dsApplication* application, dsAllo
 
 	testLighting->curScene = testLighting->forwardLightScene;
 	testLighting->curView = testLighting->forwardLightView;
+
+	dsView_setPerspectiveProjection(testLighting->forwardLightView, dsDegreesToRadiansf(45.0f),
+		0.1f, 100.0f);
+	dsView_setPerspectiveProjection(testLighting->deferredLightView, dsDegreesToRadiansf(45.0f),
+		0.1f, 100.0f);
 
 	return true;
 }

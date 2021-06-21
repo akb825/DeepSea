@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,8 +67,10 @@ TEST(Core, Lerp)
 
 TEST(Core, DegreesRadians)
 {
-	EXPECT_DOUBLE_EQ(M_PI, dsDegreesToRadians(180));
-	EXPECT_DOUBLE_EQ(180, dsRadiansToDegrees(M_PI));
+	EXPECT_DOUBLE_EQ(M_PI, dsDegreesToRadiansd(180));
+	EXPECT_DOUBLE_EQ(180, dsRadiansToDegreesd(M_PI));
+	EXPECT_FLOAT_EQ((float)M_PI, dsDegreesToRadiansf(180));
+	EXPECT_FLOAT_EQ(180, dsRadiansToDegreesf((float)M_PI));
 }
 
 TEST(Core, NextPowerOfTwo)

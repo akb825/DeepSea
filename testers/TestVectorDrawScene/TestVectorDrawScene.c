@@ -99,10 +99,8 @@ static bool validateAllocator(dsAllocator* allocator, const char* name)
 static void updateProjectionMatrix(dsView* view)
 {
 	float aspect = (float)view->width/(float)view->height;
-	dsMatrix44f projection;
-	DS_VERIFY(dsRenderer_makeOrtho(&projection, dsScene_getRenderer(view->scene),
-		-aspect*100.0f, aspect*100.0f, -100.0f, 100.0f, -1.0f, 1.0f));
-	DS_VERIFY(dsView_setProjectionMatrix(view, &projection));
+	DS_VERIFY(dsView_setOrthoProjection(
+		view, -aspect*100.0f, aspect*100.0f, -100.0f, 100.0f, -1.0f, 1.0f));
 }
 
 static bool processEvent(dsApplication* application, dsWindow* window, const dsEvent* event,

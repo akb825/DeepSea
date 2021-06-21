@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -383,7 +383,7 @@ TYPED_TEST(Matrix33Test, MakeRotate)
 	TypeParam epsilon = Matrix33TypeSelector<TypeParam>::epsilon;
 
 	Matrix33Type matrix;
-	dsMatrix33_makeRotate(&matrix, (TypeParam)dsDegreesToRadians(30));
+	dsMatrix33_makeRotate(&matrix, (TypeParam)dsDegreesToRadiansd(30));
 
 	EXPECT_NEAR((TypeParam)0.866025403784439, matrix.values[0][0], epsilon);
 	EXPECT_NEAR((TypeParam)0.5, matrix.values[0][1], epsilon);
@@ -404,7 +404,7 @@ TYPED_TEST(Matrix33Test, MakeRotate3D)
 	TypeParam epsilon = Matrix33TypeSelector<TypeParam>::epsilon;
 
 	Matrix33Type rotateX;
-	dsMatrix33_makeRotate3D(&rotateX, (TypeParam)dsDegreesToRadians(30), 0, 0);
+	dsMatrix33_makeRotate3D(&rotateX, (TypeParam)dsDegreesToRadiansd(30), 0, 0);
 
 	EXPECT_EQ((TypeParam)1, rotateX.values[0][0]);
 	EXPECT_EQ((TypeParam)0, rotateX.values[0][1]);
@@ -419,7 +419,7 @@ TYPED_TEST(Matrix33Test, MakeRotate3D)
 	EXPECT_NEAR((TypeParam)0.866025403784439, rotateX.values[2][2], epsilon);
 
 	Matrix33Type rotateY;
-	dsMatrix33_makeRotate3D(&rotateY, 0, (TypeParam)dsDegreesToRadians(-15), 0);
+	dsMatrix33_makeRotate3D(&rotateY, 0, (TypeParam)dsDegreesToRadiansd(-15), 0);
 
 	EXPECT_NEAR((TypeParam)0.9659258262890683, rotateY.values[0][0], epsilon);
 	EXPECT_EQ((TypeParam)0, rotateY.values[0][1]);
@@ -434,7 +434,7 @@ TYPED_TEST(Matrix33Test, MakeRotate3D)
 	EXPECT_NEAR((TypeParam)0.9659258262890683, rotateY.values[2][2], epsilon);
 
 	Matrix33Type rotateZ;
-	dsMatrix33_makeRotate3D(&rotateZ, 0, 0, (TypeParam)dsDegreesToRadians(60));
+	dsMatrix33_makeRotate3D(&rotateZ, 0, 0, (TypeParam)dsDegreesToRadiansd(60));
 
 	EXPECT_NEAR((TypeParam)0.5, rotateZ.values[0][0], epsilon);
 	EXPECT_NEAR((TypeParam)0.866025403784439, rotateZ.values[0][1], epsilon);
@@ -453,8 +453,8 @@ TYPED_TEST(Matrix33Test, MakeRotate3D)
 	dsMatrix33_mul(result, rotateZ, temp);
 
 	Matrix33Type rotateXYZ;
-	dsMatrix33_makeRotate3D(&rotateXYZ, (TypeParam)dsDegreesToRadians(30),
-		(TypeParam)dsDegreesToRadians(-15), (TypeParam)dsDegreesToRadians(60));
+	dsMatrix33_makeRotate3D(&rotateXYZ, (TypeParam)dsDegreesToRadiansd(30),
+		(TypeParam)dsDegreesToRadiansd(-15), (TypeParam)dsDegreesToRadiansd(60));
 
 	EXPECT_NEAR(result.values[0][0], rotateXYZ.values[0][0], epsilon);
 	EXPECT_NEAR(result.values[0][1], rotateXYZ.values[0][1], epsilon);
@@ -480,7 +480,7 @@ TYPED_TEST(Matrix33Test, MakeRotateAxisAngle)
 	dsVector3_normalize(&axis, &axis);
 	Matrix33Type matrix;
 	dsMatrix33_makeRotate3DAxisAngle(&matrix, &axis,
-		(TypeParam)dsDegreesToRadians(17.188733853924894));
+		(TypeParam)dsDegreesToRadiansd(17.188733853924894));
 
 	EXPECT_NEAR((TypeParam)0.96608673169969, matrix.values[0][0], epsilon);
 	EXPECT_NEAR((TypeParam)0.25673182392846, matrix.values[0][1], epsilon);
@@ -561,7 +561,7 @@ TYPED_TEST(Matrix33Test, FastInvert)
 	TypeParam epsilon = Matrix33TypeSelector<TypeParam>::epsilon;
 
 	Matrix33Type rotate;
-	dsMatrix33_makeRotate(&rotate, (TypeParam)dsDegreesToRadians(30));
+	dsMatrix33_makeRotate(&rotate, (TypeParam)dsDegreesToRadiansd(30));
 
 	Matrix33Type translate;
 	dsMatrix33_makeTranslate(&translate, (TypeParam)1.2, (TypeParam)-3.4);
@@ -594,7 +594,7 @@ TYPED_TEST(Matrix33Test, AffineInvert)
 	TypeParam epsilon = Matrix33TypeSelector<TypeParam>::epsilon;
 
 	Matrix33Type rotate;
-	dsMatrix33_makeRotate(&rotate, (TypeParam)dsDegreesToRadians(30));
+	dsMatrix33_makeRotate(&rotate, (TypeParam)dsDegreesToRadiansd(30));
 
 	Matrix33Type translate;
 	dsMatrix33_makeTranslate(&translate, (TypeParam)1.2, (TypeParam)-3.4);
@@ -633,7 +633,7 @@ TYPED_TEST(Matrix33Test, InverseTranspose)
 	TypeParam epsilon = Matrix33TypeSelector<TypeParam>::epsilon;
 
 	Matrix33Type rotate;
-	dsMatrix33_makeRotate(&rotate, (TypeParam)dsDegreesToRadians(30));
+	dsMatrix33_makeRotate(&rotate, (TypeParam)dsDegreesToRadiansd(30));
 
 	Matrix33Type translate;
 	dsMatrix33_makeTranslate(&translate, (TypeParam)1.2, (TypeParam)-3.4);

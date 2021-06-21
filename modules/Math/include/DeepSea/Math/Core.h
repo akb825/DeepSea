@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -215,14 +215,20 @@ extern "C"
  * @param degrees The angle in degrees.
  * @return The angle in radians.
  */
-DS_MATH_EXPORT inline double dsDegreesToRadians(double degrees);
+DS_MATH_EXPORT inline double dsDegreesToRadiansd(double degrees);
+
+/** @copydoc dsDegreesToRadiansd() */
+DS_MATH_EXPORT inline float dsDegreesToRadiansf(float degrees);
 
 /**
  * @brief Converts radians to degrees.
  * @param radians The angle in radians.
  * @return The angle in degrees.
  */
-DS_MATH_EXPORT inline double dsRadiansToDegrees(double radians);
+DS_MATH_EXPORT inline double dsRadiansToDegreesd(double radians);
+
+/** @copydoc dsRadiansToDegreesd() */
+DS_MATH_EXPORT inline float dsRadiansToDegreesf(float radians);
 
 /**
  * @brief Gets the next power of two.
@@ -285,14 +291,24 @@ DS_MATH_EXPORT inline bool dsEpsilonEqualsZerof(float x, float epsilon);
 /** @copydoc dsEpsilonEqualsZerof() */
 DS_MATH_EXPORT inline bool dsEpsilonEqualsZerod(double x, double epsilon);
 
-DS_MATH_EXPORT inline double dsDegreesToRadians(double degrees)
+DS_MATH_EXPORT inline double dsDegreesToRadiansd(double degrees)
 {
 	return degrees*M_PI/180;
 }
 
-DS_MATH_EXPORT inline double dsRadiansToDegrees(double radians)
+DS_MATH_EXPORT inline float dsDegreesToRadiansf(float degrees)
+{
+	return degrees*(float)M_PI/180;
+}
+
+DS_MATH_EXPORT inline double dsRadiansToDegreesd(double radians)
 {
 	return radians*180/M_PI;
+}
+
+DS_MATH_EXPORT inline float dsRadiansToDegreesf(float radians)
+{
+	return radians*180/(float)M_PI;
 }
 
 DS_MATH_EXPORT inline uint32_t dsNextPowerOf2(uint32_t i)

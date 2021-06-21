@@ -500,6 +500,11 @@ struct dsView
 	dsMatrix44f viewMatrix;
 
 	/**
+	 * @brief Parameters for the projection matrix.
+	 */
+	dsProjectionParams projectionParams;
+
+	/**
 	 * @brief The projection matrix.
 	 */
 	dsMatrix44f projectionMatrix;

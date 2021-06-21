@@ -159,14 +159,16 @@ DS_SCENE_EXPORT dsView* dsView_loadData(const dsScene* scene, dsAllocator* alloc
 /**
  * @brief Sets the dimensions of the view.
  *
- * This will be applied the next time dsView_update() is called.
+ * When a perspective projection is used, the aspect ratio will be updated along with
+ * projectionMatrix, viewProjectionMatrix, and viewFrustum. Any changes to surfaces that follow
+ * the view size will be applied the next time dsView_update() is called.
  *
  * @remark errno will be set on failure.
  * @param view The view.
  * @param width The width of the view.
  * @param height The height of the view.
  * @param rotation The rotation of the window surface.
- * @return False if parameters are invalid.
+ * @return False if the parameters are invalid.
  */
 DS_SCENE_EXPORT bool dsView_setDimensions(dsView* view, uint32_t width, uint32_t height,
 	dsRenderSurfaceRotation rotation);
@@ -195,7 +197,7 @@ DS_SCENE_EXPORT void* dsView_getSurface(dsGfxSurfaceType* outType, const dsView*
  * @param surface The surface to set.
  * @param surfaceType The type of the surface. This must be the same as the original surface that
  *     was set.
- * @return False if an error occurred.
+ * @return False if the parameters are invalid.
  */
 DS_SCENE_EXPORT bool dsView_setSurface(dsView* view, const char* name, void* surface,
 	dsGfxSurfaceType surfaceType);
@@ -209,36 +211,73 @@ DS_SCENE_EXPORT bool dsView_setSurface(dsView* view, const char* name, void* sur
  * @remark errno will be set on failure.
  * @param view The view to set the camera matrix on.
  * @param camera The camera matrix.
- * @return False if an error occurred.
+ * @return False if the parameters are invalid.
  */
 DS_SCENE_EXPORT bool dsView_setCameraMatrix(dsView* view, const dsMatrix44f* camera);
 
 /**
- * @brief Sets the projection matrix.
+ * @brief Sets an orthographic projection.
  *
- * This will update viewProjectionMatrix and viewFrustum.
+ * This will update projectionMatrix, viewProjectionMatrix, and viewFrustum.
  *
  * @remark errno will be set on failure.
- * @param view The view to set the projection matrix on.
- * @param projection The projection matrix.
- * @return False if an error occurred.
+ * @param view The view to set the projection on.
+ * @param left The left plane.
+ * @param right The right plane.
+ * @param bottom The bottom plane.
+ * @param top The top plane.
+ * @param near The near plane.
+ * @param far The far plane.
+ * @return False if the parameters are invalid.
  */
-DS_SCENE_EXPORT bool dsView_setProjectionMatrix(dsView* view, const dsMatrix44f* projection);
+DS_SCENE_EXPORT bool dsView_setOrthoProjection(dsView* view, float left, float right, float bottom,
+	float top, float near, float far);
 
 /**
- * @brief Sets the camera and projection matrices.
+ * @brief Sets a frustum projection.
  *
- * This is equivalent to calling dsView_setCameraMatrix() and dsView_setProjectionMatrix(), except
- * it avoids duplication of work when updating viewProjectionMatrix and viewFrustum.
+ * This will update projectionMatrix, viewProjectionMatrix, and viewFrustum.
  *
  * @remark errno will be set on failure.
- * @param view The view to set the matrices on.
- * @param camera The camera matrix.
- * @param projection The projection matrix.
- * @return False if an error occurred.
+ * @param view The view to set the projection on.
+ * @param left The left plane.
+ * @param right The right plane.
+ * @param bottom The bottom plane.
+ * @param top The top plane.
+ * @param near The near plane.
+ * @param far The far plane. This may be INFINITY.
+ * @return False if the parameters are invalid.
  */
-DS_SCENE_EXPORT bool dsView_setCameraAndProjectionMatrices(dsView* view, const dsMatrix44f* camera,
-	const dsMatrix44f* projection);
+DS_SCENE_EXPORT bool dsView_setFrustumProjection(dsView* view, float left, float right,
+	float bottom, float top, float near, float far);
+
+/**
+ * @brief Sets a perspective projection.
+ *
+ * The aspect ratio will be automtaically set based on the view's dimensions. This will update
+ * projectionMatrix, viewProjectionMatrix, and viewFrustum.
+ *
+ * @remark errno will be set on failure.
+ * @param view The view to set the projection on.
+ * @param fovy The field of view in the Y direction in radians.
+ * @param near The near plane.
+ * @param far The far plane. This may be INFINITY.
+ * @return False if the parameters are invalid.
+ */
+DS_SCENE_EXPORT bool dsView_setPerspectiveProjection(dsView* view, float fovy, float near,
+	float far);
+
+/**
+ * @brief Sets the projection parameters.
+ *
+ * This will update projectionMatrix, viewProjectionMatrix, and viewFrustum.
+ *
+ * @remark errno will be set on failure.
+ * @param view The view to set the matrix on.
+ * @param params The projection parameters.
+ * @return False if the parameters are invalid.
+ */
+DS_SCENE_EXPORT bool dsView_setProjectionParams(dsView* view, const dsProjectionParams* params);
 
 /**
  * @brief Updates the view.

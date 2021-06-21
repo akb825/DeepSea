@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -253,7 +253,7 @@ TYPED_TEST(Matrix22Test, MakeRotate)
 	TypeParam epsilon = Matrix22TypeSelector<TypeParam>::epsilon;
 
 	Matrix22Type matrix;
-	dsMatrix22_makeRotate(&matrix, (TypeParam)dsDegreesToRadians(30));
+	dsMatrix22_makeRotate(&matrix, (TypeParam)dsDegreesToRadiansd(30));
 
 	EXPECT_NEAR((TypeParam)0.866025403784439, matrix.values[0][0], epsilon);
 	EXPECT_NEAR((TypeParam)0.5, matrix.values[0][1], epsilon);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,10 @@
 
 #include <DeepSea/Math/Core.h>
 
-double dsDegreesToRadians(double degrees);
-double dsRadiansToDegrees(double radians);
+double dsDegreesToRadiansd(double degrees);
+float dsDegreesToRadiansf(float degrees);
+double dsRadiansToDegreesd(double radians);
+float dsRadiansToDegreesf(float radians);
 uint32_t dsNextPowerOf2(uint32_t i);
 
 int dsWrapi(int x, int min, int max);

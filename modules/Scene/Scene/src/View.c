@@ -41,6 +41,7 @@
 #include <DeepSea/Render/Resources/Renderbuffer.h>
 #include <DeepSea/Render/Resources/SharedMaterialValues.h>
 #include <DeepSea/Render/Resources/Texture.h>
+#include <DeepSea/Render/ProjectionParams.h>
 #include <DeepSea/Render/Renderer.h>
 #include <DeepSea/Render/RenderPass.h>
 
@@ -242,6 +243,8 @@ static void updatePreRotatedDimensions(dsView* view)
 static void updatedCameraProjection(dsView* view)
 {
 	dsRenderer* renderer = view->scene->renderer;
+	DS_VERIFY(dsProjectionParams_createMatrix(&view->projectionMatrix, &view->projectionParams,
+		renderer));
 	dsMatrix44_mul(view->viewProjectionMatrix, view->projectionMatrix, view->viewMatrix);
 	DS_VERIFY(dsRenderer_frustumFromMatrix(&view->viewFrustum, renderer,
 		&view->viewProjectionMatrix));
@@ -347,10 +350,7 @@ dsView* dsView_create(const dsScene* scene, dsAllocator* allocator, dsAllocator*
 	updatePreRotatedDimensions(view);
 	dsMatrix44_identity(view->cameraMatrix);
 	dsMatrix44_identity(view->viewMatrix);
-	dsMatrix44_identity(view->projectionMatrix);
-	dsMatrix44_identity(view->viewProjectionMatrix);
-	DS_VERIFY(dsRenderer_frustumFromMatrix(&view->viewFrustum, renderer,
-		&view->viewProjectionMatrix));
+	dsView_setOrthoProjection(view, -1, 1, -1, 1, -1, 1);
 	view->lodBias = 1.0f;
 
 	uint32_t variableCount = scene->globalValueCount + offscreenSurfaceCount;
@@ -652,6 +652,13 @@ bool dsView_setDimensions(dsView* view, uint32_t width, uint32_t height,
 	view->rotation = rotation;
 	updatePreRotatedDimensions(view);
 	privateView->sizeUpdated = true;
+
+	if (view->projectionParams.type == dsProjectionType_Perspective)
+	{
+		view->projectionParams.perspectiveParams.aspect = (float)width/(float)height;
+		updatedCameraProjection(view);
+	}
+
 	return true;
 }
 
@@ -717,31 +724,66 @@ bool dsView_setCameraMatrix(dsView* view, const dsMatrix44f* camera)
 	return true;
 }
 
-bool dsView_setProjectionMatrix(dsView* view, const dsMatrix44f* projection)
+bool dsView_setOrthoProjection(dsView* view, float left, float right, float bottom, float top,
+	float near, float far)
 {
-	if (!view || !projection)
+	if (!view)
 	{
 		errno = EINVAL;
 		return false;
 	}
 
-	view->projectionMatrix = *projection;
+	if (!dsProjectionParams_makeOrtho(&view->projectionParams, left, right, bottom, top, near, far))
+		return false;
+
 	updatedCameraProjection(view);
 	return true;
 }
 
-bool dsView_setCameraAndProjectionMatrices(dsView* view, const dsMatrix44f* camera,
-	const dsMatrix44f* projection)
+bool dsView_setFrustumProjection(dsView* view, float left, float right, float bottom, float top,
+	float near, float far)
 {
-	if (!view || !camera || !projection)
+	if (!view)
 	{
 		errno = EINVAL;
 		return false;
 	}
 
-	view->cameraMatrix = *camera;
-	dsMatrix44_fastInvert(view->viewMatrix, *camera);
-	view->projectionMatrix = *projection;
+	if (!dsProjectionParams_makeFrustum(
+			&view->projectionParams, left, right, bottom, top, near, far))
+	{
+		return false;
+	}
+
+	updatedCameraProjection(view);
+	return true;
+}
+
+bool dsView_setPerspectiveProjection(dsView* view, float fovy, float near, float far)
+{
+	if (!view)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	float aspect = (float)view->width/(float)view->height;
+	if (!dsProjectionParams_makePerspective(&view->projectionParams, fovy, aspect, near, far))
+		return false;
+
+	updatedCameraProjection(view);
+	return true;
+}
+
+bool dsView_setProjectionParams(dsView* view, const dsProjectionParams* params)
+{
+	if (!view || !params)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	view->projectionParams = *params;
 	updatedCameraProjection(view);
 	return true;
 }

@@ -93,14 +93,6 @@ static bool validateAllocator(dsAllocator* allocator, const char* name)
 	return false;
 }
 
-static void updateProjectionMatrix(dsView* view)
-{
-	dsMatrix44f projection;
-	DS_VERIFY(dsRenderer_makePerspective(&projection, dsScene_getRenderer(view->scene),
-		(float)dsDegreesToRadians(45.0f), (float)view->width/(float)view->height, 0.1f, 100.0f));
-	DS_VERIFY(dsView_setProjectionMatrix(view, &projection));
-}
-
 static bool processEvent(dsApplication* application, dsWindow* window, const dsEvent* event,
 	void* userData)
 {
@@ -123,7 +115,6 @@ static bool processEvent(dsApplication* application, dsWindow* window, const dsE
 		case dsAppEventType_WindowResized:
 			DS_VERIFY(dsView_setDimensions(testScene->view, testScene->window->surface->width,
 				testScene->window->surface->height, testScene->window->surface->rotation));
-			updateProjectionMatrix(testScene->view);
 			// Need to update the view again if the surfaces have been set.
 			if (event->type == dsAppEventType_SurfaceInvalidated)
 				dsView_update(testScene->view);
@@ -350,7 +341,7 @@ static bool setup(TestScene* testScene, dsApplication* application, dsAllocator*
 	dsMatrix44f camera;
 	dsMatrix44f_lookAt(&camera, &eyePos, &lookAtPos, &upDir);
 	dsView_setCameraMatrix(testScene->view, &camera);
-	updateProjectionMatrix(testScene->view);
+	dsView_setPerspectiveProjection(testScene->view, dsDegreesToRadiansf(45.0f), 0.1f, 100.0f);
 	testScene->secondarySceneSet = true;
 
 	testScene->threadManager = dsSceneThreadManager_create(allocator, renderer, 1);
