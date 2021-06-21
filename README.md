@@ -29,7 +29,7 @@ The `update.sh` script may be used to update the code, submodules, and download 
 
 The first time you run `update.sh`, pass in the `-t` option to download the tools. You can also pass the `-l` with the list of platforms to download the libraries for. Supported platforms are:
 
-* linux (Linux with glibc 2.23 for x86-64, e.g. Ubuntu 16.04)
+* linux (Linux with glibc 2.27 for x86-64, e.g. Ubuntu 18.04)
 * mac (macOS 10.13 for x86-64)
 * win32 (Windows for x86, VS2017 runtime)
 * win64 (Windows for x86-64, VS2017 runtime)

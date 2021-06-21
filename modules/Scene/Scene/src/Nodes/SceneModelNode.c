@@ -501,11 +501,20 @@ dsSceneModelNode* dsSceneModelNode_cloneReconfigBase(dsAllocator* allocator,
 		initInfo->modelList = reconfig->modelList;
 	}
 
+#if DS_GCC
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#endif
+
 	dsSceneModelNode* model = dsSceneModelNode_createBase(allocator, structSize, modelInits,
 		modelCount, extraItemLists, extraItemListCount, origModel->resources,
 		origModel->resourceCount, &origModel->bounds);
 	if (model)
 		return model;
+
+#if DS_GCC
+#pragma GCC diagnostic push
+#endif
 
 error:
 	if (modelInits != tempModelInits)

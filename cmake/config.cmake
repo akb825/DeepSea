@@ -45,6 +45,11 @@ else()
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility-inlines-hidden")
 	endif()
 
+	# GCC has problems determining array sizes in some versions.
+	if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION GREATER_EQUAL 11.0)
+		add_compile_options(-Wno-array-bounds -Wno-stringop-overflow)
+	endif()
+
 	# Disable RTTI, but enable exceptions
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti -fexceptions")
 endif()
