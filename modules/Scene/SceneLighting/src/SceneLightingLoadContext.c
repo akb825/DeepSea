@@ -49,6 +49,12 @@ bool dsSceneLightingLoadConext_registerTypes(dsSceneLoadContext* loadContext)
 		return false;
 	}
 
+	if (!dsSceneLoadContext_registerGlobalDataType(loadContext,
+			dsSceneLightSetPrepare_typeName, &dsSceneLightSetPrepare_load, NULL, NULL))
+	{
+		return false;
+	}
+
 	if (!dsSceneLoadContext_registerInstanceDataType(loadContext,
 			dsInstanceForwardLightData_typeName, &dsInstanceForwardLightData_load, NULL, NULL))
 	{
@@ -57,12 +63,6 @@ bool dsSceneLightingLoadConext_registerTypes(dsSceneLoadContext* loadContext)
 
 	if (!dsSceneLoadContext_registerItemListType(loadContext,
 			dsDeferredLightResolve_typeName, &dsDeferredLightResolve_load, NULL, NULL))
-	{
-		return false;
-	}
-
-	if (!dsSceneLoadContext_registerItemListType(loadContext,
-			dsSceneLightSetPrepare_typeName, &dsSceneLightSetPrepare_load, NULL, NULL))
 	{
 		return false;
 	}

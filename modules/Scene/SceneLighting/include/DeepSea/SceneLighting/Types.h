@@ -237,8 +237,10 @@ typedef bool (*dsSceneLightVisitFunction)(void* userData, const dsSceneLightSet*
 /**
  * @brief Struct defining a scene light set prepare.
  *
- * This will prepare provided scene light sets for use in the scene. These are an item list to fit
- * in the scene layout, but doesn't interact with any nodes in the scene graph.
+ * This will prepare provided scene light sets for use in the scene. This a scene global data object
+ * fit into the scene layout.
+ *
+ * @see SceneLightSetPrepare.h
  */
 typedef struct dsSceneLightSetPrepare dsSceneLightSetPrepare;
 
@@ -248,6 +250,8 @@ typedef struct dsSceneLightSetPrepare dsSceneLightSetPrepare;
  * This will draw the lights to the screen in order to light the scene based on the gbuffers. This
  * is an item list type in order to fit into the scene, but doesn't interact with any nodes in the
  * scene graph.
+ *
+ * @see DeferredLightResolve.h
  */
 typedef struct dsDeferredLightResolve dsDeferredLightResolve;
 

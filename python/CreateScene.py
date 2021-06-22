@@ -46,9 +46,9 @@ if __name__ == '__main__':
 	convertContext = ConvertContext()
 
 	# Lighting scene types.
+	convertContext.addGlobalDataType('LightSetPrepare', convertLightSetPrepare)
 	convertContext.addInstanceDataType('InstanceForwardLightData', convertInstanceForwardLightData)
 	convertContext.addItemListType('DeferredLightResolve', convertDeferredLightResolve)
-	convertContext.addItemListType('LightSetPrepare', convertLightSetPrepare)
 
 	# Vector draw scene types.
 	convertContext.addItemListType('VectorItemList', convertVectorItemList)

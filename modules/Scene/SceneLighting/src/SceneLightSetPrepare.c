@@ -21,14 +21,14 @@
 #include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
-#include <DeepSea/Scene/ItemLists/SceneItemList.h>
+#include <DeepSea/Scene/SceneGlobalData.h>
 #include <DeepSea/SceneLighting/SceneLightSet.h>
 
 #include <string.h>
 
 struct dsSceneLightSetPrepare
 {
-	dsSceneItemList itemList;
+	dsSceneGlobalData globalData;
 	dsSceneLightSet** lightSets;
 	uint32_t lightSetCount;
 	float intensityThreshold;
@@ -36,44 +36,33 @@ struct dsSceneLightSetPrepare
 
 const char* const dsSceneLightSetPrepare_typeName = "LightSetPrepare";
 
-uint64_t dsSceneLightSetPrepare_addNode(dsSceneItemList* itemList, dsSceneNode* node,
-	const dsMatrix44f* transform, dsSceneNodeItemData* itemData, void** thisItemData)
-{
-	DS_UNUSED(itemList);
-	DS_UNUSED(node);
-	DS_UNUSED(itemData);
-	DS_UNUSED(transform);
-	DS_UNUSED(thisItemData);
-	return DS_NO_SCENE_NODE;
-}
-
-void dsSceneLightSetPrepare_removeNode(dsSceneItemList* itemList, uint64_t nodeID)
-{
-	DS_UNUSED(itemList);
-	DS_UNUSED(nodeID);
-}
-
-void dsSceneLightSetPrepare_commit(dsSceneItemList* itemList, const dsView* view,
+bool dsSceneLightSetPrepare_populateData(dsSceneGlobalData* globalData, const dsView* view,
 	dsCommandBuffer* commandBuffer)
 {
 	DS_UNUSED(view);
 	DS_UNUSED(commandBuffer);
-	dsSceneLightSetPrepare* prepare = (dsSceneLightSetPrepare*)itemList;
+	dsSceneLightSetPrepare* prepare = (dsSceneLightSetPrepare*)globalData;
 	for (uint32_t i = 0; i < prepare->lightSetCount; ++i)
 		dsSceneLightSet_prepare(prepare->lightSets[i], prepare->intensityThreshold);
+	return true;
 }
 
-dsSceneLightSetPrepare* dsSceneLightSetPrepare_create(dsAllocator* allocator, const char* name,
+bool dsSceneLightSetPrepare_destroyGlobalData(dsSceneGlobalData* globalData)
+{
+	dsSceneLightSetPrepare_destroy((dsSceneLightSetPrepare*)globalData);
+	return true;
+}
+
+dsSceneLightSetPrepare* dsSceneLightSetPrepare_create(dsAllocator* allocator,
 	dsSceneLightSet* const* lightSets, uint32_t lightSetCount, float intensityThreshold)
 {
-	if (!allocator || !name || !lightSets || lightSetCount == 0 || intensityThreshold <= 0)
+	if (!allocator || !lightSets || lightSetCount == 0 || intensityThreshold <= 0)
 	{
 		errno = EINVAL;
 		return NULL;
 	}
 
-	size_t nameLen = strlen(name) + 1;
-	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsSceneLightSetPrepare)) + DS_ALIGNED_SIZE(nameLen) +
+	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsSceneLightSetPrepare)) +
 		DS_ALIGNED_SIZE(sizeof(dsSceneLightSet*)*lightSetCount);
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
@@ -85,18 +74,12 @@ dsSceneLightSetPrepare* dsSceneLightSetPrepare_create(dsAllocator* allocator, co
 	dsSceneLightSetPrepare* prepare = DS_ALLOCATE_OBJECT(&bufferAlloc, dsSceneLightSetPrepare);
 	DS_ASSERT(prepare);
 
-	dsSceneItemList* itemList = (dsSceneItemList*)prepare;
-	itemList->allocator = dsAllocator_keepPointer(allocator);
-	itemList->name = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, nameLen);
-	DS_ASSERT(itemList->name);
-	memcpy((void*)itemList->name, name, nameLen);
-	itemList->nameID = dsHashString(name);
-	itemList->needsCommandBuffer = false;
-	itemList->addNodeFunc = &dsSceneLightSetPrepare_addNode;
-	itemList->updateNodeFunc = NULL;
-	itemList->removeNodeFunc = &dsSceneLightSetPrepare_removeNode;
-	itemList->commitFunc = &dsSceneLightSetPrepare_commit;
-	itemList->destroyFunc = (dsDestroySceneItemListFunction)&dsSceneLightSetPrepare_destroy;
+	dsSceneGlobalData* globalData = (dsSceneGlobalData*)prepare;
+	globalData->allocator = dsAllocator_keepPointer(allocator);
+	globalData->valueCount= 0;
+	globalData->populateDataFunc = &dsSceneLightSetPrepare_populateData;
+	globalData->finishFunc = NULL;
+	globalData->destroyFunc = dsSceneLightSetPrepare_destroyGlobalData;
 
 	prepare->lightSets = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsSceneLightSet*, lightSetCount);
 	DS_ASSERT(prepare->lightSets);

@@ -40,7 +40,6 @@ DS_SCENELIGHTING_EXPORT extern const char* const dsSceneLightSetPrepare_typeName
  * @brief Creates a scene light set prepare.
  * @remark errno will be set on failure.
  * @param allocator The allocator to create the light set prepare with.
- * @param name The name of the light set prepare. This will be copied.
  * @param lightSets The light sets to prepare.
  * @param lightSetCount The number of light sets.
  * @param intensityThreshold The threshold below which the light is considered out of view. This
@@ -48,8 +47,8 @@ DS_SCENELIGHTING_EXPORT extern const char* const dsSceneLightSetPrepare_typeName
  * @return The scene lighting prepare or NULL if an error occurred.
  */
 DS_SCENELIGHTING_EXPORT dsSceneLightSetPrepare* dsSceneLightSetPrepare_create(
-	dsAllocator* allocator, const char* name, dsSceneLightSet* const* lightSets,
-	uint32_t lightSetCount, float intensityThreshold);
+	dsAllocator* allocator, dsSceneLightSet* const* lightSets, uint32_t lightSetCount,
+	float intensityThreshold);
 
 /**
  * @brief Gets the intensity threshold.

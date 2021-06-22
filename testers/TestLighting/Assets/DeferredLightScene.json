@@ -1,8 +1,7 @@
 {
 	"sharedItems":
 	[
-		[{"type": "ViewCullList", "name": "cullList" }],
-		[{"type": "LightSetPrepare", "name": "lightSetPrepare", "lightSets": ["lightSet"]}]
+		[{"type": "ViewCullList", "name": "cullList" }]
 	],
 	"pipeline":
 	[
@@ -150,6 +149,7 @@
 	],
 	"globalData":
 	[
+		{"type": "LightSetPrepare", "lightSets": ["lightSet"]},
 		{
 			"type": "ViewTransformData",
 			"variableGroupDesc": "viewTransformDesc"
