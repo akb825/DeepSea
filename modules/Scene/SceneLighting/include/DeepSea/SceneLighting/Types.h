@@ -214,6 +214,51 @@ typedef struct dsSpotLightVertex
 } dsSpotLightVertex;
 
 /**
+ * @brief Struct describing parameters for shadows in a scene.
+ * @see SceneLightShadows.h
+ */
+typedef struct dsSceneShadowParams
+{
+	/**
+	 * @brief The maximum number of cascades.
+	 *
+	 * This is only used with directional lights that use an array for the matrices. Must be in the
+	 * range [1, 4].
+	 */
+	uint32_t maxCascades;
+
+	/**
+	 * @brief The maximum distance for the first split for cascaded shadows.
+	 */
+	float maxFirstSplitDist;
+
+	/**
+	 * @brief Exponential factor for cascaded shadows in the range [0, 1], where 0 uses linear
+	 * distances between the splits and 1 is fully exponential.
+	 */
+	float cascadedExpFactor;
+
+	/**
+	 * @brief The distance to start fading out shadows.
+	 *
+	 * This is only used for directional lights.
+	 */
+	float fadeStartDistance;
+
+	/**
+	 * @brief The maximum to display shadows.
+	 *
+	 * This is only used for directional lights.
+	 */
+	float maxDistance;
+
+	/**
+	 * @brief The resolution for the width and height of the shadow buffer.
+	 */
+	uint32_t resolution;
+} dsSceneShadowParams;
+
+/**
  * @brief Struct defining the set of lights used in a scene.
  *
  * This is typically stored as a scene resource to provide the full set of lights for a scene. This
@@ -254,6 +299,19 @@ typedef struct dsSceneLightSetPrepare dsSceneLightSetPrepare;
  * @see DeferredLightResolve.h
  */
 typedef struct dsDeferredLightResolve dsDeferredLightResolve;
+
+/**
+ * @brief Struct that manages shadows for a single light in the scene.
+ *
+ * The shadow manager keeps track of the light that casts shadows and parameters for getting the
+ * cull volumes and projection matrices. This will be referenced by the cull item lists and set the
+ * variables for the projection matrices consumed by the shaders.
+ *
+ * This is generally stored with the SceneResources as a custom resource type.
+ *
+ * @see SceneShadowManager.h
+ */
+typedef struct dsSceneLightShadows dsSceneLightShadows;
 
 #ifdef __cplusplus
 }

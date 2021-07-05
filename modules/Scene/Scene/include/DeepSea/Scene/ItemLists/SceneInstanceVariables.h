@@ -35,7 +35,7 @@ extern "C"
  * @brief Creates a scene instance variables object.
  * @remark errno will be set on failure.
  * @param allocator The allocator to create the data with. This must support freeing memory.
- * @param resourceManager The resource manager to create any resources with.
+ * @param resourceManager The resource manager to create graphics resources with.
  * @param dataDesc The description for the data held for each instance. This must remain alive at
  *     least as long as the instance data object.
  * @param nameID The name ID to use when setting the buffer data on the dsSharedMaterialValues
