@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Aaron Barany
+ * Copyright 2020-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -201,6 +201,34 @@ DS_SCENELIGHTING_EXPORT bool dsSceneLight_computeBounds(dsAlignedBox3f* outBound
  */
 DS_SCENELIGHTING_EXPORT bool dsSceneLight_isInFrustum(const dsSceneLight* light,
 	const dsFrustum3f* frustum, float intensityThreshold);
+
+/**
+ * @brief Gets the projection matrix for a cube face of a point light.
+ * @remark errno will be set on failure.
+ * @param[out] result The projection matrix result.
+ * @param light The light to get the projection matrix for.
+ * @param renderer The renderer the matrix will be used with.
+ * @param cubeFace The cube face to get the projection matrix for.
+ * @param intensityThreshold The threshold below which the light is considered out of view.
+ *     Use DS_DEFAULT_SCENE_LIGHT_INTENSITY_THRESHOLD for the default value.
+ * @return False if the parameters are invalid.
+ */
+DS_SCENELIGHTING_EXPORT bool dsSceneLight_getPointLightProjection(dsMatrix44f* result,
+	const dsSceneLight* light, const dsRenderer* renderer, dsCubeFace cubeFace,
+	float intensityThreshold);
+
+/**
+ * @brief Gets the projection matrix for a spot light.
+ * @remark errno will be set on failure.
+ * @param[out] result The projection matrix result.
+ * @param light The light to get the projection matrix for.
+ * @param renderer The renderer the matrix will be used with.
+ * @param intensityThreshold The threshold below which the light is considered out of view.
+ *     Use DS_DEFAULT_SCENE_LIGHT_INTENSITY_THRESHOLD for the default value.
+ * @return False if the parameters are invalid.
+ */
+DS_SCENELIGHTING_EXPORT bool dsSceneLight_getSpotLightProjection(dsMatrix44f* result,
+	const dsSceneLight* light, const dsRenderer* renderer, float intensityThreshold);
 
 /**
  * @brief Gets the vertices for the ambient light.
