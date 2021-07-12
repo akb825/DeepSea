@@ -463,10 +463,11 @@ static void getSurfaceInfo(uint32_t* outWidth, uint32_t* outHeight, uint32_t* ou
 		case dsGfxSurfaceType_Offscreen:
 		{
 			dsTexture* texture = (dsTexture*)surface;
+			bool cube = texture->info.dimension == dsTextureDim_Cube;
 			*outWidth = texture->info.width;
 			*outHeight = texture->info.height;
-			*outFaces = texture->info.dimension == dsTextureDim_Cube ? 6 : 1;
-			*outInvertY = false;
+			*outFaces = cube ? 6 : 1;
+			*outInvertY = cube;
 			break;
 		}
 		case dsGfxSurfaceType_Renderbuffer:
@@ -937,15 +938,14 @@ bool dsGLMainCommandBuffer_copyTextureToBuffer(dsCommandBuffer* commandBuffer,
 			if (compressed)
 			{
 				glGetCompressedTextureSubImage(glSrcTexture->textureId, position->mipLevel,
-					position->x, position->y, position->depth, region->textureWidth,
-					region->textureHeight, region->layers, (GLsizei)bufferSize,
-					(void*)region->bufferOffset);
+					position->x, position->y, layer, region->textureWidth, region->textureHeight,
+					region->layers, (GLsizei)bufferSize, (void*)region->bufferOffset);
 			}
 			else
 			{
 				glGetTextureSubImage(glSrcTexture->textureId, position->mipLevel,
-					position->x, position->y, position->depth, region->textureWidth,
-					region->textureHeight, region->layers, glFormat, type, (GLsizei)bufferSize,
+					position->x, position->y, layer, region->textureWidth, region->textureHeight,
+					region->layers, glFormat, type, (GLsizei)bufferSize,
 					(void*)region->bufferOffset);
 			}
 		}
@@ -1164,8 +1164,8 @@ bool dsGLMainCommandBuffer_bindShader(dsCommandBuffer* commandBuffer, const dsSh
 		DS_ASSERT(glCommandBuffer->curFramebuffer);
 		dsRenderer* renderer = commandBuffer->renderer;
 		dsGLRenderer* glRenderer = (dsGLRenderer*)renderer;
-		bool offscreen = glRenderer->curSurfaceType == GLSurfaceType_Framebuffer;
-		float invertY = offscreen ? -1.0f : 1.0f;
+		bool needInvert = glRenderer->curSurfaceType == GLSurfaceType_Framebuffer;
+		float invertY = needInvert ? -1.0f : 1.0f;
 		float height = (float)glCommandBuffer->curFramebuffer->height;
 		float invWidth = 1.0f/(float)glCommandBuffer->curFramebuffer->width;
 		float invHeight = -1.0f/height;
@@ -1434,10 +1434,10 @@ bool dsGLMainCommandBuffer_setViewport(dsCommandBuffer* commandBuffer,
 	const dsFramebuffer* framebuffer = glCommandBuffer->curFramebuffer;
 	if (viewport)
 	{
-		bool offscreen = glRenderer->curSurfaceType == GLSurfaceType_Framebuffer;
+		bool needInvert = glRenderer->curSurfaceType == GLSurfaceType_Framebuffer;
 		glCommandBuffer->viewportX = (GLint)viewport->min.x;
 		glCommandBuffer->viewportY = framebuffer->height - (GLint)viewport->max.y;
-		if (offscreen)
+		if (needInvert)
 			glCommandBuffer->viewportY = (GLint)viewport->max.y;
 		else
 			glCommandBuffer->viewportY = framebuffer->height - (GLint)viewport->max.y;
@@ -1564,7 +1564,7 @@ bool dsGLMainCommandBuffer_clearAttachments(dsCommandBuffer* commandBuffer,
 			glColorMaski(i, false, false, false, false);
 	}
 
-	bool offscreen = glRenderer->curSurfaceType == GLSurfaceType_Framebuffer;
+	bool needInvert = glRenderer->curSurfaceType == GLSurfaceType_Framebuffer;
 	bool setScissor = false;
 	bool success = true;
 	for (uint32_t i = 0; i < regionCount; ++i)
@@ -1581,7 +1581,7 @@ bool dsGLMainCommandBuffer_clearAttachments(dsCommandBuffer* commandBuffer,
 
 		GLint viewportX = region->x;
 		GLint viewportY;
-		if (offscreen)
+		if (needInvert)
 			viewportY = region->y;
 		else
 			viewportY = glCommandBuffer->curFramebuffer->height - region->y - 1;
@@ -1876,18 +1876,18 @@ bool dsGLMainCommandBuffer_blitSurface(dsCommandBuffer* commandBuffer,
 {
 	dsRenderer* renderer = commandBuffer->renderer;
 
-	GLSurfaceType srcGLSurfaceType = dsGLFramebuffer_getSurfaceType(srcSurfaceType);
-	GLSurfaceType dstGLSurfaceType = dsGLFramebuffer_getSurfaceType(dstSurfaceType);
+	GLSurfaceType srcGLSurfaceType = dsGLFramebuffer_getSurfaceType(srcSurfaceType, srcSurface);
+	GLSurfaceType dstGLSurfaceType = dsGLFramebuffer_getSurfaceType(dstSurfaceType, dstSurface);
 
 	GLuint srcFramebuffer = 0;
-	if (srcGLSurfaceType == GLSurfaceType_Framebuffer)
+	if (srcGLSurfaceType >= GLSurfaceType_Framebuffer)
 	{
 		srcFramebuffer = dsGLRenderer_tempFramebuffer(renderer);
 		DS_ASSERT(srcFramebuffer);
 	}
 
 	GLuint dstFramebuffer = 0;
-	if (dstGLSurfaceType == GLSurfaceType_Framebuffer)
+	if (dstGLSurfaceType >= GLSurfaceType_Framebuffer)
 	{
 		dstFramebuffer = dsGLRenderer_tempCopyFramebuffer(renderer);
 		DS_ASSERT(dstFramebuffer);
@@ -1923,7 +1923,7 @@ bool dsGLMainCommandBuffer_blitSurface(dsCommandBuffer* commandBuffer,
 			bindBlitSurface(GL_READ_FRAMEBUFFER, srcSurfaceType, srcSurface,
 				regions[i].srcPosition.mipLevel, srcLayer + j);
 			bindBlitSurface(GL_DRAW_FRAMEBUFFER, dstSurfaceType, dstSurface,
-				regions[i].srcPosition.mipLevel, srcLayer + j);
+				regions[i].srcPosition.mipLevel, dstLayer + j);
 
 			uint32_t srcY = regions[i].srcPosition.y;
 			int srcYMult = 1;

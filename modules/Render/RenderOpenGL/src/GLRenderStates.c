@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -191,7 +191,7 @@ static void resetBlendState(mslBlendState* state)
 
 static void setRasterizationStates(const dsResourceManager* resourceManager,
 	mslRasterizationState* curState, const mslRasterizationState* newState,
-	const dsDynamicRenderStates* dynamicStates, bool offscreen, bool dynamicOnly)
+	const dsDynamicRenderStates* dynamicStates, bool invertY, bool dynamicOnly)
 {
 	if (curState->depthBiasEnable)
 	{
@@ -260,9 +260,9 @@ static void setRasterizationStates(const dsResourceManager* resourceManager,
 		glPolygonMode(GL_FRONT_AND_BACK, polygonModeMap[curState->polygonMode]);
 	}
 
-	// Need to reverse cull mode for offscreens since Y is inverted.
+	// Need to reverse cull mode when Y is inverted.
 	mslCullMode adjustedCull = newState->cullMode;
-	if (offscreen)
+	if (invertY)
 	{
 		if (adjustedCull == mslCullMode_Front)
 			adjustedCull = mslCullMode_Back;

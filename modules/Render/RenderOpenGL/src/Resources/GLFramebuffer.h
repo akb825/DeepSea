@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,8 @@ dsFramebuffer* dsGLFramebuffer_create(dsResourceManager* resourceManager, dsAllo
 	uint32_t height, uint32_t layers);
 bool dsGLFramebuffer_destroy(dsResourceManager* resourceManager, dsFramebuffer* framebuffer);
 
-GLSurfaceType dsGLFramebuffer_getSurfaceType(dsGfxSurfaceType framebufferSurfaceType);
+GLSurfaceType dsGLFramebuffer_getSurfaceType(dsGfxSurfaceType framebufferSurfaceType,
+	const void* surface);
 GLSurfaceType dsGLFramebuffer_bind(const dsFramebuffer* framebuffer,
 	const dsAttachmentRef* colorAttachments, uint32_t colorAttachmentCount,
 	uint32_t depthStencilAttachment);

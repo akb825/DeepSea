@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Aaron Barany
+ * Copyright 2017-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ typedef enum GLSurfaceType
 	GLSurfaceType_Left,
 	GLSurfaceType_Right,
 	GLSurfaceType_Framebuffer,
+	GLSurfaceType_CubeFramebuffer
 } GLSurfaceType;
 
 typedef enum GLFramebufferFlags

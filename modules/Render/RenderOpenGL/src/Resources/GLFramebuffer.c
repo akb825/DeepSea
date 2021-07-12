@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Aaron Barany
+ * Copyright 2017-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -186,7 +186,8 @@ bool dsGLFramebuffer_destroy(dsResourceManager* resourceManager, dsFramebuffer* 
 	return true;
 }
 
-GLSurfaceType dsGLFramebuffer_getSurfaceType(dsGfxSurfaceType framebufferSurfaceType)
+GLSurfaceType dsGLFramebuffer_getSurfaceType(dsGfxSurfaceType framebufferSurfaceType,
+	const void* surface)
 {
 	switch (framebufferSurfaceType)
 	{
@@ -199,6 +200,12 @@ GLSurfaceType dsGLFramebuffer_getSurfaceType(dsGfxSurfaceType framebufferSurface
 		case dsGfxSurfaceType_DepthRenderSurfaceRight:
 			return GLSurfaceType_Right;
 		case dsGfxSurfaceType_Offscreen:
+		{
+			const dsOffscreen* offscreen = (const dsOffscreen*)surface;
+			if (offscreen->info.dimension == dsTextureDim_Cube)
+				return GLSurfaceType_CubeFramebuffer;
+			return GLSurfaceType_Framebuffer;
+		}
 		case dsGfxSurfaceType_Renderbuffer:
 			return GLSurfaceType_Framebuffer;
 		default:
@@ -245,8 +252,8 @@ GLSurfaceType dsGLFramebuffer_bind(const dsFramebuffer* framebuffer,
 	GLSurfaceType surfaceType;
 	if (colorAttachmentCount == 1 && colorAttachments[0].attachmentIndex != DS_NO_ATTACHMENT)
 	{
-		surfaceType = dsGLFramebuffer_getSurfaceType(
-			framebuffer->surfaces[colorAttachments[0].attachmentIndex].surfaceType);
+		dsFramebufferSurface* surface = framebuffer->surfaces + colorAttachments[0].attachmentIndex;
+		surfaceType = dsGLFramebuffer_getSurfaceType(surface->surfaceType, surface->surface);
 	}
 	else
 		surfaceType = GLSurfaceType_Framebuffer;
@@ -254,7 +261,7 @@ GLSurfaceType dsGLFramebuffer_bind(const dsFramebuffer* framebuffer,
 	dsGLRenderer_bindFramebuffer(renderer, surfaceType, glFramebuffer->framebufferId,
 		GLFramebufferFlags_Default);
 
-	if (surfaceType == GLSurfaceType_Framebuffer)
+	if (surfaceType >= GLSurfaceType_Framebuffer)
 	{
 		// Bind the surfaces to the framebuffer.
 		bool hasChanges = false;

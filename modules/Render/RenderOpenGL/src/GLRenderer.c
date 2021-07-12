@@ -1055,7 +1055,7 @@ void dsGLRenderer_bindFramebuffer(dsRenderer* renderer, GLSurfaceType surfaceTyp
 	bool draw = (flags & GLFramebufferFlags_Read) == 0;
 	GLenum framebufferType = draw ? GL_DRAW_FRAMEBUFFER : GL_READ_FRAMEBUFFER;
 	dsGLRenderer* glRenderer = (dsGLRenderer*)renderer;
-	if (surfaceType == GLSurfaceType_Framebuffer)
+	if (surfaceType >= GLSurfaceType_Framebuffer)
 	{
 		if (glRenderer->curFbo != framebuffer)
 		{
