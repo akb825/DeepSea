@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Aaron Barany
+ * Copyright 2020-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+#include "FixtureBase.h"
 
 #include <DeepSea/Geometry/AlignedBox3.h>
 #include <DeepSea/Geometry/Frustum3.h>
@@ -28,6 +30,10 @@
 #include <cstring>
 #include <limits>
 
+class SceneLightTest : public FixtureBase
+{
+};
+
 static dsVector3f zero;
 
 static void computeNormal(dsVector3f& outNormal, const dsVector3f& p0, const dsVector3f& p1,
@@ -39,7 +45,7 @@ static void computeNormal(dsVector3f& outNormal, const dsVector3f& p0, const dsV
 	dsVector3_cross(outNormal, a, b);
 }
 
-TEST(SceneLightTest, GetAmbientLightVertexFormat)
+TEST_F(SceneLightTest, GetAmbientLightVertexFormat)
 {
 	EXPECT_FALSE(dsSceneLight_getAmbientLightVertexFormat(nullptr));
 
@@ -55,7 +61,7 @@ TEST(SceneLightTest, GetAmbientLightVertexFormat)
 	EXPECT_EQ(offsetof(dsAmbientLightVertex, color), format.elements[dsVertexAttrib_Color].offset);
 }
 
-TEST(SceneLightTest, GetDirectionalLightVertexFormat)
+TEST_F(SceneLightTest, GetDirectionalLightVertexFormat)
 {
 	EXPECT_FALSE(dsSceneLight_getDirectionalLightVertexFormat(nullptr));
 
@@ -75,7 +81,7 @@ TEST(SceneLightTest, GetDirectionalLightVertexFormat)
 		format.elements[dsVertexAttrib_Color].offset);
 }
 
-TEST(SceneLightTest, GetPointLightVertexFormat)
+TEST_F(SceneLightTest, GetPointLightVertexFormat)
 {
 	EXPECT_FALSE(dsSceneLight_getPointLightVertexFormat(nullptr));
 
@@ -97,7 +103,7 @@ TEST(SceneLightTest, GetPointLightVertexFormat)
 		format.elements[dsVertexAttrib_TexCoord0].offset);
 }
 
-TEST(SceneLightTest, GetSpotLightVertexFormat)
+TEST_F(SceneLightTest, GetSpotLightVertexFormat)
 {
 	EXPECT_FALSE(dsSceneLight_getSpotLightVertexFormat(nullptr));
 
@@ -122,7 +128,7 @@ TEST(SceneLightTest, GetSpotLightVertexFormat)
 		format.elements[dsVertexAttrib_TexCoord0].offset);
 }
 
-TEST(SceneLightTest, MakeDirectional)
+TEST_F(SceneLightTest, MakeDirectional)
 {
 	dsSceneLight light;
 	dsVector3f direction = {{1.0f, 0.0f, 0.0f}};
@@ -145,7 +151,7 @@ TEST(SceneLightTest, MakeDirectional)
 	EXPECT_EQ(0.0f, light.outerSpotCosAngle);
 }
 
-TEST(SceneLightTest, MakePoint)
+TEST_F(SceneLightTest, MakePoint)
 {
 	dsSceneLight light;
 	dsVector3f position = {{1.0f, 2.0f, 3.0f}};
@@ -177,7 +183,7 @@ TEST(SceneLightTest, MakePoint)
 	EXPECT_EQ(0.0f, light.outerSpotCosAngle);
 }
 
-TEST(SceneLightTest, MakeSpot)
+TEST_F(SceneLightTest, MakeSpot)
 {
 	dsSceneLight light;
 	dsVector3f position = {{1.0f, 2.0f, 3.0f}};
@@ -217,7 +223,7 @@ TEST(SceneLightTest, MakeSpot)
 	EXPECT_EQ(outerSpotCosAngle, light.outerSpotCosAngle);
 }
 
-TEST(SceneLightTest, GetFalloff)
+TEST_F(SceneLightTest, GetFalloff)
 {
 	dsSceneLight light;
 	dsVector3f position = {{1.0f, 2.0f, 3.0f}};
@@ -255,7 +261,7 @@ TEST(SceneLightTest, GetFalloff)
 	EXPECT_EQ(0.0f, dsSceneLight_getFalloff(&light, &objectPos));
 }
 
-TEST(SceneLightTest, ComputeBounds)
+TEST_F(SceneLightTest, ComputeBounds)
 {
 	dsSceneLight light;
 	dsVector3f position = {{1.0f, 2.0f, 3.0f}};
@@ -305,7 +311,7 @@ TEST(SceneLightTest, ComputeBounds)
 	}
 }
 
-TEST(SceneLightTest, IsInFrustum)
+TEST_F(SceneLightTest, IsInFrustum)
 {
 	dsSceneLight light;
 	dsVector3f position = {{1.0f, 2.0f, 3.0f}};
@@ -352,7 +358,131 @@ TEST(SceneLightTest, IsInFrustum)
 		DS_DEFAULT_SCENE_LIGHT_INTENSITY_THRESHOLD));
 }
 
-TEST(SceneLightTest, GetAmbientLightVertices)
+TEST_F(SceneLightTest, GetPointLightLightProjection)
+{
+	dsSceneLight light;
+	dsVector3f position = {{1.0f, 2.0f, 3.0f}};
+	dsColor3f color = {{0.1f, 0.2f, 0.3f}};
+	float intensity = 3.5f;
+	float linearFalloff = 1.0f;
+	float quadraticFalloff = 2.0f;
+
+	ASSERT_TRUE(dsSceneLight_makePoint(&light, &position, &color, intensity, linearFalloff,
+		quadraticFalloff));
+
+	dsMatrix44f projections[6];
+	dsFrustum3f frustums[6];
+	EXPECT_FALSE(dsSceneLight_getSpotLightProjection(projections, &light, renderer,
+		DS_DEFAULT_SCENE_LIGHT_INTENSITY_THRESHOLD));
+
+	for (int i = 0; i < 6; ++i)
+	{
+		ASSERT_TRUE(dsSceneLight_getPointLightProjection(projections + i, &light, renderer,
+			(dsCubeFace)i, DS_DEFAULT_SCENE_LIGHT_INTENSITY_THRESHOLD));
+		ASSERT_TRUE(dsRenderer_frustumFromMatrix(frustums + i, renderer, projections + i));
+	}
+
+	dsVector3f testPos = {{2.0f, 2.0f, 3.0f}};
+	for (int i = 0; i < 6; ++i)
+	{
+		dsIntersectResult result = i == dsCubeFace_PosX ? dsIntersectResult_Inside :
+			dsIntersectResult_Outside;
+		EXPECT_EQ(result, dsFrustum3f_intersectSphere(frustums + i, &testPos, 0.1f));
+	}
+
+	testPos.x = 0.0f;
+	for (int i = 0; i < 6; ++i)
+	{
+		dsIntersectResult result = i == dsCubeFace_NegX ? dsIntersectResult_Inside :
+			dsIntersectResult_Outside;
+		EXPECT_EQ(result, dsFrustum3f_intersectSphere(frustums + i, &testPos, 0.1f));
+	}
+
+	testPos.x = 1.0f;
+	testPos.y = 3.0f;
+	for (int i = 0; i < 6; ++i)
+	{
+		dsIntersectResult result = i == dsCubeFace_PosY ? dsIntersectResult_Inside :
+			dsIntersectResult_Outside;
+		EXPECT_EQ(result, dsFrustum3f_intersectSphere(frustums + i, &testPos, 0.1f));
+	}
+
+	testPos.y = 1.0f;
+	for (int i = 0; i < 6; ++i)
+	{
+		dsIntersectResult result = i == dsCubeFace_NegY ? dsIntersectResult_Inside :
+			dsIntersectResult_Outside;
+		EXPECT_EQ(result, dsFrustum3f_intersectSphere(frustums + i, &testPos, 0.1f));
+	}
+
+	testPos.y = 2.0f;
+	testPos.z = 4.0f;
+	for (int i = 0; i < 6; ++i)
+	{
+		dsIntersectResult result = i == dsCubeFace_PosZ ? dsIntersectResult_Inside :
+			dsIntersectResult_Outside;
+		EXPECT_EQ(result, dsFrustum3f_intersectSphere(frustums + i, &testPos, 0.1f));
+	}
+
+	testPos.z = 2.0f;
+	for (int i = 0; i < 6; ++i)
+	{
+		dsIntersectResult result = i == dsCubeFace_NegZ ? dsIntersectResult_Inside :
+			dsIntersectResult_Outside;
+		EXPECT_EQ(result, dsFrustum3f_intersectSphere(frustums + i, &testPos, 0.1f));
+	}
+
+	testPos.x = 2.0f;
+	testPos.y = 3.0f;
+	testPos.z = 4.0f;
+	for (int i = 0; i < 6; ++i)
+	{
+		dsIntersectResult result =
+			i == dsCubeFace_PosX || i == dsCubeFace_PosY || i == dsCubeFace_PosZ ?
+				dsIntersectResult_Intersects : dsIntersectResult_Outside;
+		EXPECT_EQ(result, dsFrustum3f_intersectSphere(frustums + i, &testPos, 0.1f));
+	}
+}
+
+TEST_F(SceneLightTest, GetSpotLightLightProjection)
+{
+	dsSceneLight light;
+	dsVector3f position = {{1.0f, 2.0f, 3.0f}};
+	dsVector3f direction = {{1.0f, 0.0f, 0.0f}};
+	dsColor3f color = {{0.1f, 0.2f, 0.3f}};
+	float intensity = 3.5f;
+	float linearFalloff = 1.0f;
+	float quadraticFalloff = 2.0f;
+	float innerSpotCosAngle = 0.75f;
+	float outerSpotCosAngle = 0.5f;
+
+	ASSERT_TRUE(dsSceneLight_makeSpot(&light, &position, &direction, &color, intensity,
+		linearFalloff, quadraticFalloff, innerSpotCosAngle, outerSpotCosAngle));
+
+	dsMatrix44f projection;
+	EXPECT_FALSE(dsSceneLight_getPointLightProjection(&projection, &light, renderer, dsCubeFace_PosX,
+		DS_DEFAULT_SCENE_LIGHT_INTENSITY_THRESHOLD));
+	ASSERT_TRUE(dsSceneLight_getSpotLightProjection(&projection, &light, renderer,
+		DS_DEFAULT_SCENE_LIGHT_INTENSITY_THRESHOLD));
+
+	dsFrustum3f frustum;
+	ASSERT_TRUE(dsRenderer_frustumFromMatrix(&frustum, renderer, &projection));
+
+	dsVector3f testPos = {{2.0f, 2.0f, 3.0f}};
+	EXPECT_EQ(dsIntersectResult_Inside, dsFrustum3f_intersectSphere(&frustum, &testPos, 0.1f));
+
+	testPos.x = 10.0f;
+	EXPECT_EQ(dsIntersectResult_Outside, dsFrustum3f_intersectSphere(&frustum, &testPos, 0.1f));
+
+	testPos.x = 2.0f;
+	testPos.y = 2.3f;
+	EXPECT_EQ(dsIntersectResult_Inside, dsFrustum3f_intersectSphere(&frustum, &testPos, 0.1f));
+
+	testPos.y = 2.7f;
+	EXPECT_EQ(dsIntersectResult_Outside, dsFrustum3f_intersectSphere(&frustum, &testPos, 0.1f));
+}
+
+TEST_F(SceneLightTest, GetAmbientLightVertices)
 {
 	dsColor3f color = {{0.1f, 0.2f, 0.3f}};
 
@@ -402,7 +532,7 @@ TEST(SceneLightTest, GetAmbientLightVertices)
 	EXPECT_EQ(3U, lightIndices[5]);
 }
 
-TEST(SceneLightTest, GetDirectionalLightVertices)
+TEST_F(SceneLightTest, GetDirectionalLightVertices)
 {
 	dsSceneLight light;
 	dsVector3f position = {{1.0f, 2.0f, 3.0f}};
@@ -484,7 +614,7 @@ TEST(SceneLightTest, GetDirectionalLightVertices)
 		&light, 0));
 }
 
-TEST(SceneLightTest, GetPointLightVertices)
+TEST_F(SceneLightTest, GetPointLightVertices)
 {
 	dsSceneLight light;
 	dsVector3f position = {{1.0f, 2.0f, 3.0f}};
@@ -642,7 +772,7 @@ TEST(SceneLightTest, GetPointLightVertices)
 		DS_DEFAULT_SCENE_LIGHT_INTENSITY_THRESHOLD, 0));
 }
 
-TEST(SceneLightTest, GetSpotLightVertices)
+TEST_F(SceneLightTest, GetSpotLightVertices)
 {
 	dsSceneLight light;
 	dsVector3f position = {{1.0f, 2.0f, 3.0f}};

@@ -242,6 +242,121 @@ size_t dsTexture_layerOffset(const dsTextureInfo* info, uint32_t layerIndex, uin
 	return DS_INVALID_TEXTURE_OFFSET;
 }
 
+bool dsTexture_cubeOrientation(dsMatrix44f* outOrientation, dsCubeFace face)
+{
+	if (!outOrientation || face < dsCubeFace_PosX || face > dsCubeFace_NegZ)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	switch (face)
+	{
+		case dsCubeFace_PosX:
+			// +Z
+			outOrientation->values[0][0] = 0.0f;
+			outOrientation->values[0][1] = 0.0f;
+			outOrientation->values[0][2] = 1.0f;
+
+			// +Y
+			outOrientation->values[1][0] = 0.0f;
+			outOrientation->values[1][1] = 1.0f;
+			outOrientation->values[1][2] = 0.0f;
+
+			// -X
+			outOrientation->values[2][0] = -1.0f;
+			outOrientation->values[2][1] = 0.0f;
+			outOrientation->values[2][2] = 0.0f;
+			break;
+		case dsCubeFace_NegX:
+			// -Z
+			outOrientation->values[0][0] = 0.0f;
+			outOrientation->values[0][1] = 0.0f;
+			outOrientation->values[0][2] = -1.0f;
+
+			// +Y
+			outOrientation->values[1][0] = 0.0f;
+			outOrientation->values[1][1] = 1.0f;
+			outOrientation->values[1][2] = 0.0f;
+
+			// +X
+			outOrientation->values[2][0] = 1.0f;
+			outOrientation->values[2][1] = 0.0f;
+			outOrientation->values[2][2] = 0.0f;
+			break;
+		case dsCubeFace_PosY:
+			// +X
+			outOrientation->values[0][0] = 1.0f;
+			outOrientation->values[0][1] = 0.0f;
+			outOrientation->values[0][2] = 0.0f;
+
+			// +Z
+			outOrientation->values[1][0] = 0.0f;
+			outOrientation->values[1][1] = 0.0f;
+			outOrientation->values[1][2] = 1.0f;
+
+			// -Y
+			outOrientation->values[2][0] = 0.0f;
+			outOrientation->values[2][1] = -1.0f;
+			outOrientation->values[2][2] = 0.0f;
+			break;
+		case dsCubeFace_NegY:
+			// +X
+			outOrientation->values[0][0] = 1.0f;
+			outOrientation->values[0][1] = 0.0f;
+			outOrientation->values[0][2] = 0.0f;
+
+			// -Z
+			outOrientation->values[1][0] = 0.0f;
+			outOrientation->values[1][1] = 0.0f;
+			outOrientation->values[1][2] = -1.0f;
+
+			// +Y
+			outOrientation->values[2][0] = 0.0f;
+			outOrientation->values[2][1] = 1.0f;
+			outOrientation->values[2][2] = 0.0f;
+			break;
+		case dsCubeFace_PosZ:
+			// -X
+			outOrientation->values[0][0] = -1.0f;
+			outOrientation->values[0][1] = 0.0f;
+			outOrientation->values[0][2] = 0.0f;
+
+			// +Y
+			outOrientation->values[1][0] = 0.0f;
+			outOrientation->values[1][1] = 1.0f;
+			outOrientation->values[1][2] = 0.0f;
+
+			// -Z
+			outOrientation->values[2][0] = 0.0f;
+			outOrientation->values[2][1] = 0.0f;
+			outOrientation->values[2][2] = -1.0f;
+			break;
+		case dsCubeFace_NegZ:
+			// +X
+			outOrientation->values[0][0] = 1.0f;
+			outOrientation->values[0][1] = 0.0f;
+			outOrientation->values[0][2] = 0.0f;
+
+			// +Y
+			outOrientation->values[1][0] = 0.0f;
+			outOrientation->values[1][1] = 1.0f;
+			outOrientation->values[1][2] = 0.0f;
+
+			// +Z
+			outOrientation->values[2][0] = 0.0f;
+			outOrientation->values[2][1] = 0.0f;
+			outOrientation->values[2][2] = 1.0f;
+			break;
+	}
+
+	outOrientation->values[0][3] = 0.0f;
+	outOrientation->values[1][3] = 0.0f;
+	outOrientation->values[2][3] = 0.0f;
+	outOrientation->values[3][3] = 1.0f;
+	return true;
+}
+
 dsTexture* dsTexture_create(dsResourceManager* resourceManager, dsAllocator* allocator,
 	dsTextureUsage usage, dsGfxMemory memoryHints, const dsTextureInfo* info, const void* data,
 	size_t size)

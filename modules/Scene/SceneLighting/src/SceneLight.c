@@ -1,16 +1,38 @@
+/*
+ * Copyright 2020-2021 Aaron Barany
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 #include <DeepSea/SceneLighting/SceneLight.h>
 
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
+
 #include <DeepSea/Geometry/AlignedBox3.h>
 #include <DeepSea/Geometry/Frustum3.h>
 #include <DeepSea/Geometry/OrientedBox3.h>
+
 #include <DeepSea/Math/Color.h>
 #include <DeepSea/Math/Core.h>
+#include <DeepSea/Math/Matrix44.h>
 #include <DeepSea/Math/Packing.h>
 #include <DeepSea/Math/Vector3.h>
+
 #include <DeepSea/Render/Resources/GfxFormat.h>
+#include <DeepSea/Render/Resources/Texture.h>
 #include <DeepSea/Render/Resources/VertexFormat.h>
+#include <DeepSea/Render/Renderer.h>
 
 #include <float.h>
 #include <string.h>
@@ -389,6 +411,74 @@ bool dsSceneLight_isInFrustum(const dsSceneLight* light, const dsFrustum3f* frus
 
 	DS_ASSERT(false);
 	return false;
+}
+
+bool dsSceneLight_getPointLightProjection(dsMatrix44f* result,
+	const dsSceneLight* light, const dsRenderer* renderer, dsCubeFace cubeFace,
+	float intensityThreshold)
+{
+	if (!result || !light || light->type != dsSceneLightType_Point || !renderer ||
+		cubeFace < dsCubeFace_PosX || cubeFace > dsCubeFace_NegZ || intensityThreshold <= 0)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	dsMatrix44f lightWorld;
+	DS_VERIFY(dsTexture_cubeOrientation(&lightWorld, cubeFace));
+	*(dsVector3f*)(lightWorld.values + 3) = light->position;
+
+	dsMatrix44f lightLocal;
+	dsMatrix44_fastInvert(lightLocal, lightWorld);
+
+	float distance = getLightRadius(light, intensityThreshold);
+	float near = 0.1f;
+	if (near >= distance)
+		near = distance*0.5f;
+
+	dsMatrix44f perspective;
+	DS_VERIFY(dsRenderer_makePerspective(&perspective, renderer, (float)M_PI_2, 1.0f, near,
+		distance));
+
+	dsMatrix44_mul(*result, perspective, lightLocal);
+	return true;
+}
+
+bool dsSceneLight_getSpotLightProjection(dsMatrix44f* result, const dsSceneLight* light,
+	const dsRenderer* renderer, float intensityThreshold)
+{
+	if (!result || !light || light->type != dsSceneLightType_Spot || !renderer ||
+		intensityThreshold <= 0)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	dsMatrix44f lightWorld;
+	spotPerpAxes((dsVector3f*)lightWorld.columns, (dsVector3f*)(lightWorld.columns + 1), light);
+	dsVector3_neg(lightWorld.columns[2], light->direction);
+	*(dsVector3f*)(lightWorld.values + 3) = light->position;
+
+	lightWorld.values[0][3] = 0.0f;
+	lightWorld.values[1][3] = 0.0f;
+	lightWorld.values[2][3] = 0.0f;
+	lightWorld.values[3][3] = 1.0f;
+
+	dsMatrix44f lightLocal;
+	dsMatrix44_fastInvert(lightLocal, lightWorld);
+
+	float distance = getLightRadius(light, intensityThreshold);
+	float near = 0.1f;
+	if (near >= distance)
+		near = distance*0.5f;
+
+	float outerSpotAngle = acosf(light->outerSpotCosAngle);
+	dsMatrix44f perspective;
+	DS_VERIFY(dsRenderer_makePerspective(&perspective, renderer, outerSpotAngle, 1.0f, near,
+		distance));
+
+	dsMatrix44_mul(*result, perspective, lightLocal);
+	return true;
 }
 
 bool dsSceneLight_getAmbientLightVertices(dsAmbientLightVertex* outVertices,

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Aaron Barany
+ * Copyright 2016-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -107,6 +107,19 @@ DS_RENDER_EXPORT size_t dsTexture_surfaceOffset(const dsTextureInfo* info, dsCub
  */
 DS_RENDER_EXPORT size_t dsTexture_layerOffset(const dsTextureInfo* info, uint32_t layerIndex,
 	uint32_t mipIndex);
+
+/**
+ * @brief Gets the orientation matrix for a cube face.
+ *
+ * This is intended to help when using cubemap offscreens, so the orientation is in the same
+ * direction as the face itself. (e.g. PosX is looking down the +X axis, NegZ is identity)
+ *
+ * @remark errno will be set on failure.
+ * @param[out] outOrientation The output orientation matrix.
+ * @param face The cube face.
+ * @return False if the parameters are invalid.
+ */
+DS_RENDER_EXPORT bool dsTexture_cubeOrientation(dsMatrix44f* outOrientation, dsCubeFace face);
 
 /**
  * @brief Creates a texture.
