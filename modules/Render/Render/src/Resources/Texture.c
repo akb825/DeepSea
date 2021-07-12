@@ -242,6 +242,50 @@ size_t dsTexture_layerOffset(const dsTextureInfo* info, uint32_t layerIndex, uin
 	return DS_INVALID_TEXTURE_OFFSET;
 }
 
+bool dsTexture_cubeDirection(dsVector3f* outDirection, dsCubeFace face)
+{
+	if (!outDirection || face < dsCubeFace_PosX || face > dsCubeFace_NegZ)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	switch (face)
+	{
+		case dsCubeFace_PosX:
+			outDirection->x = 1.0f;
+			outDirection->y = 0.0f;
+			outDirection->z = 0.0f;
+			break;
+		case dsCubeFace_NegX:
+			outDirection->x = -1.0f;
+			outDirection->y = 0.0f;
+			outDirection->z = 0.0f;
+			break;
+		case dsCubeFace_PosY:
+			outDirection->x = 0.0f;
+			outDirection->y = 1.0f;
+			outDirection->z = 0.0f;
+			break;
+		case dsCubeFace_NegY:
+			outDirection->x = 0.0f;
+			outDirection->y = -1.0f;
+			outDirection->z = 0.0f;
+			break;
+		case dsCubeFace_PosZ:
+			outDirection->x = 0.0f;
+			outDirection->y = 0.0f;
+			outDirection->z = 1.0f;
+			break;
+		case dsCubeFace_NegZ:
+			outDirection->x = 0.0f;
+			outDirection->y = 0.0f;
+			outDirection->z = -1.0f;
+			break;
+	}
+	return true;
+}
+
 bool dsTexture_cubeOrientation(dsMatrix44f* outOrientation, dsCubeFace face)
 {
 	if (!outOrientation || face < dsCubeFace_PosX || face > dsCubeFace_NegZ)

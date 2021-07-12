@@ -18,6 +18,7 @@
 
 #include <DeepSea/Core/Config.h>
 #include <DeepSea/Core/Types.h>
+#include <DeepSea/Scene/Types.h>
 #include <DeepSea/SceneLighting/Export.h>
 #include <DeepSea/SceneLighting/Types.h>
 #include <DeepSea/Render/Resources/Types.h>
@@ -64,6 +65,16 @@ DS_SCENELIGHTING_EXPORT dsSceneLightShadows* dsSceneLightShadows_create(dsAlloca
 	dsResourceManager* resourceManager, const dsSceneLightSet* lightSet, dsSceneLightType lightType,
 	const char* lightName, const dsShaderVariableGroupDesc* matrixGroupDesc,
 	const char* matrixGroupName, const char* textureName, const dsSceneShadowParams* shadowParams);
+
+/**
+ * @brief Prepares the scene light shadows for the next frame.
+ * @remark errno will be set on failure.
+ * @param shadows The scene light shadows to prepare.
+ * @param view The view to prepare for.
+ * @return False if an error occurred.
+ */
+DS_SCENELIGHTING_EXPORT bool dsSceneLightShadows_prepare(dsSceneLightShadows* shadows,
+	const dsView* view);
 
 /**
  * @brief Destroys a scene light shadows instance.

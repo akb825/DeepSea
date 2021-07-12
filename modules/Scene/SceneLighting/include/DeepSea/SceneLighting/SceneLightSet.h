@@ -221,6 +221,14 @@ DS_SCENELIGHTING_EXPORT bool dsSceneLightSet_prepare(dsSceneLightSet* lightSet,
 	float intensityThreshold);
 
 /**
+ * @brief Gets the intensity threshold used in the last call to dsSceneLightSet_prepare().
+ * @param lightSet The light set.
+ * @return The intensity threshold.
+ */
+DS_SCENELIGHTING_EXPORT float dsSceneLightSet_getIntensityThreshold(
+	const dsSceneLightSet* lightSet);
+
+/**
  * @brief Finds the brightest lights at a position.
  * @param[out] outBrightestLights The output to contain the brightest lights.
  * @param outLightCount The maximum number of lights in outBrightestLIghts.
