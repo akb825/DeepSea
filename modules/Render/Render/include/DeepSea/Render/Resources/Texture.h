@@ -109,6 +109,15 @@ DS_RENDER_EXPORT size_t dsTexture_layerOffset(const dsTextureInfo* info, uint32_
 	uint32_t mipIndex);
 
 /**
+ * @brief Gets the direction for a cube face.
+ * @remark errno will be set on failure.
+ * @param[out] outDirection The output direction vector.
+ * @param face The cube face.
+ * @return False if the parameters are invalid.
+ */
+DS_RENDER_EXPORT bool dsTexture_cubeDirection(dsVector3f* outDirection, dsCubeFace face);
+
+/**
  * @brief Gets the orientation matrix for a cube face.
  *
  * This is intended to help when using cubemap offscreens, so the orientation is in the same

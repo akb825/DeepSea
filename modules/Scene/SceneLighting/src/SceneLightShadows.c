@@ -17,12 +17,16 @@
 #include <DeepSea/SceneLighting/SceneLightShadows.h>
 
 #include <DeepSea/Core/Containers/Hash.h>
+#include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Thread/Spinlock.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
+
+#include <DeepSea/Math/Core.h>
+#include <DeepSea/Math/Vector3.h>
 
 #include <DeepSea/Render/Resources/GfxBuffer.h>
 #include <DeepSea/Render/Resources/ShaderVariableGroup.h>
@@ -31,11 +35,14 @@
 #include <DeepSea/Render/Shadows/ShadowProjection.h>
 
 #include <DeepSea/Scene/Types.h>
+
+#include <DeepSea/SceneLighting/SceneLight.h>
 #include <DeepSea/SceneLighting/SceneLightSet.h>
 
 #include <string.h>
 
 #define FRAME_DELAY 3
+#define INVALID_INDEX (uint32_t)-1
 
 typedef struct BufferInfo
 {
@@ -51,8 +58,12 @@ struct dsSceneLightShadows
 	dsSceneLightType lightType;
 	uint32_t lightNameID;
 	bool cascaded;
+	bool valid;
+
 	uint32_t committedMatrices;
 	uint32_t totalMatrices;
+	float nearPlane;
+	float farPlane;
 
 	dsSceneShadowParams shadowParams;
 	dsShadowProjection projections[6];
@@ -61,6 +72,7 @@ struct dsSceneLightShadows
 	BufferInfo* buffers;
 	uint32_t bufferCount;
 	uint32_t maxBuffers;
+	uint32_t curBuffer;
 	void* curBufferData;
 
 	dsShaderVariableGroup* fallback;
@@ -143,6 +155,70 @@ static dsTexture* createTexture(dsSceneLightShadows* shadows)
 		dsTextureUsage_Texture, dsGfxMemory_GPUOnly, &textureInfo, false);
 }
 
+static void* getBufferData(dsSceneLightShadows* shadows)
+{
+	uint64_t frameNumber = shadows->resourceManager->renderer->frameNumber;
+	shadows->curBuffer = INVALID_INDEX;
+
+	// Look for any buffer large enough that's FRAME_DELAY number of frames earlier than the
+	// current one.
+	for (uint32_t i = 0; i < shadows->bufferCount; ++i)
+	{
+		if (shadows->buffers[i].lastUsedFrame + FRAME_DELAY <= frameNumber)
+		{
+			shadows->curBuffer = i;
+			break;
+		}
+	}
+
+	// Create a new buffer if one wasn't found.
+	if (shadows->curBuffer == INVALID_INDEX)
+	{
+		if (!DS_RESIZEABLE_ARRAY_ADD(shadows->allocator, shadows->buffers, shadows->bufferCount,
+				shadows->maxBuffers, 1))
+		{
+			return NULL;
+		}
+
+		size_t bufferSize;
+		switch (shadows->lightType)
+		{
+			case dsSceneLightType_Directional:
+				bufferSize = shadows->cascaded ? sizeof(CascadedDirectionalLightData) :
+					sizeof(DirectionalLightData);
+				break;
+			case dsSceneLightType_Point:
+				bufferSize = sizeof(dsMatrix44f)*6;
+				break;
+			case dsSceneLightType_Spot:
+				bufferSize = sizeof(dsMatrix44f);
+				break;
+			default:
+				DS_ASSERT(false);
+				return NULL;
+		}
+
+		dsGfxBuffer* buffer = dsGfxBuffer_create(shadows->resourceManager, shadows->allocator,
+			dsGfxBufferUsage_UniformBlock, dsGfxMemory_Stream | dsGfxMemory_Synchronize, NULL,
+			bufferSize);
+		if (!buffer)
+		{
+			--shadows->bufferCount;
+			return NULL;
+		}
+
+		shadows->curBuffer = shadows->bufferCount - 1;
+		shadows->buffers[shadows->curBuffer].buffer = buffer;
+	}
+
+	BufferInfo* curBuffer = shadows->buffers + shadows->curBuffer;
+	curBuffer->lastUsedFrame = frameNumber;
+	shadows->curBufferData = dsGfxBuffer_map(curBuffer->buffer, dsGfxBufferMap_Write, 0,
+		DS_MAP_FULL_BUFFER);
+	DS_ASSERT(shadows->curBufferData);
+	return shadows->curBufferData;
+}
+
 dsSceneLightShadows* dsSceneLightShadows_create(dsAllocator* allocator,
 	dsResourceManager* resourceManager, const dsSceneLightSet* lightSet, dsSceneLightType lightType,
 	const char* lightName, const dsShaderVariableGroupDesc* matrixGroupDesc,
@@ -199,20 +275,12 @@ dsSceneLightShadows* dsSceneLightShadows_create(dsAllocator* allocator,
 	shadows->lightType = lightType;
 	shadows->lightNameID = lightName ? dsHashString(lightName) : 0;
 	shadows->cascaded = cascaded;
-	shadows->committedMatrices = 0;
+	shadows->valid = false;
 
-	switch (lightType)
-	{
-		case dsSceneLightType_Directional:
-			shadows->totalMatrices = cascaded ? shadowParams->maxCascades : 1;
-			break;
-		case dsSceneLightType_Point:
-			shadows->totalMatrices = 6;
-			break;
-		case dsSceneLightType_Spot:
-			shadows->totalMatrices = 1;
-			break;
-	}
+	shadows->committedMatrices = 0;
+	shadows->totalMatrices = 0;
+	shadows->nearPlane = 0;
+	shadows->farPlane = 0;
 
 	shadows->shadowParams = *shadowParams;
 	shadows->texture = NULL;
@@ -220,6 +288,7 @@ dsSceneLightShadows* dsSceneLightShadows_create(dsAllocator* allocator,
 	shadows->buffers = NULL;
 	shadows->bufferCount = 0;
 	shadows->maxBuffers = 0;
+	shadows->curBuffer = INVALID_INDEX;
 	shadows->curBufferData = NULL;
 
 	if (needsFallback)
@@ -241,6 +310,153 @@ dsSceneLightShadows* dsSceneLightShadows_create(dsAllocator* allocator,
 	}
 
 	return shadows;
+}
+
+bool dsSceneLightShadows_prepare(dsSceneLightShadows* shadows, const dsView* view)
+{
+	if (!shadows || !view)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	const dsSceneLight* light = dsSceneLightSet_findLightID(shadows->lightSet,
+		shadows->lightNameID);
+	if (!light || light->type != shadows->lightType)
+	{
+		shadows->valid = false;
+		return true;
+	}
+
+	if (!shadows->fallback)
+	{
+		if (!getBufferData(shadows))
+			return false;
+	}
+
+	const dsSceneShadowParams* shadowParams = &shadows->shadowParams;
+	dsRenderer* renderer = shadows->resourceManager->renderer;
+	shadows->valid = true;
+	shadows->committedMatrices = 0;
+	switch (shadows->lightType)
+	{
+		case dsSceneLightType_Directional:
+		{
+			bool uniform = view->projectionParams.type == dsProjectionType_Ortho;
+			if (view->projectionParams.type == dsProjectionType_Perspective)
+			{
+				shadows->nearPlane = view->projectionParams.perspectiveParams.near;
+				shadows->farPlane = view->projectionParams.perspectiveParams.far;
+			}
+			else
+			{
+				shadows->nearPlane = view->projectionParams.projectionPlanes.near;
+				shadows->farPlane = view->projectionParams.projectionPlanes.far;
+			}
+
+			dsVector3f toLight;
+			dsVector3_neg(toLight, light->direction);
+			shadows->farPlane = dsMin(shadows->farPlane, shadowParams->maxDistance);
+			dsVector2f shadowDistance = {{shadowParams->fadeStartDistance,
+				shadowParams->maxDistance}};
+			if (shadows->cascaded)
+			{
+				shadows->totalMatrices = dsComputeCascadeCount(shadows->nearPlane,
+					shadows->farPlane, shadowParams->maxFirstSplitDist,
+					shadowParams->cascadedExpFactor, shadowParams->maxCascades);
+				if (shadows->totalMatrices == 0)
+				{
+					shadows->valid = false;
+					return false;
+				}
+
+				dsVector4f splitDistances = {{shadows->farPlane, shadows->farPlane,
+					shadows->farPlane, shadows->farPlane}};
+				for (uint32_t i = 0; i < shadows->totalMatrices; ++i)
+				{
+					splitDistances.values[i] = dsComputeCascadeDistance(shadows->nearPlane,
+						shadows->farPlane, shadowParams->cascadedExpFactor, i,
+						shadows->totalMatrices);
+				}
+
+				if (shadows->fallback)
+				{
+					DS_VERIFY(dsShaderVariableGroup_setElementData(shadows->fallback, 1,
+						&splitDistances, dsMaterialType_Vec4, 0, 1));
+					DS_VERIFY(dsShaderVariableGroup_setElementData(shadows->fallback, 2,
+						&shadowDistance, dsMaterialType_Vec2, 0, 1));
+				}
+				else
+				{
+					CascadedDirectionalLightData* data =
+						(CascadedDirectionalLightData*)shadows->curBufferData;
+					data->splitDistances = splitDistances;
+					data->shadowDistance = shadowDistance;;
+				}
+			}
+			else
+			{
+				shadows->totalMatrices = 1;
+				if (shadows->fallback)
+				{
+					DS_VERIFY(dsShaderVariableGroup_setElementData(shadows->fallback, 1,
+						&shadowDistance, dsMaterialType_Vec2, 0, 1));
+				}
+				else
+				{
+					DirectionalLightData* data = (DirectionalLightData*)shadows->curBufferData;
+					data->shadowDistance = shadowDistance;
+				}
+			}
+
+			for (uint32_t i = 0; i < shadows->totalMatrices; ++i)
+			{
+				DS_VERIFY(dsShadowProjection_initialize(shadows->projections + i, renderer,
+					&view->cameraMatrix, &toLight, NULL, uniform));
+			}
+			return true;
+		}
+		case dsSceneLightType_Point:
+		{
+			shadows->totalMatrices = 6;
+			float intensityThreshold = dsSceneLightSet_getIntensityThreshold(shadows->lightSet);
+			for (int i = 0; i < 6; ++i)
+			{
+				dsCubeFace cubeFace = (dsCubeFace)i;
+
+				dsVector3f toLight;
+				DS_VERIFY(dsTexture_cubeDirection(&toLight, cubeFace));
+				dsVector3_neg(toLight, toLight);
+
+				dsMatrix44f projection;
+				DS_VERIFY(dsSceneLight_getPointLightProjection(&projection, light, renderer,
+					cubeFace, intensityThreshold));
+
+				DS_VERIFY(dsShadowProjection_initialize(shadows->projections + i, renderer,
+					&view->cameraMatrix, &toLight, &projection, false));
+			}
+			return true;
+		}
+		case dsSceneLightType_Spot:
+		{
+			shadows->totalMatrices = 1;
+
+			dsVector3f toLight;
+			dsVector3_neg(toLight, light->direction);
+
+			float intensityThreshold = dsSceneLightSet_getIntensityThreshold(shadows->lightSet);
+			dsMatrix44f projection;
+			DS_VERIFY(dsSceneLight_getSpotLightProjection(&projection, light, renderer,
+				intensityThreshold));
+
+			DS_VERIFY(dsShadowProjection_initialize(shadows->projections, renderer,
+				&view->cameraMatrix, &toLight, &projection, false));
+			return true;
+		}
+	}
+
+	DS_ASSERT(false);
+	return false;
 }
 
 bool dsSceneLightShadows_destroy(dsSceneLightShadows* shadows)

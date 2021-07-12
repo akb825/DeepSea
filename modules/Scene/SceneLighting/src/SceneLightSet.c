@@ -462,6 +462,11 @@ bool dsSceneLightSet_prepare(dsSceneLightSet* lightSet, float intensityThreshold
 	return true;
 }
 
+float dsSceneLightSet_getIntensityThreshold(const dsSceneLightSet* lightSet)
+{
+	return lightSet ? lightSet->intensityThreshold : 0.0f;
+}
+
 uint32_t dsSceneLightSet_findBrightestLights(const dsSceneLight** outBrightestLights,
 	uint32_t outLightCount, const dsSceneLightSet* lightSet, const dsVector3f* position)
 {
