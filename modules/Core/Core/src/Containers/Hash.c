@@ -280,8 +280,9 @@ void dsHashCombineBytes128(void* outResult, const void* seed, const void* buffer
 	const uint8_t* data = (const uint8_t*)buffer;
 	const size_t nblocks = size/16;
 
-	uint64_t h1 = ((const uint64_t*)seed)[0];
-	uint64_t h2 = ((const uint64_t*)seed)[1];
+	// Use memcpy to avoid potentially unaligned access.
+	uint64_t h[2];
+	memcpy(h, seed, sizeof(uint64_t)*2);
 
 	const uint64_t c1 = 0x87c37b91114253d5LLU;
 	const uint64_t c2 = 0x4cf5ad432745937fLLU;
@@ -292,26 +293,27 @@ void dsHashCombineBytes128(void* outResult, const void* seed, const void* buffer
 	const uint64_t* blocks = (const uint64_t*)(data);
 	for (size_t i = 0; i < nblocks; i++)
 	{
-		uint64_t k1 = blocks[i*2];
-		uint64_t k2 = blocks[i*2 + 1];
+		// Use memcpy to avoid potentially unaligned access.
+		uint64_t k[2];
+		memcpy(k, blocks + i*2, sizeof(uint64_t)*2);
 
-		k1 *= c1;
-		k1 = rotl64(k1, 31);
-		k1 *= c2;
-		h1 ^= k1;
+		k[0] *= c1;
+		k[0] = rotl64(k[0], 31);
+		k[0] *= c2;
+		h[0] ^= k[0];
 
-		h1 = rotl64(h1, 27);
-		h1 += h2;
-		h1 = h1*5+0x52dce729;
+		h[0] = rotl64(h[0], 27);
+		h[0] += h[1];
+		h[0] = h[0]*5+0x52dce729;
 
-		k2 *= c2;
-		k2 = rotl64(k2, 33);
-		k2 *= c1;
-		h2 ^= k2;
+		k[1] *= c2;
+		k[1] = rotl64(k[1], 33);
+		k[1] *= c1;
+		h[1] ^= k[1];
 
-		h2 = rotl64(h2,31);
-		h2 += h1;
-		h2 = h2*5+0x38495ab5;
+		h[1] = rotl64(h[1],31);
+		h[1] += h[0];
+		h[1] = h[1]*5+0x38495ab5;
 	}
 
 	//----------
@@ -331,7 +333,7 @@ void dsHashCombineBytes128(void* outResult, const void* seed, const void* buffer
 		case 11: k2 ^= ((uint64_t)tail[10]) << 16;
 		case 10: k2 ^= ((uint64_t)tail[ 9]) << 8;
 		case  9: k2 ^= ((uint64_t)tail[ 8]) << 0;
-		k2 *= c2; k2  = rotl64(k2,33); k2 *= c1; h2 ^= k2;
+		k2 *= c2; k2  = rotl64(k2,33); k2 *= c1; h[1] ^= k2;
 
 		case  8: k1 ^= ((uint64_t)tail[ 7]) << 56;
 		case  7: k1 ^= ((uint64_t)tail[ 6]) << 48;
@@ -341,26 +343,25 @@ void dsHashCombineBytes128(void* outResult, const void* seed, const void* buffer
 		case  3: k1 ^= ((uint64_t)tail[ 2]) << 16;
 		case  2: k1 ^= ((uint64_t)tail[ 1]) << 8;
 		case  1: k1 ^= ((uint64_t)tail[ 0]) << 0;
-		k1 *= c1; k1  = rotl64(k1,31); k1 *= c2; h1 ^= k1;
+		k1 *= c1; k1  = rotl64(k1,31); k1 *= c2; h[0] ^= k1;
 	};
 
 	//----------
 	// finalization
 
-	h1 ^= size;
-	h2 ^= size;
+	h[0] ^= size;
+	h[1] ^= size;
 
-	h1 += h2;
-	h2 += h1;
+	h[0] += h[1];
+	h[1] += h[0];
 
-	h1 = fmix64(h1);
-	h2 = fmix64(h2);
+	h[0] = fmix64(h[0]);
+	h[1] = fmix64(h[1]);
 
-	h1 += h2;
-	h2 += h1;
+	h[0] += h[1];
+	h[1] += h[0];
 
-	((uint64_t*)outResult)[0] = h1;
-	((uint64_t*)outResult)[1] = h2;
+	memcpy(outResult, h, sizeof(uint64_t)*2);
 }
 #else
 void dsHashCombineBytes128(void* outResult, const void* seed, const void* buffer,
@@ -373,10 +374,9 @@ void dsHashCombineBytes128(void* outResult, const void* seed, const void* buffer
 	const uint8_t* data = (const uint8_t*)buffer;
 	const size_t nblocks = size/16;
 
-	uint32_t h1 = ((uint32_t*)seed)[0];
-	uint32_t h2 = ((uint32_t*)seed)[1];
-	uint32_t h3 = ((uint32_t*)seed)[2];
-	uint32_t h4 = ((uint32_t*)seed)[3];
+	// Use memcpy to avoid potentially unaligned access.
+	uint32_t h[4];
+	memcpy(h, seed, sizeof(uint32_t)*4);
 
 	const uint32_t c1 = 0x239b961b;
 	const uint32_t c2 = 0xab0e9789;
@@ -396,38 +396,38 @@ void dsHashCombineBytes128(void* outResult, const void* seed, const void* buffer
 		k[0] *= c1;
 		k[0] = rotl32(k[0], 15);
 		k[0] *= c2;
-		h1 ^= k[0];
+		h[0] ^= k[0];
 
-		h1 = rotl32(h1, 19);
-		h1 += h2;
-		h1 = h1*5+0x561ccd1b;
+		h[0] = rotl32(h[0], 19);
+		h[0] += h[1];
+		h[0] = h[0]*5+0x561ccd1b;
 
 		k[1] *= c2;
 		k[1] = rotl32(k[1], 16);
 		k[1] *= c3;
-		h2 ^= k[1];
+		h[1] ^= k[1];
 
-		h2 = rotl32(h2, 17);
-		h2 += h3;
-		h2 = h2*5+0x0bcaa747;
+		h[1] = rotl32(h[1], 17);
+		h[1] += h[2];
+		h[1] = h[1]*5+0x0bcaa747;
 
 		k[2] *= c3;
 		k[2] = rotl32(k[2], 17);
 		k[2] *= c4;
-		h3 ^= k[2];
+		h[2] ^= k[2];
 
-		h3 = rotl32(h3, 15);
-		h3 += h4;
-		h3 = h3*5+0x96cd1c35;
+		h[2] = rotl32(h[2], 15);
+		h[2] += h[3];
+		h[2] = h[2]*5+0x96cd1c35;
 
 		k[3] *= c4;
 		k[3] = rotl32(k[3], 18);
 		k[3] *= c1;
-		h4 ^= k[3];
+		h[3] ^= k[3];
 
-		h4 = rotl32(h4, 13);
-		h4 += h1;
-		h4 = h4*5+0x32ac3b17;
+		h[3] = rotl32(h[3], 13);
+		h[3] += h[0];
+		h[3] = h[3]*5+0x32ac3b17;
 	}
 
 	//----------
@@ -445,50 +445,47 @@ void dsHashCombineBytes128(void* outResult, const void* seed, const void* buffer
 		case 15: k4 ^= tail[14] << 16;
 		case 14: k4 ^= tail[13] << 8;
 		case 13: k4 ^= tail[12] << 0;
-		k4 *= c4; k4  = rotl32(k4,18); k4 *= c1; h4 ^= k4;
+		k4 *= c4; k4  = rotl32(k4,18); k4 *= c1; h[3] ^= k4;
 
 		case 12: k3 ^= tail[11] << 24;
 		case 11: k3 ^= tail[10] << 16;
 		case 10: k3 ^= tail[ 9] << 8;
 		case  9: k3 ^= tail[ 8] << 0;
-		k3 *= c3; k3  = rotl32(k3,17); k3 *= c4; h3 ^= k3;
+		k3 *= c3; k3  = rotl32(k3,17); k3 *= c4; h[2] ^= k3;
 
 		case  8: k2 ^= tail[ 7] << 24;
 		case  7: k2 ^= tail[ 6] << 16;
 		case  6: k2 ^= tail[ 5] << 8;
 		case  5: k2 ^= tail[ 4] << 0;
-		k2 *= c2; k2  = rotl32(k2,16); k2 *= c3; h2 ^= k2;
+		k2 *= c2; k2  = rotl32(k2,16); k2 *= c3; h[1] ^= k2;
 
 		case  4: k1 ^= tail[ 3] << 24;
 		case  3: k1 ^= tail[ 2] << 16;
 		case  2: k1 ^= tail[ 1] << 8;
 		case  1: k1 ^= tail[ 0] << 0;
-		k1 *= c1; k1  = rotl32(k1,15); k1 *= c2; h1 ^= k1;
+		k1 *= c1; k1  = rotl32(k1,15); k1 *= c2; h[0] ^= k1;
 	};
 
 	//----------
 	// finalization
 
-	h1 ^= size;
-	h2 ^= size;
-	h3 ^= size;
-	h4 ^= size;
+	h[0] ^= (uint32_t)size;
+	h[1] ^= (uint32_t)size;
+	h[2] ^= (uint32_t)size;
+	h[3] ^= (uint32_t)size;
 
-	h1 += h2; h1 += h3; h1 += h4;
-	h2 += h1; h3 += h1; h4 += h1;
+	h[0] += h[1]; h[0] += h[2]; h[0] += h[3];
+	h[1] += h[0]; h[2] += h[0]; h[3] += h[0];
 
-	h1 = fmix32(h1);
-	h2 = fmix32(h2);
-	h3 = fmix32(h3);
-	h4 = fmix32(h4);
+	h[0] = fmix32(h[0]);
+	h[1] = fmix32(h[1]);
+	h[2] = fmix32(h[2]);
+	h[3] = fmix32(h[3]);
 
-	h1 += h2; h1 += h3; h1 += h4;
-	h2 += h1; h3 += h1; h4 += h1;
+	h[0] += h[1]; h[0] += h[2]; h[0] += h[3];
+	h[1] += h[0]; h[2] += h[0]; h[3] += h[0];
 
-	((uint32_t*)outResult)[0] = h1;
-	((uint32_t*)outResult)[1] = h2;
-	((uint32_t*)outResult)[2] = h3;
-	((uint32_t*)outResult)[3] = h4;
+	memcpy(outResult, h, sizeof(uint32_t)*4);
 }
 #endif
 
