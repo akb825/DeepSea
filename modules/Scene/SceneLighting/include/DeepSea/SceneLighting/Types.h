@@ -240,22 +240,13 @@ typedef struct dsSceneShadowParams
 
 	/**
 	 * @brief The distance to start fading out shadows.
-	 *
-	 * This is only used for directional lights.
 	 */
 	float fadeStartDistance;
 
 	/**
 	 * @brief The maximum to display shadows.
-	 *
-	 * This is only used for directional lights.
 	 */
 	float maxDistance;
-
-	/**
-	 * @brief The resolution for the width and height of the shadow buffer.
-	 */
-	uint32_t resolution;
 } dsSceneShadowParams;
 
 /**

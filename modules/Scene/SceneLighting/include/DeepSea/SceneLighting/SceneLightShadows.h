@@ -49,22 +49,19 @@ extern "C"
  *         - mat44 array for the shadow projection of size 4, or non-array element if not cascaded.
  *         - vec4 of floats for cascade split distances, or omitted if not cascaded.
  *         - vec2 for the distance to start fading out shadows and maximum shadow distance.
- *     - Point: mat44 array of 6 elements for the shadow projection.
- *     - Spot: mat44 for the shadow projection.
- * @param matrixGroupName The name of the matrix group shader variable. It's expected this will have
- *     global binding.
- * @param textureName The name of shader variable for the texture. It is expected to have global
- *     binding and the type based on the light type:
- *     - Directional: sampler2DArrayShadow if cascaded, or sampler2DShadow if not.
- *     - Point: samplerCubeShadow
- *     - Spot: sampler2DShadow
+ *     - Point:
+ *         - mat44 array of 6 elements for the shadow projection.
+ *         - vec2 for the distance to start fading out shadows and maximum shadow distance.
+ *     - Spot:
+ *         - mat44 for the shadow projection.
+ *         - vec2 for the distance to start fading out shadows and maximum shadow distance.
  * @param shadowParams Parameters controlling the shadow behavior.
  * @return The light shadows or NULL if an error occurred.
  */
 DS_SCENELIGHTING_EXPORT dsSceneLightShadows* dsSceneLightShadows_create(dsAllocator* allocator,
 	dsResourceManager* resourceManager, const dsSceneLightSet* lightSet, dsSceneLightType lightType,
 	const char* lightName, const dsShaderVariableGroupDesc* matrixGroupDesc,
-	const char* matrixGroupName, const char* textureName, const dsSceneShadowParams* shadowParams);
+	const dsSceneShadowParams* shadowParams);
 
 /**
  * @brief Prepares the scene light shadows for the next frame.
