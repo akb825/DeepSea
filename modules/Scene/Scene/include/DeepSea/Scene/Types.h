@@ -402,7 +402,6 @@ typedef struct dsViewFramebufferInfo
 	 */
 	float width;
 
-
 	/**
 	 * @brief The height of the framebuffer.
 	 *

@@ -215,6 +215,38 @@ static bool validateSurfacesFramebuffers(const dsResourceManager* resourceManage
 	return true;
 }
 
+static bool isLayerInRange(const dsFramebufferSurface* surface, uint32_t layers)
+{
+	switch (surface->surfaceType)
+	{
+		case dsGfxSurfaceType_ColorRenderSurface:
+		case dsGfxSurfaceType_ColorRenderSurfaceLeft:
+		case dsGfxSurfaceType_ColorRenderSurfaceRight:
+		case dsGfxSurfaceType_DepthRenderSurface:
+		case dsGfxSurfaceType_DepthRenderSurfaceLeft:
+		case dsGfxSurfaceType_DepthRenderSurfaceRight:
+		case dsGfxSurfaceType_Renderbuffer:
+			return layers == 1;
+		case dsGfxSurfaceType_Offscreen:
+		{
+			dsOffscreen* offscreen = (dsOffscreen*)surface->surface;
+			uint32_t surfaceLayers = dsMax(1U, offscreen->info.depth);
+			uint32_t layer = surface->layer;
+			if (offscreen->info.dimension == dsTextureDim_Cube)
+			{
+				layer = layer*6 + surface->cubeFace;
+				layers *= 6;
+				surfaceLayers *= 6;
+			}
+
+			return DS_IS_BUFFER_RANGE_VALID(layer, layers, surfaceLayers);
+		}
+	}
+
+	DS_ASSERT(false);
+	return false;
+}
+
 static void destroyMidCreate(dsView* view)
 {
 	dsSharedMaterialValues_destroy(view->globalValues);
@@ -886,6 +918,7 @@ bool dsView_update(dsView* view)
 		const dsViewFramebufferInfo* framebufferInfo = privateView->framebufferInfos + i;
 
 		bool rotated = false;
+		bool outOfRange = false;
 		for (uint32_t j = 0; j < framebufferInfo->surfaceCount; ++j)
 		{
 			dsFramebufferSurface* surface = privateView->tempSurfaces + j;
@@ -899,6 +932,9 @@ bool dsView_update(dsView* view)
 			surface->surface = privateView->surfaces[foundNode->index];
 			DS_ASSERT(j == 0 || rotated == privateView->surfaceInfos->windowFramebuffer);
 			rotated = privateView->surfaceInfos->windowFramebuffer;
+
+			if (!isLayerInRange(surface, framebufferInfo->layers))
+				outOfRange = true;
 		}
 
 		uint32_t width;
@@ -919,11 +955,20 @@ bool dsView_update(dsView* view)
 			height = (uint32_t)roundf(-framebufferInfo->height*(float)height);
 		}
 
-		dsFramebuffer* framebuffer = dsFramebuffer_create(resourceManager,
-			view->resourceAllocator, framebufferInfo->name, privateView->tempSurfaces,
-			framebufferInfo->surfaceCount, width, height, framebufferInfo->layers);
-		if (!framebuffer)
-			DS_PROFILE_FUNC_RETURN(false);
+		dsFramebuffer* framebuffer = NULL;
+		if (outOfRange)
+		{
+			DS_LOG_WARNING_F(DS_SCENE_LOG_TAG, "Ignoring frmaebuffer %s with layers out of range.",
+				framebufferInfo->name);
+		}
+		else
+		{
+			framebuffer = dsFramebuffer_create(resourceManager,
+				view->resourceAllocator, framebufferInfo->name, privateView->tempSurfaces,
+				framebufferInfo->surfaceCount, width, height, framebufferInfo->layers);
+			if (!framebuffer)
+				DS_PROFILE_FUNC_RETURN(false);
+		}
 
 		DS_VERIFY(dsFramebuffer_destroy(privateView->framebuffers[i].framebuffer));
 		privateView->framebuffers[i].framebuffer = framebuffer;
@@ -990,6 +1035,11 @@ bool dsView_draw(dsView* view, dsCommandBuffer* commandBuffer, dsSceneThreadMana
 			const dsViewFramebufferInfo* framebufferInfo =
 				privateView->framebufferInfos + framebufferIndex;
 			const dsRotatedFramebuffer* framebuffer = privateView->framebuffers + framebufferIndex;
+
+			// Skipped due to framebuffer out of range. (e.g. support up to N layers, but have fewer
+			// in the currently bound offscreen)
+			if (!framebuffer)
+				continue;
 
 			dsAlignedBox3f viewport = framebufferInfo->viewport;
 			dsView_adjustViewport(&viewport, view, framebuffer->rotated);

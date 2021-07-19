@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Aaron Barany
+ * Copyright 2019-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -194,6 +194,11 @@ static void processPipeline(dsSceneThreadManager* threadManager)
 
 		if (item->renderPass)
 		{
+			// Skipped due to framebuffer out of range. (e.g. support up to N layers, but have fewer
+			// in the currently bound offscreen)
+			if (!framebuffer->framebuffer)
+				continue;
+
 			dsAlignedBox3f viewport = framebufferInfo->viewport;
 			dsView_adjustViewport(&viewport, view, framebuffer->rotated);
 			viewport.min.x *= (float)framebuffer->framebuffer->width;
@@ -465,6 +470,11 @@ static bool submitCommandBuffers(dsSceneThreadManager* threadManager,
 				threadManager->curFramebufferInfos + framebufferIndex;
 			const dsRotatedFramebuffer* framebuffer = threadManager->curFramebuffers +
 				framebufferIndex;
+
+			// Skipped due to framebuffer out of range. (e.g. support up to N layers, but have fewer
+			// in the currently bound offscreen)
+			if (!framebuffer->framebuffer)
+				continue;
 
 			dsAlignedBox3f viewport = framebufferInfo->viewport;
 			dsView_adjustViewport(&viewport, threadManager->curView, framebuffer->rotated);
