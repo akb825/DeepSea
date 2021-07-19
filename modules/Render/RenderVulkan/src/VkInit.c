@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 Aaron Barany
+ * Copyright 2018-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -101,6 +101,7 @@ typedef struct InstanceExtensions
 
 typedef struct DeviceExtensions
 {
+	bool maintenance1;
 	bool oldDebugMarker;
 	bool depthStencilResolve;
 	bool pvrtc;
@@ -134,7 +135,8 @@ static const char* physicalDeviceProperties2ExtensionName =
 
 // Device extensions.
 static const char* oldDebugMarkerExtensionName = "VK_EXT_debug_marker";
-static const char* maintanence2ExtensionName = "VK_KHR_maintenance2";
+static const char* maintenance1ExtensionName = "VK_KHR_maintenance1";
+static const char* maintenance2ExtensionName = "VK_KHR_maintenance2";
 static const char* multiviewExtensionName = "VK_KHR_multiview";
 static const char* createRenderPass2ExtensionName = "VK_KHR_create_renderpass2";
 static const char* depthStencilResolveExtensionName = "VK_KHR_depth_stencil_resolve";
@@ -426,7 +428,10 @@ static void findDeviceExtensions(DeviceExtensions* outExtensions, dsVkDevice* de
 	dsAllocator* allocator)
 {
 	dsVkInstance* instance = &device->instance;
+	device->hasMaintenance1 = false;
+	device->hasDepthStencilResolve = false;
 	device->hasPVRTC = false;
+	device->hasLazyAllocation = false;
 
 	uint32_t extensionCount = 0;
 	DS_VK_CALL(instance->vkEnumerateDeviceExtensionProperties)(device->physicalDevice, NULL,
@@ -443,7 +448,9 @@ static void findDeviceExtensions(DeviceExtensions* outExtensions, dsVkDevice* de
 		extensions);
 	for (uint32_t i = 0; i < extensionCount; ++i)
 	{
-		if (strcmp(extensions[i].extensionName, oldDebugMarkerExtensionName) == 0)
+		if (strcmp(extensions[i].extensionName, maintenance1ExtensionName) == 0)
+			outExtensions->maintenance1 = true;
+		else if (strcmp(extensions[i].extensionName, oldDebugMarkerExtensionName) == 0)
 			outExtensions->oldDebugMarker = true;
 		else if (strcmp(extensions[i].extensionName, depthStencilResolveExtensionName) == 0)
 			outExtensions->depthStencilResolve = true;
@@ -460,12 +467,17 @@ static void addDeviceExtensions(dsVkDevice* device,
 {
 	findDeviceExtensions(extensions, device, allocator);
 	DS_ADD_EXTENSION(extensionNames, *extensionCount, swapChainExtensionName);
+	if (useMarkers && extensions->maintenance1)
+	{
+		device->hasMaintenance1 = true;
+		DS_ADD_EXTENSION(extensionNames, *extensionCount, maintenance1ExtensionName);
+	}
 	if (useMarkers && extensions->oldDebugMarker)
 		DS_ADD_EXTENSION(extensionNames, *extensionCount, oldDebugMarkerExtensionName);
 	if (extensions->depthStencilResolve)
 	{
 		device->hasDepthStencilResolve = true;
-		DS_ADD_EXTENSION(extensionNames, *extensionCount, maintanence2ExtensionName);
+		DS_ADD_EXTENSION(extensionNames, *extensionCount, maintenance2ExtensionName);
 		DS_ADD_EXTENSION(extensionNames, *extensionCount, multiviewExtensionName);
 		DS_ADD_EXTENSION(extensionNames, *extensionCount, createRenderPass2ExtensionName);
 		DS_ADD_EXTENSION(extensionNames, *extensionCount, depthStencilResolveExtensionName);

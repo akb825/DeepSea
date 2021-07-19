@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 Aaron Barany
+ * Copyright 2018-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -99,7 +99,7 @@ static bool getImageViews(dsResourceManager* resourceManager, const dsFramebuffe
 				}
 				else
 				{
-					uint32_t faceCount =1;
+					uint32_t faceCount = 1;
 					VkImageViewType imageViewType;
 					switch (info->dimension)
 					{
@@ -116,7 +116,7 @@ static bool getImageViews(dsResourceManager* resourceManager, const dsFramebuffe
 								imageViewType = VK_IMAGE_VIEW_TYPE_2D;
 							break;
 						case dsTextureDim_3D:
-							imageViewType = VK_IMAGE_VIEW_TYPE_3D;
+							imageViewType = VK_IMAGE_VIEW_TYPE_2D_ARRAY;
 							break;
 						case dsTextureDim_Cube:
 							if (info->depth > 0)

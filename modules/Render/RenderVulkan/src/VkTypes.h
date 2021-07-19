@@ -226,6 +226,7 @@ typedef struct dsVkDevice
 
 	VkPhysicalDeviceFeatures features;
 	VkPhysicalDeviceProperties properties;
+	bool hasMaintenance1;
 	bool hasDepthStencilResolve;
 	bool hasPVRTC;
 	bool hasLazyAllocation;

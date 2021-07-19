@@ -904,6 +904,7 @@ dsResourceManager* dsMTLResourceManager_create(dsAllocator* allocator, dsRendere
 	baseResourceManager->maxTextureSamples = renderer->maxSurfaceSamples;
 	baseResourceManager->hasArbitraryMipmapping = true;
 	baseResourceManager->hasCubeArrays = hasCubeArrays(device);
+	baseResourceManager->has3DTextureOffscreens = true;
 	baseResourceManager->texturesReadable = false;
 	baseResourceManager->requiresColorBuffer = false;
 	baseResourceManager->requiresAnySurface = false;

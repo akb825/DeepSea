@@ -1337,7 +1337,7 @@ dsGLResourceManager* dsGLResourceManager_create(dsAllocator* allocator, dsGLRend
 	if (ANYGL_SUPPORTED(glTexImage3D))
 	{
 		glGetIntegerv(GL_MAX_3D_TEXTURE_SIZE,
-			(GLint*)&baseResourceManager->maxTextureArrayLevels);
+			(GLint*)&baseResourceManager->maxTextureDepth);
 	}
 	if (AnyGL_atLeastVersion(3, 0, false) || AnyGL_atLeastVersion(3, 0, true) ||
 		AnyGL_EXT_texture_array)
@@ -1349,6 +1349,8 @@ dsGLResourceManager* dsGLResourceManager_create(dsAllocator* allocator, dsGLRend
 		AnyGL_atLeastVersion(3, 0, true);
 	baseResourceManager->hasCubeArrays = AnyGL_atLeastVersion(4, 0, false) ||
 		AnyGL_ARB_texture_cube_map_array;
+	baseResourceManager->has3DTextureOffscreens = baseResourceManager->maxTextureDepth > 0 &&
+		ANYGL_SUPPORTED(glFramebufferParameteri);
 	GLint maxSamplers;
 	glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &maxSamplers);
 	baseResourceManager->maxSamplers = maxSamplers;

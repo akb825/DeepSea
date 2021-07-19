@@ -580,6 +580,14 @@ dsOffscreen* dsTexture_createOffscreen(dsResourceManager* resourceManager, dsAll
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
+	if (texInfo.dimension == dsTextureDim_3D && !resourceManager->has3DTextureOffscreens)
+	{
+		errno = EINVAL;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"The current target doesn't support 3D texture offscreens.");
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
 	if (!dsGfxFormat_renderTargetSupported(resourceManager, texInfo.format))
 	{
 		errno = EINVAL;

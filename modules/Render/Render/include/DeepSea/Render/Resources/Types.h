@@ -1015,16 +1015,14 @@ typedef struct dsFramebufferSurface
 
 	/**
 	 * @brief The cube face to use for cubemap offscreens.
-	 *
-	 * This is used when a single layer is used with the framebuffer. If multiple layers are used,
-	 * all faces will be used.
 	 */
 	dsCubeFace cubeFace;
 
 	/**
 	 * @brief The texture array level or 3D texture level to use for offscreens.
 	 *
-	 * This is ignored when binding all levels.
+	 * When using a cubemap array, this will covor all cube faces within each layer, while cubeFace
+	 * will offset into the final specific cube face. This must be 0 when binding multiple layers.
 	 */
 	uint32_t layer;
 
@@ -2069,6 +2067,11 @@ struct dsResourceManager
 	 * @brief Boolean for whether or not cubemap arrays are supported.
 	 */
 	bool hasCubeArrays;
+
+	/**
+	 * @brief Boolean for whether or not 3D textures can be drawn to as offscreens.
+	 */
+	bool has3DTextureOffscreens;
 
 	/**
 	 * @brief Boolean for whether or not textures are readable.

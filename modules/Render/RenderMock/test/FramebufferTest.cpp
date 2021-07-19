@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -88,12 +88,17 @@ TEST_F(FramebufferTest, CreateLayers)
 
 	dsFramebufferSurface surfaces[] =
 	{
-		{dsGfxSurfaceType_Offscreen, dsCubeFace_None, 15, 0, offscreen1},
+		{dsGfxSurfaceType_Offscreen, dsCubeFace_None, 0, 0, offscreen1},
 		{dsGfxSurfaceType_Offscreen, dsCubeFace_None, 0, 0, offscreen2}
 	};
 
 	EXPECT_FALSE(dsFramebuffer_create(resourceManager, NULL, "test", surfaces,
 		DS_ARRAY_SIZE(surfaces), 1920, 1080, 2));
+
+	surfaces[0].layer = 1;
+	EXPECT_FALSE(dsFramebuffer_create(resourceManager, NULL, "test", surfaces,
+		DS_ARRAY_SIZE(surfaces), 1920, 1080, 4));
+	surfaces[0].layer = 0;
 
 	dsFramebuffer* framebuffer = dsFramebuffer_create(resourceManager, NULL, "test", surfaces,
 		DS_ARRAY_SIZE(surfaces), 1920, 1080, 4);

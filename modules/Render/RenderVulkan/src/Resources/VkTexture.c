@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 Aaron Barany
+ * Copyright 2018-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -129,8 +129,7 @@ static bool createHostImageBuffer(dsVkDevice* device,  dsVkTexture* texture, con
 }
 
 static bool createSurfaceImage(dsVkDevice* device, const dsTextureInfo* info,
-	const dsVkFormatInfo* formatInfo, VkImageAspectFlags aspectMask, VkImageType imageType,
-	VkImageViewType imageViewType, dsVkTexture* texture)
+	const dsVkFormatInfo* formatInfo, VkImageAspectFlags aspectMask, dsVkTexture* texture)
 {
 	dsVkInstance* instance = &device->instance;
 	VkImageUsageFlags usageFlags = 0;
@@ -142,11 +141,24 @@ static bool createSurfaceImage(dsVkDevice* device, const dsTextureInfo* info,
 	if (device->hasLazyAllocation && dsVkImageUsageSupportsTransient(usageFlags))
 		usageFlags |= VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT;
 
+	VkImageType imageType;
+	VkImageViewType imageViewType;
+	if (info->dimension == dsTextureDim_1D)
+	{
+		imageType = VK_IMAGE_TYPE_1D;
+		imageViewType = VK_IMAGE_VIEW_TYPE_1D;
+	}
+	else
+	{
+		imageType = VK_IMAGE_TYPE_2D;
+		imageViewType = VK_IMAGE_VIEW_TYPE_2D;
+	}
+
 	VkImageCreateInfo imageCreateInfo =
 	{
 		VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
 		NULL,
-		info->dimension == dsTextureDim_Cube ? VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT : 0,
+		0,
 		imageType,
 		formatInfo->vkFormat,
 		{info->width, info->height, 1},
@@ -315,11 +327,16 @@ static dsTexture* createTextureImpl(dsResourceManager* resourceManager, dsAlloca
 	// Create device image for general usage.
 	uint32_t depthCount = dsMax(1U, info->depth);
 	uint32_t faceCount = info->dimension == dsTextureDim_Cube ? 6 : 1;
+	VkImageCreateFlags flags = 0;
+	if (info->dimension == dsTextureDim_Cube)
+		flags = VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
+	else if (offscreen && info->dimension == dsTextureDim_3D)
+		flags = VK_IMAGE_CREATE_2D_ARRAY_COMPATIBLE_BIT;
 	VkImageCreateInfo imageCreateInfo =
 	{
 		VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
 		NULL,
-		info->dimension == dsTextureDim_Cube ? VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT : 0,
+		flags,
 		imageType,
 		formatInfo->vkFormat,
 		{info->width, info->height, info->dimension == dsTextureDim_3D ? info->depth : 1},
@@ -409,8 +426,7 @@ static dsTexture* createTextureImpl(dsResourceManager* resourceManager, dsAlloca
 		return NULL;
 	}
 
-	if (resolve && !createSurfaceImage(device, info, formatInfo, aspectMask, imageType,
-			imageViewType, texture))
+	if (resolve && !createSurfaceImage(device, info, formatInfo, aspectMask, texture))
 	{
 		dsVkTexture_destroyImpl(baseTexture);
 		return NULL;

@@ -137,6 +137,7 @@ dsFramebuffer* dsFramebuffer_create(dsResourceManager* resourceManager, dsAlloca
 				}
 
 				surfaceFormat = surface->info.format;
+				uint32_t totalLayers = dsMax(1U, surface->info.depth);
 				if (surface->resolve)
 				{
 					surfaceLayers = 1;
@@ -157,6 +158,9 @@ dsFramebuffer* dsFramebuffer_create(dsResourceManager* resourceManager, dsAlloca
 						surfaceLayers = 1;
 				}
 
+				if (surface->info.dimension == dsTextureDim_Cube)
+					totalLayers *= 6;
+
 				if (surfaces[i].mipLevel >= surface->info.mipLevels)
 				{
 					errno = EINDEX;
@@ -173,7 +177,7 @@ dsFramebuffer* dsFramebuffer_create(dsResourceManager* resourceManager, dsAlloca
 				uint32_t layer = surfaces[i].layer;
 				if (surface->info.dimension == dsTextureDim_Cube)
 					layer = layer*6 + surfaces[i].cubeFace;
-				if (layers == 1 && surface->info.depth > 0 && layer >= surfaceLayers)
+				if (layers == 1 && surface->info.depth > 0 && layer >= totalLayers)
 				{
 					errno = EINDEX;
 					DS_LOG_ERROR(DS_RENDER_LOG_TAG,
@@ -203,6 +207,14 @@ dsFramebuffer* dsFramebuffer_create(dsResourceManager* resourceManager, dsAlloca
 			errno = EINVAL;
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG,
 				"Surface layer count don't match framebuffer layer count.");
+			DS_PROFILE_FUNC_RETURN(NULL);
+		}
+
+		if (layers > 0 && (surfaces[i].layer != 0 || surfaces[i].cubeFace != dsCubeFace_None))
+		{
+			errno = EINVAL;
+			DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+				"Surface layer and cube face must be 0 when binidng multiple layers.");
 			DS_PROFILE_FUNC_RETURN(NULL);
 		}
 

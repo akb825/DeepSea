@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -801,6 +801,7 @@ dsResourceManager* dsVkResourceManager_create(dsAllocator* allocator, dsVkRender
 	baseResourceManager->maxTextureSamples = limits->sampledImageColorSampleCounts;
 	baseResourceManager->hasArbitraryMipmapping = true;
 	baseResourceManager->hasCubeArrays = features->imageCubeArray != 0;
+	baseResourceManager->has3DTextureOffscreens = renderer->device.hasMaintenance1;
 	baseResourceManager->texturesReadable = false;
 	baseResourceManager->requiresColorBuffer = false;
 	baseResourceManager->canMixWithRenderSurface = true;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -157,6 +157,7 @@ dsResourceManager* dsMockResourceManager_create(dsRenderer* renderer, dsAllocato
 	resourceManager->maxFramebufferLayers = 1024;
 	resourceManager->hasArbitraryMipmapping = true;
 	resourceManager->hasCubeArrays = true;
+	resourceManager->has3DTextureOffscreens = true;
 	resourceManager->maxTextureSamples = 16;
 	resourceManager->texturesReadable = true;
 	resourceManager->requiresColorBuffer = false;

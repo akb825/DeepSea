@@ -272,7 +272,7 @@ GLSurfaceType dsGLFramebuffer_bind(const dsFramebuffer* framebuffer,
 			if (colorAttachments[i].attachmentIndex != DS_NO_ATTACHMENT)
 				surface = framebuffer->surfaces + colorAttachments[i].attachmentIndex;
 			if (bindFramebufferSurface(GL_COLOR_ATTACHMENT0 + i, surface, framebuffer->layers,
-				glFramebuffer->curColorAttachments + i))
+					glFramebuffer->curColorAttachments + i))
 			{
 				hasChanges = true;
 			}
@@ -325,7 +325,7 @@ GLSurfaceType dsGLFramebuffer_bind(const dsFramebuffer* framebuffer,
 			else
 				format = ((dsRenderbuffer*)surface->surface)->format;
 			if (bindFramebufferSurface(dsGLTexture_attachment(format), surface, framebuffer->layers,
-				&glFramebuffer->curDepthAttachment))
+					&glFramebuffer->curDepthAttachment))
 			{
 				hasChanges = true;
 			}
