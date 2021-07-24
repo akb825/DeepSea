@@ -1295,18 +1295,6 @@ typedef struct dsProjectionPlanes
 	 * @brief The top plane.
 	 */
 	float top;
-
-	/**
-	 * @brief The near plane.
-	 */
-	float near;
-
-	/**
-	 * @brief The far plane.
-	 *
-	 * This may be INFINITY for the frustum projection type.
-	 */
-	float far;
 } dsProjectionPlanes;
 
 /**
@@ -1325,18 +1313,6 @@ typedef struct dsPerspectiveParams
 	 * @brief The aspect ratio as X/Y.
 	 */
 	float aspect;
-
-	/**
-	 * @brief The near plane.
-	 */
-	float near;
-
-	/**
-	 * @brief The far plane.
-	 *
-	 * This may be INFINITY.
-	 */
-	float far;
 } dsPerspectiveParams;
 
 /**
@@ -1362,6 +1338,18 @@ typedef struct dsProjectionParams
 		 */
 		dsPerspectiveParams perspectiveParams;
 	};
+
+	/**
+	 * @brief The near plane.
+	 */
+	float near;
+
+	/**
+	 * @brief The far plane.
+	 *
+	 * This may be INFINITY.
+	 */
+	float far;
 } dsProjectionParams;
 
 /// @cond Doxygen_Suppress

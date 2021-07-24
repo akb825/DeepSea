@@ -230,7 +230,7 @@ typedef struct dsSceneShadowParams
 	/**
 	 * @brief The maximum distance for the first split for cascaded shadows.
 	 */
-	float maxFirstSplitDist;
+	float maxFirstSplitDistance;
 
 	/**
 	 * @brief Exponential factor for cascaded shadows in the range [0, 1], where 0 uses linear

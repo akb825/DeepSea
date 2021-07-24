@@ -33,8 +33,8 @@ bool dsProjectionParams_makeOrtho(dsProjectionParams* params, float left, float 
 	params->projectionPlanes.right = right;
 	params->projectionPlanes.bottom = bottom;
 	params->projectionPlanes.top = top;
-	params->projectionPlanes.near = near;
-	params->projectionPlanes.far = far;
+	params->near = near;
+	params->far = far;
 	return true;
 }
 
@@ -52,8 +52,8 @@ bool dsProjectionParams_makeFrustum(dsProjectionParams* params, float left, floa
 	params->projectionPlanes.right = right;
 	params->projectionPlanes.bottom = bottom;
 	params->projectionPlanes.top = top;
-	params->projectionPlanes.near = near;
-	params->projectionPlanes.far = far;
+	params->near = near;
+	params->far = far;
 	return true;
 }
 
@@ -69,8 +69,8 @@ bool dsProjectionParams_makePerspective(dsProjectionParams* params, float fovy, 
 	params->type = dsProjectionType_Perspective;
 	params->perspectiveParams.fovy = fovy;
 	params->perspectiveParams.aspect = aspect;
-	params->perspectiveParams.near = near;
-	params->perspectiveParams.far = far;
+	params->near = near;
+	params->far = far;
 	return true;
 }
 
@@ -88,17 +88,14 @@ bool dsProjectionParams_createMatrix(dsMatrix44f* result, const dsProjectionPara
 		case dsProjectionType_Ortho:
 			return dsRenderer_makeOrtho(result, renderer, params->projectionPlanes.left,
 				params->projectionPlanes.right, params->projectionPlanes.bottom,
-				params->projectionPlanes.top, params->projectionPlanes.near,
-				params->projectionPlanes.far);
+				params->projectionPlanes.top, params->near, params->far);
 		case dsProjectionType_Frustum:
 			return dsRenderer_makeFrustum(result, renderer, params->projectionPlanes.left,
 				params->projectionPlanes.right, params->projectionPlanes.bottom,
-				params->projectionPlanes.top, params->projectionPlanes.near,
-				params->projectionPlanes.far);
+				params->projectionPlanes.top, params->near, params->far);
 		case dsProjectionType_Perspective:
 			return dsRenderer_makePerspective(result, renderer, params->perspectiveParams.fovy,
-				params->perspectiveParams.aspect, params->perspectiveParams.near,
-				params->perspectiveParams.far);
+				params->perspectiveParams.aspect, params->near, params->far);
 	}
 
 	errno = EINVAL;

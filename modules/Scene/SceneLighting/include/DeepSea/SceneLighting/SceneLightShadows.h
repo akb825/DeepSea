@@ -64,6 +64,132 @@ DS_SCENELIGHTING_EXPORT dsSceneLightShadows* dsSceneLightShadows_create(dsAlloca
 	const dsSceneShadowParams* shadowParams);
 
 /**
+ * @brief Gets the light type that will be shadowed.
+ * @param shadows The scene light shadows.
+ * @return The light type.
+ */
+DS_SCENELIGHTING_EXPORT dsSceneLightType dsSceneLightShadows_getLightType(
+	const dsSceneLightShadows* shadows);
+
+/**
+ * @brief Gets the ID for the light being shadowed.
+ * @param shadows The scene light shadows.
+ * @return The light ID.
+ */
+DS_SCENELIGHTING_EXPORT uint32_t dsSceneLightShadows_getLightID(const dsSceneLightShadows* shadows);
+
+/**
+ * @brief Sets the ID for the light being shadowed.
+ * @remark errno will be set on failure.
+ * @param shadows The scene light shadows.
+ * @param lightID The light ID.
+ * @return False if the parameters are invalid.
+ */
+DS_SCENELIGHTING_EXPORT bool dsSceneLightShadows_setLightID(dsSceneLightShadows* shadows,
+	uint32_t lightID);
+
+/**
+ * @brief Sets the name for the light being shadowed.
+ * @remark errno will be set on failure.
+ * @param shadows The scene light shadows.
+ * @param light The name of the light. This may be NULL to disable the shadows.
+ * @return False if the parameters are invalid.
+ */
+DS_SCENELIGHTING_EXPORT bool dsSceneLightShadows_setLightName(dsSceneLightShadows* shadows,
+	const char* light);
+
+/**
+ * @brief Gets the maximum cascades for shadows.
+ * @param shadows The scene light shadows.
+ * @return The maximum number of cascades, or 0 if the shadows aren't cascaded.
+ */
+DS_SCENELIGHTING_EXPORT uint32_t dsSceneLightShadows_getMaxCascades(
+	const dsSceneLightShadows* shadows);
+
+/**
+ * @brief Sets the maximum cascades for shadows.
+ * @remark errno will be set on failure.
+ * @param shadows The scene light shadows.
+ * @param maxCascades The maximum number of cascades, or 0 if the shadows aren't cascaded.
+ * @return False if the parameters are invalid.
+ */
+DS_SCENELIGHTING_EXPORT bool dsSceneLightShadows_setMaxCascades(dsSceneLightShadows* shadows,
+	uint32_t maxCascades);
+
+/**
+ * @brief Gets the maximum distance for the first split for cascaded shadows.
+ * @param shadows The scene light shadows.
+ * @return The maximum distance for the first split.
+ */
+DS_SCENELIGHTING_EXPORT float dsSceneLightShadows_getMaxFirstSplitDistance(
+	const dsSceneLightShadows* shadows);
+
+/**
+ * @brief Sets the maximum distance for the first split for cascaded shadows.
+ * @remark errno will be set on failure.
+ * @param shadows The scene light shadows.
+ * @param maxDistance The maximum distance for the first split.
+ * @return False if the parameters are invalid.
+ */
+DS_SCENELIGHTING_EXPORT bool dsSceneLightShadows_setMaxFirstSplitDistance(
+	dsSceneLightShadows* shadows, float maxDistance);
+
+/**
+ * @brief Gets the exponential factor for cascaded shadows.
+ * @param shadows The scene light shadows.
+ * @return The exponential factor for cascaded shadows.
+ */
+DS_SCENELIGHTING_EXPORT float dsSceneLightShadows_getCascadedExpFactor(
+	const dsSceneLightShadows* shadows);
+
+/**
+ * @brief Sets the exponential factor for cascaded shadows.
+ * @remark errno will be set on failure.
+ * @param shadows The scene light shadows.
+ * @param expFactor The exponential factor for cascaded shadows in the range [0, 1], where 0 uses
+ *     linear distances between the splits and 1 is fully exponential.
+ * @return False if the parameters are invalid.
+ */
+DS_SCENELIGHTING_EXPORT bool dsSceneLightShadows_setCascadedExpFactor(
+	dsSceneLightShadows* shadows, float expFactor);
+
+/**
+ * @brief Gets the distance to start fading out shadows.
+ * @param shadows The scene light shadows.
+ * @return The distance to start fading out shadows.
+ */
+DS_SCENELIGHTING_EXPORT float dsSceneLightShadows_getFadeStartDistance(
+	const dsSceneLightShadows* shadows);
+
+/**
+ * @brief Sets the distance to start fading out shadows.
+ * @remark errno will be set on failure.
+ * @param shadows The scene light shadows.
+ * @param distance The distance to start fading out shadows.
+ * @return False if the parameters are invalid.
+ */
+DS_SCENELIGHTING_EXPORT bool dsSceneLightShadows_setFadeStartDistance(
+	dsSceneLightShadows* shadows, float distance);
+
+/**
+ * @brief Gets the maximum distance to display shadows.
+ * @param shadows The scene light shadows.
+ * @return The maximum shadow distance.
+ */
+DS_SCENELIGHTING_EXPORT float dsSceneLightShadows_getMaxDistance(
+	const dsSceneLightShadows* shadows);
+
+/**
+ * @brief Sets the maximum distance to display shadows.
+ * @remark errno will be set on failure.
+ * @param shadows The scene light shadows.
+ * @param distance The maximum shadow distance.
+ * @return False if the parameters are invalid.
+ */
+DS_SCENELIGHTING_EXPORT bool dsSceneLightShadows_setMaxDistance(
+	dsSceneLightShadows* shadows, float distance);
+
+/**
  * @brief Prepares the scene light shadows for the next frame.
  * @remark errno will be set on failure.
  * @param shadows The scene light shadows to prepare.
@@ -72,6 +198,58 @@ DS_SCENELIGHTING_EXPORT dsSceneLightShadows* dsSceneLightShadows_create(dsAlloca
  */
 DS_SCENELIGHTING_EXPORT bool dsSceneLightShadows_prepare(dsSceneLightShadows* shadows,
 	const dsView* view);
+
+/**
+ * @brief Gets the number of shadow surfaces to draw this frame.
+ * @param shadows The scene light shadows.
+ * @return The number of surfaces. This will be 0 if the shadows aren't visible.
+ */
+DS_SCENELIGHTING_EXPORT uint32_t dsSceneLightShadows_getSurfaceCount(
+	const dsSceneLightShadows* shadows);
+
+/**
+ * @brief Intersects an aligned box with a shadow surface.
+ * @param shadows The scene light shadows.
+ * @param surface The shadow surface index.
+ * @param box The aligned box to intersect with.
+ * @return The intersection result. Inside and outside is with respect to the volume. If the box
+ *     fully contains the frustum, dsIntersectResult_Intersects will be returned.
+ */
+DS_SCENELIGHTING_EXPORT dsIntersectResult dsSceneLightShadows_intersectAlignedBox(
+	dsSceneLightShadows* shadows, uint32_t surface, const dsAlignedBox3f* box);
+
+/**
+ * @brief Intersects an oriented box with a shadow surface.
+ * @param shadows The scene light shadows.
+ * @param surface The shadow surface index.
+ * @param box The oriented box to intersect with.
+ * @return The intersection result. Inside and outside is with respect to the volume. If the box
+ *     fully contains the frustum, dsIntersectResult_Intersects will be returned.
+ */
+DS_SCENELIGHTING_EXPORT dsIntersectResult dsSceneLightShadows_intersectOrientedBox(
+	dsSceneLightShadows* shadows, uint32_t surface, const dsOrientedBox3f* box);
+
+/**
+ * @brief Intersects a sphere a shadow surface.
+ * @param shadows The scene light shadows.
+ * @param surface The shadow surface index.
+ * @param center The center of the sphere.
+ * @param radius The radius of the sphere.
+ * @return The intersection result. Inside and outside is with respect to the volume. If the sphere
+ *     fully contains the frustum, dsIntersectResult_Intersects will be returned.
+ */
+DS_SCENELIGHTING_EXPORT dsIntersectResult dsSceneLightShadows_intersectSphere(
+	dsSceneLightShadows* shadows, uint32_t surface, const dsVector3f* center, float radius);
+
+/**
+ * @brief Computes the projection of a shadow surface.
+ * @remark errno will be set on failure.
+ * @param shadows The scene light shadows.
+ * @param surface The surface index.
+ * @return False if the parameters are invalid.
+ */
+DS_SCENELIGHTING_EXPORT bool dsSceneLightShadows_computeSurfaceProjection(
+	dsSceneLightShadows* shadows, uint32_t surface);
 
 /**
  * @brief Destroys a scene light shadows instance.
