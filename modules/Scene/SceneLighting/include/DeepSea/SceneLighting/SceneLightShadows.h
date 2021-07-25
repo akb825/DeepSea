@@ -30,9 +30,20 @@ extern "C"
 
 /**
  * @file
- * @brief Functions to create and manipulate shadow managers for the scene.
- * @see dsSceneShadowManager
+ * @brief Functions to create and manipulate scene light shadows.
+ * @see dsSceneLightShadows
  */
+
+/**
+ * @brief The type name for scene light shadows.
+ */
+DS_SCENELIGHTING_EXPORT extern const char* const dsSceneLightShadows_typeName;
+
+/**
+ * @brief Gets the type for the dsSceneLightShadows custom type for storage in dsSceneResources.
+ * @return The custom type.
+ */
+DS_SCENELIGHTING_EXPORT const dsCustomSceneResourceType* dsSceneLightShadows_type(void);
 
 /**
  * @brief Creates scene light shadows to manage shadows for a single light.
@@ -194,10 +205,11 @@ DS_SCENELIGHTING_EXPORT bool dsSceneLightShadows_setMaxDistance(
  * @remark errno will be set on failure.
  * @param shadows The scene light shadows to prepare.
  * @param view The view to prepare for.
+ * @param matrixGroupID The ID of the matrix group name to set on the view's global values.
  * @return False if an error occurred.
  */
 DS_SCENELIGHTING_EXPORT bool dsSceneLightShadows_prepare(dsSceneLightShadows* shadows,
-	const dsView* view);
+	const dsView* view, uint32_t matrixGroupID);
 
 /**
  * @brief Gets the number of shadow surfaces to draw this frame.

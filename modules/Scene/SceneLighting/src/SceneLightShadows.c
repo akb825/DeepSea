@@ -32,6 +32,7 @@
 
 #include <DeepSea/Render/Resources/GfxBuffer.h>
 #include <DeepSea/Render/Resources/ShaderVariableGroup.h>
+#include <DeepSea/Render/Resources/SharedMaterialValues.h>
 #include <DeepSea/Render/Resources/Texture.h>
 #include <DeepSea/Render/Shadows/CascadeSplits.h>
 #include <DeepSea/Render/Shadows/ShadowCullVolume.h>
@@ -222,6 +223,14 @@ static void* getBufferData(dsSceneLightShadows* shadows)
 		DS_MAP_FULL_BUFFER);
 	DS_ASSERT(shadows->curBufferData);
 	return shadows->curBufferData;
+}
+
+const char* const dsSceneLightShadows_typeName = "LightShadows";
+
+static dsCustomSceneResourceType resourceType;
+const dsCustomSceneResourceType* dsSceneLightShadows_type(void)
+{
+	return &resourceType;
 }
 
 dsSceneLightShadows* dsSceneLightShadows_create(dsAllocator* allocator,
@@ -429,7 +438,8 @@ bool dsSceneLightShadows_setMaxDistance(dsSceneLightShadows* shadows, float dist
 	return true;
 }
 
-bool dsSceneLightShadows_prepare(dsSceneLightShadows* shadows, const dsView* view)
+bool dsSceneLightShadows_prepare(dsSceneLightShadows* shadows, const dsView* view,
+	uint32_t matrixGroupID)
 {
 	if (!shadows || !view)
 	{
@@ -437,10 +447,11 @@ bool dsSceneLightShadows_prepare(dsSceneLightShadows* shadows, const dsView* vie
 		return false;
 	}
 
+	shadows->totalMatrices = 0;
 	const dsSceneLight* light = dsSceneLightSet_findLightID(shadows->lightSet, shadows->lightID);
 	if (!light || light->type != shadows->lightType)
 	{
-		shadows->totalMatrices = 0;
+		dsSharedMaterialValues_removeValueID(view->globalValues, matrixGroupID);
 		return true;
 	}
 
@@ -464,14 +475,32 @@ bool dsSceneLightShadows_prepare(dsSceneLightShadows* shadows, const dsView* vie
 	DS_VERIFY(dsRenderer_frustumFromMatrix(&shadowedFrustum, renderer, &shadowedCullMtx));
 	if (!dsSceneLight_isInFrustum(light, &shadowedFrustum, intensityThreshold))
 	{
-		shadows->totalMatrices = 0;
+		dsSharedMaterialValues_removeValueID(view->globalValues, matrixGroupID);
 		return true;
 	}
 
-	if (!shadows->fallback)
+	if (shadows->fallback)
+	{
+		if (!dsSharedMaterialValues_setVariableGroupID(view->globalValues, matrixGroupID,
+				shadows->fallback))
+		{
+			return false;
+		}
+	}
+	else
 	{
 		if (!getBufferData(shadows))
+		{
+			dsSharedMaterialValues_removeValueID(view->globalValues, matrixGroupID);
 			return false;
+		}
+
+		dsGfxBuffer* buffer = shadows->buffers[shadows->curBuffer].buffer;
+		if (!dsSharedMaterialValues_setBufferID(view->globalValues, matrixGroupID, buffer, 0,
+				buffer->size))
+		{
+			return false;
+		}
 	}
 
 	shadows->committedMatrices = 0;
@@ -490,7 +519,10 @@ bool dsSceneLightShadows_prepare(dsSceneLightShadows* shadows, const dsView* vie
 					shadowParams->maxFirstSplitDistance, shadowParams->cascadedExpFactor,
 					shadowParams->maxCascades);
 				if (shadows->totalMatrices == 0)
+				{
+					dsSharedMaterialValues_removeValueID(view->globalValues, matrixGroupID);
 					return false;
+				}
 
 				dsVector4f splitDistances = {{farPlane, farPlane, farPlane, farPlane}};
 				for (uint32_t i = 0; i < shadows->totalMatrices; ++i)
