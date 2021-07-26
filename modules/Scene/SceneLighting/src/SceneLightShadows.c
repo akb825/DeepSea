@@ -49,7 +49,6 @@
 
 #define FRAME_DELAY 3
 #define INVALID_INDEX (uint32_t)-1
-#define MAX_SURFACES 6
 
 typedef struct BufferInfo
 {
@@ -70,9 +69,9 @@ struct dsSceneLightShadows
 	uint32_t totalMatrices;
 
 	dsSceneShadowParams shadowParams;
-	dsShadowCullVolume cullVolumes[MAX_SURFACES];
-	dsShadowProjection projections[MAX_SURFACES];
-	uint32_t projectionSet[MAX_SURFACES];
+	dsShadowCullVolume cullVolumes[DS_MAX_SCENE_LIGHT_SHADOWS_SURFACES];
+	dsShadowProjection projections[DS_MAX_SCENE_LIGHT_SHADOWS_SURFACES];
+	uint32_t projectionSet[DS_MAX_SCENE_LIGHT_SHADOWS_SURFACES];
 
 	BufferInfo* buffers;
 	uint32_t bufferCount;

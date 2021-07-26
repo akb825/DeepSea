@@ -35,6 +35,11 @@ extern "C"
  */
 
 /**
+ * @brief The maximum number of surfaces that can be in a scene light shadows instance.
+ */
+#define DS_MAX_SCENE_LIGHT_SHADOWS_SURFACES 6
+
+/**
  * @brief The type name for scene light shadows.
  */
 DS_SCENELIGHTING_EXPORT extern const char* const dsSceneLightShadows_typeName;
