@@ -76,7 +76,7 @@ dsSceneLightSetPrepare* dsSceneLightSetPrepare_create(dsAllocator* allocator,
 
 	dsSceneGlobalData* globalData = (dsSceneGlobalData*)prepare;
 	globalData->allocator = dsAllocator_keepPointer(allocator);
-	globalData->valueCount= 0;
+	globalData->valueCount = 0;
 	globalData->populateDataFunc = &dsSceneLightSetPrepare_populateData;
 	globalData->finishFunc = NULL;
 	globalData->destroyFunc = dsSceneLightSetPrepare_destroyGlobalData;

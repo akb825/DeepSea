@@ -114,43 +114,43 @@ typedef struct SpotLightData
 	dsVector2f padding0;
 } SpotLightData;
 
-static bool matrixGroupValid(const dsShaderVariableGroupDesc* matrixGroupDesc,
+static bool transformGroupValid(const dsShaderVariableGroupDesc* transformGroupDesc,
 	dsSceneLightType lightType)
 {
 	switch (lightType)
 	{
 		case dsSceneLightType_Directional:
-			if (matrixGroupDesc->elementCount == 2)
+			if (transformGroupDesc->elementCount == 2)
 			{
-				const dsShaderVariableElement* matrixElement = matrixGroupDesc->elements;
-				const dsShaderVariableElement* distanceElement = matrixGroupDesc->elements + 1;
+				const dsShaderVariableElement* matrixElement = transformGroupDesc->elements;
+				const dsShaderVariableElement* distanceElement = transformGroupDesc->elements + 1;
 				return matrixElement->type == dsMaterialType_Mat4 && matrixElement->count == 0 &&
 					distanceElement->type == dsMaterialType_Vec2 && distanceElement->count == 0;
 			}
-			else if (matrixGroupDesc->elementCount == 3)
+			else if (transformGroupDesc->elementCount == 3)
 			{
-				const dsShaderVariableElement* matrixElement = matrixGroupDesc->elements;
-				const dsShaderVariableElement* splitElement = matrixGroupDesc->elements + 1;
-				const dsShaderVariableElement* distanceElement = matrixGroupDesc->elements + 2;
+				const dsShaderVariableElement* matrixElement = transformGroupDesc->elements;
+				const dsShaderVariableElement* splitElement = transformGroupDesc->elements + 1;
+				const dsShaderVariableElement* distanceElement = transformGroupDesc->elements + 2;
 				return matrixElement->type == dsMaterialType_Mat4 && matrixElement->count == 4 &&
 					splitElement->type == dsMaterialType_Vec4 && splitElement->count == 0 &&
 					distanceElement->type == dsMaterialType_Vec2 && distanceElement->count == 0;
 			}
 			return false;
 		case dsSceneLightType_Point:
-			if (matrixGroupDesc->elementCount == 2)
+			if (transformGroupDesc->elementCount == 2)
 			{
-				const dsShaderVariableElement* matrixElement = matrixGroupDesc->elements;
-				const dsShaderVariableElement* distanceElement = matrixGroupDesc->elements + 1;
+				const dsShaderVariableElement* matrixElement = transformGroupDesc->elements;
+				const dsShaderVariableElement* distanceElement = transformGroupDesc->elements + 1;
 				return matrixElement->type == dsMaterialType_Mat4 && matrixElement->count == 6 &&
 					distanceElement->type == dsMaterialType_Vec2 && distanceElement->count == 0;
 			}
 			return false;
 		case dsSceneLightType_Spot:
-			if (matrixGroupDesc->elementCount == 2)
+			if (transformGroupDesc->elementCount == 2)
 			{
-				const dsShaderVariableElement* matrixElement = matrixGroupDesc->elements;
-				const dsShaderVariableElement* distanceElement = matrixGroupDesc->elements + 1;
+				const dsShaderVariableElement* matrixElement = transformGroupDesc->elements;
+				const dsShaderVariableElement* distanceElement = transformGroupDesc->elements + 1;
 				return matrixElement->type == dsMaterialType_Mat4 && matrixElement->count == 0 &&
 					distanceElement->type == dsMaterialType_Vec2 && distanceElement->count == 0;
 			}
@@ -235,10 +235,10 @@ const dsCustomSceneResourceType* dsSceneLightShadows_type(void)
 
 dsSceneLightShadows* dsSceneLightShadows_create(dsAllocator* allocator,
 	dsResourceManager* resourceManager, const dsSceneLightSet* lightSet, dsSceneLightType lightType,
-	const char* lightName, const dsShaderVariableGroupDesc* matrixGroupDesc,
+	const char* lightName, const dsShaderVariableGroupDesc* transformGroupDesc,
 	const dsSceneShadowParams* shadowParams)
 {
-	if (!allocator || !resourceManager || !lightSet || !matrixGroupDesc || !shadowParams)
+	if (!allocator || !resourceManager || !lightSet || !transformGroupDesc || !shadowParams)
 	{
 		errno = EINVAL;
 		return NULL;
@@ -252,7 +252,7 @@ dsSceneLightShadows* dsSceneLightShadows_create(dsAllocator* allocator,
 		return NULL;
 	}
 
-	if (!matrixGroupValid(matrixGroupDesc, lightType))
+	if (!transformGroupValid(transformGroupDesc, lightType))
 	{
 		errno = EINVAL;
 		DS_LOG_ERROR(DS_SCENE_LIGHTING_LOG_TAG,
@@ -260,7 +260,7 @@ dsSceneLightShadows* dsSceneLightShadows_create(dsAllocator* allocator,
 		return NULL;
 	}
 
-	bool cascaded = matrixGroupDesc->elements[0].count == 4;
+	bool cascaded = transformGroupDesc->elements[0].count == 4;
 	if (cascaded && (shadowParams->maxCascades < 1 || shadowParams->maxCascades > 4 ||
 		shadowParams->maxFirstSplitDistance <= 0 || shadowParams->cascadedExpFactor < 0 ||
 		shadowParams->cascadedExpFactor > 1 || shadowParams->fadeStartDistance < 0 ||
@@ -273,7 +273,7 @@ dsSceneLightShadows* dsSceneLightShadows_create(dsAllocator* allocator,
 	bool needsFallback = dsShaderVariableGroup_useGfxBuffer(resourceManager);
 	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsSceneLightShadows));
 	if (needsFallback)
-		fullSize += dsShaderVariableGroup_fullAllocSize(resourceManager, matrixGroupDesc);
+		fullSize += dsShaderVariableGroup_fullAllocSize(resourceManager, transformGroupDesc);
 
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
@@ -306,7 +306,7 @@ dsSceneLightShadows* dsSceneLightShadows_create(dsAllocator* allocator,
 	if (needsFallback)
 	{
 		shadows->fallback = dsShaderVariableGroup_create(resourceManager,
-			(dsAllocator*)&bufferAlloc, NULL, matrixGroupDesc);
+			(dsAllocator*)&bufferAlloc, NULL, transformGroupDesc);
 		DS_ASSERT(shadows->fallback);
 	}
 	else
@@ -439,7 +439,7 @@ bool dsSceneLightShadows_setMaxDistance(dsSceneLightShadows* shadows, float dist
 }
 
 bool dsSceneLightShadows_prepare(dsSceneLightShadows* shadows, const dsView* view,
-	uint32_t matrixGroupID)
+	uint32_t transformGroupID)
 {
 	if (!shadows || !view)
 	{
@@ -451,7 +451,7 @@ bool dsSceneLightShadows_prepare(dsSceneLightShadows* shadows, const dsView* vie
 	const dsSceneLight* light = dsSceneLightSet_findLightID(shadows->lightSet, shadows->lightID);
 	if (!light || light->type != shadows->lightType)
 	{
-		dsSharedMaterialValues_removeValueID(view->globalValues, matrixGroupID);
+		dsSharedMaterialValues_removeValueID(view->globalValues, transformGroupID);
 		return true;
 	}
 
@@ -475,13 +475,13 @@ bool dsSceneLightShadows_prepare(dsSceneLightShadows* shadows, const dsView* vie
 	DS_VERIFY(dsRenderer_frustumFromMatrix(&shadowedFrustum, renderer, &shadowedCullMtx));
 	if (!dsSceneLight_isInFrustum(light, &shadowedFrustum, intensityThreshold))
 	{
-		dsSharedMaterialValues_removeValueID(view->globalValues, matrixGroupID);
+		dsSharedMaterialValues_removeValueID(view->globalValues, transformGroupID);
 		return true;
 	}
 
 	if (shadows->fallback)
 	{
-		if (!dsSharedMaterialValues_setVariableGroupID(view->globalValues, matrixGroupID,
+		if (!dsSharedMaterialValues_setVariableGroupID(view->globalValues, transformGroupID,
 				shadows->fallback))
 		{
 			return false;
@@ -491,12 +491,12 @@ bool dsSceneLightShadows_prepare(dsSceneLightShadows* shadows, const dsView* vie
 	{
 		if (!getBufferData(shadows))
 		{
-			dsSharedMaterialValues_removeValueID(view->globalValues, matrixGroupID);
+			dsSharedMaterialValues_removeValueID(view->globalValues, transformGroupID);
 			return false;
 		}
 
 		dsGfxBuffer* buffer = shadows->buffers[shadows->curBuffer].buffer;
-		if (!dsSharedMaterialValues_setBufferID(view->globalValues, matrixGroupID, buffer, 0,
+		if (!dsSharedMaterialValues_setBufferID(view->globalValues, transformGroupID, buffer, 0,
 				buffer->size))
 		{
 			return false;
@@ -520,7 +520,7 @@ bool dsSceneLightShadows_prepare(dsSceneLightShadows* shadows, const dsView* vie
 					shadowParams->maxCascades);
 				if (shadows->totalMatrices == 0)
 				{
-					dsSharedMaterialValues_removeValueID(view->globalValues, matrixGroupID);
+					dsSharedMaterialValues_removeValueID(view->globalValues, transformGroupID);
 					return false;
 				}
 

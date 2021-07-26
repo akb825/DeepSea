@@ -29,6 +29,7 @@ extern "C"
 /**
  * @file
  * @brief Functions for creating and manipulating scene light set prepares.
+ * @see dsSceneLightSetPrepare
  */
 
 /**
@@ -44,7 +45,7 @@ DS_SCENELIGHTING_EXPORT extern const char* const dsSceneLightSetPrepare_typeName
  * @param lightSetCount The number of light sets.
  * @param intensityThreshold The threshold below which the light is considered out of view. This
  *     must be > 0. Use DS_DEFAULT_SCENE_LIGHT_INTENSITY_THRESHOLD for the default value.
- * @return The scene lighting prepare or NULL if an error occurred.
+ * @return The scene light set prepare or NULL if the parameters are invalid.
  */
 DS_SCENELIGHTING_EXPORT dsSceneLightSetPrepare* dsSceneLightSetPrepare_create(
 	dsAllocator* allocator, dsSceneLightSet* const* lightSets, uint32_t lightSetCount,

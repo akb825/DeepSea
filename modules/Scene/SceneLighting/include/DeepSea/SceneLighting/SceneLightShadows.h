@@ -54,8 +54,8 @@ DS_SCENELIGHTING_EXPORT const dsCustomSceneResourceType* dsSceneLightShadows_typ
  * @param lightType The type of the light this will cast shadows for.
  * @param lightName The name of the light to get shadows for. This may be NULL if it will be set
  *     later.
- * @param matrixGroupDesc The shader variable group that contains the matrices. This must have a
- *     elements based on lightType:
+ * @param transformGroupDesc The shader variable group that contains the shadow transform. This must
+ *     have a elements based on lightType:
  *     - Directional:
  *         - mat44 array for the shadow projection of size 4, or non-array element if not cascaded.
  *         - vec4 of floats for cascade split distances, or omitted if not cascaded.
@@ -71,7 +71,7 @@ DS_SCENELIGHTING_EXPORT const dsCustomSceneResourceType* dsSceneLightShadows_typ
  */
 DS_SCENELIGHTING_EXPORT dsSceneLightShadows* dsSceneLightShadows_create(dsAllocator* allocator,
 	dsResourceManager* resourceManager, const dsSceneLightSet* lightSet, dsSceneLightType lightType,
-	const char* lightName, const dsShaderVariableGroupDesc* matrixGroupDesc,
+	const char* lightName, const dsShaderVariableGroupDesc* transformGroupDesc,
 	const dsSceneShadowParams* shadowParams);
 
 /**
@@ -205,11 +205,11 @@ DS_SCENELIGHTING_EXPORT bool dsSceneLightShadows_setMaxDistance(
  * @remark errno will be set on failure.
  * @param shadows The scene light shadows to prepare.
  * @param view The view to prepare for.
- * @param matrixGroupID The ID of the matrix group name to set on the view's global values.
+ * @param transformGroupID The ID of the matrix group name to set on the view's global values.
  * @return False if an error occurred.
  */
 DS_SCENELIGHTING_EXPORT bool dsSceneLightShadows_prepare(dsSceneLightShadows* shadows,
-	const dsView* view, uint32_t matrixGroupID);
+	const dsView* view, uint32_t transformGroupID);
 
 /**
  * @brief Gets the number of shadow surfaces to draw this frame.
