@@ -55,7 +55,7 @@ DS_SCENELIGHTING_EXPORT const dsCustomSceneResourceType* dsSceneLightShadows_typ
  * @remark errno will be set on failure.
  * @param allocator The allocator to create this with. This must support freeing memory.
  * @param resourceManager The resource manager to create graphics resources with.
- * @param lightSet The light set to retrieve lights from.
+ * @param lightSet The light set to retrieve the light from.
  * @param lightType The type of the light this will cast shadows for.
  * @param lightName The name of the light to get shadows for. This may be NULL if it will be set
  *     later.

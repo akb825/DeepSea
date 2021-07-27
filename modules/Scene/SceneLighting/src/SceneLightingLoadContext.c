@@ -20,6 +20,9 @@
 #include "InstanceForwardLightDataLoad.h"
 #include "SceneLightSetLoad.h"
 #include "SceneLightSetPrepareLoad.h"
+#include "SceneLightShadowsLoad.h"
+#include "SceneLightShadowsPrepareLoad.h"
+#include "ShadowCullListLoad.h"
 
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
@@ -28,6 +31,9 @@
 #include <DeepSea/SceneLighting/InstanceForwardLightData.h>
 #include <DeepSea/SceneLighting/SceneLightSet.h>
 #include <DeepSea/SceneLighting/SceneLightSetPrepare.h>
+#include <DeepSea/SceneLighting/SceneLightShadows.h>
+#include <DeepSea/SceneLighting/SceneLightShadowsPrepare.h>
+#include <DeepSea/SceneLighting/ShadowCullList.h>
 
 static bool destroySceneLightSet(void* lightSet)
 {
@@ -49,8 +55,21 @@ bool dsSceneLightingLoadConext_registerTypes(dsSceneLoadContext* loadContext)
 		return false;
 	}
 
-	if (!dsSceneLoadContext_registerGlobalDataType(loadContext,
-			dsSceneLightSetPrepare_typeName, &dsSceneLightSetPrepare_load, NULL, NULL))
+	if (!dsSceneLoadContext_registerCustomSceneResourceType(loadContext,
+			dsSceneLightShadows_typeName, dsSceneLightShadows_type(), &dsSceneLightShadows_load,
+			(dsDestroyCustomSceneResourceFunction)&dsSceneLightShadows_destroy, NULL, NULL, 0))
+	{
+		return false;
+	}
+
+	if (!dsSceneLoadContext_registerGlobalDataType(loadContext, dsSceneLightSetPrepare_typeName,
+			&dsSceneLightSetPrepare_load, NULL, NULL))
+	{
+		return false;
+	}
+
+	if (!dsSceneLoadContext_registerGlobalDataType(loadContext, dsSceneLightShadowsPrepare_typeName,
+			&dsSceneLightShadowsPrepare_load, NULL, NULL))
 	{
 		return false;
 	}
@@ -61,8 +80,14 @@ bool dsSceneLightingLoadConext_registerTypes(dsSceneLoadContext* loadContext)
 		return false;
 	}
 
-	if (!dsSceneLoadContext_registerItemListType(loadContext,
-			dsDeferredLightResolve_typeName, &dsDeferredLightResolve_load, NULL, NULL))
+	if (!dsSceneLoadContext_registerItemListType(loadContext, dsDeferredLightResolve_typeName,
+			&dsDeferredLightResolve_load, NULL, NULL))
+	{
+		return false;
+	}
+
+	if (!dsSceneLoadContext_registerItemListType(loadContext, dsShadowCullList_typeName,
+			&dsShadowCullList_load, NULL, NULL))
 	{
 		return false;
 	}

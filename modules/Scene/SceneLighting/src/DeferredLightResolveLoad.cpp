@@ -16,7 +16,6 @@
 
 #include "DeferredLightResolveLoad.h"
 #include "Flatbuffers/DeferredLightResolve_generated.h"
-#include <DeepSea/Core/Memory/StackAllocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
