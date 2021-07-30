@@ -650,7 +650,7 @@ int dsMain(int argc, const char** argv)
 		dsRenderer_chooseShaderVersion(renderer, shaderVersions, DS_ARRAY_SIZE(shaderVersions))));
 
 	dsApplication* application = dsSDLApplication_create((dsAllocator*)&applicationAllocator,
-		renderer, argc, argv, "DeepSea", "TestVectorDraw");
+		renderer, argc, argv, "DeepSea", "TestVectorDraw", dsSDLApplicationFlags_None);
 	if (!application)
 	{
 		DS_LOG_ERROR_F("TestVectorDraw", "Couldn't create application: %s", dsErrorString(errno));

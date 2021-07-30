@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@
 #include <DeepSea/Core/Config.h>
 #include <DeepSea/Application/Types.h>
 #include <DeepSea/ApplicationSDL/Export.h>
+#include <DeepSea/ApplicationSDL/Types.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -62,10 +63,12 @@ DS_APPLICATIONSDL_EXPORT uint32_t dsSDLApplication_showMessageBox(dsMessageBoxTy
  * @param argv The vector of command-line arguments.
  * @param orgName The name of the organization that created the application.
  * @param appName The name of the application.
+ * @param flags Flags to control the creation of the application.
  * @return The application, or NULL if the application couldn't be created.
  */
 DS_APPLICATIONSDL_EXPORT dsApplication* dsSDLApplication_create(dsAllocator* allocator,
-	dsRenderer* renderer, int argc, const char** argv, const char* orgName, const char* appName);
+	dsRenderer* renderer, int argc, const char** argv, const char* orgName, const char* appName,
+	dsSDLApplicationFlags flags);
 
 /**
  * @brief Destroys an SDL application.

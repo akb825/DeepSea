@@ -227,7 +227,6 @@ static void updateWindowSamples(dsApplication* application)
 		dsWindow* window = application->windows[i];
 		dsSDLWindow* sdlWindow = (dsSDLWindow*)window;
 
-		setSamples = true;
 		dsSDLWindow_getSize(&sdlWindow->curWidth, &sdlWindow->curHeight, application, window);
 		dsSDLWindow_getPosition(&sdlWindow->curPosition, application, window);
 
@@ -255,7 +254,6 @@ static void updateWindowSamples(dsApplication* application)
 		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 0);
 		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0);
 	}
-	setSamples = true;
 
 	// Need to destroy the SDL windows before restarting video for X11 below.
 	for (unsigned int i = 0; i < application->windowCount; ++i)
@@ -690,7 +688,7 @@ int dsSDLApplication_run(dsApplication* application)
 		for (uint32_t i = 0; i < application->windowCount; ++i)
 		{
 			dsWindow* window = application->windows[i];
-			if (!window->drawFunc && !window->surface)
+			if (!window->drawFunc || !window->surface)
 				continue;
 
 			if (dsRenderSurface_beginDraw(window->surface, commandBuffer))
@@ -857,7 +855,7 @@ uint32_t dsSDLApplication_showMessageBox(dsMessageBoxType type, const char* titl
 }
 
 dsApplication* dsSDLApplication_create(dsAllocator* allocator, dsRenderer* renderer, int argc,
-	const char** argv, const char* orgName, const char* appName)
+	const char** argv, const char* orgName, const char* appName, dsSDLApplicationFlags flags)
 {
 	DS_UNUSED(argc);
 	DS_UNUSED(argv);
@@ -897,15 +895,22 @@ dsApplication* dsSDLApplication_create(dsAllocator* allocator, dsRenderer* rende
 	{
 		setenv("SDL_VIDEO_X11_NODIRECTCOLOR", "1", true);
 
-		// NOTE: Bypassing the compositor can wreck havok. Vulkan on KDE is especially bad, making
-		// the whole system pretty much unusable.
-		setenv("SDL_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR", "0", true);
+		const char* compositorSetting = flags & dsSDLApplicationFlags_DisableCompositor ? "1" : "0";
+#ifdef SDL_HINT_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR
+		SDL_SetHint(SDL_HINT_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR, compositorSetting);
+#else
+		setenv("SDL_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR", compositorSetting, true);
+#endif
 
 		if (renderer->surfaceConfig)
 		{
-			char visualId[20];
-			snprintf(visualId, sizeof(visualId), "%d", (int)(size_t)renderer->surfaceConfig);
-			setenv("SDL_VIDEO_X11_VISUALID", visualId, true);
+			char visualID[20];
+			snprintf(visualID, sizeof(visualID), "%d", (int)(size_t)renderer->surfaceConfig);
+#ifdef SDL_HINT_VIDEO_X11_WINDOW_VISUALID
+			SDL_SetHint(SDL_HINT_VIDEO_X11_WINDOW_VISUALID, visualID);
+#else
+			setenv("SDL_VIDEO_X11_VISUALID", visualID, true);
+#endif
 		}
 		driver = "x11";
 	}
@@ -1102,6 +1107,7 @@ dsApplication* dsSDLApplication_create(dsAllocator* allocator, dsRenderer* rende
 	{
 		DS_LOG_ERROR(DS_APPLICATION_SDL_LOG_TAG, "Couldn't create preference path.");
 		SDL_free(basePath);
+		basePath = NULL;
 	}
 	dsResourceStream_setContext(NULL, NULL, basePath, basePath, prefPath);
 	SDL_free(basePath);

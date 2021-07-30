@@ -578,7 +578,7 @@ int dsMain(int argc, const char** argv)
 		dsRenderer_chooseShaderVersion(renderer, shaderVersions, DS_ARRAY_SIZE(shaderVersions))));
 
 	dsApplication* application = dsSDLApplication_create((dsAllocator*)&applicationAllocator,
-		renderer, argc, argv, "DeepSea", "TestCube");
+		renderer, argc, argv, "DeepSea", "TestCube", dsSDLApplicationFlags_None);
 	if (!application)
 	{
 		DS_LOG_ERROR_F("TestCube", "Couldn't create application: %s", dsErrorString(errno));

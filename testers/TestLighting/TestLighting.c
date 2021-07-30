@@ -672,7 +672,7 @@ int dsMain(int argc, const char** argv)
 #endif
 
 	dsApplication* application = dsSDLApplication_create((dsAllocator*)&applicationAllocator,
-		renderer, argc, argv, "DeepSea", "TestLighting");
+		renderer, argc, argv, "DeepSea", "TestLighting", dsSDLApplicationFlags_None);
 	if (!application)
 	{
 		DS_LOG_ERROR_F("TestLighting", "Couldn't create application: %s", dsErrorString(errno));

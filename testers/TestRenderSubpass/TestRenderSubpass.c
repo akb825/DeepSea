@@ -955,7 +955,7 @@ int dsMain(int argc, const char** argv)
 		dsRenderer_chooseShaderVersion(renderer, shaderVersions, DS_ARRAY_SIZE(shaderVersions))));
 
 	dsApplication* application = dsSDLApplication_create((dsAllocator*)&applicationAllocator,
-		renderer, argc, argv, "DeepSea", "TestRenderSubpass");
+		renderer, argc, argv, "DeepSea", "TestRenderSubpass", dsSDLApplicationFlags_None);
 	if (!application)
 	{
 		DS_LOG_ERROR_F("TestRenderSubpass", "Couldn't create application: %s", dsErrorString(errno));
