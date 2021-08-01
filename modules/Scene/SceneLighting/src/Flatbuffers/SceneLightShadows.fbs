@@ -48,9 +48,9 @@ table SceneLightShadows
 	// The maximum distance for the first split for cascaded shadows.
 	maxFirstSplitDistance : float;
 
-	// Exponential factor for cascaded shadows in the range [0, 1], where 0 uses linear  distances
+	// Exponential factor for cascaded shadows in the range [0, 1], where 0 uses linear distances
 	// between the splits and 1 is fully exponential.
-	cascadedExpFactor : float;
+	cascadeExpFactor : float;
 
 	// The distance to start fading out shadows.
 	fadeStartDistance : float;

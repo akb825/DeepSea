@@ -236,7 +236,7 @@ typedef struct dsSceneShadowParams
 	 * @brief Exponential factor for cascaded shadows in the range [0, 1], where 0 uses linear
 	 * distances between the splits and 1 is fully exponential.
 	 */
-	float cascadedExpFactor;
+	float cascadeExpFactor;
 
 	/**
 	 * @brief The distance to start fading out shadows.

@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Copyright 2020 Aaron Barany
+# Copyright 2020-2021 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ from DeepSeaScene.Convert.ConvertContext import ConvertContext
 from DeepSeaScene.Convert.SceneResourcesConvert import convertSceneResources
 
 from DeepSeaSceneLighting.Convert.LightSetConvert import convertLightSet
+from DeepSeaSceneLighting.Convert.LightShadowsConvert import convertLightShadows
 
 from DeepSeaVectorDrawScene.Convert.TextConvert import convertText
 from DeepSeaVectorDrawScene.Convert.TextNodeConvert import convertTextNode
@@ -54,6 +55,7 @@ if __name__ == '__main__':
 
 	# Lighting scene types.
 	convertContext.addCustomResourceType('LightSet', convertLightSet)
+	convertContext.addCustomResourceType('LightShadows', convertLightShadows)
 
 	# Vector draw scene types.
 	convertContext.addNodeType('TextNode', convertTextNode)

@@ -72,7 +72,7 @@ void* dsSceneLightShadows_load(const dsSceneLoadContext* loadContext,
 	{
 		fbLightShadows->maxCascades(),
 		fbLightShadows->maxFirstSplitDistance(),
-		fbLightShadows->cascadedExpFactor(),
+		fbLightShadows->cascadeExpFactor(),
 		fbLightShadows->fadeStartDistance(),
 		fbLightShadows->maxDistance()
 	};

@@ -261,8 +261,8 @@ dsSceneLightShadows* dsSceneLightShadows_create(dsAllocator* allocator,
 
 	bool cascaded = transformGroupDesc->elements[0].count == 4;
 	if (cascaded && (shadowParams->maxCascades < 1 || shadowParams->maxCascades > 4 ||
-		shadowParams->maxFirstSplitDistance <= 0 || shadowParams->cascadedExpFactor < 0 ||
-		shadowParams->cascadedExpFactor > 1 || shadowParams->fadeStartDistance < 0 ||
+		shadowParams->maxFirstSplitDistance <= 0 || shadowParams->cascadeExpFactor < 0 ||
+		shadowParams->cascadeExpFactor > 1 || shadowParams->fadeStartDistance < 0 ||
 		shadowParams->maxDistance <= 0))
 	{
 		errno = EINVAL;
@@ -388,7 +388,7 @@ bool dsSceneLightShadows_setMaxFirstSplitDistance(dsSceneLightShadows* shadows, 
 
 float dsSceneLightShadows_getCascadedExpFactor(const dsSceneLightShadows* shadows)
 {
-	return shadows ? shadows->shadowParams.cascadedExpFactor : 0.0f;
+	return shadows ? shadows->shadowParams.cascadeExpFactor : 0.0f;
 }
 
 bool dsSceneLightShadows_setCascadedExpFactor(dsSceneLightShadows* shadows, float expFactor)
@@ -399,7 +399,7 @@ bool dsSceneLightShadows_setCascadedExpFactor(dsSceneLightShadows* shadows, floa
 		return false;
 	}
 
-	shadows->shadowParams.cascadedExpFactor = expFactor;
+	shadows->shadowParams.cascadeExpFactor = expFactor;
 	return true;
 }
 
@@ -515,7 +515,7 @@ bool dsSceneLightShadows_prepare(dsSceneLightShadows* shadows, const dsView* vie
 			if (shadows->cascaded)
 			{
 				shadows->totalMatrices = dsComputeCascadeCount(nearPlane, farPlane,
-					shadowParams->maxFirstSplitDistance, shadowParams->cascadedExpFactor,
+					shadowParams->maxFirstSplitDistance, shadowParams->cascadeExpFactor,
 					shadowParams->maxCascades);
 				if (shadows->totalMatrices == 0)
 				{
@@ -527,7 +527,7 @@ bool dsSceneLightShadows_prepare(dsSceneLightShadows* shadows, const dsView* vie
 				for (uint32_t i = 0; i < shadows->totalMatrices; ++i)
 				{
 					splitDistances.values[i] = dsComputeCascadeDistance(nearPlane, farPlane,
-						shadowParams->cascadedExpFactor, i, shadows->totalMatrices);
+						shadowParams->cascadeExpFactor, i, shadows->totalMatrices);
 
 					dsProjectionParams curProjection = shadowedProjection;
 					curProjection.near = i == 0 ? nearPlane : splitDistances.values[i - 1];

@@ -33,13 +33,30 @@ The following custom scene resource types are provided with the members that are
 	* `ambientColor`: the color of the ambient light as an array of three floats, typically in the range `[0,1]`. Defaults to all 0.
 	* `ambientIntensity`: the intensity of the ambient light, which multiplies the color. Defaults to 0.
 	* `srgb`: true to treat all color values as sRGB values to be converted to linear space. Defaults to `false`.
+* `"LightShadows"`
+	* `lightSet`: name of the light set to query the light from.
+	* `lightType`: type of the light to shadow. See `dsSceneLightType` enum for values, removing the type prefix.
+	* `light`: name of the light to shadow. May be unset to disable initially until set at runtime.
+	* `transformGroupDesc`: name of the shader variable group description for the transform group.
+	* `maxCascades`: the maximum number of cascades for cascaded directional light shadows. Defaults to 4.
+	* `maxFirstSplitDistance`: maximum distance for the first split for cascaded shadows. Defaults to 100.
+	* `cascadeExpFactor`: exponential factor for cascaded shadows in the range \[0, 1\], where 0 uses linear distances between the splits and 1 is fully exponential. Defaults to 0.5.
+	* `fadeStartDistance`: the distance to start fading out shadows. Defaults to 1000000, which is a large distance less likely to break GPUs that use limited precision floats.
+	* `maxDistance`: the maximum distance to display shadows. Defaults to 1000000, which is a large distance less likely to break GPUs that use limited precision floats.
+
+## Global Data
+
+The following global data types are provided with the members that are expected:
+* `"LightSetPrepare"`:
+	* `lightSets`: array of light set names to prepare.
+	* `intensityThreshold`: the threshold below which the light is considered out of view. If unset this will use the default.
+* `"LightShadowsPrepare"`:
+	* `lightShadows`: name of the light shadows instance to prepare.
+	* `transformGroup`: namem of the transform group.
 
 ## Item Lists
 
 The following item list types are provided with the members that are expected:
-* `"LightSetPrepare"`:
-	* `lightSets`: array of light set names to prepare.
-	* `intensityThreshold`: the threshold below which the light is considered out of view. If unset this will use the default.
 * `"DeferredLightResolve"`:
 	* `lightSet`: name of the light set to draw the lights from.
 	* `ambientShader`: the name of the shader used for the ambient light. This may be null or ommitted to not draw ambient.
@@ -51,6 +68,9 @@ The following item list types are provided with the members that are expected:
 	* `spotShader`: the name of the shader used for spot lights. This may be null or ommitted to not draw spot lights.
 	* `spotMaterial`: the name of the material used for spot lights.
 	* `intensityThreshold`: the threshold below which the light is considered out of view. If unset this will use the default.
+* `"ShadowCullList"`
+	* `lightShadows`: name of the light shadows that will be drawn for.
+	* `surface`: index of the surface within the light shadows.
 
 ## Instance Data
 

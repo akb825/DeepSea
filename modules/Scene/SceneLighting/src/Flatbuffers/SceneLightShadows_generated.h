@@ -55,7 +55,7 @@ struct SceneLightShadows FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_TRANSFORMGROUPDESC = 10,
     VT_MAXCASCADES = 12,
     VT_MAXFIRSTSPLITDISTANCE = 14,
-    VT_CASCADEDEXPFACTOR = 16,
+    VT_CASCADEEXPFACTOR = 16,
     VT_FADESTARTDISTANCE = 18,
     VT_MAXDISTANCE = 20
   };
@@ -77,8 +77,8 @@ struct SceneLightShadows FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   float maxFirstSplitDistance() const {
     return GetField<float>(VT_MAXFIRSTSPLITDISTANCE, 0.0f);
   }
-  float cascadedExpFactor() const {
-    return GetField<float>(VT_CASCADEDEXPFACTOR, 0.0f);
+  float cascadeExpFactor() const {
+    return GetField<float>(VT_CASCADEEXPFACTOR, 0.0f);
   }
   float fadeStartDistance() const {
     return GetField<float>(VT_FADESTARTDISTANCE, 0.0f);
@@ -97,7 +97,7 @@ struct SceneLightShadows FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            verifier.VerifyString(transformGroupDesc()) &&
            VerifyField<uint32_t>(verifier, VT_MAXCASCADES) &&
            VerifyField<float>(verifier, VT_MAXFIRSTSPLITDISTANCE) &&
-           VerifyField<float>(verifier, VT_CASCADEDEXPFACTOR) &&
+           VerifyField<float>(verifier, VT_CASCADEEXPFACTOR) &&
            VerifyField<float>(verifier, VT_FADESTARTDISTANCE) &&
            VerifyField<float>(verifier, VT_MAXDISTANCE) &&
            verifier.EndTable();
@@ -126,8 +126,8 @@ struct SceneLightShadowsBuilder {
   void add_maxFirstSplitDistance(float maxFirstSplitDistance) {
     fbb_.AddElement<float>(SceneLightShadows::VT_MAXFIRSTSPLITDISTANCE, maxFirstSplitDistance, 0.0f);
   }
-  void add_cascadedExpFactor(float cascadedExpFactor) {
-    fbb_.AddElement<float>(SceneLightShadows::VT_CASCADEDEXPFACTOR, cascadedExpFactor, 0.0f);
+  void add_cascadeExpFactor(float cascadeExpFactor) {
+    fbb_.AddElement<float>(SceneLightShadows::VT_CASCADEEXPFACTOR, cascadeExpFactor, 0.0f);
   }
   void add_fadeStartDistance(float fadeStartDistance) {
     fbb_.AddElement<float>(SceneLightShadows::VT_FADESTARTDISTANCE, fadeStartDistance, 0.0f);
@@ -156,13 +156,13 @@ inline flatbuffers::Offset<SceneLightShadows> CreateSceneLightShadows(
     flatbuffers::Offset<flatbuffers::String> transformGroupDesc = 0,
     uint32_t maxCascades = 0,
     float maxFirstSplitDistance = 0.0f,
-    float cascadedExpFactor = 0.0f,
+    float cascadeExpFactor = 0.0f,
     float fadeStartDistance = 0.0f,
     float maxDistance = 0.0f) {
   SceneLightShadowsBuilder builder_(_fbb);
   builder_.add_maxDistance(maxDistance);
   builder_.add_fadeStartDistance(fadeStartDistance);
-  builder_.add_cascadedExpFactor(cascadedExpFactor);
+  builder_.add_cascadeExpFactor(cascadeExpFactor);
   builder_.add_maxFirstSplitDistance(maxFirstSplitDistance);
   builder_.add_maxCascades(maxCascades);
   builder_.add_transformGroupDesc(transformGroupDesc);
@@ -180,7 +180,7 @@ inline flatbuffers::Offset<SceneLightShadows> CreateSceneLightShadowsDirect(
     const char *transformGroupDesc = nullptr,
     uint32_t maxCascades = 0,
     float maxFirstSplitDistance = 0.0f,
-    float cascadedExpFactor = 0.0f,
+    float cascadeExpFactor = 0.0f,
     float fadeStartDistance = 0.0f,
     float maxDistance = 0.0f) {
   auto lightSet__ = lightSet ? _fbb.CreateString(lightSet) : 0;
@@ -194,7 +194,7 @@ inline flatbuffers::Offset<SceneLightShadows> CreateSceneLightShadowsDirect(
       transformGroupDesc__,
       maxCascades,
       maxFirstSplitDistance,
-      cascadedExpFactor,
+      cascadeExpFactor,
       fadeStartDistance,
       maxDistance);
 }

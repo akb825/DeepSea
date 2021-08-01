@@ -67,7 +67,7 @@ class SceneLightShadows(object):
         return 0.0
 
     # SceneLightShadows
-    def CascadedExpFactor(self):
+    def CascadeExpFactor(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(16))
         if o != 0:
             return self._tab.Get(flatbuffers.number_types.Float32Flags, o + self._tab.Pos)
@@ -115,10 +115,10 @@ def AddMaxFirstSplitDistance(builder, maxFirstSplitDistance): builder.PrependFlo
 def SceneLightShadowsAddMaxFirstSplitDistance(builder, maxFirstSplitDistance):
     """This method is deprecated. Please switch to AddMaxFirstSplitDistance."""
     return AddMaxFirstSplitDistance(builder, maxFirstSplitDistance)
-def AddCascadedExpFactor(builder, cascadedExpFactor): builder.PrependFloat32Slot(6, cascadedExpFactor, 0.0)
-def SceneLightShadowsAddCascadedExpFactor(builder, cascadedExpFactor):
-    """This method is deprecated. Please switch to AddCascadedExpFactor."""
-    return AddCascadedExpFactor(builder, cascadedExpFactor)
+def AddCascadeExpFactor(builder, cascadeExpFactor): builder.PrependFloat32Slot(6, cascadeExpFactor, 0.0)
+def SceneLightShadowsAddCascadeExpFactor(builder, cascadeExpFactor):
+    """This method is deprecated. Please switch to AddCascadeExpFactor."""
+    return AddCascadeExpFactor(builder, cascadeExpFactor)
 def AddFadeStartDistance(builder, fadeStartDistance): builder.PrependFloat32Slot(7, fadeStartDistance, 0.0)
 def SceneLightShadowsAddFadeStartDistance(builder, fadeStartDistance):
     """This method is deprecated. Please switch to AddFadeStartDistance."""
