@@ -1,0 +1,77 @@
+/*
+ * Copyright 2021 Aaron Barany
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#pragma once
+
+/**
+ * @file
+ * @brief Functions for performing PCF 3x3 for shadows.
+ *
+ * This relies on hardware PCF to perform the filter in a 2x2 texture lookup.
+ *
+ * Functions are provided for a standard single-surface shadow map and texture array, with the
+ * latter typically used for either cascaded shadows or point lights. A common interface is used
+ * with other filter types to ensure interchangeability.
+ */
+
+#if !HAS_TEXTURE_SIZE
+#error PCF 3x3 filtering requires support for textureSize()
+#endif
+
+/**
+ * @brief Performs a 3x3 lookup of a standard 2D shadow map.
+ * @param shadowMap The sampler for the shadow map.
+ * @param shadowPos The projected shadow position.
+ * @return The filtered shadow map value.
+ */
+[[fragment]]
+float dsShadowPCF3x3(sampler2DShadow shadowMap, vec3 shadowPos)
+{
+	vec2 invTextureSize = vec2(1.0)/vec2(textureSize(shadowMap, 0));
+	const vec2 offsets[4] = {vec2(-0.5, 0.5), vec2(0.5, 0.5), vec2(-0.5, -0.5), vec2(0.5, -0.5)};
+	float value = 0.0;
+	for (int i = 0; i < 4; ++i)
+		value += texture(shadowMap, vec3(shadowPos.xy + offsets[i]*invTextureSide, shadowPos.z));
+	return value/4.0;
+}
+
+#if HAS_TEXTURE_ARRAYS
+/**
+ * @brief Performs a 3x3 lookup of from a shadow map texture array.
+ * @param shadowMap The sampler for the shadow map.
+ * @param surface The surface index.
+ * @param shadowPos The projected shadow position.
+ * @return The filtered shadow map value.
+ */
+[[fragment]]
+float dsShadowPCF3x3(sampler2DArrayShadow shadowMap, int surface, vec3 shadowPos)
+{
+	vec2 invTextureSize = vec2(1.0)/vec2(textureSize(shadowMap, 0).xy);
+	const vec2 offsets[4] = {vec2(-0.5, 0.5), vec2(0.5, 0.5), vec2(-0.5, -0.5), vec2(0.5, -0.5)};
+	float value = 0.0;
+	for (int i = 0; i < 4; ++i)
+	{
+		value += texture(shadowMap,
+			vec3(shadowPos.xy + offsets[i]*invTextureSide, float(surface), shadowPos.z));
+	}
+	return value/4.0;
+}
+#endif
+
+/**
+ * @brief Define to set the default filter to PCF 3x3.
+ */
+#define DS_SHADOW_FILTER dsShadowPCF3x3

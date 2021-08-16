@@ -211,11 +211,13 @@ DS_SCENELIGHTING_EXPORT bool dsSceneLight_isInFrustum(const dsSceneLight* light,
  * @param cubeFace The cube face to get the projection matrix for.
  * @param intensityThreshold The threshold below which the light is considered out of view.
  *     Use DS_DEFAULT_SCENE_LIGHT_INTENSITY_THRESHOLD for the default value.
+ * @param transform Matrix to transform the light before computing the projection. This may be
+ *     NULL to have no transform. It's expected this will only have translation and rotation.
  * @return False if the parameters are invalid.
  */
 DS_SCENELIGHTING_EXPORT bool dsSceneLight_getPointLightProjection(dsMatrix44f* result,
 	const dsSceneLight* light, const dsRenderer* renderer, dsCubeFace cubeFace,
-	float intensityThreshold);
+	float intensityThreshold, const dsMatrix44f* transform);
 
 /**
  * @brief Gets the projection matrix for a spot light.

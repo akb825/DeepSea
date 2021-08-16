@@ -27,6 +27,8 @@
 #include <DeepSea/Geometry/OrientedBox3.h>
 #include <DeepSea/Geometry/Frustum3.h>
 
+#include <DeepSea/Math/Matrix44.h>
+
 #include <DeepSea/Scene/Nodes/SceneModelNode.h>
 #include <DeepSea/Scene/Nodes/SceneNode.h>
 
@@ -114,8 +116,13 @@ void dsShadowCullList_commit(dsSceneItemList* itemList, const dsView* view,
 		const Entry* entry = cullList->entries + i;
 		dsSceneModelNode* modelNode = entry->node;
 		dsOrientedBox3f transformedBounds = modelNode->bounds;
-		DS_VERIFY(dsOrientedBox3f_transform(&transformedBounds, entry->transform));
-		*entry->result = dsSceneLightShadows_intersectOrientedBox(cullList->shadows,
+
+		// Computations are in view space, so create the combined matrix here rather than having
+		// to transform the box twice.
+		dsMatrix44f worldViewMtx;
+		dsMatrix44_affineMul(worldViewMtx, view->viewMatrix, *entry->transform);
+		DS_VERIFY(dsOrientedBox3f_transform(&transformedBounds, &worldViewMtx));
+		*entry->result = dsSceneLightShadows_intersectViewOrientedBox(cullList->shadows,
 			cullList->surface, &transformedBounds) == dsIntersectResult_Outside;
 	}
 

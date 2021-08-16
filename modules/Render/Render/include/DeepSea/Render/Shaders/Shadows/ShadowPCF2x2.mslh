@@ -1,0 +1,60 @@
+/*
+ * Copyright 2021 Aaron Barany
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#pragma once
+
+/**
+ * @file
+ * @brief Functions for performing PCF 2x2 for shadows.
+ *
+ * This relies on hardware PCF to perform the filter in one texture lookup.
+ *
+ * Functions are provided for a standard single-surface shadow map and texture array, with the
+ * latter typically used for either cascaded shadows or point lights. A common interface is used
+ * with other filter types to ensure interchangeability.
+ */
+
+/**
+ * @brief Performs a 2x2 lookup of a standard 2D shadow map.
+ * @param shadowMap The sampler for the shadow map.
+ * @param shadowPos The projected shadow position.
+ * @return The filtered shadow map value.
+ */
+[[fragment]]
+float dsShadowPCF2x2(sampler2DShadow shadowMap, vec3 shadowPos)
+{
+	return texture(shadowMap, shadowPos);
+}
+
+#if HAS_TEXTURE_ARRAYS
+/**
+ * @brief Performs a 2x2 lookup of from a shadow map texture array.
+ * @param shadowMap The sampler for the shadow map.
+ * @param surface The surface index.
+ * @param shadowPos The projected shadow position.
+ * @return The filtered shadow map value.
+ */
+[[fragment]]
+float dsShadowPCF2x2(sampler2DArrayShadow shadowMap, int surface, vec3 shadowPos)
+{
+	return texture(shadowMap, vec4(shadowPos.xy, float(surface), shadowPos.z));
+}
+#endif
+
+/**
+ * @brief Define to set the default filter to PCF 2x2.
+ */
+#define DS_SHADOW_FILTER dsShadowPCF2x2

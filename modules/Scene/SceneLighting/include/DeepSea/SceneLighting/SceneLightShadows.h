@@ -68,6 +68,7 @@ DS_SCENELIGHTING_EXPORT const dsCustomSceneResourceType* dsSceneLightShadows_typ
  *     - Point:
  *         - mat44 array of 6 elements for the shadow projection.
  *         - vec2 for the distance to start fading out shadows and maximum shadow distance.
+ *         - vec3 for the positiono of the light in view space.
  *     - Spot:
  *         - mat44 for the shadow projection.
  *         - vec2 for the distance to start fading out shadows and maximum shadow distance.
@@ -225,10 +226,10 @@ DS_SCENELIGHTING_EXPORT uint32_t dsSceneLightShadows_getSurfaceCount(
 	const dsSceneLightShadows* shadows);
 
 /**
- * @brief Intersects an aligned box with a shadow surface.
+ * @brief Intersects an aligned box in world space with a shadow surface.
  * @param shadows The scene light shadows.
  * @param surface The shadow surface index.
- * @param box The aligned box to intersect with.
+ * @param box The aligned box to intersect with in world space.
  * @return The intersection result. Inside and outside is with respect to the volume. If the box
  *     fully contains the frustum, dsIntersectResult_Intersects will be returned.
  */
@@ -236,10 +237,10 @@ DS_SCENELIGHTING_EXPORT dsIntersectResult dsSceneLightShadows_intersectAlignedBo
 	dsSceneLightShadows* shadows, uint32_t surface, const dsAlignedBox3f* box);
 
 /**
- * @brief Intersects an oriented box with a shadow surface.
+ * @brief Intersects an oriented box in world space with a shadow surface.
  * @param shadows The scene light shadows.
  * @param surface The shadow surface index.
- * @param box The oriented box to intersect with.
+ * @param box The oriented box to intersect with in world space.
  * @return The intersection result. Inside and outside is with respect to the volume. If the box
  *     fully contains the frustum, dsIntersectResult_Intersects will be returned.
  */
@@ -247,15 +248,49 @@ DS_SCENELIGHTING_EXPORT dsIntersectResult dsSceneLightShadows_intersectOrientedB
 	dsSceneLightShadows* shadows, uint32_t surface, const dsOrientedBox3f* box);
 
 /**
- * @brief Intersects a sphere a shadow surface.
+ * @brief Intersects a sphere in world space with a shadow surface.
  * @param shadows The scene light shadows.
  * @param surface The shadow surface index.
- * @param center The center of the sphere.
+ * @param center The center of the sphere in world space.
  * @param radius The radius of the sphere.
  * @return The intersection result. Inside and outside is with respect to the volume. If the sphere
  *     fully contains the frustum, dsIntersectResult_Intersects will be returned.
  */
 DS_SCENELIGHTING_EXPORT dsIntersectResult dsSceneLightShadows_intersectSphere(
+	dsSceneLightShadows* shadows, uint32_t surface, const dsVector3f* center, float radius);
+
+/**
+ * @brief Intersects an aligned box in view space with a shadow surface.
+ * @param shadows The scene light shadows.
+ * @param surface The shadow surface index.
+ * @param box The aligned box to intersect with in view space.
+ * @return The intersection result. Inside and outside is with respect to the volume. If the box
+ *     fully contains the frustum, dsIntersectResult_Intersects will be returned.
+ */
+DS_SCENELIGHTING_EXPORT dsIntersectResult dsSceneLightShadows_intersectViewAlignedBox(
+	dsSceneLightShadows* shadows, uint32_t surface, const dsAlignedBox3f* box);
+
+/**
+ * @brief Intersects an oriented box in view space with a shadow surface.
+ * @param shadows The scene light shadows.
+ * @param surface The shadow surface index.
+ * @param box The oriented box to intersect with in view space.
+ * @return The intersection result. Inside and outside is with respect to the volume. If the box
+ *     fully contains the frustum, dsIntersectResult_Intersects will be returned.
+ */
+DS_SCENELIGHTING_EXPORT dsIntersectResult dsSceneLightShadows_intersectViewOrientedBox(
+	dsSceneLightShadows* shadows, uint32_t surface, const dsOrientedBox3f* box);
+
+/**
+ * @brief Intersects a sphere in view space with a shadow surface.
+ * @param shadows The scene light shadows.
+ * @param surface The shadow surface index.
+ * @param center The center of the sphere in view space.
+ * @param radius The radius of the sphere.
+ * @return The intersection result. Inside and outside is with respect to the volume. If the sphere
+ *     fully contains the frustum, dsIntersectResult_Intersects will be returned.
+ */
+DS_SCENELIGHTING_EXPORT dsIntersectResult dsSceneLightShadows_intersectViewSphere(
 	dsSceneLightShadows* shadows, uint32_t surface, const dsVector3f* center, float radius);
 
 /**

@@ -38,7 +38,7 @@ def convertLightShadows(convertContext, data):
 	- maxDistance: the maximum distance to display shadows. Defaults to 1000000, which is a large
 	  distance less likely to break GPUs that use limited precision floats.
 	"""
-	largeDistance = 1000000.0
+	largeDistance = 100000000.0
 
 	def readFloat(value, name, minVal = None, maxVal = None):
 		try:

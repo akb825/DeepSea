@@ -415,7 +415,7 @@ bool dsSceneLight_isInFrustum(const dsSceneLight* light, const dsFrustum3f* frus
 
 bool dsSceneLight_getPointLightProjection(dsMatrix44f* result,
 	const dsSceneLight* light, const dsRenderer* renderer, dsCubeFace cubeFace,
-	float intensityThreshold)
+	float intensityThreshold, const dsMatrix44f* transform)
 {
 	if (!result || !light || light->type != dsSceneLightType_Point || !renderer ||
 		cubeFace < dsCubeFace_PosX || cubeFace > dsCubeFace_NegZ || intensityThreshold <= 0)
@@ -424,9 +424,16 @@ bool dsSceneLight_getPointLightProjection(dsMatrix44f* result,
 		return false;
 	}
 
+	dsVector4f lightWorldPos = {{light->position.x, light->position.y, light->position.z, 1.0f}};
+	dsVector4f lightPos;
+	if (transform)
+		dsMatrix44_transform(lightPos, *transform, lightWorldPos);
+	else
+		lightPos = lightWorldPos;
+
 	dsMatrix44f lightWorld;
 	DS_VERIFY(dsTexture_cubeOrientation(&lightWorld, cubeFace));
-	*(dsVector3f*)(lightWorld.values + 3) = light->position;
+	lightWorld.columns[3] = lightPos;
 
 	dsMatrix44f lightLocal;
 	dsMatrix44_fastInvert(lightLocal, lightWorld);

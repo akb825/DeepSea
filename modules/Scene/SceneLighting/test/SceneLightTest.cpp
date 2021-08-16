@@ -378,7 +378,7 @@ TEST_F(SceneLightTest, GetPointLightLightProjection)
 	for (int i = 0; i < 6; ++i)
 	{
 		ASSERT_TRUE(dsSceneLight_getPointLightProjection(projections + i, &light, renderer,
-			(dsCubeFace)i, DS_DEFAULT_SCENE_LIGHT_INTENSITY_THRESHOLD));
+			(dsCubeFace)i, DS_DEFAULT_SCENE_LIGHT_INTENSITY_THRESHOLD, NULL));
 		ASSERT_TRUE(dsRenderer_frustumFromMatrix(frustums + i, renderer, projections + i));
 	}
 
@@ -461,7 +461,7 @@ TEST_F(SceneLightTest, GetSpotLightLightProjection)
 
 	dsMatrix44f projection;
 	EXPECT_FALSE(dsSceneLight_getPointLightProjection(&projection, &light, renderer, dsCubeFace_PosX,
-		DS_DEFAULT_SCENE_LIGHT_INTENSITY_THRESHOLD));
+		DS_DEFAULT_SCENE_LIGHT_INTENSITY_THRESHOLD, NULL));
 	ASSERT_TRUE(dsSceneLight_getSpotLightProjection(&projection, &light, renderer,
 		DS_DEFAULT_SCENE_LIGHT_INTENSITY_THRESHOLD));
 
