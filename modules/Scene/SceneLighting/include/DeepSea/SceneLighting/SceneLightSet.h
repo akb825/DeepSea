@@ -145,6 +145,33 @@ DS_SCENELIGHTING_EXPORT bool dsSceneLightSet_removeLightID(dsSceneLightSet* ligh
 	uint32_t nameID);
 
 /**
+ * @brief Gets the ID for the main light.
+ * @param lightSet The light set.
+ * @return The ID of the main light or 0 if not set.
+ */
+DS_SCENELIGHTING_EXPORT uint32_t dsSceneLightSet_getMainLightID(const dsSceneLightSet* lightSet);
+
+/**
+ * @brief Sets the name for the main light.
+ * @remark errno will be set on failure.
+ * @param lightSet The light set.
+ * @param name The name of the main light, or NULL to set no main light.
+ * @return False if the parameters are invalid.
+ */
+DS_SCENELIGHTING_EXPORT bool dsSceneLightSet_setMainLightName(dsSceneLightSet* lightSet,
+	const char* name);
+
+/**
+ * @brief Sets the ID for the main light.
+ * @remark errno will be set on failure.
+ * @param lightSet The light set.
+ * @param name*D The ID of the main light, or 0 to set no main light.
+ * @return False if the parameters are invalid.
+ */
+DS_SCENELIGHTING_EXPORT bool dsSceneLightSet_setMainLightID(dsSceneLightSet* lightSet,
+	uint32_t nameID);
+
+/**
  * @brief Clears all the lights a light set.
  * @remark errno will be set on failure.
  * @param lightSet The light set.
@@ -230,15 +257,19 @@ DS_SCENELIGHTING_EXPORT float dsSceneLightSet_getIntensityThreshold(
 
 /**
  * @brief Finds the brightest lights at a position.
+ *
+ * The main light will always be assigned to index 0 if it's present and visible.
+ *
  * @param[out] outBrightestLights The output to contain the brightest lights.
  * @param outLightCount The maximum number of lights in outBrightestLIghts.
+ * @param[out] outHasMainLight Whether or not the main light is in the output.
  * @param lightSet The light set.
  * @param position The position to use to evaluate which lights are brightest.
  * @return The number of lights. If this is less than outLightCount, any remaining lights will
  *     be NULL.
  */
 DS_SCENELIGHTING_EXPORT uint32_t dsSceneLightSet_findBrightestLights(
-	const dsSceneLight** outBrightestLights, uint32_t outLightCount,
+	const dsSceneLight** outBrightestLights, uint32_t outLightCount, bool* outHasMainLight,
 	const dsSceneLightSet* lightSet, const dsVector3f* position);
 
 /**

@@ -58,10 +58,19 @@ uniform InstanceForwardLightData
 	lowp vec2 spotCosAngles[DS_FORWARD_LIGHT_COUNT];
 
 	/**
-	 * @brief The ambient light color.
+	 * @brief The ambient light color and whether or not the main light is present.
 	 */
-	vec3 ambientColor;
+	vec4 ambientColorHasMain;
 } dsForwardLights;
+
+/**
+ * @brief Gets whether or not the main light is present in the forward light set.
+ * @return Whether or not the main light is present.
+ */
+bool dsHasMainLight()
+{
+	return INSTANCE(dsForwardLights).ambientColorHasMain.a > 0;
+}
 
 /**
  * @brief Computes forward lighting.
@@ -78,7 +87,7 @@ uniform InstanceForwardLightData
 void dsComputeForwardLighting(out vec3 outDiffuseColor, out vec3 outSpecularColor, vec3 position,
 	lowp vec3 normal, mediump float shininess, lowp vec3 viewDirection)
 {
-	outDiffuseColor = INSTANCE(dsForwardLights).ambientColor;
+	outDiffuseColor = INSTANCE(dsForwardLights).ambientColorHasMain.rgb;
 	outSpecularColor = vec3(0, 0, 0);
 	for (int i = 0; i < DS_FORWARD_LIGHT_COUNT; ++i)
 	{
@@ -96,6 +105,50 @@ void dsComputeForwardLighting(out vec3 outDiffuseColor, out vec3 outSpecularColo
 			lightDirection, position, normal, linearFalloff, quadraticFalloff, spotCosAngles.x,
 			spotCosAngles.y);
 		outDiffuseColor += lightColor*diffuse*falloff;
+		outSpecularColor += lightColor*dsSpecularLight(surfaceDirection, normal, viewDirection,
+			shininess)*falloff;
+	}
+}
+
+/**
+ * @brief Computes forward lighting with shadows.
+ * @param[out] outDiffuseColor The lit result for diffuse.
+ * @param[out] outSpecularColor The lit result for specular.
+ * @param position The position on the surface.
+ * @param normal The normal on the surface.
+ * @param diffuseColor The diffuse color of the material.
+ * @param specularColor The specular color of the material.
+ * @param shininess The shininess value for computing specular lighting. Set to 0 to not compute
+ *     specular.
+ * @param viewDirection The direction to the view.
+ * @param shadowValue The shadow value for the main light. (first light in the array)
+ */
+void dsComputeForwardLighting(out vec3 outDiffuseColor, out vec3 outSpecularColor, vec3 position,
+	lowp vec3 normal, mediump float shininess, lowp vec3 viewDirection, lowp float shadowValue)
+{
+	outDiffuseColor = INSTANCE(dsForwardLights).ambientColorHasMain.rgb;
+	outSpecularColor = vec3(0, 0, 0);
+	bool hasShadows = dsHasMainLight();
+	for (int i = 0; i < DS_FORWARD_LIGHT_COUNT; ++i)
+	{
+		vec3 lightPosition = INSTANCE(dsForwardLights).positionAndType[i].xyz;
+		int lightType = int(INSTANCE(dsForwardLights).positionAndType[i].w);
+		lowp vec3 lightDirection = INSTANCE(dsForwardLights).directionAndLinearFalloff[i].xyz;
+		lowp float linearFalloff = INSTANCE(dsForwardLights).directionAndLinearFalloff[i].w;
+		vec3 lightColor = INSTANCE(dsForwardLights).colorAndQuadraticFalloff[i].xyz;
+		lowp float quadraticFalloff = INSTANCE(dsForwardLights).colorAndQuadraticFalloff[i].w;
+		lowp vec2 spotCosAngles = INSTANCE(dsForwardLights).spotCosAngles[i];
+
+		lowp float shadowFactor = 1.0;
+		if (i == 0 && hasShadows)
+			shadowFactor = shadowValue;
+
+		lowp float falloff;
+		lowp vec3 surfaceDirection;
+		float diffuse = dsDiffuseLight(falloff, surfaceDirection, lightType, lightPosition,
+			lightDirection, position, normal, linearFalloff, quadraticFalloff, spotCosAngles.x,
+			spotCosAngles.y);
+		outDiffuseColor += lightColor*diffuse*(falloff*shadowFactor);
 		outSpecularColor += lightColor*dsSpecularLight(surfaceDirection, normal, viewDirection,
 			shininess)*falloff;
 	}

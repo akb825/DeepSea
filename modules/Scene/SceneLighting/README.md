@@ -32,6 +32,7 @@ The following custom scene resource types are provided with the members that are
 	* `maxLights`: the maximum number of lights that can be stored. If unset, the number of elements in lights will be used.
 	* `ambientColor`: the color of the ambient light as an array of three floats, typically in the range `[0,1]`. Defaults to all 0.
 	* `ambientIntensity`: the intensity of the ambient light, which multiplies the color. Defaults to 0.
+	* `mainLight`: the name of the main light. If omitted no light will be considered the main light.
 	* `srgb`: true to treat all color values as sRGB values to be converted to linear space. Defaults to `false`.
 * `"LightShadows"`
 	* `lightSet`: name of the light set to query the light from.

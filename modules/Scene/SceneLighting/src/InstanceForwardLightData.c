@@ -35,7 +35,7 @@ static dsShaderVariableElement baseElements[] =
 	{"directionAndLinearFalloff", dsMaterialType_Vec4, 0},
 	{"colorAndQuadraticFalloff", dsMaterialType_Vec4, 0},
 	{"spotCosAngles", dsMaterialType_Vec2, 0},
-	{"ambientColor", dsMaterialType_Vec3, 0}
+	{"ambientColorHasMain", dsMaterialType_Vec4, 0}
 };
 
 static bool isLightDescValid(const dsShaderVariableGroupDesc* lightDesc)
@@ -102,7 +102,8 @@ void dsInstanceForwardLightData_populateData(void* userData, const dsView* view,
 		dsMaterialType_Vec4, lightCount);
 	size_t spotCosAnglesOffset = dsMaterialType_addElementBlockSize(&size, dsMaterialType_Vec2,
 		lightCount);
-	size_t ambientColorOffset = dsMaterialType_addElementBlockSize(&size, dsMaterialType_Vec3, 0);
+	size_t ambientColorHasMainOffset = dsMaterialType_addElementBlockSize(&size,
+		dsMaterialType_Vec4, 0);
 	DS_ASSERT(size <= stride);
 
 	dsColor3f ambient;
@@ -118,11 +119,12 @@ void dsInstanceForwardLightData_populateData(void* userData, const dsView* view,
 		dsVector4f* colorAndQuadraticFalloff = (dsVector4f*)(data + colorAndQuadraticFalloffOffset);
 		// Due to padding, spotCosAngles has a stride of vec4.
 		dsVector4f* spotCosAngles = (dsVector4f*)(data + spotCosAnglesOffset);
-		dsColor3f* ambientColor = (dsColor3f*)(data + ambientColorOffset);
+		dsColor4f* ambientColorHasMain = (dsColor4f*)(data + ambientColorHasMainOffset);
 
 		const dsVector3f* position = (const dsVector3f*)(instances[i].transform.columns + 3);
+		bool hasMainLight = false;
 		uint32_t brightestLightCount = dsSceneLightSet_findBrightestLights(brightestLights,
-			lightCount, lightSet, position);
+			lightCount, &hasMainLight, lightSet, position);
 		for (uint32_t j = 0; j < brightestLightCount; ++j)
 		{
 			const dsSceneLight* light = brightestLights[j];
@@ -149,7 +151,8 @@ void dsInstanceForwardLightData_populateData(void* userData, const dsView* view,
 			spotCosAngles[j].w = 0.0f;
 		}
 
-		*ambientColor = ambient;
+		*(dsColor3f*)ambientColorHasMain = ambient;
+		ambientColorHasMain->a = hasMainLight;
 
 		// Unset lights can be zero-initialized.
 		uint32_t unsetCount = lightCount - brightestLightCount;

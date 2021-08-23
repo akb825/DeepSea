@@ -74,7 +74,14 @@ class SceneLightSet(object):
             return self._tab.Get(flatbuffers.number_types.Float32Flags, o + self._tab.Pos)
         return 0.0
 
-def Start(builder): builder.StartObject(4)
+    # SceneLightSet
+    def MainLight(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(12))
+        if o != 0:
+            return self._tab.String(o + self._tab.Pos)
+        return None
+
+def Start(builder): builder.StartObject(5)
 def SceneLightSetStart(builder):
     """This method is deprecated. Please switch to Start."""
     return Start(builder)
@@ -98,6 +105,10 @@ def AddAmbientIntensity(builder, ambientIntensity): builder.PrependFloat32Slot(3
 def SceneLightSetAddAmbientIntensity(builder, ambientIntensity):
     """This method is deprecated. Please switch to AddAmbientIntensity."""
     return AddAmbientIntensity(builder, ambientIntensity)
+def AddMainLight(builder, mainLight): builder.PrependUOffsetTRelativeSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(mainLight), 0)
+def SceneLightSetAddMainLight(builder, mainLight):
+    """This method is deprecated. Please switch to AddMainLight."""
+    return AddMainLight(builder, mainLight)
 def End(builder): return builder.EndObject()
 def SceneLightSetEnd(builder):
     """This method is deprecated. Please switch to End."""

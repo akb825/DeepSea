@@ -46,6 +46,7 @@ struct dsSceneLightSet
 	dsHashTable* lightTable;
 	dsSceneLight** directionalLights;
 	dsBVH* spatialLights;
+	uint32_t mainLightID;
 	uint32_t directionalLightCount;
 	dsColor3f ambientColor;
 	float ambientIntensity;
@@ -58,6 +59,7 @@ typedef struct FindBrightestData
 	float* intensities;
 	uint32_t* lightCount;
 	const dsVector3f* position;
+	uint32_t startIndex;
 	uint32_t maxLights;
 	float intensityThreshold;
 } FindBrightestData;
@@ -89,11 +91,11 @@ static bool getLightBounds(void* outBounds, const dsBVH* bvh, const void* object
 		lightSet->intensityThreshold);
 }
 
-static uint32_t findDimmestLight(const float* intensities, uint32_t lightCount)
+static uint32_t findDimmestLight(const float* intensities, uint32_t startIndex, uint32_t lightCount)
 {
 	float dimmest = FLT_MAX;
 	uint32_t index = 0;
-	for (uint32_t i = 0; i < lightCount; ++i)
+	for (uint32_t i = startIndex; i < lightCount; ++i)
 	{
 		if (intensities[i] < dimmest)
 		{
@@ -124,7 +126,7 @@ static bool visitBrightestLights(void* userData, const dsBVH* bvh, const void* o
 	}
 	else
 	{
-		uint32_t dimmest = findDimmestLight(data->intensities, data->maxLights);
+		uint32_t dimmest = findDimmestLight(data->intensities, data->startIndex, data->maxLights);
 		if (data->intensities[dimmest] < intensity)
 		{
 			data->intensities[dimmest] = intensity;
@@ -216,6 +218,7 @@ dsSceneLightSet* dsSceneLightSet_create(dsAllocator* allocator, uint32_t maxLigh
 		return NULL;
 	}
 
+	lightSet->mainLightID = 0;
 	lightSet->ambientColor = *ambientColor;
 	lightSet->ambientIntensity = ambientIntensity;
 	lightSet->intensityThreshold = 0.0f;
@@ -330,6 +333,35 @@ bool dsSceneLightSet_removeLightID(dsSceneLightSet* lightSet, uint32_t nameID)
 		return false;
 
 	DS_VERIFY(dsAllocator_free((dsAllocator*)&lightSet->lightAllocator, node));
+	return true;
+}
+
+uint32_t dsSceneLightSet_getMainLightID(const dsSceneLightSet* lightSet)
+{
+	return lightSet ? lightSet->mainLightID : 0;
+}
+
+bool dsSceneLightSet_setMainLightName(dsSceneLightSet* lightSet, const char* name)
+{
+	if (!lightSet)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	lightSet->mainLightID = name ? dsHashString(name) : 0;
+	return true;
+}
+
+bool dsSceneLightSet_setMainLightID(dsSceneLightSet* lightSet, uint32_t nameID)
+{
+	if (!lightSet)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	lightSet->mainLightID = nameID;
 	return true;
 }
 
@@ -468,9 +500,10 @@ float dsSceneLightSet_getIntensityThreshold(const dsSceneLightSet* lightSet)
 }
 
 uint32_t dsSceneLightSet_findBrightestLights(const dsSceneLight** outBrightestLights,
-	uint32_t outLightCount, const dsSceneLightSet* lightSet, const dsVector3f* position)
+	uint32_t outLightCount, bool* outHasMainLight, const dsSceneLightSet* lightSet,
+	const dsVector3f* position)
 {
-	if (!outBrightestLights || !lightSet || !position)
+	if (!outBrightestLights || outLightCount == 0 || !outHasMainLight || !lightSet || !position)
 	{
 		errno = EINVAL;
 		return 0;
@@ -478,6 +511,17 @@ uint32_t dsSceneLightSet_findBrightestLights(const dsSceneLight** outBrightestLi
 
 	uint32_t lightCount = 0;
 	float* intensities = DS_ALLOCATE_STACK_OBJECT_ARRAY(float, outLightCount);
+	*outHasMainLight = false;
+	if (lightSet->mainLightID)
+	{
+		dsSceneLight* mainLight = dsSceneLightSet_findLightID(lightSet, lightSet->mainLightID);
+		if (mainLight &&
+			dsSceneLight_getIntensity(mainLight, position) >= lightSet->intensityThreshold)
+		{
+			outBrightestLights[lightCount++] = mainLight;
+			*outHasMainLight = true;
+		}
+	}
 
 	// First check the directional lights.
 	for (uint32_t i = 0; i < lightSet->directionalLightCount; ++i)
@@ -491,7 +535,7 @@ uint32_t dsSceneLightSet_findBrightestLights(const dsSceneLight** outBrightestLi
 		}
 		else
 		{
-			uint32_t dimmest = findDimmestLight(intensities, lightCount);
+			uint32_t dimmest = findDimmestLight(intensities, *outHasMainLight, lightCount);
 			if (intensities[dimmest] < intensity)
 			{
 				intensities[dimmest] = intensity;
@@ -503,7 +547,7 @@ uint32_t dsSceneLightSet_findBrightestLights(const dsSceneLight** outBrightestLi
 	// Then check the spatial lights.
 	dsAlignedBox3f bounds = {*position, *position};
 	FindBrightestData visitData = {outBrightestLights, intensities, &lightCount, position,
-		outLightCount, lightSet->intensityThreshold};
+		*outHasMainLight, outLightCount, lightSet->intensityThreshold};
 	dsBVH_intersectBounds(lightSet->spatialLights, &bounds, &visitBrightestLights, &visitData);
 
 	// Set up the final count, nulling out any unset lights.

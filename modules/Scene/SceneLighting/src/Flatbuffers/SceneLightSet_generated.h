@@ -446,7 +446,8 @@ struct SceneLightSet FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_LIGHTS = 4,
     VT_MAXLIGHTS = 6,
     VT_AMBIENTCOLOR = 8,
-    VT_AMBIENTINTENSITY = 10
+    VT_AMBIENTINTENSITY = 10,
+    VT_MAINLIGHT = 12
   };
   const flatbuffers::Vector<flatbuffers::Offset<DeepSeaSceneLighting::Light>> *lights() const {
     return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<DeepSeaSceneLighting::Light>> *>(VT_LIGHTS);
@@ -460,6 +461,9 @@ struct SceneLightSet FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   float ambientIntensity() const {
     return GetField<float>(VT_AMBIENTINTENSITY, 0.0f);
   }
+  const flatbuffers::String *mainLight() const {
+    return GetPointer<const flatbuffers::String *>(VT_MAINLIGHT);
+  }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_LIGHTS) &&
@@ -468,6 +472,8 @@ struct SceneLightSet FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            VerifyField<uint32_t>(verifier, VT_MAXLIGHTS) &&
            VerifyField<DeepSeaScene::Color3f>(verifier, VT_AMBIENTCOLOR) &&
            VerifyField<float>(verifier, VT_AMBIENTINTENSITY) &&
+           VerifyOffset(verifier, VT_MAINLIGHT) &&
+           verifier.VerifyString(mainLight()) &&
            verifier.EndTable();
   }
 };
@@ -488,6 +494,9 @@ struct SceneLightSetBuilder {
   void add_ambientIntensity(float ambientIntensity) {
     fbb_.AddElement<float>(SceneLightSet::VT_AMBIENTINTENSITY, ambientIntensity, 0.0f);
   }
+  void add_mainLight(flatbuffers::Offset<flatbuffers::String> mainLight) {
+    fbb_.AddOffset(SceneLightSet::VT_MAINLIGHT, mainLight);
+  }
   explicit SceneLightSetBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
@@ -504,8 +513,10 @@ inline flatbuffers::Offset<SceneLightSet> CreateSceneLightSet(
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaSceneLighting::Light>>> lights = 0,
     uint32_t maxLights = 0,
     const DeepSeaScene::Color3f *ambientColor = 0,
-    float ambientIntensity = 0.0f) {
+    float ambientIntensity = 0.0f,
+    flatbuffers::Offset<flatbuffers::String> mainLight = 0) {
   SceneLightSetBuilder builder_(_fbb);
+  builder_.add_mainLight(mainLight);
   builder_.add_ambientIntensity(ambientIntensity);
   builder_.add_ambientColor(ambientColor);
   builder_.add_maxLights(maxLights);
@@ -518,14 +529,17 @@ inline flatbuffers::Offset<SceneLightSet> CreateSceneLightSetDirect(
     const std::vector<flatbuffers::Offset<DeepSeaSceneLighting::Light>> *lights = nullptr,
     uint32_t maxLights = 0,
     const DeepSeaScene::Color3f *ambientColor = 0,
-    float ambientIntensity = 0.0f) {
+    float ambientIntensity = 0.0f,
+    const char *mainLight = nullptr) {
   auto lights__ = lights ? _fbb.CreateVector<flatbuffers::Offset<DeepSeaSceneLighting::Light>>(*lights) : 0;
+  auto mainLight__ = mainLight ? _fbb.CreateString(mainLight) : 0;
   return DeepSeaSceneLighting::CreateSceneLightSet(
       _fbb,
       lights__,
       maxLights,
       ambientColor,
-      ambientIntensity);
+      ambientIntensity,
+      mainLight__);
 }
 
 inline bool VerifyLightUnion(flatbuffers::Verifier &verifier, const void *obj, LightUnion type) {

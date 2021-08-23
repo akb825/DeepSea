@@ -145,5 +145,9 @@ void* dsSceneLightSet_load(const dsSceneLoadContext*, dsSceneLoadScratchData*,
 		}
 	}
 
+	auto fbMainLight = fbLightSet->mainLight();
+	if (fbMainLight)
+		DS_VERIFY(dsSceneLightSet_setMainLightName(lightSet, fbMainLight->c_str()));
+
 	return lightSet;
 }

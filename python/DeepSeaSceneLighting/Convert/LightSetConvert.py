@@ -57,6 +57,7 @@ def convertLightSet(convertContext, data):
 	  range [0,1]. Defaults to all 0.
 	- ambientIntensity: the intensity of the ambient light, which multiplies the color. Defaults
 	  to 0.
+	- mainLight: the name of the main light. If omitted no light will be considered the main light.
 	- srgb: true to treat all color values as sRGB values to be converted to linear space. Defaults
 	  to false.
 	"""
@@ -157,6 +158,7 @@ def convertLightSet(convertContext, data):
 			ambientColor = None
 
 		ambientIntensity = readFloat(data.get('ambientIntensity', 0.0), 'ambient intensity', 0.0)
+		mainLight = str(data.get('mainLight', ''))
 	except KeyError as e:
 		raise Exception('LightSet doesn\'t contain element ' + str(e) + '.')
 	except (AttributeError, TypeError, ValueError):
@@ -214,6 +216,10 @@ def convertLightSet(convertContext, data):
 	else:
 		lightsOffset
 
+	mainLightOffset = 0
+	if mainLight:
+		mainLightOffset = builder.CreateString(mainLight)
+
 	SceneLightSet.Start(builder)
 	SceneLightSet.AddLights(builder, lightsOffset)
 	SceneLightSet.AddMaxLights(builder, maxLights)
@@ -221,5 +227,6 @@ def convertLightSet(convertContext, data):
 		CreateColor3f(builder, ambientColor[0], ambientColor[1], ambientColor[2]) if ambientColor
 			else 0)
 	SceneLightSet.AddAmbientIntensity(builder, ambientIntensity)
+	SceneLightSet.AddMainLight(builder, mainLightOffset)
 	builder.Finish(SceneLightSet.End(builder))
 	return builder.Output()

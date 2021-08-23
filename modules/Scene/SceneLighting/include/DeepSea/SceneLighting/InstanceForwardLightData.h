@@ -83,4 +83,3 @@ DS_SCENELIGHTING_EXPORT dsSceneInstanceData* dsInstanceForwardLightData_create(
 #ifdef __cplusplus
 }
 #endif
-

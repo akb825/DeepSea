@@ -166,34 +166,52 @@ TEST_F(SceneLightSetTest, FindBrightestLights)
 
 	const dsSceneLight* brightestLights[4];
 
+	bool hasMain = false;
 	position.x = 0.0f;
 	uint32_t lightCount = 4;
-	ASSERT_EQ(3U, dsSceneLightSet_findBrightestLights(brightestLights, lightCount, lightSet,
-		&position));
+	ASSERT_EQ(3U, dsSceneLightSet_findBrightestLights(brightestLights, lightCount, &hasMain,
+		lightSet, &position));
 	EXPECT_TRUE(hasLight(brightestLights, lightCount, light1));
 	EXPECT_TRUE(hasLight(brightestLights, lightCount, light3));
 	EXPECT_TRUE(hasLight(brightestLights, lightCount, light4));
 
 	position.x = -0.5f;
 	lightCount = 2;
-	ASSERT_EQ(2U, dsSceneLightSet_findBrightestLights(brightestLights, lightCount, lightSet,
-		&position));
+	ASSERT_EQ(2U, dsSceneLightSet_findBrightestLights(brightestLights, lightCount, &hasMain,
+		lightSet, &position));
 	EXPECT_TRUE(hasLight(brightestLights, lightCount, light1));
 	EXPECT_TRUE(hasLight(brightestLights, lightCount, light3));
 
 	position.x = 0.5f;
-	ASSERT_EQ(2U, dsSceneLightSet_findBrightestLights(brightestLights, lightCount, lightSet,
-		&position));
+	ASSERT_EQ(2U, dsSceneLightSet_findBrightestLights(brightestLights, lightCount, &hasMain,
+		lightSet, &position));
 	EXPECT_TRUE(hasLight(brightestLights, lightCount, light1));
 	EXPECT_TRUE(hasLight(brightestLights, lightCount, light4));
 
 	position.x = -1.0f;
 	position.z = 2.0f;
 	lightCount = 4;
-	ASSERT_EQ(2U, dsSceneLightSet_findBrightestLights(brightestLights, lightCount, lightSet,
-		&position));
+	ASSERT_EQ(2U, dsSceneLightSet_findBrightestLights(brightestLights, lightCount, &hasMain,
+		lightSet, &position));
 	EXPECT_TRUE(hasLight(brightestLights, lightCount, light1));
 	EXPECT_TRUE(hasLight(brightestLights, lightCount, light3));
+
+	position.x = 0.0f;
+	position.z = 0.0f;
+	lightCount = 2;
+	ASSERT_TRUE(dsSceneLightSet_setMainLightName(lightSet, "second"));
+	ASSERT_EQ(2U, dsSceneLightSet_findBrightestLights(brightestLights, lightCount, &hasMain,
+		lightSet, &position));
+	EXPECT_TRUE(hasLight(brightestLights, lightCount, light1));
+	EXPECT_TRUE(hasLight(brightestLights, lightCount, light4));
+	EXPECT_FALSE(hasMain);
+
+	light2->intensity = 0.2f;
+	ASSERT_EQ(2U, dsSceneLightSet_findBrightestLights(brightestLights, lightCount, &hasMain,
+		lightSet, &position));
+	EXPECT_EQ(light2, brightestLights[0]);
+	EXPECT_TRUE(hasLight(brightestLights, lightCount, light1));
+	EXPECT_TRUE(hasLight(brightestLights, lightCount, light2));
 
 	dsSceneLightSet_destroy(lightSet);
 }

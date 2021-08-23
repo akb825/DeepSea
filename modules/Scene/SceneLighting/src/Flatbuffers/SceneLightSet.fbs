@@ -110,6 +110,9 @@ table SceneLightSet
 
 	// The intensity of the ambient light.
 	ambientIntensity : float;
+
+	// The main light for the light set.
+	mainLight : string;
 }
 
 root_type SceneLightSet;
