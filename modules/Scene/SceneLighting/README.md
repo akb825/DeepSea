@@ -53,7 +53,7 @@ The following global data types are provided with the members that are expected:
 	* `intensityThreshold`: the threshold below which the light is considered out of view. If unset this will use the default.
 * `"LightShadowsPrepare"`:
 	* `lightShadows`: name of the light shadows instance to prepare.
-	* `transformGroup`: namem of the transform group.
+	* `transformGroup`: name of the transform group. This may be omitted if only used for instance variables. (e.g. deferred lighting)
 
 ## Item Lists
 

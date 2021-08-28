@@ -211,11 +211,21 @@ DS_SCENELIGHTING_EXPORT bool dsSceneLightShadows_setMaxDistance(
  * @remark errno will be set on failure.
  * @param shadows The scene light shadows to prepare.
  * @param view The view to prepare for.
- * @param transformGroupID The ID of the matrix group name to set on the view's global values.
  * @return False if an error occurred.
  */
 DS_SCENELIGHTING_EXPORT bool dsSceneLightShadows_prepare(dsSceneLightShadows* shadows,
-	const dsView* view, uint32_t transformGroupID);
+	const dsView* view);
+
+/**
+ * @brief Binds the transform shader variable group.
+ * @remark errno will be set on failure.
+ * @param shadows The scenen light shadows.
+ * @param materialValues The material values to bind to.
+ * @param nameID The ID for the name to bind to.
+ * @return False if the values couldn't be bound.
+ */
+DS_SCENELIGHTING_EXPORT bool dsSceneLightShadows_bindTransformGroup(
+	const dsSceneLightShadows* shadows, dsSharedMaterialValues* materialValues, uint32_t nameID);
 
 /**
  * @brief Gets the number of shadow surfaces to draw this frame.

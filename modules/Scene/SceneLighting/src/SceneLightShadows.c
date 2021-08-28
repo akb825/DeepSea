@@ -445,8 +445,7 @@ bool dsSceneLightShadows_setMaxDistance(dsSceneLightShadows* shadows, float dist
 	return true;
 }
 
-bool dsSceneLightShadows_prepare(dsSceneLightShadows* shadows, const dsView* view,
-	uint32_t transformGroupID)
+bool dsSceneLightShadows_prepare(dsSceneLightShadows* shadows, const dsView* view)
 {
 	if (!shadows || !view)
 	{
@@ -457,10 +456,7 @@ bool dsSceneLightShadows_prepare(dsSceneLightShadows* shadows, const dsView* vie
 	shadows->totalMatrices = 0;
 	const dsSceneLight* light = dsSceneLightSet_findLightID(shadows->lightSet, shadows->lightID);
 	if (!light || light->type != shadows->lightType)
-	{
-		dsSharedMaterialValues_removeValueID(view->globalValues, transformGroupID);
 		return true;
-	}
 
 	dsRenderer* renderer = shadows->resourceManager->renderer;
 	dsProjectionParams shadowedProjection = view->projectionParams;
@@ -481,10 +477,7 @@ bool dsSceneLightShadows_prepare(dsSceneLightShadows* shadows, const dsView* vie
 	dsFrustum3f cullFrustum;
 	DS_VERIFY(dsRenderer_frustumFromMatrix(&cullFrustum, renderer, &shadowedCullMtx));
 	if (!dsSceneLight_isInFrustum(light, &cullFrustum, intensityThreshold))
-	{
-		dsSharedMaterialValues_removeValueID(view->globalValues, transformGroupID);
 		return true;
-	}
 
 	// Compute matrices in view space to be consistent with other lighting computations.
 	dsFrustum3f shadowedFrustum;
@@ -493,29 +486,8 @@ bool dsSceneLightShadows_prepare(dsSceneLightShadows* shadows, const dsView* vie
 	dsMatrix44_identity(identity);
 	shadows->view = view;
 
-	if (shadows->fallback)
-	{
-		if (!dsSharedMaterialValues_setVariableGroupID(view->globalValues, transformGroupID,
-				shadows->fallback))
-		{
-			return false;
-		}
-	}
-	else
-	{
-		if (!getBufferData(shadows))
-		{
-			dsSharedMaterialValues_removeValueID(view->globalValues, transformGroupID);
-			return false;
-		}
-
-		dsGfxBuffer* buffer = shadows->buffers[shadows->curBuffer].buffer;
-		if (!dsSharedMaterialValues_setBufferID(view->globalValues, transformGroupID, buffer, 0,
-				buffer->size))
-		{
-			return false;
-		}
-	}
+	if (!shadows->fallback && !getBufferData(shadows))
+		return false;
 
 	shadows->committedMatrices = 0;
 	memset(shadows->projectionSet, 0, sizeof(shadows->projectionSet));
@@ -536,10 +508,7 @@ bool dsSceneLightShadows_prepare(dsSceneLightShadows* shadows, const dsView* vie
 					shadowParams->maxFirstSplitDistance, shadowParams->cascadeExpFactor,
 					shadowParams->maxCascades);
 				if (shadows->totalMatrices == 0)
-				{
-					dsSharedMaterialValues_removeValueID(view->globalValues, transformGroupID);
 					return false;
-				}
 
 				dsVector4f splitDistances = {{farPlane, farPlane, farPlane, farPlane}};
 				for (uint32_t i = 0; i < shadows->totalMatrices; ++i)
@@ -686,6 +655,36 @@ bool dsSceneLightShadows_prepare(dsSceneLightShadows* shadows, const dsView* vie
 
 	DS_ASSERT(false);
 	return false;
+}
+
+bool dsSceneLightShadows_bindTransformGroup(
+	const dsSceneLightShadows* shadows, dsSharedMaterialValues* materialValues, uint32_t nameID)
+{
+	if (!shadows || !materialValues)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	if (shadows->totalMatrices == 0)
+	{
+		errno = EPERM;
+		return false;
+	}
+
+	if (shadows->fallback)
+	{
+		if (!dsSharedMaterialValues_setVariableGroupID(materialValues, nameID, shadows->fallback))
+			return false;
+	}
+	else
+	{
+		dsGfxBuffer* buffer = shadows->buffers[shadows->curBuffer].buffer;
+		if (!dsSharedMaterialValues_setBufferID(materialValues, nameID, buffer, 0, buffer->size))
+			return false;
+	}
+
+	return true;
 }
 
 uint32_t dsSceneLightShadows_getSurfaceCount(const dsSceneLightShadows* shadows)

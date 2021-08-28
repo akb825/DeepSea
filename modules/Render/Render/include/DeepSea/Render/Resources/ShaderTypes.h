@@ -441,7 +441,7 @@ struct dsShaderVariableGroupDesc
 typedef struct dsShaderVariableGroup dsShaderVariableGroup;
 
 /**
- * @brief Struct holding the material values that are marked as shared.
+ * @brief Struct holding the material values that are marked as global or instance.
  *
  * This type is opaque and implemented by the core Render library.
  *

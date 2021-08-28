@@ -20,6 +20,7 @@
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
+#include <DeepSea/Render/Resources/SharedMaterialValues.h>
 #include <DeepSea/SceneLighting/SceneLightShadows.h>
 
 #include <string.h>
@@ -38,7 +39,18 @@ bool dsSceneLightShadowsPrepare_populateData(dsSceneGlobalData* globalData,
 {
 	DS_UNUSED(commandBuffer);
 	dsSceneLightShadowsPrepare* prepare = (dsSceneLightShadowsPrepare*)globalData;
-	return dsSceneLightShadows_prepare(prepare->shadows, view, prepare->transformGroupID);
+	if (!dsSceneLightShadows_prepare(prepare->shadows, view))
+	{
+		if (prepare->transformGroupID)
+			dsSharedMaterialValues_removeValueID(view->globalValues, prepare->transformGroupID);
+	}
+
+	if (prepare->transformGroupID)
+	{
+		return dsSceneLightShadows_bindTransformGroup(prepare->shadows, view->globalValues,
+			prepare->transformGroupID);
+	}
+	return true;
 }
 
 bool dsSceneLightShadowsPrepare_destroyGlobalData(dsSceneGlobalData* globalData)
@@ -53,7 +65,7 @@ bool dsSceneLightShadowsPrepare_destroyGlobalData(dsSceneGlobalData* globalData)
 dsSceneGlobalData* dsSceneLightShadowsPrepare_create(dsAllocator* allocator,
 	dsSceneLightShadows* shadows, const char* transformGroupName)
 {
-	if (!allocator || !shadows || !transformGroupName)
+	if (!allocator || !shadows)
 	{
 		errno = EINVAL;
 		return NULL;
@@ -65,13 +77,13 @@ dsSceneGlobalData* dsSceneLightShadowsPrepare_create(dsAllocator* allocator,
 
 	dsSceneGlobalData* globalData = (dsSceneGlobalData*)prepare;
 	globalData->allocator = dsAllocator_keepPointer(allocator);
-	globalData->valueCount = 1;
+	globalData->valueCount = transformGroupName ? 1 : 0;
 	globalData->populateDataFunc = &dsSceneLightShadowsPrepare_populateData;
 	globalData->finishFunc = NULL;
 	globalData->destroyFunc = dsSceneLightShadowsPrepare_destroyGlobalData;
 
 	prepare->shadows = shadows;
-	prepare->transformGroupID = dsHashString(transformGroupName);
+	prepare->transformGroupID = transformGroupName ? dsHashString(transformGroupName) : 0;
 
 	return globalData;
 }

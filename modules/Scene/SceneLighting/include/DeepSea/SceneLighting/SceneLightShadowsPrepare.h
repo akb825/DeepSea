@@ -45,7 +45,8 @@ DS_SCENELIGHTING_EXPORT extern const char* const dsSceneLightShadowsPrepare_type
  * @param allocator The allocator to create the light shadows prepare with.
  * @param shadows The scene light shadows to prepare.
  * @param transformGroupName The name of the shader variable group containing the transform
- *     parameters for shadows.
+ *     parameters for shadows. If NULL, this won't set a global shader variable group. For example,
+ *     when using deferred lighting only with instance binding.
  * @return The scene light shadows prepare or NULL if the parameters are invalid.
  */
 DS_SCENELIGHTING_EXPORT dsSceneGlobalData* dsSceneLightShadowsPrepare_create(dsAllocator* allocator,

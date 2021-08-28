@@ -22,8 +22,9 @@ table LightShadowsPrepare
 	// The name of the light shadows to prepare.
 	lightShadows : string (required);
 
-	// The name of the transform shader variable group to set.
-	transformGroup : string (required);
+	// The name of the transform shader variable group to set. May be unset if only used as instance
+	// variables. (e.g. with deferred lighting)
+	transformGroup : string;
 }
 
 root_type LightShadowsPrepare;

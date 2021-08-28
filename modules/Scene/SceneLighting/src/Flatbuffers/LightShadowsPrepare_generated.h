@@ -27,7 +27,7 @@ struct LightShadowsPrepare FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table 
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_LIGHTSHADOWS) &&
            verifier.VerifyString(lightShadows()) &&
-           VerifyOffsetRequired(verifier, VT_TRANSFORMGROUP) &&
+           VerifyOffset(verifier, VT_TRANSFORMGROUP) &&
            verifier.VerifyString(transformGroup()) &&
            verifier.EndTable();
   }
@@ -51,7 +51,6 @@ struct LightShadowsPrepareBuilder {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<LightShadowsPrepare>(end);
     fbb_.Required(o, LightShadowsPrepare::VT_LIGHTSHADOWS);
-    fbb_.Required(o, LightShadowsPrepare::VT_TRANSFORMGROUP);
     return o;
   }
 };

@@ -19,11 +19,12 @@ def convertLightShadowsPrepare(convertContext, data):
 	"""
 	Converts a LightShadowsPrepare. The data map is expected to contain the following elements:
 	- lightShadows: name of the light shadows instance to prepare.
-	- transformGroup: namem of the transform group.
+	- transformGroup: name of the transform group. This may be omitted if only used for instance
+	  variables. (e.g. deferred lighting)
 	"""
 	try:
 		lightShadows = str(data['lightShadows'])
-		transformGroup = str(data['transformGroup'])
+		transformGroup = str(data.get('transformGroup', ''))
 	except KeyError as e:
 		raise Exception('LightShadowsPrepare doesn\'t contain element ' + str(e) + '.')
 	except (AttributeError, TypeError, ValueError):
@@ -32,7 +33,10 @@ def convertLightShadowsPrepare(convertContext, data):
 	builder = flatbuffers.Builder(0)
 
 	lightShadowsOffset = builder.CreateString(lightShadows)
-	transformGroupOffset = builder.CreateString(transformGroup)
+	if transformGroup:
+		transformGroupOffset = builder.CreateString(transformGroup)
+	else:
+		transformGroupOffset = 0
 
 	LightShadowsPrepare.Start(builder)
 	LightShadowsPrepare.AddLightShadows(builder, lightShadowsOffset)
