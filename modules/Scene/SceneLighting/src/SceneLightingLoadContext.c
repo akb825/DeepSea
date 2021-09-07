@@ -20,8 +20,8 @@
 #include "InstanceForwardLightDataLoad.h"
 #include "SceneLightSetLoad.h"
 #include "SceneLightSetPrepareLoad.h"
-#include "SceneLightShadowsLoad.h"
-#include "SceneLightShadowsPrepareLoad.h"
+#include "SceneShadowManagerLoad.h"
+#include "SceneShadowManagerPrepareLoad.h"
 #include "ShadowCullListLoad.h"
 
 #include <DeepSea/Core/Memory/Allocator.h>
@@ -31,8 +31,8 @@
 #include <DeepSea/SceneLighting/InstanceForwardLightData.h>
 #include <DeepSea/SceneLighting/SceneLightSet.h>
 #include <DeepSea/SceneLighting/SceneLightSetPrepare.h>
-#include <DeepSea/SceneLighting/SceneLightShadows.h>
-#include <DeepSea/SceneLighting/SceneLightShadowsPrepare.h>
+#include <DeepSea/SceneLighting/SceneShadowManager.h>
+#include <DeepSea/SceneLighting/SceneShadowManagerPrepare.h>
 #include <DeepSea/SceneLighting/ShadowCullList.h>
 
 static bool destroySceneLightSet(void* lightSet)
@@ -56,8 +56,8 @@ bool dsSceneLightingLoadConext_registerTypes(dsSceneLoadContext* loadContext)
 	}
 
 	if (!dsSceneLoadContext_registerCustomSceneResourceType(loadContext,
-			dsSceneLightShadows_typeName, dsSceneLightShadows_type(), &dsSceneLightShadows_load,
-			(dsDestroyCustomSceneResourceFunction)&dsSceneLightShadows_destroy, NULL, NULL, 0))
+			dsSceneShadowManager_typeName, dsSceneShadowManager_type(), &dsSceneShadowManager_load,
+			(dsDestroyCustomSceneResourceFunction)&dsSceneShadowManager_destroy, NULL, NULL, 0))
 	{
 		return false;
 	}
@@ -68,8 +68,8 @@ bool dsSceneLightingLoadConext_registerTypes(dsSceneLoadContext* loadContext)
 		return false;
 	}
 
-	if (!dsSceneLoadContext_registerGlobalDataType(loadContext, dsSceneLightShadowsPrepare_typeName,
-			&dsSceneLightShadowsPrepare_load, NULL, NULL))
+	if (!dsSceneLoadContext_registerGlobalDataType(loadContext,
+			dsSceneShadowManagerPrepare_typeName, &dsSceneShadowManagerPrepare_load, NULL, NULL))
 	{
 		return false;
 	}

@@ -14,21 +14,13 @@
  * limitations under the License.
  */
 
-#pragma once
+namespace DeepSeaSceneLighting;
 
-#include <DeepSea/Core/Config.h>
-#include <DeepSea/Scene/Types.h>
-#include <DeepSea/SceneLighting/Types.h>
-
-#ifdef __cplusplus
-extern "C"
+// Struct describing a scene shadow manager prepare.
+table SceneShadowManagerPrepare
 {
-#endif
-
-dsSceneGlobalData* dsSceneLightShadowsPrepare_load(const dsSceneLoadContext* loadContext,
-	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
-	void* userData, const uint8_t* data, size_t dataSize);
-
-#ifdef __cplusplus
+	// The name of the shadow manager to prepare.
+	shadowManager : string (required);
 }
-#endif
+
+root_type SceneShadowManagerPrepare;

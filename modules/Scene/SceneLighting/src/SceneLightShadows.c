@@ -16,6 +16,8 @@
 
 #include <DeepSea/SceneLighting/SceneLightShadows.h>
 
+#include "SceneLightShadowsInternal.h"
+
 #include <DeepSea/Core/Containers/Hash.h>
 #include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
@@ -52,39 +54,10 @@
 #define FRAME_DELAY 3
 #define INVALID_INDEX (uint32_t)-1
 
-typedef struct BufferInfo
+struct ShadowBufferInfo
 {
 	dsGfxBuffer* buffer;
 	uint64_t lastUsedFrame;
-} BufferInfo;
-
-struct dsSceneLightShadows
-{
-	dsAllocator* allocator;
-	dsResourceManager* resourceManager;
-	const dsSceneLightSet* lightSet;
-	dsSceneLightType lightType;
-	uint32_t lightID;
-	bool cascaded;
-
-	const dsView* view;
-	uint32_t committedMatrices;
-	uint32_t totalMatrices;
-
-	dsSceneShadowParams shadowParams;
-	dsShadowCullVolume cullVolumes[DS_MAX_SCENE_LIGHT_SHADOWS_SURFACES];
-	dsShadowProjection projections[DS_MAX_SCENE_LIGHT_SHADOWS_SURFACES];
-	uint32_t projectionSet[DS_MAX_SCENE_LIGHT_SHADOWS_SURFACES];
-
-	BufferInfo* buffers;
-	uint32_t bufferCount;
-	uint32_t maxBuffers;
-	uint32_t curBuffer;
-	void* curBufferData;
-
-	dsShaderVariableGroup* fallback;
-
-	dsSpinlock lock;
 };
 
 typedef struct DirectionalLightData
@@ -223,7 +196,7 @@ static void* getBufferData(dsSceneLightShadows* shadows)
 		shadows->buffers[shadows->curBuffer].buffer = buffer;
 	}
 
-	BufferInfo* curBuffer = shadows->buffers + shadows->curBuffer;
+	ShadowBufferInfo* curBuffer = shadows->buffers + shadows->curBuffer;
 	curBuffer->lastUsedFrame = frameNumber;
 	shadows->curBufferData = dsGfxBuffer_map(curBuffer->buffer, dsGfxBufferMap_Write, 0,
 		DS_MAP_FULL_BUFFER);
@@ -231,20 +204,13 @@ static void* getBufferData(dsSceneLightShadows* shadows)
 	return shadows->curBufferData;
 }
 
-const char* const dsSceneLightShadows_typeName = "LightShadows";
-
-static dsCustomSceneResourceType resourceType;
-const dsCustomSceneResourceType* dsSceneLightShadows_type(void)
-{
-	return &resourceType;
-}
-
-dsSceneLightShadows* dsSceneLightShadows_create(dsAllocator* allocator,
+dsSceneLightShadows* dsSceneLightShadows_create(dsAllocator* allocator, const char* name,
 	dsResourceManager* resourceManager, const dsSceneLightSet* lightSet, dsSceneLightType lightType,
 	const char* lightName, const dsShaderVariableGroupDesc* transformGroupDesc,
-	const dsSceneShadowParams* shadowParams)
+	const char* transformGroupName, const dsSceneShadowParams* shadowParams)
 {
-	if (!allocator || !resourceManager || !lightSet || !transformGroupDesc || !shadowParams)
+	if (!allocator || !name || !resourceManager || !lightSet || !transformGroupDesc ||
+		!shadowParams)
 	{
 		errno = EINVAL;
 		return NULL;
@@ -276,8 +242,9 @@ dsSceneLightShadows* dsSceneLightShadows_create(dsAllocator* allocator,
 		return NULL;
 	}
 
+	size_t nameLen = strlen(name) + 1;
 	bool needsFallback = dsShaderVariableGroup_useGfxBuffer(resourceManager);
-	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsSceneLightShadows));
+	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsSceneLightShadows)) + DS_ALIGNED_SIZE(nameLen);
 	if (needsFallback)
 		fullSize += dsShaderVariableGroup_fullAllocSize(resourceManager, transformGroupDesc);
 
@@ -292,10 +259,16 @@ dsSceneLightShadows* dsSceneLightShadows_create(dsAllocator* allocator,
 	DS_ASSERT(shadows);
 
 	shadows->allocator = dsAllocator_keepPointer(allocator);
+
+	char* nameCopy = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, nameLen);
+	memcpy(nameCopy, name, nameLen);
+	shadows->name = nameCopy;
+
 	shadows->resourceManager = resourceManager;
 	shadows->lightSet = lightSet;
 	shadows->lightType = lightType;
-	shadows->lightID = dsHashString(lightName);
+	shadows->lightID = lightName ? dsHashString(lightName) : 0;
+	shadows->transformGroupID = transformGroupName ? dsHashString(transformGroupName) : 0;
 	shadows->cascaded = cascaded;
 
 	shadows->view = NULL;
@@ -323,6 +296,17 @@ dsSceneLightShadows* dsSceneLightShadows_create(dsAllocator* allocator,
 	return shadows;
 }
 
+const char* dsSceneLightShadows_getName(const dsSceneLightShadows* shadows)
+{
+	if (!shadows)
+	{
+		errno = EINVAL;
+		return NULL;
+	}
+
+	return shadows->name;
+}
+
 dsSceneLightType dsSceneLightShadows_getLightType(const dsSceneLightShadows* shadows)
 {
 	return shadows ? shadows->lightType : dsSceneLightType_Directional;
@@ -331,30 +315,6 @@ dsSceneLightType dsSceneLightShadows_getLightType(const dsSceneLightShadows* sha
 uint32_t dsSceneLightShadows_getLightID(const dsSceneLightShadows* shadows)
 {
 	return shadows ? shadows->lightID : 0;
-}
-
-bool dsSceneLightShadows_setLightID(dsSceneLightShadows* shadows, uint32_t lightID)
-{
-	if (!shadows)
-	{
-		errno = EINVAL;
-		return false;
-	}
-
-	shadows->lightID = lightID;
-	return true;
-}
-
-bool dsSceneLightShadows_setLightName(dsSceneLightShadows* shadows, const char* light)
-{
-	if (!shadows)
-	{
-		errno = EINVAL;
-		return false;
-	}
-
-	shadows->lightID = dsHashString(light);
-	return true;
 }
 
 uint32_t dsSceneLightShadows_getMaxCascades(const dsSceneLightShadows* shadows)
@@ -566,7 +526,7 @@ bool dsSceneLightShadows_prepare(dsSceneLightShadows* shadows, const dsView* vie
 				DS_VERIFY(dsShadowProjection_initialize(shadows->projections + i, renderer,
 					&identity, (dsVector3f*)&toLightView, NULL, uniform));
 			}
-			return true;
+			break;
 		}
 		case dsSceneLightType_Point:
 		{
@@ -612,7 +572,7 @@ bool dsSceneLightShadows_prepare(dsSceneLightShadows* shadows, const dsView* vie
 				data->shadowDistance = shadowDistance;
 				data->lightViewPos = *(dsVector3f*)&lightViewPos;
 			}
-			return true;
+			break;
 		}
 		case dsSceneLightType_Spot:
 		{
@@ -649,12 +609,19 @@ bool dsSceneLightShadows_prepare(dsSceneLightShadows* shadows, const dsView* vie
 				SpotLightData* data = (SpotLightData*)shadows->curBufferData;
 				data->shadowDistance = shadowDistance;
 			}
-			return true;
+			break;
 		}
+		default:
+			DS_ASSERT(false);
+			return false;
 	}
 
-	DS_ASSERT(false);
-	return false;
+	if (shadows->transformGroupID)
+	{
+		return dsSceneLightShadows_bindTransformGroup(shadows, view->globalValues,
+			shadows->transformGroupID);
+	}
+	return true;
 }
 
 bool dsSceneLightShadows_bindTransformGroup(

@@ -6,25 +6,25 @@ import flatbuffers
 from flatbuffers.compat import import_numpy
 np = import_numpy()
 
-class LightSetPrepare(object):
+class SceneLightSetPrepare(object):
     __slots__ = ['_tab']
 
     @classmethod
     def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
-        x = LightSetPrepare()
+        x = SceneLightSetPrepare()
         x.Init(buf, n + offset)
         return x
 
     @classmethod
-    def GetRootAsLightSetPrepare(cls, buf, offset=0):
+    def GetRootAsSceneLightSetPrepare(cls, buf, offset=0):
         """This method is deprecated. Please switch to GetRootAs."""
         return cls.GetRootAs(buf, offset)
-    # LightSetPrepare
+    # SceneLightSetPrepare
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
 
-    # LightSetPrepare
+    # SceneLightSetPrepare
     def LightSets(self, j):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         if o != 0:
@@ -32,19 +32,19 @@ class LightSetPrepare(object):
             return self._tab.String(a + flatbuffers.number_types.UOffsetTFlags.py_type(j * 4))
         return ""
 
-    # LightSetPrepare
+    # SceneLightSetPrepare
     def LightSetsLength(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         if o != 0:
             return self._tab.VectorLen(o)
         return 0
 
-    # LightSetPrepare
+    # SceneLightSetPrepare
     def LightSetsIsNone(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         return o == 0
 
-    # LightSetPrepare
+    # SceneLightSetPrepare
     def IntensityThreshold(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         if o != 0:
@@ -52,22 +52,22 @@ class LightSetPrepare(object):
         return 0.0
 
 def Start(builder): builder.StartObject(2)
-def LightSetPrepareStart(builder):
+def SceneLightSetPrepareStart(builder):
     """This method is deprecated. Please switch to Start."""
     return Start(builder)
 def AddLightSets(builder, lightSets): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(lightSets), 0)
-def LightSetPrepareAddLightSets(builder, lightSets):
+def SceneLightSetPrepareAddLightSets(builder, lightSets):
     """This method is deprecated. Please switch to AddLightSets."""
     return AddLightSets(builder, lightSets)
 def StartLightSetsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
-def LightSetPrepareStartLightSetsVector(builder, numElems):
+def SceneLightSetPrepareStartLightSetsVector(builder, numElems):
     """This method is deprecated. Please switch to Start."""
     return StartLightSetsVector(builder, numElems)
 def AddIntensityThreshold(builder, intensityThreshold): builder.PrependFloat32Slot(1, intensityThreshold, 0.0)
-def LightSetPrepareAddIntensityThreshold(builder, intensityThreshold):
+def SceneLightSetPrepareAddIntensityThreshold(builder, intensityThreshold):
     """This method is deprecated. Please switch to AddIntensityThreshold."""
     return AddIntensityThreshold(builder, intensityThreshold)
 def End(builder): return builder.EndObject()
-def LightSetPrepareEnd(builder):
+def SceneLightSetPrepareEnd(builder):
     """This method is deprecated. Please switch to End."""
     return End(builder)

@@ -19,8 +19,11 @@ namespace DeepSeaSceneLighting;
 // Struct describing a shadow cull list.
 table ShadowCullList
 {
-	// The name of the light shadows to prepare.
-	lightShadows : string (required);
+	// The name of the shadow manager to get the shadows from.
+	shadowManager : string (required);
+
+	// The name of the shadows within the shadow manager.
+	shadows : string (required);
 
 	// The index of the surface to prepare.
 	surface : uint8;

@@ -28,29 +28,26 @@ extern "C"
 
 /**
  * @file
- * @brief Functions for creating and manipulating scene light shadow prepares.
+ * @brief Functions for creating and manipulating scene shadow manager prepares.
  *
- * This will prepare provided scene light shadows for use in the scene. This a scene global data
- * object fit into the scene layout.
+ * This will prepare a shadow manager for use in the scene. This a scene global data object fit into
+ * the scene layout.
  */
 
 /**
- * @brief The scene light shadows prepare type name.
+ * @brief The scene shadow manager prepare type name.
  */
-DS_SCENELIGHTING_EXPORT extern const char* const dsSceneLightShadowsPrepare_typeName;
+DS_SCENELIGHTING_EXPORT extern const char* const dsSceneShadowManagerPrepare_typeName;
 
 /**
- * @brief Creates a scene light shadows prepare.
+ * @brief Creates a scene shadow manager prepare.
  * @remark errno will be set on failure.
  * @param allocator The allocator to create the light shadows prepare with.
- * @param shadows The scene light shadows to prepare.
- * @param transformGroupName The name of the shader variable group containing the transform
- *     parameters for shadows. If NULL, this won't set a global shader variable group. For example,
- *     when using deferred lighting only with instance binding.
- * @return The scene light shadows prepare or NULL if the parameters are invalid.
+ * @param shadowManager The scene shadow manager to prepare.
+ * @return The scene shadow manager prepare or NULL if the parameters are invalid.
  */
-DS_SCENELIGHTING_EXPORT dsSceneGlobalData* dsSceneLightShadowsPrepare_create(dsAllocator* allocator,
-	dsSceneLightShadows* shadows, const char* transformGroupName);
+DS_SCENELIGHTING_EXPORT dsSceneGlobalData* dsSceneShadowManagerPrepare_create(
+	dsAllocator* allocator, dsSceneShadowManager* shadowManager);
 
 #ifdef __cplusplus
 }

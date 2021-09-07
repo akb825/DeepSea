@@ -14,19 +14,25 @@ struct ShadowCullListBuilder;
 struct ShadowCullList FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef ShadowCullListBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_LIGHTSHADOWS = 4,
-    VT_SURFACE = 6
+    VT_SHADOWMANAGER = 4,
+    VT_SHADOWS = 6,
+    VT_SURFACE = 8
   };
-  const flatbuffers::String *lightShadows() const {
-    return GetPointer<const flatbuffers::String *>(VT_LIGHTSHADOWS);
+  const flatbuffers::String *shadowManager() const {
+    return GetPointer<const flatbuffers::String *>(VT_SHADOWMANAGER);
+  }
+  const flatbuffers::String *shadows() const {
+    return GetPointer<const flatbuffers::String *>(VT_SHADOWS);
   }
   uint8_t surface() const {
     return GetField<uint8_t>(VT_SURFACE, 0);
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyOffsetRequired(verifier, VT_LIGHTSHADOWS) &&
-           verifier.VerifyString(lightShadows()) &&
+           VerifyOffsetRequired(verifier, VT_SHADOWMANAGER) &&
+           verifier.VerifyString(shadowManager()) &&
+           VerifyOffsetRequired(verifier, VT_SHADOWS) &&
+           verifier.VerifyString(shadows()) &&
            VerifyField<uint8_t>(verifier, VT_SURFACE) &&
            verifier.EndTable();
   }
@@ -36,8 +42,11 @@ struct ShadowCullListBuilder {
   typedef ShadowCullList Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
-  void add_lightShadows(flatbuffers::Offset<flatbuffers::String> lightShadows) {
-    fbb_.AddOffset(ShadowCullList::VT_LIGHTSHADOWS, lightShadows);
+  void add_shadowManager(flatbuffers::Offset<flatbuffers::String> shadowManager) {
+    fbb_.AddOffset(ShadowCullList::VT_SHADOWMANAGER, shadowManager);
+  }
+  void add_shadows(flatbuffers::Offset<flatbuffers::String> shadows) {
+    fbb_.AddOffset(ShadowCullList::VT_SHADOWS, shadows);
   }
   void add_surface(uint8_t surface) {
     fbb_.AddElement<uint8_t>(ShadowCullList::VT_SURFACE, surface, 0);
@@ -49,29 +58,35 @@ struct ShadowCullListBuilder {
   flatbuffers::Offset<ShadowCullList> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<ShadowCullList>(end);
-    fbb_.Required(o, ShadowCullList::VT_LIGHTSHADOWS);
+    fbb_.Required(o, ShadowCullList::VT_SHADOWMANAGER);
+    fbb_.Required(o, ShadowCullList::VT_SHADOWS);
     return o;
   }
 };
 
 inline flatbuffers::Offset<ShadowCullList> CreateShadowCullList(
     flatbuffers::FlatBufferBuilder &_fbb,
-    flatbuffers::Offset<flatbuffers::String> lightShadows = 0,
+    flatbuffers::Offset<flatbuffers::String> shadowManager = 0,
+    flatbuffers::Offset<flatbuffers::String> shadows = 0,
     uint8_t surface = 0) {
   ShadowCullListBuilder builder_(_fbb);
-  builder_.add_lightShadows(lightShadows);
+  builder_.add_shadows(shadows);
+  builder_.add_shadowManager(shadowManager);
   builder_.add_surface(surface);
   return builder_.Finish();
 }
 
 inline flatbuffers::Offset<ShadowCullList> CreateShadowCullListDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
-    const char *lightShadows = nullptr,
+    const char *shadowManager = nullptr,
+    const char *shadows = nullptr,
     uint8_t surface = 0) {
-  auto lightShadows__ = lightShadows ? _fbb.CreateString(lightShadows) : 0;
+  auto shadowManager__ = shadowManager ? _fbb.CreateString(shadowManager) : 0;
+  auto shadows__ = shadows ? _fbb.CreateString(shadows) : 0;
   return DeepSeaSceneLighting::CreateShadowCullList(
       _fbb,
-      lightShadows__,
+      shadowManager__,
+      shadows__,
       surface);
 }
 

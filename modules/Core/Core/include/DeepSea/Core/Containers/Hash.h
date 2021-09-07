@@ -79,6 +79,16 @@ DS_CORE_EXPORT void dsHashCombineBytes128(void* outResult, const void* seed, con
 DS_CORE_EXPORT uint32_t dsHashCombine(uint32_t first, uint32_t second);
 
 /**
+ * @brief Returns the value directly as a uint32_t value.
+ *
+ * This is typically used when the value is pre-hashed for performance reasons.
+ *
+ * @param value A pointer to a uint32_t for the hash value.
+ * @return The hash value.
+ */
+DS_CORE_EXPORT uint32_t dsHashIdentity(const void* value);
+
+/**
  * @brief Hashes a C string.
  * @param string The string to hash.
  */

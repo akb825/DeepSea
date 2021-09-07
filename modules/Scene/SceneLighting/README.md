@@ -34,16 +34,20 @@ The following custom scene resource types are provided with the members that are
 	* `ambientIntensity`: the intensity of the ambient light, which multiplies the color. Defaults to 0.
 	* `mainLight`: the name of the main light. If omitted no light will be considered the main light.
 	* `srgb`: true to treat all color values as sRGB values to be converted to linear space. Defaults to `false`.
-* `"LightShadows"`
-	* `lightSet`: name of the light set to query the light from.
-	* `lightType`: type of the light to shadow. See `dsSceneLightType` enum for values, removing the type prefix.
-	* `light`: name of the light to shadow. May be unset to disable initially until set at runtime.
-	* `transformGroupDesc`: name of the shader variable group description for the transform group.
-	* `maxCascades`: the maximum number of cascades for cascaded directional light shadows. Defaults to 4.
-	* `maxFirstSplitDistance`: maximum distance for the first split for cascaded shadows. Defaults to 100.
-	* `cascadeExpFactor`: exponential factor for cascaded shadows in the range \[0, 1\], where 0 uses linear distances between the splits and 1 is fully exponential. Defaults to 0.5.
-	* `fadeStartDistance`: the distance to start fading out shadows. Defaults to 1000000, which is a large distance less likely to break GPUs that use limited precision floats.
-	* `maxDistance`: the maximum distance to display shadows. Defaults to 1000000, which is a large distance less likely to break GPUs that use limited precision floats.
+* `"ShadowManager"`
+	* `shadows`: array of objects for the shadows the shadow manager will manage. Each element is
+	  expected to have the following members:
+		* `name`: name of the shadows.
+		* `lightSet`: name of the light set to query the light from.
+		* `lightType`: type of the light to shadow. See `dsSceneLightType` enum for values, removing the type prefix.
+		* `light`: name of the light to shadow. May be unset to disable initially until set at runtime.
+		* `transformGroupDesc`: name of the shader variable group description for the transform group.
+		* `transformGroupName`: name of the transform group to set as view global data. This may be omitted if not used as global data on a view.
+		* `maxCascades`: the maximum number of cascades for cascaded directional light shadows. Defaults to 4.
+		* `maxFirstSplitDistance`: maximum distance for the first split for cascaded shadows. Defaults to 100.
+		* `cascadeExpFactor`: exponential factor for cascaded shadows in the range \[0, 1\], where 0 uses linear distances between the splits and 1 is fully exponential. Defaults to 0.5.
+		* `fadeStartDistance`: the distance to start fading out shadows. Defaults to 1000000, which is a large distance less likely to break GPUs that use limited precision floats.
+		* `maxDistance`: the maximum distance to display shadows. Defaults to 1000000, which is a large distance less likely to break GPUs that use limited precision floats.
 
 ## Global Data
 
@@ -51,9 +55,8 @@ The following global data types are provided with the members that are expected:
 * `"LightSetPrepare"`:
 	* `lightSets`: array of light set names to prepare.
 	* `intensityThreshold`: the threshold below which the light is considered out of view. If unset this will use the default.
-* `"LightShadowsPrepare"`:
-	* `lightShadows`: name of the light shadows instance to prepare.
-	* `transformGroup`: name of the transform group. This may be omitted if only used for instance variables. (e.g. deferred lighting)
+* `"ShadowManagerPrepare"`:
+	* `shadowManager`: name of the shadow manager to prepare.
 
 ## Item Lists
 
@@ -70,7 +73,8 @@ The following item list types are provided with the members that are expected:
 	* `spotMaterial`: the name of the material used for spot lights.
 	* `intensityThreshold`: the threshold below which the light is considered out of view. If unset this will use the default.
 * `"ShadowCullList"`
-	* `lightShadows`: name of the light shadows that will be drawn for.
+	* `shadowManager`: name of the shadow manager that contains the shadows being culled for.
+	* `shadows`: name of the shadows within the shadow manager to cull for.
 	* `surface`: index of the surface within the light shadows.
 
 ## Instance Data

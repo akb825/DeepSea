@@ -495,6 +495,11 @@ uint32_t dsHashCombine(uint32_t first, uint32_t second)
 	return first ^ (second + 0x9e3779b9 + (first << 6) + (first >> 2));
 }
 
+uint32_t dsHashIdentity(const void* value)
+{
+	return value ? *(const uint32_t*)value : 0;
+}
+
 uint32_t dsHashString(const void* string)
 {
 	if (!string)

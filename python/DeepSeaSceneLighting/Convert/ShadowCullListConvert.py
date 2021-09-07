@@ -18,11 +18,13 @@ from .. import ShadowCullList
 def convertShadowCullList(convertContext, data):
 	"""
 	Converts a ShadowCullList. The data map is expected to contain the following elements:
-	- lightShadows: name of the light shadows that will be drawn for.
+	- shadowManager: name of the shadow manager that contains the shadows being culled for.
+	- shadows: name of the shadows within the shadow manager to cull for.
 	- surface: index of the surface within the light shadows.
 	"""
 	try:
-		lightShadows = str(data['lightShadows'])
+		shadowManager = str(data['shadowManager'])
+		shadows = str(data['shadows'])
 		surfaceVal = data['surface']
 		try:
 			surface = int(surfaceVal)
@@ -37,10 +39,12 @@ def convertShadowCullList(convertContext, data):
 
 	builder = flatbuffers.Builder(0)
 
-	lightShadowsOffset = builder.CreateString(lightShadows)
+	shadowManagerOffset = builder.CreateString(shadowManager)
+	shadowsOffset = builder.CreateString(shadows)
 
 	ShadowCullList.Start(builder)
-	ShadowCullList.AddLightShadows(builder, lightShadowsOffset)
+	ShadowCullList.AddShadowManager(builder, shadowManagerOffset)
+	ShadowCullList.AddShadows(builder, shadowsOffset)
 	ShadowCullList.AddSurface(builder, surface)
 	builder.Finish(ShadowCullList.End(builder))
 	return builder.Output()

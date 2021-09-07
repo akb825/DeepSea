@@ -25,105 +25,127 @@ class SceneLightShadows(object):
         self._tab = flatbuffers.table.Table(buf, pos)
 
     # SceneLightShadows
-    def LightSet(self):
+    def Name(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         if o != 0:
             return self._tab.String(o + self._tab.Pos)
         return None
 
     # SceneLightShadows
-    def LightType(self):
+    def LightSet(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
+        if o != 0:
+            return self._tab.String(o + self._tab.Pos)
+        return None
+
+    # SceneLightShadows
+    def LightType(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
         if o != 0:
             return self._tab.Get(flatbuffers.number_types.Uint8Flags, o + self._tab.Pos)
         return 0
 
     # SceneLightShadows
     def Light(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
-        if o != 0:
-            return self._tab.String(o + self._tab.Pos)
-        return None
-
-    # SceneLightShadows
-    def TransformGroupDesc(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(10))
         if o != 0:
             return self._tab.String(o + self._tab.Pos)
         return None
 
     # SceneLightShadows
-    def MaxCascades(self):
+    def TransformGroupDesc(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(12))
+        if o != 0:
+            return self._tab.String(o + self._tab.Pos)
+        return None
+
+    # SceneLightShadows
+    def TransformGroupName(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(14))
+        if o != 0:
+            return self._tab.String(o + self._tab.Pos)
+        return None
+
+    # SceneLightShadows
+    def MaxCascades(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(16))
         if o != 0:
             return self._tab.Get(flatbuffers.number_types.Uint32Flags, o + self._tab.Pos)
         return 0
 
     # SceneLightShadows
     def MaxFirstSplitDistance(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(14))
-        if o != 0:
-            return self._tab.Get(flatbuffers.number_types.Float32Flags, o + self._tab.Pos)
-        return 0.0
-
-    # SceneLightShadows
-    def CascadeExpFactor(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(16))
-        if o != 0:
-            return self._tab.Get(flatbuffers.number_types.Float32Flags, o + self._tab.Pos)
-        return 0.0
-
-    # SceneLightShadows
-    def FadeStartDistance(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(18))
         if o != 0:
             return self._tab.Get(flatbuffers.number_types.Float32Flags, o + self._tab.Pos)
         return 0.0
 
     # SceneLightShadows
-    def MaxDistance(self):
+    def CascadeExpFactor(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(20))
         if o != 0:
             return self._tab.Get(flatbuffers.number_types.Float32Flags, o + self._tab.Pos)
         return 0.0
 
-def Start(builder): builder.StartObject(9)
+    # SceneLightShadows
+    def FadeStartDistance(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(22))
+        if o != 0:
+            return self._tab.Get(flatbuffers.number_types.Float32Flags, o + self._tab.Pos)
+        return 0.0
+
+    # SceneLightShadows
+    def MaxDistance(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(24))
+        if o != 0:
+            return self._tab.Get(flatbuffers.number_types.Float32Flags, o + self._tab.Pos)
+        return 0.0
+
+def Start(builder): builder.StartObject(11)
 def SceneLightShadowsStart(builder):
     """This method is deprecated. Please switch to Start."""
     return Start(builder)
-def AddLightSet(builder, lightSet): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(lightSet), 0)
+def AddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+def SceneLightShadowsAddName(builder, name):
+    """This method is deprecated. Please switch to AddName."""
+    return AddName(builder, name)
+def AddLightSet(builder, lightSet): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(lightSet), 0)
 def SceneLightShadowsAddLightSet(builder, lightSet):
     """This method is deprecated. Please switch to AddLightSet."""
     return AddLightSet(builder, lightSet)
-def AddLightType(builder, lightType): builder.PrependUint8Slot(1, lightType, 0)
+def AddLightType(builder, lightType): builder.PrependUint8Slot(2, lightType, 0)
 def SceneLightShadowsAddLightType(builder, lightType):
     """This method is deprecated. Please switch to AddLightType."""
     return AddLightType(builder, lightType)
-def AddLight(builder, light): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(light), 0)
+def AddLight(builder, light): builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(light), 0)
 def SceneLightShadowsAddLight(builder, light):
     """This method is deprecated. Please switch to AddLight."""
     return AddLight(builder, light)
-def AddTransformGroupDesc(builder, transformGroupDesc): builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(transformGroupDesc), 0)
+def AddTransformGroupDesc(builder, transformGroupDesc): builder.PrependUOffsetTRelativeSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(transformGroupDesc), 0)
 def SceneLightShadowsAddTransformGroupDesc(builder, transformGroupDesc):
     """This method is deprecated. Please switch to AddTransformGroupDesc."""
     return AddTransformGroupDesc(builder, transformGroupDesc)
-def AddMaxCascades(builder, maxCascades): builder.PrependUint32Slot(4, maxCascades, 0)
+def AddTransformGroupName(builder, transformGroupName): builder.PrependUOffsetTRelativeSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(transformGroupName), 0)
+def SceneLightShadowsAddTransformGroupName(builder, transformGroupName):
+    """This method is deprecated. Please switch to AddTransformGroupName."""
+    return AddTransformGroupName(builder, transformGroupName)
+def AddMaxCascades(builder, maxCascades): builder.PrependUint32Slot(6, maxCascades, 0)
 def SceneLightShadowsAddMaxCascades(builder, maxCascades):
     """This method is deprecated. Please switch to AddMaxCascades."""
     return AddMaxCascades(builder, maxCascades)
-def AddMaxFirstSplitDistance(builder, maxFirstSplitDistance): builder.PrependFloat32Slot(5, maxFirstSplitDistance, 0.0)
+def AddMaxFirstSplitDistance(builder, maxFirstSplitDistance): builder.PrependFloat32Slot(7, maxFirstSplitDistance, 0.0)
 def SceneLightShadowsAddMaxFirstSplitDistance(builder, maxFirstSplitDistance):
     """This method is deprecated. Please switch to AddMaxFirstSplitDistance."""
     return AddMaxFirstSplitDistance(builder, maxFirstSplitDistance)
-def AddCascadeExpFactor(builder, cascadeExpFactor): builder.PrependFloat32Slot(6, cascadeExpFactor, 0.0)
+def AddCascadeExpFactor(builder, cascadeExpFactor): builder.PrependFloat32Slot(8, cascadeExpFactor, 0.0)
 def SceneLightShadowsAddCascadeExpFactor(builder, cascadeExpFactor):
     """This method is deprecated. Please switch to AddCascadeExpFactor."""
     return AddCascadeExpFactor(builder, cascadeExpFactor)
-def AddFadeStartDistance(builder, fadeStartDistance): builder.PrependFloat32Slot(7, fadeStartDistance, 0.0)
+def AddFadeStartDistance(builder, fadeStartDistance): builder.PrependFloat32Slot(9, fadeStartDistance, 0.0)
 def SceneLightShadowsAddFadeStartDistance(builder, fadeStartDistance):
     """This method is deprecated. Please switch to AddFadeStartDistance."""
     return AddFadeStartDistance(builder, fadeStartDistance)
-def AddMaxDistance(builder, maxDistance): builder.PrependFloat32Slot(8, maxDistance, 0.0)
+def AddMaxDistance(builder, maxDistance): builder.PrependFloat32Slot(10, maxDistance, 0.0)
 def SceneLightShadowsAddMaxDistance(builder, maxDistance):
     """This method is deprecated. Please switch to AddMaxDistance."""
     return AddMaxDistance(builder, maxDistance)

@@ -29,6 +29,9 @@ enum LightType : uint8
 // Struct defining a set of lights for a scene.
 table SceneLightShadows
 {
+	// The name of the light shadows.
+	name : string (required);
+
 	// The light set to retrieve the light from.
 	lightSet : string (required);
 
@@ -40,6 +43,10 @@ table SceneLightShadows
 
 	// The name of the shader variable group for the shadow transform.
 	transformGroupDesc : string (required);
+
+	// The name of the transform group when set on the view's global variables. This may be unset
+	// when when only set as an instance variable
+	transformGroupName : string;
 
 	// The maximum number of cascades. When using a directional light, this must be set to a value
 	// in the range [1, 4].
@@ -59,4 +66,11 @@ table SceneLightShadows
 	maxDistance : float;
 }
 
-root_type SceneLightShadows;
+// Struct defining a shadow manager for a scene.
+table SceneShadowManager
+{
+	// The shadows within the shadow manager.
+	shadows : [SceneLightShadows] (required);
+}
+
+root_type SceneShadowManager;

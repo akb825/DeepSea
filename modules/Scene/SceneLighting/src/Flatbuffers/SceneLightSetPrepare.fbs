@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Aaron Barany
+ * Copyright 2020 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,16 @@
  * limitations under the License.
  */
 
-#pragma once
+namespace DeepSeaSceneLighting;
 
-#include <DeepSea/Core/Config.h>
-#include <DeepSea/Scene/Types.h>
-#include <DeepSea/SceneLighting/Types.h>
-
-#ifdef __cplusplus
-extern "C"
+// Struct describing a light set prepare.
+table SceneLightSetPrepare
 {
-#endif
+	// Light sets to prepare.
+	lightSets : [string] (required);
 
-void* dsSceneLightShadows_load(const dsSceneLoadContext* loadContext,
-	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
-	void* userData, const uint8_t* data, size_t dataSize);
-
-#ifdef __cplusplus
+	// Intensity threshold for lights to take effect. Set to 0 to use the default value.
+	intensityThreshold : float;
 }
-#endif
 
+root_type SceneLightSetPrepare;

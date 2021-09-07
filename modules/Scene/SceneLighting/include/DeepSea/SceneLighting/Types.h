@@ -292,13 +292,22 @@ typedef struct dsSceneLightSetPrepare dsSceneLightSetPrepare;
 typedef struct dsDeferredLightResolve dsDeferredLightResolve;
 
 /**
+ * @brief Struct that manages shadows within a scene.
+ *
+ * This contains multiple dsSceneLightShadows instances, managed with their own shadow name as well
+ * as light they are currently assigned to. This provides a central location to query and manage
+ * shadow instances.
+ */
+typedef struct dsSceneShadowManager dsSceneShadowManager;
+
+/**
  * @brief Struct that manages shadows for a single light in the scene.
  *
  * The shadow manager keeps track of the light that casts shadows and parameters for getting the
  * cull volumes and projection matrices. This will be referenced by the cull item lists and set the
  * variables for the projection matrices consumed by the shaders.
  *
- * This is generally stored with the SceneResources as a custom resource type.
+ * This is generally stored with a dsSceneShadowManager instance.
  *
  * @see SceneShadowManager.h
  */

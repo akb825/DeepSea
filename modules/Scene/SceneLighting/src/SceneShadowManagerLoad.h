@@ -14,17 +14,22 @@
  * limitations under the License.
  */
 
-namespace DeepSeaSceneLighting;
+#pragma once
 
-// Struct describing a light shadows prepare.
-table LightShadowsPrepare
+#include <DeepSea/Core/Config.h>
+#include <DeepSea/Scene/Types.h>
+#include <DeepSea/SceneLighting/Types.h>
+
+#ifdef __cplusplus
+extern "C"
 {
-	// The name of the light shadows to prepare.
-	lightShadows : string (required);
+#endif
 
-	// The name of the transform shader variable group to set. May be unset if only used as instance
-	// variables. (e.g. with deferred lighting)
-	transformGroup : string;
+void* dsSceneShadowManager_load(const dsSceneLoadContext* loadContext,
+	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
+	void* userData, const uint8_t* data, size_t dataSize);
+
+#ifdef __cplusplus
 }
+#endif
 
-root_type LightShadowsPrepare;

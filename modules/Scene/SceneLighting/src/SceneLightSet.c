@@ -72,11 +72,6 @@ typedef struct VisitLightData
 	uint32_t count;
 } VisitLightData;
 
-static uint32_t identityHash(const void* key)
-{
-	return *(const uint32_t*)key;
-}
-
 static bool destroyResource(void* resource)
 {
 	dsSceneLightSet_destroy((dsSceneLightSet*)resource);
@@ -204,7 +199,7 @@ dsSceneLightSet* dsSceneLightSet_create(dsAllocator* allocator, uint32_t maxLigh
 	lightSet->lightTable = (dsHashTable*)dsAllocator_alloc((dsAllocator*)&bufferAlloc,
 		lightTableBufferSize);
 	DS_ASSERT(lightSet->lightTable);
-	DS_VERIFY(dsHashTable_initialize(lightSet->lightTable, lightTableSize, &identityHash,
+	DS_VERIFY(dsHashTable_initialize(lightSet->lightTable, lightTableSize, &dsHashIdentity,
 		&dsHash32Equal));
 
 	lightSet->directionalLights = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsSceneLight*, maxLights);

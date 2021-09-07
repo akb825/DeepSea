@@ -25,28 +25,39 @@ class ShadowCullList(object):
         self._tab = flatbuffers.table.Table(buf, pos)
 
     # ShadowCullList
-    def LightShadows(self):
+    def ShadowManager(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         if o != 0:
             return self._tab.String(o + self._tab.Pos)
         return None
 
     # ShadowCullList
-    def Surface(self):
+    def Shadows(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
+        if o != 0:
+            return self._tab.String(o + self._tab.Pos)
+        return None
+
+    # ShadowCullList
+    def Surface(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
         if o != 0:
             return self._tab.Get(flatbuffers.number_types.Uint8Flags, o + self._tab.Pos)
         return 0
 
-def Start(builder): builder.StartObject(2)
+def Start(builder): builder.StartObject(3)
 def ShadowCullListStart(builder):
     """This method is deprecated. Please switch to Start."""
     return Start(builder)
-def AddLightShadows(builder, lightShadows): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(lightShadows), 0)
-def ShadowCullListAddLightShadows(builder, lightShadows):
-    """This method is deprecated. Please switch to AddLightShadows."""
-    return AddLightShadows(builder, lightShadows)
-def AddSurface(builder, surface): builder.PrependUint8Slot(1, surface, 0)
+def AddShadowManager(builder, shadowManager): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(shadowManager), 0)
+def ShadowCullListAddShadowManager(builder, shadowManager):
+    """This method is deprecated. Please switch to AddShadowManager."""
+    return AddShadowManager(builder, shadowManager)
+def AddShadows(builder, shadows): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(shadows), 0)
+def ShadowCullListAddShadows(builder, shadows):
+    """This method is deprecated. Please switch to AddShadows."""
+    return AddShadows(builder, shadows)
+def AddSurface(builder, surface): builder.PrependUint8Slot(2, surface, 0)
 def ShadowCullListAddSurface(builder, surface):
     """This method is deprecated. Please switch to AddSurface."""
     return AddSurface(builder, surface)

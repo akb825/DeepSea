@@ -40,20 +40,10 @@ extern "C"
 #define DS_MAX_SCENE_LIGHT_SHADOWS_SURFACES 6
 
 /**
- * @brief The type name for scene light shadows.
- */
-DS_SCENELIGHTING_EXPORT extern const char* const dsSceneLightShadows_typeName;
-
-/**
- * @brief Gets the type for the dsSceneLightShadows custom type for storage in dsSceneResources.
- * @return The custom type.
- */
-DS_SCENELIGHTING_EXPORT const dsCustomSceneResourceType* dsSceneLightShadows_type(void);
-
-/**
  * @brief Creates scene light shadows to manage shadows for a single light.
  * @remark errno will be set on failure.
  * @param allocator The allocator to create this with. This must support freeing memory.
+ * @param name The name of the light shadows. This will be copied.
  * @param resourceManager The resource manager to create graphics resources with.
  * @param lightSet The light set to retrieve the light from.
  * @param lightType The type of the light this will cast shadows for.
@@ -72,13 +62,24 @@ DS_SCENELIGHTING_EXPORT const dsCustomSceneResourceType* dsSceneLightShadows_typ
  *     - Spot:
  *         - mat44 for the shadow projection.
  *         - vec2 for the distance to start fading out shadows and maximum shadow distance.
+ * @param transformGroupName The name of the transform group when set on the view's global
+ *     variables. This may be NULL when only set as an instance variable.
  * @param shadowParams Parameters controlling the shadow behavior.
  * @return The light shadows or NULL if an error occurred.
  */
 DS_SCENELIGHTING_EXPORT dsSceneLightShadows* dsSceneLightShadows_create(dsAllocator* allocator,
-	dsResourceManager* resourceManager, const dsSceneLightSet* lightSet, dsSceneLightType lightType,
-	const char* lightName, const dsShaderVariableGroupDesc* transformGroupDesc,
+	const char* name, dsResourceManager* resourceManager, const dsSceneLightSet* lightSet,
+	dsSceneLightType lightType, const char* lightName,
+	const dsShaderVariableGroupDesc* transformGroupDesc, const char* transformGroupName,
 	const dsSceneShadowParams* shadowParams);
+
+/**
+ * @brief Gets the name of the scene light shadows.
+ * @remark errno will be set on failure.
+ * @param shadows The scene light shadows.
+ * @return The name or NULL if shadows is NULL.
+ */
+DS_SCENELIGHTING_EXPORT const char* dsSceneLightShadows_getName(const dsSceneLightShadows* shadows);
 
 /**
  * @brief Gets the light type that will be shadowed.
@@ -94,26 +95,6 @@ DS_SCENELIGHTING_EXPORT dsSceneLightType dsSceneLightShadows_getLightType(
  * @return The light ID.
  */
 DS_SCENELIGHTING_EXPORT uint32_t dsSceneLightShadows_getLightID(const dsSceneLightShadows* shadows);
-
-/**
- * @brief Sets the ID for the light being shadowed.
- * @remark errno will be set on failure.
- * @param shadows The scene light shadows.
- * @param lightID The light ID.
- * @return False if the parameters are invalid.
- */
-DS_SCENELIGHTING_EXPORT bool dsSceneLightShadows_setLightID(dsSceneLightShadows* shadows,
-	uint32_t lightID);
-
-/**
- * @brief Sets the name for the light being shadowed.
- * @remark errno will be set on failure.
- * @param shadows The scene light shadows.
- * @param light The name of the light. This may be NULL to disable the shadows.
- * @return False if the parameters are invalid.
- */
-DS_SCENELIGHTING_EXPORT bool dsSceneLightShadows_setLightName(dsSceneLightShadows* shadows,
-	const char* light);
 
 /**
  * @brief Gets the maximum cascades for shadows.
@@ -324,4 +305,3 @@ DS_SCENELIGHTING_EXPORT bool dsSceneLightShadows_destroy(dsSceneLightShadows* sh
 #ifdef __cplusplus
 }
 #endif
-

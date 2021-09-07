@@ -22,7 +22,7 @@
 #include <DeepSea/Core/Log.h>
 
 #include <DeepSea/Scene/SceneLoadScratchData.h>
-#include <DeepSea/SceneLighting/SceneLightShadows.h>
+#include <DeepSea/SceneLighting/SceneShadowManager.h>
 #include <DeepSea/SceneLighting/ShadowCullList.h>
 
 extern "C"
@@ -39,19 +39,30 @@ dsSceneItemList* dsShadowCullList_load(const dsSceneLoadContext*,
 	}
 
 	auto fbCullList = DeepSeaSceneLighting::GetShadowCullList(data);
-	const char* lightShadowsName = fbCullList->lightShadows()->c_str();
+	const char* shadowManagerName = fbCullList->shadowManager()->c_str();
+	const char* shadowsName = fbCullList->shadows()->c_str();
 	dsSceneResourceType type;
 	dsCustomSceneResource* resource;
 	if (!dsSceneLoadScratchData_findResource(&type, (void**)&resource, scratchData,
-			lightShadowsName) || type != dsSceneResourceType_Custom ||
-		resource->type != dsSceneLightShadows_type())
+			shadowManagerName) || type != dsSceneResourceType_Custom ||
+		resource->type != dsSceneShadowManager_type())
 	{
 		errno = ENOTFOUND;
-		DS_LOG_ERROR_F(DS_SCENE_LIGHTING_LOG_TAG, "Couldn't find light shadows '%s'.",
-			lightShadowsName);
+		DS_LOG_ERROR_F(DS_SCENE_LIGHTING_LOG_TAG, "Couldn't find scene shadow manager '%s'.",
+			shadowManagerName);
 		return nullptr;
 	}
 
-	auto lightShadows = reinterpret_cast<dsSceneLightShadows*>(resource->resource);
+	auto shadowManager = reinterpret_cast<dsSceneShadowManager*>(resource->resource);
+	dsSceneLightShadows* lightShadows = dsSceneShadowManager_findLightShadows(shadowManager,
+		shadowsName);
+	if (!lightShadows)
+	{
+		errno = ENOTFOUND;
+		DS_LOG_ERROR_F(DS_SCENE_LIGHTING_LOG_TAG,
+			"Couldn't find shadows '%s' in scene shadow manager '%s'.", shadowsName,
+			shadowManagerName);
+	}
+
 	return dsShadowCullList_create(allocator, name, lightShadows, fbCullList->surface());
 }

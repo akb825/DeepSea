@@ -56,11 +56,6 @@ struct dsSharedMaterialValues
 	uint32_t offsetVersion;
 };
 
-static uint32_t identityHash(const void* key)
-{
-	return *(const uint32_t*)key;
-}
-
 static void* getValue(dsGfxFormat* outFormat, size_t* outOffset, size_t* outSize,
 	const dsSharedMaterialValues* values, uint32_t nameID, Type type)
 {
@@ -265,7 +260,7 @@ dsSharedMaterialValues* dsSharedMaterialValues_create(dsAllocator* allocator, ui
 	uint32_t tableSize = dsHashTable_getTableSize(maxValues);
 	materialValues->hashTable = (dsHashTable*)dsAllocator_alloc((dsAllocator*)&bufferAllocator,
 		dsHashTable_fullAllocSize(tableSize));
-	DS_VERIFY(dsHashTable_initialize(materialValues->hashTable, tableSize, &identityHash,
+	DS_VERIFY(dsHashTable_initialize(materialValues->hashTable, tableSize, &dsHashIdentity,
 		&dsHash32Equal));
 	materialValues->pointerVersion = 0;
 	materialValues->offsetVersion = 0;

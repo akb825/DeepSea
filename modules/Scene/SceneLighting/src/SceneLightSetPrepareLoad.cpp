@@ -15,7 +15,7 @@
  */
 
 #include "SceneLightSetLoad.h"
-#include "Flatbuffers/LightSetPrepare_generated.h"
+#include "Flatbuffers/SceneLightSetPrepare_generated.h"
 #include <DeepSea/Core/Memory/StackAllocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
@@ -31,14 +31,15 @@ dsSceneGlobalData* dsSceneLightSetPrepare_load(const dsSceneLoadContext*,
 	const uint8_t* data, size_t dataSize)
 {
 	flatbuffers::Verifier verifier(data, dataSize);
-	if (!DeepSeaSceneLighting::VerifyLightSetPrepareBuffer(verifier))
+	if (!DeepSeaSceneLighting::VerifySceneLightSetPrepareBuffer(verifier))
 	{
 		errno = EFORMAT;
-		DS_LOG_ERROR(DS_SCENE_LIGHTING_LOG_TAG, "Invalid light set prepare flatbuffer format.");
+		DS_LOG_ERROR(DS_SCENE_LIGHTING_LOG_TAG,
+			"Invalid scene light set prepare flatbuffer format.");
 		return nullptr;
 	}
 
-	auto fbPrepare = DeepSeaSceneLighting::GetLightSetPrepare(data);
+	auto fbPrepare = DeepSeaSceneLighting::GetSceneLightSetPrepare(data);
 	auto fbLightSets = fbPrepare->lightSets();
 
 	uint32_t lightSetCount = fbLightSets->size();

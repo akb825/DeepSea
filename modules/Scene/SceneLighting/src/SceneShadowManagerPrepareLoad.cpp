@@ -14,44 +14,44 @@
  * limitations under the License.
  */
 
-#include "SceneLightShadowsLoad.h"
-#include "Flatbuffers/LightShadowsPrepare_generated.h"
+#include "SceneShadowManagerPrepareLoad.h"
+#include "Flatbuffers/SceneShadowManagerPrepare_generated.h"
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 
 #include <DeepSea/Scene/SceneLoadScratchData.h>
-#include <DeepSea/SceneLighting/SceneLightShadows.h>
-#include <DeepSea/SceneLighting/SceneLightShadowsPrepare.h>
+#include <DeepSea/SceneLighting/SceneShadowManager.h>
+#include <DeepSea/SceneLighting/SceneShadowManagerPrepare.h>
 
 extern "C"
-dsSceneGlobalData* dsSceneLightShadowsPrepare_load(const dsSceneLoadContext*,
+dsSceneGlobalData* dsSceneShadowManagerPrepare_load(const dsSceneLoadContext*,
 	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator*, void*,
 	const uint8_t* data, size_t dataSize)
 {
 	flatbuffers::Verifier verifier(data, dataSize);
-	if (!DeepSeaSceneLighting::VerifyLightShadowsPrepareBuffer(verifier))
+	if (!DeepSeaSceneLighting::VerifySceneShadowManagerPrepareBuffer(verifier))
 	{
 		errno = EFORMAT;
-		DS_LOG_ERROR(DS_SCENE_LIGHTING_LOG_TAG, "Invalid light shadows prepare flatbuffer format.");
+		DS_LOG_ERROR(DS_SCENE_LIGHTING_LOG_TAG,
+			"Invalid scene shadow manager prepare flatbuffer format.");
 		return nullptr;
 	}
 
-	auto fbPrepare = DeepSeaSceneLighting::GetLightShadowsPrepare(data);
-	const char* lightShadowsName = fbPrepare->lightShadows()->c_str();
+	auto fbPrepare = DeepSeaSceneLighting::GetSceneShadowManagerPrepare(data);
+	const char* shadowManagerName = fbPrepare->shadowManager()->c_str();
 	dsSceneResourceType type;
 	dsCustomSceneResource* resource;
 	if (!dsSceneLoadScratchData_findResource(&type, (void**)&resource, scratchData,
-			lightShadowsName) || type != dsSceneResourceType_Custom ||
-		resource->type != dsSceneLightShadows_type())
+			shadowManagerName) || type != dsSceneResourceType_Custom ||
+		resource->type != dsSceneShadowManager_type())
 	{
 		errno = ENOTFOUND;
-		DS_LOG_ERROR_F(DS_SCENE_LIGHTING_LOG_TAG, "Couldn't find light shadows '%s'.",
-			lightShadowsName);
+		DS_LOG_ERROR_F(DS_SCENE_LIGHTING_LOG_TAG, "Couldn't find scene shadow manager '%s'.",
+			shadowManagerName);
 		return nullptr;
 	}
 
-	auto lightShadows = reinterpret_cast<dsSceneLightShadows*>(resource->resource);
-	return dsSceneLightShadowsPrepare_create(allocator, lightShadows,
-		fbPrepare->transformGroup()->c_str());
+	auto shadowManager = reinterpret_cast<dsSceneShadowManager*>(resource->resource);
+	return dsSceneShadowManagerPrepare_create(allocator, shadowManager);
 }

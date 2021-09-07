@@ -23,7 +23,7 @@ from DeepSeaScene.Convert.ConvertContext import ConvertContext
 from DeepSeaScene.Convert.SceneResourcesConvert import convertSceneResources
 
 from DeepSeaSceneLighting.Convert.LightSetConvert import convertLightSet
-from DeepSeaSceneLighting.Convert.LightShadowsConvert import convertLightShadows
+from DeepSeaSceneLighting.Convert.ShadowManagerConvert import convertShadowManager
 
 from DeepSeaVectorDrawScene.Convert.TextConvert import convertText
 from DeepSeaVectorDrawScene.Convert.TextNodeConvert import convertTextNode
@@ -55,7 +55,7 @@ if __name__ == '__main__':
 
 	# Lighting scene types.
 	convertContext.addCustomResourceType('LightSet', convertLightSet)
-	convertContext.addCustomResourceType('LightShadows', convertLightShadows)
+	convertContext.addCustomResourceType('ShadowManager', convertShadowManager)
 
 	# Vector draw scene types.
 	convertContext.addNodeType('TextNode', convertTextNode)

@@ -14,46 +14,33 @@
  * limitations under the License.
  */
 
-#include <DeepSea/SceneLighting/SceneLightShadowsPrepare.h>
+#include <DeepSea/SceneLighting/SceneShadowManagerPrepare.h>
 
-#include <DeepSea/Core/Containers/Hash.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
-#include <DeepSea/Render/Resources/SharedMaterialValues.h>
 #include <DeepSea/SceneLighting/SceneLightShadows.h>
+#include <DeepSea/SceneLighting/SceneShadowManager.h>
 
 #include <string.h>
 
-typedef struct dsSceneLightShadowsPrepare
+typedef struct dsSceneShadowManagerPrepare
 {
 	dsSceneGlobalData globalData;
-	dsSceneLightShadows* shadows;
-	uint32_t transformGroupID;
+	dsSceneShadowManager* shadowManager;
 } dsSceneLightShadowsPrepare;
 
-const char* const dsSceneLightShadowsPrepare_typeName = "LightShadowsPrepare";
+const char* const dsSceneShadowManagerPrepare_typeName = "ShadowManagerPrepare";
 
-bool dsSceneLightShadowsPrepare_populateData(dsSceneGlobalData* globalData,
+bool dsSceneShadowManagerPrepare_populateData(dsSceneGlobalData* globalData,
 	const dsView* view, dsCommandBuffer* commandBuffer)
 {
 	DS_UNUSED(commandBuffer);
 	dsSceneLightShadowsPrepare* prepare = (dsSceneLightShadowsPrepare*)globalData;
-	if (!dsSceneLightShadows_prepare(prepare->shadows, view))
-	{
-		if (prepare->transformGroupID)
-			dsSharedMaterialValues_removeValueID(view->globalValues, prepare->transformGroupID);
-	}
-
-	if (prepare->transformGroupID)
-	{
-		return dsSceneLightShadows_bindTransformGroup(prepare->shadows, view->globalValues,
-			prepare->transformGroupID);
-	}
-	return true;
+	return dsSceneShadowManager_prepare(prepare->shadowManager, view);
 }
 
-bool dsSceneLightShadowsPrepare_destroyGlobalData(dsSceneGlobalData* globalData)
+bool dsSceneShadowManagerPrepare_destroyGlobalData(dsSceneGlobalData* globalData)
 {
 	if (!globalData->allocator)
 		return true;
@@ -62,10 +49,10 @@ bool dsSceneLightShadowsPrepare_destroyGlobalData(dsSceneGlobalData* globalData)
 	return true;
 }
 
-dsSceneGlobalData* dsSceneLightShadowsPrepare_create(dsAllocator* allocator,
-	dsSceneLightShadows* shadows, const char* transformGroupName)
+dsSceneGlobalData* dsSceneShadowManagerPrepare_create(dsAllocator* allocator,
+	dsSceneShadowManager* shadowManager)
 {
-	if (!allocator || !shadows)
+	if (!allocator || !shadowManager)
 	{
 		errno = EINVAL;
 		return NULL;
@@ -77,13 +64,12 @@ dsSceneGlobalData* dsSceneLightShadowsPrepare_create(dsAllocator* allocator,
 
 	dsSceneGlobalData* globalData = (dsSceneGlobalData*)prepare;
 	globalData->allocator = dsAllocator_keepPointer(allocator);
-	globalData->valueCount = transformGroupName ? 1 : 0;
-	globalData->populateDataFunc = &dsSceneLightShadowsPrepare_populateData;
+	globalData->valueCount = dsSceneShadowManager_globalTransformGroupCount(shadowManager);
+	globalData->populateDataFunc = &dsSceneShadowManagerPrepare_populateData;
 	globalData->finishFunc = NULL;
-	globalData->destroyFunc = dsSceneLightShadowsPrepare_destroyGlobalData;
+	globalData->destroyFunc = dsSceneShadowManagerPrepare_destroyGlobalData;
 
-	prepare->shadows = shadows;
-	prepare->transformGroupID = transformGroupName ? dsHashString(transformGroupName) : 0;
+	prepare->shadowManager = shadowManager;
 
 	return globalData;
 }
