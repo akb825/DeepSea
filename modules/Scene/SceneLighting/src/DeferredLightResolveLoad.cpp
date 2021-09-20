@@ -24,8 +24,9 @@
 #include <DeepSea/Render/Resources/Shader.h>
 
 #include <DeepSea/Scene/SceneLoadScratchData.h>
-#include <DeepSea/SceneLighting/SceneLightSet.h>
 #include <DeepSea/SceneLighting/DeferredLightResolve.h>
+#include <DeepSea/SceneLighting/SceneLightSet.h>
+#include <DeepSea/SceneLighting/SceneShadowManager.h>
 
 static dsShader* findShader(dsSceneLoadScratchData* scratchData, const char* name)
 {
@@ -88,82 +89,115 @@ dsSceneItemList* dsDeferredLightResolve_load(const dsSceneLoadContext*,
 
 	dsSceneLightSet* lightSet = reinterpret_cast<dsSceneLightSet*>(resource->resource);
 
-	auto fbAmbientShader = fbResolve->ambientShader();
-	dsShader* ambientShader = NULL;
-	dsMaterial* ambientMaterial = NULL;
-	if (fbAmbientShader)
+	auto fbShadowManager = fbResolve->shadowManager();
+	dsSceneShadowManager* shadowManager = NULL;
+	if (fbShadowManager)
 	{
-		ambientShader = findShader(scratchData, fbAmbientShader->c_str());
-		auto fbAmbientMaterial = fbResolve->ambientMaterial();
-		if (fbAmbientMaterial)
-			ambientMaterial = findMaterial(scratchData, fbAmbientMaterial->c_str());
-		else
+		const char* shadowManagerName = fbShadowManager->c_str();
+		if (!dsSceneLoadScratchData_findResource(&type, (void**)&resource, scratchData,
+				shadowManagerName) || type != dsSceneResourceType_Custom ||
+			resource->type != dsSceneShadowManager_type())
 		{
 			errno = ENOTFOUND;
-			DS_LOG_ERROR(DS_SCENE_LIGHTING_LOG_TAG,
-				"No deferred light resolve ambient material set.");
+			DS_LOG_ERROR_F(DS_SCENE_LIGHTING_LOG_TAG, "Couldn't find shadow manager '%s'.",
+				lightSetName);
+			return nullptr;
 		}
 
-		if (!ambientShader || !ambientMaterial)
+		shadowManager = reinterpret_cast<dsSceneShadowManager*>(resource->resource);
+	}
+
+	dsDeferredLightDrawInfo ambientInfo = {NULL, NULL};
+	auto fbAmbient = fbResolve->ambient();
+	if (fbAmbient)
+	{
+		ambientInfo.shader = findShader(scratchData, fbAmbient->shader()->c_str());
+		ambientInfo.material = findMaterial(scratchData, fbAmbient->material()->c_str());
+		if (!ambientInfo.shader || !ambientInfo.material)
 			return nullptr;
 	}
 
-	auto fbDirectionalShader = fbResolve->directionalShader();
-	dsShader* directionalShader = NULL;
-	dsMaterial* directionalMaterial = NULL;
-	if (fbDirectionalShader)
+	dsDeferredLightDrawInfo lightInfos[dsSceneLightType_Count] =
 	{
-		directionalShader = findShader(scratchData, fbDirectionalShader->c_str());
-		auto fbDirectionalMaterial = fbResolve->directionalMaterial();
-		if (fbDirectionalMaterial)
-			directionalMaterial = findMaterial(scratchData, fbDirectionalMaterial->c_str());
-		else
-		{
-			errno = ENOTFOUND;
-			DS_LOG_ERROR(DS_SCENE_LIGHTING_LOG_TAG,
-				"No deferred light resolve directional material set.");
-		}
+		{NULL, NULL}, {NULL, NULL}, {NULL, NULL}
+	};
 
-		if (!directionalShader || !directionalMaterial)
+	dsDeferredShadowLightDrawInfo shadowLightInfos[dsSceneLightType_Count] =
+	{
+		{NULL, NULL, NULL}, {NULL, NULL, NULL}, {NULL, NULL, NULL}
+	};
+
+	dsSceneLightType lightType = dsSceneLightType_Directional;
+	auto fbDirectional = fbResolve->directional();
+	if (fbDirectional)
+	{
+		lightInfos[lightType].shader = findShader(scratchData, fbDirectional->shader()->c_str());
+		lightInfos[lightType].material =
+			findMaterial(scratchData, fbDirectional->material()->c_str());
+
+		if (!lightInfos[lightType].shader || !lightInfos[lightType].material)
 			return nullptr;
 	}
 
-	auto fbPointShader = fbResolve->pointShader();
-	dsShader* pointShader = NULL;
-	dsMaterial* pointMaterial = NULL;
-	if (fbPointShader)
+	auto fbShadowDirectional = fbResolve->shadowDirectional();
+	if (fbShadowDirectional)
 	{
-		pointShader = findShader(scratchData, fbPointShader->c_str());
-		auto fbPointMaterial = fbResolve->pointMaterial();
-		if (fbPointMaterial)
-			pointMaterial = findMaterial(scratchData, fbPointMaterial->c_str());
-		else
-		{
-			errno = ENOTFOUND;
-			DS_LOG_ERROR(DS_SCENE_LIGHTING_LOG_TAG,
-				"No deferred light resolve point material set.");
-		}
+		shadowLightInfos[lightType].shader = findShader(scratchData,
+			fbShadowDirectional->shader()->c_str());
+		shadowLightInfos[lightType].material =
+			findMaterial(scratchData, fbShadowDirectional->material()->c_str());
+		shadowLightInfos[lightType].transformGroupName =
+			fbShadowDirectional->transformGroup()->c_str();
 
-		if (!pointShader || !pointMaterial)
+		if (!shadowLightInfos[lightType].shader || !shadowLightInfos[lightType].material)
 			return nullptr;
 	}
 
-	auto fbSpotShader = fbResolve->spotShader();
-	dsShader* spotShader = NULL;
-	dsMaterial* spotMaterial = NULL;
-	if (fbSpotShader)
+	lightType = dsSceneLightType_Point;
+	auto fbPoint = fbResolve->point();
+	if (fbPoint)
 	{
-		spotShader = findShader(scratchData, fbSpotShader->c_str());
-		auto fbSpotMaterial = fbResolve->spotMaterial();
-		if (fbSpotMaterial)
-			spotMaterial = findMaterial(scratchData, fbSpotMaterial->c_str());
-		else
-		{
-			errno = ENOTFOUND;
-			DS_LOG_ERROR(DS_SCENE_LIGHTING_LOG_TAG, "No deferred light resolve spot material.");
-		}
+		lightInfos[lightType].shader = findShader(scratchData, fbPoint->shader()->c_str());
+		lightInfos[lightType].material = findMaterial(scratchData, fbPoint->material()->c_str());
 
-		if (!spotShader || !spotMaterial)
+		if (!lightInfos[lightType].shader || !lightInfos[lightType].material)
+			return nullptr;
+	}
+
+	auto fbShadowPoint = fbResolve->shadowPoint();
+	if (fbShadowPoint)
+	{
+		shadowLightInfos[lightType].shader = findShader(scratchData,
+			fbShadowPoint->shader()->c_str());
+		shadowLightInfos[lightType].material =
+			findMaterial(scratchData, fbShadowPoint->material()->c_str());
+		shadowLightInfos[lightType].transformGroupName = fbShadowPoint->transformGroup()->c_str();
+
+		if (!shadowLightInfos[lightType].shader || !shadowLightInfos[lightType].material)
+			return nullptr;
+	}
+
+	lightType = dsSceneLightType_Spot;
+	auto fbSpot = fbResolve->spot();
+	if (fbSpot)
+	{
+		lightInfos[lightType].shader = findShader(scratchData, fbSpot->shader()->c_str());
+		lightInfos[lightType].material = findMaterial(scratchData, fbSpot->material()->c_str());
+
+		if (!lightInfos[lightType].shader || !lightInfos[lightType].material)
+			return nullptr;
+	}
+
+	auto fbShadowSpot = fbResolve->shadowSpot();
+	if (fbShadowSpot)
+	{
+		shadowLightInfos[lightType].shader = findShader(scratchData,
+			fbShadowSpot->shader()->c_str());
+		shadowLightInfos[lightType].material =
+			findMaterial(scratchData, fbShadowSpot->material()->c_str());
+		shadowLightInfos[lightType].transformGroupName = fbShadowSpot->transformGroup()->c_str();
+
+		if (!shadowLightInfos[lightType].shader || !shadowLightInfos[lightType].material)
 			return nullptr;
 	}
 
@@ -172,7 +206,6 @@ dsSceneItemList* dsDeferredLightResolve_load(const dsSceneLoadContext*,
 		intensityThreshold = DS_DEFAULT_SCENE_LIGHT_INTENSITY_THRESHOLD;
 
 	return reinterpret_cast<dsSceneItemList*>(dsDeferredLightResolve_create(allocator,
-		resourceAllocator, name, lightSet, ambientShader, ambientMaterial, directionalShader,
-		directionalMaterial, pointShader, pointMaterial, spotShader, spotMaterial,
-		intensityThreshold));
+		resourceAllocator, name, lightSet, shadowManager, &ambientInfo, lightInfos,
+		shadowLightInfos, intensityThreshold));
 }

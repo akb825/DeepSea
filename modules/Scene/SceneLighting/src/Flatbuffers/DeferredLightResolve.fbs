@@ -16,35 +16,58 @@
 
 namespace DeepSeaSceneLighting;
 
+// Struct describing info for drawing a non-shadowedlight.
+table DeferredLightInfo
+{
+	// Name of the shader to draw the light.
+	shader : string (required);
+
+	// Name of the material to use with the light shader.
+	material : string (required);
+}
+
+// Struct describing info for drawing a shadowedlight.
+table DeferredShadowLightInfo
+{
+	// Name of the shader to draw the light.
+	shader : string (required);
+
+	// Name of the material to use with the light shader.
+	material : string (required);
+
+	// Name of the shader variable group containing the shadow transform.
+	transformGroup : string (required);
+}
+
 // Struct describing a deferred light resolve.
 table DeferredLightResolve
 {
 	// Name of the light set to get the lights from.
 	lightSet : string (required);
 
-	// Name of the shader to process the ambient light.
-	ambientShader : string;
+	// Name of the shadow manager when drawing shadowed lights.
+	shadowManager : string;
 
-	// Name of the material to use with the ambient shader.
-	ambientMaterial : string;
+	// Info for drawing the ambient light.
+	ambient : DeferredLightInfo;
 
-	// Name of the shader to process directional lights.
-	directionalShader : string;
+	// Info for drawing non-shadowed directional lights.
+	directional : DeferredLightInfo;
 
-	// Name of the material to use with the directional shader.
-	directionalMaterial : string;
+	// Info for drawing non-shadowed point lights.
+	point : DeferredLightInfo;
 
-	// Name of the shader to process point lights.
-	pointShader : string;
+	// Info for drawing non-shadowed spot lights.
+	spot : DeferredLightInfo;
 
-	// Name of the material to use with the point shader.
-	pointMaterial : string;
+	// Info for drawing shadowed directional lights.
+	shadowDirectional  : DeferredShadowLightInfo;
 
-	// Name of the shader to process spot lights.
-	spotShader : string;
+	// Info for drawing shadowed point lights.
+	shadowPoint : DeferredShadowLightInfo;
 
-	// Name of the material to use with the spot shader.
-	spotMaterial : string;
+	// Info for drawing shadowed spot lights.
+	shadowSpot : DeferredShadowLightInfo;
 
 	// Intensity threshold for lights to take effect. Set to 0 to use the default value.
 	intensityThreshold : float;

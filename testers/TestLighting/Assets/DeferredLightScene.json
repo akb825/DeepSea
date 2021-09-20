@@ -93,14 +93,26 @@
 							"type": "DeferredLightResolve",
 							"name": "deferredLights",
 							"lightSet": "lightSet",
-							"ambientShader": "ambientLightShader",
-							"ambientMaterial": "deferredLightMaterial",
-							"directionalShader": "directionalLightShader",
-							"directionalMaterial": "deferredLightMaterial",
-							"pointShader": "pointLightShader",
-							"pointMaterial": "deferredLightMaterial",
-							"spotShader": "spotLightShader",
-							"spotMaterial": "deferredLightMaterial"
+							"ambient":
+							{
+								"shader": "ambientLightShader",
+								"material": "deferredLightMaterial"
+							},
+							"directional":
+							{
+								"shader": "directionalLightShader",
+								"material": "deferredLightMaterial"
+							},
+							"point":
+							{
+								"shader": "pointLightShader",
+								"material": "deferredLightMaterial"
+							},
+							"spot":
+							{
+								"shader": "spotLightShader",
+								"material": "deferredLightMaterial"
+							}
 						}
 					]
 				},

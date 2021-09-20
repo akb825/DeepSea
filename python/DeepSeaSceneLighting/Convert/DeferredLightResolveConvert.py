@@ -13,48 +13,123 @@
 # limitations under the License.
 
 import flatbuffers
+from .. import DeferredLightInfo
 from .. import DeferredLightResolve
+from .. import DeferredShadowLightInfo
+
+class Object:
+	pass
 
 def convertDeferredLightResolve(convertContext, data):
 	"""
 	Converts a DeferredLightResolve. The data map is expected to contain the following elements:
 	- lightSet: name of the light set to draw the lights from.
-	- ambientShader: the name of the shader used for the ambient light. This may be null or ommitted
-	  to not draw ambient.
-	- ambientMaterial: the name of the material used for the ambient light.
-	- drectionalShader: the name of the shader used for directional lights. This may be null or
-	  ommitted to not draw directional lights.
-	- drectionalMaterial: the name of the material used for directional lights.
-	- pointShader: the name of the shader used for point lights. This may be null or ommitted to not
-	  draw point lights.
-	- pointMaterial: the name of the material used for point lights.
-	- spotShader: the name of the shader used for spot lights. This may be null or ommitted to not
-	  draw spot lights.
-	- spotMaterial: the name of the material used for spot lights.
+	- shadowManager: name of the shadow manager when drawing shadowed lights.
+	- ambient: object containing info for the ambient light. If omitted, the ambient light won't be
+	  drawn. It is expected to contain the following elements:
+	  - shader: the name of the shader to draw the light.
+	  - material: the name of the material to use with the light shader.
+	- directional: object containing info for non-shadowed directional lights. If omitted,
+	  non-shadowed directional lights won't be drawn. It is expected to contain the following
+	  elements:
+	  - shader: the name of the shader to draw the light.
+	  - material: the name of the material to use with the light shader.
+	- point: object containing info for non-shadowed point lights. If omitted, non-shadowed spot
+	  lights won't be drawn. It is expected to contain the following elements:
+	  - shader: the name of the shader to draw the light.
+	  - material: the name of the material to use with the light shader.
+	- spot: object containing info for non-shadowed spot lights. If omitted, non-shadowed spot
+	  lights won't be drawn. It is expected to contain the following elements:
+	  - shader: the name of the shader to draw the light.
+	  - material: the name of the material to use with the light shader.
+	- shadowDirectional: object containing info for shadowed directional lights. If omitted,
+	  shadowedDirectional: lights won't be drawn. It is expected to contain the following elements:
+	  - shader: the name of the shader to draw the light.
+	  - material: the name of the material to use with the light shader.
+	  - transformGroup: name of the shader variable group containing the shadow transform.
+	- shadowPoint: object containing info for shadowed point lights. If omitted, shadowed spot
+	  lights won't be drawn. It is expected to contain the following elements:
+	  - shader: the name of the shader to draw the light.
+	  - material: the name of the material to use with the light shader.
+	  - transformGroup: name of the shader variable group containing the shadow transform.
+	- spot: object containing info for shadowed spot lights. If omitted, shadowed spot lights won't
+	  be drawn. It is expected to contain the following elements:
+	  - shader: the name of the shader to draw the light.
+	  - material: the name of the material to use with the light shader.
+	  - transformGroup: name of the shader variable group containing the shadow transform.
 	- intensityThreshold: the threshold below which the light is considered out of view. If unset
 	  this will use the default.
 	"""
+	def readLightInfo(lightData, name):
+		lightInfo = Object()
+		try:
+			lightInfo.shader = str(lightData['shader'])
+			lightInfo.material = str(lightData['material'])
+			return lightInfo
+		except KeyError as e:
+			raise Exception('DeferredLightResolve ' + name + ' doesn\'t contain element ' + str(e) +
+				'.')
+		except (AttributeError, TypeError, ValueError):
+			raise Exception('DeferredLightResolve ' + name + ' must be an object.')
+
+	def readShadowLightInfo(lightData, name):
+		lightInfo = Object()
+		try:
+			lightInfo.shader = str(lightData['shader'])
+			lightInfo.material = str(lightData['material'])
+			lightInfo.transformGroup = str(lightData['transformGroup'])
+			return lightInfo
+		except KeyError as e:
+			raise Exception('DeferredLightResolve ' + name + ' doesn\'t contain element ' + str(e) +
+				'.')
+		except (AttributeError, TypeError, ValueError):
+			raise Exception('DeferredLightResolve ' + name + ' must be an object.')
+
 	try:
 		lightSet = str(data['lightSet'])
-		ambientShader = str(data.get('ambientShader', ''))
-		ambientMaterial = str(data.get('ambientMaterial', ''))
-		if ambientShader and not ambientMaterial:
-			raise Exception('DeferredLightResolve ambientShader requires ambientMaterial')
+		shadowManager = str(data.get('shadowManager', ''))
 
-		directionalShader = str(data.get('directionalShader', ''))
-		directionalMaterial = str(data.get('directionalMaterial', ''))
-		if directionalShader and not directionalMaterial:
-			raise Exception('DeferredLightResolve directionalShader requires directionalMaterial')
+		ambientData = data.get('ambient')
+		if ambientData:
+			ambient = readLightInfo(ambientData, 'ambient')
+		else:
+			ambient = None
 
-		pointShader = str(data.get('pointShader', ''))
-		pointMaterial = str(data.get('pointMaterial', ''))
-		if pointShader and not pointMaterial:
-			raise Exception('DeferredLightResolve pointShader requires pointMaterial')
+		directionalData = data.get('directional')
+		if directionalData:
+			directional = readLightInfo(directionalData, 'directional')
+		else:
+			directional = None
 
-		spotShader = str(data.get('spotShader', ''))
-		spotMaterial = str(data.get('spotMaterial', ''))
-		if spotShader and not spotMaterial:
-			raise Exception('DeferredLightResolve spotShader requires spotMaterial')
+		pointData = data.get('point')
+		if pointData:
+			point = readLightInfo(pointData, 'point')
+		else:
+			point = None
+
+		spotData = data.get('spot')
+		if spotData:
+			spot = readLightInfo(spotData, 'spot')
+		else:
+			spot = None
+
+		shadowDirectionalData = data.get('shadowDirectional')
+		if shadowDirectionalData:
+			shadowDirectional = readLightInfo(shadowDirectionalData, 'shadowDirectional')
+		else:
+			shadowDirectional = None
+
+		shadowPointData = data.get('shadowPoint')
+		if shadowPointData:
+			shadowPoint = readLightInfo(shadowPointData, 'shadowPoint')
+		else:
+			shadowPoint = None
+
+		shadowSpotData = data.get('shadowSpot')
+		if shadowSpotData:
+			shadowSpot = readLightInfo(shadowSpotData, 'shadowSpot')
+		else:
+			shadowSpot = None
 
 		try:
 			intensityThresholdStr = data.get('intensityThreshold', 0.0)
@@ -70,43 +145,97 @@ def convertDeferredLightResolve(convertContext, data):
 	builder = flatbuffers.Builder(0)
 
 	lightSetOffset = builder.CreateString(lightSet)
-	if ambientShader:
-		ambientShaderOffset = builder.CreateString(ambientShader)
-		ambientMaterialOffset = builder.CreateString(ambientMaterial)
+	if shadowManager:
+		shadowManagerOffset = builder.CreateString(shadowManager)
 	else:
-		ambientShaderOffset = 0
-		ambientMaterialOffset = 0
+		shadowManagerOffset = 0
 
-	if directionalShader:
-		directionalShaderOffset = builder.CreateString(directionalShader)
-		directionalMaterialOffset = builder.CreateString(directionalMaterial)
+	if ambient:
+		shaderOffset = builder.CreateString(ambient.shader)
+		materialOffset = builder.CreateString(ambient.material)
+		DeferredLightInfo.Start(builder)
+		DeferredLightInfo.AddShader(builder, shaderOffset)
+		DeferredLightInfo.AddMaterial(builder, materialOffset)
+		ambientOffset = DeferredLightInfo.End(builder)
 	else:
-		directionalShaderOffset = 0
-		directionalMaterialOffset = 0
+		ambientOffset = 0
 
-	if pointShader:
-		pointShaderOffset = builder.CreateString(pointShader)
-		pointMaterialOffset = builder.CreateString(pointMaterial)
+	if directional:
+		shaderOffset = builder.CreateString(directional.shader)
+		materialOffset = builder.CreateString(directional.material)
+		DeferredLightInfo.Start(builder)
+		DeferredLightInfo.AddShader(builder, shaderOffset)
+		DeferredLightInfo.AddMaterial(builder, materialOffset)
+		directionalOffset = DeferredLightInfo.End(builder)
 	else:
-		pointShaderOffset = 0
-		pointMaterialOffset = 0
+		directionalOffset = 0
 
-	if spotShader:
-		spotShaderOffset = builder.CreateString(spotShader)
-		spotMaterialOffset = builder.CreateString(spotMaterial)
+	if point:
+		shaderOffset = builder.CreateString(point.shader)
+		materialOffset = builder.CreateString(point.material)
+		DeferredLightInfo.Start(builder)
+		DeferredLightInfo.AddShader(builder, shaderOffset)
+		DeferredLightInfo.AddMaterial(builder, materialOffset)
+		pointOffset = DeferredLightInfo.End(builder)
 	else:
-		spotShaderOffset = 0
-		spotMaterialOffset = 0
+		pointOffset = 0
+
+	if spot:
+		shaderOffset = builder.CreateString(spot.shader)
+		materialOffset = builder.CreateString(spot.material)
+		DeferredLightInfo.Start(builder)
+		DeferredLightInfo.AddShader(builder, shaderOffset)
+		DeferredLightInfo.AddMaterial(builder, materialOffset)
+		spotOffset = DeferredLightInfo.End(builder)
+	else:
+		spotOffset = 0
+
+	if shadowDirectional:
+		shaderOffset = builder.CreateString(shadowDirectional.shader)
+		materialOffset = builder.CreateString(shadowDirectional.material)
+		transformGroupOffset = builder.CreateString(shadowDirectional.transformGroup)
+		DeferredShadowLightInfo.Start(builder)
+		DeferredShadowLightInfo.AddShader(builder, shaderOffset)
+		DeferredShadowLightInfo.AddMaterial(builder, materialOffset)
+		DeferredShadowLightInfo.AddTransformGroup(builder, transformGroupOffset)
+		shadowDirectionalOffset = DeferredShadowLightInfo.End(builder)
+	else:
+		shadowDirectionalOffset = 0
+
+	if shadowPoint:
+		shaderOffset = builder.CreateString(shadowPoint.shader)
+		materialOffset = builder.CreateString(shadowPoint.material)
+		transformGroupOffset = builder.CreateString(shadowPoint.transformGroup)
+		DeferredShadowLightInfo.Start(builder)
+		DeferredShadowLightInfo.AddShader(builder, shaderOffset)
+		DeferredShadowLightInfo.AddMaterial(builder, materialOffset)
+		DeferredShadowLightInfo.AddTransformGroup(builder, transformGroupOffset)
+		shadowPointOffset = DeferredShadowLightInfo.End(builder)
+	else:
+		shadowPointOffset = 0
+
+	if shadowSpot:
+		shaderOffset = builder.CreateString(shadowSpot.shader)
+		materialOffset = builder.CreateString(shadowSpot.material)
+		transformGroupOffset = builder.CreateString(shadowSpot.transformGroup)
+		DeferredShadowLightInfo.Start(builder)
+		DeferredShadowLightInfo.AddShader(builder, shaderOffset)
+		DeferredShadowLightInfo.AddMaterial(builder, materialOffset)
+		DeferredShadowLightInfo.AddTransformGroup(builder, transformGroupOffset)
+		shadowSpotOffset = DeferredShadowLightInfo.End(builder)
+	else:
+		shadowSpotOffset = 0
 
 	DeferredLightResolve.Start(builder)
 	DeferredLightResolve.AddLightSet(builder, lightSetOffset)
-	DeferredLightResolve.AddAmbientShader(builder, ambientShaderOffset)
-	DeferredLightResolve.AddAmbientMaterial(builder, ambientMaterialOffset)
-	DeferredLightResolve.AddDirectionalShader(builder, directionalShaderOffset)
-	DeferredLightResolve.AddDirectionalMaterial(builder, directionalMaterialOffset)
-	DeferredLightResolve.AddPointShader(builder, pointShaderOffset)
-	DeferredLightResolve.AddPointMaterial(builder, pointMaterialOffset)
-	DeferredLightResolve.AddSpotShader(builder, spotShaderOffset)
-	DeferredLightResolve.AddSpotMaterial(builder, spotMaterialOffset)
+	DeferredLightResolve.AddShadowManager(builder, shadowManagerOffset)
+	DeferredLightResolve.AddAmbient(builder, ambientOffset)
+	DeferredLightResolve.AddDirectional(builder, directionalOffset)
+	DeferredLightResolve.AddPoint(builder, pointOffset)
+	DeferredLightResolve.AddSpot(builder, spotOffset)
+	DeferredLightResolve.AddShadowDirectional(builder, shadowDirectionalOffset)
+	DeferredLightResolve.AddShadowPoint(builder, shadowPointOffset)
+	DeferredLightResolve.AddShadowSpot(builder, shadowSpotOffset)
+	DeferredLightResolve.AddIntensityThreshold(builder, intensityThreshold)
 	builder.Finish(DeferredLightResolve.End(builder))
 	return builder.Output()

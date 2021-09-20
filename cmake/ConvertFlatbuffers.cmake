@@ -73,12 +73,14 @@ function(ds_convert_flatbuffers container)
 
 		set(pythonCommand)
 		if (ARGS_PYTHON)
-			set(pythonCommand COMMAND ${FLATC} ARGS -o ${ARGS_PYTHON} -p ${includeDirs} ${file})
+			set(pythonCommand COMMAND ${FLATC} ARGS --no-warnings -o ${ARGS_PYTHON} -p
+				${includeDirs} ${file})
 		endif()
 
 		add_custom_command(OUTPUT ${output}
 			MAIN_DEPENDENCY ${file}
-			COMMAND ${FLATC} ARGS -c --scoped-enums --keep-prefix ${includeDirs} ${file}
+			COMMAND ${FLATC} ARGS -c --scoped-enums --keep-prefix --no-warnings ${includeDirs}
+				${file}
 			${pythonCommand}
 			DEPENDS ${FLATC} ${includeDepends}
 			WORKING_DIRECTORY ${ARGS_DIRECTORY}

@@ -29,12 +29,16 @@
 #include <DeepSea/Render/Resources/GfxBuffer.h>
 #include <DeepSea/Render/Resources/GfxFormat.h>
 #include <DeepSea/Render/Resources/Shader.h>
+#include <DeepSea/Render/Resources/SharedMaterialValues.h>
 #include <DeepSea/Render/Resources/VertexFormat.h>
 #include <DeepSea/Render/Renderer.h>
 
 #include <DeepSea/Scene/ItemLists/SceneItemList.h>
+
 #include <DeepSea/SceneLighting/SceneLightSet.h>
 #include <DeepSea/SceneLighting/SceneLight.h>
+#include <DeepSea/SceneLighting/SceneLightShadows.h>
+#include <DeepSea/SceneLighting/SceneShadowManager.h>
 
 #include <string.h>
 #include <limits.h>
@@ -49,27 +53,28 @@ typedef struct BufferInfo
 {
 	dsGfxBuffer* buffer;
 	dsDrawGeometry* ambientGometry;
-	dsDrawGeometry* directionalGometry;
-	dsDrawGeometry* pointGometry;
-	dsDrawGeometry* spotGometry;
+	dsDrawGeometry* lightGeometries[dsSceneLightType_Count];
 	uint64_t lastUsedFrame;
 } BufferInfo;
 
+typedef struct ShadowLightDrawInfo
+{
+	dsShader* shader;
+	dsMaterial* material;
+	uint32_t transformGroupID;
+} ShadowLightDrawInfo;
+
 typedef struct TraverseData
 {
+	dsDeferredLightResolve* resolve;
 	BufferInfo* buffers;
 	dsDirectionalLightVertex* directionalVerts;
 	dsPointLightVertex* pointVerts;
 	dsSpotLightVertex* spotVerts;
 
-	uint16_t* directionalIndices;
-	uint16_t* pointIndices;
-	uint16_t* spotIndices;
-
-	float intensityThreshold;
-	uint32_t directionalCount;
-	uint32_t pointCount;
-	uint32_t spotCount;
+	uint16_t* lightIndices[dsSceneLightType_Count];
+	uint32_t lightCounts[dsSceneLightType_Count];
+	uint32_t shadowLightCounts[dsSceneLightType_Count];
 } TraverseData;
 
 struct dsDeferredLightResolve
@@ -78,27 +83,22 @@ struct dsDeferredLightResolve
 	dsAllocator* resourceAllocator;
 
 	const dsSceneLightSet* lightSet;
-	dsShader* ambientShader;
-	dsMaterial* ambientMaterial;
-	dsShader* directionalShader;
-	dsMaterial* directionalMaterial;
-	dsShader* pointShader;
-	dsMaterial* pointMaterial;
-	dsShader* spotShader;
-	dsMaterial* spotMaterial;
+	const dsSceneShadowManager* shadowManager;
+	dsDeferredLightDrawInfo ambientInfo;
+	dsDeferredLightDrawInfo lightInfos[dsSceneLightType_Count];
+	ShadowLightDrawInfo shadowLightInfos[dsSceneLightType_Count];
+	uint32_t maxLights;
 	float intensityThreshold;
 
 	size_t bufferSize;
 
 	size_t ambientVertexOffset;
-	size_t directionalVertexOffset;
-	size_t pointVertexOffset;
-	size_t spotVertexOffset;
+	size_t lightVertexOffsets[dsSceneLightType_Count];
 
 	size_t ambientIndexOffset;
-	size_t directionalIndexOffset;
-	size_t pointIndexOffset;
-	size_t spotIndexOffset;
+	size_t lightIndexOffsets[dsSceneLightType_Count];
+	const dsSceneLightShadows** lightShadows[dsSceneLightType_Count];
+	dsSharedMaterialValues* shadowValues;
 
 	BufferInfo* buffers;
 	uint32_t bufferCount;
@@ -108,9 +108,8 @@ struct dsDeferredLightResolve
 static void freeBuffers(BufferInfo* buffers)
 {
 	dsDrawGeometry_destroy(buffers->ambientGometry);
-	dsDrawGeometry_destroy(buffers->directionalGometry);
-	dsDrawGeometry_destroy(buffers->pointGometry);
-	dsDrawGeometry_destroy(buffers->spotGometry);
+	for (int i = 0; i < dsSceneLightType_Count; ++i)
+		dsDrawGeometry_destroy(buffers->lightGeometries[i]);
 	dsGfxBuffer_destroy(buffers->buffer);
 }
 
@@ -154,7 +153,7 @@ static BufferInfo* getDrawBuffers(dsDeferredLightResolve* resolve, dsRenderer* r
 	indexBuffer.buffer = buffers->buffer;
 	indexBuffer.indexSize = (uint32_t)sizeof(uint16_t);
 
-	if (resolve->ambientShader)
+	if (resolve->ambientInfo.shader)
 	{
 		dsVertexBuffer ambientVertices;
 		ambientVertices.buffer = buffers->buffer;
@@ -178,86 +177,54 @@ static BufferInfo* getDrawBuffers(dsDeferredLightResolve* resolve, dsRenderer* r
 			return NULL;
 		}
 	}
-	else
-		buffers->ambientGometry = NULL;
 
-	if (resolve->directionalShader)
+	const uint32_t lightVertexCounts[dsSceneLightType_Count] =
 	{
-		dsVertexBuffer directionalVertices;
-		directionalVertices.buffer = buffers->buffer;
-		directionalVertices.offset = resolve->directionalVertexOffset;
-		directionalVertices.count = DS_DIRECTIONAL_LIGHT_VERTEX_COUNT*maxLights;
-		DS_VERIFY(dsSceneLight_getDirectionalLightVertexFormat(&directionalVertices.format));
+		DS_DIRECTIONAL_LIGHT_VERTEX_COUNT, DS_POINT_LIGHT_VERTEX_COUNT, DS_SPOT_LIGHT_VERTEX_COUNT
+	};
+	const uint32_t lightIndexCounts[dsSceneLightType_Count] =
+	{
+		DS_DIRECTIONAL_LIGHT_INDEX_COUNT, DS_POINT_LIGHT_INDEX_COUNT, DS_SPOT_LIGHT_INDEX_COUNT
+	};
+	for (int i = 0; i < dsSceneLightType_Count; ++i)
+	{
+		if (!resolve->lightInfos[i].shader && !resolve->shadowLightInfos[i].shader)
+			continue;
 
-		vertexBuffers[0] = &directionalVertices;
+		dsVertexBuffer vertices;
+		vertices.buffer = buffers->buffer;
+		vertices.offset = resolve->lightVertexOffsets[i];
+		vertices.count = lightVertexCounts[i]*maxLights;
+		switch (i)
+		{
+			case dsSceneLightType_Directional:
+				DS_VERIFY(dsSceneLight_getDirectionalLightVertexFormat(&vertices.format));
+				break;
+			case dsSceneLightType_Point:
+				DS_VERIFY(dsSceneLight_getPointLightVertexFormat(&vertices.format));
+				break;
+			case dsSceneLightType_Spot:
+				DS_VERIFY(dsSceneLight_getSpotLightVertexFormat(&vertices.format));
+				break;
+			default:
+				DS_ASSERT(false);
+		}
 
-		indexBuffer.offset = resolve->directionalIndexOffset;
-		indexBuffer.count = DS_DIRECTIONAL_LIGHT_INDEX_COUNT;
+		vertexBuffers[0] = &vertices;
 
-		buffers->directionalGometry = dsDrawGeometry_create(resourceManager,
+		indexBuffer.offset = resolve->lightIndexOffsets[i];
+		indexBuffer.count = lightIndexCounts[i];
+
+		buffers->lightGeometries[i] = dsDrawGeometry_create(resourceManager,
 			resolve->resourceAllocator, vertexBuffers, &indexBuffer);
 
-		if (!buffers->directionalGometry)
+		if (!buffers->lightGeometries[i])
 		{
 			freeBuffers(buffers);
 			--resolve->bufferCount;
 			return NULL;
 		}
 	}
-	else
-		buffers->directionalGometry = NULL;
-
-	if (resolve->pointShader)
-	{
-		dsVertexBuffer pointVertices;
-		pointVertices.buffer = buffers->buffer;
-		pointVertices.offset = resolve->pointVertexOffset;
-		pointVertices.count = DS_POINT_LIGHT_VERTEX_COUNT*maxLights;
-		DS_VERIFY(dsSceneLight_getPointLightVertexFormat(&pointVertices.format));
-
-		vertexBuffers[0] = &pointVertices;
-
-		indexBuffer.offset = resolve->pointIndexOffset;
-		indexBuffer.count = DS_POINT_LIGHT_INDEX_COUNT;
-
-		buffers->pointGometry = dsDrawGeometry_create(resourceManager, resolve->resourceAllocator,
-			vertexBuffers, &indexBuffer);
-
-		if (!buffers->pointGometry)
-		{
-			freeBuffers(buffers);
-			--resolve->bufferCount;
-			return NULL;
-		}
-	}
-	else
-		buffers->pointGometry = NULL;
-
-	if (resolve->spotShader)
-	{
-		dsVertexBuffer spotVertices;
-		spotVertices.buffer = buffers->buffer;
-		spotVertices.offset = resolve->spotVertexOffset;
-		spotVertices.count = DS_SPOT_LIGHT_VERTEX_COUNT*maxLights;
-		DS_VERIFY(dsSceneLight_getSpotLightVertexFormat(&spotVertices.format));
-
-		vertexBuffers[0] = &spotVertices;
-
-		indexBuffer.offset = resolve->spotIndexOffset;
-		indexBuffer.count = DS_SPOT_LIGHT_INDEX_COUNT;
-
-		buffers->spotGometry = dsDrawGeometry_create(resourceManager, resolve->resourceAllocator,
-			vertexBuffers, &indexBuffer);
-
-		if (!buffers->spotGometry)
-		{
-			freeBuffers(buffers);
-			--resolve->bufferCount;
-			return NULL;
-		}
-	}
-	else
-		buffers->spotGometry = NULL;
 
 	buffers->lastUsedFrame = renderer->frameNumber;
 	return buffers;
@@ -267,57 +234,78 @@ static bool visitLights(void* userData, const dsSceneLightSet* lightSet, const d
 {
 	DS_UNUSED(lightSet);
 	TraverseData* traverseData = (TraverseData*)userData;
+	dsDeferredLightResolve* resolve = traverseData->resolve;
+	bool drawLight = resolve->lightInfos[light->type].shader != NULL;
+	bool drawShadowLight = resolve->shadowLightInfos[light->type].shader != NULL;
+	if (!drawLight && !drawShadowLight)
+		return true;
+
+	const dsSceneLightShadows* lightShadows = NULL;
+	if (resolve->shadowManager)
+	{
+		lightShadows = dsSceneShadowManager_findShadowsForLightID(resolve->shadowManager,
+			light->nameID);
+	}
+
+	if ((lightShadows && !drawShadowLight) || (!lightShadows && !drawLight))
+		return true;
+
+	uint32_t baseIndex;
+	if (lightShadows)
+	{
+		uint32_t shadowLightIndex = traverseData->shadowLightCounts[light->type]++;
+		resolve->lightShadows[light->type][shadowLightIndex] = lightShadows;
+		baseIndex = resolve->maxLights - shadowLightIndex - 1;
+	}
+	else
+		baseIndex = traverseData->lightCounts[light->type]++;
+
+	// Store shadowed lights at the end of the respective index buffers so they can be drawn
+	// separately.
 	switch (light->type)
 	{
 		case dsSceneLightType_Directional:
 		{
-			if (!traverseData->directionalVerts)
-				break;
+			DS_ASSERT(traverseData->directionalVerts);
 
 			uint16_t firstIndex =
-				(uint16_t)((traverseData->directionalCount % MAX_DIRECTIONAL_LIGHTS)*
-					DS_DIRECTIONAL_LIGHT_VERTEX_COUNT);
-			DS_VERIFY(dsSceneLight_getDirectionalLightVertices(traverseData->directionalVerts,
-				DS_DIRECTIONAL_LIGHT_VERTEX_COUNT, traverseData->directionalIndices,
+				(uint16_t)((baseIndex % MAX_DIRECTIONAL_LIGHTS)*DS_DIRECTIONAL_LIGHT_VERTEX_COUNT);
+			DS_VERIFY(dsSceneLight_getDirectionalLightVertices(traverseData->directionalVerts +
+					baseIndex*DS_DIRECTIONAL_LIGHT_VERTEX_COUNT,
+				DS_DIRECTIONAL_LIGHT_VERTEX_COUNT, traverseData->lightIndices[light->type] +
+					baseIndex*DS_DIRECTIONAL_LIGHT_INDEX_COUNT,
 				DS_DIRECTIONAL_LIGHT_INDEX_COUNT, light, firstIndex));
-
-			traverseData->directionalVerts += DS_DIRECTIONAL_LIGHT_VERTEX_COUNT;
-			traverseData->directionalIndices += DS_DIRECTIONAL_LIGHT_INDEX_COUNT;
-			++traverseData->directionalCount;
 			break;
 		}
 		case dsSceneLightType_Point:
 		{
-			if (!traverseData->pointVerts)
-				break;
+			DS_ASSERT(traverseData->pointVerts);
 
-			uint16_t firstIndex = (uint16_t)((traverseData->pointCount % MAX_POINT_LIGHTS)*
-				DS_POINT_LIGHT_VERTEX_COUNT);
-			DS_VERIFY(dsSceneLight_getPointLightVertices(traverseData->pointVerts,
-				DS_POINT_LIGHT_VERTEX_COUNT, traverseData->pointIndices,
-				DS_POINT_LIGHT_INDEX_COUNT, light, traverseData->intensityThreshold, firstIndex));
-
-			traverseData->pointVerts += DS_POINT_LIGHT_VERTEX_COUNT;
-			traverseData->pointIndices += DS_POINT_LIGHT_INDEX_COUNT;
-			++traverseData->pointCount;
+			uint16_t firstIndex =
+				(uint16_t)((baseIndex % MAX_DIRECTIONAL_LIGHTS)*DS_POINT_LIGHT_VERTEX_COUNT);
+			DS_VERIFY(dsSceneLight_getPointLightVertices(traverseData->pointVerts +
+					baseIndex*DS_POINT_LIGHT_VERTEX_COUNT,
+				DS_POINT_LIGHT_VERTEX_COUNT, traverseData->lightIndices[light->type] +
+					baseIndex*DS_POINT_LIGHT_INDEX_COUNT,
+				DS_POINT_LIGHT_INDEX_COUNT, light, resolve->intensityThreshold, firstIndex));
 			break;
 		}
 		case dsSceneLightType_Spot:
 		{
-			if (!traverseData->spotVerts)
-				break;
+			DS_ASSERT(traverseData->spotVerts);
 
-			uint16_t firstIndex = (uint16_t)((traverseData->spotCount % MAX_SPOT_LIGHTS)*
-					DS_SPOT_LIGHT_VERTEX_COUNT);
-			DS_VERIFY(dsSceneLight_getSpotLightVertices(traverseData->spotVerts,
-				DS_SPOT_LIGHT_VERTEX_COUNT, traverseData->spotIndices,
-				DS_SPOT_LIGHT_INDEX_COUNT, light, traverseData->intensityThreshold, firstIndex));
-
-			traverseData->spotVerts += DS_SPOT_LIGHT_VERTEX_COUNT;
-			traverseData->spotIndices += DS_SPOT_LIGHT_INDEX_COUNT;
-			++traverseData->spotCount;
+			uint16_t firstIndex =
+				(uint16_t)((baseIndex % MAX_SPOT_LIGHTS)*DS_SPOT_LIGHT_VERTEX_COUNT);
+			DS_VERIFY(dsSceneLight_getSpotLightVertices(traverseData->spotVerts +
+					baseIndex*DS_SPOT_LIGHT_VERTEX_COUNT,
+				DS_SPOT_LIGHT_VERTEX_COUNT, traverseData->lightIndices[light->type] +
+					baseIndex*DS_SPOT_LIGHT_INDEX_COUNT,
+				DS_SPOT_LIGHT_INDEX_COUNT, light, resolve->intensityThreshold, firstIndex));
 			break;
 		}
+		default:
+			DS_ASSERT(false);
+			break;
 	}
 
 	return true;
@@ -357,7 +345,7 @@ void dsDeferredLightResolve_commit(dsSceneItemList* itemList, const dsView* view
 		return;
 
 	// Populate ambient data.
-	if (resolve->ambientShader)
+	if (resolve->ambientInfo.shader)
 	{
 		dsColor3f ambientColor;
 		DS_VERIFY(dsSceneLightSet_getAmbient(&ambientColor, resolve->lightSet));
@@ -371,30 +359,39 @@ void dsDeferredLightResolve_commit(dsSceneItemList* itemList, const dsView* view
 	// Populate other light data.
 	TraverseData traverseData =
 	{
+		resolve,
 		buffers,
-		NULL, NULL, NULL, NULL, NULL, NULL,
-		resolve->intensityThreshold,
-		0, 0, 0
+		NULL, NULL, NULL,
+		{NULL, NULL, NULL},
+		{0, 0, 0},
+		{0, 0, 0}
 	};
 
-	if (resolve->directionalShader)
+	dsSceneLightType lightType = dsSceneLightType_Directional;
+	if (resolve->lightInfos[lightType].shader || resolve->shadowLightInfos[lightType].shader)
 	{
-		traverseData.directionalVerts =
-			(dsDirectionalLightVertex*)(dstData + resolve->directionalVertexOffset);
-		traverseData.directionalIndices =
-			(uint16_t*)(dstData + resolve->directionalIndexOffset);
+		traverseData.directionalVerts = (dsDirectionalLightVertex*)(dstData +
+			resolve->lightVertexOffsets[lightType]);
+		traverseData.lightIndices[lightType] =
+			(uint16_t*)(dstData + resolve->lightIndexOffsets[lightType]);
 	}
 
-	if (resolve->pointShader)
+	lightType = dsSceneLightType_Point;
+	if (resolve->lightInfos[lightType].shader || resolve->shadowLightInfos[lightType].shader)
 	{
-		traverseData.pointVerts = (dsPointLightVertex*)(dstData + resolve->pointVertexOffset);
-		traverseData.pointIndices =  (uint16_t*)(dstData + resolve->pointIndexOffset);
+		traverseData.pointVerts = (dsPointLightVertex*)(dstData +
+			resolve->lightVertexOffsets[lightType]);
+		traverseData.lightIndices[lightType] =
+			(uint16_t*)(dstData + resolve->lightIndexOffsets[lightType]);
 	}
 
-	if (resolve->spotShader)
+	lightType = dsSceneLightType_Spot;
+	if (resolve->lightInfos[lightType].shader || resolve->shadowLightInfos[lightType].shader)
 	{
-		traverseData.spotVerts = (dsSpotLightVertex*)(dstData + resolve->spotVertexOffset);
-		traverseData.spotIndices = (uint16_t*)(dstData + resolve->spotIndexOffset);
+		traverseData.spotVerts = (dsSpotLightVertex*)(dstData +
+			resolve->lightVertexOffsets[lightType]);
+		traverseData.lightIndices[lightType] =
+			(uint16_t*)(dstData + resolve->lightIndexOffsets[lightType]);
 	}
 
 	dsSceneLightSet_forEachLightInFrustum(resolve->lightSet, &view->viewFrustum, &visitLights,
@@ -405,37 +402,54 @@ void dsDeferredLightResolve_commit(dsSceneItemList* itemList, const dsView* view
 	dsDrawIndexedRange drawRange;
 	drawRange.firstInstance = 0;
 	drawRange.instanceCount = 1;
-	if (resolve->ambientShader)
+	if (resolve->ambientInfo.shader)
 	{
-		if (!DS_CHECK(DS_SCENE_LIGHTING_LOG_TAG, dsShader_bind(resolve->ambientShader,
-				commandBuffer, resolve->ambientMaterial, view->globalValues, NULL)))
+		dsShader* shader = resolve->ambientInfo.shader;
+		if (!DS_CHECK(DS_SCENE_LIGHTING_LOG_TAG, dsShader_bind(shader, commandBuffer,
+				resolve->ambientInfo.material, view->globalValues, NULL)))
 		{
 			return;
 		}
 
-		drawRange.indexCount = DS_AMBIENT_LIGHT_INDEX_COUNT;
 		drawRange.firstIndex = 0;
 		drawRange.indexCount = DS_AMBIENT_LIGHT_INDEX_COUNT;
 		drawRange.vertexOffset = 0;
 		DS_CHECK(DS_SCENE_LIGHTING_LOG_TAG, dsRenderer_drawIndexed(renderer, commandBuffer,
 			buffers->ambientGometry, &drawRange, dsPrimitiveType_TriangleList));
 
-		DS_CHECK(DS_SCENE_LIGHTING_LOG_TAG, dsShader_unbind(resolve->ambientShader, commandBuffer));
+		DS_CHECK(DS_SCENE_LIGHTING_LOG_TAG, dsShader_unbind(shader, commandBuffer));
 	}
 
-	if (resolve->directionalShader && traverseData.directionalCount > 0)
+	const uint32_t maxLightCounts[dsSceneLightType_Count] =
 	{
-		if (!DS_CHECK(DS_SCENE_LIGHTING_LOG_TAG, dsShader_bind(resolve->directionalShader,
-				commandBuffer, resolve->directionalMaterial, view->globalValues, NULL)))
+		MAX_DIRECTIONAL_LIGHTS, MAX_POINT_LIGHTS, MAX_SPOT_LIGHTS
+	};
+	const uint32_t lightVertexCounts[dsSceneLightType_Count] =
+	{
+		DS_DIRECTIONAL_LIGHT_VERTEX_COUNT, DS_POINT_LIGHT_VERTEX_COUNT, DS_SPOT_LIGHT_VERTEX_COUNT
+	};
+	const uint32_t lightIndexCounts[dsSceneLightType_Count] =
+	{
+		DS_DIRECTIONAL_LIGHT_INDEX_COUNT, DS_POINT_LIGHT_INDEX_COUNT, DS_SPOT_LIGHT_INDEX_COUNT
+	};
+
+	// Normal non-shadowed lights.
+	for (int i = 0; i < dsSceneLightType_Count; ++i)
+	{
+		dsShader* shader = resolve->lightInfos[i].shader;
+		uint32_t lightCount = traverseData.lightCounts[i];
+		if (!shader || lightCount == 0)
+			continue;
+
+		if (!DS_CHECK(DS_SCENE_LIGHTING_LOG_TAG, dsShader_bind(shader, commandBuffer,
+				resolve->lightInfos[i].material, view->globalValues, NULL)))
 		{
 			return;
 		}
 
-		uint32_t maxLightVerts =
-			MAX_DIRECTIONAL_LIGHTS*DS_DIRECTIONAL_LIGHT_VERTEX_COUNT;
-		uint32_t maxLightIndices =
-			MAX_DIRECTIONAL_LIGHTS*DS_DIRECTIONAL_LIGHT_INDEX_COUNT;
-		uint32_t indexCount = traverseData.directionalCount*DS_DIRECTIONAL_LIGHT_INDEX_COUNT;
+		uint32_t maxLightVerts = maxLightCounts[i]*lightVertexCounts[i];
+		uint32_t maxLightIndices = maxLightCounts[i]*lightIndexCounts[i];
+		uint32_t indexCount = lightCount*lightIndexCounts[i];
 		for (uint32_t vertOffset = 0, indexOffset = 0; indexOffset < indexCount;
 			vertOffset += maxLightVerts, indexOffset += maxLightIndices)
 		{
@@ -443,73 +457,65 @@ void dsDeferredLightResolve_commit(dsSceneItemList* itemList, const dsView* view
 			drawRange.indexCount = dsMin(maxLightIndices, indexCount - indexOffset);
 			drawRange.vertexOffset = vertOffset;
 			DS_CHECK(DS_SCENE_LIGHTING_LOG_TAG, dsRenderer_drawIndexed(renderer, commandBuffer,
-				buffers->directionalGometry, &drawRange, dsPrimitiveType_TriangleList));
+				buffers->lightGeometries[i], &drawRange, dsPrimitiveType_TriangleList));
 		}
 
-		DS_CHECK(DS_SCENE_LIGHTING_LOG_TAG,
-			dsShader_unbind(resolve->directionalShader, commandBuffer));
+		DS_CHECK(DS_SCENE_LIGHTING_LOG_TAG, dsShader_unbind(shader, commandBuffer));
 	}
 
-	if (resolve->pointShader && traverseData.pointCount > 0)
+	// Shadowed lights. These need to be drawn one by one rather than as a group due to different
+	// material values.
+	for (int i = 0; i < dsSceneLightType_Count; ++i)
 	{
-		if (!DS_CHECK(DS_SCENE_LIGHTING_LOG_TAG, dsShader_bind(resolve->pointShader, commandBuffer,
-				resolve->pointMaterial, view->globalValues, NULL)))
+		dsShader* shader = resolve->shadowLightInfos[i].shader;
+		uint32_t lightCount = traverseData.shadowLightCounts[i];
+		if (!shader || lightCount == 0)
+			continue;
+
+		if (!DS_CHECK(DS_SCENE_LIGHTING_LOG_TAG, dsShader_bind(resolve->shadowLightInfos[i].shader,
+				commandBuffer, resolve->shadowLightInfos[i].material, view->globalValues, NULL)))
 		{
 			return;
 		}
 
-		uint32_t maxLightVerts = MAX_POINT_LIGHTS*DS_POINT_LIGHT_VERTEX_COUNT;
-		uint32_t maxLightIndices = MAX_POINT_LIGHTS*DS_POINT_LIGHT_INDEX_COUNT;
-		uint32_t indexCount = traverseData.pointCount*DS_POINT_LIGHT_INDEX_COUNT;
-		for (uint32_t vertOffset = 0, indexOffset = 0; indexOffset < indexCount;
-			vertOffset += maxLightVerts, indexOffset += maxLightIndices)
+		DS_VERIFY(dsSharedMaterialValues_clear(resolve->shadowValues));
+		uint32_t transformGroupID = resolve->shadowLightInfos[i].transformGroupID;
+		uint32_t maxLightVerts = maxLightCounts[i]*lightVertexCounts[i];
+		uint32_t maxLightIndices = maxLightCounts[i]*lightIndexCounts[i];
+		drawRange.indexCount = lightIndexCounts[i];
+		for (uint32_t j = 0; j < lightCount; ++j)
 		{
-			drawRange.firstIndex = indexOffset;
-			drawRange.indexCount = dsMin(maxLightIndices, indexCount - indexOffset);
-			drawRange.vertexOffset = vertOffset;
+			const dsSceneLightShadows* lightShadows = resolve->lightShadows[i][j];
+			DS_ASSERT(lightShadows);
+			DS_VERIFY(dsSceneLightShadows_bindTransformGroup(lightShadows, resolve->shadowValues,
+				transformGroupID));
+			if (!DS_CHECK(DS_SCENE_LIGHTING_LOG_TAG, dsShader_updateInstanceValues(shader,
+					commandBuffer, resolve->shadowValues)))
+			{
+				continue;
+			}
+
+			// Shadow lights are at the end of the buffer.
+			uint32_t index = resolve->maxLights - j - 1;
+			uint32_t blockIndex = index/maxLightIndices;
+			uint32_t blockOffset = index % maxLightIndices;
+			drawRange.firstIndex = blockIndex*maxLightIndices + blockOffset*drawRange.indexCount;
+			drawRange.vertexOffset = blockIndex*maxLightVerts;
 			DS_CHECK(DS_SCENE_LIGHTING_LOG_TAG, dsRenderer_drawIndexed(renderer, commandBuffer,
-				buffers->pointGometry, &drawRange, dsPrimitiveType_TriangleList));
+				buffers->lightGeometries[i], &drawRange, dsPrimitiveType_TriangleList));
 		}
 
-		DS_CHECK(DS_SCENE_LIGHTING_LOG_TAG,
-			dsShader_unbind(resolve->pointShader, commandBuffer));
-	}
-
-	if (resolve->spotShader && traverseData.spotCount > 0)
-	{
-		if (!DS_CHECK(DS_SCENE_LIGHTING_LOG_TAG, dsShader_bind(resolve->spotShader, commandBuffer,
-				resolve->spotMaterial, view->globalValues, NULL)))
-		{
-			return;
-		}
-
-		uint32_t maxLightVerts = MAX_SPOT_LIGHTS*DS_SPOT_LIGHT_VERTEX_COUNT;
-		uint32_t maxLightIndices = MAX_SPOT_LIGHTS*DS_SPOT_LIGHT_INDEX_COUNT;
-		uint32_t indexCount = traverseData.spotCount*DS_SPOT_LIGHT_INDEX_COUNT;
-		for (uint32_t vertOffset = 0, indexOffset = 0; indexOffset < indexCount;
-			vertOffset += maxLightVerts, indexOffset += maxLightIndices)
-		{
-			drawRange.firstIndex = indexOffset;
-			drawRange.indexCount = dsMin(maxLightIndices, indexCount - indexOffset);
-			drawRange.vertexOffset = vertOffset;
-			DS_CHECK(DS_SCENE_LIGHTING_LOG_TAG, dsRenderer_drawIndexed(renderer, commandBuffer,
-				buffers->spotGometry, &drawRange, dsPrimitiveType_TriangleList));
-		}
-
-		DS_CHECK(DS_SCENE_LIGHTING_LOG_TAG,
-			dsShader_unbind(resolve->spotShader, commandBuffer));
+		DS_CHECK(DS_SCENE_LIGHTING_LOG_TAG, dsShader_unbind(shader, commandBuffer));
 	}
 }
 
 dsDeferredLightResolve* dsDeferredLightResolve_create(dsAllocator* allocator,
 	dsAllocator* resourceAllocator, const char* name, const dsSceneLightSet* lightSet,
-	dsShader* ambientShader, dsMaterial* ambientMaterial, dsShader* directionalShader,
-	dsMaterial* directionalMaterial, dsShader* pointShader, dsMaterial* pointMaterial,
-	dsShader* spotShader, dsMaterial* spotMaterial, float intensityThreshold)
+	const dsSceneShadowManager* shadowManager, const dsDeferredLightDrawInfo* ambientInfo,
+	const dsDeferredLightDrawInfo* lightInfos,
+	const dsDeferredShadowLightDrawInfo* shadowLightInfos, float intensityThreshold)
 {
-	if (!allocator || !name || !lightSet || (ambientShader && !ambientMaterial) ||
-		(directionalShader && !directionalMaterial) || (pointShader && !pointMaterial) ||
-		(spotShader && !spotMaterial) || intensityThreshold <= 0)
+	if (!allocator || !name || !lightSet || intensityThreshold <= 0)
 	{
 		errno = EINVAL;
 		return NULL;
@@ -526,8 +532,27 @@ dsDeferredLightResolve* dsDeferredLightResolve_create(dsAllocator* allocator,
 	if (!resourceAllocator)
 		resourceAllocator = allocator;
 
+	uint32_t maxLights = dsSceneLightSet_getMaxLights(lightSet);
 	size_t nameLen = strlen(name) + 1;
 	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsDeferredLightResolve)) + DS_ALIGNED_SIZE(nameLen);
+	uint32_t maxShadowLights = 0;
+	bool hasShadows = false;
+	if (shadowManager && shadowLightInfos)
+	{
+		maxShadowLights = dsSceneShadowManager_getLightShadowsCount(shadowManager);
+		maxShadowLights = dsMin(maxLights, maxShadowLights);
+		for (uint32_t i = 0; i < dsSceneLightType_Count; ++i)
+		{
+			const dsDeferredShadowLightDrawInfo* curInfo = shadowLightInfos + i;
+			if (!curInfo->shader || !curInfo->material || !curInfo->transformGroupName)
+				continue;
+
+			fullSize += DS_ALIGNED_SIZE(sizeof(dsSceneLightShadows*)*maxShadowLights);
+			hasShadows = true;
+		}
+	}
+	if (hasShadows)
+		fullSize += dsSharedMaterialValues_fullAllocSize(1);
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 		return NULL;
@@ -553,83 +578,116 @@ dsDeferredLightResolve* dsDeferredLightResolve_create(dsAllocator* allocator,
 
 	resolve->resourceAllocator = resourceAllocator;
 	resolve->lightSet = lightSet;
+	resolve->shadowManager = shadowManager;
 
-	resolve->ambientShader = ambientShader;
-	if (ambientShader)
-		resolve->ambientMaterial = ambientMaterial;
+	if (ambientInfo && ambientInfo->shader && ambientInfo->material)
+		resolve->ambientInfo = *ambientInfo;
 	else
-		resolve->ambientMaterial = NULL;
+		memset(&resolve->ambientInfo, 0, sizeof(resolve->ambientInfo));
 
-	resolve->directionalShader = directionalShader;
-	if (directionalShader)
-		resolve->directionalMaterial = directionalMaterial;
+	if (lightInfos)
+	{
+		for (int i = 0; i < dsSceneLightType_Count; ++i)
+		{
+			const dsDeferredLightDrawInfo* curInfo = lightInfos + i;
+			if (curInfo->shader && curInfo->material)
+				resolve->lightInfos[i] = *curInfo;
+			else
+				memset(resolve->lightInfos + i, 0, sizeof(dsDeferredLightDrawInfo));
+		}
+	}
 	else
-		resolve->directionalMaterial = NULL;
+		memset(resolve->lightInfos, 0, sizeof(resolve->lightInfos));
 
-	resolve->pointShader = pointShader;
-	if (pointShader)
-		resolve->pointMaterial = pointMaterial;
+	if (shadowManager && shadowLightInfos)
+	{
+		for (int i = 0; i < dsSceneLightType_Count; ++i)
+		{
+			const dsDeferredShadowLightDrawInfo* curInfo = shadowLightInfos + i;
+			if (!curInfo->shader || !curInfo->material || !curInfo->transformGroupName)
+			{
+				memset(resolve->shadowLightInfos + i, 0, sizeof(ShadowLightDrawInfo));
+				continue;
+			}
+
+			ShadowLightDrawInfo* setInfo = resolve->shadowLightInfos + i;
+			setInfo->shader = curInfo->shader;
+			setInfo->material = curInfo->material;
+			setInfo->transformGroupID = dsHashString(curInfo->transformGroupName);
+
+			resolve->lightShadows[i] = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc,
+				const dsSceneLightShadows*, maxShadowLights);
+			DS_ASSERT(resolve->lightShadows[i]);
+		}
+	}
 	else
-		resolve->pointMaterial = NULL;
+		memset(resolve->shadowLightInfos, 0, sizeof(resolve->shadowLightInfos));
 
-	resolve->spotShader = spotShader;
-	if (spotMaterial)
-		resolve->spotMaterial = spotMaterial;
-	else
-		resolve->spotMaterial = NULL;
-
+	resolve->maxLights = maxLights;
 	resolve->intensityThreshold = intensityThreshold;
 
+	// Compute the maximum size of a buffer and the offsets for each light type. This will be based
+	// on the worst-case of the maximum number of lights of each light type, plus one ambient light.
 	size_t ambientVertexSize = sizeof(dsAmbientLightVertex)*DS_AMBIENT_LIGHT_VERTEX_COUNT;
-	size_t directionalVertexSize =
-		sizeof(dsDirectionalLightVertex)*DS_DIRECTIONAL_LIGHT_VERTEX_COUNT;
-	size_t pointVertexSize = sizeof(dsPointLightVertex)*DS_POINT_LIGHT_VERTEX_COUNT;
-	size_t spotVertexSize = sizeof(dsSpotLightVertex)*DS_SPOT_LIGHT_VERTEX_COUNT;
+	size_t lightVertexSizes[dsSceneLightType_Count] =
+	{
+		sizeof(dsDirectionalLightVertex)*DS_DIRECTIONAL_LIGHT_VERTEX_COUNT,
+		sizeof(dsPointLightVertex)*DS_POINT_LIGHT_VERTEX_COUNT,
+		sizeof(dsSpotLightVertex)*DS_SPOT_LIGHT_VERTEX_COUNT
+	};
 
 	size_t ambientIndexSize = sizeof(uint16_t)*DS_DIRECTIONAL_LIGHT_INDEX_COUNT;
-	size_t directionalIndexSize = sizeof(uint16_t)*DS_DIRECTIONAL_LIGHT_INDEX_COUNT;
-	size_t pointIndexSize = sizeof(uint16_t)*DS_POINT_LIGHT_INDEX_COUNT;
-	size_t spotIndexSize = sizeof(uint16_t)*DS_SPOT_LIGHT_INDEX_COUNT;
+	size_t lightIndexSizes[dsSceneLightType_Count] =
+	{
+		sizeof(uint16_t)*DS_DIRECTIONAL_LIGHT_INDEX_COUNT,
+		sizeof(uint16_t)*DS_POINT_LIGHT_INDEX_COUNT,
+		sizeof(uint16_t)*DS_SPOT_LIGHT_INDEX_COUNT
+	};
 
-	if (!ambientShader)
+	// Don't allocate space for disabled light types.
+	if (!resolve->ambientInfo.shader)
 	{
 		ambientVertexSize = 0;
 		ambientIndexSize = 0;
 	}
 
-	if (!directionalShader)
+	for (int i = 0; i < dsSceneLightType_Count; ++i)
 	{
-		directionalVertexSize = 0;
-		directionalIndexSize = 0;
+		if (resolve->lightInfos[i].shader || resolve->shadowLightInfos[i].shader)
+			continue;
+
+		lightVertexSizes[i] = 0;
+		lightIndexSizes[i] = 0;
 	}
 
-	if (!pointShader)
+	resolve->bufferSize = ambientVertexSize + ambientIndexSize;
+	for (int i = 0; i < dsSceneLightType_Count; ++i)
+		resolve->bufferSize += (lightVertexSizes[i] + lightIndexSizes[i])*maxLights;
+
+	size_t curOffset = 0;
+	resolve->ambientVertexOffset = curOffset;
+	curOffset += ambientVertexSize;
+	for (int i = 0; i < dsSceneLightType_Count; ++i)
 	{
-		pointVertexSize = 0;
-		pointIndexSize = 0;
+		resolve->lightVertexOffsets[i] = curOffset;
+		curOffset += lightVertexSizes[i]*maxLights;
 	}
 
-	if (!spotShader)
+	resolve->ambientIndexOffset = curOffset;
+	curOffset += ambientIndexSize;
+	for (int i = 0; i < dsSceneLightType_Count; ++i)
 	{
-		spotVertexSize = 0;
-		spotIndexSize = 0;
+		resolve->lightIndexOffsets[i] = curOffset;
+		curOffset += lightIndexSizes[i]*maxLights;
 	}
 
-	uint32_t maxLights = dsSceneLightSet_getMaxLights(lightSet);
-
-	resolve->bufferSize = ambientVertexSize + ambientIndexSize + (directionalVertexSize +
-		pointVertexSize + spotVertexSize + directionalIndexSize + pointIndexSize +
-		spotIndexSize)*maxLights;
-
-	resolve->ambientVertexOffset = 0;
-	resolve->directionalVertexOffset = resolve->ambientVertexOffset + ambientVertexSize;
-	resolve->pointVertexOffset = resolve->directionalVertexOffset + directionalVertexSize*maxLights;
-	resolve->spotVertexOffset = resolve->pointVertexOffset + pointVertexSize*maxLights;
-
-	resolve->ambientIndexOffset = resolve->spotVertexOffset + spotVertexSize*maxLights;
-	resolve->directionalIndexOffset = resolve->ambientIndexOffset + ambientIndexSize;
-	resolve->pointIndexOffset = resolve->directionalIndexOffset + directionalIndexSize*maxLights;
-	resolve->spotIndexOffset = resolve->pointIndexOffset + pointIndexSize*maxLights;
+	if (hasShadows)
+	{
+		resolve->shadowValues = dsSharedMaterialValues_create((dsAllocator*)&bufferAlloc, 1);
+		DS_ASSERT(resolve->shadowValues);
+	}
+	else
+		resolve->shadowValues = NULL;
 
 	resolve->buffers = NULL;
 	resolve->bufferCount = 0;
@@ -643,15 +701,15 @@ dsShader* dsDeferredLightResolve_getAmbientShader(const dsDeferredLightResolve* 
 	if (!resolve)
 		return NULL;
 
-	return resolve->ambientShader;
+	return resolve->ambientInfo.shader;
 }
 
 bool dsDeferredLightResolve_setAmbientShader(dsDeferredLightResolve* resolve, dsShader* shader)
 {
-	if (!resolve || !shader || !resolve->ambientShader)
+	if (!resolve || !shader || !resolve->ambientInfo.shader)
 		return false;
 
-	resolve->ambientShader = shader;
+	resolve->ambientInfo.shader = shader;
 	return true;
 }
 
@@ -660,140 +718,220 @@ dsMaterial* dsDeferredLightResolve_getAmbientMaterial(const dsDeferredLightResol
 	if (!resolve)
 		return NULL;
 
-	return resolve->ambientMaterial;
+	return resolve->ambientInfo.material;
 }
 
 bool dsDeferredLightResolve_setAmbientMaterial(dsDeferredLightResolve* resolve,
 	dsMaterial* material)
 {
-	if (!resolve || !material || !resolve->ambientShader)
+	if (!resolve || !material)
 	{
 		errno = EINVAL;
 		return false;
 	}
 
-	resolve->ambientMaterial = material;
+	if (!resolve->ambientInfo.shader)
+	{
+		errno = EPERM;
+		return false;
+	}
+
+	resolve->ambientInfo.material = material;
 	return true;
 }
 
-dsShader* dsDeferredLightResolve_getDirectionalShader(const dsDeferredLightResolve* resolve)
+dsShader* dsDeferredLightResolve_getLightShader(const dsDeferredLightResolve* resolve,
+	dsSceneLightType lightType)
 {
-	if (!resolve)
+	if (!resolve || lightType < 0 || lightType >= dsSceneLightType_Count)
 		return NULL;
 
-	return resolve->directionalShader;
+	return resolve->lightInfos[lightType].shader;
 }
 
-bool dsDeferredLightResolve_setDirectionalShader(dsDeferredLightResolve* resolve, dsShader* shader)
+bool dsDeferredLightResolve_setLightShader(dsDeferredLightResolve* resolve,
+	dsSceneLightType lightType, dsShader* shader)
 {
-	if (!resolve || !shader || !resolve->directionalShader)
+	if (!resolve || !shader)
 	{
 		errno = EINVAL;
 		return false;
 	}
 
-	resolve->directionalShader = shader;
+	if (lightType < 0 || lightType >= dsSceneLightType_Count)
+	{
+		errno = EINDEX;
+		return false;
+	}
+
+	if (!resolve->lightInfos[lightType].shader)
+	{
+		errno = EPERM;
+		return false;
+	}
+
+	resolve->lightInfos[lightType].shader = shader;
 	return true;
 }
 
-dsMaterial* dsDeferredLightResolve_getDirectionalMaterial(const dsDeferredLightResolve* resolve)
+dsMaterial* dsDeferredLightResolve_getLightMaterial(const dsDeferredLightResolve* resolve,
+	dsSceneLightType lightType)
 {
-	if (!resolve)
+	if (!resolve || lightType < 0 || lightType >= dsSceneLightType_Count)
 		return NULL;
 
-	return resolve->directionalMaterial;
+	return resolve->lightInfos[lightType].material;
 }
 
-bool dsDeferredLightResolve_setDirectionalMaterial(dsDeferredLightResolve* resolve,
-	dsMaterial* material)
+bool dsDeferredLightResolve_setLightMaterial(dsDeferredLightResolve* resolve,
+	dsSceneLightType lightType, dsMaterial* material)
 {
-	if (!resolve || !material || !resolve->directionalShader)
+	if (!resolve || !material)
 	{
 		errno = EINVAL;
 		return false;
 	}
 
-	resolve->directionalMaterial = material;
+	if (lightType < 0 || lightType >= dsSceneLightType_Count)
+	{
+		errno = EINDEX;
+		return false;
+	}
+
+	if (!resolve->lightInfos[lightType].shader)
+	{
+		errno = EPERM;
+		return false;
+	}
+
+	resolve->lightInfos[lightType].material = material;
 	return true;
 }
 
-dsShader* dsDeferredLightResolve_getPointShader(const dsDeferredLightResolve* resolve)
+dsShader* dsDeferredLightResolve_getShadowLightShader(const dsDeferredLightResolve* resolve,
+	dsSceneLightType lightType)
 {
-	if (!resolve)
+	if (!resolve || lightType < 0 || lightType >= dsSceneLightType_Count)
 		return NULL;
 
-	return resolve->pointShader;
+	return resolve->shadowLightInfos[lightType].shader;
 }
 
-bool dsDeferredLightResolve_setPointShader(dsDeferredLightResolve* resolve, dsShader* shader)
+bool dsDeferredLightResolve_setShadowLightShader(dsDeferredLightResolve* resolve,
+	dsSceneLightType lightType, dsShader* shader)
 {
-	if (!resolve || !shader || !resolve->pointShader)
+	if (!resolve || !shader)
 	{
 		errno = EINVAL;
 		return false;
 	}
 
-	resolve->pointShader = shader;
+	if (lightType < 0 || lightType >= dsSceneLightType_Count)
+	{
+		errno = EINDEX;
+		return false;
+	}
+
+	if (!resolve->shadowLightInfos[lightType].shader)
+	{
+		errno = EPERM;
+		return false;
+	}
+
+	resolve->shadowLightInfos[lightType].shader = shader;
 	return true;
 }
 
-dsMaterial* dsDeferredLightResolve_getPointMaterial(const dsDeferredLightResolve* resolve)
+dsMaterial* dsDeferredLightResolve_getShadowLightMaterial(const dsDeferredLightResolve* resolve,
+	dsSceneLightType lightType)
 {
-	if (!resolve)
+	if (!resolve || lightType < 0 || lightType >= dsSceneLightType_Count)
 		return NULL;
 
-	return resolve->pointMaterial;
+	return resolve->shadowLightInfos[lightType].material;
 }
 
-bool dsDeferredLightResolve_setPointMaterial(dsDeferredLightResolve* resolve, dsMaterial* material)
+bool dsDeferredLightResolve_setShadowLightMaterial(dsDeferredLightResolve* resolve,
+	dsSceneLightType lightType, dsMaterial* material)
 {
-	if (!resolve || !material || !resolve->pointShader)
+	if (!resolve || !material)
 	{
 		errno = EINVAL;
 		return false;
 	}
 
-	resolve->pointMaterial = material;
+	if (lightType < 0 || lightType >= dsSceneLightType_Count)
+	{
+		errno = EINDEX;
+		return false;
+	}
+
+	if (!resolve->shadowLightInfos[lightType].shader)
+	{
+		errno = EPERM;
+		return false;
+	}
+
+	resolve->shadowLightInfos[lightType].material = material;
 	return true;
 }
 
-dsShader* dsDeferredLightResolve_getSpotShader(const dsDeferredLightResolve* resolve)
+uint32_t dsDeferredLightResolve_getShadowLightTransformGroupID(
+	const dsDeferredLightResolve* resolve, dsSceneLightType lightType)
 {
-	if (!resolve)
-		return NULL;
+	if (!resolve || lightType < 0 || lightType >= dsSceneLightType_Count)
+		return 0;
 
-	return resolve->spotShader;
+	return resolve->shadowLightInfos[lightType].transformGroupID;
 }
 
-bool dsDeferredLightResolve_setSpotShader(dsDeferredLightResolve* resolve, dsShader* shader)
+bool dsDeferredLightResolve_setShadowLightTransformGroupID(dsDeferredLightResolve* resolve,
+	dsSceneLightType lightType, uint32_t groupID)
 {
-	if (!resolve || !shader || !resolve->spotShader)
+	if (!resolve || !groupID)
 	{
 		errno = EINVAL;
 		return false;
 	}
 
-	resolve->spotShader = shader;
+	if (lightType < 0 || lightType >= dsSceneLightType_Count)
+	{
+		errno = EINDEX;
+		return false;
+	}
+
+	if (!resolve->shadowLightInfos[lightType].shader)
+	{
+		errno = EPERM;
+		return false;
+	}
+
+	resolve->shadowLightInfos[lightType].transformGroupID = groupID;
 	return true;
 }
 
-dsMaterial* dsDeferredLightResolve_getSpotMaterial(const dsDeferredLightResolve* resolve)
+bool dsDeferredLightResolve_setShadowLightTransformGroupNameName(dsDeferredLightResolve* resolve,
+	dsSceneLightType lightType, const char* groupName)
 {
-	if (!resolve)
-		return NULL;
-
-	return resolve->spotMaterial;
-}
-
-bool dsDeferredLightResolve_setSpotMaterial(dsDeferredLightResolve* resolve, dsMaterial* material)
-{
-	if (!resolve || !material || !resolve->spotShader)
+	if (!resolve || !groupName)
 	{
 		errno = EINVAL;
 		return false;
 	}
 
-	resolve->spotMaterial = material;
+	if (lightType < 0 || lightType >= dsSceneLightType_Count)
+	{
+		errno = EINDEX;
+		return false;
+	}
+
+	if (!resolve->shadowLightInfos[lightType].shader)
+	{
+		errno = EPERM;
+		return false;
+	}
+
+	resolve->shadowLightInfos[lightType].transformGroupID = dsHashString(groupName);
 	return true;
 }
 
@@ -827,6 +965,7 @@ void dsDeferredLightResolve_destroy(dsDeferredLightResolve* resolve)
 		return;
 
 	dsSceneItemList* itemList = (dsSceneItemList*)resolve;
+	dsSharedMaterialValues_destroy(resolve->shadowValues);
 
 	for (uint32_t i = 0; i < resolve->bufferCount; ++i)
 		freeBuffers(resolve->buffers + i);

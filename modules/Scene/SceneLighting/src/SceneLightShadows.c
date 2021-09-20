@@ -134,10 +134,10 @@ static bool transformGroupValid(const dsShaderVariableGroupDesc* transformGroupD
 					positionElement->type == dsMaterialType_Vec3 && distanceElement->count == 0;
 			}
 			return false;
+		default:
+			DS_ASSERT(false);
+			return false;
 	}
-
-	DS_ASSERT(false);
-	return false;
 }
 
 static void* getBufferData(dsSceneLightShadows* shadows)
@@ -812,6 +812,9 @@ bool dsSceneLightShadows_computeSurfaceProjection(dsSceneLightShadows* shadows, 
 				data->matrix = shadowMtx;
 			}
 			break;
+		default:
+			DS_ASSERT(false);
+			return false;
 	}
 
 	// Pre-increment, so check against one minus the total value to see when we're finished.

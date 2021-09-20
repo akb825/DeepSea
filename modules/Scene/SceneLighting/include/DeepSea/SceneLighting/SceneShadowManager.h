@@ -59,6 +59,14 @@ DS_SCENELIGHTING_EXPORT dsSceneShadowManager* dsSceneShadowManager_create(dsAllo
 	dsSceneLightShadows* const* lightShadows, uint32_t lightShadowsCount);
 
 /**
+ * @brief Gets the number of light shadows in a shadow manager.
+ * @param shadowManager The shadow manager.
+ * @return The number of light shadows.
+ */
+DS_SCENELIGHTING_EXPORT uint32_t dsSceneShadowManager_getLightShadowsCount(
+	const dsSceneShadowManager* shadowManager);
+
+/**
  * @brief Finds light shadows by its name.
  * @param shadowManager The shadow manager.
  * @param name The name of the light shadows. This may not be the name of the light the shadows are

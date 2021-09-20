@@ -407,10 +407,10 @@ bool dsSceneLight_isInFrustum(const dsSceneLight* light, const dsFrustum3f* frus
 
 			return dsFrustum3f_intersectOrientedBox(frustum, &bounds) !=  dsIntersectResult_Outside;
 		}
+		default:
+			DS_ASSERT(false);
+			return false;
 	}
-
-	DS_ASSERT(false);
-	return false;
 }
 
 bool dsSceneLight_getPointLightProjection(dsMatrix44f* result,

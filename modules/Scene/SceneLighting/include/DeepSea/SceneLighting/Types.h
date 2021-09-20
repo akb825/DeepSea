@@ -18,6 +18,7 @@
 
 #include <DeepSea/Core/Config.h>
 #include <DeepSea/Math/Types.h>
+#include <DeepSea/Render/Resources/Types.h>
 #include <stdbool.h>
 
 #ifdef __cplusplus
@@ -47,7 +48,8 @@ typedef enum dsSceneLightType
 {
 	dsSceneLightType_Directional, ///< Infinite light shining in a direction.
 	dsSceneLightType_Point,       ///< Light shining in all directions from a point.
-	dsSceneLightType_Spot         ///< Light shining in a direction from a point.
+	dsSceneLightType_Spot,        ///< Light shining in a direction from a point.
+	dsSceneLightType_Count        ///< The number of light types, useful when declaring arrays.
 } dsSceneLightType;
 
 /**
@@ -112,6 +114,13 @@ typedef struct dsSceneLight
 	 * This is the angle when a spot light finishes fading out.
 	 */
 	float outerSpotCosAngle;
+
+	/**
+	 * @brief The ID of the light name.
+	 *
+	 * This will be populated by dsSceneLightSet.
+	 */
+	uint32_t nameID;
 } dsSceneLight;
 
 /**
@@ -248,6 +257,43 @@ typedef struct dsSceneShadowParams
 	 */
 	float maxDistance;
 } dsSceneShadowParams;
+
+/**
+ * @brief Struct containing the info required to draw a deferred light.
+ */
+typedef struct dsDeferredLightDrawInfo
+{
+	/**
+	 * @brief The shader to draw the light with.
+	 */
+	dsShader* shader;
+
+	/**
+	 * @brief The material to bind with the shader.
+	 */
+	dsMaterial* material;
+} dsDeferredLightDrawInfo;
+
+/**
+ * @brief Struct containing the info required to draw a deferred light with shadows.
+ */
+typedef struct dsDeferredShadowLightDrawInfo
+{
+	/**
+	 * @brief The shader to draw the light with.
+	 */
+	dsShader* shader;
+
+	/**
+	 * @brief The material to bind with the shader.
+	 */
+	dsMaterial* material;
+
+	/**
+	 * @brief The name of the shadow transform group.
+	 */
+	const char* transformGroupName;
+} dsDeferredShadowLightDrawInfo;
 
 /**
  * @brief Struct defining the set of lights used in a scene.

@@ -171,6 +171,11 @@ dsSceneShadowManager* dsSceneShadowManager_create(dsAllocator* allocator,
 	return shadowManager;
 }
 
+uint32_t dsSceneShadowManager_getLightShadowsCount(const dsSceneShadowManager* shadowManager)
+{
+	return shadowManager ? (uint32_t)shadowManager->lightShadowsPool.chunkCount : 0;
+}
+
 dsSceneLightShadows* dsSceneShadowManager_findLightShadows(
 	const dsSceneShadowManager* shadowManager, const char* name)
 {

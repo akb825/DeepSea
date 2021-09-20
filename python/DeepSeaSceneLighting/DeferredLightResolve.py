@@ -32,59 +32,87 @@ class DeferredLightResolve(object):
         return None
 
     # DeferredLightResolve
-    def AmbientShader(self):
+    def ShadowManager(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         if o != 0:
             return self._tab.String(o + self._tab.Pos)
         return None
 
     # DeferredLightResolve
-    def AmbientMaterial(self):
+    def Ambient(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
         if o != 0:
-            return self._tab.String(o + self._tab.Pos)
+            x = self._tab.Indirect(o + self._tab.Pos)
+            from DeepSeaSceneLighting.DeferredLightInfo import DeferredLightInfo
+            obj = DeferredLightInfo()
+            obj.Init(self._tab.Bytes, x)
+            return obj
         return None
 
     # DeferredLightResolve
-    def DirectionalShader(self):
+    def Directional(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(10))
         if o != 0:
-            return self._tab.String(o + self._tab.Pos)
+            x = self._tab.Indirect(o + self._tab.Pos)
+            from DeepSeaSceneLighting.DeferredLightInfo import DeferredLightInfo
+            obj = DeferredLightInfo()
+            obj.Init(self._tab.Bytes, x)
+            return obj
         return None
 
     # DeferredLightResolve
-    def DirectionalMaterial(self):
+    def Point(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(12))
         if o != 0:
-            return self._tab.String(o + self._tab.Pos)
+            x = self._tab.Indirect(o + self._tab.Pos)
+            from DeepSeaSceneLighting.DeferredLightInfo import DeferredLightInfo
+            obj = DeferredLightInfo()
+            obj.Init(self._tab.Bytes, x)
+            return obj
         return None
 
     # DeferredLightResolve
-    def PointShader(self):
+    def Spot(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(14))
         if o != 0:
-            return self._tab.String(o + self._tab.Pos)
+            x = self._tab.Indirect(o + self._tab.Pos)
+            from DeepSeaSceneLighting.DeferredLightInfo import DeferredLightInfo
+            obj = DeferredLightInfo()
+            obj.Init(self._tab.Bytes, x)
+            return obj
         return None
 
     # DeferredLightResolve
-    def PointMaterial(self):
+    def ShadowDirectional(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(16))
         if o != 0:
-            return self._tab.String(o + self._tab.Pos)
+            x = self._tab.Indirect(o + self._tab.Pos)
+            from DeepSeaSceneLighting.DeferredShadowLightInfo import DeferredShadowLightInfo
+            obj = DeferredShadowLightInfo()
+            obj.Init(self._tab.Bytes, x)
+            return obj
         return None
 
     # DeferredLightResolve
-    def SpotShader(self):
+    def ShadowPoint(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(18))
         if o != 0:
-            return self._tab.String(o + self._tab.Pos)
+            x = self._tab.Indirect(o + self._tab.Pos)
+            from DeepSeaSceneLighting.DeferredShadowLightInfo import DeferredShadowLightInfo
+            obj = DeferredShadowLightInfo()
+            obj.Init(self._tab.Bytes, x)
+            return obj
         return None
 
     # DeferredLightResolve
-    def SpotMaterial(self):
+    def ShadowSpot(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(20))
         if o != 0:
-            return self._tab.String(o + self._tab.Pos)
+            x = self._tab.Indirect(o + self._tab.Pos)
+            from DeepSeaSceneLighting.DeferredShadowLightInfo import DeferredShadowLightInfo
+            obj = DeferredShadowLightInfo()
+            obj.Init(self._tab.Bytes, x)
+            return obj
         return None
 
     # DeferredLightResolve
@@ -102,38 +130,38 @@ def AddLightSet(builder, lightSet): builder.PrependUOffsetTRelativeSlot(0, flatb
 def DeferredLightResolveAddLightSet(builder, lightSet):
     """This method is deprecated. Please switch to AddLightSet."""
     return AddLightSet(builder, lightSet)
-def AddAmbientShader(builder, ambientShader): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(ambientShader), 0)
-def DeferredLightResolveAddAmbientShader(builder, ambientShader):
-    """This method is deprecated. Please switch to AddAmbientShader."""
-    return AddAmbientShader(builder, ambientShader)
-def AddAmbientMaterial(builder, ambientMaterial): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(ambientMaterial), 0)
-def DeferredLightResolveAddAmbientMaterial(builder, ambientMaterial):
-    """This method is deprecated. Please switch to AddAmbientMaterial."""
-    return AddAmbientMaterial(builder, ambientMaterial)
-def AddDirectionalShader(builder, directionalShader): builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(directionalShader), 0)
-def DeferredLightResolveAddDirectionalShader(builder, directionalShader):
-    """This method is deprecated. Please switch to AddDirectionalShader."""
-    return AddDirectionalShader(builder, directionalShader)
-def AddDirectionalMaterial(builder, directionalMaterial): builder.PrependUOffsetTRelativeSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(directionalMaterial), 0)
-def DeferredLightResolveAddDirectionalMaterial(builder, directionalMaterial):
-    """This method is deprecated. Please switch to AddDirectionalMaterial."""
-    return AddDirectionalMaterial(builder, directionalMaterial)
-def AddPointShader(builder, pointShader): builder.PrependUOffsetTRelativeSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(pointShader), 0)
-def DeferredLightResolveAddPointShader(builder, pointShader):
-    """This method is deprecated. Please switch to AddPointShader."""
-    return AddPointShader(builder, pointShader)
-def AddPointMaterial(builder, pointMaterial): builder.PrependUOffsetTRelativeSlot(6, flatbuffers.number_types.UOffsetTFlags.py_type(pointMaterial), 0)
-def DeferredLightResolveAddPointMaterial(builder, pointMaterial):
-    """This method is deprecated. Please switch to AddPointMaterial."""
-    return AddPointMaterial(builder, pointMaterial)
-def AddSpotShader(builder, spotShader): builder.PrependUOffsetTRelativeSlot(7, flatbuffers.number_types.UOffsetTFlags.py_type(spotShader), 0)
-def DeferredLightResolveAddSpotShader(builder, spotShader):
-    """This method is deprecated. Please switch to AddSpotShader."""
-    return AddSpotShader(builder, spotShader)
-def AddSpotMaterial(builder, spotMaterial): builder.PrependUOffsetTRelativeSlot(8, flatbuffers.number_types.UOffsetTFlags.py_type(spotMaterial), 0)
-def DeferredLightResolveAddSpotMaterial(builder, spotMaterial):
-    """This method is deprecated. Please switch to AddSpotMaterial."""
-    return AddSpotMaterial(builder, spotMaterial)
+def AddShadowManager(builder, shadowManager): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(shadowManager), 0)
+def DeferredLightResolveAddShadowManager(builder, shadowManager):
+    """This method is deprecated. Please switch to AddShadowManager."""
+    return AddShadowManager(builder, shadowManager)
+def AddAmbient(builder, ambient): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(ambient), 0)
+def DeferredLightResolveAddAmbient(builder, ambient):
+    """This method is deprecated. Please switch to AddAmbient."""
+    return AddAmbient(builder, ambient)
+def AddDirectional(builder, directional): builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(directional), 0)
+def DeferredLightResolveAddDirectional(builder, directional):
+    """This method is deprecated. Please switch to AddDirectional."""
+    return AddDirectional(builder, directional)
+def AddPoint(builder, point): builder.PrependUOffsetTRelativeSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(point), 0)
+def DeferredLightResolveAddPoint(builder, point):
+    """This method is deprecated. Please switch to AddPoint."""
+    return AddPoint(builder, point)
+def AddSpot(builder, spot): builder.PrependUOffsetTRelativeSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(spot), 0)
+def DeferredLightResolveAddSpot(builder, spot):
+    """This method is deprecated. Please switch to AddSpot."""
+    return AddSpot(builder, spot)
+def AddShadowDirectional(builder, shadowDirectional): builder.PrependUOffsetTRelativeSlot(6, flatbuffers.number_types.UOffsetTFlags.py_type(shadowDirectional), 0)
+def DeferredLightResolveAddShadowDirectional(builder, shadowDirectional):
+    """This method is deprecated. Please switch to AddShadowDirectional."""
+    return AddShadowDirectional(builder, shadowDirectional)
+def AddShadowPoint(builder, shadowPoint): builder.PrependUOffsetTRelativeSlot(7, flatbuffers.number_types.UOffsetTFlags.py_type(shadowPoint), 0)
+def DeferredLightResolveAddShadowPoint(builder, shadowPoint):
+    """This method is deprecated. Please switch to AddShadowPoint."""
+    return AddShadowPoint(builder, shadowPoint)
+def AddShadowSpot(builder, shadowSpot): builder.PrependUOffsetTRelativeSlot(8, flatbuffers.number_types.UOffsetTFlags.py_type(shadowSpot), 0)
+def DeferredLightResolveAddShadowSpot(builder, shadowSpot):
+    """This method is deprecated. Please switch to AddShadowSpot."""
+    return AddShadowSpot(builder, shadowSpot)
 def AddIntensityThreshold(builder, intensityThreshold): builder.PrependFloat32Slot(9, intensityThreshold, 0.0)
 def DeferredLightResolveAddIntensityThreshold(builder, intensityThreshold):
     """This method is deprecated. Please switch to AddIntensityThreshold."""

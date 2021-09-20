@@ -63,14 +63,31 @@ The following global data types are provided with the members that are expected:
 The following item list types are provided with the members that are expected:
 * `"DeferredLightResolve"`:
 	* `lightSet`: name of the light set to draw the lights from.
-	* `ambientShader`: the name of the shader used for the ambient light. This may be null or ommitted to not draw ambient.
-	* `ambientMaterial`: the name of the material used for the ambient light.
-	* `drectionalShader`: the name of the shader used for directional lights. This may be null or ommitted to not draw directional lights.
-	* `drectionalMaterial`: the name of the material used for directional lights.
-	* `pointShader`: the name of the shader used for point lights. This may be null or ommitted to not draw point lights.
-	* `pointMaterial`: the name of the material used for point lights.
-	* `spotShader`: the name of the shader used for spot lights. This may be null or ommitted to not draw spot lights.
-	* `spotMaterial`: the name of the material used for spot lights.
+	* `shadowManager`: name of the shadow manager when drawing shadowed lights.
+	* `ambient`: object containing info for the ambient light. If omitted, the ambient light won't be drawn. It is expected to contain the following elements:
+		* `shader`: the name of the shader to draw the light.
+		* `material`: the name of the material to use with the light shader.
+	* `directional`: object containing info for non-shadowed directional lights. If omitted, non-shadowed directional lights won't be drawn. It is expected to contain the following elements:
+		* `shader`: the name of the shader to draw the light.
+		* `material`: the name of the material to use with the light shader.
+	* `point`: object containing info for non-shadowed point lights. If omitted, non-shadowed spot lights won't be drawn. It is expected to contain the following elements:
+		* `shader`: the name of the shader to draw the light.
+		* `material`: the name of the material to use with the light shader.
+	* `spot`: object containing info for non-shadowed spot lights. If omitted, non-shadowed spot lights won't be drawn. It is expected to contain the following elements:
+		* `shader`: the name of the shader to draw the light.
+		* `material`: the name of the material to use with the light shader.
+	* `shadowDirectional`: object containing info for shadowed directional lights. If omitted, shadowedDirectional: lights won't be drawn. It is expected to contain the following elements:
+		* `shader`: the name of the shader to draw the light.
+		* `material`: the name of the material to use with the light shader.
+		* `transformGroup`: name of the shader variable group containing the shadow transform.
+	* `shadowPoint`: object containing info for shadowed point lights. If omitted, shadowed spot lights won't be drawn. It is expected to contain the following elements:
+		* `shader`: the name of the shader to draw the light.
+		* `material`: the name of the material to use with the light shader.
+		* `transformGroup`: name of the shader variable group containing the shadow transform.
+	* `spot`: object containing info for shadowed spot lights. If omitted, shadowed spot lights won't be drawn. It is expected to contain the following elements:
+		* `shader`: the name of the shader to draw the light.
+		* `material`: the name of the material to use with the light shader.
+		* `transformGroup`: name of the shader variable group containing the shadow transform.
 	* `intensityThreshold`: the threshold below which the light is considered out of view. If unset this will use the default.
 * `"ShadowCullList"`
 	* `shadowManager`: name of the shadow manager that contains the shadows being culled for.

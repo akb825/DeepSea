@@ -35,6 +35,7 @@
 typedef struct LightNode
 {
 	dsHashTableNode node;
+	// Store ID separately in node to guarantee user changes to the ID field won't break this.
 	uint32_t id;
 	dsSceneLight light;
 } LightNode;
@@ -243,18 +244,12 @@ dsCustomSceneResource* dsSceneLightSet_createResource(dsAllocator* allocator,
 
 uint32_t dsSceneLightSet_getMaxLights(const dsSceneLightSet* lightSet)
 {
-	if (!lightSet)
-		return 0;
-
-	return (uint32_t)lightSet->lightAllocator.chunkCount;
+	return lightSet ? (uint32_t)lightSet->lightAllocator.chunkCount : 0;
 }
 
 uint32_t dsSceneLightSet_getRemainingLights(const dsSceneLightSet* lightSet)
 {
-	if (!lightSet)
-		return 0;
-
-	return (uint32_t)lightSet->lightAllocator.freeCount;
+	return lightSet ? (uint32_t)lightSet->lightAllocator.freeCount : 0;
 }
 
 dsSceneLight* dsSceneLightSet_addLightName(dsSceneLightSet* lightSet, const char* name)
@@ -287,6 +282,7 @@ dsSceneLight* dsSceneLightSet_addLightID(dsSceneLightSet* lightSet, uint32_t nam
 		return NULL;
 	}
 
+	node->light.nameID = nameID;
 	return &node->light;
 }
 
