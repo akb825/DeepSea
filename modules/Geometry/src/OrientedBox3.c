@@ -369,108 +369,103 @@ bool dsOrientedBox3f_intersects(const dsOrientedBox3f* box, const dsOrientedBox3
 	if (!dsOrientedBox3_isValid(*box) || !dsOrientedBox3_isValid(*otherBox))
 		return false;
 
-	// Use separating axis theorem.
-	dsVector3f otherBoxCorners[DS_BOX3_CORNER_COUNT];
-	dsOrientedBox3f_corners(otherBoxCorners, otherBox);
+	// Optimized separating axes as explained by
+	// https://www.geometrictools.com/Documentation/DynamicCollisionDetection.pdf
+	// See also:
+	// https://github.com/davideberly/GeometricTools/blob/master/GTE/Mathematics/IntrOrientedBox3OrientedBox3.h
+	dsVector3f centerDiff;
+	dsVector3_sub(centerDiff, otherBox->center, box->center);
 
-	// Test axes of box.
-	{
-		dsVector3f centeredOtherBoxCorners[DS_BOX3_CORNER_COUNT];
-		for (unsigned int i = 0; i < DS_BOX3_CORNER_COUNT; ++i)
-		{
-			dsVector3_sub(centeredOtherBoxCorners[i], otherBoxCorners[i], box->center);
-		}
-
-		for (unsigned int i = 0; i < 3; ++i)
-		{
-			float boxMin = -box->halfExtents.values[i];
-			float boxMax = box->halfExtents.values[i];
-
-			float otherBoxMin = FLT_MAX;
-			float otherBoxMax = -FLT_MAX;
-			for (unsigned int j = 0; j < DS_BOX3_CORNER_COUNT; ++j)
-			{
-				float projectedPoint = dsVector3_dot(box->orientation.columns[i],
-					centeredOtherBoxCorners[j]);
-				otherBoxMin = dsMin(otherBoxMin, projectedPoint);
-				otherBoxMax = dsMax(otherBoxMax, projectedPoint);
-			}
-
-			if (!((boxMin >= otherBoxMin && boxMin <= otherBoxMax) ||
-				  (otherBoxMin >= boxMin && otherBoxMin <= boxMax)))
-			{
-				return false;
-			}
-		}
-	}
-
-	dsVector3f boxCorners[DS_BOX3_CORNER_COUNT];
-	dsOrientedBox3f_corners(boxCorners, box);
-
-	// Test axes of other box.
-	{
-		dsVector3f centeredBoxCorners[DS_BOX3_CORNER_COUNT];
-		for (unsigned int i = 0; i < DS_BOX3_CORNER_COUNT; ++i)
-		{
-			dsVector3_sub(centeredBoxCorners[i], boxCorners[i], otherBox->center);
-		}
-
-		for (unsigned int i = 0; i < 3; ++i)
-		{
-			float boxMin = FLT_MAX;
-			float boxMax = -FLT_MAX;
-			for (unsigned int j = 0; j < DS_BOX3_CORNER_COUNT; ++j)
-			{
-				float projectedPoint = dsVector3_dot(otherBox->orientation.columns[i],
-					centeredBoxCorners[j]);
-				boxMin = dsMin(boxMin, projectedPoint);
-				boxMax = dsMax(boxMax, projectedPoint);
-			}
-
-			float otherBoxMin = -otherBox->halfExtents.values[i];
-			float otherBoxMax = otherBox->halfExtents.values[i];
-
-			if (!((boxMin >= otherBoxMin && boxMin <= otherBoxMax) ||
-				  (otherBoxMin >= boxMin && otherBoxMin <= boxMax)))
-			{
-				return false;
-			}
-		}
-	}
-
-	// Test the permutations of the pairs of edges of each box.
+	const float parallelCutoff = 1.0f - 1e-6f;
+	float dotDiffAxes[3];
+	float dotAxes[3][3];
+	float absDotAxes[3][3];
+	bool hasParallel = false;
 	for (unsigned int i = 0; i < 3; ++i)
 	{
+		const dsVector3f* boxAxis = box->orientation.columns + i;
+		dotDiffAxes[i] = dsVector3_dot(centerDiff, *boxAxis);
 		for (unsigned int j = 0; j < 3; ++j)
 		{
-			dsVector3f axis;
-			dsVector3_cross(axis, box->orientation.columns[i], otherBox->orientation.columns[j]);
-
-			float boxMin = FLT_MAX;
-			float boxMax = -FLT_MAX;
-			for (unsigned int k = 0; k < DS_BOX3_CORNER_COUNT; ++k)
-			{
-				float projectedPoint = dsVector3_dot(axis, boxCorners[k]);
-				boxMin = dsMin(boxMin, projectedPoint);
-				boxMax = dsMax(boxMax, projectedPoint);
-			}
-
-			float otherBoxMin = FLT_MAX;
-			float otherBoxMax = -FLT_MAX;
-			for (unsigned int k = 0; k < DS_BOX3_CORNER_COUNT; ++k)
-			{
-				float projectedPoint = dsVector3_dot(axis, otherBoxCorners[k]);
-				otherBoxMin = dsMin(otherBoxMin, projectedPoint);
-				otherBoxMax = dsMax(otherBoxMax, projectedPoint);
-			}
-
-			if (!((boxMin >= otherBoxMin && boxMin <= otherBoxMax) ||
-			     (otherBoxMin >= boxMin && otherBoxMin <= boxMax)))
-			{
-				return false;
-			}
+			dotAxes[i][j] = dsVector3_dot(*boxAxis, otherBox->orientation.columns[j]);
+			absDotAxes[i][j] = fabsf(dotAxes[i][j]);
+			if (dotAxes[i][j] >= parallelCutoff)
+				hasParallel = true;
 		}
+
+		// Test axes for first box against second box.
+		float radius = box->halfExtents.values[i] + otherBox->halfExtents.x*absDotAxes[i][0] +
+			otherBox->halfExtents.y*absDotAxes[i][1] + otherBox->halfExtents.z*absDotAxes[i][2];
+		if (fabsf(dsVector3_dot(box->orientation.columns[i], centerDiff)) > radius)
+			return false;
 	}
+
+	// Test axes for second box against first box.
+	for (unsigned int i = 0; i < 3; ++i)
+	{
+		float radius = box->halfExtents.x*absDotAxes[0][i] + box->halfExtents.y*absDotAxes[1][i] +
+			box->halfExtents.z*absDotAxes[2][i] + otherBox->halfExtents.values[i];
+		if (fabsf(dsVector3_dot(otherBox->orientation.columns[i], centerDiff)) > radius)
+			return false;
+	}
+
+	// When there's a parallel set of axes it degenerates to 2D.
+	if (hasParallel)
+		return true;
+
+	// A0 x B0
+	float radius = box->halfExtents.y*absDotAxes[2][0] + box->halfExtents.z*absDotAxes[1][0] +
+		otherBox->halfExtents.y*absDotAxes[0][2] + otherBox->halfExtents.z*absDotAxes[0][1];
+	if (fabsf(dotDiffAxes[2]*dotAxes[1][0] - dotDiffAxes[1]*dotAxes[2][0]) > radius)
+		return false;
+
+	// A0 x B1
+	radius = box->halfExtents.y*absDotAxes[2][1] + box->halfExtents.z*absDotAxes[1][1] +
+		otherBox->halfExtents.x*absDotAxes[0][2] + otherBox->halfExtents.z*absDotAxes[0][0];
+	if (fabsf(dotDiffAxes[2]*dotAxes[1][1] - dotDiffAxes[1]*dotAxes[2][1]) > radius)
+		return false;
+
+	// A0 x B2
+	radius = box->halfExtents.y*absDotAxes[2][2] + box->halfExtents.z*absDotAxes[1][2] +
+		otherBox->halfExtents.x*absDotAxes[0][1] + otherBox->halfExtents.y*absDotAxes[0][0];
+	if (fabsf(dotDiffAxes[2]*dotAxes[1][2] - dotDiffAxes[1]*dotAxes[2][2]) > radius)
+		return false;
+
+	// A1 x B0
+	radius = box->halfExtents.x*absDotAxes[2][0] + box->halfExtents.z*absDotAxes[0][0] +
+		otherBox->halfExtents.y*absDotAxes[1][2] + otherBox->halfExtents.z*absDotAxes[1][1];
+	if (fabsf(dotDiffAxes[0]*dotAxes[2][0] - dotDiffAxes[2]*dotAxes[0][0]) > radius)
+		return false;
+
+	// A1 x B1
+	radius = box->halfExtents.x*absDotAxes[2][1] + box->halfExtents.z*absDotAxes[0][1] +
+		otherBox->halfExtents.x*absDotAxes[1][2] + otherBox->halfExtents.z*absDotAxes[1][0];
+	if (fabsf(dotDiffAxes[0]*dotAxes[2][1] - dotDiffAxes[2]*dotAxes[0][1]) > radius)
+		return false;
+
+	// A1 x B2
+	radius = box->halfExtents.x*absDotAxes[2][2] + box->halfExtents.z*absDotAxes[0][2] +
+		otherBox->halfExtents.x*absDotAxes[1][1] + otherBox->halfExtents.y*absDotAxes[1][0];
+	if (fabsf(dotDiffAxes[0]*dotAxes[2][2] - dotDiffAxes[2]*dotAxes[0][2]) > radius)
+		return false;
+
+	// A2 x B0
+	radius = box->halfExtents.x*absDotAxes[1][0] + box->halfExtents.y*absDotAxes[0][0] +
+		otherBox->halfExtents.y*absDotAxes[2][2] + otherBox->halfExtents.z*absDotAxes[2][1];
+	if (fabsf(dotDiffAxes[1]*dotAxes[0][0] - dotDiffAxes[0]*dotAxes[1][0]) > radius)
+		return false;
+
+	// A2 x B1
+	radius = box->halfExtents.x*absDotAxes[1][1] + box->halfExtents.y*absDotAxes[0][1] +
+		otherBox->halfExtents.x*absDotAxes[2][2] + otherBox->halfExtents.z*absDotAxes[2][0];
+	if (fabsf(dotDiffAxes[1]*dotAxes[0][1] - dotDiffAxes[0]*dotAxes[1][1]) > radius)
+		return false;
+
+	// A2 x B2
+	radius = box->halfExtents.x*absDotAxes[1][2] + box->halfExtents.y*absDotAxes[0][2] +
+		otherBox->halfExtents.x*absDotAxes[2][1] + otherBox->halfExtents.y*absDotAxes[2][0];
+	if (fabsf(dotDiffAxes[1]*dotAxes[0][2] - dotDiffAxes[0]*dotAxes[1][2]) > radius)
+		return false;
 
 	return true;
 }
@@ -483,109 +478,103 @@ bool dsOrientedBox3d_intersects(const dsOrientedBox3d* box, const dsOrientedBox3
 	if (!dsOrientedBox3_isValid(*box) || !dsOrientedBox3_isValid(*otherBox))
 		return false;
 
-	// Use separating axis theorem.
-	dsVector3d otherBoxCorners[DS_BOX3_CORNER_COUNT];
-	dsOrientedBox3d_corners(otherBoxCorners, otherBox);
+	// Optimized separating axes as explained by
+	// https://www.geometrictools.com/Documentation/DynamicCollisionDetection.pdf
+	// See also:
+	// https://github.com/davideberly/GeometricTools/blob/master/GTE/Mathematics/IntrOrientedBox3OrientedBox3.h
+	dsVector3d centerDiff;
+	dsVector3_sub(centerDiff, otherBox->center, box->center);
 
-	// Test axes of box.
-	{
-		dsVector3d centeredOtherBoxCorners[DS_BOX3_CORNER_COUNT];
-		for (unsigned int i = 0; i < DS_BOX3_CORNER_COUNT; ++i)
-		{
-			dsVector3_sub(centeredOtherBoxCorners[i], otherBoxCorners[i], box->center);
-		}
-
-		for (unsigned int i = 0; i < 3; ++i)
-		{
-			double boxMin = -box->halfExtents.values[i];
-			double boxMax = box->halfExtents.values[i];
-
-			double otherBoxMin = DBL_MAX;
-			double otherBoxMax = -DBL_MAX;
-			for (unsigned int j = 0; j < DS_BOX3_CORNER_COUNT; ++j)
-			{
-				double projectedPoint = dsVector3_dot(box->orientation.columns[i],
-					centeredOtherBoxCorners[j]);
-				otherBoxMin = dsMin(otherBoxMin, projectedPoint);
-				otherBoxMax = dsMax(otherBoxMax, projectedPoint);
-			}
-
-			if (!((boxMin >= otherBoxMin && boxMin <= otherBoxMax) ||
-				  (otherBoxMin >= boxMin && otherBoxMin <= boxMax)))
-			{
-				return false;
-			}
-		}
-	}
-
-	// Test axes of other box.
-	dsVector3d boxCorners[DS_BOX3_CORNER_COUNT];
-	dsOrientedBox3d_corners(boxCorners, box);
-
-	// Test axes of other box.
-	{
-		dsVector3d centeredBoxCorners[DS_BOX3_CORNER_COUNT];
-		for (unsigned int i = 0; i < DS_BOX3_CORNER_COUNT; ++i)
-		{
-			dsVector3_sub(centeredBoxCorners[i], boxCorners[i], otherBox->center);
-		}
-
-		for (unsigned int i = 0; i < 3; ++i)
-		{
-			double boxMin = DBL_MAX;
-			double boxMax = -DBL_MAX;
-			for (unsigned int j = 0; j < DS_BOX3_CORNER_COUNT; ++j)
-			{
-				double projectedPoint = dsVector3_dot(otherBox->orientation.columns[i],
-					centeredBoxCorners[j]);
-				boxMin = dsMin(boxMin, projectedPoint);
-				boxMax = dsMax(boxMax, projectedPoint);
-			}
-
-			double otherBoxMin = -otherBox->halfExtents.values[i];
-			double otherBoxMax = otherBox->halfExtents.values[i];
-
-			if (!((boxMin >= otherBoxMin && boxMin <= otherBoxMax) ||
-				  (otherBoxMin >= boxMin && otherBoxMin <= boxMax)))
-			{
-				return false;
-			}
-		}
-	}
-
-	// Test the permutations of the pairs of edges of each box.
+	const double parallelCutoff = 1.0 - 1e-14f;
+	double dotDiffAxes[3];
+	double dotAxes[3][3];
+	double absDotAxes[3][3];
+	bool hasParallel = false;
 	for (unsigned int i = 0; i < 3; ++i)
 	{
+		const dsVector3d* boxAxis = box->orientation.columns + i;
+		dotDiffAxes[i] = dsVector3_dot(centerDiff, *boxAxis);
 		for (unsigned int j = 0; j < 3; ++j)
 		{
-			dsVector3d axis;
-			dsVector3_cross(axis, box->orientation.columns[i], otherBox->orientation.columns[j]);
-
-			double boxMin = DBL_MAX;
-			double boxMax = -DBL_MAX;
-			for (unsigned int k = 0; k < DS_BOX3_CORNER_COUNT; ++k)
-			{
-				double projectedPoint = dsVector3_dot(axis, boxCorners[k]);
-				boxMin = dsMin(boxMin, projectedPoint);
-				boxMax = dsMax(boxMax, projectedPoint);
-			}
-
-			double otherBoxMin = DBL_MAX;
-			double otherBoxMax = -DBL_MAX;
-			for (unsigned int k = 0; k < DS_BOX3_CORNER_COUNT; ++k)
-			{
-				double projectedPoint = dsVector3_dot(axis, otherBoxCorners[k]);
-				otherBoxMin = dsMin(otherBoxMin, projectedPoint);
-				otherBoxMax = dsMax(otherBoxMax, projectedPoint);
-			}
-
-			if (!((boxMin >= otherBoxMin && boxMin <= otherBoxMax) ||
-			      (otherBoxMin >= boxMin && otherBoxMin <= boxMax)))
-			{
-				return false;
-			}
+			dotAxes[i][j] = dsVector3_dot(*boxAxis, otherBox->orientation.columns[j]);
+			absDotAxes[i][j] = fabs(dotAxes[i][j]);
+			if (dotAxes[i][j] >= parallelCutoff)
+				hasParallel = true;
 		}
+
+		// Test axes for first box against second box.
+		double radius = box->halfExtents.values[i] + otherBox->halfExtents.x*absDotAxes[i][0] +
+			otherBox->halfExtents.y*absDotAxes[i][1] + otherBox->halfExtents.z*absDotAxes[i][2];
+		if (fabs(dsVector3_dot(box->orientation.columns[i], centerDiff)) > radius)
+			return false;
 	}
+
+	// Test axes for second box against first box.
+	for (unsigned int i = 0; i < 3; ++i)
+	{
+		double radius = box->halfExtents.x*absDotAxes[0][i] + box->halfExtents.y*absDotAxes[1][i] +
+			box->halfExtents.z*absDotAxes[2][i] + otherBox->halfExtents.values[i];
+		if (fabs(dsVector3_dot(otherBox->orientation.columns[i], centerDiff)) > radius)
+			return false;
+	}
+
+	// When there's a parallel set of axes it degenerates to 2D.
+	if (hasParallel)
+		return true;
+
+	// A0 x B0
+	double radius = box->halfExtents.y*absDotAxes[2][0] + box->halfExtents.z*absDotAxes[1][0] +
+		otherBox->halfExtents.y*absDotAxes[0][2] + otherBox->halfExtents.z*absDotAxes[0][1];
+	if (fabs(dotDiffAxes[2]*dotAxes[1][0] - dotDiffAxes[1]*dotAxes[2][0]) > radius)
+		return false;
+
+	// A0 x B1
+	radius = box->halfExtents.y*absDotAxes[2][1] + box->halfExtents.z*absDotAxes[1][1] +
+		otherBox->halfExtents.x*absDotAxes[0][2] + otherBox->halfExtents.z*absDotAxes[0][0];
+	if (fabs(dotDiffAxes[2]*dotAxes[1][1] - dotDiffAxes[1]*dotAxes[2][1]) > radius)
+		return false;
+
+	// A0 x B2
+	radius = box->halfExtents.y*absDotAxes[2][2] + box->halfExtents.z*absDotAxes[1][2] +
+		otherBox->halfExtents.x*absDotAxes[0][1] + otherBox->halfExtents.y*absDotAxes[0][0];
+	if (fabs(dotDiffAxes[2]*dotAxes[1][2] - dotDiffAxes[1]*dotAxes[2][2]) > radius)
+		return false;
+
+	// A1 x B0
+	radius = box->halfExtents.x*absDotAxes[2][0] + box->halfExtents.z*absDotAxes[0][0] +
+		otherBox->halfExtents.y*absDotAxes[1][2] + otherBox->halfExtents.z*absDotAxes[1][1];
+	if (fabs(dotDiffAxes[0]*dotAxes[2][0] - dotDiffAxes[2]*dotAxes[0][0]) > radius)
+		return false;
+
+	// A1 x B1
+	radius = box->halfExtents.x*absDotAxes[2][1] + box->halfExtents.z*absDotAxes[0][1] +
+		otherBox->halfExtents.x*absDotAxes[1][2] + otherBox->halfExtents.z*absDotAxes[1][0];
+	if (fabs(dotDiffAxes[0]*dotAxes[2][1] - dotDiffAxes[2]*dotAxes[0][1]) > radius)
+		return false;
+
+	// A1 x B2
+	radius = box->halfExtents.x*absDotAxes[2][2] + box->halfExtents.z*absDotAxes[0][2] +
+		otherBox->halfExtents.x*absDotAxes[1][1] + otherBox->halfExtents.y*absDotAxes[1][0];
+	if (fabs(dotDiffAxes[0]*dotAxes[2][2] - dotDiffAxes[2]*dotAxes[0][2]) > radius)
+		return false;
+
+	// A2 x B0
+	radius = box->halfExtents.x*absDotAxes[1][0] + box->halfExtents.y*absDotAxes[0][0] +
+		otherBox->halfExtents.y*absDotAxes[2][2] + otherBox->halfExtents.z*absDotAxes[2][1];
+	if (fabs(dotDiffAxes[1]*dotAxes[0][0] - dotDiffAxes[0]*dotAxes[1][0]) > radius)
+		return false;
+
+	// A2 x B1
+	radius = box->halfExtents.x*absDotAxes[1][1] + box->halfExtents.y*absDotAxes[0][1] +
+		otherBox->halfExtents.x*absDotAxes[2][2] + otherBox->halfExtents.z*absDotAxes[2][0];
+	if (fabs(dotDiffAxes[1]*dotAxes[0][1] - dotDiffAxes[0]*dotAxes[1][1]) > radius)
+		return false;
+
+	// A2 x B2
+	radius = box->halfExtents.x*absDotAxes[1][2] + box->halfExtents.y*absDotAxes[0][2] +
+		otherBox->halfExtents.x*absDotAxes[2][1] + otherBox->halfExtents.y*absDotAxes[2][0];
+	if (fabs(dotDiffAxes[1]*dotAxes[0][2] - dotDiffAxes[0]*dotAxes[1][2]) > radius)
+		return false;
 
 	return true;
 }

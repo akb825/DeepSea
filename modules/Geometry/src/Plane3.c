@@ -291,46 +291,18 @@ dsIntersectResult dsPlane3f_intersectAlignedBox(const dsPlane3f* plane, const ds
 	DS_ASSERT(plane);
 	DS_ASSERT(box);
 
-	dsVector3f minPoint, maxPoint;
-	if (plane->n.x >= 0)
-	{
-		minPoint.x = box->min.x;
-		maxPoint.x = box->max.x;
-	}
-	else
-	{
-		minPoint.x = box->max.x;
-		maxPoint.x = box->min.x;
-	}
+	dsVector3f center, halfExtents;
+	dsAlignedBox3_center(center, *box);
+	dsAlignedBox3_extents(halfExtents, *box);
+	dsVector3_scale(halfExtents, halfExtents, 0.5f);
 
-	if (plane->n.y >= 0)
-	{
-		minPoint.y = box->min.y;
-		maxPoint.y = box->max.y;
-	}
-	else
-	{
-		minPoint.y = box->max.y;
-		maxPoint.y = box->min.y;
-	}
+	float radius = halfExtents.x*fabsf(plane->n.x) + halfExtents.y*fabsf(plane->n.y) +
+		halfExtents.z*fabsf(plane->n.z);
+	float centerDist = dsVector3_dot(plane->n, center) - plane->d;
 
-	if (plane->n.z >= 0)
-	{
-		minPoint.z = box->min.z;
-		maxPoint.z = box->max.z;
-	}
-	else
-	{
-		minPoint.z = box->max.z;
-		maxPoint.z = box->min.z;
-	}
-
-	float minD = dsVector3_dot(plane->n, minPoint);
-	float maxD = dsVector3_dot(plane->n, maxPoint);
-
-	if (minD > plane->d)
+	if (centerDist > radius)
 		return dsIntersectResult_Inside;
-	else if (maxD < plane->d)
+	else if (centerDist < -radius)
 		return dsIntersectResult_Outside;
 	else
 		return dsIntersectResult_Intersects;
@@ -341,46 +313,19 @@ dsIntersectResult dsPlane3d_intersectAlignedBox(const dsPlane3d* plane, const ds
 	DS_ASSERT(plane);
 	DS_ASSERT(box);
 
-	dsVector3d minPoint, maxPoint;
-	if (plane->n.x >= 0)
-	{
-		minPoint.x = box->min.x;
-		maxPoint.x = box->max.x;
-	}
-	else
-	{
-		minPoint.x = box->max.x;
-		maxPoint.x = box->min.x;
-	}
+	// https://gdbooks.gitbooks.io/3dcollisions/content/Chapter2/static_aabb_plane.html
+	dsVector3d center, halfExtents;
+	dsAlignedBox3_center(center, *box);
+	dsAlignedBox3_extents(halfExtents, *box);
+	dsVector3_scale(halfExtents, halfExtents, 0.5f);
 
-	if (plane->n.y >= 0)
-	{
-		minPoint.y = box->min.y;
-		maxPoint.y = box->max.y;
-	}
-	else
-	{
-		minPoint.y = box->max.y;
-		maxPoint.y = box->min.y;
-	}
+	double radius = halfExtents.x*fabs(plane->n.x) + halfExtents.y*fabs(plane->n.y) +
+		halfExtents.z*fabs(plane->n.z);
+	double centerDist = dsVector3_dot(plane->n, center) - plane->d;
 
-	if (plane->n.z >= 0)
-	{
-		minPoint.z = box->min.z;
-		maxPoint.z = box->max.z;
-	}
-	else
-	{
-		minPoint.z = box->max.z;
-		maxPoint.z = box->min.z;
-	}
-
-	double minD = dsVector3_dot(plane->n, minPoint);
-	double maxD = dsVector3_dot(plane->n, maxPoint);
-
-	if (minD > plane->d)
+	if (centerDist > radius)
 		return dsIntersectResult_Inside;
-	else if (maxD < plane->d)
+	else if (centerDist < -radius)
 		return dsIntersectResult_Outside;
 	else
 		return dsIntersectResult_Intersects;
@@ -391,18 +336,19 @@ dsIntersectResult dsPlane3f_intersectOrientedBox(const dsPlane3f* plane, const d
 	DS_ASSERT(plane);
 	DS_ASSERT(box);
 
-	// Do aligned box calculation in the space of the oriented box.
-	dsPlane3f transformedPlane;
-	dsMatrix33_transformTransposed(transformedPlane.n, box->orientation, plane->n);
-	transformedPlane.d = plane->d - dsVector3_dot(plane->n, box->center);
+	// Same as aligned box, but radius computation is projected to box orientation.
+	dsVector3f orientedNormal;
+	dsMatrix33_transformTransposed(orientedNormal, box->orientation, plane->n);
+	float radius = box->halfExtents.x*fabsf(orientedNormal.x) +
+		box->halfExtents.y*fabsf(orientedNormal.y) + box->halfExtents.z*fabsf(orientedNormal.z);
+	float centerDist = dsVector3_dot(plane->n, box->center) - plane->d;
 
-	dsAlignedBox3f localBox =
-	{
-		{{-box->halfExtents.x, -box->halfExtents.y, -box->halfExtents.z}},
-		{{box->halfExtents.x, box->halfExtents.y, box->halfExtents.z}}
-	};
-
-	return dsPlane3f_intersectAlignedBox(&transformedPlane, &localBox);
+	if (centerDist > radius)
+		return dsIntersectResult_Inside;
+	else if (centerDist < -radius)
+		return dsIntersectResult_Outside;
+	else
+		return dsIntersectResult_Intersects;
 }
 
 dsIntersectResult dsPlane3d_intersectOrientedBox(const dsPlane3d* plane, const dsOrientedBox3d* box)
@@ -410,18 +356,19 @@ dsIntersectResult dsPlane3d_intersectOrientedBox(const dsPlane3d* plane, const d
 	DS_ASSERT(plane);
 	DS_ASSERT(box);
 
-	// Do aligned box calculation in the space of the oriented box.
-	dsPlane3d transformedPlane;
-	dsMatrix33_transformTransposed(transformedPlane.n, box->orientation, plane->n);
-	transformedPlane.d = plane->d - dsVector3_dot(plane->n, box->center);
+	// Same as aligned box, but radius computation is projected to box orientation.
+	dsVector3d orientedNormal;
+	dsMatrix33_transformTransposed(orientedNormal, box->orientation, plane->n);
+	double radius = box->halfExtents.x*fabs(orientedNormal.x) +
+		box->halfExtents.y*fabs(orientedNormal.y) + box->halfExtents.z*fabs(orientedNormal.z);
+	double centerDist = dsVector3_dot(plane->n, box->center) - plane->d;
 
-	dsAlignedBox3d localBox =
-	{
-		{{-box->halfExtents.x, -box->halfExtents.y, -box->halfExtents.z}},
-		{{box->halfExtents.x, box->halfExtents.y, box->halfExtents.z}}
-	};
-
-	return dsPlane3d_intersectAlignedBox(&transformedPlane, &localBox);
+	if (centerDist > radius)
+		return dsIntersectResult_Inside;
+	else if (centerDist < -radius)
+		return dsIntersectResult_Outside;
+	else
+		return dsIntersectResult_Intersects;
 }
 
 void dsPlane3f_fromNormalPoint(dsPlane3f* result, const dsVector3f* normal,

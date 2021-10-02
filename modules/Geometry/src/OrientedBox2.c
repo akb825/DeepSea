@@ -317,69 +317,36 @@ bool dsOrientedBox2f_intersects(const dsOrientedBox2f* box, const dsOrientedBox2
 	if (!dsOrientedBox2_isValid(*box) || !dsOrientedBox2_isValid(*otherBox))
 		return false;
 
-	// Use separating axis theorem.
-	// Test axes of box.
+	// 2D subset for separating axes as explained by
+	// https://www.geometrictools.com/Documentation/DynamicCollisionDetection.pdf
+	// See also:
+	// https://github.com/davideberly/GeometricTools/blob/master/GTE/Mathematics/IntrOrientedBox2OrientedBox2.h
+	dsVector2f centerDiff;
+	dsVector2_sub(centerDiff, otherBox->center, box->center);
+
+	float absDotAxes[2][2];
+	for (unsigned int i = 0; i < 2; ++i)
 	{
-		dsVector2f otherBoxCorners[DS_BOX2_CORNER_COUNT];
-		dsOrientedBox2f_corners(otherBoxCorners, otherBox);
-		for (unsigned int i = 0; i < DS_BOX2_CORNER_COUNT; ++i)
+		for (unsigned int j = 0; j < 2; ++j)
 		{
-			dsVector2_sub(otherBoxCorners[i], otherBoxCorners[i], box->center);
+			absDotAxes[i][j] = fabsf(dsVector2_dot(box->orientation.columns[i],
+				otherBox->orientation.columns[j]));
 		}
 
-		for (unsigned int i = 0; i < 2; ++i)
-		{
-			float boxMin = -box->halfExtents.values[i];
-			float boxMax = box->halfExtents.values[i];
-
-			float otherBoxMin = FLT_MAX;
-			float otherBoxMax = -FLT_MAX;
-			for (unsigned int j = 0; j < DS_BOX2_CORNER_COUNT; ++j)
-			{
-				float projectedPoint = dsVector2_dot(box->orientation.columns[i],
-					otherBoxCorners[j]);
-				otherBoxMin = dsMin(otherBoxMin, projectedPoint);
-				otherBoxMax = dsMax(otherBoxMax, projectedPoint);
-			}
-
-			if (!((boxMin >= otherBoxMin && boxMin <= otherBoxMax) ||
-				  (otherBoxMin >= boxMin && otherBoxMin <= boxMax)))
-			{
-				return false;
-			}
-		}
+		// Test axes for first box against second box.
+		float radius = box->halfExtents.values[i] + otherBox->halfExtents.x*absDotAxes[i][0] +
+			otherBox->halfExtents.y*absDotAxes[i][1];
+		if (fabsf(dsVector2_dot(box->orientation.columns[i], centerDiff)) > radius)
+			return false;
 	}
 
-	// Test axes of other box.
+	// Test axes for second box against first box.
+	for (unsigned int i = 0; i < 2; ++i)
 	{
-		dsVector2f boxCorners[DS_BOX2_CORNER_COUNT];
-		dsOrientedBox2f_corners(boxCorners, box);
-		for (unsigned int i = 0; i < DS_BOX2_CORNER_COUNT; ++i)
-		{
-			dsVector2_sub(boxCorners[i], boxCorners[i], otherBox->center);
-		}
-
-		for (unsigned int i = 0; i < 2; ++i)
-		{
-			float boxMin = FLT_MAX;
-			float boxMax = -FLT_MAX;
-			for (unsigned int j = 0; j < DS_BOX2_CORNER_COUNT; ++j)
-			{
-				float projectedPoint = dsVector2_dot(otherBox->orientation.columns[i],
-					boxCorners[j]);
-				boxMin = dsMin(boxMin, projectedPoint);
-				boxMax = dsMax(boxMax, projectedPoint);
-			}
-
-			float otherBoxMin = -otherBox->halfExtents.values[i];
-			float otherBoxMax = otherBox->halfExtents.values[i];
-
-			if (!((boxMin >= otherBoxMin && boxMin <= otherBoxMax) ||
-				  (otherBoxMin >= boxMin && otherBoxMin <= boxMax)))
-			{
-				return false;
-			}
-		}
+		float radius = box->halfExtents.x*absDotAxes[0][i] + box->halfExtents.y*absDotAxes[1][i] +
+			otherBox->halfExtents.values[i];
+		if (fabsf(dsVector2_dot(otherBox->orientation.columns[i], centerDiff)) > radius)
+			return false;
 	}
 
 	return true;
@@ -393,69 +360,36 @@ bool dsOrientedBox2d_intersects(const dsOrientedBox2d* box, const dsOrientedBox2
 	if (!dsOrientedBox2_isValid(*box) || !dsOrientedBox2_isValid(*otherBox))
 		return false;
 
-	// Use separating axis theorem.
-	// Test axes of box.
+	// 2D subset for separating axes as explained by
+	// https://www.geometrictools.com/Documentation/DynamicCollisionDetection.pdf
+	// See also:
+	// https://github.com/davideberly/GeometricTools/blob/master/GTE/Mathematics/IntrOrientedBox2OrientedBox2.h
+	dsVector2d centerDiff;
+	dsVector2_sub(centerDiff, otherBox->center, box->center);
+
+	double absDotAxes[2][2];
+	for (unsigned int i = 0; i < 2; ++i)
 	{
-		dsVector2d otherBoxCorners[DS_BOX2_CORNER_COUNT];
-		dsOrientedBox2d_corners(otherBoxCorners, otherBox);
-		for (unsigned int i = 0; i < DS_BOX2_CORNER_COUNT; ++i)
+		for (unsigned int j = 0; j < 2; ++j)
 		{
-			dsVector2_sub(otherBoxCorners[i], otherBoxCorners[i], box->center);
+			absDotAxes[i][j] = fabs(dsVector2_dot(box->orientation.columns[i],
+				otherBox->orientation.columns[j]));
 		}
 
-		for (unsigned int i = 0; i < 2; ++i)
-		{
-			double boxMin = -box->halfExtents.values[i];
-			double boxMax = box->halfExtents.values[i];
-
-			double otherBoxMin = DBL_MAX;
-			double otherBoxMax = -DBL_MAX;
-			for (unsigned int j = 0; j < DS_BOX2_CORNER_COUNT; ++j)
-			{
-				double projectedPoint = dsVector2_dot(box->orientation.columns[i],
-					otherBoxCorners[j]);
-				otherBoxMin = dsMin(otherBoxMin, projectedPoint);
-				otherBoxMax = dsMax(otherBoxMax, projectedPoint);
-			}
-
-			if (!((boxMin >= otherBoxMin && boxMin <= otherBoxMax) ||
-				  (otherBoxMin >= boxMin && otherBoxMin <= boxMax)))
-			{
-				return false;
-			}
-		}
+		// Test axes for first box against second box.
+		double radius = box->halfExtents.values[i] + otherBox->halfExtents.x*absDotAxes[i][0] +
+			otherBox->halfExtents.y*absDotAxes[i][1];
+		if (fabs(dsVector2_dot(box->orientation.columns[i], centerDiff)) > radius)
+			return false;
 	}
 
-	// Test axes of other box.
+	// Test axes for second box against first box.
+	for (unsigned int i = 0; i < 2; ++i)
 	{
-		dsVector2d boxCorners[DS_BOX2_CORNER_COUNT];
-		dsOrientedBox2d_corners(boxCorners, box);
-		for (unsigned int i = 0; i < DS_BOX2_CORNER_COUNT; ++i)
-		{
-			dsVector2_sub(boxCorners[i], boxCorners[i], otherBox->center);
-		}
-
-		for (unsigned int i = 0; i < 2; ++i)
-		{
-			double boxMin = DBL_MAX;
-			double boxMax = -DBL_MAX;
-			for (unsigned int j = 0; j < DS_BOX2_CORNER_COUNT; ++j)
-			{
-				double projectedPoint = dsVector2_dot(otherBox->orientation.columns[i],
-					boxCorners[j]);
-				boxMin = dsMin(boxMin, projectedPoint);
-				boxMax = dsMax(boxMax, projectedPoint);
-			}
-
-			double otherBoxMin = -otherBox->halfExtents.values[i];
-			double otherBoxMax = otherBox->halfExtents.values[i];
-
-			if (!((boxMin >= otherBoxMin && boxMin <= otherBoxMax) ||
-				  (otherBoxMin >= boxMin && otherBoxMin <= boxMax)))
-			{
-				return false;
-			}
-		}
+		double radius = box->halfExtents.x*absDotAxes[0][i] + box->halfExtents.y*absDotAxes[1][i] +
+			otherBox->halfExtents.values[i];
+		if (fabs(dsVector2_dot(otherBox->orientation.columns[i], centerDiff)) > radius)
+			return false;
 	}
 
 	return true;
