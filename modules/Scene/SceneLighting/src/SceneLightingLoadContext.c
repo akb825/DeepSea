@@ -20,6 +20,7 @@
 #include "InstanceForwardLightDataLoad.h"
 #include "SceneLightSetLoad.h"
 #include "SceneLightSetPrepareLoad.h"
+#include "SceneShadowInstanceDataLoad.h"
 #include "SceneShadowManagerLoad.h"
 #include "SceneShadowManagerPrepareLoad.h"
 #include "ShadowCullListLoad.h"
@@ -31,6 +32,7 @@
 #include <DeepSea/SceneLighting/InstanceForwardLightData.h>
 #include <DeepSea/SceneLighting/SceneLightSet.h>
 #include <DeepSea/SceneLighting/SceneLightSetPrepare.h>
+#include <DeepSea/SceneLighting/SceneShadowInstanceData.h>
 #include <DeepSea/SceneLighting/SceneShadowManager.h>
 #include <DeepSea/SceneLighting/SceneShadowManagerPrepare.h>
 #include <DeepSea/SceneLighting/ShadowCullList.h>
@@ -76,6 +78,12 @@ bool dsSceneLightingLoadConext_registerTypes(dsSceneLoadContext* loadContext)
 
 	if (!dsSceneLoadContext_registerInstanceDataType(loadContext,
 			dsInstanceForwardLightData_typeName, &dsInstanceForwardLightData_load, NULL, NULL))
+	{
+		return false;
+	}
+
+	if (!dsSceneLoadContext_registerInstanceDataType(loadContext,
+			dsSceneShadowInstanceData_typeName, &dsSceneShadowInstanceData_load, NULL, NULL))
 	{
 		return false;
 	}

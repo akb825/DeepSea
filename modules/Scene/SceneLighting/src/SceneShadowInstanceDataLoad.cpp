@@ -14,33 +14,33 @@
  * limitations under the License.
  */
 
-#include "ShadowCullListLoad.h"
+#include "SceneShadowInstanceDataLoad.h"
 
-#include "Flatbuffers/ShadowCullList_generated.h"
+#include "Flatbuffers/SceneShadowInstanceData_generated.h"
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
-
 #include <DeepSea/Scene/SceneLoadScratchData.h>
+#include <DeepSea/SceneLighting/SceneShadowInstanceData.h>
 #include <DeepSea/SceneLighting/SceneShadowManager.h>
-#include <DeepSea/SceneLighting/ShadowCullList.h>
 
 extern "C"
-dsSceneItemList* dsShadowCullList_load(const dsSceneLoadContext*,
+dsSceneInstanceData* dsSceneShadowInstanceData_load(const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
-	void*, const char* name, const uint8_t* data, size_t dataSize)
+	void* userData, const uint8_t* data, size_t dataSize)
 {
 	flatbuffers::Verifier verifier(data, dataSize);
-	if (!DeepSeaSceneLighting::VerifyShadowCullListBuffer(verifier))
+	if (!DeepSeaSceneLighting::VerifySceneShadowInstanceDataBuffer(verifier))
 	{
 		errno = EFORMAT;
-		DS_LOG_ERROR(DS_SCENE_LIGHTING_LOG_TAG, "Invalid shadow cull list flatbuffer format.");
+		DS_LOG_ERROR(DS_SCENE_LOG_TAG, "Invalid scene shadow instance data flatbuffer format.");
 		return nullptr;
 	}
 
-	auto fbCullList = DeepSeaSceneLighting::GetShadowCullList(data);
-	const char* shadowManagerName = fbCullList->shadowManager()->c_str();
-	const char* shadowsName = fbCullList->shadows()->c_str();
+	auto fbShadowInstanceData = DeepSeaSceneLighting::GetSceneShadowInstanceData(data);
+	const char* shadowManagerName = fbShadowInstanceData->shadowManager()->c_str();
+	const char* shadowsName = fbShadowInstanceData->shadows()->c_str();
+	const char* transformGroupName = fbShadowInstanceData->transformGroupName()->c_str();
 	dsSceneResourceType type;
 	dsCustomSceneResource* resource;
 	if (!dsSceneLoadScratchData_findResource(&type, (void**)&resource, scratchData,
@@ -65,5 +65,5 @@ dsSceneItemList* dsShadowCullList_load(const dsSceneLoadContext*,
 		return nullptr;
 	}
 
-	return dsShadowCullList_create(allocator, name, shadows, fbCullList->surface());
+	return dsSceneShadowInstanceData_create(allocator, shadows, transformGroupName);
 }

@@ -34,7 +34,7 @@ dsSceneInstanceData* dsSceneInstanceData_load(dsAllocator* allocator,
 	{
 		errno = ENOTFOUND;
 		DS_LOG_ERROR_F(DS_SCENE_LOG_TAG, "Unknown scene instance data type '%s'.", type);
-		return NULL;
+		return nullptr;
 	}
 
 	dsSceneInstanceData* instanceData = foundType->loadFunc(loadContext, scratchData, allocator,

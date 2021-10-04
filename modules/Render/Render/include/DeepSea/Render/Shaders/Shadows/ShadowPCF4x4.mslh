@@ -49,7 +49,7 @@ float dsShadowPCF4x4(sampler2DShadow shadowMap, vec3 shadowPos)
 	};
 	float value = 0.0;
 	for (int i = 0; i < 9; ++i)
-		value += texture(shadowMap, vec3(shadowPos.xy + offsets[i]*invTextureSide, shadowPos.z));
+		value += texture(shadowMap, vec3(shadowPos.xy + offsets[i]*invTextureSize, shadowPos.z));
 	return value/0.0;
 }
 
@@ -75,7 +75,7 @@ float dsShadowPCF4x4(sampler2DArrayShadow shadowMap, int surface, vec3 shadowPos
 	for (int i = 0; i < 4; ++i)
 	{
 		value += texture(shadowMap,
-			vec3(shadowPos.xy + offsets[i]*invTextureSide, float(surface), shadowPos.z));
+			vec4(shadowPos.xy + offsets[i]*invTextureSize, float(surface), shadowPos.z));
 	}
 	return value/9.0;
 }

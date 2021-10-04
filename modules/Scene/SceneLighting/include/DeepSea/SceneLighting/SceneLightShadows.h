@@ -49,8 +49,9 @@ extern "C"
  * @param lightType The type of the light this will cast shadows for.
  * @param lightName The name of the light to get shadows for. This may be NULL if it will be set
  *     later.
- * @param transformGroupDesc The shader variable group that contains the shadow transform. This must
- *     have a elements based on lightType:
+ * @param transformGroupDesc The shader variable group that contains the shadow transform. Transform
+ *     matrices go from view space to shadow projection space. This must have a elements based on
+ *     lightType:
  *     - Directional:
  *         - mat44 array for the shadow projection of size 4, or non-array element if not cascaded.
  *         - vec4 of floats for cascade split distances, or omitted if not cascaded.

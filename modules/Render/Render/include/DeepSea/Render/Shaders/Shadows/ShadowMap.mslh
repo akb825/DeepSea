@@ -31,6 +31,10 @@
 #error Shadows require support for shadow samplers
 #endif
 
+#ifndef DS_SHADOW_FILTER
+#error DS_SHADOW_FILTER must be defined to provide the shadow filter function.
+#endif
+
 /**
  * @brief Performs a shadow map lookup.
  * @param shadowMap The shadow map to look up in.

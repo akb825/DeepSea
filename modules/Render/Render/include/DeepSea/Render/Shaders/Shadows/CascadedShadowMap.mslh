@@ -29,6 +29,10 @@
 #error Cascaded shadows require support for shadow samplers and texture arrays
 #endif
 
+#ifndef DS_SHADOW_FILTER
+#error DS_SHADOW_FILTER must be defined to provide the shadow filter function.
+#endif
+
 /**
  * @brief Performs a shadow map lookup.
  * @param shadowMap The shadow map to look up in.

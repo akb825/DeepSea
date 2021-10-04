@@ -27,11 +27,6 @@ extern "C"
 #endif
 
 /**
- * @brief The default number of forward lights.
- */
-#define DS_DEFAULT_FORWARD_LIGHT_COUNT 4
-
-/**
  * @file
  * @brief Functions for creating dsSceneInstanceData instances that manage lights on instances for
  * forward lighting.
@@ -42,6 +37,11 @@ extern "C"
  *
  * @see dsSceneInstanceData
  */
+
+/**
+ * @brief The default number of forward lights.
+ */
+#define DS_DEFAULT_FORWARD_LIGHT_COUNT 4
 
 /**
  * @brief The instance forward light data type name.

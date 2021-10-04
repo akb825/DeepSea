@@ -33,7 +33,7 @@ dsSceneItemList* dsSceneItemList_load(dsAllocator* allocator, dsAllocator* resou
 	{
 		errno = ENOTFOUND;
 		DS_LOG_ERROR_F(DS_SCENE_LOG_TAG, "Unknown scene item list type '%s'.", type);
-		return NULL;
+		return nullptr;
 	}
 
 	dsSceneItemList* itemList = foundType->loadFunc(loadContext, scratchData, allocator,

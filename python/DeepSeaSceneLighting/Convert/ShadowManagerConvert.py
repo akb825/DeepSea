@@ -26,6 +26,8 @@ def convertShadowManager(convertContext, data):
 	"""
 	Converts a shadow manager for a scene. The data map is expected to contain the following
 	elements:
+	- lightSet: the name of the light set to query the light from. If set, this will be the default
+	  for elements in the shadows array.
 	- shadows: array of objects for the shadows the shadow manager will manage. Each element is
 	  expected to have the following members:
 	  - name: name of the shadows.
@@ -61,13 +63,16 @@ def convertShadowManager(convertContext, data):
 
 	try:
 		shadowsData = data['shadows']
+		defaultLightSet = data.get('lightSet', '')
 		shadows = []
 		try:
 			for shadowData in shadowsData:
 				try:
 					shadow = Object()
 					shadow.name = str(data['name'])
-					shadow.lightSet = str(data['lightSet'])
+					shadow.lightSet = str(data.get('lightSet', defaultLightSet))
+					if not shadow.lightSet:
+						raise KeyError('lightSet')
 
 					lightTypeStr = str(data['lightType'])
 					try:

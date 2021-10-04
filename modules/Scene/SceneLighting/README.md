@@ -35,6 +35,7 @@ The following custom scene resource types are provided with the members that are
 	* `mainLight`: the name of the main light. If omitted no light will be considered the main light.
 	* `srgb`: true to treat all color values as sRGB values to be converted to linear space. Defaults to `false`.
 * `"ShadowManager"`
+	* `lightSet`: the name of the light set to query the light from. If set, this will be the default for elements in the shadows array.
 	* `shadows`: array of objects for the shadows the shadow manager will manage. Each element is
 	  expected to have the following members:
 		* `name`: name of the shadows.
@@ -101,3 +102,7 @@ The following instance data types are provided with the members that are expecte
 * `"InstanceForwardLightData"`:
 	* `variableGroupDesc`: string name for the shader variable group to use.
 	* `lightSet`: string name of the light set to use.
+* `"ShadowInstanceData"`:
+	* `shadowManager`: name of the shadow manager that contains the shadows to bind instance data.
+	* `shadows`: name of the shadows within the shadow manager to bind instance data.
+	* `transformGroupName`: the name of the shader variable group to bind as instance data for the shadow transform.

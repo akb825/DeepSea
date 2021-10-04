@@ -44,7 +44,7 @@ float dsShadowPCF3x3(sampler2DShadow shadowMap, vec3 shadowPos)
 	const vec2 offsets[4] = {vec2(-0.5, 0.5), vec2(0.5, 0.5), vec2(-0.5, -0.5), vec2(0.5, -0.5)};
 	float value = 0.0;
 	for (int i = 0; i < 4; ++i)
-		value += texture(shadowMap, vec3(shadowPos.xy + offsets[i]*invTextureSide, shadowPos.z));
+		value += texture(shadowMap, vec3(shadowPos.xy + offsets[i]*invTextureSize, shadowPos.z));
 	return value/4.0;
 }
 
@@ -65,7 +65,7 @@ float dsShadowPCF3x3(sampler2DArrayShadow shadowMap, int surface, vec3 shadowPos
 	for (int i = 0; i < 4; ++i)
 	{
 		value += texture(shadowMap,
-			vec3(shadowPos.xy + offsets[i]*invTextureSide, float(surface), shadowPos.z));
+			vec4(shadowPos.xy + offsets[i]*invTextureSize, float(surface), shadowPos.z));
 	}
 	return value/4.0;
 }
