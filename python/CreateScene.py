@@ -27,7 +27,8 @@ from DeepSeaSceneLighting.Convert.InstanceForwardLightDataConvert \
 from DeepSeaSceneLighting.Convert.DeferredLightResolveConvert import convertDeferredLightResolve
 from DeepSeaSceneLighting.Convert.LightSetPrepareConvert import convertLightSetPrepare
 from DeepSeaSceneLighting.Convert.ShadowCullListConvert import convertShadowCullList
-from DeepSeaSceneLighting.Convert.ShadowInstanceDataConvert import convertShadowInstanceData
+from DeepSeaSceneLighting.Convert.ShadowInstanceTransformDataConvert \
+	import convertShadowInstanceTransformData
 from DeepSeaSceneLighting.Convert.ShadowManagerPrepareConvert import convertShadowManagerPrepare
 
 from DeepSeaVectorDrawScene.Convert.VectorItemListConvert import convertVectorItemList
@@ -52,7 +53,8 @@ if __name__ == '__main__':
 	convertContext.addGlobalDataType('LightSetPrepare', convertLightSetPrepare)
 	convertContext.addGlobalDataType('ShadowManagerPrepare', convertShadowManagerPrepare)
 	convertContext.addInstanceDataType('InstanceForwardLightData', convertInstanceForwardLightData)
-	convertContext.addInstanceDataType('ShadowInstanceData', convertShadowInstanceData)
+	convertContext.addInstanceDataType('ShadowInstanceTransformData',
+		convertShadowInstanceTransformData)
 	convertContext.addItemListType('DeferredLightResolve', convertDeferredLightResolve)
 	convertContext.addItemListType('ShadowCullList', convertShadowCullList)
 

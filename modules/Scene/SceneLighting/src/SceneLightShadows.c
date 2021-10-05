@@ -832,6 +832,102 @@ bool dsSceneLightShadows_computeSurfaceProjection(dsSceneLightShadows* shadows, 
 	return true;
 }
 
+const dsMatrix44f* dsSceneLightShadows_getSurfaceProjection(const dsSceneLightShadows* shadows,
+	uint32_t surface)
+{
+	if (!shadows)
+	{
+		errno = EINVAL;
+		return NULL;
+	}
+
+	if (surface >= shadows->totalMatrices)
+	{
+		errno = EINDEX;
+		return NULL;
+	}
+
+	uint32_t committedMatrices;
+	DS_ATOMIC_LOAD32(&shadows->committedMatrices, &committedMatrices);
+	if (committedMatrices != shadows->totalMatrices)
+	{
+		errno = EPERM;
+		return NULL;
+	}
+
+	switch (shadows->lightType)
+	{
+		case dsSceneLightType_Directional:
+			if (shadows->cascaded)
+			{
+				if (shadows->fallback)
+				{
+					const dsMatrix44f* matrices =
+						(const dsMatrix44f*)dsShaderVariableGroup_getRawElementData(
+							shadows->fallback, 0);
+					DS_ASSERT(matrices);
+					return matrices + surface;
+				}
+				else
+				{
+					CascadedDirectionalLightData* data =
+						(CascadedDirectionalLightData*)shadows->curBufferData;
+					return data->matrices + surface;
+				}
+			}
+			else
+			{
+				if (shadows->fallback)
+				{
+					const dsMatrix44f* matrix =
+						(const dsMatrix44f*)dsShaderVariableGroup_getRawElementData(
+							shadows->fallback, 0);
+					DS_ASSERT(matrix);
+					return matrix;
+				}
+				else
+				{
+					DirectionalLightData* data = (DirectionalLightData*)shadows->curBufferData;
+					return &data->matrix;
+				}
+			}
+			break;
+		case dsSceneLightType_Point:
+			if (shadows->fallback)
+			{
+				const dsMatrix44f* matrices =
+					(const dsMatrix44f*)dsShaderVariableGroup_getRawElementData(
+						shadows->fallback, 0);
+				DS_ASSERT(matrices);
+				return matrices + surface;
+			}
+			else
+			{
+				PointLightData* data = (PointLightData*)shadows->curBufferData;
+				return data->matrices + surface;
+			}
+			break;
+		case dsSceneLightType_Spot:
+			if (shadows->fallback)
+			{
+				const dsMatrix44f* matrix =
+					(const dsMatrix44f*)dsShaderVariableGroup_getRawElementData(
+						shadows->fallback, 0);
+				DS_ASSERT(matrix);
+				return matrix;
+			}
+			else
+			{
+				SpotLightData* data = (SpotLightData*)shadows->curBufferData;
+				return &data->matrix;
+			}
+			break;
+		default:
+			DS_ASSERT(false);
+			return false;
+	}
+}
+
 bool dsSceneLightShadows_destroy(dsSceneLightShadows* shadows)
 {
 	if (!shadows)

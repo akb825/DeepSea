@@ -28,30 +28,36 @@ extern "C"
 
 /**
  * @file
- * @brief Functions for creating dsSceneInstanceData instances that manage binding shadow transform
- * groups.
+ * @brief Functions for creating dsSceneInstanceData instances that manage transforms for shadow
+ * casting.
  *
- * This is typically used for binding shadow transforms for shadow casters of deferred lights, where
- * instance bindings are used in place of global bindings.
+ * This populates the uniforms found in DeepSea/Scene/Shaders/InstanceTransform.mslh, typically
+ * for rendering shadow casters.
  *
  * @see dsSceneInstanceData
+ * @see dsInstanceTransformData
  * @see dsShadowManager
  */
 
 /**
- * @brief The scene shadow instance data type name.
+ * @brief The shadow instance transform data type name.
  */
-DS_SCENELIGHTING_EXPORT extern const char* const dsSceneShadowInstanceData_typeName;
+DS_SCENELIGHTING_EXPORT extern const char* const dsShadowInstanceTransformData_typeName;
 
 /**
  * @brief Creates scene shadow instance data to use with a dsSceneItemList.
  * @param allocator The allocator to create the forward light data with.
- * @param shadows The scene shadows to bind the instance for.
- * @param transformGroupName The name of the transform group to bind.
+ * @param resourceManager The resource manager.
+ * @param shadows The scene shadows to bind the transform for.
+ * @param surface The index for the surface in the scene shadows to bind the transform for.
+ * @param transformDesc The shader variable group description created from
+ *     dsInstanceTransformData_createShaderVariableGroupDesc(). This must remain alive at least as
+ *     long as the instance data object.
  * @return The instance data or NULL if an error occurred.
  */
-DS_SCENELIGHTING_EXPORT dsSceneInstanceData* dsSceneShadowInstanceData_create(
-	dsAllocator* allocator, const dsSceneLightShadows* shadows, const char* transformGroupName);
+DS_SCENELIGHTING_EXPORT dsSceneInstanceData* dsShadowInstanceTransformData_create(
+	dsAllocator* allocator, dsResourceManager* resourceManager, const dsSceneLightShadows* shadows,
+	uint32_t surface, const dsShaderVariableGroupDesc* transformDesc);
 
 #ifdef __cplusplus
 }

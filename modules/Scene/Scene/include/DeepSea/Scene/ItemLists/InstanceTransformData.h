@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Aaron Barany
+ * Copyright 2019-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,6 +51,14 @@ DS_SCENE_EXPORT extern const char* const dsInstanceTransformData_typeName;
  */
 DS_SCENE_EXPORT dsShaderVariableGroupDesc* dsInstanceTransformData_createShaderVariableGroupDesc(
 	dsResourceManager* resourceManager, dsAllocator* allocator);
+
+/**
+ * @brief Checks whether or not a shader variable group is compatible with dsInstanceTransformData.
+ * @param transformDesc The shader variable group for the transform.
+ * @return Whether or not transformDesc is compatible.
+ */
+DS_SCENE_EXPORT bool dsSceneTransformData_isShaderVariableGroupCompatible(
+	const dsShaderVariableGroupDesc* transformDesc);
 
 /**
  * @brief Creates instance trnasform data to use with a dsSceneItemList.

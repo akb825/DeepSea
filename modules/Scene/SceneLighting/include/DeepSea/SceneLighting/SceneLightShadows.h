@@ -296,6 +296,18 @@ DS_SCENELIGHTING_EXPORT bool dsSceneLightShadows_computeSurfaceProjection(
 	dsSceneLightShadows* shadows, uint32_t surface);
 
 /**
+ * @brief Gets the shadow projection matrix for a surface.
+ * @remark errno will be set on failure.
+ * @param shadows The scene light shadows.
+ * @param surface The surface index.
+ * @return The shadow projection matrix or NULL if the parameters are invalid or the projection
+ *     hasn't been computed. This may point into GPU memory, so copying to a local variable may
+ *     be adviced if accessed multiple times.
+ */
+DS_SCENELIGHTING_EXPORT const dsMatrix44f* dsSceneLightShadows_getSurfaceProjection(
+	const dsSceneLightShadows* shadows, uint32_t surface);
+
+/**
  * @brief Destroys a scene light shadows instance.
  * @remark errno will be set on failure.
  * @param shadows The scene light shadows to destroy.

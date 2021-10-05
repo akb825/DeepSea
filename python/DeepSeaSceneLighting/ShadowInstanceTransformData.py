@@ -6,62 +6,73 @@ import flatbuffers
 from flatbuffers.compat import import_numpy
 np = import_numpy()
 
-class SceneShadowInstanceData(object):
+class ShadowInstanceTransformData(object):
     __slots__ = ['_tab']
 
     @classmethod
     def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
-        x = SceneShadowInstanceData()
+        x = ShadowInstanceTransformData()
         x.Init(buf, n + offset)
         return x
 
     @classmethod
-    def GetRootAsSceneShadowInstanceData(cls, buf, offset=0):
+    def GetRootAsShadowInstanceTransformData(cls, buf, offset=0):
         """This method is deprecated. Please switch to GetRootAs."""
         return cls.GetRootAs(buf, offset)
-    # SceneShadowInstanceData
+    # ShadowInstanceTransformData
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
 
-    # SceneShadowInstanceData
+    # ShadowInstanceTransformData
     def ShadowManager(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         if o != 0:
             return self._tab.String(o + self._tab.Pos)
         return None
 
-    # SceneShadowInstanceData
+    # ShadowInstanceTransformData
     def Shadows(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         if o != 0:
             return self._tab.String(o + self._tab.Pos)
         return None
 
-    # SceneShadowInstanceData
-    def TransformGroupName(self):
+    # ShadowInstanceTransformData
+    def Surface(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
+        if o != 0:
+            return self._tab.Get(flatbuffers.number_types.Uint8Flags, o + self._tab.Pos)
+        return 0
+
+    # ShadowInstanceTransformData
+    def VariableGroupDesc(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(10))
         if o != 0:
             return self._tab.String(o + self._tab.Pos)
         return None
 
-def Start(builder): builder.StartObject(3)
-def SceneShadowInstanceDataStart(builder):
+def Start(builder): builder.StartObject(4)
+def ShadowInstanceTransformDataStart(builder):
     """This method is deprecated. Please switch to Start."""
     return Start(builder)
 def AddShadowManager(builder, shadowManager): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(shadowManager), 0)
-def SceneShadowInstanceDataAddShadowManager(builder, shadowManager):
+def ShadowInstanceTransformDataAddShadowManager(builder, shadowManager):
     """This method is deprecated. Please switch to AddShadowManager."""
     return AddShadowManager(builder, shadowManager)
 def AddShadows(builder, shadows): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(shadows), 0)
-def SceneShadowInstanceDataAddShadows(builder, shadows):
+def ShadowInstanceTransformDataAddShadows(builder, shadows):
     """This method is deprecated. Please switch to AddShadows."""
     return AddShadows(builder, shadows)
-def AddTransformGroupName(builder, transformGroupName): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(transformGroupName), 0)
-def SceneShadowInstanceDataAddTransformGroupName(builder, transformGroupName):
-    """This method is deprecated. Please switch to AddTransformGroupName."""
-    return AddTransformGroupName(builder, transformGroupName)
+def AddSurface(builder, surface): builder.PrependUint8Slot(2, surface, 0)
+def ShadowInstanceTransformDataAddSurface(builder, surface):
+    """This method is deprecated. Please switch to AddSurface."""
+    return AddSurface(builder, surface)
+def AddVariableGroupDesc(builder, variableGroupDesc): builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(variableGroupDesc), 0)
+def ShadowInstanceTransformDataAddVariableGroupDesc(builder, variableGroupDesc):
+    """This method is deprecated. Please switch to AddVariableGroupDesc."""
+    return AddVariableGroupDesc(builder, variableGroupDesc)
 def End(builder): return builder.EndObject()
-def SceneShadowInstanceDataEnd(builder):
+def ShadowInstanceTransformDataEnd(builder):
     """This method is deprecated. Please switch to End."""
     return End(builder)

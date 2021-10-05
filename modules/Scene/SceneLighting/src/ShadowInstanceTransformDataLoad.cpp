@@ -14,33 +14,36 @@
  * limitations under the License.
  */
 
-#include "SceneShadowInstanceDataLoad.h"
+#include "ShadowInstanceTransformDataLoad.h"
 
-#include "Flatbuffers/SceneShadowInstanceData_generated.h"
+#include "Flatbuffers/ShadowInstanceTransformData_generated.h"
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
+
+#include <DeepSea/Scene/SceneLoadContext.h>
 #include <DeepSea/Scene/SceneLoadScratchData.h>
-#include <DeepSea/SceneLighting/SceneShadowInstanceData.h>
+
 #include <DeepSea/SceneLighting/SceneShadowManager.h>
+#include <DeepSea/SceneLighting/ShadowInstanceTransformData.h>
 
 extern "C"
-dsSceneInstanceData* dsSceneShadowInstanceData_load(const dsSceneLoadContext* loadContext,
+dsSceneInstanceData* dsShadowInstanceTransformData_load(const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
 	void* userData, const uint8_t* data, size_t dataSize)
 {
 	flatbuffers::Verifier verifier(data, dataSize);
-	if (!DeepSeaSceneLighting::VerifySceneShadowInstanceDataBuffer(verifier))
+	if (!DeepSeaSceneLighting::VerifyShadowInstanceTransformDataBuffer(verifier))
 	{
 		errno = EFORMAT;
-		DS_LOG_ERROR(DS_SCENE_LOG_TAG, "Invalid scene shadow instance data flatbuffer format.");
+		DS_LOG_ERROR(DS_SCENE_LOG_TAG, "Invalid shadow instance transform data flatbuffer format.");
 		return nullptr;
 	}
 
-	auto fbShadowInstanceData = DeepSeaSceneLighting::GetSceneShadowInstanceData(data);
-	const char* shadowManagerName = fbShadowInstanceData->shadowManager()->c_str();
-	const char* shadowsName = fbShadowInstanceData->shadows()->c_str();
-	const char* transformGroupName = fbShadowInstanceData->transformGroupName()->c_str();
+	auto fbInstanceData = DeepSeaSceneLighting::GetShadowInstanceTransformData(data);
+	const char* shadowManagerName = fbInstanceData->shadowManager()->c_str();
+	const char* shadowsName = fbInstanceData->shadows()->c_str();
+	const char* groupDescName = fbInstanceData->variableGroupDesc()->c_str();
 	dsSceneResourceType type;
 	dsCustomSceneResource* resource;
 	if (!dsSceneLoadScratchData_findResource(&type, (void**)&resource, scratchData,
@@ -65,5 +68,18 @@ dsSceneInstanceData* dsSceneShadowInstanceData_load(const dsSceneLoadContext* lo
 		return nullptr;
 	}
 
-	return dsSceneShadowInstanceData_create(allocator, shadows, transformGroupName);
+	dsShaderVariableGroupDesc* groupDesc;
+	if (!dsSceneLoadScratchData_findResource(&type, (void**)&groupDesc, scratchData,
+			groupDescName) || type != dsSceneResourceType_ShaderVariableGroupDesc)
+	{
+		errno = ENOTFOUND;
+		DS_LOG_ERROR_F(DS_SCENE_LOG_TAG,
+			"Couldn't find shadow instance transform shader variable group description '%s'.",
+			groupDescName);
+		return nullptr;
+	}
+
+	dsRenderer* renderer = dsSceneLoadContext_getRenderer(loadContext);
+	return dsShadowInstanceTransformData_create(allocator, renderer->resourceManager, shadows,
+		fbInstanceData->surface(), groupDesc);
 }

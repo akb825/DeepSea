@@ -14,23 +14,22 @@
  * limitations under the License.
  */
 
-#pragma once
+namespace DeepSeaSceneLighting;
 
-#include <DeepSea/Core/Config.h>
-#include <DeepSea/Scene/Types.h>
-#include <DeepSea/SceneLighting/Types.h>
-
-#ifdef __cplusplus
-extern "C"
+// Struct describing shadow instance transform data.
+table ShadowInstanceTransformData
 {
-#endif
+	// The name of the shadow manager to get the transform from.
+	shadowManager : string (required);
 
-dsSceneInstanceData* dsSceneShadowInstanceData_load(const dsSceneLoadContext* loadContext,
-	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
-	void* userData, const uint8_t* data, size_t dataSize);
+	// The name of the shadows within the shadow manager.
+	shadows : string (required);
 
-#ifdef __cplusplus
+	// The index of the surface within the shadows.
+	surface : uint8;
+
+	// The name of the shader variable group description for the transform data.
+	variableGroupDesc : string (required);
 }
-#endif
 
-
+root_type ShadowInstanceTransformData;

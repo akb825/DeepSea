@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Aaron Barany
+ * Copyright 2019-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,8 +34,6 @@ static dsShaderVariableElement elements[] =
 	{"worldViewProj", dsMaterialType_Mat4, 0}
 };
 
-const char* const dsInstanceTransformData_typeName = "InstanceTransformData";
-
 typedef struct InstanceTransform
 {
 	dsMatrix44f world;
@@ -43,19 +41,6 @@ typedef struct InstanceTransform
 	dsMatrix44f worldViewInvTrans;
 	dsMatrix44f worldViewProj;
 } InstanceTransform;
-
-dsShaderVariableGroupDesc* dsInstanceTransformData_createShaderVariableGroupDesc(
-	dsResourceManager* resourceManager, dsAllocator* allocator)
-{
-	if (!resourceManager)
-	{
-		errno = EINVAL;
-		return NULL;
-	}
-
-	return dsShaderVariableGroupDesc_create(resourceManager, allocator, elements,
-		DS_ARRAY_SIZE(elements));
-}
 
 void dsInstanceTransformData_populateData(void* userData, const dsView* view,
 	const dsSceneInstanceInfo* instances, uint32_t instanceCount,
@@ -81,6 +66,29 @@ void dsInstanceTransformData_populateData(void* userData, const dsView* view,
 
 		*(InstanceTransform*)(data) = transform;
 	}
+}
+
+const char* const dsInstanceTransformData_typeName = "InstanceTransformData";
+
+dsShaderVariableGroupDesc* dsInstanceTransformData_createShaderVariableGroupDesc(
+	dsResourceManager* resourceManager, dsAllocator* allocator)
+{
+	if (!resourceManager)
+	{
+		errno = EINVAL;
+		return NULL;
+	}
+
+	return dsShaderVariableGroupDesc_create(resourceManager, allocator, elements,
+		DS_ARRAY_SIZE(elements));
+}
+
+bool dsSceneTransformData_isShaderVariableGroupCompatible(
+	const dsShaderVariableGroupDesc* transformDesc)
+{
+	return transformDesc &&
+		dsShaderVariableGroup_areElementsEqual(elements, DS_ARRAY_SIZE(elements),
+			transformDesc->elements, transformDesc->elementCount);
 }
 
 dsSceneInstanceData* dsInstanceTransformData_create(dsAllocator* allocator,

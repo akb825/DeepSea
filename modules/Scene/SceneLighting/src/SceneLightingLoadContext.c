@@ -20,10 +20,10 @@
 #include "InstanceForwardLightDataLoad.h"
 #include "SceneLightSetLoad.h"
 #include "SceneLightSetPrepareLoad.h"
-#include "SceneShadowInstanceDataLoad.h"
 #include "SceneShadowManagerLoad.h"
 #include "SceneShadowManagerPrepareLoad.h"
 #include "ShadowCullListLoad.h"
+#include "ShadowInstanceTransformDataLoad.h"
 
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
@@ -32,10 +32,10 @@
 #include <DeepSea/SceneLighting/InstanceForwardLightData.h>
 #include <DeepSea/SceneLighting/SceneLightSet.h>
 #include <DeepSea/SceneLighting/SceneLightSetPrepare.h>
-#include <DeepSea/SceneLighting/SceneShadowInstanceData.h>
 #include <DeepSea/SceneLighting/SceneShadowManager.h>
 #include <DeepSea/SceneLighting/SceneShadowManagerPrepare.h>
 #include <DeepSea/SceneLighting/ShadowCullList.h>
+#include <DeepSea/SceneLighting/ShadowInstanceTransformData.h>
 
 static bool destroySceneLightSet(void* lightSet)
 {
@@ -83,7 +83,8 @@ bool dsSceneLightingLoadConext_registerTypes(dsSceneLoadContext* loadContext)
 	}
 
 	if (!dsSceneLoadContext_registerInstanceDataType(loadContext,
-			dsSceneShadowInstanceData_typeName, &dsSceneShadowInstanceData_load, NULL, NULL))
+			dsShadowInstanceTransformData_typeName, &dsShadowInstanceTransformData_load, NULL,
+			NULL))
 	{
 		return false;
 	}
