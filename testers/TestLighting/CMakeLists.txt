@@ -8,8 +8,7 @@ if (NOT MSLC)
 endif()
 
 set(shaderConfigs)
-set(source TestLighting.c AmbientLight.msl ForwardLighting.msl DirectionalLight.msl GBuffers.msl
-	PointLight.msl Glass.msl SpotLight.msl sRGB.msl)
+file(GLOB source "*.msl" "*.c" "*.h")
 if (TARGET deepsea_render_opengl)
 	list(APPEND shaderConfigs glsl-1.5 glsl-es-3.0)
 endif()
@@ -55,6 +54,9 @@ ds_compile_shaders(shaders FILE ${CMAKE_CURRENT_SOURCE_DIR}/AmbientLight.msl
 ds_compile_shaders(shaders FILE ${CMAKE_CURRENT_SOURCE_DIR}/ForwardLighting.msl
 	OUTPUT ForwardLighting.mslb CONFIG ${shaderConfigs} OUTPUT_DIR ${shaderDir}
 	INCLUDE ${shaderIncludes})
+ds_compile_shaders(shaders FILE ${CMAKE_CURRENT_SOURCE_DIR}/ShadowCast.msl
+	OUTPUT ShadowCast.mslb CONFIG ${shaderConfigs} OUTPUT_DIR ${shaderDir}
+	INCLUDE ${shaderIncludes})
 ds_compile_shaders(shaders FILE ${CMAKE_CURRENT_SOURCE_DIR}/Glass.msl
 	OUTPUT Glass.mslb CONFIG ${shaderConfigs} OUTPUT_DIR ${shaderDir}
 	INCLUDE ${shaderIncludes})
@@ -81,6 +83,8 @@ ds_scene_resource_shader_module_config(deferredLightShaderModule DeferredLightin
 	${assetsDir} ${shaderDir} ${shaderConfigs})
 ds_scene_resource_shader_module_config(forwardLightShaderModule ForwardLighting.mslb
 	${assetsDir} ${shaderDir} ${shaderConfigs})
+ds_scene_resource_shader_module_config(shadowCastShaderModule ShadowCast.mslb
+	${assetsDir} ${shaderDir} ${shaderConfigs})
 ds_scene_resource_shader_module_config(glassShaderModule Glass.mslb
 	${assetsDir} ${shaderDir} ${shaderConfigs})
 ds_scene_resource_shader_module_config(sRGBShaderModule sRGB.mslb
@@ -88,7 +92,7 @@ ds_scene_resource_shader_module_config(sRGBShaderModule sRGB.mslb
 
 # These resources need to be configured based on CMake variables.
 ds_configure_file(Assets/BaseResources.json ${configDir}/BaseResources.json CONFIG_VAR
-	glassShaderModule sRGBShaderModule @ONLY)
+	shadowCastShaderModule glassShaderModule sRGBShaderModule @ONLY)
 ds_configure_file(Assets/DeferredLightShaders.json ${configDir}/DeferredLightShaders.json CONFIG_VAR
 	deferredLightShaderModule @ONLY)
 ds_configure_file(Assets/ForwardLightShaders.json ${configDir}/ForwardLightShaders.json CONFIG_VAR

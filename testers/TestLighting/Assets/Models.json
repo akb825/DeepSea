@@ -35,11 +35,16 @@
 						"shader": "defaultModelShader",
 						"material": "brickMaterial",
 						"list": "opaqueList"
+					},
+					{
+						"shader": "shadowCastShader",
+						"material": "shadowCastMaterial",
+						"list": "mainShadowCastList0"
 					}
 				]
 			}
 		],
-		"extraItemLists": ["cullList"]
+		"extraItemLists": ["cullList", "mainShadowCullList0"]
 	},
 	{
 		"type": "SceneNode",
@@ -56,11 +61,16 @@
 						"shader": "defaultModelShader",
 						"material": "concreteMaterial",
 						"list": "opaqueList"
+					},
+					{
+						"shader": "shadowCastShader",
+						"material": "shadowCastMaterial",
+						"list": "mainShadowCastList0"
 					}
 				]
 			}
 		],
-		"extraItemLists": ["cullList"]
+		"extraItemLists": ["cullList", "mainShadowCullList0"]
 	},
 	{
 		"type": "SceneNode",
@@ -98,10 +108,15 @@
 						"shader": "defaultModelShader",
 						"material": "marbleMaterial",
 						"list": "opaqueList"
+					},
+					{
+						"shader": "shadowCastShader",
+						"material": "shadowCastMaterial",
+						"list": "mainShadowCastList0"
 					}
 				]
 			}
 		],
-		"extraItemLists": ["cullList"]
+		"extraItemLists": ["cullList", "mainShadowCullList0"]
 	}
 ]

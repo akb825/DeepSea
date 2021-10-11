@@ -367,6 +367,11 @@
 	},
 	{
 		"type": "ShaderModule",
+		"name": "shadowCastShaderModule",
+		"modules": @shadowCastShaderModule@
+	},
+	{
+		"type": "ShaderModule",
 		"name": "glassShaderModule",
 		"modules": @glassShaderModule@
 	},
@@ -374,6 +379,34 @@
 		"type": "ShaderModule",
 		"name": "sRGBShaderModule",
 		"modules": @sRGBShaderModule@
+	},
+	{
+		"type": "ShaderVariableGroupDesc",
+		"name": "directionalShadowTransformDesc",
+		"elements":
+		[
+			{
+				"name": "matrix",
+				"type": "Mat4"
+			},
+			{
+				"name": "fadeDistances",
+				"type": "Vec2"
+			}
+		]
+	},
+	{
+		"type": "MaterialDesc",
+		"name": "shadowCastMaterialDesc",
+		"elements":
+		[
+			{
+				"name": "InstanceTransformData",
+				"type": "VariableGroup",
+				"binding": "Instance",
+				"shaderVariableGroupDesc": "instanceTransformDesc"
+			}
+		]
 	},
 	{
 		"type": "MaterialDesc",
@@ -424,6 +457,13 @@
 	},
 	{
 		"type": "Shader",
+		"name": "shadowCastShader",
+		"module": "shadowCastShaderModule",
+		"pipeline": "ShadowCast",
+		"materialDesc": "shadowCastMaterialDesc"
+	},
+	{
+		"type": "Shader",
 		"name": "glassShader",
 		"module": "glassShaderModule",
 		"pipeline": "Glass",
@@ -440,6 +480,11 @@
 		"type": "Material",
 		"name": "sRGBMaterial",
 		"description": "sRGBMaterialDesc"
+	},
+	{
+		"type": "Material",
+		"name": "shadowCastMaterial",
+		"description": "shadowCastMaterialDesc"
 	},
 	{
 		"type": "LightSet",

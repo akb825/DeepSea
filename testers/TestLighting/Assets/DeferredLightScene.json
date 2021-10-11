@@ -25,7 +25,7 @@
 				},
 				{
 					"usage": ["Clear"],
-					"format": "X8D24",
+					"format": "D32_Float",
 					"decoration": "Unset",
 					"clearValue": {"depth": 1.0},
 					"samples": 1

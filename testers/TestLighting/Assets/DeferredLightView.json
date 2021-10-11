@@ -25,7 +25,7 @@
 			"name": "surfaceDepth",
 			"type": "Offscreen",
 			"usage": ["SubpassInput"],
-			"format": "X8D24",
+			"format": "D32_Float",
 			"decoration": "Unset",
 			"samples": 1,
 			"resolve": false,

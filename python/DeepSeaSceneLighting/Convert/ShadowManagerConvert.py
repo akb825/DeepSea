@@ -69,22 +69,22 @@ def convertShadowManager(convertContext, data):
 			for shadowData in shadowsData:
 				try:
 					shadow = Object()
-					shadow.name = str(data['name'])
-					shadow.lightSet = str(data.get('lightSet', defaultLightSet))
+					shadow.name = str(shadowData['name'])
+					shadow.lightSet = str(shadowData.get('lightSet', defaultLightSet))
 					if not shadow.lightSet:
 						raise KeyError('lightSet')
 
-					lightTypeStr = str(data['lightType'])
+					lightTypeStr = str(shadowData['lightType'])
 					try:
 						shadow.lightType = getattr(LightType, lightTypeStr)
 					except AttributeError:
 						raise Exception('Invalid light type "' + lightTypeStr + '".')
 
-					shadow.light = str(data.get('light', ''))
-					shadow.transformGroupDesc = str(data['transformGroupDesc'])
-					shadow.transformGroupName = str(data.get('transformGroupName', ''))
+					shadow.light = str(shadowData.get('light', ''))
+					shadow.transformGroupDesc = str(shadowData['transformGroupDesc'])
+					shadow.transformGroupName = str(shadowData.get('transformGroupName', ''))
 
-					maxCascadesVal = data.get('maxCascades', 4)
+					maxCascadesVal = shadowData.get('maxCascades', 4)
 					try:
 						shadow.maxCascades = int(maxCascadesVal)
 						if shadow.maxCascades < 1 or shadow.maxCascades > 4:
@@ -93,13 +93,16 @@ def convertShadowManager(convertContext, data):
 						raise Exception('Invalid max cascade count "' + str(maxCascadesVal) + '".')
 
 					shadow.maxFirstSplitDistance = readFloat(
-						data.get('maxFirstSplitDistance', 100.0), 'max first split distance', 0.1)
+						shadowData.get('maxFirstSplitDistance', 100.0), 'max first split distance',
+						0.1)
 					shadow.cascadeExpFactor = readFloat(
-						data.get('cascadeExpFactor', 0.5), 'cascade exp factor', 0.0, 1.0)
+						shadowData.get('cascadeExpFactor', 0.5), 'cascade exp factor', 0.0, 1.0)
 					shadow.fadeStartDistance = readFloat(
-						data.get('fadeStartDistance', largeDistance), 'fade start distance', 0.0)
+						shadowData.get('fadeStartDistance', largeDistance), 'fade start distance',
+						0.0)
 					shadow.maxDistance = readFloat(
-						data.get('maxDistance', largeDistance), 'max distance', 0.1)
+						shadowData.get('maxDistance', largeDistance), 'max distance', 0.1)
+					shadows.append(shadow)
 				except KeyError as e:
 					raise Exception('ShadowManager shadows doesn\'t contain element ' + str(e) +
 						'.')
@@ -127,10 +130,12 @@ def convertShadowManager(convertContext, data):
 			transformGroupNameOffset = 0
 
 		SceneLightShadows.Start(builder)
+		SceneLightShadows.AddName(builder, nameOffset)
 		SceneLightShadows.AddLightSet(builder, lightSetOffset)
 		SceneLightShadows.AddLightType(builder, shadow.lightType)
 		SceneLightShadows.AddLight(builder, lightOffset)
 		SceneLightShadows.AddTransformGroupDesc(builder, transformGroupDescOffset)
+		SceneLightShadows.AddTransformGroupName(builder, transformGroupNameOffset)
 		SceneLightShadows.AddMaxCascades(builder, shadow.maxCascades)
 		SceneLightShadows.AddMaxFirstSplitDistance(builder, shadow.maxFirstSplitDistance)
 		SceneLightShadows.AddCascadeExpFactor(builder, shadow.cascadeExpFactor)

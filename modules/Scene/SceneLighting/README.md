@@ -102,7 +102,8 @@ The following instance data types are provided with the members that are expecte
 * `"InstanceForwardLightData"`:
 	* `variableGroupDesc`: string name for the shader variable group to use.
 	* `lightSet`: string name of the light set to use.
-* `"ShadowInstanceData"`:
-	* `shadowManager`: name of the shadow manager that contains the shadows to bind instance data.
-	* `shadows`: name of the shadows within the shadow manager to bind instance data.
-	* `transformGroupName`: the name of the shader variable group to bind as instance data for the shadow transform.
+* `"ShadowInstanceTransformData"`:
+	* `shadowManager`: name of the shadow manager that contains the shadows to get the transform from.
+	* `shadows`: name of the shadows within the shadow manager to get the transform from.
+	* `surface`: index of the surface within the shadows to get the transform from.
+	* `variableGroupDesc`:  name for the shader variable group to use.

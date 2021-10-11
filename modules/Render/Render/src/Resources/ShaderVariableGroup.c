@@ -228,7 +228,8 @@ dsShaderVariableGroup* dsShaderVariableGroup_create(dsResourceManager* resourceM
 
 		if (!group->buffer)
 		{
-			dsAllocator_free(allocator, group);
+			if (allocator->freeFunc)
+				dsAllocator_free(allocator, group);
 			DS_PROFILE_FUNC_RETURN(NULL);
 		}
 	}

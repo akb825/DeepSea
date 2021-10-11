@@ -89,14 +89,14 @@ static size_t fullAllocSize(uint32_t* outOffscreenSurfaceCount, const dsScene* s
 	}
 
 	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsViewPrivate)) +
+		dsSharedMaterialValues_fullAllocSize(scene->globalValueCount + *outOffscreenSurfaceCount) +
 		DS_ALIGNED_SIZE(sizeof(dsViewSurfaceInfo)*surfaceCount) +
 		DS_ALIGNED_SIZE(sizeof(void*)*surfaceCount) +
 		DS_ALIGNED_SIZE(sizeof(IndexNode)*surfaceCount) +
 		dsHashTable_fullAllocSize(dsHashTable_getTableSize(surfaceCount)) +
 		DS_ALIGNED_SIZE(sizeof(dsViewFramebufferInfo)*framebufferCount) +
-		DS_ALIGNED_SIZE(sizeof(dsFramebuffer*)*framebufferCount) +
-		DS_ALIGNED_SIZE(sizeof(uint32_t)*scene->pipelineCount) +
-		dsSharedMaterialValues_fullAllocSize(scene->globalValueCount + *outOffscreenSurfaceCount);
+		DS_ALIGNED_SIZE(sizeof(dsRotatedFramebuffer)*framebufferCount) +
+		DS_ALIGNED_SIZE(sizeof(uint32_t)*scene->pipelineCount);
 
 	for (uint32_t i = 0; i < surfaceCount; ++i)
 		fullSize += DS_ALIGNED_SIZE(strlen(surfaces[i].name) + 1);
@@ -525,7 +525,7 @@ dsView* dsView_create(const dsScene* scene, dsAllocator* allocator, dsAllocator*
 		bool found = false;
 		for (uint32_t j = 0; j < framebufferCount; ++j)
 		{
-			if (strcmp(renderPass->framebuffer, framebuffers[i].name) == 0)
+			if (strcmp(renderPass->framebuffer, framebuffers[j].name) == 0)
 			{
 				privateView->pipelineFramebuffers[i] = j;
 				found = true;

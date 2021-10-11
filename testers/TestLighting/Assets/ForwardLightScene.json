@@ -1,10 +1,63 @@
 {
 	"sharedItems":
 	[
-		[{"type": "ViewCullList", "name": "cullList" }]
+		[
+			{"type": "ViewCullList", "name": "cullList" },
+			{
+				"type": "ShadowCullList",
+				"name": "mainShadowCullList0",
+				"shadowManager": "shadowManager",
+				"shadows": "main",
+				"surface": 0
+			}
+		]
 	],
 	"pipeline":
 	[
+		{
+			"framebuffer": "shadowCast",
+			"attachments":
+			[
+				{
+					"usage": ["Clear", "KeepAfter"],
+					"format": "D32_Float",
+					"decoration": "Unset",
+					"clearValue": {"depth": 1.0},
+					"samples": 1
+				}
+			],
+			"subpasses":
+			[
+				{
+					"name": "MainShadowCast",
+					"depthStencilAttachment": {"index": 0, "resolve": false},
+					"drawLists":
+					[
+						{
+							"type": "ModelList",
+							"name": "mainShadowCastList0",
+							"instanceData":
+							[
+								{
+									"type": "ShadowInstanceTransformData",
+									"shadowManager": "shadowManager",
+									"shadows": "main",
+									"surface": 0,
+									"variableGroupDesc": "instanceTransformDesc"
+								}
+							],
+							"sortType": "FrontToBack",
+							"cullList": "mainShadowCullList0",
+							"dynamicRenderStates":
+							{
+								"depthBiasConstantFactor": 0.001,
+								"depthBiasSlopeFactor": 0.001
+							}
+						}
+					]
+				}
+			]
+		},
 		{
 			"framebuffer": "window",
 			"attachments":
@@ -18,7 +71,7 @@
 				},
 				{
 					"usage": ["Clear"],
-					"format": "X8D24",
+					"format": "D32_Float",
 					"decoration": "Unset",
 					"clearValue": {"depth": 1.0},
 					"samples": "Default"
@@ -114,6 +167,7 @@
 	"globalData":
 	[
 		{"type": "LightSetPrepare", "lightSets": ["lightSet"]},
+		{"type": "ShadowManagerPrepare", "shadowManager": "shadowManager"},
 		{
 			"type": "ViewTransformData",
 			"variableGroupDesc": "viewTransformDesc"

@@ -32,6 +32,6 @@ def convertShadowManagerPrepare(convertContext, data):
 	shadowManagerOffset = builder.CreateString(shadowManager)
 
 	SceneShadowManagerPrepare.Start(builder)
-	SceneShadowManagerPrepare.AddShadowManager(builder, shadowManager)
+	SceneShadowManagerPrepare.AddShadowManager(builder, shadowManagerOffset)
 	builder.Finish(SceneShadowManagerPrepare.End(builder))
 	return builder.Output()

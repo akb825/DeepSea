@@ -14,11 +14,23 @@
 		{
 			"name": "mainDepth",
 			"type": "Renderbuffer",
-			"format": "X8D24",
+			"format": "D32_Float",
 			"decoration": "Unset",
 			"samples": "Default",
 			"resolve": false,
 			"windowFramebuffer": true
+		},
+		{
+			"name": "shadowMap",
+			"type": "Offscreen",
+			"usage": ["Texture"],
+			"format": "D32_Float",
+			"decoration": "Unset",
+			"width": 1024,
+			"height": 1024,
+			"samples": 1,
+			"resolve": false,
+			"windowFramebuffer": false
 		}
 	],
 	"framebuffers":
@@ -30,6 +42,15 @@
 				{"name": "mainColor"},
 				{"name": "mainDepth"},
 				{"name": "windowColor"}
+			]
+		},
+		{
+			"name": "shadowCast",
+			"width": 1024,
+			"height": 1024,
+			"surfaces":
+			[
+				{"name": "shadowMap"}
 			]
 		}
 	]

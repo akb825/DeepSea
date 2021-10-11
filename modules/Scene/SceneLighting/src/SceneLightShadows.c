@@ -243,7 +243,7 @@ dsSceneLightShadows* dsSceneLightShadows_create(dsAllocator* allocator, const ch
 	}
 
 	size_t nameLen = strlen(name) + 1;
-	bool needsFallback = dsShaderVariableGroup_useGfxBuffer(resourceManager);
+	bool needsFallback = !dsShaderVariableGroup_useGfxBuffer(resourceManager);
 	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsSceneLightShadows)) + DS_ALIGNED_SIZE(nameLen);
 	if (needsFallback)
 		fullSize += dsShaderVariableGroup_fullAllocSize(resourceManager, transformGroupDesc);

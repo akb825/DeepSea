@@ -25,6 +25,11 @@
 				"binding": "Material"
 			},
 			{
+				"name": "shadowMap",
+				"type": "Texture",
+				"binding": "Global"
+			},
+			{
 				"name": "shininess",
 				"type": "Float",
 				"binding": "Material"
@@ -46,6 +51,12 @@
 				"type": "VariableGroup",
 				"binding": "Instance",
 				"shaderVariableGroupDesc": "instanceForwardLightDesc"
+			},
+			{
+				"name": "ShadowTransform",
+				"type": "VariableGroup",
+				"binding": "Global",
+				"shaderVariableGroupDesc": "directionalShadowTransformDesc"
 			}
 		]
 	},
@@ -55,5 +66,20 @@
 		"module": "forwardLightShaderModule",
 		"pipeline": "ForwardLight",
 		"materialDesc": "defaultMaterialDesc"
+	},
+	{
+		"type": "ShadowManager",
+		"name": "shadowManager",
+		"lightSet": "lightSet",
+		"shadows":
+		[
+			{
+				"name": "main",
+				"lightType": "Directional",
+				"light": "sun",
+				"transformGroupDesc": "directionalShadowTransformDesc",
+				"transformGroupName": "ShadowTransform"
+			}
+		]
 	}
 ]
