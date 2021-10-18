@@ -148,7 +148,8 @@ void dsComputeForwardLighting(out vec3 outDiffuseColor, out vec3 outSpecularColo
 		float diffuse = dsDiffuseLight(falloff, surfaceDirection, lightType, lightPosition,
 			lightDirection, position, normal, linearFalloff, quadraticFalloff, spotCosAngles.x,
 			spotCosAngles.y);
-		outDiffuseColor += lightColor*diffuse*(falloff*shadowFactor);
+		falloff *= shadowFactor;
+		outDiffuseColor += lightColor*diffuse*falloff;
 		outSpecularColor += lightColor*dsSpecularLight(surfaceDirection, normal, viewDirection,
 			shininess)*falloff;
 	}

@@ -519,6 +519,7 @@
 		"maxLights": 100,
 		"ambientColor": [0.8, 0.8, 1.0],
 		"ambientIntensity": 0.2,
+		"mainLight": "sun",
 		"srgb": true
 	}
 ]

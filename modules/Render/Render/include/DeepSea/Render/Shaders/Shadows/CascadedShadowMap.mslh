@@ -41,6 +41,7 @@
  * @param viewPos The view position.
  * @param fadeStart The distance from the view point to start fading shadows.
  * @param fadeEnd The distance from the view point to stop fading shadows.
+ * @return A value of 0 to 1, where 0 is fully shadowed and 1 is fully lit.
  */
 [[fragment]]
 float dsCascadedShadowMap(sampler2DArrayShadow shadowMap, mat4 cascadeProjections[4],
@@ -52,15 +53,18 @@ float dsCascadedShadowMap(sampler2DArrayShadow shadowMap, mat4 cascadeProjection
 	// Regardless of the number of splits, the split index will be 0 if fully out of the range of
 	// shadows. (since all following splits are set to far plane)
 	if (split >= 4 || viewPos.z >= fadeEnd)
-		return 0.0;
+		return 1.0;
 
 	float fadeRange = fadeEnd - fadeStart;
-	float fadeAmount = 1.0;
+	float fadeAmount = 0.0;
 	if (fadeRange > 0.1)
-		fadeAmount = 1.0 - (viewPos.z - fadeStart)/fadeRange;
+		fadeAmount = max(viewPos.z - fadeStart, 0.0)/fadeRange;
 
-	vec4 shadowPos = cascadeProjections[split]*vec4(viewPos, 1.0);
+	vec4 shadowPos = DS_ADJUST_CLIP(cascadeProjections[split]*vec4(viewPos, 1.0));
 	shadowPos /= shadowPos.w;
+	shadowPos.xy = shadowPos.xy*vec2(0.5) + vec2(0.5);
+	if (DS_CLIP_HALF_DEPTH == 0)
+		shadowPos.z = shadowPos.z*0.5 + 0.5;
 	float shadowVal = DS_SHADOW_FILTER(shadowMap, split, shadowPos);
-	return shadowVal*fadeAmount;
+	return mix(shadowVal, 1.0, fadeAmount);
 }

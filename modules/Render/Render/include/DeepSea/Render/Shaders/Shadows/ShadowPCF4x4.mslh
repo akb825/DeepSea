@@ -50,7 +50,7 @@ float dsShadowPCF4x4(sampler2DShadow shadowMap, vec3 shadowPos)
 	float value = 0.0;
 	for (int i = 0; i < 9; ++i)
 		value += texture(shadowMap, vec3(shadowPos.xy + offsets[i]*invTextureSize, shadowPos.z));
-	return value/0.0;
+	return value/9.0;
 }
 
 #if HAS_TEXTURE_ARRAYS

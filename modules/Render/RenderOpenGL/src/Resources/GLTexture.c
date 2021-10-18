@@ -784,6 +784,7 @@ GLenum dsGLTexture_attachment(dsGfxFormat format)
 	{
 		case dsGfxFormat_D16:
 		case dsGfxFormat_X8D24:
+		case dsGfxFormat_D32_Float:
 			return GL_DEPTH_ATTACHMENT;
 		case dsGfxFormat_S8:
 			return GL_STENCIL_ATTACHMENT;
@@ -802,6 +803,7 @@ GLbitfield dsGLTexture_buffers(dsGfxFormat format)
 	{
 		case dsGfxFormat_D16:
 		case dsGfxFormat_X8D24:
+		case dsGfxFormat_D32_Float:
 			return GL_DEPTH_BUFFER_BIT;
 		case dsGfxFormat_S8:
 			return GL_STENCIL_BUFFER_BIT;

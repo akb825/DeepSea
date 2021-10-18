@@ -444,7 +444,7 @@ dsView* dsView_create(const dsScene* scene, dsAllocator* allocator, dsAllocator*
 	privateView->framebuffers = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsRotatedFramebuffer,
 		framebufferCount);
 	DS_ASSERT(privateView->framebuffers);
-	memset(privateView->framebuffers, 0, sizeof(dsRotatedFramebuffer));
+	memset(privateView->framebuffers, 0, sizeof(dsRotatedFramebuffer)*framebufferCount);
 	privateView->framebufferCount = framebufferCount;
 
 	uint32_t maxSurfaces = 0;

@@ -173,6 +173,7 @@ static GLenum getClearMask(dsGfxFormat format)
 	{
 		case dsGfxFormat_D16:
 		case dsGfxFormat_X8D24:
+		case dsGfxFormat_D32_Float:
 			return GL_DEPTH_BUFFER_BIT;
 		case dsGfxFormat_S8:
 			return GL_STENCIL_BUFFER_BIT;
@@ -191,6 +192,7 @@ static void setClearValue(dsGfxFormat format, const dsSurfaceClearValue* value)
 	{
 		case dsGfxFormat_D16:
 		case dsGfxFormat_X8D24:
+		case dsGfxFormat_D32_Float:
 		case dsGfxFormat_S8:
 		case dsGfxFormat_D16S8:
 		case dsGfxFormat_D24S8:
@@ -217,6 +219,7 @@ static void clearDrawBuffer(dsGfxFormat format, uint32_t colorIndex,
 	{
 		case dsGfxFormat_D16:
 		case dsGfxFormat_X8D24:
+		case dsGfxFormat_D32_Float:
 			if (clearDepthStencil != dsClearDepthStencil_Stencil)
 				glClearBufferfv(GL_DEPTH, 0, &clearValue->depthStencil.depth);
 			break;
@@ -1436,9 +1439,8 @@ bool dsGLMainCommandBuffer_setViewport(dsCommandBuffer* commandBuffer,
 	{
 		bool needInvert = glRenderer->curSurfaceType == GLSurfaceType_Framebuffer;
 		glCommandBuffer->viewportX = (GLint)viewport->min.x;
-		glCommandBuffer->viewportY = framebuffer->height - (GLint)viewport->max.y;
 		if (needInvert)
-			glCommandBuffer->viewportY = (GLint)viewport->max.y;
+			glCommandBuffer->viewportY = (GLint)viewport->min.y;
 		else
 			glCommandBuffer->viewportY = framebuffer->height - (GLint)viewport->max.y;
 		glCommandBuffer->viewportWidth = (GLsizei)(viewport->max.x - viewport->min.x);

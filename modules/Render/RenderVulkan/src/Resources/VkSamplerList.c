@@ -160,6 +160,13 @@ dsVkSamplerList* dsVkSamplerList_create(dsAllocator* allocator, dsShader* shader
 				uniform.samplerIndex));
 		}
 
+		bool shadowSampler = uniform.type == mslType_Sampler1DShadow ||
+			uniform.type == mslType_Sampler2DShadow ||
+			uniform.type == mslType_Sampler1DArrayShadow ||
+			uniform.type == mslType_Sampler2DArrayShadow ||
+			uniform.type == mslType_SamplerCubeShadow ||
+			uniform.type == mslType_Sampler2DRectShadow;
+
 		float maxAnisotropy = samplerState.maxAnisotropy == MSL_UNKNOWN_FLOAT ?
 			samplers->defaultAnisotropy : samplerState.maxAnisotropy;
 		VkSamplerCreateInfo createInfo =
@@ -177,7 +184,7 @@ dsVkSamplerList* dsVkSamplerList_create(dsAllocator* allocator, dsShader* shader
 			samplerState.mipFilter == mslMipFilter_Anisotropic &&
 				device->features.samplerAnisotropy && maxAnisotropy > 1.0f,
 			maxAnisotropy,
-			samplerState.compareOp != mslCompareOp_Unset,
+			shadowSampler,
 			dsVkCompareOp(samplerState.compareOp, VK_COMPARE_OP_LESS),
 			samplerState.minLod == MSL_UNKNOWN_FLOAT ? 0.0f : samplerState.minLod,
 			samplerState.mipFilter == mslMipFilter_None ? 0.25f :
