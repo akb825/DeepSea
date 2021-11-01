@@ -58,13 +58,11 @@ void dsShadowInstanceTransformData_populateData(void* userData, const dsView* vi
 	DS_ASSERT(stride >= sizeof(InstanceTransform));
 
 	ShadowUserData* shadowData = (ShadowUserData*)userData;
-	const dsMatrix44f* gpuProjection = dsSceneLightShadows_getSurfaceProjection(shadowData->shadows,
+	const dsMatrix44f* projection = dsSceneLightShadows_getSurfaceProjection(shadowData->shadows,
 		shadowData->surface);
-	if (!DS_CHECK(DS_SCENE_LIGHTING_LOG_TAG, gpuProjection))
+	if (!DS_CHECK(DS_SCENE_LIGHTING_LOG_TAG, projection))
 		return;
 
-	// Copy the projection matrix to avoid accessing GPU memory repeatedly.
-	dsMatrix44f projection = *gpuProjection;
 	for (uint32_t i = 0; i < instanceCount; ++i, data += stride)
 	{
 		const dsSceneInstanceInfo* instance = instances + i;
@@ -78,7 +76,7 @@ void dsShadowInstanceTransformData_populateData(void* userData, const dsView* vi
 		dsMatrix44f_affineInvert(&inverseWorldView, &transform.worldView);
 		dsMatrix44_transpose(transform.worldViewInvTrans, inverseWorldView);
 
-		dsMatrix44_mul(transform.worldViewProj, projection, transform.worldView);
+		dsMatrix44_mul(transform.worldViewProj, *projection, transform.worldView);
 
 		*(InstanceTransform*)(data) = transform;
 	}

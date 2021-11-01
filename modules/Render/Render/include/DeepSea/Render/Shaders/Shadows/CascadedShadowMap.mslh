@@ -65,6 +65,7 @@ float dsCascadedShadowMap(sampler2DArrayShadow shadowMap, mat4 cascadeProjection
 	shadowPos.xy = shadowPos.xy*vec2(0.5) + vec2(0.5);
 	if (DS_CLIP_HALF_DEPTH == 0)
 		shadowPos.z = shadowPos.z*0.5 + 0.5;
+	shadowPos.z = clamp(shadowPos.z, 0.0, 1.0);
 	float shadowVal = DS_SHADOW_FILTER(shadowMap, split, shadowPos);
 	return mix(shadowVal, 1.0, fadeAmount);
 }

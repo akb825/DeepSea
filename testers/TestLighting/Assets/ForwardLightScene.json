@@ -57,8 +57,8 @@
 							"cullList": "mainShadowCullList0",
 							"dynamicRenderStates":
 							{
-								"depthBiasConstantFactor": 0.001,
-								"depthBiasSlopeFactor": 0.001
+								"depthBiasConstantFactor": 1.0,
+								"depthBiasSlopeFactor": 4.0
 							}
 						}
 					]

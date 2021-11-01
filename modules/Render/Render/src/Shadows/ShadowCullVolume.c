@@ -426,11 +426,13 @@ bool dsShadowCullVolume_buildDirectional(dsShadowCullVolume* volume,
 
 		dsPlane3d boundaryPlane;
 		dsVector3_cross(boundaryPlane.n, line.direction, *toLight);
-		// Should be roughly aligned with the plane that faces the light.
-		const dsVector3d* referenceDir = firstAway ? &second->n : &first->n;
-		if (dsVector3_dot(boundaryPlane.n, *referenceDir) < 0)
-			dsVector3_neg(boundaryPlane.n, boundaryPlane.n);
+		// Should face roughly the same direction to the plane it's most closely aligned with.
 		dsVector3d_normalize(&boundaryPlane.n, &boundaryPlane.n);
+		double dotFirst = dsVector3_dot(boundaryPlane.n, first->n);
+		double dotSecond = dsVector3_dot(boundaryPlane.n, second->n);
+		bool flip = fabs(dotFirst) > fabs(dotSecond) ? dotFirst < 0 : dotSecond < 0;
+		if (flip)
+			dsVector3_neg(boundaryPlane.n, boundaryPlane.n);
 		boundaryPlane.d = dsVector3_dot(boundaryPlane.n, line.origin);
 		addPlane(volume, planes, &boundaryPlane, baseEpsilon);
 	}

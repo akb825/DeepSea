@@ -39,6 +39,7 @@ pipeline ShadowCast
 	fragment = fragmentShader;
 	depth_test_enable = true;
 	early_fragment_tests = true;
+	depth_bias_enable = true;
 	cull_mode = back;
 	attachment0_color_write_mask = 0;
 }

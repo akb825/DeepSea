@@ -60,6 +60,7 @@ typedef struct FindBrightestData
 	float* intensities;
 	uint32_t* lightCount;
 	const dsVector3f* position;
+	uint32_t mainLightID;
 	uint32_t startIndex;
 	uint32_t maxLights;
 	float intensityThreshold;
@@ -110,6 +111,9 @@ static bool visitBrightestLights(void* userData, const dsBVH* bvh, const void* o
 	DS_UNUSED(bounds);
 	const dsSceneLight* light = (const dsSceneLight*)object;
 	const FindBrightestData* data = (const FindBrightestData*)userData;
+
+	if (light->nameID == data->mainLightID)
+		return true;
 
 	float intensity = dsSceneLight_getIntensity(light, data->position);
 	if (intensity < data->intensityThreshold)
@@ -518,6 +522,10 @@ uint32_t dsSceneLightSet_findBrightestLights(const dsSceneLight** outBrightestLi
 	for (uint32_t i = 0; i < lightSet->directionalLightCount; ++i)
 	{
 		const dsSceneLight* light = lightSet->directionalLights[i];
+		// Avoid adding main light twice.
+		if (light->nameID == lightSet->mainLightID)
+			continue;
+
 		float intensity = dsColor3f_grayscale(&light->color)*light->intensity;
 		if (lightCount < outLightCount)
 		{
@@ -538,7 +546,7 @@ uint32_t dsSceneLightSet_findBrightestLights(const dsSceneLight** outBrightestLi
 	// Then check the spatial lights.
 	dsAlignedBox3f bounds = {*position, *position};
 	FindBrightestData visitData = {outBrightestLights, intensities, &lightCount, position,
-		*outHasMainLight, outLightCount, lightSet->intensityThreshold};
+		lightSet->mainLightID, *outHasMainLight, outLightCount, lightSet->intensityThreshold};
 	dsBVH_intersectBounds(lightSet->spatialLights, &bounds, &visitBrightestLights, &visitData);
 
 	// Set up the final count, nulling out any unset lights.

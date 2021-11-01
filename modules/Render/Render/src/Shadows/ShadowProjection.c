@@ -244,19 +244,27 @@ bool dsShadowProjection_addPoints(dsShadowProjection* shadowProj, const dsVector
 	return true;
 }
 
-bool dsShadowProjection_computeMatrix(dsMatrix44f* outMatrix, const dsShadowProjection* shadowProj)
+bool dsShadowProjection_computeMatrix(dsMatrix44f* outMatrix, const dsShadowProjection* shadowProj,
+	float paddingRatio)
 {
 	if (!outMatrix || !shadowProj || !dsAlignedBox3_isValid(shadowProj->pointBounds))
 		return false;
 
-	const dsAlignedBox3f* bounds = &shadowProj->pointBounds;
+	dsAlignedBox3f bounds = shadowProj->pointBounds;
+	dsVector3f offset;
+	dsAlignedBox3_extents(offset, bounds);
+	float scale = paddingRatio/2;
+	dsVector3_scale(offset, offset, scale);
+	dsVector3_sub(bounds.min, bounds.min, offset);
+	dsVector3_add(bounds.max, bounds.max, offset);
+
 	// Frustum looks along negative Z axis, so need to invert Z values.
-	float near = -bounds->max.z;
-	float far = -bounds->min.z;
+	float near = -bounds.max.z;
+	float far = -bounds.min.z;
 	dsMatrix44f projection;
 	if (shadowProj->uniform)
 	{
-		makeShadowOrtho(&projection, bounds->min.x, bounds->max.x, bounds->min.y, bounds->max.y,
+		makeShadowOrtho(&projection, bounds.min.x, bounds.max.x, bounds.min.y, bounds.max.y,
 			near, far, shadowProj->clipHalfDepth, shadowProj->clipInvertY);
 	}
 	else
@@ -267,7 +275,7 @@ bool dsShadowProjection_computeMatrix(dsMatrix44f* outMatrix, const dsShadowProj
 		// Need to invert
 		const float targetNear = 1;
 		float zOffset = near;
-		float yOffset = -0.5f*(bounds->min.y + bounds->max.y);
+		float yOffset = -0.5f*(bounds.min.y + bounds.max.y);
 		float farDist = far - near;
 		float targetFar = targetNear + farDist;
 
@@ -278,9 +286,9 @@ bool dsShadowProjection_computeMatrix(dsMatrix44f* outMatrix, const dsShadowProj
 		dsMatrix44f translate;
 		dsMatrix44f_makeTranslate(&translate, 0.0f, yOffset, -n + zOffset);
 
-		float yExtent = bounds->max.y + yOffset;
-		float left = bounds->min.x;
-		float right = bounds->max.x;
+		float yExtent = bounds.max.y + yOffset;
+		float left = bounds.min.x;
+		float right = bounds.max.x;
 		float top = yExtent;
 		float bottom = -top;
 		dsMatrix44f frustum;

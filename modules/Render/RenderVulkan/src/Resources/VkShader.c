@@ -730,7 +730,7 @@ static bool bindShaderStates(VkCommandBuffer submitBuffer, const dsShader* shade
 		if (vkShader->depthBiasClamp == MSL_UNKNOWN_FLOAT)
 		{
 			clamp = device->features.depthClamp && renderStates ?
-				renderStates->depthBiasConstantFactor : 0.0f;
+				renderStates->depthBiasClamp : 0.0f;
 		}
 		else
 			clamp = vkShader->depthBiasClamp;

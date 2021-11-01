@@ -342,6 +342,8 @@ static bool beginRenderSubpass(dsGLMainCommandBuffer* commandBuffer,
 	if (commandBuffer->curClearValues > 0)
 	{
 		glDisable(GL_SCISSOR_TEST);
+		const dsRenderer* renderer = ((dsCommandBuffer*)commandBuffer)->renderer;
+		dsGLRenderStates_enableAllWriteMasks(renderer, &commandBuffer->currentState);
 		DS_ASSERT(commandBuffer->curClearValues == renderPass->attachmentCount);
 		if (surfaceType == GLSurfaceType_Framebuffer && ANYGL_SUPPORTED(glClearBufferfv))
 			clearOtherFramebuffer(renderPass, subpassIndex, commandBuffer->clearValues);

@@ -753,10 +753,11 @@ bool dsSceneLightShadows_computeSurfaceProjection(dsSceneLightShadows* shadows, 
 		return false;
 	}
 
-	dsMatrix44f shadowMtx;
-	if (!dsShadowProjection_computeMatrix(&shadowMtx, shadows->projections + surface))
-		dsMatrix44_identity(shadowMtx);
-
+	const float paddingRatio = 0.1f;
+	dsMatrix44f* shadowMtx = shadows->projectionMatrices + surface;
+	if (!dsShadowProjection_computeMatrix(shadowMtx, shadows->projections + surface, paddingRatio))
+		dsMatrix44_identity(*shadowMtx);
+;
 	switch (shadows->lightType)
 	{
 		case dsSceneLightType_Directional:
@@ -771,7 +772,7 @@ bool dsSceneLightShadows_computeSurfaceProjection(dsSceneLightShadows* shadows, 
 				{
 					CascadedDirectionalLightData* data =
 						(CascadedDirectionalLightData*)shadows->curBufferData;
-					data->matrices[surface] = shadowMtx;
+					data->matrices[surface] = *shadowMtx;
 				}
 			}
 			else
@@ -784,7 +785,7 @@ bool dsSceneLightShadows_computeSurfaceProjection(dsSceneLightShadows* shadows, 
 				else
 				{
 					DirectionalLightData* data = (DirectionalLightData*)shadows->curBufferData;
-					data->matrix = shadowMtx;
+					data->matrix = *shadowMtx;
 				}
 			}
 			break;
@@ -797,7 +798,7 @@ bool dsSceneLightShadows_computeSurfaceProjection(dsSceneLightShadows* shadows, 
 			else
 			{
 				PointLightData* data = (PointLightData*)shadows->curBufferData;
-				data->matrices[surface] = shadowMtx;
+				data->matrices[surface] = *shadowMtx;
 			}
 			break;
 		case dsSceneLightType_Spot:
@@ -809,7 +810,7 @@ bool dsSceneLightShadows_computeSurfaceProjection(dsSceneLightShadows* shadows, 
 			else
 			{
 				SpotLightData* data = (SpotLightData*)shadows->curBufferData;
-				data->matrix = shadowMtx;
+				data->matrix = *shadowMtx;
 			}
 			break;
 		default:
@@ -826,6 +827,7 @@ bool dsSceneLightShadows_computeSurfaceProjection(dsSceneLightShadows* shadows, 
 		{
 			DS_CHECK(DS_SCENE_LIGHTING_LOG_TAG,
 				dsGfxBuffer_unmap(shadows->buffers[shadows->curBuffer].buffer));
+			shadows->curBufferData = NULL;
 		}
 	}
 
@@ -855,77 +857,7 @@ const dsMatrix44f* dsSceneLightShadows_getSurfaceProjection(const dsSceneLightSh
 		return NULL;
 	}
 
-	switch (shadows->lightType)
-	{
-		case dsSceneLightType_Directional:
-			if (shadows->cascaded)
-			{
-				if (shadows->fallback)
-				{
-					const dsMatrix44f* matrices =
-						(const dsMatrix44f*)dsShaderVariableGroup_getRawElementData(
-							shadows->fallback, 0);
-					DS_ASSERT(matrices);
-					return matrices + surface;
-				}
-				else
-				{
-					CascadedDirectionalLightData* data =
-						(CascadedDirectionalLightData*)shadows->curBufferData;
-					return data->matrices + surface;
-				}
-			}
-			else
-			{
-				if (shadows->fallback)
-				{
-					const dsMatrix44f* matrix =
-						(const dsMatrix44f*)dsShaderVariableGroup_getRawElementData(
-							shadows->fallback, 0);
-					DS_ASSERT(matrix);
-					return matrix;
-				}
-				else
-				{
-					DirectionalLightData* data = (DirectionalLightData*)shadows->curBufferData;
-					return &data->matrix;
-				}
-			}
-			break;
-		case dsSceneLightType_Point:
-			if (shadows->fallback)
-			{
-				const dsMatrix44f* matrices =
-					(const dsMatrix44f*)dsShaderVariableGroup_getRawElementData(
-						shadows->fallback, 0);
-				DS_ASSERT(matrices);
-				return matrices + surface;
-			}
-			else
-			{
-				PointLightData* data = (PointLightData*)shadows->curBufferData;
-				return data->matrices + surface;
-			}
-			break;
-		case dsSceneLightType_Spot:
-			if (shadows->fallback)
-			{
-				const dsMatrix44f* matrix =
-					(const dsMatrix44f*)dsShaderVariableGroup_getRawElementData(
-						shadows->fallback, 0);
-				DS_ASSERT(matrix);
-				return matrix;
-			}
-			else
-			{
-				SpotLightData* data = (SpotLightData*)shadows->curBufferData;
-				return &data->matrix;
-			}
-			break;
-		default:
-			DS_ASSERT(false);
-			return false;
-	}
+	return shadows->projectionMatrices + surface;
 }
 
 bool dsSceneLightShadows_destroy(dsSceneLightShadows* shadows)

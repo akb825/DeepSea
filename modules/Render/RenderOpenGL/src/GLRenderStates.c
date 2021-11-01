@@ -193,23 +193,32 @@ static void setRasterizationStates(const dsResourceManager* resourceManager,
 	mslRasterizationState* curState, const mslRasterizationState* newState,
 	const dsDynamicRenderStates* dynamicStates, bool invertY, bool dynamicOnly)
 {
+	if (curState->depthBiasEnable != newState->depthBiasEnable)
+	{
+		curState->depthBiasEnable = newState->depthBiasEnable;
+		if (curState->depthBiasEnable)
+			glEnable(GL_POLYGON_OFFSET_FILL);
+		else
+			glDisable(GL_POLYGON_OFFSET_FILL);
+	}
+
 	if (curState->depthBiasEnable)
 	{
 		float constantFactor = 0;
-		if (curState->depthBiasConstantFactor != MSL_UNKNOWN_FLOAT)
-			constantFactor = curState->depthBiasConstantFactor;
+		if (newState->depthBiasConstantFactor != MSL_UNKNOWN_FLOAT)
+			constantFactor = newState->depthBiasConstantFactor;
 		else if (dynamicStates)
 			constantFactor = dynamicStates->depthBiasConstantFactor;
 
 		float clamp = 0;
-		if (curState->depthBiasClamp != MSL_UNKNOWN_FLOAT)
-			clamp = curState->depthBiasClamp;
+		if (newState->depthBiasClamp != MSL_UNKNOWN_FLOAT)
+			clamp = newState->depthBiasClamp;
 		else if (dynamicStates)
 			clamp = dynamicStates->depthBiasClamp;
 
 		float slopeFactor = 0;
-		if (curState->depthBiasSlopeFactor != MSL_UNKNOWN_FLOAT)
-			slopeFactor = curState->depthBiasSlopeFactor;
+		if (newState->depthBiasSlopeFactor != MSL_UNKNOWN_FLOAT)
+			slopeFactor = newState->depthBiasSlopeFactor;
 		else if (dynamicStates)
 			slopeFactor = dynamicStates->depthBiasSlopeFactor;
 
@@ -229,8 +238,8 @@ static void setRasterizationStates(const dsResourceManager* resourceManager,
 	}
 
 	float lineWidth = 1.0f;
-	if (curState->lineWidth != MSL_UNKNOWN_FLOAT)
-		lineWidth = curState->lineWidth;
+	if (newState->lineWidth != MSL_UNKNOWN_FLOAT)
+		lineWidth = newState->lineWidth;
 	else if (dynamicStates)
 		lineWidth = dynamicStates->lineWidth;
 	if (curState->lineWidth != newState->lineWidth)
@@ -288,15 +297,6 @@ static void setRasterizationStates(const dsResourceManager* resourceManager,
 		curState->frontFace = newState->frontFace;
 		DS_ASSERT((unsigned int)curState->frontFace < DS_ARRAY_SIZE(frontFaceMap));
 		glFrontFace(frontFaceMap[curState->frontFace]);
-	}
-
-	if (curState->depthBiasEnable != newState->depthBiasEnable)
-	{
-		curState->depthBiasEnable = newState->depthBiasEnable;
-		if (curState->depthBiasEnable)
-			glEnable(GL_POLYGON_OFFSET_FILL);
-		else
-			glDisable(GL_POLYGON_OFFSET_FILL);
 	}
 }
 
@@ -865,4 +865,21 @@ void dsGLRenderStates_updateDynamicGLStates(const dsRenderer* renderer, mslRende
 	setDepthStencilStates(&curState->depthStencilState, &newState->depthStencilState,
 		dynamicStates, true);
 	setBlendStates(renderer, &curState->blendState, &newState->blendState, dynamicStates, true);
+}
+
+void dsGLRenderStates_enableAllWriteMasks(const dsRenderer* renderer, mslRenderState* renderState)
+{
+	for (uint32_t i = 0; i < renderer->maxColorAttachments; ++i)
+	{
+		renderState->blendState.blendAttachments[i].colorWriteMask =
+			mslColorMask_Red | mslColorMask_Green | mslColorMask_Blue | mslColorMask_Alpha;
+	}
+
+	renderState->depthStencilState.depthWriteEnable = true;
+	renderState->depthStencilState.frontStencil.writeMask = 0xFF;
+	renderState->depthStencilState.backStencil.writeMask = 0xFF;
+
+	glColorMask(true, true, true, true);
+	glDepthMask(true);
+	glStencilMask(0xFF);
 }
