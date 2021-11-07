@@ -47,18 +47,19 @@
 float dsCascadedShadowMap(sampler2DArrayShadow shadowMap, mat4 cascadeProjections[4],
 	vec4 splitDistances, vec3 viewPos, float fadeStart, float fadeEnd)
 {
-	ivec4 beyondSplit = ivec4(greaterThan(vec4(viewPos.z), splitDistances));
+	float viewZ = -viewPos.z;
+	ivec4 beyondSplit = ivec4(greaterThan(vec4(viewZ), splitDistances));
 	int split = byeondSplit.x + byeondSplit.y + byeondSplit.z + byeondSplit.w;
 
 	// Regardless of the number of splits, the split index will be 0 if fully out of the range of
 	// shadows. (since all following splits are set to far plane)
-	if (split >= 4 || viewPos.z >= fadeEnd)
+	if (split >= 4 || viewZ >= fadeEnd)
 		return 1.0;
 
 	float fadeRange = fadeEnd - fadeStart;
 	float fadeAmount = 0.0;
-	if (fadeRange > 0.1)
-		fadeAmount = max(viewPos.z - fadeStart, 0.0)/fadeRange;
+	if (fadeRange > 1e-3)
+		fadeAmount = max(viewZ - fadeStart, 0.0)/fadeRange;
 
 	vec4 shadowPos = DS_ADJUST_CLIP(cascadeProjections[split]*vec4(viewPos, 1.0));
 	shadowPos /= shadowPos.w;

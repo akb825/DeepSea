@@ -48,13 +48,14 @@
 float dsShadowMap(sampler2DShadow shadowMap, vec3 viewPos, vec3 shadowPos, float fadeStart,
 	float fadeEnd)
 {
-	if (viewPos.z >= fadeEnd)
+	float viewZ = -viewPos.z;
+	if (viewZ >= fadeEnd)
 		return 1.0;
 
 	float fadeRange = fadeEnd - fadeStart;
 	float fadeAmount = 0.0;
-	if (fadeRange > 0.1)
-		fadeAmount = max(viewPos.z - fadeStart, 0.0)/fadeRange;
+	if (fadeRange > 1e-3)
+		fadeAmount = max(viewZ - fadeStart, 0.0)/fadeRange;
 
 	shadowPos.xy = shadowPos.xy*vec2(0.5) + vec2(0.5);
 	if (DS_CLIP_HALF_DEPTH == 0)
