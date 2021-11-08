@@ -20,6 +20,8 @@
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Math/Core.h>
 
+#include <float.h>
+
 // https://developer.download.nvidia.com/SDK/10.5/opengl/src/cascaded_shadow_maps/doc/cascaded_shadow_maps.pdf
 
 unsigned int dsComputeCascadeCount(float near, float far, float maxFirstSplitDist, float expFactor,
@@ -39,15 +41,15 @@ unsigned int dsComputeCascadeCount(float near, float far, float maxFirstSplitDis
 	// linear factor. maxCascades is assumed to be small, typically up to 4.
 	for (unsigned int i = 1; i < maxCascades; ++i)
 	{
-		if (dsComputeCascadeDistance(near, far, expFactor, 0, i) <= maxFirstSplitDist)
+		if (dsComputeCascadeDistance(near, far, FLT_MAX, expFactor, 0, i) <= maxFirstSplitDist)
 			return i;
 	}
 
 	return maxCascades;
 }
 
-float dsComputeCascadeDistance(float near, float far, float expFactor, unsigned int index,
-	unsigned int cascadeCount)
+float dsComputeCascadeDistance(float near, float far, float maxFirstSplitDist, float expFactor,
+	unsigned int index, unsigned int cascadeCount)
 {
 	if (near <= 0 || near >= far || expFactor < 0 || expFactor > 1)
 	{
@@ -64,5 +66,8 @@ float dsComputeCascadeDistance(float near, float far, float expFactor, unsigned 
 	float cascadeFrac = (float)(index + 1)/(float)cascadeCount;
 	float linDist = near + cascadeFrac*(far - near);
 	float expDist = near*powf(far/near, cascadeFrac);
-	return dsLerp(linDist, expDist, expFactor);
+	float distance = dsLerp(linDist, expDist, expFactor);
+	if (index == 0)
+		distance = dsMin(distance, maxFirstSplitDist);
+	return distance;
 }

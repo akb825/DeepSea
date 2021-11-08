@@ -28,6 +28,7 @@
 			"decoration": "Unset",
 			"width": 1024,
 			"height": 1024,
+			"depth": 2,
 			"samples": 1,
 			"resolve": false,
 			"windowFramebuffer": false
@@ -56,12 +57,42 @@
 			]
 		},
 		{
-			"name": "shadowCast",
+			"name": "shadowCast0",
 			"width": 1024,
 			"height": 1024,
 			"surfaces":
 			[
-				{"name": "shadowMap"},
+				{"name": "shadowMap", "layer": 0},
+				{"name": "shadowColorBuffer"}
+			]
+		},
+		{
+			"name": "shadowCast1",
+			"width": 1024,
+			"height": 1024,
+			"surfaces":
+			[
+				{"name": "shadowMap", "layer": 1},
+				{"name": "shadowColorBuffer"}
+			]
+		},
+		{
+			"name": "shadowCast2",
+			"width": 1024,
+			"height": 1024,
+			"surfaces":
+			[
+				{"name": "shadowMap", "layer": 2},
+				{"name": "shadowColorBuffer"}
+			]
+		},
+		{
+			"name": "shadowCast3",
+			"width": 1024,
+			"height": 1024,
+			"surfaces":
+			[
+				{"name": "shadowMap", "layer": 3},
 				{"name": "shadowColorBuffer"}
 			]
 		}

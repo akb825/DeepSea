@@ -40,11 +40,33 @@
 						"shader": "shadowCastShader",
 						"material": "shadowCastMaterial",
 						"list": "mainShadowCastList0"
+					},
+					{
+						"shader": "shadowCastShader",
+						"material": "shadowCastMaterial",
+						"list": "mainShadowCastList1"
+					},
+					{
+						"shader": "shadowCastShader",
+						"material": "shadowCastMaterial",
+						"list": "mainShadowCastList2"
+					},
+					{
+						"shader": "shadowCastShader",
+						"material": "shadowCastMaterial",
+						"list": "mainShadowCastList3"
 					}
 				]
 			}
 		],
-		"extraItemLists": ["cullList", "mainShadowCullList0"]
+		"extraItemLists":
+		[
+			"cullList",
+			"mainShadowCullList0",
+			"mainShadowCullList1",
+			"mainShadowCullList2",
+			"mainShadowCullList3"
+		]
 	},
 	{
 		"type": "SceneNode",
@@ -66,11 +88,33 @@
 						"shader": "shadowCastShader",
 						"material": "shadowCastMaterial",
 						"list": "mainShadowCastList0"
+					},
+					{
+						"shader": "shadowCastShader",
+						"material": "shadowCastMaterial",
+						"list": "mainShadowCastList1"
+					},
+					{
+						"shader": "shadowCastShader",
+						"material": "shadowCastMaterial",
+						"list": "mainShadowCastList2"
+					},
+					{
+						"shader": "shadowCastShader",
+						"material": "shadowCastMaterial",
+						"list": "mainShadowCastList3"
 					}
 				]
 			}
 		],
-		"extraItemLists": ["cullList", "mainShadowCullList0"]
+		"extraItemLists":
+		[
+			"cullList",
+			"mainShadowCullList0",
+			"mainShadowCullList1",
+			"mainShadowCullList2",
+			"mainShadowCullList3"
+		]
 	},
 	{
 		"type": "SceneNode",
@@ -113,10 +157,32 @@
 						"shader": "shadowCastShader",
 						"material": "shadowCastMaterial",
 						"list": "mainShadowCastList0"
+					},
+					{
+						"shader": "shadowCastShader",
+						"material": "shadowCastMaterial",
+						"list": "mainShadowCastList1"
+					},
+					{
+						"shader": "shadowCastShader",
+						"material": "shadowCastMaterial",
+						"list": "mainShadowCastList2"
+					},
+					{
+						"shader": "shadowCastShader",
+						"material": "shadowCastMaterial",
+						"list": "mainShadowCastList3"
 					}
 				]
 			}
 		],
-		"extraItemLists": ["cullList", "mainShadowCullList0"]
+		"extraItemLists":
+		[
+			"cullList",
+			"mainShadowCullList0",
+			"mainShadowCullList1",
+			"mainShadowCullList2",
+			"mainShadowCullList3"
+		]
 	}
 ]

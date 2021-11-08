@@ -396,6 +396,26 @@
 		]
 	},
 	{
+		"type": "ShaderVariableGroupDesc",
+		"name": "cascadedDirectionalShadowTransformDesc",
+		"elements":
+		[
+			{
+				"name": "matrices",
+				"type": "Mat4",
+				"count": 4
+			},
+			{
+				"name": "splitDistances",
+				"type": "Vec4"
+			},
+			{
+				"name": "fadeDistances",
+				"type": "Vec2"
+			}
+		]
+	},
+	{
 		"type": "MaterialDesc",
 		"name": "shadowCastMaterialDesc",
 		"elements":

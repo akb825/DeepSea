@@ -62,14 +62,15 @@ DS_RENDER_EXPORT unsigned int dsComputeCascadeCount(float near, float far, float
  * @remark errno will be set on failure.
  * @param near The near plane of the view frustum.
  * @param far The far plane of the view frustum.
+ * @param maxFirstSplitDist The maximum distance for the first split.
  * @param expFactor Exponential factor in the range [0, 1], where 0 uses linear distances between
  *     the splits and 1 is fully exponential.
  * @param index The index of the cascade.
  * @param cascadeCount The number of cascades.
  * @return The distance to the cascade, or 0 if the parameters are invalid.
  */
-DS_RENDER_EXPORT float dsComputeCascadeDistance(float near, float far, float expFactor,
-	unsigned int index, unsigned int cascadeCount);
+DS_RENDER_EXPORT float dsComputeCascadeDistance(float near, float far,
+	float maxFirstSplitDist, float expFactor, unsigned int index, unsigned int cascadeCount);
 
 #ifdef __cplusplus
 }

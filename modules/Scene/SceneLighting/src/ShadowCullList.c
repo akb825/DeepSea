@@ -107,6 +107,11 @@ void dsShadowCullList_commit(dsSceneItemList* itemList, const dsView* view,
 	dsShadowCullList* cullList = (dsShadowCullList*)itemList;
 	if (cullList->surface >= dsSceneLightShadows_getSurfaceCount(cullList->shadows))
 	{
+		for (uint32_t i = 0; i < cullList->entryCount; ++i)
+		{
+			const Entry* entry = cullList->entries + i;
+			*entry->result = true;
+		}
 		DS_PROFILE_SCOPE_END();
 		return;
 	}

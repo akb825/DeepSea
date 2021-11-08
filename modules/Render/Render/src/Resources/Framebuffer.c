@@ -202,7 +202,7 @@ dsFramebuffer* dsFramebuffer_create(dsResourceManager* resourceManager, dsAlloca
 				DS_PROFILE_FUNC_RETURN(NULL);
 		}
 
-		if (surfaceLayers != layers)
+		if (layers != 1 && surfaceLayers != layers)
 		{
 			errno = EINVAL;
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG,
@@ -210,7 +210,7 @@ dsFramebuffer* dsFramebuffer_create(dsResourceManager* resourceManager, dsAlloca
 			DS_PROFILE_FUNC_RETURN(NULL);
 		}
 
-		if (layers > 0 && (surfaces[i].layer != 0 || surfaces[i].cubeFace != dsCubeFace_None))
+		if (layers > 1 && (surfaces[i].layer != 0 || surfaces[i].cubeFace != dsCubeFace_None))
 		{
 			errno = EINVAL;
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG,

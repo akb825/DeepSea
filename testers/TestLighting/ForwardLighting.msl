@@ -20,7 +20,7 @@
 #include <DeepSea/Scene/Shaders/ViewTransform.mslh>
 
 #include <DeepSea/Render/Shaders/Shadows/ShadowPCF4x4.mslh>
-#include <DeepSea/Render/Shaders/Shadows/ShadowMap.mslh>
+#include <DeepSea/Render/Shaders/Shadows/CascadedShadowMap.mslh>
 
 uniform sampler2D diffuseTexture;
 sampler_state diffuseTexture
@@ -52,7 +52,7 @@ sampler_state specularTexture
 	mip_filter = anisotropic;
 }
 
-uniform sampler2DShadow shadowMap;
+uniform sampler2DArrayShadow shadowMap;
 sampler_state shadowMap
 {
 	address_mode_u = clamp_to_edge;
@@ -64,7 +64,8 @@ sampler_state shadowMap
 
 uniform ShadowTransform
 {
-	mat4 matrix;
+	mat4[4] matrices;
+	vec4 splitDistances;
 	vec2 fadeDistances;
 } dsShadowTransform;
 
@@ -78,7 +79,6 @@ uniform float shininess;
 varying(vertex, fragment)
 {
 	vec3 vfViewPosition;
-	vec4 vfShadowPosition;
 	vec4 vfNormalTexX;
 	vec4 vfTangentTexY;
 	vec3 vfBitangent;
@@ -95,7 +95,6 @@ void vertexShader()
 
 	vec4 viewPosition = INSTANCE(dsInstanceTransform).worldView*position4;
 	vfViewPosition = viewPosition.xyz;
-	vfShadowPosition = DS_ADJUST_CLIP(INSTANCE(dsShadowTransform).matrix*viewPosition);
 
 	vec3 fixedNormal = normal*2.0 - vec3(1.0);
 	vec3 fixedTangent = tangent*2.0 - vec3(1.0);
@@ -121,8 +120,9 @@ void fragmentShader()
 	// Normalize just the original normal as a trdeoff between performance and quality.
 	normal = mat3(vfTangentTexY.xyz, vfBitangent, normalize(vfNormalTexX.xyz))*normal;
 
-	float shadowValue = dsShadowMap(shadowMap, vfViewPosition,
-		vfShadowPosition.xyz/vfShadowPosition.w, INSTANCE(dsShadowTransform).fadeDistances.x,
+	float shadowValue = dsCascadedShadowMap(shadowMap, INSTANCE(dsShadowTransform).matrices,
+		INSTANCE(dsShadowTransform).splitDistances, vfViewPosition,
+		INSTANCE(dsShadowTransform).fadeDistances.x,
 		INSTANCE(dsShadowTransform).fadeDistances.y);
 
 	vec3 viewDirection = -normalize(vfViewPosition);

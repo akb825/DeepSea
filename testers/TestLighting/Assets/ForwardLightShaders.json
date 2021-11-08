@@ -56,7 +56,7 @@
 				"name": "ShadowTransform",
 				"type": "VariableGroup",
 				"binding": "Global",
-				"shaderVariableGroupDesc": "directionalShadowTransformDesc"
+				"shaderVariableGroupDesc": "cascadedDirectionalShadowTransformDesc"
 			}
 		]
 	},
@@ -77,8 +77,10 @@
 				"name": "main",
 				"lightType": "Directional",
 				"light": "sun",
-				"transformGroupDesc": "directionalShadowTransformDesc",
-				"transformGroupName": "ShadowTransform"
+				"transformGroupDesc": "cascadedDirectionalShadowTransformDesc",
+				"transformGroupName": "ShadowTransform",
+				"maxCascades": 2,
+				"maxFirstSplitDistance": 10
 			}
 		]
 	}

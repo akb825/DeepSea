@@ -535,7 +535,7 @@ dsView* dsView_create(const dsScene* scene, dsAllocator* allocator, dsAllocator*
 
 		if (!found)
 		{
-			errno = EINVAL;
+			errno = ENOTFOUND;
 			DS_LOG_ERROR_F(DS_SCENE_LOG_TAG,
 				"Framebuffer '%s' requested from scene's pipeline not in the view.",
 				renderPass->framebuffer);
@@ -958,7 +958,7 @@ bool dsView_update(dsView* view)
 		dsFramebuffer* framebuffer = NULL;
 		if (outOfRange)
 		{
-			DS_LOG_WARNING_F(DS_SCENE_LOG_TAG, "Ignoring frmaebuffer %s with layers out of range.",
+			DS_LOG_WARNING_F(DS_SCENE_LOG_TAG, "Ignoring framebuffer %s with layers out of range.",
 				framebufferInfo->name);
 		}
 		else
@@ -1038,7 +1038,7 @@ bool dsView_draw(dsView* view, dsCommandBuffer* commandBuffer, dsSceneThreadMana
 
 			// Skipped due to framebuffer out of range. (e.g. support up to N layers, but have fewer
 			// in the currently bound offscreen)
-			if (!framebuffer)
+			if (!framebuffer->framebuffer)
 				continue;
 
 			dsAlignedBox3f viewport = framebufferInfo->viewport;

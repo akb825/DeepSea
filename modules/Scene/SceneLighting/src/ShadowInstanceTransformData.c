@@ -58,6 +58,9 @@ void dsShadowInstanceTransformData_populateData(void* userData, const dsView* vi
 	DS_ASSERT(stride >= sizeof(InstanceTransform));
 
 	ShadowUserData* shadowData = (ShadowUserData*)userData;
+	if (shadowData->surface >= dsSceneLightShadows_getSurfaceCount(shadowData->shadows))
+		return;
+
 	const dsMatrix44f* projection = dsSceneLightShadows_getSurfaceProjection(shadowData->shadows,
 		shadowData->surface);
 	if (!DS_CHECK(DS_SCENE_LIGHTING_LOG_TAG, projection))

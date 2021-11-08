@@ -474,11 +474,12 @@ bool dsSceneLightShadows_prepare(dsSceneLightShadows* shadows, const dsView* vie
 				for (uint32_t i = 0; i < shadows->totalMatrices; ++i)
 				{
 					splitDistances.values[i] = dsComputeCascadeDistance(nearPlane, farPlane,
-						shadowParams->cascadeExpFactor, i, shadows->totalMatrices);
+						shadowParams->maxFirstSplitDistance, shadowParams->cascadeExpFactor, i,
+						shadows->totalMatrices);
 
 					dsProjectionParams curProjection = shadowedProjection;
 					curProjection.near = i == 0 ? nearPlane : splitDistances.values[i - 1];
-					curProjection.far = farPlane;
+					curProjection.far = splitDistances.values[i];
 					dsMatrix44f projectionMtx;
 					DS_VERIFY(dsProjectionParams_createMatrix(
 						&projectionMtx, &curProjection, renderer));

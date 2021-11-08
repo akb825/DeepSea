@@ -16,6 +16,7 @@
 
 #include <DeepSea/Render/Shadows/CascadeSplits.h>
 #include <gtest/gtest.h>
+#include <float.h>
 #include <math.h>
 
 TEST(CascadeSplitsTest, ComputeCascadeCount)
@@ -36,21 +37,22 @@ TEST(CascadeSplitsTest, ComputeCascadeCount)
 
 TEST(CascadeSplitsTest, ComputeCascadeDistance)
 {
-	EXPECT_EQ(0.0f, dsComputeCascadeDistance(0, 2, 0, 0, 1));
-	EXPECT_EQ(0.0f, dsComputeCascadeDistance(2, 1, 0, 0, 1));
-	EXPECT_EQ(0.0f, dsComputeCascadeDistance(1, 2, -1, 0, 1));
-	EXPECT_EQ(0.0f, dsComputeCascadeDistance(1, 2, 2, 0, 1));;
-	EXPECT_EQ(0.0f, dsComputeCascadeDistance(1, 2, 0, 1, 1));
-	EXPECT_EQ(0.0f, dsComputeCascadeDistance(1, 2, 0, 0, 0));
+	EXPECT_EQ(0.0f, dsComputeCascadeDistance(0, 2, FLT_MAX, 0, 0, 1));
+	EXPECT_EQ(0.0f, dsComputeCascadeDistance(2, 1, FLT_MAX, 0, 0, 1));
+	EXPECT_EQ(0.0f, dsComputeCascadeDistance(1, 2, FLT_MAX, -1, 0, 1));
+	EXPECT_EQ(0.0f, dsComputeCascadeDistance(1, 2, FLT_MAX, 2, 0, 1));;
+	EXPECT_EQ(0.0f, dsComputeCascadeDistance(1, 2, FLT_MAX, 0, 1, 1));
+	EXPECT_EQ(0.0f, dsComputeCascadeDistance(1, 2, FLT_MAX, 0, 0, 0));
 
-	EXPECT_FLOAT_EQ(1.0f + 0.25f*9.0f, dsComputeCascadeDistance(1, 10, 0, 0, 4));
-	EXPECT_FLOAT_EQ(1.0f + 0.5f*9.0f, dsComputeCascadeDistance(1, 10, 0, 1, 4));
-	EXPECT_FLOAT_EQ(1.0f + 0.75f*9.0f, dsComputeCascadeDistance(1, 10, 0, 2, 4));
-	EXPECT_FLOAT_EQ(10.0f, dsComputeCascadeDistance(1, 10, 0, 3, 4));
+	EXPECT_FLOAT_EQ(1.0f + 0.25f*9.0f, dsComputeCascadeDistance(1, 10, FLT_MAX, 0, 0, 4));
+	EXPECT_FLOAT_EQ(1.0f + 0.5f*9.0f, dsComputeCascadeDistance(1, 10, FLT_MAX, 0, 1, 4));
+	EXPECT_FLOAT_EQ(1.0f + 0.75f*9.0f, dsComputeCascadeDistance(1, 10, FLT_MAX, 0, 2, 4));
+	EXPECT_FLOAT_EQ(10.0f, dsComputeCascadeDistance(1, 10, FLT_MAX, 0, 3, 4));
 
+	EXPECT_FLOAT_EQ(2, dsComputeCascadeDistance(1, 10, 2, 0, 0, 4));
 
-	EXPECT_FLOAT_EQ(powf(10.0f, 0.25f), dsComputeCascadeDistance(1, 10, 1, 0, 4));
-	EXPECT_FLOAT_EQ(sqrtf(10.0f), dsComputeCascadeDistance(1, 10, 1, 1, 4));
-	EXPECT_FLOAT_EQ(powf(10.0f, 0.75f), dsComputeCascadeDistance(1, 10, 1, 2, 4));
-	EXPECT_FLOAT_EQ(10.0f, dsComputeCascadeDistance(1, 10, 1, 3, 4));
+	EXPECT_FLOAT_EQ(powf(10.0f, 0.25f), dsComputeCascadeDistance(1, 10, FLT_MAX, 1, 0, 4));
+	EXPECT_FLOAT_EQ(sqrtf(10.0f), dsComputeCascadeDistance(1, 10, FLT_MAX, 1, 1, 4));
+	EXPECT_FLOAT_EQ(powf(10.0f, 0.75f), dsComputeCascadeDistance(1, 10, FLT_MAX, 1, 2, 4));
+	EXPECT_FLOAT_EQ(10.0f, dsComputeCascadeDistance(1, 10, FLT_MAX, 1, 3, 4));
 }
