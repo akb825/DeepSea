@@ -263,6 +263,7 @@ dsSceneLightShadows* dsSceneLightShadows_create(dsAllocator* allocator, const ch
 	char* nameCopy = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, nameLen);
 	memcpy(nameCopy, name, nameLen);
 	shadows->name = nameCopy;
+	shadows->nameID = dsHashString(name);
 
 	shadows->resourceManager = resourceManager;
 	shadows->lightSet = lightSet;
@@ -305,6 +306,11 @@ const char* dsSceneLightShadows_getName(const dsSceneLightShadows* shadows)
 	}
 
 	return shadows->name;
+}
+
+uint32_t dsSceneLightShadows_getNameID(const dsSceneLightShadows* shadows)
+{
+	return shadows ? shadows->nameID : 0;
 }
 
 dsSceneLightType dsSceneLightShadows_getLightType(const dsSceneLightShadows* shadows)

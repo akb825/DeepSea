@@ -131,25 +131,24 @@ dsSceneItemList* dsDeferredLightResolve_load(const dsSceneLoadContext*,
 	auto fbDirectional = fbResolve->directional();
 	if (fbDirectional)
 	{
-		lightInfos[lightType].shader = findShader(scratchData, fbDirectional->shader()->c_str());
-		lightInfos[lightType].material =
-			findMaterial(scratchData, fbDirectional->material()->c_str());
+		dsDeferredLightDrawInfo* lightInfo = lightInfos + lightType;
+		lightInfo->shader = findShader(scratchData, fbDirectional->shader()->c_str());
+		lightInfo->material = findMaterial(scratchData, fbDirectional->material()->c_str());
 
-		if (!lightInfos[lightType].shader || !lightInfos[lightType].material)
+		if (!lightInfo->shader || !lightInfo->material)
 			return nullptr;
 	}
 
 	auto fbShadowDirectional = fbResolve->shadowDirectional();
 	if (fbShadowDirectional)
 	{
-		shadowLightInfos[lightType].shader = findShader(scratchData,
-			fbShadowDirectional->shader()->c_str());
-		shadowLightInfos[lightType].material =
-			findMaterial(scratchData, fbShadowDirectional->material()->c_str());
-		shadowLightInfos[lightType].transformGroupName =
-			fbShadowDirectional->transformGroup()->c_str();
+		dsDeferredShadowLightDrawInfo* lightInfo = shadowLightInfos + lightType;
+		lightInfo->shader = findShader(scratchData, fbShadowDirectional->shader()->c_str());
+		lightInfo->material = findMaterial(scratchData, fbShadowDirectional->material()->c_str());
+		lightInfo->transformGroupName = fbShadowDirectional->transformGroup()->c_str();
+		lightInfo->shadowTextureName = fbShadowDirectional->shadowTexture()->c_str();
 
-		if (!shadowLightInfos[lightType].shader || !shadowLightInfos[lightType].material)
+		if (!lightInfo->shader || !lightInfo->material)
 			return nullptr;
 	}
 
@@ -157,23 +156,24 @@ dsSceneItemList* dsDeferredLightResolve_load(const dsSceneLoadContext*,
 	auto fbPoint = fbResolve->point();
 	if (fbPoint)
 	{
-		lightInfos[lightType].shader = findShader(scratchData, fbPoint->shader()->c_str());
-		lightInfos[lightType].material = findMaterial(scratchData, fbPoint->material()->c_str());
+		dsDeferredLightDrawInfo* lightInfo = lightInfos + lightType;
+		lightInfo->shader = findShader(scratchData, fbPoint->shader()->c_str());
+		lightInfo->material = findMaterial(scratchData, fbPoint->material()->c_str());
 
-		if (!lightInfos[lightType].shader || !lightInfos[lightType].material)
+		if (!lightInfo->shader || !lightInfo->material)
 			return nullptr;
 	}
 
 	auto fbShadowPoint = fbResolve->shadowPoint();
 	if (fbShadowPoint)
 	{
-		shadowLightInfos[lightType].shader = findShader(scratchData,
-			fbShadowPoint->shader()->c_str());
-		shadowLightInfos[lightType].material =
-			findMaterial(scratchData, fbShadowPoint->material()->c_str());
-		shadowLightInfos[lightType].transformGroupName = fbShadowPoint->transformGroup()->c_str();
+		dsDeferredShadowLightDrawInfo* lightInfo = shadowLightInfos + lightType;
+		lightInfo->shader = findShader(scratchData, fbShadowPoint->shader()->c_str());
+		lightInfo->material = findMaterial(scratchData, fbShadowPoint->material()->c_str());
+		lightInfo->transformGroupName = fbShadowPoint->transformGroup()->c_str();
+		lightInfo->shadowTextureName = fbShadowPoint->shadowTexture()->c_str();
 
-		if (!shadowLightInfos[lightType].shader || !shadowLightInfos[lightType].material)
+		if (!lightInfo->shader || !lightInfo->material)
 			return nullptr;
 	}
 
@@ -181,23 +181,24 @@ dsSceneItemList* dsDeferredLightResolve_load(const dsSceneLoadContext*,
 	auto fbSpot = fbResolve->spot();
 	if (fbSpot)
 	{
-		lightInfos[lightType].shader = findShader(scratchData, fbSpot->shader()->c_str());
-		lightInfos[lightType].material = findMaterial(scratchData, fbSpot->material()->c_str());
+		dsDeferredLightDrawInfo* lightInfo = lightInfos + lightType;
+		lightInfo->shader = findShader(scratchData, fbSpot->shader()->c_str());
+		lightInfo->material = findMaterial(scratchData, fbSpot->material()->c_str());
 
-		if (!lightInfos[lightType].shader || !lightInfos[lightType].material)
+		if (!lightInfo->shader || !lightInfo->material)
 			return nullptr;
 	}
 
 	auto fbShadowSpot = fbResolve->shadowSpot();
 	if (fbShadowSpot)
 	{
-		shadowLightInfos[lightType].shader = findShader(scratchData,
-			fbShadowSpot->shader()->c_str());
-		shadowLightInfos[lightType].material =
-			findMaterial(scratchData, fbShadowSpot->material()->c_str());
-		shadowLightInfos[lightType].transformGroupName = fbShadowSpot->transformGroup()->c_str();
+		dsDeferredShadowLightDrawInfo* lightInfo = shadowLightInfos + lightType;
+		lightInfo->shader = findShader(scratchData, fbShadowSpot->shader()->c_str());
+		lightInfo->material = findMaterial(scratchData, fbShadowSpot->material()->c_str());
+		lightInfo->transformGroupName = fbShadowSpot->transformGroup()->c_str();
+		lightInfo->shadowTextureName = fbShadowSpot->shadowTexture()->c_str();
 
-		if (!shadowLightInfos[lightType].shader || !shadowLightInfos[lightType].material)
+		if (!lightInfo->shader || !lightInfo->material)
 			return nullptr;
 	}
 

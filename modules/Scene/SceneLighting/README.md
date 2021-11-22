@@ -77,18 +77,21 @@ The following item list types are provided with the members that are expected:
 	* `spot`: object containing info for non-shadowed spot lights. If omitted, non-shadowed spot lights won't be drawn. It is expected to contain the following elements:
 		* `shader`: the name of the shader to draw the light.
 		* `material`: the name of the material to use with the light shader.
-	* `shadowDirectional`: object containing info for shadowed directional lights. If omitted, shadowedDirectional: lights won't be drawn. It is expected to contain the following elements:
+	* `shadowDirectional`: object containing info for shadowed directional lights. If omitted, shadowed directional lights won't be drawn. It is expected to contain the following elements:
 		* `shader`: the name of the shader to draw the light.
 		* `material`: the name of the material to use with the light shader.
 		* `transformGroup`: name of the shader variable group containing the shadow transform.
+		* `shadowTexture`: name of the shader variable for the the shadow texture.
 	* `shadowPoint`: object containing info for shadowed point lights. If omitted, shadowed spot lights won't be drawn. It is expected to contain the following elements:
 		* `shader`: the name of the shader to draw the light.
 		* `material`: the name of the material to use with the light shader.
 		* `transformGroup`: name of the shader variable group containing the shadow transform.
+		* `shadowTexture`: name of the shader variable for the the shadow texture.
 	* `spot`: object containing info for shadowed spot lights. If omitted, shadowed spot lights won't be drawn. It is expected to contain the following elements:
 		* `shader`: the name of the shader to draw the light.
 		* `material`: the name of the material to use with the light shader.
 		* `transformGroup`: name of the shader variable group containing the shadow transform.
+		* `shadowTexture`: name of the shader variable for the the shadow texture.
 	* `intensityThreshold`: the threshold below which the light is considered out of view. If unset this will use the default.
 * `"ShadowCullList"`
 	* `shadowManager`: name of the shadow manager that contains the shadows being culled for.

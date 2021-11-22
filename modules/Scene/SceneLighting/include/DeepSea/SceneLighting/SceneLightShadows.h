@@ -43,7 +43,8 @@ extern "C"
  * @brief Creates scene light shadows to manage shadows for a single light.
  * @remark errno will be set on failure.
  * @param allocator The allocator to create this with. This must support freeing memory.
- * @param name The name of the light shadows. This will be copied.
+ * @param name The name of the light shadows. This will be copied. When used with deferred lighting,
+ *     this is expected to have the same name as the texture in the view.
  * @param resourceManager The resource manager to create graphics resources with.
  * @param lightSet The light set to retrieve the light from.
  * @param lightType The type of the light this will cast shadows for.
@@ -81,6 +82,14 @@ DS_SCENELIGHTING_EXPORT dsSceneLightShadows* dsSceneLightShadows_create(dsAlloca
  * @return The name or NULL if shadows is NULL.
  */
 DS_SCENELIGHTING_EXPORT const char* dsSceneLightShadows_getName(const dsSceneLightShadows* shadows);
+
+/**
+ * @brief Gets the name ID of the scene light shadows.
+ * @remark errno will be set on failure.
+ * @param shadows The scene light shadows.
+ * @return The name ID.
+ */
+DS_SCENELIGHTING_EXPORT uint32_t dsSceneLightShadows_getNameID(const dsSceneLightShadows* shadows);
 
 /**
  * @brief Gets the light type that will be shadowed.

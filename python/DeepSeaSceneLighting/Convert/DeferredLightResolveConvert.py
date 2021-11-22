@@ -43,20 +43,23 @@ def convertDeferredLightResolve(convertContext, data):
 	  - shader: the name of the shader to draw the light.
 	  - material: the name of the material to use with the light shader.
 	- shadowDirectional: object containing info for shadowed directional lights. If omitted,
-	  shadowedDirectional: lights won't be drawn. It is expected to contain the following elements:
+	  shadowed directional lights won't be drawn. It is expected to contain the following elements:
 	  - shader: the name of the shader to draw the light.
 	  - material: the name of the material to use with the light shader.
 	  - transformGroup: name of the shader variable group containing the shadow transform.
+	  - shadowTexture: name of the shader variable for the the shadow texture.
 	- shadowPoint: object containing info for shadowed point lights. If omitted, shadowed spot
 	  lights won't be drawn. It is expected to contain the following elements:
 	  - shader: the name of the shader to draw the light.
 	  - material: the name of the material to use with the light shader.
 	  - transformGroup: name of the shader variable group containing the shadow transform.
+	  - shadowTexture: name of the shader variable for the the shadow texture.
 	- spot: object containing info for shadowed spot lights. If omitted, shadowed spot lights won't
 	  be drawn. It is expected to contain the following elements:
 	  - shader: the name of the shader to draw the light.
 	  - material: the name of the material to use with the light shader.
 	  - transformGroup: name of the shader variable group containing the shadow transform.
+	  - shadowTexture: name of the shader variable for the the shadow texture.
 	- intensityThreshold: the threshold below which the light is considered out of view. If unset
 	  this will use the default.
 	"""
@@ -78,6 +81,7 @@ def convertDeferredLightResolve(convertContext, data):
 			lightInfo.shader = str(lightData['shader'])
 			lightInfo.material = str(lightData['material'])
 			lightInfo.transformGroup = str(lightData['transformGroup'])
+			lightInfo.shadowTexture = str(lightData['shadowTexture'])
 			return lightInfo
 		except KeyError as e:
 			raise Exception('DeferredLightResolve ' + name + ' doesn\'t contain element ' + str(e) +
@@ -115,19 +119,19 @@ def convertDeferredLightResolve(convertContext, data):
 
 		shadowDirectionalData = data.get('shadowDirectional')
 		if shadowDirectionalData:
-			shadowDirectional = readLightInfo(shadowDirectionalData, 'shadowDirectional')
+			shadowDirectional = readShadowLightInfo(shadowDirectionalData, 'shadowDirectional')
 		else:
 			shadowDirectional = None
 
 		shadowPointData = data.get('shadowPoint')
 		if shadowPointData:
-			shadowPoint = readLightInfo(shadowPointData, 'shadowPoint')
+			shadowPoint = readShadowLightInfo(shadowPointData, 'shadowPoint')
 		else:
 			shadowPoint = None
 
 		shadowSpotData = data.get('shadowSpot')
 		if shadowSpotData:
-			shadowSpot = readLightInfo(shadowSpotData, 'shadowSpot')
+			shadowSpot = readShadowLightInfo(shadowSpotData, 'shadowSpot')
 		else:
 			shadowSpot = None
 
@@ -194,10 +198,12 @@ def convertDeferredLightResolve(convertContext, data):
 		shaderOffset = builder.CreateString(shadowDirectional.shader)
 		materialOffset = builder.CreateString(shadowDirectional.material)
 		transformGroupOffset = builder.CreateString(shadowDirectional.transformGroup)
+		shadowTextureOffset = builder.CreateString(shadowDirectional.shadowTexture)
 		DeferredShadowLightInfo.Start(builder)
 		DeferredShadowLightInfo.AddShader(builder, shaderOffset)
 		DeferredShadowLightInfo.AddMaterial(builder, materialOffset)
 		DeferredShadowLightInfo.AddTransformGroup(builder, transformGroupOffset)
+		DeferredShadowLightInfo.AddShadowTexture(builder, shadowTextureOffset)
 		shadowDirectionalOffset = DeferredShadowLightInfo.End(builder)
 	else:
 		shadowDirectionalOffset = 0
@@ -206,10 +212,12 @@ def convertDeferredLightResolve(convertContext, data):
 		shaderOffset = builder.CreateString(shadowPoint.shader)
 		materialOffset = builder.CreateString(shadowPoint.material)
 		transformGroupOffset = builder.CreateString(shadowPoint.transformGroup)
+		shadowTextureOffset = builder.CreateString(shadowPoint.shadowTexture)
 		DeferredShadowLightInfo.Start(builder)
 		DeferredShadowLightInfo.AddShader(builder, shaderOffset)
 		DeferredShadowLightInfo.AddMaterial(builder, materialOffset)
 		DeferredShadowLightInfo.AddTransformGroup(builder, transformGroupOffset)
+		DeferredShadowLightInfo.AddShadowTexture(builder, shadowTextureOffset)
 		shadowPointOffset = DeferredShadowLightInfo.End(builder)
 	else:
 		shadowPointOffset = 0
@@ -218,10 +226,12 @@ def convertDeferredLightResolve(convertContext, data):
 		shaderOffset = builder.CreateString(shadowSpot.shader)
 		materialOffset = builder.CreateString(shadowSpot.material)
 		transformGroupOffset = builder.CreateString(shadowSpot.transformGroup)
+		shadowTextureOffset = builder.CreateString(shadowSpot.shadowTexture)
 		DeferredShadowLightInfo.Start(builder)
 		DeferredShadowLightInfo.AddShader(builder, shaderOffset)
 		DeferredShadowLightInfo.AddMaterial(builder, materialOffset)
 		DeferredShadowLightInfo.AddTransformGroup(builder, transformGroupOffset)
+		DeferredShadowLightInfo.AddShadowTexture(builder, shadowTextureOffset)
 		shadowSpotOffset = DeferredShadowLightInfo.End(builder)
 	else:
 		shadowSpotOffset = 0

@@ -62,6 +62,7 @@ typedef struct ShadowLightDrawInfo
 	dsShader* shader;
 	dsMaterial* material;
 	uint32_t transformGroupID;
+	uint32_t textureID;
 } ShadowLightDrawInfo;
 
 typedef struct TraverseData
@@ -213,7 +214,7 @@ static BufferInfo* getDrawBuffers(dsDeferredLightResolve* resolve, dsRenderer* r
 		vertexBuffers[0] = &vertices;
 
 		indexBuffer.offset = resolve->lightIndexOffsets[i];
-		indexBuffer.count = lightIndexCounts[i];
+		indexBuffer.count = lightIndexCounts[i]*maxLights;
 
 		buffers->lightGeometries[i] = dsDrawGeometry_create(resourceManager,
 			resolve->resourceAllocator, vertexBuffers, &indexBuffer);
@@ -480,6 +481,7 @@ void dsDeferredLightResolve_commit(dsSceneItemList* itemList, const dsView* view
 
 		DS_VERIFY(dsSharedMaterialValues_clear(resolve->shadowValues));
 		uint32_t transformGroupID = resolve->shadowLightInfos[i].transformGroupID;
+		uint32_t textureID = resolve->shadowLightInfos[i].textureID;
 		uint32_t maxLightVerts = maxLightCounts[i]*lightVertexCounts[i];
 		uint32_t maxLightIndices = maxLightCounts[i]*lightIndexCounts[i];
 		drawRange.indexCount = lightIndexCounts[i];
@@ -487,8 +489,23 @@ void dsDeferredLightResolve_commit(dsSceneItemList* itemList, const dsView* view
 		{
 			const dsSceneLightShadows* lightShadows = resolve->lightShadows[i][j];
 			DS_ASSERT(lightShadows);
+			if (dsSceneLightShadows_getSurfaceCount(lightShadows) == 0)
+				continue;
+
 			DS_VERIFY(dsSceneLightShadows_bindTransformGroup(lightShadows, resolve->shadowValues,
 				transformGroupID));
+
+			dsTexture* shadowTexture = dsSharedMaterialValues_getTextureID(view->globalValues,
+				dsSceneLightShadows_getNameID(lightShadows));
+			if (!shadowTexture)
+			{
+				DS_LOG_ERROR_F(DS_SCENE_LIGHTING_LOG_TAG, "Couldn't find shadow texture '%s'.",
+					dsSceneLightShadows_getName(lightShadows));
+				continue;
+			}
+
+			DS_VERIFY(dsSharedMaterialValues_setTextureID(resolve->shadowValues, textureID,
+				shadowTexture));
 			if (!DS_CHECK(DS_SCENE_LIGHTING_LOG_TAG, dsShader_updateInstanceValues(shader,
 					commandBuffer, resolve->shadowValues)))
 			{
@@ -544,15 +561,18 @@ dsDeferredLightResolve* dsDeferredLightResolve_create(dsAllocator* allocator,
 		for (uint32_t i = 0; i < dsSceneLightType_Count; ++i)
 		{
 			const dsDeferredShadowLightDrawInfo* curInfo = shadowLightInfos + i;
-			if (!curInfo->shader || !curInfo->material || !curInfo->transformGroupName)
+			if (!curInfo->shader || !curInfo->material || !curInfo->transformGroupName ||
+				!curInfo->shadowTextureName)
+			{
 				continue;
+			}
 
 			fullSize += DS_ALIGNED_SIZE(sizeof(dsSceneLightShadows*)*maxShadowLights);
 			hasShadows = true;
 		}
 	}
 	if (hasShadows)
-		fullSize += dsSharedMaterialValues_fullAllocSize(1);
+		fullSize += dsSharedMaterialValues_fullAllocSize(2);
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 		return NULL;
@@ -604,7 +624,8 @@ dsDeferredLightResolve* dsDeferredLightResolve_create(dsAllocator* allocator,
 		for (int i = 0; i < dsSceneLightType_Count; ++i)
 		{
 			const dsDeferredShadowLightDrawInfo* curInfo = shadowLightInfos + i;
-			if (!curInfo->shader || !curInfo->material || !curInfo->transformGroupName)
+			if (!curInfo->shader || !curInfo->material || !curInfo->transformGroupName ||
+				!curInfo->shadowTextureName)
 			{
 				memset(resolve->shadowLightInfos + i, 0, sizeof(ShadowLightDrawInfo));
 				continue;
@@ -614,6 +635,7 @@ dsDeferredLightResolve* dsDeferredLightResolve_create(dsAllocator* allocator,
 			setInfo->shader = curInfo->shader;
 			setInfo->material = curInfo->material;
 			setInfo->transformGroupID = dsHashString(curInfo->transformGroupName);
+			setInfo->textureID = dsHashString(curInfo->shadowTextureName);
 
 			resolve->lightShadows[i] = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc,
 				const dsSceneLightShadows*, maxShadowLights);
@@ -683,7 +705,7 @@ dsDeferredLightResolve* dsDeferredLightResolve_create(dsAllocator* allocator,
 
 	if (hasShadows)
 	{
-		resolve->shadowValues = dsSharedMaterialValues_create((dsAllocator*)&bufferAlloc, 1);
+		resolve->shadowValues = dsSharedMaterialValues_create((dsAllocator*)&bufferAlloc, 2);
 		DS_ASSERT(resolve->shadowValues);
 	}
 	else
@@ -932,6 +954,65 @@ bool dsDeferredLightResolve_setShadowLightTransformGroupNameName(dsDeferredLight
 	}
 
 	resolve->shadowLightInfos[lightType].transformGroupID = dsHashString(groupName);
+	return true;
+}
+
+uint32_t dsDeferredLightResolve_getShadowLightTextureID(
+	const dsDeferredLightResolve* resolve, dsSceneLightType lightType)
+{
+	if (!resolve || lightType < 0 || lightType >= dsSceneLightType_Count)
+		return 0;
+
+	return resolve->shadowLightInfos[lightType].textureID;
+}
+
+bool dsDeferredLightResolve_setShadowLightTexturwID(dsDeferredLightResolve* resolve,
+	dsSceneLightType lightType, uint32_t textureID)
+{
+	if (!resolve || !textureID)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	if (lightType < 0 || lightType >= dsSceneLightType_Count)
+	{
+		errno = EINDEX;
+		return false;
+	}
+
+	if (!resolve->shadowLightInfos[lightType].shader)
+	{
+		errno = EPERM;
+		return false;
+	}
+
+	resolve->shadowLightInfos[lightType].textureID = textureID;
+	return true;
+}
+
+bool dsDeferredLightResolve_setShadowLightTextureName(dsDeferredLightResolve* resolve,
+	dsSceneLightType lightType, const char* textureName)
+{
+	if (!resolve || !textureName)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	if (lightType < 0 || lightType >= dsSceneLightType_Count)
+	{
+		errno = EINDEX;
+		return false;
+	}
+
+	if (!resolve->shadowLightInfos[lightType].shader)
+	{
+		errno = EPERM;
+		return false;
+	}
+
+	resolve->shadowLightInfos[lightType].textureID = dsHashString(textureName);
 	return true;
 }
 

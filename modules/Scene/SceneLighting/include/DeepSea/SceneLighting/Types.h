@@ -276,6 +276,12 @@ typedef struct dsDeferredLightDrawInfo
 
 /**
  * @brief Struct containing the info required to draw a deferred light with shadows.
+ *
+ * When a light has a dsSceneLightShadows instance registered with a dsSceneShadowManager, the
+ * shadow light will be used. The shadow transform will be bound to transformGroupName.
+ *
+ * The texture is expected to be registered with the dsView instance using same name as the the
+ * dsSceneLightShadows. This texture is bound to shadowTextureName.
  */
 typedef struct dsDeferredShadowLightDrawInfo
 {
@@ -290,9 +296,18 @@ typedef struct dsDeferredShadowLightDrawInfo
 	dsMaterial* material;
 
 	/**
-	 * @brief The name of the shadow transform group.
+	 * @brief The name of the shadow transform group in the shader.
+	 *
+	 * This should be created with instance binding in the material.
 	 */
 	const char* transformGroupName;
+
+	/**
+	 * @brief The name of the shadow texture in the shader.
+	 *
+	 * This should be created with instance binding in the material.
+	 */
+	const char* shadowTextureName;
 } dsDeferredShadowLightDrawInfo;
 
 /**

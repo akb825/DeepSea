@@ -17,6 +17,25 @@
 #include <DeepSea/Scene/Shaders/ViewTransform.mslh>
 #include <DeepSea/SceneLighting/Shaders/DeferredDirectionalLight.mslh>
 
+#include <DeepSea/Render/Shaders/Shadows/ShadowPCF4x4.mslh>
+#include <DeepSea/Render/Shaders/Shadows/ShadowMap.mslh>
+
+uniform sampler2DShadow shadowMap;
+sampler_state shadowMap
+{
+	address_mode_u = clamp_to_edge;
+	address_mode_v = clamp_to_edge;
+	min_filter = linear;
+	mag_filter = linear;
+	compare_op = less_or_equal;
+}
+
+uniform ShadowTransform
+{
+	mat4 matrix;
+	vec2 fadeDistances;
+} dsShadowTransform;
+
 [[fragment]] uniform subpassInput(0) materialColor;
 [[fragment]] uniform subpassInput(1) normalSpecular;
 [[fragment]] uniform subpassInput(2) surfaceDepth;
@@ -46,10 +65,15 @@ void fragmentShader()
 	vec3 viewPosition = dsGetViewPositionFromScreen(depthVal);
 	vec3 viewDirection = -normalize(viewPosition);
 
+	vec4 shadowPosition = DS_ADJUST_CLIP(INSTANCE(dsShadowTransform).matrix*vec4(viewPosition, 1.0));
+	float shadowValue = dsShadowMap(shadowMap, viewPosition, shadowPosition.xyz/shadowPosition.w,
+		INSTANCE(dsShadowTransform).fadeDistances.x, INSTANCE(dsShadowTransform).fadeDistances.y);
+
 	vec3 diffuseLight, specularLight;
 	dsDeferredDirectionalLight_lightColor(diffuseLight, specularLight, normal, viewDirection,
 		shininess);
-	outputColor = vec4(color.rgb*diffuseLight + specular*specularLight, 1.0);
+	outputColor.xyz = (color.rgb*diffuseLight + specular*specularLight)*shadowValue;
+	outputColor.w = 1.0;
 }
 
 pipeline DirectionalLight

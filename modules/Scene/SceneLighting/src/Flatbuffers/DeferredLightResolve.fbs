@@ -37,6 +37,9 @@ table DeferredShadowLightInfo
 
 	// Name of the shader variable group containing the shadow transform.
 	transformGroup : string (required);
+
+	// Name of the shader variable for the shadow texture.
+	shadowTexture : string (required);
 }
 
 // Struct describing a deferred light resolve.

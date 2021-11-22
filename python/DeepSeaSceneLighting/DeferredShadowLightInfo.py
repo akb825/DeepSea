@@ -45,7 +45,14 @@ class DeferredShadowLightInfo(object):
             return self._tab.String(o + self._tab.Pos)
         return None
 
-def Start(builder): builder.StartObject(3)
+    # DeferredShadowLightInfo
+    def ShadowTexture(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(10))
+        if o != 0:
+            return self._tab.String(o + self._tab.Pos)
+        return None
+
+def Start(builder): builder.StartObject(4)
 def DeferredShadowLightInfoStart(builder):
     """This method is deprecated. Please switch to Start."""
     return Start(builder)
@@ -61,6 +68,10 @@ def AddTransformGroup(builder, transformGroup): builder.PrependUOffsetTRelativeS
 def DeferredShadowLightInfoAddTransformGroup(builder, transformGroup):
     """This method is deprecated. Please switch to AddTransformGroup."""
     return AddTransformGroup(builder, transformGroup)
+def AddShadowTexture(builder, shadowTexture): builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(shadowTexture), 0)
+def DeferredShadowLightInfoAddShadowTexture(builder, shadowTexture):
+    """This method is deprecated. Please switch to AddShadowTexture."""
+    return AddShadowTexture(builder, shadowTexture)
 def End(builder): return builder.EndObject()
 def DeferredShadowLightInfoEnd(builder):
     """This method is deprecated. Please switch to End."""

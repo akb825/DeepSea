@@ -27,6 +27,7 @@ struct dsSceneLightShadows
 	dsResourceManager* resourceManager;
 	const dsSceneLightSet* lightSet;
 	dsSceneLightType lightType;
+	uint32_t nameID;
 	uint32_t lightID;
 	uint32_t transformGroupID;
 	bool cascaded;

@@ -89,7 +89,8 @@ struct DeferredShadowLightInfo FLATBUFFERS_FINAL_CLASS : private flatbuffers::Ta
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_SHADER = 4,
     VT_MATERIAL = 6,
-    VT_TRANSFORMGROUP = 8
+    VT_TRANSFORMGROUP = 8,
+    VT_SHADOWTEXTURE = 10
   };
   const flatbuffers::String *shader() const {
     return GetPointer<const flatbuffers::String *>(VT_SHADER);
@@ -100,6 +101,9 @@ struct DeferredShadowLightInfo FLATBUFFERS_FINAL_CLASS : private flatbuffers::Ta
   const flatbuffers::String *transformGroup() const {
     return GetPointer<const flatbuffers::String *>(VT_TRANSFORMGROUP);
   }
+  const flatbuffers::String *shadowTexture() const {
+    return GetPointer<const flatbuffers::String *>(VT_SHADOWTEXTURE);
+  }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_SHADER) &&
@@ -108,6 +112,8 @@ struct DeferredShadowLightInfo FLATBUFFERS_FINAL_CLASS : private flatbuffers::Ta
            verifier.VerifyString(material()) &&
            VerifyOffsetRequired(verifier, VT_TRANSFORMGROUP) &&
            verifier.VerifyString(transformGroup()) &&
+           VerifyOffsetRequired(verifier, VT_SHADOWTEXTURE) &&
+           verifier.VerifyString(shadowTexture()) &&
            verifier.EndTable();
   }
 };
@@ -125,6 +131,9 @@ struct DeferredShadowLightInfoBuilder {
   void add_transformGroup(flatbuffers::Offset<flatbuffers::String> transformGroup) {
     fbb_.AddOffset(DeferredShadowLightInfo::VT_TRANSFORMGROUP, transformGroup);
   }
+  void add_shadowTexture(flatbuffers::Offset<flatbuffers::String> shadowTexture) {
+    fbb_.AddOffset(DeferredShadowLightInfo::VT_SHADOWTEXTURE, shadowTexture);
+  }
   explicit DeferredShadowLightInfoBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
@@ -135,6 +144,7 @@ struct DeferredShadowLightInfoBuilder {
     fbb_.Required(o, DeferredShadowLightInfo::VT_SHADER);
     fbb_.Required(o, DeferredShadowLightInfo::VT_MATERIAL);
     fbb_.Required(o, DeferredShadowLightInfo::VT_TRANSFORMGROUP);
+    fbb_.Required(o, DeferredShadowLightInfo::VT_SHADOWTEXTURE);
     return o;
   }
 };
@@ -143,8 +153,10 @@ inline flatbuffers::Offset<DeferredShadowLightInfo> CreateDeferredShadowLightInf
     flatbuffers::FlatBufferBuilder &_fbb,
     flatbuffers::Offset<flatbuffers::String> shader = 0,
     flatbuffers::Offset<flatbuffers::String> material = 0,
-    flatbuffers::Offset<flatbuffers::String> transformGroup = 0) {
+    flatbuffers::Offset<flatbuffers::String> transformGroup = 0,
+    flatbuffers::Offset<flatbuffers::String> shadowTexture = 0) {
   DeferredShadowLightInfoBuilder builder_(_fbb);
+  builder_.add_shadowTexture(shadowTexture);
   builder_.add_transformGroup(transformGroup);
   builder_.add_material(material);
   builder_.add_shader(shader);
@@ -155,15 +167,18 @@ inline flatbuffers::Offset<DeferredShadowLightInfo> CreateDeferredShadowLightInf
     flatbuffers::FlatBufferBuilder &_fbb,
     const char *shader = nullptr,
     const char *material = nullptr,
-    const char *transformGroup = nullptr) {
+    const char *transformGroup = nullptr,
+    const char *shadowTexture = nullptr) {
   auto shader__ = shader ? _fbb.CreateString(shader) : 0;
   auto material__ = material ? _fbb.CreateString(material) : 0;
   auto transformGroup__ = transformGroup ? _fbb.CreateString(transformGroup) : 0;
+  auto shadowTexture__ = shadowTexture ? _fbb.CreateString(shadowTexture) : 0;
   return DeepSeaSceneLighting::CreateDeferredShadowLightInfo(
       _fbb,
       shader__,
       material__,
-      transformGroup__);
+      transformGroup__,
+      shadowTexture__);
 }
 
 struct DeferredLightResolve FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {

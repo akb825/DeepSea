@@ -253,6 +253,39 @@ DS_SCENELIGHTING_EXPORT bool dsDeferredLightResolve_setShadowLightTransformGroup
 	dsDeferredLightResolve* resolve, dsSceneLightType lightType, const char* groupName);
 
 /**
+ * @brief Gets a shadowed light texture.
+ * @param resolve The deferred light resolve.
+ * @param lightType The type of the light.
+ * @return The shadow light texture ID or 0 if unset.
+ */
+DS_SCENELIGHTING_EXPORT uint32_t dsDeferredLightResolve_getShadowLightTextureID(
+	const dsDeferredLightResolve* resolve, dsSceneLightType lightType);
+
+/**
+ * @brief Sets a shadowed light texture by ID.
+ * @remark This may only be called if the light type's shader was previously set in the constructor.
+ * @remark errno will be set on failure.
+ * @param resolve The deferred light resolve.
+ * @param lightType The type of the light.
+ * @param textureID The ID for the texture.
+ * @return False if the parameters are invalid.
+ */
+DS_SCENELIGHTING_EXPORT bool dsDeferredLightResolve_setShadowLightTextureID(
+	dsDeferredLightResolve* resolve, dsSceneLightType lightType, uint32_t textureID);
+
+/**
+ * @brief Sets a shadowed light texture by name.
+ * @remark This may only be called if the light type's shader was previously set in the constructor.
+ * @remark errno will be set on failure.
+ * @param resolve The deferred light resolve.
+ * @param lightType The type of the light.
+ * @param textureName The name for the texture.
+ * @return False if the parameters are invalid.
+ */
+DS_SCENELIGHTING_EXPORT bool dsDeferredLightResolve_setShadowLightTextureName(
+	dsDeferredLightResolve* resolve, dsSceneLightType lightType, const char* textureName);
+
+/**
  * @brief Gets the intensity threshold.
  * @remark errno will be set on failure.
  * @param resolve The deferred light resolve.

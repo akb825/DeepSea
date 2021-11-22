@@ -55,6 +55,41 @@
 						"shader": "shadowCastShader",
 						"material": "shadowCastMaterial",
 						"list": "mainShadowCastList3"
+					},
+					{
+						"shader": "shadowCastShader",
+						"material": "shadowCastMaterial",
+						"list": "spotShadowCastList"
+					},
+					{
+						"shader": "shadowCastShader",
+						"material": "shadowCastMaterial",
+						"list": "pointShadowCastList0"
+					},
+					{
+						"shader": "shadowCastShader",
+						"material": "shadowCastMaterial",
+						"list": "pointShadowCastList1"
+					},
+					{
+						"shader": "shadowCastShader",
+						"material": "shadowCastMaterial",
+						"list": "pointShadowCastList2"
+					},
+					{
+						"shader": "shadowCastShader",
+						"material": "shadowCastMaterial",
+						"list": "pointShadowCastList3"
+					},
+					{
+						"shader": "shadowCastShader",
+						"material": "shadowCastMaterial",
+						"list": "pointShadowCastList4"
+					},
+					{
+						"shader": "shadowCastShader",
+						"material": "shadowCastMaterial",
+						"list": "pointShadowCastList5"
 					}
 				]
 			}
@@ -65,7 +100,14 @@
 			"mainShadowCullList0",
 			"mainShadowCullList1",
 			"mainShadowCullList2",
-			"mainShadowCullList3"
+			"mainShadowCullList3",
+			"spotShadowCullList",
+			"pointShadowCullList0",
+			"pointShadowCullList1",
+			"pointShadowCullList2",
+			"pointShadowCullList3",
+			"pointShadowCullList4",
+			"pointShadowCullList5"
 		]
 	},
 	{
@@ -103,6 +145,41 @@
 						"shader": "shadowCastShader",
 						"material": "shadowCastMaterial",
 						"list": "mainShadowCastList3"
+					},
+					{
+						"shader": "shadowCastShader",
+						"material": "shadowCastMaterial",
+						"list": "spotShadowCastList"
+					},
+					{
+						"shader": "shadowCastShader",
+						"material": "shadowCastMaterial",
+						"list": "pointShadowCastList0"
+					},
+					{
+						"shader": "shadowCastShader",
+						"material": "shadowCastMaterial",
+						"list": "pointShadowCastList1"
+					},
+					{
+						"shader": "shadowCastShader",
+						"material": "shadowCastMaterial",
+						"list": "pointShadowCastList2"
+					},
+					{
+						"shader": "shadowCastShader",
+						"material": "shadowCastMaterial",
+						"list": "pointShadowCastList3"
+					},
+					{
+						"shader": "shadowCastShader",
+						"material": "shadowCastMaterial",
+						"list": "pointShadowCastList4"
+					},
+					{
+						"shader": "shadowCastShader",
+						"material": "shadowCastMaterial",
+						"list": "pointShadowCastList5"
 					}
 				]
 			}
@@ -113,7 +190,14 @@
 			"mainShadowCullList0",
 			"mainShadowCullList1",
 			"mainShadowCullList2",
-			"mainShadowCullList3"
+			"mainShadowCullList3",
+			"spotShadowCullList",
+			"pointShadowCullList0",
+			"pointShadowCullList1",
+			"pointShadowCullList2",
+			"pointShadowCullList3",
+			"pointShadowCullList4",
+			"pointShadowCullList5"
 		]
 	},
 	{
@@ -172,6 +256,41 @@
 						"shader": "shadowCastShader",
 						"material": "shadowCastMaterial",
 						"list": "mainShadowCastList3"
+					},
+					{
+						"shader": "shadowCastShader",
+						"material": "shadowCastMaterial",
+						"list": "spotShadowCastList"
+					},
+					{
+						"shader": "shadowCastShader",
+						"material": "shadowCastMaterial",
+						"list": "pointShadowCastList0"
+					},
+					{
+						"shader": "shadowCastShader",
+						"material": "shadowCastMaterial",
+						"list": "pointShadowCastList1"
+					},
+					{
+						"shader": "shadowCastShader",
+						"material": "shadowCastMaterial",
+						"list": "pointShadowCastList2"
+					},
+					{
+						"shader": "shadowCastShader",
+						"material": "shadowCastMaterial",
+						"list": "pointShadowCastList3"
+					},
+					{
+						"shader": "shadowCastShader",
+						"material": "shadowCastMaterial",
+						"list": "pointShadowCastList4"
+					},
+					{
+						"shader": "shadowCastShader",
+						"material": "shadowCastMaterial",
+						"list": "pointShadowCastList5"
 					}
 				]
 			}
@@ -182,7 +301,14 @@
 			"mainShadowCullList0",
 			"mainShadowCullList1",
 			"mainShadowCullList2",
-			"mainShadowCullList3"
+			"mainShadowCullList3",
+			"spotShadowCullList",
+			"pointShadowCullList0",
+			"pointShadowCullList1",
+			"pointShadowCullList2",
+			"pointShadowCullList3",
+			"pointShadowCullList4",
+			"pointShadowCullList5"
 		]
 	}
 ]
