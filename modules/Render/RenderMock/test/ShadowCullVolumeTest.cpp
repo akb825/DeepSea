@@ -298,7 +298,8 @@ TEST_F(ShadowVolumeCullTest, IntersectInside)
 	dsMatrix44_identity(camera);
 
 	dsShadowProjection shadowProj;
-	DS_VERIFY(dsShadowProjection_initialize(&shadowProj, renderer, &camera, &lightDir, NULL, true));
+	DS_VERIFY(dsShadowProjection_initialize(&shadowProj, renderer, &camera, &lightDir, NULL, NULL,
+		true));
 
 	dsAlignedBox3f box = {{{-1.0f, -2.0f, -6.0f}}, {{3.0f, 20.0f, -3.0f}}};
 
@@ -329,7 +330,8 @@ TEST_F(ShadowVolumeCullTest, IntersectOutside)
 	dsMatrix44_identity(camera);
 
 	dsShadowProjection shadowProj;
-	DS_VERIFY(dsShadowProjection_initialize(&shadowProj, renderer, &camera, &lightDir, NULL, true));
+	DS_VERIFY(dsShadowProjection_initialize(&shadowProj, renderer, &camera, &lightDir, NULL, NULL,
+		true));
 
 	dsAlignedBox3f box = {{{-1.0f, -2.0f, 0.0f}}, {{3.0f, 20.0f, 3.0f}}};
 	EXPECT_EQ(dsIntersectResult_Outside,
@@ -353,7 +355,8 @@ TEST_F(ShadowVolumeCullTest, IntersectClamp)
 	dsMatrix44_identity(camera);
 
 	dsShadowProjection shadowProj;
-	DS_VERIFY(dsShadowProjection_initialize(&shadowProj, renderer, &camera, &lightDir, NULL, true));
+	DS_VERIFY(dsShadowProjection_initialize(&shadowProj, renderer, &camera, &lightDir, NULL, NULL,
+		true));
 
 	dsAlignedBox3f box = {{{-1.0f, -2.0f, -6.0f}}, {{5.0f, 20.0f, 0.0f}}};
 

@@ -69,8 +69,6 @@ void dsShadowInstanceTransformData_populateData(void* userData, const dsView* vi
 	for (uint32_t i = 0; i < instanceCount; ++i, data += stride)
 	{
 		const dsSceneInstanceInfo* instance = instances + i;
-		// The GPU memory can have some bad properties when accessing from the CPU, so first do all
-		// work on CPU memory and copy as one to the GPU buffer.
 		InstanceTransform transform;
 		transform.world = instance->transform;
 		dsMatrix44_affineMul(transform.worldView, view->viewMatrix, instance->transform);

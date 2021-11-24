@@ -116,7 +116,6 @@ typedef enum dsGeometryElement
 	dsGeometryElement_Int     ///< int (e.g. dsVector2i)
 } dsGeometryElement;
 
-
 /**
  * @brief Structure for a 3D ray using floats.
  */
@@ -132,7 +131,6 @@ typedef struct dsRay3f
 	 */
 	dsVector3f direction;
 } dsRay3f;
-
 
 /**
  * @brief Structure for a 3D ray using doubles.

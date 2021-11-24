@@ -358,7 +358,7 @@ TEST_F(SceneLightTest, IsInFrustum)
 		DS_DEFAULT_SCENE_LIGHT_INTENSITY_THRESHOLD));
 }
 
-TEST_F(SceneLightTest, GetPointLightLightProjection)
+TEST_F(SceneLightTest, GetPointLightProjection)
 {
 	dsSceneLight light;
 	dsVector3f position = {{1.0f, 2.0f, 3.0f}};
@@ -370,16 +370,22 @@ TEST_F(SceneLightTest, GetPointLightLightProjection)
 	ASSERT_TRUE(dsSceneLight_makePoint(&light, &position, &color, intensity, linearFalloff,
 		quadraticFalloff));
 
-	dsMatrix44f projections[6];
-	dsFrustum3f frustums[6];
-	EXPECT_FALSE(dsSceneLight_getSpotLightProjection(projections, &light, renderer,
+	dsMatrix44f transform;
+	dsMatrix44f projection;
+	EXPECT_FALSE(dsSceneLight_getSpotLightTransform(&transform, &light));
+	EXPECT_FALSE(dsSceneLight_getSpotLightProjection(&projection, &light, renderer,
 		DS_DEFAULT_SCENE_LIGHT_INTENSITY_THRESHOLD));
 
+	dsFrustum3f frustums[6];
 	for (int i = 0; i < 6; ++i)
 	{
-		ASSERT_TRUE(dsSceneLight_getPointLightProjection(projections + i, &light, renderer,
-			(dsCubeFace)i, DS_DEFAULT_SCENE_LIGHT_INTENSITY_THRESHOLD, NULL));
-		ASSERT_TRUE(dsRenderer_frustumFromMatrix(frustums + i, renderer, projections + i));
+		ASSERT_TRUE(dsSceneLight_getPointLightTransform(&transform, &light, (dsCubeFace)i));
+		ASSERT_TRUE(dsSceneLight_getPointLightProjection(&projection, &light, renderer,
+			DS_DEFAULT_SCENE_LIGHT_INTENSITY_THRESHOLD));
+
+		dsMatrix44f pointProjection;
+		dsMatrix44_mul(pointProjection, projection, transform);
+		ASSERT_TRUE(dsRenderer_frustumFromMatrix(frustums + i, renderer, &pointProjection));
 	}
 
 	dsVector3f testPos = {{2.0f, 2.0f, 3.0f}};
@@ -444,7 +450,7 @@ TEST_F(SceneLightTest, GetPointLightLightProjection)
 	}
 }
 
-TEST_F(SceneLightTest, GetSpotLightLightProjection)
+TEST_F(SceneLightTest, GetSpotLightProjection)
 {
 	dsSceneLight light;
 	dsVector3f position = {{1.0f, 2.0f, 3.0f}};
@@ -459,14 +465,21 @@ TEST_F(SceneLightTest, GetSpotLightLightProjection)
 	ASSERT_TRUE(dsSceneLight_makeSpot(&light, &position, &direction, &color, intensity,
 		linearFalloff, quadraticFalloff, innerSpotCosAngle, outerSpotCosAngle));
 
+	dsMatrix44f transform;
+	EXPECT_FALSE(dsSceneLight_getPointLightTransform(&transform, &light,
+		dsCubeFace_PosX));
+	ASSERT_TRUE(dsSceneLight_getSpotLightTransform(&transform, &light));
+
 	dsMatrix44f projection;
-	EXPECT_FALSE(dsSceneLight_getPointLightProjection(&projection, &light, renderer, dsCubeFace_PosX,
-		DS_DEFAULT_SCENE_LIGHT_INTENSITY_THRESHOLD, NULL));
+	EXPECT_FALSE(dsSceneLight_getPointLightProjection(&projection, &light, renderer,
+		DS_DEFAULT_SCENE_LIGHT_INTENSITY_THRESHOLD));
 	ASSERT_TRUE(dsSceneLight_getSpotLightProjection(&projection, &light, renderer,
 		DS_DEFAULT_SCENE_LIGHT_INTENSITY_THRESHOLD));
 
+	dsMatrix44f spotProjection;
+	dsMatrix44_mul(spotProjection, projection, transform);
 	dsFrustum3f frustum;
-	ASSERT_TRUE(dsRenderer_frustumFromMatrix(&frustum, renderer, &projection));
+	ASSERT_TRUE(dsRenderer_frustumFromMatrix(&frustum, renderer, &spotProjection));
 
 	dsVector3f testPos = {{2.0f, 2.0f, 3.0f}};
 	EXPECT_EQ(dsIntersectResult_Inside, dsFrustum3f_intersectSphere(&frustum, &testPos, 0.1f));
@@ -478,7 +491,7 @@ TEST_F(SceneLightTest, GetSpotLightLightProjection)
 	testPos.y = 2.3f;
 	EXPECT_EQ(dsIntersectResult_Inside, dsFrustum3f_intersectSphere(&frustum, &testPos, 0.1f));
 
-	testPos.y = 2.7f;
+	testPos.y = 4.0f;
 	EXPECT_EQ(dsIntersectResult_Outside, dsFrustum3f_intersectSphere(&frustum, &testPos, 0.1f));
 }
 

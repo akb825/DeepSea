@@ -413,49 +413,48 @@ bool dsSceneLight_isInFrustum(const dsSceneLight* light, const dsFrustum3f* frus
 	}
 }
 
-bool dsSceneLight_getPointLightProjection(dsMatrix44f* result,
-	const dsSceneLight* light, const dsRenderer* renderer, dsCubeFace cubeFace,
-	float intensityThreshold, const dsMatrix44f* transform)
+bool dsSceneLight_getPointLightTransform(dsMatrix44f* result, const dsSceneLight* light,
+	dsCubeFace cubeFace)
 {
-	if (!result || !light || light->type != dsSceneLightType_Point || !renderer ||
-		cubeFace < dsCubeFace_PosX || cubeFace > dsCubeFace_NegZ || intensityThreshold <= 0)
+	if (!result || !light || light->type != dsSceneLightType_Point || cubeFace < dsCubeFace_PosX ||
+		cubeFace > dsCubeFace_NegZ)
 	{
 		errno = EINVAL;
 		return false;
 	}
 
 	dsVector4f lightWorldPos = {{light->position.x, light->position.y, light->position.z, 1.0f}};
-	dsVector4f lightPos;
-	if (transform)
-		dsMatrix44_transform(lightPos, *transform, lightWorldPos);
-	else
-		lightPos = lightWorldPos;
 
 	dsMatrix44f lightWorld;
 	DS_VERIFY(dsTexture_cubeOrientation(&lightWorld, cubeFace));
-	lightWorld.columns[3] = lightPos;
+	lightWorld.columns[3] = lightWorldPos;
 
-	dsMatrix44f lightLocal;
-	dsMatrix44_fastInvert(lightLocal, lightWorld);
+	dsMatrix44_fastInvert(*result, lightWorld);
+	return true;
+}
+
+bool dsSceneLight_getPointLightProjection(dsMatrix44f* result,
+	const dsSceneLight* light, const dsRenderer* renderer, float intensityThreshold)
+{
+	if (!result || !light || light->type != dsSceneLightType_Point || !renderer ||
+		intensityThreshold <= 0)
+	{
+		errno = EINVAL;
+		return false;
+	}
 
 	float distance = getLightRadius(light, intensityThreshold);
 	float near = 0.1f;
 	if (near >= distance)
 		near = distance*0.5f;
 
-	dsMatrix44f perspective;
-	DS_VERIFY(dsRenderer_makePerspective(&perspective, renderer, (float)M_PI_2, 1.0f, near,
-		distance));
-
-	dsMatrix44_mul(*result, perspective, lightLocal);
+	DS_VERIFY(dsRenderer_makePerspective(result, renderer, (float)M_PI_2, 1.0f, near, distance));
 	return true;
 }
 
-bool dsSceneLight_getSpotLightProjection(dsMatrix44f* result, const dsSceneLight* light,
-	const dsRenderer* renderer, float intensityThreshold)
+bool dsSceneLight_getSpotLightTransform(dsMatrix44f* result, const dsSceneLight* light)
 {
-	if (!result || !light || light->type != dsSceneLightType_Spot || !renderer ||
-		intensityThreshold <= 0)
+	if (!result || !light || light->type != dsSceneLightType_Spot)
 	{
 		errno = EINVAL;
 		return false;
@@ -471,20 +470,27 @@ bool dsSceneLight_getSpotLightProjection(dsMatrix44f* result, const dsSceneLight
 	lightWorld.values[2][3] = 0.0f;
 	lightWorld.values[3][3] = 1.0f;
 
-	dsMatrix44f lightLocal;
-	dsMatrix44_fastInvert(lightLocal, lightWorld);
+	dsMatrix44_fastInvert(*result, lightWorld);
+	return true;
+}
+
+bool dsSceneLight_getSpotLightProjection(dsMatrix44f* result, const dsSceneLight* light,
+	const dsRenderer* renderer, float intensityThreshold)
+{
+	if (!result || !light || light->type != dsSceneLightType_Spot || !renderer ||
+		intensityThreshold <= 0)
+	{
+		errno = EINVAL;
+		return false;
+	}
 
 	float distance = getLightRadius(light, intensityThreshold);
 	float near = 0.1f;
 	if (near >= distance)
 		near = distance*0.5f;
 
-	float outerSpotAngle = acosf(light->outerSpotCosAngle);
-	dsMatrix44f perspective;
-	DS_VERIFY(dsRenderer_makePerspective(&perspective, renderer, outerSpotAngle, 1.0f, near,
-		distance));
-
-	dsMatrix44_mul(*result, perspective, lightLocal);
+	float outerSpotAngle = acosf(light->outerSpotCosAngle)*2;
+	DS_VERIFY(dsRenderer_makePerspective(result, renderer, outerSpotAngle, 1.0f, near, distance));
 	return true;
 }
 

@@ -105,10 +105,11 @@ static void makeShadowFrustum(dsMatrix44f* result, float left, float right, floa
 }
 
 bool dsShadowProjection_initialize(dsShadowProjection* shadowProj, const dsRenderer* renderer,
-	const dsMatrix44f* camera, const dsVector3f* toLight, const dsMatrix44f* lightProjection,
-	bool uniform)
+	const dsMatrix44f* camera, const dsVector3f* toLight, const dsMatrix44f* lightTransform,
+	const dsMatrix44f* lightProjection, bool uniform)
 {
-	if (!shadowProj || !renderer || !camera || !toLight)
+	if (!shadowProj || !renderer || !camera || !toLight || (!lightTransform && lightProjection) ||
+		(lightTransform && !lightProjection))
 	{
 		errno = EINVAL;
 		return false;
@@ -120,29 +121,32 @@ bool dsShadowProjection_initialize(dsShadowProjection* shadowProj, const dsRende
 	dsVector3f viewDown;
 	dsVector3f viewPos;
 	dsVector3f lightDir;
-	if (lightProjection)
+	if (lightTransform)
 	{
-		// When a light projection is provided, perform the computations in projected space.
+		// When a light projection is provided, perform the computations in light space.
+		DS_ASSERT(lightProjection);
 		shadowProj->hasLightProjection = true;
 
-		dsVector4f proj;
+		dsVector4f lightVec;
 		DS_ASSERT(camera->columns[2].w == 0);
-		dsMatrix44_transform(proj, *lightProjection, camera->columns[2]);
-		dsVector3f_normalize(&viewDir, (const dsVector3f*)&proj);
+		dsMatrix44_transform(lightVec, *lightTransform, camera->columns[2]);
+		dsVector3f_normalize(&viewDir, (const dsVector3f*)&lightVec);
 
 		DS_ASSERT(camera->columns[1].w == 0);
-		dsMatrix44_transform(proj, *lightProjection, camera->columns[1]);
-		dsVector3f_normalize(&viewDown, (const dsVector3f*)&proj);
+		dsMatrix44_transform(lightVec, *lightTransform, camera->columns[1]);
+		dsVector3f_normalize(&viewDown, (const dsVector3f*)&lightVec);
 		dsVector3_neg(viewDown, viewDown);
 
 		DS_ASSERT(camera->columns[3].w == 1);
-		dsMatrix44_transform(proj, *lightProjection, camera->columns[3]);
-		float invW = 1/proj.w;
-		dsVector3_scale(viewPos, proj, invW);
+		dsMatrix44_transform(lightVec, *lightTransform, camera->columns[3]);
+		DS_ASSERT(lightVec.w == 1);
+		viewPos = *(dsVector3f*)&lightVec;
 
-		dsVector4f temp = {{toLight->x, toLight->y, toLight->z, 0.0f}};
-		dsMatrix44_transform(proj, *lightProjection, temp);
-		dsVector3f_normalize(&lightDir, (const dsVector3f*)&proj);
+		// Negate the light direction when projected, as the Z vector gets inverted with the
+		// projection itself. Otherwise the final projection will have an inverted Z.
+		dsVector4f temp = {{-toLight->x, -toLight->y, -toLight->z, 0.0f}};
+		dsMatrix44_transform(lightVec, *lightTransform, temp);
+		dsVector3f_normalize(&lightDir, (const dsVector3f*)&lightVec);
 	}
 	else
 	{
@@ -198,7 +202,9 @@ bool dsShadowProjection_initialize(dsShadowProjection* shadowProj, const dsRende
 	{
 		dsMatrix44f shadowSpaceInv;
 		dsMatrix44_fastInvert(shadowSpaceInv, shadowProj->shadowSpace);
-		dsMatrix44_mul(shadowProj->worldToShadowSpace, shadowSpaceInv, *lightProjection);
+		dsMatrix44f transformedLightProjection;
+		dsMatrix44_mul(transformedLightProjection, *lightProjection, *lightTransform);
+		dsMatrix44_mul(shadowProj->worldToShadowSpace, shadowSpaceInv, transformedLightProjection);
 	}
 	else
 		dsMatrix44_fastInvert(shadowProj->worldToShadowSpace, shadowProj->shadowSpace);

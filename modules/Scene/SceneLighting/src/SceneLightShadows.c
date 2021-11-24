@@ -124,14 +124,12 @@ static bool transformGroupValid(const dsShaderVariableGroupDesc* transformGroupD
 			}
 			return false;
 		case dsSceneLightType_Spot:
-			if (transformGroupDesc->elementCount == 3)
+			if (transformGroupDesc->elementCount == 2)
 			{
 				const dsShaderVariableElement* matrixElement = transformGroupDesc->elements;
 				const dsShaderVariableElement* distanceElement = transformGroupDesc->elements + 1;
-				const dsShaderVariableElement* positionElement = transformGroupDesc->elements + 2;
 				return matrixElement->type == dsMaterialType_Mat4 && matrixElement->count == 0 &&
-					distanceElement->type == dsMaterialType_Vec2 && distanceElement->count == 0 &&
-					positionElement->type == dsMaterialType_Vec3 && distanceElement->count == 0;
+					distanceElement->type == dsMaterialType_Vec2 && distanceElement->count == 0;
 			}
 			return false;
 		default:
@@ -432,6 +430,7 @@ bool dsSceneLightShadows_prepare(dsSceneLightShadows* shadows, const dsView* vie
 	float farPlane = dsMin(view->projectionParams.far, shadowParams->maxDistance);
 	shadowedProjection.far = farPlane;
 	dsVector2f shadowDistance = {{shadowParams->fadeStartDistance, shadowParams->maxDistance}};
+	bool uniform = view->projectionParams.type == dsProjectionType_Ortho;
 
 	// Check if the light is in view based on the max distance to show shadows.
 	float intensityThreshold = dsSceneLightSet_getIntensityThreshold(shadows->lightSet);
@@ -448,21 +447,19 @@ bool dsSceneLightShadows_prepare(dsSceneLightShadows* shadows, const dsView* vie
 	// Compute matrices in view space to be consistent with other lighting computations.
 	dsFrustum3f shadowedFrustum;
 	DS_VERIFY(dsRenderer_frustumFromMatrix(&shadowedFrustum, renderer, &shadowedProjectionMtx));
-	dsMatrix44f identity;
-	dsMatrix44_identity(identity);
 	shadows->view = view;
 
 	if (!shadows->fallback && !getBufferData(shadows))
 		return false;
 
+	dsMatrix44f identity;
+	dsMatrix44_identity(identity);
 	shadows->committedMatrices = 0;
 	memset(shadows->projectionSet, 0, sizeof(shadows->projectionSet));
 	switch (shadows->lightType)
 	{
 		case dsSceneLightType_Directional:
 		{
-			bool uniform = view->projectionParams.type == dsProjectionType_Ortho;
-
 			// Compute in view space.
 			dsVector4f toLightWorld =
 				{{-light->direction.x, -light->direction.y, -light->direction.z, 0.0f}};
@@ -530,8 +527,10 @@ bool dsSceneLightShadows_prepare(dsSceneLightShadows* shadows, const dsView* vie
 
 			for (uint32_t i = 0; i < shadows->totalMatrices; ++i)
 			{
+				// Force uniform shadows since they can be hard to tune depth bias with smaller
+				// frustums and LiPSM.
 				DS_VERIFY(dsShadowProjection_initialize(shadows->projections + i, renderer,
-					&identity, (dsVector3f*)&toLightView, NULL, uniform));
+					&identity, (dsVector3f*)&toLightView, NULL, NULL, true));
 			}
 			break;
 		}
@@ -544,6 +543,9 @@ bool dsSceneLightShadows_prepare(dsSceneLightShadows* shadows, const dsView* vie
 			dsVector4f lightViewPos;
 			dsMatrix44_transform(lightViewPos, view->viewMatrix, lightWorldPos);
 
+			dsMatrix44f projection;
+			DS_VERIFY(dsSceneLight_getPointLightProjection(&projection, light, renderer,
+				intensityThreshold));
 			for (int i = 0; i < 6; ++i)
 			{
 				dsCubeFace cubeFace = (dsCubeFace)i;
@@ -553,17 +555,21 @@ bool dsSceneLightShadows_prepare(dsSceneLightShadows* shadows, const dsView* vie
 				DS_VERIFY(dsTexture_cubeDirection(&toLight, cubeFace));
 				dsVector3_neg(toLight, toLight);
 
-				dsMatrix44f projection;
-				DS_VERIFY(dsSceneLight_getPointLightProjection(&projection, light, renderer,
-					cubeFace, intensityThreshold, &view->viewMatrix));
+				dsMatrix44f transform;
+				DS_VERIFY(dsSceneLight_getPointLightTransform(&transform, light, cubeFace));
 
+				dsMatrix44f lightSpace;
+				dsMatrix44_mul(lightSpace, transform, view->cameraMatrix);
+
+				dsMatrix44f lightProjection;
+				dsMatrix44_mul(lightProjection, projection, lightSpace);
 				dsFrustum3f lightFrustum;
-				DS_VERIFY(dsRenderer_frustumFromMatrix(&lightFrustum, renderer, &projection));
+				DS_VERIFY(dsRenderer_frustumFromMatrix(&lightFrustum, renderer, &lightProjection));
 
 				DS_VERIFY(dsShadowCullVolume_buildSpot(shadows->cullVolumes + i, &shadowedFrustum,
 					&lightFrustum));
 				DS_VERIFY(dsShadowProjection_initialize(shadows->projections + i, renderer,
-					&identity, &toLight, &projection, false));
+					&identity, &toLight, &lightSpace, &projection, uniform));
 			}
 
 			if (shadows->fallback)
@@ -592,19 +598,26 @@ bool dsSceneLightShadows_prepare(dsSceneLightShadows* shadows, const dsView* vie
 			dsMatrix44_transform(toLightView, view->viewMatrix, toLightWorld);
 
 			float intensityThreshold = dsSceneLightSet_getIntensityThreshold(shadows->lightSet);
+			dsMatrix44f transform;
+			DS_VERIFY(dsSceneLight_getSpotLightTransform(&transform, light));
+			dsMatrix44f lightSpace;
+			dsMatrix44_mul(lightSpace, transform, view->cameraMatrix);
+
 			dsMatrix44f projection;
 			DS_VERIFY(dsSceneLight_getSpotLightProjection(&projection, light, renderer,
 				intensityThreshold));
-			dsMatrix44f viewProjection;
-			dsMatrix44_mul(viewProjection, projection, view->viewMatrix);
 
+			dsMatrix44f lightProjection;
+			dsMatrix44_mul(lightProjection, projection, lightSpace);
 			dsFrustum3f lightFrustum;
-			DS_VERIFY(dsRenderer_frustumFromMatrix(&lightFrustum, renderer, &viewProjection));
+			DS_VERIFY(dsRenderer_frustumFromMatrix(&lightFrustum, renderer, &lightProjection));
 
 			DS_VERIFY(dsShadowCullVolume_buildSpot(shadows->cullVolumes, &shadowedFrustum,
 				&lightFrustum));
+			// Force uniform shadows since they can be hard to tune depth bias with smaller
+			// frustums and LiPSM.
 			DS_VERIFY(dsShadowProjection_initialize(shadows->projections, renderer, &identity,
-				(dsVector3f*)&toLightView, &viewProjection, false));
+				(const dsVector3f*)&toLightView, &lightSpace, &projection, true));
 
 			if (shadows->fallback)
 			{

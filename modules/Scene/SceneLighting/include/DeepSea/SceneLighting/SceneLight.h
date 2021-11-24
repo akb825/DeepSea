@@ -203,21 +203,38 @@ DS_SCENELIGHTING_EXPORT bool dsSceneLight_isInFrustum(const dsSceneLight* light,
 	const dsFrustum3f* frustum, float intensityThreshold);
 
 /**
+ * @brief Gets the transform matrix for a cube face of a point light.
+ * @remark errno will be set on failure.
+ * @param[out] result The transform matrix result.
+ * @param light The light to get the transform matrix for.
+ * @param cubeFace The cube face to get the transform matrix for.
+ * @return False if the parameters are invalid.
+ */
+DS_SCENELIGHTING_EXPORT bool dsSceneLight_getPointLightTransform(dsMatrix44f* result,
+	const dsSceneLight* light, dsCubeFace cubeFace);
+
+/**
  * @brief Gets the projection matrix for a cube face of a point light.
  * @remark errno will be set on failure.
  * @param[out] result The projection matrix result.
  * @param light The light to get the projection matrix for.
  * @param renderer The renderer the matrix will be used with.
- * @param cubeFace The cube face to get the projection matrix for.
  * @param intensityThreshold The threshold below which the light is considered out of view.
  *     Use DS_DEFAULT_SCENE_LIGHT_INTENSITY_THRESHOLD for the default value.
- * @param transform Matrix to transform the light before computing the projection. This may be
- *     NULL to have no transform. It's expected this will only have translation and rotation.
  * @return False if the parameters are invalid.
  */
 DS_SCENELIGHTING_EXPORT bool dsSceneLight_getPointLightProjection(dsMatrix44f* result,
-	const dsSceneLight* light, const dsRenderer* renderer, dsCubeFace cubeFace,
-	float intensityThreshold, const dsMatrix44f* transform);
+	const dsSceneLight* light, const dsRenderer* renderer, float intensityThreshold);
+
+/**
+ * @brief Gets the transform matrix for a spot light.
+ * @remark errno will be set on failure.
+ * @param[out] result The transform matrix result.
+ * @param light The light to get the transform matrix for.
+ * @return False if the parameters are invalid.
+ */
+DS_SCENELIGHTING_EXPORT bool dsSceneLight_getSpotLightTransform(dsMatrix44f* result,
+	const dsSceneLight* light);
 
 /**
  * @brief Gets the projection matrix for a spot light.

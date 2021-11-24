@@ -35,12 +35,15 @@ TEST_F(ShadowProjectionTest, Initialize)
 	dsVector3f lightDir = {{0.0f, 1.0f, 0.0f}};
 
 	dsShadowProjection shadowProj;
-	EXPECT_FALSE(dsShadowProjection_initialize(NULL, renderer, &camera, &lightDir, NULL, false));
-	EXPECT_FALSE(dsShadowProjection_initialize(&shadowProj, NULL, &camera, &lightDir, NULL, false));
-	EXPECT_FALSE(dsShadowProjection_initialize(&shadowProj, renderer, NULL, &lightDir, NULL,
+	EXPECT_FALSE(dsShadowProjection_initialize(NULL, renderer, &camera, &lightDir, NULL, NULL,
 		false));
-	EXPECT_FALSE(dsShadowProjection_initialize(&shadowProj, renderer, &camera, NULL, NULL, false));
-	EXPECT_TRUE(dsShadowProjection_initialize(&shadowProj, renderer, &camera, &lightDir, NULL,
+	EXPECT_FALSE(dsShadowProjection_initialize(&shadowProj, NULL, &camera, &lightDir, NULL, NULL,
+		false));
+	EXPECT_FALSE(dsShadowProjection_initialize(&shadowProj, renderer, NULL, &lightDir, NULL, NULL,
+		false));
+	EXPECT_FALSE(dsShadowProjection_initialize(&shadowProj, renderer, &camera, NULL, NULL, NULL,
+		false));
+	EXPECT_TRUE(dsShadowProjection_initialize(&shadowProj, renderer, &camera, &lightDir, NULL, NULL,
 		false));
 }
 
@@ -56,7 +59,7 @@ TEST_F(ShadowProjectionTest, LightSpacePerspective)
 
 	dsVector3f lightDir = {{0.0f, 1.0f, 0.0f}};
 	dsShadowProjection shadowProj;
-	ASSERT_TRUE(dsShadowProjection_initialize(&shadowProj, renderer, &camera, &lightDir, NULL,
+	ASSERT_TRUE(dsShadowProjection_initialize(&shadowProj, renderer, &camera, &lightDir, NULL, NULL,
 		false));
 
 	dsVector3f points[] =
@@ -104,7 +107,7 @@ TEST_F(ShadowProjectionTest, LightSpacePerspectiveFullRange)
 
 	dsVector3f lightDir = {{0.0f, 1.0f, 0.0f}};
 	dsShadowProjection shadowProj;
-	ASSERT_TRUE(dsShadowProjection_initialize(&shadowProj, renderer, &camera, &lightDir, NULL,
+	ASSERT_TRUE(dsShadowProjection_initialize(&shadowProj, renderer, &camera, &lightDir, NULL, NULL,
 		false));
 
 	dsVector3f points[] =
@@ -152,7 +155,7 @@ TEST_F(ShadowProjectionTest, LightSpacePerspectiveInvertY)
 
 	dsVector3f lightDir = {{0.0f, 1.0f, 0.0f}};
 	dsShadowProjection shadowProj;
-	ASSERT_TRUE(dsShadowProjection_initialize(&shadowProj, renderer, &camera, &lightDir, NULL,
+	ASSERT_TRUE(dsShadowProjection_initialize(&shadowProj, renderer, &camera, &lightDir, NULL, NULL,
 		false));
 
 	dsVector3f points[] =
@@ -198,7 +201,7 @@ TEST_F(ShadowProjectionTest, Uniform)
 
 	dsVector3f lightDir = {{0.0f, 1.0f, 0.0f}};
 	dsShadowProjection shadowProj;
-	ASSERT_TRUE(dsShadowProjection_initialize(&shadowProj, renderer, &camera, &lightDir, NULL,
+	ASSERT_TRUE(dsShadowProjection_initialize(&shadowProj, renderer, &camera, &lightDir, NULL, NULL,
 		true));
 
 	dsVector3f points[] =
@@ -245,7 +248,7 @@ TEST_F(ShadowProjectionTest, UniformFullRange)
 
 	dsVector3f lightDir = {{0.0f, 1.0f, 0.0f}};
 	dsShadowProjection shadowProj;
-	ASSERT_TRUE(dsShadowProjection_initialize(&shadowProj, renderer, &camera, &lightDir, NULL,
+	ASSERT_TRUE(dsShadowProjection_initialize(&shadowProj, renderer, &camera, &lightDir, NULL, NULL,
 		true));
 
 	dsVector3f points[] =
@@ -292,7 +295,7 @@ TEST_F(ShadowProjectionTest, UniformInvertY)
 
 	dsVector3f lightDir = {{0.0f, 1.0f, 0.0f}};
 	dsShadowProjection shadowProj;
-	ASSERT_TRUE(dsShadowProjection_initialize(&shadowProj, renderer, &camera, &lightDir, NULL,
+	ASSERT_TRUE(dsShadowProjection_initialize(&shadowProj, renderer, &camera, &lightDir, NULL, NULL,
 		true));
 
 	dsVector3f points[] =
@@ -337,7 +340,7 @@ TEST_F(ShadowProjectionTest, LookIntoLight)
 
 	dsVector3f lightDir = {{1.0f, 0.0f, 0.0f}};
 	dsShadowProjection shadowProj;
-	ASSERT_TRUE(dsShadowProjection_initialize(&shadowProj, renderer, &camera, &lightDir, NULL,
+	ASSERT_TRUE(dsShadowProjection_initialize(&shadowProj, renderer, &camera, &lightDir, NULL, NULL,
 		false));
 
 	dsVector3f points[] =
@@ -382,7 +385,7 @@ TEST_F(ShadowProjectionTest, LookAwayFromLight)
 
 	dsVector3f lightDir = {{-1.0f, 0.0f, 0.0f}};
 	dsShadowProjection shadowProj;
-	ASSERT_TRUE(dsShadowProjection_initialize(&shadowProj, renderer, &camera, &lightDir, NULL,
+	ASSERT_TRUE(dsShadowProjection_initialize(&shadowProj, renderer, &camera, &lightDir, NULL, NULL,
 		false));
 
 	dsVector3f points[] =

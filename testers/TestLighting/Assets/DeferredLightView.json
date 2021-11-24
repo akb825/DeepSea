@@ -54,6 +54,18 @@
 			"windowFramebuffer": false
 		},
 		{
+			"name": "spotShadows",
+			"type": "Offscreen",
+			"usage": ["Texture"],
+			"format": "D32_Float",
+			"decoration": "Unset",
+			"width": 1024,
+			"height": 1024,
+			"samples": 1,
+			"resolve": false,
+			"windowFramebuffer": false
+		},
+		{
 			"name": "shadowColorBuffer",
 			"type": "Renderbuffer",
 			"format": "R8G8B8A8",
@@ -85,6 +97,16 @@
 			"surfaces":
 			[
 				{"name": "mainShadows"},
+				{"name": "shadowColorBuffer"}
+			]
+		},
+		{
+			"name": "spotShadowCast",
+			"width": 1024,
+			"height": 1024,
+			"surfaces":
+			[
+				{"name": "spotShadows"},
 				{"name": "shadowColorBuffer"}
 			]
 		}

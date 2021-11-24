@@ -478,7 +478,7 @@ bool dsShadowCullVolume_buildSpot(dsShadowCullVolume* volume, const dsFrustum3f*
 dsIntersectResult dsShadowCullVolume_intersectAlignedBox(const dsShadowCullVolume* volume,
 	const dsAlignedBox3f* box, dsShadowProjection* shadowProj)
 {
-	if (!volume || !box)
+	if (!volume || volume->planeCount == 0 || !box)
 		return dsIntersectResult_Outside;
 
 	bool intersects = false;
@@ -510,7 +510,7 @@ dsIntersectResult dsShadowCullVolume_intersectAlignedBox(const dsShadowCullVolum
 dsIntersectResult dsShadowCullVolume_intersectOrientedBox(const dsShadowCullVolume* volume,
 	const dsOrientedBox3f* box, dsShadowProjection* shadowProj)
 {
-	if (!volume || !box)
+	if (!volume || volume->planeCount == 0 || !box)
 		return dsIntersectResult_Outside;
 
 	bool intersects = false;
@@ -542,7 +542,7 @@ dsIntersectResult dsShadowCullVolume_intersectOrientedBox(const dsShadowCullVolu
 dsIntersectResult dsShadowCullVolume_intersectSphere(const dsShadowCullVolume* volume,
 	const dsVector3f* center, float radius, dsShadowProjection* shadowProj)
 {
-	if (!volume || !center || radius < 0)
+	if (!volume || volume->planeCount == 0 || !center || radius < 0)
 		return dsIntersectResult_Outside;
 
 	bool intersects = false;

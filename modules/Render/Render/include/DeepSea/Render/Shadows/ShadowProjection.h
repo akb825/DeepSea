@@ -45,8 +45,10 @@ extern "C"
   *    orthonormal.
  * @param toLight The direction to the light. For a point or spot light, this should be the
  *     direction at the center of the volume. This is assumed to be normalized.
- * @param lightProjection The projection matrix for a spot or point light. In the case of a point
+ * @param lightTransform The transform matrix for a spot or point light. In the case of a point
  *     light, it will typically be used for one face of a cubemap. This should be NULL for
+ *     directional lights.
+ * @param lightProjection The projection matrix for a spot or point light. This should be NULL for
  *     directional lights.
  * @param uniform True to force uniform shadows rather than light-space perspective. This should
  *     typically be false except when rendering with an orthographic projection.
@@ -54,7 +56,7 @@ extern "C"
  */
 DS_RENDER_EXPORT bool dsShadowProjection_initialize(dsShadowProjection* shadowProj,
 	const dsRenderer* renderer, const dsMatrix44f* camera, const dsVector3f* toLight,
-	const dsMatrix44f* lightProjection, bool uniform);
+	const dsMatrix44f* lightTransform, const dsMatrix44f* lightProjection, bool uniform);
 
 /**
  * @brief Resets a shadow projection to re-compute based on a new set of points.
