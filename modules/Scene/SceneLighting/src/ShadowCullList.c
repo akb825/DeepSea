@@ -131,7 +131,12 @@ void dsShadowCullList_commit(dsSceneItemList* itemList, const dsView* view,
 			cullList->surface, &transformedBounds) == dsIntersectResult_Outside;
 	}
 
-	DS_VERIFY(dsSceneLightShadows_computeSurfaceProjection(cullList->shadows, cullList->surface));
+	if (!dsSceneLightShadows_computeSurfaceProjection(cullList->shadows, cullList->surface))
+	{
+		DS_LOG_ERROR_F(DS_SCENE_LIGHTING_LOG_TAG,
+			"Couldn't compute projection for shadows '%s' surface %d.",
+			dsSceneLightShadows_getName(cullList->shadows), cullList->surface);
+	}
 	DS_PROFILE_SCOPE_END();
 }
 

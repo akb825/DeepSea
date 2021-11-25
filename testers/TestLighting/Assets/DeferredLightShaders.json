@@ -118,6 +118,45 @@
 		]
 	},
 	{
+		"type": "MaterialDesc",
+		"name": "pointLightMaterialDesc",
+		"elements":
+		[
+			{
+				"name": "materialColor",
+				"type": "SubpassInput",
+				"binding": "Global"
+			},
+			{
+				"name": "normalSpecular",
+				"type": "SubpassInput",
+				"binding": "Global"
+			},
+			{
+				"name": "surfaceDepth",
+				"type": "SubpassInput",
+				"binding": "Global"
+			},
+			{
+				"name": "ViewTransformData",
+				"type": "VariableGroup",
+				"binding": "Global",
+				"shaderVariableGroupDesc": "viewTransformDesc"
+			},
+			{
+				"name": "ShadowTransform",
+				"type": "VariableGroup",
+				"binding": "Instance",
+				"shaderVariableGroupDesc": "pointShadowTransformDesc"
+			},
+			{
+				"name": "shadowMap",
+				"type": "Texture",
+				"binding": "Instance"
+			}
+		]
+	},
+	{
 		"type": "Shader",
 		"name": "ambientLightShader",
 		"module": "deferredLightShaderModule",
@@ -136,7 +175,7 @@
 		"name": "pointLightShader",
 		"module": "deferredLightShaderModule",
 		"pipeline": "PointLight",
-		"materialDesc": "deferredLightMaterialDesc"
+		"materialDesc": "pointLightMaterialDesc"
 	},
 	{
 		"type": "Shader",
@@ -156,6 +195,11 @@
 		"description": "directionalLightMaterialDesc"
 	},
 	{
+		"type": "Material",
+		"name": "pointLightMaterial",
+		"description": "pointLightMaterialDesc"
+	},
+	{
 		"type": "ShadowManager",
 		"name": "shadowManager",
 		"lightSet": "lightSet",
@@ -172,6 +216,12 @@
 				"lightType": "Spot",
 				"light": "mainSpot",
 				"transformGroupDesc": "directionalShadowTransformDesc"
+			},
+			{
+				"name": "pointShadows",
+				"lightType": "Point",
+				"light": "center",
+				"transformGroupDesc": "pointShadowTransformDesc"
 			}
 		]
 	}

@@ -70,7 +70,7 @@ TEST_F(ShadowProjectionTest, LightSpacePerspective)
 	EXPECT_TRUE(dsShadowProjection_addPoints(&shadowProj, points, DS_ARRAY_SIZE(points)));
 
 	dsMatrix44f projection;
-	ASSERT_TRUE(dsShadowProjection_computeMatrix(&projection, &shadowProj, 0.0f));
+	ASSERT_TRUE(dsShadowProjection_computeMatrix(&projection, &shadowProj, 0.0f, 0.0f));
 
 	dsVector4f testPoints[] =
 	{
@@ -118,7 +118,7 @@ TEST_F(ShadowProjectionTest, LightSpacePerspectiveFullRange)
 	EXPECT_TRUE(dsShadowProjection_addPoints(&shadowProj, points, DS_ARRAY_SIZE(points)));
 
 	dsMatrix44f projection;
-	ASSERT_TRUE(dsShadowProjection_computeMatrix(&projection, &shadowProj, 0.0f));
+	ASSERT_TRUE(dsShadowProjection_computeMatrix(&projection, &shadowProj, 0.0f, 0.0f));
 
 	dsVector4f testPoints[] =
 	{
@@ -166,7 +166,7 @@ TEST_F(ShadowProjectionTest, LightSpacePerspectiveInvertY)
 	EXPECT_TRUE(dsShadowProjection_addPoints(&shadowProj, points, DS_ARRAY_SIZE(points)));
 
 	dsMatrix44f projection;
-	ASSERT_TRUE(dsShadowProjection_computeMatrix(&projection, &shadowProj, 0.0f));
+	ASSERT_TRUE(dsShadowProjection_computeMatrix(&projection, &shadowProj, 0.0f, 0.0f));
 
 	dsVector4f testPoints[] =
 	{
@@ -212,7 +212,7 @@ TEST_F(ShadowProjectionTest, Uniform)
 	EXPECT_TRUE(dsShadowProjection_addPoints(&shadowProj, points, DS_ARRAY_SIZE(points)));
 
 	dsMatrix44f projection;
-	ASSERT_TRUE(dsShadowProjection_computeMatrix(&projection, &shadowProj, 0.0f));
+	ASSERT_TRUE(dsShadowProjection_computeMatrix(&projection, &shadowProj, 0.0f, 0.0f));
 
 	dsVector4f testPoints[] =
 	{
@@ -259,7 +259,7 @@ TEST_F(ShadowProjectionTest, UniformFullRange)
 	EXPECT_TRUE(dsShadowProjection_addPoints(&shadowProj, points, DS_ARRAY_SIZE(points)));
 
 	dsMatrix44f projection;
-	ASSERT_TRUE(dsShadowProjection_computeMatrix(&projection, &shadowProj, 0.0f));
+	ASSERT_TRUE(dsShadowProjection_computeMatrix(&projection, &shadowProj, 0.0f, 0.0f));
 
 	dsVector4f testPoints[] =
 	{
@@ -306,7 +306,7 @@ TEST_F(ShadowProjectionTest, UniformInvertY)
 	EXPECT_TRUE(dsShadowProjection_addPoints(&shadowProj, points, DS_ARRAY_SIZE(points)));
 
 	dsMatrix44f projection;
-	ASSERT_TRUE(dsShadowProjection_computeMatrix(&projection, &shadowProj, 0.0f));
+	ASSERT_TRUE(dsShadowProjection_computeMatrix(&projection, &shadowProj, 0.0f, 0.0f));
 
 	dsVector4f testPoints[] =
 	{
@@ -351,7 +351,7 @@ TEST_F(ShadowProjectionTest, LookIntoLight)
 	EXPECT_TRUE(dsShadowProjection_addPoints(&shadowProj, points, DS_ARRAY_SIZE(points)));
 
 	dsMatrix44f projection;
-	ASSERT_TRUE(dsShadowProjection_computeMatrix(&projection, &shadowProj, 0.0f));
+	ASSERT_TRUE(dsShadowProjection_computeMatrix(&projection, &shadowProj, 0.0f, 0.0f));
 
 	dsVector4f testPoints[] =
 	{
@@ -396,7 +396,7 @@ TEST_F(ShadowProjectionTest, LookAwayFromLight)
 	EXPECT_TRUE(dsShadowProjection_addPoints(&shadowProj, points, DS_ARRAY_SIZE(points)));
 
 	dsMatrix44f projection;
-	ASSERT_TRUE(dsShadowProjection_computeMatrix(&projection, &shadowProj, 0.0f));
+	ASSERT_TRUE(dsShadowProjection_computeMatrix(&projection, &shadowProj, 0.0f, 0.0f));
 
 	dsVector4f testPoints[] =
 	{

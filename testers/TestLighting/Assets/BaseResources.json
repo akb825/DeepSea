@@ -416,6 +416,26 @@
 		]
 	},
 	{
+		"type": "ShaderVariableGroupDesc",
+		"name": "pointShadowTransformDesc",
+		"elements":
+		[
+			{
+				"name": "matrices",
+				"type": "Mat4",
+				"count": 6
+			},
+			{
+				"name": "fadeDistances",
+				"type": "Vec2"
+			},
+			{
+				"name": "lightPosition",
+				"type": "Vec3"
+			}
+		]
+	},
+	{
 		"type": "MaterialDesc",
 		"name": "shadowCastMaterialDesc",
 		"elements":

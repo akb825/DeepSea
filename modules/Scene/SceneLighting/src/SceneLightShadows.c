@@ -115,12 +115,14 @@ static bool transformGroupValid(const dsShaderVariableGroupDesc* transformGroupD
 			}
 			return false;
 		case dsSceneLightType_Point:
-			if (transformGroupDesc->elementCount == 2)
+			if (transformGroupDesc->elementCount == 3)
 			{
 				const dsShaderVariableElement* matrixElement = transformGroupDesc->elements;
 				const dsShaderVariableElement* distanceElement = transformGroupDesc->elements + 1;
+				const dsShaderVariableElement* positionElement = transformGroupDesc->elements + 2;
 				return matrixElement->type == dsMaterialType_Mat4 && matrixElement->count == 6 &&
-					distanceElement->type == dsMaterialType_Vec2 && distanceElement->count == 0;
+					distanceElement->type == dsMaterialType_Vec2 && distanceElement->count == 0 &&
+					positionElement->type == dsMaterialType_Vec3 && positionElement->count == 0;
 			}
 			return false;
 		case dsSceneLightType_Spot:
@@ -140,6 +142,13 @@ static bool transformGroupValid(const dsShaderVariableGroupDesc* transformGroupD
 
 static void* getBufferData(dsSceneLightShadows* shadows)
 {
+	// Prevent error situations from never unmapping the buffer.
+	if (shadows->curBufferData && shadows->curBuffer != INVALID_INDEX)
+	{
+		dsGfxBuffer_unmap(shadows->buffers[shadows->curBuffer].buffer);
+		shadows->curBufferData = NULL;
+	}
+
 	uint64_t frameNumber = shadows->resourceManager->renderer->frameNumber;
 	shadows->curBuffer = INVALID_INDEX;
 
@@ -171,10 +180,10 @@ static void* getBufferData(dsSceneLightShadows* shadows)
 					sizeof(DirectionalLightData);
 				break;
 			case dsSceneLightType_Point:
-				bufferSize = sizeof(dsMatrix44f)*6;
+				bufferSize = sizeof(PointLightData);
 				break;
 			case dsSceneLightType_Spot:
-				bufferSize = sizeof(dsMatrix44f);
+				bufferSize = sizeof(SpotLightData);
 				break;
 			default:
 				DS_ASSERT(false);
@@ -200,6 +209,12 @@ static void* getBufferData(dsSceneLightShadows* shadows)
 		DS_MAP_FULL_BUFFER);
 	DS_ASSERT(shadows->curBufferData);
 	return shadows->curBufferData;
+}
+
+static float getMinBoxSize(float nearPlane, float farPlane)
+{
+	const float ratio = 0.05f;
+	return (farPlane - nearPlane)*ratio;
 }
 
 dsSceneLightShadows* dsSceneLightShadows_create(dsAllocator* allocator, const char* name,
@@ -483,6 +498,7 @@ bool dsSceneLightShadows_prepare(dsSceneLightShadows* shadows, const dsView* vie
 					dsProjectionParams curProjection = shadowedProjection;
 					curProjection.near = i == 0 ? nearPlane : splitDistances.values[i - 1];
 					curProjection.far = splitDistances.values[i];
+					shadows->minBoxSizes[i] = getMinBoxSize(curProjection.near, curProjection.far);
 					dsMatrix44f projectionMtx;
 					DS_VERIFY(dsProjectionParams_createMatrix(
 						&projectionMtx, &curProjection, renderer));
@@ -521,16 +537,15 @@ bool dsSceneLightShadows_prepare(dsSceneLightShadows* shadows, const dsView* vie
 					data->shadowDistance = shadowDistance;
 				}
 
+				shadows->minBoxSizes[0] = getMinBoxSize(nearPlane, farPlane);
 				DS_VERIFY(dsShadowCullVolume_buildDirectional(shadows->cullVolumes,
 					&shadowedFrustum, (dsVector3f*)&toLightView));
 			}
 
 			for (uint32_t i = 0; i < shadows->totalMatrices; ++i)
 			{
-				// Force uniform shadows since they can be hard to tune depth bias with smaller
-				// frustums and LiPSM.
 				DS_VERIFY(dsShadowProjection_initialize(shadows->projections + i, renderer,
-					&identity, (dsVector3f*)&toLightView, NULL, NULL, true));
+					&identity, (dsVector3f*)&toLightView, NULL, NULL, uniform));
 			}
 			break;
 		}
@@ -543,6 +558,7 @@ bool dsSceneLightShadows_prepare(dsSceneLightShadows* shadows, const dsView* vie
 			dsVector4f lightViewPos;
 			dsMatrix44_transform(lightViewPos, view->viewMatrix, lightWorldPos);
 
+			float minBoxSize = getMinBoxSize(nearPlane, farPlane);
 			dsMatrix44f projection;
 			DS_VERIFY(dsSceneLight_getPointLightProjection(&projection, light, renderer,
 				intensityThreshold));
@@ -551,25 +567,26 @@ bool dsSceneLightShadows_prepare(dsSceneLightShadows* shadows, const dsView* vie
 				dsCubeFace cubeFace = (dsCubeFace)i;
 
 				// Treat the orientation in view space to simplify things since it's arbitrary.
-				dsVector3f toLight;
-				DS_VERIFY(dsTexture_cubeDirection(&toLight, cubeFace));
-				dsVector3_neg(toLight, toLight);
-
-				dsMatrix44f transform;
-				DS_VERIFY(dsSceneLight_getPointLightTransform(&transform, light, cubeFace));
+				dsMatrix44f lightWorld;
+				DS_VERIFY(dsTexture_cubeOrientation(&lightWorld, cubeFace));
+				lightWorld.columns[3] = lightViewPos;
 
 				dsMatrix44f lightSpace;
-				dsMatrix44_mul(lightSpace, transform, view->cameraMatrix);
+				dsMatrix44_fastInvert(lightSpace, lightWorld);
 
 				dsMatrix44f lightProjection;
 				dsMatrix44_mul(lightProjection, projection, lightSpace);
 				dsFrustum3f lightFrustum;
 				DS_VERIFY(dsRenderer_frustumFromMatrix(&lightFrustum, renderer, &lightProjection));
 
+				shadows->minBoxSizes[i] = minBoxSize;
 				DS_VERIFY(dsShadowCullVolume_buildSpot(shadows->cullVolumes + i, &shadowedFrustum,
 					&lightFrustum));
+				// Force uniform shadows since they can be hard to tune depth bias with smaller
+				// frustums and LiPSM.
 				DS_VERIFY(dsShadowProjection_initialize(shadows->projections + i, renderer,
-					&identity, &toLight, &lightSpace, &projection, uniform));
+					&identity, (const dsVector3f*)(lightWorld.columns + 2), &lightSpace,
+					&projection, true));
 			}
 
 			if (shadows->fallback)
@@ -612,6 +629,7 @@ bool dsSceneLightShadows_prepare(dsSceneLightShadows* shadows, const dsView* vie
 			dsFrustum3f lightFrustum;
 			DS_VERIFY(dsRenderer_frustumFromMatrix(&lightFrustum, renderer, &lightProjection));
 
+			shadows->minBoxSizes[0] = getMinBoxSize(nearPlane, farPlane);
 			DS_VERIFY(dsShadowCullVolume_buildSpot(shadows->cullVolumes, &shadowedFrustum,
 				&lightFrustum));
 			// Force uniform shadows since they can be hard to tune depth bias with smaller
@@ -775,8 +793,11 @@ bool dsSceneLightShadows_computeSurfaceProjection(dsSceneLightShadows* shadows, 
 
 	const float paddingRatio = 0.1f;
 	dsMatrix44f* shadowMtx = shadows->projectionMatrices + surface;
-	if (!dsShadowProjection_computeMatrix(shadowMtx, shadows->projections + surface, paddingRatio))
+	if (!dsShadowProjection_computeMatrix(shadowMtx, shadows->projections + surface, paddingRatio,
+			shadows->minBoxSizes[surface]))
+	{
 		dsMatrix44_identity(*shadowMtx);
+	}
 ;
 	switch (shadows->lightType)
 	{
@@ -884,6 +905,12 @@ bool dsSceneLightShadows_destroy(dsSceneLightShadows* shadows)
 {
 	if (!shadows)
 		return true;
+
+	if (shadows->curBufferData && shadows->curBuffer != INVALID_INDEX)
+	{
+		if (!dsGfxBuffer_unmap(shadows->buffers[shadows->curBuffer].buffer))
+			return false;
+	}
 
 	for (uint32_t i = 0; i < shadows->bufferCount; ++i)
 	{

@@ -86,11 +86,12 @@ DS_RENDER_EXPORT bool dsShadowProjection_addPoints(dsShadowProjection* shadowPro
  * @param shadowProj The shadow projection.
  * @param paddingRatio A ratio of padding to add to the edges of the range computed from
  *     dsShadowProjection_addPoints().
+ * @param minSize The minimum size along a dimension of the bounding box for the shadows.
  * @return False if there's no matrix to compute. This can be because either parameter is NULL or
  *     no points were added to the shadow projection.
  */
 DS_RENDER_EXPORT bool dsShadowProjection_computeMatrix(dsMatrix44f* outMatrix,
-	const dsShadowProjection* shadowProj, float paddingRatio);
+	const dsShadowProjection* shadowProj, float paddingRatio, float minSize);
 
 #ifdef __cplusplus
 }

@@ -60,7 +60,7 @@ extern "C"
  *     - Point:
  *         - mat44 array of 6 elements for the shadow projection.
  *         - vec2 for the distance to start fading out shadows and maximum shadow distance.
- *         - vec3 for the positiono of the light in view space.
+ *         - vec3 for the position of the light in view space.
  *     - Spot:
  *         - mat44 for the shadow projection.
  *         - vec2 for the distance to start fading out shadows and maximum shadow distance.

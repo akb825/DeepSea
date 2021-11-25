@@ -240,6 +240,8 @@ bool dsShadowProjection_addPoints(dsShadowProjection* shadowProj, const dsVector
 		dsVector4f point = {{points[i].x, points[i].y, points[i].z, 1.0f}};
 		dsVector4f proj;
 		dsMatrix44_transform(proj, shadowProj->worldToShadowSpace, point);
+		if (dsEpsilonEqualsZerof(proj.w, 1e-6f))
+			continue;
 
 		float invW = 1/proj.w;
 		dsVector3f worldPoint;
@@ -251,16 +253,24 @@ bool dsShadowProjection_addPoints(dsShadowProjection* shadowProj, const dsVector
 }
 
 bool dsShadowProjection_computeMatrix(dsMatrix44f* outMatrix, const dsShadowProjection* shadowProj,
-	float paddingRatio)
+	float paddingRatio, float minSize)
 {
 	if (!outMatrix || !shadowProj || !dsAlignedBox3_isValid(shadowProj->pointBounds))
 		return false;
 
 	dsAlignedBox3f bounds = shadowProj->pointBounds;
-	dsVector3f offset;
-	dsAlignedBox3_extents(offset, bounds);
+	dsVector3f size;
+	dsAlignedBox3_extents(size, bounds);
 	float scale = paddingRatio/2;
-	dsVector3_scale(offset, offset, scale);
+	dsVector3f offset;
+	dsVector3_scale(offset, size, scale);
+
+	for (unsigned int i = 0; i < 3; ++i)
+	{
+		float minOffset = (minSize - size.values[i])/2;;
+		offset.values[i] = dsMax(offset.values[i], minOffset);
+	}
+
 	dsVector3_sub(bounds.min, bounds.min, offset);
 	dsVector3_add(bounds.max, bounds.max, offset);
 
