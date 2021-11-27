@@ -240,7 +240,7 @@ bool dsShadowProjection_addPoints(dsShadowProjection* shadowProj, const dsVector
 		dsVector4f point = {{points[i].x, points[i].y, points[i].z, 1.0f}};
 		dsVector4f proj;
 		dsMatrix44_transform(proj, shadowProj->worldToShadowSpace, point);
-		if (dsEpsilonEqualsZerof(proj.w, 1e-6f))
+		if (dsEpsilonEqualsZerof(proj.w, 1e-3f))
 			continue;
 
 		float invW = 1/proj.w;

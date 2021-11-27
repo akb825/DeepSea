@@ -158,7 +158,7 @@
 							"dynamicRenderStates":
 							{
 								"depthBiasConstantFactor": 0.2,
-								"depthBiasSlopeFactor": 1.5
+								"depthBiasSlopeFactor": 1.0
 							}
 						}
 					]
@@ -209,7 +209,7 @@
 							"dynamicRenderStates":
 							{
 								"depthBiasConstantFactor": 0.2,
-								"depthBiasSlopeFactor": 2.0
+								"depthBiasSlopeFactor": 3.0
 							}
 						}
 					]
@@ -260,7 +260,7 @@
 							"dynamicRenderStates":
 							{
 								"depthBiasConstantFactor": 0.2,
-								"depthBiasSlopeFactor": 2.0
+								"depthBiasSlopeFactor": 3.0
 							}
 						}
 					]
@@ -311,7 +311,7 @@
 							"dynamicRenderStates":
 							{
 								"depthBiasConstantFactor": 0.2,
-								"depthBiasSlopeFactor": 2.0
+								"depthBiasSlopeFactor": 3.0
 							}
 						}
 					]
@@ -362,7 +362,7 @@
 							"dynamicRenderStates":
 							{
 								"depthBiasConstantFactor": 0.2,
-								"depthBiasSlopeFactor": 2.0
+								"depthBiasSlopeFactor": 3.0
 							}
 						}
 					]
@@ -413,7 +413,7 @@
 							"dynamicRenderStates":
 							{
 								"depthBiasConstantFactor": 0.2,
-								"depthBiasSlopeFactor": 2.0
+								"depthBiasSlopeFactor": 3.0
 							}
 						}
 					]
@@ -464,7 +464,7 @@
 							"dynamicRenderStates":
 							{
 								"depthBiasConstantFactor": 0.2,
-								"depthBiasSlopeFactor": 2.0
+								"depthBiasSlopeFactor": 3.0
 							}
 						}
 					]
