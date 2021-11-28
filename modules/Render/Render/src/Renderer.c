@@ -482,8 +482,7 @@ bool dsRenderer_makeOrtho(dsMatrix44f* result, const dsRenderer* renderer, float
 		return false;
 	}
 
-	dsMatrix44f_makeOrtho(result, left, right, bottom, top, near, far, renderer->clipHalfDepth,
-		renderer->clipInvertY);
+	dsMatrix44f_makeOrtho(result, left, right, bottom, top, near, far, renderer->projectionOptions);
 	return true;
 }
 
@@ -496,8 +495,8 @@ bool dsRenderer_makeFrustum(dsMatrix44f* result, const dsRenderer* renderer, flo
 		return false;
 	}
 
-	dsMatrix44f_makeFrustum(result, left, right, bottom, top, near, far, renderer->clipHalfDepth,
-		renderer->clipInvertY);
+	dsMatrix44f_makeFrustum(result, left, right, bottom, top, near, far,
+		renderer->projectionOptions);
 	return true;
 }
 
@@ -510,8 +509,7 @@ bool dsRenderer_makePerspective(dsMatrix44f* result, const dsRenderer* renderer,
 		return false;
 	}
 
-	dsMatrix44f_makePerspective(result, fovy, aspect, near, far, renderer->clipHalfDepth,
-		renderer->clipInvertY);
+	dsMatrix44f_makePerspective(result, fovy, aspect, near, far, renderer->projectionOptions);
 	return true;
 }
 
@@ -524,7 +522,7 @@ bool dsRenderer_frustumFromMatrix(dsFrustum3f* result, const dsRenderer* rendere
 		return false;
 	}
 
-	dsFrustum3_fromMatrix(*result, *matrix, renderer->clipHalfDepth, renderer->clipInvertY);
+	dsFrustum3_fromMatrix(*result, *matrix, renderer->projectionOptions);
 	dsFrustum3f_normalize(result);
 	return true;
 }

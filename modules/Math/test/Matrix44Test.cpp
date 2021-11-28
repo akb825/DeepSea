@@ -144,39 +144,39 @@ inline void dsMatrix44_lookAt(dsMatrix44d* result, const dsVector3d* eyePos,
 }
 
 inline void dsMatrix44_makeOrtho(dsMatrix44f* result, float left, float right, float bottom,
-	float top, float near, float far, bool halfDepth, bool invertY)
+	float top, float near, float far, dsProjectionMatrixOptions options)
 {
-	dsMatrix44f_makeOrtho(result, left, right, bottom, top, near, far, halfDepth, invertY);
+	dsMatrix44f_makeOrtho(result, left, right, bottom, top, near, far, options);
 }
 
 inline void dsMatrix44_makeOrtho(dsMatrix44d* result, double left, double right, double bottom,
-	double top, double near, double far, bool halfDepth, bool invertY)
+	double top, double near, double far, dsProjectionMatrixOptions options)
 {
-	dsMatrix44d_makeOrtho(result, left, right, bottom, top, near, far, halfDepth, invertY);
+	dsMatrix44d_makeOrtho(result, left, right, bottom, top, near, far, options);
 }
 
 inline void dsMatrix44_makeFrustum(dsMatrix44f* result, float left, float right, float bottom,
-	float top, float near, float far, bool halfDepth, bool invertY)
+	float top, float near, float far, dsProjectionMatrixOptions options)
 {
-	dsMatrix44f_makeFrustum(result, left, right, bottom, top, near, far, halfDepth, invertY);
+	dsMatrix44f_makeFrustum(result, left, right, bottom, top, near, far, options);
 }
 
 inline void dsMatrix44_makeFrustum(dsMatrix44d* result, double left, double right, double bottom,
-	double top, double near, double far, bool halfDepth, bool invertY)
+	double top, double near, double far, dsProjectionMatrixOptions options)
 {
-	dsMatrix44d_makeFrustum(result, left, right, bottom, top, near, far, halfDepth, invertY);
+	dsMatrix44d_makeFrustum(result, left, right, bottom, top, near, far, options);
 }
 
 inline void dsMatrix44_makePerspective(dsMatrix44f* result, float fovy, float aspect,
-	float near, float far, bool halfDepth, bool invertY)
+	float near, float far, dsProjectionMatrixOptions options)
 {
-	dsMatrix44f_makePerspective(result, fovy, aspect, near, far, halfDepth, invertY);
+	dsMatrix44f_makePerspective(result, fovy, aspect, near, far, options);
 }
 
 inline void dsMatrix44_makePerspective(dsMatrix44d* result, double fovy, double aspect,
-	double near, double far, bool halfDepth, bool invertY)
+	double near, double far, dsProjectionMatrixOptions options)
 {
-	dsMatrix44d_makePerspective(result, fovy, aspect, near, far, halfDepth, invertY);
+	dsMatrix44d_makePerspective(result, fovy, aspect, near, far, options);
 }
 
 inline void dsVector3_normalize(dsVector3f* result, const dsVector3f* a)
@@ -858,7 +858,7 @@ TYPED_TEST(Matrix44Test, MakeOrtho)
 	Vector4Type maxPoint = {{3, 5, -7, 1}};
 
 	Matrix44Type matrix;
-	dsMatrix44_makeOrtho(&matrix, -2, 3, -4, 5, -6, 7, true, false);
+	dsMatrix44_makeOrtho(&matrix, -2, 3, -4, 5, -6, 7, dsProjectionMatrixOptions_HalfZRange);
 
 	Vector4Type projPoint;
 	dsMatrix44_transform(projPoint, matrix, minPoint);
@@ -873,7 +873,7 @@ TYPED_TEST(Matrix44Test, MakeOrtho)
 	EXPECT_NEAR(1, projPoint.z, epsilon);
 	EXPECT_NEAR(1, projPoint.w, epsilon);
 
-	dsMatrix44_makeOrtho(&matrix, -2, 3, -4, 5, -6, 7, false, false);
+	dsMatrix44_makeOrtho(&matrix, -2, 3, -4, 5, -6, 7, dsProjectionMatrixOptions_None);
 
 	dsMatrix44_transform(projPoint, matrix, minPoint);
 	EXPECT_NEAR(-1, projPoint.x, epsilon);
@@ -887,7 +887,8 @@ TYPED_TEST(Matrix44Test, MakeOrtho)
 	EXPECT_NEAR(1, projPoint.z, epsilon);
 	EXPECT_NEAR(1, projPoint.w, epsilon);
 
-	dsMatrix44_makeOrtho(&matrix, -2, 3, -4, 5, -6, 7, true, true);
+	dsMatrix44_makeOrtho(&matrix, -2, 3, -4, 5, -6, 7,
+		dsProjectionMatrixOptions_HalfZRange | dsProjectionMatrixOptions_InvertY);
 
 	dsMatrix44_transform(projPoint, matrix, minPoint);
 	EXPECT_NEAR(-1, projPoint.x, epsilon);
@@ -901,7 +902,7 @@ TYPED_TEST(Matrix44Test, MakeOrtho)
 	EXPECT_NEAR(1, projPoint.z, epsilon);
 	EXPECT_NEAR(1, projPoint.w, epsilon);
 
-	dsMatrix44_makeOrtho(&matrix, -2, 3, -4, 5, -6, 7, false, true);
+	dsMatrix44_makeOrtho(&matrix, -2, 3, -4, 5, -6, 7, dsProjectionMatrixOptions_InvertY);
 
 	dsMatrix44_transform(projPoint, matrix, minPoint);
 	EXPECT_NEAR(-1, projPoint.x, epsilon);
@@ -926,7 +927,7 @@ TYPED_TEST(Matrix44Test, MakeFrustum)
 	Vector4Type maxPoint = {{3*7, 5*7, -7, 1}};
 
 	Matrix44Type matrix;
-	dsMatrix44_makeFrustum(&matrix, -2, 3, -4, 5, 1, 7, true, false);
+	dsMatrix44_makeFrustum(&matrix, -2, 3, -4, 5, 1, 7, dsProjectionMatrixOptions_HalfZRange);
 
 	Vector4Type projPoint;
 	dsMatrix44_transform(projPoint, matrix, minPoint);
@@ -943,7 +944,7 @@ TYPED_TEST(Matrix44Test, MakeFrustum)
 	EXPECT_NEAR(1, projPoint.z, epsilon);
 	EXPECT_NEAR(1, projPoint.w, epsilon);
 
-	dsMatrix44_makeFrustum(&matrix, -2, 3, -4, 5, 1, 7, false, false);
+	dsMatrix44_makeFrustum(&matrix, -2, 3, -4, 5, 1, 7, dsProjectionMatrixOptions_None);
 
 	dsMatrix44_transform(projPoint, matrix, minPoint);
 	dsVector4_scale(projPoint, projPoint, 1/projPoint.w);
@@ -959,7 +960,8 @@ TYPED_TEST(Matrix44Test, MakeFrustum)
 	EXPECT_NEAR(1, projPoint.z, epsilon);
 	EXPECT_NEAR(1, projPoint.w, epsilon);
 
-	dsMatrix44_makeFrustum(&matrix, -2, 3, -4, 5, 1, 7, true, true);
+	dsMatrix44_makeFrustum(&matrix, -2, 3, -4, 5, 1, 7,
+		dsProjectionMatrixOptions_HalfZRange | dsProjectionMatrixOptions_InvertY);
 
 	dsMatrix44_transform(projPoint, matrix, minPoint);
 	dsVector4_scale(projPoint, projPoint, 1/projPoint.w);
@@ -975,7 +977,7 @@ TYPED_TEST(Matrix44Test, MakeFrustum)
 	EXPECT_NEAR(1, projPoint.z, epsilon);
 	EXPECT_NEAR(1, projPoint.w, epsilon);
 
-	dsMatrix44_makeFrustum(&matrix, -2, 3, -4, 5, 1, 7, false, true);
+	dsMatrix44_makeFrustum(&matrix, -2, 3, -4, 5, 1, 7, dsProjectionMatrixOptions_InvertY);
 
 	dsMatrix44_transform(projPoint, matrix, minPoint);
 	dsVector4_scale(projPoint, projPoint, 1/projPoint.w);
@@ -991,11 +993,12 @@ TYPED_TEST(Matrix44Test, MakeFrustum)
 	EXPECT_NEAR(1, projPoint.z, epsilon);
 	EXPECT_NEAR(1, projPoint.w, epsilon);
 
-	dsMatrix44_makeFrustum(&matrix, -2, 3, -4, 5, 1, INFINITY, true, false);
+	dsMatrix44_makeFrustum(&matrix, -2, 3, -4, 5, 1, INFINITY,
+		dsProjectionMatrixOptions_HalfZRange);
 	EXPECT_EQ(TypeParam(-1), matrix.values[2][2]);
 	EXPECT_EQ(TypeParam(-1), matrix.values[3][2]);
 
-	dsMatrix44_makeFrustum(&matrix, -2, 3, -4, 5, 1, INFINITY, false, false);
+	dsMatrix44_makeFrustum(&matrix, -2, 3, -4, 5, 1, INFINITY, dsProjectionMatrixOptions_None);
 	EXPECT_EQ(TypeParam(-1), matrix.values[2][2]);
 	EXPECT_EQ(TypeParam(-2), matrix.values[3][2]);
 }
@@ -1015,7 +1018,7 @@ TYPED_TEST(Matrix44Test, MakePerspective)
 	Vector4Type maxPoint = {{halfWidth*7, halfHeight*7, -7, 1}};
 
 	Matrix44Type matrix;
-	dsMatrix44_makePerspective(&matrix, fov, aspect, 1, 7, true, false);
+	dsMatrix44_makePerspective(&matrix, fov, aspect, 1, 7, dsProjectionMatrixOptions_HalfZRange);
 
 	Vector4Type projPoint;
 	dsMatrix44_transform(projPoint, matrix, minPoint);
@@ -1032,7 +1035,7 @@ TYPED_TEST(Matrix44Test, MakePerspective)
 	EXPECT_NEAR(1, projPoint.z, epsilon);
 	EXPECT_NEAR(1, projPoint.w, epsilon);
 
-	dsMatrix44_makePerspective(&matrix, fov, aspect, 1, 7, false, false);
+	dsMatrix44_makePerspective(&matrix, fov, aspect, 1, 7, dsProjectionMatrixOptions_None);
 
 	dsMatrix44_transform(projPoint, matrix, minPoint);
 	dsVector4_scale(projPoint, projPoint, 1/projPoint.w);
@@ -1048,7 +1051,8 @@ TYPED_TEST(Matrix44Test, MakePerspective)
 	EXPECT_NEAR(1, projPoint.z, epsilon);
 	EXPECT_NEAR(1, projPoint.w, epsilon);
 
-	dsMatrix44_makePerspective(&matrix, fov, aspect, 1, 7, true, true);
+	dsMatrix44_makePerspective(&matrix, fov, aspect, 1, 7,
+		dsProjectionMatrixOptions_HalfZRange | dsProjectionMatrixOptions_InvertY);
 
 	dsMatrix44_transform(projPoint, matrix, minPoint);
 	dsVector4_scale(projPoint, projPoint, 1/projPoint.w);
@@ -1064,7 +1068,7 @@ TYPED_TEST(Matrix44Test, MakePerspective)
 	EXPECT_NEAR(1, projPoint.z, epsilon);
 	EXPECT_NEAR(1, projPoint.w, epsilon);
 
-	dsMatrix44_makePerspective(&matrix, fov, aspect, 1, 7, false, true);
+	dsMatrix44_makePerspective(&matrix, fov, aspect, 1, 7, dsProjectionMatrixOptions_InvertY);
 
 	dsMatrix44_transform(projPoint, matrix, minPoint);
 	dsVector4_scale(projPoint, projPoint, 1/projPoint.w);
@@ -1080,11 +1084,12 @@ TYPED_TEST(Matrix44Test, MakePerspective)
 	EXPECT_NEAR(1, projPoint.z, epsilon);
 	EXPECT_NEAR(1, projPoint.w, epsilon);
 
-	dsMatrix44_makePerspective(&matrix, fov, aspect, 1, INFINITY, true, false);
+	dsMatrix44_makePerspective(&matrix, fov, aspect, 1, INFINITY,
+		dsProjectionMatrixOptions_HalfZRange);
 	EXPECT_EQ(TypeParam(-1), matrix.values[2][2]);
 	EXPECT_EQ(TypeParam(-1), matrix.values[3][2]);
 
-	dsMatrix44_makePerspective(&matrix, fov, aspect, 1, INFINITY, false, false);
+	dsMatrix44_makePerspective(&matrix, fov, aspect, 1, INFINITY, dsProjectionMatrixOptions_None);
 	EXPECT_EQ(TypeParam(-1), matrix.values[2][2]);
 	EXPECT_EQ(TypeParam(-2), matrix.values[3][2]);
 }

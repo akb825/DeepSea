@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,14 +49,12 @@ extern "C"
  * @remark The planes aren't guaranteed to be normalized.
  * @param[out] result The resulting frustum.
  * @param matrix The projection matrix to extract the frustum planes from.
- * @param halfDepth True if the projected depth is in the range [0, 1], false if in the range
- *     [-1, 1]. Examples where this is true include Direct3D, Metal, or Vulkan.
- * @param invertY True to invert the Y coordinate. An example where this is used is Vulkan.
+ * @param options The projection matrix options.
  */
-#define dsFrustum3_fromMatrix(result, matrix, halfDepth, invertY) \
+#define dsFrustum3_fromMatrix(result, matrix, options) \
 	do \
 	{ \
-		int8_t _yMult = invertY ? -1 : 1; \
+		int8_t _yMult = options & dsProjectionMatrixOptions_InvertY ? -1 : 1; \
 		(result).planes[dsFrustumPlanes_Left].n.x = (matrix).values[0][3] + (matrix).values[0][0]; \
 		(result).planes[dsFrustumPlanes_Left].n.y = (matrix).values[1][3] + (matrix).values[1][0]; \
 		(result).planes[dsFrustumPlanes_Left].n.z = (matrix).values[2][3] + (matrix).values[2][0]; \
@@ -88,7 +86,7 @@ extern "C"
 		(result).planes[dsFrustumPlanes_Top].d = (matrix).values[3][1]*_yMult - \
 			(matrix).values[3][3]; \
 		\
-		if (halfDepth) \
+		if (options & dsProjectionMatrixOptions_HalfZRange) \
 		{ \
 			(result).planes[dsFrustumPlanes_Near].n.x = (matrix).values[0][2]; \
 			(result).planes[dsFrustumPlanes_Near].n.y = (matrix).values[1][2]; \
@@ -198,20 +196,20 @@ DS_GEOMETRY_EXPORT dsIntersectResult dsFrustum3d_intersectSphere(const dsFrustum
 
 /** @copydoc dsFrustum3_fromMatrix() */
 DS_GEOMETRY_EXPORT inline void dsFrustum3f_fromMatrix(dsFrustum3f* result,
-	const dsMatrix44f* matrix, bool halfDepth, bool invertY)
+	const dsMatrix44f* matrix, dsProjectionMatrixOptions options)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(matrix);
-	dsFrustum3_fromMatrix(*result, *matrix, halfDepth, invertY);
+	dsFrustum3_fromMatrix(*result, *matrix, options);
 }
 
 /** @copydoc dsFrustum3_fromMatrix() */
 DS_GEOMETRY_EXPORT inline void dsFrustum3d_fromMatrix(dsFrustum3d* result,
-	const dsMatrix44d* matrix, bool halfDepth, bool invertY)
+	const dsMatrix44d* matrix, dsProjectionMatrixOptions options)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(matrix);
-	dsFrustum3_fromMatrix(*result, *matrix, halfDepth, invertY);
+	dsFrustum3_fromMatrix(*result, *matrix, options);
 }
 
 #ifdef __cplusplus

@@ -103,7 +103,7 @@ TEST_F(ShadowProjectionTest, LightSpacePerspectiveFullRange)
 		{1.0f, 2.0f, 3.0f, 0.0f}
 	}};
 
-	renderer->clipHalfDepth = false;
+	renderer->projectionOptions = dsProjectionMatrixOptions_None;
 
 	dsVector3f lightDir = {{0.0f, 1.0f, 0.0f}};
 	dsShadowProjection shadowProj;
@@ -151,7 +151,8 @@ TEST_F(ShadowProjectionTest, LightSpacePerspectiveInvertY)
 		{1.0f, 2.0f, 3.0f, 0.0f}
 	}};
 
-	renderer->clipInvertY = true;
+	renderer->projectionOptions =
+		dsProjectionMatrixOptions_HalfZRange | dsProjectionMatrixOptions_InvertY;
 
 	dsVector3f lightDir = {{0.0f, 1.0f, 0.0f}};
 	dsShadowProjection shadowProj;
@@ -244,7 +245,7 @@ TEST_F(ShadowProjectionTest, UniformFullRange)
 		{1.0f, 2.0f, 3.0f, 0.0f}
 	}};
 
-	renderer->clipHalfDepth = false;
+	renderer->projectionOptions = dsProjectionMatrixOptions_None;
 
 	dsVector3f lightDir = {{0.0f, 1.0f, 0.0f}};
 	dsShadowProjection shadowProj;
@@ -291,7 +292,8 @@ TEST_F(ShadowProjectionTest, UniformInvertY)
 		{1.0f, 2.0f, 3.0f, 0.0f}
 	}};
 
-	renderer->clipInvertY = true;
+	renderer->projectionOptions =
+		dsProjectionMatrixOptions_HalfZRange | dsProjectionMatrixOptions_InvertY;
 
 	dsVector3f lightDir = {{0.0f, 1.0f, 0.0f}};
 	dsShadowProjection shadowProj;

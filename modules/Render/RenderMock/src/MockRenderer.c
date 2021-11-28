@@ -421,11 +421,10 @@ dsRenderer* dsMockRenderer_create(dsAllocator* allocator)
 	renderer->surfaceDepthStencilFormat = dsGfxFormat_D24S8;
 	renderer->surfaceSamples = 4;
 	renderer->defaultSamples = 4;
+	renderer->projectionOptions = dsProjectionMatrixOptions_HalfZRange;
 	renderer->doubleBuffer = true;
 	renderer->stereoscopic = false;
 	renderer->vsync = true;
-	renderer->clipHalfDepth = true;
-	renderer->clipInvertY = false;
 	renderer->hasGeometryShaders = true;
 	renderer->hasTessellationShaders = true;
 	renderer->maxComputeWorkGroupSize[0] = 256;

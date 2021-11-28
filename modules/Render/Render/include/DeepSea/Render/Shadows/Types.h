@@ -97,14 +97,9 @@ typedef struct dsShadowProjection
 	bool uniform;
 
 	/**
-	 * @brief True if the depth range is [0, 1] instead of [-1, 1] in clip space.
+	 * @brief The options used to create the projection matrix.
 	 */
-	bool clipHalfDepth;
-
-	/**
-	 * @brief True if the Y coordinate of clip space is inverted.
-	 */
-	bool clipInvertY;
+	dsProjectionMatrixOptions projectionOptions;
 } dsShadowProjection;
 
 /**

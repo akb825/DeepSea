@@ -325,10 +325,10 @@ TEST_F(SceneLightTest, IsInFrustum)
 
 	// NOTE: Z is inverted for ortho matrices.
 	dsMatrix44f matrix;
-	dsMatrix44f_makeOrtho(&matrix, -2, 3, -4, 5, -6, 7, false, false);
+	dsMatrix44f_makeOrtho(&matrix, -2, 3, -4, 5, -6, 7, dsProjectionMatrixOptions_None);
 
 	dsFrustum3f frustum;
-	dsFrustum3_fromMatrix(frustum, matrix, false, false);
+	dsFrustum3_fromMatrix(frustum, matrix, dsProjectionMatrixOptions_None);
 	dsFrustum3f_normalize(&frustum);
 
 	EXPECT_TRUE(dsSceneLight_makeDirectional(&light, &direction, &color, intensity));

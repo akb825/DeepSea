@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -272,7 +272,7 @@ dsIntersectResult dsFrustum3d_intersectSphere(const dsFrustum3d* frustum, const 
 	return intersects ? dsIntersectResult_Intersects : dsIntersectResult_Inside;
 }
 
-void dsFrustum3f_fromMatrix(dsFrustum3f* result, const dsMatrix44f* matrix, bool halfDepth,
-	bool invertY);
-void dsFrustum3d_fromMatrix(dsFrustum3d* result, const dsMatrix44d* matrix, bool halfDepth,
-	bool invertY);
+void dsFrustum3f_fromMatrix(dsFrustum3f* result, const dsMatrix44f* matrix,
+	dsProjectionMatrixOptions options);
+void dsFrustum3d_fromMatrix(dsFrustum3d* result, const dsMatrix44d* matrix,
+	dsProjectionMatrixOptions options);

@@ -869,11 +869,10 @@ dsRenderer* dsMTLRenderer_create(dsAllocator* allocator, const dsRendererOptions
 		baseRenderer->maxAnisotropy = 16.0f;
 		baseRenderer->surfaceSamples = options->surfaceSamples;
 		baseRenderer->defaultSamples = options->defaultSamples;
+		baseRenderer->projectionOptions = dsProjectionMatrixOptions_HalfZRange;
 		baseRenderer->doubleBuffer = true;
 		baseRenderer->stereoscopic = false;
 		baseRenderer->vsync = false;
-		baseRenderer->clipHalfDepth = true;
-		baseRenderer->clipInvertY = false;
 		baseRenderer->hasGeometryShaders = false;
 		baseRenderer->hasTessellationShaders = hasTessellationShaders(device);
 

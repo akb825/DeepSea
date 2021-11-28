@@ -244,16 +244,18 @@ TEST_F(SceneLightSetTest, ForEachLightInFrustum)
 
 	dsMatrix44f projection;
 	dsFrustum3f frustum;
-	dsMatrix44f_makeOrtho(&projection, -2.0f, 0.0f, -1.0f, 0.0f, -1.0f, 1.0f, false, false);
-	dsFrustum3_fromMatrix(frustum, projection, false, false);
+	dsMatrix44f_makeOrtho(&projection, -2.0f, 0.0f, -1.0f, 0.0f, -1.0f, 1.0f,
+		dsProjectionMatrixOptions_None);
+	dsFrustum3_fromMatrix(frustum, projection, dsProjectionMatrixOptions_None);
 
 	std::vector<const dsSceneLight*> lights;
 	EXPECT_EQ(2U, dsSceneLightSet_forEachLightInFrustum(lightSet, &frustum, &visitLight, &lights));
 	EXPECT_TRUE(hasLight(lights, light1));
 	EXPECT_TRUE(hasLight(lights, light3));
 
-	dsMatrix44f_makeOrtho(&projection, 0.0f, 2.0f, -1.0f, 0.0f, -1.0f, 1.0f, false, false);
-	dsFrustum3_fromMatrix(frustum, projection, false, false);
+	dsMatrix44f_makeOrtho(&projection, 0.0f, 2.0f, -1.0f, 0.0f, -1.0f, 1.0f,
+		dsProjectionMatrixOptions_None);
+	dsFrustum3_fromMatrix(frustum, projection, dsProjectionMatrixOptions_None);
 
 	lights.clear();
 	EXPECT_EQ(3U, dsSceneLightSet_forEachLightInFrustum(lightSet, &frustum, &visitLight, &lights));
@@ -261,8 +263,9 @@ TEST_F(SceneLightSetTest, ForEachLightInFrustum)
 	EXPECT_TRUE(hasLight(lights, light3));
 	EXPECT_TRUE(hasLight(lights, light4));
 
-	dsMatrix44f_makeOrtho(&projection, 2.0f, 4.0f, -1.0f, 0.0f, -1.0f, 1.0f, false, false);
-	dsFrustum3_fromMatrix(frustum, projection, false, false);
+	dsMatrix44f_makeOrtho(&projection, 2.0f, 4.0f, -1.0f, 0.0f, -1.0f, 1.0f,
+		dsProjectionMatrixOptions_None);
+	dsFrustum3_fromMatrix(frustum, projection, dsProjectionMatrixOptions_None);
 	EXPECT_EQ(2U, dsSceneLightSet_forEachLightInFrustum(lightSet, &frustum, &visitLight, &lights));
 	EXPECT_TRUE(hasLight(lights, light1));
 	EXPECT_TRUE(hasLight(lights, light4));

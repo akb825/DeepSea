@@ -857,7 +857,7 @@ static bool setupShaders(TestText* testText)
 	}
 	DS_VERIFY(dsMaterial_setVariableGroup(testText->material, sharedInfoElement,
 		testText->sharedInfoGroup));
-	float yMult = renderer->clipInvertY ? 1.0f : -1.0f;
+	float yMult = renderer->projectionOptions & dsProjectionMatrixOptions_InvertY ? 1.0f : -1.0f;
 	DS_VERIFY(dsMaterial_setElementData(testText->material, yMultElement, &yMult,
 		dsMaterialType_Float, 0, 1));
 

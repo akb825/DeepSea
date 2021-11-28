@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Aaron Barany
+ * Copyright 2016-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,6 +52,20 @@ extern "C"
  * @see Random.h
  */
 #define DS_RANDOM_MAX 2147483646
+
+/**
+ * @brief Enum for the options that can be applied when creating a projection matrix.
+ */
+typedef enum dsProjectionMatrixOptions
+{
+	dsProjectionMatrixOptions_None = 0, ///< No options applied to the matrix.
+	/**
+	 * Use [0, 1] for the Z coordinate range instead of [-1, 1].
+	 */
+	dsProjectionMatrixOptions_HalfZRange = 0x1,
+	dsProjectionMatrixOptions_InvertY = 0x2, ///< Invert the Y coordinate of the matrix.
+	dsProjectionMatrixOptions_InvertZ = 0x4  ///< Invert the Z coordinate of the matrix.
+} dsProjectionMatrixOptions;
 
 /**
  * @brief Structure for a 2D vector holding floats.
@@ -1039,3 +1053,8 @@ typedef union dsQuaternion4d
 #ifdef __cplusplus
 }
 #endif
+
+// Needs to be after the extern "C" block.
+/// @cond
+DS_ENUM_BITMASK_OPERATORS(dsProjectionMatrixOptions);
+/// @endcond

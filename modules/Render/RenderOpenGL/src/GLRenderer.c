@@ -685,8 +685,9 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 	baseRenderer->doubleBuffer = options->doubleBuffer;
 	baseRenderer->stereoscopic = options->stereoscopic;
 	baseRenderer->vsync = false;
-	baseRenderer->clipHalfDepth = options->preferHalfDepthRange && ANYGL_SUPPORTED(glClipControl);
-	baseRenderer->clipInvertY = false;
+	baseRenderer->projectionOptions = dsProjectionMatrixOptions_None;
+	if (options->preferHalfDepthRange && ANYGL_SUPPORTED(glClipControl))
+		baseRenderer->projectionOptions |= dsProjectionMatrixOptions_HalfZRange;
 	baseRenderer->defaultAnisotropy = 1;
 
 	baseRenderer->hasGeometryShaders =

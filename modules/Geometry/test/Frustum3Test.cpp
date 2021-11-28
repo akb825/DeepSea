@@ -162,27 +162,27 @@ inline void dsMatrix44_inverseTranspose(dsMatrix44d* result, const dsMatrix44d* 
 }
 
 inline void dsMatrix44_makeOrtho(dsMatrix44f* result, float left, float right,
-	float bottom, float top, float near, float far, bool halfDepth, bool invertY)
+	float bottom, float top, float near, float far, dsProjectionMatrixOptions options)
 {
-	dsMatrix44f_makeOrtho(result, left, right, bottom, top, near, far, halfDepth, invertY);
+	dsMatrix44f_makeOrtho(result, left, right, bottom, top, near, far, options);
 }
 
 inline void dsMatrix44_makeOrtho(dsMatrix44d* result, double left, double right,
-	double bottom, double top, double near, double far, bool halfDepth, bool invertY)
+	double bottom, double top, double near, double far, dsProjectionMatrixOptions options)
 {
-	dsMatrix44d_makeOrtho(result, left, right, bottom, top, near, far, halfDepth, invertY);
+	dsMatrix44d_makeOrtho(result, left, right, bottom, top, near, far, options);
 }
 
 inline void dsMatrix44_makePerspective(dsMatrix44f* result, float fovy, float aspect,
-	float near, float far, bool halfDepth, bool invertY)
+	float near, float far, dsProjectionMatrixOptions options)
 {
-	dsMatrix44f_makePerspective(result, fovy, aspect, near, far, halfDepth, invertY);
+	dsMatrix44f_makePerspective(result, fovy, aspect, near, far, options);
 }
 
 inline void dsMatrix44_makePerspective(dsMatrix44d* result, double fovy, double aspect,
-	double near, double far, bool halfDepth, bool invertY)
+	double near, double far, dsProjectionMatrixOptions options)
 {
-	dsMatrix44d_makePerspective(result, fovy, aspect, near, far, halfDepth, invertY);
+	dsMatrix44d_makePerspective(result, fovy, aspect, near, far, options);
 }
 
 inline void dsMatrix33_makeRotate3D(dsMatrix33f* result, float x, float y, float z)
@@ -236,10 +236,10 @@ TYPED_TEST(Frustum3Test, FromOrtho)
 	TypeParam epsilon = Frustum3TypeSelector<TypeParam>::epsilon;
 
 	Matrix44Type matrix;
-	dsMatrix44_makeOrtho(&matrix, -2, 3, -4, 5, -6, 7, true, false);
+	dsMatrix44_makeOrtho(&matrix, -2, 3, -4, 5, -6, 7, dsProjectionMatrixOptions_HalfZRange);
 
 	Frustum3Type frustum;
-	dsFrustum3_fromMatrix(frustum, matrix, true, false);
+	dsFrustum3_fromMatrix(frustum, matrix, dsProjectionMatrixOptions_HalfZRange);
 
 	dsPlane3_normalize(frustum.planes + dsFrustumPlanes_Left,
 		frustum.planes + dsFrustumPlanes_Left);
@@ -283,8 +283,8 @@ TYPED_TEST(Frustum3Test, FromOrtho)
 	EXPECT_NEAR(1, frustum.planes[dsFrustumPlanes_Far].n.z, epsilon);
 	EXPECT_NEAR(-7, frustum.planes[dsFrustumPlanes_Far].d, epsilon);
 
-	dsMatrix44_makeOrtho(&matrix, -2, 3, -4, 5, -6, 7, false, false);
-	dsFrustum3_fromMatrix(frustum, matrix, false, false);
+	dsMatrix44_makeOrtho(&matrix, -2, 3, -4, 5, -6, 7, dsProjectionMatrixOptions_None);
+	dsFrustum3_fromMatrix(frustum, matrix, dsProjectionMatrixOptions_None);
 
 	dsPlane3_normalize(frustum.planes + dsFrustumPlanes_Left,
 		frustum.planes + dsFrustumPlanes_Left);
@@ -328,8 +328,10 @@ TYPED_TEST(Frustum3Test, FromOrtho)
 	EXPECT_NEAR(1, frustum.planes[dsFrustumPlanes_Far].n.z, epsilon);
 	EXPECT_NEAR(-7, frustum.planes[dsFrustumPlanes_Far].d, epsilon);
 
-	dsMatrix44_makeOrtho(&matrix, -2, 3, -4, 5, -6, 7, true, true);
-	dsFrustum3_fromMatrix(frustum, matrix, true, true);
+	dsMatrix44_makeOrtho(&matrix, -2, 3, -4, 5, -6, 7,
+		dsProjectionMatrixOptions_HalfZRange | dsProjectionMatrixOptions_InvertY);
+	dsFrustum3_fromMatrix(frustum, matrix,
+		dsProjectionMatrixOptions_HalfZRange | dsProjectionMatrixOptions_InvertY);
 
 	dsPlane3_normalize(frustum.planes + dsFrustumPlanes_Left,
 		frustum.planes + dsFrustumPlanes_Left);
@@ -373,8 +375,8 @@ TYPED_TEST(Frustum3Test, FromOrtho)
 	EXPECT_NEAR(1, frustum.planes[dsFrustumPlanes_Far].n.z, epsilon);
 	EXPECT_NEAR(-7, frustum.planes[dsFrustumPlanes_Far].d, epsilon);
 
-	dsMatrix44_makeOrtho(&matrix, -2, 3, -4, 5, -6, 7, false, true);
-	dsFrustum3_fromMatrix(frustum, matrix, false, true);
+	dsMatrix44_makeOrtho(&matrix, -2, 3, -4, 5, -6, 7, dsProjectionMatrixOptions_InvertY);
+	dsFrustum3_fromMatrix(frustum, matrix, dsProjectionMatrixOptions_InvertY);
 
 	dsPlane3_normalize(frustum.planes + dsFrustumPlanes_Left,
 		frustum.planes + dsFrustumPlanes_Left);
@@ -429,10 +431,10 @@ TYPED_TEST(Frustum3Test, FromPerspective)
 	TypeParam aspect = (TypeParam)1.5;
 	TypeParam halfFovX = std::atan(std::tan(fovY/2)*aspect);
 	Matrix44Type matrix;
-	dsMatrix44_makePerspective(&matrix, fovY, aspect, 1, 7, true, false);
+	dsMatrix44_makePerspective(&matrix, fovY, aspect, 1, 7, dsProjectionMatrixOptions_HalfZRange);
 
 	Frustum3Type frustum;
-	dsFrustum3_fromMatrix(frustum, matrix, true, false);
+	dsFrustum3_fromMatrix(frustum, matrix, dsProjectionMatrixOptions_HalfZRange);
 
 	TypeParam horizNormX = std::cos(halfFovX);
 	TypeParam horizNormY = std::sin(halfFovX);
@@ -481,8 +483,8 @@ TYPED_TEST(Frustum3Test, FromPerspective)
 	EXPECT_NEAR(1, frustum.planes[dsFrustumPlanes_Far].n.z, epsilon);
 	EXPECT_NEAR(-7, frustum.planes[dsFrustumPlanes_Far].d, epsilon);
 
-	dsMatrix44_makePerspective(&matrix, fovY, aspect, 1, 7, false, false);
-	dsFrustum3_fromMatrix(frustum, matrix, false, false);
+	dsMatrix44_makePerspective(&matrix, fovY, aspect, 1, 7, dsProjectionMatrixOptions_None);
+	dsFrustum3_fromMatrix(frustum, matrix, dsProjectionMatrixOptions_None);
 
 	dsPlane3_normalize(frustum.planes + dsFrustumPlanes_Left,
 		frustum.planes + dsFrustumPlanes_Left);
@@ -526,8 +528,10 @@ TYPED_TEST(Frustum3Test, FromPerspective)
 	EXPECT_NEAR(1, frustum.planes[dsFrustumPlanes_Far].n.z, epsilon);
 	EXPECT_NEAR(-7, frustum.planes[dsFrustumPlanes_Far].d, epsilon);
 
-	dsMatrix44_makePerspective(&matrix, fovY, aspect, 1, 7, true, true);
-	dsFrustum3_fromMatrix(frustum, matrix, true, true);
+	dsMatrix44_makePerspective(&matrix, fovY, aspect, 1, 7,
+		dsProjectionMatrixOptions_HalfZRange | dsProjectionMatrixOptions_InvertY);
+	dsFrustum3_fromMatrix(frustum, matrix,
+		dsProjectionMatrixOptions_HalfZRange | dsProjectionMatrixOptions_InvertY);
 
 	dsPlane3_normalize(frustum.planes + dsFrustumPlanes_Left,
 		frustum.planes + dsFrustumPlanes_Left);
@@ -571,8 +575,8 @@ TYPED_TEST(Frustum3Test, FromPerspective)
 	EXPECT_NEAR(1, frustum.planes[dsFrustumPlanes_Far].n.z, epsilon);
 	EXPECT_NEAR(-7, frustum.planes[dsFrustumPlanes_Far].d, epsilon);
 
-	dsMatrix44_makePerspective(&matrix, fovY, aspect, 1, 7, false, true);
-	dsFrustum3_fromMatrix(frustum, matrix, false, true);
+	dsMatrix44_makePerspective(&matrix, fovY, aspect, 1, 7, dsProjectionMatrixOptions_InvertY);
+	dsFrustum3_fromMatrix(frustum, matrix, dsProjectionMatrixOptions_InvertY);
 
 	dsPlane3_normalize(frustum.planes + dsFrustumPlanes_Left,
 		frustum.planes + dsFrustumPlanes_Left);
@@ -624,10 +628,10 @@ TYPED_TEST(Frustum3Test, Normalize)
 	TypeParam epsilon = Frustum3TypeSelector<TypeParam>::epsilon;
 
 	Matrix44Type matrix;
-	dsMatrix44_makeOrtho(&matrix, -2, 3, -4, 5, -6, 7, false, false);
+	dsMatrix44_makeOrtho(&matrix, -2, 3, -4, 5, -6, 7, dsProjectionMatrixOptions_None);
 
 	Frustum3Type frustum;
-	dsFrustum3_fromMatrix(frustum, matrix, false, false);
+	dsFrustum3_fromMatrix(frustum, matrix, dsProjectionMatrixOptions_None);
 	dsFrustum3_normalize(&frustum);
 
 	EXPECT_NEAR(1, frustum.planes[dsFrustumPlanes_Left].n.x, epsilon);
@@ -669,10 +673,10 @@ TYPED_TEST(Frustum3Test, Transform)
 	TypeParam epsilon = Frustum3TypeSelector<TypeParam>::epsilon;
 
 	Matrix44Type matrix;
-	dsMatrix44_makeOrtho(&matrix, -2, 3, -4, 5, -6, 7, false, false);
+	dsMatrix44_makeOrtho(&matrix, -2, 3, -4, 5, -6, 7, dsProjectionMatrixOptions_None);
 
 	Frustum3Type frustum;
-	dsFrustum3_fromMatrix(frustum, matrix, false, false);
+	dsFrustum3_fromMatrix(frustum, matrix, dsProjectionMatrixOptions_None);
 
 	Matrix44Type rotate, translate, transform;
 	dsMatrix44_makeRotate(&rotate, (TypeParam)dsDegreesToRadiansd(30),
@@ -704,10 +708,10 @@ TYPED_TEST(Frustum3Test, TransformInverseTranspose)
 	TypeParam epsilon = Frustum3TypeSelector<TypeParam>::epsilon;
 
 	Matrix44Type matrix;
-	dsMatrix44_makeOrtho(&matrix, -2, 3, -4, 5, -6, 7, false, false);
+	dsMatrix44_makeOrtho(&matrix, -2, 3, -4, 5, -6, 7, dsProjectionMatrixOptions_None);
 
 	Frustum3Type frustum;
-	dsFrustum3_fromMatrix(frustum, matrix, false, false);
+	dsFrustum3_fromMatrix(frustum, matrix, dsProjectionMatrixOptions_None);
 
 	Matrix44Type rotate, translate, transform, inverseTranspose;
 	dsMatrix44_makeRotate(&rotate, (TypeParam)dsDegreesToRadiansd(30),
@@ -741,10 +745,10 @@ TYPED_TEST(Frustum3Test, IntersectAlignedBox)
 
 	// NOTE: Z is inverted for ortho matrices.
 	Matrix44Type matrix;
-	dsMatrix44_makeOrtho(&matrix, -2, 3, -4, 5, -6, 7, false, false);
+	dsMatrix44_makeOrtho(&matrix, -2, 3, -4, 5, -6, 7, dsProjectionMatrixOptions_None);
 
 	Frustum3Type frustum;
-	dsFrustum3_fromMatrix(frustum, matrix, false, false);
+	dsFrustum3_fromMatrix(frustum, matrix, dsProjectionMatrixOptions_None);
 
 	AlignedBox3Type box = {{{0, 1, 2}}, {{2, 3, 4}}};
 
@@ -829,10 +833,10 @@ TYPED_TEST(Frustum3Test, IntersectedOrientedBox)
 
 	// NOTE: Z is inverted for ortho matrices.
 	Matrix44Type matrix;
-	dsMatrix44_makeOrtho(&matrix, -2, 3, -4, 5, -6, 7, false, false);
+	dsMatrix44_makeOrtho(&matrix, -2, 3, -4, 5, -6, 7, dsProjectionMatrixOptions_None);
 
 	Frustum3Type frustum;
-	dsFrustum3_fromMatrix(frustum, matrix, false, false);
+	dsFrustum3_fromMatrix(frustum, matrix, dsProjectionMatrixOptions_None);
 
 	AlignedBox3Type alignedBox = {{{0, 1, 2}}, {{1, (TypeParam)2.5, (TypeParam)3.5}}};
 	OrientedBox3Type box;
@@ -901,10 +905,10 @@ TYPED_TEST(Frustum3Test, IntersectedSphere)
 
 	// NOTE: Z is inverted for ortho matrices.
 	Matrix44Type matrix;
-	dsMatrix44_makeOrtho(&matrix, -2, 3, -4, 5, -6, 7, false, false);
+	dsMatrix44_makeOrtho(&matrix, -2, 3, -4, 5, -6, 7, dsProjectionMatrixOptions_None);
 
 	Frustum3Type frustum;
-	dsFrustum3_fromMatrix(frustum, matrix, false, false);
+	dsFrustum3_fromMatrix(frustum, matrix, dsProjectionMatrixOptions_None);
 	dsFrustum3_normalize(&frustum);
 
 	Vector3Type center = {{0, 1, 2}};

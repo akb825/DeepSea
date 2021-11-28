@@ -1029,12 +1029,7 @@ static bool beginDraw(dsCommandBuffer* commandBuffer, VkCommandBuffer submitBuff
 			continue;
 
 		const dsVertexFormat* format = &vertexBuffer->format;
-		uint32_t formatSize = format->size;
 		dsVkGfxBufferData* bufferData = dsVkGfxBuffer_getData(buffer, commandBuffer);
-
-		VkDeviceSize offset = vertexBuffer->offset;
-		if (drawRange)
-			offset += drawRange->firstVertex*formatSize;
 
 		if (!bufferData)
 			return false;
@@ -1073,16 +1068,11 @@ static bool beginIndexedDraw(dsCommandBuffer* commandBuffer, VkCommandBuffer sub
 	if (!bufferData)
 		return false;
 
-	uint32_t indexSize = indexBuffer->indexSize;
-	VkDeviceSize offset = indexBuffer->offset;
-	if (drawRange)
-		offset += drawRange->firstIndex*indexSize;
-
 	dsVkRenderer_processGfxBuffer(commandBuffer->renderer, bufferData);
 	vkCommandBuffer->activeIndexBuffer = indexBuffer;
 	DS_VK_CALL(device->vkCmdBindIndexBuffer)(submitBuffer,
 		dsVkGfxBufferData_getBuffer(bufferData), indexBuffer->offset,
-		indexSize == sizeof(uint16_t) ? VK_INDEX_TYPE_UINT16 : VK_INDEX_TYPE_UINT32);
+		indexBuffer->indexSize == sizeof(uint16_t) ? VK_INDEX_TYPE_UINT16 : VK_INDEX_TYPE_UINT32);
 	return true;
 }
 
@@ -2170,12 +2160,12 @@ dsRenderer* dsVkRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 		baseRenderer->maxSurfaceSamples);
 	baseRenderer->defaultSamples = dsClamp(options->defaultSamples, 1U,
 		baseRenderer->maxSurfaceSamples);
+	baseRenderer->projectionOptions = dsProjectionMatrixOptions_HalfZRange |
+		dsProjectionMatrixOptions_InvertY;
 
 	baseRenderer->doubleBuffer = options->doubleBuffer;
 	baseRenderer->stereoscopic = options->stereoscopic;
 	baseRenderer->vsync = false;
-	baseRenderer->clipHalfDepth = true;
-	baseRenderer->clipInvertY = true;
 	baseRenderer->hasGeometryShaders = deviceFeatures.geometryShader != 0;
 	baseRenderer->hasTessellationShaders = deviceFeatures.tessellationShader != 0;
 	for (int i = 0; i < 3; ++i)

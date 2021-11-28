@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -509,14 +509,14 @@ void dsMatrix44d_lookAt(dsMatrix44d* result, const dsVector3d* eyePos, const dsV
 }
 
 void dsMatrix44f_makeOrtho(dsMatrix44f* result, float left, float right, float bottom,
-	float top, float near, float far, bool halfDepth, bool invertY)
+	float top, float near, float far, dsProjectionMatrixOptions options)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(left != right);
 	DS_ASSERT(bottom != top);
 	DS_ASSERT(near != far);
 
-	float yMult = invertY ? -1.0f : 1.0f;
+	float yMult = options & dsProjectionMatrixOptions_InvertY ? -1.0f : 1.0f;
 
 	result->values[0][0] = 2/(right - left);
 	result->values[0][1] = 0;
@@ -530,7 +530,7 @@ void dsMatrix44f_makeOrtho(dsMatrix44f* result, float left, float right, float b
 
 	result->values[2][0] = 0;
 	result->values[2][1] = 0;
-	if (halfDepth)
+	if (options & dsProjectionMatrixOptions_HalfZRange)
 		result->values[2][2] = 1/(near - far);
 	else
 		result->values[2][2] = 2/(near - far);
@@ -538,7 +538,7 @@ void dsMatrix44f_makeOrtho(dsMatrix44f* result, float left, float right, float b
 
 	result->values[3][0] = (left + right)/(left - right);
 	result->values[3][1] = (bottom + top)/(bottom - top)*yMult;
-	if (halfDepth)
+	if (options & dsProjectionMatrixOptions_HalfZRange)
 		result->values[3][2] = near/(near - far);
 	else
 		result->values[3][2] = (near + far)/(near - far);
@@ -546,14 +546,14 @@ void dsMatrix44f_makeOrtho(dsMatrix44f* result, float left, float right, float b
 }
 
 void dsMatrix44d_makeOrtho(dsMatrix44d* result, double left, double right, double bottom,
-	double top, double near, double far, bool halfDepth, bool invertY)
+	double top, double near, double far, dsProjectionMatrixOptions options)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(left != right);
 	DS_ASSERT(bottom != top);
 	DS_ASSERT(near != far);
 
-	double yMult = invertY ? -1.0 : 1.0;
+	float yMult = options & dsProjectionMatrixOptions_InvertY ? -1.0f : 1.0f;
 
 	result->values[0][0] = 2/(right - left);
 	result->values[0][1] = 0;
@@ -567,7 +567,7 @@ void dsMatrix44d_makeOrtho(dsMatrix44d* result, double left, double right, doubl
 
 	result->values[2][0] = 0;
 	result->values[2][1] = 0;
-	if (halfDepth)
+	if (options & dsProjectionMatrixOptions_HalfZRange)
 		result->values[2][2] = 1/(near - far);
 	else
 		result->values[2][2] = 2/(near - far);
@@ -575,7 +575,7 @@ void dsMatrix44d_makeOrtho(dsMatrix44d* result, double left, double right, doubl
 
 	result->values[3][0] = (left + right)/(left - right);
 	result->values[3][1] = (bottom + top)/(bottom - top)*yMult;
-	if (halfDepth)
+	if (options & dsProjectionMatrixOptions_HalfZRange)
 		result->values[3][2] = near/(near - far);
 	else
 		result->values[3][2] = (near + far)/(near - far);
@@ -583,14 +583,14 @@ void dsMatrix44d_makeOrtho(dsMatrix44d* result, double left, double right, doubl
 }
 
 void dsMatrix44f_makeFrustum(dsMatrix44f* result, float left, float right, float bottom, float top,
-	float near, float far, bool halfDepth, bool invertY)
+	float near, float far, dsProjectionMatrixOptions options)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(left != right);
 	DS_ASSERT(bottom != top);
 	DS_ASSERT(near != far);
 
-	float yMult = invertY ? -1.0f : 1.0f;
+	float yMult = options & dsProjectionMatrixOptions_InvertY ? -1.0f : 1.0f;
 	bool infiniteFar = isinf(far);
 
 	result->values[0][0] = 2*near/(right - left);
@@ -607,7 +607,7 @@ void dsMatrix44f_makeFrustum(dsMatrix44f* result, float left, float right, float
 	result->values[2][1] = (top + bottom)/(top - bottom)*yMult;
 	if (infiniteFar)
 		result->values[2][2] = -1.0f;
-	else if (halfDepth)
+	else if (options & dsProjectionMatrixOptions_HalfZRange)
 		result->values[2][2] = far/(near - far);
 	else
 		result->values[2][2] = (near + far)/(near - far);
@@ -617,14 +617,14 @@ void dsMatrix44f_makeFrustum(dsMatrix44f* result, float left, float right, float
 	result->values[3][1] = 0;
 	if (infiniteFar)
 	{
-		if (halfDepth)
+		if (options & dsProjectionMatrixOptions_HalfZRange)
 			result->values[3][2] = -near;
 		else
 			result->values[3][2] = -2*near;
 	}
 	else
 	{
-		if (halfDepth)
+		if (options & dsProjectionMatrixOptions_HalfZRange)
 			result->values[3][2] = near*far/(near - far);
 		else
 			result->values[3][2] = 2*near*far/(near - far);
@@ -633,14 +633,14 @@ void dsMatrix44f_makeFrustum(dsMatrix44f* result, float left, float right, float
 }
 
 void dsMatrix44d_makeFrustum(dsMatrix44d* result, double left, double right, double bottom,
-	double top, double near, double far, bool halfDepth, bool invertY)
+	double top, double near, double far, dsProjectionMatrixOptions options)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(left != right);
 	DS_ASSERT(bottom != top);
 	DS_ASSERT(near != far);
 
-	double yMult = invertY ? -1.0 : 1.0;
+	float yMult = options & dsProjectionMatrixOptions_InvertY ? -1.0f : 1.0f;
 	bool infiniteFar = isinf(far);
 
 	result->values[0][0] = 2*near/(right - left);
@@ -657,7 +657,7 @@ void dsMatrix44d_makeFrustum(dsMatrix44d* result, double left, double right, dou
 	result->values[2][1] = (top + bottom)/(top - bottom)*yMult;
 	if (infiniteFar)
 		result->values[2][2] = -1.0;
-	else if (halfDepth)
+	else if (options & dsProjectionMatrixOptions_HalfZRange)
 		result->values[2][2] = far/(near - far);
 	else
 		result->values[2][2] = (near + far)/(near - far);
@@ -667,14 +667,14 @@ void dsMatrix44d_makeFrustum(dsMatrix44d* result, double left, double right, dou
 	result->values[3][1] = 0;
 	if (infiniteFar)
 	{
-		if (halfDepth)
+		if (options & dsProjectionMatrixOptions_HalfZRange)
 			result->values[3][2] = -near;
 		else
 			result->values[3][2] = -2*near;
 	}
 	else
 	{
-		if (halfDepth)
+		if (options & dsProjectionMatrixOptions_HalfZRange)
 			result->values[3][2] = near*far/(near - far);
 		else
 			result->values[3][2] = 2*near*far/(near - far);
@@ -683,7 +683,7 @@ void dsMatrix44d_makeFrustum(dsMatrix44d* result, double left, double right, dou
 }
 
 void dsMatrix44f_makePerspective(dsMatrix44f* result, float fovy, float aspect, float near,
-	float far, bool halfDepth, bool invertY)
+	float far, dsProjectionMatrixOptions options)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(fovy > 0);
@@ -692,7 +692,7 @@ void dsMatrix44f_makePerspective(dsMatrix44f* result, float fovy, float aspect, 
 
 	float height = 1/tanf(fovy/2);
 	float width = height/aspect;
-	float yMult = invertY ? -1.0f : 1.0f;
+	float yMult = options & dsProjectionMatrixOptions_InvertY ? -1.0f : 1.0f;
 	bool infiniteFar = isinf(far);
 
 	result->values[0][0] = width;
@@ -709,7 +709,7 @@ void dsMatrix44f_makePerspective(dsMatrix44f* result, float fovy, float aspect, 
 	result->values[2][1] = 0;
 	if (infiniteFar)
 		result->values[2][2] = -1.0f;
-	else if (halfDepth)
+	else if (options & dsProjectionMatrixOptions_HalfZRange)
 		result->values[2][2] = far/(near - far);
 	else
 		result->values[2][2] = (near + far)/(near - far);
@@ -719,14 +719,14 @@ void dsMatrix44f_makePerspective(dsMatrix44f* result, float fovy, float aspect, 
 	result->values[3][1] = 0;
 	if (infiniteFar)
 	{
-		if (halfDepth)
+		if (options & dsProjectionMatrixOptions_HalfZRange)
 			result->values[3][2] = -near;
 		else
 			result->values[3][2] = -2*near;
 	}
 	else
 	{
-		if (halfDepth)
+		if (options & dsProjectionMatrixOptions_HalfZRange)
 			result->values[3][2] = near*far/(near - far);
 		else
 			result->values[3][2] = 2*near*far/(near - far);
@@ -735,7 +735,7 @@ void dsMatrix44f_makePerspective(dsMatrix44f* result, float fovy, float aspect, 
 }
 
 void dsMatrix44d_makePerspective(dsMatrix44d* result, double fovy, double aspect, double near,
-	double far, bool halfDepth, bool invertY)
+	double far, dsProjectionMatrixOptions options)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(fovy != 0);
@@ -744,7 +744,7 @@ void dsMatrix44d_makePerspective(dsMatrix44d* result, double fovy, double aspect
 
 	double height = 1/tan(fovy/2);
 	double width = height/aspect;
-	double yMult = invertY ? -1.0 : 1.0;
+	float yMult = options & dsProjectionMatrixOptions_InvertY ? -1.0f : 1.0f;
 	bool infiniteFar = isinf(far);
 
 	result->values[0][0] = width;
@@ -761,7 +761,7 @@ void dsMatrix44d_makePerspective(dsMatrix44d* result, double fovy, double aspect
 	result->values[2][1] = 0;
 	if (infiniteFar)
 		result->values[2][2] = -1.0;
-	else if (halfDepth)
+	else if (options & dsProjectionMatrixOptions_HalfZRange)
 		result->values[2][2] = far/(near - far);
 	else
 		result->values[2][2] = (near + far)/(near - far);
@@ -771,14 +771,14 @@ void dsMatrix44d_makePerspective(dsMatrix44d* result, double fovy, double aspect
 	result->values[3][1] = 0;
 	if (infiniteFar)
 	{
-		if (halfDepth)
+		if (options & dsProjectionMatrixOptions_HalfZRange)
 			result->values[3][2] = -near;
 		else
 			result->values[3][2] = -2*near;
 	}
 	else
 	{
-		if (halfDepth)
+		if (options & dsProjectionMatrixOptions_HalfZRange)
 			result->values[3][2] = near*far/(near - far);
 		else
 			result->values[3][2] = 2*near*far/(near - far);

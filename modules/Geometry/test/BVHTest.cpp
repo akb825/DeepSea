@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -87,9 +87,10 @@ struct BVHSelector<2, float> : public BVHParamSelector<2, float>
 		float maxZ)
 	{
 		dsMatrix44f matrix;
-		dsMatrix44f_makeOrtho(&matrix, minX, maxX, minY, maxY, -maxZ, -minZ, false, false);
+		dsMatrix44f_makeOrtho(&matrix, minX, maxX, minY, maxY, -maxZ, -minZ,
+			dsProjectionMatrixOptions_None);
 		FrustumType frustum;
-		dsFrustum3f_fromMatrix(&frustum, &matrix, false, false);
+		dsFrustum3f_fromMatrix(&frustum, &matrix, dsProjectionMatrixOptions_None);
 		return frustum;
 	}
 };
@@ -111,9 +112,10 @@ struct BVHSelector<2, double> : public BVHParamSelector<2, double>
 		float maxZ)
 	{
 		dsMatrix44d matrix;
-		dsMatrix44d_makeOrtho(&matrix, minX, maxX, minY, maxY, -maxZ, -minZ, false, false);
+		dsMatrix44d_makeOrtho(&matrix, minX, maxX, minY, maxY, -maxZ, -minZ,
+			dsProjectionMatrixOptions_None);
 		FrustumType frustum;
-		dsFrustum3d_fromMatrix(&frustum, &matrix, false, false);
+		dsFrustum3d_fromMatrix(&frustum, &matrix, dsProjectionMatrixOptions_None);
 		return frustum;
 	}
 };
@@ -134,9 +136,10 @@ struct BVHSelector<2, int> : public BVHParamSelector<2, int>
 		float maxZ)
 	{
 		dsMatrix44f matrix;
-		dsMatrix44f_makeOrtho(&matrix, minX, maxX, minY, maxY, -maxZ, -minZ, false, false);
+		dsMatrix44f_makeOrtho(&matrix, minX, maxX, minY, maxY, -maxZ, -minZ,
+			dsProjectionMatrixOptions_None);
 		FrustumType frustum;
-		dsFrustum3f_fromMatrix(&frustum, &matrix, false, false);
+		dsFrustum3f_fromMatrix(&frustum, &matrix, dsProjectionMatrixOptions_None);
 		return frustum;
 	}
 };
@@ -158,9 +161,10 @@ struct BVHSelector<3, float> : public BVHParamSelector<3, float>
 		float maxZ)
 	{
 		dsMatrix44f matrix;
-		dsMatrix44f_makeOrtho(&matrix, minX, maxX, minY, maxY, -maxZ, -minZ, false, false);
+		dsMatrix44f_makeOrtho(&matrix, minX, maxX, minY, maxY, -maxZ, -minZ,
+			dsProjectionMatrixOptions_None);
 		FrustumType frustum;
-		dsFrustum3f_fromMatrix(&frustum, &matrix, false, false);
+		dsFrustum3f_fromMatrix(&frustum, &matrix, dsProjectionMatrixOptions_None);
 		return frustum;
 	}
 };
@@ -182,9 +186,10 @@ struct BVHSelector<3, double> : public BVHParamSelector<3, double>
 		float maxZ)
 	{
 		dsMatrix44d matrix;
-		dsMatrix44d_makeOrtho(&matrix, minX, maxX, minY, maxY, -maxZ, -minZ, false, false);
+		dsMatrix44d_makeOrtho(&matrix, minX, maxX, minY, maxY, -maxZ, -minZ,
+			dsProjectionMatrixOptions_None);
 		FrustumType frustum;
-		dsFrustum3d_fromMatrix(&frustum, &matrix, false, false);
+		dsFrustum3d_fromMatrix(&frustum, &matrix, dsProjectionMatrixOptions_None);
 		return frustum;
 	}
 };
@@ -205,9 +210,10 @@ struct BVHSelector<3, int> : public BVHParamSelector<3, int>
 		float maxZ)
 	{
 		dsMatrix44f matrix;
-		dsMatrix44f_makeOrtho(&matrix, minX, maxX, minY, maxY, -maxZ, -minZ, false, false);
+		dsMatrix44f_makeOrtho(&matrix, minX, maxX, minY, maxY, -maxZ, -minZ,
+			dsProjectionMatrixOptions_None);
 		FrustumType frustum;
-		dsFrustum3f_fromMatrix(&frustum, &matrix, false, false);
+		dsFrustum3f_fromMatrix(&frustum, &matrix, dsProjectionMatrixOptions_None);
 		return frustum;
 	}
 };

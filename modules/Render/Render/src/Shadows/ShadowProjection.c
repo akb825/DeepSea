@@ -27,7 +27,7 @@
 // https://www.cg.tuwien.ac.at/research/vr/lispsm/shadows_egsr2004_revised.pdf
 
 static void makeShadowOrtho(dsMatrix44f* result, float left, float right, float bottom,
-	float top, float near, float far, bool halfDepth, bool invertY)
+	float top, float near, float far, dsProjectionMatrixOptions options)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(left != right);
@@ -36,7 +36,7 @@ static void makeShadowOrtho(dsMatrix44f* result, float left, float right, float 
 
 	// Rotate the frustum so top is actually near, and near is actually bottom. Half depth
 	// influences top/bottom rather than near/far.
-	float yMult = invertY ? -1.0f : 1.0f;
+	float yMult = options & dsProjectionMatrixOptions_InvertY ? -1.0f : 1.0f;
 
 	result->values[0][0] = 2/(right - left);
 	result->values[0][1] = 0;
@@ -45,7 +45,7 @@ static void makeShadowOrtho(dsMatrix44f* result, float left, float right, float 
 
 	result->values[1][0] = 0;
 	result->values[1][1] = 0;
-	if (halfDepth)
+	if (options & dsProjectionMatrixOptions_HalfZRange)
 		result->values[1][2] = -1/(top - bottom);
 	else
 		result->values[1][2] = -2/(top - bottom);
@@ -58,7 +58,7 @@ static void makeShadowOrtho(dsMatrix44f* result, float left, float right, float 
 
 	result->values[3][0] = (left + right)/(left - right);
 	result->values[3][1] = (near + far)/(near - far)*yMult;
-	if (halfDepth)
+	if (options & dsProjectionMatrixOptions_HalfZRange)
 		result->values[3][2] = -top/(bottom - top);
 	else
 		result->values[3][2] = -(bottom + top)/(bottom - top);
@@ -66,7 +66,7 @@ static void makeShadowOrtho(dsMatrix44f* result, float left, float right, float 
 }
 
 static void makeShadowFrustum(dsMatrix44f* result, float left, float right, float bottom,
-	float top, float near, float far, bool halfDepth, bool invertY)
+	float top, float near, float far, dsProjectionMatrixOptions options)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(left != right);
@@ -75,7 +75,7 @@ static void makeShadowFrustum(dsMatrix44f* result, float left, float right, floa
 
 	// Rotate the frustum so top is actually near, and near is actually bottom. Half depth
 	// influences top/bottom rather than near/far.
-	float yMult = invertY ? -1.0f : 1.0f;
+	float yMult = options & dsProjectionMatrixOptions_InvertY ? -1.0f : 1.0f;
 
 	result->values[0][0] = 2*near/(right - left);
 	result->values[0][1] = 0;
@@ -84,7 +84,7 @@ static void makeShadowFrustum(dsMatrix44f* result, float left, float right, floa
 
 	result->values[1][0] = 0;
 	result->values[1][1] = 0;
-	if (halfDepth)
+	if (options & dsProjectionMatrixOptions_HalfZRange)
 		result->values[1][2] = -near/(top - bottom);
 	else
 		result->values[1][2] = -2*near/(top - bottom);
@@ -92,7 +92,7 @@ static void makeShadowFrustum(dsMatrix44f* result, float left, float right, floa
 
 	result->values[2][0] = (right + left)/(right - left);
 	result->values[2][1] = (near + far)/(near - far)*yMult;
-	if (halfDepth)
+	if (options & dsProjectionMatrixOptions_HalfZRange)
 		result->values[2][2] = -top/(top - bottom);
 	else
 		result->values[2][2] = -(top + bottom)/(top - bottom);
@@ -209,8 +209,7 @@ bool dsShadowProjection_initialize(dsShadowProjection* shadowProj, const dsRende
 	else
 		dsMatrix44_fastInvert(shadowProj->worldToShadowSpace, shadowProj->shadowSpace);
 
-	shadowProj->clipHalfDepth = renderer->clipHalfDepth;
-	shadowProj->clipInvertY = renderer->clipInvertY;
+	shadowProj->projectionOptions = renderer->projectionOptions;
 	return true;
 }
 
@@ -281,7 +280,7 @@ bool dsShadowProjection_computeMatrix(dsMatrix44f* outMatrix, const dsShadowProj
 	if (shadowProj->uniform)
 	{
 		makeShadowOrtho(&projection, bounds.min.x, bounds.max.x, bounds.min.y, bounds.max.y,
-			near, far, shadowProj->clipHalfDepth, shadowProj->clipInvertY);
+			near, far, shadowProj->projectionOptions);
 	}
 	else
 	{
@@ -309,7 +308,7 @@ bool dsShadowProjection_computeMatrix(dsMatrix44f* outMatrix, const dsShadowProj
 		float bottom = -top;
 		dsMatrix44f frustum;
 		makeShadowFrustum(&frustum, left, right, bottom, top, n, n + farDist,
-			shadowProj->clipHalfDepth, shadowProj->clipInvertY);
+			shadowProj->projectionOptions);
 		dsMatrix44_mul(projection, frustum, translate);
 	}
 

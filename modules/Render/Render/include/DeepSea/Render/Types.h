@@ -2001,6 +2001,11 @@ struct dsRenderer
 	uint32_t defaultSamples;
 
 	/**
+	 * @brief The options used when creating a projection matrix.
+	 */
+	dsProjectionMatrixOptions projectionOptions;
+
+	/**
 	 * @brief True if render surfaces are double-buffered.
 	 */
 	bool doubleBuffer;
@@ -2014,16 +2019,6 @@ struct dsRenderer
 	 * @brief True to wait for vsync when drawing to a render surface.
 	 */
 	bool vsync;
-
-	/**
-	 * @brief True if the depth range is [0, 1] instead of [-1, 1] in clip space.
-	 */
-	bool clipHalfDepth;
-
-	/**
-	 * @brief True if the Y coordinate of clip space is inverted.
-	 */
-	bool clipInvertY;
 
 	/**
 	 * @brief True if geometry shaders are supported.
