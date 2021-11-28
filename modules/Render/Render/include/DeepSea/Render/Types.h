@@ -505,6 +505,11 @@ typedef struct dsRendererOptions
 	bool doubleBuffer;
 
 	/**
+	 * @brief Use reverse Z rendering, inverting the depth range.
+	 */
+	bool reverseZ;
+
+	/**
 	 * @brief True to use sRGB, false to use linear color space.
 	 */
 	bool srgb;

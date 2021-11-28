@@ -37,6 +37,8 @@ static void makeShadowOrtho(dsMatrix44f* result, float left, float right, float 
 	// Rotate the frustum so top is actually near, and near is actually bottom. Half depth
 	// influences top/bottom rather than near/far.
 	float yMult = options & dsProjectionMatrixOptions_InvertY ? -1.0f : 1.0f;
+	int invertZ = options & dsProjectionMatrixOptions_InvertZ;
+	int halfZRange = options & dsProjectionMatrixOptions_HalfZRange;
 
 	result->values[0][0] = 2/(right - left);
 	result->values[0][1] = 0;
@@ -45,10 +47,20 @@ static void makeShadowOrtho(dsMatrix44f* result, float left, float right, float 
 
 	result->values[1][0] = 0;
 	result->values[1][1] = 0;
-	if (options & dsProjectionMatrixOptions_HalfZRange)
-		result->values[1][2] = -1/(top - bottom);
+	if (invertZ)
+	{
+		if (halfZRange)
+			result->values[1][2] = 1/(top - bottom);
+		else
+			result->values[1][2] = 2/(top - bottom);
+	}
 	else
-		result->values[1][2] = -2/(top - bottom);
+	{
+		if (halfZRange)
+			result->values[1][2] = 1/(bottom - top);
+		else
+			result->values[1][2] = 2/(bottom - top);
+	}
 	result->values[1][3] = 0;
 
 	result->values[2][0] = 0;
@@ -58,10 +70,20 @@ static void makeShadowOrtho(dsMatrix44f* result, float left, float right, float 
 
 	result->values[3][0] = (left + right)/(left - right);
 	result->values[3][1] = (near + far)/(near - far)*yMult;
-	if (options & dsProjectionMatrixOptions_HalfZRange)
-		result->values[3][2] = -top/(bottom - top);
+	if (invertZ)
+	{
+		if (halfZRange)
+			result->values[3][2] = bottom/(bottom - top);
+		else
+			result->values[3][2] = (bottom + top)/(bottom - top);
+	}
 	else
-		result->values[3][2] = -(bottom + top)/(bottom - top);
+	{
+		if (halfZRange)
+			result->values[3][2] = top/(top - bottom);
+		else
+			result->values[3][2] = (bottom + top)/(top - bottom);
+	}
 	result->values[3][3] = 1;
 }
 
@@ -76,6 +98,8 @@ static void makeShadowFrustum(dsMatrix44f* result, float left, float right, floa
 	// Rotate the frustum so top is actually near, and near is actually bottom. Half depth
 	// influences top/bottom rather than near/far.
 	float yMult = options & dsProjectionMatrixOptions_InvertY ? -1.0f : 1.0f;
+	int invertZ = options & dsProjectionMatrixOptions_InvertZ;
+	int halfZRange = options & dsProjectionMatrixOptions_HalfZRange;
 
 	result->values[0][0] = 2*near/(right - left);
 	result->values[0][1] = 0;
@@ -84,18 +108,38 @@ static void makeShadowFrustum(dsMatrix44f* result, float left, float right, floa
 
 	result->values[1][0] = 0;
 	result->values[1][1] = 0;
-	if (options & dsProjectionMatrixOptions_HalfZRange)
-		result->values[1][2] = -near/(top - bottom);
+	if (invertZ)
+	{
+		if (halfZRange)
+			result->values[1][2] = near/(top - bottom);
+		else
+			result->values[1][2] = 2*near/(top - bottom);
+	}
 	else
-		result->values[1][2] = -2*near/(top - bottom);
+	{
+		if (halfZRange)
+			result->values[1][2] = near/(bottom - top);
+		else
+			result->values[1][2] = 2*near/(bottom - top);
+	}
 	result->values[1][3] = 0;
 
 	result->values[2][0] = (right + left)/(right - left);
 	result->values[2][1] = (near + far)/(near - far)*yMult;
-	if (options & dsProjectionMatrixOptions_HalfZRange)
-		result->values[2][2] = -top/(top - bottom);
+	if (invertZ)
+	{
+		if (halfZRange)
+			result->values[2][2] = bottom/(top - bottom);
+		else
+			result->values[2][2] = (top + bottom)/(top - bottom);
+	}
 	else
-		result->values[2][2] = -(top + bottom)/(top - bottom);
+	{
+		if (halfZRange)
+			result->values[2][2] = top/(bottom - top);
+		else
+			result->values[2][2] = (top + bottom)/(bottom - top);
+	}
 	result->values[2][3] = -1;
 
 	result->values[3][0] = 0;

@@ -2162,6 +2162,8 @@ dsRenderer* dsVkRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 		baseRenderer->maxSurfaceSamples);
 	baseRenderer->projectionOptions = dsProjectionMatrixOptions_HalfZRange |
 		dsProjectionMatrixOptions_InvertY;
+	if (options->reverseZ)
+		baseRenderer->projectionOptions |= dsProjectionMatrixOptions_InvertZ;
 
 	baseRenderer->doubleBuffer = options->doubleBuffer;
 	baseRenderer->stereoscopic = options->stereoscopic;

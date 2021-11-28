@@ -21,6 +21,7 @@
 #include <DeepSea/Core/Error.h>
 
 #include <DeepSea/Geometry/AlignedBox3.h>
+#include <DeepSea/Geometry/Frustum3.h>
 #include <DeepSea/Geometry/OrientedBox3.h>
 #include <DeepSea/Geometry/Plane3.h>
 
@@ -399,17 +400,21 @@ bool dsShadowCullVolume_buildDirectional(dsShadowCullVolume* volume,
 		{dsFrustumPlanes_Near, dsFrustumPlanes_Right},
 		{dsFrustumPlanes_Near, dsFrustumPlanes_Bottom},
 		{dsFrustumPlanes_Near, dsFrustumPlanes_Top},
-		{dsFrustumPlanes_Far, dsFrustumPlanes_Left},
-		{dsFrustumPlanes_Far, dsFrustumPlanes_Right},
-		{dsFrustumPlanes_Far, dsFrustumPlanes_Bottom},
-		{dsFrustumPlanes_Far, dsFrustumPlanes_Top},
 		{dsFrustumPlanes_Left, dsFrustumPlanes_Bottom},
 		{dsFrustumPlanes_Bottom, dsFrustumPlanes_Right},
 		{dsFrustumPlanes_Right, dsFrustumPlanes_Top},
 		{dsFrustumPlanes_Top, dsFrustumPlanes_Left},
+		{dsFrustumPlanes_Far, dsFrustumPlanes_Left},
+		{dsFrustumPlanes_Far, dsFrustumPlanes_Right},
+		{dsFrustumPlanes_Far, dsFrustumPlanes_Bottom},
+		{dsFrustumPlanes_Far, dsFrustumPlanes_Top},
 	};
 
-	for (unsigned int i = 0; i < DS_ARRAY_SIZE(boundaries); ++i)
+	unsigned int count = DS_ARRAY_SIZE(boundaries);
+	// Ignore far planes when infinite.
+	if (dsFrustum3f_isInfinite(viewFrustum))
+		count -= 4;
+	for (unsigned int i = 0; i < count; ++i)
 	{
 		const PlanePair* curPlanes = boundaries + i;
 		const dsPlane3d* first = viewFrustumd.planes + (*curPlanes)[0];
@@ -460,8 +465,11 @@ bool dsShadowCullVolume_buildSpot(dsShadowCullVolume* volume, const dsFrustum3f*
 	for (int i = 0; i < dsFrustumPlanes_Count; ++i)
 	{
 		dsPlane3d plane;
-		dsConvertFloatToDouble(plane, viewFrustum->planes[i]);
-		addPlane(volume, planes, &plane, baseEpsilon);
+		if (i != dsFrustumPlanes_Far || !dsFrustum3f_isInfinite(viewFrustum))
+		{
+			dsConvertFloatToDouble(plane, viewFrustum->planes[i]);
+			addPlane(volume, planes, &plane, baseEpsilon);
+		}
 
 		if (i != dsFrustumPlanes_Near)
 		{

@@ -915,6 +915,35 @@ TYPED_TEST(Matrix44Test, MakeOrtho)
 	EXPECT_NEAR(-1, projPoint.y, epsilon);
 	EXPECT_NEAR(1, projPoint.z, epsilon);
 	EXPECT_NEAR(1, projPoint.w, epsilon);
+
+	dsMatrix44_makeOrtho(&matrix, -2, 3, -4, 5, -6, 7,
+		dsProjectionMatrixOptions_HalfZRange | dsProjectionMatrixOptions_InvertZ);
+
+	dsMatrix44_transform(projPoint, matrix, minPoint);
+	EXPECT_NEAR(-1, projPoint.x, epsilon);
+	EXPECT_NEAR(-1, projPoint.y, epsilon);
+	EXPECT_NEAR(1, projPoint.z, epsilon);
+	EXPECT_NEAR(1, projPoint.w, epsilon);
+
+	dsMatrix44_transform(projPoint, matrix, maxPoint);
+	EXPECT_NEAR(1, projPoint.x, epsilon);
+	EXPECT_NEAR(1, projPoint.y, epsilon);
+	EXPECT_NEAR(0, projPoint.z, epsilon);
+	EXPECT_NEAR(1, projPoint.w, epsilon);
+
+	dsMatrix44_makeOrtho(&matrix, -2, 3, -4, 5, -6, 7, dsProjectionMatrixOptions_InvertZ);
+
+	dsMatrix44_transform(projPoint, matrix, minPoint);
+	EXPECT_NEAR(-1, projPoint.x, epsilon);
+	EXPECT_NEAR(-1, projPoint.y, epsilon);
+	EXPECT_NEAR(1, projPoint.z, epsilon);
+	EXPECT_NEAR(1, projPoint.w, epsilon);
+
+	dsMatrix44_transform(projPoint, matrix, maxPoint);
+	EXPECT_NEAR(1, projPoint.x, epsilon);
+	EXPECT_NEAR(1, projPoint.y, epsilon);
+	EXPECT_NEAR(-1, projPoint.z, epsilon);
+	EXPECT_NEAR(1, projPoint.w, epsilon);
 }
 
 TYPED_TEST(Matrix44Test, MakeFrustum)
@@ -993,6 +1022,39 @@ TYPED_TEST(Matrix44Test, MakeFrustum)
 	EXPECT_NEAR(1, projPoint.z, epsilon);
 	EXPECT_NEAR(1, projPoint.w, epsilon);
 
+	dsMatrix44_makeFrustum(&matrix, -2, 3, -4, 5, 1, 7,
+		dsProjectionMatrixOptions_HalfZRange | dsProjectionMatrixOptions_InvertZ);
+
+	dsMatrix44_transform(projPoint, matrix, minPoint);
+	dsVector4_scale(projPoint, projPoint, 1/projPoint.w);
+	EXPECT_NEAR(-1, projPoint.x, epsilon);
+	EXPECT_NEAR(-1, projPoint.y, epsilon);
+	EXPECT_NEAR(1, projPoint.z, epsilon);
+	EXPECT_NEAR(1, projPoint.w, epsilon);
+
+	dsMatrix44_transform(projPoint, matrix, maxPoint);
+	dsVector4_scale(projPoint, projPoint, 1/projPoint.w);
+	EXPECT_NEAR(1, projPoint.x, epsilon);
+	EXPECT_NEAR(1, projPoint.y, epsilon);
+	EXPECT_NEAR(0, projPoint.z, epsilon);
+	EXPECT_NEAR(1, projPoint.w, epsilon);
+
+	dsMatrix44_makeFrustum(&matrix, -2, 3, -4, 5, 1, 7, dsProjectionMatrixOptions_InvertZ);
+
+	dsMatrix44_transform(projPoint, matrix, minPoint);
+	dsVector4_scale(projPoint, projPoint, 1/projPoint.w);
+	EXPECT_NEAR(-1, projPoint.x, epsilon);
+	EXPECT_NEAR(-1, projPoint.y, epsilon);
+	EXPECT_NEAR(1, projPoint.z, epsilon);
+	EXPECT_NEAR(1, projPoint.w, epsilon);
+
+	dsMatrix44_transform(projPoint, matrix, maxPoint);
+	dsVector4_scale(projPoint, projPoint, 1/projPoint.w);
+	EXPECT_NEAR(1, projPoint.x, epsilon);
+	EXPECT_NEAR(1, projPoint.y, epsilon);
+	EXPECT_NEAR(-1, projPoint.z, epsilon);
+	EXPECT_NEAR(1, projPoint.w, epsilon);
+
 	dsMatrix44_makeFrustum(&matrix, -2, 3, -4, 5, 1, INFINITY,
 		dsProjectionMatrixOptions_HalfZRange);
 	EXPECT_EQ(TypeParam(-1), matrix.values[2][2]);
@@ -1001,6 +1063,15 @@ TYPED_TEST(Matrix44Test, MakeFrustum)
 	dsMatrix44_makeFrustum(&matrix, -2, 3, -4, 5, 1, INFINITY, dsProjectionMatrixOptions_None);
 	EXPECT_EQ(TypeParam(-1), matrix.values[2][2]);
 	EXPECT_EQ(TypeParam(-2), matrix.values[3][2]);
+
+	dsMatrix44_makeFrustum(&matrix, -2, 3, -4, 5, 1, INFINITY,
+		dsProjectionMatrixOptions_HalfZRange | dsProjectionMatrixOptions_InvertZ);
+	EXPECT_EQ(TypeParam(0), matrix.values[2][2]);
+	EXPECT_EQ(TypeParam(1), matrix.values[3][2]);
+
+	dsMatrix44_makeFrustum(&matrix, -2, 3, -4, 5, 1, INFINITY, dsProjectionMatrixOptions_InvertZ);
+	EXPECT_EQ(TypeParam(1), matrix.values[2][2]);
+	EXPECT_EQ(TypeParam(2), matrix.values[3][2]);
 }
 
 TYPED_TEST(Matrix44Test, MakePerspective)
@@ -1084,6 +1155,39 @@ TYPED_TEST(Matrix44Test, MakePerspective)
 	EXPECT_NEAR(1, projPoint.z, epsilon);
 	EXPECT_NEAR(1, projPoint.w, epsilon);
 
+	dsMatrix44_makePerspective(&matrix, fov, aspect, 1, 7,
+		dsProjectionMatrixOptions_HalfZRange | dsProjectionMatrixOptions_InvertZ);
+
+	dsMatrix44_transform(projPoint, matrix, minPoint);
+	dsVector4_scale(projPoint, projPoint, 1/projPoint.w);
+	EXPECT_NEAR(-1, projPoint.x, epsilon);
+	EXPECT_NEAR(-1, projPoint.y, epsilon);
+	EXPECT_NEAR(1, projPoint.z, epsilon);
+	EXPECT_NEAR(1, projPoint.w, epsilon);
+
+	dsMatrix44_transform(projPoint, matrix, maxPoint);
+	dsVector4_scale(projPoint, projPoint, 1/projPoint.w);
+	EXPECT_NEAR(1, projPoint.x, epsilon);
+	EXPECT_NEAR(1, projPoint.y, epsilon);
+	EXPECT_NEAR(0, projPoint.z, epsilon);
+	EXPECT_NEAR(1, projPoint.w, epsilon);
+
+	dsMatrix44_makePerspective(&matrix, fov, aspect, 1, 7, dsProjectionMatrixOptions_InvertZ);
+
+	dsMatrix44_transform(projPoint, matrix, minPoint);
+	dsVector4_scale(projPoint, projPoint, 1/projPoint.w);
+	EXPECT_NEAR(-1, projPoint.x, epsilon);
+	EXPECT_NEAR(-1, projPoint.y, epsilon);
+	EXPECT_NEAR(1, projPoint.z, epsilon);
+	EXPECT_NEAR(1, projPoint.w, epsilon);
+
+	dsMatrix44_transform(projPoint, matrix, maxPoint);
+	dsVector4_scale(projPoint, projPoint, 1/projPoint.w);
+	EXPECT_NEAR(1, projPoint.x, epsilon);
+	EXPECT_NEAR(1, projPoint.y, epsilon);
+	EXPECT_NEAR(-1, projPoint.z, epsilon);
+	EXPECT_NEAR(1, projPoint.w, epsilon);
+
 	dsMatrix44_makePerspective(&matrix, fov, aspect, 1, INFINITY,
 		dsProjectionMatrixOptions_HalfZRange);
 	EXPECT_EQ(TypeParam(-1), matrix.values[2][2]);
@@ -1092,6 +1196,16 @@ TYPED_TEST(Matrix44Test, MakePerspective)
 	dsMatrix44_makePerspective(&matrix, fov, aspect, 1, INFINITY, dsProjectionMatrixOptions_None);
 	EXPECT_EQ(TypeParam(-1), matrix.values[2][2]);
 	EXPECT_EQ(TypeParam(-2), matrix.values[3][2]);
+
+	dsMatrix44_makePerspective(&matrix, fov, aspect, 1, INFINITY,
+		dsProjectionMatrixOptions_HalfZRange | dsProjectionMatrixOptions_InvertZ);
+	EXPECT_EQ(TypeParam(0), matrix.values[2][2]);
+	EXPECT_EQ(TypeParam(1), matrix.values[3][2]);
+
+	dsMatrix44_makePerspective(&matrix, fov, aspect, 1, INFINITY,
+		dsProjectionMatrixOptions_InvertZ);
+	EXPECT_EQ(TypeParam(1), matrix.values[2][2]);
+	EXPECT_EQ(TypeParam(2), matrix.values[3][2]);
 }
 
 TEST(Matrix44, ConvertFloatToDouble)

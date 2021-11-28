@@ -243,6 +243,7 @@ void dsRenderer_defaultOptions(dsRendererOptions* options, const char* applicati
 	options->surfaceSamples = 1;
 	options->defaultSamples = 1;
 	options->doubleBuffer = true;
+	options->reverseZ = false;
 	options->srgb = false;
 	options->preferHalfDepthRange = false;
 	options->stereoscopic = false;

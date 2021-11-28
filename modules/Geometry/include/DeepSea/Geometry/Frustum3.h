@@ -54,7 +54,7 @@ extern "C"
 #define dsFrustum3_fromMatrix(result, matrix, options) \
 	do \
 	{ \
-		int8_t _yMult = options & dsProjectionMatrixOptions_InvertY ? -1 : 1; \
+		int8_t _yMult = (options) & dsProjectionMatrixOptions_InvertY ? -1 : 1; \
 		(result).planes[dsFrustumPlanes_Left].n.x = (matrix).values[0][3] + (matrix).values[0][0]; \
 		(result).planes[dsFrustumPlanes_Left].n.y = (matrix).values[1][3] + (matrix).values[1][0]; \
 		(result).planes[dsFrustumPlanes_Left].n.z = (matrix).values[2][3] + (matrix).values[2][0]; \
@@ -86,32 +86,66 @@ extern "C"
 		(result).planes[dsFrustumPlanes_Top].d = (matrix).values[3][1]*_yMult - \
 			(matrix).values[3][3]; \
 		\
-		if (options & dsProjectionMatrixOptions_HalfZRange) \
+		if ((options) & dsProjectionMatrixOptions_InvertZ) \
 		{ \
-			(result).planes[dsFrustumPlanes_Near].n.x = (matrix).values[0][2]; \
-			(result).planes[dsFrustumPlanes_Near].n.y = (matrix).values[1][2]; \
-			(result).planes[dsFrustumPlanes_Near].n.z = (matrix).values[2][2]; \
-			(result).planes[dsFrustumPlanes_Near].d = -(matrix).values[3][2]; \
+			if ((options) & dsProjectionMatrixOptions_HalfZRange) \
+			{ \
+				(result).planes[dsFrustumPlanes_Far].n.x = (matrix).values[0][2]; \
+				(result).planes[dsFrustumPlanes_Far].n.y = (matrix).values[1][2]; \
+				(result).planes[dsFrustumPlanes_Far].n.z = (matrix).values[2][2]; \
+				(result).planes[dsFrustumPlanes_Far].d = -(matrix).values[3][2]; \
+			} \
+			else \
+			{ \
+				(result).planes[dsFrustumPlanes_Far].n.x = (matrix).values[0][3] + \
+					(matrix).values[0][2]; \
+				(result).planes[dsFrustumPlanes_Far].n.y = (matrix).values[1][3] + \
+					(matrix).values[1][2]; \
+				(result).planes[dsFrustumPlanes_Far].n.z = (matrix).values[2][3] + \
+					(matrix).values[2][2]; \
+				(result).planes[dsFrustumPlanes_Far].d = -(matrix).values[3][3] - \
+					(matrix).values[3][2]; \
+			} \
+			\
+			(result).planes[dsFrustumPlanes_Near].n.x = (matrix).values[0][3] - \
+				(matrix).values[0][2]; \
+			(result).planes[dsFrustumPlanes_Near].n.y = (matrix).values[1][3] - \
+				(matrix).values[1][2]; \
+			(result).planes[dsFrustumPlanes_Near].n.z = (matrix).values[2][3] - \
+				(matrix).values[2][2]; \
+			(result).planes[dsFrustumPlanes_Near].d = (matrix).values[3][2] - \
+				(matrix).values[3][3]; \
 		} \
 		else \
 		{ \
-			(result).planes[dsFrustumPlanes_Near].n.x = (matrix).values[0][3] + \
+			if ((options) & dsProjectionMatrixOptions_HalfZRange) \
+			{ \
+				(result).planes[dsFrustumPlanes_Near].n.x = (matrix).values[0][2]; \
+				(result).planes[dsFrustumPlanes_Near].n.y = (matrix).values[1][2]; \
+				(result).planes[dsFrustumPlanes_Near].n.z = (matrix).values[2][2]; \
+				(result).planes[dsFrustumPlanes_Near].d = -(matrix).values[3][2]; \
+			} \
+			else \
+			{ \
+				(result).planes[dsFrustumPlanes_Near].n.x = (matrix).values[0][3] + \
+					(matrix).values[0][2]; \
+				(result).planes[dsFrustumPlanes_Near].n.y = (matrix).values[1][3] + \
+					(matrix).values[1][2]; \
+				(result).planes[dsFrustumPlanes_Near].n.z = (matrix).values[2][3] + \
+					(matrix).values[2][2]; \
+				(result).planes[dsFrustumPlanes_Near].d = -(matrix).values[3][3] - \
+					(matrix).values[3][2]; \
+			} \
+			\
+			(result).planes[dsFrustumPlanes_Far].n.x = (matrix).values[0][3] - \
 				(matrix).values[0][2]; \
-			(result).planes[dsFrustumPlanes_Near].n.y = (matrix).values[1][3] + \
+			(result).planes[dsFrustumPlanes_Far].n.y = (matrix).values[1][3] - \
 				(matrix).values[1][2]; \
-			(result).planes[dsFrustumPlanes_Near].n.z = (matrix).values[2][3] + \
+			(result).planes[dsFrustumPlanes_Far].n.z = (matrix).values[2][3] - \
 				(matrix).values[2][2]; \
-			(result).planes[dsFrustumPlanes_Near].d = -(matrix).values[3][3] - \
-				(matrix).values[3][2]; \
+			(result).planes[dsFrustumPlanes_Far].d = (matrix).values[3][2] - \
+				(matrix).values[3][3]; \
 		} \
-		\
-		(result).planes[dsFrustumPlanes_Far].n.x = (matrix).values[0][3] - \
-			(matrix).values[0][2]; \
-		(result).planes[dsFrustumPlanes_Far].n.y = (matrix).values[1][3] - \
-			(matrix).values[1][2]; \
-		(result).planes[dsFrustumPlanes_Far].n.z = (matrix).values[2][3] - \
-			(matrix).values[2][2]; \
-		(result).planes[dsFrustumPlanes_Far].d = (matrix).values[3][2] - (matrix).values[3][3]; \
 	} while (0)
 
 /**
@@ -149,6 +183,16 @@ DS_GEOMETRY_EXPORT void dsFrustum3f_transformInverseTranspose(dsFrustum3f* frust
 /** @copydoc dsFrustum3f_transformInverseTranspose() */
 DS_GEOMETRY_EXPORT void dsFrustum3d_transformInverseTranspose(dsFrustum3d* frustum,
 	const dsMatrix44d* transform);
+
+/**
+ * @brief Checks whether or not the frustum has an infinite far plane.
+ * @param frustum The frustum to check.
+ * @return Whether or not the frustum has an infinite far plane.
+ */
+DS_GEOMETRY_EXPORT bool dsFrustum3f_isInfinite(const dsFrustum3f* frustum);
+
+/** @copydoc dsFrustum3f_isInfinite() */
+DS_GEOMETRY_EXPORT bool dsFrustum3d_isInfinite(const dsFrustum3d* frustum);
 
 /**
  * @brief Intersects an aligned box with a frustum.

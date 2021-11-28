@@ -23,23 +23,17 @@
 void dsFrustum3f_normalize(dsFrustum3f* frustum)
 {
 	DS_ASSERT(frustum);
-	dsVector3f zero = {{0.0f, 0.0f, 0.0f}};
-	for (int i = 0; i < dsFrustumPlanes_Count; ++i)
-	{
-		if (!dsVector3_equal(frustum->planes[i].n, zero))
-			dsPlane3f_normalize(frustum->planes + i, frustum->planes + i);
-	}
+	int count = dsFrustum3f_isInfinite(frustum) ? dsFrustumPlanes_Far : dsFrustumPlanes_Count;
+	for (int i = 0; i < count; ++i)
+		dsPlane3f_normalize(frustum->planes + i, frustum->planes + i);
 }
 
 void dsFrustum3d_normalize(dsFrustum3d* frustum)
 {
 	DS_ASSERT(frustum);
-	dsVector3d zero = {{0.0, 0.0, 0.0}};
-	for (int i = 0; i < dsFrustumPlanes_Count; ++i)
-	{
-		if (!dsVector3_equal(frustum->planes[i].n, zero))
-			dsPlane3d_normalize(frustum->planes + i, frustum->planes + i);
-	}
+	int count = dsFrustum3d_isInfinite(frustum) ? dsFrustumPlanes_Far : dsFrustumPlanes_Count;
+	for (int i = 0; i < count; ++i)
+		dsPlane3d_normalize(frustum->planes + i, frustum->planes + i);
 }
 
 void dsFrustum3f_transform(dsFrustum3f* frustum, const dsMatrix44f* transform)
@@ -47,16 +41,13 @@ void dsFrustum3f_transform(dsFrustum3f* frustum, const dsMatrix44f* transform)
 	DS_ASSERT(frustum);
 	DS_ASSERT(transform);
 
-	dsVector3f zero = {{0.0f, 0.0f, 0.0f}};
 	dsMatrix44f inverseTranspose;
 	dsMatrix44f_inverseTranspose(&inverseTranspose, transform);
-	for (int i = 0; i < dsFrustumPlanes_Count; ++i)
+	int count = dsFrustum3f_isInfinite(frustum) ? dsFrustumPlanes_Far : dsFrustumPlanes_Count;
+	for (int i = 0; i < count; ++i)
 	{
-		if (!dsVector3_equal(frustum->planes[i].n, zero))
-		{
-			dsPlane3f_transformInverseTranspose(frustum->planes + i, &inverseTranspose,
-				frustum->planes + i);
-		}
+		dsPlane3f_transformInverseTranspose(frustum->planes + i, &inverseTranspose,
+			frustum->planes + i);
 	}
 }
 
@@ -65,16 +56,13 @@ void dsFrustum3d_transform(dsFrustum3d* frustum, const dsMatrix44d* transform)
 	DS_ASSERT(frustum);
 	DS_ASSERT(transform);
 
-	dsVector3d zero = {{0.0, 0.0, 0.0}};
 	dsMatrix44d inverseTranspose;
 	dsMatrix44d_inverseTranspose(&inverseTranspose, transform);
-	for (int i = 0; i < dsFrustumPlanes_Count; ++i)
+	int count = dsFrustum3d_isInfinite(frustum) ? dsFrustumPlanes_Far : dsFrustumPlanes_Count;
+	for (int i = 0; i < count; ++i)
 	{
-		if (!dsVector3_equal(frustum->planes[i].n, zero))
-		{
-			dsPlane3d_transformInverseTranspose(frustum->planes + i, &inverseTranspose,
-				frustum->planes + i);
-		}
+		dsPlane3d_transformInverseTranspose(frustum->planes + i, &inverseTranspose,
+			frustum->planes + i);
 	}
 }
 
@@ -83,14 +71,11 @@ void dsFrustum3f_transformInverseTranspose(dsFrustum3f* frustum, const dsMatrix4
 	DS_ASSERT(frustum);
 	DS_ASSERT(transform);
 
-	dsVector3f zero = {{0.0f, 0.0f, 0.0f}};
-	for (int i = 0; i < dsFrustumPlanes_Count; ++i)
+	int count = dsFrustum3f_isInfinite(frustum) ? dsFrustumPlanes_Far : dsFrustumPlanes_Count;
+	for (int i = 0; i < count; ++i)
 	{
-		if (!dsVector3_equal(frustum->planes[i].n, zero))
-		{
-			dsPlane3f_transformInverseTranspose(frustum->planes + i, transform,
-				frustum->planes + i);
-		}
+		dsPlane3f_transformInverseTranspose(frustum->planes + i, transform,
+			frustum->planes + i);
 	}
 }
 
@@ -99,15 +84,30 @@ void dsFrustum3d_transformInverseTranspose(dsFrustum3d* frustum, const dsMatrix4
 	DS_ASSERT(frustum);
 	DS_ASSERT(transform);
 
-	dsVector3d zero = {{0.0, 0.0, 0.0}};
-	for (int i = 0; i < dsFrustumPlanes_Count; ++i)
+	int count = dsFrustum3d_isInfinite(frustum) ? dsFrustumPlanes_Far : dsFrustumPlanes_Count;
+	for (int i = 0; i < count; ++i)
 	{
-		if (!dsVector3_equal(frustum->planes[i].n, zero))
-		{
-			dsPlane3d_transformInverseTranspose(frustum->planes + i, transform,
-				frustum->planes + i);
-		}
+		dsPlane3d_transformInverseTranspose(frustum->planes + i, transform,
+			frustum->planes + i);
 	}
+}
+
+bool dsFrustum3f_isInfinite(const dsFrustum3f* frustum)
+{
+	DS_ASSERT(frustum);
+
+	float epsilon = 1e-6f;
+	dsVector3f zero = {{0.0f, 0.0f, 0.0f}};
+	return dsVector3f_epsilonEqual(&frustum->planes[dsFrustumPlanes_Far].n, &zero, epsilon);
+}
+
+bool dsFrustum3d_isInfinite(const dsFrustum3d* frustum)
+{
+	DS_ASSERT(frustum);
+
+	double epsilon = 1e-14;
+	dsVector3d zero = {{0.0, 0.0, 0.0}};
+	return dsVector3d_epsilonEqual(&frustum->planes[dsFrustumPlanes_Far].n, &zero, epsilon);
 }
 
 dsIntersectResult dsFrustum3f_intersectAlignedBox(const dsFrustum3f* frustum,
@@ -116,13 +116,10 @@ dsIntersectResult dsFrustum3f_intersectAlignedBox(const dsFrustum3f* frustum,
 	DS_ASSERT(frustum);
 	DS_ASSERT(box);
 
-	dsVector3f zero = {{0.0f, 0.0f, 0.0f}};
 	bool intersects = false;
-	for (int i = 0; i < dsFrustumPlanes_Count; ++i)
+	int count = dsFrustum3f_isInfinite(frustum) ? dsFrustumPlanes_Far : dsFrustumPlanes_Count;
+	for (int i = 0; i < count; ++i)
 	{
-		if (dsVector3_equal(frustum->planes[i].n, zero))
-			continue;
-
 		dsIntersectResult planeResult = dsPlane3f_intersectAlignedBox(frustum->planes + i, box);
 		switch (planeResult)
 		{
@@ -145,13 +142,10 @@ dsIntersectResult dsFrustum3d_intersectAlignedBox(const dsFrustum3d* frustum,
 	DS_ASSERT(frustum);
 	DS_ASSERT(box);
 
-	dsVector3d zero = {{0.0, 0.0, 0.0}};
 	bool intersects = false;
-	for (int i = 0; i < dsFrustumPlanes_Count; ++i)
+	int count = dsFrustum3d_isInfinite(frustum) ? dsFrustumPlanes_Far : dsFrustumPlanes_Count;
+	for (int i = 0; i < count; ++i)
 	{
-		if (dsVector3_equal(frustum->planes[i].n, zero))
-			continue;
-
 		dsIntersectResult planeResult = dsPlane3d_intersectAlignedBox(frustum->planes + i, box);
 		switch (planeResult)
 		{
@@ -174,13 +168,10 @@ dsIntersectResult dsFrustum3f_intersectOrientedBox(const dsFrustum3f* frustum,
 	DS_ASSERT(frustum);
 	DS_ASSERT(box);
 
-	dsVector3f zero = {{0.0f, 0.0f, 0.0f}};
 	bool intersects = false;
-	for (int i = 0; i < dsFrustumPlanes_Count; ++i)
+	int count = dsFrustum3f_isInfinite(frustum) ? dsFrustumPlanes_Far : dsFrustumPlanes_Count;
+	for (int i = 0; i < count; ++i)
 	{
-		if (dsVector3_equal(frustum->planes[i].n, zero))
-			continue;
-
 		dsIntersectResult planeResult = dsPlane3f_intersectOrientedBox(frustum->planes + i, box);
 		switch (planeResult)
 		{
@@ -203,13 +194,10 @@ dsIntersectResult dsFrustum3d_intersectOrientedBox(const dsFrustum3d* frustum,
 	DS_ASSERT(frustum);
 	DS_ASSERT(box);
 
-	dsVector3d zero = {{0.0, 0.0, 0.0}};
 	bool intersects = false;
-	for (int i = 0; i < dsFrustumPlanes_Count; ++i)
+	int count = dsFrustum3d_isInfinite(frustum) ? dsFrustumPlanes_Far : dsFrustumPlanes_Count;
+	for (int i = 0; i < count; ++i)
 	{
-		if (dsVector3_equal(frustum->planes[i].n, zero))
-			continue;
-
 		dsIntersectResult planeResult = dsPlane3d_intersectOrientedBox(frustum->planes + i, box);
 		switch (planeResult)
 		{
@@ -232,13 +220,10 @@ dsIntersectResult dsFrustum3f_intersectSphere(const dsFrustum3f* frustum, const 
 	DS_ASSERT(frustum);
 	DS_ASSERT(center);
 
-	dsVector3f zero = {{0.0f, 0.0f, 0.0f}};
 	bool intersects = false;
-	for (int i = 0; i < dsFrustumPlanes_Count; ++i)
+	int count = dsFrustum3f_isInfinite(frustum) ? dsFrustumPlanes_Far : dsFrustumPlanes_Count;
+	for (int i = 0; i < count; ++i)
 	{
-		if (dsVector3_equal(frustum->planes[i].n, zero))
-			continue;
-
 		float distance = dsPlane3_distanceToPoint(frustum->planes[i], *center);
 		if (distance < -radius)
 			return dsIntersectResult_Outside;
@@ -255,13 +240,10 @@ dsIntersectResult dsFrustum3d_intersectSphere(const dsFrustum3d* frustum, const 
 	DS_ASSERT(frustum);
 	DS_ASSERT(center);
 
-	dsVector3d zero = {{0.0, 0.0, 0.0}};
 	bool intersects = false;
-	for (int i = 0; i < dsFrustumPlanes_Count; ++i)
+	int count = dsFrustum3d_isInfinite(frustum) ? dsFrustumPlanes_Far : dsFrustumPlanes_Count;
+	for (int i = 0; i < count; ++i)
 	{
-		if (dsVector3_equal(frustum->planes[i].n, zero))
-			continue;
-
 		double distance = dsPlane3_distanceToPoint(frustum->planes[i], *center);
 		if (distance < -radius)
 			return dsIntersectResult_Outside;

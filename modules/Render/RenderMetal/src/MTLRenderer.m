@@ -848,11 +848,11 @@ dsRenderer* dsMTLRenderer_create(dsAllocator* allocator, const dsRendererOptions
 		baseRenderer->rendererID = DS_MTL_RENDERER_ID;
 		baseRenderer->platformID = 0;
 		baseRenderer->name = "Metal";
-	#if DS_IOS
+#if DS_IOS
 		baseRenderer->shaderLanguage = "metal-ios";
-	#else
+#else
 		baseRenderer->shaderLanguage = "metal-osx";
-	#endif
+#endif
 
 		char* deviceNameCopy = (char*)dsAllocator_alloc((dsAllocator*)&bufferAlloc,
 			deviceNameLen + 1);
@@ -870,6 +870,8 @@ dsRenderer* dsMTLRenderer_create(dsAllocator* allocator, const dsRendererOptions
 		baseRenderer->surfaceSamples = options->surfaceSamples;
 		baseRenderer->defaultSamples = options->defaultSamples;
 		baseRenderer->projectionOptions = dsProjectionMatrixOptions_HalfZRange;
+		if (options->reverseZ)
+			baseRenderer->projectionOptions |= dsProjectionMatrixOptions_InvertZ;
 		baseRenderer->doubleBuffer = true;
 		baseRenderer->stereoscopic = false;
 		baseRenderer->vsync = false;

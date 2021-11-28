@@ -688,6 +688,8 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 	baseRenderer->projectionOptions = dsProjectionMatrixOptions_None;
 	if (options->preferHalfDepthRange && ANYGL_SUPPORTED(glClipControl))
 		baseRenderer->projectionOptions |= dsProjectionMatrixOptions_HalfZRange;
+	if (options->reverseZ)
+		baseRenderer->projectionOptions |= dsProjectionMatrixOptions_InvertZ;
 	baseRenderer->defaultAnisotropy = 1;
 
 	baseRenderer->hasGeometryShaders =

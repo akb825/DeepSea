@@ -190,6 +190,103 @@ TEST_F(ShadowProjectionTest, LightSpacePerspectiveInvertY)
 	EXPECT_GT(1.0f, z);
 }
 
+TEST_F(ShadowProjectionTest, LightSpacePerspectiveInvertZ)
+{
+	dsMatrix44f camera =
+	{{
+		{0.0f, 0.0f, 1.0f, 0.0f},
+		{0.0f, 1.0f, 0.0f, 0.0f},
+		{-1.0f, 0.0f, 0.0f, 0.0f},
+		{1.0f, 2.0f, 3.0f, 0.0f}
+	}};
+
+	renderer->projectionOptions =
+		dsProjectionMatrixOptions_HalfZRange | dsProjectionMatrixOptions_InvertZ;
+
+	dsVector3f lightDir = {{0.0f, 1.0f, 0.0f}};
+	dsShadowProjection shadowProj;
+	ASSERT_TRUE(dsShadowProjection_initialize(&shadowProj, renderer, &camera, &lightDir, NULL, NULL,
+		false));
+
+	dsVector3f points[] =
+	{
+		{{-1.0f, -1.0f, -1.0f}},
+		{{1.0f, 1.0f, 1.0f}},
+	};
+	EXPECT_TRUE(dsShadowProjection_addPoints(&shadowProj, points, DS_ARRAY_SIZE(points)));
+
+	dsMatrix44f projection;
+	ASSERT_TRUE(dsShadowProjection_computeMatrix(&projection, &shadowProj, 0.0f, 0.0f));
+
+	dsVector4f testPoints[] =
+	{
+		{{-1.0f, 1.0f, 0.0f, 1.0f}},
+		{{1.0f, -1.0f, 0.0f, 1.0f}}
+	};
+
+	dsVector4f projPoint;
+	dsMatrix44_transform(projPoint, projection, testPoints[0]);
+	float y = projPoint.y/projPoint.w;
+	float z = projPoint.z/projPoint.w;
+	EXPECT_NEAR(-1.0f, y, 1e-6f);
+	EXPECT_NEAR(1.0f, z, 1e-6f);
+
+	dsMatrix44_transform(projPoint, projection, testPoints[1]);
+	y = projPoint.y/projPoint.w;
+	z = projPoint.z/projPoint.w;
+	EXPECT_NEAR(1.0f, y, 1e-6f);
+	EXPECT_GT(0.5f, z);
+	EXPECT_LT(0.0f, z);
+}
+
+TEST_F(ShadowProjectionTest, LightSpacePerspectiveInvertZFullRange)
+{
+	dsMatrix44f camera =
+	{{
+		{0.0f, 0.0f, 1.0f, 0.0f},
+		{0.0f, 1.0f, 0.0f, 0.0f},
+		{-1.0f, 0.0f, 0.0f, 0.0f},
+		{1.0f, 2.0f, 3.0f, 0.0f}
+	}};
+
+	renderer->projectionOptions = dsProjectionMatrixOptions_InvertZ;
+
+	dsVector3f lightDir = {{0.0f, 1.0f, 0.0f}};
+	dsShadowProjection shadowProj;
+	ASSERT_TRUE(dsShadowProjection_initialize(&shadowProj, renderer, &camera, &lightDir, NULL, NULL,
+		false));
+
+	dsVector3f points[] =
+	{
+		{{-1.0f, -1.0f, -1.0f}},
+		{{1.0f, 1.0f, 1.0f}},
+	};
+	EXPECT_TRUE(dsShadowProjection_addPoints(&shadowProj, points, DS_ARRAY_SIZE(points)));
+
+	dsMatrix44f projection;
+	ASSERT_TRUE(dsShadowProjection_computeMatrix(&projection, &shadowProj, 0.0f, 0.0f));
+
+	dsVector4f testPoints[] =
+	{
+		{{-1.0f, 1.0f, 0.0f, 1.0f}},
+		{{1.0f, -1.0f, 0.0f, 1.0f}}
+	};
+
+	dsVector4f projPoint;
+	dsMatrix44_transform(projPoint, projection, testPoints[0]);
+	float y = projPoint.y/projPoint.w;
+	float z = projPoint.z/projPoint.w;
+	EXPECT_NEAR(-1.0f, y, 1e-6f);
+	EXPECT_NEAR(1.0f, z, 1e-6f);
+
+	dsMatrix44_transform(projPoint, projection, testPoints[1]);
+	y = projPoint.y/projPoint.w;
+	z = projPoint.z/projPoint.w;
+	EXPECT_NEAR(1.0f, y, 1e-6f);
+	EXPECT_GT(-0.5f, z);
+	EXPECT_LT(-1.0f, z);
+}
+
 TEST_F(ShadowProjectionTest, Uniform)
 {
 	dsMatrix44f camera =
@@ -328,6 +425,101 @@ TEST_F(ShadowProjectionTest, UniformInvertY)
 	z = projPoint.z/projPoint.w;
 	EXPECT_NEAR(-1.0f, y, 1e-6f);
 	EXPECT_NEAR(1.0f, z, 1e-6f);
+}
+
+TEST_F(ShadowProjectionTest, UniformInvertZ)
+{
+	dsMatrix44f camera =
+	{{
+		{0.0f, 0.0f, 1.0f, 0.0f},
+		{0.0f, 1.0f, 0.0f, 0.0f},
+		{-1.0f, 0.0f, 0.0f, 0.0f},
+		{1.0f, 2.0f, 3.0f, 0.0f}
+	}};
+
+	renderer->projectionOptions =
+		dsProjectionMatrixOptions_HalfZRange | dsProjectionMatrixOptions_InvertZ;
+
+	dsVector3f lightDir = {{0.0f, 1.0f, 0.0f}};
+	dsShadowProjection shadowProj;
+	ASSERT_TRUE(dsShadowProjection_initialize(&shadowProj, renderer, &camera, &lightDir, NULL, NULL,
+		true));
+
+	dsVector3f points[] =
+	{
+		{{-1.0f, -1.0f, -1.0f}},
+		{{1.0f, 1.0f, 1.0f}},
+	};
+	EXPECT_TRUE(dsShadowProjection_addPoints(&shadowProj, points, DS_ARRAY_SIZE(points)));
+
+	dsMatrix44f projection;
+	ASSERT_TRUE(dsShadowProjection_computeMatrix(&projection, &shadowProj, 0.0f, 0.0f));
+
+	dsVector4f testPoints[] =
+	{
+		{{-1.0f, 1.0f, 0.0f, 1.0f}},
+		{{1.0f, -1.0f, 0.0f, 1.0f}}
+	};
+
+	dsVector4f projPoint;
+	dsMatrix44_transform(projPoint, projection, testPoints[0]);
+	float y = projPoint.y/projPoint.w;
+	float z = projPoint.z/projPoint.w;
+	EXPECT_NEAR(-1.0f, y, 1e-6f);
+	EXPECT_NEAR(1.0f, z, 1e-6f);
+
+	dsMatrix44_transform(projPoint, projection, testPoints[1]);
+	y = projPoint.y/projPoint.w;
+	z = projPoint.z/projPoint.w;
+	EXPECT_NEAR(1.0f, y, 1e-6f);
+	EXPECT_NEAR(0.0f, z, 1e-6f);
+}
+
+TEST_F(ShadowProjectionTest, UniformInvertZFullRange)
+{
+	dsMatrix44f camera =
+	{{
+		{0.0f, 0.0f, 1.0f, 0.0f},
+		{0.0f, 1.0f, 0.0f, 0.0f},
+		{-1.0f, 0.0f, 0.0f, 0.0f},
+		{1.0f, 2.0f, 3.0f, 0.0f}
+	}};
+
+	renderer->projectionOptions = dsProjectionMatrixOptions_InvertZ;
+
+	dsVector3f lightDir = {{0.0f, 1.0f, 0.0f}};
+	dsShadowProjection shadowProj;
+	ASSERT_TRUE(dsShadowProjection_initialize(&shadowProj, renderer, &camera, &lightDir, NULL, NULL,
+		true));
+
+	dsVector3f points[] =
+	{
+		{{-1.0f, -1.0f, -1.0f}},
+		{{1.0f, 1.0f, 1.0f}},
+	};
+	EXPECT_TRUE(dsShadowProjection_addPoints(&shadowProj, points, DS_ARRAY_SIZE(points)));
+
+	dsMatrix44f projection;
+	ASSERT_TRUE(dsShadowProjection_computeMatrix(&projection, &shadowProj, 0.0f, 0.0f));
+
+	dsVector4f testPoints[] =
+	{
+		{{-1.0f, 1.0f, 0.0f, 1.0f}},
+		{{1.0f, -1.0f, 0.0f, 1.0f}}
+	};
+
+	dsVector4f projPoint;
+	dsMatrix44_transform(projPoint, projection, testPoints[0]);
+	float y = projPoint.y/projPoint.w;
+	float z = projPoint.z/projPoint.w;
+	EXPECT_NEAR(-1.0f, y, 1e-6f);
+	EXPECT_NEAR(1.0f, z, 1e-6f);
+
+	dsMatrix44_transform(projPoint, projection, testPoints[1]);
+	y = projPoint.y/projPoint.w;
+	z = projPoint.z/projPoint.w;
+	EXPECT_NEAR(1.0f, y, 1e-6f);
+	EXPECT_NEAR(-1.0f, z, 1e-6f);
 }
 
 TEST_F(ShadowProjectionTest, LookIntoLight)
