@@ -27,7 +27,7 @@ sampler_state shadowMap
 	address_mode_v = clamp_to_edge;
 	min_filter = linear;
 	mag_filter = linear;
-	compare_op = less_or_equal;
+	compare_op = greater_or_equal;
 }
 
 uniform ShadowTransform

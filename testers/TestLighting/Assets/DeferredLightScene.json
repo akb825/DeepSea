@@ -71,7 +71,7 @@
 					"usage": ["Clear", "KeepAfter"],
 					"format": "D32_Float",
 					"decoration": "Unset",
-					"clearValue": {"depth": 1.0},
+					"clearValue": {"depth": 0.0},
 					"samples": 1
 				},
 				{
@@ -106,8 +106,8 @@
 							"cullList": "mainShadowCullList0",
 							"dynamicRenderStates":
 							{
-								"depthBiasConstantFactor": 1.0,
-								"depthBiasSlopeFactor": 4.0
+								"depthBiasConstantFactor": -1.0,
+								"depthBiasSlopeFactor": -2.0
 							}
 						}
 					]
@@ -122,7 +122,7 @@
 					"usage": ["Clear", "KeepAfter"],
 					"format": "D32_Float",
 					"decoration": "Unset",
-					"clearValue": {"depth": 1.0},
+					"clearValue": {"depth": 0.0},
 					"samples": 1
 				},
 				{
@@ -157,8 +157,8 @@
 							"cullList": "spotShadowCullList",
 							"dynamicRenderStates":
 							{
-								"depthBiasConstantFactor": 0.2,
-								"depthBiasSlopeFactor": 1.0
+								"depthBiasConstantFactor": 0.0,
+								"depthBiasSlopeFactor": 0.0
 							}
 						}
 					]
@@ -173,7 +173,7 @@
 					"usage": ["Clear", "KeepAfter"],
 					"format": "D32_Float",
 					"decoration": "Unset",
-					"clearValue": {"depth": 1.0},
+					"clearValue": {"depth": 0.0},
 					"samples": 1
 				},
 				{
@@ -208,8 +208,8 @@
 							"cullList": "pointShadowCullList0",
 							"dynamicRenderStates":
 							{
-								"depthBiasConstantFactor": 0.2,
-								"depthBiasSlopeFactor": 3.0
+								"depthBiasConstantFactor": 0.0,
+								"depthBiasSlopeFactor": 0.0
 							}
 						}
 					]
@@ -224,7 +224,7 @@
 					"usage": ["Clear", "KeepAfter"],
 					"format": "D32_Float",
 					"decoration": "Unset",
-					"clearValue": {"depth": 1.0},
+					"clearValue": {"depth": 0.0},
 					"samples": 1
 				},
 				{
@@ -259,8 +259,8 @@
 							"cullList": "pointShadowCullList1",
 							"dynamicRenderStates":
 							{
-								"depthBiasConstantFactor": 0.2,
-								"depthBiasSlopeFactor": 3.0
+								"depthBiasConstantFactor": 0.0,
+								"depthBiasSlopeFactor": 0.0
 							}
 						}
 					]
@@ -275,7 +275,7 @@
 					"usage": ["Clear", "KeepAfter"],
 					"format": "D32_Float",
 					"decoration": "Unset",
-					"clearValue": {"depth": 1.0},
+					"clearValue": {"depth": 0.0},
 					"samples": 1
 				},
 				{
@@ -310,8 +310,8 @@
 							"cullList": "pointShadowCullList2",
 							"dynamicRenderStates":
 							{
-								"depthBiasConstantFactor": 0.2,
-								"depthBiasSlopeFactor": 3.0
+								"depthBiasConstantFactor": 0.0,
+								"depthBiasSlopeFactor": 0.0
 							}
 						}
 					]
@@ -326,7 +326,7 @@
 					"usage": ["Clear", "KeepAfter"],
 					"format": "D32_Float",
 					"decoration": "Unset",
-					"clearValue": {"depth": 1.0},
+					"clearValue": {"depth": 0.0},
 					"samples": 1
 				},
 				{
@@ -361,8 +361,8 @@
 							"cullList": "pointShadowCullList3",
 							"dynamicRenderStates":
 							{
-								"depthBiasConstantFactor": 0.2,
-								"depthBiasSlopeFactor": 3.0
+								"depthBiasConstantFactor": 0.0,
+								"depthBiasSlopeFactor": 0.0
 							}
 						}
 					]
@@ -377,7 +377,7 @@
 					"usage": ["Clear", "KeepAfter"],
 					"format": "D32_Float",
 					"decoration": "Unset",
-					"clearValue": {"depth": 1.0},
+					"clearValue": {"depth": 0.0},
 					"samples": 1
 				},
 				{
@@ -412,8 +412,8 @@
 							"cullList": "pointShadowCullList4",
 							"dynamicRenderStates":
 							{
-								"depthBiasConstantFactor": 0.2,
-								"depthBiasSlopeFactor": 3.0
+								"depthBiasConstantFactor": 0.0,
+								"depthBiasSlopeFactor": 0.0
 							}
 						}
 					]
@@ -428,7 +428,7 @@
 					"usage": ["Clear", "KeepAfter"],
 					"format": "D32_Float",
 					"decoration": "Unset",
-					"clearValue": {"depth": 1.0},
+					"clearValue": {"depth": 0.0},
 					"samples": 1
 				},
 				{
@@ -463,8 +463,8 @@
 							"cullList": "pointShadowCullList5",
 							"dynamicRenderStates":
 							{
-								"depthBiasConstantFactor": 0.2,
-								"depthBiasSlopeFactor": 3.0
+								"depthBiasConstantFactor": 0.0,
+								"depthBiasSlopeFactor": 0.0
 							}
 						}
 					]
@@ -493,7 +493,7 @@
 					"usage": ["Clear"],
 					"format": "D32_Float",
 					"decoration": "Unset",
-					"clearValue": {"depth": 1.0},
+					"clearValue": {"depth": 0.0},
 					"samples": 1
 				},
 				{

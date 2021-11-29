@@ -656,6 +656,8 @@ int dsMain(int argc, const char** argv)
 	rendererOptions.depthBits = 0;
 	rendererOptions.stencilBits = 0;
 	rendererOptions.defaultSamples = 4;
+	rendererOptions.reverseZ = true;
+	rendererOptions.preferHalfDepthRange = true;
 	rendererOptions.deviceName = deviceName;
 	dsRenderer* renderer = dsRenderBootstrap_createRenderer(rendererType,
 		(dsAllocator*)&renderAllocator, &rendererOptions);
@@ -663,6 +665,12 @@ int dsMain(int argc, const char** argv)
 	{
 		DS_LOG_ERROR_F("TestLighting", "Couldn't create renderer: %s", dsErrorString(errno));
 		return 2;
+	}
+
+	if (renderer->rendererID == DS_GL_RENDERER_ID || renderer->rendererID == DS_GLES_RENDERER_ID)
+	{
+		DS_LOG_WARNING("TestLIghting", "Depth bias values are tuned for Vulkan. "
+			"Shadows may show some artifacts in OpenGL.");
 	}
 
 	dsRenderer_setVsync(renderer, true);

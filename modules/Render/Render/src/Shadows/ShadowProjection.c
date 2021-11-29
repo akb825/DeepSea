@@ -186,11 +186,13 @@ bool dsShadowProjection_initialize(dsShadowProjection* shadowProj, const dsRende
 		DS_ASSERT(lightVec.w == 1);
 		viewPos = *(dsVector3f*)&lightVec;
 
-		// Negate the light direction when projected, as the Z vector gets inverted with the
-		// projection itself. Otherwise the final projection will have an inverted Z.
-		dsVector4f temp = {{-toLight->x, -toLight->y, -toLight->z, 0.0f}};
+		dsVector4f temp = {{toLight->x, toLight->y, toLight->z, 0.0f}};
 		dsMatrix44_transform(lightVec, *lightTransform, temp);
 		dsVector3f_normalize(&lightDir, (const dsVector3f*)&lightVec);
+
+		// NOTE: Projection inverts Z, unless of course the Z is inverted for the projection.
+		if (!(renderer->projectionOptions & dsProjectionMatrixOptions_InvertZ))
+			dsVector3_neg(lightDir, lightDir);
 	}
 	else
 	{

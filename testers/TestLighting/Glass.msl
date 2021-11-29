@@ -67,6 +67,7 @@ pipeline Glass
 	vertex = vertexShader;
 	fragment = fragmentShader;
 	depth_test_enable = true;
+	depth_compare_op = greater;
 	early_fragment_tests = true;
 	blend_enable = true;
 	// Alpha is pre-multiplied.

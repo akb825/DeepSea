@@ -108,6 +108,7 @@ pipeline GBuffers
 	vertex = vertexShader;
 	fragment = fragmentShader;
 	depth_test_enable = true;
+	depth_compare_op = greater;
 	early_fragment_tests = true;
 	cull_mode = back;
 }

@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+#define DS_REVERSE_Z
+
 #include <DeepSea/Scene/Shaders/ViewTransform.mslh>
 #include <DeepSea/SceneLighting/Shaders/DeferredPointLight.mslh>
 
@@ -27,7 +29,7 @@ sampler_state shadowMap
 	address_mode_v = clamp_to_edge;
 	min_filter = linear;
 	mag_filter = linear;
-	compare_op = less_or_equal;
+	compare_op = greater_or_equal;
 }
 
 uniform ShadowTransform
