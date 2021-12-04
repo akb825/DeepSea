@@ -869,6 +869,12 @@ dsRenderer* dsMTLRenderer_create(dsAllocator* allocator, const dsRendererOptions
 		baseRenderer->maxAnisotropy = 16.0f;
 		baseRenderer->surfaceSamples = options->surfaceSamples;
 		baseRenderer->defaultSamples = options->defaultSamples;
+		baseRenderer->defaultAnisotropy = 1.0f;
+
+		baseRenderer->maxComputeWorkGroupSize[0] = UINT_MAX;
+		baseRenderer->maxComputeWorkGroupSize[1] = UINT_MAX;
+		baseRenderer->maxComputeWorkGroupSize[2] = UINT_MAX;
+
 		baseRenderer->projectionOptions = dsProjectionMatrixOptions_HalfZRange;
 		if (options->reverseZ)
 			baseRenderer->projectionOptions |= dsProjectionMatrixOptions_InvertZ;
@@ -877,10 +883,6 @@ dsRenderer* dsMTLRenderer_create(dsAllocator* allocator, const dsRendererOptions
 		baseRenderer->vsync = false;
 		baseRenderer->hasGeometryShaders = false;
 		baseRenderer->hasTessellationShaders = hasTessellationShaders(device);
-
-		baseRenderer->maxComputeWorkGroupSize[0] = UINT_MAX;
-		baseRenderer->maxComputeWorkGroupSize[1] = UINT_MAX;
-		baseRenderer->maxComputeWorkGroupSize[2] = UINT_MAX;
 
 		// Enough optimizations that might as well consider multidraw native.
 		baseRenderer->hasNativeMultidraw = true;
@@ -920,7 +922,7 @@ dsRenderer* dsMTLRenderer_create(dsAllocator* allocator, const dsRendererOptions
 		baseRenderer->hasDepthStencilMultisampleResolve =
 			[device supportsFeatureSet: MTLFeatureSet_iOS_GPUFamily3_v1];
 #endif
-		baseRenderer->defaultAnisotropy = 1.0f;
+		baseRenderer->projectedTexCoordTInverted = true;
 
 		baseRenderer->resourceManager = dsMTLResourceManager_create(allocator, baseRenderer);
 		if (!baseRenderer->resourceManager)

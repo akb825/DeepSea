@@ -36,6 +36,7 @@ uniform ShadowTransform
 {
 	mat4 matrices[6];
 	vec2 fadeDistances;
+	vec3[2] texCoordTransform;
 	vec3 lightPosition;
 } dsShadowTransform;
 
@@ -70,7 +71,7 @@ void fragmentShader()
 
 	float shadowValue = dsPointShadowMap(shadowMap, INSTANCE(dsShadowTransform).matrices,
 		viewPosition, INSTANCE(dsShadowTransform).lightPosition,
-		INSTANCE(dsShadowTransform).fadeDistances.x, INSTANCE(dsShadowTransform).fadeDistances.y);
+		INSTANCE(dsShadowTransform).fadeDistances, INSTANCE(dsShadowTransform).texCoordTransform);
 
 	vec3 diffuseLight, specularLight;
 	dsDeferredPointLight_lightColor(diffuseLight, specularLight, viewPosition, normal,

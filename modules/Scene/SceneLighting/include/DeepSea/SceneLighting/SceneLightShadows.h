@@ -57,13 +57,19 @@ extern "C"
  *         - mat44 array for the shadow projection of size 4, or non-array element if not cascaded.
  *         - vec4 of floats for cascade split distances, or omitted if not cascaded.
  *         - vec2 for the distance to start fading out shadows and maximum shadow distance.
+ *         - vec3[2] for the scale and offset to convert from a shadow position to texture
+ *           coordinates.
  *     - Point:
  *         - mat44 array of 6 elements for the shadow projection.
  *         - vec2 for the distance to start fading out shadows and maximum shadow distance.
+ *         - vec3[2] for the scale and offset to convert from a shadow position to texture
+ *           coordinates.
  *         - vec3 for the position of the light in view space.
  *     - Spot:
  *         - mat44 for the shadow projection.
  *         - vec2 for the distance to start fading out shadows and maximum shadow distance.
+ *         - vec3[2] for the scale and offset to convert from a shadow position to texture
+ *           coordinates.
  * @param transformGroupName The name of the transform group when set on the view's global
  *     variables. This may be NULL when only set as an instance variable.
  * @param shadowParams Parameters controlling the shadow behavior.

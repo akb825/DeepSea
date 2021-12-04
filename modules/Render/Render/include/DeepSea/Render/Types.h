@@ -2006,6 +2006,18 @@ struct dsRenderer
 	uint32_t defaultSamples;
 
 	/**
+	 * @brief The default level of anisotropy for anisotropic filtering.
+	 */
+	float defaultAnisotropy;
+
+	/**
+	 * @brief The maximum size of the workgroup in each dimension.
+	 *
+	 * If 0, compute shaders aren't supported.
+	 */
+	uint32_t maxComputeWorkGroupSize[3];
+
+	/**
 	 * @brief The options used when creating a projection matrix.
 	 */
 	dsProjectionMatrixOptions projectionOptions;
@@ -2034,13 +2046,6 @@ struct dsRenderer
 	 * @brief True if tessellation shaders are supported.
 	 */
 	bool hasTessellationShaders;
-
-	/**
-	 * @brief The maximum size of the workgroup in each dimension.
-	 *
-	 * If 0, compute shaders aren't supported.
-	 */
-	uint32_t maxComputeWorkGroupSize[3];
 
 	/**
 	 * @brief True if indirect draws with a count > 1 will use a single graphics API call.
@@ -2098,9 +2103,9 @@ struct dsRenderer
 	bool hasDepthStencilMultisampleResolve;
 
 	/**
-	 * @brief The default level of anisotropy for anisotropic filtering.
+	 * @brief Whether or not projected texture coordinates have an inverted T coordinate.
 	 */
-	float defaultAnisotropy;
+	bool projectedTexCoordTInverted;
 
 	// ----------------------------- Internals and function table ----------------------------------
 

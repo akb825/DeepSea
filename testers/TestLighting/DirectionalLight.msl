@@ -34,6 +34,7 @@ uniform ShadowTransform
 {
 	mat4 matrix;
 	vec2 fadeDistances;
+	vec3[2] texCoordTransform;
 } dsShadowTransform;
 
 [[fragment]] uniform subpassInput(0) materialColor;
@@ -67,7 +68,7 @@ void fragmentShader()
 
 	vec4 shadowPosition = DS_ADJUST_CLIP(INSTANCE(dsShadowTransform).matrix*vec4(viewPosition, 1.0));
 	float shadowValue = dsShadowMap(shadowMap, viewPosition, shadowPosition.xyz/shadowPosition.w,
-		INSTANCE(dsShadowTransform).fadeDistances.x, INSTANCE(dsShadowTransform).fadeDistances.y);
+		INSTANCE(dsShadowTransform).fadeDistances, INSTANCE(dsShadowTransform).texCoordTransform);
 
 	vec3 diffuseLight, specularLight;
 	dsDeferredDirectionalLight_lightColor(diffuseLight, specularLight, normal, viewDirection,

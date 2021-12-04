@@ -67,6 +67,7 @@ uniform ShadowTransform
 	mat4[4] matrices;
 	vec4 splitDistances;
 	vec2 fadeDistances;
+	vec3[2] texCoordTransform;
 } dsShadowTransform;
 
 uniform float shininess;
@@ -122,8 +123,8 @@ void fragmentShader()
 
 	float shadowValue = dsCascadedShadowMap(shadowMap, INSTANCE(dsShadowTransform).matrices,
 		INSTANCE(dsShadowTransform).splitDistances, vfViewPosition,
-		INSTANCE(dsShadowTransform).fadeDistances.x,
-		INSTANCE(dsShadowTransform).fadeDistances.y);
+		INSTANCE(dsShadowTransform).fadeDistances,
+		INSTANCE(dsShadowTransform).texCoordTransform);
 
 	vec3 viewDirection = -normalize(vfViewPosition);
 	vec3 diffuseLight, specularLight;

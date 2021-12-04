@@ -421,15 +421,16 @@ dsRenderer* dsMockRenderer_create(dsAllocator* allocator)
 	renderer->surfaceDepthStencilFormat = dsGfxFormat_D24S8;
 	renderer->surfaceSamples = 4;
 	renderer->defaultSamples = 4;
+	renderer->defaultAnisotropy = 1.0f;
+	renderer->maxComputeWorkGroupSize[0] = 256;
+	renderer->maxComputeWorkGroupSize[1] = 256;
+	renderer->maxComputeWorkGroupSize[2] = 256;
 	renderer->projectionOptions = dsProjectionMatrixOptions_HalfZRange;
 	renderer->doubleBuffer = true;
 	renderer->stereoscopic = false;
 	renderer->vsync = true;
 	renderer->hasGeometryShaders = true;
 	renderer->hasTessellationShaders = true;
-	renderer->maxComputeWorkGroupSize[0] = 256;
-	renderer->maxComputeWorkGroupSize[1] = 256;
-	renderer->maxComputeWorkGroupSize[2] = 256;
 	renderer->hasNativeMultidraw = true;
 	renderer->hasInstancedDrawing = true;
 	renderer->hasStartInstance = true;
@@ -441,6 +442,7 @@ dsRenderer* dsMockRenderer_create(dsAllocator* allocator)
 	renderer->hasDepthClamp = true;
 	renderer->hasDepthBiasClamp = true;
 	renderer->hasDepthStencilMultisampleResolve = true;
+	renderer->projectedTexCoordTInverted = false;
 
 	renderer->destroyFunc = &dsMockRenderer_destroy;
 

@@ -39,13 +39,14 @@
  * @param cascadeProjections The cascaded projection matrices.
  * @param splitDistances The distances for each cascade split.
  * @param viewPos The view position.
- * @param fadeStart The distance from the view point to start fading shadows.
- * @param fadeEnd The distance from the view point to stop fading shadows.
+ * @param fadeDistances The distances to start and stop fading shadows.
+ * @param texCoordTransform The scale and offset to apply to the shadow projection to convert to
+ *     texture coordinates.
  * @return A value of 0 to 1, where 0 is fully shadowed and 1 is fully lit.
  */
 [[fragment]]
 float dsCascadedShadowMap(sampler2DArrayShadow shadowMap, mat4 cascadeProjections[4],
-	vec4 splitDistances, vec3 viewPos, float fadeStart, float fadeEnd)
+	vec4 splitDistances, vec3 viewPos, vec2 fadeDistances, vec3 texCoordTransform[2])
 {
 	float viewZ = -viewPos.z;
 	ivec4 beyondSplit = ivec4(greaterThan(vec4(viewZ), splitDistances));
@@ -53,20 +54,18 @@ float dsCascadedShadowMap(sampler2DArrayShadow shadowMap, mat4 cascadeProjection
 
 	// Regardless of the number of splits, the split index will be 0 if fully out of the range of
 	// shadows. (since all following splits are set to far plane)
-	if (split >= 4 || viewZ >= fadeEnd)
+	if (split >= 4 || viewZ >= fadeDistances.y)
 		return 1.0;
 
-	float fadeRange = fadeEnd - fadeStart;
+	float fadeRange = fadeDistances.y - fadeDistances.x;
 	float fadeAmount = 0.0;
 	if (fadeRange > 1e-3)
-		fadeAmount = max(viewZ - fadeStart, 0.0)/fadeRange;
+		fadeAmount = max(viewZ - fadeDistances.x, 0.0)/fadeRange;
 
 	vec4 shadowPos = DS_ADJUST_CLIP(cascadeProjections[split]*vec4(viewPos, 1.0));
 	shadowPos /= shadowPos.w;
-	shadowPos.xy = shadowPos.xy*vec2(0.5) + vec2(0.5);
-	if (DS_CLIP_HALF_DEPTH == 0)
-		shadowPos.z = shadowPos.z*0.5 + 0.5;
-	shadowPos.z = clamp(shadowPos.z, 0.0, 1.0);
-	float shadowVal = DS_SHADOW_FILTER(shadowMap, split, shadowPos.xyz);
+	vec3 shadowTexCoords = shadowPos.xyz*texCoordTransform[0] + texCoordTransform[1];
+	shadowTexCoords.z = clamp(shadowTexCoords.z, 0.0, 1.0);
+	float shadowVal = DS_SHADOW_FILTER(shadowMap, split, shadowTexCoords);
 	return mix(shadowVal, 1.0, fadeAmount);
 }

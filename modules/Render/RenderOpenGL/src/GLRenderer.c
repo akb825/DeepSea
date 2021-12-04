@@ -682,22 +682,8 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 		renderer->renderConfig);
 	baseRenderer->surfaceSamples = options->surfaceSamples;
 	baseRenderer->defaultSamples = options->defaultSamples;
-	baseRenderer->doubleBuffer = options->doubleBuffer;
-	baseRenderer->stereoscopic = options->stereoscopic;
-	baseRenderer->vsync = false;
-	baseRenderer->projectionOptions = dsProjectionMatrixOptions_None;
-	if (options->preferHalfDepthRange && ANYGL_SUPPORTED(glClipControl))
-		baseRenderer->projectionOptions |= dsProjectionMatrixOptions_HalfZRange;
-	if (options->reverseZ)
-		baseRenderer->projectionOptions |= dsProjectionMatrixOptions_InvertZ;
 	baseRenderer->defaultAnisotropy = 1;
 
-	baseRenderer->hasGeometryShaders =
-		(ANYGL_GLES && baseRenderer->shaderVersion >= DS_ENCODE_VERSION(3, 2, 0)) ||
-		(!ANYGL_GLES && baseRenderer->shaderVersion >= DS_ENCODE_VERSION(3, 2, 0));
-	baseRenderer->hasTessellationShaders =
-		(ANYGL_GLES && baseRenderer->shaderVersion >= DS_ENCODE_VERSION(3, 2, 0)) ||
-		(!ANYGL_GLES && baseRenderer->shaderVersion >= DS_ENCODE_VERSION(4, 0, 0));
 	if ((ANYGL_GLES && baseRenderer->shaderVersion >= DS_ENCODE_VERSION(3, 1, 0)) ||
 		(!ANYGL_GLES && baseRenderer->shaderVersion >= DS_ENCODE_VERSION(4, 3, 0)))
 	{
@@ -707,6 +693,22 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 				(GLint*)(baseRenderer->maxComputeWorkGroupSize + i));
 		}
 	}
+
+	baseRenderer->doubleBuffer = options->doubleBuffer;
+	baseRenderer->stereoscopic = options->stereoscopic;
+	baseRenderer->vsync = false;
+	baseRenderer->projectionOptions = dsProjectionMatrixOptions_None;
+	if (options->preferHalfDepthRange && ANYGL_SUPPORTED(glClipControl))
+		baseRenderer->projectionOptions |= dsProjectionMatrixOptions_HalfZRange;
+	if (options->reverseZ)
+		baseRenderer->projectionOptions |= dsProjectionMatrixOptions_InvertZ;
+
+	baseRenderer->hasGeometryShaders =
+		(ANYGL_GLES && baseRenderer->shaderVersion >= DS_ENCODE_VERSION(3, 2, 0)) ||
+		(!ANYGL_GLES && baseRenderer->shaderVersion >= DS_ENCODE_VERSION(3, 2, 0));
+	baseRenderer->hasTessellationShaders =
+		(ANYGL_GLES && baseRenderer->shaderVersion >= DS_ENCODE_VERSION(3, 2, 0)) ||
+		(!ANYGL_GLES && baseRenderer->shaderVersion >= DS_ENCODE_VERSION(4, 0, 0));
 	baseRenderer->hasNativeMultidraw = ANYGL_SUPPORTED(glMultiDrawArrays);
 	baseRenderer->hasInstancedDrawing = ANYGL_SUPPORTED(glDrawArraysInstanced);
 	baseRenderer->hasStartInstance = ANYGL_SUPPORTED(glDrawArraysInstancedBaseInstance);
@@ -719,6 +721,7 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 	baseRenderer->hasDepthClamp = (AnyGL_atLeastVersion(3, 2, false) || AnyGL_ARB_depth_clamp);
 	baseRenderer->hasDepthBiasClamp = ANYGL_SUPPORTED(glPolygonOffsetClamp);
 	baseRenderer->hasDepthStencilMultisampleResolve = true;
+	baseRenderer->projectedTexCoordTInverted = false;
 
 	if (AnyGL_EXT_texture_filter_anisotropic)
 		glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &baseRenderer->maxAnisotropy);

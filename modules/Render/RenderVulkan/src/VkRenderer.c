@@ -2160,18 +2160,20 @@ dsRenderer* dsVkRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 		baseRenderer->maxSurfaceSamples);
 	baseRenderer->defaultSamples = dsClamp(options->defaultSamples, 1U,
 		baseRenderer->maxSurfaceSamples);
+	baseRenderer->defaultAnisotropy = 1;
 	baseRenderer->projectionOptions = dsProjectionMatrixOptions_HalfZRange |
 		dsProjectionMatrixOptions_InvertY;
 	if (options->reverseZ)
 		baseRenderer->projectionOptions |= dsProjectionMatrixOptions_InvertZ;
+
+	for (int i = 0; i < 3; ++i)
+		baseRenderer->maxComputeWorkGroupSize[i] = limits->maxComputeWorkGroupCount[i];
 
 	baseRenderer->doubleBuffer = options->doubleBuffer;
 	baseRenderer->stereoscopic = options->stereoscopic;
 	baseRenderer->vsync = false;
 	baseRenderer->hasGeometryShaders = deviceFeatures.geometryShader != 0;
 	baseRenderer->hasTessellationShaders = deviceFeatures.tessellationShader != 0;
-	for (int i = 0; i < 3; ++i)
-		baseRenderer->maxComputeWorkGroupSize[i] = limits->maxComputeWorkGroupCount[i];
 	baseRenderer->hasNativeMultidraw = true;
 	baseRenderer->hasInstancedDrawing = true;
 	baseRenderer->hasStartInstance = (bool)deviceFeatures.drawIndirectFirstInstance;
@@ -2183,7 +2185,7 @@ dsRenderer* dsVkRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 	baseRenderer->hasDepthClamp = (bool)deviceFeatures.depthClamp;
 	baseRenderer->hasDepthBiasClamp = (bool)deviceFeatures.depthBiasClamp;
 	baseRenderer->hasDepthStencilMultisampleResolve = device->hasDepthStencilResolve;
-	baseRenderer->defaultAnisotropy = 1;
+	baseRenderer->projectedTexCoordTInverted = false;
 
 	baseRenderer->resourceManager = dsVkResourceManager_create(allocator, renderer,
 		options->shaderCacheDir);
