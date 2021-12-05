@@ -63,7 +63,7 @@ Most render states are set by declaring the render state in the shader pipeline.
 
 The following built-in defines are available when writing shaders:
 
-* `DS_CLIP_HALF_DEPTH`: 0 if the depth values in clip space are in the range [-1, 1], 1 if in [0, 1]. This isn't guaranteed to be a compile-time constant.
+* `DS_MIN_CLIP_Z`: The minimum Z value in clip space. In most cases this is 0.0, but for OpenGL it may be -1.0 or 0.0 depending on whether the `preferHalfDepthRange` renderer option is enabled and the device supports adjusting the clip range.
 * `DS_ADJUST_CLIP(v)`: Call when assigning `gl_Position` at the end of the vertex shader to adjust for the current system's clip space. It's assumed that the position was computed with the projection matrix.
 * `DS_ADJUST_DIRECT_CLIP(v)`: Same as `DS_ADJUST_CLIP`, except for creating the position directly in clip space rather than using the projection matrix.
 * `DS_RG_SWZL`: Swizzle for RG channel textures. This takes into account older versions of OpenGL that use lumanance alpha for two-channel textures, which requires `ra` rather than `rg`.

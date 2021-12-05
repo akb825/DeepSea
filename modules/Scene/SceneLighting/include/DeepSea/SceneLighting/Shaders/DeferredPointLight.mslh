@@ -127,10 +127,7 @@ void dsDeferredPointLight_defaultVertex()
 	// Clamp the Z coordinate to ensure it doesn't get clipped by the far plane.
 	float z = gl_Position.z/gl_Position.w;
 #	ifdef DS_REVERSE_Z
-	if (DS_CLIP_HALF_DEPTH == 0)
-		z = max(z, -1.0);
-	else
-		z = max(z, 0.0);
+	z = max(z, DS_MIN_CLIP_Z);
 #	else
 	z = min(z, 1.0);
 #	endif

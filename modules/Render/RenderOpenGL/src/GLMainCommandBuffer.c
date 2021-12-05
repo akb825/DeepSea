@@ -1174,9 +1174,9 @@ bool dsGLMainCommandBuffer_bindShader(dsCommandBuffer* commandBuffer, const dsSh
 		float height = (float)glCommandBuffer->curFramebuffer->height;
 		float invWidth = 1.0f/(float)glCommandBuffer->curFramebuffer->width;
 		float invHeight = -1.0f/height;
-		bool clipHalfDepth =
-			(renderer->projectionOptions & dsProjectionMatrixOptions_HalfZRange) != 0;
-		glUniform4f(glShader->internalUniform, clipHalfDepth, height*invertY, invWidth, invHeight);
+		float minDepth =
+			renderer->projectionOptions & dsProjectionMatrixOptions_HalfZRange ? 0.0f : -1.0f;
+		glUniform4f(glShader->internalUniform, minDepth, height*invertY, invWidth, invHeight);
 	}
 	return true;
 }
