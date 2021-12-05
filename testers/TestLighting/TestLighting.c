@@ -32,6 +32,7 @@
 #include <DeepSea/RenderBootstrap/RenderBootstrap.h>
 
 #include <DeepSea/Scene/ItemLists/InstanceTransformData.h>
+#include <DeepSea/Scene/ItemLists/SceneModelList.h>
 #include <DeepSea/Scene/Nodes/SceneNode.h>
 #include <DeepSea/Scene/Scene.h>
 #include <DeepSea/Scene/SceneLoadContext.h>
@@ -104,6 +105,92 @@ static bool validateAllocator(dsAllocator* allocator, const char* name)
 	DS_LOG_ERROR_F("TestLighting", "Allocator '%s' has %llu bytes allocated with %u allocations.",
 		name, (unsigned long long)allocator->size, allocator->currentAllocations);
 	return false;
+}
+
+static void setDirectionalShadowBias(dsDynamicRenderStates* outRenderStates,
+	const dsRenderer* renderer, const dsDynamicRenderStates* curRenderStates)
+{
+	DS_UNUSED(renderer);
+	if (curRenderStates)
+		*outRenderStates = *curRenderStates;
+
+	outRenderStates->depthBiasConstantFactor = -1.0f;
+	outRenderStates->depthBiasSlopeFactor = -2.0f;
+	outRenderStates->depthBiasClamp = 0.0f;
+}
+
+static void setPointShadowBias(dsDynamicRenderStates* outRenderStates, const dsRenderer* renderer,
+	const dsDynamicRenderStates* curRenderStates)
+{
+	DS_UNUSED(renderer);
+	if (curRenderStates)
+		*outRenderStates = *curRenderStates;
+
+	if (renderer->rendererID == DS_VK_RENDERER_ID)
+	{
+		outRenderStates->depthBiasConstantFactor = 0.0f;
+		outRenderStates->depthBiasSlopeFactor = 1.0f;
+		outRenderStates->depthBiasClamp = 0.0f;
+	}
+	else
+	{
+		outRenderStates->depthBiasConstantFactor = -0.2f;
+		outRenderStates->depthBiasSlopeFactor = -4.0f;
+		outRenderStates->depthBiasClamp = 0.0f;
+	}
+}
+
+static void setSpotShadowBias(dsDynamicRenderStates* outRenderStates, const dsRenderer* renderer,
+	const dsDynamicRenderStates* curRenderStates)
+{
+	DS_UNUSED(renderer);
+	if (curRenderStates)
+		*outRenderStates = *curRenderStates;
+
+	if (renderer->rendererID == DS_VK_RENDERER_ID)
+	{
+		outRenderStates->depthBiasConstantFactor = 0.2f;
+		outRenderStates->depthBiasSlopeFactor = 2.0f;
+		outRenderStates->depthBiasClamp = 0.0f;
+	}
+	else
+	{
+		outRenderStates->depthBiasConstantFactor = -0.2f;
+		outRenderStates->depthBiasSlopeFactor = -2.0f;
+		outRenderStates->depthBiasClamp = 0.0f;
+	}
+}
+
+static bool updateItemListShadowBias(dsSceneItemList* itemList, void* userData)
+{
+	const char* mainShadowPrefix = "mainShadowCastList";
+	const char* pointShadowPrefix = "pointShadowCastList";
+	const char* spotShadowPrefix = "spotShadowCastList";
+	const dsRenderer* renderer = (const dsRenderer*)userData;
+
+	if (itemList->type != dsSceneModelList_type())
+		return true;
+
+	dsSceneModelList* modelList = (dsSceneModelList*)itemList;
+	const dsDynamicRenderStates* curRenderStates = dsSceneModelList_getRenderStates(modelList);
+	dsDynamicRenderStates newRenderStates;
+	if (strncmp(itemList->name, mainShadowPrefix, strlen(mainShadowPrefix)) == 0)
+	{
+		setDirectionalShadowBias(&newRenderStates, renderer, curRenderStates);
+		dsSceneModelList_setRenderStates(modelList, &newRenderStates);
+	}
+	else if (strncmp(itemList->name, pointShadowPrefix, strlen(pointShadowPrefix)) == 0)
+	{
+		setPointShadowBias(&newRenderStates, renderer, curRenderStates);
+		dsSceneModelList_setRenderStates(modelList, &newRenderStates);
+	}
+	else if (strncmp(itemList->name, spotShadowPrefix, strlen(spotShadowPrefix)) == 0)
+	{
+		setSpotShadowBias(&newRenderStates, renderer, curRenderStates);
+		dsSceneModelList_setRenderStates(modelList, &newRenderStates);
+	}
+
+	return true;
 }
 
 static bool processEvent(dsApplication* application, dsWindow* window, const dsEvent* event,
@@ -321,6 +408,9 @@ static bool setupForwardLighitng(TestLighting* testLighting, dsAllocator* alloca
 		return false;
 	}
 
+	DS_VERIFY(dsScene_forEachItemList(testLighting->forwardLightScene, updateItemListShadowBias,
+		testLighting->renderer));
+
 	dsRenderSurface* surface = testLighting->window->surface;
 	dsViewSurfaceInfo viewSurface;
 	viewSurface.name = "windowColor";
@@ -409,6 +499,9 @@ static bool setupDeferredLighitng(TestLighting* testLighting, dsAllocator* alloc
 		dsSceneLoadScratchData_destroy(scratchData);
 		return false;
 	}
+
+	DS_VERIFY(dsScene_forEachItemList(testLighting->deferredLightScene, updateItemListShadowBias,
+		testLighting->renderer));
 
 	dsRenderSurface* surface = testLighting->window->surface;
 	dsViewSurfaceInfo viewSurface;
@@ -665,12 +758,6 @@ int dsMain(int argc, const char** argv)
 	{
 		DS_LOG_ERROR_F("TestLighting", "Couldn't create renderer: %s", dsErrorString(errno));
 		return 2;
-	}
-
-	if (renderer->rendererID == DS_GL_RENDERER_ID || renderer->rendererID == DS_GLES_RENDERER_ID)
-	{
-		DS_LOG_WARNING("TestLIghting", "Depth bias values are tuned for Vulkan. "
-			"Shadows may show some artifacts in OpenGL.");
 	}
 
 	dsRenderer_setVsync(renderer, true);

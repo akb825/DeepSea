@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Aaron Barany
+ * Copyright 2020-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,9 +32,15 @@ extern "C"
  */
 
 /**
- * @brief The scene full screen resolve type name.
+ * @brief The full screen resolve type name.
  */
 DS_SCENE_EXPORT extern const char* const dsSceneFullScreenResolve_typeName;
+
+/**
+ * @brief Gets the type of a full screen resolve.
+ * @return The type of a full screen resolve.
+ */
+DS_SCENE_EXPORT dsSceneItemListType dsSceneFullScreenResolve_type(void);
 
 /**
  * @brief Creates a full screen resolve.

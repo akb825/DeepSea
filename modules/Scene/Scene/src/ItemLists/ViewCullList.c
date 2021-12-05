@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Aaron Barany
+ * Copyright 2019-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,8 +48,6 @@ typedef struct dsViewCullList
 	uint32_t maxEntries;
 	uint64_t nextNodeID;
 } dsViewCullList;
-
-const char* const dsViewCullList_typeName = "ViewCullList";
 
 dsSceneItemList* dsViewCullList_load(const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
@@ -136,6 +134,14 @@ void dsViewCullList_destroy(dsSceneItemList* itemList)
 	DS_VERIFY(dsAllocator_free(itemList->allocator, itemList));
 }
 
+const char* const dsViewCullList_typeName = "ViewCullList";
+
+dsSceneItemListType dsViewCullList_type(void)
+{
+	static int type;
+	return &type;
+}
+
 dsSceneItemList* dsViewCullList_create(dsAllocator* allocator, const char* name)
 {
 	if (!allocator || !name)
@@ -164,6 +170,7 @@ dsSceneItemList* dsViewCullList_create(dsAllocator* allocator, const char* name)
 
 	dsSceneItemList* itemList = (dsSceneItemList*)cullList;
 	itemList->allocator = allocator;
+	itemList->type = dsViewCullList_type();
 	itemList->name = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, nameLen + 1);
 	memcpy((void*)itemList->name, name, nameLen + 1);
 	itemList->nameID = dsHashString(name);

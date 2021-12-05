@@ -57,10 +57,8 @@ float dsCascadedShadowMap(sampler2DArrayShadow shadowMap, mat4 cascadeProjection
 	if (split >= 4 || viewZ >= fadeDistances.y)
 		return 1.0;
 
-	float fadeRange = fadeDistances.y - fadeDistances.x;
-	float fadeAmount = 0.0;
-	if (fadeRange > 1e-3)
-		fadeAmount = max(viewZ - fadeDistances.x, 0.0)/fadeRange;
+	vec2 fadeFactors = max(vec2(viewZ, fadeDistances.y) - vec2(fadeDistances.x), vec2(0.0, 1e-3));
+	float fadeAmount = fadeFactors.x/fadeFactors.y;
 
 	vec4 shadowPos = DS_ADJUST_CLIP(cascadeProjections[split]*vec4(viewPos, 1.0));
 	shadowPos /= shadowPos.w;

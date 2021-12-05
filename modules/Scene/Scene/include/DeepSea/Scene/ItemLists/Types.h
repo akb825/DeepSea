@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Aaron Barany
+ * Copyright 2019-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,6 +39,13 @@ typedef enum dsModelSortType
 	dsModelSortType_BackToFront, ///< Sort back to front, typically for drawing transparent objects.
 	dsModelSortType_FrontToBack  ///< Sort front to back, typically for reducing pixel fill.
 } dsModelSortType;
+
+/**
+ * @brief Value that denotes the type of a scene item list.
+ *
+ * To define a type, create a static int variable and return the address.
+ */
+typedef const int* dsSceneItemListType;
 
 /**
  * @brief Struct for processing items within a scene.
@@ -226,6 +233,11 @@ struct dsSceneItemList
 	 * @brief The allocator this was created with.
 	 */
 	dsAllocator* allocator;
+
+	/**
+	 * @brief The type of the item list.
+	 */
+	dsSceneItemListType type;
 
 	/**
 	 * @brief The name of the scene item list.

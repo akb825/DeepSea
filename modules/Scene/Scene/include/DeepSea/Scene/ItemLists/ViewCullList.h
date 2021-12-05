@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Aaron Barany
+ * Copyright 2019-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,12 @@ extern "C"
  * @brief The view cull list type name.
  */
 DS_SCENE_EXPORT extern const char* const dsViewCullList_typeName;
+
+/**
+ * @brief Gets the type of a cull list.
+ * @return The type of a cull list.
+ */
+DS_SCENE_EXPORT dsSceneItemListType dsViewCullList_type(void);
 
 /**
  * @brief Creates a view cull list.

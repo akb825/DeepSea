@@ -312,8 +312,6 @@ static bool visitLights(void* userData, const dsSceneLightSet* lightSet, const d
 	return true;
 }
 
-const char* const dsDeferredLightResolve_typeName = "DeferredLightResolve";
-
 uint64_t dsDeferredLightResolve_addNode(dsSceneItemList* itemList, dsSceneNode* node,
 	const dsMatrix44f* transform, dsSceneNodeItemData* itemData, void** thisItemData)
 {
@@ -526,6 +524,14 @@ void dsDeferredLightResolve_commit(dsSceneItemList* itemList, const dsView* view
 	}
 }
 
+const char* const dsDeferredLightResolve_typeName = "DeferredLightResolve";
+
+dsSceneItemListType dsDeferredLightResolve_type(void)
+{
+	static int type;
+	return &type;
+}
+
 dsDeferredLightResolve* dsDeferredLightResolve_create(dsAllocator* allocator,
 	dsAllocator* resourceAllocator, const char* name, const dsSceneLightSet* lightSet,
 	const dsSceneShadowManager* shadowManager, const dsDeferredLightDrawInfo* ambientInfo,
@@ -585,6 +591,7 @@ dsDeferredLightResolve* dsDeferredLightResolve_create(dsAllocator* allocator,
 
 	dsSceneItemList* itemList = (dsSceneItemList*)resolve;
 	itemList->allocator = allocator;
+	itemList->type = dsDeferredLightResolve_type();
 	itemList->name = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, nameLen);
 	DS_ASSERT(itemList->name);
 	memcpy((void*)itemList->name, name, nameLen);

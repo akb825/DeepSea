@@ -52,10 +52,8 @@ float dsPointShadowMap(sampler2DArrayShadow shadowMap, mat4 pointProjections[6],
 	if (viewZ >= fadeDistances.y)
 		return 1.0;
 
-	float fadeRange = fadeDistances.y - fadeDistances.x;
-	float fadeAmount = 0.0;
-	if (fadeRange > 1e-3)
-		fadeAmount = max(viewZ - fadeDistances.x, 0.0)/fadeRange;
+	vec2 fadeFactors = max(vec2(viewZ, fadeDistances.y) - vec2(fadeDistances.x), vec2(0.0, 1e-3));
+	float fadeAmount = fadeFactors.x/fadeFactors.y;
 
 	vec3 lightToPos = viewPos - lightViewPos;
 	vec3 absLightToPos = abs(lightToPos);

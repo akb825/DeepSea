@@ -46,8 +46,6 @@ struct dsSceneFullScreenResolve
 	dsDrawGeometry* geometry;
 };
 
-const char* const dsSceneFullScreenResolve_typeName = "FullScreenResolve";
-
 static const int16_t vertexData[] =
 {
 	-INT16_MAX, INT16_MAX,
@@ -92,6 +90,14 @@ static void dsCommitSceneItemList_commit(dsSceneItemList* itemList, const dsView
 	DS_CHECK(DS_SCENE_LOG_TAG, dsShader_unbind(resolve->shader, commandBuffer));
 }
 
+const char* const dsSceneFullScreenResolve_typeName = "FullScreenResolve";
+
+dsSceneItemListType dsSceneFullScreenResolve_type(void)
+{
+	static int type;
+	return &type;
+}
+
 dsSceneFullScreenResolve* dsSceneFullScreenResolve_create(dsAllocator* allocator, const char* name,
 	dsResourceManager* resourceManager, dsAllocator* resourceAllocator, dsShader* shader,
 	dsMaterial* material, const dsDynamicRenderStates* renderStates)
@@ -119,6 +125,7 @@ dsSceneFullScreenResolve* dsSceneFullScreenResolve_create(dsAllocator* allocator
 
 	dsSceneItemList* itemList = (dsSceneItemList*)resolve;
 	itemList->allocator = dsAllocator_keepPointer(allocator);
+	itemList->type = dsSceneFullScreenResolve_type();
 	itemList->name = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, nameLen);
 	DS_ASSERT(itemList->name);
 	memcpy((void*)itemList->name, name, nameLen);

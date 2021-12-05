@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 Aaron Barany
+ * Copyright 2019-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -535,6 +535,33 @@ void dsScene_clearNodes(dsScene* scene)
 {
 	if (scene)
 		dsSceneNode_clear(&scene->rootNode);
+}
+
+dsSceneItemList* dsScene_findItemList(dsScene* scene, const char* name)
+{
+	if (!scene || !name)
+		return NULL;
+
+	dsSceneItemListNode* foundNode = (dsSceneItemListNode*)dsHashTable_find(scene->itemLists, name);
+	if (!foundNode)
+		return NULL;
+
+	return foundNode->list;
+}
+
+bool dsScene_forEachItemList(dsScene* scene, dsVisitSceneItemListsFunction visitFunc,
+	void* userData)
+{
+	if (!scene || !visitFunc)
+		return false;
+
+	for (dsListNode* node = scene->itemLists->list.head; node; node = node->next)
+	{
+		if (!visitFunc(((dsSceneItemListNode*)node)->list, userData))
+			break;
+	}
+
+	return true;
 }
 
 bool dsScene_update(dsScene* scene)

@@ -41,6 +41,12 @@ extern "C"
 DS_SCENELIGHTING_EXPORT extern const char* const dsShadowCullList_typeName;
 
 /**
+ * @brief Gets the type of a shadow cull list.
+ * @return The type of a shadow cull list.
+ */
+DS_SCENELIGHTING_EXPORT dsSceneItemListType dsShadowCullList_type(void);
+
+/**
  * @brief Creates a shadow cull list.
  * @remark errno will be set on failure.
  * @param allocator The allocator to create the list with. This must support freeing memory.

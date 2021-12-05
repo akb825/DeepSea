@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Aaron Barany
+ * Copyright 2020-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,12 @@ extern "C"
  * @brief The scene vector item list type name.
  */
 DS_VECTORDRAWSCENE_EXPORT extern const char* const dsSceneVectorItemList_typeName;
+
+/**
+ * @brief Gets the type of a scene vector item list.
+ * @return The type of a scene vector item list.
+ */
+DS_VECTORDRAWSCENE_EXPORT dsSceneItemListType dsSceneVectorItemList_type(void);
 
 /**
  * @brief Creates a scene vector item list.

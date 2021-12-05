@@ -103,12 +103,7 @@
 								}
 							],
 							"sortType": "FrontToBack",
-							"cullList": "mainShadowCullList0",
-							"dynamicRenderStates":
-							{
-								"depthBiasConstantFactor": -1.0,
-								"depthBiasSlopeFactor": -2.0
-							}
+							"cullList": "mainShadowCullList0"
 						}
 					]
 				}
@@ -154,12 +149,7 @@
 								}
 							],
 							"sortType": "FrontToBack",
-							"cullList": "spotShadowCullList",
-							"dynamicRenderStates":
-							{
-								"depthBiasConstantFactor": 0.0,
-								"depthBiasSlopeFactor": 0.0
-							}
+							"cullList": "spotShadowCullList"
 						}
 					]
 				}
@@ -205,12 +195,7 @@
 								}
 							],
 							"sortType": "FrontToBack",
-							"cullList": "pointShadowCullList0",
-							"dynamicRenderStates":
-							{
-								"depthBiasConstantFactor": 0.0,
-								"depthBiasSlopeFactor": 0.0
-							}
+							"cullList": "pointShadowCullList0"
 						}
 					]
 				}
@@ -256,12 +241,7 @@
 								}
 							],
 							"sortType": "FrontToBack",
-							"cullList": "pointShadowCullList1",
-							"dynamicRenderStates":
-							{
-								"depthBiasConstantFactor": 0.0,
-								"depthBiasSlopeFactor": 0.0
-							}
+							"cullList": "pointShadowCullList1"
 						}
 					]
 				}
@@ -307,12 +287,7 @@
 								}
 							],
 							"sortType": "FrontToBack",
-							"cullList": "pointShadowCullList2",
-							"dynamicRenderStates":
-							{
-								"depthBiasConstantFactor": 0.0,
-								"depthBiasSlopeFactor": 0.0
-							}
+							"cullList": "pointShadowCullList2"
 						}
 					]
 				}
@@ -358,12 +333,7 @@
 								}
 							],
 							"sortType": "FrontToBack",
-							"cullList": "pointShadowCullList3",
-							"dynamicRenderStates":
-							{
-								"depthBiasConstantFactor": 0.0,
-								"depthBiasSlopeFactor": 0.0
-							}
+							"cullList": "pointShadowCullList3"
 						}
 					]
 				}
@@ -409,12 +379,7 @@
 								}
 							],
 							"sortType": "FrontToBack",
-							"cullList": "pointShadowCullList4",
-							"dynamicRenderStates":
-							{
-								"depthBiasConstantFactor": 0.0,
-								"depthBiasSlopeFactor": 0.0
-							}
+							"cullList": "pointShadowCullList4"
 						}
 					]
 				}
@@ -460,12 +425,7 @@
 								}
 							],
 							"sortType": "FrontToBack",
-							"cullList": "pointShadowCullList5",
-							"dynamicRenderStates":
-							{
-								"depthBiasConstantFactor": 0.0,
-								"depthBiasSlopeFactor": 0.0
-							}
+							"cullList": "pointShadowCullList5"
 						}
 					]
 				}

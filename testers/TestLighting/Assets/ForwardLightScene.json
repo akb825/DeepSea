@@ -75,12 +75,7 @@
 								}
 							],
 							"sortType": "FrontToBack",
-							"cullList": "mainShadowCullList0",
-							"dynamicRenderStates":
-							{
-								"depthBiasConstantFactor": -1.0,
-								"depthBiasSlopeFactor": -2.0
-							}
+							"cullList": "mainShadowCullList0"
 						}
 					]
 				}
@@ -126,12 +121,7 @@
 								}
 							],
 							"sortType": "FrontToBack",
-							"cullList": "mainShadowCullList1",
-							"dynamicRenderStates":
-							{
-								"depthBiasConstantFactor": -1.0,
-								"depthBiasSlopeFactor": -2.0
-							}
+							"cullList": "mainShadowCullList1"
 						}
 					]
 				}
@@ -177,12 +167,7 @@
 								}
 							],
 							"sortType": "FrontToBack",
-							"cullList": "mainShadowCullList2",
-							"dynamicRenderStates":
-							{
-								"depthBiasConstantFactor": -1.0,
-								"depthBiasSlopeFactor": -2.0
-							}
+							"cullList": "mainShadowCullList2"
 						}
 					]
 				}
@@ -228,12 +213,7 @@
 								}
 							],
 							"sortType": "FrontToBack",
-							"cullList": "mainShadowCullList3",
-							"dynamicRenderStates":
-							{
-								"depthBiasConstantFactor": -1.0,
-								"depthBiasSlopeFactor": -2.0
-							}
+							"cullList": "mainShadowCullList3"
 						}
 					]
 				}

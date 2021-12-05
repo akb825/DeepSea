@@ -37,6 +37,12 @@ extern "C"
 DS_SCENELIGHTING_EXPORT extern const char* const dsDeferredLightResolve_typeName;
 
 /**
+ * @brief Gets the type of a deferred light resolve.
+ * @return The type of a deferred light resolve.
+ */
+DS_SCENELIGHTING_EXPORT dsSceneItemListType dsDeferredLightResolve_type(void);
+
+/**
  * @brief Creates a deferred light resolve.
  *
  * The following vertex elements are used based on the light type:

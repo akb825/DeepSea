@@ -284,6 +284,14 @@ struct dsSceneGlobalData
 };
 
 /**
+ * @brief Function for visiting the item lists in a scene.
+ * @param itemList The item list being visited.
+ * @param userData User data passed through to the callback.
+ * @return True to continue iteration, false to stop.
+ */
+typedef bool (*dsVisitSceneItemListsFunction)(dsSceneItemList* itemList, void* userData);
+
+/**
  * @brief Info for a surface used within a view.
  */
 typedef struct dsViewSurfaceInfo

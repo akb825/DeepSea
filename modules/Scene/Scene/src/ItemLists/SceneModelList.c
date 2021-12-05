@@ -320,8 +320,6 @@ static void destroyInstanceData(dsSceneInstanceData* const* instanceData,
 		dsSceneInstanceData_destroy(instanceData[i]);
 }
 
-const char* const dsSceneModelList_typeName = "ModelList";
-
 uint64_t dsSceneModelList_addNode(dsSceneItemList* itemList, dsSceneNode* node,
 	const dsMatrix44f* transform, dsSceneNodeItemData* itemData, void** thisItemData)
 {
@@ -380,6 +378,14 @@ void dsSceneModelList_commit(dsSceneItemList* itemList, const dsView* view,
 	DS_PROFILE_SCOPE_END();
 }
 
+const char* const dsSceneModelList_typeName = "ModelList";
+
+dsSceneItemListType dsSceneModelList_type(void)
+{
+	static int type;
+	return &type;
+}
+
 dsSceneModelList* dsSceneModelList_create(dsAllocator* allocator, const char* name,
 	dsSceneInstanceData* const* instanceData, uint32_t instanceDataCount, dsModelSortType sortType,
 	const dsDynamicRenderStates* renderStates, const char* cullList)
@@ -430,6 +436,7 @@ dsSceneModelList* dsSceneModelList_create(dsAllocator* allocator, const char* na
 
 	dsSceneItemList* itemList = (dsSceneItemList*)modelList;
 	itemList->allocator = allocator;
+	itemList->type = dsSceneModelList_type();
 	itemList->name = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc, char, nameLen + 1);
 	memcpy((void*)itemList->name, name, nameLen + 1);
 	itemList->nameID = dsHashString(name);

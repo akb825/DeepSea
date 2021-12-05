@@ -37,6 +37,12 @@ extern "C"
 DS_SCENE_EXPORT extern const char* const dsSceneModelList_typeName;
 
 /**
+ * @brief Gets the type of a model list.
+ * @return The type of a model list.
+ */
+DS_SCENE_EXPORT dsSceneItemListType dsSceneModelList_type(void);
+
+/**
  * @brief Creates a scene model list.
  * @remark errno will be set on failure.
  * @param allocator The allocator to create the list with. This must support freeing memory.

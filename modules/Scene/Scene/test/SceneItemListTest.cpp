@@ -132,6 +132,7 @@ MockSceneItemList* createMockSceneItems(dsAllocator* allocator)
 
 	dsSceneItemList* baseItems = (dsSceneItemList*)mockItems;
 	baseItems->allocator = dsAllocator_keepPointer(allocator);
+	baseItems->type = 0;
 	baseItems->name = testItemListName;
 	baseItems->nameID = dsHashString(testItemListName);
 	baseItems->needsCommandBuffer = false;

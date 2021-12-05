@@ -362,8 +362,6 @@ static void destroyInstanceData(dsSceneInstanceData* const* instanceData,
 		dsSceneInstanceData_destroy(instanceData[i]);
 }
 
-const char* const dsSceneVectorItemList_typeName = "VectorItemList";
-
 uint64_t dsSceneVectorItemList_addNode(dsSceneItemList* itemList, dsSceneNode* node,
 	const dsMatrix44f* transform, dsSceneNodeItemData* itemData, void** thisItemData)
 {
@@ -420,6 +418,14 @@ void dsSceneVectorItemList_commit(dsSceneItemList* itemList, const dsView* view,
 	DS_PROFILE_SCOPE_END();
 }
 
+const char* const dsSceneVectorItemList_typeName = "VectorItemList";
+
+dsSceneItemListType dsSceneVectorItemList_type(void)
+{
+	static int type;
+	return &type;
+}
+
 dsSceneVectorItemList* dsSceneVectorItemList_create(dsAllocator* allocator, const char* name,
 	dsResourceManager* resourceManager, dsSceneInstanceData* const* instanceData,
 	uint32_t instanceDataCount, const dsDynamicRenderStates* renderStates)
@@ -469,6 +475,7 @@ dsSceneVectorItemList* dsSceneVectorItemList_create(dsAllocator* allocator, cons
 
 	dsSceneItemList* itemList = (dsSceneItemList*)vectorList;
 	itemList->allocator = allocator;
+	itemList->type = dsSceneVectorItemList_type();
 	itemList->name = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc, char, nameLen + 1);
 	memcpy((void*)itemList->name, name, nameLen + 1);
 	itemList->nameID = dsHashString(name);

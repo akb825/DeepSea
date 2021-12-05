@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 Aaron Barany
+ * Copyright 2019-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -204,6 +204,25 @@ DS_SCENE_EXPORT bool dsScene_removeNode(dsScene* scene, dsSceneNode* node);
  * @param scene The scene to clear.
  */
 DS_SCENE_EXPORT void dsScene_clearNodes(dsScene* scene);
+
+/**
+ * @brief Finds an item list by name.
+ * @param scene The scene to find the item list in.
+ * @param name The name of the item list.
+ * @return The found item list or NULL if not found.
+ */
+DS_SCENE_EXPORT dsSceneItemList* dsScene_findItemList(dsScene* scene, const char* name);
+
+/**
+ * @brief Visits each item list in the scene configuration.
+ * @remark errno will be set on failure.
+ * @param scene The scene to visit the item lists in.
+ * @param visitFunc The function to call for each visitor.
+ * @param userData User data to pass to the visitor function.
+ * @return False if the parameters are invalid.
+ */
+DS_SCENE_EXPORT bool dsScene_forEachItemList(dsScene* scene,
+	dsVisitSceneItemListsFunction visitFunc, void* userData);
 
 /**
  * @brief Updates dirty nodes within the scene.

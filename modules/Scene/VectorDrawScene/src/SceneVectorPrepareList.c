@@ -52,8 +52,6 @@ typedef struct dsSceneVectorPrepareList
 	uint64_t nextNodeID;
 } dsSceneVectorPrepareList;
 
-const char* const dsSceneVectorPrepareList_typeName = "VectorPrepareList";
-
 dsSceneItemList* dsSceneVectorPrepareList_load(const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
 	void* userData, const char* name, const uint8_t* data, size_t dataSize)
@@ -168,6 +166,14 @@ void dsSceneVectorPrepareList_destroy(dsSceneItemList* itemList)
 	DS_VERIFY(dsAllocator_free(itemList->allocator, itemList));
 }
 
+const char* const dsSceneVectorPrepareList_typeName = "VectorPrepareList";
+
+dsSceneItemListType dsSceneVectorPrepareList_type(void)
+{
+	static int type;
+	return &type;
+}
+
 dsSceneItemList* dsSceneVectorPrepareList_create(dsAllocator* allocator, const char* name)
 {
 	if (!allocator || !name)
@@ -198,6 +204,7 @@ dsSceneItemList* dsSceneVectorPrepareList_create(dsAllocator* allocator, const c
 
 	dsSceneItemList* itemList = (dsSceneItemList*)prepareList;
 	itemList->allocator = allocator;
+	itemList->type = dsSceneVectorPrepareList_type();
 	itemList->name = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, nameLen + 1);
 	memcpy((void*)itemList->name, name, nameLen + 1);
 	itemList->nameID = dsHashString(name);

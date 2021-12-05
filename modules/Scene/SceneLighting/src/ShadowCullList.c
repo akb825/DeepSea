@@ -57,8 +57,6 @@ typedef struct dsShadowCullList
 	uint64_t nextNodeID;
 } dsShadowCullList;
 
-const char* const dsShadowCullList_typeName = "ShadowCullList";
-
 uint64_t dsShadowCullList_addNode(dsSceneItemList* itemList, dsSceneNode* node,
 	const dsMatrix44f* transform, dsSceneNodeItemData* itemData, void** thisItemData)
 {
@@ -147,6 +145,14 @@ void dsShadowCullList_destroy(dsSceneItemList* itemList)
 	DS_VERIFY(dsAllocator_free(itemList->allocator, itemList));
 }
 
+const char* const dsShadowCullList_typeName = "ShadowCullList";
+
+dsSceneItemListType dsShadowCullList_type(void)
+{
+	static int list;
+	return &list;
+}
+
 dsSceneItemList* dsShadowCullList_create(dsAllocator* allocator, const char* name,
 	dsSceneLightShadows* shadows, uint32_t surface)
 {
@@ -176,6 +182,7 @@ dsSceneItemList* dsShadowCullList_create(dsAllocator* allocator, const char* nam
 
 	dsSceneItemList* itemList = (dsSceneItemList*)cullList;
 	itemList->allocator = allocator;
+	itemList->type = dsShadowCullList_type();
 	itemList->name = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, nameLen + 1);
 	memcpy((void*)itemList->name, name, nameLen + 1);
 	itemList->nameID = dsHashString(name);
