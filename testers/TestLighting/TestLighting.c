@@ -129,7 +129,7 @@ static void setPointShadowBias(dsDynamicRenderStates* outRenderStates, const dsR
 	if (renderer->rendererID == DS_VK_RENDERER_ID)
 	{
 		outRenderStates->depthBiasConstantFactor = 0.0f;
-		outRenderStates->depthBiasSlopeFactor = 1.0f;
+		outRenderStates->depthBiasSlopeFactor = 0.0f;
 		outRenderStates->depthBiasClamp = 0.0f;
 	}
 	else
@@ -149,8 +149,8 @@ static void setSpotShadowBias(dsDynamicRenderStates* outRenderStates, const dsRe
 
 	if (renderer->rendererID == DS_VK_RENDERER_ID)
 	{
-		outRenderStates->depthBiasConstantFactor = 0.2f;
-		outRenderStates->depthBiasSlopeFactor = 2.0f;
+		outRenderStates->depthBiasConstantFactor = 0.0f;
+		outRenderStates->depthBiasSlopeFactor = 0.0f;
 		outRenderStates->depthBiasClamp = 0.0f;
 	}
 	else
