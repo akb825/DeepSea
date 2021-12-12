@@ -18,9 +18,19 @@
 
 #include <DeepSea/Core/Config.h>
 #include <DeepSea/Core/Streams/Types.h>
-#include <DeepSea/Scene/Flatbuffers/SceneCommon_generated.h>
 #include <DeepSea/Scene/Export.h>
 #include <DeepSea/Scene/Types.h>
+
+#if DS_GCC || DS_CLANG
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#endif
+
+#include <DeepSea/Scene/Flatbuffers/SceneCommon_generated.h>
+
+#if DS_GCC || DS_CLANG
+#pragma GCC diagnostic pop
+#endif
 
 /**
  * @file

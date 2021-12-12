@@ -144,67 +144,51 @@ class VectorShaders(object):
             return self._tab.String(o + self._tab.Pos)
         return None
 
-def Start(builder): builder.StartObject(12)
-def VectorShadersStart(builder):
-    """This method is deprecated. Please switch to Start."""
-    return Start(builder)
-def AddModules(builder, modules): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(modules), 0)
-def VectorShadersAddModules(builder, modules):
-    """This method is deprecated. Please switch to AddModules."""
-    return AddModules(builder, modules)
-def StartModulesVector(builder, numElems): return builder.StartVector(4, numElems, 4)
-def VectorShadersStartModulesVector(builder, numElems):
-    """This method is deprecated. Please switch to Start."""
-    return StartModulesVector(builder, numElems)
-def AddExtraElements(builder, extraElements): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(extraElements), 0)
-def VectorShadersAddExtraElements(builder, extraElements):
-    """This method is deprecated. Please switch to AddExtraElements."""
-    return AddExtraElements(builder, extraElements)
-def StartExtraElementsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
-def VectorShadersStartExtraElementsVector(builder, numElems):
-    """This method is deprecated. Please switch to Start."""
-    return StartExtraElementsVector(builder, numElems)
-def AddMaterialDesc(builder, materialDesc): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(materialDesc), 0)
-def VectorShadersAddMaterialDesc(builder, materialDesc):
-    """This method is deprecated. Please switch to AddMaterialDesc."""
-    return AddMaterialDesc(builder, materialDesc)
-def AddFillColor(builder, fillColor): builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(fillColor), 0)
-def VectorShadersAddFillColor(builder, fillColor):
-    """This method is deprecated. Please switch to AddFillColor."""
-    return AddFillColor(builder, fillColor)
-def AddFillLinearGradient(builder, fillLinearGradient): builder.PrependUOffsetTRelativeSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(fillLinearGradient), 0)
-def VectorShadersAddFillLinearGradient(builder, fillLinearGradient):
-    """This method is deprecated. Please switch to AddFillLinearGradient."""
-    return AddFillLinearGradient(builder, fillLinearGradient)
-def AddFillRadialGradient(builder, fillRadialGradient): builder.PrependUOffsetTRelativeSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(fillRadialGradient), 0)
-def VectorShadersAddFillRadialGradient(builder, fillRadialGradient):
-    """This method is deprecated. Please switch to AddFillRadialGradient."""
-    return AddFillRadialGradient(builder, fillRadialGradient)
-def AddLine(builder, line): builder.PrependUOffsetTRelativeSlot(6, flatbuffers.number_types.UOffsetTFlags.py_type(line), 0)
-def VectorShadersAddLine(builder, line):
-    """This method is deprecated. Please switch to AddLine."""
-    return AddLine(builder, line)
-def AddImage(builder, image): builder.PrependUOffsetTRelativeSlot(7, flatbuffers.number_types.UOffsetTFlags.py_type(image), 0)
-def VectorShadersAddImage(builder, image):
-    """This method is deprecated. Please switch to AddImage."""
-    return AddImage(builder, image)
-def AddTextColor(builder, textColor): builder.PrependUOffsetTRelativeSlot(8, flatbuffers.number_types.UOffsetTFlags.py_type(textColor), 0)
-def VectorShadersAddTextColor(builder, textColor):
-    """This method is deprecated. Please switch to AddTextColor."""
-    return AddTextColor(builder, textColor)
-def AddTextColorOutline(builder, textColorOutline): builder.PrependUOffsetTRelativeSlot(9, flatbuffers.number_types.UOffsetTFlags.py_type(textColorOutline), 0)
-def VectorShadersAddTextColorOutline(builder, textColorOutline):
-    """This method is deprecated. Please switch to AddTextColorOutline."""
-    return AddTextColorOutline(builder, textColorOutline)
-def AddTextGradient(builder, textGradient): builder.PrependUOffsetTRelativeSlot(10, flatbuffers.number_types.UOffsetTFlags.py_type(textGradient), 0)
-def VectorShadersAddTextGradient(builder, textGradient):
-    """This method is deprecated. Please switch to AddTextGradient."""
-    return AddTextGradient(builder, textGradient)
-def AddTextGradientOutline(builder, textGradientOutline): builder.PrependUOffsetTRelativeSlot(11, flatbuffers.number_types.UOffsetTFlags.py_type(textGradientOutline), 0)
-def VectorShadersAddTextGradientOutline(builder, textGradientOutline):
-    """This method is deprecated. Please switch to AddTextGradientOutline."""
-    return AddTextGradientOutline(builder, textGradientOutline)
-def End(builder): return builder.EndObject()
-def VectorShadersEnd(builder):
-    """This method is deprecated. Please switch to End."""
-    return End(builder)
+def VectorShadersStart(builder): builder.StartObject(12)
+def Start(builder):
+    return VectorShadersStart(builder)
+def VectorShadersAddModules(builder, modules): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(modules), 0)
+def AddModules(builder, modules):
+    return VectorShadersAddModules(builder, modules)
+def VectorShadersStartModulesVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+def StartModulesVector(builder, numElems):
+    return VectorShadersStartModulesVector(builder, numElems)
+def VectorShadersAddExtraElements(builder, extraElements): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(extraElements), 0)
+def AddExtraElements(builder, extraElements):
+    return VectorShadersAddExtraElements(builder, extraElements)
+def VectorShadersStartExtraElementsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+def StartExtraElementsVector(builder, numElems):
+    return VectorShadersStartExtraElementsVector(builder, numElems)
+def VectorShadersAddMaterialDesc(builder, materialDesc): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(materialDesc), 0)
+def AddMaterialDesc(builder, materialDesc):
+    return VectorShadersAddMaterialDesc(builder, materialDesc)
+def VectorShadersAddFillColor(builder, fillColor): builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(fillColor), 0)
+def AddFillColor(builder, fillColor):
+    return VectorShadersAddFillColor(builder, fillColor)
+def VectorShadersAddFillLinearGradient(builder, fillLinearGradient): builder.PrependUOffsetTRelativeSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(fillLinearGradient), 0)
+def AddFillLinearGradient(builder, fillLinearGradient):
+    return VectorShadersAddFillLinearGradient(builder, fillLinearGradient)
+def VectorShadersAddFillRadialGradient(builder, fillRadialGradient): builder.PrependUOffsetTRelativeSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(fillRadialGradient), 0)
+def AddFillRadialGradient(builder, fillRadialGradient):
+    return VectorShadersAddFillRadialGradient(builder, fillRadialGradient)
+def VectorShadersAddLine(builder, line): builder.PrependUOffsetTRelativeSlot(6, flatbuffers.number_types.UOffsetTFlags.py_type(line), 0)
+def AddLine(builder, line):
+    return VectorShadersAddLine(builder, line)
+def VectorShadersAddImage(builder, image): builder.PrependUOffsetTRelativeSlot(7, flatbuffers.number_types.UOffsetTFlags.py_type(image), 0)
+def AddImage(builder, image):
+    return VectorShadersAddImage(builder, image)
+def VectorShadersAddTextColor(builder, textColor): builder.PrependUOffsetTRelativeSlot(8, flatbuffers.number_types.UOffsetTFlags.py_type(textColor), 0)
+def AddTextColor(builder, textColor):
+    return VectorShadersAddTextColor(builder, textColor)
+def VectorShadersAddTextColorOutline(builder, textColorOutline): builder.PrependUOffsetTRelativeSlot(9, flatbuffers.number_types.UOffsetTFlags.py_type(textColorOutline), 0)
+def AddTextColorOutline(builder, textColorOutline):
+    return VectorShadersAddTextColorOutline(builder, textColorOutline)
+def VectorShadersAddTextGradient(builder, textGradient): builder.PrependUOffsetTRelativeSlot(10, flatbuffers.number_types.UOffsetTFlags.py_type(textGradient), 0)
+def AddTextGradient(builder, textGradient):
+    return VectorShadersAddTextGradient(builder, textGradient)
+def VectorShadersAddTextGradientOutline(builder, textGradientOutline): builder.PrependUOffsetTRelativeSlot(11, flatbuffers.number_types.UOffsetTFlags.py_type(textGradientOutline), 0)
+def AddTextGradientOutline(builder, textGradientOutline):
+    return VectorShadersAddTextGradientOutline(builder, textGradientOutline)
+def VectorShadersEnd(builder): return builder.EndObject()
+def End(builder):
+    return VectorShadersEnd(builder)

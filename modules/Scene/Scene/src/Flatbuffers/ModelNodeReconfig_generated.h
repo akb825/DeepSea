@@ -95,7 +95,7 @@ inline flatbuffers::Offset<ModelReconfig> CreateModelReconfig(
     flatbuffers::Offset<flatbuffers::String> name = 0,
     flatbuffers::Offset<flatbuffers::String> shader = 0,
     flatbuffers::Offset<flatbuffers::String> material = 0,
-    const DeepSeaScene::Vector2f *distanceRange = 0,
+    const DeepSeaScene::Vector2f *distanceRange = nullptr,
     flatbuffers::Offset<flatbuffers::String> modelList = 0) {
   ModelReconfigBuilder builder_(_fbb);
   builder_.add_modelList(modelList);
@@ -111,7 +111,7 @@ inline flatbuffers::Offset<ModelReconfig> CreateModelReconfigDirect(
     const char *name = nullptr,
     const char *shader = nullptr,
     const char *material = nullptr,
-    const DeepSeaScene::Vector2f *distanceRange = 0,
+    const DeepSeaScene::Vector2f *distanceRange = nullptr,
     const char *modelList = nullptr) {
   auto name__ = name ? _fbb.CreateString(name) : 0;
   auto shader__ = shader ? _fbb.CreateString(shader) : 0;

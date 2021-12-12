@@ -118,43 +118,33 @@ class RenderSubpass(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(12))
         return o == 0
 
-def Start(builder): builder.StartObject(5)
-def RenderSubpassStart(builder):
-    """This method is deprecated. Please switch to Start."""
-    return Start(builder)
-def AddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
-def RenderSubpassAddName(builder, name):
-    """This method is deprecated. Please switch to AddName."""
-    return AddName(builder, name)
-def AddInputAttachments(builder, inputAttachments): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(inputAttachments), 0)
-def RenderSubpassAddInputAttachments(builder, inputAttachments):
-    """This method is deprecated. Please switch to AddInputAttachments."""
-    return AddInputAttachments(builder, inputAttachments)
-def StartInputAttachmentsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
-def RenderSubpassStartInputAttachmentsVector(builder, numElems):
-    """This method is deprecated. Please switch to Start."""
-    return StartInputAttachmentsVector(builder, numElems)
-def AddColorAttachments(builder, colorAttachments): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(colorAttachments), 0)
-def RenderSubpassAddColorAttachments(builder, colorAttachments):
-    """This method is deprecated. Please switch to AddColorAttachments."""
-    return AddColorAttachments(builder, colorAttachments)
-def StartColorAttachmentsVector(builder, numElems): return builder.StartVector(8, numElems, 4)
-def RenderSubpassStartColorAttachmentsVector(builder, numElems):
-    """This method is deprecated. Please switch to Start."""
-    return StartColorAttachmentsVector(builder, numElems)
-def AddDepthStencilAttachment(builder, depthStencilAttachment): builder.PrependStructSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(depthStencilAttachment), 0)
-def RenderSubpassAddDepthStencilAttachment(builder, depthStencilAttachment):
-    """This method is deprecated. Please switch to AddDepthStencilAttachment."""
-    return AddDepthStencilAttachment(builder, depthStencilAttachment)
-def AddDrawLists(builder, drawLists): builder.PrependUOffsetTRelativeSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(drawLists), 0)
-def RenderSubpassAddDrawLists(builder, drawLists):
-    """This method is deprecated. Please switch to AddDrawLists."""
-    return AddDrawLists(builder, drawLists)
-def StartDrawListsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
-def RenderSubpassStartDrawListsVector(builder, numElems):
-    """This method is deprecated. Please switch to Start."""
-    return StartDrawListsVector(builder, numElems)
-def End(builder): return builder.EndObject()
-def RenderSubpassEnd(builder):
-    """This method is deprecated. Please switch to End."""
-    return End(builder)
+def RenderSubpassStart(builder): builder.StartObject(5)
+def Start(builder):
+    return RenderSubpassStart(builder)
+def RenderSubpassAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+def AddName(builder, name):
+    return RenderSubpassAddName(builder, name)
+def RenderSubpassAddInputAttachments(builder, inputAttachments): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(inputAttachments), 0)
+def AddInputAttachments(builder, inputAttachments):
+    return RenderSubpassAddInputAttachments(builder, inputAttachments)
+def RenderSubpassStartInputAttachmentsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+def StartInputAttachmentsVector(builder, numElems):
+    return RenderSubpassStartInputAttachmentsVector(builder, numElems)
+def RenderSubpassAddColorAttachments(builder, colorAttachments): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(colorAttachments), 0)
+def AddColorAttachments(builder, colorAttachments):
+    return RenderSubpassAddColorAttachments(builder, colorAttachments)
+def RenderSubpassStartColorAttachmentsVector(builder, numElems): return builder.StartVector(8, numElems, 4)
+def StartColorAttachmentsVector(builder, numElems):
+    return RenderSubpassStartColorAttachmentsVector(builder, numElems)
+def RenderSubpassAddDepthStencilAttachment(builder, depthStencilAttachment): builder.PrependStructSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(depthStencilAttachment), 0)
+def AddDepthStencilAttachment(builder, depthStencilAttachment):
+    return RenderSubpassAddDepthStencilAttachment(builder, depthStencilAttachment)
+def RenderSubpassAddDrawLists(builder, drawLists): builder.PrependUOffsetTRelativeSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(drawLists), 0)
+def AddDrawLists(builder, drawLists):
+    return RenderSubpassAddDrawLists(builder, drawLists)
+def RenderSubpassStartDrawListsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+def StartDrawListsVector(builder, numElems):
+    return RenderSubpassStartDrawListsVector(builder, numElems)
+def RenderSubpassEnd(builder): return builder.EndObject()
+def End(builder):
+    return RenderSubpassEnd(builder)

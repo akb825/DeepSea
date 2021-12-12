@@ -16,7 +16,6 @@
 
 #include "InstanceForwardLightDataLoad.h"
 
-#include "Flatbuffers/InstanceForwardLightData_generated.h"
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
@@ -25,6 +24,17 @@
 #include <DeepSea/Scene/SceneLoadScratchData.h>
 #include <DeepSea/SceneLighting/InstanceForwardLightData.h>
 #include <DeepSea/SceneLighting/SceneLightSet.h>
+
+#if DS_GCC || DS_CLANG
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#endif
+
+#include "Flatbuffers/InstanceForwardLightData_generated.h"
+
+#if DS_GCC || DS_CLANG
+#pragma GCC diagnostic pop
+#endif
 
 dsSceneInstanceData* dsInstanceForwardLightData_load(const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator*, void*,

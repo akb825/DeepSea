@@ -60,23 +60,18 @@ class VectorItemList(object):
             return obj
         return None
 
-def Start(builder): builder.StartObject(2)
-def VectorItemListStart(builder):
-    """This method is deprecated. Please switch to Start."""
-    return Start(builder)
-def AddInstanceData(builder, instanceData): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(instanceData), 0)
-def VectorItemListAddInstanceData(builder, instanceData):
-    """This method is deprecated. Please switch to AddInstanceData."""
-    return AddInstanceData(builder, instanceData)
-def StartInstanceDataVector(builder, numElems): return builder.StartVector(4, numElems, 4)
-def VectorItemListStartInstanceDataVector(builder, numElems):
-    """This method is deprecated. Please switch to Start."""
-    return StartInstanceDataVector(builder, numElems)
-def AddDynamicRenderStates(builder, dynamicRenderStates): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(dynamicRenderStates), 0)
-def VectorItemListAddDynamicRenderStates(builder, dynamicRenderStates):
-    """This method is deprecated. Please switch to AddDynamicRenderStates."""
-    return AddDynamicRenderStates(builder, dynamicRenderStates)
-def End(builder): return builder.EndObject()
-def VectorItemListEnd(builder):
-    """This method is deprecated. Please switch to End."""
-    return End(builder)
+def VectorItemListStart(builder): builder.StartObject(2)
+def Start(builder):
+    return VectorItemListStart(builder)
+def VectorItemListAddInstanceData(builder, instanceData): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(instanceData), 0)
+def AddInstanceData(builder, instanceData):
+    return VectorItemListAddInstanceData(builder, instanceData)
+def VectorItemListStartInstanceDataVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+def StartInstanceDataVector(builder, numElems):
+    return VectorItemListStartInstanceDataVector(builder, numElems)
+def VectorItemListAddDynamicRenderStates(builder, dynamicRenderStates): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(dynamicRenderStates), 0)
+def AddDynamicRenderStates(builder, dynamicRenderStates):
+    return VectorItemListAddDynamicRenderStates(builder, dynamicRenderStates)
+def VectorItemListEnd(builder): return builder.EndObject()
+def End(builder):
+    return VectorItemListEnd(builder)

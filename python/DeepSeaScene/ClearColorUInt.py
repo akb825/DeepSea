@@ -52,27 +52,21 @@ class ClearColorUInt(object):
             return self._tab.Get(flatbuffers.number_types.Uint32Flags, o + self._tab.Pos)
         return 0
 
-def Start(builder): builder.StartObject(4)
-def ClearColorUIntStart(builder):
-    """This method is deprecated. Please switch to Start."""
-    return Start(builder)
-def AddRed(builder, red): builder.PrependUint32Slot(0, red, 0)
-def ClearColorUIntAddRed(builder, red):
-    """This method is deprecated. Please switch to AddRed."""
-    return AddRed(builder, red)
-def AddGreen(builder, green): builder.PrependUint32Slot(1, green, 0)
-def ClearColorUIntAddGreen(builder, green):
-    """This method is deprecated. Please switch to AddGreen."""
-    return AddGreen(builder, green)
-def AddBlue(builder, blue): builder.PrependUint32Slot(2, blue, 0)
-def ClearColorUIntAddBlue(builder, blue):
-    """This method is deprecated. Please switch to AddBlue."""
-    return AddBlue(builder, blue)
-def AddAlpha(builder, alpha): builder.PrependUint32Slot(3, alpha, 0)
-def ClearColorUIntAddAlpha(builder, alpha):
-    """This method is deprecated. Please switch to AddAlpha."""
-    return AddAlpha(builder, alpha)
-def End(builder): return builder.EndObject()
-def ClearColorUIntEnd(builder):
-    """This method is deprecated. Please switch to End."""
-    return End(builder)
+def ClearColorUIntStart(builder): builder.StartObject(4)
+def Start(builder):
+    return ClearColorUIntStart(builder)
+def ClearColorUIntAddRed(builder, red): builder.PrependUint32Slot(0, red, 0)
+def AddRed(builder, red):
+    return ClearColorUIntAddRed(builder, red)
+def ClearColorUIntAddGreen(builder, green): builder.PrependUint32Slot(1, green, 0)
+def AddGreen(builder, green):
+    return ClearColorUIntAddGreen(builder, green)
+def ClearColorUIntAddBlue(builder, blue): builder.PrependUint32Slot(2, blue, 0)
+def AddBlue(builder, blue):
+    return ClearColorUIntAddBlue(builder, blue)
+def ClearColorUIntAddAlpha(builder, alpha): builder.PrependUint32Slot(3, alpha, 0)
+def AddAlpha(builder, alpha):
+    return ClearColorUIntAddAlpha(builder, alpha)
+def ClearColorUIntEnd(builder): return builder.EndObject()
+def End(builder):
+    return ClearColorUIntEnd(builder)

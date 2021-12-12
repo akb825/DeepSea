@@ -15,7 +15,6 @@
  */
 
 #include "SceneShadowManagerPrepareLoad.h"
-#include "Flatbuffers/SceneShadowManagerPrepare_generated.h"
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
@@ -23,6 +22,17 @@
 #include <DeepSea/Scene/SceneLoadScratchData.h>
 #include <DeepSea/SceneLighting/SceneShadowManager.h>
 #include <DeepSea/SceneLighting/SceneShadowManagerPrepare.h>
+
+#if DS_GCC || DS_CLANG
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#endif
+
+#include "Flatbuffers/SceneShadowManagerPrepare_generated.h"
+
+#if DS_GCC || DS_CLANG
+#pragma GCC diagnostic pop
+#endif
 
 extern "C"
 dsSceneGlobalData* dsSceneShadowManagerPrepare_load(const dsSceneLoadContext*,

@@ -41,19 +41,15 @@ class ScenePipelineItem(object):
             return obj
         return None
 
-def Start(builder): builder.StartObject(2)
-def ScenePipelineItemStart(builder):
-    """This method is deprecated. Please switch to Start."""
-    return Start(builder)
-def AddItemType(builder, itemType): builder.PrependUint8Slot(0, itemType, 0)
-def ScenePipelineItemAddItemType(builder, itemType):
-    """This method is deprecated. Please switch to AddItemType."""
-    return AddItemType(builder, itemType)
-def AddItem(builder, item): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(item), 0)
-def ScenePipelineItemAddItem(builder, item):
-    """This method is deprecated. Please switch to AddItem."""
-    return AddItem(builder, item)
-def End(builder): return builder.EndObject()
-def ScenePipelineItemEnd(builder):
-    """This method is deprecated. Please switch to End."""
-    return End(builder)
+def ScenePipelineItemStart(builder): builder.StartObject(2)
+def Start(builder):
+    return ScenePipelineItemStart(builder)
+def ScenePipelineItemAddItemType(builder, itemType): builder.PrependUint8Slot(0, itemType, 0)
+def AddItemType(builder, itemType):
+    return ScenePipelineItemAddItemType(builder, itemType)
+def ScenePipelineItemAddItem(builder, item): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(item), 0)
+def AddItem(builder, item):
+    return ScenePipelineItemAddItem(builder, item)
+def ScenePipelineItemEnd(builder): return builder.EndObject()
+def End(builder):
+    return ScenePipelineItemEnd(builder)

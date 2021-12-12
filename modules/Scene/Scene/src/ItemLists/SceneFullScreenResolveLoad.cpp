@@ -17,7 +17,6 @@
 #include <DeepSea/Scene/ItemLists/SceneFullScreenResolve.h>
 
 #include "SceneLoadContextInternal.h"
-#include "Flatbuffers/FullScreenResolve_generated.h"
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
@@ -25,6 +24,17 @@
 #include <DeepSea/Scene/Flatbuffers/SceneFlatbufferHelpers.h>
 #include <DeepSea/Scene/SceneLoadContext.h>
 #include <DeepSea/Scene/SceneLoadScratchData.h>
+
+#if DS_GCC || DS_CLANG
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#endif
+
+#include "Flatbuffers/FullScreenResolve_generated.h"
+
+#if DS_GCC || DS_CLANG
+#pragma GCC diagnostic pop
+#endif
 
 extern "C"
 dsSceneItemList* dsSceneFullScreenResolve_load(const dsSceneLoadContext* loadContext,

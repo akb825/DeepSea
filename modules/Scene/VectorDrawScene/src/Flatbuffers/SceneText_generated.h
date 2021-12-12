@@ -131,8 +131,8 @@ inline flatbuffers::Offset<SceneTextStyle> CreateSceneTextStyle(
     float outlineWidth = 0.0f,
     float fuziness = 0.0f,
     float verticalOffset = 0.0f,
-    const DeepSeaVectorDrawScene::Color *color = 0,
-    const DeepSeaVectorDrawScene::Color *outlineColor = 0) {
+    const DeepSeaVectorDrawScene::Color *color = nullptr,
+    const DeepSeaVectorDrawScene::Color *outlineColor = nullptr) {
   SceneTextStyleBuilder builder_(_fbb);
   builder_.add_outlineColor(outlineColor);
   builder_.add_color(color);

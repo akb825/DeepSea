@@ -41,19 +41,15 @@ class ModelDrawRange(object):
             return obj
         return None
 
-def Start(builder): builder.StartObject(2)
-def ModelDrawRangeStart(builder):
-    """This method is deprecated. Please switch to Start."""
-    return Start(builder)
-def AddDrawRangeType(builder, drawRangeType): builder.PrependUint8Slot(0, drawRangeType, 0)
-def ModelDrawRangeAddDrawRangeType(builder, drawRangeType):
-    """This method is deprecated. Please switch to AddDrawRangeType."""
-    return AddDrawRangeType(builder, drawRangeType)
-def AddDrawRange(builder, drawRange): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(drawRange), 0)
-def ModelDrawRangeAddDrawRange(builder, drawRange):
-    """This method is deprecated. Please switch to AddDrawRange."""
-    return AddDrawRange(builder, drawRange)
-def End(builder): return builder.EndObject()
-def ModelDrawRangeEnd(builder):
-    """This method is deprecated. Please switch to End."""
-    return End(builder)
+def ModelDrawRangeStart(builder): builder.StartObject(2)
+def Start(builder):
+    return ModelDrawRangeStart(builder)
+def ModelDrawRangeAddDrawRangeType(builder, drawRangeType): builder.PrependUint8Slot(0, drawRangeType, 0)
+def AddDrawRangeType(builder, drawRangeType):
+    return ModelDrawRangeAddDrawRangeType(builder, drawRangeType)
+def ModelDrawRangeAddDrawRange(builder, drawRange): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(drawRange), 0)
+def AddDrawRange(builder, drawRange):
+    return ModelDrawRangeAddDrawRange(builder, drawRange)
+def ModelDrawRangeEnd(builder): return builder.EndObject()
+def End(builder):
+    return ModelDrawRangeEnd(builder)

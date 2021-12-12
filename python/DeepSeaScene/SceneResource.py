@@ -41,19 +41,15 @@ class SceneResource(object):
             return obj
         return None
 
-def Start(builder): builder.StartObject(2)
-def SceneResourceStart(builder):
-    """This method is deprecated. Please switch to Start."""
-    return Start(builder)
-def AddResourceType(builder, resourceType): builder.PrependUint8Slot(0, resourceType, 0)
-def SceneResourceAddResourceType(builder, resourceType):
-    """This method is deprecated. Please switch to AddResourceType."""
-    return AddResourceType(builder, resourceType)
-def AddResource(builder, resource): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(resource), 0)
-def SceneResourceAddResource(builder, resource):
-    """This method is deprecated. Please switch to AddResource."""
-    return AddResource(builder, resource)
-def End(builder): return builder.EndObject()
-def SceneResourceEnd(builder):
-    """This method is deprecated. Please switch to End."""
-    return End(builder)
+def SceneResourceStart(builder): builder.StartObject(2)
+def Start(builder):
+    return SceneResourceStart(builder)
+def SceneResourceAddResourceType(builder, resourceType): builder.PrependUint8Slot(0, resourceType, 0)
+def AddResourceType(builder, resourceType):
+    return SceneResourceAddResourceType(builder, resourceType)
+def SceneResourceAddResource(builder, resource): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(resource), 0)
+def AddResource(builder, resource):
+    return SceneResourceAddResource(builder, resource)
+def SceneResourceEnd(builder): return builder.EndObject()
+def End(builder):
+    return SceneResourceEnd(builder)

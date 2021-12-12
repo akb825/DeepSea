@@ -42,19 +42,15 @@ class SceneNode(object):
             return obj
         return None
 
-def Start(builder): builder.StartObject(2)
-def SceneNodeStart(builder):
-    """This method is deprecated. Please switch to Start."""
-    return Start(builder)
-def AddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
-def SceneNodeAddName(builder, name):
-    """This method is deprecated. Please switch to AddName."""
-    return AddName(builder, name)
-def AddNode(builder, node): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(node), 0)
-def SceneNodeAddNode(builder, node):
-    """This method is deprecated. Please switch to AddNode."""
-    return AddNode(builder, node)
-def End(builder): return builder.EndObject()
-def SceneNodeEnd(builder):
-    """This method is deprecated. Please switch to End."""
-    return End(builder)
+def SceneNodeStart(builder): builder.StartObject(2)
+def Start(builder):
+    return SceneNodeStart(builder)
+def SceneNodeAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+def AddName(builder, name):
+    return SceneNodeAddName(builder, name)
+def SceneNodeAddNode(builder, node): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(node), 0)
+def AddNode(builder, node):
+    return SceneNodeAddNode(builder, node)
+def SceneNodeEnd(builder): return builder.EndObject()
+def End(builder):
+    return SceneNodeEnd(builder)

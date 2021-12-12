@@ -35,15 +35,12 @@ class MoveCommand(object):
             return obj
         return None
 
-def Start(builder): builder.StartObject(1)
-def MoveCommandStart(builder):
-    """This method is deprecated. Please switch to Start."""
-    return Start(builder)
-def AddPosition(builder, position): builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(position), 0)
-def MoveCommandAddPosition(builder, position):
-    """This method is deprecated. Please switch to AddPosition."""
-    return AddPosition(builder, position)
-def End(builder): return builder.EndObject()
-def MoveCommandEnd(builder):
-    """This method is deprecated. Please switch to End."""
-    return End(builder)
+def MoveCommandStart(builder): builder.StartObject(1)
+def Start(builder):
+    return MoveCommandStart(builder)
+def MoveCommandAddPosition(builder, position): builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(position), 0)
+def AddPosition(builder, position):
+    return MoveCommandAddPosition(builder, position)
+def MoveCommandEnd(builder): return builder.EndObject()
+def End(builder):
+    return MoveCommandEnd(builder)

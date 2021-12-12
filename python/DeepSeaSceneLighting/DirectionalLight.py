@@ -53,23 +53,18 @@ class DirectionalLight(object):
             return self._tab.Get(flatbuffers.number_types.Float32Flags, o + self._tab.Pos)
         return 0.0
 
-def Start(builder): builder.StartObject(3)
-def DirectionalLightStart(builder):
-    """This method is deprecated. Please switch to Start."""
-    return Start(builder)
-def AddDirection(builder, direction): builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(direction), 0)
-def DirectionalLightAddDirection(builder, direction):
-    """This method is deprecated. Please switch to AddDirection."""
-    return AddDirection(builder, direction)
-def AddColor(builder, color): builder.PrependStructSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(color), 0)
-def DirectionalLightAddColor(builder, color):
-    """This method is deprecated. Please switch to AddColor."""
-    return AddColor(builder, color)
-def AddIntensity(builder, intensity): builder.PrependFloat32Slot(2, intensity, 0.0)
-def DirectionalLightAddIntensity(builder, intensity):
-    """This method is deprecated. Please switch to AddIntensity."""
-    return AddIntensity(builder, intensity)
-def End(builder): return builder.EndObject()
-def DirectionalLightEnd(builder):
-    """This method is deprecated. Please switch to End."""
-    return End(builder)
+def DirectionalLightStart(builder): builder.StartObject(3)
+def Start(builder):
+    return DirectionalLightStart(builder)
+def DirectionalLightAddDirection(builder, direction): builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(direction), 0)
+def AddDirection(builder, direction):
+    return DirectionalLightAddDirection(builder, direction)
+def DirectionalLightAddColor(builder, color): builder.PrependStructSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(color), 0)
+def AddColor(builder, color):
+    return DirectionalLightAddColor(builder, color)
+def DirectionalLightAddIntensity(builder, intensity): builder.PrependFloat32Slot(2, intensity, 0.0)
+def AddIntensity(builder, intensity):
+    return DirectionalLightAddIntensity(builder, intensity)
+def DirectionalLightEnd(builder): return builder.EndObject()
+def End(builder):
+    return DirectionalLightEnd(builder)

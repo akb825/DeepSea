@@ -16,11 +16,21 @@
 
 #include <DeepSea/Scene/Nodes/SceneNode.h>
 
-#include "Flatbuffers/SceneNodeRef_generated.h"
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Log.h>
-#include <DeepSea/Scene/Flatbuffers/SceneCommon_generated.h>
 #include <DeepSea/Scene/SceneLoadScratchData.h>
+
+#if DS_GCC || DS_CLANG
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#endif
+
+#include "Flatbuffers/SceneNodeRef_generated.h"
+#include <DeepSea/Scene/Flatbuffers/SceneCommon_generated.h>
+
+#if DS_GCC || DS_CLANG
+#pragma GCC diagnostic pop
+#endif
 
 extern "C"
 dsSceneNode* dsSceneNodeRef_load(const dsSceneLoadContext*, dsSceneLoadScratchData* scratchData,

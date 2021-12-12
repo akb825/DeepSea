@@ -15,7 +15,6 @@
  */
 
 #include "DeferredLightResolveLoad.h"
-#include "Flatbuffers/DeferredLightResolve_generated.h"
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
@@ -27,6 +26,17 @@
 #include <DeepSea/SceneLighting/DeferredLightResolve.h>
 #include <DeepSea/SceneLighting/SceneLightSet.h>
 #include <DeepSea/SceneLighting/SceneShadowManager.h>
+
+#if DS_GCC || DS_CLANG
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#endif
+
+#include "Flatbuffers/DeferredLightResolve_generated.h"
+
+#if DS_GCC || DS_CLANG
+#pragma GCC diagnostic pop
+#endif
 
 static dsShader* findShader(dsSceneLoadScratchData* scratchData, const char* name)
 {

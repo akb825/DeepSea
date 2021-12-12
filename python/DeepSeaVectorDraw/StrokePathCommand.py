@@ -77,39 +77,30 @@ class StrokePathCommand(object):
             return obj
         return None
 
-def Start(builder): builder.StartObject(7)
-def StrokePathCommandStart(builder):
-    """This method is deprecated. Please switch to Start."""
-    return Start(builder)
-def AddMaterial(builder, material): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(material), 0)
-def StrokePathCommandAddMaterial(builder, material):
-    """This method is deprecated. Please switch to AddMaterial."""
-    return AddMaterial(builder, material)
-def AddOpacity(builder, opacity): builder.PrependFloat32Slot(1, opacity, 0.0)
-def StrokePathCommandAddOpacity(builder, opacity):
-    """This method is deprecated. Please switch to AddOpacity."""
-    return AddOpacity(builder, opacity)
-def AddJoinType(builder, joinType): builder.PrependUint8Slot(2, joinType, 0)
-def StrokePathCommandAddJoinType(builder, joinType):
-    """This method is deprecated. Please switch to AddJoinType."""
-    return AddJoinType(builder, joinType)
-def AddCapType(builder, capType): builder.PrependUint8Slot(3, capType, 0)
-def StrokePathCommandAddCapType(builder, capType):
-    """This method is deprecated. Please switch to AddCapType."""
-    return AddCapType(builder, capType)
-def AddWidth(builder, width): builder.PrependFloat32Slot(4, width, 0.0)
-def StrokePathCommandAddWidth(builder, width):
-    """This method is deprecated. Please switch to AddWidth."""
-    return AddWidth(builder, width)
-def AddMiterLimit(builder, miterLimit): builder.PrependFloat32Slot(5, miterLimit, 0.0)
-def StrokePathCommandAddMiterLimit(builder, miterLimit):
-    """This method is deprecated. Please switch to AddMiterLimit."""
-    return AddMiterLimit(builder, miterLimit)
-def AddDashArray(builder, dashArray): builder.PrependStructSlot(6, flatbuffers.number_types.UOffsetTFlags.py_type(dashArray), 0)
-def StrokePathCommandAddDashArray(builder, dashArray):
-    """This method is deprecated. Please switch to AddDashArray."""
-    return AddDashArray(builder, dashArray)
-def End(builder): return builder.EndObject()
-def StrokePathCommandEnd(builder):
-    """This method is deprecated. Please switch to End."""
-    return End(builder)
+def StrokePathCommandStart(builder): builder.StartObject(7)
+def Start(builder):
+    return StrokePathCommandStart(builder)
+def StrokePathCommandAddMaterial(builder, material): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(material), 0)
+def AddMaterial(builder, material):
+    return StrokePathCommandAddMaterial(builder, material)
+def StrokePathCommandAddOpacity(builder, opacity): builder.PrependFloat32Slot(1, opacity, 0.0)
+def AddOpacity(builder, opacity):
+    return StrokePathCommandAddOpacity(builder, opacity)
+def StrokePathCommandAddJoinType(builder, joinType): builder.PrependUint8Slot(2, joinType, 0)
+def AddJoinType(builder, joinType):
+    return StrokePathCommandAddJoinType(builder, joinType)
+def StrokePathCommandAddCapType(builder, capType): builder.PrependUint8Slot(3, capType, 0)
+def AddCapType(builder, capType):
+    return StrokePathCommandAddCapType(builder, capType)
+def StrokePathCommandAddWidth(builder, width): builder.PrependFloat32Slot(4, width, 0.0)
+def AddWidth(builder, width):
+    return StrokePathCommandAddWidth(builder, width)
+def StrokePathCommandAddMiterLimit(builder, miterLimit): builder.PrependFloat32Slot(5, miterLimit, 0.0)
+def AddMiterLimit(builder, miterLimit):
+    return StrokePathCommandAddMiterLimit(builder, miterLimit)
+def StrokePathCommandAddDashArray(builder, dashArray): builder.PrependStructSlot(6, flatbuffers.number_types.UOffsetTFlags.py_type(dashArray), 0)
+def AddDashArray(builder, dashArray):
+    return StrokePathCommandAddDashArray(builder, dashArray)
+def StrokePathCommandEnd(builder): return builder.EndObject()
+def End(builder):
+    return StrokePathCommandEnd(builder)

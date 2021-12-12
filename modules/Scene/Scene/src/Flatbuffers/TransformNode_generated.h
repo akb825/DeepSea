@@ -58,7 +58,7 @@ struct TransformNodeBuilder {
 
 inline flatbuffers::Offset<TransformNode> CreateTransformNode(
     flatbuffers::FlatBufferBuilder &_fbb,
-    const DeepSeaScene::Matrix44f *transform = 0,
+    const DeepSeaScene::Matrix44f *transform = nullptr,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::ObjectData>>> children = 0) {
   TransformNodeBuilder builder_(_fbb);
   builder_.add_children(children);
@@ -68,7 +68,7 @@ inline flatbuffers::Offset<TransformNode> CreateTransformNode(
 
 inline flatbuffers::Offset<TransformNode> CreateTransformNodeDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
-    const DeepSeaScene::Matrix44f *transform = 0,
+    const DeepSeaScene::Matrix44f *transform = nullptr,
     const std::vector<flatbuffers::Offset<DeepSeaScene::ObjectData>> *children = nullptr) {
   auto children__ = children ? _fbb.CreateVector<flatbuffers::Offset<DeepSeaScene::ObjectData>>(*children) : 0;
   return DeepSeaScene::CreateTransformNode(

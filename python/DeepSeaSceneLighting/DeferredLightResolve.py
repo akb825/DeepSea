@@ -122,51 +122,39 @@ class DeferredLightResolve(object):
             return self._tab.Get(flatbuffers.number_types.Float32Flags, o + self._tab.Pos)
         return 0.0
 
-def Start(builder): builder.StartObject(10)
-def DeferredLightResolveStart(builder):
-    """This method is deprecated. Please switch to Start."""
-    return Start(builder)
-def AddLightSet(builder, lightSet): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(lightSet), 0)
-def DeferredLightResolveAddLightSet(builder, lightSet):
-    """This method is deprecated. Please switch to AddLightSet."""
-    return AddLightSet(builder, lightSet)
-def AddShadowManager(builder, shadowManager): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(shadowManager), 0)
-def DeferredLightResolveAddShadowManager(builder, shadowManager):
-    """This method is deprecated. Please switch to AddShadowManager."""
-    return AddShadowManager(builder, shadowManager)
-def AddAmbient(builder, ambient): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(ambient), 0)
-def DeferredLightResolveAddAmbient(builder, ambient):
-    """This method is deprecated. Please switch to AddAmbient."""
-    return AddAmbient(builder, ambient)
-def AddDirectional(builder, directional): builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(directional), 0)
-def DeferredLightResolveAddDirectional(builder, directional):
-    """This method is deprecated. Please switch to AddDirectional."""
-    return AddDirectional(builder, directional)
-def AddPoint(builder, point): builder.PrependUOffsetTRelativeSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(point), 0)
-def DeferredLightResolveAddPoint(builder, point):
-    """This method is deprecated. Please switch to AddPoint."""
-    return AddPoint(builder, point)
-def AddSpot(builder, spot): builder.PrependUOffsetTRelativeSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(spot), 0)
-def DeferredLightResolveAddSpot(builder, spot):
-    """This method is deprecated. Please switch to AddSpot."""
-    return AddSpot(builder, spot)
-def AddShadowDirectional(builder, shadowDirectional): builder.PrependUOffsetTRelativeSlot(6, flatbuffers.number_types.UOffsetTFlags.py_type(shadowDirectional), 0)
-def DeferredLightResolveAddShadowDirectional(builder, shadowDirectional):
-    """This method is deprecated. Please switch to AddShadowDirectional."""
-    return AddShadowDirectional(builder, shadowDirectional)
-def AddShadowPoint(builder, shadowPoint): builder.PrependUOffsetTRelativeSlot(7, flatbuffers.number_types.UOffsetTFlags.py_type(shadowPoint), 0)
-def DeferredLightResolveAddShadowPoint(builder, shadowPoint):
-    """This method is deprecated. Please switch to AddShadowPoint."""
-    return AddShadowPoint(builder, shadowPoint)
-def AddShadowSpot(builder, shadowSpot): builder.PrependUOffsetTRelativeSlot(8, flatbuffers.number_types.UOffsetTFlags.py_type(shadowSpot), 0)
-def DeferredLightResolveAddShadowSpot(builder, shadowSpot):
-    """This method is deprecated. Please switch to AddShadowSpot."""
-    return AddShadowSpot(builder, shadowSpot)
-def AddIntensityThreshold(builder, intensityThreshold): builder.PrependFloat32Slot(9, intensityThreshold, 0.0)
-def DeferredLightResolveAddIntensityThreshold(builder, intensityThreshold):
-    """This method is deprecated. Please switch to AddIntensityThreshold."""
-    return AddIntensityThreshold(builder, intensityThreshold)
-def End(builder): return builder.EndObject()
-def DeferredLightResolveEnd(builder):
-    """This method is deprecated. Please switch to End."""
-    return End(builder)
+def DeferredLightResolveStart(builder): builder.StartObject(10)
+def Start(builder):
+    return DeferredLightResolveStart(builder)
+def DeferredLightResolveAddLightSet(builder, lightSet): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(lightSet), 0)
+def AddLightSet(builder, lightSet):
+    return DeferredLightResolveAddLightSet(builder, lightSet)
+def DeferredLightResolveAddShadowManager(builder, shadowManager): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(shadowManager), 0)
+def AddShadowManager(builder, shadowManager):
+    return DeferredLightResolveAddShadowManager(builder, shadowManager)
+def DeferredLightResolveAddAmbient(builder, ambient): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(ambient), 0)
+def AddAmbient(builder, ambient):
+    return DeferredLightResolveAddAmbient(builder, ambient)
+def DeferredLightResolveAddDirectional(builder, directional): builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(directional), 0)
+def AddDirectional(builder, directional):
+    return DeferredLightResolveAddDirectional(builder, directional)
+def DeferredLightResolveAddPoint(builder, point): builder.PrependUOffsetTRelativeSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(point), 0)
+def AddPoint(builder, point):
+    return DeferredLightResolveAddPoint(builder, point)
+def DeferredLightResolveAddSpot(builder, spot): builder.PrependUOffsetTRelativeSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(spot), 0)
+def AddSpot(builder, spot):
+    return DeferredLightResolveAddSpot(builder, spot)
+def DeferredLightResolveAddShadowDirectional(builder, shadowDirectional): builder.PrependUOffsetTRelativeSlot(6, flatbuffers.number_types.UOffsetTFlags.py_type(shadowDirectional), 0)
+def AddShadowDirectional(builder, shadowDirectional):
+    return DeferredLightResolveAddShadowDirectional(builder, shadowDirectional)
+def DeferredLightResolveAddShadowPoint(builder, shadowPoint): builder.PrependUOffsetTRelativeSlot(7, flatbuffers.number_types.UOffsetTFlags.py_type(shadowPoint), 0)
+def AddShadowPoint(builder, shadowPoint):
+    return DeferredLightResolveAddShadowPoint(builder, shadowPoint)
+def DeferredLightResolveAddShadowSpot(builder, shadowSpot): builder.PrependUOffsetTRelativeSlot(8, flatbuffers.number_types.UOffsetTFlags.py_type(shadowSpot), 0)
+def AddShadowSpot(builder, shadowSpot):
+    return DeferredLightResolveAddShadowSpot(builder, shadowSpot)
+def DeferredLightResolveAddIntensityThreshold(builder, intensityThreshold): builder.PrependFloat32Slot(9, intensityThreshold, 0.0)
+def AddIntensityThreshold(builder, intensityThreshold):
+    return DeferredLightResolveAddIntensityThreshold(builder, intensityThreshold)
+def DeferredLightResolveEnd(builder): return builder.EndObject()
+def End(builder):
+    return DeferredLightResolveEnd(builder)

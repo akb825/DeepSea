@@ -435,7 +435,7 @@ template<> struct VectorCommandUnionTraits<DeepSeaVectorDraw::ImageCommand> {
 };
 
 bool VerifyVectorCommandUnion(flatbuffers::Verifier &verifier, const void *obj, VectorCommandUnion type);
-bool VerifyVectorCommandUnionVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<uint8_t> *types);
+bool VerifyVectorCommandUnionVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<VectorCommandUnion> *types);
 
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(1) Color FLATBUFFERS_FINAL_CLASS {
  private:
@@ -658,7 +658,7 @@ struct ColorMaterialBuilder {
 inline flatbuffers::Offset<ColorMaterial> CreateColorMaterial(
     flatbuffers::FlatBufferBuilder &_fbb,
     flatbuffers::Offset<flatbuffers::String> name = 0,
-    const DeepSeaVectorDraw::Color *color = 0) {
+    const DeepSeaVectorDraw::Color *color = nullptr) {
   ColorMaterialBuilder builder_(_fbb);
   builder_.add_color(color);
   builder_.add_name(name);
@@ -668,7 +668,7 @@ inline flatbuffers::Offset<ColorMaterial> CreateColorMaterial(
 inline flatbuffers::Offset<ColorMaterial> CreateColorMaterialDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     const char *name = nullptr,
-    const DeepSeaVectorDraw::Color *color = 0) {
+    const DeepSeaVectorDraw::Color *color = nullptr) {
   auto name__ = name ? _fbb.CreateString(name) : 0;
   return DeepSeaVectorDraw::CreateColorMaterial(
       _fbb,
@@ -768,11 +768,11 @@ inline flatbuffers::Offset<LinearGradient> CreateLinearGradient(
     flatbuffers::FlatBufferBuilder &_fbb,
     flatbuffers::Offset<flatbuffers::String> name = 0,
     flatbuffers::Offset<flatbuffers::Vector<const DeepSeaVectorDraw::GradientStop *>> gradient = 0,
-    const DeepSeaVectorDraw::Vector2f *start = 0,
-    const DeepSeaVectorDraw::Vector2f *end = 0,
+    const DeepSeaVectorDraw::Vector2f *start = nullptr,
+    const DeepSeaVectorDraw::Vector2f *end = nullptr,
     DeepSeaVectorDraw::GradientEdge edge = DeepSeaVectorDraw::GradientEdge::Clamp,
     DeepSeaVectorDraw::MaterialSpace coordinateSpace = DeepSeaVectorDraw::MaterialSpace::Local,
-    const DeepSeaVectorDraw::Matrix33f *transform = 0) {
+    const DeepSeaVectorDraw::Matrix33f *transform = nullptr) {
   LinearGradientBuilder builder_(_fbb);
   builder_.add_transform(transform);
   builder_.add_end(end);
@@ -788,11 +788,11 @@ inline flatbuffers::Offset<LinearGradient> CreateLinearGradientDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     const char *name = nullptr,
     const std::vector<DeepSeaVectorDraw::GradientStop> *gradient = nullptr,
-    const DeepSeaVectorDraw::Vector2f *start = 0,
-    const DeepSeaVectorDraw::Vector2f *end = 0,
+    const DeepSeaVectorDraw::Vector2f *start = nullptr,
+    const DeepSeaVectorDraw::Vector2f *end = nullptr,
     DeepSeaVectorDraw::GradientEdge edge = DeepSeaVectorDraw::GradientEdge::Clamp,
     DeepSeaVectorDraw::MaterialSpace coordinateSpace = DeepSeaVectorDraw::MaterialSpace::Local,
-    const DeepSeaVectorDraw::Matrix33f *transform = 0) {
+    const DeepSeaVectorDraw::Matrix33f *transform = nullptr) {
   auto name__ = name ? _fbb.CreateString(name) : 0;
   auto gradient__ = gradient ? _fbb.CreateVectorOfStructs<DeepSeaVectorDraw::GradientStop>(*gradient) : 0;
   return DeepSeaVectorDraw::CreateLinearGradient(
@@ -914,13 +914,13 @@ inline flatbuffers::Offset<RadialGradient> CreateRadialGradient(
     flatbuffers::FlatBufferBuilder &_fbb,
     flatbuffers::Offset<flatbuffers::String> name = 0,
     flatbuffers::Offset<flatbuffers::Vector<const DeepSeaVectorDraw::GradientStop *>> gradient = 0,
-    const DeepSeaVectorDraw::Vector2f *center = 0,
+    const DeepSeaVectorDraw::Vector2f *center = nullptr,
     float radius = 0.0f,
-    const DeepSeaVectorDraw::Vector2f *focus = 0,
+    const DeepSeaVectorDraw::Vector2f *focus = nullptr,
     float focusRadius = 0.0f,
     DeepSeaVectorDraw::GradientEdge edge = DeepSeaVectorDraw::GradientEdge::Clamp,
     DeepSeaVectorDraw::MaterialSpace coordinateSpace = DeepSeaVectorDraw::MaterialSpace::Local,
-    const DeepSeaVectorDraw::Matrix33f *transform = 0) {
+    const DeepSeaVectorDraw::Matrix33f *transform = nullptr) {
   RadialGradientBuilder builder_(_fbb);
   builder_.add_transform(transform);
   builder_.add_focusRadius(focusRadius);
@@ -938,13 +938,13 @@ inline flatbuffers::Offset<RadialGradient> CreateRadialGradientDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     const char *name = nullptr,
     const std::vector<DeepSeaVectorDraw::GradientStop> *gradient = nullptr,
-    const DeepSeaVectorDraw::Vector2f *center = 0,
+    const DeepSeaVectorDraw::Vector2f *center = nullptr,
     float radius = 0.0f,
-    const DeepSeaVectorDraw::Vector2f *focus = 0,
+    const DeepSeaVectorDraw::Vector2f *focus = nullptr,
     float focusRadius = 0.0f,
     DeepSeaVectorDraw::GradientEdge edge = DeepSeaVectorDraw::GradientEdge::Clamp,
     DeepSeaVectorDraw::MaterialSpace coordinateSpace = DeepSeaVectorDraw::MaterialSpace::Local,
-    const DeepSeaVectorDraw::Matrix33f *transform = 0) {
+    const DeepSeaVectorDraw::Matrix33f *transform = nullptr) {
   auto name__ = name ? _fbb.CreateString(name) : 0;
   auto gradient__ = gradient ? _fbb.CreateVectorOfStructs<DeepSeaVectorDraw::GradientStop>(*gradient) : 0;
   return DeepSeaVectorDraw::CreateRadialGradient(
@@ -1004,7 +1004,7 @@ struct StartPathCommandBuilder {
 
 inline flatbuffers::Offset<StartPathCommand> CreateStartPathCommand(
     flatbuffers::FlatBufferBuilder &_fbb,
-    const DeepSeaVectorDraw::Matrix33f *transform = 0,
+    const DeepSeaVectorDraw::Matrix33f *transform = nullptr,
     bool simple = false) {
   StartPathCommandBuilder builder_(_fbb);
   builder_.add_transform(transform);
@@ -1048,7 +1048,7 @@ struct MoveCommandBuilder {
 
 inline flatbuffers::Offset<MoveCommand> CreateMoveCommand(
     flatbuffers::FlatBufferBuilder &_fbb,
-    const DeepSeaVectorDraw::Vector2f *position = 0) {
+    const DeepSeaVectorDraw::Vector2f *position = nullptr) {
   MoveCommandBuilder builder_(_fbb);
   builder_.add_position(position);
   return builder_.Finish();
@@ -1090,7 +1090,7 @@ struct LineCommandBuilder {
 
 inline flatbuffers::Offset<LineCommand> CreateLineCommand(
     flatbuffers::FlatBufferBuilder &_fbb,
-    const DeepSeaVectorDraw::Vector2f *end = 0) {
+    const DeepSeaVectorDraw::Vector2f *end = nullptr) {
   LineCommandBuilder builder_(_fbb);
   builder_.add_end(end);
   return builder_.Finish();
@@ -1150,9 +1150,9 @@ struct BezierCommandBuilder {
 
 inline flatbuffers::Offset<BezierCommand> CreateBezierCommand(
     flatbuffers::FlatBufferBuilder &_fbb,
-    const DeepSeaVectorDraw::Vector2f *control1 = 0,
-    const DeepSeaVectorDraw::Vector2f *control2 = 0,
-    const DeepSeaVectorDraw::Vector2f *end = 0) {
+    const DeepSeaVectorDraw::Vector2f *control1 = nullptr,
+    const DeepSeaVectorDraw::Vector2f *control2 = nullptr,
+    const DeepSeaVectorDraw::Vector2f *end = nullptr) {
   BezierCommandBuilder builder_(_fbb);
   builder_.add_end(end);
   builder_.add_control2(control2);
@@ -1205,8 +1205,8 @@ struct QuadraticCommandBuilder {
 
 inline flatbuffers::Offset<QuadraticCommand> CreateQuadraticCommand(
     flatbuffers::FlatBufferBuilder &_fbb,
-    const DeepSeaVectorDraw::Vector2f *control = 0,
-    const DeepSeaVectorDraw::Vector2f *end = 0) {
+    const DeepSeaVectorDraw::Vector2f *control = nullptr,
+    const DeepSeaVectorDraw::Vector2f *end = nullptr) {
   QuadraticCommandBuilder builder_(_fbb);
   builder_.add_end(end);
   builder_.add_control(control);
@@ -1282,11 +1282,11 @@ struct ArcCommandBuilder {
 
 inline flatbuffers::Offset<ArcCommand> CreateArcCommand(
     flatbuffers::FlatBufferBuilder &_fbb,
-    const DeepSeaVectorDraw::Vector2f *radius = 0,
+    const DeepSeaVectorDraw::Vector2f *radius = nullptr,
     float rotation = 0.0f,
     bool largeArc = false,
     bool clockwise = false,
-    const DeepSeaVectorDraw::Vector2f *end = 0) {
+    const DeepSeaVectorDraw::Vector2f *end = nullptr) {
   ArcCommandBuilder builder_(_fbb);
   builder_.add_end(end);
   builder_.add_rotation(rotation);
@@ -1370,8 +1370,8 @@ struct EllipseCommandBuilder {
 
 inline flatbuffers::Offset<EllipseCommand> CreateEllipseCommand(
     flatbuffers::FlatBufferBuilder &_fbb,
-    const DeepSeaVectorDraw::Vector2f *center = 0,
-    const DeepSeaVectorDraw::Vector2f *radius = 0) {
+    const DeepSeaVectorDraw::Vector2f *center = nullptr,
+    const DeepSeaVectorDraw::Vector2f *radius = nullptr) {
   EllipseCommandBuilder builder_(_fbb);
   builder_.add_radius(radius);
   builder_.add_center(center);
@@ -1432,9 +1432,9 @@ struct RectangleCommandBuilder {
 
 inline flatbuffers::Offset<RectangleCommand> CreateRectangleCommand(
     flatbuffers::FlatBufferBuilder &_fbb,
-    const DeepSeaVectorDraw::Vector2f *upperLeft = 0,
-    const DeepSeaVectorDraw::Vector2f *lowerRight = 0,
-    const DeepSeaVectorDraw::Vector2f *cornerRadius = 0) {
+    const DeepSeaVectorDraw::Vector2f *upperLeft = nullptr,
+    const DeepSeaVectorDraw::Vector2f *lowerRight = nullptr,
+    const DeepSeaVectorDraw::Vector2f *cornerRadius = nullptr) {
   RectangleCommandBuilder builder_(_fbb);
   builder_.add_cornerRadius(cornerRadius);
   builder_.add_lowerRight(lowerRight);
@@ -1534,7 +1534,7 @@ inline flatbuffers::Offset<StrokePathCommand> CreateStrokePathCommand(
     DeepSeaVectorDraw::LineCap capType = DeepSeaVectorDraw::LineCap::Butt,
     float width = 0.0f,
     float miterLimit = 0.0f,
-    const DeepSeaVectorDraw::DashArray *dashArray = 0) {
+    const DeepSeaVectorDraw::DashArray *dashArray = nullptr) {
   StrokePathCommandBuilder builder_(_fbb);
   builder_.add_dashArray(dashArray);
   builder_.add_miterLimit(miterLimit);
@@ -1554,7 +1554,7 @@ inline flatbuffers::Offset<StrokePathCommand> CreateStrokePathCommandDirect(
     DeepSeaVectorDraw::LineCap capType = DeepSeaVectorDraw::LineCap::Butt,
     float width = 0.0f,
     float miterLimit = 0.0f,
-    const DeepSeaVectorDraw::DashArray *dashArray = 0) {
+    const DeepSeaVectorDraw::DashArray *dashArray = nullptr) {
   auto material__ = material ? _fbb.CreateString(material) : 0;
   return DeepSeaVectorDraw::CreateStrokePathCommand(
       _fbb,
@@ -1736,7 +1736,7 @@ inline flatbuffers::Offset<TextCommand> CreateTextCommand(
     DeepSeaVectorDraw::TextAlign alignment = DeepSeaVectorDraw::TextAlign::Start,
     float maxLength = 0.0f,
     float lineHeight = 0.0f,
-    const DeepSeaVectorDraw::Matrix33f *transform = 0,
+    const DeepSeaVectorDraw::Matrix33f *transform = nullptr,
     uint32_t rangeCount = 0) {
   TextCommandBuilder builder_(_fbb);
   builder_.add_rangeCount(rangeCount);
@@ -1756,7 +1756,7 @@ inline flatbuffers::Offset<TextCommand> CreateTextCommandDirect(
     DeepSeaVectorDraw::TextAlign alignment = DeepSeaVectorDraw::TextAlign::Start,
     float maxLength = 0.0f,
     float lineHeight = 0.0f,
-    const DeepSeaVectorDraw::Matrix33f *transform = 0,
+    const DeepSeaVectorDraw::Matrix33f *transform = nullptr,
     uint32_t rangeCount = 0) {
   auto text__ = text ? _fbb.CreateString(text) : 0;
   auto font__ = font ? _fbb.CreateString(font) : 0;
@@ -1908,7 +1908,7 @@ inline flatbuffers::Offset<TextRangeCommand> CreateTextRangeCommand(
     uint32_t start = 0,
     uint32_t count = 0,
     DeepSeaVectorDraw::TextPosition positionType = DeepSeaVectorDraw::TextPosition::Offset,
-    const DeepSeaVectorDraw::Vector2f *position = 0,
+    const DeepSeaVectorDraw::Vector2f *position = nullptr,
     flatbuffers::Offset<flatbuffers::String> fillMaterial = 0,
     flatbuffers::Offset<flatbuffers::String> outlineMaterial = 0,
     float fillOpacity = 0.0f,
@@ -1940,7 +1940,7 @@ inline flatbuffers::Offset<TextRangeCommand> CreateTextRangeCommandDirect(
     uint32_t start = 0,
     uint32_t count = 0,
     DeepSeaVectorDraw::TextPosition positionType = DeepSeaVectorDraw::TextPosition::Offset,
-    const DeepSeaVectorDraw::Vector2f *position = 0,
+    const DeepSeaVectorDraw::Vector2f *position = nullptr,
     const char *fillMaterial = nullptr,
     const char *outlineMaterial = nullptr,
     float fillOpacity = 0.0f,
@@ -2042,10 +2042,10 @@ struct ImageCommandBuilder {
 inline flatbuffers::Offset<ImageCommand> CreateImageCommand(
     flatbuffers::FlatBufferBuilder &_fbb,
     flatbuffers::Offset<flatbuffers::String> image = 0,
-    const DeepSeaVectorDraw::Vector2f *upperLeft = 0,
-    const DeepSeaVectorDraw::Vector2f *lowerRight = 0,
+    const DeepSeaVectorDraw::Vector2f *upperLeft = nullptr,
+    const DeepSeaVectorDraw::Vector2f *lowerRight = nullptr,
     float opacity = 0.0f,
-    const DeepSeaVectorDraw::Matrix33f *transform = 0) {
+    const DeepSeaVectorDraw::Matrix33f *transform = nullptr) {
   ImageCommandBuilder builder_(_fbb);
   builder_.add_transform(transform);
   builder_.add_opacity(opacity);
@@ -2058,10 +2058,10 @@ inline flatbuffers::Offset<ImageCommand> CreateImageCommand(
 inline flatbuffers::Offset<ImageCommand> CreateImageCommandDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     const char *image = nullptr,
-    const DeepSeaVectorDraw::Vector2f *upperLeft = 0,
-    const DeepSeaVectorDraw::Vector2f *lowerRight = 0,
+    const DeepSeaVectorDraw::Vector2f *upperLeft = nullptr,
+    const DeepSeaVectorDraw::Vector2f *lowerRight = nullptr,
     float opacity = 0.0f,
-    const DeepSeaVectorDraw::Matrix33f *transform = 0) {
+    const DeepSeaVectorDraw::Matrix33f *transform = nullptr) {
   auto image__ = image ? _fbb.CreateString(image) : 0;
   return DeepSeaVectorDraw::CreateImageCommand(
       _fbb,
@@ -2305,7 +2305,7 @@ inline flatbuffers::Offset<VectorImage> CreateVectorImage(
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaVectorDraw::LinearGradient>>> linearGradients = 0,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaVectorDraw::RadialGradient>>> radialGradients = 0,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaVectorDraw::VectorCommand>>> commands = 0,
-    const DeepSeaVectorDraw::Vector2f *size = 0) {
+    const DeepSeaVectorDraw::Vector2f *size = nullptr) {
   VectorImageBuilder builder_(_fbb);
   builder_.add_size(size);
   builder_.add_commands(commands);
@@ -2321,7 +2321,7 @@ inline flatbuffers::Offset<VectorImage> CreateVectorImageDirect(
     const std::vector<flatbuffers::Offset<DeepSeaVectorDraw::LinearGradient>> *linearGradients = nullptr,
     const std::vector<flatbuffers::Offset<DeepSeaVectorDraw::RadialGradient>> *radialGradients = nullptr,
     const std::vector<flatbuffers::Offset<DeepSeaVectorDraw::VectorCommand>> *commands = nullptr,
-    const DeepSeaVectorDraw::Vector2f *size = 0) {
+    const DeepSeaVectorDraw::Vector2f *size = nullptr) {
   auto colorMaterials__ = colorMaterials ? _fbb.CreateVector<flatbuffers::Offset<DeepSeaVectorDraw::ColorMaterial>>(*colorMaterials) : 0;
   auto linearGradients__ = linearGradients ? _fbb.CreateVector<flatbuffers::Offset<DeepSeaVectorDraw::LinearGradient>>(*linearGradients) : 0;
   auto radialGradients__ = radialGradients ? _fbb.CreateVector<flatbuffers::Offset<DeepSeaVectorDraw::RadialGradient>>(*radialGradients) : 0;
@@ -2400,7 +2400,7 @@ inline bool VerifyVectorCommandUnion(flatbuffers::Verifier &verifier, const void
   }
 }
 
-inline bool VerifyVectorCommandUnionVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<uint8_t> *types) {
+inline bool VerifyVectorCommandUnionVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<VectorCommandUnion> *types) {
   if (!values || !types) return !values && !types;
   if (values->size() != types->size()) return false;
   for (flatbuffers::uoffset_t i = 0; i < values->size(); ++i) {

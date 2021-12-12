@@ -52,27 +52,21 @@ class MaterialRemap(object):
             return self._tab.String(o + self._tab.Pos)
         return None
 
-def Start(builder): builder.StartObject(4)
-def MaterialRemapStart(builder):
-    """This method is deprecated. Please switch to Start."""
-    return Start(builder)
-def AddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
-def MaterialRemapAddName(builder, name):
-    """This method is deprecated. Please switch to AddName."""
-    return AddName(builder, name)
-def AddModelList(builder, modelList): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(modelList), 0)
-def MaterialRemapAddModelList(builder, modelList):
-    """This method is deprecated. Please switch to AddModelList."""
-    return AddModelList(builder, modelList)
-def AddShader(builder, shader): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(shader), 0)
-def MaterialRemapAddShader(builder, shader):
-    """This method is deprecated. Please switch to AddShader."""
-    return AddShader(builder, shader)
-def AddMaterial(builder, material): builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(material), 0)
-def MaterialRemapAddMaterial(builder, material):
-    """This method is deprecated. Please switch to AddMaterial."""
-    return AddMaterial(builder, material)
-def End(builder): return builder.EndObject()
-def MaterialRemapEnd(builder):
-    """This method is deprecated. Please switch to End."""
-    return End(builder)
+def MaterialRemapStart(builder): builder.StartObject(4)
+def Start(builder):
+    return MaterialRemapStart(builder)
+def MaterialRemapAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+def AddName(builder, name):
+    return MaterialRemapAddName(builder, name)
+def MaterialRemapAddModelList(builder, modelList): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(modelList), 0)
+def AddModelList(builder, modelList):
+    return MaterialRemapAddModelList(builder, modelList)
+def MaterialRemapAddShader(builder, shader): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(shader), 0)
+def AddShader(builder, shader):
+    return MaterialRemapAddShader(builder, shader)
+def MaterialRemapAddMaterial(builder, material): builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(material), 0)
+def AddMaterial(builder, material):
+    return MaterialRemapAddMaterial(builder, material)
+def MaterialRemapEnd(builder): return builder.EndObject()
+def End(builder):
+    return MaterialRemapEnd(builder)

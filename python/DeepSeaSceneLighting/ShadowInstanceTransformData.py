@@ -52,27 +52,21 @@ class ShadowInstanceTransformData(object):
             return self._tab.String(o + self._tab.Pos)
         return None
 
-def Start(builder): builder.StartObject(4)
-def ShadowInstanceTransformDataStart(builder):
-    """This method is deprecated. Please switch to Start."""
-    return Start(builder)
-def AddShadowManager(builder, shadowManager): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(shadowManager), 0)
-def ShadowInstanceTransformDataAddShadowManager(builder, shadowManager):
-    """This method is deprecated. Please switch to AddShadowManager."""
-    return AddShadowManager(builder, shadowManager)
-def AddShadows(builder, shadows): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(shadows), 0)
-def ShadowInstanceTransformDataAddShadows(builder, shadows):
-    """This method is deprecated. Please switch to AddShadows."""
-    return AddShadows(builder, shadows)
-def AddSurface(builder, surface): builder.PrependUint8Slot(2, surface, 0)
-def ShadowInstanceTransformDataAddSurface(builder, surface):
-    """This method is deprecated. Please switch to AddSurface."""
-    return AddSurface(builder, surface)
-def AddVariableGroupDesc(builder, variableGroupDesc): builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(variableGroupDesc), 0)
-def ShadowInstanceTransformDataAddVariableGroupDesc(builder, variableGroupDesc):
-    """This method is deprecated. Please switch to AddVariableGroupDesc."""
-    return AddVariableGroupDesc(builder, variableGroupDesc)
-def End(builder): return builder.EndObject()
-def ShadowInstanceTransformDataEnd(builder):
-    """This method is deprecated. Please switch to End."""
-    return End(builder)
+def ShadowInstanceTransformDataStart(builder): builder.StartObject(4)
+def Start(builder):
+    return ShadowInstanceTransformDataStart(builder)
+def ShadowInstanceTransformDataAddShadowManager(builder, shadowManager): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(shadowManager), 0)
+def AddShadowManager(builder, shadowManager):
+    return ShadowInstanceTransformDataAddShadowManager(builder, shadowManager)
+def ShadowInstanceTransformDataAddShadows(builder, shadows): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(shadows), 0)
+def AddShadows(builder, shadows):
+    return ShadowInstanceTransformDataAddShadows(builder, shadows)
+def ShadowInstanceTransformDataAddSurface(builder, surface): builder.PrependUint8Slot(2, surface, 0)
+def AddSurface(builder, surface):
+    return ShadowInstanceTransformDataAddSurface(builder, surface)
+def ShadowInstanceTransformDataAddVariableGroupDesc(builder, variableGroupDesc): builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(variableGroupDesc), 0)
+def AddVariableGroupDesc(builder, variableGroupDesc):
+    return ShadowInstanceTransformDataAddVariableGroupDesc(builder, variableGroupDesc)
+def ShadowInstanceTransformDataEnd(builder): return builder.EndObject()
+def End(builder):
+    return ShadowInstanceTransformDataEnd(builder)

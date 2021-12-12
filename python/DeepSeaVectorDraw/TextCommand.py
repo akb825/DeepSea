@@ -77,39 +77,30 @@ class TextCommand(object):
             return self._tab.Get(flatbuffers.number_types.Uint32Flags, o + self._tab.Pos)
         return 0
 
-def Start(builder): builder.StartObject(7)
-def TextCommandStart(builder):
-    """This method is deprecated. Please switch to Start."""
-    return Start(builder)
-def AddText(builder, text): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(text), 0)
-def TextCommandAddText(builder, text):
-    """This method is deprecated. Please switch to AddText."""
-    return AddText(builder, text)
-def AddFont(builder, font): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(font), 0)
-def TextCommandAddFont(builder, font):
-    """This method is deprecated. Please switch to AddFont."""
-    return AddFont(builder, font)
-def AddAlignment(builder, alignment): builder.PrependUint8Slot(2, alignment, 0)
-def TextCommandAddAlignment(builder, alignment):
-    """This method is deprecated. Please switch to AddAlignment."""
-    return AddAlignment(builder, alignment)
-def AddMaxLength(builder, maxLength): builder.PrependFloat32Slot(3, maxLength, 0.0)
-def TextCommandAddMaxLength(builder, maxLength):
-    """This method is deprecated. Please switch to AddMaxLength."""
-    return AddMaxLength(builder, maxLength)
-def AddLineHeight(builder, lineHeight): builder.PrependFloat32Slot(4, lineHeight, 0.0)
-def TextCommandAddLineHeight(builder, lineHeight):
-    """This method is deprecated. Please switch to AddLineHeight."""
-    return AddLineHeight(builder, lineHeight)
-def AddTransform(builder, transform): builder.PrependStructSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(transform), 0)
-def TextCommandAddTransform(builder, transform):
-    """This method is deprecated. Please switch to AddTransform."""
-    return AddTransform(builder, transform)
-def AddRangeCount(builder, rangeCount): builder.PrependUint32Slot(6, rangeCount, 0)
-def TextCommandAddRangeCount(builder, rangeCount):
-    """This method is deprecated. Please switch to AddRangeCount."""
-    return AddRangeCount(builder, rangeCount)
-def End(builder): return builder.EndObject()
-def TextCommandEnd(builder):
-    """This method is deprecated. Please switch to End."""
-    return End(builder)
+def TextCommandStart(builder): builder.StartObject(7)
+def Start(builder):
+    return TextCommandStart(builder)
+def TextCommandAddText(builder, text): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(text), 0)
+def AddText(builder, text):
+    return TextCommandAddText(builder, text)
+def TextCommandAddFont(builder, font): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(font), 0)
+def AddFont(builder, font):
+    return TextCommandAddFont(builder, font)
+def TextCommandAddAlignment(builder, alignment): builder.PrependUint8Slot(2, alignment, 0)
+def AddAlignment(builder, alignment):
+    return TextCommandAddAlignment(builder, alignment)
+def TextCommandAddMaxLength(builder, maxLength): builder.PrependFloat32Slot(3, maxLength, 0.0)
+def AddMaxLength(builder, maxLength):
+    return TextCommandAddMaxLength(builder, maxLength)
+def TextCommandAddLineHeight(builder, lineHeight): builder.PrependFloat32Slot(4, lineHeight, 0.0)
+def AddLineHeight(builder, lineHeight):
+    return TextCommandAddLineHeight(builder, lineHeight)
+def TextCommandAddTransform(builder, transform): builder.PrependStructSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(transform), 0)
+def AddTransform(builder, transform):
+    return TextCommandAddTransform(builder, transform)
+def TextCommandAddRangeCount(builder, rangeCount): builder.PrependUint32Slot(6, rangeCount, 0)
+def AddRangeCount(builder, rangeCount):
+    return TextCommandAddRangeCount(builder, rangeCount)
+def TextCommandEnd(builder): return builder.EndObject()
+def End(builder):
+    return TextCommandEnd(builder)

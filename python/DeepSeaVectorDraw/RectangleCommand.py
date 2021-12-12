@@ -57,23 +57,18 @@ class RectangleCommand(object):
             return obj
         return None
 
-def Start(builder): builder.StartObject(3)
-def RectangleCommandStart(builder):
-    """This method is deprecated. Please switch to Start."""
-    return Start(builder)
-def AddUpperLeft(builder, upperLeft): builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(upperLeft), 0)
-def RectangleCommandAddUpperLeft(builder, upperLeft):
-    """This method is deprecated. Please switch to AddUpperLeft."""
-    return AddUpperLeft(builder, upperLeft)
-def AddLowerRight(builder, lowerRight): builder.PrependStructSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(lowerRight), 0)
-def RectangleCommandAddLowerRight(builder, lowerRight):
-    """This method is deprecated. Please switch to AddLowerRight."""
-    return AddLowerRight(builder, lowerRight)
-def AddCornerRadius(builder, cornerRadius): builder.PrependStructSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(cornerRadius), 0)
-def RectangleCommandAddCornerRadius(builder, cornerRadius):
-    """This method is deprecated. Please switch to AddCornerRadius."""
-    return AddCornerRadius(builder, cornerRadius)
-def End(builder): return builder.EndObject()
-def RectangleCommandEnd(builder):
-    """This method is deprecated. Please switch to End."""
-    return End(builder)
+def RectangleCommandStart(builder): builder.StartObject(3)
+def Start(builder):
+    return RectangleCommandStart(builder)
+def RectangleCommandAddUpperLeft(builder, upperLeft): builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(upperLeft), 0)
+def AddUpperLeft(builder, upperLeft):
+    return RectangleCommandAddUpperLeft(builder, upperLeft)
+def RectangleCommandAddLowerRight(builder, lowerRight): builder.PrependStructSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(lowerRight), 0)
+def AddLowerRight(builder, lowerRight):
+    return RectangleCommandAddLowerRight(builder, lowerRight)
+def RectangleCommandAddCornerRadius(builder, cornerRadius): builder.PrependStructSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(cornerRadius), 0)
+def AddCornerRadius(builder, cornerRadius):
+    return RectangleCommandAddCornerRadius(builder, cornerRadius)
+def RectangleCommandEnd(builder): return builder.EndObject()
+def End(builder):
+    return RectangleCommandEnd(builder)

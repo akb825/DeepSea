@@ -292,13 +292,14 @@ bool dsFont_writeGlyphToTexture(dsCommandBuffer* commandBuffer, dsTexture* textu
 	dsAlignedBox2_extents(size, paddedBounds);
 
 	// Scale down if needed, but not up.
+	float maxSize = (float)(glyphSize - 1);
 	float scaleX = 1.0f;
-	if (size.x > glyphSize - 1)
-		scaleX = size.x/(float)(glyphSize - 1);
+	if (size.x > maxSize)
+		scaleX = size.x/maxSize;
 
 	float scaleY = 1.0f;
-	if (size.y > glyphSize - 1)
-		scaleY = size.y/(float)(glyphSize - 1);
+	if (size.y > maxSize)
+		scaleY = size.y/maxSize;
 
 	// Compute the signed distance field into the final glyph texture.
 	DS_ASSERT(glyphSize <= DS_VERY_HIGH_SIZE);

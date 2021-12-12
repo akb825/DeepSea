@@ -16,7 +16,6 @@
 
 #include <DeepSea/Scene/View.h>
 
-#include "Flatbuffers/View_generated.h"
 #include "SceneTypes.h"
 
 #include <DeepSea/Core/Memory/Allocator.h>
@@ -28,6 +27,17 @@
 #include <DeepSea/Scene/Flatbuffers/SceneFlatbufferHelpers.h>
 #include <DeepSea/Scene/SceneLoadScratchData.h>
 #include <DeepSea/Scene/Scene.h>
+
+#if DS_GCC || DS_CLANG
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#endif
+
+#include "Flatbuffers/View_generated.h"
+
+#if DS_GCC || DS_CLANG
+#pragma GCC diagnostic pop
+#endif
 
 #include <string.h>
 

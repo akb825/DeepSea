@@ -16,7 +16,6 @@
 
 #include <DeepSea/VectorDraw/VectorImage.h>
 
-#include "Flatbuffers/VectorImage_generated.h"
 #include "VectorScratchDataImpl.h"
 
 #include <DeepSea/Core/Memory/StackAllocator.h>
@@ -30,6 +29,17 @@
 #include <DeepSea/VectorDraw/VectorMaterial.h>
 #include <DeepSea/VectorDraw/VectorMaterialSet.h>
 #include <DeepSea/VectorDraw/VectorResources.h>
+
+#if DS_GCC || DS_CLANG
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#endif
+
+#include "Flatbuffers/VectorImage_generated.h"
+
+#if DS_GCC || DS_CLANG
+#pragma GCC diagnostic pop
+#endif
 
 static void printFlatbufferError(const char* name)
 {

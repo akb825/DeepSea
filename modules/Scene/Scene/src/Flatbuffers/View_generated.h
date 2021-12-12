@@ -456,7 +456,7 @@ inline flatbuffers::Offset<Framebuffer> CreateFramebuffer(
     float width = 0.0f,
     float height = 0.0f,
     uint32_t layers = 0,
-    const DeepSeaScene::AlignedBox3f *viewport = 0) {
+    const DeepSeaScene::AlignedBox3f *viewport = nullptr) {
   FramebufferBuilder builder_(_fbb);
   builder_.add_viewport(viewport);
   builder_.add_layers(layers);
@@ -474,7 +474,7 @@ inline flatbuffers::Offset<Framebuffer> CreateFramebufferDirect(
     float width = 0.0f,
     float height = 0.0f,
     uint32_t layers = 0,
-    const DeepSeaScene::AlignedBox3f *viewport = 0) {
+    const DeepSeaScene::AlignedBox3f *viewport = nullptr) {
   auto name__ = name ? _fbb.CreateString(name) : 0;
   auto surfaces__ = surfaces ? _fbb.CreateVector<flatbuffers::Offset<DeepSeaScene::FramebufferSurface>>(*surfaces) : 0;
   return DeepSeaScene::CreateFramebuffer(

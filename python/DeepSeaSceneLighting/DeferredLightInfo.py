@@ -38,19 +38,15 @@ class DeferredLightInfo(object):
             return self._tab.String(o + self._tab.Pos)
         return None
 
-def Start(builder): builder.StartObject(2)
-def DeferredLightInfoStart(builder):
-    """This method is deprecated. Please switch to Start."""
-    return Start(builder)
-def AddShader(builder, shader): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(shader), 0)
-def DeferredLightInfoAddShader(builder, shader):
-    """This method is deprecated. Please switch to AddShader."""
-    return AddShader(builder, shader)
-def AddMaterial(builder, material): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(material), 0)
-def DeferredLightInfoAddMaterial(builder, material):
-    """This method is deprecated. Please switch to AddMaterial."""
-    return AddMaterial(builder, material)
-def End(builder): return builder.EndObject()
-def DeferredLightInfoEnd(builder):
-    """This method is deprecated. Please switch to End."""
-    return End(builder)
+def DeferredLightInfoStart(builder): builder.StartObject(2)
+def Start(builder):
+    return DeferredLightInfoStart(builder)
+def DeferredLightInfoAddShader(builder, shader): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(shader), 0)
+def AddShader(builder, shader):
+    return DeferredLightInfoAddShader(builder, shader)
+def DeferredLightInfoAddMaterial(builder, material): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(material), 0)
+def AddMaterial(builder, material):
+    return DeferredLightInfoAddMaterial(builder, material)
+def DeferredLightInfoEnd(builder): return builder.EndObject()
+def End(builder):
+    return DeferredLightInfoEnd(builder)

@@ -46,19 +46,15 @@ class EllipseCommand(object):
             return obj
         return None
 
-def Start(builder): builder.StartObject(2)
-def EllipseCommandStart(builder):
-    """This method is deprecated. Please switch to Start."""
-    return Start(builder)
-def AddCenter(builder, center): builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(center), 0)
-def EllipseCommandAddCenter(builder, center):
-    """This method is deprecated. Please switch to AddCenter."""
-    return AddCenter(builder, center)
-def AddRadius(builder, radius): builder.PrependStructSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(radius), 0)
-def EllipseCommandAddRadius(builder, radius):
-    """This method is deprecated. Please switch to AddRadius."""
-    return AddRadius(builder, radius)
-def End(builder): return builder.EndObject()
-def EllipseCommandEnd(builder):
-    """This method is deprecated. Please switch to End."""
-    return End(builder)
+def EllipseCommandStart(builder): builder.StartObject(2)
+def Start(builder):
+    return EllipseCommandStart(builder)
+def EllipseCommandAddCenter(builder, center): builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(center), 0)
+def AddCenter(builder, center):
+    return EllipseCommandAddCenter(builder, center)
+def EllipseCommandAddRadius(builder, radius): builder.PrependStructSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(radius), 0)
+def AddRadius(builder, radius):
+    return EllipseCommandAddRadius(builder, radius)
+def EllipseCommandEnd(builder): return builder.EndObject()
+def End(builder):
+    return EllipseCommandEnd(builder)

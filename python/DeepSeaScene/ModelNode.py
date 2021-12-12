@@ -107,39 +107,30 @@ class ModelNode(object):
             return obj
         return None
 
-def Start(builder): builder.StartObject(4)
-def ModelNodeStart(builder):
-    """This method is deprecated. Please switch to Start."""
-    return Start(builder)
-def AddEmbeddedResources(builder, embeddedResources): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(embeddedResources), 0)
-def ModelNodeAddEmbeddedResources(builder, embeddedResources):
-    """This method is deprecated. Please switch to AddEmbeddedResources."""
-    return AddEmbeddedResources(builder, embeddedResources)
-def StartEmbeddedResourcesVector(builder, numElems): return builder.StartVector(1, numElems, 1)
-def ModelNodeStartEmbeddedResourcesVector(builder, numElems):
-    """This method is deprecated. Please switch to Start."""
-    return StartEmbeddedResourcesVector(builder, numElems)
-def AddModels(builder, models): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(models), 0)
-def ModelNodeAddModels(builder, models):
-    """This method is deprecated. Please switch to AddModels."""
-    return AddModels(builder, models)
-def StartModelsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
-def ModelNodeStartModelsVector(builder, numElems):
-    """This method is deprecated. Please switch to Start."""
-    return StartModelsVector(builder, numElems)
-def AddExtraItemLists(builder, extraItemLists): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(extraItemLists), 0)
-def ModelNodeAddExtraItemLists(builder, extraItemLists):
-    """This method is deprecated. Please switch to AddExtraItemLists."""
-    return AddExtraItemLists(builder, extraItemLists)
-def StartExtraItemListsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
-def ModelNodeStartExtraItemListsVector(builder, numElems):
-    """This method is deprecated. Please switch to Start."""
-    return StartExtraItemListsVector(builder, numElems)
-def AddBounds(builder, bounds): builder.PrependStructSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(bounds), 0)
-def ModelNodeAddBounds(builder, bounds):
-    """This method is deprecated. Please switch to AddBounds."""
-    return AddBounds(builder, bounds)
-def End(builder): return builder.EndObject()
-def ModelNodeEnd(builder):
-    """This method is deprecated. Please switch to End."""
-    return End(builder)
+def ModelNodeStart(builder): builder.StartObject(4)
+def Start(builder):
+    return ModelNodeStart(builder)
+def ModelNodeAddEmbeddedResources(builder, embeddedResources): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(embeddedResources), 0)
+def AddEmbeddedResources(builder, embeddedResources):
+    return ModelNodeAddEmbeddedResources(builder, embeddedResources)
+def ModelNodeStartEmbeddedResourcesVector(builder, numElems): return builder.StartVector(1, numElems, 1)
+def StartEmbeddedResourcesVector(builder, numElems):
+    return ModelNodeStartEmbeddedResourcesVector(builder, numElems)
+def ModelNodeAddModels(builder, models): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(models), 0)
+def AddModels(builder, models):
+    return ModelNodeAddModels(builder, models)
+def ModelNodeStartModelsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+def StartModelsVector(builder, numElems):
+    return ModelNodeStartModelsVector(builder, numElems)
+def ModelNodeAddExtraItemLists(builder, extraItemLists): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(extraItemLists), 0)
+def AddExtraItemLists(builder, extraItemLists):
+    return ModelNodeAddExtraItemLists(builder, extraItemLists)
+def ModelNodeStartExtraItemListsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+def StartExtraItemListsVector(builder, numElems):
+    return ModelNodeStartExtraItemListsVector(builder, numElems)
+def ModelNodeAddBounds(builder, bounds): builder.PrependStructSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(bounds), 0)
+def AddBounds(builder, bounds):
+    return ModelNodeAddBounds(builder, bounds)
+def ModelNodeEnd(builder): return builder.EndObject()
+def End(builder):
+    return ModelNodeEnd(builder)

@@ -42,19 +42,15 @@ class GradientStop(object):
             return obj
         return None
 
-def Start(builder): builder.StartObject(2)
-def GradientStopStart(builder):
-    """This method is deprecated. Please switch to Start."""
-    return Start(builder)
-def AddPosition(builder, position): builder.PrependFloat32Slot(0, position, 0.0)
-def GradientStopAddPosition(builder, position):
-    """This method is deprecated. Please switch to AddPosition."""
-    return AddPosition(builder, position)
-def AddColor(builder, color): builder.PrependStructSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(color), 0)
-def GradientStopAddColor(builder, color):
-    """This method is deprecated. Please switch to AddColor."""
-    return AddColor(builder, color)
-def End(builder): return builder.EndObject()
-def GradientStopEnd(builder):
-    """This method is deprecated. Please switch to End."""
-    return End(builder)
+def GradientStopStart(builder): builder.StartObject(2)
+def Start(builder):
+    return GradientStopStart(builder)
+def GradientStopAddPosition(builder, position): builder.PrependFloat32Slot(0, position, 0.0)
+def AddPosition(builder, position):
+    return GradientStopAddPosition(builder, position)
+def GradientStopAddColor(builder, color): builder.PrependStructSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(color), 0)
+def AddColor(builder, color):
+    return GradientStopAddColor(builder, color)
+def GradientStopEnd(builder): return builder.EndObject()
+def End(builder):
+    return GradientStopEnd(builder)

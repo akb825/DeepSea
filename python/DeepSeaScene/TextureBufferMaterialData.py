@@ -59,31 +59,24 @@ class TextureBufferMaterialData(object):
             return self._tab.Get(flatbuffers.number_types.Uint32Flags, o + self._tab.Pos)
         return 0
 
-def Start(builder): builder.StartObject(5)
-def TextureBufferMaterialDataStart(builder):
-    """This method is deprecated. Please switch to Start."""
-    return Start(builder)
-def AddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
-def TextureBufferMaterialDataAddName(builder, name):
-    """This method is deprecated. Please switch to AddName."""
-    return AddName(builder, name)
-def AddFormat(builder, format): builder.PrependUint8Slot(1, format, 0)
-def TextureBufferMaterialDataAddFormat(builder, format):
-    """This method is deprecated. Please switch to AddFormat."""
-    return AddFormat(builder, format)
-def AddDecoration(builder, decoration): builder.PrependUint8Slot(2, decoration, 0)
-def TextureBufferMaterialDataAddDecoration(builder, decoration):
-    """This method is deprecated. Please switch to AddDecoration."""
-    return AddDecoration(builder, decoration)
-def AddOffset(builder, offset): builder.PrependUint32Slot(3, offset, 0)
-def TextureBufferMaterialDataAddOffset(builder, offset):
-    """This method is deprecated. Please switch to AddOffset."""
-    return AddOffset(builder, offset)
-def AddCount(builder, count): builder.PrependUint32Slot(4, count, 0)
-def TextureBufferMaterialDataAddCount(builder, count):
-    """This method is deprecated. Please switch to AddCount."""
-    return AddCount(builder, count)
-def End(builder): return builder.EndObject()
-def TextureBufferMaterialDataEnd(builder):
-    """This method is deprecated. Please switch to End."""
-    return End(builder)
+def TextureBufferMaterialDataStart(builder): builder.StartObject(5)
+def Start(builder):
+    return TextureBufferMaterialDataStart(builder)
+def TextureBufferMaterialDataAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+def AddName(builder, name):
+    return TextureBufferMaterialDataAddName(builder, name)
+def TextureBufferMaterialDataAddFormat(builder, format): builder.PrependUint8Slot(1, format, 0)
+def AddFormat(builder, format):
+    return TextureBufferMaterialDataAddFormat(builder, format)
+def TextureBufferMaterialDataAddDecoration(builder, decoration): builder.PrependUint8Slot(2, decoration, 0)
+def AddDecoration(builder, decoration):
+    return TextureBufferMaterialDataAddDecoration(builder, decoration)
+def TextureBufferMaterialDataAddOffset(builder, offset): builder.PrependUint32Slot(3, offset, 0)
+def AddOffset(builder, offset):
+    return TextureBufferMaterialDataAddOffset(builder, offset)
+def TextureBufferMaterialDataAddCount(builder, count): builder.PrependUint32Slot(4, count, 0)
+def AddCount(builder, count):
+    return TextureBufferMaterialDataAddCount(builder, count)
+def TextureBufferMaterialDataEnd(builder): return builder.EndObject()
+def End(builder):
+    return TextureBufferMaterialDataEnd(builder)

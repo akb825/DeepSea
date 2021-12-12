@@ -16,7 +16,6 @@
 
 #include "SceneVectorImageLoad.h"
 
-#include "Flatbuffers/SceneVectorImage_generated.h"
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/StackAllocator.h>
 #include <DeepSea/Core/Assert.h>
@@ -29,6 +28,17 @@
 #include <DeepSea/VectorDrawScene/VectorSceneMaterialSet.h>
 #include <DeepSea/VectorDrawScene/VectorSceneResources.h>
 #include <DeepSea/VectorDrawScene/VectorSceneShaders.h>
+
+#if DS_GCC || DS_CLANG
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#endif
+
+#include "Flatbuffers/SceneVectorImage_generated.h"
+
+#if DS_GCC || DS_CLANG
+#pragma GCC diagnostic pop
+#endif
 
 void* dsSceneVectorImage_load(const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,

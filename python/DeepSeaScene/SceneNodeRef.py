@@ -31,15 +31,12 @@ class SceneNodeRef(object):
             return self._tab.String(o + self._tab.Pos)
         return None
 
-def Start(builder): builder.StartObject(1)
-def SceneNodeRefStart(builder):
-    """This method is deprecated. Please switch to Start."""
-    return Start(builder)
-def AddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
-def SceneNodeRefAddName(builder, name):
-    """This method is deprecated. Please switch to AddName."""
-    return AddName(builder, name)
-def End(builder): return builder.EndObject()
-def SceneNodeRefEnd(builder):
-    """This method is deprecated. Please switch to End."""
-    return End(builder)
+def SceneNodeRefStart(builder): builder.StartObject(1)
+def Start(builder):
+    return SceneNodeRefStart(builder)
+def SceneNodeRefAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+def AddName(builder, name):
+    return SceneNodeRefAddName(builder, name)
+def SceneNodeRefEnd(builder): return builder.EndObject()
+def End(builder):
+    return SceneNodeRefEnd(builder)

@@ -15,7 +15,6 @@
  */
 
 #include "LightData.h"
-#include "LightData_generated.h"
 #include <DeepSea/Core/Containers/Hash.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
@@ -25,10 +24,22 @@
 #include <DeepSea/Render/Resources/ShaderVariableGroup.h>
 #include <DeepSea/Render/Resources/ShaderVariableGroupDesc.h>
 #include <DeepSea/Render/Resources/SharedMaterialValues.h>
-#include <DeepSea/Scene/Flatbuffers/SceneCommon_generated.h>
 #include <DeepSea/Scene/SceneGlobalData.h>
 #include <DeepSea/Scene/SceneLoadContext.h>
 #include <DeepSea/Scene/SceneLoadScratchData.h>
+
+#if DS_GCC || DS_CLANG
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#endif
+
+#include "LightData_generated.h"
+#include <DeepSea/Scene/Flatbuffers/SceneCommon_generated.h>
+
+#if DS_GCC || DS_CLANG
+#pragma GCC diagnostic pop
+#endif
+
 #include <string.h>
 
 typedef struct dsLightData

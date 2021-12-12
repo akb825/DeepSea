@@ -49,19 +49,15 @@ class SceneShadowManager(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         return o == 0
 
-def Start(builder): builder.StartObject(1)
-def SceneShadowManagerStart(builder):
-    """This method is deprecated. Please switch to Start."""
-    return Start(builder)
-def AddShadows(builder, shadows): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(shadows), 0)
-def SceneShadowManagerAddShadows(builder, shadows):
-    """This method is deprecated. Please switch to AddShadows."""
-    return AddShadows(builder, shadows)
-def StartShadowsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
-def SceneShadowManagerStartShadowsVector(builder, numElems):
-    """This method is deprecated. Please switch to Start."""
-    return StartShadowsVector(builder, numElems)
-def End(builder): return builder.EndObject()
-def SceneShadowManagerEnd(builder):
-    """This method is deprecated. Please switch to End."""
-    return End(builder)
+def SceneShadowManagerStart(builder): builder.StartObject(1)
+def Start(builder):
+    return SceneShadowManagerStart(builder)
+def SceneShadowManagerAddShadows(builder, shadows): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(shadows), 0)
+def AddShadows(builder, shadows):
+    return SceneShadowManagerAddShadows(builder, shadows)
+def SceneShadowManagerStartShadowsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+def StartShadowsVector(builder, numElems):
+    return SceneShadowManagerStartShadowsVector(builder, numElems)
+def SceneShadowManagerEnd(builder): return builder.EndObject()
+def End(builder):
+    return SceneShadowManagerEnd(builder)

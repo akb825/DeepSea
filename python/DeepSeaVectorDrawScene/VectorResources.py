@@ -41,19 +41,15 @@ class VectorResources(object):
             return obj
         return None
 
-def Start(builder): builder.StartObject(2)
-def VectorResourcesStart(builder):
-    """This method is deprecated. Please switch to Start."""
-    return Start(builder)
-def AddResourcesType(builder, resourcesType): builder.PrependUint8Slot(0, resourcesType, 0)
-def VectorResourcesAddResourcesType(builder, resourcesType):
-    """This method is deprecated. Please switch to AddResourcesType."""
-    return AddResourcesType(builder, resourcesType)
-def AddResources(builder, resources): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(resources), 0)
-def VectorResourcesAddResources(builder, resources):
-    """This method is deprecated. Please switch to AddResources."""
-    return AddResources(builder, resources)
-def End(builder): return builder.EndObject()
-def VectorResourcesEnd(builder):
-    """This method is deprecated. Please switch to End."""
-    return End(builder)
+def VectorResourcesStart(builder): builder.StartObject(2)
+def Start(builder):
+    return VectorResourcesStart(builder)
+def VectorResourcesAddResourcesType(builder, resourcesType): builder.PrependUint8Slot(0, resourcesType, 0)
+def AddResourcesType(builder, resourcesType):
+    return VectorResourcesAddResourcesType(builder, resourcesType)
+def VectorResourcesAddResources(builder, resources): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(resources), 0)
+def AddResources(builder, resources):
+    return VectorResourcesAddResources(builder, resources)
+def VectorResourcesEnd(builder): return builder.EndObject()
+def End(builder):
+    return VectorResourcesEnd(builder)

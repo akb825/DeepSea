@@ -31,15 +31,12 @@ class InstanceTransformData(object):
             return self._tab.String(o + self._tab.Pos)
         return None
 
-def Start(builder): builder.StartObject(1)
-def InstanceTransformDataStart(builder):
-    """This method is deprecated. Please switch to Start."""
-    return Start(builder)
-def AddVariableGroupDesc(builder, variableGroupDesc): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(variableGroupDesc), 0)
-def InstanceTransformDataAddVariableGroupDesc(builder, variableGroupDesc):
-    """This method is deprecated. Please switch to AddVariableGroupDesc."""
-    return AddVariableGroupDesc(builder, variableGroupDesc)
-def End(builder): return builder.EndObject()
-def InstanceTransformDataEnd(builder):
-    """This method is deprecated. Please switch to End."""
-    return End(builder)
+def InstanceTransformDataStart(builder): builder.StartObject(1)
+def Start(builder):
+    return InstanceTransformDataStart(builder)
+def InstanceTransformDataAddVariableGroupDesc(builder, variableGroupDesc): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(variableGroupDesc), 0)
+def AddVariableGroupDesc(builder, variableGroupDesc):
+    return InstanceTransformDataAddVariableGroupDesc(builder, variableGroupDesc)
+def InstanceTransformDataEnd(builder): return builder.EndObject()
+def End(builder):
+    return InstanceTransformDataEnd(builder)

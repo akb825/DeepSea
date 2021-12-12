@@ -16,7 +16,6 @@
 
 #include "SceneLightSetLoad.h"
 
-#include "Flatbuffers/SceneLightSet_generated.h"
 #include <DeepSea/Core/Memory/StackAllocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
@@ -30,6 +29,17 @@
 #include <DeepSea/Scene/SceneLoadScratchData.h>
 #include <DeepSea/SceneLighting/SceneLight.h>
 #include <DeepSea/SceneLighting/SceneLightSet.h>
+
+#if DS_GCC || DS_CLANG
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#endif
+
+#include "Flatbuffers/SceneLightSet_generated.h"
+
+#if DS_GCC || DS_CLANG
+#pragma GCC diagnostic pop
+#endif
 
 void* dsSceneLightSet_load(const dsSceneLoadContext*, dsSceneLoadScratchData*,
 	dsAllocator* allocator, dsAllocator*, void*, const uint8_t* data, size_t dataSize)

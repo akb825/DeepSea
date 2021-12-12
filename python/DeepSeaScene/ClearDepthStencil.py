@@ -38,19 +38,15 @@ class ClearDepthStencil(object):
             return self._tab.Get(flatbuffers.number_types.Uint32Flags, o + self._tab.Pos)
         return 0
 
-def Start(builder): builder.StartObject(2)
-def ClearDepthStencilStart(builder):
-    """This method is deprecated. Please switch to Start."""
-    return Start(builder)
-def AddDepth(builder, depth): builder.PrependFloat32Slot(0, depth, 0.0)
-def ClearDepthStencilAddDepth(builder, depth):
-    """This method is deprecated. Please switch to AddDepth."""
-    return AddDepth(builder, depth)
-def AddStencil(builder, stencil): builder.PrependUint32Slot(1, stencil, 0)
-def ClearDepthStencilAddStencil(builder, stencil):
-    """This method is deprecated. Please switch to AddStencil."""
-    return AddStencil(builder, stencil)
-def End(builder): return builder.EndObject()
-def ClearDepthStencilEnd(builder):
-    """This method is deprecated. Please switch to End."""
-    return End(builder)
+def ClearDepthStencilStart(builder): builder.StartObject(2)
+def Start(builder):
+    return ClearDepthStencilStart(builder)
+def ClearDepthStencilAddDepth(builder, depth): builder.PrependFloat32Slot(0, depth, 0.0)
+def AddDepth(builder, depth):
+    return ClearDepthStencilAddDepth(builder, depth)
+def ClearDepthStencilAddStencil(builder, stencil): builder.PrependUint32Slot(1, stencil, 0)
+def AddStencil(builder, stencil):
+    return ClearDepthStencilAddStencil(builder, stencil)
+def ClearDepthStencilEnd(builder): return builder.EndObject()
+def End(builder):
+    return ClearDepthStencilEnd(builder)

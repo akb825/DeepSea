@@ -185,17 +185,27 @@ dsGfxFormat convert(const dsRenderer* renderer,
 	dsGfxFormat gfxFormat = dsGfxFormat_decorate(textureFormatMap[formatIndex],
 		formatDecorationMap[decorationIndex]);
 
-	// Some platforms don't support 24-bit depth. Convert to 32-bit float here automatically to
-	// make configuration files not have to worry about it.
-	if (gfxFormat == dsGfxFormat_D24S8 &&
-		!dsGfxFormat_renderTargetSupported(renderer->resourceManager, gfxFormat))
+	// Some platforms support only 24-bit or 32-bit float depth. Treat them as interchangible if
+	// the specific one that's requested isn't supported.
+	if (!dsGfxFormat_renderTargetSupported(renderer->resourceManager, gfxFormat))
 	{
-		gfxFormat = dsGfxFormat_D32S8_Float;
-	}
-	else if (gfxFormat == dsGfxFormat_X8D24 &&
-		!dsGfxFormat_renderTargetSupported(renderer->resourceManager, gfxFormat))
-	{
-		gfxFormat = dsGfxFormat_D32_Float;
+		switch (gfxFormat)
+		{
+			case dsGfxFormat_D24S8:
+				gfxFormat = dsGfxFormat_D32S8_Float;
+				break;
+			case dsGfxFormat_X8D24:
+				gfxFormat = dsGfxFormat_D32_Float;
+				break;
+			case dsGfxFormat_D32S8_Float:
+				gfxFormat = dsGfxFormat_D24S8;
+				break;
+			case dsGfxFormat_D32_Float:
+				gfxFormat = dsGfxFormat_X8D24;
+				break;
+			default:
+				break;
+		}
 	}
 
 	return gfxFormat;

@@ -16,7 +16,6 @@
 
 #include "SceneShadowManagerLoad.h"
 
-#include "Flatbuffers/SceneShadowManager_generated.h"
 #include <DeepSea/Core/Memory/StackAllocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
@@ -27,6 +26,17 @@
 #include <DeepSea/SceneLighting/SceneLightSet.h>
 #include <DeepSea/SceneLighting/SceneLightShadows.h>
 #include <DeepSea/SceneLighting/SceneShadowManager.h>
+
+#if DS_GCC || DS_CLANG
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#endif
+
+#include "Flatbuffers/SceneShadowManager_generated.h"
+
+#if DS_GCC || DS_CLANG
+#pragma GCC diagnostic pop
+#endif
 
 void* dsSceneShadowManager_load(const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator*, void*,

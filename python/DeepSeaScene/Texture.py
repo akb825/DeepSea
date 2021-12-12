@@ -73,35 +73,27 @@ class Texture(object):
             return obj
         return None
 
-def Start(builder): builder.StartObject(6)
-def TextureStart(builder):
-    """This method is deprecated. Please switch to Start."""
-    return Start(builder)
-def AddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
-def TextureAddName(builder, name):
-    """This method is deprecated. Please switch to AddName."""
-    return AddName(builder, name)
-def AddUsage(builder, usage): builder.PrependUint32Slot(1, usage, 0)
-def TextureAddUsage(builder, usage):
-    """This method is deprecated. Please switch to AddUsage."""
-    return AddUsage(builder, usage)
-def AddMemoryHints(builder, memoryHints): builder.PrependUint32Slot(2, memoryHints, 0)
-def TextureAddMemoryHints(builder, memoryHints):
-    """This method is deprecated. Please switch to AddMemoryHints."""
-    return AddMemoryHints(builder, memoryHints)
-def AddDataType(builder, dataType): builder.PrependUint8Slot(3, dataType, 0)
-def TextureAddDataType(builder, dataType):
-    """This method is deprecated. Please switch to AddDataType."""
-    return AddDataType(builder, dataType)
-def AddData(builder, data): builder.PrependUOffsetTRelativeSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(data), 0)
-def TextureAddData(builder, data):
-    """This method is deprecated. Please switch to AddData."""
-    return AddData(builder, data)
-def AddTextureInfo(builder, textureInfo): builder.PrependUOffsetTRelativeSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(textureInfo), 0)
-def TextureAddTextureInfo(builder, textureInfo):
-    """This method is deprecated. Please switch to AddTextureInfo."""
-    return AddTextureInfo(builder, textureInfo)
-def End(builder): return builder.EndObject()
-def TextureEnd(builder):
-    """This method is deprecated. Please switch to End."""
-    return End(builder)
+def TextureStart(builder): builder.StartObject(6)
+def Start(builder):
+    return TextureStart(builder)
+def TextureAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+def AddName(builder, name):
+    return TextureAddName(builder, name)
+def TextureAddUsage(builder, usage): builder.PrependUint32Slot(1, usage, 0)
+def AddUsage(builder, usage):
+    return TextureAddUsage(builder, usage)
+def TextureAddMemoryHints(builder, memoryHints): builder.PrependUint32Slot(2, memoryHints, 0)
+def AddMemoryHints(builder, memoryHints):
+    return TextureAddMemoryHints(builder, memoryHints)
+def TextureAddDataType(builder, dataType): builder.PrependUint8Slot(3, dataType, 0)
+def AddDataType(builder, dataType):
+    return TextureAddDataType(builder, dataType)
+def TextureAddData(builder, data): builder.PrependUOffsetTRelativeSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(data), 0)
+def AddData(builder, data):
+    return TextureAddData(builder, data)
+def TextureAddTextureInfo(builder, textureInfo): builder.PrependUOffsetTRelativeSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(textureInfo), 0)
+def AddTextureInfo(builder, textureInfo):
+    return TextureAddTextureInfo(builder, textureInfo)
+def TextureEnd(builder): return builder.EndObject()
+def End(builder):
+    return TextureEnd(builder)

@@ -48,23 +48,18 @@ class Light(object):
             return obj
         return None
 
-def Start(builder): builder.StartObject(3)
-def LightStart(builder):
-    """This method is deprecated. Please switch to Start."""
-    return Start(builder)
-def AddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
-def LightAddName(builder, name):
-    """This method is deprecated. Please switch to AddName."""
-    return AddName(builder, name)
-def AddLightType(builder, lightType): builder.PrependUint8Slot(1, lightType, 0)
-def LightAddLightType(builder, lightType):
-    """This method is deprecated. Please switch to AddLightType."""
-    return AddLightType(builder, lightType)
-def AddLight(builder, light): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(light), 0)
-def LightAddLight(builder, light):
-    """This method is deprecated. Please switch to AddLight."""
-    return AddLight(builder, light)
-def End(builder): return builder.EndObject()
-def LightEnd(builder):
-    """This method is deprecated. Please switch to End."""
-    return End(builder)
+def LightStart(builder): builder.StartObject(3)
+def Start(builder):
+    return LightStart(builder)
+def LightAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+def AddName(builder, name):
+    return LightAddName(builder, name)
+def LightAddLightType(builder, lightType): builder.PrependUint8Slot(1, lightType, 0)
+def AddLightType(builder, lightType):
+    return LightAddLightType(builder, lightType)
+def LightAddLight(builder, light): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(light), 0)
+def AddLight(builder, light):
+    return LightAddLight(builder, light)
+def LightEnd(builder): return builder.EndObject()
+def End(builder):
+    return LightEnd(builder)

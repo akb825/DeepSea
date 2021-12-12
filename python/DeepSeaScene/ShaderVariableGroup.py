@@ -63,27 +63,21 @@ class ShaderVariableGroup(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
         return o == 0
 
-def Start(builder): builder.StartObject(3)
-def ShaderVariableGroupStart(builder):
-    """This method is deprecated. Please switch to Start."""
-    return Start(builder)
-def AddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
-def ShaderVariableGroupAddName(builder, name):
-    """This method is deprecated. Please switch to AddName."""
-    return AddName(builder, name)
-def AddDescription(builder, description): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(description), 0)
-def ShaderVariableGroupAddDescription(builder, description):
-    """This method is deprecated. Please switch to AddDescription."""
-    return AddDescription(builder, description)
-def AddData(builder, data): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(data), 0)
-def ShaderVariableGroupAddData(builder, data):
-    """This method is deprecated. Please switch to AddData."""
-    return AddData(builder, data)
-def StartDataVector(builder, numElems): return builder.StartVector(4, numElems, 4)
-def ShaderVariableGroupStartDataVector(builder, numElems):
-    """This method is deprecated. Please switch to Start."""
-    return StartDataVector(builder, numElems)
-def End(builder): return builder.EndObject()
-def ShaderVariableGroupEnd(builder):
-    """This method is deprecated. Please switch to End."""
-    return End(builder)
+def ShaderVariableGroupStart(builder): builder.StartObject(3)
+def Start(builder):
+    return ShaderVariableGroupStart(builder)
+def ShaderVariableGroupAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+def AddName(builder, name):
+    return ShaderVariableGroupAddName(builder, name)
+def ShaderVariableGroupAddDescription(builder, description): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(description), 0)
+def AddDescription(builder, description):
+    return ShaderVariableGroupAddDescription(builder, description)
+def ShaderVariableGroupAddData(builder, data): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(data), 0)
+def AddData(builder, data):
+    return ShaderVariableGroupAddData(builder, data)
+def ShaderVariableGroupStartDataVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+def StartDataVector(builder, numElems):
+    return ShaderVariableGroupStartDataVector(builder, numElems)
+def ShaderVariableGroupEnd(builder): return builder.EndObject()
+def End(builder):
+    return ShaderVariableGroupEnd(builder)

@@ -38,19 +38,15 @@ class InstanceForwardLightData(object):
             return self._tab.String(o + self._tab.Pos)
         return None
 
-def Start(builder): builder.StartObject(2)
-def InstanceForwardLightDataStart(builder):
-    """This method is deprecated. Please switch to Start."""
-    return Start(builder)
-def AddVariableGroupDesc(builder, variableGroupDesc): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(variableGroupDesc), 0)
-def InstanceForwardLightDataAddVariableGroupDesc(builder, variableGroupDesc):
-    """This method is deprecated. Please switch to AddVariableGroupDesc."""
-    return AddVariableGroupDesc(builder, variableGroupDesc)
-def AddLightSet(builder, lightSet): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(lightSet), 0)
-def InstanceForwardLightDataAddLightSet(builder, lightSet):
-    """This method is deprecated. Please switch to AddLightSet."""
-    return AddLightSet(builder, lightSet)
-def End(builder): return builder.EndObject()
-def InstanceForwardLightDataEnd(builder):
-    """This method is deprecated. Please switch to End."""
-    return End(builder)
+def InstanceForwardLightDataStart(builder): builder.StartObject(2)
+def Start(builder):
+    return InstanceForwardLightDataStart(builder)
+def InstanceForwardLightDataAddVariableGroupDesc(builder, variableGroupDesc): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(variableGroupDesc), 0)
+def AddVariableGroupDesc(builder, variableGroupDesc):
+    return InstanceForwardLightDataAddVariableGroupDesc(builder, variableGroupDesc)
+def InstanceForwardLightDataAddLightSet(builder, lightSet): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(lightSet), 0)
+def AddLightSet(builder, lightSet):
+    return InstanceForwardLightDataAddLightSet(builder, lightSet)
+def InstanceForwardLightDataEnd(builder): return builder.EndObject()
+def End(builder):
+    return InstanceForwardLightDataEnd(builder)

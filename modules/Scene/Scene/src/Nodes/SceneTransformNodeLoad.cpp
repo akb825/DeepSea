@@ -16,13 +16,23 @@
 
 #include <DeepSea/Scene/Nodes/SceneTransformNode.h>
 
-#include "Flatbuffers/TransformNode_generated.h"
 #include "SceneLoadContextInternal.h"
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Scene/Nodes/SceneNode.h>
 #include <DeepSea/Scene/Types.h>
+
+#if DS_GCC || DS_CLANG
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#endif
+
+#include "Flatbuffers/TransformNode_generated.h"
+
+#if DS_GCC || DS_CLANG
+#pragma GCC diagnostic pop
+#endif
 
 extern "C"
 dsSceneNode* dsSceneTransformNode_load(const dsSceneLoadContext* loadContext,

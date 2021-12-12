@@ -51,23 +51,18 @@ class SceneLightSetPrepare(object):
             return self._tab.Get(flatbuffers.number_types.Float32Flags, o + self._tab.Pos)
         return 0.0
 
-def Start(builder): builder.StartObject(2)
-def SceneLightSetPrepareStart(builder):
-    """This method is deprecated. Please switch to Start."""
-    return Start(builder)
-def AddLightSets(builder, lightSets): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(lightSets), 0)
-def SceneLightSetPrepareAddLightSets(builder, lightSets):
-    """This method is deprecated. Please switch to AddLightSets."""
-    return AddLightSets(builder, lightSets)
-def StartLightSetsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
-def SceneLightSetPrepareStartLightSetsVector(builder, numElems):
-    """This method is deprecated. Please switch to Start."""
-    return StartLightSetsVector(builder, numElems)
-def AddIntensityThreshold(builder, intensityThreshold): builder.PrependFloat32Slot(1, intensityThreshold, 0.0)
-def SceneLightSetPrepareAddIntensityThreshold(builder, intensityThreshold):
-    """This method is deprecated. Please switch to AddIntensityThreshold."""
-    return AddIntensityThreshold(builder, intensityThreshold)
-def End(builder): return builder.EndObject()
-def SceneLightSetPrepareEnd(builder):
-    """This method is deprecated. Please switch to End."""
-    return End(builder)
+def SceneLightSetPrepareStart(builder): builder.StartObject(2)
+def Start(builder):
+    return SceneLightSetPrepareStart(builder)
+def SceneLightSetPrepareAddLightSets(builder, lightSets): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(lightSets), 0)
+def AddLightSets(builder, lightSets):
+    return SceneLightSetPrepareAddLightSets(builder, lightSets)
+def SceneLightSetPrepareStartLightSetsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+def StartLightSetsVector(builder, numElems):
+    return SceneLightSetPrepareStartLightSetsVector(builder, numElems)
+def SceneLightSetPrepareAddIntensityThreshold(builder, intensityThreshold): builder.PrependFloat32Slot(1, intensityThreshold, 0.0)
+def AddIntensityThreshold(builder, intensityThreshold):
+    return SceneLightSetPrepareAddIntensityThreshold(builder, intensityThreshold)
+def SceneLightSetPrepareEnd(builder): return builder.EndObject()
+def End(builder):
+    return SceneLightSetPrepareEnd(builder)

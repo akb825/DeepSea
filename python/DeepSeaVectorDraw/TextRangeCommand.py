@@ -119,63 +119,48 @@ class TextRangeCommand(object):
             return self._tab.Get(flatbuffers.number_types.Float32Flags, o + self._tab.Pos)
         return 0.0
 
-def Start(builder): builder.StartObject(13)
-def TextRangeCommandStart(builder):
-    """This method is deprecated. Please switch to Start."""
-    return Start(builder)
-def AddStart(builder, start): builder.PrependUint32Slot(0, start, 0)
-def TextRangeCommandAddStart(builder, start):
-    """This method is deprecated. Please switch to AddStart."""
-    return AddStart(builder, start)
-def AddCount(builder, count): builder.PrependUint32Slot(1, count, 0)
-def TextRangeCommandAddCount(builder, count):
-    """This method is deprecated. Please switch to AddCount."""
-    return AddCount(builder, count)
-def AddPositionType(builder, positionType): builder.PrependUint8Slot(2, positionType, 0)
-def TextRangeCommandAddPositionType(builder, positionType):
-    """This method is deprecated. Please switch to AddPositionType."""
-    return AddPositionType(builder, positionType)
-def AddPosition(builder, position): builder.PrependStructSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(position), 0)
-def TextRangeCommandAddPosition(builder, position):
-    """This method is deprecated. Please switch to AddPosition."""
-    return AddPosition(builder, position)
-def AddFillMaterial(builder, fillMaterial): builder.PrependUOffsetTRelativeSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(fillMaterial), 0)
-def TextRangeCommandAddFillMaterial(builder, fillMaterial):
-    """This method is deprecated. Please switch to AddFillMaterial."""
-    return AddFillMaterial(builder, fillMaterial)
-def AddOutlineMaterial(builder, outlineMaterial): builder.PrependUOffsetTRelativeSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(outlineMaterial), 0)
-def TextRangeCommandAddOutlineMaterial(builder, outlineMaterial):
-    """This method is deprecated. Please switch to AddOutlineMaterial."""
-    return AddOutlineMaterial(builder, outlineMaterial)
-def AddFillOpacity(builder, fillOpacity): builder.PrependFloat32Slot(6, fillOpacity, 0.0)
-def TextRangeCommandAddFillOpacity(builder, fillOpacity):
-    """This method is deprecated. Please switch to AddFillOpacity."""
-    return AddFillOpacity(builder, fillOpacity)
-def AddOutlineOpacity(builder, outlineOpacity): builder.PrependFloat32Slot(7, outlineOpacity, 0.0)
-def TextRangeCommandAddOutlineOpacity(builder, outlineOpacity):
-    """This method is deprecated. Please switch to AddOutlineOpacity."""
-    return AddOutlineOpacity(builder, outlineOpacity)
-def AddSize(builder, size): builder.PrependFloat32Slot(8, size, 0.0)
-def TextRangeCommandAddSize(builder, size):
-    """This method is deprecated. Please switch to AddSize."""
-    return AddSize(builder, size)
-def AddEmbolden(builder, embolden): builder.PrependFloat32Slot(9, embolden, 0.0)
-def TextRangeCommandAddEmbolden(builder, embolden):
-    """This method is deprecated. Please switch to AddEmbolden."""
-    return AddEmbolden(builder, embolden)
-def AddSlant(builder, slant): builder.PrependFloat32Slot(10, slant, 0.0)
-def TextRangeCommandAddSlant(builder, slant):
-    """This method is deprecated. Please switch to AddSlant."""
-    return AddSlant(builder, slant)
-def AddOutlineWidth(builder, outlineWidth): builder.PrependFloat32Slot(11, outlineWidth, 0.0)
-def TextRangeCommandAddOutlineWidth(builder, outlineWidth):
-    """This method is deprecated. Please switch to AddOutlineWidth."""
-    return AddOutlineWidth(builder, outlineWidth)
-def AddFuziness(builder, fuziness): builder.PrependFloat32Slot(12, fuziness, 0.0)
-def TextRangeCommandAddFuziness(builder, fuziness):
-    """This method is deprecated. Please switch to AddFuziness."""
-    return AddFuziness(builder, fuziness)
-def End(builder): return builder.EndObject()
-def TextRangeCommandEnd(builder):
-    """This method is deprecated. Please switch to End."""
-    return End(builder)
+def TextRangeCommandStart(builder): builder.StartObject(13)
+def Start(builder):
+    return TextRangeCommandStart(builder)
+def TextRangeCommandAddStart(builder, start): builder.PrependUint32Slot(0, start, 0)
+def AddStart(builder, start):
+    return TextRangeCommandAddStart(builder, start)
+def TextRangeCommandAddCount(builder, count): builder.PrependUint32Slot(1, count, 0)
+def AddCount(builder, count):
+    return TextRangeCommandAddCount(builder, count)
+def TextRangeCommandAddPositionType(builder, positionType): builder.PrependUint8Slot(2, positionType, 0)
+def AddPositionType(builder, positionType):
+    return TextRangeCommandAddPositionType(builder, positionType)
+def TextRangeCommandAddPosition(builder, position): builder.PrependStructSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(position), 0)
+def AddPosition(builder, position):
+    return TextRangeCommandAddPosition(builder, position)
+def TextRangeCommandAddFillMaterial(builder, fillMaterial): builder.PrependUOffsetTRelativeSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(fillMaterial), 0)
+def AddFillMaterial(builder, fillMaterial):
+    return TextRangeCommandAddFillMaterial(builder, fillMaterial)
+def TextRangeCommandAddOutlineMaterial(builder, outlineMaterial): builder.PrependUOffsetTRelativeSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(outlineMaterial), 0)
+def AddOutlineMaterial(builder, outlineMaterial):
+    return TextRangeCommandAddOutlineMaterial(builder, outlineMaterial)
+def TextRangeCommandAddFillOpacity(builder, fillOpacity): builder.PrependFloat32Slot(6, fillOpacity, 0.0)
+def AddFillOpacity(builder, fillOpacity):
+    return TextRangeCommandAddFillOpacity(builder, fillOpacity)
+def TextRangeCommandAddOutlineOpacity(builder, outlineOpacity): builder.PrependFloat32Slot(7, outlineOpacity, 0.0)
+def AddOutlineOpacity(builder, outlineOpacity):
+    return TextRangeCommandAddOutlineOpacity(builder, outlineOpacity)
+def TextRangeCommandAddSize(builder, size): builder.PrependFloat32Slot(8, size, 0.0)
+def AddSize(builder, size):
+    return TextRangeCommandAddSize(builder, size)
+def TextRangeCommandAddEmbolden(builder, embolden): builder.PrependFloat32Slot(9, embolden, 0.0)
+def AddEmbolden(builder, embolden):
+    return TextRangeCommandAddEmbolden(builder, embolden)
+def TextRangeCommandAddSlant(builder, slant): builder.PrependFloat32Slot(10, slant, 0.0)
+def AddSlant(builder, slant):
+    return TextRangeCommandAddSlant(builder, slant)
+def TextRangeCommandAddOutlineWidth(builder, outlineWidth): builder.PrependFloat32Slot(11, outlineWidth, 0.0)
+def AddOutlineWidth(builder, outlineWidth):
+    return TextRangeCommandAddOutlineWidth(builder, outlineWidth)
+def TextRangeCommandAddFuziness(builder, fuziness): builder.PrependFloat32Slot(12, fuziness, 0.0)
+def AddFuziness(builder, fuziness):
+    return TextRangeCommandAddFuziness(builder, fuziness)
+def TextRangeCommandEnd(builder): return builder.EndObject()
+def End(builder):
+    return TextRangeCommandEnd(builder)

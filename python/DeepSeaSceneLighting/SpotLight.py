@@ -92,43 +92,33 @@ class SpotLight(object):
             return self._tab.Get(flatbuffers.number_types.Float32Flags, o + self._tab.Pos)
         return 0.0
 
-def Start(builder): builder.StartObject(8)
-def SpotLightStart(builder):
-    """This method is deprecated. Please switch to Start."""
-    return Start(builder)
-def AddPosition(builder, position): builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(position), 0)
-def SpotLightAddPosition(builder, position):
-    """This method is deprecated. Please switch to AddPosition."""
-    return AddPosition(builder, position)
-def AddDirection(builder, direction): builder.PrependStructSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(direction), 0)
-def SpotLightAddDirection(builder, direction):
-    """This method is deprecated. Please switch to AddDirection."""
-    return AddDirection(builder, direction)
-def AddColor(builder, color): builder.PrependStructSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(color), 0)
-def SpotLightAddColor(builder, color):
-    """This method is deprecated. Please switch to AddColor."""
-    return AddColor(builder, color)
-def AddIntensity(builder, intensity): builder.PrependFloat32Slot(3, intensity, 0.0)
-def SpotLightAddIntensity(builder, intensity):
-    """This method is deprecated. Please switch to AddIntensity."""
-    return AddIntensity(builder, intensity)
-def AddLinearFalloff(builder, linearFalloff): builder.PrependFloat32Slot(4, linearFalloff, 0.0)
-def SpotLightAddLinearFalloff(builder, linearFalloff):
-    """This method is deprecated. Please switch to AddLinearFalloff."""
-    return AddLinearFalloff(builder, linearFalloff)
-def AddQuadraticFalloff(builder, quadraticFalloff): builder.PrependFloat32Slot(5, quadraticFalloff, 0.0)
-def SpotLightAddQuadraticFalloff(builder, quadraticFalloff):
-    """This method is deprecated. Please switch to AddQuadraticFalloff."""
-    return AddQuadraticFalloff(builder, quadraticFalloff)
-def AddInnerSpotAngle(builder, innerSpotAngle): builder.PrependFloat32Slot(6, innerSpotAngle, 0.0)
-def SpotLightAddInnerSpotAngle(builder, innerSpotAngle):
-    """This method is deprecated. Please switch to AddInnerSpotAngle."""
-    return AddInnerSpotAngle(builder, innerSpotAngle)
-def AddOuterSpotAngle(builder, outerSpotAngle): builder.PrependFloat32Slot(7, outerSpotAngle, 0.0)
-def SpotLightAddOuterSpotAngle(builder, outerSpotAngle):
-    """This method is deprecated. Please switch to AddOuterSpotAngle."""
-    return AddOuterSpotAngle(builder, outerSpotAngle)
-def End(builder): return builder.EndObject()
-def SpotLightEnd(builder):
-    """This method is deprecated. Please switch to End."""
-    return End(builder)
+def SpotLightStart(builder): builder.StartObject(8)
+def Start(builder):
+    return SpotLightStart(builder)
+def SpotLightAddPosition(builder, position): builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(position), 0)
+def AddPosition(builder, position):
+    return SpotLightAddPosition(builder, position)
+def SpotLightAddDirection(builder, direction): builder.PrependStructSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(direction), 0)
+def AddDirection(builder, direction):
+    return SpotLightAddDirection(builder, direction)
+def SpotLightAddColor(builder, color): builder.PrependStructSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(color), 0)
+def AddColor(builder, color):
+    return SpotLightAddColor(builder, color)
+def SpotLightAddIntensity(builder, intensity): builder.PrependFloat32Slot(3, intensity, 0.0)
+def AddIntensity(builder, intensity):
+    return SpotLightAddIntensity(builder, intensity)
+def SpotLightAddLinearFalloff(builder, linearFalloff): builder.PrependFloat32Slot(4, linearFalloff, 0.0)
+def AddLinearFalloff(builder, linearFalloff):
+    return SpotLightAddLinearFalloff(builder, linearFalloff)
+def SpotLightAddQuadraticFalloff(builder, quadraticFalloff): builder.PrependFloat32Slot(5, quadraticFalloff, 0.0)
+def AddQuadraticFalloff(builder, quadraticFalloff):
+    return SpotLightAddQuadraticFalloff(builder, quadraticFalloff)
+def SpotLightAddInnerSpotAngle(builder, innerSpotAngle): builder.PrependFloat32Slot(6, innerSpotAngle, 0.0)
+def AddInnerSpotAngle(builder, innerSpotAngle):
+    return SpotLightAddInnerSpotAngle(builder, innerSpotAngle)
+def SpotLightAddOuterSpotAngle(builder, outerSpotAngle): builder.PrependFloat32Slot(7, outerSpotAngle, 0.0)
+def AddOuterSpotAngle(builder, outerSpotAngle):
+    return SpotLightAddOuterSpotAngle(builder, outerSpotAngle)
+def SpotLightEnd(builder): return builder.EndObject()
+def End(builder):
+    return SpotLightEnd(builder)

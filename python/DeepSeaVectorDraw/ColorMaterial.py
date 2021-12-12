@@ -42,19 +42,15 @@ class ColorMaterial(object):
             return obj
         return None
 
-def Start(builder): builder.StartObject(2)
-def ColorMaterialStart(builder):
-    """This method is deprecated. Please switch to Start."""
-    return Start(builder)
-def AddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
-def ColorMaterialAddName(builder, name):
-    """This method is deprecated. Please switch to AddName."""
-    return AddName(builder, name)
-def AddColor(builder, color): builder.PrependStructSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(color), 0)
-def ColorMaterialAddColor(builder, color):
-    """This method is deprecated. Please switch to AddColor."""
-    return AddColor(builder, color)
-def End(builder): return builder.EndObject()
-def ColorMaterialEnd(builder):
-    """This method is deprecated. Please switch to End."""
-    return End(builder)
+def ColorMaterialStart(builder): builder.StartObject(2)
+def Start(builder):
+    return ColorMaterialStart(builder)
+def ColorMaterialAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+def AddName(builder, name):
+    return ColorMaterialAddName(builder, name)
+def ColorMaterialAddColor(builder, color): builder.PrependStructSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(color), 0)
+def AddColor(builder, color):
+    return ColorMaterialAddColor(builder, color)
+def ColorMaterialEnd(builder): return builder.EndObject()
+def End(builder):
+    return ColorMaterialEnd(builder)

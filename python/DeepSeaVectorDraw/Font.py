@@ -72,35 +72,27 @@ class Font(object):
             return self._tab.Get(flatbuffers.number_types.Uint8Flags, o + self._tab.Pos)
         return 0
 
-def Start(builder): builder.StartObject(5)
-def FontStart(builder):
-    """This method is deprecated. Please switch to Start."""
-    return Start(builder)
-def AddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
-def FontAddName(builder, name):
-    """This method is deprecated. Please switch to AddName."""
-    return AddName(builder, name)
-def AddFaceGroup(builder, faceGroup): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(faceGroup), 0)
-def FontAddFaceGroup(builder, faceGroup):
-    """This method is deprecated. Please switch to AddFaceGroup."""
-    return AddFaceGroup(builder, faceGroup)
-def AddFaces(builder, faces): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(faces), 0)
-def FontAddFaces(builder, faces):
-    """This method is deprecated. Please switch to AddFaces."""
-    return AddFaces(builder, faces)
-def StartFacesVector(builder, numElems): return builder.StartVector(4, numElems, 4)
-def FontStartFacesVector(builder, numElems):
-    """This method is deprecated. Please switch to Start."""
-    return StartFacesVector(builder, numElems)
-def AddQuality(builder, quality): builder.PrependUint8Slot(3, quality, 0)
-def FontAddQuality(builder, quality):
-    """This method is deprecated. Please switch to AddQuality."""
-    return AddQuality(builder, quality)
-def AddCacheSize(builder, cacheSize): builder.PrependUint8Slot(4, cacheSize, 0)
-def FontAddCacheSize(builder, cacheSize):
-    """This method is deprecated. Please switch to AddCacheSize."""
-    return AddCacheSize(builder, cacheSize)
-def End(builder): return builder.EndObject()
-def FontEnd(builder):
-    """This method is deprecated. Please switch to End."""
-    return End(builder)
+def FontStart(builder): builder.StartObject(5)
+def Start(builder):
+    return FontStart(builder)
+def FontAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+def AddName(builder, name):
+    return FontAddName(builder, name)
+def FontAddFaceGroup(builder, faceGroup): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(faceGroup), 0)
+def AddFaceGroup(builder, faceGroup):
+    return FontAddFaceGroup(builder, faceGroup)
+def FontAddFaces(builder, faces): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(faces), 0)
+def AddFaces(builder, faces):
+    return FontAddFaces(builder, faces)
+def FontStartFacesVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+def StartFacesVector(builder, numElems):
+    return FontStartFacesVector(builder, numElems)
+def FontAddQuality(builder, quality): builder.PrependUint8Slot(3, quality, 0)
+def AddQuality(builder, quality):
+    return FontAddQuality(builder, quality)
+def FontAddCacheSize(builder, cacheSize): builder.PrependUint8Slot(4, cacheSize, 0)
+def AddCacheSize(builder, cacheSize):
+    return FontAddCacheSize(builder, cacheSize)
+def FontEnd(builder): return builder.EndObject()
+def End(builder):
+    return FontEnd(builder)

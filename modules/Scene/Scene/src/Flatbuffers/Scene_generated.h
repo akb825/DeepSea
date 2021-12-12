@@ -107,7 +107,7 @@ template<> struct ClearValueTraits<DeepSeaScene::ClearDepthStencil> {
 };
 
 bool VerifyClearValue(flatbuffers::Verifier &verifier, const void *obj, ClearValue type);
-bool VerifyClearValueVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<uint8_t> *types);
+bool VerifyClearValueVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<ClearValue> *types);
 
 enum class ScenePipelineItemUnion : uint8_t {
   NONE = 0,
@@ -155,7 +155,7 @@ template<> struct ScenePipelineItemUnionTraits<DeepSeaScene::SceneItemList> {
 };
 
 bool VerifyScenePipelineItemUnion(flatbuffers::Verifier &verifier, const void *obj, ScenePipelineItemUnion type);
-bool VerifyScenePipelineItemUnionVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<uint8_t> *types);
+bool VerifyScenePipelineItemUnionVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<ScenePipelineItemUnion> *types);
 
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) AttachmentRef FLATBUFFERS_FINAL_CLASS {
  private:
@@ -848,7 +848,7 @@ inline flatbuffers::Offset<RenderSubpass> CreateRenderSubpass(
     flatbuffers::Offset<flatbuffers::String> name = 0,
     flatbuffers::Offset<flatbuffers::Vector<uint32_t>> inputAttachments = 0,
     flatbuffers::Offset<flatbuffers::Vector<const DeepSeaScene::AttachmentRef *>> colorAttachments = 0,
-    const DeepSeaScene::AttachmentRef *depthStencilAttachment = 0,
+    const DeepSeaScene::AttachmentRef *depthStencilAttachment = nullptr,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::SceneItemList>>> drawLists = 0) {
   RenderSubpassBuilder builder_(_fbb);
   builder_.add_drawLists(drawLists);
@@ -864,7 +864,7 @@ inline flatbuffers::Offset<RenderSubpass> CreateRenderSubpassDirect(
     const char *name = nullptr,
     const std::vector<uint32_t> *inputAttachments = nullptr,
     const std::vector<DeepSeaScene::AttachmentRef> *colorAttachments = nullptr,
-    const DeepSeaScene::AttachmentRef *depthStencilAttachment = 0,
+    const DeepSeaScene::AttachmentRef *depthStencilAttachment = nullptr,
     const std::vector<flatbuffers::Offset<DeepSeaScene::SceneItemList>> *drawLists = nullptr) {
   auto name__ = name ? _fbb.CreateString(name) : 0;
   auto inputAttachments__ = inputAttachments ? _fbb.CreateVector<uint32_t>(*inputAttachments) : 0;
@@ -1166,7 +1166,7 @@ inline bool VerifyClearValue(flatbuffers::Verifier &verifier, const void *obj, C
   }
 }
 
-inline bool VerifyClearValueVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<uint8_t> *types) {
+inline bool VerifyClearValueVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<ClearValue> *types) {
   if (!values || !types) return !values && !types;
   if (values->size() != types->size()) return false;
   for (flatbuffers::uoffset_t i = 0; i < values->size(); ++i) {
@@ -1195,7 +1195,7 @@ inline bool VerifyScenePipelineItemUnion(flatbuffers::Verifier &verifier, const 
   }
 }
 
-inline bool VerifyScenePipelineItemUnionVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<uint8_t> *types) {
+inline bool VerifyScenePipelineItemUnionVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<ScenePipelineItemUnion> *types) {
   if (!values || !types) return !values && !types;
   if (values->size() != types->size()) return false;
   for (flatbuffers::uoffset_t i = 0; i < values->size(); ++i) {

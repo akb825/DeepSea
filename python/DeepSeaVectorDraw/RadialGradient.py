@@ -116,51 +116,39 @@ class RadialGradient(object):
             return obj
         return None
 
-def Start(builder): builder.StartObject(9)
-def RadialGradientStart(builder):
-    """This method is deprecated. Please switch to Start."""
-    return Start(builder)
-def AddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
-def RadialGradientAddName(builder, name):
-    """This method is deprecated. Please switch to AddName."""
-    return AddName(builder, name)
-def AddGradient(builder, gradient): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(gradient), 0)
-def RadialGradientAddGradient(builder, gradient):
-    """This method is deprecated. Please switch to AddGradient."""
-    return AddGradient(builder, gradient)
-def StartGradientVector(builder, numElems): return builder.StartVector(8, numElems, 4)
-def RadialGradientStartGradientVector(builder, numElems):
-    """This method is deprecated. Please switch to Start."""
-    return StartGradientVector(builder, numElems)
-def AddCenter(builder, center): builder.PrependStructSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(center), 0)
-def RadialGradientAddCenter(builder, center):
-    """This method is deprecated. Please switch to AddCenter."""
-    return AddCenter(builder, center)
-def AddRadius(builder, radius): builder.PrependFloat32Slot(3, radius, 0.0)
-def RadialGradientAddRadius(builder, radius):
-    """This method is deprecated. Please switch to AddRadius."""
-    return AddRadius(builder, radius)
-def AddFocus(builder, focus): builder.PrependStructSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(focus), 0)
-def RadialGradientAddFocus(builder, focus):
-    """This method is deprecated. Please switch to AddFocus."""
-    return AddFocus(builder, focus)
-def AddFocusRadius(builder, focusRadius): builder.PrependFloat32Slot(5, focusRadius, 0.0)
-def RadialGradientAddFocusRadius(builder, focusRadius):
-    """This method is deprecated. Please switch to AddFocusRadius."""
-    return AddFocusRadius(builder, focusRadius)
-def AddEdge(builder, edge): builder.PrependUint8Slot(6, edge, 0)
-def RadialGradientAddEdge(builder, edge):
-    """This method is deprecated. Please switch to AddEdge."""
-    return AddEdge(builder, edge)
-def AddCoordinateSpace(builder, coordinateSpace): builder.PrependUint8Slot(7, coordinateSpace, 0)
-def RadialGradientAddCoordinateSpace(builder, coordinateSpace):
-    """This method is deprecated. Please switch to AddCoordinateSpace."""
-    return AddCoordinateSpace(builder, coordinateSpace)
-def AddTransform(builder, transform): builder.PrependStructSlot(8, flatbuffers.number_types.UOffsetTFlags.py_type(transform), 0)
-def RadialGradientAddTransform(builder, transform):
-    """This method is deprecated. Please switch to AddTransform."""
-    return AddTransform(builder, transform)
-def End(builder): return builder.EndObject()
-def RadialGradientEnd(builder):
-    """This method is deprecated. Please switch to End."""
-    return End(builder)
+def RadialGradientStart(builder): builder.StartObject(9)
+def Start(builder):
+    return RadialGradientStart(builder)
+def RadialGradientAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+def AddName(builder, name):
+    return RadialGradientAddName(builder, name)
+def RadialGradientAddGradient(builder, gradient): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(gradient), 0)
+def AddGradient(builder, gradient):
+    return RadialGradientAddGradient(builder, gradient)
+def RadialGradientStartGradientVector(builder, numElems): return builder.StartVector(8, numElems, 4)
+def StartGradientVector(builder, numElems):
+    return RadialGradientStartGradientVector(builder, numElems)
+def RadialGradientAddCenter(builder, center): builder.PrependStructSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(center), 0)
+def AddCenter(builder, center):
+    return RadialGradientAddCenter(builder, center)
+def RadialGradientAddRadius(builder, radius): builder.PrependFloat32Slot(3, radius, 0.0)
+def AddRadius(builder, radius):
+    return RadialGradientAddRadius(builder, radius)
+def RadialGradientAddFocus(builder, focus): builder.PrependStructSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(focus), 0)
+def AddFocus(builder, focus):
+    return RadialGradientAddFocus(builder, focus)
+def RadialGradientAddFocusRadius(builder, focusRadius): builder.PrependFloat32Slot(5, focusRadius, 0.0)
+def AddFocusRadius(builder, focusRadius):
+    return RadialGradientAddFocusRadius(builder, focusRadius)
+def RadialGradientAddEdge(builder, edge): builder.PrependUint8Slot(6, edge, 0)
+def AddEdge(builder, edge):
+    return RadialGradientAddEdge(builder, edge)
+def RadialGradientAddCoordinateSpace(builder, coordinateSpace): builder.PrependUint8Slot(7, coordinateSpace, 0)
+def AddCoordinateSpace(builder, coordinateSpace):
+    return RadialGradientAddCoordinateSpace(builder, coordinateSpace)
+def RadialGradientAddTransform(builder, transform): builder.PrependStructSlot(8, flatbuffers.number_types.UOffsetTFlags.py_type(transform), 0)
+def AddTransform(builder, transform):
+    return RadialGradientAddTransform(builder, transform)
+def RadialGradientEnd(builder): return builder.EndObject()
+def End(builder):
+    return RadialGradientEnd(builder)

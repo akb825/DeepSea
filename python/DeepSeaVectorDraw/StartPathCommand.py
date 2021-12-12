@@ -42,19 +42,15 @@ class StartPathCommand(object):
             return bool(self._tab.Get(flatbuffers.number_types.BoolFlags, o + self._tab.Pos))
         return False
 
-def Start(builder): builder.StartObject(2)
-def StartPathCommandStart(builder):
-    """This method is deprecated. Please switch to Start."""
-    return Start(builder)
-def AddTransform(builder, transform): builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(transform), 0)
-def StartPathCommandAddTransform(builder, transform):
-    """This method is deprecated. Please switch to AddTransform."""
-    return AddTransform(builder, transform)
-def AddSimple(builder, simple): builder.PrependBoolSlot(1, simple, 0)
-def StartPathCommandAddSimple(builder, simple):
-    """This method is deprecated. Please switch to AddSimple."""
-    return AddSimple(builder, simple)
-def End(builder): return builder.EndObject()
-def StartPathCommandEnd(builder):
-    """This method is deprecated. Please switch to End."""
-    return End(builder)
+def StartPathCommandStart(builder): builder.StartObject(2)
+def Start(builder):
+    return StartPathCommandStart(builder)
+def StartPathCommandAddTransform(builder, transform): builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(transform), 0)
+def AddTransform(builder, transform):
+    return StartPathCommandAddTransform(builder, transform)
+def StartPathCommandAddSimple(builder, simple): builder.PrependBoolSlot(1, simple, 0)
+def AddSimple(builder, simple):
+    return StartPathCommandAddSimple(builder, simple)
+def StartPathCommandEnd(builder): return builder.EndObject()
+def End(builder):
+    return StartPathCommandEnd(builder)

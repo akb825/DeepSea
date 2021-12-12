@@ -48,23 +48,18 @@ class VersionedShaderModule(object):
             return obj
         return None
 
-def Start(builder): builder.StartObject(3)
-def VersionedShaderModuleStart(builder):
-    """This method is deprecated. Please switch to Start."""
-    return Start(builder)
-def AddVersion(builder, version): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(version), 0)
-def VersionedShaderModuleAddVersion(builder, version):
-    """This method is deprecated. Please switch to AddVersion."""
-    return AddVersion(builder, version)
-def AddDataType(builder, dataType): builder.PrependUint8Slot(1, dataType, 0)
-def VersionedShaderModuleAddDataType(builder, dataType):
-    """This method is deprecated. Please switch to AddDataType."""
-    return AddDataType(builder, dataType)
-def AddData(builder, data): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(data), 0)
-def VersionedShaderModuleAddData(builder, data):
-    """This method is deprecated. Please switch to AddData."""
-    return AddData(builder, data)
-def End(builder): return builder.EndObject()
-def VersionedShaderModuleEnd(builder):
-    """This method is deprecated. Please switch to End."""
-    return End(builder)
+def VersionedShaderModuleStart(builder): builder.StartObject(3)
+def Start(builder):
+    return VersionedShaderModuleStart(builder)
+def VersionedShaderModuleAddVersion(builder, version): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(version), 0)
+def AddVersion(builder, version):
+    return VersionedShaderModuleAddVersion(builder, version)
+def VersionedShaderModuleAddDataType(builder, dataType): builder.PrependUint8Slot(1, dataType, 0)
+def AddDataType(builder, dataType):
+    return VersionedShaderModuleAddDataType(builder, dataType)
+def VersionedShaderModuleAddData(builder, data): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(data), 0)
+def AddData(builder, data):
+    return VersionedShaderModuleAddData(builder, data)
+def VersionedShaderModuleEnd(builder): return builder.EndObject()
+def End(builder):
+    return VersionedShaderModuleEnd(builder)

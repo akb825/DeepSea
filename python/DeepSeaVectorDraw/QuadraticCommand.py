@@ -46,19 +46,15 @@ class QuadraticCommand(object):
             return obj
         return None
 
-def Start(builder): builder.StartObject(2)
-def QuadraticCommandStart(builder):
-    """This method is deprecated. Please switch to Start."""
-    return Start(builder)
-def AddControl(builder, control): builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(control), 0)
-def QuadraticCommandAddControl(builder, control):
-    """This method is deprecated. Please switch to AddControl."""
-    return AddControl(builder, control)
-def AddEnd(builder, end): builder.PrependStructSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(end), 0)
-def QuadraticCommandAddEnd(builder, end):
-    """This method is deprecated. Please switch to AddEnd."""
-    return AddEnd(builder, end)
-def End(builder): return builder.EndObject()
-def QuadraticCommandEnd(builder):
-    """This method is deprecated. Please switch to End."""
-    return End(builder)
+def QuadraticCommandStart(builder): builder.StartObject(2)
+def Start(builder):
+    return QuadraticCommandStart(builder)
+def QuadraticCommandAddControl(builder, control): builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(control), 0)
+def AddControl(builder, control):
+    return QuadraticCommandAddControl(builder, control)
+def QuadraticCommandAddEnd(builder, end): builder.PrependStructSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(end), 0)
+def AddEnd(builder, end):
+    return QuadraticCommandAddEnd(builder, end)
+def QuadraticCommandEnd(builder): return builder.EndObject()
+def End(builder):
+    return QuadraticCommandEnd(builder)

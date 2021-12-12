@@ -67,31 +67,24 @@ class PointLight(object):
             return self._tab.Get(flatbuffers.number_types.Float32Flags, o + self._tab.Pos)
         return 0.0
 
-def Start(builder): builder.StartObject(5)
-def PointLightStart(builder):
-    """This method is deprecated. Please switch to Start."""
-    return Start(builder)
-def AddPosition(builder, position): builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(position), 0)
-def PointLightAddPosition(builder, position):
-    """This method is deprecated. Please switch to AddPosition."""
-    return AddPosition(builder, position)
-def AddColor(builder, color): builder.PrependStructSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(color), 0)
-def PointLightAddColor(builder, color):
-    """This method is deprecated. Please switch to AddColor."""
-    return AddColor(builder, color)
-def AddIntensity(builder, intensity): builder.PrependFloat32Slot(2, intensity, 0.0)
-def PointLightAddIntensity(builder, intensity):
-    """This method is deprecated. Please switch to AddIntensity."""
-    return AddIntensity(builder, intensity)
-def AddLinearFalloff(builder, linearFalloff): builder.PrependFloat32Slot(3, linearFalloff, 0.0)
-def PointLightAddLinearFalloff(builder, linearFalloff):
-    """This method is deprecated. Please switch to AddLinearFalloff."""
-    return AddLinearFalloff(builder, linearFalloff)
-def AddQuadraticFalloff(builder, quadraticFalloff): builder.PrependFloat32Slot(4, quadraticFalloff, 0.0)
-def PointLightAddQuadraticFalloff(builder, quadraticFalloff):
-    """This method is deprecated. Please switch to AddQuadraticFalloff."""
-    return AddQuadraticFalloff(builder, quadraticFalloff)
-def End(builder): return builder.EndObject()
-def PointLightEnd(builder):
-    """This method is deprecated. Please switch to End."""
-    return End(builder)
+def PointLightStart(builder): builder.StartObject(5)
+def Start(builder):
+    return PointLightStart(builder)
+def PointLightAddPosition(builder, position): builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(position), 0)
+def AddPosition(builder, position):
+    return PointLightAddPosition(builder, position)
+def PointLightAddColor(builder, color): builder.PrependStructSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(color), 0)
+def AddColor(builder, color):
+    return PointLightAddColor(builder, color)
+def PointLightAddIntensity(builder, intensity): builder.PrependFloat32Slot(2, intensity, 0.0)
+def AddIntensity(builder, intensity):
+    return PointLightAddIntensity(builder, intensity)
+def PointLightAddLinearFalloff(builder, linearFalloff): builder.PrependFloat32Slot(3, linearFalloff, 0.0)
+def AddLinearFalloff(builder, linearFalloff):
+    return PointLightAddLinearFalloff(builder, linearFalloff)
+def PointLightAddQuadraticFalloff(builder, quadraticFalloff): builder.PrependFloat32Slot(4, quadraticFalloff, 0.0)
+def AddQuadraticFalloff(builder, quadraticFalloff):
+    return PointLightAddQuadraticFalloff(builder, quadraticFalloff)
+def PointLightEnd(builder): return builder.EndObject()
+def End(builder):
+    return PointLightEnd(builder)

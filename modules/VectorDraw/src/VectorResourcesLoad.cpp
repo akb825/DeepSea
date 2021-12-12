@@ -16,8 +16,6 @@
 
 #include <DeepSea/VectorDraw/VectorResources.h>
 
-#include "Flatbuffers/VectorResources_generated.h"
-
 #include <DeepSea/Core/Memory/StackAllocator.h>
 #include <DeepSea/Core/Streams/MemoryStream.h>
 #include <DeepSea/Core/Assert.h>
@@ -27,6 +25,17 @@
 #include <DeepSea/Text/FaceGroup.h>
 #include <DeepSea/Text/Font.h>
 #include <algorithm>
+
+#if DS_GCC || DS_CLANG
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#endif
+
+#include "Flatbuffers/VectorResources_generated.h"
+
+#if DS_GCC || DS_CLANG
+#pragma GCC diagnostic pop
+#endif
 
 static void printFlatbufferError(const char* name)
 {

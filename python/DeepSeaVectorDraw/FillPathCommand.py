@@ -45,23 +45,18 @@ class FillPathCommand(object):
             return self._tab.Get(flatbuffers.number_types.Uint8Flags, o + self._tab.Pos)
         return 0
 
-def Start(builder): builder.StartObject(3)
-def FillPathCommandStart(builder):
-    """This method is deprecated. Please switch to Start."""
-    return Start(builder)
-def AddMaterial(builder, material): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(material), 0)
-def FillPathCommandAddMaterial(builder, material):
-    """This method is deprecated. Please switch to AddMaterial."""
-    return AddMaterial(builder, material)
-def AddOpacity(builder, opacity): builder.PrependFloat32Slot(1, opacity, 0.0)
-def FillPathCommandAddOpacity(builder, opacity):
-    """This method is deprecated. Please switch to AddOpacity."""
-    return AddOpacity(builder, opacity)
-def AddFillRule(builder, fillRule): builder.PrependUint8Slot(2, fillRule, 0)
-def FillPathCommandAddFillRule(builder, fillRule):
-    """This method is deprecated. Please switch to AddFillRule."""
-    return AddFillRule(builder, fillRule)
-def End(builder): return builder.EndObject()
-def FillPathCommandEnd(builder):
-    """This method is deprecated. Please switch to End."""
-    return End(builder)
+def FillPathCommandStart(builder): builder.StartObject(3)
+def Start(builder):
+    return FillPathCommandStart(builder)
+def FillPathCommandAddMaterial(builder, material): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(material), 0)
+def AddMaterial(builder, material):
+    return FillPathCommandAddMaterial(builder, material)
+def FillPathCommandAddOpacity(builder, opacity): builder.PrependFloat32Slot(1, opacity, 0.0)
+def AddOpacity(builder, opacity):
+    return FillPathCommandAddOpacity(builder, opacity)
+def FillPathCommandAddFillRule(builder, fillRule): builder.PrependUint8Slot(2, fillRule, 0)
+def AddFillRule(builder, fillRule):
+    return FillPathCommandAddFillRule(builder, fillRule)
+def FillPathCommandEnd(builder): return builder.EndObject()
+def End(builder):
+    return FillPathCommandEnd(builder)

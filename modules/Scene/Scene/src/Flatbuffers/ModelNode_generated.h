@@ -125,7 +125,7 @@ template<> struct ModelDrawRangeUnionTraits<DeepSeaScene::DrawIndexedRange> {
 };
 
 bool VerifyModelDrawRangeUnion(flatbuffers::Verifier &verifier, const void *obj, ModelDrawRangeUnion type);
-bool VerifyModelDrawRangeUnionVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<uint8_t> *types);
+bool VerifyModelDrawRangeUnionVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<ModelDrawRangeUnion> *types);
 
 struct DrawRange FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef DrawRangeBuilder Builder;
@@ -452,7 +452,7 @@ inline flatbuffers::Offset<ModelInfo> CreateModelInfo(
     flatbuffers::Offset<flatbuffers::String> shader = 0,
     flatbuffers::Offset<flatbuffers::String> material = 0,
     flatbuffers::Offset<flatbuffers::String> geometry = 0,
-    const DeepSeaScene::Vector2f *distanceRange = 0,
+    const DeepSeaScene::Vector2f *distanceRange = nullptr,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::ModelDrawRange>>> drawRanges = 0,
     DeepSeaScene::PrimitiveType primitiveType = DeepSeaScene::PrimitiveType::PointList,
     flatbuffers::Offset<flatbuffers::String> modelList = 0) {
@@ -474,7 +474,7 @@ inline flatbuffers::Offset<ModelInfo> CreateModelInfoDirect(
     const char *shader = nullptr,
     const char *material = nullptr,
     const char *geometry = nullptr,
-    const DeepSeaScene::Vector2f *distanceRange = 0,
+    const DeepSeaScene::Vector2f *distanceRange = nullptr,
     const std::vector<flatbuffers::Offset<DeepSeaScene::ModelDrawRange>> *drawRanges = nullptr,
     DeepSeaScene::PrimitiveType primitiveType = DeepSeaScene::PrimitiveType::PointList,
     const char *modelList = nullptr) {
@@ -564,7 +564,7 @@ inline flatbuffers::Offset<ModelNode> CreateModelNode(
     flatbuffers::Offset<flatbuffers::Vector<uint8_t>> embeddedResources = 0,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::ModelInfo>>> models = 0,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>> extraItemLists = 0,
-    const DeepSeaScene::OrientedBox3f *bounds = 0) {
+    const DeepSeaScene::OrientedBox3f *bounds = nullptr) {
   ModelNodeBuilder builder_(_fbb);
   builder_.add_bounds(bounds);
   builder_.add_extraItemLists(extraItemLists);
@@ -578,7 +578,7 @@ inline flatbuffers::Offset<ModelNode> CreateModelNodeDirect(
     const std::vector<uint8_t> *embeddedResources = nullptr,
     const std::vector<flatbuffers::Offset<DeepSeaScene::ModelInfo>> *models = nullptr,
     const std::vector<flatbuffers::Offset<flatbuffers::String>> *extraItemLists = nullptr,
-    const DeepSeaScene::OrientedBox3f *bounds = 0) {
+    const DeepSeaScene::OrientedBox3f *bounds = nullptr) {
   auto embeddedResources__ = embeddedResources ? _fbb.CreateVector<uint8_t>(*embeddedResources) : 0;
   auto models__ = models ? _fbb.CreateVector<flatbuffers::Offset<DeepSeaScene::ModelInfo>>(*models) : 0;
   auto extraItemLists__ = extraItemLists ? _fbb.CreateVector<flatbuffers::Offset<flatbuffers::String>>(*extraItemLists) : 0;
@@ -607,7 +607,7 @@ inline bool VerifyModelDrawRangeUnion(flatbuffers::Verifier &verifier, const voi
   }
 }
 
-inline bool VerifyModelDrawRangeUnionVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<uint8_t> *types) {
+inline bool VerifyModelDrawRangeUnionVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<ModelDrawRangeUnion> *types) {
   if (!values || !types) return !values && !types;
   if (values->size() != types->size()) return false;
   for (flatbuffers::uoffset_t i = 0; i < values->size(); ++i) {

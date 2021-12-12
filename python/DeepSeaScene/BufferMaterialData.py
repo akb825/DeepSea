@@ -45,23 +45,18 @@ class BufferMaterialData(object):
             return self._tab.Get(flatbuffers.number_types.Uint32Flags, o + self._tab.Pos)
         return 0
 
-def Start(builder): builder.StartObject(3)
-def BufferMaterialDataStart(builder):
-    """This method is deprecated. Please switch to Start."""
-    return Start(builder)
-def AddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
-def BufferMaterialDataAddName(builder, name):
-    """This method is deprecated. Please switch to AddName."""
-    return AddName(builder, name)
-def AddOffset(builder, offset): builder.PrependUint32Slot(1, offset, 0)
-def BufferMaterialDataAddOffset(builder, offset):
-    """This method is deprecated. Please switch to AddOffset."""
-    return AddOffset(builder, offset)
-def AddSize(builder, size): builder.PrependUint32Slot(2, size, 0)
-def BufferMaterialDataAddSize(builder, size):
-    """This method is deprecated. Please switch to AddSize."""
-    return AddSize(builder, size)
-def End(builder): return builder.EndObject()
-def BufferMaterialDataEnd(builder):
-    """This method is deprecated. Please switch to End."""
-    return End(builder)
+def BufferMaterialDataStart(builder): builder.StartObject(3)
+def Start(builder):
+    return BufferMaterialDataStart(builder)
+def BufferMaterialDataAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+def AddName(builder, name):
+    return BufferMaterialDataAddName(builder, name)
+def BufferMaterialDataAddOffset(builder, offset): builder.PrependUint32Slot(1, offset, 0)
+def AddOffset(builder, offset):
+    return BufferMaterialDataAddOffset(builder, offset)
+def BufferMaterialDataAddSize(builder, size): builder.PrependUint32Slot(2, size, 0)
+def AddSize(builder, size):
+    return BufferMaterialDataAddSize(builder, size)
+def BufferMaterialDataEnd(builder): return builder.EndObject()
+def End(builder):
+    return BufferMaterialDataEnd(builder)

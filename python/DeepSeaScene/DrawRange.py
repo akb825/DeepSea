@@ -52,27 +52,21 @@ class DrawRange(object):
             return self._tab.Get(flatbuffers.number_types.Uint32Flags, o + self._tab.Pos)
         return 0
 
-def Start(builder): builder.StartObject(4)
-def DrawRangeStart(builder):
-    """This method is deprecated. Please switch to Start."""
-    return Start(builder)
-def AddVertexCount(builder, vertexCount): builder.PrependUint32Slot(0, vertexCount, 0)
-def DrawRangeAddVertexCount(builder, vertexCount):
-    """This method is deprecated. Please switch to AddVertexCount."""
-    return AddVertexCount(builder, vertexCount)
-def AddInstanceCount(builder, instanceCount): builder.PrependUint32Slot(1, instanceCount, 0)
-def DrawRangeAddInstanceCount(builder, instanceCount):
-    """This method is deprecated. Please switch to AddInstanceCount."""
-    return AddInstanceCount(builder, instanceCount)
-def AddFirstVertex(builder, firstVertex): builder.PrependUint32Slot(2, firstVertex, 0)
-def DrawRangeAddFirstVertex(builder, firstVertex):
-    """This method is deprecated. Please switch to AddFirstVertex."""
-    return AddFirstVertex(builder, firstVertex)
-def AddFirstInstance(builder, firstInstance): builder.PrependUint32Slot(3, firstInstance, 0)
-def DrawRangeAddFirstInstance(builder, firstInstance):
-    """This method is deprecated. Please switch to AddFirstInstance."""
-    return AddFirstInstance(builder, firstInstance)
-def End(builder): return builder.EndObject()
-def DrawRangeEnd(builder):
-    """This method is deprecated. Please switch to End."""
-    return End(builder)
+def DrawRangeStart(builder): builder.StartObject(4)
+def Start(builder):
+    return DrawRangeStart(builder)
+def DrawRangeAddVertexCount(builder, vertexCount): builder.PrependUint32Slot(0, vertexCount, 0)
+def AddVertexCount(builder, vertexCount):
+    return DrawRangeAddVertexCount(builder, vertexCount)
+def DrawRangeAddInstanceCount(builder, instanceCount): builder.PrependUint32Slot(1, instanceCount, 0)
+def AddInstanceCount(builder, instanceCount):
+    return DrawRangeAddInstanceCount(builder, instanceCount)
+def DrawRangeAddFirstVertex(builder, firstVertex): builder.PrependUint32Slot(2, firstVertex, 0)
+def AddFirstVertex(builder, firstVertex):
+    return DrawRangeAddFirstVertex(builder, firstVertex)
+def DrawRangeAddFirstInstance(builder, firstInstance): builder.PrependUint32Slot(3, firstInstance, 0)
+def AddFirstInstance(builder, firstInstance):
+    return DrawRangeAddFirstInstance(builder, firstInstance)
+def DrawRangeEnd(builder): return builder.EndObject()
+def End(builder):
+    return DrawRangeEnd(builder)

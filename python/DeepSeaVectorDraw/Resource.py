@@ -48,23 +48,18 @@ class Resource(object):
             return obj
         return None
 
-def Start(builder): builder.StartObject(3)
-def ResourceStart(builder):
-    """This method is deprecated. Please switch to Start."""
-    return Start(builder)
-def AddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
-def ResourceAddName(builder, name):
-    """This method is deprecated. Please switch to AddName."""
-    return AddName(builder, name)
-def AddDataType(builder, dataType): builder.PrependUint8Slot(1, dataType, 0)
-def ResourceAddDataType(builder, dataType):
-    """This method is deprecated. Please switch to AddDataType."""
-    return AddDataType(builder, dataType)
-def AddData(builder, data): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(data), 0)
-def ResourceAddData(builder, data):
-    """This method is deprecated. Please switch to AddData."""
-    return AddData(builder, data)
-def End(builder): return builder.EndObject()
-def ResourceEnd(builder):
-    """This method is deprecated. Please switch to End."""
-    return End(builder)
+def ResourceStart(builder): builder.StartObject(3)
+def Start(builder):
+    return ResourceStart(builder)
+def ResourceAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+def AddName(builder, name):
+    return ResourceAddName(builder, name)
+def ResourceAddDataType(builder, dataType): builder.PrependUint8Slot(1, dataType, 0)
+def AddDataType(builder, dataType):
+    return ResourceAddDataType(builder, dataType)
+def ResourceAddData(builder, data): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(data), 0)
+def AddData(builder, data):
+    return ResourceAddData(builder, data)
+def ResourceEnd(builder): return builder.EndObject()
+def End(builder):
+    return ResourceEnd(builder)

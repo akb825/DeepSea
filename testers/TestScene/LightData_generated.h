@@ -78,9 +78,9 @@ struct LightDataBuilder {
 inline flatbuffers::Offset<LightData> CreateLightData(
     flatbuffers::FlatBufferBuilder &_fbb,
     flatbuffers::Offset<flatbuffers::String> variableGroupDesc = 0,
-    const DeepSeaScene::Vector3f *direction = 0,
-    const DeepSeaScene::Vector3f *color = 0,
-    const DeepSeaScene::Vector3f *ambient = 0) {
+    const DeepSeaScene::Vector3f *direction = nullptr,
+    const DeepSeaScene::Vector3f *color = nullptr,
+    const DeepSeaScene::Vector3f *ambient = nullptr) {
   LightDataBuilder builder_(_fbb);
   builder_.add_ambient(ambient);
   builder_.add_color(color);
@@ -92,9 +92,9 @@ inline flatbuffers::Offset<LightData> CreateLightData(
 inline flatbuffers::Offset<LightData> CreateLightDataDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     const char *variableGroupDesc = nullptr,
-    const DeepSeaScene::Vector3f *direction = 0,
-    const DeepSeaScene::Vector3f *color = 0,
-    const DeepSeaScene::Vector3f *ambient = 0) {
+    const DeepSeaScene::Vector3f *direction = nullptr,
+    const DeepSeaScene::Vector3f *color = nullptr,
+    const DeepSeaScene::Vector3f *ambient = nullptr) {
   auto variableGroupDesc__ = variableGroupDesc ? _fbb.CreateString(variableGroupDesc) : 0;
   return TestScene::CreateLightData(
       _fbb,

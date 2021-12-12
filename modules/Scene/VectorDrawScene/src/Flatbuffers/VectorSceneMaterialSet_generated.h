@@ -145,7 +145,7 @@ template<> struct MaterialValueTraits<DeepSeaVectorDrawScene::RadialGradient> {
 };
 
 bool VerifyMaterialValue(flatbuffers::Verifier &verifier, const void *obj, MaterialValue type);
-bool VerifyMaterialValueVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<uint8_t> *types);
+bool VerifyMaterialValueVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<MaterialValue> *types);
 
 struct ColorTable FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef ColorTableBuilder Builder;
@@ -263,7 +263,7 @@ struct GradientStopBuilder {
 inline flatbuffers::Offset<GradientStop> CreateGradientStop(
     flatbuffers::FlatBufferBuilder &_fbb,
     float position = 0.0f,
-    const DeepSeaVectorDrawScene::Color *color = 0) {
+    const DeepSeaVectorDrawScene::Color *color = nullptr) {
   GradientStopBuilder builder_(_fbb);
   builder_.add_color(color);
   builder_.add_position(position);
@@ -348,11 +348,11 @@ struct LinearGradientBuilder {
 
 inline flatbuffers::Offset<LinearGradient> CreateLinearGradient(
     flatbuffers::FlatBufferBuilder &_fbb,
-    const DeepSeaScene::Vector2f *start = 0,
-    const DeepSeaScene::Vector2f *end = 0,
+    const DeepSeaScene::Vector2f *start = nullptr,
+    const DeepSeaScene::Vector2f *end = nullptr,
     DeepSeaVectorDrawScene::GradientEdge edge = DeepSeaVectorDrawScene::GradientEdge::Clamp,
     DeepSeaVectorDrawScene::MaterialSpace coordinateSpace = DeepSeaVectorDrawScene::MaterialSpace::Local,
-    const DeepSeaScene::Matrix33f *transform = 0,
+    const DeepSeaScene::Matrix33f *transform = nullptr,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaVectorDrawScene::GradientStop>>> stops = 0) {
   LinearGradientBuilder builder_(_fbb);
   builder_.add_stops(stops);
@@ -366,11 +366,11 @@ inline flatbuffers::Offset<LinearGradient> CreateLinearGradient(
 
 inline flatbuffers::Offset<LinearGradient> CreateLinearGradientDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
-    const DeepSeaScene::Vector2f *start = 0,
-    const DeepSeaScene::Vector2f *end = 0,
+    const DeepSeaScene::Vector2f *start = nullptr,
+    const DeepSeaScene::Vector2f *end = nullptr,
     DeepSeaVectorDrawScene::GradientEdge edge = DeepSeaVectorDrawScene::GradientEdge::Clamp,
     DeepSeaVectorDrawScene::MaterialSpace coordinateSpace = DeepSeaVectorDrawScene::MaterialSpace::Local,
-    const DeepSeaScene::Matrix33f *transform = 0,
+    const DeepSeaScene::Matrix33f *transform = nullptr,
     const std::vector<flatbuffers::Offset<DeepSeaVectorDrawScene::GradientStop>> *stops = nullptr) {
   auto stops__ = stops ? _fbb.CreateVector<flatbuffers::Offset<DeepSeaVectorDrawScene::GradientStop>>(*stops) : 0;
   return DeepSeaVectorDrawScene::CreateLinearGradient(
@@ -477,13 +477,13 @@ struct RadialGradientBuilder {
 
 inline flatbuffers::Offset<RadialGradient> CreateRadialGradient(
     flatbuffers::FlatBufferBuilder &_fbb,
-    const DeepSeaScene::Vector2f *center = 0,
+    const DeepSeaScene::Vector2f *center = nullptr,
     float radius = 0.0f,
-    const DeepSeaScene::Vector2f *focus = 0,
+    const DeepSeaScene::Vector2f *focus = nullptr,
     float focusRadius = 0.0f,
     DeepSeaVectorDrawScene::GradientEdge edge = DeepSeaVectorDrawScene::GradientEdge::Clamp,
     DeepSeaVectorDrawScene::MaterialSpace coordinateSpace = DeepSeaVectorDrawScene::MaterialSpace::Local,
-    const DeepSeaScene::Matrix33f *transform = 0,
+    const DeepSeaScene::Matrix33f *transform = nullptr,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaVectorDrawScene::GradientStop>>> stops = 0) {
   RadialGradientBuilder builder_(_fbb);
   builder_.add_stops(stops);
@@ -499,13 +499,13 @@ inline flatbuffers::Offset<RadialGradient> CreateRadialGradient(
 
 inline flatbuffers::Offset<RadialGradient> CreateRadialGradientDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
-    const DeepSeaScene::Vector2f *center = 0,
+    const DeepSeaScene::Vector2f *center = nullptr,
     float radius = 0.0f,
-    const DeepSeaScene::Vector2f *focus = 0,
+    const DeepSeaScene::Vector2f *focus = nullptr,
     float focusRadius = 0.0f,
     DeepSeaVectorDrawScene::GradientEdge edge = DeepSeaVectorDrawScene::GradientEdge::Clamp,
     DeepSeaVectorDrawScene::MaterialSpace coordinateSpace = DeepSeaVectorDrawScene::MaterialSpace::Local,
-    const DeepSeaScene::Matrix33f *transform = 0,
+    const DeepSeaScene::Matrix33f *transform = nullptr,
     const std::vector<flatbuffers::Offset<DeepSeaVectorDrawScene::GradientStop>> *stops = nullptr) {
   auto stops__ = stops ? _fbb.CreateVector<flatbuffers::Offset<DeepSeaVectorDrawScene::GradientStop>>(*stops) : 0;
   return DeepSeaVectorDrawScene::CreateRadialGradient(
@@ -706,7 +706,7 @@ inline bool VerifyMaterialValue(flatbuffers::Verifier &verifier, const void *obj
   }
 }
 
-inline bool VerifyMaterialValueVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<uint8_t> *types) {
+inline bool VerifyMaterialValueVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<MaterialValue> *types) {
   if (!values || !types) return !values && !types;
   if (values->size() != types->size()) return false;
   for (flatbuffers::uoffset_t i = 0; i < values->size(); ++i) {

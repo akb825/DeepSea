@@ -45,23 +45,18 @@ class VariableElement(object):
             return self._tab.Get(flatbuffers.number_types.Uint32Flags, o + self._tab.Pos)
         return 0
 
-def Start(builder): builder.StartObject(3)
-def VariableElementStart(builder):
-    """This method is deprecated. Please switch to Start."""
-    return Start(builder)
-def AddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
-def VariableElementAddName(builder, name):
-    """This method is deprecated. Please switch to AddName."""
-    return AddName(builder, name)
-def AddType(builder, type): builder.PrependUint8Slot(1, type, 0)
-def VariableElementAddType(builder, type):
-    """This method is deprecated. Please switch to AddType."""
-    return AddType(builder, type)
-def AddCount(builder, count): builder.PrependUint32Slot(2, count, 0)
-def VariableElementAddCount(builder, count):
-    """This method is deprecated. Please switch to AddCount."""
-    return AddCount(builder, count)
-def End(builder): return builder.EndObject()
-def VariableElementEnd(builder):
-    """This method is deprecated. Please switch to End."""
-    return End(builder)
+def VariableElementStart(builder): builder.StartObject(3)
+def Start(builder):
+    return VariableElementStart(builder)
+def VariableElementAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+def AddName(builder, name):
+    return VariableElementAddName(builder, name)
+def VariableElementAddType(builder, type): builder.PrependUint8Slot(1, type, 0)
+def AddType(builder, type):
+    return VariableElementAddType(builder, type)
+def VariableElementAddCount(builder, count): builder.PrependUint32Slot(2, count, 0)
+def AddCount(builder, count):
+    return VariableElementAddCount(builder, count)
+def VariableElementEnd(builder): return builder.EndObject()
+def End(builder):
+    return VariableElementEnd(builder)

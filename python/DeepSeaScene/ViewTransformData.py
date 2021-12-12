@@ -31,15 +31,12 @@ class ViewTransformData(object):
             return self._tab.String(o + self._tab.Pos)
         return None
 
-def Start(builder): builder.StartObject(1)
-def ViewTransformDataStart(builder):
-    """This method is deprecated. Please switch to Start."""
-    return Start(builder)
-def AddVariableGroupDesc(builder, variableGroupDesc): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(variableGroupDesc), 0)
-def ViewTransformDataAddVariableGroupDesc(builder, variableGroupDesc):
-    """This method is deprecated. Please switch to AddVariableGroupDesc."""
-    return AddVariableGroupDesc(builder, variableGroupDesc)
-def End(builder): return builder.EndObject()
-def ViewTransformDataEnd(builder):
-    """This method is deprecated. Please switch to End."""
-    return End(builder)
+def ViewTransformDataStart(builder): builder.StartObject(1)
+def Start(builder):
+    return ViewTransformDataStart(builder)
+def ViewTransformDataAddVariableGroupDesc(builder, variableGroupDesc): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(variableGroupDesc), 0)
+def AddVariableGroupDesc(builder, variableGroupDesc):
+    return ViewTransformDataAddVariableGroupDesc(builder, variableGroupDesc)
+def ViewTransformDataEnd(builder): return builder.EndObject()
+def End(builder):
+    return ViewTransformDataEnd(builder)

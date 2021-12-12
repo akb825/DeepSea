@@ -60,23 +60,18 @@ class TransformNode(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         return o == 0
 
-def Start(builder): builder.StartObject(2)
-def TransformNodeStart(builder):
-    """This method is deprecated. Please switch to Start."""
-    return Start(builder)
-def AddTransform(builder, transform): builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(transform), 0)
-def TransformNodeAddTransform(builder, transform):
-    """This method is deprecated. Please switch to AddTransform."""
-    return AddTransform(builder, transform)
-def AddChildren(builder, children): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(children), 0)
-def TransformNodeAddChildren(builder, children):
-    """This method is deprecated. Please switch to AddChildren."""
-    return AddChildren(builder, children)
-def StartChildrenVector(builder, numElems): return builder.StartVector(4, numElems, 4)
-def TransformNodeStartChildrenVector(builder, numElems):
-    """This method is deprecated. Please switch to Start."""
-    return StartChildrenVector(builder, numElems)
-def End(builder): return builder.EndObject()
-def TransformNodeEnd(builder):
-    """This method is deprecated. Please switch to End."""
-    return End(builder)
+def TransformNodeStart(builder): builder.StartObject(2)
+def Start(builder):
+    return TransformNodeStart(builder)
+def TransformNodeAddTransform(builder, transform): builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(transform), 0)
+def AddTransform(builder, transform):
+    return TransformNodeAddTransform(builder, transform)
+def TransformNodeAddChildren(builder, children): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(children), 0)
+def AddChildren(builder, children):
+    return TransformNodeAddChildren(builder, children)
+def TransformNodeStartChildrenVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+def StartChildrenVector(builder, numElems):
+    return TransformNodeStartChildrenVector(builder, numElems)
+def TransformNodeEnd(builder): return builder.EndObject()
+def End(builder):
+    return TransformNodeEnd(builder)

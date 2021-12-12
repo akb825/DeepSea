@@ -16,7 +16,6 @@
 
 #include <DeepSea/Scene/ItemLists/SceneModelList.h>
 
-#include "Flatbuffers/ModelList_generated.h"
 #include "SceneLoadContextInternal.h"
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
@@ -26,6 +25,17 @@
 #include <DeepSea/Scene/Flatbuffers/SceneFlatbufferHelpers.h>
 #include <DeepSea/Scene/ItemLists/SceneInstanceData.h>
 #include <DeepSea/Scene/SceneLoadScratchData.h>
+
+#if DS_GCC || DS_CLANG
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#endif
+
+#include "Flatbuffers/ModelList_generated.h"
+
+#if DS_GCC || DS_CLANG
+#pragma GCC diagnostic pop
+#endif
 
 extern "C"
 dsSceneItemList* dsSceneModelList_load(const dsSceneLoadContext* loadContext,

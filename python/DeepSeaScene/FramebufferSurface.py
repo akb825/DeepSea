@@ -52,27 +52,21 @@ class FramebufferSurface(object):
             return self._tab.Get(flatbuffers.number_types.Uint32Flags, o + self._tab.Pos)
         return 0
 
-def Start(builder): builder.StartObject(4)
-def FramebufferSurfaceStart(builder):
-    """This method is deprecated. Please switch to Start."""
-    return Start(builder)
-def AddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
-def FramebufferSurfaceAddName(builder, name):
-    """This method is deprecated. Please switch to AddName."""
-    return AddName(builder, name)
-def AddFace(builder, face): builder.PrependUint8Slot(1, face, 0)
-def FramebufferSurfaceAddFace(builder, face):
-    """This method is deprecated. Please switch to AddFace."""
-    return AddFace(builder, face)
-def AddLayer(builder, layer): builder.PrependUint32Slot(2, layer, 0)
-def FramebufferSurfaceAddLayer(builder, layer):
-    """This method is deprecated. Please switch to AddLayer."""
-    return AddLayer(builder, layer)
-def AddMipLevel(builder, mipLevel): builder.PrependUint32Slot(3, mipLevel, 0)
-def FramebufferSurfaceAddMipLevel(builder, mipLevel):
-    """This method is deprecated. Please switch to AddMipLevel."""
-    return AddMipLevel(builder, mipLevel)
-def End(builder): return builder.EndObject()
-def FramebufferSurfaceEnd(builder):
-    """This method is deprecated. Please switch to End."""
-    return End(builder)
+def FramebufferSurfaceStart(builder): builder.StartObject(4)
+def Start(builder):
+    return FramebufferSurfaceStart(builder)
+def FramebufferSurfaceAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+def AddName(builder, name):
+    return FramebufferSurfaceAddName(builder, name)
+def FramebufferSurfaceAddFace(builder, face): builder.PrependUint8Slot(1, face, 0)
+def AddFace(builder, face):
+    return FramebufferSurfaceAddFace(builder, face)
+def FramebufferSurfaceAddLayer(builder, layer): builder.PrependUint32Slot(2, layer, 0)
+def AddLayer(builder, layer):
+    return FramebufferSurfaceAddLayer(builder, layer)
+def FramebufferSurfaceAddMipLevel(builder, mipLevel): builder.PrependUint32Slot(3, mipLevel, 0)
+def AddMipLevel(builder, mipLevel):
+    return FramebufferSurfaceAddMipLevel(builder, mipLevel)
+def FramebufferSurfaceEnd(builder): return builder.EndObject()
+def End(builder):
+    return FramebufferSurfaceEnd(builder)

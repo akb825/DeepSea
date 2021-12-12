@@ -64,27 +64,21 @@ class LightData(object):
             return obj
         return None
 
-def Start(builder): builder.StartObject(4)
-def LightDataStart(builder):
-    """This method is deprecated. Please switch to Start."""
-    return Start(builder)
-def AddVariableGroupDesc(builder, variableGroupDesc): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(variableGroupDesc), 0)
-def LightDataAddVariableGroupDesc(builder, variableGroupDesc):
-    """This method is deprecated. Please switch to AddVariableGroupDesc."""
-    return AddVariableGroupDesc(builder, variableGroupDesc)
-def AddDirection(builder, direction): builder.PrependStructSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(direction), 0)
-def LightDataAddDirection(builder, direction):
-    """This method is deprecated. Please switch to AddDirection."""
-    return AddDirection(builder, direction)
-def AddColor(builder, color): builder.PrependStructSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(color), 0)
-def LightDataAddColor(builder, color):
-    """This method is deprecated. Please switch to AddColor."""
-    return AddColor(builder, color)
-def AddAmbient(builder, ambient): builder.PrependStructSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(ambient), 0)
-def LightDataAddAmbient(builder, ambient):
-    """This method is deprecated. Please switch to AddAmbient."""
-    return AddAmbient(builder, ambient)
-def End(builder): return builder.EndObject()
-def LightDataEnd(builder):
-    """This method is deprecated. Please switch to End."""
-    return End(builder)
+def LightDataStart(builder): builder.StartObject(4)
+def Start(builder):
+    return LightDataStart(builder)
+def LightDataAddVariableGroupDesc(builder, variableGroupDesc): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(variableGroupDesc), 0)
+def AddVariableGroupDesc(builder, variableGroupDesc):
+    return LightDataAddVariableGroupDesc(builder, variableGroupDesc)
+def LightDataAddDirection(builder, direction): builder.PrependStructSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(direction), 0)
+def AddDirection(builder, direction):
+    return LightDataAddDirection(builder, direction)
+def LightDataAddColor(builder, color): builder.PrependStructSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(color), 0)
+def AddColor(builder, color):
+    return LightDataAddColor(builder, color)
+def LightDataAddAmbient(builder, ambient): builder.PrependStructSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(ambient), 0)
+def AddAmbient(builder, ambient):
+    return LightDataAddAmbient(builder, ambient)
+def LightDataEnd(builder): return builder.EndObject()
+def End(builder):
+    return LightDataEnd(builder)

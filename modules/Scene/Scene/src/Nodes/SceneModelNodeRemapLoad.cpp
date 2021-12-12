@@ -16,7 +16,6 @@
 
 #include <DeepSea/Scene/Nodes/SceneModelNode.h>
 
-#include "Flatbuffers/ModelNodeRemap_generated.h"
 #include "SceneLoadContextInternal.h"
 
 #include <DeepSea/Core/Memory/StackAllocator.h>
@@ -29,6 +28,16 @@
 #include <DeepSea/Scene/SceneResources.h>
 #include <DeepSea/Scene/Types.h>
 
+#if DS_GCC || DS_CLANG
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#endif
+
+#include "Flatbuffers/ModelNodeRemap_generated.h"
+
+#if DS_GCC || DS_CLANG
+#pragma GCC diagnostic pop
+#endif
 
 extern "C"
 dsSceneNode* dsSceneModelNode_loadRemap(const dsSceneLoadContext*,

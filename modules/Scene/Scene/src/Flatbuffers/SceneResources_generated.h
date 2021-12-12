@@ -181,7 +181,7 @@ template<> struct SceneResourceUnionTraits<DeepSeaScene::CustomResource> {
 };
 
 bool VerifySceneResourceUnion(flatbuffers::Verifier &verifier, const void *obj, SceneResourceUnion type);
-bool VerifySceneResourceUnionVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<uint8_t> *types);
+bool VerifySceneResourceUnionVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<SceneResourceUnion> *types);
 
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) VertexAttribute FLATBUFFERS_FINAL_CLASS {
  private:
@@ -2010,7 +2010,7 @@ inline bool VerifySceneResourceUnion(flatbuffers::Verifier &verifier, const void
   }
 }
 
-inline bool VerifySceneResourceUnionVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<uint8_t> *types) {
+inline bool VerifySceneResourceUnionVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<SceneResourceUnion> *types) {
   if (!values || !types) return !values && !types;
   if (values->size() != types->size()) return false;
   for (flatbuffers::uoffset_t i = 0; i < values->size(); ++i) {

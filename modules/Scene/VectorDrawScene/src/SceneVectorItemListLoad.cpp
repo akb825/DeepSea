@@ -16,7 +16,6 @@
 
 #include "SceneVectorItemListLoad.h"
 
-#include "Flatbuffers/VectorItemList_generated.h"
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
@@ -26,6 +25,17 @@
 #include <DeepSea/Scene/SceneLoadContext.h>
 #include <DeepSea/Scene/SceneLoadScratchData.h>
 #include <DeepSea/VectorDrawScene/SceneVectorItemList.h>
+
+#if DS_GCC || DS_CLANG
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#endif
+
+#include "Flatbuffers/VectorItemList_generated.h"
+
+#if DS_GCC || DS_CLANG
+#pragma GCC diagnostic pop
+#endif
 
 dsSceneItemList* dsSceneVectorItemList_load(const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,

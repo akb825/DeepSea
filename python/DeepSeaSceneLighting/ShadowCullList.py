@@ -45,23 +45,18 @@ class ShadowCullList(object):
             return self._tab.Get(flatbuffers.number_types.Uint8Flags, o + self._tab.Pos)
         return 0
 
-def Start(builder): builder.StartObject(3)
-def ShadowCullListStart(builder):
-    """This method is deprecated. Please switch to Start."""
-    return Start(builder)
-def AddShadowManager(builder, shadowManager): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(shadowManager), 0)
-def ShadowCullListAddShadowManager(builder, shadowManager):
-    """This method is deprecated. Please switch to AddShadowManager."""
-    return AddShadowManager(builder, shadowManager)
-def AddShadows(builder, shadows): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(shadows), 0)
-def ShadowCullListAddShadows(builder, shadows):
-    """This method is deprecated. Please switch to AddShadows."""
-    return AddShadows(builder, shadows)
-def AddSurface(builder, surface): builder.PrependUint8Slot(2, surface, 0)
-def ShadowCullListAddSurface(builder, surface):
-    """This method is deprecated. Please switch to AddSurface."""
-    return AddSurface(builder, surface)
-def End(builder): return builder.EndObject()
-def ShadowCullListEnd(builder):
-    """This method is deprecated. Please switch to End."""
-    return End(builder)
+def ShadowCullListStart(builder): builder.StartObject(3)
+def Start(builder):
+    return ShadowCullListStart(builder)
+def ShadowCullListAddShadowManager(builder, shadowManager): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(shadowManager), 0)
+def AddShadowManager(builder, shadowManager):
+    return ShadowCullListAddShadowManager(builder, shadowManager)
+def ShadowCullListAddShadows(builder, shadows): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(shadows), 0)
+def AddShadows(builder, shadows):
+    return ShadowCullListAddShadows(builder, shadows)
+def ShadowCullListAddSurface(builder, surface): builder.PrependUint8Slot(2, surface, 0)
+def AddSurface(builder, surface):
+    return ShadowCullListAddSurface(builder, surface)
+def ShadowCullListEnd(builder): return builder.EndObject()
+def End(builder):
+    return ShadowCullListEnd(builder)

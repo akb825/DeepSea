@@ -56,23 +56,18 @@ class ShaderVariableGroupDesc(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         return o == 0
 
-def Start(builder): builder.StartObject(2)
-def ShaderVariableGroupDescStart(builder):
-    """This method is deprecated. Please switch to Start."""
-    return Start(builder)
-def AddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
-def ShaderVariableGroupDescAddName(builder, name):
-    """This method is deprecated. Please switch to AddName."""
-    return AddName(builder, name)
-def AddElements(builder, elements): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(elements), 0)
-def ShaderVariableGroupDescAddElements(builder, elements):
-    """This method is deprecated. Please switch to AddElements."""
-    return AddElements(builder, elements)
-def StartElementsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
-def ShaderVariableGroupDescStartElementsVector(builder, numElems):
-    """This method is deprecated. Please switch to Start."""
-    return StartElementsVector(builder, numElems)
-def End(builder): return builder.EndObject()
-def ShaderVariableGroupDescEnd(builder):
-    """This method is deprecated. Please switch to End."""
-    return End(builder)
+def ShaderVariableGroupDescStart(builder): builder.StartObject(2)
+def Start(builder):
+    return ShaderVariableGroupDescStart(builder)
+def ShaderVariableGroupDescAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+def AddName(builder, name):
+    return ShaderVariableGroupDescAddName(builder, name)
+def ShaderVariableGroupDescAddElements(builder, elements): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(elements), 0)
+def AddElements(builder, elements):
+    return ShaderVariableGroupDescAddElements(builder, elements)
+def ShaderVariableGroupDescStartElementsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+def StartElementsVector(builder, numElems):
+    return ShaderVariableGroupDescStartElementsVector(builder, numElems)
+def ShaderVariableGroupDescEnd(builder): return builder.EndObject()
+def End(builder):
+    return ShaderVariableGroupDescEnd(builder)

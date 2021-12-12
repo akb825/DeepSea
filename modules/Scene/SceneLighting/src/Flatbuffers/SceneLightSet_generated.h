@@ -78,7 +78,7 @@ template<> struct LightUnionTraits<DeepSeaSceneLighting::SpotLight> {
 };
 
 bool VerifyLightUnion(flatbuffers::Verifier &verifier, const void *obj, LightUnion type);
-bool VerifyLightUnionVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<uint8_t> *types);
+bool VerifyLightUnionVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<LightUnion> *types);
 
 struct DirectionalLight FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef DirectionalLightBuilder Builder;
@@ -133,8 +133,8 @@ struct DirectionalLightBuilder {
 
 inline flatbuffers::Offset<DirectionalLight> CreateDirectionalLight(
     flatbuffers::FlatBufferBuilder &_fbb,
-    const DeepSeaScene::Vector3f *direction = 0,
-    const DeepSeaScene::Color3f *color = 0,
+    const DeepSeaScene::Vector3f *direction = nullptr,
+    const DeepSeaScene::Color3f *color = nullptr,
     float intensity = 0.0f) {
   DirectionalLightBuilder builder_(_fbb);
   builder_.add_intensity(intensity);
@@ -212,8 +212,8 @@ struct PointLightBuilder {
 
 inline flatbuffers::Offset<PointLight> CreatePointLight(
     flatbuffers::FlatBufferBuilder &_fbb,
-    const DeepSeaScene::Vector3f *position = 0,
-    const DeepSeaScene::Color3f *color = 0,
+    const DeepSeaScene::Vector3f *position = nullptr,
+    const DeepSeaScene::Color3f *color = nullptr,
     float intensity = 0.0f,
     float linearFalloff = 0.0f,
     float quadraticFalloff = 0.0f) {
@@ -320,9 +320,9 @@ struct SpotLightBuilder {
 
 inline flatbuffers::Offset<SpotLight> CreateSpotLight(
     flatbuffers::FlatBufferBuilder &_fbb,
-    const DeepSeaScene::Vector3f *position = 0,
-    const DeepSeaScene::Vector3f *direction = 0,
-    const DeepSeaScene::Color3f *color = 0,
+    const DeepSeaScene::Vector3f *position = nullptr,
+    const DeepSeaScene::Vector3f *direction = nullptr,
+    const DeepSeaScene::Color3f *color = nullptr,
     float intensity = 0.0f,
     float linearFalloff = 0.0f,
     float quadraticFalloff = 0.0f,
@@ -512,7 +512,7 @@ inline flatbuffers::Offset<SceneLightSet> CreateSceneLightSet(
     flatbuffers::FlatBufferBuilder &_fbb,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaSceneLighting::Light>>> lights = 0,
     uint32_t maxLights = 0,
-    const DeepSeaScene::Color3f *ambientColor = 0,
+    const DeepSeaScene::Color3f *ambientColor = nullptr,
     float ambientIntensity = 0.0f,
     flatbuffers::Offset<flatbuffers::String> mainLight = 0) {
   SceneLightSetBuilder builder_(_fbb);
@@ -528,7 +528,7 @@ inline flatbuffers::Offset<SceneLightSet> CreateSceneLightSetDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     const std::vector<flatbuffers::Offset<DeepSeaSceneLighting::Light>> *lights = nullptr,
     uint32_t maxLights = 0,
-    const DeepSeaScene::Color3f *ambientColor = 0,
+    const DeepSeaScene::Color3f *ambientColor = nullptr,
     float ambientIntensity = 0.0f,
     const char *mainLight = nullptr) {
   auto lights__ = lights ? _fbb.CreateVector<flatbuffers::Offset<DeepSeaSceneLighting::Light>>(*lights) : 0;
@@ -563,7 +563,7 @@ inline bool VerifyLightUnion(flatbuffers::Verifier &verifier, const void *obj, L
   }
 }
 
-inline bool VerifyLightUnionVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<uint8_t> *types) {
+inline bool VerifyLightUnionVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<LightUnion> *types) {
   if (!values || !types) return !values && !types;
   if (values->size() != types->size()) return false;
   for (flatbuffers::uoffset_t i = 0; i < values->size(); ++i) {

@@ -31,15 +31,12 @@ class SceneShadowManagerPrepare(object):
             return self._tab.String(o + self._tab.Pos)
         return None
 
-def Start(builder): builder.StartObject(1)
-def SceneShadowManagerPrepareStart(builder):
-    """This method is deprecated. Please switch to Start."""
-    return Start(builder)
-def AddShadowManager(builder, shadowManager): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(shadowManager), 0)
-def SceneShadowManagerPrepareAddShadowManager(builder, shadowManager):
-    """This method is deprecated. Please switch to AddShadowManager."""
-    return AddShadowManager(builder, shadowManager)
-def End(builder): return builder.EndObject()
-def SceneShadowManagerPrepareEnd(builder):
-    """This method is deprecated. Please switch to End."""
-    return End(builder)
+def SceneShadowManagerPrepareStart(builder): builder.StartObject(1)
+def Start(builder):
+    return SceneShadowManagerPrepareStart(builder)
+def SceneShadowManagerPrepareAddShadowManager(builder, shadowManager): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(shadowManager), 0)
+def AddShadowManager(builder, shadowManager):
+    return SceneShadowManagerPrepareAddShadowManager(builder, shadowManager)
+def SceneShadowManagerPrepareEnd(builder): return builder.EndObject()
+def End(builder):
+    return SceneShadowManagerPrepareEnd(builder)

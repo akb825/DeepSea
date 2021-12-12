@@ -24,11 +24,9 @@ class ClosePathCommand(object):
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
 
-def Start(builder): builder.StartObject(0)
-def ClosePathCommandStart(builder):
-    """This method is deprecated. Please switch to Start."""
-    return Start(builder)
-def End(builder): return builder.EndObject()
-def ClosePathCommandEnd(builder):
-    """This method is deprecated. Please switch to End."""
-    return End(builder)
+def ClosePathCommandStart(builder): builder.StartObject(0)
+def Start(builder):
+    return ClosePathCommandStart(builder)
+def ClosePathCommandEnd(builder): return builder.EndObject()
+def End(builder):
+    return ClosePathCommandEnd(builder)

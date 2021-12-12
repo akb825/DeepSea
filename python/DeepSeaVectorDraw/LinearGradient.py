@@ -102,43 +102,33 @@ class LinearGradient(object):
             return obj
         return None
 
-def Start(builder): builder.StartObject(7)
-def LinearGradientStart(builder):
-    """This method is deprecated. Please switch to Start."""
-    return Start(builder)
-def AddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
-def LinearGradientAddName(builder, name):
-    """This method is deprecated. Please switch to AddName."""
-    return AddName(builder, name)
-def AddGradient(builder, gradient): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(gradient), 0)
-def LinearGradientAddGradient(builder, gradient):
-    """This method is deprecated. Please switch to AddGradient."""
-    return AddGradient(builder, gradient)
-def StartGradientVector(builder, numElems): return builder.StartVector(8, numElems, 4)
-def LinearGradientStartGradientVector(builder, numElems):
-    """This method is deprecated. Please switch to Start."""
-    return StartGradientVector(builder, numElems)
-def AddStart(builder, start): builder.PrependStructSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(start), 0)
-def LinearGradientAddStart(builder, start):
-    """This method is deprecated. Please switch to AddStart."""
-    return AddStart(builder, start)
-def AddEnd(builder, end): builder.PrependStructSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(end), 0)
-def LinearGradientAddEnd(builder, end):
-    """This method is deprecated. Please switch to AddEnd."""
-    return AddEnd(builder, end)
-def AddEdge(builder, edge): builder.PrependUint8Slot(4, edge, 0)
-def LinearGradientAddEdge(builder, edge):
-    """This method is deprecated. Please switch to AddEdge."""
-    return AddEdge(builder, edge)
-def AddCoordinateSpace(builder, coordinateSpace): builder.PrependUint8Slot(5, coordinateSpace, 0)
-def LinearGradientAddCoordinateSpace(builder, coordinateSpace):
-    """This method is deprecated. Please switch to AddCoordinateSpace."""
-    return AddCoordinateSpace(builder, coordinateSpace)
-def AddTransform(builder, transform): builder.PrependStructSlot(6, flatbuffers.number_types.UOffsetTFlags.py_type(transform), 0)
-def LinearGradientAddTransform(builder, transform):
-    """This method is deprecated. Please switch to AddTransform."""
-    return AddTransform(builder, transform)
-def End(builder): return builder.EndObject()
-def LinearGradientEnd(builder):
-    """This method is deprecated. Please switch to End."""
-    return End(builder)
+def LinearGradientStart(builder): builder.StartObject(7)
+def Start(builder):
+    return LinearGradientStart(builder)
+def LinearGradientAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+def AddName(builder, name):
+    return LinearGradientAddName(builder, name)
+def LinearGradientAddGradient(builder, gradient): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(gradient), 0)
+def AddGradient(builder, gradient):
+    return LinearGradientAddGradient(builder, gradient)
+def LinearGradientStartGradientVector(builder, numElems): return builder.StartVector(8, numElems, 4)
+def StartGradientVector(builder, numElems):
+    return LinearGradientStartGradientVector(builder, numElems)
+def LinearGradientAddStart(builder, start): builder.PrependStructSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(start), 0)
+def AddStart(builder, start):
+    return LinearGradientAddStart(builder, start)
+def LinearGradientAddEnd(builder, end): builder.PrependStructSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(end), 0)
+def AddEnd(builder, end):
+    return LinearGradientAddEnd(builder, end)
+def LinearGradientAddEdge(builder, edge): builder.PrependUint8Slot(4, edge, 0)
+def AddEdge(builder, edge):
+    return LinearGradientAddEdge(builder, edge)
+def LinearGradientAddCoordinateSpace(builder, coordinateSpace): builder.PrependUint8Slot(5, coordinateSpace, 0)
+def AddCoordinateSpace(builder, coordinateSpace):
+    return LinearGradientAddCoordinateSpace(builder, coordinateSpace)
+def LinearGradientAddTransform(builder, transform): builder.PrependStructSlot(6, flatbuffers.number_types.UOffsetTFlags.py_type(transform), 0)
+def AddTransform(builder, transform):
+    return LinearGradientAddTransform(builder, transform)
+def LinearGradientEnd(builder): return builder.EndObject()
+def End(builder):
+    return LinearGradientEnd(builder)

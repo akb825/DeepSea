@@ -16,7 +16,6 @@
 
 #include "ShadowInstanceTransformDataLoad.h"
 
-#include "Flatbuffers/ShadowInstanceTransformData_generated.h"
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
@@ -26,6 +25,17 @@
 
 #include <DeepSea/SceneLighting/SceneShadowManager.h>
 #include <DeepSea/SceneLighting/ShadowInstanceTransformData.h>
+
+#if DS_GCC || DS_CLANG
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#endif
+
+#include "Flatbuffers/ShadowInstanceTransformData_generated.h"
+
+#if DS_GCC || DS_CLANG
+#pragma GCC diagnostic pop
+#endif
 
 extern "C"
 dsSceneInstanceData* dsShadowInstanceTransformData_load(const dsSceneLoadContext* loadContext,

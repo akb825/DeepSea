@@ -67,27 +67,21 @@ class DrawGeometry(object):
             return obj
         return None
 
-def Start(builder): builder.StartObject(3)
-def DrawGeometryStart(builder):
-    """This method is deprecated. Please switch to Start."""
-    return Start(builder)
-def AddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
-def DrawGeometryAddName(builder, name):
-    """This method is deprecated. Please switch to AddName."""
-    return AddName(builder, name)
-def AddVertexBuffers(builder, vertexBuffers): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(vertexBuffers), 0)
-def DrawGeometryAddVertexBuffers(builder, vertexBuffers):
-    """This method is deprecated. Please switch to AddVertexBuffers."""
-    return AddVertexBuffers(builder, vertexBuffers)
-def StartVertexBuffersVector(builder, numElems): return builder.StartVector(4, numElems, 4)
-def DrawGeometryStartVertexBuffersVector(builder, numElems):
-    """This method is deprecated. Please switch to Start."""
-    return StartVertexBuffersVector(builder, numElems)
-def AddIndexBuffer(builder, indexBuffer): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(indexBuffer), 0)
-def DrawGeometryAddIndexBuffer(builder, indexBuffer):
-    """This method is deprecated. Please switch to AddIndexBuffer."""
-    return AddIndexBuffer(builder, indexBuffer)
-def End(builder): return builder.EndObject()
-def DrawGeometryEnd(builder):
-    """This method is deprecated. Please switch to End."""
-    return End(builder)
+def DrawGeometryStart(builder): builder.StartObject(3)
+def Start(builder):
+    return DrawGeometryStart(builder)
+def DrawGeometryAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+def AddName(builder, name):
+    return DrawGeometryAddName(builder, name)
+def DrawGeometryAddVertexBuffers(builder, vertexBuffers): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(vertexBuffers), 0)
+def AddVertexBuffers(builder, vertexBuffers):
+    return DrawGeometryAddVertexBuffers(builder, vertexBuffers)
+def DrawGeometryStartVertexBuffersVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+def StartVertexBuffersVector(builder, numElems):
+    return DrawGeometryStartVertexBuffersVector(builder, numElems)
+def DrawGeometryAddIndexBuffer(builder, indexBuffer): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(indexBuffer), 0)
+def AddIndexBuffer(builder, indexBuffer):
+    return DrawGeometryAddIndexBuffer(builder, indexBuffer)
+def DrawGeometryEnd(builder): return builder.EndObject()
+def End(builder):
+    return DrawGeometryEnd(builder)

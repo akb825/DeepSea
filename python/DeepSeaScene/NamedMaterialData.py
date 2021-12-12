@@ -31,15 +31,12 @@ class NamedMaterialData(object):
             return self._tab.String(o + self._tab.Pos)
         return None
 
-def Start(builder): builder.StartObject(1)
-def NamedMaterialDataStart(builder):
-    """This method is deprecated. Please switch to Start."""
-    return Start(builder)
-def AddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
-def NamedMaterialDataAddName(builder, name):
-    """This method is deprecated. Please switch to AddName."""
-    return AddName(builder, name)
-def End(builder): return builder.EndObject()
-def NamedMaterialDataEnd(builder):
-    """This method is deprecated. Please switch to End."""
-    return End(builder)
+def NamedMaterialDataStart(builder): builder.StartObject(1)
+def Start(builder):
+    return NamedMaterialDataStart(builder)
+def NamedMaterialDataAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+def AddName(builder, name):
+    return NamedMaterialDataAddName(builder, name)
+def NamedMaterialDataEnd(builder): return builder.EndObject()
+def End(builder):
+    return NamedMaterialDataEnd(builder)

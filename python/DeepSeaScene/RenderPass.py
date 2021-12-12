@@ -105,39 +105,30 @@ class RenderPass(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(10))
         return o == 0
 
-def Start(builder): builder.StartObject(4)
-def RenderPassStart(builder):
-    """This method is deprecated. Please switch to Start."""
-    return Start(builder)
-def AddFramebuffer(builder, framebuffer): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(framebuffer), 0)
-def RenderPassAddFramebuffer(builder, framebuffer):
-    """This method is deprecated. Please switch to AddFramebuffer."""
-    return AddFramebuffer(builder, framebuffer)
-def AddAttachments(builder, attachments): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(attachments), 0)
-def RenderPassAddAttachments(builder, attachments):
-    """This method is deprecated. Please switch to AddAttachments."""
-    return AddAttachments(builder, attachments)
-def StartAttachmentsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
-def RenderPassStartAttachmentsVector(builder, numElems):
-    """This method is deprecated. Please switch to Start."""
-    return StartAttachmentsVector(builder, numElems)
-def AddSubpasses(builder, subpasses): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(subpasses), 0)
-def RenderPassAddSubpasses(builder, subpasses):
-    """This method is deprecated. Please switch to AddSubpasses."""
-    return AddSubpasses(builder, subpasses)
-def StartSubpassesVector(builder, numElems): return builder.StartVector(4, numElems, 4)
-def RenderPassStartSubpassesVector(builder, numElems):
-    """This method is deprecated. Please switch to Start."""
-    return StartSubpassesVector(builder, numElems)
-def AddDependencies(builder, dependencies): builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(dependencies), 0)
-def RenderPassAddDependencies(builder, dependencies):
-    """This method is deprecated. Please switch to AddDependencies."""
-    return AddDependencies(builder, dependencies)
-def StartDependenciesVector(builder, numElems): return builder.StartVector(28, numElems, 4)
-def RenderPassStartDependenciesVector(builder, numElems):
-    """This method is deprecated. Please switch to Start."""
-    return StartDependenciesVector(builder, numElems)
-def End(builder): return builder.EndObject()
-def RenderPassEnd(builder):
-    """This method is deprecated. Please switch to End."""
-    return End(builder)
+def RenderPassStart(builder): builder.StartObject(4)
+def Start(builder):
+    return RenderPassStart(builder)
+def RenderPassAddFramebuffer(builder, framebuffer): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(framebuffer), 0)
+def AddFramebuffer(builder, framebuffer):
+    return RenderPassAddFramebuffer(builder, framebuffer)
+def RenderPassAddAttachments(builder, attachments): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(attachments), 0)
+def AddAttachments(builder, attachments):
+    return RenderPassAddAttachments(builder, attachments)
+def RenderPassStartAttachmentsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+def StartAttachmentsVector(builder, numElems):
+    return RenderPassStartAttachmentsVector(builder, numElems)
+def RenderPassAddSubpasses(builder, subpasses): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(subpasses), 0)
+def AddSubpasses(builder, subpasses):
+    return RenderPassAddSubpasses(builder, subpasses)
+def RenderPassStartSubpassesVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+def StartSubpassesVector(builder, numElems):
+    return RenderPassStartSubpassesVector(builder, numElems)
+def RenderPassAddDependencies(builder, dependencies): builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(dependencies), 0)
+def AddDependencies(builder, dependencies):
+    return RenderPassAddDependencies(builder, dependencies)
+def RenderPassStartDependenciesVector(builder, numElems): return builder.StartVector(28, numElems, 4)
+def StartDependenciesVector(builder, numElems):
+    return RenderPassStartDependenciesVector(builder, numElems)
+def RenderPassEnd(builder): return builder.EndObject()
+def End(builder):
+    return RenderPassEnd(builder)

@@ -16,11 +16,6 @@
 
 #include <DeepSea/Scene/SceneResources.h>
 
-#include "Flatbuffers/BufferMaterialData_generated.h"
-#include "Flatbuffers/NamedMaterialData_generated.h"
-#include "Flatbuffers/SceneResources_generated.h"
-#include "Flatbuffers/TextureBufferMaterialData_generated.h"
-
 #include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/StackAllocator.h>
@@ -50,6 +45,20 @@
 #include <DeepSea/Scene/SceneLoadContext.h>
 #include <DeepSea/Scene/SceneLoadScratchData.h>
 #include <DeepSea/Scene/Types.h>
+
+#if DS_GCC || DS_CLANG
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#endif
+
+#include "Flatbuffers/BufferMaterialData_generated.h"
+#include "Flatbuffers/NamedMaterialData_generated.h"
+#include "Flatbuffers/SceneResources_generated.h"
+#include "Flatbuffers/TextureBufferMaterialData_generated.h"
+
+#if DS_GCC || DS_CLANG
+#pragma GCC diagnostic pop
+#endif
 
 #define PRINT_FLATBUFFER_ERROR(message, name) \
 	do \

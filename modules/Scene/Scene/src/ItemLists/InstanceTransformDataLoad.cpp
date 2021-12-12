@@ -17,12 +17,22 @@
 #include <DeepSea/Scene/ItemLists/InstanceTransformData.h>
 
 #include "SceneLoadContextInternal.h"
-#include "Flatbuffers/InstanceTransformData_generated.h"
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Scene/SceneLoadContext.h>
 #include <DeepSea/Scene/SceneLoadScratchData.h>
+
+#if DS_GCC || DS_CLANG
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#endif
+
+#include "Flatbuffers/InstanceTransformData_generated.h"
+
+#if DS_GCC || DS_CLANG
+#pragma GCC diagnostic pop
+#endif
 
 extern "C"
 dsSceneInstanceData* dsInstanceTransformData_load(const dsSceneLoadContext* loadContext,

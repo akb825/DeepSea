@@ -16,7 +16,6 @@
 
 #include "VectorSceneMaterialSetLoad.h"
 
-#include "Flatbuffers/VectorSceneMaterialSet_generated.h"
 #include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
@@ -27,6 +26,17 @@
 #include <DeepSea/Scene/SceneLoadScratchData.h>
 #include <DeepSea/VectorDraw/Gradient.h>
 #include <DeepSea/VectorDraw/VectorMaterialSet.h>
+
+#if DS_GCC || DS_CLANG
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#endif
+
+#include "Flatbuffers/VectorSceneMaterialSet_generated.h"
+
+#if DS_GCC || DS_CLANG
+#pragma GCC diagnostic pop
+#endif
 
 static bool convertStops(dsAllocator* allocator, dsGradientStop*& tempStops, uint32_t& stopCount,
 	uint32_t& maxStops,

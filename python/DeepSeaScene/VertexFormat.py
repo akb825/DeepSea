@@ -55,23 +55,18 @@ class VertexFormat(object):
             return bool(self._tab.Get(flatbuffers.number_types.BoolFlags, o + self._tab.Pos))
         return False
 
-def Start(builder): builder.StartObject(2)
-def VertexFormatStart(builder):
-    """This method is deprecated. Please switch to Start."""
-    return Start(builder)
-def AddAttributes(builder, attributes): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(attributes), 0)
-def VertexFormatAddAttributes(builder, attributes):
-    """This method is deprecated. Please switch to AddAttributes."""
-    return AddAttributes(builder, attributes)
-def StartAttributesVector(builder, numElems): return builder.StartVector(8, numElems, 4)
-def VertexFormatStartAttributesVector(builder, numElems):
-    """This method is deprecated. Please switch to Start."""
-    return StartAttributesVector(builder, numElems)
-def AddInstanced(builder, instanced): builder.PrependBoolSlot(1, instanced, 0)
-def VertexFormatAddInstanced(builder, instanced):
-    """This method is deprecated. Please switch to AddInstanced."""
-    return AddInstanced(builder, instanced)
-def End(builder): return builder.EndObject()
-def VertexFormatEnd(builder):
-    """This method is deprecated. Please switch to End."""
-    return End(builder)
+def VertexFormatStart(builder): builder.StartObject(2)
+def Start(builder):
+    return VertexFormatStart(builder)
+def VertexFormatAddAttributes(builder, attributes): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(attributes), 0)
+def AddAttributes(builder, attributes):
+    return VertexFormatAddAttributes(builder, attributes)
+def VertexFormatStartAttributesVector(builder, numElems): return builder.StartVector(8, numElems, 4)
+def StartAttributesVector(builder, numElems):
+    return VertexFormatStartAttributesVector(builder, numElems)
+def VertexFormatAddInstanced(builder, instanced): builder.PrependBoolSlot(1, instanced, 0)
+def AddInstanced(builder, instanced):
+    return VertexFormatAddInstanced(builder, instanced)
+def VertexFormatEnd(builder): return builder.EndObject()
+def End(builder):
+    return VertexFormatEnd(builder)

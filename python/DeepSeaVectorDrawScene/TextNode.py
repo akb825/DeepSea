@@ -141,67 +141,51 @@ class TextNode(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(26))
         return o == 0
 
-def Start(builder): builder.StartObject(12)
-def TextNodeStart(builder):
-    """This method is deprecated. Please switch to Start."""
-    return Start(builder)
-def AddEmbeddedResources(builder, embeddedResources): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(embeddedResources), 0)
-def TextNodeAddEmbeddedResources(builder, embeddedResources):
-    """This method is deprecated. Please switch to AddEmbeddedResources."""
-    return AddEmbeddedResources(builder, embeddedResources)
-def StartEmbeddedResourcesVector(builder, numElems): return builder.StartVector(1, numElems, 1)
-def TextNodeStartEmbeddedResourcesVector(builder, numElems):
-    """This method is deprecated. Please switch to Start."""
-    return StartEmbeddedResourcesVector(builder, numElems)
-def AddText(builder, text): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(text), 0)
-def TextNodeAddText(builder, text):
-    """This method is deprecated. Please switch to AddText."""
-    return AddText(builder, text)
-def AddAlignment(builder, alignment): builder.PrependUint8Slot(2, alignment, 0)
-def TextNodeAddAlignment(builder, alignment):
-    """This method is deprecated. Please switch to AddAlignment."""
-    return AddAlignment(builder, alignment)
-def AddMaxWidth(builder, maxWidth): builder.PrependFloat32Slot(3, maxWidth, 0.0)
-def TextNodeAddMaxWidth(builder, maxWidth):
-    """This method is deprecated. Please switch to AddMaxWidth."""
-    return AddMaxWidth(builder, maxWidth)
-def AddLineScale(builder, lineScale): builder.PrependFloat32Slot(4, lineScale, 0.0)
-def TextNodeAddLineScale(builder, lineScale):
-    """This method is deprecated. Please switch to AddLineScale."""
-    return AddLineScale(builder, lineScale)
-def AddZ(builder, z): builder.PrependInt32Slot(5, z, 0)
-def TextNodeAddZ(builder, z):
-    """This method is deprecated. Please switch to AddZ."""
-    return AddZ(builder, z)
-def AddFirstChar(builder, firstChar): builder.PrependUint32Slot(6, firstChar, 0)
-def TextNodeAddFirstChar(builder, firstChar):
-    """This method is deprecated. Please switch to AddFirstChar."""
-    return AddFirstChar(builder, firstChar)
-def AddCharCount(builder, charCount): builder.PrependUint32Slot(7, charCount, 0)
-def TextNodeAddCharCount(builder, charCount):
-    """This method is deprecated. Please switch to AddCharCount."""
-    return AddCharCount(builder, charCount)
-def AddShader(builder, shader): builder.PrependUOffsetTRelativeSlot(8, flatbuffers.number_types.UOffsetTFlags.py_type(shader), 0)
-def TextNodeAddShader(builder, shader):
-    """This method is deprecated. Please switch to AddShader."""
-    return AddShader(builder, shader)
-def AddMaterial(builder, material): builder.PrependUOffsetTRelativeSlot(9, flatbuffers.number_types.UOffsetTFlags.py_type(material), 0)
-def TextNodeAddMaterial(builder, material):
-    """This method is deprecated. Please switch to AddMaterial."""
-    return AddMaterial(builder, material)
-def AddFontTexture(builder, fontTexture): builder.PrependUOffsetTRelativeSlot(10, flatbuffers.number_types.UOffsetTFlags.py_type(fontTexture), 0)
-def TextNodeAddFontTexture(builder, fontTexture):
-    """This method is deprecated. Please switch to AddFontTexture."""
-    return AddFontTexture(builder, fontTexture)
-def AddItemLists(builder, itemLists): builder.PrependUOffsetTRelativeSlot(11, flatbuffers.number_types.UOffsetTFlags.py_type(itemLists), 0)
-def TextNodeAddItemLists(builder, itemLists):
-    """This method is deprecated. Please switch to AddItemLists."""
-    return AddItemLists(builder, itemLists)
-def StartItemListsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
-def TextNodeStartItemListsVector(builder, numElems):
-    """This method is deprecated. Please switch to Start."""
-    return StartItemListsVector(builder, numElems)
-def End(builder): return builder.EndObject()
-def TextNodeEnd(builder):
-    """This method is deprecated. Please switch to End."""
-    return End(builder)
+def TextNodeStart(builder): builder.StartObject(12)
+def Start(builder):
+    return TextNodeStart(builder)
+def TextNodeAddEmbeddedResources(builder, embeddedResources): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(embeddedResources), 0)
+def AddEmbeddedResources(builder, embeddedResources):
+    return TextNodeAddEmbeddedResources(builder, embeddedResources)
+def TextNodeStartEmbeddedResourcesVector(builder, numElems): return builder.StartVector(1, numElems, 1)
+def StartEmbeddedResourcesVector(builder, numElems):
+    return TextNodeStartEmbeddedResourcesVector(builder, numElems)
+def TextNodeAddText(builder, text): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(text), 0)
+def AddText(builder, text):
+    return TextNodeAddText(builder, text)
+def TextNodeAddAlignment(builder, alignment): builder.PrependUint8Slot(2, alignment, 0)
+def AddAlignment(builder, alignment):
+    return TextNodeAddAlignment(builder, alignment)
+def TextNodeAddMaxWidth(builder, maxWidth): builder.PrependFloat32Slot(3, maxWidth, 0.0)
+def AddMaxWidth(builder, maxWidth):
+    return TextNodeAddMaxWidth(builder, maxWidth)
+def TextNodeAddLineScale(builder, lineScale): builder.PrependFloat32Slot(4, lineScale, 0.0)
+def AddLineScale(builder, lineScale):
+    return TextNodeAddLineScale(builder, lineScale)
+def TextNodeAddZ(builder, z): builder.PrependInt32Slot(5, z, 0)
+def AddZ(builder, z):
+    return TextNodeAddZ(builder, z)
+def TextNodeAddFirstChar(builder, firstChar): builder.PrependUint32Slot(6, firstChar, 0)
+def AddFirstChar(builder, firstChar):
+    return TextNodeAddFirstChar(builder, firstChar)
+def TextNodeAddCharCount(builder, charCount): builder.PrependUint32Slot(7, charCount, 0)
+def AddCharCount(builder, charCount):
+    return TextNodeAddCharCount(builder, charCount)
+def TextNodeAddShader(builder, shader): builder.PrependUOffsetTRelativeSlot(8, flatbuffers.number_types.UOffsetTFlags.py_type(shader), 0)
+def AddShader(builder, shader):
+    return TextNodeAddShader(builder, shader)
+def TextNodeAddMaterial(builder, material): builder.PrependUOffsetTRelativeSlot(9, flatbuffers.number_types.UOffsetTFlags.py_type(material), 0)
+def AddMaterial(builder, material):
+    return TextNodeAddMaterial(builder, material)
+def TextNodeAddFontTexture(builder, fontTexture): builder.PrependUOffsetTRelativeSlot(10, flatbuffers.number_types.UOffsetTFlags.py_type(fontTexture), 0)
+def AddFontTexture(builder, fontTexture):
+    return TextNodeAddFontTexture(builder, fontTexture)
+def TextNodeAddItemLists(builder, itemLists): builder.PrependUOffsetTRelativeSlot(11, flatbuffers.number_types.UOffsetTFlags.py_type(itemLists), 0)
+def AddItemLists(builder, itemLists):
+    return TextNodeAddItemLists(builder, itemLists)
+def TextNodeStartItemListsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+def StartItemListsVector(builder, numElems):
+    return TextNodeStartItemListsVector(builder, numElems)
+def TextNodeEnd(builder): return builder.EndObject()
+def End(builder):
+    return TextNodeEnd(builder)

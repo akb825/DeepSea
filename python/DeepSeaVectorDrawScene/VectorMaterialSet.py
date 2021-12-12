@@ -56,23 +56,18 @@ class VectorMaterialSet(object):
             return bool(self._tab.Get(flatbuffers.number_types.BoolFlags, o + self._tab.Pos))
         return False
 
-def Start(builder): builder.StartObject(2)
-def VectorMaterialSetStart(builder):
-    """This method is deprecated. Please switch to Start."""
-    return Start(builder)
-def AddMaterials(builder, materials): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(materials), 0)
-def VectorMaterialSetAddMaterials(builder, materials):
-    """This method is deprecated. Please switch to AddMaterials."""
-    return AddMaterials(builder, materials)
-def StartMaterialsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
-def VectorMaterialSetStartMaterialsVector(builder, numElems):
-    """This method is deprecated. Please switch to Start."""
-    return StartMaterialsVector(builder, numElems)
-def AddSrgb(builder, srgb): builder.PrependBoolSlot(1, srgb, 0)
-def VectorMaterialSetAddSrgb(builder, srgb):
-    """This method is deprecated. Please switch to AddSrgb."""
-    return AddSrgb(builder, srgb)
-def End(builder): return builder.EndObject()
-def VectorMaterialSetEnd(builder):
-    """This method is deprecated. Please switch to End."""
-    return End(builder)
+def VectorMaterialSetStart(builder): builder.StartObject(2)
+def Start(builder):
+    return VectorMaterialSetStart(builder)
+def VectorMaterialSetAddMaterials(builder, materials): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(materials), 0)
+def AddMaterials(builder, materials):
+    return VectorMaterialSetAddMaterials(builder, materials)
+def VectorMaterialSetStartMaterialsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+def StartMaterialsVector(builder, numElems):
+    return VectorMaterialSetStartMaterialsVector(builder, numElems)
+def VectorMaterialSetAddSrgb(builder, srgb): builder.PrependBoolSlot(1, srgb, 0)
+def AddSrgb(builder, srgb):
+    return VectorMaterialSetAddSrgb(builder, srgb)
+def VectorMaterialSetEnd(builder): return builder.EndObject()
+def End(builder):
+    return VectorMaterialSetEnd(builder)

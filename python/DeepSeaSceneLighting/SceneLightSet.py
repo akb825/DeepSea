@@ -81,35 +81,27 @@ class SceneLightSet(object):
             return self._tab.String(o + self._tab.Pos)
         return None
 
-def Start(builder): builder.StartObject(5)
-def SceneLightSetStart(builder):
-    """This method is deprecated. Please switch to Start."""
-    return Start(builder)
-def AddLights(builder, lights): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(lights), 0)
-def SceneLightSetAddLights(builder, lights):
-    """This method is deprecated. Please switch to AddLights."""
-    return AddLights(builder, lights)
-def StartLightsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
-def SceneLightSetStartLightsVector(builder, numElems):
-    """This method is deprecated. Please switch to Start."""
-    return StartLightsVector(builder, numElems)
-def AddMaxLights(builder, maxLights): builder.PrependUint32Slot(1, maxLights, 0)
-def SceneLightSetAddMaxLights(builder, maxLights):
-    """This method is deprecated. Please switch to AddMaxLights."""
-    return AddMaxLights(builder, maxLights)
-def AddAmbientColor(builder, ambientColor): builder.PrependStructSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(ambientColor), 0)
-def SceneLightSetAddAmbientColor(builder, ambientColor):
-    """This method is deprecated. Please switch to AddAmbientColor."""
-    return AddAmbientColor(builder, ambientColor)
-def AddAmbientIntensity(builder, ambientIntensity): builder.PrependFloat32Slot(3, ambientIntensity, 0.0)
-def SceneLightSetAddAmbientIntensity(builder, ambientIntensity):
-    """This method is deprecated. Please switch to AddAmbientIntensity."""
-    return AddAmbientIntensity(builder, ambientIntensity)
-def AddMainLight(builder, mainLight): builder.PrependUOffsetTRelativeSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(mainLight), 0)
-def SceneLightSetAddMainLight(builder, mainLight):
-    """This method is deprecated. Please switch to AddMainLight."""
-    return AddMainLight(builder, mainLight)
-def End(builder): return builder.EndObject()
-def SceneLightSetEnd(builder):
-    """This method is deprecated. Please switch to End."""
-    return End(builder)
+def SceneLightSetStart(builder): builder.StartObject(5)
+def Start(builder):
+    return SceneLightSetStart(builder)
+def SceneLightSetAddLights(builder, lights): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(lights), 0)
+def AddLights(builder, lights):
+    return SceneLightSetAddLights(builder, lights)
+def SceneLightSetStartLightsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+def StartLightsVector(builder, numElems):
+    return SceneLightSetStartLightsVector(builder, numElems)
+def SceneLightSetAddMaxLights(builder, maxLights): builder.PrependUint32Slot(1, maxLights, 0)
+def AddMaxLights(builder, maxLights):
+    return SceneLightSetAddMaxLights(builder, maxLights)
+def SceneLightSetAddAmbientColor(builder, ambientColor): builder.PrependStructSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(ambientColor), 0)
+def AddAmbientColor(builder, ambientColor):
+    return SceneLightSetAddAmbientColor(builder, ambientColor)
+def SceneLightSetAddAmbientIntensity(builder, ambientIntensity): builder.PrependFloat32Slot(3, ambientIntensity, 0.0)
+def AddAmbientIntensity(builder, ambientIntensity):
+    return SceneLightSetAddAmbientIntensity(builder, ambientIntensity)
+def SceneLightSetAddMainLight(builder, mainLight): builder.PrependUOffsetTRelativeSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(mainLight), 0)
+def AddMainLight(builder, mainLight):
+    return SceneLightSetAddMainLight(builder, mainLight)
+def SceneLightSetEnd(builder): return builder.EndObject()
+def End(builder):
+    return SceneLightSetEnd(builder)

@@ -16,7 +16,6 @@
 
 #include "VectorSceneResourcesLoad.h"
 
-#include "Flatbuffers/VectorSceneResources_generated.h"
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
@@ -24,6 +23,17 @@
 #include <DeepSea/Scene/SceneLoadContext.h>
 #include <DeepSea/Scene/SceneLoadScratchData.h>
 #include <DeepSea/VectorDraw/VectorResources.h>
+
+#if DS_GCC || DS_CLANG
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#endif
+
+#include "Flatbuffers/VectorSceneResources_generated.h"
+
+#if DS_GCC || DS_CLANG
+#pragma GCC diagnostic pop
+#endif
 
 static dsTexture* loadTexture(void*, dsResourceManager*, dsAllocator*, dsAllocator*, const char*,
 	dsTextureUsage, dsGfxMemory)

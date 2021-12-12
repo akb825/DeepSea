@@ -16,8 +16,6 @@
 
 #include "SceneVectorImageNodeLoad.h"
 
-#include "Flatbuffers/VectorImageNode_generated.h"
-
 #include <DeepSea/Core/Memory/StackAllocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
@@ -32,6 +30,17 @@
 #include <DeepSea/VectorDrawScene/SceneVectorImageNode.h>
 #include <DeepSea/VectorDrawScene/SceneVectorImage.h>
 #include <DeepSea/VectorDrawScene/VectorSceneShaders.h>
+
+#if DS_GCC || DS_CLANG
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#endif
+
+#include "Flatbuffers/VectorImageNode_generated.h"
+
+#if DS_GCC || DS_CLANG
+#pragma GCC diagnostic pop
+#endif
 
 dsSceneNode* dsSceneVectorImageNode_load(const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,

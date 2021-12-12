@@ -35,15 +35,12 @@ class LineCommand(object):
             return obj
         return None
 
-def Start(builder): builder.StartObject(1)
-def LineCommandStart(builder):
-    """This method is deprecated. Please switch to Start."""
-    return Start(builder)
-def AddEnd(builder, end): builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(end), 0)
-def LineCommandAddEnd(builder, end):
-    """This method is deprecated. Please switch to AddEnd."""
-    return AddEnd(builder, end)
-def End(builder): return builder.EndObject()
-def LineCommandEnd(builder):
-    """This method is deprecated. Please switch to End."""
-    return End(builder)
+def LineCommandStart(builder): builder.StartObject(1)
+def Start(builder):
+    return LineCommandStart(builder)
+def LineCommandAddEnd(builder, end): builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(end), 0)
+def AddEnd(builder, end):
+    return LineCommandAddEnd(builder, end)
+def LineCommandEnd(builder): return builder.EndObject()
+def End(builder):
+    return LineCommandEnd(builder)

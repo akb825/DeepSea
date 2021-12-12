@@ -16,7 +16,6 @@
 
 #include "SceneTextNodeLoad.h"
 
-#include "Flatbuffers/TextNode_generated.h"
 
 #include <DeepSea/Core/Memory/StackAllocator.h>
 #include <DeepSea/Core/Assert.h>
@@ -34,6 +33,17 @@
 #include <DeepSea/VectorDrawScene/SceneTextNode.h>
 #include <DeepSea/VectorDrawScene/SceneText.h>
 #include <DeepSea/VectorDrawScene/VectorSceneShaders.h>
+
+#if DS_GCC || DS_CLANG
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#endif
+
+#include "Flatbuffers/TextNode_generated.h"
+
+#if DS_GCC || DS_CLANG
+#pragma GCC diagnostic pop
+#endif
 
 dsSceneNode* dsSceneTextNode_load(const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,

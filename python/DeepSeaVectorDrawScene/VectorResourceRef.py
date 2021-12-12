@@ -38,19 +38,15 @@ class VectorResourceRef(object):
             return self._tab.String(o + self._tab.Pos)
         return None
 
-def Start(builder): builder.StartObject(2)
-def VectorResourceRefStart(builder):
-    """This method is deprecated. Please switch to Start."""
-    return Start(builder)
-def AddResources(builder, resources): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(resources), 0)
-def VectorResourceRefAddResources(builder, resources):
-    """This method is deprecated. Please switch to AddResources."""
-    return AddResources(builder, resources)
-def AddName(builder, name): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
-def VectorResourceRefAddName(builder, name):
-    """This method is deprecated. Please switch to AddName."""
-    return AddName(builder, name)
-def End(builder): return builder.EndObject()
-def VectorResourceRefEnd(builder):
-    """This method is deprecated. Please switch to End."""
-    return End(builder)
+def VectorResourceRefStart(builder): builder.StartObject(2)
+def Start(builder):
+    return VectorResourceRefStart(builder)
+def VectorResourceRefAddResources(builder, resources): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(resources), 0)
+def AddResources(builder, resources):
+    return VectorResourceRefAddResources(builder, resources)
+def VectorResourceRefAddName(builder, name): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+def AddName(builder, name):
+    return VectorResourceRefAddName(builder, name)
+def VectorResourceRefEnd(builder): return builder.EndObject()
+def End(builder):
+    return VectorResourceRefEnd(builder)

@@ -31,15 +31,12 @@ class FileReference(object):
             return self._tab.String(o + self._tab.Pos)
         return None
 
-def Start(builder): builder.StartObject(1)
-def FileReferenceStart(builder):
-    """This method is deprecated. Please switch to Start."""
-    return Start(builder)
-def AddPath(builder, path): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(path), 0)
-def FileReferenceAddPath(builder, path):
-    """This method is deprecated. Please switch to AddPath."""
-    return AddPath(builder, path)
-def End(builder): return builder.EndObject()
-def FileReferenceEnd(builder):
-    """This method is deprecated. Please switch to End."""
-    return End(builder)
+def FileReferenceStart(builder): builder.StartObject(1)
+def Start(builder):
+    return FileReferenceStart(builder)
+def FileReferenceAddPath(builder, path): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(path), 0)
+def AddPath(builder, path):
+    return FileReferenceAddPath(builder, path)
+def FileReferenceEnd(builder): return builder.EndObject()
+def End(builder):
+    return FileReferenceEnd(builder)

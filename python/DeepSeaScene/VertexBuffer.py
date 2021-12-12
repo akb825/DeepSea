@@ -56,27 +56,21 @@ class VertexBuffer(object):
             return obj
         return None
 
-def Start(builder): builder.StartObject(4)
-def VertexBufferStart(builder):
-    """This method is deprecated. Please switch to Start."""
-    return Start(builder)
-def AddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
-def VertexBufferAddName(builder, name):
-    """This method is deprecated. Please switch to AddName."""
-    return AddName(builder, name)
-def AddOffset(builder, offset): builder.PrependUint32Slot(1, offset, 0)
-def VertexBufferAddOffset(builder, offset):
-    """This method is deprecated. Please switch to AddOffset."""
-    return AddOffset(builder, offset)
-def AddCount(builder, count): builder.PrependUint32Slot(2, count, 0)
-def VertexBufferAddCount(builder, count):
-    """This method is deprecated. Please switch to AddCount."""
-    return AddCount(builder, count)
-def AddFormat(builder, format): builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(format), 0)
-def VertexBufferAddFormat(builder, format):
-    """This method is deprecated. Please switch to AddFormat."""
-    return AddFormat(builder, format)
-def End(builder): return builder.EndObject()
-def VertexBufferEnd(builder):
-    """This method is deprecated. Please switch to End."""
-    return End(builder)
+def VertexBufferStart(builder): builder.StartObject(4)
+def Start(builder):
+    return VertexBufferStart(builder)
+def VertexBufferAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+def AddName(builder, name):
+    return VertexBufferAddName(builder, name)
+def VertexBufferAddOffset(builder, offset): builder.PrependUint32Slot(1, offset, 0)
+def AddOffset(builder, offset):
+    return VertexBufferAddOffset(builder, offset)
+def VertexBufferAddCount(builder, count): builder.PrependUint32Slot(2, count, 0)
+def AddCount(builder, count):
+    return VertexBufferAddCount(builder, count)
+def VertexBufferAddFormat(builder, format): builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(format), 0)
+def AddFormat(builder, format):
+    return VertexBufferAddFormat(builder, format)
+def VertexBufferEnd(builder): return builder.EndObject()
+def End(builder):
+    return VertexBufferEnd(builder)

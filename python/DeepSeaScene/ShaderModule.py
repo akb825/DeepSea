@@ -56,23 +56,18 @@ class ShaderModule(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         return o == 0
 
-def Start(builder): builder.StartObject(2)
-def ShaderModuleStart(builder):
-    """This method is deprecated. Please switch to Start."""
-    return Start(builder)
-def AddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
-def ShaderModuleAddName(builder, name):
-    """This method is deprecated. Please switch to AddName."""
-    return AddName(builder, name)
-def AddModules(builder, modules): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(modules), 0)
-def ShaderModuleAddModules(builder, modules):
-    """This method is deprecated. Please switch to AddModules."""
-    return AddModules(builder, modules)
-def StartModulesVector(builder, numElems): return builder.StartVector(4, numElems, 4)
-def ShaderModuleStartModulesVector(builder, numElems):
-    """This method is deprecated. Please switch to Start."""
-    return StartModulesVector(builder, numElems)
-def End(builder): return builder.EndObject()
-def ShaderModuleEnd(builder):
-    """This method is deprecated. Please switch to End."""
-    return End(builder)
+def ShaderModuleStart(builder): builder.StartObject(2)
+def Start(builder):
+    return ShaderModuleStart(builder)
+def ShaderModuleAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+def AddName(builder, name):
+    return ShaderModuleAddName(builder, name)
+def ShaderModuleAddModules(builder, modules): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(modules), 0)
+def AddModules(builder, modules):
+    return ShaderModuleAddModules(builder, modules)
+def ShaderModuleStartModulesVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+def StartModulesVector(builder, numElems):
+    return ShaderModuleStartModulesVector(builder, numElems)
+def ShaderModuleEnd(builder): return builder.EndObject()
+def End(builder):
+    return ShaderModuleEnd(builder)

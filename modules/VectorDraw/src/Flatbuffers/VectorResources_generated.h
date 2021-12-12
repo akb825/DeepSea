@@ -72,7 +72,7 @@ template<> struct FileOrDataTraits<DeepSeaVectorDraw::RawData> {
 };
 
 bool VerifyFileOrData(flatbuffers::Verifier &verifier, const void *obj, FileOrData type);
-bool VerifyFileOrDataVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<uint8_t> *types);
+bool VerifyFileOrDataVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<FileOrData> *types);
 
 enum class FontQuality : uint8_t {
   Low = 0,
@@ -611,7 +611,7 @@ inline bool VerifyFileOrData(flatbuffers::Verifier &verifier, const void *obj, F
   }
 }
 
-inline bool VerifyFileOrDataVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<uint8_t> *types) {
+inline bool VerifyFileOrDataVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<FileOrData> *types) {
   if (!values || !types) return !values && !types;
   if (values->size() != types->size()) return false;
   for (flatbuffers::uoffset_t i = 0; i < values->size(); ++i) {

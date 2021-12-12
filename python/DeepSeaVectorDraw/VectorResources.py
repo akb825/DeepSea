@@ -99,35 +99,27 @@ class VectorResources(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
         return o == 0
 
-def Start(builder): builder.StartObject(3)
-def VectorResourcesStart(builder):
-    """This method is deprecated. Please switch to Start."""
-    return Start(builder)
-def AddTextures(builder, textures): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(textures), 0)
-def VectorResourcesAddTextures(builder, textures):
-    """This method is deprecated. Please switch to AddTextures."""
-    return AddTextures(builder, textures)
-def StartTexturesVector(builder, numElems): return builder.StartVector(4, numElems, 4)
-def VectorResourcesStartTexturesVector(builder, numElems):
-    """This method is deprecated. Please switch to Start."""
-    return StartTexturesVector(builder, numElems)
-def AddFaceGroups(builder, faceGroups): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(faceGroups), 0)
-def VectorResourcesAddFaceGroups(builder, faceGroups):
-    """This method is deprecated. Please switch to AddFaceGroups."""
-    return AddFaceGroups(builder, faceGroups)
-def StartFaceGroupsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
-def VectorResourcesStartFaceGroupsVector(builder, numElems):
-    """This method is deprecated. Please switch to Start."""
-    return StartFaceGroupsVector(builder, numElems)
-def AddFonts(builder, fonts): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(fonts), 0)
-def VectorResourcesAddFonts(builder, fonts):
-    """This method is deprecated. Please switch to AddFonts."""
-    return AddFonts(builder, fonts)
-def StartFontsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
-def VectorResourcesStartFontsVector(builder, numElems):
-    """This method is deprecated. Please switch to Start."""
-    return StartFontsVector(builder, numElems)
-def End(builder): return builder.EndObject()
-def VectorResourcesEnd(builder):
-    """This method is deprecated. Please switch to End."""
-    return End(builder)
+def VectorResourcesStart(builder): builder.StartObject(3)
+def Start(builder):
+    return VectorResourcesStart(builder)
+def VectorResourcesAddTextures(builder, textures): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(textures), 0)
+def AddTextures(builder, textures):
+    return VectorResourcesAddTextures(builder, textures)
+def VectorResourcesStartTexturesVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+def StartTexturesVector(builder, numElems):
+    return VectorResourcesStartTexturesVector(builder, numElems)
+def VectorResourcesAddFaceGroups(builder, faceGroups): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(faceGroups), 0)
+def AddFaceGroups(builder, faceGroups):
+    return VectorResourcesAddFaceGroups(builder, faceGroups)
+def VectorResourcesStartFaceGroupsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+def StartFaceGroupsVector(builder, numElems):
+    return VectorResourcesStartFaceGroupsVector(builder, numElems)
+def VectorResourcesAddFonts(builder, fonts): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(fonts), 0)
+def AddFonts(builder, fonts):
+    return VectorResourcesAddFonts(builder, fonts)
+def VectorResourcesStartFontsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+def StartFontsVector(builder, numElems):
+    return VectorResourcesStartFontsVector(builder, numElems)
+def VectorResourcesEnd(builder): return builder.EndObject()
+def End(builder):
+    return VectorResourcesEnd(builder)

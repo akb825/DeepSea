@@ -414,11 +414,11 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 			uint32_t index = charMapping->firstGlyph + j;
 
 			// Handle line change from previous pass.
-			if (glyphs[index].position.y != line)
+			if (glyphs[index].position.y != (float)line)
 			{
 				// For right to left text, the characters will be reversed within a line, but
 				// shouldn't pass a line boundary.
-				DS_ASSERT(glyphs[index].position.y > line);
+				DS_ASSERT(glyphs[index].position.y > (float)line);
 				position.x = 0.0f;
 				position.y += glyphs[index].position.y - (float)line;
 				wordCount = 0;
@@ -468,7 +468,6 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 			if (text->characters[i] == '\n')
 			{
 				firstWhitespaceBeforeWord = curWord = i;
-				lastIsWhitespace = true;
 				position.x = 0.0f;
 			}
 			else

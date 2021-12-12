@@ -49,19 +49,15 @@ class SceneItemLists(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         return o == 0
 
-def Start(builder): builder.StartObject(1)
-def SceneItemListsStart(builder):
-    """This method is deprecated. Please switch to Start."""
-    return Start(builder)
-def AddItemLists(builder, itemLists): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(itemLists), 0)
-def SceneItemListsAddItemLists(builder, itemLists):
-    """This method is deprecated. Please switch to AddItemLists."""
-    return AddItemLists(builder, itemLists)
-def StartItemListsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
-def SceneItemListsStartItemListsVector(builder, numElems):
-    """This method is deprecated. Please switch to Start."""
-    return StartItemListsVector(builder, numElems)
-def End(builder): return builder.EndObject()
-def SceneItemListsEnd(builder):
-    """This method is deprecated. Please switch to End."""
-    return End(builder)
+def SceneItemListsStart(builder): builder.StartObject(1)
+def Start(builder):
+    return SceneItemListsStart(builder)
+def SceneItemListsAddItemLists(builder, itemLists): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(itemLists), 0)
+def AddItemLists(builder, itemLists):
+    return SceneItemListsAddItemLists(builder, itemLists)
+def SceneItemListsStartItemListsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+def StartItemListsVector(builder, numElems):
+    return SceneItemListsStartItemListsVector(builder, numElems)
+def SceneItemListsEnd(builder): return builder.EndObject()
+def End(builder):
+    return SceneItemListsEnd(builder)

@@ -51,19 +51,15 @@ class RawData(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         return o == 0
 
-def Start(builder): builder.StartObject(1)
-def RawDataStart(builder):
-    """This method is deprecated. Please switch to Start."""
-    return Start(builder)
-def AddData(builder, data): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(data), 0)
-def RawDataAddData(builder, data):
-    """This method is deprecated. Please switch to AddData."""
-    return AddData(builder, data)
-def StartDataVector(builder, numElems): return builder.StartVector(1, numElems, 1)
-def RawDataStartDataVector(builder, numElems):
-    """This method is deprecated. Please switch to Start."""
-    return StartDataVector(builder, numElems)
-def End(builder): return builder.EndObject()
-def RawDataEnd(builder):
-    """This method is deprecated. Please switch to End."""
-    return End(builder)
+def RawDataStart(builder): builder.StartObject(1)
+def Start(builder):
+    return RawDataStart(builder)
+def RawDataAddData(builder, data): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(data), 0)
+def AddData(builder, data):
+    return RawDataAddData(builder, data)
+def RawDataStartDataVector(builder, numElems): return builder.StartVector(1, numElems, 1)
+def StartDataVector(builder, numElems):
+    return RawDataStartDataVector(builder, numElems)
+def RawDataEnd(builder): return builder.EndObject()
+def End(builder):
+    return RawDataEnd(builder)

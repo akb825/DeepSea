@@ -834,7 +834,7 @@ template<> struct FileOrDataTraits<DeepSeaScene::RawData> {
 };
 
 bool VerifyFileOrData(flatbuffers::Verifier &verifier, const void *obj, FileOrData type);
-bool VerifyFileOrDataVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<uint8_t> *types);
+bool VerifyFileOrDataVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<FileOrData> *types);
 
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Vector2f FLATBUFFERS_FINAL_CLASS {
  private:
@@ -1506,8 +1506,8 @@ inline flatbuffers::Offset<DynamicRenderStates> CreateDynamicRenderStates(
     float depthBiasConstantFactor = 0.0f,
     float depthBiasClamp = 0.0f,
     float depthBiasSlopeFactor = 0.0f,
-    const DeepSeaScene::Color4f *blendConstants = 0,
-    const DeepSeaScene::Vector2f *depthBounds = 0,
+    const DeepSeaScene::Color4f *blendConstants = nullptr,
+    const DeepSeaScene::Vector2f *depthBounds = nullptr,
     uint32_t frontStencilCompareMask = 0,
     uint32_t backStencilCompareMask = 0,
     uint32_t frontStencilWriteMask = 0,
@@ -1547,7 +1547,7 @@ inline bool VerifyFileOrData(flatbuffers::Verifier &verifier, const void *obj, F
   }
 }
 
-inline bool VerifyFileOrDataVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<uint8_t> *types) {
+inline bool VerifyFileOrDataVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<FileOrData> *types) {
   if (!values || !types) return !values && !types;
   if (values->size() != types->size()) return false;
   for (flatbuffers::uoffset_t i = 0; i < values->size(); ++i) {

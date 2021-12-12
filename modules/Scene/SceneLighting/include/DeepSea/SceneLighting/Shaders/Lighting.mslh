@@ -173,8 +173,8 @@ float dsSpecularLight(lowp vec3 lightDirection, lowp vec3 normal,
 	lowp vec3 viewDirection, mediump float shininess)
 {
 	vec3 halfDirection = lightDirection + viewDirection;
-	// NOTE: For some reason doing the normalize on the same line causes artifacts on Snapdragon.
-	halfDirection = normalize(halfDirection);
+	// Some hardware has a very low tolerance for small vectors.
+	halfDirection /= max(length(halfDirection), 1e-2);
 	float specular = max(dot(halfDirection, normal), 0);
 	return pow(specular, shininess);
 }
