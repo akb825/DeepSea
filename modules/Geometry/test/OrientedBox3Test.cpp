@@ -109,6 +109,16 @@ inline bool dsOrientedBox3_intersects(const dsOrientedBox3d* box, const dsOrient
 	return dsOrientedBox3d_intersects(box, otherBox);
 }
 
+inline bool dsOrientedBox3_containsPoint(const dsOrientedBox3f* box, const dsVector3f* point)
+{
+	return dsOrientedBox3f_containsPoint(box, point);
+}
+
+inline bool dsOrientedBox3_containsPoint(const dsOrientedBox3d* box, const dsVector3d* point)
+{
+	return dsOrientedBox3d_containsPoint(box, point);
+}
+
 inline bool dsOrientedBox3_closestPoint(dsVector3f* result, const dsOrientedBox3f* box,
 	const dsVector3f* point)
 {
@@ -753,6 +763,35 @@ TYPED_TEST(OrientedBox3Test, Intersects)
 	otherBox.center.y = 15;
 	otherBox.center.z = 14;
 	EXPECT_FALSE(dsOrientedBox3_intersects(&box, &otherBox));
+}
+
+TYPED_TEST(OrientedBox3Test, ContainsPoint)
+{
+	typedef typename OrientedBox3TypeSelector<TypeParam>::OrientedBox3Type OrientedBox3Type;
+	typedef typename OrientedBox3TypeSelector<TypeParam>::Vector3Type Vector3Type;
+
+	OrientedBox3Type box =
+	{
+		{{ {0, 0, 1}, {-1, 0, 0}, {0, 1, 0} }},
+		{{6, 5, 4}}, {{3, 2, 1}}
+	};
+
+	Vector3Type point1 = {{5, 6, 3}};
+	Vector3Type point2 = {{1, 6, 3}};
+	Vector3Type point3 = {{5, 0, 3}};
+	Vector3Type point4 = {{5, 6, -1}};
+	Vector3Type point5 = {{11, 6, 3}};
+	Vector3Type point6 = {{5, 10, 3}};
+	Vector3Type point7 = {{5, 6, 9}};
+
+	EXPECT_TRUE(dsOrientedBox3_containsPoint(&box, &box.center));
+	EXPECT_TRUE(dsOrientedBox3_containsPoint(&box, &point1));
+	EXPECT_FALSE(dsOrientedBox3_containsPoint(&box, &point2));
+	EXPECT_FALSE(dsOrientedBox3_containsPoint(&box, &point3));
+	EXPECT_FALSE(dsOrientedBox3_containsPoint(&box, &point4));
+	EXPECT_FALSE(dsOrientedBox3_containsPoint(&box, &point5));
+	EXPECT_FALSE(dsOrientedBox3_containsPoint(&box, &point6));
+	EXPECT_FALSE(dsOrientedBox3_containsPoint(&box, &point7));
 }
 
 TYPED_TEST(OrientedBox3Test, ClosestPoint)

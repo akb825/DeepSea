@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -257,17 +257,17 @@ bool dsOrientedBox2f_corners(dsVector2f corners[DS_BOX2_CORNER_COUNT], const dsO
 	if (!dsOrientedBox2_isValid(*box))
 		return false;
 
-	corners[0].x = -box->halfExtents.x;
-	corners[0].y = -box->halfExtents.y;
+	corners[dsBox2Corner_xy].x = -box->halfExtents.x;
+	corners[dsBox2Corner_xy].y = -box->halfExtents.y;
 
-	corners[1].x = -box->halfExtents.x;
-	corners[1].y = box->halfExtents.y;
+	corners[dsBox2Corner_xY].x = -box->halfExtents.x;
+	corners[dsBox2Corner_xY].y = box->halfExtents.y;
 
-	corners[2].x = box->halfExtents.x;
-	corners[2].y = -box->halfExtents.y;
+	corners[dsBox2Corner_Xy].x = box->halfExtents.x;
+	corners[dsBox2Corner_Xy].y = -box->halfExtents.y;
 
-	corners[3].x = box->halfExtents.x;
-	corners[3].y = box->halfExtents.y;
+	corners[dsBox2Corner_XY].x = box->halfExtents.x;
+	corners[dsBox2Corner_XY].y = box->halfExtents.y;
 
 	for (unsigned int i = 0; i < DS_BOX2_CORNER_COUNT; ++i)
 	{
@@ -287,17 +287,17 @@ bool dsOrientedBox2d_corners(dsVector2d corners[DS_BOX2_CORNER_COUNT], const dsO
 	if (!dsOrientedBox2_isValid(*box))
 		return false;
 
-	corners[0].x = -box->halfExtents.x;
-	corners[0].y = -box->halfExtents.y;
+	corners[dsBox2Corner_xy].x = -box->halfExtents.x;
+	corners[dsBox2Corner_xy].y = -box->halfExtents.y;
 
-	corners[1].x = -box->halfExtents.x;
-	corners[1].y = box->halfExtents.y;
+	corners[dsBox2Corner_xY].x = -box->halfExtents.x;
+	corners[dsBox2Corner_xY].y = box->halfExtents.y;
 
-	corners[2].x = box->halfExtents.x;
-	corners[2].y = -box->halfExtents.y;
+	corners[dsBox2Corner_Xy].x = box->halfExtents.x;
+	corners[dsBox2Corner_Xy].y = -box->halfExtents.y;
 
-	corners[3].x = box->halfExtents.x;
-	corners[3].y = box->halfExtents.y;
+	corners[dsBox2Corner_XY].x = box->halfExtents.x;
+	corners[dsBox2Corner_XY].y = box->halfExtents.y;
 
 	for (unsigned int i = 0; i < DS_BOX2_CORNER_COUNT; ++i)
 	{
@@ -393,6 +393,48 @@ bool dsOrientedBox2d_intersects(const dsOrientedBox2d* box, const dsOrientedBox2
 	}
 
 	return true;
+}
+
+bool dsOrientedBox2f_containsPoint(const dsOrientedBox2f* box, const dsVector2f* point)
+{
+	DS_ASSERT(box);
+	DS_ASSERT(point);
+
+	if (!dsOrientedBox2_isValid(*box))
+		return false;
+
+	dsAlignedBox2f localBox =
+	{
+		{{-box->halfExtents.x, -box->halfExtents.y}},
+		{{box->halfExtents.x, box->halfExtents.y}}
+	};
+
+	dsVector2f localPoint;
+	dsVector2f centeredPoint;
+	dsVector2_sub(centeredPoint, *point, box->center);
+	dsMatrix22_transformTransposed(localPoint, box->orientation, centeredPoint);
+	return dsAlignedBox2_containsPoint(localBox, localPoint);
+}
+
+bool dsOrientedBox2d_containsPoint(const dsOrientedBox2d* box, const dsVector2d* point)
+{
+	DS_ASSERT(box);
+	DS_ASSERT(point);
+
+	if (!dsOrientedBox2_isValid(*box))
+		return false;
+
+	dsAlignedBox2d localBox =
+	{
+		{{-box->halfExtents.x, -box->halfExtents.y}},
+		{{box->halfExtents.x, box->halfExtents.y}}
+	};
+
+	dsVector2d localPoint;
+	dsVector2d centeredPoint;
+	dsVector2_sub(centeredPoint, *point, box->center);
+	dsMatrix22_transformTransposed(localPoint, box->orientation, centeredPoint);
+	return dsAlignedBox2_containsPoint(localBox, localPoint);
 }
 
 bool dsOrientedBox2f_closestPoint(dsVector2f* result, const dsOrientedBox2f* box,

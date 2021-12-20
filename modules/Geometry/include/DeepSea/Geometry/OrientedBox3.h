@@ -148,6 +148,19 @@ DS_GEOMETRY_EXPORT bool dsOrientedBox3d_intersects(const dsOrientedBox3d* box,
 	const dsOrientedBox3d* otherBox);
 
 /**
+ * @brief Checks whether or not a point is contained in an oriented box.
+ * @param box The box to check.
+ * @param point The point to check for containment.
+ * @return True if the point is within the box.
+ */
+DS_GEOMETRY_EXPORT bool dsOrientedBox3f_containsPoint(const dsOrientedBox3f* box,
+	const dsVector3f* point);
+
+/** @copydoc dsOrientedBox3f_containsPoint() */
+DS_GEOMETRY_EXPORT bool dsOrientedBox3d_containsPoint(const dsOrientedBox3d* box,
+	const dsVector3d* point);
+
+/**
  * @brief Computes the closest point to the box.
  * @param[out] result The closest point.
  * @param box The box to compute the closest point on.

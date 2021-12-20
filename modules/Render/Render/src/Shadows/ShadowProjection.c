@@ -312,7 +312,7 @@ bool dsShadowProjection_computeMatrix(dsMatrix44f* outMatrix, const dsShadowProj
 
 	for (unsigned int i = 0; i < 3; ++i)
 	{
-		float minOffset = (minSize - size.values[i])/2;;
+		float minOffset = (minSize - size.values[i])/2;
 		offset.values[i] = dsMax(offset.values[i], minOffset);
 	}
 

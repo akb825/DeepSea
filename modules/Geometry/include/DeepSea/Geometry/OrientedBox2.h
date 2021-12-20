@@ -147,6 +147,19 @@ DS_GEOMETRY_EXPORT bool dsOrientedBox2d_intersects(const dsOrientedBox2d* box,
 	const dsOrientedBox2d* otherBox);
 
 /**
+ * @brief Checks whether or not a point is contained in an oriented box.
+ * @param box The box to check.
+ * @param point The point to check for containment.
+ * @return True if the point is within the box.
+ */
+DS_GEOMETRY_EXPORT bool dsOrientedBox2f_containsPoint(const dsOrientedBox2f* box,
+	const dsVector2f* point);
+
+/** @copydoc dsOrientedBox2f_containsPoint() */
+DS_GEOMETRY_EXPORT bool dsOrientedBox2d_containsPoint(const dsOrientedBox2d* box,
+	const dsVector2d* point);
+
+/**
  * @brief Computes the closest point to the box.
  * @param[out] result The closest point.
  * @param box The box to compute the closest point on.

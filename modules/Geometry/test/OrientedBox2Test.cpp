@@ -109,6 +109,16 @@ inline bool dsOrientedBox2_intersects(const dsOrientedBox2d* box, const dsOrient
 	return dsOrientedBox2d_intersects(box, otherBox);
 }
 
+inline bool dsOrientedBox2_containsPoint(const dsOrientedBox2f* box, const dsVector2f* point)
+{
+	return dsOrientedBox2f_containsPoint(box, point);
+}
+
+inline bool dsOrientedBox2_containsPoint(const dsOrientedBox2d* box, const dsVector2d* point)
+{
+	return dsOrientedBox2d_containsPoint(box, point);
+}
+
 inline bool dsOrientedBox2_closestPoint(dsVector2f* result, const dsOrientedBox2f* box,
 	const dsVector2f* point)
 {
@@ -551,6 +561,31 @@ TYPED_TEST(OrientedBox2Test, Intersects)
 	otherBox.center.x = 4;
 	otherBox.center.y = 7;
 	EXPECT_FALSE(dsOrientedBox2_intersects(&box, &otherBox));
+}
+
+TYPED_TEST(OrientedBox2Test, ContainsPoint)
+{
+	typedef typename OrientedBox2TypeSelector<TypeParam>::OrientedBox2Type OrientedBox2Type;
+	typedef typename OrientedBox2TypeSelector<TypeParam>::Vector2Type Vector2Type;
+
+	OrientedBox2Type box =
+	{
+		{{ {0, 1}, {-1, 0} }},
+		{{4, 3}}, {{2, 1}}
+	};
+
+	Vector2Type point1 = {{3, 2}};
+	Vector2Type point2 = {{2, 3}};
+	Vector2Type point3 = {{4, 0}};
+	Vector2Type point4 = {{6, 3}};
+	Vector2Type point5 = {{4, 6}};
+
+	EXPECT_TRUE(dsOrientedBox2_containsPoint(&box, &box.center));
+	EXPECT_TRUE(dsOrientedBox2_containsPoint(&box, &point1));
+	EXPECT_FALSE(dsOrientedBox2_containsPoint(&box, &point2));
+	EXPECT_FALSE(dsOrientedBox2_containsPoint(&box, &point3));
+	EXPECT_FALSE(dsOrientedBox2_containsPoint(&box, &point4));
+	EXPECT_FALSE(dsOrientedBox2_containsPoint(&box, &point5));
 }
 
 TYPED_TEST(OrientedBox2Test, ClosestPoint)

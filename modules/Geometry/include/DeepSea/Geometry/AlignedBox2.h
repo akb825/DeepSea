@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -162,17 +162,17 @@ extern "C"
 #define dsAlignedBox2_corners(corners, box) \
 	do \
 	{ \
-		(corners)[0].x = (box).min.x; \
-		(corners)[0].y = (box).min.y; \
+		(corners)[dsBox2Corner_xy].x = (box).min.x; \
+		(corners)[dsBox2Corner_xy].y = (box).min.y; \
 		\
-		(corners)[1].x = (box).min.x; \
-		(corners)[1].y = (box).max.y; \
+		(corners)[dsBox2Corner_xY].x = (box).min.x; \
+		(corners)[dsBox2Corner_xY].y = (box).max.y; \
 		\
-		(corners)[2].x = (box).max.x; \
-		(corners)[2].y = (box).min.y; \
+		(corners)[dsBox2Corner_Xy].x = (box).max.x; \
+		(corners)[dsBox2Corner_Xy].y = (box).min.y; \
 		\
-		(corners)[3].x = (box).max.x; \
-		(corners)[3].y = (box).max.y; \
+		(corners)[dsBox2Corner_XY].x = (box).max.x; \
+		(corners)[dsBox2Corner_XY].y = (box).max.y; \
 	} while (0)
 
 /**

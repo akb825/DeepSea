@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -174,37 +174,37 @@ extern "C"
 #define dsAlignedBox3_corners(corners, box) \
 	do \
 	{ \
-		(corners)[0].x = (box).min.x; \
-		(corners)[0].y = (box).min.y; \
-		(corners)[0].z = (box).min.z; \
+		(corners)[dsBox3Corner_xyz].x = (box).min.x; \
+		(corners)[dsBox3Corner_xyz].y = (box).min.y; \
+		(corners)[dsBox3Corner_xyz].z = (box).min.z; \
 		\
-		(corners)[1].x = (box).min.x; \
-		(corners)[1].y = (box).min.y; \
-		(corners)[1].z = (box).max.z; \
+		(corners)[dsBox3Corner_xyZ].x = (box).min.x; \
+		(corners)[dsBox3Corner_xyZ].y = (box).min.y; \
+		(corners)[dsBox3Corner_xyZ].z = (box).max.z; \
 		\
-		(corners)[2].x = (box).min.x; \
-		(corners)[2].y = (box).max.y; \
-		(corners)[2].z = (box).min.z; \
+		(corners)[dsBox3Corner_xYz].x = (box).min.x; \
+		(corners)[dsBox3Corner_xYz].y = (box).max.y; \
+		(corners)[dsBox3Corner_xYz].z = (box).min.z; \
 		\
-		(corners)[3].x = (box).min.x; \
-		(corners)[3].y = (box).max.y; \
-		(corners)[3].z = (box).max.z; \
+		(corners)[dsBox3Corner_xYZ].x = (box).min.x; \
+		(corners)[dsBox3Corner_xYZ].y = (box).max.y; \
+		(corners)[dsBox3Corner_xYZ].z = (box).max.z; \
 		\
-		(corners)[4].x = (box).max.x; \
-		(corners)[4].y = (box).min.y; \
-		(corners)[4].z = (box).min.z; \
+		(corners)[dsBox3Corner_Xyz].x = (box).max.x; \
+		(corners)[dsBox3Corner_Xyz].y = (box).min.y; \
+		(corners)[dsBox3Corner_Xyz].z = (box).min.z; \
 		\
-		(corners)[5].x = (box).max.x; \
-		(corners)[5].y = (box).min.y; \
-		(corners)[5].z = (box).max.z; \
+		(corners)[dsBox3Corner_XyZ].x = (box).max.x; \
+		(corners)[dsBox3Corner_XyZ].y = (box).min.y; \
+		(corners)[dsBox3Corner_XyZ].z = (box).max.z; \
 		\
-		(corners)[6].x = (box).max.x; \
-		(corners)[6].y = (box).max.y; \
-		(corners)[6].z = (box).min.z; \
+		(corners)[dsBox3Corner_XYz].x = (box).max.x; \
+		(corners)[dsBox3Corner_XYz].y = (box).max.y; \
+		(corners)[dsBox3Corner_XYz].z = (box).min.z; \
 		\
-		(corners)[7].x = (box).max.x; \
-		(corners)[7].y = (box).max.y; \
-		(corners)[7].z = (box).max.z; \
+		(corners)[dsBox3Corner_XYZ].x = (box).max.x; \
+		(corners)[dsBox3Corner_XYZ].y = (box).max.y; \
+		(corners)[dsBox3Corner_XYZ].z = (box).max.z; \
 	} while (0)
 
 /**

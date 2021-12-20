@@ -117,6 +117,38 @@ typedef enum dsGeometryElement
 } dsGeometryElement;
 
 /**
+ * @brief Enum for specific corners for a 2D box.
+ *
+ * Lowercase levels correspond to the minimum axis values, uppercase to maximum axis values.
+ * For example, xY means min X and max Y extents.
+ */
+typedef enum dsBox2Corner
+{
+	dsBox2Corner_xy,
+	dsBox2Corner_xY,
+	dsBox2Corner_Xy,
+	dsBox2Corner_XY
+} dsBox2Corner;
+
+/**
+ * @brief Enum for specific corners for a 3D box.
+ *
+ * Lowercase levels correspond to the minimum axis values, uppercase to maximum axis values.
+ * For example, xYz means min X, max Y, and min Z extents.
+ */
+typedef enum dsBox3Corner
+{
+	dsBox3Corner_xyz,
+	dsBox3Corner_xyZ,
+	dsBox3Corner_xYz,
+	dsBox3Corner_xYZ,
+	dsBox3Corner_Xyz,
+	dsBox3Corner_XyZ,
+	dsBox3Corner_XYz,
+	dsBox3Corner_XYZ
+} dsBox3Corner;
+
+/**
  * @brief Structure for a 3D ray using floats.
  */
 typedef struct dsRay3f
