@@ -245,8 +245,20 @@ static void* getBufferData(dsSceneLightShadows* shadows)
 
 static float getMinBoxSize(float nearPlane, float farPlane)
 {
+	// Arbitrary ratio to determine the minimum size for the shadow box used to compute the
+	// projection.
 	const float ratio = 0.05f;
 	return (farPlane - nearPlane)*ratio;
+}
+
+static float getLargeBoxSize(float farPlane)
+{
+	// Arbitrary ratio to determine a large box that gets clamped to the shadow volume when
+	// determining the extent of shadow space. Clamping can be error prone in some situations since
+	// it doesn't check *all* intersections, but large boxes can cause the shadow projection to be
+	// too large and reduce precision.
+	const float ratio = 0.1f;
+	return farPlane*ratio;
 }
 
 dsSceneLightShadows* dsSceneLightShadows_create(dsAllocator* allocator, const char* name,
@@ -516,6 +528,7 @@ bool dsSceneLightShadows_prepare(dsSceneLightShadows* shadows, const dsView* vie
 		case dsSceneLightType_Directional:
 		{
 			// Compute in view space.
+			shadows->largeBoxSize = getLargeBoxSize(farPlane);
 			dsVector4f toLightWorld =
 				{{-light->direction.x, -light->direction.y, -light->direction.z, 0.0f}};
 			dsVector4f toLightView;
@@ -600,6 +613,8 @@ bool dsSceneLightShadows_prepare(dsSceneLightShadows* shadows, const dsView* vie
 		case dsSceneLightType_Point:
 		{
 			shadows->totalMatrices = 6;
+			// Always clamp to the cull volume for point shadows.
+			shadows->largeBoxSize = 0.0f;
 
 			dsVector4f lightWorldPos =
 				{{light->position.x,light->position.y, light->position.z, 1.0f}};
@@ -659,6 +674,8 @@ bool dsSceneLightShadows_prepare(dsSceneLightShadows* shadows, const dsView* vie
 		case dsSceneLightType_Spot:
 		{
 			shadows->totalMatrices = 1;
+			// Always clamp to the cull volume for spot shadows.
+			shadows->largeBoxSize = 0.0f;
 
 			// Compute in view space.
 			dsVector4f toLightWorld =
@@ -759,12 +776,18 @@ dsIntersectResult dsSceneLightShadows_intersectAlignedBox(dsSceneLightShadows* s
 	if (!shadows || surface >= shadows->totalMatrices || !box)
 		return dsIntersectResult_Outside;
 
+	dsVector3f size;
+	dsAlignedBox3_extents(size, *box);
+	float maxSize = dsMax(size.x, size.y);
+	maxSize = dsMax(maxSize, size.z);
+	bool clampToVolume = maxSize >= shadows->largeBoxSize;
+
 	DS_ASSERT(shadows->view);
 	dsOrientedBox3f viewBox;
 	dsOrientedBox3_fromAlignedBox(viewBox, *box);
 	DS_VERIFY(dsOrientedBox3f_transform(&viewBox, &shadows->view->viewMatrix));
 	return dsShadowCullVolume_intersectOrientedBox(shadows->cullVolumes + surface, &viewBox,
-		shadows->projections + surface);
+		shadows->projections + surface, clampToVolume);
 }
 
 dsIntersectResult dsSceneLightShadows_intersectOrientedBox(dsSceneLightShadows* shadows,
@@ -773,11 +796,15 @@ dsIntersectResult dsSceneLightShadows_intersectOrientedBox(dsSceneLightShadows* 
 	if (!shadows || surface >= shadows->totalMatrices || !box)
 		return dsIntersectResult_Outside;
 
+	float maxHalfSize = dsMax(box->halfExtents.x, box->halfExtents.y);
+	maxHalfSize = dsMax(maxHalfSize, box->halfExtents.z);
+	bool clampToVolume = maxHalfSize*2.0f >= shadows->largeBoxSize;
+
 	DS_ASSERT(shadows->view);
 	dsOrientedBox3f viewBox = *box;
 	DS_VERIFY(dsOrientedBox3f_transform(&viewBox, &shadows->view->viewMatrix));
 	return dsShadowCullVolume_intersectOrientedBox(shadows->cullVolumes + surface, &viewBox,
-		shadows->projections + surface);
+		shadows->projections + surface, clampToVolume);
 }
 
 dsIntersectResult dsSceneLightShadows_intersectSphere(dsSceneLightShadows* shadows,
@@ -786,12 +813,14 @@ dsIntersectResult dsSceneLightShadows_intersectSphere(dsSceneLightShadows* shado
 	if (!shadows || surface >= shadows->totalMatrices || !center || radius < 0)
 		return dsIntersectResult_Outside;
 
+	bool clampToVolume = radius*2.0f >= shadows->largeBoxSize;
+
 	DS_ASSERT(shadows->view);
 	dsVector4f worldCenter = {{center->x, center->y, center->z, 1.0f}};
 	dsVector4f viewCenter;
 	dsMatrix44_transform(viewCenter, shadows->view->viewMatrix, worldCenter);
 	return dsShadowCullVolume_intersectSphere(shadows->cullVolumes + surface,
-		(dsVector3f*)&viewCenter, radius, shadows->projections + surface);
+		(dsVector3f*)&viewCenter, radius, shadows->projections + surface, clampToVolume);
 }
 
 dsIntersectResult dsSceneLightShadows_intersectViewAlignedBox(dsSceneLightShadows* shadows,
@@ -800,8 +829,14 @@ dsIntersectResult dsSceneLightShadows_intersectViewAlignedBox(dsSceneLightShadow
 	if (!shadows || surface >= shadows->totalMatrices || !box)
 		return dsIntersectResult_Outside;
 
+	dsVector3f size;
+	dsAlignedBox3_extents(size, *box);
+	float maxSize = dsMax(size.x, size.y);
+	maxSize = dsMax(maxSize, size.z);
+	bool clampToVolume = maxSize >= shadows->largeBoxSize;
+
 	return dsShadowCullVolume_intersectAlignedBox(shadows->cullVolumes + surface, box,
-		shadows->projections + surface);
+		shadows->projections + surface, clampToVolume);
 }
 
 dsIntersectResult dsSceneLightShadows_intersectViewOrientedBox(dsSceneLightShadows* shadows,
@@ -810,8 +845,12 @@ dsIntersectResult dsSceneLightShadows_intersectViewOrientedBox(dsSceneLightShado
 	if (!shadows || surface >= shadows->totalMatrices || !box)
 		return dsIntersectResult_Outside;
 
+	float maxHalfSize = dsMax(box->halfExtents.x, box->halfExtents.y);
+	maxHalfSize = dsMax(maxHalfSize, box->halfExtents.z);
+	bool clampToVolume = maxHalfSize*2.0f >= shadows->largeBoxSize;
+
 	return dsShadowCullVolume_intersectOrientedBox(shadows->cullVolumes + surface, box,
-		shadows->projections + surface);
+		shadows->projections + surface, clampToVolume);
 }
 
 dsIntersectResult dsSceneLightShadows_intersectViewSphere(dsSceneLightShadows* shadows,
@@ -820,8 +859,10 @@ dsIntersectResult dsSceneLightShadows_intersectViewSphere(dsSceneLightShadows* s
 	if (!shadows || surface >= shadows->totalMatrices || !center || radius < 0)
 		return dsIntersectResult_Outside;
 
+	bool clampToVolume = radius*2.0f >= shadows->largeBoxSize;
+
 	return dsShadowCullVolume_intersectSphere(shadows->cullVolumes + surface, center, radius,
-		shadows->projections + surface);
+		shadows->projections + surface, clampToVolume);
 }
 
 bool dsSceneLightShadows_computeSurfaceProjection(dsSceneLightShadows* shadows, uint32_t surface)

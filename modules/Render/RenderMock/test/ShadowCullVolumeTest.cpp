@@ -309,7 +309,7 @@ TEST_F(ShadowVolumeCullTest, IntersectInside)
 	dsShadowProjection_addPoints(&expectedShadowProj, corners, DS_BOX3_CORNER_COUNT);
 
 	EXPECT_EQ(dsIntersectResult_Inside,
-		dsShadowCullVolume_intersectAlignedBox(&volume, &box, &shadowProj));
+		dsShadowCullVolume_intersectAlignedBox(&volume, &box, &shadowProj, true));
 
 	EXPECT_TRUE(dsVector3_equal(expectedShadowProj.pointBounds.min, shadowProj.pointBounds.min));
 	EXPECT_TRUE(dsVector3_equal(expectedShadowProj.pointBounds.max, shadowProj.pointBounds.max));
@@ -335,7 +335,7 @@ TEST_F(ShadowVolumeCullTest, IntersectOutside)
 
 	dsAlignedBox3f box = {{{-1.0f, -2.0f, 0.0f}}, {{3.0f, 20.0f, 3.0f}}};
 	EXPECT_EQ(dsIntersectResult_Outside,
-		dsShadowCullVolume_intersectAlignedBox(&volume, &box, &shadowProj));
+		dsShadowCullVolume_intersectAlignedBox(&volume, &box, &shadowProj, true));
 
 	EXPECT_FALSE(dsAlignedBox3_isValid(shadowProj.pointBounds));
 }
@@ -376,7 +376,7 @@ TEST_F(ShadowVolumeCullTest, IntersectClamp)
 		DS_ARRAY_SIZE(expectedCorners));
 
 	EXPECT_EQ(dsIntersectResult_Intersects,
-		dsShadowCullVolume_intersectAlignedBox(&volume, &box, &shadowProj));
+		dsShadowCullVolume_intersectAlignedBox(&volume, &box, &shadowProj, true));
 
 	const float epsilon = 1e-4f;
 	EXPECT_TRUE(dsVector3f_epsilonEqual(&expectedShadowProj.pointBounds.min,

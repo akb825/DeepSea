@@ -276,15 +276,19 @@ static void removeUnusedPlanes(dsShadowCullVolume* volume)
 }
 
 static void addPointsToProjection(const dsShadowCullVolume* volume,
-	const dsVector3f corners[DS_BOX3_CORNER_COUNT], dsShadowProjection* shadowProj, bool intersects,
+	const dsVector3f corners[DS_BOX3_CORNER_COUNT], dsShadowProjection* shadowProj, bool clamp,
 	PointInBoxFunction pointInBoxFunc, const void* box)
 {
-	if (!intersects)
+	if (!clamp)
 	{
 		DS_VERIFY(dsShadowProjection_addPoints(shadowProj, corners, DS_BOX3_CORNER_COUNT));
 		return;
 	}
 
+	// Limit the segments of the box with the cull volume. When a corner of the volume lies inside
+	// the box use that to handle very large boxes. However, there are still some other corner cases
+	// that aren't caught, so only recommended for larger bounds that would otherwise cause the
+	// shadow projection to be too large.
 	typedef dsBox3Corner CornerPair[2];
 	static const CornerPair segmentCorners[SHADOW_BOX_SEGMENTS] =
 	{
@@ -493,7 +497,7 @@ bool dsShadowCullVolume_buildSpot(dsShadowCullVolume* volume, const dsFrustum3f*
 }
 
 dsIntersectResult dsShadowCullVolume_intersectAlignedBox(const dsShadowCullVolume* volume,
-	const dsAlignedBox3f* box, dsShadowProjection* shadowProj)
+	const dsAlignedBox3f* box, dsShadowProjection* shadowProj, bool clampToVolume)
 {
 	if (!volume || volume->planeCount == 0 || !box)
 		return dsIntersectResult_Outside;
@@ -518,7 +522,7 @@ dsIntersectResult dsShadowCullVolume_intersectAlignedBox(const dsShadowCullVolum
 	{
 		dsVector3f corners[DS_BOX3_CORNER_COUNT];
 		dsAlignedBox3_corners(corners, *box);
-		addPointsToProjection(volume, corners, shadowProj, intersects,
+		addPointsToProjection(volume, corners, shadowProj, clampToVolume && intersects,
 			(PointInBoxFunction)&dsAlignedBox3f_containsPoint, box);
 	}
 
@@ -526,7 +530,7 @@ dsIntersectResult dsShadowCullVolume_intersectAlignedBox(const dsShadowCullVolum
 }
 
 dsIntersectResult dsShadowCullVolume_intersectOrientedBox(const dsShadowCullVolume* volume,
-	const dsOrientedBox3f* box, dsShadowProjection* shadowProj)
+	const dsOrientedBox3f* box, dsShadowProjection* shadowProj, bool clampToVolume)
 {
 	if (!volume || volume->planeCount == 0 || !box)
 		return dsIntersectResult_Outside;
@@ -551,7 +555,7 @@ dsIntersectResult dsShadowCullVolume_intersectOrientedBox(const dsShadowCullVolu
 	{
 		dsVector3f corners[DS_BOX3_CORNER_COUNT];
 		dsOrientedBox3f_corners(corners, box);
-		addPointsToProjection(volume, corners, shadowProj, intersects,
+		addPointsToProjection(volume, corners, shadowProj, clampToVolume && intersects,
 			(PointInBoxFunction)&dsOrientedBox3f_containsPoint, box);
 	}
 
@@ -559,7 +563,7 @@ dsIntersectResult dsShadowCullVolume_intersectOrientedBox(const dsShadowCullVolu
 }
 
 dsIntersectResult dsShadowCullVolume_intersectSphere(const dsShadowCullVolume* volume,
-	const dsVector3f* center, float radius, dsShadowProjection* shadowProj)
+	const dsVector3f* center, float radius, dsShadowProjection* shadowProj, bool clampToVolume)
 {
 	if (!volume || volume->planeCount == 0 || !center || radius < 0)
 		return dsIntersectResult_Outside;
@@ -583,7 +587,7 @@ dsIntersectResult dsShadowCullVolume_intersectSphere(const dsShadowCullVolume* v
 
 		dsVector3f corners[DS_BOX3_CORNER_COUNT];
 		dsAlignedBox3_corners(corners, box);
-		addPointsToProjection(volume, corners, shadowProj, intersects,
+		addPointsToProjection(volume, corners, shadowProj, clampToVolume && intersects,
 			(PointInBoxFunction)&dsAlignedBox3f_containsPoint, &box);
 	}
 
