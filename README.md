@@ -146,6 +146,7 @@ To build the examples, an Android Studio project is provided in the android subd
 * `-DDEEPSEA_INSTALL=ON|OFF`: Allow installation for DeepSea components. This can be useful when embedding in other projects to prevent installations from including DeepSea. For example, when statically linking into a shared library. Defaults to `ON`.
 * `-DDEEPSEA_ANDROID_ASSETS_DIR=folder`: Folder relative to project app directory to place assets for Android. Defaults to `src/main/assets`.
 * `-DDEEPSEA_NO_PREBUILT_LIBS=ON|OFF`: Don't use any pre-built library dependencies.
+* `-DCMAKE_OSX_DEPLOYMENT_TARGET=version`: Minimum version of macOS to target when building for Mac. Defaults to 10.13, but may be set as low as 10.11.
 
 Once you have built and installed DeepSea, you can find the various modules with the `find_package()` CMake function. For example:
 

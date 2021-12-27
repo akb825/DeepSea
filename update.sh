@@ -28,8 +28,10 @@ function printHelp {
 	echo "                              listed. If no platforms are listed, the currently"
 	echo "                              installed lilbrary platforms are updated. The"
 	echo "                              supported platforms supported are:"
-	echo "                              - linux (Linux with glibc 2.19 for x86-64)"
-	echo "                              - mac (macOS 10.11 for x86-64)"
+	echo "                              - linux (Linux with glibc 2.27 for x86-64)"
+	echo "                              - mac (macOS 10.11 for x86-64 and arm64)"
+	echo "                              - mac-x86_64 (macOS 10.11 for x86-64)"
+	echo "                              - mac-arm64 (macOS 11 for arm64)"
 	echo "                              - ios (iOS 10.0 for ARM64)"
 	echo "                              - win32 (Windows for x86)"
 	echo "                              - win64 (Windows for x86-64)"
@@ -43,7 +45,7 @@ function printHelp {
 
 DEPENDENCIES_DIR="dependencies"
 ANDROID_PLATFORMS=(android-x86 android-x86_64 android-armeabi-v7a android-arm64-v8a)
-SUPPORTED_PLATFORMS=(linux mac ios win32 win64 ${ANDROID_PLATFORMS[@]})
+SUPPORTED_PLATFORMS=(linux mac mac-x86_64 mac-arm64 ios win32 win64 ${ANDROID_PLATFORMS[@]})
 GIT=0
 SUBMODULES=0
 TOOLS=0

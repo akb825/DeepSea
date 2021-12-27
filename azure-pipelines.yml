@@ -101,7 +101,7 @@ jobs:
         displayName: Build
   - job: Mac
     pool:
-        vmImage: macOS-1015
+        vmImage: macOS-latest
     workspace:
         clean: all
     strategy:
@@ -117,7 +117,7 @@ jobs:
                 cmake.args: -DDEEPSEA_SINGLE_SHARED=ON
     steps:
       - script: |
-            ./update.sh -s -t -l mac
+            ./update.sh -s -t -l mac-x86_64
         displayName: Download submodules
         workingDirectory: $(Build.SourcesDirectory)
       - task: CMake@1
@@ -176,7 +176,7 @@ jobs:
 # be a bit tricky to do securely given that it's a public project.
 #  - job: iOS
 #    pool:
-#        vmImage: macOS-1015
+#        vmImage: macOS-latest
 #    workspace:
 #        clean: all
 #    steps:
@@ -203,7 +203,7 @@ jobs:
 #        displayName: Build release
   - job: Windows
     pool:
-        vmImage: windows-2019
+        vmImage: windows-latest
     workspace:
         clean: all
     strategy:
@@ -212,33 +212,32 @@ jobs:
                 arch: Win32
                 libs: win32
                 lib.type: Static
-                # NOTE: Default SDK version of 10.0.17763.0 has internal errors.
-                cmake.args: -DDEEPSEA_SHARED=OFF -DCMAKE_SYSTEM_VERSION=10.0.18362.0
+                cmake.args: -DDEEPSEA_SHARED=OFF
             win32_shared:
                 arch: Win32
                 libs: win32
                 lib.type: Shared
-                cmake.args: -DDEEPSEA_SHARED=ON -DCMAKE_SYSTEM_VERSION=10.0.18362.0
+                cmake.args: -DDEEPSEA_SHARED=ON
             win32_single_shared:
                 arch: Win32
                 libs: win32
                 lib.type: Single-Shared
-                cmake.args: -DDEEPSEA_SINGLE_SHARED=ON -DCMAKE_SYSTEM_VERSION=10.0.18362.0
+                cmake.args: -DDEEPSEA_SINGLE_SHARED=ON
             win64_static:
                 arch: x64
                 libs: win64
                 lib.type: Static
-                cmake.args: -DDEEPSEA_SHARED=OFF -DCMAKE_SYSTEM_VERSION=10.0.18362.0
+                cmake.args: -DDEEPSEA_SHARED=OFF
             win64_shared:
                 arch: x64
                 libs: win64
                 lib.type: Shared
-                cmake.args: -DDEEPSEA_SHARED=ON -DCMAKE_SYSTEM_VERSION=10.0.18362.0
+                cmake.args: -DDEEPSEA_SHARED=ON
             win64_single_shared:
                 arch: x64
                 libs: win64
                 lib.type: Single-Shared
-                cmake.args: -DDEEPSEA_SINGLE_SHARED=ON -DCMAKE_SYSTEM_VERSION=10.0.18362.0
+                cmake.args: -DDEEPSEA_SINGLE_SHARED=ON
     steps:
       - bash: |
             ./update.sh -m -t -l $(libs)
@@ -247,7 +246,7 @@ jobs:
       - task: CMake@1
         inputs:
             workingDirectory: $(Build.BinariesDirectory)
-            cmakeArgs: $(cmake.args) -A $(arch) $(Build.SourcesDirectory)
+            cmakeArgs: $(cmake.args) -A $(arch) -T v140 $(Build.SourcesDirectory)
         displayName: Run CMake
       - task: CMake@1
         inputs:

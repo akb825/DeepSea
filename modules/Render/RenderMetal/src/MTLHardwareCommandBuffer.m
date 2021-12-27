@@ -1474,7 +1474,7 @@ bool dsMTLHardwareCommandBuffer_dispatchComputeIndirect(dsCommandBuffer* command
 
 bool dsMTLHardwareCommandBuffer_pushDebugGroup(dsCommandBuffer* commandBuffer, const char* name)
 {
-#if DS_MAC || __IPHONE_OS_VERSION_MIN_REQUIRED >= 110000
+#if __MAC_OS_X_VERSION_MIN_REQUIRED >= 101300 || __IPHONE_OS_VERSION_MIN_REQUIRED >= 110000
 	id<MTLCommandBuffer> submitBuffer = getCommandBuffer(commandBuffer);
 	if (!submitBuffer)
 		return false;
@@ -1490,7 +1490,7 @@ bool dsMTLHardwareCommandBuffer_pushDebugGroup(dsCommandBuffer* commandBuffer, c
 
 bool dsMTLHardwareCommandBuffer_popDebugGroup(dsCommandBuffer* commandBuffer)
 {
-#if DS_MAC || __IPHONE_OS_VERSION_MIN_REQUIRED >= 110000
+#if __MAC_OS_X_VERSION_MIN_REQUIRED >= 101300 || __IPHONE_OS_VERSION_MIN_REQUIRED >= 110000
 	id<MTLCommandBuffer> submitBuffer = getCommandBuffer(commandBuffer);
 	if (!submitBuffer)
 		return false;
