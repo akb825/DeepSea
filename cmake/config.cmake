@@ -1,4 +1,4 @@
-# Copyright 2017 Aaron Barany
+# Copyright 2017-2021 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,6 +15,33 @@
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
+if (APPLE AND CMAKE_OSX_ARCHITECTURES)
+	list(LENGTH CMAKE_OSX_ARCHITECTURES architectureCount)
+	if (architectureCount EQUAL 1)
+		set(DEEPSEA_ARCH ${CMAKE_OSX_ARCHITECTURES})
+	else()
+		set(DEEPSEA_ARCH multi)
+	endif()
+else()
+	set(DEEPSEA_ARCH ${CMAKE_SYSTEM_PROCESSOR})
+endif()
+
+if (DEEPSEA_ARCH MATCHES "^x86" OR DEEPSEA_ARCH STREQUAL "amd64" OR
+		DEEPSEA_ARCH STREQUAL "AMD64" OR DEEPSEA_ARCH STREQUAL "i386" OR
+		DEEPSEA_ARCH STREQUAL "i686")
+	if (CMAKE_SIZEOF_VOID_P EQUAL 8)
+		set(DEEPSEA_ARCH x86_64)
+	else()
+		set(DEEPSEA_ARCH x86)
+	endif()
+elseif (DEEPSEA_ARCH MATCHES "^arm" OR DEEPSEA_ARCH STREQUAL "aarch64")
+	if (CMAKE_SIZEOF_VOID_P EQUAL 8)
+		set(DEEPSEA_ARCH arm64)
+	else()
+		set(DEEPSEA_ARCH arm)
+	endif()
+endif()
 
 if (MSVC)
 	# NOTE: Warning 5105 is to work around an (embarrassing) bug win the Windows headers for
