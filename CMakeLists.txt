@@ -49,7 +49,9 @@ set(DEEPSEA_ANDROID_ASSETS_DIR src/main/assets CACHE PATH
 	"Folder relative to project app directory to place assets for Android.")
 set(DEEPSEA_NO_PREBUILT_LIBS OFF CACHE BOOL "Don't use any pre-built library dependencies.")
 
-set(CMAKE_OSX_DEPLOYMENT_TARGET 10.13 CACHE STRING "Minimum macOS deployment version.")
+if (NOT CMAKE_OSX_DEPLOYMENT_TARGET)
+	set(CMAKE_OSX_DEPLOYMENT_TARGET 10.13 CACHE STRING "Minimum macOS deployment version." FORCE)
+endif()
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
