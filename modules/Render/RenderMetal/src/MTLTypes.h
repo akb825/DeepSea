@@ -466,6 +466,8 @@ typedef struct dsMTLResourceManager
 
 	MTLVertexFormat vertexFormats[dsGfxFormat_StandardCount][dsGfxFormat_DecoratorCount];
 
+	bool appleGpu;
+
 	CFTypeRef defaultSampler;
 } dsMTLResourceManager;
 

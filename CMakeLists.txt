@@ -49,10 +49,6 @@ set(DEEPSEA_ANDROID_ASSETS_DIR src/main/assets CACHE PATH
 	"Folder relative to project app directory to place assets for Android.")
 set(DEEPSEA_NO_PREBUILT_LIBS OFF CACHE BOOL "Don't use any pre-built library dependencies.")
 
-if (NOT CMAKE_OSX_DEPLOYMENT_TARGET)
-	set(CMAKE_OSX_DEPLOYMENT_TARGET 10.13 CACHE STRING "Minimum macOS deployment version." FORCE)
-endif()
-
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 if (DEEPSEA_SHARED)
@@ -81,6 +77,14 @@ include(cmake/helpers.cmake)
 include(cmake/install.cmake)
 include(cmake/prebuilt.cmake)
 include(cmake/ConvertFlatbuffers.cmake)
+
+if (NOT CMAKE_OSX_DEPLOYMENT_TARGET)
+	if (DEEPSEA_ARCH STREQUAL arm64)
+		set(CMAKE_OSX_DEPLOYMENT_TARGET 11.0 CACHE STRING "Minimum macOS deployment version." FORCE)
+	else()
+		set(CMAKE_OSX_DEPLOYMENT_TARGET 10.13 CACHE STRING "Minimum macOS deployment version." FORCE)
+	endif()
+endif()
 
 if (DEEPSEA_BUILD_TESTS)
 	find_package(GTest QUIET)

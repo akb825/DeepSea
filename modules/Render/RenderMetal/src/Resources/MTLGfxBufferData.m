@@ -42,6 +42,8 @@ dsMTLGfxBufferData* dsMTLGfxBufferData_create(dsResourceManager* resourceManager
 	if (!buffer)
 		return NULL;
 
+	dsMTLResourceManager* mtlResourceManager = (dsMTLResourceManager*)resourceManager;
+	DS_UNUSED(mtlResourceManager);
 	dsMTLRenderer* mtlRenderer = (dsMTLRenderer*)resourceManager->renderer;
 	id<MTLDevice> device = (__bridge id<MTLDevice>)(mtlRenderer->device);
 
@@ -77,12 +79,13 @@ dsMTLGfxBufferData* dsMTLGfxBufferData_create(dsResourceManager* resourceManager
 	}
 	else
 	{
-#if DS_MAC
-		resourceOptions |= MTLResourceStorageModeManaged;
-		buffer->managed = true;
-#else
-		resourceOptions |= MTLResourceStorageModeShared;
-#endif
+		if (mtlResourceManager->appleGpu)
+			resourceOptions |= MTLResourceStorageModeShared;
+		else
+		{
+			resourceOptions |= MTLResourceStorageModeManaged;
+			buffer->managed = true;
+		}
 	}
 #endif
 

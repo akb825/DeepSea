@@ -39,6 +39,8 @@ static dsTexture* createTextureImpl(dsResourceManager* resourceManager, dsAlloca
 	dsTextureUsage usage, dsGfxMemory memoryHints, const dsTextureInfo* info, bool offscreen,
 	bool resolve)
 {
+	dsMTLResourceManager* mtlResourceManager = (dsMTLResourceManager*)resourceManager;
+	DS_UNUSED(mtlResourceManager);
 	dsMTLRenderer* renderer = (dsMTLRenderer*)resourceManager->renderer;
 	id<MTLDevice> device = (__bridge id<MTLDevice>)renderer->device;
 	MTLPixelFormat pixelFormat = dsMTLResourceManager_getPixelFormat(resourceManager, info->format);
@@ -208,7 +210,10 @@ static dsTexture* createTextureImpl(dsResourceManager* resourceManager, dsAlloca
 	{
 		resourceOptions = MTLResourceCPUCacheModeDefaultCache;
 #if DS_MAC
-		resourceOptions |= MTLResourceStorageModeManaged;
+		if (mtlResourceManager->appleGpu)
+			resourceOptions |= MTLResourceStorageModeShared;
+		else
+			resourceOptions |= MTLResourceStorageModeManaged;
 #elif __IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
 		resourceOptions |= MTLResourceStorageModeShared;
 #endif
@@ -221,9 +226,9 @@ static dsTexture* createTextureImpl(dsResourceManager* resourceManager, dsAlloca
 #endif
 	}
 
-#if __IPHONE_OS_VERSION_MIN_REQUIRED >= 100000
+#if __MAC_OS_X_VERSION_MIN_REQUIRED >= 110000 || __IPHONE_OS_VERSION_MIN_REQUIRED >= 100000
 	// TODO: Set to memoryless for tiled rendering if/when supported.
-	/*if (usage == dsTextureUsage_SubpassInput)
+	/*if (mtlResourceManager->appleGpu && usage == dsTextureUsage_SubpassInput)
 		resourceOptions |= MTLResourceStorageModeMemoryless;*/
 #endif
 
@@ -281,10 +286,14 @@ static dsTexture* createTextureImpl(dsResourceManager* resourceManager, dsAlloca
 #if DS_MAC || __IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
 		resourceOptions |= MTLResourceStorageModePrivate;
 #endif
-#if __IPHONE_OS_VERSION_MIN_REQUIRED >= 100000
-		if (!(usage & (dsTextureUsage_CopyTo | dsTextureUsage_OffscreenContinue)))
+#if __MAC_OS_X_VERSION_MIN_REQUIRED >= 110000 || __IPHONE_OS_VERSION_MIN_REQUIRED >= 100000
+		if (mtlResourceManager->appleGpu &&
+			!(usage & (dsTextureUsage_CopyTo | dsTextureUsage_OffscreenContinue)))
+		{
 			resourceOptions |= MTLResourceStorageModeMemoryless;
+		}
 #endif
+		descriptor.resourceOptions = resourceOptions;
 		descriptor.usage = MTLTextureUsageRenderTarget;
 
 		if (pixelFormat != MTLPixelFormatInvalid)

@@ -32,6 +32,8 @@ dsRenderbuffer* dsMTLRenderbuffer_create(dsResourceManager* resourceManager, dsA
 {
 	@autoreleasepool
 	{
+		dsMTLResourceManager* mtlResourceManager = (dsMTLResourceManager*)resourceManager;
+		DS_UNUSED(mtlResourceManager);
 		dsMTLRenderer* renderer = (dsMTLRenderer*)resourceManager->renderer;
 		id<MTLDevice> device = (__bridge id<MTLDevice>)renderer->device;
 		MTLPixelFormat pixelFormat = dsMTLResourceManager_getPixelFormat(resourceManager, format);
@@ -103,8 +105,8 @@ dsRenderbuffer* dsMTLRenderbuffer_create(dsResourceManager* resourceManager, dsA
 		resourceOptions |= MTLResourceStorageModePrivate;
 		descriptor.usage = MTLTextureUsageRenderTarget;
 #endif
-#if __IPHONE_OS_VERSION_MIN_REQUIRED >= 100000
-		if (!(usage & dsRenderbufferUsage_Continue))
+#if __MAC_OS_X_VERSION_MIN_REQUIRED >= 110000 || __IPHONE_OS_VERSION_MIN_REQUIRED >= 100000
+		if (mtlResourceManager->appleGpu && !(usage & dsRenderbufferUsage_Continue))
 			resourceOptions |= MTLResourceStorageModeMemoryless;
 #endif
 		descriptor.resourceOptions = resourceOptions;
