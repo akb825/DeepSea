@@ -297,7 +297,7 @@ bool dsApplication_addCustomEvent(dsApplication* application, dsWindow* window,
 }
 
 uint32_t dsApplication_showMessageBox(dsApplication* application, dsWindow* parentWindow,
-	dsMessageBoxType type, const char* title, const char* message, const char** buttons,
+	dsMessageBoxType type, const char* title, const char* message, const char* const* buttons,
 	uint32_t buttonCount, uint32_t enterButton, uint32_t escapeButton)
 {
 	if (!application || !application->showMessageBoxFunc || !title || !message || !buttons ||

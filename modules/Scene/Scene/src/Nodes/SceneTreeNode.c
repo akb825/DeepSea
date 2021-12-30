@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Aaron Barany
+ * Copyright 2019-2021 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -110,24 +110,26 @@ static dsSceneTreeNode* addNode(dsSceneTreeNode* node, dsSceneNode* child,
 	childTreeNode->itemData.count = child->itemListCount;
 	for (uint32_t i = 0; i < child->itemListCount; ++i)
 	{
+		dsSceneItemData* itemData = childTreeNode->itemData.itemData + i;
+		dsSceneItemEntry* itemEntry = childTreeNode->itemLists + i;
+
 		// Always initialize to NULL, regardless of the branch.
-		childTreeNode->itemData.itemData[i].data = NULL;
+		itemData->data = NULL;
 
 		dsSceneItemListNode* node = (dsSceneItemListNode*)dsHashTable_find(scene->itemLists,
 			child->itemLists[i]);
-		if (!node)
+		if (!node || !node->list->addNodeFunc || !node->list->removeNodeFunc)
 		{
-			childTreeNode->itemLists[i].list = NULL;
-			childTreeNode->itemLists[i].entry = DS_NO_SCENE_NODE;
-			childTreeNode->itemData.itemData[i].nameID = 0;
+			itemEntry->list = NULL;
+			itemEntry->entry = DS_NO_SCENE_NODE;
+			itemData->nameID = 0;
 			continue;
 		}
 
-		childTreeNode->itemData.itemData[i].nameID = node->list->nameID;
-		childTreeNode->itemLists[i].list = node->list;
-		childTreeNode->itemLists[i].entry = node->list->addNodeFunc(node->list, child,
-			&childTreeNode->transform, &childTreeNode->itemData,
-			&childTreeNode->itemData.itemData[i].data);
+		itemData->nameID = node->list->nameID;
+		itemEntry->list = node->list;
+		itemEntry->entry = node->list->addNodeFunc(node->list, child,
+			&childTreeNode->transform, &childTreeNode->itemData, &itemData->data);
 	}
 
 	node->children[childIndex] = childTreeNode;

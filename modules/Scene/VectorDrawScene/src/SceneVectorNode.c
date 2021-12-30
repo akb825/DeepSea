@@ -34,7 +34,7 @@ const dsSceneNodeType* dsSceneVectorNode_type(void)
 }
 
 dsSceneVectorNode* dsSceneVectorNode_create(dsAllocator* allocator, size_t structSize, int32_t z,
-	const char** itemLists, uint32_t itemListCount, dsSceneResources** resources,
+	const char* const* itemLists, uint32_t itemListCount, dsSceneResources** resources,
 	uint32_t resourceCount)
 {
 	if (!allocator || structSize < sizeof(dsSceneVectorImageNode) ||

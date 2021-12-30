@@ -406,7 +406,7 @@ void dsFont_getGlyphTextureBounds(dsAlignedBox2f* outBounds, const dsTexturePosi
 }
 
 dsFont* dsFont_create(dsFaceGroup* group, dsResourceManager* resourceManager,
-	dsAllocator* allocator, const char** faceNames, uint32_t faceCount, dsTextQuality quality,
+	dsAllocator* allocator, const char* const* faceNames, uint32_t faceCount, dsTextQuality quality,
 	dsTextCache cacheSize)
 {
 	if (!group || !resourceManager || (!allocator && !dsFaceGroup_getAllocator(group)) ||

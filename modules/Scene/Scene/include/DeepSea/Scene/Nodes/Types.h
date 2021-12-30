@@ -117,7 +117,7 @@ struct dsSceneNode
 	/**
 	 * @brief The item lists that will use the node.
 	 */
-	const char** itemLists;
+	const char* const* itemLists;
 
 	/**
 	 * @brief The tree nodes that correspond to this node in various scenes.

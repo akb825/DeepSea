@@ -295,7 +295,7 @@ typedef struct dsSceneModelList dsSceneModelList;
  * @brief Full screen resolve within a scene.
  *
  * Full screen resolve draws a full screen quad with a shader and material. This is an item list
- * type to fit into the scene layout, it doesn't draw any items from the scene.
+ * type to fit into the scene layout, though it doesn't draw any items from the scene.
  *
  * The geometry drawn will be vec2 values in the range [-1, 1], with (-1, -1) being the lower-left
  * corner and (1, 1) being the upper-right corner.

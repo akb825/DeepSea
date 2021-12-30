@@ -54,7 +54,7 @@ typedef struct dsSDLApplication
 } dsSDLApplication;
 
 static uint32_t showMessageBoxImpl(SDL_Window* parentWindow, dsMessageBoxType type,
-	const char* title, const char* message, const char** buttons, uint32_t buttonCount,
+	const char* title, const char* message, const char* const* buttons, uint32_t buttonCount,
 	uint32_t enterButton, uint32_t escapeButton)
 {
 	SDL_MessageBoxData messageBox;
@@ -357,7 +357,7 @@ bool dsSDLApplication_addCustomEvent(dsApplication* application, dsWindow* windo
 
 uint32_t dsSDLApplication_showMessageBoxBase(dsApplication* application,
 	dsWindow* parentWindow, dsMessageBoxType type, const char* title, const char* message,
-	const char** buttons, uint32_t buttonCount, uint32_t enterButton, uint32_t escapeButton)
+	const char* const* buttons, uint32_t buttonCount, uint32_t enterButton, uint32_t escapeButton)
 {
 	DS_UNUSED(application);
 	SDL_Window* sdlWindow = parentWindow ? ((dsSDLWindow*)parentWindow)->sdlWindow : NULL;
@@ -839,7 +839,7 @@ uint32_t dsSDLApplication_getPressedMouseButtons(const dsApplication* applicatio
 }
 
 uint32_t dsSDLApplication_showMessageBox(dsMessageBoxType type, const char* title,
-	const char* message, const char** buttons, uint32_t buttonCount, uint32_t enterButton,
+	const char* message, const char* const* buttons, uint32_t buttonCount, uint32_t enterButton,
 	uint32_t escapeButton)
 {
 	if (!title || !message || !buttons || buttonCount == 0 ||

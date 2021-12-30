@@ -76,7 +76,7 @@ DS_SCENE_EXPORT const dsSceneNodeType* dsSceneModelNode_type(void);
  * @return The model node or NULL if an error occurred.
  */
 DS_SCENE_EXPORT dsSceneModelNode* dsSceneModelNode_create(dsAllocator* allocator,
-	const dsSceneModelInitInfo* models, uint32_t modelCount, const char** extraItemLists,
+	const dsSceneModelInitInfo* models, uint32_t modelCount, const char* const* extraItemLists,
 	uint32_t extraItemListCount, dsSceneResources** resources, uint32_t resourceCount,
 	const dsOrientedBox3f* bounds);
 
@@ -102,7 +102,7 @@ DS_SCENE_EXPORT dsSceneModelNode* dsSceneModelNode_create(dsAllocator* allocator
  */
 DS_SCENE_EXPORT dsSceneModelNode* dsSceneModelNode_createBase(dsAllocator* allocator,
 	size_t structSize, const dsSceneModelInitInfo* models, uint32_t modelCount,
-	const char** extraItemLists, uint32_t extraItemListCount, dsSceneResources** resources,
+	const char* const* extraItemLists, uint32_t extraItemListCount, dsSceneResources** resources,
 	uint32_t resourceCount, const dsOrientedBox3f* bounds);
 
 /**
@@ -148,7 +148,7 @@ DS_SCENE_EXPORT dsSceneModelNode* dsSceneModelNode_cloneRemapBase(dsAllocator* a
  */
 DS_SCENE_EXPORT dsSceneModelNode* dsSceneModelNode_cloneReconfig(dsAllocator* allocator,
 	const dsSceneModelNode* origModel, const dsSceneModelReconfig* models, uint32_t modelCount,
-	const char** extraItemLists, uint32_t extraItemListCount);
+	const char* const* extraItemLists, uint32_t extraItemListCount);
 
 /**
  * @brief Clones a model node as the base class for another model type, re-configuring the layout
@@ -168,7 +168,7 @@ DS_SCENE_EXPORT dsSceneModelNode* dsSceneModelNode_cloneReconfig(dsAllocator* al
  */
 DS_SCENE_EXPORT dsSceneModelNode* dsSceneModelNode_cloneReconfigBase(dsAllocator* allocator,
 	size_t structSize, const dsSceneModelNode* origModel, const dsSceneModelReconfig* models,
-	uint32_t modelCount, const char** extraItemLists, uint32_t extraItemListCount);
+	uint32_t modelCount, const char* const* extraItemLists, uint32_t extraItemListCount);
 
 /**
  * @brief Remaps the materials for a model.

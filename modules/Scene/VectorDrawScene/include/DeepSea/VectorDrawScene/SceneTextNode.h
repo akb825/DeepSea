@@ -152,7 +152,7 @@ DS_VECTORDRAWSCENE_EXPORT dsSceneTextNode* dsSceneTextNode_create(
 	uint32_t styleCount, dsTextAlign alignment, float maxWidth, float lineScale, int32_t z,
 	uint32_t firstChar, uint32_t charCount, dsShader* shader, dsMaterial* material,
 	uint32_t fontTextureElement, const dsSceneTextRenderBufferInfo* textRenderBufferInfo,
-	const char** itemLists, uint32_t itemListCount,
+	const char* const* itemLists, uint32_t itemListCount,
 	dsSceneResources** resources, uint32_t resourceCount);
 
 /**
@@ -186,7 +186,7 @@ DS_VECTORDRAWSCENE_EXPORT dsSceneTextNode* dsSceneTextNode_createBase(
 	const dsTextStyle* styles, uint32_t styleCount, dsTextAlign alignment, float maxWidth,
 	float lineScale, int32_t z, uint32_t firstChar, uint32_t charCount, dsShader* shader,
 	dsMaterial* material, uint32_t fontTextureElement,
-	const dsSceneTextRenderBufferInfo* textRenderBufferInfo, const char** itemLists,
+	const dsSceneTextRenderBufferInfo* textRenderBufferInfo, const char* const* itemLists,
 	uint32_t itemListCount, dsSceneResources** resources, uint32_t resourceCount);
 
 /**

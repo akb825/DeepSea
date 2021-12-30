@@ -392,7 +392,7 @@ const dsShaderVersion* dsRenderer_chooseShaderVersion(const dsRenderer* renderer
 }
 
 const char* dsRenderer_chooseShaderVersionString(uint32_t* outIndex, const dsRenderer* renderer,
-	const char** versions, uint32_t versionCount)
+	const char* const* versions, uint32_t versionCount)
 {
 	if (!renderer || !versions || versionCount == 0)
 		return NULL;

@@ -91,7 +91,7 @@ DS_RENDER_EXPORT const dsShaderVersion* dsRenderer_chooseShaderVersion(const dsR
  * @return The shader version string to use, or NULL if no suitable version could be found.
  */
 DS_RENDER_EXPORT const char* dsRenderer_chooseShaderVersionString(uint32_t* outIndex,
-	const dsRenderer* renderer, const char** versions, uint32_t versionCount);
+	const dsRenderer* renderer, const char* const* versions, uint32_t versionCount);
 
 /**
  * @brief Gets the string for a shader version.

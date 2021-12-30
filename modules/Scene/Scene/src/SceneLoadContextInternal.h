@@ -49,6 +49,9 @@ dsSceneItemList* dsSceneModelList_load(const dsSceneLoadContext* loadContext,
 dsSceneItemList* dsViewCullList_load(const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
 	void* userData, const char* name, const uint8_t* data, size_t dataSize);
+dsSceneItemList* dsViewMipmapList_load(const dsSceneLoadContext* loadContext,
+	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
+	void* userData, const char* name, const uint8_t* data, size_t dataSize);
 
 dsSceneInstanceData* dsInstanceTransformData_load(const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,

@@ -312,23 +312,6 @@ static bool visitLights(void* userData, const dsSceneLightSet* lightSet, const d
 	return true;
 }
 
-uint64_t dsDeferredLightResolve_addNode(dsSceneItemList* itemList, dsSceneNode* node,
-	const dsMatrix44f* transform, dsSceneNodeItemData* itemData, void** thisItemData)
-{
-	DS_UNUSED(itemList);
-	DS_UNUSED(node);
-	DS_UNUSED(itemData);
-	DS_UNUSED(transform);
-	DS_UNUSED(thisItemData);
-	return DS_NO_SCENE_NODE;
-}
-
-void dsDeferredLightResolve_removeNode(dsSceneItemList* itemList, uint64_t nodeID)
-{
-	DS_UNUSED(itemList);
-	DS_UNUSED(nodeID);
-}
-
 void dsDeferredLightResolve_commit(dsSceneItemList* itemList, const dsView* view,
 	dsCommandBuffer* commandBuffer)
 {
@@ -597,9 +580,9 @@ dsDeferredLightResolve* dsDeferredLightResolve_create(dsAllocator* allocator,
 	memcpy((void*)itemList->name, name, nameLen);
 	itemList->nameID = dsHashString(name);
 	itemList->needsCommandBuffer = true;
-	itemList->addNodeFunc = &dsDeferredLightResolve_addNode;
+	itemList->addNodeFunc = NULL;
 	itemList->updateNodeFunc = NULL;
-	itemList->removeNodeFunc = &dsDeferredLightResolve_removeNode;
+	itemList->removeNodeFunc = NULL;
 	itemList->commitFunc = &dsDeferredLightResolve_commit;
 	itemList->destroyFunc = (dsDestroySceneItemListFunction)&dsDeferredLightResolve_destroy;
 

@@ -45,7 +45,7 @@ DS_SCENE_EXPORT extern const char* const dsSceneNodeRef_typeName;
  * @param itemLists The list of item list names to use.
  * @param itemListCount The number of item lists.
  */
-DS_SCENE_EXPORT size_t dsSceneNode_itemListsAllocSize(const char** itemLists,
+DS_SCENE_EXPORT size_t dsSceneNode_itemListsAllocSize(const char* const* itemLists,
 	uint32_t itemListCount);
 
 /**
@@ -124,7 +124,7 @@ DS_SCENE_EXPORT dsSceneNode* dsSceneNode_load(dsAllocator* allocator,
  * @return False if the parameters are invalid.
  */
 DS_SCENE_EXPORT bool dsSceneNode_initialize(dsSceneNode* node, dsAllocator* allocator,
-	const dsSceneNodeType* type, const char** itemLists, uint32_t itemListCount,
+	const dsSceneNodeType* type, const char* const* itemLists, uint32_t itemListCount,
 	dsDestroySceneNodeFunction destroyFunc);
 
 /**

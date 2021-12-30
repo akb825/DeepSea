@@ -70,7 +70,7 @@ static size_t cloneRemapFullAllocSize(size_t structSize, const dsSceneModelNode*
 }
 
 static void populateItemList(const char** itemLists, uint32_t* hashes, uint32_t* itemListCount,
-	const dsSceneModelInitInfo* models, uint32_t modelCount, const char** extraItemLists,
+	const dsSceneModelInitInfo* models, uint32_t modelCount, const char* const* extraItemLists,
 	uint32_t extraItemListCount)
 {
 	// Assume uniqueness for the extra lists. Add extra items first since the data will be more
@@ -120,7 +120,7 @@ const dsSceneNodeType* dsSceneModelNode_type(void)
 }
 
 dsSceneModelNode* dsSceneModelNode_create(dsAllocator* allocator,
-	const dsSceneModelInitInfo* models, uint32_t modelCount, const char** extraItemLists,
+	const dsSceneModelInitInfo* models, uint32_t modelCount, const char* const* extraItemLists,
 	uint32_t extraItemListCount, dsSceneResources** resources, uint32_t resourceCount,
 	const dsOrientedBox3f* bounds)
 {
@@ -129,7 +129,7 @@ dsSceneModelNode* dsSceneModelNode_create(dsAllocator* allocator,
 }
 
 dsSceneModelNode* dsSceneModelNode_createBase(dsAllocator* allocator, size_t structSize,
-	const dsSceneModelInitInfo* models, uint32_t modelCount, const char** extraItemLists,
+	const dsSceneModelInitInfo* models, uint32_t modelCount, const char* const* extraItemLists,
 	uint32_t extraItemListCount, dsSceneResources** resources, uint32_t resourceCount,
 	const dsOrientedBox3f* bounds)
 {
@@ -427,7 +427,7 @@ dsSceneModelNode* dsSceneModelNode_cloneRemapBase(dsAllocator* allocator, size_t
 
 dsSceneModelNode* dsSceneModelNode_cloneReconfig(dsAllocator* allocator,
 	const dsSceneModelNode* origModel, const dsSceneModelReconfig* models, uint32_t modelCount,
-	const char** extraItemLists, uint32_t extraItemListCount)
+	const char* const* extraItemLists, uint32_t extraItemListCount)
 {
 	return dsSceneModelNode_cloneReconfigBase(allocator, sizeof(dsSceneModelNode), origModel,
 		models, modelCount, extraItemLists, extraItemListCount);
@@ -435,7 +435,7 @@ dsSceneModelNode* dsSceneModelNode_cloneReconfig(dsAllocator* allocator,
 
 dsSceneModelNode* dsSceneModelNode_cloneReconfigBase(dsAllocator* allocator,
 	size_t structSize, const dsSceneModelNode* origModel, const dsSceneModelReconfig* models,
-	uint32_t modelCount, const char** extraItemLists, uint32_t extraItemListCount)
+	uint32_t modelCount, const char* const* extraItemLists, uint32_t extraItemListCount)
 {
 	if (!allocator || structSize < sizeof(dsSceneModelNode) || !origModel || !models ||
 		modelCount == 0 || (!extraItemLists && extraItemListCount > 0))

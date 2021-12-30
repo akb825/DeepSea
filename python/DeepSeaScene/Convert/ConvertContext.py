@@ -23,6 +23,7 @@ from .OBJModel import registerOBJModelType
 from .SceneNodeRefConvert import convertReferenceNode
 from .TransformNodeConvert import convertTransformNode
 from .ViewCullListConvert import convertViewCullList
+from .ViewMipmapListConvert import convertViewMipmapList
 from .ViewTransformDataConvert import convertViewTransformData
 from .. import ObjectData
 from .. import SceneItemList
@@ -54,7 +55,8 @@ class ConvertContext:
 		self.itemListTypeMap = {
 			'FullScreenResolve': convertFullScreenResolve,
 			'ModelList': convertModelList,
-			'ViewCullList': convertViewCullList
+			'ViewCullList': convertViewCullList,
+			'ViewMipmapList': convertViewMipmapList
 		}
 
 		self.instanceDataTypeMap = {

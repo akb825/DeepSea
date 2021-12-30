@@ -242,7 +242,7 @@ dsSceneTextNode* dsSceneTextNode_create(dsAllocator* allocator, const dsText* te
 	void* textUserData, const dsTextStyle* styles, uint32_t styleCount, dsTextAlign alignment,
 	float maxWidth, float lineScale, int32_t z, uint32_t firstChar, uint32_t charCount,
 	dsShader* shader, dsMaterial* material, uint32_t fontTextureElement,
-	const dsSceneTextRenderBufferInfo* textRenderBufferInfo, const char** itemLists,
+	const dsSceneTextRenderBufferInfo* textRenderBufferInfo, const char* const* itemLists,
 	uint32_t itemListCount, dsSceneResources** resources, uint32_t resourceCount)
 {
 	return dsSceneTextNode_createBase(allocator, sizeof(dsSceneTextNode), text,
@@ -256,7 +256,7 @@ dsSceneTextNode* dsSceneTextNode_createBase(dsAllocator* allocator, size_t struc
 	dsTextAlign alignment, float maxWidth, float lineScale, int32_t z, uint32_t firstChar,
 	uint32_t charCount, dsShader* shader, dsMaterial* material, uint32_t fontTextureElement,
 	const dsSceneTextRenderBufferInfo* textRenderBufferInfo,
-	const char** itemLists, uint32_t itemListCount, dsSceneResources** resources,
+	const char* const* itemLists, uint32_t itemListCount, dsSceneResources** resources,
 	uint32_t resourceCount)
 {
 	if (!allocator || !text || !styles || styleCount == 0 || !shader || !material ||

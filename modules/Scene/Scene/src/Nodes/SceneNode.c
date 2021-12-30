@@ -38,7 +38,7 @@ dsSceneNodeType dsRootSceneNodeType;
 
 const char* const dsSceneNodeRef_typeName = "ReferenceNode";
 
-size_t dsSceneNode_itemListsAllocSize(const char** itemLists, uint32_t itemListCount)
+size_t dsSceneNode_itemListsAllocSize(const char* const* itemLists, uint32_t itemListCount)
 {
 	if (itemListCount == 0)
 		return 0;
@@ -93,7 +93,7 @@ dsSceneNode* dsSceneNode_load(dsAllocator* allocator, dsAllocator* resourceAlloc
 }
 
 bool dsSceneNode_initialize(dsSceneNode* node, dsAllocator* allocator,
-	const dsSceneNodeType* type, const char** itemLists, uint32_t itemListCount,
+	const dsSceneNodeType* type, const char* const* itemLists, uint32_t itemListCount,
 	dsDestroySceneNodeFunction destroyFunc)
 {
 	if (!node || !allocator || !type || !destroyFunc)

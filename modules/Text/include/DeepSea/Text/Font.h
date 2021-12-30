@@ -49,7 +49,7 @@ extern "C"
  * @return The created font, or NULL if the font couldn't be created.
  */
 DS_TEXT_EXPORT dsFont* dsFont_create(dsFaceGroup* group, dsResourceManager* resourceManager,
-	dsAllocator* allocator, const char** faceNames, uint32_t faceCount, dsTextQuality quality,
+	dsAllocator* allocator, const char* const* faceNames, uint32_t faceCount, dsTextQuality quality,
 	dsTextCache cacheSize);
 
 /**

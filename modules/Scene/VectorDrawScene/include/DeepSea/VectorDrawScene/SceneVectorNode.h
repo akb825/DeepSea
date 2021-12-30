@@ -50,7 +50,7 @@ DS_VECTORDRAWSCENE_EXPORT const dsSceneNodeType* dsSceneVectorNode_type(void);
  * @return The vector node or NULL if an error occurred.
  */
 DS_VECTORDRAWSCENE_EXPORT dsSceneVectorNode* dsSceneVectorNode_create(dsAllocator* allocator,
-	size_t structSize, int32_t z, const char** itemLists, uint32_t itemListCount,
+	size_t structSize, int32_t z, const char* const* itemLists, uint32_t itemListCount,
 	dsSceneResources** resources, uint32_t resourceCount);
 
 /**

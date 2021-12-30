@@ -54,23 +54,6 @@ static const int16_t vertexData[] =
 	INT16_MAX, -INT16_MAX
 };
 
-static uint64_t dsSceneFullScreenResolve_addNode(dsSceneItemList* itemList, dsSceneNode* node,
-	const dsMatrix44f* transform, dsSceneNodeItemData* itemData, void** thisItemData)
-{
-	DS_UNUSED(itemList);
-	DS_UNUSED(node);
-	DS_UNUSED(transform);
-	DS_UNUSED(itemData);
-	DS_UNUSED(thisItemData);
-	return DS_NO_SCENE_NODE;
-}
-
-static void dsSceneFullScreenResolve_removeNode(dsSceneItemList* itemList, uint64_t nodeID)
-{
-	DS_UNUSED(itemList);
-	DS_UNUSED(nodeID);
-}
-
 static void dsCommitSceneItemList_commit(dsSceneItemList* itemList, const dsView* view,
 	dsCommandBuffer* commandBuffer)
 {
@@ -131,9 +114,9 @@ dsSceneFullScreenResolve* dsSceneFullScreenResolve_create(dsAllocator* allocator
 	memcpy((void*)itemList->name, name, nameLen);
 	itemList->nameID = dsHashString(name);
 	itemList->needsCommandBuffer = true;
-	itemList->addNodeFunc = &dsSceneFullScreenResolve_addNode;
+	itemList->addNodeFunc = NULL;
 	itemList->updateNodeFunc = NULL;
-	itemList->removeNodeFunc = &dsSceneFullScreenResolve_removeNode;
+	itemList->removeNodeFunc = NULL;
 	itemList->commitFunc = &dsCommitSceneItemList_commit;
 	itemList->destroyFunc = (dsDestroySceneItemListFunction)&dsSceneFullScreenResolve_destroy;
 

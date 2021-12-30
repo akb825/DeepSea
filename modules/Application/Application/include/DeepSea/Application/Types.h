@@ -609,7 +609,7 @@ typedef bool (*dsAddCustomEventFunction)(dsApplication* application, dsWindow* w
  */
 typedef uint32_t (*dsShowApplicationMessageBoxFunction)(dsApplication* application,
 	dsWindow* parentWindow, dsMessageBoxType type, const char* title, const char* message,
-	const char** buttons, uint32_t buttonCount, uint32_t enterButton, uint32_t escapeButton);
+	const char* const* buttons, uint32_t buttonCount, uint32_t enterButton, uint32_t escapeButton);
 
 /**
  * @brief Function for running an application.

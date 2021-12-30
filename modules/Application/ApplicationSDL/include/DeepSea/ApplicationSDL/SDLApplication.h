@@ -51,7 +51,7 @@ extern "C"
  * @return The index of the pressed button, or DS_MESSAGE_BOX_NO_BUTTON if an error occurred.
  */
 DS_APPLICATIONSDL_EXPORT uint32_t dsSDLApplication_showMessageBox(dsMessageBoxType type,
-	const char* title, const char* message, const char** buttons, uint32_t buttonCount,
+	const char* title, const char* message, const char* const* buttons, uint32_t buttonCount,
 	uint32_t enterButton, uint32_t escapeButton);
 
 /**

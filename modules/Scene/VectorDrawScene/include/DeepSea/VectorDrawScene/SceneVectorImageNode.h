@@ -67,7 +67,7 @@ DS_VECTORDRAWSCENE_EXPORT const dsSceneNodeType* dsSceneVectorImageNode_setupPar
  */
 DS_VECTORDRAWSCENE_EXPORT dsSceneVectorImageNode* dsSceneVectorImageNode_create(
 	dsAllocator* allocator, dsVectorImage* vectorImage, const dsVector2f* size, int32_t z,
-	const dsVectorShaders* shaders, dsMaterial* material, const char** itemLists,
+	const dsVectorShaders* shaders, dsMaterial* material, const char* const* itemLists,
 	uint32_t itemListCount, dsSceneResources** resources, uint32_t resourceCount);
 
 /**
@@ -88,7 +88,7 @@ DS_VECTORDRAWSCENE_EXPORT dsSceneVectorImageNode* dsSceneVectorImageNode_create(
  */
 DS_VECTORDRAWSCENE_EXPORT dsSceneVectorImageNode* dsSceneVectorImageNode_createBase(
 	dsAllocator* allocator, size_t structSize, dsVectorImage* vectorImage, const dsVector2f* size,
-	int32_t z, const dsVectorShaders* shaders, dsMaterial* material, const char** itemLists,
+	int32_t z, const dsVectorShaders* shaders, dsMaterial* material, const char* const* itemLists,
 	uint32_t itemListCount, dsSceneResources** resources, uint32_t resourceCount);
 
 #ifdef __cplusplus
