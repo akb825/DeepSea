@@ -20,7 +20,9 @@
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Assert.h>
+#include <DeepSea/Core/Atomic.h>
 #include <DeepSea/Core/Error.h>
+
 #include <DeepSea/Render/Resources/DrawGeometry.h>
 #include <DeepSea/Render/Resources/GfxBuffer.h>
 #include <DeepSea/Render/Resources/GfxFormat.h>
@@ -30,6 +32,7 @@
 #include <DeepSea/Render/Resources/VertexFormat.h>
 #include <DeepSea/Render/CommandBuffer.h>
 #include <DeepSea/Render/Renderer.h>
+
 #include <DeepSea/Scene/ItemLists/SceneItemList.h>
 
 #include <string.h>
@@ -42,9 +45,13 @@ struct dsSceneFullScreenResolve
 	dsDynamicRenderStates renderStates;
 	bool hasRenderStates;
 
-	dsGfxBuffer* vertexData;
 	dsDrawGeometry* geometry;
 };
+
+static uint32_t spinlock;
+static uint32_t geometryRefCount;
+static dsGfxBuffer* vertexData;
+static dsDrawGeometry* geometry;
 
 static void dsCommitSceneItemList_commit(dsSceneItemList* itemList, const dsView* view,
 	dsCommandBuffer* commandBuffer)
@@ -73,18 +80,94 @@ dsSceneItemListType dsSceneFullScreenResolve_type(void)
 	return &type;
 }
 
+dsDrawGeometry* dsSceneFullScreenResolve_createGeometry(dsResourceManager* resourceManager)
+{
+	// Can't use a regular spinlock since can't initialize with a static variable.
+	uint32_t expectedLocked;
+	uint32_t locked = true;
+	do
+	{
+		expectedLocked = false;
+	}
+	while (!DS_ATOMIC_COMPARE_EXCHANGE32(&spinlock, &expectedLocked, &locked, false));
+
+	if (geometryRefCount++ == 0)
+	{
+		const int16_t vertices[] =
+		{
+			-INT16_MAX, INT16_MAX,
+			-INT16_MAX, -INT16_MAX,
+			INT16_MAX, INT16_MAX,
+			INT16_MAX, -INT16_MAX
+		};
+
+		vertexData = dsGfxBuffer_create(resourceManager, NULL, dsGfxBufferUsage_Vertex,
+			dsGfxMemory_GPUOnly | dsGfxMemory_Static | dsGfxMemory_Draw, vertices,
+			sizeof(vertices));
+		if (vertexData)
+		{
+			dsVertexBuffer vertexBuffer;
+			vertexBuffer.buffer = vertexData;
+			vertexBuffer.offset = 0;
+			vertexBuffer.count = 4;
+			DS_VERIFY(dsVertexFormat_initialize(&vertexBuffer.format));
+			DS_VERIFY(dsVertexFormat_setAttribEnabled(&vertexBuffer.format, dsVertexAttrib_Position, true));
+			vertexBuffer.format.elements[dsVertexAttrib_Position].format =
+				dsGfxFormat_decorate(dsGfxFormat_X16Y16, dsGfxFormat_SNorm);
+			DS_VERIFY(dsVertexFormat_computeOffsetsAndSize(&vertexBuffer.format));
+			dsVertexBuffer* vertexBuffers[DS_MAX_GEOMETRY_VERTEX_BUFFERS] =
+				{&vertexBuffer, NULL, NULL, NULL};
+
+			geometry = dsDrawGeometry_create(resourceManager, NULL, vertexBuffers, NULL);
+			if (!geometry)
+			{
+				dsGfxBuffer_destroy(vertexData);
+				vertexData = NULL;
+			}
+		}
+	}
+
+	expectedLocked = false;
+	DS_ATOMIC_EXCHANGE32(&spinlock, &expectedLocked, &locked);
+	DS_ASSERT(locked);
+
+	return geometry;
+}
+
+void dsSceneFullScreenResolve_destroyGeometry(void)
+{
+	// Can't use a regular spinlock since can't initialize with a static variable.
+	uint32_t expectedLocked;
+	uint32_t locked = true;
+	do
+	{
+		expectedLocked = false;
+	}
+	while (!DS_ATOMIC_COMPARE_EXCHANGE32(&spinlock, &expectedLocked, &locked, false));
+
+	DS_ASSERT(geometryRefCount > 0);
+	if (--geometryRefCount == 0)
+	{
+		dsDrawGeometry_destroy(geometry);
+		dsGfxBuffer_destroy(vertexData);
+		geometry = NULL;
+		vertexData = NULL;
+	}
+
+	expectedLocked = false;
+	DS_ATOMIC_EXCHANGE32(&spinlock, &expectedLocked, &locked);
+	DS_ASSERT(locked);
+}
+
 dsSceneFullScreenResolve* dsSceneFullScreenResolve_create(dsAllocator* allocator, const char* name,
-	dsResourceManager* resourceManager, dsAllocator* resourceAllocator, dsShader* shader,
-	dsMaterial* material, const dsDynamicRenderStates* renderStates)
+	dsResourceManager* resourceManager, dsShader* shader, dsMaterial* material,
+	const dsDynamicRenderStates* renderStates)
 {
 	if (!allocator || !name || !resourceManager || !shader || !material)
 	{
 		errno = EINVAL;
 		return NULL;
 	}
-
-	if (!resourceAllocator)
-		resourceAllocator = allocator;
 
 	size_t nameLen = strlen(name) + 1;
 	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsSceneFullScreenResolve)) + DS_ALIGNED_SIZE(nameLen);
@@ -121,40 +204,8 @@ dsSceneFullScreenResolve* dsSceneFullScreenResolve_create(dsAllocator* allocator
 	}
 	else
 		resolve->hasRenderStates = false;
-	resolve->vertexData = NULL;
-	resolve->geometry = NULL;
 
-	const int16_t vertexData[] =
-	{
-		-INT16_MAX, INT16_MAX,
-		-INT16_MAX, -INT16_MAX,
-		INT16_MAX, INT16_MAX,
-		INT16_MAX, -INT16_MAX
-	};
-
-	resolve->vertexData = dsGfxBuffer_create(resourceManager, resourceAllocator,
-		dsGfxBufferUsage_Vertex, dsGfxMemory_GPUOnly | dsGfxMemory_Static | dsGfxMemory_Draw,
-		vertexData, sizeof(vertexData));
-	if (!resolve->vertexData)
-	{
-		dsSceneFullScreenResolve_destroy(resolve);
-		return NULL;
-	}
-
-	dsVertexBuffer vertexBuffer;
-	vertexBuffer.buffer = resolve->vertexData;
-	vertexBuffer.offset = 0;
-	vertexBuffer.count = 4;
-	DS_VERIFY(dsVertexFormat_initialize(&vertexBuffer.format));
-	DS_VERIFY(dsVertexFormat_setAttribEnabled(&vertexBuffer.format, dsVertexAttrib_Position, true));
-	vertexBuffer.format.elements[dsVertexAttrib_Position].format =
-		dsGfxFormat_decorate(dsGfxFormat_X16Y16, dsGfxFormat_SNorm);
-	DS_VERIFY(dsVertexFormat_computeOffsetsAndSize(&vertexBuffer.format));
-	dsVertexBuffer* vertexBuffers[DS_MAX_GEOMETRY_VERTEX_BUFFERS] =
-		{&vertexBuffer, NULL, NULL, NULL};
-
-	resolve->geometry =
-		dsDrawGeometry_create(resourceManager, resourceAllocator, vertexBuffers, NULL);
+	resolve->geometry = dsSceneFullScreenResolve_createGeometry(resourceManager);
 	if (!resolve->geometry)
 	{
 		dsSceneFullScreenResolve_destroy(resolve);
@@ -169,8 +220,8 @@ void dsSceneFullScreenResolve_destroy(dsSceneFullScreenResolve* resolve)
 	if (!resolve)
 		return;
 
-	dsDrawGeometry_destroy(resolve->geometry);
-	dsGfxBuffer_destroy(resolve->vertexData);
+	if (resolve->geometry)
+		dsSceneFullScreenResolve_destroyGeometry();
 
 	dsSceneItemList* itemList = (dsSceneItemList*)resolve;
 	if (itemList->allocator)

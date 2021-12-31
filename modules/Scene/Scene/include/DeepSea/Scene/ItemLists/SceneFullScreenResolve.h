@@ -43,6 +43,26 @@ DS_SCENE_EXPORT extern const char* const dsSceneFullScreenResolve_typeName;
 DS_SCENE_EXPORT dsSceneItemListType dsSceneFullScreenResolve_type(void);
 
 /**
+ * @brief Creates the draw geometry for a full screen resolve.
+ *
+ * This contains 4 vertices in the range [-1, 1] o be drawn with a triangle strip. This will be
+ * created with the first call to dsSceneFullScreenResolve_createDrawGeometry() and destroyed with
+ * the last matching call to dsSceneFullScreenResolve_destroyGeometry().
+ *
+ * @remark errno will be set on failure.
+ * @param resourceManager The resource manager to create the draw geometry with.
+ * @return The draw geometry or NULL if an error occurred.
+ */
+DS_SCENE_EXPORT dsDrawGeometry* dsSceneFullScreenResolve_createGeometry(
+	dsResourceManager* resourceManager);
+
+/**
+ * @brief Destroys the draw geometry for a matching call to
+ * dsSceneFullScreenResolve_createGeometry().
+ */
+DS_SCENE_EXPORT void dsSceneFullScreenResolve_destroyGeometry(void);
+
+/**
  * @brief Creates a full screen resolve.
  * @remark errno will be set on failure.
  * @param allocator The allocator to create the list with.
@@ -56,8 +76,8 @@ DS_SCENE_EXPORT dsSceneItemListType dsSceneFullScreenResolve_type(void);
  * @return The full screen resolve or NULL if an error occurred.
  */
 DS_SCENE_EXPORT dsSceneFullScreenResolve* dsSceneFullScreenResolve_create(dsAllocator* allocator,
-	const char* name, dsResourceManager* resourceManager, dsAllocator* resourceAllocator,
-	dsShader* shader, dsMaterial* material, const dsDynamicRenderStates* renderStates);
+	const char* name, dsResourceManager* resourceManager, dsShader* shader, dsMaterial* material,
+	const dsDynamicRenderStates* renderStates);
 
 /**
  * @brief Gets the render states for a full screen resolve.

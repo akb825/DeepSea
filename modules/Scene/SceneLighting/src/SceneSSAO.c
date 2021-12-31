@@ -37,6 +37,7 @@
 #include <DeepSea/Render/Resources/VertexFormat.h>
 #include <DeepSea/Render/Renderer.h>
 
+#include <DeepSea/Scene/ItemLists/SceneFullScreenResolve.h>
 #include <DeepSea/Scene/ItemLists/SceneItemList.h>
 
 #include <limits.h>
@@ -50,7 +51,6 @@ struct dsSceneSSAO
 	dsShader* shader;
 	dsMaterial* material;
 
-	dsGfxBuffer* vertexData;
 	dsDrawGeometry* geometry;
 	dsShaderVariableGroup* randomOffsets;
 	dsTexture* randomRotations;
@@ -207,42 +207,12 @@ dsSceneSSAO* dsSceneSSAO_create(dsAllocator* allocator, dsResourceManager* resou
 	ssao->resourceAllocator = resourceAllocator;
 	ssao->shader = shader;
 	ssao->material = material;
-	ssao->vertexData = NULL;
 	ssao->geometry = NULL;
 	ssao->randomOffsets = NULL;
 	ssao->randomRotations = NULL;
 	ssao->randomOffsetsSet = false;
 
-	const int16_t vertexData[] =
-	{
-		-INT16_MAX, INT16_MAX,
-		-INT16_MAX, -INT16_MAX,
-		INT16_MAX, INT16_MAX,
-		INT16_MAX, -INT16_MAX
-	};
-
-	ssao->vertexData = dsGfxBuffer_create(resourceManager, resourceAllocator,
-		dsGfxBufferUsage_Vertex, dsGfxMemory_GPUOnly | dsGfxMemory_Static | dsGfxMemory_Draw,
-		vertexData, sizeof(vertexData));
-	if (!ssao->vertexData)
-	{
-		dsSceneSSAO_destroy(ssao);
-		return NULL;
-	}
-
-	dsVertexBuffer vertexBuffer;
-	vertexBuffer.buffer = ssao->vertexData;
-	vertexBuffer.offset = 0;
-	vertexBuffer.count = 4;
-	DS_VERIFY(dsVertexFormat_initialize(&vertexBuffer.format));
-	DS_VERIFY(dsVertexFormat_setAttribEnabled(&vertexBuffer.format, dsVertexAttrib_Position, true));
-	vertexBuffer.format.elements[dsVertexAttrib_Position].format =
-		dsGfxFormat_decorate(dsGfxFormat_X16Y16, dsGfxFormat_SNorm);
-	DS_VERIFY(dsVertexFormat_computeOffsetsAndSize(&vertexBuffer.format));
-	dsVertexBuffer* vertexBuffers[DS_MAX_GEOMETRY_VERTEX_BUFFERS] =
-		{&vertexBuffer, NULL, NULL, NULL};
-
-	ssao->geometry = dsDrawGeometry_create(resourceManager, resourceAllocator, vertexBuffers, NULL);
+	ssao->geometry = dsSceneFullScreenResolve_createGeometry(resourceManager);
 	if (!ssao->geometry)
 	{
 		dsSceneSSAO_destroy(ssao);
@@ -384,8 +354,8 @@ void dsSceneSSAO_destroy(dsSceneSSAO* ssao)
 
 	dsSceneItemList* itemList = (dsSceneItemList*)ssao;
 
-	dsDrawGeometry_destroy(ssao->geometry);
-	dsGfxBuffer_destroy(ssao->vertexData);
+	if (ssao->geometry)
+		dsSceneFullScreenResolve_destroyGeometry();
 	dsShaderVariableGroup_destroy(ssao->randomOffsets);
 	dsTexture_destroy(ssao->randomRotations);
 

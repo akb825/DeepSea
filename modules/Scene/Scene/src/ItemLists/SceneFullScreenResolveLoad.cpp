@@ -38,8 +38,8 @@
 
 extern "C"
 dsSceneItemList* dsSceneFullScreenResolve_load(const dsSceneLoadContext* loadContext,
-	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
-	void*, const char* name, const uint8_t* data, size_t dataSize)
+	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator*, void*,
+	const char* name, const uint8_t* data, size_t dataSize)
 {
 	flatbuffers::Verifier verifier(data, dataSize);
 	if (!DeepSeaScene::VerifyFullScreenResolveBuffer(verifier))
@@ -86,6 +86,5 @@ dsSceneItemList* dsSceneFullScreenResolve_load(const dsSceneLoadContext* loadCon
 		dynamicRenderStates = DeepSeaScene::convert(*fbDynamicRenderStates);
 
 	return reinterpret_cast<dsSceneItemList*>(dsSceneFullScreenResolve_create(allocator, name,
-		resourceManager, resourceAllocator, shader, material,
-		fbDynamicRenderStates ? &dynamicRenderStates : NULL));
+		resourceManager, shader, material, fbDynamicRenderStates ? &dynamicRenderStates : NULL));
 }
