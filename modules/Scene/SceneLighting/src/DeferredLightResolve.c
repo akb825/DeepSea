@@ -41,7 +41,6 @@
 #include <DeepSea/SceneLighting/SceneShadowManager.h>
 
 #include <string.h>
-#include <limits.h>
 
 #define FRAME_DELAY 3
 
@@ -718,8 +717,17 @@ dsShader* dsDeferredLightResolve_getAmbientShader(const dsDeferredLightResolve* 
 
 bool dsDeferredLightResolve_setAmbientShader(dsDeferredLightResolve* resolve, dsShader* shader)
 {
-	if (!resolve || !shader || !resolve->ambientInfo.shader)
+	if (!resolve || !shader)
+	{
+		errno = EINVAL;
 		return false;
+	}
+
+	if (!resolve->ambientInfo.shader)
+	{
+		errno = EPERM;
+		return false;
+	}
 
 	resolve->ambientInfo.shader = shader;
 	return true;

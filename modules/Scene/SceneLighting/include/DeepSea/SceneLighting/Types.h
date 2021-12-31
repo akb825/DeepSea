@@ -374,6 +374,19 @@ typedef struct dsSceneShadowManager dsSceneShadowManager;
  */
 typedef struct dsSceneLightShadows dsSceneLightShadows;
 
+/**
+ * @brief Struct defining a scene screen-space ambient occlusion.
+ *
+ * This will compute ambient occlusion in screen-space based on the gbuffers. This is an item list
+ * type in order to fit into the scene, but doesn't interact with any nodes in the scene graph.
+ *
+ * The geometry drawn will be vec2 values in the range [-1, 1], with (-1, -1) being the lower-left
+ * corner and (1, 1) being the upper-right corner.
+ *
+ * @see SceneSSAO.h
+ */
+typedef struct dsSceneSSAO dsSceneSSAO;
+
 #ifdef __cplusplus
 }
 #endif

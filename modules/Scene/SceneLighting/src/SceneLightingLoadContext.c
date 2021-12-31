@@ -22,6 +22,7 @@
 #include "SceneLightSetPrepareLoad.h"
 #include "SceneShadowManagerLoad.h"
 #include "SceneShadowManagerPrepareLoad.h"
+#include "SceneSSAOLoad.h"
 #include "ShadowCullListLoad.h"
 #include "ShadowInstanceTransformDataLoad.h"
 
@@ -34,6 +35,7 @@
 #include <DeepSea/SceneLighting/SceneLightSetPrepare.h>
 #include <DeepSea/SceneLighting/SceneShadowManager.h>
 #include <DeepSea/SceneLighting/SceneShadowManagerPrepare.h>
+#include <DeepSea/SceneLighting/SceneSSAO.h>
 #include <DeepSea/SceneLighting/ShadowCullList.h>
 #include <DeepSea/SceneLighting/ShadowInstanceTransformData.h>
 
@@ -91,6 +93,12 @@ bool dsSceneLightingLoadConext_registerTypes(dsSceneLoadContext* loadContext)
 
 	if (!dsSceneLoadContext_registerItemListType(loadContext, dsDeferredLightResolve_typeName,
 			&dsDeferredLightResolve_load, NULL, NULL))
+	{
+		return false;
+	}
+
+	if (!dsSceneLoadContext_registerItemListType(loadContext, dsSceneSSAO_typeName,
+			&dsSceneSSAO_load, NULL, NULL))
 	{
 		return false;
 	}

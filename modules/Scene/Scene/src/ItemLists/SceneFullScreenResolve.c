@@ -46,14 +46,6 @@ struct dsSceneFullScreenResolve
 	dsDrawGeometry* geometry;
 };
 
-static const int16_t vertexData[] =
-{
-	-INT16_MAX, INT16_MAX,
-	-INT16_MAX, -INT16_MAX,
-	INT16_MAX, INT16_MAX,
-	INT16_MAX, -INT16_MAX
-};
-
 static void dsCommitSceneItemList_commit(dsSceneItemList* itemList, const dsView* view,
 	dsCommandBuffer* commandBuffer)
 {
@@ -131,6 +123,14 @@ dsSceneFullScreenResolve* dsSceneFullScreenResolve_create(dsAllocator* allocator
 		resolve->hasRenderStates = false;
 	resolve->vertexData = NULL;
 	resolve->geometry = NULL;
+
+	const int16_t vertexData[] =
+	{
+		-INT16_MAX, INT16_MAX,
+		-INT16_MAX, -INT16_MAX,
+		INT16_MAX, INT16_MAX,
+		INT16_MAX, -INT16_MAX
+	};
 
 	resolve->vertexData = dsGfxBuffer_create(resourceManager, resourceAllocator,
 		dsGfxBufferUsage_Vertex, dsGfxMemory_GPUOnly | dsGfxMemory_Static | dsGfxMemory_Draw,

@@ -35,6 +35,7 @@
 #include <DeepSea/Render/Renderer.h>
 
 #include <float.h>
+#include <limits.h>
 #include <string.h>
 
 static void spotPerpAxes(dsVector3f* outX, dsVector3f* outY, const dsSceneLight* light)

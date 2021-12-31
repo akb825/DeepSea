@@ -97,6 +97,9 @@ The following item list types are provided with the members that are expected:
 	* `shadowManager`: name of the shadow manager that contains the shadows being culled for.
 	* `shadows`: name of the shadows within the shadow manager to cull for.
 	* `surface`: index of the surface within the light shadows.
+* `"SSAO"`:
+	* `shader`: the shader to compute the ambient occlusion with.
+	* `material`: the material to use with the shader.
 
 ## Instance Data
 

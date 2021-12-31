@@ -331,6 +331,12 @@ Full screen resolve draws a full screen quad with a shader and material. This is
 	* `frontStencilReference`: int reference for just the front stencil.
 	* `backStencilReference`: int reference for just the back stencil.
 
+### View Mipmap List
+
+View mipmap list computes mipmaps from any number of textures stored in a view, typically offscreens. This is an item list for fitting in the scene layout, but doesn't draw any instances within the scene graph. It contains the following members:
+
+* `textures`: list of the textures in the view to generate mipmaps for.
+
 ## Instance Data
 
 Instance data is typically included in specific item lists that utilize them. Builtin instance data specifications are documented below.

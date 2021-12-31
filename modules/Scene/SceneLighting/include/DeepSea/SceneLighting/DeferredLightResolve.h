@@ -68,7 +68,7 @@ DS_SCENELIGHTING_EXPORT dsSceneItemListType dsDeferredLightResolve_type(void);
  * @remark Any shader may be NULL to avoid drawing that type of light. For example, this can be used
  *     to draw specific light types in different render passes.
  * @remark errno will be set on failure.
- * @param allocator The allocator to create the defferred light resolve with.This must support
+ * @param allocator The allocator to create the defferred light resolve with. This must support
  *     freeing memory.
  * @param resourceAllocator The allocator to create graphics resources with. If NULL this will use
  *     the deferred light resolve allocator.
