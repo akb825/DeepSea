@@ -81,11 +81,13 @@ dsMTLGfxBufferData* dsMTLGfxBufferData_create(dsResourceManager* resourceManager
 	{
 		if (mtlResourceManager->appleGpu)
 			resourceOptions |= MTLResourceStorageModeShared;
+#if DS_MAC
 		else
 		{
 			resourceOptions |= MTLResourceStorageModeManaged;
 			buffer->managed = true;
 		}
+#endif
 	}
 #endif
 
