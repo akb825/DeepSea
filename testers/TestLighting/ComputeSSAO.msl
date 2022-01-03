@@ -84,7 +84,7 @@ void fragmentShader()
 
 	float occlusion = dsComputeSSAO(viewPosition, normal, depth,
 		INSTANCE(dsViewTransform).projection, surfaceDepth, INSTANCE(randomOffsets).offsets,
-		rotation, RADIUS, SAMPLES, BIAS, INSTANCE(dsViewTransform).clipSpaceTexCoordTransform);
+		rotation, RADIUS, SAMPLES, BIAS);
 	outputColor = vec4(vec3(occlusion), 1.0);
 }
 

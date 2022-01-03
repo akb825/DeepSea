@@ -104,7 +104,11 @@ vec2 dsGetScreenClipPosition()
 vec2 dsGetScreenTextureCoordinates()
 {
 	vec2 screenPos = gl_FragCoord.xy/vec2(INSTANCE(dsViewTransform).screenSize);
-	return dsRotateScreenPosition(vec2(screenPos.x, screenPos.y));
+#if GLSL_VERSION || GLSLES_VERSION
+	return vec2(screenPos.x, 1.0 - screenPos.y);
+#else
+	return screenPos;
+#endif
 }
 
 /**

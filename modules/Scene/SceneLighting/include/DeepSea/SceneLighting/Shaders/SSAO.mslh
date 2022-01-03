@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include <DeepSea/Scene/Shaders/ViewTransform.mslh>
+
 /**
  * @file
  * @brief Functions for computing screen-space ambient occlusion.
@@ -50,7 +52,7 @@
 [[fragment]]
 lowp float dsComputeSSAO(vec3 viewPosition, lowp vec3 viewNormal, float depth,
 	mat4 projection, sampler2D depthTexture, vec3 randomOffsets[DS_MAX_SSAO_SAMPLES],
-	lowp vec2 rotation, float radius, int samples, float bias, vec3 texCoordTransform[2])
+	lowp vec2 rotation, float radius, int samples, float bias)
 {
 	vec4 minViewPosition = vec4(viewPosition.xy, viewPosition.z - radius, 1.0);
 	minViewPosition = projection*minViewPosition;
@@ -71,7 +73,9 @@ lowp float dsComputeSSAO(vec3 viewPosition, lowp vec3 viewNormal, float depth,
 		testPos /= testPos.w;
 		// Need to clamp the Z value otherwise it will occlude along the far plane.
 		testPos.z = clamp(testPos.z, 0.0, 1.0);
-		testPos.xyz = testPos.xyz*texCoordTransform[0] + texCoordTransform[1];
+		testPos.xy = dsRotateScreenPosition(testPos.xy);
+		testPos.xyz = testPos.xyz*INSTANCE(dsViewTransform).clipSpaceTexCoordTransform[0] +
+			INSTANCE(dsViewTransform).clipSpaceTexCoordTransform[1];
 		float curDepth = texture(depthTexture, testPos.xy).r;
 
 #ifdef DS_REVERSE_Z

@@ -68,8 +68,6 @@ DS_SCENE_EXPORT void dsSceneFullScreenResolve_destroyGeometry(void);
  * @param allocator The allocator to create the list with.
  * @param name The name of the full screen resolve. This will be copied.
  * @param resourceManager The resource manager to create graphics resources from.
- * @param resourceAllocator The allocator to create graphics resources with. If NULL, it will use
- *     the full screen resolve allocator.
  * @param shader The shader to draw with.
  * @param material The material to draw with.
  * @param renderStates The render states to use, or NULL if no special render states are needed.
