@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 Aaron Barany
+ * Copyright 2019-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,6 +52,15 @@
 #include <DeepSea/EasyProfiler/EasyProfiler.h>
 #endif
 
+typedef enum LightingType
+{
+	LightingType_Forward,
+	LightingType_Deferred,
+	LightingType_SSAODeferred
+} LightingType;
+
+static int lightingTypeCount = LightingType_SSAODeferred + 1;
+
 typedef struct TestLighting
 {
 	dsAllocator* allocator;
@@ -74,8 +83,16 @@ typedef struct TestLighting
 	dsScene* deferredLightScene;
 	dsView* deferredLightView;
 
+	dsSceneResources* ssaoLightShaders;
+	dsSceneResources* ssaoLightMaterials;
+	dsSceneResources* ssaoLightModels;
+	dsSceneResources* ssaoLightSceneResources;
+	dsScene* ssaoLightScene;
+	dsView* ssaoLightView;
+
 	dsScene* curScene;
 	dsView* curView;
+	LightingType lightingType;
 	float rotation;
 	uint32_t fingerCount;
 	uint32_t maxFingers;
@@ -193,6 +210,26 @@ static bool updateItemListShadowBias(dsSceneItemList* itemList, void* userData)
 	return true;
 }
 
+static void nextLightingType(TestLighting* testLighting)
+{
+	testLighting->lightingType = (testLighting->lightingType + 1) % lightingTypeCount;
+	switch (testLighting->lightingType)
+	{
+		case LightingType_Forward:
+			testLighting->curScene = testLighting->forwardLightScene;
+			testLighting->curView = testLighting->forwardLightView;
+			break;
+		case LightingType_Deferred:
+			testLighting->curScene = testLighting->deferredLightScene;
+			testLighting->curView = testLighting->deferredLightView;
+			break;
+		case LightingType_SSAODeferred:
+			testLighting->curScene = testLighting->ssaoLightScene;
+			testLighting->curView = testLighting->ssaoLightView;
+			break;
+	}
+}
+
 static bool processEvent(dsApplication* application, dsWindow* window, const dsEvent* event,
 	void* userData)
 {
@@ -210,6 +247,8 @@ static bool processEvent(dsApplication* application, dsWindow* window, const dsE
 				testLighting->window->surface, dsGfxSurfaceType_ColorRenderSurface));
 			DS_VERIFY(dsView_setSurface(testLighting->deferredLightView, "windowColor",
 				testLighting->window->surface, dsGfxSurfaceType_ColorRenderSurface));
+			DS_VERIFY(dsView_setSurface(testLighting->ssaoLightView, "windowColor",
+				testLighting->window->surface, dsGfxSurfaceType_ColorRenderSurface));
 			// Fall through
 		case dsAppEventType_WindowResized:
 			DS_VERIFY(dsView_setDimensions(testLighting->forwardLightView,
@@ -218,11 +257,15 @@ static bool processEvent(dsApplication* application, dsWindow* window, const dsE
 			DS_VERIFY(dsView_setDimensions(testLighting->deferredLightView,
 				testLighting->window->surface->width, testLighting->window->surface->height,
 				testLighting->window->surface->rotation));
+			DS_VERIFY(dsView_setDimensions(testLighting->ssaoLightView,
+				testLighting->window->surface->width, testLighting->window->surface->height,
+				testLighting->window->surface->rotation));
 			// Need to update the view again if the surfaces have been set.
 			if (event->type == dsAppEventType_SurfaceInvalidated)
 			{
 				dsView_update(testLighting->forwardLightView);
 				dsView_update(testLighting->deferredLightView);
+				dsView_update(testLighting->ssaoLightView);
 			}
 			return true;
 		case dsAppEventType_WillEnterForeground:
@@ -237,18 +280,7 @@ static bool processEvent(dsApplication* application, dsWindow* window, const dsE
 			else if (event->key.key == dsKeyCode_Space)
 				testLighting->stop = !testLighting->stop;
 			else if (event->key.key == dsKeyCode_Enter)
-			{
-				if (testLighting->curScene == testLighting->forwardLightScene)
-				{
-					testLighting->curScene = testLighting->deferredLightScene;
-					testLighting->curView = testLighting->deferredLightView;
-				}
-				else
-				{
-					testLighting->curScene = testLighting->forwardLightScene;
-					testLighting->curView = testLighting->forwardLightView;
-				}
-			}
+				nextLightingType(testLighting);
 			else if (event->key.key == dsKeyCode_1)
 			{
 				uint32_t samples = renderer->defaultSamples;
@@ -278,16 +310,7 @@ static bool processEvent(dsApplication* application, dsWindow* window, const dsE
 						testLighting->stop = !testLighting->stop;
 						break;
 					case 2:
-						if (testLighting->curScene == testLighting->forwardLightScene)
-						{
-							testLighting->curScene = testLighting->deferredLightScene;
-							testLighting->curView = testLighting->deferredLightView;
-						}
-						else
-						{
-							testLighting->curScene = testLighting->forwardLightScene;
-							testLighting->curView = testLighting->forwardLightView;
-						}
+						nextLightingType(testLighting);
 						break;
 					default:
 						break;
@@ -526,6 +549,93 @@ static bool setupDeferredLighitng(TestLighting* testLighting, dsAllocator* alloc
 	return true;
 }
 
+static bool setupSSAOLighitng(TestLighting* testLighting, dsAllocator* allocator,
+	dsSceneLoadContext* loadContext, dsSceneLoadScratchData* scratchData)
+{
+	testLighting->ssaoLightShaders = dsSceneResources_loadResource(allocator, NULL,
+		loadContext, scratchData, dsFileResourceType_Embedded, "SSAOShaders.dssr");
+	if (!testLighting->ssaoLightShaders)
+	{
+		DS_LOG_ERROR_F("TestLighting", "Couldn't load SSAO shaders: %s", dsErrorString(errno));
+		dsSceneLoadContext_destroy(loadContext);
+		dsSceneLoadScratchData_destroy(scratchData);
+		return false;
+	}
+	DS_VERIFY(dsSceneLoadScratchData_pushSceneResources(scratchData,
+		&testLighting->ssaoLightShaders, 1));
+
+	testLighting->ssaoLightMaterials = dsSceneResources_loadResource(allocator, NULL,
+		loadContext, scratchData, dsFileResourceType_Embedded, "Materials.dssr");
+	if (!testLighting->ssaoLightMaterials)
+	{
+		DS_LOG_ERROR_F("TestLighting", "Couldn't load SSAO materials: %s", dsErrorString(errno));
+		dsSceneLoadContext_destroy(loadContext);
+		dsSceneLoadScratchData_destroy(scratchData);
+		return false;
+	}
+	DS_VERIFY(dsSceneLoadScratchData_pushSceneResources(scratchData,
+		&testLighting->ssaoLightMaterials, 1));
+
+	testLighting->ssaoLightModels = dsSceneResources_loadResource(allocator, NULL,
+		loadContext, scratchData, dsFileResourceType_Embedded, "Models.dssr");
+	if (!testLighting->ssaoLightModels)
+	{
+		DS_LOG_ERROR_F("TestLighting", "Couldn't load SSAO models: %s", dsErrorString(errno));
+		dsSceneLoadContext_destroy(loadContext);
+		dsSceneLoadScratchData_destroy(scratchData);
+		return false;
+	}
+	DS_VERIFY(dsSceneLoadScratchData_pushSceneResources(scratchData,
+		&testLighting->ssaoLightModels, 1));
+
+	testLighting->ssaoLightSceneResources = dsSceneResources_loadResource(allocator, NULL,
+		loadContext, scratchData, dsFileResourceType_Embedded, "SceneGraph.dssr");
+	if (!testLighting->ssaoLightSceneResources)
+	{
+		DS_LOG_ERROR_F("TestLighting", "Couldn't load SSAO scene graph: %s",
+			dsErrorString(errno));
+		dsSceneLoadContext_destroy(loadContext);
+		dsSceneLoadScratchData_destroy(scratchData);
+		return false;
+	}
+	DS_VERIFY(dsSceneLoadScratchData_pushSceneResources(scratchData,
+		&testLighting->ssaoLightSceneResources, 1));
+
+	testLighting->ssaoLightScene = dsScene_loadResource(allocator, NULL, loadContext,
+		scratchData, NULL, NULL, dsFileResourceType_Embedded, "SSAOScene.dss");
+	if (!testLighting->ssaoLightScene)
+	{
+		DS_LOG_ERROR_F("TestLighting", "Couldn't load SSAO scene: %s", dsErrorString(errno));
+		dsSceneLoadContext_destroy(loadContext);
+		dsSceneLoadScratchData_destroy(scratchData);
+		return false;
+	}
+
+	DS_VERIFY(dsScene_forEachItemList(testLighting->ssaoLightScene, updateItemListShadowBias,
+		testLighting->renderer));
+
+	dsRenderSurface* surface = testLighting->window->surface;
+	dsViewSurfaceInfo viewSurface;
+	viewSurface.name = "windowColor";
+	viewSurface.surfaceType = dsGfxSurfaceType_ColorRenderSurface;
+	viewSurface.surface = surface;
+	viewSurface.windowFramebuffer = true;
+
+	testLighting->ssaoLightView = dsView_loadResource(testLighting->ssaoLightScene, allocator,
+		NULL, scratchData, &viewSurface, 1, surface->width, surface->height,
+		surface->rotation, NULL, NULL, dsFileResourceType_Embedded, "SSAOView.dsv");
+	if (!testLighting->ssaoLightView)
+	{
+		DS_LOG_ERROR_F("TestLighting", "Couldn't load SSAO view: %s", dsErrorString(errno));
+		dsSceneLoadContext_destroy(loadContext);
+		dsSceneLoadScratchData_destroy(scratchData);
+		return false;
+	}
+
+	DS_VERIFY(dsSceneLoadScratchData_popSceneResources(scratchData, 4));
+	return true;
+}
+
 static bool setup(TestLighting* testLighting, dsApplication* application, dsAllocator* allocator)
 {
 	dsRenderer* renderer = application->renderer;
@@ -642,7 +752,8 @@ static bool setup(TestLighting* testLighting, dsApplication* application, dsAllo
 		&testLighting->baseResources, 1));
 
 	if (!setupForwardLighitng(testLighting, allocator, loadContext, scratchData) ||
-		!setupDeferredLighitng(testLighting, allocator, loadContext, scratchData))
+		!setupDeferredLighitng(testLighting, allocator, loadContext, scratchData) ||
+		!setupSSAOLighitng(testLighting, allocator, loadContext, scratchData))
 	{
 		return false;
 	}
@@ -650,12 +761,15 @@ static bool setup(TestLighting* testLighting, dsApplication* application, dsAllo
 	dsSceneLoadContext_destroy(loadContext);
 	dsSceneLoadScratchData_destroy(scratchData);
 
+	testLighting->lightingType = LightingType_Forward;
 	testLighting->curScene = testLighting->forwardLightScene;
 	testLighting->curView = testLighting->forwardLightView;
 
 	dsView_setPerspectiveProjection(testLighting->forwardLightView, dsDegreesToRadiansf(45.0f),
 		0.1f, 100.0f);
 	dsView_setPerspectiveProjection(testLighting->deferredLightView, dsDegreesToRadiansf(45.0f),
+		0.1f, 100.0f);
+	dsView_setPerspectiveProjection(testLighting->ssaoLightView, dsDegreesToRadiansf(45.0f),
 		0.1f, 100.0f);
 
 	return true;
@@ -676,6 +790,13 @@ static void shutdown(TestLighting* testLighting)
 	dsSceneResources_freeRef(testLighting->deferredLightModels);
 	dsSceneResources_freeRef(testLighting->deferredLightShaders);
 	dsSceneResources_freeRef(testLighting->deferredLightMaterials);
+
+	DS_VERIFY(dsView_destroy(testLighting->ssaoLightView));
+	dsScene_destroy(testLighting->ssaoLightScene);
+	dsSceneResources_freeRef(testLighting->ssaoLightSceneResources);
+	dsSceneResources_freeRef(testLighting->ssaoLightModels);
+	dsSceneResources_freeRef(testLighting->ssaoLightShaders);
+	dsSceneResources_freeRef(testLighting->ssaoLightMaterials);
 
 	dsSceneResources_freeRef(testLighting->baseResources);
 	dsSceneResources_freeRef(testLighting->builtinResources);
@@ -734,7 +855,7 @@ int dsMain(int argc, const char** argv)
 
 	DS_LOG_INFO_F("TestLighting", "Render using %s", dsRenderBootstrap_rendererName(rendererType));
 	DS_LOG_INFO("TestLighting", "Press space to pause/unpause.");
-	DS_LOG_INFO("TestLighting", "Press enter to toggle forward and deferred lighting.");
+	DS_LOG_INFO("TestLighting", "Press enter to cycle lighting types.");
 	DS_LOG_INFO("TestLighting", "Press '1' to toggle anti-aliasing for forward lighting.");
 
 	dsSystemAllocator renderAllocator;

@@ -21,6 +21,7 @@
 			{"name": "viewProjection", "type": "Mat4"},
 			{"name": "projectionInv", "type": "Mat4"},
 			{"name": "screenRotation", "type": "Vec4"},
+			{"name": "clipSpaceTexCoordTransform", "type": "Vec3", "count": 2},
 			{"name": "screenSize", "type": "IVec2"}
 		]
 	},

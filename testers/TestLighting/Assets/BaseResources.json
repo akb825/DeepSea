@@ -392,11 +392,6 @@
 			{
 				"name": "fadeDistances",
 				"type": "Vec2"
-			},
-			{
-				"name": "texCoordTransform",
-				"type": "Vec3",
-				"count": 2
 			}
 		]
 	},
@@ -417,11 +412,6 @@
 			{
 				"name": "fadeDistances",
 				"type": "Vec2"
-			},
-			{
-				"name": "texCoordTransform",
-				"type": "Vec3",
-				"count": 2
 			}
 		]
 	},
@@ -438,11 +428,6 @@
 			{
 				"name": "fadeDistances",
 				"type": "Vec2"
-			},
-			{
-				"name": "texCoordTransform",
-				"type": "Vec3",
-				"count": 2
 			},
 			{
 				"name": "lightPosition",

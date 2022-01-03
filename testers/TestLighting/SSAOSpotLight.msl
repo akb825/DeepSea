@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2022 Aaron Barany
+ * Copyright 2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 
+#define DS_REVERSE_Z
+
 #include <DeepSea/Scene/Shaders/ViewTransform.mslh>
-#include <DeepSea/SceneLighting/Shaders/DeferredDirectionalLight.mslh>
+#include <DeepSea/SceneLighting/Shaders/DeferredSpotLight.mslh>
 
 #include <DeepSea/Render/Shaders/Shadows/ShadowPCF4x4.mslh>
 #include <DeepSea/Render/Shaders/Shadows/ShadowMap.mslh>
@@ -30,21 +32,46 @@ sampler_state shadowMap
 	compare_op = greater_or_equal;
 }
 
+uniform sampler2D materialColor;
+sampler_state materialColor
+{
+	address_mode_u = clamp_to_edge;
+	address_mode_v = clamp_to_edge;
+	min_filter = nearest;
+	mag_filter = nearest;
+}
+
+uniform sampler2D normalSpecular;
+sampler_state normalSpecular
+{
+	address_mode_u = clamp_to_edge;
+	address_mode_v = clamp_to_edge;
+	min_filter = nearest;
+	mag_filter = nearest;
+}
+
+uniform sampler2D surfaceDepth;
+sampler_state surfaceDepth
+{
+	address_mode_u = clamp_to_edge;
+	address_mode_v = clamp_to_edge;
+	min_filter = nearest;
+	mag_filter = nearest;
+}
+
 uniform ShadowTransform
 {
 	mat4 matrix;
 	vec2 fadeDistances;
 } dsShadowTransform;
 
-[[fragment]] uniform subpassInput(0) materialColor;
-[[fragment]] uniform subpassInput(1) normalSpecular;
-[[fragment]] uniform subpassInput(2) surfaceDepth;
 [[fragment]] out vec4 outputColor;
 
 [[fragment]]
 void fragmentShader()
 {
-	vec4 color = subpassLoad(materialColor);
+	vec2 texCoords = dsGetScreenTextureCoordinates();
+	vec4 color = texture(materialColor, texCoords);
 	// Alpha of 0 means clear color.
 	if (color.a == 0)
 	{
@@ -52,8 +79,8 @@ void fragmentShader()
 		return;
 	}
 
-	vec4 normalSpecularVal = subpassLoad(normalSpecular);
-	float depthVal = subpassLoad(surfaceDepth).x;
+	vec4 normalSpecularVal = texture(normalSpecular, texCoords);
+	float depthVal = texture(surfaceDepth, texCoords).x;
 
 	vec3 normal;
 	normal.xy = normalSpecularVal.xy*2.0 - vec2(1.0);
@@ -72,15 +99,15 @@ void fragmentShader()
 		INSTANCE(dsViewTransform).clipSpaceTexCoordTransform);
 
 	vec3 diffuseLight, specularLight;
-	dsDeferredDirectionalLight_lightColor(diffuseLight, specularLight, normal, viewDirection,
-		shininess);
+	dsDeferredSpotLight_lightColor(diffuseLight, specularLight, viewPosition, normal,
+		viewDirection, shininess);
 	outputColor.xyz = (color.rgb*diffuseLight + specular*specularLight)*shadowValue;
 	outputColor.w = 1.0;
 }
 
-pipeline DirectionalLight
+pipeline SpotLight
 {
-	vertex = dsDeferredDirectionalLight_defaultVertex;
+	vertex = dsDeferredSpotLight_defaultVertex;
 	fragment = fragmentShader;
-	DS_DEFERRED_DIRECTIONAL_LIGHT_RENDER_STATES
+	DS_DEFERRED_SPOT_LIGHT_RENDER_STATES
 }

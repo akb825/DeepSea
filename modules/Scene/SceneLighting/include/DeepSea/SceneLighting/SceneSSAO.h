@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Aaron Barany
+ * Copyright 2021-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,7 +64,7 @@ DS_SCENELIGHTING_EXPORT dsSceneItemListType dsSceneSSAO_type(void);
  *     - position: vec2 clip-space [-1, 1] values.
  * @param material The material for the SSAO. This must have the following two elements with
  *     material binding:
- *     - randomOffsets: ShaderVariableGroup with a single array of DS_MAX_SCENE_SSAO_SAMPLES vec3
+ *     - RandomOffsets: Uniform block buffer with a single array of DS_MAX_SCENE_SSAO_SAMPLES vec3
  *       elements. This should be multiplied by the radius for the final offset.
  *     - randomRotations: 2D RG texture for a random rotation vector to cross with the normal. The
  *       Z coordinate is implicitly 0. This is of size DS_SCENE_SSAO_ROTATION_SIZE.
@@ -103,7 +103,7 @@ DS_SCENELIGHTING_EXPORT dsMaterial* dsSceneSSAO_getMaterial(const dsSceneSSAO* s
  * @remark errno will be set on failure.
  * @param ssao The scene SSAO.
  * @param material The material. This must have the following two elements with material binding:
- *     - randomOffsets: ShaderVariableGroup with a single array of DS_MAX_SCENE_SSAO_SAMPLES vec3
+ *     - RandomOffsets: Uniform block buffer with a single array of DS_MAX_SCENE_SSAO_SAMPLES vec3
  *       elements.
  *     - randomRotations: 2D RG texture for a random rotation vector to cross with the normal.
  * @return False if the parameters are invalid.

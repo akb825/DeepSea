@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Aaron Barany
+ * Copyright 2021-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -77,10 +77,6 @@ typedef struct CascadedDirectionalLightData
 	dsVector4f splitDistances;
 	dsVector2f shadowDistance;
 	dsVector2f padding0;
-	dsVector3f texCoordScale;
-	float padding1;
-	dsVector3f texCoordOffset;
-	float padding2;
 } CascadedDirectionalLightData;
 
 typedef struct PointLightData
@@ -88,12 +84,8 @@ typedef struct PointLightData
 	dsMatrix44f matrices[6];
 	dsVector2f shadowDistance;
 	dsVector2f padding0;
-	dsVector3f texCoordScale;
-	float padding1;
-	dsVector3f texCoordOffset;
-	float padding2;
 	dsVector3f lightViewPos;
-	float padding3;
+	float padding1;
 } PointLightData;
 
 typedef struct SpotLightData
@@ -101,10 +93,6 @@ typedef struct SpotLightData
 	dsMatrix44f matrix;
 	dsVector2f shadowDistance;
 	dsVector2f padding0;
-	dsVector3f texCoordScale;
-	float padding1;
-	dsVector3f texCoordOffset;
-	float padding2;
 } SpotLightData;
 
 static bool transformGroupValid(const dsShaderVariableGroupDesc* transformGroupDesc,
@@ -113,57 +101,41 @@ static bool transformGroupValid(const dsShaderVariableGroupDesc* transformGroupD
 	switch (lightType)
 	{
 		case dsSceneLightType_Directional:
-			if (transformGroupDesc->elementCount == 3)
+			if (transformGroupDesc->elementCount == 2)
 			{
 				const dsShaderVariableElement* matrixElement = transformGroupDesc->elements;
 				const dsShaderVariableElement* distanceElement = transformGroupDesc->elements + 1;
-				const dsShaderVariableElement* texCoordTransformElement =
-					transformGroupDesc->elements + 2;
 				return matrixElement->type == dsMaterialType_Mat4 && matrixElement->count == 0 &&
-					distanceElement->type == dsMaterialType_Vec2 && distanceElement->count == 0 &&
-					texCoordTransformElement->type == dsMaterialType_Vec3 &&
-						texCoordTransformElement->count == 2;
+					distanceElement->type == dsMaterialType_Vec2 && distanceElement->count == 0;
 			}
-			else if (transformGroupDesc->elementCount == 4)
+			else if (transformGroupDesc->elementCount == 3)
 			{
 				const dsShaderVariableElement* matrixElement = transformGroupDesc->elements;
 				const dsShaderVariableElement* splitElement = transformGroupDesc->elements + 1;
 				const dsShaderVariableElement* distanceElement = transformGroupDesc->elements + 2;
-				const dsShaderVariableElement* texCoordTransformElement =
-					transformGroupDesc->elements + 3;
 				return matrixElement->type == dsMaterialType_Mat4 && matrixElement->count == 4 &&
 					splitElement->type == dsMaterialType_Vec4 && splitElement->count == 0 &&
-					distanceElement->type == dsMaterialType_Vec2 && distanceElement->count == 0 &&
-					texCoordTransformElement->type == dsMaterialType_Vec3 &&
-						texCoordTransformElement->count == 2;
+					distanceElement->type == dsMaterialType_Vec2 && distanceElement->count == 0;
 			}
 			return false;
 		case dsSceneLightType_Point:
-			if (transformGroupDesc->elementCount == 4)
-			{
-				const dsShaderVariableElement* matrixElement = transformGroupDesc->elements;
-				const dsShaderVariableElement* distanceElement = transformGroupDesc->elements + 1;
-				const dsShaderVariableElement* texCoordTransformElement =
-					transformGroupDesc->elements + 2;
-				const dsShaderVariableElement* positionElement = transformGroupDesc->elements + 3;
-				return matrixElement->type == dsMaterialType_Mat4 && matrixElement->count == 6 &&
-					distanceElement->type == dsMaterialType_Vec2 && distanceElement->count == 0 &&
-					texCoordTransformElement->type == dsMaterialType_Vec3 &&
-						texCoordTransformElement->count == 2 &&
-					positionElement->type == dsMaterialType_Vec3 && positionElement->count == 0;
-			}
-			return false;
-		case dsSceneLightType_Spot:
 			if (transformGroupDesc->elementCount == 3)
 			{
 				const dsShaderVariableElement* matrixElement = transformGroupDesc->elements;
 				const dsShaderVariableElement* distanceElement = transformGroupDesc->elements + 1;
-				const dsShaderVariableElement* texCoordTransformElement =
-					transformGroupDesc->elements + 2;
-				return matrixElement->type == dsMaterialType_Mat4 && matrixElement->count == 0 &&
+				const dsShaderVariableElement* positionElement = transformGroupDesc->elements + 2;
+				return matrixElement->type == dsMaterialType_Mat4 && matrixElement->count == 6 &&
 					distanceElement->type == dsMaterialType_Vec2 && distanceElement->count == 0 &&
-					texCoordTransformElement->type == dsMaterialType_Vec3 &&
-						texCoordTransformElement->count == 2;
+					positionElement->type == dsMaterialType_Vec3 && positionElement->count == 0;
+			}
+			return false;
+		case dsSceneLightType_Spot:
+			if (transformGroupDesc->elementCount == 2)
+			{
+				const dsShaderVariableElement* matrixElement = transformGroupDesc->elements;
+				const dsShaderVariableElement* distanceElement = transformGroupDesc->elements + 1;
+				return matrixElement->type == dsMaterialType_Mat4 && matrixElement->count == 0 &&
+					distanceElement->type == dsMaterialType_Vec2 && distanceElement->count == 0;
 			}
 			return false;
 		default:
@@ -511,14 +483,6 @@ bool dsSceneLightShadows_prepare(dsSceneLightShadows* shadows, const dsView* vie
 	if (!shadows->fallback && !getBufferData(shadows))
 		return false;
 
-	// The transform from shadow position to texture coordinates depends on the renderer.
-	int halfDepth = renderer->projectionOptions & dsProjectionMatrixOptions_HalfZRange;
-	dsVector3f texCoordTransform[2] =
-	{
-		{{0.5f, renderer->projectedTexCoordTInverted ? -0.5f : 0.5f, halfDepth ? 1.0f : 0.5f}},
-		{{0.5f, 0.5f, halfDepth ? 0.0f : 0.5f}}
-	};
-
 	dsMatrix44f identity;
 	dsMatrix44_identity(identity);
 	shadows->committedMatrices = 0;
@@ -567,8 +531,6 @@ bool dsSceneLightShadows_prepare(dsSceneLightShadows* shadows, const dsView* vie
 						&splitDistances, dsMaterialType_Vec4, 0, 1));
 					DS_VERIFY(dsShaderVariableGroup_setElementData(shadows->fallback, 2,
 						&shadowDistance, dsMaterialType_Vec2, 0, 1));
-					DS_VERIFY(dsShaderVariableGroup_setElementData(shadows->fallback, 3,
-						texCoordTransform, dsMaterialType_Vec3, 0, 2));
 				}
 				else
 				{
@@ -576,8 +538,6 @@ bool dsSceneLightShadows_prepare(dsSceneLightShadows* shadows, const dsView* vie
 						(CascadedDirectionalLightData*)shadows->curBufferData;
 					data->splitDistances = splitDistances;
 					data->shadowDistance = shadowDistance;
-					data->texCoordScale = texCoordTransform[0];
-					data->texCoordOffset = texCoordTransform[1];
 				}
 			}
 			else
@@ -587,15 +547,11 @@ bool dsSceneLightShadows_prepare(dsSceneLightShadows* shadows, const dsView* vie
 				{
 					DS_VERIFY(dsShaderVariableGroup_setElementData(shadows->fallback, 1,
 						&shadowDistance, dsMaterialType_Vec2, 0, 1));
-					DS_VERIFY(dsShaderVariableGroup_setElementData(shadows->fallback, 2,
-						texCoordTransform, dsMaterialType_Vec3, 0, 2));
 				}
 				else
 				{
 					DirectionalLightData* data = (DirectionalLightData*)shadows->curBufferData;
 					data->shadowDistance = shadowDistance;
-					data->texCoordScale = texCoordTransform[0];
-					data->texCoordOffset = texCoordTransform[1];
 				}
 
 				shadows->minBoxSizes[0] = getMinBoxSize(nearPlane, farPlane);
@@ -656,8 +612,6 @@ bool dsSceneLightShadows_prepare(dsSceneLightShadows* shadows, const dsView* vie
 			{
 				DS_VERIFY(dsShaderVariableGroup_setElementData(shadows->fallback, 1,
 					&shadowDistance, dsMaterialType_Vec2, 0, 1));
-				DS_VERIFY(dsShaderVariableGroup_setElementData(shadows->fallback, 2,
-					texCoordTransform, dsMaterialType_Vec3, 0, 2));
 				DS_VERIFY(dsShaderVariableGroup_setElementData(shadows->fallback, 3,
 					&lightViewPos, dsMaterialType_Vec3, 0, 1));
 			}
@@ -665,8 +619,6 @@ bool dsSceneLightShadows_prepare(dsSceneLightShadows* shadows, const dsView* vie
 			{
 				PointLightData* data = (PointLightData*)shadows->curBufferData;
 				data->shadowDistance = shadowDistance;
-				data->texCoordScale = texCoordTransform[0];
-				data->texCoordOffset = texCoordTransform[1];
 				data->lightViewPos = *(dsVector3f*)&lightViewPos;
 			}
 			break;
@@ -710,15 +662,11 @@ bool dsSceneLightShadows_prepare(dsSceneLightShadows* shadows, const dsView* vie
 			{
 				DS_VERIFY(dsShaderVariableGroup_setElementData(shadows->fallback, 1,
 					&shadowDistance, dsMaterialType_Vec2, 0, 1));
-				DS_VERIFY(dsShaderVariableGroup_setElementData(shadows->fallback, 2,
-					texCoordTransform, dsMaterialType_Vec3, 0, 2));
 			}
 			else
 			{
 				SpotLightData* data = (SpotLightData*)shadows->curBufferData;
 				data->shadowDistance = shadowDistance;
-				data->texCoordScale = texCoordTransform[0];
-				data->texCoordOffset = texCoordTransform[1];
 			}
 			break;
 		}

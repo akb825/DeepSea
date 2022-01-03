@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Aaron Barany
+ * Copyright 2021-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,6 @@
 #include <DeepSea/Render/Resources/Material.h>
 #include <DeepSea/Render/Resources/MaterialDesc.h>
 #include <DeepSea/Render/Resources/Shader.h>
-#include <DeepSea/Render/Resources/ShaderVariableGroup.h>
 #include <DeepSea/Render/Resources/Texture.h>
 #include <DeepSea/Render/Resources/VertexFormat.h>
 #include <DeepSea/Render/Renderer.h>
@@ -52,13 +51,11 @@ struct dsSceneSSAO
 	dsMaterial* material;
 
 	dsDrawGeometry* geometry;
-	dsShaderVariableGroup* randomOffsets;
+	dsGfxBuffer* randomOffsets;
 	dsTexture* randomRotations;
-	dsVector4f randomOffsetValues[DS_MAX_SCENE_SSAO_SAMPLES];
-	bool randomOffsetsSet;
 };
 
-static const char* randomOffsetsName = "randomOffsets";
+static const char* randomOffsetsName = "RandomOffsets";
 static const char* randomRotationsName = "randomRotations";
 
 static bool canUseMaterial(const dsMaterial* material)
@@ -73,14 +70,10 @@ static bool canUseMaterial(const dsMaterial* material)
 	}
 
 	const dsMaterialElement* element = materialDesc->elements + index;
-	if (element->type != dsMaterialType_VariableGroup ||
-		element->binding != dsMaterialBinding_Material ||
-		element->shaderVariableGroupDesc->elementCount != 1 ||
-		element->shaderVariableGroupDesc->elements[0].type != dsMaterialType_Vec3 ||
-		element->shaderVariableGroupDesc->elements[0].count != DS_MAX_SCENE_SSAO_SAMPLES)
+	if (element->type != dsMaterialType_UniformBlock)
 	{
 		DS_LOG_ERROR_F(DS_SCENE_LIGHTING_LOG_TAG,
-			"SSAO material element '%s' must be a shader variable group with a vec3[%u] element "
+			"SSAO material element '%s' must be a uniform block buffer with a vec3[%u] element "
 			"with material binding.", randomOffsetsName, DS_MAX_SCENE_SSAO_SAMPLES);
 		return false;
 	}
@@ -110,7 +103,8 @@ static void setMaterialValues(dsSceneSSAO* ssao)
 	const dsMaterialDesc* materialDesc = dsMaterial_getDescription(ssao->material);
 	uint32_t index = dsMaterialDesc_findElement(materialDesc, randomOffsetsName);
 	DS_ASSERT(index != DS_MATERIAL_UNKNOWN);
-	DS_VERIFY(dsMaterial_setVariableGroup(ssao->material, index, ssao->randomOffsets));
+	DS_VERIFY(dsMaterial_setBuffer(ssao->material, index, ssao->randomOffsets, 0,
+		ssao->randomOffsets->size));
 
 	index = dsMaterialDesc_findElement(materialDesc, randomRotationsName);
 	DS_ASSERT(index != DS_MATERIAL_UNKNOWN);
@@ -129,13 +123,6 @@ void dsSceneSSAO_commit(dsSceneItemList* itemList, const dsView* view,
 	dsCommandBuffer* commandBuffer)
 {
 	dsSceneSSAO* ssao = (dsSceneSSAO*)itemList;
-	// Commit offsets when first encountered.
-	if (!ssao->randomOffsetsSet)
-	{
-		DS_VERIFY(dsShaderVariableGroup_commit(ssao->randomOffsets, commandBuffer));
-		ssao->randomOffsetsSet = true;
-	}
-
 	if (!DS_CHECK(DS_SCENE_LIGHTING_LOG_TAG,
 			dsShader_bind(ssao->shader, commandBuffer, ssao->material, view->globalValues, NULL)))
 	{
@@ -170,7 +157,8 @@ dsSceneSSAO* dsSceneSSAO_create(dsAllocator* allocator, dsResourceManager* resou
 	if (!allocator->freeFunc)
 	{
 		errno = EINVAL;
-		DS_LOG_ERROR(DS_SCENE_LOG_TAG, "Scene SSAO allocator must support freeing memory.");
+		DS_LOG_ERROR(DS_SCENE_LIGHTING_LOG_TAG,
+			"Scene SSAO allocator must support freeing memory.");
 		return NULL;
 	}
 
@@ -210,7 +198,6 @@ dsSceneSSAO* dsSceneSSAO_create(dsAllocator* allocator, dsResourceManager* resou
 	ssao->geometry = NULL;
 	ssao->randomOffsets = NULL;
 	ssao->randomRotations = NULL;
-	ssao->randomOffsetsSet = false;
 
 	ssao->geometry = dsSceneFullScreenResolve_createGeometry(resourceManager);
 	if (!ssao->geometry)
@@ -219,16 +206,8 @@ dsSceneSSAO* dsSceneSSAO_create(dsAllocator* allocator, dsResourceManager* resou
 		return NULL;
 	}
 
-	const dsShaderVariableGroupDesc* offsetGroupDesc = getOffsetGroupDesc(material);
-	ssao->randomOffsets = dsShaderVariableGroup_create(resourceManager, allocator,
-		resourceAllocator, offsetGroupDesc);
-	if (!ssao->randomOffsets)
-	{
-		dsSceneSSAO_destroy(ssao);
-		return NULL;
-	}
-
 	uint32_t seed = 0;
+	dsVector4f randomOffsets[DS_MAX_SCENE_SSAO_SAMPLES];
 	for (unsigned int i = 0; i < DS_MAX_SCENE_SSAO_SAMPLES; ++i)
 	{
 		// Spherical coordinates for a hemisphere.
@@ -246,14 +225,21 @@ dsSceneSSAO* dsSceneSSAO_create(dsAllocator* allocator, dsResourceManager* resou
 		float cosPhi = cosf(phi);
 		float sinPhi = sinf(phi);
 
-		dsVector4f* curSample = ssao->randomOffsetValues + i;
+		dsVector4f* curSample = randomOffsets + i;
 		curSample->x = cosTheta*cosPhi*scale;
 		curSample->y = sinTheta*cosPhi*scale;
 		curSample->z = sinPhi*scale;
 		curSample->w = 0.0f;
 	}
-	DS_VERIFY(dsShaderVariableGroup_setElementData(ssao->randomOffsets, 0, ssao->randomOffsetValues,
-		dsMaterialType_Vec3, 0, DS_MAX_SCENE_SSAO_SAMPLES));
+
+	ssao->randomOffsets = dsGfxBuffer_create(resourceManager, resourceAllocator,
+		dsGfxBufferUsage_UniformBlock, dsGfxMemory_GPUOnly | dsGfxMemory_Static,
+		randomOffsets, sizeof(randomOffsets));
+	if (!ssao->randomOffsets)
+	{
+		dsSceneSSAO_destroy(ssao);
+		return NULL;
+	}
 
 	uint8_t randomRotations[DS_SCENE_SSAO_ROTATION_SIZE][DS_SCENE_SSAO_ROTATION_SIZE][2];
 	for (uint32_t i = 0; i < DS_SCENE_SSAO_ROTATION_SIZE; ++i)
@@ -326,22 +312,6 @@ bool dsSceneSSAO_setMaterial(dsSceneSSAO* ssao, dsMaterial* material)
 		return false;
 	}
 
-	const dsShaderVariableGroupDesc* offsetGroupDesc = getOffsetGroupDesc(material);
-	if (offsetGroupDesc != dsShaderVariableGroup_getDescription(ssao->randomOffsets))
-	{
-		dsSceneItemList* itemList = (dsSceneItemList*)ssao;
-		dsShaderVariableGroup* randomOffsets = dsShaderVariableGroup_create(ssao->resourceManager,
-			itemList->allocator, ssao->resourceAllocator, offsetGroupDesc);
-		if (!randomOffsets)
-			return false;
-
-		DS_VERIFY(dsShaderVariableGroup_setElementData(randomOffsets, 0, ssao->randomOffsetValues,
-			dsMaterialType_Vec3, 0, DS_MAX_SCENE_SSAO_SAMPLES));
-		DS_VERIFY(dsShaderVariableGroup_destroy(ssao->randomOffsets));
-		ssao->randomOffsets = randomOffsets;
-		ssao->randomOffsetsSet = false;
-	}
-
 	ssao->material = material;
 	setMaterialValues(ssao);
 	return true;
@@ -356,7 +326,7 @@ void dsSceneSSAO_destroy(dsSceneSSAO* ssao)
 
 	if (ssao->geometry)
 		dsSceneFullScreenResolve_destroyGeometry();
-	dsShaderVariableGroup_destroy(ssao->randomOffsets);
+	dsGfxBuffer_destroy(ssao->randomOffsets);
 	dsTexture_destroy(ssao->randomRotations);
 
 	DS_VERIFY(dsAllocator_free(itemList->allocator, itemList));

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Aaron Barany
+ * Copyright 2019-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,6 +38,7 @@ static dsShaderVariableElement elements[] =
 	{"viewProjection", dsMaterialType_Mat4, 0},
 	{"projectionInv", dsMaterialType_Mat4, 0},
 	{"screenRotation", dsMaterialType_Vec4, 0},
+	{"clipSpaceTexCoordTransform", dsMaterialType_Vec3, 2},
 	{"screenSize", dsMaterialType_IVec2, 0}
 };
 
@@ -67,6 +68,7 @@ bool dsViewTransformData_populateData(dsSceneGlobalData* globalData, const dsVie
 	dsCommandBuffer* commandBuffer)
 {
 	dsViewTransformData* viewData = (dsViewTransformData*)globalData;
+	dsRenderer* renderer = commandBuffer->renderer;
 	unsigned int i = 0;
 	DS_VERIFY(dsShaderVariableGroup_setElementData(viewData->variableGroup, i++, &view->viewMatrix,
 		dsMaterialType_Mat4, 0, 1));
@@ -86,6 +88,15 @@ bool dsViewTransformData_populateData(dsSceneGlobalData* globalData, const dsVie
 	DS_VERIFY(dsRenderSurface_makeRotationMatrix22(&screenRotation, view->rotation));
 	DS_VERIFY(dsShaderVariableGroup_setElementData(viewData->variableGroup, i++, &screenRotation,
 		dsMaterialType_Vec4, 0, 1));
+
+	int halfDepth = renderer->projectionOptions & dsProjectionMatrixOptions_HalfZRange;
+	dsVector3f texCoordTransform[2] =
+	{
+		{{0.5f, renderer->projectedTexCoordTInverted ? -0.5f : 0.5f, halfDepth ? 1.0f : 0.5f}},
+		{{0.5f, 0.5f, halfDepth ? 0.0f : 0.5f}}
+	};
+	DS_VERIFY(dsShaderVariableGroup_setElementData(viewData->variableGroup, i++, texCoordTransform,
+		dsMaterialType_Vec3, 0, 2));
 
 	dsVector2i screenSize;
 	if (view->rotation == dsRenderSurfaceRotation_0 ||

@@ -1,8 +1,8 @@
 [
 	{
 		"type": "ShaderModule",
-		"name": "deferredLightShaderModule",
-		"modules": @deferredLightShaderModule@
+		"name": "ssaoDeferredLightShaderModule",
+		"modules": @ssaoDeferredLightShaderModule@
 	},
 	{
 		"type": "MaterialDesc",
@@ -46,9 +46,42 @@
 	{
 		"type": "Shader",
 		"name": "defaultModelShader",
-		"module": "deferredLightShaderModule",
+		"module": "ssaoDeferredLightShaderModule",
 		"pipeline": "GBuffers",
 		"materialDesc": "defaultMaterialDesc"
+	},
+	{
+		"type": "MaterialDesc",
+		"name": "computeSSAOMaterialDesc",
+		"elements":
+		[
+			{
+				"name": "normalSpecular",
+				"type": "Texture",
+				"binding": "Global"
+			},
+			{
+				"name": "surfaceDepth",
+				"type": "Texture",
+				"binding": "Global"
+			},
+			{
+				"name": "ViewTransformData",
+				"type": "VariableGroup",
+				"binding": "Global",
+				"shaderVariableGroupDesc": "viewTransformDesc"
+			},
+			{
+				"name": "RandomOffsets",
+				"type": "UniformBlock",
+				"binding": "Material"
+			},
+			{
+				"name": "randomRotations",
+				"type": "Texture",
+				"binding": "Material"
+			}
+		]
 	},
 	{
 		"type": "MaterialDesc",
@@ -57,7 +90,12 @@
 		[
 			{
 				"name": "materialColor",
-				"type": "SubpassInput",
+				"type": "Texture",
+				"binding": "Global"
+			},
+			{
+				"name": "ssao",
+				"type": "Texture",
 				"binding": "Global"
 			},
 			{
@@ -75,17 +113,17 @@
 		[
 			{
 				"name": "materialColor",
-				"type": "SubpassInput",
+				"type": "Texture",
 				"binding": "Global"
 			},
 			{
 				"name": "normalSpecular",
-				"type": "SubpassInput",
+				"type": "Texture",
 				"binding": "Global"
 			},
 			{
 				"name": "surfaceDepth",
-				"type": "SubpassInput",
+				"type": "Texture",
 				"binding": "Global"
 			},
 			{
@@ -114,17 +152,17 @@
 		[
 			{
 				"name": "materialColor",
-				"type": "SubpassInput",
+				"type": "Texture",
 				"binding": "Global"
 			},
 			{
 				"name": "normalSpecular",
-				"type": "SubpassInput",
+				"type": "Texture",
 				"binding": "Global"
 			},
 			{
 				"name": "surfaceDepth",
-				"type": "SubpassInput",
+				"type": "Texture",
 				"binding": "Global"
 			},
 			{
@@ -148,31 +186,43 @@
 	},
 	{
 		"type": "Shader",
+		"name": "computeSSAOShader",
+		"module": "ssaoDeferredLightShaderModule",
+		"pipeline": "SSAO",
+		"materialDesc": "computeSSAOMaterialDesc"
+	},
+	{
+		"type": "Shader",
 		"name": "ambientLightShader",
-		"module": "deferredLightShaderModule",
+		"module": "ssaoDeferredLightShaderModule",
 		"pipeline": "AmbientLight",
 		"materialDesc": "ambientLightMaterialDesc"
 	},
 	{
 		"type": "Shader",
 		"name": "directionalLightShader",
-		"module": "deferredLightShaderModule",
+		"module": "ssaoDeferredLightShaderModule",
 		"pipeline": "DirectionalLight",
 		"materialDesc": "directionalLightMaterialDesc"
 	},
 	{
 		"type": "Shader",
 		"name": "pointLightShader",
-		"module": "deferredLightShaderModule",
+		"module": "ssaoDeferredLightShaderModule",
 		"pipeline": "PointLight",
 		"materialDesc": "pointLightMaterialDesc"
 	},
 	{
 		"type": "Shader",
 		"name": "spotLightShader",
-		"module": "deferredLightShaderModule",
+		"module": "ssaoDeferredLightShaderModule",
 		"pipeline": "SpotLight",
 		"materialDesc": "directionalLightMaterialDesc"
+	},
+	{
+		"type": "Material",
+		"name": "computeSSAOMaterial",
+		"description": "computeSSAOMaterialDesc"
 	},
 	{
 		"type": "Material",

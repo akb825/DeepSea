@@ -1,0 +1,222 @@
+{
+	"surfaces":
+	[
+		{
+			"name": "materialColor",
+			"type": "Offscreen",
+			"usage": ["Texture"],
+			"format": "A2B10G10R10",
+			"decoration": "UNorm",
+			"samples": 1,
+			"resolve": false,
+			"windowFramebuffer": true
+		},
+		{
+			"name": "normalSpecular",
+			"type": "Offscreen",
+			"usage": ["Texture"],
+			"format": "R8G8B8A8",
+			"decoration": "UNorm",
+			"samples": 1,
+			"resolve": false,
+			"windowFramebuffer": true
+		},
+		{
+			"name": "surfaceDepth",
+			"type": "Offscreen",
+			"usage": ["Texture"],
+			"format": "D32_Float",
+			"decoration": "Unset",
+			"samples": 1,
+			"resolve": false,
+			"windowFramebuffer": true
+		},
+		{
+			"name": "ssao",
+			"type": "Offscreen",
+			"usage": ["Texture"],
+			"format": "R8",
+			"decoration": "UNorm",
+			"samples": 1,
+			"resolve": false,
+			"windowFramebuffer": true
+		},
+		{
+			"name": "mainColor",
+			"type": "Offscreen",
+			"usage": ["SubpassInput"],
+			"format": "A2B10G10R10",
+			"decoration": "UNorm",
+			"samples": 1,
+			"resolve": false,
+			"windowFramebuffer": true
+		},
+		{
+			"name": "mainShadows",
+			"type": "Offscreen",
+			"usage": ["Texture"],
+			"format": "D32_Float",
+			"decoration": "Unset",
+			"width": 1024,
+			"height": 1024,
+			"samples": 1,
+			"resolve": false,
+			"windowFramebuffer": false
+		},
+		{
+			"name": "spotShadows",
+			"type": "Offscreen",
+			"usage": ["Texture"],
+			"format": "D32_Float",
+			"decoration": "Unset",
+			"width": 1024,
+			"height": 1024,
+			"samples": 1,
+			"resolve": false,
+			"windowFramebuffer": false
+		},
+		{
+			"name": "shadowColorBuffer",
+			"type": "Renderbuffer",
+			"format": "R8G8B8A8",
+			"decoration": "UNorm",
+			"width": 1024,
+			"height": 1024,
+			"samples": 1,
+			"resolve": false,
+			"windowFramebuffer": false
+		},
+		{
+			"name": "pointShadows",
+			"type": "Offscreen",
+			"usage": ["Texture"],
+			"format": "D32_Float",
+			"decoration": "Unset",
+			"width": 512,
+			"height": 512,
+			"depth": 6,
+			"samples": 1,
+			"resolve": false,
+			"windowFramebuffer": false
+		},
+		{
+			"name": "pointShadowColorBuffer",
+			"type": "Renderbuffer",
+			"format": "R8G8B8A8",
+			"decoration": "UNorm",
+			"width": 512,
+			"height": 512,
+			"samples": 1,
+			"resolve": false,
+			"windowFramebuffer": false
+		}
+	],
+	"framebuffers":
+	[
+		{
+			"name": "gBuffers",
+			"surfaces":
+			[
+				{"name": "materialColor"},
+				{"name": "normalSpecular"},
+				{"name": "surfaceDepth"}
+			]
+		},
+		{
+			"name": "ssao",
+			"surfaces":
+			[
+				{"name": "ssao"}
+			]
+		},
+		{
+			"name": "window",
+			"surfaces":
+			[
+				{"name": "surfaceDepth"},
+				{"name": "mainColor"},
+				{"name": "windowColor"}
+			]
+		},
+		{
+			"name": "mainShadowCast",
+			"width": 1024,
+			"height": 1024,
+			"surfaces":
+			[
+				{"name": "mainShadows"},
+				{"name": "shadowColorBuffer"}
+			]
+		},
+		{
+			"name": "spotShadowCast",
+			"width": 1024,
+			"height": 1024,
+			"surfaces":
+			[
+				{"name": "spotShadows"},
+				{"name": "shadowColorBuffer"}
+			]
+		},
+		{
+			"name": "pointShadowCast0",
+			"width": 512,
+			"height": 512,
+			"surfaces":
+			[
+				{"name": "pointShadows", "layer": 0},
+				{"name": "pointShadowColorBuffer"}
+			]
+		},
+		{
+			"name": "pointShadowCast1",
+			"width": 512,
+			"height": 512,
+			"surfaces":
+			[
+				{"name": "pointShadows", "layer": 1},
+				{"name": "pointShadowColorBuffer"}
+			]
+		},
+		{
+			"name": "pointShadowCast2",
+			"width": 512,
+			"height": 512,
+			"surfaces":
+			[
+				{"name": "pointShadows", "layer": 2},
+				{"name": "pointShadowColorBuffer"}
+			]
+		},
+		{
+			"name": "pointShadowCast3",
+			"width": 512,
+			"height": 512,
+			"surfaces":
+			[
+				{"name": "pointShadows", "layer": 3},
+				{"name": "pointShadowColorBuffer"}
+			]
+		},
+		{
+			"name": "pointShadowCast4",
+			"width": 512,
+			"height": 512,
+			"surfaces":
+			[
+				{"name": "pointShadows", "layer": 4},
+				{"name": "pointShadowColorBuffer"}
+			]
+		},
+		{
+			"name": "pointShadowCast5",
+			"width": 512,
+			"height": 512,
+			"surfaces":
+			[
+				{"name": "pointShadows", "layer": 5},
+				{"name": "pointShadowColorBuffer"}
+			]
+		}
+	]
+}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2021 Aaron Barany
+ * Copyright 2020-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,7 +67,6 @@ uniform ShadowTransform
 	mat4[4] matrices;
 	vec4 splitDistances;
 	vec2 fadeDistances;
-	vec3[2] texCoordTransform;
 } dsShadowTransform;
 
 uniform float shininess;
@@ -124,7 +123,7 @@ void fragmentShader()
 	float shadowValue = dsCascadedShadowMap(shadowMap, INSTANCE(dsShadowTransform).matrices,
 		INSTANCE(dsShadowTransform).splitDistances, vfViewPosition,
 		INSTANCE(dsShadowTransform).fadeDistances,
-		INSTANCE(dsShadowTransform).texCoordTransform);
+		INSTANCE(dsViewTransform).clipSpaceTexCoordTransform);
 
 	vec3 viewDirection = -normalize(vfViewPosition);
 	vec3 diffuseLight, specularLight;

@@ -1,0 +1,110 @@
+/*
+ * Copyright 2021-2022 Aaron Barany
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#pragma once
+
+/**
+ * @file
+ * @brief Functions for computing screen-space ambient occlusion.
+ */
+
+/**
+ * @brief The maximum number of SSAO samples that can be used.
+ */
+#define DS_MAX_SSAO_SAMPLES 128
+
+/**
+ * @brief Computes screen-space ambient occlusion.
+ *
+ * #define DS_REVERSE_Z to use depth states for inverted depth, where closer objects have a
+ * higher depth value.
+ *
+ * @param viewPosition The view position.
+ * @param viewNormal The normal a the point in view space.
+ * @param depth The depth value at the current position.
+ * @param projection The projection matrix.
+ * @param depthTexture The depth texture for the scene.
+ * @param randomOffsets List of random offsets to sample.
+ * @param rotation The vector in screen space used to rotate the sample hemisphere.
+ * @param radius The radius of the sample hemisphere.
+ * @param samples The number of samples.
+ * @param bias The bias to use when comparing. For example, normal mapping may cause surfaces
+ *     to occlude themselves.
+ * @param texCoordTransform Values to multiply and add to transform from clip space to texture
+ *     coordinate space.
+ * @return Occlusion value, where 0 is fully occluded and 1 is unoccluded.
+ */
+[[fragment]]
+lowp float dsComputeSSAO(vec3 viewPosition, lowp vec3 viewNormal, float depth,
+	mat4 projection, sampler2D depthTexture, vec3 randomOffsets[DS_MAX_SSAO_SAMPLES],
+	lowp vec2 rotation, float radius, int samples, float bias, vec3 texCoordTransform[2])
+{
+	vec4 minViewPosition = vec4(viewPosition.xy, viewPosition.z - radius, 1.0);
+	minViewPosition = projection*minViewPosition;
+	// Approximate the radius in projected depth space.
+	float depthRadius = depth - minViewPosition.z/minViewPosition.w;
+
+	mat3 orientation;
+	orientation[2] = viewNormal;
+	orientation[1] = vec3(rotation, 1.0);
+	orientation[0] = normalize(cross(orientation[1], orientation[2]));
+	orientation[1] = normalize(cross(orientation[2], orientation[0]));
+	float totalOccluded = 0.0;
+	for (int i = 0; i < samples; ++i)
+	{
+		vec3 direction = orientation*randomOffsets[i];
+		vec4 testPos = vec4(direction*radius + viewPosition, 1.0);
+		testPos = DS_ADJUST_CLIP(projection*testPos);
+		testPos /= testPos.w;
+		// Need to clamp the Z value otherwise it will occlude along the far plane.
+		testPos.z = clamp(testPos.z, 0.0, 1.0);
+		testPos.xyz = testPos.xyz*texCoordTransform[0] + texCoordTransform[1];
+		float curDepth = texture(depthTexture, testPos.xy).r;
+
+#ifdef DS_REVERSE_Z
+		float occluded = float(curDepth - bias > testPos.z);
+#else
+		float occluded = float(curDepth + bias < testPos.z);
+#endif
+
+		// Fall off outside of the radius.
+		float normalizedDist = abs((curDepth - testPos.z)/depthRadius);
+		totalOccluded += occluded*clamp(2.0 - normalizedDist, 0.0, 1.0);
+	}
+
+	return 1.0 - totalOccluded/float(samples);
+}
+
+/**
+ * @brief Queries the SSAO value with smoothing.
+ * @param ssao The SSAO texture. This should have linear filtering.
+ * @param texCoord The texture coordinate for the current position.
+ */
+lowp float dsQuerySSAO(sampler2D ssao, vec2 texCoord)
+{
+	// Use linear filtering to perform a 4x4 filter with 4 lookups.
+	const vec2 offsets[4] =
+	{
+		vec2(-1.5, 1.5), vec2(-1.5, 1.5),
+		vec2(-1.5, -0.5), vec2(-0.5, -0.5)
+	};
+
+	vec2 invTextureSize = vec2(1.0)/vec2(textureSize(ssao, 0));
+	float occlusion = 0.0;
+	for (int i = 0; i < 4; ++i)
+		occlusion += texture(ssao, offsets[i]*invTextureSize + texCoord).r;
+	return occlusion*0.25;
+}

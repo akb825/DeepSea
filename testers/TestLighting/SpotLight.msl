@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Aaron Barany
+ * Copyright 2021-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,6 @@ uniform ShadowTransform
 {
 	mat4 matrix;
 	vec2 fadeDistances;
-	vec3[2] texCoordTransform;
 } dsShadowTransform;
 
 [[fragment]] uniform subpassInput(0) materialColor;
@@ -68,9 +67,11 @@ void fragmentShader()
 	vec3 viewPosition = dsGetViewPositionFromScreen(depthVal);
 	vec3 viewDirection = -normalize(viewPosition);
 
-	vec4 shadowPosition = DS_ADJUST_CLIP(INSTANCE(dsShadowTransform).matrix*vec4(viewPosition, 1.0));
+	vec4 shadowPosition =
+		DS_ADJUST_CLIP(INSTANCE(dsShadowTransform).matrix*vec4(viewPosition, 1.0));
 	float shadowValue = dsShadowMap(shadowMap, viewPosition, shadowPosition.xyz/shadowPosition.w,
-		INSTANCE(dsShadowTransform).fadeDistances, INSTANCE(dsShadowTransform).texCoordTransform);
+		INSTANCE(dsShadowTransform).fadeDistances,
+		INSTANCE(dsViewTransform).clipSpaceTexCoordTransform);
 
 	vec3 diffuseLight, specularLight;
 	dsDeferredSpotLight_lightColor(diffuseLight, specularLight, viewPosition, normal,
