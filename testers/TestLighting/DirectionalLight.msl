@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-#include <DeepSea/Scene/Shaders/ViewTransform.mslh>
-#include <DeepSea/SceneLighting/Shaders/DeferredDirectionalLight.mslh>
-
 #include <DeepSea/Render/Shaders/Shadows/ShadowPCF4x4.mslh>
 #include <DeepSea/Render/Shaders/Shadows/ShadowMap.mslh>
+
+#include <DeepSea/Scene/Shaders/ViewTransform.mslh>
+#include <DeepSea/SceneLighting/Shaders/DeferredDirectionalLight.mslh>
 
 uniform sampler2DShadow shadowMap;
 sampler_state shadowMap
@@ -62,7 +62,7 @@ void fragmentShader()
 	float specular = normalSpecularVal.z;
 	float shininess = normalSpecularVal.w*256.0;
 
-	vec3 viewPosition = dsGetViewPositionFromScreen(depthVal);
+	vec3 viewPosition = dsGetViewPositionFromClip(vec3(vfClipCoords.xy, depthVal));
 	vec3 viewDirection = -normalize(viewPosition);
 
 	vec4 shadowPosition =

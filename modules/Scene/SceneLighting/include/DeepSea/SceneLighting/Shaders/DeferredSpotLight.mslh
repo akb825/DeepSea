@@ -112,6 +112,11 @@ varying(vertex, fragment)
 	 * @brief The linear and quadratic falloff factors and cosine min and max spot angles.
 	 */
 	vec4 vfLightFalloffAndSpotAngles;
+
+	/**
+	 * @brief The clip coordinates for the pixel.
+	 */
+	vec4 vfClipCoords;
 }
 
 /**
@@ -126,7 +131,9 @@ vec4 dsDeferredSpotLight_processVertex()
 	vfLightColor = viLightColor;
 	vfLightFalloffAndSpotAngles = viLightFalloffAndSpotAngles;
 
-	return INSTANCE(dsViewTransform).viewProjection*vec4(viPosition, 1.0);
+	vec4 clipCoords = INSTANCE(dsViewTransform).viewProjection*vec4(viPosition, 1.0);
+	vfClipCoords = DS_ADJUST_CLIP(clipCoords);
+	return clipCoords;
 }
 
 /**

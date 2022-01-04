@@ -16,11 +16,12 @@
 
 #define DS_REVERSE_Z
 
-#include <DeepSea/Scene/Shaders/ViewTransform.mslh>
-#include <DeepSea/SceneLighting/Shaders/DeferredPointLight.mslh>
-
 #include <DeepSea/Render/Shaders/Shadows/ShadowPCF4x4.mslh>
 #include <DeepSea/Render/Shaders/Shadows/PointShadowMap.mslh>
+#include <DeepSea/Render/Shaders/CoordinateHelpers.mslh>
+
+#include <DeepSea/Scene/Shaders/ViewTransform.mslh>
+#include <DeepSea/SceneLighting/Shaders/DeferredPointLight.mslh>
 
 uniform sampler2DArrayShadow shadowMap;
 sampler_state shadowMap
@@ -71,7 +72,9 @@ uniform ShadowTransform
 [[fragment]]
 void fragmentShader()
 {
-	vec2 texCoords = dsGetScreenTextureCoordinates();
+	vec2 clipCoords = vfClipCoords.xy/vfClipCoords.w;
+	vec2 texCoords = dsClipToTexCoords(dsRotateScreenPosition(
+		DS_ADJUST_CLIP(vec4(clipCoords, 0.0, 1.0)).xy));
 	vec4 color = texture(materialColor, texCoords);
 	// Alpha of 0 means clear color.
 	if (color.a == 0)
@@ -90,7 +93,7 @@ void fragmentShader()
 	float specular = normalSpecularVal.z;
 	float shininess = normalSpecularVal.w*256.0;
 
-	vec3 viewPosition = dsGetViewPositionFromScreen(depthVal);
+	vec3 viewPosition = dsGetViewPositionFromClip(vec3(clipCoords, depthVal));
 	vec3 viewDirection = -normalize(viewPosition);
 
 	float shadowValue = dsPointShadowMap(shadowMap, INSTANCE(dsShadowTransform).matrices,

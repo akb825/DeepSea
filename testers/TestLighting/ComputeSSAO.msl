@@ -16,6 +16,7 @@
 
 #define DS_REVERSE_Z
 
+#include <DeepSea/Render/Shaders/CoordinateHelpers.mslh>
 #include <DeepSea/Render/Shaders/VertexAttributes.mslh>
 #include <DeepSea/Scene/Shaders/ViewTransform.mslh>
 #include <DeepSea/SceneLighting/Shaders/SSAO.mslh>
@@ -56,6 +57,11 @@ uniform RandomOffsets
 	vec3 offsets[DS_MAX_SSAO_SAMPLES];
 } randomOffsets;
 
+varying(vertex, fragment)
+{
+	vec2 vfTexCoords;
+}
+
 [[vertex]] layout(location = DS_POSITION) in vec2 viPosition;
 [[fragment]] out vec4 outputColor;
 
@@ -63,16 +69,16 @@ uniform RandomOffsets
 void vertexShader()
 {
 	gl_Position = vec4(viPosition, 0.0, 1.0);
+	vfTexCoords = dsCommonClipToTexCoords(viPosition);
 	gl_Position = DS_ADJUST_DIRECT_CLIP(gl_Position);
 }
 
 [[fragment]]
 void fragmentShader()
 {
-	vec2 texCoords = dsGetScreenTextureCoordinates();
-	float depth = texture(surfaceDepth, texCoords).x;
-	vec4 normalSpecularVal = texture(normalSpecular, texCoords);
-	vec2 rotationTexCoords = texCoords*vec2(textureSize(normalSpecular, 0))/
+	float depth = texture(surfaceDepth, vfTexCoords).x;
+	vec4 normalSpecularVal = texture(normalSpecular, vfTexCoords);
+	vec2 rotationTexCoords = vfTexCoords*vec2(textureSize(normalSpecular, 0))/
 		vec2(textureSize(randomRotations, 0));
 	vec2 rotation = texture(randomRotations, rotationTexCoords).DS_RG_SWZL*vec2(2.0) - vec2(1.0);
 

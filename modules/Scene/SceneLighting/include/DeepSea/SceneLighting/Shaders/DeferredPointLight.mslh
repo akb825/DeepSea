@@ -97,6 +97,11 @@ varying(vertex, fragment)
 	 * @brief The color of the light and quadratic falloff factor.
 	 */
 	vec4 vfLightColorQuadraticFalloff;
+
+	/**
+	 * @brief The clip coordinates for the pixel.
+	 */
+	vec4 vfClipCoords;
 }
 
 /**
@@ -112,7 +117,9 @@ vec4 dsDeferredPointLight_processVertex()
 	vfLightColorQuadraticFalloff.rgb = viLightColor;
 	vfLightColorQuadraticFalloff.w = viLightFalloff.y;
 
-	return INSTANCE(dsViewTransform).viewProjection*vec4(viPosition, 1.0);
+	vec4 clipCoords = INSTANCE(dsViewTransform).viewProjection*vec4(viPosition, 1.0);
+	vfClipCoords = DS_ADJUST_CLIP(clipCoords);
+	return clipCoords;
 }
 
 /**

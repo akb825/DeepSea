@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-#include <DeepSea/Scene/Shaders/ViewTransform.mslh>
-#include <DeepSea/SceneLighting/Shaders/DeferredDirectionalLight.mslh>
-
 #include <DeepSea/Render/Shaders/Shadows/ShadowPCF4x4.mslh>
 #include <DeepSea/Render/Shaders/Shadows/ShadowMap.mslh>
+
+#include <DeepSea/Scene/Shaders/ViewTransform.mslh>
+#include <DeepSea/SceneLighting/Shaders/DeferredDirectionalLight.mslh>
 
 uniform sampler2DShadow shadowMap;
 sampler_state shadowMap
@@ -68,8 +68,7 @@ uniform ShadowTransform
 [[fragment]]
 void fragmentShader()
 {
-	vec2 texCoords = dsGetScreenTextureCoordinates();
-	vec4 color = texture(materialColor, texCoords);
+	vec4 color = texture(materialColor, vfTexCoords);
 	// Alpha of 0 means clear color.
 	if (color.a == 0)
 	{
@@ -77,8 +76,8 @@ void fragmentShader()
 		return;
 	}
 
-	vec4 normalSpecularVal = texture(normalSpecular, texCoords);
-	float depthVal = texture(surfaceDepth, texCoords).x;
+	vec4 normalSpecularVal = texture(normalSpecular, vfTexCoords);
+	float depthVal = texture(surfaceDepth, vfTexCoords).x;
 
 	vec3 normal;
 	normal.xy = normalSpecularVal.xy*2.0 - vec2(1.0);
@@ -87,7 +86,7 @@ void fragmentShader()
 	float specular = normalSpecularVal.z;
 	float shininess = normalSpecularVal.w*256.0;
 
-	vec3 viewPosition = dsGetViewPositionFromScreen(depthVal);
+	vec3 viewPosition = dsGetViewPositionFromClip(vec3(vfClipCoords.xy, depthVal));
 	vec3 viewDirection = -normalize(viewPosition);
 
 	vec4 shadowPosition =

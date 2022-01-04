@@ -16,11 +16,11 @@
 
 #define DS_REVERSE_Z
 
-#include <DeepSea/Scene/Shaders/ViewTransform.mslh>
-#include <DeepSea/SceneLighting/Shaders/DeferredPointLight.mslh>
-
 #include <DeepSea/Render/Shaders/Shadows/ShadowPCF4x4.mslh>
 #include <DeepSea/Render/Shaders/Shadows/PointShadowMap.mslh>
+
+#include <DeepSea/Scene/Shaders/ViewTransform.mslh>
+#include <DeepSea/SceneLighting/Shaders/DeferredPointLight.mslh>
 
 uniform sampler2DArrayShadow shadowMap;
 sampler_state shadowMap
@@ -65,7 +65,8 @@ void fragmentShader()
 	float specular = normalSpecularVal.z;
 	float shininess = normalSpecularVal.w*256.0;
 
-	vec3 viewPosition = dsGetViewPositionFromScreen(depthVal);
+	vec3 clipPos = vec3(vfClipCoords.xy/vfClipCoords.w, depthVal);
+	vec3 viewPosition = dsGetViewPositionFromClip(clipPos);
 	vec3 viewDirection = -normalize(viewPosition);
 
 	float shadowValue = dsPointShadowMap(shadowMap, INSTANCE(dsShadowTransform).matrices,

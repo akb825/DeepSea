@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Aaron Barany
+ * Copyright 2021-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,10 @@
 
 #pragma once
 
+#include <DeepSea/Render/Shaders/CoordinateHelpers.mslh>
 #include <DeepSea/Render/Shaders/VertexAttributes.mslh>
+
+#include <DeepSea/Scene/Shaders/ViewTransform.mslh>
 
 /**
  * @file
@@ -47,6 +50,16 @@ varying(vertex, fragment)
 	 * @brief The color of the abmeint light.
 	 */
 	vec3 vfLightColor;
+
+	/**
+	 * @brief The clip coordinates for the pixel.
+	 */
+	vec4 vfClipCoords;
+
+	/**
+	 * @brief The texture coordinates for any non-subpass lookups.
+	 */
+	vec2 vfTexCoords;
 }
 
 /**
@@ -58,6 +71,10 @@ varying(vertex, fragment)
 vec4 dsDeferredAmbientLight_processVertex()
 {
 	vfLightColor = viLightColor;
+
+	vec2 rotatedPosition = dsRotateScreenPosition(viPosition);
+	vfClipCoords = DS_ADJUST_DIRECT_CLIP(vec4(rotatedPosition, 0.0, 1.0));
+	vfTexCoords = dsCommonClipToTexCoords(viPosition);
 	return vec4(viPosition, 0.0, 1.0);
 }
 

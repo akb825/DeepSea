@@ -1,0 +1,53 @@
+/*
+ * Copyright 2022 Aaron Barany
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#pragma once
+
+/**
+ * @file
+ * @brief Functions to help with different coordinate transformations.
+ */
+
+/**
+ * @brief Transforms from clip coordinates in the common [-1, -1] as lower left to texture
+ * coordinates.
+ *
+ * This is typically used for cases where the clip coordinates are passed directly as vertex
+ * coordinates and avoids calling DS_ADJUST_DIRECT_CLIP() to handle APIs where [-1, -1] is the
+ * upper left.
+ *
+ * @param clipCoords The coordinates in clip space.
+ * @return The texture coordinates.
+ */
+vec2 dsCommonClipToTexCoords(vec2 clipCoords)
+{
+	return vec2(clipCoords.x, -clipCoords.y)*vec2(0.5) + vec2(0.5);
+}
+
+/**
+ * @brief Transforms from clip coordinates to texture coordinates.
+ * @param clipCoords The coordinates in clip space.
+ * @return The texture coordinates.
+ */
+vec2 dsClipToTexCoords(vec2 clipCoords)
+{
+#if SPIRV_VERSION
+	// Avoid having to call DS_ADJUST_DIRECT_CLIP and have duplicate operations.
+	return clipCoords*vec2(0.5) + vec2(0.5);
+#else
+	return vec2(clipCoords.x, -clipCoords.y)*vec2(0.5) + vec2(0.5);
+#endif
+}
