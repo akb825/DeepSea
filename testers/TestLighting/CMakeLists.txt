@@ -53,10 +53,11 @@ ds_compile_shaders(shaders FILE ${CMAKE_CURRENT_SOURCE_DIR}/AmbientLight.msl
 	INCLUDE ${shaderIncludes})
 ds_compile_shaders(shaders FILE ${CMAKE_CURRENT_SOURCE_DIR}/ComputeSSAO.msl
 	${CMAKE_CURRENT_SOURCE_DIR}/GBuffers.msl ${CMAKE_CURRENT_SOURCE_DIR}/SSAOAmbientLight.msl
-	${CMAKE_CURRENT_SOURCE_DIR}/SSAODirectionalLight.msl
-	${CMAKE_CURRENT_SOURCE_DIR}/SSAOPointLight.msl ${CMAKE_CURRENT_SOURCE_DIR}/SSAOSpotLight.msl
+	${CMAKE_CURRENT_SOURCE_DIR}/DirectionalLight.msl
+	${CMAKE_CURRENT_SOURCE_DIR}/PointLight.msl ${CMAKE_CURRENT_SOURCE_DIR}/SpotLight.msl
+	${CMAKE_CURRENT_SOURCE_DIR}/SSAOPrepass.msl
 	OUTPUT SSAODeferredLighting.mslb CONFIG ${shaderConfigs} OUTPUT_DIR ${shaderDir}
-	INCLUDE ${shaderIncludes})
+	INCLUDE ${shaderIncludes} DEFINE HAS_PREPASS)
 ds_compile_shaders(shaders FILE ${CMAKE_CURRENT_SOURCE_DIR}/ForwardLighting.msl
 	OUTPUT ForwardLighting.mslb CONFIG ${shaderConfigs} OUTPUT_DIR ${shaderDir}
 	INCLUDE ${shaderIncludes})

@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Aaron Barany
+ * Copyright 2021-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -108,7 +108,12 @@ pipeline GBuffers
 	vertex = vertexShader;
 	fragment = fragmentShader;
 	depth_test_enable = true;
+#ifdef HAS_PREPASS
+	depth_compare_op = equal;
+	depth_write_enable = false;
+#else
 	depth_compare_op = greater;
+#endif
 	early_fragment_tests = true;
 	cull_mode = back;
 }

@@ -49,7 +49,7 @@
  *     coordinate space.
  * @return Occlusion value, where 0 is fully occluded and 1 is unoccluded.
  */
-[[fragment]]
+[[fragment, compute]]
 lowp float dsComputeSSAO(vec3 viewPosition, lowp vec3 viewNormal, float depth,
 	mat4 projection, sampler2D depthTexture, vec3 randomOffsets[DS_MAX_SSAO_SAMPLES],
 	lowp vec2 rotation, float radius, int samples, float bias)
@@ -76,7 +76,7 @@ lowp float dsComputeSSAO(vec3 viewPosition, lowp vec3 viewNormal, float depth,
 		testPos.xy = dsRotateScreenPosition(testPos.xy);
 		testPos.xyz = testPos.xyz*INSTANCE(dsViewTransform).clipSpaceTexCoordTransform[0] +
 			INSTANCE(dsViewTransform).clipSpaceTexCoordTransform[1];
-		float curDepth = texture(depthTexture, testPos.xy).r;
+		float curDepth = textureLod(depthTexture, testPos.xy, 0).r;
 
 #ifdef DS_REVERSE_Z
 		float occluded = float(curDepth - bias > testPos.z);

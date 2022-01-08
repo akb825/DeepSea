@@ -214,5 +214,17 @@
 				"transformGroupDesc": "pointShadowTransformDesc"
 			}
 		]
+	},
+	{
+		"type": "Shader",
+		"name": "prepassShader",
+		"module": "shadowCastShaderModule",
+		"pipeline": "ShadowCast",
+		"materialDesc": "shadowCastMaterialDesc"
+	},
+	{
+		"type": "Material",
+		"name": "prepassMaterial",
+		"description": "shadowCastMaterialDesc"
 	}
 ]

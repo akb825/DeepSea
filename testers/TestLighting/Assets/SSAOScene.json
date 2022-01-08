@@ -432,25 +432,18 @@
 			]
 		},
 		{
-			"framebuffer": "gBuffers",
+			"framebuffer": "prepass",
 			"attachments":
 			[
 				{
 					"usage": ["Clear", "KeepAfter"],
-					"format": "A2B10G10R10",
+					"format": "R8G8",
 					"decoration": "UNorm",
-					"clearValue": {"floatValues": [0.0, 0.1, 0.2, 0.0]},
+					"clearValue": {"floatValues": [0.0, 1.0, 0.0, 0.0]},
 					"samples": 1
 				},
 				{
-					"usage": ["Clear", "KeepAfter"],
-					"format": "R8G8B8A8",
-					"decoration": "UNorm",
-					"clearValue": {"floatValues": [0.0, 0.0, 0.0, 0.0]},
-					"samples": 1
-				},
-				{
-					"usage": ["Clear", "KeepAfter"],
+					"usage": ["Clear", "KeepAfter", "UseLater"],
 					"format": "D32_Float",
 					"decoration": "Unset",
 					"clearValue": {"depth": 0.0},
@@ -460,31 +453,14 @@
 			"subpasses":
 			[
 				{
-					"name": "GBuffers",
-					"colorAttachments":
-					[
-						{"index": 0, "resolve": false},
-						{"index": 1, "resolve": false}
-					],
-					"depthStencilAttachment": {"index": 2, "resolve": false},
+					"name": "Prepass",
+					"colorAttachments": [{"index": 0, "resolve": false}],
+					"depthStencilAttachment": {"index": 1, "resolve": false},
 					"drawLists":
 					[
 						{
 							"type": "ModelList",
-							"name": "opaqueList",
-							"instanceData":
-							[
-								{
-									"type": "InstanceTransformData",
-									"variableGroupDesc": "instanceTransformDesc"
-								}
-							],
-							"sortType": "FrontToBack",
-							"cullList": "cullList"
-						},
-						{
-							"type": "ModelList",
-							"name": "groundList",
+							"name": "prepassList",
 							"instanceData":
 							[
 								{
@@ -532,7 +508,21 @@
 			"attachments":
 			[
 				{
-					"usage": ["KeepAfter"],
+					"usage": ["Clear"],
+					"format": "A2B10G10R10",
+					"decoration": "UNorm",
+					"clearValue": {"floatValues": [0.0, 0.1, 0.2, 0.0]},
+					"samples": 1
+				},
+				{
+					"usage": ["Clear"],
+					"format": "R8G8B8A8",
+					"decoration": "UNorm",
+					"clearValue": {"floatValues": [0.0, 0.0, 0.0, 0.0]},
+					"samples": 1
+				},
+				{
+					"usage": ["KeepBefore"],
 					"format": "D32_Float",
 					"decoration": "Unset",
 					"samples": 1
@@ -552,9 +542,48 @@
 			"subpasses":
 			[
 				{
+					"name": "GBuffers",
+					"colorAttachments":
+					[
+						{"index": 0, "resolve": false},
+						{"index": 1, "resolve": false}
+					],
+					"depthStencilAttachment": {"index": 2, "resolve": false},
+					"drawLists":
+					[
+						{
+							"type": "ModelList",
+							"name": "opaqueList",
+							"instanceData":
+							[
+								{
+									"type": "InstanceTransformData",
+									"variableGroupDesc": "instanceTransformDesc"
+								}
+							],
+							"sortType": "FrontToBack",
+							"cullList": "cullList"
+						},
+						{
+							"type": "ModelList",
+							"name": "groundList",
+							"instanceData":
+							[
+								{
+									"type": "InstanceTransformData",
+									"variableGroupDesc": "instanceTransformDesc"
+								}
+							],
+							"sortType": "FrontToBack",
+							"cullList": "cullList"
+						}
+					]
+				},
+				{
 					"name": "DeferredLighting",
-					"colorAttachments": [{"index": 1, "resolve": false}],
-					"depthStencilAttachment": {"index": 0, "resolve": false},
+					"inputAttachments": [0, 1, 2],
+					"colorAttachments": [{"index": 3, "resolve": false}],
+					"depthStencilAttachment": {"index": 2, "resolve": false},
 					"drawLists":
 					[
 						{
@@ -593,8 +622,8 @@
 				},
 				{
 					"name": "Transparent",
-					"colorAttachments": [{"index": 1, "resolve": false}],
-					"depthStencilAttachment": {"index": 0, "resolve": false},
+					"colorAttachments": [{"index": 3, "resolve": false}],
+					"depthStencilAttachment": {"index": 2, "resolve": false},
 					"drawLists":
 					[
 						{
@@ -619,8 +648,8 @@
 				},
 				{
 					"name": "sRGB",
-					"inputAttachments": [1],
-					"colorAttachments": [{"index": 2, "resolve": true}],
+					"inputAttachments": [3],
+					"colorAttachments": [{"index": 4, "resolve": true}],
 					"drawLists":
 					[
 						{

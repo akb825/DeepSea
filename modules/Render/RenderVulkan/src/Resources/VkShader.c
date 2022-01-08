@@ -994,6 +994,7 @@ dsShader* dsVkShader_create(dsResourceManager* resourceManager, dsAllocator* all
 	shader->pushConstantCount = pushConstantCount;
 	shader->pushConstantSize = pushConstantSize;
 
+	bool samplerError = false;
 	if (samplerCount > 0)
 	{
 		shader->samplerMapping = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsVkSamplerMapping,
@@ -1021,7 +1022,8 @@ dsShader* dsVkShader_create(dsResourceManager* resourceManager, dsAllocator* all
 				break;
 			}
 		}
-		DS_ASSERT(index == samplerCount);
+		if (index != samplerCount)
+			samplerError = true;
 	}
 	else
 		shader->samplerMapping = NULL;
@@ -1036,6 +1038,16 @@ dsShader* dsVkShader_create(dsResourceManager* resourceManager, dsAllocator* all
 	DS_VERIFY(dsSpinlock_initialize(&shader->materialLock));
 	DS_VERIFY(dsSpinlock_initialize(&shader->pipelineLock));
 	DS_VERIFY(dsSpinlock_initialize(&shader->samplerLock));
+
+	// At this point it's safe to destroy the shader if there was a sampler error.
+	if (samplerError)
+	{
+		errno = EINVAL;
+		DS_LOG_ERROR(DS_RENDER_VULKAN_LOG_TAG, "Mismatch for shader samplers. Likely a subpass "
+			"input was declared as a sampler instead.");
+		dsVkShader_destroy(resourceManager, baseShader);
+		return NULL;
+	}
 
 	setupCommonStates(baseShader);
 	setupSpirv(baseShader, (dsAllocator*)&bufferAlloc);

@@ -6,6 +6,37 @@
 	},
 	{
 		"type": "MaterialDesc",
+		"name": "prepassMaterialDesc",
+		"elements":
+		[
+			{
+				"name": "InstanceTransformData",
+				"type": "VariableGroup",
+				"binding": "Instance",
+				"shaderVariableGroupDesc": "instanceTransformDesc"
+			},
+			{
+				"name": "ViewTransformData",
+				"type": "VariableGroup",
+				"binding": "Global",
+				"shaderVariableGroupDesc": "viewTransformDesc"
+			}
+		]
+	},
+	{
+		"type": "Shader",
+		"name": "prepassShader",
+		"module": "ssaoDeferredLightShaderModule",
+		"pipeline": "SSAOPrepass",
+		"materialDesc": "prepassMaterialDesc"
+	},
+	{
+		"type": "Material",
+		"name": "prepassMaterial",
+		"description": "prepassMaterialDesc"
+	},
+	{
+		"type": "MaterialDesc",
 		"name": "defaultMaterialDesc",
 		"elements":
 		[
@@ -56,7 +87,7 @@
 		"elements":
 		[
 			{
-				"name": "normalSpecular",
+				"name": "prepassNormal",
 				"type": "Texture",
 				"binding": "Global"
 			},
@@ -90,7 +121,7 @@
 		[
 			{
 				"name": "materialColor",
-				"type": "Texture",
+				"type": "SubpassInput",
 				"binding": "Global"
 			},
 			{
@@ -113,17 +144,17 @@
 		[
 			{
 				"name": "materialColor",
-				"type": "Texture",
+				"type": "SubpassInput",
 				"binding": "Global"
 			},
 			{
 				"name": "normalSpecular",
-				"type": "Texture",
+				"type": "SubpassInput",
 				"binding": "Global"
 			},
 			{
 				"name": "surfaceDepth",
-				"type": "Texture",
+				"type": "SubpassInput",
 				"binding": "Global"
 			},
 			{
@@ -152,17 +183,17 @@
 		[
 			{
 				"name": "materialColor",
-				"type": "Texture",
+				"type": "SubpassInput",
 				"binding": "Global"
 			},
 			{
 				"name": "normalSpecular",
-				"type": "Texture",
+				"type": "SubpassInput",
 				"binding": "Global"
 			},
 			{
 				"name": "surfaceDepth",
-				"type": "Texture",
+				"type": "SubpassInput",
 				"binding": "Global"
 			},
 			{

@@ -11,6 +11,11 @@
 				"modelLists":
 				[
 					{
+						"shader": "prepassShader",
+						"material": "prepassMaterial",
+						"list": "prepassList"
+					},
+					{
 						"shader": "defaultModelShader",
 						"material": "grassMaterial",
 						"list": "groundList"
@@ -31,6 +36,11 @@
 				"baseName": "Archway",
 				"modelLists":
 				[
+					{
+						"shader": "prepassShader",
+						"material": "prepassMaterial",
+						"list": "prepassList"
+					},
 					{
 						"shader": "defaultModelShader",
 						"material": "brickMaterial",
@@ -121,6 +131,11 @@
 				"baseName": "Sphere",
 				"modelLists":
 				[
+					{
+						"shader": "prepassShader",
+						"material": "prepassMaterial",
+						"list": "prepassList"
+					},
 					{
 						"shader": "defaultModelShader",
 						"material": "concreteMaterial",
@@ -232,6 +247,11 @@
 				"baseName": "Pedastle",
 				"modelLists":
 				[
+					{
+						"shader": "prepassShader",
+						"material": "prepassMaterial",
+						"list": "prepassList"
+					},
 					{
 						"shader": "defaultModelShader",
 						"material": "marbleMaterial",

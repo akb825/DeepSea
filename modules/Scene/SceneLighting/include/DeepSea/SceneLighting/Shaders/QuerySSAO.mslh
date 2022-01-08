@@ -43,6 +43,6 @@ lowp float dsQuerySSAO(sampler2D ssao, vec2 texCoord)
 	vec2 invTextureSize = vec2(1.0)/vec2(textureSize(ssao, 0));
 	float occlusion = 0.0;
 	for (int i = 0; i < 4; ++i)
-		occlusion += texture(ssao, offsets[i]*invTextureSize + texCoord).r;
+		occlusion += textureLod(ssao, offsets[i]*invTextureSize + texCoord, 0).r;
 	return occlusion*0.25;
 }
