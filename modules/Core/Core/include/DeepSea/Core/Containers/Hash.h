@@ -60,7 +60,6 @@ DS_CORE_EXPORT uint32_t dsHashCombineBytes(uint32_t seed, const void* buffer, si
  * @param seed The previous hash value. This must be 128 bits.
  * @param buffer The bytes to hash.
  * @param size The size of the buffer.
- * @return The hash.
  */
 DS_CORE_EXPORT void dsHashCombineBytes128(void* outResult, const void* seed, const void* buffer,
 	size_t size);

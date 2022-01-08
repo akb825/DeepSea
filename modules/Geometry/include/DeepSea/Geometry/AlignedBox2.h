@@ -157,7 +157,6 @@ extern "C"
  * @brief Extracts the corners from an aligned box.
  * @param[out] corners The corners for the box. This must contain DS_BOX2_CORNER_COUNT elements.
  * @param box The box to extract the corners from.
- * @return False if box is empty.
  */
 #define dsAlignedBox2_corners(corners, box) \
 	do \

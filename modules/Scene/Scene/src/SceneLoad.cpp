@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 Aaron Barany
+ * Copyright 2019-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -157,7 +157,7 @@ static size_t getTempSize(const FlatbufferVector<DeepSeaScene::SceneItemLists>* 
 
 			maxRenderPassSize = std::max(maxRenderPassSize, renderPassSize);
 		}
-		else if (!fbPipelineItem->item_as_SceneItemList())
+		else if (fbPipelineItem->item_as_SceneItemList())
 		{
 			// empty
 		}

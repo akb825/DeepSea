@@ -67,7 +67,6 @@ DS_SCENE_EXPORT dsSceneRenderPass* dsSceneRenderPass_create(dsAllocator* allocat
 
 /**
  * @brief Destroys a scene render pass.
- * @return renderPass The scene render pass to destroy.
  */
 DS_SCENE_EXPORT void dsSceneRenderPass_destroy(dsSceneRenderPass* renderPass);
 

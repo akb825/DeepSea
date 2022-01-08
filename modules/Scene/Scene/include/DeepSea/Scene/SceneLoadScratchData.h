@@ -158,7 +158,6 @@ DS_SCENE_EXPORT bool dsSceneLoadScratchData_setCommandBuffer( dsSceneLoadScratch
 /**
  * @brief Destroys load scratch data.
  * @param scratchData The scratch data to destroy.
- * @return False if the parameters are invalid.
  */
 DS_SCENE_EXPORT void dsSceneLoadScratchData_destroy(dsSceneLoadScratchData* scratchData);
 

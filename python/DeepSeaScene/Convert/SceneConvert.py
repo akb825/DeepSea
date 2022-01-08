@@ -558,8 +558,7 @@ def convertScene(convertContext, data):
 	for item in pipeline:
 		if hasattr(item, 'type'):
 			itemType = ScenePipelineItemUnion.SceneItemList
-			itemOffset = convertContext.convertSharedItemList(builder, item.type, item.name,
-				item.data)
+			itemOffset = convertContext.convertItemList(builder, item.type, item.name, item.data)
 		else:
 			itemType = ScenePipelineItemUnion.RenderPass
 			framebufferOffset = builder.CreateString(item.framebuffer)

@@ -42,7 +42,7 @@ void vertexShader()
 [[fragment]]
 void fragmentShader()
 {
-	normal = vfNormal;
+	normal = vfNormal*0.5 + vec2(0.5);
 }
 
 pipeline SSAOPrepass

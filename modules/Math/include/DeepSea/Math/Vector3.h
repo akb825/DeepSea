@@ -134,7 +134,6 @@ extern "C"
  * @param a The first value.
  * @param b The second value.
  * @param t The interpolation value between a and b.
- * @return The interpolated value.
  */
 #define dsVector3_lerp(result, a, b, t) \
 	do \

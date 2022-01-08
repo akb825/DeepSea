@@ -92,7 +92,6 @@ DS_CORE_EXPORT void* dsDynamicLib_loadSymbol(dsDynamicLib* library, const char* 
  * @brief Closes a dynamic library.
  * @remark This should be called even if dsDynamicLib_load() fails.
  * @param library The library to close.
- * @return False if the library couldn't be loaded.
  */
 DS_CORE_EXPORT void dsDynamicLib_close(dsDynamicLib* library);
 
