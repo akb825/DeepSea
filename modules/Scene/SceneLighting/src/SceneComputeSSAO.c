@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2022 Aaron Barany
+ * Copyright 2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include <DeepSea/SceneLighting/SceneSSAO.h>
+#include <DeepSea/SceneLighting/SceneComputeSSAO.h>
 
 #include "SceneSSAOShared.h"
 
@@ -25,7 +25,6 @@
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 
-#include <DeepSea/Render/Resources/DrawGeometry.h>
 #include <DeepSea/Render/Resources/GfxBuffer.h>
 #include <DeepSea/Render/Resources/GfxFormat.h>
 #include <DeepSea/Render/Resources/Material.h>
@@ -35,13 +34,12 @@
 #include <DeepSea/Render/Resources/VertexFormat.h>
 #include <DeepSea/Render/Renderer.h>
 
-#include <DeepSea/Scene/ItemLists/SceneFullScreenResolve.h>
 #include <DeepSea/Scene/ItemLists/SceneItemList.h>
 
 #include <limits.h>
 #include <string.h>
 
-struct dsSceneSSAO
+struct dsSceneComputeSSAO
 {
 	dsSceneItemList itemList;
 	dsResourceManager* resourceManager;
@@ -49,37 +47,39 @@ struct dsSceneSSAO
 	dsShader* shader;
 	dsMaterial* material;
 
-	dsDrawGeometry* geometry;
 	dsGfxBuffer* randomOffsets;
 	dsTexture* randomRotations;
 };
 
-void dsSceneSSAO_commit(dsSceneItemList* itemList, const dsView* view,
+void dsSceneComputeSSAO_commit(dsSceneItemList* itemList, const dsView* view,
 	dsCommandBuffer* commandBuffer)
 {
-	dsSceneSSAO* ssao = (dsSceneSSAO*)itemList;
+	dsSceneComputeSSAO* ssao = (dsSceneComputeSSAO*)itemList;
 	if (!DS_CHECK(DS_SCENE_LIGHTING_LOG_TAG,
-			dsShader_bind(ssao->shader, commandBuffer, ssao->material, view->globalValues, NULL)))
+			dsShader_bindCompute(ssao->shader, commandBuffer, ssao->material, view->globalValues)))
 	{
 		return;
 	}
 
-	dsDrawRange drawRange = {4, 1, 0, 0};
-	DS_CHECK(DS_SCENE_LIGHTING_LOG_TAG, dsRenderer_draw(commandBuffer->renderer, commandBuffer,
-		ssao->geometry, &drawRange, dsPrimitiveType_TriangleStrip));
+	uint32_t x = (view->preRotateWidth + DS_SCENE_COMPUTE_SSAO_TILE_SIZE - 1)/
+		DS_SCENE_COMPUTE_SSAO_TILE_SIZE;
+	uint32_t y = (view->preRotateHeight + DS_SCENE_COMPUTE_SSAO_TILE_SIZE - 1)/
+		DS_SCENE_COMPUTE_SSAO_TILE_SIZE;
+	DS_CHECK(DS_SCENE_LIGHTING_LOG_TAG,
+		dsRenderer_dispatchCompute(commandBuffer->renderer, commandBuffer, x, y, 1));
 
-	DS_CHECK(DS_SCENE_LIGHTING_LOG_TAG, dsShader_unbind(ssao->shader, commandBuffer));
+	DS_CHECK(DS_SCENE_LIGHTING_LOG_TAG, dsShader_unbindCompute(ssao->shader, commandBuffer));
 }
 
-const char* const dsSceneSSAO_typeName = "SSAO";
+const char* const dsSceneComputeSSAO_typeName = "ComputeSSAO";
 
-dsSceneItemListType dsSceneSSAO_type(void)
+dsSceneItemListType dsSceneComputeSSAO_type(void)
 {
 	static int type;
 	return &type;
 }
 
-dsSceneSSAO* dsSceneSSAO_create(dsAllocator* allocator, dsResourceManager* resourceManager,
+dsSceneComputeSSAO* dsSceneComputeSSAO_create(dsAllocator* allocator, dsResourceManager* resourceManager,
 	dsAllocator* resourceAllocator, const char* name, dsShader* shader, dsMaterial* material)
 {
 	if (!allocator || !resourceManager || !name || !shader || !material ||
@@ -89,11 +89,19 @@ dsSceneSSAO* dsSceneSSAO_create(dsAllocator* allocator, dsResourceManager* resou
 		return NULL;
 	}
 
+	if (!dsShader_hasStage(shader, dsShaderStage_Compute))
+	{
+		errno = EINVAL;
+		DS_LOG_ERROR(DS_SCENE_LIGHTING_LOG_TAG,
+			"Scene compute SSAO shader must have a compute stage.");
+		return NULL;
+	}
+
 	if (!allocator->freeFunc)
 	{
 		errno = EINVAL;
 		DS_LOG_ERROR(DS_SCENE_LIGHTING_LOG_TAG,
-			"Scene SSAO allocator must support freeing memory.");
+			"Scene compute SSAO allocator must support freeing memory.");
 		return NULL;
 	}
 
@@ -101,7 +109,7 @@ dsSceneSSAO* dsSceneSSAO_create(dsAllocator* allocator, dsResourceManager* resou
 		resourceAllocator = allocator;
 
 	size_t nameLen = strlen(name) + 1;
-	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsSceneSSAO)) + DS_ALIGNED_SIZE(nameLen);
+	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsSceneComputeSSAO)) + DS_ALIGNED_SIZE(nameLen);
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 		return NULL;
@@ -109,12 +117,12 @@ dsSceneSSAO* dsSceneSSAO_create(dsAllocator* allocator, dsResourceManager* resou
 	dsBufferAllocator bufferAlloc;
 	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, fullSize));
 
-	dsSceneSSAO* ssao = DS_ALLOCATE_OBJECT(&bufferAlloc, dsSceneSSAO);
+	dsSceneComputeSSAO* ssao = DS_ALLOCATE_OBJECT(&bufferAlloc, dsSceneComputeSSAO);
 	DS_ASSERT(ssao);
 
 	dsSceneItemList* itemList = (dsSceneItemList*)ssao;
 	itemList->allocator = dsAllocator_keepPointer(allocator);
-	itemList->type = dsSceneSSAO_type();
+	itemList->type = dsSceneComputeSSAO_type();
 	itemList->name = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, nameLen);
 	DS_ASSERT(itemList->name);
 	memcpy((void*)itemList->name, name, nameLen);
@@ -123,35 +131,27 @@ dsSceneSSAO* dsSceneSSAO_create(dsAllocator* allocator, dsResourceManager* resou
 	itemList->addNodeFunc = NULL;
 	itemList->updateNodeFunc = NULL;
 	itemList->removeNodeFunc = NULL;
-	itemList->commitFunc = &dsSceneSSAO_commit;
-	itemList->destroyFunc = (dsDestroySceneItemListFunction)&dsSceneSSAO_destroy;
+	itemList->commitFunc = &dsSceneComputeSSAO_commit;
+	itemList->destroyFunc = (dsDestroySceneItemListFunction)&dsSceneComputeSSAO_destroy;
 
 	ssao->resourceManager = resourceManager;
 	ssao->resourceAllocator = resourceAllocator;
 	ssao->shader = shader;
 	ssao->material = material;
-	ssao->geometry = NULL;
 	ssao->randomOffsets = NULL;
 	ssao->randomRotations = NULL;
-
-	ssao->geometry = dsSceneFullScreenResolve_createGeometry(resourceManager);
-	if (!ssao->geometry)
-	{
-		dsSceneSSAO_destroy(ssao);
-		return NULL;
-	}
 
 	ssao->randomOffsets = dsSceneSSAO_createRandomOffsets(resourceManager, resourceAllocator);
 	if (!ssao->randomOffsets)
 	{
-		dsSceneSSAO_destroy(ssao);
+		dsSceneComputeSSAO_destroy(ssao);
 		return NULL;
 	}
 
 	ssao->randomRotations = dsSceneSSAO_createRandomRotations(resourceManager, resourceAllocator);
 	if (!ssao->randomRotations)
 	{
-		dsSceneSSAO_destroy(ssao);
+		dsSceneComputeSSAO_destroy(ssao);
 		return NULL;
 	}
 
@@ -159,7 +159,7 @@ dsSceneSSAO* dsSceneSSAO_create(dsAllocator* allocator, dsResourceManager* resou
 	return ssao;
 }
 
-dsShader* dsSceneSSAO_getShader(const dsSceneSSAO* ssao)
+dsShader* dsSceneComputeSSAO_getShader(const dsSceneComputeSSAO* ssao)
 {
 	if (!ssao)
 		return NULL;
@@ -167,7 +167,7 @@ dsShader* dsSceneSSAO_getShader(const dsSceneSSAO* ssao)
 	return ssao->shader;
 }
 
-bool dsSceneSSAO_setShader(dsSceneSSAO* ssao, dsShader* shader)
+bool dsSceneComputeSSAO_setShader(dsSceneComputeSSAO* ssao, dsShader* shader)
 {
 	if (!ssao || !shader)
 	{
@@ -179,7 +179,7 @@ bool dsSceneSSAO_setShader(dsSceneSSAO* ssao, dsShader* shader)
 	return true;
 }
 
-dsMaterial* dsSceneSSAO_getMaterial(const dsSceneSSAO* ssao)
+dsMaterial* dsSceneComputeSSAO_getMaterial(const dsSceneComputeSSAO* ssao)
 {
 	if (!ssao)
 		return NULL;
@@ -187,7 +187,7 @@ dsMaterial* dsSceneSSAO_getMaterial(const dsSceneSSAO* ssao)
 	return ssao->material;
 }
 
-bool dsSceneSSAO_setMaterial(dsSceneSSAO* ssao, dsMaterial* material)
+bool dsSceneComputeSSAO_setMaterial(dsSceneComputeSSAO* ssao, dsMaterial* material)
 {
 	if (!ssao || !material || !dsSceneSSAO_canUseMaterial(material))
 	{
@@ -200,15 +200,13 @@ bool dsSceneSSAO_setMaterial(dsSceneSSAO* ssao, dsMaterial* material)
 	return true;
 }
 
-void dsSceneSSAO_destroy(dsSceneSSAO* ssao)
+void dsSceneComputeSSAO_destroy(dsSceneComputeSSAO* ssao)
 {
 	if (!ssao)
 		return;
 
 	dsSceneItemList* itemList = (dsSceneItemList*)ssao;
 
-	if (ssao->geometry)
-		dsSceneFullScreenResolve_destroyGeometry();
 	dsGfxBuffer_destroy(ssao->randomOffsets);
 	dsTexture_destroy(ssao->randomRotations);
 

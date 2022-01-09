@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,7 +59,7 @@ bool dsGLCommandBuffer_bindShaderAndMaterial(dsCommandBuffer* commandBuffer, con
 bool dsGLCommandBuffer_bindShader(dsCommandBuffer* commandBuffer, const dsShader* shader,
 	const dsDynamicRenderStates* renderStates);
 bool dsGLCommandBuffer_setTexture(dsCommandBuffer* commandBuffer, const dsShader* shader,
-	uint32_t element, dsTexture* texture);
+	uint32_t element, dsTexture* texture, dsMaterialType type);
 bool dsGLCommandBuffer_setTextureBuffer(dsCommandBuffer* commandBuffer, const dsShader* shader,
 	uint32_t element, dsGfxBuffer* buffer, dsGfxFormat format, size_t offset, size_t count);
 bool dsGLCommandBuffer_setShaderBuffer(dsCommandBuffer* commandBuffer, const dsShader* shader,

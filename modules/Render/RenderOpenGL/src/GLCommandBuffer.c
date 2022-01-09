@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,7 +55,7 @@ static bool setSharedMaterialValues(dsCommandBuffer* commandBuffer,
 
 				dsTexture* texture = dsSharedMaterialValues_getTextureID(sharedValues, nameID);
 				if (texture)
-					dsGLCommandBuffer_setTexture(commandBuffer, shader, i, texture);
+					dsGLCommandBuffer_setTexture(commandBuffer, shader, i, texture, element->type);
 				else
 				{
 					errno = EPERM;
@@ -205,7 +205,7 @@ static bool bindMaterial(dsCommandBuffer* commandBuffer, const dsShader* shader,
 
 				dsTexture* texture = dsMaterial_getTexture(material, i);
 				if (texture)
-					dsGLCommandBuffer_setTexture(commandBuffer, shader, i, texture);
+					dsGLCommandBuffer_setTexture(commandBuffer, shader, i, texture, element->type);
 				else
 				{
 					errno = EPERM;
@@ -481,10 +481,10 @@ bool dsGLCommandBuffer_bindShader(dsCommandBuffer* commandBuffer, const dsShader
 }
 
 bool dsGLCommandBuffer_setTexture(dsCommandBuffer* commandBuffer, const dsShader* shader,
-	uint32_t element, dsTexture* texture)
+	uint32_t element, dsTexture* texture, dsMaterialType type)
 {
 	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
-	return functions->setTextureFunc(commandBuffer, shader, element, texture);
+	return functions->setTextureFunc(commandBuffer, shader, element, texture, type);
 }
 
 bool dsGLCommandBuffer_setTextureBuffer(dsCommandBuffer* commandBuffer, const dsShader* shader,

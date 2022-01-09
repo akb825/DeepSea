@@ -42,6 +42,16 @@ extern "C"
 #define DS_DEFAULT_SCENE_LIGHT_INTENSITY_THRESHOLD 0.1f
 
 /**
+ * @brief The maximum number of samples that can be made to compute SSAO.
+ */
+#define DS_MAX_SCENE_SSAO_SAMPLES 128U
+
+/**
+ * @brief The size fo the random rotation texture.
+ */
+#define DS_SCENE_SSAO_ROTATION_SIZE 4U
+
+/**
  * @brief Enum for the type of a light.
  */
 typedef enum dsSceneLightType
@@ -386,6 +396,20 @@ typedef struct dsSceneLightShadows dsSceneLightShadows;
  * @see SceneSSAO.h
  */
 typedef struct dsSceneSSAO dsSceneSSAO;
+
+/**
+ * @brief Struct defining a scene compute screen-space ambient occlusion.
+ *
+ * This will compute ambient occlusion in screen-space based on the gbuffers. This is an item list
+ * type in order to fit into the scene, but doesn't interact with any nodes in the scene graph.
+ *
+ * This is largely identical to dsSceneSSAO, except it uses a compute shader to calculate the SSAO
+ * rather than a traditional full-screen resolve.
+ *
+ * @see SceneComputeSSAO.h
+ */
+typedef struct dsSceneComputeSSAO dsSceneComputeSSAO;
+
 
 #ifdef __cplusplus
 }

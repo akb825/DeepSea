@@ -1182,7 +1182,7 @@ bool dsGLMainCommandBuffer_bindShader(dsCommandBuffer* commandBuffer, const dsSh
 }
 
 bool dsGLMainCommandBuffer_setTexture(dsCommandBuffer* commandBuffer, const dsShader* shader,
-	uint32_t element, dsTexture* texture)
+	uint32_t element, dsTexture* texture, dsMaterialType type)
 {
 	dsGLMainCommandBuffer* glCommandBuffer = (dsGLMainCommandBuffer*)commandBuffer;
 	const dsGLShader* glShader = (const dsGLShader*)shader;
@@ -1195,7 +1195,12 @@ bool dsGLMainCommandBuffer_setTexture(dsCommandBuffer* commandBuffer, const dsSh
 	dsGLRenderer_bindTexture(commandBuffer->renderer, textureIndex, target, textureId);
 
 	bool isShadowSampler = glShader->uniforms[element].isShadowSampler != 0;
-	if (ANYGL_SUPPORTED(glBindSampler))
+	if (type == dsMaterialType_Image && ANYGL_SUPPORTED(glBindImageTexture))
+	{
+		GLenum format = glTexture ? glTexture->internalFormat : GL_RGBA8;
+		glBindImageTexture(textureIndex, textureId, 0, true, 0, GL_READ_WRITE, format);
+	}
+	else if (ANYGL_SUPPORTED(glBindSampler))
 	{
 		if (samplerIndex == MSL_UNKNOWN)
 			glBindSampler(textureIndex, glCommandBuffer->defaultSamplers[isShadowSampler]);
@@ -1408,6 +1413,17 @@ bool dsGLMainCommandBuffer_bindComputeShader(dsCommandBuffer* commandBuffer, con
 	DS_UNUSED(commandBuffer);
 	const dsGLShader* glShader = (const dsGLShader*)shader;
 	glUseProgram(glShader->programId);
+
+	// Set the internal information on the shader.
+	if (glShader->internalUniform >= 0)
+	{
+		// No real framebuffer, need to set the parameters for any clip operations, namely the min
+		// depth on x and the sign for y as if drawing to an offscreen.
+		dsRenderer* renderer = commandBuffer->renderer;
+		float minDepth =
+			renderer->projectionOptions & dsProjectionMatrixOptions_HalfZRange ? 0.0f : -1.0f;
+		glUniform4f(glShader->internalUniform, minDepth, -1.0f, 1.0f, -1.0f);
+	}
 	return true;
 }
 

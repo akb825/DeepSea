@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2022 Aaron Barany
+ * Copyright 2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,31 +28,35 @@ extern "C"
 
 /**
  * @file
- * @brief Functions for creating and manipulating scene screen-space ambient occlusion.
- * @see dsSceneSSAO
+ * @brief Functions for creating and manipulating scene compute screen-space ambient occlusion.
+ * @see dsSceneComputeSSAO
  */
 
 /**
- * @brief The scene SSAO type name.
+ * @brief The size of a tile (in X and Y) for the compute shader when dispatching SSAO.
  */
-DS_SCENELIGHTING_EXPORT extern const char* const dsSceneSSAO_typeName;
+#define DS_SCENE_COMPUTE_SSAO_TILE_SIZE 16
 
 /**
- * @brief Gets the type of a scene SSAO.
- * @return The type of a scene SSAO.
+ * @brief The scene compute SSAO type name.
  */
-DS_SCENELIGHTING_EXPORT dsSceneItemListType dsSceneSSAO_type(void);
+DS_SCENELIGHTING_EXPORT extern const char* const dsSceneComputeSSAO_typeName;
 
 /**
- * @brief Creates a scene screen-space ambient occlusion.
+ * @brief Gets the type of a scene compute SSAO.
+ * @return The type of a scene compute SSAO.
+ */
+DS_SCENELIGHTING_EXPORT dsSceneItemListType dsSceneComputeSSAO_type(void);
+
+/**
+ * @brief Creates a scene compute screen-space ambient occlusion.
  * @remark errno will be set on failure.
  * @param allocator The allocator to create the scene SSAO with. This must support freeing memory.
  * @param resourceManager The resource manager to create graphics resources with.
  * @param resourceAllocator The allocator to create graphics resources with. If NULL this will use
  *     the scene SSAO allocator.
  * @param name The name of the scene SSAO. This will be copied.
- * @param shader The shader used to draw SSAO. The vertex elements for the shader are:
- *     - position: vec2 clip-space [-1, 1] values.
+ * @param shader The shader used to compute SSAO.
  * @param material The material for the SSAO. This must have the following two elements with
  *     material binding:
  *     - RandomOffsets: Uniform block buffer with a single array of DS_MAX_SCENE_SSAO_SAMPLES vec3
@@ -61,7 +65,7 @@ DS_SCENELIGHTING_EXPORT dsSceneItemListType dsSceneSSAO_type(void);
  *       Z coordinate is implicitly 0. This is of size DS_SCENE_SSAO_ROTATION_SIZE.
  * @return The scene SSAO or NULL if an error occurred.
  */
-DS_SCENELIGHTING_EXPORT dsSceneSSAO* dsSceneSSAO_create(dsAllocator* allocator,
+DS_SCENELIGHTING_EXPORT dsSceneComputeSSAO* dsSceneComputeSSAO_create(dsAllocator* allocator,
 	dsResourceManager* resourceManager, dsAllocator* resourceAllocator, const char* name,
 	dsShader* shader, dsMaterial* material);
 
@@ -70,7 +74,7 @@ DS_SCENELIGHTING_EXPORT dsSceneSSAO* dsSceneSSAO_create(dsAllocator* allocator,
  * @param ssao The scene SSAO.
  * @return The shader or NULL if ssao is NULL.
  */
-DS_SCENELIGHTING_EXPORT dsShader* dsSceneSSAO_getShader(const dsSceneSSAO* ssao);
+DS_SCENELIGHTING_EXPORT dsShader* dsSceneComputeSSAO_getShader(const dsSceneComputeSSAO* ssao);
 
 /**
  * @brief Sets the shader.
@@ -80,14 +84,14 @@ DS_SCENELIGHTING_EXPORT dsShader* dsSceneSSAO_getShader(const dsSceneSSAO* ssao)
  *     - position: vec2 clip-space [-1, 1] values.
  * @return False if the parameters are invalid.
  */
-DS_SCENELIGHTING_EXPORT bool dsSceneSSAO_setShader(dsSceneSSAO* ssao, dsShader* shader);
+DS_SCENELIGHTING_EXPORT bool dsSceneComputeSSAO_setShader(dsSceneComputeSSAO* ssao, dsShader* shader);
 
 /**
  * @brief Gets the material.
  * @param ssao The scene SSAO.
  * @return The material or NULL if ssao is NULL.
  */
-DS_SCENELIGHTING_EXPORT dsMaterial* dsSceneSSAO_getMaterial(const dsSceneSSAO* ssao);
+DS_SCENELIGHTING_EXPORT dsMaterial* dsSceneComputeSSAO_getMaterial(const dsSceneComputeSSAO* ssao);
 
 /**
  * @brief Sets the material.
@@ -99,13 +103,13 @@ DS_SCENELIGHTING_EXPORT dsMaterial* dsSceneSSAO_getMaterial(const dsSceneSSAO* s
  *     - randomRotations: 2D RG texture for a random rotation vector to cross with the normal.
  * @return False if the parameters are invalid.
  */
-DS_SCENELIGHTING_EXPORT bool dsSceneSSAO_setMaterial(dsSceneSSAO* ssao, dsMaterial* material);
+DS_SCENELIGHTING_EXPORT bool dsSceneComputeSSAO_setMaterial(dsSceneComputeSSAO* ssao, dsMaterial* material);
 
 /**
  * @brief Destroys a scene SSAO.
  * @param ssao The scene SSAO to destroy.
  */
-DS_SCENELIGHTING_EXPORT void dsSceneSSAO_destroy(dsSceneSSAO* ssao);
+DS_SCENELIGHTING_EXPORT void dsSceneComputeSSAO_destroy(dsSceneComputeSSAO* ssao);
 
 #ifdef __cplusplus
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Aaron Barany
+ * Copyright 2017-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -189,6 +189,7 @@ typedef struct SetTextureCommand
 	const dsShader* shader;
 	dsTexture* texture;
 	uint32_t element;
+	dsMaterialType type;
 } SetTextureCommand;
 
 typedef struct SetTextureBufferCommand
@@ -891,7 +892,7 @@ bool dsGLOtherCommandBuffer_bindShader(dsCommandBuffer* commandBuffer, const dsS
 }
 
 bool dsGLOtherCommandBuffer_setTexture(dsCommandBuffer* commandBuffer, const dsShader* shader,
-	uint32_t element, dsTexture* texture)
+	uint32_t element, dsTexture* texture, dsMaterialType type)
 {
 	SetTextureCommand* command = (SetTextureCommand*)allocateCommand(commandBuffer,
 		CommandType_SetTexture, sizeof(SetTextureCommand));
@@ -903,6 +904,7 @@ bool dsGLOtherCommandBuffer_setTexture(dsCommandBuffer* commandBuffer, const dsS
 	command->shader = shader;
 	command->texture = texture;
 	command->element = element;
+	command->type = type;
 	return true;
 }
 
@@ -1399,7 +1401,7 @@ bool dsGLOtherCommandBuffer_submit(dsCommandBuffer* commandBuffer, dsCommandBuff
 			{
 				SetTextureCommand* thisCommand = (SetTextureCommand*)command;
 				dsGLCommandBuffer_setTexture(commandBuffer, thisCommand->shader,
-					thisCommand->element, thisCommand->texture);
+					thisCommand->element, thisCommand->texture, thisCommand->type);
 				break;
 			}
 			case CommandType_SetTextureBuffer:

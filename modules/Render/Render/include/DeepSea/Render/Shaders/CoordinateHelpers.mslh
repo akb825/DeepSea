@@ -51,3 +51,39 @@ vec2 dsClipToTexCoords(vec2 clipCoords)
 	return vec2(clipCoords.x, -clipCoords.y)*vec2(0.5) + vec2(0.5);
 #endif
 }
+
+/**
+ * @brief Swizzles the work group ID for compute shaders to better handle the texture cache for
+ *     image resolves.
+ * @remark This assumes a 2D workgroup, i.e. gl_NumWorkGroups.z is 1.
+ * @param limit The limit across which to swizzle.
+ * @return The swizzled ID.
+ */
+[[compute]]
+uvec2 dsSwizzleWorkGroupID(uint limit)
+{
+	uint columnSize = gl_NumWorkGroups.y*min(limit, gl_NumWorkGroups.x);
+
+	uint globalIndex = gl_WorkGroupID.y*gl_NumWorkGroups.x + gl_WorkGroupID.x;
+	uint columnIndex = globalIndex/columnSize;
+	uint columnRem = globalIndex % columnSize;
+
+	uint baseX = columnIndex*limit;
+	uint columnWidth = min(limit, gl_NumWorkGroups.x - baseX);
+	return uvec2(baseX + columnRem % columnWidth, columnRem/columnWidth);
+}
+
+/**
+ * @brief Swizzles the global invocation ID for compute shaders to better handle the texture cache
+ *     for image resolves.
+ * @remark This assumes a 2D workgroup, i.e. gl_NumWorkGroups.z is 1.
+ * @param limit The limit across which to swizzle.
+ * @param workGroupSize The work group size. This is passed as a parameter since gl_WorkGroupSize
+ *     will resolve to (1, 1, 1) if defined before the special in variable.
+ * @return The swizzled ID.
+ */
+[[compute]]
+uvec2 dsSwizzleGlobalInvocationID(uint limit, uvec2 workGroupSize)
+{
+	return dsSwizzleWorkGroupID(limit)*workGroupSize + gl_LocalInvocationID.xy;
+}

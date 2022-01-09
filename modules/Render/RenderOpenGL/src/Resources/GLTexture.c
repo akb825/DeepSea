@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Aaron Barany
+ * Copyright 2017-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -96,10 +96,9 @@ dsTexture* dsGLTexture_create(dsResourceManager* resourceManager, dsAllocator* a
 	}
 
 	// Format should have been validated earlier.
-	GLenum internalFormat;
 	GLenum glFormat;
 	GLenum type;
-	DS_VERIFY(dsGLResourceManager_getTextureFormatInfo(&internalFormat, &glFormat, &type,
+	DS_VERIFY(dsGLResourceManager_getTextureFormatInfo(&texture->internalFormat, &glFormat, &type,
 		resourceManager, info->format));
 
 	bool compressed = dsGfxFormat_compressedIndex(info->format) > 0;
@@ -114,37 +113,40 @@ dsTexture* dsGLTexture_create(dsResourceManager* resourceManager, dsAllocator* a
 			case dsTextureDim_1D:
 				if (info->depth > 0)
 				{
-					glTexStorage2D(GL_TEXTURE_1D_ARRAY, info->mipLevels, internalFormat, info->width,
-						info->depth);
+					glTexStorage2D(GL_TEXTURE_1D_ARRAY, info->mipLevels, texture->internalFormat,
+						info->width, info->depth);
 				}
 				else
-					glTexStorage1D(GL_TEXTURE_1D, info->mipLevels, internalFormat, info->width);
+				{
+					glTexStorage1D(GL_TEXTURE_1D, info->mipLevels, texture->internalFormat,
+						info->width);
+				}
 				break;
 			case dsTextureDim_2D:
 				if (info->depth > 0)
 				{
-					glTexStorage3D(GL_TEXTURE_2D_ARRAY, info->mipLevels, internalFormat,
+					glTexStorage3D(GL_TEXTURE_2D_ARRAY, info->mipLevels, texture->internalFormat,
 						info->width, info->height, info->depth);
 				}
 				else
 				{
-					glTexStorage2D(GL_TEXTURE_2D, info->mipLevels, internalFormat, info->width,
-						info->height);
+					glTexStorage2D(GL_TEXTURE_2D, info->mipLevels, texture->internalFormat,
+						info->width, info->height);
 				}
 				break;
 			case dsTextureDim_3D:
-				glTexStorage3D(GL_TEXTURE_3D, info->mipLevels, internalFormat, info->width,
+				glTexStorage3D(GL_TEXTURE_3D, info->mipLevels, texture->internalFormat, info->width,
 					info->height, info->depth);
 				break;
 			case dsTextureDim_Cube:
 				if (info->depth > 0)
 				{
-					glTexStorage3D(GL_TEXTURE_CUBE_MAP_ARRAY, info->mipLevels, internalFormat,
-						info->width, info->height, info->depth);
+					glTexStorage3D(GL_TEXTURE_CUBE_MAP_ARRAY, info->mipLevels,
+						texture->internalFormat, info->width, info->height, info->depth);
 				}
 				else
 				{
-					glTexStorage2D(GL_TEXTURE_CUBE_MAP, info->mipLevels, internalFormat,
+					glTexStorage2D(GL_TEXTURE_CUBE_MAP, info->mipLevels, texture->internalFormat,
 						info->width, info->height);
 				}
 				break;
@@ -171,8 +173,8 @@ dsTexture* dsGLTexture_create(dsResourceManager* resourceManager, dsAllocator* a
 							if (compressed)
 							{
 								glCompressedTexSubImage2D(GL_TEXTURE_1D_ARRAY, i, 0, 0,
-									mipWidth, info->depth, internalFormat, (GLsizei)surfaceSize,
-									dataBytes + offset);
+									mipWidth, info->depth, texture->internalFormat,
+									(GLsizei)surfaceSize, dataBytes + offset);
 							}
 							else
 							{
@@ -185,7 +187,8 @@ dsTexture* dsGLTexture_create(dsResourceManager* resourceManager, dsAllocator* a
 							if (compressed)
 							{
 								glCompressedTexSubImage1D(GL_TEXTURE_1D, i, 0, mipWidth,
-									internalFormat, (GLsizei)surfaceSize, dataBytes + offset);
+									texture->internalFormat, (GLsizei)surfaceSize,
+									dataBytes + offset);
 							}
 							else
 							{
@@ -200,7 +203,7 @@ dsTexture* dsGLTexture_create(dsResourceManager* resourceManager, dsAllocator* a
 							if (compressed)
 							{
 								glCompressedTexSubImage3D(GL_TEXTURE_2D_ARRAY, i, 0, 0, 0,
-									mipWidth, mipHeight, info->depth, internalFormat,
+									mipWidth, mipHeight, info->depth, texture->internalFormat,
 									(GLsizei)surfaceSize, dataBytes + offset);
 							}
 							else
@@ -214,7 +217,7 @@ dsTexture* dsGLTexture_create(dsResourceManager* resourceManager, dsAllocator* a
 							if (compressed)
 							{
 								glCompressedTexSubImage2D(GL_TEXTURE_2D, i, 0, 0, mipWidth,
-									mipHeight, internalFormat, (GLsizei)surfaceSize,
+									mipHeight, texture->internalFormat, (GLsizei)surfaceSize,
 									dataBytes + offset);
 							}
 							else
@@ -230,7 +233,7 @@ dsTexture* dsGLTexture_create(dsResourceManager* resourceManager, dsAllocator* a
 						if (compressed)
 						{
 							glCompressedTexSubImage3D(GL_TEXTURE_3D, i, 0, 0, 0, mipWidth,
-								mipHeight, mipDepth, internalFormat, (GLsizei)surfaceSize,
+								mipHeight, mipDepth, texture->internalFormat, (GLsizei)surfaceSize,
 								dataBytes + offset);
 						}
 						else
@@ -246,7 +249,7 @@ dsTexture* dsGLTexture_create(dsResourceManager* resourceManager, dsAllocator* a
 							if (compressed)
 							{
 								glCompressedTexSubImage3D(GL_TEXTURE_CUBE_MAP_ARRAY, i, 0, 0, 0,
-									mipWidth, mipHeight, info->depth*faces, internalFormat,
+									mipWidth, mipHeight, info->depth*faces, texture->internalFormat,
 									(GLsizei)surfaceSize, dataBytes + offset);
 							}
 							else
@@ -263,7 +266,7 @@ dsTexture* dsGLTexture_create(dsResourceManager* resourceManager, dsAllocator* a
 								if (compressed)
 								{
 									glCompressedTexSubImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + j, i,
-										0, 0, mipWidth, mipHeight, internalFormat,
+										0, 0, mipWidth, mipHeight, texture->internalFormat,
 										(GLsizei)surfaceSize, dataBytes + offset);
 								}
 								else
@@ -301,25 +304,26 @@ dsTexture* dsGLTexture_create(dsResourceManager* resourceManager, dsAllocator* a
 						{
 							if (compressed)
 							{
-								glCompressedTexImage2D(GL_TEXTURE_1D_ARRAY, i, internalFormat,
-									mipWidth, info->depth, 0, (GLsizei)size, dataBytes + offset);
+								glCompressedTexImage2D(GL_TEXTURE_1D_ARRAY, i,
+									texture->internalFormat, mipWidth, info->depth, 0,
+									(GLsizei)size, dataBytes + offset);
 							}
 							else
 							{
-								glTexImage2D(GL_TEXTURE_1D_ARRAY, i, internalFormat, mipWidth,
-									info->depth, 0, glFormat, type, dataBytes + offset);
+								glTexImage2D(GL_TEXTURE_1D_ARRAY, i, texture->internalFormat,
+									mipWidth, info->depth, 0, glFormat, type, dataBytes + offset);
 							}
 						}
 						else
 						{
 							if (compressed)
 							{
-								glCompressedTexImage1D(GL_TEXTURE_1D, i, internalFormat, mipWidth,
-									0, (GLsizei)size, dataBytes + offset);
+								glCompressedTexImage1D(GL_TEXTURE_1D, i, texture->internalFormat,
+									mipWidth, 0, (GLsizei)size, dataBytes + offset);
 							}
 							else
 							{
-								glTexImage1D(GL_TEXTURE_1D, i, internalFormat, mipWidth, 0,
+								glTexImage1D(GL_TEXTURE_1D, i, texture->internalFormat, mipWidth, 0,
 									glFormat, type, dataBytes + offset);
 							}
 						}
@@ -329,27 +333,28 @@ dsTexture* dsGLTexture_create(dsResourceManager* resourceManager, dsAllocator* a
 						{
 							if (compressed)
 							{
-								glCompressedTexImage3D(GL_TEXTURE_2D_ARRAY, i, internalFormat,
-									mipWidth, mipHeight, info->depth, 0, (GLsizei)size,
-									dataBytes + offset);
+								glCompressedTexImage3D(GL_TEXTURE_2D_ARRAY, i,
+									texture->internalFormat, mipWidth, mipHeight, info->depth, 0,
+									(GLsizei)size, dataBytes + offset);
 							}
 							else
 							{
-								glTexImage3D(GL_TEXTURE_2D_ARRAY, i, internalFormat, mipWidth,
-									mipHeight, info->depth, 0, glFormat, type, dataBytes + offset);
+								glTexImage3D(GL_TEXTURE_2D_ARRAY, i, texture->internalFormat,
+									mipWidth, mipHeight, info->depth, 0, glFormat, type,
+									dataBytes + offset);
 							}
 						}
 						else
 						{
 							if (compressed)
 							{
-								glCompressedTexImage2D(GL_TEXTURE_2D, i, internalFormat, mipWidth,
-									mipHeight, 0, (GLsizei)size, dataBytes + offset);
+								glCompressedTexImage2D(GL_TEXTURE_2D, i, texture->internalFormat,
+									mipWidth, mipHeight, 0, (GLsizei)size, dataBytes + offset);
 							}
 							else
 							{
-								glTexImage2D(GL_TEXTURE_2D, i, internalFormat, mipWidth, mipHeight,
-									0, glFormat, type, dataBytes + offset);
+								glTexImage2D(GL_TEXTURE_2D, i, texture->internalFormat, mipWidth,
+									mipHeight, 0, glFormat, type, dataBytes + offset);
 							}
 						}
 						break;
@@ -358,13 +363,14 @@ dsTexture* dsGLTexture_create(dsResourceManager* resourceManager, dsAllocator* a
 						uint32_t mipDepth = dsMax(1U, info->depth >> i);
 						if (compressed)
 						{
-							glCompressedTexImage3D(GL_TEXTURE_3D, i, internalFormat, mipWidth,
-								mipHeight, mipDepth, 0, (GLsizei)size, dataBytes + offset);
+							glCompressedTexImage3D(GL_TEXTURE_3D, i, texture->internalFormat,
+								mipWidth, mipHeight, mipDepth, 0, (GLsizei)size,
+								dataBytes + offset);
 						}
 						else
 						{
-							glTexImage3D(GL_TEXTURE_3D, i, internalFormat, mipWidth, mipHeight,
-								mipDepth, 0, glFormat, type, dataBytes + offset);
+							glTexImage3D(GL_TEXTURE_3D, i, texture->internalFormat, mipWidth,
+								mipHeight, mipDepth, 0, glFormat, type, dataBytes + offset);
 						}
 						break;
 					}
@@ -373,13 +379,14 @@ dsTexture* dsGLTexture_create(dsResourceManager* resourceManager, dsAllocator* a
 						if (compressed)
 						{
 							glCompressedTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + j, i,
-								internalFormat, mipWidth, mipHeight, 0, (GLsizei)size,
+								texture->internalFormat, mipWidth, mipHeight, 0, (GLsizei)size,
 								dataBytes + offset);
 						}
 						else
 						{
-							glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + j, i, internalFormat,
-								mipWidth, mipHeight, 0, glFormat, type, dataBytes + offset);
+							glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + j, i,
+								texture->internalFormat, mipWidth, mipHeight, 0, glFormat, type,
+								dataBytes + offset);
 						}
 						break;
 					default:
@@ -436,10 +443,9 @@ dsOffscreen* dsGLTexture_createOffscreen(dsResourceManager* resourceManager, dsA
 	dsClearGLErrors();
 
 	// Format should have been validated earlier.
-	GLenum internalFormat;
 	GLenum glFormat;
 	GLenum type;
-	DS_VERIFY(dsGLResourceManager_getTextureFormatInfo(&internalFormat, &glFormat, &type,
+	DS_VERIFY(dsGLResourceManager_getTextureFormatInfo(&texture->internalFormat, &glFormat, &type,
 		resourceManager, info->format));
 
 	if (info->samples > 1 && resolve && ANYGL_SUPPORTED(glRenderbufferStorageMultisample))
@@ -457,7 +463,7 @@ dsOffscreen* dsGLTexture_createOffscreen(dsResourceManager* resourceManager, dsA
 		}
 
 		glBindRenderbuffer(GL_RENDERBUFFER, texture->drawBufferId);
-		glRenderbufferStorageMultisample(GL_RENDERBUFFER, info->samples, internalFormat,
+		glRenderbufferStorageMultisample(GL_RENDERBUFFER, info->samples, texture->internalFormat,
 			info->width, info->height);
 		glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
@@ -497,37 +503,40 @@ dsOffscreen* dsGLTexture_createOffscreen(dsResourceManager* resourceManager, dsA
 			case dsTextureDim_1D:
 				if (info->depth > 0)
 				{
-					glTexStorage2D(GL_TEXTURE_1D_ARRAY, info->mipLevels, internalFormat,
+					glTexStorage2D(GL_TEXTURE_1D_ARRAY, info->mipLevels, texture->internalFormat,
 						info->width, info->depth);
 				}
 				else
-					glTexStorage1D(GL_TEXTURE_1D, info->mipLevels, internalFormat, info->width);
+				{
+					glTexStorage1D(GL_TEXTURE_1D, info->mipLevels, texture->internalFormat,
+						info->width);
+				}
 				break;
 			case dsTextureDim_2D:
 				if (info->depth > 0)
 				{
-					glTexStorage3D(GL_TEXTURE_2D_ARRAY, info->mipLevels, internalFormat,
+					glTexStorage3D(GL_TEXTURE_2D_ARRAY, info->mipLevels, texture->internalFormat,
 						info->width, info->height, info->depth);
 				}
 				else
 				{
-					glTexStorage2D(GL_TEXTURE_2D, info->mipLevels, internalFormat, info->width,
-						info->height);
+					glTexStorage2D(GL_TEXTURE_2D, info->mipLevels, texture->internalFormat,
+						info->width, info->height);
 				}
 				break;
 			case dsTextureDim_3D:
-				glTexStorage3D(GL_TEXTURE_3D, info->mipLevels, internalFormat, info->width,
+				glTexStorage3D(GL_TEXTURE_3D, info->mipLevels, texture->internalFormat, info->width,
 					info->height, info->depth);
 				break;
 			case dsTextureDim_Cube:
 				if (info->depth > 0)
 				{
-					glTexStorage3D(GL_TEXTURE_CUBE_MAP_ARRAY, info->mipLevels, internalFormat,
-						info->width, info->height, info->depth);
+					glTexStorage3D(GL_TEXTURE_CUBE_MAP_ARRAY, info->mipLevels,
+						texture->internalFormat, info->width, info->height, info->depth);
 				}
 				else
 				{
-					glTexStorage2D(GL_TEXTURE_CUBE_MAP, info->mipLevels, internalFormat,
+					glTexStorage2D(GL_TEXTURE_CUBE_MAP, info->mipLevels, texture->internalFormat,
 						info->width, info->height);
 				}
 				break;
@@ -548,37 +557,37 @@ dsOffscreen* dsGLTexture_createOffscreen(dsResourceManager* resourceManager, dsA
 					case dsTextureDim_1D:
 						if (info->depth > 0)
 						{
-							glTexImage2D(GL_TEXTURE_1D_ARRAY, i, internalFormat, mipWidth,
+							glTexImage2D(GL_TEXTURE_1D_ARRAY, i, texture->internalFormat, mipWidth,
 								info->depth, 0, glFormat, type, NULL);
 						}
 						else
 						{
-							glTexImage1D(GL_TEXTURE_1D, i, internalFormat, mipWidth, 0, glFormat,
+							glTexImage1D(GL_TEXTURE_1D, i, texture->internalFormat, mipWidth, 0, glFormat,
 								type, NULL);
 						}
 						break;
 					case dsTextureDim_2D:
 						if (info->depth > 0)
 						{
-							glTexImage3D(GL_TEXTURE_2D_ARRAY, i, internalFormat, mipWidth,
+							glTexImage3D(GL_TEXTURE_2D_ARRAY, i, texture->internalFormat, mipWidth,
 								mipHeight, info->depth, 0, glFormat, type, NULL);
 						}
 						else
 						{
-							glTexImage2D(GL_TEXTURE_2D, i, internalFormat, mipWidth, mipHeight, 0,
+							glTexImage2D(GL_TEXTURE_2D, i, texture->internalFormat, mipWidth, mipHeight, 0,
 								glFormat, type, NULL);
 						}
 						break;
 					case dsTextureDim_3D:
 					{
 						uint32_t mipDepth = dsMax(1U, info->depth >> i);
-						glTexImage3D(GL_TEXTURE_3D, i, internalFormat, mipWidth, mipHeight,
+						glTexImage3D(GL_TEXTURE_3D, i, texture->internalFormat, mipWidth, mipHeight,
 							mipDepth, 0, glFormat, type, NULL);
 						break;
 					}
 					case dsTextureDim_Cube:
 						DS_ASSERT(info->depth == 0);
-						glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + j, i, internalFormat,
+						glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + j, i, texture->internalFormat,
 							mipWidth, mipHeight, 0, glFormat, type, NULL);
 						break;
 					default:

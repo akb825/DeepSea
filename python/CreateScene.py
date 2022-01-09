@@ -56,6 +56,7 @@ if __name__ == '__main__':
 	convertContext.addInstanceDataType('InstanceForwardLightData', convertInstanceForwardLightData)
 	convertContext.addInstanceDataType('ShadowInstanceTransformData',
 		convertShadowInstanceTransformData)
+	convertContext.addItemListType('ComputeSSAO', convertSSAO) # Same type as normal SSAO.
 	convertContext.addItemListType('DeferredLightResolve', convertDeferredLightResolve)
 	convertContext.addItemListType('ShadowCullList', convertShadowCullList)
 	convertContext.addItemListType('SSAO', convertSSAO)

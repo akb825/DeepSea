@@ -18,6 +18,7 @@
 
 #include "DeferredLightResolveLoad.h"
 #include "InstanceForwardLightDataLoad.h"
+#include "SceneComputeSSAOLoad.h"
 #include "SceneLightSetLoad.h"
 #include "SceneLightSetPrepareLoad.h"
 #include "SceneShadowManagerLoad.h"
@@ -31,6 +32,7 @@
 #include <DeepSea/Scene/SceneLoadContext.h>
 #include <DeepSea/SceneLighting/DeferredLightResolve.h>
 #include <DeepSea/SceneLighting/InstanceForwardLightData.h>
+#include <DeepSea/SceneLighting/SceneComputeSSAO.h>
 #include <DeepSea/SceneLighting/SceneLightSet.h>
 #include <DeepSea/SceneLighting/SceneLightSetPrepare.h>
 #include <DeepSea/SceneLighting/SceneShadowManager.h>
@@ -93,6 +95,12 @@ bool dsSceneLightingLoadConext_registerTypes(dsSceneLoadContext* loadContext)
 
 	if (!dsSceneLoadContext_registerItemListType(loadContext, dsDeferredLightResolve_typeName,
 			&dsDeferredLightResolve_load, NULL, NULL))
+	{
+		return false;
+	}
+
+	if (!dsSceneLoadContext_registerItemListType(loadContext, dsSceneComputeSSAO_typeName,
+			&dsSceneComputeSSAO_load, NULL, NULL))
 	{
 		return false;
 	}

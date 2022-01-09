@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2021 Aaron Barany
+ * Copyright 2017-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -86,6 +86,7 @@ typedef struct dsGLTexture
 	dsGLResource resource;
 	GLuint textureId;
 	GLuint drawBufferId;
+	GLenum internalFormat;
 
 	GLenum minFilter;
 	GLenum magFilter;
@@ -306,7 +307,7 @@ typedef bool (*GLCopyQueryValuesFunction)(dsCommandBuffer* commandBuffer, dsGfxQ
 typedef bool (*GLBindShaderFunctiion)(dsCommandBuffer* commandBuffer, const dsShader* shader,
 	const dsDynamicRenderStates* renderStates);
 typedef bool (*GLSetTextureFunction)(dsCommandBuffer* commandBuffer, const dsShader* shader,
-	uint32_t element, dsTexture* texture);
+	uint32_t element, dsTexture* texture, dsMaterialType type);
 typedef bool (*GLSetTextureBufferFunction)(dsCommandBuffer* commandBuffer, const dsShader* shader,
 	uint32_t element, dsGfxBuffer* buffer, dsGfxFormat format, size_t offset, size_t count);
 typedef bool (*GLSetShaderBufferFunction)(dsCommandBuffer* commandBuffer, const dsShader* shader,

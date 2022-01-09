@@ -28,6 +28,11 @@
  */
 #define DS_MAX_SSAO_SAMPLES 128
 
+/**
+ * @brief The size of a tile (in X and Y) for the compute shader when dispatching SSAO.
+ */
+#define DS_SCENE_COMPUTE_SSAO_TILE_SIZE 16
+
 uniform RandomOffsets
 {
 	vec3 offsets[DS_MAX_SSAO_SAMPLES];
