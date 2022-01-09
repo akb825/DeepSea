@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Aaron Barany
+ * Copyright 2021-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#pragma once
+#include <DeepSea/Render/Shaders/Macros.mslh>
 
 /**
  * @file
@@ -23,6 +23,14 @@
  * This expects DS_SHADOW_FILTER to be defined for the shadow filter function. This typically means
  * including an appropriate shadow filter header (e.g. ShadowPCF2x2.mslh) before including this
  * file.
+ *
+ * In order to avoid performance issues, the uniform for the shadow transform is declared here.
+ * The following #defines can control the names that are used:
+ * - DS_CASCADED_SHADOW_UNIFORM_NAME: The name of the uniform struct, defaults to ShadowTransform.
+ * - DS_CASCADED_SHADOW_FUNCTION_NAME: The name of the function, defaults to dsCascadedShadowMap.
+ *
+ * This file can be included multiple times by re-defining the above name macros if multiple shadow
+ * lookups are needed.
  */
 
 #if !HAS_SHADOW_SAMPLERS || !HAS_TEXTURE_ARRAYS
@@ -33,37 +41,56 @@
 #error DS_SHADOW_FILTER must be defined to provide the shadow filter function.
 #endif
 
+#ifndef DS_CASCADED_SHADOW_UNIFORM_NAME
+#define DS_CASCADED_SHADOW_UNIFORM_NAME ShadowTransform
+#endif
+
+#ifndef DS_CASCADED_SHADOW_FUNCTION_NAME
+#define DS_CASCADED_SHADOW_FUNCTION_NAME dsCascadedShadowMap
+#endif
+
+#define DS_SHADOW_UNIFORM DS_CONCAT(ds, DS_CASCADED_SHADOW_UNIFORM_NAME)
+
+uniform DS_CASCADED_SHADOW_UNIFORM_NAME
+{
+	mat4[4] matrices;
+	vec4 splitDistances;
+	vec2 fadeDistances;
+} DS_SHADOW_UNIFORM;
+
+
 /**
  * @brief Performs a shadow map lookup.
  * @param shadowMap The shadow map to look up in.
- * @param cascadeProjections The cascaded projection matrices.
- * @param splitDistances The distances for each cascade split.
  * @param viewPos The view position.
- * @param fadeDistances The distances to start and stop fading shadows.
  * @param texCoordTransform The scale and offset to apply to the shadow projection to convert to
  *     texture coordinates.
  * @return A value of 0 to 1, where 0 is fully shadowed and 1 is fully lit.
  */
 [[fragment]]
-float dsCascadedShadowMap(sampler2DArrayShadow shadowMap, mat4 cascadeProjections[4],
-	vec4 splitDistances, vec3 viewPos, vec2 fadeDistances, vec3 texCoordTransform[2])
+float DS_CASCADED_SHADOW_FUNCTION_NAME(sampler2DArrayShadow shadowMap, vec3 viewPos,
+	vec3 texCoordTransform[2])
 {
 	float viewZ = -viewPos.z;
-	ivec4 beyondSplit = ivec4(greaterThan(vec4(viewZ), splitDistances));
+	ivec4 beyondSplit = ivec4(greaterThan(vec4(viewZ), INSTANCE(DS_SHADOW_UNIFORM).splitDistances));
 	int split = beyondSplit.x + beyondSplit.y + beyondSplit.z + beyondSplit.w;
 
 	// Regardless of the number of splits, the split index will be 0 if fully out of the range of
 	// shadows. (since all following splits are set to far plane)
+	vec2 fadeDistances = INSTANCE(DS_SHADOW_UNIFORM).fadeDistances;
 	if (split >= 4 || viewZ >= fadeDistances.y)
 		return 1.0;
 
 	vec2 fadeFactors = max(vec2(viewZ, fadeDistances.y) - vec2(fadeDistances.x), vec2(0.0, 1e-3));
 	float fadeAmount = fadeFactors.x/fadeFactors.y;
 
-	vec4 shadowPos = DS_ADJUST_CLIP(cascadeProjections[split]*vec4(viewPos, 1.0));
+	mat4 projection = INSTANCE(DS_SHADOW_UNIFORM).matrices[split];
+	vec4 shadowPos = DS_ADJUST_CLIP(projection*vec4(viewPos, 1.0));
 	shadowPos /= shadowPos.w;
 	vec3 shadowTexCoords = shadowPos.xyz*texCoordTransform[0] + texCoordTransform[1];
 	shadowTexCoords.z = clamp(shadowTexCoords.z, 0.0, 1.0);
 	float shadowVal = DS_SHADOW_FILTER(shadowMap, split, shadowTexCoords);
 	return mix(shadowVal, 1.0, fadeAmount);
 }
+
+#undef DS_SHADOW_UNIFORM

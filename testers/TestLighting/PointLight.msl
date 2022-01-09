@@ -32,13 +32,6 @@ sampler_state shadowMap
 	compare_op = greater_or_equal;
 }
 
-uniform ShadowTransform
-{
-	mat4 matrices[6];
-	vec2 fadeDistances;
-	vec3 lightPosition;
-} dsShadowTransform;
-
 [[fragment]] uniform subpassInput(0) materialColor;
 [[fragment]] uniform subpassInput(1) normalSpecular;
 [[fragment]] uniform subpassInput(2) surfaceDepth;
@@ -69,9 +62,7 @@ void fragmentShader()
 	vec3 viewPosition = dsGetViewPositionFromClip(clipPos);
 	vec3 viewDirection = -normalize(viewPosition);
 
-	float shadowValue = dsPointShadowMap(shadowMap, INSTANCE(dsShadowTransform).matrices,
-		viewPosition, INSTANCE(dsShadowTransform).lightPosition,
-		INSTANCE(dsShadowTransform).fadeDistances,
+	float shadowValue = dsPointShadowMap(shadowMap, viewPosition,
 		INSTANCE(dsViewTransform).clipSpaceTexCoordTransform);
 
 	vec3 diffuseLight, specularLight;

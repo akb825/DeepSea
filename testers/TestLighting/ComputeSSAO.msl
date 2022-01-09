@@ -52,11 +52,6 @@ sampler_state randomRotations
 	mag_filter = nearest;
 }
 
-uniform RandomOffsets
-{
-	vec3 offsets[DS_MAX_SSAO_SAMPLES];
-} randomOffsets;
-
 varying(vertex, fragment)
 {
 	vec2 vfTexCoords;
@@ -89,8 +84,7 @@ void fragmentShader()
 	vec3 viewPosition = dsGetViewPositionFromScreen(depth);
 
 	float occlusion = dsComputeSSAO(viewPosition, normal, depth,
-		INSTANCE(dsViewTransform).projection, surfaceDepth, INSTANCE(randomOffsets).offsets,
-		rotation, RADIUS, SAMPLES, BIAS);
+		INSTANCE(dsViewTransform).projection, surfaceDepth, rotation, RADIUS, SAMPLES, BIAS);
 	outputColor = vec4(vec3(occlusion), 1.0);
 }
 

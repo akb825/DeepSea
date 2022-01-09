@@ -62,13 +62,6 @@ sampler_state shadowMap
 	compare_op = greater_or_equal;
 }
 
-uniform ShadowTransform
-{
-	mat4[4] matrices;
-	vec4 splitDistances;
-	vec2 fadeDistances;
-} dsShadowTransform;
-
 uniform float shininess;
 
 [[vertex]] layout(location = DS_POSITION) in vec3 position;
@@ -120,9 +113,7 @@ void fragmentShader()
 	// Normalize just the original normal as a trdeoff between performance and quality.
 	normal = mat3(vfTangentTexY.xyz, vfBitangent, normalize(vfNormalTexX.xyz))*normal;
 
-	float shadowValue = dsCascadedShadowMap(shadowMap, INSTANCE(dsShadowTransform).matrices,
-		INSTANCE(dsShadowTransform).splitDistances, vfViewPosition,
-		INSTANCE(dsShadowTransform).fadeDistances,
+	float shadowValue = dsCascadedShadowMap(shadowMap, vfViewPosition,
 		INSTANCE(dsViewTransform).clipSpaceTexCoordTransform);
 
 	vec3 viewDirection = -normalize(vfViewPosition);

@@ -28,6 +28,11 @@
  */
 #define DS_MAX_SSAO_SAMPLES 128
 
+uniform RandomOffsets
+{
+	vec3 offsets[DS_MAX_SSAO_SAMPLES];
+} dsRandomOffsets;
+
 /**
  * @brief Computes screen-space ambient occlusion.
  *
@@ -51,8 +56,8 @@
  */
 [[fragment, compute]]
 lowp float dsComputeSSAO(vec3 viewPosition, lowp vec3 viewNormal, float depth,
-	mat4 projection, sampler2D depthTexture, vec3 randomOffsets[DS_MAX_SSAO_SAMPLES],
-	lowp vec2 rotation, float radius, int samples, float bias)
+	mat4 projection, sampler2D depthTexture, lowp vec2 rotation, float radius, int samples,
+	float bias)
 {
 	vec4 minViewPosition = vec4(viewPosition.xy, viewPosition.z - radius, 1.0);
 	minViewPosition = projection*minViewPosition;
@@ -67,7 +72,7 @@ lowp float dsComputeSSAO(vec3 viewPosition, lowp vec3 viewNormal, float depth,
 	float totalOccluded = 0.0;
 	for (int i = 0; i < samples; ++i)
 	{
-		vec3 direction = orientation*randomOffsets[i];
+		vec3 direction = orientation*INSTANCE(dsRandomOffsets).offsets[i];
 		vec4 testPos = vec4(direction*radius + viewPosition, 1.0);
 		testPos = DS_ADJUST_CLIP(projection*testPos);
 		testPos /= testPos.w;
