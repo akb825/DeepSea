@@ -44,8 +44,8 @@
 		{
 			"name": "ssao",
 			"type": "Offscreen",
-			"usage": ["Texture", "Image"],
-			"format": "R8G8B8A8",
+			"usage": ["Texture"],
+			"format": "R8",
 			"decoration": "UNorm",
 			"samples": 1,
 			"resolve": false,

@@ -476,10 +476,32 @@
 			]
 		},
 		{
-			"type": "ComputeSSAO",
-			"name": "SSAO",
-			"shader": "computeSSAOShader",
-			"material": "computeSSAOMaterial"
+			"framebuffer": "ssao",
+			"attachments":
+			[
+				{
+					"usage": ["KeepAfter"],
+					"format": "R8",
+					"decoration": "UNorm",
+					"samples": 1
+				}
+			],
+			"subpasses":
+			[
+				{
+					"name": "SSAO",
+					"colorAttachments": [{"index": 0, "resolve": false}],
+					"drawLists":
+					[
+						{
+							"type": "SSAO",
+							"name": "computeSSAO",
+							"shader": "computeSSAOShader",
+							"material": "computeSSAOMaterial"
+						}
+					]
+				}
+			]
 		},
 		{
 			"framebuffer": "window",

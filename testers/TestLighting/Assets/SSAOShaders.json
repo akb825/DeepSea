@@ -97,11 +97,6 @@
 				"binding": "Global"
 			},
 			{
-				"name": "ssao",
-				"type": "Image",
-				"binding": "Global"
-			},
-			{
 				"name": "ViewTransformData",
 				"type": "VariableGroup",
 				"binding": "Global",
