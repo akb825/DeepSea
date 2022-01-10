@@ -103,7 +103,7 @@ static bool setupElements(dsVkSharedDescriptorSets* descriptors, dsCommandBuffer
 					// Depth/stencil textures should use the depth-only image view for cases where
 					// it's used as a shadow sampler, otherwise it will fail validation. (the image
 					// view must ONLY contain the depth aspect bit)
-					if (element->type == dsMaterialType_Texture && vkTexture->depthOnlyImageView)
+					if (vkTexture->depthOnlyImageView)
 						imageInfo->imageView = vkTexture->depthOnlyImageView;
 					else
 						imageInfo->imageView = vkTexture->deviceImageView;
