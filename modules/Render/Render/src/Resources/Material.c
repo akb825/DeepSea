@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,9 +34,9 @@ struct dsMaterial
 {
 	dsResourceManager* resourceManager;
 	dsAllocator* allocator;
+	const dsMaterialDesc* description;
 	void* deviceMaterial;
 	uint8_t* data;
-	const dsMaterialDesc* description;
 	uint32_t* offsets;
 };
 
@@ -182,6 +182,7 @@ dsMaterial* dsMaterial_create(dsResourceManager* resourceManager, dsAllocator* a
 	{
 		material->data = NULL;
 		material->offsets = NULL;
+		material->deviceMaterial = NULL;
 		return material;
 	}
 

@@ -16,7 +16,7 @@ if (TARGET deepsea_render_metal)
 	if (IOS)
 		list(APPEND computeShaderConfigs metal-ios-1.1)
 	else()
-		list(APPEND computeShaderConfigs metal-osx-1.1)
+		list(APPEND computeShaderConfigs metal-macos-1.1)
 	endif()
 endif()
 

@@ -398,9 +398,6 @@ static bool loadMaterialDesc(dsSceneResources* resources, dsResourceManager* res
 		return true;;
 
 	uint32_t elementCount = fbElements->size();
-	if (elementCount == 0)
-		return true;
-
 	uint32_t dummyCount = 0;
 	uint32_t maxElements = static_cast<uint32_t>(tempDataSize/sizeof(dsMaterialElement));
 	if (!dsResizeableArray_add(scratchAllocator, &tempData, &dummyCount, &maxElements,

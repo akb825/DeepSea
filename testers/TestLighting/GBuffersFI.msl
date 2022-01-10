@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2022 Aaron Barany
+ * Copyright 2021-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,8 @@
  */
 
 #include <DeepSea/Render/Shaders/VertexAttributes.mslh>
-#include <DeepSea/SceneLighting/Shaders/ForwardLights.mslh>
 #include <DeepSea/Scene/Shaders/InstanceTransform.mslh>
 #include <DeepSea/Scene/Shaders/ViewTransform.mslh>
-
-#include <DeepSea/Render/Shaders/Shadows/ShadowPCF4x4.mslh>
-#include <DeepSea/Render/Shaders/Shadows/CascadedShadowMap.mslh>
 
 uniform sampler2D diffuseTexture;
 sampler_state diffuseTexture
@@ -52,16 +48,6 @@ sampler_state specularTexture
 	mip_filter = anisotropic;
 }
 
-uniform sampler2DArrayShadow shadowMap;
-sampler_state shadowMap
-{
-	address_mode_u = clamp_to_edge;
-	address_mode_v = clamp_to_edge;
-	min_filter = linear;
-	mag_filter = linear;
-	compare_op = greater_or_equal;
-}
-
 uniform float shininess;
 
 [[vertex]] layout(location = DS_POSITION) in vec3 position;
@@ -71,13 +57,14 @@ uniform float shininess;
 
 varying(vertex, fragment)
 {
-	vec3 vfViewPosition;
 	vec4 vfNormalTexX;
 	vec4 vfTangentTexY;
 	vec3 vfBitangent;
 }
 
-[[fragment]] out vec4 outputColor;
+[[fragment]] layout(location = 0) out vec4 materialColor;
+[[fragment]] layout(location = 1) out vec4 normalSpecular;
+[[fragment]] layout(location = 2) out float surfaceDepth;
 
 [[vertex]]
 void vertexShader()
@@ -85,9 +72,6 @@ void vertexShader()
 	vec4 position4 = vec4(position, 1.0);
 	gl_Position = DS_ADJUST_CLIP(INSTANCE(dsInstanceTransform).worldViewProj*position4);
 	gl_Position.xy = dsRotateScreenPosition(gl_Position.xy);
-
-	vec4 viewPosition = INSTANCE(dsInstanceTransform).worldView*position4;
-	vfViewPosition = viewPosition.xyz;
 
 	vec3 fixedNormal = normal*2.0 - vec3(1.0);
 	vec3 fixedTangent = tangent*2.0 - vec3(1.0);
@@ -103,7 +87,7 @@ void vertexShader()
 void fragmentShader()
 {
 	vec2 texCoord = vec2(vfNormalTexX.w, vfTangentTexY.w);
-	vec4 diffuseColor = texture(diffuseTexture, texCoord);
+	vec3 diffuseColor = texture(diffuseTexture, texCoord).rgb;
 	vec2 baseNormal = texture(normalTexture, texCoord).xy;
 	vec3 specularColor = texture(specularTexture, texCoord).rgb;
 
@@ -113,24 +97,28 @@ void fragmentShader()
 	// Normalize just the original normal as a trdeoff between performance and quality.
 	normal = mat3(vfTangentTexY.xyz, vfBitangent, normalize(vfNormalTexX.xyz))*normal;
 
-	float shadowValue = dsCascadedShadowMap(shadowMap, vfViewPosition,
-		INSTANCE(dsViewTransform).clipSpaceTexCoordTransform);
+	materialColor = vec4(diffuseColor, 1.0);
+	normalSpecular.xy = normal.xy*0.5 + vec2(0.5);
+	// Assume grayscale specular.
+	normalSpecular.z = specularColor.r;
+	normalSpecular.w = uniforms.shininess/256.0;
 
-	vec3 viewDirection = -normalize(vfViewPosition);
-	vec3 diffuseLight, specularLight;
-	dsComputeForwardLighting(diffuseLight, specularLight, vfViewPosition, normal,
-		uniforms.shininess, viewDirection, shadowValue);
-	outputColor = vec4(diffuseLight*diffuseColor.rgb + specularLight*specularColor,
-		diffuseColor.a);
+	surfaceDepth = gl_FragCoord.z;
 }
 
-pipeline ForwardLight
+pipeline GBuffers
 {
 	vertex = vertexShader;
 	fragment = fragmentShader;
 	depth_test_enable = true;
+#ifdef HAS_PREPASS
+	depth_compare_op = equal;
+	depth_write_enable = false;
+#else
 	depth_compare_op = greater;
+#endif
 	early_fragment_tests = true;
 	cull_mode = back;
 	fragment_group = 0;
 }
+

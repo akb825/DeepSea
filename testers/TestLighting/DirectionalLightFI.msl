@@ -1,0 +1,97 @@
+/*
+ * Copyright 2022 Aaron Barany
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#include <DeepSea/Render/Shaders/Shadows/ShadowPCF4x4.mslh>
+#include <DeepSea/Render/Shaders/Shadows/ShadowMap.mslh>
+
+#include <DeepSea/Scene/Shaders/ViewTransform.mslh>
+#include <DeepSea/SceneLighting/Shaders/DeferredDirectionalLight.mslh>
+
+uniform sampler2DShadow shadowMap;
+sampler_state shadowMap
+{
+	address_mode_u = clamp_to_edge;
+	address_mode_v = clamp_to_edge;
+	min_filter = linear;
+	mag_filter = linear;
+	compare_op = greater_or_equal;
+}
+
+uniform ShadowTransform
+{
+	mat4 matrix;
+	vec2 fadeDistances;
+} dsShadowTransform;
+
+fragment GBuffers
+{
+	layout(location = 0, fragment_group = 0) vec4 materialColor;
+	layout(location = 1, fragment_group = 0) vec4 normalSpecular;
+	layout(location = 2, fragment_group = 0) float surfaceDepth;
+} gBuffers;
+
+[[fragment]] layout(location = 3) out vec4 outputColor;
+
+[[fragment]]
+void fragmentShader()
+{
+	vec4 color = gBuffers.materialColor;
+	// Alpha of 0 means clear color.
+	if (color.a == 0)
+	{
+		outputColor = vec4(0.0, 0.0, 0.0, 1.0);
+		return;
+	}
+
+	vec4 normalSpecularVal = gBuffers.normalSpecular;
+	float depthVal = gBuffers.surfaceDepth;
+
+	vec3 normal;
+	normal.xy = normalSpecularVal.xy*2.0 - vec2(1.0);
+	normal.z = sqrt(1.0 - min(dot(normal.xy, normal.xy), 1.0));
+
+	float specular = normalSpecularVal.z;
+	float shininess = normalSpecularVal.w*256.0;
+
+	vec3 viewPosition = dsGetViewPositionFromClip(vec3(vfClipCoords.xy, depthVal));
+	vec3 viewDirection = -normalize(viewPosition);
+
+	vec4 shadowPosition =
+		DS_ADJUST_CLIP(INSTANCE(dsShadowTransform).matrix*vec4(viewPosition, 1.0));
+	float shadowValue = dsShadowMap(shadowMap, viewPosition, shadowPosition.xyz/shadowPosition.w,
+		INSTANCE(dsShadowTransform).fadeDistances,
+		INSTANCE(dsViewTransform).clipSpaceTexCoordTransform);
+
+	vec3 diffuseLight, specularLight;
+	dsDeferredDirectionalLight_lightColor(diffuseLight, specularLight, normal, viewDirection,
+		shininess);
+	outputColor.xyz = (color.rgb*diffuseLight + specular*specularLight)*shadowValue;
+	outputColor.w = 1.0;
+}
+
+pipeline DirectionalLight
+{
+	vertex = dsDeferredDirectionalLight_defaultVertex;
+	fragment = fragmentShader;
+	cull_mode = back;
+	separate_attachment_blending_enable = true;
+	attachment3_blend_enable = true;
+	attachment3_src_blend_factor = one;
+	attachment3_dst_color_blend_factor = one;
+	attachment3_dst_alpha_blend_factor = zero;
+	attachment3_blend_op = add;
+	fragment_group = 1;
+}

@@ -371,16 +371,6 @@
 		"modules": @shadowCastShaderModule@
 	},
 	{
-		"type": "ShaderModule",
-		"name": "glassShaderModule",
-		"modules": @glassShaderModule@
-	},
-	{
-		"type": "ShaderModule",
-		"name": "sRGBShaderModule",
-		"modules": @sRGBShaderModule@
-	},
-	{
 		"type": "ShaderVariableGroupDesc",
 		"name": "directionalShadowTransformDesc",
 		"elements":
@@ -484,42 +474,11 @@
 		]
 	},
 	{
-		"type": "MaterialDesc",
-		"name": "sRGBMaterialDesc",
-		"elements":
-		[
-			{
-				"name": "mainColor",
-				"type": "SubpassInput",
-				"binding": "Global"
-			}
-		]
-	},
-	{
 		"type": "Shader",
 		"name": "shadowCastShader",
 		"module": "shadowCastShaderModule",
 		"pipeline": "ShadowCast",
 		"materialDesc": "shadowCastMaterialDesc"
-	},
-	{
-		"type": "Shader",
-		"name": "glassShader",
-		"module": "glassShaderModule",
-		"pipeline": "Glass",
-		"materialDesc": "glassMaterialDesc"
-	},
-	{
-		"type": "Shader",
-		"name": "sRGBShader",
-		"module": "sRGBShaderModule",
-		"pipeline": "sRGB",
-		"materialDesc": "sRGBMaterialDesc"
-	},
-	{
-		"type": "Material",
-		"name": "sRGBMaterial",
-		"description": "sRGBMaterialDesc"
 	},
 	{
 		"type": "Material",

@@ -849,7 +849,7 @@ dsRenderer* dsMTLRenderer_create(dsAllocator* allocator, const dsRendererOptions
 #if DS_IOS
 		baseRenderer->shaderLanguage = "metal-ios";
 #else
-		baseRenderer->shaderLanguage = "metal-osx";
+		baseRenderer->shaderLanguage = "metal-macos";
 #endif
 
 		char* deviceNameCopy = (char*)dsAllocator_alloc((dsAllocator*)&bufferAlloc,
@@ -919,6 +919,14 @@ dsRenderer* dsMTLRenderer_create(dsAllocator* allocator, const dsRendererOptions
 #else
 		baseRenderer->hasDepthStencilMultisampleResolve =
 			[device supportsFeatureSet: MTLFeatureSet_iOS_GPUFamily3_v1];
+#endif
+#if __MAC_OS_X_VERSION_MIN_REQUIRED >= 110000
+		baseRenderer->hasFragmentInputs = [device supportsFamily: MTLGPUFamilyApple4];
+#elif __IPHONE_OS_VERSION_MIN_REQUIRED >= 110000
+		baseRenderer->hasFragmentInputs =
+			[device supportsFeatureSet: MTLFeatureSet_iOS_GPUFamily4_v1];
+#else
+		baseRenderer->hasFragmentInputs = false;
 #endif
 		baseRenderer->projectedTexCoordTInverted = true;
 

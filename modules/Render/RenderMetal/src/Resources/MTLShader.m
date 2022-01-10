@@ -873,7 +873,7 @@ dsShader* dsMTLShader_create(dsResourceManager* resourceManager, dsAllocator* al
 		for (int i = 0; i < mslStage_Count; ++i)
 		{
 			shader->stages[i].function = NULL;
-			if (pipeline.shaders[i] == MSL_UNKNOWN)
+			if (pipeline.shaders[i] == MSL_UNKNOWN || pipeline.uniformCount == 0)
 			{
 				shader->stages[i].uniformIndices = NULL;
 				shader->stages[i].hasPushConstants = false;

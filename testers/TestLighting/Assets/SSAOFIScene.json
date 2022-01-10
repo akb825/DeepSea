@@ -1,0 +1,661 @@
+{
+	"sharedItems":
+	[
+		[
+			{"type": "ViewCullList", "name": "cullList" },
+			{
+				"type": "ShadowCullList",
+				"name": "mainShadowCullList0",
+				"shadowManager": "shadowManager",
+				"shadows": "mainShadows",
+				"surface": 0
+			},
+			{
+				"type": "ShadowCullList",
+				"name": "spotShadowCullList",
+				"shadowManager": "shadowManager",
+				"shadows": "spotShadows",
+				"surface": 0
+			},
+			{
+				"type": "ShadowCullList",
+				"name": "pointShadowCullList0",
+				"shadowManager": "shadowManager",
+				"shadows": "pointShadows",
+				"surface": 0
+			},
+			{
+				"type": "ShadowCullList",
+				"name": "pointShadowCullList1",
+				"shadowManager": "shadowManager",
+				"shadows": "pointShadows",
+				"surface": 1
+			},
+			{
+				"type": "ShadowCullList",
+				"name": "pointShadowCullList2",
+				"shadowManager": "shadowManager",
+				"shadows": "pointShadows",
+				"surface": 2
+			},
+			{
+				"type": "ShadowCullList",
+				"name": "pointShadowCullList3",
+				"shadowManager": "shadowManager",
+				"shadows": "pointShadows",
+				"surface": 3
+			},
+			{
+				"type": "ShadowCullList",
+				"name": "pointShadowCullList4",
+				"shadowManager": "shadowManager",
+				"shadows": "pointShadows",
+				"surface": 4
+			},
+			{
+				"type": "ShadowCullList",
+				"name": "pointShadowCullList5",
+				"shadowManager": "shadowManager",
+				"shadows": "pointShadows",
+				"surface": 5
+			}
+		]
+	],
+	"pipeline":
+	[
+		{
+			"framebuffer": "mainShadowCast",
+			"attachments":
+			[
+				{
+					"usage": ["Clear", "KeepAfter"],
+					"format": "D32_Float",
+					"decoration": "Unset",
+					"clearValue": {"depth": 0.0},
+					"samples": 1
+				},
+				{
+					"usage": ["Standard"],
+					"format": "R8G8B8A8",
+					"decoration": "UNorm",
+					"samples": 1
+				}
+			],
+			"subpasses":
+			[
+				{
+					"name": "MainShadowCast",
+					"colorAttachments": [{"index": 1, "resolve": false}],
+					"depthStencilAttachment": {"index": 0, "resolve": false},
+					"drawLists":
+					[
+						{
+							"type": "ModelList",
+							"name": "mainShadowCastList0",
+							"instanceData":
+							[
+								{
+									"type": "ShadowInstanceTransformData",
+									"shadowManager": "shadowManager",
+									"shadows": "mainShadows",
+									"surface": 0,
+									"variableGroupDesc": "instanceTransformDesc"
+								}
+							],
+							"sortType": "FrontToBack",
+							"cullList": "mainShadowCullList0"
+						}
+					]
+				}
+			]
+		},
+		{
+			"framebuffer": "spotShadowCast",
+			"attachments":
+			[
+				{
+					"usage": ["Clear", "KeepAfter"],
+					"format": "D32_Float",
+					"decoration": "Unset",
+					"clearValue": {"depth": 0.0},
+					"samples": 1
+				},
+				{
+					"usage": ["Standard"],
+					"format": "R8G8B8A8",
+					"decoration": "UNorm",
+					"samples": 1
+				}
+			],
+			"subpasses":
+			[
+				{
+					"name": "SpotShadowCast",
+					"colorAttachments": [{"index": 1, "resolve": false}],
+					"depthStencilAttachment": {"index": 0, "resolve": false},
+					"drawLists":
+					[
+						{
+							"type": "ModelList",
+							"name": "spotShadowCastList",
+							"instanceData":
+							[
+								{
+									"type": "ShadowInstanceTransformData",
+									"shadowManager": "shadowManager",
+									"shadows": "spotShadows",
+									"surface": 0,
+									"variableGroupDesc": "instanceTransformDesc"
+								}
+							],
+							"sortType": "FrontToBack",
+							"cullList": "spotShadowCullList"
+						}
+					]
+				}
+			]
+		},
+		{
+			"framebuffer": "pointShadowCast0",
+			"attachments":
+			[
+				{
+					"usage": ["Clear", "KeepAfter"],
+					"format": "D32_Float",
+					"decoration": "Unset",
+					"clearValue": {"depth": 0.0},
+					"samples": 1
+				},
+				{
+					"usage": ["Standard"],
+					"format": "R8G8B8A8",
+					"decoration": "UNorm",
+					"samples": 1
+				}
+			],
+			"subpasses":
+			[
+				{
+					"name": "PointShadowCast0",
+					"colorAttachments": [{"index": 1, "resolve": false}],
+					"depthStencilAttachment": {"index": 0, "resolve": false},
+					"drawLists":
+					[
+						{
+							"type": "ModelList",
+							"name": "pointShadowCastList0",
+							"instanceData":
+							[
+								{
+									"type": "ShadowInstanceTransformData",
+									"shadowManager": "shadowManager",
+									"shadows": "pointShadows",
+									"surface": 0,
+									"variableGroupDesc": "instanceTransformDesc"
+								}
+							],
+							"sortType": "FrontToBack",
+							"cullList": "pointShadowCullList0"
+						}
+					]
+				}
+			]
+		},
+		{
+			"framebuffer": "pointShadowCast1",
+			"attachments":
+			[
+				{
+					"usage": ["Clear", "KeepAfter"],
+					"format": "D32_Float",
+					"decoration": "Unset",
+					"clearValue": {"depth": 0.0},
+					"samples": 1
+				},
+				{
+					"usage": ["Standard"],
+					"format": "R8G8B8A8",
+					"decoration": "UNorm",
+					"samples": 1
+				}
+			],
+			"subpasses":
+			[
+				{
+					"name": "PointShadowCast1",
+					"colorAttachments": [{"index": 1, "resolve": false}],
+					"depthStencilAttachment": {"index": 0, "resolve": false},
+					"drawLists":
+					[
+						{
+							"type": "ModelList",
+							"name": "pointShadowCastList1",
+							"instanceData":
+							[
+								{
+									"type": "ShadowInstanceTransformData",
+									"shadowManager": "shadowManager",
+									"shadows": "pointShadows",
+									"surface": 1,
+									"variableGroupDesc": "instanceTransformDesc"
+								}
+							],
+							"sortType": "FrontToBack",
+							"cullList": "pointShadowCullList1"
+						}
+					]
+				}
+			]
+		},
+		{
+			"framebuffer": "pointShadowCast2",
+			"attachments":
+			[
+				{
+					"usage": ["Clear", "KeepAfter"],
+					"format": "D32_Float",
+					"decoration": "Unset",
+					"clearValue": {"depth": 0.0},
+					"samples": 1
+				},
+				{
+					"usage": ["Standard"],
+					"format": "R8G8B8A8",
+					"decoration": "UNorm",
+					"samples": 1
+				}
+			],
+			"subpasses":
+			[
+				{
+					"name": "PointShadowCast2",
+					"colorAttachments": [{"index": 1, "resolve": false}],
+					"depthStencilAttachment": {"index": 0, "resolve": false},
+					"drawLists":
+					[
+						{
+							"type": "ModelList",
+							"name": "pointShadowCastList2",
+							"instanceData":
+							[
+								{
+									"type": "ShadowInstanceTransformData",
+									"shadowManager": "shadowManager",
+									"shadows": "pointShadows",
+									"surface": 2,
+									"variableGroupDesc": "instanceTransformDesc"
+								}
+							],
+							"sortType": "FrontToBack",
+							"cullList": "pointShadowCullList2"
+						}
+					]
+				}
+			]
+		},
+		{
+			"framebuffer": "pointShadowCast3",
+			"attachments":
+			[
+				{
+					"usage": ["Clear", "KeepAfter"],
+					"format": "D32_Float",
+					"decoration": "Unset",
+					"clearValue": {"depth": 0.0},
+					"samples": 1
+				},
+				{
+					"usage": ["Standard"],
+					"format": "R8G8B8A8",
+					"decoration": "UNorm",
+					"samples": 1
+				}
+			],
+			"subpasses":
+			[
+				{
+					"name": "PointShadowCast3",
+					"colorAttachments": [{"index": 1, "resolve": false}],
+					"depthStencilAttachment": {"index": 0, "resolve": false},
+					"drawLists":
+					[
+						{
+							"type": "ModelList",
+							"name": "pointShadowCastList3",
+							"instanceData":
+							[
+								{
+									"type": "ShadowInstanceTransformData",
+									"shadowManager": "shadowManager",
+									"shadows": "pointShadows",
+									"surface": 3,
+									"variableGroupDesc": "instanceTransformDesc"
+								}
+							],
+							"sortType": "FrontToBack",
+							"cullList": "pointShadowCullList3"
+						}
+					]
+				}
+			]
+		},
+		{
+			"framebuffer": "pointShadowCast4",
+			"attachments":
+			[
+				{
+					"usage": ["Clear", "KeepAfter"],
+					"format": "D32_Float",
+					"decoration": "Unset",
+					"clearValue": {"depth": 0.0},
+					"samples": 1
+				},
+				{
+					"usage": ["Standard"],
+					"format": "R8G8B8A8",
+					"decoration": "UNorm",
+					"samples": 1
+				}
+			],
+			"subpasses":
+			[
+				{
+					"name": "PointShadowCast4",
+					"colorAttachments": [{"index": 1, "resolve": false}],
+					"depthStencilAttachment": {"index": 0, "resolve": false},
+					"drawLists":
+					[
+						{
+							"type": "ModelList",
+							"name": "pointShadowCastList4",
+							"instanceData":
+							[
+								{
+									"type": "ShadowInstanceTransformData",
+									"shadowManager": "shadowManager",
+									"shadows": "pointShadows",
+									"surface": 4,
+									"variableGroupDesc": "instanceTransformDesc"
+								}
+							],
+							"sortType": "FrontToBack",
+							"cullList": "pointShadowCullList4"
+						}
+					]
+				}
+			]
+		},
+		{
+			"framebuffer": "pointShadowCast5",
+			"attachments":
+			[
+				{
+					"usage": ["Clear", "KeepAfter"],
+					"format": "D32_Float",
+					"decoration": "Unset",
+					"clearValue": {"depth": 0.0},
+					"samples": 1
+				},
+				{
+					"usage": ["Standard"],
+					"format": "R8G8B8A8",
+					"decoration": "UNorm",
+					"samples": 1
+				}
+			],
+			"subpasses":
+			[
+				{
+					"name": "PointShadowCast5",
+					"colorAttachments": [{"index": 1, "resolve": false}],
+					"depthStencilAttachment": {"index": 0, "resolve": false},
+					"drawLists":
+					[
+						{
+							"type": "ModelList",
+							"name": "pointShadowCastList5",
+							"instanceData":
+							[
+								{
+									"type": "ShadowInstanceTransformData",
+									"shadowManager": "shadowManager",
+									"shadows": "pointShadows",
+									"surface": 5,
+									"variableGroupDesc": "instanceTransformDesc"
+								}
+							],
+							"sortType": "FrontToBack",
+							"cullList": "pointShadowCullList5"
+						}
+					]
+				}
+			]
+		},
+		{
+			"framebuffer": "prepass",
+			"attachments":
+			[
+				{
+					"usage": ["Clear", "KeepAfter"],
+					"format": "R8G8",
+					"decoration": "UNorm",
+					"clearValue": {"floatValues": [0.0, 1.0, 0.0, 0.0]},
+					"samples": 1
+				},
+				{
+					"usage": ["Clear", "KeepAfter", "UseLater"],
+					"format": "D32_Float",
+					"decoration": "Unset",
+					"clearValue": {"depth": 0.0},
+					"samples": 1
+				}
+			],
+			"subpasses":
+			[
+				{
+					"name": "Prepass",
+					"colorAttachments": [{"index": 0, "resolve": false}],
+					"depthStencilAttachment": {"index": 1, "resolve": false},
+					"drawLists":
+					[
+						{
+							"type": "ModelList",
+							"name": "prepassList",
+							"instanceData":
+							[
+								{
+									"type": "InstanceTransformData",
+									"variableGroupDesc": "instanceTransformDesc"
+								}
+							],
+							"sortType": "FrontToBack",
+							"cullList": "cullList"
+						}
+					]
+				}
+			]
+		},
+		{
+			"framebuffer": "ssao",
+			"attachments":
+			[
+				{
+					"usage": ["KeepAfter"],
+					"format": "R8",
+					"decoration": "UNorm",
+					"samples": 1
+				}
+			],
+			"subpasses":
+			[
+				{
+					"name": "SSAO",
+					"colorAttachments": [{"index": 0, "resolve": false}],
+					"drawLists":
+					[
+						{
+							"type": "SSAO",
+							"name": "computeSSAO",
+							"shader": "computeSSAOShader",
+							"material": "computeSSAOMaterial"
+						}
+					]
+				}
+			]
+		},
+		{
+			"framebuffer": "window",
+			"attachments":
+			[
+				{
+					"usage": ["KeepBefore"],
+					"format": "D32_Float",
+					"decoration": "Unset",
+					"samples": 1
+				},
+				{
+					"usage": ["Clear"],
+					"format": "A2B10G10R10",
+					"decoration": "UNorm",
+					"clearValue": {"floatValues": [0.0, 0.1, 0.2, 0.0]},
+					"samples": 1
+				},
+				{
+					"usage": ["Clear"],
+					"format": "R8G8B8A8",
+					"decoration": "UNorm",
+					"clearValue": {"floatValues": [0.0, 0.0, 0.0, 0.0]},
+					"samples": 1
+				},
+				{
+					"usage": ["Clear"],
+					"format": "R32",
+					"decoration": "Float",
+					"clearValue": {"floatValues": [0.0, 0.0, 0.0, 0.0]},
+					"samples": 1
+				},
+				{
+					"format": "A2B10G10R10",
+					"decoration": "UNorm",
+					"samples": 1
+				},
+				{
+					"usage": ["KeepAfter"],
+					"format": "SurfaceColor",
+					"decoration": "Unset",
+					"samples": 1
+				}
+			],
+			"subpasses":
+			[
+				{
+					"name": "Scene",
+					"colorAttachments":
+					[
+						{"index": 1, "resolve": false},
+						{"index": 2, "resolve": false},
+						{"index": 3, "resolve": false},
+						{"index": 4, "resolve": false},
+						{"index": 5, "resolve": false}
+					],
+					"depthStencilAttachment": {"index": 0, "resolve": false},
+					"drawLists":
+					[
+						{
+							"type": "ModelList",
+							"name": "opaqueList",
+							"instanceData":
+							[
+								{
+									"type": "InstanceTransformData",
+									"variableGroupDesc": "instanceTransformDesc"
+								}
+							],
+							"sortType": "FrontToBack",
+							"cullList": "cullList"
+						},
+						{
+							"type": "ModelList",
+							"name": "groundList",
+							"instanceData":
+							[
+								{
+									"type": "InstanceTransformData",
+									"variableGroupDesc": "instanceTransformDesc"
+								}
+							],
+							"sortType": "FrontToBack",
+							"cullList": "cullList"
+						},
+						{
+							"type": "DeferredLightResolve",
+							"name": "deferredLights",
+							"lightSet": "lightSet",
+							"shadowManager": "shadowManager",
+							"ambient":
+							{
+								"shader": "ambientLightShader",
+								"material": "ambientLightMaterial"
+							},
+							"shadowDirectional":
+							{
+								"shader": "directionalLightShader",
+								"material": "directionalLightMaterial",
+								"transformGroup": "ShadowTransform",
+								"shadowTexture": "shadowMap"
+							},
+							"shadowPoint":
+							{
+								"shader": "pointLightShader",
+								"material": "pointLightMaterial",
+								"transformGroup": "ShadowTransform",
+								"shadowTexture": "shadowMap"
+							},
+							"shadowSpot":
+							{
+								"shader": "spotLightShader",
+								"material": "directionalLightMaterial",
+								"transformGroup": "ShadowTransform",
+								"shadowTexture": "shadowMap"
+							}
+						},
+						{
+							"type": "ModelList",
+							"name": "transparentList",
+							"instanceData":
+							[
+								{
+									"type": "InstanceTransformData",
+									"variableGroupDesc": "instanceTransformDesc"
+								},
+								{
+									"type": "InstanceForwardLightData",
+									"variableGroupDesc": "instanceForwardLightDesc",
+									"lightSet": "lightSet"
+								}
+							],
+							"sortType": "BackToFront",
+							"cullList": "cullList"
+						},
+						{
+							"type": "FullScreenResolve",
+							"name": "sRGBResolve",
+							"shader": "sRGBShader",
+							"material": "sRGBMaterial"
+						}
+					]
+				}
+			]
+		}
+	],
+	"globalData":
+	[
+		{"type": "LightSetPrepare", "lightSets": ["lightSet"]},
+		{"type": "ShadowManagerPrepare", "shadowManager": "shadowManager"},
+		{
+			"type": "ViewTransformData",
+			"variableGroupDesc": "viewTransformDesc"
+		}
+	],
+	"nodes": ["rootNode"]
+}

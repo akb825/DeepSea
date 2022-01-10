@@ -2178,6 +2178,7 @@ dsRenderer* dsVkRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 	baseRenderer->hasDepthClamp = (bool)deviceFeatures.depthClamp;
 	baseRenderer->hasDepthBiasClamp = (bool)deviceFeatures.depthBiasClamp;
 	baseRenderer->hasDepthStencilMultisampleResolve = device->hasDepthStencilResolve;
+	baseRenderer->hasFragmentInputs = false;
 	baseRenderer->projectedTexCoordTInverted = false;
 
 	baseRenderer->resourceManager = dsVkResourceManager_create(allocator, renderer,

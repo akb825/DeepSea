@@ -41,8 +41,9 @@ static dsTexture* createTextureImpl(dsResourceManager* resourceManager, dsAlloca
 {
 	dsMTLResourceManager* mtlResourceManager = (dsMTLResourceManager*)resourceManager;
 	DS_UNUSED(mtlResourceManager);
-	dsMTLRenderer* renderer = (dsMTLRenderer*)resourceManager->renderer;
-	id<MTLDevice> device = (__bridge id<MTLDevice>)renderer->device;
+	dsRenderer* renderer = resourceManager->renderer;
+	dsMTLRenderer* mtlRenderer = (dsMTLRenderer*)renderer;
+	id<MTLDevice> device = (__bridge id<MTLDevice>)mtlRenderer->device;
 	MTLPixelFormat pixelFormat = dsMTLResourceManager_getPixelFormat(resourceManager, info->format);
 	MTLPixelFormat stencilPixelFormat = MTLPixelFormatInvalid;
 	if (pixelFormat == MTLPixelFormatInvalid)
@@ -225,12 +226,6 @@ static dsTexture* createTextureImpl(dsResourceManager* resourceManager, dsAlloca
 		resourceOptions |= MTLResourceStorageModePrivate;
 #endif
 	}
-
-#if __MAC_OS_X_VERSION_MIN_REQUIRED >= 110000 || __IPHONE_OS_VERSION_MIN_REQUIRED >= 100000
-	// TODO: Set to memoryless for tiled rendering if/when supported.
-	/*if (mtlResourceManager->appleGpu && usage == dsTextureUsage_SubpassInput)
-		resourceOptions |= MTLResourceStorageModeMemoryless;*/
-#endif
 
 	descriptor.resourceOptions = resourceOptions;
 

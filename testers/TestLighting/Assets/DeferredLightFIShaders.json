@@ -2,7 +2,7 @@
 	{
 		"type": "ShaderModule",
 		"name": "glassShaderModule",
-		"modules": @glassShaderModule@
+		"modules": @glassDeferredFIShaderModule@
 	},
 	{
 		"type": "Shader",
@@ -14,14 +14,7 @@
 	{
 		"type": "MaterialDesc",
 		"name": "sRGBMaterialDesc",
-		"elements":
-		[
-			{
-				"name": "mainColor",
-				"type": "SubpassInput",
-				"binding": "Global"
-			}
-		]
+		"elements": []
 	},
 	{
 		"type": "Material",
@@ -31,7 +24,7 @@
 	{
 		"type": "ShaderModule",
 		"name": "sRGBShaderModule",
-		"modules": @sRGBShaderModule@
+		"modules": @sRGBDeferredFIShaderModule@
 	},
 	{
 		"type": "Shader",
@@ -42,39 +35,8 @@
 	},
 	{
 		"type": "ShaderModule",
-		"name": "ssaoDeferredLightShaderModule",
-		"modules": @ssaoDeferredLightShaderModule@
-	},
-	{
-		"type": "MaterialDesc",
-		"name": "prepassMaterialDesc",
-		"elements":
-		[
-			{
-				"name": "InstanceTransformData",
-				"type": "VariableGroup",
-				"binding": "Instance",
-				"shaderVariableGroupDesc": "instanceTransformDesc"
-			},
-			{
-				"name": "ViewTransformData",
-				"type": "VariableGroup",
-				"binding": "Global",
-				"shaderVariableGroupDesc": "viewTransformDesc"
-			}
-		]
-	},
-	{
-		"type": "Shader",
-		"name": "prepassShader",
-		"module": "ssaoDeferredLightShaderModule",
-		"pipeline": "SSAOPrepass",
-		"materialDesc": "prepassMaterialDesc"
-	},
-	{
-		"type": "Material",
-		"name": "prepassMaterial",
-		"description": "prepassMaterialDesc"
+		"name": "deferredLightShaderModule",
+		"modules": @deferredLightFIShaderModule@
 	},
 	{
 		"type": "MaterialDesc",
@@ -118,58 +80,15 @@
 	{
 		"type": "Shader",
 		"name": "defaultModelShader",
-		"module": "ssaoDeferredLightShaderModule",
+		"module": "deferredLightShaderModule",
 		"pipeline": "GBuffers",
 		"materialDesc": "defaultMaterialDesc"
-	},
-	{
-		"type": "MaterialDesc",
-		"name": "computeSSAOMaterialDesc",
-		"elements":
-		[
-			{
-				"name": "prepassNormal",
-				"type": "Texture",
-				"binding": "Global"
-			},
-			{
-				"name": "surfaceDepth",
-				"type": "Texture",
-				"binding": "Global"
-			},
-			{
-				"name": "ViewTransformData",
-				"type": "VariableGroup",
-				"binding": "Global",
-				"shaderVariableGroupDesc": "viewTransformDesc"
-			},
-			{
-				"name": "RandomOffsets",
-				"type": "UniformBlock",
-				"binding": "Material"
-			},
-			{
-				"name": "randomRotations",
-				"type": "Texture",
-				"binding": "Material"
-			}
-		]
 	},
 	{
 		"type": "MaterialDesc",
 		"name": "ambientLightMaterialDesc",
 		"elements":
 		[
-			{
-				"name": "materialColor",
-				"type": "SubpassInput",
-				"binding": "Global"
-			},
-			{
-				"name": "ssao",
-				"type": "Texture",
-				"binding": "Global"
-			},
 			{
 				"name": "ViewTransformData",
 				"type": "VariableGroup",
@@ -183,21 +102,6 @@
 		"name": "directionalLightMaterialDesc",
 		"elements":
 		[
-			{
-				"name": "materialColor",
-				"type": "SubpassInput",
-				"binding": "Global"
-			},
-			{
-				"name": "normalSpecular",
-				"type": "SubpassInput",
-				"binding": "Global"
-			},
-			{
-				"name": "surfaceDepth",
-				"type": "SubpassInput",
-				"binding": "Global"
-			},
 			{
 				"name": "ViewTransformData",
 				"type": "VariableGroup",
@@ -223,21 +127,6 @@
 		"elements":
 		[
 			{
-				"name": "materialColor",
-				"type": "SubpassInput",
-				"binding": "Global"
-			},
-			{
-				"name": "normalSpecular",
-				"type": "SubpassInput",
-				"binding": "Global"
-			},
-			{
-				"name": "surfaceDepth",
-				"type": "SubpassInput",
-				"binding": "Global"
-			},
-			{
 				"name": "ViewTransformData",
 				"type": "VariableGroup",
 				"binding": "Global",
@@ -258,43 +147,31 @@
 	},
 	{
 		"type": "Shader",
-		"name": "computeSSAOShader",
-		"module": "ssaoDeferredLightShaderModule",
-		"pipeline": "SSAO",
-		"materialDesc": "computeSSAOMaterialDesc"
-	},
-	{
-		"type": "Shader",
 		"name": "ambientLightShader",
-		"module": "ssaoDeferredLightShaderModule",
+		"module": "deferredLightShaderModule",
 		"pipeline": "AmbientLight",
 		"materialDesc": "ambientLightMaterialDesc"
 	},
 	{
 		"type": "Shader",
 		"name": "directionalLightShader",
-		"module": "ssaoDeferredLightShaderModule",
+		"module": "deferredLightShaderModule",
 		"pipeline": "DirectionalLight",
 		"materialDesc": "directionalLightMaterialDesc"
 	},
 	{
 		"type": "Shader",
 		"name": "pointLightShader",
-		"module": "ssaoDeferredLightShaderModule",
+		"module": "deferredLightShaderModule",
 		"pipeline": "PointLight",
 		"materialDesc": "pointLightMaterialDesc"
 	},
 	{
 		"type": "Shader",
 		"name": "spotLightShader",
-		"module": "ssaoDeferredLightShaderModule",
+		"module": "deferredLightShaderModule",
 		"pipeline": "SpotLight",
 		"materialDesc": "directionalLightMaterialDesc"
-	},
-	{
-		"type": "Material",
-		"name": "computeSSAOMaterial",
-		"description": "computeSSAOMaterialDesc"
 	},
 	{
 		"type": "Material",
@@ -336,5 +213,17 @@
 				"transformGroupDesc": "pointShadowTransformDesc"
 			}
 		]
+	},
+	{
+		"type": "Shader",
+		"name": "prepassShader",
+		"module": "shadowCastShaderModule",
+		"pipeline": "ShadowCast",
+		"materialDesc": "shadowCastMaterialDesc"
+	},
+	{
+		"type": "Material",
+		"name": "prepassMaterial",
+		"description": "shadowCastMaterialDesc"
 	}
 ]

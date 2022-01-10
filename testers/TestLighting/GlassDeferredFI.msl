@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Aaron Barany
+ * Copyright 2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ varying(vertex, fragment)
 	vec3 vfNormal;
 }
 
-[[fragment]] out vec4 outputColor;
+[[fragment]] layout(location = 3) out vec4 outputColor;
 
 [[vertex]]
 void vertexShader()
@@ -69,11 +69,12 @@ pipeline Glass
 	depth_test_enable = true;
 	depth_compare_op = greater;
 	early_fragment_tests = true;
-	blend_enable = true;
+	separate_attachment_blending_enable = true;
+	attachment3_blend_enable = true;
 	// Alpha is pre-multiplied.
-	src_blend_factor = one;
-	dst_blend_factor = one_minus_src_alpha;
-	blend_op = add;
+	attachment3_src_blend_factor = one;
+	attachment3_dst_blend_factor = one_minus_src_alpha;
+	attachment3_blend_op = add;
 	cull_mode = back;
-	fragment_group = 0;
+	fragment_group = 1;
 }

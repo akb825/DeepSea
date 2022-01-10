@@ -2103,6 +2103,12 @@ struct dsRenderer
 	bool hasDepthStencilMultisampleResolve;
 
 	/**
+	 * @brief Whether or not fragment inputs are supported to read directly from another fragment
+	 *     shader invocation.
+	 */
+	bool hasFragmentInputs;
+
+	/**
 	 * @brief Whether or not projected texture coordinates have an inverted T coordinate.
 	 */
 	bool projectedTexCoordTInverted;

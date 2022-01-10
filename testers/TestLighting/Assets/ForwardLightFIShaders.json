@@ -2,7 +2,7 @@
 	{
 		"type": "ShaderModule",
 		"name": "glassShaderModule",
-		"modules": @glassShaderModule@
+		"modules": @glassForwardFIShaderModule@
 	},
 	{
 		"type": "Shader",
@@ -14,14 +14,7 @@
 	{
 		"type": "MaterialDesc",
 		"name": "sRGBMaterialDesc",
-		"elements":
-		[
-			{
-				"name": "mainColor",
-				"type": "SubpassInput",
-				"binding": "Global"
-			}
-		]
+		"elements": []
 	},
 	{
 		"type": "Material",
@@ -31,7 +24,7 @@
 	{
 		"type": "ShaderModule",
 		"name": "sRGBShaderModule",
-		"modules": @sRGBShaderModule@
+		"modules": @sRGBForwardFIShaderModule@
 	},
 	{
 		"type": "Shader",
@@ -43,7 +36,7 @@
 	{
 		"type": "ShaderModule",
 		"name": "forwardLightShaderModule",
-		"modules": @forwardLightShaderModule@
+		"modules": @forwardLightFIShaderModule@
 	},
 	{
 		"type": "MaterialDesc",

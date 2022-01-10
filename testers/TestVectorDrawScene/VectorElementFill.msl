@@ -44,4 +44,4 @@ pipeline dsVectorFillRadialGradient
 	vertex = vectorFillVertex;
 	fragment = dsVectorElementFill_defaultFragmentRadialGradient;
 	DS_DEFAULT_VECTOR_ELEMENT_FILL_RENDER_STATES;
-}]
+}

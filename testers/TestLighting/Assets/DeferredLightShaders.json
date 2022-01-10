@@ -1,6 +1,47 @@
 [
 	{
 		"type": "ShaderModule",
+		"name": "glassShaderModule",
+		"modules": @glassShaderModule@
+	},
+	{
+		"type": "Shader",
+		"name": "glassShader",
+		"module": "glassShaderModule",
+		"pipeline": "Glass",
+		"materialDesc": "glassMaterialDesc"
+	},
+	{
+		"type": "MaterialDesc",
+		"name": "sRGBMaterialDesc",
+		"elements":
+		[
+			{
+				"name": "mainColor",
+				"type": "SubpassInput",
+				"binding": "Global"
+			}
+		]
+	},
+	{
+		"type": "Material",
+		"name": "sRGBMaterial",
+		"description": "sRGBMaterialDesc"
+	},
+	{
+		"type": "ShaderModule",
+		"name": "sRGBShaderModule",
+		"modules": @sRGBShaderModule@
+	},
+	{
+		"type": "Shader",
+		"name": "sRGBShader",
+		"module": "sRGBShaderModule",
+		"pipeline": "sRGB",
+		"materialDesc": "sRGBMaterialDesc"
+	},
+	{
+		"type": "ShaderModule",
 		"name": "deferredLightShaderModule",
 		"modules": @deferredLightShaderModule@
 	},

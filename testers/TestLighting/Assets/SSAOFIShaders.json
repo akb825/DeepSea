@@ -2,7 +2,7 @@
 	{
 		"type": "ShaderModule",
 		"name": "glassShaderModule",
-		"modules": @glassShaderModule@
+		"modules": @glassDeferredFIShaderModule@
 	},
 	{
 		"type": "Shader",
@@ -14,14 +14,7 @@
 	{
 		"type": "MaterialDesc",
 		"name": "sRGBMaterialDesc",
-		"elements":
-		[
-			{
-				"name": "mainColor",
-				"type": "SubpassInput",
-				"binding": "Global"
-			}
-		]
+		"elements": []
 	},
 	{
 		"type": "Material",
@@ -31,7 +24,7 @@
 	{
 		"type": "ShaderModule",
 		"name": "sRGBShaderModule",
-		"modules": @sRGBShaderModule@
+		"modules": @sRGBDeferredFIShaderModule@
 	},
 	{
 		"type": "Shader",
@@ -43,7 +36,7 @@
 	{
 		"type": "ShaderModule",
 		"name": "ssaoDeferredLightShaderModule",
-		"modules": @ssaoDeferredLightShaderModule@
+		"modules": @ssaoDeferredLightFIShaderModule@
 	},
 	{
 		"type": "MaterialDesc",
@@ -161,11 +154,6 @@
 		"elements":
 		[
 			{
-				"name": "materialColor",
-				"type": "SubpassInput",
-				"binding": "Global"
-			},
-			{
 				"name": "ssao",
 				"type": "Texture",
 				"binding": "Global"
@@ -183,21 +171,6 @@
 		"name": "directionalLightMaterialDesc",
 		"elements":
 		[
-			{
-				"name": "materialColor",
-				"type": "SubpassInput",
-				"binding": "Global"
-			},
-			{
-				"name": "normalSpecular",
-				"type": "SubpassInput",
-				"binding": "Global"
-			},
-			{
-				"name": "surfaceDepth",
-				"type": "SubpassInput",
-				"binding": "Global"
-			},
 			{
 				"name": "ViewTransformData",
 				"type": "VariableGroup",
@@ -222,21 +195,6 @@
 		"name": "pointLightMaterialDesc",
 		"elements":
 		[
-			{
-				"name": "materialColor",
-				"type": "SubpassInput",
-				"binding": "Global"
-			},
-			{
-				"name": "normalSpecular",
-				"type": "SubpassInput",
-				"binding": "Global"
-			},
-			{
-				"name": "surfaceDepth",
-				"type": "SubpassInput",
-				"binding": "Global"
-			},
 			{
 				"name": "ViewTransformData",
 				"type": "VariableGroup",

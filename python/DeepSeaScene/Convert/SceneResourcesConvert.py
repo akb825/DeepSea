@@ -1,4 +1,4 @@
-# Copyright 2020-2021 Aaron Barany
+# Copyright 2020-2022 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -963,8 +963,6 @@ def convertSceneResourcesMaterialDesc(builder, convertContext, data, name):
 		try:
 			for elementData in data['elements']:
 				elements.append(readElement(elementData))
-			if not elements:
-				raise Exception('Material desc "elements" must not be empty.')
 		except (TypeError, ValueError):
 			raise Exception('Material desc "elements" must be an array of objects.')
 	except KeyError as e:
