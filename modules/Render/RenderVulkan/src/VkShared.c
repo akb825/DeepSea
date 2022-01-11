@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 Aaron Barany
+ * Copyright 2018-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -145,6 +145,88 @@ void dsGetLastVkCallsite(const char** file, const char** function, unsigned int*
 	*line = curLastCallsite->lastLine;
 }
 
+void dsVkGetBufferMemoryRequirements(const dsVkDevice* device, VkBuffer buffer,
+	VkMemoryRequirements* requirements, VkBuffer* dedicatedBuffer)
+{
+	if (device->hasDedicatedAllocation)
+	{
+		VkBufferMemoryRequirementsInfo2KHR requirementsInfo =
+		{
+			VK_STRUCTURE_TYPE_BUFFER_MEMORY_REQUIREMENTS_INFO_2_KHR,
+			NULL,
+			buffer
+		};
+
+		VkMemoryDedicatedRequirementsKHR dedicatedRequirements =
+		{
+			VK_STRUCTURE_TYPE_MEMORY_DEDICATED_REQUIREMENTS_KHR,
+			NULL,
+			false,
+			false
+		};
+
+		VkMemoryRequirements2KHR memoryRequirements =
+		{
+			VK_STRUCTURE_TYPE_MEMORY_REQUIREMENTS_2_KHR,
+			&dedicatedRequirements
+		};
+
+		DS_VK_CALL(device->vkGetBufferMemoryRequirements2KHR)(device->device, &requirementsInfo,
+			&memoryRequirements);
+		if (dedicatedRequirements.prefersDedicatedAllocation)
+			*dedicatedBuffer = buffer;
+		else
+			*dedicatedBuffer = 0;
+		*requirements = memoryRequirements.memoryRequirements;
+	}
+	else
+	{
+		*dedicatedBuffer = 0;
+		DS_VK_CALL(device->vkGetBufferMemoryRequirements)(device->device, buffer, requirements);
+	}
+}
+
+void dsVkGetImageMemoryRequirements(const dsVkDevice* device, VkImage image,
+	VkMemoryRequirements* requirements, VkImage* dedicatedImage)
+{
+	if (device->hasDedicatedAllocation)
+	{
+		VkImageMemoryRequirementsInfo2KHR requirementsInfo =
+		{
+			VK_STRUCTURE_TYPE_IMAGE_MEMORY_REQUIREMENTS_INFO_2_KHR,
+			NULL,
+			image
+		};
+
+		VkMemoryDedicatedRequirementsKHR dedicatedRequirements =
+		{
+			VK_STRUCTURE_TYPE_MEMORY_DEDICATED_REQUIREMENTS_KHR,
+			NULL,
+			false,
+			false
+		};
+
+		VkMemoryRequirements2KHR memoryRequirements =
+		{
+			VK_STRUCTURE_TYPE_MEMORY_REQUIREMENTS_2_KHR,
+			&dedicatedRequirements
+		};
+
+		DS_VK_CALL(device->vkGetImageMemoryRequirements2KHR)(device->device, &requirementsInfo,
+			&memoryRequirements);
+		if (dedicatedRequirements.prefersDedicatedAllocation)
+			*dedicatedImage = image;
+		else
+			*dedicatedImage = 0;
+		*requirements = memoryRequirements.memoryRequirements;
+	}
+	else
+	{
+		*dedicatedImage = 0;
+		DS_VK_CALL(device->vkGetImageMemoryRequirements)(device->device, image, requirements);
+	}
+}
+
 uint32_t dsVkMemoryIndexImpl(const dsVkDevice* device, const VkMemoryRequirements* requirements,
 	VkMemoryPropertyFlags requiredFlags, VkMemoryPropertyFlags optimalFlags)
 {
@@ -223,7 +305,8 @@ bool dsVkMemoryIndexCompatible(const dsVkDevice* device, const VkMemoryRequireme
 }
 
 VkDeviceMemory dsAllocateVkMemory(const dsVkDevice* device,
-	const VkMemoryRequirements* requirements, uint32_t memoryIndex)
+	const VkMemoryRequirements* requirements, uint32_t memoryIndex, VkImage dedicatedImage,
+	VkBuffer dedicatedBuffer)
 {
 	if (memoryIndex == DS_INVALID_HEAP)
 	{
@@ -238,6 +321,17 @@ VkDeviceMemory dsAllocateVkMemory(const dsVkDevice* device,
 		requirements->size,
 		memoryIndex
 	};
+
+	VkMemoryDedicatedAllocateInfoKHR dedicatedInfo =
+	{
+		VK_STRUCTURE_TYPE_MEMORY_DEDICATED_ALLOCATE_INFO_KHR,
+		NULL,
+		dedicatedImage,
+		dedicatedBuffer
+	};
+	if (device->hasDedicatedAllocation && (dedicatedImage || dedicatedBuffer))
+		allocInfo.pNext = &dedicatedInfo;
+
 	const dsVkInstance* instance = &device->instance;
 	VkDeviceMemory memory = 0;
 	VkResult result = DS_VK_CALL(device->vkAllocateMemory)(device->device, &allocInfo,

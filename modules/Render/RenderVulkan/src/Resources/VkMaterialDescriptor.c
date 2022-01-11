@@ -1,5 +1,5 @@
 /*
-* Copyright 2018-2019 Aaron Barany
+* Copyright 2018-2022 Aaron Barany
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -29,7 +29,9 @@
 #include <DeepSea/Render/Resources/Material.h>
 #include <string.h>
 
-#define DS_MAX_DESCRIPTOR_SETS (uint32_t)(VK_DESCRIPTOR_TYPE_END_RANGE + 1)
+// TODO: Add additional indices if extension types are used in the future. (e.g.
+// VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR for ray tracing)
+#define DS_MAX_DESCRIPTOR_SETS (uint32_t)(VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT + 1)
 
 dsVkMaterialDescriptor* dsVkMaterialDescriptor_create(dsRenderer* renderer, dsAllocator* allocator,
 	const dsMaterialDesc* materialDesc, const dsVkBindingCounts* counts, dsMaterialBinding binding)
@@ -211,6 +213,7 @@ void dsVkMaterialDescriptor_update(dsVkMaterialDescriptor* descriptor, const dsS
 	dsVkBindingMemory* bindingMemory, const dsVkSamplerList* samplers, const void* refObject,
 	uint32_t pointerVersion, uint32_t offsetVersion)
 {
+	DS_UNUSED(shader);
 	DS_ASSERT(shader->materialDesc == descriptor->materialDesc);
 	DS_ASSERT(memcmp(&descriptor->counts, &bindingMemory->counts, sizeof(dsVkBindingCounts)) == 0);
 	dsVkRenderer* vkRenderer = (dsVkRenderer*)descriptor->renderer;

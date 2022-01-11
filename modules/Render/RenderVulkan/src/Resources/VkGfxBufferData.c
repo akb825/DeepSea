@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 Aaron Barany
+ * Copyright 2018-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -100,6 +100,7 @@ dsVkGfxBufferData* dsVkGfxBufferData_create(dsResourceManager* resourceManager,
 	// Create device buffer for general usage.
 	uint32_t deviceMemoryIndex = DS_INVALID_HEAP;
 	VkMemoryRequirements deviceRequirements;
+	VkBuffer deviceDedicatedBuffer = 0;
 	if (needsDeviceMemory)
 	{
 		VkBufferUsageFlags createFlags = baseCreateFlags;
@@ -123,8 +124,8 @@ dsVkGfxBufferData* dsVkGfxBufferData_create(dsResourceManager* resourceManager,
 			return NULL;
 		}
 
-		DS_VK_CALL(device->vkGetBufferMemoryRequirements)(device->device, buffer->deviceBuffer,
-			&deviceRequirements);
+		dsVkGetBufferMemoryRequirements(device, buffer->deviceBuffer, &deviceRequirements,
+			&deviceDedicatedBuffer);
 		deviceMemoryIndex = dsVkMemoryIndex(device, &deviceRequirements, deviceHints);
 		if (deviceMemoryIndex == DS_INVALID_HEAP)
 		{
@@ -136,6 +137,7 @@ dsVkGfxBufferData* dsVkGfxBufferData_create(dsResourceManager* resourceManager,
 	// Create host buffer for access on the host.
 	uint32_t hostMemoryIndex = DS_INVALID_HEAP;
 	VkMemoryRequirements hostRequirements;
+	VkBuffer hostDedicatedBuffer = 0;
 	if (needsHostMemory)
 	{
 		VkBufferUsageFlags createFlags;
@@ -161,8 +163,8 @@ dsVkGfxBufferData* dsVkGfxBufferData_create(dsResourceManager* resourceManager,
 			return NULL;
 		}
 
-		DS_VK_CALL(device->vkGetBufferMemoryRequirements)(device->device, buffer->hostBuffer,
-			&hostRequirements);
+		dsVkGetBufferMemoryRequirements(device, buffer->hostBuffer, &hostRequirements,
+			&hostDedicatedBuffer);
 		// Check if the device memory index is supported. If so, use it explicitly since
 		// dsVkMemoryIndex() may not return the same value.
 		if (dsVkMemoryIndexCompatible(device, &hostRequirements, hostHints, deviceMemoryIndex))
@@ -210,8 +212,8 @@ dsVkGfxBufferData* dsVkGfxBufferData_create(dsResourceManager* resourceManager,
 			return NULL;
 		}
 
-		DS_VK_CALL(device->vkGetBufferMemoryRequirements)(device->device, buffer->hostBuffer,
-			&hostRequirements);
+		dsVkGetBufferMemoryRequirements(device, buffer->hostBuffer, &hostRequirements,
+			&hostDedicatedBuffer);
 		hostMemoryIndex = dsVkMemoryIndex(device, &hostRequirements, memoryHints);
 		if (hostMemoryIndex == DS_INVALID_HEAP)
 		{
@@ -223,7 +225,8 @@ dsVkGfxBufferData* dsVkGfxBufferData_create(dsResourceManager* resourceManager,
 	// Create the memory to use with the buffers.
 	if (needsDeviceMemory)
 	{
-		buffer->deviceMemory = dsAllocateVkMemory(device, &deviceRequirements, deviceMemoryIndex);
+		buffer->deviceMemory = dsAllocateVkMemory(device, &deviceRequirements, deviceMemoryIndex,
+			0, deviceDedicatedBuffer);
 		if (!buffer->deviceMemory)
 		{
 			dsVkGfxBufferData_destroy(buffer);
@@ -241,7 +244,8 @@ dsVkGfxBufferData* dsVkGfxBufferData_create(dsResourceManager* resourceManager,
 
 	if (needsHostMemory)
 	{
-		buffer->hostMemory = dsAllocateVkMemory(device, &hostRequirements, hostMemoryIndex);
+		buffer->hostMemory = dsAllocateVkMemory(device, &hostRequirements, hostMemoryIndex, 0,
+			deviceDedicatedBuffer);
 		if (!buffer->hostMemory)
 		{
 			dsVkGfxBufferData_destroy(buffer);

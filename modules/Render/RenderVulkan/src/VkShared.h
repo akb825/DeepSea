@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 Aaron Barany
+ * Copyright 2018-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,6 +39,11 @@ void dsSetLastVkCallsite(const char* file, const char* function, unsigned int li
 void dsGetLastVkCallsite(const char** file, const char** function,
 	unsigned int* line);
 
+void dsVkGetBufferMemoryRequirements(const dsVkDevice* device, VkBuffer buffer,
+	VkMemoryRequirements* requirements, VkBuffer* dedicatedBuffer);
+void dsVkGetImageMemoryRequirements(const dsVkDevice* device, VkImage image,
+	VkMemoryRequirements* requirements, VkImage* dedicatedImage);
+
 uint32_t dsVkMemoryIndexImpl(const dsVkDevice* device, const VkMemoryRequirements* requirements,
 	VkMemoryPropertyFlags requiredFlags, VkMemoryPropertyFlags optimalFlags);
 uint32_t dsVkMemoryIndex(const dsVkDevice* device, const VkMemoryRequirements* requirements,
@@ -46,7 +51,8 @@ uint32_t dsVkMemoryIndex(const dsVkDevice* device, const VkMemoryRequirements* r
 bool dsVkMemoryIndexCompatible(const dsVkDevice* device, const VkMemoryRequirements* requirements,
 	dsGfxMemory memoryFlags, uint32_t memoryIndex);
 VkDeviceMemory dsAllocateVkMemory(const dsVkDevice* device,
-	const VkMemoryRequirements* requirements, uint32_t memoryIndex);
+	const VkMemoryRequirements* requirements, uint32_t memoryIndex, VkImage dedicatedImage,
+	VkBuffer dedicatedBuffer);
 bool dsVkHeapIsCoherent(const dsVkDevice* device, uint32_t memoryIndex);
 
 VkSampleCountFlagBits dsVkSampleCount(uint32_t sampleCount);

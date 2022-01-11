@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 Aaron Barany
+ * Copyright 2018-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,6 +72,9 @@ static bool supportsFormat(dsVkDevice* device, VkSurfaceKHR surface, VkFormat fo
 		formatCount);
 	result = DS_VK_CALL(instance->vkGetPhysicalDeviceSurfaceFormatsKHR)(
 		device->physicalDevice, surface, &formatCount, surfaceFormats);
+	if (!DS_HANDLE_VK_RESULT(result, "Couldn't get surface formats"))
+		return false;
+
 	return hasFormat(surfaceFormats, formatCount, format, colorSpace);
 }
 
@@ -150,8 +153,9 @@ static bool createResolveImage(dsVkRenderSurfaceData* surfaceData, VkFormat form
 		return false;
 
 	VkMemoryRequirements requirements;
-	DS_VK_CALL(device->vkGetImageMemoryRequirements)(device->device, surfaceData->resolveImage,
-		&requirements);
+	VkImage dedicatedImage;
+	dsVkGetImageMemoryRequirements(device, surfaceData->resolveImage, &requirements,
+		&dedicatedImage);
 
 	VkMemoryPropertyFlags memoryFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
 	uint32_t memoryIndex = dsVkMemoryIndexImpl(device, &requirements, memoryFlags,
@@ -159,7 +163,8 @@ static bool createResolveImage(dsVkRenderSurfaceData* surfaceData, VkFormat form
 	if (memoryIndex == DS_INVALID_HEAP)
 		return false;
 
-	surfaceData->resolveMemory = dsAllocateVkMemory(device, &requirements, memoryIndex);
+	surfaceData->resolveMemory = dsAllocateVkMemory(device, &requirements, memoryIndex,
+		dedicatedImage, 0);
 	if (!surfaceData->resolveMemory)
 		return false;
 
@@ -235,8 +240,8 @@ static bool createDepthImage(dsVkRenderSurfaceData* surfaceData, uint32_t width,
 		return false;
 
 	VkMemoryRequirements requirements;
-	DS_VK_CALL(device->vkGetImageMemoryRequirements)(device->device, surfaceData->depthImage,
-		&requirements);
+	VkImage dedicatedImage;
+	dsVkGetImageMemoryRequirements(device, surfaceData->depthImage, &requirements, &dedicatedImage);
 
 	VkMemoryPropertyFlags memoryFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
 	uint32_t memoryIndex = dsVkMemoryIndexImpl(device, &requirements, memoryFlags,
@@ -244,7 +249,8 @@ static bool createDepthImage(dsVkRenderSurfaceData* surfaceData, uint32_t width,
 	if (memoryIndex == DS_INVALID_HEAP)
 		return false;
 
-	surfaceData->depthMemory = dsAllocateVkMemory(device, &requirements, memoryIndex);
+	surfaceData->depthMemory = dsAllocateVkMemory(device, &requirements, memoryIndex,
+		dedicatedImage, 0);
 	if (!surfaceData->depthMemory)
 		return false;
 

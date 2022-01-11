@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2021 Aaron Barany
+ * Copyright 2018-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -219,6 +219,9 @@ typedef struct dsVkDevice
 	PFN_vkCmdDebugMarkerBeginEXT vkCmdDebugMarkerBeginEXT;
 	PFN_vkCmdDebugMarkerEndEXT vkCmdDebugMarkerEndEXT;
 
+	PFN_vkGetBufferMemoryRequirements2KHR vkGetBufferMemoryRequirements2KHR;
+	PFN_vkGetImageMemoryRequirements2KHR vkGetImageMemoryRequirements2KHR;
+
 	VkPhysicalDevice physicalDevice;
 	VkDevice device;
 	VkQueue queue;
@@ -229,6 +232,7 @@ typedef struct dsVkDevice
 	bool hasMaintenance1;
 	bool hasDepthStencilResolve;
 	bool hasPVRTC;
+	bool hasDedicatedAllocation;
 	bool hasLazyAllocation;
 
 	VkPhysicalDeviceMemoryProperties memoryProperties;

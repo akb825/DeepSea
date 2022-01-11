@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2021 Aaron Barany
+ * Copyright 2018-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -105,6 +105,7 @@ typedef struct DeviceExtensions
 	bool oldDebugMarker;
 	bool depthStencilResolve;
 	bool pvrtc;
+	bool dedicatedAllocation;
 } DeviceExtensions;
 
 typedef struct ExtraDeviceInfo
@@ -141,6 +142,8 @@ static const char* multiviewExtensionName = "VK_KHR_multiview";
 static const char* createRenderPass2ExtensionName = "VK_KHR_create_renderpass2";
 static const char* depthStencilResolveExtensionName = "VK_KHR_depth_stencil_resolve";
 static const char* pvrtcExtensionName = "VK_IMG_format_pvrtc";
+static const char* getMemoryRequirements2ExtensionName = "VK_KHR_get_memory_requirements2";
+static const char* dedicatedAllocationExtensionName = "VK_KHR_dedicated_allocation";
 
 static InstanceExtensions instanceExtensions;
 static uint32_t physicalDeviceCount;
@@ -456,6 +459,8 @@ static void findDeviceExtensions(DeviceExtensions* outExtensions, dsVkDevice* de
 			outExtensions->depthStencilResolve = true;
 		else if (strcmp(extensions[i].extensionName, pvrtcExtensionName) == 0)
 			outExtensions->pvrtc = true;
+		else if (strcmp(extensions[i].extensionName, dedicatedAllocationExtensionName) == 0)
+			outExtensions->dedicatedAllocation = true;
 	}
 
 	dsAllocator_free(allocator, extensions);
@@ -486,6 +491,12 @@ static void addDeviceExtensions(dsVkDevice* device,
 	{
 		device->hasPVRTC = true;
 		DS_ADD_EXTENSION(extensionNames, *extensionCount, pvrtcExtensionName);
+	}
+	if (extensions->dedicatedAllocation)
+	{
+		device->hasDedicatedAllocation = true;
+		DS_ADD_EXTENSION(extensionNames, *extensionCount, getMemoryRequirements2ExtensionName);
+		DS_ADD_EXTENSION(extensionNames, *extensionCount, dedicatedAllocationExtensionName);
 	}
 }
 
@@ -1172,6 +1183,12 @@ bool dsCreateVkDevice(dsVkDevice* device, dsAllocator* allocator, const dsRender
 	{
 		DS_LOAD_VK_DEVICE_FUNCTION(device, vkCmdDebugMarkerBeginEXT);
 		DS_LOAD_VK_DEVICE_FUNCTION(device, vkCmdDebugMarkerEndEXT);
+	}
+
+	if (extensions.dedicatedAllocation)
+	{
+		DS_LOAD_VK_DEVICE_FUNCTION(device, vkGetBufferMemoryRequirements2KHR);
+		DS_LOAD_VK_DEVICE_FUNCTION(device, vkGetImageMemoryRequirements2KHR);
 	}
 
 	DS_VK_CALL(device->vkGetDeviceQueue)(device->device, device->queueFamilyIndex, 0,

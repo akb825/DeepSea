@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 Aaron Barany
+ * Copyright 2018-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -99,8 +99,9 @@ dsRenderbuffer* dsVkRenderbuffer_create(dsResourceManager* resourceManager, dsAl
 	}
 
 	VkMemoryRequirements surfaceRequirements;
-	DS_VK_CALL(device->vkGetImageMemoryRequirements)(device->device, renderbuffer->image,
-		&surfaceRequirements);
+	VkImage dedicatedImage;
+	dsVkGetImageMemoryRequirements(device, renderbuffer->image, &surfaceRequirements,
+		&dedicatedImage);
 
 	VkMemoryPropertyFlags memoryFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
 	uint32_t surfaceMemoryIndex = dsVkMemoryIndexImpl(device, &surfaceRequirements, memoryFlags,
@@ -111,7 +112,8 @@ dsRenderbuffer* dsVkRenderbuffer_create(dsResourceManager* resourceManager, dsAl
 		return NULL;
 	}
 
-	renderbuffer->memory = dsAllocateVkMemory(device, &surfaceRequirements, surfaceMemoryIndex);
+	renderbuffer->memory = dsAllocateVkMemory(device, &surfaceRequirements, surfaceMemoryIndex,
+		dedicatedImage, 0);
 	if (!renderbuffer->memory)
 	{
 		dsVkRenderbuffer_destroyImpl(baseRenderbuffer);

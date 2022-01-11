@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Aaron Barany
+ * Copyright 2019-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,8 +60,8 @@ dsVkTempBuffer* dsVkTempBuffer_create(dsAllocator* allocator, dsVkDevice* device
 	}
 
 	VkMemoryRequirements memoryRequirements;
-	DS_VK_CALL(device->vkGetBufferMemoryRequirements)(device->device, buffer->buffer,
-		&memoryRequirements);
+	VkBuffer dedicatedBuffer;
+	dsVkGetBufferMemoryRequirements(device, buffer->buffer, &memoryRequirements, &dedicatedBuffer);
 	uint32_t memoryIndex = dsVkMemoryIndex(device, &memoryRequirements, dsGfxMemory_Coherent);
 	if (memoryIndex == DS_INVALID_HEAP)
 	{
@@ -69,7 +69,8 @@ dsVkTempBuffer* dsVkTempBuffer_create(dsAllocator* allocator, dsVkDevice* device
 		return NULL;
 	}
 
-	buffer->memory = dsAllocateVkMemory(device, &memoryRequirements, memoryIndex);
+	buffer->memory = dsAllocateVkMemory(device, &memoryRequirements, memoryIndex, 0,
+		dedicatedBuffer);
 	if (!buffer->memory)
 	{
 		dsVkTempBuffer_destroy(buffer);

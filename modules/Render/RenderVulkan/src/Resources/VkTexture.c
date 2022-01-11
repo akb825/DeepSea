@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2021 Aaron Barany
+ * Copyright 2018-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -81,13 +81,15 @@ static bool createHostImageBuffer(dsVkDevice* device,  dsVkTexture* texture, con
 		return false;
 
 	VkMemoryRequirements memoryRequirements;
-	DS_VK_CALL(device->vkGetBufferMemoryRequirements)(device->device, texture->hostBuffer,
-		&memoryRequirements);
+	VkBuffer dedicatedBuffer;
+	dsVkGetBufferMemoryRequirements(device, texture->hostBuffer, &memoryRequirements,
+		&dedicatedBuffer);
 	uint32_t memoryIndex = dsVkMemoryIndex(device, &memoryRequirements, 0);
 	if (memoryIndex == DS_INVALID_HEAP)
 		return false;
 
-	texture->hostMemory = dsAllocateVkMemory(device, &memoryRequirements, memoryIndex);
+	texture->hostMemory = dsAllocateVkMemory(device, &memoryRequirements, memoryIndex, 0,
+		dedicatedBuffer);
 	if (!texture->hostMemory)
 		return false;
 
@@ -177,8 +179,9 @@ static bool createSurfaceImage(dsVkDevice* device, const dsTextureInfo* info,
 		return false;
 
 	VkMemoryRequirements surfaceRequirements;
-	DS_VK_CALL(device->vkGetImageMemoryRequirements)(device->device, texture->surfaceImage,
-		&surfaceRequirements);
+	VkImage dedicatedImage;
+	dsVkGetImageMemoryRequirements(device, texture->surfaceImage, &surfaceRequirements,
+		&dedicatedImage);
 
 	VkMemoryPropertyFlags memoryFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
 	uint32_t surfaceMemoryIndex = dsVkMemoryIndexImpl(device, &surfaceRequirements, memoryFlags,
@@ -186,7 +189,8 @@ static bool createSurfaceImage(dsVkDevice* device, const dsTextureInfo* info,
 	if (surfaceMemoryIndex == DS_INVALID_HEAP)
 		return false;
 
-	texture->surfaceMemory = dsAllocateVkMemory(device, &surfaceRequirements, surfaceMemoryIndex);
+	texture->surfaceMemory = dsAllocateVkMemory(device, &surfaceRequirements, surfaceMemoryIndex,
+		dedicatedImage, 0);
 	if (!texture->surfaceMemory)
 		return false;
 
@@ -358,8 +362,9 @@ static dsTexture* createTextureImpl(dsResourceManager* resourceManager, dsAlloca
 	}
 
 	VkMemoryRequirements deviceRequirements;
-	DS_VK_CALL(device->vkGetImageMemoryRequirements)(device->device, texture->deviceImage,
-		&deviceRequirements);
+	VkImage dedicatedImage;
+	dsVkGetImageMemoryRequirements(device, texture->deviceImage, &deviceRequirements,
+		&dedicatedImage);
 
 	VkMemoryPropertyFlags memoryFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
 	uint32_t deviceMemoryIndex = dsVkMemoryIndexImpl(device, &deviceRequirements, memoryFlags,
@@ -370,7 +375,8 @@ static dsTexture* createTextureImpl(dsResourceManager* resourceManager, dsAlloca
 		return NULL;
 	}
 
-	texture->deviceMemory = dsAllocateVkMemory(device, &deviceRequirements, deviceMemoryIndex);
+	texture->deviceMemory = dsAllocateVkMemory(device, &deviceRequirements, deviceMemoryIndex,
+		dedicatedImage, 0);
 	if (!texture->deviceMemory)
 	{
 		dsVkTexture_destroyImpl(baseTexture);
