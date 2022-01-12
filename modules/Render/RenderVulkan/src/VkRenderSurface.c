@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 Aaron Barany
+ * Copyright 2018-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -209,6 +209,19 @@ bool dsVkRenderSurface_update(dsRenderer* renderer, dsRenderSurface* renderSurfa
 		{
 			DS_VERIFY(dsSpinlock_unlock(&vkSurface->lock));
 			return DS_HANDLE_VK_RESULT(result, "Couldn't get surface capabilities");
+		}
+	}
+	else
+	{
+		// If we didn't take the above code path, need to check for size of 0. (e.g. minimized)
+		VkSurfaceCapabilitiesKHR surfaceInfo;
+		VkResult result = DS_VK_CALL(instance->vkGetPhysicalDeviceSurfaceCapabilitiesKHR)(
+			device->physicalDevice, vkSurface->surface, &surfaceInfo);
+		if (result == VK_SUCCESS && (surfaceInfo.currentExtent.width == 0 ||
+			surfaceInfo.currentExtent.height == 0))
+		{
+			DS_VERIFY(dsSpinlock_unlock(&vkSurface->lock));
+			return true;
 		}
 	}
 
