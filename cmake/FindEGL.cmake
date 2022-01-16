@@ -40,17 +40,7 @@ if (PC_EGL_FOUND)
     set(EGL_DEFINITIONS ${PC_EGL_CFLAGS_OTHER})
 endif ()
 
-if (ANDROID)
-    set(ANDROID_INCLUDE_DIRS ${ANDROID_NDK}/sysroot/usr/include
-		NO_DEFAULT_PATH NO_CMAKE_SYSTEM_PATH)
-else()
-    set(ANDROID_INCLUDE_DIRS)
-endif()
-
-find_path(EGL_INCLUDE_DIRS NAMES EGL/egl.h
-    HINTS ${PC_EGL_INCLUDEDIR} ${PC_EGL_INCLUDE_DIRS} ${ANDROID_INCLUDE_DIRS}
-    NO_CMAKE_FIND_ROOT_PATH
-)
+find_path(EGL_INCLUDE_DIRS NAMES EGL/egl.h)
 
 if (ANDROID)
     # Don't set full path on Android since the build system will copy over the library, causing
@@ -58,10 +48,7 @@ if (ANDROID)
     set(EGL_LIBRARIES EGL)
 else()
     set(EGL_NAMES ${EGL_NAMES} egl EGL)
-    find_library(EGL_LIBRARIES NAMES ${EGL_NAMES}
-        HINTS ${PC_EGL_LIBDIR} ${PC_EGL_LIBRARY_DIRS} ${ANDROID_LIBRARY_DIRS}
-        NO_CMAKE_FIND_ROOT_PATH
-    )
+    find_library(EGL_LIBRARIES NAMES ${EGL_NAMES})
 endif()
 
 include(FindPackageHandleStandardArgs)
