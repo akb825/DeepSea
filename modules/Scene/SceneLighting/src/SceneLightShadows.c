@@ -215,14 +215,6 @@ static void* getBufferData(dsSceneLightShadows* shadows)
 	return shadows->curBufferData;
 }
 
-static float getMinBoxSize(float nearPlane, float farPlane)
-{
-	// Arbitrary ratio to determine the minimum size for the shadow box used to compute the
-	// projection.
-	const float ratio = 0.05f;
-	return (farPlane - nearPlane)*ratio;
-}
-
 static float getLargeBoxSize(float farPlane)
 {
 	// Arbitrary ratio to determine a large box that gets clamped to the shadow volume when
@@ -515,7 +507,6 @@ bool dsSceneLightShadows_prepare(dsSceneLightShadows* shadows, const dsView* vie
 					dsProjectionParams curProjection = shadowedProjection;
 					curProjection.near = i == 0 ? nearPlane : splitDistances.values[i - 1];
 					curProjection.far = splitDistances.values[i];
-					shadows->minBoxSizes[i] = getMinBoxSize(curProjection.near, curProjection.far);
 					dsMatrix44f projectionMtx;
 					DS_VERIFY(dsProjectionParams_createMatrix(
 						&projectionMtx, &curProjection, renderer));
@@ -554,7 +545,6 @@ bool dsSceneLightShadows_prepare(dsSceneLightShadows* shadows, const dsView* vie
 					data->shadowDistance = shadowDistance;
 				}
 
-				shadows->minBoxSizes[0] = getMinBoxSize(nearPlane, farPlane);
 				DS_VERIFY(dsShadowCullVolume_buildDirectional(shadows->cullVolumes,
 					&shadowedFrustum, (dsVector3f*)&toLightView));
 			}
@@ -577,7 +567,6 @@ bool dsSceneLightShadows_prepare(dsSceneLightShadows* shadows, const dsView* vie
 			dsVector4f lightViewPos;
 			dsMatrix44_transform(lightViewPos, view->viewMatrix, lightWorldPos);
 
-			float minBoxSize = getMinBoxSize(nearPlane, farPlane);
 			dsMatrix44f projection;
 			DS_VERIFY(dsSceneLight_getPointLightProjection(&projection, light, renderer,
 				intensityThreshold));
@@ -598,7 +587,6 @@ bool dsSceneLightShadows_prepare(dsSceneLightShadows* shadows, const dsView* vie
 				dsFrustum3f lightFrustum;
 				DS_VERIFY(dsRenderer_frustumFromMatrix(&lightFrustum, renderer, &lightProjection));
 
-				shadows->minBoxSizes[i] = minBoxSize;
 				DS_VERIFY(dsShadowCullVolume_buildSpot(shadows->cullVolumes + i, &shadowedFrustum,
 					&lightFrustum));
 				// Force uniform shadows since they can be hard to tune depth bias with smaller
@@ -650,7 +638,6 @@ bool dsSceneLightShadows_prepare(dsSceneLightShadows* shadows, const dsView* vie
 			dsFrustum3f lightFrustum;
 			DS_VERIFY(dsRenderer_frustumFromMatrix(&lightFrustum, renderer, &lightProjection));
 
-			shadows->minBoxSizes[0] = getMinBoxSize(nearPlane, farPlane);
 			DS_VERIFY(dsShadowCullVolume_buildSpot(shadows->cullVolumes, &shadowedFrustum,
 				&lightFrustum));
 			// Force uniform shadows since they can be hard to tune depth bias with smaller
@@ -838,8 +825,9 @@ bool dsSceneLightShadows_computeSurfaceProjection(dsSceneLightShadows* shadows, 
 
 	const float paddingRatio = 0.1f;
 	dsMatrix44f* shadowMtx = shadows->projectionMatrices + surface;
+	uint32_t depthRangeIndex = shadows->cascaded ? surface : 0U;
 	if (!dsShadowProjection_computeMatrix(shadowMtx, shadows->projections + surface, paddingRatio,
-			shadows->minBoxSizes[surface]))
+			shadows->shadowParams.minDepthRanges[depthRangeIndex]))
 	{
 		dsMatrix44_identity(*shadowMtx);
 	}

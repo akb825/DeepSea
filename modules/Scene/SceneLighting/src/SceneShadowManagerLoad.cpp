@@ -115,11 +115,20 @@ void* dsSceneShadowManager_load(const dsSceneLoadContext* loadContext,
 		const char* transformGroupName =
 			fbTransformGroupName ? fbTransformGroupName->c_str() : nullptr;
 
+		float minDepthRanges[4] = {};
+		auto fbMinDepthRanges = fbLightShadows->minDepthRanges();
+		if (fbMinDepthRanges)
+		{
+			for (uint32_t i = 0; i < fbMinDepthRanges->size() && i < 4; ++i)
+				minDepthRanges[i] = (*fbMinDepthRanges)[i];
+		}
+
 		dsSceneShadowParams params =
 		{
 			fbLightShadows->maxCascades(),
 			fbLightShadows->maxFirstSplitDistance(),
 			fbLightShadows->cascadeExpFactor(),
+			{minDepthRanges[0], minDepthRanges[1], minDepthRanges[2], minDepthRanges[3]},
 			fbLightShadows->fadeStartDistance(),
 			fbLightShadows->maxDistance()
 		};

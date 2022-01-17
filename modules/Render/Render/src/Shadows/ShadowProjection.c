@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Aaron Barany
+ * Copyright 2021-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -298,7 +298,7 @@ bool dsShadowProjection_addPoints(dsShadowProjection* shadowProj, const dsVector
 }
 
 bool dsShadowProjection_computeMatrix(dsMatrix44f* outMatrix, const dsShadowProjection* shadowProj,
-	float paddingRatio, float minSize)
+	float paddingRatio, float minDepthRange)
 {
 	if (!outMatrix || !shadowProj || !dsAlignedBox3_isValid(shadowProj->pointBounds))
 		return false;
@@ -310,11 +310,9 @@ bool dsShadowProjection_computeMatrix(dsMatrix44f* outMatrix, const dsShadowProj
 	dsVector3f offset;
 	dsVector3_scale(offset, size, scale);
 
-	for (unsigned int i = 0; i < 3; ++i)
-	{
-		float minOffset = (minSize - size.values[i])/2;
-		offset.values[i] = dsMax(offset.values[i], minOffset);
-	}
+	// Depth is along the Y axis.
+	float minDepthOffset = (minDepthRange - size.y)/2;
+	offset.y = dsMax(offset.y, minDepthOffset);
 
 	dsVector3_sub(bounds.min, bounds.min, offset);
 	dsVector3_add(bounds.max, bounds.max, offset);

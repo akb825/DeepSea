@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Aaron Barany
+ * Copyright 2021-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,6 +58,11 @@ table SceneLightShadows
 	// Exponential factor for cascaded shadows in the range [0, 1], where 0 uses linear distances
 	// between the splits and 1 is fully exponential.
 	cascadeExpFactor : float;
+
+	// The min depth ranges for each cascade, or the minimum distance between the near and far
+	// planes for the shadow map. Each element corresponds to a cascade. Point and spot shadows only
+	// use the first value.
+	minDepthRanges : [float];
 
 	// The distance to start fading out shadows.
 	fadeStartDistance : float;

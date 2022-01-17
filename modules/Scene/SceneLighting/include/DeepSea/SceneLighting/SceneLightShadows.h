@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Aaron Barany
+ * Copyright 2021-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -123,6 +123,30 @@ DS_SCENELIGHTING_EXPORT uint32_t dsSceneLightShadows_getMaxCascades(
  */
 DS_SCENELIGHTING_EXPORT bool dsSceneLightShadows_setMaxCascades(dsSceneLightShadows* shadows,
 	uint32_t maxCascades);
+
+/**
+ * @brief Getds the minimum depth ranges for each cascade.
+ * @remark errno will be set on failure.
+ * @param shadows The scene light shadows.
+ * @return The depth ranges for each cascade or NULL if shadows is NULL.
+ */
+DS_SCENELIGHTING_EXPORT const float* dsSceneLightShadows_getMinDepthRanges(
+	const dsSceneLightShadows* shadows);
+
+/**
+ * @brief Sets the minimum depth ranges for a range of cascades.
+ *
+ * Spot and point light shadows will only use the first cascade's value.
+ *
+ * @remark errno will be set on failure.
+ * @param shadows The scene light shadows.
+ * @param depthRanges A pointer to the depth ranges.
+ * @param start The first cascade index to assign.
+ * @param count The number of cascades to assign.
+ * @return False if the parameters are invalid.
+ */
+DS_SCENELIGHTING_EXPORT bool dsSceneLightShadows_setMinDepthRanges(dsSceneLightShadows* shadows,
+	const float* depthRanges, uint32_t start, uint32_t count);
 
 /**
  * @brief Gets the maximum distance for the first split for cascaded shadows.

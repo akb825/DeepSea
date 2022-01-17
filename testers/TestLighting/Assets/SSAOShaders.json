@@ -321,19 +321,22 @@
 				"name": "mainShadows",
 				"lightType": "Directional",
 				"light": "sun",
-				"transformGroupDesc": "directionalShadowTransformDesc"
+				"transformGroupDesc": "directionalShadowTransformDesc",
+				"minDepthRanges": 50
 			},
 			{
 				"name": "spotShadows",
 				"lightType": "Spot",
 				"light": "mainSpot",
-				"transformGroupDesc": "directionalShadowTransformDesc"
+				"transformGroupDesc": "directionalShadowTransformDesc",
+				"minDepthRanges": 50
 			},
 			{
 				"name": "pointShadows",
 				"lightType": "Point",
 				"light": "center",
-				"transformGroupDesc": "pointShadowTransformDesc"
+				"transformGroupDesc": "pointShadowTransformDesc",
+				"minDepthRanges": 50
 			}
 		]
 	}

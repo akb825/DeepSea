@@ -114,7 +114,8 @@
 				"transformGroupDesc": "cascadedDirectionalShadowTransformDesc",
 				"transformGroupName": "ShadowTransform",
 				"maxCascades": 2,
-				"maxFirstSplitDistance": 10
+				"maxFirstSplitDistance": 10,
+				"minDepthRanges": 50
 			}
 		]
 	},

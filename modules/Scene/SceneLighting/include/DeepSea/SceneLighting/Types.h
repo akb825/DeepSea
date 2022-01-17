@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2021 Aaron Barany
+ * Copyright 2020-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -256,6 +256,14 @@ typedef struct dsSceneShadowParams
 	 * distances between the splits and 1 is fully exponential.
 	 */
 	float cascadeExpFactor;
+
+	/**
+	 * @brief The min depth ranges for each cascade.
+	 *
+	 * This is the minimum distance between the near and far planes for the shadow map. Each element
+	 * corresponds to a cascade. Point and spot shadows only use the first value.
+	 */
+	float minDepthRanges[4];
 
 	/**
 	 * @brief The distance to start fading out shadows.
