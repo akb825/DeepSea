@@ -101,7 +101,10 @@ The following item list types are provided with the members that are expected:
 	* `shadows`: name of the shadows within the shadow manager to cull for.
 	* `surface`: index of the surface within the light shadows.
 * `"SSAO"`:
-	* `shader`: the shader to compute the ambient occlusion with.
+	* `shader`: the shader to calculate the ambient occlusion with.
+	* `material`: the material to use with the shader.
+* `"ComputeSSAO"`:
+	* `shader`: the compute shader to calculate the ambient occlusion with.
 	* `material`: the material to use with the shader.
 
 ## Instance Data
@@ -116,3 +119,13 @@ The following instance data types are provided with the members that are expecte
 	* `shadows`: name of the shadows within the shadow manager to get the transform from.
 	* `surface`: index of the surface within the shadows to get the transform from.
 	* `variableGroupDesc`:  name for the shader variable group to use.
+
+
+# Advanced lighting techniques
+
+The TestLighitng tester demonstrates the main lighting types that can be used with this library. This includes:
+
+* Standard forward lighting. This is achieved by using `dsLightSetPrepare` to prepare the lights at the start of the scene, then utilizing the `dsInstanceForwardLightData` instance data object in the `dsSceneModelList` instances for the models to compute which lights to use for each model.
+* Deferred lighting. This uses a render pass with two subpasses, first to draw the gbuffers and second to draw the lights. The gbuffer rendering use standard `dsSceneModelList` objects to draw to multiple render targets in the shader, then uses `dsDeferredLightResolve` to draw the lights. The shader code for each light type can be found under the `DeepSea/SceneLighting/Shaders` include directory. (e.g. `DeepSea/SceneLighting/Shaders/DeferredPointLight.mslh`)
+* Deferred lighting with screen-space ambient occlusion (SSAO). This adds a pre-pass to write the depth and simplified normal without normal map. The `dsSceneSSAO` object is used to calculate the SSAO with a shader based on `DeepSea/SceneLighting/Shaders/SSAO.mslh`. After the ambient-occlusion is computed, the deferred lighting is computed similarly to before, except the ambient shader queries the SSAO value with `DeepSea/SceneLighting/Shaders/QuerySSAO.mslh`.
+* All testers use shadows to some extent. A `dsShadowManger` object in the scene resources is used in conjunction with `dsShadowManagerPrepare` to make shadows available within the scene. `dsShadowCullList` instances are used for each shadow surface to perform the cull checks. In the case of forward lighting, the shadow map is set on the shader with Global material binding and the transform data is set when drawing the models with `dsShadowInstanceTransformData`. In the case of deferred lighting, the `dsDeferredLightResolve` instance will check if the light being drawn has shadows associated with it, and if so will use the shadow light shader to draw the light with the appropriate uniforms bound.

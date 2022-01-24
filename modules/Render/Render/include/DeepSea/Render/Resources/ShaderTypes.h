@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 Aaron Barany
+ * Copyright 2016-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -111,7 +111,7 @@ typedef enum dsMaaterialBinding
 {
 	dsMaterialBinding_Material, ///< Bound with the material itself.
 	dsMaterialBinding_Global,   ///< Bound as a global value used between materials.
-	dsMaterialBinding_Instance  ///< Bound as an instance value, changing within a material binding.
+	dsMaterialBinding_Instance  ///< Bound as an instance value, changing within a shader binding.
 } dsMaterialBinding;
 
 /**

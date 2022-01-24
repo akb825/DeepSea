@@ -11,7 +11,7 @@ DeepSea Core contains the core functionality for DeepSea. This includes:
 
 # Memory, object sizes, and alignment
 
-Structures that are typically allocated and have a known size have a `ds<Struct>_sizeof()` and `ds<Struct>_fullAllocSize()` function. Structures that are generally stored by value (such as dsTimer and dsThread) do not have these functions. Additionally, structures that can change based on runtime configuration (e.g. Render implementations) also don't implement these functions.
+Structures that are typically allocated and have a known size have a `ds<Struct>_sizeof()` and `ds<Struct>_fullAllocSize()` function. Structures that are generally stored by value (such as `dsTimer` and `dsThread`) do not have these functions. Additionally, structures that can change based on runtime configuration (e.g. `dsRender` implementations) also don't implement these functions.
 
 The `ds<Struct>_sizeof()` function is the equivalent of calling `sizeof(<Struct>)`. The main difference is this will also work on opaque types, which may have a different implementation on different platforms or build environments. Some implementations provide parameters for dynamic elements in order to calculate the final size.
 

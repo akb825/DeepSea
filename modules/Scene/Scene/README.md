@@ -4,7 +4,7 @@ DeepSea Scene provides structures and functions to manage the layout of a 3D sce
 
 # Scene graph
 
-A scene graph is a hierarchy of `dsSceneNode` nodes. Typically you will have a hierarchy of `dsSceneTransformNode` instances to create a transform hierarchy, with `dsSceneModelNode` instances as leaf nodes.
+A scene graph is a hierarchy of `dsSceneNode` nodes. Typically you will have a tree of `dsSceneTransformNode` instances to create a transform hierarchy, with `dsSceneModelNode` instances as leaf nodes.
 
 Nodes may be "subclassed" by placing making the first member of your own struct be the base class' struct. The type is determined by a pointer to a static `dsSceneNodeType` instance, which also contains a pointer to the parent type to allow operations to be done on the base class. Use the `dsSceneNode_isOfType()` function to determine whether the node is either the type specified or a subclass. See the documentation comment for `dsSceneNode_setupParentType()` for how to properly hook up the parent type and ensure that the full hierarchy is available.
 
@@ -20,7 +20,11 @@ In order to avoid these inefficiencies, the scene graph is flattened for the int
 
 # Scenes
 
-Scenes combine the scene graph hierarchy with a description for how to process and draw it.
+Scenes combine the scene graph hierarchy with a description for how to process and draw it. The following is provided to a `dsScene` instance to determine how to process and draw the scene data:
+
+* Global data, which is updated before anything else on the main thread.
+* Shared item lists to be processed before the rest of the scene. This is a 2D array, where `dsSceneItemList` instances in the same index level can be processed in parallel during multithreaded rendering. For example, all the instances under `sharedItemLists[0]` can be processed in parallel, then are synchronized before processing `sharedItemLists[1]`. All shared item lists will be processed before processing the main scene pipelines.
+* Scene pipeline items. This is a combination of `dsSceneItemList` instances for processing (e.g. compute shaders) and `dsSceneRenderPass` instances for drawing. `dsSceneRenderPass` instances can have multiple subpasses, each of which can have any number of `dsSceneItemList` instances for drawing.
 
 # Item lists
 

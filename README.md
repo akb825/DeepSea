@@ -49,7 +49,7 @@ This will download the submodules, tools, and pre-built libraries. After this po
 
 > **Note:** When building on Linux, the freetype, harfbuzz, and SDL libraries aren't installed with the pre-built library packages since they are installed on nearly all Linux systems already. The development packages for these libraries must be installed when building DeepSea. In the case of Ubuntu, the `libfreetype6-dev`, `libharfbuzz-dev`, and `libsdl2-dev` should be installed. The `libgl1-mesa-dev` package is also required to compile the OpenGL backend.
 
-> **Note:** When updating on Windows, it's recommended to first run `git pull` followed by running `update.sh -m` instead of using `update.sh -a` for both steps. This is because Windows will lock the `update.sh` script when running it, causing errors if git attempts to update the script while it's running.
+> **Note:** When updating on Windows, possible running `update.sh -a` will fail if the `update.sh` script was updated due to file locking. If this happens, run `git pull` manually before calling into the update script.
 
 # Platforms
 
@@ -57,7 +57,7 @@ DeepSea has been built for and tested on the following platforms:
 
 * Linux (GCC and LLVM clang)
 * Windows (requires Visual Studio 2015 or later)
-* Mac OS X
+* macOS
 
 # Building
 
@@ -96,11 +96,11 @@ iOS can be built with an Xcode project similar to the macOS instructions above, 
 
 ## Windows
 
-Generating Visual Studio projects can either be done through the CMake GUI tool or on the command line. To generate Visual Studio 2017 projects from the command line, you can run the commands:
+Generating Visual Studio projects can either be done through the CMake GUI tool or on the command line. To generate Visual Studio 2022 projects from the command line, you can run the commands:
 
 	DeepSea$ mkdir build
 	DeepSea$ cd build
-	DeepSea\build$ cmake .. -G "Visual Studio 15 2017 Win64"
+	DeepSea\build$ cmake .. -G "Visual Studio 17 2022 Win64"
 
 ## Android
 
@@ -148,13 +148,11 @@ To build the examples, an Android Studio project is provided in the android subd
 * `-DDEEPSEA_NO_PREBUILT_LIBS=ON|OFF`: Don't use any pre-built library dependencies.
 * `-DCMAKE_OSX_DEPLOYMENT_TARGET=version`: Minimum version of macOS to target when building for Mac. Defaults to 10.13, or 11.0 for ARM only, but may be set as low as 10.11.
 
-Once you have built and installed DeepSea, you can find the various modules with the `find_package()` CMake function. For example:
+Once you have built and installed DeepSea and set the base install directory to `CMAKE_PREFIX_PATH`, you can find the various modules with the `find_package()` CMake function. For example:
 
 	find_package(DeepSea CONFIG COMPONENTS Core Math Render)
 
-Libraries and include directories can be found through the `DeepSeaModule_LIBRARIES` and `DeepSeaModule_INCLUDE_DIRS` CMake variables. For example: `DeepSeaCore_LIBRARIES` and `DeepSeaCore_INCLUDE_DIRS`.
-
-> **Note:** In order for `find_package()` to succeed, on Windows you will need to add the path to `INSTALL_DIR/lib/cmake` to `CMAKE_PREFIX_PATH`. (e.g. `C:/Program Files/DeepSea/lib/cmake`) On other systems, if you don't install to a standard location, you will need to add the base installation path to `CMAKE_PREFIX_PATH`.
+Libraries and include directories can be found through the `DeepSeaModule_LIBRARIES` and `DeepSeaModule_INCLUDE_DIRS` CMake variables. For example: `DeepSeaCore_LIBRARIES` and `DeepSeaCore_INCLUDE_DIRS`. You may also add the library name (e.g. `deepsea_core`) to the list of `target_link_libraries()` to both link to the libraries and add the include directories.
 
 # Modules
 
@@ -172,7 +170,8 @@ DeepSea contains the following modules:
 * [Text](modules/Text/README.md): Draws Unicode text.
 * [VectorDraw](modules/VectorDraw/README.md): Draws vector graphics.
 * [Scene](modules/Scene/Scene/README.md): Scene library for creating scene graphs mixed with render passes and operations to perform each frame as a part of rendering.
-* [VectorDrawScene](modules/Scene/VectorDrawScene/README.md): Library for draw vector images and text within a scene.
+* [SceneLighting](modules/Scene/SceneLighting/README.md): Library for managing lights and shadows within a scene.
+* [VectorDrawScene](modules/Scene/VectorDrawScene/README.md): Library for drawing vector images and text within a scene.
 * [Application](modules/Application/Application/README.md): Application library, providing functionality such as input and window events.
 * [ApplicationSDL](modules/Application/ApplicationSDL/README.md): SDL implementation of the Application library.
 
