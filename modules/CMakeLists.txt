@@ -34,6 +34,10 @@ if (DEEPSEA_BUILD_RENDER)
 		endif()
 	endif()
 
+	if (DEEPSEA_BUILD_PARTICLE)
+		ds_add_module(Particle)
+	endif()
+
 	if (DEEPSEA_BUILD_SCENE)
 		ds_add_module(Scene/Scene)
 		ds_add_module(Scene/SceneLighting)

@@ -128,6 +128,7 @@ To build the examples, an Android Studio project is provided in the android subd
 * `-DDEEPSEA_BUILD_RENDER_METAL=ON|OFF`: Set to `ON` to build the Metal render implementation. Defaults to `ON`.
 * `-DDEEPSEA_BUILD_TEXT=ON|OFF`: Set to `ON` to build the text rendering library. Defaults to `ON`.
 * `-DDEEPSEA_BUILD_VECTOR_DRAW=ON|OFF`: Set to `ON` to build the vector draw library. Defaults to `ON`.
+* `-DDEEPSEA_BUILD_PARTICLE=ON|OFF`: Set to `ON` to build the particle library. Defaults to `ON`.
 * `-DDEEPSEA_BUILD_SCENE=ON|OFF`: Set to `ON` to build the scene library. Defaults to `ON`.
 * `-DDEEPSEA_BUILD_APPLICATION=ON|OFF`: Set to `ON` to build the application framework. Defaults to `ON`.
 * `-DDEEPSEA_BUILD_APPLICATION_SDL=ON|OFF`: Set to `ON` to build the SDL application implementation. Defaults to `ON`.
