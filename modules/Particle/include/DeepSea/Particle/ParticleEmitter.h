@@ -56,31 +56,6 @@ DS_PARTICLE_EXPORT dsParticleEmitter* dsParticleEmitter_create(dsAllocator* allo
 DS_PARTICLE_EXPORT bool dsParticleEmitter_update(dsParticleEmitter* emitter, double time);
 
 /**
- * @brief Creates a particle from the emitter.
- *
- * This should only be called within the particle emitter's update function.
- *
- * @remark errno will be set on failure.
- * @param emitter The particle emitter.
- * @return The particle or NULL if an error occurred.
- */
-DS_PARTICLE_EXPORT dsParticle* dsParticleEmitter_createParticle(dsParticleEmitter* emitter);
-
-/**
- * @brief Destroys a particle from the emitter.
- *
- * This should only be called within the particle emitter's update function whenever a particle has
- * expired.
- *
- * @remark errno will be set on failure.
- * @param emitter The particle emitter.
- * @param particle The particle to destroy.
- * @return False if an error occurred.
- */
-DS_PARTICLE_EXPORT bool dsParticleEmitter_destroyParticle(dsParticleEmitter* emitter,
-	dsParticle* particle);
-
-/**
  * @brief Destroys a particle emitter.
  * @param emitter The particle emitter to destroy.
  */

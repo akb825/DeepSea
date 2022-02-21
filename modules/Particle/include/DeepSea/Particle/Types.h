@@ -96,12 +96,10 @@ typedef struct dsParticleEmitter dsParticleEmitter;
  * @param curParticles The current list of particles.
  * @param curParticleCount The number of currently active particles.
  * @param nextParticles The list of next particles to populate.
- * @param maxParticles The maximum number of particles that can be created.
  * @return The new number of particles.
  */
 typedef uint32_t (*dsUpdateParticleEmitterFunction)(dsParticleEmitter* emitter, double time,
-	dsParticle** curParticles, uint32_t curParticleCount, dsParticle** nextParticles,
-	uint32_t maxParticles);
+	const uint8_t* curParticles, uint32_t curParticleCount, uint8_t* nextParticles);
 
 /**
  * @brief Function to destroy a particle emitter.
@@ -122,12 +120,17 @@ struct dsParticleEmitter
 	/**
 	 * @brief The list of active particles.
 	 */
-	dsParticle** particles;
+	uint8_t* particles;
 
 	/**
 	 * @brief Temporary list of particles used during processing.
 	 */
-	dsParticle** tempParticles;
+	uint8_t* tempParticles;
+
+	/**
+	 * @brief The size of a particle.
+	 */
+	uint32_t sizeofParticle;
 
 	/**
 	 * @brief The current number of particles.
@@ -138,11 +141,6 @@ struct dsParticleEmitter
 	 * @brief The maximum number of particles that can be active at once.
 	 */
 	uint32_t maxParticles;
-
-	/**
-	 * @brief Pool of inactive particles.
-	 */
-	dsPoolAllocator inactiveParticles;
 
 	/**
 	 * @brief Function to update the particle emitter.

@@ -151,7 +151,7 @@ bool dsPolygonEdgesIntersect(const dsVector2d* from, const dsVector2d* to,
 
 	double divisor = (from->x - to->x)*(otherFrom->y - otherTo->y) -
 		(from->y - to->y)*(otherFrom->x - otherTo->x);
-	if (dsEpsilonEqualsZerod(divisor, epsilon))
+	if (dsEpsilonEqualsZerod(divisor, epsilon*epsilon))
 	{
 		// Check if the lines are on top of each other.
 		dsVector2d otherRef;

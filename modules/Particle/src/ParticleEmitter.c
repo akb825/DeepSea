@@ -18,7 +18,6 @@
 
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
-#include <DeepSea/Core/Memory/PoolAllocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 
@@ -33,9 +32,8 @@ dsParticleEmitter* dsParticleEmitter_create(dsAllocator* allocator, size_t sizeo
 		return NULL;
 	}
 
-	size_t poolSize = dsPoolAllocator_bufferSize(sizeofParticle, maxParticles);
 	size_t fullSize = DS_ALIGNED_SIZE(sizeofParticleEmitter) +
-		DS_ALIGNED_SIZE(sizeof(dsParticle*)*maxParticles)*2 + poolSize;
+		DS_ALIGNED_SIZE(sizeofParticle*maxParticles)*2;
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 		return NULL;
@@ -47,15 +45,15 @@ dsParticleEmitter* dsParticleEmitter_create(dsAllocator* allocator, size_t sizeo
 	DS_ASSERT(emitter);
 
 	emitter->allocator = dsAllocator_keepPointer(allocator);
-	emitter->particles = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsParticle*, maxParticles);
+	emitter->particles = (uint8_t*)dsAllocator_alloc((dsAllocator*)&bufferAlloc,
+		sizeofParticle*maxParticles);
 	DS_ASSERT(emitter->particles);
-	emitter->tempParticles = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsParticle*, maxParticles);
+	emitter->tempParticles = (uint8_t*)dsAllocator_alloc((dsAllocator*)&bufferAlloc,
+		sizeofParticle*maxParticles);
 	DS_ASSERT(emitter->tempParticles);
+	emitter->sizeofParticle = (uint32_t)sizeofParticle;
 	emitter->particleCount = 0;
-
-	void* poolBuffer = dsAllocator_alloc((dsAllocator*)&bufferAlloc, poolSize);
-	DS_VERIFY(dsPoolAllocator_initialize(&emitter->inactiveParticles, sizeofParticle, maxParticles,
-		poolBuffer, poolSize));
+	emitter->maxParticles = maxParticles;
 
 	emitter->updateFunc = updateFunc;
 	emitter->destroyFunc = destroyFunc;
@@ -70,10 +68,10 @@ bool dsParticleEmitter_update(dsParticleEmitter* emitter, double time)
 		return false;
 	}
 
-	dsParticle** curParticles = emitter->particles;
-	dsParticle** nextParticles = emitter->tempParticles;
+	uint8_t* curParticles = emitter->particles;
+	uint8_t* nextParticles = emitter->tempParticles;
 	uint32_t nextParticleCount = emitter->updateFunc(emitter, time, curParticles,
-		emitter->particleCount, nextParticles, emitter->maxParticles);
+		emitter->particleCount, nextParticles);
 	// Assert since there's no way to cleanly recover, and this would be invalid interface usage.
 	DS_ASSERT(nextParticleCount <= emitter->maxParticles);
 
@@ -81,29 +79,6 @@ bool dsParticleEmitter_update(dsParticleEmitter* emitter, double time)
 	emitter->tempParticles = curParticles;
 	emitter->particleCount = nextParticleCount;
 	return true;
-}
-
-dsParticle* dsParticleEmitter_createParticle(dsParticleEmitter* emitter)
-{
-	if (!emitter)
-	{
-		errno = EINVAL;
-		return NULL;
-	}
-
-	return dsAllocator_alloc((dsAllocator*)&emitter->inactiveParticles,
-		emitter->inactiveParticles.chunkSize);
-}
-
-bool dsParticleEmitter_destroyParticle(dsParticleEmitter* emitter, dsParticle* particle)
-{
-	if (!emitter || !particle)
-	{
-		errno = EINVAL;
-		return false;
-	}
-
-	return dsAllocator_free((dsAllocator*)&emitter->inactiveParticles, particle);
 }
 
 void dsParticleEmitter_destroy(dsParticleEmitter* emitter)
