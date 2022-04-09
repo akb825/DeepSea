@@ -41,10 +41,10 @@ struct TextureBufferMaterialData FLATBUFFERS_FINAL_CLASS : private flatbuffers::
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_NAME) &&
            verifier.VerifyString(name()) &&
-           VerifyField<uint8_t>(verifier, VT_FORMAT) &&
-           VerifyField<uint8_t>(verifier, VT_DECORATION) &&
-           VerifyField<uint32_t>(verifier, VT_OFFSET) &&
-           VerifyField<uint32_t>(verifier, VT_COUNT) &&
+           VerifyField<uint8_t>(verifier, VT_FORMAT, 1) &&
+           VerifyField<uint8_t>(verifier, VT_DECORATION, 1) &&
+           VerifyField<uint32_t>(verifier, VT_OFFSET, 4) &&
+           VerifyField<uint32_t>(verifier, VT_COUNT, 4) &&
            verifier.EndTable();
   }
 };

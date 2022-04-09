@@ -13,4 +13,3 @@ class PrimitiveType(object):
     TriangleListAdjacency = 7
     TriangleStripAdjacency = 8
     PatchList = 9
-

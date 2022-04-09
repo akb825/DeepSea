@@ -37,9 +37,9 @@ struct LightData FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_VARIABLEGROUPDESC) &&
            verifier.VerifyString(variableGroupDesc()) &&
-           VerifyFieldRequired<DeepSeaScene::Vector3f>(verifier, VT_DIRECTION) &&
-           VerifyFieldRequired<DeepSeaScene::Vector3f>(verifier, VT_COLOR) &&
-           VerifyFieldRequired<DeepSeaScene::Vector3f>(verifier, VT_AMBIENT) &&
+           VerifyFieldRequired<DeepSeaScene::Vector3f>(verifier, VT_DIRECTION, 4) &&
+           VerifyFieldRequired<DeepSeaScene::Vector3f>(verifier, VT_COLOR, 4) &&
+           VerifyFieldRequired<DeepSeaScene::Vector3f>(verifier, VT_AMBIENT, 4) &&
            verifier.EndTable();
   }
 };

@@ -6,4 +6,3 @@ class ModelDrawRangeUnion(object):
     NONE = 0
     DrawRange = 1
     DrawIndexedRange = 2
-

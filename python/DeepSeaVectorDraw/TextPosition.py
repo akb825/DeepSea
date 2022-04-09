@@ -5,4 +5,3 @@
 class TextPosition(object):
     Offset = 0
     Absolute = 1
-

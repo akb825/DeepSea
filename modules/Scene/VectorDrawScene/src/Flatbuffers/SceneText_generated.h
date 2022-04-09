@@ -62,16 +62,16 @@ struct SceneTextStyle FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyField<uint32_t>(verifier, VT_START) &&
-           VerifyField<uint32_t>(verifier, VT_COUNT) &&
-           VerifyField<float>(verifier, VT_SIZE) &&
-           VerifyField<float>(verifier, VT_EMBOLDEN) &&
-           VerifyField<float>(verifier, VT_SLANT) &&
-           VerifyField<float>(verifier, VT_OUTLINEWIDTH) &&
-           VerifyField<float>(verifier, VT_FUZINESS) &&
-           VerifyField<float>(verifier, VT_VERTICALOFFSET) &&
-           VerifyField<DeepSeaVectorDrawScene::Color>(verifier, VT_COLOR) &&
-           VerifyField<DeepSeaVectorDrawScene::Color>(verifier, VT_OUTLINECOLOR) &&
+           VerifyField<uint32_t>(verifier, VT_START, 4) &&
+           VerifyField<uint32_t>(verifier, VT_COUNT, 4) &&
+           VerifyField<float>(verifier, VT_SIZE, 4) &&
+           VerifyField<float>(verifier, VT_EMBOLDEN, 4) &&
+           VerifyField<float>(verifier, VT_SLANT, 4) &&
+           VerifyField<float>(verifier, VT_OUTLINEWIDTH, 4) &&
+           VerifyField<float>(verifier, VT_FUZINESS, 4) &&
+           VerifyField<float>(verifier, VT_VERTICALOFFSET, 4) &&
+           VerifyField<DeepSeaVectorDrawScene::Color>(verifier, VT_COLOR, 1) &&
+           VerifyField<DeepSeaVectorDrawScene::Color>(verifier, VT_OUTLINECOLOR, 1) &&
            verifier.EndTable();
   }
 };

@@ -7,4 +7,3 @@ class TextureDim(object):
     Dim2D = 1
     Dim3D = 2
     DimCube = 3
-

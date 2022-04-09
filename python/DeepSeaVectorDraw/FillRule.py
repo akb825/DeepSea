@@ -5,4 +5,3 @@
 class FillRule(object):
     EvenOdd = 0
     NonZero = 1
-

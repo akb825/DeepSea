@@ -6,4 +6,3 @@ class FileOrData(object):
     NONE = 0
     FileReference = 1
     RawData = 2
-

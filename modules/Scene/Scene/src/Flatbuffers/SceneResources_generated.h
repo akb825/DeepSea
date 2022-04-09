@@ -256,10 +256,10 @@ struct Buffer FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_NAME) &&
            verifier.VerifyString(name()) &&
-           VerifyField<uint32_t>(verifier, VT_USAGE) &&
-           VerifyField<uint32_t>(verifier, VT_MEMORYHINTS) &&
-           VerifyField<uint32_t>(verifier, VT_SIZE) &&
-           VerifyField<uint8_t>(verifier, VT_DATA_TYPE) &&
+           VerifyField<uint32_t>(verifier, VT_USAGE, 4) &&
+           VerifyField<uint32_t>(verifier, VT_MEMORYHINTS, 4) &&
+           VerifyField<uint32_t>(verifier, VT_SIZE, 4) &&
+           VerifyField<uint8_t>(verifier, VT_DATA_TYPE, 1) &&
            VerifyOffset(verifier, VT_DATA) &&
            VerifyFileOrData(verifier, data(), data_type()) &&
            verifier.EndTable();
@@ -379,13 +379,13 @@ struct TextureInfo FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyField<uint8_t>(verifier, VT_FORMAT) &&
-           VerifyField<uint8_t>(verifier, VT_DECORATION) &&
-           VerifyField<uint8_t>(verifier, VT_DIMENSION) &&
-           VerifyField<uint32_t>(verifier, VT_WIDTH) &&
-           VerifyField<uint32_t>(verifier, VT_HEIGHT) &&
-           VerifyField<uint32_t>(verifier, VT_DEPTH) &&
-           VerifyField<uint8_t>(verifier, VT_MIPLEVELS) &&
+           VerifyField<uint8_t>(verifier, VT_FORMAT, 1) &&
+           VerifyField<uint8_t>(verifier, VT_DECORATION, 1) &&
+           VerifyField<uint8_t>(verifier, VT_DIMENSION, 1) &&
+           VerifyField<uint32_t>(verifier, VT_WIDTH, 4) &&
+           VerifyField<uint32_t>(verifier, VT_HEIGHT, 4) &&
+           VerifyField<uint32_t>(verifier, VT_DEPTH, 4) &&
+           VerifyField<uint8_t>(verifier, VT_MIPLEVELS, 1) &&
            verifier.EndTable();
   }
 };
@@ -485,9 +485,9 @@ struct Texture FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_NAME) &&
            verifier.VerifyString(name()) &&
-           VerifyField<uint32_t>(verifier, VT_USAGE) &&
-           VerifyField<uint32_t>(verifier, VT_MEMORYHINTS) &&
-           VerifyField<uint8_t>(verifier, VT_DATA_TYPE) &&
+           VerifyField<uint32_t>(verifier, VT_USAGE, 4) &&
+           VerifyField<uint32_t>(verifier, VT_MEMORYHINTS, 4) &&
+           VerifyField<uint8_t>(verifier, VT_DATA_TYPE, 1) &&
            VerifyOffset(verifier, VT_DATA) &&
            VerifyFileOrData(verifier, data(), data_type()) &&
            VerifyOffset(verifier, VT_TEXTUREINFO) &&
@@ -595,8 +595,8 @@ struct VariableElement FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_NAME) &&
            verifier.VerifyString(name()) &&
-           VerifyField<uint8_t>(verifier, VT_TYPE) &&
-           VerifyField<uint32_t>(verifier, VT_COUNT) &&
+           VerifyField<uint8_t>(verifier, VT_TYPE, 1) &&
+           VerifyField<uint32_t>(verifier, VT_COUNT, 4) &&
            verifier.EndTable();
   }
 };
@@ -747,9 +747,9 @@ struct VariableData FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_NAME) &&
            verifier.VerifyString(name()) &&
-           VerifyField<uint8_t>(verifier, VT_TYPE) &&
-           VerifyField<uint32_t>(verifier, VT_FIRST) &&
-           VerifyField<uint32_t>(verifier, VT_COUNT) &&
+           VerifyField<uint8_t>(verifier, VT_TYPE, 1) &&
+           VerifyField<uint32_t>(verifier, VT_FIRST, 4) &&
+           VerifyField<uint32_t>(verifier, VT_COUNT, 4) &&
            VerifyOffsetRequired(verifier, VT_DATA) &&
            verifier.VerifyVector(data()) &&
            verifier.EndTable();
@@ -932,9 +932,9 @@ struct MaterialElement FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_NAME) &&
            verifier.VerifyString(name()) &&
-           VerifyField<uint8_t>(verifier, VT_TYPE) &&
-           VerifyField<uint32_t>(verifier, VT_COUNT) &&
-           VerifyField<uint8_t>(verifier, VT_BINDING) &&
+           VerifyField<uint8_t>(verifier, VT_TYPE, 1) &&
+           VerifyField<uint32_t>(verifier, VT_COUNT, 4) &&
+           VerifyField<uint8_t>(verifier, VT_BINDING, 1) &&
            VerifyOffset(verifier, VT_SHADERVARIABLEGROUPDESC) &&
            verifier.VerifyString(shaderVariableGroupDesc()) &&
            verifier.EndTable();
@@ -1336,7 +1336,7 @@ struct VertexFormat FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_ATTRIBUTES) &&
            verifier.VerifyVector(attributes()) &&
-           VerifyField<uint8_t>(verifier, VT_INSTANCED) &&
+           VerifyField<uint8_t>(verifier, VT_INSTANCED, 1) &&
            verifier.EndTable();
   }
 };
@@ -1408,8 +1408,8 @@ struct VertexBuffer FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_NAME) &&
            verifier.VerifyString(name()) &&
-           VerifyField<uint32_t>(verifier, VT_OFFSET) &&
-           VerifyField<uint32_t>(verifier, VT_COUNT) &&
+           VerifyField<uint32_t>(verifier, VT_OFFSET, 4) &&
+           VerifyField<uint32_t>(verifier, VT_COUNT, 4) &&
            VerifyOffsetRequired(verifier, VT_FORMAT) &&
            verifier.VerifyTable(format()) &&
            verifier.EndTable();
@@ -1498,9 +1498,9 @@ struct IndexBuffer FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_NAME) &&
            verifier.VerifyString(name()) &&
-           VerifyField<uint32_t>(verifier, VT_OFFSET) &&
-           VerifyField<uint32_t>(verifier, VT_COUNT) &&
-           VerifyField<uint8_t>(verifier, VT_INDEXSIZE) &&
+           VerifyField<uint32_t>(verifier, VT_OFFSET, 4) &&
+           VerifyField<uint32_t>(verifier, VT_COUNT, 4) &&
+           VerifyField<uint8_t>(verifier, VT_INDEXSIZE, 1) &&
            verifier.EndTable();
   }
 };
@@ -1823,7 +1823,7 @@ struct SceneResource FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyField<uint8_t>(verifier, VT_RESOURCE_TYPE) &&
+           VerifyField<uint8_t>(verifier, VT_RESOURCE_TYPE, 1) &&
            VerifyOffset(verifier, VT_RESOURCE) &&
            VerifySceneResourceUnion(verifier, resource(), resource_type()) &&
            verifier.EndTable();

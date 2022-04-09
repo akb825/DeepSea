@@ -8,4 +8,3 @@ class TextAlign(object):
     Left = 2
     Right = 3
     Center = 4
-

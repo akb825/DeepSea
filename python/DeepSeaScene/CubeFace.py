@@ -9,4 +9,3 @@ class CubeFace(object):
     NegY = 3
     PosZ = 4
     NegZ = 5
-

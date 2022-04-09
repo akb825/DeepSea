@@ -44,9 +44,9 @@ struct MaterialElement FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_NAME) &&
            verifier.VerifyString(name()) &&
-           VerifyField<uint8_t>(verifier, VT_TYPE) &&
-           VerifyField<uint32_t>(verifier, VT_COUNT) &&
-           VerifyField<uint8_t>(verifier, VT_BINDING) &&
+           VerifyField<uint8_t>(verifier, VT_TYPE, 1) &&
+           VerifyField<uint32_t>(verifier, VT_COUNT, 4) &&
+           VerifyField<uint8_t>(verifier, VT_BINDING, 1) &&
            VerifyOffset(verifier, VT_SHADERVARIABLEGROUPDESC) &&
            verifier.VerifyString(shaderVariableGroupDesc()) &&
            verifier.EndTable();

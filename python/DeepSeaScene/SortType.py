@@ -7,4 +7,3 @@ class SortType(object):
     Material = 1
     BackToFront = 2
     FrontToBack = 3
-

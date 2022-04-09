@@ -98,9 +98,9 @@ struct DirectionalLight FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyFieldRequired<DeepSeaScene::Vector3f>(verifier, VT_DIRECTION) &&
-           VerifyFieldRequired<DeepSeaScene::Color3f>(verifier, VT_COLOR) &&
-           VerifyField<float>(verifier, VT_INTENSITY) &&
+           VerifyFieldRequired<DeepSeaScene::Vector3f>(verifier, VT_DIRECTION, 4) &&
+           VerifyFieldRequired<DeepSeaScene::Color3f>(verifier, VT_COLOR, 4) &&
+           VerifyField<float>(verifier, VT_INTENSITY, 4) &&
            verifier.EndTable();
   }
 };
@@ -169,11 +169,11 @@ struct PointLight FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyFieldRequired<DeepSeaScene::Vector3f>(verifier, VT_POSITION) &&
-           VerifyFieldRequired<DeepSeaScene::Color3f>(verifier, VT_COLOR) &&
-           VerifyField<float>(verifier, VT_INTENSITY) &&
-           VerifyField<float>(verifier, VT_LINEARFALLOFF) &&
-           VerifyField<float>(verifier, VT_QUADRATICFALLOFF) &&
+           VerifyFieldRequired<DeepSeaScene::Vector3f>(verifier, VT_POSITION, 4) &&
+           VerifyFieldRequired<DeepSeaScene::Color3f>(verifier, VT_COLOR, 4) &&
+           VerifyField<float>(verifier, VT_INTENSITY, 4) &&
+           VerifyField<float>(verifier, VT_LINEARFALLOFF, 4) &&
+           VerifyField<float>(verifier, VT_QUADRATICFALLOFF, 4) &&
            verifier.EndTable();
   }
 };
@@ -264,14 +264,14 @@ struct SpotLight FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyFieldRequired<DeepSeaScene::Vector3f>(verifier, VT_POSITION) &&
-           VerifyFieldRequired<DeepSeaScene::Vector3f>(verifier, VT_DIRECTION) &&
-           VerifyFieldRequired<DeepSeaScene::Color3f>(verifier, VT_COLOR) &&
-           VerifyField<float>(verifier, VT_INTENSITY) &&
-           VerifyField<float>(verifier, VT_LINEARFALLOFF) &&
-           VerifyField<float>(verifier, VT_QUADRATICFALLOFF) &&
-           VerifyField<float>(verifier, VT_INNERSPOTANGLE) &&
-           VerifyField<float>(verifier, VT_OUTERSPOTANGLE) &&
+           VerifyFieldRequired<DeepSeaScene::Vector3f>(verifier, VT_POSITION, 4) &&
+           VerifyFieldRequired<DeepSeaScene::Vector3f>(verifier, VT_DIRECTION, 4) &&
+           VerifyFieldRequired<DeepSeaScene::Color3f>(verifier, VT_COLOR, 4) &&
+           VerifyField<float>(verifier, VT_INTENSITY, 4) &&
+           VerifyField<float>(verifier, VT_LINEARFALLOFF, 4) &&
+           VerifyField<float>(verifier, VT_QUADRATICFALLOFF, 4) &&
+           VerifyField<float>(verifier, VT_INNERSPOTANGLE, 4) &&
+           VerifyField<float>(verifier, VT_OUTERSPOTANGLE, 4) &&
            verifier.EndTable();
   }
 };
@@ -370,7 +370,7 @@ struct Light FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_NAME) &&
            verifier.VerifyString(name()) &&
-           VerifyField<uint8_t>(verifier, VT_LIGHT_TYPE) &&
+           VerifyField<uint8_t>(verifier, VT_LIGHT_TYPE, 1) &&
            VerifyOffsetRequired(verifier, VT_LIGHT) &&
            VerifyLightUnion(verifier, light(), light_type()) &&
            verifier.EndTable();
@@ -469,9 +469,9 @@ struct SceneLightSet FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            VerifyOffset(verifier, VT_LIGHTS) &&
            verifier.VerifyVector(lights()) &&
            verifier.VerifyVectorOfTables(lights()) &&
-           VerifyField<uint32_t>(verifier, VT_MAXLIGHTS) &&
-           VerifyField<DeepSeaScene::Color3f>(verifier, VT_AMBIENTCOLOR) &&
-           VerifyField<float>(verifier, VT_AMBIENTINTENSITY) &&
+           VerifyField<uint32_t>(verifier, VT_MAXLIGHTS, 4) &&
+           VerifyField<DeepSeaScene::Color3f>(verifier, VT_AMBIENTCOLOR, 4) &&
+           VerifyField<float>(verifier, VT_AMBIENTINTENSITY, 4) &&
            VerifyOffset(verifier, VT_MAINLIGHT) &&
            verifier.VerifyString(mainLight()) &&
            verifier.EndTable();

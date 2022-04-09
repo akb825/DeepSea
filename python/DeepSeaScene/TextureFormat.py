@@ -78,4 +78,3 @@ class TextureFormat(object):
     PVRTC2_RGBA_4BPP = 72
     SurfaceColor = 73
     SurfaceDepthStencil = 74
-

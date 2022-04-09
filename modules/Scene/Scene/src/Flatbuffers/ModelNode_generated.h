@@ -149,10 +149,10 @@ struct DrawRange FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyField<uint32_t>(verifier, VT_VERTEXCOUNT) &&
-           VerifyField<uint32_t>(verifier, VT_INSTANCECOUNT) &&
-           VerifyField<uint32_t>(verifier, VT_FIRSTVERTEX) &&
-           VerifyField<uint32_t>(verifier, VT_FIRSTINSTANCE) &&
+           VerifyField<uint32_t>(verifier, VT_VERTEXCOUNT, 4) &&
+           VerifyField<uint32_t>(verifier, VT_INSTANCECOUNT, 4) &&
+           VerifyField<uint32_t>(verifier, VT_FIRSTVERTEX, 4) &&
+           VerifyField<uint32_t>(verifier, VT_FIRSTINSTANCE, 4) &&
            verifier.EndTable();
   }
 };
@@ -224,11 +224,11 @@ struct DrawIndexedRange FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyField<uint32_t>(verifier, VT_INDEXCOUNT) &&
-           VerifyField<uint32_t>(verifier, VT_INSTANCECOUNT) &&
-           VerifyField<uint32_t>(verifier, VT_FIRSTINDEX) &&
-           VerifyField<uint32_t>(verifier, VT_VERTEXOFFSET) &&
-           VerifyField<uint32_t>(verifier, VT_FIRSTINSTANCE) &&
+           VerifyField<uint32_t>(verifier, VT_INDEXCOUNT, 4) &&
+           VerifyField<uint32_t>(verifier, VT_INSTANCECOUNT, 4) &&
+           VerifyField<uint32_t>(verifier, VT_FIRSTINDEX, 4) &&
+           VerifyField<uint32_t>(verifier, VT_VERTEXOFFSET, 4) &&
+           VerifyField<uint32_t>(verifier, VT_FIRSTINSTANCE, 4) &&
            verifier.EndTable();
   }
 };
@@ -300,7 +300,7 @@ struct ModelDrawRange FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyField<uint8_t>(verifier, VT_DRAWRANGE_TYPE) &&
+           VerifyField<uint8_t>(verifier, VT_DRAWRANGE_TYPE, 1) &&
            VerifyOffsetRequired(verifier, VT_DRAWRANGE) &&
            VerifyModelDrawRangeUnion(verifier, drawRange(), drawRange_type()) &&
            verifier.EndTable();
@@ -393,11 +393,11 @@ struct ModelInfo FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            verifier.VerifyString(material()) &&
            VerifyOffsetRequired(verifier, VT_GEOMETRY) &&
            verifier.VerifyString(geometry()) &&
-           VerifyFieldRequired<DeepSeaScene::Vector2f>(verifier, VT_DISTANCERANGE) &&
+           VerifyFieldRequired<DeepSeaScene::Vector2f>(verifier, VT_DISTANCERANGE, 4) &&
            VerifyOffsetRequired(verifier, VT_DRAWRANGES) &&
            verifier.VerifyVector(drawRanges()) &&
            verifier.VerifyVectorOfTables(drawRanges()) &&
-           VerifyField<uint8_t>(verifier, VT_PRIMITIVETYPE) &&
+           VerifyField<uint8_t>(verifier, VT_PRIMITIVETYPE, 1) &&
            VerifyOffset(verifier, VT_MODELLIST) &&
            verifier.VerifyString(modelList()) &&
            verifier.EndTable();
@@ -526,7 +526,7 @@ struct ModelNode FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            VerifyOffset(verifier, VT_EXTRAITEMLISTS) &&
            verifier.VerifyVector(extraItemLists()) &&
            verifier.VerifyVectorOfStrings(extraItemLists()) &&
-           VerifyField<DeepSeaScene::OrientedBox3f>(verifier, VT_BOUNDS) &&
+           VerifyField<DeepSeaScene::OrientedBox3f>(verifier, VT_BOUNDS, 4) &&
            verifier.EndTable();
   }
 };

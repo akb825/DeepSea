@@ -5,4 +5,3 @@
 class FontCacheSize(object):
     Small = 0
     Large = 1
-

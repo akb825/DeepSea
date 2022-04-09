@@ -15,4 +15,3 @@ class SceneResourceUnion(object):
     DrawGeometry = 9
     SceneNode = 10
     CustomResource = 11
-

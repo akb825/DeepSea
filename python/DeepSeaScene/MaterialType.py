@@ -49,4 +49,3 @@ class MaterialType(object):
     VariableGroup = 43
     UniformBlock = 44
     UniformBuffer = 45
-

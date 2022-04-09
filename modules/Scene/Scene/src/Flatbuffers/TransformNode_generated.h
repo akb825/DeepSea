@@ -27,7 +27,7 @@ struct TransformNode FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyField<DeepSeaScene::Matrix44f>(verifier, VT_TRANSFORM) &&
+           VerifyField<DeepSeaScene::Matrix44f>(verifier, VT_TRANSFORM, 4) &&
            VerifyOffset(verifier, VT_CHILDREN) &&
            verifier.VerifyVector(children()) &&
            verifier.VerifyVectorOfTables(children()) &&

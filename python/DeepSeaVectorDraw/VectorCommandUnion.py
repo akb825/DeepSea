@@ -18,4 +18,3 @@ class VectorCommandUnion(object):
     TextCommand = 12
     TextRangeCommand = 13
     ImageCommand = 14
-

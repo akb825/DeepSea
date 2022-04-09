@@ -408,10 +408,10 @@ struct ClearColorFloat FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyField<float>(verifier, VT_RED) &&
-           VerifyField<float>(verifier, VT_GREEN) &&
-           VerifyField<float>(verifier, VT_BLUE) &&
-           VerifyField<float>(verifier, VT_ALPHA) &&
+           VerifyField<float>(verifier, VT_RED, 4) &&
+           VerifyField<float>(verifier, VT_GREEN, 4) &&
+           VerifyField<float>(verifier, VT_BLUE, 4) &&
+           VerifyField<float>(verifier, VT_ALPHA, 4) &&
            verifier.EndTable();
   }
 };
@@ -479,10 +479,10 @@ struct ClearColorInt FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyField<int32_t>(verifier, VT_RED) &&
-           VerifyField<int32_t>(verifier, VT_GREEN) &&
-           VerifyField<int32_t>(verifier, VT_BLUE) &&
-           VerifyField<int32_t>(verifier, VT_ALPHA) &&
+           VerifyField<int32_t>(verifier, VT_RED, 4) &&
+           VerifyField<int32_t>(verifier, VT_GREEN, 4) &&
+           VerifyField<int32_t>(verifier, VT_BLUE, 4) &&
+           VerifyField<int32_t>(verifier, VT_ALPHA, 4) &&
            verifier.EndTable();
   }
 };
@@ -550,10 +550,10 @@ struct ClearColorUInt FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyField<uint32_t>(verifier, VT_RED) &&
-           VerifyField<uint32_t>(verifier, VT_GREEN) &&
-           VerifyField<uint32_t>(verifier, VT_BLUE) &&
-           VerifyField<uint32_t>(verifier, VT_ALPHA) &&
+           VerifyField<uint32_t>(verifier, VT_RED, 4) &&
+           VerifyField<uint32_t>(verifier, VT_GREEN, 4) &&
+           VerifyField<uint32_t>(verifier, VT_BLUE, 4) &&
+           VerifyField<uint32_t>(verifier, VT_ALPHA, 4) &&
            verifier.EndTable();
   }
 };
@@ -613,8 +613,8 @@ struct ClearDepthStencil FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyField<float>(verifier, VT_DEPTH) &&
-           VerifyField<uint32_t>(verifier, VT_STENCIL) &&
+           VerifyField<float>(verifier, VT_DEPTH, 4) &&
+           VerifyField<uint32_t>(verifier, VT_STENCIL, 4) &&
            verifier.EndTable();
   }
 };
@@ -693,11 +693,11 @@ struct Attachment FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyField<uint32_t>(verifier, VT_USAGE) &&
-           VerifyField<uint8_t>(verifier, VT_FORMAT) &&
-           VerifyField<uint8_t>(verifier, VT_DECORATION) &&
-           VerifyField<uint32_t>(verifier, VT_SAMPLES) &&
-           VerifyField<uint8_t>(verifier, VT_CLEARVALUE_TYPE) &&
+           VerifyField<uint32_t>(verifier, VT_USAGE, 4) &&
+           VerifyField<uint8_t>(verifier, VT_FORMAT, 1) &&
+           VerifyField<uint8_t>(verifier, VT_DECORATION, 1) &&
+           VerifyField<uint32_t>(verifier, VT_SAMPLES, 4) &&
+           VerifyField<uint8_t>(verifier, VT_CLEARVALUE_TYPE, 1) &&
            VerifyOffset(verifier, VT_CLEARVALUE) &&
            VerifyClearValue(verifier, clearValue(), clearValue_type()) &&
            verifier.EndTable();
@@ -803,7 +803,7 @@ struct RenderSubpass FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            verifier.VerifyVector(inputAttachments()) &&
            VerifyOffset(verifier, VT_COLORATTACHMENTS) &&
            verifier.VerifyVector(colorAttachments()) &&
-           VerifyField<DeepSeaScene::AttachmentRef>(verifier, VT_DEPTHSTENCILATTACHMENT) &&
+           VerifyField<DeepSeaScene::AttachmentRef>(verifier, VT_DEPTHSTENCILATTACHMENT, 4) &&
            VerifyOffsetRequired(verifier, VT_DRAWLISTS) &&
            verifier.VerifyVector(drawLists()) &&
            verifier.VerifyVectorOfTables(drawLists()) &&
@@ -997,7 +997,7 @@ struct ScenePipelineItem FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyField<uint8_t>(verifier, VT_ITEM_TYPE) &&
+           VerifyField<uint8_t>(verifier, VT_ITEM_TYPE, 1) &&
            VerifyOffset(verifier, VT_ITEM) &&
            VerifyScenePipelineItemUnion(verifier, item(), item_type()) &&
            verifier.EndTable();

@@ -5,4 +5,3 @@
 class MaterialSpace(object):
     Local = 0
     Bounds = 1
-

@@ -169,10 +169,10 @@ struct ColorTable FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyField<uint8_t>(verifier, VT_RED) &&
-           VerifyField<uint8_t>(verifier, VT_GREEN) &&
-           VerifyField<uint8_t>(verifier, VT_BLUE) &&
-           VerifyField<uint8_t>(verifier, VT_ALPHA) &&
+           VerifyField<uint8_t>(verifier, VT_RED, 1) &&
+           VerifyField<uint8_t>(verifier, VT_GREEN, 1) &&
+           VerifyField<uint8_t>(verifier, VT_BLUE, 1) &&
+           VerifyField<uint8_t>(verifier, VT_ALPHA, 1) &&
            verifier.EndTable();
   }
 };
@@ -232,8 +232,8 @@ struct GradientStop FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyField<float>(verifier, VT_POSITION) &&
-           VerifyFieldRequired<DeepSeaVectorDrawScene::Color>(verifier, VT_COLOR) &&
+           VerifyField<float>(verifier, VT_POSITION, 4) &&
+           VerifyFieldRequired<DeepSeaVectorDrawScene::Color>(verifier, VT_COLOR, 1) &&
            verifier.EndTable();
   }
 };
@@ -300,11 +300,11 @@ struct LinearGradient FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyField<DeepSeaScene::Vector2f>(verifier, VT_START) &&
-           VerifyField<DeepSeaScene::Vector2f>(verifier, VT_END) &&
-           VerifyField<uint8_t>(verifier, VT_EDGE) &&
-           VerifyField<uint8_t>(verifier, VT_COORDINATESPACE) &&
-           VerifyField<DeepSeaScene::Matrix33f>(verifier, VT_TRANSFORM) &&
+           VerifyField<DeepSeaScene::Vector2f>(verifier, VT_START, 4) &&
+           VerifyField<DeepSeaScene::Vector2f>(verifier, VT_END, 4) &&
+           VerifyField<uint8_t>(verifier, VT_EDGE, 1) &&
+           VerifyField<uint8_t>(verifier, VT_COORDINATESPACE, 1) &&
+           VerifyField<DeepSeaScene::Matrix33f>(verifier, VT_TRANSFORM, 4) &&
            VerifyOffsetRequired(verifier, VT_STOPS) &&
            verifier.VerifyVector(stops()) &&
            verifier.VerifyVectorOfTables(stops()) &&
@@ -421,13 +421,13 @@ struct RadialGradient FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyField<DeepSeaScene::Vector2f>(verifier, VT_CENTER) &&
-           VerifyField<float>(verifier, VT_RADIUS) &&
-           VerifyField<DeepSeaScene::Vector2f>(verifier, VT_FOCUS) &&
-           VerifyField<float>(verifier, VT_FOCUSRADIUS) &&
-           VerifyField<uint8_t>(verifier, VT_EDGE) &&
-           VerifyField<uint8_t>(verifier, VT_COORDINATESPACE) &&
-           VerifyField<DeepSeaScene::Matrix33f>(verifier, VT_TRANSFORM) &&
+           VerifyField<DeepSeaScene::Vector2f>(verifier, VT_CENTER, 4) &&
+           VerifyField<float>(verifier, VT_RADIUS, 4) &&
+           VerifyField<DeepSeaScene::Vector2f>(verifier, VT_FOCUS, 4) &&
+           VerifyField<float>(verifier, VT_FOCUSRADIUS, 4) &&
+           VerifyField<uint8_t>(verifier, VT_EDGE, 1) &&
+           VerifyField<uint8_t>(verifier, VT_COORDINATESPACE, 1) &&
+           VerifyField<DeepSeaScene::Matrix33f>(verifier, VT_TRANSFORM, 4) &&
            VerifyOffsetRequired(verifier, VT_STOPS) &&
            verifier.VerifyVector(stops()) &&
            verifier.VerifyVectorOfTables(stops()) &&
@@ -550,7 +550,7 @@ struct Material FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_NAME) &&
            verifier.VerifyString(name()) &&
-           VerifyField<uint8_t>(verifier, VT_VALUE_TYPE) &&
+           VerifyField<uint8_t>(verifier, VT_VALUE_TYPE, 1) &&
            VerifyOffsetRequired(verifier, VT_VALUE) &&
            VerifyMaterialValue(verifier, value(), value_type()) &&
            verifier.EndTable();
@@ -637,7 +637,7 @@ struct VectorMaterialSet FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            VerifyOffsetRequired(verifier, VT_MATERIALS) &&
            verifier.VerifyVector(materials()) &&
            verifier.VerifyVectorOfTables(materials()) &&
-           VerifyField<uint8_t>(verifier, VT_SRGB) &&
+           VerifyField<uint8_t>(verifier, VT_SRGB, 1) &&
            verifier.EndTable();
   }
 };

@@ -6,4 +6,3 @@ class LightType(object):
     Directional = 0
     Point = 1
     Spot = 2
-

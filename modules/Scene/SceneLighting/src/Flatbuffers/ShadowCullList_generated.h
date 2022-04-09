@@ -33,7 +33,7 @@ struct ShadowCullList FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            verifier.VerifyString(shadowManager()) &&
            VerifyOffsetRequired(verifier, VT_SHADOWS) &&
            verifier.VerifyString(shadows()) &&
-           VerifyField<uint8_t>(verifier, VT_SURFACE) &&
+           VerifyField<uint8_t>(verifier, VT_SURFACE, 1) &&
            verifier.EndTable();
   }
 };

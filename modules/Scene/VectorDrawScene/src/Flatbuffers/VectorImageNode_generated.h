@@ -52,8 +52,8 @@ struct VectorImageNode FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            verifier.VerifyVector(embeddedResources()) &&
            VerifyOffsetRequired(verifier, VT_VECTORIMAGE) &&
            verifier.VerifyString(vectorImage()) &&
-           VerifyField<DeepSeaScene::Vector2f>(verifier, VT_SIZE) &&
-           VerifyField<int32_t>(verifier, VT_Z) &&
+           VerifyField<DeepSeaScene::Vector2f>(verifier, VT_SIZE, 4) &&
+           VerifyField<int32_t>(verifier, VT_Z, 4) &&
            VerifyOffsetRequired(verifier, VT_VECTORSHADERS) &&
            verifier.VerifyString(vectorShaders()) &&
            VerifyOffsetRequired(verifier, VT_MATERIAL) &&

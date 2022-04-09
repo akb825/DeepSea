@@ -6,4 +6,3 @@ class LineCap(object):
     Butt = 0
     Round = 1
     Square = 2
-

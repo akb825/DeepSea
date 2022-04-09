@@ -111,12 +111,12 @@ struct TextNode FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            verifier.VerifyVector(embeddedResources()) &&
            VerifyOffsetRequired(verifier, VT_TEXT) &&
            verifier.VerifyString(text()) &&
-           VerifyField<uint8_t>(verifier, VT_ALIGNMENT) &&
-           VerifyField<float>(verifier, VT_MAXWIDTH) &&
-           VerifyField<float>(verifier, VT_LINESCALE) &&
-           VerifyField<int32_t>(verifier, VT_Z) &&
-           VerifyField<uint32_t>(verifier, VT_FIRSTCHAR) &&
-           VerifyField<uint32_t>(verifier, VT_CHARCOUNT) &&
+           VerifyField<uint8_t>(verifier, VT_ALIGNMENT, 1) &&
+           VerifyField<float>(verifier, VT_MAXWIDTH, 4) &&
+           VerifyField<float>(verifier, VT_LINESCALE, 4) &&
+           VerifyField<int32_t>(verifier, VT_Z, 4) &&
+           VerifyField<uint32_t>(verifier, VT_FIRSTCHAR, 4) &&
+           VerifyField<uint32_t>(verifier, VT_CHARCOUNT, 4) &&
            VerifyOffsetRequired(verifier, VT_SHADER) &&
            verifier.VerifyString(shader()) &&
            VerifyOffsetRequired(verifier, VT_MATERIAL) &&

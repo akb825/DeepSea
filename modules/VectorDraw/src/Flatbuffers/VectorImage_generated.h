@@ -627,7 +627,7 @@ struct ColorMaterial FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_NAME) &&
            verifier.VerifyString(name()) &&
-           VerifyFieldRequired<DeepSeaVectorDraw::Color>(verifier, VT_COLOR) &&
+           VerifyFieldRequired<DeepSeaVectorDraw::Color>(verifier, VT_COLOR, 1) &&
            verifier.EndTable();
   }
 };
@@ -714,11 +714,11 @@ struct LinearGradient FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            verifier.VerifyString(name()) &&
            VerifyOffsetRequired(verifier, VT_GRADIENT) &&
            verifier.VerifyVector(gradient()) &&
-           VerifyFieldRequired<DeepSeaVectorDraw::Vector2f>(verifier, VT_START) &&
-           VerifyFieldRequired<DeepSeaVectorDraw::Vector2f>(verifier, VT_END) &&
-           VerifyField<uint8_t>(verifier, VT_EDGE) &&
-           VerifyField<uint8_t>(verifier, VT_COORDINATESPACE) &&
-           VerifyFieldRequired<DeepSeaVectorDraw::Matrix33f>(verifier, VT_TRANSFORM) &&
+           VerifyFieldRequired<DeepSeaVectorDraw::Vector2f>(verifier, VT_START, 4) &&
+           VerifyFieldRequired<DeepSeaVectorDraw::Vector2f>(verifier, VT_END, 4) &&
+           VerifyField<uint8_t>(verifier, VT_EDGE, 1) &&
+           VerifyField<uint8_t>(verifier, VT_COORDINATESPACE, 1) &&
+           VerifyFieldRequired<DeepSeaVectorDraw::Matrix33f>(verifier, VT_TRANSFORM, 4) &&
            verifier.EndTable();
   }
 };
@@ -852,13 +852,13 @@ struct RadialGradient FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            verifier.VerifyString(name()) &&
            VerifyOffsetRequired(verifier, VT_GRADIENT) &&
            verifier.VerifyVector(gradient()) &&
-           VerifyFieldRequired<DeepSeaVectorDraw::Vector2f>(verifier, VT_CENTER) &&
-           VerifyField<float>(verifier, VT_RADIUS) &&
-           VerifyFieldRequired<DeepSeaVectorDraw::Vector2f>(verifier, VT_FOCUS) &&
-           VerifyField<float>(verifier, VT_FOCUSRADIUS) &&
-           VerifyField<uint8_t>(verifier, VT_EDGE) &&
-           VerifyField<uint8_t>(verifier, VT_COORDINATESPACE) &&
-           VerifyFieldRequired<DeepSeaVectorDraw::Matrix33f>(verifier, VT_TRANSFORM) &&
+           VerifyFieldRequired<DeepSeaVectorDraw::Vector2f>(verifier, VT_CENTER, 4) &&
+           VerifyField<float>(verifier, VT_RADIUS, 4) &&
+           VerifyFieldRequired<DeepSeaVectorDraw::Vector2f>(verifier, VT_FOCUS, 4) &&
+           VerifyField<float>(verifier, VT_FOCUSRADIUS, 4) &&
+           VerifyField<uint8_t>(verifier, VT_EDGE, 1) &&
+           VerifyField<uint8_t>(verifier, VT_COORDINATESPACE, 1) &&
+           VerifyFieldRequired<DeepSeaVectorDraw::Matrix33f>(verifier, VT_TRANSFORM, 4) &&
            verifier.EndTable();
   }
 };
@@ -974,8 +974,8 @@ struct StartPathCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyFieldRequired<DeepSeaVectorDraw::Matrix33f>(verifier, VT_TRANSFORM) &&
-           VerifyField<uint8_t>(verifier, VT_SIMPLE) &&
+           VerifyFieldRequired<DeepSeaVectorDraw::Matrix33f>(verifier, VT_TRANSFORM, 4) &&
+           VerifyField<uint8_t>(verifier, VT_SIMPLE, 1) &&
            verifier.EndTable();
   }
 };
@@ -1022,7 +1022,7 @@ struct MoveCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyFieldRequired<DeepSeaVectorDraw::Vector2f>(verifier, VT_POSITION) &&
+           VerifyFieldRequired<DeepSeaVectorDraw::Vector2f>(verifier, VT_POSITION, 4) &&
            verifier.EndTable();
   }
 };
@@ -1064,7 +1064,7 @@ struct LineCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyFieldRequired<DeepSeaVectorDraw::Vector2f>(verifier, VT_END) &&
+           VerifyFieldRequired<DeepSeaVectorDraw::Vector2f>(verifier, VT_END, 4) &&
            verifier.EndTable();
   }
 };
@@ -1114,9 +1114,9 @@ struct BezierCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyFieldRequired<DeepSeaVectorDraw::Vector2f>(verifier, VT_CONTROL1) &&
-           VerifyFieldRequired<DeepSeaVectorDraw::Vector2f>(verifier, VT_CONTROL2) &&
-           VerifyFieldRequired<DeepSeaVectorDraw::Vector2f>(verifier, VT_END) &&
+           VerifyFieldRequired<DeepSeaVectorDraw::Vector2f>(verifier, VT_CONTROL1, 4) &&
+           VerifyFieldRequired<DeepSeaVectorDraw::Vector2f>(verifier, VT_CONTROL2, 4) &&
+           VerifyFieldRequired<DeepSeaVectorDraw::Vector2f>(verifier, VT_END, 4) &&
            verifier.EndTable();
   }
 };
@@ -1174,8 +1174,8 @@ struct QuadraticCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyFieldRequired<DeepSeaVectorDraw::Vector2f>(verifier, VT_CONTROL) &&
-           VerifyFieldRequired<DeepSeaVectorDraw::Vector2f>(verifier, VT_END) &&
+           VerifyFieldRequired<DeepSeaVectorDraw::Vector2f>(verifier, VT_CONTROL, 4) &&
+           VerifyFieldRequired<DeepSeaVectorDraw::Vector2f>(verifier, VT_END, 4) &&
            verifier.EndTable();
   }
 };
@@ -1239,11 +1239,11 @@ struct ArcCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyFieldRequired<DeepSeaVectorDraw::Vector2f>(verifier, VT_RADIUS) &&
-           VerifyField<float>(verifier, VT_ROTATION) &&
-           VerifyField<uint8_t>(verifier, VT_LARGEARC) &&
-           VerifyField<uint8_t>(verifier, VT_CLOCKWISE) &&
-           VerifyFieldRequired<DeepSeaVectorDraw::Vector2f>(verifier, VT_END) &&
+           VerifyFieldRequired<DeepSeaVectorDraw::Vector2f>(verifier, VT_RADIUS, 4) &&
+           VerifyField<float>(verifier, VT_ROTATION, 4) &&
+           VerifyField<uint8_t>(verifier, VT_LARGEARC, 1) &&
+           VerifyField<uint8_t>(verifier, VT_CLOCKWISE, 1) &&
+           VerifyFieldRequired<DeepSeaVectorDraw::Vector2f>(verifier, VT_END, 4) &&
            verifier.EndTable();
   }
 };
@@ -1339,8 +1339,8 @@ struct EllipseCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyFieldRequired<DeepSeaVectorDraw::Vector2f>(verifier, VT_CENTER) &&
-           VerifyFieldRequired<DeepSeaVectorDraw::Vector2f>(verifier, VT_RADIUS) &&
+           VerifyFieldRequired<DeepSeaVectorDraw::Vector2f>(verifier, VT_CENTER, 4) &&
+           VerifyFieldRequired<DeepSeaVectorDraw::Vector2f>(verifier, VT_RADIUS, 4) &&
            verifier.EndTable();
   }
 };
@@ -1396,9 +1396,9 @@ struct RectangleCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyFieldRequired<DeepSeaVectorDraw::Vector2f>(verifier, VT_UPPERLEFT) &&
-           VerifyFieldRequired<DeepSeaVectorDraw::Vector2f>(verifier, VT_LOWERRIGHT) &&
-           VerifyFieldRequired<DeepSeaVectorDraw::Vector2f>(verifier, VT_CORNERRADIUS) &&
+           VerifyFieldRequired<DeepSeaVectorDraw::Vector2f>(verifier, VT_UPPERLEFT, 4) &&
+           VerifyFieldRequired<DeepSeaVectorDraw::Vector2f>(verifier, VT_LOWERRIGHT, 4) &&
+           VerifyFieldRequired<DeepSeaVectorDraw::Vector2f>(verifier, VT_CORNERRADIUS, 4) &&
            verifier.EndTable();
   }
 };
@@ -1478,12 +1478,12 @@ struct StrokePathCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_MATERIAL) &&
            verifier.VerifyString(material()) &&
-           VerifyField<float>(verifier, VT_OPACITY) &&
-           VerifyField<uint8_t>(verifier, VT_JOINTYPE) &&
-           VerifyField<uint8_t>(verifier, VT_CAPTYPE) &&
-           VerifyField<float>(verifier, VT_WIDTH) &&
-           VerifyField<float>(verifier, VT_MITERLIMIT) &&
-           VerifyFieldRequired<DeepSeaVectorDraw::DashArray>(verifier, VT_DASHARRAY) &&
+           VerifyField<float>(verifier, VT_OPACITY, 4) &&
+           VerifyField<uint8_t>(verifier, VT_JOINTYPE, 1) &&
+           VerifyField<uint8_t>(verifier, VT_CAPTYPE, 1) &&
+           VerifyField<float>(verifier, VT_WIDTH, 4) &&
+           VerifyField<float>(verifier, VT_MITERLIMIT, 4) &&
+           VerifyFieldRequired<DeepSeaVectorDraw::DashArray>(verifier, VT_DASHARRAY, 4) &&
            verifier.EndTable();
   }
 };
@@ -1587,8 +1587,8 @@ struct FillPathCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_MATERIAL) &&
            verifier.VerifyString(material()) &&
-           VerifyField<float>(verifier, VT_OPACITY) &&
-           VerifyField<uint8_t>(verifier, VT_FILLRULE) &&
+           VerifyField<float>(verifier, VT_OPACITY, 4) &&
+           VerifyField<uint8_t>(verifier, VT_FILLRULE, 1) &&
            verifier.EndTable();
   }
 };
@@ -1681,11 +1681,11 @@ struct TextCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            verifier.VerifyString(text()) &&
            VerifyOffsetRequired(verifier, VT_FONT) &&
            verifier.VerifyString(font()) &&
-           VerifyField<uint8_t>(verifier, VT_ALIGNMENT) &&
-           VerifyField<float>(verifier, VT_MAXLENGTH) &&
-           VerifyField<float>(verifier, VT_LINEHEIGHT) &&
-           VerifyFieldRequired<DeepSeaVectorDraw::Matrix33f>(verifier, VT_TRANSFORM) &&
-           VerifyField<uint32_t>(verifier, VT_RANGECOUNT) &&
+           VerifyField<uint8_t>(verifier, VT_ALIGNMENT, 1) &&
+           VerifyField<float>(verifier, VT_MAXLENGTH, 4) &&
+           VerifyField<float>(verifier, VT_LINEHEIGHT, 4) &&
+           VerifyFieldRequired<DeepSeaVectorDraw::Matrix33f>(verifier, VT_TRANSFORM, 4) &&
+           VerifyField<uint32_t>(verifier, VT_RANGECOUNT, 4) &&
            verifier.EndTable();
   }
 };
@@ -1829,21 +1829,21 @@ struct TextRangeCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyField<uint32_t>(verifier, VT_START) &&
-           VerifyField<uint32_t>(verifier, VT_COUNT) &&
-           VerifyField<uint8_t>(verifier, VT_POSITIONTYPE) &&
-           VerifyFieldRequired<DeepSeaVectorDraw::Vector2f>(verifier, VT_POSITION) &&
+           VerifyField<uint32_t>(verifier, VT_START, 4) &&
+           VerifyField<uint32_t>(verifier, VT_COUNT, 4) &&
+           VerifyField<uint8_t>(verifier, VT_POSITIONTYPE, 1) &&
+           VerifyFieldRequired<DeepSeaVectorDraw::Vector2f>(verifier, VT_POSITION, 4) &&
            VerifyOffset(verifier, VT_FILLMATERIAL) &&
            verifier.VerifyString(fillMaterial()) &&
            VerifyOffset(verifier, VT_OUTLINEMATERIAL) &&
            verifier.VerifyString(outlineMaterial()) &&
-           VerifyField<float>(verifier, VT_FILLOPACITY) &&
-           VerifyField<float>(verifier, VT_OUTLINEOPACITY) &&
-           VerifyField<float>(verifier, VT_SIZE) &&
-           VerifyField<float>(verifier, VT_EMBOLDEN) &&
-           VerifyField<float>(verifier, VT_SLANT) &&
-           VerifyField<float>(verifier, VT_OUTLINEWIDTH) &&
-           VerifyField<float>(verifier, VT_FUZINESS) &&
+           VerifyField<float>(verifier, VT_FILLOPACITY, 4) &&
+           VerifyField<float>(verifier, VT_OUTLINEOPACITY, 4) &&
+           VerifyField<float>(verifier, VT_SIZE, 4) &&
+           VerifyField<float>(verifier, VT_EMBOLDEN, 4) &&
+           VerifyField<float>(verifier, VT_SLANT, 4) &&
+           VerifyField<float>(verifier, VT_OUTLINEWIDTH, 4) &&
+           VerifyField<float>(verifier, VT_FUZINESS, 4) &&
            verifier.EndTable();
   }
 };
@@ -1997,10 +1997,10 @@ struct ImageCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_IMAGE) &&
            verifier.VerifyString(image()) &&
-           VerifyFieldRequired<DeepSeaVectorDraw::Vector2f>(verifier, VT_UPPERLEFT) &&
-           VerifyFieldRequired<DeepSeaVectorDraw::Vector2f>(verifier, VT_LOWERRIGHT) &&
-           VerifyField<float>(verifier, VT_OPACITY) &&
-           VerifyFieldRequired<DeepSeaVectorDraw::Matrix33f>(verifier, VT_TRANSFORM) &&
+           VerifyFieldRequired<DeepSeaVectorDraw::Vector2f>(verifier, VT_UPPERLEFT, 4) &&
+           VerifyFieldRequired<DeepSeaVectorDraw::Vector2f>(verifier, VT_LOWERRIGHT, 4) &&
+           VerifyField<float>(verifier, VT_OPACITY, 4) &&
+           VerifyFieldRequired<DeepSeaVectorDraw::Matrix33f>(verifier, VT_TRANSFORM, 4) &&
            verifier.EndTable();
   }
 };
@@ -2129,7 +2129,7 @@ struct VectorCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyField<uint8_t>(verifier, VT_COMMAND_TYPE) &&
+           VerifyField<uint8_t>(verifier, VT_COMMAND_TYPE, 1) &&
            VerifyOffsetRequired(verifier, VT_COMMAND) &&
            VerifyVectorCommandUnion(verifier, command(), command_type()) &&
            verifier.EndTable();
@@ -2262,7 +2262,7 @@ struct VectorImage FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            VerifyOffsetRequired(verifier, VT_COMMANDS) &&
            verifier.VerifyVector(commands()) &&
            verifier.VerifyVectorOfTables(commands()) &&
-           VerifyFieldRequired<DeepSeaVectorDraw::Vector2f>(verifier, VT_SIZE) &&
+           VerifyFieldRequired<DeepSeaVectorDraw::Vector2f>(verifier, VT_SIZE, 4) &&
            verifier.EndTable();
   }
 };

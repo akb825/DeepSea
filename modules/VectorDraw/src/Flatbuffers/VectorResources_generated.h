@@ -271,7 +271,7 @@ struct Resource FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_NAME) &&
            verifier.VerifyString(name()) &&
-           VerifyField<uint8_t>(verifier, VT_DATA_TYPE) &&
+           VerifyField<uint8_t>(verifier, VT_DATA_TYPE, 1) &&
            VerifyOffsetRequired(verifier, VT_DATA) &&
            VerifyFileOrData(verifier, data(), data_type()) &&
            verifier.EndTable();
@@ -438,8 +438,8 @@ struct Font FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            VerifyOffsetRequired(verifier, VT_FACES) &&
            verifier.VerifyVector(faces()) &&
            verifier.VerifyVectorOfStrings(faces()) &&
-           VerifyField<uint8_t>(verifier, VT_QUALITY) &&
-           VerifyField<uint8_t>(verifier, VT_CACHESIZE) &&
+           VerifyField<uint8_t>(verifier, VT_QUALITY, 1) &&
+           VerifyField<uint8_t>(verifier, VT_CACHESIZE, 1) &&
            verifier.EndTable();
   }
 };

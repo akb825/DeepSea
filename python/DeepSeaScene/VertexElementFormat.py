@@ -40,4 +40,3 @@ class VertexElementFormat(object):
     R64G64 = 34
     R64G64B64 = 35
     R64G64B64A64 = 36
-

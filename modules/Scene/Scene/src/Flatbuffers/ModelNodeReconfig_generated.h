@@ -48,7 +48,7 @@ struct ModelReconfig FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            verifier.VerifyString(shader()) &&
            VerifyOffsetRequired(verifier, VT_MATERIAL) &&
            verifier.VerifyString(material()) &&
-           VerifyFieldRequired<DeepSeaScene::Vector2f>(verifier, VT_DISTANCERANGE) &&
+           VerifyFieldRequired<DeepSeaScene::Vector2f>(verifier, VT_DISTANCERANGE, 4) &&
            VerifyOffsetRequired(verifier, VT_MODELLIST) &&
            verifier.VerifyString(modelList()) &&
            verifier.EndTable();

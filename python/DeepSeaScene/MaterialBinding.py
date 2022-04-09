@@ -6,4 +6,3 @@ class MaterialBinding(object):
     Material = 0
     Global = 1
     Instance = 2
-

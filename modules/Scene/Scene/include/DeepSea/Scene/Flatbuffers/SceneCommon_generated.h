@@ -1184,7 +1184,7 @@ struct FileReference FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyField<uint8_t>(verifier, VT_TYPE) &&
+           VerifyField<uint8_t>(verifier, VT_TYPE, 1) &&
            VerifyOffsetRequired(verifier, VT_PATH) &&
            verifier.VerifyString(path()) &&
            verifier.EndTable();
@@ -1313,7 +1313,7 @@ struct VersionedShaderModule FLATBUFFERS_FINAL_CLASS : private flatbuffers::Tabl
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_VERSION) &&
            verifier.VerifyString(version()) &&
-           VerifyField<uint8_t>(verifier, VT_DATA_TYPE) &&
+           VerifyField<uint8_t>(verifier, VT_DATA_TYPE, 1) &&
            VerifyOffsetRequired(verifier, VT_DATA) &&
            VerifyFileOrData(verifier, data(), data_type()) &&
            verifier.EndTable();
@@ -1433,18 +1433,18 @@ struct DynamicRenderStates FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table 
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyField<float>(verifier, VT_LINEWIDTH) &&
-           VerifyField<float>(verifier, VT_DEPTHBIASCONSTANTFACTOR) &&
-           VerifyField<float>(verifier, VT_DEPTHBIASCLAMP) &&
-           VerifyField<float>(verifier, VT_DEPTHBIASSLOPEFACTOR) &&
-           VerifyField<DeepSeaScene::Color4f>(verifier, VT_BLENDCONSTANTS) &&
-           VerifyField<DeepSeaScene::Vector2f>(verifier, VT_DEPTHBOUNDS) &&
-           VerifyField<uint32_t>(verifier, VT_FRONTSTENCILCOMPAREMASK) &&
-           VerifyField<uint32_t>(verifier, VT_BACKSTENCILCOMPAREMASK) &&
-           VerifyField<uint32_t>(verifier, VT_FRONTSTENCILWRITEMASK) &&
-           VerifyField<uint32_t>(verifier, VT_BACKSTENCILWRITEMASK) &&
-           VerifyField<uint32_t>(verifier, VT_FRONTSTENCILREFERENCE) &&
-           VerifyField<uint32_t>(verifier, VT_BACKSTENCILREFERENCE) &&
+           VerifyField<float>(verifier, VT_LINEWIDTH, 4) &&
+           VerifyField<float>(verifier, VT_DEPTHBIASCONSTANTFACTOR, 4) &&
+           VerifyField<float>(verifier, VT_DEPTHBIASCLAMP, 4) &&
+           VerifyField<float>(verifier, VT_DEPTHBIASSLOPEFACTOR, 4) &&
+           VerifyField<DeepSeaScene::Color4f>(verifier, VT_BLENDCONSTANTS, 4) &&
+           VerifyField<DeepSeaScene::Vector2f>(verifier, VT_DEPTHBOUNDS, 4) &&
+           VerifyField<uint32_t>(verifier, VT_FRONTSTENCILCOMPAREMASK, 4) &&
+           VerifyField<uint32_t>(verifier, VT_BACKSTENCILCOMPAREMASK, 4) &&
+           VerifyField<uint32_t>(verifier, VT_FRONTSTENCILWRITEMASK, 4) &&
+           VerifyField<uint32_t>(verifier, VT_BACKSTENCILWRITEMASK, 4) &&
+           VerifyField<uint32_t>(verifier, VT_FRONTSTENCILREFERENCE, 4) &&
+           VerifyField<uint32_t>(verifier, VT_BACKSTENCILREFERENCE, 4) &&
            verifier.EndTable();
   }
 };

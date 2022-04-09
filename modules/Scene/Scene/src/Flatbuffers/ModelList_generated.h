@@ -74,7 +74,7 @@ struct ModelList FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            VerifyOffset(verifier, VT_INSTANCEDATA) &&
            verifier.VerifyVector(instanceData()) &&
            verifier.VerifyVectorOfTables(instanceData()) &&
-           VerifyField<uint8_t>(verifier, VT_SORTTYPE) &&
+           VerifyField<uint8_t>(verifier, VT_SORTTYPE, 1) &&
            VerifyOffset(verifier, VT_DYNAMICRENDERSTATES) &&
            verifier.VerifyTable(dynamicRenderStates()) &&
            VerifyOffset(verifier, VT_CULLLIST) &&

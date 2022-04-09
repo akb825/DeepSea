@@ -5,4 +5,3 @@
 class SurfaceType(object):
     Renderbuffer = 0
     Offscreen = 1
-

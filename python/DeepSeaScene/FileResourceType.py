@@ -7,4 +7,3 @@ class FileResourceType(object):
     Installed = 1
     Dynamic = 2
     External = 3
-

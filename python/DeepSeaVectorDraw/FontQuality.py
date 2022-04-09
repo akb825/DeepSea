@@ -7,4 +7,3 @@ class FontQuality(object):
     Medium = 1
     High = 2
     VeryHigh = 3
-

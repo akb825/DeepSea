@@ -245,7 +245,7 @@ struct DeferredLightResolve FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table
            verifier.VerifyTable(shadowPoint()) &&
            VerifyOffset(verifier, VT_SHADOWSPOT) &&
            verifier.VerifyTable(shadowSpot()) &&
-           VerifyField<float>(verifier, VT_INTENSITYTHRESHOLD) &&
+           VerifyField<float>(verifier, VT_INTENSITYTHRESHOLD, 4) &&
            verifier.EndTable();
   }
 };

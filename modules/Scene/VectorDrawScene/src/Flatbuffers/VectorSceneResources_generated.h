@@ -34,7 +34,7 @@ struct VectorResources FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyField<uint8_t>(verifier, VT_RESOURCES_TYPE) &&
+           VerifyField<uint8_t>(verifier, VT_RESOURCES_TYPE, 1) &&
            VerifyOffsetRequired(verifier, VT_RESOURCES) &&
            VerifyFileOrData(verifier, resources(), resources_type()) &&
            verifier.EndTable();

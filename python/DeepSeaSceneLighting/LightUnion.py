@@ -7,4 +7,3 @@ class LightUnion(object):
     DirectionalLight = 1
     PointLight = 2
     SpotLight = 3
-

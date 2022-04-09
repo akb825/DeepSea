@@ -124,21 +124,21 @@ struct Surface FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_NAME) &&
            verifier.VerifyString(name()) &&
-           VerifyField<uint8_t>(verifier, VT_TYPE) &&
-           VerifyField<uint32_t>(verifier, VT_USAGE) &&
-           VerifyField<uint32_t>(verifier, VT_MEMORYHINTS) &&
-           VerifyField<uint8_t>(verifier, VT_FORMAT) &&
-           VerifyField<uint8_t>(verifier, VT_DECORATION) &&
-           VerifyField<uint8_t>(verifier, VT_DIMENSION) &&
-           VerifyField<uint32_t>(verifier, VT_WIDTH) &&
-           VerifyField<float>(verifier, VT_WIDTHRATIO) &&
-           VerifyField<uint32_t>(verifier, VT_HEIGHT) &&
-           VerifyField<float>(verifier, VT_HEIGHTRATIO) &&
-           VerifyField<uint32_t>(verifier, VT_DEPTH) &&
-           VerifyField<uint32_t>(verifier, VT_MIPLEVELS) &&
-           VerifyField<uint32_t>(verifier, VT_SAMPLES) &&
-           VerifyField<uint8_t>(verifier, VT_RESOLVE) &&
-           VerifyField<uint8_t>(verifier, VT_WINDOWFRAMEBUFFER) &&
+           VerifyField<uint8_t>(verifier, VT_TYPE, 1) &&
+           VerifyField<uint32_t>(verifier, VT_USAGE, 4) &&
+           VerifyField<uint32_t>(verifier, VT_MEMORYHINTS, 4) &&
+           VerifyField<uint8_t>(verifier, VT_FORMAT, 1) &&
+           VerifyField<uint8_t>(verifier, VT_DECORATION, 1) &&
+           VerifyField<uint8_t>(verifier, VT_DIMENSION, 1) &&
+           VerifyField<uint32_t>(verifier, VT_WIDTH, 4) &&
+           VerifyField<float>(verifier, VT_WIDTHRATIO, 4) &&
+           VerifyField<uint32_t>(verifier, VT_HEIGHT, 4) &&
+           VerifyField<float>(verifier, VT_HEIGHTRATIO, 4) &&
+           VerifyField<uint32_t>(verifier, VT_DEPTH, 4) &&
+           VerifyField<uint32_t>(verifier, VT_MIPLEVELS, 4) &&
+           VerifyField<uint32_t>(verifier, VT_SAMPLES, 4) &&
+           VerifyField<uint8_t>(verifier, VT_RESOLVE, 1) &&
+           VerifyField<uint8_t>(verifier, VT_WINDOWFRAMEBUFFER, 1) &&
            verifier.EndTable();
   }
 };
@@ -308,9 +308,9 @@ struct FramebufferSurface FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_NAME) &&
            verifier.VerifyString(name()) &&
-           VerifyField<uint8_t>(verifier, VT_FACE) &&
-           VerifyField<uint32_t>(verifier, VT_LAYER) &&
-           VerifyField<uint32_t>(verifier, VT_MIPLEVEL) &&
+           VerifyField<uint8_t>(verifier, VT_FACE, 1) &&
+           VerifyField<uint32_t>(verifier, VT_LAYER, 4) &&
+           VerifyField<uint32_t>(verifier, VT_MIPLEVEL, 4) &&
            verifier.EndTable();
   }
 };
@@ -407,10 +407,10 @@ struct Framebuffer FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            VerifyOffset(verifier, VT_SURFACES) &&
            verifier.VerifyVector(surfaces()) &&
            verifier.VerifyVectorOfTables(surfaces()) &&
-           VerifyField<float>(verifier, VT_WIDTH) &&
-           VerifyField<float>(verifier, VT_HEIGHT) &&
-           VerifyField<uint32_t>(verifier, VT_LAYERS) &&
-           VerifyField<DeepSeaScene::AlignedBox3f>(verifier, VT_VIEWPORT) &&
+           VerifyField<float>(verifier, VT_WIDTH, 4) &&
+           VerifyField<float>(verifier, VT_HEIGHT, 4) &&
+           VerifyField<uint32_t>(verifier, VT_LAYERS, 4) &&
+           VerifyField<DeepSeaScene::AlignedBox3f>(verifier, VT_VIEWPORT, 4) &&
            verifier.EndTable();
   }
 };

@@ -107,20 +107,20 @@ struct SceneLightShadows FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            verifier.VerifyString(name()) &&
            VerifyOffsetRequired(verifier, VT_LIGHTSET) &&
            verifier.VerifyString(lightSet()) &&
-           VerifyField<uint8_t>(verifier, VT_LIGHTTYPE) &&
+           VerifyField<uint8_t>(verifier, VT_LIGHTTYPE, 1) &&
            VerifyOffset(verifier, VT_LIGHT) &&
            verifier.VerifyString(light()) &&
            VerifyOffsetRequired(verifier, VT_TRANSFORMGROUPDESC) &&
            verifier.VerifyString(transformGroupDesc()) &&
            VerifyOffset(verifier, VT_TRANSFORMGROUPNAME) &&
            verifier.VerifyString(transformGroupName()) &&
-           VerifyField<uint32_t>(verifier, VT_MAXCASCADES) &&
-           VerifyField<float>(verifier, VT_MAXFIRSTSPLITDISTANCE) &&
-           VerifyField<float>(verifier, VT_CASCADEEXPFACTOR) &&
+           VerifyField<uint32_t>(verifier, VT_MAXCASCADES, 4) &&
+           VerifyField<float>(verifier, VT_MAXFIRSTSPLITDISTANCE, 4) &&
+           VerifyField<float>(verifier, VT_CASCADEEXPFACTOR, 4) &&
            VerifyOffset(verifier, VT_MINDEPTHRANGES) &&
            verifier.VerifyVector(minDepthRanges()) &&
-           VerifyField<float>(verifier, VT_FADESTARTDISTANCE) &&
-           VerifyField<float>(verifier, VT_MAXDISTANCE) &&
+           VerifyField<float>(verifier, VT_FADESTARTDISTANCE, 4) &&
+           VerifyField<float>(verifier, VT_MAXDISTANCE, 4) &&
            verifier.EndTable();
   }
 };

@@ -31,8 +31,8 @@ struct BufferMaterialData FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_NAME) &&
            verifier.VerifyString(name()) &&
-           VerifyField<uint32_t>(verifier, VT_OFFSET) &&
-           VerifyField<uint32_t>(verifier, VT_SIZE) &&
+           VerifyField<uint32_t>(verifier, VT_OFFSET, 4) &&
+           VerifyField<uint32_t>(verifier, VT_SIZE, 4) &&
            verifier.EndTable();
   }
 };

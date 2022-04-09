@@ -28,7 +28,7 @@ struct SceneLightSetPrepare FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table
            VerifyOffsetRequired(verifier, VT_LIGHTSETS) &&
            verifier.VerifyVector(lightSets()) &&
            verifier.VerifyVectorOfStrings(lightSets()) &&
-           VerifyField<float>(verifier, VT_INTENSITYTHRESHOLD) &&
+           VerifyField<float>(verifier, VT_INTENSITYTHRESHOLD, 4) &&
            verifier.EndTable();
   }
 };

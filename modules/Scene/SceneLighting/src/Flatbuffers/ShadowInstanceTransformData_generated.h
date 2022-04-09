@@ -37,7 +37,7 @@ struct ShadowInstanceTransformData FLATBUFFERS_FINAL_CLASS : private flatbuffers
            verifier.VerifyString(shadowManager()) &&
            VerifyOffsetRequired(verifier, VT_SHADOWS) &&
            verifier.VerifyString(shadows()) &&
-           VerifyField<uint8_t>(verifier, VT_SURFACE) &&
+           VerifyField<uint8_t>(verifier, VT_SURFACE, 1) &&
            VerifyOffsetRequired(verifier, VT_VARIABLEGROUPDESC) &&
            verifier.VerifyString(variableGroupDesc()) &&
            verifier.EndTable();

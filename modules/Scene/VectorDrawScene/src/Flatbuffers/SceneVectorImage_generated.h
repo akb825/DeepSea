@@ -54,10 +54,10 @@ struct VectorImage FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyField<uint8_t>(verifier, VT_IMAGE_TYPE) &&
+           VerifyField<uint8_t>(verifier, VT_IMAGE_TYPE, 1) &&
            VerifyOffsetRequired(verifier, VT_IMAGE) &&
            VerifyFileOrData(verifier, image(), image_type()) &&
-           VerifyField<DeepSeaScene::Vector2f>(verifier, VT_TARGETSIZE) &&
+           VerifyField<DeepSeaScene::Vector2f>(verifier, VT_TARGETSIZE, 4) &&
            VerifyOffset(verifier, VT_SHAREDMATERIALS) &&
            verifier.VerifyString(sharedMaterials()) &&
            VerifyOffsetRequired(verifier, VT_VECTORSHADERS) &&
@@ -65,7 +65,7 @@ struct VectorImage FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            VerifyOffset(verifier, VT_RESOURCES) &&
            verifier.VerifyVector(resources()) &&
            verifier.VerifyVectorOfStrings(resources()) &&
-           VerifyField<uint8_t>(verifier, VT_SRGB) &&
+           VerifyField<uint8_t>(verifier, VT_SRGB, 1) &&
            verifier.EndTable();
   }
 };

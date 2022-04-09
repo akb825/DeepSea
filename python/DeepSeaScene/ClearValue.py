@@ -8,4 +8,3 @@ class ClearValue(object):
     ClearColorInt = 2
     ClearColorUInt = 3
     ClearDepthStencil = 4
-
