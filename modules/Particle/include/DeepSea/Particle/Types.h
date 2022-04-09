@@ -18,6 +18,7 @@
 
 #include <DeepSea/Core/Config.h>
 #include <DeepSea/Core/Types.h>
+#include <DeepSea/Geometry/Types.h>
 #include <DeepSea/Math/Types.h>
 
 #ifdef __cplusplus
@@ -36,10 +37,79 @@ extern "C"
 #define DS_PARTICLE_LOG_TAG "particle"
 
 /**
+ * @brief Enum for a volume used to create particles in.
+ */
+typedef enum dsParticleVolumeType
+{
+	dsParticleVolumeType_Box,     ///< Aligned box.
+	dsParticleVolumeType_Sphere,  ///< Sphere.
+	dsParticleVolumeType_Cylinder ///< Cylinder.
+} dsParticleVolumeType;
+
+/**
+ * @brief Struct describing the volume to create particles in.
+ * @see ParticleVolume.h
+ */
+typedef struct dsParticleVolume
+{
+	/**
+	 * @brief The type of the volume.
+	 */
+	dsParticleVolumeType type;
+
+	union
+	{
+		/**
+		 * @brief The box when type is dsParticleVolumeType_Box.
+		 */
+		dsAlignedBox3f box;
+
+		/**
+		 * @brief The spehre when the type is dsParticleVolumeType_Sphere.
+		 */
+		struct
+		{
+			/**
+			 * @brief The center of the sphere.
+			 */
+			dsVector3f center;
+
+			/**
+			 * @brief The radius of the sphere.
+			 */
+			float radius;
+		} sphere;
+
+		/**
+		 * @brief The cylinder when the type is dsParticleVolumeType_Cylinder.
+		 */
+		struct
+		{
+			/**
+			 * @brief The center of the cylinder.
+			 */
+			dsVector3f center;
+
+			/**
+			 * @brief The radius of the cylinder along the XY plane.
+			 */
+			float radius;
+
+			/**
+			 * @brief The height of the cylinder along the Z axis.
+			 */
+			float height;
+		} cylinder;
+	};
+} dsParticleVolume;
+
+/**
  * @brief Struct describing a single particle.
  *
  * Different particle emitters may allocate more space for each particle for extra state used by the
  * emitter.
+ *
+ * @see Particle.h
  */
 typedef struct dsParticle
 {
@@ -52,6 +122,11 @@ typedef struct dsParticle
 	 * @brief The direction of the particle.
 	 */
 	dsVector3f direction;
+
+	/**
+	 * @brief The rotation of the particle.
+	 */
+	dsVector2f rotation;
 
 	/**
 	 * @brief The color of the particle.
@@ -152,6 +227,90 @@ struct dsParticleEmitter
 	 */
 	dsDestroyParticleEmitterFunction destroyFunc;
 };
+
+/**
+ * @brief Struct describing options for controlling a particle emitter.
+ * @param StandardParticleEmitter.h
+ */
+typedef struct dsStandardParticleEmitterOptions
+{
+	/**
+	 * @brief The volume to spawn particles in.
+	 */
+	dsParticleVolume spawnVolume;
+
+	/**
+	 * @brief The matrix to transform the volume when spawning particles.
+	 */
+	dsMatrix44f volumeMatrix;
+
+	/**
+	 * @brief The base direction particles move in.
+	 */
+	dsVector3f baseDirection;
+
+	/**
+	 * @brief The spread along the base direction as an angle in radians.
+	 *
+	 * A value of 0 will always follow the base direction, pi/2 would be a hemisphere, and pi would
+	 * be a full sphere.
+	 */
+	float directionSpread;
+
+	/**
+	 * @brief The minimum and maximum time in seconds between spawning particles.
+	 */
+	dsVector2f spawnTimeRange;
+
+	/**
+	 * @brief The minimum and maximum time in seconds a particle is active for.
+	 */
+	dsVector2f activeTimeRange;
+
+	/**
+	 * @brief The minimum and maximum speed particles travel at.
+	 */
+	dsVector2f speedRange;
+
+	/**
+	 * @brief The minimum and maximum rotation speed in radians per second.
+	 */
+	dsVector2f rotationRange;
+
+	/**
+	 * @brief The minimum and maximum texture indices to use.
+	 */
+	dsVector2i textureRange;
+
+	/**
+	 * @brief The minimum and maximum hue values for the color in the range [0, 360].
+	 *
+	 * The minimum can be larger than the maximum, which will wrap around. (e.g. min 300 and max 60
+	 * will wrap around at 360 back to 0)
+	 */
+	dsVector2f colorHueRange;
+
+	/**
+	 * @brief The minimum and maximum saturation values for the color in the range [0, 1].
+	 */
+	dsVector2f colorSaturationRange;
+
+	/**
+	 * @brief The minimum and maximum values for the color in the range [0, 1].
+	 */
+	dsVector2f colorValueRange;
+
+	/**
+	 * @brief The minimum and maximum intensity values.
+	 */
+	dsVector2f intensityRange;
+} dsStandardParticleEmitterOptions;
+
+/**
+ * @brief Struct describing a particle emitter usable in most situations.
+ * @see StandardParticleEmitter.h
+ */
+typedef struct dsStandardParticleEmitter dsStandardParticleEmitter;
 
 #ifdef __cplusplus
 }
