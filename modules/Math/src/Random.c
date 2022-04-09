@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,13 @@ double dsRandomDouble(uint32_t* seed, double minVal, double maxVal)
 	double range = maxVal - minVal;
 	double baseVal = (double)dsRandom(seed)/DS_RANDOM_MAX;
 	return baseVal*range + minVal;
+}
+
+float dsRandomFloat(uint32_t* seed, float minVal, float maxVal)
+{
+	float range = maxVal - minVal;
+	double baseVal = (double)dsRandom(seed)/DS_RANDOM_MAX;
+	return (float)(baseVal*range) + minVal;
 }
 
 int dsRandomInt(uint32_t* seed, int minVal, int maxVal)

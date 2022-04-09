@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,18 @@ TEST(RandomTest, RandomDouble)
 	for (unsigned int i = 0; i < 1000; ++i)
 	{
 		double val = dsRandomDouble(&seed, -0.3, 7.9);
+		EXPECT_LE(-0.3, val);
+		EXPECT_GE(7.9, val);
+	}
+}
+
+TEST(RandomTest, RandomFloat)
+{
+	uint32_t seed = 0;
+
+	for (unsigned int i = 0; i < 1000; ++i)
+	{
+		double val = dsRandomFloat(&seed, -0.3f, 7.9f);
 		EXPECT_LE(-0.3, val);
 		EXPECT_GE(7.9, val);
 	}

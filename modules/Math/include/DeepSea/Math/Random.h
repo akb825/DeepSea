@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,6 +48,15 @@ DS_MATH_EXPORT uint32_t dsRandom(uint32_t* seed);
  * @return A random double value.
  */
 DS_MATH_EXPORT double dsRandomDouble(uint32_t* seed, double minVal, double maxVal);
+
+/**
+ * @brief Returns a random float value.
+ * @param seed The seed for the random number generator. This will be updated to allow the next.
+ * @param minVal The minimum float value.
+ * @param maxVal The maximum float value.
+ * @return A random float value.
+ */
+DS_MATH_EXPORT float dsRandomFloat(uint32_t* seed, float minVal, float maxVal);
 
 /**
  * @brief Returns a random int value.
