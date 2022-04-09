@@ -203,7 +203,7 @@ jobs:
 #        displayName: Build release
   - job: Windows
     pool:
-        vmImage: windows-latest
+        vmImage: windows-2019
     workspace:
         clean: all
     strategy:
