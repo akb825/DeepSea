@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,20 @@ extern "C"
  * You may note that there are no sRGB <-> linear conversion functions that use dsColor. This is
  * because you lose a lot of precision when storing a linear color in an 8-bit value.
  */
+
+/**
+ * @brief Matrix constant to transform from an RGB color to a YUV color.
+ *
+ * The constants used are for the Rec. 709 color space used by HDTV.
+ */
+DS_MATH_EXPORT extern const dsMatrix33f dsRGBtoYUVTransform;
+
+/**
+ * @brief Matrix constant to transform from a YUV color to an RGB color.
+ *
+ * The constants used are for the Rec. 709 color space used by HDTV.
+ */
+DS_MATH_EXPORT extern const dsMatrix33f dsYUVtoRGBTransform;
 
 /**
  * @brief Converts to an sRGB value from a linear value.
@@ -210,6 +224,19 @@ DS_MATH_EXPORT inline bool dsColor3f_equal(const dsColor3f* x, const dsColor3f* 
  */
 DS_MATH_EXPORT inline bool dsColor3f_epsilonEqual(const dsColor3f* x, const dsColor3f* y,
 	float epsilon);
+
+/**
+ * @brief Creates a matrix to transform an RGB color in HSV color space.
+ *
+ * This can multiply a dsColor3f to apply the transformation.
+ *
+ * @param[out] outTransform The color transform matrix.
+ * @param hueShift The amount to shift the hue in degrees.
+ * @param saturationScale The amount to scale the saturation.
+ * @param valueScale The amount to scale the value.
+ */
+DS_MATH_EXPORT void dsColor3f_createHSVTransform(dsMatrix33f* outTransform, float hueShift,
+	float saturationScale, float valueScale);
 
 /**
  * @brief Converts to a dsColor4f from a dsColor.

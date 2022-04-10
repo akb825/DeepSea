@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,22 @@
  */
 
 #include <DeepSea/Math/Color.h>
+#include <DeepSea/Math/Matrix33.h>
+
+// See https://en.wikipedia.org/wiki/YUV for transform constants.
+const dsMatrix33f dsRGBtoYUVTransform =
+{{
+	{0.2126f, -0.09991f, 0.615f},
+	{0.7152f, -0.33609f, -0.55861f},
+	{0.0722f, 0.436f, -0.05639f}
+}};
+
+const dsMatrix33f dsYUVtoRGBTransform =
+{{
+	{1.0f, 1.0f, 1.0f},
+	{0.0f, -0.21482f, 2.12798f},
+	{1.28033f, -0.38059f, 0.0f}
+}};
 
 float dsSRGBFromLinear(float value);
 float dsLinearFromSRGB(float value);
@@ -141,6 +157,35 @@ void dsColor3f_lerp(dsColor3f* outColor, const dsColor3f* x, const dsColor3f* y,
 void dsColor3f_lerpSRGB(dsColor3f* outColor, const dsColor3f* x, const dsColor3f* y, float t);
 bool dsColor3f_equal(const dsColor3f* x, const dsColor3f* y);
 bool dsColor3f_epsilonEqual(const dsColor3f* x, const dsColor3f* y, float epsilon);
+
+void dsColor3f_createHSVTransform(dsMatrix33f* outTransform, float hueShift, float saturationScale,
+	float valueScale)
+{
+	DS_ASSERT(outTransform);
+
+	/*
+	 * Perform color transform in YUV color space, which can adjust hue and saturation by rotating
+	 * and scaling the UV coordinates. This is similar to the approach detailed in
+	 * https://beesbuzz.biz/code/16-hsv-color-transforms except YUV with the Rec. 709 transform
+	 * values. This was chosen so that fully desaturating (with a saturationScale of 0) would give
+	 * the same value as dsGrayscaleValue().
+	 */
+	float hueShiftRad = (float)(hueShift*M_PI/180.0);
+	float vsu = valueScale*saturationScale*cosf(hueShiftRad);
+	float vsw = valueScale*saturationScale*sinf(hueShiftRad);
+
+	// Counter-clockwise rotation and scaling factors.
+	const dsMatrix33f yuvTransform =
+	{{
+		{valueScale, 0.0f, 0.0f},
+		{0.0f, vsu, vsw},
+		{0.0f, -vsw, vsu}
+	}};
+
+	dsMatrix33f temp;
+	dsMatrix33_mul(temp, yuvTransform, dsRGBtoYUVTransform);
+	dsMatrix33_mul(*outTransform, dsYUVtoRGBTransform, temp);
+}
 
 void dsColor4f_fromColor(dsColor4f* outColor, dsColor color);
 void dsColor4f_fromColor3f(dsColor4f* outColor, const dsColor3f* color);

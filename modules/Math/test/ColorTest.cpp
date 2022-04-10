@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 #include <DeepSea/Math/Color.h>
 #include <DeepSea/Math/Core.h>
+#include <DeepSea/Math/Matrix33.h>
+#include <DeepSea/Math/Vector3.h>
 #include <gtest/gtest.h>
 
 static bool testHSVColor(uint8_t red, uint8_t green, uint8_t blue, float hue, float saturation,
@@ -166,6 +168,111 @@ static bool testHSLColor4f(float red, float green, float blue, float hue, float 
 	EXPECT_EQ(0.5f, color4f.a);
 
 	return success;
+}
+
+TEST(Color, YUVandRGBMatrices)
+{
+	dsMatrix33f identity;
+	dsMatrix33_identity(identity);
+	dsMatrix33f testMatrix;
+	dsMatrix33_mul(testMatrix, dsYUVtoRGBTransform, dsRGBtoYUVTransform);
+	for (unsigned int i = 0; i < 3; ++i)
+		EXPECT_TRUE(dsVector3f_epsilonEqual(identity.columns + i, testMatrix.columns + i, 1e-4f));
+
+	dsColor3f rgbColor;
+	rgbColor.r = 1.0f;
+	rgbColor.g = 0.0f;
+	rgbColor.b = 0.0f;
+
+	dsColor3f yuvColor;
+	dsMatrix33_transform(yuvColor, dsRGBtoYUVTransform, rgbColor);
+	EXPECT_EQ(0.2126f, yuvColor.x);
+	EXPECT_EQ(-0.09991f, yuvColor.y);
+	EXPECT_EQ(0.615f, yuvColor.z);
+
+	rgbColor.r = 0.0f;
+	rgbColor.g = 1.0f;
+	rgbColor.b = 0.0f;
+
+	dsMatrix33_transform(yuvColor, dsRGBtoYUVTransform, rgbColor);
+	EXPECT_EQ(0.7152f, yuvColor.x);
+	EXPECT_EQ(-0.33609f, yuvColor.y);
+	EXPECT_EQ(-0.55861f, yuvColor.z);
+
+	rgbColor.r = 0.0f;
+	rgbColor.g = 0.0f;
+	rgbColor.b = 1.0f;
+
+	dsMatrix33_transform(yuvColor, dsRGBtoYUVTransform, rgbColor);
+	EXPECT_EQ(0.0722f, yuvColor.x);
+	EXPECT_EQ(0.436f, yuvColor.y);
+	EXPECT_EQ(-0.05639f, yuvColor.z);
+
+	rgbColor.r = 1.0f;
+	rgbColor.g = 1.0f;
+	rgbColor.b = 1.0f;
+
+	dsMatrix33_transform(yuvColor, dsRGBtoYUVTransform, rgbColor);
+	EXPECT_NEAR(1.0f, yuvColor.x, 1e-4f);
+	EXPECT_NEAR(0.0f, yuvColor.y, 1e-4f);
+	EXPECT_NEAR(0.0f, yuvColor.z, 1e-4f);
+}
+
+TEST(Color, CreateHSVTransform)
+{
+	dsMatrix33f identity;
+	dsMatrix33_identity(identity);
+	dsMatrix33f transform;
+	dsColor3f_createHSVTransform(&transform, 360, 1, 1);
+	for (unsigned int i = 0; i < 3; ++i)
+		EXPECT_TRUE(dsVector3f_epsilonEqual(identity.columns + i, transform.columns + i, 1e-4f));
+
+	dsColor3f_createHSVTransform(&transform, 120, 1, 1);
+
+	dsColor3f origColor;
+	origColor.r = 1.0f;
+	origColor.g = 0.0f;
+	origColor.b = 0.0f;
+
+	dsColor3f transformedColor;
+	dsMatrix33_transform(transformedColor, transform, origColor);
+	EXPECT_LT(transformedColor.r, transformedColor.g);
+	EXPECT_LT(transformedColor.b, transformedColor.g);
+
+	origColor.r = 0.0f;
+	origColor.g = 1.0f;
+	origColor.b = 0.0f;
+
+	dsMatrix33_transform(transformedColor, transform, origColor);
+	EXPECT_LT(transformedColor.r, transformedColor.b);
+	EXPECT_LT(transformedColor.g, transformedColor.b);
+
+	origColor.r = 0.0f;
+	origColor.g = 0.0f;
+	origColor.b = 1.0f;
+
+	dsMatrix33_transform(transformedColor, transform, origColor);
+	EXPECT_LT(transformedColor.g, transformedColor.r);
+	EXPECT_LT(transformedColor.b, transformedColor.r);
+
+	dsColor3f_createHSVTransform(&transform, 0, 0, 1);
+
+	origColor.r = 0.1f;
+	origColor.g = 0.2f;
+	origColor.b = 0.3f;
+
+	dsMatrix33_transform(transformedColor, transform, origColor);
+	float grayscale = dsColor3f_grayscale(&origColor);
+	EXPECT_NEAR(grayscale, transformedColor.r, 1e-4f);
+	EXPECT_NEAR(grayscale, transformedColor.g, 1e-4f);
+	EXPECT_NEAR(grayscale, transformedColor.b, 1e-4f);
+
+	dsColor3f_createHSVTransform(&transform, 0, 1, 0.5f);
+
+	dsMatrix33_transform(transformedColor, transform, origColor);
+	EXPECT_NEAR(0.05f, transformedColor.r, 1e-4f);
+	EXPECT_NEAR(0.1f, transformedColor.g, 1e-4f);
+	EXPECT_NEAR(0.15f, transformedColor.b, 1e-4f);
 }
 
 TEST(Color, ConvertColorAndColor3f)

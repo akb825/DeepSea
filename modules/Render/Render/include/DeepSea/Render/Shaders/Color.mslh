@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,26 @@
  * @file
  * @brief Functions for converting between different color types.
  */
+
+/**
+ * @brief Matrix constant to transform from an RGB color to a YUV color.
+ *
+ * The constants used are for the Rec. 709 color space used by HDTV.
+ */
+#define DS_RGB_TO_YUV_TRANSFORM mat3( \
+	0.2126f, -0.09991f, 0.615f, \
+	0.7152f, -0.33609f, -0.55861f, \
+	0.0722f, 0.436f, -0.05639f)
+
+/**
+ * @brief Matrix constant to transform from a YUV color to an RGB color.
+ *
+ * The constants used are for the Rec. 709 color space used by HDTV.
+ */
+#define DS_YUV_TO_RGB_TRANSFORM mat3( \
+	1.0f, 1.0f, 1.0f, \
+	0.0f, -0.21482f, 2.12798f, \
+	1.28033f, -0.38059f, 0.0f)
 
 /**
  * @brief Converts from a color to grayscale.
@@ -124,6 +144,50 @@ vec3 dsLinearFromSRGB(vec3 color, float gamma)
 vec3 dsLinearFromSRGB(vec3 color)
 {
 	return dsLinearFromSRGB(color, 2.4);
+}
+
+/**
+ * @brief Creates an transform for an RGB color in HSV color space.
+ * @param hueShift The amount to shift the hue in degrees.
+ * @param saturationScale The amount to scale the saturation.
+ * @param valueScale The amount to scale the value.
+ */
+mat3 dsCreateHSVTransform(float hueShift, float saturationScale, float valueScale)
+{
+	// Perform transform in YUV color space.
+	float hueShiftRad = hueShift*0.017453;
+	vec2 vsuw = vec2(valueScale)*vec2(saturationScale)*vec2(cos(hueShiftRad), sin(hueShiftRad));
+
+	// Counter-clockwise rotation and scaling factors.
+	mat3 hsvTransform = mat3(
+		valueScale, 0, 0,
+		0, vsuw.x, vsuw.y,
+		0, -vsuw.y, vsuw.x);
+	return DS_YUV_TO_RGB_TRANSFORM*hsvTransform*DS_RGB_TO_YUV_TRANSFORM;
+}
+
+/**
+ * @brief Creates an transform for an RGB color for saturation and value in HSV color space.
+ *
+ * This can be used to e.g. partially desaturate the image without having to pay the cost of
+ * computing a hue rotation for the full transform.
+ *
+ * @param hueShift The amount to shift the hue in degrees.
+ * @param saturationScale The amount to scale the saturation.
+ * @param valueScale The amount to scale the value.
+ */
+mat3 dsCreateSVTransform(float hueShift, float saturationScale, float valueScale)
+{
+	// Perform transform in YUV color space.
+	float hueShiftRad = hueShift*0.017453;
+	float vs = valueScale*saturationScale;
+
+	// Counter-clockwise rotation and scaling factors.
+	mat3 hsvTransform = mat3(
+		valueScale, 0, 0,
+		0, vs, 0,
+		0, 0, vs);
+	return DS_YUV_TO_RGB_TRANSFORM*hsvTransform*DS_RGB_TO_YUV_TRANSFORM;
 }
 
 /**
