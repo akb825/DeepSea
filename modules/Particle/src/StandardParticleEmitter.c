@@ -44,10 +44,28 @@ typedef struct dsStandardParticle
 	float timeScale;
 } dsStandardParticle;
 
-static uint32_t dsStandardParticleEmitter_update(dsParticleEmitter* emitter, double time,
+static bool advanceParticle(dsParticle* nextParticle, const dsParticle* prevParticle, float time)
+{
+	const dsStandardParticle* prevStandardParticle = (const dsStandardParticle*)prevParticle;
+	float nextT = prevParticle->t + prevStandardParticle->timeScale*time;
+	// Delete once the time has been exceeded.
+	if (nextT > 1)
+		return false;
+
+	dsVector3f offset;
+	dsVector3_scale(offset, prevParticle->direction, prevStandardParticle->speed*time);
+	dsVector3_add(nextParticle->position, prevParticle->position, offset);
+
+	nextParticle->rotation.x = prevParticle->rotation.x + prevStandardParticle->rotationSpeed*time;
+	nextParticle->rotation.x = dsWrapf(nextParticle->rotation.x, 0, (float)(2*M_PI));
+	nextParticle->rotation.y = nextParticle->rotation.y;
+	nextParticle->t = nextT;
+	return true;
+}
+
+static uint32_t dsStandardParticleEmitter_update(dsParticleEmitter* emitter, float time,
 	const uint8_t* curParticles, uint32_t curParticleCount, uint8_t* nextParticles)
 {
-	float timef = (float)time;
 	// Update existing particles.
 	uint32_t nextParticleCount = 0;
 	const uint8_t* endCurParticles = curParticles + curParticleCount*emitter->sizeofParticle;
@@ -55,40 +73,31 @@ static uint32_t dsStandardParticleEmitter_update(dsParticleEmitter* emitter, dou
 	for (const uint8_t* curParticlePtr = curParticles; curParticlePtr < endCurParticles;
 		curParticlePtr += emitter->sizeofParticle)
 	{
-		const dsParticle* curParticle = (const dsParticle*)curParticlePtr;
-		const dsStandardParticle* curStandardParticle = (const dsStandardParticle*)curParticlePtr;
-		float nextT = curParticle->t + (float)(curStandardParticle->timeScale*time);
-		// Delete once the time has been exceeded.
-		if (nextT > 1)
+		const dsParticle* prevParticle = (const dsParticle*)curParticlePtr;
+		dsParticle* nextParticle = (dsParticle*)nextParticlePtr;
+		if (!advanceParticle(nextParticle, prevParticle, time))
 			continue;
 
+		const dsStandardParticle* prevStandardParticle = (const dsStandardParticle*)prevParticle;
+		dsStandardParticle* nextStandardParticle = (dsStandardParticle*)nextParticle;
+
+		// Copy over components that are static.
+		nextParticle->color = prevParticle->color;
+		nextParticle->intensity = prevParticle->intensity;
+		nextParticle->textureIndex = prevParticle->textureIndex;
+
+		nextStandardParticle->speed = prevStandardParticle->speed;
+		nextStandardParticle->rotationSpeed = prevStandardParticle->rotationSpeed;
+		nextStandardParticle->timeScale = prevStandardParticle->timeScale;
+
 		++nextParticleCount;
-		dsParticle* nextParticle = (dsParticle*)nextParticlePtr;
-		dsStandardParticle* nextStandardParticle = (dsStandardParticle*)nextParticlePtr;
 		nextParticlePtr += emitter->sizeofParticle;
-
-		dsVector3f offset;
-		dsVector3_scale(offset, curParticle->direction, curStandardParticle->speed*timef);
-		dsVector3_add(nextParticle->position, curParticle->position, offset);
-
-		nextParticle->rotation.x = curParticle->rotation.x +
-			(float)(curStandardParticle->rotationSpeed*time);
-		nextParticle->rotation.x = dsWrapf(nextParticle->rotation.x, 0, (float)(2*M_PI));
-		nextParticle->rotation.y = curParticle->rotation.y;
-
-		nextParticle->color = curParticle->color;
-		nextParticle->intensity = curParticle->intensity;
-		nextParticle->textureIndex = curParticle->textureIndex;
-		nextParticle->t = nextT;
-
-		nextStandardParticle->speed = curStandardParticle->speed;
-		nextStandardParticle->rotationSpeed = curStandardParticle->rotationSpeed;
-		nextStandardParticle->timeScale = curStandardParticle->timeScale;
 	}
 
-	// Create any new particles.
+	// Create any new particles based on the timer before adding a new particle and availability
+	// based on the limit.
 	dsStandardParticleEmitter* standardEmitter = (dsStandardParticleEmitter*)emitter;
-	standardEmitter->nextSpawnCountdown -= timef;
+	standardEmitter->nextSpawnCountdown -= time;
 	if (standardEmitter->nextSpawnCountdown > 0 || nextParticleCount >= emitter->maxParticles)
 		return nextParticleCount;
 
@@ -99,6 +108,27 @@ static uint32_t dsStandardParticleEmitter_update(dsParticleEmitter* emitter, dou
 	const dsVector2f rotationRange = {{0, (float)(2*M_PI)}};
 	do
 	{
+
+		// Add the time before creating the next particle to the countdown timer.
+		standardEmitter->nextSpawnCountdown += dsRandomFloat(&standardEmitter->seed,
+			standardEmitter->options.spawnTimeRange.x,
+			standardEmitter->options.spawnTimeRange.y);
+
+		// Skip this point if not enabled. This avoids creating new particles, but still advances
+		// the spawn counter so it can continue emitting when enabled.
+		if (!standardEmitter->enabled)
+			continue;
+
+		// If time from the spawn cowntdown to 0 is the amount of time the newly created particle
+		// has been alive for.
+		float curElapsedTime = -standardEmitter->nextSpawnCountdown;
+
+		float particleTime = dsRandomFloat(&standardEmitter->seed, options->activeTimeRange.x,
+			options->activeTimeRange.y);
+		// Skip this particle if it will expire with the remaining time.
+		if (particleTime <= curElapsedTime)
+			continue;
+
 		++nextParticleCount;
 		dsParticle* nextParticle = (dsParticle*)nextParticlePtr;
 		dsStandardParticle* nextStandardParticle = (dsStandardParticle*)nextParticlePtr;
@@ -106,6 +136,8 @@ static uint32_t dsStandardParticleEmitter_update(dsParticleEmitter* emitter, dou
 
 		dsParticle_randomPosition(nextParticle, &standardEmitter->seed, &options->spawnVolume,
 			&options->volumeMatrix);
+		dsParticle_randomSize(nextParticle, &standardEmitter->seed, &options->widthRange,
+			&options->heightRange);
 		dsParticle_randomDirection(nextParticle, &standardEmitter->seed, &directionMatrix,
 			options->directionSpread);
 		dsParticle_randomRotation(nextParticle, &standardEmitter->seed, &rotationRange,
@@ -120,12 +152,10 @@ static uint32_t dsStandardParticleEmitter_update(dsParticleEmitter* emitter, dou
 			options->speedRange.y);
 		nextStandardParticle->rotationSpeed = dsRandomFloat(&standardEmitter->seed,
 			options->rotationRange.x, options->rotationRange.y);
-		nextStandardParticle->timeScale = 1/dsRandomFloat(&standardEmitter->seed,
-			options->activeTimeRange.x, options->activeTimeRange.y);
+		nextStandardParticle->timeScale = 1/particleTime;
 
-		standardEmitter->nextSpawnCountdown += dsRandomFloat(&standardEmitter->seed,
-			standardEmitter->options.spawnTimeRange.x,
-			standardEmitter->options.spawnTimeRange.y);
+		// Advance the particle based on the time it's been alive.
+		advanceParticle(nextParticle, nextParticle, curElapsedTime);
 	} while (standardEmitter->nextSpawnCountdown <= 0 &&
 		nextParticleCount < emitter->maxParticles);
 	return nextParticleCount;
@@ -138,7 +168,7 @@ static void dsStandardParticleEmitter_destroy(dsParticleEmitter* emitter)
 
 dsStandardParticleEmitter* dsStandardParticleEmitter_create(dsAllocator* allocator,
 	uint32_t maxParticles, uint32_t seed, const dsStandardParticleEmitterOptions* options,
-	bool enabled)
+	bool enabled, float startTime)
 {
 	if (!allocator || !options)
 	{
@@ -155,7 +185,7 @@ dsStandardParticleEmitter* dsStandardParticleEmitter_create(dsAllocator* allocat
 	emitter->seed = seed;
 	emitter->enabled = enabled;
 	emitter->options = *options;
-	emitter->nextSpawnCountdown = 0;
+	emitter->nextSpawnCountdown = -startTime;
 	return emitter;
 }
 
@@ -181,4 +211,21 @@ dsStandardParticleEmitterOptions* dsStandardParticleEmitter_getMutableOptions(
 	}
 
 	return &emitter->options;
+}
+
+bool dsStandardParticleEmitter_getEnabled(const dsStandardParticleEmitter* emitter)
+{
+	return emitter && emitter->enabled;
+}
+
+bool dsStandardParticleEmitter_setEnabled(dsStandardParticleEmitter* emitter, bool enabled)
+{
+	if (!emitter)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	emitter->enabled = enabled;
+	return true;
 }

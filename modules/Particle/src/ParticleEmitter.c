@@ -60,7 +60,7 @@ dsParticleEmitter* dsParticleEmitter_create(dsAllocator* allocator, size_t sizeo
 	return emitter;
 }
 
-bool dsParticleEmitter_update(dsParticleEmitter* emitter, double time)
+bool dsParticleEmitter_update(dsParticleEmitter* emitter, float time)
 {
 	if (!emitter || time < 0)
 	{

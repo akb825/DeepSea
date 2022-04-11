@@ -53,6 +53,17 @@ DS_PARTICLE_EXPORT void dsParticle_createDirectionMatrix(dsMatrix33f* result,
 	const dsVector3f* baseDirection);
 
 /**
+ * @brief Generates a random size for a particle.
+ * @param[inout] particle The particle to create the position for.
+ * @param[inout] seed The random seed to generate the random position from.
+ * @param widthRange The minimum and maximum width of the particle.
+ * @param heightRange The minimum and maximum height of the particle. If NULL or negative values a
+ *     square value will be created.
+ */
+DS_PARTICLE_EXPORT void dsParticle_randomSize(dsParticle* particle, uint32_t* seed,
+	const dsVector2f* widthRange, const dsVector2f* heightRange);
+
+/**
  * @brief Generates a random direction for a particle.
  * @param[inout] particle The particle to create the direction for.
  * @param[inout] seed The random seed to generate the random direction from.

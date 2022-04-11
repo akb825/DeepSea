@@ -55,6 +55,20 @@ void dsParticle_randomPosition(dsParticle* particle, uint32_t* seed, const dsPar
 	particle->position = *(dsVector3f*)&transformedPos;
 }
 
+void dsParticle_randomSize(dsParticle* particle, uint32_t* seed, const dsVector2f* widthRange,
+	const dsVector2f* heightRange)
+{
+	DS_ASSERT(particle);
+	DS_ASSERT(seed);
+	DS_ASSERT(widthRange);
+
+	particle->size.x = dsRandomFloat(seed, widthRange->x, widthRange->y);
+	if (!heightRange || heightRange->y < 0)
+		particle->size.y = particle->size.x;
+	else
+		particle->size.y = dsRandomFloat(seed, heightRange->x, heightRange->y);
+}
+
 void dsParticle_createDirectionMatrix(dsMatrix33f* result, const dsVector3f* baseDirection)
 {
 	DS_ASSERT(result);

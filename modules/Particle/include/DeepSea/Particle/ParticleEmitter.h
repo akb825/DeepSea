@@ -53,7 +53,7 @@ DS_PARTICLE_EXPORT dsParticleEmitter* dsParticleEmitter_create(dsAllocator* allo
  * @param time The time that's elapsed since the last update.
  * @return False if an error occurred.
  */
-DS_PARTICLE_EXPORT bool dsParticleEmitter_update(dsParticleEmitter* emitter, double time);
+DS_PARTICLE_EXPORT bool dsParticleEmitter_update(dsParticleEmitter* emitter, float time);
 
 /**
  * @brief Destroys a particle emitter.

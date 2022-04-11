@@ -119,6 +119,11 @@ typedef struct dsParticle
 	dsVector3f position;
 
 	/**
+	 * @brief The size of the particle.
+	 */
+	dsVector2f size;
+
+	/**
 	 * @brief The direction of the particle.
 	 */
 	dsVector3f direction;
@@ -173,7 +178,7 @@ typedef struct dsParticleEmitter dsParticleEmitter;
  * @param nextParticles The list of next particles to populate.
  * @return The new number of particles.
  */
-typedef uint32_t (*dsUpdateParticleEmitterFunction)(dsParticleEmitter* emitter, double time,
+typedef uint32_t (*dsUpdateParticleEmitterFunction)(dsParticleEmitter* emitter, float time,
 	const uint8_t* curParticles, uint32_t curParticleCount, uint8_t* nextParticles);
 
 /**
@@ -243,6 +248,18 @@ typedef struct dsStandardParticleEmitterOptions
 	 * @brief The matrix to transform the volume when spawning particles.
 	 */
 	dsMatrix44f volumeMatrix;
+
+	/**
+	 * @brief The minimum and maximum width of the particle.
+	 */
+	dsVector2f widthRange;
+
+	/**
+	 * @brief The minimum and maximum height of the particle.
+	 *
+	 * Set to negative values to guarantee the particle remains square.
+	 */
+	dsVector2f heightRange;
 
 	/**
 	 * @brief The base direction particles move in.
