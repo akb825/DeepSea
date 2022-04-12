@@ -45,19 +45,22 @@ void dsParticleVolume_randomPosition(dsVector3f* result, uint32_t* seed,
 			offset.x = cosf(theta)*cosPhi;
 			offset.y = sinf(theta)*cosPhi;
 			offset.z = sinf(phi);
-			dsVector3_scale(offset, offset, volume->sphere.radius);
-			dsVector3_add(*result, *result, offset);
+
+			float radius = dsRandomFloat(seed, 0.0f, volume->sphere.radius);
+			dsVector3_scale(offset, offset, radius);
+			dsVector3_add(*result, volume->sphere.center, offset);
 			return;
 		}
 		case dsParticleVolumeType_Cylinder:
 		{
 			float theta = dsRandomFloat(seed, 0, (float)(2*M_PI));
+			float radius = dsRandomFloat(seed, 0.0f, volume->sphere.radius);
 			dsVector3f offset;
-			offset.x = cosf(theta)*volume->cylinder.radius;
-			offset.y = sinf(theta)*volume->cylinder.radius;
+			offset.x = cosf(theta)*radius;
+			offset.y = sinf(theta)*radius;
 			offset.z = dsRandomFloat(seed, -volume->cylinder.height/2,
 				volume->cylinder.height/2);
-			dsVector3_add(*result, *result, offset);
+			dsVector3_add(*result, volume->cylinder.center, offset);
 			return;
 		}
 	}

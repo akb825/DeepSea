@@ -44,15 +44,6 @@ DS_PARTICLE_EXPORT void dsParticle_randomPosition(dsParticle* particle, uint32_t
 	const dsParticleVolume* volume, const dsMatrix44f* volumeMatrix);
 
 /**
- * @brief Creates a direction matrix for use in dsParticle_randomDirection() with a single base
- *     direction.
- * @param[out] result The direction matrix.
- * @param baseDirection The base direction to orient the matrix. This is expected to be normalized.
- */
-DS_PARTICLE_EXPORT void dsParticle_createDirectionMatrix(dsMatrix33f* result,
-	const dsVector3f* baseDirection);
-
-/**
  * @brief Generates a random size for a particle.
  * @param[inout] particle The particle to create the position for.
  * @param[inout] seed The random seed to generate the random position from.
@@ -62,6 +53,15 @@ DS_PARTICLE_EXPORT void dsParticle_createDirectionMatrix(dsMatrix33f* result,
  */
 DS_PARTICLE_EXPORT void dsParticle_randomSize(dsParticle* particle, uint32_t* seed,
 	const dsVector2f* widthRange, const dsVector2f* heightRange);
+
+/**
+ * @brief Creates a direction matrix for use in dsParticle_randomDirection() with a single base
+ *     direction.
+ * @param[out] result The direction matrix.
+ * @param baseDirection The base direction to orient the matrix. This is expected to be normalized.
+ */
+DS_PARTICLE_EXPORT void dsParticle_createDirectionMatrix(dsMatrix33f* result,
+	const dsVector3f* baseDirection);
 
 /**
  * @brief Generates a random direction for a particle.

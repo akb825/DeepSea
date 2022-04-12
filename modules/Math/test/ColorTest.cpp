@@ -170,7 +170,7 @@ static bool testHSLColor4f(float red, float green, float blue, float hue, float 
 	return success;
 }
 
-TEST(Color, YUVandRGBMatrices)
+TEST(ColorTest, YUVandRGBMatrices)
 {
 	dsMatrix33f identity;
 	dsMatrix33_identity(identity);
@@ -218,7 +218,7 @@ TEST(Color, YUVandRGBMatrices)
 	EXPECT_NEAR(0.0f, yuvColor.z, 1e-4f);
 }
 
-TEST(Color, CreateHSVTransform)
+TEST(ColorTest, CreateHSVTransform)
 {
 	dsMatrix33f identity;
 	dsMatrix33_identity(identity);
@@ -275,7 +275,7 @@ TEST(Color, CreateHSVTransform)
 	EXPECT_NEAR(0.15f, transformedColor.b, 1e-4f);
 }
 
-TEST(Color, ConvertColorAndColor3f)
+TEST(ColorTest, ConvertColorAndColor3f)
 {
 	dsColor color = {{10, 20, 30, 40}};
 	dsColor3f color3f;
@@ -298,7 +298,7 @@ TEST(Color, ConvertColorAndColor3f)
 	EXPECT_EQ(255, color.b);
 }
 
-TEST(Color, ConvertColorAndColor4f)
+TEST(ColorTest, ConvertColorAndColor4f)
 {
 	dsColor color = {{10, 20, 30, 40}};
 	dsColor4f color4f;
@@ -325,7 +325,7 @@ TEST(Color, ConvertColorAndColor4f)
 	EXPECT_EQ(255, color.a);
 }
 
-TEST(Color, ConvertColor3fAndColor4f)
+TEST(ColorTest, ConvertColor3fAndColor4f)
 {
 	dsColor4f color4f = {{0.1f, 0.2f, 0.3f, 0.4f}};
 	dsColor3f color3f;
@@ -341,7 +341,7 @@ TEST(Color, ConvertColor3fAndColor4f)
 	EXPECT_EQ(1.0f, color4f.a);
 }
 
-TEST(Color, ConvertColorAndHSVColor)
+TEST(ColorTest, ConvertColorAndHSVColor)
 {
 	float epsilon = 1e-2f;
 	EXPECT_TRUE(testHSVColor(0, 0, 0, 0.0f, 0.0f, 0.0f, epsilon));
@@ -368,7 +368,7 @@ TEST(Color, ConvertColorAndHSVColor)
 	EXPECT_TRUE(testHSVColor(64, 128, 64, 120.0f, 0.5f, 0.5f, epsilon));
 }
 
-TEST(Color, ConvertColor3fAndHSVColor)
+TEST(ColorTest, ConvertColor3fAndHSVColor)
 {
 	float epsilon = 1e-6f;
 	EXPECT_TRUE(testHSVColor3f(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, epsilon));
@@ -395,7 +395,7 @@ TEST(Color, ConvertColor3fAndHSVColor)
 	EXPECT_TRUE(testHSVColor3f(0.25f, 0.5f, 0.25f, 120.0f, 0.5f, 0.5f, epsilon));
 }
 
-TEST(Color, ConvertColor4fAndHSVColor)
+TEST(ColorTest, ConvertColor4fAndHSVColor)
 {
 	float epsilon = 1e-6f;
 	EXPECT_TRUE(testHSVColor4f(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, epsilon));
@@ -422,7 +422,7 @@ TEST(Color, ConvertColor4fAndHSVColor)
 	EXPECT_TRUE(testHSVColor4f(0.25f, 0.5f, 0.25f, 120.0f, 0.5f, 0.5f, epsilon));
 }
 
-TEST(Color, ConvertColorAndHSLColor)
+TEST(ColorTest, ConvertColorAndHSLColor)
 {
 	float epsilon = 1e-2f;
 	EXPECT_TRUE(testHSLColor(0, 0, 0, 0.0f, 0.0f, 0.0f, epsilon));
@@ -449,7 +449,7 @@ TEST(Color, ConvertColorAndHSLColor)
 	EXPECT_TRUE(testHSLColor(64, 192, 64, 120.0f, 0.5f, 0.5f, epsilon));
 }
 
-TEST(Color, ConvertColor3fAndHSLColor)
+TEST(ColorTest, ConvertColor3fAndHSLColor)
 {
 	float epsilon = 1e-6f;
 	EXPECT_TRUE(testHSLColor3f(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, epsilon));
@@ -476,7 +476,7 @@ TEST(Color, ConvertColor3fAndHSLColor)
 	EXPECT_TRUE(testHSLColor3f(0.25f, 0.75f, 0.25f, 120.0f, 0.5f, 0.5f, epsilon));
 }
 
-TEST(Color, ConvertColor4fAndHSLColor)
+TEST(ColorTest, ConvertColor4fAndHSLColor)
 {
 	float epsilon = 1e-6f;
 	EXPECT_TRUE(testHSLColor4f(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, epsilon));
@@ -503,7 +503,7 @@ TEST(Color, ConvertColor4fAndHSLColor)
 	EXPECT_TRUE(testHSLColor4f(0.25f, 0.75f, 0.25f, 120.0f, 0.5f, 0.5f, epsilon));
 }
 
-TEST(Color, ConvertSRGBLinear)
+TEST(ColorTest, ConvertSRGBLinear)
 {
 	const float epsilon = 1e-6f;
 	EXPECT_NEAR(0.0f, dsSRGBFromLinear(0.0f), epsilon);
@@ -519,7 +519,7 @@ TEST(Color, ConvertSRGBLinear)
 	EXPECT_NEAR(1.0f, dsLinearFromSRGB(1.0f), epsilon);
 }
 
-TEST(Color, ConvertSRGBLinearColor3f)
+TEST(ColorTest, ConvertSRGBLinearColor3f)
 {
 	const float epsilon = 1e-6f;
 	dsColor3f color = {{0.01f, 0.25f, 0.75f}};
@@ -536,7 +536,7 @@ TEST(Color, ConvertSRGBLinearColor3f)
 	EXPECT_NEAR(0.5225216f, convertedColor.b, epsilon);
 }
 
-TEST(Color, ConvertSRGBLinearColor4f)
+TEST(ColorTest, ConvertSRGBLinearColor4f)
 {
 	const float epsilon = 1e-6f;
 	dsColor4f color = {{0.01f, 0.25f, 0.75f, 0.5f}};
@@ -555,7 +555,7 @@ TEST(Color, ConvertSRGBLinearColor4f)
 	EXPECT_EQ(0.5f, convertedColor.a);
 }
 
-TEST(Color, ConvertSRGBLinearHSVColor)
+TEST(ColorTest, ConvertSRGBLinearHSVColor)
 {
 	const float epsilon = 1e-6f;
 	dsColor4f color4f = {{0.01f, 0.25f, 0.75f, 0.5f}};
@@ -578,7 +578,7 @@ TEST(Color, ConvertSRGBLinearHSVColor)
 	EXPECT_EQ(0.5f, convertedColor.a);
 }
 
-TEST(Color, ConvertSRGBLinearHSLColor)
+TEST(ColorTest, ConvertSRGBLinearHSLColor)
 {
 	const float epsilon = 1e-6f;
 	dsColor4f color4f = {{0.01f, 0.25f, 0.75f, 0.5f}};
@@ -601,7 +601,7 @@ TEST(Color, ConvertSRGBLinearHSLColor)
 	EXPECT_EQ(0.5f, convertedColor.a);
 }
 
-TEST(Color, ConvertGrayscale)
+TEST(ColorTest, ConvertGrayscale)
 {
 	dsColor color = {{10, 20, 30}};
 	EXPECT_EQ(19U, dsColor_grayscale(color));
@@ -621,7 +621,7 @@ TEST(Color, ConvertGrayscale)
 	EXPECT_FLOAT_EQ(0.18596f, dsHSLColor_grayscale(&hslColor));
 }
 
-TEST(Color, LerpColor)
+TEST(ColorTest, LerpColor)
 {
 	dsColor color1 = {{10, 20, 30, 40}};
 	dsColor color2 = {{110, 120, 130, 140}};
@@ -647,7 +647,7 @@ TEST(Color, LerpColor)
 	EXPECT_EQ(70, color.a);
 }
 
-TEST(Color, LerpColor3f)
+TEST(ColorTest, LerpColor3f)
 {
 	dsColor3f color1 = {{0.1f, 0.2f, 0.3f}};
 	dsColor3f color2 = {{0.61f, 0.72f, 0.83f}};
@@ -669,7 +669,7 @@ TEST(Color, LerpColor3f)
 	EXPECT_FLOAT_EQ(expectedColor.b, color.b);
 }
 
-TEST(Color, LerpColor4f)
+TEST(ColorTest, LerpColor4f)
 {
 	dsColor4f color1 = {{0.1f, 0.2f, 0.3f, 0.4f}};
 	dsColor4f color2 = {{0.61f, 0.72f, 0.83f, 0.94f}};
@@ -693,7 +693,7 @@ TEST(Color, LerpColor4f)
 	EXPECT_FLOAT_EQ(0.562f, color.a);
 }
 
-TEST(Color, LerpHSVColor)
+TEST(ColorTest, LerpHSVColor)
 {
 	dsHSVColor color1 = {{0.1f, 0.2f, 0.3f, 0.4f}};
 	dsHSVColor color2 = {{0.61f, 0.72f, 0.83f, 0.94f}};
@@ -717,7 +717,7 @@ TEST(Color, LerpHSVColor)
 	EXPECT_FLOAT_EQ(0.562f, color.a);
 }
 
-TEST(Color, LerpHSLColor)
+TEST(ColorTest, LerpHSLColor)
 {
 	dsHSLColor color1 = {{0.1f, 0.2f, 0.3f, 0.4f}};
 	dsHSLColor color2 = {{0.61f, 0.72f, 0.83f, 0.94f}};
@@ -741,7 +741,7 @@ TEST(Color, LerpHSLColor)
 	EXPECT_FLOAT_EQ(0.562f, color.a);
 }
 
-TEST(Color, EqualColor)
+TEST(ColorTest, EqualColor)
 {
 	dsColor color1 = {{10, 20, 30, 40}};
 	dsColor color2 = {{0, 20, 30, 40}};
@@ -756,7 +756,7 @@ TEST(Color, EqualColor)
 	EXPECT_FALSE(dsColor_equal(color1, color5));
 }
 
-TEST(Color, EqualColor3f)
+TEST(ColorTest, EqualColor3f)
 {
 	dsColor3f color1 = {{0.1f, 0.2f, 0.3f}};
 	dsColor3f color2 = {{0.0f, 0.2f, 0.3f}};
@@ -769,7 +769,7 @@ TEST(Color, EqualColor3f)
 	EXPECT_FALSE(dsColor3f_equal(&color1, &color4));
 }
 
-TEST(Color, EqualColor4f)
+TEST(ColorTest, EqualColor4f)
 {
 	dsColor4f color1 = {{0.1f, 0.2f, 0.3f, 0.4f}};
 	dsColor4f color2 = {{0.0f, 0.2f, 0.3f, 0.4f}};
@@ -784,7 +784,7 @@ TEST(Color, EqualColor4f)
 	EXPECT_FALSE(dsColor4f_equal(&color1, &color5));
 }
 
-TEST(Color, EqualHSVColor)
+TEST(ColorTest, EqualHSVColor)
 {
 	dsHSVColor color1 = {{0.1f, 0.2f, 0.3f, 0.4f}};
 	dsHSVColor color2 = {{0.0f, 0.2f, 0.3f, 0.4f}};
@@ -799,7 +799,7 @@ TEST(Color, EqualHSVColor)
 	EXPECT_FALSE(dsHSVColor_equal(&color1, &color5));
 }
 
-TEST(Color, EqualHSLColor)
+TEST(ColorTest, EqualHSLColor)
 {
 	dsHSLColor color1 = {{0.1f, 0.2f, 0.3f, 0.4f}};
 	dsHSLColor color2 = {{0.0f, 0.2f, 0.3f, 0.4f}};
@@ -814,7 +814,7 @@ TEST(Color, EqualHSLColor)
 	EXPECT_FALSE(dsHSLColor_equal(&color1, &color5));
 }
 
-TEST(Color, EpsilonEqualColor3f)
+TEST(ColorTest, EpsilonEqualColor3f)
 {
 	float epsilon = 1e-3f;
 	dsColor3f color1 = {{0.1f, 0.2f, 0.3f}};
@@ -829,7 +829,7 @@ TEST(Color, EpsilonEqualColor3f)
 	EXPECT_FALSE(dsColor3f_epsilonEqual(&color1, &color5, epsilon));
 }
 
-TEST(Color, EpsilonEqualColor4f)
+TEST(ColorTest, EpsilonEqualColor4f)
 {
 	float epsilon = 1e-3f;
 	dsColor4f color1 = {{0.1f, 0.2f, 0.3f, 0.4f}};
@@ -846,7 +846,7 @@ TEST(Color, EpsilonEqualColor4f)
 	EXPECT_FALSE(dsColor4f_epsilonEqual(&color1, &color6, epsilon));
 }
 
-TEST(Color, EpsilonEqualHSVColor)
+TEST(ColorTest, EpsilonEqualHSVColor)
 {
 	float epsilon = 1e-3f;
 	dsHSVColor color1 = {{0.1f, 0.2f, 0.3f, 0.4f}};
@@ -863,7 +863,7 @@ TEST(Color, EpsilonEqualHSVColor)
 	EXPECT_FALSE(dsHSVColor_epsilonEqual(&color1, &color6, epsilon));
 }
 
-TEST(Color, EpsilonEqualHSLColor)
+TEST(ColorTest, EpsilonEqualHSLColor)
 {
 	float epsilon = 1e-3f;
 	dsHSLColor color1 = {{0.1f, 0.2f, 0.3f, 0.4f}};

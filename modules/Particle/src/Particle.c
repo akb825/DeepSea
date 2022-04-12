@@ -73,6 +73,7 @@ void dsParticle_createDirectionMatrix(dsMatrix33f* result, const dsVector3f* bas
 {
 	DS_ASSERT(result);
 	DS_ASSERT(baseDirection);
+	DS_ASSERT(dsEpsilonEqualf(dsVector3f_len(baseDirection), 1.0f, 1e-5f));
 
 	result->columns[2] = *baseDirection;
 
