@@ -539,8 +539,7 @@ struct dsView
 
 	/**
 	 * @brief Global material values to do while drawing.
-	 *
-	 * The contents of this may be modified as needed.
+	 * @remark The contents of this may be modified as needed.
 	 */
 	dsSharedMaterialValues* globalValues;
 };

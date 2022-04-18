@@ -16,10 +16,24 @@
 
 #include <DeepSea/Particle/ParticleEmitter.h>
 
+#include "ParticleEmitterInternal.h"
+
+#include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
+#include <DeepSea/Core/Memory/Lifetime.h>
+#include <DeepSea/Core/Thread/Spinlock.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
+#include <DeepSea/Core/Log.h>
+
+#include <DeepSea/Geometry/AlignedBox3.h>
+#include <DeepSea/Geometry/OrientedBox3.h>
+
+#include <DeepSea/Math/Matrix44.h>
+#include <DeepSea/Math/Vector3.h>
+
+#include <DeepSea/Particle/ParticleDraw.h>
 
 dsParticleEmitter* dsParticleEmitter_create(dsAllocator* allocator, size_t sizeofParticleEmitter,
 	size_t sizeofParticle, uint32_t maxParticles, dsUpdateParticleEmitterFunction updateFunc,
@@ -29,6 +43,14 @@ dsParticleEmitter* dsParticleEmitter_create(dsAllocator* allocator, size_t sizeo
 		sizeofParticle < sizeof(dsParticle) || maxParticles == 0 || !updateFunc)
 	{
 		errno = EINVAL;
+		return NULL;
+	}
+
+	if (!allocator->freeFunc)
+	{
+		errno = EINVAL;
+		DS_LOG_ERROR(DS_PARTICLE_LOG_TAG,
+			"Particle emitter allocator must support freeing memory.");
 		return NULL;
 	}
 
@@ -55,8 +77,24 @@ dsParticleEmitter* dsParticleEmitter_create(dsAllocator* allocator, size_t sizeo
 	emitter->particleCount = 0;
 	emitter->maxParticles = maxParticles;
 
+	dsMatrix44_identity(emitter->transform);
+	dsOrientedBox3_makeInvalid(emitter->bounds);
+
 	emitter->updateFunc = updateFunc;
 	emitter->destroyFunc = destroyFunc;
+
+	emitter->drawers = NULL;
+	emitter->drawerCount = 0;
+	emitter->maxDrawers = 0;
+
+	emitter->lifetime = dsLifetime_create(allocator, emitter);
+	if (!emitter->lifetime)
+	{
+		DS_VERIFY(dsAllocator_free(allocator, emitter));
+		return NULL;
+	}
+
+	DS_VERIFY(dsSpinlock_initialize(&emitter->drawerLock));
 	return emitter;
 }
 
@@ -78,13 +116,112 @@ bool dsParticleEmitter_update(dsParticleEmitter* emitter, float time)
 	emitter->particles = nextParticles;
 	emitter->tempParticles = curParticles;
 	emitter->particleCount = nextParticleCount;
+
+	// Update the bounds once we've gotten the full particle list.
+	dsAlignedBox3f baseBounds;
+	dsAlignedBox3f_makeInvalid(&baseBounds);
+
+	uint8_t* particleEnd = emitter->particles + emitter->particleCount*emitter->sizeofParticle;
+	for (uint8_t* particlePtr = emitter->particles; particlePtr < particleEnd;
+		particlePtr += emitter->sizeofParticle)
+	{
+		dsParticle* particle = (dsParticle*)particlePtr;
+
+		// Take the maximum volume the particle can occupy.
+		float maxOffset = (float)(M_SQRT2*dsMax(particle->size.x, particle->size.y));
+		dsVector3f offset = {{maxOffset, maxOffset, maxOffset}};
+
+		dsVector3f position;
+		dsVector3_add(position, particle->position, offset);
+		dsAlignedBox3_addPoint(baseBounds, position);
+
+		dsVector3_sub(position, particle->position, offset);
+		dsAlignedBox3_addPoint(baseBounds, position);
+	}
+
+	if (dsAlignedBox3_isValid(baseBounds))
+	{
+		dsOrientedBox3f_fromAlignedBox(&emitter->bounds, &baseBounds);
+		dsOrientedBox3f_transform(&emitter->bounds, &emitter->transform);
+	}
+	else
+		dsOrientedBox3_makeInvalid(emitter->bounds);
+
 	return true;
 }
 
 void dsParticleEmitter_destroy(dsParticleEmitter* emitter)
 {
-	if (!emitter || !emitter->destroyFunc)
+	if (!emitter)
 		return;
 
-	emitter->destroyFunc(emitter);
+	// Clear out the array inside the lock to avoid nested locking that can result in deadlocks.
+	DS_VERIFY(dsSpinlock_lock(&emitter->drawerLock));
+	dsLifetime** drawers = emitter->drawers;
+	uint32_t drawerCount = emitter->drawerCount;
+	emitter->drawers = NULL;
+	emitter->drawerCount = 0;
+	emitter->maxDrawers = 0;
+	DS_VERIFY(dsSpinlock_unlock(&emitter->drawerLock));
+
+	for (uint32_t i = 0; i < drawerCount; ++i)
+	{
+		dsParticleDraw* drawer = (dsParticleDraw*)dsLifetime_acquire(drawers[i]);
+		if (drawer)
+		{
+			dsParticleDraw_removeEmitter(drawer, emitter);
+			dsLifetime_release(drawers[i]);
+		}
+		dsLifetime_freeRef(drawers[i]);
+	}
+
+	dsLifetime_destroy(emitter->lifetime);
+	dsSpinlock_shutdown(&emitter->drawerLock);
+
+	if (emitter->destroyFunc)
+		emitter->destroyFunc(emitter);
+}
+
+bool dsParticleEmitter_addDrawer(dsParticleEmitter* emitter, dsLifetime* drawer)
+{
+	DS_ASSERT(emitter);
+	DS_ASSERT(drawer);
+
+	DS_VERIFY(dsSpinlock_lock(&emitter->drawerLock));
+
+	uint32_t drawerIndex = emitter->drawerCount;
+	if (!DS_RESIZEABLE_ARRAY_ADD(emitter->allocator, emitter->drawers, emitter->drawerCount,
+			emitter->maxDrawers, 1))
+	{
+		DS_VERIFY(dsSpinlock_unlock(&emitter->drawerLock));
+		return false;
+	}
+
+	emitter->drawers[drawerIndex] = dsLifetime_addRef(drawer);
+
+	DS_VERIFY(dsSpinlock_unlock(&emitter->drawerLock));
+	return true;
+}
+
+bool dsParticleEmitter_removeDrawer(dsParticleEmitter* emitter, dsLifetime* drawer)
+{
+	DS_VERIFY(dsSpinlock_lock(&emitter->drawerLock));
+
+	uint32_t drawerIndex;
+	for (drawerIndex = 0; drawerIndex < emitter->drawerCount; ++drawerIndex)
+	{
+		if (emitter->drawers[drawerIndex] == drawer)
+			break;
+	}
+
+	bool exists = drawerIndex < emitter->drawerCount;
+	if (exists)
+	{
+		DS_VERIFY(DS_RESIZEABLE_ARRAY_REMOVE(
+			emitter->drawers, emitter->drawerCount, drawerIndex, 1));
+		dsLifetime_freeRef(drawer);
+	}
+
+	DS_VERIFY(dsSpinlock_unlock(&emitter->drawerLock));
+	return exists;
 }

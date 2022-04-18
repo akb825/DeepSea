@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Aaron Barany
+ * Copyright 2021-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,7 +51,7 @@
 typedef struct BufferInfo
 {
 	dsGfxBuffer* buffer;
-	dsDrawGeometry* ambientGometry;
+	dsDrawGeometry* ambientGeometry;
 	dsDrawGeometry* lightGeometries[dsSceneLightType_Count];
 	uint64_t lastUsedFrame;
 } BufferInfo;
@@ -107,7 +107,7 @@ struct dsDeferredLightResolve
 
 static void freeBuffers(BufferInfo* buffers)
 {
-	dsDrawGeometry_destroy(buffers->ambientGometry);
+	dsDrawGeometry_destroy(buffers->ambientGeometry);
 	for (int i = 0; i < dsSceneLightType_Count; ++i)
 		dsDrawGeometry_destroy(buffers->lightGeometries[i]);
 	dsGfxBuffer_destroy(buffers->buffer);
@@ -167,10 +167,10 @@ static BufferInfo* getDrawBuffers(dsDeferredLightResolve* resolve, dsRenderer* r
 		indexBuffer.offset = resolve->ambientIndexOffset;
 		indexBuffer.count = DS_DIRECTIONAL_LIGHT_INDEX_COUNT;
 		indexBuffer.indexSize = (uint32_t)sizeof(uint16_t);
-		buffers->ambientGometry = dsDrawGeometry_create(resourceManager, resolve->resourceAllocator,
+		buffers->ambientGeometry = dsDrawGeometry_create(resourceManager, resolve->resourceAllocator,
 			vertexBuffers, &indexBuffer);
 
-		if (!buffers->ambientGometry)
+		if (!buffers->ambientGeometry)
 		{
 			freeBuffers(buffers);
 			--resolve->bufferCount;
@@ -396,7 +396,7 @@ void dsDeferredLightResolve_commit(dsSceneItemList* itemList, const dsView* view
 		drawRange.indexCount = DS_AMBIENT_LIGHT_INDEX_COUNT;
 		drawRange.vertexOffset = 0;
 		DS_CHECK(DS_SCENE_LIGHTING_LOG_TAG, dsRenderer_drawIndexed(renderer, commandBuffer,
-			buffers->ambientGometry, &drawRange, dsPrimitiveType_TriangleList));
+			buffers->ambientGeometry, &drawRange, dsPrimitiveType_TriangleList));
 
 		DS_CHECK(DS_SCENE_LIGHTING_LOG_TAG, dsShader_unbind(shader, commandBuffer));
 	}

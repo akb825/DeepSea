@@ -34,7 +34,8 @@ extern "C"
 /**
  * @brief Creates a particle emitter.
  * @remark errno will be set on failure.
- * @param allocator The allocator to create the particle emitter from.
+ * @param allocator The allocator to create the particle emitter from. This must support freeing
+ *     memory.
  * @param sizeofParticleEmitter The size of the particle emitter structure.
  * @param sizeofParticle The size of the particle structure.
  * @param maxParticles The maximum number of particles that can be emitted.

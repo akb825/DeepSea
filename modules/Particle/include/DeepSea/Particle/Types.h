@@ -223,6 +223,19 @@ struct dsParticleEmitter
 	uint32_t maxParticles;
 
 	/**
+	 * @brief The transform to apply to the particles.
+	 * @remark This member may be modified directly.
+	 */
+	dsMatrix44f transform;
+
+	/**
+	 * @brief The bounds of the particles in world space.
+	 *
+	 * This will be automatically computed on update.
+	 */
+	dsOrientedBox3f bounds;
+
+	/**
 	 * @brief Function to update the particle emitter.
 	 */
 	dsUpdateParticleEmitterFunction updateFunc;
@@ -231,6 +244,31 @@ struct dsParticleEmitter
 	 * @brief Function to destroy the particle emitter.
 	 */
 	dsDestroyParticleEmitterFunction destroyFunc;
+
+	/**
+	 * @brief Object tracking the lifetime of the emitter.
+	 */
+	dsLifetime* lifetime;
+
+	/**
+	 * @brief List of particle drawers the emitter is used with.
+	 */
+	dsLifetime** drawers;
+
+	/**
+	 * @brief The number of drawers the emitter is used with.
+	 */
+	uint32_t drawerCount;
+
+	/**
+	 * @brief The maximum number of drawers currently available in the array.
+	 */
+	uint32_t maxDrawers;
+
+	/**
+	 * @brief Lock to allow for concurrent modifications of the drawer array.
+	 */
+	dsSpinlock drawerLock;
 };
 
 /**
@@ -328,6 +366,12 @@ typedef struct dsStandardParticleEmitterOptions
  * @see StandardParticleEmitter.h
  */
 typedef struct dsStandardParticleEmitter dsStandardParticleEmitter;
+
+/**
+ * @brief Struct for drawing particles created by a particle emitter.
+ * @see ParticleDrawer.h
+ */
+typedef struct dsParticleDraw dsParticleDraw;
 
 #ifdef __cplusplus
 }
