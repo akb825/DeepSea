@@ -1,24 +1,7 @@
+[TOC]
 # Scene Conversion
 
 These are the different types supported for conversion in the scene library. The JSON layout is given for each type. This only contains types defined directly in the Scene library, additional types may be registered externally as extensions.
-
-* [Scene Resources](#scene-resources)
-	* [Model Node](#model-node)
-	* [Model Node Remap](#model-node-remap)
-	* [Model Node Reconfig](#model-node-reconfig)
-	* [Transform Node](#transform-node)
-	* [Reference Node](#reference-node)
-* [Scene](#scene)
-	* [Item Lists](#item-lists)
-		* [Model List](#model-list)
-		* [Full Screen Resolve](#full-screen-resolve)
-		* [View Cull List](#view-cull-list)
-	* [Instance Data](#instance-data)
-		* [Instance Transform Data](#instance-transform-data)
-		* [View Cull List](#view-cull-list)
-	* [Global Data](#global-data)
-		* [View Transform Data](#view-transform-data)
-* [View](#view)
 
 # Scene Resources
 
@@ -135,7 +118,7 @@ The different types for scene nodes are documented below.
 
 Model nodes have the type string "ModelNode" and contains the following data members:
 
-* `embeddedResources`: optional set of resources to embed with the node. This is a map containing the elements as expected by [Scene Resources](#scene-resources).
+* `embeddedResources`: optional set of resources to embed with the node. This is a map containing the elements as expected by Scene Resources.
 * `modelGeometry`: array of model geometry. Each element of the array has the following members:
 	* `type`: the name of the geometry type, such as "obj" or "gltf". If omitted, the type is inferred from the path extension.
 	* `path`: the path to the geometry.
