@@ -167,17 +167,17 @@ static void dsStandardParticleEmitter_destroy(dsParticleEmitter* emitter)
 }
 
 dsStandardParticleEmitter* dsStandardParticleEmitter_create(dsAllocator* allocator,
-	uint32_t maxParticles, uint32_t seed, const dsStandardParticleEmitterOptions* options,
-	bool enabled, float startTime)
+	const dsParticleEmitterParams* params, uint32_t seed,
+	const dsStandardParticleEmitterOptions* options, bool enabled, float startTime)
 {
-	if (!allocator || !options)
+	if (!allocator || !params || !options)
 	{
 		errno = EINVAL;
 		return NULL;
 	}
 
 	dsStandardParticleEmitter* emitter = (dsStandardParticleEmitter*)dsParticleEmitter_create(
-		allocator, sizeof(dsStandardParticleEmitter), sizeof(dsStandardParticle), maxParticles,
+		allocator, sizeof(dsStandardParticleEmitter), sizeof(dsStandardParticle), params,
 		&dsStandardParticleEmitter_update, &dsStandardParticleEmitter_destroy);
 	if (!emitter)
 		return NULL;

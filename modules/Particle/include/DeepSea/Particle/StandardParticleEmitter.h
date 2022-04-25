@@ -35,7 +35,7 @@ extern "C"
  * @brief Creates a standard particle emitter.
  * @remark errno will be set on failure.
  * @param allocator The allocator to create the particle emitter with.
- * @param maxParticles The maximum number of particles that may be active.
+ * @param params The list of common particle emitter parameters.
  * @param seed The seed value for random values.
  * @param options The options for the particle emitter. This must not be NULL.
  * @param enabled Whether or not new particles will be created.
@@ -44,7 +44,7 @@ extern "C"
  * @return The particle emitter or NULL if an error occurred.
  */
 DS_PARTICLE_EXPORT dsStandardParticleEmitter* dsStandardParticleEmitter_create(
-	dsAllocator* allocator, uint32_t maxParticles, uint32_t seed,
+	dsAllocator* allocator, const dsParticleEmitterParams* params, uint32_t seed,
 	const dsStandardParticleEmitterOptions* options, bool enabled, float startTime);
 
 /**

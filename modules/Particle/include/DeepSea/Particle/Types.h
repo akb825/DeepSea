@@ -20,6 +20,7 @@
 #include <DeepSea/Core/Types.h>
 #include <DeepSea/Geometry/Types.h>
 #include <DeepSea/Math/Types.h>
+#include <DeepSea/Render/Resources/Types.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -182,10 +183,73 @@ typedef uint32_t (*dsUpdateParticleEmitterFunction)(dsParticleEmitter* emitter, 
 	const uint8_t* curParticles, uint32_t curParticleCount, uint8_t* nextParticles);
 
 /**
+ * @brief Function to populate the instance values for a particle emitter.
+ * @param emitter The emitter to populate the values for. This should not be modified as drawing
+ *     may occur across multiple threads.
+ * @param userData User data provided for use with this function.
+ * @param values The values to populate.
+ */
+typedef void (*dsPopulateParticleEmitterInstanceValues)(const dsParticleEmitter* emitter,
+	void* userData, dsSharedMaterialValues* values);
+
+/**
  * @brief Function to destroy a particle emitter.
  * @param emitter The particle emitter to destroy.
  */
 typedef void (*dsDestroyParticleEmitterFunction)(dsParticleEmitter* emitter);
+
+/**
+ * @brief Struct containing common parameters across particle emitters.
+ *
+ * These parameters are typically provided across all different particle emitter types and forwarded
+ * to the base dsParticleEmitter. This prevents extremely long create() function parameter lists
+ * with a significant amount of duplication.
+ *
+ * @see dsParticleEmitter
+ * @see ParticleEmitter.h
+ */
+typedef struct dsParticleEmitterParams
+{
+	/**
+	 * @brief The maximum number of particles that can be emitted.
+	 *
+	 * This must not be 0.
+	 */
+	uint32_t maxParticles;
+
+	/**
+	 * @brief The shader to draw the particles with.
+	 *
+	 * This must not be NULL.
+	 */
+	dsShader* shader;
+
+	/**
+	 * @brief The material to draw the particles with.
+	 */
+	dsMaterial* material;
+
+	/**
+	 * @brief The number of material values with instance binding.
+	 *
+	 * This will take the maximum of instanceValueCount and instance bindings in the material. In
+	 * most cases this can be set to 0 to simply infer it from the material, but may be set to a
+	 * larger value if the shader and material may be changed later.
+	 */
+	uint32_t instanceValueCount;
+
+	/**
+	 * @brief Function to populate the instance values for the particle emitter.
+	 *
+	 * This may be NULL if there are no instance values to populate.
+	 */
+	dsPopulateParticleEmitterInstanceValues populateInstanceValuesFunc;
+
+	/**
+	 * @brief User data to provide to populateInstanceValuesFunc.
+	 */
+	void* populateInstanceValuesUserData;
+} dsParticleEmitterParams;
 
 /**
  * @copydoc dsParticleEmitter
@@ -223,6 +287,23 @@ struct dsParticleEmitter
 	uint32_t maxParticles;
 
 	/**
+	 * @brief The number of material values with instance binding that will be required.
+	 */
+	uint32_t instanceValueCount;
+
+	/**
+	 * @brief The shader used to draw the particles.
+	 * @remark This member may be modified directly.
+	 */
+	dsShader* shader;
+
+	/**
+	 * @brief The material used to draw the particles.
+	 * @remark This member may be modified directly.
+	 */
+	dsMaterial* material;
+
+	/**
 	 * @brief The transform to apply to the particles.
 	 * @remark This member may be modified directly.
 	 */
@@ -239,6 +320,16 @@ struct dsParticleEmitter
 	 * @brief Function to update the particle emitter.
 	 */
 	dsUpdateParticleEmitterFunction updateFunc;
+
+	/**
+	 * @brief Function to populate the instance values for the particle emitter.
+	 */
+	dsPopulateParticleEmitterInstanceValues populateInstanceValuesFunc;
+
+	/**
+	 * @brief User data to provide to populateInstanceValuesFunc.
+	 */
+	void* populateInstanceValuesUserData;
 
 	/**
 	 * @brief Function to destroy the particle emitter.

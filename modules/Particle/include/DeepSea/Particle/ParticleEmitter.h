@@ -38,13 +38,13 @@ extern "C"
  *     memory.
  * @param sizeofParticleEmitter The size of the particle emitter structure.
  * @param sizeofParticle The size of the particle structure.
- * @param maxParticles The maximum number of particles that can be emitted.
+ * @param params The list of common particle emitter parameters.
  * @param updateFunc The function to update the particle emitter.
  * @param destroyFunc The function to destroy the particle emitter.
  * @return The particle emitter or NULL if an error occurred.
  */
 DS_PARTICLE_EXPORT dsParticleEmitter* dsParticleEmitter_create(dsAllocator* allocator,
-	size_t sizeofParticleEmitter, size_t sizeofParticle, uint32_t maxParticles,
+	size_t sizeofParticleEmitter, size_t sizeofParticle, const dsParticleEmitterParams* params,
 	dsUpdateParticleEmitterFunction updateFunc, dsDestroyParticleEmitterFunction destroyFunc);
 
 /**
@@ -55,6 +55,16 @@ DS_PARTICLE_EXPORT dsParticleEmitter* dsParticleEmitter_create(dsAllocator* allo
  * @return False if an error occurred.
  */
 DS_PARTICLE_EXPORT bool dsParticleEmitter_update(dsParticleEmitter* emitter, float time);
+
+/**
+ * @brief Populates a set of instance values to use when drawing the particle emitter.
+ * @remark errno will be set on failure.
+ * @param emitter The particle emitter to populate the instance values for.
+ * @param values The instance values to populate.
+ * @return False if an error occurred.
+ */
+DS_PARTICLE_EXPORT bool dsparticleEmitter_populateInstanceValues(const dsParticleEmitter* emitter,
+	dsSharedMaterialValues* values);
 
 /**
  * @brief Destroys a particle emitter.

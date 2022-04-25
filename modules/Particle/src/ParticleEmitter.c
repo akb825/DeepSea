@@ -30,17 +30,21 @@
 #include <DeepSea/Geometry/AlignedBox3.h>
 #include <DeepSea/Geometry/OrientedBox3.h>
 
+#include <DeepSea/Math/Core.h>
 #include <DeepSea/Math/Matrix44.h>
 #include <DeepSea/Math/Vector3.h>
 
 #include <DeepSea/Particle/ParticleDraw.h>
 
+#include <DeepSea/Render/Resources/Material.h>
+
 dsParticleEmitter* dsParticleEmitter_create(dsAllocator* allocator, size_t sizeofParticleEmitter,
-	size_t sizeofParticle, uint32_t maxParticles, dsUpdateParticleEmitterFunction updateFunc,
-	dsDestroyParticleEmitterFunction destroyFunc)
+	size_t sizeofParticle, const dsParticleEmitterParams* params,
+	dsUpdateParticleEmitterFunction updateFunc, dsDestroyParticleEmitterFunction destroyFunc)
 {
 	if (!allocator || sizeofParticleEmitter < sizeof(dsParticleEmitter) ||
-		sizeofParticle < sizeof(dsParticle) || maxParticles == 0 || !updateFunc)
+		sizeofParticle < sizeof(dsParticle) || !params || params->maxParticles == 0 ||
+		!params->shader || !params->material || !updateFunc || !destroyFunc)
 	{
 		errno = EINVAL;
 		return NULL;
@@ -54,8 +58,24 @@ dsParticleEmitter* dsParticleEmitter_create(dsAllocator* allocator, size_t sizeo
 		return NULL;
 	}
 
+	uint32_t materialInstanceValueCount = 0;
+	const dsMaterialDesc* materialDesc = dsMaterial_getDescription(params->material);
+	for (uint32_t i = 0; i < materialDesc->elementCount; ++i)
+	{
+		materialInstanceValueCount +=
+			materialDesc->elements[i].binding == dsMaterialBinding_Instance;
+	}
+	uint32_t instanceValueCount = dsMax(params->instanceValueCount, materialInstanceValueCount);
+	if (instanceValueCount > 0 && !params->populateInstanceValuesFunc)
+	{
+		errno = EINVAL;
+		DS_LOG_ERROR(DS_PARTICLE_LOG_TAG, "Particle must have a populate instance values function "
+			"if instance values are present.");
+		return NULL;
+	}
+
 	size_t fullSize = DS_ALIGNED_SIZE(sizeofParticleEmitter) +
-		DS_ALIGNED_SIZE(sizeofParticle*maxParticles)*2;
+		DS_ALIGNED_SIZE(sizeofParticle*params->maxParticles)*2;
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 		return NULL;
@@ -68,19 +88,25 @@ dsParticleEmitter* dsParticleEmitter_create(dsAllocator* allocator, size_t sizeo
 
 	emitter->allocator = dsAllocator_keepPointer(allocator);
 	emitter->particles = (uint8_t*)dsAllocator_alloc((dsAllocator*)&bufferAlloc,
-		sizeofParticle*maxParticles);
+		sizeofParticle*params->maxParticles);
 	DS_ASSERT(emitter->particles);
 	emitter->tempParticles = (uint8_t*)dsAllocator_alloc((dsAllocator*)&bufferAlloc,
-		sizeofParticle*maxParticles);
+		sizeofParticle*params->maxParticles);
 	DS_ASSERT(emitter->tempParticles);
 	emitter->sizeofParticle = (uint32_t)sizeofParticle;
 	emitter->particleCount = 0;
-	emitter->maxParticles = maxParticles;
+	emitter->maxParticles = params->maxParticles;
+
+	emitter->shader = params->shader;
+	emitter->material = params->material;
+	emitter->instanceValueCount = instanceValueCount;
 
 	dsMatrix44_identity(emitter->transform);
 	dsOrientedBox3_makeInvalid(emitter->bounds);
 
 	emitter->updateFunc = updateFunc;
+	emitter->populateInstanceValuesFunc = params->populateInstanceValuesFunc;
+	emitter->populateInstanceValuesUserData = params->populateInstanceValuesUserData;
 	emitter->destroyFunc = destroyFunc;
 
 	emitter->drawers = NULL;
@@ -146,6 +172,24 @@ bool dsParticleEmitter_update(dsParticleEmitter* emitter, float time)
 	}
 	else
 		dsOrientedBox3_makeInvalid(emitter->bounds);
+
+	return true;
+}
+
+bool dsparticleEmitter_populateInstanceValues(const dsParticleEmitter* emitter,
+	dsSharedMaterialValues* values)
+{
+	if (!emitter || !values)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	if (emitter->populateInstanceValuesFunc)
+	{
+		emitter->populateInstanceValuesFunc(emitter, emitter->populateInstanceValuesUserData,
+			values);
+	}
 
 	return true;
 }
