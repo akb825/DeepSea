@@ -213,12 +213,12 @@ TEST(ParticleTest, RandomDirection)
 	float cosAngle = cosf(angle);
 
 	uint32_t seed = 0;
-	dsParticle particle;
 	for (unsigned int i = 0; i < cIterations; ++i)
 	{
-		dsParticle_randomDirection(&particle, &seed, &directionMatrix, angle);
-		EXPECT_LT(cosAngle - 1e-5f, dsVector3_dot(baseDirection, particle.direction));
-		EXPECT_FLOAT_EQ(1.0f, dsVector3f_len(&particle.direction));
+		dsVector3f direction;
+		dsParticle_randomDirection(&direction, &seed, &directionMatrix, angle);
+		EXPECT_LT(cosAngle - 1e-5f, dsVector3_dot(baseDirection, direction));
+		EXPECT_FLOAT_EQ(1.0f, dsVector3f_len(&direction));
 	}
 }
 

@@ -39,6 +39,7 @@ struct dsStandardParticleEmitter
 typedef struct dsStandardParticle
 {
 	dsParticle particle;
+	dsVector3f direction;
 	float speed;
 	float rotationSpeed;
 	float timeScale;
@@ -53,7 +54,7 @@ static bool advanceParticle(dsParticle* nextParticle, const dsParticle* prevPart
 		return false;
 
 	dsVector3f offset;
-	dsVector3_scale(offset, prevParticle->direction, prevStandardParticle->speed*time);
+	dsVector3_scale(offset, prevStandardParticle->direction, prevStandardParticle->speed*time);
 	dsVector3_add(nextParticle->position, prevParticle->position, offset);
 
 	nextParticle->rotation.x = prevParticle->rotation.x + prevStandardParticle->rotationSpeed*time;
@@ -138,8 +139,8 @@ static uint32_t dsStandardParticleEmitter_update(dsParticleEmitter* emitter, flo
 			&options->volumeMatrix);
 		dsParticle_randomSize(nextParticle, &standardEmitter->seed, &options->widthRange,
 			&options->heightRange);
-		dsParticle_randomDirection(nextParticle, &standardEmitter->seed, &directionMatrix,
-			options->directionSpread);
+		dsParticle_randomDirection(&nextStandardParticle->direction, &standardEmitter->seed,
+			&directionMatrix, options->directionSpread);
 		dsParticle_randomRotation(nextParticle, &standardEmitter->seed, &rotationRange,
 			&rotationRange);
 		dsParticle_randomColor(nextParticle, &standardEmitter->seed, &options->colorHueRange,

@@ -286,7 +286,7 @@ static void submitGPUProfileResults(dsGPUProfileContext* context, QueryPools* po
 
 	dsHashTable_clear(context->hashTable);
 
-	DS_PROFILE_FUNC_END();
+	DS_PROFILE_FUNC_RETURN_VOID();
 }
 
 dsGPUProfileContext* dsGPUProfileContext_create(dsResourceManager* resourceManager,

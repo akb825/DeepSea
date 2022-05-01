@@ -65,7 +65,11 @@ DS_PARTICLE_EXPORT void dsParticle_createDirectionMatrix(dsMatrix33f* result,
 
 /**
  * @brief Generates a random direction for a particle.
- * @param[inout] particle The particle to create the direction for.
+ *
+ * While the base particle doesn't provide a direction, it is a common extension to particles and
+ * thus has a shared implementation.
+ *
+ * @param[out] outDirection The created direction.
  * @param[inout] seed The random seed to generate the random direction from.
  * @param directionMatrix The matrix for orienting the direction. The Z axis (column 2) is the base
  *     direction.
@@ -73,7 +77,7 @@ DS_PARTICLE_EXPORT void dsParticle_createDirectionMatrix(dsMatrix33f* result,
  *     will always follow the base direction, pi/2 would be a hemisphere, and pi would be a full
  *     sphere.
  */
-DS_PARTICLE_EXPORT void dsParticle_randomDirection(dsParticle* particle, uint32_t* seed,
+DS_PARTICLE_EXPORT void dsParticle_randomDirection(dsVector3f* outDirection, uint32_t* seed,
 	const dsMatrix33f* directionMatrix, float directionSpread);
 
 /**

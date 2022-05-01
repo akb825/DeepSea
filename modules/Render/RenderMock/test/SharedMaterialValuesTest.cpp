@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,6 +62,7 @@ TEST_F(SharedMaterialValuesTest, Textures)
 
 	EXPECT_EQ(DS_DEFAULT_MAX_SHARED_MATERIAL_VALUES - 2,
 		dsSharedMaterialValues_getRemainingValues(values));
+	EXPECT_EQ(DS_DEFAULT_MAX_SHARED_MATERIAL_VALUES, dsSharedMaterialValues_getMaxValues(values));
 
 	EXPECT_EQ(texture1, dsSharedMaterialValues_getTextureID(values, dsHashString("test1")));
 	EXPECT_EQ(texture2, dsSharedMaterialValues_getTextureName(values, "test2"));
@@ -125,6 +126,7 @@ TEST_F(SharedMaterialValuesTest, TextureBuffers)
 
 	EXPECT_EQ(DS_DEFAULT_MAX_SHARED_MATERIAL_VALUES - 2,
 		dsSharedMaterialValues_getRemainingValues(values));
+	EXPECT_EQ(DS_DEFAULT_MAX_SHARED_MATERIAL_VALUES, dsSharedMaterialValues_getMaxValues(values));
 
 	dsGfxFormat storedFormat;
 	size_t offset, count;
@@ -222,6 +224,7 @@ TEST_F(SharedMaterialValuesTest, VariableGroups)
 
 	EXPECT_EQ(DS_DEFAULT_MAX_SHARED_MATERIAL_VALUES - 2,
 		dsSharedMaterialValues_getRemainingValues(values));
+	EXPECT_EQ(DS_DEFAULT_MAX_SHARED_MATERIAL_VALUES, dsSharedMaterialValues_getMaxValues(values));
 
 	EXPECT_EQ(variableGroup1, dsSharedMaterialValues_getVariableGroupID(values,
 		dsHashString("test1")));
@@ -279,6 +282,7 @@ TEST_F(SharedMaterialValuesTest, Buffers)
 
 	EXPECT_EQ(DS_DEFAULT_MAX_SHARED_MATERIAL_VALUES - 2,
 		dsSharedMaterialValues_getRemainingValues(values));
+	EXPECT_EQ(DS_DEFAULT_MAX_SHARED_MATERIAL_VALUES, dsSharedMaterialValues_getMaxValues(values));
 
 	size_t offset, size;
 	EXPECT_EQ(buffer1, dsSharedMaterialValues_getBufferID(&offset, &size, values,
@@ -368,6 +372,7 @@ TEST_F(SharedMaterialValuesTest, MixedTypes)
 	EXPECT_TRUE(dsSharedMaterialValues_setBufferName(values, "buffer", buffer, 0, 128));
 	EXPECT_EQ(DS_DEFAULT_MAX_SHARED_MATERIAL_VALUES - 4,
 		dsSharedMaterialValues_getRemainingValues(values));
+	EXPECT_EQ(DS_DEFAULT_MAX_SHARED_MATERIAL_VALUES, dsSharedMaterialValues_getMaxValues(values));
 
 	dsGfxFormat storedFormat;
 	size_t offset, size;

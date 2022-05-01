@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Aaron Barany
+ * Copyright 2019-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -109,6 +109,8 @@ static bool reserveSpace(dsSceneInstanceVariables* variables, uint32_t maxInstan
 	for (uint32_t i = 0; i < variables->bufferCount;)
 	{
 		BufferInfo* bufferInfo = variables->buffers + i;
+
+		// Skip over all buffers that are still in use, even if too small.
 		if (bufferInfo->lastUsedFrame + FRAME_DELAY > frameNumber)
 		{
 			++i;
@@ -117,10 +119,13 @@ static bool reserveSpace(dsSceneInstanceVariables* variables, uint32_t maxInstan
 
 		if (bufferInfo->buffer->size >= requiredSize)
 		{
-			// Found
-			bufferInfo->lastUsedFrame = frameNumber;
-			variables->curBuffer = bufferInfo;
-			break;
+			// Found. Only take the first one, and continue so that smaller buffers can be removed.
+			if (!variables->curBuffer)
+			{
+				bufferInfo->lastUsedFrame = frameNumber;
+				variables->curBuffer = bufferInfo;
+			}
+			continue;
 		}
 
 		// This buffer is too small. Delete it now since a new one will need to be allocated.

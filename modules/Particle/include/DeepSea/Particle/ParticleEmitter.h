@@ -63,7 +63,7 @@ DS_PARTICLE_EXPORT bool dsParticleEmitter_update(dsParticleEmitter* emitter, flo
  * @param values The instance values to populate.
  * @return False if an error occurred.
  */
-DS_PARTICLE_EXPORT bool dsparticleEmitter_populateInstanceValues(const dsParticleEmitter* emitter,
+DS_PARTICLE_EXPORT bool dsParticleEmitter_populateInstanceValues(const dsParticleEmitter* emitter,
 	dsSharedMaterialValues* values);
 
 /**

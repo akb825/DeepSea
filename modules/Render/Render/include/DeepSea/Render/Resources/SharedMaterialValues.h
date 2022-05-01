@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2021 Aaron Barany
+ * Copyright 2017-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -80,6 +80,14 @@ DS_RENDER_EXPORT size_t dsSharedMaterialValues_fullAllocSize(uint32_t maxValues)
  */
 DS_RENDER_EXPORT dsSharedMaterialValues* dsSharedMaterialValues_create(dsAllocator* allocator,
 	uint32_t maxValues);
+
+/**
+ * @brief Gets the maximum number of material values that can be set.
+ * @param values The shared material values.
+ * @return The maximum number of remaining material values.
+ */
+DS_RENDER_EXPORT uint32_t dsSharedMaterialValues_getMaxValues(
+	const dsSharedMaterialValues* values);
 
 /**
  * @brief Gets the number of remaining material values that can be set.

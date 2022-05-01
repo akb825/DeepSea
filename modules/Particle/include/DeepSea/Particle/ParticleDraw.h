@@ -19,7 +19,7 @@
 #include <DeepSea/Core/Config.h>
 #include <DeepSea/Particle/Export.h>
 #include <DeepSea/Particle/Types.h>
-#include <DeepSea/Render/Resources/Types.h>
+#include <DeepSea/Render/Types.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -69,6 +69,20 @@ DS_PARTICLE_EXPORT bool dsParticleDraw_addEmitter(dsParticleDraw* drawer,
  */
 DS_PARTICLE_EXPORT bool dsParticleDraw_removeEmitter(dsParticleDraw* drawer,
 	dsParticleEmitter* emitter);
+
+/**
+ * @brief Draws the set of particle emitters that have added to it.
+ * @remark errno will be set on failure.
+ * @param drawer The particle draw to render the contents of.
+ * @param commandBuffer The command buffer to add graphics commands to.
+ * @param globalValues The global material values to use with the materials for the particles.
+ * @param viewMatrix The view matrix the particles will be drawn with.
+ * @param viewFrustum The frustum of the view to cull particle emitters.
+ * @return False if an error occurred.
+ */
+DS_PARTICLE_EXPORT bool dsParticleDraw_draw(dsParticleDraw* drawer,
+	dsCommandBuffer* commandBuffer, const dsSharedMaterialValues* globalValues,
+	const dsMatrix44f* viewMatrix, const dsFrustum3f* viewFrustum);
 
 /**
  * @brief Destroys a particle drawer.

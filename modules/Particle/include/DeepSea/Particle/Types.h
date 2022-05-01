@@ -110,6 +110,14 @@ typedef struct dsParticleVolume
  * Different particle emitters may allocate more space for each particle for extra state used by the
  * emitter.
  *
+ * When packed into vertices, the following vertex inputs should be used:
+ * - layout(location = DS_POSITION0) in vec3 position; // The position in local space.
+ * - layout(location = DS_POSITION1) in vec2 offset; // The offset as -size/2 or +size/2.
+ * - layout(location = DS_NORMAL) in vec2 rotation; // The X and Y orientation of the particle.
+ * - layout(location = DS_COLOR) in lowp vec4 color; // The color as lowp values.
+ * - layout(location = DS_TEXCOORD0) in vec3 intensityTextureT; // Packed intensity, texture index,
+ *       and T.
+ *
  * @see Particle.h
  */
 typedef struct dsParticle
@@ -123,11 +131,6 @@ typedef struct dsParticle
 	 * @brief The size of the particle.
 	 */
 	dsVector2f size;
-
-	/**
-	 * @brief The direction of the particle.
-	 */
-	dsVector3f direction;
 
 	/**
 	 * @brief The rotation of the particle.

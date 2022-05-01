@@ -91,16 +91,16 @@ void dsParticle_createDirectionMatrix(dsMatrix33f* result, const dsVector3f* bas
 	dsVector3_cross(result->columns[0], result->columns[1], result->columns[2]);
 }
 
-void dsParticle_randomDirection(dsParticle* particle, uint32_t* seed,
+void dsParticle_randomDirection(dsVector3f* outDirection, uint32_t* seed,
 	const dsMatrix33f* directionMatrix, float directionSpread)
 {
-	DS_ASSERT(particle);
+	DS_ASSERT(outDirection);
 	DS_ASSERT(seed);
 	DS_ASSERT(directionMatrix);
 
 	if (directionSpread <= 0)
 	{
-		particle->direction = directionMatrix->columns[2];
+		*outDirection = directionMatrix->columns[2];
 		return;
 	}
 
@@ -109,7 +109,7 @@ void dsParticle_randomDirection(dsParticle* particle, uint32_t* seed,
 	float cosPhi = cosf(phi);
 	float sinPhi = sinf(phi);
 	dsVector3f direction = {{cosf(theta)*sinPhi, sinf(theta)*sinPhi, cosPhi}};
-	dsMatrix33_transform(particle->direction, *directionMatrix, direction);
+	dsMatrix33_transform(*outDirection, *directionMatrix, direction);
 }
 
 void dsParticle_randomRotation(dsParticle* particle, uint32_t* seed,

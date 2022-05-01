@@ -176,7 +176,7 @@ bool dsParticleEmitter_update(dsParticleEmitter* emitter, float time)
 	return true;
 }
 
-bool dsparticleEmitter_populateInstanceValues(const dsParticleEmitter* emitter,
+bool dsParticleEmitter_populateInstanceValues(const dsParticleEmitter* emitter,
 	dsSharedMaterialValues* values)
 {
 	if (!emitter || !values)

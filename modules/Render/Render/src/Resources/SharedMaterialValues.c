@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2021 Aaron Barany
+ * Copyright 2017-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -265,6 +265,14 @@ dsSharedMaterialValues* dsSharedMaterialValues_create(dsAllocator* allocator, ui
 	materialValues->pointerVersion = 0;
 	materialValues->offsetVersion = 0;
 	return materialValues;
+}
+
+uint32_t dsSharedMaterialValues_getMaxValues(const dsSharedMaterialValues* values)
+{
+	if (!values)
+		return 0;
+
+	return (uint32_t)(values->entryPool.bufferSize/values->entryPool.chunkSize);
 }
 
 uint32_t dsSharedMaterialValues_getRemainingValues(const dsSharedMaterialValues* values)
