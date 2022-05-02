@@ -244,12 +244,11 @@ static int particleRefCompare(const void* left, const void* right)
 	return 0;
 }
 
-static void collectParticles(dsParticleDraw* drawer, uint32_t particleCount,
-	const dsMatrix44f* viewMatrix, const dsFrustum3f* viewFrustum)
+static uint32_t collectParticles(dsParticleDraw* drawer, const dsMatrix44f* viewMatrix, const dsFrustum3f* viewFrustum)
 {
 	DS_PROFILE_FUNC_START();
 
-	DS_ASSERT(particleCount <= drawer->maxParticles);
+	uint32_t particleCount = 0;
 	ParticleRef* curParticleRef = drawer->particles;
 	for (uint32_t i = 0; i < drawer->emitterCount; ++i)
 	{
@@ -265,6 +264,8 @@ static void collectParticles(dsParticleDraw* drawer, uint32_t particleCount,
 		dsMatrix44f worldView;
 		dsMatrix44_mul(worldView, *viewMatrix, emitter->transform);
 
+		particleCount += emitter->particleCount;
+		DS_ASSERT(particleCount <= drawer->maxParticles);
 		const uint8_t* particlePtrEnd =
 			emitter->particles + emitter->particleCount*emitter->sizeofParticle;
 		for (const uint8_t* particlePtr = emitter->particles; particlePtr < particlePtrEnd;
@@ -284,7 +285,7 @@ static void collectParticles(dsParticleDraw* drawer, uint32_t particleCount,
 	DS_ASSERT(curParticleRef == drawer->particles + particleCount);
 	qsort(drawer->particles, particleCount, sizeof(ParticleRef), &particleRefCompare);
 
-	DS_PROFILE_FUNC_RETURN_VOID();
+	DS_PROFILE_FUNC_RETURN(particleCount);
 }
 
 static bool populateParticleGeometry(dsParticleDraw* drawer, BufferInfo* bufferInfo,
@@ -615,7 +616,6 @@ bool dsParticleDraw_draw(dsParticleDraw* drawer, dsCommandBuffer* commandBuffer,
 	DS_VERIFY(dsSpinlock_lock(&drawer->emitterLock));
 
 	uint32_t maxInstanceValues = 0;
-	uint32_t particleCount = 0;
 	uint32_t maxParticles = 0;
 	for (uint32_t i = 0; i < drawer->emitterCount; ++i)
 	{
@@ -623,15 +623,7 @@ bool dsParticleDraw_draw(dsParticleDraw* drawer, dsCommandBuffer* commandBuffer,
 			(const dsParticleEmitter*)dsLifetime_getObject(drawer->emitters[i]);
 		DS_ASSERT(emitter);
 		maxInstanceValues = dsMax(maxInstanceValues, emitter->instanceValueCount);
-		particleCount += emitter->particleCount;
 		maxParticles += emitter->maxParticles;
-	}
-
-	// Early out if all emitters are empty.
-	if (particleCount == 0)
-	{
-		DS_VERIFY(dsSpinlock_unlock(&drawer->emitterLock));
-		DS_PROFILE_FUNC_RETURN(false);
 	}
 
 	// Make sure that instance values is large enough to hold the maximum for the particle emitters.
@@ -653,7 +645,7 @@ bool dsParticleDraw_draw(dsParticleDraw* drawer, dsCommandBuffer* commandBuffer,
 	if (maxParticles > drawer->maxParticles)
 	{
 		ParticleRef* newParticles = (ParticleRef*)dsAllocator_reallocWithFallback(drawer->allocator,
-			drawer->particles, 0, particleCount);
+			drawer->particles, 0, maxParticles);
 		if (!newParticles)
 		{
 			DS_VERIFY(dsSpinlock_unlock(&drawer->emitterLock));
@@ -673,7 +665,15 @@ bool dsParticleDraw_draw(dsParticleDraw* drawer, dsCommandBuffer* commandBuffer,
 	}
 
 	// Draw the particles to the command buffer.
-	collectParticles(drawer, particleCount, viewMatrix, viewFrustum);
+	uint32_t particleCount = collectParticles(drawer, viewMatrix, viewFrustum);
+
+	// Early out if all emitters are empty.
+	if (particleCount == 0)
+	{
+		DS_VERIFY(dsSpinlock_unlock(&drawer->emitterLock));
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
 	bool success = populateParticleGeometry(drawer, bufferInfo, particleCount) &&
 		drawParticles(drawer, bufferInfo, particleCount, commandBuffer, globalValues);
 
