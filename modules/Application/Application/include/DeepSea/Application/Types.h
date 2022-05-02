@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -187,19 +187,30 @@ typedef enum dsCursor
 
 /**
  * @brief Enum for the type of controller.
+ *
+ * This includes game controllers as well as other form factors such as joysticks and racing wheels.
  */
 typedef enum dsControllerType
 {
-	dsControllerType_Unknown,     ///< Unknown type.
-	dsControllerType_Controller,  ///< Standard game controller.
-	dsControllerType_Wheel,       ///< Racing wheel.
-	dsControllerType_ArcadeStick, ///< Arcade stick.
-	dsControllerType_FlightStick, ///< Flight simulator stick.
-	dsControllerType_DancePad,    ///< Dance pad.
-	dsControllerType_Guitar,      ///< Guitar controller.
-	dsControllerType_DrumKit,     ///< Drum kit controller.
-	dsControllerType_ArcadePad,   ///< Arcade pad.
-	dsControllerType_Throttle     ///< Throttle control.
+	dsControllerType_Unknown,                  ///< Fully unknown type and form factor.
+	dsControllerType_Wheel,                    ///< Racing wheel.
+	dsControllerType_ArcadeStick,              ///< Arcade stick.
+	dsControllerType_FlightStick,              ///< Flight simulator stick.
+	dsControllerType_DancePad,                 ///< Dance pad.
+	dsControllerType_Guitar,                   ///< Guitar controller.
+	dsControllerType_DrumKit,                  ///< Drum kit controller.
+	dsControllerType_ArcadePad,                ///< Arcade pad.
+	dsControllerType_Throttle,                 ///< Throttle control.
+	dsControllerType_UnknownController,        ///< Game controller of unknown type.
+	dsControllerType_XBox360Controller,        ///< XBox 360 game controller.
+	dsControllerType_XBoxOneController,        ///< XBox One game controller.
+	dsControllerType_PS3Controller,            ///< PS3 game controller.
+	dsControllerType_PS4Controller,            ///< PS4 game controller.
+	dsControllerType_PS5Controller,            ///< PS5 game controller.
+	dsControllerType_NintendoSwitchController, ///< Nintendo Switch Pro or Joycon controller.
+	dsControllerType_AmazonLunaController,     ///< Amazon Luna game controller.
+	dsControllerType_GoogleStadiaController,   ///< Google Stadia game controller.
+	dsControllerType_VirtualController         ///< Virtual on-screen game controller.
 } dsControllerType;
 
 /**
@@ -416,7 +427,8 @@ typedef struct dsEvent
 		/**
 		 * @brief Information about a controller being connected or disconnected.
 		 *
-		 * This is set for dsAppEventType_ControllerConnected and dsAppEventType_ControllerDisconnected.
+		 * This is set for dsAppEventType_ControllerConnected and
+		 * dsAppEventType_ControllerDisconnected.
 		 */
 		dsControllerConnectEvent controllerConnect;
 
@@ -430,7 +442,8 @@ typedef struct dsEvent
 		/**
 		 * @brief Information about a controller button being pressed or released.
 		 *
-		 * This is set for dsAppEventType_ControllerButtonDown and dsAppEventType_ControllerButtonDown.
+		 * This is set for dsAppEventType_ControllerButtonDown and
+		 * dsAppEventType_ControllerButtonDown.
 		 */
 		dsControllerButtonEvent controllerButton;
 
@@ -938,6 +951,15 @@ typedef bool (*dsSetWindowGrabbedInputFunction)(dsApplication* application, dsWi
 typedef bool (*dsRaiseWindowFunction)(dsApplication* application, dsWindow* window);
 
 /**
+ * @brief Function to get the battery level of a controller.
+ * @param application The application.
+ * @param controller The controller to get the battery level from.
+ * @return The battery level.
+ */
+typedef dsControllerBattery (*dsGetControllerBatteryFunction)(const dsApplication* application,
+	const dsController* controller);
+
+/**
  * @brief Function for getting the state of a controller axis.
  * @param application The application.
  * @param controller The controller to get the axis from.
@@ -1343,6 +1365,11 @@ struct dsApplication
 	 * @brief Function for raising a window.
 	 */
 	dsRaiseWindowFunction raiseWindowFunc;
+
+	/**
+	 * @brief Function for getting the controller battery level.
+	 */
+	dsGetControllerBatteryFunction getControllerBatteryFunc;
 
 	/**
 	 * @brief Function for getting a controller axis.

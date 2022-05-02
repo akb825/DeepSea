@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,6 +38,8 @@ void dsSDLController_freeAll(dsController** controllers, uint32_t controllerCoun
 dsController* dsSDLController_add(dsApplication* application, uint32_t index);
 bool dsSDLController_remove(dsApplication* application, SDL_JoystickID id);
 
+dsControllerBattery dsSDLController_getBattery(const dsApplication* application,
+	const dsController* controller);
 float dsSDLController_getAxis(const dsApplication* application, const dsController* controller,
 	uint32_t axis);
 bool dsSDLController_isButtonPressed(const dsApplication* application,

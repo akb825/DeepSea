@@ -1089,6 +1089,7 @@ dsApplication* dsSDLApplication_create(dsAllocator* allocator, dsRenderer* rende
 	baseApplication->setWindowGrabbedInputFunc = &dsSDLWindow_setGrabbedInput;
 	baseApplication->raiseWindowFunc = &dsSDLWindow_raise;
 
+	baseApplication->getControllerBatteryFunc = &dsSDLController_getBattery;
 	baseApplication->getControllerAxisFunc = &dsSDLController_getAxis;
 	baseApplication->isControllerButtonPressedFunc = &dsSDLController_isButtonPressed;
 	baseApplication->getControllerHatDirectionFunc = &dsSDLController_getHatDirection;

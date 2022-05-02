@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,13 @@ extern "C"
  *
  * @see dsController
  */
+
+/**
+ * @brief Gets the controller battery level.
+ * @param controller The controller to get the battery level from.
+ * @return The battery level of the controller.
+ */
+DS_APPLICATION_EXPORT dsControllerBattery dsController_getBattery(const dsController* controller);
 
 /**
  * @brief Gets the value for a controller axis.

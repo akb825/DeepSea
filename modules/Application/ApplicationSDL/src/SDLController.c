@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +38,43 @@ static dsController* createController(dsApplication* application, uint32_t index
 	switch (SDL_JoystickGetType(controller->joystick))
 	{
 		case SDL_JOYSTICK_TYPE_GAMECONTROLLER:
-			baseController->type = dsControllerType_Controller;
+#if SDL_VERSION_ATLEAST(2, 0, 12)
+			switch (SDL_GameControllerTypeForIndex(index))
+			{
+				case SDL_CONTROLLER_TYPE_XBOX360:
+					baseController->type = dsControllerType_XBox360Controller;
+					break;
+				case SDL_CONTROLLER_TYPE_XBOXONE:
+					baseController->type = dsControllerType_XBoxOneController;
+					break;
+				case SDL_CONTROLLER_TYPE_PS3:
+					baseController->type = dsControllerType_PS3Controller;
+					break;
+				case SDL_CONTROLLER_TYPE_PS4:
+					baseController->type = dsControllerType_PS4Controller;
+					break;
+				case SDL_CONTROLLER_TYPE_NINTENDO_SWITCH_PRO:
+					baseController->type = dsControllerType_NintendoSwitchController;
+					break;
+				case SDL_CONTROLLER_TYPE_VIRTUAL:
+					baseController->type = dsControllerType_VirtualController;
+					break;
+				case SDL_CONTROLLER_TYPE_PS5:
+					baseController->type = dsControllerType_PS5Controller;
+					break;
+				case SDL_CONTROLLER_TYPE_AMAZON_LUNA:
+					baseController->type = dsControllerType_AmazonLunaController;
+					break;
+				case SDL_CONTROLLER_TYPE_GOOGLE_STADIA:
+					baseController->type = dsControllerType_GoogleStadiaController;
+					break;
+				default:
+					baseController->type = dsControllerType_UnknownController;
+					break;
+			}
+#else
+			baseController->type = dsControllerType_UnknownController;
+#endif
 			break;
 		case SDL_JOYSTICK_TYPE_WHEEL:
 			baseController->type = dsControllerType_Wheel;
@@ -92,7 +128,6 @@ static void freeController(dsController* controller)
 	SDL_JoystickClose(sdlController->joystick);
 	DS_VERIFY(dsAllocator_free(controller->allocator, sdlController));
 }
-
 
 float dsSDLController_getAxisValue(Sint16 value)
 {
@@ -216,6 +251,27 @@ bool dsSDLController_remove(dsApplication* application, SDL_JoystickID id)
 
 	freeController(controller);
 	return true;
+}
+
+dsControllerBattery dsSDLController_getBattery(const dsApplication* application,
+	const dsController* controller)
+{
+	DS_UNUSED(application);
+	switch (SDL_JoystickCurrentPowerLevel(((const dsSDLController*)controller)->joystick))
+	{
+		case SDL_JOYSTICK_POWER_EMPTY:
+			return dsControllerBattery_Empty;
+		case SDL_JOYSTICK_POWER_LOW:
+			return dsControllerBattery_Low;
+		case SDL_JOYSTICK_POWER_MEDIUM:
+			return dsControllerBattery_Medium;
+		case SDL_JOYSTICK_POWER_FULL:
+			return dsControllerBattery_Full;
+		case SDL_JOYSTICK_POWER_WIRED:
+			return dsControllerBattery_Wired;
+		default:
+			return dsControllerBattery_Unknown;
+	}
 }
 
 float dsSDLController_getAxis(const dsApplication* application, const dsController* controller,
