@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2021 Aaron Barany
+ * Copyright 2017-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 #include <DeepSea/ApplicationSDL/SDLApplication.h>
 
-#include "SDLController.h"
+#include "SDLGameInput.h"
 #include "SDLKeyboard.h"
 #include "SDLShared.h"
 #include "SDLWindow.h"
@@ -114,14 +114,14 @@ static dsWindow* findWindow(dsApplication* application, uint32_t windowId)
 	return NULL;
 }
 
-static dsController* findController(dsApplication* application, SDL_JoystickID joystickId)
+static dsGameInput* findGameInput(dsApplication* application, SDL_JoystickID joystickId)
 {
-	for (uint32_t i = 0; i < application->controllerCount; ++i)
+	for (uint32_t i = 0; i < application->gameInputCount; ++i)
 	{
-		if (SDL_JoystickInstanceID(((dsSDLController*)application->controllers[i])->joystick) ==
+		if (SDL_JoystickInstanceID(((dsSDLGameInput*)application->gameInputs[i])->joystick) ==
 			joystickId)
 		{
-			return application->controllers[i];
+			return application->gameInputs[i];
 		}
 	}
 
@@ -413,6 +413,7 @@ int dsSDLApplication_run(dsApplication* application)
 		{
 			dsWindow* window = findWindow(application, sdlEvent.window.windowID);
 			dsEvent event;
+			event.time = sdlEvent.common.timestamp/1000.0;
 			switch (sdlEvent.type)
 			{
 				case SDL_QUIT:
@@ -524,6 +525,7 @@ int dsSDLApplication_run(dsApplication* application)
 
 					event.type = sdlEvent.type == SDL_MOUSEBUTTONUP ? dsAppEventType_MouseButtonUp :
 						dsAppEventType_MouseButtonDown;
+					event.mouseButton.mouseID = sdlEvent.button.which;
 					event.mouseButton.button = DS_MOUSE_BUTTON(sdlEvent.button.button);
 					event.mouseButton.x = sdlEvent.button.x;
 					event.mouseButton.y = sdlEvent.button.y;
@@ -542,63 +544,64 @@ int dsSDLApplication_run(dsApplication* application)
 						event.mouseWheel.x -= windowX;
 						event.mouseWheel.y -= windowY;
 					}
+					event.mouseButton.mouseID = sdlEvent.button.which;
 					event.mouseWheel.deltaX = sdlEvent.wheel.x;
 					event.mouseWheel.deltaY = sdlEvent.wheel.y;
 					event.mouseWheel.yFlipped = sdlEvent.wheel.direction == SDL_MOUSEWHEEL_FLIPPED;
 					break;
 				case SDL_JOYAXISMOTION:
-					event.type = dsAppEventType_ControllerAxis;
-					event.controllerAxis.controller = findController(application,
+					event.type = dsAppEventType_GameInputAxis;
+					event.gameInputAxis.gameInput = findGameInput(application,
 						sdlEvent.jaxis.which);
-					DS_ASSERT(event.controllerAxis.controller);
-					event.controllerAxis.axis = sdlEvent.jaxis.axis;
-					event.controllerAxis.value = dsSDLController_getAxisValue(sdlEvent.jaxis.value);
+					DS_ASSERT(event.gameInputAxis.gameInput);
+					event.gameInputAxis.axis = sdlEvent.jaxis.axis;
+					event.gameInputAxis.value = dsSDLGameInput_getAxisValue(sdlEvent.jaxis.value);
 					break;
 				case SDL_JOYBALLMOTION:
-					event.type = dsAppEventType_JoystickBall;
-					event.joystickBall.controller = findController(application,
+					event.type = dsAppEventType_GameInputBall;
+					event.gameInputBall.gameInput = findGameInput(application,
 						sdlEvent.jaxis.which);
-					DS_ASSERT(event.joystickBall.controller);
-					event.joystickBall.deltaX = sdlEvent.jball.xrel;
-					event.joystickBall.deltaY = sdlEvent.jball.yrel;
+					DS_ASSERT(event.gameInputBall.gameInput);
+					event.gameInputBall.deltaX = sdlEvent.jball.xrel;
+					event.gameInputBall.deltaY = sdlEvent.jball.yrel;
 					break;
 				case SDL_JOYHATMOTION:
-					event.type = dsAppEventType_JoystickHat;
-					event.joystickHat.controller = findController(application,
+					event.type = dsAppEventType_GameInputDPad;
+					event.gameInputDPad.gameInput = findGameInput(application,
 						sdlEvent.jhat.which);
-					DS_ASSERT(event.joystickHat.controller);
-					dsSDLController_convertHatDirection(&event.joystickHat.x, &event.joystickHat.y,
-						sdlEvent.jhat.value);
+					DS_ASSERT(event.gameInputDPad.gameInput);
+					dsSDLGameInput_convertHatDirection(&event.gameInputDPad.x,
+						&event.gameInputDPad.y, sdlEvent.jhat.value);
 					break;
 				case SDL_JOYBUTTONDOWN:
 				case SDL_JOYBUTTONUP:
-					event.type = sdlEvent.type == SDL_JOYBUTTONUP ? dsAppEventType_ControllerButtonUp :
-						dsAppEventType_ControllerButtonDown;
-					event.controllerButton.controller = findController(application,
+					event.type = sdlEvent.type == SDL_JOYBUTTONUP ? dsAppEventType_GameInputButtonUp :
+						dsAppEventType_GameInputButtonDown;
+					event.gameInputButton.gameInput = findGameInput(application,
 						sdlEvent.jbutton.which);
-					DS_ASSERT(event.controllerButton.controller);
-					event.controllerButton.button = sdlEvent.jbutton.button;
+					DS_ASSERT(event.gameInputButton.gameInput);
+					event.gameInputButton.button = sdlEvent.jbutton.button;
 					break;
 				case SDL_JOYDEVICEADDED:
 				{
-					dsController* controller = dsSDLController_add(application,
+					dsGameInput* gameInput = dsSDLGameInput_add(application,
 						sdlEvent.jdevice.which);
-					if (!controller)
+					if (!gameInput)
 					{
 						DS_LOG_ERROR_F(DS_APPLICATION_SDL_LOG_TAG,
-							"Couldn't add controller: %s", dsErrorString(errno));
+							"Couldn't add gameInput: %s", dsErrorString(errno));
 						continue;
 					}
 
-					event.type = dsAppEventType_ControllerConnected;
-					event.controllerConnect.controller = controller;
+					event.type = dsAppEventType_GameInputConnected;
+					event.gameInputConnect.gameInput = gameInput;
 					break;
 				}
 				case SDL_JOYDEVICEREMOVED:
-					event.type = dsAppEventType_ControllerDisconnected;
-					event.controllerConnect.controller = findController(application,
+					event.type = dsAppEventType_GameInputDisconnected;
+					event.gameInputConnect.gameInput = findGameInput(application,
 						sdlEvent.jdevice.which);
-					DS_ASSERT(event.controllerConnect.controller);
+					DS_ASSERT(event.gameInputConnect.gameInput);
 					break;
 				case SDL_FINGERDOWN:
 				case SDL_FINGERUP:
@@ -618,6 +621,7 @@ int dsSDLApplication_run(dsApplication* application)
 							DS_ASSERT(false);
 							break;
 					}
+					event.touch.gameInput = NULL;
 					event.touch.touchID = sdlEvent.tfinger.touchId;
 					event.touch.fingerID = sdlEvent.tfinger.fingerId;
 					event.touch.x = sdlEvent.tfinger.x;
@@ -649,7 +653,7 @@ int dsSDLApplication_run(dsApplication* application)
 
 			// Some events require cleanup.
 			if (sdlEvent.type == SDL_JOYDEVICEREMOVED)
-				DS_VERIFY(dsSDLController_remove(application, sdlEvent.jdevice.which));
+				DS_VERIFY(dsSDLGameInput_remove(application, sdlEvent.jdevice.which));
 			else if (sdlEvent.type == SDL_USEREVENT && sdlEvent.user.data2)
 			{
 				((dsCustomEventCleanupFunction)sdlEvent.user.data2)(sdlEvent.user.code,
@@ -879,7 +883,7 @@ dsApplication* dsSDLApplication_create(dsAllocator* allocator, dsRenderer* rende
 	SDL_SetHint(SDL_HINT_VIDEO_EXTERNAL_CONTEXT, "1");
 #endif
 
-	if (SDL_Init(SDL_INIT_JOYSTICK | SDL_INIT_HAPTIC) != 0)
+	if (SDL_Init(SDL_INIT_GAMECONTROLLER | SDL_INIT_HAPTIC | SDL_INIT_SENSOR) != 0)
 	{
 		errno = EPERM;
 		DS_LOG_ERROR_F(DS_APPLICATION_SDL_LOG_TAG, "Couldn't initialize SDL: %s", SDL_GetError());
@@ -1042,7 +1046,7 @@ dsApplication* dsSDLApplication_create(dsAllocator* allocator, dsRenderer* rende
 	application->cursors[dsCursor_Hand] = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_HAND);
 	application->curCursor = dsCursor_Arrow;
 
-	if (!dsSDLController_setup(baseApplication))
+	if (!dsSDLGameInput_setup(baseApplication))
 	{
 		dsSDLApplication_destroy(baseApplication);
 		return NULL;
@@ -1089,12 +1093,12 @@ dsApplication* dsSDLApplication_create(dsAllocator* allocator, dsRenderer* rende
 	baseApplication->setWindowGrabbedInputFunc = &dsSDLWindow_setGrabbedInput;
 	baseApplication->raiseWindowFunc = &dsSDLWindow_raise;
 
-	baseApplication->getControllerBatteryFunc = &dsSDLController_getBattery;
-	baseApplication->getControllerAxisFunc = &dsSDLController_getAxis;
-	baseApplication->isControllerButtonPressedFunc = &dsSDLController_isButtonPressed;
-	baseApplication->getControllerHatDirectionFunc = &dsSDLController_getHatDirection;
-	baseApplication->startControllerRumbleFunc = &dsSDLController_startRumble;
-	baseApplication->stopControllerRumbleFunc = &dsSDLController_stopRumble;
+	baseApplication->getGameInputBatteryFunc = &dsSDLGameInput_getBattery;
+	baseApplication->getGameInputAxisFunc = &dsSDLGameInput_getAxis;
+	baseApplication->isGameInputButtonPressedFunc = &dsSDLGameInput_isButtonPressed;
+	baseApplication->getGameInputDPadDirectionFunc = &dsSDLGameInput_getDPadDirection;
+	baseApplication->startGameInputRumbleFunc = &dsSDLGameInput_startRumble;
+	baseApplication->stopGameInputRumbleFunc = &dsSDLGameInput_stopRumble;
 
 #if DS_ANDROID
 	DS_UNUSED(orgName);
@@ -1141,7 +1145,7 @@ void dsSDLApplication_destroy(dsApplication* application)
 			SDL_FreeCursor(sdlApplication->cursors[i]);
 	}
 
-	dsSDLController_freeAll(application->controllers, application->controllerCount);
+	dsSDLGameInput_freeAll(application->gameInputs, application->gameInputCount);
 	dsApplication_shutdown(application);
 	dsAllocator_free(application->allocator, application);
 

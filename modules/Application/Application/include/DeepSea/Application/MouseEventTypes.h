@@ -56,6 +56,11 @@ typedef enum dsMouseButton
 typedef struct dsMouseButtonEvent
 {
 	/**
+	 * @brief The ID for the mouse.
+	 */
+	uint32_t mouseID;
+
+	/**
 	 * @brief The button that was pressed or released.
 	 *
 	 * Only a single bit will be set.
@@ -78,6 +83,11 @@ typedef struct dsMouseButtonEvent
  */
 typedef struct dsMouseMoveEvent
 {
+	/**
+	 * @brief The ID for the mouse.
+	 */
+	uint32_t mouseID;
+
 	/**
 	 * @brief The X position of the mouse, relative to the window in display coordinates.
 	 */
@@ -109,6 +119,11 @@ typedef struct dsMouseMoveEvent
  */
 typedef struct dsMouseWheelEvent
 {
+	/**
+	 * @brief The ID for the mouse.
+	 */
+	uint32_t mouseID;
+
 	/**
 	 * @brief The amount scrolled in the X direction.
 	 */

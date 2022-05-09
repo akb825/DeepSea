@@ -17,7 +17,7 @@
 #pragma once
 
 #include <DeepSea/Core/Config.h>
-#include <DeepSea/Application/ControllerEventTypes.h>
+#include <DeepSea/Application/GameInputEventTypes.h>
 #include <DeepSea/Application/MouseEventTypes.h>
 #include <DeepSea/Application/KeyboardEventTypes.h>
 #include <DeepSea/Application/TouchEventTypes.h>
@@ -80,20 +80,20 @@ typedef enum dsAppEventType
 	dsAppEventType_MultiTouch,      ///< Multi-touch gesture was input. The multiTouch field will be
 	                                ///< set.
 
-	dsAppEventType_ControllerConnected,    ///< A controller was disconnected. The controllerConnect
-	                                       ///< field will be set.
-	dsAppEventType_ControllerDisconnected, ///< A controller was connected. The controllerConnect
-	                                       ///< field will be set.
-	dsAppEventType_ControllerAxis,         ///< A controller axis was moved. The controllerAxis
-	                                       ///< field will be set.
-	dsAppEventType_ControllerButtonDown,   ///< A controller axis was pressed. The controllerButton
-	                                       ///< field will be set.
-	dsAppEventType_ControllerButtonUp,     ///< A controller axis was released. The controllerButton
-	                                       ///< field will be set.
-	dsAppEventType_JoystickBall,           ///< A joystick ball was moved. The joystickBall field
-	                                       ///< will be set.
-	dsAppEventType_JoystickHat,            ///< A joystick hat was moved. The joystickHat field will
-	                                       ///< be set.
+	dsAppEventType_GameInputConnected,    ///< A game input device was disconnected. The
+	                                      ///< gameInputConnect field will be set.
+	dsAppEventType_GameInputDisconnected, ///< A game input device was connected. The
+	                                      ///< gameInputConnect field will be set.
+	dsAppEventType_GameInputAxis,         ///< A game input axis was moved. The gameInputAxis field
+	                                      ///< will be set.
+	dsAppEventType_GameInputButtonDown,   ///< A game input button was pressed. The gameInputButton
+	                                      ///< field will be set.
+	dsAppEventType_GameInputButtonUp,     ///< A game input button was released. The gameInputButton
+	                                      ///< field will be set.
+	dsAppEventType_GameInputBall,         ///< A game input ball was moved. The gameInputBall field
+	                                      ///< will be set.
+	dsAppEventType_GameInputDPad,         ///< A game input D-pad or hat was moved. The
+	                                      ///< gameInputDPad field will be set.
 
 	dsAppEventType_WindowShown,     ///< A window has been shown. No event field will be set.
 	dsAppEventType_WindowHidden,    ///< A window has been hidden. No event field will be set.
@@ -186,45 +186,45 @@ typedef enum dsCursor
 } dsCursor;
 
 /**
- * @brief Enum for the type of controller.
+ * @brief Enum for the type of game input device.
  *
  * This includes game controllers as well as other form factors such as joysticks and racing wheels.
  */
-typedef enum dsControllerType
+typedef enum dsGameInputType
 {
-	dsControllerType_Unknown,                  ///< Fully unknown type and form factor.
-	dsControllerType_Wheel,                    ///< Racing wheel.
-	dsControllerType_ArcadeStick,              ///< Arcade stick.
-	dsControllerType_FlightStick,              ///< Flight simulator stick.
-	dsControllerType_DancePad,                 ///< Dance pad.
-	dsControllerType_Guitar,                   ///< Guitar controller.
-	dsControllerType_DrumKit,                  ///< Drum kit controller.
-	dsControllerType_ArcadePad,                ///< Arcade pad.
-	dsControllerType_Throttle,                 ///< Throttle control.
-	dsControllerType_UnknownController,        ///< Game controller of unknown type.
-	dsControllerType_XBox360Controller,        ///< XBox 360 game controller.
-	dsControllerType_XBoxOneController,        ///< XBox One game controller.
-	dsControllerType_PS3Controller,            ///< PS3 game controller.
-	dsControllerType_PS4Controller,            ///< PS4 game controller.
-	dsControllerType_PS5Controller,            ///< PS5 game controller.
-	dsControllerType_NintendoSwitchController, ///< Nintendo Switch Pro or Joycon controller.
-	dsControllerType_AmazonLunaController,     ///< Amazon Luna game controller.
-	dsControllerType_GoogleStadiaController,   ///< Google Stadia game controller.
-	dsControllerType_VirtualController         ///< Virtual on-screen game controller.
-} dsControllerType;
+	dsGameInputType_Unknown,                  ///< Fully unknown type and form factor.
+	dsGameInputType_Wheel,                    ///< Racing wheel.
+	dsGameInputType_ArcadeStick,              ///< Arcade stick.
+	dsGameInputType_FlightStick,              ///< Flight simulator stick.
+	dsGameInputType_DancePad,                 ///< Dance pad.
+	dsGameInputType_Guitar,                   ///< Guitar controller.
+	dsGameInputType_DrumKit,                  ///< Drum kit controller.
+	dsGameInputType_ArcadePad,                ///< Arcade pad.
+	dsGameInputType_Throttle,                 ///< Throttle control.
+	dsGameInputType_UnknownController,        ///< Game controller of unknown type.
+	dsGameInputType_XBox360Controller,        ///< XBox 360 game controller.
+	dsGameInputType_XBoxOneController,        ///< XBox One game controller.
+	dsGameInputType_PS3Controller,            ///< PS3 game controller.
+	dsGameInputType_PS4Controller,            ///< PS4 game controller.
+	dsGameInputType_PS5Controller,            ///< PS5 game controller.
+	dsGameInputType_NintendoSwitchController, ///< Nintendo Switch Pro or Joycon controller.
+	dsGameInputType_AmazonLunaController,     ///< Amazon Luna game controller.
+	dsGameInputType_GoogleStadiaController,   ///< Google Stadia game controller.
+	dsGameInputType_VirtualController         ///< Virtual on-screen game controller.
+} dsGameInputType;
 
 /**
- * @brief Enum for the battery level of a controller.
+ * @brief Enum for the battery level of a game input device.
  */
-typedef enum dsControllerBattery
+typedef enum dsGameInputBattery
 {
-	dsControllerBattery_Unknown, ///< Unknown battery level.
-	dsControllerBattery_Empty,   ///< Battery is empty.
-	dsControllerBattery_Low,     ///< Battery is low.
-	dsControllerBattery_Medium,  ///< Battery is partially depleted.
-	dsControllerBattery_Full,    ///< Battery is fully charged.
-	dsControllerBattery_Wired    ///< Controller is wired.
-} dsControllerBattery;
+	dsGameInputBattery_Unknown, ///< Unknown battery level.
+	dsGameInputBattery_Empty,   ///< Battery is empty.
+	dsGameInputBattery_Low,     ///< Battery is low.
+	dsGameInputBattery_Medium,  ///< Battery is partially depleted.
+	dsGameInputBattery_Full,    ///< Battery is fully charged.
+	dsGameInputBattery_Wired    ///< Controller is wired.
+} dsGameInputBattery;
 
 /**
  * @brief Struct containing information about the mode for a display.
@@ -365,6 +365,13 @@ typedef struct dsEvent
 	 */
 	dsAppEventType type;
 
+	/**
+	 * @brief The relative time of this event in seconds.
+	 *
+	 * The time starts at an arbitrary value, but should be consistent between events.
+	 */
+	double time;
+
 	union
 	{
 		/**
@@ -425,41 +432,41 @@ typedef struct dsEvent
 		dsMultiTouchEvent multiTouch;
 
 		/**
-		 * @brief Information about a controller being connected or disconnected.
+		 * @brief Information about a game input being connected or disconnected.
 		 *
-		 * This is set for dsAppEventType_ControllerConnected and
-		 * dsAppEventType_ControllerDisconnected.
+		 * This is set for dsAppEventType_GameInputConnected and
+		 * dsAppEventType_GameInputDisconnected.
 		 */
-		dsControllerConnectEvent controllerConnect;
+		dsGameInputConnectEvent gameInputConnect;
 
 		/**
-		 * @brief Information about a controller axis being moved.
+		 * @brief Information about a game input axis being moved.
 		 *
-		 * This is set for dsAppEventType_ControllerAxis.
+		 * This is set for dsAppEventType_GameInputAxis.
 		 */
-		dsControllerAxisEvent controllerAxis;
+		dsGameInputAxisEvent gameInputAxis;
 
 		/**
 		 * @brief Information about a controller button being pressed or released.
 		 *
-		 * This is set for dsAppEventType_ControllerButtonDown and
-		 * dsAppEventType_ControllerButtonDown.
+		 * This is set for dsAppEventType_GameInputButtonDown and
+		 * dsAppEventType_GameInputButtonDown.
 		 */
-		dsControllerButtonEvent controllerButton;
+		dsGameInputButtonEvent gameInputButton;
 
 		/**
-		 * @brief Information about a joystick ball being moved.
+		 * @brief Information about a game input ball being moved.
 		 *
-		 * This is set for dsAppEventType_JoystickBall.
+		 * This is set for dsAppEventType_GameInputBall.
 		 */
-		dsJoystickBallEvent joystickBall;
+		dsGameInputBallEvent gameInputBall;
 
 		/**
-		 * @brief Information about a joystick hat being moved.
+		 * @brief Information about a game input D-pad being moved.
 		 *
-		 * This is set for dsAppEventType_JoystickHat.
+		 * This is set for dsAppEventType_GameInputDPad.
 		 */
-		dsJoystickHatEvent joystickHat;
+		dsGameInputDPadEvent gameInputDPad;
 
 		/**
 		 * @brief Information about a window resize.
@@ -478,13 +485,13 @@ typedef struct dsEvent
 } dsEvent;
 
 /**
- * @brief Struct containing information about a controller.
+ * @brief Struct containing information about a game input device.
  *
- * Controller implementations can effectively subclass this type by having it as the first member
+ * Game input implementations can effectively subclass this type by having it as the first member
  * of the structure. This can be done to add additional data to the structure and have it be freely
  * casted between dsWindow and the true internal type.
  */
-typedef struct dsController
+typedef struct dsGameInput
 {
 	/**
 	 * @brief The application this was created with.
@@ -497,40 +504,40 @@ typedef struct dsController
 	dsAllocator* allocator;
 
 	/**
-	 * @brief The name of the controller.
+	 * @brief The name of the device.
 	 */
 	const char* name;
 
 	/**
-	 * @brief The type of the controller.
+	 * @brief The type of the device.
 	 */
-	dsControllerType type;
+	dsGameInputType type;
 
 	/**
-	 * @brief The number of axes on the controller.
+	 * @brief The number of axes on the device.
 	 */
 	uint32_t axisCount;
 
 	/**
-	 * @brief The number of buttons on the controller.
+	 * @brief The number of buttons on the device.
 	 */
 	uint32_t buttonCount;
 
 	/**
-	 * @brief The number of balls on the controller, generally for joysticks.
+	 * @brief The number of balls on the device, generally for joysticks.
 	 */
 	uint32_t ballCount;
 
 	/**
-	 * @brief The number of hats on the controller, generally for joysticks.
+	 * @brief The number of D-pads or hats on the controller.
 	 */
-	uint32_t hatCount;
+	uint32_t dpadCount;
 
 	/**
 	 * @brief True if rumble is supported.
 	 */
 	bool rumbleSupported;
-} dsController;
+} dsGameInput;
 
 /**
  * @brief Function called when a window is added.
@@ -951,64 +958,64 @@ typedef bool (*dsSetWindowGrabbedInputFunction)(dsApplication* application, dsWi
 typedef bool (*dsRaiseWindowFunction)(dsApplication* application, dsWindow* window);
 
 /**
- * @brief Function to get the battery level of a controller.
+ * @brief Function to get the battery level of a game input.
  * @param application The application.
- * @param controller The controller to get the battery level from.
+ * @param gameInput The game input device to get the battery level from.
  * @return The battery level.
  */
-typedef dsControllerBattery (*dsGetControllerBatteryFunction)(const dsApplication* application,
-	const dsController* controller);
+typedef dsGameInputBattery (*dsGetGameInputBatteryFunction)(const dsApplication* application,
+	const dsGameInput* gameInput);
 
 /**
- * @brief Function for getting the state of a controller axis.
+ * @brief Function for getting the state of a game input axis.
  * @param application The application.
- * @param controller The controller to get the axis from.
+ * @param gameInput The game input device to get the axis from.
  * @param axis The index of the axis.
  * @return The axis value.
  */
-typedef float (*dsGetControllerAxisFunction)(const dsApplication* application,
-	const dsController* controller, uint32_t axis);
+typedef float (*dsGetGameInputAxisFunction)(const dsApplication* application,
+	const dsGameInput* gameInput, uint32_t axis);
 
 /**
- * @brief Function for getting if a controller button is pressed.
+ * @brief Function for getting if a game input button is pressed.
  * @param application The application.
- * @param controller The controller to get the button state from.
+ * @param gameInput The game input device to get the button state from.
  * @param button The button to check.
  * @return True if the button is pressed.
  */
-typedef bool (*dsIsControllerButtonPressedFunction)(const dsApplication* application,
-	const dsController* controller, uint32_t button);
+typedef bool (*dsIsGameInputButtonPressedFunction)(const dsApplication* application,
+	const dsGameInput* gameInput, uint32_t button);
 
 /**
- * @brief Function for getting the hat direction.
- * @param[out] outDirection The direction the hat is in.
+ * @brief Function for getting the game input D-pad direction.
+ * @param[out] outDirection The direction the D-pad is in.
  * @param application The application.
- * @param controller The controller to get the hat direction from.
- * @param hat The hat to check.
+ * @param gameInput The game input device to get the D-pad direction from.
+ * @param dpad The D-pad to check.
  * @return False if the hat state couldn't be queried.
  */
-typedef bool (*dsGetControllerHatDirectionFunction)(dsVector2i* outDirection,
-	const dsApplication* application, const dsController* controller, uint32_t hat);
+typedef bool (*dsGetGameInputDPadDirectionFunction)(dsVector2i* outDirection,
+	const dsApplication* application, const dsGameInput* gameInput, uint32_t dpad);
 
 /**
- * @brief Function for starting rumble on a controller.
+ * @brief Function for starting rumble on a game input.
  * @param application The application.
- * @param controller The controller to start the rumble on.
+ * @param gameInput The game input device to start the rumble on.
  * @param strength The strength of the rumble.
  * @param duration The duration to rumble for.
  * @return False if rumble couldn't be started.
  */
-typedef bool (*dsStartControllerRumbleFunction)(dsApplication* application,
-	dsController* controller, float strength, float duration);
+typedef bool (*dsStartGameInputRumbleFunction)(dsApplication* application,
+	dsGameInput* gameInput, float strength, float duration);
 
 /**
- * @brief Function for stopping rumble on a controller.
+ * @brief Function for stopping rumble on a game input.
  * @param application The application.
- * @param controller The controller to stop the rumble on.
+ * @param gameInput The game input device to stop the rumble on.
  * @return False if rumble couldn't be stopped.
  */
-typedef bool (*dsStopControllerRumbleFunction)(dsApplication* application,
-	dsController* controller);
+typedef bool (*dsStopGameInputRumbleFunction)(dsApplication* application,
+	dsGameInput* gameInput);
 
 /**
  * @brief Struct containing information to respond to a window being added or removed.
@@ -1137,19 +1144,19 @@ struct dsApplication
 	uint32_t windowCapacity;
 
 	/**
-	 * @brief The controllers in the application.
+	 * @brief The game inputs in the application.
 	 */
-	dsController** controllers;
+	dsGameInput** gameInputs;
 
 	/**
-	 * @brief The number of controllers.
+	 * @brief The number of game inputs.
 	 */
-	uint32_t controllerCount;
+	uint32_t gameInputCount;
 
 	/**
-	 * @brief The number of controllers that can be held before the buffer is re-allocated.
+	 * @brief The number of game inputs that can be held before the buffer is re-allocated.
 	 */
-	uint32_t controllerCapacity;
+	uint32_t gameInputCapacity;
 
 	/**
 	 * @brief Function for updating the application.
@@ -1367,34 +1374,34 @@ struct dsApplication
 	dsRaiseWindowFunction raiseWindowFunc;
 
 	/**
-	 * @brief Function for getting the controller battery level.
+	 * @brief Function for getting the game input battery level.
 	 */
-	dsGetControllerBatteryFunction getControllerBatteryFunc;
+	dsGetGameInputBatteryFunction getGameInputBatteryFunc;
 
 	/**
-	 * @brief Function for getting a controller axis.
+	 * @brief Function for getting a game input axis.
 	 */
-	dsGetControllerAxisFunction getControllerAxisFunc;
+	dsGetGameInputAxisFunction getGameInputAxisFunc;
 
 	/**
-	 * @brief Function for getting if a controller button is pressed.
+	 * @brief Function for getting if a game input button is pressed.
 	 */
-	dsIsControllerButtonPressedFunction isControllerButtonPressedFunc;
+	dsIsGameInputButtonPressedFunction isGameInputButtonPressedFunc;
 
 	/**
-	 * @brief Function for getting the controller hat direction.
+	 * @brief Function for getting the game input D-pad direction.
 	 */
-	dsGetControllerHatDirectionFunction getControllerHatDirectionFunc;
+	dsGetGameInputDPadDirectionFunction getGameInputDPadDirectionFunc;
 
 	/**
-	 * @brief Function for starting rumble on a controller.
+	 * @brief Function for starting rumble on a game input.
 	 */
-	dsStartControllerRumbleFunction startControllerRumbleFunc;
+	dsStartGameInputRumbleFunction startGameInputRumbleFunc;
 
 	/**
-	 * @brief Function for stopping rumble on a controller.
+	 * @brief Function for stopping rumble on a game input.
 	 */
-	dsStopControllerRumbleFunction stopControllerRumbleFunc;
+	dsStopGameInputRumbleFunction stopGameInputRumbleFunc;
 };
 
 /** @copydoc dsWindow */

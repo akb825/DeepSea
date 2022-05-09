@@ -29,11 +29,20 @@ extern "C"
  * @brief Includes all of the types used for touch events.
  */
 
+/// @cond
+typedef struct dsGameInput dsGameInput;
+/// @endcond
+
 /**
  * @brief Struct containing information about a touch event.
  */
 typedef struct dsTouchEvent
 {
+	/**
+	 * @brief The game input that the touch is associated with, if any.
+	 */
+	const dsGameInput* gameInput;
+
 	/**
 	 * @brief ID for the touch.
 	 */

@@ -232,50 +232,50 @@ bool dsApplication_removeWindow(dsApplication* application, dsWindow* window)
 	return false;
 }
 
-bool dsApplication_addController(dsApplication* application, dsController* controller)
+bool dsApplication_addGameInput(dsApplication* application, dsGameInput* gameInput)
 {
-	if (!application || !controller || controller->application != application)
+	if (!application || !gameInput || gameInput->application != application)
 	{
 		errno = EINVAL;
 		return false;
 	}
 
-	for (uint32_t i = 0; i < application->controllerCount; ++i)
+	for (uint32_t i = 0; i < application->gameInputCount; ++i)
 	{
-		if (application->controllers[i] == controller)
+		if (application->gameInputs[i] == gameInput)
 		{
 			errno = EINVAL;
-			DS_LOG_ERROR(DS_APPLICATION_LOG_TAG, "Controller has already been added.");
+			DS_LOG_ERROR(DS_APPLICATION_LOG_TAG, "GameInput has already been added.");
 			return false;
 		}
 	}
 
-	uint32_t index = application->controllerCount;
-	if (!DS_RESIZEABLE_ARRAY_ADD(application->allocator, application->controllers,
-		application->controllerCount, application->controllerCapacity, 1))
+	uint32_t index = application->gameInputCount;
+	if (!DS_RESIZEABLE_ARRAY_ADD(application->allocator, application->gameInputs,
+			application->gameInputCount, application->gameInputCapacity, 1))
 	{
 		return false;
 	}
 
-	application->controllers[index] = controller;
+	application->gameInputs[index] = gameInput;
 	return true;
 }
 
-bool dsApplication_removeController(dsApplication* application, dsController* controller)
+bool dsApplication_removeGameInput(dsApplication* application, dsGameInput* gameInput)
 {
-	if (!application || !controller)
+	if (!application || !gameInput)
 	{
 		errno = EINVAL;
 		return false;
 	}
 
-	for (uint32_t i = 0; i < application->controllerCount; ++i)
+	for (uint32_t i = 0; i < application->gameInputCount; ++i)
 	{
-		if (application->controllers[i] == controller)
+		if (application->gameInputs[i] == gameInput)
 		{
-			memmove(application->controllers + i, application->controllers + i + 1,
-				sizeof(dsController*)*(application->controllerCount - i - 1));
-			--application->controllerCount;
+			memmove(application->gameInputs + i, application->gameInputs + i + 1,
+				sizeof(dsGameInput*)*(application->gameInputCount - i - 1));
+			--application->gameInputCount;
 			return true;
 		}
 	}
@@ -546,7 +546,7 @@ void dsApplication_shutdown(dsApplication* application)
 	DS_VERIFY(dsAllocator_free(application->allocator, application->windowResponders));
 	DS_VERIFY(dsAllocator_free(application->allocator, application->eventResponders));
 	DS_VERIFY(dsAllocator_free(application->allocator, application->windows));
-	DS_VERIFY(dsAllocator_free(application->allocator, application->controllers));
+	DS_VERIFY(dsAllocator_free(application->allocator, application->gameInputs));
 
 	if (dsLog_getFunction() == &applicationLogWrapper)
 		dsLog_clearFunction();

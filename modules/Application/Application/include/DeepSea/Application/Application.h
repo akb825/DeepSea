@@ -127,17 +127,17 @@ DS_APPLICATION_EXPORT bool dsApplication_addWindow(dsApplication* application, d
 DS_APPLICATION_EXPORT bool dsApplication_removeWindow(dsApplication* application, dsWindow* window);
 
 /**
- * @brief Adds an existing controller to the application.
+ * @brief Adds an existing game input to the application.
  *
  * This is usually called by the implementation and not directly.
  *
  * @remark errno will be set on failure.
  * @param application The application.
- * @param controller The controller to add.
- * @return True if the controller that was added.
+ * @param gameInput The game input device to add.
+ * @return True if the game input that was added.
  */
-DS_APPLICATION_EXPORT bool dsApplication_addController(dsApplication* application,
-	dsController* controller);
+DS_APPLICATION_EXPORT bool dsApplication_addGameInput(dsApplication* application,
+	dsGameInput* gameInput);
 
 /**
  * @brief Removes a controller from the application without destroying it.
@@ -146,11 +146,11 @@ DS_APPLICATION_EXPORT bool dsApplication_addController(dsApplication* applicatio
  *
  * @remark errno will be set on failure.
  * @param application The application.
- * @param controller The controller to remove.
- * @return True if the controller was removed.
+ * @param gameInput The game input device to remove.
+ * @return True if the game input was removed.
  */
-DS_APPLICATION_EXPORT bool dsApplication_removeController(dsApplication* application,
-	dsController* controller);
+DS_APPLICATION_EXPORT bool dsApplication_removeGameInput(dsApplication* application,
+	dsGameInput* gameInput);
 
 /**
  * @brief Adds a custom event to be placed on the event queue.
