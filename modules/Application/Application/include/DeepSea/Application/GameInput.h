@@ -37,6 +37,26 @@ extern "C"
  */
 
 /**
+ * @brief Checks whether or not a controller mapping exists.
+ * @param gameInput The game input device to check the mapping for.
+ * @param mapping The controller mapping.
+ * @return Whether or not the mapping is available.
+ */
+DS_APPLICATION_EXPORT bool dsGameInput_hasControllerMapping(const dsGameInput* gameInput,
+	dsGameControllerMap mapping);
+
+/**
+ * @brief Finds the controller mapping for an input method and index.
+ * @param gameInput The game input device to find the mapping for.
+ * @param method The input method.
+ * @param index The index of the input method. (button, axis, or dpad)
+ * @return The controller mapping or dsGameControllerMap_Invalid if not found. If the input
+ *     corresponds to a button, the first will be returned. (generally dsGameControllerMap_DPadUp)
+ */
+DS_APPLICATION_EXPORT dsGameControllerMap dsGameInput_findControllerMapping(
+	const dsGameInput* gameInput, dsGameInputMethod method, uint32_t index);
+
+/**
  * @brief Gets the game input battery level.
  * @param gameInput The game input device to get the battery level from.
  * @return The battery level of the device.
@@ -52,6 +72,19 @@ DS_APPLICATION_EXPORT dsGameInputBattery dsGameInput_getBattery(const dsGameInpu
 DS_APPLICATION_EXPORT float dsGameInput_getAxis(const dsGameInput* gameInput, uint32_t axis);
 
 /**
+ * @brief Gets the value for a game input axis based on the game controller mapping.
+ *
+ * If the axis doesn't exist the value will be 0. If the mapping is a button, a value of 1 will be
+ * returned. More information about the mapping cam be queried from gameInput->controllerMapping.
+ *
+ * @param gameInput The game input device to get the axis from.
+ * @param mapping The controller mapping.
+ * @return The axis value.
+ */
+DS_APPLICATION_EXPORT float dsGameInput_getControllerAxis(const dsGameInput* gameInput,
+	dsGameControllerMap mapping);
+
+/**
  * @brief Gets whether or not a game input button is pressed.
  * @param gameInput The game input device to get the button state from.
  * @param button The button to check.
@@ -59,6 +92,20 @@ DS_APPLICATION_EXPORT float dsGameInput_getAxis(const dsGameInput* gameInput, ui
  */
 DS_APPLICATION_EXPORT bool dsGameInput_isButtonPressed(const dsGameInput* gameInput,
 	uint32_t button);
+
+/**
+ * @brief Gets whether or not a game input button is pressed based on the game controller mapping.
+ *
+ * If the button doesn't exist the value will be false. If the mapping is an axis, true will be
+ * returned if the axis value is at least 0.5. More information about the mapping cam be queried
+ * from gameInput->controllerMapping.
+ *
+ * @param gameInput The game input device to get the button state from.
+ * @param mapping The controller mapping.
+ * @return True if the button is pressed.
+ */
+DS_APPLICATION_EXPORT bool dsGameInput_isControllerButtonPressed(const dsGameInput* gameInput,
+	dsGameControllerMap mapping);
 
 /**
  * @brief Gets the the D-pad direction for a game input.
@@ -69,7 +116,7 @@ DS_APPLICATION_EXPORT bool dsGameInput_isButtonPressed(const dsGameInput* gameIn
  * @return False if the D-pad state couldn't be queried.
  */
 DS_APPLICATION_EXPORT bool dsGameInput_getDPadDirection(dsVector2i* outDirection,
-	const dsGameInput* gameInput, uint32_t fpad);
+	const dsGameInput* gameInput, uint32_t dpad);
 
 /**
  * @brief Starts rumble on a game input.

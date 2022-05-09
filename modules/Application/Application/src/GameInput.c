@@ -17,6 +17,29 @@
 #include <DeepSea/Application/GameInput.h>
 #include <DeepSea/Core/Error.h>
 
+bool dsGameInput_hasControllerMapping(const dsGameInput* gameInput, dsGameControllerMap mapping)
+{
+	return gameInput && mapping > dsGameControllerMap_Invalid &&
+		mapping < dsGameControllerMap_Count &&
+		gameInput->controllerMapping[mapping].method != dsGameInputMethod_Invalid;
+}
+
+dsGameControllerMap dsGameInput_findControllerMapping(const dsGameInput* gameInput,
+	dsGameInputMethod method, uint32_t index)
+{
+	if (method == dsGameInputMethod_Invalid)
+		return dsGameControllerMap_Invalid;
+
+	for (int i = 0; i < dsGameControllerMap_Count; ++i)
+	{
+		const dsGameInputMap* mapping = gameInput->controllerMapping + i;
+		if (mapping->method == method && mapping->index == index)
+			return (dsGameControllerMap)i;
+	}
+
+	return dsGameControllerMap_Invalid;
+}
+
 dsGameInputBattery dsGameInput_getBattery(const dsGameInput* gameInput)
 {
 	if (!gameInput || !gameInput->application || !gameInput->application->getGameInputBatteryFunc)
@@ -38,6 +61,18 @@ float dsGameInput_getAxis(const dsGameInput* gameInput, uint32_t axis)
 	return application->getGameInputAxisFunc(application, gameInput, axis);
 }
 
+float dsGameInput_getControllerAxis(const dsGameInput* gameInput, dsGameControllerMap mapping)
+{
+	if (!dsGameInput_hasControllerMapping(gameInput, mapping) || !gameInput->application ||
+		!gameInput->application->getGameInputControllerAxisFunc)
+	{
+		return 0.0f;
+	}
+
+	const dsApplication* application = gameInput->application;
+	return application->getGameInputControllerAxisFunc(application, gameInput, mapping);
+}
+
 bool dsGameInput_isButtonPressed(const dsGameInput* gameInput, uint32_t button)
 {
 	if (!gameInput || !gameInput->application ||
@@ -48,6 +83,19 @@ bool dsGameInput_isButtonPressed(const dsGameInput* gameInput, uint32_t button)
 
 	const dsApplication* application = gameInput->application;
 	return application->isGameInputButtonPressedFunc(application, gameInput, button);
+}
+
+bool dsGameInput_isControllerButtonPressed(const dsGameInput* gameInput,
+	dsGameControllerMap mapping)
+{
+	if (!dsGameInput_hasControllerMapping(gameInput, mapping) || !gameInput->application ||
+		!gameInput->application->isGameInputControllerButtonPressedFunc)
+	{
+		return false;
+	}
+
+	const dsApplication* application = gameInput->application;
+	return application->isGameInputControllerButtonPressedFunc(application, gameInput, mapping);
 }
 
 bool dsGameInput_getDPadDirection(dsVector2i* outDirection, const dsGameInput* gameInput,

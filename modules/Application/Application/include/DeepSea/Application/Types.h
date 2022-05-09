@@ -529,9 +529,24 @@ typedef struct dsGameInput
 	uint32_t ballCount;
 
 	/**
-	 * @brief The number of D-pads or hats on the controller.
+	 * @brief The number of D-pads or hats on the device.
 	 */
 	uint32_t dpadCount;
+
+	/**
+	 * @brief The number of touchpads on the device.
+	 */
+	uint32_t touchpadCount;
+
+	/**
+	 * @brief Mapping from a game controller input to the raw game input.
+	 */
+	dsGameInputMap controllerMapping[dsGameControllerMap_Count];
+
+	/**
+	 * @brief True if any controller mappings are available.
+	 */
+	bool hasControllerMappings;
 
 	/**
 	 * @brief True if rumble is supported.
@@ -977,6 +992,16 @@ typedef float (*dsGetGameInputAxisFunction)(const dsApplication* application,
 	const dsGameInput* gameInput, uint32_t axis);
 
 /**
+ * @brief Function for getting the state of a game input axis based on the game controller mapping.
+ * @param application The application.
+ * @param gameInput The game input device to get the axis from.
+ * @param mapping The controller mapping.
+ * @return The axis value.
+ */
+typedef float (*dsGetGameInputControllerAxisFunction)(const dsApplication* application,
+	const dsGameInput* gameInput, dsGameControllerMap mapping);
+
+/**
  * @brief Function for getting if a game input button is pressed.
  * @param application The application.
  * @param gameInput The game input device to get the button state from.
@@ -985,6 +1010,17 @@ typedef float (*dsGetGameInputAxisFunction)(const dsApplication* application,
  */
 typedef bool (*dsIsGameInputButtonPressedFunction)(const dsApplication* application,
 	const dsGameInput* gameInput, uint32_t button);
+
+/**
+ * @brief Function for getting if a game input button is pressed based on the game controller
+ *     mapping.
+ * @param application The application.
+ * @param gameInput The game input device to get the button state from.
+ * @param mapping The controller mapping.
+ * @return True if the button is pressed.
+ */
+typedef bool (*dsIsGameInputControllerButtonPressedFunction)(const dsApplication* application,
+	const dsGameInput* gameInput, dsGameControllerMap mapping);
 
 /**
  * @brief Function for getting the game input D-pad direction.
@@ -1384,9 +1420,20 @@ struct dsApplication
 	dsGetGameInputAxisFunction getGameInputAxisFunc;
 
 	/**
+	 * @brief Function for getting a game input axis based on the controller mapping.
+	 */
+	dsGetGameInputControllerAxisFunction getGameInputControllerAxisFunc;
+
+	/**
 	 * @brief Function for getting if a game input button is pressed.
 	 */
 	dsIsGameInputButtonPressedFunction isGameInputButtonPressedFunc;
+
+	/**
+	 * @brief Function for getting if a game input button is pressed based on the controller
+	 *     mapping.
+	 */
+	dsIsGameInputControllerButtonPressedFunction isGameInputControllerButtonPressedFunc;
 
 	/**
 	 * @brief Function for getting the game input D-pad direction.

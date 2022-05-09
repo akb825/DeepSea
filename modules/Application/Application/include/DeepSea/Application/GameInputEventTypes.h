@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include <DeepSea/Core/Config.h>
+#include <DeepSea/Math/Types.h>
 #include <stdint.h>
 
 #ifdef __cplusplus
@@ -48,39 +50,62 @@ extern "C"
 typedef enum dsGameControllerMap
 {
 	dsGameControllerMap_Invalid = -1,  ///< Invalid mapping used for error results.
-	dsGameControllerMap_LeftHorizontalAxis,  ///< The horizontal axis controlled by the left control
-	                                         ///< stick.
-	dsGameControllerMap_LeftVerticalAxis,    ///< The vertical axis controlled by the left control
-	                                         ///< stick.
-	dsGameControllerMap_RightHorizontalAxis, ///< The horizontal axis controlled by the right
-	                                         ///< control stick.
-	dsGameControllerMap_RightVerticalAxis,   ///< The vertical axis controlled by the right control
-	                                         ///< stick.
-	dsGameControllerMap_DPadUp,              ///< The up button for the D-pad.
-	dsGameControllerMap_DPadDown,            ///< The down button for the D-pad.
-	dsGameControllerMap_DPadLeft,            ///< The left button for the D-pad.
-	dsGameControllerMap_DPadRight,           ///< The right button for the D-pad.
-	dsGameControllerMap_FaceButton0,         ///< The first face button.
-	dsGameControllerMap_FaceButton1,         ///< The second face button.
-	dsGameControllerMap_FaceButton2,         ///< The third face button.
-	dsGameControllerMap_FaceButton4,         ///< The fourth face button.
-	dsGameControllerMap_Start,               ///< The start/+ button.
-	dsGameControllerMap_Select,              ///< The select/back/- button.
-	dsGameControllerMap_Guide,               ///< The guide/home button.
-	dsGameControllerMap_LeftStick,           ///< Button for pressing the left control stick.
-	dsGameControllerMap_RightStick,          ///< Button for pressing the right control stick.
-	dsGameControllerMap_LeftShoulder,        ///< The left shoulder button.
-	dsGameControllerMap_RightShoulder,       ///< The right shoulder button.
-	dsGameControllerMap_LeftTrigger,         ///< The left shoulder trigger.
-	dsGameControllerMap_RightTrigger,        ///< The right shoulder trigger.
-	dsGameControllerMap_Paddle0,             ///< First paddle.
-	dsGameControllerMap_Paddle1,             ///< Second paddle.
-	dsGameControllerMap_Paddle2,             ///< Third paddle.
-	dsGameControllerMap_Paddle3,             ///< Fourth paddle.
-	dsGameControllerMap_Touchpad,            ///< Touchpad button.
-	dsGameControllerMap_MiscButton0,         ///< The share/microphone/camera button.
-	dsGameControllerMap_Count                ///< The number of game controller input maps.
+	dsGameControllerMap_LeftXAxis,     ///< The X axis controlled by the left control stick.
+	dsGameControllerMap_LeftYAxis,     ///< The Y axis controlled by the left control stick.
+	dsGameControllerMap_RightXAxis,    ///< The X axis controlled by the right control stick.
+	dsGameControllerMap_RightYAxis,    ///< The Y axis controlled by the right control stick.
+	dsGameControllerMap_DPadUp,        ///< The up button for the D-pad.
+	dsGameControllerMap_DPadDown,      ///< The down button for the D-pad.
+	dsGameControllerMap_DPadLeft,      ///< The left button for the D-pad.
+	dsGameControllerMap_DPadRight,     ///< The right button for the D-pad.
+	dsGameControllerMap_FaceButton0,   ///< The first face button.
+	dsGameControllerMap_FaceButton1,   ///< The second face button.
+	dsGameControllerMap_FaceButton2,   ///< The third face button.
+	dsGameControllerMap_FaceButton3,   ///< The fourth face button.
+	dsGameControllerMap_Start,         ///< The start/+ button.
+	dsGameControllerMap_Select,        ///< The select/back/- button.
+	dsGameControllerMap_Home,          ///< The home/guide button.
+	dsGameControllerMap_LeftStick,     ///< Button for pressing the left control stick.
+	dsGameControllerMap_RightStick,    ///< Button for pressing the right control stick.
+	dsGameControllerMap_LeftShoulder,  ///< The left shoulder button.
+	dsGameControllerMap_RightShoulder, ///< The right shoulder button.
+	dsGameControllerMap_LeftTrigger,   ///< The left shoulder trigger.
+	dsGameControllerMap_RightTrigger,  ///< The right shoulder trigger.
+	dsGameControllerMap_Paddle0,       ///< First paddle.
+	dsGameControllerMap_Paddle1,       ///< Second paddle.
+	dsGameControllerMap_Paddle2,       ///< Third paddle.
+	dsGameControllerMap_Paddle3,       ///< Fourth paddle.
+	dsGameControllerMap_Touchpad,      ///< Touchpad button.
+	dsGameControllerMap_MiscButton0,   ///< The share/microphone/camera button.
+	dsGameControllerMap_Count          ///< The number of game controller input maps.
 } dsGameControllerMap;
+
+/**
+ * @brief Enum for a method of input for a game input.
+ */
+typedef enum dsGameInputMethod
+{
+	dsGameInputMethod_Invalid = -1, ///< Input method isn't provided.
+	dsGameInputMethod_Axis,         ///< Analog axis.
+	dsGameInputMethod_Button,       ///< A button that is either pressed or not.
+	dsGameInputMethod_DPad          ///< A D-pad or hat.
+} dsGameInputMethod;
+
+/**
+ * @brief Struct defining a mapping to a specific input on a game input device.
+ */
+typedef struct dsGameInputMap
+{
+	/**
+	 * @brief The input method.
+	 */
+	dsGameInputMethod method;
+
+	/**
+	 * @brief The index of the input method.
+	 */
+	uint32_t index;
+} dsGameInputMap;
 
 /// @cond
 typedef struct dsGameInput dsGameInput;
@@ -108,7 +133,15 @@ typedef struct dsGameInputAxisEvent
 	const dsGameInput* gameInput;
 
 	/**
+	 * @brief The game controller mapping, if available.
+	 */
+	dsGameControllerMap mapping;
+
+	/**
 	 * @brief The axis that was modified.
+	 *
+	 * This will be 0 if mapping is set since it may not map to an actual axis. See
+	 * gameInput->controllerMapping for more detailed information.
 	 */
 	uint32_t axis;
 
@@ -129,7 +162,15 @@ typedef struct dsGameInputButtonEvent
 	const dsGameInput* gameInput;
 
 	/**
+	 * @brief The game controller mapping, if available.
+	 */
+	dsGameControllerMap mapping;
+
+	/**
 	 * @brief The button that was pressed or released.
+	 *
+	 * This will be 0 if mapping is set since it may not map to an actual button. See
+	 * gameInput->controllerMapping for more detailed information.
 	 */
 	uint32_t button;
 } dsGameInputButtonEvent;
@@ -176,14 +217,9 @@ typedef struct dsGameInputDPadEvent
 	uint32_t dpad;
 
 	/**
-	 * @brief The X direction of the hat, -1 for left, 0 for center, and 1 for right.
+	 * @brief The direction the D-pad is in.
 	 */
-	int8_t x;
-
-	/**
-	 * @brief The Y direction of the hat, -1 for down, 0 for center, and 1 for up.
-	 */
-	int8_t y;
+	dsVector2i direction;
 } dsGameInputDPadEvent;
 
 #ifdef __cplusplus

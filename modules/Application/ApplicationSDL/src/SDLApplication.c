@@ -22,7 +22,9 @@
 #include "SDLWindow.h"
 
 #include <DeepSea/Application/Application.h>
+#include <DeepSea/Application/GameInput.h>
 #include <DeepSea/Application/Window.h>
+
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/StackAllocator.h>
 #include <DeepSea/Core/Streams/ResourceStream.h>
@@ -32,6 +34,7 @@
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Core/Profile.h>
 #include <DeepSea/Core/Timer.h>
+
 #include <DeepSea/Render/Renderer.h>
 #include <DeepSea/Render/RenderSurface.h>
 
@@ -109,20 +112,6 @@ static dsWindow* findWindow(dsApplication* application, uint32_t windowId)
 	{
 		if (SDL_GetWindowID(((dsSDLWindow*)application->windows[i])->sdlWindow) == windowId)
 			return application->windows[i];
-	}
-
-	return NULL;
-}
-
-static dsGameInput* findGameInput(dsApplication* application, SDL_JoystickID joystickId)
-{
-	for (uint32_t i = 0; i < application->gameInputCount; ++i)
-	{
-		if (SDL_JoystickInstanceID(((dsSDLGameInput*)application->gameInputs[i])->joystick) ==
-			joystickId)
-		{
-			return application->gameInputs[i];
-		}
 	}
 
 	return NULL;
@@ -551,15 +540,24 @@ int dsSDLApplication_run(dsApplication* application)
 					break;
 				case SDL_JOYAXISMOTION:
 					event.type = dsAppEventType_GameInputAxis;
-					event.gameInputAxis.gameInput = findGameInput(application,
+					event.gameInputAxis.gameInput = dsSDLGameInput_find(application,
 						sdlEvent.jaxis.which);
 					DS_ASSERT(event.gameInputAxis.gameInput);
+					if (dsGameInput_findControllerMapping(event.gameInputAxis.gameInput,
+							dsGameInputMethod_Axis, sdlEvent.jaxis.value) !=
+						dsGameControllerMap_Invalid)
+					{
+						// Controller event will also be sent.
+						continue;
+					}
+
+					event.gameInputAxis.mapping = dsGameControllerMap_Invalid;
 					event.gameInputAxis.axis = sdlEvent.jaxis.axis;
 					event.gameInputAxis.value = dsSDLGameInput_getAxisValue(sdlEvent.jaxis.value);
 					break;
 				case SDL_JOYBALLMOTION:
 					event.type = dsAppEventType_GameInputBall;
-					event.gameInputBall.gameInput = findGameInput(application,
+					event.gameInputBall.gameInput = dsSDLGameInput_find(application,
 						sdlEvent.jaxis.which);
 					DS_ASSERT(event.gameInputBall.gameInput);
 					event.gameInputBall.deltaX = sdlEvent.jball.xrel;
@@ -567,19 +565,36 @@ int dsSDLApplication_run(dsApplication* application)
 					break;
 				case SDL_JOYHATMOTION:
 					event.type = dsAppEventType_GameInputDPad;
-					event.gameInputDPad.gameInput = findGameInput(application,
+					event.gameInputDPad.gameInput = dsSDLGameInput_find(application,
 						sdlEvent.jhat.which);
 					DS_ASSERT(event.gameInputDPad.gameInput);
-					dsSDLGameInput_convertHatDirection(&event.gameInputDPad.x,
-						&event.gameInputDPad.y, sdlEvent.jhat.value);
+					if (dsGameInput_findControllerMapping(event.gameInputDPad.gameInput,
+							dsGameInputMethod_DPad, sdlEvent.jhat.value) !=
+						dsGameControllerMap_Invalid)
+					{
+						// Controller event will also be sent.
+						continue;
+					}
+
+					dsSDLGameInput_convertHatDirection(&event.gameInputDPad.direction,
+						sdlEvent.jhat.value);
 					break;
 				case SDL_JOYBUTTONDOWN:
 				case SDL_JOYBUTTONUP:
-					event.type = sdlEvent.type == SDL_JOYBUTTONUP ? dsAppEventType_GameInputButtonUp :
-						dsAppEventType_GameInputButtonDown;
-					event.gameInputButton.gameInput = findGameInput(application,
+					event.type = sdlEvent.type == SDL_JOYBUTTONUP ?
+						dsAppEventType_GameInputButtonUp : dsAppEventType_GameInputButtonDown;
+					event.gameInputButton.gameInput = dsSDLGameInput_find(application,
 						sdlEvent.jbutton.which);
 					DS_ASSERT(event.gameInputButton.gameInput);
+					if (dsGameInput_findControllerMapping(event.gameInputButton.gameInput,
+							dsGameInputMethod_Button, sdlEvent.jbutton.button) !=
+						dsGameControllerMap_Invalid)
+					{
+						// Controller event will also be sent.
+						continue;
+					}
+
+					event.gameInputButton.mapping = dsGameControllerMap_Invalid;
 					event.gameInputButton.button = sdlEvent.jbutton.button;
 					break;
 				case SDL_JOYDEVICEADDED:
@@ -599,10 +614,67 @@ int dsSDLApplication_run(dsApplication* application)
 				}
 				case SDL_JOYDEVICEREMOVED:
 					event.type = dsAppEventType_GameInputDisconnected;
-					event.gameInputConnect.gameInput = findGameInput(application,
+					event.gameInputConnect.gameInput = dsSDLGameInput_find(application,
 						sdlEvent.jdevice.which);
 					DS_ASSERT(event.gameInputConnect.gameInput);
 					break;
+				case SDL_CONTROLLERAXISMOTION:
+					// NOTE: In the future, may want to check if the underlying type is a button and
+					// send a button event. However, this may require going throug the raw joystick
+					// events. This is probably unlikely to be a real problem.
+					event.type = dsAppEventType_GameInputAxis;
+					event.gameInputAxis.gameInput = dsSDLGameInput_find(application,
+						sdlEvent.caxis.which);
+					DS_ASSERT(event.gameInputAxis.gameInput);
+					event.gameInputAxis.mapping = dsSDLGameInput_controllerMapForAxis(
+						(SDL_GameControllerAxis)sdlEvent.caxis.axis);
+					event.gameInputAxis.axis = 0;
+					event.gameInputAxis.value = dsSDLGameInput_getAxisValue(sdlEvent.caxis.value);
+					break;
+				case SDL_CONTROLLERBUTTONDOWN:
+				case SDL_CONTROLLERBUTTONUP:
+					// NOTE: In the future, may want to check if the underlying type is an axis and
+					// send an axis event. However, this may require going throug the raw joystick
+					// events. This is probably unlikely to be a real problem.
+					event.type = sdlEvent.type == SDL_CONTROLLERBUTTONUP ?
+						dsAppEventType_GameInputButtonUp : dsAppEventType_GameInputButtonDown;
+					event.gameInputButton.gameInput = dsSDLGameInput_find(application,
+						sdlEvent.cbutton.which);
+					DS_ASSERT(event.gameInputButton.gameInput);
+					event.gameInputAxis.mapping = dsSDLGameInput_controllerMapForButton(
+						(SDL_GameControllerButton)sdlEvent.cbutton.button);
+					break;
+#if SDL_VERSION_ATLEAST(2, 0, 14)
+				case SDL_CONTROLLERTOUCHPADDOWN:
+				case SDL_CONTROLLERTOUCHPADUP:
+				case SDL_CONTROLLERTOUCHPADMOTION:
+					switch (sdlEvent.type)
+					{
+						case SDL_CONTROLLERTOUCHPADDOWN:
+							event.type = dsAppEventType_TouchFingerDown;
+							break;
+						case SDL_CONTROLLERTOUCHPADUP:
+							event.type = dsAppEventType_TouchFingerUp;
+							break;
+						case SDL_CONTROLLERTOUCHPADMOTION:
+							event.type = dsAppEventType_TouchMoved;
+							break;
+						default:
+							DS_ASSERT(false);
+							break;
+					}
+					event.touch.gameInput = dsSDLGameInput_find(application,
+						sdlEvent.ctouchpad.which);
+					DS_ASSERT(event.touch.gameInput);
+					event.touch.touchID = sdlEvent.ctouchpad.touchpad;
+					event.touch.fingerID = sdlEvent.ctouchpad.finger;
+					event.touch.x = sdlEvent.tfinger.x;
+					event.touch.y = sdlEvent.tfinger.y;
+					event.touch.deltaX = sdlEvent.tfinger.dx;
+					event.touch.deltaY = sdlEvent.tfinger.dy;
+					event.touch.pressure = sdlEvent.tfinger.pressure;
+					break;
+#endif
 				case SDL_FINGERDOWN:
 				case SDL_FINGERUP:
 				case SDL_FINGERMOTION:
@@ -883,7 +955,11 @@ dsApplication* dsSDLApplication_create(dsAllocator* allocator, dsRenderer* rende
 	SDL_SetHint(SDL_HINT_VIDEO_EXTERNAL_CONTEXT, "1");
 #endif
 
-	if (SDL_Init(SDL_INIT_GAMECONTROLLER | SDL_INIT_HAPTIC | SDL_INIT_SENSOR) != 0)
+	uint32_t initFlags = SDL_INIT_GAMECONTROLLER | SDL_INIT_HAPTIC;
+#if SDL_VERSION_ATLEAST(2, 0, 9)
+	initFlags |= SDL_INIT_SENSOR;
+#endif
+	if (SDL_Init(initFlags) != 0)
 	{
 		errno = EPERM;
 		DS_LOG_ERROR_F(DS_APPLICATION_SDL_LOG_TAG, "Couldn't initialize SDL: %s", SDL_GetError());
@@ -1095,7 +1171,10 @@ dsApplication* dsSDLApplication_create(dsAllocator* allocator, dsRenderer* rende
 
 	baseApplication->getGameInputBatteryFunc = &dsSDLGameInput_getBattery;
 	baseApplication->getGameInputAxisFunc = &dsSDLGameInput_getAxis;
+	baseApplication->getGameInputControllerAxisFunc = &dsSDLGameInput_getControllerAxis;
 	baseApplication->isGameInputButtonPressedFunc = &dsSDLGameInput_isButtonPressed;
+	baseApplication->isGameInputControllerButtonPressedFunc =
+		&dsSDLGameInput_isControllerButtonPressed;
 	baseApplication->getGameInputDPadDirectionFunc = &dsSDLGameInput_getDPadDirection;
 	baseApplication->startGameInputRumbleFunc = &dsSDLGameInput_startRumble;
 	baseApplication->stopGameInputRumbleFunc = &dsSDLGameInput_stopRumble;
