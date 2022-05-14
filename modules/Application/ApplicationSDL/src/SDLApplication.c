@@ -344,6 +344,36 @@ bool dsSDLApplication_addCustomEvent(dsApplication* application, dsWindow* windo
 	return SDL_PushEvent(&userEvent) != 0;
 }
 
+double dsSDLApplication_getCurrentEventTime(const dsApplication* application)
+{
+	DS_UNUSED(application);
+	// NOTE: Would ideally use SDL_GetTicks64(), but events are locked into 32-bit timestamps until
+	// the ABI is allowed to change. This is currently planned for SDL 3.
+	return (double)SDL_GetTicks()/1000.0;
+}
+
+dsSystemPowerState dsSDLApplication_getPowerState(int* outRemainingTime, int* outBatteryPercent,
+	const dsApplication* application)
+{
+	DS_UNUSED(application);
+	switch (SDL_GetPowerInfo(outRemainingTime, outBatteryPercent))
+	{
+		case SDL_POWERSTATE_UNKNOWN:
+			return dsSystemPowerState_Unknown;
+		case SDL_POWERSTATE_ON_BATTERY:
+			return dsSystemPowerState_OnBattery;
+		case SDL_POWERSTATE_NO_BATTERY:
+			return dsSystemPowerState_External;
+		case SDL_POWERSTATE_CHARGING:
+			return dsSystemPowerState_Charging;
+		case SDL_POWERSTATE_CHARGED:
+			return dsSystemPowerState_Charged;
+	}
+
+	DS_ASSERT(false);
+	return dsSystemPowerState_Unknown;
+}
+
 uint32_t dsSDLApplication_showMessageBoxBase(dsApplication* application,
 	dsWindow* parentWindow, dsMessageBoxType type, const char* title, const char* message,
 	const char* const* buttons, uint32_t buttonCount, uint32_t enterButton, uint32_t escapeButton)
@@ -1129,6 +1159,8 @@ dsApplication* dsSDLApplication_create(dsAllocator* allocator, dsRenderer* rende
 	}
 
 	baseApplication->addCustomEventFunc = &dsSDLApplication_addCustomEvent;
+	baseApplication->getCurrentEventTimeFunc = &dsSDLApplication_getCurrentEventTime;
+	baseApplication->getPowerStateFunc = &dsSDLApplication_getPowerState;
 	baseApplication->showMessageBoxFunc = &dsSDLApplication_showMessageBoxBase;
 	baseApplication->runFunc = &dsSDLApplication_run;
 	baseApplication->quitFunc = &dsSDLApplication_quit;

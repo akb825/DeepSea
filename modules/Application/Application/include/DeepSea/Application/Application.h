@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -164,6 +164,37 @@ DS_APPLICATION_EXPORT bool dsApplication_addCustomEvent(dsApplication* applicati
 	dsWindow* window, const dsCustomEvent* event);
 
 /**
+ * @brief Gets the current event time.
+ *
+ * This can be used to find what an event's time is relative to the current one, as it is
+ * implementation defined what the start point is.
+ *
+ * @param application The application.
+ * @return The current event time in seconds.
+ */
+DS_APPLICATION_EXPORT double dsApplication_getCurrentEventTime(const dsApplication* application);
+
+/**
+ * @brief Gets the current power state of the system.
+ *
+ * This will return the overview of the power state, whether there's a battery and if it's charging,
+ * and optionally the remaining time in seconds and the percent of the battery.
+ *
+ * @remark Some devices may only report time left or percent remaining, so it is best to query both.
+ *     Additionally, the values are estimates and may not be accurate at times or for older and less
+ *     reliable hardware. For example, if you want to show a low battery warning, you may want to
+ *     check for < 10 minutes or 10% remaining across multiple queries over several seconds.
+ * @param[out] outRemainingTime The remaining time on the battery in seconds, or -1 if it cannot be
+ *     determined. This may be NULL ifi not needed.
+ * @param[out] outBatteryPercent The percent of the battery, or -1 if it cannot be determined.
+ *     This may be NULL ifi not needed.
+ * @param application The application.
+ * @return The current power state, determining if a battery is present and if it is charging.
+ */
+DS_APPLICATION_EXPORT dsSystemPowerState dsApplication_getPowerState(int* outRemainingTime,
+	int* outBatteryPercent, const dsApplication* application);
+
+/**
  * @brief Shows a message box and blocks execution until it's dismissed.
  * @param application The application.
  * @param parentWindow The parent window for the dialog, or NULL to be unparented.
@@ -303,7 +334,7 @@ DS_APPLICATION_EXPORT dsKeyModifier dsApplication_getKeyModifiers(const dsApplic
 DS_APPLICATION_EXPORT bool dsApplication_beginTextInput(dsApplication* application);
 
 /**
- * @brief Function for ending text input.
+ * @brief Ends accepting text input.
  * @remark errno will be set on failure.
  * @param application The application.
  * @return False if input couldn't be ended.
@@ -311,7 +342,7 @@ DS_APPLICATION_EXPORT bool dsApplication_beginTextInput(dsApplication* applicati
 DS_APPLICATION_EXPORT bool dsApplication_endTextInput(dsApplication* application);
 
 /**
- * @brief Setting the editing rectangle for editing text.
+ * @brief Sets the editing rectangle for editing text.
  *
  * This is generally used for suggestions for unicode entry.
  *

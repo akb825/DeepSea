@@ -11,7 +11,7 @@ The following software is required to build DeepSea:
 * [cmake](https://cmake.org/) 3.1 or later
 * [Modular Shader Language](https://github.com/akb825/ModularShaderLanguage) (required for rendering, provided as submodule; will only build the client library without tests, which doesn't have extra required dependencies; tool should be downloaded via `update.sh` or built separately and available on `PATH` to compile shaders)
 * [EasyProfiler](https://github.com/yse/easy_profiler) (optional default profiling implementation, provided as submodule)
-* [SDL](https://www.libsdl.org/) 2.0.4 or later (optional)
+* [SDL2](https://www.libsdl.org/) (optional)
 * [FreeType](https://www.freetype.org/) (required for text)
 * [HarfBuzz](https://www.freedesktop.org/wiki/Software/HarfBuzz/) (required for text)
 * [SheenBidi](https://github.com/mta452/SheenBidi) (required for text, provided as submodule)

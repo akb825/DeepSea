@@ -501,6 +501,7 @@ dsGameInputBattery dsSDLGameInput_getBattery(const dsApplication* application,
 	const dsGameInput* gameInput)
 {
 	DS_UNUSED(application);
+#if SDL_VERSION_ATLEAST(2, 0, 4)
 	switch (SDL_JoystickCurrentPowerLevel(((const dsSDLGameInput*)gameInput)->joystick))
 	{
 		case SDL_JOYSTICK_POWER_EMPTY:
@@ -516,6 +517,10 @@ dsGameInputBattery dsSDLGameInput_getBattery(const dsApplication* application,
 		default:
 			return dsGameInputBattery_Unknown;
 	}
+#else
+	DS_UNUSED(gameInput);
+	return dsGameInputBattery_Unknown;
+#endif
 }
 
 float dsSDLGameInput_getAxis(const dsApplication* application, const dsGameInput* gameInput,

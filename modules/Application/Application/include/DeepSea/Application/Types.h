@@ -56,6 +56,18 @@ extern "C"
 #define DS_APPLICATION_LOG_TAG "application"
 
 /**
+ * @brief Enum for the power state of the current system.
+ */
+typedef enum dsSystemPowerState
+{
+	dsSystemPowerState_Unknown,   ///< The power state is unknown.
+	dsSystemPowerState_External,  ///< The system uses external power without a battery.
+	dsSystemPowerState_OnBattery, ///< The system is unplugged and running off a battery.
+	dsSystemPowerState_Charging,  ///< The system is plugged in and charging its battery.
+	dsSystemPowerState_Charged    ///< The system is plugged in and battery is fully charged.
+} dsSystemPowerState;
+
+/**
  * @brief Enum for the type of an applicatio event.
  */
 typedef enum dsAppEventType
@@ -602,30 +614,21 @@ typedef void (*dsUpdateApplicationFunction)(dsApplication* application, double l
 typedef void (*dsFinishApplicationFrameFunction)(dsApplication* application, void* userData);
 
 /**
- * @brief Function to draw a window.
- * @param application The application.
- * @param window The window to draw.
- * @param userData The user data registered with the function.
- */
-typedef void (*dsDrawWindowFunction)(dsApplication* application, dsWindow* window, void* userData);
-
-/**
- * @brief Function to respond to a window close request.
- * @param window The window to be closed.
- * @param userData The user data registered with the function.
- * @return True to close the window, false to leave it open.
- */
-typedef bool (*dsInterceptCloseWindowFunction)(dsWindow* window, void* userData);
-
-/**
  * @brief Function to add a custom event.
  * @param application The application.
  * @param window The window associated with the event.
  * @param event The custom event to queue.
  * @return False if the event couldn't be added.
  */
-typedef bool (*dsAddCustomEventFunction)(dsApplication* application, dsWindow* window,
+typedef bool (*dsAddCustomApplicationEventFunction)(dsApplication* application, dsWindow* window,
 	const dsCustomEvent* event);
+
+/**
+ * @brief Function for getting the currently pressed mouse buttons.
+ * @param application The application.
+ * @return A bitmask of the currently pressed mouse buttons.
+ */
+typedef uint32_t (*dsGetApplicationPressedMouseButtonsFunction)(const dsApplication* application);
 
 /**
  * @brief Function to show a message box.
@@ -757,13 +760,6 @@ typedef bool (*dsSetApplicationMousePositionFunction)(dsApplication* application
 	const dsVector2i* position);
 
 /**
- * @brief Function for getting the currently pressed mouse buttons.
- * @param application The application.
- * @return A bitmask of the currently pressed mouse buttons.
- */
-typedef uint32_t (*dsGetApplicationPressedMouseButtonsFunction)(const dsApplication* application);
-
-/**
  * @brief Function for creating a window.
  * @param application The application.
  * @param allocator The allocator to create the window with.
@@ -778,6 +774,22 @@ typedef uint32_t (*dsGetApplicationPressedMouseButtonsFunction)(const dsApplicat
 typedef dsWindow* (*dsCreateWindowFunction)(dsApplication* application, dsAllocator* allocator,
 	const char* title, const char* surfaceName, const dsVector2i* position, uint32_t width,
 	uint32_t height, dsWindowFlags flags, dsRenderSurfaceUsage renderSurfaceUsage);
+
+/**
+ * @brief Function to draw a window.
+ * @param application The application.
+ * @param window The window to draw.
+ * @param userData The user data registered with the function.
+ */
+typedef void (*dsDrawWindowFunction)(dsApplication* application, dsWindow* window, void* userData);
+
+/**
+ * @brief Function to respond to a window close request.
+ * @param window The window to be closed.
+ * @param userData The user data registered with the function.
+ * @return True to close the window, false to leave it open.
+ */
+typedef bool (*dsInterceptCloseWindowFunction)(dsWindow* window, void* userData);
 
 /**
  * @brief Function for destroying a window.
@@ -801,6 +813,25 @@ typedef bool (*dsCreateWindowSurfaceFunction)(dsApplication* application, dsWind
  * @return The window with focus.
  */
 typedef dsWindow* (*dsGetFocusWindowFunction)(const dsApplication* application);
+
+/**
+ * @brief Function for getting the current event time.
+ * @param application The application.
+ * @return The current event time in seconds.
+ */
+typedef double (*dsGetCurrentApplicationEventTimeFunction)(const dsApplication* application);
+
+/**
+ * @brief Function for getting the current power state of the system.
+ * @param[out] outRemainingTime The remaining time on the battery in seconds, or -1 if it cannot be
+ *     determined. This may be NULL ifi not needed.
+ * @param[out] outBatteryPercent The percent of the battery, or -1 if it cannot be determined.
+ *     This may be NULL ifi not needed.
+ * @param application The application.
+ * @return The current power state, determining if a battery is present and if it is charging.
+ */
+typedef dsSystemPowerState (*dsGetApplicationPowerState)(int* outRemainingTime,
+	int* outBatteryPercent, const dsApplication* application);
 
 /**
  * @brief Function for setting a window title.
@@ -1217,7 +1248,22 @@ struct dsApplication
 	/**
 	 * @brief Function for adding a custom event.
 	 */
-	dsAddCustomEventFunction addCustomEventFunc;
+	dsAddCustomApplicationEventFunction addCustomEventFunc;
+
+	/**
+	 * @brief Function to get the current even time.
+	 */
+	dsGetCurrentApplicationEventTimeFunction getCurrentEventTimeFunc;
+
+	/**
+	 * @brief Function to get the current power state.
+	 */
+	dsGetApplicationPowerState getPowerStateFunc;
+
+	/**
+	 * @brief Function for getting the pressed mouse buttons.
+	 */
+	dsGetApplicationPressedMouseButtonsFunction getPressedMouseButtonsFunc;
 
 	/**
 	 * @brief Function for showing a message box.
@@ -1293,11 +1339,6 @@ struct dsApplication
 	 * @brief Function for setting the mouse position.
 	 */
 	dsSetApplicationMousePositionFunction setMousePositionFunc;
-
-	/**
-	 * @brief Function for getting the pressed mouse buttons.
-	 */
-	dsGetApplicationPressedMouseButtonsFunction getPressedMouseButtonsFunc;
 
 	/**
 	 * @brief Function for creating a window.

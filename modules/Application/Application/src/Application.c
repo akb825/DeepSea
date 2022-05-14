@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -499,6 +499,23 @@ dsWindow* dsApplication_getFocusWindow(const dsApplication* application)
 		return NULL;
 
 	return application->getFocusWindowFunc(application);
+}
+
+double dsApplication_getCurrentEventTime(const dsApplication* application)
+{
+	if (!application || !application->getCurrentEventTimeFunc)
+		return 0.0;
+
+	return application->getCurrentEventTimeFunc(application);
+}
+
+dsSystemPowerState dsApplication_getPowerState(int* outRemainingTime, int* outBatteryPercent,
+	const dsApplication* application)
+{
+	if (!application || !application->getPowerStateFunc)
+		return dsSystemPowerState_Unknown;
+
+	return application->getPowerStateFunc(outRemainingTime, outBatteryPercent, application);
 }
 
 bool dsApplication_dispatchEvent(dsApplication* application, dsWindow* window,
