@@ -381,6 +381,11 @@ typedef struct dsEvent
 	 * @brief The relative time of this event in seconds.
 	 *
 	 * The time starts at an arbitrary value, but should be consistent between events.
+	 *
+	 * @remark Some implementations use 32-bit internal timers. For example, a 32-bit millisecond
+	 * value will wrap around in ~49 days. While unlikely to occur in real-world scenarios, a sanity
+	 * check (e.g. clamping relative times so they don't become negative) can be used to minimize
+	 * the impact.
 	 */
 	double time;
 

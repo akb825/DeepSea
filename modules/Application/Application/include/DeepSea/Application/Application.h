@@ -169,6 +169,11 @@ DS_APPLICATION_EXPORT bool dsApplication_addCustomEvent(dsApplication* applicati
  * This can be used to find what an event's time is relative to the current one, as it is
  * implementation defined what the start point is.
  *
+ * @remark Some implementations use 32-bit internal timers. For example, a 32-bit millisecond value
+ * will wrap around in ~49 days. While unlikely to occur in real-world scenarios, a sanity check
+ * (e.g. clamping relative times so they don't become negative) can be used to minimize the impact.
+ *
+ * @remark Some implementations use
  * @param application The application.
  * @return The current event time in seconds.
  */
@@ -181,9 +186,10 @@ DS_APPLICATION_EXPORT double dsApplication_getCurrentEventTime(const dsApplicati
  * and optionally the remaining time in seconds and the percent of the battery.
  *
  * @remark Some devices may only report time left or percent remaining, so it is best to query both.
- *     Additionally, the values are estimates and may not be accurate at times or for older and less
- *     reliable hardware. For example, if you want to show a low battery warning, you may want to
- *     check for < 10 minutes or 10% remaining across multiple queries over several seconds.
+ * Additionally, the values are estimates and may not be accurate at times or for older and less
+ * reliable hardware. For example, if you want to show a low battery warning, you may want to check
+ * for < 10 minutes or 10% remaining across multiple queries over several seconds.
+ *
  * @param[out] outRemainingTime The remaining time on the battery in seconds, or -1 if it cannot be
  *     determined. This may be NULL ifi not needed.
  * @param[out] outBatteryPercent The percent of the battery, or -1 if it cannot be determined.
