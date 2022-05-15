@@ -107,31 +107,30 @@ typedef enum dsAppEventType
 	dsAppEventType_GameInputDPad,         ///< A game input D-pad or hat was moved. The
 	                                      ///< gameInputDPad field will be set.
 
-	dsAppEventType_WindowShown,     ///< A window has been shown. No event field will be set.
-	dsAppEventType_WindowHidden,    ///< A window has been hidden. No event field will be set.
-	dsAppEventType_WindowMinimized, ///< A window has been minimized. No event field will be set.
-	dsAppEventType_WindowRestored,  ///< A window has been restored after minimized. No event field
-	                                ///< will be set.
+	dsAppEventType_WindowShown,     ///< A window has been shown. The window field will be set.
+	dsAppEventType_WindowHidden,    ///< A window has been hidden. The window field will be set.
+	dsAppEventType_WindowMinimized, ///< A window has been minimized. The window field will be set.
+	dsAppEventType_WindowRestored,  ///< A window has been restored after minimized. The window
+	                                ///< field will be set.
 	dsAppEventType_WindowResized,   ///< A window has been resized. The resize field will be set.
-	                                ///< will be set.
 	dsAppEventType_WindowClosed,    ///< A window has been closed. The window will be hidden, and
-	                                ///< may either be kept or destroyed. No event field will be
+	                                ///< may either be kept or destroyed. The window field will be
 	                                ///< set.
-	dsAppEventType_MouseEntered,    ///< Mouse has entered a window. No event field will be set.
-	dsAppEventType_MouseLeft,       ///< Mouse has leaved a window. No event field will be set.
-	dsAppEventType_FocusGained,     ///< Window focus has been gained. No event field will be set.
-	dsAppEventType_FocusLost,       ///< Window focus has been lost. No event field will be set.
+	dsAppEventType_MouseEntered,    ///< Mouse has entered a window. The window field will be set.
+	dsAppEventType_MouseLeft,       ///< Mouse has leaved a window. The window field will be set.
+	dsAppEventType_FocusGained,     ///< Window focus has been gained. The window field will be set.
+	dsAppEventType_FocusLost,       ///< Window focus has been lost. The window field will be set.
 
 	dsAppEventType_SurfaceInvalidated,  ///< A window surface has been invalidated and re-created.
 	                                    ///< Any references to the surface must be updated. No event
 	                                    ///< field will be set.
-	dsAppEventType_WillEnterBackground, ///< The application will enter the background. This No
-	                                    ///< event field will be set.
-	dsAppEventType_DidEnterBackground,  ///< The application did enter the background. This No event
+	dsAppEventType_WillEnterBackground, ///< The application will enter the background. No event
 	                                    ///< field will be set.
-	dsAppEventType_WillEnterForeground, ///< The application will enter the foreground. This No
-									    ///< event field will be set.
-	dsAppEventType_DidEnterForeground,  ///< The application did enter the foreground. This No event
+	dsAppEventType_DidEnterBackground,  ///< The application did enter the background. No event
+	                                    ///< field will be set.
+	dsAppEventType_WillEnterForeground, ///< The application will enter the foreground. No event
+									    ///< field will be set.
+	dsAppEventType_DidEnterForeground,  ///< The application did enter the foreground. No event
 	                                    ///< field will be set.
 
 	dsAppEventType_Custom,          ///< Custom event. The custom field will be set.
@@ -239,6 +238,30 @@ typedef enum dsGameInputBattery
 } dsGameInputBattery;
 
 /**
+ * @brief Base object for a window that displays graphics.
+ *
+ * Window implementations can effectively subclass this type by having it as the first member
+ * of the structure. This can be done to add additional data to the structure and have it be freely
+ * casted between dsWindow and the true internal type.
+ *
+ * @remark None of the members should be modified outside of the implementation.
+ *
+ * @see Window.h
+ */
+typedef struct dsWindow dsWindow;
+
+/**
+ * @brief Struct containing information about a game input device.
+ *
+ * Game input implementations can effectively subclass this type by having it as the first member
+ * of the structure. This can be done to add additional data to the structure and have it be freely
+ * casted between dsWindow and the true internal type.
+ *
+ * @see GameInput.h
+ */
+typedef struct dsGameInput dsGameInput;
+
+/**
  * @brief Struct containing information about the mode for a display.
  */
 typedef struct dsDisplayMode
@@ -303,6 +326,11 @@ typedef struct dsDisplayInfo
 typedef struct dsResizeEvent
 {
 	/**
+	 * @brief The window that was resized.
+	 */
+	const dsWindow* window;
+
+	/**
 	 * @brief The new width of the window.
 	 */
 	uint32_t width;
@@ -353,19 +381,6 @@ typedef struct dsCustomEvent
  * @see Application.h
  */
 typedef struct dsApplication dsApplication;
-
-/**
- * @brief Base object for a window that displays graphics.
- *
- * Window implementations can effectively subclass this type by having it as the first member
- * of the structure. This can be done to add additional data to the structure and have it be freely
- * casted between dsWindow and the true internal type.
- *
- * @remark None of the members should be modified outside of the implementation.
- *
- * @see Window.h
- */
-typedef struct dsWindow dsWindow;
 
 /**
  * @brief Struct containing information about an event from the application.
@@ -486,9 +501,19 @@ typedef struct dsEvent
 		dsGameInputDPadEvent gameInputDPad;
 
 		/**
+		 * @brief The window that was the focus of an event.
+		 *
+		 * This is set for dsAppEventType_WindowShown, dsAppEventType_WindowHidden,
+		 * dsAppEventType_WindowMinimized, dsAppEventType_WindowRestored,
+		 * dsAppEventType_MouseEntered, dsAppEventType_MouseLeft, dsAppEventType_FocusGained,
+		 * and dsAppEventType_FocusLost.
+		 */
+		const dsWindow* window;
+
+		/**
 		 * @brief Information about a window resize.
 		 *
-		 * This is set for dsAppEventType_Resize.
+		 * This is set for dsAppEventType_WindowResized.
 		 */
 		dsResizeEvent resize;
 
@@ -501,14 +526,8 @@ typedef struct dsEvent
 	};
 } dsEvent;
 
-/**
- * @brief Struct containing information about a game input device.
- *
- * Game input implementations can effectively subclass this type by having it as the first member
- * of the structure. This can be done to add additional data to the structure and have it be freely
- * casted between dsWindow and the true internal type.
- */
-typedef struct dsGameInput
+/** @copydoc dsGameInput */
+struct dsGameInput
 {
 	/**
 	 * @brief The application this was created with.
@@ -569,7 +588,7 @@ typedef struct dsGameInput
 	 * @brief True if rumble is supported.
 	 */
 	bool rumbleSupported;
-} dsGameInput;
+};
 
 /**
  * @brief Function called when a window is added.

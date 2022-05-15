@@ -421,6 +421,7 @@ int dsSDLApplication_run(dsApplication* application)
 
 				dsEvent event;
 				event.type = dsAppEventType_WindowResized;
+				event.resize.window = window;
 				event.resize.width = window->surface->width;
 				event.resize.height = window->surface->height;
 				dsApplication_dispatchEvent(application, window, &event);
@@ -464,33 +465,42 @@ int dsSDLApplication_run(dsApplication* application)
 					{
 						case SDL_WINDOWEVENT_SHOWN:
 							event.type = dsAppEventType_WindowShown;
+							event.window = window;
 							break;
 						case SDL_WINDOWEVENT_HIDDEN:
 							event.type = dsAppEventType_WindowHidden;
+							event.window = window;
 							break;
 						case SDL_WINDOWEVENT_MINIMIZED:
 							event.type = dsAppEventType_WindowMinimized;
+							event.window = window;
 							break;
 						case SDL_WINDOWEVENT_RESTORED:
 							event.type = dsAppEventType_WindowRestored;
+							event.window = window;
 							break;
 						case SDL_WINDOWEVENT_ENTER:
 							event.type = dsAppEventType_MouseEntered;
+							event.window = window;
 							break;
 						case SDL_WINDOWEVENT_LEAVE:
 							event.type = dsAppEventType_MouseLeft;
+							event.window = window;
 							break;
 						case SDL_WINDOWEVENT_FOCUS_GAINED:
 							event.type = dsAppEventType_FocusGained;
+							event.window = window;
 							break;
 						case SDL_WINDOWEVENT_FOCUS_LOST:
 							event.type = dsAppEventType_FocusLost;
+							event.window = window;
 							break;
 						case SDL_WINDOWEVENT_CLOSE:
 							if (!window->closeFunc ||
 								window->closeFunc(window, window->closeUserData))
 							{
 								event.type = dsAppEventType_WindowClosed;
+								event.window = window;
 								dsWindow_setHidden(window, true);
 							}
 							else
