@@ -34,8 +34,13 @@ extern "C"
  */
 typedef enum dsSDLApplicationFlags
 {
-	dsSDLApplicationFlags_None = 0,                  ///< No special flags.
-	dsSDLApplicationFlags_DisableCompositor = 0x1    ///< Disable the window manager compositor.
+	dsSDLApplicationFlags_None = 0,                ///< No special flags.
+	dsSDLApplicationFlags_DisableCompositor = 0x1, ///< Disable the window manager compositor.
+	/**
+	 * Support device and controller motion sensors. If not set, all controllers will be considered
+	 * to not have motion sensors even if the hardware supports it.
+	 */
+	dsSDLApplicationFlags_MotionSensors = 0x2
 } dsSDLApplicationFlags;
 
 #ifdef __cplusplus

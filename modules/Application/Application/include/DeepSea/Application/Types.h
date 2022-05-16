@@ -56,6 +56,13 @@ extern "C"
 #define DS_APPLICATION_LOG_TAG "application"
 
 /**
+ * @brief The standard gravitational constant for use with an accelerometer.
+ *
+ * An acceleromoter at rest should have a magnitude roughly this magnitude.
+ */
+#define DS_ACCELEROMOTER_GRAVITY 9.80665f
+
+/**
  * @brief Enum for the power state of the current system.
  */
 typedef enum dsSystemPowerState
@@ -66,6 +73,15 @@ typedef enum dsSystemPowerState
 	dsSystemPowerState_Charging,  ///< The system is plugged in and charging its battery.
 	dsSystemPowerState_Charged    ///< The system is plugged in and battery is fully charged.
 } dsSystemPowerState;
+
+/**
+ * @brief Enum for the type of a motion sensor.
+ */
+typedef enum dsMotionSensorType
+{
+	dsMotionSensorType_Accelerometer, ///< Accelleromoter to detect lateral movement.
+	dsMotionSensorType_Gyroscope      ///< Gyroscope to detect rotational movement.
+} dsMotionSensorType;
 
 /**
  * @brief Enum for the type of an applicatio event.
@@ -106,6 +122,9 @@ typedef enum dsAppEventType
 	                                      ///< will be set.
 	dsAppEventType_GameInputDPad,         ///< A game input D-pad or hat was moved. The
 	                                      ///< gameInputDPad field will be set.
+
+	dsAppEventType_MotionSensor,    ///< A motion sensor has been updated. The motionSensor field
+	                                ///< will be set.
 
 	dsAppEventType_WindowShown,     ///< A window has been shown. The window field will be set.
 	dsAppEventType_WindowHidden,    ///< A window has been hidden. The window field will be set.
@@ -255,11 +274,26 @@ typedef struct dsWindow dsWindow;
  *
  * Game input implementations can effectively subclass this type by having it as the first member
  * of the structure. This can be done to add additional data to the structure and have it be freely
- * casted between dsWindow and the true internal type.
+ * casted between dsGameInput and the true internal type.
+ *
+ * @remark None of the members should be modified outside of the implementation.
  *
  * @see GameInput.h
  */
 typedef struct dsGameInput dsGameInput;
+
+/**
+ * @brief Struct containing information about a motion sensor.
+ *
+ * Motion sensor implementations can effectively subclass this type by having it as the first member
+ * of the structure. This can be done to add additional data to the structure and have it be freely
+ * casted between dsMotionSensor and the true internal type.
+ *
+ * @remark None of the members should be modified outside of the implementation.
+ *
+ * @see MotionSensor.h
+ */
+typedef struct dsMotionSensor dsMotionSensor;
 
 /**
  * @brief Struct containing information about the mode for a display.
@@ -347,6 +381,32 @@ typedef struct dsResizeEvent
  * @param userData The user data to clean up.
  */
 typedef void (*dsCustomEventCleanupFunction)(uint32_t eventID, void* userData);
+
+/**
+ * @brief Struct containing information about a motion sensor event.
+ */
+typedef struct dsMotionSensorEvent
+{
+	/**
+	 * @brief The motion sensor, or NULL if part of a game input.
+	 */
+	const dsMotionSensor* sensor;
+
+	/**
+	 * @brief The game input device, or NULL if part of a dedicated motion sensor.
+	 */
+	const dsGameInput* gameInput;
+
+	/**
+	 * @brief The type of sensor.
+	 */
+	dsMotionSensorType type;
+
+	/**
+	 * @brief The sensor data.
+	 */
+	dsVector3f data;
+} dsMotionSensorEvent;
 
 /**
  * @brief Struct containing information about a custom event.
@@ -501,6 +561,13 @@ typedef struct dsEvent
 		dsGameInputDPadEvent gameInputDPad;
 
 		/**
+		 * @brief Information about a motion sensor updated.
+		 *
+		 * This is set for dsAppEventType_MotionSensor;
+		 */
+		dsMotionSensorEvent motionSensor;
+
+		/**
 		 * @brief The window that was the focus of an event.
 		 *
 		 * This is set for dsAppEventType_WindowShown, dsAppEventType_WindowHidden,
@@ -526,101 +593,6 @@ typedef struct dsEvent
 	};
 } dsEvent;
 
-/** @copydoc dsGameInput */
-struct dsGameInput
-{
-	/**
-	 * @brief The application this was created with.
-	 */
-	dsApplication* application;
-
-	/**
-	 * @brief The allocator the this was created with.
-	 */
-	dsAllocator* allocator;
-
-	/**
-	 * @brief The name of the device.
-	 */
-	const char* name;
-
-	/**
-	 * @brief The type of the device.
-	 */
-	dsGameInputType type;
-
-	/**
-	 * @brief The number of axes on the device.
-	 */
-	uint32_t axisCount;
-
-	/**
-	 * @brief The number of buttons on the device.
-	 */
-	uint32_t buttonCount;
-
-	/**
-	 * @brief The number of balls on the device, generally for joysticks.
-	 */
-	uint32_t ballCount;
-
-	/**
-	 * @brief The number of D-pads or hats on the device.
-	 */
-	uint32_t dpadCount;
-
-	/**
-	 * @brief The number of touchpads on the device.
-	 */
-	uint32_t touchpadCount;
-
-	/**
-	 * @brief Mapping from a game controller input to the raw game input.
-	 */
-	dsGameInputMap controllerMapping[dsGameControllerMap_Count];
-
-	/**
-	 * @brief True if any controller mappings are available.
-	 */
-	bool hasControllerMappings;
-
-	/**
-	 * @brief True if rumble is supported.
-	 */
-	bool rumbleSupported;
-};
-
-/**
- * @brief Function called when a window is added.
- * @param application The application.
- * @param window The window that was added.
- * @param userData The user data registered with the function.
- */
-typedef void (*dsWindowAddedFunction)(dsApplication* application, dsWindow* window, void* userData);
-
-/**
- * @brief Function called when a window is removed.
- *
- * This is called immediately before the window is destroyed.
- *
- * @param application The application.
- * @param window The window that was removed.
- * @param userData The user data registered with the function.
- */
-typedef void (*dsWindowRemovedFunction)(dsApplication* application, dsWindow* window,
-	void* userData);
-
-/**
- * @brief Function to respond to an event.
- * @param application The application.
- * @param window The window that recieved the event.
- * @param event The event that was recieved.
- * @param userData The user data registered with the function.
- * @return True to continue passing the event, false to avoid sending any further.
- */
-typedef bool (*dsWindowEventFunction)(dsApplication* application, dsWindow* window,
-	const dsEvent* event, void* userData);
-
 /**
  * @brief Function to update the application.
  * @param application The application.
@@ -636,23 +608,6 @@ typedef void (*dsUpdateApplicationFunction)(dsApplication* application, double l
  * @param userData The user data registered with the function.
  */
 typedef void (*dsFinishApplicationFrameFunction)(dsApplication* application, void* userData);
-
-/**
- * @brief Function to add a custom event.
- * @param application The application.
- * @param window The window associated with the event.
- * @param event The custom event to queue.
- * @return False if the event couldn't be added.
- */
-typedef bool (*dsAddCustomApplicationEventFunction)(dsApplication* application, dsWindow* window,
-	const dsCustomEvent* event);
-
-/**
- * @brief Function for getting the currently pressed mouse buttons.
- * @param application The application.
- * @return A bitmask of the currently pressed mouse buttons.
- */
-typedef uint32_t (*dsGetApplicationPressedMouseButtonsFunction)(const dsApplication* application);
 
 /**
  * @brief Function to show a message box.
@@ -686,6 +641,35 @@ typedef int (*dsRunApplicationFunction)(dsApplication* application);
  * @param returnCode The return code for the application.
  */
 typedef void (*dsQuitApplicationFunction)(dsApplication* application, int returnCode);
+
+/**
+ * @brief Function to add a custom event.
+ * @param application The application.
+ * @param window The window associated with the event.
+ * @param event The custom event to queue.
+ * @return False if the event couldn't be added.
+ */
+typedef bool (*dsAddCustomApplicationEventFunction)(dsApplication* application, dsWindow* window,
+	const dsCustomEvent* event);
+
+/**
+ * @brief Function for getting the current event time.
+ * @param application The application.
+ * @return The current event time in seconds.
+ */
+typedef double (*dsGetCurrentApplicationEventTimeFunction)(const dsApplication* application);
+
+/**
+ * @brief Function for getting the current power state of the system.
+ * @param[out] outRemainingTime The remaining time on the battery in seconds, or -1 if it cannot be
+ *     determined. This may be NULL ifi not needed.
+ * @param[out] outBatteryPercent The percent of the battery, or -1 if it cannot be determined.
+ *     This may be NULL ifi not needed.
+ * @param application The application.
+ * @return The current power state, determining if a battery is present and if it is charging.
+ */
+typedef dsSystemPowerState (*dsGetApplicationPowerStateFunction)(int* outRemainingTime,
+	int* outBatteryPercent, const dsApplication* application);
 
 /**
  * @brief Function for getting the display bounds.
@@ -725,6 +709,37 @@ typedef bool (*dsGetApplicationCursorHiddenFunction)(const dsApplication* applic
  * @return False if the cursor couldn't be hidden or unhidden.
  */
 typedef bool (*dsSetApplicationCursorHiddenFunction)(dsApplication* application, bool hidden);
+
+/**
+ * @brief Function called when a window is added.
+ * @param application The application.
+ * @param window The window that was added.
+ * @param userData The user data registered with the function.
+ */
+typedef void (*dsWindowAddedFunction)(dsApplication* application, dsWindow* window, void* userData);
+
+/**
+ * @brief Function called when a window is removed.
+ *
+ * This is called immediately before the window is destroyed.
+ *
+ * @param application The application.
+ * @param window The window that was removed.
+ * @param userData The user data registered with the function.
+ */
+typedef void (*dsWindowRemovedFunction)(dsApplication* application, dsWindow* window,
+	void* userData);
+
+/**
+ * @brief Function to respond to an event.
+ * @param application The application.
+ * @param window The window that recieved the event.
+ * @param event The event that was recieved.
+ * @param userData The user data registered with the function.
+ * @return True to continue passing the event, false to avoid sending any further.
+ */
+typedef bool (*dsWindowEventFunction)(dsApplication* application, dsWindow* window,
+	const dsEvent* event, void* userData);
 
 /**
  * @brief Function for getting whether or not a key is pressed.
@@ -784,14 +799,11 @@ typedef bool (*dsSetApplicationMousePositionFunction)(dsApplication* application
 	const dsVector2i* position);
 
 /**
- * @brief Function for getting if a game input button is pressed.
+ * @brief Function for getting the currently pressed mouse buttons.
  * @param application The application.
- * @param gameInput The game input device to get the button state from.
- * @param button The button to check.
- * @return True if the button is pressed.
+ * @return A bitmask of the currently pressed mouse buttons.
  */
-typedef bool (*dsIsGameInputButtonPressedFunction)(const dsApplication* application,
-	const dsGameInput* gameInput, uint32_t button);
+typedef uint32_t (*dsGetApplicationPressedMouseButtonsFunction)(const dsApplication* application);
 
 /**
  * @brief Function for creating a window.
@@ -808,22 +820,6 @@ typedef bool (*dsIsGameInputButtonPressedFunction)(const dsApplication* applicat
 typedef dsWindow* (*dsCreateWindowFunction)(dsApplication* application, dsAllocator* allocator,
 	const char* title, const char* surfaceName, const dsVector2i* position, uint32_t width,
 	uint32_t height, dsWindowFlags flags, dsRenderSurfaceUsage renderSurfaceUsage);
-
-/**
- * @brief Function to draw a window.
- * @param application The application.
- * @param window The window to draw.
- * @param userData The user data registered with the function.
- */
-typedef void (*dsDrawWindowFunction)(dsApplication* application, dsWindow* window, void* userData);
-
-/**
- * @brief Function to respond to a window close request.
- * @param window The window to be closed.
- * @param userData The user data registered with the function.
- * @return True to close the window, false to leave it open.
- */
-typedef bool (*dsInterceptCloseWindowFunction)(dsWindow* window, void* userData);
 
 /**
  * @brief Function for destroying a window.
@@ -847,25 +843,6 @@ typedef bool (*dsCreateWindowSurfaceFunction)(dsApplication* application, dsWind
  * @return The window with focus.
  */
 typedef dsWindow* (*dsGetFocusWindowFunction)(const dsApplication* application);
-
-/**
- * @brief Function for getting the current event time.
- * @param application The application.
- * @return The current event time in seconds.
- */
-typedef double (*dsGetCurrentApplicationEventTimeFunction)(const dsApplication* application);
-
-/**
- * @brief Function for getting the current power state of the system.
- * @param[out] outRemainingTime The remaining time on the battery in seconds, or -1 if it cannot be
- *     determined. This may be NULL ifi not needed.
- * @param[out] outBatteryPercent The percent of the battery, or -1 if it cannot be determined.
- *     This may be NULL ifi not needed.
- * @param application The application.
- * @return The current power state, determining if a battery is present and if it is charging.
- */
-typedef dsSystemPowerState (*dsGetApplicationPowerState)(int* outRemainingTime,
-	int* outBatteryPercent, const dsApplication* application);
 
 /**
  * @brief Function for setting a window title.
@@ -1067,6 +1044,16 @@ typedef float (*dsGetGameInputControllerAxisFunction)(const dsApplication* appli
 	const dsGameInput* gameInput, dsGameControllerMap mapping);
 
 /**
+ * @brief Function for getting if a game input button is pressed.
+ * @param application The application.
+ * @param gameInput The game input device to get the button state from.
+ * @param button The button to check.
+ * @return True if the button is pressed.
+ */
+typedef bool (*dsIsGameInputButtonPressedFunction)(const dsApplication* application,
+	const dsGameInput* gameInput, uint32_t button);
+
+/**
  * @brief Function for getting if a game input button is pressed based on the game controller
  *     mapping.
  * @param application The application.
@@ -1076,17 +1063,6 @@ typedef float (*dsGetGameInputControllerAxisFunction)(const dsApplication* appli
  */
 typedef bool (*dsIsGameInputControllerButtonPressedFunction)(const dsApplication* application,
 	const dsGameInput* gameInput, dsGameControllerMap mapping);
-
-/**
- * @brief Function for getting the game input D-pad direction.
- * @param[out] outDirection The direction the D-pad is in.
- * @param application The application.
- * @param gameInput The game input device to get the D-pad direction from.
- * @param dpad The D-pad to check.
- * @return False if the hat state couldn't be queried.
- */
-typedef bool (*dsGetGameInputDPadDirectionFunction)(dsVector2i* outDirection,
-	const dsApplication* application, const dsGameInput* gameInput, uint32_t dpad);
 
 /**
  * @brief Function for starting rumble on a game input.
@@ -1107,6 +1083,64 @@ typedef bool (*dsStartGameInputRumbleFunction)(dsApplication* application,
  */
 typedef bool (*dsStopGameInputRumbleFunction)(dsApplication* application,
 	dsGameInput* gameInput);
+
+/**
+ * @brief Function to get whether or not a game input has a motion sensor.
+ * @param application The application.
+ * @param gameInput The game input to check.
+ * @param type The type of motion sensor to check for.
+ * @return Whether or not the motion sensor is present.
+ */
+typedef bool (*dsGameInputHasMotionSensor)(const dsApplication* application,
+	const dsGameInput* gameInput, dsMotionSensorType type);
+
+/**
+ * @brief Function to get game input motion sensor data.
+ * @param[out] outData The data to populate.
+ * @param application The application.
+ * @param gameInput The game input to get the data for.
+ * @param type The type of motion sensor to get the data for.
+ * @return False if the data couldn't be retrieved.
+ */
+typedef bool (*dsGetGameInputMotionSensorData)(dsVector3f* outData,
+	const dsApplication* application, const dsGameInput* gameInput, dsMotionSensorType type);
+
+/**
+ * @brief Gets data from a motion sensor on the main device.
+ * @param[out] outData The motion sensor data.
+ * @param application The application.
+ * @param sensor The motion sensor to get the data from.
+ * @return False if the motion sensor state couldn't be queried.
+ */
+typedef bool (*dsGetApplicationMotionSensorDataFunction)(dsVector3f* outData,
+	const dsApplication* application, const dsMotionSensor* sensor);
+
+/**
+ * @brief Function for getting the game input D-pad direction.
+ * @param[out] outDirection The direction the D-pad is in.
+ * @param application The application.
+ * @param gameInput The game input device to get the D-pad direction from.
+ * @param dpad The D-pad to check.
+ * @return False if the hat state couldn't be queried.
+ */
+typedef bool (*dsGetGameInputDPadDirectionFunction)(dsVector2i* outDirection,
+	const dsApplication* application, const dsGameInput* gameInput, uint32_t dpad);
+
+/**
+ * @brief Function to draw a window.
+ * @param application The application.
+ * @param window The window to draw.
+ * @param userData The user data registered with the function.
+ */
+typedef void (*dsDrawWindowFunction)(dsApplication* application, dsWindow* window, void* userData);
+
+/**
+ * @brief Function to respond to a window close request.
+ * @param window The window to be closed.
+ * @param userData The user data registered with the function.
+ * @return True to close the window, false to leave it open.
+ */
+typedef bool (*dsInterceptCloseWindowFunction)(dsWindow* window, void* userData);
 
 /**
  * @brief Struct containing information to respond to a window being added or removed.
@@ -1250,6 +1284,21 @@ struct dsApplication
 	uint32_t gameInputCapacity;
 
 	/**
+	 * @brief The motion sensors in the application.
+	 */
+	dsMotionSensor** motionSensors;
+
+	/**
+	 * @brief The number of motion sensors.
+	 */
+	uint32_t motionSensorCount;
+
+	/**
+	 * @brief The number of motion sensors that can be held before the buffer is re-allocated.
+	 */
+	uint32_t motionSensorCapacity;
+
+	/**
 	 * @brief Function for updating the application.
 	 */
 	dsUpdateApplicationFunction updateFunc;
@@ -1270,21 +1319,6 @@ struct dsApplication
 	void* finishFrameUserData;
 
 	/**
-	 * @brief Function for adding a custom event.
-	 */
-	dsAddCustomApplicationEventFunction addCustomEventFunc;
-
-	/**
-	 * @brief Function to get the current even time.
-	 */
-	dsGetCurrentApplicationEventTimeFunction getCurrentEventTimeFunc;
-
-	/**
-	 * @brief Function to get the current power state.
-	 */
-	dsGetApplicationPowerState getPowerStateFunc;
-
-	/**
 	 * @brief Function for showing a message box.
 	 */
 	dsShowApplicationMessageBoxFunction showMessageBoxFunc;
@@ -1298,6 +1332,21 @@ struct dsApplication
 	 * @brief Function for quitting the application.
 	 */
 	dsQuitApplicationFunction quitFunc;
+
+	/**
+	 * @brief Function for adding a custom event.
+	 */
+	dsAddCustomApplicationEventFunction addCustomEventFunc;
+
+	/**
+	 * @brief Function to get the current even time.
+	 */
+	dsGetCurrentApplicationEventTimeFunction getCurrentEventTimeFunc;
+
+	/**
+	 * @brief Function to get the current power state.
+	 */
+	dsGetApplicationPowerStateFunction getPowerStateFunc;
 
 	/**
 	 * @brief Function for getting the display bounds.
@@ -1514,6 +1563,21 @@ struct dsApplication
 	 * @brief Function for stopping rumble on a game input.
 	 */
 	dsStopGameInputRumbleFunction stopGameInputRumbleFunc;
+
+	/**
+	 * @brief Function to get whether or not a game input has a motion sensor.
+	 */
+	dsGameInputHasMotionSensor gameInputHasMotionSensorFunc;
+
+	/**
+	 * @brief Function to get game input motion sensor data.
+	 */
+	dsGetGameInputMotionSensorData getGameInputMotionSensorDataFunc;
+
+	/**
+	 * @brief Function to get the data from a motion sensor.
+	 */
+	dsGetApplicationMotionSensorDataFunction getMotionSensorDataFunc;
 };
 
 /** @copydoc dsWindow */
@@ -1568,6 +1632,94 @@ struct dsWindow
 	 * @brief The display mode of the window.
 	 */
 	dsDisplayMode displayMode;
+};
+
+/** @copydoc dsGameInput */
+struct dsGameInput
+{
+	/**
+	 * @brief The application this was created with.
+	 */
+	dsApplication* application;
+
+	/**
+	 * @brief The allocator the this was created with.
+	 */
+	dsAllocator* allocator;
+
+	/**
+	 * @brief The name of the device.
+	 */
+	const char* name;
+
+	/**
+	 * @brief The type of the device.
+	 */
+	dsGameInputType type;
+
+	/**
+	 * @brief The number of axes on the device.
+	 */
+	uint32_t axisCount;
+
+	/**
+	 * @brief The number of buttons on the device.
+	 */
+	uint32_t buttonCount;
+
+	/**
+	 * @brief The number of balls on the device, generally for joysticks.
+	 */
+	uint32_t ballCount;
+
+	/**
+	 * @brief The number of D-pads or hats on the device.
+	 */
+	uint32_t dpadCount;
+
+	/**
+	 * @brief The number of touchpads on the device.
+	 */
+	uint32_t touchpadCount;
+
+	/**
+	 * @brief Mapping from a game controller input to the raw game input.
+	 */
+	dsGameInputMap controllerMapping[dsGameControllerMap_Count];
+
+	/**
+	 * @brief True if any controller mappings are available.
+	 */
+	bool hasControllerMappings;
+
+	/**
+	 * @brief True if rumble is supported.
+	 */
+	bool rumbleSupported;
+};
+
+/** @copydoc dsMotionSensor */
+struct dsMotionSensor
+{
+	/**
+	 * @brief The application this was created with.
+	 */
+	dsApplication* application;
+
+	/**
+	 * @brief The allocator the this was created with.
+	 */
+	dsAllocator* allocator;
+
+	/**
+	 * @brief The name of the device.
+	 */
+	const char* name;
+
+	/**
+	 * @brief The type of the motion sensor.
+	 */
+	dsMotionSensorType type;
 };
 
 #ifdef __cplusplus

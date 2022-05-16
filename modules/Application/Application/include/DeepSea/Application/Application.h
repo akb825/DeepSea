@@ -140,7 +140,7 @@ DS_APPLICATION_EXPORT bool dsApplication_addGameInput(dsApplication* application
 	dsGameInput* gameInput);
 
 /**
- * @brief Removes a controller from the application without destroying it.
+ * @brief Removes a game input from the application without destroying it.
  *
  * THis is usually called by the implementation and not directly.
  *
@@ -151,6 +151,68 @@ DS_APPLICATION_EXPORT bool dsApplication_addGameInput(dsApplication* application
  */
 DS_APPLICATION_EXPORT bool dsApplication_removeGameInput(dsApplication* application,
 	dsGameInput* gameInput);
+
+/**
+ * @brief Adds an existing motion sensor to the application.
+ *
+ * This is usually called by the implementation and not directly.
+ *
+ * @remark errno will be set on failure.
+ * @param application The application.
+ * @param sensor The motion sensor device to add.
+ * @return True if the motion sensor that was added.
+ */
+DS_APPLICATION_EXPORT bool dsApplication_addMotionSensor(dsApplication* application,
+	dsMotionSensor* sensor);
+
+/**
+ * @brief Removes a motion sensor from the application without destroying it.
+ *
+ * THis is usually called by the implementation and not directly.
+ *
+ * @remark errno will be set on failure.
+ * @param application The application.
+ * @param sensor The motion sensor to remove.
+ * @return True if the motion sensor was removed.
+ */
+DS_APPLICATION_EXPORT bool dsApplication_removeMotionSensor(dsApplication* application,
+	dsMotionSensor* sensor);
+
+/**
+ * @brief Shows a message box and blocks execution until it's dismissed.
+ * @param application The application.
+ * @param parentWindow The parent window for the dialog, or NULL to be unparented.
+ * @param type The type of the message box.
+ * @param title The title of the message box.
+ * @param message The message to display.
+ * @param buttons The list of button names.
+ * @param buttonCount The number of buttons.
+ * @param enterButton The index of the button to trigger with the enter key, or
+ *     DS_MESSAGE_BOX_NO_BUTTON for no button.
+ * @param escapeButton The index of the button to trigger with the escape key, or
+ *     DS_MESSAGE_BOX_NO_BUTTON for no button.
+ * @return The index of the pressed button, or DS_MESSAGE_BOX_NO_BUTTON if an error occurred.
+ */
+DS_APPLICATION_EXPORT uint32_t dsApplication_showMessageBox(dsApplication* application,
+	dsWindow* parentWindow, dsMessageBoxType type, const char* title, const char* message,
+	const char* const* buttons, uint32_t buttonCount, uint32_t enterButton, uint32_t escapeButton);
+
+/**
+ * @brief Runs the application.
+ * @param application The application.
+ * @return The error code of the application. This is intended to be returned from main().
+ */
+DS_APPLICATION_EXPORT int dsApplication_run(dsApplication* application);
+
+/**
+ * @brief Quits the application.
+ * @remark The application may not quit until the next iteration of the update loop.
+ * @remark errno will be set on failure.
+ * @param application The application.
+ * @param exitCode The exit code for the application.
+ * @return False if an error occurred.
+ */
+DS_APPLICATION_EXPORT bool dsApplication_quit(dsApplication* application, int exitCode);
 
 /**
  * @brief Adds a custom event to be placed on the event queue.
@@ -199,42 +261,6 @@ DS_APPLICATION_EXPORT double dsApplication_getCurrentEventTime(const dsApplicati
  */
 DS_APPLICATION_EXPORT dsSystemPowerState dsApplication_getPowerState(int* outRemainingTime,
 	int* outBatteryPercent, const dsApplication* application);
-
-/**
- * @brief Shows a message box and blocks execution until it's dismissed.
- * @param application The application.
- * @param parentWindow The parent window for the dialog, or NULL to be unparented.
- * @param type The type of the message box.
- * @param title The title of the message box.
- * @param message The message to display.
- * @param buttons The list of button names.
- * @param buttonCount The number of buttons.
- * @param enterButton The index of the button to trigger with the enter key, or
- *     DS_MESSAGE_BOX_NO_BUTTON for no button.
- * @param escapeButton The index of the button to trigger with the escape key, or
- *     DS_MESSAGE_BOX_NO_BUTTON for no button.
- * @return The index of the pressed button, or DS_MESSAGE_BOX_NO_BUTTON if an error occurred.
- */
-DS_APPLICATION_EXPORT uint32_t dsApplication_showMessageBox(dsApplication* application,
-	dsWindow* parentWindow, dsMessageBoxType type, const char* title, const char* message,
-	const char* const* buttons, uint32_t buttonCount, uint32_t enterButton, uint32_t escapeButton);
-
-/**
- * @brief Runs the application.
- * @param application The application.
- * @return The error code of the application. This is intended to be returned from main().
- */
-DS_APPLICATION_EXPORT int dsApplication_run(dsApplication* application);
-
-/**
- * @brief Quits the application.
- * @remark The application may not quit until the next iteration of the update loop.
- * @remark errno will be set on failure.
- * @param application The application.
- * @param exitCode The exit code for the application.
- * @return False if an error occurred.
- */
-DS_APPLICATION_EXPORT bool dsApplication_quit(dsApplication* application, int exitCode);
 
 /**
  * @brief Gets the bounds for the display in display coordinates.

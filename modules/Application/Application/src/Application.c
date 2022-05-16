@@ -284,16 +284,56 @@ bool dsApplication_removeGameInput(dsApplication* application, dsGameInput* game
 	return false;
 }
 
-bool dsApplication_addCustomEvent(dsApplication* application, dsWindow* window,
-	const dsCustomEvent* event)
+bool dsApplication_addMotionSensor(dsApplication* application, dsMotionSensor* sensor)
 {
-	if (!application || !application->addCustomEventFunc || !event)
+	if (!application || !sensor || sensor->application != application)
 	{
 		errno = EINVAL;
 		return false;
 	}
 
-	return application->addCustomEventFunc(application, window, event);
+	for (uint32_t i = 0; i < application->motionSensorCount; ++i)
+	{
+		if (application->motionSensors[i] == sensor)
+		{
+			errno = EINVAL;
+			DS_LOG_ERROR(DS_APPLICATION_LOG_TAG, "MotionSensor has already been added.");
+			return false;
+		}
+	}
+
+	uint32_t index = application->motionSensorCount;
+	if (!DS_RESIZEABLE_ARRAY_ADD(application->allocator, application->motionSensors,
+			application->motionSensorCount, application->motionSensorCapacity, 1))
+	{
+		return false;
+	}
+
+	application->motionSensors[index] = sensor;
+	return true;
+}
+
+bool dsApplication_removeMotionSensor(dsApplication* application, dsMotionSensor* sensor)
+{
+	if (!application || !sensor)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	for (uint32_t i = 0; i < application->motionSensorCount; ++i)
+	{
+		if (application->motionSensors[i] == sensor)
+		{
+			memmove(application->motionSensors + i, application->motionSensors + i + 1,
+				sizeof(dsMotionSensor*)*(application->motionSensorCount - i - 1));
+			--application->motionSensorCount;
+			return true;
+		}
+	}
+
+	errno = ENOTFOUND;
+	return false;
 }
 
 uint32_t dsApplication_showMessageBox(dsApplication* application, dsWindow* parentWindow,
@@ -331,6 +371,35 @@ bool dsApplication_quit(dsApplication* application, int exitCode)
 
 	application->quitFunc(application, exitCode);
 	return true;
+}
+
+bool dsApplication_addCustomEvent(dsApplication* application, dsWindow* window,
+	const dsCustomEvent* event)
+{
+	if (!application || !application->addCustomEventFunc || !event)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	return application->addCustomEventFunc(application, window, event);
+}
+
+double dsApplication_getCurrentEventTime(const dsApplication* application)
+{
+	if (!application || !application->getCurrentEventTimeFunc)
+		return 0.0;
+
+	return application->getCurrentEventTimeFunc(application);
+}
+
+dsSystemPowerState dsApplication_getPowerState(int* outRemainingTime, int* outBatteryPercent,
+	const dsApplication* application)
+{
+	if (!application || !application->getPowerStateFunc)
+		return dsSystemPowerState_Unknown;
+
+	return application->getPowerStateFunc(outRemainingTime, outBatteryPercent, application);
 }
 
 bool dsApplication_getDisplayBounds(dsAlignedBox2i* outBounds, const dsApplication* application,
@@ -501,23 +570,6 @@ dsWindow* dsApplication_getFocusWindow(const dsApplication* application)
 	return application->getFocusWindowFunc(application);
 }
 
-double dsApplication_getCurrentEventTime(const dsApplication* application)
-{
-	if (!application || !application->getCurrentEventTimeFunc)
-		return 0.0;
-
-	return application->getCurrentEventTimeFunc(application);
-}
-
-dsSystemPowerState dsApplication_getPowerState(int* outRemainingTime, int* outBatteryPercent,
-	const dsApplication* application)
-{
-	if (!application || !application->getPowerStateFunc)
-		return dsSystemPowerState_Unknown;
-
-	return application->getPowerStateFunc(outRemainingTime, outBatteryPercent, application);
-}
-
 bool dsApplication_dispatchEvent(dsApplication* application, dsWindow* window,
 	const dsEvent* event)
 {
@@ -564,6 +616,7 @@ void dsApplication_shutdown(dsApplication* application)
 	DS_VERIFY(dsAllocator_free(application->allocator, application->eventResponders));
 	DS_VERIFY(dsAllocator_free(application->allocator, application->windows));
 	DS_VERIFY(dsAllocator_free(application->allocator, application->gameInputs));
+	DS_VERIFY(dsAllocator_free(application->allocator, application->motionSensors));
 
 	if (dsLog_getFunction() == &applicationLogWrapper)
 		dsLog_clearFunction();

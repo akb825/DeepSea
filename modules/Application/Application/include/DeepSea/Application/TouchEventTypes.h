@@ -54,7 +54,7 @@ typedef struct dsTouchEvent
 	uint64_t fingerID;
 
 	/**
-	 * @brief The X position of the finger in normalized [0, 1] coordinates.
+	 * @brief The position of the finger in normalized [0, 1] coordinates.
 	 */
 	float x;
 
@@ -65,11 +65,15 @@ typedef struct dsTouchEvent
 
 	/**
 	 * @brief The amount moved in the X direction in normalized [-1, 1] coordinates.
+	 *
+	 * This may be 0 if the underlying implementation doesn't track the delta between all events.
 	 */
 	float deltaX;
 
 	/**
 	 * @brief The amount moved in the Y direction in normalized [-1, 1] coordinates.
+	 *
+	 * This may be 0 if the underlying implementation doesn't track the delta between all events.
 	 */
 	float deltaY;
 

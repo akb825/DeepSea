@@ -15,6 +15,8 @@
  */
 
 #include "SDLGameInput.h"
+
+#include "SDLApplicationInternal.h"
 #include <DeepSea/Application/Application.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
@@ -262,6 +264,16 @@ static dsGameInput* createGameInput(dsApplication* application, uint32_t index)
 	baseGameInput->rumbleSupported = gameInput->haptic &&
 		SDL_HapticRumbleSupported(gameInput->haptic);
 
+#if SDL_VERSION_ATLEAST(2, 0, 14)
+	if (gameInput->controller && dsSDLApplication_useMotionSensors(application))
+	{
+		if (SDL_GameControllerHasSensor(gameInput->controller, SDL_SENSOR_ACCEL))
+			SDL_GameControllerSetSensorEnabled(gameInput->controller, SDL_SENSOR_ACCEL, true);
+		if (SDL_GameControllerHasSensor(gameInput->controller, SDL_SENSOR_GYRO))
+			SDL_GameControllerSetSensorEnabled(gameInput->controller, SDL_SENSOR_GYRO, true);
+	}
+#endif
+
 	return baseGameInput;
 }
 
@@ -277,7 +289,7 @@ static void freeGameInput(dsGameInput* gameInput)
 		SDL_GameControllerClose(sdlGameInput->controller);
 	else
 		SDL_JoystickClose(sdlGameInput->joystick);
-	DS_VERIFY(dsAllocator_free(gameInput->allocator, sdlGameInput));
+	DS_VERIFY(dsAllocator_free(gameInput->allocator, gameInput));
 }
 
 static bool isAxisPressed(Sint16 value)
@@ -414,15 +426,13 @@ bool dsSDLGameInput_setup(dsApplication* application)
 	if (gameInputCount == 0)
 		return true;
 
-	dsGameInput** gameInputs = NULL;
-		gameInputs = DS_ALLOCATE_OBJECT_ARRAY(application->allocator, dsGameInput*,
-			gameInputCount);
+	dsGameInput** gameInputs = DS_ALLOCATE_OBJECT_ARRAY(application->allocator, dsGameInput*,
+		gameInputCount);
 	if (!gameInputs)
 		return false;
 
 	for (uint32_t i = 0; i < gameInputCount; ++i)
 	{
-		// Search for an existing gameInput.
 		dsGameInput* gameInput = createGameInput(application, i);
 		if (!gameInput)
 		{
@@ -466,14 +476,11 @@ dsGameInput* dsSDLGameInput_add(dsApplication* application, uint32_t index)
 
 bool dsSDLGameInput_remove(dsApplication* application, SDL_JoystickID id)
 {
-	dsGameInput* gameInput = NULL;
-	for (uint32_t i = 0; i < application->gameInputCount; ++i)
+	dsGameInput* gameInput = dsSDLGameInput_find(application, id);
+	if (!gameInput)
 	{
-		if (SDL_JoystickInstanceID(((dsSDLGameInput*)application->gameInputs[i])->joystick) == id)
-		{
-			gameInput = application->gameInputs[i];
-			break;
-		}
+		errno = ENOTFOUND;
+		return false;
 	}
 
 	if (!dsApplication_removeGameInput(application, gameInput))
@@ -483,15 +490,12 @@ bool dsSDLGameInput_remove(dsApplication* application, SDL_JoystickID id)
 	return true;
 }
 
-dsGameInput* dsSDLGameInput_find(dsApplication* application, SDL_JoystickID joystickId)
+dsGameInput* dsSDLGameInput_find(dsApplication* application, SDL_JoystickID id)
 {
 	for (uint32_t i = 0; i < application->gameInputCount; ++i)
 	{
-		if (SDL_JoystickInstanceID(((dsSDLGameInput*)application->gameInputs[i])->joystick) ==
-			joystickId)
-		{
+		if (SDL_JoystickInstanceID(((dsSDLGameInput*)application->gameInputs[i])->joystick) == id)
 			return application->gameInputs[i];
-		}
 	}
 
 	return NULL;
@@ -708,7 +712,7 @@ bool dsSDLGameInput_startRumble(dsApplication* application, dsGameInput* gameInp
 {
 	DS_UNUSED(application);
 	if (SDL_HapticRumblePlay(((dsSDLGameInput*)gameInput)->haptic, strength,
-		(unsigned int)roundf(duration*1000.0f)) != 0)
+			(unsigned int)roundf(duration*1000.0f)) != 0)
 	{
 		errno = EPERM;
 		return false;
@@ -727,4 +731,85 @@ bool dsSDLGameInput_stopRumble(dsApplication* application, dsGameInput* gameInpu
 	}
 
 	return true;
+}
+
+bool dsSDLGameInput_hasMotionSensor(const dsApplication* application, const dsGameInput* gameInput,
+	dsMotionSensorType type)
+{
+#if SDL_VERSION_ATLEAST(2, 0, 14)
+	if (!dsSDLApplication_useMotionSensors(application))
+		return false;
+
+	SDL_GameController* controller = ((dsSDLGameInput*)gameInput)->controller;
+	if (!controller)
+		return false;
+
+	SDL_SensorType sdlType;
+	switch (type)
+	{
+		case dsMotionSensorType_Accelerometer:
+			sdlType = SDL_SENSOR_ACCEL;
+			break;
+		case dsMotionSensorType_Gyroscope:
+			sdlType = SDL_SENSOR_GYRO;
+			break;
+		default:
+			DS_ASSERT(false);
+			return false;
+	}
+	return SDL_GameControllerHasSensor(controller, sdlType);
+#else
+	DS_UNUSED(application);
+	DS_UNUSED(gameInput);
+	DS_UNUSED(type);
+	return false;
+#endif
+}
+
+bool dsSDLGameInput_getMotionSensorData(dsVector3f* outData, const dsApplication* application,
+	const dsGameInput* gameInput, dsMotionSensorType type)
+{
+#if SDL_VERSION_ATLEAST(2, 0, 14)
+	if (!dsSDLApplication_useMotionSensors(application))
+	{
+		errno = EPERM;
+		return false;
+	}
+
+	SDL_GameController* controller = ((dsSDLGameInput*)gameInput)->controller;
+	if (!controller)
+	{
+		errno = EPERM;
+		return false;
+	}
+
+	SDL_SensorType sdlType;
+	switch (type)
+	{
+		case dsMotionSensorType_Accelerometer:
+			sdlType = SDL_SENSOR_ACCEL;
+			break;
+		case dsMotionSensorType_Gyroscope:
+			sdlType = SDL_SENSOR_GYRO;
+			break;
+		default:
+			DS_ASSERT(false);
+			return false;
+	}
+
+	if (SDL_GameControllerGetSensorData(controller, sdlType, (float*)outData, 3) != 0)
+	{
+		errno = EPERM;
+		return false;
+	}
+
+	return true;
+#else
+	DS_UNUSED(outData);
+	DS_UNUSED(application);
+	DS_UNUSED(gameInput);
+	DS_UNUSED(type);
+	errno = EPERM;
+	return false;
+#endif
 }

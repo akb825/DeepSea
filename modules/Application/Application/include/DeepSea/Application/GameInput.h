@@ -131,12 +131,32 @@ DS_APPLICATION_EXPORT bool dsGameInput_startRumble(dsGameInput* gameInput, float
 	float duration);
 
 /**
- * @brief Stops rumble on a device.
+ * @brief Stops rumble on a game input.
  * @remark errno will be set on failure.
  * @param gameInput The game input device to stopthe rumble on.
  * @return False if rumble couldn't be stopped.
  */
 DS_APPLICATION_EXPORT bool dsGameInput_stopRumble(dsGameInput* gameInput);
+
+/**
+ * @brief Gets wwhether or not a game input has a motion sensor.
+ * @param gameInput The game input to check.
+ * @param type The motion sensor type to check.
+ * @return Whether or not the game input has the motion sensor.
+ */
+DS_APPLICATION_EXPORT bool dsGameInput_hasMotionSensor(const dsGameInput* gameInput,
+	dsMotionSensorType type);
+
+/**
+ * @brief Gets the data for a game input motion sensor.
+ * @remark errno will be set on failure.
+ * @param[out] outData The data to populate.
+ * @param gameInput The game input to get the data for.
+ * @param type The type of motion sensor to get the data for.
+ * @return False if the data couldn't be retrieved.
+ */
+DS_APPLICATION_EXPORT bool dsGameInput_getMotionSensorData(dsVector3f* outData,
+	const dsGameInput* gameInput, dsMotionSensorType type);
 
 #ifdef __cplusplus
 }

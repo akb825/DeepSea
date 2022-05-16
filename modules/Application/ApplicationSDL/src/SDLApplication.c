@@ -16,8 +16,10 @@
 
 #include <DeepSea/ApplicationSDL/SDLApplication.h>
 
+#include "SDLApplicationInternal.h"
 #include "SDLGameInput.h"
 #include "SDLKeyboard.h"
+#include "SDLMotionSensor.h"
 #include "SDLShared.h"
 #include "SDLWindow.h"
 
@@ -54,6 +56,7 @@ typedef struct dsSDLApplication
 {
 	dsApplication application;
 
+	bool useMotionSensors;
 	bool quit;
 	int exitCode;
 	SDL_Cursor* cursors[dsCursor_Count];
@@ -330,54 +333,6 @@ static void invalidateWindowSurfaces(dsApplication* application)
 }
 #endif
 
-bool dsSDLApplication_addCustomEvent(dsApplication* application, dsWindow* window,
-	const dsCustomEvent* event)
-{
-	DS_UNUSED(application);
-	DS_ASSERT(event);
-	SDL_Event userEvent;
-	userEvent.type = SDL_USEREVENT;
-	if (window)
-		userEvent.user.windowID = SDL_GetWindowID(((dsSDLWindow*)window)->sdlWindow);
-	else
-		userEvent.user.windowID = 0;
-	userEvent.user.code = event->eventID;
-	userEvent.user.data1 = event->userData;
-	userEvent.user.data2 = event->cleanupFunc;
-
-	return SDL_PushEvent(&userEvent) != 0;
-}
-
-double dsSDLApplication_getCurrentEventTime(const dsApplication* application)
-{
-	DS_UNUSED(application);
-	// NOTE: Would ideally use SDL_GetTicks64(), but events are locked into 32-bit timestamps until
-	// the ABI is allowed to change. This is currently planned for SDL 3.
-	return (double)SDL_GetTicks()/1000.0;
-}
-
-dsSystemPowerState dsSDLApplication_getPowerState(int* outRemainingTime, int* outBatteryPercent,
-	const dsApplication* application)
-{
-	DS_UNUSED(application);
-	switch (SDL_GetPowerInfo(outRemainingTime, outBatteryPercent))
-	{
-		case SDL_POWERSTATE_UNKNOWN:
-			return dsSystemPowerState_Unknown;
-		case SDL_POWERSTATE_ON_BATTERY:
-			return dsSystemPowerState_OnBattery;
-		case SDL_POWERSTATE_NO_BATTERY:
-			return dsSystemPowerState_External;
-		case SDL_POWERSTATE_CHARGING:
-			return dsSystemPowerState_Charging;
-		case SDL_POWERSTATE_CHARGED:
-			return dsSystemPowerState_Charged;
-	}
-
-	DS_ASSERT(false);
-	return dsSystemPowerState_Unknown;
-}
-
 uint32_t dsSDLApplication_showMessageBoxBase(dsApplication* application,
 	dsWindow* parentWindow, dsMessageBoxType type, const char* title, const char* message,
 	const char* const* buttons, uint32_t buttonCount, uint32_t enterButton, uint32_t escapeButton)
@@ -579,7 +534,7 @@ int dsSDLApplication_run(dsApplication* application)
 						event.mouseWheel.x -= windowX;
 						event.mouseWheel.y -= windowY;
 					}
-					event.mouseButton.mouseID = sdlEvent.button.which;
+					event.mouseButton.mouseID = sdlEvent.wheel.which;
 					event.mouseWheel.deltaX = sdlEvent.wheel.x;
 					event.mouseWheel.deltaY = sdlEvent.wheel.y;
 					event.mouseWheel.yFlipped = sdlEvent.wheel.direction == SDL_MOUSEWHEEL_FLIPPED;
@@ -604,7 +559,7 @@ int dsSDLApplication_run(dsApplication* application)
 				case SDL_JOYBALLMOTION:
 					event.type = dsAppEventType_GameInputBall;
 					event.gameInputBall.gameInput = dsSDLGameInput_find(application,
-						sdlEvent.jaxis.which);
+						sdlEvent.jball.which);
 					DS_ASSERT(event.gameInputBall.gameInput);
 					event.gameInputBall.deltaX = sdlEvent.jball.xrel;
 					event.gameInputBall.deltaY = sdlEvent.jball.yrel;
@@ -687,7 +642,7 @@ int dsSDLApplication_run(dsApplication* application)
 					event.gameInputButton.gameInput = dsSDLGameInput_find(application,
 						sdlEvent.cbutton.which);
 					DS_ASSERT(event.gameInputButton.gameInput);
-					event.gameInputAxis.mapping = dsSDLGameInput_controllerMapForButton(
+					event.gameInputButton.mapping = dsSDLGameInput_controllerMapForButton(
 						(SDL_GameControllerButton)sdlEvent.cbutton.button);
 					break;
 #if SDL_VERSION_ATLEAST(2, 0, 14)
@@ -714,11 +669,30 @@ int dsSDLApplication_run(dsApplication* application)
 					DS_ASSERT(event.touch.gameInput);
 					event.touch.touchID = sdlEvent.ctouchpad.touchpad;
 					event.touch.fingerID = sdlEvent.ctouchpad.finger;
-					event.touch.x = sdlEvent.tfinger.x;
-					event.touch.y = sdlEvent.tfinger.y;
-					event.touch.deltaX = sdlEvent.tfinger.dx;
-					event.touch.deltaY = sdlEvent.tfinger.dy;
-					event.touch.pressure = sdlEvent.tfinger.pressure;
+					event.touch.x = sdlEvent.ctouchpad.x;
+					event.touch.y = sdlEvent.ctouchpad.y;
+					event.touch.deltaX = 0;
+					event.touch.deltaY = 0;
+					event.touch.pressure = sdlEvent.ctouchpad.pressure;
+					break;
+				case SDL_CONTROLLERSENSORUPDATE:
+					event.type = dsAppEventType_MotionSensor;
+					event.motionSensor.sensor = NULL;
+					event.motionSensor.gameInput = dsSDLGameInput_find(application,
+						sdlEvent.csensor.which);
+					DS_ASSERT(event.motionSensor.gameInput);
+					switch (sdlEvent.csensor.sensor)
+					{
+						case SDL_SENSOR_ACCEL:
+							event.motionSensor.type = dsMotionSensorType_Accelerometer;
+							break;
+						case SDL_SENSOR_GYRO:
+							event.motionSensor.type = dsMotionSensorType_Gyroscope;
+							break;
+						default:
+							continue;
+					}
+					memcpy(&event.motionSensor.data, sdlEvent.csensor.data, sizeof(dsVector3f));
 					break;
 #endif
 				case SDL_FINGERDOWN:
@@ -757,6 +731,17 @@ int dsSDLApplication_run(dsApplication* application)
 					event.multiTouch.y = sdlEvent.mgesture.y;
 					event.multiTouch.fingerCount = sdlEvent.mgesture.numFingers;
 					break;
+#if SDL_VERSION_ATLEAST(2, 0, 9)
+				case SDL_SENSORUPDATE:
+					event.type = dsAppEventType_MotionSensor;
+					event.motionSensor.sensor = dsSDLMotionSensor_find(application,
+						sdlEvent.sensor.which);
+					DS_ASSERT(event.motionSensor.sensor);
+					event.motionSensor.gameInput = NULL;
+					event.motionSensor.type = event.motionSensor.sensor->type;
+					memcpy(&event.motionSensor.data, sdlEvent.sensor.data, sizeof(dsVector3f));
+					break;
+#endif
 				case SDL_USEREVENT:
 					event.type = dsAppEventType_Custom;
 					event.custom.eventID = sdlEvent.user.code;
@@ -848,6 +833,54 @@ void dsSDLApplication_quit(dsApplication* application, int exitCode)
 	dsSDLApplication* sdlApplication = (dsSDLApplication*)application;
 	sdlApplication->quit = true;
 	sdlApplication->exitCode = exitCode;
+}
+
+bool dsSDLApplication_addCustomEvent(dsApplication* application, dsWindow* window,
+	const dsCustomEvent* event)
+{
+	DS_UNUSED(application);
+	DS_ASSERT(event);
+	SDL_Event userEvent;
+	userEvent.type = SDL_USEREVENT;
+	if (window)
+		userEvent.user.windowID = SDL_GetWindowID(((dsSDLWindow*)window)->sdlWindow);
+	else
+		userEvent.user.windowID = 0;
+	userEvent.user.code = event->eventID;
+	userEvent.user.data1 = event->userData;
+	userEvent.user.data2 = event->cleanupFunc;
+
+	return SDL_PushEvent(&userEvent) != 0;
+}
+
+double dsSDLApplication_getCurrentEventTime(const dsApplication* application)
+{
+	DS_UNUSED(application);
+	// NOTE: Would ideally use SDL_GetTicks64(), but events are locked into 32-bit timestamps until
+	// the ABI is allowed to change. This is currently planned for SDL 3.
+	return (double)SDL_GetTicks()/1000.0;
+}
+
+dsSystemPowerState dsSDLApplication_getPowerState(int* outRemainingTime, int* outBatteryPercent,
+	const dsApplication* application)
+{
+	DS_UNUSED(application);
+	switch (SDL_GetPowerInfo(outRemainingTime, outBatteryPercent))
+	{
+		case SDL_POWERSTATE_UNKNOWN:
+			return dsSystemPowerState_Unknown;
+		case SDL_POWERSTATE_ON_BATTERY:
+			return dsSystemPowerState_OnBattery;
+		case SDL_POWERSTATE_NO_BATTERY:
+			return dsSystemPowerState_External;
+		case SDL_POWERSTATE_CHARGING:
+			return dsSystemPowerState_Charging;
+		case SDL_POWERSTATE_CHARGED:
+			return dsSystemPowerState_Charged;
+	}
+
+	DS_ASSERT(false);
+	return dsSystemPowerState_Unknown;
 }
 
 void dsSDLApplication_getDisplayBounds(dsAlignedBox2i* outBounds, const dsApplication* application,
@@ -1004,7 +1037,8 @@ dsApplication* dsSDLApplication_create(dsAllocator* allocator, dsRenderer* rende
 
 	uint32_t initFlags = SDL_INIT_GAMECONTROLLER | SDL_INIT_HAPTIC;
 #if SDL_VERSION_ATLEAST(2, 0, 9)
-	initFlags |= SDL_INIT_SENSOR;
+	if (flags & dsSDLApplicationFlags_MotionSensors)
+		initFlags |= SDL_INIT_SENSOR;
 #endif
 	if (SDL_Init(initFlags) != 0)
 	{
@@ -1072,6 +1106,7 @@ dsApplication* dsSDLApplication_create(dsAllocator* allocator, dsRenderer* rende
 	if (!application)
 		return NULL;
 
+	application->useMotionSensors = (flags & dsSDLApplicationFlags_MotionSensors) != 0;
 	application->quit = false;
 	application->exitCode = 0;
 	memset(application->cursors, 0, sizeof(application->cursors));
@@ -1175,12 +1210,18 @@ dsApplication* dsSDLApplication_create(dsAllocator* allocator, dsRenderer* rende
 		return NULL;
 	}
 
-	baseApplication->addCustomEventFunc = &dsSDLApplication_addCustomEvent;
-	baseApplication->getCurrentEventTimeFunc = &dsSDLApplication_getCurrentEventTime;
-	baseApplication->getPowerStateFunc = &dsSDLApplication_getPowerState;
+	if (application->useMotionSensors && !dsSDLMotionSensor_setup(baseApplication))
+	{
+		dsSDLApplication_destroy(baseApplication);
+		return NULL;
+	}
+
 	baseApplication->showMessageBoxFunc = &dsSDLApplication_showMessageBoxBase;
 	baseApplication->runFunc = &dsSDLApplication_run;
 	baseApplication->quitFunc = &dsSDLApplication_quit;
+	baseApplication->addCustomEventFunc = &dsSDLApplication_addCustomEvent;
+	baseApplication->getCurrentEventTimeFunc = &dsSDLApplication_getCurrentEventTime;
+	baseApplication->getPowerStateFunc = &dsSDLApplication_getPowerState;
 
 	baseApplication->getDisplayBoundsfunc = &dsSDLApplication_getDisplayBounds;
 	baseApplication->getCursorFunc = &dsSDLApplication_getCursor;
@@ -1227,6 +1268,10 @@ dsApplication* dsSDLApplication_create(dsAllocator* allocator, dsRenderer* rende
 	baseApplication->getGameInputDPadDirectionFunc = &dsSDLGameInput_getDPadDirection;
 	baseApplication->startGameInputRumbleFunc = &dsSDLGameInput_startRumble;
 	baseApplication->stopGameInputRumbleFunc = &dsSDLGameInput_stopRumble;
+	baseApplication->gameInputHasMotionSensorFunc = &dsSDLGameInput_hasMotionSensor;
+	baseApplication->getGameInputMotionSensorDataFunc = &dsSDLGameInput_getMotionSensorData;
+
+	baseApplication->getMotionSensorDataFunc = &dsSDLMotionSensor_getData;
 
 #if DS_ANDROID
 	DS_UNUSED(orgName);
@@ -1274,9 +1319,15 @@ void dsSDLApplication_destroy(dsApplication* application)
 	}
 
 	dsSDLGameInput_freeAll(application->gameInputs, application->gameInputCount);
+	dsSDLMotionSensor_freeAll(application->motionSensors, application->motionSensorCount);
 	dsApplication_shutdown(application);
 	dsAllocator_free(application->allocator, application);
 
 	SDL_VideoQuit();
 	SDL_Quit();
+}
+
+bool dsSDLApplication_useMotionSensors(const dsApplication* application)
+{
+	return application && ((const dsSDLApplication*)application)->useMotionSensors;
 }

@@ -40,7 +40,7 @@ void dsSDLGameInput_freeAll(dsGameInput** gameInputs, uint32_t gameInputCount);
 
 dsGameInput* dsSDLGameInput_add(dsApplication* application, uint32_t index);
 bool dsSDLGameInput_remove(dsApplication* application, SDL_JoystickID id);
-dsGameInput* dsSDLGameInput_find(dsApplication* application, SDL_JoystickID);
+dsGameInput* dsSDLGameInput_find(dsApplication* application, SDL_JoystickID id);
 
 dsGameInputBattery dsSDLGameInput_getBattery(const dsApplication* application,
 	const dsGameInput* gameInput);
@@ -57,3 +57,7 @@ bool dsSDLGameInput_getDPadDirection(dsVector2i* outDirection, const dsApplicati
 bool dsSDLGameInput_startRumble(dsApplication* application, dsGameInput* gameInput,
 	float strength, float duration);
 bool dsSDLGameInput_stopRumble(dsApplication* application, dsGameInput* gameInput);
+bool dsSDLGameInput_hasMotionSensor(const dsApplication* application, const dsGameInput* gameInput,
+	dsMotionSensorType type);
+bool dsSDLGameInput_getMotionSensorData(dsVector3f* outData, const dsApplication* application,
+	const dsGameInput* gameInput, dsMotionSensorType type);

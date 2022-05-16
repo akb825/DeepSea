@@ -124,3 +124,30 @@ bool dsGameInput_startRumble(dsGameInput* gameInput, float strength, float durat
 	dsApplication* application = gameInput->application;
 	return application->startGameInputRumbleFunc(application, gameInput, strength, duration);
 }
+
+bool dsGameInput_hasMotionSensor(const dsGameInput* gameInput, dsMotionSensorType type)
+{
+	if (!gameInput || !gameInput->application ||
+		!gameInput->application->gameInputHasMotionSensorFunc)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	const dsApplication* application = gameInput->application;
+	return application->gameInputHasMotionSensorFunc(application, gameInput, type);
+}
+
+bool dsGameInput_getMotionSensorData(dsVector3f* outData, const dsGameInput* gameInput,
+	dsMotionSensorType type)
+{
+	if (!outData || !gameInput || !gameInput->application ||
+		!gameInput->application->getGameInputMotionSensorDataFunc)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	const dsApplication* application = gameInput->application;
+	return application->getGameInputMotionSensorDataFunc(outData, application, gameInput, type);
+}
