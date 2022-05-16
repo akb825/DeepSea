@@ -46,6 +46,10 @@
 
 #define DS_MAX_WINDOWS 100U
 
+// Need to swap middle and right buttons.
+#define SDL_MOUSE_TO_DS_MOUSE_MASK(x) (((x) & ~(SDL_BUTTON_MMASK | SDL_BUTTON_RMASK)) | \
+	(((x) & SDL_BUTTON_MMASK) << 1) | (((x) & SDL_BUTTON_RMASK) >> 1))
+
 typedef struct dsSDLApplication
 {
 	dsApplication application;
@@ -542,6 +546,7 @@ int dsSDLApplication_run(dsApplication* application)
 						continue;
 
 					event.type = dsAppEventType_MouseMove;
+					event.mouseMove.mouseID = sdlEvent.motion.which;
 					event.mouseMove.x = sdlEvent.motion.x;
 					event.mouseMove.y = sdlEvent.motion.y;
 					event.mouseMove.deltaX = sdlEvent.motion.xrel;
@@ -556,6 +561,7 @@ int dsSDLApplication_run(dsApplication* application)
 						dsAppEventType_MouseButtonDown;
 					event.mouseButton.mouseID = sdlEvent.button.which;
 					event.mouseButton.button = DS_MOUSE_BUTTON(sdlEvent.button.button);
+					event.mouseButton.button = SDL_MOUSE_TO_DS_MOUSE_MASK(event.mouseButton.button);
 					event.mouseButton.x = sdlEvent.button.x;
 					event.mouseButton.y = sdlEvent.button.y;
 					break;
@@ -951,7 +957,8 @@ bool dsSDLApplication_setMousePosition(dsApplication* application, dsWindow* win
 uint32_t dsSDLApplication_getPressedMouseButtons(const dsApplication* application)
 {
 	DS_UNUSED(application);
-	return SDL_GetMouseState(NULL, NULL);
+	uint32_t sdlButtons = SDL_GetMouseState(NULL, NULL);
+	return SDL_MOUSE_TO_DS_MOUSE_MASK(sdlButtons);
 }
 
 uint32_t dsSDLApplication_showMessageBox(dsMessageBoxType type, const char* title,

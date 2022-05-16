@@ -784,6 +784,16 @@ typedef bool (*dsSetApplicationMousePositionFunction)(dsApplication* application
 	const dsVector2i* position);
 
 /**
+ * @brief Function for getting if a game input button is pressed.
+ * @param application The application.
+ * @param gameInput The game input device to get the button state from.
+ * @param button The button to check.
+ * @return True if the button is pressed.
+ */
+typedef bool (*dsIsGameInputButtonPressedFunction)(const dsApplication* application,
+	const dsGameInput* gameInput, uint32_t button);
+
+/**
  * @brief Function for creating a window.
  * @param application The application.
  * @param allocator The allocator to create the window with.
@@ -1057,16 +1067,6 @@ typedef float (*dsGetGameInputControllerAxisFunction)(const dsApplication* appli
 	const dsGameInput* gameInput, dsGameControllerMap mapping);
 
 /**
- * @brief Function for getting if a game input button is pressed.
- * @param application The application.
- * @param gameInput The game input device to get the button state from.
- * @param button The button to check.
- * @return True if the button is pressed.
- */
-typedef bool (*dsIsGameInputButtonPressedFunction)(const dsApplication* application,
-	const dsGameInput* gameInput, uint32_t button);
-
-/**
  * @brief Function for getting if a game input button is pressed based on the game controller
  *     mapping.
  * @param application The application.
@@ -1285,11 +1285,6 @@ struct dsApplication
 	dsGetApplicationPowerState getPowerStateFunc;
 
 	/**
-	 * @brief Function for getting the pressed mouse buttons.
-	 */
-	dsGetApplicationPressedMouseButtonsFunction getPressedMouseButtonsFunc;
-
-	/**
 	 * @brief Function for showing a message box.
 	 */
 	dsShowApplicationMessageBoxFunction showMessageBoxFunc;
@@ -1363,6 +1358,11 @@ struct dsApplication
 	 * @brief Function for setting the mouse position.
 	 */
 	dsSetApplicationMousePositionFunction setMousePositionFunc;
+
+	/**
+	 * @brief Function for getting the pressed mouse buttons.
+	 */
+	dsGetApplicationPressedMouseButtonsFunction getPressedMouseButtonsFunc;
 
 	/**
 	 * @brief Function for creating a window.
