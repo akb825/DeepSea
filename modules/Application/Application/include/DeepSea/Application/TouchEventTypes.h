@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 #pragma once
 
 #include <DeepSea/Core/Config.h>
+#include <DeepSea/Math/Types.h>
 #include <stdint.h>
 
 #ifdef __cplusplus
@@ -56,26 +57,14 @@ typedef struct dsTouchEvent
 	/**
 	 * @brief The position of the finger in normalized [0, 1] coordinates.
 	 */
-	float x;
-
-	/**
-	 * @brief The Y position of the finger in normalized [0, 1] coordinates.
-	 */
-	float y;
+	dsVector2f position;
 
 	/**
 	 * @brief The amount moved in the X direction in normalized [-1, 1] coordinates.
 	 *
 	 * This may be 0 if the underlying implementation doesn't track the delta between all events.
 	 */
-	float deltaX;
-
-	/**
-	 * @brief The amount moved in the Y direction in normalized [-1, 1] coordinates.
-	 *
-	 * This may be 0 if the underlying implementation doesn't track the delta between all events.
-	 */
-	float deltaY;
+	dsVector2f delta;
 
 	/**
 	 * @brief The pressure of the touch in normalized [0, 1] coordinates.
@@ -104,14 +93,9 @@ typedef struct dsMultiTouchEvent
 	float pinch;
 
 	/**
-	 * @brief The X position of the gesture in normalized [0, 1] coordinates.
+	 * @brief The position of the gesture in normalized [0, 1] coordinates.
 	 */
-	float x;
-
-	/**
-	 * @brief The Y position of the gesture in normalized [0, 1] coordinates.
-	 */
-	float y;
+	dsVector2f position;
 
 	/**
 	 * @brief The number of fingers in the gesture.

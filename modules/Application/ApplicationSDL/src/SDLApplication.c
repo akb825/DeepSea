@@ -390,7 +390,7 @@ int dsSDLApplication_run(dsApplication* application)
 		SDL_Event sdlEvent;
 		while (SDL_PollEvent(&sdlEvent))
 		{
-			dsWindow* window = findWindow(application, sdlEvent.window.windowID);
+			dsWindow* window = NULL;
 			dsEvent event;
 			event.time = sdlEvent.common.timestamp/1000.0;
 			switch (sdlEvent.type)
@@ -417,6 +417,7 @@ int dsSDLApplication_run(dsApplication* application)
 					break;
 				case SDL_WINDOWEVENT:
 				{
+					window = findWindow(application, sdlEvent.window.windowID);
 					if (!window)
 						continue;
 
@@ -472,6 +473,7 @@ int dsSDLApplication_run(dsApplication* application)
 				}
 				case SDL_KEYDOWN:
 				case SDL_KEYUP:
+					window = findWindow(application, sdlEvent.key.windowID);
 					event.type = sdlEvent.type == SDL_KEYDOWN ? dsAppEventType_KeyDown :
 						dsAppEventType_KeyUp;
 					event.key.key = dsFromSDLScancode(sdlEvent.key.keysym.scancode);
@@ -480,6 +482,7 @@ int dsSDLApplication_run(dsApplication* application)
 					break;
 				case SDL_TEXTEDITING:
 				{
+					window = findWindow(application, sdlEvent.edit.windowID);
 					event.type = dsAppEventType_TextEdit;
 					event.textEdit.cursor = sdlEvent.edit.start;
 					event.textEdit.selectionLength = sdlEvent.edit.length;
@@ -490,6 +493,7 @@ int dsSDLApplication_run(dsApplication* application)
 				}
 				case SDL_TEXTINPUT:
 				{
+					window = findWindow(application, sdlEvent.text.windowID);
 					event.type = dsAppEventType_TextInput;
 					_Static_assert(sizeof(event.textInput.text) >= sizeof(sdlEvent.text.text),
 						"Invalid SDL text size.");
@@ -500,43 +504,46 @@ int dsSDLApplication_run(dsApplication* application)
 					if (sdlEvent.motion.which == SDL_TOUCH_MOUSEID)
 						continue;
 
+					window = findWindow(application, sdlEvent.motion.windowID);
 					event.type = dsAppEventType_MouseMove;
 					event.mouseMove.mouseID = sdlEvent.motion.which;
-					event.mouseMove.x = sdlEvent.motion.x;
-					event.mouseMove.y = sdlEvent.motion.y;
-					event.mouseMove.deltaX = sdlEvent.motion.xrel;
-					event.mouseMove.deltaY = sdlEvent.motion.yrel;
+					event.mouseMove.position.x = sdlEvent.motion.x;
+					event.mouseMove.position.y = sdlEvent.motion.y;
+					event.mouseMove.delta.x = sdlEvent.motion.xrel;
+					event.mouseMove.delta.y = sdlEvent.motion.yrel;
 					break;
 				case SDL_MOUSEBUTTONDOWN:
 				case SDL_MOUSEBUTTONUP:
 					if (sdlEvent.button.which == SDL_TOUCH_MOUSEID)
 						continue;
 
+					window = findWindow(application, sdlEvent.button.windowID);
 					event.type = sdlEvent.type == SDL_MOUSEBUTTONUP ? dsAppEventType_MouseButtonUp :
 						dsAppEventType_MouseButtonDown;
 					event.mouseButton.mouseID = sdlEvent.button.which;
 					event.mouseButton.button = DS_MOUSE_BUTTON(sdlEvent.button.button);
 					event.mouseButton.button = SDL_MOUSE_TO_DS_MOUSE_MASK(event.mouseButton.button);
-					event.mouseButton.x = sdlEvent.button.x;
-					event.mouseButton.y = sdlEvent.button.y;
+					event.mouseButton.position.x = sdlEvent.button.x;
+					event.mouseButton.position.y = sdlEvent.button.y;
 					break;
 				case SDL_MOUSEWHEEL:
 					if (sdlEvent.wheel.which == SDL_TOUCH_MOUSEID)
 						continue;
 
+					window = findWindow(application, sdlEvent.wheel.windowID);
 					event.type = dsAppEventType_MouseWheel;
-					SDL_GetMouseState(&event.mouseWheel.x, &event.mouseWheel.y);
+					event.mouseButton.mouseID = sdlEvent.wheel.which;
+					SDL_GetMouseState(&event.mouseWheel.position.x, &event.mouseWheel.position.y);
 					if (window)
 					{
 						int windowX, windowY;
 						SDL_GetWindowPosition(((dsSDLWindow*)window)->sdlWindow, &windowX,
 							&windowY);
-						event.mouseWheel.x -= windowX;
-						event.mouseWheel.y -= windowY;
+						event.mouseWheel.position.x -= windowX;
+						event.mouseWheel.position.y -= windowY;
 					}
-					event.mouseButton.mouseID = sdlEvent.wheel.which;
-					event.mouseWheel.deltaX = sdlEvent.wheel.x;
-					event.mouseWheel.deltaY = sdlEvent.wheel.y;
+					event.mouseWheel.delta.x = sdlEvent.wheel.x;
+					event.mouseWheel.delta.y = sdlEvent.wheel.y;
 					event.mouseWheel.yFlipped = sdlEvent.wheel.direction == SDL_MOUSEWHEEL_FLIPPED;
 					break;
 				case SDL_JOYAXISMOTION:
@@ -561,8 +568,8 @@ int dsSDLApplication_run(dsApplication* application)
 					event.gameInputBall.gameInput = dsSDLGameInput_find(application,
 						sdlEvent.jball.which);
 					DS_ASSERT(event.gameInputBall.gameInput);
-					event.gameInputBall.deltaX = sdlEvent.jball.xrel;
-					event.gameInputBall.deltaY = sdlEvent.jball.yrel;
+					event.gameInputBall.delta.x = sdlEvent.jball.xrel;
+					event.gameInputBall.delta.y = sdlEvent.jball.yrel;
 					break;
 				case SDL_JOYHATMOTION:
 					event.type = dsAppEventType_GameInputDPad;
@@ -669,10 +676,10 @@ int dsSDLApplication_run(dsApplication* application)
 					DS_ASSERT(event.touch.gameInput);
 					event.touch.touchID = sdlEvent.ctouchpad.touchpad;
 					event.touch.fingerID = sdlEvent.ctouchpad.finger;
-					event.touch.x = sdlEvent.ctouchpad.x;
-					event.touch.y = sdlEvent.ctouchpad.y;
-					event.touch.deltaX = 0;
-					event.touch.deltaY = 0;
+					event.touch.position.x = sdlEvent.ctouchpad.x;
+					event.touch.position.y = sdlEvent.ctouchpad.y;
+					event.touch.delta.x = 0;
+					event.touch.delta.y = 0;
 					event.touch.pressure = sdlEvent.ctouchpad.pressure;
 					break;
 				case SDL_CONTROLLERSENSORUPDATE:
@@ -698,6 +705,9 @@ int dsSDLApplication_run(dsApplication* application)
 				case SDL_FINGERDOWN:
 				case SDL_FINGERUP:
 				case SDL_FINGERMOTION:
+#if SDL_VERSION_ATLEAST(2, 0, 12)
+					window = findWindow(application, sdlEvent.tfinger.windowID);
+#endif
 					switch (sdlEvent.type)
 					{
 						case SDL_FINGERDOWN:
@@ -716,10 +726,10 @@ int dsSDLApplication_run(dsApplication* application)
 					event.touch.gameInput = NULL;
 					event.touch.touchID = sdlEvent.tfinger.touchId;
 					event.touch.fingerID = sdlEvent.tfinger.fingerId;
-					event.touch.x = sdlEvent.tfinger.x;
-					event.touch.y = sdlEvent.tfinger.y;
-					event.touch.deltaX = sdlEvent.tfinger.dx;
-					event.touch.deltaY = sdlEvent.tfinger.dy;
+					event.touch.position.x = sdlEvent.tfinger.x;
+					event.touch.position.y = sdlEvent.tfinger.y;
+					event.touch.delta.x = sdlEvent.tfinger.dx;
+					event.touch.delta.y = sdlEvent.tfinger.dy;
 					event.touch.pressure = sdlEvent.tfinger.pressure;
 					break;
 				case SDL_MULTIGESTURE:
@@ -727,8 +737,8 @@ int dsSDLApplication_run(dsApplication* application)
 					event.multiTouch.touchID = sdlEvent.mgesture.touchId;
 					event.multiTouch.rotation = sdlEvent.mgesture.dTheta;
 					event.multiTouch.pinch = sdlEvent.mgesture.dDist;
-					event.multiTouch.x = sdlEvent.mgesture.x;
-					event.multiTouch.y = sdlEvent.mgesture.y;
+					event.multiTouch.position.x = sdlEvent.mgesture.x;
+					event.multiTouch.position.y = sdlEvent.mgesture.y;
 					event.multiTouch.fingerCount = sdlEvent.mgesture.numFingers;
 					break;
 #if SDL_VERSION_ATLEAST(2, 0, 9)
@@ -743,6 +753,7 @@ int dsSDLApplication_run(dsApplication* application)
 					break;
 #endif
 				case SDL_USEREVENT:
+					window = findWindow(application, sdlEvent.user.windowID);
 					event.type = dsAppEventType_Custom;
 					event.custom.eventID = sdlEvent.user.code;
 					event.custom.userData = sdlEvent.user.data1;

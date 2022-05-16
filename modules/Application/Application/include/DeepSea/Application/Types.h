@@ -485,7 +485,7 @@ typedef struct dsEvent
 		 *
 		 * This is set for dsAppEventType_MouseWheel.
 		 */
-		dsMouseMoveEvent mouseWheel;
+		dsMouseWheelEvent mouseWheel;
 
 		/**
 		 * @brief Information about a key press or release.

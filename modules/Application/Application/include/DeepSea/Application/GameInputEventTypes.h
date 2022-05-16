@@ -191,14 +191,9 @@ typedef struct dsGameInputBallEvent
 	uint32_t ball;
 
 	/**
-	 * @brief The movement in the X direction.
+	 * @brief The movement of the ball.
 	 */
-	int32_t deltaX;
-
-	/**
-	 * @brief The movement in the Y direction.
-	 */
-	int32_t deltaY;
+	dsVector2i delta;
 } dsGameInputBallEvent;
 
 /**

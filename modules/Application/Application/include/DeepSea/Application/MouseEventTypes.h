@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 #pragma once
 
 #include <DeepSea/Core/Config.h>
+#include <DeepSea/Math/Types.h>
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -68,14 +69,9 @@ typedef struct dsMouseButtonEvent
 	dsMouseButton button;
 
 	/**
-	 * @brief The X position of the mouse, relative to the window in display coordinates.
+	 * @brief The position of the mouse relative to the window in display coordinates.
 	 */
-	int32_t x;
-
-	/**
-	 * @brief The Y position of the mouse, relative to the window in display coordinates.
-	 */
-	int32_t y;
+	dsVector2i position;
 } dsMouseButtonEvent;
 
 /**
@@ -89,29 +85,14 @@ typedef struct dsMouseMoveEvent
 	uint32_t mouseID;
 
 	/**
-	 * @brief The X position of the mouse, relative to the window in display coordinates.
+	 * @brief The position of the mouse relative to the window in display coordinates.
 	 */
-	int32_t x;
-
-	/**
-	 * @brief The Y position of the mouse, relative to the window in display coordinates.
-	 */
-	int32_t y;
+	dsVector2i position;
 
 	/**
 	 * @brief The amount scrolled in the X direction in display coordinates.
 	 */
-	int32_t deltaX;
-
-	/**
-	 * @brief The amount scrolled in the Y direction in display coordinates.
-	 */
-	int32_t deltaY;
-
-	/**
-	 * @brief True if the Y direction is flipped due to "natural" scrolling.
-	 */
-	bool yFlipped;
+	dsVector2i delta;
 } dsMouseMoveEvent;
 
 /**
@@ -125,14 +106,19 @@ typedef struct dsMouseWheelEvent
 	uint32_t mouseID;
 
 	/**
-	 * @brief The amount scrolled in the X direction.
+	 * @brief The position of the mouse relative to the window in display coordinates.
 	 */
-	int32_t deltaX;
+	dsVector2i position;
 
 	/**
-	 * @brief The amount scrolled in the Y direction, where Y is positive.
+	 * @brief The amount scrolled in the direction.
 	 */
-	int32_t deltaY;
+	dsVector2i delta;
+
+	/**
+	 * @brief True if the Y direction is flipped due to "natural" scrolling.
+	 */
+	bool yFlipped;
 } dsMouseWheelEvent;
 
 #ifdef __cplusplus
