@@ -428,7 +428,7 @@ uint32_t dsApplication_adjustWindowSize(const dsApplication* application, uint32
 	if (!application || display >= application->displayCount)
 		return size;
 
-	return (uint32_t)roundf((float)size*application->displays[display].dpi/DS_DEFAULT_DPI);
+	return (uint32_t)roundf((float)size*application->displays[display].dpi/DS_REFERENCE_DPI);
 #else
 	DS_UNUSED(application);
 	DS_UNUSED(display);
@@ -441,7 +441,7 @@ float dsApplication_adjustSize(const dsApplication* application, uint32_t displa
 	if (!application || display >= application->displayCount)
 		return size;
 
-	return size*application->displays[display].dpi/DS_DEFAULT_DPI;
+	return size*application->displays[display].dpi/DS_REFERENCE_DPI;
 }
 
 dsCursor dsApplication_getCursor(const dsApplication* application)

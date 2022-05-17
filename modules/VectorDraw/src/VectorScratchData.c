@@ -280,12 +280,12 @@ bool dsVectorScratchData_loopPoint(void* outPoint, const dsComplexPolygon* polyg
 
 dsTextLayout* dsVectorScratchData_shapeText(dsVectorScratchData* data,
 	dsCommandBuffer* commandBuffer, const void* string, dsUnicodeType stringType, dsFont* font,
-	dsTextAlign alignment, float maxLength, float lineHeight,
-	const dsVectorCommand* ranges, uint32_t rangeCount, float pixelSize)
+	dsTextAlign alignment, float maxLength, float lineHeight, const dsVectorCommand* ranges,
+	uint32_t rangeCount, float pixelSize)
 {
 	uint32_t tempCount = 0;
 	if (!DS_RESIZEABLE_ARRAY_ADD(data->allocator, data->textStyles, tempCount, data->maxTextStyles,
-		rangeCount))
+			rangeCount))
 	{
 		return NULL;
 	}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2021 Aaron Barany
+ * Copyright 2017-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1146,7 +1146,7 @@ static bool setup(TestText* testText, dsApplication* application, dsAllocator* a
 	// multiple times.
 	if (!textInitialized)
 	{
-		float dpiScale = application->displays[0].dpi/DS_DEFAULT_DPI;
+		float dpiScale = application->displays[0].dpi/DS_REFERENCE_DPI;
 #if DS_ANDROID || DS_IOS
 		// This is too large for smaller screens.
 		dpiScale *= 0.5f;

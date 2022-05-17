@@ -46,6 +46,11 @@ extern "C"
 #endif
 
 /**
+ * @brief Reference DPI that's consistent across platforms.
+ */
+#define DS_REFERENCE_DPI 96.0f
+
+/**
  * @brief Constant for no message box button.
  */
 #define DS_MESSAGE_BOX_NO_BUTTON (uint32_t)-1
