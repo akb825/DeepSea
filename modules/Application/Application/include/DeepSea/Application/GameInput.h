@@ -46,15 +46,24 @@ DS_APPLICATION_EXPORT bool dsGameInput_hasControllerMapping(const dsGameInput* g
 	dsGameControllerMap mapping);
 
 /**
- * @brief Finds the controller mapping for an input method and index.
+ * @brief Checks whether or not an input is controller mapped.
  * @param gameInput The game input device to find the mapping for.
  * @param method The input method.
  * @param index The index of the input method. (button, axis, or dpad)
- * @return The controller mapping or dsGameControllerMap_Invalid if not found. If the input
- *     corresponds to a button, the first will be returned. (generally dsGameControllerMap_DPadUp)
+ * @return Whether or not the input is controller mapped.
+ */
+DS_APPLICATION_EXPORT bool dsGameInput_isInputControllerMapped(const dsGameInput* gameInput,
+	dsGameInputMethod method, uint32_t index);
+
+/**
+ * @brief Finds the controller mapping for an input map.
+ * @param gameInput The game input device to find the mapping for.
+ * @param inputMap The input map to find the controller map for. The D-pad axis members will be
+ *     ignored for the compare when not a D-pad input method.
+ * @return The controller mapping or dsGameControllerMap_Invalid if not found.
  */
 DS_APPLICATION_EXPORT dsGameControllerMap dsGameInput_findControllerMapping(
-	const dsGameInput* gameInput, dsGameInputMethod method, uint32_t index);
+	const dsGameInput* gameInput, const dsGameInputMap* inputMap);
 
 /**
  * @brief Gets the game input battery level.

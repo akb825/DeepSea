@@ -46,6 +46,11 @@ extern "C"
  * 2     1
  *    0
  * ```
+ *
+ * With the exception of LeftX/YAxis and RightX/YAxis values, mappings may send either axis or
+ * button events depending on the underlying hardware. If it maps to a D-pad, button events will be
+ * sent. If you wish to treat an axis as a button (e.g. left/right shoulder triggers), you should
+ * consider > 0.5 to be pressed and < 0.5 to be released.
  */
 typedef enum dsGameControllerMap
 {
@@ -104,7 +109,17 @@ typedef struct dsGameInputMap
 	/**
 	 * @brief The index of the input method.
 	 */
-	uint32_t index;
+	uint16_t index;
+
+	/**
+	 * @brief The D-pad axis when the method is dsGameInputMethod_DPad.
+	 */
+	uint8_t dpadAxis;
+
+	/**
+	 * @brief The D-pad axis value when the method is dsGameInputMethod_DPad.
+	 */
+	int8_t dpadAxisValue;
 } dsGameInputMap;
 
 /// @cond
@@ -140,8 +155,7 @@ typedef struct dsGameInputAxisEvent
 	/**
 	 * @brief The axis that was modified.
 	 *
-	 * This will be 0 if mapping is set since it may not map to an actual axis. See
-	 * gameInput->controllerMapping for more detailed information.
+	 * In general this should be ignored if mapping is valid.
 	 */
 	uint32_t axis;
 
@@ -169,8 +183,8 @@ typedef struct dsGameInputButtonEvent
 	/**
 	 * @brief The button that was pressed or released.
 	 *
-	 * This will be 0 if mapping is set since it may not map to an actual button. See
-	 * gameInput->controllerMapping for more detailed information.
+	 * In general this should be ignored if mapping is valid. This has no meaning if the controller
+	 * mapping maps to a D-pad rather than an individual button.
 	 */
 	uint32_t button;
 } dsGameInputButtonEvent;

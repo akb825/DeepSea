@@ -126,19 +126,18 @@ typedef enum dsAppEventType
 	dsAppEventType_MotionSensor,    ///< A motion sensor has been updated. The motionSensor field
 	                                ///< will be set.
 
-	dsAppEventType_WindowShown,     ///< A window has been shown. The window field will be set.
-	dsAppEventType_WindowHidden,    ///< A window has been hidden. The window field will be set.
-	dsAppEventType_WindowMinimized, ///< A window has been minimized. The window field will be set.
-	dsAppEventType_WindowRestored,  ///< A window has been restored after minimized. The window
-	                                ///< field will be set.
+	dsAppEventType_WindowShown,     ///< A window has been shown. No field will be set.
+	dsAppEventType_WindowHidden,    ///< A window has been hidden. No field will be set.
+	dsAppEventType_WindowMinimized, ///< A window has been minimized. No field will be set.
+	dsAppEventType_WindowRestored,  ///< A window has been restored after minimized. No field will
+	                                ///< be set.
 	dsAppEventType_WindowResized,   ///< A window has been resized. The resize field will be set.
 	dsAppEventType_WindowClosed,    ///< A window has been closed. The window will be hidden, and
-	                                ///< may either be kept or destroyed. The window field will be
-	                                ///< set.
-	dsAppEventType_MouseEntered,    ///< Mouse has entered a window. The window field will be set.
-	dsAppEventType_MouseLeft,       ///< Mouse has leaved a window. The window field will be set.
-	dsAppEventType_FocusGained,     ///< Window focus has been gained. The window field will be set.
-	dsAppEventType_FocusLost,       ///< Window focus has been lost. The window field will be set.
+	                                ///< may either be kept or destroyed. No field will be set.
+	dsAppEventType_MouseEntered,    ///< Mouse has entered a window. No field will be set.
+	dsAppEventType_MouseLeft,       ///< Mouse has leaved a window. No field will be set.
+	dsAppEventType_FocusGained,     ///< Window focus has been gained. No field will be set.
+	dsAppEventType_FocusLost,       ///< Window focus has been lost. No field will be set.
 
 	dsAppEventType_SurfaceInvalidated,  ///< A window surface has been invalidated and re-created.
 	                                    ///< Any references to the surface must be updated. No event
@@ -360,11 +359,6 @@ typedef struct dsDisplayInfo
 typedef struct dsResizeEvent
 {
 	/**
-	 * @brief The window that was resized.
-	 */
-	const dsWindow* window;
-
-	/**
 	 * @brief The new width of the window.
 	 */
 	uint32_t width;
@@ -566,16 +560,6 @@ typedef struct dsEvent
 		 * This is set for dsAppEventType_MotionSensor;
 		 */
 		dsMotionSensorEvent motionSensor;
-
-		/**
-		 * @brief The window that was the focus of an event.
-		 *
-		 * This is set for dsAppEventType_WindowShown, dsAppEventType_WindowHidden,
-		 * dsAppEventType_WindowMinimized, dsAppEventType_WindowRestored,
-		 * dsAppEventType_MouseEntered, dsAppEventType_MouseLeft, dsAppEventType_FocusGained,
-		 * and dsAppEventType_FocusLost.
-		 */
-		const dsWindow* window;
 
 		/**
 		 * @brief Information about a window resize.

@@ -28,6 +28,7 @@ typedef struct dsSDLGameInput
 	SDL_Joystick* joystick;
 	SDL_GameController* controller;
 	SDL_Haptic* haptic;
+	dsVector2i* dpadValues;
 } dsSDLGameInput;
 
 float dsSDLGameInput_getAxisValue(Sint16 value);
@@ -41,6 +42,9 @@ void dsSDLGameInput_freeAll(dsGameInput** gameInputs, uint32_t gameInputCount);
 dsGameInput* dsSDLGameInput_add(dsApplication* application, uint32_t index);
 bool dsSDLGameInput_remove(dsApplication* application, SDL_JoystickID id);
 dsGameInput* dsSDLGameInput_find(dsApplication* application, SDL_JoystickID id);
+
+void dsSDLGameInput_dispatchControllerDPadEvents(dsGameInput* gameInput, dsApplication* application,
+	dsWindow* window, uint32_t dpad, Sint8 value, double time);
 
 dsGameInputBattery dsSDLGameInput_getBattery(const dsApplication* application,
 	const dsGameInput* gameInput);

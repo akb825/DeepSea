@@ -380,13 +380,13 @@ int dsSDLApplication_run(dsApplication* application)
 
 				dsEvent event;
 				event.type = dsAppEventType_WindowResized;
-				event.resize.window = window;
 				event.resize.width = window->surface->width;
 				event.resize.height = window->surface->height;
 				dsApplication_dispatchEvent(application, window, &event);
 			}
 		}
 
+		dsWindow* focusWindow = dsSDLWindow_getFocusWindow(application);
 		SDL_Event sdlEvent;
 		while (SDL_PollEvent(&sdlEvent))
 		{
@@ -425,42 +425,33 @@ int dsSDLApplication_run(dsApplication* application)
 					{
 						case SDL_WINDOWEVENT_SHOWN:
 							event.type = dsAppEventType_WindowShown;
-							event.window = window;
 							break;
 						case SDL_WINDOWEVENT_HIDDEN:
 							event.type = dsAppEventType_WindowHidden;
-							event.window = window;
 							break;
 						case SDL_WINDOWEVENT_MINIMIZED:
 							event.type = dsAppEventType_WindowMinimized;
-							event.window = window;
 							break;
 						case SDL_WINDOWEVENT_RESTORED:
 							event.type = dsAppEventType_WindowRestored;
-							event.window = window;
 							break;
 						case SDL_WINDOWEVENT_ENTER:
 							event.type = dsAppEventType_MouseEntered;
-							event.window = window;
 							break;
 						case SDL_WINDOWEVENT_LEAVE:
 							event.type = dsAppEventType_MouseLeft;
-							event.window = window;
 							break;
 						case SDL_WINDOWEVENT_FOCUS_GAINED:
 							event.type = dsAppEventType_FocusGained;
-							event.window = window;
 							break;
 						case SDL_WINDOWEVENT_FOCUS_LOST:
 							event.type = dsAppEventType_FocusLost;
-							event.window = window;
 							break;
 						case SDL_WINDOWEVENT_CLOSE:
 							if (!window->closeFunc ||
 								window->closeFunc(window, window->closeUserData))
 							{
 								event.type = dsAppEventType_WindowClosed;
-								event.window = window;
 								dsWindow_setHidden(window, true);
 							}
 							else
@@ -547,22 +538,18 @@ int dsSDLApplication_run(dsApplication* application)
 					event.mouseWheel.yFlipped = sdlEvent.wheel.direction == SDL_MOUSEWHEEL_FLIPPED;
 					break;
 				case SDL_JOYAXISMOTION:
+				{
 					event.type = dsAppEventType_GameInputAxis;
 					event.gameInputAxis.gameInput = dsSDLGameInput_find(application,
 						sdlEvent.jaxis.which);
 					DS_ASSERT(event.gameInputAxis.gameInput);
-					if (dsGameInput_findControllerMapping(event.gameInputAxis.gameInput,
-							dsGameInputMethod_Axis, sdlEvent.jaxis.value) !=
-						dsGameControllerMap_Invalid)
-					{
-						// Controller event will also be sent.
-						continue;
-					}
-
-					event.gameInputAxis.mapping = dsGameControllerMap_Invalid;
+					dsGameInputMap inputMap = {dsGameInputMethod_Axis, sdlEvent.jaxis.axis};
+					event.gameInputAxis.mapping = dsGameInput_findControllerMapping(
+						event.gameInputAxis.gameInput, &inputMap);
 					event.gameInputAxis.axis = sdlEvent.jaxis.axis;
 					event.gameInputAxis.value = dsSDLGameInput_getAxisValue(sdlEvent.jaxis.value);
 					break;
+				}
 				case SDL_JOYBALLMOTION:
 					event.type = dsAppEventType_GameInputBall;
 					event.gameInputBall.gameInput = dsSDLGameInput_find(application,
@@ -572,39 +559,39 @@ int dsSDLApplication_run(dsApplication* application)
 					event.gameInputBall.delta.y = sdlEvent.jball.yrel;
 					break;
 				case SDL_JOYHATMOTION:
+				{
 					event.type = dsAppEventType_GameInputDPad;
-					event.gameInputDPad.gameInput = dsSDLGameInput_find(application,
-						sdlEvent.jhat.which);
-					DS_ASSERT(event.gameInputDPad.gameInput);
-					if (dsGameInput_findControllerMapping(event.gameInputDPad.gameInput,
-							dsGameInputMethod_DPad, sdlEvent.jhat.value) !=
-						dsGameControllerMap_Invalid)
+					dsGameInput* gameInput = dsSDLGameInput_find(application, sdlEvent.jhat.which);
+					DS_ASSERT(gameInput);
+					event.gameInputDPad.gameInput = gameInput;
+					if (dsGameInput_isInputControllerMapped(gameInput, dsGameInputMethod_DPad,
+							sdlEvent.jhat.value))
 					{
-						// Controller event will also be sent.
+						// May result in multiple events.
+						dsSDLGameInput_dispatchControllerDPadEvents(gameInput, application,
+							focusWindow, sdlEvent.jhat.hat, sdlEvent.jhat.value, event.time);
 						continue;
 					}
 
+					event.gameInputDPad.dpad = sdlEvent.jhat.hat;
 					dsSDLGameInput_convertHatDirection(&event.gameInputDPad.direction,
 						sdlEvent.jhat.value);
 					break;
+				}
 				case SDL_JOYBUTTONDOWN:
 				case SDL_JOYBUTTONUP:
+				{
 					event.type = sdlEvent.type == SDL_JOYBUTTONUP ?
 						dsAppEventType_GameInputButtonUp : dsAppEventType_GameInputButtonDown;
 					event.gameInputButton.gameInput = dsSDLGameInput_find(application,
 						sdlEvent.jbutton.which);
 					DS_ASSERT(event.gameInputButton.gameInput);
-					if (dsGameInput_findControllerMapping(event.gameInputButton.gameInput,
-							dsGameInputMethod_Button, sdlEvent.jbutton.button) !=
-						dsGameControllerMap_Invalid)
-					{
-						// Controller event will also be sent.
-						continue;
-					}
-
-					event.gameInputButton.mapping = dsGameControllerMap_Invalid;
+					dsGameInputMap inputMap = {dsGameInputMethod_Button, sdlEvent.jbutton.button};
+					event.gameInputAxis.mapping = dsGameInput_findControllerMapping(
+						event.gameInputAxis.gameInput, &inputMap);
 					event.gameInputButton.button = sdlEvent.jbutton.button;
 					break;
+				}
 				case SDL_JOYDEVICEADDED:
 				{
 					dsGameInput* gameInput = dsSDLGameInput_add(application,
@@ -625,32 +612,6 @@ int dsSDLApplication_run(dsApplication* application)
 					event.gameInputConnect.gameInput = dsSDLGameInput_find(application,
 						sdlEvent.jdevice.which);
 					DS_ASSERT(event.gameInputConnect.gameInput);
-					break;
-				case SDL_CONTROLLERAXISMOTION:
-					// NOTE: In the future, may want to check if the underlying type is a button and
-					// send a button event. However, this may require going throug the raw joystick
-					// events. This is probably unlikely to be a real problem.
-					event.type = dsAppEventType_GameInputAxis;
-					event.gameInputAxis.gameInput = dsSDLGameInput_find(application,
-						sdlEvent.caxis.which);
-					DS_ASSERT(event.gameInputAxis.gameInput);
-					event.gameInputAxis.mapping = dsSDLGameInput_controllerMapForAxis(
-						(SDL_GameControllerAxis)sdlEvent.caxis.axis);
-					event.gameInputAxis.axis = 0;
-					event.gameInputAxis.value = dsSDLGameInput_getAxisValue(sdlEvent.caxis.value);
-					break;
-				case SDL_CONTROLLERBUTTONDOWN:
-				case SDL_CONTROLLERBUTTONUP:
-					// NOTE: In the future, may want to check if the underlying type is an axis and
-					// send an axis event. However, this may require going throug the raw joystick
-					// events. This is probably unlikely to be a real problem.
-					event.type = sdlEvent.type == SDL_CONTROLLERBUTTONUP ?
-						dsAppEventType_GameInputButtonUp : dsAppEventType_GameInputButtonDown;
-					event.gameInputButton.gameInput = dsSDLGameInput_find(application,
-						sdlEvent.cbutton.which);
-					DS_ASSERT(event.gameInputButton.gameInput);
-					event.gameInputButton.mapping = dsSDLGameInput_controllerMapForButton(
-						(SDL_GameControllerButton)sdlEvent.cbutton.button);
 					break;
 #if SDL_VERSION_ATLEAST(2, 0, 14)
 				case SDL_CONTROLLERTOUCHPADDOWN:
@@ -763,6 +724,8 @@ int dsSDLApplication_run(dsApplication* application)
 					continue;
 			}
 
+			if (!window)
+				window = focusWindow;
 			dsApplication_dispatchEvent(application, window, &event);
 
 			// Some events require cleanup.

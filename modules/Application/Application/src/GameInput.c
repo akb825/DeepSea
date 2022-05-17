@@ -24,17 +24,43 @@ bool dsGameInput_hasControllerMapping(const dsGameInput* gameInput, dsGameContro
 		gameInput->controllerMapping[mapping].method != dsGameInputMethod_Invalid;
 }
 
-dsGameControllerMap dsGameInput_findControllerMapping(const dsGameInput* gameInput,
-	dsGameInputMethod method, uint32_t index)
+bool dsGameInput_isInputControllerMapped(const dsGameInput* gameInput, dsGameInputMethod method,
+	uint32_t index)
 {
-	if (method == dsGameInputMethod_Invalid)
+	if (!gameInput || method == dsGameInputMethod_Invalid)
+		return false;
+
+	for (int i = 0; i < dsGameControllerMap_Count; ++i)
+	{
+		const dsGameInputMap* mapping = gameInput->controllerMapping + i;
+		{
+			if (mapping->method == method && mapping->index == index)
+				return true;
+		}
+	}
+
+	return false;
+}
+
+dsGameControllerMap dsGameInput_findControllerMapping(const dsGameInput* gameInput,
+	const dsGameInputMap* inputMap)
+{
+	if (!gameInput || !inputMap || inputMap->method == dsGameInputMethod_Invalid)
 		return dsGameControllerMap_Invalid;
 
 	for (int i = 0; i < dsGameControllerMap_Count; ++i)
 	{
 		const dsGameInputMap* mapping = gameInput->controllerMapping + i;
-		if (mapping->method == method && mapping->index == index)
-			return (dsGameControllerMap)i;
+		{
+			if (mapping->method == inputMap->method && mapping->index == inputMap->index &&
+				(mapping->method != dsGameInputMethod_DPad ||
+					(mapping->method == dsGameInputMethod_DPad &&
+						mapping->dpadAxis == inputMap->dpadAxis &&
+						mapping->dpadAxisValue == inputMap->dpadAxisValue)))
+			{
+				return (dsGameControllerMap)i;
+			}
+		}
 	}
 
 	return dsGameControllerMap_Invalid;
