@@ -128,6 +128,7 @@ static BufferInfo* getDrawBuffer(dsParticleDraw* draw, uint32_t maxParticles)
 				curBufferInfo->lastUsedFrame = frameNumber;
 				bufferInfo = curBufferInfo;
 			}
+			++i;
 			continue;
 		}
 

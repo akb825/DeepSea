@@ -125,6 +125,7 @@ static bool reserveSpace(dsSceneInstanceVariables* variables, uint32_t maxInstan
 				bufferInfo->lastUsedFrame = frameNumber;
 				variables->curBuffer = bufferInfo;
 			}
+			++i;
 			continue;
 		}
 
