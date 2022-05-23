@@ -178,6 +178,7 @@ dsSceneItemList* dsViewCullList_create(dsAllocator* allocator, const char* name)
 	itemList->addNodeFunc = &dsViewCullList_addNode;
 	itemList->updateNodeFunc = NULL;
 	itemList->removeNodeFunc = &dsViewCullList_removeNode;
+	itemList->updateFunc = NULL;
 	itemList->commitFunc = &dsViewCullList_commit;
 	itemList->destroyFunc = &dsViewCullList_destroy;
 

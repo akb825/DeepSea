@@ -582,6 +582,7 @@ dsDeferredLightResolve* dsDeferredLightResolve_create(dsAllocator* allocator,
 	itemList->addNodeFunc = NULL;
 	itemList->updateNodeFunc = NULL;
 	itemList->removeNodeFunc = NULL;
+	itemList->updateFunc = NULL;
 	itemList->commitFunc = &dsDeferredLightResolve_commit;
 	itemList->destroyFunc = (dsDestroySceneItemListFunction)&dsDeferredLightResolve_destroy;
 

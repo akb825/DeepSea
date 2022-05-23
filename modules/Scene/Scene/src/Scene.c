@@ -120,8 +120,16 @@ static size_t fullAllocSize(uint32_t* outNameCount, const dsSceneItemLists* shar
 				const dsSceneItemLists* items = item->renderPass->drawLists + j;
 				for (uint32_t k = 0; k < items->count; ++k)
 				{
-					if (!items->itemLists[k])
+					const dsSceneItemList* itemList = items->itemLists[k];
+					if (!itemList)
 						return 0;
+					else if (!itemList->commitFunc)
+					{
+						DS_LOG_ERROR_F(DS_SCENE_LOG_TAG,
+							"Scene item list '%s' inside render subpass '%s' must have a commit "
+							"function.", itemList->name, baseRenderPass->subpasses[j].name);
+						return 0;
+					}
 				}
 				*outNameCount += items->count;
 			}
@@ -564,7 +572,7 @@ bool dsScene_forEachItemList(dsScene* scene, dsVisitSceneItemListsFunction visit
 	return true;
 }
 
-bool dsScene_update(dsScene* scene)
+bool dsScene_update(dsScene* scene, float time)
 {
 	if (!scene)
 	{
@@ -575,6 +583,14 @@ bool dsScene_update(dsScene* scene)
 	for (uint32_t i = 0; i < scene->dirtyNodeCount; ++i)
 		dsSceneTreeNode_updateSubtree(scene->dirtyNodes[i]);
 	scene->dirtyNodeCount = 0;
+
+	for (dsListNode* node = scene->itemLists->list.head; node; node = node->next)
+	{
+		dsSceneItemList* itemList = ((dsSceneItemListNode*)node)->list;
+		if (itemList->updateFunc)
+			itemList->updateFunc(itemList, scene, time);
+	}
+
 	return true;
 }
 

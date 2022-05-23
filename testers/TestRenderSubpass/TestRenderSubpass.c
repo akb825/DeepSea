@@ -355,17 +355,17 @@ static bool processEvent(dsApplication* application, dsWindow* window, const dsE
 	}
 }
 
-static void update(dsApplication* application, double lastFrameTime, void* userData)
+static void update(dsApplication* application, float lastFrameTime, void* userData)
 {
 	DS_UNUSED(application);
 
 	TestRenderSubpass* testRenderSubpass = (TestRenderSubpass*)userData;
 
 	// radians/s
-	const double rate = M_PI_2;
-	testRenderSubpass->rotation += (float)(lastFrameTime*rate);
+	const float rate = (float)M_PI_2;
+	testRenderSubpass->rotation += lastFrameTime*rate;
 	while (testRenderSubpass->rotation > 2*M_PI)
-		testRenderSubpass->rotation = (float)(testRenderSubpass->rotation - 2*M_PI);
+		testRenderSubpass->rotation = testRenderSubpass->rotation - (float)(2*M_PI);
 
 	dsMatrix44f model;
 	dsMatrix44f_makeRotate(&model, 0, testRenderSubpass->rotation, 0);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Aaron Barany
+ * Copyright 2019-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -104,7 +104,7 @@ DS_SCENE_EXPORT const dsSceneNodeType* dsSceneNode_setupParentType(dsSceneNodeTy
  * @param type The type name of the node to load.
  * @param data The data for the scene node. The data isn't used after this call.
  * @param size The size of the data buffer.
- * @return The scene node hierarchy, or NULL if an error occurred.
+ * @return The scene node hierarchy or NULL if an error occurred.
  */
 DS_SCENE_EXPORT dsSceneNode* dsSceneNode_load(dsAllocator* allocator,
 	dsAllocator* resourceAllocator, const dsSceneLoadContext* loadContext,
@@ -117,9 +117,9 @@ DS_SCENE_EXPORT dsSceneNode* dsSceneNode_load(dsAllocator* allocator,
  * @param node The node to initialize.
  * @param allocator The allocator the node was created with. This must support freeing memory.
  * @param type The type node.
- * @param itemLists The list of draw list names to use. These should be allocated with the node by
+ * @param itemLists The list of item list names to use. These should be allocated with the node by
  *     using a dsBufferAllocator so they may all be freed at once.
- * @param itemListCount The number of draw lists.
+ * @param itemListCount The number of item lists.
  * @param destroyFunc The function to destroy the node.
  * @return False if the parameters are invalid.
  */

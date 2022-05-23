@@ -190,6 +190,7 @@ dsSceneItemList* dsShadowCullList_create(dsAllocator* allocator, const char* nam
 	itemList->addNodeFunc = &dsShadowCullList_addNode;
 	itemList->updateNodeFunc = NULL;
 	itemList->removeNodeFunc = &dsShadowCullList_removeNode;
+	itemList->updateFunc = NULL;
 	itemList->commitFunc = &dsShadowCullList_commit;
 	itemList->destroyFunc = &dsShadowCullList_destroy;
 

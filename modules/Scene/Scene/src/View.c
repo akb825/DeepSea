@@ -1019,7 +1019,8 @@ bool dsView_draw(dsView* view, dsCommandBuffer* commandBuffer, dsSceneThreadMana
 		for (uint32_t j = 0; j < sharedItems->count; ++j)
 		{
 			dsSceneItemList* itemList = sharedItems->itemLists[j];
-			itemList->commitFunc(itemList, view, commandBuffer);
+			if (itemList->commitFunc)
+				itemList->commitFunc(itemList, view, commandBuffer);
 		}
 	}
 
@@ -1067,6 +1068,7 @@ bool dsView_draw(dsView* view, dsCommandBuffer* commandBuffer, dsSceneThreadMana
 				for (uint32_t k = 0; k < drawLists->count; ++k)
 				{
 					dsSceneItemList* itemList = drawLists->itemLists[k];
+					DS_ASSERT(itemList->commitFunc);
 					itemList->commitFunc(itemList, view, commandBuffer);
 				}
 
@@ -1080,7 +1082,8 @@ bool dsView_draw(dsView* view, dsCommandBuffer* commandBuffer, dsSceneThreadMana
 		{
 			dsSceneItemList* computeItems = scene->pipeline[i].computeItems;
 			DS_ASSERT(computeItems);
-			computeItems->commitFunc(computeItems, view, commandBuffer);
+			if (computeItems->commitFunc)
+				computeItems->commitFunc(computeItems, view, commandBuffer);
 		}
 	}
 

@@ -139,6 +139,7 @@ MockSceneItemList* createMockSceneItems(dsAllocator* allocator)
 	baseItems->addNodeFunc = &addMockSceneItem;
 	baseItems->removeNodeFunc = &removeMockSceneItem;
 	baseItems->updateNodeFunc = &updateMockSceneItem;
+	baseItems->updateFunc = NULL;
 	baseItems->commitFunc = &commitMockSceneItems;
 	baseItems->destroyFunc = &destroyMockSceneItems;
 
@@ -281,7 +282,7 @@ TEST_F(SceneItemListTest, UpdateTransforms)
 
 	dsMatrix44f_makeTranslate(&matrix2, 7.2f, 2.6f, -5.3f);
 	EXPECT_TRUE(dsSceneTransformNode_setTransform(transform2, &matrix2));
-	EXPECT_TRUE(dsScene_update(scene));
+	EXPECT_TRUE(dsScene_update(scene, 0.0f));
 
 	ASSERT_EQ(3U, mockSceneItems->itemCount);
 	EXPECT_EQ(mockNode1, mockSceneItems->items[0].node);
@@ -298,7 +299,7 @@ TEST_F(SceneItemListTest, UpdateTransforms)
 
 	dsMatrix44f_makeRotate(&matrix1, (float)M_PI_4, (float)M_PI, (float)-M_PI_2);
 	EXPECT_TRUE(dsSceneTransformNode_setTransform(transform1, &matrix1));
-	EXPECT_TRUE(dsScene_update(scene));
+	EXPECT_TRUE(dsScene_update(scene, 0.0f));
 
 	ASSERT_EQ(3U, mockSceneItems->itemCount);
 	EXPECT_EQ(mockNode1, mockSceneItems->items[0].node);
@@ -315,7 +316,7 @@ TEST_F(SceneItemListTest, UpdateTransforms)
 
 	EXPECT_TRUE(dsSceneTransformNode_setTransform(transform1, &matrix2));
 	dsScene_clearNodes(scene);
-	EXPECT_TRUE(dsScene_update(scene));
+	EXPECT_TRUE(dsScene_update(scene, 0.0f));
 	ASSERT_EQ(0U, mockSceneItems->itemCount);
 
 	dsSceneNode_freeRef(mockNode1);

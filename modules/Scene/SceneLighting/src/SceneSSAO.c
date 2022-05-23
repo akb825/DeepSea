@@ -123,6 +123,7 @@ dsSceneSSAO* dsSceneSSAO_create(dsAllocator* allocator, dsResourceManager* resou
 	itemList->addNodeFunc = NULL;
 	itemList->updateNodeFunc = NULL;
 	itemList->removeNodeFunc = NULL;
+	itemList->updateFunc = NULL;
 	itemList->commitFunc = &dsSceneSSAO_commit;
 	itemList->destroyFunc = (dsDestroySceneItemListFunction)&dsSceneSSAO_destroy;
 

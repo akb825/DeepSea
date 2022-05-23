@@ -144,7 +144,7 @@ static bool processEvent(dsApplication* application, dsWindow* window, const dsE
 	}
 }
 
-static void update(dsApplication* application, double lastFrameTime, void* userData)
+static void update(dsApplication* application, float lastFrameTime, void* userData)
 {
 	DS_UNUSED(application);
 
@@ -183,7 +183,7 @@ static void update(dsApplication* application, double lastFrameTime, void* userD
 		}
 	}
 
-	DS_VERIFY(dsScene_update(testVectorDrawScene->scene));
+	DS_VERIFY(dsScene_update(testVectorDrawScene->scene, lastFrameTime));
 	DS_VERIFY(dsView_update(testVectorDrawScene->view));
 }
 

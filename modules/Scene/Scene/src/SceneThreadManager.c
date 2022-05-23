@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2021 Aaron Barany
+ * Copyright 2019-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -94,6 +94,11 @@ struct dsSceneThreadManager
 	uint64_t lastFrame;
 };
 
+static inline bool itemListNeedsCommandBuffer(const dsSceneItemList* itemList)
+{
+	return itemList->needsCommandBuffer && itemList->commitFunc;
+}
+
 static void processSharedItems(dsSceneThreadManager* threadManager, uint32_t index)
 {
 	const dsView* view = threadManager->curView;
@@ -107,7 +112,7 @@ static void processSharedItems(dsSceneThreadManager* threadManager, uint32_t ind
 		if (threadManager->nextItem < sharedItems->count)
 		{
 			itemList = sharedItems->itemLists[threadManager->nextItem++];
-			if (itemList->needsCommandBuffer)
+			if (itemListNeedsCommandBuffer(itemList))
 			{
 				commandBuffer =
 					threadManager->commandBufferPointers[threadManager->nextCommandBuffer++];
@@ -119,6 +124,8 @@ static void processSharedItems(dsSceneThreadManager* threadManager, uint32_t ind
 
 		if (!itemList)
 			return;
+		else if (!itemList->commitFunc)
+			continue;
 
 		if (commandBuffer)
 		{
@@ -176,7 +183,7 @@ static void processPipeline(dsSceneThreadManager* threadManager)
 			else
 			{
 				++threadManager->nextItem;
-				needsCommandBuffer = item->computeItems->needsCommandBuffer;
+				needsCommandBuffer = itemListNeedsCommandBuffer(item->computeItems);
 			}
 
 			if (needsCommandBuffer)
@@ -214,19 +221,23 @@ static void processPipeline(dsSceneThreadManager* threadManager)
 			}
 
 			dsSceneItemList* itemList = item->renderPass->drawLists[subpass].itemLists[subpassItem];
+			DS_ASSERT(itemList->commitFunc);
 			itemList->commitFunc(itemList, threadManager->curView, commandBuffer);
 
 			DS_VERIFY(dsCommandBuffer_end(commandBuffer));
 		}
 		else
 		{
+			dsSceneItemList* itemList = item->computeItems;
+			if (!itemList->commitFunc)
+				continue;
+
 			if (commandBuffer)
 			{
 				if (!dsCommandBuffer_begin(commandBuffer))
 					continue;
 			}
 
-			dsSceneItemList* itemList = item->computeItems;
 			itemList->commitFunc(itemList, threadManager->curView, commandBuffer);
 
 			if (commandBuffer)
@@ -372,7 +383,8 @@ static bool setupForDraw(dsSceneThreadManager* threadManager, const dsScene* sce
 		const dsSceneItemLists* sharedItems = scene->sharedItems + i;
 		for (uint32_t j = 0; j < sharedItems->count; ++j)
 		{
-			if (!sharedItems->itemLists[j]->needsCommandBuffer)
+			dsSceneItemList* itemList = sharedItems->itemLists[j];
+			if (!itemListNeedsCommandBuffer(itemList))
 				continue;
 
 			uint32_t index = threadManager->commandBufferPointerCount;
@@ -418,8 +430,9 @@ static bool setupForDraw(dsSceneThreadManager* threadManager, const dsScene* sce
 		}
 		else
 		{
-			DS_ASSERT(scene->pipeline[i].computeItems);
-			if (!scene->pipeline[i].computeItems->needsCommandBuffer)
+			dsSceneItemList* itemList = scene->pipeline[i].computeItems;
+			DS_ASSERT(itemList);
+			if (!itemListNeedsCommandBuffer(itemList))
 				continue;
 
 			uint32_t index = threadManager->commandBufferPointerCount;
@@ -449,7 +462,7 @@ static bool submitCommandBuffers(dsSceneThreadManager* threadManager,
 		const dsSceneItemLists* sharedItems = scene->sharedItems + i;
 		for (uint32_t j = 0; j < sharedItems->count; ++j)
 		{
-			if (!sharedItems->itemLists[j]->needsCommandBuffer)
+			if (!itemListNeedsCommandBuffer(sharedItems->itemLists[j]))
 				continue;
 
 			dsCommandBuffer* submitBuffer =
@@ -510,7 +523,7 @@ static bool submitCommandBuffers(dsSceneThreadManager* threadManager,
 		else
 		{
 			DS_ASSERT(scene->pipeline[i].computeItems);
-			if (!scene->pipeline[i].computeItems->needsCommandBuffer)
+			if (!itemListNeedsCommandBuffer(scene->pipeline[i].computeItems))
 				continue;
 
 			dsCommandBuffer* submitBuffer =

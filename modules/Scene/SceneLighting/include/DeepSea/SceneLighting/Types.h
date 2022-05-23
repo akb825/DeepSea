@@ -418,7 +418,6 @@ typedef struct dsSceneSSAO dsSceneSSAO;
  */
 typedef struct dsSceneComputeSSAO dsSceneComputeSSAO;
 
-
 #ifdef __cplusplus
 }
 #endif

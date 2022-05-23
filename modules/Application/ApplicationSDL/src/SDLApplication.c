@@ -741,7 +741,7 @@ int dsSDLApplication_run(dsApplication* application)
 
 		// Functions above may block if the app is paused, so get the current time here.
 		double curTime = dsTimer_time(timer);
-		double lastFrameTime = curTime - lastTime;
+		float lastFrameTime = (float)(curTime - lastTime);
 		lastTime = curTime;
 
 		if (application->updateFunc)

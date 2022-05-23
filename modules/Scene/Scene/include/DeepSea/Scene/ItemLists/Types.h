@@ -86,6 +86,7 @@ typedef struct dsSceneInstanceInfo
 typedef struct dsSceneInstanceData dsSceneInstanceData;
 
 /// @cond
+typedef struct dsScene dsScene;
 typedef struct dsView dsView;
 typedef void (*dsDestroySceneUserDataFunction)(void* userData);
 /// @endcond
@@ -212,6 +213,15 @@ typedef void (*dsUpdateSceneItemListNodeFunction)(dsSceneItemList* itemList, uin
 typedef void (*dsRemoveSceneItemListNodeFunction)(dsSceneItemList* itemList, uint64_t nodeID);
 
 /**
+ * @brief Function for updating a scene item list.
+ * @param itemList The scene item list to update.
+ * @param scene The scene the item list belongs to.
+ * @param time The time since the last update.
+ */
+typedef void (*dsUpdateSceneItemListFunction)(dsSceneItemList* itemList, const dsScene* scene,
+	float time);
+
+/**
  * @brief Function for drawing a scene item list.
  * @param itemList The scene item list to draw.
  * @param view The view to draw to.
@@ -272,7 +282,16 @@ struct dsSceneItemList
 	dsRemoveSceneItemListNodeFunction removeNodeFunc;
 
 	/**
+	 * @brief Function for updating the scene item list.
+	 *
+	 * This may be NULL if the item list doesn't need to be udpated.
+	 */
+	dsUpdateSceneItemListFunction updateFunc;
+
+	/**
 	 * @brief Function for committing the scene item list.
+	 *
+	 * This may be NULL if the item list only needs updating.
 	 */
 	dsCommitSceneItemListFunction commitFunc;
 

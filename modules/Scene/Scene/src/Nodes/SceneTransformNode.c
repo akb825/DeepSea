@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Aaron Barany
+ * Copyright 2019-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,15 +24,14 @@
 #include <DeepSea/Math/Matrix44.h>
 #include <DeepSea/Scene/Nodes/SceneNode.h>
 
-static dsSceneNodeType nodeType;
-
-static void destroy(dsSceneNode* node)
+static void dsSceneTransformnode_destroy(dsSceneNode* node)
 {
 	DS_VERIFY(dsAllocator_free(node->allocator, node));
 }
 
 const char* const dsSceneTransformNode_typeName = "TransformNode";
 
+static dsSceneNodeType nodeType;
 const dsSceneNodeType* dsSceneTransformNode_type(void)
 {
 	return &nodeType;
@@ -52,7 +51,7 @@ dsSceneTransformNode* dsSceneTransformNode_create(dsAllocator* allocator,
 		return NULL;
 
 	if (!dsSceneNode_initialize((dsSceneNode*)node, allocator, dsSceneTransformNode_type(), NULL, 0,
-			&destroy))
+			&dsSceneTransformnode_destroy))
 	{
 		if (allocator->freeFunc)
 			DS_VERIFY(dsAllocator_free(allocator, node));

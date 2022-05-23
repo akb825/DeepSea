@@ -323,7 +323,7 @@ static bool processEvent(dsApplication* application, dsWindow* window, const dsE
 	}
 }
 
-static void update(dsApplication* application, double lastFrameTime, void* userData)
+static void update(dsApplication* application, float lastFrameTime, void* userData)
 {
 	DS_UNUSED(application);
 	DS_UNUSED(lastFrameTime);
@@ -335,7 +335,7 @@ static void update(dsApplication* application, double lastFrameTime, void* userD
 	const float height = 9.0f;
 	if (!testLighting->stop && !testLighting->ignoreTime)
 	{
-		testLighting->rotation = dsWrapf(testLighting->rotation + (float)(lastFrameTime*speed),
+		testLighting->rotation = dsWrapf(testLighting->rotation + lastFrameTime*speed,
 			0.0f, (float)(2*M_PI));
 	}
 	if (testLighting->ignoreTime)
@@ -349,7 +349,7 @@ static void update(dsApplication* application, double lastFrameTime, void* userD
 	dsMatrix44f_lookAt(&camera, &eyePos, &lookAtPos, &upDir);
 	dsView_setCameraMatrix(testLighting->curView, &camera);
 
-	DS_VERIFY(dsScene_update(testLighting->curScene));
+	DS_VERIFY(dsScene_update(testLighting->curScene, lastFrameTime));
 	DS_VERIFY(dsView_update(testLighting->curView));
 }
 

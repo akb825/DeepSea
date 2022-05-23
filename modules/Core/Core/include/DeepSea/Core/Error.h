@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,6 +67,24 @@ extern "C"
  */
 #define DS_CHECK(tag, statement) \
 	dsPerformCheck(tag, __FILE__, __LINE__, __FUNCTION__, (statement), #statement)
+
+/**
+ * @brief Executes a statement and prints an error if it fails.
+ *
+ * This will do the following:
+ * 1. Execute the statement provided.
+ * 2. If the function returns false, prints an error message with the function call and the
+ *    error string for errno.
+ * 3. Return the result of the function. This allows calling code to perform additional opeations
+ *    based on whether or not the call statement succeeded.
+ *
+ * @param tag The log tag for the message.
+ * @param statement The statement to execute. This can be a function call or previous result.
+ * @param failStr The string to log on failure.
+ * @return The bool result of the stement.
+ */
+#define DS_CHECK_MESSAGE(tag, statement, failStr) \
+	dsPerformCheck(tag, __FILE__, __LINE__, __FUNCTION__, (statement), failStr)
 
 /**
  * @brief Gets the string for an error number.

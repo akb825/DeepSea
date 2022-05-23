@@ -106,6 +106,7 @@ dsSceneItemList* dsViewMipmapList_create(dsAllocator* allocator, const char* nam
 	itemList->addNodeFunc = NULL;
 	itemList->updateNodeFunc = NULL;
 	itemList->removeNodeFunc = NULL;
+	itemList->updateFunc = NULL;
 	itemList->commitFunc = &dsViewMipmapList_commit;
 	itemList->destroyFunc = &dsViewMipmapList_destroy;
 

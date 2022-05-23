@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Aaron Barany
+ * Copyright 2020-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -439,7 +439,8 @@ dsSceneVectorItemList* dsSceneVectorItemList_create(dsAllocator* allocator, cons
 	if (!allocator->freeFunc)
 	{
 		errno = EINVAL;
-		DS_LOG_ERROR(DS_SCENE_LOG_TAG, "Scene model list allocator must support freeing memory.");
+		DS_LOG_ERROR(DS_VECTOR_DRAW_SCENE_LOG_TAG,
+			"Vector item list allocator must support freeing memory.");
 		destroyInstanceData(instanceData, instanceDataCount);
 		return NULL;
 	}
@@ -482,6 +483,7 @@ dsSceneVectorItemList* dsSceneVectorItemList_create(dsAllocator* allocator, cons
 	itemList->addNodeFunc = &dsSceneVectorItemList_addNode;
 	itemList->updateNodeFunc = NULL;
 	itemList->removeNodeFunc = &dsSceneVectorItemList_removeNode;
+	itemList->updateFunc = NULL;
 	itemList->commitFunc = &dsSceneVectorItemList_commit;
 	itemList->destroyFunc = (dsDestroySceneItemListFunction)&dsSceneVectorItemList_destroy;
 

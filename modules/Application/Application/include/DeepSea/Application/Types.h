@@ -588,7 +588,7 @@ typedef struct dsEvent
  * @param lastFrameTime The time it took to execute the last frame in seconds.
  * @param userData The user data registered with the function.
  */
-typedef void (*dsUpdateApplicationFunction)(dsApplication* application, double lastFrameTime,
+typedef void (*dsUpdateApplicationFunction)(dsApplication* application, float lastFrameTime,
 	void* userData);
 
 /**

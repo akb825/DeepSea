@@ -225,12 +225,13 @@ DS_SCENE_EXPORT bool dsScene_forEachItemList(dsScene* scene,
 	dsVisitSceneItemListsFunction visitFunc, void* userData);
 
 /**
- * @brief Updates dirty nodes within the scene.
+ * @brief Updates dirty nodes within the scene and any item lists.
  * @remark errno will be set on failure.
  * @param scene The scene to update.
+ * @param time The time elapsed since the last update.
  * @return False if the parameters are invalid.
  */
-DS_SCENE_EXPORT bool dsScene_update(dsScene* scene);
+DS_SCENE_EXPORT bool dsScene_update(dsScene* scene, float time);
 
 /**
  * @brief Destroys a scene.

@@ -253,17 +253,17 @@ static bool processEvent(dsApplication* application, dsWindow* window, const dsE
 	}
 }
 
-static void update(dsApplication* application, double lastFrameTime, void* userData)
+static void update(dsApplication* application, float lastFrameTime, void* userData)
 {
 	DS_UNUSED(application);
 
 	TestCube* testCube = (TestCube*)userData;
 
 	// radians/s
-	const double rate = M_PI_2;
-	testCube->rotation += (float)(lastFrameTime*rate);
+	const float rate = (float)M_PI_2;
+	testCube->rotation += lastFrameTime*rate;
 	while (testCube->rotation > 2*M_PI)
-		testCube->rotation = (float)(testCube->rotation - 2*M_PI);
+		testCube->rotation = testCube->rotation - (float)(2*M_PI);
 
 	dsMatrix44f model;
 	dsMatrix44f_makeRotate(&model, 0, testCube->rotation, 0);

@@ -185,7 +185,8 @@ dsSceneItemList* dsSceneVectorPrepareList_create(dsAllocator* allocator, const c
 	if (!allocator->freeFunc)
 	{
 		errno = EINVAL;
-		DS_LOG_ERROR(DS_SCENE_LOG_TAG, "View cull list allocator must support freeing memory.");
+		DS_LOG_ERROR(DS_VECTOR_DRAW_SCENE_LOG_TAG,
+			"Vector prepare list allocator must support freeing memory.");
 		return NULL;
 	}
 
@@ -212,6 +213,7 @@ dsSceneItemList* dsSceneVectorPrepareList_create(dsAllocator* allocator, const c
 	itemList->addNodeFunc = &dsSceneVectorPrepareList_addNode;
 	itemList->updateNodeFunc = NULL;
 	itemList->removeNodeFunc = &dsSceneVectorPrepareList_removeNode;
+	itemList->updateFunc = NULL;
 	itemList->commitFunc = &dsSceneVectorPrepareList_commit;
 	itemList->destroyFunc = &dsSceneVectorPrepareList_destroy;
 
