@@ -50,7 +50,8 @@ DS_SCENEPARTICLE_EXPORT const dsSceneNodeType* dsSceneParticleNode_type(void);
  *     node will be used if this is NULL.
  * @param createEmitterFunc Function to create the particle emitter with.
  * @param userData User data used to aid in creating particle emitters.
- * @param destroyUserDataFunc Function to destroy the user data.
+ * @param destroyUserDataFunc Function to destroy the user data. This may be NULL if the user data
+ *     doesn't need to be destroyed. This will be called if an error occurs when creating the node.
  * @param itemLists The list of item list names that will be used to draw and process the node.
  *     These will be copied.
  * @param itemListCount The number of item lists.

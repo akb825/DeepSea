@@ -54,6 +54,36 @@ typedef struct dsSceneParticleNode dsSceneParticleNode;
 typedef dsParticleEmitter* (*dsCreateSceneParticleNodeEmitterFunction)(
 	const dsSceneParticleNode* particleNode, dsAllocator* allocator, void* userData);
 
+/**
+ * @brief Struct describing a factor to create particle emitters in a scene.
+ *
+ * This is typically stored in a dsCustomSceneResource when loading dsSceneParticleNode instances.
+ *
+ * @see SceneParticleEmitterFactory.h
+ */
+typedef struct dsSceneParticleEmitterFactory
+{
+	/**
+	 * @brief The allocator the factory was created with.
+	 */
+	dsAllocator* allocator;
+
+	/**
+	 * @brief Function to create a particle emitter.
+	 */
+	dsCreateSceneParticleNodeEmitterFunction createEmitterFunc;
+
+	/**
+	 * @brief User data to pass to createEmitterFunc.
+	 */
+	void* userData;
+
+	/**
+	 * @brief Function to destroy the user data.
+	 */
+	dsDestroySceneUserDataFunction destroyUserDataFunc;
+} dsSceneParticleEmitterFactory;
+
 #ifdef __cplusplus
 }
 #endif
