@@ -41,6 +41,8 @@ DS_SCENEPARTICLE_EXPORT const dsCustomSceneResourceType* dsSceneParticleEmitterF
  * @remark errno will be set on failure.
  * @param allocator The allocator to create the factory with.
  * @param createEmitterFunc Function to create the particle emitter with.
+ * @param updateEmitterFunc Function to update the particle emitter with. This may be NULL if the
+ *     only the standard update via dsParticleEmitter_update() is needed.
  * @param userData User data used to aid in creating particle emitters.This may be NULL if the user
  *     data doesn't need to be destroyed. This will be called if an error occurs when creating the
  *     factory.
@@ -49,7 +51,8 @@ DS_SCENEPARTICLE_EXPORT const dsCustomSceneResourceType* dsSceneParticleEmitterF
  */
 DS_SCENEPARTICLE_EXPORT dsSceneParticleEmitterFactory* dsSceneParticleEmitterFactory_create(
 	dsAllocator* allocator, dsCreateSceneParticleNodeEmitterFunction createEmitterFunc,
-	void* userData, dsDestroySceneUserDataFunction destroyUserDataFunc);
+	dsUpdateSceneParticleNodeEmitterFunction updateEmitterFunc, void* userData,
+	dsDestroySceneUserDataFunction destroyUserDataFunc);
 
 /**
  * @brief Destroys a scene particle emitter factory.

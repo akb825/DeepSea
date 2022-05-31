@@ -36,6 +36,7 @@
 typedef struct Entry
 {
 	dsSceneParticleNode* node;
+	const dsSceneTreeNode* treeNode;
 	dsParticleEmitter* emitter;
 	uint64_t nodeID;
 } Entry;
@@ -73,7 +74,8 @@ static uint64_t dsSceneParticlePrepareList_addNode(dsSceneItemList* itemList, ds
 
 	Entry* entry = prepareList->entries + index;
 	entry->node = (dsSceneParticleNode*)node;
-	entry->emitter = dsSceneParticleNode_createEmitter(entry->node);
+	entry->treeNode = treeNode;
+	entry->emitter = dsSceneParticleNode_createEmitter(entry->node, treeNode);
 	if (!DS_CHECK_MESSAGE(DS_SCENE_PARTICLE_LOG_TAG, entry->emitter != NULL,
 			"dsSceneParticleNode_createEmitter(entry->node)"))
 	{
@@ -122,7 +124,8 @@ static void dsSceneParticlePrepareList_update(dsSceneItemList* itemList, const d
 	for (uint32_t i = 0; i < prepareList->entryCount; ++i)
 	{
 		Entry* entry = prepareList->entries + i;
-		DS_CHECK(DS_SCENE_PARTICLE_LOG_TAG, dsParticleEmitter_update(entry->emitter, time));
+		DS_CHECK(DS_SCENE_PARTICLE_LOG_TAG,
+			dsSceneParticleNode_updateEmitter(entry->node, entry->emitter, entry->treeNode, time));
 	}
 
 	DS_PROFILE_SCOPE_END();

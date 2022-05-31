@@ -48,11 +48,26 @@ typedef struct dsSceneParticleNode dsSceneParticleNode;
  * @brief Function to create a particle emitter from a particle node.
  * @param particleNode The particle node to create the emitter for.
  * @param allocator The allocator to create the emitter with.
- * @param userData User data to aid in creating the emitter.
+ * @param userData User data associated with the particle node.
+ * @param treeNode The scene tree node the particle emitter will be associated with.
  * @return The particle emitter.
  */
 typedef dsParticleEmitter* (*dsCreateSceneParticleNodeEmitterFunction)(
-	const dsSceneParticleNode* particleNode, dsAllocator* allocator, void* userData);
+	const dsSceneParticleNode* particleNode, dsAllocator* allocator, void* userData,
+	const dsSceneTreeNode* treeNode);
+
+/**
+ * @brief Function to update a particle emitter from a aparticle node.
+ * @param particleNode The particle node the particle emitter was created for.
+ * @param userData User data associated with the particle node.
+ * @param emitter The particle emitter to update.
+ * @param treeNode The scene tree node the particle emitter is associated with.
+ * @param time The time since the last update in seconds.
+ * @return False if an error occurred.
+ */
+typedef bool (*dsUpdateSceneParticleNodeEmitterFunction)(
+	const dsSceneParticleNode* particleNode, void* userData, dsParticleEmitter* emitter,
+	const dsSceneTreeNode* treeNode, float time);
 
 /**
  * @brief Struct describing a factor to create particle emitters in a scene.
@@ -72,6 +87,11 @@ typedef struct dsSceneParticleEmitterFactory
 	 * @brief Function to create a particle emitter.
 	 */
 	dsCreateSceneParticleNodeEmitterFunction createEmitterFunc;
+
+	/**
+	 * @brief Function to update a particle emitter.
+	 */
+	dsUpdateSceneParticleNodeEmitterFunction updateEmitterFunc;
 
 	/**
 	 * @brief User data to pass to createEmitterFunc.

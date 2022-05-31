@@ -20,10 +20,13 @@
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 
+#include <DeepSea/Math/Matrix44.h>
 #include <DeepSea/Math/Random.h>
 
+#include <DeepSea/Particle/ParticleEmitter.h>
 #include <DeepSea/Particle/StandardParticleEmitter.h>
 
+#include <DeepSea/Scene/Nodes/SceneTreeNode.h>
 #include <DeepSea/SceneParticle/SceneParticleEmitterFactory.h>
 
 #include <string.h>
@@ -39,25 +42,108 @@ typedef struct dsSceneStandardParticleEmitterFactory
 	float startTime;
 } dsSceneStandardParticleEmitterFactory;
 
-static dsParticleEmitter* dsSceneStandardParticleEmitterFactory_createEmitter(
-	const dsSceneParticleNode* particleNode, dsAllocator* allocator, void* userData)
+static const dsMatrix44f* findRelativeTransform(const dsSceneTreeNode* treeNode,
+	const dsSceneNode* relativeNode)
 {
-	// TODO: Set transforms based on nodes.
+	if (!relativeNode)
+		return NULL;
+
+	do
+	{
+		const dsSceneTreeNode* parent = dsSceneTreeNode_getParent(treeNode);
+		if (!parent)
+			return NULL;
+		else if (dsSceneTreeNode_getNode(parent) == relativeNode)
+			return dsSceneTreeNode_getTransform(parent);
+		treeNode = parent;
+	} while (true);
+}
+
+static void computeVolumeMatrix(dsMatrix44f* outMatrix, const dsMatrix44f* transform,
+	const dsMatrix44f* relativeTransform, const dsMatrix44f* volumeMatrix)
+{
+	dsMatrix44f relativeInverse, relativeToTransform;
+	dsMatrix44f_affineInvert(&relativeInverse, relativeTransform);
+	dsMatrix44_mul(relativeToTransform, relativeInverse, *transform);
+	dsMatrix44_mul(*outMatrix, relativeToTransform, *volumeMatrix);
+}
+
+static dsParticleEmitter* dsSceneStandardParticleEmitterFactory_createEmitter(
+	const dsSceneParticleNode* particleNode, dsAllocator* allocator, void* userData,
+	const dsSceneTreeNode* treeNode)
+{
 	dsSceneStandardParticleEmitterFactory* factory =
 		(dsSceneStandardParticleEmitterFactory*)userData;
 	DS_UNUSED(particleNode);
-	if (!particleNode || !allocator || !factory)
+	if (!particleNode || !allocator || !factory || !treeNode)
 	{
 		errno = EINVAL;
 		return NULL;
 	}
 
-	dsStandardParticleEmitter* emitter = dsStandardParticleEmitter_create(allocator,
-		&factory->params, factory->seed, &factory->options, factory->enabled,
-		factory->startTime);
+	const dsMatrix44f* transform = dsSceneTreeNode_getTransform(treeNode);
+	DS_ASSERT(transform);
+	const dsMatrix44f* relativeTransform = findRelativeTransform(treeNode, factory->relativeNode);
+
+	dsStandardParticleEmitter* standardEmitter = dsStandardParticleEmitter_create(allocator,
+		&factory->params, factory->seed, &factory->options, factory->enabled, factory->startTime);
+
 	// Advance the seed. (don't care about the actual value)
 	dsRandom(&factory->seed);
-	return (dsParticleEmitter*)emitter;
+	if (!standardEmitter)
+		return NULL;
+
+	dsParticleEmitter* emitter = (dsParticleEmitter*)standardEmitter;
+	if (relativeTransform)
+	{
+		dsStandardParticleEmitterOptions* options =
+			dsStandardParticleEmitter_getMutableOptions(standardEmitter);
+		DS_ASSERT(options);
+		computeVolumeMatrix(&options->volumeMatrix, transform, relativeTransform,
+			&factory->options.volumeMatrix);
+		emitter->transform = *relativeTransform;
+	}
+	else
+		emitter->transform = *transform;
+
+	return emitter;
+}
+
+static bool dsSceneStandardParticleEmitterFactory_updateEmitter(
+	const dsSceneParticleNode* particleNode, void* userData, dsParticleEmitter* emitter,
+	const dsSceneTreeNode* treeNode, float time)
+{
+	dsSceneStandardParticleEmitterFactory* factory =
+		(dsSceneStandardParticleEmitterFactory*)userData;
+	if (!factory || !emitter || !treeNode)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	const dsMatrix44f* transform = dsSceneTreeNode_getTransform(treeNode);
+	DS_ASSERT(transform);
+	// NOTE: Could cache this, but would take extra effort to wrap the particle emitter. Expected
+	// to be at most a couple of nodes up, so don't expect a large impact on performance.
+	const dsMatrix44f* relativeTransform = findRelativeTransform(treeNode, factory->relativeNode);
+
+	dsStandardParticleEmitter* standardEmitter = (dsStandardParticleEmitter*)emitter;
+	dsStandardParticleEmitterOptions* options =
+		dsStandardParticleEmitter_getMutableOptions(standardEmitter);
+	DS_ASSERT(options);
+	if (relativeTransform)
+	{
+		computeVolumeMatrix(&options->volumeMatrix, transform, relativeTransform,
+			&options->volumeMatrix);
+		emitter->transform = *relativeTransform;
+	}
+	else
+	{
+		options->volumeMatrix = factory->options.volumeMatrix;
+		emitter->transform = *transform;
+	}
+
+	return dsParticleEmitter_update(emitter, time);
 }
 
 static void dsSceneStandardParticleEmitterFactory_destroy(void* userData)
@@ -95,11 +181,25 @@ dsSceneParticleEmitterFactory* dsSceneStandardParticleEmitterFactory_create(
 	data->startTime = startTime;
 
 	return dsSceneParticleEmitterFactory_create(allocator,
-		&dsSceneStandardParticleEmitterFactory_createEmitter, data,
+		&dsSceneStandardParticleEmitterFactory_createEmitter,
+		&dsSceneStandardParticleEmitterFactory_updateEmitter, data,
 		&dsSceneStandardParticleEmitterFactory_destroy);
 }
 
-dsParticleEmitterParams* dsSceneParticleEmitterFactory_getEmitterParams(
+const dsParticleEmitterParams* dsSceneParticleEmitterFactory_getEmitterParams(
+	const dsSceneParticleEmitterFactory* factory)
+{
+	if (!factory || !factory->userData ||
+		factory->createEmitterFunc != &dsSceneStandardParticleEmitterFactory_createEmitter)
+	{
+		errno = EINVAL;
+		return NULL;
+	}
+
+	return &((dsSceneStandardParticleEmitterFactory*)factory->userData)->params;
+}
+
+dsParticleEmitterParams* dsSceneParticleEmitterFactory_getMutableEmitterParams(
 	dsSceneParticleEmitterFactory* factory)
 {
 	if (!factory || !factory->userData ||
@@ -112,7 +212,20 @@ dsParticleEmitterParams* dsSceneParticleEmitterFactory_getEmitterParams(
 	return &((dsSceneStandardParticleEmitterFactory*)factory->userData)->params;
 }
 
-dsStandardParticleEmitterOptions* dsSceneParticleEmitterFactory_getSandardOptions(
+const dsStandardParticleEmitterOptions* dsSceneParticleEmitterFactory_getSandardOptions(
+	const dsSceneParticleEmitterFactory* factory)
+{
+	if (!factory || !factory->userData ||
+		factory->createEmitterFunc != &dsSceneStandardParticleEmitterFactory_createEmitter)
+	{
+		errno = EINVAL;
+		return NULL;
+	}
+
+	return &((dsSceneStandardParticleEmitterFactory*)factory->userData)->options;
+}
+
+dsStandardParticleEmitterOptions* dsSceneParticleEmitterFactory_getMutableSandardOptions(
 	dsSceneParticleEmitterFactory* factory)
 {
 	if (!factory || !factory->userData ||

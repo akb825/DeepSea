@@ -41,16 +41,17 @@ DS_SCENEPARTICLE_EXPORT extern const char* const dsSceneStandardParticleEmitterF
  * @param allocator The allocator to create the factory with.
  * @param params The particle emitter parameters. This will be copied.
  * @param seed The initial seed for the particles. This will be updated each new emitter.
- * @param options The stnadanrd particle emitter options.
+ * @param options The stnadanrd particle emitter options. The volume matrix will be considered
+ *     relative to the node the emitter is associated with.
  * @param enabled Whether or not the emitters are enabled on creation.
  * @param startTime The time to start the particle emitter at. The first frame this is updated the
  *     create particles and advance them to this time.
  * @param relativeNode The node to make the transform of the particles relative to. This should be
  *     an ancestor to the node the emitter factory will be used with. This won't hold a reference
  *     count to avoid cycles, and will be treated as NULL if not valid or not an ancestor node. If
- *     set, the particles will use that transform and the volume transform will be the relative
- *     transform to the particle node. If unset, the particles will use the particle node's
- *     transform and the volume transform will be used.
+ *     set, the particles will use that transform. The volume transform will still be relative to
+ *     the node the emitter is associated with. For example, this allows the particles to spawn
+ *     relative to the particle's node while rendering to a more global transform.
  * @return The particle draw or NULL if an error occurred.
  */
 DS_SCENEPARTICLE_EXPORT dsSceneParticleEmitterFactory* dsSceneStandardParticleEmitterFactory_create(
@@ -64,8 +65,18 @@ DS_SCENEPARTICLE_EXPORT dsSceneParticleEmitterFactory* dsSceneStandardParticleEm
  * @param factory The factory to get the parameters for.
  * @return The parameters or NULL if th factory is NULL or not the correct type.
  */
-DS_SCENEPARTICLE_EXPORT dsParticleEmitterParams* dsSceneParticleEmitterFactory_getEmitterParams(
-	dsSceneParticleEmitterFactory* factory);
+DS_SCENEPARTICLE_EXPORT const dsParticleEmitterParams*
+	dsSceneParticleEmitterFactory_getEmitterParams(const dsSceneParticleEmitterFactory* factory);
+
+/**
+ * @brief Gets the mutable particle emitter parameters from a standard particle emitter factory.
+ * @remark Any changes to the volume matrix will modify all existing emitters.
+ * @remark errno will be set on failure.
+ * @param factory The factory to get the parameters for.
+ * @return The parameters or NULL if th factory is NULL or not the correct type.
+ */
+DS_SCENEPARTICLE_EXPORT dsParticleEmitterParams*
+	dsSceneParticleEmitterFactory_getMutableEmitterParams(dsSceneParticleEmitterFactory* factory);
 
 /**
  * @brief Gets the standard particle emitter options from a standard particle emitter factory.
@@ -73,8 +84,17 @@ DS_SCENEPARTICLE_EXPORT dsParticleEmitterParams* dsSceneParticleEmitterFactory_g
  * @param factory The factory to get the options for.
  * @return The options or NULL if th factory is NULL or not the correct type.
  */
-DS_SCENEPARTICLE_EXPORT dsStandardParticleEmitterOptions* dsSceneParticleEmitterFactory_getSandardOptions(
-	dsSceneParticleEmitterFactory* factory);
+DS_SCENEPARTICLE_EXPORT const dsStandardParticleEmitterOptions*
+	dsSceneParticleEmitterFactory_getSandardOptions(const dsSceneParticleEmitterFactory* factory);
+
+/**
+ * @brief Gets the standard particle emitter options from a standard particle emitter factory.
+ * @remark errno will be set on failure.
+ * @param factory The factory to get the options for.
+ * @return The options or NULL if th factory is NULL or not the correct type.
+ */
+DS_SCENEPARTICLE_EXPORT dsStandardParticleEmitterOptions*
+	dsSceneParticleEmitterFactory_getMutableSandardOptions(dsSceneParticleEmitterFactory* factory);
 
 /**
  * @brief Gets the current seed for a standard particle emitter factory.

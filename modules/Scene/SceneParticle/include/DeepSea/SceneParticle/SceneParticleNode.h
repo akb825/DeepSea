@@ -48,7 +48,9 @@ DS_SCENEPARTICLE_EXPORT const dsSceneNodeType* dsSceneParticleNode_type(void);
  * @param allocator The allocator to create the node with. This must support freeing memory.
  * @param emitterAllocator The allocator to create particle emitters with. The allocator for the
  *     node will be used if this is NULL.
- * @param createEmitterFunc Function to create the particle emitter with.
+ * @param createEmitterFunc Function to create a particle emitter with.
+ * @param updateEmitterFunc Function to update a particle emitter with. This may be NULL if the
+ *     only the standard update via dsParticleEmitter_update() is needed.
  * @param userData User data used to aid in creating particle emitters.
  * @param destroyUserDataFunc Function to destroy the user data. This may be NULL if the user data
  *     doesn't need to be destroyed. This will be called if an error occurs when creating the node.
@@ -59,17 +61,31 @@ DS_SCENEPARTICLE_EXPORT const dsSceneNodeType* dsSceneParticleNode_type(void);
  */
 DS_SCENEPARTICLE_EXPORT dsSceneParticleNode* dsSceneParticleNode_create(dsAllocator* allocator,
 	dsAllocator* emitterAllocator, dsCreateSceneParticleNodeEmitterFunction createEmitterFunc,
-	void* userData, dsDestroySceneUserDataFunction destroyUserDataFunc,
-	const char* const* itemLists, uint32_t itemListCount);
+	dsUpdateSceneParticleNodeEmitterFunction updateEmitterFunc, void* userData,
+	dsDestroySceneUserDataFunction destroyUserDataFunc, const char* const* itemLists,
+	uint32_t itemListCount);
 
 /**
  * @brief Creates a particle emitter for a particle node.
  * @remark errno will be set on failure.
  * @param node The particle node to create an emitter for.
+ * @param treeNode The scene tree node the particle emitter will be associated with.
  * @return The emitter or NULL if an error occurred.
  */
 DS_SCENEPARTICLE_EXPORT dsParticleEmitter* dsSceneParticleNode_createEmitter(
-	const dsSceneParticleNode* node);
+	const dsSceneParticleNode* node, const dsSceneTreeNode* treeNode);
+
+/**
+ * @brief Updates a particle emitter for a particle node.
+ * @remark errno will be set on failure.
+ * @param node The particle node the emitter was created with.
+ * @param emitter The particle emitter to update.
+ * @param treeNode The scene tree node the particle emitter is associated with.
+ * @param time The time since the last update in seconds.
+ * @return The emitter or NULL if an error occurred.
+ */
+DS_SCENEPARTICLE_EXPORT bool dsSceneParticleNode_updateEmitter(const dsSceneParticleNode* node,
+	dsParticleEmitter* emitter, const dsSceneTreeNode* treeNode, float time);
 
 #ifdef __cplusplus
 }

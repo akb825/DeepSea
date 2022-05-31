@@ -27,7 +27,8 @@ const dsCustomSceneResourceType* dsSceneParticleEmitterFactory_type(void)
 }
 
 dsSceneParticleEmitterFactory* dsSceneParticleEmitterFactory_create(dsAllocator* allocator,
-	dsCreateSceneParticleNodeEmitterFunction createEmitterFunc, void* userData,
+	dsCreateSceneParticleNodeEmitterFunction createEmitterFunc,
+	dsUpdateSceneParticleNodeEmitterFunction updateEmitterFunc, void* userData,
 	dsDestroySceneUserDataFunction destroyUserDataFunc)
 {
 	if (!allocator || !createEmitterFunc)
@@ -49,6 +50,7 @@ dsSceneParticleEmitterFactory* dsSceneParticleEmitterFactory_create(dsAllocator*
 
 	factory->allocator = dsAllocator_keepPointer(allocator);
 	factory->createEmitterFunc = createEmitterFunc;
+	factory->updateEmitterFunc = updateEmitterFunc;
 	factory->userData = userData;
 	factory->destroyUserDataFunc = destroyUserDataFunc;
 

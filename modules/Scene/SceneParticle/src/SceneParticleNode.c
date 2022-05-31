@@ -20,7 +20,11 @@
 #include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
+
+#include <DeepSea/Particle/ParticleEmitter.h>
+
 #include <DeepSea/Scene/Nodes/SceneNode.h>
+#include <DeepSea/Scene/Nodes/SceneTreeNode.h>
 
 #include <string.h>
 
@@ -29,6 +33,7 @@ struct dsSceneParticleNode
 	dsSceneNode node;
 	dsAllocator* emitterAllocator;
 	dsCreateSceneParticleNodeEmitterFunction createEmitterFunc;
+	dsUpdateSceneParticleNodeEmitterFunction updateEmitterFunc;
 	void* createEmitterUserData;
 	dsDestroySceneUserDataFunction destroyCreateEmitterUserDataFunc;
 };
@@ -51,8 +56,9 @@ const dsSceneNodeType* dsSceneParticleNode_type(void)
 
 dsSceneParticleNode* dsSceneParticleNode_create(dsAllocator* allocator,
 	dsAllocator* emitterAllocator, dsCreateSceneParticleNodeEmitterFunction createEmitterFunc,
-	void* userData, dsDestroySceneUserDataFunction destroyUserDataFunc,
-	const char* const* itemLists, uint32_t itemListCount)
+	dsUpdateSceneParticleNodeEmitterFunction updateEmitterFunc, void* userData,
+	dsDestroySceneUserDataFunction destroyUserDataFunc, const char* const* itemLists,
+	uint32_t itemListCount)
 {
 	if (!allocator || !createEmitterFunc || (!itemLists && itemListCount > 0))
 	{
@@ -114,19 +120,49 @@ dsSceneParticleNode* dsSceneParticleNode_create(dsAllocator* allocator,
 
 	particleNode->emitterAllocator = emitterAllocator ? emitterAllocator : allocator;
 	particleNode->createEmitterFunc = createEmitterFunc;
+	particleNode->updateEmitterFunc = updateEmitterFunc;
 	particleNode->createEmitterUserData = userData;
 	particleNode->destroyCreateEmitterUserDataFunc = destroyUserDataFunc;
 
 	return particleNode;
 }
 
-dsParticleEmitter* dsSceneParticleNode_createEmitter(const dsSceneParticleNode* node)
+dsParticleEmitter* dsSceneParticleNode_createEmitter(const dsSceneParticleNode* node,
+	const dsSceneTreeNode* treeNode)
 {
-	if (!node)
+	if (!node || !treeNode)
 	{
 		errno = EINVAL;
 		return NULL;
 	}
 
-	return node->createEmitterFunc(node, node->emitterAllocator, node->createEmitterUserData);
+	if (dsSceneTreeNode_getNode(treeNode) != (const dsSceneNode*)node)
+	{
+		errno = EPERM;
+		return NULL;
+	}
+
+	return node->createEmitterFunc(node, node->emitterAllocator, node->createEmitterUserData,
+		treeNode);
+}
+
+bool dsSceneParticleNode_updateEmitter(const dsSceneParticleNode* node,
+	dsParticleEmitter* emitter, const dsSceneTreeNode* treeNode, float time)
+{
+	if (!node || !emitter || !treeNode)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	if (dsSceneTreeNode_getNode(treeNode) != (const dsSceneNode*)node)
+	{
+		errno = EPERM;
+		return false;
+	}
+
+	if (node->updateEmitterFunc)
+		return node->updateEmitterFunc(node, node->createEmitterUserData, emitter, treeNode, time);
+	else
+		return dsParticleEmitter_update(emitter, time);
 }
