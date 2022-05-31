@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2021 Aaron Barany
+ * Copyright 2019-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,10 +23,13 @@
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Profile.h>
+
 #include <DeepSea/Geometry/OrientedBox3.h>
 #include <DeepSea/Geometry/Frustum3.h>
+
 #include <DeepSea/Scene/Nodes/SceneModelNode.h>
 #include <DeepSea/Scene/Nodes/SceneNode.h>
+#include <DeepSea/Scene/Nodes/SceneTreeNode.h>
 #include <DeepSea/Scene/View.h>
 
 #include <string.h>
@@ -63,7 +66,7 @@ dsSceneItemList* dsViewCullList_load(const dsSceneLoadContext* loadContext,
 }
 
 uint64_t dsViewCullList_addNode(dsSceneItemList* itemList, dsSceneNode* node,
-	const dsMatrix44f* transform, dsSceneNodeItemData* itemData, void** thisItemData)
+	const dsSceneTreeNode* treeNode, dsSceneNodeItemData* itemData, void** thisItemData)
 {
 	DS_UNUSED(itemData);
 	if (!dsSceneNode_isOfType(node, dsSceneModelNode_type()))
@@ -80,7 +83,7 @@ uint64_t dsViewCullList_addNode(dsSceneItemList* itemList, dsSceneNode* node,
 
 	Entry* entry = cullList->entries + index;
 	entry->node = (dsSceneModelNode*)node;
-	entry->transform = transform;
+	entry->transform = dsSceneTreeNode_getTransform(treeNode);
 	entry->result = (bool*)thisItemData;
 	entry->nodeID = cullList->nextNodeID++;
 	return entry->nodeID;

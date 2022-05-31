@@ -23,9 +23,12 @@
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Profile.h>
+
 #include <DeepSea/Particle/ParticleEmitter.h>
 #include <DeepSea/Particle/ParticleDraw.h>
+
 #include <DeepSea/Scene/Nodes/SceneNode.h>
+#include <DeepSea/Scene/Nodes/SceneTreeNode.h>
 #include <DeepSea/SceneParticle/SceneParticleNode.h>
 
 #include <string.h>
@@ -51,10 +54,10 @@ typedef struct dsSceneParticlePrepareList
 } dsSceneParticlePrepareList;
 
 static uint64_t dsSceneParticlePrepareList_addNode(dsSceneItemList* itemList, dsSceneNode* node,
-	const dsMatrix44f* transform, dsSceneNodeItemData* itemData, void** thisItemData)
+	const dsSceneTreeNode* treeNode, dsSceneNodeItemData* itemData, void** thisItemData)
 {
 	DS_UNUSED(itemData);
-	DS_UNUSED(transform);
+	DS_UNUSED(treeNode);
 	DS_UNUSED(thisItemData);
 	if (!dsSceneNode_isOfType(node, dsSceneParticleNode_type()))
 		return DS_NO_SCENE_NODE;

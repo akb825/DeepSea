@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2021 Aaron Barany
+ * Copyright 2019-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -82,6 +82,11 @@ typedef struct dsSceneNode dsSceneNode;
 
 /**
  * @brief Struct for a node in the scene tree, which reflects the scene graph.
+ *
+ * Each dsSceneNode instance may have multiple dsSceneTreeNode instances associated with it based
+ * on how many times it appears when traversing the full scene graph.
+ *
+ * @see SceneTreeNode.h
  */
 typedef struct dsSceneTreeNode dsSceneTreeNode;
 

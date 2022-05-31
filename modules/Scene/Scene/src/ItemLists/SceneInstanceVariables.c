@@ -22,11 +22,14 @@
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
+
 #include <DeepSea/Math/Core.h>
+
 #include <DeepSea/Render/Resources/GfxBuffer.h>
 #include <DeepSea/Render/Resources/MaterialType.h>
 #include <DeepSea/Render/Resources/ShaderVariableGroup.h>
 #include <DeepSea/Render/Resources/SharedMaterialValues.h>
+
 #include <DeepSea/Scene/Types.h>
 
 #include <limits.h>
@@ -168,8 +171,8 @@ static bool reserveSpace(dsSceneInstanceVariables* variables, uint32_t maxInstan
 	return variables->curBufferData != NULL;
 }
 
-bool dsSceneInstanceVariables_populateData(dsSceneInstanceData* instanceData,
-	const dsView* view, const dsSceneInstanceInfo* instances, uint32_t instanceCount)
+static bool dsSceneInstanceVariables_populateData(dsSceneInstanceData* instanceData,
+	const dsView* view, const dsSceneTreeNode* const* instances, uint32_t instanceCount)
 {
 	dsSceneInstanceVariables* variables = (dsSceneInstanceVariables*)instanceData;
 	DS_ASSERT(variables);
@@ -190,7 +193,7 @@ bool dsSceneInstanceVariables_populateData(dsSceneInstanceData* instanceData,
 	return true;
 }
 
-bool dsSceneInstanceVariables_bindInstance(dsSceneInstanceData* instanceData, uint32_t index,
+static bool dsSceneInstanceVariables_bindInstance(dsSceneInstanceData* instanceData, uint32_t index,
 	dsSharedMaterialValues* values)
 {
 	dsSceneInstanceVariables* variables = (dsSceneInstanceVariables*)instanceData;
@@ -257,7 +260,7 @@ bool dsSceneInstanceVariables_bindInstance(dsSceneInstanceData* instanceData, ui
 	return dsSharedMaterialValues_setVariableGroupID(values, variables->nameID, group);
 }
 
-bool dsSceneInstanceVariables_finish(dsSceneInstanceData* instanceData)
+static bool dsSceneInstanceVariables_finish(dsSceneInstanceData* instanceData)
 {
 	dsSceneInstanceVariables* variables = (dsSceneInstanceVariables*)instanceData;
 	DS_ASSERT(variables);
@@ -268,7 +271,7 @@ bool dsSceneInstanceVariables_finish(dsSceneInstanceData* instanceData)
 	return true;
 }
 
-bool dsSceneInstanceVariables_destroy(dsSceneInstanceData* instanceData)
+static bool dsSceneInstanceVariables_destroy(dsSceneInstanceData* instanceData)
 {
 	dsSceneInstanceVariables* variables = (dsSceneInstanceVariables*)instanceData;
 	DS_ASSERT(variables);

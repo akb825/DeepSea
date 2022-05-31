@@ -16,12 +16,15 @@
 
 #include <DeepSea/Scene/Nodes/SceneTransformNode.h>
 
-#include "Nodes/SceneTreeNode.h"
+#include "Nodes/SceneTreeNodeInternal.h"
 #include "SceneTypes.h"
+
 #include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
+
 #include <DeepSea/Math/Matrix44.h>
+
 #include <DeepSea/Scene/Nodes/SceneNode.h>
 
 static void dsSceneTransformnode_destroy(dsSceneNode* node)

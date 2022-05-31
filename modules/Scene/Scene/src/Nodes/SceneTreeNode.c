@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2021 Aaron Barany
+ * Copyright 2019-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 
-#include "Nodes/SceneTreeNode.h"
+#include <DeepSea/Scene/Nodes/SceneTreeNode.h>
 
+#include "Nodes/SceneTreeNodeInternal.h"
 #include "SceneTypes.h"
+
 #include <DeepSea/Core/Containers/HashTable.h>
 #include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
@@ -128,8 +130,8 @@ static dsSceneTreeNode* addNode(dsSceneTreeNode* node, dsSceneNode* child,
 
 		itemData->nameID = node->list->nameID;
 		itemEntry->list = node->list;
-		itemEntry->entry = node->list->addNodeFunc(node->list, child,
-			&childTreeNode->transform, &childTreeNode->itemData, &itemData->data);
+		itemEntry->entry = node->list->addNodeFunc(node->list, child, childTreeNode,
+			&childTreeNode->itemData, &itemData->data);
 	}
 
 	node->children[childIndex] = childTreeNode;
@@ -220,6 +222,66 @@ static void updateSubtreeRec(dsSceneTreeNode* node)
 
 	for (uint32_t i = 0; i < node->childCount; ++i)
 		updateSubtreeRec(node->children[i]);
+}
+
+const dsSceneNode* dsSceneTreeNode_getNode(const dsSceneTreeNode* node)
+{
+	if (!node)
+	{
+		errno = EINVAL;
+		return NULL;
+	}
+
+	return node->node;
+}
+
+const dsSceneTreeNode* dsSceneTreeNode_getParent(const dsSceneTreeNode* node)
+{
+	return node ? node->parent : NULL;
+}
+
+uint32_t dsSceneTreeNode_getChildCount(const dsSceneTreeNode* node)
+{
+	return node ? node->childCount : 0;
+}
+
+const dsSceneTreeNode* dsSceneTreeNode_getChild(const dsSceneTreeNode* node, uint32_t index)
+{
+	if (!node)
+	{
+		errno = EINVAL;
+		return NULL;
+	}
+
+	if (index >= node->childCount)
+	{
+		errno = EINDEX;
+		return NULL;
+	}
+
+	return node->children[index];
+}
+
+const dsMatrix44f* dsSceneTreeNode_getTransform(const dsSceneTreeNode* node)
+{
+	if (!node)
+	{
+		errno = EINVAL;
+		return NULL;
+	}
+
+	return &node->transform;
+}
+
+const dsSceneNodeItemData* dsSceneTreeNode_getItemData(const dsSceneTreeNode* node)
+{
+	if (!node)
+	{
+		errno = EINVAL;
+		return NULL;
+	}
+
+	return &node->itemData;
 }
 
 dsScene* dsSceneTreeNode_getScene(dsSceneTreeNode* node)

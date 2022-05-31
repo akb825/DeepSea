@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Aaron Barany
+ * Copyright 2021-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@
 
 #include <DeepSea/Scene/ItemLists/InstanceTransformData.h>
 #include <DeepSea/Scene/ItemLists/SceneInstanceVariables.h>
+#include <DeepSea/Scene/Nodes//SceneTreeNode.h>
 
 #include <DeepSea/SceneLighting/SceneLightShadows.h>
 
@@ -51,7 +52,7 @@ static void ShadowUserData_destroy(void* userData)
 }
 
 void dsShadowInstanceTransformData_populateData(void* userData, const dsView* view,
-	const dsSceneInstanceInfo* instances, uint32_t instanceCount,
+	const dsSceneTreeNode* const* instances, uint32_t instanceCount,
 	const dsShaderVariableGroupDesc* dataDesc, uint8_t* data, uint32_t stride)
 {
 	DS_UNUSED(dataDesc);
@@ -68,10 +69,11 @@ void dsShadowInstanceTransformData_populateData(void* userData, const dsView* vi
 
 	for (uint32_t i = 0; i < instanceCount; ++i, data += stride)
 	{
-		const dsSceneInstanceInfo* instance = instances + i;
+		const dsMatrix44f* nodeTransform = dsSceneTreeNode_getTransform(instances[i]);
+		DS_ASSERT(nodeTransform);
 		InstanceTransform transform;
-		transform.world = instance->transform;
-		dsMatrix44_affineMul(transform.worldView, view->viewMatrix, instance->transform);
+		transform.world = *nodeTransform;
+		dsMatrix44_affineMul(transform.worldView, view->viewMatrix, *nodeTransform);
 
 		dsMatrix44f inverseWorldView;
 		dsMatrix44f_affineInvert(&inverseWorldView, &transform.worldView);

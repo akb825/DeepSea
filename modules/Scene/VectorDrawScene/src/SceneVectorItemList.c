@@ -24,17 +24,23 @@
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Core/Profile.h>
+
 #include <DeepSea/Math/Matrix44.h>
 #include <DeepSea/Math/Core.h>
+
 #include <DeepSea/Render/Resources/Shader.h>
 #include <DeepSea/Render/Resources/SharedMaterialValues.h>
 #include <DeepSea/Render/Renderer.h>
+
 #include <DeepSea/Scene/ItemLists/SceneInstanceData.h>
 #include <DeepSea/Scene/Nodes/SceneNode.h>
 #include <DeepSea/Scene/Nodes/SceneNodeItemData.h>
+#include <DeepSea/Scene/Nodes/SceneTreeNode.h>
+
 #include <DeepSea/Text/Font.h>
 #include <DeepSea/Text/TextLayout.h>
 #include <DeepSea/Text/TextRenderBuffer.h>
+
 #include <DeepSea/VectorDraw/VectorImage.h>
 #include <DeepSea/VectorDrawScene/SceneVectorImageNode.h>
 #include <DeepSea/VectorDrawScene/SceneTextNode.h>
@@ -52,7 +58,7 @@ typedef enum DrawType
 typedef struct Entry
 {
 	const dsSceneVectorNode* node;
-	const dsMatrix44f* transform;
+	const dsSceneTreeNode* treeNode;
 	dsSceneNodeItemData* itemData;
 	uint64_t nodeID;
 } Entry;
@@ -106,7 +112,7 @@ struct dsSceneVectorItemList
 	uint32_t maxEntries;
 	uint64_t nextNodeID;
 
-	dsSceneInstanceInfo* instances;
+	const dsSceneTreeNode** instances;
 	DrawItem* drawItems;
 	uint32_t maxInstances;
 	uint32_t maxDrawItems;
@@ -198,9 +204,7 @@ static bool addInstances(dsSceneItemList* itemList)
 			drawItem->material = node->material;
 		}
 
-		dsSceneInstanceInfo* instance = vectorList->instances + i;
-		instance->node = (const dsSceneNode*)entry->node;
-		instance->transform = *entry->transform;
+		vectorList->instances[i] = entry->treeNode;
 	}
 
 	DS_PROFILE_FUNC_RETURN(true);
@@ -327,9 +331,11 @@ static void drawItems(dsSceneVectorItemList* vectorList, const dsView* view,
 				dsMatrix44f_makeScale(&scale, drawItem->image.size.x/imageSize.x,
 					drawItem->image.size.y/imageSize.y, 1.0f);
 
+				const dsMatrix44f* nodeTransform =
+					dsSceneTreeNode_getTransform(vectorList->instances[drawItem->instance]);
+				DS_ASSERT(nodeTransform);
 				dsMatrix44f transform;
-				dsMatrix44_mul(transform, vectorList->instances[drawItem->instance].transform,
-					scale);
+				dsMatrix44_mul(transform, *nodeTransform, scale);
 
 				dsMatrix44f modelViewProjection;
 				dsMatrix44_mul(modelViewProjection, view->viewProjectionMatrix, transform);
@@ -362,8 +368,8 @@ static void destroyInstanceData(dsSceneInstanceData* const* instanceData,
 		dsSceneInstanceData_destroy(instanceData[i]);
 }
 
-uint64_t dsSceneVectorItemList_addNode(dsSceneItemList* itemList, dsSceneNode* node,
-	const dsMatrix44f* transform, dsSceneNodeItemData* itemData, void** thisItemData)
+static uint64_t dsSceneVectorItemList_addNode(dsSceneItemList* itemList, dsSceneNode* node,
+	const dsSceneTreeNode* treeNode, dsSceneNodeItemData* itemData, void** thisItemData)
 {
 	DS_UNUSED(thisItemData);
 	if (!dsSceneNode_isOfType(node, dsSceneVectorNode_type()))
@@ -379,14 +385,14 @@ uint64_t dsSceneVectorItemList_addNode(dsSceneItemList* itemList, dsSceneNode* n
 
 	Entry* entry = modelList->entries + index;
 	entry->node = (dsSceneVectorNode*)node;
-	entry->transform = transform;
+	entry->treeNode = treeNode;
 	entry->itemData = itemData;
 	entry->nodeID = modelList->nextNodeID++;
 
 	return entry->nodeID;
 }
 
-void dsSceneVectorItemList_removeNode(dsSceneItemList* itemList, uint64_t nodeID)
+static void dsSceneVectorItemList_removeNode(dsSceneItemList* itemList, uint64_t nodeID)
 {
 	dsSceneVectorItemList* vectorList = (dsSceneVectorItemList*)itemList;
 	for (uint32_t i = 0; i < vectorList->entryCount; ++i)
@@ -401,7 +407,7 @@ void dsSceneVectorItemList_removeNode(dsSceneItemList* itemList, uint64_t nodeID
 	}
 }
 
-void dsSceneVectorItemList_commit(dsSceneItemList* itemList, const dsView* view,
+static void dsSceneVectorItemList_commit(dsSceneItemList* itemList, const dsView* view,
 	dsCommandBuffer* commandBuffer)
 {
 	DS_PROFILE_DYNAMIC_SCOPE_START(itemList->name);
@@ -552,7 +558,7 @@ void dsSceneVectorItemList_destroy(dsSceneVectorItemList* vectorList)
 	destroyInstanceData(vectorList->instanceData, vectorList->instanceDataCount);
 	dsSharedMaterialValues_destroy(vectorList->instanceValues);
 	DS_VERIFY(dsAllocator_free(itemList->allocator, vectorList->entries));
-	DS_VERIFY(dsAllocator_free(itemList->allocator, vectorList->instances));
+	DS_VERIFY(dsAllocator_free(itemList->allocator, (void*)vectorList->instances));
 	DS_VERIFY(dsAllocator_free(itemList->allocator, vectorList->drawItems));
 	DS_VERIFY(dsAllocator_free(itemList->allocator, vectorList));
 }

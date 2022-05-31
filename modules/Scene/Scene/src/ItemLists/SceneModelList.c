@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2021 Aaron Barany
+ * Copyright 2019-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,17 +24,22 @@
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Core/Profile.h>
+
 #include <DeepSea/Geometry/OrientedBox3.h>
 #include <DeepSea/Geometry/Frustum3.h>
+
 #include <DeepSea/Math/Matrix44.h>
 #include <DeepSea/Math/Vector3.h>
+
 #include <DeepSea/Render/Resources/Shader.h>
 #include <DeepSea/Render/Resources/SharedMaterialValues.h>
 #include <DeepSea/Render/Renderer.h>
+
 #include <DeepSea/Scene/ItemLists/SceneInstanceData.h>
 #include <DeepSea/Scene/Nodes/SceneModelNode.h>
 #include <DeepSea/Scene/Nodes/SceneNode.h>
 #include <DeepSea/Scene/Nodes/SceneNodeItemData.h>
+#include <DeepSea/Scene/Nodes/SceneTreeNode.h>
 
 #include <stdlib.h>
 #include <string.h>
@@ -42,6 +47,7 @@
 typedef struct Entry
 {
 	const dsSceneModelNode* node;
+	const dsSceneTreeNode* treeNode;
 	const dsMatrix44f* transform;
 	dsSceneNodeItemData* itemData;
 	uint64_t nodeID;
@@ -78,7 +84,7 @@ struct dsSceneModelList
 	uint32_t maxEntries;
 	uint64_t nextNodeID;
 
-	dsSceneInstanceInfo* instances;
+	const dsSceneTreeNode** instances;
 	DrawItem* drawItems;
 	uint32_t maxInstances;
 	uint32_t maxDrawItems;
@@ -157,9 +163,7 @@ static void addInstances(dsSceneItemList* itemList, const dsView* view, uint32_t
 			continue;
 		}
 
-		dsSceneInstanceInfo* instance = modelList->instances + instanceIndex;
-		instance->node = (dsSceneNode*)modelNode;
-		instance->transform = *entry->transform;
+		modelList->instances[instanceIndex] = entry->treeNode;
 	}
 
 	DS_PROFILE_FUNC_RETURN_VOID();
@@ -320,8 +324,8 @@ static void destroyInstanceData(dsSceneInstanceData* const* instanceData,
 		dsSceneInstanceData_destroy(instanceData[i]);
 }
 
-uint64_t dsSceneModelList_addNode(dsSceneItemList* itemList, dsSceneNode* node,
-	const dsMatrix44f* transform, dsSceneNodeItemData* itemData, void** thisItemData)
+static uint64_t dsSceneModelList_addNode(dsSceneItemList* itemList, dsSceneNode* node,
+	const dsSceneTreeNode* treeNode, dsSceneNodeItemData* itemData, void** thisItemData)
 {
 	DS_UNUSED(thisItemData);
 	if (!dsSceneNode_isOfType(node, dsSceneModelNode_type()))
@@ -338,13 +342,14 @@ uint64_t dsSceneModelList_addNode(dsSceneItemList* itemList, dsSceneNode* node,
 
 	Entry* entry = modelList->entries + index;
 	entry->node = (dsSceneModelNode*)node;
-	entry->transform = transform;
+	entry->treeNode = treeNode;
+	entry->transform = dsSceneTreeNode_getTransform(treeNode);
 	entry->itemData = itemData;
 	entry->nodeID = modelList->nextNodeID++;
 	return entry->nodeID;
 }
 
-void dsSceneModelList_removeNode(dsSceneItemList* itemList, uint64_t nodeID)
+static void dsSceneModelList_removeNode(dsSceneItemList* itemList, uint64_t nodeID)
 {
 	dsSceneModelList* modelList = (dsSceneModelList*)itemList;
 	for (uint32_t i = 0; i < modelList->entryCount; ++i)
@@ -359,7 +364,7 @@ void dsSceneModelList_removeNode(dsSceneItemList* itemList, uint64_t nodeID)
 	}
 }
 
-void dsSceneModelList_commit(dsSceneItemList* itemList, const dsView* view,
+static void dsSceneModelList_commit(dsSceneItemList* itemList, const dsView* view,
 	dsCommandBuffer* commandBuffer)
 {
 	DS_PROFILE_DYNAMIC_SCOPE_START(itemList->name);
@@ -532,7 +537,7 @@ void dsSceneModelList_destroy(dsSceneModelList* modelList)
 	destroyInstanceData(modelList->instanceData, modelList->instanceDataCount);
 	dsSharedMaterialValues_destroy(modelList->instanceValues);
 	DS_VERIFY(dsAllocator_free(itemList->allocator, modelList->entries));
-	DS_VERIFY(dsAllocator_free(itemList->allocator, modelList->instances));
+	DS_VERIFY(dsAllocator_free(itemList->allocator, (void*)modelList->instances));
 	DS_VERIFY(dsAllocator_free(itemList->allocator, modelList->drawItems));
 	DS_VERIFY(dsAllocator_free(itemList->allocator, modelList));
 }

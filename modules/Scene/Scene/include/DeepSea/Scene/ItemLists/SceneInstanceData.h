@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Aaron Barany
+ * Copyright 2019-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,7 +64,7 @@ DS_SCENE_EXPORT dsSceneInstanceData* dsSceneInstanceData_load(dsAllocator* alloc
  * @return False if the data couldn't be set.
  */
 DS_SCENE_EXPORT bool dsSceneInstanceData_populateData(dsSceneInstanceData* instanceData,
-	const dsView* view, const dsSceneInstanceInfo* instances, uint32_t instanceCount);
+	const dsView* view, const dsSceneTreeNode* const* instances, uint32_t instanceCount);
 
 /**
  * @brief Binds the data for an instance.

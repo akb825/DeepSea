@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2021 Aaron Barany
+ * Copyright 2020-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,12 +21,17 @@
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
+
 #include <DeepSea/Math/Matrix44.h>
+
 #include <DeepSea/Render/Resources/MaterialType.h>
 #include <DeepSea/Render/Resources/ShaderVariableGroupDesc.h>
+
 #include <DeepSea/Scene/ItemLists/SceneInstanceVariables.h>
+#include <DeepSea/Scene/Nodes/SceneTreeNode.h>
 #include <DeepSea/Scene/Types.h>
 #include <DeepSea/SceneLighting/SceneLightSet.h>
+
 #include <string.h>
 
 static dsShaderVariableElement baseElements[] =
@@ -84,8 +89,8 @@ dsShaderVariableGroupDesc* dsInstanceForwardLightData_createShaderVariableGroupD
 	return dsShaderVariableGroupDesc_create(resourceManager, allocator, elements, elementCount);
 }
 
-void dsInstanceForwardLightData_populateData(void* userData, const dsView* view,
-	const dsSceneInstanceInfo* instances, uint32_t instanceCount,
+static void dsInstanceForwardLightData_populateData(void* userData, const dsView* view,
+	const dsSceneTreeNode* const* instances, uint32_t instanceCount,
 	const dsShaderVariableGroupDesc* dataDesc, uint8_t* data, uint32_t stride)
 {
 	DS_ASSERT(dataDesc->elementCount == DS_ARRAY_SIZE(baseElements));
@@ -113,6 +118,8 @@ void dsInstanceForwardLightData_populateData(void* userData, const dsView* view,
 		DS_ALLOCATE_STACK_OBJECT_ARRAY(const dsSceneLight*, lightCount);
 	for (uint32_t i = 0; i < instanceCount; ++i, data += stride)
 	{
+		const dsMatrix44f* transform = dsSceneTreeNode_getTransform(instances[i]);
+		DS_ASSERT(transform);
 		dsVector4f* positionAndType = (dsVector4f*)(data + positionAndTypeOffset);
 		dsVector4f* directionAndLinearFalloff =
 			(dsVector4f*)(data + directionAndLinearFalloffOffset);
@@ -121,7 +128,7 @@ void dsInstanceForwardLightData_populateData(void* userData, const dsView* view,
 		dsVector4f* spotCosAngles = (dsVector4f*)(data + spotCosAnglesOffset);
 		dsColor4f* ambientColorHasMain = (dsColor4f*)(data + ambientColorHasMainOffset);
 
-		const dsVector3f* position = (const dsVector3f*)(instances[i].transform.columns + 3);
+		const dsVector3f* position = (const dsVector3f*)(transform->columns + 3);
 		bool hasMainLight = false;
 		uint32_t brightestLightCount = dsSceneLightSet_findBrightestLights(brightestLights,
 			lightCount, &hasMainLight, lightSet, position);

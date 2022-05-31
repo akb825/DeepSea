@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Aaron Barany
+ * Copyright 2021-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@
 
 #include <DeepSea/Scene/Nodes/SceneModelNode.h>
 #include <DeepSea/Scene/Nodes/SceneNode.h>
+#include <DeepSea/Scene/Nodes/SceneTreeNode.h>
 
 #include <DeepSea/SceneLighting/SceneLightShadows.h>
 
@@ -57,8 +58,8 @@ typedef struct dsShadowCullList
 	uint64_t nextNodeID;
 } dsShadowCullList;
 
-uint64_t dsShadowCullList_addNode(dsSceneItemList* itemList, dsSceneNode* node,
-	const dsMatrix44f* transform, dsSceneNodeItemData* itemData, void** thisItemData)
+static uint64_t dsShadowCullList_addNode(dsSceneItemList* itemList, dsSceneNode* node,
+	const dsSceneTreeNode* treeNode, dsSceneNodeItemData* itemData, void** thisItemData)
 {
 	DS_UNUSED(itemData);
 	if (!dsSceneNode_isOfType(node, dsSceneModelNode_type()))
@@ -75,13 +76,13 @@ uint64_t dsShadowCullList_addNode(dsSceneItemList* itemList, dsSceneNode* node,
 
 	Entry* entry = cullList->entries + index;
 	entry->node = (dsSceneModelNode*)node;
-	entry->transform = transform;
+	entry->transform = dsSceneTreeNode_getTransform(treeNode);
 	entry->result = (bool*)thisItemData;
 	entry->nodeID = cullList->nextNodeID++;
 	return entry->nodeID;
 }
 
-void dsShadowCullList_removeNode(dsSceneItemList* itemList, uint64_t nodeID)
+static void dsShadowCullList_removeNode(dsSceneItemList* itemList, uint64_t nodeID)
 {
 	dsShadowCullList* cullList = (dsShadowCullList*)itemList;
 	for (uint32_t i = 0; i < cullList->entryCount; ++i)
@@ -96,7 +97,7 @@ void dsShadowCullList_removeNode(dsSceneItemList* itemList, uint64_t nodeID)
 	}
 }
 
-void dsShadowCullList_commit(dsSceneItemList* itemList, const dsView* view,
+static void dsShadowCullList_commit(dsSceneItemList* itemList, const dsView* view,
 	dsCommandBuffer* commandBuffer)
 {
 	DS_UNUSED(commandBuffer);
@@ -135,10 +136,11 @@ void dsShadowCullList_commit(dsSceneItemList* itemList, const dsView* view,
 			"Couldn't compute projection for shadows '%s' surface %d.",
 			dsSceneLightShadows_getName(cullList->shadows), cullList->surface);
 	}
+
 	DS_PROFILE_SCOPE_END();
 }
 
-void dsShadowCullList_destroy(dsSceneItemList* itemList)
+static void dsShadowCullList_destroy(dsSceneItemList* itemList)
 {
 	dsShadowCullList* cullList = (dsShadowCullList*)itemList;
 	DS_VERIFY(dsAllocator_free(itemList->allocator, cullList->entries));

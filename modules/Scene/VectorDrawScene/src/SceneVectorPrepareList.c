@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Aaron Barany
+ * Copyright 2020-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,10 +24,14 @@
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Profile.h>
+
 #include <DeepSea/Scene/Nodes/SceneNode.h>
+
 #include <DeepSea/Text/TextLayout.h>
 #include <DeepSea/Text/TextRenderBuffer.h>
+
 #include <DeepSea/VectorDraw/VectorImage.h>
+
 #include <DeepSea/VectorDrawScene/SceneTextNode.h>
 #include <DeepSea/VectorDrawScene/SceneVectorImageNode.h>
 #include <DeepSea/VectorDrawScene/SceneVectorNode.h>
@@ -52,24 +56,11 @@ typedef struct dsSceneVectorPrepareList
 	uint64_t nextNodeID;
 } dsSceneVectorPrepareList;
 
-dsSceneItemList* dsSceneVectorPrepareList_load(const dsSceneLoadContext* loadContext,
-	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
-	void* userData, const char* name, const uint8_t* data, size_t dataSize)
-{
-	DS_UNUSED(loadContext);
-	DS_UNUSED(scratchData);
-	DS_UNUSED(resourceAllocator);
-	DS_UNUSED(userData);
-	DS_UNUSED(data);
-	DS_UNUSED(dataSize);
-	return dsSceneVectorPrepareList_create(allocator, name);
-}
-
-uint64_t dsSceneVectorPrepareList_addNode(dsSceneItemList* itemList, dsSceneNode* node,
-	const dsMatrix44f* transform, dsSceneNodeItemData* itemData, void** thisItemData)
+static uint64_t dsSceneVectorPrepareList_addNode(dsSceneItemList* itemList, dsSceneNode* node,
+	const dsSceneTreeNode* treeNode, dsSceneNodeItemData* itemData, void** thisItemData)
 {
 	DS_UNUSED(itemData);
-	DS_UNUSED(transform);
+	DS_UNUSED(treeNode);
 	DS_UNUSED(thisItemData);
 	if (!dsSceneNode_isOfType(node, dsSceneVectorNode_type()))
 		return DS_NO_SCENE_NODE;
@@ -102,7 +93,7 @@ uint64_t dsSceneVectorPrepareList_addNode(dsSceneItemList* itemList, dsSceneNode
 	return entry->nodeID;
 }
 
-void dsSceneVectorPrepareList_removeNode(dsSceneItemList* itemList, uint64_t nodeID)
+static void dsSceneVectorPrepareList_removeNode(dsSceneItemList* itemList, uint64_t nodeID)
 {
 	dsSceneVectorPrepareList* prepareList = (dsSceneVectorPrepareList*)itemList;
 	for (uint32_t i = 0; i < prepareList->entryCount; ++i)
@@ -117,7 +108,7 @@ void dsSceneVectorPrepareList_removeNode(dsSceneItemList* itemList, uint64_t nod
 	}
 }
 
-void dsSceneVectorPrepareList_commit(dsSceneItemList* itemList, const dsView* view,
+static void dsSceneVectorPrepareList_commit(dsSceneItemList* itemList, const dsView* view,
 	dsCommandBuffer* commandBuffer)
 {
 	DS_UNUSED(view);
@@ -159,11 +150,24 @@ void dsSceneVectorPrepareList_commit(dsSceneItemList* itemList, const dsView* vi
 	DS_PROFILE_SCOPE_END();
 }
 
-void dsSceneVectorPrepareList_destroy(dsSceneItemList* itemList)
+static void dsSceneVectorPrepareList_destroy(dsSceneItemList* itemList)
 {
 	dsSceneVectorPrepareList* prepareList = (dsSceneVectorPrepareList*)itemList;
 	DS_VERIFY(dsAllocator_free(itemList->allocator, prepareList->entries));
 	DS_VERIFY(dsAllocator_free(itemList->allocator, itemList));
+}
+
+dsSceneItemList* dsSceneVectorPrepareList_load(const dsSceneLoadContext* loadContext,
+	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
+	void* userData, const char* name, const uint8_t* data, size_t dataSize)
+{
+	DS_UNUSED(loadContext);
+	DS_UNUSED(scratchData);
+	DS_UNUSED(resourceAllocator);
+	DS_UNUSED(userData);
+	DS_UNUSED(data);
+	DS_UNUSED(dataSize);
+	return dsSceneVectorPrepareList_create(allocator, name);
 }
 
 const char* const dsSceneVectorPrepareList_typeName = "VectorPrepareList";

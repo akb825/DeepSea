@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2021 Aaron Barany
+ * Copyright 2019-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,10 +20,15 @@
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
+
 #include <DeepSea/Math/Matrix44.h>
+
 #include <DeepSea/Render/Resources/ShaderVariableGroupDesc.h>
+
 #include <DeepSea/Scene/ItemLists/SceneInstanceVariables.h>
+#include <DeepSea/Scene/Nodes/SceneTreeNode.h>
 #include <DeepSea/Scene/Types.h>
+
 #include <string.h>
 
 static dsShaderVariableElement elements[] =
@@ -42,8 +47,8 @@ typedef struct InstanceTransform
 	dsMatrix44f worldViewProj;
 } InstanceTransform;
 
-void dsInstanceTransformData_populateData(void* userData, const dsView* view,
-	const dsSceneInstanceInfo* instances, uint32_t instanceCount,
+static void dsInstanceTransformData_populateData(void* userData, const dsView* view,
+	const dsSceneTreeNode* const* instances, uint32_t instanceCount,
 	const dsShaderVariableGroupDesc* dataDesc, uint8_t* data, uint32_t stride)
 {
 	DS_UNUSED(userData);
@@ -51,12 +56,13 @@ void dsInstanceTransformData_populateData(void* userData, const dsView* view,
 	DS_ASSERT(stride >= sizeof(InstanceTransform));
 	for (uint32_t i = 0; i < instanceCount; ++i, data += stride)
 	{
-		const dsSceneInstanceInfo* instance = instances + i;
+		const dsMatrix44f* world = dsSceneTreeNode_getTransform(instances[i]);
+		DS_ASSERT(world);
 		// The GPU memory can have some bad properties when accessing from the CPU, so first do all
 		// work on CPU memory and copy as one to the GPU buffer.
 		InstanceTransform transform;
-		transform.world = instance->transform;
-		dsMatrix44_affineMul(transform.worldView, view->viewMatrix, instance->transform);
+		transform.world = *world;
+		dsMatrix44_affineMul(transform.worldView, view->viewMatrix, *world);
 
 		dsMatrix44f inverseWorldView;
 		dsMatrix44f_affineInvert(&inverseWorldView, &transform.worldView);

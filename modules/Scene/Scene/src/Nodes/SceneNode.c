@@ -16,9 +16,10 @@
 
 #include <DeepSea/Scene/Nodes/SceneNode.h>
 
-#include "Nodes/SceneTreeNode.h"
+#include "Nodes/SceneTreeNodeInternal.h"
 #include "SceneLoadContextInternal.h"
 #include "SceneTypes.h"
+
 #include <DeepSea/Core/Containers/HashTable.h>
 #include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
@@ -26,6 +27,7 @@
 #include <DeepSea/Core/Atomic.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
+
 #include <DeepSea/Scene/SceneLoadScratchData.h>
 
 #include <string.h>

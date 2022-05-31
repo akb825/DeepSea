@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2021 Aaron Barany
+ * Copyright 2019-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,24 +57,6 @@ typedef const int* dsSceneItemListType;
 typedef struct dsSceneItemList dsSceneItemList;
 
 /**
- * @brief Info for a single instance inside a scene that will be drawn.
- * @remark None of the members should be modified outside of the implementation.
- * @see SceneInstanceData.h
- */
-typedef struct dsSceneInstanceInfo
-{
-	/**
-	 * @brief The original node for the data.
-	 */
-	const dsSceneNode* node;
-
-	/**
-	 * @brief The transform for the instance.
-	 */
-	dsMatrix44f transform;
-} dsSceneInstanceInfo;
-
-/**
  * @brief Struct for managing data that's each instance being drawn.
  *
  * Different implementations can effectively subclass this type by having it as the first member of
@@ -101,7 +83,7 @@ typedef void (*dsDestroySceneUserDataFunction)(void* userData);
  * @return False if an error occurred.
  */
 typedef bool (*dsPopulateSceneInstanceDataFunction)(dsSceneInstanceData* instanceData,
-	const dsView* view, const dsSceneInstanceInfo* instances, uint32_t instanceCount);
+	const dsView* view, const dsSceneTreeNode* const* instances, uint32_t instanceCount);
 
 /**
  * @brief Function for binding scene instance data.
@@ -180,15 +162,15 @@ struct dsSceneInstanceData
  * @see SceneInstanceVariables.h
  */
 typedef void (*dsPopulateSceneInstanceVariablesFunction)(void* userData, const dsView* view,
-	const dsSceneInstanceInfo* instances, uint32_t instanceCount,
+	const dsSceneTreeNode* const* instances, uint32_t instanceCount,
 	const dsShaderVariableGroupDesc* dataDesc, uint8_t* data, uint32_t stride);
 
 /**
  * @brief Function for adding a node to the item list.
  * @param itemList The item list.
  * @param node The node to add.
- * @param transform The transform for the node. The contents of the pointer will change as the node
- *     is updated.
+ * @param treeNode The node in the scene tree. This is primarily used to get the transform, though
+ *     more detailed information such as parent nodes can be queried as well.
  * @param itemData The item data associated with the node.
  * @param thisItemData The pointer to the item data for this specific item. This pointer is
  *     guaranteed to remain the same. Some implementations may choose to store the necessary data in
@@ -196,7 +178,7 @@ typedef void (*dsPopulateSceneInstanceVariablesFunction)(void* userData, const d
  * @return The ID of the node within the item list, or DS_NO_SCENE_NODE if not added.
  */
 typedef uint64_t (*dsAddSceneItemListNodeFunction)(dsSceneItemList* itemList, dsSceneNode* node,
-	const dsMatrix44f* transform, dsSceneNodeItemData* itemData, void** thisItemData);
+	const dsSceneTreeNode* treeNode, dsSceneNodeItemData* itemData, void** thisItemData);
 
 /**
  * @brief Function for updating a node in an item list.

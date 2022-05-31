@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2021 Aaron Barany
+ * Copyright 2019-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 #include <DeepSea/Scene/Scene.h>
 
-#include "Nodes/SceneTreeNode.h"
+#include "Nodes/SceneTreeNodeInternal.h"
 #include "SceneTypes.h"
 
 #include <DeepSea/Core/Containers/Hash.h>
