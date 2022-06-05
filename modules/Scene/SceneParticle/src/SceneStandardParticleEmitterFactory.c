@@ -113,6 +113,7 @@ static bool dsSceneStandardParticleEmitterFactory_updateEmitter(
 	const dsSceneParticleNode* particleNode, void* userData, dsParticleEmitter* emitter,
 	const dsSceneTreeNode* treeNode, float time)
 {
+	DS_UNUSED(particleNode);
 	dsSceneStandardParticleEmitterFactory* factory =
 		(dsSceneStandardParticleEmitterFactory*)userData;
 	if (!factory || !emitter || !treeNode)
@@ -173,8 +174,8 @@ dsSceneParticleEmitterFactory* dsSceneStandardParticleEmitterFactory_create(
 		return NULL;
 
 	data->allocator = dsAllocator_keepPointer(allocator);
-	memcpy(&data->params, &params, sizeof(dsParticleEmitterParams));
-	memcpy(&data->options, &options, sizeof(dsStandardParticleEmitterOptions));
+	memcpy(&data->params, params, sizeof(dsParticleEmitterParams));
+	memcpy(&data->options, options, sizeof(dsStandardParticleEmitterOptions));
 	data->relativeNode = relativeNode;
 	data->seed = seed;
 	data->enabled = enabled;
