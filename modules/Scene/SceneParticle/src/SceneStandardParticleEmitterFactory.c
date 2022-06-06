@@ -85,6 +85,7 @@ static dsParticleEmitter* dsSceneStandardParticleEmitterFactory_createEmitter(
 	DS_ASSERT(transform);
 	const dsMatrix44f* relativeTransform = findRelativeTransform(treeNode, factory->relativeNode);
 
+	// TODO: Set populate instance values based on node item lists.
 	dsStandardParticleEmitter* standardEmitter = dsStandardParticleEmitter_create(allocator,
 		&factory->params, factory->seed, &factory->options, factory->enabled, factory->startTime);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2021 Aaron Barany
+ * Copyright 2019-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -246,7 +246,7 @@ dsSceneNode* dsSceneModelNode_load(const dsSceneLoadContext* loadContext,
 			if (!extraItem)
 			{
 				errno = EFORMAT;
-				DS_LOG_ERROR(DS_SCENE_LOG_TAG, "Model node extra item name is null.");
+				DS_LOG_ERROR(DS_SCENE_LOG_TAG, "Model node extra item list name is null.");
 				goto finished;
 			}
 

@@ -1,0 +1,59 @@
+/*
+ * Copyright 2022 Aaron Barany
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#include <DeepSea/SceneParticle/SceneParticleLoadContext.h>
+
+#include <DeepSea/Core/Error.h>
+
+#include <DeepSea/SceneParticle/SceneParticleEmitterFactory.h>
+#include <DeepSea/SceneParticle/SceneParticleNode.h>
+#include <DeepSea/SceneParticle/SceneStandardParticleEmitterFactory.h>
+
+#include <DeepSea/Scene/SceneLoadContext.h>
+
+#include "SceneParticleNodeLoad.h"
+#include "SceneStandardParticleEmitterFactoryLoad.h"
+
+static bool destroyParticleEmitterFactory(void* resource)
+{
+	dsSceneParticleEmitterFactory_destroy((dsSceneParticleEmitterFactory*)resource);
+	return true;
+}
+
+bool dsSceneParticleLoadConext_registerTypes(dsSceneLoadContext* loadContext)
+{
+	if (!loadContext)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	if (!dsSceneLoadContext_registerCustomSceneResourceType(loadContext,
+			dsSceneStandardParticleEmitterFactory_typeName, dsSceneParticleEmitterFactory_type(),
+			&dsSceneStandardParticleEmitterFactory_load, &destroyParticleEmitterFactory,
+			NULL, NULL, 0))
+	{
+		return false;
+	}
+
+	if (!dsSceneLoadContext_registerNodeType(loadContext, dsSceneParticleNode_typeName,
+			&dsSceneParticleNode_load, NULL, NULL))
+	{
+		return false;
+	}
+
+	return true;
+}
