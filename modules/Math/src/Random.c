@@ -16,7 +16,51 @@
 
 #include <DeepSea/Math/Random.h>
 #include <DeepSea/Core/Assert.h>
+#include <DeepSea/Core/Atomic.h>
 #include <math.h>
+
+#if DS_WINDOWS
+#define WIN32_LEAN_AND_MEAN
+#include <Windows.h>
+#elif DS_APPLE
+#include <mach/mach.h>
+#include <mach/mach_time.h>
+#else
+#include <time.h>
+#endif
+
+uint32_t dsRandomSeed(void)
+{
+	static uint32_t counter;
+	uint32_t curCounter = DS_ATOMIC_FETCH_ADD32(&counter, 1);
+
+	uint32_t highFrequencySeed;
+	uint32_t lowFrequencySeed;
+
+#if DS_WINDOWS
+
+	LARGE_INTEGER value;
+	QueryPerformanceCounter(&value);
+	lowFrequencySeed = value.LowPart;
+	highFrequencySeed = value.HighPart;
+
+#elif DS_APPLE
+
+	uint64_t fullTime = mach_absolute_time();
+	lowFrequencySeed = (uint32_t)fullTime;
+	highFrequencySeed = (uint32_t)(fullTime >> 32);
+
+#else
+
+	struct timespec tp;
+	DS_VERIFY(clock_gettime(CLOCK_MONOTONIC, &tp) == 0);
+	lowFrequencySeed = (uint32_t)tp.tv_nsec;
+	highFrequencySeed = (uint32_t)tp.tv_sec;
+
+#endif
+
+	return dsRandom(&curCounter) ^ dsRandom(&lowFrequencySeed) ^ dsRandom(&highFrequencySeed);
+}
 
 uint32_t dsRandom(uint32_t* seed)
 {

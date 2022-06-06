@@ -28,7 +28,19 @@ extern "C"
 /**
  * @file
  * @brief Function to generate random numbers.
+ * @remark These functions are designed to give fast results and good distribution, but aren't
+ *     suitable for cryptographic uses.
  */
+
+/**
+ * @brief Creates a random seed.
+ *
+ * This uses a combination of a high frequency time and a counter to guarantee that two calls in
+ * rapid succession will have different values.
+ *
+ * @return A random seed.
+ */
+DS_MATH_EXPORT uint32_t dsRandomSeed(void);
 
 /**
  * @brief Calculates a random number between 1 and DS_RANDOM_MAX.

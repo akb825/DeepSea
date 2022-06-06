@@ -53,7 +53,6 @@ dsTimer dsTimer_create(void)
 
 double dsTimer_time(dsTimer timer)
 {
-
 #if DS_WINDOWS
 
 	DS_ASSERT(timer.scale > 0);
