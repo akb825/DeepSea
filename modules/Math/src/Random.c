@@ -38,7 +38,9 @@ inline static uint32_t nextRandomValue(uint32_t seed)
 
 uint32_t dsRandomSeed(void)
 {
-	static uint32_t counter;
+	// Use a counter to ensure that if this is called at a faster rate than the timer supports
+	// different results will be returned. Start at 1 since a seed value of 0 is treated as 1.
+	static uint32_t counter = 1;
 	uint32_t curCounter = DS_ATOMIC_FETCH_ADD32(&counter, 1);
 
 	uint32_t highFrequencySeed;
