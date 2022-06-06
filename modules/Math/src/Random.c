@@ -29,6 +29,13 @@
 #include <time.h>
 #endif
 
+inline static uint32_t nextRandomValue(uint32_t seed)
+{
+	uint64_t temp = seed ? seed : 1;
+	temp = temp*48271 % (DS_RANDOM_MAX + 1);
+	return (uint32_t)temp;
+}
+
 uint32_t dsRandomSeed(void)
 {
 	static uint32_t counter;
@@ -59,15 +66,14 @@ uint32_t dsRandomSeed(void)
 
 #endif
 
-	return dsRandom(&curCounter) ^ dsRandom(&lowFrequencySeed) ^ dsRandom(&highFrequencySeed);
+	return nextRandomValue(curCounter) ^ nextRandomValue(lowFrequencySeed) ^
+		nextRandomValue(highFrequencySeed);
 }
 
 uint32_t dsRandom(uint32_t* seed)
 {
 	DS_ASSERT(seed);
-	uint64_t temp = *seed ? *seed : 1;
-	temp = temp*48271 % (DS_RANDOM_MAX + 1);
-	return *seed = (uint32_t)temp;
+	return *seed = nextRandomValue(*seed);
 }
 
 double dsRandomDouble(uint32_t* seed, double minVal, double maxVal)
