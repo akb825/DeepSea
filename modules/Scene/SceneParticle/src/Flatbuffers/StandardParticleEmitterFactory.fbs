@@ -1,0 +1,92 @@
+/*
+ * Copyright 2022 Aaron Barany
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+include "DeepSea/SceneParticle/Flatbuffers/SceneParticleCommon.fbs";
+
+namespace DeepSeaSceneParticle;
+
+// Struct defining a factory to create standard particle emitters.
+table StandardParticleEmitterFactory
+{
+	// The parameters for the particle emitter.
+	params : ParticleEmitterParams (required);
+
+	// The volume to spawn particles in.
+	spawnVolume : ParticleVolume (required);
+
+	// The matrix to transform the spawn volume.
+	volumeMatrix : DeepSeaScene.Matrix44f (required);
+
+	// The minimum and maximum width of a particle.
+	widthRange : DeepSeaScene.Vector2f (required);
+
+	// The minimum and maximum height of a particle. If unset or negative the width is used to
+	// keep the particles square.
+	heightRange : DeepSeaScene.Vector2f;
+
+	// The base direction particles move in.
+	baseDirection : DeepSeaScene.Vector3f (required);
+
+	// The spread along the base direction as an angle in radians.
+	directionSpread : float;
+
+	// The minimum and maximum time in seconds between spawning particles.
+	spawnTimeRange : DeepSeaScene.Vector2f (required);
+
+	// The minimum and maximum time in seconds a particle is active for.
+	activeTimeRange : DeepSeaScene.Vector2f (required);
+
+	// The minimum and maximum speed particles travel at.
+	speedRange : DeepSeaScene.Vector2f (required);
+
+	// The minimum and maximum rotation speed in radians per second.
+	rotationRange : DeepSeaScene.Vector2f (required);
+
+	// The minimum and maximum texture indices to use.
+	textureRange : Vector2u (required);
+
+	// The minimum and maximum hue values for the color in the range [0, 360]. The minimum can be
+	// larger than the maximum, which will wrap around. (e.g. min 300 and max 60 will wrap around at
+	// 360 back to 0)
+	colorHueRange : DeepSeaScene.Vector2f (required);
+
+	// The minimum and maximum saturation values for the color in the range [0, 1].
+	colorSaturationRange : DeepSeaScene.Vector2f (required);
+
+	// The minimum and maximum values for the color in the range [0, 1].
+	colorValueRange : DeepSeaScene.Vector2f (required);
+
+	// The minimum and maximum intensity values.
+	intensityRange : DeepSeaScene.Vector2f (required);
+
+	// Node to transform the particles relative to. If set, the node the particle emitter will be
+	// created with will be used for the spawn volume, while the relative node will be used for the
+	// particles instead. The node must be an ancestor of the particles node.
+	relativeNode : string;
+
+	// The seed for the random numbers used for the factory. Set to 0 to generate a seed on
+	// creation.
+	seed : uint;
+
+	// Whether or not particle emitters are enabled on creation.
+	enabled : bool;
+
+	// The time in seconds that the particle emitters start at. Particles will be created and
+	// advanced to this time.
+	startTime : float;
+}
+
+root_type StandardParticleEmitterFactory;

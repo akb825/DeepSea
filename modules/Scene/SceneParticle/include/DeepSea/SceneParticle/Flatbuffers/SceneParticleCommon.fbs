@@ -1,0 +1,85 @@
+/*
+ * Copyright 2022 Aaron Barany
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+include "DeepSea/Scene/Flatbuffers/SceneCommon.fbs";
+
+namespace DeepSeaSceneParticle;
+
+// Struct describing a 2-dimensional vector of unsigned integers.
+struct Vector2u
+{
+	x : uint;
+	y : uint;
+}
+
+// Struct defining common parameters for particle emitters.
+table ParticleEmitterParams
+{
+	// The maximum particles within the emitter.
+	maxParticles : uint;
+
+	// The shader to draw the particles with.
+	shader : string (required);
+
+	// The material to draw the particles with.
+	material : string (required);
+
+	// The number of material values with instance binding. The maximum between this and instance
+	// value count in the material will be used. In most cases this can be set to 0 unless you wish
+	// to set a larger value to allow changing materials after initial creation.
+	instanceValueCount : uint;
+}
+
+// Struct defining a box to spawn particles in.
+table ParticleBox
+{
+	// The minimum extents of the box.
+	min : DeepSeaScene.Vector3f (required);
+
+	// The maximum extents of the box.
+	max : DeepSeaScene.Vector3f (required);
+}
+
+// Struct defining a sphere to spawn particles in.
+table ParticleSphere
+{
+	// The center fo the sphere.
+	center : DeepSeaScene.Vector3f (required);
+
+	// The radius of the sphere.
+	radius : float;
+}
+
+// Struct defining a cylinder to spawn particles in.
+table ParticleCylinder
+{
+	// The center fo the cylinder.
+	center : DeepSeaScene.Vector3f (required);
+
+	// The radius of the cylinder in the XY plane.
+	radius : float;
+
+	// The height of the cylinder along the Z axis
+	height : float;
+}
+
+// Union for the types of volumes to spawn particles in.
+union ParticleVolume
+{
+	ParticleBox,
+	ParticleSphere,
+	ParticleCylinder
+}

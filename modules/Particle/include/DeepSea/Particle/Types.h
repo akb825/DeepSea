@@ -229,6 +229,8 @@ typedef struct dsParticleEmitterParams
 
 	/**
 	 * @brief The material to draw the particles with.
+	 *
+	 * This must not be NULL.
 	 */
 	dsMaterial* material;
 
