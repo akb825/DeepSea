@@ -366,7 +366,7 @@ static bool populateParticleGeometry(dsParticleDraw* drawer, BufferInfo* bufferI
 }
 
 static bool drawParticles(dsParticleDraw* drawer, BufferInfo* bufferInfo, uint32_t particleCount,
-	dsCommandBuffer* commandBuffer, const dsSharedMaterialValues* globalValues)
+	dsCommandBuffer* commandBuffer, const dsSharedMaterialValues* globalValues, void* drawData)
 {
 	DS_PROFILE_FUNC_START();
 
@@ -413,13 +413,12 @@ static bool drawParticles(dsParticleDraw* drawer, BufferInfo* bufferInfo, uint32
 			if (drawer->instanceValues)
 			{
 				DS_VERIFY(dsSharedMaterialValues_clear(drawer->instanceValues));
-				if (!dsParticleEmitter_populateInstanceValues(emitter, drawer->instanceValues))
+				if (!dsParticleEmitter_populateInstanceValues(emitter, drawer->instanceValues,
+						drawData))
 				{
 					if (prevShader)
-					{
 						DS_VERIFY(dsShader_unbind(prevShader, commandBuffer));
-						DS_PROFILE_FUNC_RETURN(false);
-					}
+					DS_PROFILE_FUNC_RETURN(false);
 				}
 			}
 
@@ -604,7 +603,7 @@ bool dsParticleDraw_removeEmitter(dsParticleDraw* drawer, dsParticleEmitter* emi
 
 bool dsParticleDraw_draw(dsParticleDraw* drawer, dsCommandBuffer* commandBuffer,
 	const dsSharedMaterialValues* globalValues, const dsMatrix44f* viewMatrix,
-	const dsFrustum3f* viewFrustum)
+	const dsFrustum3f* viewFrustum, void* drawData)
 {
 	DS_PROFILE_FUNC_START();
 
@@ -676,7 +675,7 @@ bool dsParticleDraw_draw(dsParticleDraw* drawer, dsCommandBuffer* commandBuffer,
 	}
 
 	bool success = populateParticleGeometry(drawer, bufferInfo, particleCount) &&
-		drawParticles(drawer, bufferInfo, particleCount, commandBuffer, globalValues);
+		drawParticles(drawer, bufferInfo, particleCount, commandBuffer, globalValues, drawData);
 
 	DS_VERIFY(dsSpinlock_unlock(&drawer->emitterLock));
 	DS_PROFILE_FUNC_RETURN(success);

@@ -177,7 +177,7 @@ bool dsParticleEmitter_update(dsParticleEmitter* emitter, float time)
 }
 
 bool dsParticleEmitter_populateInstanceValues(const dsParticleEmitter* emitter,
-	dsSharedMaterialValues* values)
+	dsSharedMaterialValues* values, void* drawData)
 {
 	if (!emitter || !values)
 	{
@@ -187,8 +187,8 @@ bool dsParticleEmitter_populateInstanceValues(const dsParticleEmitter* emitter,
 
 	if (emitter->populateInstanceValuesFunc)
 	{
-		emitter->populateInstanceValuesFunc(emitter, emitter->populateInstanceValuesUserData,
-			values);
+		return emitter->populateInstanceValuesFunc(emitter, emitter->populateInstanceValuesUserData,
+			values, drawData);
 	}
 
 	return true;

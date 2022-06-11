@@ -157,10 +157,11 @@ static void addInstances(dsSceneItemList* itemList, const dsView* view, uint32_t
 		if (!hasAny)
 			continue;
 
-		if (!DS_RESIZEABLE_ARRAY_ADD(itemList->allocator, modelList->instances, *instanceCount,
-				modelList->maxInstances, 1))
+		if (!DS_CHECK(DS_SCENE_LOG_TAG, DS_RESIZEABLE_ARRAY_ADD(itemList->allocator,
+				modelList->instances, *instanceCount, modelList->maxInstances, 1)))
 		{
-			continue;
+			--*instanceCount;
+			DS_PROFILE_FUNC_RETURN_VOID();
 		}
 
 		modelList->instances[instanceIndex] = entry->treeNode;

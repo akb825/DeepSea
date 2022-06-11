@@ -61,10 +61,11 @@ DS_PARTICLE_EXPORT bool dsParticleEmitter_update(dsParticleEmitter* emitter, flo
  * @remark errno will be set on failure.
  * @param emitter The particle emitter to populate the instance values for.
  * @param values The instance values to populate.
+ * @param drawData Data passed through the draw function.
  * @return False if an error occurred.
  */
 DS_PARTICLE_EXPORT bool dsParticleEmitter_populateInstanceValues(const dsParticleEmitter* emitter,
-	dsSharedMaterialValues* values);
+	dsSharedMaterialValues* values, void* drawData);
 
 /**
  * @brief Destroys a particle emitter.

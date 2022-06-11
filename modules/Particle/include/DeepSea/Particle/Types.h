@@ -191,9 +191,11 @@ typedef uint32_t (*dsUpdateParticleEmitterFunction)(dsParticleEmitter* emitter, 
  *     may occur across multiple threads.
  * @param userData User data provided for use with this function.
  * @param values The values to populate.
+ * @param drawData The data passed to the draw function.
+ * @return False if the values couldn't be populated.
  */
-typedef void (*dsPopulateParticleEmitterInstanceValues)(const dsParticleEmitter* emitter,
-	void* userData, dsSharedMaterialValues* values);
+typedef bool (*dsPopulateParticleEmitterInstanceValues)(const dsParticleEmitter* emitter,
+	void* userData, dsSharedMaterialValues* values, void* drawData);
 
 /**
  * @brief Function to destroy a particle emitter.

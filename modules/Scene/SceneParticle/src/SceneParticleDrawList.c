@@ -25,8 +25,13 @@
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Core/Profile.h>
 
+#include <DeepSea/Geometry/Frustum3.h>
+
 #include <DeepSea/Particle/ParticleDraw.h>
 
+#include <DeepSea/Render/Renderer.h>
+
+#include <DeepSea/Scene/ItemLists/SceneInstanceData.h>
 #include <DeepSea/Scene/Nodes/SceneNode.h>
 #include <DeepSea/Scene/Nodes/SceneTreeNode.h>
 
@@ -46,13 +51,26 @@ typedef struct dsSceneParticleDrawList
 {
 	dsSceneItemList itemList;
 
+	dsSceneInstanceData** instanceData;
+	uint32_t instanceDataCount;
 	dsParticleDraw* drawer;
 
 	Entry* entries;
 	uint32_t entryCount;
 	uint32_t maxEntries;
+
+	const dsSceneTreeNode** instances;
+	uint32_t maxInstances;
+
 	uint64_t nextNodeID;
 } dsSceneParticleDrawList;
+
+static void destroyInstanceData(dsSceneInstanceData* const* instanceData,
+	uint32_t instanceDataCount)
+{
+	for (uint32_t i = 0; i < instanceDataCount; ++i)
+		dsSceneInstanceData_destroy(instanceData[i]);
+}
 
 static uint64_t dsSceneParticleDrawList_addNode(dsSceneItemList* itemList, dsSceneNode* node,
 	const dsSceneTreeNode* treeNode, const dsSceneNodeItemData* itemData, void** thisItemData)
@@ -72,7 +90,7 @@ static uint64_t dsSceneParticleDrawList_addNode(dsSceneItemList* itemList, dsSce
 			break;
 	}
 
-	if (prepareListIndex == node->itemListCount)
+	if (prepareListIndex >= node->itemListCount)
 	{
 		DS_LOG_WARNING(DS_SCENE_PARTICLE_LOG_TAG,
 			"Particle node must be registered with a scene particle prepare list to be drawn.");
@@ -130,11 +148,60 @@ static void dsSceneParticleDrawList_commit(dsSceneItemList* itemList, const dsVi
 	dsCommandBuffer* commandBuffer)
 {
 	DS_PROFILE_DYNAMIC_SCOPE_START(itemList->name);
+	dsRenderer_pushDebugGroup(commandBuffer->renderer, commandBuffer, itemList->name);
 
 	dsSceneParticleDrawList* drawList = (dsSceneParticleDrawList*)itemList;
-	DS_CHECK(DS_SCENE_PARTICLE_LOG_TAG, dsParticleDraw_draw(drawList->drawer, commandBuffer,
-		view->globalValues, &view->viewMatrix, &view->viewFrustum));
 
+	uint32_t instanceCount = 0;
+	for (uint32_t i = 0; i < drawList->entryCount; ++i)
+	{
+		// Particle draw uses the view frustum for culling.
+		Entry* entry = drawList->entries + i;
+		if (dsFrustum3f_intersectOrientedBox(&view->viewFrustum, &entry->emitter->bounds) ==
+				dsIntersectResult_Outside)
+		{
+			continue;
+		}
+
+		uint32_t index = instanceCount;
+		if (!DS_CHECK(DS_SCENE_PARTICLE_LOG_TAG, DS_RESIZEABLE_ARRAY_ADD(itemList->allocator,
+				drawList->instances, instanceCount, drawList->maxInstances, 1)))
+		{
+			dsRenderer_popDebugGroup(commandBuffer->renderer, commandBuffer);
+			DS_PROFILE_SCOPE_END();
+			return;
+		}
+
+		drawList->instances[index] = entry->treeNode;
+	}
+
+	if (instanceCount == 0)
+	{
+		dsRenderer_popDebugGroup(commandBuffer->renderer, commandBuffer);
+		DS_PROFILE_SCOPE_END();
+		return;
+	}
+
+	for (uint32_t i = 0; i < drawList->instanceDataCount; ++i)
+	{
+		DS_CHECK(DS_SCENE_PARTICLE_LOG_TAG, dsSceneInstanceData_populateData(
+				drawList->instanceData[i], view, drawList->instances, instanceCount));
+	}
+
+	dsSceneParticleInstanceData drawData =
+	{
+		drawList->instanceData,
+		drawList->instances,
+		drawList->instanceDataCount,
+		instanceCount
+	};
+	DS_CHECK(DS_SCENE_PARTICLE_LOG_TAG, dsParticleDraw_draw(drawList->drawer, commandBuffer,
+		view->globalValues, &view->viewMatrix, &view->viewFrustum, &drawData));
+
+	for (uint32_t i = 0; i < drawList->instanceDataCount; ++i)
+		DS_CHECK(DS_SCENE_PARTICLE_LOG_TAG, dsSceneInstanceData_finish(drawList->instanceData[i]));
+
+	dsRenderer_popDebugGroup(commandBuffer->renderer, commandBuffer);
 	DS_PROFILE_SCOPE_END();
 }
 
@@ -142,6 +209,8 @@ static void dsSceneParticleDrawList_destroy(dsSceneItemList* itemList)
 {
 	dsSceneParticleDrawList* drawList = (dsSceneParticleDrawList*)itemList;
 	DS_VERIFY(dsAllocator_free(itemList->allocator, drawList->entries));
+	DS_VERIFY(dsAllocator_free(itemList->allocator, (void*)drawList->instances));
+	destroyInstanceData(drawList->instanceData, drawList->instanceDataCount);
 	dsParticleDraw_destroy(drawList->drawer);
 	DS_VERIFY(dsAllocator_free(itemList->allocator, itemList));
 }
@@ -155,11 +224,14 @@ dsSceneItemListType dsSceneParticleDrawList_type(void)
 }
 
 dsSceneItemList* dsSceneParticleDrawList_create(dsAllocator* allocator, const char* name,
-	dsResourceManager* resourceManager, dsAllocator* resourceAllocator)
+	dsResourceManager* resourceManager, dsAllocator* resourceAllocator,
+	dsSceneInstanceData* const* instanceData, uint32_t instanceDataCount)
 {
-	if (!allocator || !name || !resourceAllocator)
+	if (!allocator || !name || !resourceAllocator || (!instanceData && instanceDataCount > 0))
 	{
 		errno = EINVAL;
+		if (instanceData)
+			destroyInstanceData(instanceData, instanceDataCount);
 		return NULL;
 	}
 
@@ -168,15 +240,30 @@ dsSceneItemList* dsSceneParticleDrawList_create(dsAllocator* allocator, const ch
 		errno = EINVAL;
 		DS_LOG_ERROR(DS_SCENE_PARTICLE_LOG_TAG,
 			"Particle drfaw list allocator must support freeing memory.");
+		destroyInstanceData(instanceData, instanceDataCount);
 		return NULL;
 	}
 
+	for (uint32_t i = 0; i < instanceDataCount; ++i)
+	{
+		if (instanceData[i])
+		{
+			errno = EINVAL;
+			destroyInstanceData(instanceData, instanceDataCount);
+			return NULL;
+		}
+	}
+
 	size_t nameLen = strlen(name);
-	size_t fullSize =
-		DS_ALIGNED_SIZE(sizeof(dsSceneParticleDrawList)) + DS_ALIGNED_SIZE(nameLen + 1);
+	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsSceneParticleDrawList)) +
+		DS_ALIGNED_SIZE(nameLen + 1) +
+		DS_ALIGNED_SIZE(sizeof(dsSceneInstanceData*)*instanceDataCount);
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
+	{
+		destroyInstanceData(instanceData, instanceDataCount);
 		return NULL;
+	}
 
 	dsBufferAllocator bufferAlloc;
 	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, fullSize));
@@ -198,9 +285,23 @@ dsSceneItemList* dsSceneParticleDrawList_create(dsAllocator* allocator, const ch
 	itemList->commitFunc = &dsSceneParticleDrawList_commit;
 	itemList->destroyFunc = &dsSceneParticleDrawList_destroy;
 
+	if (instanceDataCount > 0)
+	{
+		drawList->instanceData = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsSceneInstanceData*,
+			instanceDataCount);
+		DS_ASSERT(drawList->instanceData);
+		memcpy(drawList->instanceData, instanceData,
+			sizeof(dsSceneInstanceData*)*instanceDataCount);
+	}
+	else
+		drawList->instanceData = NULL;
+	drawList->instanceDataCount = instanceDataCount;
+
 	drawList->entries = NULL;
 	drawList->entryCount = 0;
 	drawList->maxEntries = 0;
+	drawList->instances = NULL;
+	drawList->maxInstances = 0;
 	drawList->nextNodeID = 0;
 
 	drawList->drawer = dsParticleDraw_create(allocator, resourceManager, resourceAllocator);

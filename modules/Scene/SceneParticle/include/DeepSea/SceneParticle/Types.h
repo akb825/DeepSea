@@ -104,6 +104,33 @@ typedef struct dsSceneParticleEmitterFactory
 	dsDestroySceneUserDataFunction destroyUserDataFunc;
 } dsSceneParticleEmitterFactory;
 
+/**
+ * @brief Struct describing data used to populate instance values for particles.
+ * @see PopulateSceneParticleInstanceData.h
+ */
+typedef struct dsSceneParticleInstanceData
+{
+	/**
+	 * @brief The instance data to populate with.
+	 */
+	dsSceneInstanceData* const* instanceData;
+
+	/**
+	 * @brief The instances that are available.
+	 */
+	const dsSceneTreeNode* const* instances;
+
+	/**
+	 * @brief The number of instance data objects.
+	 */
+	uint32_t instanceDataCount;
+
+	/**
+	 * @brief The number of instances.
+	 */
+	uint32_t instanceCount;
+} dsSceneParticleInstanceData;
+
 #ifdef __cplusplus
 }
 #endif

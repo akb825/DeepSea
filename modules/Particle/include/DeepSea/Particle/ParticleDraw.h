@@ -78,11 +78,12 @@ DS_PARTICLE_EXPORT bool dsParticleDraw_removeEmitter(dsParticleDraw* drawer,
  * @param globalValues The global material values to use with the materials for the particles.
  * @param viewMatrix The view matrix the particles will be drawn with.
  * @param viewFrustum The frustum of the view to cull particle emitters.
+ * @param drawData Data forwarded for the draw to populate instance data.
  * @return False if an error occurred.
  */
 DS_PARTICLE_EXPORT bool dsParticleDraw_draw(dsParticleDraw* drawer,
 	dsCommandBuffer* commandBuffer, const dsSharedMaterialValues* globalValues,
-	const dsMatrix44f* viewMatrix, const dsFrustum3f* viewFrustum);
+	const dsMatrix44f* viewMatrix, const dsFrustum3f* viewFrustum, void* drawData);
 
 /**
  * @brief Destroys a particle drawer.
@@ -95,4 +96,3 @@ DS_PARTICLE_EXPORT bool dsParticleDraw_destroy(dsParticleDraw* drawer);
 #ifdef __cplusplus
 }
 #endif
-

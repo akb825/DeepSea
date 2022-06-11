@@ -27,7 +27,9 @@
 #include <DeepSea/Particle/StandardParticleEmitter.h>
 
 #include <DeepSea/Scene/Nodes/SceneTreeNode.h>
+
 #include <DeepSea/SceneParticle/SceneParticleEmitterFactory.h>
+#include <DeepSea/SceneParticle/PopulateSceneParticleInstanceData.h>
 
 #include <string.h>
 
@@ -85,9 +87,11 @@ static dsParticleEmitter* dsSceneStandardParticleEmitterFactory_createEmitter(
 	DS_ASSERT(transform);
 	const dsMatrix44f* relativeTransform = findRelativeTransform(treeNode, factory->relativeNode);
 
-	// TODO: Set populate instance values based on node item lists.
+	dsParticleEmitterParams params = factory->params;
+	params.populateInstanceValuesFunc = &dsPopulateSceneParticleInstanceData;
+	params.populateInstanceValuesUserData = (void*)treeNode;
 	dsStandardParticleEmitter* standardEmitter = dsStandardParticleEmitter_create(allocator,
-		&factory->params, factory->seed, &factory->options, factory->enabled, factory->startTime);
+		&params, factory->seed, &factory->options, factory->enabled, factory->startTime);
 
 	// Advance the seed. (don't care about the actual value)
 	dsRandom(&factory->seed);

@@ -54,10 +54,14 @@ DS_SCENEPARTICLE_EXPORT dsSceneItemListType dsSceneParticleDrawList_type(void);
  * @param resourceManager The resource manager to create graphics resources with.
  * @param resourceAllocator The allocator to allocate graphics resources with. If NULL, allocator
  *     will be used.
+ * @param instanceData The list of instance datas to use. The array will be copied, and this will
+ *     take ownership of each instance data. The instances will be destroyed if an error occurrs.
+ * @param instanceDataCount The number of instance datas.
  * @return The particle draw or NULL if an error occurred.
  */
 DS_SCENEPARTICLE_EXPORT dsSceneItemList* dsSceneParticleDrawList_create(dsAllocator* allocator,
-	const char* name, dsResourceManager* resourceManager, dsAllocator* resourceAllocator);
+	const char* name, dsResourceManager* resourceManager, dsAllocator* resourceAllocator,
+	dsSceneInstanceData* const* instanceData, uint32_t instanceDataCount);
 
 #ifdef __cplusplus
 }
