@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,9 +53,9 @@ DS_CORE_EXPORT void dsSort(void* array, size_t memberCount, size_t memberSize,
  * @param memberSize The size of each member.
  * @param compareFunc The comparison function. The "left" parameter is the key.
  * @param context The context to provide with the comapre function.
- * @return A pointer to a member that equals key, or NULL if not found.
+ * @return A pointer to a member that equals key or NULL if not found.
  */
-DS_CORE_EXPORT void* dsBinarySearch(const void* key, const void* array, size_t memberCount,
+DS_CORE_EXPORT const void* dsBinarySearch(const void* key, const void* array, size_t memberCount,
 	size_t memberSize, dsSortCompareFunction compareFunc, void* context);
 
 /**
@@ -69,7 +69,7 @@ DS_CORE_EXPORT void* dsBinarySearch(const void* key, const void* array, size_t m
  * @return A pointer to the first element that is not less than the key, or NULL if all elelments
  *     are less than the key.
  */
-DS_CORE_EXPORT void* dsBinarySearchLowerBound(const void* key, const void* array,
+DS_CORE_EXPORT const void* dsBinarySearchLowerBound(const void* key, const void* array,
 	size_t memberCount, size_t memberSize, dsSortCompareFunction compareFunc, void* context);
 
 /**
@@ -83,7 +83,7 @@ DS_CORE_EXPORT void* dsBinarySearchLowerBound(const void* key, const void* array
  * @return The last element that's not greater than the key, or NULL if all elements are greater
  *     than the key.
  */
-DS_CORE_EXPORT void* dsBinarySearchUpperBound(const void* key, const void* array,
+DS_CORE_EXPORT const void* dsBinarySearchUpperBound(const void* key, const void* array,
 	size_t memberCount, size_t memberSize, dsSortCompareFunction compareFunc, void* context);
 
 #ifdef __cplusplus

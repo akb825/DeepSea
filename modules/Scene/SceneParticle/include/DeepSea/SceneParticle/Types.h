@@ -117,6 +117,10 @@ typedef struct dsSceneParticleInstanceData
 
 	/**
 	 * @brief The instances that are available.
+	 *
+	 * This must be sorted from low to high pointer values, which can be done with
+	 * dsSortSceneParticleInstances(). This allows a binary search to find the instance index by
+	 * pointer when populating instance data, avoiding O(N^2) overall time complexity.
 	 */
 	const dsSceneTreeNode* const* instances;
 

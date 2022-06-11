@@ -35,6 +35,7 @@
 #include <DeepSea/Scene/Nodes/SceneNode.h>
 #include <DeepSea/Scene/Nodes/SceneTreeNode.h>
 
+#include <DeepSea/SceneParticle/PopulateSceneParticleInstanceData.h>
 #include <DeepSea/SceneParticle/SceneParticleNode.h>
 #include <DeepSea/SceneParticle/SceneParticlePrepareList.h>
 
@@ -181,6 +182,9 @@ static void dsSceneParticleDrawList_commit(dsSceneItemList* itemList, const dsVi
 		DS_PROFILE_SCOPE_END();
 		return;
 	}
+
+	// Instances must be sorted to populate the instance values.
+	dsSortSceneParticleInstances(drawList->instances, instanceCount);
 
 	for (uint32_t i = 0; i < drawList->instanceDataCount; ++i)
 	{

@@ -43,6 +43,16 @@ extern "C"
 DS_SCENEPARTICLE_EXPORT bool dsPopulateSceneParticleInstanceData(const dsParticleEmitter* emitter,
 	void* userData, dsSharedMaterialValues* values, void* drawData);
 
+/**
+ * @brief Sorts the scene particle instances for use with dsSceneParticleInstanceData.
+ * @remark errno will be set on failure.
+ * @param instances The instances to sort.
+ * @param instanceCount The number of instances.
+ * @return False if the parameters are invalid.
+ */
+DS_SCENEPARTICLE_EXPORT bool dsSortSceneParticleInstances(const dsSceneTreeNode** instances,
+	uint32_t instanceCount);
+
 #ifdef __cplusplus
 }
 #endif

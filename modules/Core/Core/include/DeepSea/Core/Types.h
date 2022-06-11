@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Aaron Barany
+ * Copyright 2016-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -83,7 +83,7 @@ typedef struct dsIndexRange
  * @param left The left item.
  * @param right The right item.
  * @param context The context passed with the sort.
- * @return < 0 if left < right, > 9 if left > right, or 0 if left == right.
+ * @return < 0 if left < right, > 0 if left > right, or 0 if left == right.
  */
 typedef int (*dsSortCompareFunction)(const void* left, const void* right, void* context);
 

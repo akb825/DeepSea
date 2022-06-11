@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -77,13 +77,13 @@ void dsSort(void* array, size_t memberCount, size_t memberSize, dsSortCompareFun
 #endif
 }
 
-void* dsBinarySearch(const void* key, const void* array, size_t memberCount,
+const void* dsBinarySearch(const void* key, const void* array, size_t memberCount,
 	size_t memberSize, dsSortCompareFunction compareFunc, void* context)
 {
 	if (!array || memberCount == 0 || memberSize == 0 || !compareFunc)
 		return NULL;
 
-	uint8_t* arrayBytes = (uint8_t*)array;
+	const uint8_t* arrayBytes = (const uint8_t*)array;
 	size_t start = 0;
 	size_t count = memberCount;
 	while (count > 0)
@@ -107,13 +107,13 @@ void* dsBinarySearch(const void* key, const void* array, size_t memberCount,
 	return NULL;
 }
 
-void* dsBinarySearchLowerBound(const void* key, const void* array, size_t memberCount,
+const void* dsBinarySearchLowerBound(const void* key, const void* array, size_t memberCount,
 	size_t memberSize, dsSortCompareFunction compareFunc, void* context)
 {
 	if (!array || memberCount == 0 || memberSize == 0 || !compareFunc)
 		return NULL;
 
-	uint8_t* arrayBytes = (uint8_t*)array;
+	const uint8_t* arrayBytes = (const uint8_t*)array;
 	size_t start = 0;
 	size_t count = memberCount;
 	int compare = 0;
@@ -158,13 +158,13 @@ void* dsBinarySearchLowerBound(const void* key, const void* array, size_t member
 	return arrayBytes + start*memberSize;
 }
 
-void* dsBinarySearchUpperBound(const void* key, const void* array, size_t memberCount,
+const void* dsBinarySearchUpperBound(const void* key, const void* array, size_t memberCount,
 	size_t memberSize, dsSortCompareFunction compareFunc, void* context)
 {
 	if (!array || memberCount == 0 || memberSize == 0 || !compareFunc)
 		return NULL;
 
-	uint8_t* arrayBytes = (uint8_t*)array;
+	const uint8_t* arrayBytes = (const uint8_t*)array;
 	size_t start = 0;
 	size_t count = memberCount;
 	int compare = 0;
