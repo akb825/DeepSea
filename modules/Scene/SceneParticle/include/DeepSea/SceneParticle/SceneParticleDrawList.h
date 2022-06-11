@@ -29,8 +29,10 @@ extern "C"
  * @file
  * @brief Functions for creating and manipulating scene particle draw lists.
  *
- * This will draw particles prepared with scene particle prepares. This doesn't manage any nodes
- * within the scene.
+ * This will draw particles prepared with scene particle prepares.
+ *
+ * @remark Since the scene particle prepare list instances are responsible for creating the particle
+ * emitter, it must appear earlier in the item list array than any scene particle draw lists.
  */
 
 /**
@@ -49,13 +51,13 @@ DS_SCENEPARTICLE_EXPORT dsSceneItemListType dsSceneParticleDrawList_type(void);
  * @remark errno will be set on failure.
  * @param allocator The allocator to create the list with.
  * @param name The name of the particle draw. This will be copied.
- * @param particleDraws The particle draws that will be used to draw the particle emitters managed
- *    by the particle prepare list. This array will be copied.
- * @param particleDrawCount The number of particle draws.
+ * @param resourceManager The resource manager to create graphics resources with.
+ * @param resourceAllocator The allocator to allocate graphics resources with. If NULL, allocator
+ *     will be used.
  * @return The particle draw or NULL if an error occurred.
  */
 DS_SCENEPARTICLE_EXPORT dsSceneItemList* dsSceneParticleDrawList_create(dsAllocator* allocator,
-	const char* name, dsParticleDraw* const* particleDraws, uint32_t particleDrawCount);
+	const char* name, dsResourceManager* resourceManager, dsAllocator* resourceAllocator);
 
 #ifdef __cplusplus
 }

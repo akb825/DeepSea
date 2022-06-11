@@ -470,6 +470,8 @@ typedef struct dsSceneNodeItemData
 {
 	/**
 	 * @brief The data associated with each item list the node is used with.
+	 *
+	 * The members will follow the same order as the item lists they are associated with.
 	 */
 	dsSceneItemData* itemData;
 

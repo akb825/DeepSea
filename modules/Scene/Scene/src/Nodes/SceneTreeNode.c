@@ -29,6 +29,8 @@
 #include <DeepSea/Scene/Nodes/SceneNode.h>
 #include <DeepSea/Scene/Nodes/SceneTransformNode.h>
 
+#include <string.h>
+
 static void updateTransform(dsSceneTreeNode* node)
 {
 	if (node->node->type == dsSceneTransformNode_type())
@@ -110,6 +112,11 @@ static dsSceneTreeNode* addNode(dsSceneTreeNode* node, dsSceneNode* child,
 		child->itemListCount);
 	DS_ASSERT(childTreeNode->itemData.itemData || child->itemListCount == 0);
 	childTreeNode->itemData.count = child->itemListCount;
+
+	// Initialize the item list data so searches through it in a node add function won't ever reveal
+	// uninitialized data.
+	memset(childTreeNode->itemData.itemData, 0, sizeof(dsSceneItemData)*child->itemListCount);
+
 	for (uint32_t i = 0; i < child->itemListCount; ++i)
 	{
 		dsSceneItemData* itemData = childTreeNode->itemData.itemData + i;
@@ -124,7 +131,6 @@ static dsSceneTreeNode* addNode(dsSceneTreeNode* node, dsSceneNode* child,
 		{
 			itemEntry->list = NULL;
 			itemEntry->entry = DS_NO_SCENE_NODE;
-			itemData->nameID = 0;
 			continue;
 		}
 
@@ -181,8 +187,9 @@ static void removeSubtreeRec(dsSceneNode* child, uint32_t treeNodeIndex, dsScene
 		removeSubtreeRec(nextTreeNode->node, findTreeNodeIndex(nextTreeNode), scene);
 	}
 
-	// Dispose of the node.
-	for (uint32_t i = 0; i < child->itemListCount; ++i)
+	// Dispose of the node. Remove in reverse order in case there's dependencies between the item
+	// lists.
+	for (uint32_t i = child->itemListCount; i-- > 0;)
 	{
 		uint64_t entry = childTreeNode->itemLists[i].entry;
 		if (entry == DS_NO_SCENE_NODE)
@@ -260,6 +267,19 @@ const dsSceneTreeNode* dsSceneTreeNode_getChild(const dsSceneTreeNode* node, uin
 	}
 
 	return node->children[index];
+}
+
+uint32_t dsSceneTreeNode_getItemListCount(const dsSceneTreeNode* node)
+{
+	return node ? node->node->itemListCount : 0;
+}
+
+const dsSceneItemList* dsSceneTreeNode_getItemList(const dsSceneTreeNode* node, uint32_t index)
+{
+	if (!node || index >= node->node->itemListCount)
+		return NULL;
+
+	return node->itemLists[index].list;
 }
 
 const dsMatrix44f* dsSceneTreeNode_getTransform(const dsSceneTreeNode* node)

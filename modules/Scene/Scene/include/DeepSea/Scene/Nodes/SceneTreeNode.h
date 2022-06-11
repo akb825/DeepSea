@@ -64,6 +64,26 @@ DS_SCENE_EXPORT const dsSceneTreeNode* dsSceneTreeNode_getChild(const dsSceneTre
 	uint32_t index);
 
 /**
+ * @brief Gets the number item lists of a tree node.
+ *
+ * This is the same as the number of item lists of the scene node.
+ *
+ * @param node The scene tree node.
+ * @return The number of item lists.
+ */
+DS_SCENE_EXPORT uint32_t dsSceneTreeNode_getItemListCount(const dsSceneTreeNode* node);
+
+/**
+ * @brief Gets the item list for a tree node.
+ * @param node The scene tree node.
+ * @param index The index of the item list.
+ * @return The item list or NULL if node is null, index is out of range, or the item list set on the
+ *     scene node was invalid for the node.
+ */
+DS_SCENE_EXPORT const dsSceneItemList* dsSceneTreeNode_getItemList(const dsSceneTreeNode* node,
+	uint32_t index);
+
+/**
  * @brief Gets the transform for a tree node.
  * @remark errno will be set on failure.
  * @param node The scene tree node.

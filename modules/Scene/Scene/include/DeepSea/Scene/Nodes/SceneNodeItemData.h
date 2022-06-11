@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Aaron Barany
+ * Copyright 2019-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +38,8 @@ extern "C"
  * @return The data or NULL if not found. Note that for some items, the data may be stored directly
  *     in the pointer itself.
  */
-DS_SCENE_EXPORT void* dsSceneNodeItemData_findName(dsSceneNodeItemData* itemData, const char* name);
+DS_SCENE_EXPORT void* dsSceneNodeItemData_findName(const dsSceneNodeItemData* itemData,
+	const char* name);
 
 /**
  * @brief Finds item data based on the name ID.
@@ -47,7 +48,8 @@ DS_SCENE_EXPORT void* dsSceneNodeItemData_findName(dsSceneNodeItemData* itemData
  * @return The data or NULL if not found. Note that for some items, the data may be stored directly
  *     in the pointer itself.
  */
-DS_SCENE_EXPORT void* dsSceneNodeItemData_findID(dsSceneNodeItemData* itemData, uint32_t nameID);
+DS_SCENE_EXPORT void* dsSceneNodeItemData_findID(const dsSceneNodeItemData* itemData,
+	uint32_t nameID);
 
 #ifdef __cplusplus
 }

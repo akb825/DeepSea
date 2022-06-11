@@ -178,7 +178,7 @@ typedef void (*dsPopulateSceneInstanceVariablesFunction)(void* userData, const d
  * @return The ID of the node within the item list, or DS_NO_SCENE_NODE if not added.
  */
 typedef uint64_t (*dsAddSceneItemListNodeFunction)(dsSceneItemList* itemList, dsSceneNode* node,
-	const dsSceneTreeNode* treeNode, dsSceneNodeItemData* itemData, void** thisItemData);
+	const dsSceneTreeNode* treeNode, const dsSceneNodeItemData* itemData, void** thisItemData);
 
 /**
  * @brief Function for updating a node in an item list.

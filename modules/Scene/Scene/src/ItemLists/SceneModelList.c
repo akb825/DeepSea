@@ -49,7 +49,7 @@ typedef struct Entry
 	const dsSceneModelNode* node;
 	const dsSceneTreeNode* treeNode;
 	const dsMatrix44f* transform;
-	dsSceneNodeItemData* itemData;
+	const dsSceneNodeItemData* itemData;
 	uint64_t nodeID;
 } Entry;
 
@@ -325,7 +325,7 @@ static void destroyInstanceData(dsSceneInstanceData* const* instanceData,
 }
 
 static uint64_t dsSceneModelList_addNode(dsSceneItemList* itemList, dsSceneNode* node,
-	const dsSceneTreeNode* treeNode, dsSceneNodeItemData* itemData, void** thisItemData)
+	const dsSceneTreeNode* treeNode, const dsSceneNodeItemData* itemData, void** thisItemData)
 {
 	DS_UNUSED(thisItemData);
 	if (!dsSceneNode_isOfType(node, dsSceneModelNode_type()))

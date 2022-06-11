@@ -59,7 +59,7 @@ typedef struct Entry
 {
 	const dsSceneVectorNode* node;
 	const dsSceneTreeNode* treeNode;
-	dsSceneNodeItemData* itemData;
+	const dsSceneNodeItemData* itemData;
 	uint64_t nodeID;
 } Entry;
 
@@ -369,7 +369,7 @@ static void destroyInstanceData(dsSceneInstanceData* const* instanceData,
 }
 
 static uint64_t dsSceneVectorItemList_addNode(dsSceneItemList* itemList, dsSceneNode* node,
-	const dsSceneTreeNode* treeNode, dsSceneNodeItemData* itemData, void** thisItemData)
+	const dsSceneTreeNode* treeNode, const dsSceneNodeItemData* itemData, void** thisItemData)
 {
 	DS_UNUSED(thisItemData);
 	if (!dsSceneNode_isOfType(node, dsSceneVectorNode_type()))

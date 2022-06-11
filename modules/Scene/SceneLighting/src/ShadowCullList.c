@@ -59,7 +59,7 @@ typedef struct dsShadowCullList
 } dsShadowCullList;
 
 static uint64_t dsShadowCullList_addNode(dsSceneItemList* itemList, dsSceneNode* node,
-	const dsSceneTreeNode* treeNode, dsSceneNodeItemData* itemData, void** thisItemData)
+	const dsSceneTreeNode* treeNode, const dsSceneNodeItemData* itemData, void** thisItemData)
 {
 	DS_UNUSED(itemData);
 	if (!dsSceneNode_isOfType(node, dsSceneModelNode_type()))

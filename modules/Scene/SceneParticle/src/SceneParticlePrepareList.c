@@ -45,9 +45,6 @@ typedef struct dsSceneParticlePrepareList
 {
 	dsSceneItemList itemList;
 
-	dsParticleDraw** particleDraws;
-	uint32_t particleDrawCount;
-
 	Entry* entries;
 	uint32_t entryCount;
 	uint32_t maxEntries;
@@ -55,11 +52,10 @@ typedef struct dsSceneParticlePrepareList
 } dsSceneParticlePrepareList;
 
 static uint64_t dsSceneParticlePrepareList_addNode(dsSceneItemList* itemList, dsSceneNode* node,
-	const dsSceneTreeNode* treeNode, dsSceneNodeItemData* itemData, void** thisItemData)
+	const dsSceneTreeNode* treeNode, const dsSceneNodeItemData* itemData, void** thisItemData)
 {
 	DS_UNUSED(itemData);
 	DS_UNUSED(treeNode);
-	DS_UNUSED(thisItemData);
 	if (!dsSceneNode_isOfType(node, dsSceneParticleNode_type()))
 		return DS_NO_SCENE_NODE;
 
@@ -83,16 +79,7 @@ static uint64_t dsSceneParticlePrepareList_addNode(dsSceneItemList* itemList, ds
 		return DS_NO_SCENE_NODE;
 	}
 
-	for (uint32_t i = 0; i < prepareList->particleDrawCount; ++i)
-	{
-		if (!DS_CHECK(DS_SCENE_PARTICLE_LOG_TAG,
-				dsParticleDraw_addEmitter(prepareList->particleDraws[i], entry->emitter)))
-		{
-			dsParticleEmitter_destroy(entry->emitter);
-			--prepareList->entryCount;
-		}
-	}
-
+	*thisItemData = entry->emitter;
 	entry->nodeID = prepareList->nextNodeID++;
 	return entry->nodeID;
 }
@@ -131,9 +118,11 @@ static void dsSceneParticlePrepareList_update(dsSceneItemList* itemList, const d
 	DS_PROFILE_SCOPE_END();
 }
 
-void dsSceneParticlePrepareList_destroy(dsSceneItemList* itemList)
+static void dsSceneParticlePrepareList_destroy(dsSceneItemList* itemList)
 {
 	dsSceneParticlePrepareList* prepareList = (dsSceneParticlePrepareList*)itemList;
+	for (uint32_t i = 0; i < prepareList->entryCount; ++i)
+		dsParticleEmitter_destroy(prepareList->entries[i].emitter);
 	DS_VERIFY(dsAllocator_free(itemList->allocator, prepareList->entries));
 	DS_VERIFY(dsAllocator_free(itemList->allocator, itemList));
 }
@@ -146,10 +135,9 @@ dsSceneItemListType dsSceneParticlePrepareList_type(void)
 	return &type;
 }
 
-dsSceneItemList* dsSceneParticlePrepareList_create(dsAllocator* allocator, const char* name,
-	dsParticleDraw* const* particleDraws, uint32_t particleDrawCount)
+dsSceneItemList* dsSceneParticlePrepareList_create(dsAllocator* allocator, const char* name)
 {
-	if (!allocator || !name || !particleDraws || particleDrawCount == 0)
+	if (!allocator || !name)
 	{
 		errno = EINVAL;
 		return NULL;
@@ -163,19 +151,9 @@ dsSceneItemList* dsSceneParticlePrepareList_create(dsAllocator* allocator, const
 		return NULL;
 	}
 
-	for (uint32_t i = 0; i < particleDrawCount; ++i)
-	{
-		if (!particleDraws[i])
-		{
-			errno = EINVAL;
-			return false;
-		}
-	}
-
 	size_t nameLen = strlen(name);
 	size_t fullSize =
-		DS_ALIGNED_SIZE(sizeof(dsSceneParticlePrepareList)) + DS_ALIGNED_SIZE(nameLen + 1) +
-		DS_ALIGNED_SIZE(sizeof(dsParticleDraw*)*particleDrawCount);
+		DS_ALIGNED_SIZE(sizeof(dsSceneParticlePrepareList)) + DS_ALIGNED_SIZE(nameLen + 1);
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 		return NULL;
@@ -199,11 +177,6 @@ dsSceneItemList* dsSceneParticlePrepareList_create(dsAllocator* allocator, const
 	itemList->updateFunc = &dsSceneParticlePrepareList_update;
 	itemList->commitFunc = NULL;
 	itemList->destroyFunc = &dsSceneParticlePrepareList_destroy;
-
-	prepareList->particleDraws = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsParticleDraw*,
-		particleDrawCount);
-	DS_ASSERT(prepareList->particleDraws);
-	prepareList->particleDrawCount = particleDrawCount;
 
 	prepareList->entries = NULL;
 	prepareList->entryCount = 0;

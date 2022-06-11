@@ -29,7 +29,8 @@ extern "C"
  * @file
  * @brief Functions for creating and manipulating scene particle prepare lists.
  *
- * This will prepare dsSceneParticleNode node types for drawing.
+ * This is responsible for creating the particle emitters for each unique location a particle node
+ * is in the scene graph and prepares it for rendering.
  */
 
 /**
@@ -48,13 +49,10 @@ DS_SCENEPARTICLE_EXPORT dsSceneItemListType dsSceneParticlePrepareList_type(void
  * @remark errno will be set on failure.
  * @param allocator The allocator to create the list with. This must support freeing memory.
  * @param name The name of the particle prepare list. This will be copied.
- * @param particleDraws The particle draws that will be used to draw the particle emitters managed
- *    by the particle prepare list. This array will be copied.
- * @param particleDrawCount The number of particle draws.
  * @return The particle prepare list or NULL if an error occurred.
  */
 DS_SCENEPARTICLE_EXPORT dsSceneItemList* dsSceneParticlePrepareList_create(dsAllocator* allocator,
-	const char* name, dsParticleDraw* const* particleDraws, uint32_t particleDrawCount);
+	const char* name);
 
 #ifdef __cplusplus
 }

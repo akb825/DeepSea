@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Aaron Barany
+ * Copyright 2019-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,12 +18,12 @@
 
 #include <DeepSea/Core/Containers/Hash.h>
 
-void* dsSceneNodeItemData_findName(dsSceneNodeItemData* itemData, const char* name)
+void* dsSceneNodeItemData_findName(const dsSceneNodeItemData* itemData, const char* name)
 {
 	return dsSceneNodeItemData_findID(itemData, dsHashString(name));
 }
 
-void* dsSceneNodeItemData_findID(dsSceneNodeItemData* itemData, uint32_t nameID)
+void* dsSceneNodeItemData_findID(const dsSceneNodeItemData* itemData, uint32_t nameID)
 {
 	if (!itemData)
 		return NULL;
