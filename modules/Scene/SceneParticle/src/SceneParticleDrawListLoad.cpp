@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022 Aaron Barany
+ * Copyright 2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,50 +14,50 @@
  * limitations under the License.
  */
 
-#include <DeepSea/Scene/ItemLists/SceneModelList.h>
+#include "SceneParticleDrawListLoad.h"
 
-#include "SceneLoadContextInternal.h"
+#include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/StackAllocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 
-#include <DeepSea/Scene/Flatbuffers/SceneFlatbufferHelpers.h>
 #include <DeepSea/Scene/ItemLists/SceneInstanceData.h>
+#include <DeepSea/Scene/SceneLoadContext.h>
+
+#include <DeepSea/SceneParticle/SceneParticleDrawList.h>
 
 #if DS_GCC || DS_CLANG
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wconversion"
 #endif
 
-#include "Flatbuffers/ModelList_generated.h"
+#include "Flatbuffers/ParticleDrawList_generated.h"
 
 #if DS_GCC || DS_CLANG
 #pragma GCC diagnostic pop
 #endif
 
-extern "C"
-dsSceneItemList* dsSceneModelList_load(const dsSceneLoadContext* loadContext,
+dsSceneItemList* dsSceneParticleDrawList_load(const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
 	void*, const char* name, const uint8_t* data, size_t dataSize)
 {
 	flatbuffers::Verifier verifier(data, dataSize);
-	if (!DeepSeaScene::VerifyModelListBuffer(verifier))
+	if (!DeepSeaSceneParticle::VerifyParticleDrawListBuffer(verifier))
 	{
 		errno = EFORMAT;
-		DS_LOG_ERROR(DS_SCENE_LOG_TAG, "Invalid model list flatbuffer format.");
+		DS_LOG_ERROR(DS_SCENE_PARTICLE_LOG_TAG, "Invalid particle draw list flatbuffer format.");
 		return nullptr;
 	}
 
-	auto fbModelList = DeepSeaScene::GetModelList(data);
-	auto fbInstanceData = fbModelList->instanceData();
-	auto fbDynamicRenderStates = fbModelList->dynamicRenderStates();
-	auto fbCullList = fbModelList->cullList();
+	dsResourceManager* resourceManager =
+		dsSceneLoadContext_getRenderer(loadContext)->resourceManager;
 
-	uint32_t instanceDataCount = 0;
+	auto fbDrawList = DeepSeaSceneParticle::GetParticleDrawList(data);
+	auto fbInstanceData = fbDrawList->instanceData();
+
 	dsSceneInstanceData** instanceData = nullptr;
-	dsDynamicRenderStates dynamicRenderStates;
-
+	uint32_t instanceDataCount = 0;
 	if (fbInstanceData && fbInstanceData->size() > 0)
 	{
 		instanceDataCount = fbInstanceData->size();
@@ -77,7 +77,8 @@ dsSceneItemList* dsSceneModelList_load(const dsSceneLoadContext* loadContext,
 			else
 			{
 				errno = EFORMAT;
-				DS_LOG_ERROR(DS_SCENE_LOG_TAG, "Model list instance data is null.");
+				DS_LOG_ERROR(DS_SCENE_PARTICLE_LOG_TAG,
+					"Particle draw list instance data is null.");
 			}
 
 			if (!instance)
@@ -91,13 +92,8 @@ dsSceneItemList* dsSceneModelList_load(const dsSceneLoadContext* loadContext,
 		}
 	}
 
-	if (fbDynamicRenderStates)
-		dynamicRenderStates = DeepSeaScene::convert(*fbDynamicRenderStates);
-
-	return reinterpret_cast<dsSceneItemList*>(dsSceneModelList_create(allocator, name, instanceData,
-		instanceDataCount, static_cast<dsModelSortType>(fbModelList->sortType()),
-		fbDynamicRenderStates ? &dynamicRenderStates : nullptr,
-		fbCullList ? fbCullList->c_str() : nullptr));
+	return dsSceneParticleDrawList_create(allocator, name, resourceManager, resourceAllocator,
+		instanceData, instanceDataCount);
 
 error:
 	// instanceDataCount should be the number that we need to clean up.

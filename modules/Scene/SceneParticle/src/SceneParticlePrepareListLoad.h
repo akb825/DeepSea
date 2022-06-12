@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2022 Aaron Barany
+ * Copyright 2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,14 +17,15 @@
 #pragma once
 
 #include <DeepSea/Core/Config.h>
-#include <DeepSea/VectorDrawScene/Types.h>
+#include <DeepSea/Scene/Types.h>
+#include <DeepSea/SceneParticle/Types.h>
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
 
-dsSceneItemList* dsSceneVectorPrepareList_load(const dsSceneLoadContext* loadContext,
+dsSceneItemList* dsSceneParticlePrepareList_load(const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
 	void* userData, const char* name, const uint8_t* data, size_t dataSize);
 

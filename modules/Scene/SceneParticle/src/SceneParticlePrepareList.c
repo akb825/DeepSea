@@ -16,6 +16,8 @@
 
 #include <DeepSea/SceneParticle/SceneParticlePrepareList.h>
 
+#include "SceneParticlePrepareListLoad.h"
+
 #include <DeepSea/Core/Containers/Hash.h>
 #include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
@@ -125,6 +127,19 @@ static void dsSceneParticlePrepareList_destroy(dsSceneItemList* itemList)
 		dsParticleEmitter_destroy(prepareList->entries[i].emitter);
 	DS_VERIFY(dsAllocator_free(itemList->allocator, prepareList->entries));
 	DS_VERIFY(dsAllocator_free(itemList->allocator, itemList));
+}
+
+dsSceneItemList* dsSceneParticlePrepareList_load(const dsSceneLoadContext* loadContext,
+	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
+	void* userData, const char* name, const uint8_t* data, size_t dataSize)
+{
+	DS_UNUSED(loadContext);
+	DS_UNUSED(scratchData);
+	DS_UNUSED(resourceAllocator);
+	DS_UNUSED(userData);
+	DS_UNUSED(data);
+	DS_UNUSED(dataSize);
+	return dsSceneParticlePrepareList_create(allocator, name);
 }
 
 const char* const dsSceneParticlePrepareList_typeName = "ParticlePrepareList";

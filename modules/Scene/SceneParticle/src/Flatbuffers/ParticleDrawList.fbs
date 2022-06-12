@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2022 Aaron Barany
+ * Copyright 2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,15 @@
  * limitations under the License.
  */
 
-#pragma once
+include "DeepSea/Scene/Flatbuffers/SceneCommon.fbs";
 
-#include <DeepSea/Core/Config.h>
-#include <DeepSea/VectorDrawScene/Types.h>
+namespace DeepSeaSceneParticle;
 
-#ifdef __cplusplus
-extern "C"
+// Struct describing a particle draw list.
+table ParticleDrawList
 {
-#endif
-
-dsSceneItemList* dsSceneVectorPrepareList_load(const dsSceneLoadContext* loadContext,
-	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
-	void* userData, const char* name, const uint8_t* data, size_t dataSize);
-
-#ifdef __cplusplus
+	// List of instance data for the particles.
+	instanceData : [DeepSeaScene.ObjectData];
 }
-#endif
+
+root_type ParticleDrawList;

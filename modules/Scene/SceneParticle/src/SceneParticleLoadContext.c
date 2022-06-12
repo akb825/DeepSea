@@ -20,11 +20,15 @@
 
 #include <DeepSea/SceneParticle/SceneParticleEmitterFactory.h>
 #include <DeepSea/SceneParticle/SceneParticleNode.h>
+#include <DeepSea/SceneParticle/SceneParticleDrawList.h>
+#include <DeepSea/SceneParticle/SceneParticlePrepareList.h>
 #include <DeepSea/SceneParticle/SceneStandardParticleEmitterFactory.h>
 
 #include <DeepSea/Scene/SceneLoadContext.h>
 
 #include "SceneParticleNodeLoad.h"
+#include "SceneParticleDrawListLoad.h"
+#include "SceneParticlePrepareListLoad.h"
 #include "SceneStandardParticleEmitterFactoryLoad.h"
 
 static bool destroyParticleEmitterFactory(void* resource)
@@ -51,6 +55,18 @@ bool dsSceneParticleLoadConext_registerTypes(dsSceneLoadContext* loadContext)
 
 	if (!dsSceneLoadContext_registerNodeType(loadContext, dsSceneParticleNode_typeName,
 			&dsSceneParticleNode_load, NULL, NULL))
+	{
+		return false;
+	}
+
+	if (!dsSceneLoadContext_registerItemListType(loadContext, dsSceneParticleDrawList_typeName,
+			&dsSceneParticleDrawList_load, NULL, NULL))
+	{
+		return false;
+	}
+
+	if (!dsSceneLoadContext_registerItemListType(loadContext, dsSceneParticlePrepareList_typeName,
+			&dsSceneParticlePrepareList_load, NULL, NULL))
 	{
 		return false;
 	}

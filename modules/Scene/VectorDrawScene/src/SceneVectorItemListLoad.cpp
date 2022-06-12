@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Aaron Barany
+ * Copyright 2020-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,13 @@
 
 #include "SceneVectorItemListLoad.h"
 
-#include <DeepSea/Core/Memory/Allocator.h>
+#include <DeepSea/Core/Memory/StackAllocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 
 #include <DeepSea/Scene/ItemLists/SceneInstanceData.h>
 #include <DeepSea/Scene/SceneLoadContext.h>
-#include <DeepSea/Scene/SceneLoadScratchData.h>
 #include <DeepSea/VectorDrawScene/SceneVectorItemList.h>
 
 #if DS_GCC || DS_CLANG
@@ -53,25 +52,17 @@ dsSceneItemList* dsSceneVectorItemList_load(const dsSceneLoadContext* loadContex
 	auto fbInstanceData = fbVectorList->instanceData();
 	auto fbDynamicRenderStates = fbVectorList->dynamicRenderStates();
 
-	dsAllocator* scratchAllocator = dsSceneLoadScratchData_getAllocator(scratchData);
-	DS_ASSERT(scratchAllocator);
 	uint32_t instanceDataCount = 0;
 	dsSceneInstanceData** instanceData = nullptr;
 	dsDynamicRenderStates dynamicRenderStates;
-	dsSceneVectorItemList* vectorList = nullptr;
 	dsResourceManager* resourceManager =
 		dsSceneLoadContext_getRenderer(loadContext)->resourceManager;
 
 	if (fbInstanceData && fbInstanceData->size() > 0)
 	{
 		instanceDataCount = fbInstanceData->size();
-		instanceData = DS_ALLOCATE_OBJECT_ARRAY(scratchAllocator, dsSceneInstanceData*,
-			instanceDataCount);
-		if (!instanceData)
-		{
-			instanceDataCount = 0;
-			goto finished;
-		}
+		instanceData = DS_ALLOCATE_STACK_OBJECT_ARRAY(dsSceneInstanceData*, instanceDataCount);
+		DS_ASSERT(instanceData);
 
 		for (uint32_t i = 0; i < instanceDataCount; ++i)
 		{
@@ -93,7 +84,7 @@ dsSceneItemList* dsSceneVectorItemList_load(const dsSceneLoadContext* loadContex
 			{
 				// Only clean up the instances loaded so far.
 				instanceDataCount = i;
-				goto finished;
+				goto error;
 			}
 
 			instanceData[i] = instance;
@@ -147,17 +138,13 @@ dsSceneItemList* dsSceneVectorItemList_load(const dsSceneLoadContext* loadContex
 		dynamicRenderStates.backStencilReference = fbDynamicRenderStates->backStencilReference();
 	}
 
-	vectorList = dsSceneVectorItemList_create(allocator, name, resourceManager, instanceData,
-		instanceDataCount, fbDynamicRenderStates ? &dynamicRenderStates : nullptr);
-	// Took ownership of instance data even if creation failed, so zero out instanceDataCount to
-	// prevent anycleanup.
-	instanceDataCount = 0;
+	return reinterpret_cast<dsSceneItemList*>(dsSceneVectorItemList_create(allocator, name,
+		resourceManager, instanceData, instanceDataCount,
+		fbDynamicRenderStates ? &dynamicRenderStates : nullptr));
 
-finished:
+error:
 	// instanceDataCount should be the number that we need to clean up.
 	for (uint32_t i = 0; i < instanceDataCount; ++i)
 		dsSceneInstanceData_destroy(instanceData[i]);
-	DS_VERIFY(dsAllocator_free(scratchAllocator, instanceData));
-
-	return reinterpret_cast<dsSceneItemList*>(vectorList);
+	return nullptr;
 }
