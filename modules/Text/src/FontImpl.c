@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2018 Aaron Barany
+ * Copyright 2017-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -294,7 +294,7 @@ static bool sortGlyphEdges(dsGlyphGeometry* geometry)
 	// Reserve space for sorted edges. It might be less for invalid loops.
 	uint32_t dummyEdgeCount = 0;
 	if (!DS_RESIZEABLE_ARRAY_ADD(geometry->allocator, geometry->sortedEdges, dummyEdgeCount,
-		geometry->maxEdges, geometry->pointCount))
+			geometry->maxEdges, geometry->pointCount))
 	{
 		return false;
 	}
@@ -619,6 +619,7 @@ dsRunInfo* dsFaceGroup_findBidiRuns(uint32_t* outCount, dsFaceGroup* group, cons
 	SBAlgorithmRef algorithm = SBAlgorithmCreate(&sequence);
 	if (!algorithm)
 	{
+		*outCount = DS_UNICODE_INVALID;
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
@@ -627,18 +628,19 @@ dsRunInfo* dsFaceGroup_findBidiRuns(uint32_t* outCount, dsFaceGroup* group, cons
 	unsigned int paragraphCount = 0;
 	while (offset < sequence.stringLength)
 	{
-		SBUInteger length = 0, separatorLength = 0;
+		SBUInteger length = 0;
 		SBAlgorithmGetParagraphBoundary(algorithm, offset, sequence.stringLength - offset, &length,
-			&separatorLength);
+			NULL);
 		++paragraphCount;
-		offset += length + separatorLength;
+		offset += length;
 	}
 
 	uint32_t tempArrayCount = 0;
 	if (!DS_RESIZEABLE_ARRAY_ADD(group->scratchAllocator, group->paragraphs, tempArrayCount,
-		group->maxParagraphs, paragraphCount))
+			group->maxParagraphs, paragraphCount))
 	{
 		SBAlgorithmRelease(algorithm);
+		*outCount = DS_UNICODE_INVALID;
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 	DS_ASSERT(tempArrayCount == paragraphCount);
@@ -649,7 +651,7 @@ dsRunInfo* dsFaceGroup_findBidiRuns(uint32_t* outCount, dsFaceGroup* group, cons
 	offset = 0;
 	for (unsigned int i = 0; i < paragraphCount; ++i)
 	{
-		SBUInteger length, separatorLength;
+		SBUInteger length = 0, separatorLength = 0;
 		SBAlgorithmGetParagraphBoundary(algorithm, offset, sequence.stringLength - offset, &length,
 			&separatorLength);
 		group->paragraphs[i].paragraph = SBAlgorithmCreateParagraph(algorithm, offset, length,
@@ -661,27 +663,27 @@ dsRunInfo* dsFaceGroup_findBidiRuns(uint32_t* outCount, dsFaceGroup* group, cons
 			continue;
 		}
 
-		group->paragraphs[i].line = SBParagraphCreateLine(group->paragraphs[i].paragraph,
-			offset, length);
-		if (!group->paragraphs[i].line)
+		SBUInteger lineLength = length - separatorLength;
+		if (lineLength > 0)
 		{
-			SBParagraphRelease(group->paragraphs[i].paragraph);
-			group->paragraphs[i].paragraph = NULL;
-		}
-
-		if (!group->paragraphs[i].paragraph)
-		{
-			for (unsigned int j = 0; j < i; ++j)
+			group->paragraphs[i].line = SBParagraphCreateLine(group->paragraphs[i].paragraph,
+				offset, length - separatorLength);
+			if (!group->paragraphs[i].line)
 			{
-				SBLineRelease(group->paragraphs[j].line);
-				SBParagraphRelease(group->paragraphs[j].paragraph);
+				SBParagraphRelease(group->paragraphs[i].paragraph);
+				for (unsigned int j = 0; j < i; ++j)
+				{
+					SBLineRelease(group->paragraphs[j].line);
+					SBParagraphRelease(group->paragraphs[j].paragraph);
+				}
+				SBAlgorithmRelease(algorithm);
+				*outCount = DS_UNICODE_INVALID;
+				DS_PROFILE_FUNC_RETURN(NULL);
 			}
-			SBAlgorithmRelease(algorithm);
-			DS_PROFILE_FUNC_RETURN(NULL);
+			*outCount += (uint32_t)SBLineGetRunCount(group->paragraphs[i].line);
 		}
 
-		offset += length + separatorLength;
-		*outCount += (uint32_t)SBLineGetRunCount(group->paragraphs[i].line);
+		offset += length;
 	}
 
 	// Create the runs.
@@ -698,6 +700,7 @@ dsRunInfo* dsFaceGroup_findBidiRuns(uint32_t* outCount, dsFaceGroup* group, cons
 			SBParagraphRelease(group->paragraphs[i].paragraph);
 		}
 		SBAlgorithmRelease(algorithm);
+		*outCount = DS_UNICODE_INVALID;
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 	DS_ASSERT(tempArrayCount == *outCount);
