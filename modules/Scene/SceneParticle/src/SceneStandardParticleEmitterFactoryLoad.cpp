@@ -131,7 +131,7 @@ void* dsSceneStandardParticleEmitterFactory_load(const dsSceneLoadContext*,
 			DS_ASSERT(false);
 			break;
 	}
-	options.volumeMatrix = DeepSeaScene::convert(*fbFactory->volumeMatrix());
+	options.spawnVolumeMatrix = DeepSeaScene::convert(*fbFactory->spawnVolumeMatrix());
 	options.widthRange = DeepSeaScene::convert(*fbFactory->widthRange());
 	auto fbHeightRange = fbFactory->heightRange();
 	if (fbHeightRange)
@@ -144,7 +144,7 @@ void* dsSceneStandardParticleEmitterFactory_load(const dsSceneLoadContext*,
 	options.spawnTimeRange = DeepSeaScene::convert(*fbFactory->spawnTimeRange());
 	options.activeTimeRange = DeepSeaScene::convert(*fbFactory->activeTimeRange());
 	options.speedRange = DeepSeaScene::convert(*fbFactory->speedRange());
-	options.rotationRange = DeepSeaScene::convert(*fbFactory->rotationRange());
+	options.rotationSpeedRange = DeepSeaScene::convert(*fbFactory->rotationSpeedRange());
 	auto fbTextureRange = fbFactory->textureRange();
 	options.textureRange.x = fbTextureRange->x();
 	options.textureRange.y = fbTextureRange->y();

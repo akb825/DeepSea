@@ -104,8 +104,8 @@ static dsParticleEmitter* dsSceneStandardParticleEmitterFactory_createEmitter(
 		dsStandardParticleEmitterOptions* options =
 			dsStandardParticleEmitter_getMutableOptions(standardEmitter);
 		DS_ASSERT(options);
-		computeVolumeMatrix(&options->volumeMatrix, transform, relativeTransform,
-			&factory->options.volumeMatrix);
+		computeVolumeMatrix(&options->spawnVolumeMatrix, transform, relativeTransform,
+			&factory->options.spawnVolumeMatrix);
 		emitter->transform = *relativeTransform;
 	}
 	else
@@ -139,13 +139,13 @@ static bool dsSceneStandardParticleEmitterFactory_updateEmitter(
 	DS_ASSERT(options);
 	if (relativeTransform)
 	{
-		computeVolumeMatrix(&options->volumeMatrix, transform, relativeTransform,
-			&options->volumeMatrix);
+		computeVolumeMatrix(&options->spawnVolumeMatrix, transform, relativeTransform,
+			&options->spawnVolumeMatrix);
 		emitter->transform = *relativeTransform;
 	}
 	else
 	{
-		options->volumeMatrix = factory->options.volumeMatrix;
+		options->spawnVolumeMatrix = factory->options.spawnVolumeMatrix;
 		emitter->transform = *transform;
 	}
 

@@ -383,7 +383,7 @@ typedef struct dsStandardParticleEmitterOptions
 	/**
 	 * @brief The matrix to transform the volume when spawning particles.
 	 */
-	dsMatrix44f volumeMatrix;
+	dsMatrix44f spawnVolumeMatrix;
 
 	/**
 	 * @brief The minimum and maximum width of the particle.
@@ -428,7 +428,7 @@ typedef struct dsStandardParticleEmitterOptions
 	/**
 	 * @brief The minimum and maximum rotation speed in radians per second.
 	 */
-	dsVector2f rotationRange;
+	dsVector2f rotationSpeedRange;
 
 	/**
 	 * @brief The minimum and maximum texture indices to use.

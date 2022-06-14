@@ -53,7 +53,7 @@ class StandardParticleEmitterFactory(object):
         return None
 
     # StandardParticleEmitterFactory
-    def VolumeMatrix(self):
+    def SpawnVolumeMatrix(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(10))
         if o != 0:
             x = o + self._tab.Pos
@@ -137,7 +137,7 @@ class StandardParticleEmitterFactory(object):
         return None
 
     # StandardParticleEmitterFactory
-    def RotationRange(self):
+    def RotationSpeedRange(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(26))
         if o != 0:
             x = o + self._tab.Pos
@@ -242,9 +242,9 @@ def AddSpawnVolumeType(builder, spawnVolumeType):
 def StandardParticleEmitterFactoryAddSpawnVolume(builder, spawnVolume): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(spawnVolume), 0)
 def AddSpawnVolume(builder, spawnVolume):
     return StandardParticleEmitterFactoryAddSpawnVolume(builder, spawnVolume)
-def StandardParticleEmitterFactoryAddVolumeMatrix(builder, volumeMatrix): builder.PrependStructSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(volumeMatrix), 0)
-def AddVolumeMatrix(builder, volumeMatrix):
-    return StandardParticleEmitterFactoryAddVolumeMatrix(builder, volumeMatrix)
+def StandardParticleEmitterFactoryAddSpawnVolumeMatrix(builder, spawnVolumeMatrix): builder.PrependStructSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(spawnVolumeMatrix), 0)
+def AddSpawnVolumeMatrix(builder, spawnVolumeMatrix):
+    return StandardParticleEmitterFactoryAddSpawnVolumeMatrix(builder, spawnVolumeMatrix)
 def StandardParticleEmitterFactoryAddWidthRange(builder, widthRange): builder.PrependStructSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(widthRange), 0)
 def AddWidthRange(builder, widthRange):
     return StandardParticleEmitterFactoryAddWidthRange(builder, widthRange)
@@ -266,9 +266,9 @@ def AddActiveTimeRange(builder, activeTimeRange):
 def StandardParticleEmitterFactoryAddSpeedRange(builder, speedRange): builder.PrependStructSlot(10, flatbuffers.number_types.UOffsetTFlags.py_type(speedRange), 0)
 def AddSpeedRange(builder, speedRange):
     return StandardParticleEmitterFactoryAddSpeedRange(builder, speedRange)
-def StandardParticleEmitterFactoryAddRotationRange(builder, rotationRange): builder.PrependStructSlot(11, flatbuffers.number_types.UOffsetTFlags.py_type(rotationRange), 0)
-def AddRotationRange(builder, rotationRange):
-    return StandardParticleEmitterFactoryAddRotationRange(builder, rotationRange)
+def StandardParticleEmitterFactoryAddRotationSpeedRange(builder, rotationSpeedRange): builder.PrependStructSlot(11, flatbuffers.number_types.UOffsetTFlags.py_type(rotationSpeedRange), 0)
+def AddRotationSpeedRange(builder, rotationSpeedRange):
+    return StandardParticleEmitterFactoryAddRotationSpeedRange(builder, rotationSpeedRange)
 def StandardParticleEmitterFactoryAddTextureRange(builder, textureRange): builder.PrependStructSlot(12, flatbuffers.number_types.UOffsetTFlags.py_type(textureRange), 0)
 def AddTextureRange(builder, textureRange):
     return StandardParticleEmitterFactoryAddTextureRange(builder, textureRange)

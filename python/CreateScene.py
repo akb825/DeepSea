@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Copyright 2020-2021 Aaron Barany
+# Copyright 2020-2022 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -32,6 +32,9 @@ from DeepSeaSceneLighting.Convert.ShadowInstanceTransformDataConvert \
 from DeepSeaSceneLighting.Convert.ShadowManagerPrepareConvert import convertShadowManagerPrepare
 from DeepSeaSceneLighting.Convert.SSAOConvert import convertSSAO
 
+from DeepSeaSceneParticle.Convert.ParticleDrawListConvert import convertParticleDrawList
+from DeepSeaSceneParticle.Convert.ParticlePrepareListConvert import convertParticlePrepareList
+
 from DeepSeaVectorDrawScene.Convert.VectorItemListConvert import convertVectorItemList
 from DeepSeaVectorDrawScene.Convert.VectorPrepareListConvert import convertVectorPrepareList
 
@@ -60,6 +63,10 @@ if __name__ == '__main__':
 	convertContext.addItemListType('DeferredLightResolve', convertDeferredLightResolve)
 	convertContext.addItemListType('ShadowCullList', convertShadowCullList)
 	convertContext.addItemListType('SSAO', convertSSAO)
+
+	# Particle scene types.
+	convertContext.addItemListType('ParticleDrawList', convertParticleDrawList)
+	convertContext.addItemListType('ParticlePrepareList', convertParticlePrepareList)
 
 	# Vector draw scene types.
 	convertContext.addItemListType('VectorItemList', convertVectorItemList)

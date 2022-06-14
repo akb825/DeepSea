@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Copyright 2020-2021 Aaron Barany
+# Copyright 2020-2022 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -24,6 +24,10 @@ from DeepSeaScene.Convert.SceneResourcesConvert import convertSceneResources
 
 from DeepSeaSceneLighting.Convert.LightSetConvert import convertLightSet
 from DeepSeaSceneLighting.Convert.ShadowManagerConvert import convertShadowManager
+
+from DeepSeaSceneParticle.Convert.ParticleNodeConvert import convertParticleNode
+from DeepSeaSceneParticle.Convert.StandardParticleEmitterFactoryConvert import \
+	convertStandardParticleEmitterFactory
 
 from DeepSeaVectorDrawScene.Convert.TextConvert import convertText
 from DeepSeaVectorDrawScene.Convert.TextNodeConvert import convertTextNode
@@ -57,13 +61,18 @@ if __name__ == '__main__':
 	convertContext.addCustomResourceType('LightSet', convertLightSet)
 	convertContext.addCustomResourceType('ShadowManager', convertShadowManager)
 
+	# Particle scene types.
+	convertContext.addCustomResourceType('StandardParticleEmitterFactory',
+		convertStandardParticleEmitterFactory)
+	convertContext.addNodeType('ParticleNode', convertParticleNode)
+
 	# Vector draw scene types.
-	convertContext.addNodeType('TextNode', convertTextNode)
-	convertContext.addNodeType('VectorImageNode', convertVectorImageNode)
 	convertContext.addCustomResourceType('Text', convertText)
 	convertContext.addCustomResourceType('VectorImage', convertVectorImage)
 	convertContext.addCustomResourceType('VectorResources', convertVectorResources)
 	convertContext.addCustomResourceType('VectorShaders', convertVectorShaders)
+	convertContext.addNodeType('TextNode', convertTextNode)
+	convertContext.addNodeType('VectorImageNode', convertVectorImageNode)
 
 	for extension in args.extensions:
 		import_module(extension).deepSeaSceneExtension(convertContext)

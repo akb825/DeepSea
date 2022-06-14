@@ -233,6 +233,7 @@ static dsText* createTextImpl(dsFont* font, dsAllocator* allocator, const void* 
 		runCount = length == 0 ? 0 : 1;
 		dummyRun.start = 0;
 		dummyRun.count = length;
+		dummyRun.newlineCount = 0;
 		runs = &dummyRun;
 	}
 	else

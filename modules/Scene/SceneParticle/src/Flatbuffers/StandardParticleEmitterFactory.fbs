@@ -28,7 +28,7 @@ table StandardParticleEmitterFactory
 	spawnVolume : ParticleVolume (required);
 
 	// The matrix to transform the spawn volume.
-	volumeMatrix : DeepSeaScene.Matrix44f (required);
+	spawnVolumeMatrix : DeepSeaScene.Matrix44f (required);
 
 	// The minimum and maximum width of a particle.
 	widthRange : DeepSeaScene.Vector2f (required);
@@ -53,7 +53,7 @@ table StandardParticleEmitterFactory
 	speedRange : DeepSeaScene.Vector2f (required);
 
 	// The minimum and maximum rotation speed in radians per second.
-	rotationRange : DeepSeaScene.Vector2f (required);
+	rotationSpeedRange : DeepSeaScene.Vector2f (required);
 
 	// The minimum and maximum texture indices to use.
 	textureRange : Vector2u (required);

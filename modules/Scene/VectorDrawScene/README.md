@@ -84,7 +84,7 @@ The following scene node types are provided with the members that are expected:
 	* `vectorShaders`: the name of the vector shaders to draw with.
 	* `material`: the name of the material to draw with.
 	* `itemLists`: array of item list names to add the node to.
-	
+
 ## Scene Item Lists
 
 The following scene item lists are provided with the expected members:

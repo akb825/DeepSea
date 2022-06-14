@@ -136,7 +136,7 @@ static uint32_t dsStandardParticleEmitter_update(dsParticleEmitter* emitter, flo
 		nextParticlePtr += emitter->sizeofParticle;
 
 		dsParticle_randomPosition(nextParticle, &standardEmitter->seed, &options->spawnVolume,
-			&options->volumeMatrix);
+			&options->spawnVolumeMatrix);
 		dsParticle_randomSize(nextParticle, &standardEmitter->seed, &options->widthRange,
 			&options->heightRange);
 		dsParticle_randomDirection(&nextStandardParticle->direction, &standardEmitter->seed,
@@ -152,7 +152,7 @@ static uint32_t dsStandardParticleEmitter_update(dsParticleEmitter* emitter, flo
 		nextStandardParticle->speed = dsRandomFloat(&standardEmitter->seed, options->speedRange.x,
 			options->speedRange.y);
 		nextStandardParticle->rotationSpeed = dsRandomFloat(&standardEmitter->seed,
-			options->rotationRange.x, options->rotationRange.y);
+			options->rotationSpeedRange.x, options->rotationSpeedRange.y);
 		nextStandardParticle->timeScale = 1/particleTime;
 
 		// Advance the particle based on the time it's been alive.
