@@ -1,12 +1,12 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 31
-    ndkVersion "23.1.7779620"
+    compileSdkVersion 33
+    ndkVersion "24.0.8215888"
     defaultConfig {
         applicationId "com.akb825.deepsea"
         minSdkVersion 18
-        targetSdkVersion 31
+        targetSdkVersion 33
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
@@ -38,24 +38,28 @@ android {
     task copyArm32Libraries(type: Copy) {
         from ("${projectDir}/../../dependencies/libs/android-armeabi-v7a/lib") {
             include "libhidapi.so"
+            include "libSDL2.so"
         }
         into "${projectDir}/src/main/jniLibs/armeabi-v7a"
     }
     task copyArm64Libraries(type: Copy) {
         from ("${projectDir}/../../dependencies/libs/android-arm64-v8a/lib") {
             include "libhidapi.so"
+            include "libSDL2.so"
         }
         into "${projectDir}/src/main/jniLibs/arm64-v8a"
     }
     task copyX86Libraries(type: Copy) {
         from ("${projectDir}/../../dependencies/libs/android-x86/lib") {
             include "libhidapi.so"
+            include "libSDL2.so"
         }
         into "${projectDir}/src/main/jniLibs/x86"
     }
     task copyX86_64Libraries(type: Copy) {
         from ("${projectDir}/../../dependencies/libs/android-x86_64/lib") {
             include "libhidapi.so"
+            include "libSDL2.so"
         }
         into "${projectDir}/src/main/jniLibs/x86_64"
     }
@@ -153,7 +157,7 @@ preBuild.dependsOn(copyX86_64Libraries)
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
-    implementation 'androidx.appcompat:appcompat:1.4.1'
+    implementation 'androidx.appcompat:appcompat:1.4.2'
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'

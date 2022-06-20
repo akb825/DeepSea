@@ -203,7 +203,7 @@ jobs:
 #        displayName: Build release
   - job: Windows
     pool:
-        vmImage: windows-2019
+        vmImage: windows-latest
     workspace:
         clean: all
     strategy:
@@ -246,7 +246,7 @@ jobs:
       - task: CMake@1
         inputs:
             workingDirectory: $(Build.BinariesDirectory)
-            cmakeArgs: $(cmake.args) -A $(arch) -T v140 $(Build.SourcesDirectory)
+            cmakeArgs: $(cmake.args) -A $(arch) -T v141 $(Build.SourcesDirectory)
         displayName: Run CMake
       - task: CMake@1
         inputs:
