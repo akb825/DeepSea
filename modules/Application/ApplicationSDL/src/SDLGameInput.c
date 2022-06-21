@@ -221,16 +221,6 @@ static dsGameInput* createGameInput(dsApplication* application, uint32_t index)
 		baseGameInput->hasControllerMappings = false;
 
 	gameInput->haptic = SDL_HapticOpenFromJoystick(gameInput->joystick);
-	if (!gameInput->haptic)
-	{
-		if (gameInput->controller)
-			SDL_GameControllerClose(gameInput->controller);
-		else
-			SDL_JoystickClose(gameInput->joystick);
-		DS_VERIFY(dsAllocator_free(application->allocator, gameInput));
-		errno = ENOMEM;
-		return NULL;
-	}
 
 	baseGameInput->application = application;
 	baseGameInput->allocator = application->allocator;
