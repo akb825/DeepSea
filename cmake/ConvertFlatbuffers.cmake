@@ -1,4 +1,4 @@
-# Copyright 2018 Aaron Barany
+# Copyright 2018-2022 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,17 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Find flatc and the flatbuffer includes. Only use system flatbuffers and automatic generation if
+# both are found to avoid incompatibilities.
 find_program(FLATC flatc)
-if (NOT FLATC)
+find_path(SYSTEM_FLATBUFFERS_INCLUDE_DIRS flatbuffers/flatbuffers.h)
+if (FLATC AND SYSTEM_FLATBUFFERS_INCLUDE_DIRS)
+	set(FLATBUFFERS_INCLUDE_DIRS ${SYSTEM_FLATBUFFERS_INCLUDE_DIRS})
+	set(DS_BUILD_FLATBUFFERS ON)
+else()
+	set(FLATBUFFERS_INCLUDE_DIRS ${DEEPSEA_SOURCE_DIR}/external)
+	set(DS_BUILD_FLATBUFFERS OFF)
 	message("flatc not installed. Using pre-generated flatbuffers.")
-endif()
-
-# This will try to find the include directory on the system, and fall back to the version checked
-# into the repository.
-find_path(FLATBUFFERS_INCLUDE_DIRS flatbuffers/flatbuffers.h PATHS ${DEEPSEA_SOURCE_DIR}/external)
-if (NOT FLATBUFFERS_INCLUDE_DIRS)
-	set(FLATBUFFERS_INCLUDE_DIRS ${DEEPSEA_SOURCE_DIR}/external CACHE PATH
-		"FlatBuffers include directory" FORCE)
 endif()
 
 # ds_convert_flatbuffers(container
@@ -39,7 +39,7 @@ endif()
 # INCLUDE - directories to search for includes.
 # PYTHON - additionally output python files to the specified directory.
 function(ds_convert_flatbuffers container)
-	if (NOT FLATC)
+	if (NOT DS_BUILD_FLATBUFFERS)
 		return()
 	endif()
 
@@ -67,6 +67,16 @@ function(ds_convert_flatbuffers container)
 
 	set(outputs)
 	foreach (file ${ARGS_FILE})
+		# Touch the .fbs file on generation to avoid situations where the timestamp doesn't rebuild
+		# the generated header checked into the repository but the system version of flatbuffers is
+		# different and incompatible. Don't use VERSION_GREATER_EQUAL to support older CMake
+		# versions.
+		if (CMAKE_VERSION VERSION_GREATER 3.11.99)
+			file(TOUCH_NOCREATE ${file})
+		elseif (NOT WIN32)
+			execute_process(COMMAND touch -c ${file})
+		endif()
+
 		get_filename_component(filename ${file} NAME_WE)
 		set(output ${ARGS_DIRECTORY}/${filename}_generated.h)
 		list(APPEND outputs ${output})
