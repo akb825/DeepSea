@@ -37,21 +37,12 @@ extern "C"
  * @param emitter The particle emitter.
  * @param userData The user data. This must be of type dsSceneTreeNode.
  * @param values The values to populate.
+ * @param index The index of the particle emitter.
  * @param drawData The draw data. This must be of type dsSceneParticleInstanceData.
  * @return False if the values couldn't be set.
  */
 DS_SCENEPARTICLE_EXPORT bool dsPopulateSceneParticleInstanceData(const dsParticleEmitter* emitter,
-	void* userData, dsSharedMaterialValues* values, void* drawData);
-
-/**
- * @brief Sorts the scene particle instances for use with dsSceneParticleInstanceData.
- * @remark errno will be set on failure.
- * @param instances The instances to sort.
- * @param instanceCount The number of instances.
- * @return False if the parameters are invalid.
- */
-DS_SCENEPARTICLE_EXPORT bool dsSortSceneParticleInstances(const dsSceneTreeNode** instances,
-	uint32_t instanceCount);
+	void* userData, dsSharedMaterialValues* values, uint32_t index, void* drawData);
 
 #ifdef __cplusplus
 }

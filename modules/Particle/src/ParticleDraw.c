@@ -16,18 +16,12 @@
 
 #include <DeepSea/Particle/ParticleDraw.h>
 
-#include "ParticleEmitterInternal.h"
-
 #include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
-#include <DeepSea/Core/Memory/Lifetime.h>
-#include <DeepSea/Core/Thread/Spinlock.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Core/Profile.h>
-
-#include <DeepSea/Geometry/Frustum3.h>
 
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Math/Matrix44.h>
@@ -80,18 +74,10 @@ struct dsParticleDraw
 {
 	dsAllocator* allocator;
 
-	dsLifetime* lifetime;
-
 	dsResourceManager* resourceManager;
 	dsAllocator* resourceAllocator;
 
 	dsSharedMaterialValues* instanceValues;
-
-	dsLifetime** emitters;
-	uint32_t emitterCount;
-	uint32_t maxEmitters;
-
-	dsSpinlock emitterLock;
 
 	ParticleRef* particles;
 	uint32_t maxParticles;
@@ -101,13 +87,12 @@ struct dsParticleDraw
 	uint32_t maxBuffers;
 };
 
-static BufferInfo* getDrawBuffer(dsParticleDraw* draw, uint32_t maxParticles)
+static BufferInfo* getDrawBuffer(dsParticleDraw* draw, uint32_t particleCount,
+	uint32_t maxParticles)
 {
 	uint64_t frameNumber = draw->resourceManager->renderer->frameNumber;
-	// Look for any buffer with the same max particles that's FRAME_DELAY number of frames earlier
-	// than the current one. Look for exactly maxParticles as this should be relatively stable frame
-	// to frame, while we need the offsets for the vertex and index buffer to be consistent to avoid
-	// re-allocating the dsDrawGeometry instances.
+	// Look for any buffer with space for at least particleCount particles, but allocate based on
+	// maxParticles to ensure greater stability of allocations.
 	BufferInfo* bufferInfo = NULL;
 	for (uint32_t i = 0; i < draw->bufferCount;)
 	{
@@ -120,7 +105,7 @@ static BufferInfo* getDrawBuffer(dsParticleDraw* draw, uint32_t maxParticles)
 			continue;
 		}
 
-		if (curBufferInfo->maxParticles == maxParticles)
+		if (curBufferInfo->maxParticles >= particleCount)
 		{
 			// Found. Only take the first one, and continue so that invalid buffers can be removed.
 			if (!curBufferInfo)
@@ -245,34 +230,29 @@ static int particleRefCompare(const void* left, const void* right)
 	return 0;
 }
 
-static uint32_t collectParticles(dsParticleDraw* drawer, const dsMatrix44f* viewMatrix, const dsFrustum3f* viewFrustum)
+static void collectParticles(dsParticleDraw* drawer, const dsMatrix44f* viewMatrix,
+	const dsParticleEmitter* const* emitters, uint32_t emitterCount, uint32_t particleCount)
 {
 	DS_PROFILE_FUNC_START();
 
-	uint32_t particleCount = 0;
+	uint32_t curParticleCount = 0;
 	ParticleRef* curParticleRef = drawer->particles;
-	for (uint32_t i = 0; i < drawer->emitterCount; ++i)
+	for (uint32_t i = 0; i < emitterCount; ++i)
 	{
-		const dsParticleEmitter* emitter =
-			(const dsParticleEmitter*)dsLifetime_getObject(drawer->emitters[i]);
-		DS_ASSERT(emitter);
-		if (dsFrustum3f_intersectOrientedBox(viewFrustum, &emitter->bounds) ==
-				dsIntersectResult_Outside)
-		{
-			continue;
-		}
+		const dsParticleEmitter* emitter = emitters[i];
 
 		dsMatrix44f worldView;
 		dsMatrix44_mul(worldView, *viewMatrix, emitter->transform);
 
-		particleCount += emitter->particleCount;
-		DS_ASSERT(particleCount <= drawer->maxParticles);
+		curParticleCount += emitter->particleCount;
+		DS_ASSERT(curParticleCount <= drawer->maxParticles);
+		DS_ASSERT(curParticleCount <= particleCount);
 		const uint8_t* particlePtrEnd =
 			emitter->particles + emitter->particleCount*emitter->sizeofParticle;
 		for (const uint8_t* particlePtr = emitter->particles; particlePtr < particlePtrEnd;
 			particlePtr += emitter->sizeofParticle, ++curParticleRef)
 		{
-			DS_ASSERT(curParticleRef < drawer->particles + particleCount);
+			DS_ASSERT(curParticleRef < drawer->particles + curParticleCount);
 			const dsParticle* particle = (const dsParticle*)particlePtr;
 			// Only care about view Z coordinate, so save doing a full matrix transform.
 			curParticleRef->viewZ = worldView.values[0][2]*particle->position.x +
@@ -283,10 +263,11 @@ static uint32_t collectParticles(dsParticleDraw* drawer, const dsMatrix44f* view
 		}
 	}
 
+	DS_ASSERT(curParticleCount == particleCount);
 	DS_ASSERT(curParticleRef == drawer->particles + particleCount);
 	qsort(drawer->particles, particleCount, sizeof(ParticleRef), &particleRefCompare);
 
-	DS_PROFILE_FUNC_RETURN(particleCount);
+	DS_PROFILE_FUNC_RETURN_VOID();
 }
 
 static bool populateParticleGeometry(dsParticleDraw* drawer, BufferInfo* bufferInfo,
@@ -365,7 +346,8 @@ static bool populateParticleGeometry(dsParticleDraw* drawer, BufferInfo* bufferI
 	DS_PROFILE_FUNC_RETURN(true);
 }
 
-static bool drawParticles(dsParticleDraw* drawer, BufferInfo* bufferInfo, uint32_t particleCount,
+static bool drawParticles(dsParticleDraw* drawer, const dsParticleEmitter* const* emitters,
+	uint32_t emitterCount, BufferInfo* bufferInfo, uint32_t particleCount,
 	dsCommandBuffer* commandBuffer, const dsSharedMaterialValues* globalValues, void* drawData)
 {
 	DS_PROFILE_FUNC_START();
@@ -407,14 +389,13 @@ static bool drawParticles(dsParticleDraw* drawer, BufferInfo* bufferInfo, uint32
 		{
 			// Prepare for the next batch of particles when the emitters changes
 			prevEmitter = particleRef->emitter;
-			const dsParticleEmitter* emitter =
-				dsLifetime_getObject(drawer->emitters[particleRef->emitter]);
+			const dsParticleEmitter* emitter = emitters[particleRef->emitter];
 			DS_ASSERT(emitter);
 			if (drawer->instanceValues)
 			{
 				DS_VERIFY(dsSharedMaterialValues_clear(drawer->instanceValues));
 				if (!dsParticleEmitter_populateInstanceValues(emitter, drawer->instanceValues,
-						drawData))
+						particleRef->emitter, drawData))
 				{
 					if (prevShader)
 						DS_VERIFY(dsShader_unbind(prevShader, commandBuffer));
@@ -495,24 +476,11 @@ dsParticleDraw* dsParticleDraw_create(dsAllocator* allocator, dsResourceManager*
 	if (!drawer)
 		return NULL;
 
-	drawer->lifetime = dsLifetime_create(allocator, drawer);
-	if (!drawer->lifetime)
-	{
-		DS_VERIFY(dsAllocator_free(allocator, drawer));
-		return NULL;
-	}
-
 	drawer->allocator = dsAllocator_keepPointer(allocator);
 	drawer->resourceManager = resourceManager;
 	drawer->resourceAllocator = resourceAllocator;
 
 	drawer->instanceValues = NULL;
-
-	drawer->emitters = NULL;
-	drawer->emitterCount = 0;
-	drawer->maxEmitters = 0;
-
-	DS_VERIFY(dsSpinlock_initialize(&drawer->emitterLock));
 
 	drawer->particles = NULL;
 	drawer->maxParticles = 0;
@@ -524,107 +492,38 @@ dsParticleDraw* dsParticleDraw_create(dsAllocator* allocator, dsResourceManager*
 	return drawer;
 }
 
-bool dsParticleDraw_addEmitter(dsParticleDraw* drawer, dsParticleEmitter* emitter)
-{
-	if (!drawer || !emitter)
-	{
-		errno = EINVAL;
-		return false;
-	}
-
-	DS_VERIFY(dsSpinlock_lock(&drawer->emitterLock));
-
-	for (uint32_t i = 0; i < drawer->emitterCount; ++i)
-	{
-		if (drawer->emitters[i] == emitter->lifetime)
-		{
-			errno = EPERM;
-			DS_VERIFY(dsSpinlock_unlock(&drawer->emitterLock));
-			return false;
-		}
-	}
-
-	uint32_t emitterIndex = drawer->emitterCount;
-	if (!DS_RESIZEABLE_ARRAY_ADD(drawer->allocator, drawer->emitters, drawer->emitterCount,
-			drawer->maxEmitters, 1))
-	{
-		DS_VERIFY(dsSpinlock_unlock(&drawer->emitterLock));
-		return false;
-	}
-
-	drawer->emitters[emitterIndex] = dsLifetime_addRef(emitter->lifetime);
-
-	// Also add a reference to the emitter.
-	if (!dsParticleEmitter_addDrawer(emitter, drawer->lifetime))
-	{
-		// Remove the emitter we just added if we couldn't add this to the emitter.
-		--drawer->emitterCount;
-		dsLifetime_freeRef(emitter->lifetime);
-		DS_VERIFY(dsSpinlock_unlock(&drawer->emitterLock));
-		return false;
-	}
-
-	DS_VERIFY(dsSpinlock_unlock(&drawer->emitterLock));
-	return true;
-}
-
-bool dsParticleDraw_removeEmitter(dsParticleDraw* drawer, dsParticleEmitter* emitter)
-{
-	if (!drawer || !emitter)
-	{
-		errno = EINVAL;
-		return false;
-	}
-
-	DS_VERIFY(dsSpinlock_lock(&drawer->emitterLock));
-
-	uint32_t emitterIndex;
-	for (emitterIndex = 0; emitterIndex < drawer->emitterCount; ++emitterIndex)
-	{
-		if (drawer->emitters[emitterIndex] == emitter->lifetime)
-			break;
-	}
-
-	if (emitterIndex == drawer->emitterCount)
-	{
-		errno = ENOTFOUND;
-		DS_VERIFY(dsSpinlock_unlock(&drawer->emitterLock));
-		return false;
-	}
-
-	DS_VERIFY(DS_RESIZEABLE_ARRAY_REMOVE(drawer->emitters, drawer->emitterCount, emitterIndex, 1));
-
-	// Also remove the reference from the emitter. Allow it to not exist. (e.g. on destruction)
-	dsParticleEmitter_removeDrawer(emitter, drawer->lifetime);
-
-	DS_VERIFY(dsSpinlock_unlock(&drawer->emitterLock));
-	return true;
-}
-
 bool dsParticleDraw_draw(dsParticleDraw* drawer, dsCommandBuffer* commandBuffer,
 	const dsSharedMaterialValues* globalValues, const dsMatrix44f* viewMatrix,
-	const dsFrustum3f* viewFrustum, void* drawData)
+	const dsParticleEmitter* const* emitters, uint32_t emitterCount, void* drawData)
 {
 	DS_PROFILE_FUNC_START();
 
-	if (!drawer || !commandBuffer || !globalValues || !viewMatrix)
+	if (!drawer || !commandBuffer || !globalValues || !viewMatrix ||
+		(!emitters && emitterCount > 0))
 	{
 		errno = EINVAL;
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	DS_VERIFY(dsSpinlock_lock(&drawer->emitterLock));
-
 	uint32_t maxInstanceValues = 0;
 	uint32_t maxParticles = 0;
-	for (uint32_t i = 0; i < drawer->emitterCount; ++i)
+	uint32_t particleCount = 0;
+	for (uint32_t i = 0; i < emitterCount; ++i)
 	{
-		const dsParticleEmitter* emitter =
-			(const dsParticleEmitter*)dsLifetime_getObject(drawer->emitters[i]);
-		DS_ASSERT(emitter);
+		const dsParticleEmitter* emitter = emitters[i];
+		if (!emitter)
+		{
+			errno = EINVAL;
+			DS_PROFILE_FUNC_RETURN(false);
+		}
+
 		maxInstanceValues = dsMax(maxInstanceValues, emitter->instanceValueCount);
 		maxParticles += emitter->maxParticles;
+		particleCount += emitter->particleCount;
 	}
+
+	if (particleCount == 0)
+		DS_PROFILE_FUNC_RETURN(false);
 
 	// Make sure that instance values is large enough to hold the maximum for the particle emitters.
 	if (maxInstanceValues > 0 && (!drawer->instanceValues ||
@@ -634,10 +533,7 @@ bool dsParticleDraw_draw(dsParticleDraw* drawer, dsCommandBuffer* commandBuffer,
 		drawer->instanceValues =
 			dsSharedMaterialValues_create(drawer->allocator, maxInstanceValues);
 		if (!drawer->instanceValues)
-		{
-			DS_VERIFY(dsSpinlock_unlock(&drawer->emitterLock));
 			DS_PROFILE_FUNC_RETURN(false);
-		}
 	}
 
 	// Make sure we have enough storage for the particle data. Use max particles to reach a steady
@@ -647,37 +543,24 @@ bool dsParticleDraw_draw(dsParticleDraw* drawer, dsCommandBuffer* commandBuffer,
 		ParticleRef* newParticles = (ParticleRef*)dsAllocator_reallocWithFallback(drawer->allocator,
 			drawer->particles, 0, maxParticles);
 		if (!newParticles)
-		{
-			DS_VERIFY(dsSpinlock_unlock(&drawer->emitterLock));
 			DS_PROFILE_FUNC_RETURN(false);
-		}
 
 		drawer->particles = newParticles;
 		drawer->maxParticles = maxParticles;
 	}
 
 	// Get the buffer data.
-	BufferInfo* bufferInfo = getDrawBuffer(drawer, maxParticles);
+	BufferInfo* bufferInfo = getDrawBuffer(drawer, particleCount, maxParticles);
 	if (!bufferInfo)
-	{
-		DS_VERIFY(dsSpinlock_unlock(&drawer->emitterLock));
 		DS_PROFILE_FUNC_RETURN(false);
-	}
 
 	// Draw the particles to the command buffer.
-	uint32_t particleCount = collectParticles(drawer, viewMatrix, viewFrustum);
-
-	// Early out if all emitters are empty.
-	if (particleCount == 0)
-	{
-		DS_VERIFY(dsSpinlock_unlock(&drawer->emitterLock));
-		DS_PROFILE_FUNC_RETURN(false);
-	}
+	collectParticles(drawer, viewMatrix, emitters, emitterCount, particleCount);
 
 	bool success = populateParticleGeometry(drawer, bufferInfo, particleCount) &&
-		drawParticles(drawer, bufferInfo, particleCount, commandBuffer, globalValues, drawData);
+		drawParticles(drawer, emitters, emitterCount, bufferInfo, particleCount, commandBuffer,
+			globalValues, drawData);
 
-	DS_VERIFY(dsSpinlock_unlock(&drawer->emitterLock));
 	DS_PROFILE_FUNC_RETURN(success);
 }
 
@@ -698,33 +581,6 @@ bool dsParticleDraw_destroy(dsParticleDraw* drawer)
 		DS_VERIFY(dsDrawGeometry_destroy(drawer->buffers[i].geometry));
 	}
 	DS_VERIFY(dsAllocator_free(drawer->allocator, drawer->buffers));
-
-	// Clear out the array inside the lock to avoid nested locking that can result in deadlocks.
-	DS_VERIFY(dsSpinlock_lock(&drawer->emitterLock));
-	dsLifetime** emitters = drawer->emitters;
-	uint32_t emitterCount = drawer->emitterCount;
-	drawer->emitters = NULL;
-	drawer->emitterCount = 0;
-	drawer->maxEmitters = 0;
-	DS_VERIFY(dsSpinlock_unlock(&drawer->emitterLock));
-
-	dsSharedMaterialValues_destroy(drawer->instanceValues);
-
-	// Remove this from all emitters.
-	for (uint32_t i = 0; i < emitterCount; ++i)
-	{
-		dsParticleEmitter* emitter = (dsParticleEmitter*)dsLifetime_acquire(emitters[i]);
-		if (emitter)
-		{
-			dsParticleEmitter_removeDrawer(emitter, drawer->lifetime);
-			dsLifetime_release(emitters[i]);
-		}
-		dsLifetime_freeRef(emitters[i]);
-	}
-	DS_VERIFY(dsAllocator_free(drawer->allocator, emitters));
-	dsLifetime_destroy(drawer->lifetime);
-	dsSpinlock_shutdown(&drawer->emitterLock);
-
 	DS_VERIFY(dsAllocator_free(drawer->allocator, drawer->particles));
 	DS_VERIFY(dsAllocator_free(drawer->allocator, drawer));
 	return true;

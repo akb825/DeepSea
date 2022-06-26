@@ -70,3 +70,4 @@ The following scene item lists are provided with the expected members:
 	* `instanceData`: optional list of instance data to include with the particle draw list. Each element of the array has the following members:
 		* `type`: the name of the instance data type.
 		* Remaining members depend on the value of `type`.
+	* `cullList`: optional string name of the item list to handle culling. If unset no culling is used.

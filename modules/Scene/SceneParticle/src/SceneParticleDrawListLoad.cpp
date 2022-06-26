@@ -55,6 +55,9 @@ dsSceneItemList* dsSceneParticleDrawList_load(const dsSceneLoadContext* loadCont
 
 	auto fbDrawList = DeepSeaSceneParticle::GetParticleDrawList(data);
 	auto fbInstanceData = fbDrawList->instanceData();
+	auto fbCullList = fbDrawList->cullList();
+
+	const char* cullList = fbCullList ? fbCullList->c_str() : nullptr;;
 
 	dsSceneInstanceData** instanceData = nullptr;
 	uint32_t instanceDataCount = 0;
@@ -93,7 +96,7 @@ dsSceneItemList* dsSceneParticleDrawList_load(const dsSceneLoadContext* loadCont
 	}
 
 	return dsSceneParticleDrawList_create(allocator, name, resourceManager, resourceAllocator,
-		instanceData, instanceDataCount);
+		instanceData, instanceDataCount, cullList);
 
 error:
 	// instanceDataCount should be the number that we need to clean up.

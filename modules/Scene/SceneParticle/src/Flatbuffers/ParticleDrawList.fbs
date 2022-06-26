@@ -23,6 +23,9 @@ table ParticleDrawList
 {
 	// List of instance data for the particles.
 	instanceData : [DeepSeaScene.ObjectData];
+
+	// The name of the item list to handle culling, or null if no culling is used.
+	cullList : string;
 }
 
 root_type ParticleDrawList;

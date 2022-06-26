@@ -57,11 +57,14 @@ DS_SCENEPARTICLE_EXPORT dsSceneItemListType dsSceneParticleDrawList_type(void);
  * @param instanceData The list of instance datas to use. The array will be copied, and this will
  *     take ownership of each instance data. The instances will be destroyed if an error occurrs.
  * @param instanceDataCount The number of instance datas.
+ * @param cullList The name of the cull item list to determine what particle emitters are in view,
+ *     or NULL if no culling is used. It's assumed that the void* for the item data directly relates
+ *     to a zero if in view or non-zero if out of view.
  * @return The particle draw or NULL if an error occurred.
  */
 DS_SCENEPARTICLE_EXPORT dsSceneItemList* dsSceneParticleDrawList_create(dsAllocator* allocator,
 	const char* name, dsResourceManager* resourceManager, dsAllocator* resourceAllocator,
-	dsSceneInstanceData* const* instanceData, uint32_t instanceDataCount);
+	dsSceneInstanceData* const* instanceData, uint32_t instanceDataCount, const char* cullList);
 
 #ifdef __cplusplus
 }

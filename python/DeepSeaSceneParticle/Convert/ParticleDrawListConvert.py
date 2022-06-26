@@ -23,6 +23,8 @@ def convertParticleDrawList(convertContext, data):
 	  element of the array has the following members:
 	  - type: the name of the instance data type.
 	  - Remaining members depend on the value of "type".
+	- cullList: optional string name of the item list to handle culling. If unset no culling is
+	  used.
 	"""
 	try:
 		instanceDataInfo = data.get('instanceData', [])
@@ -37,6 +39,8 @@ def convertParticleDrawList(convertContext, data):
 						'".')
 		except (TypeError, ValueError):
 			raise Exception('ParticleDrawList "instanceData" must be an array of objects.')
+
+		cullList = str(data.get('cullList', ''))
 	except KeyError as e:
 		raise Exception('ParticleDrawList doesn\'t contain element ' + str(e) + '.')
 	except (AttributeError, TypeError, ValueError):
@@ -57,7 +61,13 @@ def convertParticleDrawList(convertContext, data):
 	else:
 		instanceDataOffset = 0
 
+	if cullList:
+		cullListOffset = builder.CreateString(cullList)
+	else:
+		cullListOffset = 0
+
 	ParticleDrawList.Start(builder)
 	ParticleDrawList.AddInstanceData(builder, instanceDataOffset)
+	ParticleDrawList.AddCullList(builder, cullListOffset)
 	builder.Finish(ParticleDrawList.End(builder))
 	return builder.Output()

@@ -34,8 +34,7 @@ extern "C"
 /**
  * @brief Creates a particle emitter.
  * @remark errno will be set on failure.
- * @param allocator The allocator to create the particle emitter from. This must support freeing
- *     memory.
+ * @param allocator The allocator to create the particle emitter from.
  * @param sizeofParticleEmitter The size of the particle emitter structure.
  * @param sizeofParticle The size of the particle structure.
  * @param params The list of common particle emitter parameters.
@@ -61,11 +60,12 @@ DS_PARTICLE_EXPORT bool dsParticleEmitter_update(dsParticleEmitter* emitter, flo
  * @remark errno will be set on failure.
  * @param emitter The particle emitter to populate the instance values for.
  * @param values The instance values to populate.
+ * @param index The index of the emitter in the overall list of emitters being drawn.
  * @param drawData Data passed through the draw function.
  * @return False if an error occurred.
  */
 DS_PARTICLE_EXPORT bool dsParticleEmitter_populateInstanceValues(const dsParticleEmitter* emitter,
-	dsSharedMaterialValues* values, void* drawData);
+	dsSharedMaterialValues* values, uint32_t index, void* drawData);
 
 /**
  * @brief Destroys a particle emitter.

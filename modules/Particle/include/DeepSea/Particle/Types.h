@@ -191,11 +191,12 @@ typedef uint32_t (*dsUpdateParticleEmitterFunction)(dsParticleEmitter* emitter, 
  *     may occur across multiple threads.
  * @param userData User data provided for use with this function.
  * @param values The values to populate.
+ * @param index The index of the emitter in the overall list of emitters being drawn.
  * @param drawData The data passed to the draw function.
  * @return False if the values couldn't be populated.
  */
 typedef bool (*dsPopulateParticleEmitterInstanceValues)(const dsParticleEmitter* emitter,
-	void* userData, dsSharedMaterialValues* values, void* drawData);
+	void* userData, dsSharedMaterialValues* values, uint32_t index, void* drawData);
 
 /**
  * @brief Function to destroy a particle emitter.
@@ -342,31 +343,6 @@ struct dsParticleEmitter
 	 * @brief Function to destroy the particle emitter.
 	 */
 	dsDestroyParticleEmitterFunction destroyFunc;
-
-	/**
-	 * @brief Object tracking the lifetime of the emitter.
-	 */
-	dsLifetime* lifetime;
-
-	/**
-	 * @brief List of particle drawers the emitter is used with.
-	 */
-	dsLifetime** drawers;
-
-	/**
-	 * @brief The number of drawers the emitter is used with.
-	 */
-	uint32_t drawerCount;
-
-	/**
-	 * @brief The maximum number of drawers currently available in the array.
-	 */
-	uint32_t maxDrawers;
-
-	/**
-	 * @brief Lock to allow for concurrent modifications of the drawer array.
-	 */
-	dsSpinlock drawerLock;
 };
 
 /**

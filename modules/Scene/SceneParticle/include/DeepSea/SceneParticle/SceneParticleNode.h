@@ -43,6 +43,14 @@ DS_SCENEPARTICLE_EXPORT extern const char* const dsSceneParticleNode_typeName;
 DS_SCENEPARTICLE_EXPORT const dsSceneNodeType* dsSceneParticleNode_type(void);
 
 /**
+ * @brief Sets up the parent type for a node type subclassing from dsSceneParticleNode.
+ * @param type The subclass type for dsSceneParticleNode.
+ * @return The type parameter or the type for dsSceneParticleNode if type is NULL.
+ */
+DS_SCENEPARTICLE_EXPORT const dsSceneNodeType* dsSceneParticleNode_setupParentType(
+	dsSceneNodeType* type);
+
+/**
  * @brief Creates a scene particle node.
  * @remark errno will be set on failure.
  * @param allocator The allocator to create the node with. This must support freeing memory.
@@ -74,6 +82,15 @@ DS_SCENEPARTICLE_EXPORT dsSceneParticleNode* dsSceneParticleNode_create(dsAlloca
  */
 DS_SCENEPARTICLE_EXPORT dsParticleEmitter* dsSceneParticleNode_createEmitter(
 	const dsSceneParticleNode* node, const dsSceneTreeNode* treeNode);
+
+/**
+ * @brief Gets the particle emitter for a tree node.
+ * @remark This assumes that the particle emitter was created from a dsSceneParticlePrepareList.
+ * @param treeNode The tree node to get the particle emitter for.
+ * @return The particle emitter or NULL if there isn't one present.
+ */
+DS_SCENEPARTICLE_EXPORT dsParticleEmitter* dsSceneParticleNode_getEmitterForInstance(
+	const dsSceneTreeNode* treeNode);
 
 /**
  * @brief Updates a particle emitter for a particle node.

@@ -16,13 +16,8 @@
 
 #include <DeepSea/Particle/ParticleEmitter.h>
 
-#include "ParticleEmitterInternal.h"
-
-#include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
-#include <DeepSea/Core/Memory/Lifetime.h>
-#include <DeepSea/Core/Thread/Spinlock.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
@@ -33,8 +28,6 @@
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Math/Matrix44.h>
 #include <DeepSea/Math/Vector3.h>
-
-#include <DeepSea/Particle/ParticleDraw.h>
 
 #include <DeepSea/Render/Resources/Material.h>
 
@@ -47,14 +40,6 @@ dsParticleEmitter* dsParticleEmitter_create(dsAllocator* allocator, size_t sizeo
 		!params->shader || !params->material || !updateFunc || !destroyFunc)
 	{
 		errno = EINVAL;
-		return NULL;
-	}
-
-	if (!allocator->freeFunc)
-	{
-		errno = EINVAL;
-		DS_LOG_ERROR(DS_PARTICLE_LOG_TAG,
-			"Particle emitter allocator must support freeing memory.");
 		return NULL;
 	}
 
@@ -109,18 +94,6 @@ dsParticleEmitter* dsParticleEmitter_create(dsAllocator* allocator, size_t sizeo
 	emitter->populateInstanceValuesUserData = params->populateInstanceValuesUserData;
 	emitter->destroyFunc = destroyFunc;
 
-	emitter->drawers = NULL;
-	emitter->drawerCount = 0;
-	emitter->maxDrawers = 0;
-
-	emitter->lifetime = dsLifetime_create(allocator, emitter);
-	if (!emitter->lifetime)
-	{
-		DS_VERIFY(dsAllocator_free(allocator, emitter));
-		return NULL;
-	}
-
-	DS_VERIFY(dsSpinlock_initialize(&emitter->drawerLock));
 	return emitter;
 }
 
@@ -177,7 +150,7 @@ bool dsParticleEmitter_update(dsParticleEmitter* emitter, float time)
 }
 
 bool dsParticleEmitter_populateInstanceValues(const dsParticleEmitter* emitter,
-	dsSharedMaterialValues* values, void* drawData)
+	dsSharedMaterialValues* values, uint32_t index, void* drawData)
 {
 	if (!emitter || !values)
 	{
@@ -188,7 +161,7 @@ bool dsParticleEmitter_populateInstanceValues(const dsParticleEmitter* emitter,
 	if (emitter->populateInstanceValuesFunc)
 	{
 		return emitter->populateInstanceValuesFunc(emitter, emitter->populateInstanceValuesUserData,
-			values, drawData);
+			values, index, drawData);
 	}
 
 	return true;
@@ -196,76 +169,8 @@ bool dsParticleEmitter_populateInstanceValues(const dsParticleEmitter* emitter,
 
 void dsParticleEmitter_destroy(dsParticleEmitter* emitter)
 {
-	if (!emitter)
+	if (!emitter || !emitter->destroyFunc)
 		return;
 
-	// Clear out the array inside the lock to avoid nested locking that can result in deadlocks.
-	DS_VERIFY(dsSpinlock_lock(&emitter->drawerLock));
-	dsLifetime** drawers = emitter->drawers;
-	uint32_t drawerCount = emitter->drawerCount;
-	emitter->drawers = NULL;
-	emitter->drawerCount = 0;
-	emitter->maxDrawers = 0;
-	DS_VERIFY(dsSpinlock_unlock(&emitter->drawerLock));
-
-	for (uint32_t i = 0; i < drawerCount; ++i)
-	{
-		dsParticleDraw* drawer = (dsParticleDraw*)dsLifetime_acquire(drawers[i]);
-		if (drawer)
-		{
-			dsParticleDraw_removeEmitter(drawer, emitter);
-			dsLifetime_release(drawers[i]);
-		}
-		dsLifetime_freeRef(drawers[i]);
-	}
-
-	dsLifetime_destroy(emitter->lifetime);
-	dsSpinlock_shutdown(&emitter->drawerLock);
-
-	if (emitter->destroyFunc)
-		emitter->destroyFunc(emitter);
-}
-
-bool dsParticleEmitter_addDrawer(dsParticleEmitter* emitter, dsLifetime* drawer)
-{
-	DS_ASSERT(emitter);
-	DS_ASSERT(drawer);
-
-	DS_VERIFY(dsSpinlock_lock(&emitter->drawerLock));
-
-	uint32_t drawerIndex = emitter->drawerCount;
-	if (!DS_RESIZEABLE_ARRAY_ADD(emitter->allocator, emitter->drawers, emitter->drawerCount,
-			emitter->maxDrawers, 1))
-	{
-		DS_VERIFY(dsSpinlock_unlock(&emitter->drawerLock));
-		return false;
-	}
-
-	emitter->drawers[drawerIndex] = dsLifetime_addRef(drawer);
-
-	DS_VERIFY(dsSpinlock_unlock(&emitter->drawerLock));
-	return true;
-}
-
-bool dsParticleEmitter_removeDrawer(dsParticleEmitter* emitter, dsLifetime* drawer)
-{
-	DS_VERIFY(dsSpinlock_lock(&emitter->drawerLock));
-
-	uint32_t drawerIndex;
-	for (drawerIndex = 0; drawerIndex < emitter->drawerCount; ++drawerIndex)
-	{
-		if (emitter->drawers[drawerIndex] == drawer)
-			break;
-	}
-
-	bool exists = drawerIndex < emitter->drawerCount;
-	if (exists)
-	{
-		DS_VERIFY(DS_RESIZEABLE_ARRAY_REMOVE(
-			emitter->drawers, emitter->drawerCount, drawerIndex, 1));
-		dsLifetime_freeRef(drawer);
-	}
-
-	DS_VERIFY(dsSpinlock_unlock(&emitter->drawerLock));
-	return exists;
+	emitter->destroyFunc(emitter);
 }

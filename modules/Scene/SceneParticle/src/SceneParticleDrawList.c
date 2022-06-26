@@ -33,6 +33,7 @@
 
 #include <DeepSea/Scene/ItemLists/SceneInstanceData.h>
 #include <DeepSea/Scene/Nodes/SceneNode.h>
+#include <DeepSea/Scene/Nodes/SceneNodeItemData.h>
 #include <DeepSea/Scene/Nodes/SceneTreeNode.h>
 
 #include <DeepSea/SceneParticle/PopulateSceneParticleInstanceData.h>
@@ -45,6 +46,7 @@ typedef struct Entry
 {
 	const dsSceneTreeNode* treeNode;
 	dsParticleEmitter* emitter;
+	const dsSceneNodeItemData* itemData;
 	uint64_t nodeID;
 } Entry;
 
@@ -55,12 +57,15 @@ typedef struct dsSceneParticleDrawList
 	dsSceneInstanceData** instanceData;
 	uint32_t instanceDataCount;
 	dsParticleDraw* drawer;
+	uint32_t cullListID;
 
 	Entry* entries;
 	uint32_t entryCount;
 	uint32_t maxEntries;
 
+	const dsParticleEmitter** emitters;
 	const dsSceneTreeNode** instances;
+	uint32_t maxEmitters;
 	uint32_t maxInstances;
 
 	uint64_t nextNodeID;
@@ -114,15 +119,10 @@ static uint64_t dsSceneParticleDrawList_addNode(dsSceneItemList* itemList, dsSce
 		return DS_NO_SCENE_NODE;
 	}
 
-	if (!dsParticleDraw_addEmitter(drawList->drawer, emitter))
-	{
-		--drawList->entryCount;
-		return DS_NO_SCENE_NODE;
-	}
-
 	Entry* entry = drawList->entries + index;
 	entry->treeNode = treeNode;
 	entry->emitter = emitter;
+	entry->itemData = itemData;
 	entry->nodeID = drawList->nextNodeID++;
 	return entry->nodeID;
 }
@@ -135,8 +135,6 @@ static void dsSceneParticleDrawList_removeNode(dsSceneItemList* itemList, uint64
 		Entry* entry = drawList->entries + i;
 		if (entry->nodeID != nodeID)
 			continue;
-
-		dsParticleDraw_removeEmitter(drawList->drawer, entry->emitter);
 
 		// Order shouldn't matter, so use constant-time removal.
 		drawList->entries[i] = drawList->entries[drawList->entryCount - 1];
@@ -153,18 +151,28 @@ static void dsSceneParticleDrawList_commit(dsSceneItemList* itemList, const dsVi
 
 	dsSceneParticleDrawList* drawList = (dsSceneParticleDrawList*)itemList;
 
+	uint32_t emitterCount = 0;
 	uint32_t instanceCount = 0;
 	for (uint32_t i = 0; i < drawList->entryCount; ++i)
 	{
 		// Particle draw uses the view frustum for culling.
 		Entry* entry = drawList->entries + i;
-		if (dsFrustum3f_intersectOrientedBox(&view->viewFrustum, &entry->emitter->bounds) ==
-				dsIntersectResult_Outside)
+		// Non-zero cull result means out of view.
+		if (drawList->cullListID &&
+			dsSceneNodeItemData_findID(entry->itemData, drawList->cullListID))
 		{
 			continue;
 		}
 
 		uint32_t index = instanceCount;
+		if (!DS_CHECK(DS_SCENE_PARTICLE_LOG_TAG, DS_RESIZEABLE_ARRAY_ADD(itemList->allocator,
+				drawList->emitters, emitterCount, drawList->maxEmitters, 1)))
+		{
+			dsRenderer_popDebugGroup(commandBuffer->renderer, commandBuffer);
+			DS_PROFILE_SCOPE_END();
+			return;
+		}
+
 		if (!DS_CHECK(DS_SCENE_PARTICLE_LOG_TAG, DS_RESIZEABLE_ARRAY_ADD(itemList->allocator,
 				drawList->instances, instanceCount, drawList->maxInstances, 1)))
 		{
@@ -173,6 +181,7 @@ static void dsSceneParticleDrawList_commit(dsSceneItemList* itemList, const dsVi
 			return;
 		}
 
+		drawList->emitters[index] = entry->emitter;
 		drawList->instances[index] = entry->treeNode;
 	}
 
@@ -182,9 +191,6 @@ static void dsSceneParticleDrawList_commit(dsSceneItemList* itemList, const dsVi
 		DS_PROFILE_SCOPE_END();
 		return;
 	}
-
-	// Instances must be sorted to populate the instance values.
-	dsSortSceneParticleInstances(drawList->instances, instanceCount);
 
 	for (uint32_t i = 0; i < drawList->instanceDataCount; ++i)
 	{
@@ -200,7 +206,7 @@ static void dsSceneParticleDrawList_commit(dsSceneItemList* itemList, const dsVi
 		instanceCount
 	};
 	DS_CHECK(DS_SCENE_PARTICLE_LOG_TAG, dsParticleDraw_draw(drawList->drawer, commandBuffer,
-		view->globalValues, &view->viewMatrix, &view->viewFrustum, &drawData));
+		view->globalValues, &view->viewMatrix, drawList->emitters, emitterCount, &drawData));
 
 	for (uint32_t i = 0; i < drawList->instanceDataCount; ++i)
 		DS_CHECK(DS_SCENE_PARTICLE_LOG_TAG, dsSceneInstanceData_finish(drawList->instanceData[i]));
@@ -229,7 +235,7 @@ dsSceneItemListType dsSceneParticleDrawList_type(void)
 
 dsSceneItemList* dsSceneParticleDrawList_create(dsAllocator* allocator, const char* name,
 	dsResourceManager* resourceManager, dsAllocator* resourceAllocator,
-	dsSceneInstanceData* const* instanceData, uint32_t instanceDataCount)
+	dsSceneInstanceData* const* instanceData, uint32_t instanceDataCount, const char* cullList)
 {
 	if (!allocator || !name || !resourceAllocator || (!instanceData && instanceDataCount > 0))
 	{
@@ -289,6 +295,8 @@ dsSceneItemList* dsSceneParticleDrawList_create(dsAllocator* allocator, const ch
 	itemList->commitFunc = &dsSceneParticleDrawList_commit;
 	itemList->destroyFunc = &dsSceneParticleDrawList_destroy;
 
+	drawList->cullListID = cullList ? dsHashString(cullList) : 0;
+
 	if (instanceDataCount > 0)
 	{
 		drawList->instanceData = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsSceneInstanceData*,
@@ -304,7 +312,9 @@ dsSceneItemList* dsSceneParticleDrawList_create(dsAllocator* allocator, const ch
 	drawList->entries = NULL;
 	drawList->entryCount = 0;
 	drawList->maxEntries = 0;
+	drawList->emitters = NULL;
 	drawList->instances = NULL;
+	drawList->maxEmitters = 0;
 	drawList->maxInstances = 0;
 	drawList->nextNodeID = 0;
 

@@ -23,20 +23,35 @@
 
 #include <DeepSea/Particle/ParticleEmitter.h>
 
+#include <DeepSea/Scene/Nodes/SceneCullNode.h>
 #include <DeepSea/Scene/Nodes/SceneNode.h>
 #include <DeepSea/Scene/Nodes/SceneTreeNode.h>
+
+#include <DeepSea/SceneParticle/SceneParticlePrepareList.h>
 
 #include <string.h>
 
 struct dsSceneParticleNode
 {
-	dsSceneNode node;
+	dsSceneCullNode node;
 	dsAllocator* emitterAllocator;
 	dsCreateSceneParticleNodeEmitterFunction createEmitterFunc;
 	dsUpdateSceneParticleNodeEmitterFunction updateEmitterFunc;
 	void* createEmitterUserData;
 	dsDestroySceneUserDataFunction destroyCreateEmitterUserDataFunc;
 };
+
+static bool dsSceneParticleNode_getBounds(dsOrientedBox3f* outBounds, const dsSceneCullNode* node,
+	const dsSceneTreeNode* treeNode)
+{
+	DS_UNUSED(node);
+	dsParticleEmitter* emitter = dsSceneParticleNode_getEmitterForInstance(treeNode);
+	if (!emitter)
+		return false;
+
+	*outBounds = emitter->bounds;
+	return true;
+}
 
 static void dsSceneParticleNode_destroy(dsSceneNode* node)
 {
@@ -52,6 +67,12 @@ static dsSceneNodeType nodeType;
 const dsSceneNodeType* dsSceneParticleNode_type(void)
 {
 	return &nodeType;
+}
+
+const dsSceneNodeType* dsSceneParticleNode_setupParentType(dsSceneNodeType* type)
+{
+	dsSceneNode_setupParentType(&nodeType, dsSceneCullNode_type());
+	return dsSceneNode_setupParentType(type, &nodeType);
 }
 
 dsSceneParticleNode* dsSceneParticleNode_create(dsAllocator* allocator,
@@ -108,8 +129,8 @@ dsSceneParticleNode* dsSceneParticleNode_create(dsAllocator* allocator,
 	}
 
 	dsSceneNode* node = (dsSceneNode*)particleNode;
-	if (!dsSceneNode_initialize(node, allocator, dsSceneParticleNode_type(), itemListsCopy,
-			itemListCount, &dsSceneParticleNode_destroy))
+	if (!dsSceneNode_initialize(node, allocator, dsSceneParticleNode_setupParentType(NULL),
+			itemListsCopy, itemListCount, &dsSceneParticleNode_destroy))
 	{
 		if (allocator->freeFunc)
 			DS_VERIFY(dsAllocator_free(allocator, particleNode));
@@ -123,6 +144,9 @@ dsSceneParticleNode* dsSceneParticleNode_create(dsAllocator* allocator,
 	particleNode->updateEmitterFunc = updateEmitterFunc;
 	particleNode->createEmitterUserData = userData;
 	particleNode->destroyCreateEmitterUserDataFunc = destroyUserDataFunc;
+
+	dsSceneCullNode* cullNode = (dsSceneCullNode*)particleNode;
+	cullNode->getBoundsFunc = &dsSceneParticleNode_getBounds;
 
 	return particleNode;
 }
@@ -144,6 +168,23 @@ dsParticleEmitter* dsSceneParticleNode_createEmitter(const dsSceneParticleNode* 
 
 	return node->createEmitterFunc(node, node->emitterAllocator, node->createEmitterUserData,
 		treeNode);
+}
+
+dsParticleEmitter* dsSceneParticleNode_getEmitterForInstance(const dsSceneTreeNode* treeNode)
+{
+	const dsSceneNodeItemData* itemData = dsSceneTreeNode_getItemData(treeNode);
+	if (!itemData)
+		return NULL;
+
+	DS_ASSERT(itemData->count == dsSceneTreeNode_getItemListCount(treeNode));
+	for (uint32_t i = 0; i < itemData->count; ++i)
+	{
+		const dsSceneItemList* itemList = dsSceneTreeNode_getItemList(treeNode, i);
+		if (itemList && itemList->type == dsSceneParticlePrepareList_type())
+			return (dsParticleEmitter*)itemData->itemData[i].data;
+	}
+
+	return NULL;
 }
 
 bool dsSceneParticleNode_updateEmitter(const dsSceneParticleNode* node,
