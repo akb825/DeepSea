@@ -204,6 +204,43 @@ typedef struct dsSceneTransformNode
 } dsSceneTransformNode;
 
 /**
+ * @brief Scene node implementation that can be culled.
+ * @remark This is intended to be a base node type for any node that can be culled.
+ * @see SceneCullNode.h
+ */
+typedef struct dsSceneCullNode dsSceneCullNode;
+
+/**
+ * @brief Function to get the bounds for a cull node.
+ *
+ * If false is returned, the node should be considered always out of view. If true is returned and
+ * bounds are invalid, the node should be considered always in view.
+ *
+ * @param[out] outBounds The bounds of the node in world space.
+ * @param node The cull node to check.
+ * @param treeNode The tree node for the instance to check.
+ * @return False if there's no bounds available.
+ */
+typedef bool (*dsGetSceneCullNodeBoundsFunction)(dsOrientedBox3f* outBounds,
+	const dsSceneCullNode* node, const dsSceneTreeNode* treeNode);
+
+/** @copydoc dsSceneCullNode */
+struct dsSceneCullNode
+{
+	/**
+	 * @brief The base node.
+	 */
+	dsSceneNode node;
+
+	/**
+	 * @brief Function to get the bounds for the cull node.
+	 *
+	 * This should be assigned by the subclass of the node.
+	 */
+	dsGetSceneCullNodeBoundsFunction getBoundsFunc;
+};
+
+/**
  * @brief Union for the draw range of a model.
  */
 typedef union dsSceneModelDrawRange
@@ -348,7 +385,7 @@ typedef struct dsSceneModelNode
 	/**
 	 * @brief The base node.
 	 */
-	dsSceneNode node;
+	dsSceneCullNode node;
 
 	/**
 	 * @brief The models that will be drawn within the ndoe.

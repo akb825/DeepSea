@@ -27,11 +27,8 @@
 #include <DeepSea/Geometry/OrientedBox3.h>
 #include <DeepSea/Geometry/Frustum3.h>
 
-#include <DeepSea/Math/Matrix44.h>
-
-#include <DeepSea/Scene/Nodes/SceneModelNode.h>
+#include <DeepSea/Scene/Nodes/SceneCullNode.h>
 #include <DeepSea/Scene/Nodes/SceneNode.h>
-#include <DeepSea/Scene/Nodes/SceneTreeNode.h>
 
 #include <DeepSea/SceneLighting/SceneLightShadows.h>
 
@@ -39,8 +36,8 @@
 
 typedef struct Entry
 {
-	dsSceneModelNode* node;
-	const dsMatrix44f* transform;
+	const dsSceneCullNode* node;
+	const dsSceneTreeNode* treeNode;
 	bool* result;
 	uint64_t nodeID;
 } Entry;
@@ -62,7 +59,7 @@ static uint64_t dsShadowCullList_addNode(dsSceneItemList* itemList, dsSceneNode*
 	const dsSceneTreeNode* treeNode, const dsSceneNodeItemData* itemData, void** thisItemData)
 {
 	DS_UNUSED(itemData);
-	if (!dsSceneNode_isOfType(node, dsSceneModelNode_type()))
+	if (!dsSceneNode_isOfType(node, dsSceneCullNode_type()))
 		return DS_NO_SCENE_NODE;
 
 	dsShadowCullList* cullList = (dsShadowCullList*)itemList;
@@ -75,8 +72,8 @@ static uint64_t dsShadowCullList_addNode(dsSceneItemList* itemList, dsSceneNode*
 	}
 
 	Entry* entry = cullList->entries + index;
-	entry->node = (dsSceneModelNode*)node;
-	entry->transform = dsSceneTreeNode_getTransform(treeNode);
+	entry->node = (const dsSceneCullNode*)node;
+	entry->treeNode = treeNode;
 	entry->result = (bool*)thisItemData;
 	entry->nodeID = cullList->nextNodeID++;
 	return entry->nodeID;
@@ -118,16 +115,19 @@ static void dsShadowCullList_commit(dsSceneItemList* itemList, const dsView* vie
 	for (uint32_t i = 0; i < cullList->entryCount; ++i)
 	{
 		const Entry* entry = cullList->entries + i;
-		dsSceneModelNode* modelNode = entry->node;
-		dsOrientedBox3f transformedBounds = modelNode->bounds;
-
-		// Computations are in view space, so create the combined matrix here rather than having
-		// to transform the box twice.
-		dsMatrix44f worldViewMtx;
-		dsMatrix44_affineMul(worldViewMtx, view->viewMatrix, *entry->transform);
-		DS_VERIFY(dsOrientedBox3f_transform(&transformedBounds, &worldViewMtx));
-		*entry->result = dsSceneLightShadows_intersectViewOrientedBox(cullList->shadows,
-			cullList->surface, &transformedBounds) == dsIntersectResult_Outside;
+		dsOrientedBox3f bounds;
+		if (dsSceneCullNode_getBounds(&bounds, entry->node, entry->treeNode))
+		{
+			if (dsOrientedBox3_isValid(bounds))
+			{
+				*entry->result = dsSceneLightShadows_intersectOrientedBox(cullList->shadows,
+					cullList->surface, &bounds) == dsIntersectResult_Outside;
+			}
+			else
+				*entry->result = false;
+		}
+		else
+			*entry->result = true;
 	}
 
 	if (!dsSceneLightShadows_computeSurfaceProjection(cullList->shadows, cullList->surface))

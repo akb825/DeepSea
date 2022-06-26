@@ -30,6 +30,8 @@ extern "C"
  * @file
  * @brief Functions for creating and manipulating shadow cull lists.
  *
+ * This will perform culling on nodes that subclass from dsSceneCullNode.
+ *
  * This will cull for a surface within a scene light shadows instance. The item data is treated as a
  * bool value for whether or not the item is out of view. In other words, check if the void* value
  * is zero if it's in view or non-zero for out of view.

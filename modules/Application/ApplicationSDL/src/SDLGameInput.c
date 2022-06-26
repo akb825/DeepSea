@@ -689,8 +689,8 @@ bool dsSDLGameInput_getDPadDirection(dsVector2i* outDirection, const dsApplicati
 	return true;
 }
 
-bool dsSDLGameInput_startRumble(dsApplication* application, dsGameInput* gameInput,
-	float strength, float duration)
+bool dsSDLGameInput_startRumble(dsApplication* application, dsGameInput* gameInput, float strength,
+	float duration)
 {
 	DS_UNUSED(application);
 	if (SDL_HapticRumblePlay(((dsSDLGameInput*)gameInput)->haptic, strength,

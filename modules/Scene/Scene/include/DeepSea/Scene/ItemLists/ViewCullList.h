@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2021 Aaron Barany
+ * Copyright 2019-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,8 @@ extern "C"
 /**
  * @file
  * @brief Functions for creating and manipulating cull lists.
+ *
+ * This will perform culling on nodes that subclass from dsSceneCullNode.
  *
  * The item data is treated as a bool value for whether or not the item is out of view. In other
  * words, check if the void* value is zero if it's in view or non-zero for out of view.

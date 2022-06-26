@@ -522,7 +522,7 @@ struct dsView
 	dsMatrix44f viewProjectionMatrix;
 
 	/**
-	 * @brief The view frustum.
+	 * @brief The view frustum in world space.
 	 */
 	dsFrustum3f viewFrustum;
 

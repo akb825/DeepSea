@@ -57,6 +57,13 @@ DS_SCENE_EXPORT extern const char* const dsSceneModelNode_reconfigTypeName;
 DS_SCENE_EXPORT const dsSceneNodeType* dsSceneModelNode_type(void);
 
 /**
+ * @brief Sets up the parent type for a node type subclassing from dsSceneModelNode.
+ * @param type The subclass type for dsSceneModelNode.
+ * @return The type parameter or the type for dsSceneModelNode if type is NULL.
+ */
+DS_SCENE_EXPORT const dsSceneNodeType* dsSceneModelNode_setupParentType(dsSceneNodeType* type);
+
+/**
  * @brief Creates a scene model node.
  *
  * @remark The same item list name may appear multiple times in the model list, but the extra item

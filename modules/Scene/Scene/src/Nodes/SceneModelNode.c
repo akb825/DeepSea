@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2021 Aaron Barany
+ * Copyright 2019-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,9 +22,14 @@
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
+
 #include <DeepSea/Geometry/OrientedBox3.h>
+
 #include <DeepSea/Render/Resources/Material.h>
+
+#include <DeepSea/Scene/Nodes/SceneCullNode.h>
 #include <DeepSea/Scene/Nodes/SceneNode.h>
+#include <DeepSea/Scene/Nodes/SceneTreeNode.h>
 #include <DeepSea/Scene/SceneResources.h>
 
 #include <string.h>
@@ -109,6 +114,17 @@ static void populateItemList(const char** itemLists, uint32_t* hashes, uint32_t*
 	*itemListCount += extraItemListCount;
 }
 
+static bool dsModelNode_getBounds(dsOrientedBox3f* outBounds, const dsSceneCullNode* node,
+	const dsSceneTreeNode* treeNode)
+{
+	const dsSceneModelNode* modelNode = (const dsSceneModelNode*)node;
+	*outBounds = modelNode->bounds;
+	const dsMatrix44f* transform = dsSceneTreeNode_getTransform(treeNode);
+	DS_ASSERT(transform);
+	dsOrientedBox3f_transform(outBounds, transform);
+	return true;
+}
+
 const char* const dsSceneModelNode_typeName = "ModelNode";
 const char* const dsSceneModelNode_remapTypeName = "ModelNodeRemap";
 const char* const dsSceneModelNode_reconfigTypeName = "ModelNodeReconfig";
@@ -117,6 +133,12 @@ static dsSceneNodeType nodeType;
 const dsSceneNodeType* dsSceneModelNode_type(void)
 {
 	return &nodeType;
+}
+
+const dsSceneNodeType* dsSceneModelNode_setupParentType(dsSceneNodeType* type)
+{
+	dsSceneNode_setupParentType(&nodeType, dsSceneCullNode_type());
+	return dsSceneNode_setupParentType(type, &nodeType);
 }
 
 dsSceneModelNode* dsSceneModelNode_create(dsAllocator* allocator,
@@ -247,8 +269,9 @@ dsSceneModelNode* dsSceneModelNode_createBase(dsAllocator* allocator, size_t str
 	if (itemLists != tempStringListData)
 		DS_VERIFY(dsAllocator_free(allocator, (void*)itemLists));
 
-	if (!dsSceneNode_initialize((dsSceneNode*)node, allocator, dsSceneModelNode_type(),
-			(const char**)itemListsCopy, itemListCount, &dsSceneModelNode_destroy))
+	if (!dsSceneNode_initialize((dsSceneNode*)node, allocator,
+			dsSceneModelNode_setupParentType(NULL), (const char**)itemListsCopy, itemListCount,
+			&dsSceneModelNode_destroy))
 	{
 		if (allocator->freeFunc)
 			DS_VERIFY(dsAllocator_free(allocator, node));
@@ -308,6 +331,9 @@ dsSceneModelNode* dsSceneModelNode_createBase(dsAllocator* allocator, size_t str
 		node->bounds = *bounds;
 	else
 		dsOrientedBox3_makeInvalid(node->bounds);
+
+	dsSceneCullNode* cullNode = (dsSceneCullNode*)node;
+	cullNode->getBoundsFunc = &dsModelNode_getBounds;
 
 	return node;
 }
@@ -371,8 +397,9 @@ dsSceneModelNode* dsSceneModelNode_cloneRemapBase(dsAllocator* allocator, size_t
 		}
 	}
 
-	if (!dsSceneNode_initialize((dsSceneNode*)node, allocator, dsSceneModelNode_type(),
-			(const char**)itemListsCopy, itemListCount, &dsSceneModelNode_destroy))
+	if (!dsSceneNode_initialize((dsSceneNode*)node, allocator,
+			dsSceneModelNode_setupParentType(NULL), (const char**)itemListsCopy, itemListCount,
+			&dsSceneModelNode_destroy))
 	{
 		if (allocator->freeFunc)
 			DS_VERIFY(dsAllocator_free(allocator, node));
@@ -421,6 +448,10 @@ dsSceneModelNode* dsSceneModelNode_cloneRemapBase(dsAllocator* allocator, size_t
 	}
 
 	node->bounds = origModel->bounds;
+
+	dsSceneCullNode* cullNode = (dsSceneCullNode*)node;
+	cullNode->getBoundsFunc = &dsModelNode_getBounds;
+
 	DS_VERIFY(dsSceneModelNode_remapMaterials(node, remaps, remapCount));
 	return node;
 }

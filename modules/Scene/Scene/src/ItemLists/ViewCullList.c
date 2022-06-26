@@ -27,17 +27,16 @@
 #include <DeepSea/Geometry/OrientedBox3.h>
 #include <DeepSea/Geometry/Frustum3.h>
 
-#include <DeepSea/Scene/Nodes/SceneModelNode.h>
+#include <DeepSea/Scene/Nodes/SceneCullNode.h>
 #include <DeepSea/Scene/Nodes/SceneNode.h>
-#include <DeepSea/Scene/Nodes/SceneTreeNode.h>
 #include <DeepSea/Scene/View.h>
 
 #include <string.h>
 
 typedef struct Entry
 {
-	dsSceneModelNode* node;
-	const dsMatrix44f* transform;
+	const dsSceneCullNode* node;
+	const dsSceneTreeNode* treeNode;
 	bool* result;
 	uint64_t nodeID;
 } Entry;
@@ -69,7 +68,7 @@ uint64_t dsViewCullList_addNode(dsSceneItemList* itemList, dsSceneNode* node,
 	const dsSceneTreeNode* treeNode, const dsSceneNodeItemData* itemData, void** thisItemData)
 {
 	DS_UNUSED(itemData);
-	if (!dsSceneNode_isOfType(node, dsSceneModelNode_type()))
+	if (!dsSceneNode_isOfType(node, dsSceneCullNode_type()))
 		return DS_NO_SCENE_NODE;
 
 	dsViewCullList* cullList = (dsViewCullList*)itemList;
@@ -82,8 +81,8 @@ uint64_t dsViewCullList_addNode(dsSceneItemList* itemList, dsSceneNode* node,
 	}
 
 	Entry* entry = cullList->entries + index;
-	entry->node = (dsSceneModelNode*)node;
-	entry->transform = dsSceneTreeNode_getTransform(treeNode);
+	entry->node = (const dsSceneCullNode*)node;
+	entry->treeNode = treeNode;
 	entry->result = (bool*)thisItemData;
 	entry->nodeID = cullList->nextNodeID++;
 	return entry->nodeID;
@@ -114,17 +113,19 @@ void dsViewCullList_commit(dsSceneItemList* itemList, const dsView* view,
 	for (uint32_t i = 0; i < cullList->entryCount; ++i)
 	{
 		const Entry* entry = cullList->entries + i;
-		dsSceneModelNode* modelNode = entry->node;
-		if (dsOrientedBox3_isValid(modelNode->bounds))
+		dsOrientedBox3f bounds;
+		if (dsSceneCullNode_getBounds(&bounds, entry->node, entry->treeNode))
 		{
-			dsOrientedBox3f transformedBounds = modelNode->bounds;
-			DS_VERIFY(dsOrientedBox3f_transform(&transformedBounds, entry->transform));
-			*entry->result =
-				dsFrustum3f_intersectOrientedBox(&view->viewFrustum, &transformedBounds) ==
+			if (dsOrientedBox3_isValid(bounds))
+			{
+				*entry->result = dsFrustum3f_intersectOrientedBox(&view->viewFrustum, &bounds) ==
 					dsIntersectResult_Outside;
+			}
+			else
+				*entry->result = false;
 		}
 		else
-			*entry->result = false;
+			*entry->result = true;
 	}
 
 	DS_PROFILE_SCOPE_END();
