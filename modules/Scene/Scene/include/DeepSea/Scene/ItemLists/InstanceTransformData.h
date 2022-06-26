@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2021 Aaron Barany
+ * Copyright 2019-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ extern "C"
 
 /**
  * @file
- * @brief Functions for creating dsSceneInstanceData instances that manage instance tansforms.
+ * @brief Functions for creating dsSceneInstanceData instances that manage instance transforms.
  *
  * This populates the uniforms found in DeepSea/Scene/Shaders/InstanceTransform.mslh
  *

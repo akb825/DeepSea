@@ -34,6 +34,7 @@ from DeepSeaSceneLighting.Convert.SSAOConvert import convertSSAO
 
 from DeepSeaSceneParticle.Convert.ParticleDrawListConvert import convertParticleDrawList
 from DeepSeaSceneParticle.Convert.ParticlePrepareListConvert import convertParticlePrepareList
+from DeepSeaSceneParticle.Convert.ParticleTransformDataConvert import convertParticleTransformData
 
 from DeepSeaVectorDrawScene.Convert.VectorItemListConvert import convertVectorItemList
 from DeepSeaVectorDrawScene.Convert.VectorPrepareListConvert import convertVectorPrepareList
@@ -67,6 +68,7 @@ if __name__ == '__main__':
 	# Particle scene types.
 	convertContext.addItemListType('ParticleDrawList', convertParticleDrawList)
 	convertContext.addItemListType('ParticlePrepareList', convertParticlePrepareList)
+	convertContext.addInstanceDataType('ParticleTransformData', convertParticleTransformData)
 
 	# Vector draw scene types.
 	convertContext.addItemListType('VectorItemList', convertVectorItemList)

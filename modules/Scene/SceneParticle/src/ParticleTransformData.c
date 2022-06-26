@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022 Aaron Barany
+ * Copyright 2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include <DeepSea/Scene/ItemLists/InstanceTransformData.h>
+#include <DeepSea/SceneParticle/ParticleTransformData.h>
 
 #include <DeepSea/Core/Containers/Hash.h>
 #include <DeepSea/Core/Assert.h>
@@ -25,19 +25,14 @@
 
 #include <DeepSea/Render/Resources/ShaderVariableGroupDesc.h>
 
+#include <DeepSea/Scene/ItemLists/InstanceTransformData.h>
 #include <DeepSea/Scene/ItemLists/SceneInstanceVariables.h>
 #include <DeepSea/Scene/Nodes/SceneTreeNode.h>
 #include <DeepSea/Scene/Types.h>
 
-#include <string.h>
+#include <DeepSea/SceneParticle/SceneParticleNode.h>
 
-static dsShaderVariableElement elements[] =
-{
-	{"world", dsMaterialType_Mat4, 0},
-	{"worldView", dsMaterialType_Mat4, 0},
-	{"worldViewInvTrans", dsMaterialType_Mat4, 0},
-	{"worldViewProj", dsMaterialType_Mat4, 0}
-};
+#include <string.h>
 
 typedef struct InstanceTransform
 {
@@ -47,7 +42,7 @@ typedef struct InstanceTransform
 	dsMatrix44f worldViewProj;
 } InstanceTransform;
 
-static void dsInstanceTransformData_populateData(void* userData, const dsView* view,
+static void dsParticleTransformData_populateData(void* userData, const dsView* view,
 	const dsSceneTreeNode* const* instances, uint32_t instanceCount,
 	const dsShaderVariableGroupDesc* dataDesc, uint8_t* data, uint32_t stride)
 {
@@ -56,13 +51,15 @@ static void dsInstanceTransformData_populateData(void* userData, const dsView* v
 	DS_ASSERT(stride >= sizeof(InstanceTransform));
 	for (uint32_t i = 0; i < instanceCount; ++i, data += stride)
 	{
-		const dsMatrix44f* world = dsSceneTreeNode_getTransform(instances[i]);
-		DS_ASSERT(world);
+		const dsParticleEmitter* emitter = dsSceneParticleNode_getEmitterForInstance(instances[i]);
 		// The GPU memory can have some bad properties when accessing from the CPU, so first do all
 		// work on CPU memory and copy as one to the GPU buffer.
 		InstanceTransform transform;
-		transform.world = *world;
-		dsMatrix44_affineMul(transform.worldView, view->viewMatrix, *world);
+		if (emitter)
+			transform.world = emitter->transform;
+		else
+			dsMatrix44_identity(transform.world);
+		dsMatrix44_affineMul(transform.worldView, view->viewMatrix, transform.world);
 
 		dsMatrix44f inverseWorldView;
 		dsMatrix44f_affineInvert(&inverseWorldView, &transform.worldView);
@@ -74,30 +71,9 @@ static void dsInstanceTransformData_populateData(void* userData, const dsView* v
 	}
 }
 
-const char* const dsInstanceTransformData_typeName = "InstanceTransformData";
+const char* const dsParticleTransformData_typeName = "InstanceTransformData";
 
-dsShaderVariableGroupDesc* dsInstanceTransformData_createShaderVariableGroupDesc(
-	dsResourceManager* resourceManager, dsAllocator* allocator)
-{
-	if (!resourceManager)
-	{
-		errno = EINVAL;
-		return NULL;
-	}
-
-	return dsShaderVariableGroupDesc_create(resourceManager, allocator, elements,
-		DS_ARRAY_SIZE(elements));
-}
-
-bool dsSceneTransformData_isShaderVariableGroupCompatible(
-	const dsShaderVariableGroupDesc* transformDesc)
-{
-	return transformDesc &&
-		dsShaderVariableGroup_areElementsEqual(elements, DS_ARRAY_SIZE(elements),
-			transformDesc->elements, transformDesc->elementCount);
-}
-
-dsSceneInstanceData* dsInstanceTransformData_create(dsAllocator* allocator,
+dsSceneInstanceData* dsParticleTransformData_create(dsAllocator* allocator,
 	dsResourceManager* resourceManager, const dsShaderVariableGroupDesc* transformDesc)
 {
 	if (!allocator || !transformDesc)
@@ -110,12 +86,12 @@ dsSceneInstanceData* dsInstanceTransformData_create(dsAllocator* allocator,
 	{
 		errno = EINVAL;
 		DS_LOG_ERROR(DS_SCENE_LOG_TAG,
-			"Instance transform data's shader variable group description must have been created "
+			"Particle transform data's shader variable group description must have been created "
 			"with dsInstanceTransformData_createShaderVariableGroupDesc().");
 		return NULL;
 	}
 
 	return dsSceneInstanceVariables_create(allocator, resourceManager, transformDesc,
 		dsHashString(dsInstanceTransformData_typeName),
-		&dsInstanceTransformData_populateData, NULL, NULL);
+		&dsParticleTransformData_populateData, NULL, NULL);
 }

@@ -18,6 +18,7 @@
 
 #include <DeepSea/Core/Error.h>
 
+#include <DeepSea/SceneParticle/ParticleTransformData.h>
 #include <DeepSea/SceneParticle/SceneParticleEmitterFactory.h>
 #include <DeepSea/SceneParticle/SceneParticleNode.h>
 #include <DeepSea/SceneParticle/SceneParticleDrawList.h>
@@ -26,6 +27,7 @@
 
 #include <DeepSea/Scene/SceneLoadContext.h>
 
+#include "ParticleTransformDataLoad.h"
 #include "SceneParticleNodeLoad.h"
 #include "SceneParticleDrawListLoad.h"
 #include "SceneParticlePrepareListLoad.h"
@@ -67,6 +69,12 @@ bool dsSceneParticleLoadConext_registerTypes(dsSceneLoadContext* loadContext)
 
 	if (!dsSceneLoadContext_registerItemListType(loadContext, dsSceneParticlePrepareList_typeName,
 			&dsSceneParticlePrepareList_load, NULL, NULL))
+	{
+		return false;
+	}
+
+	if (!dsSceneLoadContext_registerInstanceDataType(loadContext, dsParticleTransformData_typeName,
+			&dsParticleTransformData_load, NULL, NULL))
 	{
 		return false;
 	}
