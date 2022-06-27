@@ -220,11 +220,39 @@ static void initializePixelFormats(dsMTLResourceManager* resourceManager, id<MTL
 			[dsGfxFormat_compressedIndex(dsGfxFormat_EAC_R11G11)][snormIndex] =
 				MTLPixelFormatEAC_RG11Snorm;
 
+		resourceManager->compressedPixelFormats
+			[dsGfxFormat_compressedIndex(dsGfxFormat_PVRTC1_RGB_2BPP)][unormIndex] =
+				MTLPixelFormatPVRTC_RGB_2BPP;
+		resourceManager->compressedPixelFormats
+			[dsGfxFormat_compressedIndex(dsGfxFormat_PVRTC1_RGB_2BPP)][srgbIndex] =
+				MTLPixelFormatPVRTC_RGB_2BPP_sRGB;
+
+		resourceManager->compressedPixelFormats
+			[dsGfxFormat_compressedIndex(dsGfxFormat_PVRTC1_RGBA_2BPP)][unormIndex] =
+				MTLPixelFormatPVRTC_RGBA_2BPP;
+		resourceManager->compressedPixelFormats
+			[dsGfxFormat_compressedIndex(dsGfxFormat_PVRTC1_RGBA_2BPP)][srgbIndex] =
+				MTLPixelFormatPVRTC_RGBA_2BPP_sRGB;
+
+		resourceManager->compressedPixelFormats
+			[dsGfxFormat_compressedIndex(dsGfxFormat_PVRTC1_RGB_4BPP)][unormIndex] =
+				MTLPixelFormatPVRTC_RGB_4BPP;
+		resourceManager->compressedPixelFormats
+			[dsGfxFormat_compressedIndex(dsGfxFormat_PVRTC1_RGB_4BPP)][srgbIndex] =
+				MTLPixelFormatPVRTC_RGB_4BPP_sRGB;
+
+		resourceManager->compressedPixelFormats
+			[dsGfxFormat_compressedIndex(dsGfxFormat_PVRTC1_RGBA_4BPP)][unormIndex] =
+				MTLPixelFormatPVRTC_RGBA_4BPP;
+		resourceManager->compressedPixelFormats
+			[dsGfxFormat_compressedIndex(dsGfxFormat_PVRTC1_RGBA_4BPP)][srgbIndex] =
+				MTLPixelFormatPVRTC_RGBA_4BPP_sRGB;
+
 		bool hasASTC = false;
-	#if __IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
+	#if DS_IOS
 		hasASTC = [device supportsFeatureSet: MTLFeatureSet_iOS_GPUFamily2_v1];
 	#elif DS_MAC
-		hasASTC = true;
+		hasASTC = [device supportsFamily: MTLGPUFamilyApple2];
 	#endif
 		if (hasASTC)
 		{
@@ -325,34 +353,6 @@ static void initializePixelFormats(dsMTLResourceManager* resourceManager, id<MTL
 			resourceManager->compressedPixelFormats
 				[dsGfxFormat_compressedIndex(dsGfxFormat_ASTC_12x12)][srgbIndex] =
 					MTLPixelFormatASTC_12x12_sRGB;
-
-			resourceManager->compressedPixelFormats
-				[dsGfxFormat_compressedIndex(dsGfxFormat_PVRTC1_RGB_2BPP)][unormIndex] =
-					MTLPixelFormatPVRTC_RGB_2BPP;
-			resourceManager->compressedPixelFormats
-				[dsGfxFormat_compressedIndex(dsGfxFormat_PVRTC1_RGB_2BPP)][srgbIndex] =
-					MTLPixelFormatPVRTC_RGB_2BPP_sRGB;
-
-			resourceManager->compressedPixelFormats
-				[dsGfxFormat_compressedIndex(dsGfxFormat_PVRTC1_RGBA_2BPP)][unormIndex] =
-					MTLPixelFormatPVRTC_RGBA_2BPP;
-			resourceManager->compressedPixelFormats
-				[dsGfxFormat_compressedIndex(dsGfxFormat_PVRTC1_RGBA_2BPP)][srgbIndex] =
-					MTLPixelFormatPVRTC_RGBA_2BPP_sRGB;
-
-			resourceManager->compressedPixelFormats
-				[dsGfxFormat_compressedIndex(dsGfxFormat_PVRTC1_RGB_4BPP)][unormIndex] =
-					MTLPixelFormatPVRTC_RGB_4BPP;
-			resourceManager->compressedPixelFormats
-				[dsGfxFormat_compressedIndex(dsGfxFormat_PVRTC1_RGB_4BPP)][srgbIndex] =
-					MTLPixelFormatPVRTC_RGB_4BPP_sRGB;
-
-			resourceManager->compressedPixelFormats
-				[dsGfxFormat_compressedIndex(dsGfxFormat_PVRTC1_RGBA_4BPP)][unormIndex] =
-					MTLPixelFormatPVRTC_RGBA_4BPP;
-			resourceManager->compressedPixelFormats
-				[dsGfxFormat_compressedIndex(dsGfxFormat_PVRTC1_RGBA_4BPP)][srgbIndex] =
-					MTLPixelFormatPVRTC_RGBA_4BPP_sRGB;
 		}
 	}
 #endif

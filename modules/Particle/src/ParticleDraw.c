@@ -263,6 +263,7 @@ static void collectParticles(dsParticleDraw* drawer, const dsMatrix44f* viewMatr
 		}
 	}
 
+	DS_UNUSED(curParticleCount);
 	DS_ASSERT(curParticleCount == particleCount);
 	DS_ASSERT(curParticleRef == drawer->particles + particleCount);
 	qsort(drawer->particles, particleCount, sizeof(ParticleRef), &particleRefCompare);
