@@ -10,7 +10,7 @@ The following JSON formats are added to extend scene conversion.
 
 The following custom scene resource types are provided with the members that are expected:
 
-* `"StandardParticleEmitterFactory"`:
+* `"StandardParticleEmitterFactory"`: factory to create `dsStandardParticleEmitter` instances for a particle node.
 	* `maxParticles`: the maximum number of particles displayed at once.
 	* `shader`: the name of the shader to draw with.
 	* `material`: the name of the material to draw with.
@@ -55,7 +55,7 @@ The following custom scene resource types are provided with the members that are
 
 The following scene node types are provided with the members that are expected:
 
-* `"ParticleNode"`
+* `"ParticleNode"`: node to draw particles within a scene.
 	* `particleEmitterFactory`: the name of the factory to create particle emitters with.
 	* `itemLists`: array of item list names to add the node to.
 
@@ -65,9 +65,14 @@ The following scene node types are provided with the members that are expected:
 
 The following scene item lists are provided with the expected members:
 
-* `"ParticlePrepareList"` (no additional members)
-* `ParticleDrawList"`
+* `"ParticlePrepareList"`: creates the `dsParticleEmitter` instances for particle nodes and prepares them for drawing. (no additional members)
+* `"ParticleDrawList"`: draws particle nodes in a scene.
 	* `instanceData`: optional list of instance data to include with the particle draw list. Each element of the array has the following members:
 		* `type`: the name of the instance data type.
 		* Remaining members depend on the value of `type`.
 	* `cullList`: optional string name of the item list to handle culling. If unset no culling is used.
+
+## Instance Data
+
+* `"ParticleTransformList"`: instance data similar to `InstanceTransformData`, but uses the particle emitter's transform. This is useful when the base transform uses a different node, such as with `StandardParticleEmitterFactory`.
+	* `variableGroupDesc`: string name for the shader variable group to use.

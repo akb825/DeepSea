@@ -335,7 +335,7 @@ Instance transform data has the type name "InstanceTransformData" and sets stand
 
 ### View Cull List
 
-View cull list has the type name "ViewCullList" and performs cull checks for model bounding boxes against the view frustum. The data is ignored and may be omitted.
+View cull list has the type name "ViewCullList" and performs cull checks for bounding boxes in nodes that derive from `dsSceneCullNode` against the view frustum. The data is ignored and may be omitted.
 
 ## Global Data
 

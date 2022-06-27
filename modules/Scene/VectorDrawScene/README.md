@@ -16,16 +16,16 @@ The following JSON formats are added to extend scene conversion.
 
 The following custom scene resource types are provided with the members that are expected:
 
-* `"Text"`
+* `"Text"`: text to draw within a scene with a `TextNode`.
 	* `resources`: the name of the vector resources to get the font from.
 	* `font`: the name of the font to use if not provided by the text XML element. Defaults to `"serif"`.
 	* `text`: the text. This can either be a path to a .xml file or embedded XML string. The XML contents should be a single \<text\> SVG element with any number of \<tspan\> embedded elements. (see https://www.w3.org/TR/SVG2/text.html#TextElement for details) Only solid colors are allowed for stroke and fill. When a position is provided, only a relative offset for the vertical position is supported.
-* `"VectorResources"`
+* `"VectorResources"`: vector resources that will be used for vector images within a scene.
 	* `resources`: path to the vector resources.
 	* `output`: the path to the output the vector resources. This can be omitted if vector resources are embedded.
 	* `outputRelativeDir`: the directory relative to output path. This will be removed from the path before adding the reference.
 	* `resourceType`: the resource type. See the `dsFileResourceType` for values, removing the type prefix. Defaults to `"Embedded"`.
-* `"VectorShaders"`
+* `"VectorShaders"`: shaders to be used with vector images within a scene.
 	* `modules`: array of versioned shader modules. The appropriate model based on the graphics API version being used will be chosen at runtime. Each element of the array has the following members:
 		* `version`: the version of the shader as a standard config. (e.g. `"glsl-4.1"`, `"spirv-1.0"`)
 		* `module`: path to the shader module or base64 encoded data prefixed with `base64:`. The module is expected to have been compiled with Modular Shader Language (MSL).
@@ -48,7 +48,7 @@ The following custom scene resource types are provided with the members that are
 	* `textColorOutline`: name of the shader for standard single-color text with a single-colored outline. Defaults to `"dsVectorTextColorOutline"`.
 	* `textGradient`: name of the shader for text using a gradient. Defaults to `"dsVectorTextGradient"`.
 	* `textGradientOutline`: name of the shader for text with an outline using a gradient. Defaults to `"dsVectorTextGradientOutline"`.
-* `"VectorImage"`
+* `"VectorImage"`: vector image to draw within a scene with `VectorImageNode`.
 	* `image`: path to the vector image or base64 encoded data prefixed with `base64:`.
 	* `output`: the path to the output the vector image. This can be omitted if the vector image is embedded.
 	* `outputRelativeDir`: the directory relative to output path. This will be removed from the path before adding the reference.
@@ -63,7 +63,7 @@ The following custom scene resource types are provided with the members that are
 
 The following scene node types are provided with the members that are expected:
 
-* `"TextNode"`
+* `"TextNode"`: scene node to draw a `Text` object.
 	* `embeddedResources`: optional set of resources to embed with the node. This is a map containing the elements as expected by `SceneResourcesConvert.convertSceneResources()`.
 	* `text`: the name of the text element to draw. 
 	* `alignment`: the alignment of the text. May be `"Start"`, `"End"`, `"Left"`, `"Right"`, or `"Center"`. Defaults to `"Start"`.
@@ -76,7 +76,7 @@ The following scene node types are provided with the members that are expected:
 	* `material`: the name of the material to draw with.
 	* `fontTexture`: the name of the texture for the font.
 	* `itemLists`: array of item list names to add the node to.
-* `"VectorImageNode"`
+* `"VectorImageNode"`: scene node to draw a `VectorImage` object.
 	* `embeddedResources`: optional set of resources to embed with the node. This is an array of maps as expected by `SceneResourcesConvert.convertSceneResources()`.
 	* `vectorImage`: the name of the vector image to draw.
 	* `size`: the size to draw the vector image as an array of two floats. Defaults to the original image size.
@@ -89,8 +89,8 @@ The following scene node types are provided with the members that are expected:
 
 The following scene item lists are provided with the expected members:
 
-* `"VectorPrepareList"` (no additional members)
-* `"VectorItemList"`
+* `"VectorPrepareList"`: item list to prepare `TextNode` and `VectorImageNode` nodes for drawing. (no additional members)
+* `"VectorItemList"`: item list to draw `TextNode` and `VectorImageNode` nodes.
 	* `instanceData`: optional list of instance data to include with the item list. Each element of the array has the following members:
 		* `type`: the name of the instance data type.
 		* Remaining members depend on the value of `type`.

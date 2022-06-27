@@ -10,7 +10,7 @@ The following JSON formats are added to extend scene conversion.
 
 The following custom scene resource types are provided with the members that are expected:
 
-* `"LightSet"`
+* `"LightSet"`: set of lights to use within a scene.
 	* `lights`: array of lights to initially populate the light set with. Each member of the array has the following members:
 		* `name`: the name of the light.
 		* `color`: the color of the light as an array of three float values, typically in the range `[0, 1]`.
@@ -34,7 +34,7 @@ The following custom scene resource types are provided with the members that are
 	* `ambientIntensity`: the intensity of the ambient light, which multiplies the color. Defaults to 0.
 	* `mainLight`: the name of the main light. If omitted no light will be considered the main light.
 	* `srgb`: true to treat all color values as sRGB values to be converted to linear space. Defaults to `false`.
-* `"ShadowManager"`
+* `"ShadowManager"`: object to manage shadow buffers within a scene.
 	* `lightSet`: the name of the light set to query the light from. If set, this will be the default for elements in the shadows array.
 	* `shadows`: array of objects for the shadows the shadow manager will manage. Each element is
 	  expected to have the following members:
@@ -55,17 +55,17 @@ The following custom scene resource types are provided with the members that are
 
 The following global data types are provided with the members that are expected:
 
-* `"LightSetPrepare"`:
+* `"LightSetPrepare"`: prepares a light set to be used in a scene before drawing.
 	* `lightSets`: array of light set names to prepare.
 	* `intensityThreshold`: the threshold below which the light is considered out of view. If unset this will use the default.
-* `"ShadowManagerPrepare"`:
+* `"ShadowManagerPrepare"`: prepares a shadow manager to be used in a scene before drawing.
 	* `shadowManager`: name of the shadow manager to prepare.
 
 ## Item Lists
 
 The following item list types are provided with the members that are expected:
 
-* `"DeferredLightResolve"`:
+* `"DeferredLightResolve"`: resolves the results of deferred lighting to the screen.
 	* `lightSet`: name of the light set to draw the lights from.
 	* `shadowManager`: name of the shadow manager when drawing shadowed lights.
 	* `ambient`: object containing info for the ambient light. If omitted, the ambient light won't be drawn. It is expected to contain the following elements:
@@ -96,14 +96,14 @@ The following item list types are provided with the members that are expected:
 		* `transformGroup`: name of the shader variable group containing the shadow transform.
 		* `shadowTexture`: name of the shader variable for the the shadow texture.
 	* `intensityThreshold`: the threshold below which the light is considered out of view. If unset this will use the default.
-* `"ShadowCullList"`
+* `"ShadowCullList"`: culls nodes that derive from `dsSceneCullNode` with a shadow surface.
 	* `shadowManager`: name of the shadow manager that contains the shadows being culled for.
 	* `shadows`: name of the shadows within the shadow manager to cull for.
 	* `surface`: index of the surface within the light shadows.
-* `"SSAO"`:
+* `"SSAO"`: calculates screen-space ambient occlusion with traditional pixel shaders.
 	* `shader`: the shader to calculate the ambient occlusion with.
 	* `material`: the material to use with the shader.
-* `"ComputeSSAO"`:
+* `"ComputeSSAO"`: calculates screen-space ambient occlusion with a compute shader.
 	* `shader`: the compute shader to calculate the ambient occlusion with.
 	* `material`: the material to use with the shader.
 
@@ -111,10 +111,10 @@ The following item list types are provided with the members that are expected:
 
 The following instance data types are provided with the members that are expected:
 
-* `"InstanceForwardLightData"`:
+* `"InstanceForwardLightData"`: sets the brightest lights for the instance to shader variables for use in drawing.
 	* `variableGroupDesc`: string name for the shader variable group to use.
 	* `lightSet`: string name of the light set to use.
-* `"ShadowInstanceTransformData"`:
+* `"ShadowInstanceTransformData"`: sets instance transforms for shadow mapping.
 	* `shadowManager`: name of the shadow manager that contains the shadows to get the transform from.
 	* `shadows`: name of the shadows within the shadow manager to get the transform from.
 	* `surface`: index of the surface within the shadows to get the transform from.
