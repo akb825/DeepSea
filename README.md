@@ -8,7 +8,7 @@ DeepSea is a game engine written in C. It is designed to be modular, allowing on
 
 The following software is required to build DeepSea:
 
-* [cmake](https://cmake.org/) 3.1 or later
+* [cmake](https://cmake.org/) 3.5 or later
 * [Modular Shader Language](https://github.com/akb825/ModularShaderLanguage) (required for rendering, provided as submodule; will only build the client library without tests, which doesn't have extra required dependencies; tool should be downloaded via `update.sh` or built separately and available on `PATH` to compile shaders)
 * [EasyProfiler](https://github.com/yse/easy_profiler) (optional default profiling implementation, provided as submodule)
 * [SDL2](https://www.libsdl.org/) (optional)
@@ -30,7 +30,9 @@ The `update.sh` script may be used to update the code, submodules, and download 
 The first time you run `update.sh`, pass in the `-t` option to download the tools. You can also pass the `-l` with the list of platforms to download the libraries for. Supported platforms are:
 
 * linux (Linux with glibc 2.27 for x86-64, e.g. Ubuntu 18.04)
-* mac (macOS 10.13 for x86-64)
+* mac (macOS 10.11 for x86-64/arm64)
+* mac-x86_64 (macOS 10.11 for x86-64)
+* mac-arm64 (macOS 10.11 for arm64)
 * win32 (Windows for x86, VS2017 runtime)
 * win64 (Windows for x86-64, VS2017 runtime)
 * android-x86 (Android for x86)
