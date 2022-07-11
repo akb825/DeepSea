@@ -89,6 +89,7 @@ typedef struct InstanceExtensions
 {
 	bool initialized;
 	bool validation;
+	bool standardValidation;
 	bool oldValidation;
 	bool debug;
 	bool oldDebugReport;
@@ -115,7 +116,8 @@ typedef struct ExtraDeviceInfo
 } ExtraDeviceInfo;
 
 // Layers.
-static const char* debugLayerName = "VK_LAYER_LUNARG_standard_validation";
+static const char* validationLayerName = "VK_LAYER_KHRONOS_validation";
+static const char* standardValidationLayerName = "VK_LAYER_LUNARG_standard_validation";
 static const char* threadingValLayerName = "VK_LAYER_GOOGLE_threading";
 static const char* paramValLayerName = "VK_LAYER_LUNARG_parameter_validation";
 static const char* objectValLayerName = "VK_LAYER_LUNARG_object_tracker";
@@ -331,8 +333,10 @@ static bool queryInstanceExtensions(dsVkInstance* instance)
 		instance->vkEnumerateInstanceLayerProperties(&layerCount, layers);
 		for (uint32_t i = 0; i < layerCount; ++i)
 		{
-			if (strcmp(layers[i].layerName, debugLayerName) == 0)
+			if (strcmp(layers[i].layerName, validationLayerName) == 0)
 				instanceExtensions.validation = true;
+			else if (strcmp(layers[i].layerName, standardValidationLayerName) == 0)
+				instanceExtensions.standardValidation = true;
 			else if (strcmp(layers[i].layerName, coreValLayerName) == 0)
 				instanceExtensions.oldValidation = true;
 		}
@@ -390,7 +394,9 @@ static void addLayers(const char** layerNames, uint32_t* layerCount, bool useVal
 		return;
 
 	if (instanceExtensions.validation)
-		DS_ADD_EXTENSION(layerNames, *layerCount, debugLayerName);
+		DS_ADD_EXTENSION(layerNames, *layerCount, validationLayerName);
+	else if (instanceExtensions.standardValidation)
+		DS_ADD_EXTENSION(layerNames, *layerCount, standardValidationLayerName);
 	else if (instanceExtensions.oldValidation)
 	{
 		// Need to add each validation layer individually for older systems. (e.g. Android)
