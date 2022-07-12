@@ -1978,8 +1978,11 @@ bool dsVkRenderer_pushDebugGroup(dsRenderer* renderer, dsCommandBuffer* commandB
 {
 	dsVkDevice* device = &((dsVkRenderer*)renderer)->device;
 	dsVkInstance* instance = &device->instance;
-	if (!instance->vkCmdBeginDebugUtilsLabelEXT && !device->vkCmdDebugMarkerBeginEXT)
+	if ((!instance->vkCmdBeginDebugUtilsLabelEXT && !device->vkCmdDebugMarkerBeginEXT) ||
+		device->buggyDebugLabels)
+	{
 		return true;
+	}
 
 	VkCommandBuffer submitBuffer = dsVkCommandBuffer_getCommandBuffer(commandBuffer);
 	if (!submitBuffer)
@@ -2016,8 +2019,11 @@ bool dsVkRenderer_popDebugGroup(dsRenderer* renderer, dsCommandBuffer* commandBu
 {
 	dsVkDevice* device = &((dsVkRenderer*)renderer)->device;
 	dsVkInstance* instance = &device->instance;
-	if (!instance->vkCmdEndDebugUtilsLabelEXT && !device->vkCmdDebugMarkerEndEXT)
+	if ((!instance->vkCmdEndDebugUtilsLabelEXT && !device->vkCmdDebugMarkerEndEXT) ||
+		device->buggyDebugLabels)
+	{
 		return true;
+	}
 
 	VkCommandBuffer submitBuffer = dsVkCommandBuffer_getCommandBuffer(commandBuffer);
 	if (!submitBuffer)

@@ -1213,6 +1213,14 @@ bool dsCreateVkDevice(dsVkDevice* device, dsAllocator* allocator, const dsRender
 		}
 	}
 
+	device->buggyDebugLabels = false;
+#if !DS_WINDOWS
+	// Intel driver on Mesa has buggy debug labels.
+	// See https://gitlab.freedesktop.org/mesa/mesa/-/issues/6843
+	if (device->properties.vendorID == DS_VENDOR_ID_INTEL)
+		device->buggyDebugLabels = true;
+#endif
+
 	return true;
 }
 

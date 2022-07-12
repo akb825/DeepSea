@@ -234,6 +234,7 @@ typedef struct dsVkDevice
 	bool hasPVRTC;
 	bool hasDedicatedAllocation;
 	bool hasLazyAllocation;
+	bool buggyDebugLabels;
 
 	VkPhysicalDeviceMemoryProperties memoryProperties;
 } dsVkDevice;
