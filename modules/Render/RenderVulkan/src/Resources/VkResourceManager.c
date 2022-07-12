@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2021 Aaron Barany
+ * Copyright 2018-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,7 +43,9 @@
 #define DS_BUFFER_SIZE 256
 #define DS_PIPELINE_MAGIC_NUMBER DS_FOURCC('D', 'S', 'V', 'K')
 #define DS_PIPELINE_VERSION 0
-#define DS_PIPELINE_FILE_NAME "vulkan_pipeline.cache"
+#define DS_PIPELINE_CACHE_EXTENSION ".vkpc"
+// <UUID hex>.<extension><NUL>
+#define DS_PIPELINE_CACHE_NAME_LEN (VK_UUID_SIZE*2 + 6)
 
 struct dsResourceContext
 {
@@ -526,15 +528,39 @@ static void initializeFormats(dsVkResourceManager* resourceManager)
 	}
 }
 
-static void* readPipelineCache(uint32_t* outSize, dsAllocator* allocator,
-	const char* shaderCacheDir)
+static bool getPipelineCachePath(char* outPath, uint32_t pathLength, const char* shaderCacheDir,
+	const dsVkDevice* device)
 {
-	char path[DS_PATH_MAX];
-	if (!dsPath_combine(path, DS_PATH_MAX, shaderCacheDir, DS_PIPELINE_FILE_NAME))
+	static const char hexTable[16] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B',
+		'C', 'D', 'E', 'F'};
+	char fileName[DS_PIPELINE_CACHE_NAME_LEN];
+	for (int i = 0; i < VK_UUID_SIZE; ++i)
+	{
+		DS_ASSERT(i+2 < DS_PIPELINE_CACHE_NAME_LEN);
+		uint8_t uuidByte = device->properties.pipelineCacheUUID[i];
+		fileName[i*2] = hexTable[(uuidByte & 0xF0) >> 4];
+		fileName[i*2 + 1] = hexTable[uuidByte & 0xF];
+	}
+
+	DS_ASSERT(VK_UUID_SIZE*2 + strlen(DS_PIPELINE_CACHE_EXTENSION) + 1 ==
+		DS_PIPELINE_CACHE_NAME_LEN);
+	memcpy(fileName + VK_UUID_SIZE*2, DS_PIPELINE_CACHE_EXTENSION,
+		strlen(DS_PIPELINE_CACHE_EXTENSION) + 1);
+
+	if (!dsPath_combine(outPath, pathLength, shaderCacheDir, fileName))
 	{
 		DS_LOG_WARNING_F(DS_RENDER_VULKAN_LOG_TAG, "Shader cache path is too long.");
-		return NULL;
+		return false;
 	}
+	return true;
+}
+
+static void* readPipelineCache(uint32_t* outSize, dsAllocator* allocator,
+	const char* shaderCacheDir, const dsVkDevice* device)
+{
+	char path[DS_PATH_MAX];
+	if (!getPipelineCachePath(path, DS_PATH_MAX, shaderCacheDir, device))
+		return NULL;
 
 	dsFileStream stream;
 	uint8_t* data = NULL;
@@ -590,11 +616,8 @@ static bool writePipelineCache(dsAllocator* allocator, const char* shaderCacheDi
 		goto bufferError;
 
 	char path[DS_PATH_MAX];
-	if (!dsPath_combine(path, DS_PATH_MAX, shaderCacheDir, DS_PIPELINE_FILE_NAME))
-	{
-		DS_LOG_WARNING_F(DS_RENDER_VULKAN_LOG_TAG, "Shader cache path is too long.");
+	if (!getPipelineCachePath(path, DS_PATH_MAX, shaderCacheDir, device))
 		goto bufferError;
-	}
 
 	dsFileStream stream;
 	if (!dsFileStream_openPath(&stream, path, "wb"))
@@ -936,7 +959,8 @@ dsResourceManager* dsVkResourceManager_create(dsAllocator* allocator, dsVkRender
 		memcpy(stringCopy, shaderCacheDir, length);
 		resourceManager->shaderCacheDir = stringCopy;
 
-		pipelineCacheData = readPipelineCache(&pipelineCacheDataSize, allocator, shaderCacheDir);
+		pipelineCacheData = readPipelineCache(&pipelineCacheDataSize, allocator, shaderCacheDir,
+			device);
 	}
 
 	dsVkInstance* instance = &device->instance;

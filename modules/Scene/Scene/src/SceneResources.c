@@ -373,30 +373,14 @@ void dsSceneResources_freeRef(dsSceneResources* resources)
 	if (DS_ATOMIC_FETCH_ADD32(&resources->refCount, -1) != 1)
 		return;
 
-	// First pass: free everything but descriptions.
-	for (dsListNode* node = resources->resources->list.head; node; node = node->next)
+	// Destroy all resources in reverse order.
+	for (dsListNode* node = resources->resources->list.tail; node; node = node->previous)
 	{
 		ResourceNode* resourceNode = (ResourceNode*)node;
 		if (resourceNode->type == dsSceneResourceType_SceneNode)
 			dsSceneNode_freeRef((dsSceneNode*)resourceNode->resource);
-		else if (resourceNode->owned &&
-			resourceNode->type != dsSceneResourceType_ShaderVariableGroupDesc &&
-			resourceNode->type != dsSceneResourceType_MaterialDesc)
-		{
+		else if (resourceNode->owned)
 			destroyResource(resourceNode->type, resourceNode->resource);
-		}
-	}
-
-	// Second pass: destroy descriptions.
-	for (dsListNode* node = resources->resources->list.head; node; node = node->next)
-	{
-		ResourceNode* resourceNode = (ResourceNode*)node;
-		if (resourceNode->owned &&
-			(resourceNode->type == dsSceneResourceType_ShaderVariableGroupDesc ||
-				resourceNode->type == dsSceneResourceType_MaterialDesc))
-		{
-			destroyResource(resourceNode->type, resourceNode->resource);
-		}
 	}
 
 	dsPoolAllocator_shutdown(&resources->nodePool);

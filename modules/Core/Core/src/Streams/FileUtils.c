@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ bool dsCreateDirectory(const char* dirName)
 #if DS_WINDOWS
 	return mkdir(dirName) == 0;
 #else
-	return mkdir(dirName, 0755);
+	return mkdir(dirName, 0755) == 0;
 #endif
 }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2021 Aaron Barany
+ * Copyright 2017-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,7 +65,7 @@ static void hashShader(uint64_t shaderHash[2], const mslModule* module, const ms
 	}
 }
 
-static bool loadShader(dsResourceManager* resourceManager, const char* shaderCacheDir,
+static bool readShader(dsResourceManager* resourceManager, const char* shaderCacheDir,
 	const dsShader* shader, GLuint program, uint64_t shaderHash[2])
 {
 	static bool printedError = false;
@@ -197,6 +197,7 @@ static bool writeShader(dsResourceManager* resourceManager, const char* shaderCa
 	if (!dsFileStream_write(&stream, data, size))
 		goto error;
 
+	dsAllocator_free(resourceManager->allocator, data);
 	DS_VERIFY(dsFileStream_close(&stream));
 
 	// Rename the temporary file to the final location once we're done so it's atomic on the
@@ -895,19 +896,18 @@ dsShader* dsGLShader_create(dsResourceManager* resourceManager, dsAllocator* all
 
 	dsGLRenderer* renderer = (dsGLRenderer*)resourceManager->renderer;
 	const char* shaderCacheDir = renderer->options.shaderCacheDir;
-	bool readShader = false;
-	uint64_t shaderHash[2];
+	bool hasShaderData = false;
 	if (shaderCacheDir && ANYGL_SUPPORTED(glProgramBinary))
 	{
-		hashShader(shaderHash, module->module, &pipeline);
+		hashShader(shader->shaderHash, module->module, &pipeline);
 		int prevErrno = errno;
-		readShader = loadShader(resourceManager, shaderCacheDir, baseShader, shader->programId,
-			shaderHash);
+		hasShaderData = readShader(resourceManager, shaderCacheDir, baseShader, shader->programId,
+			shader->shaderHash);
 		errno = prevErrno;
 	}
 
 	// Compile and link the shader if it wasn't read.
-	bool success = readShader;
+	bool success = hasShaderData;
 	if (!success)
 		success = compileAndLinkProgram(resourceManager, module, shader, &pipeline, shaderIndex);
 
@@ -931,15 +931,6 @@ dsShader* dsGLShader_create(dsResourceManager* resourceManager, dsAllocator* all
 	// Set up the render states.
 	DS_VERIFY(mslModule_renderState(&shader->renderState, module->module, shaderIndex));
 	resolveDefaultStates(&shader->renderState);
-
-	// Write the shader if caching is enabled and didn't read it before.
-	if (shaderCacheDir && ANYGL_SUPPORTED(glProgramBinary) && !readShader)
-	{
-		int prevErrno = errno;
-		writeShader(resourceManager, shaderCacheDir, baseShader, shader->programId, shaderHash);
-		errno = prevErrno;
-	}
-
 	return baseShader;
 }
 
@@ -1036,7 +1027,20 @@ static bool destroyImpl(dsShader* shader)
 {
 	dsGLShader* glShader = (dsGLShader*)shader;
 	if (glShader->programId)
+	{
+		// Write out the shader cache on destruction once it's warmed.
+		dsResourceManager* resourceManager = shader->resourceManager;
+		dsGLRenderer* renderer = (dsGLRenderer*)resourceManager->renderer;
+		const char* shaderCacheDir = renderer->options.shaderCacheDir;
+		if (shaderCacheDir && ANYGL_SUPPORTED(glProgramBinary))
+		{
+			int prevErrno = errno;
+			writeShader(resourceManager, shaderCacheDir, shader, glShader->programId,
+				glShader->shaderHash);
+			errno = prevErrno;
+		}
 		glDeleteProgram(glShader->programId);
+	}
 	if (glShader->samplerIds && *glShader->samplerIds)
 		glDeleteSamplers(glShader->pipeline.samplerStateCount, glShader->samplerIds);
 	if (shader->allocator)

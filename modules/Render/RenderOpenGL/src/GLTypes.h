@@ -193,6 +193,7 @@ typedef struct dsGLShader
 	mslSamplerState* samplerStates;
 	dsGLUniformInfo* uniforms;
 	float defaultAnisotropy;
+	uint64_t shaderHash[2];
 } dsGLShader;
 
 typedef struct dsGLResourceManager
