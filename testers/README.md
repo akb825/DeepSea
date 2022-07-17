@@ -8,7 +8,7 @@ If parts of the engine are disabled through CMake variables, any of the the test
 
 The following command-line options are shared across all testers:
 
-* `-r/--renderer <renderer>`: choose which render implementation to use. Possible values of `<renderer> are `Metal`, `Vulkan`, or `OpenGL`, case insensitive. The default is `Metal` for Apple platforms and `Vulkan` for non-apple platforms, falling back to `OpenGL` when `Vulkan` isn't supported. In practice, this option is primarily used to force `OpenGL`.
+* `-r/--renderer <renderer>`: choose which render implementation to use. Possible values of `<renderer>` are `Metal`, `Vulkan`, or `OpenGL`, case insensitive. The default is `Metal` for Apple platforms and `Vulkan` for non-apple platforms, falling back to `OpenGL` when `Vulkan` isn't supported. In practice, this option is primarily used to force `OpenGL`.
 * `-d/--device <device>`: choose which device to use as a case-insensitive substring of the device name. For example, on a laptop that has both a NVidia and Intel GPU, you can pass `intel` or `nvidia` to choose between them. This is currently only implemented for the `Vulkan` renderer. By default discrete GPUs are chosen before integrated GPUs.
 
 ## Testers
@@ -18,3 +18,7 @@ The following testers are available:
 * [Test Cube](TestCube/README.md)
 * [Test Render Subpass](TestRenderSubpass/README.md)
 * [Test Text](TestText/README.md)
+* [Test Vector Draw](TestVectorDraw/README.md)
+* [Test Scene](TestScene/README.md)
+* [Test Vector Draw Scene](TestVectorDrawScene/README.md)
+* [Test Lighting](TestLighting/README.md)

@@ -1,6 +1,6 @@
 # Test Text
 
-The Test Text tester (`deepsea_test_text_app` target) tests displaying. Various cases of different scripts, right to left text, line wrapping, etc. are tested across the various pages.
+The Test Text tester (`deepsea_test_text_app` target) tests displaying text. Various cases of different scripts, right to left text, line wrapping, etc. are tested across the various pages.
 
 When running the tester, the left and right arrow keys can be used to cycle through the different test cases. On mobile devices with a touchscreen, a one-finger tap cycles forward and two-finger tap cycles backwards.
 
