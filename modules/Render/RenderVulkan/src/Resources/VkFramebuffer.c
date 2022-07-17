@@ -201,7 +201,7 @@ dsVkRealFramebuffer* dsVkFramebuffer_getRealFramebuffer(dsFramebuffer* framebuff
 
 	uint32_t index = vkFramebuffer->framebufferCount;
 	if (!DS_RESIZEABLE_ARRAY_ADD(vkFramebuffer->scratchAllocator, vkFramebuffer->realFramebuffers,
-		vkFramebuffer->framebufferCount, vkFramebuffer->maxFramebuffers, 1))
+			vkFramebuffer->framebufferCount, vkFramebuffer->maxFramebuffers, 1))
 	{
 		DS_VERIFY(dsSpinlock_unlock(&vkFramebuffer->lock));
 		return NULL;

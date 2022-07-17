@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 Aaron Barany
+ * Copyright 2018-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,14 +38,14 @@ _Static_assert(sizeof(dsVkPipelineKey) == sizeof(void*)*6, "Unexpected sizeof ds
 #endif
 
 void dsVkPipeline_initializeKey(dsVkPipelineKey* outKey, uint32_t samples, float defaultAnisotropy,
-	dsPrimitiveType primitiveType, const dsDrawGeometry* geometry, const dsRenderPass* renderPass,
-	uint32_t subpass)
+	dsPrimitiveType primitiveType, const dsDrawGeometry* geometry,
+	const dsVkRenderPassData* renderPassData, uint32_t subpass)
 {
 	outKey->samples = samples;
 	outKey->defaultAnisotropy = defaultAnisotropy;
 	outKey->primitiveType = primitiveType;
 	outKey->vertexFormatHash = ((const dsVkDrawGeometry*)geometry)->vertexHash;
-	outKey->renderPass = renderPass;
+	outKey->renderPass = renderPassData->lifetime;
 #if DS_64BIT
 	// Set padding so hash and memcpy are consistent.
 	outKey->padding = 0;
@@ -60,8 +60,8 @@ uint32_t dsVkPipeline_hash(const dsVkPipelineKey* key)
 
 dsVkPipeline* dsVkPipeline_create(dsAllocator* allocator, dsShader* shader,
 	VkPipeline existingPipeline, uint32_t hash, uint32_t samples, float defaultAnisotropy,
-	dsPrimitiveType primitiveType, const dsDrawGeometry* geometry, const dsRenderPass* renderPass,
-	uint32_t subpass)
+	dsPrimitiveType primitiveType, const dsDrawGeometry* geometry,
+	const dsVkRenderPassData* renderPassData, uint32_t subpass)
 {
 	dsVkPipeline* pipeline = DS_ALLOCATE_OBJECT(allocator, dsVkPipeline);
 	if (!pipeline)
@@ -72,7 +72,6 @@ dsVkPipeline* dsVkPipeline_create(dsAllocator* allocator, dsShader* shader,
 	dsVkDevice* device = &((dsVkRenderer*)resourceManager->renderer)->device;
 	dsVkInstance* instance = &device->instance;
 	dsVkShader* vkShader = (dsVkShader*)shader;
-	dsVkRenderPassData* renderPassData = dsVkRenderPass_getData(renderPass);
 
 	pipeline->allocator = dsAllocator_keepPointer(allocator);
 	dsVkResource_initialize(&pipeline->resource);
@@ -80,7 +79,7 @@ dsVkPipeline* dsVkPipeline_create(dsAllocator* allocator, dsShader* shader,
 	pipeline->pipeline = 0;
 	pipeline->hash = hash;
 	dsVkPipeline_initializeKey(&pipeline->key, samples, defaultAnisotropy, primitiveType,
-		geometry, renderPass, subpass);
+		geometry, renderPassData, subpass);
 	for (uint32_t i = 0; i < DS_MAX_GEOMETRY_VERTEX_BUFFERS; ++i)
 	{
 		memcpy(pipeline->formats + i, &geometry->vertexBuffers[i].format,

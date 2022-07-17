@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2021 Aaron Barany
+ * Copyright 2018-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1513,7 +1513,7 @@ VkPipeline dsVkShader_getPipeline(dsShader* shader, dsCommandBuffer* commandBuff
 
 	dsVkPipelineKey pipelineKey;
 	dsVkPipeline_initializeKey(&pipelineKey, samples, anisotropy, primitiveType, geometry,
-		renderPass, subpassIndex);
+		renderPassData, subpassIndex);
 	uint32_t hash = dsVkPipeline_hash(&pipelineKey);
 
 	DS_VERIFY(dsSpinlock_lock(&vkShader->pipelineLock));
@@ -1543,7 +1543,7 @@ VkPipeline dsVkShader_getPipeline(dsShader* shader, dsCommandBuffer* commandBuff
 
 	vkShader->pipelines[index] = dsVkPipeline_create(vkShader->scratchAllocator, shader,
 		index > 0 ? vkShader->pipelines[0]->pipeline : 0, hash, samples, anisotropy, primitiveType,
-		geometry, renderPass, subpassIndex);
+		geometry, renderPassData, subpassIndex);
 	if (!vkShader->pipelines[index])
 	{
 		--vkShader->pipelineCount;

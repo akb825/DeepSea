@@ -528,7 +528,7 @@ typedef struct dsVkPipelineKey
 #if DS_64BIT
 	uint32_t padding;
 #endif
-	const dsRenderPass* renderPass;
+	const dsLifetime* renderPass;
 } dsVkPipelineKey;
 
 typedef struct dsVkPipeline
