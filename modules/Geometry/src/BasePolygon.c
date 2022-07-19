@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -231,7 +231,10 @@ double dsBasePolygon_edgeAngle(const dsBasePolygon* polygon, uint32_t edge,
 
 	double cosAngle = dsVector2_dot(edgeDir, *referenceDir);
 	double angle = acos(dsClamp(cosAngle, -1.0, 1.0));
-	if ((referenceDir->x*edgeDir.y - edgeDir.x*referenceDir->y >= 0.0) == ccw)
+	double edgeCross = referenceDir->x*edgeDir.y - edgeDir.x*referenceDir->y;
+	bool edgeCCW = edgeCross > 0;
+	bool edgeCollinear = dsEpsilonEqualsZerod(edgeCross, polygon->intersectEpsilon);
+	if (edgeCollinear || edgeCCW == ccw)
 		angle = 2.0*M_PI - angle;
 	return angle;
 }
