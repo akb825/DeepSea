@@ -21,6 +21,7 @@
 #include <DeepSea/Math/Color.h>
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Math/Matrix44.h>
+#include <DeepSea/Math/Random.h>
 #include <DeepSea/Math/Vector2.h>
 #include <DeepSea/Math/Vector3.h>
 #include <DeepSea/Particle/Particle.h>
@@ -52,11 +53,12 @@ TEST(ParticleTest, RandomPositionBox)
 	dsAlignedBox3f pointBox;
 	dsAlignedBox3f_makeInvalid(&pointBox);
 
-	uint32_t seed = 0;
+	dsRandom random;
+	dsRandom_seed(&random, 0);
 	dsParticle particle;
 	for (unsigned int i = 0; i < cIterations; ++i)
 	{
-		dsParticle_randomPosition(&particle, &seed, &volume, &transform);
+		dsParticle_randomPosition(&particle, &random, &volume, &transform);
 		EXPECT_TRUE(dsOrientedBox3f_containsPoint(&referenceBox, &particle.position));
 		dsAlignedBox3_addPoint(pointBox, particle.position);
 	}
@@ -90,11 +92,12 @@ TEST(ParticleTest, RandomPositionSphere)
 	dsAlignedBox3f pointBox;
 	dsAlignedBox3f_makeInvalid(&pointBox);
 
-	uint32_t seed = 0;
+	dsRandom random;
+	dsRandom_seed(&random, 0);
 	dsParticle particle;
 	for (unsigned int i = 0; i < cIterations; ++i)
 	{
-		dsParticle_randomPosition(&particle, &seed, &volume, &transform);
+		dsParticle_randomPosition(&particle, &random, &volume, &transform);
 		float distance = dsVector3f_dist(&particle.position, &transformedCenter);
 		EXPECT_GT(volume.sphere.radius + 1e-5f, distance);
 		dsAlignedBox3_addPoint(pointBox, particle.position);
@@ -131,11 +134,12 @@ TEST(ParticleTest, RandomPositionCylinder)
 	dsAlignedBox3f pointBox;
 	dsAlignedBox3f_makeInvalid(&pointBox);
 
-	uint32_t seed = 0;
+	dsRandom random;
+	dsRandom_seed(&random, 0);
 	dsParticle particle;
 	for (unsigned int i = 0; i < cIterations; ++i)
 	{
-		dsParticle_randomPosition(&particle, &seed, &volume, &transform);
+		dsParticle_randomPosition(&particle, &random, &volume, &transform);
 		float distance = dsVector2f_dist((const dsVector2f*)&particle.position,
 			(const dsVector2f*)&transformedCenter);
 		EXPECT_GT(volume.cylinder.radius + 1e-5f, distance);
@@ -165,12 +169,13 @@ TEST(ParticleTest, RandomSize)
 	dsAlignedBox2f sizeBox;
 	dsAlignedBox2f_makeInvalid(&sizeBox);
 
-	uint32_t seed = 0;
+	dsRandom random;
+	dsRandom_seed(&random, 0);
 	dsParticle particle;
 	unsigned int rectangleCount = 0;
 	for (unsigned int i = 0; i < cIterations; ++i)
 	{
-		dsParticle_randomSize(&particle, &seed, &sizeRange, &sizeRange);
+		dsParticle_randomSize(&particle, &random, &sizeRange, &sizeRange);
 		if (particle.size.x != particle.size.y)
 			++rectangleCount;
 		dsAlignedBox2_addPoint(sizeBox, particle.size);
@@ -187,7 +192,7 @@ TEST(ParticleTest, RandomSize)
 	rectangleCount = 0;
 	for (unsigned int i = 0; i < cIterations; ++i)
 	{
-		dsParticle_randomSize(&particle, &seed, &sizeRange, nullptr);
+		dsParticle_randomSize(&particle, &random, &sizeRange, nullptr);
 		if (particle.size.x != particle.size.y)
 			++rectangleCount;
 		dsAlignedBox2_addPoint(sizeBox, particle.size);
@@ -212,11 +217,12 @@ TEST(ParticleTest, RandomDirection)
 	float angle = 1.2f;
 	float cosAngle = cosf(angle);
 
-	uint32_t seed = 0;
+	dsRandom random;
+	dsRandom_seed(&random, 0);
 	for (unsigned int i = 0; i < cIterations; ++i)
 	{
 		dsVector3f direction;
-		dsParticle_randomDirection(&direction, &seed, &directionMatrix, angle);
+		dsParticle_randomDirection(&direction, &random, &directionMatrix, angle);
 		EXPECT_LT(cosAngle - 1e-5f, dsVector3_dot(baseDirection, direction));
 		EXPECT_FLOAT_EQ(1.0f, dsVector3f_len(&direction));
 	}
@@ -239,11 +245,12 @@ TEST(ParticleTest, RandomColor)
 	dsAlignedBox3f hsvBox;
 	dsAlignedBox3f_makeInvalid(&hsvBox);
 
-	uint32_t seed = 0;
+	dsRandom random;
+	dsRandom_seed(&random, 0);
 	dsParticle particle;
 	for (unsigned int i = 0; i < cIterations; ++i)
 	{
-		dsParticle_randomColor(&particle, &seed, &hueRange, &saturationRange, &valueRange);
+		dsParticle_randomColor(&particle, &random, &hueRange, &saturationRange, &valueRange);
 		dsHSVColor hsvColor;
 		dsHSVColor_fromColor(&hsvColor, particle.color);
 		EXPECT_TRUE(dsAlignedBox3_containsPoint(hsvRange, *(dsVector3f*)&hsvColor)) << hsvColor.h <<
@@ -290,11 +297,12 @@ TEST(ParticleTest, RandomColorWrapped)
 	dsAlignedBox3f_makeInvalid(&lowerHsvBox);
 	dsAlignedBox3f_makeInvalid(&upperHsvBox);
 
-	uint32_t seed = 0;
+	dsRandom random;
+	dsRandom_seed(&random, 0);
 	dsParticle particle;
 	for (unsigned int i = 0; i < cIterations; ++i)
 	{
-		dsParticle_randomColor(&particle, &seed, &hueRange, &saturationRange, &valueRange);
+		dsParticle_randomColor(&particle, &random, &hueRange, &saturationRange, &valueRange);
 		dsHSVColor hsvColor;
 		dsHSVColor_fromColor(&hsvColor, particle.color);
 		if (hsvColor.h <= lowerHsvRange.max.x)

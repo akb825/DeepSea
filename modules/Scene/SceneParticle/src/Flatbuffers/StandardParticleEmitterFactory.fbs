@@ -79,7 +79,7 @@ table StandardParticleEmitterFactory
 
 	// The seed for the random numbers used for the factory. Set to 0 to generate a seed on
 	// creation.
-	seed : uint;
+	seed : ulong;
 
 	// Whether or not particle emitters are enabled on creation.
 	enabled : bool;

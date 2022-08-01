@@ -15,9 +15,9 @@
  */
 
 #include <DeepSea/Math/Random.h>
-#include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Atomic.h>
 #include <math.h>
+#include <time.h>
 
 #if DS_WINDOWS
 #define WIN32_LEAN_AND_MEAN
@@ -25,76 +25,94 @@
 #elif DS_APPLE
 #include <mach/mach.h>
 #include <mach/mach_time.h>
-#else
-#include <time.h>
 #endif
 
-inline static uint32_t nextRandomValue(uint32_t seed)
+inline static uint64_t splitMix64NoUpdte(uint64_t value)
 {
-	uint64_t temp = seed ? seed : 1;
-	temp = temp*48271 % (DS_RANDOM_MAX + 1);
-	return (uint32_t)temp;
+	value += 0x9e3779b97f4a7c15;
+	value = (value ^ (value >> 30))*0xbf58476d1ce4e5b9;
+	value = (value ^ (value >> 27))*0x94d049bb133111eb;
+	return value ^ (value >> 31);
 }
 
-uint32_t dsRandomSeed(void)
+inline static uint64_t splitMix64(uint64_t* state)
+{
+	*state += 0x9e3779b97f4a7c15;
+	uint64_t value = *state;
+	value = (value ^ (value >> 30))*0xbf58476d1ce4e5b9;
+	value = (value ^ (value >> 27))*0x94d049bb133111eb;
+	return value ^ (value >> 31);
+}
+
+static inline uint64_t rotl(uint64_t x, int k)
+{
+	return (x << k) | (x >> (64 - k));
+}
+
+uint64_t dsRandom_createSeed(void)
 {
 	// Use a counter to ensure that if this is called at a faster rate than the timer supports
-	// different results will be returned. Start at 1 since a seed value of 0 is treated as 1.
-	static uint32_t counter = 1;
+	// different results will be returned.
+	static uint32_t counter = 0;
 	uint32_t curCounter = DS_ATOMIC_FETCH_ADD32(&counter, 1);
 
-	uint32_t highFrequencySeed;
-	uint32_t lowFrequencySeed;
+	uint64_t timeSeed;
 
 #if DS_WINDOWS
 
-	LARGE_INTEGER value;
-	QueryPerformanceCounter(&value);
-	lowFrequencySeed = value.LowPart;
-	highFrequencySeed = value.HighPart;
+	QueryPerformanceCounter((LARGE_INTEGER*)&timeSeed);
 
 #elif DS_APPLE
 
-	uint64_t fullTime = mach_absolute_time();
-	lowFrequencySeed = (uint32_t)fullTime;
-	highFrequencySeed = (uint32_t)(fullTime >> 32);
+	timeSeed = mach_absolute_time();
 
 #else
 
 	struct timespec tp;
 	DS_VERIFY(clock_gettime(CLOCK_MONOTONIC, &tp) == 0);
-	lowFrequencySeed = (uint32_t)tp.tv_nsec;
-	highFrequencySeed = (uint32_t)tp.tv_sec;
+	timeSeed = tp.tv_nsec;
 
 #endif
 
-	return nextRandomValue(curCounter) ^ nextRandomValue(lowFrequencySeed) ^
-		nextRandomValue(highFrequencySeed);
+	// Use the lower (high frequency) values from the high precision timer. Since this is typically
+	// since boot, use seconds since epoch as a low frequency value in the upper bits.
+	timeSeed = (timeSeed & 0xFFFFFFFF) | ((uint64_t)time(NULL) << 32);
+
+	return splitMix64NoUpdte(timeSeed) ^ splitMix64NoUpdte(curCounter);
 }
 
-uint32_t dsRandom(uint32_t* seed)
+void dsRandom_seed(dsRandom* random, uint64_t seed)
 {
-	DS_ASSERT(seed);
-	return *seed = nextRandomValue(*seed);
+	DS_ASSERT(random);
+	for (unsigned int i = 0; i < 4; ++i)
+		random->state[i] = splitMix64(&seed);
 }
 
-double dsRandomDouble(uint32_t* seed, double minVal, double maxVal)
+uint64_t dsRandom_next(dsRandom* random)
 {
-	double range = maxVal - minVal;
-	double baseVal = (double)dsRandom(seed)/DS_RANDOM_MAX;
-	return baseVal*range + minVal;
+	DS_ASSERT(random);
+	uint64_t next = rotl(random->state[1]*5, 7)*9;
+	uint64_t temp = random->state[1] << 17;
+
+	random->state[2] ^= random->state[0];
+	random->state[3] ^= random->state[1];
+	random->state[1] ^= random->state[2];
+	random->state[0] ^= random->state[3];
+
+	random->state[2] ^= temp;
+	random->state[3] = rotl(random->state[3], 45);
+
+	return next;
 }
 
-float dsRandomFloat(uint32_t* seed, float minVal, float maxVal)
-{
-	float range = maxVal - minVal;
-	double baseVal = (double)dsRandom(seed)/DS_RANDOM_MAX;
-	return (float)(baseVal*range) + minVal;
-}
-
-int dsRandomInt(uint32_t* seed, int minVal, int maxVal)
-{
-	int range = maxVal - minVal + 1;
-	double baseVal = (double)dsRandom(seed)/(DS_RANDOM_MAX + 1);
-	return (int)floor(baseVal*range) + minVal;
-}
+bool dsRandom_nextBool(dsRandom* random);
+uint32_t dsRandom_nextUInt32(dsRandom* random, uint32_t maxBound);
+uint32_t dsRandom_nextUInt32Range(dsRandom* random, uint32_t minVal, uint32_t maxBound);
+int32_t dsRandom_nextInt32Range(dsRandom* random, int32_t minVal, int32_t maxBound);
+uint64_t dsRandom_nextUInt64(dsRandom* random, uint64_t maxBound);
+uint64_t dsRandom_nextUInt64Range(dsRandom* random, uint64_t minVal, uint64_t maxBound);
+int64_t dsRandom_nextInt64Range(dsRandom* random, int64_t minVal, int64_t maxBound);
+float dsRandom_nextFloat(dsRandom* random);
+float dsRandom_nextFloatRange(dsRandom* random, float minVal, float maxBound);
+double dsRandom_nextDouble(dsRandom* random);
+double dsRandom_nextDoubleRange(dsRandom* random, double minVal, double maxBound);

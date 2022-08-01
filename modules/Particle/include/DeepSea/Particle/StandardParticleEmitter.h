@@ -44,7 +44,7 @@ extern "C"
  * @return The particle emitter or NULL if an error occurred.
  */
 DS_PARTICLE_EXPORT dsStandardParticleEmitter* dsStandardParticleEmitter_create(
-	dsAllocator* allocator, const dsParticleEmitterParams* params, uint32_t seed,
+	dsAllocator* allocator, const dsParticleEmitterParams* params, uint64_t seed,
 	const dsStandardParticleEmitterOptions* options, bool enabled, float startTime);
 
 /**

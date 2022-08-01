@@ -88,17 +88,18 @@ void dsSceneSSAO_setMaterialValues(dsMaterial* material, dsGfxBuffer* randomOffs
 dsGfxBuffer* dsSceneSSAO_createRandomOffsets(dsResourceManager* resourceManager,
 	dsAllocator* allocator)
 {
-	uint32_t seed = 0;
+	dsRandom random;
+	dsRandom_seed(&random, 0);
 	dsVector4f randomOffsets[DS_MAX_SCENE_SSAO_SAMPLES];
 	for (unsigned int i = 0; i < DS_MAX_SCENE_SSAO_SAMPLES; ++i)
 	{
 		// Spherical coordinates for a hemisphere.
-		float theta = dsRandomFloat(&seed, 0.0, (float)(2*M_PI));
-		float phi = dsRandomFloat(&seed, 0.0, (float)M_PI_2);
+		float theta = dsRandom_nextFloatRange(&random, 0.0f, (float)(2*M_PI));
+		float phi = dsRandom_nextFloatRange(&random, 0.0f, (float)M_PI_2);
 
 		// Randomly scale within the hemisphere, biasing towards the center with a reasonable
 		// minimum.
-		float scale = dsRandomFloat(&seed, 0, 1);
+		float scale = dsRandom_nextFloat(&random);
 		scale *= scale;
 		scale = dsLerp(0.1f, 1.0f, scale);
 
@@ -121,13 +122,14 @@ dsGfxBuffer* dsSceneSSAO_createRandomOffsets(dsResourceManager* resourceManager,
 dsTexture* dsSceneSSAO_createRandomRotations(dsResourceManager* resourceManager,
 	dsAllocator* allocator)
 {
-	uint32_t seed = 0;
+	dsRandom random;
+	dsRandom_seed(&random, 0);
 	uint8_t randomRotations[DS_SCENE_SSAO_ROTATION_SIZE][DS_SCENE_SSAO_ROTATION_SIZE][2];
 	for (uint32_t i = 0; i < DS_SCENE_SSAO_ROTATION_SIZE; ++i)
 	{
 		for (uint32_t j = 0; j < DS_SCENE_SSAO_ROTATION_SIZE; ++j)
 		{
-			float theta = dsRandomFloat(&seed, 0, (float)(2*M_PI));
+			float theta = dsRandom_nextFloatRange(&random, 0.0f, (float)(2*M_PI));
 			float x = cosf(theta);
 			float y = sinf(theta);
 			randomRotations[i][j][0] = (uint8_t)roundf((x*0.5f + 0.5f)*255);

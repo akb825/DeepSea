@@ -213,7 +213,7 @@ class StandardParticleEmitterFactory(object):
     def Seed(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(40))
         if o != 0:
-            return self._tab.Get(flatbuffers.number_types.Uint32Flags, o + self._tab.Pos)
+            return self._tab.Get(flatbuffers.number_types.Uint64Flags, o + self._tab.Pos)
         return 0
 
     # StandardParticleEmitterFactory
@@ -287,7 +287,7 @@ def AddIntensityRange(builder, intensityRange):
 def StandardParticleEmitterFactoryAddRelativeNode(builder, relativeNode): builder.PrependUOffsetTRelativeSlot(17, flatbuffers.number_types.UOffsetTFlags.py_type(relativeNode), 0)
 def AddRelativeNode(builder, relativeNode):
     return StandardParticleEmitterFactoryAddRelativeNode(builder, relativeNode)
-def StandardParticleEmitterFactoryAddSeed(builder, seed): builder.PrependUint32Slot(18, seed, 0)
+def StandardParticleEmitterFactoryAddSeed(builder, seed): builder.PrependUint64Slot(18, seed, 0)
 def AddSeed(builder, seed):
     return StandardParticleEmitterFactoryAddSeed(builder, seed)
 def StandardParticleEmitterFactoryAddEnabled(builder, enabled): builder.PrependBoolSlot(19, enabled, 0)

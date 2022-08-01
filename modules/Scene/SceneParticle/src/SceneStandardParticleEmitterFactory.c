@@ -39,7 +39,8 @@ typedef struct dsSceneStandardParticleEmitterFactory
 	dsParticleEmitterParams params;
 	dsStandardParticleEmitterOptions options;
 	const dsSceneNode* relativeNode;
-	uint32_t seed;
+	dsRandom random;
+	uint64_t seed;
 	bool enabled;
 	float startTime;
 } dsSceneStandardParticleEmitterFactory;
@@ -93,8 +94,8 @@ static dsParticleEmitter* dsSceneStandardParticleEmitterFactory_createEmitter(
 	dsStandardParticleEmitter* standardEmitter = dsStandardParticleEmitter_create(allocator,
 		&params, factory->seed, &factory->options, factory->enabled, factory->startTime);
 
-	// Advance the seed. (don't care about the actual value)
-	dsRandom(&factory->seed);
+	// Advance the seed.
+	factory->seed = dsRandom_next(&factory->random);
 	if (!standardEmitter)
 		return NULL;
 
@@ -163,7 +164,7 @@ static void dsSceneStandardParticleEmitterFactory_destroy(void* userData)
 const char* const dsSceneStandardParticleEmitterFactory_typeName = "StandardParticleEmitter";
 
 dsSceneParticleEmitterFactory* dsSceneStandardParticleEmitterFactory_create(
-	dsAllocator* allocator, const dsParticleEmitterParams* params, uint32_t seed,
+	dsAllocator* allocator, const dsParticleEmitterParams* params, uint64_t seed,
 	const dsStandardParticleEmitterOptions* options, bool enabled, float startTime,
 	const dsSceneNode* relativeNode)
 {
@@ -182,6 +183,7 @@ dsSceneParticleEmitterFactory* dsSceneStandardParticleEmitterFactory_create(
 	memcpy(&data->params, params, sizeof(dsParticleEmitterParams));
 	memcpy(&data->options, options, sizeof(dsStandardParticleEmitterOptions));
 	data->relativeNode = relativeNode;
+	dsRandom_seed(&data->random, seed);
 	data->seed = seed;
 	data->enabled = enabled;
 	data->startTime = startTime;
@@ -244,7 +246,7 @@ dsStandardParticleEmitterOptions* dsSceneParticleEmitterFactory_getMutableSandar
 	return &((dsSceneStandardParticleEmitterFactory*)factory->userData)->options;
 }
 
-uint32_t dsSceneStandardParticleEmitterFactory_getSeed(const dsSceneParticleEmitterFactory* factory)
+uint64_t dsSceneStandardParticleEmitterFactory_getSeed(const dsSceneParticleEmitterFactory* factory)
 {
 	if (!factory || !factory->userData ||
 		factory->createEmitterFunc != &dsSceneStandardParticleEmitterFactory_createEmitter)
@@ -256,7 +258,7 @@ uint32_t dsSceneStandardParticleEmitterFactory_getSeed(const dsSceneParticleEmit
 }
 
 bool dsSceneStandardParticleEmitterFactory_setSeed(const dsSceneParticleEmitterFactory* factory,
-	uint32_t seed)
+	uint64_t seed)
 {
 	if (!factory || !factory->userData ||
 		factory->createEmitterFunc != &dsSceneStandardParticleEmitterFactory_createEmitter)
@@ -265,7 +267,10 @@ bool dsSceneStandardParticleEmitterFactory_setSeed(const dsSceneParticleEmitterF
 		return false;
 	}
 
-	((dsSceneStandardParticleEmitterFactory*)factory->userData)->seed = seed;
+	dsSceneStandardParticleEmitterFactory* standardFactory =
+		((dsSceneStandardParticleEmitterFactory*)factory->userData);
+	dsRandom_seed(&standardFactory->random, seed);
+	standardFactory->seed = seed;
 	return true;
 }
 

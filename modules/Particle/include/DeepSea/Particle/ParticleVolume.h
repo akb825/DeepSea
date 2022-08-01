@@ -36,10 +36,10 @@ extern "C"
 /**
  * @brief Generates a random position inside a volume.
  * @param[out] result The result position.
- * @param[inout] seed The random seed to generate the random position from.
+ * @param[inout] random The random number generator.
  * @param volume The volume to create the position from.
  */
-DS_PARTICLE_EXPORT void dsParticleVolume_randomPosition(dsVector3f* result, uint32_t* seed,
+DS_PARTICLE_EXPORT void dsParticleVolume_randomPosition(dsVector3f* result, dsRandom* random,
 	const dsParticleVolume* volume);
 
 #ifdef __cplusplus

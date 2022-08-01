@@ -22,43 +22,43 @@
 #include <DeepSea/Math/Random.h>
 #include <DeepSea/Math/Vector3.h>
 
-void dsParticleVolume_randomPosition(dsVector3f* result, uint32_t* seed,
+void dsParticleVolume_randomPosition(dsVector3f* result, dsRandom* random,
 	const dsParticleVolume* volume)
 {
 	DS_ASSERT(result);
-	DS_ASSERT(seed);
+	DS_ASSERT(random);
 	DS_ASSERT(volume);
 
 	switch (volume->type)
 	{
 		case dsParticleVolumeType_Box:
-			result->x = dsRandomFloat(seed, volume->box.min.x, volume->box.max.x);
-			result->y = dsRandomFloat(seed, volume->box.min.y, volume->box.max.y);
-			result->z = dsRandomFloat(seed, volume->box.min.z, volume->box.max.z);
+			result->x = dsRandom_nextFloatRange(random, volume->box.min.x, volume->box.max.x);
+			result->y = dsRandom_nextFloatRange(random, volume->box.min.y, volume->box.max.y);
+			result->z = dsRandom_nextFloatRange(random, volume->box.min.z, volume->box.max.z);
 			return;
 		case dsParticleVolumeType_Sphere:
 		{
-			float theta = dsRandomFloat(seed, 0, (float)(2*M_PI));
-			float phi = dsRandomFloat(seed, (float)-M_PI, (float)M_PI);
+			float theta = dsRandom_nextFloatRange(random, 0, (float)(2*M_PI));
+			float phi = dsRandom_nextFloatRange(random, (float)-M_PI, (float)M_PI);
 			float cosPhi = cosf(phi);
 			dsVector3f offset;
 			offset.x = cosf(theta)*cosPhi;
 			offset.y = sinf(theta)*cosPhi;
 			offset.z = sinf(phi);
 
-			float radius = dsRandomFloat(seed, 0.0f, volume->sphere.radius);
+			float radius = dsRandom_nextFloatRange(random, 0.0f, volume->sphere.radius);
 			dsVector3_scale(offset, offset, radius);
 			dsVector3_add(*result, volume->sphere.center, offset);
 			return;
 		}
 		case dsParticleVolumeType_Cylinder:
 		{
-			float theta = dsRandomFloat(seed, 0, (float)(2*M_PI));
-			float radius = dsRandomFloat(seed, 0.0f, volume->sphere.radius);
+			float theta = dsRandom_nextFloatRange(random, 0, (float)(2*M_PI));
+			float radius = dsRandom_nextFloatRange(random, 0, volume->sphere.radius);
 			dsVector3f offset;
 			offset.x = cosf(theta)*radius;
 			offset.y = sinf(theta)*radius;
-			offset.z = dsRandomFloat(seed, -volume->cylinder.height/2,
+			offset.z = dsRandom_nextFloatRange(random, -volume->cylinder.height/2,
 				volume->cylinder.height/2);
 			dsVector3_add(*result, volume->cylinder.center, offset);
 			return;

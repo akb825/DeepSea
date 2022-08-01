@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 Aaron Barany
+ * Copyright 2016-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,12 +46,6 @@ extern "C"
  * @file
  * @brief Includes all of the types used in the DeepSea/Math library.
  */
-
-/**
- * @brief The maximum value for a random number.
- * @see Random.h
- */
-#define DS_RANDOM_MAX 2147483646
 
 /**
  * @brief Enum for the options that can be applied when creating a projection matrix.
@@ -1049,6 +1043,22 @@ typedef union dsQuaternion4d
 		double k;
 	};
 } dsQuaternion4d;
+
+/**
+ * @brief Structure that holds the state for random number generation.
+ * @remark This must not be zero-initialized! Use dsRandom_seed() to initialize the state properly,
+ *     even if you use a default seed of 0.
+ */
+typedef struct dsRandom
+{
+	/**
+	 * @brief The state of the random number generator.
+	 *
+	 * This should not be modified directly outside of the implementation unless you wish to save
+	 * and restore the state. It should never be zero-initialized.
+	 */
+	uint64_t state[4];
+} dsRandom;
 
 #ifdef __cplusplus
 }

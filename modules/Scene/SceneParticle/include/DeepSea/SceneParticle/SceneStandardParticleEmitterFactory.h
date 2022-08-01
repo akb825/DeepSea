@@ -55,7 +55,7 @@ DS_SCENEPARTICLE_EXPORT extern const char* const dsSceneStandardParticleEmitterF
  * @return The particle draw or NULL if an error occurred.
  */
 DS_SCENEPARTICLE_EXPORT dsSceneParticleEmitterFactory* dsSceneStandardParticleEmitterFactory_create(
-	dsAllocator* allocator, const dsParticleEmitterParams* params, uint32_t seed,
+	dsAllocator* allocator, const dsParticleEmitterParams* params, uint64_t seed,
 	const dsStandardParticleEmitterOptions* options, bool enabled, float startTime,
 	const dsSceneNode* relativeNode);
 
@@ -101,7 +101,7 @@ DS_SCENEPARTICLE_EXPORT dsStandardParticleEmitterOptions*
  * @param factory The factory to get the seed for.
  * @return The current seed.
  */
-DS_SCENEPARTICLE_EXPORT uint32_t dsSceneStandardParticleEmitterFactory_getSeed(
+DS_SCENEPARTICLE_EXPORT uint64_t dsSceneStandardParticleEmitterFactory_getSeed(
 	const dsSceneParticleEmitterFactory* factory);
 
 /**
@@ -112,7 +112,7 @@ DS_SCENEPARTICLE_EXPORT uint32_t dsSceneStandardParticleEmitterFactory_getSeed(
  * @return False if the factory is invalid.
  */
 DS_SCENEPARTICLE_EXPORT bool dsSceneStandardParticleEmitterFactory_setSeed(
-	const dsSceneParticleEmitterFactory* factory, uint32_t seed);
+	const dsSceneParticleEmitterFactory* factory, uint64_t seed);
 
 /**
  * @brief Gets the current enabled state for a standard particle emitter factory.

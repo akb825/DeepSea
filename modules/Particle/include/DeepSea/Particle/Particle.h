@@ -36,22 +36,22 @@ extern "C"
 /**
  * @brief Generates a random position for a particle.
  * @param[inout] particle The particle to create the position for.
- * @param[inout] seed The random seed to generate the random position from.
+ * @param[inout] random The random number generator.
  * @param volume The volume to create the position from.
  * @param volumeMatrix The transform matrix for the volume.
  */
-DS_PARTICLE_EXPORT void dsParticle_randomPosition(dsParticle* particle, uint32_t* seed,
+DS_PARTICLE_EXPORT void dsParticle_randomPosition(dsParticle* particle, dsRandom* random,
 	const dsParticleVolume* volume, const dsMatrix44f* volumeMatrix);
 
 /**
  * @brief Generates a random size for a particle.
  * @param[inout] particle The particle to create the position for.
- * @param[inout] seed The random seed to generate the random position from.
+ * @param[inout] random The random number generator.
  * @param widthRange The minimum and maximum width of the particle.
  * @param heightRange The minimum and maximum height of the particle. If NULL or negative values a
  *     square value will be created.
  */
-DS_PARTICLE_EXPORT void dsParticle_randomSize(dsParticle* particle, uint32_t* seed,
+DS_PARTICLE_EXPORT void dsParticle_randomSize(dsParticle* particle, dsRandom* random,
 	const dsVector2f* widthRange, const dsVector2f* heightRange);
 
 /**
@@ -70,32 +70,32 @@ DS_PARTICLE_EXPORT void dsParticle_createDirectionMatrix(dsMatrix33f* result,
  * thus has a shared implementation.
  *
  * @param[out] outDirection The created direction.
- * @param[inout] seed The random seed to generate the random direction from.
+ * @param[inout] random The random number generator.
  * @param directionMatrix The matrix for orienting the direction. The Z axis (column 2) is the base
  *     direction.
  * @param directionSpread The spread along the base direction as an angle in radians. A value of 0
  *     will always follow the base direction, pi/2 would be a hemisphere, and pi would be a full
  *     sphere.
  */
-DS_PARTICLE_EXPORT void dsParticle_randomDirection(dsVector3f* outDirection, uint32_t* seed,
+DS_PARTICLE_EXPORT void dsParticle_randomDirection(dsVector3f* outDirection, dsRandom* random,
 	const dsMatrix33f* directionMatrix, float directionSpread);
 
 /**
  * @brief Generates a random rotation for a particle.
  * @param[inout] particle The particle to create the rotation for.
- * @param[inout] seed The random seed to generate the random rotation from.
+ * @param[inout] random The random number generator.
  * @param xRotationRange The minimum and maximum random rotation in radians around the X axis. The
  *     minimum can be larger than the maximum to wrap around the 2*PI boundary.
  * @param yRotationRange The minimum and maximum random rotation in radians around the Y axis. The
  *     minimum can be larger than the maximum to wrap around the 2*PI boundary.
  */
-DS_PARTICLE_EXPORT void dsParticle_randomRotation(dsParticle* particle, uint32_t* seed,
+DS_PARTICLE_EXPORT void dsParticle_randomRotation(dsParticle* particle, dsRandom* random,
 	const dsVector2f* xRotationRange, const dsVector2f* yRotationRange);
 
 /**
  * @brief Generates a random color for a particle.
  * @param[inout] particle The particle to create the color for.
- * @param[inout] seed The random seed to generate the random color from.
+ * @param[inout] random The random number generator.
  * @param hueRange The minimum and maximum hue values for the color in the range [0, 360]. The
  *     minimum can be larger than the maximum, which will wrap around. (e.g. min 300 and max 60
  *     will wrap around at 360 back to 0)
@@ -103,25 +103,25 @@ DS_PARTICLE_EXPORT void dsParticle_randomRotation(dsParticle* particle, uint32_t
  *     [0, 1].
  * @param valueRange The minimum and maximum values for the color in the range [0, 1].
  */
-DS_PARTICLE_EXPORT void dsParticle_randomColor(dsParticle* particle, uint32_t* seed,
+DS_PARTICLE_EXPORT void dsParticle_randomColor(dsParticle* particle, dsRandom* random,
 	const dsVector2f* hueRange, const dsVector2f* saturationRange, const dsVector2f* valueRange);
 
 /**
  * @brief Generates a random intensity for a particle.
  * @param[inout] particle The particle to create the color for.
- * @param[inout] seed The random seed to generate the random color from.
+ * @param[inout] random The random number generator.
  * @param intensityRange The minimum and maximum intensity values.
  */
-DS_PARTICLE_EXPORT void dsParticle_randomIntensity(dsParticle* particle, uint32_t* seed,
+DS_PARTICLE_EXPORT void dsParticle_randomIntensity(dsParticle* particle, dsRandom* random,
 	const dsVector2f* intensityRange);
 
 /**
  * @brief Generates a random texture index for a particle.
  * @param[inout] particle The particle to create the color for.
- * @param[inout] seed The random seed to generate the random color from.
+ * @param[inout] random The random number generator.
  * @param textureRange The minimum and maximum texture indices.
  */
-DS_PARTICLE_EXPORT void dsParticle_randomTexture(dsParticle* particle, uint32_t* seed,
+DS_PARTICLE_EXPORT void dsParticle_randomTexture(dsParticle* particle, dsRandom* random,
 	const dsVector2i* textureRange);
 
 #ifdef __cplusplus

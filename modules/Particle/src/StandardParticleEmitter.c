@@ -30,7 +30,7 @@
 struct dsStandardParticleEmitter
 {
 	dsParticleEmitter emitter;
-	uint32_t seed;
+	dsRandom random;
 	bool enabled;
 	dsStandardParticleEmitterOptions options;
 	float nextSpawnCountdown;
@@ -111,7 +111,7 @@ static uint32_t dsStandardParticleEmitter_update(dsParticleEmitter* emitter, flo
 	{
 
 		// Add the time before creating the next particle to the countdown timer.
-		standardEmitter->nextSpawnCountdown += dsRandomFloat(&standardEmitter->seed,
+		standardEmitter->nextSpawnCountdown += dsRandom_nextFloatRange(&standardEmitter->random,
 			standardEmitter->options.spawnTimeRange.x,
 			standardEmitter->options.spawnTimeRange.y);
 
@@ -124,7 +124,7 @@ static uint32_t dsStandardParticleEmitter_update(dsParticleEmitter* emitter, flo
 		// has been alive for.
 		float curElapsedTime = -standardEmitter->nextSpawnCountdown;
 
-		float particleTime = dsRandomFloat(&standardEmitter->seed, options->activeTimeRange.x,
+		float particleTime = dsRandom_nextFloatRange(&standardEmitter->random, options->activeTimeRange.x,
 			options->activeTimeRange.y);
 		// Skip this particle if it will expire with the remaining time.
 		if (particleTime <= curElapsedTime)
@@ -135,23 +135,24 @@ static uint32_t dsStandardParticleEmitter_update(dsParticleEmitter* emitter, flo
 		dsStandardParticle* nextStandardParticle = (dsStandardParticle*)nextParticlePtr;
 		nextParticlePtr += emitter->sizeofParticle;
 
-		dsParticle_randomPosition(nextParticle, &standardEmitter->seed, &options->spawnVolume,
+		dsParticle_randomPosition(nextParticle, &standardEmitter->random, &options->spawnVolume,
 			&options->spawnVolumeMatrix);
-		dsParticle_randomSize(nextParticle, &standardEmitter->seed, &options->widthRange,
+		dsParticle_randomSize(nextParticle, &standardEmitter->random, &options->widthRange,
 			&options->heightRange);
-		dsParticle_randomDirection(&nextStandardParticle->direction, &standardEmitter->seed,
+		dsParticle_randomDirection(&nextStandardParticle->direction, &standardEmitter->random,
 			&directionMatrix, options->directionSpread);
-		dsParticle_randomRotation(nextParticle, &standardEmitter->seed, &rotationRange,
+		dsParticle_randomRotation(nextParticle, &standardEmitter->random, &rotationRange,
 			&rotationRange);
-		dsParticle_randomColor(nextParticle, &standardEmitter->seed, &options->colorHueRange,
+		dsParticle_randomColor(nextParticle, &standardEmitter->random, &options->colorHueRange,
 			&options->colorSaturationRange, &options->colorValueRange);
-		dsParticle_randomIntensity(nextParticle, &standardEmitter->seed, &options->intensityRange);
-		dsParticle_randomTexture(nextParticle, &standardEmitter->seed, &options->textureRange);
+		dsParticle_randomIntensity(nextParticle, &standardEmitter->random,
+			&options->intensityRange);
+		dsParticle_randomTexture(nextParticle, &standardEmitter->random, &options->textureRange);
 		nextParticle->t = 0;
 
-		nextStandardParticle->speed = dsRandomFloat(&standardEmitter->seed, options->speedRange.x,
-			options->speedRange.y);
-		nextStandardParticle->rotationSpeed = dsRandomFloat(&standardEmitter->seed,
+		nextStandardParticle->speed = dsRandom_nextFloatRange(&standardEmitter->random,
+			options->speedRange.x, options->speedRange.y);
+		nextStandardParticle->rotationSpeed = dsRandom_nextFloatRange(&standardEmitter->random,
 			options->rotationSpeedRange.x, options->rotationSpeedRange.y);
 		nextStandardParticle->timeScale = 1/particleTime;
 
@@ -168,7 +169,7 @@ static void dsStandardParticleEmitter_destroy(dsParticleEmitter* emitter)
 }
 
 dsStandardParticleEmitter* dsStandardParticleEmitter_create(dsAllocator* allocator,
-	const dsParticleEmitterParams* params, uint32_t seed,
+	const dsParticleEmitterParams* params, uint64_t seed,
 	const dsStandardParticleEmitterOptions* options, bool enabled, float startTime)
 {
 	if (!allocator || !params || !options)
@@ -183,7 +184,7 @@ dsStandardParticleEmitter* dsStandardParticleEmitter_create(dsAllocator* allocat
 	if (!emitter)
 		return NULL;
 
-	emitter->seed = seed;
+	dsRandom_seed(&emitter->random, seed);
 	emitter->enabled = enabled;
 	emitter->options = *options;
 	emitter->nextSpawnCountdown = -startTime;

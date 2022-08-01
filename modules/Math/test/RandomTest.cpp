@@ -16,52 +16,228 @@
 
 #include <DeepSea/Math/Random.h>
 #include <gtest/gtest.h>
-#include <random>
 
-TEST(RandomTest, Random)
+static constexpr unsigned int iterationCount = 1000;
+
+TEST(RandomTest, NextDifferentSeeds)
 {
-	std::minstd_rand rand;
-	uint32_t seed = 0;
-	rand.seed(seed);
-
-	EXPECT_EQ(rand(), dsRandom(&seed));
-	EXPECT_EQ(rand(), dsRandom(&seed));
-	EXPECT_EQ(rand(), dsRandom(&seed));
-	EXPECT_EQ(rand(), dsRandom(&seed));
+	dsRandom random1, random2;
+	dsRandom_seed(&random1, 0);
+	dsRandom_seed(&random2, 1);
+	for (unsigned int i = 0; i < iterationCount; ++i)
+		EXPECT_NE(dsRandom_next(&random1), dsRandom_next(&random2));
 }
 
-TEST(RandomTest, RandomDouble)
+TEST(RandomTest, NextBool)
 {
-	uint32_t seed = 0;
-
-	for (unsigned int i = 0; i < 1000; ++i)
+	dsRandom random;
+	dsRandom_seed(&random, 0);
+	unsigned int counts[2] = {0, 0};
+	for (unsigned int i = 0; i < iterationCount; ++i)
 	{
-		double val = dsRandomDouble(&seed, -0.3, 7.9);
-		EXPECT_LE(-0.3, val);
-		EXPECT_GE(7.9, val);
+		bool val = dsRandom_nextBool(&random);
+		ASSERT_TRUE(val == 0 || val == 1);
+		++counts[val];
 	}
+
+	EXPECT_NEAR(iterationCount/2, counts[0], iterationCount/100);
+	EXPECT_NEAR(iterationCount/2, counts[1], iterationCount/100);
 }
 
-TEST(RandomTest, RandomFloat)
+TEST(RandomTest, NextUInt32)
 {
-	uint32_t seed = 0;
-
-	for (unsigned int i = 0; i < 1000; ++i)
+	dsRandom random;
+	dsRandom_seed(&random, 0);
+	constexpr unsigned int bucketCount = 8;
+	unsigned int counts[bucketCount] = {};
+	for (unsigned int i = 0; i < iterationCount; ++i)
 	{
-		double val = dsRandomFloat(&seed, -0.3f, 7.9f);
-		EXPECT_LE(-0.3, val);
-		EXPECT_GE(7.9, val);
+		uint32_t val = dsRandom_nextUInt32(&random, bucketCount);
+		ASSERT_GT(bucketCount, val);
+		++counts[val];
 	}
+
+	for (unsigned int i = 0; i < bucketCount; ++i)
+		EXPECT_NEAR(iterationCount/bucketCount, counts[i], iterationCount/80);
+
+	EXPECT_EQ(0U, dsRandom_nextUInt32(&random, 0));
 }
 
-TEST(RandomTest, RandomInt)
+TEST(RandomTest, NextUInt32Range)
 {
-	uint32_t seed = 0;
-
-	for (unsigned int i = 0; i < 1000; ++i)
+	dsRandom random;
+	dsRandom_seed(&random, 0);
+	constexpr unsigned int bucketCount = 8;
+	unsigned int min = 5;
+	unsigned int max = bucketCount + min;
+	unsigned int counts[bucketCount] = {};
+	for (unsigned int i = 0; i < iterationCount; ++i)
 	{
-		int val = dsRandomInt(&seed, -3, 9);
-		EXPECT_LE(-3, val);
-		EXPECT_GE(9, val);
+		uint32_t val = dsRandom_nextUInt32Range(&random, min, max);
+		ASSERT_LE(min, val);
+		ASSERT_GT(max, val);
+		++counts[val - min];
 	}
+
+	for (unsigned int i = 0; i < bucketCount; ++i)
+		EXPECT_NEAR(iterationCount/bucketCount, counts[i], iterationCount/80);
+
+	EXPECT_EQ(min, dsRandom_nextUInt32Range(&random, min, min));
+}
+
+TEST(RandomTest, NextInt32Range)
+{
+	dsRandom random;
+	dsRandom_seed(&random, 0);
+	constexpr unsigned int bucketCount = 8;
+	int min = -5;
+	int max = bucketCount + min;
+	unsigned int counts[bucketCount] = {};
+	for (unsigned int i = 0; i < iterationCount; ++i)
+	{
+		int32_t val = dsRandom_nextInt32Range(&random, min, max);
+		ASSERT_LE(min, val);
+		ASSERT_GT(max, val);
+		++counts[val - min];
+	}
+
+	for (unsigned int i = 0; i < bucketCount; ++i)
+		EXPECT_NEAR(iterationCount/bucketCount, counts[i], iterationCount/80);
+
+	EXPECT_EQ(min, dsRandom_nextInt32Range(&random, min, min));
+}
+
+TEST(RandomTest, NextUInt64)
+{
+	dsRandom random;
+	dsRandom_seed(&random, 0);
+	constexpr unsigned int bucketCount = 8;
+	unsigned int counts[bucketCount] = {};
+	for (unsigned int i = 0; i < iterationCount; ++i)
+	{
+		uint64_t val = dsRandom_nextUInt64(&random, bucketCount);
+		ASSERT_GT(bucketCount, val);
+		++counts[static_cast<size_t>(val)];
+	}
+
+	for (unsigned int i = 0; i < bucketCount; ++i)
+		EXPECT_NEAR(iterationCount/bucketCount, counts[i], iterationCount/80);
+
+	EXPECT_EQ(0U, dsRandom_nextUInt64(&random, 0));
+}
+
+TEST(RandomTest, NextUInt64Range)
+{
+	dsRandom random;
+	dsRandom_seed(&random, 0);
+	constexpr unsigned int bucketCount = 8;
+	unsigned int min = 5;
+	unsigned int max = bucketCount + min;
+	unsigned int counts[bucketCount] = {};
+	for (unsigned int i = 0; i < iterationCount; ++i)
+	{
+		uint64_t val = dsRandom_nextUInt64Range(&random, min, max);
+		ASSERT_LE(min, val);
+		ASSERT_GT(max, val);
+		++counts[static_cast<size_t>(val - min)];
+	}
+
+	for (unsigned int i = 0; i < bucketCount; ++i)
+		EXPECT_NEAR(iterationCount/bucketCount, counts[i], iterationCount/80);
+
+	EXPECT_EQ(min, dsRandom_nextUInt64Range(&random, min, min));
+}
+
+TEST(RandomTest, NextInt64Range)
+{
+	dsRandom random;
+	dsRandom_seed(&random, 0);
+	constexpr unsigned int bucketCount = 8;
+	int min = -5;
+	int max = bucketCount + min;
+	unsigned int counts[bucketCount] = {};
+	for (unsigned int i = 0; i < iterationCount; ++i)
+	{
+		int64_t val = dsRandom_nextInt64Range(&random, min, max);
+		ASSERT_LE(min, val);
+		ASSERT_GT(max, val);
+		++counts[static_cast<size_t>(val - min)];
+	}
+
+	for (unsigned int i = 0; i < bucketCount; ++i)
+		EXPECT_NEAR(iterationCount/bucketCount, counts[i], iterationCount/80);
+
+	EXPECT_EQ(min, dsRandom_nextInt64Range(&random, min, min));
+}
+
+TEST(RandomTest, NextFloat)
+{
+	dsRandom random;
+	dsRandom_seed(&random, 0);
+	float average = 0;
+	float iterationScale = 1.0f/static_cast<float>(iterationCount);
+	for (unsigned int i = 0; i < iterationCount; ++i)
+	{
+		float val = dsRandom_nextFloat(&random);
+		EXPECT_LE(0.0f, val);
+		EXPECT_GT(1.0f, val);
+		average += val*iterationScale;
+	}
+
+	EXPECT_NEAR(0.5f, average, 1e-2f);
+}
+
+TEST(RandomTest, NextFloatRange)
+{
+	dsRandom random;
+	dsRandom_seed(&random, 0);
+	float min = -3.5f, max = 7.8945f;
+	float average = 0;
+	float iterationScale = 1.0f/static_cast<float>(iterationCount);
+	for (unsigned int i = 0; i < iterationCount; ++i)
+	{
+		float val = dsRandom_nextFloatRange(&random, min, max);
+		EXPECT_LE(min, val);
+		EXPECT_GT(max, val);
+		average += val*iterationScale;
+	}
+
+	EXPECT_NEAR((min + max)*0.5f, average, 1e-2f*(max - min));
+	EXPECT_EQ(min, dsRandom_nextFloatRange(&random, min, min));
+}
+
+TEST(RandomTest, NextDouble)
+{
+	dsRandom random;
+	dsRandom_seed(&random, 0);
+	double average = 0;
+	double iterationScale = 1.0f/static_cast<double>(iterationCount);
+	for (unsigned int i = 0; i < iterationCount; ++i)
+	{
+		double val = dsRandom_nextDouble(&random);
+		EXPECT_LE(0.0, val);
+		EXPECT_GT(1.0, val);
+		average += val*iterationScale;
+	}
+
+	EXPECT_NEAR(0.5, average, 1e-2);
+}
+
+TEST(RandomTest, NextDoubleRange)
+{
+	dsRandom random;
+	dsRandom_seed(&random, 0);
+	double min = -3.5, max = 7.8945;
+	double average = 0;
+	double iterationScale = 1.0f/static_cast<double>(iterationCount);
+	for (unsigned int i = 0; i < iterationCount; ++i)
+	{
+		double val = dsRandom_nextDoubleRange(&random, min, max);
+		EXPECT_LE(min, val);
+		EXPECT_GT(max, val);
+		average += val*iterationScale;
+	}
+
+	EXPECT_NEAR((min + max)*0.5, average, 1e-2*(max - min));
+	EXPECT_EQ(min, dsRandom_nextDoubleRange(&random, min, min));
 }

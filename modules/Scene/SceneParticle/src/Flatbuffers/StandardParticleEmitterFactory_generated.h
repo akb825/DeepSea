@@ -103,8 +103,8 @@ struct StandardParticleEmitterFactory FLATBUFFERS_FINAL_CLASS : private flatbuff
   const flatbuffers::String *relativeNode() const {
     return GetPointer<const flatbuffers::String *>(VT_RELATIVENODE);
   }
-  uint32_t seed() const {
-    return GetField<uint32_t>(VT_SEED, 0);
+  uint64_t seed() const {
+    return GetField<uint64_t>(VT_SEED, 0);
   }
   bool enabled() const {
     return GetField<uint8_t>(VT_ENABLED, 0) != 0;
@@ -135,7 +135,7 @@ struct StandardParticleEmitterFactory FLATBUFFERS_FINAL_CLASS : private flatbuff
            VerifyFieldRequired<DeepSeaScene::Vector2f>(verifier, VT_INTENSITYRANGE, 4) &&
            VerifyOffset(verifier, VT_RELATIVENODE) &&
            verifier.VerifyString(relativeNode()) &&
-           VerifyField<uint32_t>(verifier, VT_SEED, 4) &&
+           VerifyField<uint64_t>(verifier, VT_SEED, 8) &&
            VerifyField<uint8_t>(verifier, VT_ENABLED, 1) &&
            VerifyField<float>(verifier, VT_STARTTIME, 4) &&
            verifier.EndTable();
@@ -212,8 +212,8 @@ struct StandardParticleEmitterFactoryBuilder {
   void add_relativeNode(flatbuffers::Offset<flatbuffers::String> relativeNode) {
     fbb_.AddOffset(StandardParticleEmitterFactory::VT_RELATIVENODE, relativeNode);
   }
-  void add_seed(uint32_t seed) {
-    fbb_.AddElement<uint32_t>(StandardParticleEmitterFactory::VT_SEED, seed, 0);
+  void add_seed(uint64_t seed) {
+    fbb_.AddElement<uint64_t>(StandardParticleEmitterFactory::VT_SEED, seed, 0);
   }
   void add_enabled(bool enabled) {
     fbb_.AddElement<uint8_t>(StandardParticleEmitterFactory::VT_ENABLED, static_cast<uint8_t>(enabled), 0);
@@ -266,12 +266,12 @@ inline flatbuffers::Offset<StandardParticleEmitterFactory> CreateStandardParticl
     const DeepSeaScene::Vector2f *colorValueRange = nullptr,
     const DeepSeaScene::Vector2f *intensityRange = nullptr,
     flatbuffers::Offset<flatbuffers::String> relativeNode = 0,
-    uint32_t seed = 0,
+    uint64_t seed = 0,
     bool enabled = false,
     float startTime = 0.0f) {
   StandardParticleEmitterFactoryBuilder builder_(_fbb);
-  builder_.add_startTime(startTime);
   builder_.add_seed(seed);
+  builder_.add_startTime(startTime);
   builder_.add_relativeNode(relativeNode);
   builder_.add_intensityRange(intensityRange);
   builder_.add_colorValueRange(colorValueRange);
@@ -314,7 +314,7 @@ inline flatbuffers::Offset<StandardParticleEmitterFactory> CreateStandardParticl
     const DeepSeaScene::Vector2f *colorValueRange = nullptr,
     const DeepSeaScene::Vector2f *intensityRange = nullptr,
     const char *relativeNode = nullptr,
-    uint32_t seed = 0,
+    uint64_t seed = 0,
     bool enabled = false,
     float startTime = 0.0f) {
   auto relativeNode__ = relativeNode ? _fbb.CreateString(relativeNode) : 0;

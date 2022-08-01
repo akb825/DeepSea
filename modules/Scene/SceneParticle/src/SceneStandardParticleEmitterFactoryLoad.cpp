@@ -153,9 +153,9 @@ void* dsSceneStandardParticleEmitterFactory_load(const dsSceneLoadContext*,
 	options.colorValueRange = DeepSeaScene::convert(*fbFactory->colorValueRange());
 	options.intensityRange = DeepSeaScene::convert(*fbFactory->intensityRange());
 
-	uint32_t seed = fbFactory->seed();
+	uint64_t seed = fbFactory->seed();
 	if (seed == 0)
-		seed = dsRandomSeed();
+		seed = dsRandom_createSeed();
 	return dsSceneStandardParticleEmitterFactory_create(allocator, &params, seed, &options,
 		fbFactory->enabled(), fbFactory->startTime(), relativeNode);
 }
