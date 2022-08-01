@@ -39,6 +39,8 @@ extern "C"
  *
  * @remark These random numbers aren't suitable for cryptographic purposes, as an attacker can
  * reconstruct the state with relatively little data.
+ *
+ * @see dsRandom
  */
 
 /**

@@ -1048,6 +1048,7 @@ typedef union dsQuaternion4d
  * @brief Structure that holds the state for random number generation.
  * @remark This must not be zero-initialized! Use dsRandom_seed() to initialize the state properly,
  *     even if you use a default seed of 0.
+ * @see Random.h
  */
 typedef struct dsRandom
 {
