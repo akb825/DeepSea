@@ -19,6 +19,17 @@
 
 static constexpr unsigned int iterationCount = 1000;
 
+TEST(RandomTest, KnownValues)
+{
+	dsRandom random;
+	dsRandom_seed(&random, 0);
+	EXPECT_EQ(0x99EC5F36CB75F2B4ULL, dsRandom_next(&random));
+	EXPECT_EQ(0xBF6E1F784956452AULL, dsRandom_next(&random));
+	EXPECT_EQ(0x1A5F849D4933E6E0ULL, dsRandom_next(&random));
+	EXPECT_EQ(0x6AA594F1262D2D2CULL, dsRandom_next(&random));
+	EXPECT_EQ(0xBBA5AD4A1F842E59ULL, dsRandom_next(&random));
+}
+
 TEST(RandomTest, NextDifferentSeeds)
 {
 	dsRandom random1, random2;

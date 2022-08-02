@@ -29,18 +29,18 @@
 
 inline static uint64_t splitMix64NoUpdte(uint64_t value)
 {
-	value += 0x9e3779b97f4a7c15;
-	value = (value ^ (value >> 30))*0xbf58476d1ce4e5b9;
-	value = (value ^ (value >> 27))*0x94d049bb133111eb;
+	value += 0x9e3779b97f4a7c15ULL;
+	value = (value ^ (value >> 30))*0xbf58476d1ce4e5b9ULL;
+	value = (value ^ (value >> 27))*0x94d049bb133111ebULL;
 	return value ^ (value >> 31);
 }
 
 inline static uint64_t splitMix64(uint64_t* state)
 {
-	*state += 0x9e3779b97f4a7c15;
+	*state += 0x9e3779b97f4a7c15ULL;
 	uint64_t value = *state;
-	value = (value ^ (value >> 30))*0xbf58476d1ce4e5b9;
-	value = (value ^ (value >> 27))*0x94d049bb133111eb;
+	value = (value ^ (value >> 30))*0xbf58476d1ce4e5b9ULL;
+	value = (value ^ (value >> 27))*0x94d049bb133111ebULL;
 	return value ^ (value >> 31);
 }
 
