@@ -57,7 +57,7 @@ double dsTimer_time(dsTimer timer)
 
 	DS_ASSERT(timer.scale > 0);
 	LARGE_INTEGER value;
-	QueryPerformanceCounter(&value);
+	DS_VERIFY(QueryPerformanceCounter(&value));
 	return value.QuadPart*timer.scale;
 
 #elif DS_APPLE

@@ -60,7 +60,7 @@ uint64_t dsRandom_createSeed(void)
 
 #if DS_WINDOWS
 
-	QueryPerformanceCounter((LARGE_INTEGER*)&timeSeed);
+	DS_VERIFY(QueryPerformanceCounter((LARGE_INTEGER*)&timeSeed));
 
 #elif DS_APPLE
 

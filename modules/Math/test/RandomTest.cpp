@@ -16,8 +16,18 @@
 
 #include <DeepSea/Math/Random.h>
 #include <gtest/gtest.h>
+#include <unordered_set>
 
 static constexpr unsigned int iterationCount = 1000;
+
+TEST(RandomTest, CreateRandomSeed)
+{
+	constexpr unsigned int seedCount = 100;
+	std::unordered_set<uint64_t> seeds;
+	for (unsigned int i = 0; i < seedCount; ++i)
+		seeds.insert(dsRandom_createSeed());
+	EXPECT_EQ(seedCount, seeds.size());
+}
 
 TEST(RandomTest, KnownValues)
 {
