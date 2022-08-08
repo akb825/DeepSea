@@ -557,26 +557,26 @@ if(USED_CMAKE_GENERATOR MATCHES "Xcode")
 else()
   set(CMAKE_C_FLAGS
   "${SDK_NAME_VERSION_FLAGS} ${BITCODE} -fobjc-abi-version=2 ${FOBJC_ARC} ${CMAKE_C_FLAGS}")
+  set(CMAKE_OBJC_FLAGS
+  "${SDK_NAME_VERSION_FLAGS} ${BITCODE} -fobjc-abi-version=2 ${FOBJC_ARC} ${CMAKE_OBJC_FLAGS}")
   # Hidden visibilty is required for C++ on iOS.
   set(CMAKE_CXX_FLAGS
   "${SDK_NAME_VERSION_FLAGS} ${BITCODE} ${VISIBILITY} -fvisibility-inlines-hidden -fobjc-abi-version=2 ${FOBJC_ARC} ${CMAKE_CXX_FLAGS}")
-  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS} -O0 -g ${CMAKE_CXX_FLAGS_DEBUG}")
-  set(CMAKE_CXX_FLAGS_MINSIZEREL "${CMAKE_CXX_FLAGS} -DNDEBUG -Os -ffast-math ${CMAKE_CXX_FLAGS_MINSIZEREL}")
-  set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS} -DNDEBUG -O2 -g -ffast-math ${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
-  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} -DNDEBUG -O3 -ffast-math ${CMAKE_CXX_FLAGS_RELEASE}")
+  set(CMAKE_OBJCXX_FLAGS
+  "${SDK_NAME_VERSION_FLAGS} ${BITCODE} ${VISIBILITY} -fvisibility-inlines-hidden -fobjc-abi-version=2 ${FOBJC_ARC} ${CMAKE_OBJCXX_FLAGS}")
   set(CMAKE_C_LINK_FLAGS "${SDK_NAME_VERSION_FLAGS} -Wl,-search_paths_first ${CMAKE_C_LINK_FLAGS}")
+  set(CMAKE_OBJC_LINK_FLAGS "${SDK_NAME_VERSION_FLAGS} -Wl,-search_paths_first ${CMAKE_OBJC_LINK_FLAGS}")
   set(CMAKE_CXX_LINK_FLAGS "${SDK_NAME_VERSION_FLAGS}  -Wl,-search_paths_first ${CMAKE_CXX_LINK_FLAGS}")
+  set(CMAKE_OBJCXX_LINK_FLAGS "${SDK_NAME_VERSION_FLAGS}  -Wl,-search_paths_first ${CMAKE_OBJCXX_LINK_FLAGS}")
 
   # In order to ensure that the updated compiler flags are used in try_compile()
   # tests, we have to forcibly set them in the CMake cache, not merely set them
   # in the local scope.
   list(APPEND VARS_TO_FORCE_IN_CACHE
     CMAKE_C_FLAGS
+    CMAKE_OBJC_FLAGS
     CMAKE_CXX_FLAGS
-    CMAKE_CXX_FLAGS_DEBUG
-    CMAKE_CXX_FLAGS_RELWITHDEBINFO
-    CMAKE_CXX_FLAGS_MINSIZEREL
-    CMAKE_CXX_FLAGS_RELEASE
+    CMAKE_OBJCXX_FLAGS
     CMAKE_C_LINK_FLAGS
     CMAKE_CXX_LINK_FLAGS)
   foreach(VAR_TO_FORCE ${VARS_TO_FORCE_IN_CACHE})
