@@ -22,8 +22,9 @@
 #include <sys/param.h>
 #endif
 
-// Uses the best method on any modern system, falling back as necessary. The only case that should
-// outright fail is Windows before Vista SP2, which is well out of support at this time.
+// Uses the best method on modern systems, falling back to direct reads on /dev/urandom when a
+// function call isn't supported. The only case that should outright fail is Windows before Vista
+// SP2, which is well out of support at this time.
 #if DS_WINDOWS
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
@@ -65,25 +66,38 @@ bool dsDeviceRandomBytes(void* outData, size_t size)
 			errno = EPERM;
 			return false;
 		}
+
 		curBytes += curSize;
 		size -= curSize;
 	}
 
-#elif defined(DS_USE_GETRANDOM) || defined(DS_USE_GETENTROPY)
+#elif defined(DS_USE_GETRANDOM)
 
-	// getentropy() only allows 256 bytes, and getrandom() recommends 256 bytes to avoid an
-	// interrupt returning an error with EINT.
+	while (size > 0)
+	{
+		ssize_t readSize = getrandom(curBytes, size, 0);
+		if (readSize < 0)
+		{
+			// Try again if it failed with an interrupt.
+			if (errno == EINTR)
+				continue;
+			return false;
+		}
+
+		curBytes += readSize;
+		size -= readSize;
+	}
+
+#elif defined(DS_USE_GETENTROPY)
+
+	// getentropy() only allows 256 bytes.
 	const size_t maxSize = 256;
 	while (size > 0)
 	{
 		size_t curSize = size > maxSize ? maxSize : size;
-#ifdef DS_USE_GETRANDOM
-		if (getrandom(curBytes, curSize, 0) != (ssize_t)curSize)
-			return false;
-#else
 		if (getentropy(curBytes, curSize) != 0)
 			return false;
-#endif
+
 		curBytes += curSize;
 		size -= curSize;
 	}
@@ -116,7 +130,17 @@ bool dsDeviceRandomBytes(void* outData, size_t size)
 	{
 		ssize_t readSize = read(fd, curBytes, size);
 		if (readSize < 0)
+		{
+			// Try again if it failed with an interrupt.
+			if (errno == EINTR)
+				continue;
 			return false;
+		}
+		else if (readSize == 0)
+		{
+			errno = EIO;
+			return false;
+		}
 
 		curBytes += readSize;
 		size -= readSize;
