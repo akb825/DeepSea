@@ -53,8 +53,9 @@ TEST(FileStream, InvalidOpen)
 	EXPECT_FALSE_ERRNO(EINVAL, dsFileStream_openFile(&stream, NULL));
 }
 
-// TODO: Currently don't have default directories set for mobile platforms.
-#if !DS_IOS && !DS_ANDROID
+// TODO: iOS has restrictive filesystem permissions and we don't have the application code available
+// here to set the proper directory.
+#if !DS_IOS
 
 TEST(FileStream, ReadWriteFileFunctions)
 {
@@ -158,4 +159,4 @@ TEST(FileStream, ReadWriteStreamFunctions)
 	unlink(path);
 }
 
-#endif // DS_IOS
+#endif // !DS_IOS
