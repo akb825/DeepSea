@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -96,7 +96,7 @@ inline uint32_t dsClz(uint32_t x)
 		return 32;
 
 	unsigned long leading = 0;
-	_BitScanReverse( &leading, x);
+	_BitScanReverse(&leading, x);
 	return 31 - leading;
 #elif DS_GCC || DS_CLANG
 	return x ? __builtin_clz(x) : 32;
@@ -112,7 +112,7 @@ inline uint32_t dsCtz(uint32_t x)
 		return 32;
 
 	unsigned long trailing = 0;
-	_BitScanForward( &trailing, x);
+	_BitScanForward(&trailing, x);
 	return trailing;
 #elif DS_GCC || DS_CLANG
 	return x ? __builtin_ctz(x) : 32;

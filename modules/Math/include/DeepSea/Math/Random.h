@@ -288,6 +288,7 @@ DS_MATH_EXPORT inline uint32_t dsRandom_nextUInt32(dsRandom* random, uint32_t ma
 	else if (maxValue == (uint32_t)-1)
 		return (uint32_t)dsRandom_next(random);
 
+	// Single debiased mod method from: https://www.pcg-random.org/posts/bounded-rands.html
 	uint32_t maxBound = maxValue + 1;
 	uint32_t difThreshold = -maxBound;
 	uint32_t baseValue, result;
@@ -320,6 +321,7 @@ DS_MATH_EXPORT inline uint64_t dsRandom_nextUInt64(dsRandom* random, uint64_t ma
 	else if (maxValue == (uint64_t)-1)
 		return dsRandom_next(random);
 
+	// Single debiased mod method from: https://www.pcg-random.org/posts/bounded-rands.html
 	uint64_t maxBound = maxValue + 1;
 	uint64_t difThreshold = -maxBound;
 	uint64_t baseValue, result;

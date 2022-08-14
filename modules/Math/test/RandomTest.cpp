@@ -78,7 +78,7 @@ TEST(RandomTest, NextUInt32)
 {
 	dsRandom random;
 	dsRandom_seed(&random, 0);
-	constexpr unsigned int bucketCount = 8;
+	constexpr unsigned int bucketCount = 12;
 	unsigned int counts[bucketCount] = {};
 	for (unsigned int i = 0; i < iterationCount; ++i)
 	{
@@ -97,7 +97,7 @@ TEST(RandomTest, NextUInt32Range)
 {
 	dsRandom random;
 	dsRandom_seed(&random, 0);
-	constexpr unsigned int bucketCount = 8;
+	constexpr unsigned int bucketCount = 12;
 	unsigned int min = 5;
 	unsigned int max = bucketCount + min - 1;
 	unsigned int counts[bucketCount] = {};
@@ -119,7 +119,7 @@ TEST(RandomTest, NextInt32Range)
 {
 	dsRandom random;
 	dsRandom_seed(&random, 0);
-	constexpr unsigned int bucketCount = 8;
+	constexpr unsigned int bucketCount = 12;
 	int min = -5;
 	int max = bucketCount + min - 1;
 	unsigned int counts[bucketCount] = {};
@@ -141,7 +141,7 @@ TEST(RandomTest, NextUInt64)
 {
 	dsRandom random;
 	dsRandom_seed(&random, 0);
-	constexpr unsigned int bucketCount = 8;
+	constexpr unsigned int bucketCount = 12;
 	unsigned int counts[bucketCount] = {};
 	for (unsigned int i = 0; i < iterationCount; ++i)
 	{
@@ -160,7 +160,7 @@ TEST(RandomTest, NextUInt64Range)
 {
 	dsRandom random;
 	dsRandom_seed(&random, 0);
-	constexpr unsigned int bucketCount = 8;
+	constexpr unsigned int bucketCount = 12;
 	unsigned int min = 5;
 	unsigned int max = bucketCount + min - 1;
 	unsigned int counts[bucketCount] = {};
@@ -182,7 +182,7 @@ TEST(RandomTest, NextInt64Range)
 {
 	dsRandom random;
 	dsRandom_seed(&random, 0);
-	constexpr unsigned int bucketCount = 8;
+	constexpr unsigned int bucketCount = 12;
 	int min = -5;
 	int max = bucketCount + min - 1;
 	unsigned int counts[bucketCount] = {};
