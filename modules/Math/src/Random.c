@@ -15,7 +15,10 @@
  */
 
 #include <DeepSea/Math/Random.h>
+
+#include <DeepSea/Core/DeviceRandom.h>
 #include <DeepSea/Core/Atomic.h>
+
 #include <math.h>
 #include <time.h>
 
@@ -27,34 +30,12 @@
 #include <mach/mach_time.h>
 #endif
 
-inline static uint64_t splitMix64NoUpdte(uint64_t value)
-{
-	value += 0x9e3779b97f4a7c15ULL;
-	value = (value ^ (value >> 30))*0xbf58476d1ce4e5b9ULL;
-	value = (value ^ (value >> 27))*0x94d049bb133111ebULL;
-	return value ^ (value >> 31);
-}
-
-inline static uint64_t splitMix64(uint64_t* state)
-{
-	*state += 0x9e3779b97f4a7c15ULL;
-	uint64_t value = *state;
-	value = (value ^ (value >> 30))*0xbf58476d1ce4e5b9ULL;
-	value = (value ^ (value >> 27))*0x94d049bb133111ebULL;
-	return value ^ (value >> 31);
-}
-
-static inline uint64_t rotl(uint64_t x, int k)
-{
-	return (x << k) | (x >> (64 - k));
-}
-
-uint64_t dsRandom_createSeed(void)
+static uint64_t createFallbackSeed(void)
 {
 	// Use a counter to ensure that if this is called at a faster rate than the timer supports
 	// different results will be returned.
 	static uint32_t counter = 0;
-	uint32_t curCounter = DS_ATOMIC_FETCH_ADD32(&counter, 1);
+	uint64_t curCounter = DS_ATOMIC_FETCH_ADD32(&counter, 1);
 
 	uint64_t timeSeed;
 
@@ -78,33 +59,39 @@ uint64_t dsRandom_createSeed(void)
 	// since boot, use seconds since epoch as a low frequency value in the upper bits.
 	timeSeed = (timeSeed & 0xFFFFFFFF) | ((uint64_t)time(NULL) << 32);
 
-	return splitMix64NoUpdte(timeSeed) ^ splitMix64NoUpdte(curCounter);
+	return dsRandom_nextSeed(&timeSeed) ^ dsRandom_nextSeed(&curCounter);
+}
+
+uint64_t dsRandom_createSeed(void)
+{
+	uint64_t seed;
+	if (!dsDeviceRandomBytes(&seed, sizeof(uint64_t)))
+		return createFallbackSeed();
+	return seed;
 }
 
 void dsRandom_seed(dsRandom* random, uint64_t seed)
 {
 	DS_ASSERT(random);
 	for (unsigned int i = 0; i < 4; ++i)
-		random->state[i] = splitMix64(&seed);
+		random->state[i] = dsRandom_nextSeed(&seed);
 }
 
-uint64_t dsRandom_next(dsRandom* random)
+void dsRandom_initialize(dsRandom* random)
 {
 	DS_ASSERT(random);
-	uint64_t next = rotl(random->state[1]*5, 7)*9;
-	uint64_t temp = random->state[1] << 17;
-
-	random->state[2] ^= random->state[0];
-	random->state[3] ^= random->state[1];
-	random->state[1] ^= random->state[2];
-	random->state[0] ^= random->state[3];
-
-	random->state[2] ^= temp;
-	random->state[3] = rotl(random->state[3], 45);
-
-	return next;
+	// Cannot have all 0s as an initial state. This is so unlikely to happen (2^-256) that it's not
+	// worth treating differently to the normal fallback of the device unable to provide random
+	// numbers.
+	if (!dsDeviceRandomBytes(random, sizeof(dsRandom)) ||
+		(random->state[0] | random->state[1] | random->state[2] | random->state[3]) == 0)
+	{
+		dsRandom_seed(random, createFallbackSeed());
+	}
 }
 
+uint64_t dsRandom_nextSeed(uint64_t* state);
+uint64_t dsRandom_next(dsRandom* random);
 bool dsRandom_nextBool(dsRandom* random);
 uint32_t dsRandom_nextUInt32(dsRandom* random, uint32_t maxBound);
 uint32_t dsRandom_nextUInt32Range(dsRandom* random, uint32_t minVal, uint32_t maxBound);
@@ -113,6 +100,10 @@ uint64_t dsRandom_nextUInt64(dsRandom* random, uint64_t maxBound);
 uint64_t dsRandom_nextUInt64Range(dsRandom* random, uint64_t minVal, uint64_t maxBound);
 int64_t dsRandom_nextInt64Range(dsRandom* random, int64_t minVal, int64_t maxBound);
 float dsRandom_nextFloat(dsRandom* random);
+float dsRandom_nextSignedFloat(dsRandom* random);
 float dsRandom_nextFloatRange(dsRandom* random, float minVal, float maxBound);
+float dsRandom_nextFloatCenteredRange(dsRandom* random, float centerValue, float range);
 double dsRandom_nextDouble(dsRandom* random);
 double dsRandom_nextDoubleRange(dsRandom* random, double minVal, double maxBound);
+double dsRandom_nextSignedDouble(dsRandom* random);
+double dsRandom_nextDoubleCenteredRange(dsRandom* random, double centerValue, double range);

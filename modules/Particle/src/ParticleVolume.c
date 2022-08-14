@@ -18,6 +18,9 @@
 
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
+
+#include <DeepSea/Geometry/AlignedBox3.h>
+
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Math/Random.h>
 #include <DeepSea/Math/Vector3.h>
@@ -32,10 +35,18 @@ void dsParticleVolume_randomPosition(dsVector3f* result, dsRandom* random,
 	switch (volume->type)
 	{
 		case dsParticleVolumeType_Box:
-			result->x = dsRandom_nextFloatRange(random, volume->box.min.x, volume->box.max.x);
-			result->y = dsRandom_nextFloatRange(random, volume->box.min.y, volume->box.max.y);
-			result->z = dsRandom_nextFloatRange(random, volume->box.min.z, volume->box.max.z);
+		{
+			dsVector3f center, range;
+			dsAlignedBox3_center(center, volume->box);
+			dsAlignedBox3_extents(range, volume->box);
+			dsVector3_scale(range, range, 0.5f);
+			for (unsigned int i = 0; i < 3; ++i)
+			{
+				result->values[i] = dsRandom_nextFloatCenteredRange(random, center.values[i],
+					range.values[i]);
+			}
 			return;
+		}
 		case dsParticleVolumeType_Sphere:
 		{
 			float theta = dsRandom_nextFloatRange(random, 0, (float)(2*M_PI));
@@ -58,8 +69,7 @@ void dsParticleVolume_randomPosition(dsVector3f* result, dsRandom* random,
 			dsVector3f offset;
 			offset.x = cosf(theta)*radius;
 			offset.y = sinf(theta)*radius;
-			offset.z = dsRandom_nextFloatRange(random, -volume->cylinder.height/2,
-				volume->cylinder.height/2);
+			offset.z = dsRandom_nextFloatCenteredRange(random, 0.0f, volume->cylinder.height/2);
 			dsVector3_add(*result, volume->cylinder.center, offset);
 			return;
 		}

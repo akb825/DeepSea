@@ -62,11 +62,16 @@ void dsParticle_randomSize(dsParticle* particle, dsRandom* random, const dsVecto
 	DS_ASSERT(random);
 	DS_ASSERT(widthRange);
 
-	particle->size.x = dsRandom_nextFloatRange(random, widthRange->x, widthRange->y);
+	// Use centered range to avoid bias towards min.
+	particle->size.x = dsRandom_nextFloatCenteredRange(random, (widthRange->x + widthRange->y)*0.5f,
+		(widthRange->y - widthRange->x)*0.5f);
 	if (!heightRange || heightRange->y < 0)
 		particle->size.y = particle->size.x;
 	else
-		particle->size.y = dsRandom_nextFloatRange(random, heightRange->x, heightRange->y);
+	{
+		particle->size.y = dsRandom_nextFloatCenteredRange(random,
+			(heightRange->x + heightRange->y)*0.5f, (heightRange->y - heightRange->x)*0.5f);
+	}
 }
 
 void dsParticle_createDirectionMatrix(dsMatrix33f* result, const dsVector3f* baseDirection)

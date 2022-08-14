@@ -39,7 +39,6 @@ typedef struct dsSceneStandardParticleEmitterFactory
 	dsParticleEmitterParams params;
 	dsStandardParticleEmitterOptions options;
 	const dsSceneNode* relativeNode;
-	dsRandom random;
 	uint64_t seed;
 	bool enabled;
 	float startTime;
@@ -92,10 +91,8 @@ static dsParticleEmitter* dsSceneStandardParticleEmitterFactory_createEmitter(
 	params.populateInstanceValuesFunc = &dsPopulateSceneParticleInstanceData;
 	params.populateInstanceValuesUserData = (void*)treeNode;
 	dsStandardParticleEmitter* standardEmitter = dsStandardParticleEmitter_create(allocator,
-		&params, factory->seed, &factory->options, factory->enabled, factory->startTime);
-
-	// Advance the seed.
-	factory->seed = dsRandom_next(&factory->random);
+		&params, dsRandom_nextSeed(&factory->seed), &factory->options, factory->enabled,
+		factory->startTime);
 	if (!standardEmitter)
 		return NULL;
 
@@ -183,7 +180,6 @@ dsSceneParticleEmitterFactory* dsSceneStandardParticleEmitterFactory_create(
 	memcpy(&data->params, params, sizeof(dsParticleEmitterParams));
 	memcpy(&data->options, options, sizeof(dsStandardParticleEmitterOptions));
 	data->relativeNode = relativeNode;
-	dsRandom_seed(&data->random, seed);
 	data->seed = seed;
 	data->enabled = enabled;
 	data->startTime = startTime;
@@ -269,7 +265,6 @@ bool dsSceneStandardParticleEmitterFactory_setSeed(const dsSceneParticleEmitterF
 
 	dsSceneStandardParticleEmitterFactory* standardFactory =
 		((dsSceneStandardParticleEmitterFactory*)factory->userData);
-	dsRandom_seed(&standardFactory->random, seed);
 	standardFactory->seed = seed;
 	return true;
 }

@@ -124,8 +124,8 @@ static uint32_t dsStandardParticleEmitter_update(dsParticleEmitter* emitter, flo
 		// has been alive for.
 		float curElapsedTime = -standardEmitter->nextSpawnCountdown;
 
-		float particleTime = dsRandom_nextFloatRange(&standardEmitter->random, options->activeTimeRange.x,
-			options->activeTimeRange.y);
+		float particleTime = dsRandom_nextFloatRange(&standardEmitter->random,
+			options->activeTimeRange.x, options->activeTimeRange.y);
 		// Skip this particle if it will expire with the remaining time.
 		if (particleTime <= curElapsedTime)
 			continue;
