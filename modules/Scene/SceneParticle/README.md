@@ -74,5 +74,5 @@ The following scene item lists are provided with the expected members:
 
 ## Instance Data
 
-* `"ParticleTransformList"`: instance data similar to `InstanceTransformData`, but uses the particle emitter's transform. This is useful when the base transform uses a different node, such as with `StandardParticleEmitterFactory`.
+* `"ParticleTransformData"`: instance data similar to `InstanceTransformData`, but uses the particle emitter's transform. This is useful when the base transform uses a different node, such as with `StandardParticleEmitterFactory`.
 	* `variableGroupDesc`: string name for the shader variable group to use.

@@ -195,7 +195,7 @@ dsSceneNode* dsSceneModelNode_load(const dsSceneLoadContext* loadContext,
 					goto finished;
 				}
 
-				auto drawRange = const_cast<dsDrawRange*>(&modelInfo->drawRanges[i].drawRange);
+				auto drawRange = const_cast<dsDrawRange*>(&modelInfo->drawRanges[j].drawRange);
 				drawRange->vertexCount = fbDrawRange->vertexCount();
 				drawRange->instanceCount = fbDrawRange->instanceCount();
 				drawRange->firstVertex = fbDrawRange->firstVertex();
@@ -212,7 +212,7 @@ dsSceneNode* dsSceneModelNode_load(const dsSceneLoadContext* loadContext,
 				}
 
 				auto drawRange =
-					const_cast<dsDrawIndexedRange*>(&modelInfo->drawRanges[i].drawIndexedRange);
+					const_cast<dsDrawIndexedRange*>(&modelInfo->drawRanges[j].drawIndexedRange);
 				drawRange->indexCount = fbDrawIndexedRarnge->indexCount();
 				drawRange->instanceCount = fbDrawIndexedRarnge->instanceCount();
 				drawRange->firstIndex = fbDrawIndexedRarnge->firstIndex();

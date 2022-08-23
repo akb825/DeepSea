@@ -1,0 +1,100 @@
+[
+	{
+		"type": "SceneNode",
+		"nodeType": "ModelNodeReconfig",
+		"name": "groundModel",
+		"baseName": "groundModelBase",
+		"models":
+		[
+			{
+				"baseName": "Ground",
+				"modelLists":
+				[
+					{
+						"shader": "grassShader",
+						"material": "grassMaterial",
+						"list": "opaqueList"
+					}
+				]
+			}
+		],
+		"extraItemLists": ["cullList"]
+	},
+	{
+		"type": "SceneNode",
+		"nodeType": "ModelNodeReconfig",
+		"name": "torchModel",
+		"baseName": "torchModelBase",
+		"models":
+		[
+			{
+				"baseName": "Shaft",
+				"modelLists":
+				[
+					{
+						"shader": "woodShader",
+						"material": "woodMaterial",
+						"list": "opaqueList"
+					}
+				]
+			},
+			{
+				"baseName": "Pitch",
+				"modelLists":
+				[
+					{
+						"shader": "pitchShader",
+						"material": "pitchMaterial",
+						"list": "opaqueList"
+					}
+				]
+			}
+		],
+		"extraItemLists": ["cullList"]
+	},
+	{
+		"type": "SceneNode",
+		"nodeType": "TransformNode",
+		"name": "torch",
+		"children":
+		[
+			{"nodeType": "ReferenceNode", "ref": "torchModel"}
+		]
+	},
+	{
+		"type": "SceneNode",
+		"nodeType": "TransformNode",
+		"name": "rotatingTorch1",
+		"transformList": [{"type": "Translate", "value": [4.0, 0.0, 0.0]}],
+		"children":
+		[
+			{"nodeType": "ReferenceNode", "ref": "torch"}
+		]
+	},
+	{
+		"type": "SceneNode",
+		"nodeType": "TransformNode",
+		"name": "rotatingTorch2",
+		"transformList":
+		[
+			{"type": "Rotate", "value": [0.0, 0.0, 180.0]},
+			{"type": "Translate", "value": [4.0, 0.0, 0.0]}
+		],
+		"children":
+		[
+			{"nodeType": "ReferenceNode", "ref": "torch"}
+		]
+	},
+	{
+		"type": "SceneNode",
+		"nodeType": "TransformNode",
+		"name": "rootNode",
+		"children":
+		[
+			{"nodeType": "ReferenceNode", "ref": "groundModel"},
+			{"nodeType": "ReferenceNode", "ref": "torch"},
+			{"nodeType": "ReferenceNode", "ref": "rotatingTorch1"},
+			{"nodeType": "ReferenceNode", "ref": "rotatingTorch2"}
+		]
+	}
+]

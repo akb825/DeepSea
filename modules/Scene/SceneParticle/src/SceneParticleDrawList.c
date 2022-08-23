@@ -256,7 +256,7 @@ dsSceneItemList* dsSceneParticleDrawList_create(dsAllocator* allocator, const ch
 
 	for (uint32_t i = 0; i < instanceDataCount; ++i)
 	{
-		if (instanceData[i])
+		if (!instanceData[i])
 		{
 			errno = EINVAL;
 			destroyInstanceData(instanceData, instanceDataCount);

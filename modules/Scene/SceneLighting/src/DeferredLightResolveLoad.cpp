@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Aaron Barany
+ * Copyright 2021-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -110,7 +110,7 @@ dsSceneItemList* dsDeferredLightResolve_load(const dsSceneLoadContext*,
 		{
 			errno = ENOTFOUND;
 			DS_LOG_ERROR_F(DS_SCENE_LIGHTING_LOG_TAG, "Couldn't find shadow manager '%s'.",
-				lightSetName);
+				shadowManagerName);
 			return nullptr;
 		}
 

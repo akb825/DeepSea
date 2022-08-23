@@ -71,7 +71,7 @@ static void dsParticleTransformData_populateData(void* userData, const dsView* v
 	}
 }
 
-const char* const dsParticleTransformData_typeName = "InstanceTransformData";
+const char* const dsParticleTransformData_typeName = "ParticleTransformData";
 
 dsSceneInstanceData* dsParticleTransformData_create(dsAllocator* allocator,
 	dsResourceManager* resourceManager, const dsShaderVariableGroupDesc* transformDesc)

@@ -1,0 +1,320 @@
+[
+	{
+		"type": "MaterialDesc",
+		"name": "grassMaterialDesc",
+		"elements":
+		[
+			{
+				"name": "diffuseTexture",
+				"type": "Texture",
+				"binding": "Material"
+			},
+			{
+				"name": "normalTexture",
+				"type": "Texture",
+				"binding": "Material"
+			},
+			{
+				"name": "specularTexture",
+				"type": "Texture",
+				"binding": "Material"
+			},
+			{
+				"name": "shininess",
+				"type": "Float",
+				"binding": "Material"
+			},
+			{
+				"name": "InstanceTransformData",
+				"type": "VariableGroup",
+				"binding": "Instance",
+				"shaderVariableGroupDesc": "instanceTransformDesc"
+			},
+			{
+				"name": "ViewTransformData",
+				"type": "VariableGroup",
+				"binding": "Global",
+				"shaderVariableGroupDesc": "viewTransformDesc"
+			}
+		]
+	},
+	{
+		"type": "Material",
+		"name": "grassMaterial",
+		"description": "grassMaterialDesc",
+		"data":
+		[
+			{
+				"name": "diffuseTexture",
+				"type": "Texture",
+				"data": "grassColor"
+			},
+			{
+				"name": "normalTexture",
+				"type": "Texture",
+				"data": "grassNormal"
+			},
+			{
+				"name": "specularTexture",
+				"type": "Texture",
+				"data": "grassSpecular"
+			},
+			{
+				"name": "shininess",
+				"type": "Float",
+				"data": 20
+			}
+		]
+	},
+	{
+		"type": "MaterialDesc",
+		"name": "woodMaterialDesc",
+		"elements":
+		[
+			{
+				"name": "diffuseTexture",
+				"type": "Texture",
+				"binding": "Material"
+			},
+			{
+				"name": "color",
+				"type": "Vec4",
+				"binding": "Material"
+			},
+			{
+				"name": "InstanceTransformData",
+				"type": "VariableGroup",
+				"binding": "Instance",
+				"shaderVariableGroupDesc": "instanceTransformDesc"
+			},
+			{
+				"name": "ViewTransformData",
+				"type": "VariableGroup",
+				"binding": "Global",
+				"shaderVariableGroupDesc": "viewTransformDesc"
+			}
+		]
+	},
+	{
+		"type": "Material",
+		"name": "woodMaterial",
+		"description": "woodMaterialDesc",
+		"data":
+		[
+			{
+				"name": "diffuseTexture",
+				"type": "Texture",
+				"data": "woodGrain"
+			},
+			{
+				"name": "color",
+				"type": "Vec4",
+				"data": [0.725, 0.511, 0.224, 1.0],
+				"srgb": true
+			}
+		]
+	},
+	{
+		"type": "MaterialDesc",
+		"name": "pitchMaterialDesc",
+		"elements":
+		[
+			{
+				"name": "color",
+				"type": "Vec4",
+				"binding": "Material"
+			},
+			{
+				"name": "InstanceTransformData",
+				"type": "VariableGroup",
+				"binding": "Instance",
+				"shaderVariableGroupDesc": "instanceTransformDesc"
+			},
+			{
+				"name": "ViewTransformData",
+				"type": "VariableGroup",
+				"binding": "Global",
+				"shaderVariableGroupDesc": "viewTransformDesc"
+			}
+		]
+	},
+	{
+		"type": "Material",
+		"name": "pitchMaterial",
+		"description": "pitchMaterialDesc",
+		"data":
+		[
+			{
+				"name": "color",
+				"type": "Vec4",
+				"data": [0.247, 0.174, 0.076, 1.0],
+				"srgb": true
+			}
+		]
+	},
+	{
+		"type": "ShaderModule",
+		"name": "modelShaderModule",
+		"modules": @modelShaderModule@
+	},
+	{
+		"type": "Shader",
+		"name": "grassShader",
+		"module": "modelShaderModule",
+		"pipeline": "Grass",
+		"materialDesc": "grassMaterialDesc"
+	},
+	{
+		"type": "Shader",
+		"name": "woodShader",
+		"module": "modelShaderModule",
+		"pipeline": "Wood",
+		"materialDesc": "woodMaterialDesc"
+	},
+	{
+		"type": "Shader",
+		"name": "pitchShader",
+		"module": "modelShaderModule",
+		"pipeline": "Pitch",
+		"materialDesc": "pitchMaterialDesc"
+	},
+	{
+		"type": "MaterialDesc",
+		"name": "ambientLightMaterialDesc",
+		"elements":
+		[
+			{
+				"name": "materialColor",
+				"type": "SubpassInput",
+				"binding": "Global"
+			},
+			{
+				"name": "ViewTransformData",
+				"type": "VariableGroup",
+				"binding": "Global",
+				"shaderVariableGroupDesc": "viewTransformDesc"
+			}
+		]
+	},
+	{
+		"type": "Material",
+		"name": "ambientLightMaterial",
+		"description": "ambientLightMaterialDesc"
+	},
+	{
+		"type": "MaterialDesc",
+		"name": "directionalLightMaterialDesc",
+		"elements":
+		[
+			{
+				"name": "materialColor",
+				"type": "SubpassInput",
+				"binding": "Global"
+			},
+			{
+				"name": "normalSpecular",
+				"type": "SubpassInput",
+				"binding": "Global"
+			},
+			{
+				"name": "surfaceDepth",
+				"type": "SubpassInput",
+				"binding": "Global"
+			},
+			{
+				"name": "ViewTransformData",
+				"type": "VariableGroup",
+				"binding": "Global",
+				"shaderVariableGroupDesc": "viewTransformDesc"
+			}
+		]
+	},
+	{
+		"type": "Material",
+		"name": "directionalLightMaterial",
+		"description": "directionalLightMaterialDesc"
+	},
+	{
+		"type": "MaterialDesc",
+		"name": "pointLightMaterialDesc",
+		"elements":
+		[
+			{
+				"name": "materialColor",
+				"type": "SubpassInput",
+				"binding": "Global"
+			},
+			{
+				"name": "normalSpecular",
+				"type": "SubpassInput",
+				"binding": "Global"
+			},
+			{
+				"name": "surfaceDepth",
+				"type": "SubpassInput",
+				"binding": "Global"
+			},
+			{
+				"name": "ViewTransformData",
+				"type": "VariableGroup",
+				"binding": "Global",
+				"shaderVariableGroupDesc": "viewTransformDesc"
+			}
+		]
+	},
+	{
+		"type": "Material",
+		"name": "pointLightMaterial",
+		"description": "pointLightMaterialDesc"
+	},
+	{
+		"type": "ShaderModule",
+		"name": "deferredLightShaderModule",
+		"modules": @deferredLightShaderModule@
+	},
+	{
+		"type": "Shader",
+		"name": "ambientLightShader",
+		"module": "deferredLightShaderModule",
+		"pipeline": "AmbientLight",
+		"materialDesc": "ambientLightMaterialDesc"
+	},
+	{
+		"type": "Shader",
+		"name": "directionalLightShader",
+		"module": "deferredLightShaderModule",
+		"pipeline": "DirectionalLight",
+		"materialDesc": "directionalLightMaterialDesc"
+	},
+	{
+		"type": "Shader",
+		"name": "pointLightShader",
+		"module": "deferredLightShaderModule",
+		"pipeline": "PointLight",
+		"materialDesc": "pointLightMaterialDesc"
+	},
+	{
+		"type": "MaterialDesc",
+		"name": "sRGBMaterialDesc",
+		"elements":
+		[
+			{
+				"name": "mainColor",
+				"type": "SubpassInput",
+				"binding": "Global"
+			}
+		]
+	},
+	{
+		"type": "Material",
+		"name": "sRGBMaterial",
+		"description": "sRGBMaterialDesc"
+	},
+	{
+		"type": "Shader",
+		"name": "sRGBShader",
+		"module": "deferredLightShaderModule",
+		"pipeline": "sRGB",
+		"materialDesc": "sRGBMaterialDesc"
+	}
+]
