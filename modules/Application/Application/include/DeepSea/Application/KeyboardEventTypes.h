@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -277,6 +277,10 @@ typedef enum dsKeyCode
 	dsKeyCode_Sleep,
 	dsKeyCode_App1,
 	dsKeyCode_App2,
+	dsKeyCode_SoftLeft,
+	dsKeyCode_SoftRight,
+	dsKeyCode_Call,
+	dsKeyCode_EndCall,
 
 	dsKeyCode_Count
 } dsKeyCode;

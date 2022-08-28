@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -508,6 +508,16 @@ dsKeyCode dsFromSDLScancode(SDL_Scancode scanCode)
 		case SDL_SCANCODE_AUDIOFASTFORWARD:
 			return dsKeyCode_AudioFastForward;
 #endif
+#if SDL_VERSION_ATLEAST(2, 24, 0)
+		case SDL_SCANCODE_SOFTLEFT:
+			return dsKeyCode_SoftLeft;
+		case SDL_SCANCODE_SOFTRIGHT:
+			return dsKeyCode_SoftRight;
+		case SDL_SCANCODE_CALL:
+			return dsKeyCode_Call;
+		case SDL_SCANCODE_ENDCALL:
+			return dsKeyCode_EndCall;
+#endif
 		case SDL_NUM_SCANCODES:
 			return dsKeyCode_Count;
 	}
@@ -1007,6 +1017,22 @@ SDL_Scancode dsToSDLScancode(dsKeyCode keyCode)
 #else
 		case dsKeyCode_AudioRewind:
 		case dsKeyCode_AudioFastForward:
+			return SDL_SCANCODE_UNKNOWN;
+#endif
+#if SDL_VERSION_ATLEAST(2, 24, 0)
+		case dsKeyCode_SoftLeft:
+			return SDL_SCANCODE_SOFTLEFT;
+		case dsKeyCode_SoftRight:
+			return SDL_SCANCODE_SOFTRIGHT;
+		case dsKeyCode_Call:
+			return SDL_SCANCODE_CALL;
+		case dsKeyCode_EndCall:
+			return SDL_SCANCODE_ENDCALL;
+#else
+		case dsKeyCode_SoftLeft:
+		case dsKeyCode_SoftRight:
+		case dsKeyCode_Call:
+		case dsKeyCode_EndCall:
 			return SDL_SCANCODE_UNKNOWN;
 #endif
 		case dsKeyCode_Count:

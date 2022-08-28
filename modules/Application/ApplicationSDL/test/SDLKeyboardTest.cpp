@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,9 +22,19 @@ TEST(SDLKeyboardTest, KeyCode)
 	for (int i = 0; i < dsKeyCode_Count; ++i)
 	{
 		dsKeyCode keyCode = (dsKeyCode)i;
-		// Audio rewind/fast-forward isn't supported in all SDL versions.
-		if (keyCode == dsKeyCode_AudioRewind || keyCode == dsKeyCode_AudioFastForward)
-			continue;
+		// The following keycodes aren't supported on all versions of SDL.
+		switch (keyCode)
+		{
+			case dsKeyCode_AudioRewind:
+			case dsKeyCode_AudioFastForward:
+			case dsKeyCode_SoftLeft:
+			case dsKeyCode_SoftRight:
+			case dsKeyCode_Call:
+			case dsKeyCode_EndCall:
+				continue;
+			default:
+				break;
+		}
 		EXPECT_EQ(keyCode, dsFromSDLScancode(dsToSDLScancode(keyCode)));
 	}
 }
