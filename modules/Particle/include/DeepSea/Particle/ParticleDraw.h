@@ -29,7 +29,7 @@ extern "C"
 /**
  * @file
  * @brief Functions for creating and manipulating particle drawers.
- * @see dsParticleDrawer
+ * @see dsParticleDraw
  */
 
 /**

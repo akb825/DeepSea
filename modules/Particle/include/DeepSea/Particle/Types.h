@@ -118,6 +118,8 @@ typedef struct dsParticleVolume
  * - layout(location = DS_TEXCOORD0) in vec3 intensityTextureT; // Packed intensity, texture index,
  *       and T.
  *
+ * These attributes are available under DeepSea/Particle/Shaders/ParticleVertexInputs.mslh.
+ *
  * @see Particle.h
  */
 typedef struct dsParticle
@@ -133,7 +135,7 @@ typedef struct dsParticle
 	dsVector2f size;
 
 	/**
-	 * @brief The rotation of the particle.
+	 * @brief The X and Y rotation of the particle in radians.
 	 */
 	dsVector2f rotation;
 
@@ -443,7 +445,7 @@ typedef struct dsStandardParticleEmitter dsStandardParticleEmitter;
 
 /**
  * @brief Struct for drawing particles created by a particle emitter.
- * @see ParticleDrawer.h
+ * @see ParticleDraw.h
  */
 typedef struct dsParticleDraw dsParticleDraw;
 
