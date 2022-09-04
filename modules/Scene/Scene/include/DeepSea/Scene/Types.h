@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2021 Aaron Barany
+ * Copyright 2019-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -71,12 +71,10 @@ typedef enum dsSceneResourceType
  */
 typedef struct dsScene dsScene;
 
-/**
- * @brief Struct that describes a view to draw a scene with.
- * @remark Members should be modified outside of the implementation unless otherwise specified.
- * @see View.h
- */
+/// @cond
 typedef struct dsView dsView;
+typedef struct dsSceneGlobalData dsSceneGlobalData;
+/// @endcond
 
 /**
  * @brief Struct for holding a collection of resources used in a scene.
@@ -224,12 +222,6 @@ typedef struct dsScenePipelineItem
 } dsScenePipelineItem;
 
 /**
- * @brief Struct containing global data used within a scene.
- * @see SceneGlobalData.h
- */
-typedef struct dsSceneGlobalData dsSceneGlobalData;
-
-/**
  * @brief Function to populate scene global data.
  * @remark errno should be set on failure.
  * @param globalData The instance data.
@@ -254,7 +246,10 @@ typedef void (*dsFinishSceneGlobalDataFunction)(dsSceneGlobalData* globalData);
  */
 typedef bool (*dsDestroySceneGlobalDataFunction)(dsSceneGlobalData* globalData);
 
-/** @copydoc dsSceneGlobalData */
+/**
+ * @brief Struct containing global data used within a scene.
+ * @see SceneGlobalData.h
+ */
 struct dsSceneGlobalData
 {
 	/**
@@ -433,7 +428,11 @@ typedef struct dsViewFramebufferInfo
 	dsAlignedBox3f viewport;
 } dsViewFramebufferInfo;
 
-/** @copydoc dsView */
+/**
+ * @brief Struct that describes a view to draw a scene with.
+ * @remark Members should be modified outside of the implementation unless otherwise specified.
+ * @see View.h
+ */
 struct dsView
 {
 	/**

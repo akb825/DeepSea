@@ -260,44 +260,12 @@ typedef enum dsGameInputBattery
 	dsGameInputBattery_Wired    ///< Controller is wired.
 } dsGameInputBattery;
 
-/**
- * @brief Base object for a window that displays graphics.
- *
- * Window implementations can effectively subclass this type by having it as the first member
- * of the structure. This can be done to add additional data to the structure and have it be freely
- * casted between dsWindow and the true internal type.
- *
- * @remark None of the members should be modified outside of the implementation.
- *
- * @see Window.h
- */
+/// @cond
+typedef struct dsApplication dsApplication;
 typedef struct dsWindow dsWindow;
-
-/**
- * @brief Struct containing information about a game input device.
- *
- * Game input implementations can effectively subclass this type by having it as the first member
- * of the structure. This can be done to add additional data to the structure and have it be freely
- * casted between dsGameInput and the true internal type.
- *
- * @remark None of the members should be modified outside of the implementation.
- *
- * @see GameInput.h
- */
 typedef struct dsGameInput dsGameInput;
-
-/**
- * @brief Struct containing information about a motion sensor.
- *
- * Motion sensor implementations can effectively subclass this type by having it as the first member
- * of the structure. This can be done to add additional data to the structure and have it be freely
- * casted between dsMotionSensor and the true internal type.
- *
- * @remark None of the members should be modified outside of the implementation.
- *
- * @see MotionSensor.h
- */
 typedef struct dsMotionSensor dsMotionSensor;
+/// @endcond
 
 /**
  * @brief Struct containing information about the mode for a display.
@@ -427,19 +395,6 @@ typedef struct dsCustomEvent
 	 */
 	dsCustomEventCleanupFunction cleanupFunc;
 } dsCustomEvent;
-
-/**
- * @brief Base object for an application that uses DeepSea.
- *
- * Application implementations can effectively subclass this type by having it as the first member
- * of the structure. This can be done to add additional data to the structure and have it be freely
- * casted between dsApplication and the true internal type.
- *
- * @remark None of the members should be modified outside of the implementation.
- *
- * @see Application.h
- */
-typedef struct dsApplication dsApplication;
 
 /**
  * @brief Struct containing information about an event from the application.
@@ -1189,7 +1144,17 @@ typedef struct dsEventResponder
 	uint32_t responderID;
 } dsEventResponder;
 
-/** @copydoc dsApplication */
+/**
+ * @brief Base object for an application that uses DeepSea.
+ *
+ * Application implementations can effectively subclass this type by having it as the first member
+ * of the structure. This can be done to add additional data to the structure and have it be freely
+ * casted between dsApplication and the true internal type.
+ *
+ * @remark None of the members should be modified outside of the implementation.
+ *
+ * @see Application.h
+ */
 struct dsApplication
 {
 	/**
@@ -1569,7 +1534,17 @@ struct dsApplication
 	dsGetApplicationMotionSensorDataFunction getMotionSensorDataFunc;
 };
 
-/** @copydoc dsWindow */
+/**
+ * @brief Base object for a window that displays graphics.
+ *
+ * Window implementations can effectively subclass this type by having it as the first member
+ * of the structure. This can be done to add additional data to the structure and have it be freely
+ * casted between dsWindow and the true internal type.
+ *
+ * @remark None of the members should be modified outside of the implementation.
+ *
+ * @see Window.h
+ */
 struct dsWindow
 {
 	/**
@@ -1623,7 +1598,17 @@ struct dsWindow
 	dsDisplayMode displayMode;
 };
 
-/** @copydoc dsGameInput */
+/**
+ * @brief Struct containing information about a game input device.
+ *
+ * Game input implementations can effectively subclass this type by having it as the first member
+ * of the structure. This can be done to add additional data to the structure and have it be freely
+ * casted between dsGameInput and the true internal type.
+ *
+ * @remark None of the members should be modified outside of the implementation.
+ *
+ * @see GameInput.h
+ */
 struct dsGameInput
 {
 	/**
@@ -1687,7 +1672,17 @@ struct dsGameInput
 	bool rumbleSupported;
 };
 
-/** @copydoc dsMotionSensor */
+/**
+ * @brief Struct containing information about a motion sensor.
+ *
+ * Motion sensor implementations can effectively subclass this type by having it as the first member
+ * of the structure. This can be done to add additional data to the structure and have it be freely
+ * casted between dsMotionSensor and the true internal type.
+ *
+ * @remark None of the members should be modified outside of the implementation.
+ *
+ * @see MotionSensor.h
+ */
 struct dsMotionSensor
 {
 	/**

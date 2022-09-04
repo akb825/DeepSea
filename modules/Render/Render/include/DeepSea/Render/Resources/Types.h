@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 Aaron Barany
+ * Copyright 2016-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -428,28 +428,8 @@ typedef struct dsCommandBuffer dsCommandBuffer;
 typedef struct dsRenderer dsRenderer;
 typedef struct dsRenderSurface dsRenderSurface;
 typedef struct mslModule mslModule;
-/// @endcond
-
-/**
- * @brief Manager for graphics resources.
- *
- * Render implementations can effectively subclass this type by having it as the first member of
- * the structure. This can be done to add additional data to the structure and have it be freely
- * casted between dsResourceManager and the true internal type.
- *
- * @remark None of the members should be modified outside of the implementation.
- *
- * @remark The virtual functions on the resource manager should not be called directly. The public
- * interface functions handle error checking and statistic management, which could cause invalid
- * values to be reported when skipped.
- *
- * @remark When implementing the virutal functions of the resource manager, if an error occurs errno
- * to an appropriate value. If the error is due to invalid usage, it is recommended an error is
- * printed to the console.
- *
- * @see ResourceManager.h
- */
 typedef struct dsResourceManager dsResourceManager;
+/// @endcond
 
 /**
  * @brief Struct holding information about a graphics buffer.
@@ -1923,7 +1903,25 @@ typedef bool (*dsBindComputeShaderFunction)(dsResourceManager* resourceManager,
 	dsCommandBuffer* commandBuffer, const dsShader* shader, const dsMaterial* material,
 	const dsSharedMaterialValues* globalValues);
 
-/** @copydoc dsResourceManager */
+/**
+ * @brief Manager for graphics resources.
+ *
+ * Render implementations can effectively subclass this type by having it as the first member of
+ * the structure. This can be done to add additional data to the structure and have it be freely
+ * casted between dsResourceManager and the true internal type.
+ *
+ * @remark None of the members should be modified outside of the implementation.
+ *
+ * @remark The virtual functions on the resource manager should not be called directly. The public
+ * interface functions handle error checking and statistic management, which could cause invalid
+ * values to be reported when skipped.
+ *
+ * @remark When implementing the virutal functions of the resource manager, if an error occurs errno
+ * to an appropriate value. If the error is due to invalid usage, it is recommended an error is
+ * printed to the console.
+ *
+ * @see ResourceManager.h
+ */
 struct dsResourceManager
 {
 	/**

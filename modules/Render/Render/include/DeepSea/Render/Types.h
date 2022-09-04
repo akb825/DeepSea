@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 Aaron Barany
+ * Copyright 2016-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -354,25 +354,10 @@ typedef enum dsProjectionType
 	dsProjectionType_Perspective ///< Frustum with typical perspective parameters.
 } dsProjectionType;
 
-/**
- * @brief Base object for interfacing with the DeepSea Render library.
- *
- * To ensure a lack of contention for system resources, only one dsRenderer instance should be used
- * in any given application.
- *
- * Render implementations can effectively subclass this type by having it as the first member of
- * the structure. This can be done to add additional data to the structure and have it be freely
- * casted between dsRenderer and the true internal type.
- *
- * @remark None of the members should be modified outside of the implementation.
- *
- * @remark The virtual functions on the renderer should not be called directly. The public interface
- * functions handle error checking and statistic management, which could cause invalid values to be
- * reported when skipped.
- *
- * @see Renderer.h
- */
+/// @cond
 typedef struct dsRenderer dsRenderer;
+typedef struct dsRenderPass dsRenderPass;
+/// @endcond
 
 /**
  * @brief Description for the physical device to render on.
@@ -664,17 +649,6 @@ typedef struct dsRenderSurface
 } dsRenderSurface;
 
 /**
- * @brief Struct for a render pass used by the renderer.
- *
- * Render implementations can effectively subclass this type by having it as the first member of
- * the structure. This can be done to add additional data to the structure and have it be freely
- * casted between dsRenderPass and the true internal type.
- *
- * @see RenderPass.h
- */
-typedef struct dsRenderPass dsRenderPass;
-
-/**
  * @brief The info for an image attachment.
  *
  * This provides information ahead of time that can help improve performance during rendering.
@@ -844,7 +818,15 @@ typedef struct dsSubpassDependency
 	bool regionDependency;
 } dsSubpassDependency;
 
-/** @copydoc dsRenderPass */
+/**
+ * @brief Struct for a render pass used by the renderer.
+ *
+ * Render implementations can effectively subclass this type by having it as the first member of
+ * the structure. This can be done to add additional data to the structure and have it be freely
+ * casted between dsRenderPass and the true internal type.
+ *
+ * @see RenderPass.h
+ */
 struct dsRenderPass
 {
 	/**
@@ -1848,7 +1830,24 @@ typedef bool (*dsRenderWaitUntilIdleFunction)(dsRenderer* renderer);
  */
 typedef bool (*dsRenderRestoreGlobalState)(dsRenderer* renderer);
 
-/** @copydoc dsRenderer */
+/**
+ * @brief Base object for interfacing with the DeepSea Render library.
+ *
+ * To ensure a lack of contention for system resources, only one dsRenderer instance should be used
+ * in any given application.
+ *
+ * Render implementations can effectively subclass this type by having it as the first member of
+ * the structure. This can be done to add additional data to the structure and have it be freely
+ * casted between dsRenderer and the true internal type.
+ *
+ * @remark None of the members should be modified outside of the implementation.
+ *
+ * @remark The virtual functions on the renderer should not be called directly. The public interface
+ * functions handle error checking and statistic management, which could cause invalid values to be
+ * reported when skipped.
+ *
+ * @see Renderer.h
+ */
 struct dsRenderer
 {
 	// ----------------------------------- Internal objects ----------------------------------------

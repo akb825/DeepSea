@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -73,20 +73,8 @@ extern "C"
 
 /// @cond Doxygen_Suppress
 typedef struct dsAllocator dsAllocator;
-/// @endcond
-
-/**
- * @brief Structure that defines a stream.
- *
- * A stream can be used to read and write data from various sources such as a file or memory buffer.
- *
- * This can be "subclassed" by having it as the first member of other allocator structures. This can
- * be done to add additional data to the stream and have it be freely casted between the
- * dsStream and the true stream type.
- *
- * @see Stream.h
- */
 typedef struct dsStream dsStream;
+/// @endcond
 
 /**
  * @brief Enum for the way to seek in a stream.
@@ -173,7 +161,17 @@ typedef void (*dsStreamFlushFunction)(dsStream* stream);
  */
 typedef bool (*dsStreamCloseFunction)(dsStream* stream);
 
-/** @copydoc dsStream */
+/**
+ * @brief Structure that defines a stream.
+ *
+ * A stream can be used to read and write data from various sources such as a file or memory buffer.
+ *
+ * This can be "subclassed" by having it as the first member of other allocator structures. This can
+ * be done to add additional data to the stream and have it be freely casted between the
+ * dsStream and the true stream type.
+ *
+ * @see Stream.h
+ */
 struct dsStream
 {
 	/**

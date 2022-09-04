@@ -47,6 +47,10 @@ typedef enum dsParticleVolumeType
 	dsParticleVolumeType_Cylinder ///< Cylinder.
 } dsParticleVolumeType;
 
+/// @cond
+typedef struct dsParticleEmitter dsParticleEmitter;
+/// @endcond
+
 /**
  * @brief Struct describing the volume to create particles in.
  * @see ParticleVolume.h
@@ -165,17 +169,6 @@ typedef struct dsParticle
 } dsParticle;
 
 /**
- * @brief Struct describing an emitter of particles.
- *
- * Different implementations can effectively subclass this type by having it as the first member of
- * the structure. This can be done to add additional data to the structure and have it be freely
- * casted between dsParticleEmitter and the true internal type.
- *
- * @see ParticleEmitter.h
- */
-typedef struct dsParticleEmitter dsParticleEmitter;
-
-/**
  * @brief Function to update a particle emitter.
  * @param emitter The particle emitter to update.
  * @param time The time that has elapsed from the last update.
@@ -262,7 +255,13 @@ typedef struct dsParticleEmitterParams
 } dsParticleEmitterParams;
 
 /**
- * @copydoc dsParticleEmitter
+ * @brief Struct describing an emitter of particles.
+ *
+ * Different implementations can effectively subclass this type by having it as the first member of
+ * the structure. This can be done to add additional data to the structure and have it be freely
+ * casted between dsParticleEmitter and the true internal type.
+ *
+ * @see ParticleEmitter.h
  */
 struct dsParticleEmitter
 {
@@ -349,7 +348,7 @@ struct dsParticleEmitter
 
 /**
  * @brief Struct describing options for controlling a particle emitter.
- * @param StandardParticleEmitter.h
+ * @see StandardParticleEmitter.h
  */
 typedef struct dsStandardParticleEmitterOptions
 {

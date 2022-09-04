@@ -40,38 +40,20 @@ typedef enum dsModelSortType
 	dsModelSortType_FrontToBack  ///< Sort front to back, typically for reducing pixel fill.
 } dsModelSortType;
 
+/// @cond
+typedef struct dsScene dsScene;
+typedef struct dsView dsView;
+typedef void (*dsDestroySceneUserDataFunction)(void* userData);
+typedef struct dsSceneItemList dsSceneItemList;
+typedef struct dsSceneInstanceData dsSceneInstanceData;
+/// @endcond
+
 /**
  * @brief Value that denotes the type of a scene item list.
  *
  * To define a type, create a static int variable and return the address.
  */
 typedef const int* dsSceneItemListType;
-
-/**
- * @brief Struct for processing items within a scene.
- *
- * Different implementations can effectively subclass this type by having it as the first member of
- * the structure. This can be done to add additional data to the structure and have it be freely
- * casted between dsSceneItemList and the true internal type.
- */
-typedef struct dsSceneItemList dsSceneItemList;
-
-/**
- * @brief Struct for managing data that's each instance being drawn.
- *
- * Different implementations can effectively subclass this type by having it as the first member of
- * the structure. This can be done to add additional data to the structure and have it be freely
- * casted between dsSceneItemList and the true internal type.
- *
- * @see SceneInstanceData.h
- */
-typedef struct dsSceneInstanceData dsSceneInstanceData;
-
-/// @cond
-typedef struct dsScene dsScene;
-typedef struct dsView dsView;
-typedef void (*dsDestroySceneUserDataFunction)(void* userData);
-/// @endcond
 
 /**
  * @brief Function to populate scene instance data.
@@ -112,7 +94,15 @@ typedef bool (*dsFinishSceneInstanceDataFunction)(dsSceneInstanceData* instanceD
  */
 typedef bool (*dsDestroySceneInstanceDataFunction)(dsSceneInstanceData* instanceData);
 
-/** @copydoc dsSceneInstanceData */
+/**
+ * @brief Struct for managing data that's each instance being drawn.
+ *
+ * Different implementations can effectively subclass this type by having it as the first member of
+ * the structure. This can be done to add additional data to the structure and have it be freely
+ * casted between dsSceneItemList and the true internal type.
+ *
+ * @see SceneInstanceData.h
+ */
 struct dsSceneInstanceData
 {
 	/**
@@ -218,7 +208,15 @@ typedef void (*dsCommitSceneItemListFunction)(dsSceneItemList* itemList, const d
  */
 typedef void (*dsDestroySceneItemListFunction)(dsSceneItemList* itemList);
 
-/** @copydoc dsSceneItemList */
+/**
+ * @brief Struct for processing items within a scene.
+ *
+ * Different implementations can effectively subclass this type by having it as the first member of
+ * the structure. This can be done to add additional data to the structure and have it be freely
+ * casted between dsSceneItemList and the true internal type.
+ *
+ * @see SceneItemList.h
+ */
 struct dsSceneItemList
 {
 	/**

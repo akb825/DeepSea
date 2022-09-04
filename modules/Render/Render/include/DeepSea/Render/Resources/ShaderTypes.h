@@ -129,39 +129,11 @@ typedef enum dsShaderStage
 
 /// @cond
 typedef struct dsResourceManager dsResourceManager;
+typedef struct dsMaterialDesc dsMaterialDesc;
+typedef struct dsShaderVariableGroupDesc dsShaderVariableGroupDesc;
 typedef struct mslModule mslModule;
 typedef struct mslPipeline mslPipeline;
 /// @endcond
-
-/**
- * @brief Struct holding a description of a material.
- *
- * Render implementations can effectively subclass this type by having it as the first member of
- * the structure. This can be done to add additional data to the structure and have it be freely
- * casted between dsMaterialDesc and the true internal type.
- *
- * Implementations should allocate the element list with the material description (ideally with a
- * single allocation) and copy over the elements. The name IDs will be calculated within
- * dsMaterialDesc_create().
- *
- * @remark None of the members should be modified outside of the implementation.
- * @see MaterialDesc.h
- */
-typedef struct dsMaterialDesc dsMaterialDesc;
-
-/**
- * @brief Struct holding a description of a shader variable group.
- *
- * This is very similar to dsMaterialDesc, but is used for dsShaderVariableGroup. When shader
- * buffers are supported, the implementation should populate the offsets array.
- *
- * Implementations should allocate the element list with the material description (ideally with a
- * single allocation) and copy over the elements.
- *
- * @remark None of the members should be modified outside of the implementation.
- * @see ShaderVariableGroupDesc.h
- */
-typedef struct dsShaderVariableGroupDesc dsShaderVariableGroupDesc;
 
 /**
  * @brief Struct for a shader module.
@@ -308,7 +280,20 @@ typedef struct dsMaterialElement
 	uint32_t nameID;
 } dsMaterialElement;
 
-/** @copydoc dsMaterialDesc */
+/**
+ * @brief Struct holding a description of a material.
+ *
+ * Render implementations can effectively subclass this type by having it as the first member of
+ * the structure. This can be done to add additional data to the structure and have it be freely
+ * casted between dsMaterialDesc and the true internal type.
+ *
+ * Implementations should allocate the element list with the material description (ideally with a
+ * single allocation) and copy over the elements. The name IDs will be calculated within
+ * dsMaterialDesc_create().
+ *
+ * @remark None of the members should be modified outside of the implementation.
+ * @see MaterialDesc.h
+ */
 struct dsMaterialDesc
 {
 	/**
@@ -399,7 +384,18 @@ typedef struct dsShaderVariablePos
 	uint8_t matrixColStride;
 } dsShaderVariablePos;
 
-/** @copydoc dsShaderVariableGroupDesc */
+/**
+ * @brief Struct holding a description of a shader variable group.
+ *
+ * This is very similar to dsMaterialDesc, but is used for dsShaderVariableGroup. When shader
+ * buffers are supported, the implementation should populate the offsets array.
+ *
+ * Implementations should allocate the element list with the material description (ideally with a
+ * single allocation) and copy over the elements.
+ *
+ * @remark None of the members should be modified outside of the implementation.
+ * @see ShaderVariableGroupDesc.h
+ */
 struct dsShaderVariableGroupDesc
 {
 	/**

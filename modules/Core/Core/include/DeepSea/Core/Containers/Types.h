@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Aaron Barany
+ * Copyright 2016-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,14 +35,18 @@ extern "C"
  * nodes to be statically allocated, dynamically allocated, allocated in a pool, etc.
  */
 
+/// @cond
+typedef struct dsListNode dsListNode;
+typedef struct dsHashTableNode dsHashTableNode;
+/// @endcond
+
 /**
  * @brief Structure that defines a list node.
  *
  * Put this as the first element of a structure to be able to store it within a dsList.
+ *
+ * @see List.h
  */
-typedef struct dsListNode dsListNode;
-
-/** @copydoc dsListNode */
 struct dsListNode
 {
 	/**
@@ -88,9 +92,6 @@ typedef struct dsList
  *
  * @see HashTable.h
  */
-typedef struct dsHashTableNode dsHashTableNode;
-
-/** @copydoc dsHashTableNode */
 struct dsHashTableNode
 {
 	/**

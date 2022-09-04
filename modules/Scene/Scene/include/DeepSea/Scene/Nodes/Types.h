@@ -30,15 +30,20 @@ extern "C"
  * @brief Includes all of the basic node types provided by the DeepSea/Scene library.
  */
 
+/// @cond
+typedef struct dsSceneNodeType dsSceneNodeType;
+typedef struct dsSceneNode dsSceneNode;
+typedef struct dsSceneCullNode dsSceneCullNode;
+typedef struct dsSceneResources dsSceneResources;
+typedef void (*dsDestroySceneUserDataFunction)(void* userData);
+/// @endcond
+
 /**
  * @brief ID for a type of a scene node.
  *
  * The type should be declared as a static variable. See dsSceneNode_setupParentType() for
  * information for how to set up the parent type.
  */
-typedef struct dsSceneNodeType dsSceneNodeType;
-
-/** @copydoc dsSceneNodeType */
 struct dsSceneNodeType
 {
 	/**
@@ -46,6 +51,22 @@ struct dsSceneNodeType
 	 */
 	const dsSceneNodeType* parent;
 };
+
+/**
+ * @brief Struct for a node in the scene tree, which reflects the scene graph.
+ *
+ * Each dsSceneNode instance may have multiple dsSceneTreeNode instances associated with it based
+ * on how many times it appears when traversing the full scene graph.
+ *
+ * @see SceneTreeNode.h
+ */
+typedef struct dsSceneTreeNode dsSceneTreeNode;
+
+/**
+ * @brief Function for destroying a scene ndoe.
+ * @param node The node to destroy.
+ */
+typedef void (*dsDestroySceneNodeFunction)(dsSceneNode* node);
 
 /**
  * @brief Struct for a node within a scene graph.
@@ -78,30 +99,6 @@ struct dsSceneNodeType
  * @remark None of the members should be modified outside of the implementation.
  * @see SceneNode.h
  */
-typedef struct dsSceneNode dsSceneNode;
-
-/**
- * @brief Struct for a node in the scene tree, which reflects the scene graph.
- *
- * Each dsSceneNode instance may have multiple dsSceneTreeNode instances associated with it based
- * on how many times it appears when traversing the full scene graph.
- *
- * @see SceneTreeNode.h
- */
-typedef struct dsSceneTreeNode dsSceneTreeNode;
-
-/**
- * @brief Function for destroying a scene ndoe.
- * @param node The node to destroy.
- */
-typedef void (*dsDestroySceneNodeFunction)(dsSceneNode* node);
-
-/// @cond
-typedef struct dsSceneResources dsSceneResources;
-typedef void (*dsDestroySceneUserDataFunction)(void* userData);
-/// @endcond
-
-/** @copydoc dsSceneNode */
 struct dsSceneNode
 {
 	/**
@@ -204,13 +201,6 @@ typedef struct dsSceneTransformNode
 } dsSceneTransformNode;
 
 /**
- * @brief Scene node implementation that can be culled.
- * @remark This is intended to be a base node type for any node that can be culled.
- * @see SceneCullNode.h
- */
-typedef struct dsSceneCullNode dsSceneCullNode;
-
-/**
  * @brief Function to get the bounds for a cull node.
  *
  * If false is returned, the node should be considered always out of view. If true is returned and
@@ -224,7 +214,11 @@ typedef struct dsSceneCullNode dsSceneCullNode;
 typedef bool (*dsGetSceneCullNodeBoundsFunction)(dsOrientedBox3f* outBounds,
 	const dsSceneCullNode* node, const dsSceneTreeNode* treeNode);
 
-/** @copydoc dsSceneCullNode */
+/**
+ * @brief Scene node implementation that can be culled.
+ * @remark This is intended to be a base node type for any node that can be culled.
+ * @see SceneCullNode.h
+ */
 struct dsSceneCullNode
 {
 	/**

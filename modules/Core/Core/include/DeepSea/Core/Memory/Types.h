@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,16 +37,9 @@ extern "C"
  */
 #define DS_ALLOCATOR_NO_LIMIT (size_t)-1
 
-/**
- * @brief Structure that defines a memory allocator.
- *
- * This can be "subclassed" by having it as the first member of other allocator structures. This can
- * be done to add additional data to the allocator and have it be freely casted between the
- * dsAllocator and the true allocator type.
- *
- * @see Allocator.h
- */
+/// @cond
 typedef struct dsAllocator dsAllocator;
+/// @endcond
 
 /**
  * @brief Function for allocating from the allocator.
@@ -98,7 +91,15 @@ typedef void* (*dsAllocatorReallocFunction)(dsAllocator* allocator, void* ptr, s
  */
 typedef bool (*dsAllocatorFreeFunction)(dsAllocator* allocator, void* ptr);
 
-/** @copydoc dsAllocator */
+/**
+ * @brief Structure that defines a memory allocator.
+ *
+ * This can be "subclassed" by having it as the first member of other allocator structures. This can
+ * be done to add additional data to the allocator and have it be freely casted between the
+ * dsAllocator and the true allocator type.
+ *
+ * @see Allocator.h
+ */
 struct dsAllocator
 {
 	/**
