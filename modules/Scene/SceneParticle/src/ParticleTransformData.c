@@ -21,6 +21,7 @@
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 
+#include <DeepSea/Math/Matrix33.h>
 #include <DeepSea/Math/Matrix44.h>
 
 #include <DeepSea/Render/Resources/ShaderVariableGroupDesc.h>
@@ -34,11 +35,19 @@
 
 #include <string.h>
 
+static dsShaderVariableElement elements[] =
+{
+	{"world", dsMaterialType_Mat4, 0},
+	{"worldView", dsMaterialType_Mat4, 0},
+	{"localViewOrientation", dsMaterialType_Mat3, 0},
+	{"worldViewProj", dsMaterialType_Mat4, 0}
+};
+
 typedef struct InstanceTransform
 {
 	dsMatrix44f world;
 	dsMatrix44f worldView;
-	dsMatrix44f worldViewInvTrans;
+	dsVector4f localViewOrientation[3];
 	dsMatrix44f worldViewProj;
 } InstanceTransform;
 
@@ -61,9 +70,18 @@ static void dsParticleTransformData_populateData(void* userData, const dsView* v
 			dsMatrix44_identity(transform.world);
 		dsMatrix44_affineMul(transform.worldView, view->viewMatrix, transform.world);
 
-		dsMatrix44f inverseWorldView;
-		dsMatrix44f_affineInvert(&inverseWorldView, &transform.worldView);
-		dsMatrix44_transpose(transform.worldViewInvTrans, inverseWorldView);
+		dsMatrix33f worldView33;
+		for (unsigned int j = 0; j < 3; ++j)
+			worldView33.columns[j] = *(dsVector3f*)(transform.worldView.columns + j);
+
+		dsMatrix33f worldViewOrientation;
+		dsMatrix33f_invert(&worldViewOrientation, &worldView33);
+
+		for (unsigned int j = 0; j < 3; ++j)
+		{
+			*(dsVector3f*)(transform.localViewOrientation + j) = worldViewOrientation.columns[j];
+			transform.localViewOrientation[j].w = 0.0f;
+		}
 
 		dsMatrix44_mul(transform.worldViewProj, view->projectionMatrix, transform.worldView);
 
@@ -72,6 +90,27 @@ static void dsParticleTransformData_populateData(void* userData, const dsView* v
 }
 
 const char* const dsParticleTransformData_typeName = "ParticleTransformData";
+
+dsShaderVariableGroupDesc* dsParticleTransformData_createShaderVariableGroupDesc(
+	dsResourceManager* resourceManager, dsAllocator* allocator)
+{
+	if (!resourceManager)
+	{
+		errno = EINVAL;
+		return NULL;
+	}
+
+	return dsShaderVariableGroupDesc_create(resourceManager, allocator, elements,
+		DS_ARRAY_SIZE(elements));
+}
+
+bool dsParticleTransformData_isShaderVariableGroupCompatible(
+	const dsShaderVariableGroupDesc* transformDesc)
+{
+	return transformDesc &&
+		dsShaderVariableGroup_areElementsEqual(elements, DS_ARRAY_SIZE(elements),
+			transformDesc->elements, transformDesc->elementCount);
+}
 
 dsSceneInstanceData* dsParticleTransformData_create(dsAllocator* allocator,
 	dsResourceManager* resourceManager, const dsShaderVariableGroupDesc* transformDesc)
@@ -82,12 +121,12 @@ dsSceneInstanceData* dsParticleTransformData_create(dsAllocator* allocator,
 		return NULL;
 	}
 
-	if (!dsSceneTransformData_isShaderVariableGroupCompatible(transformDesc))
+	if (!dsParticleTransformData_isShaderVariableGroupCompatible(transformDesc))
 	{
 		errno = EINVAL;
 		DS_LOG_ERROR(DS_SCENE_LOG_TAG,
 			"Particle transform data's shader variable group description must have been created "
-			"with dsInstanceTransformData_createShaderVariableGroupDesc().");
+			"with dsParticleTransformData_createShaderVariableGroupDesc().");
 		return NULL;
 	}
 

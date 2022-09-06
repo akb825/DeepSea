@@ -63,13 +63,8 @@ static void dsInstanceTransformData_populateData(void* userData, const dsView* v
 		InstanceTransform transform;
 		transform.world = *world;
 		dsMatrix44_affineMul(transform.worldView, view->viewMatrix, *world);
-
-		dsMatrix44f inverseWorldView;
-		dsMatrix44f_affineInvert(&inverseWorldView, &transform.worldView);
-		dsMatrix44_transpose(transform.worldViewInvTrans, inverseWorldView);
-
+		dsMatrix44f_inverseTranspose(&transform.worldViewInvTrans, &transform.worldView);
 		dsMatrix44_mul(transform.worldViewProj, view->projectionMatrix, transform.worldView);
-
 		*(InstanceTransform*)(data) = transform;
 	}
 }
@@ -89,7 +84,7 @@ dsShaderVariableGroupDesc* dsInstanceTransformData_createShaderVariableGroupDesc
 		DS_ARRAY_SIZE(elements));
 }
 
-bool dsSceneTransformData_isShaderVariableGroupCompatible(
+bool dsInstanceTransformData_isShaderVariableGroupCompatible(
 	const dsShaderVariableGroupDesc* transformDesc)
 {
 	return transformDesc &&
@@ -106,7 +101,7 @@ dsSceneInstanceData* dsInstanceTransformData_create(dsAllocator* allocator,
 		return NULL;
 	}
 
-	if (!dsSceneTransformData_isShaderVariableGroupCompatible(transformDesc))
+	if (!dsInstanceTransformData_isShaderVariableGroupCompatible(transformDesc))
 	{
 		errno = EINVAL;
 		DS_LOG_ERROR(DS_SCENE_LOG_TAG,

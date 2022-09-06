@@ -41,9 +41,9 @@
 /**
  * @brief The color as lowp values.
  */
-[[vertex]] layout(location = DS_COLOR) in lowp vec4 violor;
+[[vertex]] layout(location = DS_COLOR) in lowp vec4 viColor;
 
 /**
  * @brief Packed intensity, texture index, and T.
  */
-[[vertex[[ layout(location = DS_TEXCOORD0) in vec3 viIntensityTextureT;
+[[vertex]] layout(location = DS_TEXCOORD0) in vec3 viIntensityTextureT;

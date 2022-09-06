@@ -29,7 +29,7 @@ extern "C"
  * @file
  * @brief Functions for creating dsSceneInstanceData instances that manage particle transforms.
  *
- * This populates the uniforms found in DeepSea/Scene/Shaders/ParticleTransform.mslh
+ * This populates the uniforms found in DeepSea/SceneParticle/Shaders/ParticleTransform.mslh
  *
  * This is similar to instance transform data, except it uses the transform used by the particle
  * emitter. In some cases this transform will be based off a node different from the node that
@@ -44,11 +44,33 @@ extern "C"
 DS_SCENEPARTICLE_EXPORT extern const char* const dsParticleTransformData_typeName;
 
 /**
+ * @brief Creates the shader variable group description used to describe the variables for particle
+ *     transforms.
+ * @remark This should be shared among all dsParticleTransformData instances.
+ * @remark errno will be set on failure.
+ * @param resourceManager The resource manager.
+ * @param allocator The allocator to create the shader variable group with. If NULL, the allocator
+ *     from resourceManager.
+ * @return The shader variable group description or NULL if an error occurred.
+ */
+DS_SCENEPARTICLE_EXPORT dsShaderVariableGroupDesc*
+dsParticleTransformData_createShaderVariableGroupDesc(dsResourceManager* resourceManager,
+	dsAllocator* allocator);
+
+/**
+ * @brief Checks whether or not a shader variable group is compatible with dsParticleTransformData.
+ * @param transformDesc The shader variable group for the transform.
+ * @return Whether or not transformDesc is compatible.
+ */
+DS_SCENEPARTICLE_EXPORT bool dsParticleTransformData_isShaderVariableGroupCompatible(
+	const dsShaderVariableGroupDesc* transformDesc);
+
+/**
  * @brief Creates particle trnasform data to use with a dsSceneItemList.
  * @param allocator The allocator to create the transform data with.
  * @param resourceManager The resource manager.
  * @param transformDesc The shader variable group description created from
- *     dsInstanceTransformData_createShaderVariableGroupDesc(). This must remain alive at least as
+ *     dsParticleTransformData_createShaderVariableGroupDesc(). This must remain alive at least as
  *     long as the instance data object.
  * @return The instance data or NULL if an error occurred.
  */

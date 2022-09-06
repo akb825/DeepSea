@@ -114,7 +114,7 @@
 							[
 								{
 									"type": "ParticleTransformData",
-									"variableGroupDesc": "instanceTransformDesc"
+									"variableGroupDesc": "particleTransformDesc"
 								},
 								{
 									"type": "InstanceForwardLightData",

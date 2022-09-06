@@ -40,8 +40,8 @@ extern "C"
 DS_SCENE_EXPORT extern const char* const dsInstanceTransformData_typeName;
 
 /**
- * @brief Creates the shader variable group description used to describe the variables for the
- *     instance transforms.
+ * @brief Creates the shader variable group description used to describe the variables for instance
+ *     transforms.
  * @remark This should be shared among all dsInstanceTransformData instances.
  * @remark errno will be set on failure.
  * @param resourceManager The resource manager.
@@ -57,7 +57,7 @@ DS_SCENE_EXPORT dsShaderVariableGroupDesc* dsInstanceTransformData_createShaderV
  * @param transformDesc The shader variable group for the transform.
  * @return Whether or not transformDesc is compatible.
  */
-DS_SCENE_EXPORT bool dsSceneTransformData_isShaderVariableGroupCompatible(
+DS_SCENE_EXPORT bool dsInstanceTransformData_isShaderVariableGroupCompatible(
 	const dsShaderVariableGroupDesc* transformDesc);
 
 /**

@@ -45,6 +45,7 @@
 #include <DeepSea/SceneLighting/InstanceForwardLightData.h>
 #include <DeepSea/SceneLighting/SceneLightingLoadContext.h>
 
+#include <DeepSea/SceneParticle/ParticleTransformData.h>
 #include <DeepSea/SceneParticle/SceneParticleLoadContext.h>
 
 #include <stdio.h>
@@ -263,7 +264,7 @@ static bool setup(TestParticles* testParticles, dsApplication* application, dsAl
 		return false;
 	}
 
-	testParticles->builtinResources = dsSceneResources_create(allocator, 3);
+	testParticles->builtinResources = dsSceneResources_create(allocator, 4);
 	if (!testParticles->builtinResources)
 	{
 		DS_LOG_ERROR_F("TestParticles", "Couldn't create scene resources: %s", dsErrorString(errno));
@@ -284,6 +285,18 @@ static bool setup(TestParticles* testParticles, dsApplication* application, dsAl
 	}
 	DS_VERIFY(dsSceneResources_addResource(testParticles->builtinResources,
 		"instanceTransformDesc", dsSceneResourceType_ShaderVariableGroupDesc, groupDesc, true));
+
+	groupDesc = dsParticleTransformData_createShaderVariableGroupDesc(resourceManager, allocator);
+	if (!groupDesc)
+	{
+		DS_LOG_ERROR_F("TestParticles",
+			"Couldn't create particle transform shader variable desc: %s", dsErrorString(errno));
+		dsSceneLoadContext_destroy(loadContext);
+		dsSceneLoadScratchData_destroy(scratchData);
+		return false;
+	}
+	DS_VERIFY(dsSceneResources_addResource(testParticles->builtinResources,
+		"particleTransformDesc", dsSceneResourceType_ShaderVariableGroupDesc, groupDesc, true));
 
 	groupDesc = dsViewTransformData_createShaderVariableGroupDesc(resourceManager, allocator);
 	if (!groupDesc)

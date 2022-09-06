@@ -1,0 +1,58 @@
+/*
+ * Copyright 2022 Aaron Barany
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#pragma once
+
+/**
+ * @file
+ * @brief Uniforms for particle transform matrices.
+ */
+
+uniform ParticleTransformData
+{
+	/**
+	 * @brief The world matrix.
+	 */
+	mat4 world;
+
+	/**
+	 * @brief The world view matrix, transforming from local to view space.
+	 */
+	mat4 worldView;
+
+	/**
+	 * @brief The view orientation in local space.
+	 */
+	mat3 localViewOrientation;
+
+	/**
+	 * @brief The world view projection matrix, transforming from local to clip space.
+	 */
+	mat4 worldViewProj;
+} dsParticleTransform;
+
+/**
+ * @brief Computes the offset vector for a particle oriented to the camera.
+ * @param offset The 2D offset passed from the vertex.
+ * @param xRotation The X rotation value.
+ */
+vec3 dsCameraOrientedParticleOffset(vec2 offset, float xRotation)
+{
+	float sinRot = sin(xRotation);
+	float cosRot = cos(xRotation);
+	mat2 rotation2D = mat2(cosRot, sinRot, -sinRot, cosRot);
+	return INSTANCE(dsParticleTransform).localViewOrientation*vec3(rotation2D*offset, 0.0);
+}
