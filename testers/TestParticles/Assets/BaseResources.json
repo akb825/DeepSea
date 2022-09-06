@@ -151,6 +151,40 @@
 		}
 	},
 	{
+		"type": "Texture",
+		"name": "flame",
+		"pathArray":
+		[
+			"@srcDir@/Assets/Flame0.png",
+			"@srcDir@/Assets/Flame1.png",
+			"@srcDir@/Assets/Flame2.png"
+		],
+		"textureInfo":
+		{
+			"format": "@rgbaFormat@",
+			"decoration": "SRGB",
+			"alpha": "pre-multiplied",
+			"mipLevels": 1000
+		}
+	},
+	{
+		"type": "Texture",
+		"name": "smoke",
+		"pathArray":
+		[
+			"@srcDir@/Assets/Smoke0.png",
+			"@srcDir@/Assets/Smoke1.png",
+			"@srcDir@/Assets/Smoke2.png"
+		],
+		"textureInfo":
+		{
+			"format": "@rgbaFormat@",
+			"decoration": "SRGB",
+			"alpha": "pre-multiplied",
+			"mipLevels": 1000
+		}
+	},
+	{
 		"type": "LightSet",
 		"name": "lightSet",
 		"lights":

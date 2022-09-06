@@ -48,8 +48,9 @@ add_custom_target(deepsea_test_particles_app_prepare
 	COMMAND ${CMAKE_COMMAND} -E make_directory ${shaderDir})
 
 # Compile shaders.
-set(shaderIncludes ${DEEPSEA_MODULE_DIR}/Render/Render/include
-	${DEEPSEA_MODULE_DIR}/Scene/Scene/include ${DEEPSEA_MODULE_DIR}/Scene/SceneLighting/include
+set(shaderIncludes ${DEEPSEA_MODULE_DIR}/Particle/include
+	${DEEPSEA_MODULE_DIR}/Render/Render/include ${DEEPSEA_MODULE_DIR}/Scene/Scene/include
+	${DEEPSEA_MODULE_DIR}/Scene/SceneLighting/include
 	${DEEPSEA_MODULE_DIR}/Scene/SceneParticle/include)
 ds_compile_shaders(shaders FILE ${CMAKE_CURRENT_SOURCE_DIR}/AmbientLight.msl
 	${CMAKE_CURRENT_SOURCE_DIR}/DirectionalLight.msl ${CMAKE_CURRENT_SOURCE_DIR}/PointLight.msl
@@ -60,6 +61,9 @@ ds_compile_shaders(shaders FILE ${CMAKE_CURRENT_SOURCE_DIR}/Grass.msl
 	${CMAKE_CURRENT_SOURCE_DIR}/Pitch.msl ${CMAKE_CURRENT_SOURCE_DIR}/Wood.msl
 	OUTPUT Models.mslb CONFIG ${shaderConfigs} OUTPUT_DIR ${shaderDir}
 	INCLUDE ${shaderIncludes})
+ds_compile_shaders(shaders FILE ${CMAKE_CURRENT_SOURCE_DIR}/FlameParticle.msl
+	${CMAKE_CURRENT_SOURCE_DIR}/SmokeParticle.msl OUTPUT Particles.mslb CONFIG ${shaderConfigs}
+	OUTPUT_DIR ${shaderDir} INCLUDE ${shaderIncludes})
 
 ds_compile_shaders_target(deepsea_test_particles_app_shaders shaders
 	DEPENDS deepsea_test_particles_app_prepare)
@@ -67,12 +71,15 @@ ds_compile_shaders_target(deepsea_test_particles_app_shaders shaders
 # Variables used for configuring the scene resources.
 if (ANDROID)
 	set(rgbFormat ETC2_R8G8B8)
+	set(rgbaFormat ETC2_R8G8B8A8)
 	set(normalFormat EAC_R11G11)
 elseif (IOS)
 	set(rgbFormat PVRTC1_RGB_4BPP)
+	set(rgbaFormat PVRTC1_RGBA_4BPP)
 	set(normalFormat EAC_R11G11)
 else()
 	set(rgbFormat BC1_RGB)
+	set(rgbaFormat BC3)
 	set(normalFormat BC5)
 endif()
 set(srcDir ${CMAKE_CURRENT_SOURCE_DIR})
