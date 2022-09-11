@@ -49,7 +49,14 @@ void vertexShader()
 	vec3 offset =
 		INSTANCE(dsParticleTransform).localViewOrientation*vec3(viOffset + scaleOffset, 0.0);
 
-	vec4 position = vec4(viPosition + dsCameraOrientedParticleOffset(viOffset, viRotation.x), 1.0);
+	// Preserve the up orientation of the particle.
+	mat3 orientation;
+	orientation[2] = INSTANCE(dsParticleTransform).localWorldOrientation[2];
+	orientation[1] = normalize(
+		cross(orientation[2], INSTANCE(dsParticleTransform).localWorldOrientation[0]));
+	orientation[0] = normalize(cross(orientation[1], orientation[2]));
+
+	vec4 position = vec4(viPosition + orientation*vec3(viOffset, 0.0), 1.0);
 	gl_Position = DS_ADJUST_CLIP(INSTANCE(dsParticleTransform).worldViewProj*position);
 	gl_Position.xy = dsRotateScreenPosition(gl_Position.xy);
 

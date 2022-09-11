@@ -39,6 +39,7 @@ static dsShaderVariableElement elements[] =
 {
 	{"world", dsMaterialType_Mat4, 0},
 	{"worldView", dsMaterialType_Mat4, 0},
+	{"localWorldOrientation", dsMaterialType_Mat3, 0},
 	{"localViewOrientation", dsMaterialType_Mat3, 0},
 	{"worldViewProj", dsMaterialType_Mat4, 0}
 };
@@ -47,9 +48,22 @@ typedef struct InstanceTransform
 {
 	dsMatrix44f world;
 	dsMatrix44f worldView;
+	dsVector4f localWorldOrientation[3];
 	dsVector4f localViewOrientation[3];
 	dsMatrix44f worldViewProj;
 } InstanceTransform;
+
+static inline void toMatrix33(dsMatrix33f* outMatrix, const dsMatrix44f* inMatrix)
+{
+	for (unsigned int i = 0; i < 3; ++i)
+		outMatrix->columns[i] = *(dsVector3f*)(inMatrix->columns + i);
+}
+
+static inline void toMatrix33Vectors(dsVector4f outVectors[3], const dsMatrix33f* inMatrix)
+{
+	for (unsigned int i = 0; i < 3; ++i)
+		*(dsVector3f*)(outVectors + i) = inMatrix->columns[i];
+}
 
 static void dsParticleTransformData_populateData(void* userData, const dsView* view,
 	const dsSceneTreeNode* const* instances, uint32_t instanceCount,
@@ -70,18 +84,14 @@ static void dsParticleTransformData_populateData(void* userData, const dsView* v
 			dsMatrix44_identity(transform.world);
 		dsMatrix44_affineMul(transform.worldView, view->viewMatrix, transform.world);
 
-		dsMatrix33f worldView33;
-		for (unsigned int j = 0; j < 3; ++j)
-			worldView33.columns[j] = *(dsVector3f*)(transform.worldView.columns + j);
+		dsMatrix33f tempMatrix33, tempMatrix33Inv;
+		toMatrix33(&tempMatrix33, &transform.world);
+		dsMatrix33f_invert(&tempMatrix33Inv, &tempMatrix33);
+		toMatrix33Vectors(transform.localWorldOrientation, &tempMatrix33Inv);
 
-		dsMatrix33f worldViewOrientation;
-		dsMatrix33f_invert(&worldViewOrientation, &worldView33);
-
-		for (unsigned int j = 0; j < 3; ++j)
-		{
-			*(dsVector3f*)(transform.localViewOrientation + j) = worldViewOrientation.columns[j];
-			transform.localViewOrientation[j].w = 0.0f;
-		}
+		toMatrix33(&tempMatrix33, &transform.worldView);
+		dsMatrix33f_invert(&tempMatrix33Inv, &tempMatrix33);
+		toMatrix33Vectors(transform.localViewOrientation, &tempMatrix33Inv);
 
 		dsMatrix44_mul(transform.worldViewProj, view->projectionMatrix, transform.worldView);
 
