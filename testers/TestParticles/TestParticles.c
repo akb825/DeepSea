@@ -104,7 +104,6 @@ static bool processEvent(dsApplication* application, dsWindow* window, const dsE
 	void* userData)
 {
 	TestParticles* testParticles = (TestParticles*)userData;
-	dsRenderer* renderer = testParticles->renderer;
 	DS_ASSERT(!window || window == testParticles->window);
 	switch (event->type)
 	{
@@ -135,17 +134,6 @@ static bool processEvent(dsApplication* application, dsWindow* window, const dsE
 				dsApplication_quit(application, 0);
 			else if (event->key.key == dsKeyCode_Space)
 				testParticles->stop = !testParticles->stop;
-			else if (event->key.key == dsKeyCode_1)
-			{
-				uint32_t samples = renderer->defaultSamples;
-				if (samples == 1)
-					samples = 4;
-				else
-					samples = 1;
-				dsRenderer_setDefaultSamples(renderer, samples);
-				DS_LOG_INFO_F("TestParticles", "Togging anti-aliasing: %s",
-					samples == 1 ? "off" : "on");
-			}
 			return false;
 		case dsAppEventType_TouchFingerDown:
 			++testParticles->fingerCount;
@@ -511,8 +499,6 @@ int dsMain(int argc, const char** argv)
 
 	DS_LOG_INFO_F("TestParticles", "Render using %s", dsRenderBootstrap_rendererName(rendererType));
 	DS_LOG_INFO("TestParticles", "Press space to pause/unpause.");
-	DS_LOG_INFO("TestParticles", "Press enter to cycle lighting types.");
-	DS_LOG_INFO("TestParticles", "Press '1' to toggle anti-aliasing for forward lighting.");
 
 	dsSystemAllocator renderAllocator;
 	DS_VERIFY(dsSystemAllocator_initialize(&renderAllocator, DS_ALLOCATOR_NO_LIMIT));

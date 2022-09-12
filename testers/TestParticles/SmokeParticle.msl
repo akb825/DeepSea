@@ -61,7 +61,7 @@ void fragmentShader()
 	particleColor = vfColor*texture(diffuseTexture, vfTexCoord);
 }
 
-pipeline SmokeParticle
+pipeline Smoke
 {
 	vertex = vertexShader;
 	fragment = fragmentShader;

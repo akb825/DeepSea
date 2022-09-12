@@ -76,7 +76,7 @@ void fragmentShader()
 	particleColor = vfColor*texture(diffuseTexture, vfTexCoord);
 }
 
-pipeline FlameParticle
+pipeline Flame
 {
 	vertex = vertexShader;
 	fragment = fragmentShader;

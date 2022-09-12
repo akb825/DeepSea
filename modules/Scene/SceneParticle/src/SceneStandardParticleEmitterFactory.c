@@ -158,7 +158,7 @@ static void dsSceneStandardParticleEmitterFactory_destroy(void* userData)
 		DS_VERIFY(dsAllocator_free(factory->allocator, factory));
 }
 
-const char* const dsSceneStandardParticleEmitterFactory_typeName = "StandardParticleEmitter";
+const char* const dsSceneStandardParticleEmitterFactory_typeName = "StandardParticleEmitterFactory";
 
 dsSceneParticleEmitterFactory* dsSceneStandardParticleEmitterFactory_create(
 	dsAllocator* allocator, const dsParticleEmitterParams* params, uint64_t seed,

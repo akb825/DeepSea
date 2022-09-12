@@ -316,5 +316,74 @@
 		"module": "deferredLightShaderModule",
 		"pipeline": "sRGB",
 		"materialDesc": "sRGBMaterialDesc"
+	},
+	{
+		"type": "MaterialDesc",
+		"name": "particleMaterialDesc",
+		"elements":
+		[
+			{
+				"name": "diffuseTexture",
+				"type": "Texture",
+				"binding": "Material"
+			},
+			{
+				"name": "ParticleTransformData",
+				"type": "VariableGroup",
+				"binding": "Instance",
+				"shaderVariableGroupDesc": "particleTransformDesc"
+			},
+			{
+				"name": "ViewTransformData",
+				"type": "VariableGroup",
+				"binding": "Global",
+				"shaderVariableGroupDesc": "viewTransformDesc"
+			}
+		]
+	},
+	{
+		"type": "Material",
+		"name": "flameMaterial",
+		"description": "particleMaterialDesc",
+		"data":
+		[
+			{
+				"name": "diffuseTexture",
+				"type": "Texture",
+				"data": "flame"
+			}
+		]
+	},
+	{
+		"type": "Material",
+		"name": "smokeMaterial",
+		"description": "particleMaterialDesc",
+		"data":
+		[
+			{
+				"name": "diffuseTexture",
+				"type": "Texture",
+				"data": "smoke"
+			}
+		]
+	},
+	{
+		"type": "ShaderModule",
+		"name": "particleShaderModule",
+		"modules": @particleShaderModule@
+	},
+	{
+		"type": "Shader",
+		"name": "flameShader",
+		"module": "particleShaderModule",
+		"pipeline": "Flame",
+		"materialDesc": "particleMaterialDesc"
+	},
+	{
+		"type": "Shader",
+		"name": "smokeShader",
+		"module": "particleShaderModule",
+		"pipeline": "Smoke",
+		"materialDesc": "particleMaterialDesc"
 	}
 ]

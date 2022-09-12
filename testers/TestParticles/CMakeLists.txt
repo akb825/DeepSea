@@ -88,11 +88,13 @@ ds_scene_resource_shader_module_config(deferredLightShaderModule DeferredLightin
 	${assetsDir} ${shaderDir} ${shaderConfigs})
 ds_scene_resource_shader_module_config(modelShaderModule Models.mslb
 	${assetsDir} ${shaderDir} ${shaderConfigs})
+ds_scene_resource_shader_module_config(particleShaderModule Particles.mslb
+	${assetsDir} ${shaderDir} ${shaderConfigs})
 
 # These resources need to be configured based on CMake variables.
 ds_configure_file(Assets/BaseResources.json ${configDir}/BaseResources.json CONFIG_VAR srcDir @ONLY)
 ds_configure_file(Assets/Materials.json ${configDir}/Materials.json CONFIG_VAR
-	deferredLightShaderModule modelShaderModule @ONLY)
+	deferredLightShaderModule modelShaderModule particleShaderModule @ONLY)
 
 # Convert the scene resources.
 ds_create_scene_resources(resources FILE ${configDir}/BaseResources.json

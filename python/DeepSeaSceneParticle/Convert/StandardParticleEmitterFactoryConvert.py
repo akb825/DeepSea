@@ -151,7 +151,7 @@ def convertStandardParticleEmitterFactory(convertContext, data):
 		material = str(data['material'])
 		instanceValueCount = readInt(data.get('instanceValueCount', 0), 'instanceValueCount')
 
-		spawnVolumeData = data['spawnVolumeData']
+		spawnVolumeData = data['spawnVolume']
 		try:
 			volumeTypeStr = str(spawnVolumeData['type'])
 			if volumeTypeStr == 'Box':
@@ -165,7 +165,7 @@ def convertStandardParticleEmitterFactory(convertContext, data):
 				volumeType = ParticleVolume.ParticleSphere
 				volumeCenter = readVector3f(spawnVolumeData['center'], 'center')
 				volumeRadius = readFloat(spawnVolumeData['radius'], 'radius', 0.0)
-			elif volumeType == 'Cylinder':
+			elif volumeTypeStr == 'Cylinder':
 				volumeType = ParticleVolume.ParticleCylinder
 				volumeCenter = readVector3f(spawnVolumeData['center'], 'center')
 				volumeRadius = readFloat(spawnVolumeData['radius'], 'radius', 0.0)
@@ -218,8 +218,8 @@ def convertStandardParticleEmitterFactory(convertContext, data):
 
 	ParticleEmitterParams.Start(builder)
 	ParticleEmitterParams.AddMaxParticles(builder, maxParticles)
-	ParticleEmitterParams.AddShader(builder, shader)
-	ParticleEmitterParams.AddMaterial(builder, material)
+	ParticleEmitterParams.AddShader(builder, shaderOffset)
+	ParticleEmitterParams.AddMaterial(builder, materialOffset)
 	ParticleEmitterParams.AddInstanceValueCount(builder, instanceValueCount)
 	particleEmitterParamsOffset = ParticleEmitterParams.End(builder)
 
