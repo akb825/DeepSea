@@ -92,11 +92,12 @@ enum class SceneResourceUnion : uint8_t {
   DrawGeometry = 9,
   SceneNode = 10,
   CustomResource = 11,
+  ResourceAction = 12,
   MIN = NONE,
-  MAX = CustomResource
+  MAX = ResourceAction
 };
 
-inline const SceneResourceUnion (&EnumValuesSceneResourceUnion())[12] {
+inline const SceneResourceUnion (&EnumValuesSceneResourceUnion())[13] {
   static const SceneResourceUnion values[] = {
     SceneResourceUnion::NONE,
     SceneResourceUnion::Buffer,
@@ -109,13 +110,14 @@ inline const SceneResourceUnion (&EnumValuesSceneResourceUnion())[12] {
     SceneResourceUnion::Shader,
     SceneResourceUnion::DrawGeometry,
     SceneResourceUnion::SceneNode,
-    SceneResourceUnion::CustomResource
+    SceneResourceUnion::CustomResource,
+    SceneResourceUnion::ResourceAction
   };
   return values;
 }
 
 inline const char * const *EnumNamesSceneResourceUnion() {
-  static const char * const names[13] = {
+  static const char * const names[14] = {
     "NONE",
     "Buffer",
     "Texture",
@@ -128,13 +130,14 @@ inline const char * const *EnumNamesSceneResourceUnion() {
     "DrawGeometry",
     "SceneNode",
     "CustomResource",
+    "ResourceAction",
     nullptr
   };
   return names;
 }
 
 inline const char *EnumNameSceneResourceUnion(SceneResourceUnion e) {
-  if (flatbuffers::IsOutRange(e, SceneResourceUnion::NONE, SceneResourceUnion::CustomResource)) return "";
+  if (flatbuffers::IsOutRange(e, SceneResourceUnion::NONE, SceneResourceUnion::ResourceAction)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesSceneResourceUnion()[index];
 }
@@ -185,6 +188,10 @@ template<> struct SceneResourceUnionTraits<DeepSeaScene::SceneNode> {
 
 template<> struct SceneResourceUnionTraits<DeepSeaScene::CustomResource> {
   static const SceneResourceUnion enum_value = SceneResourceUnion::CustomResource;
+};
+
+template<> struct SceneResourceUnionTraits<DeepSeaScene::ObjectData> {
+  static const SceneResourceUnion enum_value = SceneResourceUnion::ResourceAction;
 };
 
 bool VerifySceneResourceUnion(flatbuffers::Verifier &verifier, const void *obj, SceneResourceUnion type);
@@ -1828,6 +1835,9 @@ struct SceneResource FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const DeepSeaScene::CustomResource *resource_as_CustomResource() const {
     return resource_type() == DeepSeaScene::SceneResourceUnion::CustomResource ? static_cast<const DeepSeaScene::CustomResource *>(resource()) : nullptr;
   }
+  const DeepSeaScene::ObjectData *resource_as_ResourceAction() const {
+    return resource_type() == DeepSeaScene::SceneResourceUnion::ResourceAction ? static_cast<const DeepSeaScene::ObjectData *>(resource()) : nullptr;
+  }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<uint8_t>(verifier, VT_RESOURCE_TYPE, 1) &&
@@ -1879,6 +1889,10 @@ template<> inline const DeepSeaScene::SceneNode *SceneResource::resource_as<Deep
 
 template<> inline const DeepSeaScene::CustomResource *SceneResource::resource_as<DeepSeaScene::CustomResource>() const {
   return resource_as_CustomResource();
+}
+
+template<> inline const DeepSeaScene::ObjectData *SceneResource::resource_as<DeepSeaScene::ObjectData>() const {
+  return resource_as_ResourceAction();
 }
 
 struct SceneResourceBuilder {
@@ -2011,6 +2025,10 @@ inline bool VerifySceneResourceUnion(flatbuffers::Verifier &verifier, const void
     }
     case SceneResourceUnion::CustomResource: {
       auto ptr = reinterpret_cast<const DeepSeaScene::CustomResource *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
+    case SceneResourceUnion::ResourceAction: {
+      auto ptr = reinterpret_cast<const DeepSeaScene::ObjectData *>(obj);
       return verifier.VerifyTable(ptr);
     }
     default: return true;

@@ -1262,6 +1262,10 @@ def convertSceneResourcesCustomResource(builder, convertContext, data, resourceT
 	CustomResource.AddResource(builder, resourceDataOffset)
 	return CustomResource.End(builder), SceneResourceUnion.CustomResource
 
+def convertSceneResourcesResourceAction(builder, convertContext, data, resourceType):
+	return convertContext.convertResourceAction(builder, resourceType, data), \
+		SceneResourceUnion.ResourceAction
+
 def convertSceneResources(convertContext, data):
 	"""
 	Converts SceneResources. data should be an array of objects for each resource. Each object
@@ -1434,40 +1438,44 @@ def convertSceneResources(convertContext, data):
 		for element in data:
 			try:
 				resourceType = str(element['type'])
-				name = str(element['name'])
-				if resourceType == 'Buffer':
-					resourceOffset, unionType = convertSceneResourcesBuffer(
-						builder, convertContext, element, name)
-				elif resourceType == 'Texture':
-					resourceOffset, unionType = convertSceneResourcesTexture(
-						builder, convertContext, element, name)
-				elif resourceType == 'ShaderVariableGroupDesc':
-					resourceOffset, unionType = convertSceneResourcesShaderVariableGroupDesc(
-						builder, convertContext, element, name)
-				elif resourceType == 'ShaderVariableGroup':
-					resourceOffset, unionType = convertSceneResourcesShaderVariableGroup(builder,
-						convertContext, element, name)
-				elif resourceType == 'MaterialDesc':
-					resourceOffset, unionType = convertSceneResourcesMaterialDesc(
-						builder, convertContext, element, name)
-				elif resourceType == 'Material':
-					resourceOffset, unionType = convertSceneResourcesMaterial(
-						builder, convertContext, element, name)
-				elif resourceType == 'ShaderModule':
-					resourceOffset, unionType = convertSceneResourcesShaderModule(
-						builder, convertContext, element, name)
-				elif resourceType == 'Shader':
-					resourceOffset, unionType = convertSceneResourcesShader(
-						builder, convertContext, element, name)
-				elif resourceType == 'DrawGeometry':
-					resourceOffset, unionType = convertSceneResourcesDrawGeometry(
-						builder, convertContext, element, name)
-				elif resourceType == 'SceneNode':
-					resourceOffset, unionType = convertSceneResourcesNode(
-						builder, convertContext, element, name)
+				if resourceType in convertContext.resourceActionTypeMap:
+					resourceOffset, unionType = convertSceneResourcesResourceAction(
+						builder, convertContext, element, resourceType)
 				else:
-					resourceOffset, unionType = convertSceneResourcesCustomResource(
-						builder, convertContext, element, resourceType, name)
+					name = str(element['name'])
+					if resourceType == 'Buffer':
+						resourceOffset, unionType = convertSceneResourcesBuffer(
+							builder, convertContext, element, name)
+					elif resourceType == 'Texture':
+						resourceOffset, unionType = convertSceneResourcesTexture(
+							builder, convertContext, element, name)
+					elif resourceType == 'ShaderVariableGroupDesc':
+						resourceOffset, unionType = convertSceneResourcesShaderVariableGroupDesc(
+							builder, convertContext, element, name)
+					elif resourceType == 'ShaderVariableGroup':
+						resourceOffset, unionType = convertSceneResourcesShaderVariableGroup(
+							builder, convertContext, element, name)
+					elif resourceType == 'MaterialDesc':
+						resourceOffset, unionType = convertSceneResourcesMaterialDesc(
+							builder, convertContext, element, name)
+					elif resourceType == 'Material':
+						resourceOffset, unionType = convertSceneResourcesMaterial(
+							builder, convertContext, element, name)
+					elif resourceType == 'ShaderModule':
+						resourceOffset, unionType = convertSceneResourcesShaderModule(
+							builder, convertContext, element, name)
+					elif resourceType == 'Shader':
+						resourceOffset, unionType = convertSceneResourcesShader(
+							builder, convertContext, element, name)
+					elif resourceType == 'DrawGeometry':
+						resourceOffset, unionType = convertSceneResourcesDrawGeometry(
+							builder, convertContext, element, name)
+					elif resourceType == 'SceneNode':
+						resourceOffset, unionType = convertSceneResourcesNode(
+							builder, convertContext, element, name)
+					else:
+						resourceOffset, unionType = convertSceneResourcesCustomResource(
+							builder, convertContext, element, resourceType, name)
 
 				SceneResource.Start(builder)
 				SceneResource.AddResourceType(builder, unionType)

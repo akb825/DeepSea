@@ -307,7 +307,8 @@ union SceneResourceUnion
 	Shader,
 	DrawGeometry,
 	SceneNode,
-	CustomResource
+	CustomResource,
+	ResourceAction : ObjectData
 }
 
 // Structure for a scene resource, required since arrays of unions aren't supported.

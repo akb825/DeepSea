@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2021 Aaron Barany
+ * Copyright 2019-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,6 +44,7 @@
 #include <DeepSea/Scene/CustomSceneResource.h>
 #include <DeepSea/Scene/SceneLoadContext.h>
 #include <DeepSea/Scene/SceneLoadScratchData.h>
+#include <DeepSea/Scene/SceneResourceAction.h>
 #include <DeepSea/Scene/Types.h>
 
 #if DS_GCC || DS_CLANG
@@ -80,6 +81,21 @@
 		else \
 		{ \
 			DS_LOG_ERROR_F(DS_SCENE_LOG_TAG, message " for scene resources: %s.", resourceName, \
+				dsErrorString(errno)); \
+		} \
+	} while (false)
+
+#define PRINT_UNNAMED_FLATBUFFER_RESOURCE_ERROR(message, fileName) \
+	do \
+	{ \
+		if (fileName) \
+		{ \
+			DS_LOG_ERROR_F(DS_SCENE_LOG_TAG, message " for scene resources '%s': %s.", \
+				fileName,  dsErrorString(errno)); \
+		} \
+		else \
+		{ \
+			DS_LOG_ERROR_F(DS_SCENE_LOG_TAG, message " for scene resources: %s.", \
 				dsErrorString(errno)); \
 		} \
 	} while (false)
@@ -1015,6 +1031,23 @@ static bool loadCustomResource(dsSceneResources* resources, dsAllocator* allocat
 	return true;
 }
 
+static bool loadResourceAction(dsSceneResources* resources, dsAllocator* allocator,
+	dsAllocator* resourceAllocator, const dsSceneLoadContext* loadContext,
+	dsSceneLoadScratchData* scratchData,
+	const DeepSeaScene::ObjectData* fbResourceAction, const char* fileName)
+{
+	auto data = fbResourceAction->data();
+	if (!dsSceneResourceAction_load(allocator, resourceAllocator, loadContext, scratchData,
+			fbResourceAction->type()->c_str(), data->data(), data->size()))
+	{
+		PRINT_UNNAMED_FLATBUFFER_RESOURCE_ERROR("Couldn't load scene resource action",
+			fileName);
+		return false;
+	}
+
+	return true;
+}
+
 extern "C"
 dsSceneResources* dsSceneResources_loadImpl(dsAllocator* allocator, dsAllocator* resourceAllocator,
 	const dsSceneLoadContext* loadContext, dsSceneLoadScratchData* scratchData,
@@ -1044,17 +1077,18 @@ dsSceneResources* dsSceneResources_loadImpl(dsAllocator* allocator, dsAllocator*
 			if (!fbResource)
 				continue;
 
-			++totalCount;
-			auto fbCustomResource = fbResource->resource_as_CustomResource();
-			if (!fbCustomResource)
-				continue;
-
-			auto fbResourceInfo = fbCustomResource->resource();
-			if (!fbResourceInfo)
-				continue;
-
-			totalCount += dsSceneLoadContext_getCustomResourceAdditionalResources(loadContext,
-				fbResourceInfo->type()->c_str());
+			if (auto fbCustomResource = fbResource->resource_as_CustomResource())
+			{
+				totalCount += dsSceneLoadContext_getCustomResourceAdditionalResources(loadContext,
+					fbCustomResource->resource()->type()->c_str()) + 1;
+			}
+			else if (auto fbResourceAction = fbResource->resource_as_ResourceAction())
+			{
+				totalCount += dsSceneLoadContext_getResourceActionAdditionalResources(loadContext,
+					fbResourceAction->type()->c_str());
+			}
+			else
+				++totalCount;
 		}
 	}
 
@@ -1135,6 +1169,11 @@ dsSceneResources* dsSceneResources_loadImpl(dsAllocator* allocator, dsAllocator*
 		{
 			success = loadCustomResource(resources, allocator, resourceAllocator, loadContext,
 				scratchData, fbCustomResource, fileName);
+		}
+		else if (auto fbResourceAction = fbResource->resource_as_ResourceAction())
+		{
+			success = loadResourceAction(resources, allocator, resourceAllocator, loadContext,
+				scratchData, fbResourceAction, fileName);
 		}
 
 		if (!success)

@@ -47,7 +47,7 @@ bool dsSceneParticleLoadConext_registerTypes(dsSceneLoadContext* loadContext)
 		return false;
 	}
 
-	if (!dsSceneLoadContext_registerCustomSceneResourceType(loadContext,
+	if (!dsSceneLoadContext_registerCustomResourceType(loadContext,
 			dsSceneStandardParticleEmitterFactory_typeName, dsSceneParticleEmitterFactory_type(),
 			&dsSceneStandardParticleEmitterFactory_load, &destroyParticleEmitterFactory,
 			NULL, NULL, 0))

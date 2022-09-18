@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Aaron Barany
+ * Copyright 2020-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ extern "C"
 /**
  * @file
  * @brief Functions for creating custom scene resources.
- * @see dsCustomSceneResources
+ * @see dsCustomSceneResource
  */
 
 /**
@@ -48,9 +48,9 @@ DS_SCENE_EXPORT dsCustomSceneResource* dsCustomSceneResource_create(dsAllocator*
 /**
  * @brief Loads a custom resource from a flatbuffer data buffer.
  * @remark errno will be set on failure.
- * @param allocator The allocator to create the scene nodes.
+ * @param allocator The allocator to create the resource.
  * @param resourceAllocator The allocator to create graphics resources with. If NULL, it will use
- *     the scene node allocator.
+ *     the custom resource allocator.
  * @param loadContext The scene load context.
  * @param scratchData The scene scratch data.
  * @param type The type name of the custom resource to load.

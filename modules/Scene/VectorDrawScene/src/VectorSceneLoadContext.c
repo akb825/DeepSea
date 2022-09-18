@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Aaron Barany
+ * Copyright 2020-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -121,7 +121,7 @@ bool dsVectorSceneLoadConext_registerTypes(dsSceneLoadContext* loadContext, dsAl
 		}
 
 		// One additional resource for registering the material description.
-		if (!dsSceneLoadContext_registerCustomSceneResourceType(loadContext,
+		if (!dsSceneLoadContext_registerCustomResourceType(loadContext,
 				dsVectorSceneResources_typeName, dsVectorSceneResources_type(),
 				&dsVectorSceneResources_load,
 				(dsDestroyCustomSceneResourceFunction)&dsVectorResources_destroy, userData,
@@ -132,7 +132,7 @@ bool dsVectorSceneLoadConext_registerTypes(dsSceneLoadContext* loadContext, dsAl
 		}
 	}
 
-	if (!dsSceneLoadContext_registerCustomSceneResourceType(loadContext,
+	if (!dsSceneLoadContext_registerCustomResourceType(loadContext,
 			dsVectorSceneMaterialSet_typeName, dsVectorSceneMaterialSet_type(),
 			&dsVectorSceneMaterialSet_load,
 			(dsDestroyCustomSceneResourceFunction)&dsVectorMaterialSet_destroy, NULL, NULL, 0))
@@ -140,7 +140,7 @@ bool dsVectorSceneLoadConext_registerTypes(dsSceneLoadContext* loadContext, dsAl
 		return false;
 	}
 
-	if (!dsSceneLoadContext_registerCustomSceneResourceType(loadContext,
+	if (!dsSceneLoadContext_registerCustomResourceType(loadContext,
 			dsVectorSceneShaders_typeName, dsVectorSceneShaders_type(), &dsVectorSceneShaders_load,
 			dsVectorSceneShaders_destroy, NULL, NULL, 0))
 	{
@@ -169,7 +169,7 @@ bool dsVectorSceneLoadConext_registerTypes(dsSceneLoadContext* loadContext, dsAl
 			userData->pixelScale = 1.0f/pixelSize;
 		}
 
-		if (!dsSceneLoadContext_registerCustomSceneResourceType(loadContext,
+		if (!dsSceneLoadContext_registerCustomResourceType(loadContext,
 				dsSceneText_typeName, dsSceneText_type(), &dsSceneText_load, destroySceneText,
 				userData, &SceneTextUserData_destroy, 0))
 		{
@@ -195,7 +195,7 @@ bool dsVectorSceneLoadConext_registerTypes(dsSceneLoadContext* loadContext, dsAl
 		userData->scratchData = scratchData;
 		userData->pixelSize = pixelSize;
 
-		if (!dsSceneLoadContext_registerCustomSceneResourceType(loadContext,
+		if (!dsSceneLoadContext_registerCustomResourceType(loadContext,
 				dsSceneVectorImage_typeName, dsSceneVectorImage_type(), &dsSceneVectorImage_load,
 				(dsDestroyCustomSceneResourceFunction)&dsVectorImage_destroy,
 				userData, &SceneVectorImageUserData_destroy, 0))

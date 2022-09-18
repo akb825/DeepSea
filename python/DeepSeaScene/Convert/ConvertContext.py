@@ -1,4 +1,4 @@
-# Copyright 2020-2021 Aaron Barany
+# Copyright 2020-2022 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ from .ModelNodeRemapConvert import convertModelNodeRemap
 from .ModelNodeConvert import convertModelNode
 from .OBJModel import registerOBJModelType
 from .SceneNodeRefConvert import convertReferenceNode
+from .TransformNodeChildrenConvert import convertTransformNodeChildren
 from .TransformNodeConvert import convertTransformNode
 from .ViewCullListConvert import convertViewCullList
 from .ViewMipmapListConvert import convertViewMipmapList
@@ -68,6 +69,10 @@ class ConvertContext:
 		}
 
 		self.customResourceTypeMap = dict()
+
+		self.resourceActionTypeMap = {
+			'TransformNodeChildren': convertTransformNodeChildren
+		}
 
 		# Model types are considered an extension. However, register the builtin model types here
 		# for convenience similar to the node and item list types.
@@ -212,6 +217,35 @@ class ConvertContext:
 			raise Exception('Custom resource type "' + typeName + '" hasn\'t been registered.')
 
 		convertedData = self.customResourceTypeMap[typeName](self, data)
+
+		typeNameOffset = builder.CreateString(typeName)
+		dataOffset = builder.CreateByteVector(convertedData)
+
+		ObjectData.Start(builder)
+		ObjectData.AddType(builder, typeNameOffset)
+		ObjectData.AddData(builder, dataOffset)
+		return ObjectData.End(builder)
+
+	def addResourceActionType(self, typeName, convertFunc):
+		"""
+		Adds a resource action type with the name and the convert function. The function should
+		take the ConvertContext and dict for the data as parameters and return the flatbuffer bytes.
+
+		An exception will be raised if the type is already registered.
+		"""
+		if typeName in self.resourceActionTypeMap:
+			raise Exception('Resource action type "' + typeName + '" is already registered.')
+		self.resourceActionTypeMap[typeName] = convertFunc
+
+	def convertResourceAction(self, builder, typeName, data):
+		"""
+		Converts a resource action based on its type and dict for the data. This will return the
+		offset to the ObjectData added to the builder.
+		"""
+		if typeName not in self.resourceActionTypeMap:
+			raise Exception('Resource action type "' + typeName + '" hasn\'t been registered.')
+
+		convertedData = self.resourceActionTypeMap[typeName](self, data)
 
 		typeNameOffset = builder.CreateString(typeName)
 		dataOffset = builder.CreateByteVector(convertedData)

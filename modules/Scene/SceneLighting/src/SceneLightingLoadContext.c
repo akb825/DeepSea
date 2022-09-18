@@ -55,13 +55,13 @@ bool dsSceneLightingLoadConext_registerTypes(dsSceneLoadContext* loadContext)
 		return false;
 	}
 
-	if (!dsSceneLoadContext_registerCustomSceneResourceType(loadContext, dsSceneLightSet_typeName,
+	if (!dsSceneLoadContext_registerCustomResourceType(loadContext, dsSceneLightSet_typeName,
 			dsSceneLightSet_type(), &dsSceneLightSet_load, &destroySceneLightSet, NULL, NULL, 0))
 	{
 		return false;
 	}
 
-	if (!dsSceneLoadContext_registerCustomSceneResourceType(loadContext,
+	if (!dsSceneLoadContext_registerCustomResourceType(loadContext,
 			dsSceneShadowManager_typeName, dsSceneShadowManager_type(), &dsSceneShadowManager_load,
 			(dsDestroyCustomSceneResourceFunction)&dsSceneShadowManager_destroy, NULL, NULL, 0))
 	{

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Aaron Barany
+ * Copyright 2019-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -143,6 +143,16 @@ typedef struct dsLoadCustomSceneResourceItem
 	uint32_t additionalResources;
 } dsLoadCustomSceneResourceItem;
 
+typedef struct dsLoadSceneResourceActionItem
+{
+	dsHashTableNode node;
+	char name[DS_MAX_SCENE_NAME_LENGTH];
+	dsLoadSceneResourceActionFunction loadFunc;
+	void* userData;
+	dsDestroySceneUserDataFunction destroyUserDataFunc;
+	uint32_t additionalResources;
+} dsLoadSceneResourceActionItem;
+
 struct dsSceneLoadContext
 {
 	dsAllocator* allocator;
@@ -153,12 +163,14 @@ struct dsSceneLoadContext
 	dsLoadSceneInstanceDataItem instanceDataTypes[DS_MAX_SCENE_TYPES];
 	dsLoadSceneGlobalDataItem globalDataTypes[DS_MAX_SCENE_TYPES];
 	dsLoadCustomSceneResourceItem customResourceTypes[DS_MAX_SCENE_TYPES];
+	dsLoadSceneResourceActionItem resourceActionTypes[DS_MAX_SCENE_TYPES];
 
 	DS_STATIC_HASH_TABLE(DS_SCENE_TYPE_TABLE_SIZE) nodeTypeTable;
 	DS_STATIC_HASH_TABLE(DS_SCENE_TYPE_TABLE_SIZE) itemListTypeTable;
 	DS_STATIC_HASH_TABLE(DS_SCENE_TYPE_TABLE_SIZE) instanceDataTypeTable;
 	DS_STATIC_HASH_TABLE(DS_SCENE_TYPE_TABLE_SIZE) globalDataTypeTable;
 	DS_STATIC_HASH_TABLE(DS_SCENE_TYPE_TABLE_SIZE) customResourceTypeTable;
+	DS_STATIC_HASH_TABLE(DS_SCENE_TYPE_TABLE_SIZE) resourceActionTypeTable;
 };
 
 struct dsSceneLoadScratchData

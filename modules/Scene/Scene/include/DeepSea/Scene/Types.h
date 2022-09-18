@@ -662,6 +662,23 @@ typedef void* (*dsLoadCustomSceneResourceFunction)(const dsSceneLoadContext* loa
 	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
 	void* userData, const uint8_t* data, size_t dataSize);
 
+/**
+ * @brief Function to load a scene resource action.
+ * @remark errno should be set on failure.
+ * @param loadContext The load context.
+ * @param scratchData The scratch data.
+ * @param allocator The allocator to create data with.
+ * @param resourceAllocator The allocator to create graphics resources with. If NULL, it will use
+ *     the data allocator.
+ * @param userData User data registered with this function.
+ * @param data The data for the custom resource.
+ * @param dataSize The size fo the data.
+ * @return The custom resource or NULL if it couldn't be loaded.
+ */
+typedef bool (*dsLoadSceneResourceActionFunction)(const dsSceneLoadContext* loadContext,
+	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
+	void* userData, const uint8_t* data, size_t dataSize);
+
 #ifdef __cplusplus
 }
 #endif

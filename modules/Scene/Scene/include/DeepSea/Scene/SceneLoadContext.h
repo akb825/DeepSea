@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Aaron Barany
+ * Copyright 2019-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -164,7 +164,7 @@ DS_SCENE_EXPORT bool dsSceneLoadContext_registerGlobalDataType(dsSceneLoadContex
  * @param context The context to register the type with.
  * @param name The name of the type. The length, including the null terminator, must not exceed
  *     DS_MAX_SCENE_NAME_LENGTH.
- * @param type The type of the resource
+ * @param type The type of the resource.
  * @param loadFunc The function to call to perform the load.
  * @param destroyResourceFunc The function to destroy resources of this type.
  * @param userData The user data associated with the type. Any modifications made to this should be
@@ -174,7 +174,7 @@ DS_SCENE_EXPORT bool dsSceneLoadContext_registerGlobalDataType(dsSceneLoadContex
  *     resource on load.
  * @return False if the type couldn't be registered.
  */
-DS_SCENE_EXPORT bool dsSceneLoadContext_registerCustomSceneResourceType(dsSceneLoadContext* context,
+DS_SCENE_EXPORT bool dsSceneLoadContext_registerCustomResourceType(dsSceneLoadContext* context,
 	const char* name, const dsCustomSceneResourceType* type,
 	dsLoadCustomSceneResourceFunction loadFunc,
 	dsDestroyCustomSceneResourceFunction destroyResourceFunc, void* userData,
@@ -187,6 +187,41 @@ DS_SCENE_EXPORT bool dsSceneLoadContext_registerCustomSceneResourceType(dsSceneL
  * @return The number of additional resources.
  */
 DS_SCENE_EXPORT uint32_t dsSceneLoadContext_getCustomResourceAdditionalResources(
+	const dsSceneLoadContext* context, const char* name);
+
+/**
+ * @brief Registers a resource action type that can be loaded.
+ *
+ * A resource action performs an operation during load without adding resources of its own.
+ *
+ * Up to 128 resource action types can be registered within a single dsSceneLoadContext. This is
+ * intended to be enough to support any reasonable situation. If this isn't enough for specialized
+ * situations, multiple load contexts can be maintained to load different files with a subset of the
+ * types.
+ *
+ * @remark errno will be set on failure.
+ * @param context The context to register the type with.
+ * @param name The name of the type. The length, including the null terminator, must not exceed
+ *     DS_MAX_SCENE_NAME_LENGTH.
+ * @param loadFunc The function to call to perform the load.
+ * @param userData The user data associated with the type. Any modifications made to this should be
+ *     thread-safe if the same dsSceneLoadContext is used across multiple threads. This may be NULL.
+ * @param destroyUserDataFunc The function to destroy the user data. This may be NULL.
+ * @param additionalResources The number of additional resources that will be added by the custom
+ *     resource on load.
+ * @return False if the type couldn't be registered.
+ */
+DS_SCENE_EXPORT bool dsSceneLoadContext_registerResourceActionType(dsSceneLoadContext* context,
+	const char* name, dsLoadSceneResourceActionFunction loadFunc, void* userData,
+	dsDestroySceneUserDataFunction destroyUserDataFunc, uint32_t additionalResources);
+
+/**
+ * @brief Gets the number of additional resources added for a resource action.
+ * @param context The context the type is registered with.
+ * @param name The name of the resource action type.
+ * @return The number of additional resources.
+ */
+DS_SCENE_EXPORT uint32_t dsSceneLoadContext_getResourceActionAdditionalResources(
 	const dsSceneLoadContext* context, const char* name);
 
 /**

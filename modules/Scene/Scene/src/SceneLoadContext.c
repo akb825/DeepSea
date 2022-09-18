@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Aaron Barany
+ * Copyright 2019-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -71,6 +71,8 @@ dsSceneLoadContext* dsSceneLoadContext_create(dsAllocator* allocator, dsRenderer
 		dsHashString, dsHashStringEqual);
 	dsHashTable_initialize(&context->customResourceTypeTable.hashTable, DS_SCENE_TYPE_TABLE_SIZE,
 		dsHashString, dsHashStringEqual);
+	dsHashTable_initialize(&context->resourceActionTypeTable.hashTable, DS_SCENE_TYPE_TABLE_SIZE,
+		dsHashString, dsHashStringEqual);
 
 	// Built-in types.
 	dsSceneLoadContext_registerNodeType(context, dsSceneNodeRef_typeName, &dsSceneNodeRef_load,
@@ -98,6 +100,10 @@ dsSceneLoadContext* dsSceneLoadContext_create(dsAllocator* allocator, dsRenderer
 
 	dsSceneLoadContext_registerGlobalDataType(context, dsViewTransformData_typeName,
 		&dsViewTransformData_load, NULL, NULL);
+
+	// Actions aren't exposed in code so inlined names.
+	dsSceneLoadContext_registerResourceActionType(context, "TransformNodeChildren",
+		&dsSceneTransformNodeChildren_load, NULL, NULL, 0);
 
 	return context;
 }
@@ -281,7 +287,7 @@ bool dsSceneLoadContext_registerGlobalDataType(dsSceneLoadContext* context, cons
 	return true;
 }
 
-bool dsSceneLoadContext_registerCustomSceneResourceType(dsSceneLoadContext* context,
+bool dsSceneLoadContext_registerCustomResourceType(dsSceneLoadContext* context,
 	const char* name, const dsCustomSceneResourceType* type,
 	dsLoadCustomSceneResourceFunction loadFunc,
 	dsDestroyCustomSceneResourceFunction destroyResourceFunc, void* userData,
@@ -344,6 +350,65 @@ uint32_t dsSceneLoadContext_getCustomResourceAdditionalResources(const dsSceneLo
 	return foundType->additionalResources;
 }
 
+bool dsSceneLoadContext_registerResourceActionType(dsSceneLoadContext* context,
+	const char* name, dsLoadSceneResourceActionFunction loadFunc, void* userData,
+	dsDestroySceneUserDataFunction destroyUserDataFunc, uint32_t additionalResources)
+{
+	if (!context || !name || !loadFunc)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	dsHashTable* hashTable = &context->resourceActionTypeTable.hashTable;
+	size_t index = hashTable->list.length;
+	if (index >= DS_MAX_SCENE_TYPES)
+	{
+		errno = ENOMEM;
+		return false;
+	}
+
+	size_t nameLength = strlen(name);
+	if (nameLength >= DS_MAX_SCENE_NAME_LENGTH)
+	{
+		errno = EINVAL;
+		DS_LOG_ERROR_F(DS_SCENE_LOG_TAG,
+			"Scene resource action type name '%s' exceeds maximum size of %u.", name,
+			DS_MAX_SCENE_NAME_LENGTH);
+		return false;
+	}
+
+	dsLoadSceneResourceActionItem* resourceActionType = context->resourceActionTypes + index;
+	memcpy(resourceActionType->name, name, nameLength + 1);
+	resourceActionType->loadFunc = loadFunc;
+	resourceActionType->userData = userData;
+	resourceActionType->destroyUserDataFunc = destroyUserDataFunc;
+	resourceActionType->additionalResources = additionalResources;
+	if (!dsHashTable_insert(hashTable, resourceActionType->name,
+			(dsHashTableNode*)resourceActionType, NULL))
+	{
+		errno = EPERM;
+		DS_LOG_ERROR_F(DS_SCENE_LOG_TAG,
+			"Scene resource action type '%s' has already been registered.", name);
+		return false;
+	}
+	return true;
+}
+
+uint32_t dsSceneLoadContext_getResourceActionAdditionalResources(const dsSceneLoadContext* context,
+	const char* name)
+{
+	if (!context || !name)
+		return 0;
+
+	dsLoadSceneResourceActionItem* foundType = (dsLoadSceneResourceActionItem*)dsHashTable_find(
+		&context->resourceActionTypeTable.hashTable, name);
+	if (!foundType)
+		return 0;
+
+	return foundType->additionalResources;
+}
+
 void dsSceneLoadContext_destroy(dsSceneLoadContext* context)
 {
 	if (!context)
@@ -387,6 +452,14 @@ void dsSceneLoadContext_destroy(dsSceneLoadContext* context)
 		dsLoadCustomSceneResourceItem* customResourceType = (dsLoadCustomSceneResourceItem*)node;
 		if (customResourceType->destroyUserDataFunc)
 			customResourceType->destroyUserDataFunc(customResourceType->userData);
+	}
+
+	hashTable = &context->resourceActionTypeTable.hashTable;
+	for (dsListNode* node = hashTable->list.head; node; node = node->next)
+	{
+		dsLoadSceneResourceActionItem* resourceActionType = (dsLoadSceneResourceActionItem*)node;
+		if (resourceActionType->destroyUserDataFunc)
+			resourceActionType->destroyUserDataFunc(resourceActionType->userData);
 	}
 
 	if (context->allocator)
