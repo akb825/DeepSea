@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2021 Aaron Barany
+ * Copyright 2017-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,7 +45,7 @@ extern "C"
  * @param allocator The allocator to create the shader module with. If NULL, it will use the same
  *     allocator as the resource manager.
  * @param filePath The file path for the shader module to load.
- * @param name The name of the module. The name will be copied.
+ * @param name The name of the module. The contents will be copied.
  * @return The created shader module, or NULL if it couldn't be created.
  */
 DS_RENDER_EXPORT dsShaderModule* dsShaderModule_loadFile(dsResourceManager* resourceManager,
@@ -62,9 +62,7 @@ DS_RENDER_EXPORT dsShaderModule* dsShaderModule_loadFile(dsResourceManager* reso
  *     allocator as the resource manager.
  * @param type The resource type.
  * @param filePath The file path for the shader module to load.
- * @param name The name of the module. This will be used for error checking and caching of shader
- *     binaries and should be unique. The lifetime of name should exceed the lifetime of the shader
- *     module. (such as a string constant)
+ * @param name The name of the module. The contents will be copied.
  * @return The created shader module, or NULL if it couldn't be created.
  */
 DS_RENDER_EXPORT dsShaderModule* dsShaderModule_loadResource(dsResourceManager* resourceManager,
@@ -81,9 +79,7 @@ DS_RENDER_EXPORT dsShaderModule* dsShaderModule_loadResource(dsResourceManager* 
  *     allocator as the resource manager.
  * @param stream The stream to load the shader module from. This stream will be read from the
  *     current position until the end, and must be seekable.
- * @param name The name of the module. This will be used for error checking and caching of shader
- *     binaries and should be unique. The lifetime of name should exceed the lifetime of the shader
- *     module. (such as a string constant)
+ * @param name The name of the module. The contents will be copied.
  * @return The created shader module, or NULL if it couldn't be created.
  */
 DS_RENDER_EXPORT dsShaderModule* dsShaderModule_loadStream(dsResourceManager* resourceManager,
@@ -100,9 +96,7 @@ DS_RENDER_EXPORT dsShaderModule* dsShaderModule_loadStream(dsResourceManager* re
  *     allocator as the resource manager.
  * @param data The data for the shader module. The data isn't used after this call.
  * @param size The size of the data buffer.
- * @param name The name of the module. This will be used for error checking and caching of shader
- *     binaries and should be unique. The lifetime of name should exceed the lifetime of the shader
- *     module. (such as a string constant)
+ * @param name The name of the module. The contents will be copied.
  * @return The created shader module, or NULL if it couldn't be created.
  */
 DS_RENDER_EXPORT dsShaderModule* dsShaderModule_loadData(dsResourceManager* resourceManager,

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2021 Aaron Barany
+ * Copyright 2017-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -80,7 +80,7 @@ static const dsShaderVariableElement* findShaderVariableElement(const dsMaterial
 
 static bool arePushConstantsCompatible(dsResourceManager* resourceManager, const mslModule* module,
 	uint32_t pipelineIndex, uint32_t structIndex, const dsMaterialDesc* materialDesc,
-	bool supportsBuffers, const char* uniformName)
+	bool supportsBuffers, const char* uniformName, const char* moduleName, const char* shaderName)
 {
 	DS_ASSERT(materialDesc);
 	mslStruct structInfo;
@@ -105,8 +105,8 @@ static bool arePushConstantsCompatible(dsResourceManager* resourceManager, const
 			if (supportsBuffers)
 			{
 				DS_LOG_ERROR_F(DS_RENDER_LOG_TAG,
-					"Uniform '%s.%s' not found in material description.", uniformName,
-					structMember.name);
+					"Uniform '%s.%s' not found in material description for shader '%s.%s'.",
+					uniformName, structMember.name, moduleName, shaderName);
 				success = false;
 				continue;
 			}
@@ -137,8 +137,8 @@ static bool arePushConstantsCompatible(dsResourceManager* resourceManager, const
 		if (structMember.arrayElementCount > 1)
 		{
 			DS_LOG_ERROR_F(DS_RENDER_LOG_TAG,
-				"Multi-dimensional arrays aren't supported for uniform '%s.%s'.",
-				uniformName, structMember.name);
+				"Multi-dimensional arrays aren't supported for uniform '%s.%s' for shader '%s.%s'.",
+				uniformName, structMember.name, moduleName, shaderName);
 			success = false;
 			continue;
 		}
@@ -154,8 +154,8 @@ static bool arePushConstantsCompatible(dsResourceManager* resourceManager, const
 			structMemberArrayCount != arrayCount)
 		{
 			DS_LOG_ERROR_F(DS_RENDER_LOG_TAG,
-				"Types for uniform '%s.%s' differ between shader and material.", uniformName,
-				structMember.name);
+				"Types for uniform '%s.%s' differ between shader and material for shader '%s.%s'.",
+				uniformName, structMember.name, moduleName, shaderName);
 			success = false;
 			continue;
 		}
@@ -165,7 +165,8 @@ static bool arePushConstantsCompatible(dsResourceManager* resourceManager, const
 }
 
 static bool isShaderVariableGroupCompatible(const mslModule* module, uint32_t pipelineIndex,
-	uint32_t structIndex, const dsShaderVariableGroupDesc* groupDesc, const char* uniformName)
+	uint32_t structIndex, const dsShaderVariableGroupDesc* groupDesc, const char* uniformName,
+	const char* moduleName, const char* pipelineName)
 {
 	DS_ASSERT(groupDesc);
 	mslStruct structInfo;
@@ -173,8 +174,9 @@ static bool isShaderVariableGroupCompatible(const mslModule* module, uint32_t pi
 
 	if (structInfo.memberCount != groupDesc->elementCount)
 	{
-		DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Variable group '%s' doesn't match shader uniform block.",
-			uniformName);
+		DS_LOG_ERROR_F(DS_RENDER_LOG_TAG,
+			"Variable group '%s' doesn't match shader uniform block for shader '%s.%s'.",
+			uniformName, moduleName, pipelineName);
 		return false;
 	}
 
@@ -189,9 +191,9 @@ static bool isShaderVariableGroupCompatible(const mslModule* module, uint32_t pi
 		uint32_t structMemberArrayCount = 0;
 		if (structMember.arrayElementCount > 1)
 		{
-			DS_LOG_ERROR_F(DS_RENDER_LOG_TAG,
-				"Multi-dimensional arrays aren't supported for variable group member '%s.%s'.",
-				uniformName, structMember.name);
+			DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Multi-dimensional arrays aren't supported for "
+				"variable group member '%s.%s' for shader '%s.%s'.", uniformName, structMember.name,
+				moduleName, pipelineName);
 			success = false;
 			continue;
 		}
@@ -206,9 +208,9 @@ static bool isShaderVariableGroupCompatible(const mslModule* module, uint32_t pi
 		if (dsMaterialDesc_convertMaterialType(structMember.type) != element->type ||
 			structMemberArrayCount != element->count)
 		{
-			DS_LOG_ERROR_F(DS_RENDER_LOG_TAG,
-				"Types for element '%s.%s' differ between shader and shader variable group.",
-				uniformName, structMember.name);
+			DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Types for element '%s.%s' differ between shader and "
+				"shader variable group for shader '%s.%s'.", uniformName, structMember.name,
+				moduleName, pipelineName);
 			success = false;
 		}
 
@@ -216,9 +218,9 @@ static bool isShaderVariableGroupCompatible(const mslModule* module, uint32_t pi
 			(element->type >= dsMaterialType_DMat2x3 && element->type <= dsMaterialType_DMat4x3)) &&
 			structMember.rowMajor)
 		{
-			DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Element '%s.%s' is row major. Non-square matrix "
-				"elements within a shader variable group must be column-major.", uniformName,
-				structMember.name);
+			DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Element '%s.%s' is row major for shader '%s.%s'. "
+				"Non-square matrix elements within a shader variable group must be column-major.",
+				uniformName, structMember.name, moduleName, pipelineName);
 			success = false;
 		}
 	}
@@ -228,7 +230,7 @@ static bool isShaderVariableGroupCompatible(const mslModule* module, uint32_t pi
 
 static bool isMaterialDescCompatible(dsResourceManager* resourceManager, const mslModule* module,
 	const mslPipeline* pipeline, uint32_t index, const dsMaterialDesc* materialDesc,
-	bool supportsBuffers)
+	bool supportsBuffers, const char* moduleName)
 {
 	bool nativeSubpassInput = mslModule_targetId(module) == DS_FOURCC('S', 'P', 'R', 'V');
 	bool success = true;
@@ -239,7 +241,7 @@ static bool isMaterialDescCompatible(dsResourceManager* resourceManager, const m
 		if (uniform.uniformType == mslUniformType_PushConstant)
 		{
 			if (!arePushConstantsCompatible(resourceManager, module, index, uniform.structIndex,
-				materialDesc, supportsBuffers, uniform.name))
+					materialDesc, supportsBuffers, uniform.name, moduleName, pipeline->name))
 			{
 				success = false;
 			}
@@ -249,8 +251,9 @@ static bool isMaterialDescCompatible(dsResourceManager* resourceManager, const m
 		uint32_t elementIndex = dsMaterialDesc_findElement(materialDesc, uniform.name);
 		if (elementIndex == DS_MATERIAL_UNKNOWN)
 		{
-			DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Uniform '%s' not found in material description.",
-				uniform.name);
+			DS_LOG_ERROR_F(DS_RENDER_LOG_TAG,
+				"Uniform '%s' not found in material description for shader '%s.%s'.",
+				uniform.name, moduleName, pipeline->name);
 			success = false;
 			continue;
 		}
@@ -267,12 +270,14 @@ static bool isMaterialDescCompatible(dsResourceManager* resourceManager, const m
 					if (uniform.arrayElementCount != 0)
 					{
 						DS_LOG_ERROR_F(DS_RENDER_LOG_TAG,
-							"Shader variable group '%s' may not be an array.", uniform.name);
+							"Shader variable group '%s' may not be an array for shader '%s.%s'.",
+							uniform.name, moduleName, pipeline->name);
 						success = false;
 					}
 
 					if (!isShaderVariableGroupCompatible(module, index, uniform.structIndex,
-						element->shaderVariableGroupDesc, uniform.name))
+							element->shaderVariableGroupDesc, uniform.name, moduleName,
+							pipeline->name))
 					{
 						success = false;
 					}
@@ -303,7 +308,8 @@ static bool isMaterialDescCompatible(dsResourceManager* resourceManager, const m
 		if (!typesMatch)
 		{
 			DS_LOG_ERROR_F(DS_RENDER_LOG_TAG,
-				"Types for uniform '%s' differ between shader and material.", uniform.name);
+				"Types for uniform '%s' differ between shader and material for shader '%s.%s'.",
+				uniform.name, moduleName, pipeline->name);
 			success = false;
 		}
 	}
@@ -311,13 +317,15 @@ static bool isMaterialDescCompatible(dsResourceManager* resourceManager, const m
 	return success;
 }
 
-static bool verifySharedMaterialBufferValue(const dsMaterialElement* element, dsGfxBuffer* buffer)
+static bool verifySharedMaterialBufferValue(const dsMaterialElement* element, dsGfxBuffer* buffer,
+	const char* moduleName, const char* pipelineName)
 {
 	if (element->type == dsMaterialType_UniformBlock &&
 		!(buffer->usage & dsGfxBufferUsage_UniformBlock))
 	{
 		DS_LOG_ERROR_F(DS_RENDER_LOG_TAG,
-			"Buffer '%s' doesn't support being used as a uniform block.", element->name);
+			"Buffer '%s' doesn't support being used as a uniform block for shader '%s.%s'.",
+			element->name, moduleName, pipelineName);
 		return false;
 	}
 
@@ -325,7 +333,8 @@ static bool verifySharedMaterialBufferValue(const dsMaterialElement* element, ds
 		!(buffer->usage & dsGfxBufferUsage_UniformBuffer))
 	{
 		DS_LOG_ERROR_F(DS_RENDER_LOG_TAG,
-			"Buffer '%s' doesn't support being used as a uniform buffer.", element->name);
+			"Buffer '%s' doesn't support being used as a uniform buffer for shader '%s.%s'.",
+			element->name, moduleName, pipelineName);
 		return false;
 	}
 
@@ -333,7 +342,8 @@ static bool verifySharedMaterialBufferValue(const dsMaterialElement* element, ds
 }
 
 static bool verifySharedMaterialValues(const dsMaterialDesc* materialDesc,
-	const dsSharedMaterialValues* sharedValues, dsMaterialBinding binding)
+	const dsSharedMaterialValues* sharedValues, dsMaterialBinding binding, const char* moduleName,
+	const char* pipelineName)
 {
 	for (uint32_t i = 0; i < materialDesc->elementCount; ++i)
 	{
@@ -344,8 +354,8 @@ static bool verifySharedMaterialValues(const dsMaterialDesc* materialDesc,
 		if (!sharedValues)
 		{
 			DS_ASSERT(binding == dsMaterialBinding_Global);
-			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Material uses global values, but no global values "
-				"provided during shader bind.");
+			DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Material uses global values, but no global values "
+				"provided during shader bind for shader '%s.%s'.", moduleName, pipelineName);
 			return false;
 		}
 
@@ -359,35 +369,36 @@ static bool verifySharedMaterialValues(const dsMaterialDesc* materialDesc,
 					element->nameID);
 				if (!texture)
 				{
-					DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Shared texture '%s' not found.",
-						element->name);
+					DS_LOG_ERROR_F(DS_RENDER_LOG_TAG,
+						"Shared texture '%s' not found for shader '%s.%s'.", element->name,
+						moduleName, pipelineName);
 					return false;
 				}
 
 				if (element->type == dsMaterialType_Texture &&
 					!(texture->usage & dsTextureUsage_Texture))
 				{
-					DS_LOG_ERROR_F(DS_RENDER_LOG_TAG,
-						"Texture '%s' doesn't support being used as a texture sampler.",
-						element->name);
+					DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Texture '%s' doesn't support being used as "
+						"a texture sampler for shader '%s.%s'.", element->name, moduleName,
+						pipelineName);
 					return false;
 				}
 
 				if (element->type == dsMaterialType_Image &&
 					!(texture->usage & dsTextureUsage_Image))
 				{
-					DS_LOG_ERROR_F(DS_RENDER_LOG_TAG,
-						"Texture '%s' doesn't support being used as an image sampler.",
-						element->name);
+					DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Texture '%s' doesn't support being used as "
+						"an image sampler for shader '%s.%s'.", element->name, moduleName,
+						pipelineName);
 					return false;
 				}
 
 				if (element->type == dsMaterialType_SubpassInput &&
 					!(texture->usage & dsTextureUsage_SubpassInput))
 				{
-					DS_LOG_ERROR_F(DS_RENDER_LOG_TAG,
-						"Texture '%s' doesn't support being used as a subpass input.",
-						element->name);
+					DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Texture '%s' doesn't support being used as "
+						"a subpass input for shader '%s.%s'.", element->name, moduleName,
+						pipelineName);
 					return false;
 				}
 				break;
@@ -403,14 +414,18 @@ static bool verifySharedMaterialValues(const dsMaterialDesc* materialDesc,
 						sharedValues, element->nameID);
 					if (buffer)
 					{
-						if (!verifySharedMaterialBufferValue(element, buffer))
+						if (!verifySharedMaterialBufferValue(element, buffer, moduleName,
+								pipelineName))
+						{
 							return false;
+						}
 						break;
 					}
 					else
 					{
-						DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Shared variable group '%s' not found.",
-							element->name);
+						DS_LOG_ERROR_F(DS_RENDER_LOG_TAG,
+							"Shared variable group '%s' not found for shader '%s.%s'.",
+							element->name, moduleName, pipelineName);
 						return false;
 					}
 				}
@@ -419,8 +434,8 @@ static bool verifySharedMaterialValues(const dsMaterialDesc* materialDesc,
 					element->shaderVariableGroupDesc)
 				{
 					DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Shared variable group description for "
-						"'%s' doesn't match description set on material element.",
-						element->name);
+						"'%s' doesn't match description set on material element for shader "
+						"'%s.%s'.", element->name, moduleName, pipelineName);
 					return false;
 				}
 				break;
@@ -432,17 +447,18 @@ static bool verifySharedMaterialValues(const dsMaterialDesc* materialDesc,
 					sharedValues, element->nameID);
 				if (!buffer)
 				{
-					DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Buffer '%s' not found.",
-						element->name);
+					DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Buffer '%s' not found for shader '%s.%s'.",
+						element->name, moduleName, pipelineName);
 					return false;
 				}
 
-				if (!verifySharedMaterialBufferValue(element, buffer))
+				if (!verifySharedMaterialBufferValue(element, buffer, moduleName, pipelineName))
 					return false;
 				break;
 			}
 			default:
-				DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Invalid shared material type.");
+				DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Invalid shared material type for shader '%s.%s'.",
+					moduleName, pipelineName);
 				return false;
 		}
 	}
@@ -501,8 +517,9 @@ dsShader* dsShader_createIndex(dsResourceManager* resourceManager, dsAllocator* 
 	mslPipeline pipeline;
 	DS_VERIFY(mslModule_pipeline(&pipeline, shaderModule->module, index));
 	if (!isMaterialDescCompatible(resourceManager, shaderModule->module, &pipeline,
-			index, materialDesc, (resourceManager->supportedBuffers & dsGfxBufferUsage_UniformBlock)
-		!= 0))
+			index, materialDesc,
+			(resourceManager->supportedBuffers & dsGfxBufferUsage_UniformBlock) != 0,
+			shaderModule->name))
 	{
 		errno = EINVAL;
 		DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Material description isn't compatible with shader '%s'.",
@@ -641,7 +658,8 @@ bool dsShader_bind(const dsShader* shader, dsCommandBuffer* commandBuffer,
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	if (!verifySharedMaterialValues(shader->materialDesc, globalValues, dsMaterialBinding_Global))
+	if (!verifySharedMaterialValues(shader->materialDesc, globalValues, dsMaterialBinding_Global,
+			shader->module->name, shader->name))
 	{
 		errno = EINVAL;
 		DS_PROFILE_FUNC_RETURN(false);
@@ -693,7 +711,7 @@ bool dsShader_updateInstanceValues(const dsShader* shader, dsCommandBuffer* comm
 	}
 
 	if (!verifySharedMaterialValues(shader->materialDesc, instanceValues,
-			dsMaterialBinding_Instance))
+			dsMaterialBinding_Instance, shader->module->name, shader->name))
 	{
 		errno = EINVAL;
 		DS_PROFILE_FUNC_RETURN(false);
@@ -834,7 +852,8 @@ bool dsShader_bindCompute(const dsShader* shader, dsCommandBuffer* commandBuffer
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	if (!verifySharedMaterialValues(shader->materialDesc, globalValues, dsMaterialBinding_Global))
+	if (!verifySharedMaterialValues(shader->materialDesc, globalValues, dsMaterialBinding_Global,
+			shader->module->name, shader->name))
 	{
 		errno = EINVAL;
 		DS_PROFILE_FUNC_RETURN(false);
@@ -894,7 +913,7 @@ bool dsShader_updateComputeInstanceValues(const dsShader* shader, dsCommandBuffe
 	}
 
 	if (!verifySharedMaterialValues(shader->materialDesc, instanceValues,
-			dsMaterialBinding_Instance))
+			dsMaterialBinding_Instance, shader->module->name, shader->name))
 	{
 		errno = EINVAL;
 		DS_PROFILE_FUNC_RETURN(false);
