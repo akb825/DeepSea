@@ -47,6 +47,7 @@ set(DEEPSEA_EXPORTS_DIR ${CMAKE_BINARY_DIR}/cmake CACHE PATH
 set(DEEPSEA_ROOT_FOLDER DeepSea CACHE STRING
 	"Root folder for the DeepSea projects. Usefull when embedding in other projects.")
 set(DEEPSEA_INSTALL ON CACHE BOOL "Allow installation for DeepSea components.")
+set(DEEPSEA_INSTALL_SET_RPATH ON CACHE BOOL "Set rpath for library and tool on installation.")
 set(DEEPSEA_ANDROID_ASSETS_DIR src/main/assets CACHE PATH
 	"Folder relative to project app directory to place assets for Android.")
 set(DEEPSEA_NO_PREBUILT_LIBS OFF CACHE BOOL "Don't use any pre-built library dependencies.")

@@ -42,5 +42,5 @@ add_custom_target(doc ALL DEPENDS ${outputFile})
 ds_set_folder(doc "")
 
 if (DEEPSEA_INSTALL)
-	install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/html DESTINATION share/doc/DeepSea)
+	install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/html/ DESTINATION ${CMAKE_INSTALL_DOCDIR})
 endif()

@@ -1,4 +1,4 @@
-# Copyright 2017 Aaron Barany
+# Copyright 2017-2022 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -87,12 +87,14 @@ function(ds_install_library)
 	endif()
 
 	install(TARGETS ${ARGS_TARGET} EXPORT ${moduleName}Targets
-		LIBRARY DESTINATION lib
-		ARCHIVE DESTINATION lib
-		RUNTIME DESTINATION bin
-		INCLUDES DESTINATION include)
-	install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/ DESTINATION include COMPONENT dev)
-	install(FILES ${exportPath} DESTINATION include/DeepSea/${ARGS_MODULE} COMPONENT dev)
+		LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+		ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+		RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+		INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+	install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+		COMPONENT dev)
+	install(FILES ${exportPath} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/DeepSea/${ARGS_MODULE}
+		COMPONENT dev)
 
 	include(CMakePackageConfigHelpers)
 	set(versionPath ${DEEPSEA_EXPORTS_DIR}/${moduleName}ConfigVersion.cmake)
@@ -146,11 +148,7 @@ function(ds_install_library)
 		"get_target_property(${moduleName}_INCLUDE_DIRS ${ARGS_TARGET} INTERFACE_INCLUDE_DIRECTORIES)\n"
 		"${extraLines}")
 
-	if (WIN32)
-		set(configPackageDir ${moduleName}/cmake)
-	else()
-		set(configPackageDir lib/cmake/${moduleName})
-	endif()
+	set(configPackageDir ${CMAKE_INSTALL_LIBDIR}/cmake/${moduleName})
 	install(EXPORT ${moduleName}Targets FILE ${moduleName}Targets.cmake
 		DESTINATION ${configPackageDir})
 	install(FILES ${configPath} ${versionPath} ${ARGS_CONFIG_FILES} DESTINATION ${configPackageDir}
@@ -175,10 +173,10 @@ function(ds_install_master_config)
 
 		if (DEEPSEA_INSTALL)
 			install(TARGETS deepsea EXPORT DeepSeaTargets
-				LIBRARY DESTINATION lib
-				ARCHIVE DESTINATION lib
-				RUNTIME DESTINATION bin
-				INCLUDES DESTINATION include)
+				LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+				ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+				RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+				INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 			export(EXPORT DeepSeaTargets FILE ${DEEPSEA_EXPORTS_DIR}/DeepSeaTargets.cmake)
 
 			set(componentCheck)
@@ -201,18 +199,13 @@ endif()")
 		return()
 	endif()
 
-	if (WIN32)
-		set(configPackageDir DeepSea/cmake)
-	else()
-		set(configPackageDir lib/cmake/DeepSea)
-	endif()
+	set(configPackageDir ${CMAKE_INSTALL_LIBDIR}/cmake/DeepSea)
 	configure_file(${DEEPSEA_SOURCE_DIR}/cmake/templates/DeepSeaConfig.cmake.in
 		${DEEPSEA_EXPORTS_DIR}/DeepSeaConfig.cmake @ONLY)
 	install(FILES ${DEEPSEA_EXPORTS_DIR}/DeepSeaConfig.cmake
 		${DEEPSEA_SOURCE_DIR}/cmake/helpers.cmake ${versionPath}
 		DESTINATION ${configPackageDir} COMPONENT dev)
 	if (DEEPSEA_SINGLE_SHARED)
-		install(EXPORT DeepSeaTargets FILE DeepSeaTargets.cmake
-			DESTINATION ${configPackageDir})
+		install(EXPORT DeepSeaTargets FILE DeepSeaTargets.cmake DESTINATION ${configPackageDir})
 	endif()
 endfunction()
