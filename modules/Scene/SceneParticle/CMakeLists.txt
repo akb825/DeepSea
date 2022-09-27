@@ -2,7 +2,7 @@ file(GLOB_RECURSE sources src/*.c src/*.cpp src/*.h include/*.h include/*.mslh)
 file(GLOB_RECURSE publicFlatbuffers include/*.fbs)
 file(GLOB_RECURSE privateFlatbuffers src/*.fbs)
 ds_add_library(deepsea_scene_particle MODULE SceneParticle FILES ${sources}
-	${publicFlatbuffers} ${privateFlatbuffers} DEPENDS deepsea_scene deepsea_particle)
+	${publicFlatbuffers} ${privateFlatbuffers})
 ds_target_include_directories(deepsea_scene_particle PRIVATE src ${FLATBUFFERS_INCLUDE_DIRS})
 ds_install_library(TARGET deepsea_scene_particle MODULE SceneParticle DEPENDS Scene Particle)
 

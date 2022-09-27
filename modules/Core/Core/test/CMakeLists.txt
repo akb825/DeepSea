@@ -5,7 +5,7 @@ endif()
 file(GLOB_RECURSE sources *.cpp *.h)
 ds_add_unittest(deepsea_core_test ${sources})
 
-target_link_libraries(deepsea_core_test PRIVATE deepsea_core)
+target_link_libraries(deepsea_core_test PRIVATE DeepSea::Core)
 
 ds_set_folder(deepsea_core_test tests/unit)
 # Disable slow tests so they can be run as part of the build. Executing the test manually will

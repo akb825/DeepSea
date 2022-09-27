@@ -37,9 +37,9 @@ add_custom_command(OUTPUT ${outputFile}
 	WORKING_DIRECTORY ${DEEPSEA_SOURCE_DIR}
 	DEPENDS ${dependencies} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
 	COMMENT "Generating API documentation with Doxygen" VERBATIM)
-add_custom_target(doc ALL DEPENDS ${outputFile})
+add_custom_target(deepsea_doc ALL DEPENDS ${outputFile})
 
-ds_set_folder(doc "")
+ds_set_folder(deepsea_doc "")
 
 if (DEEPSEA_INSTALL)
 	install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/html/ DESTINATION ${CMAKE_INSTALL_DOCDIR})

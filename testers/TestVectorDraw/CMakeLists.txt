@@ -1,4 +1,4 @@
-if (NOT TARGET deepsea_application_sdl OR NOT TARGET deepsea_vector_draw)
+if (NOT TARGET DeepSea::ApplicationSDL OR NOT TARGET DeepSea::VectorDraw)
 	return()
 endif()
 
@@ -19,15 +19,15 @@ set(source TestVectorDraw.c
 		 VectorElementTextGradient.msl
 	VectorElementFillSRGB.msl VectorElementLineSRGB.msl VectorElementTextColorSRGB.msl
 		VectorElementTextGradientSRGB.msl)
-if (TARGET deepsea_render_opengl)
+if (TARGET DeepSea::RenderOpenGL)
 	list(APPEND shaderConfigs glsl-1.1 glsl-1.5 glsl-4.0 glsl-es-1.0 glsl-es-3.0 glsl-es-3.2)
 	list(APPEND srgbShaderConfigs glsl-1.5 glsl-4.0 glsl-es-3.0 glsl-es-3.2)
 endif()
-if (TARGET deepsea_render_vulkan)
+if (TARGET DeepSea::RenderVulkan)
 	list(APPEND shaderConfigs spirv-1.0)
 	list(APPEND srgbShaderConfigs spirv-1.0)
 endif()
-if (TARGET deepsea_render_metal)
+if (TARGET DeepSea::RenderMetal)
 	if (IOS)
 		list(APPEND shaderConfigs metal-ios-1.1)
 		list(APPEND srgbShaderConfigs metal-ios-1.1)
@@ -42,12 +42,12 @@ if (NOT shaderConfigs)
 endif()
 
 ds_add_executable(deepsea_test_vector_draw_app WIN32 ${source})
-target_link_libraries(deepsea_test_vector_draw_app PRIVATE deepsea_render_bootstrap
-	deepsea_application_sdl deepsea_vector_draw)
-ds_link_main_lib(deepsea_test_vector_draw_app deepsea_application_sdl_main)
+target_link_libraries(deepsea_test_vector_draw_app
+	PRIVATE DeepSea::RenderBootstrap DeepSea::ApplicationSDL DeepSea::VectorDraw)
+ds_link_main_lib(deepsea_test_vector_draw_app DeepSea::ApplicationSDLMain)
 
-if (TARGET deepsea_easy_profiler)
-	target_link_libraries(deepsea_test_vector_draw_app PRIVATE deepsea_easy_profiler)
+if (TARGET DeepSea::EasyProfiler)
+	target_link_libraries(deepsea_test_vector_draw_app PRIVATE DeepSea::EasyProfiler)
 	target_compile_definitions(deepsea_test_vector_draw_app PRIVATE DS_HAS_EASY_PROFILER=1)
 endif()
 

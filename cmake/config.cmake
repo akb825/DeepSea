@@ -14,7 +14,9 @@
 
 include(GNUInstallDirs)
 
-set(CMAKE_CXX_STANDARD 11)
+# Code should compile with C++11, but set to 14 for dependencies. Compiling on older targets will
+# fall back to the the latest version.
+set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
@@ -88,7 +90,6 @@ enable_testing()
 if (DEEPSEA_INSTALL AND DEEPSEA_INSTALL_SET_RPATH)
 	if (APPLE)
 		set(CMAKE_INSTALL_RPATH "@executable_path;@executable_path/../${CMAKE_INSTALL_LIBDIR}")
-		set(MACOSX_RPATH ON)
 	else()
 		set(CMAKE_INSTALL_RPATH "$ORIGIN;$ORIGIN/../${CMAKE_INSTALL_LIBDIR}")
 	endif()
@@ -188,7 +189,7 @@ endmacro()
 macro(ds_add_library target)
 	set(options)
 	set(oneValueArgs MODULE)
-	set(multiValueArgs FILES EXTERNAL_FILES DEPENDS)
+	set(multiValueArgs FILES EXTERNAL_FILES)
 	cmake_parse_arguments(ARGS "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
 	if (NOT ARGS_MODULE)
@@ -197,7 +198,6 @@ macro(ds_add_library target)
 
 	if (DEEPSEA_SINGLE_SHARED)
 		add_library(${target} INTERFACE)
-		target_link_libraries(${target} INTERFACE deepsea ${ARGS_DEPENDS})
 		add_dependencies(deepsea ${target})
 
 		set_property(GLOBAL APPEND PROPERTY DEEPSEA_SOURCES ${ARGS_FILES})
@@ -227,7 +227,6 @@ macro(ds_add_library target)
 		endif()
 
 		add_library(${target} ${DEEPSEA_LIB} ${ARGS_FILES} ${ARGS_EXTERNAL_FILES})
-		target_link_libraries(${target} PUBLIC ${ARGS_DEPENDS})
 
 		ds_set_folder(${target} modules)
 		ds_setup_filters(SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src

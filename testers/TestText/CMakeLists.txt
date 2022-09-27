@@ -1,4 +1,4 @@
-if (NOT TARGET deepsea_application_sdl OR NOT TARGET deepsea_text)
+if (NOT TARGET DeepSea::ApplicationSDL OR NOT TARGET DeepSea::Text)
 	return()
 endif()
 
@@ -9,13 +9,13 @@ endif()
 
 set(shaderConfigs)
 set(source TestText.c Font.msl FontTess.msl Box.msl)
-if (TARGET deepsea_render_opengl)
+if (TARGET DeepSea::RenderOpenGL)
 	list(APPEND shaderConfigs glsl-1.1 glsl-1.5 glsl-4.0 glsl-es-1.0 glsl-es-3.0 glsl-es-3.2)
 endif()
-if (TARGET deepsea_render_vulkan)
+if (TARGET DeepSea::RenderVulkan)
 	list(APPEND shaderConfigs spirv-1.0)
 endif()
-if (TARGET deepsea_render_metal)
+if (TARGET DeepSea::RenderMetal)
 	if (IOS)
 		list(APPEND shaderConfigs metal-ios-1.1)
 	else()
@@ -28,13 +28,12 @@ if (NOT shaderConfigs)
 endif()
 
 ds_add_executable(deepsea_test_text_app WIN32 ${source})
-target_link_libraries(deepsea_test_text_app PRIVATE deepsea_render_bootstrap
-	deepsea_application_sdl deepsea_text)
-ds_link_main_lib(deepsea_test_text_app deepsea_application_sdl_main)
-target_compile_definitions(deepsea_test_text_app PRIVATE)
+target_link_libraries(deepsea_test_text_app
+	PRIVATE DeepSea::RenderBootstrap DeepSea::ApplicationSDL DeepSea::Text)
+ds_link_main_lib(deepsea_test_text_app DeepSea::ApplicationSDLMain)
 
-if (TARGET deepsea_easy_profiler)
-	target_link_libraries(deepsea_test_text_app PRIVATE deepsea_easy_profiler)
+if (TARGET DeepSea::EasyProfiler)
+	target_link_libraries(deepsea_test_text_app PRIVATE DeepSea::EasyProfiler)
 	target_compile_definitions(deepsea_test_text_app PRIVATE DS_HAS_EASY_PROFILER=1)
 endif()
 

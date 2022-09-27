@@ -27,8 +27,8 @@ endif()
 file(GLOB_RECURSE sources *.cpp *.h *.msl *.mslh)
 ds_add_unittest(deepsea_render_bootstrap_test ${sources})
 
-target_include_directories(deepsea_render_bootstrap_test PRIVATE .)
-target_link_libraries(deepsea_render_bootstrap_test PRIVATE deepsea_render_bootstrap)
+target_include_directories(deepsea_render_bootstrap_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(deepsea_render_bootstrap_test PRIVATE DeepSea::RenderBootstrap)
 
 ds_config_binary_dir(shaderDir shaders)
 add_custom_target(deepsea_render_bootstrap_test_prepare

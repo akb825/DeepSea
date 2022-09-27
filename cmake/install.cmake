@@ -17,16 +17,26 @@ function(ds_install_library)
 	# variables in the parent scope will be for the main CMakeLists.txt.
 	set(options STATIC)
 	set(oneValueArgs TARGET MODULE)
-	set(multiValueArgs DEPENDS EXTERNAL_PREFIXES EXTERNAL_DEPENDS CONFIG_LINES CONFIG_FILES)
+	set(multiValueArgs DEPENDS DEPENDS_NOLINK EXTERNAL_PREFIXES EXTERNAL_DEPENDS CONFIG_LINES
+		CONFIG_FILES)
 	cmake_parse_arguments(ARGS "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
 	set(moduleName DeepSea${ARGS_MODULE})
+	set(namespacedTarget DeepSea::${ARGS_MODULE})
 	string(TOUPPER ${ARGS_MODULE} moduleUpper)
 
-	if (NOT DEEPSEA_SINGLE_SHARED)
-		set_property(TARGET ${ARGS_TARGET} PROPERTY VERSION ${DEEPSEA_VERSION})
-		set_property(TARGET ${ARGS_TARGET} PROPERTY DEBUG_POSTFIX d)
+	if (DEEPSEA_SINGLE_SHARED AND NOT ARGS_STATIC)
+		target_link_libraries(${ARGS_TARGET} INTERFACE deepsea)
+	else()
+		set_target_properties(${ARGS_TARGET} PROPERTIES
+			VERSION ${DEEPSEA_VERSION}
+			DEBUG_POSTFIX d)
+		foreach (dependency ${ARGS_DEPENDS})
+			target_link_libraries(${ARGS_TARGET} PUBLIC DeepSea::${dependency})
+		endforeach()
 	endif()
+	set_target_properties(${ARGS_TARGET} PROPERTIES EXPORT_NAME ${ARGS_MODULE})
+	add_library(DeepSea::${ARGS_MODULE} ALIAS ${ARGS_TARGET})
 
 	if (NOT ARGS_STATIC)
 		set(interfaceIncludes
@@ -41,10 +51,8 @@ function(ds_install_library)
 			${interfaceIncludes})
 
 		set(exportPath ${CMAKE_CURRENT_BINARY_DIR}/include/DeepSea/${ARGS_MODULE}/Export.h)
-		if (NOT DEEPSEA_SINGLE_SHARED)
-			set_property(TARGET ${ARGS_TARGET} APPEND PROPERTY INCLUDE_DIRECTORIES
-				${CMAKE_CURRENT_BINARY_DIR}/include ${interfaceIncludes})
-		endif()
+		set_property(TARGET ${includeTarget} APPEND PROPERTY INCLUDE_DIRECTORIES
+			${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_BINARY_DIR}/include)
 		if (DEEPSEA_SHARED)
 			if (MSVC)
 				if (DEEPSEA_SINGLE_SHARED)
@@ -102,8 +110,7 @@ function(ds_install_library)
 		VERSION ${DEEPSEA_VERSION}
 		COMPATIBILITY SameMajorVersion)
 
-	export(EXPORT ${moduleName}Targets
-		FILE ${DEEPSEA_EXPORTS_DIR}/${moduleName}Targets.cmake)
+	export(EXPORT ${moduleName}Targets FILE ${DEEPSEA_EXPORTS_DIR}/${moduleName}Targets.cmake)
 
 	if (ARGS_EXTERNAL_PREFIXES)
 		set(externalPrefixes "get_filename_component(currentDir \${CMAKE_CURRENT_LIST_FILE} DIRECTORY)\n")
@@ -122,7 +129,7 @@ function(ds_install_library)
 	if (NOT ARGS_STATIC AND DEEPSEA_SINGLE_SHARED)
 		set(dependencies "${dependencies}find_dependency(DeepSea ${DEEPSEA_VERSION} EXACT)\n")
 	endif()
-	foreach (dependency ${ARGS_DEPENDS})
+	foreach (dependency ${ARGS_DEPENDS} ${ARGS_DEPENDS_NOLINK})
 		set(dependencies "${dependencies}find_dependency(DeepSea${dependency} ${DEEPSEA_VERSION} EXACT)\n")
 	endforeach()
 
@@ -144,12 +151,12 @@ function(ds_install_library)
 		"${externalPrefixes}"
 		"${dependencies}"
 		"include(\${CMAKE_CURRENT_LIST_DIR}/${moduleName}Targets.cmake)\n"
-		"set(${moduleName}_LIBRARIES ${ARGS_TARGET})\n"
-		"get_target_property(${moduleName}_INCLUDE_DIRS ${ARGS_TARGET} INTERFACE_INCLUDE_DIRECTORIES)\n"
+		"set(${moduleName}_LIBRARIES ${namespacedTarget})\n"
+		"get_target_property(${moduleName}_INCLUDE_DIRS ${namespacedTarget} INTERFACE_INCLUDE_DIRECTORIES)\n"
 		"${extraLines}")
 
 	set(configPackageDir ${CMAKE_INSTALL_LIBDIR}/cmake/${moduleName})
-	install(EXPORT ${moduleName}Targets FILE ${moduleName}Targets.cmake
+	install(EXPORT ${moduleName}Targets NAMESPACE DeepSea:: FILE ${moduleName}Targets.cmake
 		DESTINATION ${configPackageDir})
 	install(FILES ${configPath} ${versionPath} ${ARGS_CONFIG_FILES} DESTINATION ${configPackageDir}
 		COMPONENT dev)
@@ -163,13 +170,14 @@ function(ds_install_master_config)
 		COMPATIBILITY SameMajorVersion)
 
 	if (DEEPSEA_SINGLE_SHARED)
-		set_property(TARGET deepsea PROPERTY VERSION ${DEEPSEA_VERSION})
-		set_property(TARGET deepsea PROPERTY DEBUG_POSTFIX d)
+		set_target_properties(deepsea PROPERTIES
+			VERSION ${DEEPSEA_VERSION}
+			DEBUG_POSTFIX d
+			EXPORT_NAME DeepSea)
 		set_property(TARGET deepsea APPEND PROPERTY COMPILE_DEFINITIONS DS_BUILD)
-		set_property(TARGET deepsea APPEND PROPERTY INTERFACE_INCLUDE_DIRECTORIES
-			${DEEPSEA_INTERFACE_INCLUDES})
 		set_property(TARGET deepsea APPEND PROPERTY INCLUDE_DIRECTORIES
-			${CMAKE_CURRENT_BINARY_DIR}/include ${DEEPSEA_INTERFACE_INCLUDES})
+			${CMAKE_CURRENT_BINARY_DIR}/include)
+		add_library(DeepSea::DeepSea ALIAS deepsea)
 
 		if (DEEPSEA_INSTALL)
 			install(TARGETS deepsea EXPORT DeepSeaTargets
@@ -206,6 +214,7 @@ endif()")
 		${DEEPSEA_SOURCE_DIR}/cmake/helpers.cmake ${versionPath}
 		DESTINATION ${configPackageDir} COMPONENT dev)
 	if (DEEPSEA_SINGLE_SHARED)
-		install(EXPORT DeepSeaTargets FILE DeepSeaTargets.cmake DESTINATION ${configPackageDir})
+		install(EXPORT DeepSeaTargets NAMESPACE DeepSea:: FILE DeepSeaTargets.cmake
+			DESTINATION ${configPackageDir})
 	endif()
 endfunction()

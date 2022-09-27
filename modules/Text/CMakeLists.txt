@@ -14,8 +14,7 @@ endif()
 
 file(GLOB_RECURSE sources src/*.c src/*.h include/*.h include/*.mslh)
 file(GLOB_RECURSE externalSources SheenBidi/Source/*.c SheenBidi/Source/*.h SheenBidi/Headers/*.h)
-ds_add_library(deepsea_text MODULE Text FILES ${sources} EXTERNAL_FILES ${externalSources}
-	DEPENDS deepsea_render)
+ds_add_library(deepsea_text MODULE Text FILES ${sources} EXTERNAL_FILES ${externalSources})
 
 # Static HarfBuzz library requires C++ linkage
 if (NOT DEEPSEA_SINGLE_SHARED)

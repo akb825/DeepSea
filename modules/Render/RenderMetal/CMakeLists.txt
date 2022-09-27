@@ -6,10 +6,10 @@ endif()
 include(${CMAKE_CURRENT_SOURCE_DIR}/msl-config/ConfigPaths.cmake)
 
 file(GLOB_RECURSE sources src/*.c src/*.m src/*.h include/*.h)
-ds_add_library(deepsea_render_metal MODULE RenderMetal FILES ${sources} DEPENDS deepsea_render)
+ds_add_library(deepsea_render_metal MODULE RenderMetal FILES ${sources})
 ds_target_include_directories(deepsea_render_metal
 	PRIVATE ${DEEPSEA_MODULE_DIR}/Render/RenderMetal/src)
-ds_target_link_libraries(deepsea_render_metal PRIVATE msl_client "-framework Metal"
+ds_target_link_libraries(deepsea_render_metal PRIVATE MSL::Client "-framework Metal"
 	"-framework QuartzCore" "-framework CoreFoundation")
 if (IOS)
 	ds_target_link_libraries(deepsea_render_metal PRIVATE "-framework Foundation"

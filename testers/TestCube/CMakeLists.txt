@@ -1,4 +1,4 @@
-if (NOT TARGET deepsea_application_sdl)
+if (NOT TARGET DeepSea::ApplicationSDL)
 	return()
 endif()
 
@@ -14,13 +14,13 @@ endif()
 
 set(shaderConfigs)
 set(source TestCube.c TestCube.msl)
-if (TARGET deepsea_render_opengl)
+if (TARGET DeepSea::RenderOpenGL)
 	list(APPEND shaderConfigs glsl-1.1 glsl-1.5 glsl-es-1.0)
 endif()
-if (TARGET deepsea_render_vulkan)
+if (TARGET DeepSea::RenderVulkan)
 	list(APPEND shaderConfigs spirv-1.0)
 endif()
-if (TARGET deepsea_render_metal)
+if (TARGET DeepSea::RenderMetal)
 	if (IOS)
 		list(APPEND shaderConfigs metal-ios-1.1)
 	else()
@@ -33,9 +33,9 @@ if (NOT shaderConfigs)
 endif()
 
 ds_add_executable(deepsea_test_cube_app WIN32 ${source})
-target_link_libraries(deepsea_test_cube_app PRIVATE
-	deepsea_render_bootstrap deepsea_application_sdl)
-ds_link_main_lib(deepsea_test_cube_app deepsea_application_sdl_main)
+target_link_libraries(deepsea_test_cube_app
+	PRIVATE DeepSea::RenderBootstrap DeepSea::ApplicationSDL)
+ds_link_main_lib(deepsea_test_cube_app DeepSea::ApplicationSDLMain)
 
 ds_config_binary_dir(shaderDir shaders)
 set(textureDir ${CMAKE_CURRENT_BINARY_DIR}/textues)

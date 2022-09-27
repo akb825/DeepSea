@@ -55,13 +55,12 @@ if (APPLE)
 	set(extraPatterns src/*.m)
 endif()
 file(GLOB_RECURSE sources src/*.c src/*.h include/*.h ${extraPatterns})
-ds_add_library(deepsea_render_opengl MODULE RenderOpenGL FILES ${sources}
-	DEPENDS deepsea_render)
+ds_add_library(deepsea_render_opengl MODULE RenderOpenGL FILES ${sources})
 
 ds_target_include_directories(deepsea_render_opengl
 	PRIVATE ${OPENGL_INCLUDE_DIR} ${extraIncludeDirs} src)
 ds_target_link_libraries(deepsea_render_opengl
-	PRIVATE ${CMAKE_DL_LIBS} ${extraLibs} msl_client)
+	PRIVATE ${CMAKE_DL_LIBS} ${extraLibs} MSL::Client)
 if (extraDefines)
 	ds_target_compile_definitions(deepsea_render_opengl ${extraDefines})
 endif()

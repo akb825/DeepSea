@@ -1,5 +1,5 @@
 if (DEEPSEA_SYSTEM_MSL)
-	find_package(MSL CONFIG COMPONENTS Client REQUIRED)
+	find_package(MSL COMPONENTS Client REQUIRED)
 else()
 	if (DEEPSEA_SINGLE_SHARED)
 		set(MSL_SHARED OFF CACHE BOOL "")
@@ -23,9 +23,8 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/CompileShaders.cmake)
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/ConvertTexture.cmake)
 
 file(GLOB_RECURSE sources src/*.c src/*.h include/*.h include/*.mslh)
-ds_add_library(deepsea_render MODULE Render FILES ${sources} DEPENDS deepsea_core deepsea_math
-	deepsea_geometry)
-ds_target_link_libraries(deepsea_render PRIVATE msl_client)
+ds_add_library(deepsea_render MODULE Render FILES ${sources})
+ds_target_link_libraries(deepsea_render PRIVATE MSL::Client)
 ds_target_include_directories(deepsea_render PRIVATE src)
 
 if (DEEPSEA_GPU_PROFILING)

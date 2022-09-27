@@ -154,9 +154,9 @@ To build the examples, an Android Studio project is provided in the android subd
 
 Once you have built and installed DeepSea and set the base install directory to `CMAKE_PREFIX_PATH`, you can find the various modules with the `find_package()` CMake function. For example:
 
-	find_package(DeepSea CONFIG COMPONENTS Core Math Render)
+	find_package(DeepSea COMPONENTS Core Math Render)
 
-Libraries and include directories can be found through the `DeepSeaModule_LIBRARIES` and `DeepSeaModule_INCLUDE_DIRS` CMake variables. For example: `DeepSeaCore_LIBRARIES` and `DeepSeaCore_INCLUDE_DIRS`. You may also add the library name (e.g. `deepsea_core`) to the list of `target_link_libraries()` to both link to the libraries and add the include directories.
+You can either link to the `DeepSea::Module` target or use the `DeepSeaModule_LIBRARIES` and `DeepSeaModule_INCLUDE_DIRS` CMake variables, replacing `Module` with the module name. For example: `DeepSea::Core`, `DeepSeaCore_LIBRARIES`, and `DeepSeaCore_INCLUDE_DIRS`.
 
 # Modules
 

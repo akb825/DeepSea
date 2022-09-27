@@ -9,8 +9,7 @@ if (APPLE)
 endif()
 file(GLOB_RECURSE sources src/*.c src/*.h include/*.h ${extraPatterns})
 
-ds_add_library(deepsea_application_sdl MODULE ApplicationSDL FILES ${sources}
-	DEPENDS deepsea_application)
+ds_add_library(deepsea_application_sdl MODULE ApplicationSDL FILES ${sources})
 ds_target_include_directories(deepsea_application_sdl PRIVATE ${SDL2_INCLUDE_DIR})
 ds_target_link_libraries(deepsea_application_sdl PRIVATE ${SDL2_LIBRARY})
 
@@ -25,6 +24,6 @@ ds_set_folder(deepsea_application_sdl_main modules)
 
 ds_install_library(TARGET deepsea_application_sdl_main MODULE ApplicationSDLMain)
 ds_install_library(TARGET deepsea_application_sdl MODULE ApplicationSDL DEPENDS Application
-	ApplicationSDLMain)
+	DEPENDS_NOLINK ApplicationSDLMain)
 
 add_subdirectory(test)

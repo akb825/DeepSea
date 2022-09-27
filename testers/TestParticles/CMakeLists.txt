@@ -1,5 +1,5 @@
-if (NOT TARGET deepsea_scene_lighting OR NOT TARGET deepsea_scene_particle OR NOT
-	TARGET deepsea_application_sdl)
+if (NOT TARGET DeepSea::SceneLighting OR NOT TARGET DeepSea::SceneParticle OR NOT
+	TARGET DeepSea::ApplicationSDL)
 	return()
 endif()
 
@@ -11,13 +11,13 @@ endif()
 set(shaderConfigs)
 set(fragmentInputShaderConfigs)
 file(GLOB source "*.msl" "*.c" "*.h")
-if (TARGET deepsea_render_opengl)
+if (TARGET DeepSea::RenderOpenGL)
 	list(APPEND shaderConfigs glsl-1.5 glsl-es-3.0)
 endif()
-if (TARGET deepsea_render_vulkan)
+if (TARGET DeepSea::RenderVulkan)
 	list(APPEND shaderConfigs spirv-1.0)
 endif()
-if (TARGET deepsea_render_metal)
+if (TARGET DeepSea::RenderMetal)
 	if (IOS)
 		list(APPEND shaderConfigs metal-ios-1.1)
 		list(APPEND fragmentInputShaderConfigs metal-ios-2.0)
@@ -33,11 +33,11 @@ endif()
 
 ds_add_executable(deepsea_test_particles_app WIN32 ${source})
 target_link_libraries(deepsea_test_particles_app PRIVATE
-	deepsea_render_bootstrap deepsea_scene_lighting deepsea_scene_particle deepsea_application_sdl)
-ds_link_main_lib(deepsea_test_particles_app deepsea_application_sdl_main)
+	DeepSea::RenderBootstrap DeepSea::SceneLighting DeepSea::SceneParticle DeepSea::ApplicationSDL)
+ds_link_main_lib(deepsea_test_particles_app DeepSea::ApplicationSDLMain)
 
-if (TARGET deepsea_easy_profiler)
-	target_link_libraries(deepsea_test_particles_app PRIVATE deepsea_easy_profiler)
+if (TARGET DeepSea::EasyProfiler)
+	target_link_libraries(deepsea_test_particles_app PRIVATE DeepSea::EasyProfiler)
 	target_compile_definitions(deepsea_test_particles_app PRIVATE DS_HAS_EASY_PROFILER=1)
 endif()
 

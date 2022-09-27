@@ -16,7 +16,7 @@ else()
 endif()
 
 ds_add_library(deepsea_easy_profiler MODULE EasyProfiler FILES ${sources}
-	EXTERNAL_FILES ${externalSources} DEPENDS deepsea_core)
+	EXTERNAL_FILES ${externalSources})
 
 ds_target_include_directories(deepsea_easy_profiler PRIVATE ${easyProfilerCoreDir}/include)
 ds_target_compile_definitions(deepsea_easy_profiler PRIVATE
