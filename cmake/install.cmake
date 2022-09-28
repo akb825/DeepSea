@@ -83,9 +83,10 @@ function(ds_install_library)
 		set(finalLibraries)
 		foreach (library ${libraries})
 			if (library MATCHES "${DEEPSEA_PREBUILT_LIBS_DIR}/.*")
-				string(REGEX REPLACE "${DEEPSEA_PREBUILT_LIBS_DIR}/(.*)" "\\1" subpath ${library})
+				string(REGEX REPLACE "${DEEPSEA_PREBUILT_LIBS_DIR}/(.*)" "\${_IMPORT_PREFIX}/\\1"
+					installLibrary ${library})
 				list(APPEND finalLibraries $<BUILD_INTERFACE:${library}>
-					$<INSTALL_INTERFACE:\${_IMPORT_PREFIX}/${subpath}>)
+					$<INSTALL_INTERFACE:${installLibrary}>)
 			elseif (library)
 				list(APPEND finalLibraries ${library})
 			endif()
