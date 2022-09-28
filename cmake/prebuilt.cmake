@@ -55,6 +55,15 @@ if (NOT DEEPSEA_NO_PREBUILT_LIBS)
 			file(GLOB prebuiltSharedLibs ${DEEPSEA_PREBUILT_LIBS_DIR}/lib/*.so
 				${DEEPSEA_PREBUILT_LIBS_DIR}/lib/*.dylib)
 			file(GLOB prebuiltDlls ${DEEPSEA_PREBUILT_LIBS_DIR}/bin/*.dll)
+
+			# Exclude gtest libraries as they are only for unit tests.
+			file(GLOB gtestLibs ${DEEPSEA_PREBUILT_LIBS_DIR}/lib/*gtest*
+				${DEEPSEA_PREBUILT_LIBS_DIR}/lib/*gmock* ${DEEPSEA_PREBUILT_LIBS_DIR}/bin/*gtest*
+				${DEEPSEA_PREBUILT_LIBS_DIR}/bin/*gmock*)
+			list(REMOVE_ITEM prebuiltLibs ${gtestLibs})
+			list(REMOVE_ITEM prebuiltSharedLibs ${gtestLibs})
+			list(REMOVE_ITEM prebuiltDlls ${gtestLibs})
+
 			install(FILES ${prebuiltLibs} DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT dev)
 			install(PROGRAMS ${prebuiltSharedLibs} DESTINATION ${CMAKE_INSTALL_LIBDIR}
 				COMPONENT dev)
