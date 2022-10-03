@@ -77,10 +77,11 @@ struct dsParticleDraw
 	dsResourceManager* resourceManager;
 	dsAllocator* resourceAllocator;
 
-	dsSharedMaterialValues* instanceValues;
-
 	ParticleRef* particles;
 	uint32_t maxParticles;
+
+	uint32_t minInstanceValues;
+	dsSharedMaterialValues* instanceValues;
 
 	BufferInfo* buffers;
 	uint32_t bufferCount;
@@ -182,6 +183,7 @@ static BufferInfo* getDrawBuffer(dsParticleDraw* draw, uint32_t particleCount,
 	DS_VERIFY(dsVertexFormat_setAttribEnabled(&vertexBuffer.format, dsVertexAttrib_Color, true));
 	DS_VERIFY(dsVertexFormat_setAttribEnabled(
 		&vertexBuffer.format, dsVertexAttrib_TexCoord0, true));
+	DS_VERIFY(dsVertexFormat_computeOffsetsAndSize(&vertexBuffer.format));
 
 	DS_VERIFY(vertexBuffer.format.size == sizeof(ParticleVertex));
 	DS_ASSERT(vertexBuffer.format.elements[dsVertexAttrib_Position0].offset ==
@@ -337,11 +339,10 @@ static bool populateParticleGeometry(dsParticleDraw* drawer, BufferInfo* bufferI
 		indices[4] = (uint16_t)(curIndex + 2);
 		indices[5] = (uint16_t)(curIndex + 3);
 	}
-	DS_ASSERT(vertices ==
-		(ParticleVertex*)bufferData + bufferInfo->geometry->vertexBuffers[0].count);
+	DS_ASSERT(vertices == (ParticleVertex*)bufferData + particleCount*VERTEX_COUNT);
 	DS_ASSERT(indices ==
 		(uint16_t*)((uint8_t*)bufferData + bufferInfo->geometry->indexBuffer.offset) +
-			bufferInfo->geometry->indexBuffer.count);
+			particleCount*INDEX_COUNT);
 
 	DS_VERIFY(dsGfxBuffer_unmap(bufferInfo->buffer));
 	DS_PROFILE_FUNC_RETURN(true);
@@ -363,7 +364,7 @@ static bool drawParticles(dsParticleDraw* drawer, const dsParticleEmitter* const
 		const ParticleRef* particleRef = drawer->particles + i;
 		// Draw on emitter change or index overflow.
 		bool changeEmitter = prevEmitter != particleRef->emitter;
-		if (changeEmitter || indexCount + INDEX_COUNT > MAX_INDEX)
+		if ((changeEmitter || indexCount + INDEX_COUNT > MAX_INDEX) && indexCount > 0)
 		{
 			DS_ASSERT(prevShader);
 			dsDrawIndexedRange drawRange =
@@ -454,7 +455,7 @@ static bool drawParticles(dsParticleDraw* drawer, const dsParticleEmitter* const
 }
 
 dsParticleDraw* dsParticleDraw_create(dsAllocator* allocator, dsResourceManager* resourceManager,
-	dsAllocator* resourceAllocator)
+	dsAllocator* resourceAllocator, uint32_t minInstanceValues)
 {
 	if (!allocator || !resourceManager)
 	{
@@ -482,6 +483,7 @@ dsParticleDraw* dsParticleDraw_create(dsAllocator* allocator, dsResourceManager*
 	drawer->resourceAllocator = resourceAllocator;
 
 	drawer->instanceValues = NULL;
+	drawer->minInstanceValues = minInstanceValues;
 
 	drawer->particles = NULL;
 	drawer->maxParticles = 0;
@@ -506,7 +508,7 @@ bool dsParticleDraw_draw(dsParticleDraw* drawer, dsCommandBuffer* commandBuffer,
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	uint32_t maxInstanceValues = 0;
+	uint32_t maxInstanceValues = drawer->minInstanceValues;
 	uint32_t maxParticles = 0;
 	uint32_t particleCount = 0;
 	for (uint32_t i = 0; i < emitterCount; ++i)
@@ -524,7 +526,7 @@ bool dsParticleDraw_draw(dsParticleDraw* drawer, dsCommandBuffer* commandBuffer,
 	}
 
 	if (particleCount == 0)
-		DS_PROFILE_FUNC_RETURN(false);
+		DS_PROFILE_FUNC_RETURN(true);
 
 	// Make sure that instance values is large enough to hold the maximum for the particle emitters.
 	if (maxInstanceValues > 0 && (!drawer->instanceValues ||
@@ -542,7 +544,7 @@ bool dsParticleDraw_draw(dsParticleDraw* drawer, dsCommandBuffer* commandBuffer,
 	if (maxParticles > drawer->maxParticles)
 	{
 		ParticleRef* newParticles = (ParticleRef*)dsAllocator_reallocWithFallback(drawer->allocator,
-			drawer->particles, 0, maxParticles);
+			drawer->particles, 0, maxParticles*sizeof(ParticleRef));
 		if (!newParticles)
 			DS_PROFILE_FUNC_RETURN(false);
 
@@ -581,6 +583,7 @@ bool dsParticleDraw_destroy(dsParticleDraw* drawer)
 		}
 		DS_VERIFY(dsDrawGeometry_destroy(drawer->buffers[i].geometry));
 	}
+	dsSharedMaterialValues_destroy(drawer->instanceValues);
 	DS_VERIFY(dsAllocator_free(drawer->allocator, drawer->buffers));
 	DS_VERIFY(dsAllocator_free(drawer->allocator, drawer->particles));
 	DS_VERIFY(dsAllocator_free(drawer->allocator, drawer));

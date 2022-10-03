@@ -129,7 +129,7 @@ void dsParticle_randomRotation(dsParticle* particle, dsRandom* random,
 	particle->rotation.x =
 		randomWrappedFloat(random, xRotationRange->x, xRotationRange->y, wrapVal);
 	particle->rotation.y =
-		randomWrappedFloat(random, xRotationRange->y, xRotationRange->y, wrapVal);
+		randomWrappedFloat(random, yRotationRange->x, yRotationRange->y, wrapVal);
 }
 
 void dsParticle_randomColor(dsParticle* particle, dsRandom* random, const dsVector2f* hueRange,

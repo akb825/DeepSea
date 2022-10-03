@@ -136,7 +136,7 @@ dsSceneNode* dsSceneModelNode_load(const dsSceneLoadContext* loadContext,
 				resourceType != dsSceneResourceType_Shader)
 			{
 				errno = ENOTFOUND;
-				DS_LOG_INFO_F(DS_SCENE_LOG_TAG, "Couldn't find model shader '%s'.",
+				DS_LOG_ERROR_F(DS_SCENE_LOG_TAG, "Couldn't find model shader '%s'.",
 					fbShaderName->c_str());
 				goto finished;
 			}
@@ -153,7 +153,7 @@ dsSceneNode* dsSceneModelNode_load(const dsSceneLoadContext* loadContext,
 				resourceType != dsSceneResourceType_Material)
 			{
 				errno = ENOTFOUND;
-				DS_LOG_INFO_F(DS_SCENE_LOG_TAG, "Couldn't find model material '%s'.",
+				DS_LOG_ERROR_F(DS_SCENE_LOG_TAG, "Couldn't find model material '%s'.",
 					fbMaterialName->c_str());
 				goto finished;
 			}
@@ -165,7 +165,7 @@ dsSceneNode* dsSceneModelNode_load(const dsSceneLoadContext* loadContext,
 			resourceType != dsSceneResourceType_DrawGeometry)
 		{
 			errno = ENOTFOUND;
-			DS_LOG_INFO_F(DS_SCENE_LOG_TAG, "Couldn't find model geometry '%s'.", geometryName);
+			DS_LOG_ERROR_F(DS_SCENE_LOG_TAG, "Couldn't find model geometry '%s'.", geometryName);
 			goto finished;
 		}
 
@@ -181,7 +181,7 @@ dsSceneNode* dsSceneModelNode_load(const dsSceneLoadContext* loadContext,
 			if (!fbModelDrawRange)
 			{
 				errno = EFORMAT;
-				DS_LOG_INFO(DS_SCENE_LOG_TAG, "No valid model draw range.");
+				DS_LOG_ERROR_F(DS_SCENE_LOG_TAG, "No valid model draw range.");
 				goto finished;
 			}
 
@@ -190,7 +190,7 @@ dsSceneNode* dsSceneModelNode_load(const dsSceneLoadContext* loadContext,
 				if (modelInfo->geometry->indexBuffer.buffer)
 				{
 					errno = EFORMAT;
-					DS_LOG_INFO(DS_SCENE_LOG_TAG,
+					DS_LOG_ERROR_F(DS_SCENE_LOG_TAG,
 						"Cannot use a DrawRange with geometry with an index buffer.");
 					goto finished;
 				}
@@ -206,7 +206,7 @@ dsSceneNode* dsSceneModelNode_load(const dsSceneLoadContext* loadContext,
 				if (!modelInfo->geometry->indexBuffer.buffer)
 				{
 					errno = EFORMAT;
-					DS_LOG_INFO(DS_SCENE_LOG_TAG,
+					DS_LOG_ERROR_F(DS_SCENE_LOG_TAG,
 						"Cannot use a IndexedDrawRange with geometry without an index buffer.");
 					goto finished;
 				}
@@ -222,7 +222,7 @@ dsSceneNode* dsSceneModelNode_load(const dsSceneLoadContext* loadContext,
 			else
 			{
 				errno = EFORMAT;
-				DS_LOG_INFO(DS_SCENE_LOG_TAG, "No valid model draw range.");
+				DS_LOG_ERROR_F(DS_SCENE_LOG_TAG, "No valid model draw range.");
 				goto finished;
 			}
 		}

@@ -174,10 +174,39 @@
 	{
 		"type": "SceneNode",
 		"nodeType": "TransformNode",
-		"name": "torch",
+		"name": "staticTorch",
 		"children":
 		[
-			{"nodeType": "ReferenceNode", "ref": "torchModel"}
+			{"nodeType": "ReferenceNode", "ref": "torchModel"},
+			{
+				"nodeType": "ParticleNode",
+				"particleEmitterFactory": "staticFlame",
+				"itemLists": ["cullList", "particlePrepare", "particles"]
+			},
+			{
+				"nodeType": "ParticleNode",
+				"particleEmitterFactory": "staticSmoke",
+				"itemLists": ["cullList", "particlePrepare", "particles"]
+			}
+		]
+	},
+	{
+		"type": "SceneNode",
+		"nodeType": "TransformNode",
+		"name": "movingTorch",
+		"children":
+		[
+			{"nodeType": "ReferenceNode", "ref": "torchModel"},
+			{
+				"nodeType": "ParticleNode",
+				"particleEmitterFactory": "movingFlame",
+				"itemLists": ["cullList", "particlePrepare", "particles"]
+			},
+			{
+				"nodeType": "ParticleNode",
+				"particleEmitterFactory": "movingSmoke",
+				"itemLists": ["cullList", "particlePrepare", "particles"]
+			}
 		]
 	},
 	{
@@ -187,7 +216,7 @@
 		"transformList": [{"type": "Translate", "value": [4.0, 0.0, 0.0]}],
 		"children":
 		[
-			{"nodeType": "ReferenceNode", "ref": "torch"}
+			{"nodeType": "ReferenceNode", "ref": "movingTorch"}
 		]
 	},
 	{
@@ -201,7 +230,7 @@
 		],
 		"children":
 		[
-			{"nodeType": "ReferenceNode", "ref": "torch"}
+			{"nodeType": "ReferenceNode", "ref": "movingTorch"}
 		]
 	},
 	{
@@ -210,7 +239,7 @@
 		"children":
 		[
 			{"nodeType": "ReferenceNode", "ref": "groundModel"},
-			{"nodeType": "ReferenceNode", "ref": "torch"},
+			{"nodeType": "ReferenceNode", "ref": "staticTorch"},
 			{"nodeType": "ReferenceNode", "ref": "rotatingTorch1"},
 			{"nodeType": "ReferenceNode", "ref": "rotatingTorch2"}
 		]

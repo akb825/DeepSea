@@ -59,7 +59,7 @@ static bool advanceParticle(dsParticle* nextParticle, const dsParticle* prevPart
 
 	nextParticle->rotation.x = prevParticle->rotation.x + prevStandardParticle->rotationSpeed*time;
 	nextParticle->rotation.x = dsWrapf(nextParticle->rotation.x, 0, (float)(2*M_PI));
-	nextParticle->rotation.y = nextParticle->rotation.y;
+	nextParticle->rotation.y = prevParticle->rotation.y;
 	nextParticle->t = nextT;
 	return true;
 }
@@ -83,10 +83,12 @@ static uint32_t dsStandardParticleEmitter_update(dsParticleEmitter* emitter, flo
 		dsStandardParticle* nextStandardParticle = (dsStandardParticle*)nextParticle;
 
 		// Copy over components that are static.
+		nextParticle->size = prevParticle->size;
 		nextParticle->color = prevParticle->color;
 		nextParticle->intensity = prevParticle->intensity;
 		nextParticle->textureIndex = prevParticle->textureIndex;
 
+		nextStandardParticle->direction = prevStandardParticle->direction;
 		nextStandardParticle->speed = prevStandardParticle->speed;
 		nextStandardParticle->rotationSpeed = prevStandardParticle->rotationSpeed;
 		nextStandardParticle->timeScale = prevStandardParticle->timeScale;
@@ -109,7 +111,6 @@ static uint32_t dsStandardParticleEmitter_update(dsParticleEmitter* emitter, flo
 	const dsVector2f rotationRange = {{0, (float)(2*M_PI)}};
 	do
 	{
-
 		// Add the time before creating the next particle to the countdown timer.
 		standardEmitter->nextSpawnCountdown += dsRandom_nextFloatRange(&standardEmitter->random,
 			standardEmitter->options.spawnTimeRange.x,
@@ -130,9 +131,9 @@ static uint32_t dsStandardParticleEmitter_update(dsParticleEmitter* emitter, flo
 		if (particleTime <= curElapsedTime)
 			continue;
 
-		++nextParticleCount;
 		dsParticle* nextParticle = (dsParticle*)nextParticlePtr;
 		dsStandardParticle* nextStandardParticle = (dsStandardParticle*)nextParticlePtr;
+		++nextParticleCount;
 		nextParticlePtr += emitter->sizeofParticle;
 
 		dsParticle_randomPosition(nextParticle, &standardEmitter->random, &options->spawnVolume,

@@ -53,14 +53,14 @@ dsSceneNode* dsSceneParticleNode_load(const dsSceneLoadContext* loadContext,
 
 	const char* factoryName = fbParticleNode->particleEmitterFactory()->c_str();
 	dsSceneResourceType resourceType;
-	dsCustomSceneResource customResource;
+	dsCustomSceneResource* customResource;
 	if (!dsSceneLoadScratchData_findResource(&resourceType,
 			reinterpret_cast<void**>(&customResource), scratchData, factoryName) ||
 		resourceType != dsSceneResourceType_Custom ||
-		customResource.type != dsSceneParticleEmitterFactory_type())
+		customResource->type != dsSceneParticleEmitterFactory_type())
 	{
 		errno = ENOTFOUND;
-		DS_LOG_INFO_F(DS_SCENE_PARTICLE_LOG_TAG, "Couldn't find particle emitter factory '%s'.",
+		DS_LOG_ERROR_F(DS_SCENE_PARTICLE_LOG_TAG, "Couldn't find particle emitter factory '%s'.",
 			factoryName);
 		return nullptr;
 	}
@@ -85,7 +85,7 @@ dsSceneNode* dsSceneParticleNode_load(const dsSceneLoadContext* loadContext,
 		}
 	}
 
-	auto factory = reinterpret_cast<dsSceneParticleEmitterFactory*>(customResource.resource);
+	auto factory = reinterpret_cast<dsSceneParticleEmitterFactory*>(customResource->resource);
 	return (dsSceneNode*)dsSceneParticleNode_create(allocator, allocator,
 		factory->createEmitterFunc, factory->updateEmitterFunc, factory->userData, nullptr,
 		itemLists, itemListCount);

@@ -26,7 +26,6 @@
 
 #include <DeepSea/Render/Resources/ShaderVariableGroupDesc.h>
 
-#include <DeepSea/Scene/ItemLists/InstanceTransformData.h>
 #include <DeepSea/Scene/ItemLists/SceneInstanceVariables.h>
 #include <DeepSea/Scene/Nodes/SceneTreeNode.h>
 #include <DeepSea/Scene/Types.h>
@@ -44,14 +43,14 @@ static dsShaderVariableElement elements[] =
 	{"worldViewProj", dsMaterialType_Mat4, 0}
 };
 
-typedef struct InstanceTransform
+typedef struct ParticleTransform
 {
 	dsMatrix44f world;
 	dsMatrix44f worldView;
 	dsVector4f localWorldOrientation[3];
 	dsVector4f localViewOrientation[3];
 	dsMatrix44f worldViewProj;
-} InstanceTransform;
+} ParticleTransform;
 
 static inline void toMatrix33(dsMatrix33f* outMatrix, const dsMatrix44f* inMatrix)
 {
@@ -71,13 +70,13 @@ static void dsParticleTransformData_populateData(void* userData, const dsView* v
 {
 	DS_UNUSED(userData);
 	DS_UNUSED(dataDesc);
-	DS_ASSERT(stride >= sizeof(InstanceTransform));
+	DS_ASSERT(stride >= sizeof(ParticleTransform));
 	for (uint32_t i = 0; i < instanceCount; ++i, data += stride)
 	{
 		const dsParticleEmitter* emitter = dsSceneParticleNode_getEmitterForInstance(instances[i]);
 		// The GPU memory can have some bad properties when accessing from the CPU, so first do all
 		// work on CPU memory and copy as one to the GPU buffer.
-		InstanceTransform transform;
+		ParticleTransform transform;
 		if (emitter)
 			transform.world = emitter->transform;
 		else
@@ -95,7 +94,7 @@ static void dsParticleTransformData_populateData(void* userData, const dsView* v
 
 		dsMatrix44_mul(transform.worldViewProj, view->projectionMatrix, transform.worldView);
 
-		*(InstanceTransform*)(data) = transform;
+		*(ParticleTransform*)(data) = transform;
 	}
 }
 
@@ -141,6 +140,6 @@ dsSceneInstanceData* dsParticleTransformData_create(dsAllocator* allocator,
 	}
 
 	return dsSceneInstanceVariables_create(allocator, resourceManager, transformDesc,
-		dsHashString(dsInstanceTransformData_typeName),
+		dsHashString(dsParticleTransformData_typeName),
 		&dsParticleTransformData_populateData, NULL, NULL);
 }

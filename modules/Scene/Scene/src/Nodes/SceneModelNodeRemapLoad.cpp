@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2021 Aaron Barany
+ * Copyright 2020-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,7 +62,7 @@ dsSceneNode* dsSceneModelNode_loadRemap(const dsSceneLoadContext*,
 		!dsSceneNode_isOfType(origNode, dsSceneModelNode_type()))
 	{
 		errno = ENOTFOUND;
-		DS_LOG_INFO_F(DS_SCENE_LOG_TAG, "Couldn't find model node '%s'.", name);
+		DS_LOG_ERROR_F(DS_SCENE_LOG_TAG, "Couldn't find model node '%s'.", name);
 		return NULL;
 	}
 
@@ -96,7 +96,7 @@ dsSceneNode* dsSceneModelNode_loadRemap(const dsSceneLoadContext*,
 						type != dsSceneResourceType_Shader)
 					{
 						errno = ENOTFOUND;
-						DS_LOG_INFO_F(DS_SCENE_LOG_TAG, "Couldn't find shader '%s'.",
+						DS_LOG_ERROR_F(DS_SCENE_LOG_TAG, "Couldn't find shader '%s'.",
 							fbShader->c_str());
 						return NULL;
 					}
@@ -113,7 +113,7 @@ dsSceneNode* dsSceneModelNode_loadRemap(const dsSceneLoadContext*,
 						type != dsSceneResourceType_Material)
 					{
 						errno = ENOTFOUND;
-						DS_LOG_INFO_F(DS_SCENE_LOG_TAG, "Couldn't find material '%s'.",
+						DS_LOG_ERROR_F(DS_SCENE_LOG_TAG, "Couldn't find material '%s'.",
 							fbMaterial->c_str());
 						return NULL;
 					}

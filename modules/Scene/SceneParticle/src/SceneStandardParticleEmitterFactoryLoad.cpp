@@ -68,7 +68,7 @@ void* dsSceneStandardParticleEmitterFactory_load(const dsSceneLoadContext*,
 		resourceType != dsSceneResourceType_Shader)
 	{
 		errno = ENOTFOUND;
-		DS_LOG_INFO_F(DS_SCENE_PARTICLE_LOG_TAG, "Couldn't find particle shader '%s'.", shaderName);
+		DS_LOG_ERROR_F(DS_SCENE_PARTICLE_LOG_TAG, "Couldn't find particle shader '%s'.", shaderName);
 		return nullptr;
 	}
 
@@ -78,7 +78,7 @@ void* dsSceneStandardParticleEmitterFactory_load(const dsSceneLoadContext*,
 		resourceType != dsSceneResourceType_Material)
 	{
 		errno = ENOTFOUND;
-		DS_LOG_INFO_F(DS_SCENE_PARTICLE_LOG_TAG, "Couldn't find particle material '%s'.",
+		DS_LOG_ERROR_F(DS_SCENE_PARTICLE_LOG_TAG, "Couldn't find particle material '%s'.",
 			materialName);
 		return nullptr;
 	}
@@ -90,7 +90,7 @@ void* dsSceneStandardParticleEmitterFactory_load(const dsSceneLoadContext*,
 		resourceType != dsSceneResourceType_SceneNode))
 	{
 		errno = ENOTFOUND;
-		DS_LOG_INFO_F(DS_SCENE_PARTICLE_LOG_TAG, "Couldn't find particle relative node '%s'.",
+		DS_LOG_ERROR_F(DS_SCENE_PARTICLE_LOG_TAG, "Couldn't find particle relative node '%s'.",
 			fbRelativeNode->c_str());
 		return nullptr;
 	}

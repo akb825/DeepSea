@@ -39,10 +39,11 @@ extern "C"
  * @param resourceManager The resource manager to create graphics resources with.
  * @param resourceAllocator The allocator to create graphics resources with. If NULL, allocator
  *     will be used.
+ * @param minInstanceValues The minimum number of instance values to allocate.
  * @return The particle drawer or NULL if an error occurred.
  */
 DS_PARTICLE_EXPORT dsParticleDraw* dsParticleDraw_create(dsAllocator* allocator,
-	dsResourceManager* resourceManager, dsAllocator* resourceAllocator);
+	dsResourceManager* resourceManager, dsAllocator* resourceAllocator, uint32_t minInstanceValues);
 
 /**
  * @brief Draws the set of particle emitters that have added to it.

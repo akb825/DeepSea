@@ -115,11 +115,6 @@
 								{
 									"type": "ParticleTransformData",
 									"variableGroupDesc": "particleTransformDesc"
-								},
-								{
-									"type": "InstanceForwardLightData",
-									"variableGroupDesc": "instanceForwardLightDesc",
-									"lightSet": "lightSet"
 								}
 							],
 							"cullList": "cullList"

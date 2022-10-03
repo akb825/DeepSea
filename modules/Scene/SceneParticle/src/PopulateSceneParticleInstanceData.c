@@ -29,7 +29,7 @@ bool dsPopulateSceneParticleInstanceData(const dsParticleEmitter* emitter,
 	}
 
 	const dsSceneParticleInstanceData* instanceData = (const dsSceneParticleInstanceData*)drawData;
-	for (uint32_t i = 0; i < instanceData->instanceCount; ++i)
+	for (uint32_t i = 0; i < instanceData->instanceDataCount; ++i)
 	{
 		if (!dsSceneInstanceData_bindInstance(instanceData->instanceData[i], index, values))
 			return false;

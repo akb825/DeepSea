@@ -220,6 +220,7 @@ static void dsSceneParticleDrawList_destroy(dsSceneItemList* itemList)
 	dsSceneParticleDrawList* drawList = (dsSceneParticleDrawList*)itemList;
 	DS_VERIFY(dsAllocator_free(itemList->allocator, drawList->entries));
 	DS_VERIFY(dsAllocator_free(itemList->allocator, (void*)drawList->instances));
+	DS_VERIFY(dsAllocator_free(itemList->allocator, drawList->emitters));
 	destroyInstanceData(drawList->instanceData, drawList->instanceDataCount);
 	dsParticleDraw_destroy(drawList->drawer);
 	DS_VERIFY(dsAllocator_free(itemList->allocator, itemList));
@@ -254,9 +255,12 @@ dsSceneItemList* dsSceneParticleDrawList_create(dsAllocator* allocator, const ch
 		return NULL;
 	}
 
+	uint32_t instanceValueCount = 0;
 	for (uint32_t i = 0; i < instanceDataCount; ++i)
 	{
-		if (!instanceData[i])
+		if (instanceData[i])
+			instanceValueCount += instanceData[i]->valueCount;
+		else
 		{
 			errno = EINVAL;
 			destroyInstanceData(instanceData, instanceDataCount);
@@ -318,7 +322,8 @@ dsSceneItemList* dsSceneParticleDrawList_create(dsAllocator* allocator, const ch
 	drawList->maxInstances = 0;
 	drawList->nextNodeID = 0;
 
-	drawList->drawer = dsParticleDraw_create(allocator, resourceManager, resourceAllocator);
+	drawList->drawer = dsParticleDraw_create(allocator, resourceManager, resourceAllocator,
+		instanceValueCount);
 	if (!drawList->drawer)
 	{
 		dsSceneParticleDrawList_destroy(itemList);
