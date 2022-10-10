@@ -136,7 +136,8 @@ function(ds_install_library)
 
 	foreach (dependency ${ARGS_EXTERNAL_DEPENDS})
 		if (NOT ARGS_STATIC AND DEEPSEA_SINGLE_SHARED)
-			set(DEEPSEA_EXTERNAL_DEPENDS "${DEEPSEA_EXTERNAL_DEPENDS}find_dependency(${dependency})\n")
+			set(DEEPSEA_EXTERNAL_DEPENDS
+				"${DEEPSEA_EXTERNAL_DEPENDS}find_dependency(${dependency})\n")
 		else()
 			set(dependencies "${dependencies}find_dependency(${dependency})\n")
 		endif()

@@ -263,9 +263,13 @@ macro(ds_add_executable target)
 			set_target_properties(${target} PROPERTIES
 				MACOSX_BUNDLE_GUI_IDENTIFIER com.deepsea.${targetNoUnderscore}
 				MACOSX_BUNDLE_BUNDLE_NAME ${target}
-				MACOSX_BUNDLE_INFO_PLIST ${DEEPSEA_SOURCE_DIR}/cmake/iOSBundleInfo.plist.in
-				XCODE_ATTRIBUTE_TARGETED_DEVICE_FAMILY 1,2
 				XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER com.deepsea.${targetNoUnderscore})
+
+			if (IOS)
+				set_target_properties(${target} PROPERTIES
+					MACOSX_BUNDLE_INFO_PLIST ${DEEPSEA_SOURCE_DIR}/cmake/iOSBundleInfo.plist.in
+					XCODE_ATTRIBUTE_TARGETED_DEVICE_FAMILY 1,2)
+			endif()
 		endif()
 	endif()
 endmacro()

@@ -1,4 +1,4 @@
-# Copyright 2018-2021 Aaron Barany
+# Copyright 2018-2022 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ if (IS_DIRECTORY ${DEEPSEA_PREBUILT_TOOLS_DIR} AND DEEPSEA_INSTALL)
 		USE_SOURCE_PERMISSIONS PATTERN "version" EXCLUDE)
 endif()
 
+set(DEEPSEA_PREBUILT_LIBS_DIR)
 if (NOT DEEPSEA_NO_PREBUILT_LIBS)
 	set(DEEPSEA_PREBUILT_LIBS_DIR_BASE ${DEEPSEA_SOURCE_DIR}/dependencies/libs)
 	if (ANDROID)
@@ -49,6 +50,15 @@ if (NOT DEEPSEA_NO_PREBUILT_LIBS)
 	if (DEEPSEA_PREBUILT_LIBS_DIR AND IS_DIRECTORY ${DEEPSEA_PREBUILT_LIBS_DIR})
 		set(CMAKE_FIND_ROOT_PATH ${CMAKE_FIND_ROOT_PATH} ${DEEPSEA_PREBUILT_LIBS_DIR})
 		set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${DEEPSEA_PREBUILT_LIBS_DIR})
+
+		file(GLOB prebuiltDlls ${DEEPSEA_PREBUILT_LIBS_DIR}/bin/*.dll)
+		if (WIN32 AND DEEPSEA_OUTPUT_DIR)
+			# Copy any DLLs for Windows.
+			foreach (config ${CMAKE_CONFIGURATION_TYPES})
+				file(COPY ${prebuiltDlls} DESTINATION ${DEEPSEA_OUTPUT_DIR}/${config})
+			endforeach()
+		endif()
+
 		if (DEEPSEA_INSTALL)
 			file(GLOB prebuiltLibs ${DEEPSEA_PREBUILT_LIBS_DIR}/lib/*.a
 				${DEEPSEA_PREBUILT_LIBS_DIR}/lib/*.lib)
@@ -63,6 +73,22 @@ if (NOT DEEPSEA_NO_PREBUILT_LIBS)
 			list(REMOVE_ITEM prebuiltLibs ${gtestLibs})
 			list(REMOVE_ITEM prebuiltSharedLibs ${gtestLibs})
 			list(REMOVE_ITEM prebuiltDlls ${gtestLibs})
+
+			# Only the static or dynamic SDL library based on what's needed.
+			if (NOT ANDROID)
+				if (DEEPSEA_SHARED)
+					set(unusedSdlLibs ${DEEPSEA_PREBUILT_LIBS_DIR}/lib/libSDL2.a
+						${DEEPSEA_PREBUILT_LIBS_DIR}/lib/SDL2-static.lib)
+				else()
+					set(unusedSdlLibs ${DEEPSEA_PREBUILT_LIBS_DIR}/lib/libSDL2.so
+						${DEEPSEA_PREBUILT_LIBS_DIR}/lib/libSDL2.dylib
+						${DEEPSEA_PREBUILT_LIBS_DIR}/lib/SDL2.lib
+						${DEEPSEA_PREBUILT_LIBS_DIR}/lib/SDL2.dll)
+				endif()
+				list(REMOVE_ITEM prebuiltLibs ${unusedSdlLibs})
+				list(REMOVE_ITEM prebuiltSharedLibs ${unusedSdlLibs})
+				list(REMOVE_ITEM prebuiltDlls ${unusedSdlLibs})
+			endif()
 
 			install(FILES ${prebuiltLibs} DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT dev)
 			install(PROGRAMS ${prebuiltSharedLibs} DESTINATION ${CMAKE_INSTALL_LIBDIR}

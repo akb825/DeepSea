@@ -7,7 +7,7 @@ ds_add_unittest(deepsea_application_sdl_test ${sources})
 
 target_include_directories(deepsea_application_sdl_test PRIVATE
 	../src
-	${SDL2_INCLUDE_DIR})
+	${SDL2_INCLUDE_DIRS})
 target_link_libraries(deepsea_application_sdl_test PRIVATE DeepSea::ApplicationSDL)
 
 ds_set_folder(deepsea_application_sdl_test tests/unit)
