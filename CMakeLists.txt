@@ -2,13 +2,19 @@ cmake_minimum_required(VERSION 3.5)
 project(DeepSea)
 
 # Build options
-set(DEEPSEA_SHARED OFF CACHE BOOL "Build DeepSea using shared libraries.")
+# Use if since BUILD_SHARED_LIBS defaults to unset.
+if (BUILD_SHARED_LIBS)
+	set(DEEPSEA_SHARED_DEFAULT ON)
+else()
+	set(DEEPSEA_SHARED_DEFAULT OFF)
+endif()
+set(DEEPSEA_SHARED ${DEEPSEA_SHARED_DEFAULT} CACHE BOOL "Build DeepSea using shared libraries.")
 set(DEEPSEA_SINGLE_SHARED OFF CACHE BOOL "Build DeepSea as a single shared library for all modules.")
 set(DEEPSEA_PROFILING ON CACHE BOOL "Enable profiling of code.")
 set(DEEPSEA_GPU_PROFILING OFF CACHE BOOL "Enable profiling of the GPU.")
 set(DEEPSEA_SYSTEM_MSL OFF CACHE BOOL "Use the system installed version of MSL.")
 
-if (DEEPSEA_SINGLE_SHARED OR BUILD_SHARED_LIBS)
+if (DEEPSEA_SINGLE_SHARED)
 	set(DEEPSEA_SHARED ON CACHE BOOL "" FORCE)
 endif()
 
