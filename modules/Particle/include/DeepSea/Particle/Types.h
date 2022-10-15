@@ -431,6 +431,11 @@ typedef struct dsStandardParticleEmitterOptions
 	dsVector2f colorValueRange;
 
 	/**
+	 * @brief The minimum and maximum alpha values for the color in the range [0, 1].
+	 */
+	dsVector2f colorAlphaRange;
+
+	/**
 	 * @brief The minimum and maximum intensity values.
 	 */
 	dsVector2f intensityRange;

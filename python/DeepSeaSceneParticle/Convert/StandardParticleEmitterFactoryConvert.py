@@ -81,7 +81,10 @@ def convertStandardParticleEmitterFactory(convertContext, data):
 	  range [0, 1].
 	- colorValueRange: array of 2 floats for the minimum and maximum color value in the range
 	  [0, 1].
+	- colorAlphaRange: array of 2 floats for the minimum and maximum color alpha value in the range
+	  [0, 1]. Defaults to [1, 1] if unset.
 	- intensityRange: array of 2 floats for the minimum and maximum intensity of a particle.
+	  Defaults to [1, 1] if unset.
 	- relativeNode: optional name of a node to transform the particles relative to. When set, the
 	  particles will use the transform of relativeNode, while the volume boundary to spawn the
 	  particles will be relative to the particle emitter's node. This must be an ancestor of the
@@ -200,7 +203,16 @@ def convertStandardParticleEmitterFactory(convertContext, data):
 		colorSaturationRange = readFloatMinMax(data['colorSaturationRange'], 'colorSaturationRange',
 			0.0, 1.0)
 		colorValueRange = readFloatMinMax(data['colorValueRange'], 'colorValueRange', 0.0, 1.0)
-		intensityRange = readFloatMinMax(data['intensityRange'], 'intensityRange', 0.0)
+		colorAlphaRangeData = data.get('colorAlphaRange')
+		if colorAlphaRangeData:
+			colorAlphaRange = readFloatMinMax(colorAlphaRangeData, 'colorAlphaRange', 0.0, 1.0)
+		else:
+			colorAlphaRange = [1.0, 1.0]
+		intensityRangeData = data.get('intensityRange')
+		if intensityRangeData:
+			intensityRange = readFloatMinMax(intensityRangeData, 'intensityRange', 0.0)
+		else:
+			intensityRange = [1.0, 1.0]
 		relativeNode = str(data.get('relativeNode', ''))
 		seed = readInt(data.get('seed', 0), 'seed')
 		enabled = readBool(data.get('enabled', True), 'enabled')
@@ -273,6 +285,8 @@ def convertStandardParticleEmitterFactory(convertContext, data):
 		CreateVector2f(builder, *colorSaturationRange))
 	StandardParticleEmitterFactory.AddColorValueRange(builder,
 		CreateVector2f(builder, *colorValueRange))
+	StandardParticleEmitterFactory.AddColorAlphaRange(builder,
+		CreateVector2f(builder, *colorAlphaRange))
 	StandardParticleEmitterFactory.AddIntensityRange(builder,
 		CreateVector2f(builder, *intensityRange))
 	StandardParticleEmitterFactory.AddRelativeNode(builder, relativeNodeOffset)

@@ -145,7 +145,7 @@ static uint32_t dsStandardParticleEmitter_update(dsParticleEmitter* emitter, flo
 		dsParticle_randomRotation(nextParticle, &standardEmitter->random, &rotationRange,
 			&rotationRange);
 		dsParticle_randomColor(nextParticle, &standardEmitter->random, &options->colorHueRange,
-			&options->colorSaturationRange, &options->colorValueRange);
+			&options->colorSaturationRange, &options->colorValueRange, &options->colorAlphaRange);
 		dsParticle_randomIntensity(nextParticle, &standardEmitter->random,
 			&options->intensityRange);
 		dsParticle_randomTexture(nextParticle, &standardEmitter->random, &options->textureRange);

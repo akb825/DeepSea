@@ -45,7 +45,8 @@ The following custom scene resource types are provided with the members that are
 	* `colorHueRange`: array of 2 floats for the minimum and maximum color hue n the range [0, 360]. The minimum may be larger than the maximum to wrap around at 360.
 	* `colorSaturationRange`: array of 2 floats for the minimum and maximum color saturation in the range [0, 1].
 	* `colorValueRange`: array of 2 floats for the minimum and maximum color value in the range [0, 1].
-	* `intensityRange`: array of 2 floats for the minimum and maximum intensity of a particle.
+	* `colorAlphaRange`: array of 2 floats for the minimum and maximum color alpha value in the range [0, 1]. Defaults to [1, 1] if unset.
+	* `intensityRange`: array of 2 floats for the minimum and maximum intensity of a particle. Defaults to [1, 1] if unset.
 	* `relativeNode`: optional name of a node to transform the particles relative to. When set, the particles will use the transform of relativeNode, while the volume boundary to spawn the particles will be relative to the particle emitter's node. This must be an ancestor of the node the particle emitter will be created with.
 	* `seed`: optional random seed to create the factory with. If unset or 0 a random seed will be generated.
 	* `enabled`: optional bool for whether or not the particle emitter will be enabled on creation. Defaults to `true`.

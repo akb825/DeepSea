@@ -151,6 +151,7 @@ void* dsSceneStandardParticleEmitterFactory_load(const dsSceneLoadContext*,
 	options.colorHueRange = DeepSeaScene::convert(*fbFactory->colorHueRange());
 	options.colorSaturationRange = DeepSeaScene::convert(*fbFactory->colorSaturationRange());
 	options.colorValueRange = DeepSeaScene::convert(*fbFactory->colorValueRange());
+	options.colorAlphaRange = DeepSeaScene::convert(*fbFactory->colorAlphaRange());
 	options.intensityRange = DeepSeaScene::convert(*fbFactory->intensityRange());
 
 	uint64_t seed = fbFactory->seed();

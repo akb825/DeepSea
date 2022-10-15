@@ -69,6 +69,9 @@ table StandardParticleEmitterFactory
 	// The minimum and maximum values for the color in the range [0, 1].
 	colorValueRange : DeepSeaScene.Vector2f (required);
 
+	// The minimum and maximum alpha values for the color in the range [0, 1].
+	colorAlphaRange : DeepSeaScene.Vector2f (required);
+
 	// The minimum and maximum intensity values.
 	intensityRange : DeepSeaScene.Vector2f (required);
 

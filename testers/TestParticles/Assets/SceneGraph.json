@@ -29,7 +29,7 @@
 		"colorHueRange": [0, 100],
 		"colorSaturationRange": [0.0, 0.2],
 		"colorValueRange": [0.8, 1.0],
-		"intensityRange": [1, 1],
+		"intensityRange": [0.8, 1.2],
 		"relativeNode": "rootNode",
 		"startTime": 10
 	},
@@ -58,7 +58,6 @@
 		"colorHueRange": [0, 0],
 		"colorSaturationRange": [0, 0],
 		"colorValueRange": [0.8, 1.0],
-		"intensityRange": [1, 1],
 		"relativeNode": "rootNode",
 		"startTime": 10
 	},
@@ -87,7 +86,7 @@
 		"colorHueRange": [0, 100],
 		"colorSaturationRange": [0.0, 0.2],
 		"colorValueRange": [0.8, 1.0],
-		"intensityRange": [1, 1],
+		"intensityRange": [0.8, 1.2],
 		"relativeNode": "rootNode"
 	},
 	{
@@ -115,7 +114,6 @@
 		"colorHueRange": [0, 0],
 		"colorSaturationRange": [0, 0],
 		"colorValueRange": [0.8, 1.0],
-		"intensityRange": [1, 1],
 		"relativeNode": "rootNode"
 	},
 	{

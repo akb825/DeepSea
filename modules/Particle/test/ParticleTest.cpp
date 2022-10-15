@@ -233,6 +233,7 @@ TEST(ParticleTest, RandomColor)
 	dsVector2f hueRange = {{12.3f, 45.6f}};
 	dsVector2f saturationRange = {{0.3f, 0.7f}};
 	dsVector2f valueRange = {{0.2f, 0.5f}};
+	dsVector2f alphaRange = {{0.3f, 0.6f}};
 
 	dsAlignedBox3f hsvRange = {{{hueRange.x, saturationRange.x, valueRange.x}},
 		{{hueRange.y, saturationRange.y, valueRange.y}}};
@@ -250,12 +251,15 @@ TEST(ParticleTest, RandomColor)
 	dsParticle particle;
 	for (unsigned int i = 0; i < cIterations; ++i)
 	{
-		dsParticle_randomColor(&particle, &random, &hueRange, &saturationRange, &valueRange);
+		dsParticle_randomColor(&particle, &random, &hueRange, &saturationRange, &valueRange,
+			&alphaRange);
 		dsHSVColor hsvColor;
 		dsHSVColor_fromColor(&hsvColor, particle.color);
 		EXPECT_TRUE(dsAlignedBox3_containsPoint(hsvRange, *(dsVector3f*)&hsvColor)) << hsvColor.h <<
 			", " << hsvColor.s << ", " << hsvColor.v;
 		dsAlignedBox3_addPoint(hsvBox, *(dsVector3f*)&hsvColor);
+		EXPECT_LE(alphaRange.x, hsvColor.a);
+		EXPECT_GE(alphaRange.y, hsvColor.a);
 	}
 
 	dsVector3f maxSize;
@@ -280,6 +284,7 @@ TEST(ParticleTest, RandomColorWrapped)
 	dsVector2f hueRange = {{123.4f, 56.7f}};
 	dsVector2f saturationRange = {{0.3f, 0.7f}};
 	dsVector2f valueRange = {{0.2f, 0.5f}};
+	dsVector2f alphaRange = {{0.0f, 1.0f}};
 
 	dsAlignedBox3f lowerHsvRange = {{{0.0f, saturationRange.x, valueRange.x}},
 		{{hueRange.y, saturationRange.y, valueRange.y}}};
@@ -302,7 +307,8 @@ TEST(ParticleTest, RandomColorWrapped)
 	dsParticle particle;
 	for (unsigned int i = 0; i < cIterations; ++i)
 	{
-		dsParticle_randomColor(&particle, &random, &hueRange, &saturationRange, &valueRange);
+		dsParticle_randomColor(&particle, &random, &hueRange, &saturationRange, &valueRange,
+			&alphaRange);
 		dsHSVColor hsvColor;
 		dsHSVColor_fromColor(&hsvColor, particle.color);
 		if (hsvColor.h <= lowerHsvRange.max.x)
@@ -317,6 +323,8 @@ TEST(ParticleTest, RandomColorWrapped)
 				hsvColor.h << ", " << hsvColor.s << ", " << hsvColor.v;
 			dsAlignedBox3_addPoint(upperHsvBox, *(dsVector3f*)&hsvColor);
 		}
+		EXPECT_LE(alphaRange.x, hsvColor.a);
+		EXPECT_GE(alphaRange.y, hsvColor.a);
 	}
 
 	dsVector3f maxSize;

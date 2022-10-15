@@ -39,11 +39,12 @@ struct StandardParticleEmitterFactory FLATBUFFERS_FINAL_CLASS : private flatbuff
     VT_COLORHUERANGE = 30,
     VT_COLORSATURATIONRANGE = 32,
     VT_COLORVALUERANGE = 34,
-    VT_INTENSITYRANGE = 36,
-    VT_RELATIVENODE = 38,
-    VT_SEED = 40,
-    VT_ENABLED = 42,
-    VT_STARTTIME = 44
+    VT_COLORALPHARANGE = 36,
+    VT_INTENSITYRANGE = 38,
+    VT_RELATIVENODE = 40,
+    VT_SEED = 42,
+    VT_ENABLED = 44,
+    VT_STARTTIME = 46
   };
   const DeepSeaSceneParticle::ParticleEmitterParams *params() const {
     return GetPointer<const DeepSeaSceneParticle::ParticleEmitterParams *>(VT_PARAMS);
@@ -103,6 +104,9 @@ struct StandardParticleEmitterFactory FLATBUFFERS_FINAL_CLASS : private flatbuff
   const DeepSeaScene::Vector2f *colorValueRange() const {
     return GetStruct<const DeepSeaScene::Vector2f *>(VT_COLORVALUERANGE);
   }
+  const DeepSeaScene::Vector2f *colorAlphaRange() const {
+    return GetStruct<const DeepSeaScene::Vector2f *>(VT_COLORALPHARANGE);
+  }
   const DeepSeaScene::Vector2f *intensityRange() const {
     return GetStruct<const DeepSeaScene::Vector2f *>(VT_INTENSITYRANGE);
   }
@@ -138,6 +142,7 @@ struct StandardParticleEmitterFactory FLATBUFFERS_FINAL_CLASS : private flatbuff
            VerifyFieldRequired<DeepSeaScene::Vector2f>(verifier, VT_COLORHUERANGE, 4) &&
            VerifyFieldRequired<DeepSeaScene::Vector2f>(verifier, VT_COLORSATURATIONRANGE, 4) &&
            VerifyFieldRequired<DeepSeaScene::Vector2f>(verifier, VT_COLORVALUERANGE, 4) &&
+           VerifyFieldRequired<DeepSeaScene::Vector2f>(verifier, VT_COLORALPHARANGE, 4) &&
            VerifyFieldRequired<DeepSeaScene::Vector2f>(verifier, VT_INTENSITYRANGE, 4) &&
            VerifyOffset(verifier, VT_RELATIVENODE) &&
            verifier.VerifyString(relativeNode()) &&
@@ -212,6 +217,9 @@ struct StandardParticleEmitterFactoryBuilder {
   void add_colorValueRange(const DeepSeaScene::Vector2f *colorValueRange) {
     fbb_.AddStruct(StandardParticleEmitterFactory::VT_COLORVALUERANGE, colorValueRange);
   }
+  void add_colorAlphaRange(const DeepSeaScene::Vector2f *colorAlphaRange) {
+    fbb_.AddStruct(StandardParticleEmitterFactory::VT_COLORALPHARANGE, colorAlphaRange);
+  }
   void add_intensityRange(const DeepSeaScene::Vector2f *intensityRange) {
     fbb_.AddStruct(StandardParticleEmitterFactory::VT_INTENSITYRANGE, intensityRange);
   }
@@ -247,6 +255,7 @@ struct StandardParticleEmitterFactoryBuilder {
     fbb_.Required(o, StandardParticleEmitterFactory::VT_COLORHUERANGE);
     fbb_.Required(o, StandardParticleEmitterFactory::VT_COLORSATURATIONRANGE);
     fbb_.Required(o, StandardParticleEmitterFactory::VT_COLORVALUERANGE);
+    fbb_.Required(o, StandardParticleEmitterFactory::VT_COLORALPHARANGE);
     fbb_.Required(o, StandardParticleEmitterFactory::VT_INTENSITYRANGE);
     return o;
   }
@@ -270,6 +279,7 @@ inline flatbuffers::Offset<StandardParticleEmitterFactory> CreateStandardParticl
     const DeepSeaScene::Vector2f *colorHueRange = nullptr,
     const DeepSeaScene::Vector2f *colorSaturationRange = nullptr,
     const DeepSeaScene::Vector2f *colorValueRange = nullptr,
+    const DeepSeaScene::Vector2f *colorAlphaRange = nullptr,
     const DeepSeaScene::Vector2f *intensityRange = nullptr,
     flatbuffers::Offset<flatbuffers::String> relativeNode = 0,
     uint64_t seed = 0,
@@ -280,6 +290,7 @@ inline flatbuffers::Offset<StandardParticleEmitterFactory> CreateStandardParticl
   builder_.add_startTime(startTime);
   builder_.add_relativeNode(relativeNode);
   builder_.add_intensityRange(intensityRange);
+  builder_.add_colorAlphaRange(colorAlphaRange);
   builder_.add_colorValueRange(colorValueRange);
   builder_.add_colorSaturationRange(colorSaturationRange);
   builder_.add_colorHueRange(colorHueRange);
@@ -318,6 +329,7 @@ inline flatbuffers::Offset<StandardParticleEmitterFactory> CreateStandardParticl
     const DeepSeaScene::Vector2f *colorHueRange = nullptr,
     const DeepSeaScene::Vector2f *colorSaturationRange = nullptr,
     const DeepSeaScene::Vector2f *colorValueRange = nullptr,
+    const DeepSeaScene::Vector2f *colorAlphaRange = nullptr,
     const DeepSeaScene::Vector2f *intensityRange = nullptr,
     const char *relativeNode = nullptr,
     uint64_t seed = 0,
@@ -342,6 +354,7 @@ inline flatbuffers::Offset<StandardParticleEmitterFactory> CreateStandardParticl
       colorHueRange,
       colorSaturationRange,
       colorValueRange,
+      colorAlphaRange,
       intensityRange,
       relativeNode__,
       seed,

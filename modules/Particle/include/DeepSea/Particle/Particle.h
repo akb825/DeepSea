@@ -102,9 +102,11 @@ DS_PARTICLE_EXPORT void dsParticle_randomRotation(dsParticle* particle, dsRandom
  * @param saturationRange The minimum and maximum saturation values for the color in the range
  *     [0, 1].
  * @param valueRange The minimum and maximum values for the color in the range [0, 1].
+ * @param alphaRange The minimum and maximum alpha values for the color in the range [0, 1].
  */
 DS_PARTICLE_EXPORT void dsParticle_randomColor(dsParticle* particle, dsRandom* random,
-	const dsVector2f* hueRange, const dsVector2f* saturationRange, const dsVector2f* valueRange);
+	const dsVector2f* hueRange, const dsVector2f* saturationRange, const dsVector2f* valueRange,
+	const dsVector2f* alphaRange);
 
 /**
  * @brief Generates a random intensity for a particle.

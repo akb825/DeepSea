@@ -133,7 +133,7 @@ void dsParticle_randomRotation(dsParticle* particle, dsRandom* random,
 }
 
 void dsParticle_randomColor(dsParticle* particle, dsRandom* random, const dsVector2f* hueRange,
-	const dsVector2f* saturationRange, const dsVector2f* valueRange)
+	const dsVector2f* saturationRange, const dsVector2f* valueRange, const dsVector2f* alphaRange)
 {
 	DS_ASSERT(particle);
 	DS_ASSERT(random);
@@ -143,7 +143,8 @@ void dsParticle_randomColor(dsParticle* particle, dsRandom* random, const dsVect
 
 	dsHSVColor color = {{randomWrappedFloat(random, hueRange->x, hueRange->y, 360),
 		dsRandom_nextFloatRange(random, saturationRange->x, saturationRange->y),
-		dsRandom_nextFloatRange(random, valueRange->x, valueRange->y)}};
+		dsRandom_nextFloatRange(random, valueRange->x, valueRange->y),
+		dsRandom_nextFloatRange(random, alphaRange->x, alphaRange->y)}};
 	particle->color = dsColor_fromHSVColor(&color);
 }
 
