@@ -109,7 +109,7 @@ static BufferInfo* getDrawBuffer(dsParticleDraw* draw, uint32_t particleCount,
 		if (curBufferInfo->maxParticles >= particleCount)
 		{
 			// Found. Only take the first one, and continue so that invalid buffers can be removed.
-			if (!curBufferInfo)
+			if (!bufferInfo)
 			{
 				curBufferInfo->lastUsedFrame = frameNumber;
 				bufferInfo = curBufferInfo;
@@ -313,8 +313,8 @@ static bool populateParticleGeometry(dsParticleDraw* drawer, BufferInfo* bufferI
 		for (unsigned int j = 0; j < 4; ++j, ++vertices)
 		{
 			vertices->position = particle->position;
-			vertices->offset[0] = packedOffsets[i][0];
-			vertices->offset[1] = packedOffsets[i][1];
+			vertices->offset[0] = packedOffsets[j][0];
+			vertices->offset[1] = packedOffsets[j][1];
 			vertices->rotation[0] = packedRotation[0];
 			vertices->rotation[1] = packedRotation[1];
 			vertices->color = particle->color;
