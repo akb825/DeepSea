@@ -49,7 +49,7 @@ void vertexShader()
 	// Fade particles in and out.
 	float t = viIntensityTextureT.z;
 	float alphaMul1 = (1.0 - max(t, 0.9))*10.0;
-	float alphaMul2 = min(t, 0.1)*10.0;
+	float alphaMul2 = min(t, 0.25)*4.0;
 	vfColor.a = viColor.a*alphaMul1*alphaMul2;
 	// Pre-multiple alpha.
 	vfColor.rgb *= vfColor.a;

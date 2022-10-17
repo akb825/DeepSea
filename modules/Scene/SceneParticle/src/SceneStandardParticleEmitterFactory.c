@@ -64,10 +64,10 @@ static const dsMatrix44f* findRelativeTransform(const dsSceneTreeNode* treeNode,
 static void computeVolumeMatrix(dsMatrix44f* outMatrix, const dsMatrix44f* transform,
 	const dsMatrix44f* relativeTransform, const dsMatrix44f* volumeMatrix)
 {
-	dsMatrix44f relativeInverse, relativeToTransform, result;
+	dsMatrix44f relativeInverse, localTransform, result;
 	dsMatrix44f_affineInvert(&relativeInverse, relativeTransform);
-	dsMatrix44_mul(relativeToTransform, relativeInverse, *transform);
-	dsMatrix44_mul(result, relativeToTransform, *volumeMatrix);
+	dsMatrix44_affineMul(localTransform, relativeInverse, *transform);
+	dsMatrix44_affineMul(result, localTransform, *volumeMatrix);
 	*outMatrix = result;
 }
 
@@ -139,7 +139,7 @@ static bool dsSceneStandardParticleEmitterFactory_updateEmitter(
 	if (relativeTransform)
 	{
 		computeVolumeMatrix(&options->spawnVolumeMatrix, transform, relativeTransform,
-			&options->spawnVolumeMatrix);
+			&factory->options.spawnVolumeMatrix);
 		emitter->transform = *relativeTransform;
 	}
 	else

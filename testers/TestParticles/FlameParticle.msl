@@ -53,10 +53,10 @@ void vertexShader()
 	mat3 orientation;
 	orientation[2] = INSTANCE(dsParticleTransform).localWorldOrientation[2];
 	orientation[1] = normalize(
-		cross(orientation[2], INSTANCE(dsParticleTransform).localWorldOrientation[0]));
-	orientation[0] = normalize(cross(orientation[1], orientation[2]));
+		cross(orientation[2], INSTANCE(dsParticleTransform).localViewOrientation[0]));
+	orientation[0] = cross(orientation[1], orientation[2]);
 
-	vec4 position = vec4(viPosition + orientation*vec3(viOffset, 0.0), 1.0);
+	vec4 position = vec4(viPosition + orientation*vec3(viOffset.x, 0.0, viOffset.y), 1.0);
 	gl_Position = DS_ADJUST_CLIP(INSTANCE(dsParticleTransform).worldViewProj*position);
 	gl_Position.xy = dsRotateScreenPosition(gl_Position.xy);
 

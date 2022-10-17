@@ -383,8 +383,8 @@ static bool drawParticles(dsParticleDraw* drawer, const dsParticleEmitter* const
 				DS_PROFILE_FUNC_RETURN(false);
 			}
 
-			startParticle = 0;
-			particleCount = 0;
+			startParticle = i;
+			indexCount = 0;
 		}
 
 		if (changeEmitter)

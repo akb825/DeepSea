@@ -335,7 +335,7 @@ static void drawItems(dsSceneVectorItemList* vectorList, const dsView* view,
 					dsSceneTreeNode_getTransform(vectorList->instances[drawItem->instance]);
 				DS_ASSERT(nodeTransform);
 				dsMatrix44f transform;
-				dsMatrix44_mul(transform, *nodeTransform, scale);
+				dsMatrix44_affineMul(transform, *nodeTransform, scale);
 
 				dsMatrix44f modelViewProjection;
 				dsMatrix44_mul(modelViewProjection, view->viewProjectionMatrix, transform);

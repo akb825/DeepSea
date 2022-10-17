@@ -140,11 +140,12 @@ void* dsSceneStandardParticleEmitterFactory_load(const dsSceneLoadContext*,
 		options.heightRange.x = options.heightRange.y = -1;
 	options.baseDirection = DeepSeaScene::convert(*fbFactory->baseDirection());
 	dsVector3f_normalize(&options.baseDirection, &options.baseDirection);
-	options.directionSpread = fbFactory->directionSpread();
+	options.directionSpread = dsDegreesToRadiansf(fbFactory->directionSpread());
 	options.spawnTimeRange = DeepSeaScene::convert(*fbFactory->spawnTimeRange());
 	options.activeTimeRange = DeepSeaScene::convert(*fbFactory->activeTimeRange());
 	options.speedRange = DeepSeaScene::convert(*fbFactory->speedRange());
-	options.rotationSpeedRange = DeepSeaScene::convert(*fbFactory->rotationSpeedRange());
+	options.rotationSpeedRange.x = dsDegreesToRadiansf(fbFactory->rotationSpeedRange()->x());
+	options.rotationSpeedRange.y = dsDegreesToRadiansf(fbFactory->rotationSpeedRange()->y());
 	auto fbTextureRange = fbFactory->textureRange();
 	options.textureRange.x = fbTextureRange->x();
 	options.textureRange.y = fbTextureRange->y();
