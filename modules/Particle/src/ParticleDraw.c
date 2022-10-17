@@ -222,7 +222,7 @@ static BufferInfo* getDrawBuffer(dsParticleDraw* draw, uint32_t particleCount,
 
 static int particleRefCompare(const void* left, const void* right)
 {
-	// Sort from for to near, so invert of comparing view Z positions.
+	// Sort from far to near, so invert of comparing view Z positions.
 	const ParticleRef* leftRef = (ParticleRef*)left;
 	const ParticleRef* rightRef = (ParticleRef*)right;
 	if (leftRef->viewZ > rightRef->viewZ)
@@ -232,8 +232,21 @@ static int particleRefCompare(const void* left, const void* right)
 	return 0;
 }
 
+static int particleRefCompareReverseZ(const void* left, const void* right)
+{
+	// Sort from near to far for inverted Z.
+	const ParticleRef* leftRef = (ParticleRef*)left;
+	const ParticleRef* rightRef = (ParticleRef*)right;
+	if (leftRef->viewZ < rightRef->viewZ)
+		return -1;
+	else if (leftRef->viewZ > rightRef->viewZ)
+		return 1;
+	return 0;
+}
+
 static void collectParticles(dsParticleDraw* drawer, const dsMatrix44f* viewMatrix,
-	const dsParticleEmitter* const* emitters, uint32_t emitterCount, uint32_t particleCount)
+	const dsParticleEmitter* const* emitters, uint32_t emitterCount, uint32_t particleCount,
+	bool reverseZ)
 {
 	DS_PROFILE_FUNC_START();
 
@@ -268,7 +281,8 @@ static void collectParticles(dsParticleDraw* drawer, const dsMatrix44f* viewMatr
 	DS_UNUSED(curParticleCount);
 	DS_ASSERT(curParticleCount == particleCount);
 	DS_ASSERT(curParticleRef == drawer->particles + particleCount);
-	qsort(drawer->particles, particleCount, sizeof(ParticleRef), &particleRefCompare);
+	qsort(drawer->particles, particleCount, sizeof(ParticleRef),
+		reverseZ ? &particleRefCompareReverseZ : &particleRefCompare);
 
 	DS_PROFILE_FUNC_RETURN_VOID();
 }
@@ -558,7 +572,9 @@ bool dsParticleDraw_draw(dsParticleDraw* drawer, dsCommandBuffer* commandBuffer,
 		DS_PROFILE_FUNC_RETURN(false);
 
 	// Draw the particles to the command buffer.
-	collectParticles(drawer, viewMatrix, emitters, emitterCount, particleCount);
+	bool reverseZ =
+		(commandBuffer->renderer->projectionOptions & dsProjectionMatrixOptions_InvertZ) != 0;
+	collectParticles(drawer, viewMatrix, emitters, emitterCount, particleCount, reverseZ);
 
 	bool success = populateParticleGeometry(drawer, bufferInfo, particleCount) &&
 		drawParticles(drawer, emitters, emitterCount, bufferInfo, particleCount, commandBuffer,
