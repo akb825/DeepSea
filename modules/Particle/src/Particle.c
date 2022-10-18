@@ -27,12 +27,13 @@
 
 #include <DeepSea/Particle/ParticleVolume.h>
 
-static inline float randomWrappedFloat(dsRandom* random, float minVal, float maxVal, float wrapVal)
+static inline float randomWrappedFloat(dsRandom* random, float minVal, float maxVal,
+	float minWrapVal, float maxWrapVal)
 {
 	if (minVal > maxVal)
 	{
-		float val = dsRandom_nextFloatRange(random, minVal, maxVal + wrapVal);
-		return dsWrapf(val, 0, wrapVal);
+		float val = dsRandom_nextFloatRange(random, minVal, maxVal + (maxWrapVal - minWrapVal));
+		return dsWrapf(val, minWrapVal, maxWrapVal);
 	}
 	else
 		return dsRandom_nextFloatRange(random, minVal, maxVal);
@@ -125,11 +126,12 @@ void dsParticle_randomRotation(dsParticle* particle, dsRandom* random,
 	DS_ASSERT(xRotationRange);
 	DS_ASSERT(yRotationRange);
 
-	const float wrapVal = (float)(2*M_PI);
+	const float minWrapVal = (float)(-M_PI);
+	const float maxWrapVal = (float)(M_PI);
 	particle->rotation.x =
-		randomWrappedFloat(random, xRotationRange->x, xRotationRange->y, wrapVal);
+		randomWrappedFloat(random, xRotationRange->x, xRotationRange->y, minWrapVal, maxWrapVal);
 	particle->rotation.y =
-		randomWrappedFloat(random, yRotationRange->x, yRotationRange->y, wrapVal);
+		randomWrappedFloat(random, yRotationRange->x, yRotationRange->y, minWrapVal, maxWrapVal);
 }
 
 void dsParticle_randomColor(dsParticle* particle, dsRandom* random, const dsVector2f* hueRange,
@@ -141,7 +143,7 @@ void dsParticle_randomColor(dsParticle* particle, dsRandom* random, const dsVect
 	DS_ASSERT(saturationRange);
 	DS_ASSERT(valueRange);
 
-	dsHSVColor color = {{randomWrappedFloat(random, hueRange->x, hueRange->y, 360),
+	dsHSVColor color = {{randomWrappedFloat(random, hueRange->x, hueRange->y, 0, 360),
 		dsRandom_nextFloatRange(random, saturationRange->x, saturationRange->y),
 		dsRandom_nextFloatRange(random, valueRange->x, valueRange->y),
 		dsRandom_nextFloatRange(random, alphaRange->x, alphaRange->y)}};

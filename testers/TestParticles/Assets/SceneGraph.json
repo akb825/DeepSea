@@ -21,7 +21,7 @@
 		"heightRange": [0.7, 0.9],
 		"baseDirection": [0, 0, 1],
 		"directionSpread": 0,
-		"spawnTimeRange": [0.025, 0.06],
+		"spawnTimeRange": [0.025, 0.04],
 		"activeTimeRange": [0.4, 0.6],
 		"speedRange": [0, 0],
 		"rotationSpeedRange": [0, 0],
@@ -57,7 +57,7 @@
 		"colorHueRange": [0, 0],
 		"colorSaturationRange": [0, 0],
 		"colorValueRange": [0.8, 1.0],
-		"colorAlphaRange": [0.25, 0.4],
+		"colorAlphaRange": [0.15, 0.3],
 		"relativeNode": "rootNode",
 		"startTime": 10
 	},
@@ -78,7 +78,7 @@
 		"heightRange": [0.7, 0.9],
 		"baseDirection": [0, 0, 1],
 		"directionSpread": 0,
-		"spawnTimeRange": [0.025, 0.06],
+		"spawnTimeRange": [0.025, 0.04],
 		"activeTimeRange": [0.4, 0.6],
 		"speedRange": [0, 0],
 		"rotationSpeedRange": [0, 0],
@@ -113,7 +113,7 @@
 		"colorHueRange": [0, 0],
 		"colorSaturationRange": [0, 0],
 		"colorValueRange": [0.8, 1.0],
-		"colorAlphaRange": [0.25, 0.4],
+		"colorAlphaRange": [0.15, 0.3],
 		"relativeNode": "rootNode"
 	},
 	{

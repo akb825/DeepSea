@@ -58,8 +58,8 @@ static bool advanceParticle(dsParticle* nextParticle, const dsParticle* prevPart
 	dsVector3_add(nextParticle->position, prevParticle->position, offset);
 
 	nextParticle->rotation.x = prevParticle->rotation.x + prevStandardParticle->rotationSpeed*time;
-	nextParticle->rotation.x = dsWrapf(nextParticle->rotation.x, 0, (float)(2*M_PI));
-	nextParticle->rotation.y = prevParticle->rotation.y;
+	nextParticle->rotation.x = dsWrapf(nextParticle->rotation.x, (float)(-M_PI), (float)(M_PI));
+	nextParticle->rotation.y = 0.0f;
 	nextParticle->t = nextT;
 	return true;
 }
@@ -108,7 +108,7 @@ static uint32_t dsStandardParticleEmitter_update(dsParticleEmitter* emitter, flo
 	dsMatrix33f directionMatrix;
 	dsParticle_createDirectionMatrix(&directionMatrix, &options->baseDirection);
 
-	const dsVector2f rotationRange = {{0, (float)(2*M_PI)}};
+	const dsVector2f zeroRange = {{0.0f, 0.0f}};
 	do
 	{
 		// Add the time before creating the next particle to the countdown timer.
@@ -142,8 +142,8 @@ static uint32_t dsStandardParticleEmitter_update(dsParticleEmitter* emitter, flo
 			&options->heightRange);
 		dsParticle_randomDirection(&nextStandardParticle->direction, &standardEmitter->random,
 			&directionMatrix, options->directionSpread);
-		dsParticle_randomRotation(nextParticle, &standardEmitter->random, &rotationRange,
-			&rotationRange);
+		dsParticle_randomRotation(nextParticle, &standardEmitter->random, &options->rotationRange,
+			&zeroRange);
 		dsParticle_randomColor(nextParticle, &standardEmitter->random, &options->colorHueRange,
 			&options->colorSaturationRange, &options->colorValueRange, &options->colorAlphaRange);
 		dsParticle_randomIntensity(nextParticle, &standardEmitter->random,

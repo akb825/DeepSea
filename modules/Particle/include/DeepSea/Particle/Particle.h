@@ -84,10 +84,10 @@ DS_PARTICLE_EXPORT void dsParticle_randomDirection(dsVector3f* outDirection, dsR
  * @brief Generates a random rotation for a particle.
  * @param[inout] particle The particle to create the rotation for.
  * @param[inout] random The random number generator.
- * @param xRotationRange The minimum and maximum random rotation in radians around the X axis. The
- *     minimum can be larger than the maximum to wrap around the 2*PI boundary.
- * @param yRotationRange The minimum and maximum random rotation in radians around the Y axis. The
- *     minimum can be larger than the maximum to wrap around the 2*PI boundary.
+ * @param xRotationRange The minimum and maximum random rotation in radians around the X axis in the
+ *     range [-PI, PI]. The minimum can be larger than the maximum to wrap around the PI boundary.
+ * @param yRotationRange The minimum and maximum random rotation in radians around the Y axis in the
+ *     range [-PI, PI]. The minimum can be larger than the maximum to wrap around the PI boundary.
  */
 DS_PARTICLE_EXPORT void dsParticle_randomRotation(dsParticle* particle, dsRandom* random,
 	const dsVector2f* xRotationRange, const dsVector2f* yRotationRange);

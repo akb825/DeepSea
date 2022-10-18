@@ -35,6 +35,7 @@ The following custom scene resource types are provided with the members that are
 			* Matrix: a 4x4 array of floats for a matrix. Each inner array is a column of the matrix.
 	* `widthRange`: array of 2 floats for the minimum and maximum width values.
 	* `heightRange`: optional array of 2 floats for the minimum and maximum height values. If unsset the width values will be used to keep the particles square.
+	* `rotationRange`: array of 2 floats for the minimum and maximum rotation in radians in the range [-180, 180]. The minimum may be larger than the maximum to wrap around at 180. Defaults to [-180, 180] if unset.
 	* `baseDirection`: array of 3 floats for the base direction the particles will move along.
 	* `directionSpread`: spread along the base direction for particles to move along as an angle in degrees.
 	* `spawnTimeRange`: array of 2 floats for the minimum and maximum time in seconds between spawning of particles.

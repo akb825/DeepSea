@@ -28,6 +28,9 @@
 
 #include <gtest/gtest.h>
 
+#include <algorithm>
+#include <limits>
+
 static const unsigned int cIterations = 1000;
 
 TEST(ParticleTest, RandomPositionBox)
@@ -226,6 +229,60 @@ TEST(ParticleTest, RandomDirection)
 		EXPECT_LT(cosAngle - 1e-5f, dsVector3_dot(baseDirection, direction));
 		EXPECT_FLOAT_EQ(1.0f, dsVector3f_len(&direction));
 	}
+}
+
+TEST(ParticleTest, RandomRotation)
+{
+	dsVector2f xRotationRange = {{-0.3f, 1.2f}};
+	dsVector2f yRotationRange = {{1.2f, -0.3f}};
+
+	float minXRotation = std::numeric_limits<float>::max();
+	float maxXRotation = std::numeric_limits<float>::lowest();
+
+	float minLowerYRotation = std::numeric_limits<float>::max();
+	float maxLowerYRotation = std::numeric_limits<float>::lowest();
+
+	float minUpperYRotation = std::numeric_limits<float>::max();
+	float maxUpperYRotation = std::numeric_limits<float>::lowest();
+
+	const float pi = static_cast<float>(M_PI);
+
+	dsRandom random;
+	dsRandom_seed(&random, 0);
+	dsParticle particle;
+	for (unsigned int i = 0; i < cIterations; ++i)
+	{
+		dsParticle_randomRotation(&particle, &random, &xRotationRange, &yRotationRange);
+		EXPECT_LE(xRotationRange.x, particle.rotation.x);
+		EXPECT_GT(xRotationRange.y, particle.rotation.x);
+		minXRotation = std::min(minXRotation, particle.rotation.x);
+		maxXRotation = std::max(maxXRotation, particle.rotation.x);
+
+		if (particle.rotation.y < 0)
+		{
+			EXPECT_LE(-pi, particle.rotation.y);
+			EXPECT_GT(yRotationRange.y, particle.rotation.y);
+			minLowerYRotation = std::min(minLowerYRotation, particle.rotation.y);
+			maxLowerYRotation = std::max(maxLowerYRotation, particle.rotation.y);
+		}
+		else
+		{
+			EXPECT_LE(yRotationRange.x, particle.rotation.y);
+			EXPECT_GE(pi, particle.rotation.y);
+			minUpperYRotation = std::min(minUpperYRotation, particle.rotation.y);
+			maxUpperYRotation = std::max(maxUpperYRotation, particle.rotation.y);
+		}
+	}
+
+	const float epsilon = 1.5e-2f;
+	EXPECT_NEAR(xRotationRange.x, minXRotation, epsilon);
+	EXPECT_NEAR(xRotationRange.y, maxXRotation, epsilon);
+
+	EXPECT_NEAR(-pi, minLowerYRotation, epsilon);
+	EXPECT_NEAR(yRotationRange.y, maxLowerYRotation, epsilon);
+
+	EXPECT_NEAR(yRotationRange.x, minUpperYRotation, epsilon);
+	EXPECT_NEAR(pi, maxUpperYRotation, epsilon);
 }
 
 TEST(ParticleTest, RandomColor)

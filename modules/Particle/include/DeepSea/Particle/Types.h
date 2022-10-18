@@ -375,6 +375,14 @@ typedef struct dsStandardParticleEmitterOptions
 	dsVector2f heightRange;
 
 	/**
+	 * @brief The minimum and maximum rotation of the particle in radians in the range [-PI, PI].
+	 *
+	 * The minimum can be larger than the maximum, which will wrap around. (e.g. min PI/2 and max
+	 * -PI/2 will wrap around at PI back to -PI)
+	 */
+	dsVector2f rotationRange;
+
+	/**
 	 * @brief The base direction particles move in.
 	 */
 	dsVector3f baseDirection;

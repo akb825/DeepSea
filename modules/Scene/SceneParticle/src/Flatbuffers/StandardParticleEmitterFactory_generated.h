@@ -29,22 +29,23 @@ struct StandardParticleEmitterFactory FLATBUFFERS_FINAL_CLASS : private flatbuff
     VT_SPAWNVOLUMEMATRIX = 10,
     VT_WIDTHRANGE = 12,
     VT_HEIGHTRANGE = 14,
-    VT_BASEDIRECTION = 16,
-    VT_DIRECTIONSPREAD = 18,
-    VT_SPAWNTIMERANGE = 20,
-    VT_ACTIVETIMERANGE = 22,
-    VT_SPEEDRANGE = 24,
-    VT_ROTATIONSPEEDRANGE = 26,
-    VT_TEXTURERANGE = 28,
-    VT_COLORHUERANGE = 30,
-    VT_COLORSATURATIONRANGE = 32,
-    VT_COLORVALUERANGE = 34,
-    VT_COLORALPHARANGE = 36,
-    VT_INTENSITYRANGE = 38,
-    VT_RELATIVENODE = 40,
-    VT_SEED = 42,
-    VT_ENABLED = 44,
-    VT_STARTTIME = 46
+    VT_ROTATIONRANGE = 16,
+    VT_BASEDIRECTION = 18,
+    VT_DIRECTIONSPREAD = 20,
+    VT_SPAWNTIMERANGE = 22,
+    VT_ACTIVETIMERANGE = 24,
+    VT_SPEEDRANGE = 26,
+    VT_ROTATIONSPEEDRANGE = 28,
+    VT_TEXTURERANGE = 30,
+    VT_COLORHUERANGE = 32,
+    VT_COLORSATURATIONRANGE = 34,
+    VT_COLORVALUERANGE = 36,
+    VT_COLORALPHARANGE = 38,
+    VT_INTENSITYRANGE = 40,
+    VT_RELATIVENODE = 42,
+    VT_SEED = 44,
+    VT_ENABLED = 46,
+    VT_STARTTIME = 48
   };
   const DeepSeaSceneParticle::ParticleEmitterParams *params() const {
     return GetPointer<const DeepSeaSceneParticle::ParticleEmitterParams *>(VT_PARAMS);
@@ -73,6 +74,9 @@ struct StandardParticleEmitterFactory FLATBUFFERS_FINAL_CLASS : private flatbuff
   }
   const DeepSeaScene::Vector2f *heightRange() const {
     return GetStruct<const DeepSeaScene::Vector2f *>(VT_HEIGHTRANGE);
+  }
+  const DeepSeaScene::Vector2f *rotationRange() const {
+    return GetStruct<const DeepSeaScene::Vector2f *>(VT_ROTATIONRANGE);
   }
   const DeepSeaScene::Vector3f *baseDirection() const {
     return GetStruct<const DeepSeaScene::Vector3f *>(VT_BASEDIRECTION);
@@ -132,6 +136,7 @@ struct StandardParticleEmitterFactory FLATBUFFERS_FINAL_CLASS : private flatbuff
            VerifyFieldRequired<DeepSeaScene::Matrix44f>(verifier, VT_SPAWNVOLUMEMATRIX, 4) &&
            VerifyFieldRequired<DeepSeaScene::Vector2f>(verifier, VT_WIDTHRANGE, 4) &&
            VerifyField<DeepSeaScene::Vector2f>(verifier, VT_HEIGHTRANGE, 4) &&
+           VerifyFieldRequired<DeepSeaScene::Vector2f>(verifier, VT_ROTATIONRANGE, 4) &&
            VerifyFieldRequired<DeepSeaScene::Vector3f>(verifier, VT_BASEDIRECTION, 4) &&
            VerifyField<float>(verifier, VT_DIRECTIONSPREAD, 4) &&
            VerifyFieldRequired<DeepSeaScene::Vector2f>(verifier, VT_SPAWNTIMERANGE, 4) &&
@@ -186,6 +191,9 @@ struct StandardParticleEmitterFactoryBuilder {
   }
   void add_heightRange(const DeepSeaScene::Vector2f *heightRange) {
     fbb_.AddStruct(StandardParticleEmitterFactory::VT_HEIGHTRANGE, heightRange);
+  }
+  void add_rotationRange(const DeepSeaScene::Vector2f *rotationRange) {
+    fbb_.AddStruct(StandardParticleEmitterFactory::VT_ROTATIONRANGE, rotationRange);
   }
   void add_baseDirection(const DeepSeaScene::Vector3f *baseDirection) {
     fbb_.AddStruct(StandardParticleEmitterFactory::VT_BASEDIRECTION, baseDirection);
@@ -246,6 +254,7 @@ struct StandardParticleEmitterFactoryBuilder {
     fbb_.Required(o, StandardParticleEmitterFactory::VT_SPAWNVOLUME);
     fbb_.Required(o, StandardParticleEmitterFactory::VT_SPAWNVOLUMEMATRIX);
     fbb_.Required(o, StandardParticleEmitterFactory::VT_WIDTHRANGE);
+    fbb_.Required(o, StandardParticleEmitterFactory::VT_ROTATIONRANGE);
     fbb_.Required(o, StandardParticleEmitterFactory::VT_BASEDIRECTION);
     fbb_.Required(o, StandardParticleEmitterFactory::VT_SPAWNTIMERANGE);
     fbb_.Required(o, StandardParticleEmitterFactory::VT_ACTIVETIMERANGE);
@@ -269,6 +278,7 @@ inline flatbuffers::Offset<StandardParticleEmitterFactory> CreateStandardParticl
     const DeepSeaScene::Matrix44f *spawnVolumeMatrix = nullptr,
     const DeepSeaScene::Vector2f *widthRange = nullptr,
     const DeepSeaScene::Vector2f *heightRange = nullptr,
+    const DeepSeaScene::Vector2f *rotationRange = nullptr,
     const DeepSeaScene::Vector3f *baseDirection = nullptr,
     float directionSpread = 0.0f,
     const DeepSeaScene::Vector2f *spawnTimeRange = nullptr,
@@ -301,6 +311,7 @@ inline flatbuffers::Offset<StandardParticleEmitterFactory> CreateStandardParticl
   builder_.add_spawnTimeRange(spawnTimeRange);
   builder_.add_directionSpread(directionSpread);
   builder_.add_baseDirection(baseDirection);
+  builder_.add_rotationRange(rotationRange);
   builder_.add_heightRange(heightRange);
   builder_.add_widthRange(widthRange);
   builder_.add_spawnVolumeMatrix(spawnVolumeMatrix);
@@ -319,6 +330,7 @@ inline flatbuffers::Offset<StandardParticleEmitterFactory> CreateStandardParticl
     const DeepSeaScene::Matrix44f *spawnVolumeMatrix = nullptr,
     const DeepSeaScene::Vector2f *widthRange = nullptr,
     const DeepSeaScene::Vector2f *heightRange = nullptr,
+    const DeepSeaScene::Vector2f *rotationRange = nullptr,
     const DeepSeaScene::Vector3f *baseDirection = nullptr,
     float directionSpread = 0.0f,
     const DeepSeaScene::Vector2f *spawnTimeRange = nullptr,
@@ -344,6 +356,7 @@ inline flatbuffers::Offset<StandardParticleEmitterFactory> CreateStandardParticl
       spawnVolumeMatrix,
       widthRange,
       heightRange,
+      rotationRange,
       baseDirection,
       directionSpread,
       spawnTimeRange,

@@ -37,6 +37,11 @@ table StandardParticleEmitterFactory
 	// keep the particles square.
 	heightRange : DeepSeaScene.Vector2f;
 
+	// The minimum and maximum rotation of the particle in radians in the range [-PI, PI]. The
+	// minimum can be larger than the maximum, which will wrap around. (e.g. min PI/2 and max -PI/2
+	// will wrap around at PI back to -PI)
+	rotationRange: DeepSeaScene.Vector2f (required);
+
 	// The base direction particles move in.
 	baseDirection : DeepSeaScene.Vector3f (required);
 

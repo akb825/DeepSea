@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import flatbuffers
+import math
 
 from DeepSeaScene.Convert.TransformConvert import convertTransform
 from DeepSeaScene.Matrix44f import CreateMatrix44f
@@ -63,6 +64,8 @@ def convertStandardParticleEmitterFactory(convertContext, data):
 	- widthRange: array of 2 floats for the minimum and maximum width values.
 	- heightRange: optional array of 2 floats for the minimum and maximum height values. If unsset
 	  the width values will be used to keep the particles square.
+	- rotationRange: array of 2 floats for the minimum and maximum rotation in radians in the range
+	  [-180, 180]. The minimum may be larger than the maximum to wrap around at 180.
 	- baseDirection: array of 3 floats for the base direction the particles will move along.
 	- directionSpread: spread along the base direction for particles to move along as an angle in
 	  degrees.
@@ -192,6 +195,8 @@ def convertStandardParticleEmitterFactory(convertContext, data):
 		else:
 			heightRange = None
 
+		rotationRange = readFloatMinMax(data.get('rotationRange', [-180.0, 180.0]), 'rotationRange',
+			-180.0, 180.0, False)
 		baseDirection = readVector3f(data['baseDirection'], 'baseDirection')
 		directionSpread = readFloat(data['directionSpread'], 'directionSpread')
 		spawnTimeRange = readFloatMinMax(data['spawnTimeRange'], 'spawnTimeRange', 0.0)
@@ -203,11 +208,8 @@ def convertStandardParticleEmitterFactory(convertContext, data):
 		colorSaturationRange = readFloatMinMax(data['colorSaturationRange'], 'colorSaturationRange',
 			0.0, 1.0)
 		colorValueRange = readFloatMinMax(data['colorValueRange'], 'colorValueRange', 0.0, 1.0)
-		colorAlphaRangeData = data.get('colorAlphaRange')
-		if colorAlphaRangeData:
-			colorAlphaRange = readFloatMinMax(colorAlphaRangeData, 'colorAlphaRange', 0.0, 1.0)
-		else:
-			colorAlphaRange = [1.0, 1.0]
+		colorAlphaRange = readFloatMinMax(data.get('colorAlphaRange', [1.0, 1.0]),
+			'colorAlphaRange', 0.0, 1.0)
 		intensityRangeData = data.get('intensityRange')
 		if intensityRangeData:
 			intensityRange = readFloatMinMax(intensityRangeData, 'intensityRange', 0.0)
@@ -217,6 +219,13 @@ def convertStandardParticleEmitterFactory(convertContext, data):
 		seed = readInt(data.get('seed', 0), 'seed')
 		enabled = readBool(data.get('enabled', True), 'enabled')
 		startTime = readFloat(data.get('startTime', 0.0), 'startTime', 0.0)
+
+		# Degrees to radians
+		rotationRange[0] = math.radians(rotationRange[0])
+		rotationRange[1] = math.radians(rotationRange[1])
+		directionSpread = math.radians(directionSpread)
+		rotationSpeedRange[0] = math.radians(rotationSpeedRange[0])
+		rotationSpeedRange[1] = math.radians(rotationSpeedRange[1])
 	except KeyError as e:
 		raise Exception(
 			'StandardParticleEmitterFactory data doesn\'t contain element ' + str(e) + '.')
@@ -268,6 +277,8 @@ def convertStandardParticleEmitterFactory(convertContext, data):
 	StandardParticleEmitterFactory.AddWidthRange(builder, CreateVector2f(builder, *widthRange))
 	StandardParticleEmitterFactory.AddHeightRange(builder,
 		CreateVector2f(builder, *heightRange) if heightRange else 0)
+	StandardParticleEmitterFactory.AddRotationRange(builder,
+		CreateVector2f(builder, *rotationRange))
 	StandardParticleEmitterFactory.AddBaseDirection(builder,
 		CreateVector3f(builder, *baseDirection))
 	StandardParticleEmitterFactory.AddDirectionSpread(builder, directionSpread)
