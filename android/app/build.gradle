@@ -2,7 +2,7 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 33
-    ndkVersion "24.0.8215888"
+    ndkVersion "25.1.8937393"
     defaultConfig {
         applicationId "com.akb825.deepsea"
         minSdkVersion 18
@@ -143,6 +143,17 @@ android {
             versionNameSuffix "-TestLighting"
             resValue "string", "app_name", "TestLighting"
         }
+        TestParticles {
+            externalNativeBuild {
+                cmake {
+                    targets "deepsea_test_particles_app"
+                }
+            }
+            dimension "tester"
+            applicationIdSuffix ".testparticles"
+            versionNameSuffix "-TestParticles"
+            resValue "string", "app_name", "TestParticles"
+        }
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
@@ -157,7 +168,7 @@ preBuild.dependsOn(copyX86_64Libraries)
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
-    implementation 'androidx.appcompat:appcompat:1.4.2'
+    implementation 'androidx.appcompat:appcompat:1.5.1'
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
