@@ -117,7 +117,7 @@ static dsGfxFormat formatMap[] =
 	dsGfxFormat_Unknown,          // R8G8B8G8
 	dsGfxFormat_Unknown,          // G8R8G8B8
 	dsGfxFormat_ETC2_R8G8B8,      // ETC2_RGB
-	dsGfxFormat_ETC2_R8G8B8,      // ETC2_RGBA
+	dsGfxFormat_ETC2_R8G8B8A8,    // ETC2_RGBA
 	dsGfxFormat_ETC2_R8G8B8A1,    // ETC2_RGB_A1
 	dsGfxFormat_EAC_R11,          // EAC_R11
 	dsGfxFormat_EAC_R11G11,       // EAC_RG11
