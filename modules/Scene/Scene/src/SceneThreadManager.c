@@ -537,8 +537,8 @@ static bool submitCommandBuffers(dsSceneThreadManager* threadManager,
 	return true;
 }
 
-dsSceneThreadManager* dsSceneThreadManager_create(dsAllocator* allocator,
-	dsRenderer* renderer, uint32_t threadCount)
+dsSceneThreadManager* dsSceneThreadManager_create(dsAllocator* allocator, dsRenderer* renderer,
+	uint32_t threadCount)
 {
 	if (!allocator || !renderer || threadCount == 0)
 	{
@@ -657,13 +657,46 @@ bool dsSceneThreadManager_draw(dsSceneThreadManager* threadManager, const dsView
 		return false;
 
 	// Shared items first.
-	threadManager->nextItem = 0;
 	threadManager->nextCommandBuffer = 0;
 	for (uint32_t i = 0; i < scene->sharedItemCount; ++i)
 	{
-		if (scene->sharedItems[i].count == 0)
-			continue;
+		// Check ahead of time if we need multiple threads for this stage.
+		const dsSceneItemLists* sharedItems = scene->sharedItems + i;
+		uint32_t commitCount = 0;
+		uint32_t lastCommitIndex = 0;
+		for (uint32_t j = 0; j < sharedItems->count; ++j)
+		{
+			if (sharedItems->itemLists[j]->commitFunc)
+			{
+				++commitCount;
+				lastCommitIndex = j;
+			}
+		}
 
+		if (commitCount == 0)
+			continue;
+		else if (commitCount == 1)
+		{
+			dsSceneItemList* itemList = sharedItems->itemLists[lastCommitIndex];
+			dsCommandBuffer* commandBuffer = NULL;
+			if (itemList->needsCommandBuffer)
+			{
+				commandBuffer =
+					threadManager->commandBufferPointers[threadManager->nextCommandBuffer++];
+				DS_ASSERT(threadManager->nextCommandBuffer <=
+					threadManager->commandBufferPointerCount);
+				if (!dsCommandBuffer_begin(commandBuffer))
+					return false;
+			}
+
+			itemList->commitFunc(itemList, view, commandBuffer);
+
+			if (commandBuffer)
+				DS_VERIFY(dsCommandBuffer_end(commandBuffer));
+			continue;
+		}
+
+		threadManager->nextItem = 0;
 		triggerThreads(threadManager, ThreadState_SharedItems, i);
 		processSharedItems(threadManager, i);
 		waitForThreads(threadManager);
