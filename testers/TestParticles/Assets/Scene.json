@@ -2,6 +2,20 @@
 	"sharedItems":
 	[
 		[
+			{
+				"type": "LightSetPrepare",
+				"name": "lightSetPrepare",
+				"lightSets": ["lightSet"]
+			}
+		],
+		[
+			{
+				"type": "ViewTransformData",
+				"name": "viewTransform",
+				"variableGroupDesc": "viewTransformDesc"
+			}
+		],
+		[
 			{"type": "ViewCullList", "name": "cullList"},
 			{"type": "ParticlePrepareList", "name": "particlePrepare"}
 		]
@@ -136,14 +150,6 @@
 					]
 				}
 			]
-		}
-	],
-	"globalData":
-	[
-		{"type": "LightSetPrepare", "lightSets": ["lightSet"]},
-		{
-			"type": "ViewTransformData",
-			"variableGroupDesc": "viewTransformDesc"
 		}
 	],
 	"nodes": ["rootNode"]

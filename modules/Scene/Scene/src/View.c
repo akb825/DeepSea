@@ -45,7 +45,6 @@
 #include <DeepSea/Render/Renderer.h>
 #include <DeepSea/Render/RenderPass.h>
 
-#include <DeepSea/Scene/SceneGlobalData.h>
 #include <DeepSea/Scene/SceneLoadScratchData.h>
 
 #include <string.h>
@@ -997,13 +996,6 @@ bool dsView_draw(dsView* view, dsCommandBuffer* commandBuffer, dsSceneThreadMana
 	if (!bindOffscreenVariables(view))
 		DS_PROFILE_FUNC_RETURN(false);
 
-	for (uint32_t i = 0; i < scene->globalDataCount; ++i)
-	{
-		dsSceneGlobalData* globalData = scene->globalData[i];
-		if (!globalData->populateDataFunc(globalData, view, commandBuffer))
-			DS_PROFILE_FUNC_RETURN(false);
-	}
-
 	if (threadManager)
 	{
 		bool result = dsSceneThreadManager_draw(threadManager, view, commandBuffer,
@@ -1085,14 +1077,6 @@ bool dsView_draw(dsView* view, dsCommandBuffer* commandBuffer, dsSceneThreadMana
 			if (computeItems->commitFunc)
 				computeItems->commitFunc(computeItems, view, commandBuffer);
 		}
-	}
-
-	// Cleanup global data.
-	for (uint32_t i = 0; i < scene->globalDataCount; ++i)
-	{
-		dsSceneGlobalData* globalData = scene->globalData[i];
-		if (globalData->finishFunc)
-			globalData->finishFunc(globalData);
 	}
 
 	DS_PROFILE_FUNC_RETURN(true);

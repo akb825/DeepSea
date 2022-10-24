@@ -35,9 +35,9 @@
 #endif
 
 extern "C"
-dsSceneGlobalData* dsViewTransformData_load(const dsSceneLoadContext* loadContext,
+dsSceneItemList* dsViewTransformData_load(const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator*, void*,
-	const uint8_t* data, size_t dataSize)
+	const char* name, const uint8_t* data, size_t dataSize)
 {
 	flatbuffers::Verifier verifier(data, dataSize);
 	if (!DeepSeaScene::VerifyViewTransformDataBuffer(verifier))
@@ -64,6 +64,6 @@ dsSceneGlobalData* dsViewTransformData_load(const dsSceneLoadContext* loadContex
 	}
 
 	dsRenderer* renderer = dsSceneLoadContext_getRenderer(loadContext);
-	return dsViewTransformData_create(allocator, renderer->resourceManager, groupDesc);
+	return dsViewTransformData_create(allocator, name, renderer->resourceManager, groupDesc);
 }
 

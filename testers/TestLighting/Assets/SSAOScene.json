@@ -2,6 +2,27 @@
 	"sharedItems":
 	[
 		[
+			{
+				"type": "LightSetPrepare",
+				"name": "lightSetPrepare",
+				"lightSets": ["lightSet"]
+			}
+		],
+		[
+			{
+				"type": "ShadowManagerPrepare",
+				"name": "shadowMangerPrepare",
+				"shadowManager": "shadowManager"
+			}
+		],
+		[
+			{
+				"type": "ViewTransformData",
+				"name": "viewTransform",
+				"variableGroupDesc": "viewTransformDesc"
+			}
+		],
+		[
 			{"type": "ViewCullList", "name": "cullList" },
 			{
 				"type": "ShadowCullList",
@@ -661,15 +682,6 @@
 					]
 				}
 			]
-		}
-	],
-	"globalData":
-	[
-		{"type": "LightSetPrepare", "lightSets": ["lightSet"]},
-		{"type": "ShadowManagerPrepare", "shadowManager": "shadowManager"},
-		{
-			"type": "ViewTransformData",
-			"variableGroupDesc": "viewTransformDesc"
 		}
 	],
 	"nodes": ["rootNode"]

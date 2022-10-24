@@ -567,7 +567,6 @@ bool dsParticleDraw_draw(dsParticleDraw* drawer, dsCommandBuffer* commandBuffer,
 	DS_PROFILE_FUNC_RETURN(success);
 }
 
-
 bool dsParticleDraw_destroy(dsParticleDraw* drawer)
 {
 	if (!drawer)

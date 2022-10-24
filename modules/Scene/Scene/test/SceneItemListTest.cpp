@@ -136,6 +136,7 @@ MockSceneItemList* createMockSceneItems(dsAllocator* allocator)
 	baseItems->type = 0;
 	baseItems->name = testItemListName;
 	baseItems->nameID = dsHashString(testItemListName);
+	baseItems->globalValueCount = 0;
 	baseItems->needsCommandBuffer = false;
 	baseItems->addNodeFunc = &addMockSceneItem;
 	baseItems->removeNodeFunc = &removeMockSceneItem;
@@ -177,7 +178,7 @@ public:
 		ASSERT_TRUE(mockSceneItems);
 		dsScenePipelineItem pipelineItem = {NULL, (dsSceneItemList*)mockSceneItems};
 		scene = dsScene_create((dsAllocator*)&allocator, renderer, NULL, 0, &pipelineItem, 1,
-			NULL, 0, NULL, NULL);
+			NULL, NULL);
 		ASSERT_TRUE(scene);
 	}
 

@@ -75,33 +75,8 @@ class Scene(object):
         return o == 0
 
     # Scene
-    def GlobalData(self, j):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
-        if o != 0:
-            x = self._tab.Vector(o)
-            x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * 4
-            x = self._tab.Indirect(x)
-            from DeepSeaScene.ObjectData import ObjectData
-            obj = ObjectData()
-            obj.Init(self._tab.Bytes, x)
-            return obj
-        return None
-
-    # Scene
-    def GlobalDataLength(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
-        if o != 0:
-            return self._tab.VectorLen(o)
-        return 0
-
-    # Scene
-    def GlobalDataIsNone(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
-        return o == 0
-
-    # Scene
     def Nodes(self, j):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(10))
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
         if o != 0:
             a = self._tab.Vector(o)
             return self._tab.String(a + flatbuffers.number_types.UOffsetTFlags.py_type(j * 4))
@@ -109,17 +84,17 @@ class Scene(object):
 
     # Scene
     def NodesLength(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(10))
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
         if o != 0:
             return self._tab.VectorLen(o)
         return 0
 
     # Scene
     def NodesIsNone(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(10))
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
         return o == 0
 
-def SceneStart(builder): builder.StartObject(4)
+def SceneStart(builder): builder.StartObject(3)
 def Start(builder):
     return SceneStart(builder)
 def SceneAddSharedItems(builder, sharedItems): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(sharedItems), 0)
@@ -134,13 +109,7 @@ def AddPipeline(builder, pipeline):
 def SceneStartPipelineVector(builder, numElems): return builder.StartVector(4, numElems, 4)
 def StartPipelineVector(builder, numElems):
     return SceneStartPipelineVector(builder, numElems)
-def SceneAddGlobalData(builder, globalData): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(globalData), 0)
-def AddGlobalData(builder, globalData):
-    return SceneAddGlobalData(builder, globalData)
-def SceneStartGlobalDataVector(builder, numElems): return builder.StartVector(4, numElems, 4)
-def StartGlobalDataVector(builder, numElems):
-    return SceneStartGlobalDataVector(builder, numElems)
-def SceneAddNodes(builder, nodes): builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(nodes), 0)
+def SceneAddNodes(builder, nodes): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(nodes), 0)
 def AddNodes(builder, nodes):
     return SceneAddNodes(builder, nodes)
 def SceneStartNodesVector(builder, numElems): return builder.StartVector(4, numElems, 4)

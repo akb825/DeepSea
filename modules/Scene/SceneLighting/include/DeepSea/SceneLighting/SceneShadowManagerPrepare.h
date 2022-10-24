@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Aaron Barany
+ * Copyright 2021-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,8 +30,11 @@ extern "C"
  * @file
  * @brief Functions for creating and manipulating scene shadow manager prepares.
  *
- * This will prepare a shadow manager for use in the scene. This a scene global data object fit into
+ * This will prepare a shadow manager for use in the scene. This a scene item list object fit into
  * the scene layout.
+ *
+ * @remark This item list type contains global values and must be a alone as an entry in the
+ *     sharedItemlist of a dsScene.
  */
 
 /**
@@ -40,14 +43,21 @@ extern "C"
 DS_SCENELIGHTING_EXPORT extern const char* const dsSceneShadowManagerPrepare_typeName;
 
 /**
+ * @brief Gets the type of a shadow manager prepare.
+ * @return The type of a shadow manager prepare.
+ */
+DS_SCENELIGHTING_EXPORT dsSceneItemListType dsSceneShadowManagerPrepare_type(void);
+
+/**
  * @brief Creates a scene shadow manager prepare.
  * @remark errno will be set on failure.
  * @param allocator The allocator to create the light shadows prepare with.
+ * @param name The name of the shadow manager prepare. This will be copied.
  * @param shadowManager The scene shadow manager to prepare.
  * @return The scene shadow manager prepare or NULL if the parameters are invalid.
  */
-DS_SCENELIGHTING_EXPORT dsSceneGlobalData* dsSceneShadowManagerPrepare_create(
-	dsAllocator* allocator, dsSceneShadowManager* shadowManager);
+DS_SCENELIGHTING_EXPORT dsSceneItemList* dsSceneShadowManagerPrepare_create(
+	dsAllocator* allocator, const char* name, dsSceneShadowManager* shadowManager);
 
 #ifdef __cplusplus
 }

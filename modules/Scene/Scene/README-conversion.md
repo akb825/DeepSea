@@ -277,6 +277,18 @@ The scene describes the how to process and draw a scene, as well as the list of 
 
 Builtin item list specifications are documented below.
 
+### View Transform Data
+
+View transform data has the type name "ViewTransformData" and sets standard view and projection transform matrices. It contains the following members:
+
+* `variableGroupDesc`: string name for the shader variable group to use.
+
+> **Note:** View transform data contains global variables and must be a single element in the `sharedItems` array of the scene. 
+
+### View Cull List
+
+View cull list has the type name "ViewCullList" and performs cull checks for bounding boxes in nodes that derive from `dsSceneCullNode` against the view frustum. The data is ignored and may be omitted.
+
 ### Model List
 
 Model lists have the type name "ModelList" and define how to draw models that reference it by name. It contains the following members:
@@ -339,20 +351,6 @@ Instance data is typically included in specific item lists that utilize them. Bu
 ### Instance Transform Data
 
 Instance transform data has the type name "InstanceTransformData" and sets standard transform matrices for each item that's drawn. It contains the following members:
-
-* `variableGroupDesc`: string name for the shader variable group to use.
-
-### View Cull List
-
-View cull list has the type name "ViewCullList" and performs cull checks for bounding boxes in nodes that derive from `dsSceneCullNode` against the view frustum. The data is ignored and may be omitted.
-
-## Global Data
-
-Builtin global data specifications are documented below.
-
-### View Transform Data
-
-View transform data has the type name "ViewTransformData" and sets standard view and projection transform matrices. It contains the following members:
 
 * `variableGroupDesc`: string name for the shader variable group to use.
 

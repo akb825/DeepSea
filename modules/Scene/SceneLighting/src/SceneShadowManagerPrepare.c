@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Aaron Barany
+ * Copyright 2021-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,9 @@
 
 #include <DeepSea/SceneLighting/SceneShadowManagerPrepare.h>
 
+#include <DeepSea/Core/Containers/Hash.h>
 #include <DeepSea/Core/Memory/Allocator.h>
+#include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/SceneLighting/SceneLightShadows.h>
@@ -26,30 +28,33 @@
 
 typedef struct dsSceneShadowManagerPrepare
 {
-	dsSceneGlobalData globalData;
+	dsSceneItemList itemList;
 	dsSceneShadowManager* shadowManager;
-} dsSceneLightShadowsPrepare;
+} dsSceneShadowManagerPrepare;
 
-const char* const dsSceneShadowManagerPrepare_typeName = "ShadowManagerPrepare";
-
-bool dsSceneShadowManagerPrepare_populateData(dsSceneGlobalData* globalData,
+static void dsSceneShadowManagerPrepare_commit(dsSceneItemList* itemList,
 	const dsView* view, dsCommandBuffer* commandBuffer)
 {
 	DS_UNUSED(commandBuffer);
-	dsSceneLightShadowsPrepare* prepare = (dsSceneLightShadowsPrepare*)globalData;
-	return dsSceneShadowManager_prepare(prepare->shadowManager, view);
+	dsSceneShadowManagerPrepare* prepare = (dsSceneShadowManagerPrepare*)itemList;
+	dsSceneShadowManager_prepare(prepare->shadowManager, view);
 }
 
-bool dsSceneShadowManagerPrepare_destroyGlobalData(dsSceneGlobalData* globalData)
+static void dsSceneShadowManagerPrepare_destroy(dsSceneItemList* itemList)
 {
-	if (!globalData->allocator)
-		return true;
-
-	DS_VERIFY(dsAllocator_free(globalData->allocator, globalData));
-	return true;
+	if (itemList->allocator)
+		DS_VERIFY(dsAllocator_free(itemList->allocator, itemList));
 }
 
-dsSceneGlobalData* dsSceneShadowManagerPrepare_create(dsAllocator* allocator,
+const char* const dsSceneShadowManagerPrepare_typeName = "ShadowManagerPrepare";
+
+dsSceneItemListType dsSceneShadowManagerPrepare_type(void)
+{
+	static int type;
+	return &type;
+}
+
+dsSceneItemList* dsSceneShadowManagerPrepare_create(dsAllocator* allocator, const char* name,
 	dsSceneShadowManager* shadowManager)
 {
 	if (!allocator || !shadowManager)
@@ -58,18 +63,37 @@ dsSceneGlobalData* dsSceneShadowManagerPrepare_create(dsAllocator* allocator,
 		return NULL;
 	}
 
-	dsSceneLightShadowsPrepare* prepare = DS_ALLOCATE_OBJECT(allocator, dsSceneLightShadowsPrepare);
-	if (!prepare)
+	size_t nameLen = strlen(name) + 1;
+	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsSceneShadowManagerPrepare)) +
+		DS_ALIGNED_SIZE(nameLen);
+	void* buffer = dsAllocator_alloc(allocator, fullSize);
+	if (!buffer)
 		return NULL;
 
-	dsSceneGlobalData* globalData = (dsSceneGlobalData*)prepare;
-	globalData->allocator = dsAllocator_keepPointer(allocator);
-	globalData->valueCount = dsSceneShadowManager_globalTransformGroupCount(shadowManager);
-	globalData->populateDataFunc = &dsSceneShadowManagerPrepare_populateData;
-	globalData->finishFunc = NULL;
-	globalData->destroyFunc = dsSceneShadowManagerPrepare_destroyGlobalData;
+	dsBufferAllocator bufferAlloc;
+	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, fullSize));
+
+	dsSceneShadowManagerPrepare* prepare =
+		DS_ALLOCATE_OBJECT(&bufferAlloc, dsSceneShadowManagerPrepare);
+	DS_ASSERT(prepare);
+
+	dsSceneItemList* itemList = (dsSceneItemList*)prepare;
+	itemList->allocator = dsAllocator_keepPointer(allocator);
+	itemList->type = dsSceneShadowManagerPrepare_type();
+	itemList->name = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, nameLen);
+	DS_ASSERT(itemList->name);
+	memcpy((void*)itemList->name, name, nameLen);
+	itemList->nameID = dsHashString(name);
+	itemList->globalValueCount = dsSceneShadowManager_globalTransformGroupCount(shadowManager);
+	itemList->needsCommandBuffer = false;
+	itemList->addNodeFunc = NULL;
+	itemList->updateNodeFunc = NULL;
+	itemList->removeNodeFunc = NULL;
+	itemList->updateFunc = NULL;
+	itemList->commitFunc = &dsSceneShadowManagerPrepare_commit;
+	itemList->destroyFunc = &dsSceneShadowManagerPrepare_destroy;
 
 	prepare->shadowManager = shadowManager;
 
-	return globalData;
+	return itemList;
 }

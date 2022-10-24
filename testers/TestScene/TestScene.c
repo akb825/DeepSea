@@ -255,7 +255,7 @@ static bool setup(TestScene* testScene, dsApplication* application, dsAllocator*
 		return false;
 	}
 
-	DS_VERIFY(dsSceneLoadContext_registerGlobalDataType(loadContext, "LightData", &dsLightData_load,
+	DS_VERIFY(dsSceneLoadContext_registerItemListType(loadContext, "LightData", &dsLightData_load,
 		NULL, NULL));
 
 	dsSceneLoadScratchData* scratchData = dsSceneLoadScratchData_create(allocator,

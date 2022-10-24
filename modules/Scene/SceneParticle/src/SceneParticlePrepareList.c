@@ -166,9 +166,9 @@ dsSceneItemList* dsSceneParticlePrepareList_create(dsAllocator* allocator, const
 		return NULL;
 	}
 
-	size_t nameLen = strlen(name);
+	size_t nameLen = strlen(name) + 1;
 	size_t fullSize =
-		DS_ALIGNED_SIZE(sizeof(dsSceneParticlePrepareList)) + DS_ALIGNED_SIZE(nameLen + 1);
+		DS_ALIGNED_SIZE(sizeof(dsSceneParticlePrepareList)) + DS_ALIGNED_SIZE(nameLen);
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 		return NULL;
@@ -182,9 +182,11 @@ dsSceneItemList* dsSceneParticlePrepareList_create(dsAllocator* allocator, const
 	dsSceneItemList* itemList = (dsSceneItemList*)prepareList;
 	itemList->allocator = allocator;
 	itemList->type = dsSceneParticlePrepareList_type();
-	itemList->name = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, nameLen + 1);
-	memcpy((void*)itemList->name, name, nameLen + 1);
+	itemList->name = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, nameLen);
+	DS_ASSERT(itemList->name);
+	memcpy((void*)itemList->name, name, nameLen);
 	itemList->nameID = dsHashString(name);
+	itemList->globalValueCount = 0;
 	itemList->needsCommandBuffer = true;
 	itemList->addNodeFunc = &dsSceneParticlePrepareList_addNode;
 	itemList->updateNodeFunc = NULL;

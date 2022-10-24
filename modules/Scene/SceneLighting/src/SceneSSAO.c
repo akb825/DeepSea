@@ -119,6 +119,7 @@ dsSceneSSAO* dsSceneSSAO_create(dsAllocator* allocator, dsResourceManager* resou
 	DS_ASSERT(itemList->name);
 	memcpy((void*)itemList->name, name, nameLen);
 	itemList->nameID = dsHashString(name);
+	itemList->globalValueCount = 0;
 	itemList->needsCommandBuffer = true;
 	itemList->addNodeFunc = NULL;
 	itemList->updateNodeFunc = NULL;

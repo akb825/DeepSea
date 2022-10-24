@@ -27,7 +27,6 @@
 #include <DeepSea/Render/Resources/ShaderVariableGroupDesc.h>
 #include <DeepSea/Render/Resources/SharedMaterialValues.h>
 #include <DeepSea/Render/RenderSurface.h>
-#include <DeepSea/Scene/SceneGlobalData.h>
 #include <string.h>
 
 static dsShaderVariableElement elements[] =
@@ -42,32 +41,17 @@ static dsShaderVariableElement elements[] =
 	{"screenSize", dsMaterialType_IVec2, 0}
 };
 
-const char* const dsViewTransformData_typeName = "ViewTransformData";
-
 typedef struct dsViewTransformData
 {
-	dsSceneGlobalData globalData;
+	dsSceneItemList itemList;
 	dsShaderVariableGroup* variableGroup;
 	uint32_t nameID;
 } dsViewTransformData;
 
-dsShaderVariableGroupDesc* dsViewTransformData_createShaderVariableGroupDesc(
-	dsResourceManager* resourceManager, dsAllocator* allocator)
-{
-	if (!resourceManager)
-	{
-		errno = EINVAL;
-		return NULL;
-	}
-
-	return dsShaderVariableGroupDesc_create(resourceManager, allocator, elements,
-		DS_ARRAY_SIZE(elements));
-}
-
-bool dsViewTransformData_populateData(dsSceneGlobalData* globalData, const dsView* view,
+static void dsViewTransformData_commit(dsSceneItemList* itemList, const dsView* view,
 	dsCommandBuffer* commandBuffer)
 {
-	dsViewTransformData* viewData = (dsViewTransformData*)globalData;
+	dsViewTransformData* viewData = (dsViewTransformData*)itemList;
 	dsRenderer* renderer = commandBuffer->renderer;
 	unsigned int i = 0;
 	DS_VERIFY(dsShaderVariableGroup_setElementData(viewData->variableGroup, i++, &view->viewMatrix,
@@ -113,29 +97,48 @@ bool dsViewTransformData_populateData(dsSceneGlobalData* globalData, const dsVie
 	DS_VERIFY(dsShaderVariableGroup_setElementData(viewData->variableGroup, i++, &screenSize,
 		dsMaterialType_IVec2, 0, 1));
 
-	if (!dsShaderVariableGroup_commit(viewData->variableGroup, commandBuffer))
-		return false;
-
-	DS_VERIFY(dsSharedMaterialValues_setVariableGroupID(view->globalValues, viewData->nameID,
-		viewData->variableGroup));
-	return true;
+	if (DS_CHECK(DS_SCENE_LOG_TAG,
+		dsShaderVariableGroup_commit(viewData->variableGroup, commandBuffer)))
+	{
+		DS_VERIFY(dsSharedMaterialValues_setVariableGroupID(view->globalValues, viewData->nameID,
+			viewData->variableGroup));
+	}
 }
 
-bool dsViewTransformData_destroy(dsSceneGlobalData* globalData)
+static void dsViewTransformData_destroy(dsSceneItemList* itemList)
 {
-	dsViewTransformData* viewData = (dsViewTransformData*)globalData;
-	if (!dsShaderVariableGroup_destroy(viewData->variableGroup))
-		return false;
+	dsViewTransformData* viewData = (dsViewTransformData*)itemList;
+	DS_CHECK(DS_SCENE_LOG_TAG, dsShaderVariableGroup_destroy(viewData->variableGroup));
 
-	if (globalData->allocator)
-		DS_VERIFY(dsAllocator_free(globalData->allocator, globalData));
-	return true;
+	if (itemList->allocator)
+		DS_VERIFY(dsAllocator_free(itemList->allocator, itemList));
 }
 
-dsSceneGlobalData* dsViewTransformData_create(dsAllocator* allocator,
+const char* const dsViewTransformData_typeName = "ViewTransformData";
+
+dsSceneItemListType dsViewTransformData_type(void)
+{
+	static int type;
+	return &type;
+}
+
+dsShaderVariableGroupDesc* dsViewTransformData_createShaderVariableGroupDesc(
+	dsResourceManager* resourceManager, dsAllocator* allocator)
+{
+	if (!resourceManager)
+	{
+		errno = EINVAL;
+		return NULL;
+	}
+
+	return dsShaderVariableGroupDesc_create(resourceManager, allocator, elements,
+		DS_ARRAY_SIZE(elements));
+}
+
+dsSceneItemList* dsViewTransformData_create(dsAllocator* allocator, const char* name,
 	dsResourceManager* resourceManager, const dsShaderVariableGroupDesc* transformDesc)
 {
-	if (!allocator || !transformDesc)
+	if (!allocator || !name || !transformDesc)
 	{
 		errno = EINVAL;
 		return NULL;
@@ -151,7 +154,8 @@ dsSceneGlobalData* dsViewTransformData_create(dsAllocator* allocator,
 		return NULL;
 	}
 
-	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsViewTransformData)) +
+	size_t nameLen = strlen(name) + 1;
+	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsViewTransformData)) + DS_ALIGNED_SIZE(nameLen) +
 		dsShaderVariableGroup_fullAllocSize(resourceManager, transformDesc);
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
@@ -162,13 +166,22 @@ dsSceneGlobalData* dsViewTransformData_create(dsAllocator* allocator,
 
 	dsViewTransformData* viewData = DS_ALLOCATE_OBJECT(&bufferAlloc, dsViewTransformData);
 	DS_VERIFY(viewData);
-	dsSceneGlobalData* globalData = (dsSceneGlobalData*)viewData;
 
-	globalData->allocator = dsAllocator_keepPointer(allocator);
-	globalData->valueCount = 1;
-	globalData->populateDataFunc = &dsViewTransformData_populateData;
-	globalData->finishFunc = NULL;
-	globalData->destroyFunc = &dsViewTransformData_destroy;
+	dsSceneItemList* itemList = (dsSceneItemList*)viewData;
+	itemList->allocator = dsAllocator_keepPointer(allocator);
+	itemList->type = dsViewTransformData_type();
+	itemList->name = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, nameLen);
+	DS_ASSERT(itemList->name);
+	memcpy((void*)itemList->name, name, nameLen);
+	itemList->nameID = dsHashString(name);
+	itemList->globalValueCount = 1;
+	itemList->needsCommandBuffer = true;
+	itemList->addNodeFunc = NULL;
+	itemList->updateNodeFunc = NULL;
+	itemList->removeNodeFunc = NULL;
+	itemList->updateFunc = NULL;
+	itemList->commitFunc = &dsViewTransformData_commit;
+	itemList->destroyFunc = &dsViewTransformData_destroy;
 
 	viewData->variableGroup = dsShaderVariableGroup_create(resourceManager,
 		(dsAllocator*)&bufferAlloc, allocator, transformDesc);
@@ -181,6 +194,6 @@ dsSceneGlobalData* dsViewTransformData_create(dsAllocator* allocator,
 
 	viewData->nameID = dsHashString(dsViewTransformData_typeName);
 
-	return globalData;
+	return itemList;
 }
 

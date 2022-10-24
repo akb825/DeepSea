@@ -68,27 +68,14 @@ bool dsSceneLightingLoadConext_registerTypes(dsSceneLoadContext* loadContext)
 		return false;
 	}
 
-	if (!dsSceneLoadContext_registerGlobalDataType(loadContext, dsSceneLightSetPrepare_typeName,
+	if (!dsSceneLoadContext_registerItemListType(loadContext, dsSceneLightSetPrepare_typeName,
 			&dsSceneLightSetPrepare_load, NULL, NULL))
 	{
 		return false;
 	}
 
-	if (!dsSceneLoadContext_registerGlobalDataType(loadContext,
+	if (!dsSceneLoadContext_registerItemListType(loadContext,
 			dsSceneShadowManagerPrepare_typeName, &dsSceneShadowManagerPrepare_load, NULL, NULL))
-	{
-		return false;
-	}
-
-	if (!dsSceneLoadContext_registerInstanceDataType(loadContext,
-			dsInstanceForwardLightData_typeName, &dsInstanceForwardLightData_load, NULL, NULL))
-	{
-		return false;
-	}
-
-	if (!dsSceneLoadContext_registerInstanceDataType(loadContext,
-			dsShadowInstanceTransformData_typeName, &dsShadowInstanceTransformData_load, NULL,
-			NULL))
 	{
 		return false;
 	}
@@ -113,6 +100,19 @@ bool dsSceneLightingLoadConext_registerTypes(dsSceneLoadContext* loadContext)
 
 	if (!dsSceneLoadContext_registerItemListType(loadContext, dsShadowCullList_typeName,
 			&dsShadowCullList_load, NULL, NULL))
+	{
+		return false;
+	}
+
+	if (!dsSceneLoadContext_registerInstanceDataType(loadContext,
+			dsInstanceForwardLightData_typeName, &dsInstanceForwardLightData_load, NULL, NULL))
+	{
+		return false;
+	}
+
+	if (!dsSceneLoadContext_registerInstanceDataType(loadContext,
+			dsShadowInstanceTransformData_typeName, &dsShadowInstanceTransformData_load, NULL,
+			NULL))
 	{
 		return false;
 	}

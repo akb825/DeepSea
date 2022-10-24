@@ -55,15 +55,15 @@ if __name__ == '__main__':
 	convertContext = ConvertContext()
 
 	# Lighting scene types.
-	convertContext.addGlobalDataType('LightSetPrepare', convertLightSetPrepare)
-	convertContext.addGlobalDataType('ShadowManagerPrepare', convertShadowManagerPrepare)
+	convertContext.addItemListType('ComputeSSAO', convertSSAO) # Same type as normal SSAO.
+	convertContext.addItemListType('DeferredLightResolve', convertDeferredLightResolve)
+	convertContext.addItemListType('LightSetPrepare', convertLightSetPrepare)
+	convertContext.addItemListType('ShadowCullList', convertShadowCullList)
+	convertContext.addItemListType('ShadowManagerPrepare', convertShadowManagerPrepare)
+	convertContext.addItemListType('SSAO', convertSSAO)
 	convertContext.addInstanceDataType('InstanceForwardLightData', convertInstanceForwardLightData)
 	convertContext.addInstanceDataType('ShadowInstanceTransformData',
 		convertShadowInstanceTransformData)
-	convertContext.addItemListType('ComputeSSAO', convertSSAO) # Same type as normal SSAO.
-	convertContext.addItemListType('DeferredLightResolve', convertDeferredLightResolve)
-	convertContext.addItemListType('ShadowCullList', convertShadowCullList)
-	convertContext.addItemListType('SSAO', convertSSAO)
 
 	# Particle scene types.
 	convertContext.addItemListType('ParticleDrawList', convertParticleDrawList)

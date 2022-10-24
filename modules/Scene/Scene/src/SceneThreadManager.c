@@ -28,7 +28,6 @@
 #include <DeepSea/Core/Thread/Thread.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Log.h>
-#include <DeepSea/Scene/SceneGlobalData.h>
 #include <DeepSea/Render/Resources/Framebuffer.h>
 #include <DeepSea/Render/Resources/GfxFormat.h>
 #include <DeepSea/Render/Resources/Renderbuffer.h>

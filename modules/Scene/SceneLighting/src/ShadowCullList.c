@@ -171,8 +171,8 @@ dsSceneItemList* dsShadowCullList_create(dsAllocator* allocator, const char* nam
 		return NULL;
 	}
 
-	size_t nameLen = strlen(name);
-	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsShadowCullList)) + DS_ALIGNED_SIZE(nameLen + 1);
+	size_t nameLen = strlen(name) + 1;
+	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsShadowCullList)) + DS_ALIGNED_SIZE(nameLen);
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 		return NULL;
@@ -185,9 +185,11 @@ dsSceneItemList* dsShadowCullList_create(dsAllocator* allocator, const char* nam
 	dsSceneItemList* itemList = (dsSceneItemList*)cullList;
 	itemList->allocator = allocator;
 	itemList->type = dsShadowCullList_type();
-	itemList->name = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, nameLen + 1);
-	memcpy((void*)itemList->name, name, nameLen + 1);
+	itemList->name = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, nameLen);
+	DS_ASSERT(itemList->name);
+	memcpy((void*)itemList->name, name, nameLen);
 	itemList->nameID = dsHashString(name);
+	itemList->globalValueCount = 0;
 	itemList->needsCommandBuffer = false;
 	itemList->addNodeFunc = &dsShadowCullList_addNode;
 	itemList->updateNodeFunc = NULL;

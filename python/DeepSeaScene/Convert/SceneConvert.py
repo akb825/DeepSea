@@ -154,10 +154,6 @@ def convertScene(convertContext, data):
 	      for values, removing the type prefix.
 	    - regionDependency: true to have the dependency can be applied separately for different
 	      regions of the attachment, false if it must be applied for the entire subpass.
-	- globalData: optional array of items to store data globally in the scene. Each element of the
-	  array has the following members:
-	  - type: the name of the global data type.
-	  - Remaining members depend on the value of type.
 	- nodes: array of string node names to set on the scene.
 	"""
 	unsetValue = 0xFFFFFFFF
@@ -501,20 +497,6 @@ def convertScene(convertContext, data):
 		if not pipeline:
 			raise Exception('Scene pipeline is empty.')
 
-		globalDataInfo = data.get('globalData', [])
-		globalData = []
-		try:
-			for info in globalDataInfo:
-				item = Object()
-				item.type = str(info['type'])
-				# Some item lists don't have data.
-				item.data = info
-				globalData.append(item)
-		except KeyError as e:
-			raise Exception('Scene "globalData" doesn\'t contain element ' + str(e) + '.')
-		except (TypeError, ValueError):
-			raise Exception('Scene "globalData" must be an array of objects.')
-
 		nodeInfos = data.get('nodes', [])
 		nodes = []
 		try:
@@ -695,18 +677,6 @@ def convertScene(convertContext, data):
 		builder.PrependUOffsetTRelative(offset)
 	pipelineOffset = builder.EndVector()
 
-	globalDataOffsets = []
-	for item in globalData:
-		globalDataOffsets.append(convertContext.convertGlobalData(builder, item.type, item.data))
-
-	if globalDataOffsets:
-		Scene.StartGlobalDataVector(builder, len(globalDataOffsets))
-		for offset in reversed(globalDataOffsets):
-			builder.PrependUOffsetTRelative(offset)
-		globalDataOffset = builder.EndVector()
-	else:
-		globalDataOffset = 0
-
 	if nodes:
 		nodeOffsets = []
 		for node in nodes:
@@ -722,7 +692,6 @@ def convertScene(convertContext, data):
 	Scene.Start(builder)
 	Scene.AddSharedItems(builder, sharedItemsOffset)
 	Scene.AddPipeline(builder, pipelineOffset)
-	Scene.AddGlobalData(builder, globalDataOffset)
 	Scene.AddNodes(builder, nodesOffset)
 	builder.Finish(Scene.End(builder))
 	return builder.Output()

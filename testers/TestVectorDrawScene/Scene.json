@@ -1,5 +1,15 @@
 {
-	"sharedItems": [[{"type": "VectorPrepareList", "name": "vectorPrepareList"}]],
+	"sharedItems":
+	[
+		[
+			{
+				"type": "ViewTransformData",
+				"name": "viewTransform",
+				"variableGroupDesc": "viewTransformDesc"
+			}
+		],
+		[{"type": "VectorPrepareList", "name": "vectorPrepareList"}]
+	],
 	"pipeline":
 	[
 		{
@@ -35,13 +45,6 @@
 					]
 				}
 			]
-		}
-	],
-	"globalData":
-	[
-		{
-			"type": "ViewTransformData",
-			"variableGroupDesc": "viewTransformDesc"
 		}
 	],
 	"nodes": ["tigerTransform", "figureTransform"]

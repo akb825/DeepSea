@@ -217,9 +217,6 @@ table Scene
 	// The render pipeline for the scene.
 	pipeline : [ScenePipelineItem] (required);
 
-	// The global data used within the scene.
-	globalData : [ObjectData];
-
 	// List of nodes names to use within the scene.
 	nodes : [string];
 }

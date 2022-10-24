@@ -352,8 +352,8 @@ typedef bool (*dsSceneLightVisitFunction)(void* userData, const dsSceneLightSet*
 /**
  * @brief Struct defining a scene light set prepare.
  *
- * This will prepare provided scene light sets for use in the scene. This a scene global data object
- * fit into the scene layout.
+ * This will prepare provided scene light sets for use in the scene. This an item list to fit into
+ * the scene layout and support updating lights controlled by a dsSceneLightNode.
  *
  * @see SceneLightSetPrepare.h
  */

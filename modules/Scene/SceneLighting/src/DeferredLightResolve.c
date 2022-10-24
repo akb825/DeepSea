@@ -578,6 +578,7 @@ dsDeferredLightResolve* dsDeferredLightResolve_create(dsAllocator* allocator,
 	DS_ASSERT(itemList->name);
 	memcpy((void*)itemList->name, name, nameLen);
 	itemList->nameID = dsHashString(name);
+	itemList->globalValueCount = 0;
 	itemList->needsCommandBuffer = true;
 	itemList->addNodeFunc = NULL;
 	itemList->updateNodeFunc = NULL;

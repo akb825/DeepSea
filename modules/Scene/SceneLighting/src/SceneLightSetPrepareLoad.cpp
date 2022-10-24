@@ -36,9 +36,9 @@
 #endif
 
 extern "C"
-dsSceneGlobalData* dsSceneLightSetPrepare_load(const dsSceneLoadContext*,
+dsSceneItemList* dsSceneLightSetPrepare_load(const dsSceneLoadContext*,
 	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator*, void*,
-	const uint8_t* data, size_t dataSize)
+	const char* name, const uint8_t* data, size_t dataSize)
 {
 	flatbuffers::Verifier verifier(data, dataSize);
 	if (!DeepSeaSceneLighting::VerifySceneLightSetPrepareBuffer(verifier))
@@ -83,6 +83,6 @@ dsSceneGlobalData* dsSceneLightSetPrepare_load(const dsSceneLoadContext*,
 	float intensityThreshold = fbPrepare->intensityThreshold();
 	if (intensityThreshold <= 0)
 		intensityThreshold = DS_DEFAULT_SCENE_LIGHT_INTENSITY_THRESHOLD;
-	return (dsSceneGlobalData*)dsSceneLightSetPrepare_create(allocator, lightSets, lightSetCount,
-		intensityThreshold);
+	return (dsSceneItemList*)dsSceneLightSetPrepare_create(allocator, name, lightSets,
+		lightSetCount, intensityThreshold);
 }

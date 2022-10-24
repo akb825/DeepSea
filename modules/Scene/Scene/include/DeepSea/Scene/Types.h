@@ -73,7 +73,6 @@ typedef struct dsScene dsScene;
 
 /// @cond
 typedef struct dsView dsView;
-typedef struct dsSceneGlobalData dsSceneGlobalData;
 /// @endcond
 
 /**
@@ -220,63 +219,6 @@ typedef struct dsScenePipelineItem
 	 */
 	dsSceneItemList* computeItems;
 } dsScenePipelineItem;
-
-/**
- * @brief Function to populate scene global data.
- * @remark errno should be set on failure.
- * @param globalData The instance data.
- * @param view The view being drawn. Material values should be set on view->globalValues.
- * @param commandBuffer The command buffer.
- * @return False if an error occurred.
- */
-typedef bool (*dsPopulateSceneGlobalDataFunction)(dsSceneGlobalData* globalData,
-	const dsView* view, dsCommandBuffer* commandBuffer);
-
-/**
- * @brief Function for finishing the current set of global data.
- * @param globalData The global data.
- */
-typedef void (*dsFinishSceneGlobalDataFunction)(dsSceneGlobalData* globalData);
-
-/**
- * @brief Function for destroying scene global data.
- * @remark errno should be set on failure.
- * @param globalData The global data.
- * @return False if an error occurred.
- */
-typedef bool (*dsDestroySceneGlobalDataFunction)(dsSceneGlobalData* globalData);
-
-/**
- * @brief Struct containing global data used within a scene.
- * @see SceneGlobalData.h
- */
-struct dsSceneGlobalData
-{
-	/**
-	 * @brief The allocator this was created with.
-	 */
-	dsAllocator* allocator;
-
-	/**
-	 * @brief The number of values that will be stored on dsSharedMaterialValues.
-	 */
-	uint32_t valueCount;
-
-	/**
-	 * @brief Data populate function.
-	 */
-	dsPopulateSceneGlobalDataFunction populateDataFunc;
-
-	/**
-	 * @brief Finish function.
-	 */
-	dsFinishSceneGlobalDataFunction finishFunc;
-
-	/**
-	 * @brief Destroy function.
-	 */
-	dsDestroySceneGlobalDataFunction destroyFunc;
-};
 
 /**
  * @brief Function for visiting the item lists in a scene.
@@ -627,23 +569,6 @@ typedef dsSceneInstanceData* (*dsLoadSceneInstanceDataFunction)(
 	const dsSceneLoadContext* loadContext, dsSceneLoadScratchData* scratchData,
 	dsAllocator* allocator, dsAllocator* resourceAllocator, void* userData, const uint8_t* data,
 	size_t dataSize);
-
-/**
- * @brief Function to load a scene global data.
- * @remark errno should be set on failure.
- * @param loadContext The load context.
- * @param scratchData The scratch data.
- * @param allocator The allocator to create the global data with.
- * @param resourceAllocator The allocator to create graphics resources with. If NULL, it will use
- *     the global data allocator.
- * @param userData User data registered with this function.
- * @param data The data for the global data.
- * @param dataSize The size fo the data.
- * @return The global data or NULL if it couldn't be loaded.
- */
-typedef dsSceneGlobalData* (*dsLoadSceneGlobalDataFunction)(const dsSceneLoadContext* loadContext,
-	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
-	void* userData, const uint8_t* data, size_t dataSize);
 
 /**
  * @brief Function to load a custom scene resource.

@@ -67,8 +67,6 @@ dsSceneLoadContext* dsSceneLoadContext_create(dsAllocator* allocator, dsRenderer
 		dsHashString, dsHashStringEqual);
 	dsHashTable_initialize(&context->instanceDataTypeTable.hashTable, DS_SCENE_TYPE_TABLE_SIZE,
 		dsHashString, dsHashStringEqual);
-	dsHashTable_initialize(&context->globalDataTypeTable.hashTable, DS_SCENE_TYPE_TABLE_SIZE,
-		dsHashString, dsHashStringEqual);
 	dsHashTable_initialize(&context->customResourceTypeTable.hashTable, DS_SCENE_TYPE_TABLE_SIZE,
 		dsHashString, dsHashStringEqual);
 	dsHashTable_initialize(&context->resourceActionTypeTable.hashTable, DS_SCENE_TYPE_TABLE_SIZE,
@@ -94,12 +92,11 @@ dsSceneLoadContext* dsSceneLoadContext_create(dsAllocator* allocator, dsRenderer
 		&dsViewCullList_load, NULL, NULL);
 	dsSceneLoadContext_registerItemListType(context, dsViewMipmapList_typeName,
 		&dsViewMipmapList_load, NULL, NULL);
+	dsSceneLoadContext_registerItemListType(context, dsViewTransformData_typeName,
+		&dsViewTransformData_load, NULL, NULL);
 
 	dsSceneLoadContext_registerInstanceDataType(context, dsInstanceTransformData_typeName,
 		&dsInstanceTransformData_load, NULL, NULL);
-
-	dsSceneLoadContext_registerGlobalDataType(context, dsViewTransformData_typeName,
-		&dsViewTransformData_load, NULL, NULL);
 
 	// Actions aren't exposed in code so inlined names.
 	dsSceneLoadContext_registerResourceActionType(context, "TransformNodeChildren",
@@ -238,49 +235,6 @@ bool dsSceneLoadContext_registerInstanceDataType(dsSceneLoadContext* context, co
 	{
 		errno = EPERM;
 		DS_LOG_ERROR_F(DS_SCENE_LOG_TAG, "Instance data type '%s' has already been registered.",
-			name);
-		return false;
-	}
-	return true;
-}
-
-bool dsSceneLoadContext_registerGlobalDataType(dsSceneLoadContext* context, const char* name,
-	dsLoadSceneGlobalDataFunction loadFunc, void* userData,
-	dsDestroySceneUserDataFunction destroyUserDataFunc)
-{
-	if (!context || !name || !loadFunc)
-	{
-		errno = EINVAL;
-		return false;
-	}
-
-	dsHashTable* hashTable = &context->globalDataTypeTable.hashTable;
-	size_t index = hashTable->list.length;
-	if (index >= DS_MAX_SCENE_TYPES)
-	{
-		errno = ENOMEM;
-		return false;
-	}
-
-	size_t nameLength = strlen(name);
-	if (nameLength >= DS_MAX_SCENE_NAME_LENGTH)
-	{
-		errno = EINVAL;
-		DS_LOG_ERROR_F(DS_SCENE_LOG_TAG, "Global data type name '%s' exceeds maximum size of %u.",
-			name, DS_MAX_SCENE_NAME_LENGTH);
-		return false;
-	}
-
-	dsLoadSceneGlobalDataItem* globalDataType = context->globalDataTypes + index;
-	memcpy(globalDataType->name, name, nameLength + 1);
-	globalDataType->loadFunc = loadFunc;
-	globalDataType->userData = userData;
-	globalDataType->destroyUserDataFunc = destroyUserDataFunc;
-	if (!dsHashTable_insert(hashTable, globalDataType->name, (dsHashTableNode*)globalDataType,
-			NULL))
-	{
-		errno = EPERM;
-		DS_LOG_ERROR_F(DS_SCENE_LOG_TAG, "Global data type '%s' has already been registered.",
 			name);
 		return false;
 	}
@@ -436,14 +390,6 @@ void dsSceneLoadContext_destroy(dsSceneLoadContext* context)
 		dsLoadSceneInstanceDataItem* instanceDataType = (dsLoadSceneInstanceDataItem*)node;
 		if (instanceDataType->destroyUserDataFunc)
 			instanceDataType->destroyUserDataFunc(instanceDataType->userData);
-	}
-
-	hashTable = &context->globalDataTypeTable.hashTable;
-	for (dsListNode* node = hashTable->list.head; node; node = node->next)
-	{
-		dsLoadSceneGlobalDataItem* globalDataType = (dsLoadSceneGlobalDataItem*)node;
-		if (globalDataType->destroyUserDataFunc)
-			globalDataType->destroyUserDataFunc(globalDataType->userData);
 	}
 
 	hashTable = &context->customResourceTypeTable.hashTable;

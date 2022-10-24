@@ -446,6 +446,8 @@ dsSceneModelList* dsSceneModelList_create(dsAllocator* allocator, const char* na
 	itemList->name = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc, char, nameLen + 1);
 	memcpy((void*)itemList->name, name, nameLen + 1);
 	itemList->nameID = dsHashString(name);
+	itemList->globalValueCount = 0;
+	itemList->needsCommandBuffer = true;
 	itemList->addNodeFunc = &dsSceneModelList_addNode;
 	itemList->updateNodeFunc = NULL;
 	itemList->removeNodeFunc = &dsSceneModelList_removeNode;

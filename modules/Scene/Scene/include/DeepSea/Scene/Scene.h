@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2021 Aaron Barany
+ * Copyright 2019-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,18 +48,13 @@ extern "C"
  *     and take ownership of the objects, i.e. render passes and draw item lists. If creation fails,
  *     this means it will immediately destroy all objects in this list.
  * @param pipelineCount The number of pipeline items.
- * @param globalData The list of global data isntances used within the scene. This will copy the
- *     array itself and take ownership of the objects. If creation fails, this means it will
- *     immediately destroy all objects in this list.
- * @param globalDataCount The number of global data instances.
  * @param userData User data to hold with the scene.
  * @param destroyUserDataFunc Function to destroy the user data for the scene.
  * @return The scene or NULL if an error occurred.
  */
 DS_SCENE_EXPORT dsScene* dsScene_create(dsAllocator* allocator, dsRenderer* renderer,
 	const dsSceneItemLists* sharedItems, uint32_t sharedItemCount,
-	const dsScenePipelineItem* pipeline, uint32_t pipelineCount,
-	dsSceneGlobalData* const* globalData, uint32_t globalDataCount, void* userData,
+	const dsScenePipelineItem* pipeline, uint32_t pipelineCount, void* userData,
 	dsDestroySceneUserDataFunction destroyUserDataFunc);
 
 /**

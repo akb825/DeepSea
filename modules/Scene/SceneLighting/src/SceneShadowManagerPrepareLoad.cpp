@@ -35,9 +35,9 @@
 #endif
 
 extern "C"
-dsSceneGlobalData* dsSceneShadowManagerPrepare_load(const dsSceneLoadContext*,
+dsSceneItemList* dsSceneShadowManagerPrepare_load(const dsSceneLoadContext*,
 	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator*, void*,
-	const uint8_t* data, size_t dataSize)
+	const char* name, const uint8_t* data, size_t dataSize)
 {
 	flatbuffers::Verifier verifier(data, dataSize);
 	if (!DeepSeaSceneLighting::VerifySceneShadowManagerPrepareBuffer(verifier))
@@ -63,5 +63,5 @@ dsSceneGlobalData* dsSceneShadowManagerPrepare_load(const dsSceneLoadContext*,
 	}
 
 	auto shadowManager = reinterpret_cast<dsSceneShadowManager*>(resource->resource);
-	return dsSceneShadowManagerPrepare_create(allocator, shadowManager);
+	return dsSceneShadowManagerPrepare_create(allocator, name, shadowManager);
 }

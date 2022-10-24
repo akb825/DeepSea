@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2021 Aaron Barany
+ * Copyright 2019-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,6 @@
 #include <DeepSea/Render/Resources/ShaderVariableGroup.h>
 #include <DeepSea/Render/Resources/ShaderVariableGroupDesc.h>
 #include <DeepSea/Render/Resources/SharedMaterialValues.h>
-#include <DeepSea/Scene/SceneGlobalData.h>
 #include <DeepSea/Scene/SceneLoadContext.h>
 #include <DeepSea/Scene/SceneLoadScratchData.h>
 
@@ -44,44 +43,41 @@
 
 typedef struct dsLightData
 {
-	dsSceneGlobalData globalData;
+	dsSceneItemList globalData;
 	dsShaderVariableGroup* variableGroup;
 	dsVector3f direction;
-	uint32_t nameID;
+	uint32_t variableGroupNameID;
 } dsLightData;
 
-bool dsLightData_populateData(dsSceneGlobalData* globalData, const dsView* view,
+static int type;
+
+static void dsLightData_commit(dsSceneItemList* itemList, const dsView* view,
 	dsCommandBuffer* commandBuffer)
 {
-	dsLightData* lightData = (dsLightData*)globalData;
+	dsLightData* lightData = (dsLightData*)itemList;
 	dsVector4f direction =
 		{{lightData->direction.x, lightData->direction.y, lightData->direction.z, 0.0f}};
 	dsVector4f viewDirection;
 	dsMatrix44_transform(viewDirection, view->viewMatrix, direction);
 	DS_VERIFY(dsShaderVariableGroup_setElementData(lightData->variableGroup, 0, &viewDirection,
 		dsMaterialType_Vec3, 0, 1));
-	if (!dsShaderVariableGroup_commit(lightData->variableGroup, commandBuffer))
-		return false;
-
-	DS_VERIFY(dsSharedMaterialValues_setVariableGroupID(view->globalValues, lightData->nameID,
-		lightData->variableGroup));
-	return true;
+	DS_CHECK("TestScene", dsShaderVariableGroup_commit(lightData->variableGroup, commandBuffer));
+	DS_VERIFY(dsSharedMaterialValues_setVariableGroupID(view->globalValues,
+		lightData->variableGroupNameID, lightData->variableGroup));
 }
 
-bool dsLightData_destroy(dsSceneGlobalData* globalData)
+static void dsLightData_destroy(dsSceneItemList* itemList)
 {
-	dsLightData* lightData = (dsLightData*)globalData;
-	if (!dsShaderVariableGroup_destroy(lightData->variableGroup))
-		return false;
+	dsLightData* lightData = (dsLightData*)itemList;
+	DS_VERIFY(dsShaderVariableGroup_destroy(lightData->variableGroup));
 
-	if (globalData->allocator)
-		DS_VERIFY(dsAllocator_free(globalData->allocator, globalData));
-	return true;
+	if (itemList->allocator)
+		DS_VERIFY(dsAllocator_free(itemList->allocator, itemList));
 }
 
-dsSceneGlobalData* dsLightData_load(const dsSceneLoadContext* loadContext,
+dsSceneItemList* dsLightData_load(const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator*, void*,
-	const uint8_t* data, size_t dataSize)
+	const char* name, const uint8_t* data, size_t dataSize)
 {
 	flatbuffers::Verifier verifier(data, dataSize);
 	if (!TestScene::VerifyLightDataBuffer(verifier))
@@ -111,8 +107,8 @@ dsSceneGlobalData* dsLightData_load(const dsSceneLoadContext* loadContext,
 	}
 
 	dsRenderer* renderer = dsSceneLoadContext_getRenderer(loadContext);
-	dsSceneGlobalData* lightData =
-		dsLightData_create(allocator, renderer->resourceManager, groupDesc);
+	dsSceneItemList* lightData =
+		dsLightData_create(allocator, name, renderer->resourceManager, groupDesc);
 	if (!lightData)
 		return nullptr;
 
@@ -122,14 +118,15 @@ dsSceneGlobalData* dsLightData_load(const dsSceneLoadContext* loadContext,
 	return lightData;
 }
 
-dsSceneGlobalData* dsLightData_create(dsAllocator* allocator,
+dsSceneItemList* dsLightData_create(dsAllocator* allocator, const char* name,
 	dsResourceManager* resourceManager, const dsShaderVariableGroupDesc* lightDesc)
 {
 	DS_ASSERT(allocator);
 	DS_ASSERT(resourceManager);
 	DS_ASSERT(lightDesc);
 
-	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsLightData)) +
+	size_t nameLen = strlen(name) + 1;
+	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsLightData)) + DS_ALIGNED_SIZE(nameLen) +
 		dsShaderVariableGroup_fullAllocSize(resourceManager, lightDesc);
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
@@ -140,13 +137,22 @@ dsSceneGlobalData* dsLightData_create(dsAllocator* allocator,
 
 	dsLightData* lightData = DS_ALLOCATE_OBJECT(&bufferAlloc, dsLightData);
 	DS_VERIFY(lightData);
-	dsSceneGlobalData* globalData = (dsSceneGlobalData*)lightData;
+	dsSceneItemList* itemList = (dsSceneItemList*)lightData;
 
-	globalData->allocator = dsAllocator_keepPointer(allocator);
-	globalData->valueCount = 1;
-	globalData->populateDataFunc = &dsLightData_populateData;
-	globalData->finishFunc = nullptr;
-	globalData->destroyFunc = &dsLightData_destroy;
+	itemList->allocator = dsAllocator_keepPointer(allocator);
+	itemList->type = &type;
+	itemList->name = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, nameLen);
+	DS_ASSERT(itemList->name);
+	memcpy((void*)itemList->name, name, nameLen);
+	itemList->nameID = dsHashString(name);
+	itemList->globalValueCount = 1;
+	itemList->needsCommandBuffer = true;
+	itemList->addNodeFunc = NULL;
+	itemList->updateNodeFunc = NULL;
+	itemList->removeNodeFunc = NULL;
+	itemList->updateFunc = NULL;
+	itemList->commitFunc = &dsLightData_commit;
+	itemList->destroyFunc = &dsLightData_destroy;
 
 	lightData->variableGroup = dsShaderVariableGroup_create(resourceManager,
 		(dsAllocator*)&bufferAlloc, allocator, lightDesc);
@@ -157,34 +163,34 @@ dsSceneGlobalData* dsLightData_create(dsAllocator* allocator,
 		return nullptr;
 	}
 
-	const char* name = "LightData";
-	lightData->nameID = dsHashString(name);
+	const char* variableGroupName = "LightData";
+	lightData->variableGroupNameID = dsHashString(variableGroupName);
 
-	return globalData;
+	return itemList;
 }
 
-void dsLightData_setDirection(dsSceneGlobalData* globalData, const dsVector3f* direction)
+void dsLightData_setDirection(dsSceneItemList* itemList, const dsVector3f* direction)
 {
-	DS_VERIFY(globalData);
+	DS_VERIFY(itemList);
 	DS_VERIFY(direction);
-	dsLightData* lightData = (dsLightData*)globalData;
+	dsLightData* lightData = (dsLightData*)itemList;
 	dsVector3f_normalize(&lightData->direction, direction);
 }
 
-void dsLightData_setColor(dsSceneGlobalData* globalData, const dsVector3f* color)
+void dsLightData_setColor(dsSceneItemList* itemList, const dsVector3f* color)
 {
-	DS_VERIFY(globalData);
+	DS_VERIFY(itemList);
 	DS_VERIFY(color);
-	dsLightData* lightData = (dsLightData*)globalData;
+	dsLightData* lightData = (dsLightData*)itemList;
 	DS_VERIFY(dsShaderVariableGroup_setElementData(lightData->variableGroup, 1, color,
 		dsMaterialType_Vec3, 0, 1));
 }
 
-void dsLightData_setAmbientColor(dsSceneGlobalData* globalData, const dsVector3f* color)
+void dsLightData_setAmbientColor(dsSceneItemList* itemList, const dsVector3f* color)
 {
-	DS_VERIFY(globalData);
+	DS_VERIFY(itemList);
 	DS_VERIFY(color);
-	dsLightData* lightData = (dsLightData*)globalData;
+	dsLightData* lightData = (dsLightData*)itemList;
 	DS_VERIFY(dsShaderVariableGroup_setElementData(lightData->variableGroup, 2, color,
 		dsMaterialType_Vec3, 0, 1));
 }

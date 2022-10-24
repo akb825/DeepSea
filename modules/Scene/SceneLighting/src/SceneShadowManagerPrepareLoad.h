@@ -25,9 +25,9 @@ extern "C"
 {
 #endif
 
-dsSceneGlobalData* dsSceneShadowManagerPrepare_load(const dsSceneLoadContext* loadContext,
+dsSceneItemList* dsSceneShadowManagerPrepare_load(const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
-	void* userData, const uint8_t* data, size_t dataSize);
+	void* userData, const char* name, const uint8_t* data, size_t dataSize);
 
 #ifdef __cplusplus
 }

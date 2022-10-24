@@ -75,10 +75,8 @@ struct dsScene
 
 	dsSceneItemLists* sharedItems;
 	dsScenePipelineItem* pipeline;
-	dsSceneGlobalData** globalData;
 	uint32_t sharedItemCount;
 	uint32_t pipelineCount;
-	uint32_t globalDataCount;
 	uint32_t globalValueCount;
 	dsHashTable* itemLists;
 
@@ -122,15 +120,6 @@ typedef struct dsLoadSceneInstanceDataItem
 	dsDestroySceneUserDataFunction destroyUserDataFunc;
 } dsLoadSceneInstanceDataItem;
 
-typedef struct dsLoadSceneGlobalDataItem
-{
-	dsHashTableNode node;
-	char name[DS_MAX_SCENE_NAME_LENGTH];
-	dsLoadSceneGlobalDataFunction loadFunc;
-	void* userData;
-	dsDestroySceneUserDataFunction destroyUserDataFunc;
-} dsLoadSceneGlobalDataItem;
-
 typedef struct dsLoadCustomSceneResourceItem
 {
 	dsHashTableNode node;
@@ -161,14 +150,12 @@ struct dsSceneLoadContext
 	dsLoadSceneNodeItem nodeTypes[DS_MAX_SCENE_TYPES];
 	dsLoadSceneItemListItem itemListTypes[DS_MAX_SCENE_TYPES];
 	dsLoadSceneInstanceDataItem instanceDataTypes[DS_MAX_SCENE_TYPES];
-	dsLoadSceneGlobalDataItem globalDataTypes[DS_MAX_SCENE_TYPES];
 	dsLoadCustomSceneResourceItem customResourceTypes[DS_MAX_SCENE_TYPES];
 	dsLoadSceneResourceActionItem resourceActionTypes[DS_MAX_SCENE_TYPES];
 
 	DS_STATIC_HASH_TABLE(DS_SCENE_TYPE_TABLE_SIZE) nodeTypeTable;
 	DS_STATIC_HASH_TABLE(DS_SCENE_TYPE_TABLE_SIZE) itemListTypeTable;
 	DS_STATIC_HASH_TABLE(DS_SCENE_TYPE_TABLE_SIZE) instanceDataTypeTable;
-	DS_STATIC_HASH_TABLE(DS_SCENE_TYPE_TABLE_SIZE) globalDataTypeTable;
 	DS_STATIC_HASH_TABLE(DS_SCENE_TYPE_TABLE_SIZE) customResourceTypeTable;
 	DS_STATIC_HASH_TABLE(DS_SCENE_TYPE_TABLE_SIZE) resourceActionTypeTable;
 };

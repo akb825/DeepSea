@@ -28,7 +28,6 @@
 
 #include <DeepSea/Scene/Flatbuffers/SceneFlatbufferHelpers.h>
 #include <DeepSea/Scene/ItemLists/SceneItemList.h>
-#include <DeepSea/Scene/SceneGlobalData.h>
 #include <DeepSea/Scene/SceneLoadContext.h>
 #include <DeepSea/Scene/SceneLoadScratchData.h>
 #include <DeepSea/Scene/SceneRenderPass.h>
@@ -57,8 +56,7 @@ template <typename T>
 using FlatbufferVector = flatbuffers::Vector<flatbuffers::Offset<T>>;
 
 static size_t getTempSize(const FlatbufferVector<DeepSeaScene::SceneItemLists>* fbSharedItems,
-	const FlatbufferVector<DeepSeaScene::ScenePipelineItem>& fbPipeline,
-	const FlatbufferVector<DeepSeaScene::ObjectData>* fbGlobalData, const char* fileName)
+	const FlatbufferVector<DeepSeaScene::ScenePipelineItem>& fbPipeline, const char* fileName)
 {
 	size_t tempSize = 0;
 	if (fbSharedItems && fbSharedItems->size() > 0)
@@ -168,9 +166,6 @@ static size_t getTempSize(const FlatbufferVector<DeepSeaScene::SceneItemLists>* 
 		}
 	}
 	tempSize += maxRenderPassSize;
-
-	if (fbGlobalData && fbGlobalData->size() > 0)
-		tempSize += DS_ALIGNED_SIZE(fbGlobalData->size()*sizeof(dsSceneGlobalData*));
 
 	return tempSize;
 }
@@ -419,7 +414,6 @@ dsScene* dsScene_loadImpl(dsAllocator* allocator, dsAllocator* resourceAllocator
 	auto fbScene = DeepSeaScene::GetScene(data);
 	auto fbSharedItems = fbScene->sharedItems();
 	auto fbPipeline = fbScene->pipeline();
-	auto fbGlobalData = fbScene->globalData();
 	auto fbNodes = fbScene->nodes();
 
 	uint32_t sharedItemCount = 0;
@@ -428,14 +422,11 @@ dsScene* dsScene_loadImpl(dsAllocator* allocator, dsAllocator* resourceAllocator
 	uint32_t pipelineCount = 0;
 	dsScenePipelineItem* pipeline = nullptr;
 
-	uint32_t globalDataCount = 0;
-	dsSceneGlobalData** globalData = nullptr;
-
 	dsScene* scene = nullptr;
 
 	dsAllocator* scratchAllocator = dsSceneLoadScratchData_getAllocator(scratchData);
 	DS_ASSERT(scratchAllocator);
-	size_t tempSize = getTempSize(fbSharedItems, *fbPipeline, fbGlobalData, fileName);
+	size_t tempSize = getTempSize(fbSharedItems, *fbPipeline, fileName);
 	if (tempSize == 0)
 	{
 		errno = EFORMAT;
@@ -536,42 +527,12 @@ dsScene* dsScene_loadImpl(dsAllocator* allocator, dsAllocator* resourceAllocator
 		}
 	}
 
-	if (fbGlobalData && fbGlobalData->size())
-	{
-		globalDataCount = fbGlobalData->size();
-		globalData =
-			DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsSceneGlobalData*, globalDataCount);
-		for (uint32_t i = 0; i < globalDataCount; ++i)
-		{
-			auto fbGlobalDataItem = (*fbGlobalData)[i];
-			if (!fbGlobalData)
-			{
-				errno = EFORMAT;
-				PRINT_FLATBUFFER_ERROR("Scene global data is null.", fileName);
-				// Only clear out what's been set so far.
-				globalDataCount = i;
-				goto finished;
-			}
-
-			auto fbData = fbGlobalDataItem->data();
-			globalData[i] = dsSceneGlobalData_load(allocator, resourceAllocator, loadContext,
-				scratchData, fbGlobalDataItem->type()->c_str(), fbData->data(), fbData->size());
-			if (!globalData[i])
-			{
-				// Only clear out what's been set so far.
-				globalDataCount = i;
-				goto finished;
-			}
-		}
-	}
-
 	scene = dsScene_create(allocator, renderer, sharedItems, sharedItemCount, pipeline,
-		pipelineCount, globalData, globalDataCount, userData, destroyUserDataFunc);
+		pipelineCount, userData, destroyUserDataFunc);
 
 	// Scene creation takes posession of objects, even in failure.
 	sharedItemCount = 0;
 	pipelineCount = 0;
-	globalDataCount = 0;
 
 	if (fbNodes)
 	{
@@ -630,8 +591,6 @@ finished:
 		else if (curItem->computeItems)
 			dsSceneItemList_destroy(curItem->computeItems);
 	}
-	for (uint32_t i = 0; i < globalDataCount; ++i)
-		dsSceneGlobalData_destroy(globalData[i]);
 
 	DS_VERIFY(dsAllocator_free(scratchAllocator, tempBuffer));
 	return scene;

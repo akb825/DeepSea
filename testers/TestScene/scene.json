@@ -3,6 +3,23 @@
 	[
 		[
 			{
+				"type": "ViewTransformData",
+				"name": "viewTransform",
+				"variableGroupDesc": "viewTransformDesc"
+			}
+		],
+		[
+			{
+				"type": "LightData",
+				"name": "lightData",
+				"variableGroupDesc": "lightDesc",
+				"direction": [-0.3, 1.0, 0.6],
+				"color": [1.0, 1.0, 1.0],
+				"ambient": [0.2, 0.2, 0.2]
+			}
+		],
+		[
+			{
 				"type": "ViewCullList",
 				"name": "cullList"
 			}
@@ -53,20 +70,6 @@
 					]
 				}
 			]
-		}
-	],
-	"globalData":
-	[
-		{
-			"type": "ViewTransformData",
-			"variableGroupDesc": "viewTransformDesc"
-		},
-		{
-			"type": "LightData",
-			"variableGroupDesc": "lightDesc",
-			"direction": [-0.3, 1.0, 0.6],
-			"color": [1.0, 1.0, 1.0],
-			"ambient": [0.2, 0.2, 0.2]
 		}
 	],
 	"nodes": ["primaryTransform", "groundNode"]

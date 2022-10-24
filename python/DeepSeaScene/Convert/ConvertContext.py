@@ -57,15 +57,12 @@ class ConvertContext:
 			'FullScreenResolve': convertFullScreenResolve,
 			'ModelList': convertModelList,
 			'ViewCullList': convertViewCullList,
-			'ViewMipmapList': convertViewMipmapList
+			'ViewMipmapList': convertViewMipmapList,
+			'ViewTransformData': convertViewTransformData
 		}
 
 		self.instanceDataTypeMap = {
 			'InstanceTransformData': convertInstanceTransformData
-		}
-
-		self.globalDataTypeMap = {
-			'ViewTransformData': convertViewTransformData
 		}
 
 		self.customResourceTypeMap = dict()
@@ -159,35 +156,6 @@ class ConvertContext:
 			raise Exception('Instance data type "' + typeName + '" hasn\'t been registered.')
 
 		convertedData = self.instanceDataTypeMap[typeName](self, data)
-
-		typeNameOffset = builder.CreateString(typeName)
-		dataOffset = builder.CreateByteVector(convertedData)
-
-		ObjectData.Start(builder)
-		ObjectData.AddType(builder, typeNameOffset)
-		ObjectData.AddData(builder, dataOffset)
-		return ObjectData.End(builder)
-
-	def addGlobalDataType(self, typeName, convertFunc):
-		"""
-		Adds a global data type with the name and the convert function. The function should take the
-		ConvertContext and dict for the data as parameters and return the flatbuffer bytes.
-
-		An exception will be raised if the type is already registered.
-		"""
-		if typeName in self.globalDataTypeMap:
-			raise Exception('Global data type "' + typeName + '" is already registered.')
-		self.globalDataTypeMap[typeName] = convertFunc
-
-	def convertGlobalData(self, builder, typeName, data):
-		"""
-		Converts a global data based on its type and dict for the data. This will return the offset
-		to the ObjectData added to the builder.
-		"""
-		if typeName not in self.globalDataTypeMap:
-			raise Exception('Global data type "' + typeName + '" hasn\'t been registered.')
-
-		convertedData = self.globalDataTypeMap[typeName](self, data)
 
 		typeNameOffset = builder.CreateString(typeName)
 		dataOffset = builder.CreateByteVector(convertedData)

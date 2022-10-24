@@ -62,4 +62,4 @@ def convertLightData(convertContext, data):
 	return builder.Output()
 
 def deepSeaSceneExtension(convertContext):
-	convertContext.addGlobalDataType('LightData', convertLightData)
+	convertContext.addItemListType('LightData', convertLightData)

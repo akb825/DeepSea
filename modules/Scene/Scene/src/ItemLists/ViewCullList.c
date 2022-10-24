@@ -161,8 +161,8 @@ dsSceneItemList* dsViewCullList_create(dsAllocator* allocator, const char* name)
 		return NULL;
 	}
 
-	size_t nameLen = strlen(name);
-	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsViewCullList)) + DS_ALIGNED_SIZE(nameLen + 1);
+	size_t nameLen = strlen(name) + 1;
+	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsViewCullList)) + DS_ALIGNED_SIZE(nameLen);
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 		return NULL;
@@ -175,9 +175,10 @@ dsSceneItemList* dsViewCullList_create(dsAllocator* allocator, const char* name)
 	dsSceneItemList* itemList = (dsSceneItemList*)cullList;
 	itemList->allocator = allocator;
 	itemList->type = dsViewCullList_type();
-	itemList->name = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, nameLen + 1);
-	memcpy((void*)itemList->name, name, nameLen + 1);
+	itemList->name = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, nameLen);
+	memcpy((void*)itemList->name, name, nameLen);
 	itemList->nameID = dsHashString(name);
+	itemList->globalValueCount = 0;
 	itemList->needsCommandBuffer = false;
 	itemList->addNodeFunc = &dsViewCullList_addNode;
 	itemList->updateNodeFunc = NULL;

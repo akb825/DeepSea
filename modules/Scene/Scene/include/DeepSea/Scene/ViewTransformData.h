@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Aaron Barany
+ * Copyright 2019-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,17 +27,24 @@ extern "C"
 
 /**
  * @file
- * @brief Functions for creating dsSceneGlobalData instances that manage view tansforms.
+ * @brief Functions for creating dsSceneItemList instances that manage view tansforms.
  *
  * This populates the uniforms found in DeepSea/Scene/Shaders/ViewTransform.mslh
  *
- * @see dsSceneGlobalData
+ * @remark This item list type contains global values and must be a alone as an entry in the
+ *     sharedItemlist of a dsScene.
  */
 
 /**
  * @brief The view transform data type name.
  */
 DS_SCENE_EXPORT extern const char* const dsViewTransformData_typeName;
+
+/**
+ * @brief Gets the type of a view transform data.
+ * @return The type of a view transform data.
+ */
+DS_SCENE_EXPORT dsSceneItemListType dsViewTransformData_type(void);
 
 /**
  * @brief Creates the shader variable group description used to describe the variables for the
@@ -55,14 +62,16 @@ DS_SCENE_EXPORT dsShaderVariableGroupDesc* dsViewTransformData_createShaderVaria
 /**
  * @brief Creates view trnasform data to use with a dsScene.
  * @param allocator The allocator to create the transform data with.
+ * @param name The name of the light set prepare. This will be copied.
  * @param resourceManager The resource manager.
  * @param transformDesc The shader variable group description created from
  *     dsViewTransformData_createShaderVariableGroupDesc(). This must remain alive at least as
  *     long as the instance data object.
  * @return The global data or NULL if an error occurred.
  */
-DS_SCENE_EXPORT dsSceneGlobalData* dsViewTransformData_create(dsAllocator* allocator,
-	dsResourceManager* resourceManager, const dsShaderVariableGroupDesc* transformDesc);
+DS_SCENE_EXPORT dsSceneItemList* dsViewTransformData_create(dsAllocator* allocator,
+	const char* name, dsResourceManager* resourceManager,
+	const dsShaderVariableGroupDesc* transformDesc);
 
 #ifdef __cplusplus
 }

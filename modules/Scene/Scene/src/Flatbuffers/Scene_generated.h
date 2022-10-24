@@ -1055,17 +1055,13 @@ struct Scene FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_SHAREDITEMS = 4,
     VT_PIPELINE = 6,
-    VT_GLOBALDATA = 8,
-    VT_NODES = 10
+    VT_NODES = 8
   };
   const flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::SceneItemLists>> *sharedItems() const {
     return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::SceneItemLists>> *>(VT_SHAREDITEMS);
   }
   const flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::ScenePipelineItem>> *pipeline() const {
     return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::ScenePipelineItem>> *>(VT_PIPELINE);
-  }
-  const flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::ObjectData>> *globalData() const {
-    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::ObjectData>> *>(VT_GLOBALDATA);
   }
   const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *nodes() const {
     return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *>(VT_NODES);
@@ -1078,9 +1074,6 @@ struct Scene FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            VerifyOffsetRequired(verifier, VT_PIPELINE) &&
            verifier.VerifyVector(pipeline()) &&
            verifier.VerifyVectorOfTables(pipeline()) &&
-           VerifyOffset(verifier, VT_GLOBALDATA) &&
-           verifier.VerifyVector(globalData()) &&
-           verifier.VerifyVectorOfTables(globalData()) &&
            VerifyOffset(verifier, VT_NODES) &&
            verifier.VerifyVector(nodes()) &&
            verifier.VerifyVectorOfStrings(nodes()) &&
@@ -1097,9 +1090,6 @@ struct SceneBuilder {
   }
   void add_pipeline(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::ScenePipelineItem>>> pipeline) {
     fbb_.AddOffset(Scene::VT_PIPELINE, pipeline);
-  }
-  void add_globalData(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::ObjectData>>> globalData) {
-    fbb_.AddOffset(Scene::VT_GLOBALDATA, globalData);
   }
   void add_nodes(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>> nodes) {
     fbb_.AddOffset(Scene::VT_NODES, nodes);
@@ -1120,11 +1110,9 @@ inline flatbuffers::Offset<Scene> CreateScene(
     flatbuffers::FlatBufferBuilder &_fbb,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::SceneItemLists>>> sharedItems = 0,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::ScenePipelineItem>>> pipeline = 0,
-    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::ObjectData>>> globalData = 0,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>> nodes = 0) {
   SceneBuilder builder_(_fbb);
   builder_.add_nodes(nodes);
-  builder_.add_globalData(globalData);
   builder_.add_pipeline(pipeline);
   builder_.add_sharedItems(sharedItems);
   return builder_.Finish();
@@ -1134,17 +1122,14 @@ inline flatbuffers::Offset<Scene> CreateSceneDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     const std::vector<flatbuffers::Offset<DeepSeaScene::SceneItemLists>> *sharedItems = nullptr,
     const std::vector<flatbuffers::Offset<DeepSeaScene::ScenePipelineItem>> *pipeline = nullptr,
-    const std::vector<flatbuffers::Offset<DeepSeaScene::ObjectData>> *globalData = nullptr,
     const std::vector<flatbuffers::Offset<flatbuffers::String>> *nodes = nullptr) {
   auto sharedItems__ = sharedItems ? _fbb.CreateVector<flatbuffers::Offset<DeepSeaScene::SceneItemLists>>(*sharedItems) : 0;
   auto pipeline__ = pipeline ? _fbb.CreateVector<flatbuffers::Offset<DeepSeaScene::ScenePipelineItem>>(*pipeline) : 0;
-  auto globalData__ = globalData ? _fbb.CreateVector<flatbuffers::Offset<DeepSeaScene::ObjectData>>(*globalData) : 0;
   auto nodes__ = nodes ? _fbb.CreateVector<flatbuffers::Offset<flatbuffers::String>>(*nodes) : 0;
   return DeepSeaScene::CreateScene(
       _fbb,
       sharedItems__,
       pipeline__,
-      globalData__,
       nodes__);
 }
 

@@ -240,12 +240,25 @@ struct dsSceneItemList
 	uint32_t nameID;
 
 	/**
+	 * @brief The number of global values that will be stored on dsSharedMaterialValues.
+	 *
+	 * A dsSceneItemList instance that has a globalValueCount > 1 must:
+	 * 1. Be in the sharedItems list for a dsScene.
+	 * 2. Be the only itemList in the dsSceneItemLists entry. (i.e. count == 1)
+	 *
+	 * This avoids unsafe concurrent access to the dsSharedMaterialValues for global data.
+	 */
+	uint32_t globalValueCount;
+
+	/**
 	 * @brief Whether or not the command buffer is required.
 	 */
 	bool needsCommandBuffer;
 
 	/**
 	 * @brief Function for adding a node to the item list.
+	 *
+	 * This may be NULL if the scene list doesn't interact with nodes.
 	 */
 	dsAddSceneItemListNodeFunction addNodeFunc;
 
@@ -258,6 +271,8 @@ struct dsSceneItemList
 
 	/**
 	 * @brief Function for updating a node in the item list.
+	 *
+	 * This may be NULL if the scene list doesn't interact with nodes.
 	 */
 	dsRemoveSceneItemListNodeFunction removeNodeFunc;
 
@@ -271,7 +286,7 @@ struct dsSceneItemList
 	/**
 	 * @brief Function for committing the scene item list.
 	 *
-	 * This may be NULL if the item list only needs updating.
+	 * This may be NULL if the item list only needs itself or nodes to be updated.
 	 */
 	dsCommitSceneItemListFunction commitFunc;
 

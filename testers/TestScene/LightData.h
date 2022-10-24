@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 Aaron Barany
+ * Copyright 2019-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,14 +24,14 @@ extern "C"
 {
 #endif
 
-dsSceneGlobalData* dsLightData_load(const dsSceneLoadContext* loadContext,
+dsSceneItemList* dsLightData_load(const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator*, void*,
-	const uint8_t* data, size_t dataSize);
-dsSceneGlobalData* dsLightData_create(dsAllocator* allocator,
+	const char* name, const uint8_t* data, size_t dataSize);
+dsSceneItemList* dsLightData_create(dsAllocator* allocator, const char* name,
 	dsResourceManager* resourceManager, const dsShaderVariableGroupDesc* lightDesc);
-void dsLightData_setDirection(dsSceneGlobalData* globalData, const dsVector3f* direction);
-void dsLightData_setColor(dsSceneGlobalData* globalData, const dsVector3f* color);
-void dsLightData_setAmbientColor(dsSceneGlobalData* globalData, const dsVector3f* color);
+void dsLightData_setDirection(dsSceneItemList* itemList, const dsVector3f* direction);
+void dsLightData_setColor(dsSceneItemList* itemList, const dsVector3f* color);
+void dsLightData_setAmbientColor(dsSceneItemList* itemList, const dsVector3f* color);
 
 #ifdef __cplusplus
 }
