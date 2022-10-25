@@ -41,11 +41,11 @@
 #include <DeepSea/Scene/View.h>
 #include <DeepSea/Scene/ViewTransformData.h>
 
-#include <DeepSea/Text/TextSubstitutionTable.h>
+#include <DeepSea/SceneVectorDraw/SceneTextNode.h>
+#include <DeepSea/SceneVectorDraw/SceneVectorDrawLoadContext.h>
+#include <DeepSea/SceneVectorDraw/SceneVectorItemList.h>
 
-#include <DeepSea/VectorDrawScene/SceneTextNode.h>
-#include <DeepSea/VectorDrawScene/SceneVectorItemList.h>
-#include <DeepSea/VectorDrawScene/VectorSceneLoadContext.h>
+#include <DeepSea/Text/TextSubstitutionTable.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -289,7 +289,7 @@ static bool setup(TestVectorDrawScene* testVectorDrawScene, dsApplication* appli
 	};
 
 	float pixelSize = 200.0f/(float)testVectorDrawScene->window->surface->height;
-	if (!dsVectorSceneLoadConext_registerTypes(loadContext, allocator,
+	if (!dsSceneVectorDrawLoadConext_registerTypes(loadContext, allocator,
 			testVectorDrawScene->initCommandBuffer, NULL, substitutionTable, &textRenderInfo,
 			pixelSize))
 	{

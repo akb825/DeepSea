@@ -17,7 +17,7 @@
 		],
 		[
 			{"type": "ViewCullList", "name": "cullList"},
-			{"type": "ParticlePrepareList", "name": "particlePrepare"}
+			{"type": "ParticlePrepare", "name": "particlePrepare"}
 		]
 	],
 	"pipeline":

@@ -33,11 +33,11 @@ from DeepSeaSceneLighting.Convert.ShadowManagerPrepareConvert import convertShad
 from DeepSeaSceneLighting.Convert.SSAOConvert import convertSSAO
 
 from DeepSeaSceneParticle.Convert.ParticleDrawListConvert import convertParticleDrawList
-from DeepSeaSceneParticle.Convert.ParticlePrepareListConvert import convertParticlePrepareList
+from DeepSeaSceneParticle.Convert.ParticlePrepareConvert import convertParticlePrepare
 from DeepSeaSceneParticle.Convert.ParticleTransformDataConvert import convertParticleTransformData
 
-from DeepSeaVectorDrawScene.Convert.VectorItemListConvert import convertVectorItemList
-from DeepSeaVectorDrawScene.Convert.VectorPrepareListConvert import convertVectorPrepareList
+from DeepSeaSceneVectorDraw.Convert.VectorDrawPrepareConvert import convertVectorDrawPrepare
+from DeepSeaSceneVectorDraw.Convert.VectorItemListConvert import convertVectorItemList
 
 if __name__ == '__main__':
 	parser = argparse.ArgumentParser(description =
@@ -67,12 +67,12 @@ if __name__ == '__main__':
 
 	# Particle scene types.
 	convertContext.addItemListType('ParticleDrawList', convertParticleDrawList)
-	convertContext.addItemListType('ParticlePrepareList', convertParticlePrepareList)
+	convertContext.addItemListType('ParticlePrepare', convertParticlePrepare)
 	convertContext.addInstanceDataType('ParticleTransformData', convertParticleTransformData)
 
 	# Vector draw scene types.
+	convertContext.addItemListType('VectorDrawPrepare', convertVectorDrawPrepare)
 	convertContext.addItemListType('VectorItemList', convertVectorItemList)
-	convertContext.addItemListType('VectorPrepareList', convertVectorPrepareList)
 
 	for extension in args.extensions:
 		import_module(extension).deepSeaSceneExtension(convertContext)

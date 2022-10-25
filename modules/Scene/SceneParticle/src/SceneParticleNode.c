@@ -27,7 +27,7 @@
 #include <DeepSea/Scene/Nodes/SceneNode.h>
 #include <DeepSea/Scene/Nodes/SceneTreeNode.h>
 
-#include <DeepSea/SceneParticle/SceneParticlePrepareList.h>
+#include <DeepSea/SceneParticle/SceneParticlePrepare.h>
 
 #include <string.h>
 
@@ -180,7 +180,7 @@ dsParticleEmitter* dsSceneParticleNode_getEmitterForInstance(const dsSceneTreeNo
 	for (uint32_t i = 0; i < itemData->count; ++i)
 	{
 		const dsSceneItemList* itemList = dsSceneTreeNode_getItemList(treeNode, i);
-		if (itemList && itemList->type == dsSceneParticlePrepareList_type())
+		if (itemList && itemList->type == dsSceneParticlePrepare_type())
 			return (dsParticleEmitter*)itemData->itemData[i].data;
 	}
 

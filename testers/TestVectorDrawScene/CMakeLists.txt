@@ -1,4 +1,4 @@
-if (NOT TARGET DeepSea::VectorDrawScene OR NOT TARGET DeepSea::ApplicationSDL)
+if (NOT TARGET DeepSea::SceneVectorDraw OR NOT TARGET DeepSea::ApplicationSDL)
 	return()
 endif()
 
@@ -30,7 +30,7 @@ endif()
 
 ds_add_executable(deepsea_test_vector_draw_scene_app WIN32 ${source})
 target_link_libraries(deepsea_test_vector_draw_scene_app 
-	PRIVATE DeepSea::RenderBootstrap DeepSea::VectorDrawScene DeepSea::ApplicationSDL)
+	PRIVATE DeepSea::RenderBootstrap DeepSea::SceneVectorDraw DeepSea::ApplicationSDL)
 target_include_directories(deepsea_test_vector_draw_scene_app PRIVATE ${FLATBUFFERS_INCLUDE_DIRS})
 ds_link_main_lib(deepsea_test_vector_draw_scene_app DeepSea::ApplicationSDLMain)
 

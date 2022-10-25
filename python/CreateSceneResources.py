@@ -29,12 +29,12 @@ from DeepSeaSceneParticle.Convert.ParticleNodeConvert import convertParticleNode
 from DeepSeaSceneParticle.Convert.StandardParticleEmitterFactoryConvert import \
 	convertStandardParticleEmitterFactory
 
-from DeepSeaVectorDrawScene.Convert.TextConvert import convertText
-from DeepSeaVectorDrawScene.Convert.TextNodeConvert import convertTextNode
-from DeepSeaVectorDrawScene.Convert.VectorImageConvert import convertVectorImage
-from DeepSeaVectorDrawScene.Convert.VectorImageNodeConvert import convertVectorImageNode
-from DeepSeaVectorDrawScene.Convert.VectorResourcesConvert import convertVectorResources
-from DeepSeaVectorDrawScene.Convert.VectorShadersConvert import convertVectorShaders
+from DeepSeaSceneVectorDraw.Convert.TextConvert import convertText
+from DeepSeaSceneVectorDraw.Convert.TextNodeConvert import convertTextNode
+from DeepSeaSceneVectorDraw.Convert.VectorImageConvert import convertVectorImage
+from DeepSeaSceneVectorDraw.Convert.VectorImageNodeConvert import convertVectorImageNode
+from DeepSeaSceneVectorDraw.Convert.VectorResourcesConvert import convertVectorResources
+from DeepSeaSceneVectorDraw.Convert.VectorShadersConvert import convertVectorShaders
 
 if __name__ == '__main__':
 	parser = argparse.ArgumentParser(description =

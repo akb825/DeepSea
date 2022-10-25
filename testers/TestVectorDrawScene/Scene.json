@@ -8,7 +8,7 @@
 				"variableGroupDesc": "viewTransformDesc"
 			}
 		],
-		[{"type": "VectorPrepareList", "name": "vectorPrepareList"}]
+		[{"type": "VectorDrawPrepare", "name": "vectorDrawPrepare"}]
 	],
 	"pipeline":
 	[

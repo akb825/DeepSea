@@ -38,7 +38,7 @@
 
 #include <DeepSea/SceneParticle/PopulateSceneParticleInstanceData.h>
 #include <DeepSea/SceneParticle/SceneParticleNode.h>
-#include <DeepSea/SceneParticle/SceneParticlePrepareList.h>
+#include <DeepSea/SceneParticle/SceneParticlePrepare.h>
 
 #include <string.h>
 
@@ -92,7 +92,7 @@ static uint64_t dsSceneParticleDrawList_addNode(dsSceneItemList* itemList, dsSce
 	for (; prepareListIndex < node->itemListCount; ++prepareListIndex)
 	{
 		const dsSceneItemList* itemList = dsSceneTreeNode_getItemList(treeNode, prepareListIndex);
-		if (itemList && itemList->type == dsSceneParticlePrepareList_type())
+		if (itemList && itemList->type == dsSceneParticlePrepare_type())
 			break;
 	}
 
