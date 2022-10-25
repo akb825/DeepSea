@@ -1,4 +1,4 @@
-# Copyright 2020-2021 Aaron Barany
+# Copyright 2020-2022 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,8 +13,8 @@
 # limitations under the License.
 
 import flatbuffers
-from DeepSeaScene.Vector3f import *
-from TestScene.LightData import *
+from DeepSeaScene.Vector3f import CreateVector3f
+from TestScene import LightData
 
 def convertLightData(convertContext, data):
 	try:
@@ -53,12 +53,12 @@ def convertLightData(convertContext, data):
 
 	builder = flatbuffers.Builder(0)
 	variableGroupDescNameOffset = builder.CreateString(variableGroupDescName)
-	LightDataStart(builder)
-	LightDataAddVariableGroupDesc(builder, variableGroupDescNameOffset)
-	LightDataAddDirection(builder, CreateVector3f(builder, *direction))
-	LightDataAddColor(builder, CreateVector3f(builder, *color))
-	LightDataAddAmbient(builder, CreateVector3f(builder, *ambient))
-	builder.Finish(LightDataEnd(builder))
+	LightData.Start(builder)
+	LightData.AddVariableGroupDesc(builder, variableGroupDescNameOffset)
+	LightData.AddDirection(builder, CreateVector3f(builder, *direction))
+	LightData.AddColor(builder, CreateVector3f(builder, *color))
+	LightData.AddAmbient(builder, CreateVector3f(builder, *ambient))
+	builder.Finish(LightData.End(builder))
 	return builder.Output()
 
 def deepSeaSceneExtension(convertContext):
