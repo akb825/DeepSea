@@ -166,6 +166,16 @@
 				"binding": "Global"
 			},
 			{
+				"name": "normalSpecular",
+				"type": "SubpassInput",
+				"binding": "Global"
+			},
+			{
+				"name": "surfaceDepth",
+				"type": "SubpassInput",
+				"binding": "Global"
+			},
+			{
 				"name": "ssao",
 				"type": "Texture",
 				"binding": "Global"

@@ -22,21 +22,12 @@
 
 [[vertex]] layout(location = DS_POSITION) in vec2 position;
 
-struct VertexOut
-{
-	vec2 texCoord;
-};
-
-[[vertex]] out VertexOut vertexOut;
-[[fragment]] in VertexOut vertexOut;
-
 [[fragment]] out vec4 color;
 
 [[vertex]]
 void vertexShader()
 {
 	gl_Position = DS_ADJUST_CLIP(vec4(position, 0.0, 1.0));
-	vertexOut.texCoord = position;
 }
 
 [[fragment]]
