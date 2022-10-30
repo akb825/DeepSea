@@ -37,28 +37,24 @@ android {
     // Only include libraries that aren't referenced directly in CMake.
     task copyArm32Libraries(type: Copy) {
         from ("${projectDir}/../../dependencies/libs/android-armeabi-v7a/lib") {
-            include "libhidapi.so"
             include "libSDL2.so"
         }
         into "${projectDir}/src/main/jniLibs/armeabi-v7a"
     }
     task copyArm64Libraries(type: Copy) {
         from ("${projectDir}/../../dependencies/libs/android-arm64-v8a/lib") {
-            include "libhidapi.so"
             include "libSDL2.so"
         }
         into "${projectDir}/src/main/jniLibs/arm64-v8a"
     }
     task copyX86Libraries(type: Copy) {
         from ("${projectDir}/../../dependencies/libs/android-x86/lib") {
-            include "libhidapi.so"
             include "libSDL2.so"
         }
         into "${projectDir}/src/main/jniLibs/x86"
     }
     task copyX86_64Libraries(type: Copy) {
         from ("${projectDir}/../../dependencies/libs/android-x86_64/lib") {
-            include "libhidapi.so"
             include "libSDL2.so"
         }
         into "${projectDir}/src/main/jniLibs/x86_64"
@@ -76,6 +72,7 @@ android {
             applicationIdSuffix ".testcube"
             versionNameSuffix "-TestCube"
             resValue "string", "app_name", "TestCube"
+            resValue "string", "main_lib_name", "deepsea_test_cube_app"
         }
         TestRenderSubpass {
             externalNativeBuild {
@@ -87,6 +84,7 @@ android {
             applicationIdSuffix ".testrendersubpass"
             versionNameSuffix "-TestRenderSubpass"
             resValue "string", "app_name", "TestRenderSubpass"
+            resValue "string", "main_lib_name", "deepsea_test_render_subpass_app"
         }
         TestText {
             externalNativeBuild {
@@ -98,6 +96,7 @@ android {
             applicationIdSuffix ".testtext"
             versionNameSuffix "-TestText"
             resValue "string", "app_name", "TestText"
+            resValue "string", "main_lib_name", "deepsea_test_text_app"
         }
         TestVectorDraw {
             externalNativeBuild {
@@ -109,6 +108,7 @@ android {
             applicationIdSuffix ".testvectordraw"
             versionNameSuffix "-TestVectorDraw"
             resValue "string", "app_name", "TestVectorDraw"
+            resValue "string", "main_lib_name", "deepsea_test_vector_draw_app"
         }
         TestScene {
             externalNativeBuild {
@@ -120,6 +120,7 @@ android {
             applicationIdSuffix ".testscene"
             versionNameSuffix "-TestScene"
             resValue "string", "app_name", "TestScene"
+            resValue "string", "main_lib_name", "deepsea_test_scene_app"
         }
         TestVectorDrawScene {
             externalNativeBuild {
@@ -131,6 +132,7 @@ android {
             applicationIdSuffix ".testvectordrawscene"
             versionNameSuffix "-TestVectorDrawScene"
             resValue "string", "app_name", "TestVectorDrawScene"
+            resValue "string", "main_lib_name", "deepsea_test_vector_draw_scene_app"
         }
         TestLighting {
             externalNativeBuild {
@@ -142,6 +144,7 @@ android {
             applicationIdSuffix ".testlighting"
             versionNameSuffix "-TestLighting"
             resValue "string", "app_name", "TestLighting"
+            resValue "string", "main_lib_name", "deepsea_test_lighting_app"
         }
         TestParticles {
             externalNativeBuild {
@@ -153,6 +156,7 @@ android {
             applicationIdSuffix ".testparticles"
             versionNameSuffix "-TestParticles"
             resValue "string", "app_name", "TestParticles"
+            resValue "string", "main_lib_name", "deepsea_test_particles_app"
         }
     }
     compileOptions {
@@ -169,7 +173,4 @@ preBuild.dependsOn(copyX86_64Libraries)
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation 'androidx.appcompat:appcompat:1.5.1'
-    testImplementation 'junit:junit:4.12'
-    androidTestImplementation 'androidx.test.ext:junit:1.1.3'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
 }

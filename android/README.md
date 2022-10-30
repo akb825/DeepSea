@@ -38,25 +38,25 @@ The `build.gradle` file in the app directory sets up how to build the applicatio
 
 		task copyArm32Libraries(type: Copy) {
 			from ("${projectDir}/../../dependencies/libs/android-armeabi-v7a/lib") {
-				include "*.so"
+				include "libSDL2.so"
 			}
 			into "${projectDir}/src/main/jniLibs/armeabi-v7a"
 		}
 		task copyArm64Libraries(type: Copy) {
 			from ("${projectDir}/../../dependencies/libs/android-arm64-v8a/lib") {
-				include "*.so"
+				include "libSDL2.so"
 			}
 			into "${projectDir}/src/main/jniLibs/arm64-v8a"
 		}
 		task copyX86Libraries(type: Copy) {
 			from ("${projectDir}/../../dependencies/libs/android-x86/lib") {
-				include "*.so"
+				include "libSDL2.so"
 			}
 			into "${projectDir}/src/main/jniLibs/x86"
 		}
 		task copyX86_64Libraries(type: Copy) {
 			from ("${projectDir}/../../dependencies/libs/android-x86_64/lib") {
-				include "*.so"
+				include "libSDL2.so"
 			}
 			into "${projectDir}/src/main/jniLibs/x86_64"
 		}
@@ -76,12 +76,13 @@ The `build.gradle` file in the app directory sets up how to build the applicatio
 				applicationIdSuffix ".testcube"
 				versionNameSuffix "-TestCube"
 				resValue "string", "app_name", "TestCube"
+				resValue "string", "main_lib_name", "deepsea_test_cube_app"
 			}
 		}
 
 	* When setting `app_name` like in the above example, make sure to delete `app_name` from `app/src/main/res/values/strings.xml`.
-* The following dependencies need to be added under the `dependencies` section:
-	* implementation 'com.android.support.constraint:constraint-layout:1.1.3'
+* The following dependencies need to be added under the `dependencies` section, updating as needed as new versions are released:
+	* implementation 'androidx.appcompat:appcompat:1.5.1'
 	
 ## Project files
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Aaron Barany
+ * Copyright 2019-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@
 #include <DeepSea/Render/Resources/VertexFormat.h>
 #include <DeepSea/Render/RenderPass.h>
 #include <DeepSea/Render/Renderer.h>
+#include <DeepSea/RenderBootstrap/RendererIDs.h>
 
 // Handle older versions of gtest.
 #ifndef INSTANTIATE_TEST_SUITE_P
@@ -1039,6 +1040,11 @@ TEST_P(RendererFunctionalTest, ComputeShaderIndirect)
 
 TEST_P(RendererFunctionalTest, TextureBuffer)
 {
+	// NOTE: This test crashes on the Pixel 7 (ARM Mali GPU) with OpenGL when invoking the compute
+	// shader.
+	if (renderer->rendererID == DS_GLES_RENDERER_ID && strcmp(renderer->vendorName, "ARM") == 0)
+		return;
+
 	const uint32_t invocationCount = 10;
 	if (renderer->maxComputeWorkGroupSize[0] < invocationCount)
 	{

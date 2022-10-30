@@ -20,8 +20,6 @@
         android:name="android.hardware.type.pc"
         android:required="false" />
 
-    <!-- Allow writing to external storage -->
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <!-- Allow access to the vibrator -->
     <uses-permission android:name="android.permission.VIBRATE" />
     <!-- Allow accessing the network -->
@@ -48,9 +46,9 @@
         <!-- Example of setting SDL hints from AndroidManifest.xml:
         <meta-data android:name="SDL_ENV.SDL_ACCELEROMETER_AS_JOYSTICK" android:value="0"/>
          -->
+        <meta-data android:name="DS_MAIN_LIB_NAME" android:value="@string/main_lib_name"/>
 
         <activity android:name="DeepSeaActivity"
-            android:label="@string/app_name"
             android:configChanges="keyboard|keyboardHidden|orientation|screenSize"
             android:launchMode="singleTask"
             android:exported="true">
