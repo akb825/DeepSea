@@ -56,7 +56,7 @@ The following custom scene resource types are provided with the members that are
 The following item list types are provided with the members that are expected:
 
 * `"LightSetPrepare"`: prepares a light set to be used in a scene before drawing.
-	* `lightSets`: array of light set names to prepare.
+	* `lightSet`: name of the light set to prepare.
 	* `intensityThreshold`: the threshold below which the light is considered out of view. If unset this will use the default.
 * `"ShadowManagerPrepare"`: prepares a shadow manager to be used in a scene before drawing. This must be after a `LightSetPrepare` and be a single element in the `sharedItems` array of the scene.
 	* `shadowManager`: name of the shadow manager to prepare.

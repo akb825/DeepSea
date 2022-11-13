@@ -1,4 +1,4 @@
-# Copyright 2020-2021 Aaron Barany
+# Copyright 2020-2022 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,14 +18,12 @@ from .. import SceneLightSetPrepare
 def convertLightSetPrepare(convertContext, data):
 	"""
 	Converts a LightSetPrepare. The data map is expected to contain the following elements:
-	- lightSets: array of light set names to prepare.
+	- lightSet: name of the light set to prepare.
 	- intensityThreshold: the threshold below which the light is considered out of view. If unset
 	  this will use the default.
 	"""
 	try:
-		lightSets = data['lightSets']
-		if not isinstance(lightSets, list):
-			raise Exception('LightSetPrepare "lightSets" must be an array of strings.')
+		lightSet = str(data['lightSet'])
 
 		try:
 			intensityThresholdStr = data.get('intensityThreshold', 0.0)
@@ -40,17 +38,10 @@ def convertLightSetPrepare(convertContext, data):
 
 	builder = flatbuffers.Builder(0)
 
-	lightSetOffsets = []
-	for lightSet in lightSets:
-		lightSetOffsets.append(builder.CreateString(lightSet))
-
-	SceneLightSetPrepare.StartLightSetsVector(builder, len(lightSetOffsets))
-	for offset in reversed(lightSetOffsets):
-		builder.PrependUOffsetTRelative(offset)
-	lightSetsOffset = builder.EndVector()
+	lightSetOffset = builder.CreateString(lightSet)
 
 	SceneLightSetPrepare.Start(builder)
-	SceneLightSetPrepare.AddLightSets(builder, lightSetsOffset)
+	SceneLightSetPrepare.AddLightSet(builder, lightSetOffset)
 	SceneLightSetPrepare.AddIntensityThreshold(builder, intensityThreshold)
 	builder.Finish(SceneLightSetPrepare.End(builder))
 	return builder.Output()

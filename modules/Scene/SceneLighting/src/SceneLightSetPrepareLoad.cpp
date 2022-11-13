@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2021 Aaron Barany
+ * Copyright 2020-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "SceneLightSetLoad.h"
+#include "SceneLightSetPrepareLoad.h"
 #include <DeepSea/Core/Memory/StackAllocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
@@ -50,39 +50,21 @@ dsSceneItemList* dsSceneLightSetPrepare_load(const dsSceneLoadContext*,
 	}
 
 	auto fbPrepare = DeepSeaSceneLighting::GetSceneLightSetPrepare(data);
-	auto fbLightSets = fbPrepare->lightSets();
 
-	uint32_t lightSetCount = fbLightSets->size();
-	dsSceneLightSet** lightSets = DS_ALLOCATE_STACK_OBJECT_ARRAY(dsSceneLightSet*, lightSetCount);
-	for (uint32_t i = 0; i < lightSetCount; ++i)
+	const char* lightSetName = fbPrepare->lightSet()->c_str();
+	dsSceneResourceType type;
+	dsCustomSceneResource* resource;
+	if (!dsSceneLoadScratchData_findResource(&type, (void**)&resource, scratchData, lightSetName) ||
+		type != dsSceneResourceType_Custom || resource->type != dsSceneLightSet_type())
 	{
-		auto fbLightSet = (*fbLightSets)[i];
-		if (!fbLightSet)
-		{
-			errno = EFORMAT;
-			DS_LOG_ERROR(DS_SCENE_LIGHTING_LOG_TAG, "Light set is null.");
-			return nullptr;
-		}
-
-		const char* lightSetName = fbLightSet->c_str();
-		dsSceneResourceType type;
-		dsCustomSceneResource* resource;
-		if (!dsSceneLoadScratchData_findResource(&type, (void**)&resource, scratchData,
-				lightSetName) || type != dsSceneResourceType_Custom ||
-			resource->type != dsSceneLightSet_type())
-		{
-			errno = ENOTFOUND;
-			DS_LOG_ERROR_F(DS_SCENE_LIGHTING_LOG_TAG, "Couldn't find light set '%s'.",
-				lightSetName);
-			return nullptr;
-		}
-
-		lightSets[i] = reinterpret_cast<dsSceneLightSet*>(resource->resource);
+		errno = ENOTFOUND;
+		DS_LOG_ERROR_F(DS_SCENE_LIGHTING_LOG_TAG, "Couldn't find light set '%s'.", lightSetName);
+		return nullptr;
 	}
 
 	float intensityThreshold = fbPrepare->intensityThreshold();
 	if (intensityThreshold <= 0)
 		intensityThreshold = DS_DEFAULT_SCENE_LIGHT_INTENSITY_THRESHOLD;
-	return (dsSceneItemList*)dsSceneLightSetPrepare_create(allocator, name, lightSets,
-		lightSetCount, intensityThreshold);
+	return (dsSceneItemList*)dsSceneLightSetPrepare_create(allocator, name,
+		reinterpret_cast<dsSceneLightSet*>(resource->resource), intensityThreshold);
 }

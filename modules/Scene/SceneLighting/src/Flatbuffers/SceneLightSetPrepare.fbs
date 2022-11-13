@@ -19,8 +19,8 @@ namespace DeepSeaSceneLighting;
 // Struct describing a light set prepare.
 table SceneLightSetPrepare
 {
-	// Light sets to prepare.
-	lightSets : [string] (required);
+	// Light set to prepare.
+	lightSet : string (required);
 
 	// Intensity threshold for lights to take effect. Set to 0 to use the default value.
 	intensityThreshold : float;

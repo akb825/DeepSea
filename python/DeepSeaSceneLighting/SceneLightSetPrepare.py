@@ -25,24 +25,11 @@ class SceneLightSetPrepare(object):
         self._tab = flatbuffers.table.Table(buf, pos)
 
     # SceneLightSetPrepare
-    def LightSets(self, j):
+    def LightSet(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         if o != 0:
-            a = self._tab.Vector(o)
-            return self._tab.String(a + flatbuffers.number_types.UOffsetTFlags.py_type(j * 4))
-        return ""
-
-    # SceneLightSetPrepare
-    def LightSetsLength(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
-        if o != 0:
-            return self._tab.VectorLen(o)
-        return 0
-
-    # SceneLightSetPrepare
-    def LightSetsIsNone(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
-        return o == 0
+            return self._tab.String(o + self._tab.Pos)
+        return None
 
     # SceneLightSetPrepare
     def IntensityThreshold(self):
@@ -54,12 +41,9 @@ class SceneLightSetPrepare(object):
 def SceneLightSetPrepareStart(builder): builder.StartObject(2)
 def Start(builder):
     return SceneLightSetPrepareStart(builder)
-def SceneLightSetPrepareAddLightSets(builder, lightSets): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(lightSets), 0)
-def AddLightSets(builder, lightSets):
-    return SceneLightSetPrepareAddLightSets(builder, lightSets)
-def SceneLightSetPrepareStartLightSetsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
-def StartLightSetsVector(builder, numElems):
-    return SceneLightSetPrepareStartLightSetsVector(builder, numElems)
+def SceneLightSetPrepareAddLightSet(builder, lightSet): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(lightSet), 0)
+def AddLightSet(builder, lightSet):
+    return SceneLightSetPrepareAddLightSet(builder, lightSet)
 def SceneLightSetPrepareAddIntensityThreshold(builder, intensityThreshold): builder.PrependFloat32Slot(1, intensityThreshold, 0.0)
 def AddIntensityThreshold(builder, intensityThreshold):
     return SceneLightSetPrepareAddIntensityThreshold(builder, intensityThreshold)

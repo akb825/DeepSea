@@ -5,7 +5,7 @@
 			{
 				"type": "LightSetPrepare",
 				"name": "lightSetPrepare",
-				"lightSets": ["lightSet"]
+				"lightSet": "lightSet"
 			}
 		],
 		[

@@ -28,8 +28,7 @@
 struct dsSceneLightSetPrepare
 {
 	dsSceneItemList itemList;
-	dsSceneLightSet** lightSets;
-	uint32_t lightSetCount;
+	dsSceneLightSet* lightSet;
 	float intensityThreshold;
 };
 
@@ -39,8 +38,7 @@ static void dsSceneLightSetPrepare_commit(dsSceneItemList* itemList, const dsVie
 	DS_UNUSED(view);
 	DS_UNUSED(commandBuffer);
 	dsSceneLightSetPrepare* prepare = (dsSceneLightSetPrepare*)itemList;
-	for (uint32_t i = 0; i < prepare->lightSetCount; ++i)
-		dsSceneLightSet_prepare(prepare->lightSets[i], prepare->intensityThreshold);
+	dsSceneLightSet_prepare(prepare->lightSet, prepare->intensityThreshold);
 }
 
 const char* const dsSceneLightSetPrepare_typeName = "LightSetPrepare";
@@ -52,17 +50,16 @@ dsSceneItemListType dsSceneLightSetPrepare_type(void)
 }
 
 dsSceneLightSetPrepare* dsSceneLightSetPrepare_create(dsAllocator* allocator, const char* name,
-	dsSceneLightSet* const* lightSets, uint32_t lightSetCount, float intensityThreshold)
+	dsSceneLightSet* lightSet, float intensityThreshold)
 {
-	if (!allocator || !name || !lightSets || lightSetCount == 0 || intensityThreshold <= 0)
+	if (!allocator || !name || !lightSet || intensityThreshold <= 0)
 	{
 		errno = EINVAL;
 		return NULL;
 	}
 
 	size_t nameLen = strlen(name) + 1;
-	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsSceneLightSetPrepare)) + DS_ALIGNED_SIZE(nameLen) +
-		DS_ALIGNED_SIZE(sizeof(dsSceneLightSet*)*lightSetCount);
+	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsSceneLightSetPrepare)) + DS_ALIGNED_SIZE(nameLen);
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 		return NULL;
@@ -89,13 +86,21 @@ dsSceneLightSetPrepare* dsSceneLightSetPrepare_create(dsAllocator* allocator, co
 	itemList->commitFunc = &dsSceneLightSetPrepare_commit;
 	itemList->destroyFunc = (dsDestroySceneItemListFunction)&dsSceneLightSetPrepare_destroy;
 
-	prepare->lightSets = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsSceneLightSet*, lightSetCount);
-	DS_ASSERT(prepare->lightSets);
-	memcpy(prepare->lightSets, lightSets, sizeof(dsSceneLightSet*)*lightSetCount);
-	prepare->lightSetCount = lightSetCount;
+	prepare->lightSet = lightSet;
 	prepare->intensityThreshold = intensityThreshold;
 
 	return prepare;
+}
+
+const dsSceneLightSet* dsSceneLightSetPrepare_getLightSet(const dsSceneLightSetPrepare* prepare)
+{
+	if (!prepare)
+	{
+		errno = EINVAL;
+		return NULL;
+	}
+
+	return prepare->lightSet;
 }
 
 float dsSceneLightSetPrepare_getIntensityThreshold(const dsSceneLightSetPrepare* prepare)
