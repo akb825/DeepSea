@@ -51,7 +51,7 @@ dsSceneNode* createMockNode(dsAllocator* allocator)
 
 struct ItemInfo
 {
-	dsSceneNode* node;
+	const dsSceneNode* node;
 	const dsMatrix44f* transform;
 	uint32_t updateCount;
 	uint64_t nodeID;
@@ -66,7 +66,7 @@ struct MockSceneItemList
 	uint64_t nextNodeID;
 };
 
-uint64_t addMockSceneItem(dsSceneItemList* itemList, dsSceneNode* node,
+uint64_t addMockSceneItem(dsSceneItemList* itemList, const dsSceneNode* node,
 	const dsSceneTreeNode* treeNode, const dsSceneNodeItemData*, void**)
 {
 	if (!dsSceneNode_isOfType(node, &mockSceneNodeType))

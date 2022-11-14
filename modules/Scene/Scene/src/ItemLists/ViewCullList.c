@@ -64,7 +64,7 @@ dsSceneItemList* dsViewCullList_load(const dsSceneLoadContext* loadContext,
 	return dsViewCullList_create(allocator, name);
 }
 
-uint64_t dsViewCullList_addNode(dsSceneItemList* itemList, dsSceneNode* node,
+uint64_t dsViewCullList_addNode(dsSceneItemList* itemList, const dsSceneNode* node,
 	const dsSceneTreeNode* treeNode, const dsSceneNodeItemData* itemData, void** thisItemData)
 {
 	DS_UNUSED(itemData);

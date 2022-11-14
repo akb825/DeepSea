@@ -325,7 +325,7 @@ static void destroyInstanceData(dsSceneInstanceData* const* instanceData,
 		dsSceneInstanceData_destroy(instanceData[i]);
 }
 
-static uint64_t dsSceneModelList_addNode(dsSceneItemList* itemList, dsSceneNode* node,
+static uint64_t dsSceneModelList_addNode(dsSceneItemList* itemList, const dsSceneNode* node,
 	const dsSceneTreeNode* treeNode, const dsSceneNodeItemData* itemData, void** thisItemData)
 {
 	DS_UNUSED(thisItemData);
@@ -342,7 +342,7 @@ static uint64_t dsSceneModelList_addNode(dsSceneItemList* itemList, dsSceneNode*
 	}
 
 	Entry* entry = modelList->entries + index;
-	entry->node = (dsSceneModelNode*)node;
+	entry->node = (const dsSceneModelNode*)node;
 	entry->treeNode = treeNode;
 	entry->transform = dsSceneTreeNode_getTransform(treeNode);
 	entry->itemData = itemData;

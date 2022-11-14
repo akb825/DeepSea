@@ -39,8 +39,11 @@
 static size_t fullAllocSize(size_t structSize, const char** drawLists, uint32_t drawListCount,
 	const dsSceneModelInitInfo* models, uint32_t modelCount, uint32_t resourceCount)
 {
-	size_t fullSize = DS_ALIGNED_SIZE(structSize) +
-		dsSceneNode_itemListsAllocSize(drawLists, drawListCount) +
+	size_t itemListsSize = dsSceneNode_itemListsAllocSize(drawLists, drawListCount);
+	if (drawListCount > 0 && itemListsSize == 0)
+		return 0;
+
+	size_t fullSize = DS_ALIGNED_SIZE(structSize) + itemListsSize +
 		DS_ALIGNED_SIZE(sizeof(dsSceneModelInfo)*modelCount) +
 		DS_ALIGNED_SIZE(sizeof(dsSceneResources*)*resourceCount);
 	uint32_t drawRangeCount = 0;
@@ -238,6 +241,12 @@ dsSceneModelNode* dsSceneModelNode_createBase(dsAllocator* allocator, size_t str
 
 	size_t fullSize = fullAllocSize(structSize, itemLists, itemListCount, models, modelCount,
 		resourceCount);
+	if (fullSize == 0)
+	{
+		errno = EINVAL;
+		return NULL;
+	}
+
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 	{
@@ -253,24 +262,14 @@ dsSceneModelNode* dsSceneModelNode_createBase(dsAllocator* allocator, size_t str
 		(dsSceneModelNode*)dsAllocator_alloc((dsAllocator*)&bufferAlloc, structSize);
 	DS_ASSERT(node);
 
-	char** itemListsCopy = NULL;
-	if (itemListCount > 0)
-	{
-		itemListsCopy = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char*, itemListCount);
-		DS_ASSERT(itemListsCopy);
-		for (uint32_t i = 0; i < itemListCount; ++i)
-		{
-			size_t length = strlen(itemLists[i]);
-			itemListsCopy[i] = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, length + 1);
-			memcpy(itemListsCopy[i], itemLists[i], length + 1);
-		}
-	}
+	const char* const* itemListsCopy = dsSceneNode_copyItemLists(&bufferAlloc, itemLists,
+		itemListCount);
 
 	if (itemLists != tempStringListData)
 		DS_VERIFY(dsAllocator_free(allocator, (void*)itemLists));
 
 	if (!dsSceneNode_initialize((dsSceneNode*)node, allocator,
-			dsSceneModelNode_setupParentType(NULL), (const char**)itemListsCopy, itemListCount,
+			dsSceneModelNode_setupParentType(NULL), itemListsCopy, itemListCount,
 			&dsSceneModelNode_destroy))
 	{
 		if (allocator->freeFunc)
@@ -383,22 +382,12 @@ dsSceneModelNode* dsSceneModelNode_cloneRemapBase(dsAllocator* allocator, size_t
 	DS_ASSERT(node);
 
 	uint32_t itemListCount = origNode->itemListCount;
-	char** itemListsCopy = NULL;
-	if (itemListCount > 0)
-	{
-		itemListsCopy = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char*, itemListCount);
-		DS_ASSERT(itemListsCopy);
-		for (uint32_t i = 0; i < itemListCount; ++i)
-		{
-			const char* origList = origNode->itemLists[i];
-			size_t length = strlen(origList);
-			itemListsCopy[i] = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, length + 1);
-			memcpy(itemListsCopy[i], origList, length + 1);
-		}
-	}
+	const char* const* itemListsCopy = dsSceneNode_copyItemLists(&bufferAlloc, origNode->itemLists,
+		itemListCount);
+	DS_ASSERT(itemListCount == 0 || itemListsCopy);
 
 	if (!dsSceneNode_initialize((dsSceneNode*)node, allocator,
-			dsSceneModelNode_setupParentType(NULL), (const char**)itemListsCopy, itemListCount,
+			dsSceneModelNode_setupParentType(NULL), itemListsCopy, itemListCount,
 			&dsSceneModelNode_destroy))
 	{
 		if (allocator->freeFunc)

@@ -85,7 +85,7 @@ DS_SCENEPARTICLE_EXPORT dsParticleEmitter* dsSceneParticleNode_createEmitter(
 
 /**
  * @brief Gets the particle emitter for a tree node.
- * @remark This assumes that the particle emitter was created from a dsSceneParticlePrepareList.
+ * @remark This assumes that the particle emitter was created from a dsSceneParticlePrepare.
  * @param treeNode The tree node to get the particle emitter for.
  * @return The particle emitter or NULL if there isn't one present.
  */
@@ -99,7 +99,7 @@ DS_SCENEPARTICLE_EXPORT dsParticleEmitter* dsSceneParticleNode_getEmitterForInst
  * @param emitter The particle emitter to update.
  * @param treeNode The scene tree node the particle emitter is associated with.
  * @param time The time since the last update in seconds.
- * @return The emitter or NULL if an error occurred.
+ * @return False if the emitter couldn't be updated.
  */
 DS_SCENEPARTICLE_EXPORT bool dsSceneParticleNode_updateEmitter(const dsSceneParticleNode* node,
 	dsParticleEmitter* emitter, const dsSceneTreeNode* treeNode, float time);

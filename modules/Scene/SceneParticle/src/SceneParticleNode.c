@@ -89,21 +89,11 @@ dsSceneParticleNode* dsSceneParticleNode_create(dsAllocator* allocator,
 		return NULL;
 	}
 
-	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsSceneParticleNode)) +
-		DS_ALIGNED_SIZE(sizeof(const char*)*itemListCount);
-	for (uint32_t i = 0; i < itemListCount; ++i)
-	{
-		if (!itemLists[i])
-		{
-			if (destroyUserDataFunc)
-				destroyUserDataFunc(userData);
-			errno = EINVAL;
-			return NULL;
-		}
+	size_t itemListsSize = dsSceneNode_itemListsAllocSize(itemLists, itemListCount);
+	if (itemListsSize == 0)
+		return NULL;
 
-		fullSize += DS_ALIGNED_SIZE(strlen(itemLists[i]) + 1);
-	}
-
+	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsSceneParticleNode)) + itemListsSize;
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 		return NULL;
@@ -114,19 +104,9 @@ dsSceneParticleNode* dsSceneParticleNode_create(dsAllocator* allocator,
 	dsSceneParticleNode* particleNode = DS_ALLOCATE_OBJECT(&bufferAlloc, dsSceneParticleNode);
 	DS_ASSERT(particleNode);
 
-	const char** itemListsCopy = NULL;
-	if (itemListCount > 0)
-	{
-		itemListsCopy = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, const char*, itemListCount);
-		DS_ASSERT(itemListsCopy);
-		for (uint32_t i = 0; i < itemListCount; ++i)
-		{
-			size_t nameLen = strlen(itemLists[i]) + 1;
-			char* nameCopy = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, nameLen);
-			memcpy(nameCopy, itemLists[i], nameLen);
-			itemListsCopy[i] = nameCopy;
-		}
-	}
+	const char* const* itemListsCopy = dsSceneNode_copyItemLists(&bufferAlloc, itemLists,
+		itemListCount);
+	DS_ASSERT(itemListCount == 0 || itemListsCopy);
 
 	dsSceneNode* node = (dsSceneNode*)particleNode;
 	if (!dsSceneNode_initialize(node, allocator, dsSceneParticleNode_setupParentType(NULL),

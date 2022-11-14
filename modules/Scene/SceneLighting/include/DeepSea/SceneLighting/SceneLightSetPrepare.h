@@ -46,7 +46,8 @@ DS_SCENELIGHTING_EXPORT dsSceneItemListType dsSceneLightSetPrepare_type(void);
 /**
  * @brief Creates a scene light set prepare.
  * @remark errno will be set on failure.
- * @param allocator The allocator to create the light set prepare with.
+ * @param allocator The allocator to create the light set prepare with. This must support freeing
+ *     memory.
  * @param name The name of the light set prepare. This will be copied.
  * @param lightSet The light set to prepare.
  * @param intensityThreshold The threshold below which the light is considered out of view. This

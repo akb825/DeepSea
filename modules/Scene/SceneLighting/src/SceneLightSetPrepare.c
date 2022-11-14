@@ -17,20 +17,144 @@
 #include <DeepSea/SceneLighting/SceneLightSetPrepare.h>
 
 #include <DeepSea/Core/Containers/Hash.h>
+#include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
+#include <DeepSea/Core/Memory/StackAllocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
+
+#include <DeepSea/Math/Matrix44.h>
+
+#include <DeepSea/Scene/Nodes/SceneNode.h>
+#include <DeepSea/Scene/Nodes/SceneTreeNode.h>
+
+#include <DeepSea/SceneLighting/SceneLightNode.h>
 #include <DeepSea/SceneLighting/SceneLightSet.h>
 
 #include <string.h>
+
+typedef struct Entry
+{
+	const dsSceneTreeNode* treeNode;
+	dsSceneLight* light;
+	dsVector3f position;
+	dsVector3f direction;
+	uint64_t nodeID;
+} Entry;
 
 struct dsSceneLightSetPrepare
 {
 	dsSceneItemList itemList;
 	dsSceneLightSet* lightSet;
 	float intensityThreshold;
+
+	Entry* entries;
+	uint32_t entryCount;
+	uint32_t maxEntries;
+	uint64_t nextNodeID;
 };
+
+static void transformLight(dsSceneLight* light, const dsVector3f* position,
+	const dsVector3f* direction, const dsMatrix44f* transform)
+{
+	dsVector4f position4 = {{position->x, position->y, position->z, 1.0f}};
+	dsVector4f direction4 = {{direction->x, direction->y, direction->z, 0.0f}};
+
+	dsMatrix44f inverse;
+	dsMatrix44f_affineInvert(&inverse, transform);
+
+	dsVector4f transformedPosition, transformedDirection;
+	dsMatrix44_transform(transformedPosition, *transform, position4);
+	dsMatrix44_transformTransposed(transformedDirection, *transform, direction4);
+
+	light->position = *(dsVector3f*)&transformedPosition;
+	light->direction = *(dsVector3f*)&transformedDirection;
+}
+
+static uint64_t dsSceneLightSetPrepare_addNode(dsSceneItemList* itemList, const dsSceneNode* node,
+	const dsSceneTreeNode* treeNode, const dsSceneNodeItemData* itemData, void** thisItemData)
+{
+	DS_UNUSED(itemData);
+	if (!dsSceneNode_isOfType(node, dsSceneLightNode_type()))
+		return DS_NO_SCENE_NODE;
+
+	dsSceneLightSetPrepare* prepare = (dsSceneLightSetPrepare*)itemList;
+
+	uint32_t index = prepare->entryCount;
+	if (!DS_RESIZEABLE_ARRAY_ADD(itemList->allocator, prepare->entries, prepare->entryCount,
+			prepare->maxEntries, 1))
+	{
+		return DS_NO_SCENE_NODE;
+	}
+
+	const dsSceneLightNode* lightNode = (const dsSceneLightNode*)node;
+	const char* baseName = dsSceneLightNode_getLightBaseName(lightNode);
+	size_t baseNameLen = strlen(baseName);
+	const size_t maxExtraLen = 21; // Max 64-bit value and a period.
+	size_t fullNameLen = baseNameLen + maxExtraLen + 1;
+	char* lightName = DS_ALLOCATE_STACK_OBJECT_ARRAY(char, fullNameLen);
+	snprintf(lightName, fullNameLen, "%s.%llu", baseName, (unsigned long long)prepare->nextNodeID);
+
+	dsSceneLight* light = dsSceneLightSet_addLightName(prepare->lightSet, lightName);
+	if (!light)
+	{
+		DS_LOG_ERROR_F(DS_SCENE_LIGHTING_LOG_TAG, "Couldn't create light '%s' for light node.",
+			baseName);
+		--prepare->entryCount;
+		return DS_NO_SCENE_NODE;
+	}
+
+	const dsSceneLight* templateLight = dsSceneLightNode_getTemplateLight(lightNode);
+	DS_ASSERT(templateLight);
+	// Copy everything except for the name ID.
+	memcpy(light, templateLight, offsetof(dsSceneLight, nameID));
+
+	*thisItemData = light;
+	transformLight(light, &templateLight->position, &templateLight->direction,
+		dsSceneTreeNode_getTransform(treeNode));
+
+	Entry* entry = prepare->entries + index;
+	entry->treeNode = treeNode;
+	entry->light = light;
+	// Copy the template light position and direction to avoid any changes from carrying over after
+	// creation.
+	entry->position = templateLight->position;
+	entry->direction = templateLight->direction;
+	entry->nodeID = prepare->nextNodeID++;
+	return entry->nodeID;
+}
+
+static void dsSceneLightSetPrepare_updateNode(dsSceneItemList* itemList, uint64_t nodeID)
+{
+	dsSceneLightSetPrepare* prepare = (dsSceneLightSetPrepare*)itemList;
+	for (uint32_t i = 0; i < prepare->entryCount; ++i)
+	{
+		const Entry* entry = prepare->entries + i;
+		if (entry->nodeID != nodeID)
+			continue;
+
+		transformLight(entry->light, &entry->position, &entry->direction,
+			dsSceneTreeNode_getTransform(entry->treeNode));
+	}
+}
+
+static void dsSceneLightSetPrepare_removeNode(dsSceneItemList* itemList, uint64_t nodeID)
+{
+	dsSceneLightSetPrepare* prepare = (dsSceneLightSetPrepare*)itemList;
+	for (uint32_t i = 0; i < prepare->entryCount; ++i)
+	{
+		if (prepare->entries[i].nodeID != nodeID)
+			continue;
+
+		DS_VERIFY(dsSceneLightSet_removeLight(prepare->lightSet, prepare->entries[i].light));
+
+		// Order shouldn't matter, so use constant-time removal.
+		prepare->entries[i] = prepare->entries[prepare->entryCount - 1];
+		--prepare->entryCount;
+		break;
+	}
+}
 
 static void dsSceneLightSetPrepare_commit(dsSceneItemList* itemList, const dsView* view,
 	dsCommandBuffer* commandBuffer)
@@ -58,6 +182,13 @@ dsSceneLightSetPrepare* dsSceneLightSetPrepare_create(dsAllocator* allocator, co
 		return NULL;
 	}
 
+	if (!allocator->freeFunc)
+	{
+		errno = EINVAL;
+		DS_LOG_ERROR(DS_SCENE_LOG_TAG, "Light set prepare allocator must support freeing memory.");
+		return NULL;
+	}
+
 	size_t nameLen = strlen(name) + 1;
 	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsSceneLightSetPrepare)) + DS_ALIGNED_SIZE(nameLen);
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
@@ -79,15 +210,19 @@ dsSceneLightSetPrepare* dsSceneLightSetPrepare_create(dsAllocator* allocator, co
 	itemList->nameID = dsHashString(name);
 	itemList->globalValueCount = 0;
 	itemList->needsCommandBuffer = false;
-	itemList->addNodeFunc = NULL;
-	itemList->updateNodeFunc = NULL;
-	itemList->removeNodeFunc = NULL;
+	itemList->addNodeFunc = &dsSceneLightSetPrepare_addNode;
+	itemList->updateNodeFunc = &dsSceneLightSetPrepare_updateNode;
+	itemList->removeNodeFunc = &dsSceneLightSetPrepare_removeNode;
 	itemList->updateFunc = NULL;
 	itemList->commitFunc = &dsSceneLightSetPrepare_commit;
 	itemList->destroyFunc = (dsDestroySceneItemListFunction)&dsSceneLightSetPrepare_destroy;
 
 	prepare->lightSet = lightSet;
 	prepare->intensityThreshold = intensityThreshold;
+	prepare->entries = NULL;
+	prepare->entryCount = 0;
+	prepare->maxEntries = 0;
+	prepare->nextNodeID = 0;
 
 	return prepare;
 }
@@ -133,6 +268,6 @@ void dsSceneLightSetPrepare_destroy(dsSceneLightSetPrepare* prepare)
 		return;
 
 	dsSceneItemList* itemList = (dsSceneItemList*)prepare;
-	if (itemList->allocator)
-		DS_VERIFY(dsAllocator_free(itemList->allocator, itemList));
+	DS_VERIFY(dsAllocator_free(itemList->allocator, prepare->entries));
+	DS_VERIFY(dsAllocator_free(itemList->allocator, itemList));
 }

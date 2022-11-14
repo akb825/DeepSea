@@ -17,7 +17,6 @@
 #include <DeepSea/Scene/Nodes/SceneNode.h>
 
 #include "Nodes/SceneTreeNodeInternal.h"
-#include "SceneLoadContextInternal.h"
 #include "SceneTypes.h"
 
 #include <DeepSea/Core/Containers/HashTable.h>
@@ -48,10 +47,34 @@ size_t dsSceneNode_itemListsAllocSize(const char* const* itemLists, uint32_t ite
 	size_t fullSize = DS_ALIGNED_SIZE(sizeof(const char*)*itemListCount);
 	for (uint32_t i = 0; i < itemListCount; ++i)
 	{
-		if (itemLists[i])
-			fullSize += DS_ALIGNED_SIZE(strlen(itemLists[i]));
+		if (!itemLists[i])
+			return 0;
+
+		fullSize += DS_ALIGNED_SIZE(strlen(itemLists[i]) + 1);
 	}
 	return fullSize;
+}
+
+const char* const* dsSceneNode_copyItemLists(dsBufferAllocator* allocator,
+	const char* const* itemLists, uint32_t itemListCount)
+{
+	if (!allocator || !itemLists || itemListCount == 0)
+		return NULL;
+
+	char** itemListsCopy = DS_ALLOCATE_OBJECT_ARRAY(allocator, char*, itemListCount);
+	if (!itemListsCopy)
+		return NULL;
+
+	for (uint32_t i = 0; i < itemListCount; ++i)
+	{
+		size_t nameLen = itemLists[i] ? strlen(itemLists[i]) + 1 : 0;
+		itemListsCopy[i] = DS_ALLOCATE_OBJECT_ARRAY(allocator, char, nameLen);
+		if (!itemListsCopy[i])
+			return NULL;
+		memcpy(itemListsCopy[i], itemLists[i], nameLen);
+	}
+
+	return (const char* const*)itemListsCopy;
 }
 
 const dsSceneNodeType* dsSceneNode_setupParentType(dsSceneNodeType* type,

@@ -340,6 +340,16 @@ typedef struct dsDeferredShadowLightDrawInfo
 typedef struct dsSceneLightSet dsSceneLightSet;
 
 /**
+ * @brief Struct defining a scene node that manages a light.
+ *
+ * This should be used with a dsSceneLightSetPrepare instance to manage the light. Each scene tree
+ * node will have a light created based on the template provided by the node itself.
+ *
+ * @see SceneLightNode.h
+ */
+typedef struct dsSceneLightNode dsSceneLightNode;
+
+/**
  * @brief Function for visiting a light within a light set.
  * @param userData User data forwarded for the function.
  * @param lightSet The light set the light is from.
@@ -352,7 +362,7 @@ typedef bool (*dsSceneLightVisitFunction)(void* userData, const dsSceneLightSet*
 /**
  * @brief Struct defining a scene light set prepare.
  *
- * This will prepare provided scene light sets for use in the scene. This an item list to fit into
+ * This will prepare provided a scene light set for use in the scene. This an item list to fit into
  * the scene layout and support updating lights controlled by a dsSceneLightNode.
  *
  * @see SceneLightSetPrepare.h

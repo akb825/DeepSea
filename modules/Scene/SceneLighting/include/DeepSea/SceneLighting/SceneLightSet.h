@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Aaron Barany
+ * Copyright 2020-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -125,6 +125,15 @@ DS_SCENELIGHTING_EXPORT dsSceneLight* dsSceneLightSet_findLightName(const dsScen
  */
 DS_SCENELIGHTING_EXPORT dsSceneLight* dsSceneLightSet_findLightID(const dsSceneLightSet* lightSet,
 	uint32_t nameID);
+
+/**
+ * @brief Removes a previously added light by pointer.
+ * @param lightSet The light set.
+ * @param light The light to remove.
+ * @return False if the light isn't present in the light set.
+ */
+DS_SCENELIGHTING_EXPORT bool dsSceneLightSet_removeLight(dsSceneLightSet* lightSet,
+	const dsSceneLight* light);
 
 /**
  * @brief Removes a previously added light by name.

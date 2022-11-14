@@ -78,7 +78,7 @@ static void destroyInstanceData(dsSceneInstanceData* const* instanceData,
 		dsSceneInstanceData_destroy(instanceData[i]);
 }
 
-static uint64_t dsSceneParticleDrawList_addNode(dsSceneItemList* itemList, dsSceneNode* node,
+static uint64_t dsSceneParticleDrawList_addNode(dsSceneItemList* itemList, const dsSceneNode* node,
 	const dsSceneTreeNode* treeNode, const dsSceneNodeItemData* itemData, void** thisItemData)
 {
 	DS_UNUSED(treeNode);

@@ -44,9 +44,20 @@ DS_SCENE_EXPORT extern const char* const dsSceneNodeRef_typeName;
  *
  * @param itemLists The list of item list names to use.
  * @param itemListCount The number of item lists.
+ * @return The size of the memory for the item lists or 0 if the inputs are invalid.
  */
 DS_SCENE_EXPORT size_t dsSceneNode_itemListsAllocSize(const char* const* itemLists,
 	uint32_t itemListCount);
+
+/**
+ * @brief Copies a list of item list names.
+ * @param allocator The allocator to create the copy with.
+ * @param itemLists The list of item list names to copy.
+ * @param itemListCount The number of item lsits.
+ * @return The copied item list names or NULL if itemLists is empty or an error occurred.
+ */
+DS_SCENE_EXPORT const char* const* dsSceneNode_copyItemLists(dsBufferAllocator* allocator,
+	const char* const* itemLists, uint32_t itemListCount);
 
 /**
  * @brief Sets up the parent type for a node.
@@ -118,7 +129,7 @@ DS_SCENE_EXPORT dsSceneNode* dsSceneNode_load(dsAllocator* allocator,
  * @param allocator The allocator the node was created with. This must support freeing memory.
  * @param type The type node.
  * @param itemLists The list of item list names to use. These should be allocated with the node by
- *     using a dsBufferAllocator so they may all be freed at once.
+ *     using a dsBufferAllocator and dsSceneNode_copyItemLists() so they may all be freed at once.
  * @param itemListCount The number of item lists.
  * @param destroyFunc The function to destroy the node.
  * @return False if the parameters are invalid.

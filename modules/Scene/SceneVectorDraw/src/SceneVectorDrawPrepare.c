@@ -57,7 +57,7 @@ typedef struct dsSceneVectorDrawPrepare
 	uint64_t nextNodeID;
 } dsSceneVectorDrawPrepare;
 
-static uint64_t dsSceneVectorDrawPrepare_addNode(dsSceneItemList* itemList, dsSceneNode* node,
+static uint64_t dsSceneVectorDrawPrepare_addNode(dsSceneItemList* itemList, const dsSceneNode* node,
 	const dsSceneTreeNode* treeNode, const dsSceneNodeItemData* itemData, void** thisItemData)
 {
 	DS_UNUSED(itemData);

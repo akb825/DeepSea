@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Aaron Barany
+ * Copyright 2020-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -308,6 +308,14 @@ dsSceneLight* dsSceneLightSet_findLightID(const dsSceneLightSet* lightSet, uint3
 		return NULL;
 
 	return &node->light;
+}
+
+bool dsSceneLightSet_removeLight(dsSceneLightSet* lightSet, const dsSceneLight* light)
+{
+	if (!lightSet || !light)
+		return false;
+
+	return dsSceneLightSet_removeLightID(lightSet, light->nameID);
 }
 
 bool dsSceneLightSet_removeLightName(dsSceneLightSet* lightSet, const char* name)
