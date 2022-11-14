@@ -18,7 +18,6 @@
 
 #include <DeepSea/Core/Config.h>
 #include <DeepSea/Scene/Types.h>
-#include <DeepSea/SceneParticle/Types.h>
 
 #ifdef __cplusplus
 extern "C"

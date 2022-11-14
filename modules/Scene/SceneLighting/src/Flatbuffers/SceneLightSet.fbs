@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Aaron Barany
+ * Copyright 2020-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,76 +15,9 @@
  */
 
 include "DeepSea/Scene/Flatbuffers/SceneCommon.fbs";
+include "SceneLight.fbs";
 
 namespace DeepSeaSceneLighting;
-
-// Struct describing a directional light.
-table DirectionalLight
-{
-	// The direction of the light.
-	direction : DeepSeaScene.Vector3f (required);
-
-	// The color of the light.
-	color : DeepSeaScene.Color3f (required);
-
-	// The intensity of the light.
-	intensity : float;
-}
-
-// Struct describing a point light.
-table PointLight
-{
-	// The position of the light.
-	position : DeepSeaScene.Vector3f (required);
-
-	// The color of the light.
-	color : DeepSeaScene.Color3f (required);
-
-	// The intensity of the light.
-	intensity : float;
-
-	// The linear falloff factor.
-	linearFalloff : float;
-
-	// The quadratic falloff factor.
-	quadraticFalloff : float;
-}
-
-// Struct describing a spot light.
-table SpotLight
-{
-	// The position of the light.
-	position : DeepSeaScene.Vector3f (required);
-
-	// The direction of the light.
-	direction : DeepSeaScene.Vector3f (required);
-
-	// The color of the light.
-	color : DeepSeaScene.Color3f (required);
-
-	// The intensity of the light.
-	intensity : float;
-
-	// The linear falloff factor.
-	linearFalloff : float;
-
-	// The quadratic falloff factor.
-	quadraticFalloff : float;
-
-	// The angle in radians of the spot light where it starts to fade out.
-	innerSpotAngle : float;
-
-	// The angle in radians of the spot light where it finishes fading out.
-	outerSpotAngle : float;
-}
-
-// Union for all the supported light types.
-union LightUnion
-{
-	DirectionalLight,
-	PointLight,
-	SpotLight
-}
 
 // Struct defining a light with a name.
 table Light

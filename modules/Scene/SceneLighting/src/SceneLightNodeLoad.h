@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Aaron Barany
+ * Copyright 2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,9 +24,9 @@ extern "C"
 {
 #endif
 
-void* dsSceneLightSet_load(const dsSceneLoadContext* loadContext,
+dsSceneNode* dsSceneLightNode_load(const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
-	void* userData, const uint8_t* data, size_t dataSize);
+	void*, const uint8_t* data, size_t dataSize);
 
 #ifdef __cplusplus
 }

@@ -22,6 +22,7 @@ from importlib import import_module
 from DeepSeaScene.Convert.ConvertContext import ConvertContext
 from DeepSeaScene.Convert.SceneResourcesConvert import convertSceneResources
 
+from DeepSeaSceneLighting.Convert.LightNodeConvert import convertLightNode
 from DeepSeaSceneLighting.Convert.LightSetConvert import convertLightSet
 from DeepSeaSceneLighting.Convert.ShadowManagerConvert import convertShadowManager
 
@@ -58,6 +59,7 @@ if __name__ == '__main__':
 	convertContext = ConvertContext(args.cuttlefish, args.vfc, args.multithread)
 
 	# Lighting scene types.
+	convertContext.addNodeType('LightNode', convertLightNode)
 	convertContext.addCustomResourceType('LightSet', convertLightSet)
 	convertContext.addCustomResourceType('ShadowManager', convertShadowManager)
 

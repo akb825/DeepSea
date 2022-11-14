@@ -1,4 +1,4 @@
-# Copyright 2020 Aaron Barany
+# Copyright 2020-2022 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,15 +15,14 @@
 import flatbuffers
 import math
 
-from .. import DirectionalLight
 from .. import Light
 from ..LightUnion import LightUnion
-from .. import PointLight
 from .. import SceneLightSet
-from .. import SpotLight
+
+from .ColorConvert import readFloat, readColor
+from .LightConvert import readLight, writeLight
 
 from DeepSeaScene.Color3f import CreateColor3f
-from DeepSeaScene.Vector3f import CreateVector3f
 
 class Object:
 	pass
@@ -61,16 +60,6 @@ def convertLightSet(convertContext, data):
 	- srgb: true to treat all color values as sRGB values to be converted to linear space. Defaults
 	  to false.
 	"""
-	def readFloat(value, name, minVal = None, maxVal = None):
-		try:
-			floatVal = float(value)
-			if (minVal is not None and floatVal < minVal) or \
-					(maxVal is not None and floatVal > maxVal):
-				raise Exception() # Common error handling in except block.
-			return floatVal
-		except:
-			raise Exception('Invalid ' + name + ' value "' + str(value) + '".')
-
 	def readInt(value, name, minVal):
 		try:
 			intVal = int(value)
@@ -79,21 +68,6 @@ def convertLightSet(convertContext, data):
 			return intVal
 		except:
 			raise Exception('Invalid ' + name + ' value "' + str(value) + '".')
-
-	def readColor(value, name, srgb):
-		if not isinstance(value, list) or len(value) != 3:
-			raise Exception('SceneLight ' + name + ' must be an array of three floats.')
-
-		color = [readFloat(value[0], name + ' red channel'),
-			readFloat(value[1], name + ' green channel'),
-			readFloat(value[2], name + ' blue channel')]
-		if srgb:
-			for i in range(0, 3):
-				if color[i] <= 0.04045:
-					color[i] = color[i]/12.92
-				else:
-					color[i] = pow((color[i] + 0.055)/1.055, 2.4)
-		return color
 
 	def readVector(value, name):
 		if not isinstance(value, list) or len(value) != 3:
@@ -112,34 +86,7 @@ def convertLightSet(convertContext, data):
 				try:
 					light = Object()
 					light.name = str(lightData['name'])
-					light.color = readColor(lightData['color'], 'light color', srgb)
-					light.intensity = readFloat(lightData['intensity'], 'light intensity', 0.0)
-					lightType = lightData['type']
-					if lightType == 'Directional':
-						light.type = LightUnion.DirectionalLight
-						light.direction = readVector(lightData['direction'], 'light direction')
-					elif lightType == 'Point':
-						light.type = LightUnion.PointLight
-						light.position = readVector(lightData['position'], 'light position')
-						light.linearFalloff = readFloat(lightData.get('linearFalloff', 1.0),
-							'light linear falloff', 0.0)
-						light.quadraticFalloff = readFloat(lightData.get('quadraticFalloff', 1.0),
-							'light quadratic falloff', 0.0)
-					elif lightType == 'Spot':
-						light.type = LightUnion.SpotLight
-						light.position = readVector(lightData['position'], 'light position')
-						light.direction = readVector(lightData['direction'], 'light direction')
-						light.linearFalloff = readFloat(lightData.get('linearFalloff', 1.0),
-							'light linear falloff', 0.0)
-						light.quadraticFalloff = readFloat(lightData.get('quadraticFalloff', 1.0),
-							'light quadratic falloff', 0.0)
-						light.innerSpotAngle = math.radians(readFloat(lightData['innerSpotAngle'],
-							'inner spot angle', 0.0, 180.0))
-						light.outerSpotAngle = math.radians(readFloat(lightData['outerSpotAngle'],
-							'outer spot angle', 0.0, 180.0))
-						if light.innerSpotAngle > light.outerSpotAngle:
-							raise Exception(
-								'Spot light inner spot angle must be less than outer spot angle.')
+					readLight(light, lightData, srgb)
 				except KeyError as e:
 					raise Exception('LightSet light doesn\'t contain element ' + str(e) + '.')
 
@@ -169,42 +116,11 @@ def convertLightSet(convertContext, data):
 	lightOffsets = []
 	for light in lights:
 		nameOffset = builder.CreateString(light.name)
-		if light.type == LightUnion.DirectionalLight:
-			DirectionalLight.Start(builder)
-			DirectionalLight.AddDirection(builder, CreateVector3f(builder, light.direction[0],
-				light.direction[1], light.direction[2]))
-			DirectionalLight.AddColor(builder, CreateColor3f(builder, light.color[0],
-				light.color[1], light.color[2]))
-			DirectionalLight.AddIntensity(builder, light.intensity)
-			lightUnionOffset = DirectionalLight.End(builder)
-		elif light.type == LightUnion.PointLight:
-			PointLight.Start(builder)
-			PointLight.AddPosition(builder, CreateVector3f(builder, light.position[0],
-				light.position[1], light.position[2]))
-			PointLight.AddColor(builder, CreateColor3f(builder, light.color[0], light.color[1],
-				light.color[2]))
-			PointLight.AddIntensity(builder, light.intensity)
-			PointLight.AddLinearFalloff(builder, light.linearFalloff)
-			PointLight.AddQuadraticFalloff(builder, light.quadraticFalloff)
-			lightUnionOffset = PointLight.End(builder)
-		elif light.type == LightUnion.SpotLight:
-			SpotLight.Start(builder)
-			SpotLight.AddPosition(builder, CreateVector3f(builder, light.position[0],
-				light.position[1], light.position[2]))
-			SpotLight.AddDirection(builder, CreateVector3f(builder, light.direction[0],
-				light.direction[1], light.direction[2]))
-			SpotLight.AddColor(builder, CreateColor3f(builder, light.color[0], light.color[1],
-				light.color[2]))
-			SpotLight.AddIntensity(builder, light.intensity)
-			SpotLight.AddLinearFalloff(builder, light.linearFalloff)
-			SpotLight.AddQuadraticFalloff(builder, light.quadraticFalloff)
-			SpotLight.AddInnerSpotAngle(builder, light.innerSpotAngle)
-			SpotLight.AddOuterSpotAngle(builder, light.outerSpotAngle)
-			lightUnionOffset = SpotLight.End(builder)
+		lightType, lightUnionOffset = writeLight(builder, light)
 
 		Light.Start(builder)
 		Light.AddName(builder, nameOffset)
-		Light.AddLightType(builder, light.type)
+		Light.AddLightType(builder, lightType)
 		Light.AddLight(builder, lightUnionOffset)
 		lightOffsets.append(Light.End(builder))
 

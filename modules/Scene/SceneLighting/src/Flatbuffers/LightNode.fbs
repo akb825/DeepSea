@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Aaron Barany
+ * Copyright 2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,22 @@
  * limitations under the License.
  */
 
-#pragma once
+include "SceneLight.fbs";
 
-#include <DeepSea/Core/Config.h>
-#include <DeepSea/Scene/Types.h>
+namespace DeepSeaSceneLighting;
 
-#ifdef __cplusplus
-extern "C"
+// Struct defining a node to create lights in a scene.
+table LightNode
 {
-#endif
+	// The light used as a template for all the lights created in the scene.
+	templateLight : LightUnion (required);
 
-void* dsSceneLightSet_load(const dsSceneLoadContext* loadContext,
-	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
-	void* userData, const uint8_t* data, size_t dataSize);
+	// The base name for the lights added to the scene. The lights will have ".n" appended to the
+	// name, where n is an index incremented for new instances.
+	lightBaseName : string (required);
 
-#ifdef __cplusplus
+	// The item lists to process the node with.
+	itemLists : [string];
 }
-#endif
+
+root_type LightNode;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Aaron Barany
+ * Copyright 2020-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 #include "SceneLightSetLoad.h"
 
+#include "SceneLightLoad.h"
+
 #include <DeepSea/Core/Memory/StackAllocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
@@ -27,6 +29,7 @@
 #include <DeepSea/Scene/Flatbuffers/SceneFlatbufferHelpers.h>
 #include <DeepSea/Scene/SceneLoadContext.h>
 #include <DeepSea/Scene/SceneLoadScratchData.h>
+
 #include <DeepSea/SceneLighting/SceneLight.h>
 #include <DeepSea/SceneLighting/SceneLightSet.h>
 
@@ -102,49 +105,7 @@ void* dsSceneLightSet_load(const dsSceneLoadContext*, dsSceneLoadScratchData*,
 				return nullptr;
 			}
 
-			if (auto fbDirectionalLight = fbLight->light_as_DirectionalLight())
-			{
-				dsVector3f direction = DeepSeaScene::convert(*fbDirectionalLight->direction());
-				dsVector3f_normalize(&direction, &direction);
-				dsColor3f color = DeepSeaScene::convert(*fbDirectionalLight->color());
-				DS_VERIFY(dsSceneLight_makeDirectional(light, &direction, &color,
-					fbDirectionalLight->intensity()));
-			}
-			else if (auto fbPointLight = fbLight->light_as_PointLight())
-			{
-				dsVector3f position = DeepSeaScene::convert(*fbPointLight->position());
-				dsColor3f color = DeepSeaScene::convert(*fbPointLight->color());
-				if (!dsSceneLight_makePoint(light, &position, &color,
-						fbPointLight->intensity(), fbPointLight->linearFalloff(),
-						fbPointLight->quadraticFalloff()))
-				{
-					errno = EFORMAT;
-					DS_LOG_ERROR_F(DS_SCENE_LIGHTING_LOG_TAG,
-						"Invalid point light '%s' in scene light set.", name);
-					dsSceneLightSet_destroy(lightSet);
-					return nullptr;
-				}
-			}
-			else if (auto fbSpotLight = fbLight->light_as_SpotLight())
-			{
-				dsVector3f position = DeepSeaScene::convert(*fbSpotLight->position());
-				dsVector3f direction = DeepSeaScene::convert(*fbSpotLight->direction());
-				dsVector3f_normalize(&direction, &direction);
-				float cosInnerSpotAngle = cosf(fbSpotLight->innerSpotAngle());
-				float cosOuterSpotAngle = cosf(fbSpotLight->outerSpotAngle());
-				dsColor3f color = DeepSeaScene::convert(*fbSpotLight->color());
-				if (!dsSceneLight_makeSpot(light, &position, &direction, &color,
-						fbSpotLight->intensity(), fbSpotLight->linearFalloff(),
-						fbSpotLight->quadraticFalloff(), cosInnerSpotAngle, cosOuterSpotAngle))
-				{
-					errno = EFORMAT;
-					DS_LOG_ERROR_F(DS_SCENE_LIGHTING_LOG_TAG,
-						"Invalid spotlight '%s' in scene light set.", name);
-					dsSceneLightSet_destroy(lightSet);
-					return nullptr;
-				}
-			}
-			else
+			if (!extractLightData(*light, fbLight->light_type(), fbLight->light()))
 			{
 				errno = EFORMAT;
 				DS_LOG_ERROR_F(DS_SCENE_LIGHTING_LOG_TAG, "Invalid light '%s' in scene light set.",

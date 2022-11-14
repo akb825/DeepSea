@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2021 Aaron Barany
+ * Copyright 2020-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@
 #include "DeferredLightResolveLoad.h"
 #include "InstanceForwardLightDataLoad.h"
 #include "SceneComputeSSAOLoad.h"
+#include "SceneLightNodeLoad.h"
 #include "SceneLightSetLoad.h"
 #include "SceneLightSetPrepareLoad.h"
 #include "SceneShadowManagerLoad.h"
@@ -29,10 +30,13 @@
 
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
+
 #include <DeepSea/Scene/SceneLoadContext.h>
+
 #include <DeepSea/SceneLighting/DeferredLightResolve.h>
 #include <DeepSea/SceneLighting/InstanceForwardLightData.h>
 #include <DeepSea/SceneLighting/SceneComputeSSAO.h>
+#include <DeepSea/SceneLighting/SceneLightNode.h>
 #include <DeepSea/SceneLighting/SceneLightSet.h>
 #include <DeepSea/SceneLighting/SceneLightSetPrepare.h>
 #include <DeepSea/SceneLighting/SceneShadowManager.h>
@@ -64,6 +68,12 @@ bool dsSceneLightingLoadConext_registerTypes(dsSceneLoadContext* loadContext)
 	if (!dsSceneLoadContext_registerCustomResourceType(loadContext,
 			dsSceneShadowManager_typeName, dsSceneShadowManager_type(), &dsSceneShadowManager_load,
 			(dsDestroyCustomSceneResourceFunction)&dsSceneShadowManager_destroy, NULL, NULL, 0))
+	{
+		return false;
+	}
+
+	if (!dsSceneLoadContext_registerNodeType(loadContext, dsSceneLightNode_typeName,
+			&dsSceneLightNode_load, NULL, NULL))
 	{
 		return false;
 	}

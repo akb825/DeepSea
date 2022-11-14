@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Aaron Barany
+ * Copyright 2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,17 +17,14 @@
 #pragma once
 
 #include <DeepSea/Core/Config.h>
+
+#include "Flatbuffers/SceneLight_generated.h"
 #include <DeepSea/Scene/Types.h>
+#include <DeepSea/SceneLighting/Types.h>
 
-#ifdef __cplusplus
-extern "C"
+namespace DeepSeaSceneLighting
 {
-#endif
 
-void* dsSceneLightSet_load(const dsSceneLoadContext* loadContext,
-	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
-	void* userData, const uint8_t* data, size_t dataSize);
+bool extractLightData(dsSceneLight& light, LightUnion type, const void* obj);
 
-#ifdef __cplusplus
-}
-#endif
+} // DeepSeaSceneLighting

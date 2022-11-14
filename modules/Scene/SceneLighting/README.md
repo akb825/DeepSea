@@ -51,6 +51,32 @@ The following custom scene resource types are provided with the members that are
 		* `fadeStartDistance`: the distance to start fading out shadows. Defaults to 1000000, which is a large distance less likely to break GPUs that use limited precision floats.
 		* `maxDistance`: the maximum distance to display shadows. Defaults to 1000000, which is a large distance less likely to break GPUs that use limited precision floats.
 
+## Scene Nodes
+
+The following scene node types are provided with the members that are expected:
+
+* `"LightNode"`: node to create lights for each instance in the scene graph.
+	* `template
+		* `color`: the color of the light as an array of three float values, typically in the range `[0, 1]`.
+		* `intensity`: the intensity of the light, which multiplies the color.Light`: The light used as a template for all the lights created in the scene. It is expected to contain the following members:
+		* `type`: the type of the light. The following types are supported with the members they expect:
+			* `"Directional"`
+				* `direction`: direction of the light as an array of three float values.
+			* `"Point"`
+				* `position`: position of the light as an array of three float values.
+				* `linearFalloff`: amount the light falls off based on distance.
+				* `quadraticFalloff`: amount the light falls off based on squared distance.
+			* `"Spot"`
+				* `position`: position of the light as an array of three float values.
+				* `direction`: direction of the light as an array of three float values.
+				* `linearFalloff`: amount the light falls off based on distance.
+				* `quadraticFalloff`: amount the light falls off based on squared distance.
+				* `innerSpotAngle`: the angle in degrees of the spot light where it starts to fade out.
+				* `outerSpotAngle`: the angle in degrees of the spot light where it finishes fade out.
+	* `srgb`: true to treat all color values as sRGB values to be converted to linear space. Defaults to false.
+	* `lightBaseName`: The base name for the lights added to the scene. The lights will have ".n" appended to the name, where n is an index incremented for new instances.
+	* `itemLists`: array of item list names to add the node to.
+
 ## Item Lists
 
 The following item list types are provided with the members that are expected:
