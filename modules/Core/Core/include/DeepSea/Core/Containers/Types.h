@@ -151,7 +151,8 @@ typedef struct dsHashTable
 	/**
 	 * @brief The list of nodes.
 	 *
-	 * This can be used to iterate over the nodes, but should not be modified.
+	 * This can be used to iterate over the nodes, but should not be modified. The iteration order
+	 * will match insertion order.
 	 */
 	dsList list;
 
@@ -193,7 +194,8 @@ typedef struct dsHashTable
 	union \
 	{ \
 		dsHashTable hashTable; \
-		uint8_t data[sizeof(dsHashTable) + tableSize*sizeof(dsHashTableNode*)]; \
+		uint8_t data[sizeof(dsHashTable) - sizeof(dsHashTableNode*) + \
+			tableSize*sizeof(dsHashTableNode*)]; \
 	}
 
 /**

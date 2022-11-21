@@ -40,6 +40,8 @@ TEST(HashTableTest, Initialize)
 	EXPECT_FALSE_ERRNO(EINVAL, dsHashTable_initialize(nullptr, size, &dsHashString,
 		&dsHashStringEqual));
 	EXPECT_TRUE(dsHashTable_initialize(hashTable, size, &dsHashString, &dsHashStringEqual));
+	EXPECT_EQ(sizeof(storage), reinterpret_cast<std::uint8_t*>(hashTable->table + size) -
+		reinterpret_cast<std::uint8_t*>(hashTable));
 }
 
 TEST(HashTableTest, Insert)

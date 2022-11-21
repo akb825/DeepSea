@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,8 @@ uint32_t dsHashTable_getTableSize(uint32_t maxElements)
 
 size_t dsHashTable_sizeof(size_t tableSize)
 {
-	return sizeof(dsHashTable) + sizeof(dsHashTableNode*)*tableSize;
+	// Subtract the single element for the table used to satisfy the compiler.
+	return sizeof(dsHashTable) - sizeof(dsHashTableNode*) + tableSize*sizeof(dsHashTableNode*);
 }
 
 size_t dsHashTable_fullAllocSize(size_t tableSize)
