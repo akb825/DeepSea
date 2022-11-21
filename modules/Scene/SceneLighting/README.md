@@ -75,6 +75,7 @@ The following scene node types are provided with the members that are expected:
 				* `outerSpotAngle`: the angle in degrees of the spot light where it finishes fade out.
 	* `srgb`: true to treat all color values as sRGB values to be converted to linear space. Defaults to false.
 	* `lightBaseName`: The base name for the lights added to the scene. The lights will have ".n" appended to the name, where n is an index incremented for new instances.
+	* `singleInstance`: Whether or not only a single instance is allowed. If true, lightBaseName will be used as-is without any prefix. Defaults to false.
 	* `itemLists`: array of item list names to add the node to.
 
 ## Item Lists

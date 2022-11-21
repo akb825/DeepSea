@@ -46,11 +46,14 @@ def convertLightNode(convertContext, data):
 	  to false.
 	- lightBaseName: The base name for the lights added to the scene. The lights will have ".n"
 	  appended to the name, where n is an index incremented for new instances.
+	- singleInstance: Whether or not only a single instance is allowed. If true, lightBaseName will
+	  be used as-is without any prefix. Defaults to false.
 	- itemLists: array of item list names to add the node to.
 	"""
 	try:
 		lightData = data['light']
-		srgb = data.get('srgb', False)
+		srgb = bool(data.get('srgb', False))
+		singleInstance = bool(data.get('singleInstance', False))
 		light = Object()
 		try:
 			readLight(light, lightData, srgb)
@@ -87,6 +90,7 @@ def convertLightNode(convertContext, data):
 	LightNode.AddTemplateLightType(builder, lightType)
 	LightNode.AddTemplateLight(builder, lightOffset)
 	LightNode.AddLightBaseName(builder, lightBaseNameOffset)
+	LightNode.AddSingleInstance(builder, singleInstance)
 	LightNode.AddItemLists(builder, itemListsOffset)
 	builder.Finish(LightNode.End(builder))
 	return builder.Output()

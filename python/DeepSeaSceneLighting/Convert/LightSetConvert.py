@@ -78,7 +78,7 @@ def convertLightSet(convertContext, data):
 			readFloat(value[2], name + ' z')]
 
 	try:
-		srgb = data.get('srgb', False)
+		srgb = bool(data.get('srgb', False))
 		lightsData = data.get('lights', [])
 		lights = []
 		try:

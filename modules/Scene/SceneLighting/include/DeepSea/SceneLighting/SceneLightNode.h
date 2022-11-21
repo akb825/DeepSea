@@ -51,12 +51,14 @@ DS_SCENELIGHTING_EXPORT const dsSceneNodeType* dsSceneLightNode_type(void);
  *     nameID field will be ignored. This will be copied.
  * @param lightBaseName The base name for the lights added to the scene. The lights will have ".n"
  *     appended to the name, where n is an index incremented for new instances. This will be copied.
+ * @param singleInstance Whether or not one instance is allowed. If true, lightBaseName will be used
+ *     as-is without any suffix.
  * @param itemLists The list of item list names that will be used to process the node. These will be
  *     copied.
  * @param itemListCount The number of item lists.
  */
 DS_SCENELIGHTING_EXPORT dsSceneLightNode* dsSceneLightNode_create(dsAllocator* allocator,
-	const dsSceneLight* templateLight, const char* lightBaseName,
+	const dsSceneLight* templateLight, const char* lightBaseName, bool singleInstance,
 	const char* const* itemLists, uint32_t itemListCount);
 
 /**
@@ -88,14 +90,26 @@ DS_SCENELIGHTING_EXPORT dsSceneLight* dsSceneLightNode_getMutableTemplateLight(
 /**
  * @brief Gets the base name for the lights added to the light set.
  *
- * The lights will have ".n" appended to the name, where n is an index incremented for new
- * instances.
+ * Unless created with singleInstance to true, the lights will have ".n" appended to the name, where
+ * n is an index incremented for new instances.
  *
  * @remark errno will be set on failure.
+ * @param lightNode The scene light node.
  * @return The base name for the lights or NULL if lightNode is NULL.
  */
 DS_SCENELIGHTING_EXPORT const char* dsSceneLightNode_getLightBaseName(
 	const dsSceneLightNode* lightNode);
+
+/**
+ * @brief Gets whether or not the light node only allows a single instance.
+ *
+ * If true, the light base name will be used as-is without any suffix. Attempting to have more
+ * instances in the scene graph will result in an error when adding the light.
+ *
+ * @param lightNode The scene light node.
+ * @return Whether or not only a single instance is allowed.
+ */
+DS_SCENELIGHTING_EXPORT bool dsSceneLightNode_getSingleInstance(const dsSceneLightNode* lightNode);
 
 /**
  * @brief Gets the light for a scene light node.

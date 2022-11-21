@@ -49,8 +49,15 @@ class LightNode(object):
         return None
 
     # LightNode
-    def ItemLists(self, j):
+    def SingleInstance(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(10))
+        if o != 0:
+            return bool(self._tab.Get(flatbuffers.number_types.BoolFlags, o + self._tab.Pos))
+        return False
+
+    # LightNode
+    def ItemLists(self, j):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(12))
         if o != 0:
             a = self._tab.Vector(o)
             return self._tab.String(a + flatbuffers.number_types.UOffsetTFlags.py_type(j * 4))
@@ -58,17 +65,17 @@ class LightNode(object):
 
     # LightNode
     def ItemListsLength(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(10))
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(12))
         if o != 0:
             return self._tab.VectorLen(o)
         return 0
 
     # LightNode
     def ItemListsIsNone(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(10))
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(12))
         return o == 0
 
-def LightNodeStart(builder): builder.StartObject(4)
+def LightNodeStart(builder): builder.StartObject(5)
 def Start(builder):
     return LightNodeStart(builder)
 def LightNodeAddTemplateLightType(builder, templateLightType): builder.PrependUint8Slot(0, templateLightType, 0)
@@ -80,7 +87,10 @@ def AddTemplateLight(builder, templateLight):
 def LightNodeAddLightBaseName(builder, lightBaseName): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(lightBaseName), 0)
 def AddLightBaseName(builder, lightBaseName):
     return LightNodeAddLightBaseName(builder, lightBaseName)
-def LightNodeAddItemLists(builder, itemLists): builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(itemLists), 0)
+def LightNodeAddSingleInstance(builder, singleInstance): builder.PrependBoolSlot(3, singleInstance, 0)
+def AddSingleInstance(builder, singleInstance):
+    return LightNodeAddSingleInstance(builder, singleInstance)
+def LightNodeAddItemLists(builder, itemLists): builder.PrependUOffsetTRelativeSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(itemLists), 0)
 def AddItemLists(builder, itemLists):
     return LightNodeAddItemLists(builder, itemLists)
 def LightNodeStartItemListsVector(builder, numElems): return builder.StartVector(4, numElems, 4)

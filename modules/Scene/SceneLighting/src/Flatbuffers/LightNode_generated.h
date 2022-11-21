@@ -26,7 +26,8 @@ struct LightNode FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_TEMPLATELIGHT_TYPE = 4,
     VT_TEMPLATELIGHT = 6,
     VT_LIGHTBASENAME = 8,
-    VT_ITEMLISTS = 10
+    VT_SINGLEINSTANCE = 10,
+    VT_ITEMLISTS = 12
   };
   DeepSeaSceneLighting::LightUnion templateLight_type() const {
     return static_cast<DeepSeaSceneLighting::LightUnion>(GetField<uint8_t>(VT_TEMPLATELIGHT_TYPE, 0));
@@ -47,6 +48,9 @@ struct LightNode FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const flatbuffers::String *lightBaseName() const {
     return GetPointer<const flatbuffers::String *>(VT_LIGHTBASENAME);
   }
+  bool singleInstance() const {
+    return GetField<uint8_t>(VT_SINGLEINSTANCE, 0) != 0;
+  }
   const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *itemLists() const {
     return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *>(VT_ITEMLISTS);
   }
@@ -57,6 +61,7 @@ struct LightNode FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            VerifyLightUnion(verifier, templateLight(), templateLight_type()) &&
            VerifyOffsetRequired(verifier, VT_LIGHTBASENAME) &&
            verifier.VerifyString(lightBaseName()) &&
+           VerifyField<uint8_t>(verifier, VT_SINGLEINSTANCE, 1) &&
            VerifyOffset(verifier, VT_ITEMLISTS) &&
            verifier.VerifyVector(itemLists()) &&
            verifier.VerifyVectorOfStrings(itemLists()) &&
@@ -89,6 +94,9 @@ struct LightNodeBuilder {
   void add_lightBaseName(flatbuffers::Offset<flatbuffers::String> lightBaseName) {
     fbb_.AddOffset(LightNode::VT_LIGHTBASENAME, lightBaseName);
   }
+  void add_singleInstance(bool singleInstance) {
+    fbb_.AddElement<uint8_t>(LightNode::VT_SINGLEINSTANCE, static_cast<uint8_t>(singleInstance), 0);
+  }
   void add_itemLists(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>> itemLists) {
     fbb_.AddOffset(LightNode::VT_ITEMLISTS, itemLists);
   }
@@ -110,11 +118,13 @@ inline flatbuffers::Offset<LightNode> CreateLightNode(
     DeepSeaSceneLighting::LightUnion templateLight_type = DeepSeaSceneLighting::LightUnion::NONE,
     flatbuffers::Offset<void> templateLight = 0,
     flatbuffers::Offset<flatbuffers::String> lightBaseName = 0,
+    bool singleInstance = false,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>> itemLists = 0) {
   LightNodeBuilder builder_(_fbb);
   builder_.add_itemLists(itemLists);
   builder_.add_lightBaseName(lightBaseName);
   builder_.add_templateLight(templateLight);
+  builder_.add_singleInstance(singleInstance);
   builder_.add_templateLight_type(templateLight_type);
   return builder_.Finish();
 }
@@ -124,6 +134,7 @@ inline flatbuffers::Offset<LightNode> CreateLightNodeDirect(
     DeepSeaSceneLighting::LightUnion templateLight_type = DeepSeaSceneLighting::LightUnion::NONE,
     flatbuffers::Offset<void> templateLight = 0,
     const char *lightBaseName = nullptr,
+    bool singleInstance = false,
     const std::vector<flatbuffers::Offset<flatbuffers::String>> *itemLists = nullptr) {
   auto lightBaseName__ = lightBaseName ? _fbb.CreateString(lightBaseName) : 0;
   auto itemLists__ = itemLists ? _fbb.CreateVector<flatbuffers::Offset<flatbuffers::String>>(*itemLists) : 0;
@@ -132,6 +143,7 @@ inline flatbuffers::Offset<LightNode> CreateLightNodeDirect(
       templateLight_type,
       templateLight,
       lightBaseName__,
+      singleInstance,
       itemLists__);
 }
 

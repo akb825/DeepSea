@@ -33,6 +33,7 @@ struct dsSceneLightNode
 	dsSceneNode node;
 	dsSceneLight templateLight;
 	const char* lightBaseName;
+	bool singleInstance;
 };
 
 static void dsSceneLightNode_destroy(dsSceneNode* node)
@@ -49,8 +50,8 @@ const dsSceneNodeType* dsSceneLightNode_type(void)
 	return &nodeType;
 }
 
-dsSceneLightNode* dsSceneLightNode_create(dsAllocator* allocator,
-	const dsSceneLight* templateLight, const char* lightBaseName, const char* const* itemLists,
+dsSceneLightNode* dsSceneLightNode_create(dsAllocator* allocator, const dsSceneLight* templateLight,
+	const char* lightBaseName, bool singleInstance, const char* const* itemLists,
 	uint32_t itemListCount)
 {
 	if (!allocator || !templateLight || !lightBaseName || (!itemLists && itemListCount > 0))
@@ -98,6 +99,7 @@ dsSceneLightNode* dsSceneLightNode_create(dsAllocator* allocator,
 	DS_ASSERT(lightBaseNameCopy);
 	memcpy(lightBaseNameCopy, lightBaseName, lightBaseNameLen);
 	lightNode->lightBaseName = lightBaseNameCopy;
+	lightNode->singleInstance = singleInstance;
 
 	return lightNode;
 }
@@ -133,6 +135,11 @@ const char* dsSceneLightNode_getLightBaseName(const dsSceneLightNode* lightNode)
 	}
 
 	return lightNode->lightBaseName;
+}
+
+bool dsSceneLightNode_getSingleInstance(const dsSceneLightNode* lightNode)
+{
+	return lightNode ? lightNode->singleInstance : false;
 }
 
 dsSceneLight* dsSceneLightNode_getLightForInstance(const dsSceneTreeNode* treeNode)

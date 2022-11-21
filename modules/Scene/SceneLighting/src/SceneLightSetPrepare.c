@@ -90,17 +90,24 @@ static uint64_t dsSceneLightSetPrepare_addNode(dsSceneItemList* itemList, const 
 
 	const dsSceneLightNode* lightNode = (const dsSceneLightNode*)node;
 	const char* baseName = dsSceneLightNode_getLightBaseName(lightNode);
-	size_t baseNameLen = strlen(baseName);
-	const size_t maxExtraLen = 21; // Max 64-bit value and a period.
-	size_t fullNameLen = baseNameLen + maxExtraLen + 1;
-	char* lightName = DS_ALLOCATE_STACK_OBJECT_ARRAY(char, fullNameLen);
-	snprintf(lightName, fullNameLen, "%s.%llu", baseName, (unsigned long long)prepare->nextNodeID);
+	const char* lightName;
+	if (dsSceneLightNode_getSingleInstance(lightNode))
+		lightName = baseName;
+	else
+	{
+		size_t baseNameLen = strlen(baseName);
+		const size_t maxExtraLen = 21; // Max 64-bit value and a period.
+		size_t fullNameLen = baseNameLen + maxExtraLen + 1;
+		lightName = DS_ALLOCATE_STACK_OBJECT_ARRAY(char, fullNameLen);
+		snprintf((char*)lightName, fullNameLen, "%s.%llu", baseName,
+			(unsigned long long)prepare->nextNodeID);
+	}
 
 	dsSceneLight* light = dsSceneLightSet_addLightName(prepare->lightSet, lightName);
 	if (!light)
 	{
 		DS_LOG_ERROR_F(DS_SCENE_LIGHTING_LOG_TAG, "Couldn't create light '%s' for light node.",
-			baseName);
+			lightName);
 		--prepare->entryCount;
 		return DS_NO_SCENE_NODE;
 	}

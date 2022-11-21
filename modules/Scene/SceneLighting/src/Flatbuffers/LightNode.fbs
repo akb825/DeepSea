@@ -28,6 +28,10 @@ table LightNode
 	// name, where n is an index incremented for new instances.
 	lightBaseName : string (required);
 
+	// Whether or not only one instance is allowed. If true, lightBaseName will be used as-is without
+	// any suffix.
+	singleInstance : bool;
+
 	// The item lists to process the node with.
 	itemLists : [string];
 }

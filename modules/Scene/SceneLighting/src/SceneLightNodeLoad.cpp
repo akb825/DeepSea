@@ -85,5 +85,5 @@ dsSceneNode* dsSceneLightNode_load(const dsSceneLoadContext* loadContext,
 	}
 
 	return (dsSceneNode*)dsSceneLightNode_create(allocator, &templateLight, lightBaseName,
-		itemLists, itemListCount);
+		fbLightNode->singleInstance(), itemLists, itemListCount);
 }
