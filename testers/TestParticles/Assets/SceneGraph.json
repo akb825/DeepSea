@@ -118,6 +118,21 @@
 	},
 	{
 		"type": "SceneNode",
+		"nodeType": "LightNode",
+		"name": "torchLight",
+		"light":
+		{
+			"type": "Point",
+			"color": [1.0, 0.927, 0.188],
+			"intensity": 1.0,
+			"position": [0.0, 0.0, 1.8]
+		},
+		"srgb": false,
+		"lightBaseName": "torch",
+		"itemLists": ["lightFlicker", "lightSetPrepare"]
+	},
+	{
+		"type": "SceneNode",
 		"nodeType": "ModelNodeReconfig",
 		"name": "groundModel",
 		"baseName": "groundModelBase",
@@ -176,6 +191,7 @@
 		"children":
 		[
 			{"nodeType": "ReferenceNode", "ref": "torchModel"},
+			{"nodeType": "ReferenceNode", "ref": "torchLight"},
 			{
 				"nodeType": "ParticleNode",
 				"particleEmitterFactory": "staticFlame",
@@ -195,6 +211,7 @@
 		"children":
 		[
 			{"nodeType": "ReferenceNode", "ref": "torchModel"},
+			{"nodeType": "ReferenceNode", "ref": "torchLight"},
 			{
 				"nodeType": "ParticleNode",
 				"particleEmitterFactory": "movingFlame",

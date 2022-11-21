@@ -20,8 +20,8 @@ The following custom scene resource types are provided with the members that are
 				* `direction`: direction of the light as an array of three float values.
 			* `"Point"`
 				* `position`: position of the light as an array of three float values.
-				* `linearFalloff`: amount the light falls off based on distance.
-				* `quadraticFalloff`: amount the light falls off based on squared distance.
+				* `linearFalloff`: amount the light falls off based on distance. Defaults to 1.
+				* `quadraticFalloff`: amount the light falls off based on squared distance. Defaults to 1.
 			* `"Spot"`
 				* `position`: position of the light as an array of three float values.
 				* `direction`: direction of the light as an array of three float values.
@@ -56,7 +56,7 @@ The following custom scene resource types are provided with the members that are
 The following scene node types are provided with the members that are expected:
 
 * `"LightNode"`: node to create lights for each instance in the scene graph.
-	* `template
+	* `light`: The light used as a template for all the lights created in the scene. It is expected to contain the following members
 		* `color`: the color of the light as an array of three float values, typically in the range `[0, 1]`.
 		* `intensity`: the intensity of the light, which multiplies the color.Light`: The light used as a template for all the lights created in the scene. It is expected to contain the following members:
 		* `type`: the type of the light. The following types are supported with the members they expect:
@@ -64,8 +64,8 @@ The following scene node types are provided with the members that are expected:
 				* `direction`: direction of the light as an array of three float values.
 			* `"Point"`
 				* `position`: position of the light as an array of three float values.
-				* `linearFalloff`: amount the light falls off based on distance.
-				* `quadraticFalloff`: amount the light falls off based on squared distance.
+				* `linearFalloff`: amount the light falls off based on distance. Defaults to 1.
+				* `quadraticFalloff`: amount the light falls off based on squared distance. Defaults to 1.
 			* `"Spot"`
 				* `position`: position of the light as an array of three float values.
 				* `direction`: direction of the light as an array of three float values.

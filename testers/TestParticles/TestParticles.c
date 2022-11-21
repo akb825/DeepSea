@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+#include "LightFlicker.h"
+
 #include <DeepSea/Application/Application.h>
 #include <DeepSea/Application/Window.h>
 #include <DeepSea/ApplicationSDL/SDLApplication.h>
@@ -242,6 +244,8 @@ static bool setup(TestParticles* testParticles, dsApplication* application, dsAl
 
 	DS_VERIFY(dsSceneLightingLoadConext_registerTypes(loadContext));
 	DS_VERIFY(dsSceneParticleLoadConext_registerTypes(loadContext));
+	DS_VERIFY(dsSceneLoadContext_registerItemListType(loadContext, "LightFlicker",
+		&dsLightFlicker_load, NULL, NULL));
 
 	dsSceneLoadScratchData* scratchData = dsSceneLoadScratchData_create(allocator,
 		renderer->mainCommandBuffer);

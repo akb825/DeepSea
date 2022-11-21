@@ -156,11 +156,11 @@ static void dsSceneLightSetPrepare_removeNode(dsSceneItemList* itemList, uint64_
 	}
 }
 
-static void dsSceneLightSetPrepare_commit(dsSceneItemList* itemList, const dsView* view,
-	dsCommandBuffer* commandBuffer)
+static void dsSceneLightSetPrepare_update(dsSceneItemList* itemList, const dsScene* scene,
+	float time)
 {
-	DS_UNUSED(view);
-	DS_UNUSED(commandBuffer);
+	DS_UNUSED(scene);
+	DS_UNUSED(time);
 	dsSceneLightSetPrepare* prepare = (dsSceneLightSetPrepare*)itemList;
 	dsSceneLightSet_prepare(prepare->lightSet, prepare->intensityThreshold);
 }
@@ -213,8 +213,8 @@ dsSceneLightSetPrepare* dsSceneLightSetPrepare_create(dsAllocator* allocator, co
 	itemList->addNodeFunc = &dsSceneLightSetPrepare_addNode;
 	itemList->updateNodeFunc = &dsSceneLightSetPrepare_updateNode;
 	itemList->removeNodeFunc = &dsSceneLightSetPrepare_removeNode;
-	itemList->updateFunc = NULL;
-	itemList->commitFunc = &dsSceneLightSetPrepare_commit;
+	itemList->updateFunc = &dsSceneLightSetPrepare_update;
+	itemList->commitFunc = NULL;
 	itemList->destroyFunc = (dsDestroySceneItemListFunction)&dsSceneLightSetPrepare_destroy;
 
 	prepare->lightSet = lightSet;

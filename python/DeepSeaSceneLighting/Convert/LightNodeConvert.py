@@ -23,8 +23,8 @@ class Object:
 def convertLightNode(convertContext, data):
 	"""
 	Converts a LightNode. The data map is expected to contain the following elements:
-	- templateLight: The light used as a template for all the lights created in the scene. It is
-	  expected to contain the following members:
+	- light: The light used as a template for all the lights created in the scene. It is expected
+	  to contain the following members:
 	  - color: the color of the light as an array of three float values, typically in the range
 	    [0, 1].
 	  - intensity: the intensity of the light, which multiplies the color.
@@ -33,7 +33,7 @@ def convertLightNode(convertContext, data):
 	      - direction: direction of the light as an array of three float values.
 	    - "Point"
 	      - position: position of the light as an array of three float values.
-	      - linearFalloff: amount the light falls off based on distance.
+	      - linearFalloff: amount the light falls off based on distance.  Defaults to 1.
 	      - quadraticFalloff: amount the light falls off based on squared distance. Defaults to 1.
 	    - "Spot"
 	      - position: position of the light as an array of three float values.

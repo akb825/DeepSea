@@ -41,7 +41,7 @@ def convertLightSet(convertContext, data):
 	      - direction: direction of the light as an array of three float values.
 	    - "Point"
 	      - position: position of the light as an array of three float values.
-	      - linearFalloff: amount the light falls off based on distance.
+	      - linearFalloff: amount the light falls off based on distance. Defaults to 1.
 	      - quadraticFalloff: amount the light falls off based on squared distance. Defaults to 1.
 	    - "Spot"
 	      - position: position of the light as an array of three float values.

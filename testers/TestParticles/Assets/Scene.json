@@ -3,9 +3,10 @@
 	[
 		[
 			{
-				"type": "LightSetPrepare",
-				"name": "lightSetPrepare",
-				"lightSet": "lightSet"
+				"type": "LightFlicker",
+				"name": "lightFlicker",
+				"timeRange": [0.1, 0.3],
+				"intensityRange": [1.0, 5.0]
 			}
 		],
 		[
@@ -16,6 +17,11 @@
 			}
 		],
 		[
+			{
+				"type": "LightSetPrepare",
+				"name": "lightSetPrepare",
+				"lightSet": "lightSet"
+			},
 			{"type": "ViewCullList", "name": "cullList"},
 			{"type": "ParticlePrepare", "name": "particlePrepare"}
 		]

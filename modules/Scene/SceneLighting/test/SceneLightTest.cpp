@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2021 Aaron Barany
+ * Copyright 2020-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -322,6 +322,7 @@ TEST_F(SceneLightTest, IsInFrustum)
 	float quadraticFalloff = 2.0f;
 	float innerSpotCosAngle = 0.75f;
 	float outerSpotCosAngle = 0.5f;
+	float intensityThreshold = 0.1f;
 
 	// NOTE: Z is inverted for ortho matrices.
 	dsMatrix44f matrix;
@@ -332,30 +333,23 @@ TEST_F(SceneLightTest, IsInFrustum)
 	dsFrustum3f_normalize(&frustum);
 
 	EXPECT_TRUE(dsSceneLight_makeDirectional(&light, &direction, &color, intensity));
-	EXPECT_TRUE(dsSceneLight_isInFrustum(&light, &frustum,
-		DS_DEFAULT_SCENE_LIGHT_INTENSITY_THRESHOLD));
+	EXPECT_TRUE(dsSceneLight_isInFrustum(&light, &frustum, intensityThreshold));
 
 	EXPECT_TRUE(dsSceneLight_makePoint(&light, &position, &color, intensity, linearFalloff,
 		quadraticFalloff));
-	EXPECT_TRUE(dsSceneLight_isInFrustum(&light, &frustum,
-		DS_DEFAULT_SCENE_LIGHT_INTENSITY_THRESHOLD));
+	EXPECT_TRUE(dsSceneLight_isInFrustum(&light, &frustum, intensityThreshold));
 	light.position.x = -4.0f;
-	EXPECT_FALSE(dsSceneLight_isInFrustum(&light, &frustum,
-		DS_DEFAULT_SCENE_LIGHT_INTENSITY_THRESHOLD));
+	EXPECT_FALSE(dsSceneLight_isInFrustum(&light, &frustum, intensityThreshold));
 	light.position.x = 3.1f;
-	EXPECT_TRUE(dsSceneLight_isInFrustum(&light, &frustum,
-		DS_DEFAULT_SCENE_LIGHT_INTENSITY_THRESHOLD));
+	EXPECT_TRUE(dsSceneLight_isInFrustum(&light, &frustum, intensityThreshold));
 
 	EXPECT_TRUE(dsSceneLight_makeSpot(&light, &position, &direction, &color, intensity,
 		linearFalloff, quadraticFalloff, innerSpotCosAngle, outerSpotCosAngle));
-	EXPECT_TRUE(dsSceneLight_isInFrustum(&light, &frustum,
-		DS_DEFAULT_SCENE_LIGHT_INTENSITY_THRESHOLD));
+	EXPECT_TRUE(dsSceneLight_isInFrustum(&light, &frustum, intensityThreshold));
 	light.position.x = -4.0f;
-	EXPECT_FALSE(dsSceneLight_isInFrustum(&light, &frustum,
-		DS_DEFAULT_SCENE_LIGHT_INTENSITY_THRESHOLD));
+	EXPECT_FALSE(dsSceneLight_isInFrustum(&light, &frustum, intensityThreshold));
 	light.position.x = 3.1f;
-	EXPECT_FALSE(dsSceneLight_isInFrustum(&light, &frustum,
-		DS_DEFAULT_SCENE_LIGHT_INTENSITY_THRESHOLD));
+	EXPECT_FALSE(dsSceneLight_isInFrustum(&light, &frustum, intensityThreshold));
 }
 
 TEST_F(SceneLightTest, GetPointLightProjection)

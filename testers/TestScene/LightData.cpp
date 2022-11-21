@@ -26,6 +26,7 @@
 #include <DeepSea/Render/Resources/SharedMaterialValues.h>
 #include <DeepSea/Scene/SceneLoadContext.h>
 #include <DeepSea/Scene/SceneLoadScratchData.h>
+#include <string.h>
 
 #if DS_GCC || DS_CLANG
 #pragma GCC diagnostic push
@@ -39,11 +40,9 @@
 #pragma GCC diagnostic pop
 #endif
 
-#include <string.h>
-
 typedef struct dsLightData
 {
-	dsSceneItemList globalData;
+	dsSceneItemList itemList;
 	dsShaderVariableGroup* variableGroup;
 	dsVector3f direction;
 	uint32_t variableGroupNameID;
@@ -83,7 +82,7 @@ dsSceneItemList* dsLightData_load(const dsSceneLoadContext* loadContext,
 	if (!TestScene::VerifyLightDataBuffer(verifier))
 	{
 		errno = EFORMAT;
-		DS_LOG_ERROR(DS_SCENE_LOG_TAG, "Invalid instance transform data flatbuffer format.");
+		DS_LOG_ERROR(DS_SCENE_LOG_TAG, "Invalid light data flatbuffer format.");
 		return nullptr;
 	}
 

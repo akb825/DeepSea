@@ -10,7 +10,7 @@ endif()
 
 set(shaderConfigs)
 set(fragmentInputShaderConfigs)
-file(GLOB source "*.msl" "*.c" "*.h")
+file(GLOB source "*.msl" "*.c" "*.cpp" "*.h" "*.fbs")
 if (TARGET DeepSea::RenderOpenGL)
 	list(APPEND shaderConfigs glsl-1.5 glsl-es-3.0)
 endif()
@@ -34,12 +34,19 @@ endif()
 ds_add_executable(deepsea_test_particles_app WIN32 ${source})
 target_link_libraries(deepsea_test_particles_app PRIVATE
 	DeepSea::RenderBootstrap DeepSea::SceneLighting DeepSea::SceneParticle DeepSea::ApplicationSDL)
+target_include_directories(deepsea_test_particles_app PRIVATE ${FLATBUFFERS_INCLUDE_DIRS})
 ds_link_main_lib(deepsea_test_particles_app DeepSea::ApplicationSDLMain)
 
 if (TARGET DeepSea::EasyProfiler)
 	target_link_libraries(deepsea_test_particles_app PRIVATE DeepSea::EasyProfiler)
 	target_compile_definitions(deepsea_test_particles_app PRIVATE DS_HAS_EASY_PROFILER=1)
 endif()
+
+ds_convert_flatbuffers(generatedFlatbuffers FILE ${CMAKE_CURRENT_SOURCE_DIR}/LightFlicker.fbs
+	DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+	PYTHON ${CMAKE_CURRENT_SOURCE_DIR}/python)
+ds_convert_flatbuffers_target(deepsea_test_particles_app_flatbuffers generatedFlatbuffers)
+add_dependencies(deepsea_test_particles_app deepsea_test_particles_app_flatbuffers)
 
 ds_config_binary_dir(assetsDir assets)
 ds_config_binary_dir(configDir)
@@ -108,7 +115,8 @@ ds_create_scene_resources_target(deepsea_test_particles_app_scene_resources reso
 	DEPENDS deepsea_test_particles_app_shaders)
 
 # Convert the scene and view.
-ds_create_scene(scene FILE ${srcDir}/Assets/Scene.json OUTPUT ${assetsDir}/Scene.dss)
+ds_create_scene(scene FILE ${srcDir}/Assets/Scene.json OUTPUT ${assetsDir}/Scene.dss
+	MODULE_DIRECTORIES ${CMAKE_CURRENT_SOURCE_DIR}/python EXTENSIONS TestParticlesExtension)
 ds_create_scene_target(deepsea_test_particles_app_scene scene
 	DEPENDS deepsea_test_particles_app_prepare)
 

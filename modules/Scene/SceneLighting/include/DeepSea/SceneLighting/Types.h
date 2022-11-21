@@ -39,7 +39,7 @@ extern "C"
 /**
  * @brief The default intensity threshold below which a light is considered out of view.
  */
-#define DS_DEFAULT_SCENE_LIGHT_INTENSITY_THRESHOLD 0.1f
+#define DS_DEFAULT_SCENE_LIGHT_INTENSITY_THRESHOLD 0.02f
 
 /**
  * @brief The maximum number of samples that can be made to compute SSAO.
@@ -364,6 +364,9 @@ typedef bool (*dsSceneLightVisitFunction)(void* userData, const dsSceneLightSet*
  *
  * This will prepare provided a scene light set for use in the scene. This an item list to fit into
  * the scene layout and support updating lights controlled by a dsSceneLightNode.
+ *
+ * This will prepare the light set in the update function. Any other item lists that modify lights
+ * should be placed before the light set prepare.
  *
  * @see SceneLightSetPrepare.h
  */
