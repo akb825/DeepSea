@@ -215,6 +215,7 @@ bool dsSceneNode_removeChildIndex(dsSceneNode* node, uint32_t childIndex)
 	}
 
 	dsSceneTreeNode_removeSubtree(node, node->children[childIndex]);
+	dsSceneNode_freeRef(node->children[childIndex]);
 	// Order shouldn't matter, so put the last item in this spot for constant-time removal.
 	node->children[childIndex] = node->children[node->childCount - 1];
 	--node->childCount;
@@ -230,6 +231,7 @@ bool dsSceneNode_removeChildNode(dsSceneNode* node, dsSceneNode* child)
 	}
 
 	dsSceneTreeNode_removeSubtree(node, child);
+	bool found = false;
 	for (uint32_t i = node->childCount; i-- > 0;)
 	{
 		if (node->children[i] != child)
@@ -238,9 +240,13 @@ bool dsSceneNode_removeChildNode(dsSceneNode* node, dsSceneNode* child)
 		dsSceneNode_freeRef(child);
 		node->children[i] = node->children[node->childCount - 1];
 		--node->childCount;
+		found = true;
 		break;
 	}
-	return true;
+
+	if (!found)
+		errno = ENOTFOUND;
+	return found;
 }
 
 void dsSceneNode_clear(dsSceneNode* node)

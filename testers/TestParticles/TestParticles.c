@@ -19,12 +19,14 @@
 #include <DeepSea/Application/Application.h>
 #include <DeepSea/Application/Window.h>
 #include <DeepSea/ApplicationSDL/SDLApplication.h>
+
 #include <DeepSea/Core/Memory/SystemAllocator.h>
 #include <DeepSea/Core/Streams/Path.h>
 #include <DeepSea/Core/Streams/ResourceStream.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
+
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Math/Matrix44.h>
 
@@ -46,9 +48,11 @@
 
 #include <DeepSea/SceneLighting/InstanceForwardLightData.h>
 #include <DeepSea/SceneLighting/SceneLightingLoadContext.h>
+#include <DeepSea/SceneLighting/SceneLightNode.h>
 
 #include <DeepSea/SceneParticle/ParticleTransformData.h>
 #include <DeepSea/SceneParticle/SceneParticleLoadContext.h>
+#include <DeepSea/SceneParticle/SceneParticleNode.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -69,6 +73,8 @@ typedef struct TestParticles
 	dsSceneResources* sceneGraph;
 	dsSceneTransformNode* rootNode;
 	dsSceneTransformNode* rotatingTorches[2];
+	dsSceneNode* staticTorch;
+	dsSceneNode* staticTorchLight;
 	dsScene* scene;
 	dsView* view;
 
@@ -100,6 +106,66 @@ static bool validateAllocator(dsAllocator* allocator, const char* name)
 	DS_LOG_ERROR_F("TestParticles", "Allocator '%s' has %llu bytes allocated with %u allocations.",
 		name, (unsigned long long)allocator->size, allocator->currentAllocations);
 	return false;
+}
+
+static void toggleStaticTorch(TestParticles* testParticles)
+{
+	dsSceneNode* staticTorch = testParticles->staticTorch;
+	bool enable;
+	if (testParticles->staticTorchLight)
+	{
+		enable = true;
+		DS_CHECK("TestParticles",
+			dsSceneNode_addChild(staticTorch, testParticles->staticTorchLight));
+		dsSceneNode_freeRef(testParticles->staticTorchLight);
+		testParticles->staticTorchLight = NULL;
+	}
+	else
+	{
+		enable = false;
+		uint32_t lightNodeIndex = staticTorch->childCount;
+		for (uint32_t i = 0; i < staticTorch->childCount; ++i)
+		{
+			dsSceneNode* curNode = staticTorch->children[i];
+			if (!dsSceneNode_isOfType(curNode, dsSceneLightNode_type()))
+				continue;
+
+			lightNodeIndex = i;
+			break;
+		}
+
+		if (lightNodeIndex == staticTorch->childCount)
+		{
+			DS_LOG_ERROR("TestParticles", "No light node under static torch.");
+			return;
+		}
+
+		testParticles->staticTorchLight = dsSceneNode_addRef(staticTorch->children[lightNodeIndex]);
+		DS_VERIFY(dsSceneNode_removeChildIndex(staticTorch, lightNodeIndex));
+	}
+
+	for (uint32_t i = 0; i < staticTorch->childCount; ++i)
+	{
+		dsSceneNode* curNode = staticTorch->children[i];
+		if (!dsSceneNode_isOfType(curNode, dsSceneParticleNode_type()))
+			continue;
+
+		for (uint32_t j = 0; j < curNode->treeNodeCount; ++j)
+		{
+			dsParticleEmitter* emitter = dsSceneParticleNode_getEmitterForInstance(
+				curNode->treeNodes[j]);
+			if (emitter)
+				emitter->enabled = enable;
+		}
+	}
+}
+
+static void toggleRotatingTorch(TestParticles* testParticles)
+{
+	dsSceneNode* rootNode = (dsSceneNode*)testParticles->rootNode;
+	dsSceneNode* rotatingTorch = (dsSceneNode*)testParticles->rotatingTorches[1];
+	if (!dsSceneNode_removeChildNode(rootNode, rotatingTorch))
+		DS_CHECK("TestParticles", dsSceneNode_addChild(rootNode, rotatingTorch));
 }
 
 static bool processEvent(dsApplication* application, dsWindow* window, const dsEvent* event,
@@ -136,6 +202,10 @@ static bool processEvent(dsApplication* application, dsWindow* window, const dsE
 				dsApplication_quit(application, 0);
 			else if (event->key.key == dsKeyCode_Space)
 				testParticles->stop = !testParticles->stop;
+			else if (event->key.key == dsKeyCode_1)
+				toggleStaticTorch(testParticles);
+			else if (event->key.key == dsKeyCode_2)
+				toggleRotatingTorch(testParticles);
 			return false;
 		case dsAppEventType_TouchFingerDown:
 			++testParticles->fingerCount;
@@ -152,6 +222,12 @@ static bool processEvent(dsApplication* application, dsWindow* window, const dsE
 				{
 					case 1:
 						testParticles->stop = !testParticles->stop;
+						break;
+					case 2:
+						toggleStaticTorch(testParticles);
+						break;
+					case 3:
+						toggleRotatingTorch(testParticles);
 						break;
 					default:
 						break;
@@ -370,7 +446,6 @@ static bool setup(TestParticles* testParticles, dsApplication* application, dsAl
 		dsSceneLoadScratchData_destroy(scratchData);
 		return false;
 	}
-
 	testParticles->rootNode = (dsSceneTransformNode*)dsSceneNode_addRef(curNode);
 
 	const char* nodeNames[] = {"rotatingTorch1", "rotatingTorch2"};
@@ -388,9 +463,20 @@ static bool setup(TestParticles* testParticles, dsApplication* application, dsAl
 			dsSceneLoadScratchData_destroy(scratchData);
 			return false;
 		}
-
 		testParticles->rotatingTorches[i] = (dsSceneTransformNode*)dsSceneNode_addRef(curNode);
 	}
+
+	if (!dsSceneResources_findResource(&curType, (void**)&curNode, testParticles->sceneGraph,
+			"staticTorch") ||
+		curType != dsSceneResourceType_SceneNode ||
+		!dsSceneNode_isOfType(curNode, dsSceneTransformNode_type()))
+	{
+		DS_LOG_ERROR("TestParticles", "Couldn't find statictorch.");
+		dsSceneLoadContext_destroy(loadContext);
+		dsSceneLoadScratchData_destroy(scratchData);
+		return false;
+	}
+	testParticles->staticTorch = dsSceneNode_addRef(curNode);
 
 	testParticles->scene = dsScene_loadResource(allocator, NULL, loadContext, scratchData, NULL, NULL,
 		dsFileResourceType_Embedded, "Scene.dss");
@@ -443,6 +529,8 @@ static void shutdown(TestParticles* testParticles)
 	dsSceneNode_freeRef((dsSceneNode*)testParticles->rootNode);
 	for (unsigned int i = 0; i < DS_ARRAY_SIZE(testParticles->rotatingTorches); ++i)
 		dsSceneNode_freeRef((dsSceneNode*)testParticles->rotatingTorches[i]);
+	dsSceneNode_freeRef(testParticles->staticTorch);
+	dsSceneNode_freeRef(testParticles->staticTorchLight);
 
 	dsSceneResources_freeRef(testParticles->sceneGraph);
 	dsSceneResources_freeRef(testParticles->materials);
@@ -503,6 +591,8 @@ int dsMain(int argc, const char** argv)
 
 	DS_LOG_INFO_F("TestParticles", "Render using %s", dsRenderBootstrap_rendererName(rendererType));
 	DS_LOG_INFO("TestParticles", "Press space to pause/unpause.");
+	DS_LOG_INFO("TestParticles", "Press 1 to extinguish/light the middle torch.");
+	DS_LOG_INFO("TestParticles", "Press 2 to toggle one of the moving torches.");
 
 	dsSystemAllocator renderAllocator;
 	DS_VERIFY(dsSystemAllocator_initialize(&renderAllocator, DS_ALLOCATOR_NO_LIMIT));

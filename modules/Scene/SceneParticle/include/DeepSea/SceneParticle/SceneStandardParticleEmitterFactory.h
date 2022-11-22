@@ -43,7 +43,6 @@ DS_SCENEPARTICLE_EXPORT extern const char* const dsSceneStandardParticleEmitterF
  * @param seed The initial seed for the particles. This will be updated each new emitter.
  * @param options The stnadanrd particle emitter options. The volume matrix will be considered
  *     relative to the node the emitter is associated with.
- * @param enabled Whether or not the emitters are enabled on creation.
  * @param startTime The time to start the particle emitter at. The first frame this is updated the
  *     create particles and advance them to this time.
  * @param relativeNode The node to make the transform of the particles relative to. This should be
@@ -56,7 +55,7 @@ DS_SCENEPARTICLE_EXPORT extern const char* const dsSceneStandardParticleEmitterF
  */
 DS_SCENEPARTICLE_EXPORT dsSceneParticleEmitterFactory* dsSceneStandardParticleEmitterFactory_create(
 	dsAllocator* allocator, const dsParticleEmitterParams* params, uint64_t seed,
-	const dsStandardParticleEmitterOptions* options, bool enabled, float startTime,
+	const dsStandardParticleEmitterOptions* options, float startTime,
 	const dsSceneNode* relativeNode);
 
 /**
@@ -113,24 +112,6 @@ DS_SCENEPARTICLE_EXPORT uint64_t dsSceneStandardParticleEmitterFactory_getSeed(
  */
 DS_SCENEPARTICLE_EXPORT bool dsSceneStandardParticleEmitterFactory_setSeed(
 	const dsSceneParticleEmitterFactory* factory, uint64_t seed);
-
-/**
- * @brief Gets the current enabled state for a standard particle emitter factory.
- * @param factory The factory to get the enabled state for.
- * @return Whether or not the particle emitters are enabled when created.
- */
-DS_SCENEPARTICLE_EXPORT bool dsSceneStandardParticleEmitterFactory_getEnabled(
-	const dsSceneParticleEmitterFactory* factory);
-
-/**
- * @brief Sets the current enabled state for a standard particle emitter factory.
- * @remark errno will be set on failure.
- * @param factory The factory to set the seed for.
- * @param enabled Whether or not the particle emitters are enabled when created.
- * @return False if the factory is invalid.
- */
-DS_SCENEPARTICLE_EXPORT bool dsSceneStandardParticleEmitterFactory_setEnabled(
-	const dsSceneParticleEmitterFactory* factory, bool enabled);
 
 /**
  * @brief Gets the relative node for a standard particle emitter factory.

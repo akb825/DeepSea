@@ -60,6 +60,7 @@ void* dsSceneStandardParticleEmitterFactory_load(const dsSceneLoadContext*,
 	auto fbParams = fbFactory->params();
 	dsParticleEmitterParams params;
 	params.maxParticles = fbParams->maxParticles();
+	params.enabled = fbFactory->enabled();
 
 	dsSceneResourceType resourceType;
 	const char* shaderName = fbParams->shader()->c_str();
@@ -159,5 +160,5 @@ void* dsSceneStandardParticleEmitterFactory_load(const dsSceneLoadContext*,
 	if (seed == 0)
 		seed = dsRandom_createSeed();
 	return dsSceneStandardParticleEmitterFactory_create(allocator, &params, seed, &options,
-		fbFactory->enabled(), fbFactory->startTime(), relativeNode);
+		fbFactory->startTime(), relativeNode);
 }

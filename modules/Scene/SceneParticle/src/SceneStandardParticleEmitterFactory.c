@@ -40,7 +40,6 @@ typedef struct dsSceneStandardParticleEmitterFactory
 	dsStandardParticleEmitterOptions options;
 	const dsSceneNode* relativeNode;
 	uint64_t seed;
-	bool enabled;
 	float startTime;
 } dsSceneStandardParticleEmitterFactory;
 
@@ -92,8 +91,7 @@ static dsParticleEmitter* dsSceneStandardParticleEmitterFactory_createEmitter(
 	params.populateInstanceValuesFunc = &dsPopulateSceneParticleInstanceData;
 	params.populateInstanceValuesUserData = (void*)treeNode;
 	dsStandardParticleEmitter* standardEmitter = dsStandardParticleEmitter_create(allocator,
-		&params, dsRandom_nextSeed(&factory->seed), &factory->options, factory->enabled,
-		factory->startTime);
+		&params, dsRandom_nextSeed(&factory->seed), &factory->options, factory->startTime);
 	if (!standardEmitter)
 		return NULL;
 
@@ -163,7 +161,7 @@ const char* const dsSceneStandardParticleEmitterFactory_typeName = "StandardPart
 
 dsSceneParticleEmitterFactory* dsSceneStandardParticleEmitterFactory_create(
 	dsAllocator* allocator, const dsParticleEmitterParams* params, uint64_t seed,
-	const dsStandardParticleEmitterOptions* options, bool enabled, float startTime,
+	const dsStandardParticleEmitterOptions* options, float startTime,
 	const dsSceneNode* relativeNode)
 {
 	if (!allocator || !params || !options)
@@ -182,7 +180,6 @@ dsSceneParticleEmitterFactory* dsSceneStandardParticleEmitterFactory_create(
 	memcpy(&data->options, options, sizeof(dsStandardParticleEmitterOptions));
 	data->relativeNode = relativeNode;
 	data->seed = seed;
-	data->enabled = enabled;
 	data->startTime = startTime;
 
 	return dsSceneParticleEmitterFactory_create(allocator,
@@ -267,32 +264,6 @@ bool dsSceneStandardParticleEmitterFactory_setSeed(const dsSceneParticleEmitterF
 	dsSceneStandardParticleEmitterFactory* standardFactory =
 		((dsSceneStandardParticleEmitterFactory*)factory->userData);
 	standardFactory->seed = seed;
-	return true;
-}
-
-bool dsSceneStandardParticleEmitterFactory_getEnabled(
-	const dsSceneParticleEmitterFactory* factory)
-{
-	if (!factory || !factory->userData ||
-		factory->createEmitterFunc != &dsSceneStandardParticleEmitterFactory_createEmitter)
-	{
-		return false;
-	}
-
-	return ((dsSceneStandardParticleEmitterFactory*)factory->userData)->enabled;
-}
-
-bool dsSceneStandardParticleEmitterFactory_setEnabled(const dsSceneParticleEmitterFactory* factory,
-	bool enabled)
-{
-	if (!factory || !factory->userData ||
-		factory->createEmitterFunc != &dsSceneStandardParticleEmitterFactory_createEmitter)
-	{
-		errno = EINVAL;
-		return false;
-	}
-
-	((dsSceneStandardParticleEmitterFactory*)factory->userData)->enabled = enabled;
 	return true;
 }
 

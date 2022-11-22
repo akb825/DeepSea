@@ -31,7 +31,6 @@ struct dsStandardParticleEmitter
 {
 	dsParticleEmitter emitter;
 	dsRandom random;
-	bool enabled;
 	dsStandardParticleEmitterOptions options;
 	float nextSpawnCountdown;
 };
@@ -118,7 +117,7 @@ static uint32_t dsStandardParticleEmitter_update(dsParticleEmitter* emitter, flo
 
 		// Skip this point if not enabled. This avoids creating new particles, but still advances
 		// the spawn counter so it can continue emitting when enabled.
-		if (!standardEmitter->enabled)
+		if (!emitter->enabled)
 			continue;
 
 		// If time from the spawn cowntdown to 0 is the amount of time the newly created particle
@@ -169,9 +168,15 @@ static void dsStandardParticleEmitter_destroy(dsParticleEmitter* emitter)
 	dsAllocator_free(emitter->allocator, emitter);
 }
 
+dsParticleEmitterType dsStandardParticleEmitter_type(void)
+{
+	static int type;
+	return &type;
+}
+
 dsStandardParticleEmitter* dsStandardParticleEmitter_create(dsAllocator* allocator,
 	const dsParticleEmitterParams* params, uint64_t seed,
-	const dsStandardParticleEmitterOptions* options, bool enabled, float startTime)
+	const dsStandardParticleEmitterOptions* options, float startTime)
 {
 	if (!allocator || !params || !options)
 	{
@@ -180,13 +185,13 @@ dsStandardParticleEmitter* dsStandardParticleEmitter_create(dsAllocator* allocat
 	}
 
 	dsStandardParticleEmitter* emitter = (dsStandardParticleEmitter*)dsParticleEmitter_create(
-		allocator, sizeof(dsStandardParticleEmitter), sizeof(dsStandardParticle), params,
-		&dsStandardParticleEmitter_update, &dsStandardParticleEmitter_destroy);
+		allocator, dsStandardParticleEmitter_type(), sizeof(dsStandardParticleEmitter),
+		sizeof(dsStandardParticle), params, &dsStandardParticleEmitter_update,
+		&dsStandardParticleEmitter_destroy);
 	if (!emitter)
 		return NULL;
 
 	dsRandom_seed(&emitter->random, seed);
-	emitter->enabled = enabled;
 	emitter->options = *options;
 	emitter->nextSpawnCountdown = -startTime;
 	return emitter;
@@ -214,21 +219,4 @@ dsStandardParticleEmitterOptions* dsStandardParticleEmitter_getMutableOptions(
 	}
 
 	return &emitter->options;
-}
-
-bool dsStandardParticleEmitter_getEnabled(const dsStandardParticleEmitter* emitter)
-{
-	return emitter && emitter->enabled;
-}
-
-bool dsStandardParticleEmitter_setEnabled(dsStandardParticleEmitter* emitter, bool enabled)
-{
-	if (!emitter)
-	{
-		errno = EINVAL;
-		return false;
-	}
-
-	emitter->enabled = enabled;
-	return true;
 }

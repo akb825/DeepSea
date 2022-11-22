@@ -35,6 +35,7 @@ extern "C"
  * @brief Creates a particle emitter.
  * @remark errno will be set on failure.
  * @param allocator The allocator to create the particle emitter from.
+ * @param type The type of the particle emitter.
  * @param sizeofParticleEmitter The size of the particle emitter structure.
  * @param sizeofParticle The size of the particle structure.
  * @param params The list of common particle emitter parameters.
@@ -43,8 +44,9 @@ extern "C"
  * @return The particle emitter or NULL if an error occurred.
  */
 DS_PARTICLE_EXPORT dsParticleEmitter* dsParticleEmitter_create(dsAllocator* allocator,
-	size_t sizeofParticleEmitter, size_t sizeofParticle, const dsParticleEmitterParams* params,
-	dsUpdateParticleEmitterFunction updateFunc, dsDestroyParticleEmitterFunction destroyFunc);
+	dsParticleEmitterType type, size_t sizeofParticleEmitter, size_t sizeofParticle,
+	const dsParticleEmitterParams* params, dsUpdateParticleEmitterFunction updateFunc,
+	dsDestroyParticleEmitterFunction destroyFunc);
 
 /**
  * @brief Updates a particle emitter.

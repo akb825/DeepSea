@@ -31,11 +31,11 @@
 
 #include <DeepSea/Render/Resources/Material.h>
 
-dsParticleEmitter* dsParticleEmitter_create(dsAllocator* allocator, size_t sizeofParticleEmitter,
-	size_t sizeofParticle, const dsParticleEmitterParams* params,
+dsParticleEmitter* dsParticleEmitter_create(dsAllocator* allocator, dsParticleEmitterType type,
+	size_t sizeofParticleEmitter, size_t sizeofParticle, const dsParticleEmitterParams* params,
 	dsUpdateParticleEmitterFunction updateFunc, dsDestroyParticleEmitterFunction destroyFunc)
 {
-	if (!allocator || sizeofParticleEmitter < sizeof(dsParticleEmitter) ||
+	if (!allocator || !type || sizeofParticleEmitter < sizeof(dsParticleEmitter) ||
 		sizeofParticle < sizeof(dsParticle) || !params || params->maxParticles == 0 ||
 		!params->shader || !params->material || !updateFunc || !destroyFunc)
 	{
@@ -72,6 +72,7 @@ dsParticleEmitter* dsParticleEmitter_create(dsAllocator* allocator, size_t sizeo
 	DS_ASSERT(emitter);
 
 	emitter->allocator = dsAllocator_keepPointer(allocator);
+	emitter->type = type;
 	emitter->particles = (uint8_t*)dsAllocator_alloc((dsAllocator*)&bufferAlloc,
 		sizeofParticle*params->maxParticles);
 	DS_ASSERT(emitter->particles);
@@ -87,6 +88,7 @@ dsParticleEmitter* dsParticleEmitter_create(dsAllocator* allocator, size_t sizeo
 	emitter->instanceValueCount = instanceValueCount;
 
 	dsMatrix44_identity(emitter->transform);
+	emitter->enabled = params->enabled;
 	dsOrientedBox3_makeInvalid(emitter->bounds);
 
 	emitter->updateFunc = updateFunc;

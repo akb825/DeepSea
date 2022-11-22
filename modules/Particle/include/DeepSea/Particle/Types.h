@@ -219,6 +219,13 @@ typedef struct dsParticleEmitterParams
 	uint32_t maxParticles;
 
 	/**
+	 * @brief Whether or not the emitter should be enabled on creation.
+	 *
+	 * If false no new particles will be created.
+	 */
+	bool enabled;
+
+	/**
 	 * @brief The shader to draw the particles with.
 	 *
 	 * This must not be NULL.
@@ -255,6 +262,13 @@ typedef struct dsParticleEmitterParams
 } dsParticleEmitterParams;
 
 /**
+ * @brief Value that denotes the type of a particle emitter.
+ *
+ * To define a type, create a static int variable and return the address.
+ */
+typedef const int* dsParticleEmitterType;
+
+/**
  * @brief Struct describing an emitter of particles.
  *
  * Different implementations can effectively subclass this type by having it as the first member of
@@ -269,6 +283,11 @@ struct dsParticleEmitter
 	 * @brief The allocator the particle emitter was created with.
 	 */
 	dsAllocator* allocator;
+
+	/**
+	 * @brief The type of the particle emitter.
+	 */
+	dsParticleEmitterType type;
 
 	/**
 	 * @brief The list of active particles.
@@ -317,6 +336,12 @@ struct dsParticleEmitter
 	 * @remark This member may be modified directly.
 	 */
 	dsMatrix44f transform;
+
+	/**
+	 * @brief Whether or not new particles can be created.
+	 * @remark This member may be modified directly.
+	 */
+	bool enabled;
 
 	/**
 	 * @brief The bounds of the particles in world space.

@@ -32,20 +32,25 @@ extern "C"
  */
 
 /**
+ * @brief Gets the type of a standard particle emitter.
+ * @return The type of a standard particle emitter.
+ */
+DS_PARTICLE_EXPORT dsParticleEmitterType dsStandardParticleEmitter_type(void);
+
+/**
  * @brief Creates a standard particle emitter.
  * @remark errno will be set on failure.
  * @param allocator The allocator to create the particle emitter with.
  * @param params The list of common particle emitter parameters.
  * @param seed The seed value for random values.
  * @param options The options for the particle emitter. This must not be NULL.
- * @param enabled Whether or not new particles will be created.
  * @param startTime The time to start the particle emitter at. The first frame this is updated the
  *     create particles and advance them to this time.
  * @return The particle emitter or NULL if an error occurred.
  */
 DS_PARTICLE_EXPORT dsStandardParticleEmitter* dsStandardParticleEmitter_create(
 	dsAllocator* allocator, const dsParticleEmitterParams* params, uint64_t seed,
-	const dsStandardParticleEmitterOptions* options, bool enabled, float startTime);
+	const dsStandardParticleEmitterOptions* options, float startTime);
 
 /**
  * @brief Gets the options for the standard particle emitter.
@@ -64,30 +69,6 @@ DS_PARTICLE_EXPORT const dsStandardParticleEmitterOptions* dsStandardParticleEmi
  */
 DS_PARTICLE_EXPORT dsStandardParticleEmitterOptions* dsStandardParticleEmitter_getMutableOptions(
 	dsStandardParticleEmitter* emitter);
-
-/**
- * @brief Gets whether or not a standard particle emitter is enabled.
- *
- * When disabled, no new particles will be created.
- *
- * @param emitter The particle emitter.
- * @return Whether or not the particle emitter is enabled.
- */
-DS_PARTICLE_EXPORT bool dsStandardParticleEmitter_getEnabled(
-	const dsStandardParticleEmitter* emitter);
-
-/**
- * @brief Sets whether or not a standard particle emitter is enabled.
- *
- * When disabled, no new particles will be created.
- *
- * @remark errno will be set on failure.
- * @param emitter The particle emitter.
- * @param enabled Whether or not the particle is enabled.
- * @return False if emitter is NULL.
- */
-DS_PARTICLE_EXPORT bool dsStandardParticleEmitter_setEnabled(dsStandardParticleEmitter* emitter,
-	bool enabled);
 
 #ifdef __cplusplus
 }
