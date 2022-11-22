@@ -22,3 +22,4 @@ The following testers are available:
 * [Test Scene](TestScene/README.md)
 * [Test Vector Draw Scene](TestVectorDrawScene/README.md)
 * [Test Lighting](TestLighting/README.md)
+* [Test Particles](TestParticles/README.md)
