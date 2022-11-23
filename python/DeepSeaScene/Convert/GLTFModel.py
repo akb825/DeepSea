@@ -97,46 +97,37 @@ def extractBufferData(accessor):
 		data += accessor.bufferView.buffer[curOffset:curOffset + accessor.itemSize]
 	return data
 
-def convertGLTFModel(convertContext, path):
-	"""
-	Converts an GLTF model for use with ModelNodeConvert.
-
-	If the "name" element is provided for a mesh, it will be used for the name of the model
-	geometry. Otherwise, the name will be "mesh#", where # is the index of the mesh. If multiple
-	sets of primitives are used, the index will be appended to the name, separated with '.'.
-
-	Limitations:
-	- Only meshes and dependent data (accessors, buffer views, and buffers) are extracted. All other
-	  parts of the scene are ignored, including transforms.
-	- Morph targets aren't supported.
-	- Materials aren't read, and are instead provided in the DeepSea scene configuration.
-	- Buffer data may either be embedded or a file path relative to the main model file. General
-	  URIs are not supported.
-	"""
-	with open(path) as f:
-		try:
-			data = json.load(f)
-		except:
-			raise Exception('Invalid GLTF file "' + path + '".')
-
+def convertGLTFOrGLBModel(convertContext, path, jsonData, binData):
 	parentDir = os.path.dirname(path)
 
+	binOffset = 0
 	try:
 		# Read the buffers.
 		buffers = []
-		bufferInfos = data['buffers']
+		bufferInfos = jsonData['buffers']
 		dataPrefix = 'data:application/octet-stream;base64,'
 		try:
 			for bufferInfo in bufferInfos:
-				uri = bufferInfo['uri']
-				if uri.startswith(dataPrefix):
+				uri = bufferInfo.get('uri')
+				if uri:
+					if uri.startswith(dataPrefix):
+						try:
+							buffers.append(base64.b64decode(uri[len(dataPrefix):]))
+						except:
+							raise Exception('Invalid buffer data for GLTF file "' + path + '".')
+					else:
+						with open(os.path.join(parentDir, uri), 'rb') as f:
+							buffers.append(f.read())
+				elif binData:
+					length = bufferInfo['byteLength']
 					try:
-						buffers.append(base64.b64decode(uri[len(dataPrefix):]))
+						buffers.append(binData[binOffset:binOffset + length])
 					except:
 						raise Exception('Invalid buffer data for GLTF file "' + path + '".')
+					paddedLength = ((length + 3)//4)*4
+					binOffset += paddedLength
 				else:
-					with open(os.path.join(parentDir, uri), 'rb') as f:
-						buffers.append(f.read())
+					raise KeyError('uri')
 		except (TypeError, ValueError):
 			raise Exception('Buffers must be an array of objects for GLTF file "' + path + '".')
 		except KeyError as e:
@@ -145,7 +136,7 @@ def convertGLTFModel(convertContext, path):
 
 		# Read the buffer views.
 		bufferViews = []
-		bufferViewInfos = data['bufferViews']
+		bufferViewInfos = jsonData['bufferViews']
 		try:
 			for bufferViewInfo in bufferViewInfos:
 				bufferView = Object()
@@ -166,7 +157,7 @@ def convertGLTFModel(convertContext, path):
 
 		# Read the accessors.
 		accessors = []
-		accessorInfos = data['accessors']
+		accessorInfos = jsonData['accessors']
 		try:
 			for accessorInfo in accessorInfos:
 				accessor = Object()
@@ -199,7 +190,7 @@ def convertGLTFModel(convertContext, path):
 
 		# Read the meshes.
 		meshes = []
-		meshInfos = data['meshes']
+		meshInfos = jsonData['meshes']
 		try:
 			meshIndex = 0
 			for meshInfo in meshInfos:
@@ -294,8 +285,70 @@ def convertGLTFModel(convertContext, path):
 		geometry.append(ModelNodeGeometryData(mesh.name, vertexStreams, mesh.primitiveType))
 	return geometry
 
+def convertGLTFModel(convertContext, path):
+	"""
+	Converts an GLTF model for use with ModelNodeConvert.
+
+	If the "name" element is provided for a mesh, it will be used for the name of the model
+	geometry. Otherwise, the name will be "mesh#", where # is the index of the mesh. If multiple
+	sets of primitives are used, the index will be appended to the name, separated with '.'.
+
+	Limitations:
+	- Only meshes and dependent data (accessors, buffer views, and buffers) are extracted. All other
+	  parts of the scene are ignored, including transforms.
+	- Morph targets aren't supported.
+	- Materials aren't read, and are instead provided in the DeepSea scene configuration.
+	- Buffer data may either be embedded or a file path relative to the main model file. General
+	  URIs are not supported.
+	"""
+	with open(path) as f:
+		try:
+			data = json.load(f)
+		except:
+			raise Exception('Invalid GLTF file "' + path + '".')
+
+	return convertGLTFOrGLBModel(convertContext, path, data, None)
+
+def convertGLBModel(convertContext, path):
+	"""
+	Converts an GLB model for use with ModelNodeConvert.
+
+	If the "name" element is provided for a mesh, it will be used for the name of the model
+	geometry. Otherwise, the name will be "mesh#", where # is the index of the mesh. If multiple
+	sets of primitives are used, the index will be appended to the name, separated with '.'.
+
+	Limitations:
+	- Only meshes and dependent data (accessors, buffer views, and buffers) are extracted. All other
+	  parts of the scene are ignored, including transforms.
+	- Morph targets aren't supported.
+	- Materials aren't read, and are instead provided in the DeepSea scene configuration.
+	- Buffer data may either be embedded or a file path relative to the main model file. General
+	  URIs are not supported.
+	"""
+	with open(path, 'rb') as f:
+		try:
+			if f.read(4) != b'glTF' or struct.unpack('I', f.read(4))[0] != 2 or not f.read(4):
+				raise Exception()
+
+			length = struct.unpack('I', f.read(4))[0]
+			if f.read(4) != b'JSON':
+				raise Exception()
+
+			jsonData = json.loads(f.read(length))
+
+			length = struct.unpack('I', f.read(4))[0]
+			if f.read(4) != b'BIN\0':
+				raise Exception()
+
+			binData = f.read(length)
+		except:
+			raise Exception('Invalid GLTF file "' + path + '".')
+
+	return convertGLTFOrGLBModel(convertContext, path, jsonData, binData)
+
 def registerGLTFModelType(convertContext):
 	"""
-	Registers the GLTF model type under the name "gltf".
+	Registers the GLTF model type under the name "gltf" and GLB under the name "glb".
 	"""
 	addModelType(convertContext, 'gltf', convertGLTFModel)
+	addModelType(convertContext, 'glb', convertGLBModel)
