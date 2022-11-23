@@ -1,4 +1,4 @@
-# Copyright 2020 Aaron Barany
+# Copyright 2020-2022 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -41,34 +41,61 @@ gltfVertexAttribEnum = {
 }
 
 gltfTypeMap = {
-	('SCALAR', 5120): ('X8', 'Int'),
-	('SCALAR', 5121): ('X8', 'UInt'),
-	('SCALAR', 5122): ('X16', 'Int'),
-	('SCALAR', 5123): ('X16', 'UInt'),
-	('SCALAR', 5125): ('X32', 'UInt'),
-	('SCALAR', 5126): ('X32', 'Float'),
+	('SCALAR', 5120, True): ('X8', 'SNorm', 1),
+	('SCALAR', 5120, False): ('X8', 'Int', 1),
+	('SCALAR', 5121, True): ('X8', 'UNorm', 1),
+	('SCALAR', 5121, False): ('X8', 'UInt', 1),
+	('SCALAR', 5122, True): ('X16', 'SNorm', 2),
+	('SCALAR', 5122, False): ('X16', 'Int', 2),
+	('SCALAR', 5123, True): ('X16', 'UNorm', 2),
+	('SCALAR', 5123, False): ('X16', 'UInt', 2),
+	('SCALAR', 5125, False): ('X32', 'UInt', 4),
+	('SCALAR', 5126, False): ('X32', 'Float', 4),
 
-	('VEC2', 5120): ('X8Y8', 'Int'),
-	('VEC2', 5121): ('X8Y8', 'UInt'),
-	('VEC2', 5122): ('X16Y16', 'Int'),
-	('VEC2', 5123): ('X16Y16', 'UInt'),
-	('VEC2', 5126): ('X32Y32', 'Float'),
+	('VEC2', 5120, True): ('X8Y8', 'SNorm', 2),
+	('VEC2', 5120, False): ('X8Y8', 'Int', 2),
+	('VEC2', 5121, True): ('X8Y8', 'UNorm', 2),
+	('VEC2', 5121, False): ('X8Y8', 'UInt', 2),
+	('VEC2', 5122, True): ('X16Y16', 'SNorm', 4),
+	('VEC2', 5122, False): ('X16Y16', 'Int', 4),
+	('VEC2', 5123, True): ('X16Y16', 'UNorm', 4),
+	('VEC2', 5123, False): ('X16Y16', 'UInt', 4),
+	('VEC2', 5126, False): ('X32Y32', 'Float', 8),
 
-	('VEC3', 5120): ('X8Y8Z8', 'Int'),
-	('VEC3', 5121): ('X8Y8Z8', 'UInt'),
-	('VEC3', 5122): ('X16Y16Z16', 'Int'),
-	('VEC3', 5123): ('X16Y16Z16', 'UInt'),
-	('VEC3', 5126): ('X32Y32Z32', 'Float'),
+	('VEC3', 5120, True): ('X8Y8Z8', 'SNorm', 3),
+	('VEC3', 5120, False): ('X8Y8Z8', 'Int', 3),
+	('VEC3', 5121, True): ('X8Y8Z8', 'UNorm', 3),
+	('VEC3', 5121, False): ('X8Y8Z8', 'UInt', 3),
+	('VEC3', 5122, True): ('X16Y16Z16', 'SNorm', 6),
+	('VEC3', 5122, False): ('X16Y16Z16', 'Int', 6),
+	('VEC3', 5123, True): ('X16Y16Z16', 'UNorm', 6),
+	('VEC3', 5123, False): ('X16Y16Z16', 'UInt', 6),
+	('VEC3', 5126, False): ('X32Y32Z32', 'Float', 12),
 
-	('VEC4', 5120): ('X8Y8Z8W8', 'Int'),
-	('VEC4', 5121): ('X8Y8Z8W8', 'UInt'),
-	('VEC4', 5122): ('X16Y16Z16W16', 'Int'),
-	('VEC4', 5123): ('X16Y16Z16W16', 'UInt'),
-	('VEC4', 5126): ('X32Y32Z32W32', 'Float')
+	('VEC4', 5120, True): ('X8Y8Z8W8', 'SNorm', 4),
+	('VEC4', 5120, False): ('X8Y8Z8W8', 'Int', 4),
+	('VEC4', 5121, True): ('X8Y8Z8W8', 'UNorm', 4),
+	('VEC4', 5121, False): ('X8Y8Z8W8', 'UInt', 4),
+	('VEC4', 5122, True): ('X16Y16Z16W16', 'SNorm', 8),
+	('VEC4', 5122, False): ('X16Y16Z16W16', 'Int', 8),
+	('VEC4', 5123, True): ('X16Y16Z16W16', 'UNorm', 8),
+	('VEC4', 5123, False): ('X16Y16Z16W16', 'UInt', 8),
+	('VEC4', 5126, False): ('X32Y32Z32W32', 'Float', 16)
 }
 
 gltfPrimitiveTypeMap = ['PointList', 'LineList', 'LineStrip', 'LineStrip', 'TriangleList',
 	'TriangleStrip', 'TriangleFan']
+
+def extractBufferData(accessor):
+	offset = accessor.offset + accessor.bufferView.offset
+	if not accessor.bufferView.stride:
+		return accessor.bufferView.buffer[offset:offset + accessor.itemSize*accessor.count]
+
+	data = bytearray()
+	for i in range(0, accessor.count):
+		curOffset = offset + i*accessor.bufferView.stride
+		data += accessor.bufferView.buffer[curOffset:curOffset + accessor.itemSize]
+	return data
 
 def convertGLTFModel(convertContext, path):
 	"""
@@ -123,15 +150,12 @@ def convertGLTFModel(convertContext, path):
 			for bufferViewInfo in bufferViewInfos:
 				bufferView = Object()
 				try:
-					bufferData = buffers[bufferViewInfo['buffer']]
+					bufferView.buffer = buffers[bufferViewInfo['buffer']]
 				except (IndexError, TypeError):
 					raise Exception('Invalid buffer index for GLTF file "' + path + '".')
-				offset = bufferViewInfo['byteOffset']
-				length = bufferViewInfo['byteLength']
-				try:
-					bufferView.buffer = bufferData[offset:offset + length]
-				except (IndexError, TypeError):
-					raise Exception('Invalid buffer view range for GLTF file "' + path + '".')
+				bufferView.offset = bufferViewInfo['byteOffset']
+				bufferView.length = bufferViewInfo['byteLength']
+				bufferView.stride = bufferViewInfo.get('byteStride', 0)
 				bufferViews.append(bufferView)
 		except (TypeError, ValueError):
 			raise Exception(
@@ -153,14 +177,18 @@ def convertGLTFModel(convertContext, path):
 
 				gltfType = accessorInfo['type']
 				componentType = accessorInfo['componentType']
+				normalized = accessorInfo.get('normalized', False)
 				try:
-					accessorType, decorator = gltfTypeMap[(gltfType, componentType)]
+					accessorType, decorator, itemSize = \
+						gltfTypeMap[(gltfType, componentType, normalized)]
 				except (KeyError, TypeError):
 					raise Exception('Invalid accessor type (' + str(gltfType) + ', ' +
 						str(componentType) + ') for GLTF file "' + path + '".')
 
 				accessor.type = accessorType
 				accessor.decorator = decorator
+				accessor.itemSize = itemSize
+				accessor.offset = accessorInfo.get('byteOffset', 0)
 				accessor.count = accessorInfo['count']
 				accessors.append(accessor)
 		except (TypeError, ValueError):
@@ -245,7 +273,6 @@ def convertGLTFModel(convertContext, path):
 	geometry = []
 	for mesh in meshes:
 		if mesh.indices:
-			indexData = mesh.indices.bufferView.buffer
 			if mesh.indices.type == 'X16':
 				indexSize = 2
 			elif mesh.indices.type == 'X32':
@@ -253,6 +280,7 @@ def convertGLTFModel(convertContext, path):
 			else:
 				raise Exception('Unsupported index type "' + mesh.indices.type +
 					'" for GLTF file "' + path + '".')
+			indexData = extractBufferData(mesh.indices)
 		else:
 			indexData = None
 			indexSize = 0
@@ -260,7 +288,7 @@ def convertGLTFModel(convertContext, path):
 		vertexStreams = []
 		for attrib, accessor in mesh.attributes:
 			vertexFormat = [(attrib, accessor.type, accessor.decorator)]
-			vertexStreams.append(ModelNodeVertexStream(vertexFormat, accessor.bufferView.buffer,
+			vertexStreams.append(ModelNodeVertexStream(vertexFormat, extractBufferData(accessor),
 				indexSize, indexData))
 
 		geometry.append(ModelNodeGeometryData(mesh.name, vertexStreams, mesh.primitiveType))
