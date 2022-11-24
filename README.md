@@ -164,7 +164,7 @@ DeepSea contains the following modules:
 
 * [Core](modules/Core/Core/README.md): Core functionality including logging, debugging, memory managment, threading, and Streams. See Core for general notes about the object and memory model used throughout all modules.
 * [Math](modules/Math/README.md): Math structures and functions used throughout DeepSea.
-* [Geometry](modules/Geometry/README.md): (Optional) Geometry classes typically used in graphics applications. This will be built with the graphics libraries.
+* [Geometry](modules/Geometry/README.md): Geometry classes typically used in graphics applications. This will be built with the graphics libraries.
 * [Render](modules/Render/Render/README.md): Interface to the rendering engine. This provides the interface that will be implemented for various system graphics APIs.
 * [RenderMock](modules/Render/RenderMock/README.md): Mock implementation of the Render library, used for unit tests.
 * [RenderOpenGL](modules/Render/RenderOpenGL/README.md): OpenGL implementation of the Render library. This supports both desktop OpenGL and OpenGL ES.
@@ -173,9 +173,11 @@ DeepSea contains the following modules:
 * [RenderBootstrap](modules/Render/RenderBootstrap/README.md): Library that aids in creating one of the various renderers based on what is supported.
 * [Text](modules/Text/README.md): Draws Unicode text.
 * [VectorDraw](modules/VectorDraw/README.md): Draws vector graphics.
+* [Particle](modules/Particle/README.md): Drawing of particles created by particle emitters.
 * [Scene](modules/Scene/Scene/README.md): Scene library for creating scene graphs mixed with render passes and operations to perform each frame as a part of rendering.
 * [SceneLighting](modules/Scene/SceneLighting/README.md): Library for managing lights and shadows within a scene.
 * [SceneVectorDraw](modules/Scene/SceneVectorDraw/README.md): Library for drawing vector images and text within a scene.
+* [SceneParticle](modules/Scene/SceneParticle/README.md): Library for managing particle emitters and particles within a scene.
 * [Application](modules/Application/Application/README.md): Application library, providing functionality such as input and window events.
 * [ApplicationSDL](modules/Application/ApplicationSDL/README.md): SDL implementation of the Application library.
 
