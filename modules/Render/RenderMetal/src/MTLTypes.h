@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Aaron Barany
+ * Copyright 2019-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@
 
 // This is used by SPIRV-Cross to create the shader.
 #define DS_IMAGE_BUFFER_WIDTH 4096
-#define DS_NOT_SUBMITTED (uint64_t)-1
+#define DS_NOT_SUBMITTED ((uint64_t)-1)
 // 10 seconds in milliseconds
 #define DS_DEFAULT_WAIT_TIMEOUT 10000
 #define DS_RECENTLY_ADDED_SIZE 10

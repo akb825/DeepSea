@@ -35,7 +35,7 @@ extern "C"
 /**
  * @brief Define for no limit during allocations.
  */
-#define DS_ALLOCATOR_NO_LIMIT (size_t)-1
+#define DS_ALLOCATOR_NO_LIMIT ((size_t)-1)
 
 /// @cond
 typedef struct dsAllocator dsAllocator;

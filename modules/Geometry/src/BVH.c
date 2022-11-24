@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@
 #include <DeepSea/Geometry/Frustum3.h>
 #include <string.h>
 
-#define INVALID_NODE (uint32_t)-1
+#define INVALID_NODE ((uint32_t)-1)
 
 typedef struct dsBVHNode
 {

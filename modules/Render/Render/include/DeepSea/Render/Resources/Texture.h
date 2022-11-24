@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 Aaron Barany
+ * Copyright 2016-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,12 +41,12 @@ extern "C"
 /**
  * @brief Constant for an invalid offset.
  */
-#define DS_INVALID_TEXTURE_OFFSET (size_t)-1
+#define DS_INVALID_TEXTURE_OFFSET ((size_t)-1)
 
 /**
  * @brief Constant for an invalid surface index.
  */
-#define DS_INVALID_TEXTURE_SURFACE (uint32_t)-1
+#define DS_INVALID_TEXTURE_SURFACE ((uint32_t)-1)
 
 /**
  * @brief Gets the maximum number of mipmap levels for a texture.

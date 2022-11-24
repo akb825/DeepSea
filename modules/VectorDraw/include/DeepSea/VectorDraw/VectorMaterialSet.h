@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +38,7 @@ extern "C"
 /**
  * @brief Constant for a vector material not being found.
  */
-#define DS_VECTOR_MATERIAL_NOT_FOUND (uint32_t)-1
+#define DS_VECTOR_MATERIAL_NOT_FOUND ((uint32_t)-1)
 
 /**
  * @brief Gets the full allocation size of a vector material set.

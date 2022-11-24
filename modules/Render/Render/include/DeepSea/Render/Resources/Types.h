@@ -38,12 +38,12 @@ extern "C"
 /**
  * @brief Constant for mapping the full buffer.
  */
-#define DS_MAP_FULL_BUFFER (size_t)-1
+#define DS_MAP_FULL_BUFFER ((size_t)-1)
 
 /**
  * @brief Constant for using all mip levels.
  */
-#define DS_ALL_MIP_LEVELS (uint32_t)-1
+#define DS_ALL_MIP_LEVELS ((uint32_t)-1)
 
 /**
  * @brief Constant for the maximum number of allowed vertex attributes.
@@ -892,7 +892,7 @@ typedef struct dsTextureData
 	 * @brief The data of the texture.
 	 *
 	 * This struct will be allocated such that it will be large enough for this array to be of size
-
+	 * dataSize.
 	 */
 	uint8_t data[];
 } dsTextureData;

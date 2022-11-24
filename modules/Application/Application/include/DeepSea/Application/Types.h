@@ -53,7 +53,7 @@ extern "C"
 /**
  * @brief Constant for no message box button.
  */
-#define DS_MESSAGE_BOX_NO_BUTTON (uint32_t)-1
+#define DS_MESSAGE_BOX_NO_BUTTON ((uint32_t)-1)
 
 /**
  * @brief Log tag used by the render library.

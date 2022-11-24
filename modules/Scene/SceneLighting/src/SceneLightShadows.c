@@ -52,7 +52,7 @@
 #include <string.h>
 
 #define FRAME_DELAY 3
-#define INVALID_INDEX (uint32_t)-1
+#define INVALID_INDEX ((uint32_t)-1)
 
 struct ShadowBufferInfo
 {

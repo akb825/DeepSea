@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,7 +40,7 @@ extern "C"
 /**
  * @brief Constant for no clipping path to be applied.
  */
-#define DS_VECTOR_NO_CLIP_PATH (uint32_t)-1
+#define DS_VECTOR_NO_CLIP_PATH ((uint32_t)-1)
 
 /**
  * @brief Constant for the maximum length of a vector resource name, including the null terminator.

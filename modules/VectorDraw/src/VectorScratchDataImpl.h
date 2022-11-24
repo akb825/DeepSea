@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2018 Aaron Barany
+ * Copyright 2017-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ extern "C"
 #endif
 
 #define INFOS_PER_TEXTURE 1024
-#define NOT_FOUND (uint32_t)-1
+#define NOT_FOUND ((uint32_t)-1)
 
 typedef enum PointType
 {

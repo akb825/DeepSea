@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Aaron Barany
+ * Copyright 2019-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@
 #include <MSL/Client/ModuleC.h>
 #include <string.h>
 
-#define DS_SHADER_ERROR (CFTypeRef)(size_t)-1
+#define DS_SHADER_ERROR ((CFTypeRef)(size_t)-1)
 
 dsShaderModule* dsMTLShaderModule_create(dsResourceManager* resourceManager, dsAllocator* allocator,
 	mslModule* module, const char* name)

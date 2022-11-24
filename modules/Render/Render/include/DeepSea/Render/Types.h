@@ -42,27 +42,27 @@ extern "C"
 /**
  * @brief Constant for no attachment.
  */
-#define DS_NO_ATTACHMENT (uint32_t)-1
+#define DS_NO_ATTACHMENT ((uint32_t)-1)
 
 /**
  * @brief Constant for an external subpass.
  */
-#define DS_EXTERNAL_SUBPASS (uint32_t)-1
+#define DS_EXTERNAL_SUBPASS ((uint32_t)-1)
 
 /**
  * @brief Constant to use default subpass dependencies.
  */
-#define DS_DEFAULT_SUBPASS_DEPENDENCIES (uint32_t)-1
+#define DS_DEFAULT_SUBPASS_DEPENDENCIES ((uint32_t)-1)
 
 /**
  * @brief Constant for the number of anti-alias samples of render surfaces.
  */
-#define DS_SURFACE_ANTIALIAS_SAMPLES (uint32_t)-1
+#define DS_SURFACE_ANTIALIAS_SAMPLES ((uint32_t)-1)
 
 /**
  * @brief Constant for the default number of anti-alias samples.
  */
-#define DS_DEFAULT_ANTIALIAS_SAMPLES (uint32_t)-2
+#define DS_DEFAULT_ANTIALIAS_SAMPLES ((uint32_t)-2)
 
 /**
  * @brief Constant for the maximum supported anti-alias samples.

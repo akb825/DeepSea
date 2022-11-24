@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ extern "C"
 /**
  * @brief Constant for an invalid offset.
  */
-#define DS_INVALID_MATERIAL_OFFSET (size_t)-1
+#define DS_INVALID_MATERIAL_OFFSET ((size_t)-1)
 
 /**
  * @brief Gets the number of rows for a matrix type.

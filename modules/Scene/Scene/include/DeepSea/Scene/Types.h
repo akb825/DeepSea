@@ -38,7 +38,7 @@ extern "C"
 /**
  * @brief Constant for no scene node.
  */
-#define DS_NO_SCENE_NODE (uint64_t)-1
+#define DS_NO_SCENE_NODE ((uint64_t)-1)
 
 /**
  * @brief Constant for the maximum length of a scene name, including the null terminator.
