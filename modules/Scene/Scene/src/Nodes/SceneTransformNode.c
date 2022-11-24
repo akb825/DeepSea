@@ -80,21 +80,6 @@ bool dsSceneTransformNode_setTransform(dsSceneTransformNode* node, const dsMatri
 
 	dsSceneNode* baseNode = (dsSceneNode*)node;
 	for (uint32_t i = 0; i < baseNode->treeNodeCount; ++i)
-	{
-		dsSceneTreeNode* treeNode = baseNode->treeNodes[i];
-		dsScene* scene = dsSceneTreeNode_getScene(treeNode);
-		DS_ASSERT(scene);
-
-		treeNode->dirty = true;
-		// Since the dirty flag is used, don't bother a linear search to see if already on the list.
-		uint32_t index = scene->dirtyNodeCount;
-		if (!DS_RESIZEABLE_ARRAY_ADD(scene->allocator, scene->dirtyNodes, scene->dirtyNodeCount,
-				scene->maxDirtyNodes, 1))
-		{
-			continue;
-		}
-
-		scene->dirtyNodes[index] = treeNode;
-	}
+		dsSceneTreeNode_markDirty(baseNode->treeNodes[i]);
 	return true;
 }

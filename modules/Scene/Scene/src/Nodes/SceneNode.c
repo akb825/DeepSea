@@ -249,6 +249,92 @@ bool dsSceneNode_removeChildNode(dsSceneNode* node, dsSceneNode* child)
 	return found;
 }
 
+bool dsSceneNode_reparentChildIndex(dsSceneNode* node, uint32_t childIndex, dsSceneNode* newParent)
+{
+	if (!node || !newParent)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	if (childIndex >= node->childCount)
+	{
+		errno = EINDEX;
+		return false;
+	}
+
+	if (node->treeNodeCount != newParent->treeNodeCount)
+	{
+		errno = EPERM;
+		return false;
+	}
+
+	dsSceneNode* child = node->children[childIndex];
+	for (uint32_t i = 0; i < newParent->childCount; ++i)
+	{
+		if (newParent->children[i] == child)
+		{
+			errno = EPERM;
+			return false;
+		}
+	}
+
+	uint32_t newIndex = newParent->childCount;
+	if (!DS_RESIZEABLE_ARRAY_ADD(newParent->allocator, newParent->children, newParent->childCount,
+			newParent->maxChildren, 1))
+	{
+		return false;
+	}
+
+	if (!dsSceneTreeNode_reparentSubtree(node, child, newParent))
+	{
+		--newParent->childCount;
+		return false;
+	}
+
+	newParent->children[newIndex] = child;
+	node->children[childIndex] = node->children[node->childCount - 1];
+	--node->childCount;
+
+	// Once fully succeeded, mark the subtrees as dirty.
+	for (uint32_t i = 0; i < newParent->treeNodeCount; ++i)
+	{
+		dsSceneTreeNode* treeNode = newParent->treeNodes[i];
+		for (uint32_t j = 0; j < treeNode->childCount; ++j)
+		{
+			dsSceneTreeNode* childTreeNode = treeNode->children[j];
+			if (childTreeNode->node == child)
+				dsSceneTreeNode_markDirty(childTreeNode);
+		}
+	}
+
+	return true;
+}
+
+bool dsSceneNode_reparentChildNode(dsSceneNode* node, dsSceneNode* child, dsSceneNode* newParent)
+{
+	if (!node || !child || !newParent)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	uint32_t childIndex = 0;
+	for (; childIndex < node->childCount; ++childIndex)
+	{
+		if (node->children[childIndex] == child)
+			break;
+	}
+
+	if (childIndex >= node->childCount)
+	{
+		errno = ENOTFOUND;
+		return false;
+	}
+
+	return dsSceneNode_reparentChildIndex(node, childIndex, newParent);
+}
+
 void dsSceneNode_clear(dsSceneNode* node)
 {
 	if (!node)

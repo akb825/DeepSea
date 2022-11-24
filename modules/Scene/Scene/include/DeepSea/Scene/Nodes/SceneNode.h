@@ -175,6 +175,38 @@ DS_SCENE_EXPORT bool dsSceneNode_removeChildIndex(dsSceneNode* node, uint32_t ch
 DS_SCENE_EXPORT bool dsSceneNode_removeChildNode(dsSceneNode* node, dsSceneNode* child);
 
 /**
+ * @brief Moves a child node from this to another parent.
+ *
+ * This will preserve the underlying tree structure. This can be important when item lists store
+ * state for the node and you wish to change what transform it's associated with.
+ *
+ * @remark errno will be set on failure.
+ * @param node The node to remove the child from.
+ * @param childIndex The index fo the child to reparent.
+ * @param newParent The node to move the child to. This must have the same number of internal tree
+ *     nodes (i.e. node->treeNodeCount == newParent->treeNodeCount) to move the child.
+ * @return False if an error occurred.
+ */
+DS_SCENE_EXPORT bool dsSceneNode_reparentChildIndex(dsSceneNode* node, uint32_t childIndex,
+	dsSceneNode* newParent);
+
+/**
+ * @brief Moves a child node from this to another parent.
+ *
+ * This will preserve the underlying tree structure. This can be important when item lists store
+ * state for the node and you wish to change what transform it's associated with.
+ *
+ * @remark errno will be set on failure.
+ * @param node The node to remove the child from.
+ * @param child The node to reparent.
+ * @param newParent The node to move the child to. This must have the same number of internal tree
+ *     nodes (i.e. node->treeNodeCount == newParent->treeNodeCount) to move the child.
+ * @return False if an error occurred.
+ */
+DS_SCENE_EXPORT bool dsSceneNode_reparentChildNode(dsSceneNode* node, dsSceneNode* child,
+	dsSceneNode* newParent);
+
+/**
  * @brief Clears all chidlren from a scene node.
  * @param node The node to clear.
  */

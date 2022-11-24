@@ -241,6 +241,17 @@ TEST_F(SceneItemListTest, NodeHierarchy)
 	EXPECT_EQ(mockNode1, mockSceneItems->items[2].node);
 	EXPECT_TRUE(matricesEqual(&expectedTransform, mockSceneItems->items[2].transform));
 
+	EXPECT_TRUE(dsSceneNode_reparentChildNode((dsSceneNode*)transform2, mockNode2,
+		(dsSceneNode*)transform1));
+	EXPECT_TRUE(dsScene_update(scene, 0));
+	ASSERT_EQ(3U, mockSceneItems->itemCount);
+	EXPECT_EQ(mockNode1, mockSceneItems->items[0].node);
+	EXPECT_TRUE(matricesEqual(&matrix1, mockSceneItems->items[0].transform));
+	EXPECT_EQ(mockNode2, mockSceneItems->items[1].node);
+	EXPECT_TRUE(matricesEqual(&matrix1, mockSceneItems->items[1].transform));
+	EXPECT_EQ(mockNode1, mockSceneItems->items[2].node);
+	EXPECT_TRUE(matricesEqual(&expectedTransform, mockSceneItems->items[2].transform));
+
 	dsSceneNode_freeRef(mockNode1);
 	dsSceneNode_freeRef(mockNode2);
 	dsSceneNode_freeRef((dsSceneNode*)transform1);

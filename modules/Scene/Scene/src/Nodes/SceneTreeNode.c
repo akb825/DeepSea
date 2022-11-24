@@ -215,6 +215,34 @@ static void removeSubtreeRec(dsSceneNode* child, uint32_t treeNodeIndex, dsScene
 	}
 }
 
+static bool moveSubtree(dsSceneTreeNode* node, dsSceneNode* child, dsSceneTreeNode* newParent)
+{
+	for (uint32_t i = 0; i < node->childCount;)
+	{
+		dsSceneTreeNode* curChild = node->children[i];
+		if (curChild->node != child)
+		{
+			++i;
+			continue;
+		}
+
+		uint32_t index = newParent->childCount;
+		if (!DS_RESIZEABLE_ARRAY_ADD(newParent->allocator, newParent->children,
+				newParent->childCount, newParent->maxChildren, 1))
+		{
+			DS_VERIFY(moveSubtree(newParent, child, node));
+			return false;
+		}
+
+		newParent->children[index] = curChild;
+		node->children[i] = node->children[node->childCount - 1];
+		--node->childCount;
+		curChild->parent = newParent;
+	}
+
+	return true;
+}
+
 static void updateSubtreeRec(dsSceneTreeNode* node)
 {
 	updateTransform(node);
@@ -358,6 +386,41 @@ void dsSceneTreeNode_removeSubtree(dsSceneNode* node, dsSceneNode* child)
 				break;
 			}
 		}
+	}
+}
+
+bool dsSceneTreeNode_reparentSubtree(dsSceneNode* node, dsSceneNode* child, dsSceneNode* newParent)
+{
+	DS_ASSERT(node->treeNodeCount == newParent->treeNodeCount);
+	for (uint32_t i = 0; i < node->treeNodeCount; ++i)
+	{
+		dsSceneTreeNode* fromParent = node->treeNodes[i];
+		dsSceneTreeNode* toParent = newParent->treeNodes[i];
+		if (!moveSubtree(fromParent, child, toParent))
+		{
+			// Move children back on failure. Should be guaranteed to succeed as no allocations will
+			// take place,
+			for (uint32_t j = 0; j < i; ++j)
+				DS_VERIFY(moveSubtree(newParent->treeNodes[j], child, node->treeNodes[j]));
+			return false;
+		}
+	}
+
+	return true;
+}
+
+void dsSceneTreeNode_markDirty(dsSceneTreeNode* node)
+{
+	dsScene* scene = dsSceneTreeNode_getScene(node);
+	DS_ASSERT(scene);
+
+	node->dirty = true;
+	// Since the dirty flag is used, don't bother a linear search to see if already on the list.
+	uint32_t index = scene->dirtyNodeCount;
+	if (DS_RESIZEABLE_ARRAY_ADD(scene->allocator, scene->dirtyNodes, scene->dirtyNodeCount,
+			scene->maxDirtyNodes, 1))
+	{
+		scene->dirtyNodes[index] = node;
 	}
 }
 
