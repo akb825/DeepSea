@@ -131,6 +131,7 @@ To build the examples, an Android Studio project is provided in the android subd
 * `-DDEEPSEA_BUILD_TEXT=ON|OFF`: Set to `ON` to build the text rendering library. Defaults to `ON`.
 * `-DDEEPSEA_BUILD_VECTOR_DRAW=ON|OFF`: Set to `ON` to build the vector draw library. Defaults to `ON`.
 * `-DDEEPSEA_BUILD_PARTICLE=ON|OFF`: Set to `ON` to build the particle library. Defaults to `ON`.
+* `-DDEEPSEA_BUILD_ANIMATION=ON|OFF`: Set to `ON` to build the animation library. Defaults to `ON`.
 * `-DDEEPSEA_BUILD_SCENE=ON|OFF`: Set to `ON` to build the scene library. Defaults to `ON`.
 * `-DDEEPSEA_BUILD_APPLICATION=ON|OFF`: Set to `ON` to build the application framework. Defaults to `ON`.
 * `-DDEEPSEA_BUILD_APPLICATION_SDL=ON|OFF`: Set to `ON` to build the SDL application implementation. Defaults to `ON`.
@@ -173,7 +174,8 @@ DeepSea contains the following modules:
 * [RenderBootstrap](modules/Render/RenderBootstrap/README.md): Library that aids in creating one of the various renderers based on what is supported.
 * [Text](modules/Text/README.md): Draws Unicode text.
 * [VectorDraw](modules/VectorDraw/README.md): Draws vector graphics.
-* [Particle](modules/Particle/README.md): Drawing of particles created by particle emitters.
+* [Particle](modules/Particle/README.md): Draws particles created by particle emitters.
+* [Animation](modules/Animation/README.md): Handles animation of transform hierarchies and skinning.
 * [Scene](modules/Scene/Scene/README.md): Scene library for creating scene graphs mixed with render passes and operations to perform each frame as a part of rendering.
 * [SceneLighting](modules/Scene/SceneLighting/README.md): Library for managing lights and shadows within a scene.
 * [SceneVectorDraw](modules/Scene/SceneVectorDraw/README.md): Library for drawing vector images and text within a scene.

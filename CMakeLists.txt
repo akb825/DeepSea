@@ -35,6 +35,8 @@ set(DEEPSEA_BUILD_VECTOR_DRAW ON CACHE BOOL "Build vector draw library.")
 
 set(DEEPSEA_BUILD_PARTICLE ON CACHE BOOL "Build particle library.")
 
+set(DEEPSEA_BUILD_ANIMATION ON CACHE BOOL "Build animation library.")
+
 set(DEEPSEA_BUILD_SCENE ON CACHE BOOL "Build scene library.")
 
 set(DEEPSEA_BUILD_APPLICATION ON CACHE BOOL "Build application framework libraries.")
