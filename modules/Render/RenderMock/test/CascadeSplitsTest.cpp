@@ -40,7 +40,7 @@ TEST(CascadeSplitsTest, ComputeCascadeDistance)
 	EXPECT_EQ(0.0f, dsComputeCascadeDistance(0, 2, FLT_MAX, 0, 0, 1));
 	EXPECT_EQ(0.0f, dsComputeCascadeDistance(2, 1, FLT_MAX, 0, 0, 1));
 	EXPECT_EQ(0.0f, dsComputeCascadeDistance(1, 2, FLT_MAX, -1, 0, 1));
-	EXPECT_EQ(0.0f, dsComputeCascadeDistance(1, 2, FLT_MAX, 2, 0, 1));;
+	EXPECT_EQ(0.0f, dsComputeCascadeDistance(1, 2, FLT_MAX, 2, 0, 1));
 	EXPECT_EQ(0.0f, dsComputeCascadeDistance(1, 2, FLT_MAX, 0, 1, 1));
 	EXPECT_EQ(0.0f, dsComputeCascadeDistance(1, 2, FLT_MAX, 0, 0, 0));
 

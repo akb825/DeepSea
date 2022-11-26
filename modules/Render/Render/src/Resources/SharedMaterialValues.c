@@ -227,7 +227,7 @@ size_t dsSharedMaterialValues_fullAllocSize(uint32_t maxValues)
 {
 	return DS_ALIGNED_SIZE(sizeof(dsSharedMaterialValues)) +
 		DS_ALIGNED_SIZE(dsPoolAllocator_bufferSize(sizeof(Entry), maxValues)) +
-		dsHashTable_fullAllocSize(dsHashTable_getTableSize(maxValues));
+		dsHashTable_fullAllocSize(dsHashTable_tableSize(maxValues));
 }
 
 dsSharedMaterialValues* dsSharedMaterialValues_create(dsAllocator* allocator, uint32_t maxValues)
@@ -257,7 +257,7 @@ dsSharedMaterialValues* dsSharedMaterialValues_create(dsAllocator* allocator, ui
 	DS_VERIFY(dsPoolAllocator_initialize(&materialValues->entryPool, sizeof(Entry), maxValues,
 		poolBuffer, poolSize));
 
-	uint32_t tableSize = dsHashTable_getTableSize(maxValues);
+	uint32_t tableSize = dsHashTable_tableSize(maxValues);
 	materialValues->hashTable = (dsHashTable*)dsAllocator_alloc((dsAllocator*)&bufferAllocator,
 		dsHashTable_fullAllocSize(tableSize));
 	DS_VERIFY(dsHashTable_initialize(materialValues->hashTable, tableSize, &dsHashIdentity,

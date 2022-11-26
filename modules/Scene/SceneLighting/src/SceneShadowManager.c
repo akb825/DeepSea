@@ -78,7 +78,7 @@ dsSceneShadowManager* dsSceneShadowManager_create(dsAllocator* allocator,
 		return NULL;
 	}
 
-	uint32_t tableSize = dsHashTable_getTableSize(lightShadowsCount);
+	uint32_t tableSize = dsHashTable_tableSize(lightShadowsCount);
 	size_t namedPoolSize = dsPoolAllocator_bufferSize(sizeof(NamedShadowsNode), lightShadowsCount);
 	size_t lightPoolSize = dsPoolAllocator_bufferSize(sizeof(LightShadowsNode), lightShadowsCount);
 	size_t hashTableSize = dsHashTable_fullAllocSize(tableSize);

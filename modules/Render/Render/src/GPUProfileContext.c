@@ -228,7 +228,7 @@ static void submitGPUProfileResults(dsGPUProfileContext* context, QueryPools* po
 	}
 	memset(context->nodes, 0, pools->totalRanges*sizeof(QueryNode));
 
-	uint32_t hashTableSize = dsHashTable_getTableSize(pools->totalRanges);
+	uint32_t hashTableSize = dsHashTable_tableSize(pools->totalRanges);
 	if (!context->hashTable || hashTableSize > context->hashTable->tableSize)
 	{
 		dsAllocator_free(context->allocator, context->hashTable);

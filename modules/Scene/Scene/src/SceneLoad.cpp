@@ -291,7 +291,7 @@ static dsSceneRenderPass* createRenderPass(dsAllocator* allocator, dsAllocator* 
 				auto fbAttachment = (*fbColorAttachments)[j];
 				if (fbAttachment)
 				{
-					attachment->attachmentIndex = fbAttachment->index();;
+					attachment->attachmentIndex = fbAttachment->index();
 					attachment->resolve = fbAttachment->resolve();
 				}
 				else

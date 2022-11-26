@@ -81,7 +81,7 @@ void* dsSceneShadowManager_load(const dsSceneLoadContext* loadContext,
 		const char* shadowsName = fbLightShadows->name()->c_str();
 		const char* lightSetName = fbLightShadows->lightSet()->c_str();
 		dsSceneResourceType type;
-		dsCustomSceneResource* resource;;
+		dsCustomSceneResource* resource;
 		if (!dsSceneLoadScratchData_findResource(&type, (void**)&resource, scratchData, lightSetName) ||
 			type != dsSceneResourceType_Custom || resource->type != dsSceneLightSet_type())
 		{

@@ -269,7 +269,7 @@ static bool loadShaderVariableGroupDesc(dsSceneResources* resources,
 {
 	const auto fbElements = fbGroupDesc->elements();
 	if (!fbElements)
-		return true;;
+		return true;
 
 	const char* groupDescName = fbGroupDesc->name()->c_str();
 	uint32_t elementCount = fbElements->size();
@@ -411,7 +411,7 @@ static bool loadMaterialDesc(dsSceneResources* resources, dsResourceManager* res
 {
 	const auto fbElements = fbMaterialDesc->elements();
 	if (!fbElements)
-		return true;;
+		return true;
 
 	uint32_t elementCount = fbElements->size();
 	uint32_t dummyCount = 0;

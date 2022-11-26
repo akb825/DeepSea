@@ -57,7 +57,7 @@ dsSceneItemList* dsSceneParticleDrawList_load(const dsSceneLoadContext* loadCont
 	auto fbInstanceData = fbDrawList->instanceData();
 	auto fbCullList = fbDrawList->cullList();
 
-	const char* cullList = fbCullList ? fbCullList->c_str() : nullptr;;
+	const char* cullList = fbCullList ? fbCullList->c_str() : nullptr;
 
 	dsSceneInstanceData** instanceData = nullptr;
 	uint32_t instanceDataCount = 0;

@@ -1186,7 +1186,7 @@ id<MTLRenderPipelineState> dsMTLShader_getPipeline(dsShader* shader, dsCommandBu
 	if (!renderPass)
 		return NULL;
 
-	const dsMTLRenderPass* mtlRenderPass = (const dsMTLRenderPass*)renderPass;;
+	const dsMTLRenderPass* mtlRenderPass = (const dsMTLRenderPass*)renderPass;
 	dsMTLShader* mtlShader = (dsMTLShader*)shader;
 	if (!mtlShader->stages[mslStage_Vertex].function)
 		return NULL;

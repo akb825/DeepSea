@@ -855,7 +855,7 @@ dsTextDirection dsFaceGroup_textDirection(uint32_t script)
 size_t dsFaceGroup_fullAllocSize(uint32_t maxFaces)
 {
 	return DS_ALIGNED_SIZE(sizeof(dsFaceGroup)) + DS_ALIGNED_SIZE(sizeof(dsFontFace)*maxFaces) +
-		dsMutex_fullAllocSize() + dsHashTable_fullAllocSize(dsHashTable_getTableSize(maxFaces));
+		dsMutex_fullAllocSize() + dsHashTable_fullAllocSize(dsHashTable_tableSize(maxFaces));
 }
 
 dsFaceGroup* dsFaceGroup_create(dsAllocator* allocator, dsAllocator* scratchAllocator,
@@ -887,7 +887,7 @@ dsFaceGroup* dsFaceGroup_create(dsAllocator* allocator, dsAllocator* scratchAllo
 		DS_ALIGNED_SIZE(sizeof(dsFaceGroup)) + DS_ALIGNED_SIZE(sizeof(dsFontFace)*maxFaces));
 	DS_ASSERT(faceGroup);
 
-	uint32_t hashTableSize = dsHashTable_getTableSize(maxFaces);
+	uint32_t hashTableSize = dsHashTable_tableSize(maxFaces);
 	faceGroup->allocator = dsAllocator_keepPointer(allocator);
 	faceGroup->scratchAllocator = scratchAllocator;
 	faceGroup->faceHashTable = (dsHashTable*)dsAllocator_alloc((dsAllocator*)&bufferAlloc,

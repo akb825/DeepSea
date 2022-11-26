@@ -87,7 +87,7 @@ static uint64_t dsSceneVectorDrawPrepare_addNode(dsSceneItemList* itemList, cons
 	{
 		DS_ASSERT(dsSceneNode_isOfType(node, dsSceneVectorImageNode_type()));
 		entry->textNode = NULL;
-		entry->imageNode = (dsSceneVectorImageNode*)node;;
+		entry->imageNode = (dsSceneVectorImageNode*)node;
 		entry->layoutVersion = 0;
 	}
 	entry->nodeID = prepareList->nextNodeID++;

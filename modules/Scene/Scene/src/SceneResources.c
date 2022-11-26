@@ -65,7 +65,7 @@ struct dsSceneResources
 
 static dsHashTable* createHashTable(dsBufferAllocator* allocator, uint32_t maxItems)
 {
-	uint32_t tableSize = dsHashTable_getTableSize(maxItems);
+	uint32_t tableSize = dsHashTable_tableSize(maxItems);
 	dsHashTable* hashTable = (dsHashTable*)dsAllocator_alloc((dsAllocator*)allocator,
 		dsHashTable_fullAllocSize(tableSize));
 	DS_ASSERT(hashTable);
@@ -116,7 +116,7 @@ size_t dsSceneResources_sizeof(void)
 size_t dsSceneResources_fullAllocSize(uint32_t maxResources)
 {
 	return DS_ALIGNED_SIZE(sizeof(dsSceneResources)) +
-		dsHashTable_fullAllocSize(dsHashTable_getTableSize(maxResources)) +
+		dsHashTable_fullAllocSize(dsHashTable_tableSize(maxResources)) +
 		dsPoolAllocator_bufferSize(sizeof(ResourceNode), maxResources);
 }
 

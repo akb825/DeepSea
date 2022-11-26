@@ -92,7 +92,7 @@ static size_t fullAllocSize(uint32_t* outOffscreenSurfaceCount, const dsScene* s
 		DS_ALIGNED_SIZE(sizeof(dsViewSurfaceInfo)*surfaceCount) +
 		DS_ALIGNED_SIZE(sizeof(void*)*surfaceCount) +
 		DS_ALIGNED_SIZE(sizeof(IndexNode)*surfaceCount) +
-		dsHashTable_fullAllocSize(dsHashTable_getTableSize(surfaceCount)) +
+		dsHashTable_fullAllocSize(dsHashTable_tableSize(surfaceCount)) +
 		DS_ALIGNED_SIZE(sizeof(dsViewFramebufferInfo)*framebufferCount) +
 		DS_ALIGNED_SIZE(sizeof(dsRotatedFramebuffer)*framebufferCount) +
 		DS_ALIGNED_SIZE(sizeof(uint32_t)*scene->pipelineCount);
@@ -403,7 +403,7 @@ dsView* dsView_create(const dsScene* scene, dsAllocator* allocator, dsAllocator*
 	DS_ASSERT(privateView->surfaces);
 	privateView->surfaceCount = surfaceCount;
 
-	uint32_t surfaceTableSize = dsHashTable_getTableSize(surfaceCount);
+	uint32_t surfaceTableSize = dsHashTable_tableSize(surfaceCount);
 	privateView->surfaceTable = (dsHashTable*)dsAllocator_alloc((dsAllocator*)&bufferAlloc,
 		dsHashTable_fullAllocSize(surfaceTableSize));
 	DS_ASSERT(privateView->surfaceTable);

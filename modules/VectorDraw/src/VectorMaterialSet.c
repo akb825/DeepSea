@@ -64,7 +64,7 @@ typedef struct dsMaterialNode
 size_t dsVectorMaterialSet_fullAllocSize(uint32_t maxMaterials)
 {
 	return DS_ALIGNED_SIZE(sizeof(dsVectorMaterialSet)) +
-		dsHashTable_fullAllocSize(dsHashTable_getTableSize(maxMaterials)) +
+		dsHashTable_fullAllocSize(dsHashTable_tableSize(maxMaterials)) +
 		dsPoolAllocator_bufferSize(sizeof(dsMaterialNode), maxMaterials);
 }
 
@@ -148,7 +148,7 @@ dsVectorMaterialSet* dsVectorMaterialSet_create(dsAllocator* allocator,
 
 	materials->allocator = dsAllocator_keepPointer(allocator);
 
-	uint32_t materialTableSize = dsHashTable_getTableSize(maxMaterials);
+	uint32_t materialTableSize = dsHashTable_tableSize(maxMaterials);
 	materials->materialTable = (dsHashTable*)dsAllocator_alloc((dsAllocator*)&bufferAlloc,
 		dsHashTable_fullAllocSize(materialTableSize));
 	DS_ASSERT(materials->materialTable);

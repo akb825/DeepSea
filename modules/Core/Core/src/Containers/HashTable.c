@@ -22,7 +22,7 @@
 #include <DeepSea/Core/Error.h>
 #include <string.h>
 
-uint32_t dsHashTable_getTableSize(uint32_t maxElements)
+uint32_t dsHashTable_tableSize(uint32_t maxElements)
 {
 	const float loadFactor = 0.75f;
 	return (uint32_t)((float)maxElements/loadFactor);

@@ -179,7 +179,7 @@ dsSceneLightSet* dsSceneLightSet_create(dsAllocator* allocator, uint32_t maxLigh
 		return NULL;
 	}
 
-	uint32_t lightTableSize = dsHashTable_getTableSize(maxLights);
+	uint32_t lightTableSize = dsHashTable_tableSize(maxLights);
 	size_t lightTableBufferSize = dsHashTable_fullAllocSize(lightTableSize);
 	size_t lightPoolSize = dsPoolAllocator_bufferSize(sizeof(LightNode), maxLights);
 	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsSceneLightSet)) + lightPoolSize +

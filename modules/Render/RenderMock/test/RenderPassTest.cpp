@@ -348,7 +348,7 @@ TEST_F(RenderPassTest, Create)
 	renderer->hasDepthStencilMultisampleResolve = false;
 	EXPECT_FALSE(dsRenderPass_create(renderer, NULL, attachments, attachmentCount,
 		subpasses, subpassCount, dependencies, dependencyCount));
-	renderer->hasDepthStencilMultisampleResolve = true;;
+	renderer->hasDepthStencilMultisampleResolve = true;
 
 	dependencies[1].srcSubpass = 4;
 	EXPECT_FALSE(dsRenderPass_create(renderer, NULL, attachments, attachmentCount,

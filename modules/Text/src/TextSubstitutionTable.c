@@ -129,7 +129,7 @@ dsTextSubstitutionTable* dsTextSubstitutionTable_create(dsAllocator* allocator,
 		return NULL;
 	}
 
-	uint32_t tableSize = dsHashTable_getTableSize(maxStrings);
+	uint32_t tableSize = dsHashTable_tableSize(maxStrings);
 	size_t tableAllocSize = dsHashTable_fullAllocSize(tableSize);
 	size_t poolSize = dsPoolAllocator_bufferSize(sizeof(SubstitutionNode), maxStrings);
 

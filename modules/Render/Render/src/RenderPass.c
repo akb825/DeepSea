@@ -265,7 +265,7 @@ static void endRenderPassScope(dsCommandBuffer* commandBuffer)
 	DS_PROFILE_SCOPE_END();
 	commandBuffer->boundFramebuffer = NULL;
 	commandBuffer->boundRenderPass = NULL;
-	commandBuffer->activeRenderSubpass = 0;;
+	commandBuffer->activeRenderSubpass = 0;
 }
 
 static SurfaceType getSurfaceType(dsGfxSurfaceType surfaceType)

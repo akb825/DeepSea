@@ -156,7 +156,7 @@ static size_t fullAllocSize(uint32_t* outNameCount, uint32_t* outGlobalValueCoun
 		}
 	}
 
-	return fullSize + dsHashTable_fullAllocSize(dsHashTable_getTableSize(*outNameCount)) +
+	return fullSize + dsHashTable_fullAllocSize(dsHashTable_tableSize(*outNameCount)) +
 		DS_ALIGNED_SIZE(sizeof(dsSceneItemListNode)**outNameCount);
 }
 
@@ -287,7 +287,7 @@ dsScene* dsScene_create(dsAllocator* allocator, dsRenderer* renderer,
 	scene->pipelineCount = pipelineCount;
 	scene->globalValueCount = globalValueCount;
 
-	uint32_t tableSize = dsHashTable_getTableSize(nameCount);
+	uint32_t tableSize = dsHashTable_tableSize(nameCount);
 	size_t hashTableSize = dsHashTable_fullAllocSize(tableSize);
 	scene->itemLists = (dsHashTable*)dsAllocator_alloc((dsAllocator*)&bufferAlloc, hashTableSize);
 	DS_ASSERT(scene->itemLists);
