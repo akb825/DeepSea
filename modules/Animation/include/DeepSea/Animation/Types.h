@@ -45,6 +45,22 @@ typedef struct dsAnimationBuildNode dsAnimationBuildNode;
 /// @endcond
 
 /**
+ * @brief Struct describing the transform for an animation joint used for skinning.
+ */
+typedef struct dsAnimationJointTransform
+{
+	/**
+	 * @brief The transform for the joint.
+	 */
+	dsMatrix44f transform;
+
+	/**
+	 * @brief The inverse transpose of the transform.
+	 */
+	dsMatrix33f inverseTranspose;
+} dsAnimationJointTransform;
+
+/**
  * @brief Struct describing a node used for building an animation tree.
  *
  * The animation created with build nodes cannot be used for skinning. This will be flattened when
@@ -129,6 +145,8 @@ typedef struct dsAnimationJointBuildNode
 
 	/**
 	 * @brief The indices of the child nodes.
+	 *
+	 * All child indices must be after the current node's index.
 	 */
 	const uint32_t* children;
 } dsAnimationJointBuildNode;
@@ -181,7 +199,7 @@ typedef struct dsAnimationNode
 	/**
 	 * @brief The indices of the child nodes.
 	 */
-	uint32_t children[];
+	const uint32_t* children;
 } dsAnimationNode;
 
 /**
@@ -220,7 +238,7 @@ typedef struct dsAnimationTree
 	/**
 	 * @brief The animation nodes in the animation tree.
 	 */
-	dsAnimationNode** nodes;
+	dsAnimationNode* nodes;
 
 	/**
 	 * @brief the indices of the root nodes in the tree.
@@ -230,9 +248,16 @@ typedef struct dsAnimationTree
 	/**
 	 * @brief List of transforms to the node local space.
 	 *
-	 * This is a parallel array to nodes. It will only be set when provided, such as for skinning.
+	 * This is a parallel array to nodes. This will only be set when built from joints.
 	 */
 	const dsMatrix44f* toNodeLocalSpace;
+
+	/**
+	 * @brief List of transforms for joints when performing skinning.
+	 *
+	 * This is a parallel array to nodes. This will only be set when built from joints.
+	 */
+	dsAnimationJointTransform* jointTransforms;
 
 	/**
 	 * @brief Hash table from name ID to node index.
