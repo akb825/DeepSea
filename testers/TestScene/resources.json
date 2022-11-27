@@ -32,7 +32,7 @@
 		[
 			{"name": "world", "type": "Mat4"},
 			{"name": "worldView", "type": "Mat4"},
-			{"name": "worldViewInvTrans", "type": "Mat4"},
+			{"name": "worldViewInvTrans", "type": "Mat3"},
 			{"name": "worldViewProj", "type": "Mat4"}
 		]
 	},

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,6 +63,32 @@ extern "C"
 		(result).values[2][0] = 0; \
 		(result).values[2][1] = 0; \
 		(result).values[2][2] = 1; \
+	} while (0)
+
+/**
+ * @brief Copies a 3x3 matrix.
+ *
+ * This can be used to populate a 3x3 matrix with a 4x4 matrix.
+ *
+ * @param[out] result The matrix to hold the copy.
+ * @param a The matrix to copy.
+ */
+#define dsMatrix33_copy(result, a) \
+	do \
+	{ \
+		DS_ASSERT(&(result) != (const void*)&(a)); \
+		\
+		(result).values[0][0] = (a).values[0][0]; \
+		(result).values[0][1] = (a).values[0][1]; \
+		(result).values[0][2] = (a).values[0][2]; \
+		\
+		(result).values[1][0] = (a).values[1][0]; \
+		(result).values[1][1] = (a).values[1][1]; \
+		(result).values[1][2] = (a).values[1][2]; \
+		\
+		(result).values[2][0] = (a).values[2][0]; \
+		(result).values[2][1] = (a).values[2][1]; \
+		(result).values[2][2] = (a).values[2][2]; \
 	} while (0)
 
 /**
@@ -264,14 +290,14 @@ DS_MATH_EXPORT void dsMatrix33f_invert(dsMatrix33f* result, const dsMatrix33f* a
 DS_MATH_EXPORT void dsMatrix33d_invert(dsMatrix33d* result, const dsMatrix33d* a);
 
 /**
- * @brief Calculates the inverse-transpose transformation matrix.
- * @param[out] result The inverse-transposed matrix. This may NOT be the same as a.
- * @param a The matrix to inverse-transpose.
+ * @brief Calculates the inverse-transpose transformation matrix to transform direction vectors.
+ * @param[out] result The inverse-transposed matrix.
+ * @param a The matrix to inverse-transpose. This is assumed to be an affine transform.
  */
-DS_MATH_EXPORT void dsMatrix33f_inverseTranspose(dsMatrix33f* result, const dsMatrix33f* a);
+DS_MATH_EXPORT void dsMatrix33f_inverseTranspose(dsMatrix22f* result, const dsMatrix33f* a);
 
 /** @copydoc dsMatrix44d_invert() */
-DS_MATH_EXPORT void dsMatrix33d_inverseTranspose(dsMatrix33d* result, const dsMatrix33d* a);
+DS_MATH_EXPORT void dsMatrix33d_inverseTranspose(dsMatrix22d* result, const dsMatrix33d* a);
 
 /**
  * @brief Makes a 2D rotation matrix.

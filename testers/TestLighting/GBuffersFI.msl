@@ -75,10 +75,9 @@ void vertexShader()
 
 	vec3 fixedNormal = normal*2.0 - vec3(1.0);
 	vec3 fixedTangent = tangent*2.0 - vec3(1.0);
-	vfNormalTexX.xyz = (INSTANCE(dsInstanceTransform).worldViewInvTrans*vec4(fixedNormal, 0.0)).xyz;
+	vfNormalTexX.xyz = INSTANCE(dsInstanceTransform).worldViewInvTrans*fixedNormal;
 	vfNormalTexX.w = texCoord.x;
-	vfTangentTexY.xyz =
-		(INSTANCE(dsInstanceTransform).worldViewInvTrans*vec4(fixedTangent, 0.0)).xyz;
+	vfTangentTexY.xyz = INSTANCE(dsInstanceTransform).worldViewInvTrans*fixedTangent;
 	vfTangentTexY.w = texCoord.y;
 	vfBitangent = cross(vfNormalTexX.xyz, vfTangentTexY.xyz);
 }

@@ -22,6 +22,7 @@
 #include <DeepSea/Core/Log.h>
 
 #include <DeepSea/Math/Matrix44.h>
+#include <DeepSea/Math/Matrix33.h>
 
 #include <DeepSea/Render/Resources/ShaderVariableGroupDesc.h>
 
@@ -35,7 +36,7 @@ static dsShaderVariableElement elements[] =
 {
 	{"world", dsMaterialType_Mat4, 0},
 	{"worldView", dsMaterialType_Mat4, 0},
-	{"worldViewInvTrans", dsMaterialType_Mat4, 0},
+	{"worldViewInvTrans", dsMaterialType_Mat3, 0},
 	{"worldViewProj", dsMaterialType_Mat4, 0}
 };
 
@@ -43,7 +44,7 @@ typedef struct InstanceTransform
 {
 	dsMatrix44f world;
 	dsMatrix44f worldView;
-	dsMatrix44f worldViewInvTrans;
+	dsVector4f worldViewInvTrans[3];
 	dsMatrix44f worldViewProj;
 } InstanceTransform;
 
@@ -63,7 +64,15 @@ static void dsInstanceTransformData_populateData(void* userData, const dsView* v
 		InstanceTransform transform;
 		transform.world = *world;
 		dsMatrix44_affineMul(transform.worldView, view->viewMatrix, *world);
-		dsMatrix44f_inverseTranspose(&transform.worldViewInvTrans, &transform.worldView);
+
+		dsMatrix33f worldViewInvTrans;
+		dsMatrix44f_inverseTranspose(&worldViewInvTrans, &transform.worldView);
+		for (unsigned int i = 0; i < 3; ++i)
+		{
+			*(dsVector3f*)(transform.worldViewInvTrans + i) = worldViewInvTrans.columns[i];
+			transform.worldViewInvTrans[i].w = 0;
+		}
+
 		dsMatrix44_mul(transform.worldViewProj, view->projectionMatrix, transform.worldView);
 		*(InstanceTransform*)(data) = transform;
 	}

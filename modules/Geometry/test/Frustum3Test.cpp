@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 Aaron Barany
+ * Copyright 2016-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -161,14 +161,14 @@ inline void dsMatrix44_makeTranslate(dsMatrix44d* result, double x, double y, do
 	dsMatrix44d_makeTranslate(result, x, y, z);
 }
 
-inline void dsMatrix44_inverseTranspose(dsMatrix44f* result, const dsMatrix44f* a)
+inline void dsMatrix44_affineInvert(dsMatrix44f* result, const dsMatrix44f* a)
 {
-	dsMatrix44f_inverseTranspose(result, a);
+	dsMatrix44f_affineInvert(result, a);
 }
 
-inline void dsMatrix44_inverseTranspose(dsMatrix44d* result, const dsMatrix44d* a)
+inline void dsMatrix44_affineInvert(dsMatrix44d* result, const dsMatrix44d* a)
 {
-	dsMatrix44d_inverseTranspose(result, a);
+	dsMatrix44d_affineInvert(result, a);
 }
 
 inline void dsMatrix44_makeOrtho(dsMatrix44f* result, float left, float right,
@@ -1141,13 +1141,14 @@ TYPED_TEST(Frustum3Test, TransformInverseTranspose)
 	Frustum3Type frustum;
 	dsFrustum3_fromMatrix(frustum, matrix, dsProjectionMatrixOptions_None);
 
-	Matrix44Type rotate, translate, transform, inverseTranspose;
+	Matrix44Type rotate, translate, transform, inverse, inverseTranspose;
 	dsMatrix44_makeRotate(&rotate, (TypeParam)dsDegreesToRadiansd(30),
 		(TypeParam)dsDegreesToRadiansd(-15), (TypeParam)dsDegreesToRadiansd(60));
 	dsMatrix44_makeTranslate(&translate, -3, 5, -1);
 
 	dsMatrix44_mul(transform, translate, rotate);
-	dsMatrix44_inverseTranspose(&inverseTranspose, &transform);
+	dsMatrix44_affineInvert(&inverse, &transform);
+	dsMatrix44_transpose(inverseTranspose, inverse);
 
 	Frustum3Type frustumCopy = frustum;
 	dsFrustum3_transformInverseTranspose(&frustum, &inverseTranspose);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 Aaron Barany
+ * Copyright 2016-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -112,6 +112,26 @@ TYPED_TEST(Matrix22Test, Identity)
 
 	EXPECT_EQ((TypeParam)0, matrix.values[1][0]);
 	EXPECT_EQ((TypeParam)1, matrix.values[1][1]);
+}
+
+TYPED_TEST(Matrix22Test, Copy)
+{
+	typedef typename Matrix22TypeSelector<TypeParam>::MatrixType Matrix22Type;
+
+	Matrix22Type matrix =
+	{{
+		{(TypeParam)0.1, (TypeParam)-2.3},
+		{(TypeParam)-4.5, (TypeParam)6.7}
+	}};
+
+	Matrix22Type copy;
+	dsMatrix22_copy(copy, matrix);
+
+	EXPECT_EQ(copy.values[0][0], matrix.values[0][0]);
+	EXPECT_EQ(copy.values[0][1], matrix.values[0][1]);
+
+	EXPECT_EQ(copy.values[1][0], matrix.values[1][0]);
+	EXPECT_EQ(copy.values[1][1], matrix.values[1][1]);
 }
 
 TYPED_TEST(Matrix22Test, Multiply)

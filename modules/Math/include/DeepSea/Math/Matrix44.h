@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 Aaron Barany
+ * Copyright 2016-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -376,14 +376,14 @@ DS_MATH_EXPORT void dsMatrix44f_invert(dsMatrix44f* result, const dsMatrix44f* a
 DS_MATH_EXPORT void dsMatrix44d_invert(dsMatrix44d* result, const dsMatrix44d* a);
 
 /**
- * @brief Calculates the inverse-transpose transformation matrix.
- * @param[out] result The inverse-transposed matrix. This may NOT be the same as a.
- * @param a The matrix to inverse-transpose.
+ * @brief Calculates the inverse-transpose transformation matrix to transform direction vectors.
+ * @param[out] result The inverse-transposed matrix.
+ * @param a The matrix to inverse-transpose. This is assumed to be an affine transform.
  */
-DS_MATH_EXPORT void dsMatrix44f_inverseTranspose(dsMatrix44f* result, const dsMatrix44f* a);
+DS_MATH_EXPORT void dsMatrix44f_inverseTranspose(dsMatrix33f* result, const dsMatrix44f* a);
 
 /** @copydoc dsMatrix44d_invert() */
-DS_MATH_EXPORT void dsMatrix44d_inverseTranspose(dsMatrix44d* result, const dsMatrix44d* a);
+DS_MATH_EXPORT void dsMatrix44d_inverseTranspose(dsMatrix33d* result, const dsMatrix44d* a);
 
 /**
  * @brief Makes a rotation matrix.

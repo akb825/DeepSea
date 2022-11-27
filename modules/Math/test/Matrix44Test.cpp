@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 Aaron Barany
+ * Copyright 2016-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,8 @@ struct Matrix44TypeSelector;
 template <>
 struct Matrix44TypeSelector<float>
 {
-	typedef dsMatrix44f MatrixType;
+	typedef dsMatrix44f Matrix44Type;
+	typedef dsMatrix33f Matrix33Type;
 	typedef dsVector4f Vector4Type;
 	typedef dsVector3f Vector3Type;
 	static const float epsilon;
@@ -41,7 +42,8 @@ struct Matrix44TypeSelector<float>
 template <>
 struct Matrix44TypeSelector<double>
 {
-	typedef dsMatrix44d MatrixType;
+	typedef dsMatrix44d Matrix44Type;
+	typedef dsMatrix33d Matrix33Type;
 	typedef dsVector4d Vector4Type;
 	typedef dsVector3d Vector3Type;
 	static const double epsilon;
@@ -81,12 +83,12 @@ inline void dsMatrix44_invert(dsMatrix44d* result, const dsMatrix44d* a)
 	dsMatrix44d_invert(result, a);
 }
 
-inline void dsMatrix44_inverseTranspose(dsMatrix44f* result, const dsMatrix44f* a)
+inline void dsMatrix44_inverseTranspose(dsMatrix33f* result, const dsMatrix44f* a)
 {
 	dsMatrix44f_inverseTranspose(result, a);
 }
 
-inline void dsMatrix44_inverseTranspose(dsMatrix44d* result, const dsMatrix44d* a)
+inline void dsMatrix44_inverseTranspose(dsMatrix33d* result, const dsMatrix44d* a)
 {
 	dsMatrix44d_inverseTranspose(result, a);
 }
@@ -191,7 +193,7 @@ inline void dsVector3_normalize(dsVector3d* result, const dsVector3d* a)
 
 TYPED_TEST(Matrix44Test, Initialize)
 {
-	typedef typename Matrix44TypeSelector<TypeParam>::MatrixType Matrix44Type;
+	typedef typename Matrix44TypeSelector<TypeParam>::Matrix44Type Matrix44Type;
 
 	Matrix44Type matrix =
 	{{
@@ -244,7 +246,7 @@ TYPED_TEST(Matrix44Test, Initialize)
 
 TYPED_TEST(Matrix44Test, Identity)
 {
-	typedef typename Matrix44TypeSelector<TypeParam>::MatrixType Matrix44Type;
+	typedef typename Matrix44TypeSelector<TypeParam>::Matrix44Type Matrix44Type;
 
 	Matrix44Type matrix;
 	dsMatrix44_identity(matrix);
@@ -272,7 +274,7 @@ TYPED_TEST(Matrix44Test, Identity)
 
 TYPED_TEST(Matrix44Test, Multiply)
 {
-	typedef typename Matrix44TypeSelector<TypeParam>::MatrixType Matrix44Type;
+	typedef typename Matrix44TypeSelector<TypeParam>::Matrix44Type Matrix44Type;
 	TypeParam epsilon = Matrix44TypeSelector<TypeParam>::epsilon;
 
 	Matrix44Type matrix1 =
@@ -317,7 +319,7 @@ TYPED_TEST(Matrix44Test, Multiply)
 
 TYPED_TEST(Matrix44Test, Transform)
 {
-	typedef typename Matrix44TypeSelector<TypeParam>::MatrixType Matrix44Type;
+	typedef typename Matrix44TypeSelector<TypeParam>::Matrix44Type Matrix44Type;
 	typedef typename Matrix44TypeSelector<TypeParam>::Vector4Type Vector4Type;
 	TypeParam epsilon = Matrix44TypeSelector<TypeParam>::epsilon;
 
@@ -342,7 +344,7 @@ TYPED_TEST(Matrix44Test, Transform)
 
 TYPED_TEST(Matrix44Test, TransformTransposed)
 {
-	typedef typename Matrix44TypeSelector<TypeParam>::MatrixType Matrix44Type;
+	typedef typename Matrix44TypeSelector<TypeParam>::Matrix44Type Matrix44Type;
 	typedef typename Matrix44TypeSelector<TypeParam>::Vector4Type Vector4Type;
 	TypeParam epsilon = Matrix44TypeSelector<TypeParam>::epsilon;
 
@@ -367,7 +369,7 @@ TYPED_TEST(Matrix44Test, TransformTransposed)
 
 TYPED_TEST(Matrix44Test, Transpose)
 {
-	typedef typename Matrix44TypeSelector<TypeParam>::MatrixType Matrix44Type;
+	typedef typename Matrix44TypeSelector<TypeParam>::Matrix44Type Matrix44Type;
 
 	Matrix44Type matrix =
 	{{
@@ -403,7 +405,7 @@ TYPED_TEST(Matrix44Test, Transpose)
 
 TYPED_TEST(Matrix44Test, Determinant)
 {
-	typedef typename Matrix44TypeSelector<TypeParam>::MatrixType Matrix44Type;
+	typedef typename Matrix44TypeSelector<TypeParam>::Matrix44Type Matrix44Type;
 	TypeParam epsilon = Matrix44TypeSelector<TypeParam>::inverseEpsilon;
 
 	Matrix44Type matrix =
@@ -419,7 +421,7 @@ TYPED_TEST(Matrix44Test, Determinant)
 
 TYPED_TEST(Matrix44Test, Invert)
 {
-	typedef typename Matrix44TypeSelector<TypeParam>::MatrixType Matrix44Type;
+	typedef typename Matrix44TypeSelector<TypeParam>::Matrix44Type Matrix44Type;
 	TypeParam epsilon = Matrix44TypeSelector<TypeParam>::inverseEpsilon;
 
 	Matrix44Type matrix =
@@ -479,7 +481,7 @@ TYPED_TEST(Matrix44Test, Invert)
 
 TYPED_TEST(Matrix44Test, MakeRotate)
 {
-	typedef typename Matrix44TypeSelector<TypeParam>::MatrixType Matrix44Type;
+	typedef typename Matrix44TypeSelector<TypeParam>::Matrix44Type Matrix44Type;
 	TypeParam epsilon = Matrix44TypeSelector<TypeParam>::epsilon;
 
 	Matrix44Type rotateX;
@@ -582,7 +584,7 @@ TYPED_TEST(Matrix44Test, MakeRotate)
 
 TYPED_TEST(Matrix44Test, MakeRotateAxisAngle)
 {
-	typedef typename Matrix44TypeSelector<TypeParam>::MatrixType Matrix44Type;
+	typedef typename Matrix44TypeSelector<TypeParam>::Matrix44Type Matrix44Type;
 	typedef typename Matrix44TypeSelector<TypeParam>::Vector3Type Vector3Type;
 	TypeParam epsilon = Matrix44TypeSelector<TypeParam>::epsilon;
 
@@ -616,7 +618,7 @@ TYPED_TEST(Matrix44Test, MakeRotateAxisAngle)
 
 TYPED_TEST(Matrix44Test, MakeTranslate)
 {
-	typedef typename Matrix44TypeSelector<TypeParam>::MatrixType Matrix44Type;
+	typedef typename Matrix44TypeSelector<TypeParam>::Matrix44Type Matrix44Type;
 
 	Matrix44Type matrix;
 	dsMatrix44_makeTranslate(&matrix, (TypeParam)1.2, (TypeParam)-3.4, (TypeParam)5.6);
@@ -644,7 +646,7 @@ TYPED_TEST(Matrix44Test, MakeTranslate)
 
 TYPED_TEST(Matrix44Test, MakeScale)
 {
-	typedef typename Matrix44TypeSelector<TypeParam>::MatrixType Matrix44Type;
+	typedef typename Matrix44TypeSelector<TypeParam>::Matrix44Type Matrix44Type;
 
 	Matrix44Type matrix;
 	dsMatrix44_makeScale(&matrix, (TypeParam)1.2, (TypeParam)-3.4, (TypeParam)5.6);
@@ -672,7 +674,7 @@ TYPED_TEST(Matrix44Test, MakeScale)
 
 TYPED_TEST(Matrix44Test, LookAt)
 {
-	typedef typename Matrix44TypeSelector<TypeParam>::MatrixType Matrix44Type;
+	typedef typename Matrix44TypeSelector<TypeParam>::Matrix44Type Matrix44Type;
 	typedef typename Matrix44TypeSelector<TypeParam>::Vector3Type Vector3Type;
 	TypeParam epsilon = Matrix44TypeSelector<TypeParam>::epsilon;
 
@@ -711,7 +713,7 @@ TYPED_TEST(Matrix44Test, LookAt)
 
 TYPED_TEST(Matrix44Test, FastInvert)
 {
-	typedef typename Matrix44TypeSelector<TypeParam>::MatrixType Matrix44Type;
+	typedef typename Matrix44TypeSelector<TypeParam>::Matrix44Type Matrix44Type;
 	TypeParam epsilon = Matrix44TypeSelector<TypeParam>::epsilon;
 
 	Matrix44Type rotate;
@@ -753,7 +755,7 @@ TYPED_TEST(Matrix44Test, FastInvert)
 
 TYPED_TEST(Matrix44Test, AffineInvert)
 {
-	typedef typename Matrix44TypeSelector<TypeParam>::MatrixType Matrix44Type;
+	typedef typename Matrix44TypeSelector<TypeParam>::Matrix44Type Matrix44Type;
 	TypeParam epsilon = Matrix44TypeSelector<TypeParam>::epsilon;
 
 	Matrix44Type rotate;
@@ -801,7 +803,8 @@ TYPED_TEST(Matrix44Test, AffineInvert)
 
 TYPED_TEST(Matrix44Test, InverseTranspose)
 {
-	typedef typename Matrix44TypeSelector<TypeParam>::MatrixType Matrix44Type;
+	typedef typename Matrix44TypeSelector<TypeParam>::Matrix44Type Matrix44Type;
+	typedef typename Matrix44TypeSelector<TypeParam>::Matrix33Type Matrix33Type;
 	TypeParam epsilon = Matrix44TypeSelector<TypeParam>::epsilon;
 
 	Matrix44Type rotate;
@@ -820,7 +823,7 @@ TYPED_TEST(Matrix44Test, InverseTranspose)
 	Matrix44Type matrix;
 	dsMatrix44_mul(matrix, translate, temp);
 
-	Matrix44Type inverseTranspose;
+	Matrix33Type inverseTranspose;
 	dsMatrix44_inverseTranspose(&inverseTranspose, &matrix);
 
 	Matrix44Type inverse, inverseTransposeCheck;
@@ -830,27 +833,19 @@ TYPED_TEST(Matrix44Test, InverseTranspose)
 	EXPECT_NEAR(inverseTransposeCheck.values[0][0], inverseTranspose.values[0][0], epsilon);
 	EXPECT_NEAR(inverseTransposeCheck.values[0][1], inverseTranspose.values[0][1], epsilon);
 	EXPECT_NEAR(inverseTransposeCheck.values[0][2], inverseTranspose.values[0][2], epsilon);
-	EXPECT_NEAR(inverseTransposeCheck.values[0][3], inverseTranspose.values[0][3], epsilon);
 
 	EXPECT_NEAR(inverseTransposeCheck.values[1][0], inverseTranspose.values[1][0], epsilon);
 	EXPECT_NEAR(inverseTransposeCheck.values[1][1], inverseTranspose.values[1][1], epsilon);
 	EXPECT_NEAR(inverseTransposeCheck.values[1][2], inverseTranspose.values[1][2], epsilon);
-	EXPECT_NEAR(inverseTransposeCheck.values[1][3], inverseTranspose.values[1][3], epsilon);
 
 	EXPECT_NEAR(inverseTransposeCheck.values[2][0], inverseTranspose.values[2][0], epsilon);
 	EXPECT_NEAR(inverseTransposeCheck.values[2][1], inverseTranspose.values[2][1], epsilon);
 	EXPECT_NEAR(inverseTransposeCheck.values[2][2], inverseTranspose.values[2][2], epsilon);
-	EXPECT_NEAR(inverseTransposeCheck.values[2][3], inverseTranspose.values[2][3], epsilon);
-
-	EXPECT_NEAR(inverseTransposeCheck.values[3][0], inverseTranspose.values[3][0], epsilon);
-	EXPECT_NEAR(inverseTransposeCheck.values[3][1], inverseTranspose.values[3][1], epsilon);
-	EXPECT_NEAR(inverseTransposeCheck.values[3][2], inverseTranspose.values[3][2], epsilon);
-	EXPECT_NEAR(inverseTransposeCheck.values[3][3], inverseTranspose.values[3][3], epsilon);
 }
 
 TYPED_TEST(Matrix44Test, MakeOrtho)
 {
-	typedef typename Matrix44TypeSelector<TypeParam>::MatrixType Matrix44Type;
+	typedef typename Matrix44TypeSelector<TypeParam>::Matrix44Type Matrix44Type;
 	typedef typename Matrix44TypeSelector<TypeParam>::Vector4Type Vector4Type;
 	TypeParam epsilon = Matrix44TypeSelector<TypeParam>::epsilon;
 
@@ -948,7 +943,7 @@ TYPED_TEST(Matrix44Test, MakeOrtho)
 
 TYPED_TEST(Matrix44Test, MakeFrustum)
 {
-	typedef typename Matrix44TypeSelector<TypeParam>::MatrixType Matrix44Type;
+	typedef typename Matrix44TypeSelector<TypeParam>::Matrix44Type Matrix44Type;
 	typedef typename Matrix44TypeSelector<TypeParam>::Vector4Type Vector4Type;
 	TypeParam epsilon = Matrix44TypeSelector<TypeParam>::epsilon;
 
@@ -1076,7 +1071,7 @@ TYPED_TEST(Matrix44Test, MakeFrustum)
 
 TYPED_TEST(Matrix44Test, MakePerspective)
 {
-	typedef typename Matrix44TypeSelector<TypeParam>::MatrixType Matrix44Type;
+	typedef typename Matrix44TypeSelector<TypeParam>::Matrix44Type Matrix44Type;
 	typedef typename Matrix44TypeSelector<TypeParam>::Vector4Type Vector4Type;
 	TypeParam epsilon = Matrix44TypeSelector<TypeParam>::epsilon;
 

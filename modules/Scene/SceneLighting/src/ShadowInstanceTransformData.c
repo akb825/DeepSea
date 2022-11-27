@@ -40,7 +40,7 @@ typedef struct InstanceTransform
 {
 	dsMatrix44f world;
 	dsMatrix44f worldView;
-	dsMatrix44f worldViewInvTrans;
+	dsVector4f worldViewInvTrans[3];
 	dsMatrix44f worldViewProj;
 } InstanceTransform;
 
@@ -74,7 +74,15 @@ void dsShadowInstanceTransformData_populateData(void* userData, const dsView* vi
 		InstanceTransform transform;
 		transform.world = *nodeTransform;
 		dsMatrix44_affineMul(transform.worldView, view->viewMatrix, *nodeTransform);
-		dsMatrix44f_inverseTranspose(&transform.worldViewInvTrans, &transform.worldView);
+
+		dsMatrix33f worldViewInvTrans;
+		dsMatrix44f_inverseTranspose(&worldViewInvTrans, &transform.worldView);
+		for (unsigned int i = 0; i < 3; ++i)
+		{
+			*(dsVector3f*)(transform.worldViewInvTrans + i) = worldViewInvTrans.columns[i];
+			transform.worldViewInvTrans[i].w = 0;
+		}
+
 		dsMatrix44_mul(transform.worldViewProj, *projection, transform.worldView);
 		*(InstanceTransform*)(data) = transform;
 	}

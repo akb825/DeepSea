@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@
 
 #include "Matrix33Impl.h"
 #include <DeepSea/Math/Core.h>
+#include <DeepSea/Math/Matrix22.h>
 
 #define dsMatrix33_makeRotate3DImpl(result, cosX, sinX, cosY, sinY, cosZ, sinZ) \
 	do \
@@ -133,26 +134,26 @@ void dsMatrix33d_invert(dsMatrix33d* result, const dsMatrix33d* a)
 	dsMatrix33_invertImpl(*result, *a, invDet);
 }
 
-void dsMatrix33f_inverseTranspose(dsMatrix33f* result, const dsMatrix33f* a)
+void dsMatrix33f_inverseTranspose(dsMatrix22f* result, const dsMatrix33f* a)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
-	DS_ASSERT(result != a);
 
-	dsMatrix33f inverse;
-	dsMatrix33f_affineInvert(&inverse, a);
-	dsMatrix33_transpose(*result, inverse);
+	dsMatrix22f temp, inverse;
+	dsMatrix22_copy(temp, *a);
+	dsMatrix22f_invert(&inverse, &temp);
+	dsMatrix22_transpose(*result, inverse);
 }
 
-void dsMatrix33d_inverseTranspose(dsMatrix33d* result, const dsMatrix33d* a)
+void dsMatrix33d_inverseTranspose(dsMatrix22d* result, const dsMatrix33d* a)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
-	DS_ASSERT(result != a);
 
-	dsMatrix33d inverse;
-	dsMatrix33d_affineInvert(&inverse, a);
-	dsMatrix33_transpose(*result, inverse);
+	dsMatrix22d temp, inverse;
+	dsMatrix22_copy(temp, *a);
+	dsMatrix22d_invert(&inverse, &temp);
+	dsMatrix22_transpose(*result, inverse);
 }
 
 void dsMatrix33f_makeRotate(dsMatrix33f* result, float angle)

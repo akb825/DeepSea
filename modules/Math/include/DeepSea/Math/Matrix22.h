@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,6 +54,26 @@ extern "C"
 		\
 		(result).values[1][0] = 0; \
 		(result).values[1][1] = 1; \
+	} while (0)
+
+/**
+ * @brief Copies a 2x2 matrix.
+ *
+ * This can be used to populate a 2x2 matrix with a 4x4 or 3x3 matrix.
+ *
+ * @param[out] result The matrix to hold the copy.
+ * @param a The matrix to copy.
+ */
+#define dsMatrix22_copy(result, a) \
+	do \
+	{ \
+		DS_ASSERT(&(result) != (const void*)&(a)); \
+		\
+		(result).values[0][0] = (a).values[0][0]; \
+		(result).values[0][1] = (a).values[0][1]; \
+		\
+		(result).values[1][0] = (a).values[1][0]; \
+		(result).values[1][1] = (a).values[1][1]; \
 	} while (0)
 
 /**

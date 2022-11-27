@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 Aaron Barany
+ * Copyright 2016-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,8 +41,9 @@ void dsFrustum3f_transform(dsFrustum3f* frustum, const dsMatrix44f* transform)
 	DS_ASSERT(frustum);
 	DS_ASSERT(transform);
 
-	dsMatrix44f inverseTranspose;
-	dsMatrix44f_inverseTranspose(&inverseTranspose, transform);
+	dsMatrix44f inverse, inverseTranspose;
+	dsMatrix44f_affineInvert(&inverse, transform);
+	dsMatrix44_transpose(inverseTranspose, inverse);
 	int count = dsFrustum3f_isInfinite(frustum) ? dsFrustumPlanes_Far : dsFrustumPlanes_Count;
 	for (int i = 0; i < count; ++i)
 	{
@@ -56,8 +57,9 @@ void dsFrustum3d_transform(dsFrustum3d* frustum, const dsMatrix44d* transform)
 	DS_ASSERT(frustum);
 	DS_ASSERT(transform);
 
-	dsMatrix44d inverseTranspose;
-	dsMatrix44d_inverseTranspose(&inverseTranspose, transform);
+	dsMatrix44d inverse, inverseTranspose;
+	dsMatrix44d_affineInvert(&inverse, transform);
+	dsMatrix44_transpose(inverseTranspose, inverse);
 	int count = dsFrustum3d_isInfinite(frustum) ? dsFrustumPlanes_Far : dsFrustumPlanes_Count;
 	for (int i = 0; i < count; ++i)
 	{

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Aaron Barany
+ * Copyright 2019-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,7 @@ uniform InstanceTransformData
 	/**
 	 * @brief The inverse-transpose of the world view matrix.
 	 */
-	mat4 worldViewInvTrans;
+	mat3 worldViewInvTrans;
 
 	/**
 	 * @brief The world view projection matrix, transforming from local to clip space.
