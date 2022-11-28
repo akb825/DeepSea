@@ -42,7 +42,7 @@ extern "C"
  *     structure. It is the responsibility of the caller to free any memory for the build nodes.
  * @param rootNodeCount The number of root nodes. It is not valid to have an animation tree with no
  *     nodes.
- * @return The animation tree or NULL if the parameters are invalid.
+ * @return The animation tree or NULL if an error occurred.
  */
 DS_ANIMATION_EXPORT dsAnimationTree* dsAnimationTree_create(dsAllocator* allocator,
 	const dsAnimationBuildNode* const* rootNodes, uint32_t rootNodeCount);
@@ -53,7 +53,7 @@ DS_ANIMATION_EXPORT dsAnimationTree* dsAnimationTree_create(dsAllocator* allocat
  * @param allocator The allocator to create the animation tree with.
  * @param nodes The nodes for the tree. The indices for the nodes will be preserved.
  * @param nodeCount The number of nodes. It is not valid to have an animation tree with no nodes.
- * @return The animation tree or NULL if the parameters are invalid.
+ * @return The animation tree or NULL if an error occurred.
  */
 DS_ANIMATION_EXPORT dsAnimationTree* dsAnimationTree_createJoints(dsAllocator* allocator,
 	const dsAnimationJointBuildNode* const* nodes, uint32_t nodeCount);

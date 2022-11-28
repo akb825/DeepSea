@@ -45,6 +45,26 @@ typedef struct dsAnimationBuildNode dsAnimationBuildNode;
 /// @endcond
 
 /**
+ * @brief Enum for the component to animate.
+ */
+typedef enum dsAnimationComponent
+{
+	dsAnimationComponent_Translation, ///< Animates the translation of the node.
+	dsAnimationComponent_Rotation,    ///< Animates the rotation of the node.
+	dsAnimationComponent_Scale        ///< Animates the scale of the node.
+} dsAnimationComponent;
+
+/**
+ * @brief Enum for how to interpolate an animation keyframe.
+ */
+typedef enum dsAnimationInterpolation
+{
+	dsAnimationInterpolation_Step,   ///< Instantly switch to the new value.
+	dsAnimationInterpolation_Linear, ///< Linearly interpolate between values.
+	dsAnimationInterpolation_Cubic   ///< Interpolate using cubic splines.
+} dsAnimationInterpolation;
+
+/**
  * @brief Struct describing the transform for an animation joint used for skinning.
  */
 typedef struct dsAnimationJointTransform
@@ -264,6 +284,130 @@ typedef struct dsAnimationTree
 	 */
 	const dsHashTable* nodeTable;
 } dsAnimationTree;
+
+/**
+ * @brief Struct describing a channel of an animation.
+ *
+ * A channel applies a transform to a component of a transform of an animation node.
+ *
+ * @see dsAnimationKeyframes
+ * @see dsKeyframeAnimation
+ * @see KeyframeAnimation.h
+ */
+typedef struct dsAnimationChannel
+{
+	/**
+	 * @brief The name of the node to animate.
+	 */
+	const char* node;
+
+	/**
+	 * @brief The component of the node transform to animate.
+	 */
+	dsAnimationComponent component;
+
+	/**
+	 * @brief How to interpolate the values from one keyframe to the next.
+	 */
+	dsAnimationInterpolation interpolation;
+
+	/**
+	 * @brief The number of total values.
+	 *
+	 * The number of values depend on the component, interpolation, and parent dsAnimationKeyframes
+	 * structure:
+	 *
+	 * Base values based on the component:
+	 * - Translation: 3.
+	 * - Rotation: 4.
+	 * - Scale: 4.
+	 *
+	 * Multiplier for the number of base values based on interpolation type:
+	 * - Step and linear: 1
+	 * - Cubic: 3
+	 *
+	 * The total number of values is the number of keyframes multiplied the number of base values
+	 * and interpolation multiplier.
+	 */
+	uint32_t valueCount;
+
+	/**
+	 * @brief The values for the animation component.
+	 */
+	const float* values;
+} dsAnimationChannel;
+
+/**
+ * @brief Struct describing keyframes wihin an animation with shared timestamps.
+ * @see dsAnimationChannel
+ * @see dsKeyframeAnimation
+ * @see KeyframeAnimation.h
+ */
+typedef struct dsAnimationKeyframes
+{
+	/**
+	 * @brief The number of keyframes.
+	 */
+	uint32_t keyframeCount;
+
+	/**
+	 * @brief The number of channels the keyframes apply to.
+	 */
+	uint32_t channelCount;
+
+	/**
+	 * @brief The time value for each keyframe.
+	 */
+	const float* keyframeTimes;
+
+	/**
+	 * @brief The channels that apply to the keyframe.
+	 */
+	const dsAnimationChannel* channels;
+} dsAnimationKeyframes;
+
+/**
+ * @brief Struct describing an animation built on keyframes.
+ * @see dsAnimationChannel
+ * @see dsAnimationKeyframes
+ * @see KeyframeAnimation.h
+ */
+typedef struct dsKeyframeAnimation
+{
+	/**
+	 * @brief The allocator the keyframe animation was created with.
+	 */
+	dsAllocator* allocator;
+
+	/**
+	 * @brief Unique ID for the keyframe animation.
+	 *
+	 * The ID is generated for every new dsKeyframeAnimation instance that is created. This can be
+	 * used to verify that the mapping for node indices is valid when connecting to an animation
+	 * tree.
+	 */
+	uint32_t id;
+
+	/**
+	 * @brief The minimum time for any keyframe.
+	 */
+	float minTime;
+
+	/**
+	 * @brief The maximum time for any keyframe.
+	 */
+	float maxTime;
+
+	/**
+	 * @brief The number of dsAnimationKeyframes instances.
+	 */
+	uint32_t keyframesCount;
+
+	/**
+	 * @brief The keyframes for the animation.
+	 */
+	const dsAnimationKeyframes* keyframes;
+} dsKeyframeAnimation;
 
 #ifdef __cplusplus
 }
