@@ -28,18 +28,15 @@ jobs:
             sudo apt-get install -y libfreetype6-dev libharfbuzz-dev libsdl2-dev libgl1-mesa-dev
         displayName: Download submodules
         workingDirectory: $(Build.SourcesDirectory)
-      - task: CMake@1
-        inputs:
-            workingDirectory: $(Build.BinariesDirectory)/Debug
-            cmakeArgs: >
-                -DCMAKE_BUILD_TYPE=Debug $(cmake.args) $(Build.SourcesDirectory)
-        displayName: Run CMake debug
-      - task: CMake@1
-        inputs:
-            workingDirectory: $(Build.BinariesDirectory)/Debug
-            cmakeArgs: --build . -j $(cores.count)
+      - script: |
+            mkdir Debug
+            cd Debug
+            cmake -DCMAKE_BUILD_TYPE=Debug $(cmake.args) $(Build.SourcesDirectory)
+            cmake --build . -j $(cores.count)
         displayName: Build debug
-      - script: ctest $(ctest.args)
+        workingDirectory: $(Build.BinariesDirectory)
+      - script: |
+            ctest $(ctest.args)
         workingDirectory: $(Build.BinariesDirectory)/Debug
         displayName: Run tests debug
         continueOnError: true
@@ -55,18 +52,15 @@ jobs:
         displayName: Publish test results debug
       - script: rm -r $(Common.TestResultsDirectory)/*
         displayName: Clear test results
-      - task: CMake@1
-        inputs:
-            workingDirectory: $(Build.BinariesDirectory)/Release
-            cmakeArgs: >
-                -DCMAKE_BUILD_TYPE=Release $(cmake.args) $(Build.SourcesDirectory)
-        displayName: Run CMake release
-      - task: CMake@1
-        inputs:
-            workingDirectory: $(Build.BinariesDirectory)/Release
-            cmakeArgs: --build . -j $(cores.count)
+      - script: |
+            mkdir Release
+            cd Release
+            cmake -DCMAKE_BUILD_TYPE=Release $(cmake.args) $(Build.SourcesDirectory)
+            cmake --build . -j $(cores.count)
         displayName: Build release
-      - script: ctest $(ctest.args)
+        workingDirectory: $(Build.BinariesDirectory)
+      - script: |
+            ctest $(ctest.args)
         workingDirectory: $(Build.BinariesDirectory)/Release
         displayName: Run tests release
         continueOnError: true
@@ -97,11 +91,11 @@ jobs:
         displayName: Download submodules
         workingDirectory: $(Build.SourcesDirectory)
       - script: ./gradlew bundle$(config)
-        workingDirectory: $(Build.SourcesDirectory)/android
         displayName: Build
+        workingDirectory: $(Build.SourcesDirectory)/android
   - job: Mac
     pool:
-        vmImage: macOS-latest
+        vmImage: macos-latest
     workspace:
         clean: all
     strategy:
@@ -120,20 +114,17 @@ jobs:
             ./update.sh -s -t -l mac-x86_64
         displayName: Download submodules
         workingDirectory: $(Build.SourcesDirectory)
-      - task: CMake@1
-        inputs:
-            workingDirectory: $(Build.BinariesDirectory)/Debug
-            cmakeArgs: >
-                -DCMAKE_BUILD_TYPE=Debug $(cmake.args) $(Build.SourcesDirectory)
-        displayName: Run CMake debug
-      - task: CMake@1
-        inputs:
-            workingDirectory: $(Build.BinariesDirectory)/Debug
-            cmakeArgs: --build . -j $(cores.count)
+      - script: |
+            mkdir Debug
+            cd Debug
+            cmake -DCMAKE_BUILD_TYPE=Debug $(cmake.args) $(Build.SourcesDirectory)
+            cmake --build . -j $(cores.mac.count)
         displayName: Build debug
-      - script: ctest $(ctest.args)
-        workingDirectory: $(Build.BinariesDirectory)/Debug
+        workingDirectory: $(Build.BinariesDirectory)
+      - script: |
+            ctest $(ctest.args)
         displayName: Run tests debug
+        workingDirectory: $(Build.BinariesDirectory)/Debug
         continueOnError: true
         timeoutInMinutes: 5
       - task: PublishTestResults@2
@@ -147,18 +138,15 @@ jobs:
         displayName: Publish test results debug
       - script: rm -r $(Common.TestResultsDirectory)/*
         displayName: Clear test results
-      - task: CMake@1
-        inputs:
-            workingDirectory: $(Build.BinariesDirectory)/Release
-            cmakeArgs: >
-                -DCMAKE_BUILD_TYPE=Release $(cmake.args) $(Build.SourcesDirectory)
-        displayName: Run CMake release
-      - task: CMake@1
-        inputs:
-            workingDirectory: $(Build.BinariesDirectory)/Release
-            cmakeArgs: --build . -j $(cores.count)
+      - script: |
+            mkdir Release
+            cd Release
+            cmake -DCMAKE_BUILD_TYPE=Release $(cmake.args) $(Build.SourcesDirectory)
+            cmake --build . -j $(cores.mac.count)
         displayName: Build release
-      - script: ctest $(ctest.args)
+        workingDirectory: $(Build.BinariesDirectory)
+      - script: |
+            ctest $(ctest.args)
         workingDirectory: $(Build.BinariesDirectory)/Release
         displayName: Run tests release
         continueOnError: true
@@ -176,7 +164,7 @@ jobs:
 # be a bit tricky to do securely given that it's a public project.
 #  - job: iOS
 #    pool:
-#        vmImage: macOS-latest
+#        vmImage: macos-latest
 #    workspace:
 #        clean: all
 #    steps:
@@ -184,23 +172,18 @@ jobs:
 #            ./update.sh -s -t -l ios
 #        displayName: Download submodules
 #        workingDirectory: $(Build.SourcesDirectory)
-#      - task: CMake@1
-#        inputs:
-#            workingDirectory: $(Build.BinariesDirectory)
-#            cmakeArgs: >
-#                -G Xcode -DCMAKE_TOOLCHAIN_FILE=$(Build.SourcesDirectory)/cmake/ios.toolchain.cmake
-#                $(Build.SourcesDirectory)
-#        displayName: Run CMake debug
-#      - task: CMake@1
-#        inputs:
-#            workingDirectory: $(Build.BinariesDirectory)
-#            cmakeArgs: --build . --config Debug
+#      - script: | 
+#            cmake -G Xcode -DCMAKE_TOOLCHAIN_FILE=$(Build.SourcesDirectory)/cmake/ios.toolchain.cmake $(Build.SourcesDirectory)
+#        displayName: Run CMake
+#        workingDirectory: $(Build.BinariesDirectory)
+#      - script: |
+#            cmake --build . --config Debug
 #        displayName: Build debug
-#      - task: CMake@1
-#        inputs:
-#            workingDirectory: $(Build.BinariesDirectory)
-#            cmakeArgs: --build . --config Release
+#        workingDirectory: $(Build.BinariesDirectory)
+#      - script: |
+#            cmake --build . --config Release
 #        displayName: Build release
+#        workingDirectory: $(Build.BinariesDirectory)
   - job: Windows
     pool:
         vmImage: windows-latest
@@ -243,19 +226,18 @@ jobs:
             ./update.sh -m -t -l $(libs)
         displayName: Download submodules
         workingDirectory: $(Build.SourcesDirectory)
-      - task: CMake@1
-        inputs:
-            workingDirectory: $(Build.BinariesDirectory)
-            cmakeArgs: $(cmake.args) -A $(arch) -T v141 $(Build.SourcesDirectory)
+      - script: |
+            cmake $(cmake.args) -A $(arch) -T v141 $(Build.SourcesDirectory)
         displayName: Run CMake
-      - task: CMake@1
-        inputs:
-            workingDirectory: $(Build.BinariesDirectory)
-            cmakeArgs: --build . --config Debug
-        displayName: Build debug
-      - script: ctest $(ctest.args) -C Debug
         workingDirectory: $(Build.BinariesDirectory)
+      - script: |
+            cmake --build . --config Debug
+        displayName: Build debug
+        workingDirectory: $(Build.BinariesDirectory)
+      - script: |
+            ctest $(ctest.args) -C Debug
         displayName: Run tests debug
+        workingDirectory: $(Build.BinariesDirectory)
         continueOnError: true
         timeoutInMinutes: 5
       - task: PublishTestResults@2
@@ -271,14 +253,14 @@ jobs:
       - bash: rm -r *
         displayName: Clear test results
         workingDirectory: $(Common.TestResultsDirectory)
-      - task: CMake@1
-        inputs:
-            workingDirectory: $(Build.BinariesDirectory)
-            cmakeArgs: --build . --config Release
+      - script: |
+            cmake --build . --config Release
         displayName: Build release
-      - script: ctest $(ctest.args) -C Release
         workingDirectory: $(Build.BinariesDirectory)
+      - script: |
+            ctest $(ctest.args) -C Release
         displayName: Run tests release
+        workingDirectory: $(Build.BinariesDirectory)
         continueOnError: true
         timeoutInMinutes: 5
       - task: PublishTestResults@2
