@@ -1,8 +1,8 @@
 # Introduction
 
-DeepSea is a game engine written in C. It is designed to be modular, allowing only pieces of the engine to be taken. For example, you can only take the Graphics module (and dependencies) without compiling the other modules.
+[![DeepSea](https://github.com/akb825/DeepSea/actions/workflows/main.yml/badge.svg)](https://github.com/akb825/DeepSea/actions/workflows/main.yml)
 
-[![Build Status](https://dev.azure.com/akb825/DeepSea/_apis/build/status/akb825.DeepSea?branchName=master)](https://dev.azure.com/akb825/DeepSea/_build/latest?definitionId=5&branchName=master)
+DeepSea is a game engine written in C. It is designed to be modular, allowing only pieces of the engine to be taken. For example, you can only take the Graphics module (and dependencies) without compiling the other modules.
 
 # Dependencies
 
