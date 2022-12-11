@@ -286,7 +286,7 @@ typedef struct dsAnimationTree
 } dsAnimationTree;
 
 /**
- * @brief Struct describing a channel of an animation.
+ * @brief Struct describing a channel of a keyframe animation.
  *
  * A channel applies a transform to a component of a transform of an animation node.
  *
@@ -294,7 +294,7 @@ typedef struct dsAnimationTree
  * @see dsKeyframeAnimation
  * @see KeyframeAnimation.h
  */
-typedef struct dsAnimationChannel
+typedef struct dsKeyframeAnimationChannel
 {
 	/**
 	 * @brief The name of the node to animate.
@@ -335,7 +335,7 @@ typedef struct dsAnimationChannel
 	 * @brief The values for the animation component.
 	 */
 	const float* values;
-} dsAnimationChannel;
+} dsKeyframeAnimationChannel;
 
 /**
  * @brief Struct describing keyframes wihin an animation with shared timestamps.
@@ -363,7 +363,7 @@ typedef struct dsAnimationKeyframes
 	/**
 	 * @brief The channels that apply to the keyframe.
 	 */
-	const dsAnimationChannel* channels;
+	const dsKeyframeAnimationChannel* channels;
 } dsAnimationKeyframes;
 
 /**
@@ -378,15 +378,6 @@ typedef struct dsKeyframeAnimation
 	 * @brief The allocator the keyframe animation was created with.
 	 */
 	dsAllocator* allocator;
-
-	/**
-	 * @brief Unique ID for the keyframe animation.
-	 *
-	 * The ID is generated for every new dsKeyframeAnimation instance that is created. This can be
-	 * used to verify that the mapping for node indices is valid when connecting to an animation
-	 * tree.
-	 */
-	uint32_t id;
 
 	/**
 	 * @brief The minimum time for any keyframe.
@@ -408,6 +399,58 @@ typedef struct dsKeyframeAnimation
 	 */
 	const dsAnimationKeyframes* keyframes;
 } dsKeyframeAnimation;
+
+/**
+ * @brief Struct describing a channel for directly applying transform values.
+ *
+ * A channel applies a transform to a component of a transform of an animation node.
+ *
+ * @see dsDirectAnimation
+ * @see DirectAnimation.h
+ */
+typedef struct dsDirectAnimationChannel
+{
+	/**
+	 * @brief The name of the node to animate.
+	 */
+	const char* node;
+
+	/**
+	 * @brief The component of the node transform to animate.
+	 */
+	dsAnimationComponent component;
+
+	/**
+	 * @brief The value of the component.
+	 *
+	 * This will use three or four of the value components based on the animation component.
+	 */
+	dsVector4f value;
+} dsDirectAnimationChannel;
+
+/**
+ * @brief Struct describing an animation that directly sets transform values.
+ * @see dsAnimationChannel
+ * @see dsAnimationKeyframes
+ * @see KeyframeAnimation.h
+ */
+typedef struct dsDirectAnimation
+{
+	/**
+	 * @brief The allocator the direct animation was created with.
+	 */
+	dsAllocator* allocator;
+
+	/**
+	 * @brief The channels for the animation.
+	 */
+	dsDirectAnimationChannel* channels;
+
+	/**
+	 * @brief The number of channels in the animation.
+	 */
+	uint32_t channelCount;
+} dsDirectAnimation;
 
 #ifdef __cplusplus
 }

@@ -19,7 +19,6 @@
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Assert.h>
-#include <DeepSea/Core/Atomic.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 
@@ -27,8 +26,6 @@
 
 #include <float.h>
 #include <string.h>
-
-static uint32_t nextID;
 
 dsKeyframeAnimation* dsKeyframeAnimation_create(dsAllocator* allocator,
 	const dsAnimationKeyframes* keyframes, uint32_t keyframesCount)
@@ -68,11 +65,11 @@ dsKeyframeAnimation* dsKeyframeAnimation_create(dsAllocator* allocator,
 		}
 
 		fullSize += DS_ALIGNED_SIZE(sizeof(float)*curKeyframes->keyframeCount) +
-			DS_ALIGNED_SIZE(sizeof(dsAnimationChannel)*curKeyframes->channelCount);
+			DS_ALIGNED_SIZE(sizeof(dsKeyframeAnimationChannel)*curKeyframes->channelCount);
 
 		for (uint32_t j = 0; j < curKeyframes->channelCount; ++j)
 		{
-			const dsAnimationChannel* curChannel = curKeyframes->channels + j;
+			const dsKeyframeAnimationChannel* curChannel = curKeyframes->channels + j;
 			uint32_t expectedValueCount = curKeyframes->keyframeCount;
 			switch (curChannel->component)
 			{
@@ -124,7 +121,6 @@ dsKeyframeAnimation* dsKeyframeAnimation_create(dsAllocator* allocator,
 	DS_ASSERT(animation);
 
 	animation->allocator = dsAllocator_keepPointer(allocator);
-	animation->id = DS_ATOMIC_FETCH_ADD32(&nextID, 1);
 	animation->minTime = minTime;
 	animation->maxTime = maxTime;
 	animation->keyframesCount = keyframesCount;
@@ -146,13 +142,13 @@ dsKeyframeAnimation* dsKeyframeAnimation_create(dsAllocator* allocator,
 			sizeof(float)*fromKeyframes->keyframeCount);
 		toKeyframes->keyframeTimes = keyframeTimes;
 
-		dsAnimationChannel* channels = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsAnimationChannel,
-			fromKeyframes->channelCount);
+		dsKeyframeAnimationChannel* channels = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc,
+			dsKeyframeAnimationChannel, fromKeyframes->channelCount);
 		DS_ASSERT(channels);
 		for (uint32_t j = 0; j < fromKeyframes->channelCount; ++j)
 		{
-			const dsAnimationChannel* fromChannel = fromKeyframes->channels + j;
-			dsAnimationChannel* toChannel = channels + j;
+			const dsKeyframeAnimationChannel* fromChannel = fromKeyframes->channels + j;
+			dsKeyframeAnimationChannel* toChannel = channels + j;
 
 			size_t nodeLen = strlen(fromChannel->node) + 1;
 			char* node = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, nodeLen);
