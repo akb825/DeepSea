@@ -452,6 +452,88 @@ typedef struct dsDirectAnimation
 	uint32_t channelCount;
 } dsDirectAnimation;
 
+/**
+ * @brief Struct describing a mapping from animation keyframe channels to tree nodes.
+ * @see dsKeyframeAnimationNodeMap
+ * @see KeyframeAnimationNodeMap.h
+ */
+typedef struct dsAnimationKeyframesNodeMap
+{
+	/**
+	 * @brief The number of channels for the keyfrmes.
+	 */
+	uint32_t channelCount;
+
+	/**
+	 * @brief The indices of the nodes that correspond to the channel.
+	 */
+	const uint32_t* channelNodes;
+} dsAnimationKeyframesNodeMap;
+
+/**
+ * @brief Struct describing a mapping from a keyframe animation to tree ndoes.
+ * @see KeyframeAnimationNodeMap.h
+ */
+typedef struct dsKeyframeAnimationNodeMap
+{
+	/**
+	 * @brief The animation the keyframe animation node map was created with.
+	 */
+	dsAllocator* allocator;
+
+	/**
+	 * @brief The animation the map is used for.
+	 */
+	const dsKeyframeAnimation* animation;
+
+	/**
+	 * @brief The ID for the animation tree the map is used for.
+	 */
+	uint32_t treeID;
+
+	/**
+	 * @brief The number of dsAnimationKeyframesNodeMap objects.
+	 */
+	uint32_t keyframesCount;
+
+	/**
+	 * @brief The maps from animation keyframes to animation tree nodes.
+	 */
+	const dsAnimationKeyframesNodeMap* keyframesMaps;
+} dsKeyframeAnimationNodeMap;
+
+/**
+ * @brief Struct describing a mapping from a direct animation to tree ndoes.
+ * @see DirectAnimationNodeMap.h
+ */
+typedef struct dsDirectAnimationNodeMap
+{
+	/**
+	 * @brief The animation the direct animation node map was created with.
+	 */
+	dsAllocator* allocator;
+
+	/**
+	 * @brief The animation the map is used for.
+	 */
+	const dsDirectAnimation* animation;
+
+	/**
+	 * @brief The ID for the animation tree the map is used for.
+	 */
+	uint32_t treeID;
+
+	/**
+	 * @brief The number of channels for the animation.
+	 */
+	uint32_t channelCount;
+
+	/**
+	 * @brief The indices of the nodes that correspond to the channel.
+	 */
+	const uint32_t* channelNodes;
+} dsDirectAnimationNodeMap;
+
 #ifdef __cplusplus
 }
 #endif
