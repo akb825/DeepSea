@@ -3,7 +3,7 @@ if (NOT MATH_LIB)
 	set(MATH_LIB "")
 endif()
 
-file(GLOB_RECURSE sources src/*.c src/*.h include/*.h)
+file(GLOB_RECURSE sources src/*.c src/*.cpp src/*.h include/*.h)
 ds_add_library(deepsea_math MODULE Math FILES ${sources})
 
 ds_target_link_libraries(deepsea_math PUBLIC ${MATH_LIB})

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,13 +27,22 @@ template <typename T>
 struct Vector4TypeSelector;
 
 template <>
-struct Vector4TypeSelector<float> {typedef dsVector4f Type;};
+struct Vector4TypeSelector<float>
+{
+	typedef dsVector4f Type;
+};
 
 template <>
-struct Vector4TypeSelector<double> {typedef dsVector4d Type;};
+struct Vector4TypeSelector<double>
+{
+	typedef dsVector4d Type;
+};
 
 template <>
-struct Vector4TypeSelector<int> {typedef dsVector4i Type;};
+struct Vector4TypeSelector<int>
+{
+	typedef dsVector4i Type;
+};
 
 template <typename T>
 class Vector4Test : public testing::Test
@@ -233,11 +242,7 @@ TYPED_TEST(Vector4Test, Dot)
 	Vector4Type a = {{(TypeParam)-2.3, (TypeParam)4.5, (TypeParam)-6.7, (TypeParam)8.9}};
 	Vector4Type b = {{(TypeParam)3.2, (TypeParam)-5.4, (TypeParam)7.6, (TypeParam)-9.8}};
 
-	EXPECT_EQ((TypeParam)-2.3*(TypeParam)3.2 +
-			  (TypeParam)4.5*(TypeParam)-5.4 +
-			  (TypeParam)-6.7*(TypeParam)7.6 +
-			  (TypeParam)8.9*(TypeParam)-9.8,
-			  dsVector4_dot(a, b));
+	EXPECT_EQ(a.x*b.x + a.y*b.y + a.z*b.z + a.w*b.w, dsVector4_dot(a, b));
 }
 
 TYPED_TEST(Vector4Test, Length)
@@ -246,16 +251,8 @@ TYPED_TEST(Vector4Test, Length)
 
 	Vector4Type a = {{(TypeParam)-2.3, (TypeParam)4.5, (TypeParam)-6.7, (TypeParam)8.9}};
 
-	EXPECT_EQ(dsPow2((TypeParam)-2.3) +
-			  dsPow2((TypeParam)4.5) +
-			  dsPow2((TypeParam)-6.7) +
-			  dsPow2((TypeParam)8.9),
-			  dsVector4_len2(a));
-	EXPECT_EQ(std::sqrt(dsPow2((TypeParam)-2.3) +
-						dsPow2((TypeParam)4.5) +
-						dsPow2((TypeParam)-6.7) +
-						dsPow2((TypeParam)8.9)),
-			  dsVector4_len(&a));
+	EXPECT_EQ(dsPow2(a.x) + dsPow2(a.y) + dsPow2(a.z) + dsPow2(a.w), dsVector4_len2(a));
+	EXPECT_EQ(std::sqrt(dsPow2(a.x) + dsPow2(a.y) + dsPow2(a.z) + dsPow2(a.w)), dsVector4_len(&a));
 }
 
 TYPED_TEST(Vector4Test, Distance)
@@ -265,16 +262,10 @@ TYPED_TEST(Vector4Test, Distance)
 	Vector4Type a = {{(TypeParam)-2.3, (TypeParam)4.5, (TypeParam)-6.7, (TypeParam)8.9}};
 	Vector4Type b = {{(TypeParam)3.2, (TypeParam)-5.4, (TypeParam)7.6, (TypeParam)-9.8}};
 
-	EXPECT_EQ(dsPow2((TypeParam)-2.3 - (TypeParam)3.2) +
-			  dsPow2((TypeParam)4.5 - (TypeParam)-5.4) +
-			  dsPow2((TypeParam)-6.7 - (TypeParam)7.6) +
-			  dsPow2((TypeParam)8.9 - (TypeParam)-9.8),
-			  dsVector4_dist2(a, b));
-	EXPECT_EQ(std::sqrt(dsPow2((TypeParam)-2.3 - (TypeParam)3.2) +
-						dsPow2((TypeParam)4.5 - (TypeParam)-5.4) +
-						dsPow2((TypeParam)-6.7 - (TypeParam)7.6) +
-						dsPow2((TypeParam)8.9 - (TypeParam)-9.8)),
-			  dsVector4_dist(&a, &b));
+	EXPECT_EQ(dsPow2(a.x - b.x) + dsPow2(a.y - b.y) + dsPow2(a.z - b.z) + dsPow2(a.w - b.w),
+		dsVector4_dist2(a, b));
+	EXPECT_EQ(std::sqrt(dsPow2(a.x - b.x) + dsPow2(a.y - b.y) + dsPow2(a.z - b.z) +
+		dsPow2(a.w - b.w)), dsVector4_dist(&a, &b));
 }
 
 TYPED_TEST(Vector4Test, Equal)

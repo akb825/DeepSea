@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,13 +27,22 @@ template <typename T>
 struct Vector2TypeSelector;
 
 template <>
-struct Vector2TypeSelector<float> {typedef dsVector2f Type;};
+struct Vector2TypeSelector<float>
+{
+	typedef dsVector2f Type;
+};
 
 template <>
-struct Vector2TypeSelector<double> {typedef dsVector2d Type;};
+struct Vector2TypeSelector<double>
+{
+	typedef dsVector2d Type;
+};
 
 template <>
-struct Vector2TypeSelector<int> {typedef dsVector2i Type;};
+struct Vector2TypeSelector<int>
+{
+	typedef dsVector2i Type;
+};
 
 template <typename T>
 class Vector2Test : public testing::Test
@@ -213,9 +222,7 @@ TYPED_TEST(Vector2Test, Dot)
 	Vector2Type a = {{(TypeParam)-2.3, (TypeParam)4.5}};
 	Vector2Type b = {{(TypeParam)3.2, (TypeParam)-5.4}};
 
-	EXPECT_EQ((TypeParam)-2.3*(TypeParam)3.2 +
-			  (TypeParam)4.5*(TypeParam)-5.4,
-			  dsVector2_dot(a, b));
+	EXPECT_EQ(a.x*b.x + a.y*b.y, dsVector2_dot(a, b));
 }
 
 TYPED_TEST(Vector2Test, Length)
@@ -224,12 +231,8 @@ TYPED_TEST(Vector2Test, Length)
 
 	Vector2Type a = {{(TypeParam)-2.3, (TypeParam)4.5}};
 
-	EXPECT_EQ(dsPow2((TypeParam)-2.3) +
-			  dsPow2((TypeParam)4.5),
-			  dsVector2_len2(a));
-	EXPECT_EQ(std::sqrt(dsPow2((TypeParam)-2.3) +
-						dsPow2((TypeParam)4.5)),
-			  dsVector2_len(&a));
+	EXPECT_EQ(dsPow2(a.x) + dsPow2(a.y), dsVector2_len2(a));
+	EXPECT_EQ(std::sqrt(dsPow2(a.x) + dsPow2(a.y)), dsVector2_len(&a));
 }
 
 TYPED_TEST(Vector2Test, Distance)
@@ -239,12 +242,8 @@ TYPED_TEST(Vector2Test, Distance)
 	Vector2Type a = {{(TypeParam)-2.3, (TypeParam)4.5}};
 	Vector2Type b = {{(TypeParam)3.2, (TypeParam)-5.4}};
 
-	EXPECT_EQ(dsPow2((TypeParam)-2.3 - (TypeParam)3.2) +
-			  dsPow2((TypeParam)4.5 - (TypeParam)-5.4),
-			  dsVector2_dist2(a, b));
-	EXPECT_EQ(std::sqrt(dsPow2((TypeParam)-2.3 - (TypeParam)3.2) +
-						dsPow2((TypeParam)4.5 - (TypeParam)-5.4)),
-			  dsVector2_dist(&a, &b));
+	EXPECT_EQ(dsPow2(a.x - b.x) + dsPow2(a.y - b.y), dsVector2_dist2(a, b));
+	EXPECT_EQ(std::sqrt(dsPow2(a.x - b.x) + dsPow2(a.y - b.y)), dsVector2_dist(&a, &b));
 }
 
 TYPED_TEST(Vector2Test, Equal)

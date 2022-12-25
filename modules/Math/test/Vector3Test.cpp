@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,13 +27,22 @@ template <typename T>
 struct Vector3TypeSelector;
 
 template <>
-struct Vector3TypeSelector<float> {typedef dsVector3f Type;};
+struct Vector3TypeSelector<float>
+{
+	typedef dsVector3f Type;
+};
 
 template <>
-struct Vector3TypeSelector<double> {typedef dsVector3d Type;};
+struct Vector3TypeSelector<double>
+{
+	typedef dsVector3d Type;
+};
 
 template <>
-struct Vector3TypeSelector<int> {typedef dsVector3i Type;};
+struct Vector3TypeSelector<int>
+{
+	typedef dsVector3i Type;
+};
 
 template <typename T>
 class Vector3Test : public testing::Test
@@ -223,10 +232,8 @@ TYPED_TEST(Vector3Test, Dot)
 	Vector3Type a = {{(TypeParam)-2.3, (TypeParam)4.5, (TypeParam)-6.7}};
 	Vector3Type b = {{(TypeParam)3.2, (TypeParam)-5.4, (TypeParam)7.6}};
 
-	EXPECT_EQ((TypeParam)-2.3*(TypeParam)3.2 +
-			  (TypeParam)4.5*(TypeParam)-5.4 +
-			  (TypeParam)-6.7*(TypeParam)7.6,
-			  dsVector3_dot(a, b));
+	EXPECT_EQ((TypeParam)-2.3*(TypeParam)3.2 + (TypeParam)4.5*(TypeParam)-5.4 +
+		(TypeParam)-6.7*(TypeParam)7.6, dsVector3_dot(a, b));
 }
 
 TYPED_TEST(Vector3Test, Cross)
@@ -238,9 +245,9 @@ TYPED_TEST(Vector3Test, Cross)
 	Vector3Type result;
 
 	dsVector3_cross(result, a, b);
-	EXPECT_EQ((TypeParam)4.5*(TypeParam)7.6 - (TypeParam)-5.4*(TypeParam)-6.7, result.x);
-	EXPECT_EQ((TypeParam)3.2*(TypeParam)-6.7 - (TypeParam)-2.3*(TypeParam)7.6, result.y);
-	EXPECT_EQ((TypeParam)-2.3*(TypeParam)-5.4 - (TypeParam)4.5*(TypeParam)3.2, result.z);
+	EXPECT_EQ(a.y*b.z - b.y*a.z, result.x);
+	EXPECT_EQ(b.x*a.z - a.x*b.z, result.y);
+	EXPECT_EQ(a.x*b.y - b.x*a.y, result.z);
 
 	Vector3Type xAxis = {{1, 0, 0}};
 	Vector3Type yAxis = {{0, 1, 0}};
@@ -257,14 +264,8 @@ TYPED_TEST(Vector3Test, Length)
 
 	Vector3Type a = {{(TypeParam)-2.3, (TypeParam)4.5, (TypeParam)-6.7}};
 
-	EXPECT_EQ(dsPow2((TypeParam)-2.3) +
-			  dsPow2((TypeParam)4.5) +
-			  dsPow2((TypeParam)-6.7),
-			  dsVector3_len2(a));
-	EXPECT_EQ(std::sqrt(dsPow2((TypeParam)-2.3) +
-						dsPow2((TypeParam)4.5) +
-						dsPow2((TypeParam)-6.7)),
-			  dsVector3_len(&a));
+	EXPECT_EQ(dsPow2(a.x) + dsPow2(a.y) + dsPow2(a.z), dsVector3_len2(a));
+	EXPECT_EQ(std::sqrt(dsPow2(a.x) + dsPow2(a.y) + dsPow2(a.z)), dsVector3_len(&a));
 }
 
 TYPED_TEST(Vector3Test, Distance)
@@ -274,14 +275,9 @@ TYPED_TEST(Vector3Test, Distance)
 	Vector3Type a = {{(TypeParam)-2.3, (TypeParam)4.5, (TypeParam)-6.7}};
 	Vector3Type b = {{(TypeParam)3.2, (TypeParam)-5.4, (TypeParam)7.6}};
 
-	EXPECT_EQ(dsPow2((TypeParam)-2.3 - (TypeParam)3.2) +
-			  dsPow2((TypeParam)4.5 - (TypeParam)-5.4) +
-			  dsPow2((TypeParam)-6.7 - (TypeParam)7.6),
-			  dsVector3_dist2(a, b));
-	EXPECT_EQ(std::sqrt(dsPow2((TypeParam)-2.3 - (TypeParam)3.2) +
-						dsPow2((TypeParam)4.5 - (TypeParam)-5.4) +
-						dsPow2((TypeParam)-6.7 - (TypeParam)7.6)),
-			  dsVector3_dist(&a, &b));
+	EXPECT_EQ(dsPow2(a.x - b.x) + dsPow2(a.y - b.y) + dsPow2(a.z - b.z), dsVector3_dist2(a, b));
+	EXPECT_EQ(std::sqrt(dsPow2(a.x - b.x) + dsPow2(a.y - b.y) + dsPow2(a.z - b.z)),
+			dsVector3_dist(&a, &b));
 }
 
 TYPED_TEST(Vector3Test, Equal)

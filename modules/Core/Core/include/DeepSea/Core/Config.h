@@ -150,7 +150,7 @@
 /**
  * @brief Macro defined to whether or not the system is 32-bit x86.
  */
-#if defined(__i386__) || defined(_M_I86)
+#if defined(__i386__) || defined(_M_IX86)
 #define DS_X86_32 1
 #else
 #define DS_X86_32 0
