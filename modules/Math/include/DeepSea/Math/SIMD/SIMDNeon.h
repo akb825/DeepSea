@@ -19,6 +19,7 @@
 #include <DeepSea/Core/Config.h>
 
 #include <arm_neon.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -46,6 +47,12 @@ extern "C"
 #define DS_ALWAYS_SIMD_HADD 1
 #define DS_ALWAYS_SIMD_FMA 1
 #define DS_ALWAYS_SIMD_HALF_FLOAT 1
+
+#if DS_MSC
+#define DS_ASSUME_SIMD_ALIGNED(x) (((uintptr_t)(x) & 0xF) == 0 ? (x) : __assume(0))
+#else
+#define DS_ASSUME_SIMD_ALIGNED(x) __builtin_assume_aligned((void*)(x), 16)
+#endif
 /// @endcond
 
 /**
@@ -73,7 +80,7 @@ typedef float16x4_t dsSIMD4hf;
  */
 static DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_load(const void* fp)
 {
-	return vld1q_f32((const float*)__builtin_assume_aligned((void*)fp, 16));
+	return vld1q_f32((const float*)DS_ASSUME_SIMD_ALIGNED(fp));
 }
 
 /**
@@ -98,6 +105,20 @@ static DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_set1(float f)
 }
 
 /**
+ * @brief Sets a SIMD value with four floats.
+ * @remark This can be used when dsSIMDFeatures_Float4 is available.
+ * @param x The first value.
+ * @param y The second value.
+ * @param z The third value.
+ * @param w The fourth value.
+ */
+static DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_set4(float x, float y, float z, float w)
+{
+	dsSIMD4f temp = {x, y, z, w};
+	return temp;
+}
+
+/**
  * @brief Stores a SIMD register into four float values.
  * @remark This can be used when dsSIMDFeatures_Float4 is available.
  * @param[out] fp A pointer to the float values to store to. This should be aligned to 16 bytes.
@@ -105,7 +126,7 @@ static DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_set1(float f)
  */
 static DS_ALWAYS_INLINE void dsSIMD4f_store(void* fp, dsSIMD4f a)
 {
-	vst1q_f32((float*)__builtin_assume_aligned(fp, 16), a);
+	vst1q_f32((float*)DS_ASSUME_SIMD_ALIGNED(fp), a);
 }
 
 /**
@@ -118,6 +139,15 @@ static DS_ALWAYS_INLINE void dsSIMD4f_storeUnaligned(void* fp, dsSIMD4f a)
 {
 	vst1q_f32((float*)fp, a);
 }
+
+/**
+ * @brief Gets a float element from a SIMD value.
+ * @remark This can be used when dsSIMDFeatures_Float4 is available.
+ * @param a The value to get the element from.
+ * @param i The index of the element.
+ * @return The element value.
+ */
+#define dsSIMD4f_get(a, i) vgetq_lane_f32((a), (i))
 
 /**
  * @brief Negates a SIMD value.
@@ -454,7 +484,7 @@ static DS_ALWAYS_INLINE dsSIMD4b dsSIMD4b_false(void)
  */
 static DS_ALWAYS_INLINE void dsSIMD4b_store(void* ip, dsSIMD4b a)
 {
-	vst1q_u32((unsigned int*)__builtin_assume_aligned(ip, 16), a);
+	vst1q_u32((unsigned int*)DS_ASSUME_SIMD_ALIGNED(ip), a);
 }
 
 /**
@@ -547,7 +577,9 @@ static DS_ALWAYS_INLINE dsSIMD4b dsSIMD4b_xor(dsSIMD4b a, dsSIMD4b b)
  */
 static DS_ALWAYS_INLINE dsSIMD4hf dsSIMD4hf_load1(const void* hfp)
 {
-	return vld1_lane_f16((const float16_t*)hfp, vdup_n_f16(0), 0);
+	const float16_t* loadPtr = (const float16_t*)hfp;
+	dsSIMD4hf temp = {*loadPtr, 0, 0, 0};
+	return temp;
 }
 
 /**
@@ -559,7 +591,8 @@ static DS_ALWAYS_INLINE dsSIMD4hf dsSIMD4hf_load1(const void* hfp)
 static DS_ALWAYS_INLINE dsSIMD4hf dsSIMD4hf_load2(const void* hfp)
 {
 	const float16_t* loadPtr = (const float16_t*)hfp;
-	return vld1_lane_f16(loadPtr + 1, vld1_lane_f16(loadPtr, vdup_n_f16(0), 0), 1);
+	dsSIMD4hf temp = {loadPtr[0], loadPtr[1], 0, 0};
+	return temp;
 }
 
 /**

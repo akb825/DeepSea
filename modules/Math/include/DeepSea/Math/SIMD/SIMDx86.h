@@ -148,6 +148,19 @@ static DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_set1(float f)
 }
 
 /**
+ * @brief Sets a SIMD value with four floats.
+ * @remark This can be used when dsSIMDFeatures_Float4 is available.
+ * @param x The first value.
+ * @param y The second value.
+ * @param z The third value.
+ * @param w The fourth value.
+ */
+static DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_set4(float x, float y, float z, float w)
+{
+	return _mm_set_ps(w, z, y, x);
+}
+
+/**
  * @brief Stores a SIMD register into four float values.
  * @remark This can be used when dsSIMDFeatures_Float4 is available.
  * @param[out] fp A pointer to the float values to store to. This should be aligned to 16 bytes.
@@ -157,6 +170,15 @@ static DS_ALWAYS_INLINE void dsSIMD4f_store(void* fp, dsSIMD4f a)
 {
 	_mm_store_ps((float*)fp, a);
 }
+
+/**
+ * @brief Gets a float element from a SIMD value.
+ * @remark This can be used when dsSIMDFeatures_Float4 is available.
+ * @param a The value to get the element from.
+ * @param i The index of the element.
+ * @return The element value.
+ */
+#define dsSIMD4f_get(a, i) _mm_cvtss_f32(_mm_shuffle_ps((a), (a), _MM_SHUFFLE(0, 0, 0, (i))))
 
 /**
  * @brief Stores a SIMD register into four float values.

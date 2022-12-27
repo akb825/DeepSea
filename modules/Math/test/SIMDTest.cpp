@@ -57,6 +57,12 @@ TEST(SIMDTest, Float4)
 	EXPECT_EQ(0.1f, unalginedCPUResult.z);
 	EXPECT_EQ(0.1f, unalginedCPUResult.w);
 
+	result = dsSIMD4f_set4(0.1f, 0.2f, 0.3f, 0.4f);
+	EXPECT_EQ(0.1f, dsSIMD4f_get(result, 0));
+	EXPECT_EQ(0.2f, dsSIMD4f_get(result, 1));
+	EXPECT_EQ(0.3f, dsSIMD4f_get(result, 2));
+	EXPECT_EQ(0.4f, dsSIMD4f_get(result, 3));
+
 	result = dsSIMD4f_neg(a);
 	dsSIMD4f_store(&cpuResult, result);
 	EXPECT_EQ(-cpuA.x, cpuResult.x);
