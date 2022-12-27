@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -199,6 +199,15 @@
 #define DS_DEBUG 0
 #else
 #define DS_DEBUG 1
+#endif
+
+/**
+ * @brief Macro to always inline a function.
+ */
+#if DS_MSC
+#define DS_ALWAYS_INLINE __forceinline
+#else
+#define DS_ALWAYS_INLINE __attribute__((always_inline)) inline
 #endif
 
 /**

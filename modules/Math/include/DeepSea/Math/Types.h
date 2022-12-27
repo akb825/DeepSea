@@ -444,8 +444,6 @@ typedef union dsVector3i
  *
  * Note that p is used in place of r for texture coordinates to avoid naming conflicts.
  *
- * This is guaranteed to be 16-byte aligned so it can be easily loaded into SIMD types.
- *
  * @remark When bracket initializing, use two brackets. (i.e. {{x, y, z, w}})
  * @see Vector4.h
  */
@@ -528,6 +526,11 @@ typedef union dsVector4f
  * @brief Version of dsVector4f that's aligned to 16 bytes for usage with SIMD.
  */
 typedef union dsVector4f DS_ALIGN(16) dsVector4fSIMD;
+
+/**
+ * @brief Version of dsVector4i that's aligned to 16 bytes for usage with SIMD.
+ */
+typedef union dsVector4i DS_ALIGN(16) dsVector4iSIMD;
 
 /**
  * @brief Structure for a 4D vector holding doubles.

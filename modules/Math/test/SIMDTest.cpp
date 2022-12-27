@@ -38,19 +38,24 @@ TEST(SIMDTest, Float4)
 #endif
 
 	constexpr float epsilon = 1e-4f;
-	dsVector4fSIMD cpuA = {{1.2f, 3.4f, 5.6f, 7.8f}};
+	float padding1; // Keep next value unalied.
+	DS_UNUSED(padding1);
+	dsVector4f cpuA = {{1.2f, 3.4f, 5.6f, 7.8f}};
 	dsVector4fSIMD cpuB = {{-9.8f, -7.6f, -5.4f, -3.2f}};
 	dsVector4fSIMD cpuResult;
+	float padding2; // Keep next value unalied.
+	DS_UNUSED(padding2);
+	dsVector4f unalginedCPUResult;
 
-	dsSIMD4f a = dsSIMD4f_load(&cpuA);
+	dsSIMD4f a = dsSIMD4f_loadUnaligned(&cpuA);
 	dsSIMD4f b = dsSIMD4f_load(&cpuB);
 
 	dsSIMD4f result = dsSIMD4f_set1(0.1f);
-	dsSIMD4f_store(&cpuResult, result);
-	EXPECT_EQ(0.1f, cpuResult.x);
-	EXPECT_EQ(0.1f, cpuResult.y);
-	EXPECT_EQ(0.1f, cpuResult.z);
-	EXPECT_EQ(0.1f, cpuResult.w);
+	dsSIMD4f_storeUnaligned(&unalginedCPUResult, result);
+	EXPECT_EQ(0.1f, unalginedCPUResult.x);
+	EXPECT_EQ(0.1f, unalginedCPUResult.y);
+	EXPECT_EQ(0.1f, unalginedCPUResult.z);
+	EXPECT_EQ(0.1f, unalginedCPUResult.w);
 
 	result = dsSIMD4f_neg(a);
 	dsSIMD4f_store(&cpuResult, result);
@@ -108,6 +113,20 @@ TEST(SIMDTest, Float4)
 	EXPECT_NEAR(1.0f/std::sqrt(cpuA.z), cpuResult.z, epsilon);
 	EXPECT_NEAR(1.0f/std::sqrt(cpuA.w), cpuResult.w, epsilon);
 
+	result = dsSIMD4f_abs(a);
+	dsSIMD4f_store(&cpuResult, result);
+	EXPECT_NEAR(cpuA.x, cpuResult.x, epsilon);
+	EXPECT_NEAR(cpuA.y, cpuResult.y, epsilon);
+	EXPECT_NEAR(cpuA.z, cpuResult.z, epsilon);
+	EXPECT_NEAR(cpuA.w, cpuResult.w, epsilon);
+
+	result = dsSIMD4f_abs(b);
+	dsSIMD4f_store(&cpuResult, result);
+	EXPECT_NEAR(-cpuB.x, cpuResult.x, epsilon);
+	EXPECT_NEAR(-cpuB.y, cpuResult.y, epsilon);
+	EXPECT_NEAR(-cpuB.z, cpuResult.z, epsilon);
+	EXPECT_NEAR(-cpuB.w, cpuResult.w, epsilon);
+
 	dsVector4fSIMD cpuC = {{7.8f, 5.6f, -3.4f, -1.2f}};
 	dsVector4fSIMD cpuD = {{-3.2f, -5.4f, 7.6f, 9.8f}};
 	dsSIMD4f c = dsSIMD4f_load(&cpuC);
@@ -139,6 +158,150 @@ TEST(SIMDTest, Float4)
 	EXPECT_EQ(cpuB.w, cpuDT.y);
 	EXPECT_EQ(cpuC.w, cpuDT.z);
 	EXPECT_EQ(cpuD.w, cpuDT.w);
+}
+DS_SIMD_END();
+
+DS_SIMD_START_FLOAT4();
+TEST(SIMDTest, Bool4)
+{
+#if DS_ALWAYS_SIMD_FLOAT4
+	EXPECT_TRUE(dsHostSIMDFeatures & dsSIMDFeatures_Float4);
+#else
+	if (dsHostSIMDFeatures & dsSIMDFeatures_Float4)
+		DS_LOG_INFO("SIMDTest", "Enabling bool4 SIMD at runtime.");
+	else
+	{
+		DS_LOG_INFO("SIMDTest", "Skipping bool4 SIMD tests.");
+		return;
+	}
+#endif
+
+	dsVector4fSIMD cpuA = {{1.2f, 3.4f, 5.6f, 7.8f}};
+	dsVector4fSIMD cpuB = {{1.1f, 3.5f, 5.6f, -7.8f}};
+	dsVector4iSIMD cpuResult;
+
+	dsSIMD4f a = dsSIMD4f_load(&cpuA);
+	dsSIMD4f b = dsSIMD4f_load(&cpuB);
+
+	dsSIMD4b result = dsSIMD4f_cmpEQ(a, b);
+	dsSIMD4f_store(&cpuResult, result);
+	EXPECT_FALSE(cpuResult.x);
+	EXPECT_FALSE(cpuResult.y);
+	EXPECT_TRUE(cpuResult.z);
+	EXPECT_FALSE(cpuResult.w);
+
+	result = dsSIMD4f_cmpNE(a, b);
+	dsSIMD4f_store(&cpuResult, result);
+	EXPECT_TRUE(cpuResult.x);
+	EXPECT_TRUE(cpuResult.y);
+	EXPECT_FALSE(cpuResult.z);
+	EXPECT_TRUE(cpuResult.w);
+
+	result = dsSIMD4f_cmpLT(a, b);
+	dsSIMD4f_store(&cpuResult, result);
+	EXPECT_FALSE(cpuResult.x);
+	EXPECT_TRUE(cpuResult.y);
+	EXPECT_FALSE(cpuResult.z);
+	EXPECT_FALSE(cpuResult.w);
+
+	result = dsSIMD4f_cmpLE(a, b);
+	dsSIMD4f_store(&cpuResult, result);
+	EXPECT_FALSE(cpuResult.x);
+	EXPECT_TRUE(cpuResult.y);
+	EXPECT_TRUE(cpuResult.z);
+	EXPECT_FALSE(cpuResult.w);
+
+	result = dsSIMD4f_cmpGT(a, b);
+	dsSIMD4f_store(&cpuResult, result);
+	EXPECT_TRUE(cpuResult.x);
+	EXPECT_FALSE(cpuResult.y);
+	EXPECT_FALSE(cpuResult.z);
+	EXPECT_TRUE(cpuResult.w);
+
+	result = dsSIMD4f_cmpGE(a, b);
+	dsSIMD4f_store(&cpuResult, result);
+	EXPECT_TRUE(cpuResult.x);
+	EXPECT_FALSE(cpuResult.y);
+	EXPECT_TRUE(cpuResult.z);
+	EXPECT_TRUE(cpuResult.w);
+
+	result = dsSIMD4b_true();
+	dsSIMD4f_store(&cpuResult, result);
+	EXPECT_TRUE(cpuResult.x);
+	EXPECT_TRUE(cpuResult.y);
+	EXPECT_TRUE(cpuResult.z);
+	EXPECT_TRUE(cpuResult.w);
+
+	result = dsSIMD4b_false();
+	dsSIMD4f_store(&cpuResult, result);
+	EXPECT_FALSE(cpuResult.x);
+	EXPECT_FALSE(cpuResult.y);
+	EXPECT_FALSE(cpuResult.z);
+	EXPECT_FALSE(cpuResult.w);
+
+	dsSIMD4b ab = dsSIMD4f_cmpLE(a, b);
+	result = dsSIMD4b_not(ab);
+	dsSIMD4f_store(&cpuResult, result);
+	EXPECT_TRUE(cpuResult.x);
+	EXPECT_FALSE(cpuResult.y);
+	EXPECT_FALSE(cpuResult.z);
+	EXPECT_TRUE(cpuResult.w);
+
+	result = dsSIMD4b_and(ab, dsSIMD4b_true());
+	dsSIMD4f_store(&cpuResult, result);
+	EXPECT_FALSE(cpuResult.x);
+	EXPECT_TRUE(cpuResult.y);
+	EXPECT_TRUE(cpuResult.z);
+	EXPECT_FALSE(cpuResult.w);
+
+	result = dsSIMD4b_and(ab, dsSIMD4b_false());
+	dsSIMD4f_store(&cpuResult, result);
+	EXPECT_FALSE(cpuResult.x);
+	EXPECT_FALSE(cpuResult.y);
+	EXPECT_FALSE(cpuResult.z);
+	EXPECT_FALSE(cpuResult.w);
+
+	result = dsSIMD4b_andnot(ab, dsSIMD4b_true());
+	dsSIMD4f_store(&cpuResult, result);
+	EXPECT_TRUE(cpuResult.x);
+	EXPECT_FALSE(cpuResult.y);
+	EXPECT_FALSE(cpuResult.z);
+	EXPECT_TRUE(cpuResult.w);
+
+	result = dsSIMD4b_or(ab, dsSIMD4b_true());
+	dsSIMD4f_store(&cpuResult, result);
+	EXPECT_TRUE(cpuResult.x);
+	EXPECT_TRUE(cpuResult.y);
+	EXPECT_TRUE(cpuResult.z);
+	EXPECT_TRUE(cpuResult.w);
+
+	result = dsSIMD4b_or(ab, dsSIMD4b_false());
+	dsSIMD4f_store(&cpuResult, result);
+	EXPECT_FALSE(cpuResult.x);
+	EXPECT_TRUE(cpuResult.y);
+	EXPECT_TRUE(cpuResult.z);
+	EXPECT_FALSE(cpuResult.w);
+
+	result = dsSIMD4b_ornot(dsSIMD4b_false(), ab);
+	dsSIMD4f_store(&cpuResult, result);
+	EXPECT_TRUE(cpuResult.x);
+	EXPECT_FALSE(cpuResult.y);
+	EXPECT_FALSE(cpuResult.z);
+	EXPECT_TRUE(cpuResult.w);
+
+	result = dsSIMD4b_xor(ab, dsSIMD4b_false());
+	dsSIMD4f_store(&cpuResult, result);
+	EXPECT_FALSE(cpuResult.x);
+	EXPECT_TRUE(cpuResult.y);
+	EXPECT_TRUE(cpuResult.z);
+	EXPECT_FALSE(cpuResult.w);
+
+	result = dsSIMD4b_xor(ab, dsSIMD4b_true());
+	dsSIMD4f_store(&cpuResult, result);
+	EXPECT_TRUE(cpuResult.x);
+	EXPECT_FALSE(cpuResult.y);
+	EXPECT_FALSE(cpuResult.z);
+	EXPECT_TRUE(cpuResult.w);
 }
 DS_SIMD_END();
 
@@ -245,6 +408,8 @@ TEST(SIMDTest, HalfFloat)
 	constexpr uint16_t unset = 0xFFFF;
 	constexpr float epsilon = 1e-2f;
 	dsVector4fSIMD cpuA = {{1.2f, 3.4f, 5.6f, 7.8f}};
+	uint16_t padding; // Ensure unaligned.
+	DS_UNUSED(padding);
 	uint16_t cpuHalfFloat[4] = {unset, unset, unset, unset};
 	dsVector4fSIMD cpuFullFloat;
 
