@@ -326,7 +326,7 @@ static DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_fnmsub(dsSIMD4f a, dsSIMD4f b, dsSIMD4
  * @param b The second value to take the min of.
  * @return The result of min(a, b).
  */
-static DS_ALWAYS_INLINE dsSIMD4b dsSIMD4f_min(dsSIMD4f a, dsSIMD4f b)
+static DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_min(dsSIMD4f a, dsSIMD4f b)
 {
 	return vminq_f32(a, b);
 }
@@ -338,9 +338,22 @@ static DS_ALWAYS_INLINE dsSIMD4b dsSIMD4f_min(dsSIMD4f a, dsSIMD4f b)
  * @param b The second value to take the max of.
  * @return The result of max(a, b).
  */
-static DS_ALWAYS_INLINE dsSIMD4b dsSIMD4f_max(dsSIMD4f a, dsSIMD4f b)
+static DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_max(dsSIMD4f a, dsSIMD4f b)
 {
 	return vmaxq_f32(a, b);
+}
+
+/**
+ * @brief Selects between two vectors based on a boolean mask.
+ * @remark This can be used when dsSIMDFeatures_Float4 is available.
+ * @param a The first SIMD values to select from.
+ * @param b The second SIMD values to select from.
+ * @param c The boolean mask to select with.
+ * @return Values from a or b for whether c is true or false, respectively.
+ */
+static DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_select(dsSIMD4f a, dsSIMD4f b, dsSIMD4b c)
+{
+	return vbslq_f32(c, a, b);
 }
 
 /**

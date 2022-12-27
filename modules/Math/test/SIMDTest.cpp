@@ -198,6 +198,14 @@ TEST(SIMDTest, CompareLogic)
 	EXPECT_EQ(5.6f, cpuFPResult.z);
 	EXPECT_EQ(7.8f, cpuFPResult.w);
 
+	dsSIMD4b ab = dsSIMD4f_cmple(a, b);
+	fpResult = dsSIMD4f_select(a, b, ab);
+	dsSIMD4f_store(&cpuFPResult, fpResult);
+	EXPECT_EQ(1.1f, cpuFPResult.x);
+	EXPECT_EQ(3.4f, cpuFPResult.y);
+	EXPECT_EQ(5.6f, cpuFPResult.z);
+	EXPECT_EQ(-7.8f, cpuFPResult.w);
+
 	dsSIMD4b result = dsSIMD4f_cmpeq(a, b);
 	dsSIMD4b_store(&cpuResult, result);
 	EXPECT_FALSE(cpuResult.x);
@@ -254,7 +262,6 @@ TEST(SIMDTest, CompareLogic)
 	EXPECT_FALSE(cpuResult.z);
 	EXPECT_FALSE(cpuResult.w);
 
-	dsSIMD4b ab = dsSIMD4f_cmple(a, b);
 	result = dsSIMD4b_not(ab);
 	dsSIMD4b_store(&cpuResult, result);
 	EXPECT_TRUE(cpuResult.x);
@@ -441,9 +448,6 @@ TEST(SIMDTest, HalfFloat)
 	dsSIMD4f fullFloat = dsSIMD4hf_toFloat(halfFloat);
 	dsSIMD4f_store(&cpuFullFloat, fullFloat);
 	EXPECT_NEAR(cpuA.x, cpuFullFloat.x, epsilon);
-	EXPECT_EQ(0.0f, cpuFullFloat.y);
-	EXPECT_EQ(0.0f, cpuFullFloat.z);
-	EXPECT_EQ(0.0f, cpuFullFloat.w);
 
 	halfFloat = dsSIMD4hf_fromFloat(a);
 	dsSIMD4hf_store2(cpuHalfFloat, halfFloat);
@@ -457,8 +461,6 @@ TEST(SIMDTest, HalfFloat)
 	dsSIMD4f_store(&cpuFullFloat, fullFloat);
 	EXPECT_NEAR(cpuA.x, cpuFullFloat.x, epsilon);
 	EXPECT_NEAR(cpuA.y, cpuFullFloat.y, epsilon);
-	EXPECT_EQ(0.0f, cpuFullFloat.z);
-	EXPECT_EQ(0.0f, cpuFullFloat.w);
 
 	halfFloat = dsSIMD4hf_fromFloat(a);
 	dsSIMD4hf_store4(cpuHalfFloat, halfFloat);
