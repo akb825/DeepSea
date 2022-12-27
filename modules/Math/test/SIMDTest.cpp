@@ -162,16 +162,16 @@ TEST(SIMDTest, Float4)
 DS_SIMD_END();
 
 DS_SIMD_START_FLOAT4();
-TEST(SIMDTest, Bool4)
+TEST(SIMDTest, CompareLogic)
 {
 #if DS_ALWAYS_SIMD_FLOAT4
 	EXPECT_TRUE(dsHostSIMDFeatures & dsSIMDFeatures_Float4);
 #else
 	if (dsHostSIMDFeatures & dsSIMDFeatures_Float4)
-		DS_LOG_INFO("SIMDTest", "Enabling bool4 SIMD at runtime.");
+		DS_LOG_INFO("SIMDTest", "Enabling compare logic SIMD at runtime.");
 	else
 	{
-		DS_LOG_INFO("SIMDTest", "Skipping bool4 SIMD tests.");
+		DS_LOG_INFO("SIMDTest", "Skipping compare logic SIMD tests.");
 		return;
 	}
 #endif
@@ -183,121 +183,136 @@ TEST(SIMDTest, Bool4)
 	dsSIMD4f a = dsSIMD4f_load(&cpuA);
 	dsSIMD4f b = dsSIMD4f_load(&cpuB);
 
-	dsSIMD4b result = dsSIMD4f_cmpEQ(a, b);
-	dsSIMD4f_store(&cpuResult, result);
+	dsVector4fSIMD cpuFPResult;
+	dsSIMD4f fpResult = dsSIMD4f_min(a, b);
+	dsSIMD4f_store(&cpuFPResult, fpResult);
+	EXPECT_EQ(1.1f, cpuFPResult.x);
+	EXPECT_EQ(3.4f, cpuFPResult.y);
+	EXPECT_EQ(5.6f, cpuFPResult.z);
+	EXPECT_EQ(-7.8f, cpuFPResult.w);
+
+	fpResult = dsSIMD4f_max(a, b);
+	dsSIMD4f_store(&cpuFPResult, fpResult);
+	EXPECT_EQ(1.2f, cpuFPResult.x);
+	EXPECT_EQ(3.5f, cpuFPResult.y);
+	EXPECT_EQ(5.6f, cpuFPResult.z);
+	EXPECT_EQ(7.8f, cpuFPResult.w);
+
+	dsSIMD4b result = dsSIMD4f_cmpeq(a, b);
+	dsSIMD4b_store(&cpuResult, result);
 	EXPECT_FALSE(cpuResult.x);
 	EXPECT_FALSE(cpuResult.y);
 	EXPECT_TRUE(cpuResult.z);
 	EXPECT_FALSE(cpuResult.w);
 
-	result = dsSIMD4f_cmpNE(a, b);
-	dsSIMD4f_store(&cpuResult, result);
+	result = dsSIMD4f_cmpne(a, b);
+	dsSIMD4b_store(&cpuResult, result);
 	EXPECT_TRUE(cpuResult.x);
 	EXPECT_TRUE(cpuResult.y);
 	EXPECT_FALSE(cpuResult.z);
 	EXPECT_TRUE(cpuResult.w);
 
-	result = dsSIMD4f_cmpLT(a, b);
-	dsSIMD4f_store(&cpuResult, result);
+	result = dsSIMD4f_cmplt(a, b);
+	dsSIMD4b_store(&cpuResult, result);
 	EXPECT_FALSE(cpuResult.x);
 	EXPECT_TRUE(cpuResult.y);
 	EXPECT_FALSE(cpuResult.z);
 	EXPECT_FALSE(cpuResult.w);
 
-	result = dsSIMD4f_cmpLE(a, b);
-	dsSIMD4f_store(&cpuResult, result);
+	result = dsSIMD4f_cmple(a, b);
+	dsSIMD4b_store(&cpuResult, result);
 	EXPECT_FALSE(cpuResult.x);
 	EXPECT_TRUE(cpuResult.y);
 	EXPECT_TRUE(cpuResult.z);
 	EXPECT_FALSE(cpuResult.w);
 
-	result = dsSIMD4f_cmpGT(a, b);
-	dsSIMD4f_store(&cpuResult, result);
+	result = dsSIMD4f_cmpgt(a, b);
+	dsSIMD4b_store(&cpuResult, result);
 	EXPECT_TRUE(cpuResult.x);
 	EXPECT_FALSE(cpuResult.y);
 	EXPECT_FALSE(cpuResult.z);
 	EXPECT_TRUE(cpuResult.w);
 
-	result = dsSIMD4f_cmpGE(a, b);
-	dsSIMD4f_store(&cpuResult, result);
+	result = dsSIMD4f_cmpge(a, b);
+	dsSIMD4b_store(&cpuResult, result);
 	EXPECT_TRUE(cpuResult.x);
 	EXPECT_FALSE(cpuResult.y);
 	EXPECT_TRUE(cpuResult.z);
 	EXPECT_TRUE(cpuResult.w);
 
 	result = dsSIMD4b_true();
-	dsSIMD4f_store(&cpuResult, result);
+	dsSIMD4b_store(&cpuResult, result);
 	EXPECT_TRUE(cpuResult.x);
 	EXPECT_TRUE(cpuResult.y);
 	EXPECT_TRUE(cpuResult.z);
 	EXPECT_TRUE(cpuResult.w);
 
 	result = dsSIMD4b_false();
-	dsSIMD4f_store(&cpuResult, result);
+	dsSIMD4b_store(&cpuResult, result);
 	EXPECT_FALSE(cpuResult.x);
 	EXPECT_FALSE(cpuResult.y);
 	EXPECT_FALSE(cpuResult.z);
 	EXPECT_FALSE(cpuResult.w);
 
-	dsSIMD4b ab = dsSIMD4f_cmpLE(a, b);
+	dsSIMD4b ab = dsSIMD4f_cmple(a, b);
 	result = dsSIMD4b_not(ab);
-	dsSIMD4f_store(&cpuResult, result);
+	dsSIMD4b_store(&cpuResult, result);
 	EXPECT_TRUE(cpuResult.x);
 	EXPECT_FALSE(cpuResult.y);
 	EXPECT_FALSE(cpuResult.z);
 	EXPECT_TRUE(cpuResult.w);
 
 	result = dsSIMD4b_and(ab, dsSIMD4b_true());
-	dsSIMD4f_store(&cpuResult, result);
+	dsSIMD4b_store(&cpuResult, result);
 	EXPECT_FALSE(cpuResult.x);
 	EXPECT_TRUE(cpuResult.y);
 	EXPECT_TRUE(cpuResult.z);
 	EXPECT_FALSE(cpuResult.w);
 
 	result = dsSIMD4b_and(ab, dsSIMD4b_false());
-	dsSIMD4f_store(&cpuResult, result);
+	dsSIMD4b_store(&cpuResult, result);
 	EXPECT_FALSE(cpuResult.x);
 	EXPECT_FALSE(cpuResult.y);
 	EXPECT_FALSE(cpuResult.z);
 	EXPECT_FALSE(cpuResult.w);
 
 	result = dsSIMD4b_andnot(ab, dsSIMD4b_true());
-	dsSIMD4f_store(&cpuResult, result);
+	dsSIMD4b_store(&cpuResult, result);
 	EXPECT_TRUE(cpuResult.x);
 	EXPECT_FALSE(cpuResult.y);
 	EXPECT_FALSE(cpuResult.z);
 	EXPECT_TRUE(cpuResult.w);
 
 	result = dsSIMD4b_or(ab, dsSIMD4b_true());
-	dsSIMD4f_store(&cpuResult, result);
+	dsSIMD4b_store(&cpuResult, result);
 	EXPECT_TRUE(cpuResult.x);
 	EXPECT_TRUE(cpuResult.y);
 	EXPECT_TRUE(cpuResult.z);
 	EXPECT_TRUE(cpuResult.w);
 
 	result = dsSIMD4b_or(ab, dsSIMD4b_false());
-	dsSIMD4f_store(&cpuResult, result);
+	dsSIMD4b_store(&cpuResult, result);
 	EXPECT_FALSE(cpuResult.x);
 	EXPECT_TRUE(cpuResult.y);
 	EXPECT_TRUE(cpuResult.z);
 	EXPECT_FALSE(cpuResult.w);
 
 	result = dsSIMD4b_ornot(dsSIMD4b_false(), ab);
-	dsSIMD4f_store(&cpuResult, result);
+	dsSIMD4b_store(&cpuResult, result);
 	EXPECT_TRUE(cpuResult.x);
 	EXPECT_FALSE(cpuResult.y);
 	EXPECT_FALSE(cpuResult.z);
 	EXPECT_TRUE(cpuResult.w);
 
 	result = dsSIMD4b_xor(ab, dsSIMD4b_false());
-	dsSIMD4f_store(&cpuResult, result);
+	dsSIMD4b_store(&cpuResult, result);
 	EXPECT_FALSE(cpuResult.x);
 	EXPECT_TRUE(cpuResult.y);
 	EXPECT_TRUE(cpuResult.z);
 	EXPECT_FALSE(cpuResult.w);
 
 	result = dsSIMD4b_xor(ab, dsSIMD4b_true());
-	dsSIMD4f_store(&cpuResult, result);
+	dsSIMD4b_store(&cpuResult, result);
 	EXPECT_TRUE(cpuResult.x);
 	EXPECT_FALSE(cpuResult.y);
 	EXPECT_FALSE(cpuResult.z);

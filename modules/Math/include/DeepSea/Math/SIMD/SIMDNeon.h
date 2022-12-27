@@ -320,13 +320,37 @@ static DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_fnmsub(dsSIMD4f a, dsSIMD4f b, dsSIMD4
 }
 
 /**
+ * @brief Gets the minimum elements between two SIMD values.
+ * @remark This can be used when dsSIMDFeatures_Float4 is available.
+ * @param a The first value to take the min of.
+ * @param b The second value to take the min of.
+ * @return The result of min(a, b).
+ */
+static DS_ALWAYS_INLINE dsSIMD4b dsSIMD4f_min(dsSIMD4f a, dsSIMD4f b)
+{
+	return vminq_f32(a, b);
+}
+
+/**
+ * @brief Gets the maximum elements between two SIMD values.
+ * @remark This can be used when dsSIMDFeatures_Float4 is available.
+ * @param a The first value to take the max of.
+ * @param b The second value to take the max of.
+ * @return The result of max(a, b).
+ */
+static DS_ALWAYS_INLINE dsSIMD4b dsSIMD4f_max(dsSIMD4f a, dsSIMD4f b)
+{
+	return vmaxq_f32(a, b);
+}
+
+/**
  * @brief Checks if two SIMD values are equal.
  * @remark This can be used when dsSIMDFeatures_Float4 is available.
  * @param a The first value to compare.
  * @param b The second value to compare.
  * @return The result of a == b as a dsSIMD4b.
  */
-static DS_ALWAYS_INLINE dsSIMD4b dsSIMD4f_cmpEQ(dsSIMD4f a, dsSIMD4f b)
+static DS_ALWAYS_INLINE dsSIMD4b dsSIMD4f_cmpeq(dsSIMD4f a, dsSIMD4f b)
 {
 	return vceqq_f32(a, b);
 }
@@ -338,7 +362,7 @@ static DS_ALWAYS_INLINE dsSIMD4b dsSIMD4f_cmpEQ(dsSIMD4f a, dsSIMD4f b)
  * @param b The second value to compare.
  * @return The result of a != b as a dsSIMD4b.
  */
-static DS_ALWAYS_INLINE dsSIMD4b dsSIMD4f_cmpNE(dsSIMD4f a, dsSIMD4f b)
+static DS_ALWAYS_INLINE dsSIMD4b dsSIMD4f_cmpne(dsSIMD4f a, dsSIMD4f b)
 {
 	return vmvnq_u32(vceqq_f32(a, b));
 }
@@ -350,7 +374,7 @@ static DS_ALWAYS_INLINE dsSIMD4b dsSIMD4f_cmpNE(dsSIMD4f a, dsSIMD4f b)
  * @param b The second value to compare.
  * @return The result of a < b as a dsSIMD4b.
  */
-static DS_ALWAYS_INLINE dsSIMD4b dsSIMD4f_cmpLT(dsSIMD4f a, dsSIMD4f b)
+static DS_ALWAYS_INLINE dsSIMD4b dsSIMD4f_cmplt(dsSIMD4f a, dsSIMD4f b)
 {
 	return vcltq_f32(a, b);
 }
@@ -362,7 +386,7 @@ static DS_ALWAYS_INLINE dsSIMD4b dsSIMD4f_cmpLT(dsSIMD4f a, dsSIMD4f b)
  * @param b The second value to compare.
  * @return The result of a <= b as a dsSIMD4b.
  */
-static DS_ALWAYS_INLINE dsSIMD4b dsSIMD4f_cmpLE(dsSIMD4f a, dsSIMD4f b)
+static DS_ALWAYS_INLINE dsSIMD4b dsSIMD4f_cmple(dsSIMD4f a, dsSIMD4f b)
 {
 	return vcleq_f32(a, b);
 }
@@ -374,7 +398,7 @@ static DS_ALWAYS_INLINE dsSIMD4b dsSIMD4f_cmpLE(dsSIMD4f a, dsSIMD4f b)
  * @param b The second value to compare.
  * @return The result of a > b as a dsSIMD4b.
  */
-static DS_ALWAYS_INLINE dsSIMD4b dsSIMD4f_cmpGT(dsSIMD4f a, dsSIMD4f b)
+static DS_ALWAYS_INLINE dsSIMD4b dsSIMD4f_cmpgt(dsSIMD4f a, dsSIMD4f b)
 {
 	return vcgtq_f32(a, b);
 }
@@ -386,7 +410,7 @@ static DS_ALWAYS_INLINE dsSIMD4b dsSIMD4f_cmpGT(dsSIMD4f a, dsSIMD4f b)
  * @param b The second value to compare.
  * @return The result of a >= b as a dsSIMD4b.
  */
-static DS_ALWAYS_INLINE dsSIMD4b dsSIMD4f_cmpGE(dsSIMD4f a, dsSIMD4f b)
+static DS_ALWAYS_INLINE dsSIMD4b dsSIMD4f_cmpge(dsSIMD4f a, dsSIMD4f b)
 {
 	return vcgeq_f32(a, b);
 }
