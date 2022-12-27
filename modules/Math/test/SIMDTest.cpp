@@ -37,7 +37,7 @@ TEST(SIMDTest, Float4)
 	}
 #endif
 
-	constexpr float epsilon = 1e-4f;
+	constexpr float epsilon = 5e-3f;
 	float padding1; // Keep next value unalied.
 	DS_UNUSED(padding1);
 	dsVector4f cpuA = {{1.2f, 3.4f, 5.6f, 7.8f}};

@@ -81,8 +81,13 @@ else()
 		add_compile_options(-Wno-array-bounds -Wno-stringop-overflow)
 	endif()
 
-	# Disable RTTI, but enable exceptions
+	# Disable RTTI, but enable exceptions.
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti -fexceptions")
+
+	# Always build with Neon support.
+	if (DEEPSEA_ARCH STREQUAL "arm")
+		add_compile_options(-mfpu=neon-vfpv4)
+	endif()
 endif()
 
 enable_testing()

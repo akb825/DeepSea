@@ -21,6 +21,8 @@
 
 #if DS_X86_32 || DS_X86_64
 #include <DeepSea/Math/SIMD/SIMDx86.h>
+#elif DS_ARM_32 || DS_ARM_64
+#include <DeepSea/Math/SIMD/SIMDNeon.h>
 #else
 /**
  * @brief Define for whether or not SIMD instructions are available in general.
