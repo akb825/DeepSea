@@ -620,42 +620,37 @@ bool dsSceneLight_getDirectionalLightVertices(dsDirectionalLightVertex* outVerti
 		return false;
 	}
 
-	int16_t direction[4];
-	_Static_assert(sizeof(direction) == sizeof(outVertices->direction),
-		"Unexpected direction size.");
-	direction[0] = dsPackInt16(-light->direction.x);
-	direction[1] = dsPackInt16(-light->direction.y);
-	direction[2] = dsPackInt16(-light->direction.z);
-	direction[3] = 0;
+	dsDirectionalLightVertex commonData;
+	commonData.direction[0] = dsPackInt16(-light->direction.x);
+	commonData.direction[1] = dsPackInt16(-light->direction.y);
+	commonData.direction[2] = dsPackInt16(-light->direction.z);
+	commonData.direction[3] = 0;
 
-	dsHalfFloat color[4];
-	_Static_assert(sizeof(color) == sizeof(outVertices->color), "Unexpected color size.");
 #if DS_HAS_SIMD
 	if (DS_SIMD_ALWAYS_HALF_FLOAT || (dsHostSIMDFeatures & dsSIMDFeatures_HalfFloat))
-		packLightColorSIMD(color, light);
+		packLightColorSIMD(commonData.color, light);
 	else
 #endif
-		packLightColor(color, light);
+		packLightColor(commonData.color, light);
+
+	const size_t commonDataSize = sizeof(dsDirectionalLightVertex) -
+		offsetof(dsDirectionalLightVertex, direction);
 
 	outVertices[0].position[0] = (int16_t)0x8001;
 	outVertices[0].position[1] = (int16_t)0x8001;
-	memcpy(outVertices[0].direction, direction, sizeof(direction));
-	memcpy(outVertices[0].color, color, sizeof(color));
+	memcpy(outVertices[0].direction, commonData.direction, commonDataSize);
 
 	outVertices[1].position[0] = (int16_t)0x7FFF;
 	outVertices[1].position[1] = (int16_t)0x8001;
-	memcpy(outVertices[1].direction, direction, sizeof(direction));
-	memcpy(outVertices[1].color, color, sizeof(color));
+	memcpy(outVertices[1].direction, commonData.direction, commonDataSize);
 
 	outVertices[2].position[0] = (int16_t)0x7FFF;
 	outVertices[2].position[1] = (int16_t)0x7FFF;
-	memcpy(outVertices[2].direction, direction, sizeof(direction));
-	memcpy(outVertices[2].color, color, sizeof(color));
+	memcpy(outVertices[2].direction, commonData.direction, commonDataSize);
 
 	outVertices[3].position[0] = (int16_t)0x8001;
 	outVertices[3].position[1] = (int16_t)0x7FFF;
-	memcpy(outVertices[3].direction, direction, sizeof(direction));
-	memcpy(outVertices[3].color, color, sizeof(color));
+	memcpy(outVertices[3].direction, commonData.direction, commonDataSize);
 
 	outIndices[0] = (uint16_t)(firstIndex + 0);
 	outIndices[1] = (uint16_t)(firstIndex + 1);
@@ -703,80 +698,65 @@ bool dsSceneLight_getPointLightVertices(
 	dsVector3_sub(bounds.min, light->position, sizeOffset);
 	dsVector3_add(bounds.max, light->position, sizeOffset);
 
-	dsHalfFloat color[4];
-	_Static_assert(sizeof(color) == sizeof(outVertices->color), "Unexpected color size.");
-	dsHalfFloat falloff[2];
-	_Static_assert(sizeof(falloff) == sizeof(outVertices->falloff), "Unexpected falloff size.");
+	dsPointLightVertex commonData;
+	commonData.lightPosition = light->position;
 
 #if DS_HAS_SIMD
 	if (DS_SIMD_ALWAYS_HALF_FLOAT || (dsHostSIMDFeatures & dsSIMDFeatures_HalfFloat))
 	{
-		packLightColorSIMD(color, light);
-		packLightSphereFalloffSIMD(falloff, light);
+		packLightColorSIMD(commonData.color, light);
+		packLightSphereFalloffSIMD(commonData.falloff, light);
 	}
 	else
 #endif
 	{
-		packLightColor(color, light);
-		falloff[0] = dsPackHalfFloat(light->linearFalloff);
-		falloff[1] = dsPackHalfFloat(light->quadraticFalloff);
+		packLightColor(commonData.color, light);
+		commonData.falloff[0] = dsPackHalfFloat(light->linearFalloff);
+		commonData.falloff[1] = dsPackHalfFloat(light->quadraticFalloff);
 	}
+
+	const size_t commonDataSize = sizeof(dsPointLightVertex) -
+		offsetof(dsPointLightVertex, lightPosition);
 
 	outVertices[0].vertexPosition.x = bounds.min.x;
 	outVertices[0].vertexPosition.y = bounds.min.y;
 	outVertices[0].vertexPosition.z = bounds.min.z;
-	outVertices[0].lightPosition = light->position;
-	memcpy(outVertices[0].color, color, sizeof(color));
-	memcpy(outVertices[0].falloff, falloff, sizeof(falloff));
+	memcpy(&outVertices[0].lightPosition, &commonData.lightPosition, commonDataSize);
 
 	outVertices[1].vertexPosition.x = bounds.min.x;
 	outVertices[1].vertexPosition.y = bounds.min.y;
 	outVertices[1].vertexPosition.z = bounds.max.z;
-	outVertices[1].lightPosition = light->position;
-	memcpy(outVertices[1].color, color, sizeof(color));
-	memcpy(outVertices[1].falloff, falloff, sizeof(falloff));
+	memcpy(&outVertices[1].lightPosition, &commonData.lightPosition, commonDataSize);
 
 	outVertices[2].vertexPosition.x = bounds.min.x;
 	outVertices[2].vertexPosition.y = bounds.max.y;
 	outVertices[2].vertexPosition.z = bounds.min.z;
-	outVertices[2].lightPosition = light->position;
-	memcpy(outVertices[2].color, color, sizeof(color));
-	memcpy(outVertices[2].falloff, falloff, sizeof(falloff));
+	memcpy(&outVertices[2].lightPosition, &commonData.lightPosition, commonDataSize);
 
 	outVertices[3].vertexPosition.x = bounds.min.x;
 	outVertices[3].vertexPosition.y = bounds.max.y;
 	outVertices[3].vertexPosition.z = bounds.max.z;
-	outVertices[3].lightPosition = light->position;
-	memcpy(outVertices[3].color, color, sizeof(color));
-	memcpy(outVertices[3].falloff, falloff, sizeof(falloff));
+	memcpy(&outVertices[3].lightPosition, &commonData.lightPosition, commonDataSize);
 
 	outVertices[4].vertexPosition.x = bounds.max.x;
 	outVertices[4].vertexPosition.y = bounds.min.y;
 	outVertices[4].vertexPosition.z = bounds.min.z;
-	outVertices[4].lightPosition = light->position;
-	memcpy(outVertices[4].color, color, sizeof(color));
-	memcpy(outVertices[4].falloff, falloff, sizeof(falloff));
+	memcpy(&outVertices[4].lightPosition, &commonData.lightPosition, commonDataSize);
 
 	outVertices[5].vertexPosition.x = bounds.max.x;
 	outVertices[5].vertexPosition.y = bounds.min.y;
 	outVertices[5].vertexPosition.z = bounds.max.z;
-	outVertices[5].lightPosition = light->position;
-	memcpy(outVertices[5].color, color, sizeof(color));
-	memcpy(outVertices[5].falloff, falloff, sizeof(falloff));
+	memcpy(&outVertices[5].lightPosition, &commonData.lightPosition, commonDataSize);
 
 	outVertices[6].vertexPosition.x = bounds.max.x;
 	outVertices[6].vertexPosition.y = bounds.max.y;
 	outVertices[6].vertexPosition.z = bounds.min.z;
-	outVertices[6].lightPosition = light->position;
-	memcpy(outVertices[6].color, color, sizeof(color));
-	memcpy(outVertices[6].falloff, falloff, sizeof(falloff));
+	memcpy(&outVertices[6].lightPosition, &commonData.lightPosition, commonDataSize);
 
 	outVertices[7].vertexPosition.x = bounds.max.x;
 	outVertices[7].vertexPosition.y = bounds.max.y;
 	outVertices[7].vertexPosition.z = bounds.max.z;
-	outVertices[7].lightPosition = light->position;
-	memcpy(outVertices[7].color, color, sizeof(color));
-	memcpy(outVertices[7].falloff, falloff, sizeof(falloff));
+	memcpy(&outVertices[7].lightPosition, &commonData.lightPosition, commonDataSize);
 
 	// front
 	outIndices[0] = (uint16_t)(firstIndex + 5);
@@ -865,41 +845,34 @@ bool dsSceneLight_getSpotLightVertices(dsSpotLightVertex* outVertices, uint32_t 
 		return false;
 	}
 
-	int16_t direction[4];
-	_Static_assert(sizeof(direction) == sizeof(outVertices->direction),
-		"Unexpected direction size.");
-	direction[0] = dsPackInt16(-light->direction.x);
-	direction[1] = dsPackInt16(-light->direction.y);
-	direction[2] = dsPackInt16(-light->direction.z);
-	direction[3] = 0;
-
-	dsHalfFloat color[4];
-	_Static_assert(sizeof(color) == sizeof(outVertices->color), "Unexpected color size.");
-	dsHalfFloat falloffAndSpotAngles[4];
-	_Static_assert(sizeof(falloffAndSpotAngles) == sizeof(outVertices->falloffAndSpotAngles),
-		"Unexpected falloffAndSpotAngles size.");
+	dsSpotLightVertex commonData;
+	commonData.lightPosition = light->position;
+	commonData.direction[0] = dsPackInt16(-light->direction.x);
+	commonData.direction[1] = dsPackInt16(-light->direction.y);
+	commonData.direction[2] = dsPackInt16(-light->direction.z);
+	commonData.direction[3] = 0;
 
 #if DS_HAS_SIMD
 	if (DS_SIMD_ALWAYS_HALF_FLOAT || (dsHostSIMDFeatures & dsSIMDFeatures_HalfFloat))
 	{
-		packLightColorSIMD(color, light);
-		packLightSpotFalloffSIMD(falloffAndSpotAngles, light);
+		packLightColorSIMD(commonData.color, light);
+		packLightSpotFalloffSIMD(commonData.falloffAndSpotAngles, light);
 	}
 	else
 #endif
 	{
-		packLightColor(color, light);
-		falloffAndSpotAngles[0] = dsPackHalfFloat(light->linearFalloff);
-		falloffAndSpotAngles[1] = dsPackHalfFloat(light->quadraticFalloff);
-		falloffAndSpotAngles[2] = dsPackHalfFloat(light->innerSpotCosAngle);
-		falloffAndSpotAngles[3] = dsPackHalfFloat(light->outerSpotCosAngle);
+		packLightColor(commonData.color, light);
+		commonData.falloffAndSpotAngles[0] = dsPackHalfFloat(light->linearFalloff);
+		commonData.falloffAndSpotAngles[1] = dsPackHalfFloat(light->quadraticFalloff);
+		commonData.falloffAndSpotAngles[2] = dsPackHalfFloat(light->innerSpotCosAngle);
+		commonData.falloffAndSpotAngles[3] = dsPackHalfFloat(light->outerSpotCosAngle);
 	}
 
+	const size_t commonDataSize = sizeof(dsSpotLightVertex) -
+		offsetof(dsSpotLightVertex, lightPosition);
+
 	outVertices[0].vertexPosition = light->position;
-	outVertices[0].lightPosition = light->position;
-	memcpy(outVertices[0].direction, direction, sizeof(direction));
-	memcpy(outVertices[0].color, color, sizeof(color));
-	memcpy(outVertices[0].falloffAndSpotAngles, falloffAndSpotAngles, sizeof(falloffAndSpotAngles));
+	memcpy(&outVertices[0].lightPosition, &commonData.lightPosition, commonDataSize);
 
 	// Create an orthonormal basis around the spotlight.
 	dsVector3f spotX, spotY;
@@ -919,29 +892,17 @@ bool dsSceneLight_getSpotLightVertices(dsSpotLightVertex* outVertices, uint32_t 
 	dsVector3f extremeX;
 	dsVector3_sub(extremeX, middlePos, spotX);
 	dsVector3_sub(outVertices[1].vertexPosition, extremeX, spotY);
-	outVertices[1].lightPosition = light->position;
-	memcpy(outVertices[1].direction, direction, sizeof(direction));
-	memcpy(outVertices[1].color, color, sizeof(color));
-	memcpy(outVertices[1].falloffAndSpotAngles, falloffAndSpotAngles, sizeof(falloffAndSpotAngles));
+	memcpy(&outVertices[1].lightPosition, &commonData.lightPosition, commonDataSize);
 
 	dsVector3_add(outVertices[2].vertexPosition, extremeX, spotY);
-	outVertices[2].lightPosition = light->position;
-	memcpy(outVertices[2].direction, direction, sizeof(direction));
-	memcpy(outVertices[2].color, color, sizeof(color));
-	memcpy(outVertices[2].falloffAndSpotAngles, falloffAndSpotAngles, sizeof(falloffAndSpotAngles));
+	memcpy(&outVertices[2].lightPosition, &commonData.lightPosition, commonDataSize);
 
 	dsVector3_add(extremeX, middlePos, spotX);
 	dsVector3_sub(outVertices[3].vertexPosition, extremeX, spotY);
-	outVertices[3].lightPosition = light->position;
-	memcpy(outVertices[3].direction, direction, sizeof(direction));
-	memcpy(outVertices[3].color, color, sizeof(color));
-	memcpy(outVertices[3].falloffAndSpotAngles, falloffAndSpotAngles, sizeof(falloffAndSpotAngles));
+	memcpy(&outVertices[3].lightPosition, &commonData.lightPosition, commonDataSize);
 
 	dsVector3_add(outVertices[4].vertexPosition, extremeX, spotY);
-	outVertices[4].lightPosition = light->position;
-	memcpy(outVertices[4].direction, direction, sizeof(direction));
-	memcpy(outVertices[4].color, color, sizeof(color));
-	memcpy(outVertices[4].falloffAndSpotAngles, falloffAndSpotAngles, sizeof(falloffAndSpotAngles));
+	memcpy(&outVertices[4].lightPosition, &commonData.lightPosition, commonDataSize);
 
 	// left
 	outIndices[0] = (uint16_t)(firstIndex + 0);
