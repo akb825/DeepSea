@@ -70,27 +70,27 @@ extern "C"
 #endif
 
 #if DS_X86_64 || defined(__SSE__) || _M_IX86_FP >= 1
-#define DS_ALWAYS_SIMD_FLOAT4 1
+#define DS_SIMD_ALWAYS_FLOAT4 1
 #else
-#define DS_ALWAYS_SIMD_FLOAT4 0
+#define DS_SIMD_ALWAYS_FLOAT4 0
 #endif
 
 #if defined(__SSE3__) || (DS_WINDOWS && defined(__AVX__))
-#define DS_ALWAYS_SIMD_HADD 1
+#define DS_SIMD_ALWAYS_HADD 1
 #else
-#define DS_ALWAYS_SIMD_HADD 0
+#define DS_SIMD_ALWAYS_HADD 0
 #endif
 
 #if defined(__FMA__) || (DS_WINDOWS && defined(__AVX2__))
-#define DS_ALWAYS_SIMD_FMA 1
+#define DS_SIMD_ALWAYS_FMA 1
 #else
-#define DS_ALWAYS_SIMD_FMA 0
+#define DS_SIMD_ALWAYS_FMA 0
 #endif
 
 #if defined(__F16C__)
-#define DS_ALWAYS_SIMD_HALF_FLOAT 1
+#define DS_SIMD_ALWAYS_HALF_FLOAT 1
 #else
-#define DS_ALWAYS_SIMD_HALF_FLOAT 0
+#define DS_SIMD_ALWAYS_HALF_FLOAT 0
 #endif
 /// @endcond
 

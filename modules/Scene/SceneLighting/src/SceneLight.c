@@ -23,6 +23,7 @@
 #include <DeepSea/Geometry/Frustum3.h>
 #include <DeepSea/Geometry/OrientedBox3.h>
 
+#include <DeepSea/Math/SIMD/SIMD.h>
 #include <DeepSea/Math/Color.h>
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Math/Matrix44.h>
@@ -92,6 +93,43 @@ static float getLightRadius(const dsSceneLight* light, float intensityThreshold)
 	// (the "-" factor will always be < 0)
 	float root = sqrtf(innerRoot);
 	return (-b + root)/(2.0f*a);
+}
+
+#if DS_HAS_SIMD
+DS_SIMD_START_HALF_FLOAT()
+static inline void packAmbientSIMD(dsHalfFloat* result, const dsVector3f* ambient)
+{
+	dsSIMD4hf_store4(result,
+		dsSIMD4hf_fromFloat(dsSIMD4f_set4(ambient->x, ambient->y, ambient->z, 0.0f)));
+}
+
+static inline void packLightColorSIMD(dsHalfFloat* result, const dsSceneLight* light)
+{
+	dsSIMD4f color = dsSIMD4f_set4(light->color.x, light->color.y, light->color.z, 0.0f);
+	dsSIMD4hf_store4(result,
+		dsSIMD4hf_fromFloat(dsSIMD4f_mul(color, dsSIMD4f_set1(light->intensity))));
+}
+
+static inline void packLightSphereFalloffSIMD(dsHalfFloat* result, const dsSceneLight* light)
+{
+	dsSIMD4hf_store2(result, dsSIMD4hf_fromFloat(
+		dsSIMD4f_set4(light->linearFalloff, light->quadraticFalloff, 0.0f, 0.0f)));
+}
+
+static inline void packLightSpotFalloffSIMD(dsHalfFloat* result, const dsSceneLight* light)
+{
+	dsSIMD4hf_store4(result, dsSIMD4hf_fromFloat(dsSIMD4f_set4(light->linearFalloff,
+		light->quadraticFalloff, light->innerSpotCosAngle, light->outerSpotCosAngle)));
+}
+DS_SIMD_END()
+#endif // DS_HAS_SIMD
+
+static inline void packLightColor(dsHalfFloat* result, const dsSceneLight* light)
+{
+	result[0] = dsPackHalfFloat(light->color.r*light->intensity);
+	result[1] = dsPackHalfFloat(light->color.g*light->intensity);
+	result[2] = dsPackHalfFloat(light->color.b*light->intensity);
+	result[3].data = 0;
 }
 
 bool dsSceneLight_getAmbientLightVertexFormat(dsVertexFormat* outFormat)
@@ -520,10 +558,17 @@ bool dsSceneLight_getAmbientLightVertices(dsAmbientLightVertex* outVertices,
 
 	dsHalfFloat color[4];
 	_Static_assert(sizeof(color) == sizeof(outVertices->color), "Unexpected color size.");
-	color[0] = dsPackHalfFloat(ambient->r);
-	color[1] = dsPackHalfFloat(ambient->g);
-	color[2] = dsPackHalfFloat(ambient->b);
-	color[3].data = 0;
+#if DS_HAS_SIMD
+	if (DS_SIMD_ALWAYS_HALF_FLOAT || (dsHostSIMDFeatures & dsSIMDFeatures_HalfFloat))
+		packAmbientSIMD(color, ambient);
+	else
+#endif
+	{
+		color[0] = dsPackHalfFloat(ambient->r);
+		color[1] = dsPackHalfFloat(ambient->g);
+		color[2] = dsPackHalfFloat(ambient->b);
+		color[3].data = 0;
+	}
 
 	outVertices[0].position[0] = (int16_t)0x8001;
 	outVertices[0].position[1] = (int16_t)0x8001;
@@ -585,10 +630,12 @@ bool dsSceneLight_getDirectionalLightVertices(dsDirectionalLightVertex* outVerti
 
 	dsHalfFloat color[4];
 	_Static_assert(sizeof(color) == sizeof(outVertices->color), "Unexpected color size.");
-	color[0] = dsPackHalfFloat(light->color.r*light->intensity);
-	color[1] = dsPackHalfFloat(light->color.g*light->intensity);
-	color[2] = dsPackHalfFloat(light->color.b*light->intensity);
-	color[3].data = 0;
+#if DS_HAS_SIMD
+	if (DS_SIMD_ALWAYS_HALF_FLOAT || (dsHostSIMDFeatures & dsSIMDFeatures_HalfFloat))
+		packLightColorSIMD(color, light);
+	else
+#endif
+		packLightColor(color, light);
 
 	outVertices[0].position[0] = (int16_t)0x8001;
 	outVertices[0].position[1] = (int16_t)0x8001;
@@ -658,15 +705,22 @@ bool dsSceneLight_getPointLightVertices(
 
 	dsHalfFloat color[4];
 	_Static_assert(sizeof(color) == sizeof(outVertices->color), "Unexpected color size.");
-	color[0] = dsPackHalfFloat(light->color.r*light->intensity);
-	color[1] = dsPackHalfFloat(light->color.g*light->intensity);
-	color[2] = dsPackHalfFloat(light->color.b*light->intensity);
-	color[3].data = 0;
-
 	dsHalfFloat falloff[2];
 	_Static_assert(sizeof(falloff) == sizeof(outVertices->falloff), "Unexpected falloff size.");
-	falloff[0] = dsPackHalfFloat(light->linearFalloff);
-	falloff[1] = dsPackHalfFloat(light->quadraticFalloff);
+
+#if DS_HAS_SIMD
+	if (DS_SIMD_ALWAYS_HALF_FLOAT || (dsHostSIMDFeatures & dsSIMDFeatures_HalfFloat))
+	{
+		packLightColorSIMD(color, light);
+		packLightSphereFalloffSIMD(falloff, light);
+	}
+	else
+#endif
+	{
+		packLightColor(color, light);
+		falloff[0] = dsPackHalfFloat(light->linearFalloff);
+		falloff[1] = dsPackHalfFloat(light->quadraticFalloff);
+	}
 
 	outVertices[0].vertexPosition.x = bounds.min.x;
 	outVertices[0].vertexPosition.y = bounds.min.y;
@@ -821,18 +875,25 @@ bool dsSceneLight_getSpotLightVertices(dsSpotLightVertex* outVertices, uint32_t 
 
 	dsHalfFloat color[4];
 	_Static_assert(sizeof(color) == sizeof(outVertices->color), "Unexpected color size.");
-	color[0] = dsPackHalfFloat(light->color.r*light->intensity);
-	color[1] = dsPackHalfFloat(light->color.g*light->intensity);
-	color[2] = dsPackHalfFloat(light->color.b*light->intensity);
-	color[3].data = 0;
-
 	dsHalfFloat falloffAndSpotAngles[4];
 	_Static_assert(sizeof(falloffAndSpotAngles) == sizeof(outVertices->falloffAndSpotAngles),
 		"Unexpected falloffAndSpotAngles size.");
-	falloffAndSpotAngles[0] = dsPackHalfFloat(light->linearFalloff);
-	falloffAndSpotAngles[1] = dsPackHalfFloat(light->quadraticFalloff);
-	falloffAndSpotAngles[2] = dsPackHalfFloat(light->innerSpotCosAngle);
-	falloffAndSpotAngles[3] = dsPackHalfFloat(light->outerSpotCosAngle);
+
+#if DS_HAS_SIMD
+	if (DS_SIMD_ALWAYS_HALF_FLOAT || (dsHostSIMDFeatures & dsSIMDFeatures_HalfFloat))
+	{
+		packLightColorSIMD(color, light);
+		packLightSpotFalloffSIMD(falloffAndSpotAngles, light);
+	}
+	else
+#endif
+	{
+		packLightColor(color, light);
+		falloffAndSpotAngles[0] = dsPackHalfFloat(light->linearFalloff);
+		falloffAndSpotAngles[1] = dsPackHalfFloat(light->quadraticFalloff);
+		falloffAndSpotAngles[2] = dsPackHalfFloat(light->innerSpotCosAngle);
+		falloffAndSpotAngles[3] = dsPackHalfFloat(light->outerSpotCosAngle);
+	}
 
 	outVertices[0].vertexPosition = light->position;
 	outVertices[0].lightPosition = light->position;

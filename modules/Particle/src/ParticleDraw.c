@@ -23,6 +23,7 @@
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Core/Profile.h>
 
+#include <DeepSea/Math/SIMD/SIMD.h>
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Math/Matrix44.h>
 #include <DeepSea/Math/Packing.h>
@@ -272,6 +273,88 @@ static void collectParticles(dsParticleDraw* drawer, const dsMatrix44f* viewMatr
 
 	DS_PROFILE_FUNC_RETURN_VOID();
 }
+
+#if DS_HAS_SIMD
+DS_SIMD_START_HALF_FLOAT()
+static bool populateParticleGeometrySIMD(dsParticleDraw* drawer, BufferInfo* bufferInfo,
+	uint32_t particleCount)
+{
+	DS_PROFILE_FUNC_START();
+
+	void* bufferData = dsGfxBuffer_map(bufferInfo->buffer, dsGfxBufferMap_Write, 0,
+		DS_MAP_FULL_BUFFER);
+	if (!bufferData)
+		DS_PROFILE_FUNC_RETURN(false);
+
+	ParticleVertex* vertices = (ParticleVertex*)bufferData;
+	uint16_t* indices =
+		(uint16_t*)(((uint8_t*)bufferData) + bufferInfo->geometry->indexBuffer.offset);
+
+	uint32_t curIndex = 0;
+	uint32_t prevEmitter = 0;
+	dsSIMD4f offsetMul[2] =
+		{dsSIMD4f_set4(-0.5f, -0.5f, 0.5f, -0.5f), dsSIMD4f_set4(0.5f, 0.5f, -0.5f, 0.5f)};
+	for (uint32_t i = 0; i < particleCount; ++i, indices += INDEX_COUNT, curIndex += VERTEX_COUNT)
+	{
+		DS_ASSERT(vertices + VERTEX_COUNT <=
+			(ParticleVertex*)bufferData + bufferInfo->geometry->vertexBuffers[0].count);
+		DS_ASSERT(indices + INDEX_COUNT <=
+			(uint16_t*)((uint8_t*)bufferData + bufferInfo->geometry->indexBuffer.offset) +
+				bufferInfo->geometry->indexBuffer.count);
+
+		const ParticleRef* particleRef = drawer->particles + i;
+		const dsParticle* particle = particleRef->particle;
+		dsSIMD4f size =
+			dsSIMD4f_set4(particle->size.x, particle->size.y, particle->size.x, particle->size.y);
+		dsHalfFloat packedOffsets[8];
+		dsSIMD4hf_store4(packedOffsets, dsSIMD4hf_fromFloat(dsSIMD4f_mul(size, offsetMul[0])));
+		dsSIMD4hf_store4(packedOffsets + 4, dsSIMD4hf_fromFloat(dsSIMD4f_mul(size, offsetMul[1])));
+
+		dsHalfFloat packedRotation[2];
+		dsSIMD4hf_store2(packedRotation, dsSIMD4hf_fromFloat(
+			dsSIMD4f_set4(particle->rotation.x, particle->rotation.y, 0.0f, 0.0f)));
+		dsHalfFloat packedIntensityTextureT[4];
+		dsSIMD4hf_store4(packedIntensityTextureT, dsSIMD4hf_fromFloat(
+			dsSIMD4f_set4(particle->intensity, (float)particle->textureIndex, particle->t, 0.0f)));
+		for (unsigned int j = 0; j < 4; ++j, ++vertices)
+		{
+			vertices->position = particle->position;
+			vertices->offset[0] = packedOffsets[j*2];
+			vertices->offset[1] = packedOffsets[j*2 + 1];
+			vertices->rotation[0] = packedRotation[0];
+			vertices->rotation[1] = packedRotation[1];
+			vertices->color = particle->color;
+			vertices->intensityTextureT[0] = packedIntensityTextureT[0];
+			vertices->intensityTextureT[1] = packedIntensityTextureT[1];
+			vertices->intensityTextureT[2] = packedIntensityTextureT[2];
+			vertices->intensityTextureT[3] = packedIntensityTextureT[3];
+		}
+
+		// Need to reset the index offset if we switch emitters or exceed the maximum index.
+		if (particleRef->emitter != prevEmitter || curIndex + VERTEX_COUNT > MAX_INDEX)
+		{
+			curIndex = 0;
+			prevEmitter = particleRef->emitter;
+		}
+
+		indices[0] = (uint16_t)curIndex;
+		indices[1] = (uint16_t)(curIndex + 1);
+		indices[2] = (uint16_t)(curIndex + 2);
+
+		indices[3] = (uint16_t)curIndex;
+		indices[4] = (uint16_t)(curIndex + 2);
+		indices[5] = (uint16_t)(curIndex + 3);
+	}
+	DS_ASSERT(vertices == (ParticleVertex*)bufferData + particleCount*VERTEX_COUNT);
+	DS_ASSERT(indices ==
+		(uint16_t*)((uint8_t*)bufferData + bufferInfo->geometry->indexBuffer.offset) +
+			particleCount*INDEX_COUNT);
+
+	DS_VERIFY(dsGfxBuffer_unmap(bufferInfo->buffer));
+	DS_PROFILE_FUNC_RETURN(true);
+}
+DS_SIMD_END()
+#endif
 
 static bool populateParticleGeometry(dsParticleDraw* drawer, BufferInfo* bufferInfo,
 	uint32_t particleCount)
@@ -560,9 +643,19 @@ bool dsParticleDraw_draw(dsParticleDraw* drawer, dsCommandBuffer* commandBuffer,
 	// Draw the particles to the command buffer.
 	collectParticles(drawer, viewMatrix, emitters, emitterCount, particleCount);
 
-	bool success = populateParticleGeometry(drawer, bufferInfo, particleCount) &&
-		drawParticles(drawer, emitters, emitterCount, bufferInfo, particleCount, commandBuffer,
-			globalValues, drawData);
+	bool success;
+#if DS_HAS_SIMD
+	if (DS_SIMD_ALWAYS_HALF_FLOAT || (dsHostSIMDFeatures & dsSIMDFeatures_HalfFloat))
+		success = populateParticleGeometrySIMD(drawer, bufferInfo, particleCount);
+	else
+#endif
+		success = populateParticleGeometry(drawer, bufferInfo, particleCount);
+
+	if (success)
+	{
+		success = drawParticles(drawer, emitters, emitterCount, bufferInfo, particleCount,
+			commandBuffer, globalValues, drawData);
+	}
 
 	DS_PROFILE_FUNC_RETURN(success);
 }

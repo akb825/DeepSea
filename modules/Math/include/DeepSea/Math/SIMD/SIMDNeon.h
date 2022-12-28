@@ -43,10 +43,10 @@ extern "C"
 #define DS_SIMD_START_HALF_FLOAT()
 #define DS_SIMD_END()
 
-#define DS_ALWAYS_SIMD_FLOAT4 1
-#define DS_ALWAYS_SIMD_HADD 1
-#define DS_ALWAYS_SIMD_FMA 1
-#define DS_ALWAYS_SIMD_HALF_FLOAT 1
+#define DS_SIMD_ALWAYS_FLOAT4 1
+#define DS_SIMD_ALWAYS_HADD 1
+#define DS_SIMD_ALWAYS_FMA 1
+#define DS_SIMD_ALWAYS_HALF_FLOAT 1
 
 #if DS_MSC
 #define DS_ASSUME_SIMD_ALIGNED(x) (((uintptr_t)(x) & 0xF) == 0 ? (x) : __assume(0))

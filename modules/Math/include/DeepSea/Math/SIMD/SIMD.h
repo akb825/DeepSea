@@ -32,24 +32,24 @@
 /**
  * @brief Define for whether or not SIMD instructions for 4 floats are always available.
  */
-#define DS_ALWAYS_SIMD_FLOAT4 0
+#define DS_SIMD_ALWAYS_FLOAT4 0
 
 /**
  * @brief Define for whether or not SIMD instructions for horizontal adds are always  available.
  */
-#define DS_ALWAYS_SIMD_HADD 0
+#define DS_SIMD_ALWAYS_HADD 0
 
 /**
  * @brief Define for whether or not SIMD instructions for converting half floats will always be
  * available.
  */
-#define DS_ALWAYS_SIMD_FMA 0
+#define DS_SIMD_ALWAYS_FMA 0
 
 /**
  * @brief Define for whether or not SIMD instructions for converting half floats are always
  * available.
  */
-#define DS_ALWAYS_SIMD_HALF_FLOAT 0
+#define DS_SIMD_ALWAYS_HALF_FLOAT 0
 
 /**
  * @brief Starts a block that uses 4-float SIMD instructions.

@@ -25,7 +25,7 @@
 DS_SIMD_START_FLOAT4();
 TEST(SIMDTest, Float4)
 {
-#if DS_ALWAYS_SIMD_FLOAT4
+#if DS_SIMD_ALWAYS_FLOAT4
 	EXPECT_TRUE(dsHostSIMDFeatures & dsSIMDFeatures_Float4);
 #else
 	if (dsHostSIMDFeatures & dsSIMDFeatures_Float4)
@@ -170,7 +170,7 @@ DS_SIMD_END();
 DS_SIMD_START_FLOAT4();
 TEST(SIMDTest, CompareLogic)
 {
-#if DS_ALWAYS_SIMD_FLOAT4
+#if DS_SIMD_ALWAYS_FLOAT4
 	EXPECT_TRUE(dsHostSIMDFeatures & dsSIMDFeatures_Float4);
 #else
 	if (dsHostSIMDFeatures & dsSIMDFeatures_Float4)
@@ -336,7 +336,7 @@ DS_SIMD_END();
 DS_SIMD_START_HADD();
 TEST(SIMDTest, HAdd)
 {
-#if DS_ALWAYS_SIMD_HADD
+#if DS_SIMD_ALWAYS_HADD
 	EXPECT_TRUE(dsHostSIMDFeatures & dsSIMDFeatures_HAdd);
 #else
 	if (dsHostSIMDFeatures & dsSIMDFeatures_HAdd)
@@ -366,7 +366,7 @@ DS_SIMD_END();
 DS_SIMD_START_FMA();
 TEST(SIMDTest, FMA)
 {
-#if DS_ALWAYS_SIMD_FMA
+#if DS_SIMD_ALWAYS_FMA
 	EXPECT_TRUE(dsHostSIMDFeatures & dsSIMDFeatures_FMA);
 #else
 	if (dsHostSIMDFeatures & dsSIMDFeatures_FMA)
@@ -421,7 +421,7 @@ DS_SIMD_END();
 DS_SIMD_START_HALF_FLOAT();
 TEST(SIMDTest, HalfFloat)
 {
-#if DS_ALWAYS_SIMD_HALF_FLOAT
+#if DS_SIMD_ALWAYS_HALF_FLOAT
 	EXPECT_TRUE(dsHostSIMDFeatures & dsSIMDFeatures_HalfFloat);
 #else
 	if (dsHostSIMDFeatures & dsSIMDFeatures_HalfFloat)
