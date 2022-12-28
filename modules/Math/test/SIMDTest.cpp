@@ -70,6 +70,13 @@ TEST(SIMDTest, Float4)
 	EXPECT_EQ(-cpuA.z, cpuResult.z);
 	EXPECT_EQ(-cpuA.w, cpuResult.w);
 
+	result = dsSIMD4f_neg(b);
+	dsSIMD4f_store(&cpuResult, result);
+	EXPECT_EQ(-cpuB.x, cpuResult.x);
+	EXPECT_EQ(-cpuB.y, cpuResult.y);
+	EXPECT_EQ(-cpuB.z, cpuResult.z);
+	EXPECT_EQ(-cpuB.w, cpuResult.w);
+
 	result = dsSIMD4f_add(a, b);
 	dsSIMD4f_store(&cpuResult, result);
 	EXPECT_EQ(cpuA.x + cpuB.x, cpuResult.x);

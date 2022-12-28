@@ -199,7 +199,7 @@ static DS_ALWAYS_INLINE void dsSIMD4f_storeUnaligned(void* fp, dsSIMD4f a)
  */
 static DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_neg(dsSIMD4f a)
 {
-	return _mm_sub_ps(_mm_set_ps1(0.0f), a);
+	return _mm_xor_ps(_mm_set_ps1(-0.0f), a);
 }
 
 /**
@@ -498,7 +498,8 @@ static DS_ALWAYS_INLINE dsSIMD4b dsSIMD4f_cmpge(dsSIMD4f a, dsSIMD4f b)
  */
 static DS_ALWAYS_INLINE dsSIMD4b dsSIMD4b_true(void)
 {
-	return _mm_cmpeq_ps(_mm_setzero_ps(), _mm_setzero_ps());
+	const unsigned int a = 0xFFFFFFFF;
+	return _mm_set1_ps(*(float*)&a);
 }
 
 /**
@@ -540,7 +541,8 @@ static DS_ALWAYS_INLINE void dsSIMD4b_storeUnaligned(void* ip, dsSIMD4b a)
  */
 DS_ALWAYS_INLINE dsSIMD4b dsSIMD4b_not(dsSIMD4b a)
 {
-	return _mm_cmpord_ps(a, a);
+	const unsigned int b = 0xFFFFFFFF;
+	return _mm_xor_ps(a, _mm_set1_ps(*(float*)&b));
 }
 
 /**
