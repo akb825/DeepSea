@@ -45,6 +45,8 @@ extern "C"
 /**
  * @file
  * @brief Includes all of the types used in the DeepSea/Math library.
+ *
+ * This excludes SIMD types as they may not be present for all targets.
  */
 
 /**

@@ -194,8 +194,7 @@ extern "C"
 		\
 		(result).values[2][0] = (a).values[0][0]*(b).values[2][0] + \
 								(a).values[1][0]*(b).values[2][1] + \
-								(a).values[2][0]*(b).values[2][2] + \
-								(a).values[3][0]*(b).values[2][3]; \
+								(a).values[2][0]*(b).values[2][2]; \
 		(result).values[2][1] = (a).values[0][1]*(b).values[2][0] + \
 								(a).values[1][1]*(b).values[2][1] + \
 								(a).values[2][1]*(b).values[2][2]; \
@@ -207,15 +206,15 @@ extern "C"
 		(result).values[3][0] = (a).values[0][0]*(b).values[3][0] + \
 								(a).values[1][0]*(b).values[3][1] + \
 								(a).values[2][0]*(b).values[3][2] + \
-								(a).values[3][0]*(b).values[3][3]; \
+								(a).values[3][0]; \
 		(result).values[3][1] = (a).values[0][1]*(b).values[3][0] + \
 								(a).values[1][1]*(b).values[3][1] + \
 								(a).values[2][1]*(b).values[3][2] + \
-								(a).values[3][1]*(b).values[3][3]; \
+								(a).values[3][1]; \
 		(result).values[3][2] = (a).values[0][2]*(b).values[3][0] + \
 								(a).values[1][2]*(b).values[3][1] + \
 								(a).values[2][2]*(b).values[3][2] + \
-								(a).values[3][2]*(b).values[3][3]; \
+								(a).values[3][2]; \
 		(result).values[3][3] = 1; \
 	} while (0)
 
