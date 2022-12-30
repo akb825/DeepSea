@@ -16,7 +16,6 @@
 
 #include <DeepSea/Math/Matrix44.h>
 
-#include "Matrix33Impl.h"
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Math/Matrix33.h>
 #include <DeepSea/Math/Vector3.h>
@@ -186,11 +185,13 @@ void dsMatrix44f_affineInvert(dsMatrix44f* result, const dsMatrix44f* a)
 	DS_ASSERT(a);
 	DS_ASSERT(result != a);
 
-	float upperDet = dsMatrix33_determinant(*a);
-	DS_ASSERT(upperDet != 0);
-	float invUpperDet = 1/upperDet;
-
-	dsMatrix33_invertImpl(*result, *a, invUpperDet);
+	dsMatrix33_transpose(*result, *a);
+	float invLen2 = 1.0f/dsVector3_len2(result->columns[0]);
+	dsVector3_scale(result->columns[0], result->columns[0], invLen2);
+	invLen2 = 1.0f/dsVector3_len2(result->columns[1]);
+	dsVector3_scale(result->columns[1], result->columns[1], invLen2);
+	invLen2 = 1.0f/dsVector3_len2(result->columns[2]);
+	dsVector3_scale(result->columns[2], result->columns[2], invLen2);
 
 	result->values[0][3] = 0;
 	result->values[1][3] = 0;
@@ -212,11 +213,13 @@ void dsMatrix44d_affineInvert(dsMatrix44d* result, const dsMatrix44d* a)
 	DS_ASSERT(a);
 	DS_ASSERT(result != a);
 
-	double upperDet = dsMatrix33_determinant(*a);
-	DS_ASSERT(upperDet != 0);
-	double invUpperDet = 1/upperDet;
-
-	dsMatrix33_invertImpl(*result, *a, invUpperDet);
+	dsMatrix33_transpose(*result, *a);
+	double invLen2 = 1.0/dsVector3_len2(result->columns[0]);
+	dsVector3_scale(result->columns[0], result->columns[0], invLen2);
+	invLen2 = 1.0/dsVector3_len2(result->columns[1]);
+	dsVector3_scale(result->columns[1], result->columns[1], invLen2);
+	invLen2 = 1.0/dsVector3_len2(result->columns[2]);
+	dsVector3_scale(result->columns[2], result->columns[2], invLen2);
 
 	result->values[0][3] = 0;
 	result->values[1][3] = 0;
@@ -262,10 +265,23 @@ void dsMatrix44f_inverseTranspose(dsMatrix33f* result, const dsMatrix44f* a)
 	DS_ASSERT(result);
 	DS_ASSERT(a);
 
-	dsMatrix33f temp, inverse;
-	dsMatrix33_copy(temp, *a);
-	dsMatrix33f_invert(&inverse, &temp);
-	dsMatrix33_transpose(*result, inverse);
+	float invLen2 = 1.0f/(a->values[0][0]*a->values[0][0] + a->values[1][0]*a->values[1][0] +
+		a->values[2][0]*a->values[2][0]);
+	result->values[0][0] = a->values[0][0]*invLen2;
+	result->values[1][0] = a->values[1][0]*invLen2;
+	result->values[2][0] = a->values[2][0]*invLen2;
+
+	invLen2 = 1.0f/(a->values[0][1]*a->values[0][1] + a->values[1][1]*a->values[1][1] +
+		a->values[2][1]*a->values[2][1]);
+	result->values[0][1] = a->values[0][1]*invLen2;
+	result->values[1][1] = a->values[1][1]*invLen2;
+	result->values[2][1] = a->values[2][1]*invLen2;
+
+	invLen2 = 1.0f/(a->values[0][2]*a->values[0][2] + a->values[1][2]*a->values[1][2] +
+		a->values[2][2]*a->values[2][2]);
+	result->values[0][2] = a->values[0][2]*invLen2;
+	result->values[1][2] = a->values[1][2]*invLen2;
+	result->values[2][2] = a->values[2][2]*invLen2;
 }
 
 void dsMatrix44d_inverseTranspose(dsMatrix33d* result, const dsMatrix44d* a)
@@ -273,10 +289,23 @@ void dsMatrix44d_inverseTranspose(dsMatrix33d* result, const dsMatrix44d* a)
 	DS_ASSERT(result);
 	DS_ASSERT(a);
 
-	dsMatrix33d temp, inverse;
-	dsMatrix33_copy(temp, *a);
-	dsMatrix33d_invert(&inverse, &temp);
-	dsMatrix33_transpose(*result, inverse);
+	double invLen2 = 1.0/(a->values[0][0]*a->values[0][0] + a->values[1][0]*a->values[1][0] +
+		a->values[2][0]*a->values[2][0]);
+	result->values[0][0] = a->values[0][0]*invLen2;
+	result->values[1][0] = a->values[1][0]*invLen2;
+	result->values[2][0] = a->values[2][0]*invLen2;
+
+	invLen2 = 1.0/(a->values[0][1]*a->values[0][1] + a->values[1][1]*a->values[1][1] +
+		a->values[2][1]*a->values[2][1]);
+	result->values[0][1] = a->values[0][1]*invLen2;
+	result->values[1][1] = a->values[1][1]*invLen2;
+	result->values[2][1] = a->values[2][1]*invLen2;
+
+	invLen2 = 1.0/(a->values[0][2]*a->values[0][2] + a->values[1][2]*a->values[1][2] +
+		a->values[2][2]*a->values[2][2]);
+	result->values[0][2] = a->values[0][2]*invLen2;
+	result->values[1][2] = a->values[1][2]*invLen2;
+	result->values[2][2] = a->values[2][2]*invLen2;
 }
 
 void dsMatrix44f_makeRotate(dsMatrix44f* result, float x, float y, float z)

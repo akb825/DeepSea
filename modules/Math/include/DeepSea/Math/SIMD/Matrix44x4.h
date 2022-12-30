@@ -222,41 +222,6 @@ DS_SIMD_START_FLOAT4()
 		dsSIMD4f_mul(dsSIMD4f_mul((a).values[i2][j0], (a).values[i1][j1]), (a).values[i0][j2]), \
 		dsSIMD4f_mul(dsSIMD4f_mul((a).values[i1][j0], (a).values[i0][j1]), (a).values[i2][j2])), \
 		dsSIMD4f_mul(dsSIMD4f_mul((a).values[i0][j0], (a).values[i2][j1]), (a).values[i1][j2])))
-
-#define dsMatrix33x4_invertImpl(result, mat, invDet) \
-	do \
-	{ \
-		(result).values[0][0] = dsSIMD4f_mul(dsSIMD4f_sub( \
-			dsSIMD4f_mul((mat).values[1][1], (mat).values[2][2]), \
-			dsSIMD4f_mul((mat).values[1][2], (mat).values[2][1])), invDet); \
-		(result).values[0][1] = dsSIMD4f_mul(dsSIMD4f_sub( \
-			dsSIMD4f_mul((mat).values[0][2], (mat).values[2][1]), \
-			dsSIMD4f_mul((mat).values[0][1], (mat).values[2][2])), invDet); \
-		(result).values[0][2] = dsSIMD4f_mul(dsSIMD4f_sub( \
-			dsSIMD4f_mul((mat).values[0][1], (mat).values[1][2]), \
-			dsSIMD4f_mul((mat).values[0][2], (mat).values[1][1])), invDet); \
-		\
-		(result).values[1][0] = dsSIMD4f_mul(dsSIMD4f_sub( \
-			dsSIMD4f_mul((mat).values[1][2], (mat).values[2][0]), \
-			dsSIMD4f_mul((mat).values[1][0], (mat).values[2][2])), invDet); \
-		(result).values[1][1] = dsSIMD4f_mul(dsSIMD4f_sub( \
-			dsSIMD4f_mul((mat).values[0][0], (mat).values[2][2]), \
-			dsSIMD4f_mul((mat).values[0][2], (mat).values[2][0])), invDet); \
-		(result).values[1][2] = dsSIMD4f_mul(dsSIMD4f_sub( \
-			dsSIMD4f_mul((mat).values[0][2], (mat).values[1][0]), \
-			dsSIMD4f_mul((mat).values[0][0], (mat).values[1][2])), invDet); \
-		\
-		(result).values[2][0] = dsSIMD4f_mul(dsSIMD4f_sub( \
-			dsSIMD4f_mul((mat).values[1][0], (mat).values[2][1]), \
-			dsSIMD4f_mul((mat).values[1][1], (mat).values[2][0])), invDet); \
-		(result).values[2][1] = dsSIMD4f_mul(dsSIMD4f_sub( \
-			dsSIMD4f_mul((mat).values[0][1], (mat).values[2][0]), \
-			dsSIMD4f_mul((mat).values[0][0], (mat).values[2][1])), invDet); \
-		(result).values[2][2] = dsSIMD4f_mul(dsSIMD4f_sub( \
-			dsSIMD4f_mul((mat).values[0][0], (mat).values[1][1]), \
-			dsSIMD4f_mul((mat).values[0][1], (mat).values[1][0])), invDet); \
-	} \
-	while (0)
 /// @endcond
 
 inline void dsMatrix44x4f_load(dsMatrix44x4f* result, const dsMatrix44fSIMD* a,
@@ -626,9 +591,40 @@ inline void dsMatrix44x4f_affineInvert(dsMatrix44x4f* result, const dsMatrix44x4
 	const dsSIMD4f zero = dsSIMD4f_set1(0.0f);
 	const dsSIMD4f one = dsSIMD4f_set1(1.0f);
 
+	result->values[0][0] = a->values[0][0];
+	result->values[0][1] = a->values[1][0];
+	result->values[0][2] = a->values[2][0];
+
 	// Prefer more accurate divide.
-	dsSIMD4f invUpperDet = dsSIMD4f_div(one, dsMatrix33x4_determinantImpl(*a, 0, 1, 2, 0, 1, 2));
-	dsMatrix33x4_invertImpl(*result, *a, invUpperDet);
+	dsSIMD4f invLen2 = dsSIMD4f_div(one, dsSIMD4f_add(dsSIMD4f_add(
+		dsSIMD4f_mul(result->values[0][0], result->values[0][0]),
+		dsSIMD4f_mul(result->values[0][1], result->values[0][1])),
+		dsSIMD4f_mul(result->values[0][2], result->values[0][2])));
+	result->values[0][0] = dsSIMD4f_mul(result->values[0][0], invLen2);
+	result->values[0][1] = dsSIMD4f_mul(result->values[0][1], invLen2);
+	result->values[0][2] = dsSIMD4f_mul(result->values[0][2], invLen2);
+
+	result->values[1][0] = a->values[0][1];
+	result->values[1][1] = a->values[1][1];
+	result->values[1][2] = a->values[2][1];
+	invLen2 = dsSIMD4f_div(one, dsSIMD4f_add(dsSIMD4f_add(
+		dsSIMD4f_mul(result->values[1][0], result->values[1][0]),
+		dsSIMD4f_mul(result->values[1][1], result->values[1][1])),
+		dsSIMD4f_mul(result->values[1][2], result->values[1][2])));
+	result->values[1][0] = dsSIMD4f_mul(result->values[1][0], invLen2);
+	result->values[1][1] = dsSIMD4f_mul(result->values[1][1], invLen2);
+	result->values[1][2] = dsSIMD4f_mul(result->values[1][2], invLen2);
+
+	result->values[2][0] = a->values[0][2];
+	result->values[2][1] = a->values[1][2];
+	result->values[2][2] = a->values[2][2];
+	invLen2 = dsSIMD4f_div(one, dsSIMD4f_add(dsSIMD4f_add(
+		dsSIMD4f_mul(result->values[2][0], result->values[2][0]),
+		dsSIMD4f_mul(result->values[2][1], result->values[2][1])),
+		dsSIMD4f_mul(result->values[2][2], result->values[2][2])));
+	result->values[2][0] = dsSIMD4f_mul(result->values[2][0], invLen2);
+	result->values[2][1] = dsSIMD4f_mul(result->values[2][1], invLen2);
+	result->values[2][2] = dsSIMD4f_mul(result->values[2][2], invLen2);
 
 	result->values[0][3] = zero;
 	result->values[1][3] = zero;
@@ -883,40 +879,40 @@ inline void dsMatrix44x4f_inverseTranspose(dsMatrix44x4f* result, const dsMatrix
 	const dsSIMD4f one = dsSIMD4f_set1(1.0f);
 
 	// Prefer more accurate divide.
-	dsSIMD4f invUpperDet = dsSIMD4f_div(one, dsMatrix33x4_determinantImpl(*a, 0, 1, 2, 0, 1, 2));
-
-	result->values[0][0] = dsSIMD4f_mul(dsSIMD4f_sub(dsSIMD4f_mul(a->values[1][1], a->values[2][2]),
-		dsSIMD4f_mul(a->values[1][2], a->values[2][1])), invUpperDet);
-	result->values[0][1] = dsSIMD4f_mul(dsSIMD4f_sub(dsSIMD4f_mul(a->values[1][2], a->values[2][0]),
-		dsSIMD4f_mul(a->values[1][0], a->values[2][2])), invUpperDet);
-	result->values[0][2] = dsSIMD4f_mul(dsSIMD4f_sub(dsSIMD4f_mul(a->values[1][0], a->values[2][1]),
-		dsSIMD4f_mul(a->values[1][1], a->values[2][0])), invUpperDet);
-	result->values[0][3] = zero;
-
-	result->values[1][0] = dsSIMD4f_mul(dsSIMD4f_sub(dsSIMD4f_mul(a->values[0][2], a->values[2][1]),
-		dsSIMD4f_mul(a->values[0][1], a->values[2][2])), invUpperDet);
-	result->values[1][1] = dsSIMD4f_mul(dsSIMD4f_sub(dsSIMD4f_mul(a->values[0][0], a->values[2][2]),
-		dsSIMD4f_mul(a->values[0][2], a->values[2][0])), invUpperDet);
-	result->values[1][2] = dsSIMD4f_mul(dsSIMD4f_sub(dsSIMD4f_mul(a->values[0][1], a->values[2][0]),
-		dsSIMD4f_mul(a->values[0][0], a->values[2][1])), invUpperDet);
-	result->values[1][3] = zero;
-
-	result->values[2][0] = dsSIMD4f_mul(dsSIMD4f_sub(dsSIMD4f_mul(a->values[0][1], a->values[1][2]),
-		dsSIMD4f_mul(a->values[0][2], a->values[1][1])), invUpperDet);
-	result->values[2][1] = dsSIMD4f_mul(dsSIMD4f_sub(dsSIMD4f_mul(a->values[0][2], a->values[1][0]),
-		dsSIMD4f_mul(a->values[0][0], a->values[1][2])), invUpperDet);
-	result->values[2][2] = dsSIMD4f_mul(dsSIMD4f_sub(dsSIMD4f_mul(a->values[0][0], a->values[1][1]),
-		dsSIMD4f_mul(a->values[0][1], a->values[1][0])), invUpperDet);
-	result->values[2][3] = zero;
-
+	dsSIMD4f invLen2 = dsSIMD4f_div(one, dsSIMD4f_add(dsSIMD4f_add(
+		dsSIMD4f_mul(a->values[0][0], a->values[0][0]),
+		dsSIMD4f_mul(a->values[1][0], a->values[1][0])),
+		dsSIMD4f_mul(a->values[2][0], a->values[2][0])));
+	result->values[0][0] = dsSIMD4f_mul(a->values[0][0], invLen2);
+	result->values[1][0] = dsSIMD4f_mul(a->values[1][0], invLen2);
+	result->values[2][0] = dsSIMD4f_mul(a->values[2][0], invLen2);
 	result->values[3][0] = zero;
+
+	invLen2 = dsSIMD4f_div(one, dsSIMD4f_add(dsSIMD4f_add(
+		dsSIMD4f_mul(a->values[0][1], a->values[0][1]),
+		dsSIMD4f_mul(a->values[1][1], a->values[1][1])),
+		dsSIMD4f_mul(a->values[2][1], a->values[2][1])));
+	result->values[0][1] = dsSIMD4f_mul(a->values[0][1], invLen2);
+	result->values[1][1] = dsSIMD4f_mul(a->values[1][1], invLen2);
+	result->values[2][1] = dsSIMD4f_mul(a->values[2][1], invLen2);
 	result->values[3][1] = zero;
+
+	invLen2 = dsSIMD4f_div(one, dsSIMD4f_add(dsSIMD4f_add(
+		dsSIMD4f_mul(a->values[0][2], a->values[0][2]),
+		dsSIMD4f_mul(a->values[1][2], a->values[1][2])),
+		dsSIMD4f_mul(a->values[2][2], a->values[2][2])));
+	result->values[0][2] = dsSIMD4f_mul(a->values[0][2], invLen2);
+	result->values[1][2] = dsSIMD4f_mul(a->values[1][2], invLen2);
+	result->values[2][2] = dsSIMD4f_mul(a->values[2][2], invLen2);
 	result->values[3][2] = zero;
+
+	result->values[0][3] = zero;
+	result->values[1][3] = zero;
+	result->values[2][3] = zero;
 	result->values[3][3] = one;
 }
 
 #undef dsMatrix33x4_determinantImpl
-#undef dsMatrix33x4_invertImpl
 
 DS_SIMD_END()
 
@@ -930,41 +926,6 @@ DS_SIMD_START_FMA()
 	dsSIMD4f_fmadd(dsSIMD4f_mul((a).values[i2][j0], (a).values[i1][j1]), (a).values[i0][j2], \
 	dsSIMD4f_fmadd(dsSIMD4f_mul((a).values[i1][j0], (a).values[i0][j1]), (a).values[i2][j2], \
 	dsSIMD4f_mul(dsSIMD4f_mul((a).values[i0][j0], (a).values[i2][j1]), (a).values[i1][j2]))))))
-
-#define dsMatrix33x4_invertImpl(result, mat, invDet) \
-	do \
-	{ \
-		(result).values[0][0] = dsSIMD4f_mul( \
-			dsSIMD4f_fmsub((mat).values[1][1], (mat).values[2][2], \
-			dsSIMD4f_mul((mat).values[1][2], (mat).values[2][1])), invDet); \
-		(result).values[0][1] = dsSIMD4f_mul( \
-			dsSIMD4f_fmsub((mat).values[0][2], (mat).values[2][1], \
-			dsSIMD4f_mul((mat).values[0][1], (mat).values[2][2])), invDet); \
-		(result).values[0][2] = dsSIMD4f_mul( \
-			dsSIMD4f_fmsub((mat).values[0][1], (mat).values[1][2], \
-			dsSIMD4f_mul((mat).values[0][2], (mat).values[1][1])), invDet); \
-		\
-		(result).values[1][0] = dsSIMD4f_mul( \
-			dsSIMD4f_fmsub((mat).values[1][2], (mat).values[2][0], \
-			dsSIMD4f_mul((mat).values[1][0], (mat).values[2][2])), invDet); \
-		(result).values[1][1] = dsSIMD4f_mul( \
-			dsSIMD4f_fmsub((mat).values[0][0], (mat).values[2][2], \
-			dsSIMD4f_mul((mat).values[0][2], (mat).values[2][0])), invDet); \
-		(result).values[1][2] = dsSIMD4f_mul( \
-			dsSIMD4f_fmsub((mat).values[0][2], (mat).values[1][0], \
-			dsSIMD4f_mul((mat).values[0][0], (mat).values[1][2])), invDet); \
-		\
-		(result).values[2][0] = dsSIMD4f_mul( \
-			dsSIMD4f_fmsub((mat).values[1][0], (mat).values[2][1], \
-			dsSIMD4f_mul((mat).values[1][1], (mat).values[2][0])), invDet); \
-		(result).values[2][1] = dsSIMD4f_mul( \
-			dsSIMD4f_fmsub((mat).values[0][1], (mat).values[2][0], \
-			dsSIMD4f_mul((mat).values[0][0], (mat).values[2][1])), invDet); \
-		(result).values[2][2] = dsSIMD4f_mul( \
-			dsSIMD4f_fmsub((mat).values[0][0], (mat).values[1][1], \
-			dsSIMD4f_mul((mat).values[0][1], (mat).values[1][0])), invDet); \
-	} \
-	while (0)
 /// @endcond
 
 inline void dsMatrix44x4f_mulFMA(dsMatrix44x4f* result, const dsMatrix44x4f* a,
@@ -1147,9 +1108,40 @@ inline void dsMatrix44x4f_affineInvertFMA(dsMatrix44x4f* result, const dsMatrix4
 	const dsSIMD4f zero = dsSIMD4f_set1(0.0f);
 	const dsSIMD4f one = dsSIMD4f_set1(1.0f);
 
+	result->values[0][0] = a->values[0][0];
+	result->values[0][1] = a->values[1][0];
+	result->values[0][2] = a->values[2][0];
+
 	// Prefer more accurate divide.
-	dsSIMD4f invUpperDet = dsSIMD4f_div(one, dsMatrix33x4_determinantImpl(*a, 0, 1, 2, 0, 1, 2));
-	dsMatrix33x4_invertImpl(*result, *a, invUpperDet);
+	dsSIMD4f invLen2 = dsSIMD4f_div(one,
+		dsSIMD4f_fmadd(result->values[0][0], result->values[0][0],
+		dsSIMD4f_fmadd(result->values[0][1], result->values[0][1],
+		dsSIMD4f_mul(result->values[0][2], result->values[0][2]))));
+	result->values[0][0] = dsSIMD4f_mul(result->values[0][0], invLen2);
+	result->values[0][1] = dsSIMD4f_mul(result->values[0][1], invLen2);
+	result->values[0][2] = dsSIMD4f_mul(result->values[0][2], invLen2);
+
+	result->values[1][0] = a->values[0][1];
+	result->values[1][1] = a->values[1][1];
+	result->values[1][2] = a->values[2][1];
+	invLen2 = dsSIMD4f_div(one,
+		dsSIMD4f_fmadd(result->values[1][0], result->values[1][0],
+		dsSIMD4f_fmadd(result->values[1][1], result->values[1][1],
+		dsSIMD4f_mul(result->values[1][2], result->values[1][2]))));
+	result->values[1][0] = dsSIMD4f_mul(result->values[1][0], invLen2);
+	result->values[1][1] = dsSIMD4f_mul(result->values[1][1], invLen2);
+	result->values[1][2] = dsSIMD4f_mul(result->values[1][2], invLen2);
+
+	result->values[2][0] = a->values[0][2];
+	result->values[2][1] = a->values[1][2];
+	result->values[2][2] = a->values[2][2];
+	invLen2 = dsSIMD4f_div(one,
+		dsSIMD4f_fmadd(result->values[2][0], result->values[2][0],
+		dsSIMD4f_fmadd(result->values[2][1], result->values[2][1],
+		dsSIMD4f_mul(result->values[2][2], result->values[2][2]))));
+	result->values[2][0] = dsSIMD4f_mul(result->values[2][0], invLen2);
+	result->values[2][1] = dsSIMD4f_mul(result->values[2][1], invLen2);
+	result->values[2][2] = dsSIMD4f_mul(result->values[2][2], invLen2);
 
 	result->values[0][3] = zero;
 	result->values[1][3] = zero;
@@ -1327,35 +1319,36 @@ inline void dsMatrix44x4f_inverseTransposeFMA(dsMatrix44x4f* result, const dsMat
 	const dsSIMD4f one = dsSIMD4f_set1(1.0f);
 
 	// Prefer more accurate divide.
-	dsSIMD4f invUpperDet = dsSIMD4f_div(one, dsMatrix33x4_determinantImpl(*a, 0, 1, 2, 0, 1, 2));
-
-	result->values[0][0] = dsSIMD4f_mul(dsSIMD4f_fmsub(a->values[1][1], a->values[2][2],
-		dsSIMD4f_mul(a->values[1][2], a->values[2][1])), invUpperDet);
-	result->values[0][1] = dsSIMD4f_mul(dsSIMD4f_fmsub(a->values[1][2], a->values[2][0],
-		dsSIMD4f_mul(a->values[1][0], a->values[2][2])), invUpperDet);
-	result->values[0][2] = dsSIMD4f_mul(dsSIMD4f_fmsub(a->values[1][0], a->values[2][1],
-		dsSIMD4f_mul(a->values[1][1], a->values[2][0])), invUpperDet);
-	result->values[0][3] = zero;
-
-	result->values[1][0] = dsSIMD4f_mul(dsSIMD4f_fmsub(a->values[0][2], a->values[2][1],
-		dsSIMD4f_mul(a->values[0][1], a->values[2][2])), invUpperDet);
-	result->values[1][1] = dsSIMD4f_mul(dsSIMD4f_fmsub(a->values[0][0], a->values[2][2],
-		dsSIMD4f_mul(a->values[0][2], a->values[2][0])), invUpperDet);
-	result->values[1][2] = dsSIMD4f_mul(dsSIMD4f_fmsub(a->values[0][1], a->values[2][0],
-		dsSIMD4f_mul(a->values[0][0], a->values[2][1])), invUpperDet);
-	result->values[1][3] = zero;
-
-	result->values[2][0] = dsSIMD4f_mul(dsSIMD4f_fmsub(a->values[0][1], a->values[1][2],
-		dsSIMD4f_mul(a->values[0][2], a->values[1][1])), invUpperDet);
-	result->values[2][1] = dsSIMD4f_mul(dsSIMD4f_fmsub(a->values[0][2], a->values[1][0],
-		dsSIMD4f_mul(a->values[0][0], a->values[1][2])), invUpperDet);
-	result->values[2][2] = dsSIMD4f_mul(dsSIMD4f_fmsub(a->values[0][0], a->values[1][1],
-		dsSIMD4f_mul(a->values[0][1], a->values[1][0])), invUpperDet);
-	result->values[2][3] = zero;
-
+	dsSIMD4f invLen2 = dsSIMD4f_div(one,
+		dsSIMD4f_fmadd(a->values[0][0], a->values[0][0],
+		dsSIMD4f_fmadd(a->values[1][0], a->values[1][0],
+		dsSIMD4f_mul(a->values[2][0], a->values[2][0]))));
+	result->values[0][0] = dsSIMD4f_mul(a->values[0][0], invLen2);
+	result->values[1][0] = dsSIMD4f_mul(a->values[1][0], invLen2);
+	result->values[2][0] = dsSIMD4f_mul(a->values[2][0], invLen2);
 	result->values[3][0] = zero;
+
+	invLen2 = dsSIMD4f_div(one,
+		dsSIMD4f_fmadd(a->values[0][1], a->values[0][1],
+		dsSIMD4f_fmadd(a->values[1][1], a->values[1][1],
+		dsSIMD4f_mul(a->values[2][1], a->values[2][1]))));
+	result->values[0][1] = dsSIMD4f_mul(a->values[0][1], invLen2);
+	result->values[1][1] = dsSIMD4f_mul(a->values[1][1], invLen2);
+	result->values[2][1] = dsSIMD4f_mul(a->values[2][1], invLen2);
 	result->values[3][1] = zero;
+
+	invLen2 = dsSIMD4f_div(one,
+		dsSIMD4f_fmadd(a->values[0][2], a->values[0][2],
+		dsSIMD4f_fmadd(a->values[1][2], a->values[1][2],
+		dsSIMD4f_mul(a->values[2][2], a->values[2][2]))));
+	result->values[0][2] = dsSIMD4f_mul(a->values[0][2], invLen2);
+	result->values[1][2] = dsSIMD4f_mul(a->values[1][2], invLen2);
+	result->values[2][2] = dsSIMD4f_mul(a->values[2][2], invLen2);
 	result->values[3][2] = zero;
+
+	result->values[0][3] = zero;
+	result->values[1][3] = zero;
+	result->values[2][3] = zero;
 	result->values[3][3] = one;
 }
 
@@ -1402,7 +1395,6 @@ inline void dsMatrix44x4f_invert33FMA(dsMatrix44x4f* result, const dsMatrix44x4f
 }
 
 #undef dsMatrix33x4_determinantImpl
-#undef dsMatrix33x4_invertImpl
 
 DS_SIMD_END()
 

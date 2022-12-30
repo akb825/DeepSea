@@ -16,7 +16,6 @@
 
 #include <DeepSea/Math/Matrix33.h>
 
-#include "Matrix33Impl.h"
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Math/Matrix22.h>
 
@@ -56,6 +55,31 @@
 		(result).values[2][1] = (invCosAngle)*(axis).values[1]*(axis).values[2] - \
 			(axis).values[0]*(sinAngle); \
 		(result).values[2][2] = (invCosAngle)*(axis).values[2]*(axis).values[2] + (cosAngle); \
+	} while (0)
+
+#define dsMatrix33_invertImpl(result, mat, invDet) \
+	do \
+	{ \
+		(result).values[0][0] = ((mat).values[1][1]*(mat).values[2][2] - \
+			(mat).values[1][2]*(mat).values[2][1])*invDet; \
+		(result).values[0][1] = ((mat).values[0][2]*(mat).values[2][1] - \
+			(mat).values[0][1]*(mat).values[2][2])*invDet; \
+		(result).values[0][2] = ((mat).values[0][1]*(mat).values[1][2] - \
+			(mat).values[0][2]*(mat).values[1][1])*invDet; \
+		\
+		(result).values[1][0] = ((mat).values[1][2]*(mat).values[2][0] - \
+			(mat).values[1][0]*(mat).values[2][2])*invDet; \
+		(result).values[1][1] = ((mat).values[0][0]*(mat).values[2][2] - \
+			(mat).values[0][2]*(mat).values[2][0])*invDet; \
+		(result).values[1][2] = ((mat).values[0][2]*(mat).values[1][0] - \
+			(mat).values[0][0]*(mat).values[1][2])*invDet; \
+		\
+		(result).values[2][0] = ((mat).values[1][0]*(mat).values[2][1] - \
+			(mat).values[1][1]*(mat).values[2][0])*invDet; \
+		(result).values[2][1] = ((mat).values[0][1]*(mat).values[2][0] - \
+			(mat).values[0][0]*(mat).values[2][1])*invDet; \
+		(result).values[2][2] = ((mat).values[0][0]*(mat).values[1][1] - \
+			(mat).values[0][1]*(mat).values[1][0])*invDet; \
 	} while (0)
 
 void dsMatrix33f_affineInvert(dsMatrix33f* result, const dsMatrix33f* a)
