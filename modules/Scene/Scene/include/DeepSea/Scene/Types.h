@@ -436,31 +436,31 @@ struct dsView
 	dsRenderSurfaceRotation rotation;
 
 	/**
+	 * @brief Parameters for the projection matrix.
+	 */
+	dsProjectionParams projectionParams;
+
+	/**
 	 * @brief The camera matrix, transforming from camera to world.
 	 */
-	dsMatrix44f cameraMatrix;
+	dsMatrix44fSIMD cameraMatrix;
 
 	/**
 	 * @brief The view matrix, transforming from world to camera.
 	 *
 	 * This is the inverse of the camera matrix.
 	 */
-	dsMatrix44f viewMatrix;
-
-	/**
-	 * @brief Parameters for the projection matrix.
-	 */
-	dsProjectionParams projectionParams;
+	dsMatrix44fSIMD viewMatrix;
 
 	/**
 	 * @brief The projection matrix.
 	 */
-	dsMatrix44f projectionMatrix;
+	dsMatrix44fSIMD projectionMatrix;
 
 	/**
 	 * @brief The pre-multiplied view projection matrix.
 	 */
-	dsMatrix44f viewProjectionMatrix;
+	dsMatrix44fSIMD viewProjectionMatrix;
 
 	/**
 	 * @brief The view frustum in world space.

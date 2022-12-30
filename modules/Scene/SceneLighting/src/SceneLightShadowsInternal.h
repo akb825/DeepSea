@@ -39,7 +39,7 @@ struct dsSceneLightShadows
 	dsSceneShadowParams shadowParams;
 	dsShadowCullVolume cullVolumes[DS_MAX_SCENE_LIGHT_SHADOWS_SURFACES];
 	dsShadowProjection projections[DS_MAX_SCENE_LIGHT_SHADOWS_SURFACES];
-	dsMatrix44f projectionMatrices[DS_MAX_SCENE_LIGHT_SHADOWS_SURFACES];
+	dsMatrix44fSIMD projectionMatrices[DS_MAX_SCENE_LIGHT_SHADOWS_SURFACES];
 	float largeBoxSize;
 	uint32_t projectionSet[DS_MAX_SCENE_LIGHT_SHADOWS_SURFACES];
 

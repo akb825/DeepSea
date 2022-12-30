@@ -15,6 +15,7 @@
  */
 
 #include <DeepSea/Math/SIMD/Matrix44x4.h>
+#include <DeepSea/Math/Matrix33.h>
 #include <DeepSea/Math/Matrix44.h>
 #include <gtest/gtest.h>
 
@@ -870,6 +871,144 @@ TEST(Matrix44x4Test, InverseTransposeFMA)
 	dsMatrix44f_inverseTranspose(&expected1, &a1);
 	dsMatrix44f_inverseTranspose(&expected2, &a2);
 	dsMatrix44f_inverseTranspose(&expected3, &a3);
+
+	dsVector4fSIMD result0[3], result1[3], result2[3], result3[3];
+	dsMatrix44x4f_store33(result0, result1, result2, result3, &result);
+
+	for (unsigned int i = 0; i < 3; ++i)
+	{
+		for (unsigned int j = 0; j < 3; ++j)
+		{
+			EXPECT_NEAR(expected0.values[i][j], result0[i].values[j], epsilon);
+			EXPECT_NEAR(expected1.values[i][j], result1[i].values[j], epsilon);
+			EXPECT_NEAR(expected2.values[i][j], result2[i].values[j], epsilon);
+			EXPECT_NEAR(expected3.values[i][j], result3[i].values[j], epsilon);
+		}
+	}
+}
+
+TEST(Matrix44x4Test, Invert33)
+{
+	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Float4))
+		return;
+
+	dsMatrix44fSIMD a0 =
+	{{
+		{-0.1f, 2.3f, -4.5f, 6.7f},
+		{8.9f, -0.1f, 2.3f, -4.5f},
+		{-6.7f, 8.9f, 0.1f, -2.3f},
+		{4.5f, -6.7f, -8.9f, 0.1f}
+	}};
+
+	dsMatrix44fSIMD a1 =
+	{{
+		{1.0f, -3.2f, -5.4f, 7.6f},
+		{-9.8f, 1.0f, -3.2f, 5.4f},
+		{7.6f, -9.8f, 1.0f, -3.2f},
+		{-5.4f, 7.6f, 9.8f, -1.0f}
+	}};
+
+	dsMatrix44fSIMD a2 =
+	{{
+		{0.1f, -2.3f, 4.5f, -6.7f},
+		{-8.9f, 0.1f, -2.3f, 4.5f},
+		{6.7f, -8.9f, -0.1f, 2.3f},
+		{-4.5f, 6.7f, 8.9f, -0.1f}
+	}};
+
+	dsMatrix44fSIMD a3 =
+	{{
+		{-1.0f, 3.2f, 5.4f, -7.6f},
+		{9.8f, -1.0f, 3.2f, -5.4f},
+		{-7.6f, 9.8f, -1.0f, 3.2f},
+		{5.4f, -7.6f, -9.8f, 1.0f}
+	}};
+
+	dsMatrix44x4f a;
+	dsMatrix44x4f_load(&a, &a0, &a1, &a2, &a3);
+
+	dsMatrix44x4f result;
+	dsMatrix44x4f_invert33(&result, &a);
+
+	dsMatrix33f temp0, temp1, temp2, temp3;
+	dsMatrix33f expected0, expected1, expected2, expected3;
+	dsMatrix33_copy(temp0, a0);
+	dsMatrix33f_invert(&expected0, &temp0);
+	dsMatrix33_copy(temp1, a1);
+	dsMatrix33f_invert(&expected1, &temp1);
+	dsMatrix33_copy(temp2, a2);
+	dsMatrix33f_invert(&expected2, &temp2);
+	dsMatrix33_copy(temp3, a3);
+	dsMatrix33f_invert(&expected3, &temp3);
+
+	dsVector4fSIMD result0[3], result1[3], result2[3], result3[3];
+	dsMatrix44x4f_store33(result0, result1, result2, result3, &result);
+
+	for (unsigned int i = 0; i < 3; ++i)
+	{
+		for (unsigned int j = 0; j < 3; ++j)
+		{
+			EXPECT_NEAR(expected0.values[i][j], result0[i].values[j], epsilon);
+			EXPECT_NEAR(expected1.values[i][j], result1[i].values[j], epsilon);
+			EXPECT_NEAR(expected2.values[i][j], result2[i].values[j], epsilon);
+			EXPECT_NEAR(expected3.values[i][j], result3[i].values[j], epsilon);
+		}
+	}
+}
+
+TEST(Matrix44x4Test, Invert33FMA)
+{
+	if (!(dsHostSIMDFeatures & dsSIMDFeatures_FMA))
+		return;
+
+	dsMatrix44fSIMD a0 =
+	{{
+		{-0.1f, 2.3f, -4.5f, 6.7f},
+		{8.9f, -0.1f, 2.3f, -4.5f},
+		{-6.7f, 8.9f, 0.1f, -2.3f},
+		{4.5f, -6.7f, -8.9f, 0.1f}
+	}};
+
+	dsMatrix44fSIMD a1 =
+	{{
+		{1.0f, -3.2f, -5.4f, 7.6f},
+		{-9.8f, 1.0f, -3.2f, 5.4f},
+		{7.6f, -9.8f, 1.0f, -3.2f},
+		{-5.4f, 7.6f, 9.8f, -1.0f}
+	}};
+
+	dsMatrix44fSIMD a2 =
+	{{
+		{0.1f, -2.3f, 4.5f, -6.7f},
+		{-8.9f, 0.1f, -2.3f, 4.5f},
+		{6.7f, -8.9f, -0.1f, 2.3f},
+		{-4.5f, 6.7f, 8.9f, -0.1f}
+	}};
+
+	dsMatrix44fSIMD a3 =
+	{{
+		{-1.0f, 3.2f, 5.4f, -7.6f},
+		{9.8f, -1.0f, 3.2f, -5.4f},
+		{-7.6f, 9.8f, -1.0f, 3.2f},
+		{5.4f, -7.6f, -9.8f, 1.0f}
+	}};
+
+	dsMatrix44x4f a;
+	dsMatrix44x4f_load(&a, &a0, &a1, &a2, &a3);
+
+	dsMatrix44x4f result;
+	dsMatrix44x4f_invert33FMA(&result, &a);
+
+	dsMatrix33f temp0, temp1, temp2, temp3;
+	dsMatrix33f expected0, expected1, expected2, expected3;
+	dsMatrix33_copy(temp0, a0);
+	dsMatrix33f_invert(&expected0, &temp0);
+	dsMatrix33_copy(temp1, a1);
+	dsMatrix33f_invert(&expected1, &temp1);
+	dsMatrix33_copy(temp2, a2);
+	dsMatrix33f_invert(&expected2, &temp2);
+	dsMatrix33_copy(temp3, a3);
+	dsMatrix33f_invert(&expected3, &temp3);
 
 	dsVector4fSIMD result0[3], result1[3], result2[3], result3[3];
 	dsMatrix44x4f_store33(result0, result1, result2, result3, &result);

@@ -205,9 +205,11 @@
  * @brief Macro to always inline a function.
  */
 #if DS_MSC
-#define DS_ALWAYS_INLINE __forceinline
+#define DS_ALWAYS_INLINE static __forceinline
+#elif DS_GCC
+#define DS_ALWAYS_INLINE extern __attribute__((always_inline, gnu_inline)) inline
 #else
-#define DS_ALWAYS_INLINE __attribute__((always_inline)) inline
+#define DS_ALWAYS_INLINE static __attribute__((always_inline)) inline
 #endif
 
 /**

@@ -21,6 +21,7 @@
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
+#include <DeepSea/Core/Profile.h>
 
 #include <DeepSea/Math/Matrix44.h>
 
@@ -93,6 +94,8 @@ static void dsInstanceForwardLightData_populateData(void* userData, const dsView
 	const dsSceneTreeNode* const* instances, uint32_t instanceCount,
 	const dsShaderVariableGroupDesc* dataDesc, uint8_t* data, uint32_t stride)
 {
+	DS_PROFILE_FUNC_START();
+
 	DS_ASSERT(dataDesc->elementCount == DS_ARRAY_SIZE(baseElements));
 	const dsSceneLightSet* lightSet = (const dsSceneLightSet*)userData;
 	uint32_t lightCount = dataDesc->elements[0].count;
@@ -173,6 +176,8 @@ static void dsInstanceForwardLightData_populateData(void* userData, const dsView
 			memset(spotCosAngles + brightestLightCount, 0, sizeof(*spotCosAngles)*unsetCount);
 		}
 	}
+
+	DS_PROFILE_FUNC_RETURN_VOID();
 }
 
 dsSceneInstanceData* dsInstanceForwardLightData_create(dsAllocator* allocator,

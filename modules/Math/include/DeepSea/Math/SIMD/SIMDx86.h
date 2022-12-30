@@ -121,7 +121,7 @@ DS_SIMD_START_FLOAT4();
  * @param fp A pointer to the float values to load. This should be aligned to 16 bytes.
  * @return The loaded SIMD value.
  */
-static DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_load(const void* fp)
+DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_load(const void* fp)
 {
 	return _mm_load_ps((const float*)fp);
 }
@@ -132,7 +132,7 @@ static DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_load(const void* fp)
  * @param fp A pointer to the float values to load. This may be unaligned.
  * @return The loaded SIMD value.
  */
-static DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_loadUnaligned(const void* fp)
+DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_loadUnaligned(const void* fp)
 {
 	return _mm_loadu_ps((const float*)(fp));
 }
@@ -142,7 +142,7 @@ static DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_loadUnaligned(const void* fp)
  * @remark This can be used when dsSIMDFeatures_Float4 is available.
  * @param f The value to set.
  */
-static DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_set1(float f)
+DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_set1(float f)
 {
 	return _mm_set_ps1(f);
 }
@@ -155,7 +155,7 @@ static DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_set1(float f)
  * @param z The third value.
  * @param w The fourth value.
  */
-static DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_set4(float x, float y, float z, float w)
+DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_set4(float x, float y, float z, float w)
 {
 	return _mm_set_ps(w, z, y, x);
 }
@@ -166,7 +166,7 @@ static DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_set4(float x, float y, float z, float 
  * @param[out] fp A pointer to the float values to store to. This should be aligned to 16 bytes.
  * @param a The value to store.
  */
-static DS_ALWAYS_INLINE void dsSIMD4f_store(void* fp, dsSIMD4f a)
+DS_ALWAYS_INLINE void dsSIMD4f_store(void* fp, dsSIMD4f a)
 {
 	_mm_store_ps((float*)fp, a);
 }
@@ -186,7 +186,7 @@ static DS_ALWAYS_INLINE void dsSIMD4f_store(void* fp, dsSIMD4f a)
  * @param[out] fp A pointer to the float values to store to. This may be unaligned.
  * @param a The value to store.
  */
-static DS_ALWAYS_INLINE void dsSIMD4f_storeUnaligned(void* fp, dsSIMD4f a)
+DS_ALWAYS_INLINE void dsSIMD4f_storeUnaligned(void* fp, dsSIMD4f a)
 {
 	_mm_storeu_ps((float*)fp, a);
 }
@@ -197,7 +197,7 @@ static DS_ALWAYS_INLINE void dsSIMD4f_storeUnaligned(void* fp, dsSIMD4f a)
  * @param a The value to negate.
  * @return The result of -a.
  */
-static DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_neg(dsSIMD4f a)
+DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_neg(dsSIMD4f a)
 {
 	return _mm_xor_ps(_mm_set_ps1(-0.0f), a);
 }
@@ -209,7 +209,7 @@ static DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_neg(dsSIMD4f a)
  * @param b The second value to add.
  * @return The result of a + b.
  */
-static DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_add(dsSIMD4f a, dsSIMD4f b)
+DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_add(dsSIMD4f a, dsSIMD4f b)
 {
 	return _mm_add_ps(a, b);
 }
@@ -221,7 +221,7 @@ static DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_add(dsSIMD4f a, dsSIMD4f b)
  * @param b The second value to subtract.
  * @return The result of a - b.
  */
-static DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_sub(dsSIMD4f a, dsSIMD4f b)
+DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_sub(dsSIMD4f a, dsSIMD4f b)
 {
 	return _mm_sub_ps(a, b);
 }
@@ -233,7 +233,7 @@ static DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_sub(dsSIMD4f a, dsSIMD4f b)
  * @param b The second value to multiply.
  * @return The result of a*b.
  */
-static DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_mul(dsSIMD4f a, dsSIMD4f b)
+DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_mul(dsSIMD4f a, dsSIMD4f b)
 {
 	return _mm_mul_ps(a, b);
 }
@@ -245,7 +245,7 @@ static DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_mul(dsSIMD4f a, dsSIMD4f b)
  * @param b The second value to divide.
  * @return The result of a/b.
  */
-static DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_div(dsSIMD4f a, dsSIMD4f b)
+DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_div(dsSIMD4f a, dsSIMD4f b)
 {
 	return _mm_div_ps(a, b);
 }
@@ -256,7 +256,7 @@ static DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_div(dsSIMD4f a, dsSIMD4f b)
  * @param a The value to take the reciprical.
  * @return The approximate result of 1/a.
  */
-static DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_rcp(dsSIMD4f a)
+DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_rcp(dsSIMD4f a)
 {
 	return _mm_rcp_ps(a);
 }
@@ -267,7 +267,7 @@ static DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_rcp(dsSIMD4f a)
  * @param a The value to take the reciprical.
  * @return The result of sqrt(a).
  */
-static DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_sqrt(dsSIMD4f a)
+DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_sqrt(dsSIMD4f a)
 {
 	return _mm_sqrt_ps(a);
 }
@@ -278,7 +278,7 @@ static DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_sqrt(dsSIMD4f a)
  * @param a The value to take the reciprical.
  * @return The approximate result of 1/sqrt(a).
  */
-static DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_rsqrt(dsSIMD4f a)
+DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_rsqrt(dsSIMD4f a)
 {
 	return _mm_rsqrt_ps(a);
 }
@@ -289,7 +289,7 @@ static DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_rsqrt(dsSIMD4f a)
  * @param a The value to take the absolute value.
  * @return The result of abs(a).
  */
-static DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_abs(dsSIMD4f a)
+DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_abs(dsSIMD4f a)
 {
 	return _mm_andnot_ps(_mm_set1_ps(-0.0f), a);
 }
@@ -316,7 +316,7 @@ DS_SIMD_START_HADD();
  * @param b The second value to add.
  * @return The result of (a.x + a.y, a.z + a.w, b.x + b.y, b.z + b.w)
  */
-static DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_hadd(dsSIMD4f a, dsSIMD4f b)
+DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_hadd(dsSIMD4f a, dsSIMD4f b)
 {
 	return _mm_hadd_ps(a, b);
 }
@@ -334,7 +334,7 @@ DS_SIMD_START_FMA();
  * @param c The third value to add.
  * @return The result of a*b + c.
  */
-static DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_fmadd(dsSIMD4f a, dsSIMD4f b, dsSIMD4f c)
+DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_fmadd(dsSIMD4f a, dsSIMD4f b, dsSIMD4f c)
 {
 	return _mm_fmadd_ps(a, b, c);
 }
@@ -347,7 +347,7 @@ static DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_fmadd(dsSIMD4f a, dsSIMD4f b, dsSIMD4f
  * @param c The third value to subtract.
  * @return The result of a*b - c.
  */
-static DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_fmsub(dsSIMD4f a, dsSIMD4f b, dsSIMD4f c)
+DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_fmsub(dsSIMD4f a, dsSIMD4f b, dsSIMD4f c)
 {
 	return _mm_fmsub_ps(a, b, c);
 }
@@ -360,7 +360,7 @@ static DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_fmsub(dsSIMD4f a, dsSIMD4f b, dsSIMD4f
  * @param c The third value to add.
  * @return The result of -(a*b) + c.
  */
-static DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_fnmadd(dsSIMD4f a, dsSIMD4f b, dsSIMD4f c)
+DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_fnmadd(dsSIMD4f a, dsSIMD4f b, dsSIMD4f c)
 {
 	return _mm_fnmadd_ps(a, b, c);
 }
@@ -373,7 +373,7 @@ static DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_fnmadd(dsSIMD4f a, dsSIMD4f b, dsSIMD4
  * @param c The third value to subtract.
  * @return The result of -(a*b) - c.
  */
-static DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_fnmsub(dsSIMD4f a, dsSIMD4f b, dsSIMD4f c)
+DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_fnmsub(dsSIMD4f a, dsSIMD4f b, dsSIMD4f c)
 {
 	return _mm_fnmsub_ps(a, b, c);
 }
@@ -390,7 +390,7 @@ DS_SIMD_START_FLOAT4();
  * @param b The second value to take the min of.
  * @return The result of min(a, b).
  */
-static DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_min(dsSIMD4f a, dsSIMD4f b)
+DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_min(dsSIMD4f a, dsSIMD4f b)
 {
 	return _mm_min_ps(a, b);
 }
@@ -402,7 +402,7 @@ static DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_min(dsSIMD4f a, dsSIMD4f b)
  * @param b The second value to take the max of.
  * @return The result of max(a, b).
  */
-static DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_max(dsSIMD4f a, dsSIMD4f b)
+DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_max(dsSIMD4f a, dsSIMD4f b)
 {
 	return _mm_max_ps(a, b);
 }
@@ -415,7 +415,7 @@ static DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_max(dsSIMD4f a, dsSIMD4f b)
  * @param c The boolean mask to select with.
  * @return Values from a or b for whether c is true or false, respectively.
  */
-static DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_select(dsSIMD4f a, dsSIMD4f b, dsSIMD4b c)
+DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_select(dsSIMD4f a, dsSIMD4f b, dsSIMD4b c)
 {
 	return _mm_or_ps(_mm_and_ps(c, a), _mm_andnot_ps(c, b));
 }
@@ -427,7 +427,7 @@ static DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_select(dsSIMD4f a, dsSIMD4f b, dsSIMD4
  * @param b The second value to compare.
  * @return The result of a == b as a dsSIMD4b.
  */
-static DS_ALWAYS_INLINE dsSIMD4b dsSIMD4f_cmpeq(dsSIMD4f a, dsSIMD4f b)
+DS_ALWAYS_INLINE dsSIMD4b dsSIMD4f_cmpeq(dsSIMD4f a, dsSIMD4f b)
 {
 	return _mm_cmpeq_ps(a, b);
 }
@@ -439,7 +439,7 @@ static DS_ALWAYS_INLINE dsSIMD4b dsSIMD4f_cmpeq(dsSIMD4f a, dsSIMD4f b)
  * @param b The second value to compare.
  * @return The result of a != b as a dsSIMD4b.
  */
-static DS_ALWAYS_INLINE dsSIMD4b dsSIMD4f_cmpne(dsSIMD4f a, dsSIMD4f b)
+DS_ALWAYS_INLINE dsSIMD4b dsSIMD4f_cmpne(dsSIMD4f a, dsSIMD4f b)
 {
 	return _mm_cmpneq_ps(a, b);
 }
@@ -451,7 +451,7 @@ static DS_ALWAYS_INLINE dsSIMD4b dsSIMD4f_cmpne(dsSIMD4f a, dsSIMD4f b)
  * @param b The second value to compare.
  * @return The result of a < b as a dsSIMD4b.
  */
-static DS_ALWAYS_INLINE dsSIMD4b dsSIMD4f_cmplt(dsSIMD4f a, dsSIMD4f b)
+DS_ALWAYS_INLINE dsSIMD4b dsSIMD4f_cmplt(dsSIMD4f a, dsSIMD4f b)
 {
 	return _mm_cmplt_ps(a, b);
 }
@@ -463,7 +463,7 @@ static DS_ALWAYS_INLINE dsSIMD4b dsSIMD4f_cmplt(dsSIMD4f a, dsSIMD4f b)
  * @param b The second value to compare.
  * @return The result of a <= b as a dsSIMD4b.
  */
-static DS_ALWAYS_INLINE dsSIMD4b dsSIMD4f_cmple(dsSIMD4f a, dsSIMD4f b)
+DS_ALWAYS_INLINE dsSIMD4b dsSIMD4f_cmple(dsSIMD4f a, dsSIMD4f b)
 {
 	return _mm_cmple_ps(a, b);
 }
@@ -475,7 +475,7 @@ static DS_ALWAYS_INLINE dsSIMD4b dsSIMD4f_cmple(dsSIMD4f a, dsSIMD4f b)
  * @param b The second value to compare.
  * @return The result of a > b as a dsSIMD4b.
  */
-static DS_ALWAYS_INLINE dsSIMD4b dsSIMD4f_cmpgt(dsSIMD4f a, dsSIMD4f b)
+DS_ALWAYS_INLINE dsSIMD4b dsSIMD4f_cmpgt(dsSIMD4f a, dsSIMD4f b)
 {
 	return _mm_cmpgt_ps(a, b);
 }
@@ -487,7 +487,7 @@ static DS_ALWAYS_INLINE dsSIMD4b dsSIMD4f_cmpgt(dsSIMD4f a, dsSIMD4f b)
  * @param b The second value to compare.
  * @return The result of a >= b as a dsSIMD4b.
  */
-static DS_ALWAYS_INLINE dsSIMD4b dsSIMD4f_cmpge(dsSIMD4f a, dsSIMD4f b)
+DS_ALWAYS_INLINE dsSIMD4b dsSIMD4f_cmpge(dsSIMD4f a, dsSIMD4f b)
 {
 	return _mm_cmpge_ps(a, b);
 }
@@ -496,7 +496,7 @@ static DS_ALWAYS_INLINE dsSIMD4b dsSIMD4f_cmpge(dsSIMD4f a, dsSIMD4f b)
  * @brief Creates a SIMD value for true.
  * @return A SIMD value with true on all elements.
  */
-static DS_ALWAYS_INLINE dsSIMD4b dsSIMD4b_true(void)
+DS_ALWAYS_INLINE dsSIMD4b dsSIMD4b_true(void)
 {
 	const unsigned int a = 0xFFFFFFFF;
 	return _mm_set1_ps(*(float*)&a);
@@ -506,7 +506,7 @@ static DS_ALWAYS_INLINE dsSIMD4b dsSIMD4b_true(void)
  * @brief Creates a SIMD value for false.
  * @return A SIMD value with false on all elements.
  */
-static DS_ALWAYS_INLINE dsSIMD4b dsSIMD4b_false(void)
+DS_ALWAYS_INLINE dsSIMD4b dsSIMD4b_false(void)
 {
 	return _mm_setzero_ps();
 }
@@ -517,7 +517,7 @@ static DS_ALWAYS_INLINE dsSIMD4b dsSIMD4b_false(void)
  * @param[out] ip A pointer to the int values to store to. This should be aligned to 16 bytes.
  * @param a The value to store.
  */
-static DS_ALWAYS_INLINE void dsSIMD4b_store(void* ip, dsSIMD4b a)
+DS_ALWAYS_INLINE void dsSIMD4b_store(void* ip, dsSIMD4b a)
 {
 	_mm_store_ps((float*)ip, a);
 }
@@ -528,7 +528,7 @@ static DS_ALWAYS_INLINE void dsSIMD4b_store(void* ip, dsSIMD4b a)
  * @param[out] ip A pointer to the float values to store to. This may be unaligned.
  * @param a The value to store.
  */
-static DS_ALWAYS_INLINE void dsSIMD4b_storeUnaligned(void* ip, dsSIMD4b a)
+DS_ALWAYS_INLINE void dsSIMD4b_storeUnaligned(void* ip, dsSIMD4b a)
 {
 	_mm_storeu_ps((float*)ip, a);
 }
@@ -552,7 +552,7 @@ DS_ALWAYS_INLINE dsSIMD4b dsSIMD4b_not(dsSIMD4b a)
  * @param b The second value to and.
  * @return The result of a & b.
  */
-static DS_ALWAYS_INLINE dsSIMD4b dsSIMD4b_and(dsSIMD4b a, dsSIMD4b b)
+DS_ALWAYS_INLINE dsSIMD4b dsSIMD4b_and(dsSIMD4b a, dsSIMD4b b)
 {
 	return _mm_and_ps(a, b);
 }
@@ -564,7 +564,7 @@ static DS_ALWAYS_INLINE dsSIMD4b dsSIMD4b_and(dsSIMD4b a, dsSIMD4b b)
  * @param b The second value to and.
  * @return The result of (!a) & b.
  */
-static DS_ALWAYS_INLINE dsSIMD4b dsSIMD4b_andnot(dsSIMD4b a, dsSIMD4b b)
+DS_ALWAYS_INLINE dsSIMD4b dsSIMD4b_andnot(dsSIMD4b a, dsSIMD4b b)
 {
 	return _mm_andnot_ps(a, b);
 }
@@ -576,7 +576,7 @@ static DS_ALWAYS_INLINE dsSIMD4b dsSIMD4b_andnot(dsSIMD4b a, dsSIMD4b b)
  * @param b The second value to or.
  * @return The result of a | b.
  */
-static DS_ALWAYS_INLINE dsSIMD4b dsSIMD4b_or(dsSIMD4b a, dsSIMD4b b)
+DS_ALWAYS_INLINE dsSIMD4b dsSIMD4b_or(dsSIMD4b a, dsSIMD4b b)
 {
 	return _mm_or_ps(a, b);
 }
@@ -588,7 +588,7 @@ static DS_ALWAYS_INLINE dsSIMD4b dsSIMD4b_or(dsSIMD4b a, dsSIMD4b b)
  * @param b The second value to not then or.
  * @return The result of a | (!b).
  */
-static DS_ALWAYS_INLINE dsSIMD4b dsSIMD4b_ornot(dsSIMD4b a, dsSIMD4b b)
+DS_ALWAYS_INLINE dsSIMD4b dsSIMD4b_ornot(dsSIMD4b a, dsSIMD4b b)
 {
 	return _mm_or_ps(a, dsSIMD4b_not(b));
 }
@@ -600,7 +600,7 @@ static DS_ALWAYS_INLINE dsSIMD4b dsSIMD4b_ornot(dsSIMD4b a, dsSIMD4b b)
  * @param b The first value to xor.
  * @return The result of a ^ b.
  */
-static DS_ALWAYS_INLINE dsSIMD4b dsSIMD4b_xor(dsSIMD4b a, dsSIMD4b b)
+DS_ALWAYS_INLINE dsSIMD4b dsSIMD4b_xor(dsSIMD4b a, dsSIMD4b b)
 {
 	return _mm_xor_ps(a, b);
 }
@@ -616,7 +616,7 @@ DS_SIMD_START_HALF_FLOAT();
  * @param hfp A pointer to the half float value to load.
  * @return The loaded SIMD value.
  */
-static DS_ALWAYS_INLINE dsSIMD4hf dsSIMD4hf_load1(const void* hfp)
+DS_ALWAYS_INLINE dsSIMD4hf dsSIMD4hf_load1(const void* hfp)
 {
 	return _mm_cvtsi32_si128(*(const unsigned short*)hfp);
 }
@@ -627,7 +627,7 @@ static DS_ALWAYS_INLINE dsSIMD4hf dsSIMD4hf_load1(const void* hfp)
  * @param hfp A pointer to the half float values to load.
  * @return The loaded SIMD value.
  */
-static DS_ALWAYS_INLINE dsSIMD4hf dsSIMD4hf_load2(const void* hfp)
+DS_ALWAYS_INLINE dsSIMD4hf dsSIMD4hf_load2(const void* hfp)
 {
 	return _mm_cvtsi32_si128(*(const unsigned int*)hfp);
 }
@@ -638,7 +638,7 @@ static DS_ALWAYS_INLINE dsSIMD4hf dsSIMD4hf_load2(const void* hfp)
  * @param hfp A pointer to the half float values to load.
  * @return The loaded SIMD value.
  */
-static DS_ALWAYS_INLINE dsSIMD4hf dsSIMD4hf_load4(const void* hfp)
+DS_ALWAYS_INLINE dsSIMD4hf dsSIMD4hf_load4(const void* hfp)
 {
 	return _mm_loadu_si64(hfp);
 }
@@ -649,7 +649,7 @@ static DS_ALWAYS_INLINE dsSIMD4hf dsSIMD4hf_load4(const void* hfp)
  * @param[out] hfp A pointer to the half float value to store.
  * @param a The SIMD value to store.
  */
-static DS_ALWAYS_INLINE void dsSIMD4hf_store1(void* hfp, dsSIMD4hf a)
+DS_ALWAYS_INLINE void dsSIMD4hf_store1(void* hfp, dsSIMD4hf a)
 {
 	*(short*)hfp = (short)_mm_cvtsi128_si32(a);
 }
@@ -660,7 +660,7 @@ static DS_ALWAYS_INLINE void dsSIMD4hf_store1(void* hfp, dsSIMD4hf a)
  * @param[out] hfp A pointer to the half float values to store.
  * @param a The SIMD value to store.
  */
-static DS_ALWAYS_INLINE void dsSIMD4hf_store2(void* hfp, dsSIMD4hf a)
+DS_ALWAYS_INLINE void dsSIMD4hf_store2(void* hfp, dsSIMD4hf a)
 {
 	*(int*)hfp = _mm_cvtsi128_si32(a);
 }
@@ -671,7 +671,7 @@ static DS_ALWAYS_INLINE void dsSIMD4hf_store2(void* hfp, dsSIMD4hf a)
  * @param[out] hfp A pointer to the half float values to store.
  * @param a The SIMD value to store.
  */
-static DS_ALWAYS_INLINE void dsSIMD4hf_store4(void* hfp, dsSIMD4hf a)
+DS_ALWAYS_INLINE void dsSIMD4hf_store4(void* hfp, dsSIMD4hf a)
 {
 	_mm_storeu_si64(hfp, a);
 }
@@ -682,7 +682,7 @@ static DS_ALWAYS_INLINE void dsSIMD4hf_store4(void* hfp, dsSIMD4hf a)
  * @param a The value to convert.
  * @return The converted values.
  */
-static DS_ALWAYS_INLINE dsSIMD4hf dsSIMD4hf_fromFloat(dsSIMD4f a)
+DS_ALWAYS_INLINE dsSIMD4hf dsSIMD4hf_fromFloat(dsSIMD4f a)
 {
 	return _mm_cvtps_ph((a), 0);
 }
@@ -693,7 +693,7 @@ static DS_ALWAYS_INLINE dsSIMD4hf dsSIMD4hf_fromFloat(dsSIMD4f a)
  * @param a The value to convert.
  * @return The converted values.
  */
-static DS_ALWAYS_INLINE dsSIMD4f dsSIMD4hf_toFloat(dsSIMD4hf a)
+DS_ALWAYS_INLINE dsSIMD4f dsSIMD4hf_toFloat(dsSIMD4hf a)
 {
 	return _mm_cvtph_ps(a);
 }

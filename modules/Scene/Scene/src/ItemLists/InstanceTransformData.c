@@ -20,9 +20,10 @@
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
+#include <DeepSea/Core/Profile.h>
 
+#include <DeepSea/Math/SIMD/Matrix44x4.h>
 #include <DeepSea/Math/Matrix44.h>
-#include <DeepSea/Math/Matrix33.h>
 
 #include <DeepSea/Render/Resources/ShaderVariableGroupDesc.h>
 
@@ -42,40 +43,239 @@ static dsShaderVariableElement elements[] =
 
 typedef struct InstanceTransform
 {
-	dsMatrix44f world;
-	dsMatrix44f worldView;
-	dsVector4f worldViewInvTrans[3];
-	dsMatrix44f worldViewProj;
+	dsMatrix44fSIMD world;
+	dsMatrix44fSIMD worldView;
+	dsVector4fSIMD worldViewInvTrans[3];
+	dsMatrix44fSIMD worldViewProj;
 } InstanceTransform;
+
+#if DS_HAS_SIMD
+DS_SIMD_START_FLOAT4()
+static void computeTransformsSIMD(InstanceTransform transforms[4], const dsMatrix44x4f *viewMatrix,
+	const dsMatrix44x4f* projectionMatrix, const dsMatrix44fSIMD* world0,
+	const dsMatrix44fSIMD* world1, const dsMatrix44fSIMD* world2, const dsMatrix44fSIMD* world3)
+{
+	transforms[0].world = *world0;
+	transforms[1].world = *world1;
+	transforms[2].world = *world2;
+	transforms[3].world = *world3;
+
+	dsMatrix44x4f world;
+	dsMatrix44x4f_load(&world, world0, world1, world2, world3);
+
+	dsMatrix44x4f worldView;
+	dsMatrix44x4f_affineMul(&worldView, viewMatrix, &world);
+	dsMatrix44x4f_store(&transforms[0].worldView, &transforms[1].worldView,
+		&transforms[2].worldView, &transforms[3].worldView, &worldView);
+
+	dsMatrix44x4f worldViewInvTrans;
+	dsMatrix44x4f_inverseTranspose(&worldViewInvTrans, &worldView);
+	dsMatrix44x4f_store33(transforms[0].worldViewInvTrans, transforms[1].worldViewInvTrans,
+		transforms[2].worldViewInvTrans, transforms[3].worldViewInvTrans, &worldViewInvTrans);
+
+	dsMatrix44x4f worldViewProj;
+	dsMatrix44x4f_mul(&worldViewProj, projectionMatrix, &worldView);
+	dsMatrix44x4f_store(&transforms[0].worldViewProj, &transforms[1].worldViewProj,
+		&transforms[2].worldViewProj, &transforms[3].worldViewProj, &worldViewProj);
+}
+
+static void dsInstanceTransformData_populateDataSIMD(const dsView* view,
+	const dsSceneTreeNode* const* instances, uint32_t instanceCount, uint8_t* data, uint32_t stride)
+{
+	dsMatrix44x4f viewMatrix;
+	dsMatrix44x4f_load(&viewMatrix, &view->viewMatrix, &view->viewMatrix, &view->viewMatrix,
+		&view->viewMatrix);
+
+	dsMatrix44x4f projectionMatrix;
+	dsMatrix44x4f_load(&projectionMatrix, &view->projectionMatrix, &view->projectionMatrix,
+		&view->projectionMatrix, &view->projectionMatrix);
+
+	// First process all full sets of 4 transforms.
+	uint32_t i = 0;
+	while (i + 4 <= instanceCount)
+	{
+		const dsMatrix44fSIMD* world0 = dsSceneTreeNode_getTransform(instances[i++]);
+		DS_ASSERT(world0);
+		const dsMatrix44fSIMD* world1 = dsSceneTreeNode_getTransform(instances[i++]);
+		DS_ASSERT(world1);
+		const dsMatrix44fSIMD* world2 = dsSceneTreeNode_getTransform(instances[i++]);
+		DS_ASSERT(world2);
+		const dsMatrix44fSIMD* world3 = dsSceneTreeNode_getTransform(instances[i++]);
+		DS_ASSERT(world3);
+
+		InstanceTransform transforms[4];
+		computeTransformsSIMD(
+			transforms, &viewMatrix, &projectionMatrix, world0, world1, world2, world3);
+
+		*(InstanceTransform*)(data) = transforms[0];
+		data += stride;
+		*(InstanceTransform*)(data) = transforms[1];
+		data += stride;
+		*(InstanceTransform*)(data) = transforms[2];
+		data += stride;
+		*(InstanceTransform*)(data) = transforms[3];
+		data += stride;
+	}
+
+	// Then process any remainder.
+	uint32_t rem = instanceCount - i;
+	if (rem > 0)
+	{
+		const dsMatrix44fSIMD* world0 = dsSceneTreeNode_getTransform(instances[i++]);
+		DS_ASSERT(world0);
+		const dsMatrix44fSIMD* world1 =
+			i < instanceCount ? dsSceneTreeNode_getTransform(instances[i++]) : world0;
+		DS_ASSERT(world1);
+		const dsMatrix44fSIMD* world2 =
+			i < instanceCount ? dsSceneTreeNode_getTransform(instances[i++]) : world0;
+		DS_ASSERT(world2);
+		DS_ASSERT(i == instanceCount);
+		const dsMatrix44fSIMD* world3 = world0;
+		DS_ASSERT(world3);
+
+		InstanceTransform transforms[4];
+		computeTransformsSIMD(
+			transforms, &viewMatrix, &projectionMatrix, world0, world1, world2, world3);
+		for (uint32_t j = 0; j < rem; ++j, data += stride)
+			*(InstanceTransform*)(data) = transforms[j];
+	}
+}
+DS_SIMD_END()
+
+DS_SIMD_START_FMA()
+static void computeTransformsFMA(InstanceTransform transforms[4], const dsMatrix44x4f *viewMatrix,
+	const dsMatrix44x4f* projectionMatrix, const dsMatrix44fSIMD* world0,
+	const dsMatrix44fSIMD* world1, const dsMatrix44fSIMD* world2, const dsMatrix44fSIMD* world3)
+{
+	transforms[0].world = *world0;
+	transforms[1].world = *world1;
+	transforms[2].world = *world2;
+	transforms[3].world = *world3;
+
+	dsMatrix44x4f world;
+	dsMatrix44x4f_load(&world, world0, world1, world2, world3);
+
+	dsMatrix44x4f worldView;
+	dsMatrix44x4f_affineMulFMA(&worldView, viewMatrix, &world);
+	dsMatrix44x4f_store(&transforms[0].worldView, &transforms[1].worldView,
+		&transforms[2].worldView, &transforms[3].worldView, &worldView);
+
+	dsMatrix44x4f worldViewInvTrans;
+	dsMatrix44x4f_inverseTransposeFMA(&worldViewInvTrans, &worldView);
+	dsMatrix44x4f_store33(transforms[0].worldViewInvTrans, transforms[1].worldViewInvTrans,
+		transforms[2].worldViewInvTrans, transforms[3].worldViewInvTrans, &worldViewInvTrans);
+
+	dsMatrix44x4f worldViewProj;
+	dsMatrix44x4f_mulFMA(&worldViewProj, projectionMatrix, &worldView);
+	dsMatrix44x4f_store(&transforms[0].worldViewProj, &transforms[1].worldViewProj,
+		&transforms[2].worldViewProj, &transforms[3].worldViewProj, &worldViewProj);
+}
+
+static void dsInstanceTransformData_populateDataFMA(const dsView* view,
+	const dsSceneTreeNode* const* instances, uint32_t instanceCount, uint8_t* data, uint32_t stride)
+{
+	dsMatrix44x4f viewMatrix;
+	dsMatrix44x4f_load(&viewMatrix, &view->viewMatrix, &view->viewMatrix, &view->viewMatrix,
+		&view->viewMatrix);
+
+	dsMatrix44x4f projectionMatrix;
+	dsMatrix44x4f_load(&projectionMatrix, &view->projectionMatrix, &view->projectionMatrix,
+		&view->projectionMatrix, &view->projectionMatrix);
+
+	// First process all full sets of 4 transforms.
+	uint32_t i = 0;
+	while (i + 4 <= instanceCount)
+	{
+		const dsMatrix44fSIMD* world0 = dsSceneTreeNode_getTransform(instances[i++]);
+		DS_ASSERT(world0);
+		const dsMatrix44fSIMD* world1 = dsSceneTreeNode_getTransform(instances[i++]);
+		DS_ASSERT(world1);
+		const dsMatrix44fSIMD* world2 = dsSceneTreeNode_getTransform(instances[i++]);
+		DS_ASSERT(world2);
+		const dsMatrix44fSIMD* world3 = dsSceneTreeNode_getTransform(instances[i++]);
+		DS_ASSERT(world3);
+
+		InstanceTransform transforms[4];
+		computeTransformsFMA(
+			transforms, &viewMatrix, &projectionMatrix, world0, world1, world2, world3);
+
+		*(InstanceTransform*)(data) = transforms[0];
+		data += stride;
+		*(InstanceTransform*)(data) = transforms[1];
+		data += stride;
+		*(InstanceTransform*)(data) = transforms[2];
+		data += stride;
+		*(InstanceTransform*)(data) = transforms[3];
+		data += stride;
+	}
+
+	// Then process any remainder.
+	uint32_t rem = instanceCount - i;
+	if (rem > 0)
+	{
+		const dsMatrix44fSIMD* world0 = dsSceneTreeNode_getTransform(instances[i++]);
+		DS_ASSERT(world0);
+		const dsMatrix44fSIMD* world1 =
+			i < instanceCount ? dsSceneTreeNode_getTransform(instances[i++]) : world0;
+		DS_ASSERT(world1);
+		const dsMatrix44fSIMD* world2 =
+			i < instanceCount ? dsSceneTreeNode_getTransform(instances[i++]) : world0;
+		DS_ASSERT(world2);
+		DS_ASSERT(i == instanceCount);
+		const dsMatrix44fSIMD* world3 = world0;
+		DS_ASSERT(world3);
+
+		InstanceTransform transforms[4];
+		computeTransformsFMA(
+			transforms, &viewMatrix, &projectionMatrix, world0, world1, world2, world3);
+		for (uint32_t j = 0; j < rem; ++j, data += stride)
+			*(InstanceTransform*)(data) = transforms[j];
+	}
+}
+DS_SIMD_END()
+#endif
 
 static void dsInstanceTransformData_populateData(void* userData, const dsView* view,
 	const dsSceneTreeNode* const* instances, uint32_t instanceCount,
 	const dsShaderVariableGroupDesc* dataDesc, uint8_t* data, uint32_t stride)
 {
+	DS_PROFILE_FUNC_START();
+
 	DS_UNUSED(userData);
 	DS_UNUSED(dataDesc);
 	DS_ASSERT(stride >= sizeof(InstanceTransform));
-	for (uint32_t i = 0; i < instanceCount; ++i, data += stride)
+#if DS_HAS_SIMD
+	if (DS_SIMD_ALWAYS_FMA || (dsHostSIMDFeatures & dsSIMDFeatures_FMA))
+		dsInstanceTransformData_populateDataFMA(view, instances, instanceCount, data, stride);
+	else if (DS_SIMD_ALWAYS_FLOAT4 || (dsHostSIMDFeatures & dsSIMDFeatures_Float4))
+		dsInstanceTransformData_populateDataSIMD(view, instances, instanceCount, data, stride);
+	else
+#endif
 	{
-		const dsMatrix44f* world = dsSceneTreeNode_getTransform(instances[i]);
-		DS_ASSERT(world);
-		// The GPU memory can have some bad properties when accessing from the CPU, so first do all
-		// work on CPU memory and copy as one to the GPU buffer.
-		InstanceTransform transform;
-		transform.world = *world;
-		dsMatrix44_affineMul(transform.worldView, view->viewMatrix, *world);
-
-		dsMatrix33f worldViewInvTrans;
-		dsMatrix44f_inverseTranspose(&worldViewInvTrans, &transform.worldView);
-		for (unsigned int i = 0; i < 3; ++i)
+		for (uint32_t i = 0; i < instanceCount; ++i, data += stride)
 		{
-			*(dsVector3f*)(transform.worldViewInvTrans + i) = worldViewInvTrans.columns[i];
-			transform.worldViewInvTrans[i].w = 0;
-		}
+			const dsMatrix44f* world = dsSceneTreeNode_getTransform(instances[i]);
+			DS_ASSERT(world);
+			// The GPU memory can have some bad properties when accessing from the CPU, so first do
+			// all work on CPU memory and copy as one to the GPU buffer.
+			InstanceTransform transform;
+			transform.world = *world;
+			dsMatrix44_affineMul(transform.worldView, view->viewMatrix, *world);
 
-		dsMatrix44_mul(transform.worldViewProj, view->projectionMatrix, transform.worldView);
-		*(InstanceTransform*)(data) = transform;
+			dsMatrix33f worldViewInvTrans;
+			dsMatrix44f_inverseTranspose(&worldViewInvTrans, &transform.worldView);
+			for (unsigned int i = 0; i < 3; ++i)
+			{
+				*(dsVector3f*)(transform.worldViewInvTrans + i) = worldViewInvTrans.columns[i];
+				transform.worldViewInvTrans[i].w = 0;
+			}
+
+			dsMatrix44_mul(transform.worldViewProj, view->projectionMatrix, transform.worldView);
+			*(InstanceTransform*)(data) = transform;
+		}
 	}
+
+	DS_PROFILE_FUNC_RETURN_VOID();
 }
 
 const char* const dsInstanceTransformData_typeName = "InstanceTransformData";

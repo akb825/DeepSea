@@ -37,4 +37,6 @@ void dsMatrix44x4f_invert(dsMatrix44x4f* result, const dsMatrix44x4f* a);
 void dsMatrix44x4f_invertFMA(dsMatrix44x4f* result, const dsMatrix44x4f* a);
 void dsMatrix44x4f_inverseTranspose(dsMatrix44x4f* result, const dsMatrix44x4f* a);
 void dsMatrix44x4f_inverseTransposeFMA(dsMatrix44x4f* result, const dsMatrix44x4f* a);
+void dsMatrix44x4f_invert33(dsMatrix44x4f* result, const dsMatrix44x4f* a);
+void dsMatrix44x4f_invert33FMA(dsMatrix44x4f* result, const dsMatrix44x4f* a);
 #endif

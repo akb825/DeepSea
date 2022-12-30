@@ -194,6 +194,22 @@ DS_MATH_EXPORT inline void dsMatrix44x4f_inverseTranspose(dsMatrix44x4f* result,
 DS_MATH_EXPORT inline void dsMatrix44x4f_inverseTransposeFMA(dsMatrix44x4f* result,
 	const dsMatrix44x4f* a);
 
+/**
+ * @brief Inverts the upper 3x3 portion of four matrices.
+ * @remark This can be used when dsSIMDFeatures_Float4 is available.
+ * @param[out] result The result of the invert. This must not be the same as a.
+ * @param a The set of matrices to invert.
+ */
+DS_MATH_EXPORT inline void dsMatrix44x4f_invert33(dsMatrix44x4f* result, const dsMatrix44x4f* a);
+
+/**
+ * @brief Inverts upper 3x3 portion of fourmatrices using fused multiply-add operations.
+ * @remark This can be used when dsSIMDFeatures_FMA is available.
+ * @param[out] result The result of the invert. This must not be the same as a.
+ * @param a The set of matrices to invert.
+ */
+DS_MATH_EXPORT inline void dsMatrix44x4f_invert33FMA(dsMatrix44x4f* result, const dsMatrix44x4f* a);
+
 DS_SIMD_START_FLOAT4()
 
 /// @cond
@@ -815,7 +831,49 @@ inline void dsMatrix44x4f_invert(dsMatrix44x4f* result, const dsMatrix44x4f* a)
 		invDet);
 }
 
-void dsMatrix44x4f_inverseTranspose(dsMatrix44x4f* result, const dsMatrix44x4f* a)
+inline void dsMatrix44x4f_invert33(dsMatrix44x4f* result, const dsMatrix44x4f* a)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(result != a);
+
+	const dsSIMD4f zero = dsSIMD4f_set1(0.0f);
+	const dsSIMD4f one = dsSIMD4f_set1(1.0f);
+
+	// Prefer more accurate divide.
+	dsSIMD4f invUpperDet = dsSIMD4f_div(one, dsMatrix33x4_determinantImpl(*a, 0, 1, 2, 0, 1, 2));
+
+	result->values[0][0] = dsSIMD4f_mul(dsSIMD4f_sub(dsSIMD4f_mul(a->values[1][1], a->values[2][2]),
+		dsSIMD4f_mul(a->values[1][2], a->values[2][1])), invUpperDet);
+	result->values[0][1] = dsSIMD4f_mul(dsSIMD4f_sub(dsSIMD4f_mul(a->values[0][2], a->values[2][1]),
+		dsSIMD4f_mul(a->values[0][1], a->values[2][2])), invUpperDet);
+	result->values[0][2] = dsSIMD4f_mul(dsSIMD4f_sub(dsSIMD4f_mul(a->values[0][1], a->values[1][2]),
+		dsSIMD4f_mul(a->values[0][2], a->values[1][1])), invUpperDet);
+	result->values[0][3] = zero;
+
+	result->values[1][0] = dsSIMD4f_mul(dsSIMD4f_sub(dsSIMD4f_mul(a->values[1][2], a->values[2][0]),
+		dsSIMD4f_mul(a->values[1][0], a->values[2][2])), invUpperDet);
+	result->values[1][1] = dsSIMD4f_mul(dsSIMD4f_sub(dsSIMD4f_mul(a->values[0][0], a->values[2][2]),
+		dsSIMD4f_mul(a->values[0][2], a->values[2][0])), invUpperDet);
+	result->values[1][2] = dsSIMD4f_mul(dsSIMD4f_sub(dsSIMD4f_mul(a->values[0][2], a->values[1][0]),
+		dsSIMD4f_mul(a->values[0][0], a->values[1][2])), invUpperDet);
+	result->values[1][3] = zero;
+
+	result->values[2][0] = dsSIMD4f_mul(dsSIMD4f_sub(dsSIMD4f_mul(a->values[1][0], a->values[2][1]),
+		dsSIMD4f_mul(a->values[1][1], a->values[2][0])), invUpperDet);
+	result->values[2][1] = dsSIMD4f_mul(dsSIMD4f_sub(dsSIMD4f_mul(a->values[0][1], a->values[2][0]),
+		dsSIMD4f_mul(a->values[0][0], a->values[2][1])), invUpperDet);
+	result->values[2][2] = dsSIMD4f_mul(dsSIMD4f_sub(dsSIMD4f_mul(a->values[0][0], a->values[1][1]),
+		dsSIMD4f_mul(a->values[0][1], a->values[1][0])), invUpperDet);
+	result->values[2][3] = zero;
+
+	result->values[3][0] = zero;
+	result->values[3][1] = zero;
+	result->values[3][2] = zero;
+	result->values[3][3] = one;
+}
+
+inline void dsMatrix44x4f_inverseTranspose(dsMatrix44x4f* result, const dsMatrix44x4f* a)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -855,7 +913,6 @@ void dsMatrix44x4f_inverseTranspose(dsMatrix44x4f* result, const dsMatrix44x4f* 
 	result->values[3][1] = zero;
 	result->values[3][2] = zero;
 	result->values[3][3] = one;
-
 }
 
 #undef dsMatrix33x4_determinantImpl
@@ -1260,7 +1317,7 @@ inline void dsMatrix44x4f_invertFMA(dsMatrix44x4f* result, const dsMatrix44x4f* 
 		invDet);
 }
 
-void dsMatrix44x4f_inverseTransposeFMA(dsMatrix44x4f* result, const dsMatrix44x4f* a)
+inline void dsMatrix44x4f_inverseTransposeFMA(dsMatrix44x4f* result, const dsMatrix44x4f* a)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -1300,7 +1357,48 @@ void dsMatrix44x4f_inverseTransposeFMA(dsMatrix44x4f* result, const dsMatrix44x4
 	result->values[3][1] = zero;
 	result->values[3][2] = zero;
 	result->values[3][3] = one;
+}
 
+inline void dsMatrix44x4f_invert33FMA(dsMatrix44x4f* result, const dsMatrix44x4f* a)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(result != a);
+
+	const dsSIMD4f zero = dsSIMD4f_set1(0.0f);
+	const dsSIMD4f one = dsSIMD4f_set1(1.0f);
+
+	// Prefer more accurate divide.
+	dsSIMD4f invUpperDet = dsSIMD4f_div(one, dsMatrix33x4_determinantImpl(*a, 0, 1, 2, 0, 1, 2));
+
+	result->values[0][0] = dsSIMD4f_mul(dsSIMD4f_fmsub(a->values[1][1], a->values[2][2],
+		dsSIMD4f_mul(a->values[1][2], a->values[2][1])), invUpperDet);
+	result->values[0][1] = dsSIMD4f_mul(dsSIMD4f_fmsub(a->values[0][2], a->values[2][1],
+		dsSIMD4f_mul(a->values[0][1], a->values[2][2])), invUpperDet);
+	result->values[0][2] = dsSIMD4f_mul(dsSIMD4f_fmsub(a->values[0][1], a->values[1][2],
+		dsSIMD4f_mul(a->values[0][2], a->values[1][1])), invUpperDet);
+	result->values[0][3] = zero;
+
+	result->values[1][0] = dsSIMD4f_mul(dsSIMD4f_fmsub(a->values[1][2], a->values[2][0],
+		dsSIMD4f_mul(a->values[1][0], a->values[2][2])), invUpperDet);
+	result->values[1][1] = dsSIMD4f_mul(dsSIMD4f_fmsub(a->values[0][0], a->values[2][2],
+		dsSIMD4f_mul(a->values[0][2], a->values[2][0])), invUpperDet);
+	result->values[1][2] = dsSIMD4f_mul(dsSIMD4f_fmsub(a->values[0][2], a->values[1][0],
+		dsSIMD4f_mul(a->values[0][0], a->values[1][2])), invUpperDet);
+	result->values[1][3] = zero;
+
+	result->values[2][0] = dsSIMD4f_mul(dsSIMD4f_fmsub(a->values[1][0], a->values[2][1],
+		dsSIMD4f_mul(a->values[1][1], a->values[2][0])), invUpperDet);
+	result->values[2][1] = dsSIMD4f_mul(dsSIMD4f_fmsub(a->values[0][1], a->values[2][0],
+		dsSIMD4f_mul(a->values[0][0], a->values[2][1])), invUpperDet);
+	result->values[2][2] = dsSIMD4f_mul(dsSIMD4f_fmsub(a->values[0][0], a->values[1][1],
+		dsSIMD4f_mul(a->values[0][1], a->values[1][0])), invUpperDet);
+	result->values[2][3] = zero;
+
+	result->values[3][0] = zero;
+	result->values[3][1] = zero;
+	result->values[3][2] = zero;
+	result->values[3][3] = one;
 }
 
 #undef dsMatrix33x4_determinantImpl
