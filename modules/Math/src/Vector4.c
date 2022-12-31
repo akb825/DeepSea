@@ -40,6 +40,10 @@ void dsVector4f_neg(dsVector4f* result, const dsVector4f* a);
 void dsVector4d_neg(dsVector4d* result, const dsVector4d* a);
 void dsVector4i_neg(dsVector4i* result, const dsVector4i* a);
 
+void dsVector4f_lerp(dsVector4f* result, const dsVector4f* a, const dsVector4f* b, float t);
+void dsVector4d_lerp(dsVector4d* result, const dsVector4d* a, const dsVector4d* b, double t);
+void dsVector4i_lerp(dsVector4i* result, const dsVector4i* a, const dsVector4i* b, float t);
+
 float dsVector4f_dot(const dsVector4f* a, const dsVector4f* b);
 double dsVector4d_dot(const dsVector4d* a, const dsVector4d* b);
 int dsVector4i_dot(const dsVector4i* a, const dsVector4i* b);

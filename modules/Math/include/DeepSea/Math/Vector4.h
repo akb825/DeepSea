@@ -39,6 +39,8 @@ extern "C"
  * provided to accompany the macro to use when desired. The inline functions may also be addressed
  * in order to interface with other languages.
  *
+ * The dsVector4f functions may use SIMD operations when guaranteed to be available.
+ *
  * @see dsVector4f dsVector4d dsVector4i
  */
 
@@ -265,7 +267,11 @@ DS_MATH_EXPORT inline void dsVector4f_add(dsVector4f* result, const dsVector4f* 
 	DS_ASSERT(result);
 	DS_ASSERT(a);
 	DS_ASSERT(b);
+#if DS_SIMD_ALWAYS_FLOAT4
+	result->simd = dsSIMD4f_add(a->simd, b->simd);
+#else
 	dsVector4_add(*result, *a, *b);
+#endif
 }
 
 /** @copydoc dsVector4_add() */
@@ -295,7 +301,11 @@ DS_MATH_EXPORT inline void dsVector4f_sub(dsVector4f* result, const dsVector4f* 
 	DS_ASSERT(result);
 	DS_ASSERT(a);
 	DS_ASSERT(b);
+#if DS_SIMD_ALWAYS_FLOAT4
+	result->simd = dsSIMD4f_sub(a->simd, b->simd);
+#else
 	dsVector4_sub(*result, *a, *b);
+#endif
 }
 
 /** @copydoc dsVector4_sub() */
@@ -325,7 +335,11 @@ DS_MATH_EXPORT inline void dsVector4f_mul(dsVector4f* result, const dsVector4f* 
 	DS_ASSERT(result);
 	DS_ASSERT(a);
 	DS_ASSERT(b);
+#if DS_SIMD_ALWAYS_FLOAT4
+	result->simd = dsSIMD4f_mul(a->simd, b->simd);
+#else
 	dsVector4_mul(*result, *a, *b);
+#endif
 }
 
 /** @copydoc dsVector4_mul() */
@@ -355,7 +369,11 @@ DS_MATH_EXPORT inline void dsVector4f_div(dsVector4f* result, const dsVector4f* 
 	DS_ASSERT(result);
 	DS_ASSERT(a);
 	DS_ASSERT(b);
+#if DS_SIMD_ALWAYS_FLOAT4
+	result->simd = dsSIMD4f_div(a->simd, b->simd);
+#else
 	dsVector4_div(*result, *a, *b);
+#endif
 }
 
 /** @copydoc dsVector4_div() */
@@ -383,7 +401,11 @@ DS_MATH_EXPORT inline void dsVector4f_scale(dsVector4f* result, const dsVector4f
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
+#if DS_SIMD_ALWAYS_FLOAT4
+	result->simd = dsSIMD4f_mul(a->simd, dsSIMD4f_set1(s));
+#else
 	dsVector4_scale(*result, *a, s);
+#endif
 }
 
 /** @copydoc dsVector4_scale() */
@@ -407,7 +429,11 @@ DS_MATH_EXPORT inline void dsVector4f_neg(dsVector4f* result, const dsVector4f* 
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
+#if DS_SIMD_ALWAYS_FLOAT4
+	result->simd = dsSIMD4f_neg(a->simd);
+#else
 	dsVector4_neg(*result, *a);
+#endif
 }
 
 /** @copydoc dsVector4_neg() */
@@ -433,7 +459,14 @@ DS_MATH_EXPORT inline void dsVector4f_lerp(dsVector4f* result, const dsVector4f*
 	DS_ASSERT(result);
 	DS_ASSERT(a);
 	DS_ASSERT(b);
+#if DS_SIMD_ALWAYS_FMA
+	result->simd = dsSIMD4f_fmadd(dsSIMD4f_sub(b->simd, a->simd), dsSIMD4f_set1(t), a->simd);
+#elif DS_SIMD_ALWAYS_FLOAT4
+	result->simd = dsSIMD4f_add(a->simd,
+		dsSIMD4f_mul(dsSIMD4f_sub(b->simd, a->simd), dsSIMD4f_set1(t)));
+#else
 	dsVector4_lerp(*result, *a, *b, t);
+#endif
 }
 
 /** @copydoc dsVector4_lerp() */
@@ -464,7 +497,13 @@ DS_MATH_EXPORT inline float dsVector4f_dot(const dsVector4f* a, const dsVector4f
 {
 	DS_ASSERT(a);
 	DS_ASSERT(b);
+#if DS_SIMD_ALWAYS_FLOAT4
+	dsVector4f temp;
+	temp.simd = dsSIMD4f_mul(a->simd, b->simd);
+	return temp.x + temp.y + temp.z + temp.w;
+#else
 	return dsVector4_dot(*a, *b);
+#endif
 }
 
 /** @copydoc dsVector4_dot() */
@@ -487,7 +526,13 @@ DS_MATH_EXPORT inline int dsVector4i_dot(const dsVector4i* a, const dsVector4i* 
 DS_MATH_EXPORT inline float dsVector4f_len2(const dsVector4f* a)
 {
 	DS_ASSERT(a);
+#if DS_SIMD_ALWAYS_FLOAT4
+	dsVector4f temp;
+	temp.simd = dsSIMD4f_mul(a->simd, a->simd);
+	return temp.x + temp.y + temp.z + temp.w;
+#else
 	return dsVector4_len2(*a);
+#endif
 }
 
 /** @copydoc dsVector4_len2() */
@@ -509,7 +554,14 @@ DS_MATH_EXPORT inline float dsVector4f_dist2(const dsVector4f* a, const dsVector
 {
 	DS_ASSERT(a);
 	DS_ASSERT(b);
+#if DS_SIMD_ALWAYS_FLOAT4
+	dsVector4f temp;
+	temp.simd = dsSIMD4f_sub(a->simd, b->simd);
+	temp.simd = dsSIMD4f_mul(temp.simd, temp.simd);
+	return temp.x + temp.y + temp.z + temp.w;
+#else
 	return dsVector4_dist2(*a, *b);
+#endif
 }
 
 /** @copydoc dsVector4_dist2() */
@@ -555,7 +607,7 @@ DS_MATH_EXPORT inline bool dsVector4i_equal(const dsVector4i* a, const dsVector4
 inline float dsVector4f_len(const dsVector4f* a)
 {
 	DS_ASSERT(a);
-	return sqrtf(dsVector4_len2(*a));
+	return sqrtf(dsVector4f_len2(a));
 }
 
 inline double dsVector4d_len(const dsVector4d* a)
@@ -597,7 +649,11 @@ inline void dsVector4f_normalize(dsVector4f* result, const dsVector4f* a)
 	DS_ASSERT(a);
 	float length = dsVector4f_len(a);
 	DS_ASSERT(length > 0);
+#if DS_SIMD_ALWAYS_FLOAT4
+	result->simd = dsSIMD4f_mul(a->simd, dsSIMD4f_set1(1/length));
+#else
 	dsVector4_scale(*result, *a, 1/length);
+#endif
 }
 
 inline void dsVector4d_normalize(dsVector4d* result, const dsVector4d* a)
@@ -611,10 +667,17 @@ inline void dsVector4d_normalize(dsVector4d* result, const dsVector4d* a)
 
 inline bool dsVector4f_epsilonEqual(const dsVector4f* a, const dsVector4f* b, float epsilon)
 {
+#if DS_SIMD_ALWAYS_FLOAT4
+	dsVector4i result;
+	result.simd = dsSIMD4f_cmple(dsSIMD4f_abs(dsSIMD4f_sub(a->simd, b->simd)),
+		dsSIMD4f_set1(epsilon));
+	return result.x && result.y && result.z && result.w;
+#else
 	return dsEpsilonEqualf(a->values[0], b->values[0], epsilon) &&
 		dsEpsilonEqualf(a->values[1], b->values[1], epsilon) &&
 		dsEpsilonEqualf(a->values[2], b->values[2], epsilon) &&
 		dsEpsilonEqualf(a->values[3], b->values[3], epsilon);
+#endif
 }
 
 inline bool dsVector4d_epsilonEqual(const dsVector4d* a, const dsVector4d* b, double epsilon)
@@ -627,10 +690,22 @@ inline bool dsVector4d_epsilonEqual(const dsVector4d* a, const dsVector4d* b, do
 
 inline bool dsVector4f_relativeEpsilonEqual(const dsVector4f* a, const dsVector4f* b, float epsilon)
 {
+#if DS_SIMD_ALWAYS_FLOAT4
+	dsSIMD4f diff = dsSIMD4f_abs(dsSIMD4f_sub(a->simd, b->simd));
+	dsSIMD4f eps4 = dsSIMD4f_set1(epsilon);
+	dsSIMD4b epsEqual = dsSIMD4f_cmple(diff, eps4);
+	dsSIMD4b relativeEqual = dsSIMD4f_cmple(diff,
+		dsSIMD4f_mul(dsSIMD4f_max(dsSIMD4f_abs(a->simd), dsSIMD4f_abs(b->simd)), eps4));
+
+	dsVector4i result;
+	result.simd = dsSIMD4b_or(epsEqual, relativeEqual);
+	return result.x && result.y && result.z && result.w;
+#else
 	return dsRelativeEpsilonEqualf(a->values[0], b->values[0], epsilon) &&
 		dsRelativeEpsilonEqualf(a->values[1], b->values[1], epsilon) &&
 		dsRelativeEpsilonEqualf(a->values[2], b->values[2], epsilon) &&
 		dsRelativeEpsilonEqualf(a->values[3], b->values[3], epsilon);
+#endif
 }
 
 inline bool dsVector4d_relativeEpsilonEqual(const dsVector4d* a, const dsVector4d* b,

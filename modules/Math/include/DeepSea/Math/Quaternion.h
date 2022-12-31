@@ -365,12 +365,20 @@ inline void dsQuaternion4f_normalize(dsQuaternion4f* result, const dsQuaternion4
 	DS_ASSERT(result);
 	DS_ASSERT(a);
 
+#if DS_SIMD_ALWAYS_FLOAT4
+	dsVector4f temp;
+	temp.simd = dsSIMD4f_mul(a->simd, a->simd);
+	float len2 = temp.x + temp.y + temp.z + temp.w;
+	float invLen = 1.0f/sqrtf(len2);
+	result->simd = dsSIMD4f_mul(a->simd, dsSIMD4f_set1(invLen));
+#else
 	float len2 = dsPow2(a->i) + dsPow2(a->j) + dsPow2(a->k) + dsPow2(a->r);
 	float invLen = 1.0f/sqrtf(len2);
 	result->i = a->i*invLen;
 	result->j = a->j*invLen;
 	result->k = a->k*invLen;
 	result->r = a->r*invLen;
+#endif
 }
 
 inline void dsQuaternion4d_normalize(dsQuaternion4d* result, const dsQuaternion4d* a)
@@ -395,7 +403,7 @@ inline void dsQuaternion4f_rotate(dsVector3f* result, const dsQuaternion4f* a, c
 	dsQuaternion4f quatV = {{0, v->values[0], v->values[1], v->values[2]}};
 	dsQuaternion4f invA, tempQuat;
 	dsQuaternion4_invert(invA, *a);
-	dsQuaternion4_mul(tempQuat, *a, quatV);
+	dsQuaternion4f_mul(&tempQuat, a, &quatV);
 	dsQuaternion4_mulToVector(*result, tempQuat, invA);
 }
 

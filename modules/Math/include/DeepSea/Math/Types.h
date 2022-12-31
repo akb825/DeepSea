@@ -989,6 +989,13 @@ typedef union dsQuaternion4f
 	 */
 	float values[4];
 
+	/**
+	 * @brief SIMD value when supported.
+	 */
+#if DS_HAS_SIMD
+	dsSIMD4f simd;
+#endif
+
 	struct
 	{
 		/**

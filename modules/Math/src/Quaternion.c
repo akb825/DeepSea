@@ -205,13 +205,13 @@ void dsQuaternion4f_slerp(dsQuaternion4f* result, const dsQuaternion4f* a, const
 	DS_ASSERT(a);
 	DS_ASSERT(b);
 
-	float cosAB = dsVector4_dot(*a, *b);
+	float cosAB = dsVector4f_dot((const dsVector4f*)a, (const dsVector4f*)b);
 
 	// Make sure the shortest path is taken.
 	dsQuaternion4f negB;
 	if (cosAB < 0)
 	{
-		dsVector4_neg(negB, *b);
+		dsVector4f_neg((dsVector4f*)&negB, (const dsVector4f*)b);
 		b = &negB;
 		cosAB = -cosAB;
 	}
@@ -220,7 +220,7 @@ void dsQuaternion4f_slerp(dsQuaternion4f* result, const dsQuaternion4f* a, const
 	const float epsilon = 1e-6f;
 	if (cosAB > (1.0f - epsilon))
 	{
-		dsVector4_lerp(*result, *a, *b, t);
+		dsVector4f_lerp((dsVector4f*)result, (const dsVector4f*)a, (const dsVector4f*)b, t);
 		dsQuaternion4f_normalize(result, result);
 		return;
 	}
@@ -233,10 +233,15 @@ void dsQuaternion4f_slerp(dsQuaternion4f* result, const dsQuaternion4f* a, const
 	float scaleB = sinTheta/sinThetaAB;
 	float scaleA = cosf(theta) - cosAB*scaleB;
 
-	dsQuaternion4f scaledA, scaledB;
-	dsVector4_scale(scaledA, *a, scaleA);
-	dsVector4_scale(scaledB, *b, scaleB);
-	dsVector4_add(*result, scaledA, scaledB);
+#if DS_SIMD_ALWAYS_FMA
+	result->simd = dsSIMD4f_fmadd(a->simd, dsSIMD4f_set1(scaleA),
+		dsSIMD4f_mul(b->simd, dsSIMD4f_set1(scaleB)));
+#else
+	dsVector4f scaledA, scaledB;
+	dsVector4f_scale(&scaledA, (const dsVector4f*)a, scaleA);
+	dsVector4f_scale(&scaledB, (const dsVector4f*)b, scaleB);
+	dsVector4f_add((dsVector4f*)&result, &scaledA, &scaledB);
+#endif
 }
 
 void dsQuaternion4d_slerp(dsQuaternion4d* result, const dsQuaternion4d* a, const dsQuaternion4d* b,

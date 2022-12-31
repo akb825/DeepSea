@@ -162,6 +162,19 @@ TYPED_TEST(Vector4Test, Add)
 	EXPECT_EQ((TypeParam)8.9 + (TypeParam)-9.8, result.w);
 }
 
+TEST(Vector4fTest, Add)
+{
+	dsVector4f a = {{-2.3f, 4.5f, -6.7f, 8.9f}};
+	dsVector4f b = {{3.2f, -5.4f, 7.6f, -9.8f}};
+	dsVector4f result;
+
+	dsVector4f_add(&result, &a, &b);
+	EXPECT_FLOAT_EQ(a.x + b.x, result.x);
+	EXPECT_FLOAT_EQ(a.y + b.y, result.y);
+	EXPECT_FLOAT_EQ(a.z + b.z, result.z);
+	EXPECT_FLOAT_EQ(a.w + b.w, result.w);
+}
+
 TYPED_TEST(Vector4Test, Subtract)
 {
 	typedef typename Vector4TypeSelector<TypeParam>::Type Vector4Type;
@@ -175,6 +188,19 @@ TYPED_TEST(Vector4Test, Subtract)
 	EXPECT_EQ((TypeParam)4.5 - (TypeParam)-5.4, result.y);
 	EXPECT_EQ((TypeParam)-6.7 - (TypeParam)7.6, result.z);
 	EXPECT_EQ((TypeParam)8.9 - (TypeParam)-9.8, result.w);
+}
+
+TEST(Vector4fTest, Subtract)
+{
+	dsVector4f a = {{-2.3f, 4.5f, -6.7f, 8.9f}};
+	dsVector4f b = {{3.2f, -5.4f, 7.6f, -9.8f}};
+	dsVector4f result;
+
+	dsVector4f_sub(&result, &a, &b);
+	EXPECT_FLOAT_EQ(a.x - b.x, result.x);
+	EXPECT_FLOAT_EQ(a.y - b.y, result.y);
+	EXPECT_FLOAT_EQ(a.z - b.z, result.z);
+	EXPECT_FLOAT_EQ(a.w - b.w, result.w);
 }
 
 TYPED_TEST(Vector4Test, Multiply)
@@ -192,6 +218,19 @@ TYPED_TEST(Vector4Test, Multiply)
 	EXPECT_EQ((TypeParam)8.9 * (TypeParam)-9.8, result.w);
 }
 
+TEST(Vector4fTest, Multiply)
+{
+	dsVector4f a = {{-2.3f, 4.5f, -6.7f, 8.9f}};
+	dsVector4f b = {{3.2f, -5.4f, 7.6f, -9.8f}};
+	dsVector4f result;
+
+	dsVector4f_mul(&result, &a, &b);
+	EXPECT_FLOAT_EQ(a.x*b.x, result.x);
+	EXPECT_FLOAT_EQ(a.y*b.y, result.y);
+	EXPECT_FLOAT_EQ(a.z*b.z, result.z);
+	EXPECT_FLOAT_EQ(a.w*b.w, result.w);
+}
+
 TYPED_TEST(Vector4Test, Divide)
 {
 	typedef typename Vector4TypeSelector<TypeParam>::Type Vector4Type;
@@ -205,6 +244,20 @@ TYPED_TEST(Vector4Test, Divide)
 	EXPECT_EQ((TypeParam)4.5 / (TypeParam)-5.4, result.y);
 	EXPECT_EQ((TypeParam)-6.7 / (TypeParam)7.6, result.z);
 	EXPECT_EQ((TypeParam)8.9 / (TypeParam)-9.8, result.w);
+}
+
+TEST(Vector4fTest, Divide)
+{
+	constexpr float epsilon = 1e-3f; // Some targets only have approximate.
+	dsVector4f a = {{-2.3f, 4.5f, -6.7f, 8.9f}};
+	dsVector4f b = {{3.2f, -5.4f, 7.6f, -9.8f}};
+	dsVector4f result;
+
+	dsVector4f_div(&result, &a, &b);
+	EXPECT_NEAR(a.x/b.x, result.x, epsilon);
+	EXPECT_NEAR(a.y/b.y, result.y, epsilon);
+	EXPECT_NEAR(a.z/b.z, result.z, epsilon);
+	EXPECT_NEAR(a.w/b.w, result.w, epsilon);
 }
 
 TYPED_TEST(Vector4Test, Scale)
@@ -221,6 +274,18 @@ TYPED_TEST(Vector4Test, Scale)
 	EXPECT_EQ((TypeParam)8.9 * (TypeParam)3.2, result.w);
 }
 
+TEST(Vector4fTest, Scale)
+{
+	dsVector4f a = {{-2.3f, 4.5f, -6.7f, 8.9f}};
+	dsVector4f result;
+
+	dsVector4f_scale(&result, &a, 3.2f);
+	EXPECT_FLOAT_EQ(a.x*3.2f, result.x);
+	EXPECT_FLOAT_EQ(a.y*3.2f, result.y);
+	EXPECT_FLOAT_EQ(a.z*3.2f, result.z);
+	EXPECT_FLOAT_EQ(a.w*3.2f, result.w);
+}
+
 TYPED_TEST(Vector4Test, Neg)
 {
 	typedef typename Vector4TypeSelector<TypeParam>::Type Vector4Type;
@@ -235,6 +300,18 @@ TYPED_TEST(Vector4Test, Neg)
 	EXPECT_EQ(-a.w, result.w);
 }
 
+TEST(Vector4fTest, Neg)
+{
+	dsVector4f a = {{-2.3f, 4.5f, -6.7f, 8.9f}};
+	dsVector4f result;
+
+	dsVector4f_neg(&result, &a);
+	EXPECT_FLOAT_EQ(-a.x, result.x);
+	EXPECT_FLOAT_EQ(-a.y, result.y);
+	EXPECT_FLOAT_EQ(-a.z, result.z);
+	EXPECT_FLOAT_EQ(-a.w, result.w);
+}
+
 TYPED_TEST(Vector4Test, Dot)
 {
 	typedef typename Vector4TypeSelector<TypeParam>::Type Vector4Type;
@@ -243,6 +320,14 @@ TYPED_TEST(Vector4Test, Dot)
 	Vector4Type b = {{(TypeParam)3.2, (TypeParam)-5.4, (TypeParam)7.6, (TypeParam)-9.8}};
 
 	EXPECT_EQ(a.x*b.x + a.y*b.y + a.z*b.z + a.w*b.w, dsVector4_dot(a, b));
+}
+
+TEST(Vector4fTest, Dot)
+{
+	dsVector4f a = {{-2.3f, 4.5f, -6.7f, 8.9f}};
+	dsVector4f b = {{3.2f, -5.4f, 7.6f, -9.8f}};
+
+	EXPECT_FLOAT_EQ(a.x*b.x + a.y*b.y + a.z*b.z + a.w*b.w, dsVector4f_dot(&a, &b));
 }
 
 TYPED_TEST(Vector4Test, Length)
@@ -255,6 +340,15 @@ TYPED_TEST(Vector4Test, Length)
 	EXPECT_EQ(std::sqrt(dsPow2(a.x) + dsPow2(a.y) + dsPow2(a.z) + dsPow2(a.w)), dsVector4_len(&a));
 }
 
+TEST(Vector4fTest, Length)
+{
+	dsVector4f a = {{-2.3f, 4.5f, -6.7f, 8.9f}};
+
+	EXPECT_FLOAT_EQ(dsPow2(a.x) + dsPow2(a.y) + dsPow2(a.z) + dsPow2(a.w), dsVector4f_len2(&a));
+	EXPECT_FLOAT_EQ(std::sqrt(dsPow2(a.x) + dsPow2(a.y) + dsPow2(a.z) + dsPow2(a.w)),
+		dsVector4_len(&a));
+}
+
 TYPED_TEST(Vector4Test, Distance)
 {
 	typedef typename Vector4TypeSelector<TypeParam>::Type Vector4Type;
@@ -264,6 +358,17 @@ TYPED_TEST(Vector4Test, Distance)
 
 	EXPECT_EQ(dsPow2(a.x - b.x) + dsPow2(a.y - b.y) + dsPow2(a.z - b.z) + dsPow2(a.w - b.w),
 		dsVector4_dist2(a, b));
+	EXPECT_EQ(std::sqrt(dsPow2(a.x - b.x) + dsPow2(a.y - b.y) + dsPow2(a.z - b.z) +
+		dsPow2(a.w - b.w)), dsVector4_dist(&a, &b));
+}
+
+TEST(Vector4fTest, Distance)
+{
+	dsVector4f a = {{-2.3f, 4.5f, -6.7f, 8.9f}};
+	dsVector4f b = {{3.2f, -5.4f, 7.6f, -9.8f}};
+
+	EXPECT_EQ(dsPow2(a.x - b.x) + dsPow2(a.y - b.y) + dsPow2(a.z - b.z) + dsPow2(a.w - b.w),
+		dsVector4f_dist2(&a, &b));
 	EXPECT_EQ(std::sqrt(dsPow2(a.x - b.x) + dsPow2(a.y - b.y) + dsPow2(a.z - b.z) +
 		dsPow2(a.w - b.w)), dsVector4_dist(&a, &b));
 }
@@ -311,6 +416,19 @@ TYPED_TEST(Vector4FloatTest, Lerp)
 	EXPECT_EQ(dsLerp(a.y, b.y, (TypeParam)0.3), result.y);
 	EXPECT_EQ(dsLerp(a.z, b.z, (TypeParam)0.3), result.z);
 	EXPECT_EQ(dsLerp(a.w, b.w, (TypeParam)0.3), result.w);
+}
+
+TEST(Vector4fTest, Lerp)
+{
+	dsVector4f a = {{-2.3f, 4.5f, -6.7f, 8.9f}};
+	dsVector4f b = {{3.2f, -5.4f, 7.6f, -9.8f}};
+	dsVector4f result;
+
+	dsVector4f_lerp(&result, &a, &b, 0.3f);
+	EXPECT_FLOAT_EQ(dsLerp(a.x, b.x, 0.3f), result.x);
+	EXPECT_FLOAT_EQ(dsLerp(a.y, b.y, 0.3f), result.y);
+	EXPECT_FLOAT_EQ(dsLerp(a.z, b.z, 0.3f), result.z);
+	EXPECT_FLOAT_EQ(dsLerp(a.w, b.w, 0.3f), result.w);
 }
 
 TYPED_TEST(Vector4FloatTest, Normalize)
@@ -368,7 +486,7 @@ TYPED_TEST(Vector4FloatTest, RelativeEpsilonEqual)
 	EXPECT_FALSE(dsVector4_relativeEpsilonEqual(&a, &f, epsilon));
 }
 
-TEST(Vector4, ConvertFloatToDouble)
+TEST(Vector4Test, ConvertFloatToDouble)
 {
 	dsVector4f vectorf = {{-2.3f, 4.5f, -6.7f, 8.9f}};
 
@@ -381,7 +499,7 @@ TEST(Vector4, ConvertFloatToDouble)
 	EXPECT_FLOAT_EQ(vectorf.w, (float)vectord.w);
 }
 
-TEST(Vector4, ConvertDoubleToFloat)
+TEST(Vector4Test, ConvertDoubleToFloat)
 {
 	dsVector4d vectord = {{-2.3, 4.5, -6.7, 8.9}};
 
@@ -394,7 +512,7 @@ TEST(Vector4, ConvertDoubleToFloat)
 	EXPECT_FLOAT_EQ((float)vectord.w, vectorf.w);
 }
 
-TEST(Vector4, ConvertFloatToInt)
+TEST(Vector4Test, ConvertFloatToInt)
 {
 	dsVector4f vectorf = {{-2, 3, -4, 5}};
 
@@ -407,7 +525,7 @@ TEST(Vector4, ConvertFloatToInt)
 	EXPECT_EQ(vectorf.w, (float)vectori.w);
 }
 
-TEST(Vector4, ConvertIntToFloat)
+TEST(Vector4Test, ConvertIntToFloat)
 {
 	dsVector4i vectori = {{-2, 3, -4, 5}};
 
@@ -420,7 +538,7 @@ TEST(Vector4, ConvertIntToFloat)
 	EXPECT_EQ(vectori.w, (int)vectorf.w);
 }
 
-TEST(Vector4, ConvertDoubleToInt)
+TEST(Vector4Test, ConvertDoubleToInt)
 {
 	dsVector4d vectord = {{-2, 3, -4, 5}};
 
@@ -433,7 +551,7 @@ TEST(Vector4, ConvertDoubleToInt)
 	EXPECT_EQ(vectord.w, vectori.w);
 }
 
-TEST(Vector4, ConvertIntToDouble)
+TEST(Vector4Test, ConvertIntToDouble)
 {
 	dsVector4i vectori = {{-2, 3, -4, 5}};
 
