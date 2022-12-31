@@ -89,7 +89,7 @@ DS_SCENE_EXPORT const dsSceneItemList* dsSceneTreeNode_getItemList(const dsScene
  * @param node The scene tree node.
  * @return The transform or NULL if node is NULL.
  */
-DS_SCENE_EXPORT const dsMatrix44fSIMD* dsSceneTreeNode_getTransform(const dsSceneTreeNode* node);
+DS_SCENE_EXPORT const dsMatrix44f* dsSceneTreeNode_getTransform(const dsSceneTreeNode* node);
 
 /**
  * @brief Gets the item data associated with a tree node.

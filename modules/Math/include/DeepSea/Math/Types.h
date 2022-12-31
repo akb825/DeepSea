@@ -18,6 +18,7 @@
 
 #include <DeepSea/Core/Config.h>
 #include <DeepSea/Core/Memory/Memory.h>
+#include <DeepSea/Math/SIMD/SIMD.h>
 #include <stdint.h>
 
 #ifdef __cplusplus
@@ -45,8 +46,6 @@ extern "C"
 /**
  * @file
  * @brief Includes all of the types used in the DeepSea/Math library.
- *
- * This excludes SIMD types as they may not be present for all targets.
  */
 
 /**
@@ -456,6 +455,13 @@ typedef union dsVector4f
 	 */
 	float values[4];
 
+	/**
+	 * @brief SIMD value when supported.
+	 */
+#if DS_HAS_SIMD
+	dsSIMD4f simd;
+#endif
+
 	struct
 	{
 		/**
@@ -525,16 +531,6 @@ typedef union dsVector4f
 } dsVector4f;
 
 /**
- * @brief Version of dsVector4f that's aligned to 16 bytes for usage with SIMD.
- */
-typedef union dsVector4f DS_ALIGN(16) dsVector4fSIMD;
-
-/**
- * @brief Version of dsVector4i that's aligned to 16 bytes for usage with SIMD.
- */
-typedef union dsVector4i DS_ALIGN(16) dsVector4iSIMD;
-
-/**
  * @brief Structure for a 4D vector holding doubles.
  *
  * This can be accessed using cartesian coordinates (x, y, z, w), texture coordinates (s, t, p, q),
@@ -543,6 +539,7 @@ typedef union dsVector4i DS_ALIGN(16) dsVector4iSIMD;
  * Note that p is used in place of r for texture coordinates to avoid naming conflicts.
  *
  * @remark When bracket initializing, use two brackets. (i.e. {{x, y, z, w}})
+ * @remark This will be 16 byte aligned when SIMD is supported.
  * @see Vector4.h
  */
 typedef union dsVector4d
@@ -629,6 +626,7 @@ typedef union dsVector4d
  * Note that p is used in place of r for texture coordinates to avoid naming conflicts.
  *
  * @remark When bracket initializing, use two brackets. (i.e. {{x, y, z, w}})
+ * @remark This will be 16 byte aligned when SIMD is supported to allow storing bool results.
  * @see Vector4.h
  */
 typedef union dsVector4i
@@ -637,6 +635,13 @@ typedef union dsVector4i
 	 * @brief Array of the vector values.
 	 */
 	int values[4];
+
+	/**
+	 * @brief SIMD value for storing the result of boolean operations when supported.
+	 */
+#if DS_HAS_SIMD
+	dsSIMD4b simd;
+#endif
 
 	struct
 	{
@@ -923,7 +928,7 @@ typedef union dsMatrix33d
  *
  * @remark When bracket initializing, there must be two brackets around the list of column vectors.
  * (i.e. {{ {x0, y0, z0, w0}, {x1, y1, z1, w1}, {x2, y2, z2, w2}, {x3, y3, z3, w3} }})
- *
+ * @remark This will be 16 byte aligned when SIMD is supported.
  * @see dsMatrix44.h
  */
 typedef union dsMatrix44f
@@ -940,18 +945,12 @@ typedef union dsMatrix44f
 } dsMatrix44f;
 
 /**
- * @brief Version of dsMatrix44f that's aligned to 16 bytes for usage with SIMD.
- */
-typedef union dsMatrix44f DS_ALIGN(16) dsMatrix44fSIMD;
-
-/**
  * @brief Structure for a 4x4 matrix of doubles.
  *
  * This can be accessed as an array of columns or a 2D array of values.
  *
  * @remark When bracket initializing, there must be two brackets around the list of column vectors.
  * (i.e. {{ {x0, y0, z0, w0}, {x1, y1, z1, w1}, {x2, y2, z2, w2}, {x3, y3, z3, w3} }})
- *
  * @see dsMatrix44.h
  */
 typedef union dsMatrix44d

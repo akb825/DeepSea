@@ -41,10 +41,10 @@ typedef struct ShadowUserData
 
 typedef struct InstanceTransform
 {
-	dsMatrix44fSIMD world;
-	dsMatrix44fSIMD worldView;
-	dsVector4fSIMD worldViewInvTrans[3];
-	dsMatrix44fSIMD worldViewProj;
+	dsMatrix44f world;
+	dsMatrix44f worldView;
+	dsVector4f worldViewInvTrans[3];
+	dsMatrix44f worldViewProj;
 } InstanceTransform;
 
 static void ShadowUserData_destroy(void* userData)
@@ -57,8 +57,8 @@ static void ShadowUserData_destroy(void* userData)
 #if DS_HAS_SIMD
 DS_SIMD_START_FLOAT4()
 static void computeTransformsSIMD(InstanceTransform transforms[4], const dsMatrix44x4f *viewMatrix,
-	const dsMatrix44x4f* projectionMatrix, const dsMatrix44fSIMD* world0,
-	const dsMatrix44fSIMD* world1, const dsMatrix44fSIMD* world2, const dsMatrix44fSIMD* world3)
+	const dsMatrix44x4f* projectionMatrix, const dsMatrix44f* world0,
+	const dsMatrix44f* world1, const dsMatrix44f* world2, const dsMatrix44f* world3)
 {
 	transforms[0].world = *world0;
 	transforms[1].world = *world1;
@@ -84,8 +84,8 @@ static void computeTransformsSIMD(InstanceTransform transforms[4], const dsMatri
 		&transforms[2].worldViewProj, &transforms[3].worldViewProj, &worldViewProj);
 }
 
-static void dsInstanceTransformData_populateDataSIMD(const dsMatrix44fSIMD* viewMatrix,
-	const dsMatrix44fSIMD* projectionMatrix, const dsSceneTreeNode* const* instances,
+static void dsInstanceTransformData_populateDataSIMD(const dsMatrix44f* viewMatrix,
+	const dsMatrix44f* projectionMatrix, const dsSceneTreeNode* const* instances,
 	uint32_t instanceCount, uint8_t* data, uint32_t stride)
 {
 	dsMatrix44x4f viewMatrix4;
@@ -99,13 +99,13 @@ static void dsInstanceTransformData_populateDataSIMD(const dsMatrix44fSIMD* view
 	uint32_t i = 0;
 	while (i + 4 <= instanceCount)
 	{
-		const dsMatrix44fSIMD* world0 = dsSceneTreeNode_getTransform(instances[i++]);
+		const dsMatrix44f* world0 = dsSceneTreeNode_getTransform(instances[i++]);
 		DS_ASSERT(world0);
-		const dsMatrix44fSIMD* world1 = dsSceneTreeNode_getTransform(instances[i++]);
+		const dsMatrix44f* world1 = dsSceneTreeNode_getTransform(instances[i++]);
 		DS_ASSERT(world1);
-		const dsMatrix44fSIMD* world2 = dsSceneTreeNode_getTransform(instances[i++]);
+		const dsMatrix44f* world2 = dsSceneTreeNode_getTransform(instances[i++]);
 		DS_ASSERT(world2);
-		const dsMatrix44fSIMD* world3 = dsSceneTreeNode_getTransform(instances[i++]);
+		const dsMatrix44f* world3 = dsSceneTreeNode_getTransform(instances[i++]);
 		DS_ASSERT(world3);
 
 		InstanceTransform transforms[4];
@@ -126,16 +126,16 @@ static void dsInstanceTransformData_populateDataSIMD(const dsMatrix44fSIMD* view
 	uint32_t rem = instanceCount - i;
 	if (rem > 0)
 	{
-		const dsMatrix44fSIMD* world0 = dsSceneTreeNode_getTransform(instances[i++]);
+		const dsMatrix44f* world0 = dsSceneTreeNode_getTransform(instances[i++]);
 		DS_ASSERT(world0);
-		const dsMatrix44fSIMD* world1 =
+		const dsMatrix44f* world1 =
 			i < instanceCount ? dsSceneTreeNode_getTransform(instances[i++]) : world0;
 		DS_ASSERT(world1);
-		const dsMatrix44fSIMD* world2 =
+		const dsMatrix44f* world2 =
 			i < instanceCount ? dsSceneTreeNode_getTransform(instances[i++]) : world0;
 		DS_ASSERT(world2);
 		DS_ASSERT(i == instanceCount);
-		const dsMatrix44fSIMD* world3 = world0;
+		const dsMatrix44f* world3 = world0;
 		DS_ASSERT(world3);
 
 		InstanceTransform transforms[4];
@@ -149,8 +149,8 @@ DS_SIMD_END()
 
 DS_SIMD_START_FMA()
 static void computeTransformsFMA(InstanceTransform transforms[4], const dsMatrix44x4f *viewMatrix,
-	const dsMatrix44x4f* projectionMatrix, const dsMatrix44fSIMD* world0,
-	const dsMatrix44fSIMD* world1, const dsMatrix44fSIMD* world2, const dsMatrix44fSIMD* world3)
+	const dsMatrix44x4f* projectionMatrix, const dsMatrix44f* world0,
+	const dsMatrix44f* world1, const dsMatrix44f* world2, const dsMatrix44f* world3)
 {
 	transforms[0].world = *world0;
 	transforms[1].world = *world1;
@@ -176,8 +176,8 @@ static void computeTransformsFMA(InstanceTransform transforms[4], const dsMatrix
 		&transforms[2].worldViewProj, &transforms[3].worldViewProj, &worldViewProj);
 }
 
-static void dsInstanceTransformData_populateDataFMA(const dsMatrix44fSIMD* viewMatrix,
-	const dsMatrix44fSIMD* projectionMatrix,  const dsSceneTreeNode* const* instances,
+static void dsInstanceTransformData_populateDataFMA(const dsMatrix44f* viewMatrix,
+	const dsMatrix44f* projectionMatrix,  const dsSceneTreeNode* const* instances,
 	uint32_t instanceCount, uint8_t* data, uint32_t stride)
 {
 	dsMatrix44x4f viewMatrix4;
@@ -191,13 +191,13 @@ static void dsInstanceTransformData_populateDataFMA(const dsMatrix44fSIMD* viewM
 	uint32_t i = 0;
 	while (i + 4 <= instanceCount)
 	{
-		const dsMatrix44fSIMD* world0 = dsSceneTreeNode_getTransform(instances[i++]);
+		const dsMatrix44f* world0 = dsSceneTreeNode_getTransform(instances[i++]);
 		DS_ASSERT(world0);
-		const dsMatrix44fSIMD* world1 = dsSceneTreeNode_getTransform(instances[i++]);
+		const dsMatrix44f* world1 = dsSceneTreeNode_getTransform(instances[i++]);
 		DS_ASSERT(world1);
-		const dsMatrix44fSIMD* world2 = dsSceneTreeNode_getTransform(instances[i++]);
+		const dsMatrix44f* world2 = dsSceneTreeNode_getTransform(instances[i++]);
 		DS_ASSERT(world2);
-		const dsMatrix44fSIMD* world3 = dsSceneTreeNode_getTransform(instances[i++]);
+		const dsMatrix44f* world3 = dsSceneTreeNode_getTransform(instances[i++]);
 		DS_ASSERT(world3);
 
 		InstanceTransform transforms[4];
@@ -218,16 +218,16 @@ static void dsInstanceTransformData_populateDataFMA(const dsMatrix44fSIMD* viewM
 	uint32_t rem = instanceCount - i;
 	if (rem > 0)
 	{
-		const dsMatrix44fSIMD* world0 = dsSceneTreeNode_getTransform(instances[i++]);
+		const dsMatrix44f* world0 = dsSceneTreeNode_getTransform(instances[i++]);
 		DS_ASSERT(world0);
-		const dsMatrix44fSIMD* world1 =
+		const dsMatrix44f* world1 =
 			i < instanceCount ? dsSceneTreeNode_getTransform(instances[i++]) : world0;
 		DS_ASSERT(world1);
-		const dsMatrix44fSIMD* world2 =
+		const dsMatrix44f* world2 =
 			i < instanceCount ? dsSceneTreeNode_getTransform(instances[i++]) : world0;
 		DS_ASSERT(world2);
 		DS_ASSERT(i == instanceCount);
-		const dsMatrix44fSIMD* world3 = world0;
+		const dsMatrix44f* world3 = world0;
 		DS_ASSERT(world3);
 
 		InstanceTransform transforms[4];
@@ -253,7 +253,7 @@ static void dsShadowInstanceTransformData_populateData(void* userData, const dsV
 	if (shadowData->surface >= dsSceneLightShadows_getSurfaceCount(shadowData->shadows))
 		return;
 
-	const dsMatrix44fSIMD* projection = dsSceneLightShadows_getSurfaceProjection(shadowData->shadows,
+	const dsMatrix44f* projection = dsSceneLightShadows_getSurfaceProjection(shadowData->shadows,
 		shadowData->surface);
 	if (!DS_CHECK(DS_SCENE_LIGHTING_LOG_TAG, projection))
 		return;

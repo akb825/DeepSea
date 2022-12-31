@@ -46,7 +46,7 @@ struct dsSceneTreeNode
 	uint32_t maxChildren;
 	dsSceneNodeItemData itemData;
 	bool dirty;
-	dsMatrix44fSIMD transform;
+	dsMatrix44f transform;
 };
 
 typedef struct dsSceneTreeRootNode

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -70,8 +70,8 @@ static bool addCap(dsVectorScratchData* scratchData, const dsVector2f* position,
 
 	dsVector2_add(curVertex->position, *position, offset);
 	dsAlignedBox2_addPoint(*bounds, curVertex->position);
-	curVertex->position.z = distance;
-	curVertex->position.w = totalDistance;
+	curVertex->distance.x = distance;
+	curVertex->distance.y = totalDistance;
 	curVertex->materialIndex = (uint16_t)materialIndex;
 	curVertex->shapeIndex = (uint16_t)shapeIndex;
 
@@ -102,8 +102,8 @@ static bool addCap(dsVectorScratchData* scratchData, const dsVector2f* position,
 
 	dsVector2_sub(curVertex->position, *position, offset);
 	dsAlignedBox2_addPoint(*bounds, curVertex->position);
-	curVertex->position.z = distance;
-	curVertex->position.w = totalDistance;
+	curVertex->distance.x = distance;
+	curVertex->distance.y = totalDistance;
 	curVertex->materialIndex = (uint16_t)materialIndex;
 	curVertex->shapeIndex = (uint16_t)shapeIndex;
 
@@ -140,8 +140,8 @@ static bool addCap(dsVectorScratchData* scratchData, const dsVector2f* position,
 				dsAlignedBox2_addPoint(*bounds, pos);
 				curVertex->position.x = pos.x;
 				curVertex->position.y = pos.y;
-				curVertex->position.z = distance;
-				curVertex->position.w = totalDistance;
+				curVertex->distance.x = distance;
+				curVertex->distance.y = totalDistance;
 				curVertex->materialIndex = (uint16_t)materialIndex;
 				curVertex->shapeIndex = (uint16_t)shapeIndex;
 			}
@@ -214,8 +214,8 @@ static bool addCap(dsVectorScratchData* scratchData, const dsVector2f* position,
 			dsVector2_add(curVertex->position, *position, offset);
 			dsVector2_add(curVertex->position, curVertex->position, squareOffset);
 			dsAlignedBox2_addPoint(*bounds, curVertex->position);
-			curVertex->position.z = distance;
-			curVertex->position.w = totalDistance;
+			curVertex->distance.x = distance;
+			curVertex->distance.y = totalDistance;
 			curVertex->materialIndex = (uint16_t)materialIndex;
 			curVertex->shapeIndex = (uint16_t)shapeIndex;
 
@@ -227,8 +227,8 @@ static bool addCap(dsVectorScratchData* scratchData, const dsVector2f* position,
 			dsVector2_sub(curVertex->position, *position, offset);
 			dsVector2_add(curVertex->position, curVertex->position, squareOffset);
 			dsAlignedBox2_addPoint(*bounds, curVertex->position);
-			curVertex->position.z = distance;
-			curVertex->position.w = totalDistance;
+			curVertex->distance.x = distance;
+			curVertex->distance.y = totalDistance;
 			curVertex->materialIndex = (uint16_t)materialIndex;
 			curVertex->shapeIndex = (uint16_t)shapeIndex;
 
@@ -288,8 +288,8 @@ static bool addSimpleJoin(dsVectorScratchData* scratchData, const dsVector2f* po
 
 	dsVector2_add(curVertex->position, *position, offset);
 	dsAlignedBox2_addPoint(*bounds, curVertex->position);
-	curVertex->position.z = distance;
-	curVertex->position.w = totalDistance;
+	curVertex->distance.x = distance;
+	curVertex->distance.y = totalDistance;
 	curVertex->materialIndex = (uint16_t)materialIndex;
 	curVertex->shapeIndex = (uint16_t)shapeIndex;
 
@@ -300,8 +300,8 @@ static bool addSimpleJoin(dsVectorScratchData* scratchData, const dsVector2f* po
 
 	dsVector2_sub(curVertex->position, *position, offset);
 	dsAlignedBox2_addPoint(*bounds, curVertex->position);
-	curVertex->position.z = distance;
-	curVertex->position.w = totalDistance;
+	curVertex->distance.x = distance;
+	curVertex->distance.y = totalDistance;
 	curVertex->materialIndex = (uint16_t)materialIndex;
 	curVertex->shapeIndex = (uint16_t)shapeIndex;
 
@@ -376,8 +376,8 @@ static bool addJoin(dsVectorScratchData* scratchData, const dsVector2f* position
 
 	curVertex->position.x = position->x;
 	curVertex->position.y = position->y;
-	curVertex->position.z = distance;
-	curVertex->position.w = totalDistance;
+	curVertex->distance.x = distance;
+	curVertex->distance.y = totalDistance;
 	curVertex->materialIndex = (uint16_t)materialIndex;
 	curVertex->shapeIndex = (uint16_t)shapeIndex;
 
@@ -416,8 +416,8 @@ static bool addJoin(dsVectorScratchData* scratchData, const dsVector2f* position
 		dsAlignedBox2_addPoint(*bounds, miterPos);
 		curVertex->position.x = miterPos.x;
 		curVertex->position.y = miterPos.y;
-		curVertex->position.z = distance - innerExtendLength;
-		curVertex->position.w = totalDistance;
+		curVertex->distance.x = distance - innerExtendLength;
+		curVertex->distance.y = totalDistance;
 		curVertex->materialIndex = (uint16_t)materialIndex;
 		curVertex->shapeIndex = (uint16_t)shapeIndex;
 
@@ -429,8 +429,8 @@ static bool addJoin(dsVectorScratchData* scratchData, const dsVector2f* position
 		dsAlignedBox2_addPoint(*bounds, miterPos);
 		curVertex->position.x = miterPos.x;
 		curVertex->position.y = miterPos.y;
-		curVertex->position.z = distance + innerExtendLength;
-		curVertex->position.w = totalDistance;
+		curVertex->distance.x = distance + innerExtendLength;
+		curVertex->distance.y = totalDistance;
 		curVertex->materialIndex = (uint16_t)materialIndex;
 		curVertex->shapeIndex = (uint16_t)shapeIndex;
 
@@ -442,8 +442,8 @@ static bool addJoin(dsVectorScratchData* scratchData, const dsVector2f* position
 
 		curVertex->position.x = fromSecondPos.x;
 		curVertex->position.y = fromSecondPos.y;
-		curVertex->position.z = distance;
-		curVertex->position.w = totalDistance;
+		curVertex->distance.x = distance;
+		curVertex->distance.y = totalDistance;
 		curVertex->materialIndex = (uint16_t)materialIndex;
 		curVertex->shapeIndex = (uint16_t)shapeIndex;
 
@@ -454,8 +454,8 @@ static bool addJoin(dsVectorScratchData* scratchData, const dsVector2f* position
 
 		curVertex->position.x = toSecondPos.x;
 		curVertex->position.y = toSecondPos.y;
-		curVertex->position.z = distance;
-		curVertex->position.w = totalDistance;
+		curVertex->distance.x = distance;
+		curVertex->distance.y = totalDistance;
 		curVertex->materialIndex = (uint16_t)materialIndex;
 		curVertex->shapeIndex = (uint16_t)shapeIndex;
 
@@ -492,8 +492,8 @@ static bool addJoin(dsVectorScratchData* scratchData, const dsVector2f* position
 		dsAlignedBox2_addPoint(*bounds, miterPos);
 		curVertex->position.x = miterPos.x;
 		curVertex->position.y = miterPos.y;
-		curVertex->position.z = distance - innerExtendLength;
-		curVertex->position.w = totalDistance;
+		curVertex->distance.x = distance - innerExtendLength;
+		curVertex->distance.y = totalDistance;
 		curVertex->materialIndex = (uint16_t)materialIndex;
 		curVertex->shapeIndex = (uint16_t)shapeIndex;
 
@@ -505,8 +505,8 @@ static bool addJoin(dsVectorScratchData* scratchData, const dsVector2f* position
 		dsAlignedBox2_addPoint(*bounds, miterPos);
 		curVertex->position.x = miterPos.x;
 		curVertex->position.y = miterPos.y;
-		curVertex->position.z = distance + innerExtendLength;
-		curVertex->position.w = totalDistance;
+		curVertex->distance.x = distance + innerExtendLength;
+		curVertex->distance.y = totalDistance;
 		curVertex->materialIndex = (uint16_t)materialIndex;
 		curVertex->shapeIndex = (uint16_t)shapeIndex;
 
@@ -518,8 +518,8 @@ static bool addJoin(dsVectorScratchData* scratchData, const dsVector2f* position
 
 		curVertex->position.x = fromFirstPos.x;
 		curVertex->position.y = fromFirstPos.y;
-		curVertex->position.z = distance;
-		curVertex->position.w = totalDistance;
+		curVertex->distance.x = distance;
+		curVertex->distance.y = totalDistance;
 		curVertex->materialIndex = (uint16_t)materialIndex;
 		curVertex->shapeIndex = (uint16_t)shapeIndex;
 
@@ -530,8 +530,8 @@ static bool addJoin(dsVectorScratchData* scratchData, const dsVector2f* position
 
 		curVertex->position.x = toFirstPos.x;
 		curVertex->position.y = toFirstPos.y;
-		curVertex->position.z = distance;
-		curVertex->position.w = totalDistance;
+		curVertex->distance.x = distance;
+		curVertex->distance.y = totalDistance;
 		curVertex->materialIndex = (uint16_t)materialIndex;
 		curVertex->shapeIndex = (uint16_t)shapeIndex;
 
@@ -605,8 +605,8 @@ static bool addJoin(dsVectorScratchData* scratchData, const dsVector2f* position
 					dsAlignedBox2_addPoint(*bounds, miterPos);
 					curVertex->position.x = miterPos.x;
 					curVertex->position.y = miterPos.y;
-					curVertex->position.z = distance;
-					curVertex->position.w = totalDistance;
+					curVertex->distance.x = distance;
+					curVertex->distance.y = totalDistance;
 					curVertex->materialIndex = (uint16_t)materialIndex;
 					curVertex->shapeIndex = (uint16_t)shapeIndex;
 
@@ -641,8 +641,8 @@ static bool addJoin(dsVectorScratchData* scratchData, const dsVector2f* position
 					dsAlignedBox2_addPoint(*bounds, miterPos);
 					curVertex->position.x = miterPos.x;
 					curVertex->position.y = miterPos.y;
-					curVertex->position.z = distance;
-					curVertex->position.w = totalDistance;
+					curVertex->distance.x = distance;
+					curVertex->distance.y = totalDistance;
 					curVertex->materialIndex = (uint16_t)materialIndex;
 					curVertex->shapeIndex = (uint16_t)shapeIndex;
 
@@ -728,8 +728,8 @@ static bool addJoin(dsVectorScratchData* scratchData, const dsVector2f* position
 				dsAlignedBox2_addPoint(*bounds, pos);
 				curVertex->position.x = pos.x;
 				curVertex->position.y = pos.y;
-				curVertex->position.z = distance;
-				curVertex->position.w = totalDistance;
+				curVertex->distance.x = distance;
+				curVertex->distance.y = totalDistance;
 				curVertex->materialIndex = (uint16_t)materialIndex;
 				curVertex->shapeIndex = (uint16_t)shapeIndex;
 			}

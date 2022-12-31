@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2018 Aaron Barany
+ * Copyright 2017-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -416,7 +416,7 @@ bool dsVectorScratchData_addIndex(dsVectorScratchData* data, uint32_t* vertex)
 		uint32_t oldPieceIdx = (uint32_t)(piece - data->pieces);
 		uint32_t pieceIdx = data->pieceCount;
 		if (!DS_RESIZEABLE_ARRAY_ADD(data->allocator, data->pieces, data->pieceCount,
-			data->maxPieces, 1))
+				data->maxPieces, 1))
 		{
 			return false;
 		}
@@ -445,8 +445,8 @@ bool dsVectorScratchData_addIndex(dsVectorScratchData* data, uint32_t* vertex)
 	}
 
 	uint32_t index = data->indexCount;
-	if (!DS_RESIZEABLE_ARRAY_ADD(data->allocator, data->indices, data->indexCount, data->maxIndices,
-		1))
+	if (!DS_RESIZEABLE_ARRAY_ADD(
+			data->allocator, data->indices, data->indexCount, data->maxIndices, 1))
 	{
 		return false;
 	}

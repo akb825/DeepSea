@@ -443,24 +443,24 @@ struct dsView
 	/**
 	 * @brief The camera matrix, transforming from camera to world.
 	 */
-	dsMatrix44fSIMD cameraMatrix;
+	dsMatrix44f cameraMatrix;
 
 	/**
 	 * @brief The view matrix, transforming from world to camera.
 	 *
 	 * This is the inverse of the camera matrix.
 	 */
-	dsMatrix44fSIMD viewMatrix;
+	dsMatrix44f viewMatrix;
 
 	/**
 	 * @brief The projection matrix.
 	 */
-	dsMatrix44fSIMD projectionMatrix;
+	dsMatrix44f projectionMatrix;
 
 	/**
 	 * @brief The pre-multiplied view projection matrix.
 	 */
-	dsMatrix44fSIMD viewProjectionMatrix;
+	dsMatrix44f viewProjectionMatrix;
 
 	/**
 	 * @brief The view frustum in world space.

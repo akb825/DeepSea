@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -102,8 +102,8 @@ bool dsVectorFill_add(dsVectorScratchData* scratchData, const dsVectorMaterialSe
 
 			curVertex->position.x = scratchData->points[i].point.x;
 			curVertex->position.y = scratchData->points[i].point.y;
-			curVertex->position.z = 0.0f;
-			curVertex->position.w = 0.0f;
+			curVertex->distance.x = 0.0f;
+			curVertex->distance.y = 0.0f;
 			curVertex->materialIndex = (uint16_t)material;
 			curVertex->shapeIndex = (uint16_t)infoIndex;
 		}
@@ -169,8 +169,8 @@ bool dsVectorFill_add(dsVectorScratchData* scratchData, const dsVectorMaterialSe
 
 			curVertex->position.x = points[j].x;
 			curVertex->position.y = points[j].y;
-			curVertex->position.z = 0.0f;
-			curVertex->position.w = 0.0f;
+			curVertex->distance.x = 0.0f;
+			curVertex->distance.y = 0.0f;
 			curVertex->materialIndex = (uint16_t)material;
 			curVertex->shapeIndex = (uint16_t)infoIndex;
 		}

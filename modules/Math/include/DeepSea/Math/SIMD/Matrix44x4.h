@@ -45,8 +45,8 @@ extern "C"
  * @param c The third matrix to load.
  * @param d The fourth matrix to load.
  */
-DS_MATH_EXPORT inline void dsMatrix44x4f_load(dsMatrix44x4f* result, const dsMatrix44fSIMD* a,
-	const dsMatrix44fSIMD* b, const dsMatrix44fSIMD* c, const dsMatrix44fSIMD* d);
+DS_MATH_EXPORT inline void dsMatrix44x4f_load(dsMatrix44x4f* result, const dsMatrix44f* a,
+	const dsMatrix44f* b, const dsMatrix44f* c, const dsMatrix44f* d);
 
 /**
  * @brief Stores four matrices into separate values.
@@ -56,8 +56,8 @@ DS_MATH_EXPORT inline void dsMatrix44x4f_load(dsMatrix44x4f* result, const dsMat
  * @param[out] outC The third matrix to store into.
  * @param[out] outD The fourth matrix to store into.
  */
-DS_MATH_EXPORT inline void dsMatrix44x4f_store(dsMatrix44fSIMD* outA, dsMatrix44fSIMD* outB,
-	dsMatrix44fSIMD* outC, dsMatrix44fSIMD* outD, const dsMatrix44x4f* matrices);
+DS_MATH_EXPORT inline void dsMatrix44x4f_store(dsMatrix44f* outA, dsMatrix44f* outB,
+	dsMatrix44f* outC, dsMatrix44f* outD, const dsMatrix44x4f* matrices);
 
 /**
  * @brief Stores the upper 3x3 matrices into separate values.
@@ -67,8 +67,8 @@ DS_MATH_EXPORT inline void dsMatrix44x4f_store(dsMatrix44fSIMD* outA, dsMatrix44
  * @param[out] outC The third matrix to store into as 3 vectors.
  * @param[out] outD The fourth matrix to store into.
  */
-DS_MATH_EXPORT inline void dsMatrix44x4f_store33(dsVector4fSIMD* outA, dsVector4fSIMD* outB,
-	dsVector4fSIMD* outC, dsVector4fSIMD* outD, const dsMatrix44x4f* matrices);
+DS_MATH_EXPORT inline void dsMatrix44x4f_store33(dsVector4f* outA, dsVector4f* outB,
+	dsVector4f* outC, dsVector4f* outD, const dsMatrix44x4f* matrices);
 
 /**
  * @brief Multiplies two sets of four matrices.
@@ -224,8 +224,8 @@ DS_SIMD_START_FLOAT4()
 		dsSIMD4f_mul(dsSIMD4f_mul((a).values[i0][j0], (a).values[i2][j1]), (a).values[i1][j2])))
 /// @endcond
 
-inline void dsMatrix44x4f_load(dsMatrix44x4f* result, const dsMatrix44fSIMD* a,
-	const dsMatrix44fSIMD* b, const dsMatrix44fSIMD* c, const dsMatrix44fSIMD* d)
+inline void dsMatrix44x4f_load(dsMatrix44x4f* result, const dsMatrix44f* a,
+	const dsMatrix44f* b, const dsMatrix44f* c, const dsMatrix44f* d)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -262,8 +262,8 @@ inline void dsMatrix44x4f_load(dsMatrix44x4f* result, const dsMatrix44fSIMD* a,
 		result->values[3][3]);
 }
 
-inline void dsMatrix44x4f_store(dsMatrix44fSIMD* outA, dsMatrix44fSIMD* outB, dsMatrix44fSIMD* outC,
-	dsMatrix44fSIMD* outD, const dsMatrix44x4f* matrices)
+inline void dsMatrix44x4f_store(dsMatrix44f* outA, dsMatrix44f* outB, dsMatrix44f* outC,
+	dsMatrix44f* outD, const dsMatrix44x4f* matrices)
 {
 	DS_ASSERT(outA);
 	DS_ASSERT(outB);
@@ -313,8 +313,8 @@ inline void dsMatrix44x4f_store(dsMatrix44fSIMD* outA, dsMatrix44fSIMD* outB, ds
 	dsSIMD4f_store(outD->columns + 3, d);
 }
 
-inline void dsMatrix44x4f_store33(dsVector4fSIMD* outA, dsVector4fSIMD* outB, dsVector4fSIMD* outC,
-	dsVector4fSIMD* outD, const dsMatrix44x4f* matrices)
+inline void dsMatrix44x4f_store33(dsVector4f* outA, dsVector4f* outB, dsVector4f* outC,
+	dsVector4f* outD, const dsMatrix44x4f* matrices)
 {
 	DS_ASSERT(outA);
 	DS_ASSERT(outB);

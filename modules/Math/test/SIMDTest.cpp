@@ -41,8 +41,8 @@ TEST(SIMDTest, Float4)
 	float padding1; // Keep next value unalied.
 	DS_UNUSED(padding1);
 	dsVector4f cpuA = {{1.2f, 3.4f, 5.6f, 7.8f}};
-	dsVector4fSIMD cpuB = {{-9.8f, -7.6f, -5.4f, -3.2f}};
-	dsVector4fSIMD cpuResult;
+	dsVector4f cpuB = {{-9.8f, -7.6f, -5.4f, -3.2f}};
+	dsVector4f cpuResult;
 	float padding2; // Keep next value unalied.
 	DS_UNUSED(padding2);
 	dsVector4f unalginedCPUResult;
@@ -140,13 +140,13 @@ TEST(SIMDTest, Float4)
 	EXPECT_NEAR(-cpuB.z, cpuResult.z, epsilon);
 	EXPECT_NEAR(-cpuB.w, cpuResult.w, epsilon);
 
-	dsVector4fSIMD cpuC = {{7.8f, 5.6f, -3.4f, -1.2f}};
-	dsVector4fSIMD cpuD = {{-3.2f, -5.4f, 7.6f, 9.8f}};
+	dsVector4f cpuC = {{7.8f, 5.6f, -3.4f, -1.2f}};
+	dsVector4f cpuD = {{-3.2f, -5.4f, 7.6f, 9.8f}};
 	dsSIMD4f c = dsSIMD4f_load(&cpuC);
 	dsSIMD4f d = dsSIMD4f_load(&cpuD);
 
 	dsSIMD4f_transpose(a, b, c, d);
-	dsVector4fSIMD cpuAT, cpuBT, cpuCT, cpuDT;
+	dsVector4f cpuAT, cpuBT, cpuCT, cpuDT;
 	dsSIMD4f_store(&cpuAT, a);
 	dsSIMD4f_store(&cpuBT, b);
 	dsSIMD4f_store(&cpuCT, c);
@@ -189,14 +189,14 @@ TEST(SIMDTest, CompareLogic)
 	}
 #endif
 
-	dsVector4fSIMD cpuA = {{1.2f, 3.4f, 5.6f, 7.8f}};
-	dsVector4fSIMD cpuB = {{1.1f, 3.5f, 5.6f, -7.8f}};
-	dsVector4iSIMD cpuResult;
+	dsVector4f cpuA = {{1.2f, 3.4f, 5.6f, 7.8f}};
+	dsVector4f cpuB = {{1.1f, 3.5f, 5.6f, -7.8f}};
+	dsVector4i cpuResult;
 
 	dsSIMD4f a = dsSIMD4f_load(&cpuA);
 	dsSIMD4f b = dsSIMD4f_load(&cpuB);
 
-	dsVector4fSIMD cpuFPResult;
+	dsVector4f cpuFPResult;
 	dsSIMD4f fpResult = dsSIMD4f_min(a, b);
 	dsSIMD4f_store(&cpuFPResult, fpResult);
 	EXPECT_EQ(1.1f, cpuFPResult.x);
@@ -355,9 +355,9 @@ TEST(SIMDTest, HAdd)
 	}
 #endif
 
-	dsVector4fSIMD cpuA = {{1.2f, 3.4f, 5.6f, 7.8f}};
-	dsVector4fSIMD cpuB = {{-9.8f, -7.6f, -5.4f, -3.2f}};
-	dsVector4fSIMD cpuResult;
+	dsVector4f cpuA = {{1.2f, 3.4f, 5.6f, 7.8f}};
+	dsVector4f cpuB = {{-9.8f, -7.6f, -5.4f, -3.2f}};
+	dsVector4f cpuResult;
 
 	dsSIMD4f a = dsSIMD4f_load(&cpuA);
 	dsSIMD4f b = dsSIMD4f_load(&cpuB);
@@ -386,10 +386,10 @@ TEST(SIMDTest, FMA)
 #endif
 
 	constexpr float epsilon = 1e-6f;
-	dsVector4fSIMD cpuA = {{1.2f, 3.4f, 5.6f, 7.8f}};
-	dsVector4fSIMD cpuB = {{-9.8f, -7.6f, -5.4f, -3.2f}};
-	dsVector4fSIMD cpuC = {{7.8f, 5.6f, -3.4f, -1.2f}};
-	dsVector4fSIMD cpuResult;
+	dsVector4f cpuA = {{1.2f, 3.4f, 5.6f, 7.8f}};
+	dsVector4f cpuB = {{-9.8f, -7.6f, -5.4f, -3.2f}};
+	dsVector4f cpuC = {{7.8f, 5.6f, -3.4f, -1.2f}};
+	dsVector4f cpuResult;
 
 	dsSIMD4f a = dsSIMD4f_load(&cpuA);
 	dsSIMD4f b = dsSIMD4f_load(&cpuB);
@@ -442,11 +442,11 @@ TEST(SIMDTest, HalfFloat)
 
 	constexpr uint16_t unset = 0xFFFF;
 	constexpr float epsilon = 1e-2f;
-	dsVector4fSIMD cpuA = {{1.2f, 3.4f, 5.6f, 7.8f}};
+	dsVector4f cpuA = {{1.2f, 3.4f, 5.6f, 7.8f}};
 	uint16_t padding; // Ensure unaligned.
 	DS_UNUSED(padding);
 	uint16_t cpuHalfFloat[4] = {unset, unset, unset, unset};
-	dsVector4fSIMD cpuFullFloat;
+	dsVector4f cpuFullFloat;
 
 	dsSIMD4f a = dsSIMD4f_load(&cpuA);
 

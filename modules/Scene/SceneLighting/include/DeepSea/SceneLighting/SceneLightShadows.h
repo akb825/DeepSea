@@ -336,7 +336,7 @@ DS_SCENELIGHTING_EXPORT bool dsSceneLightShadows_computeSurfaceProjection(
  * @return The shadow projection matrix or NULL if the parameters are invalid or the projection
  *     hasn't been computed.
  */
-DS_SCENELIGHTING_EXPORT const dsMatrix44fSIMD* dsSceneLightShadows_getSurfaceProjection(
+DS_SCENELIGHTING_EXPORT const dsMatrix44f* dsSceneLightShadows_getSurfaceProjection(
 	const dsSceneLightShadows* shadows, uint32_t surface);
 
 /**

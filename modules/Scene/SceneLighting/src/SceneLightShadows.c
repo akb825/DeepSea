@@ -908,7 +908,7 @@ bool dsSceneLightShadows_computeSurfaceProjection(dsSceneLightShadows* shadows, 
 	return true;
 }
 
-const dsMatrix44fSIMD* dsSceneLightShadows_getSurfaceProjection(const dsSceneLightShadows* shadows,
+const dsMatrix44f* dsSceneLightShadows_getSurfaceProjection(const dsSceneLightShadows* shadows,
 	uint32_t surface)
 {
 	if (!shadows)

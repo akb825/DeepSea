@@ -44,7 +44,8 @@ typedef enum MaterialSource
 
 typedef struct ShapeVertex
 {
-	dsVector4f position;
+	dsVector2f position;
+	dsVector2f distance;
 	uint16_t shapeIndex;
 	uint16_t materialIndex;
 } ShapeVertex;

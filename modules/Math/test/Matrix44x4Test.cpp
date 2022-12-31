@@ -28,7 +28,7 @@ TEST(Matrix44x4Test, Multiply)
 	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Float4))
 		return;
 
-	dsMatrix44fSIMD a0 =
+	dsMatrix44f a0 =
 	{{
 		{-0.1f, 2.3f, -4.5f, 6.7f},
 		{8.9f, -0.1f, 2.3f, -4.5f},
@@ -36,7 +36,7 @@ TEST(Matrix44x4Test, Multiply)
 		{4.5f, -6.7f, -8.9f, 0.1f}
 	}};
 
-	dsMatrix44fSIMD a1 =
+	dsMatrix44f a1 =
 	{{
 		{1.0f, -3.2f, -5.4f, 7.6f},
 		{-9.8f, 1.0f, -3.2f, 5.4f},
@@ -44,7 +44,7 @@ TEST(Matrix44x4Test, Multiply)
 		{-5.4f, 7.6f, 9.8f, -1.0f}
 	}};
 
-	dsMatrix44fSIMD a2 =
+	dsMatrix44f a2 =
 	{{
 		{0.1f, -2.3f, 4.5f, -6.7f},
 		{-8.9f, 0.1f, -2.3f, 4.5f},
@@ -52,7 +52,7 @@ TEST(Matrix44x4Test, Multiply)
 		{-4.5f, 6.7f, 8.9f, -0.1f}
 	}};
 
-	dsMatrix44fSIMD a3 =
+	dsMatrix44f a3 =
 	{{
 		{-1.0f, 3.2f, 5.4f, -7.6f},
 		{9.8f, -1.0f, 3.2f, -5.4f},
@@ -60,10 +60,10 @@ TEST(Matrix44x4Test, Multiply)
 		{5.4f, -7.6f, -9.8f, 1.0f}
 	}};
 
-	dsMatrix44fSIMD b0 = a1;
-	dsMatrix44fSIMD b1 = a0;
-	dsMatrix44fSIMD b2 = a3;
-	dsMatrix44fSIMD b3 = a2;
+	dsMatrix44f b0 = a1;
+	dsMatrix44f b1 = a0;
+	dsMatrix44f b2 = a3;
+	dsMatrix44f b3 = a2;
 
 	dsMatrix44x4f a;
 	dsMatrix44x4f_load(&a, &a0, &a1, &a2, &a3);
@@ -80,7 +80,7 @@ TEST(Matrix44x4Test, Multiply)
 	dsMatrix44_mul(expected2, a2, b2);
 	dsMatrix44_mul(expected3, a3, b3);
 
-	dsMatrix44fSIMD result0, result1, result2, result3;
+	dsMatrix44f result0, result1, result2, result3;
 	dsMatrix44x4f_store(&result0, &result1, &result2, &result3, &result);
 
 	for (unsigned int i = 0; i < 4; ++i)
@@ -100,7 +100,7 @@ TEST(Matrix44x4Test, MultiplyFMA)
 	if (!(dsHostSIMDFeatures & dsSIMDFeatures_FMA))
 		return;
 
-	dsMatrix44fSIMD a0 =
+	dsMatrix44f a0 =
 	{{
 		{-0.1f, 2.3f, -4.5f, 6.7f},
 		{8.9f, -0.1f, 2.3f, -4.5f},
@@ -108,7 +108,7 @@ TEST(Matrix44x4Test, MultiplyFMA)
 		{4.5f, -6.7f, -8.9f, 0.1f}
 	}};
 
-	dsMatrix44fSIMD a1 =
+	dsMatrix44f a1 =
 	{{
 		{1.0f, -3.2f, -5.4f, 7.6f},
 		{-9.8f, 1.0f, -3.2f, 5.4f},
@@ -116,7 +116,7 @@ TEST(Matrix44x4Test, MultiplyFMA)
 		{-5.4f, 7.6f, 9.8f, -1.0f}
 	}};
 
-	dsMatrix44fSIMD a2 =
+	dsMatrix44f a2 =
 	{{
 		{0.1f, -2.3f, 4.5f, -6.7f},
 		{-8.9f, 0.1f, -2.3f, 4.5f},
@@ -124,7 +124,7 @@ TEST(Matrix44x4Test, MultiplyFMA)
 		{-4.5f, 6.7f, 8.9f, -0.1f}
 	}};
 
-	dsMatrix44fSIMD a3 =
+	dsMatrix44f a3 =
 	{{
 		{-1.0f, 3.2f, 5.4f, -7.6f},
 		{9.8f, -1.0f, 3.2f, -5.4f},
@@ -132,10 +132,10 @@ TEST(Matrix44x4Test, MultiplyFMA)
 		{5.4f, -7.6f, -9.8f, 1.0f}
 	}};
 
-	dsMatrix44fSIMD b0 = a1;
-	dsMatrix44fSIMD b1 = a0;
-	dsMatrix44fSIMD b2 = a3;
-	dsMatrix44fSIMD b3 = a2;
+	dsMatrix44f b0 = a1;
+	dsMatrix44f b1 = a0;
+	dsMatrix44f b2 = a3;
+	dsMatrix44f b3 = a2;
 
 	dsMatrix44x4f a;
 	dsMatrix44x4f_load(&a, &a0, &a1, &a2, &a3);
@@ -152,7 +152,7 @@ TEST(Matrix44x4Test, MultiplyFMA)
 	dsMatrix44_mul(expected2, a2, b2);
 	dsMatrix44_mul(expected3, a3, b3);
 
-	dsMatrix44fSIMD result0, result1, result2, result3;
+	dsMatrix44f result0, result1, result2, result3;
 	dsMatrix44x4f_store(&result0, &result1, &result2, &result3, &result);
 
 	for (unsigned int i = 0; i < 4; ++i)
@@ -172,7 +172,7 @@ TEST(Matrix44x4Test, AffineMultiply)
 	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Float4))
 		return;
 
-	dsMatrix44fSIMD a0 =
+	dsMatrix44f a0 =
 	{{
 		{-0.1f, 2.3f, -4.5f, 6.7f},
 		{8.9f, -0.1f, 2.3f, -4.5f},
@@ -180,7 +180,7 @@ TEST(Matrix44x4Test, AffineMultiply)
 		{4.5f, -6.7f, -8.9f, 0.1f}
 	}};
 
-	dsMatrix44fSIMD a1 =
+	dsMatrix44f a1 =
 	{{
 		{1.0f, -3.2f, -5.4f, 7.6f},
 		{-9.8f, 1.0f, -3.2f, 5.4f},
@@ -188,7 +188,7 @@ TEST(Matrix44x4Test, AffineMultiply)
 		{-5.4f, 7.6f, 9.8f, -1.0f}
 	}};
 
-	dsMatrix44fSIMD a2 =
+	dsMatrix44f a2 =
 	{{
 		{0.1f, -2.3f, 4.5f, -6.7f},
 		{-8.9f, 0.1f, -2.3f, 4.5f},
@@ -196,7 +196,7 @@ TEST(Matrix44x4Test, AffineMultiply)
 		{-4.5f, 6.7f, 8.9f, -0.1f}
 	}};
 
-	dsMatrix44fSIMD a3 =
+	dsMatrix44f a3 =
 	{{
 		{-1.0f, 3.2f, 5.4f, -7.6f},
 		{9.8f, -1.0f, 3.2f, -5.4f},
@@ -204,10 +204,10 @@ TEST(Matrix44x4Test, AffineMultiply)
 		{5.4f, -7.6f, -9.8f, 1.0f}
 	}};
 
-	dsMatrix44fSIMD b0 = a1;
-	dsMatrix44fSIMD b1 = a0;
-	dsMatrix44fSIMD b2 = a3;
-	dsMatrix44fSIMD b3 = a2;
+	dsMatrix44f b0 = a1;
+	dsMatrix44f b1 = a0;
+	dsMatrix44f b2 = a3;
+	dsMatrix44f b3 = a2;
 
 	dsMatrix44x4f a;
 	dsMatrix44x4f_load(&a, &a0, &a1, &a2, &a3);
@@ -224,7 +224,7 @@ TEST(Matrix44x4Test, AffineMultiply)
 	dsMatrix44_affineMul(expected2, a2, b2);
 	dsMatrix44_affineMul(expected3, a3, b3);
 
-	dsMatrix44fSIMD result0, result1, result2, result3;
+	dsMatrix44f result0, result1, result2, result3;
 	dsMatrix44x4f_store(&result0, &result1, &result2, &result3, &result);
 
 	for (unsigned int i = 0; i < 4; ++i)
@@ -244,7 +244,7 @@ TEST(Matrix44x4Test, AffineMultiplyFMA)
 	if (!(dsHostSIMDFeatures & dsSIMDFeatures_FMA))
 		return;
 
-	dsMatrix44fSIMD a0 =
+	dsMatrix44f a0 =
 	{{
 		{-0.1f, 2.3f, -4.5f, 6.7f},
 		{8.9f, -0.1f, 2.3f, -4.5f},
@@ -252,7 +252,7 @@ TEST(Matrix44x4Test, AffineMultiplyFMA)
 		{4.5f, -6.7f, -8.9f, 0.1f}
 	}};
 
-	dsMatrix44fSIMD a1 =
+	dsMatrix44f a1 =
 	{{
 		{1.0f, -3.2f, -5.4f, 7.6f},
 		{-9.8f, 1.0f, -3.2f, 5.4f},
@@ -260,7 +260,7 @@ TEST(Matrix44x4Test, AffineMultiplyFMA)
 		{-5.4f, 7.6f, 9.8f, -1.0f}
 	}};
 
-	dsMatrix44fSIMD a2 =
+	dsMatrix44f a2 =
 	{{
 		{0.1f, -2.3f, 4.5f, -6.7f},
 		{-8.9f, 0.1f, -2.3f, 4.5f},
@@ -268,7 +268,7 @@ TEST(Matrix44x4Test, AffineMultiplyFMA)
 		{-4.5f, 6.7f, 8.9f, -0.1f}
 	}};
 
-	dsMatrix44fSIMD a3 =
+	dsMatrix44f a3 =
 	{{
 		{-1.0f, 3.2f, 5.4f, -7.6f},
 		{9.8f, -1.0f, 3.2f, -5.4f},
@@ -276,10 +276,10 @@ TEST(Matrix44x4Test, AffineMultiplyFMA)
 		{5.4f, -7.6f, -9.8f, 1.0f}
 	}};
 
-	dsMatrix44fSIMD b0 = a1;
-	dsMatrix44fSIMD b1 = a0;
-	dsMatrix44fSIMD b2 = a3;
-	dsMatrix44fSIMD b3 = a2;
+	dsMatrix44f b0 = a1;
+	dsMatrix44f b1 = a0;
+	dsMatrix44f b2 = a3;
+	dsMatrix44f b3 = a2;
 
 	dsMatrix44x4f a;
 	dsMatrix44x4f_load(&a, &a0, &a1, &a2, &a3);
@@ -296,7 +296,7 @@ TEST(Matrix44x4Test, AffineMultiplyFMA)
 	dsMatrix44_affineMul(expected2, a2, b2);
 	dsMatrix44_affineMul(expected3, a3, b3);
 
-	dsMatrix44fSIMD result0, result1, result2, result3;
+	dsMatrix44f result0, result1, result2, result3;
 	dsMatrix44x4f_store(&result0, &result1, &result2, &result3, &result);
 
 	for (unsigned int i = 0; i < 4; ++i)
@@ -316,7 +316,7 @@ TEST(Matrix44x4Test, Transpose)
 	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Float4))
 		return;
 
-	dsMatrix44fSIMD a0 =
+	dsMatrix44f a0 =
 	{{
 		{-0.1f, 2.3f, -4.5f, 6.7f},
 		{8.9f, -0.1f, 2.3f, -4.5f},
@@ -324,7 +324,7 @@ TEST(Matrix44x4Test, Transpose)
 		{4.5f, -6.7f, -8.9f, 0.1f}
 	}};
 
-	dsMatrix44fSIMD a1 =
+	dsMatrix44f a1 =
 	{{
 		{1.0f, -3.2f, -5.4f, 7.6f},
 		{-9.8f, 1.0f, -3.2f, 5.4f},
@@ -332,7 +332,7 @@ TEST(Matrix44x4Test, Transpose)
 		{-5.4f, 7.6f, 9.8f, -1.0f}
 	}};
 
-	dsMatrix44fSIMD a2 =
+	dsMatrix44f a2 =
 	{{
 		{0.1f, -2.3f, 4.5f, -6.7f},
 		{-8.9f, 0.1f, -2.3f, 4.5f},
@@ -340,7 +340,7 @@ TEST(Matrix44x4Test, Transpose)
 		{-4.5f, 6.7f, 8.9f, -0.1f}
 	}};
 
-	dsMatrix44fSIMD a3 =
+	dsMatrix44f a3 =
 	{{
 		{-1.0f, 3.2f, 5.4f, -7.6f},
 		{9.8f, -1.0f, 3.2f, -5.4f},
@@ -360,7 +360,7 @@ TEST(Matrix44x4Test, Transpose)
 	dsMatrix44_transpose(expected2, a2);
 	dsMatrix44_transpose(expected3, a3);
 
-	dsMatrix44fSIMD result0, result1, result2, result3;
+	dsMatrix44f result0, result1, result2, result3;
 	dsMatrix44x4f_store(&result0, &result1, &result2, &result3, &result);
 
 	for (unsigned int i = 0; i < 4; ++i)
@@ -380,7 +380,7 @@ TEST(Matrix44x4Test, FastInvert)
 	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Float4))
 		return;
 
-	dsMatrix44fSIMD a0 =
+	dsMatrix44f a0 =
 	{{
 		{-0.1f, 2.3f, -4.5f, 6.7f},
 		{8.9f, -0.1f, 2.3f, -4.5f},
@@ -388,7 +388,7 @@ TEST(Matrix44x4Test, FastInvert)
 		{4.5f, -6.7f, -8.9f, 0.1f}
 	}};
 
-	dsMatrix44fSIMD a1 =
+	dsMatrix44f a1 =
 	{{
 		{1.0f, -3.2f, -5.4f, 7.6f},
 		{-9.8f, 1.0f, -3.2f, 5.4f},
@@ -396,7 +396,7 @@ TEST(Matrix44x4Test, FastInvert)
 		{-5.4f, 7.6f, 9.8f, -1.0f}
 	}};
 
-	dsMatrix44fSIMD a2 =
+	dsMatrix44f a2 =
 	{{
 		{0.1f, -2.3f, 4.5f, -6.7f},
 		{-8.9f, 0.1f, -2.3f, 4.5f},
@@ -404,7 +404,7 @@ TEST(Matrix44x4Test, FastInvert)
 		{-4.5f, 6.7f, 8.9f, -0.1f}
 	}};
 
-	dsMatrix44fSIMD a3 =
+	dsMatrix44f a3 =
 	{{
 		{-1.0f, 3.2f, 5.4f, -7.6f},
 		{9.8f, -1.0f, 3.2f, -5.4f},
@@ -424,7 +424,7 @@ TEST(Matrix44x4Test, FastInvert)
 	dsMatrix44_fastInvert(expected2, a2);
 	dsMatrix44_fastInvert(expected3, a3);
 
-	dsMatrix44fSIMD result0, result1, result2, result3;
+	dsMatrix44f result0, result1, result2, result3;
 	dsMatrix44x4f_store(&result0, &result1, &result2, &result3, &result);
 
 	for (unsigned int i = 0; i < 4; ++i)
@@ -444,7 +444,7 @@ TEST(Matrix44x4Test, FastInvertFMA)
 	if (!(dsHostSIMDFeatures & dsSIMDFeatures_FMA))
 		return;
 
-	dsMatrix44fSIMD a0 =
+	dsMatrix44f a0 =
 	{{
 		{-0.1f, 2.3f, -4.5f, 6.7f},
 		{8.9f, -0.1f, 2.3f, -4.5f},
@@ -452,7 +452,7 @@ TEST(Matrix44x4Test, FastInvertFMA)
 		{4.5f, -6.7f, -8.9f, 0.1f}
 	}};
 
-	dsMatrix44fSIMD a1 =
+	dsMatrix44f a1 =
 	{{
 		{1.0f, -3.2f, -5.4f, 7.6f},
 		{-9.8f, 1.0f, -3.2f, 5.4f},
@@ -460,7 +460,7 @@ TEST(Matrix44x4Test, FastInvertFMA)
 		{-5.4f, 7.6f, 9.8f, -1.0f}
 	}};
 
-	dsMatrix44fSIMD a2 =
+	dsMatrix44f a2 =
 	{{
 		{0.1f, -2.3f, 4.5f, -6.7f},
 		{-8.9f, 0.1f, -2.3f, 4.5f},
@@ -468,7 +468,7 @@ TEST(Matrix44x4Test, FastInvertFMA)
 		{-4.5f, 6.7f, 8.9f, -0.1f}
 	}};
 
-	dsMatrix44fSIMD a3 =
+	dsMatrix44f a3 =
 	{{
 		{-1.0f, 3.2f, 5.4f, -7.6f},
 		{9.8f, -1.0f, 3.2f, -5.4f},
@@ -488,7 +488,7 @@ TEST(Matrix44x4Test, FastInvertFMA)
 	dsMatrix44_fastInvert(expected2, a2);
 	dsMatrix44_fastInvert(expected3, a3);
 
-	dsMatrix44fSIMD result0, result1, result2, result3;
+	dsMatrix44f result0, result1, result2, result3;
 	dsMatrix44x4f_store(&result0, &result1, &result2, &result3, &result);
 
 	for (unsigned int i = 0; i < 4; ++i)
@@ -508,7 +508,7 @@ TEST(Matrix44x4Test, AffineInvert)
 	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Float4))
 		return;
 
-	dsMatrix44fSIMD a0 =
+	dsMatrix44f a0 =
 	{{
 		{-0.1f, 2.3f, -4.5f, 6.7f},
 		{8.9f, -0.1f, 2.3f, -4.5f},
@@ -516,7 +516,7 @@ TEST(Matrix44x4Test, AffineInvert)
 		{4.5f, -6.7f, -8.9f, 0.1f}
 	}};
 
-	dsMatrix44fSIMD a1 =
+	dsMatrix44f a1 =
 	{{
 		{1.0f, -3.2f, -5.4f, 7.6f},
 		{-9.8f, 1.0f, -3.2f, 5.4f},
@@ -524,7 +524,7 @@ TEST(Matrix44x4Test, AffineInvert)
 		{-5.4f, 7.6f, 9.8f, -1.0f}
 	}};
 
-	dsMatrix44fSIMD a2 =
+	dsMatrix44f a2 =
 	{{
 		{0.1f, -2.3f, 4.5f, -6.7f},
 		{-8.9f, 0.1f, -2.3f, 4.5f},
@@ -532,7 +532,7 @@ TEST(Matrix44x4Test, AffineInvert)
 		{-4.5f, 6.7f, 8.9f, -0.1f}
 	}};
 
-	dsMatrix44fSIMD a3 =
+	dsMatrix44f a3 =
 	{{
 		{-1.0f, 3.2f, 5.4f, -7.6f},
 		{9.8f, -1.0f, 3.2f, -5.4f},
@@ -552,7 +552,7 @@ TEST(Matrix44x4Test, AffineInvert)
 	dsMatrix44f_affineInvert(&expected2, &a2);
 	dsMatrix44f_affineInvert(&expected3, &a3);
 
-	dsMatrix44fSIMD result0, result1, result2, result3;
+	dsMatrix44f result0, result1, result2, result3;
 	dsMatrix44x4f_store(&result0, &result1, &result2, &result3, &result);
 
 	for (unsigned int i = 0; i < 4; ++i)
@@ -572,7 +572,7 @@ TEST(Matrix44x4Test, AffineInvertFMA)
 	if (!(dsHostSIMDFeatures & dsSIMDFeatures_FMA))
 		return;
 
-	dsMatrix44fSIMD a0 =
+	dsMatrix44f a0 =
 	{{
 		{-0.1f, 2.3f, -4.5f, 6.7f},
 		{8.9f, -0.1f, 2.3f, -4.5f},
@@ -580,7 +580,7 @@ TEST(Matrix44x4Test, AffineInvertFMA)
 		{4.5f, -6.7f, -8.9f, 0.1f}
 	}};
 
-	dsMatrix44fSIMD a1 =
+	dsMatrix44f a1 =
 	{{
 		{1.0f, -3.2f, -5.4f, 7.6f},
 		{-9.8f, 1.0f, -3.2f, 5.4f},
@@ -588,7 +588,7 @@ TEST(Matrix44x4Test, AffineInvertFMA)
 		{-5.4f, 7.6f, 9.8f, -1.0f}
 	}};
 
-	dsMatrix44fSIMD a2 =
+	dsMatrix44f a2 =
 	{{
 		{0.1f, -2.3f, 4.5f, -6.7f},
 		{-8.9f, 0.1f, -2.3f, 4.5f},
@@ -596,7 +596,7 @@ TEST(Matrix44x4Test, AffineInvertFMA)
 		{-4.5f, 6.7f, 8.9f, -0.1f}
 	}};
 
-	dsMatrix44fSIMD a3 =
+	dsMatrix44f a3 =
 	{{
 		{-1.0f, 3.2f, 5.4f, -7.6f},
 		{9.8f, -1.0f, 3.2f, -5.4f},
@@ -616,7 +616,7 @@ TEST(Matrix44x4Test, AffineInvertFMA)
 	dsMatrix44f_affineInvert(&expected2, &a2);
 	dsMatrix44f_affineInvert(&expected3, &a3);
 
-	dsMatrix44fSIMD result0, result1, result2, result3;
+	dsMatrix44f result0, result1, result2, result3;
 	dsMatrix44x4f_store(&result0, &result1, &result2, &result3, &result);
 
 	for (unsigned int i = 0; i < 4; ++i)
@@ -636,7 +636,7 @@ TEST(Matrix44x4Test, Invert)
 	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Float4))
 		return;
 
-	dsMatrix44fSIMD a0 =
+	dsMatrix44f a0 =
 	{{
 		{-0.1f, 2.3f, -4.5f, 6.7f},
 		{8.9f, -0.1f, 2.3f, -4.5f},
@@ -644,7 +644,7 @@ TEST(Matrix44x4Test, Invert)
 		{4.5f, -6.7f, -8.9f, 0.1f}
 	}};
 
-	dsMatrix44fSIMD a1 =
+	dsMatrix44f a1 =
 	{{
 		{1.0f, -3.2f, -5.4f, 7.6f},
 		{-9.8f, 1.0f, -3.2f, 5.4f},
@@ -652,7 +652,7 @@ TEST(Matrix44x4Test, Invert)
 		{-5.4f, 7.6f, 9.8f, -1.0f}
 	}};
 
-	dsMatrix44fSIMD a2 =
+	dsMatrix44f a2 =
 	{{
 		{0.1f, -2.3f, 4.5f, -6.7f},
 		{-8.9f, 0.1f, -2.3f, 4.5f},
@@ -660,7 +660,7 @@ TEST(Matrix44x4Test, Invert)
 		{-4.5f, 6.7f, 8.9f, -0.1f}
 	}};
 
-	dsMatrix44fSIMD a3 =
+	dsMatrix44f a3 =
 	{{
 		{-1.0f, 3.2f, 5.4f, -7.6f},
 		{9.8f, -1.0f, 3.2f, -5.4f},
@@ -680,7 +680,7 @@ TEST(Matrix44x4Test, Invert)
 	dsMatrix44f_invert(&expected2, &a2);
 	dsMatrix44f_invert(&expected3, &a3);
 
-	dsMatrix44fSIMD result0, result1, result2, result3;
+	dsMatrix44f result0, result1, result2, result3;
 	dsMatrix44x4f_store(&result0, &result1, &result2, &result3, &result);
 
 	for (unsigned int i = 0; i < 4; ++i)
@@ -700,7 +700,7 @@ TEST(Matrix44x4Test, InvertFMA)
 	if (!(dsHostSIMDFeatures & dsSIMDFeatures_FMA))
 		return;
 
-	dsMatrix44fSIMD a0 =
+	dsMatrix44f a0 =
 	{{
 		{-0.1f, 2.3f, -4.5f, 6.7f},
 		{8.9f, -0.1f, 2.3f, -4.5f},
@@ -708,7 +708,7 @@ TEST(Matrix44x4Test, InvertFMA)
 		{4.5f, -6.7f, -8.9f, 0.1f}
 	}};
 
-	dsMatrix44fSIMD a1 =
+	dsMatrix44f a1 =
 	{{
 		{1.0f, -3.2f, -5.4f, 7.6f},
 		{-9.8f, 1.0f, -3.2f, 5.4f},
@@ -716,7 +716,7 @@ TEST(Matrix44x4Test, InvertFMA)
 		{-5.4f, 7.6f, 9.8f, -1.0f}
 	}};
 
-	dsMatrix44fSIMD a2 =
+	dsMatrix44f a2 =
 	{{
 		{0.1f, -2.3f, 4.5f, -6.7f},
 		{-8.9f, 0.1f, -2.3f, 4.5f},
@@ -724,7 +724,7 @@ TEST(Matrix44x4Test, InvertFMA)
 		{-4.5f, 6.7f, 8.9f, -0.1f}
 	}};
 
-	dsMatrix44fSIMD a3 =
+	dsMatrix44f a3 =
 	{{
 		{-1.0f, 3.2f, 5.4f, -7.6f},
 		{9.8f, -1.0f, 3.2f, -5.4f},
@@ -744,7 +744,7 @@ TEST(Matrix44x4Test, InvertFMA)
 	dsMatrix44f_invert(&expected2, &a2);
 	dsMatrix44f_invert(&expected3, &a3);
 
-	dsMatrix44fSIMD result0, result1, result2, result3;
+	dsMatrix44f result0, result1, result2, result3;
 	dsMatrix44x4f_store(&result0, &result1, &result2, &result3, &result);
 
 	for (unsigned int i = 0; i < 4; ++i)
@@ -764,7 +764,7 @@ TEST(Matrix44x4Test, InverseTranspose)
 	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Float4))
 		return;
 
-	dsMatrix44fSIMD a0 =
+	dsMatrix44f a0 =
 	{{
 		{-0.1f, 2.3f, -4.5f, 6.7f},
 		{8.9f, -0.1f, 2.3f, -4.5f},
@@ -772,7 +772,7 @@ TEST(Matrix44x4Test, InverseTranspose)
 		{4.5f, -6.7f, -8.9f, 0.1f}
 	}};
 
-	dsMatrix44fSIMD a1 =
+	dsMatrix44f a1 =
 	{{
 		{1.0f, -3.2f, -5.4f, 7.6f},
 		{-9.8f, 1.0f, -3.2f, 5.4f},
@@ -780,7 +780,7 @@ TEST(Matrix44x4Test, InverseTranspose)
 		{-5.4f, 7.6f, 9.8f, -1.0f}
 	}};
 
-	dsMatrix44fSIMD a2 =
+	dsMatrix44f a2 =
 	{{
 		{0.1f, -2.3f, 4.5f, -6.7f},
 		{-8.9f, 0.1f, -2.3f, 4.5f},
@@ -788,7 +788,7 @@ TEST(Matrix44x4Test, InverseTranspose)
 		{-4.5f, 6.7f, 8.9f, -0.1f}
 	}};
 
-	dsMatrix44fSIMD a3 =
+	dsMatrix44f a3 =
 	{{
 		{-1.0f, 3.2f, 5.4f, -7.6f},
 		{9.8f, -1.0f, 3.2f, -5.4f},
@@ -808,7 +808,7 @@ TEST(Matrix44x4Test, InverseTranspose)
 	dsMatrix44f_inverseTranspose(&expected2, &a2);
 	dsMatrix44f_inverseTranspose(&expected3, &a3);
 
-	dsVector4fSIMD result0[3], result1[3], result2[3], result3[3];
+	dsVector4f result0[3], result1[3], result2[3], result3[3];
 	dsMatrix44x4f_store33(result0, result1, result2, result3, &result);
 
 	for (unsigned int i = 0; i < 3; ++i)
@@ -828,7 +828,7 @@ TEST(Matrix44x4Test, InverseTransposeFMA)
 	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Float4))
 		return;
 
-	dsMatrix44fSIMD a0 =
+	dsMatrix44f a0 =
 	{{
 		{-0.1f, 2.3f, -4.5f, 6.7f},
 		{8.9f, -0.1f, 2.3f, -4.5f},
@@ -836,7 +836,7 @@ TEST(Matrix44x4Test, InverseTransposeFMA)
 		{4.5f, -6.7f, -8.9f, 0.1f}
 	}};
 
-	dsMatrix44fSIMD a1 =
+	dsMatrix44f a1 =
 	{{
 		{1.0f, -3.2f, -5.4f, 7.6f},
 		{-9.8f, 1.0f, -3.2f, 5.4f},
@@ -844,7 +844,7 @@ TEST(Matrix44x4Test, InverseTransposeFMA)
 		{-5.4f, 7.6f, 9.8f, -1.0f}
 	}};
 
-	dsMatrix44fSIMD a2 =
+	dsMatrix44f a2 =
 	{{
 		{0.1f, -2.3f, 4.5f, -6.7f},
 		{-8.9f, 0.1f, -2.3f, 4.5f},
@@ -852,7 +852,7 @@ TEST(Matrix44x4Test, InverseTransposeFMA)
 		{-4.5f, 6.7f, 8.9f, -0.1f}
 	}};
 
-	dsMatrix44fSIMD a3 =
+	dsMatrix44f a3 =
 	{{
 		{-1.0f, 3.2f, 5.4f, -7.6f},
 		{9.8f, -1.0f, 3.2f, -5.4f},
@@ -872,7 +872,7 @@ TEST(Matrix44x4Test, InverseTransposeFMA)
 	dsMatrix44f_inverseTranspose(&expected2, &a2);
 	dsMatrix44f_inverseTranspose(&expected3, &a3);
 
-	dsVector4fSIMD result0[3], result1[3], result2[3], result3[3];
+	dsVector4f result0[3], result1[3], result2[3], result3[3];
 	dsMatrix44x4f_store33(result0, result1, result2, result3, &result);
 
 	for (unsigned int i = 0; i < 3; ++i)
@@ -892,7 +892,7 @@ TEST(Matrix44x4Test, Invert33)
 	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Float4))
 		return;
 
-	dsMatrix44fSIMD a0 =
+	dsMatrix44f a0 =
 	{{
 		{-0.1f, 2.3f, -4.5f, 6.7f},
 		{8.9f, -0.1f, 2.3f, -4.5f},
@@ -900,7 +900,7 @@ TEST(Matrix44x4Test, Invert33)
 		{4.5f, -6.7f, -8.9f, 0.1f}
 	}};
 
-	dsMatrix44fSIMD a1 =
+	dsMatrix44f a1 =
 	{{
 		{1.0f, -3.2f, -5.4f, 7.6f},
 		{-9.8f, 1.0f, -3.2f, 5.4f},
@@ -908,7 +908,7 @@ TEST(Matrix44x4Test, Invert33)
 		{-5.4f, 7.6f, 9.8f, -1.0f}
 	}};
 
-	dsMatrix44fSIMD a2 =
+	dsMatrix44f a2 =
 	{{
 		{0.1f, -2.3f, 4.5f, -6.7f},
 		{-8.9f, 0.1f, -2.3f, 4.5f},
@@ -916,7 +916,7 @@ TEST(Matrix44x4Test, Invert33)
 		{-4.5f, 6.7f, 8.9f, -0.1f}
 	}};
 
-	dsMatrix44fSIMD a3 =
+	dsMatrix44f a3 =
 	{{
 		{-1.0f, 3.2f, 5.4f, -7.6f},
 		{9.8f, -1.0f, 3.2f, -5.4f},
@@ -941,7 +941,7 @@ TEST(Matrix44x4Test, Invert33)
 	dsMatrix33_copy(temp3, a3);
 	dsMatrix33f_invert(&expected3, &temp3);
 
-	dsVector4fSIMD result0[3], result1[3], result2[3], result3[3];
+	dsVector4f result0[3], result1[3], result2[3], result3[3];
 	dsMatrix44x4f_store33(result0, result1, result2, result3, &result);
 
 	for (unsigned int i = 0; i < 3; ++i)
@@ -961,7 +961,7 @@ TEST(Matrix44x4Test, Invert33FMA)
 	if (!(dsHostSIMDFeatures & dsSIMDFeatures_FMA))
 		return;
 
-	dsMatrix44fSIMD a0 =
+	dsMatrix44f a0 =
 	{{
 		{-0.1f, 2.3f, -4.5f, 6.7f},
 		{8.9f, -0.1f, 2.3f, -4.5f},
@@ -969,7 +969,7 @@ TEST(Matrix44x4Test, Invert33FMA)
 		{4.5f, -6.7f, -8.9f, 0.1f}
 	}};
 
-	dsMatrix44fSIMD a1 =
+	dsMatrix44f a1 =
 	{{
 		{1.0f, -3.2f, -5.4f, 7.6f},
 		{-9.8f, 1.0f, -3.2f, 5.4f},
@@ -977,7 +977,7 @@ TEST(Matrix44x4Test, Invert33FMA)
 		{-5.4f, 7.6f, 9.8f, -1.0f}
 	}};
 
-	dsMatrix44fSIMD a2 =
+	dsMatrix44f a2 =
 	{{
 		{0.1f, -2.3f, 4.5f, -6.7f},
 		{-8.9f, 0.1f, -2.3f, 4.5f},
@@ -985,7 +985,7 @@ TEST(Matrix44x4Test, Invert33FMA)
 		{-4.5f, 6.7f, 8.9f, -0.1f}
 	}};
 
-	dsMatrix44fSIMD a3 =
+	dsMatrix44f a3 =
 	{{
 		{-1.0f, 3.2f, 5.4f, -7.6f},
 		{9.8f, -1.0f, 3.2f, -5.4f},
@@ -1010,7 +1010,7 @@ TEST(Matrix44x4Test, Invert33FMA)
 	dsMatrix33_copy(temp3, a3);
 	dsMatrix33f_invert(&expected3, &temp3);
 
-	dsVector4fSIMD result0[3], result1[3], result2[3], result3[3];
+	dsVector4f result0[3], result1[3], result2[3], result3[3];
 	dsMatrix44x4f_store33(result0, result1, result2, result3, &result);
 
 	for (unsigned int i = 0; i < 3; ++i)

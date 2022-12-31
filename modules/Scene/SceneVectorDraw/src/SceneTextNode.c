@@ -37,17 +37,24 @@ typedef struct TextVertex
 	dsColor textColor;
 	dsColor outlineColor;
 	dsVector3f texCoords;
-	dsVector4f style;
+	float embolden;
+	float outlinePosition;
+	float outlineThickness;
+	float antiAlias;
 } TextVertex;
 
 typedef struct TessTextVertexx
 {
-	dsVector4f position;
+	dsVector2f position;
+	dsVector2f mipAntiAlias;
 	dsAlignedBox2f geometry;
 	dsColor textColor;
 	dsColor outlineColor;
 	dsAlignedBox2f texCoords;
-	dsVector4f style;
+	float slant;
+	float embolden;
+	float outlinePosition;
+	float outlineThickness;
 } TessTextVertex;
 
 static void glyphPosition(dsVector2f* outPos, const dsVector2f* basePos,
@@ -122,7 +129,7 @@ void dsSceneTextNode_defaultGlyphDataFunc(void* userData, const dsTextLayout* la
 	DS_ASSERT(format->elements[dsVertexAttrib_Color0].offset == offsetof(TextVertex, textColor));
 	DS_ASSERT(format->elements[dsVertexAttrib_Color1].offset == offsetof(TextVertex, outlineColor));
 	DS_ASSERT(format->elements[dsVertexAttrib_TexCoord0].offset == offsetof(TextVertex, texCoords));
-	DS_ASSERT(format->elements[dsVertexAttrib_TexCoord1].offset == offsetof(TextVertex, style));
+	DS_ASSERT(format->elements[dsVertexAttrib_TexCoord1].offset == offsetof(TextVertex, embolden));
 	DS_ASSERT(format->size == sizeof(TextVertex));
 	DS_ASSERT(vertexCount == 4);
 
@@ -140,10 +147,10 @@ void dsSceneTextNode_defaultGlyphDataFunc(void* userData, const dsTextLayout* la
 	vertices[0].texCoords.x = glyph->texCoords.min.x;
 	vertices[0].texCoords.y = glyph->texCoords.min.y;
 	vertices[0].texCoords.z = (float)glyph->mipLevel;
-	vertices[0].style.x = style->embolden;
-	vertices[0].style.y = style->outlinePosition;
-	vertices[0].style.z = style->outlineThickness;
-	vertices[0].style.w = style->antiAlias;
+	vertices[0].embolden = style->embolden;
+	vertices[0].outlinePosition = style->outlinePosition;
+	vertices[0].outlineThickness = style->outlineThickness;
+	vertices[0].antiAlias = style->antiAlias;
 
 	geometryPos.x = glyph->geometry.min.x;
 	geometryPos.y = glyph->geometry.max.y;
@@ -153,10 +160,10 @@ void dsSceneTextNode_defaultGlyphDataFunc(void* userData, const dsTextLayout* la
 	vertices[1].texCoords.x = glyph->texCoords.min.x;
 	vertices[1].texCoords.y = glyph->texCoords.max.y;
 	vertices[1].texCoords.z = (float)glyph->mipLevel;
-	vertices[1].style.x = style->embolden;
-	vertices[1].style.y = style->outlinePosition;
-	vertices[1].style.z = style->outlineThickness;
-	vertices[1].style.w = style->antiAlias;
+	vertices[1].embolden = style->embolden;
+	vertices[1].outlinePosition = style->outlinePosition;
+	vertices[1].outlineThickness = style->outlineThickness;
+	vertices[1].antiAlias = style->antiAlias;
 
 	geometryPos.x = glyph->geometry.max.x;
 	geometryPos.y = glyph->geometry.max.y;
@@ -166,10 +173,10 @@ void dsSceneTextNode_defaultGlyphDataFunc(void* userData, const dsTextLayout* la
 	vertices[2].texCoords.x = glyph->texCoords.max.x;
 	vertices[2].texCoords.y = glyph->texCoords.max.y;
 	vertices[2].texCoords.z = (float)glyph->mipLevel;
-	vertices[2].style.x = style->embolden;
-	vertices[2].style.y = style->outlinePosition;
-	vertices[2].style.z = style->outlineThickness;
-	vertices[2].style.w = style->antiAlias;
+	vertices[2].embolden = style->embolden;
+	vertices[2].outlinePosition = style->outlinePosition;
+	vertices[2].outlineThickness = style->outlineThickness;
+	vertices[2].antiAlias = style->antiAlias;
 
 	geometryPos.x = glyph->geometry.max.x;
 	geometryPos.y = glyph->geometry.min.y;
@@ -179,10 +186,10 @@ void dsSceneTextNode_defaultGlyphDataFunc(void* userData, const dsTextLayout* la
 	vertices[3].texCoords.x = glyph->texCoords.max.x;
 	vertices[3].texCoords.y = glyph->texCoords.min.y;
 	vertices[3].texCoords.z = (float)glyph->mipLevel;
-	vertices[3].style.x = style->embolden;
-	vertices[3].style.y = style->outlinePosition;
-	vertices[3].style.z = style->outlineThickness;
-	vertices[3].style.w = style->antiAlias;
+	vertices[3].embolden = style->embolden;
+	vertices[3].outlinePosition = style->outlinePosition;
+	vertices[3].outlineThickness = style->outlineThickness;
+	vertices[3].antiAlias = style->antiAlias;
 }
 
 void dsSceneTextNode_defaultTessGlyphDataFunc(void* userData,
@@ -203,7 +210,7 @@ void dsSceneTextNode_defaultTessGlyphDataFunc(void* userData,
 		offsetof(TessTextVertex, outlineColor));
 	DS_ASSERT(format->elements[dsVertexAttrib_TexCoord0].offset ==
 		offsetof(TessTextVertex, texCoords));
-	DS_ASSERT(format->elements[dsVertexAttrib_TexCoord1].offset == offsetof(TessTextVertex, style));
+	DS_ASSERT(format->elements[dsVertexAttrib_TexCoord1].offset == offsetof(TessTextVertex, slant));
 	DS_ASSERT(format->size == sizeof(TessTextVertex));
 	DS_ASSERT(vertexCount == 1);
 
@@ -212,16 +219,16 @@ void dsSceneTextNode_defaultTessGlyphDataFunc(void* userData,
 	const dsGlyphLayout* glyph = layout->glyphs + glyphIndex;
 	vertex->position.x = layout->glyphs[glyphIndex].position.x;
 	vertex->position.y = layout->glyphs[glyphIndex].position.y;
-	vertex->position.z = (float)layout->glyphs[glyphIndex].mipLevel;
-	vertex->position.w = style->antiAlias;
+	vertex->mipAntiAlias.x = (float)layout->glyphs[glyphIndex].mipLevel;
+	vertex->mipAntiAlias.y = style->antiAlias;
 	vertex->geometry = glyph->geometry;
 	vertex->texCoords = glyph->texCoords;
 	vertex->textColor = style->color;
 	vertex->outlineColor = style->outlineColor;
-	vertex->style.x = style->slant;
-	vertex->style.y = style->embolden;
-	vertex->style.z = style->outlinePosition;
-	vertex->style.w = style->outlineThickness;
+	vertex->slant = style->slant;
+	vertex->embolden = style->embolden;
+	vertex->outlinePosition = style->outlinePosition;
+	vertex->outlineThickness = style->outlineThickness;
 }
 
 const char* const dsSceneTextNode_typeName = "TextNode";

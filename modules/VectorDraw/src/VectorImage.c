@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Aaron Barany
+ * Copyright 2017-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -480,7 +480,7 @@ static bool addRectangle(dsVectorScratchData* scratchData, const dsAlignedBox2f*
 	// Upper-left
 	cornerCenter.x = center.x - halfExtents.x + rx;
 	if (!addCorner(scratchData, &cornerCenter, &finalRadius, (float)M_PI_2, incr, pointCount, false,
-		rx < halfExtents.x))
+			rx < halfExtents.x))
 	{
 		return false;
 	}
@@ -488,7 +488,7 @@ static bool addRectangle(dsVectorScratchData* scratchData, const dsAlignedBox2f*
 	// Lower-left
 	cornerCenter.y = center.y - halfExtents.y + ry;
 	if (!addCorner(scratchData, &cornerCenter, &finalRadius, (float)M_PI, incr, pointCount, false,
-		ry < halfExtents.y))
+			ry < halfExtents.y))
 	{
 		return false;
 	}

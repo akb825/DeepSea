@@ -17,12 +17,12 @@
 #include <DeepSea/Math/SIMD/Matrix44x4.h>
 
 #if DS_HAS_SIMD
-void dsMatrix44x4f_load(dsMatrix44x4f* result, const dsMatrix44fSIMD* a, const dsMatrix44fSIMD* b,
-	const dsMatrix44fSIMD* c, const dsMatrix44fSIMD* d);
-void dsMatrix44x4f_store(dsMatrix44fSIMD* outA, dsMatrix44fSIMD* outB, dsMatrix44fSIMD* outC,
-	dsMatrix44fSIMD* outD, const dsMatrix44x4f* matrices);
-void dsMatrix44x4f_store33(dsVector4fSIMD* outA, dsVector4fSIMD* outB, dsVector4fSIMD* outC,
-	dsVector4fSIMD* outD, const dsMatrix44x4f* matrices);
+void dsMatrix44x4f_load(dsMatrix44x4f* result, const dsMatrix44f* a, const dsMatrix44f* b,
+	const dsMatrix44f* c, const dsMatrix44f* d);
+void dsMatrix44x4f_store(dsMatrix44f* outA, dsMatrix44f* outB, dsMatrix44f* outC, dsMatrix44f* outD,
+	const dsMatrix44x4f* matrices);
+void dsMatrix44x4f_store33(dsVector4f* outA, dsVector4f* outB, dsVector4f* outC, dsVector4f* outD,
+	const dsMatrix44x4f* matrices);
 void dsMatrix44x4f_mul(dsMatrix44x4f* result, const dsMatrix44x4f* a, const dsMatrix44x4f* b);
 void dsMatrix44x4f_mulFMA(dsMatrix44x4f* result, const dsMatrix44x4f* a, const dsMatrix44x4f* b);
 void dsMatrix44x4f_affineMul(dsMatrix44x4f* result, const dsMatrix44x4f* a, const dsMatrix44x4f* b);

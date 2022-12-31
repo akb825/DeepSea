@@ -310,7 +310,7 @@ const dsSceneItemList* dsSceneTreeNode_getItemList(const dsSceneTreeNode* node, 
 	return node->itemLists[index].list;
 }
 
-const dsMatrix44fSIMD* dsSceneTreeNode_getTransform(const dsSceneTreeNode* node)
+const dsMatrix44f* dsSceneTreeNode_getTransform(const dsSceneTreeNode* node)
 {
 	if (!node)
 	{

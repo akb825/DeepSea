@@ -47,18 +47,18 @@ static dsShaderVariableElement elements[] =
 
 typedef struct ParticleTransform
 {
-	dsMatrix44fSIMD world;
-	dsMatrix44fSIMD worldView;
-	dsVector4fSIMD localWorldOrientation[3];
-	dsVector4fSIMD localViewOrientation[3];
-	dsMatrix44fSIMD worldViewProj;
+	dsMatrix44f world;
+	dsMatrix44f worldView;
+	dsVector4f localWorldOrientation[3];
+	dsVector4f localViewOrientation[3];
+	dsMatrix44f worldViewProj;
 } ParticleTransform;
 
 #if DS_HAS_SIMD
 DS_SIMD_START_FLOAT4()
 static void computeTransformsSIMD(ParticleTransform transforms[4], const dsMatrix44x4f *viewMatrix,
-	const dsMatrix44x4f* projectionMatrix, const dsMatrix44fSIMD* world0,
-	const dsMatrix44fSIMD* world1, const dsMatrix44fSIMD* world2, const dsMatrix44fSIMD* world3)
+	const dsMatrix44x4f* projectionMatrix, const dsMatrix44f* world0,
+	const dsMatrix44f* world1, const dsMatrix44f* world2, const dsMatrix44f* world3)
 {
 	transforms[0].world = *world0;
 	transforms[1].world = *world1;
@@ -99,7 +99,7 @@ static void dsInstanceTransformData_populateDataSIMD(const dsView* view,
 	dsMatrix44x4f_load(&projectionMatrix, &view->projectionMatrix, &view->projectionMatrix,
 		&view->projectionMatrix, &view->projectionMatrix);
 
-	dsMatrix44fSIMD identity;
+	dsMatrix44f identity;
 	dsMatrix44_identity(identity);
 
 	// First process all full sets of 4 transforms.
@@ -108,13 +108,13 @@ static void dsInstanceTransformData_populateDataSIMD(const dsView* view,
 	{
 		const dsParticleEmitter* emitter =
 			dsSceneParticleNode_getEmitterForInstance(instances[i++]);
-		const dsMatrix44fSIMD* world0 = emitter ? &emitter->transform : &identity;
+		const dsMatrix44f* world0 = emitter ? &emitter->transform : &identity;
 		emitter = dsSceneParticleNode_getEmitterForInstance(instances[i++]);
-		const dsMatrix44fSIMD* world1 = emitter ? &emitter->transform : &identity;
+		const dsMatrix44f* world1 = emitter ? &emitter->transform : &identity;
 		emitter = dsSceneParticleNode_getEmitterForInstance(instances[i++]);
-		const dsMatrix44fSIMD* world2 = emitter ? &emitter->transform : &identity;
+		const dsMatrix44f* world2 = emitter ? &emitter->transform : &identity;
 		emitter = dsSceneParticleNode_getEmitterForInstance(instances[i++]);
-		const dsMatrix44fSIMD* world3 = emitter ? &emitter->transform : &identity;
+		const dsMatrix44f* world3 = emitter ? &emitter->transform : &identity;
 
 		ParticleTransform transforms[4];
 		computeTransformsSIMD(
@@ -136,16 +136,16 @@ static void dsInstanceTransformData_populateDataSIMD(const dsView* view,
 	{
 		const dsParticleEmitter* emitter =
 			dsSceneParticleNode_getEmitterForInstance(instances[i++]);
-		const dsMatrix44fSIMD* world0 = emitter ? &emitter->transform : &identity;
+		const dsMatrix44f* world0 = emitter ? &emitter->transform : &identity;
 		emitter =
 			i < instanceCount ? dsSceneParticleNode_getEmitterForInstance(instances[i++]) : NULL;
-		const dsMatrix44fSIMD* world1 = emitter ? &emitter->transform : &identity;
+		const dsMatrix44f* world1 = emitter ? &emitter->transform : &identity;
 		emitter =
 			i < instanceCount ? dsSceneParticleNode_getEmitterForInstance(instances[i++]) : NULL;
-		const dsMatrix44fSIMD* world2 = emitter ? &emitter->transform : &identity;
+		const dsMatrix44f* world2 = emitter ? &emitter->transform : &identity;
 		emitter =
 			i < instanceCount ? dsSceneParticleNode_getEmitterForInstance(instances[i++]) : NULL;
-		const dsMatrix44fSIMD* world3 = emitter ? &emitter->transform : &identity;
+		const dsMatrix44f* world3 = emitter ? &emitter->transform : &identity;
 
 		ParticleTransform transforms[4];
 		computeTransformsSIMD(
@@ -158,8 +158,8 @@ DS_SIMD_END()
 
 DS_SIMD_START_FMA()
 static void computeTransformsFMA(ParticleTransform transforms[4], const dsMatrix44x4f *viewMatrix,
-	const dsMatrix44x4f* projectionMatrix, const dsMatrix44fSIMD* world0,
-	const dsMatrix44fSIMD* world1, const dsMatrix44fSIMD* world2, const dsMatrix44fSIMD* world3)
+	const dsMatrix44x4f* projectionMatrix, const dsMatrix44f* world0,
+	const dsMatrix44f* world1, const dsMatrix44f* world2, const dsMatrix44f* world3)
 {
 	transforms[0].world = *world0;
 	transforms[1].world = *world1;
@@ -200,7 +200,7 @@ static void dsInstanceTransformData_populateDataFMA(const dsView* view,
 	dsMatrix44x4f_load(&projectionMatrix, &view->projectionMatrix, &view->projectionMatrix,
 		&view->projectionMatrix, &view->projectionMatrix);
 
-	dsMatrix44fSIMD identity;
+	dsMatrix44f identity;
 	dsMatrix44_identity(identity);
 
 	// First process all full sets of 4 transforms.
@@ -209,13 +209,13 @@ static void dsInstanceTransformData_populateDataFMA(const dsView* view,
 	{
 		const dsParticleEmitter* emitter =
 			dsSceneParticleNode_getEmitterForInstance(instances[i++]);
-		const dsMatrix44fSIMD* world0 = emitter ? &emitter->transform : &identity;
+		const dsMatrix44f* world0 = emitter ? &emitter->transform : &identity;
 		emitter = dsSceneParticleNode_getEmitterForInstance(instances[i++]);
-		const dsMatrix44fSIMD* world1 = emitter ? &emitter->transform : &identity;
+		const dsMatrix44f* world1 = emitter ? &emitter->transform : &identity;
 		emitter = dsSceneParticleNode_getEmitterForInstance(instances[i++]);
-		const dsMatrix44fSIMD* world2 = emitter ? &emitter->transform : &identity;
+		const dsMatrix44f* world2 = emitter ? &emitter->transform : &identity;
 		emitter = dsSceneParticleNode_getEmitterForInstance(instances[i++]);
-		const dsMatrix44fSIMD* world3 = emitter ? &emitter->transform : &identity;
+		const dsMatrix44f* world3 = emitter ? &emitter->transform : &identity;
 
 		ParticleTransform transforms[4];
 		computeTransformsFMA(
@@ -237,16 +237,16 @@ static void dsInstanceTransformData_populateDataFMA(const dsView* view,
 	{
 		const dsParticleEmitter* emitter =
 			dsSceneParticleNode_getEmitterForInstance(instances[i++]);
-		const dsMatrix44fSIMD* world0 = emitter ? &emitter->transform : &identity;
+		const dsMatrix44f* world0 = emitter ? &emitter->transform : &identity;
 		emitter =
 			i < instanceCount ? dsSceneParticleNode_getEmitterForInstance(instances[i++]) : NULL;
-		const dsMatrix44fSIMD* world1 = emitter ? &emitter->transform : &identity;
+		const dsMatrix44f* world1 = emitter ? &emitter->transform : &identity;
 		emitter =
 			i < instanceCount ? dsSceneParticleNode_getEmitterForInstance(instances[i++]) : NULL;
-		const dsMatrix44fSIMD* world2 = emitter ? &emitter->transform : &identity;
+		const dsMatrix44f* world2 = emitter ? &emitter->transform : &identity;
 		emitter =
 			i < instanceCount ? dsSceneParticleNode_getEmitterForInstance(instances[i++]) : NULL;
-		const dsMatrix44fSIMD* world3 = emitter ? &emitter->transform : &identity;
+		const dsMatrix44f* world3 = emitter ? &emitter->transform : &identity;
 
 		ParticleTransform transforms[4];
 		computeTransformsFMA(

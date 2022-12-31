@@ -335,7 +335,7 @@ struct dsParticleEmitter
 	 * @brief The transform to apply to the particles.
 	 * @remark This member may be modified directly.
 	 */
-	dsMatrix44fSIMD transform;
+	dsMatrix44f transform;
 
 	/**
 	 * @brief Whether or not new particles can be created.
