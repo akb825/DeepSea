@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2022 Aaron Barany
+ * Copyright 2018-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -767,7 +767,7 @@ inline void dsColor4f_lerp(dsColor4f* outColor, const dsColor4f* x, const dsColo
 	DS_ASSERT(x);
 	DS_ASSERT(y);
 
-	dsVector4_lerp(*outColor, *x, *y, t);
+	dsVector4f_lerp(outColor, x, y, t);
 }
 
 inline void dsColor4f_lerpSRGB(dsColor4f* outColor, const dsColor4f* x, const dsColor4f* y,
@@ -780,7 +780,7 @@ inline void dsColor4f_lerpSRGB(dsColor4f* outColor, const dsColor4f* x, const ds
 	dsColor4f xLinear, yLinear;
 	dsColor4f_linearFromSRGB(&xLinear, x);
 	dsColor4f_linearFromSRGB(&yLinear, y);
-	dsVector4_lerp(*outColor, xLinear, yLinear, t);
+	dsVector4f_lerp(outColor, &xLinear, &yLinear, t);
 	dsColor4f_sRGBFromLinear(outColor, outColor);
 }
 
@@ -865,7 +865,7 @@ inline void dsHSVColor_lerp(dsHSVColor* outColor, const dsHSVColor* x, const dsH
 	DS_ASSERT(x);
 	DS_ASSERT(y);
 
-	dsVector4_lerp(*outColor, *x, *y, t);
+	dsVector4f_lerp((dsVector4f*)outColor, (const dsVector4f*)x, (const dsVector4f*)y, t);
 }
 
 inline void dsHSVColor_lerpSRGB(dsHSVColor* outColor, const dsHSVColor* x, const dsHSVColor* y,
@@ -878,7 +878,8 @@ inline void dsHSVColor_lerpSRGB(dsHSVColor* outColor, const dsHSVColor* x, const
 	dsHSVColor xLinear, yLinear;
 	dsHSVColor_linearFromSRGB(&xLinear, x);
 	dsHSVColor_linearFromSRGB(&yLinear, y);
-	dsVector4_lerp(*outColor, xLinear, yLinear, t);
+	dsVector4f_lerp((dsVector4f*)outColor, (const dsVector4f*)&xLinear,
+		(const dsVector4f*)&yLinear, t);
 	dsHSVColor_sRGBFromLinear(outColor, outColor);
 }
 
@@ -963,7 +964,7 @@ inline void dsHSLColor_lerp(dsHSLColor* outColor, const dsHSLColor* x, const dsH
 	DS_ASSERT(x);
 	DS_ASSERT(y);
 
-	dsVector4_lerp(*outColor, *x, *y, t);
+	dsVector4f_lerp((dsVector4f*)outColor, (const dsVector4f*)x, (const dsVector4f*)y, t);
 }
 
 inline void dsHSLColor_lerpSRGB(dsHSLColor* outColor, const dsHSLColor* x, const dsHSLColor* y,
@@ -976,7 +977,8 @@ inline void dsHSLColor_lerpSRGB(dsHSLColor* outColor, const dsHSLColor* x, const
 	dsHSLColor xLinear, yLinear;
 	dsHSLColor_linearFromSRGB(&xLinear, x);
 	dsHSLColor_linearFromSRGB(&yLinear, y);
-	dsVector4_lerp(*outColor, xLinear, yLinear, t);
+	dsVector4f_lerp((dsVector4f*)outColor, (const dsVector4f*)&xLinear,
+		(const dsVector4f*)&yLinear, t);
 	dsHSLColor_sRGBFromLinear(outColor, outColor);
 }
 

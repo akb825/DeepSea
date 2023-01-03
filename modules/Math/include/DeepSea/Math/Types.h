@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 Aaron Barany
+ * Copyright 2016-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -770,6 +770,13 @@ typedef union dsHSVColor
 	 */
 	float values[4];
 
+	/**
+	 * @brief SIMD value when supported.
+	 */
+#if DS_HAS_SIMD
+	dsSIMD4f simd;
+#endif
+
 	struct
 	{
 		/**
@@ -804,6 +811,13 @@ typedef union dsHSLColor
 	 * @brief Array of the color values.
 	 */
 	float values[4];
+
+	/**
+	 * @brief SIMD value when supported.
+	 */
+#if DS_HAS_SIMD
+	dsSIMD4f simd;
+#endif
 
 	struct
 	{
