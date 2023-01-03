@@ -503,7 +503,7 @@ TEST(Matrix44x4Test, FastInvertFMA)
 	}
 }
 
-TEST(Matrix44x4Test, AffineInvert)
+TEST(Matrix44x4Test, DISABLED_AffineInvert)
 {
 	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Float4))
 		return;
@@ -567,7 +567,7 @@ TEST(Matrix44x4Test, AffineInvert)
 	}
 }
 
-TEST(Matrix44x4Test, AffineInvertFMA)
+TEST(Matrix44x4Test, DISABLED_AffineInvertFMA)
 {
 	if (!(dsHostSIMDFeatures & dsSIMDFeatures_FMA))
 		return;

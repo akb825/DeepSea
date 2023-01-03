@@ -240,7 +240,7 @@ void dsQuaternion4f_slerp(dsQuaternion4f* result, const dsQuaternion4f* a, const
 	dsVector4f scaledA, scaledB;
 	dsVector4f_scale(&scaledA, (const dsVector4f*)a, scaleA);
 	dsVector4f_scale(&scaledB, (const dsVector4f*)b, scaleB);
-	dsVector4f_add((dsVector4f*)&result, &scaledA, &scaledB);
+	dsVector4f_add((dsVector4f*)result, &scaledA, &scaledB);
 #endif
 }
 

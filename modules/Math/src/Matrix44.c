@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 Aaron Barany
+ * Copyright 2016-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -178,6 +178,34 @@
 		(result).values[3][3] = 1; \
 	} while (0)
 
+void dsMatrix44f_affineInvert33(dsMatrix33f* result, const dsMatrix44f* a)
+{
+	// Macros for 3x3 matrix will work on the upper 3x3 for a 4x4 matrix.
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+
+	dsMatrix33_transpose(*result, *a);
+	dsVector3f invScale2 = {{1.0f/dsVector3_len2(a->columns[0]),
+		1.0f/dsVector3_len2(a->columns[1]), 1.0f/dsVector3_len2(a->columns[2])}};
+	dsVector3_mul(result->columns[0], result->columns[0], invScale2);
+	dsVector3_mul(result->columns[1], result->columns[1], invScale2);
+	dsVector3_mul(result->columns[2], result->columns[2], invScale2);
+}
+
+void dsMatrix44d_affineInvert33(dsMatrix33d* result, const dsMatrix44d* a)
+{
+	// Macros for 3x3 matrix will work on the upper 3x3 for a 4x4 matrix.
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+
+	dsMatrix33_transpose(*result, *a);
+	dsVector3d invScale2 = {{1.0/dsVector3_len2(a->columns[0]),
+		1.0/dsVector3_len2(a->columns[1]), 1.0/dsVector3_len2(a->columns[2])}};
+	dsVector3_mul(result->columns[0], result->columns[0], invScale2);
+	dsVector3_mul(result->columns[1], result->columns[1], invScale2);
+	dsVector3_mul(result->columns[2], result->columns[2], invScale2);
+}
+
 void dsMatrix44f_affineInvert(dsMatrix44f* result, const dsMatrix44f* a)
 {
 	// Macros for 3x3 matrix will work on the upper 3x3 for a 4x4 matrix.
@@ -186,12 +214,11 @@ void dsMatrix44f_affineInvert(dsMatrix44f* result, const dsMatrix44f* a)
 	DS_ASSERT(result != a);
 
 	dsMatrix33_transpose(*result, *a);
-	float invLen2 = 1.0f/dsVector3_len2(result->columns[0]);
-	dsVector3_scale(result->columns[0], result->columns[0], invLen2);
-	invLen2 = 1.0f/dsVector3_len2(result->columns[1]);
-	dsVector3_scale(result->columns[1], result->columns[1], invLen2);
-	invLen2 = 1.0f/dsVector3_len2(result->columns[2]);
-	dsVector3_scale(result->columns[2], result->columns[2], invLen2);
+	dsVector3f invScale2 = {{1.0f/dsVector3_len2(a->columns[0]),
+		1.0f/dsVector3_len2(a->columns[1]), 1.0f/dsVector3_len2(a->columns[2])}};
+	dsVector3_mul(result->columns[0], result->columns[0], invScale2);
+	dsVector3_mul(result->columns[1], result->columns[1], invScale2);
+	dsVector3_mul(result->columns[2], result->columns[2], invScale2);
 
 	result->values[0][3] = 0;
 	result->values[1][3] = 0;
@@ -214,12 +241,11 @@ void dsMatrix44d_affineInvert(dsMatrix44d* result, const dsMatrix44d* a)
 	DS_ASSERT(result != a);
 
 	dsMatrix33_transpose(*result, *a);
-	double invLen2 = 1.0/dsVector3_len2(result->columns[0]);
-	dsVector3_scale(result->columns[0], result->columns[0], invLen2);
-	invLen2 = 1.0/dsVector3_len2(result->columns[1]);
-	dsVector3_scale(result->columns[1], result->columns[1], invLen2);
-	invLen2 = 1.0/dsVector3_len2(result->columns[2]);
-	dsVector3_scale(result->columns[2], result->columns[2], invLen2);
+	dsVector3d invScale2 = {{1.0/dsVector3_len2(a->columns[0]),
+		1.0/dsVector3_len2(a->columns[1]), 1.0/dsVector3_len2(a->columns[2])}};
+	dsVector3_mul(result->columns[0], result->columns[0], invScale2);
+	dsVector3_mul(result->columns[1], result->columns[1], invScale2);
+	dsVector3_mul(result->columns[2], result->columns[2], invScale2);
 
 	result->values[0][3] = 0;
 	result->values[1][3] = 0;

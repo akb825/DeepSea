@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 Aaron Barany
+ * Copyright 2016-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,8 @@
 
 #include <DeepSea/Core/Config.h>
 #include <DeepSea/Core/Assert.h>
+
+#include <DeepSea/Math/SIMD/Matrix44SIMD.h>
 #include <DeepSea/Math/Export.h>
 #include <DeepSea/Math/Matrix33.h>
 #include <DeepSea/Math/Types.h>
@@ -361,8 +363,21 @@ extern "C"
  */
 DS_MATH_EXPORT void dsMatrix44f_affineInvert(dsMatrix44f* result, const dsMatrix44f* a);
 
-/** @copydoc dsMatrix44d_invert() */
+/** @copydoc dsMatrix44f_affineInvert() */
 DS_MATH_EXPORT void dsMatrix44d_affineInvert(dsMatrix44d* result, const dsMatrix44d* a);
+
+/**
+ * @brief Inverts the upper 3x3 portion of an affine matrix.
+ *
+ * An affine matrix will be a 3D transformation matrix that preserves parallel planes.
+ *
+ * @param[out] result The inverted matrix.
+ * @param a The matrix to invert.
+ */
+DS_MATH_EXPORT void dsMatrix44f_affineInvert33(dsMatrix33f* result, const dsMatrix44f* a);
+
+/** @copydoc dsMatrix44f_affineInvert33() */
+DS_MATH_EXPORT void dsMatrix44d_affineInvert33(dsMatrix33d* result, const dsMatrix44d* a);
 
 /**
  * @brief Inverts a matrix.
@@ -524,7 +539,13 @@ DS_MATH_EXPORT inline void dsMatrix44f_mul(dsMatrix44f* result, const dsMatrix44
 	DS_ASSERT(result);
 	DS_ASSERT(a);
 	DS_ASSERT(b);
+#if DS_SIMD_ALWAYS_FMA
+	dsMatrix44f_mulFMA(result, a, b);
+#elif DS_SIMD_ALWAYS_FLOAT4
+	dsMatrix44f_mulSIMD(result, a, b);
+#else
 	dsMatrix44_mul(*result, *a, *b);
+#endif
 }
 
 /** @copydoc dsMatrix44_mul() */
@@ -544,7 +565,13 @@ DS_MATH_EXPORT inline void dsMatrix44f_affineMul(dsMatrix44f* result, const dsMa
 	DS_ASSERT(result);
 	DS_ASSERT(a);
 	DS_ASSERT(b);
+#if DS_SIMD_ALWAYS_FMA
+	dsMatrix44f_affineMulFMA(result, a, b);
+#elif DS_SIMD_ALWAYS_FLOAT4
+	dsMatrix44f_affineMulSIMD(result, a, b);
+#else
 	dsMatrix44_affineMul(*result, *a, *b);
+#endif
 }
 
 /** @copydoc dsMatrix44_affineMul() */
@@ -602,7 +629,12 @@ DS_MATH_EXPORT inline void dsMatrix44f_transpose(dsMatrix44f* result, const dsMa
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
+
+#if DS_SIMD_ALWAYS_FLOAT4
+	dsMatrix44f_transposeSIMD(result, a);
+#else
 	dsMatrix44_transpose(*result, *a);
+#endif
 }
 
 /** @copydoc dsMatrix44_transpose() */

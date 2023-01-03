@@ -403,7 +403,7 @@ inline void dsQuaternion4f_rotate(dsVector3f* result, const dsQuaternion4f* a, c
 	dsQuaternion4f quatV = {{0, v->values[0], v->values[1], v->values[2]}};
 	dsQuaternion4f invA, tempQuat;
 	dsQuaternion4_invert(invA, *a);
-	dsQuaternion4f_mul(&tempQuat, a, &quatV);
+	dsQuaternion4_mul(tempQuat, *a, quatV);
 	dsQuaternion4_mulToVector(*result, tempQuat, invA);
 }
 

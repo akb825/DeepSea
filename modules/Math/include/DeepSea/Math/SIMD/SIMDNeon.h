@@ -271,13 +271,13 @@ DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_abs(dsSIMD4f a)
 #define dsSIMD4f_transpose(a, b, c, d) \
 do \
 { \
-	float32x4x2_t _tmpAB = vtrnq_f32(a, b); \
-	float32x4x2_t _tmpCD = vtrnq_f32(c, d); \
+	float32x4x2_t _tmpAB = vtrnq_f32((a), (b)); \
+	float32x4x2_t _tmpCD = vtrnq_f32((c), (d)); \
 	\
-	a = vcombine_f32(vget_low_f32(_tmpAB.val[0]), vget_low_f32(_tmpCD.val[0])); \
-	b = vcombine_f32(vget_low_f32(_tmpAB.val[1]), vget_low_f32(_tmpCD.val[1])); \
-	c = vcombine_f32(vget_high_f32(_tmpAB.val[0]), vget_high_f32(_tmpCD.val[0])); \
-	d = vcombine_f32(vget_high_f32(_tmpAB.val[1]), vget_high_f32(_tmpCD.val[1])); \
+	(a) = vcombine_f32(vget_low_f32(_tmpAB.val[0]), vget_low_f32(_tmpCD.val[0])); \
+	(b) = vcombine_f32(vget_low_f32(_tmpAB.val[1]), vget_low_f32(_tmpCD.val[1])); \
+	(c) = vcombine_f32(vget_high_f32(_tmpAB.val[0]), vget_high_f32(_tmpCD.val[0])); \
+	(d) = vcombine_f32(vget_high_f32(_tmpAB.val[1]), vget_high_f32(_tmpCD.val[1])); \
 } while (0)
 
 /**
