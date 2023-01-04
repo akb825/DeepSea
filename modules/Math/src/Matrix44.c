@@ -20,110 +20,6 @@
 #include <DeepSea/Math/Matrix33.h>
 #include <DeepSea/Math/Vector3.h>
 
-#define dsMatrix44_invertImpl(result, a, invDet) \
-	do \
-	{ \
-		(result).values[0][0] = ((a).values[1][1]*(a).values[2][2]*(a).values[3][3] + \
-								 (a).values[2][1]*(a).values[3][2]*(a).values[1][3] + \
-								 (a).values[3][1]*(a).values[1][2]*(a).values[2][3] - \
-								 (a).values[1][1]*(a).values[3][2]*(a).values[2][3] - \
-								 (a).values[2][1]*(a).values[1][2]*(a).values[3][3] - \
-								 (a).values[3][1]*(a).values[2][2]*(a).values[1][3])*invDet; \
-		(result).values[0][1] = ((a).values[0][1]*(a).values[3][2]*(a).values[2][3] + \
-								 (a).values[2][1]*(a).values[0][2]*(a).values[3][3] + \
-								 (a).values[3][1]*(a).values[2][2]*(a).values[0][3] - \
-								 (a).values[0][1]*(a).values[2][2]*(a).values[3][3] - \
-								 (a).values[2][1]*(a).values[3][2]*(a).values[0][3] - \
-								 (a).values[3][1]*(a).values[0][2]*(a).values[2][3])*invDet; \
-		(result).values[0][2] = ((a).values[0][1]*(a).values[1][2]*(a).values[3][3] + \
-								 (a).values[1][1]*(a).values[3][2]*(a).values[0][3] + \
-								 (a).values[3][1]*(a).values[0][2]*(a).values[1][3] - \
-								 (a).values[0][1]*(a).values[3][2]*(a).values[1][3] - \
-								 (a).values[1][1]*(a).values[0][2]*(a).values[3][3] - \
-								 (a).values[3][1]*(a).values[1][2]*(a).values[0][3])*invDet; \
-		(result).values[0][3] = ((a).values[0][1]*(a).values[2][2]*(a).values[1][3] + \
-								 (a).values[1][1]*(a).values[0][2]*(a).values[2][3] + \
-								 (a).values[2][1]*(a).values[1][2]*(a).values[0][3] - \
-								 (a).values[0][1]*(a).values[1][2]*(a).values[2][3] - \
-								 (a).values[1][1]*(a).values[2][2]*(a).values[0][3] - \
-								 (a).values[2][1]*(a).values[0][2]*(a).values[1][3])*invDet; \
-		\
-		(result).values[1][0] = ((a).values[1][0]*(a).values[3][2]*(a).values[2][3] + \
-								 (a).values[2][0]*(a).values[1][2]*(a).values[3][3] + \
-								 (a).values[3][0]*(a).values[2][2]*(a).values[1][3] - \
-								 (a).values[1][0]*(a).values[2][2]*(a).values[3][3] - \
-								 (a).values[2][0]*(a).values[3][2]*(a).values[1][3] - \
-								 (a).values[3][0]*(a).values[1][2]*(a).values[2][3])*invDet; \
-		(result).values[1][1] = ((a).values[0][0]*(a).values[2][2]*(a).values[3][3] + \
-								 (a).values[2][0]*(a).values[3][2]*(a).values[0][3] + \
-								 (a).values[3][0]*(a).values[0][2]*(a).values[2][3] - \
-								 (a).values[0][0]*(a).values[3][2]*(a).values[2][3] - \
-								 (a).values[2][0]*(a).values[0][2]*(a).values[3][3] - \
-								 (a).values[3][0]*(a).values[2][2]*(a).values[0][3])*invDet; \
-		(result).values[1][2] = ((a).values[0][0]*(a).values[3][2]*(a).values[1][3] + \
-								 (a).values[1][0]*(a).values[0][2]*(a).values[3][3] + \
-								 (a).values[3][0]*(a).values[1][2]*(a).values[0][3] - \
-								 (a).values[0][0]*(a).values[1][2]*(a).values[3][3] - \
-								 (a).values[1][0]*(a).values[3][2]*(a).values[0][3] - \
-								 (a).values[3][0]*(a).values[0][2]*(a).values[1][3])*invDet; \
-		(result).values[1][3] = ((a).values[0][0]*(a).values[1][2]*(a).values[2][3] + \
-								 (a).values[1][0]*(a).values[2][2]*(a).values[0][3] + \
-								 (a).values[2][0]*(a).values[0][2]*(a).values[1][3] - \
-								 (a).values[0][0]*(a).values[2][2]*(a).values[1][3] - \
-								 (a).values[1][0]*(a).values[0][2]*(a).values[2][3] - \
-								 (a).values[2][0]*(a).values[1][2]*(a).values[0][3])*invDet; \
-		\
-		(result).values[2][0] = ((a).values[1][0]*(a).values[2][1]*(a).values[3][3] + \
-								 (a).values[2][0]*(a).values[3][1]*(a).values[1][3] + \
-								 (a).values[3][0]*(a).values[1][1]*(a).values[2][3] - \
-								 (a).values[1][0]*(a).values[3][1]*(a).values[2][3] - \
-								 (a).values[2][0]*(a).values[1][1]*(a).values[3][3] - \
-								 (a).values[3][0]*(a).values[2][1]*(a).values[1][3])*invDet; \
-		(result).values[2][1] = ((a).values[0][0]*(a).values[3][1]*(a).values[2][3] + \
-								 (a).values[2][0]*(a).values[0][1]*(a).values[3][3] + \
-								 (a).values[3][0]*(a).values[2][1]*(a).values[0][3] - \
-								 (a).values[0][0]*(a).values[2][1]*(a).values[3][3] - \
-								 (a).values[2][0]*(a).values[3][1]*(a).values[0][3] - \
-								 (a).values[3][0]*(a).values[0][1]*(a).values[2][3])*invDet; \
-		(result).values[2][2] = ((a).values[0][0]*(a).values[1][1]*(a).values[3][3] + \
-								 (a).values[1][0]*(a).values[3][1]*(a).values[0][3] + \
-								 (a).values[3][0]*(a).values[0][1]*(a).values[1][3] - \
-								 (a).values[0][0]*(a).values[3][1]*(a).values[1][3] - \
-								 (a).values[1][0]*(a).values[0][1]*(a).values[3][3] - \
-								 (a).values[3][0]*(a).values[1][1]*(a).values[0][3])*invDet; \
-		(result).values[2][3] = ((a).values[0][0]*(a).values[2][1]*(a).values[1][3] + \
-								 (a).values[1][0]*(a).values[0][1]*(a).values[2][3] + \
-								 (a).values[2][0]*(a).values[1][1]*(a).values[0][3] - \
-								 (a).values[0][0]*(a).values[1][1]*(a).values[2][3] - \
-								 (a).values[1][0]*(a).values[2][1]*(a).values[0][3] - \
-								 (a).values[2][0]*(a).values[0][1]*(a).values[1][3])*invDet; \
-		\
-		(result).values[3][0] = ((a).values[1][0]*(a).values[3][1]*(a).values[2][2] + \
-								 (a).values[2][0]*(a).values[1][1]*(a).values[3][2] + \
-								 (a).values[3][0]*(a).values[2][1]*(a).values[1][2] - \
-								 (a).values[1][0]*(a).values[2][1]*(a).values[3][2] - \
-								 (a).values[2][0]*(a).values[3][1]*(a).values[1][2] - \
-								 (a).values[3][0]*(a).values[1][1]*(a).values[2][2])*invDet; \
-		(result).values[3][1] = ((a).values[0][0]*(a).values[2][1]*(a).values[3][2] + \
-								 (a).values[2][0]*(a).values[3][1]*(a).values[0][2] + \
-								 (a).values[3][0]*(a).values[0][1]*(a).values[2][2] - \
-								 (a).values[0][0]*(a).values[3][1]*(a).values[2][2] - \
-								 (a).values[2][0]*(a).values[0][1]*(a).values[3][2] - \
-								 (a).values[3][0]*(a).values[2][1]*(a).values[0][2])*invDet; \
-		(result).values[3][2] = ((a).values[0][0]*(a).values[3][1]*(a).values[1][2] + \
-								 (a).values[1][0]*(a).values[0][1]*(a).values[3][2] + \
-								 (a).values[3][0]*(a).values[1][1]*(a).values[0][2] - \
-								 (a).values[0][0]*(a).values[1][1]*(a).values[3][2] - \
-								 (a).values[1][0]*(a).values[3][1]*(a).values[0][2] - \
-								 (a).values[3][0]*(a).values[0][1]*(a).values[1][2])*invDet; \
-		(result).values[3][3] = ((a).values[0][0]*(a).values[1][1]*(a).values[2][2] + \
-								 (a).values[1][0]*(a).values[2][1]*(a).values[0][2] + \
-								 (a).values[2][0]*(a).values[0][1]*(a).values[1][2] - \
-								 (a).values[0][0]*(a).values[2][1]*(a).values[1][2] - \
-								 (a).values[1][0]*(a).values[0][1]*(a).values[2][2] - \
-								 (a).values[2][0]*(a).values[1][1]*(a).values[0][2])*invDet; \
-	} while (0)
-
 #define dsMatrix44_makeRotateImpl(result, cosX, sinX, cosY, sinY, cosZ, sinZ) \
 	do \
 	{ \
@@ -178,162 +74,6 @@
 		(result).values[3][3] = 1; \
 	} while (0)
 
-void dsMatrix44f_affineInvert33(dsMatrix33f* result, const dsMatrix44f* a)
-{
-	// Macros for 3x3 matrix will work on the upper 3x3 for a 4x4 matrix.
-	DS_ASSERT(result);
-	DS_ASSERT(a);
-
-	dsMatrix33_transpose(*result, *a);
-	dsVector3f invScale2 = {{1.0f/dsVector3_len2(a->columns[0]),
-		1.0f/dsVector3_len2(a->columns[1]), 1.0f/dsVector3_len2(a->columns[2])}};
-	dsVector3_mul(result->columns[0], result->columns[0], invScale2);
-	dsVector3_mul(result->columns[1], result->columns[1], invScale2);
-	dsVector3_mul(result->columns[2], result->columns[2], invScale2);
-}
-
-void dsMatrix44d_affineInvert33(dsMatrix33d* result, const dsMatrix44d* a)
-{
-	// Macros for 3x3 matrix will work on the upper 3x3 for a 4x4 matrix.
-	DS_ASSERT(result);
-	DS_ASSERT(a);
-
-	dsMatrix33_transpose(*result, *a);
-	dsVector3d invScale2 = {{1.0/dsVector3_len2(a->columns[0]),
-		1.0/dsVector3_len2(a->columns[1]), 1.0/dsVector3_len2(a->columns[2])}};
-	dsVector3_mul(result->columns[0], result->columns[0], invScale2);
-	dsVector3_mul(result->columns[1], result->columns[1], invScale2);
-	dsVector3_mul(result->columns[2], result->columns[2], invScale2);
-}
-
-void dsMatrix44f_affineInvert(dsMatrix44f* result, const dsMatrix44f* a)
-{
-	// Macros for 3x3 matrix will work on the upper 3x3 for a 4x4 matrix.
-	DS_ASSERT(result);
-	DS_ASSERT(a);
-	DS_ASSERT(result != a);
-
-	dsMatrix33_transpose(*result, *a);
-	dsVector3f invScale2 = {{1.0f/dsVector3_len2(a->columns[0]),
-		1.0f/dsVector3_len2(a->columns[1]), 1.0f/dsVector3_len2(a->columns[2])}};
-	dsVector3_mul(result->columns[0], result->columns[0], invScale2);
-	dsVector3_mul(result->columns[1], result->columns[1], invScale2);
-	dsVector3_mul(result->columns[2], result->columns[2], invScale2);
-
-	result->values[0][3] = 0;
-	result->values[1][3] = 0;
-	result->values[2][3] = 0;
-
-	result->values[3][0] = -a->values[3][0]*result->values[0][0] -
-		a->values[3][1]*result->values[1][0] - a->values[3][2]*result->values[2][0];
-	result->values[3][1] = -a->values[3][0]*result->values[0][1] -
-		a->values[3][1]*result->values[1][1] - a->values[3][2]*result->values[2][1];
-	result->values[3][2] = -a->values[3][0]*result->values[0][2] -
-		a->values[3][1]*result->values[1][2] - a->values[3][2]*result->values[2][2];
-	result->values[3][3] = 1;
-}
-
-void dsMatrix44d_affineInvert(dsMatrix44d* result, const dsMatrix44d* a)
-{
-	// Macros for 3x3 matrix will work on the upper 3x3 for a 4x4 matrix.
-	DS_ASSERT(result);
-	DS_ASSERT(a);
-	DS_ASSERT(result != a);
-
-	dsMatrix33_transpose(*result, *a);
-	dsVector3d invScale2 = {{1.0/dsVector3_len2(a->columns[0]),
-		1.0/dsVector3_len2(a->columns[1]), 1.0/dsVector3_len2(a->columns[2])}};
-	dsVector3_mul(result->columns[0], result->columns[0], invScale2);
-	dsVector3_mul(result->columns[1], result->columns[1], invScale2);
-	dsVector3_mul(result->columns[2], result->columns[2], invScale2);
-
-	result->values[0][3] = 0;
-	result->values[1][3] = 0;
-	result->values[2][3] = 0;
-
-	result->values[3][0] = -a->values[3][0]*result->values[0][0] -
-		a->values[3][1]*result->values[1][0] - a->values[3][2]*result->values[2][0];
-	result->values[3][1] = -a->values[3][0]*result->values[0][1] -
-		a->values[3][1]*result->values[1][1] - a->values[3][2]*result->values[2][1];
-	result->values[3][2] = -a->values[3][0]*result->values[0][2] -
-		a->values[3][1]*result->values[1][2] - a->values[3][2]*result->values[2][2];
-	result->values[3][3] = 1;
-}
-
-void dsMatrix44f_invert(dsMatrix44f* result, const dsMatrix44f* a)
-{
-	DS_ASSERT(result);
-	DS_ASSERT(a);
-	DS_ASSERT(result != a);
-
-	float det = dsMatrix44_determinant(*a);
-	DS_ASSERT(det != 0);
-	float invDet = 1/det;
-
-	dsMatrix44_invertImpl(*result, *a, invDet);
-}
-
-void dsMatrix44d_invert(dsMatrix44d* result, const dsMatrix44d* a)
-{
-	DS_ASSERT(result);
-	DS_ASSERT(a);
-	DS_ASSERT(result != a);
-
-	double det = dsMatrix44_determinant(*a);
-	DS_ASSERT(det != 0);
-	double invDet = 1/det;
-
-	dsMatrix44_invertImpl(*result, *a, invDet);
-}
-
-void dsMatrix44f_inverseTranspose(dsMatrix33f* result, const dsMatrix44f* a)
-{
-	DS_ASSERT(result);
-	DS_ASSERT(a);
-
-	float invLen2 = 1.0f/(a->values[0][0]*a->values[0][0] + a->values[1][0]*a->values[1][0] +
-		a->values[2][0]*a->values[2][0]);
-	result->values[0][0] = a->values[0][0]*invLen2;
-	result->values[1][0] = a->values[1][0]*invLen2;
-	result->values[2][0] = a->values[2][0]*invLen2;
-
-	invLen2 = 1.0f/(a->values[0][1]*a->values[0][1] + a->values[1][1]*a->values[1][1] +
-		a->values[2][1]*a->values[2][1]);
-	result->values[0][1] = a->values[0][1]*invLen2;
-	result->values[1][1] = a->values[1][1]*invLen2;
-	result->values[2][1] = a->values[2][1]*invLen2;
-
-	invLen2 = 1.0f/(a->values[0][2]*a->values[0][2] + a->values[1][2]*a->values[1][2] +
-		a->values[2][2]*a->values[2][2]);
-	result->values[0][2] = a->values[0][2]*invLen2;
-	result->values[1][2] = a->values[1][2]*invLen2;
-	result->values[2][2] = a->values[2][2]*invLen2;
-}
-
-void dsMatrix44d_inverseTranspose(dsMatrix33d* result, const dsMatrix44d* a)
-{
-	DS_ASSERT(result);
-	DS_ASSERT(a);
-
-	double invLen2 = 1.0/(a->values[0][0]*a->values[0][0] + a->values[1][0]*a->values[1][0] +
-		a->values[2][0]*a->values[2][0]);
-	result->values[0][0] = a->values[0][0]*invLen2;
-	result->values[1][0] = a->values[1][0]*invLen2;
-	result->values[2][0] = a->values[2][0]*invLen2;
-
-	invLen2 = 1.0/(a->values[0][1]*a->values[0][1] + a->values[1][1]*a->values[1][1] +
-		a->values[2][1]*a->values[2][1]);
-	result->values[0][1] = a->values[0][1]*invLen2;
-	result->values[1][1] = a->values[1][1]*invLen2;
-	result->values[2][1] = a->values[2][1]*invLen2;
-
-	invLen2 = 1.0/(a->values[0][2]*a->values[0][2] + a->values[1][2]*a->values[1][2] +
-		a->values[2][2]*a->values[2][2]);
-	result->values[0][2] = a->values[0][2]*invLen2;
-	result->values[1][2] = a->values[1][2]*invLen2;
-	result->values[2][2] = a->values[2][2]*invLen2;
-}
-
 void dsMatrix44f_makeRotate(dsMatrix44f* result, float x, float y, float z)
 {
 	DS_ASSERT(result);
@@ -386,102 +126,6 @@ void dsMatrix44d_makeRotateAxisAngle(dsMatrix44d* result, const dsVector3d* axis
 	double invCosAngle = 1 - cosAngle;
 
 	dsMatrix44_makeRotateAxisAngleImpl(*result, *axis, cosAngle, sinAngle, invCosAngle);
-}
-
-void dsMatrix44f_makeTranslate(dsMatrix44f* result, float x, float y, float z)
-{
-	DS_ASSERT(result);
-	result->values[0][0] = 1;
-	result->values[0][1] = 0;
-	result->values[0][2] = 0;
-	result->values[0][3] = 0;
-
-	result->values[1][0] = 0;
-	result->values[1][1] = 1;
-	result->values[1][2] = 0;
-	result->values[1][3] = 0;
-
-	result->values[2][0] = 0;
-	result->values[2][1] = 0;
-	result->values[2][2] = 1;
-	result->values[2][3] = 0;
-
-	result->values[3][0] = x;
-	result->values[3][1] = y;
-	result->values[3][2] = z;
-	result->values[3][3] = 1;
-}
-
-void dsMatrix44d_makeTranslate(dsMatrix44d* result, double x, double y, double z)
-{
-	DS_ASSERT(result);
-	result->values[0][0] = 1;
-	result->values[0][1] = 0;
-	result->values[0][2] = 0;
-	result->values[0][3] = 0;
-
-	result->values[1][0] = 0;
-	result->values[1][1] = 1;
-	result->values[1][2] = 0;
-	result->values[1][3] = 0;
-
-	result->values[2][0] = 0;
-	result->values[2][1] = 0;
-	result->values[2][2] = 1;
-	result->values[2][3] = 0;
-
-	result->values[3][0] = x;
-	result->values[3][1] = y;
-	result->values[3][2] = z;
-	result->values[3][3] = 1;
-}
-
-void dsMatrix44f_makeScale(dsMatrix44f* result, float x, float y, float z)
-{
-	DS_ASSERT(result);
-	result->values[0][0] = x;
-	result->values[0][1] = 0;
-	result->values[0][2] = 0;
-	result->values[0][3] = 0;
-
-	result->values[1][0] = 0;
-	result->values[1][1] = y;
-	result->values[1][2] = 0;
-	result->values[1][3] = 0;
-
-	result->values[2][0] = 0;
-	result->values[2][1] = 0;
-	result->values[2][2] = z;
-	result->values[2][3] = 0;
-
-	result->values[3][0] = 0;
-	result->values[3][1] = 0;
-	result->values[3][2] = 0;
-	result->values[3][3] = 1;
-}
-
-void dsMatrix44d_makeScale(dsMatrix44d* result, double x, double y, double z)
-{
-	DS_ASSERT(result);
-	result->values[0][0] = x;
-	result->values[0][1] = 0;
-	result->values[0][2] = 0;
-	result->values[0][3] = 0;
-
-	result->values[1][0] = 0;
-	result->values[1][1] = y;
-	result->values[1][2] = 0;
-	result->values[1][3] = 0;
-
-	result->values[2][0] = 0;
-	result->values[2][1] = 0;
-	result->values[2][2] = z;
-	result->values[2][3] = 0;
-
-	result->values[3][0] = 0;
-	result->values[3][1] = 0;
-	result->values[3][2] = 0;
-	result->values[3][3] = 1;
 }
 
 void dsMatrix44f_lookAt(dsMatrix44f* result, const dsVector3f* eyePos, const dsVector3f* lookAtPos,
@@ -1056,26 +700,31 @@ void dsMatrix44d_makePerspective(dsMatrix44d* result, double fovy, double aspect
 
 void dsMatrix44f_identity(dsMatrix44f* result);
 void dsMatrix44d_identity(dsMatrix44d* result);
-
 void dsMatrix44f_mul(dsMatrix44f* result, const dsMatrix44f* a, const dsMatrix44f* b);
 void dsMatrix44d_mul(dsMatrix44d* result, const dsMatrix44d* a, const dsMatrix44d* b);
-
 void dsMatrix44f_affineMul(dsMatrix44f* result, const dsMatrix44f* a, const dsMatrix44f* b);
 void dsMatrix44d_affineMul(dsMatrix44d* result, const dsMatrix44d* a, const dsMatrix44d* b);
-
 void dsMatrix44f_transform(dsVector4f* result, const dsMatrix44f* mat, const dsVector4f* vec);
 void dsMatrix44d_transform(dsVector4d* result, const dsMatrix44d* mat, const dsVector4d* vec);
-
 void dsMatrix44f_transformTransposed(dsVector4f* result, const dsMatrix44f* mat,
 	const dsVector4f* vec);
 void dsMatrix44d_transformTransposed(dsVector4d* result, const dsMatrix44d* mat,
 	const dsVector4d* vec);
-
 void dsMatrix44f_transpose(dsMatrix44f* result, const dsMatrix44f* a);
 void dsMatrix44d_transpose(dsMatrix44d* result, const dsMatrix44d* a);
-
 float dsMatrix44f_determinant(dsMatrix44f* a);
 double dsMatrix44d_determinant(dsMatrix44d* a);
-
 void dsMatrix44f_fastInvert(dsMatrix44f* result, const dsMatrix44f* a);
 void dsMatrix44d_fastInvert(dsMatrix44d* result, const dsMatrix44d* a);
+void dsMatrix44f_affineInvert(dsMatrix44f* result, const dsMatrix44f* a);
+void dsMatrix44d_affineInvert(dsMatrix44d* result, const dsMatrix44d* a);
+void dsMatrix44f_affineInvert33(dsMatrix33f* result, const dsMatrix44f* a);
+void dsMatrix44d_affineInvert33(dsMatrix33d* result, const dsMatrix44d* a);
+void dsMatrix44f_invert(dsMatrix44f* result, const dsMatrix44f* a);
+void dsMatrix44d_invert(dsMatrix44d* result, const dsMatrix44d* a);
+void dsMatrix44f_inverseTranspose(dsMatrix33f* result, const dsMatrix44f* a);
+void dsMatrix44d_inverseTranspose(dsMatrix33d* result, const dsMatrix44d* a);
+void dsMatrix44f_makeTranslate(dsMatrix44f* result, float x, float y, float z);
+void dsMatrix44d_makeTranslate(dsMatrix44d* result, double x, double y, double z);
+void dsMatrix44f_makeScale(dsMatrix44f* result, float x, float y, float z);
+void dsMatrix44d_makeScale(dsMatrix44d* result, double x, double y, double z);

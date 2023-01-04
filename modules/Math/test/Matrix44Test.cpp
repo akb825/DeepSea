@@ -763,50 +763,6 @@ TYPED_TEST(Matrix44Test, FastInvert)
 	EXPECT_NEAR(1, result.values[3][3], epsilon);
 }
 
-TYPED_TEST(Matrix44Test, AffineInvert33)
-{
-	typedef typename Matrix44TypeSelector<TypeParam>::Matrix44Type Matrix44Type;
-	typedef typename Matrix44TypeSelector<TypeParam>::Matrix33Type Matrix33Type;
-	TypeParam epsilon = Matrix44TypeSelector<TypeParam>::epsilon;
-
-	Matrix44Type rotate;
-	dsMatrix44_makeRotate(&rotate, (TypeParam)dsDegreesToRadiansd(30),
-		(TypeParam)dsDegreesToRadiansd(-15), (TypeParam)dsDegreesToRadiansd(60));
-
-	Matrix44Type translate;
-	dsMatrix44_makeTranslate(&translate, (TypeParam)1.2, (TypeParam)-3.4, (TypeParam)5.6);
-
-	Matrix44Type scale;
-	dsMatrix44_makeTranslate(&scale, (TypeParam)-2.1, (TypeParam)4.3, (TypeParam)-6.5);
-
-	Matrix44Type temp;
-	dsMatrix44_affineMul(temp, scale, rotate);
-
-	Matrix44Type matrix;
-	dsMatrix44_affineMul(matrix, translate, temp);
-
-	Matrix33Type matrix33;
-	dsMatrix33_copy(matrix33, matrix);
-
-	Matrix33Type inverse;
-	dsMatrix44_affineInvert33(&inverse, &matrix);
-
-	Matrix33Type result;
-	dsMatrix33_mul(result, inverse, matrix33);
-
-	EXPECT_NEAR(1, result.values[0][0], epsilon);
-	EXPECT_NEAR(0, result.values[0][1], epsilon);
-	EXPECT_NEAR(0, result.values[0][2], epsilon);
-
-	EXPECT_NEAR(0, result.values[1][0], epsilon);
-	EXPECT_NEAR(1, result.values[1][1], epsilon);
-	EXPECT_NEAR(0, result.values[1][2], epsilon);
-
-	EXPECT_NEAR(0, result.values[2][0], epsilon);
-	EXPECT_NEAR(0, result.values[2][1], epsilon);
-	EXPECT_NEAR(1, result.values[2][2], epsilon);
-}
-
 TYPED_TEST(Matrix44Test, AffineInvert)
 {
 	typedef typename Matrix44TypeSelector<TypeParam>::Matrix44Type Matrix44Type;
@@ -820,7 +776,7 @@ TYPED_TEST(Matrix44Test, AffineInvert)
 	dsMatrix44_makeTranslate(&translate, (TypeParam)1.2, (TypeParam)-3.4, (TypeParam)5.6);
 
 	Matrix44Type scale;
-	dsMatrix44_makeTranslate(&scale, (TypeParam)-2.1, (TypeParam)4.3, (TypeParam)-6.5);
+	dsMatrix44_makeScale(&scale, (TypeParam)-2.1, (TypeParam)4.3, (TypeParam)-6.5);
 
 	Matrix44Type temp;
 	dsMatrix44_affineMul(temp, scale, rotate);
@@ -855,6 +811,50 @@ TYPED_TEST(Matrix44Test, AffineInvert)
 	EXPECT_NEAR(1, result.values[3][3], epsilon);
 }
 
+TYPED_TEST(Matrix44Test, AffineInvert33)
+{
+	typedef typename Matrix44TypeSelector<TypeParam>::Matrix44Type Matrix44Type;
+	typedef typename Matrix44TypeSelector<TypeParam>::Matrix33Type Matrix33Type;
+	TypeParam epsilon = Matrix44TypeSelector<TypeParam>::epsilon;
+
+	Matrix44Type rotate;
+	dsMatrix44_makeRotate(&rotate, (TypeParam)dsDegreesToRadiansd(30),
+		(TypeParam)dsDegreesToRadiansd(-15), (TypeParam)dsDegreesToRadiansd(60));
+
+	Matrix44Type translate;
+	dsMatrix44_makeTranslate(&translate, (TypeParam)1.2, (TypeParam)-3.4, (TypeParam)5.6);
+
+	Matrix44Type scale;
+	dsMatrix44_makeScale(&scale, (TypeParam)-2.1, (TypeParam)4.3, (TypeParam)-6.5);
+
+	Matrix44Type temp;
+	dsMatrix44_affineMul(temp, scale, rotate);
+
+	Matrix44Type matrix;
+	dsMatrix44_affineMul(matrix, translate, temp);
+
+	Matrix33Type matrix33;
+	dsMatrix33_copy(matrix33, matrix);
+
+	Matrix33Type inverse;
+	dsMatrix44_affineInvert33(&inverse, &matrix);
+
+	Matrix33Type result;
+	dsMatrix33_mul(result, inverse, matrix33);
+
+	EXPECT_NEAR(1, result.values[0][0], epsilon);
+	EXPECT_NEAR(0, result.values[0][1], epsilon);
+	EXPECT_NEAR(0, result.values[0][2], epsilon);
+
+	EXPECT_NEAR(0, result.values[1][0], epsilon);
+	EXPECT_NEAR(1, result.values[1][1], epsilon);
+	EXPECT_NEAR(0, result.values[1][2], epsilon);
+
+	EXPECT_NEAR(0, result.values[2][0], epsilon);
+	EXPECT_NEAR(0, result.values[2][1], epsilon);
+	EXPECT_NEAR(1, result.values[2][2], epsilon);
+}
+
 TYPED_TEST(Matrix44Test, InverseTranspose)
 {
 	typedef typename Matrix44TypeSelector<TypeParam>::Matrix44Type Matrix44Type;
@@ -869,7 +869,7 @@ TYPED_TEST(Matrix44Test, InverseTranspose)
 	dsMatrix44_makeTranslate(&translate, (TypeParam)1.2, (TypeParam)-3.4, (TypeParam)5.6);
 
 	Matrix44Type scale;
-	dsMatrix44_makeTranslate(&scale, (TypeParam)-2.1, (TypeParam)4.3, (TypeParam)-6.5);
+	dsMatrix44_makeScale(&scale, (TypeParam)-2.1, (TypeParam)4.3, (TypeParam)-6.5);
 
 	Matrix44Type temp;
 	dsMatrix44_mul(temp, scale, rotate);
@@ -1493,6 +1493,24 @@ TEST(Matrix44fTest, TransposeSIMD)
 	EXPECT_EQ(0.1f, result.values[3][3]);
 }
 
+TEST(Matrix44fTest, DeterminantSIMD)
+{
+	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Float4))
+		return;
+
+	const float epsilon = Matrix44TypeSelector<float>::inverseEpsilon;
+
+	dsMatrix44f matrix =
+	{{
+		{-0.1f, 2.3f, -4.5f, 6.7f},
+		{8.9f, -1.0f, 3.2f, -5.4f},
+		{-7.6f, 9.8f, 0.1f, -2.3f},
+		{4.5f, -6.7f, -8.9f, 1.0f}
+	}};
+
+	EXPECT_NEAR(6163.7587f, dsMatrix44f_determinantSIMD(&matrix), epsilon);
+}
+
 TEST(Matrix44fTest, FastInvertSIMD)
 {
 	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Float4))
@@ -1596,7 +1614,7 @@ TEST(Matrix44fTest, AffineInvertSIMD)
 	dsMatrix44f_makeTranslate(&translate, 1.2f, -3.4f, 5.6f);
 
 	dsMatrix44f scale;
-	dsMatrix44f_makeTranslate(&scale, -2.1f, 4.3f, -6.5f);
+	dsMatrix44f_makeScale(&scale, -2.1f, 4.3f, -6.5f);
 
 	dsMatrix44f temp;
 	dsMatrix44f_affineMulSIMD(&temp, &scale, &rotate);
@@ -1646,7 +1664,7 @@ TEST(Matrix44fTest, AffineInvertFMA)
 	dsMatrix44f_makeTranslate(&translate, 1.2f, -3.4f, 5.6f);
 
 	dsMatrix44f scale;
-	dsMatrix44f_makeTranslate(&scale, -2.1f, 4.3f, -6.5f);
+	dsMatrix44f_makeScale(&scale, -2.1f, 4.3f, -6.5f);
 
 	dsMatrix44f temp;
 	dsMatrix44f_affineMulFMA(&temp, &scale, &rotate);
@@ -1696,7 +1714,7 @@ TEST(Matrix44fTest, AffineInvert33SIMD)
 	dsMatrix44f_makeTranslate(&translate, 1.2f, -3.4f, 5.6f);
 
 	dsMatrix44f scale;
-	dsMatrix44f_makeTranslate(&scale, -2.1f, 4.3f, -6.5f);
+	dsMatrix44f_makeScale(&scale, -2.1f, 4.3f, -6.5f);
 
 	dsMatrix44f temp;
 	dsMatrix44f_affineMulSIMD(&temp, &scale, &rotate);
@@ -1748,7 +1766,7 @@ TEST(Matrix44fTest, AffineInvert33FMA)
 	dsMatrix44f_makeTranslate(&translate, 1.2f, -3.4f, 5.6f);
 
 	dsMatrix44f scale;
-	dsMatrix44f_makeTranslate(&scale, -2.1f, 4.3f, -6.5f);
+	dsMatrix44f_makeScale(&scale, -2.1f, 4.3f, -6.5f);
 
 	dsMatrix44f temp;
 	dsMatrix44f_affineMulFMA(&temp, &scale, &rotate);
@@ -1790,7 +1808,7 @@ TEST(Matrix44fTest, InvertSIMD)
 	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Float4))
 		return;
 
-	const float epsilon = Matrix44TypeSelector<float>::epsilon;
+	const float epsilon = Matrix44TypeSelector<float>::inverseEpsilon;
 
 	dsMatrix44f matrix =
 	{{
@@ -1907,6 +1925,92 @@ TEST(Matrix44fTest, InvertFMA)
 	EXPECT_NEAR(0, result.values[3][1], epsilon);
 	EXPECT_NEAR(0, result.values[3][2], epsilon);
 	EXPECT_NEAR(1, result.values[3][3], epsilon);
+}
+
+TEST(Matrix44fTest, InverseTransposeSIMD)
+{
+	if (!(dsHostSIMDFeatures & dsSIMDFeatures_Float4))
+		return;
+
+	const float epsilon = Matrix44TypeSelector<float>::epsilon;
+
+	dsMatrix44f rotate;
+	dsMatrix44_makeRotate(&rotate, dsDegreesToRadiansf(30.0f), dsDegreesToRadiansf(-15.0f),
+		dsDegreesToRadiansf(60.0f));
+
+	dsMatrix44f translate;
+	dsMatrix44f_makeTranslate(&translate, 1.2f, -3.4f, 5.6f);
+
+	dsMatrix44f scale;
+	dsMatrix44f_makeScale(&scale, -2.1f, 4.3f, -6.5f);
+
+	dsMatrix44f temp;
+	dsMatrix44f_mulSIMD(&temp, &scale, &rotate);
+
+	dsMatrix44f matrix;
+	dsMatrix44f_mulSIMD(&matrix, &translate, &temp);
+
+	dsVector4f inverseTranspose[3];
+	dsMatrix44f_inverseTransposeSIMD(inverseTranspose, &matrix);
+
+	dsMatrix44f inverse, inverseTransposeCheck;
+	dsMatrix44f_invertSIMD(&inverse, &matrix);
+	dsMatrix44f_transposeSIMD(&inverseTransposeCheck, &inverse);
+
+	EXPECT_NEAR(inverseTransposeCheck.values[0][0], inverseTranspose[0].x, epsilon);
+	EXPECT_NEAR(inverseTransposeCheck.values[0][1], inverseTranspose[0].y, epsilon);
+	EXPECT_NEAR(inverseTransposeCheck.values[0][2], inverseTranspose[0].z, epsilon);
+
+	EXPECT_NEAR(inverseTransposeCheck.values[1][0], inverseTranspose[1].x, epsilon);
+	EXPECT_NEAR(inverseTransposeCheck.values[1][1], inverseTranspose[1].y, epsilon);
+	EXPECT_NEAR(inverseTransposeCheck.values[1][2], inverseTranspose[1].z, epsilon);
+
+	EXPECT_NEAR(inverseTransposeCheck.values[2][0], inverseTranspose[2].x, epsilon);
+	EXPECT_NEAR(inverseTransposeCheck.values[2][1], inverseTranspose[2].y, epsilon);
+	EXPECT_NEAR(inverseTransposeCheck.values[2][2], inverseTranspose[2].z, epsilon);
+}
+
+TEST(Matrix44fTest, InverseTransposeFMA)
+{
+	if (!(dsHostSIMDFeatures & dsSIMDFeatures_FMA))
+		return;
+
+	const float epsilon = Matrix44TypeSelector<float>::epsilon;
+
+	dsMatrix44f rotate;
+	dsMatrix44_makeRotate(&rotate, dsDegreesToRadiansf(30.0f), dsDegreesToRadiansf(-15.0f),
+		dsDegreesToRadiansf(60.0f));
+
+	dsMatrix44f translate;
+	dsMatrix44f_makeTranslate(&translate, 1.2f, -3.4f, 5.6f);
+
+	dsMatrix44f scale;
+	dsMatrix44f_makeScale(&scale, -2.1f, 4.3f, -6.5f);
+
+	dsMatrix44f temp;
+	dsMatrix44f_mulFMA(&temp, &scale, &rotate);
+
+	dsMatrix44f matrix;
+	dsMatrix44f_mulFMA(&matrix, &translate, &temp);
+
+	dsVector4f inverseTranspose[3];
+	dsMatrix44f_inverseTransposeFMA(inverseTranspose, &matrix);
+
+	dsMatrix44f inverse, inverseTransposeCheck;
+	dsMatrix44f_invertFMA(&inverse, &matrix);
+	dsMatrix44f_transposeSIMD(&inverseTransposeCheck, &inverse);
+
+	EXPECT_NEAR(inverseTransposeCheck.values[0][0], inverseTranspose[0].x, epsilon);
+	EXPECT_NEAR(inverseTransposeCheck.values[0][1], inverseTranspose[0].y, epsilon);
+	EXPECT_NEAR(inverseTransposeCheck.values[0][2], inverseTranspose[0].z, epsilon);
+
+	EXPECT_NEAR(inverseTransposeCheck.values[1][0], inverseTranspose[1].x, epsilon);
+	EXPECT_NEAR(inverseTransposeCheck.values[1][1], inverseTranspose[1].y, epsilon);
+	EXPECT_NEAR(inverseTransposeCheck.values[1][2], inverseTranspose[1].z, epsilon);
+
+	EXPECT_NEAR(inverseTransposeCheck.values[2][0], inverseTranspose[2].x, epsilon);
+	EXPECT_NEAR(inverseTransposeCheck.values[2][1], inverseTranspose[2].y, epsilon);
+	EXPECT_NEAR(inverseTransposeCheck.values[2][2], inverseTranspose[2].z, epsilon);
 }
 #endif
 

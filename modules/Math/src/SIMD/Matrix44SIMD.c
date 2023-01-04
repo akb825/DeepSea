@@ -28,6 +28,7 @@ void dsMatrix44f_transformTransposedSIMD(dsVector4f* result, const dsMatrix44f* 
 void dsMatrix44f_transformTransposedFMA(dsVector4f* result, const dsMatrix44f* mat,
 	const dsVector4f* vec);
 void dsMatrix44f_transposeSIMD(dsMatrix44f* result, const dsMatrix44f* a);
+float dsMatrix44f_determinantSIMD(const dsMatrix44f* a);
 void dsMatrix44f_fastInvertSIMD(dsMatrix44f* result, const dsMatrix44f* a);
 void dsMatrix44f_fastInvertFMA(dsMatrix44f* result, const dsMatrix44f* a);
 void dsMatrix44f_affineInvertSIMD(dsMatrix44f* result, const dsMatrix44f* a);
@@ -36,4 +37,6 @@ void dsMatrix44f_affineInvert33SIMD(dsVector4f* result, const dsMatrix44f* a);
 void dsMatrix44f_affineInvert33FMA(dsVector4f* result, const dsMatrix44f* a);
 void dsMatrix44f_invertSIMD(dsMatrix44f* result, const dsMatrix44f* a);
 void dsMatrix44f_invertFMA(dsMatrix44f* result, const dsMatrix44f* a);
+void dsMatrix44f_inverseTransposeSIMD(dsVector4f* result, const dsMatrix44f* a);
+void dsMatrix44f_inverseTransposeFMA(dsVector4f* result, const dsMatrix44f* a);
 #endif

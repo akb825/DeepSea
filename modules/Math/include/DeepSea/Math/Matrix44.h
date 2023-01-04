@@ -20,9 +20,11 @@
 #include <DeepSea/Core/Assert.h>
 
 #include <DeepSea/Math/SIMD/Matrix44SIMD.h>
+#include <DeepSea/Math/Core.h>
 #include <DeepSea/Math/Export.h>
 #include <DeepSea/Math/Matrix33.h>
 #include <DeepSea/Math/Types.h>
+#include <DeepSea/Math/Vector3.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -44,6 +46,8 @@ extern "C"
  *
  * When using affine transforms (combinations of rotate, scale, and translate), it is faster to use
  * the affine functions and macros.
+ *
+ * The dsMatrix44f functions may use SIMD operations when guaranteed to be available.
  *
  * @see dsMatrix44f dsMatrix44d
  */
@@ -361,10 +365,10 @@ extern "C"
  * @param[out] result The inverted matrix. This may NOT be the same as a.
  * @param a The matrix to invert.
  */
-DS_MATH_EXPORT void dsMatrix44f_affineInvert(dsMatrix44f* result, const dsMatrix44f* a);
+DS_MATH_EXPORT inline void dsMatrix44f_affineInvert(dsMatrix44f* result, const dsMatrix44f* a);
 
 /** @copydoc dsMatrix44f_affineInvert() */
-DS_MATH_EXPORT void dsMatrix44d_affineInvert(dsMatrix44d* result, const dsMatrix44d* a);
+DS_MATH_EXPORT inline void dsMatrix44d_affineInvert(dsMatrix44d* result, const dsMatrix44d* a);
 
 /**
  * @brief Inverts the upper 3x3 portion of an affine matrix.
@@ -374,30 +378,30 @@ DS_MATH_EXPORT void dsMatrix44d_affineInvert(dsMatrix44d* result, const dsMatrix
  * @param[out] result The inverted matrix.
  * @param a The matrix to invert.
  */
-DS_MATH_EXPORT void dsMatrix44f_affineInvert33(dsMatrix33f* result, const dsMatrix44f* a);
+DS_MATH_EXPORT inline void dsMatrix44f_affineInvert33(dsMatrix33f* result, const dsMatrix44f* a);
 
 /** @copydoc dsMatrix44f_affineInvert33() */
-DS_MATH_EXPORT void dsMatrix44d_affineInvert33(dsMatrix33d* result, const dsMatrix44d* a);
+DS_MATH_EXPORT inline void dsMatrix44d_affineInvert33(dsMatrix33d* result, const dsMatrix44d* a);
 
 /**
  * @brief Inverts a matrix.
  * @param[out] result The inverted matrix. This may NOT be the same as a.
  * @param a The matrix to invert.
  */
-DS_MATH_EXPORT void dsMatrix44f_invert(dsMatrix44f* result, const dsMatrix44f* a);
+DS_MATH_EXPORT inline void dsMatrix44f_invert(dsMatrix44f* result, const dsMatrix44f* a);
 
 /** @copydoc dsMatrix44f_invert() */
-DS_MATH_EXPORT void dsMatrix44d_invert(dsMatrix44d* result, const dsMatrix44d* a);
+DS_MATH_EXPORT inline void dsMatrix44d_invert(dsMatrix44d* result, const dsMatrix44d* a);
 
 /**
  * @brief Calculates the inverse-transpose transformation matrix to transform direction vectors.
  * @param[out] result The inverse-transposed matrix.
  * @param a The matrix to inverse-transpose. This is assumed to be an affine transform.
  */
-DS_MATH_EXPORT void dsMatrix44f_inverseTranspose(dsMatrix33f* result, const dsMatrix44f* a);
+DS_MATH_EXPORT inline void dsMatrix44f_inverseTranspose(dsMatrix33f* result, const dsMatrix44f* a);
 
 /** @copydoc dsMatrix44d_invert() */
-DS_MATH_EXPORT void dsMatrix44d_inverseTranspose(dsMatrix33d* result, const dsMatrix44d* a);
+DS_MATH_EXPORT inline void dsMatrix44d_inverseTranspose(dsMatrix33d* result, const dsMatrix44d* a);
 
 /**
  * @brief Makes a rotation matrix.
@@ -431,10 +435,12 @@ DS_MATH_EXPORT void dsMatrix44d_makeRotateAxisAngle(dsMatrix44d* result, const d
  * @param y The transition in the y axis.
  * @param z The transition in the z axis.
  */
-DS_MATH_EXPORT void dsMatrix44f_makeTranslate(dsMatrix44f* result, float x, float y, float z);
+DS_MATH_EXPORT inline void dsMatrix44f_makeTranslate(dsMatrix44f* result, float x, float y,
+	float z);
 
 /** @copydoc dsMatrix44f_makeTranslate() */
-DS_MATH_EXPORT void dsMatrix44d_makeTranslate(dsMatrix44d* result, double x, double y, double z);
+DS_MATH_EXPORT inline void dsMatrix44d_makeTranslate(dsMatrix44d* result, double x, double y,
+	double z);
 
 /**
  * @brief Makes a scale matrix.
@@ -443,10 +449,10 @@ DS_MATH_EXPORT void dsMatrix44d_makeTranslate(dsMatrix44d* result, double x, dou
  * @param y The scale in the y axis.
  * @param z The scale in the z axis.
  */
-DS_MATH_EXPORT void dsMatrix44f_makeScale(dsMatrix44f* result, float x, float y, float z);
+DS_MATH_EXPORT inline void dsMatrix44f_makeScale(dsMatrix44f* result, float x, float y, float z);
 
 /** @copydoc dsMatrix44f_makeScale() */
-DS_MATH_EXPORT void dsMatrix44d_makeScale(dsMatrix44d* result, double x, double y, double z);
+DS_MATH_EXPORT inline void dsMatrix44d_makeScale(dsMatrix44d* result, double x, double y, double z);
 
 /**
  * @brief Makes a matrix that looks at a position.
@@ -591,7 +597,13 @@ DS_MATH_EXPORT inline void dsMatrix44f_transform(dsVector4f* result, const dsMat
 	DS_ASSERT(result);
 	DS_ASSERT(mat);
 	DS_ASSERT(vec);
+#if DS_SIMD_ALWAYS_FMA
+	dsMatrix44f_transformFMA(result, mat, vec);
+#elif DS_SIMD_ALWAYS_FLOAT4
+	dsMatrix44f_transformSIMD(result, mat, vec);
+#else
 	dsMatrix44_transform(*result, *mat, *vec);
+#endif
 }
 
 /** @copydoc dsMatrix44_transform() */
@@ -611,7 +623,13 @@ DS_MATH_EXPORT inline void dsMatrix44f_transformTransposed(dsVector4f* result,
 	DS_ASSERT(result);
 	DS_ASSERT(mat);
 	DS_ASSERT(vec);
+#if DS_SIMD_ALWAYS_FMA
+	dsMatrix44f_transformTransposedFMA(result, mat, vec);
+#elif DS_SIMD_ALWAYS_SIMD
+	dsMatrix44f_transformTransposedSIMD(result, mat, vec);
+#else
 	dsMatrix44_transformTransposed(*result, *mat, *vec);
+#endif
 }
 
 /** @copydoc dsMatrix44_transformTransposed() */
@@ -649,7 +667,11 @@ DS_MATH_EXPORT inline void dsMatrix44d_transpose(dsMatrix44d* result, const dsMa
 DS_MATH_EXPORT inline float dsMatrix44f_determinant(dsMatrix44f* a)
 {
 	DS_ASSERT(a);
+#if DS_SIMD_ALWAYS_FLOAT4
+	return dsMatrix44f_determinantSIMD(a);
+#else
 	return dsMatrix44_determinant(*a);
+#endif
 }
 
 /** @copydoc dsMatrix44_determinant() */
@@ -664,7 +686,13 @@ DS_MATH_EXPORT inline void dsMatrix44f_fastInvert(dsMatrix44f* result, const dsM
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
+#if DS_SIMD_ALWAYS_FMA
+	dsMatrix44f_fastInvertFMA(result, a);
+#elif DS_SIMD_ALWAYS_FLOAT4
+	dsMatrix44f_fastInvertSIMD(result, a);
+#else
 	dsMatrix44_fastInvert(*result, *a);
+#endif
 }
 
 /** @copydoc dsMatrix44_fastInvert() */
@@ -673,6 +701,427 @@ DS_MATH_EXPORT inline void dsMatrix44d_fastInvert(dsMatrix44d* result, const dsM
 	DS_ASSERT(result);
 	DS_ASSERT(a);
 	dsMatrix44_fastInvert(*result, *a);
+}
+
+DS_MATH_EXPORT inline void dsMatrix44f_affineInvert(dsMatrix44f* result, const dsMatrix44f* a)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(result != a);
+
+#if DS_SIMD_ALWAYS_FMA && 0
+	dsMatrix44f_affineInvertFMA(result, a);
+#elif DS_SIMD_ALWAYS_FLOAT4 && 0
+	dsMatrix44f_affineInvertSIMD(result, a);
+#else
+	// Macros for 3x3 matrix will work on the upper 3x3 for a 4x4 matrix.
+	dsMatrix33_transpose(*result, *a);
+	float invLen2 = 1/dsVector3_len2(result->columns[0]);
+	dsVector3_scale(result->columns[0], result->columns[0], invLen2);
+	invLen2 = 1/dsVector3_len2(result->columns[1]);
+	dsVector3_scale(result->columns[1], result->columns[1], invLen2);
+	invLen2 = 1/dsVector3_len2(result->columns[2]);
+	dsVector3_scale(result->columns[2], result->columns[2], invLen2);
+
+	result->values[0][3] = 0;
+	result->values[1][3] = 0;
+	result->values[2][3] = 0;
+
+	result->values[3][0] = -a->values[3][0]*result->values[0][0] -
+		a->values[3][1]*result->values[1][0] - a->values[3][2]*result->values[2][0];
+	result->values[3][1] = -a->values[3][0]*result->values[0][1] -
+		a->values[3][1]*result->values[1][1] - a->values[3][2]*result->values[2][1];
+	result->values[3][2] = -a->values[3][0]*result->values[0][2] -
+		a->values[3][1]*result->values[1][2] - a->values[3][2]*result->values[2][2];
+	result->values[3][3] = 1;
+#endif
+}
+
+DS_MATH_EXPORT inline void dsMatrix44d_affineInvert(dsMatrix44d* result, const dsMatrix44d* a)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(result != a);
+
+	// Macros for 3x3 matrix will work on the upper 3x3 for a 4x4 matrix.
+	dsMatrix33_transpose(*result, *a);
+	double invLen2 = 1/dsVector3_len2(result->columns[0]);
+	dsVector3_scale(result->columns[0], result->columns[0], invLen2);
+	invLen2 = 1/dsVector3_len2(result->columns[1]);
+	dsVector3_scale(result->columns[1], result->columns[1], invLen2);
+	invLen2 = 1/dsVector3_len2(result->columns[2]);
+	dsVector3_scale(result->columns[2], result->columns[2], invLen2);
+
+	result->values[0][3] = 0;
+	result->values[1][3] = 0;
+	result->values[2][3] = 0;
+
+	result->values[3][0] = -a->values[3][0]*result->values[0][0] -
+		a->values[3][1]*result->values[1][0] - a->values[3][2]*result->values[2][0];
+	result->values[3][1] = -a->values[3][0]*result->values[0][1] -
+		a->values[3][1]*result->values[1][1] - a->values[3][2]*result->values[2][1];
+	result->values[3][2] = -a->values[3][0]*result->values[0][2] -
+		a->values[3][1]*result->values[1][2] - a->values[3][2]*result->values[2][2];
+	result->values[3][3] = 1;
+}
+
+DS_MATH_EXPORT inline void dsMatrix44f_affineInvert33(dsMatrix33f* result, const dsMatrix44f* a)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+
+#if DS_SIMD_ALWAYS_FMA || DS_SIMD_ALWAYS_FLOAT4
+	dsVector4f alignedResult[4];
+
+#if DS_SIMD_ALWAYS_FMA
+	dsMatrix44f_affineInvert33FMA(alignedResult, a);
+#else
+	dsMatrix44f_affineInvert33SIMD(result, a);
+#endif
+
+	result->columns[0].x = alignedResult[0].x;
+	result->columns[0].y = alignedResult[0].y;
+	result->columns[0].z = alignedResult[0].z;
+
+	result->columns[1].x = alignedResult[1].x;
+	result->columns[1].y = alignedResult[1].y;
+	result->columns[1].z = alignedResult[1].z;
+
+	result->columns[2].x = alignedResult[2].x;
+	result->columns[2].y = alignedResult[2].y;
+	result->columns[2].z = alignedResult[2].z;
+#else
+	// Macros for 3x3 matrix will work on the upper 3x3 for a 4x4 matrix.
+	dsMatrix33_transpose(*result, *a);
+	float invLen2 = 1/dsVector3_len2(result->columns[0]);
+	dsVector3_scale(result->columns[0], result->columns[0], invLen2);
+	invLen2 = 1/dsVector3_len2(result->columns[1]);
+	dsVector3_scale(result->columns[1], result->columns[1], invLen2);
+	invLen2 = 1/dsVector3_len2(result->columns[2]);
+	dsVector3_scale(result->columns[2], result->columns[2], invLen2);
+#endif
+}
+
+DS_MATH_EXPORT inline void dsMatrix44d_affineInvert33(dsMatrix33d* result, const dsMatrix44d* a)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+
+	// Macros for 3x3 matrix will work on the upper 3x3 for a 4x4 matrix.
+	dsMatrix33_transpose(*result, *a);
+	double invLen2 = 1/dsVector3_len2(result->columns[0]);
+	dsVector3_scale(result->columns[0], result->columns[0], invLen2);
+	invLen2 = 1/dsVector3_len2(result->columns[1]);
+	dsVector3_scale(result->columns[1], result->columns[1], invLen2);
+	invLen2 = 1/dsVector3_len2(result->columns[2]);
+	dsVector3_scale(result->columns[2], result->columns[2], invLen2);
+}
+
+/// @cond
+#define dsMatrix44_invertImpl(result, a, invDet) \
+	do \
+	{ \
+		(result).values[0][0] = ((a).values[1][1]*(a).values[2][2]*(a).values[3][3] + \
+								 (a).values[2][1]*(a).values[3][2]*(a).values[1][3] + \
+								 (a).values[3][1]*(a).values[1][2]*(a).values[2][3] - \
+								 (a).values[1][1]*(a).values[3][2]*(a).values[2][3] - \
+								 (a).values[2][1]*(a).values[1][2]*(a).values[3][3] - \
+								 (a).values[3][1]*(a).values[2][2]*(a).values[1][3])*invDet; \
+		(result).values[0][1] = ((a).values[0][1]*(a).values[3][2]*(a).values[2][3] + \
+								 (a).values[2][1]*(a).values[0][2]*(a).values[3][3] + \
+								 (a).values[3][1]*(a).values[2][2]*(a).values[0][3] - \
+								 (a).values[0][1]*(a).values[2][2]*(a).values[3][3] - \
+								 (a).values[2][1]*(a).values[3][2]*(a).values[0][3] - \
+								 (a).values[3][1]*(a).values[0][2]*(a).values[2][3])*invDet; \
+		(result).values[0][2] = ((a).values[0][1]*(a).values[1][2]*(a).values[3][3] + \
+								 (a).values[1][1]*(a).values[3][2]*(a).values[0][3] + \
+								 (a).values[3][1]*(a).values[0][2]*(a).values[1][3] - \
+								 (a).values[0][1]*(a).values[3][2]*(a).values[1][3] - \
+								 (a).values[1][1]*(a).values[0][2]*(a).values[3][3] - \
+								 (a).values[3][1]*(a).values[1][2]*(a).values[0][3])*invDet; \
+		(result).values[0][3] = ((a).values[0][1]*(a).values[2][2]*(a).values[1][3] + \
+								 (a).values[1][1]*(a).values[0][2]*(a).values[2][3] + \
+								 (a).values[2][1]*(a).values[1][2]*(a).values[0][3] - \
+								 (a).values[0][1]*(a).values[1][2]*(a).values[2][3] - \
+								 (a).values[1][1]*(a).values[2][2]*(a).values[0][3] - \
+								 (a).values[2][1]*(a).values[0][2]*(a).values[1][3])*invDet; \
+		\
+		(result).values[1][0] = ((a).values[1][0]*(a).values[3][2]*(a).values[2][3] + \
+								 (a).values[2][0]*(a).values[1][2]*(a).values[3][3] + \
+								 (a).values[3][0]*(a).values[2][2]*(a).values[1][3] - \
+								 (a).values[1][0]*(a).values[2][2]*(a).values[3][3] - \
+								 (a).values[2][0]*(a).values[3][2]*(a).values[1][3] - \
+								 (a).values[3][0]*(a).values[1][2]*(a).values[2][3])*invDet; \
+		(result).values[1][1] = ((a).values[0][0]*(a).values[2][2]*(a).values[3][3] + \
+								 (a).values[2][0]*(a).values[3][2]*(a).values[0][3] + \
+								 (a).values[3][0]*(a).values[0][2]*(a).values[2][3] - \
+								 (a).values[0][0]*(a).values[3][2]*(a).values[2][3] - \
+								 (a).values[2][0]*(a).values[0][2]*(a).values[3][3] - \
+								 (a).values[3][0]*(a).values[2][2]*(a).values[0][3])*invDet; \
+		(result).values[1][2] = ((a).values[0][0]*(a).values[3][2]*(a).values[1][3] + \
+								 (a).values[1][0]*(a).values[0][2]*(a).values[3][3] + \
+								 (a).values[3][0]*(a).values[1][2]*(a).values[0][3] - \
+								 (a).values[0][0]*(a).values[1][2]*(a).values[3][3] - \
+								 (a).values[1][0]*(a).values[3][2]*(a).values[0][3] - \
+								 (a).values[3][0]*(a).values[0][2]*(a).values[1][3])*invDet; \
+		(result).values[1][3] = ((a).values[0][0]*(a).values[1][2]*(a).values[2][3] + \
+								 (a).values[1][0]*(a).values[2][2]*(a).values[0][3] + \
+								 (a).values[2][0]*(a).values[0][2]*(a).values[1][3] - \
+								 (a).values[0][0]*(a).values[2][2]*(a).values[1][3] - \
+								 (a).values[1][0]*(a).values[0][2]*(a).values[2][3] - \
+								 (a).values[2][0]*(a).values[1][2]*(a).values[0][3])*invDet; \
+		\
+		(result).values[2][0] = ((a).values[1][0]*(a).values[2][1]*(a).values[3][3] + \
+								 (a).values[2][0]*(a).values[3][1]*(a).values[1][3] + \
+								 (a).values[3][0]*(a).values[1][1]*(a).values[2][3] - \
+								 (a).values[1][0]*(a).values[3][1]*(a).values[2][3] - \
+								 (a).values[2][0]*(a).values[1][1]*(a).values[3][3] - \
+								 (a).values[3][0]*(a).values[2][1]*(a).values[1][3])*invDet; \
+		(result).values[2][1] = ((a).values[0][0]*(a).values[3][1]*(a).values[2][3] + \
+								 (a).values[2][0]*(a).values[0][1]*(a).values[3][3] + \
+								 (a).values[3][0]*(a).values[2][1]*(a).values[0][3] - \
+								 (a).values[0][0]*(a).values[2][1]*(a).values[3][3] - \
+								 (a).values[2][0]*(a).values[3][1]*(a).values[0][3] - \
+								 (a).values[3][0]*(a).values[0][1]*(a).values[2][3])*invDet; \
+		(result).values[2][2] = ((a).values[0][0]*(a).values[1][1]*(a).values[3][3] + \
+								 (a).values[1][0]*(a).values[3][1]*(a).values[0][3] + \
+								 (a).values[3][0]*(a).values[0][1]*(a).values[1][3] - \
+								 (a).values[0][0]*(a).values[3][1]*(a).values[1][3] - \
+								 (a).values[1][0]*(a).values[0][1]*(a).values[3][3] - \
+								 (a).values[3][0]*(a).values[1][1]*(a).values[0][3])*invDet; \
+		(result).values[2][3] = ((a).values[0][0]*(a).values[2][1]*(a).values[1][3] + \
+								 (a).values[1][0]*(a).values[0][1]*(a).values[2][3] + \
+								 (a).values[2][0]*(a).values[1][1]*(a).values[0][3] - \
+								 (a).values[0][0]*(a).values[1][1]*(a).values[2][3] - \
+								 (a).values[1][0]*(a).values[2][1]*(a).values[0][3] - \
+								 (a).values[2][0]*(a).values[0][1]*(a).values[1][3])*invDet; \
+		\
+		(result).values[3][0] = ((a).values[1][0]*(a).values[3][1]*(a).values[2][2] + \
+								 (a).values[2][0]*(a).values[1][1]*(a).values[3][2] + \
+								 (a).values[3][0]*(a).values[2][1]*(a).values[1][2] - \
+								 (a).values[1][0]*(a).values[2][1]*(a).values[3][2] - \
+								 (a).values[2][0]*(a).values[3][1]*(a).values[1][2] - \
+								 (a).values[3][0]*(a).values[1][1]*(a).values[2][2])*invDet; \
+		(result).values[3][1] = ((a).values[0][0]*(a).values[2][1]*(a).values[3][2] + \
+								 (a).values[2][0]*(a).values[3][1]*(a).values[0][2] + \
+								 (a).values[3][0]*(a).values[0][1]*(a).values[2][2] - \
+								 (a).values[0][0]*(a).values[3][1]*(a).values[2][2] - \
+								 (a).values[2][0]*(a).values[0][1]*(a).values[3][2] - \
+								 (a).values[3][0]*(a).values[2][1]*(a).values[0][2])*invDet; \
+		(result).values[3][2] = ((a).values[0][0]*(a).values[3][1]*(a).values[1][2] + \
+								 (a).values[1][0]*(a).values[0][1]*(a).values[3][2] + \
+								 (a).values[3][0]*(a).values[1][1]*(a).values[0][2] - \
+								 (a).values[0][0]*(a).values[1][1]*(a).values[3][2] - \
+								 (a).values[1][0]*(a).values[3][1]*(a).values[0][2] - \
+								 (a).values[3][0]*(a).values[0][1]*(a).values[1][2])*invDet; \
+		(result).values[3][3] = ((a).values[0][0]*(a).values[1][1]*(a).values[2][2] + \
+								 (a).values[1][0]*(a).values[2][1]*(a).values[0][2] + \
+								 (a).values[2][0]*(a).values[0][1]*(a).values[1][2] - \
+								 (a).values[0][0]*(a).values[2][1]*(a).values[1][2] - \
+								 (a).values[1][0]*(a).values[0][1]*(a).values[2][2] - \
+								 (a).values[2][0]*(a).values[1][1]*(a).values[0][2])*invDet; \
+	} while (0)
+/// @endcond
+
+DS_MATH_EXPORT inline void dsMatrix44f_invert(dsMatrix44f* result, const dsMatrix44f* a)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(result != a);
+
+#if DS_SIMD_ALWAYS_FMA
+	dsMatrix44f_invertFMA(result, a);
+#elif DS_SIMD_ALWAYS_FLOAT4
+	dsMatrix44f_invertSIMD(result, a);
+#else
+	float det = dsMatrix44_determinant(*a);
+	DS_ASSERT(det != 0);
+	float invDet = 1/det;
+
+	dsMatrix44_invertImpl(*result, *a, invDet);
+#endif
+}
+
+DS_MATH_EXPORT inline void dsMatrix44d_invert(dsMatrix44d* result, const dsMatrix44d* a)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(result != a);
+
+	double det = dsMatrix44_determinant(*a);
+	DS_ASSERT(det != 0);
+	double invDet = 1/det;
+
+	dsMatrix44_invertImpl(*result, *a, invDet);
+}
+
+#undef dsMatrix44_invertImpl
+
+DS_MATH_EXPORT inline void dsMatrix44f_inverseTranspose(dsMatrix33f* result, const dsMatrix44f* a)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+
+#if DS_SIMD_ALWAYS_FMA || DS_SIMD_ALWAYS_FLOAT4
+	dsVector4f alignedResult[4];
+
+#if DS_SIMD_ALWAYS_FMA
+	dsMatrix44f_inverseTransposeFMA(alignedResult, a);
+#else
+	dsMatrix44f_inverseTransposeSIMD(result, a);
+#endif
+
+	result->columns[0].x = alignedResult[0].x;
+	result->columns[0].y = alignedResult[0].y;
+	result->columns[0].z = alignedResult[0].z;
+
+	result->columns[1].x = alignedResult[1].x;
+	result->columns[1].y = alignedResult[1].y;
+	result->columns[1].z = alignedResult[1].z;
+
+	result->columns[2].x = alignedResult[2].x;
+	result->columns[2].y = alignedResult[2].y;
+	result->columns[2].z = alignedResult[2].z;
+#else
+	float invLen2 = 1.0f/(a->values[0][0]*a->values[0][0] + a->values[1][0]*a->values[1][0] +
+		a->values[2][0]*a->values[2][0]);
+	result->values[0][0] = a->values[0][0]*invLen2;
+	result->values[1][0] = a->values[1][0]*invLen2;
+	result->values[2][0] = a->values[2][0]*invLen2;
+
+	invLen2 = 1.0f/(a->values[0][1]*a->values[0][1] + a->values[1][1]*a->values[1][1] +
+		a->values[2][1]*a->values[2][1]);
+	result->values[0][1] = a->values[0][1]*invLen2;
+	result->values[1][1] = a->values[1][1]*invLen2;
+	result->values[2][1] = a->values[2][1]*invLen2;
+
+	invLen2 = 1.0f/(a->values[0][2]*a->values[0][2] + a->values[1][2]*a->values[1][2] +
+		a->values[2][2]*a->values[2][2]);
+	result->values[0][2] = a->values[0][2]*invLen2;
+	result->values[1][2] = a->values[1][2]*invLen2;
+	result->values[2][2] = a->values[2][2]*invLen2;
+#endif
+}
+
+DS_MATH_EXPORT inline void dsMatrix44d_inverseTranspose(dsMatrix33d* result, const dsMatrix44d* a)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+
+	double invLen2 = 1.0/(a->values[0][0]*a->values[0][0] + a->values[1][0]*a->values[1][0] +
+		a->values[2][0]*a->values[2][0]);
+	result->values[0][0] = a->values[0][0]*invLen2;
+	result->values[1][0] = a->values[1][0]*invLen2;
+	result->values[2][0] = a->values[2][0]*invLen2;
+
+	invLen2 = 1.0/(a->values[0][1]*a->values[0][1] + a->values[1][1]*a->values[1][1] +
+		a->values[2][1]*a->values[2][1]);
+	result->values[0][1] = a->values[0][1]*invLen2;
+	result->values[1][1] = a->values[1][1]*invLen2;
+	result->values[2][1] = a->values[2][1]*invLen2;
+
+	invLen2 = 1.0/(a->values[0][2]*a->values[0][2] + a->values[1][2]*a->values[1][2] +
+		a->values[2][2]*a->values[2][2]);
+	result->values[0][2] = a->values[0][2]*invLen2;
+	result->values[1][2] = a->values[1][2]*invLen2;
+	result->values[2][2] = a->values[2][2]*invLen2;
+}
+
+DS_MATH_EXPORT inline void dsMatrix44f_makeTranslate(dsMatrix44f* result, float x, float y, float z)
+{
+	DS_ASSERT(result);
+	result->values[0][0] = 1;
+	result->values[0][1] = 0;
+	result->values[0][2] = 0;
+	result->values[0][3] = 0;
+
+	result->values[1][0] = 0;
+	result->values[1][1] = 1;
+	result->values[1][2] = 0;
+	result->values[1][3] = 0;
+
+	result->values[2][0] = 0;
+	result->values[2][1] = 0;
+	result->values[2][2] = 1;
+	result->values[2][3] = 0;
+
+	result->values[3][0] = x;
+	result->values[3][1] = y;
+	result->values[3][2] = z;
+	result->values[3][3] = 1;
+}
+
+DS_MATH_EXPORT inline void dsMatrix44d_makeTranslate(dsMatrix44d* result, double x, double y,
+	double z)
+{
+	DS_ASSERT(result);
+	result->values[0][0] = 1;
+	result->values[0][1] = 0;
+	result->values[0][2] = 0;
+	result->values[0][3] = 0;
+
+	result->values[1][0] = 0;
+	result->values[1][1] = 1;
+	result->values[1][2] = 0;
+	result->values[1][3] = 0;
+
+	result->values[2][0] = 0;
+	result->values[2][1] = 0;
+	result->values[2][2] = 1;
+	result->values[2][3] = 0;
+
+	result->values[3][0] = x;
+	result->values[3][1] = y;
+	result->values[3][2] = z;
+	result->values[3][3] = 1;
+}
+
+DS_MATH_EXPORT inline void dsMatrix44f_makeScale(dsMatrix44f* result, float x, float y, float z)
+{
+	DS_ASSERT(result);
+	result->values[0][0] = x;
+	result->values[0][1] = 0;
+	result->values[0][2] = 0;
+	result->values[0][3] = 0;
+
+	result->values[1][0] = 0;
+	result->values[1][1] = y;
+	result->values[1][2] = 0;
+	result->values[1][3] = 0;
+
+	result->values[2][0] = 0;
+	result->values[2][1] = 0;
+	result->values[2][2] = z;
+	result->values[2][3] = 0;
+
+	result->values[3][0] = 0;
+	result->values[3][1] = 0;
+	result->values[3][2] = 0;
+	result->values[3][3] = 1;
+}
+
+DS_MATH_EXPORT inline void dsMatrix44d_makeScale(dsMatrix44d* result, double x, double y, double z)
+{
+	DS_ASSERT(result);
+	result->values[0][0] = x;
+	result->values[0][1] = 0;
+	result->values[0][2] = 0;
+	result->values[0][3] = 0;
+
+	result->values[1][0] = 0;
+	result->values[1][1] = y;
+	result->values[1][2] = 0;
+	result->values[1][3] = 0;
+
+	result->values[2][0] = 0;
+	result->values[2][1] = 0;
+	result->values[2][2] = z;
+	result->values[2][3] = 0;
+
+	result->values[3][0] = 0;
+	result->values[3][1] = 0;
+	result->values[3][2] = 0;
+	result->values[3][3] = 1;
 }
 
 #ifdef __cplusplus
