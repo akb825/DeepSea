@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022 Aaron Barany
+ * Copyright 2019-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,10 +31,12 @@ extern "C"
  */
 
 /// @cond
-typedef struct dsSceneNodeType dsSceneNodeType;
-typedef struct dsSceneNode dsSceneNode;
 typedef struct dsSceneCullNode dsSceneCullNode;
+typedef struct dsSceneItemList dsSceneItemList;
+typedef struct dsSceneNode dsSceneNode;
+typedef struct dsSceneNodeType dsSceneNodeType;
 typedef struct dsSceneResources dsSceneResources;
+typedef struct dsSceneTreeNode dsSceneTreeNode;
 typedef void (*dsDestroySceneUserDataFunction)(void* userData);
 /// @endcond
 
@@ -51,16 +53,6 @@ struct dsSceneNodeType
 	 */
 	const dsSceneNodeType* parent;
 };
-
-/**
- * @brief Struct for a node in the scene tree, which reflects the scene graph.
- *
- * Each dsSceneNode instance may have multiple dsSceneTreeNode instances associated with it based
- * on how many times it appears when traversing the full scene graph.
- *
- * @see SceneTreeNode.h
- */
-typedef struct dsSceneTreeNode dsSceneTreeNode;
 
 /**
  * @brief Function for destroying a scene ndoe.
@@ -511,6 +503,86 @@ typedef struct dsSceneNodeItemData
 	 */
 	uint32_t count;
 } dsSceneNodeItemData;
+
+/**
+ * @brief Struct defining a scene item list entry in a scene tree node.
+ */
+typedef struct dsSceneItemEntry
+{
+	/**
+	 * @brief The scene item list.
+	 */
+	dsSceneItemList* list;
+
+	/**
+	 * @brief The ID for the entry.
+	 */
+	uint64_t entry;
+} dsSceneItemEntry;
+
+/**
+ * @brief Struct for a node in the scene tree, which reflects the scene graph.
+ *
+ * Each dsSceneNode instance may have multiple dsSceneTreeNode instances associated with it based
+ * on how many times it appears when traversing the full scene graph.
+ *
+ * No members should be modified directly. This type is exposed to allow for efficient querying of
+ * the transform and traversal of the structure.
+ *
+ * @see SceneTreeNode.h
+ */
+struct dsSceneTreeNode
+{
+	/**
+	 * @brief The allocator the tree node was created with.
+	 */
+	dsAllocator* allocator;
+
+	/**
+	 * @brief The scene node the tree node is associated with.
+	 */
+	dsSceneNode* node;
+
+	/**
+	 * @brief The parent tree node.
+	 */
+	dsSceneTreeNode* parent;
+
+	/**
+	 * @brief The children of the tree node.
+	 */
+	dsSceneTreeNode** children;
+
+	/**
+	 * @brief The number of children.
+	 */
+	uint32_t childCount;
+
+	/**
+	 * @brief The maximum number of children currently allocated.
+	 */
+	uint32_t maxChildren;
+
+	/**
+	 * @brief The item lists the tree node is associated with.
+	 */
+	dsSceneItemEntry* itemLists;
+
+	/**
+	 * @brief Storage for data associated with the item lists.
+	 */
+	dsSceneNodeItemData itemData;
+
+	/**
+	 * @brief Whether or not the transform is dirty.
+	 */
+	bool dirty;
+
+	/**
+	 * @brief The transform for the node.
+	 */
+	dsMatrix44f transform;
+};
 
 #ifdef __cplusplus
 }

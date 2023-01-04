@@ -190,7 +190,7 @@ static uint32_t buildTreeRec(dsAllocator* allocator, uint32_t* nextIndex, uint32
 
 #if DS_HAS_SIMD
 DS_SIMD_START_FLOAT4()
-static void updateTransformSIMD(dsAnimationTree* tree, dsAnimationNode* node)
+static inline void updateTransformSIMD(dsAnimationTree* tree, dsAnimationNode* node)
 {
 	dsMatrix44f scale;
 	dsMatrix44f rotation;
@@ -212,10 +212,30 @@ static void updateTransformSIMD(dsAnimationTree* tree, dsAnimationNode* node)
 			&localTransform);
 	}
 }
+
+static void updateTransformsSIMD(dsAnimationTree* tree)
+{
+	for (uint32_t i = 0; i < tree->nodeCount; ++i)
+		updateTransformSIMD(tree, tree->nodes + i);
+}
+
+static void updateJointTransformsSIMD(dsAnimationTree* tree)
+{
+	for (uint32_t i = 0; i < tree->nodeCount; ++i)
+	{
+		dsAnimationNode* node = tree->nodes + i;
+		updateTransformSIMD(tree, node);
+		dsAnimationJointTransform* jointTransform = tree->jointTransforms + i;
+		dsMatrix44f_affineMulSIMD(&jointTransform->transform, &node->transform,
+			tree->toNodeLocalSpace + i);
+		dsMatrix44f_inverseTransposeSIMD(jointTransform->inverseTranspose,
+			&jointTransform->transform);
+	}
+}
 DS_SIMD_END()
 
 DS_SIMD_START_FMA()
-static void updateTransformFMA(dsAnimationTree* tree, dsAnimationNode* node)
+static inline void updateTransformFMA(dsAnimationTree* tree, dsAnimationNode* node)
 {
 	dsMatrix44f scale;
 	dsMatrix44f rotation;
@@ -235,6 +255,26 @@ static void updateTransformFMA(dsAnimationTree* tree, dsAnimationNode* node)
 	{
 		dsMatrix44f_affineMulFMA(&node->transform, &tree->nodes[node->parent].transform,
 			&localTransform);
+	}
+}
+
+static void updateTransformsFMA(dsAnimationTree* tree)
+{
+	for (uint32_t i = 0; i < tree->nodeCount; ++i)
+		updateTransformFMA(tree, tree->nodes + i);
+}
+
+static void updateJointTransformsFMA(dsAnimationTree* tree)
+{
+	for (uint32_t i = 0; i < tree->nodeCount; ++i)
+	{
+		dsAnimationNode* node = tree->nodes + i;
+		updateTransformSIMD(tree, node);
+		dsAnimationJointTransform* jointTransform = tree->jointTransforms + i;
+		dsMatrix44f_affineMulSIMD(&jointTransform->transform, &node->transform,
+			tree->toNodeLocalSpace + i);
+		dsMatrix44f_inverseTransposeSIMD(jointTransform->inverseTranspose,
+			&jointTransform->transform);
 	}
 }
 DS_SIMD_END()
@@ -629,31 +669,9 @@ bool dsAnimationTree_updateTransforms(dsAnimationTree* tree)
 		DS_ASSERT(tree->toNodeLocalSpace);
 #if DS_HAS_SIMD
 		if (DS_SIMD_ALWAYS_FMA || (dsHostSIMDFeatures & dsSIMDFeatures_FMA))
-		{
-			for (uint32_t i = 0; i < tree->nodeCount; ++i)
-			{
-				dsAnimationNode* node = tree->nodes + i;
-				updateTransformFMA(tree, node);
-				dsAnimationJointTransform* jointTransform = tree->jointTransforms + i;
-				dsMatrix44f_affineMulFMA(&jointTransform->transform, &node->transform,
-					tree->toNodeLocalSpace + i);
-				dsMatrix44f_inverseTransposeFMA(jointTransform->inverseTranspose,
-					&jointTransform->transform);
-			}
-		}
+			updateJointTransformsFMA(tree);
 		else if (DS_SIMD_ALWAYS_FLOAT4 || (dsHostSIMDFeatures & dsSIMDFeatures_Float4))
-		{
-			for (uint32_t i = 0; i < tree->nodeCount; ++i)
-			{
-				dsAnimationNode* node = tree->nodes + i;
-				updateTransformSIMD(tree, node);
-				dsAnimationJointTransform* jointTransform = tree->jointTransforms + i;
-				dsMatrix44f_affineMulSIMD(&jointTransform->transform, &node->transform,
-					tree->toNodeLocalSpace + i);
-				dsMatrix44f_inverseTransposeSIMD(jointTransform->inverseTranspose,
-					&jointTransform->transform);
-			}
-		}
+			updateJointTransformsSIMD(tree);
 		else
 #endif
 		{
@@ -689,15 +707,9 @@ bool dsAnimationTree_updateTransforms(dsAnimationTree* tree)
 	{
 #if DS_HAS_SIMD
 		if (DS_SIMD_ALWAYS_FMA || (dsHostSIMDFeatures & dsSIMDFeatures_FMA))
-		{
-			for (uint32_t i = 0; i < tree->nodeCount; ++i)
-				updateTransformFMA(tree, tree->nodes + i);
-		}
+			updateTransformsFMA(tree);
 		else if (DS_SIMD_ALWAYS_FLOAT4 || (dsHostSIMDFeatures & dsSIMDFeatures_Float4))
-		{
-			for (uint32_t i = 0; i < tree->nodeCount; ++i)
-				updateTransformSIMD(tree, tree->nodes + i);
-		}
+			updateTransformsSIMD(tree);
 		else
 #endif
 		{

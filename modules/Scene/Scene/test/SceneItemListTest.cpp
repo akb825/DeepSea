@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022 Aaron Barany
+ * Copyright 2019-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,6 @@
 #include <DeepSea/Scene/ItemLists/SceneItemList.h>
 #include <DeepSea/Scene/Nodes/SceneTransformNode.h>
 #include <DeepSea/Scene/Nodes/SceneNode.h>
-#include <DeepSea/Scene/Nodes/SceneTreeNode.h>
 #include <DeepSea/Scene/Scene.h>
 #include <gtest/gtest.h>
 
@@ -81,7 +80,7 @@ uint64_t addMockSceneItem(dsSceneItemList* itemList, const dsSceneNode* node,
 	}
 
 	mockList->items[index].node = node;
-	mockList->items[index].transform = dsSceneTreeNode_getTransform(treeNode);
+	mockList->items[index].transform = &treeNode->transform;
 	mockList->items[index].updateCount = 0;
 	mockList->items[index].nodeID = mockList->nextNodeID;
 	return mockList->nextNodeID++;

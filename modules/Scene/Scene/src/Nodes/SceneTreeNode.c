@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-#include <DeepSea/Scene/Nodes/SceneTreeNode.h>
-
 #include "Nodes/SceneTreeNodeInternal.h"
 #include "SceneTypes.h"
 
@@ -257,79 +255,6 @@ static void updateSubtreeRec(dsSceneTreeNode* node)
 
 	for (uint32_t i = 0; i < node->childCount; ++i)
 		updateSubtreeRec(node->children[i]);
-}
-
-const dsSceneNode* dsSceneTreeNode_getNode(const dsSceneTreeNode* node)
-{
-	if (!node)
-	{
-		errno = EINVAL;
-		return NULL;
-	}
-
-	return node->node;
-}
-
-const dsSceneTreeNode* dsSceneTreeNode_getParent(const dsSceneTreeNode* node)
-{
-	return node ? node->parent : NULL;
-}
-
-uint32_t dsSceneTreeNode_getChildCount(const dsSceneTreeNode* node)
-{
-	return node ? node->childCount : 0;
-}
-
-const dsSceneTreeNode* dsSceneTreeNode_getChild(const dsSceneTreeNode* node, uint32_t index)
-{
-	if (!node)
-	{
-		errno = EINVAL;
-		return NULL;
-	}
-
-	if (index >= node->childCount)
-	{
-		errno = EINDEX;
-		return NULL;
-	}
-
-	return node->children[index];
-}
-
-uint32_t dsSceneTreeNode_getItemListCount(const dsSceneTreeNode* node)
-{
-	return node ? node->node->itemListCount : 0;
-}
-
-const dsSceneItemList* dsSceneTreeNode_getItemList(const dsSceneTreeNode* node, uint32_t index)
-{
-	if (!node || index >= node->node->itemListCount)
-		return NULL;
-
-	return node->itemLists[index].list;
-}
-
-const dsMatrix44f* dsSceneTreeNode_getTransform(const dsSceneTreeNode* node)
-{
-	if (!node)
-	{
-		errno = EINVAL;
-		return NULL;
-	}
-
-	return &node->transform;
-}
-
-const dsSceneNodeItemData* dsSceneTreeNode_getItemData(const dsSceneTreeNode* node)
-{
-	if (!node)
-	{
-		errno = EINVAL;
-		return NULL;
-	}
-
-	return &node->itemData;
 }
 
 dsScene* dsSceneTreeNode_getScene(dsSceneTreeNode* node)

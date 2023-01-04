@@ -35,7 +35,6 @@
 #include <DeepSea/Scene/ItemLists/SceneInstanceData.h>
 #include <DeepSea/Scene/Nodes/SceneNode.h>
 #include <DeepSea/Scene/Nodes/SceneNodeItemData.h>
-#include <DeepSea/Scene/Nodes/SceneTreeNode.h>
 
 #include <DeepSea/SceneVectorDraw/SceneVectorImageNode.h>
 #include <DeepSea/SceneVectorDraw/SceneTextNode.h>
@@ -333,8 +332,7 @@ static void drawItems(dsSceneVectorItemList* vectorList, const dsView* view,
 					drawItem->image.size.y/imageSize.y, 1.0f);
 
 				const dsMatrix44f* nodeTransform =
-					dsSceneTreeNode_getTransform(vectorList->instances[drawItem->instance]);
-				DS_ASSERT(nodeTransform);
+					&vectorList->instances[drawItem->instance]->transform;
 				dsMatrix44f transform;
 				dsMatrix44f_affineMul(&transform, nodeTransform, &scale);
 

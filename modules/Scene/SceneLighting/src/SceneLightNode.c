@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Aaron Barany
+ * Copyright 2022-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@
 #include <DeepSea/Core/Error.h>
 
 #include <DeepSea/Scene/Nodes/SceneNode.h>
-#include <DeepSea/Scene/Nodes/SceneTreeNode.h>
 
 #include <DeepSea/SceneLighting/SceneLightSetPrepare.h>
 
@@ -147,14 +146,11 @@ dsSceneLight* dsSceneLightNode_getLightForInstance(const dsSceneTreeNode* treeNo
 	if (!treeNode)
 		return NULL;
 
-	const dsSceneNodeItemData* itemData = dsSceneTreeNode_getItemData(treeNode);
-	if (!itemData)
-		return NULL;
-
-	DS_ASSERT(itemData->count == dsSceneTreeNode_getItemListCount(treeNode));
+	const dsSceneNodeItemData* itemData = &treeNode->itemData;
+	DS_ASSERT(itemData->count == treeNode->node->itemListCount);
 	for (uint32_t i = 0; i < itemData->count; ++i)
 	{
-		const dsSceneItemList* itemList = dsSceneTreeNode_getItemList(treeNode, i);
+		const dsSceneItemList* itemList = treeNode->itemLists[i].list;
 		if (itemList && itemList->type == dsSceneLightSetPrepare_type())
 			return (dsSceneLight*)itemData->itemData[i].data;
 	}

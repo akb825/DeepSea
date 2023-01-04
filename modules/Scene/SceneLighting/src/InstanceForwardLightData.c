@@ -29,7 +29,6 @@
 #include <DeepSea/Render/Resources/ShaderVariableGroupDesc.h>
 
 #include <DeepSea/Scene/ItemLists/SceneInstanceVariables.h>
-#include <DeepSea/Scene/Nodes/SceneTreeNode.h>
 #include <DeepSea/Scene/Types.h>
 #include <DeepSea/SceneLighting/SceneLightSet.h>
 
@@ -121,8 +120,7 @@ static void dsInstanceForwardLightData_populateData(void* userData, const dsView
 		DS_ALLOCATE_STACK_OBJECT_ARRAY(const dsSceneLight*, lightCount);
 	for (uint32_t i = 0; i < instanceCount; ++i, data += stride)
 	{
-		const dsMatrix44f* transform = dsSceneTreeNode_getTransform(instances[i]);
-		DS_ASSERT(transform);
+		const dsMatrix44f* transform = &instances[i]->transform;
 		dsVector4f* positionAndType = (dsVector4f*)(data + positionAndTypeOffset);
 		dsVector4f* directionAndLinearFalloff =
 			(dsVector4f*)(data + directionAndLinearFalloffOffset);

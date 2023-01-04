@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022 Aaron Barany
+ * Copyright 2019-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,6 @@
 
 #include <DeepSea/Scene/Nodes/SceneCullNode.h>
 #include <DeepSea/Scene/Nodes/SceneNode.h>
-#include <DeepSea/Scene/Nodes/SceneTreeNode.h>
 #include <DeepSea/Scene/SceneResources.h>
 
 #include <string.h>
@@ -122,9 +121,7 @@ static bool dsModelNode_getBounds(dsOrientedBox3f* outBounds, const dsSceneCullN
 {
 	const dsSceneModelNode* modelNode = (const dsSceneModelNode*)node;
 	*outBounds = modelNode->bounds;
-	const dsMatrix44f* transform = dsSceneTreeNode_getTransform(treeNode);
-	DS_ASSERT(transform);
-	dsOrientedBox3f_transform(outBounds, transform);
+	dsOrientedBox3f_transform(outBounds, &treeNode->transform);
 	return true;
 }
 

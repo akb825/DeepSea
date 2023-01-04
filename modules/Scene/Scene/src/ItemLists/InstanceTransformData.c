@@ -27,7 +27,6 @@
 #include <DeepSea/Render/Resources/ShaderVariableGroupDesc.h>
 
 #include <DeepSea/Scene/ItemLists/SceneInstanceVariables.h>
-#include <DeepSea/Scene/Nodes/SceneTreeNode.h>
 #include <DeepSea/Scene/Types.h>
 
 #include <string.h>
@@ -48,6 +47,64 @@ typedef struct InstanceTransform
 	dsMatrix44f worldViewProj;
 } InstanceTransform;
 
+#if DS_HAS_SIMD
+DS_SIMD_START_FLOAT4()
+static void dsInstanceTransformData_populateDataSIMD(void* userData, const dsView* view,
+	const dsSceneTreeNode* const* instances, uint32_t instanceCount,
+	const dsShaderVariableGroupDesc* dataDesc, uint8_t* data, uint32_t stride)
+{
+	DS_PROFILE_FUNC_START();
+
+	DS_UNUSED(userData);
+	DS_UNUSED(dataDesc);
+	DS_ASSERT(stride >= sizeof(InstanceTransform));
+	for (uint32_t i = 0; i < instanceCount; ++i, data += stride)
+	{
+		const dsMatrix44f* world = &instances[i]->transform;
+		// The GPU memory can have some bad properties when accessing from the CPU, so first do
+		// all work on CPU memory and copy as one to the GPU buffer.
+		InstanceTransform transform;
+		transform.world = *world;
+		dsMatrix44f_affineMulSIMD(&transform.worldView, &view->viewMatrix, world);
+		dsMatrix44f_inverseTransposeSIMD(transform.worldViewInvTrans, &transform.worldView);
+		dsMatrix44f_mulSIMD(&transform.worldViewProj, &view->projectionMatrix,
+			&transform.worldView);
+		*(InstanceTransform*)(data) = transform;
+	}
+
+	DS_PROFILE_FUNC_RETURN_VOID();
+}
+DS_SIMD_END()
+
+DS_SIMD_START_FMA()
+static void dsInstanceTransformData_populateDataFMA(void* userData, const dsView* view,
+	const dsSceneTreeNode* const* instances, uint32_t instanceCount,
+	const dsShaderVariableGroupDesc* dataDesc, uint8_t* data, uint32_t stride)
+{
+	DS_PROFILE_FUNC_START();
+
+	DS_UNUSED(userData);
+	DS_UNUSED(dataDesc);
+	DS_ASSERT(stride >= sizeof(InstanceTransform));
+	for (uint32_t i = 0; i < instanceCount; ++i, data += stride)
+	{
+		const dsMatrix44f* world = &instances[i]->transform;
+		// The GPU memory can have some bad properties when accessing from the CPU, so first do
+		// all work on CPU memory and copy as one to the GPU buffer.
+		InstanceTransform transform;
+		transform.world = *world;
+		dsMatrix44f_affineMulFMA(&transform.worldView, &view->viewMatrix, world);
+		dsMatrix44f_inverseTransposeFMA(transform.worldViewInvTrans, &transform.worldView);
+		dsMatrix44f_mulFMA(&transform.worldViewProj, &view->projectionMatrix,
+			&transform.worldView);
+		*(InstanceTransform*)(data) = transform;
+	}
+
+	DS_PROFILE_FUNC_RETURN_VOID();
+}
+DS_SIMD_END()
+#endif
+
 static void dsInstanceTransformData_populateData(void* userData, const dsView* view,
 	const dsSceneTreeNode* const* instances, uint32_t instanceCount,
 	const dsShaderVariableGroupDesc* dataDesc, uint8_t* data, uint32_t stride)
@@ -57,66 +114,26 @@ static void dsInstanceTransformData_populateData(void* userData, const dsView* v
 	DS_UNUSED(userData);
 	DS_UNUSED(dataDesc);
 	DS_ASSERT(stride >= sizeof(InstanceTransform));
-#if DS_HAS_SIMD
-	if (DS_SIMD_ALWAYS_FMA || (dsHostSIMDFeatures & dsSIMDFeatures_FMA))
+	for (uint32_t i = 0; i < instanceCount; ++i, data += stride)
 	{
-		for (uint32_t i = 0; i < instanceCount; ++i, data += stride)
-		{
-			const dsMatrix44f* world = dsSceneTreeNode_getTransform(instances[i]);
-			DS_ASSERT(world);
-			// The GPU memory can have some bad properties when accessing from the CPU, so first do
-			// all work on CPU memory and copy as one to the GPU buffer.
-			InstanceTransform transform;
-			transform.world = *world;
-			dsMatrix44f_affineMulFMA(&transform.worldView, &view->viewMatrix, world);
-			dsMatrix44f_inverseTransposeFMA(transform.worldViewInvTrans, &transform.worldView);
-			dsMatrix44f_mulFMA(&transform.worldViewProj, &view->projectionMatrix,
-				&transform.worldView);
-			*(InstanceTransform*)(data) = transform;
-		}
-	}
-	else if (DS_SIMD_ALWAYS_FLOAT4 || (dsHostSIMDFeatures & dsSIMDFeatures_Float4))
-	{
-		for (uint32_t i = 0; i < instanceCount; ++i, data += stride)
-		{
-			const dsMatrix44f* world = dsSceneTreeNode_getTransform(instances[i]);
-			DS_ASSERT(world);
-			// The GPU memory can have some bad properties when accessing from the CPU, so first do
-			// all work on CPU memory and copy as one to the GPU buffer.
-			InstanceTransform transform;
-			transform.world = *world;
-			dsMatrix44f_affineMulSIMD(&transform.worldView, &view->viewMatrix, world);
-			dsMatrix44f_inverseTransposeSIMD(transform.worldViewInvTrans, &transform.worldView);
-			dsMatrix44f_mulSIMD(&transform.worldViewProj, &view->projectionMatrix,
-				&transform.worldView);
-			*(InstanceTransform*)(data) = transform;
-		}
-	}
-	else
-#endif
-	{
-		for (uint32_t i = 0; i < instanceCount; ++i, data += stride)
-		{
-			const dsMatrix44f* world = dsSceneTreeNode_getTransform(instances[i]);
-			DS_ASSERT(world);
-			// The GPU memory can have some bad properties when accessing from the CPU, so first do
-			// all work on CPU memory and copy as one to the GPU buffer.
-			InstanceTransform transform;
-			transform.world = *world;
-			dsMatrix44f_affineMul(&transform.worldView, &view->viewMatrix, world);
+		const dsMatrix44f* world = &instances[i]->transform;
+		// The GPU memory can have some bad properties when accessing from the CPU, so first do
+		// all work on CPU memory and copy as one to the GPU buffer.
+		InstanceTransform transform;
+		transform.world = *world;
+		dsMatrix44f_affineMul(&transform.worldView, &view->viewMatrix, world);
 
-			dsMatrix33f worldViewInvTrans;
-			dsMatrix44f_inverseTranspose(&worldViewInvTrans, &transform.worldView);
-			for (unsigned int i = 0; i < 3; ++i)
-			{
-				*(dsVector3f*)(transform.worldViewInvTrans + i) = worldViewInvTrans.columns[i];
-				transform.worldViewInvTrans[i].w = 0;
-			}
-
-			dsMatrix44f_mul(&transform.worldViewProj, &view->projectionMatrix,
-				&transform.worldView);
-			*(InstanceTransform*)(data) = transform;
+		dsMatrix33f worldViewInvTrans;
+		dsMatrix44f_inverseTranspose(&worldViewInvTrans, &transform.worldView);
+		for (unsigned int i = 0; i < 3; ++i)
+		{
+			*(dsVector3f*)(transform.worldViewInvTrans + i) = worldViewInvTrans.columns[i];
+			transform.worldViewInvTrans[i].w = 0;
 		}
+
+		dsMatrix44f_mul(&transform.worldViewProj, &view->projectionMatrix,
+			&transform.worldView);
+		*(InstanceTransform*)(data) = transform;
 	}
 
 	DS_PROFILE_FUNC_RETURN_VOID();
@@ -163,7 +180,15 @@ dsSceneInstanceData* dsInstanceTransformData_create(dsAllocator* allocator,
 		return NULL;
 	}
 
+	dsPopulateSceneInstanceVariablesFunction populateFunc;
+#if DS_HAS_SIMD
+	if (DS_SIMD_ALWAYS_FMA || (dsHostSIMDFeatures & dsSIMDFeatures_FMA))
+		populateFunc = &dsInstanceTransformData_populateDataFMA;
+	else if (DS_SIMD_ALWAYS_FLOAT4 || (dsHostSIMDFeatures & dsSIMDFeatures_Float4))
+		populateFunc = &dsInstanceTransformData_populateDataSIMD;
+	else
+#endif
+		populateFunc = &dsInstanceTransformData_populateData;
 	return dsSceneInstanceVariables_create(allocator, resourceManager, transformDesc,
-		dsHashString(dsInstanceTransformData_typeName),
-		&dsInstanceTransformData_populateData, NULL, NULL);
+		dsHashString(dsInstanceTransformData_typeName), populateFunc, NULL, NULL);
 }

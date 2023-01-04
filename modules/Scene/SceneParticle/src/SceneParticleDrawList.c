@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Aaron Barany
+ * Copyright 2022-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,6 @@
 #include <DeepSea/Scene/ItemLists/SceneInstanceData.h>
 #include <DeepSea/Scene/Nodes/SceneNode.h>
 #include <DeepSea/Scene/Nodes/SceneNodeItemData.h>
-#include <DeepSea/Scene/Nodes/SceneTreeNode.h>
 
 #include <DeepSea/SceneParticle/PopulateSceneParticleInstanceData.h>
 #include <DeepSea/SceneParticle/SceneParticleNode.h>
@@ -91,7 +90,7 @@ static uint64_t dsSceneParticleDrawList_addNode(dsSceneItemList* itemList, const
 	uint32_t prepareListIndex = 0;
 	for (; prepareListIndex < node->itemListCount; ++prepareListIndex)
 	{
-		const dsSceneItemList* itemList = dsSceneTreeNode_getItemList(treeNode, prepareListIndex);
+		const dsSceneItemList* itemList = treeNode->itemLists[prepareListIndex].list;
 		if (itemList && itemList->type == dsSceneParticlePrepare_type())
 			break;
 	}

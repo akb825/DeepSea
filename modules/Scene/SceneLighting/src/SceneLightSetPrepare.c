@@ -27,7 +27,6 @@
 #include <DeepSea/Math/Matrix44.h>
 
 #include <DeepSea/Scene/Nodes/SceneNode.h>
-#include <DeepSea/Scene/Nodes/SceneTreeNode.h>
 
 #include <DeepSea/SceneLighting/SceneLightNode.h>
 #include <DeepSea/SceneLighting/SceneLightSet.h>
@@ -119,7 +118,7 @@ static uint64_t dsSceneLightSetPrepare_addNode(dsSceneItemList* itemList, const 
 
 	*thisItemData = light;
 	transformLight(light, &templateLight->position, &templateLight->direction,
-		dsSceneTreeNode_getTransform(treeNode));
+		&treeNode->transform);
 
 	Entry* entry = prepare->entries + index;
 	entry->treeNode = treeNode;
@@ -142,7 +141,7 @@ static void dsSceneLightSetPrepare_updateNode(dsSceneItemList* itemList, uint64_
 			continue;
 
 		transformLight(entry->light, &entry->position, &entry->direction,
-			dsSceneTreeNode_getTransform(entry->treeNode));
+			&entry->treeNode->transform);
 	}
 }
 

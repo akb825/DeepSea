@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022 Aaron Barany
+ * Copyright 2019-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,26 +28,6 @@ extern "C"
 
 #define DS_MAX_SCENE_TYPES 128
 #define DS_SCENE_TYPE_TABLE_SIZE 173
-
-typedef struct dsSceneItemEntry
-{
-	dsSceneItemList* list;
-	uint64_t entry;
-} dsSceneItemEntry;
-
-struct dsSceneTreeNode
-{
-	dsAllocator* allocator;
-	dsSceneNode* node;
-	dsSceneTreeNode* parent;
-	dsSceneTreeNode** children;
-	dsSceneItemEntry* itemLists;
-	uint32_t childCount;
-	uint32_t maxChildren;
-	dsSceneNodeItemData itemData;
-	bool dirty;
-	dsMatrix44f transform;
-};
 
 typedef struct dsSceneTreeRootNode
 {

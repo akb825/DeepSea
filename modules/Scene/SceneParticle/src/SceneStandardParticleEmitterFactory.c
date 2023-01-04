@@ -26,8 +26,6 @@
 #include <DeepSea/Particle/ParticleEmitter.h>
 #include <DeepSea/Particle/StandardParticleEmitter.h>
 
-#include <DeepSea/Scene/Nodes/SceneTreeNode.h>
-
 #include <DeepSea/SceneParticle/SceneParticleEmitterFactory.h>
 #include <DeepSea/SceneParticle/PopulateSceneParticleInstanceData.h>
 
@@ -51,11 +49,11 @@ static const dsMatrix44f* findRelativeTransform(const dsSceneTreeNode* treeNode,
 
 	do
 	{
-		const dsSceneTreeNode* parent = dsSceneTreeNode_getParent(treeNode);
+		const dsSceneTreeNode* parent = treeNode->parent;
 		if (!parent)
 			return NULL;
-		else if (dsSceneTreeNode_getNode(parent) == relativeNode)
-			return dsSceneTreeNode_getTransform(parent);
+		else if (parent->node == relativeNode)
+			return &parent->transform;
 		treeNode = parent;
 	} while (true);
 }
@@ -83,8 +81,7 @@ static dsParticleEmitter* dsSceneStandardParticleEmitterFactory_createEmitter(
 		return NULL;
 	}
 
-	const dsMatrix44f* transform = dsSceneTreeNode_getTransform(treeNode);
-	DS_ASSERT(transform);
+	const dsMatrix44f* transform = &treeNode->transform;
 	const dsMatrix44f* relativeTransform = findRelativeTransform(treeNode, factory->relativeNode);
 
 	dsParticleEmitterParams params = factory->params;
@@ -124,8 +121,7 @@ static bool dsSceneStandardParticleEmitterFactory_updateEmitter(
 		return false;
 	}
 
-	const dsMatrix44f* transform = dsSceneTreeNode_getTransform(treeNode);
-	DS_ASSERT(transform);
+	const dsMatrix44f* transform = &treeNode->transform;
 	// NOTE: Could cache this, but would take extra effort to wrap the particle emitter. Expected
 	// to be at most a couple of nodes up, so don't expect a large impact on performance.
 	const dsMatrix44f* relativeTransform = findRelativeTransform(treeNode, factory->relativeNode);

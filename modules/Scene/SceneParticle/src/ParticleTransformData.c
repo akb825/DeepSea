@@ -27,7 +27,6 @@
 #include <DeepSea/Render/Resources/ShaderVariableGroupDesc.h>
 
 #include <DeepSea/Scene/ItemLists/SceneInstanceVariables.h>
-#include <DeepSea/Scene/Nodes/SceneTreeNode.h>
 #include <DeepSea/Scene/Types.h>
 
 #include <DeepSea/SceneParticle/SceneParticleNode.h>
@@ -58,6 +57,74 @@ static inline void toMatrix33Vectors(dsVector4f outVectors[3], const dsMatrix33f
 		*(dsVector3f*)(outVectors + i) = inMatrix->columns[i];
 }
 
+#if DS_HAS_SIMD
+DS_SIMD_START_FLOAT4()
+static void dsParticleTransformData_populateDataSIMD(void* userData, const dsView* view,
+	const dsSceneTreeNode* const* instances, uint32_t instanceCount,
+	const dsShaderVariableGroupDesc* dataDesc, uint8_t* data, uint32_t stride)
+{
+	DS_PROFILE_FUNC_START();
+
+	DS_UNUSED(userData);
+	DS_UNUSED(dataDesc);
+	DS_ASSERT(stride >= sizeof(ParticleTransform));
+	for (uint32_t i = 0; i < instanceCount; ++i, data += stride)
+	{
+		const dsParticleEmitter* emitter =
+			dsSceneParticleNode_getEmitterForInstance(instances[i]);
+		// The GPU memory can have some bad properties when accessing from the CPU, so first do
+		// all work on CPU memory and copy as one to the GPU buffer.
+		ParticleTransform transform;
+		if (emitter)
+			transform.world = emitter->transform;
+		else
+			dsMatrix44_identity(transform.world);
+		dsMatrix44f_affineMulSIMD(&transform.worldView, &view->viewMatrix, &transform.world);
+		dsMatrix44f_affineInvert33SIMD(transform.localWorldOrientation, &transform.world);
+		dsMatrix44f_affineInvert33SIMD(transform.localViewOrientation, &transform.worldView);
+		dsMatrix44f_mulSIMD(&transform.worldViewProj, &view->projectionMatrix,
+			&transform.worldView);
+		*(ParticleTransform*)(data) = transform;
+	}
+
+	DS_PROFILE_FUNC_RETURN_VOID();
+}
+DS_SIMD_END()
+
+DS_SIMD_START_FMA()
+static void dsParticleTransformData_populateDataFMA(void* userData, const dsView* view,
+	const dsSceneTreeNode* const* instances, uint32_t instanceCount,
+	const dsShaderVariableGroupDesc* dataDesc, uint8_t* data, uint32_t stride)
+{
+	DS_PROFILE_FUNC_START();
+
+	DS_UNUSED(userData);
+	DS_UNUSED(dataDesc);
+	DS_ASSERT(stride >= sizeof(ParticleTransform));
+	for (uint32_t i = 0; i < instanceCount; ++i, data += stride)
+	{
+		const dsParticleEmitter* emitter =
+			dsSceneParticleNode_getEmitterForInstance(instances[i]);
+		// The GPU memory can have some bad properties when accessing from the CPU, so first do
+		// all work on CPU memory and copy as one to the GPU buffer.
+		ParticleTransform transform;
+		if (emitter)
+			transform.world = emitter->transform;
+		else
+			dsMatrix44_identity(transform.world);
+		dsMatrix44f_affineMulFMA(&transform.worldView, &view->viewMatrix, &transform.world);
+		dsMatrix44f_affineInvert33FMA(transform.localWorldOrientation, &transform.world);
+		dsMatrix44f_affineInvert33FMA(transform.localViewOrientation, &transform.worldView);
+		dsMatrix44f_mulSIMD(&transform.worldViewProj, &view->projectionMatrix,
+			&transform.worldView);
+		*(ParticleTransform*)(data) = transform;
+	}
+
+	DS_PROFILE_FUNC_RETURN_VOID();
+}
+DS_SIMD_END()
+#endif
+
 static void dsParticleTransformData_populateData(void* userData, const dsView* view,
 	const dsSceneTreeNode* const* instances, uint32_t instanceCount,
 	const dsShaderVariableGroupDesc* dataDesc, uint8_t* data, uint32_t stride)
@@ -67,77 +134,30 @@ static void dsParticleTransformData_populateData(void* userData, const dsView* v
 	DS_UNUSED(userData);
 	DS_UNUSED(dataDesc);
 	DS_ASSERT(stride >= sizeof(ParticleTransform));
-#if DS_HAS_SIMD
-	if (DS_SIMD_ALWAYS_FMA || (dsHostSIMDFeatures & dsSIMDFeatures_FMA))
+	for (uint32_t i = 0; i < instanceCount; ++i, data += stride)
 	{
-		for (uint32_t i = 0; i < instanceCount; ++i, data += stride)
-		{
-			const dsParticleEmitter* emitter =
-				dsSceneParticleNode_getEmitterForInstance(instances[i]);
-			// The GPU memory can have some bad properties when accessing from the CPU, so first do
-			// all work on CPU memory and copy as one to the GPU buffer.
-			ParticleTransform transform;
-			if (emitter)
-				transform.world = emitter->transform;
-			else
-				dsMatrix44_identity(transform.world);
-			dsMatrix44f_affineMulFMA(&transform.worldView, &view->viewMatrix, &transform.world);
-			dsMatrix44f_affineInvert33FMA(transform.localWorldOrientation, &transform.world);
-			dsMatrix44f_affineInvert33FMA(transform.localViewOrientation, &transform.worldView);
-			dsMatrix44f_mulFMA(&transform.worldViewProj, &view->projectionMatrix,
-				&transform.worldView);
-			*(ParticleTransform*)(data) = transform;
-		}
-	}
-	else if (DS_SIMD_ALWAYS_FLOAT4 || (dsHostSIMDFeatures & dsSIMDFeatures_Float4))
-	{
-		for (uint32_t i = 0; i < instanceCount; ++i, data += stride)
-		{
-			const dsParticleEmitter* emitter =
-				dsSceneParticleNode_getEmitterForInstance(instances[i]);
-			// The GPU memory can have some bad properties when accessing from the CPU, so first do
-			// all work on CPU memory and copy as one to the GPU buffer.
-			ParticleTransform transform;
-			if (emitter)
-				transform.world = emitter->transform;
-			else
-				dsMatrix44_identity(transform.world);
-			dsMatrix44f_affineMulSIMD(&transform.worldView, &view->viewMatrix, &transform.world);
-			dsMatrix44f_affineInvert33SIMD(transform.localWorldOrientation, &transform.world);
-			dsMatrix44f_affineInvert33SIMD(transform.localViewOrientation, &transform.worldView);
-			dsMatrix44f_mulSIMD(&transform.worldViewProj, &view->projectionMatrix,
-				&transform.worldView);
-			*(ParticleTransform*)(data) = transform;
-		}
-	}
-	else
-#endif
-	{
-		for (uint32_t i = 0; i < instanceCount; ++i, data += stride)
-		{
-			const dsParticleEmitter* emitter =
-				dsSceneParticleNode_getEmitterForInstance(instances[i]);
-			// The GPU memory can have some bad properties when accessing from the CPU, so first do
-			// all work on CPU memory and copy as one to the GPU buffer.
-			ParticleTransform transform;
-			if (emitter)
-				transform.world = emitter->transform;
-			else
-				dsMatrix44_identity(transform.world);
-			dsMatrix44f_affineMul(&transform.worldView, &view->viewMatrix, &transform.world);
+		const dsParticleEmitter* emitter =
+			dsSceneParticleNode_getEmitterForInstance(instances[i]);
+		// The GPU memory can have some bad properties when accessing from the CPU, so first do
+		// all work on CPU memory and copy as one to the GPU buffer.
+		ParticleTransform transform;
+		if (emitter)
+			transform.world = emitter->transform;
+		else
+			dsMatrix44_identity(transform.world);
+		dsMatrix44f_affineMul(&transform.worldView, &view->viewMatrix, &transform.world);
 
-			dsMatrix33f tempMatrix33Inv;
-			dsMatrix44f_affineInvert33(&tempMatrix33Inv, &transform.world);
-			toMatrix33Vectors(transform.localWorldOrientation, &tempMatrix33Inv);
+		dsMatrix33f tempMatrix33Inv;
+		dsMatrix44f_affineInvert33(&tempMatrix33Inv, &transform.world);
+		toMatrix33Vectors(transform.localWorldOrientation, &tempMatrix33Inv);
 
-			dsMatrix44f_affineInvert33(&tempMatrix33Inv, &transform.worldView);
-			toMatrix33Vectors(transform.localViewOrientation, &tempMatrix33Inv);
+		dsMatrix44f_affineInvert33(&tempMatrix33Inv, &transform.worldView);
+		toMatrix33Vectors(transform.localViewOrientation, &tempMatrix33Inv);
 
-			dsMatrix44f_mul(&transform.worldViewProj, &view->projectionMatrix,
-				&transform.worldView);
+		dsMatrix44f_mul(&transform.worldViewProj, &view->projectionMatrix,
+			&transform.worldView);
 
-			*(ParticleTransform*)(data) = transform;
-		}
+		*(ParticleTransform*)(data) = transform;
 	}
 
 	DS_PROFILE_FUNC_RETURN_VOID();
@@ -184,7 +204,15 @@ dsSceneInstanceData* dsParticleTransformData_create(dsAllocator* allocator,
 		return NULL;
 	}
 
+	dsPopulateSceneInstanceVariablesFunction populateFunc;
+#if DS_HAS_SIMD
+	if (DS_SIMD_ALWAYS_FMA || (dsHostSIMDFeatures & dsSIMDFeatures_FMA))
+		populateFunc = &dsParticleTransformData_populateDataFMA;
+	else if (DS_SIMD_ALWAYS_FLOAT4 || (dsHostSIMDFeatures & dsSIMDFeatures_Float4))
+		populateFunc = &dsParticleTransformData_populateDataSIMD;
+	else
+#endif
+		populateFunc = &dsParticleTransformData_populateData;
 	return dsSceneInstanceVariables_create(allocator, resourceManager, transformDesc,
-		dsHashString(dsParticleTransformData_typeName),
-		&dsParticleTransformData_populateData, NULL, NULL);
+		dsHashString(dsParticleTransformData_typeName), populateFunc, NULL, NULL);
 }

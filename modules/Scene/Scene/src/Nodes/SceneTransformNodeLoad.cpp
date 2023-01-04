@@ -51,12 +51,7 @@ dsSceneNode* dsSceneTransformNode_load(const dsSceneLoadContext* loadContext,
 	const DeepSeaScene::Matrix44f* fbTransform = fbTransformNode->transform();
 	dsMatrix44f transform;
 	if (fbTransform)
-	{
-		transform.columns[0] = reinterpret_cast<const dsVector4f&>(fbTransform->column0());
-		transform.columns[1] = reinterpret_cast<const dsVector4f&>(fbTransform->column1());
-		transform.columns[2] = reinterpret_cast<const dsVector4f&>(fbTransform->column2());
-		transform.columns[3] = reinterpret_cast<const dsVector4f&>(fbTransform->column3());
-	}
+		std::memcpy(&transform, fbTransform, sizeof(dsMatrix44f));
 	auto node = reinterpret_cast<dsSceneNode*>(dsSceneTransformNode_create(allocator,
 		fbTransform ? &transform : nullptr));
 	if (!node)

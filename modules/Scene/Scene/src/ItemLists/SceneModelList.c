@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022 Aaron Barany
+ * Copyright 2019-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,7 +39,6 @@
 #include <DeepSea/Scene/Nodes/SceneModelNode.h>
 #include <DeepSea/Scene/Nodes/SceneNode.h>
 #include <DeepSea/Scene/Nodes/SceneNodeItemData.h>
-#include <DeepSea/Scene/Nodes/SceneTreeNode.h>
 
 #include <stdlib.h>
 #include <string.h>
@@ -344,7 +343,7 @@ static uint64_t dsSceneModelList_addNode(dsSceneItemList* itemList, const dsScen
 	Entry* entry = modelList->entries + index;
 	entry->node = (const dsSceneModelNode*)node;
 	entry->treeNode = treeNode;
-	entry->transform = dsSceneTreeNode_getTransform(treeNode);
+	entry->transform = &treeNode->transform;
 	entry->itemData = itemData;
 	entry->nodeID = modelList->nextNodeID++;
 	return entry->nodeID;
