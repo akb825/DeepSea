@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Aaron Barany
+ * Copyright 2022-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -188,6 +188,58 @@ static uint32_t buildTreeRec(dsAllocator* allocator, uint32_t* nextIndex, uint32
 	return index;
 }
 
+#if DS_HAS_SIMD
+DS_SIMD_START_FLOAT4()
+static void updateTransformSIMD(dsAnimationTree* tree, dsAnimationNode* node)
+{
+	dsMatrix44f scale;
+	dsMatrix44f rotation;
+	dsMatrix44f translation;
+	dsMatrix44f rotateScale;
+	dsMatrix44f localTransform;
+	dsMatrix44f_makeScale(&scale, node->scale.x, node->scale.y, node->scale.z);
+	dsQuaternion4f_toMatrix44(&rotation, &node->rotation);
+	dsMatrix44f_makeTranslate(&translation, node->translation.x, node->translation.y,
+		node->translation.z);
+	dsMatrix44f_affineMulSIMD(&rotateScale, &rotation, &scale);
+	dsMatrix44f_affineMulSIMD(&localTransform, &translation, &rotateScale);
+
+	if (node->parent == DS_NO_ANIMATION_NODE)
+		node->transform = localTransform;
+	else
+	{
+		dsMatrix44f_affineMulSIMD(&node->transform, &tree->nodes[node->parent].transform,
+			&localTransform);
+	}
+}
+DS_SIMD_END()
+
+DS_SIMD_START_FMA()
+static void updateTransformFMA(dsAnimationTree* tree, dsAnimationNode* node)
+{
+	dsMatrix44f scale;
+	dsMatrix44f rotation;
+	dsMatrix44f translation;
+	dsMatrix44f rotateScale;
+	dsMatrix44f localTransform;
+	dsMatrix44f_makeScale(&scale, node->scale.x, node->scale.y, node->scale.z);
+	dsQuaternion4f_toMatrix44(&rotation, &node->rotation);
+	dsMatrix44f_makeTranslate(&translation, node->translation.x, node->translation.y,
+		node->translation.z);
+	dsMatrix44f_affineMulFMA(&rotateScale, &rotation, &scale);
+	dsMatrix44f_affineMulFMA(&localTransform, &translation, &rotateScale);
+
+	if (node->parent == DS_NO_ANIMATION_NODE)
+		node->transform = localTransform;
+	else
+	{
+		dsMatrix44f_affineMulFMA(&node->transform, &tree->nodes[node->parent].transform,
+			&localTransform);
+	}
+}
+DS_SIMD_END()
+#endif
+
 static void updateTransform(dsAnimationTree* tree, dsAnimationNode* node)
 {
 	dsMatrix44f scale;
@@ -199,13 +251,16 @@ static void updateTransform(dsAnimationTree* tree, dsAnimationNode* node)
 	dsQuaternion4f_toMatrix44(&rotation, &node->rotation);
 	dsMatrix44f_makeTranslate(&translation, node->translation.x, node->translation.y,
 		node->translation.z);
-	dsMatrix44_affineMul(rotateScale, rotation, scale);
-	dsMatrix44_affineMul(localTransform, translation, rotateScale);
+	dsMatrix44f_affineMul(&rotateScale, &rotation, &scale);
+	dsMatrix44f_affineMul(&localTransform, &translation, &rotateScale);
 
 	if (node->parent == DS_NO_ANIMATION_NODE)
 		node->transform = localTransform;
 	else
-		dsMatrix44_affineMul(node->transform, tree->nodes[node->parent].transform, localTransform);
+	{
+		dsMatrix44f_affineMul(&node->transform, &tree->nodes[node->parent].transform,
+			&localTransform);
+	}
 }
 
 dsAnimationTree* dsAnimationTree_create(dsAllocator* allocator,
@@ -364,7 +419,21 @@ dsAnimationTree* dsAnimationTree_createJoints(dsAllocator* allocator,
 
 		dsAnimationJointTransform* jointTransform = jointTransforms + i;
 		dsMatrix44_identity(jointTransform->transform);
-		dsMatrix33_identity(jointTransform->inverseTranspose);
+
+		jointTransform->inverseTranspose[0].x = 1;
+		jointTransform->inverseTranspose[0].y = 0;
+		jointTransform->inverseTranspose[0].z = 0;
+		jointTransform->inverseTranspose[0].w = 0;
+
+		jointTransform->inverseTranspose[1].x = 0;
+		jointTransform->inverseTranspose[1].y = 1;
+		jointTransform->inverseTranspose[1].z = 0;
+		jointTransform->inverseTranspose[1].w = 0;
+
+		jointTransform->inverseTranspose[2].x = 0;
+		jointTransform->inverseTranspose[2].y = 0;
+		jointTransform->inverseTranspose[2].z = 1;
+		jointTransform->inverseTranspose[2].w = 0;
 
 		NamedHashNode* hashNode = DS_ALLOCATE_OBJECT(allocator, NamedHashNode);
 		DS_ASSERT(hashNode);
@@ -558,21 +627,83 @@ bool dsAnimationTree_updateTransforms(dsAnimationTree* tree)
 	if (tree->jointTransforms)
 	{
 		DS_ASSERT(tree->toNodeLocalSpace);
-		for (uint32_t i = 0; i < tree->nodeCount; ++i)
+#if DS_HAS_SIMD
+		if (DS_SIMD_ALWAYS_FMA || (dsHostSIMDFeatures & dsSIMDFeatures_FMA))
 		{
-			dsAnimationNode* node = tree->nodes + i;
-			updateTransform(tree, node);
-			dsAnimationJointTransform* jointTransform = tree->jointTransforms + i;
-			dsMatrix44_affineMul(jointTransform->transform, node->transform,
-				tree->toNodeLocalSpace[i]);
-			dsMatrix44f_inverseTranspose(&jointTransform->inverseTranspose,
-				&jointTransform->transform);
+			for (uint32_t i = 0; i < tree->nodeCount; ++i)
+			{
+				dsAnimationNode* node = tree->nodes + i;
+				updateTransformFMA(tree, node);
+				dsAnimationJointTransform* jointTransform = tree->jointTransforms + i;
+				dsMatrix44f_affineMulFMA(&jointTransform->transform, &node->transform,
+					tree->toNodeLocalSpace + i);
+				dsMatrix44f_inverseTransposeFMA(jointTransform->inverseTranspose,
+					&jointTransform->transform);
+			}
+		}
+		else if (DS_SIMD_ALWAYS_FLOAT4 || (dsHostSIMDFeatures & dsSIMDFeatures_Float4))
+		{
+			for (uint32_t i = 0; i < tree->nodeCount; ++i)
+			{
+				dsAnimationNode* node = tree->nodes + i;
+				updateTransformSIMD(tree, node);
+				dsAnimationJointTransform* jointTransform = tree->jointTransforms + i;
+				dsMatrix44f_affineMulSIMD(&jointTransform->transform, &node->transform,
+					tree->toNodeLocalSpace + i);
+				dsMatrix44f_inverseTransposeSIMD(jointTransform->inverseTranspose,
+					&jointTransform->transform);
+			}
+		}
+		else
+#endif
+		{
+			for (uint32_t i = 0; i < tree->nodeCount; ++i)
+			{
+				dsAnimationNode* node = tree->nodes + i;
+				updateTransform(tree, node);
+				dsAnimationJointTransform* jointTransform = tree->jointTransforms + i;
+				dsMatrix44f_affineMul(&jointTransform->transform, &node->transform,
+					tree->toNodeLocalSpace + i);
+
+				dsMatrix33f inverseTranspose;
+				dsMatrix44f_inverseTranspose(&inverseTranspose, &jointTransform->transform);
+
+				jointTransform->inverseTranspose[0].x = inverseTranspose.columns[0].x;
+				jointTransform->inverseTranspose[0].y = inverseTranspose.columns[0].y;
+				jointTransform->inverseTranspose[0].z = inverseTranspose.columns[0].z;
+				jointTransform->inverseTranspose[0].w = 0;
+
+				jointTransform->inverseTranspose[1].x = inverseTranspose.columns[1].x;
+				jointTransform->inverseTranspose[1].y = inverseTranspose.columns[1].y;
+				jointTransform->inverseTranspose[1].z = inverseTranspose.columns[1].z;
+				jointTransform->inverseTranspose[1].w = 0;
+
+				jointTransform->inverseTranspose[2].x = inverseTranspose.columns[2].x;
+				jointTransform->inverseTranspose[2].y = inverseTranspose.columns[2].y;
+				jointTransform->inverseTranspose[2].z = inverseTranspose.columns[2].z;
+				jointTransform->inverseTranspose[2].w = 0;
+			}
 		}
 	}
 	else
 	{
-		for (uint32_t i = 0; i < tree->nodeCount; ++i)
-			updateTransform(tree, tree->nodes + i);
+#if DS_HAS_SIMD
+		if (DS_SIMD_ALWAYS_FMA || (dsHostSIMDFeatures & dsSIMDFeatures_FMA))
+		{
+			for (uint32_t i = 0; i < tree->nodeCount; ++i)
+				updateTransformFMA(tree, tree->nodes + i);
+		}
+		else if (DS_SIMD_ALWAYS_FLOAT4 || (dsHostSIMDFeatures & dsSIMDFeatures_Float4))
+		{
+			for (uint32_t i = 0; i < tree->nodeCount; ++i)
+				updateTransformSIMD(tree, tree->nodes + i);
+		}
+		else
+#endif
+		{
+			for (uint32_t i = 0; i < tree->nodeCount; ++i)
+				updateTransform(tree, tree->nodes + i);
+		}
 	}
 
 	return true;

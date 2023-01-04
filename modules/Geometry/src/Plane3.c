@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 Aaron Barany
+ * Copyright 2016-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,11 +52,11 @@ void dsPlane3f_transform(dsPlane3f* result, const dsMatrix44f* transform, const 
 
 	dsMatrix44f inverse, inverseTranspose;
 	dsMatrix44f_affineInvert(&inverse, transform);
-	dsMatrix44_transpose(inverseTranspose, inverse);
+	dsMatrix44f_transpose(&inverseTranspose, &inverse);
 
 	dsVector4f planeVec = {{plane->n.x, plane->n.y, plane->n.z, -plane->d}};
 	dsVector4f transformedPlaneVec;
-	dsMatrix44_transform(transformedPlaneVec, inverseTranspose, planeVec);
+	dsMatrix44f_transform(&transformedPlaneVec, &inverseTranspose, &planeVec);
 
 	result->n.x = transformedPlaneVec.x;
 	result->n.y = transformedPlaneVec.y;
@@ -97,7 +97,7 @@ void dsPlane3f_transformInverseTranspose(dsPlane3f* result, const dsMatrix44f* t
 
 	dsVector4f planeVec = {{plane->n.x, plane->n.y, plane->n.z, -plane->d}};
 	dsVector4f transformedPlaneVec;
-	dsMatrix44_transform(transformedPlaneVec, *transform, planeVec);
+	dsMatrix44f_transform(&transformedPlaneVec, transform, &planeVec);
 
 	result->n.x = transformedPlaneVec.x;
 	result->n.y = transformedPlaneVec.y;

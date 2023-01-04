@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2022 Aaron Barany
+ * Copyright 2020-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,8 +65,8 @@ static void transformLight(dsSceneLight* light, const dsVector3f* position,
 	dsMatrix44f_affineInvert(&inverse, transform);
 
 	dsVector4f transformedPosition, transformedDirection;
-	dsMatrix44_transform(transformedPosition, *transform, position4);
-	dsMatrix44_transformTransposed(transformedDirection, *transform, direction4);
+	dsMatrix44f_transform(&transformedPosition, transform, &position4);
+	dsMatrix44f_transformTransposed(&transformedDirection, transform, &direction4);
 
 	light->position = *(dsVector3f*)&transformedPosition;
 	light->direction = *(dsVector3f*)&transformedDirection;

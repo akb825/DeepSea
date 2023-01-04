@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2021 Aaron Barany
+ * Copyright 2017-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -323,7 +323,7 @@ static bool createFramebuffer(TestRenderSubpass* testRenderSubpass)
 		dsDegreesToRadiansf(45.0f), (float)width/(float)height, 0.1f, 100.0f));
 	DS_VERIFY(dsRenderSurface_makeRotationMatrix44(&surfaceRotation,
 		testRenderSubpass->window->surface->rotation));
-	dsMatrix44_mul(testRenderSubpass->projection, surfaceRotation, baseProjection);
+	dsMatrix44f_mul(&testRenderSubpass->projection, &surfaceRotation, &baseProjection);
 
 	return true;
 }
@@ -371,8 +371,8 @@ static void update(dsApplication* application, float lastFrameTime, void* userDa
 	dsMatrix44f_makeRotate(&model, 0, testRenderSubpass->rotation, 0);
 
 	dsMatrix44f modelView, modelViewProjection;
-	dsMatrix44_affineMul(modelView, testRenderSubpass->view, model);
-	dsMatrix44_mul(modelViewProjection, testRenderSubpass->projection, modelView);
+	dsMatrix44f_affineMul(&modelView, &testRenderSubpass->view, &model);
+	dsMatrix44f_mul(&modelViewProjection, &testRenderSubpass->projection, &modelView);
 	DS_VERIFY(dsShaderVariableGroup_setElementData(testRenderSubpass->transformGroup, 0,
 		&modelViewProjection, dsMaterialType_Mat4, 0,  1));
 	DS_VERIFY(dsShaderVariableGroup_commit(testRenderSubpass->transformGroup,

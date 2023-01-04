@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Aaron Barany
+ * Copyright 2022-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,8 +65,8 @@ static void computeVolumeMatrix(dsMatrix44f* outMatrix, const dsMatrix44f* trans
 {
 	dsMatrix44f relativeInverse, localTransform, result;
 	dsMatrix44f_affineInvert(&relativeInverse, relativeTransform);
-	dsMatrix44_affineMul(localTransform, relativeInverse, *transform);
-	dsMatrix44_affineMul(result, localTransform, *volumeMatrix);
+	dsMatrix44f_affineMul(&localTransform, &relativeInverse, transform);
+	dsMatrix44f_affineMul(&result, &localTransform, volumeMatrix);
 	*outMatrix = result;
 }
 

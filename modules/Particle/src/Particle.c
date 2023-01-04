@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Aaron Barany
+ * Copyright 2022-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,7 +52,7 @@ void dsParticle_randomPosition(dsParticle* particle, dsRandom* random,
 	dsParticleVolume_randomPosition((dsVector3f*)&basePos, random, volume);
 
 	dsVector4f transformedPos;
-	dsMatrix44_transform(transformedPos, *volumeMatrix, basePos);
+	dsMatrix44f_transform(&transformedPos, volumeMatrix, &basePos);
 	particle->position = *(dsVector3f*)&transformedPos;
 }
 

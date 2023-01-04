@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Aaron Barany
+ * Copyright 2022-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -76,8 +76,10 @@ typedef struct dsAnimationJointTransform
 
 	/**
 	 * @brief The inverse transpose of the transform.
+	 *
+	 * This is stored as 3 vector 4s to make it easier to transfer to shaders.
 	 */
-	dsMatrix33f inverseTranspose;
+	dsVector4f inverseTranspose[3];
 } dsAnimationJointTransform;
 
 /**

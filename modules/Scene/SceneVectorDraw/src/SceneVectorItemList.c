@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2022 Aaron Barany
+ * Copyright 2020-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -336,10 +336,10 @@ static void drawItems(dsSceneVectorItemList* vectorList, const dsView* view,
 					dsSceneTreeNode_getTransform(vectorList->instances[drawItem->instance]);
 				DS_ASSERT(nodeTransform);
 				dsMatrix44f transform;
-				dsMatrix44_affineMul(transform, *nodeTransform, scale);
+				dsMatrix44f_affineMul(&transform, nodeTransform, &scale);
 
 				dsMatrix44f modelViewProjection;
-				dsMatrix44_mul(modelViewProjection, view->viewProjectionMatrix, transform);
+				dsMatrix44f_mul(&modelViewProjection, &view->viewProjectionMatrix, &transform);
 
 				DS_CHECK(DS_VECTOR_DRAW_SCENE_LOG_TAG,
 					dsVectorImage_draw(drawItem->image.image, commandBuffer,

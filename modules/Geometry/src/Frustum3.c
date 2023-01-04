@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 Aaron Barany
+ * Copyright 2016-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,7 +43,7 @@ void dsFrustum3f_transform(dsFrustum3f* frustum, const dsMatrix44f* transform)
 
 	dsMatrix44f inverse, inverseTranspose;
 	dsMatrix44f_affineInvert(&inverse, transform);
-	dsMatrix44_transpose(inverseTranspose, inverse);
+	dsMatrix44f_transpose(&inverseTranspose, &inverse);
 	int count = dsFrustum3f_isInfinite(frustum) ? dsFrustumPlanes_Far : dsFrustumPlanes_Count;
 	for (int i = 0; i < count; ++i)
 	{

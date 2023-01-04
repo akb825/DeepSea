@@ -776,7 +776,7 @@ DS_MATH_EXPORT inline void dsMatrix44f_affineInvert33(dsMatrix33f* result, const
 #if DS_SIMD_ALWAYS_FMA
 	dsMatrix44f_affineInvert33FMA(alignedResult, a);
 #else
-	dsMatrix44f_affineInvert33SIMD(result, a);
+	dsMatrix44f_affineInvert33SIMD(alignedResult, a);
 #endif
 
 	result->columns[0].x = alignedResult[0].x;
@@ -968,7 +968,7 @@ DS_MATH_EXPORT inline void dsMatrix44f_inverseTranspose(dsMatrix33f* result, con
 #if DS_SIMD_ALWAYS_FMA
 	dsMatrix44f_inverseTransposeFMA(alignedResult, a);
 #else
-	dsMatrix44f_inverseTransposeSIMD(result, a);
+	dsMatrix44f_inverseTransposeSIMD(alignedResult, a);
 #endif
 
 	result->columns[0].x = alignedResult[0].x;

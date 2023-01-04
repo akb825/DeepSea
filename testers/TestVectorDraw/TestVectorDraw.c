@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2021 Aaron Barany
+ * Copyright 2018-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -308,7 +308,7 @@ static void draw(dsApplication* application, dsWindow* window, void* userData)
 	DS_VERIFY(dsRenderer_makeOrtho(&projection, renderer, 0.0f, size.x, 0.0f, size.y, 0.0f, 1.0f));
 	DS_VERIFY(dsRenderSurface_makeRotationMatrix44(&surfaceRotation,
 		testVectorDraw->window->surface->rotation));
-	dsMatrix44_mul(matrix, surfaceRotation, projection);
+	dsMatrix44f_mul(&matrix, &surfaceRotation, &projection);
 
 	dsVectorShaders* shaders;
 	if (testVectorDraw->wireframe)

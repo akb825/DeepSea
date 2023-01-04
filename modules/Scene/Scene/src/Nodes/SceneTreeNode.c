@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022 Aaron Barany
+ * Copyright 2019-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,8 +38,8 @@ static void updateTransform(dsSceneTreeNode* node)
 		dsSceneTransformNode* transformNode = (dsSceneTransformNode*)node->node;
 		if (node->parent)
 		{
-			dsMatrix44_affineMul(node->transform, node->parent->transform,
-				transformNode->transform);
+			dsMatrix44f_affineMul(&node->transform, &node->parent->transform,
+				&transformNode->transform);
 		}
 		else
 			node->transform = transformNode->transform;

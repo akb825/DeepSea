@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2022 Aaron Barany
+ * Copyright 2021-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -173,21 +173,21 @@ bool dsShadowProjection_initialize(dsShadowProjection* shadowProj, const dsRende
 
 		dsVector4f lightVec;
 		DS_ASSERT(camera->columns[2].w == 0);
-		dsMatrix44_transform(lightVec, *lightTransform, camera->columns[2]);
+		dsMatrix44f_transform(&lightVec, lightTransform, camera->columns + 2);
 		dsVector3f_normalize(&viewDir, (const dsVector3f*)&lightVec);
 
 		DS_ASSERT(camera->columns[1].w == 0);
-		dsMatrix44_transform(lightVec, *lightTransform, camera->columns[1]);
+		dsMatrix44f_transform(&lightVec, lightTransform, camera->columns + 1);
 		dsVector3f_normalize(&viewDown, (const dsVector3f*)&lightVec);
 		dsVector3_neg(viewDown, viewDown);
 
 		DS_ASSERT(camera->columns[3].w == 1);
-		dsMatrix44_transform(lightVec, *lightTransform, camera->columns[3]);
+		dsMatrix44f_transform(&lightVec, lightTransform, camera->columns + 3);
 		DS_ASSERT(lightVec.w == 1);
 		viewPos = *(dsVector3f*)&lightVec;
 
 		dsVector4f temp = {{toLight->x, toLight->y, toLight->z, 0.0f}};
-		dsMatrix44_transform(lightVec, *lightTransform, temp);
+		dsMatrix44f_transform(&lightVec, lightTransform, &temp);
 		dsVector3f_normalize(&lightDir, (const dsVector3f*)&lightVec);
 
 		// NOTE: Projection inverts Z, unless of course the Z is inverted for the projection.
@@ -247,13 +247,14 @@ bool dsShadowProjection_initialize(dsShadowProjection* shadowProj, const dsRende
 	if (lightProjection)
 	{
 		dsMatrix44f shadowSpaceInv;
-		dsMatrix44_fastInvert(shadowSpaceInv, shadowProj->shadowSpace);
+		dsMatrix44f_fastInvert(&shadowSpaceInv, &shadowProj->shadowSpace);
 		dsMatrix44f transformedLightProjection;
-		dsMatrix44_mul(transformedLightProjection, *lightProjection, *lightTransform);
-		dsMatrix44_mul(shadowProj->worldToShadowSpace, shadowSpaceInv, transformedLightProjection);
+		dsMatrix44f_mul(&transformedLightProjection, lightProjection, lightTransform);
+		dsMatrix44f_mul(&shadowProj->worldToShadowSpace, &shadowSpaceInv,
+			&transformedLightProjection);
 	}
 	else
-		dsMatrix44_fastInvert(shadowProj->worldToShadowSpace, shadowProj->shadowSpace);
+		dsMatrix44f_fastInvert(&shadowProj->worldToShadowSpace, &shadowProj->shadowSpace);
 
 	shadowProj->projectionOptions = renderer->projectionOptions;
 	return true;
@@ -284,7 +285,7 @@ bool dsShadowProjection_addPoints(dsShadowProjection* shadowProj, const dsVector
 	{
 		dsVector4f point = {{points[i].x, points[i].y, points[i].z, 1.0f}};
 		dsVector4f proj;
-		dsMatrix44_transform(proj, shadowProj->worldToShadowSpace, point);
+		dsMatrix44f_transform(&proj, &shadowProj->worldToShadowSpace, &point);
 		if (dsEpsilonEqualsZerof(proj.w, 1e-3f))
 			continue;
 
@@ -353,9 +354,9 @@ bool dsShadowProjection_computeMatrix(dsMatrix44f* outMatrix, const dsShadowProj
 		dsMatrix44f frustum;
 		makeShadowFrustum(&frustum, left, right, bottom, top, n, n + farDist,
 			shadowProj->projectionOptions);
-		dsMatrix44_mul(projection, frustum, translate);
+		dsMatrix44f_mul(&projection, &frustum, &translate);
 	}
 
-	dsMatrix44_mul(*outMatrix, projection, shadowProj->worldToShadowSpace);
+	dsMatrix44f_mul(outMatrix, &projection, &shadowProj->worldToShadowSpace);
 	return true;
 }

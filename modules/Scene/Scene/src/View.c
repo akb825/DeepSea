@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2021 Aaron Barany
+ * Copyright 2019-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -276,7 +276,7 @@ static void updatedCameraProjection(dsView* view)
 	dsRenderer* renderer = view->scene->renderer;
 	DS_VERIFY(dsProjectionParams_createMatrix(&view->projectionMatrix, &view->projectionParams,
 		renderer));
-	dsMatrix44_mul(view->viewProjectionMatrix, view->projectionMatrix, view->viewMatrix);
+	dsMatrix44f_mul(&view->viewProjectionMatrix, &view->projectionMatrix, &view->viewMatrix);
 	DS_VERIFY(dsRenderer_frustumFromMatrix(&view->viewFrustum, renderer,
 		&view->viewProjectionMatrix));
 }
@@ -750,7 +750,7 @@ bool dsView_setCameraMatrix(dsView* view, const dsMatrix44f* camera)
 	}
 
 	view->cameraMatrix = *camera;
-	dsMatrix44_fastInvert(view->viewMatrix, *camera);
+	dsMatrix44f_fastInvert(&view->viewMatrix, camera);
 	updatedCameraProjection(view);
 	return true;
 }

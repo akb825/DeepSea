@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022 Aaron Barany
+ * Copyright 2019-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,7 +57,7 @@ static void dsLightData_commit(dsSceneItemList* itemList, const dsView* view,
 	dsVector4f direction =
 		{{lightData->direction.x, lightData->direction.y, lightData->direction.z, 0.0f}};
 	dsVector4f viewDirection;
-	dsMatrix44_transform(viewDirection, view->viewMatrix, direction);
+	dsMatrix44f_transform(&viewDirection, &view->viewMatrix, &direction);
 	DS_VERIFY(dsShaderVariableGroup_setElementData(lightData->variableGroup, 0, &viewDirection,
 		dsMaterialType_Vec3, 0, 1));
 	DS_CHECK("TestScene", dsShaderVariableGroup_commit(lightData->variableGroup, commandBuffer));

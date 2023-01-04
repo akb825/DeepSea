@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 Aaron Barany
+ * Copyright 2016-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,7 +42,7 @@ bool dsOrientedBox3f_transform(dsOrientedBox3f* box, const dsMatrix44f* transfor
 	float scaleY = dsVector3f_len(&newOrientation.columns[1]);
 	float scaleZ = dsVector3f_len(&newOrientation.columns[2]);
 
-	dsMatrix44_transform(newCenter, *transform, center);
+	dsMatrix44f_transform(&newCenter, transform, &center);
 
 	float invScaleX = 1/scaleX;
 	float invScaleY = 1/scaleY;

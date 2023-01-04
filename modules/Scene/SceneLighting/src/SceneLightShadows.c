@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2022 Aaron Barany
+ * Copyright 2021-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -461,7 +461,7 @@ bool dsSceneLightShadows_prepare(dsSceneLightShadows* shadows, const dsView* vie
 	DS_VERIFY(dsProjectionParams_createMatrix(&shadowedProjectionMtx, &shadowedProjection,
 		renderer));
 	dsMatrix44f shadowedCullMtx;
-	dsMatrix44_mul(shadowedCullMtx, shadowedProjectionMtx, view->viewMatrix);
+	dsMatrix44f_mul(&shadowedCullMtx, &shadowedProjectionMtx, &view->viewMatrix);
 	dsFrustum3f cullFrustum;
 	DS_VERIFY(dsRenderer_frustumFromMatrix(&cullFrustum, renderer, &shadowedCullMtx));
 	if (!dsSceneLight_isInFrustum(light, &cullFrustum, intensityThreshold))
@@ -488,7 +488,7 @@ bool dsSceneLightShadows_prepare(dsSceneLightShadows* shadows, const dsView* vie
 			dsVector4f toLightWorld =
 				{{-light->direction.x, -light->direction.y, -light->direction.z, 0.0f}};
 			dsVector4f toLightView;
-			dsMatrix44_transform(toLightView, view->viewMatrix, toLightWorld);
+			dsMatrix44f_transform(&toLightView, &view->viewMatrix, &toLightWorld);
 			if (shadows->cascaded)
 			{
 				shadows->totalMatrices = dsComputeCascadeCount(nearPlane, farPlane,
@@ -565,7 +565,7 @@ bool dsSceneLightShadows_prepare(dsSceneLightShadows* shadows, const dsView* vie
 			dsVector4f lightWorldPos =
 				{{light->position.x,light->position.y, light->position.z, 1.0f}};
 			dsVector4f lightViewPos;
-			dsMatrix44_transform(lightViewPos, view->viewMatrix, lightWorldPos);
+			dsMatrix44f_transform(&lightViewPos, &view->viewMatrix, &lightWorldPos);
 
 			dsMatrix44f projection;
 			DS_VERIFY(dsSceneLight_getPointLightProjection(&projection, light, renderer,
@@ -580,10 +580,10 @@ bool dsSceneLightShadows_prepare(dsSceneLightShadows* shadows, const dsView* vie
 				lightWorld.columns[3] = lightViewPos;
 
 				dsMatrix44f lightSpace;
-				dsMatrix44_fastInvert(lightSpace, lightWorld);
+				dsMatrix44f_fastInvert(&lightSpace, &lightWorld);
 
 				dsMatrix44f lightProjection;
-				dsMatrix44_mul(lightProjection, projection, lightSpace);
+				dsMatrix44f_mul(&lightProjection, &projection, &lightSpace);
 				dsFrustum3f lightFrustum;
 				DS_VERIFY(dsRenderer_frustumFromMatrix(&lightFrustum, renderer, &lightProjection));
 
@@ -621,7 +621,7 @@ bool dsSceneLightShadows_prepare(dsSceneLightShadows* shadows, const dsView* vie
 			dsVector4f toLightWorld =
 				{{-light->direction.x, -light->direction.y, -light->direction.z, 0.0f}};
 			dsVector4f toLightView;
-			dsMatrix44_transform(toLightView, view->viewMatrix, toLightWorld);
+			dsMatrix44f_transform(&toLightView, &view->viewMatrix, &toLightWorld);
 
 			float intensityThreshold = dsSceneLightSet_getIntensityThreshold(shadows->lightSet);
 			dsMatrix44f transform;
@@ -634,7 +634,7 @@ bool dsSceneLightShadows_prepare(dsSceneLightShadows* shadows, const dsView* vie
 				intensityThreshold));
 
 			dsMatrix44f lightProjection;
-			dsMatrix44_mul(lightProjection, projection, lightSpace);
+			dsMatrix44f_mul(&lightProjection, &projection, &lightSpace);
 			dsFrustum3f lightFrustum;
 			DS_VERIFY(dsRenderer_frustumFromMatrix(&lightFrustum, renderer, &lightProjection));
 
@@ -753,7 +753,7 @@ dsIntersectResult dsSceneLightShadows_intersectSphere(dsSceneLightShadows* shado
 	DS_ASSERT(shadows->view);
 	dsVector4f worldCenter = {{center->x, center->y, center->z, 1.0f}};
 	dsVector4f viewCenter;
-	dsMatrix44_transform(viewCenter, shadows->view->viewMatrix, worldCenter);
+	dsMatrix44f_transform(&viewCenter, &shadows->view->viewMatrix, &worldCenter);
 	return dsShadowCullVolume_intersectSphere(shadows->cullVolumes + surface,
 		(dsVector3f*)&viewCenter, radius, shadows->projections + surface, clampToVolume);
 }

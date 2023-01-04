@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2022 Aaron Barany
+ * Copyright 2020-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -140,14 +140,14 @@ static void dsInstanceForwardLightData_populateData(void* userData, const dsView
 			const dsSceneLight* light = brightestLights[j];
 			DS_ASSERT(light);
 			dsVector4f tempVec = {{light->position.x, light->position.y, light->position.z, 1.0}};
-			dsMatrix44_transform(positionAndType[j], view->viewMatrix, tempVec);
+			dsMatrix44f_transform(positionAndType + j, &view->viewMatrix, &tempVec);
 			positionAndType[j].w = (float)(light->type + 1);
 
 			tempVec.x = -light->direction.x;
 			tempVec.y = -light->direction.y;
 			tempVec.z = -light->direction.z;
 			tempVec.w = 0.0f;
-			dsMatrix44_transform(directionAndLinearFalloff[j], view->viewMatrix, tempVec);
+			dsMatrix44f_transform(directionAndLinearFalloff + j, &view->viewMatrix, &tempVec);
 			directionAndLinearFalloff[j].w = light->linearFalloff;
 
 			colorAndQuadraticFalloff[j].r = light->color.r*light->intensity;
