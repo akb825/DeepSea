@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 Aaron Barany
+ * Copyright 2016-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,7 +58,7 @@ extern "C"
 		(result).planes[dsFrustumPlanes_Left].n.x = (matrix).values[0][3] + (matrix).values[0][0]; \
 		(result).planes[dsFrustumPlanes_Left].n.y = (matrix).values[1][3] + (matrix).values[1][0]; \
 		(result).planes[dsFrustumPlanes_Left].n.z = (matrix).values[2][3] + (matrix).values[2][0]; \
-		(result).planes[dsFrustumPlanes_Left].d = -(matrix).values[3][3] - (matrix).values[3][0]; \
+		(result).planes[dsFrustumPlanes_Left].d = (matrix).values[3][3] + (matrix).values[3][0]; \
 		\
 		(result).planes[dsFrustumPlanes_Right].n.x = (matrix).values[0][3] - \
 			(matrix).values[0][0]; \
@@ -66,7 +66,7 @@ extern "C"
 			(matrix).values[1][0]; \
 		(result).planes[dsFrustumPlanes_Right].n.z = (matrix).values[2][3] - \
 			(matrix).values[2][0]; \
-		(result).planes[dsFrustumPlanes_Right].d = (matrix).values[3][0] - (matrix).values[3][3]; \
+		(result).planes[dsFrustumPlanes_Right].d = (matrix).values[3][3] - (matrix).values[3][0]; \
 		\
 		(result).planes[dsFrustumPlanes_Bottom].n.x = (matrix).values[0][3] + \
 			(matrix).values[0][1]*_yMult; \
@@ -74,7 +74,7 @@ extern "C"
 			(matrix).values[1][1]*_yMult; \
 		(result).planes[dsFrustumPlanes_Bottom].n.z = (matrix).values[2][3] + \
 			(matrix).values[2][1]*_yMult; \
-		(result).planes[dsFrustumPlanes_Bottom].d = -(matrix).values[3][3] - \
+		(result).planes[dsFrustumPlanes_Bottom].d = (matrix).values[3][3] + \
 			(matrix).values[3][1]*_yMult; \
 		\
 		(result).planes[dsFrustumPlanes_Top].n.x = (matrix).values[0][3] - \
@@ -83,8 +83,8 @@ extern "C"
 			(matrix).values[1][1]*_yMult; \
 		(result).planes[dsFrustumPlanes_Top].n.z = (matrix).values[2][3] - \
 			(matrix).values[2][1]*_yMult; \
-		(result).planes[dsFrustumPlanes_Top].d = (matrix).values[3][1]*_yMult - \
-			(matrix).values[3][3]; \
+		(result).planes[dsFrustumPlanes_Top].d = (matrix).values[3][3] - \
+			(matrix).values[3][1]*_yMult; \
 		\
 		if ((options) & dsProjectionMatrixOptions_InvertZ) \
 		{ \
@@ -93,7 +93,7 @@ extern "C"
 				(result).planes[dsFrustumPlanes_Far].n.x = (matrix).values[0][2]; \
 				(result).planes[dsFrustumPlanes_Far].n.y = (matrix).values[1][2]; \
 				(result).planes[dsFrustumPlanes_Far].n.z = (matrix).values[2][2]; \
-				(result).planes[dsFrustumPlanes_Far].d = -(matrix).values[3][2]; \
+				(result).planes[dsFrustumPlanes_Far].d = (matrix).values[3][2]; \
 			} \
 			else \
 			{ \
@@ -103,7 +103,7 @@ extern "C"
 					(matrix).values[1][2]; \
 				(result).planes[dsFrustumPlanes_Far].n.z = (matrix).values[2][3] + \
 					(matrix).values[2][2]; \
-				(result).planes[dsFrustumPlanes_Far].d = -(matrix).values[3][3] - \
+				(result).planes[dsFrustumPlanes_Far].d = (matrix).values[3][3] + \
 					(matrix).values[3][2]; \
 			} \
 			\
@@ -113,8 +113,8 @@ extern "C"
 				(matrix).values[1][2]; \
 			(result).planes[dsFrustumPlanes_Near].n.z = (matrix).values[2][3] - \
 				(matrix).values[2][2]; \
-			(result).planes[dsFrustumPlanes_Near].d = (matrix).values[3][2] - \
-				(matrix).values[3][3]; \
+			(result).planes[dsFrustumPlanes_Near].d = (matrix).values[3][3] - \
+				(matrix).values[3][2]; \
 		} \
 		else \
 		{ \
@@ -123,7 +123,7 @@ extern "C"
 				(result).planes[dsFrustumPlanes_Near].n.x = (matrix).values[0][2]; \
 				(result).planes[dsFrustumPlanes_Near].n.y = (matrix).values[1][2]; \
 				(result).planes[dsFrustumPlanes_Near].n.z = (matrix).values[2][2]; \
-				(result).planes[dsFrustumPlanes_Near].d = -(matrix).values[3][2]; \
+				(result).planes[dsFrustumPlanes_Near].d = (matrix).values[3][2]; \
 			} \
 			else \
 			{ \
@@ -133,7 +133,7 @@ extern "C"
 					(matrix).values[1][2]; \
 				(result).planes[dsFrustumPlanes_Near].n.z = (matrix).values[2][3] + \
 					(matrix).values[2][2]; \
-				(result).planes[dsFrustumPlanes_Near].d = -(matrix).values[3][3] - \
+				(result).planes[dsFrustumPlanes_Near].d = (matrix).values[3][3] + \
 					(matrix).values[3][2]; \
 			} \
 			\
@@ -143,8 +143,8 @@ extern "C"
 				(matrix).values[1][2]; \
 			(result).planes[dsFrustumPlanes_Far].n.z = (matrix).values[2][3] - \
 				(matrix).values[2][2]; \
-			(result).planes[dsFrustumPlanes_Far].d = (matrix).values[3][2] - \
-				(matrix).values[3][3]; \
+			(result).planes[dsFrustumPlanes_Far].d = (matrix).values[3][3] - \
+				(matrix).values[3][2]; \
 		} \
 	} while (0)
 

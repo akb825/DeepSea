@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 Aaron Barany
+ * Copyright 2016-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -384,36 +384,65 @@ typedef struct dsOrientedBox3d
 
 /**
  * @brief Structure for a plane using floats.
+ *
+ * This takes the form n.x + n.y + n.z + d = 0.
+ *
  * @see Plane3.h
  */
-typedef struct dsPlane3f
+typedef union dsPlane3f
 {
 	/**
-	 * @brief The normal of the plane.
+	 * @brief Array of the plane values.
 	 */
-	dsVector3f n;
+	float values[4];
 
 	/**
-	 * @brief The distane from the origin along the normal to the plane.
+	 * @brief SIMD value when supported.
 	 */
-	float d;
+#if DS_HAS_SIMD
+	dsSIMD4f simd;
+#endif
+
+	struct
+	{
+		/**
+		 * @brief The normal of the plane.
+		 */
+		dsVector3f n;
+
+		/**
+		 * @brief The negative distane from the origin along the normal to the plane.
+		 */
+		float d;
+	};
 } dsPlane3f;
 
 /**
  * @brief Structure for a plane using doubles.
+ *
+ * This takes the form n.x + n.y + n.z + d = 0.
+ *
  * @see Plane3.h
  */
-typedef struct dsPlane3d
+typedef union dsPlane3d
 {
 	/**
-	 * @brief The normal of the plane.
+	 * @brief Array of the vector values.
 	 */
-	dsVector3d n;
+	double values[4];
 
-	/**
-	 * @brief The distane from the origin along the normal to the plane.
-	 */
-	double d;
+	struct
+	{
+		/**
+		 * @brief The normal of the plane.
+		 */
+		dsVector3d n;
+
+		/**
+		 * @brief The negative distane from the origin along the normal to the plane.
+		 */
+		double d;
+	};
 } dsPlane3d;
 
 /**

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,9 @@
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Geometry/Export.h>
 #include <DeepSea/Geometry/Types.h>
+#include <DeepSea/Math/Matrix44.h>
 #include <DeepSea/Math/Vector3.h>
+#include <DeepSea/Math/Vector4.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -51,8 +53,8 @@ extern "C"
 #define dsPlane3_fromNormalPoint(result, normal, point) \
 	do \
 	{ \
-		(result).n = normal; \
-		(result).d = dsVector3_dot(normal, point); \
+		(result).n = (normal); \
+		(result).d = -dsVector3_dot((normal), (point)); \
 	} while (0)
 
 /**
@@ -64,17 +66,17 @@ extern "C"
  * accurate result for normalized planes.
  */
 #define dsPlane3_distanceToPoint(plane, point) \
-	(dsVector3_dot((plane).n, point) - (plane).d)
+	(dsVector3_dot((plane).n, (point)) + (plane).d)
 
 /**
  * @brief Normalizes a plane.
  * @param[out] result The normalized plane.
  * @param plane The plane to normalize.
  */
-DS_GEOMETRY_EXPORT void dsPlane3f_normalize(dsPlane3f* result, const dsPlane3f* plane);
+DS_GEOMETRY_EXPORT inline void dsPlane3f_normalize(dsPlane3f* result, const dsPlane3f* plane);
 
 /** @copydoc dsPlane3f_normalize() */
-DS_GEOMETRY_EXPORT void dsPlane3d_normalize(dsPlane3d* result, const dsPlane3d* plane);
+DS_GEOMETRY_EXPORT inline void dsPlane3d_normalize(dsPlane3d* result, const dsPlane3d* plane);
 
 /**
  * @brief Transforms a plane by a matrix.
@@ -87,11 +89,11 @@ DS_GEOMETRY_EXPORT void dsPlane3d_normalize(dsPlane3d* result, const dsPlane3d* 
  * @param transform The transformation matrix.
  * @param plane The plane to transform.
  */
-DS_GEOMETRY_EXPORT void dsPlane3f_transform(dsPlane3f* result, const dsMatrix44f* transform,
+DS_GEOMETRY_EXPORT inline void dsPlane3f_transform(dsPlane3f* result, const dsMatrix44f* transform,
 	const dsPlane3f* plane);
 
 /** @copydoc dsPlane3f_transform() */
-DS_GEOMETRY_EXPORT void dsPlane3d_transform(dsPlane3d* result, const dsMatrix44d* transform,
+DS_GEOMETRY_EXPORT inline void dsPlane3d_transform(dsPlane3d* result, const dsMatrix44d* transform,
 	const dsPlane3d* plane);
 
 /**
@@ -100,11 +102,11 @@ DS_GEOMETRY_EXPORT void dsPlane3d_transform(dsPlane3d* result, const dsMatrix44d
  * @param transform The inverse-transpose transformation matrix.
  * @param plane The plane to transform.
  */
-DS_GEOMETRY_EXPORT void dsPlane3f_transformInverseTranspose(dsPlane3f* result,
+DS_GEOMETRY_EXPORT inline void dsPlane3f_transformInverseTranspose(dsPlane3f* result,
 	const dsMatrix44f* transform, const dsPlane3f* plane);
 
 /** @copydoc dsPlane3f_transformInverseTranspose() */
-DS_GEOMETRY_EXPORT void dsPlane3d_transformInverseTranspose(dsPlane3d* result,
+DS_GEOMETRY_EXPORT inline void dsPlane3d_transformInverseTranspose(dsPlane3d* result,
 	const dsMatrix44d* transform, const dsPlane3d* plane);
 
 /**
@@ -214,6 +216,79 @@ DS_GEOMETRY_EXPORT inline double dsPlane3d_distanceToPoint(const dsPlane3d* plan
 	DS_ASSERT(plane);
 	DS_ASSERT(point);
 	return dsPlane3_distanceToPoint(*plane, *point);
+}
+
+DS_GEOMETRY_EXPORT inline void dsPlane3f_normalize(dsPlane3f* result, const dsPlane3f* plane)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(plane);
+
+	float invLength = 1/dsVector3f_len(&plane->n);
+	dsVector4f_scale((dsVector4f*)result, (const dsVector4f*)plane, invLength);
+}
+
+DS_GEOMETRY_EXPORT inline void dsPlane3d_normalize(dsPlane3d* result, const dsPlane3d* plane)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(plane);
+
+	double invLength = 1/dsVector3d_len(&plane->n);
+	dsVector4_scale(*result, *plane, invLength);
+}
+
+DS_GEOMETRY_EXPORT inline void dsPlane3f_transform(dsPlane3f* result, const dsMatrix44f* transform,
+	const dsPlane3f* plane)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(plane);
+	DS_ASSERT(transform);
+
+	dsMatrix44f inverse, inverseTranspose;
+	dsMatrix44f_affineInvert(&inverse, transform);
+	dsMatrix44f_transpose(&inverseTranspose, &inverse);
+	dsPlane3f transformedPlane; // Transform requires a different result pointer.
+	dsMatrix44f_transform((dsVector4f*)&transformedPlane, &inverseTranspose,
+		(const dsVector4f*)plane);
+	dsPlane3f_normalize(result, &transformedPlane);
+}
+
+DS_GEOMETRY_EXPORT inline void dsPlane3d_transform(dsPlane3d* result, const dsMatrix44d* transform,
+	const dsPlane3d* plane)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(plane);
+	DS_ASSERT(transform);
+
+	dsMatrix44d inverse, inverseTranspose;
+	dsMatrix44d_affineInvert(&inverse, transform);
+	dsMatrix44_transpose(inverseTranspose, inverse);
+	dsPlane3d transformedPlane; // Transform requires a different result pointer.
+	dsMatrix44_transform(transformedPlane, inverseTranspose, *plane);
+	dsPlane3d_normalize(result, &transformedPlane);
+}
+
+DS_GEOMETRY_EXPORT inline void dsPlane3f_transformInverseTranspose(dsPlane3f* result,
+	const dsMatrix44f* transform, const dsPlane3f* plane)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(plane);
+	DS_ASSERT(transform);
+
+	dsPlane3f transformedPlane; // Transform requires a different result pointer.
+	dsMatrix44f_transform((dsVector4f*)&transformedPlane, transform, (const dsVector4f*)plane);
+	dsPlane3f_normalize(result, &transformedPlane);
+}
+
+DS_GEOMETRY_EXPORT inline void dsPlane3d_transformInverseTranspose(dsPlane3d* result,
+	const dsMatrix44d* transform, const dsPlane3d* plane)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(plane);
+	DS_ASSERT(transform);
+
+	dsPlane3d transformedPlane; // Transform requires a different result pointer.
+	dsMatrix44_transform(transformedPlane, *transform, *plane);
+	dsPlane3d_normalize(result, &transformedPlane);
 }
 
 #ifdef __cplusplus

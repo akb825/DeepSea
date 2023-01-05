@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Aaron Barany
+ * Copyright 2021-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@
 
 #include <gtest/gtest.h>
 
-class ShadowVolumeCullTest : public FixtureBase
+class ShadowCullVolumeTest : public FixtureBase
 {
 };
 
@@ -99,7 +99,7 @@ static bool hasCorner(const dsShadowCullVolume* volume, float x, float y, float 
 	return findCorner(volume, x, y, z) != notFound;
 }
 
-TEST_F(ShadowVolumeCullTest, DirectionalPerpendicular)
+TEST_F(ShadowCullVolumeTest, DirectionalPerpendicular)
 {
 	dsMatrix44f projection;
 	dsRenderer_makeFrustum(&projection, renderer, -2, 4, -3, 5, 1, 100);
@@ -133,7 +133,7 @@ TEST_F(ShadowVolumeCullTest, DirectionalPerpendicular)
 	EXPECT_TRUE(hasCorner(&volume, 400.0f, -300.0f, -100.0f, right, bottom, far));
 }
 
-TEST_F(ShadowVolumeCullTest, DirectionalOrthoPerpendicular)
+TEST_F(ShadowCullVolumeTest, DirectionalOrthoPerpendicular)
 {
 	dsMatrix44f projection;
 	dsRenderer_makeOrtho(&projection, renderer, -2, 4, -3, 5, 1, 100);
@@ -167,7 +167,7 @@ TEST_F(ShadowVolumeCullTest, DirectionalOrthoPerpendicular)
 	EXPECT_TRUE(hasCorner(&volume, 4.0f, -3.0f, -100.0f, right, bottom, far));
 }
 
-TEST_F(ShadowVolumeCullTest, DirectionalAngled)
+TEST_F(ShadowCullVolumeTest, DirectionalAngled)
 {
 	dsMatrix44f projection;
 	dsRenderer_makeFrustum(&projection, renderer, -0.5f, 0.7f, -0.9f, 1.1f, 1, 100);
@@ -205,7 +205,7 @@ TEST_F(ShadowVolumeCullTest, DirectionalAngled)
 	EXPECT_TRUE(hasCorner(&volume, 70.0f, 110.0f, -100.0f));
 }
 
-TEST_F(ShadowVolumeCullTest, SpotNonIntersecting)
+TEST_F(ShadowCullVolumeTest, SpotNonIntersecting)
 {
 	dsMatrix44f projection;
 	dsRenderer_makeOrtho(&projection, renderer, -2, 4, -3, 5, 1, 100);
@@ -232,7 +232,7 @@ TEST_F(ShadowVolumeCullTest, SpotNonIntersecting)
 	EXPECT_EQ(0U, volume.cornerCount);
 }
 
-TEST_F(ShadowVolumeCullTest, SpotIntersecting)
+TEST_F(ShadowCullVolumeTest, SpotIntersecting)
 {
 	dsMatrix44f projection;
 	dsRenderer_makeOrtho(&projection, renderer, -2, 4, -3, 5, 1, 100);
@@ -283,7 +283,7 @@ TEST_F(ShadowVolumeCullTest, SpotIntersecting)
 	EXPECT_EQ(lightCornerPlanes, volume.corners[lightPosCorner].planes);
 }
 
-TEST_F(ShadowVolumeCullTest, IntersectInside)
+TEST_F(ShadowCullVolumeTest, IntersectInside)
 {
 	dsMatrix44f projection;
 	dsRenderer_makeOrtho(&projection, renderer, -2, 4, -3, 5, 1, 100);
@@ -315,7 +315,7 @@ TEST_F(ShadowVolumeCullTest, IntersectInside)
 	EXPECT_TRUE(dsVector3_equal(expectedShadowProj.pointBounds.max, shadowProj.pointBounds.max));
 }
 
-TEST_F(ShadowVolumeCullTest, IntersectOutside)
+TEST_F(ShadowCullVolumeTest, IntersectOutside)
 {
 	dsMatrix44f projection;
 	dsRenderer_makeOrtho(&projection, renderer, -2, 4, -3, 5, 1, 100);
@@ -340,7 +340,7 @@ TEST_F(ShadowVolumeCullTest, IntersectOutside)
 	EXPECT_FALSE(dsAlignedBox3_isValid(shadowProj.pointBounds));
 }
 
-TEST_F(ShadowVolumeCullTest, IntersectClamp)
+TEST_F(ShadowCullVolumeTest, IntersectClamp)
 {
 	dsMatrix44f projection;
 	dsRenderer_makeOrtho(&projection, renderer, -2, 4, -3, 5, 1, 100);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Aaron Barany
+ * Copyright 2021-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,7 +61,7 @@ static double relaxedRayIntersection(const dsPlane3d* plane, const dsRay3d* ray,
 	if (fabs(denom) < epsilon2)
 		return DBL_MAX;
 
-	return (-dsVector3_dot(plane->n, ray->origin) + plane->d)/denom;
+	return -(dsVector3_dot(plane->n, ray->origin) + plane->d)/denom;
 }
 
 static bool getTRange(double* outMinT, uint32_t* outMinPlane, double* outMaxT,
@@ -451,7 +451,7 @@ bool dsShadowCullVolume_buildDirectional(dsShadowCullVolume* volume,
 		bool flip = fabs(dotFirst) > fabs(dotSecond) ? dotFirst < 0 : dotSecond < 0;
 		if (flip)
 			dsVector3_neg(boundaryPlane.n, boundaryPlane.n);
-		boundaryPlane.d = dsVector3_dot(boundaryPlane.n, line.origin);
+		boundaryPlane.d = -dsVector3_dot(boundaryPlane.n, line.origin);
 		addPlane(volume, planes, &boundaryPlane, baseEpsilon);
 	}
 
