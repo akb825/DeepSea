@@ -61,15 +61,14 @@ static void dsInstanceTransformData_populateDataSIMD(void* userData, const dsVie
 	for (uint32_t i = 0; i < instanceCount; ++i, data += stride)
 	{
 		const dsMatrix44f* world = &instances[i]->transform;
-		// The GPU memory can have some bad properties when accessing from the CPU, so first do
-		// all work on CPU memory and copy as one to the GPU buffer.
-		InstanceTransform transform;
-		transform.world = *world;
-		dsMatrix44f_affineMulSIMD(&transform.worldView, &view->viewMatrix, world);
-		dsMatrix44f_inverseTransposeSIMD(transform.worldViewInvTrans, &transform.worldView);
-		dsMatrix44f_mulSIMD(&transform.worldViewProj, &view->projectionMatrix,
-			&transform.worldView);
-		*(InstanceTransform*)(data) = transform;
+		InstanceTransform* transform = (InstanceTransform*)(data);
+		transform->world = *world;
+		// Store intermeidate on the stack to avoid reading back from GPU memory.
+		dsMatrix44f worldView;
+		dsMatrix44f_affineMulSIMD(&worldView, &view->viewMatrix, world);
+		transform->worldView = worldView;
+		dsMatrix44f_inverseTransposeSIMD(transform->worldViewInvTrans, &worldView);
+		dsMatrix44f_mulSIMD(&transform->worldViewProj, &view->projectionMatrix, &worldView);
 	}
 
 	DS_PROFILE_FUNC_RETURN_VOID();
@@ -89,15 +88,14 @@ static void dsInstanceTransformData_populateDataFMA(void* userData, const dsView
 	for (uint32_t i = 0; i < instanceCount; ++i, data += stride)
 	{
 		const dsMatrix44f* world = &instances[i]->transform;
-		// The GPU memory can have some bad properties when accessing from the CPU, so first do
-		// all work on CPU memory and copy as one to the GPU buffer.
-		InstanceTransform transform;
-		transform.world = *world;
-		dsMatrix44f_affineMulFMA(&transform.worldView, &view->viewMatrix, world);
-		dsMatrix44f_inverseTransposeFMA(transform.worldViewInvTrans, &transform.worldView);
-		dsMatrix44f_mulFMA(&transform.worldViewProj, &view->projectionMatrix,
-			&transform.worldView);
-		*(InstanceTransform*)(data) = transform;
+		InstanceTransform* transform = (InstanceTransform*)(data);
+		transform->world = *world;
+		// Store intermeidate on the stack to avoid reading back from GPU memory.
+		dsMatrix44f worldView;
+		dsMatrix44f_affineMulFMA(&worldView, &view->viewMatrix, world);
+		transform->worldView = worldView;
+		dsMatrix44f_inverseTransposeFMA(transform->worldViewInvTrans, &worldView);
+		dsMatrix44f_mulFMA(&transform->worldViewProj, &view->projectionMatrix, &worldView);
 	}
 
 	DS_PROFILE_FUNC_RETURN_VOID();
@@ -117,23 +115,22 @@ static void dsInstanceTransformData_populateData(void* userData, const dsView* v
 	for (uint32_t i = 0; i < instanceCount; ++i, data += stride)
 	{
 		const dsMatrix44f* world = &instances[i]->transform;
-		// The GPU memory can have some bad properties when accessing from the CPU, so first do
-		// all work on CPU memory and copy as one to the GPU buffer.
-		InstanceTransform transform;
-		transform.world = *world;
-		dsMatrix44f_affineMul(&transform.worldView, &view->viewMatrix, world);
+		InstanceTransform* transform = (InstanceTransform*)(data);
+		transform->world = *world;
+		// Store intermeidate on the stack to avoid reading back from GPU memory.
+		dsMatrix44f worldView;
+		dsMatrix44f_affineMul(&worldView, &view->viewMatrix, world);
+		transform->worldView = worldView;
 
 		dsMatrix33f worldViewInvTrans;
-		dsMatrix44f_inverseTranspose(&worldViewInvTrans, &transform.worldView);
+		dsMatrix44f_inverseTranspose(&worldViewInvTrans, &worldView);
 		for (unsigned int i = 0; i < 3; ++i)
 		{
-			*(dsVector3f*)(transform.worldViewInvTrans + i) = worldViewInvTrans.columns[i];
-			transform.worldViewInvTrans[i].w = 0;
+			*(dsVector3f*)(transform->worldViewInvTrans + i) = worldViewInvTrans.columns[i];
+			transform->worldViewInvTrans[i].w = 0;
 		}
 
-		dsMatrix44f_mul(&transform.worldViewProj, &view->projectionMatrix,
-			&transform.worldView);
-		*(InstanceTransform*)(data) = transform;
+		dsMatrix44f_mul(&transform->worldViewProj, &view->projectionMatrix, &worldView);
 	}
 
 	DS_PROFILE_FUNC_RETURN_VOID();

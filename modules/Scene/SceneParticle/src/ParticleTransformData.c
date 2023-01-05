@@ -72,19 +72,20 @@ static void dsParticleTransformData_populateDataSIMD(void* userData, const dsVie
 	{
 		const dsParticleEmitter* emitter =
 			dsSceneParticleNode_getEmitterForInstance(instances[i]);
-		// The GPU memory can have some bad properties when accessing from the CPU, so first do
-		// all work on CPU memory and copy as one to the GPU buffer.
-		ParticleTransform transform;
+		ParticleTransform* transform = (ParticleTransform*)(data);
+		// Store intermeidates on the stack to avoid reading back from GPU memory.
+		dsMatrix44f world;
+		dsMatrix44f worldView;
 		if (emitter)
-			transform.world = emitter->transform;
+			world = emitter->transform;
 		else
-			dsMatrix44_identity(transform.world);
-		dsMatrix44f_affineMulSIMD(&transform.worldView, &view->viewMatrix, &transform.world);
-		dsMatrix44f_affineInvert33SIMD(transform.localWorldOrientation, &transform.world);
-		dsMatrix44f_affineInvert33SIMD(transform.localViewOrientation, &transform.worldView);
-		dsMatrix44f_mulSIMD(&transform.worldViewProj, &view->projectionMatrix,
-			&transform.worldView);
-		*(ParticleTransform*)(data) = transform;
+			dsMatrix44_identity(world);
+		transform->world = world;
+		dsMatrix44f_affineMulSIMD(&worldView, &view->viewMatrix, &world);
+		transform->worldView = worldView;
+		dsMatrix44f_affineInvert33SIMD(transform->localWorldOrientation, &world);
+		dsMatrix44f_affineInvert33SIMD(transform->localViewOrientation, &worldView);
+		dsMatrix44f_mulSIMD(&transform->worldViewProj, &view->projectionMatrix, &worldView);
 	}
 
 	DS_PROFILE_FUNC_RETURN_VOID();
@@ -105,19 +106,20 @@ static void dsParticleTransformData_populateDataFMA(void* userData, const dsView
 	{
 		const dsParticleEmitter* emitter =
 			dsSceneParticleNode_getEmitterForInstance(instances[i]);
-		// The GPU memory can have some bad properties when accessing from the CPU, so first do
-		// all work on CPU memory and copy as one to the GPU buffer.
-		ParticleTransform transform;
+		ParticleTransform* transform = (ParticleTransform*)(data);
+		// Store intermeidates on the stack to avoid reading back from GPU memory.
+		dsMatrix44f world;
+		dsMatrix44f worldView;
 		if (emitter)
-			transform.world = emitter->transform;
+			world = emitter->transform;
 		else
-			dsMatrix44_identity(transform.world);
-		dsMatrix44f_affineMulFMA(&transform.worldView, &view->viewMatrix, &transform.world);
-		dsMatrix44f_affineInvert33FMA(transform.localWorldOrientation, &transform.world);
-		dsMatrix44f_affineInvert33FMA(transform.localViewOrientation, &transform.worldView);
-		dsMatrix44f_mulSIMD(&transform.worldViewProj, &view->projectionMatrix,
-			&transform.worldView);
-		*(ParticleTransform*)(data) = transform;
+			dsMatrix44_identity(world);
+		transform->world = world;
+		dsMatrix44f_affineMulFMA(&worldView, &view->viewMatrix, &world);
+		transform->worldView = worldView;
+		dsMatrix44f_affineInvert33FMA(transform->localWorldOrientation, &world);
+		dsMatrix44f_affineInvert33FMA(transform->localViewOrientation, &worldView);
+		dsMatrix44f_mulSIMD(&transform->worldViewProj, &view->projectionMatrix, &worldView);
 	}
 
 	DS_PROFILE_FUNC_RETURN_VOID();
@@ -138,26 +140,27 @@ static void dsParticleTransformData_populateData(void* userData, const dsView* v
 	{
 		const dsParticleEmitter* emitter =
 			dsSceneParticleNode_getEmitterForInstance(instances[i]);
-		// The GPU memory can have some bad properties when accessing from the CPU, so first do
-		// all work on CPU memory and copy as one to the GPU buffer.
-		ParticleTransform transform;
+		ParticleTransform* transform = (ParticleTransform*)(data);
+		// Store intermeidates on the stack to avoid reading back from GPU memory.
+		dsMatrix44f world;
+		dsMatrix44f worldView;
 		if (emitter)
-			transform.world = emitter->transform;
+			world = emitter->transform;
 		else
-			dsMatrix44_identity(transform.world);
-		dsMatrix44f_affineMul(&transform.worldView, &view->viewMatrix, &transform.world);
+			dsMatrix44_identity(world);
+		transform->world = world;
+		dsMatrix44f_affineMul(&worldView, &view->viewMatrix, &world);
+		transform->worldView = worldView;
 
 		dsMatrix33f tempMatrix33Inv;
-		dsMatrix44f_affineInvert33(&tempMatrix33Inv, &transform.world);
-		toMatrix33Vectors(transform.localWorldOrientation, &tempMatrix33Inv);
+		dsMatrix44f_affineInvert33(&tempMatrix33Inv, &world);
+		toMatrix33Vectors(transform->localWorldOrientation, &tempMatrix33Inv);
 
-		dsMatrix44f_affineInvert33(&tempMatrix33Inv, &transform.worldView);
-		toMatrix33Vectors(transform.localViewOrientation, &tempMatrix33Inv);
+		dsMatrix44f_affineInvert33(&tempMatrix33Inv, &worldView);
+		toMatrix33Vectors(transform->localViewOrientation, &tempMatrix33Inv);
 
-		dsMatrix44f_mul(&transform.worldViewProj, &view->projectionMatrix,
-			&transform.worldView);
-
-		*(ParticleTransform*)(data) = transform;
+		dsMatrix44f_mul(&transform->worldViewProj, &view->projectionMatrix,
+			&transform->worldView);
 	}
 
 	DS_PROFILE_FUNC_RETURN_VOID();
