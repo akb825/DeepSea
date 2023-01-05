@@ -20,6 +20,7 @@
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
+#include <DeepSea/Scene/Flatbuffers/SceneFlatbufferHelpers.h>
 #include <DeepSea/Scene/Nodes/SceneNode.h>
 #include <DeepSea/Scene/Types.h>
 
@@ -51,7 +52,7 @@ dsSceneNode* dsSceneTransformNode_load(const dsSceneLoadContext* loadContext,
 	const DeepSeaScene::Matrix44f* fbTransform = fbTransformNode->transform();
 	dsMatrix44f transform;
 	if (fbTransform)
-		std::memcpy(&transform, fbTransform, sizeof(dsMatrix44f));
+		transform = DeepSeaScene::convert(*fbTransform);
 	auto node = reinterpret_cast<dsSceneNode*>(dsSceneTransformNode_create(allocator,
 		fbTransform ? &transform : nullptr));
 	if (!node)

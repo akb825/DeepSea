@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Aaron Barany
+ * Copyright 2019-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@
 #include <DeepSea/Core/Streams/Types.h>
 #include <DeepSea/Scene/Export.h>
 #include <DeepSea/Scene/Types.h>
+#include <cstring>
 
 #if DS_GCC || DS_CLANG
 #pragma GCC diagnostic push
@@ -133,9 +134,11 @@ inline const dsVector3f& convert(const Vector3f& vector)
  * @param vector The vector to convert.
  * @return The converted vector.
  */
-inline const dsVector4f& convert(const Vector4f& vector)
+inline dsVector4f convert(const Vector4f& vector)
 {
-	return reinterpret_cast<const dsVector4f&>(vector);
+	// Avoid unaligned access.
+	dsVector4f value = {{vector.x(), vector.y(), vector.z(), vector.z()}};
+	return value;
 }
 
 /**
@@ -153,9 +156,11 @@ inline const dsColor3f& convert(const Color3f& color)
  * @param color The color to convert.
  * @return The converted color.
  */
-inline const dsColor4f& convert(const Color4f& color)
+inline dsColor4f convert(const Color4f& color)
 {
-	return reinterpret_cast<const dsColor4f&>(color);
+	// Avoid unaligned access.
+	dsColor4f value = {{color.red(), color.green(), color.blue(), color.alpha()}};
+	return value;
 }
 
 /**
@@ -183,9 +188,12 @@ inline const dsMatrix33f& convert(const Matrix33f& matrix)
  * @param matrix The matrix to convert.
  * @return The converted matrix.
  */
-inline const dsMatrix44f& convert(const Matrix44f& matrix)
+inline dsMatrix44f convert(const Matrix44f& matrix)
 {
-	return reinterpret_cast<const dsMatrix44f&>(matrix);
+	// Avoid unaligned access.
+	dsMatrix44f value;
+	std::memcpy(&value, &matrix, sizeof(dsMatrix44f));
+	return value;
 }
 
 /**
