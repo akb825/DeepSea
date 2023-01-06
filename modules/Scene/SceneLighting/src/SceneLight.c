@@ -285,8 +285,8 @@ bool dsSceneLight_makeSpot(dsSceneLight* outLight, const dsVector3f* position,
 
 float dsSceneLight_getFalloff(const dsSceneLight* light, const dsVector3f* position)
 {
-	if (!light || !position)
-		return 0;
+	DS_ASSERT(light);
+	DS_ASSERT(position);
 
 	if (light->type == dsSceneLightType_Directional)
 		return 1.0f;
@@ -320,9 +320,8 @@ float dsSceneLight_getFalloff(const dsSceneLight* light, const dsVector3f* posit
 
 float dsSceneLight_getIntensity(const dsSceneLight* light, const dsVector3f* position)
 {
-	if (!light || !position)
-		return 0.0f;
-
+	DS_ASSERT(light);
+	DS_ASSERT(position);
 	return dsSceneLight_getFalloff(light, position)*getLightIntensity(light);
 }
 

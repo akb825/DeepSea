@@ -121,6 +121,8 @@ static void dsInstanceForwardLightData_populateData(void* userData, const dsView
 	for (uint32_t i = 0; i < instanceCount; ++i, data += stride)
 	{
 		const dsMatrix44f* transform = &instances[i]->transform;
+		// Make sure any unset lights are 0 initialized.
+		memset(data, 0, stride);
 		dsVector4f* positionAndType = (dsVector4f*)(data + positionAndTypeOffset);
 		dsVector4f* directionAndLinearFalloff =
 			(dsVector4f*)(data + directionAndLinearFalloffOffset);
@@ -161,18 +163,6 @@ static void dsInstanceForwardLightData_populateData(void* userData, const dsView
 
 		*(dsColor3f*)ambientColorHasMain = ambient;
 		ambientColorHasMain->a = hasMainLight;
-
-		// Unset lights can be zero-initialized.
-		uint32_t unsetCount = lightCount - brightestLightCount;
-		if (unsetCount > 0)
-		{
-			memset(positionAndType + brightestLightCount, 0, sizeof(*positionAndType)*unsetCount);
-			memset(directionAndLinearFalloff + brightestLightCount, 0,
-				sizeof(*directionAndLinearFalloff)*unsetCount);
-			memset(colorAndQuadraticFalloff + brightestLightCount, 0,
-				sizeof(*colorAndQuadraticFalloff)*unsetCount);
-			memset(spotCosAngles + brightestLightCount, 0, sizeof(*spotCosAngles)*unsetCount);
-		}
 	}
 
 	DS_PROFILE_FUNC_RETURN_VOID();
