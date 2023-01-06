@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -70,6 +70,35 @@ extern "C"
 	} while (0)
 
 /**
+ * @brief Converts the oriented box to a matrix representation.
+ *
+ * The matrix will convert (-1, -1, -1) to the min point and (1, 1, 1) to the max point.
+ *
+ * @param[out] result The matrix.
+ * @param box The box to convert.
+ */
+#define dsOrientedBox3_toMatrix(result, box) \
+	do \
+	{ \
+		(result).values[0][0] = (box).orientation.values[0][0]*(box).halfExtents.x; \
+		(result).values[0][1] = (box).orientation.values[0][1]*(box).halfExtents.x; \
+		(result).values[0][2] = (box).orientation.values[0][2]*(box).halfExtents.x; \
+		(result).values[0][3] = 0; \
+		(result).values[1][0] = (box).orientation.values[1][0]*(box).halfExtents.y; \
+		(result).values[1][1] = (box).orientation.values[1][1]*(box).halfExtents.y; \
+		(result).values[1][2] = (box).orientation.values[1][2]*(box).halfExtents.y; \
+		(result).values[1][3] = 0; \
+		(result).values[2][0] = (box).orientation.values[2][0]*(box).halfExtents.z; \
+		(result).values[2][1] = (box).orientation.values[2][1]*(box).halfExtents.z; \
+		(result).values[2][2] = (box).orientation.values[2][2]*(box).halfExtents.z; \
+		(result).values[2][3] = 0; \
+		(result).values[3][0] = (box).center.x; \
+		(result).values[3][1] = (box).center.y; \
+		(result).values[3][2] = (box).center.z; \
+		(result).values[3][3] = 1; \
+	} while (0)
+
+/**
  * @brief Makes an invalid box.
  *
  * This will set the extents to -1.
@@ -83,6 +112,18 @@ extern "C"
 		(result).halfExtents.y = -1; \
 		(result).halfExtents.z = -1; \
 	} while (0)
+
+/**
+ * @brief Creates an oriented box from a matrix representation.
+ * @param[out] result The oriented box.
+ * @param matrix The matrix representation.
+ */
+DS_GEOMETRY_EXPORT void dsOrientedBox3f_fromMatrix(dsOrientedBox3f* result,
+	const dsMatrix44f* matrix);
+
+/** @copydoc dsOrientedBox3f_fromMatrix() */
+DS_GEOMETRY_EXPORT void dsOrientedBox3d_fromMatrix(dsOrientedBox3d* result,
+	const dsMatrix44d* matrix);
 
 /**
  * @brief Transforms an oriented box.
@@ -214,6 +255,24 @@ DS_GEOMETRY_EXPORT inline bool dsOrientedBox3d_isValid(const dsOrientedBox3d* bo
 {
 	DS_ASSERT(box);
 	return dsOrientedBox3_isValid(*box);
+}
+
+/** @copydoc dsOrientedBox3_toMatrix() */
+DS_GEOMETRY_EXPORT inline void dsOrientedBox3f_toMatrix(dsMatrix44f* result,
+	const dsOrientedBox3f* box)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(box);
+	dsOrientedBox3_toMatrix(*result, *box);
+}
+
+/** @copydoc dsOrientedBox3_toMatrix() */
+DS_GEOMETRY_EXPORT inline void dsOrientedBox3d_toMatrix(dsMatrix44d* result,
+	const dsOrientedBox3d* box)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(box);
+	dsOrientedBox3_toMatrix(*result, *box);
 }
 
 /** @copydoc dsOrientedBox3_fromAlignedBox() */

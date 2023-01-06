@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -70,6 +70,28 @@ extern "C"
 	} while (0)
 
 /**
+ * @brief Converts the oriented box to a matrix representation.
+ *
+ * The matrix will convert (-1, -1) to the min point and (1, 1) to the max point.
+ *
+ * @param[out] result The matrix.
+ * @param box The box to convert.
+ */
+#define dsOrientedBox2_toMatrix(result, box) \
+	do \
+	{ \
+		(result).values[0][0] = (box).orientation.values[0][0]*(box).halfExtents.x; \
+		(result).values[0][1] = (box).orientation.values[0][1]*(box).halfExtents.x; \
+		(result).values[0][2] = 0; \
+		(result).values[1][0] = (box).orientation.values[1][0]*(box).halfExtents.y; \
+		(result).values[1][1] = (box).orientation.values[1][1]*(box).halfExtents.y; \
+		(result).values[1][2] = 0; \
+		(result).values[2][0] = (box).center.x; \
+		(result).values[2][1] = (box).center.y; \
+		(result).values[2][2] = 1; \
+	} while (0)
+
+/**
  * @brief Makes an invalid box.
  *
  * This will set the extents to -1.
@@ -82,6 +104,18 @@ extern "C"
 		(result).halfExtents.x = -1; \
 		(result).halfExtents.y = -1; \
 	} while (0)
+
+/**
+ * @brief Creates an oriented box from a matrix representation.
+ * @param[out] result The oriented box.
+ * @param matrix The matrix representation.
+ */
+DS_GEOMETRY_EXPORT void dsOrientedBox2f_fromMatrix(dsOrientedBox2f* result,
+	const dsMatrix33f* matrix);
+
+/** @copydoc dsOrientedBox2f_fromMatrix() */
+DS_GEOMETRY_EXPORT void dsOrientedBox2d_fromMatrix(dsOrientedBox2d* result,
+	const dsMatrix33d* matrix);
 
 /**
  * @brief Transforms an oriented box.
@@ -213,6 +247,24 @@ DS_GEOMETRY_EXPORT inline bool dsOrientedBox2d_isValid(const dsOrientedBox2d* bo
 {
 	DS_ASSERT(box);
 	return dsOrientedBox2_isValid(*box);
+}
+
+/** @copydoc dsOrientedBox2_toMatrix() */
+DS_GEOMETRY_EXPORT inline void dsOrientedBox2f_toMatrix(dsMatrix33f* result,
+	const dsOrientedBox2f* box)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(box);
+	dsOrientedBox2_toMatrix(*result, *box);
+}
+
+/** @copydoc dsOrientedBox2_toMatrix() */
+DS_GEOMETRY_EXPORT inline void dsOrientedBox2d_toMatrix(dsMatrix44d* result,
+	const dsOrientedBox2d* box)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(box);
+	dsOrientedBox2_toMatrix(*result, *box);
 }
 
 /** @copydoc dsOrientedBox2_fromAlignedBox() */

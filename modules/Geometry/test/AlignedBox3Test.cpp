@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 Aaron Barany
+ * Copyright 2016-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 
 #include <DeepSea/Geometry/AlignedBox3.h>
+#include <DeepSea/Math/Matrix44.h>
 #include <gtest/gtest.h>
 
 // Handle older versions of gtest.
@@ -30,6 +31,9 @@ struct AlignedBox3TypeSelector<float>
 {
 	typedef dsVector3f Vector3Type;
 	typedef dsAlignedBox3f AlignedBox3Type;
+	typedef dsMatrix44f Matrix44Type;
+	typedef dsVector4f Vector4Type;
+	static const float epsilon;
 };
 
 template <>
@@ -37,6 +41,9 @@ struct AlignedBox3TypeSelector<double>
 {
 	typedef dsVector3d Vector3Type;
 	typedef dsAlignedBox3d AlignedBox3Type;
+	typedef dsMatrix44d Matrix44Type;
+	typedef dsVector4d Vector4Type;
+	static const double epsilon;
 };
 
 template <>
@@ -46,6 +53,9 @@ struct AlignedBox3TypeSelector<int>
 	typedef dsAlignedBox3i AlignedBox3Type;
 };
 
+const float AlignedBox3TypeSelector<float>::epsilon = 1e-4f;
+const double AlignedBox3TypeSelector<double>::epsilon = 1e-13f;
+
 template <typename T>
 class AlignedBox3Test : public testing::Test
 {
@@ -53,6 +63,14 @@ class AlignedBox3Test : public testing::Test
 
 using AlignedBox3Types = testing::Types<float, double, int>;
 TYPED_TEST_SUITE(AlignedBox3Test, AlignedBox3Types);
+
+template <typename T>
+class AlignedBox3FloatTest : public testing::Test
+{
+};
+
+using AlignedBox3FloatTypes = testing::Types<float, double>;
+TYPED_TEST_SUITE(AlignedBox3FloatTest, AlignedBox3FloatTypes);
 
 inline void dsAlignedBox3_makeInvalid(dsAlignedBox3f* result)
 {
@@ -511,6 +529,32 @@ TYPED_TEST(AlignedBox3Test, Extents)
 	EXPECT_EQ((TypeParam)6, extents.z);
 }
 
+TYPED_TEST(AlignedBox3FloatTest, ToMatrix)
+{
+	typedef typename AlignedBox3TypeSelector<TypeParam>::AlignedBox3Type AlignedBox3Type;
+	typedef typename AlignedBox3TypeSelector<TypeParam>::Matrix44Type Matrix44Type;
+	typedef typename AlignedBox3TypeSelector<TypeParam>::Vector4Type Vector4Type;
+	TypeParam epsilon = AlignedBox3TypeSelector<TypeParam>::epsilon;
+
+	AlignedBox3Type box = {{{0, 1, 2}}, {{3, 4, 5}}};
+
+	Matrix44Type matrix;
+	dsAlignedBox3_toMatrix(matrix, box);
+
+	Vector4Type lowerLeft = {{-1, -1, -1, 1}};
+	Vector4Type boxPoint;
+	dsMatrix44_transform(boxPoint, matrix, lowerLeft);
+	EXPECT_NEAR(box.min.x, boxPoint.x, epsilon);
+	EXPECT_NEAR(box.min.y, boxPoint.y, epsilon);
+	EXPECT_NEAR(box.min.z, boxPoint.z, epsilon);
+
+	Vector4Type upperRight = {{1, 1, 1, 1}};
+	dsMatrix44_transform(boxPoint, matrix, upperRight);
+	EXPECT_NEAR(box.max.x, boxPoint.x, epsilon);
+	EXPECT_NEAR(box.max.y, boxPoint.y, epsilon);
+	EXPECT_NEAR(box.max.z, boxPoint.z, epsilon);
+}
+
 TYPED_TEST(AlignedBox3Test, Corners)
 {
 	typedef typename AlignedBox3TypeSelector<TypeParam>::AlignedBox3Type AlignedBox3Type;
@@ -678,7 +722,7 @@ TYPED_TEST(AlignedBox3Test, Dist)
 	EXPECT_FLOAT_EQ(3.0f, (float)dsAlignedBox3_dist(&box, &point7));
 }
 
-TEST(AlignedBox3, ConvertFloatToDouble)
+TEST(AlignedBox3Test, ConvertFloatToDouble)
 {
 	dsAlignedBox3f boxf = {{{0, 1, 2}}, {{3, 4, 5}}};
 
@@ -694,7 +738,7 @@ TEST(AlignedBox3, ConvertFloatToDouble)
 	EXPECT_FLOAT_EQ(boxf.max.z, (float)boxd.max.z);
 }
 
-TEST(AlignedBox3, ConvertDoubleToFloat)
+TEST(AlignedBox3Test, ConvertDoubleToFloat)
 {
 	dsAlignedBox3d boxd = {{{0, 1, 2}}, {{3, 4, 5}}};
 
@@ -710,7 +754,7 @@ TEST(AlignedBox3, ConvertDoubleToFloat)
 	EXPECT_FLOAT_EQ((float)boxd.max.z, boxf.max.z);
 }
 
-TEST(AlignedBox3, ConvertFloatToInt)
+TEST(AlignedBox3Test, ConvertFloatToInt)
 {
 	dsAlignedBox3f boxf = {{{0, 1, 3}}, {{4, 5, 6}}};
 
@@ -726,7 +770,7 @@ TEST(AlignedBox3, ConvertFloatToInt)
 	EXPECT_EQ(boxf.max.z, (float)boxi.max.z);
 }
 
-TEST(AlignedBox3, ConvertIntToFloat)
+TEST(AlignedBox3Test, ConvertIntToFloat)
 {
 	dsAlignedBox3i boxi = {{{0, 1, 3}}, {{4, 5, 6}}};
 
@@ -742,7 +786,7 @@ TEST(AlignedBox3, ConvertIntToFloat)
 	EXPECT_EQ(boxi.max.z, (int)boxf.max.z);
 }
 
-TEST(AlignedBox3, ConvertDoubleToInt)
+TEST(AlignedBox3Test, ConvertDoubleToInt)
 {
 	dsAlignedBox3d boxd = {{{0, 1, 3}}, {{4, 5, 6}}};
 
@@ -758,7 +802,7 @@ TEST(AlignedBox3, ConvertDoubleToInt)
 	EXPECT_EQ(boxd.max.z, boxi.max.z);
 }
 
-TEST(AlignedBox3, ConvertIntToDouble)
+TEST(AlignedBox3Test, ConvertIntToDouble)
 {
 	dsAlignedBox3i boxi = {{{0, 1, 3}}, {{4, 5, 6}}};
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 Aaron Barany
+ * Copyright 2016-2022 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,38 @@
 #include <DeepSea/Math/Vector2.h>
 #include <float.h>
 
+void dsOrientedBox2f_fromMatrix(dsOrientedBox2f* result, const dsMatrix33f* matrix)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(matrix);
+
+	result->halfExtents.x = dsVector2f_len((dsVector2f*)matrix->columns);
+	result->halfExtents.y = dsVector2f_len((dsVector2f*)(matrix->columns + 1));
+
+	float invLen = 1/result->halfExtents.x;
+	dsVector2_scale(result->orientation.columns[0], matrix->columns[0], invLen);
+	invLen = 1/result->halfExtents.y;
+	dsVector2_scale(result->orientation.columns[1], matrix->columns[1], invLen);
+
+	result->center = *(dsVector2f*)(matrix->columns + 2);
+}
+
+void dsOrientedBox2d_fromMatrix(dsOrientedBox2d* result, const dsMatrix33d* matrix)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(matrix);
+
+	result->halfExtents.x = dsVector2d_len((dsVector2d*)matrix->columns);
+	result->halfExtents.y = dsVector2d_len((dsVector2d*)(matrix->columns + 1));
+
+	double invLen = 1/result->halfExtents.x;
+	dsVector2_scale(result->orientation.columns[0], matrix->columns[0], invLen);
+	invLen = 1/result->halfExtents.y;
+	dsVector2_scale(result->orientation.columns[1], matrix->columns[1], invLen);
+
+	result->center = *(dsVector2d*)(matrix->columns + 2);
+}
+
 bool dsOrientedBox2f_transform(dsOrientedBox2f* box, const dsMatrix33f* transform)
 {
 	DS_ASSERT(box);
@@ -29,31 +61,10 @@ bool dsOrientedBox2f_transform(dsOrientedBox2f* box, const dsMatrix33f* transfor
 	if (!dsOrientedBox2_isValid(*box))
 		return false;
 
-	dsVector3f center = {{box->center.x, box->center.y, 1}};
-
-	dsMatrix22f newOrientation;
-	dsVector3f newCenter;
-
-	// Macro will work correctly for treating a 3x3 matrix as a 2x2 matrix.
-	dsMatrix22_mul(newOrientation, *transform, box->orientation);
-
-	// Extract scales to apply to the extent.
-	float scaleX = dsVector2f_len(&newOrientation.columns[0]);
-	float scaleY = dsVector2f_len(&newOrientation.columns[1]);
-
-	dsMatrix33_transform(newCenter, *transform, center);
-
-	float invScaleX = 1/scaleX;
-	float invScaleY = 1/scaleY;
-	dsVector2_scale(box->orientation.columns[0], newOrientation.columns[0], invScaleX);
-	dsVector2_scale(box->orientation.columns[1], newOrientation.columns[1], invScaleY);
-
-	box->center.x = newCenter.x;
-	box->center.y = newCenter.y;
-
-	box->halfExtents.x *= scaleX;
-	box->halfExtents.y *= scaleY;
-
+	dsMatrix33f matrix, transformedMatrix;
+	dsOrientedBox2_toMatrix(matrix, *box);
+	dsMatrix33_affineMul(transformedMatrix, *transform, matrix);
+	dsOrientedBox2f_fromMatrix(box, &transformedMatrix);
 	return true;
 }
 
@@ -65,31 +76,10 @@ bool dsOrientedBox2d_transform(dsOrientedBox2d* box, const dsMatrix33d* transfor
 	if (!dsOrientedBox2_isValid(*box))
 		return false;
 
-	dsVector3d center = {{box->center.x, box->center.y, 1}};
-
-	dsMatrix22d newOrientation;
-	dsVector3d newCenter;
-
-	// Macro will work correctly for treating a 3x3 matrix as a 2x2 matrix.
-	dsMatrix22_mul(newOrientation, *transform, box->orientation);
-
-	// Extract scales to apply to the extent.
-	double scaleX = dsVector2d_len(&newOrientation.columns[0]);
-	double scaleY = dsVector2d_len(&newOrientation.columns[1]);
-
-	dsMatrix33_transform(newCenter, *transform, center);
-
-	double invScaleX = 1/scaleX;
-	double invScaleY = 1/scaleY;
-	dsVector2_scale(box->orientation.columns[0], newOrientation.columns[0], invScaleX);
-	dsVector2_scale(box->orientation.columns[1], newOrientation.columns[1], invScaleY);
-
-	box->center.x = newCenter.x;
-	box->center.y = newCenter.y;
-
-	box->halfExtents.x *= scaleX;
-	box->halfExtents.y *= scaleY;
-
+	dsMatrix33d matrix, transformedMatrix;
+	dsOrientedBox2_toMatrix(matrix, *box);
+	dsMatrix33_affineMul(transformedMatrix, *transform, matrix);
+	dsOrientedBox2d_fromMatrix(box, &transformedMatrix);
 	return true;
 }
 
@@ -559,9 +549,9 @@ double dsOrientedBox2d_dist(const dsOrientedBox2d* box, const dsVector2d* point)
 
 bool dsOrientedBox2f_isValid(const dsOrientedBox2f* box);
 bool dsOrientedBox2d_isValid(const dsOrientedBox2d* box);
-
+void dsOrientedBox3f_toMatrix(dsMatrix33f* result, const dsOrientedBox2f* box);
+void dsOrientedBox3d_toMatrix(dsMatrix33d* result, const dsOrientedBox2d* box);
 void dsOrientedBox2f_fromAlignedBox(dsOrientedBox2f* result, const dsAlignedBox2f* alignedBox);
 void dsOrientedBox2d_fromAlignedBox(dsOrientedBox2d* result, const dsAlignedBox2d* alignedBox);
-
 void dsOrientedBox2f_makeInvalid(dsOrientedBox2f* result);
 void dsOrientedBox2d_makeInvalid(dsOrientedBox2d* result);

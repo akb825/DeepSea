@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 Aaron Barany
+ * Copyright 2016-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -151,6 +151,28 @@ extern "C"
 	{ \
 		(result).x = (box).max.x - (box).min.x; \
 		(result).y = (box).max.y - (box).min.y; \
+	} while (0)
+
+/**
+ * @brief Converts the oriented box to a matrix representation.
+ *
+ * The matrix will convert (-1, -1) to the min point and (1, 1) to the max point.
+ *
+ * @param[out] result The matrix.
+ * @param box The box to convert.
+ */
+#define dsAlignedBox2_toMatrix(result, box) \
+	do \
+	{ \
+		(result).values[0][0] = ((box).max.x - (box).min.x)/2; \
+		(result).values[0][1] = 0; \
+		(result).values[0][2] = 0; \
+		(result).values[1][0] = 0; \
+		(result).values[1][1] = ((box).max.y - (box).min.y)/2; \
+		(result).values[1][2] = 0; \
+		(result).values[2][0] = ((box).min.x + (box).max.x)/2; \
+		(result).values[2][1] = ((box).min.y + (box).max.y)/2; \
+		(result).values[2][2] = 1; \
 	} while (0)
 
 /**
@@ -477,6 +499,22 @@ DS_GEOMETRY_EXPORT inline void dsAlignedBox2i_extents(dsVector2i* result, const 
 	DS_ASSERT(result);
 	DS_ASSERT(box);
 	dsAlignedBox2_extents(*result, *box);
+}
+
+/** @copydoc dsAlignedBox2_toMatrix() */
+DS_GEOMETRY_EXPORT inline void dsAlignedBox2f_toMatrix(dsMatrix33f* result, dsAlignedBox2f* box)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(box);
+	dsAlignedBox2_toMatrix(*result, *box);
+}
+
+/** @copydoc dsAlignedBox2_toMatrix() */
+DS_GEOMETRY_EXPORT inline void dsAlignedBox2d_toMatrix(dsMatrix33d* result, dsAlignedBox2d* box)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(box);
+	dsAlignedBox2_toMatrix(*result, *box);
 }
 
 /** @copydoc dsAlignedBox2_corners() */

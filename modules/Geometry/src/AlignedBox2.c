@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -169,6 +169,9 @@ void dsAlignedBox2i_center(dsVector2i* result, const dsAlignedBox2i* box);
 void dsAlignedBox2f_extents(dsVector2f* result, const dsAlignedBox2f* box);
 void dsAlignedBox2d_extents(dsVector2d* result, const dsAlignedBox2d* box);
 void dsAlignedBox2i_extents(dsVector2i* result, const dsAlignedBox2i* box);
+
+void dsAlignedBox2f_toMatrix(dsMatrix33f* result, dsAlignedBox2f* box);
+void dsAlignedBox2d_toMatrix(dsMatrix33d* result, dsAlignedBox2d* box);
 
 void dsAlignedBox2f_corners(dsVector2f corners[DS_BOX2_CORNER_COUNT], const dsAlignedBox2f* box);
 void dsAlignedBox2d_corners(dsVector2d corners[DS_BOX2_CORNER_COUNT], const dsAlignedBox2d* box);

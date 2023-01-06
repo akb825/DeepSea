@@ -545,6 +545,8 @@ DS_MATH_EXPORT inline void dsMatrix44f_mul(dsMatrix44f* result, const dsMatrix44
 	DS_ASSERT(result);
 	DS_ASSERT(a);
 	DS_ASSERT(b);
+	DS_ASSERT(result != a);
+	DS_ASSERT(result != b);
 #if DS_SIMD_ALWAYS_FMA
 	dsMatrix44f_mulFMA(result, a, b);
 #elif DS_SIMD_ALWAYS_FLOAT4
@@ -571,6 +573,8 @@ DS_MATH_EXPORT inline void dsMatrix44f_affineMul(dsMatrix44f* result, const dsMa
 	DS_ASSERT(result);
 	DS_ASSERT(a);
 	DS_ASSERT(b);
+	DS_ASSERT(result != a);
+	DS_ASSERT(result != b);
 #if DS_SIMD_ALWAYS_FMA
 	dsMatrix44f_affineMulFMA(result, a, b);
 #elif DS_SIMD_ALWAYS_FLOAT4
@@ -614,7 +618,6 @@ DS_MATH_EXPORT inline void dsMatrix44d_transform(dsVector4d* result, const dsMat
 	DS_ASSERT(result);
 	DS_ASSERT(mat);
 	DS_ASSERT(vec);
-	DS_ASSERT(result != vec);
 	dsMatrix44_transform(*result, *mat, *vec);
 }
 
@@ -642,7 +645,6 @@ DS_MATH_EXPORT inline void dsMatrix44d_transformTransposed(dsVector4d* result,
 	DS_ASSERT(result);
 	DS_ASSERT(mat);
 	DS_ASSERT(vec);
-	DS_ASSERT(result != vec);
 	dsMatrix44_transformTransposed(*result, *mat, *vec);
 }
 

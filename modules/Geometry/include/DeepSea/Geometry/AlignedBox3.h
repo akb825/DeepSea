@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 Aaron Barany
+ * Copyright 2016-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -163,6 +163,35 @@ extern "C"
 		(result).x = (box).max.x - (box).min.x; \
 		(result).y = (box).max.y - (box).min.y; \
 		(result).z = (box).max.z - (box).min.z; \
+	} while (0)
+
+/**
+ * @brief Converts the oriented box to a matrix representation.
+ *
+ * The matrix will convert (-1, -1, -1) to the min point and (1, 1, 1) to the max point.
+ *
+ * @param[out] result The matrix.
+ * @param box The box to convert.
+ */
+#define dsAlignedBox3_toMatrix(result, box) \
+	do \
+	{ \
+		(result).values[0][0] = ((box).max.x - (box).min.x)/2; \
+		(result).values[0][1] = 0; \
+		(result).values[0][2] = 0; \
+		(result).values[0][3] = 0; \
+		(result).values[1][0] = 0; \
+		(result).values[1][1] = ((box).max.y - (box).min.y)/2; \
+		(result).values[1][2] = 0; \
+		(result).values[1][3] = 0; \
+		(result).values[2][0] = 0; \
+		(result).values[2][1] = 0; \
+		(result).values[2][2] = ((box).max.z - (box).min.z)/2; \
+		(result).values[2][3] = 0; \
+		(result).values[3][0] = ((box).min.x + (box).max.x)/2; \
+		(result).values[3][1] = ((box).min.y + (box).max.y)/2; \
+		(result).values[3][2] = ((box).min.z + (box).max.z)/2; \
+		(result).values[3][3] = 1; \
 	} while (0)
 
 /**
@@ -506,6 +535,22 @@ DS_GEOMETRY_EXPORT inline void dsAlignedBox3i_extents(dsVector3i* result, const 
 	DS_ASSERT(result);
 	DS_ASSERT(box);
 	dsAlignedBox3_extents(*result, *box);
+}
+
+/** @copydoc dsAlignedBox3_toMatrix() */
+DS_GEOMETRY_EXPORT inline void dsAlignedBox3f_toMatrix(dsMatrix44f* result, dsAlignedBox3f* box)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(box);
+	dsAlignedBox3_toMatrix(*result, *box);
+}
+
+/** @copydoc dsAlignedBox3_toMatrix() */
+DS_GEOMETRY_EXPORT inline void dsAlignedBox3d_toMatrix(dsMatrix44d* result, dsAlignedBox3d* box)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(box);
+	dsAlignedBox3_toMatrix(*result, *box);
 }
 
 /** @copydoc dsAlignedBox3_corners() */

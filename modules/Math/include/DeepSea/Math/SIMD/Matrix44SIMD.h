@@ -229,77 +229,67 @@ DS_SIMD_START_FLOAT4()
 		(elem0) = _mm_shuffle_ps(_temp0, (elem2), _MM_SHUFFLE(3, 0, 2, 0)); \
 		(elem1) = _mm_shuffle_ps(_temp0, (elem2), _MM_SHUFFLE(3, 1, 3, 1)); \
 		(elem2) = _mm_shuffle_ps(_temp1, (elem2), _MM_SHUFFLE(3, 2, 2, 0)); \
-	} \
-	while (0)
+	} while (0)
 
 #define DS_SIMD_SHUFFLE2_0202_1313(first, second, a, b) \
 	do \
 	{ \
 		(first) = _mm_shuffle_ps((a), (b), _MM_SHUFFLE(2, 0, 2, 0)); \
 		(second) = _mm_shuffle_ps((a), (b), _MM_SHUFFLE(3, 1, 3, 1)); \
-	} \
-	while (0)
+	} while (0)
 
 #define DS_SIMD_SHUFFLE2_0101_2323(first, second, a, b) \
 	do \
 	{ \
 		(first) = _mm_shuffle_ps((a), (b), _MM_SHUFFLE(1, 0, 1, 0)); \
 		(second) = _mm_shuffle_ps((a), (b), _MM_SHUFFLE(3, 2, 3, 2)); \
-	} \
-	while (0)
+	} while (0)
 
 #define DS_SIMD_SHUFFLE2_3131_2020(first, second, a, b) \
 	do \
 	{ \
 		(first) = _mm_shuffle_ps((a), (b), _MM_SHUFFLE(1, 3, 1, 3)); \
 		(second) = _mm_shuffle_ps((a), (b), _MM_SHUFFLE(0, 2, 0, 2)); \
-	} \
-	while (0)
+	} while (0)
 
 #define DS_SIMD_SHUFFLE1_3300_1122(first, second, a) \
 	do \
 	{ \
 		(first) = _mm_shuffle_ps((a), (a), _MM_SHUFFLE(0, 0, 3, 3)); \
 		(second) = _mm_shuffle_ps((a), (a), _MM_SHUFFLE(2, 2, 1, 1)); \
-	} \
-	while (0)
+	} while (0)
 
 #define DS_SIMD_SHUFFLE1_0303_2121(first, second, a) \
 	do \
 	{ \
 		(first) = _mm_shuffle_ps((a), (a), _MM_SHUFFLE(3, 0, 3, 0)); \
 		(second) = _mm_shuffle_ps((a), (a), _MM_SHUFFLE(1, 2, 1, 2)); \
-	} \
-	while (0)
+	} while (0)
 
 #define DS_SIMD_SHUFFLE1_3030_2121(first, second, a) \
 	do \
 	{ \
 		(first) = _mm_shuffle_ps((a), (a), _MM_SHUFFLE(0, 3, 0, 3)); \
 		(second) = _mm_shuffle_ps((a), (a), _MM_SHUFFLE(1, 2, 1, 2)); \
-	} \
-	while (0)
+	} while (0)
 
 #define DS_SIMD_SHUFFLE1_1032(result, a) \
 	do \
 	{ \
 		(result) = _mm_shuffle_ps((a), (a), _MM_SHUFFLE(2, 3, 0, 1)); \
-	} \
-	while (0)
+	} while (0)
 
 #define DS_SIMD_SHUFFLE1_2301(result, a) \
 	do \
 	{ \
 		(result) = _mm_shuffle_ps((a), (a), _MM_SHUFFLE(1, 0, 3, 2)); \
-	} \
-	while (0)
+	} while (0)
 
 #define DS_SIMD_SHUFFLE1_0213(result, a) \
 	do \
 	{ \
 		(result) = _mm_shuffle_ps((a), (a), _MM_SHUFFLE(3, 1, 2, 0)); \
-	} \
-	while (0)
+	} while (0)
 #elif DS_ARM_32 || DS_ARM_64
 #define DS_SIMD_TRANSPOSE_33(elem0, elem1, elem2) \
 	do \
@@ -310,8 +300,7 @@ DS_SIMD_START_FLOAT4()
 		(elem0) = vcombine_f32(vget_low_f32(_tmpAB.val[0]), vget_low_f32(_tmpCD.val[0])); \
 		(elem1) = vcombine_f32(vget_low_f32(_tmpAB.val[1]), vget_low_f32(_tmpCD.val[1])); \
 		(elem2) = vcombine_f32(vget_high_f32(_tmpAB.val[0]), vget_high_f32(_tmpCD.val[0])); \
-	} \
-	while (0)
+	} while (0)
 
 #define DS_SIMD_SHUFFLE2_0202_1313(first, second, a, b) \
 	do \
@@ -324,8 +313,7 @@ DS_SIMD_START_FLOAT4()
 			vcombine_f32(_highA, _highB)); \
 		(first) = _evenOdd.val[0]; \
 		(second) = _evenOdd.val[1]; \
-	} \
-	while (0)
+	} while (0)
 
 #define DS_SIMD_SHUFFLE2_0101_2323(first, second, a, b) \
 	do \
@@ -336,8 +324,7 @@ DS_SIMD_START_FLOAT4()
 		float32x2_t _highB = vget_high_f32((b)); \
 		(first) = vcombine_f32(_lowA, _lowB); \
 		(second) = vcombine_f32(_highA, _highB); \
-	} \
-	while (0)
+	} while (0)
 
 #define DS_SIMD_SHUFFLE2_3131_2020(first, second, a, b) \
 	do \
@@ -350,8 +337,7 @@ DS_SIMD_START_FLOAT4()
 			vcombine_f32(_highA, _highB)); \
 		(first) = vrev64q_f32(_evenOdd.val[1]); \
 		(second) = vrev64q_f32(_evenOdd.val[0]); \
-	} \
-	while (0)
+	} while (0)
 
 #define DS_SIMD_SHUFFLE1_3300_1122(first, second, a) \
 	do \
@@ -359,8 +345,7 @@ DS_SIMD_START_FLOAT4()
 		float32x4x2_t _zipped = vzipq_f32((a), (a)); \
 		(first) = vextq_f32(_zipped.val[1], _zipped.val[0], 2); \
 		(second) = vextq_f32(_zipped.val[0], _zipped.val[1], 2); \
-	} \
-	while (0)
+	} while (0)
 
 #define DS_SIMD_SHUFFLE1_0303_2121(first, second, a) \
 	do \
@@ -370,8 +355,7 @@ DS_SIMD_START_FLOAT4()
 		float32x2_t _a21 = vget_high_f32(_a0321); \
 		(first) = vcombine_f32(_a03, _a03); \
 		(second) = vcombine_f32(_a21, _a21); \
-	} \
-	while (0)
+	} while (0)
 
 #define DS_SIMD_SHUFFLE1_3030_2121(first, second, a) \
 	do \
@@ -381,22 +365,19 @@ DS_SIMD_START_FLOAT4()
 		float32x2_t _a21 = vrev64_f32(vget_high_f32(_a3021)); \
 		(first) = vcombine_f32(_a30, _a30); \
 		(second) = vcombine_f32(_a21, _a21); \
-	} \
-	while (0)
+	} while (0)
 
 #define DS_SIMD_SHUFFLE1_1032(result, a) \
 	do \
 	{ \
 		(result) = vrev64q_f32((a)); \
-	} \
-	while (0)
+	} while (0)
 
 #define DS_SIMD_SHUFFLE1_2301(result, a) \
 	do \
 	{ \
 		(result) = vextq_f32((a), (a), 2); \
-	} \
-	while (0)
+	} while (0)
 
 #define DS_SIMD_SHUFFLE1_0213(result, a) \
 	do \
@@ -405,8 +386,7 @@ DS_SIMD_START_FLOAT4()
 		float32x2_t _high = vget_high_f32((a)); \
 		float32x2x2_t _transposed = vtrn_f32(_low, _high); \
 		result = vcombine_f32(_transposed.val[0], _transposed.val[1]); \
-	} \
-	while (0)
+	} while (0)
 #else
 #error Special matrix operations not implemented for this platform.
 #endif

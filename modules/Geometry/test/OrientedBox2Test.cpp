@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,6 +58,16 @@ class OrientedBox2Test : public testing::Test
 
 using OrientedBox2Types = testing::Types<float, double>;
 TYPED_TEST_SUITE(OrientedBox2Test, OrientedBox2Types);
+
+inline void dsOrientedBox2_fromMatrix(dsOrientedBox2f* result, const dsMatrix33f* matrix)
+{
+	return dsOrientedBox2f_fromMatrix(result, matrix);
+}
+
+inline void dsOrientedBox2_fromMatrix(dsOrientedBox2d* result, const dsMatrix33d* matrix)
+{
+	return dsOrientedBox2d_fromMatrix(result, matrix);
+}
 
 inline bool dsOrientedBox2_transform(dsOrientedBox2f* box, const dsMatrix33f* transform)
 {
@@ -340,6 +350,49 @@ TYPED_TEST(OrientedBox2Test, Corners)
 
 	EXPECT_NEAR(3, corners[3].x, epsilon);
 	EXPECT_NEAR(5, corners[3].y, epsilon);
+}
+
+TYPED_TEST(OrientedBox2Test, ToMatrix)
+{
+	typedef typename OrientedBox2TypeSelector<TypeParam>::OrientedBox2Type OrientedBox2Type;
+	typedef typename OrientedBox2TypeSelector<TypeParam>::Matrix33Type Matrix33Type;
+	typedef typename OrientedBox2TypeSelector<TypeParam>::Vector3Type Vector3Type;
+	typedef typename OrientedBox2TypeSelector<TypeParam>::Vector2Type Vector2Type;
+	TypeParam epsilon = OrientedBox2TypeSelector<TypeParam>::epsilon;
+
+	OrientedBox2Type box =
+	{
+		{{ {0, 1}, {-1, 0} }},
+		{{4, 3}}, {{2, 1}}
+	};
+
+	Vector2Type corners[DS_BOX2_CORNER_COUNT];
+	EXPECT_TRUE(dsOrientedBox2_corners(corners, &box));
+
+	Matrix33Type matrix;
+	dsOrientedBox2_toMatrix(matrix, box);
+
+	Vector3Type lowerLeft = {{-1, -1, 1}};
+	Vector3Type boxPoint;
+	dsMatrix33_transform(boxPoint, matrix, lowerLeft);
+	EXPECT_NEAR(corners[dsBox2Corner_xy].x, boxPoint.x, epsilon);
+	EXPECT_NEAR(corners[dsBox2Corner_xy].y, boxPoint.y, epsilon);
+
+	Vector3Type upperRight = {{1, 1, 1}};
+	dsMatrix33_transform(boxPoint, matrix, upperRight);
+	EXPECT_NEAR(corners[dsBox2Corner_XY].x, boxPoint.x, epsilon);
+	EXPECT_NEAR(corners[dsBox2Corner_XY].y, boxPoint.y, epsilon);
+
+	OrientedBox2Type restoredBox;
+	dsOrientedBox2_fromMatrix(&restoredBox, &matrix);
+	EXPECT_NEAR(restoredBox.orientation.values[0][0], box.orientation.values[0][0], epsilon);
+	EXPECT_NEAR(restoredBox.orientation.values[0][1], box.orientation.values[0][1], epsilon);
+	EXPECT_NEAR(restoredBox.orientation.values[1][0], box.orientation.values[1][0], epsilon);
+	EXPECT_NEAR(restoredBox.orientation.values[1][1], box.orientation.values[1][1], epsilon);
+	EXPECT_NEAR(restoredBox.center.x, box.center.x, epsilon);
+	EXPECT_NEAR(restoredBox.center.y, box.center.y, epsilon);
+	EXPECT_NEAR(restoredBox.halfExtents.x, box.halfExtents.x, epsilon);
+	EXPECT_NEAR(restoredBox.halfExtents.y, box.halfExtents.y, epsilon);
 }
 
 TYPED_TEST(OrientedBox2Test, Transform)
@@ -681,7 +734,7 @@ TYPED_TEST(OrientedBox2Test, Dist)
 	EXPECT_FLOAT_EQ(2.0f, (float)dsOrientedBox2_dist(&box, &point5));
 }
 
-TEST(OrientedBox2, ConvertFloatToDouble)
+TEST(OrientedBox2Test, ConvertFloatToDouble)
 {
 	dsOrientedBox2f boxf =
 	{
@@ -704,7 +757,7 @@ TEST(OrientedBox2, ConvertFloatToDouble)
 	EXPECT_FLOAT_EQ(boxf.halfExtents.y, (float)boxd.halfExtents.y);
 }
 
-TEST(OrientedBox2, ConvertDoubleToFloat)
+TEST(OrientedBox2Test, ConvertDoubleToFloat)
 {
 	dsOrientedBox2d boxd =
 	{

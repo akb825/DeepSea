@@ -21,6 +21,44 @@
 #include <DeepSea/Math/Vector3.h>
 #include <float.h>
 
+void dsOrientedBox3f_fromMatrix(dsOrientedBox3f* result, const dsMatrix44f* matrix)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(matrix);
+
+	result->halfExtents.x = dsVector3f_len((dsVector3f*)matrix->columns);
+	result->halfExtents.y = dsVector3f_len((dsVector3f*)(matrix->columns + 1));
+	result->halfExtents.z = dsVector3f_len((dsVector3f*)(matrix->columns + 2));
+
+	float invLen = 1/result->halfExtents.x;
+	dsVector3_scale(result->orientation.columns[0], matrix->columns[0], invLen);
+	invLen = 1/result->halfExtents.y;
+	dsVector3_scale(result->orientation.columns[1], matrix->columns[1], invLen);
+	invLen = 1/result->halfExtents.z;
+	dsVector3_scale(result->orientation.columns[2], matrix->columns[2], invLen);
+
+	result->center = *(dsVector3f*)(matrix->columns + 3);
+}
+
+void dsOrientedBox3d_fromMatrix(dsOrientedBox3d* result, const dsMatrix44d* matrix)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(matrix);
+
+	result->halfExtents.x = dsVector3d_len((dsVector3d*)matrix->columns);
+	result->halfExtents.y = dsVector3d_len((dsVector3d*)(matrix->columns + 1));
+	result->halfExtents.z = dsVector3d_len((dsVector3d*)(matrix->columns + 2));
+
+	double invLen = 1/result->halfExtents.x;
+	dsVector3_scale(result->orientation.columns[0], matrix->columns[0], invLen);
+	invLen = 1/result->halfExtents.y;
+	dsVector3_scale(result->orientation.columns[1], matrix->columns[1], invLen);
+	invLen = 1/result->halfExtents.z;
+	dsVector3_scale(result->orientation.columns[2], matrix->columns[2], invLen);
+
+	result->center = *(dsVector3d*)(matrix->columns + 3);
+}
+
 bool dsOrientedBox3f_transform(dsOrientedBox3f* box, const dsMatrix44f* transform)
 {
 	DS_ASSERT(box);
@@ -29,36 +67,10 @@ bool dsOrientedBox3f_transform(dsOrientedBox3f* box, const dsMatrix44f* transfor
 	if (!dsOrientedBox3_isValid(*box))
 		return false;
 
-	dsVector4f center = {{box->center.x, box->center.y, box->center.z, 1}};
-
-	dsMatrix33f newOrientation;
-	dsVector4f newCenter;
-
-	// Macro will work correctly for treating a 4x4 matrix as a 3x3 matrix.
-	dsMatrix33_mul(newOrientation, *transform, box->orientation);
-
-	// Extract scales to apply to the extent.
-	float scaleX = dsVector3f_len(&newOrientation.columns[0]);
-	float scaleY = dsVector3f_len(&newOrientation.columns[1]);
-	float scaleZ = dsVector3f_len(&newOrientation.columns[2]);
-
-	dsMatrix44f_transform(&newCenter, transform, &center);
-
-	float invScaleX = 1/scaleX;
-	float invScaleY = 1/scaleY;
-	float invScaleZ = 1/scaleZ;
-	dsVector3_scale(box->orientation.columns[0], newOrientation.columns[0], invScaleX);
-	dsVector3_scale(box->orientation.columns[1], newOrientation.columns[1], invScaleY);
-	dsVector3_scale(box->orientation.columns[2], newOrientation.columns[2], invScaleZ);
-
-	box->center.x = newCenter.x;
-	box->center.y = newCenter.y;
-	box->center.z = newCenter.z;
-
-	box->halfExtents.x *= scaleX;
-	box->halfExtents.y *= scaleY;
-	box->halfExtents.z *= scaleZ;
-
+	dsMatrix44f matrix, transformedMatrix;
+	dsOrientedBox3_toMatrix(matrix, *box);
+	dsMatrix44f_affineMul(&transformedMatrix, transform, &matrix);
+	dsOrientedBox3f_fromMatrix(box, &transformedMatrix);
 	return true;
 }
 
@@ -70,36 +82,10 @@ bool dsOrientedBox3d_transform(dsOrientedBox3d* box, const dsMatrix44d* transfor
 	if (!dsOrientedBox3_isValid(*box))
 		return false;
 
-	dsVector4d center = {{box->center.x, box->center.y, box->center.z, 1}};
-
-	dsMatrix33d newOrientation;
-	dsVector4d newCenter;
-
-	// Macro will work correctly for treating a 4x4 matrix as a 3x3 matrix.
-	dsMatrix33_mul(newOrientation, *transform, box->orientation);
-
-	// Extract scales to apply to the extent.
-	double scaleX = dsVector3d_len(&newOrientation.columns[0]);
-	double scaleY = dsVector3d_len(&newOrientation.columns[1]);
-	double scaleZ = dsVector3d_len(&newOrientation.columns[2]);
-
-	dsMatrix44_transform(newCenter, *transform, center);
-
-	double invScaleX = 1/scaleX;
-	double invScaleY = 1/scaleY;
-	double invScaleZ = 1/scaleZ;
-	dsVector3_scale(box->orientation.columns[0], newOrientation.columns[0], invScaleX);
-	dsVector3_scale(box->orientation.columns[1], newOrientation.columns[1], invScaleY);
-	dsVector3_scale(box->orientation.columns[2], newOrientation.columns[2], invScaleZ);
-
-	box->center.x = newCenter.x;
-	box->center.y = newCenter.y;
-	box->center.z = newCenter.z;
-
-	box->halfExtents.x *= scaleX;
-	box->halfExtents.y *= scaleY;
-	box->halfExtents.z *= scaleZ;
-
+	dsMatrix44d matrix, transformedMatrix;
+	dsOrientedBox3_toMatrix(matrix, *box);
+	dsMatrix44_affineMul(transformedMatrix, *transform, matrix);
+	dsOrientedBox3d_fromMatrix(box, &transformedMatrix);
 	return true;
 }
 
@@ -743,9 +729,9 @@ double dsOrientedBox3d_dist(const dsOrientedBox3d* box, const dsVector3d* point)
 
 bool dsOrientedBox3f_isValid(const dsOrientedBox3f* box);
 bool dsOrientedBox3d_isValid(const dsOrientedBox3d* box);
-
+void dsOrientedBox3f_toMatrix(dsMatrix44f* result, const dsOrientedBox3f* box);
+void dsOrientedBox3d_toMatrix(dsMatrix44d* result, const dsOrientedBox3d* box);
 void dsOrientedBox3f_fromAlignedBox(dsOrientedBox3f* result, const dsAlignedBox3f* alignedBox);
 void dsOrientedBox3d_fromAlignedBox(dsOrientedBox3d* result, const dsAlignedBox3d* alignedBox);
-
 void dsOrientedBox3f_makeInvalid(dsOrientedBox3f* result);
 void dsOrientedBox3d_makeInvalid(dsOrientedBox3d* result);
