@@ -22,8 +22,8 @@
 				"name": "lightSetPrepare",
 				"lightSet": "lightSet"
 			},
-			{"type": "ViewCullList", "name": "cullList"},
-			{"type": "ParticlePrepare", "name": "particlePrepare"}
+			{"type": "ParticlePrepare", "name": "particlePrepare"},
+			{"type": "ViewCullList", "name": "cullList"}
 		]
 	],
 	"pipeline":

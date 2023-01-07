@@ -19,8 +19,10 @@
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Geometry/AlignedBox3.h>
+#include <DeepSea/Math/Core.h>
 #include <DeepSea/Math/Matrix44.h>
 #include <DeepSea/Math/Vector3.h>
+#include <DeepSea/Math/Vector4.h>
 
 #define DS_PARALLEL_THRESHOLD 0.001f
 
@@ -297,6 +299,66 @@ bool dsShadowProjection_addPoints(dsShadowProjection* shadowProj, const dsVector
 
 	return true;
 }
+
+#if DS_HAS_SIMD
+DS_SIMD_START_FLOAT4()
+void dsShadowProjection_addPointsSIMD(dsShadowProjection* shadowProj, const dsVector4f* points,
+	uint32_t pointCount)
+{
+	DS_ASSERT(shadowProj);
+	DS_ASSERT(points);
+	DS_ASSERT(pointCount > 0);
+
+	dsVector4f boxMin = {{shadowProj->pointBounds.min.x, shadowProj->pointBounds.min.y,
+		shadowProj->pointBounds.min.z, 0}};
+	dsVector4f boxMax = {{shadowProj->pointBounds.max.x, shadowProj->pointBounds.max.y,
+		shadowProj->pointBounds.max.z, 0}};
+	for (uint32_t i = 0; i < pointCount; ++i)
+	{
+		dsVector4f worldPoint;
+		dsMatrix44f_transformSIMD(&worldPoint, &shadowProj->worldToShadowSpace, points + i);
+		if (dsEpsilonEqualsZerof(worldPoint.w, 1e-3f))
+			continue;
+
+		float invW = 1/worldPoint.w;
+		dsVector4f_scale(&worldPoint, &worldPoint, invW);
+		boxMin.simd = dsSIMD4f_min(boxMin.simd, worldPoint.simd);
+		boxMax.simd = dsSIMD4f_max(boxMax.simd, worldPoint.simd);
+	}
+	shadowProj->pointBounds.min = *(dsVector3f*)&boxMin;
+	shadowProj->pointBounds.max = *(dsVector3f*)&boxMax;
+}
+DS_SIMD_END()
+
+DS_SIMD_START_FMA()
+void dsShadowProjection_addPointsFMA(dsShadowProjection* shadowProj, const dsVector4f* points,
+	uint32_t pointCount)
+{
+	DS_ASSERT(shadowProj);
+	DS_ASSERT(points);
+	DS_ASSERT(pointCount > 0);
+
+	dsVector4f boxMin = {{shadowProj->pointBounds.min.x, shadowProj->pointBounds.min.y,
+		shadowProj->pointBounds.min.z, 0}};
+	dsVector4f boxMax = {{shadowProj->pointBounds.max.x, shadowProj->pointBounds.max.y,
+		shadowProj->pointBounds.max.z, 0}};
+	for (uint32_t i = 0; i < pointCount; ++i)
+	{
+		dsVector4f worldPoint;
+		dsMatrix44f_transformSIMD(&worldPoint, &shadowProj->worldToShadowSpace, points + i);
+		if (dsEpsilonEqualsZerof(worldPoint.w, 1e-3f))
+			continue;
+
+		float invW = 1/worldPoint.w;
+		dsVector4f_scale(&worldPoint, &worldPoint, invW);
+		boxMin.simd = dsSIMD4f_min(boxMin.simd, worldPoint.simd);
+		boxMax.simd = dsSIMD4f_max(boxMax.simd, worldPoint.simd);
+	}
+	shadowProj->pointBounds.min = *(dsVector3f*)&boxMin;
+	shadowProj->pointBounds.max = *(dsVector3f*)&boxMax;
+}
+DS_SIMD_END()
+#endif
 
 bool dsShadowProjection_computeMatrix(dsMatrix44f* outMatrix, const dsShadowProjection* shadowProj,
 	float paddingRatio, float minDepthRange)

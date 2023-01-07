@@ -42,6 +42,18 @@ typedef bool (*PointInBoxFunction)(const void* box, const dsVector3f* point);
 // Since the original computations were done with floats, be a bit loose with the epsilon values.
 const double baseEpsilon = 1e-5;
 
+static dsVector4f normalizedBoxCorners[DS_BOX3_CORNER_COUNT] =
+{
+	{{-1, -1, -1, 1}},
+	{{-1, -1,  1, 1}},
+	{{-1,  1, -1, 1}},
+	{{-1,  1,  1, 1}},
+	{{ 1, -1, -1, 1}},
+	{{ 1, -1,  1, 1}},
+	{{ 1,  1, -1, 1}},
+	{{ 1,  1,  1, 1}},
+};
+
 static bool pointInVolume(const dsShadowCullVolume* volume, const dsPlane3d* planes,
 	const dsVector3d* point, double epsilon)
 {
@@ -275,16 +287,41 @@ static void removeUnusedPlanes(dsShadowCullVolume* volume)
 	}
 }
 
-static void addPointsToProjection(const dsShadowCullVolume* volume,
-	const dsVector3f corners[DS_BOX3_CORNER_COUNT], dsShadowProjection* shadowProj, bool clamp,
+static inline void boxMatrixCorners(dsVector3f outCorners[DS_BOX3_CORNER_COUNT],
+	const dsMatrix44f* boxMatrix)
+{
+	dsVector4f boxCorner;
+	for (unsigned int i = 0; i < DS_BOX3_CORNER_COUNT; ++i)
+	{
+		dsMatrix44f_transform(&boxCorner, boxMatrix, normalizedBoxCorners + i);
+		outCorners[i] = *(dsVector3f*)&boxCorner;
+	}
+}
+
+#if DS_HAS_SIMD
+DS_SIMD_START_FLOAT4()
+static inline void boxMatrixCornersSIMD(dsVector4f outCorners[DS_BOX3_CORNER_COUNT],
+	const dsMatrix44f* boxMatrix)
+{
+	for (unsigned int i = 0; i < DS_BOX3_CORNER_COUNT; ++i)
+		dsMatrix44f_transformSIMD(outCorners + i, boxMatrix, normalizedBoxCorners + i);
+}
+DS_SIMD_END()
+
+DS_SIMD_START_FMA()
+static inline void boxMatrixCornersFMA(dsVector4f outCorners[DS_BOX3_CORNER_COUNT],
+	const dsMatrix44f* boxMatrix)
+{
+	for (unsigned int i = 0; i < DS_BOX3_CORNER_COUNT; ++i)
+		dsMatrix44f_transformFMA(outCorners + i, boxMatrix, normalizedBoxCorners + i);
+}
+DS_SIMD_END()
+#endif
+
+static void addClampedPointsToProjection(const dsShadowCullVolume* volume,
+	const float* corners, unsigned int components, dsShadowProjection* shadowProj,
 	PointInBoxFunction pointInBoxFunc, const void* box)
 {
-	if (!clamp)
-	{
-		DS_VERIFY(dsShadowProjection_addPoints(shadowProj, corners, DS_BOX3_CORNER_COUNT));
-		return;
-	}
-
 	// Limit the segments of the box with the cull volume. When a corner of the volume lies inside
 	// the box use that to handle very large boxes. However, there are still some other corner cases
 	// that aren't caught, so only recommended for larger bounds that would otherwise cause the
@@ -319,8 +356,8 @@ static void addPointsToProjection(const dsShadowCullVolume* volume,
 	{
 		const CornerPair* curCorners = segmentCorners + i;
 		dsRay3f segmentRay;
-		segmentRay.origin = corners[(*curCorners)[0]];
-		const dsVector3f* end = corners + (*curCorners)[1];
+		segmentRay.origin = *(const dsVector3f*)(corners + (*curCorners)[0]*components);
+		const dsVector3f* end = (const dsVector3f*)(corners + (*curCorners)[1]*components);
 		dsVector3_sub(segmentRay.direction, *end, segmentRay.origin);
 
 		// Find the extents of the segment that intersect with the cull volume.
@@ -525,8 +562,13 @@ dsIntersectResult dsShadowCullVolume_intersectAlignedBox(const dsShadowCullVolum
 	{
 		dsVector3f corners[DS_BOX3_CORNER_COUNT];
 		dsAlignedBox3_corners(corners, *box);
-		addPointsToProjection(volume, corners, shadowProj, clampToVolume && intersects,
-			(PointInBoxFunction)&dsAlignedBox3f_containsPoint, box);
+		if (clampToVolume && intersects)
+		{
+			addClampedPointsToProjection(volume, (const float*)corners, 3, shadowProj,
+				(PointInBoxFunction)&dsAlignedBox3f_containsPoint, box);
+		}
+		else
+			DS_VERIFY(dsShadowProjection_addPoints(shadowProj, corners, DS_BOX3_CORNER_COUNT));
 	}
 
 	return intersects ? dsIntersectResult_Intersects : dsIntersectResult_Inside;
@@ -561,10 +603,17 @@ dsIntersectResult dsShadowCullVolume_intersectAlignedBoxSIMD(const dsShadowCullV
 
 	if (shadowProj)
 	{
-		dsVector3f corners[DS_BOX3_CORNER_COUNT];
+		dsVector4f corners[DS_BOX3_CORNER_COUNT];
 		dsAlignedBox3_corners(corners, *box);
-		addPointsToProjection(volume, corners, shadowProj, clampToVolume && intersects,
-			(PointInBoxFunction)&dsAlignedBox3f_containsPoint, box);
+		for (unsigned int i = 0; i < DS_BOX3_CORNER_COUNT; ++i)
+			corners[i].w = 1;
+		if (clampToVolume && intersects)
+		{
+			addClampedPointsToProjection(volume, (const float*)corners, 4, shadowProj,
+				(PointInBoxFunction)&dsAlignedBox3f_containsPoint, box);
+		}
+		else
+			dsShadowProjection_addPointsSIMD(shadowProj, corners, DS_BOX3_CORNER_COUNT);
 	}
 
 	return intersects ? dsIntersectResult_Intersects : dsIntersectResult_Inside;
@@ -599,10 +648,17 @@ dsIntersectResult dsShadowCullVolume_intersectAlignedBoxFMA(const dsShadowCullVo
 
 	if (shadowProj)
 	{
-		dsVector3f corners[DS_BOX3_CORNER_COUNT];
+		dsVector4f corners[DS_BOX3_CORNER_COUNT];
 		dsAlignedBox3_corners(corners, *box);
-		addPointsToProjection(volume, corners, shadowProj, clampToVolume && intersects,
-			(PointInBoxFunction)&dsAlignedBox3f_containsPoint, box);
+		for (unsigned int i = 0; i < DS_BOX3_CORNER_COUNT; ++i)
+			corners[i].w = 1;
+		if (clampToVolume && intersects)
+		{
+			addClampedPointsToProjection(volume, (const float*)corners, 4, shadowProj,
+				(PointInBoxFunction)&dsAlignedBox3f_containsPoint, box);
+		}
+		else
+			dsShadowProjection_addPointsFMA(shadowProj, corners, DS_BOX3_CORNER_COUNT);
 	}
 
 	return intersects ? dsIntersectResult_Intersects : dsIntersectResult_Inside;
@@ -639,8 +695,13 @@ dsIntersectResult dsShadowCullVolume_intersectOrientedBox(const dsShadowCullVolu
 	{
 		dsVector3f corners[DS_BOX3_CORNER_COUNT];
 		dsOrientedBox3f_corners(corners, box);
-		addPointsToProjection(volume, corners, shadowProj, clampToVolume && intersects,
-			(PointInBoxFunction)&dsOrientedBox3f_containsPoint, box);
+		if (clampToVolume && intersects)
+		{
+			addClampedPointsToProjection(volume, (const float*)corners, 3, shadowProj,
+				(PointInBoxFunction)&dsOrientedBox3f_containsPoint, box);
+		}
+		else
+			DS_VERIFY(dsShadowProjection_addPoints(shadowProj, corners, DS_BOX3_CORNER_COUNT));
 	}
 
 	return intersects ? dsIntersectResult_Intersects : dsIntersectResult_Inside;
@@ -675,10 +736,15 @@ dsIntersectResult dsShadowCullVolume_intersectOrientedBoxSIMD(const dsShadowCull
 
 	if (shadowProj)
 	{
-		dsVector3f corners[DS_BOX3_CORNER_COUNT];
-		dsOrientedBox3f_corners(corners, box);
-		addPointsToProjection(volume, corners, shadowProj, clampToVolume && intersects,
-			(PointInBoxFunction)&dsOrientedBox3f_containsPoint, box);
+		dsVector4f corners[DS_BOX3_CORNER_COUNT];
+		boxMatrixCornersSIMD(corners, &boxMatrix);
+		if (clampToVolume && intersects)
+		{
+			addClampedPointsToProjection(volume, (const float*)corners, 4, shadowProj,
+				(PointInBoxFunction)&dsOrientedBox3f_containsPoint, box);
+		}
+		else
+			dsShadowProjection_addPointsSIMD(shadowProj, corners, DS_BOX3_CORNER_COUNT);
 	}
 
 	return intersects ? dsIntersectResult_Intersects : dsIntersectResult_Inside;
@@ -713,10 +779,15 @@ dsIntersectResult dsShadowCullVolume_intersectOrientedBoxFMA(const dsShadowCullV
 
 	if (shadowProj)
 	{
-		dsVector3f corners[DS_BOX3_CORNER_COUNT];
-		dsOrientedBox3f_corners(corners, box);
-		addPointsToProjection(volume, corners, shadowProj, clampToVolume && intersects,
-			(PointInBoxFunction)&dsOrientedBox3f_containsPoint, box);
+		dsVector4f corners[DS_BOX3_CORNER_COUNT];
+		boxMatrixCornersFMA(corners, &boxMatrix);
+		if (clampToVolume && intersects)
+		{
+			addClampedPointsToProjection(volume, (const float*)corners, 4, shadowProj,
+				(PointInBoxFunction)&dsOrientedBox3f_containsPoint, box);
+		}
+		else
+			dsShadowProjection_addPointsFMA(shadowProj, corners, DS_BOX3_CORNER_COUNT);
 	}
 
 	return intersects ? dsIntersectResult_Intersects : dsIntersectResult_Inside;
@@ -751,12 +822,17 @@ dsIntersectResult dsShadowCullVolume_intersectBoxMatrix(const dsShadowCullVolume
 
 	if (shadowProj)
 	{
-		dsOrientedBox3f box;
-		dsOrientedBox3f_fromMatrix(&box, boxMatrix);
 		dsVector3f corners[DS_BOX3_CORNER_COUNT];
-		dsOrientedBox3f_corners(corners, &box);
-		addPointsToProjection(volume, corners, shadowProj, clampToVolume && intersects,
-			(PointInBoxFunction)&dsOrientedBox3f_containsPoint, &box);
+		boxMatrixCorners(corners, boxMatrix);
+		if (clampToVolume && intersects)
+		{
+			dsOrientedBox3f box;
+			dsOrientedBox3f_fromMatrix(&box, boxMatrix);
+			addClampedPointsToProjection(volume, (const float*)corners, 3, shadowProj,
+				(PointInBoxFunction)&dsOrientedBox3f_containsPoint, &box);
+		}
+		else
+			DS_VERIFY(dsShadowProjection_addPoints(shadowProj, corners, DS_BOX3_CORNER_COUNT));
 	}
 
 	return intersects ? dsIntersectResult_Intersects : dsIntersectResult_Inside;
@@ -791,12 +867,17 @@ dsIntersectResult dsShadowCullVolume_intersectBoxMatrixSIMD(const dsShadowCullVo
 
 	if (shadowProj)
 	{
-		dsOrientedBox3f box;
-		dsOrientedBox3f_fromMatrix(&box, boxMatrix);
-		dsVector3f corners[DS_BOX3_CORNER_COUNT];
-		dsOrientedBox3f_corners(corners, &box);
-		addPointsToProjection(volume, corners, shadowProj, clampToVolume && intersects,
-			(PointInBoxFunction)&dsOrientedBox3f_containsPoint, &box);
+		dsVector4f corners[DS_BOX3_CORNER_COUNT];
+		boxMatrixCornersSIMD(corners, boxMatrix);
+		if (clampToVolume && intersects)
+		{
+			dsOrientedBox3f box;
+			dsOrientedBox3f_fromMatrix(&box, boxMatrix);
+			addClampedPointsToProjection(volume, (const float*)corners, 4, shadowProj,
+				(PointInBoxFunction)&dsOrientedBox3f_containsPoint, &box);
+		}
+		else
+			dsShadowProjection_addPointsSIMD(shadowProj, corners, DS_BOX3_CORNER_COUNT);
 	}
 
 	return intersects ? dsIntersectResult_Intersects : dsIntersectResult_Inside;
@@ -831,12 +912,17 @@ dsIntersectResult dsShadowCullVolume_intersectBoxMatrixFMA(const dsShadowCullVol
 
 	if (shadowProj)
 	{
-		dsOrientedBox3f box;
-		dsOrientedBox3f_fromMatrix(&box, boxMatrix);
-		dsVector3f corners[DS_BOX3_CORNER_COUNT];
-		dsOrientedBox3f_corners(corners, &box);
-		addPointsToProjection(volume, corners, shadowProj, clampToVolume && intersects,
-			(PointInBoxFunction)&dsOrientedBox3f_containsPoint, &box);
+		dsVector4f corners[DS_BOX3_CORNER_COUNT];
+		boxMatrixCornersFMA(corners, boxMatrix);
+		if (clampToVolume && intersects)
+		{
+			dsOrientedBox3f box;
+			dsOrientedBox3f_fromMatrix(&box, boxMatrix);
+			addClampedPointsToProjection(volume, (const float*)corners, 4, shadowProj,
+				(PointInBoxFunction)&dsOrientedBox3f_containsPoint, &box);
+		}
+		else
+			dsShadowProjection_addPointsFMA(shadowProj, corners, DS_BOX3_CORNER_COUNT);
 	}
 
 	return intersects ? dsIntersectResult_Intersects : dsIntersectResult_Inside;
@@ -869,8 +955,13 @@ dsIntersectResult dsShadowCullVolume_intersectSphere(const dsShadowCullVolume* v
 
 		dsVector3f corners[DS_BOX3_CORNER_COUNT];
 		dsAlignedBox3_corners(corners, box);
-		addPointsToProjection(volume, corners, shadowProj, clampToVolume && intersects,
-			(PointInBoxFunction)&dsAlignedBox3f_containsPoint, &box);
+		if (clampToVolume && intersects)
+		{
+			addClampedPointsToProjection(volume, (const float*)corners, 3, shadowProj,
+				(PointInBoxFunction)&dsAlignedBox3f_containsPoint, &box);
+		}
+		else
+			DS_VERIFY(dsShadowProjection_addPoints(shadowProj, corners, DS_BOX3_CORNER_COUNT));
 	}
 
 	return intersects ? dsIntersectResult_Intersects : dsIntersectResult_Inside;

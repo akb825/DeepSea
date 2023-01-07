@@ -289,6 +289,45 @@ DS_SCENELIGHTING_EXPORT dsIntersectResult dsSceneLightShadows_intersectAlignedBo
 #endif
 
 /**
+ * @brief Intersects a box in matrix form in world space with a shadow surface.
+ * @param shadows The scene light shadows.
+ * @param surface The shadow surface index.
+ * @param boxMatrix The box in matrix form to intersect with in world space.
+ * @return The intersection result. Inside and outside is with respect to the volume. If the box
+ *     fully contains the frustum, dsIntersectResult_Intersects will be returned.
+ */
+DS_SCENELIGHTING_EXPORT dsIntersectResult dsSceneLightShadows_intersectBoxMatrix(
+	dsSceneLightShadows* shadows, uint32_t surface, const dsMatrix44f* boxMatrix);
+
+#if DS_HAS_SIMD
+/**
+ * @brief Intersects a box in matrix form in world space with a shadow surface using SIMD
+ *     operations.
+ * @remark This can be used when dsSIMDFeatures_Float4 is available.
+ * @param shadows The scene light shadows.
+ * @param surface The shadow surface index.
+ * @param boxMatrix The box in matrix form to intersect with in world space.
+ * @return The intersection result. Inside and outside is with respect to the volume. If the box
+ *     fully contains the frustum, dsIntersectResult_Intersects will be returned.
+ */
+DS_SCENELIGHTING_EXPORT dsIntersectResult dsSceneLightShadows_intersectBoxMatrixSIMD(
+	dsSceneLightShadows* shadows, uint32_t surface, const dsMatrix44f* boxMatrix);
+
+/**
+ * @brief Intersects a box in matrix form in world space with a shadow surface using fused
+ *     multiply-add operations.
+ * @remark This can be used when dsSIMDFeatures_FMA is available.
+ * @param shadows The scene light shadows.
+ * @param surface The shadow surface index.
+ * @param boxMatrix The box in matrix form to intersect with in world space.
+ * @return The intersection result. Inside and outside is with respect to the volume. If the box
+ *     fully contains the frustum, dsIntersectResult_Intersects will be returned.
+ */
+DS_SCENELIGHTING_EXPORT dsIntersectResult dsSceneLightShadows_intersectBoxMatrixFMA(
+	dsSceneLightShadows* shadows, uint32_t surface, const dsMatrix44f* boxMatrix);
+#endif
+
+/**
  * @brief Intersects an oriented box in world space with a shadow surface.
  * @param shadows The scene light shadows.
  * @param surface The shadow surface index.
@@ -412,6 +451,44 @@ DS_SCENELIGHTING_EXPORT dsIntersectResult dsSceneLightShadows_intersectViewOrien
  */
 DS_SCENELIGHTING_EXPORT dsIntersectResult dsSceneLightShadows_intersectViewOrientedBoxFMA(
 	dsSceneLightShadows* shadows, uint32_t surface, const dsOrientedBox3f* box);
+#endif
+
+/**
+ * @brief Intersects a box in matrix form in view space with a shadow surface.
+ * @param shadows The scene light shadows.
+ * @param surface The shadow surface index.
+ * @param boxMatrix The box in matrix form to intersect with in view space.
+ * @return The intersection result. Inside and outside is with respect to the volume. If the box
+ *     fully contains the frustum, dsIntersectResult_Intersects will be returned.
+ */
+DS_SCENELIGHTING_EXPORT dsIntersectResult dsSceneLightShadows_intersectViewBoxMatrix(
+	dsSceneLightShadows* shadows, uint32_t surface, const dsMatrix44f* boxMatrix);
+
+#if DS_HAS_SIMD
+/**
+ * @brief Intersects a box in matrix form in view space with a shadow surface using SIMD operations.
+ * @remark This can be used when dsSIMDFeatures_Float4 is available.
+ * @param shadows The scene light shadows.
+ * @param surface The shadow surface index.
+ * @param boxMatrix The box in matrix form to intersect with in view space.
+ * @return The intersection result. Inside and outside is with respect to the volume. If the box
+ *     fully contains the frustum, dsIntersectResult_Intersects will be returned.
+ */
+DS_SCENELIGHTING_EXPORT dsIntersectResult dsSceneLightShadows_intersectViewBoxMatrixSIMD(
+	dsSceneLightShadows* shadows, uint32_t surface, const dsMatrix44f* boxMatrix);
+
+/**
+ * @brief Intersects a box in matrix form in view space with a shadow surface using fused
+ *     multiply-add operations.
+ * @remark This can be used when dsSIMDFeatures_FMA is available.
+ * @param shadows The scene light shadows.
+ * @param surface The shadow surface index.
+ * @param boxMatrix The box in matrix form to intersect with in view space.
+ * @return The intersection result. Inside and outside is with respect to the volume. If the box
+ *     fully contains the frustum, dsIntersectResult_Intersects will be returned.
+ */
+DS_SCENELIGHTING_EXPORT dsIntersectResult dsSceneLightShadows_intersectViewBoxMatrixFMA(
+	dsSceneLightShadows* shadows, uint32_t surface, const dsMatrix44f* boxMatrix);
 #endif
 
 /**

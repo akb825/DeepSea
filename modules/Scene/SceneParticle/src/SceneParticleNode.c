@@ -21,6 +21,10 @@
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 
+#include <DeepSea/Geometry/OrientedBox3.h>
+
+#include <DeepSea/Math/Matrix44.h>
+
 #include <DeepSea/Particle/ParticleEmitter.h>
 
 #include <DeepSea/Scene/Nodes/SceneCullNode.h>
@@ -40,7 +44,7 @@ struct dsSceneParticleNode
 	dsDestroySceneUserDataFunction destroyCreateEmitterUserDataFunc;
 };
 
-static bool dsSceneParticleNode_getBounds(dsOrientedBox3f* outBounds, const dsSceneCullNode* node,
+static bool dsSceneParticleNode_getBounds(dsMatrix44f* outBoxMatrix, const dsSceneCullNode* node,
 	const dsSceneTreeNode* treeNode)
 {
 	DS_UNUSED(node);
@@ -48,7 +52,7 @@ static bool dsSceneParticleNode_getBounds(dsOrientedBox3f* outBounds, const dsSc
 	if (!emitter)
 		return false;
 
-	*outBounds = emitter->bounds;
+	dsOrientedBox3f_toMatrix(outBoxMatrix, &emitter->bounds);
 	return true;
 }
 
@@ -125,6 +129,8 @@ dsSceneParticleNode* dsSceneParticleNode_create(dsAllocator* allocator,
 	particleNode->destroyCreateEmitterUserDataFunc = destroyUserDataFunc;
 
 	dsSceneCullNode* cullNode = (dsSceneCullNode*)particleNode;
+	cullNode->hasBounds = true;
+	dsMatrix44_identity(cullNode->staticLocalBoxMatrix);
 	cullNode->getBoundsFunc = &dsSceneParticleNode_getBounds;
 
 	return particleNode;

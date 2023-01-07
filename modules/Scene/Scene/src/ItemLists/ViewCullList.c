@@ -24,31 +24,48 @@
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Profile.h>
 
-#include <DeepSea/Geometry/OrientedBox3.h>
 #include <DeepSea/Geometry/Frustum3.h>
+
+#include <DeepSea/Math/Matrix44.h>
 
 #include <DeepSea/Scene/Nodes/SceneCullNode.h>
 #include <DeepSea/Scene/Nodes/SceneNode.h>
 #include <DeepSea/Scene/View.h>
 
+#include <limits.h>
 #include <string.h>
 
-typedef struct Entry
+#define MIN_DYNAMIC_ENTRY_ID LLONG_MAX
+
+typedef struct StaticEntry
+{
+	dsMatrix44f localBoxMatrix;
+	const dsMatrix44f* transform;
+	bool* result;
+	uint64_t nodeID;
+} StaticEntry;
+
+typedef struct DynamicEntry
 {
 	const dsSceneCullNode* node;
 	const dsSceneTreeNode* treeNode;
 	bool* result;
 	uint64_t nodeID;
-} Entry;
+} DynamicEntry;
 
 typedef struct dsViewCullList
 {
 	dsSceneItemList itemList;
 
-	Entry* entries;
-	uint32_t entryCount;
-	uint32_t maxEntries;
-	uint64_t nextNodeID;
+	StaticEntry* staticEntries;
+	uint32_t staticEntryCount;
+	uint32_t maxStaticEntries;
+	uint64_t nextStaticNodeID;
+
+	DynamicEntry* dynamicEntries;
+	uint32_t dynamicEntryCount;
+	uint32_t maxDynamicEntries;
+	uint64_t nextDynamicNodeID;
 } dsViewCullList;
 
 static uint64_t dsViewCullList_addNode(dsSceneItemList* itemList, const dsSceneNode* node,
@@ -58,40 +75,71 @@ static uint64_t dsViewCullList_addNode(dsSceneItemList* itemList, const dsSceneN
 	if (!dsSceneNode_isOfType(node, dsSceneCullNode_type()))
 		return DS_NO_SCENE_NODE;
 
+	dsViewCullList* cullList = (dsViewCullList*)itemList;
 	const dsSceneCullNode* cullNode = (const dsSceneCullNode*)node;
-	dsOrientedBox3f bounds;
-	if (!dsSceneCullNode_getBounds(&bounds, cullNode, treeNode) || !dsOrientedBox3_isValid(bounds))
+	if (!cullNode->hasBounds)
 		return DS_NO_SCENE_NODE;
 
-	dsViewCullList* cullList = (dsViewCullList*)itemList;
+	if (cullNode->getBoundsFunc)
+	{
+		uint32_t index = cullList->dynamicEntryCount;
+		if (!DS_RESIZEABLE_ARRAY_ADD(itemList->allocator, cullList->dynamicEntries,
+				cullList->dynamicEntryCount, cullList->maxDynamicEntries, 1))
+		{
+			return DS_NO_SCENE_NODE;
+		}
 
-	uint32_t index = cullList->entryCount;
-	if (!DS_RESIZEABLE_ARRAY_ADD(itemList->allocator, cullList->entries, cullList->entryCount,
-			cullList->maxEntries, 1))
+		DynamicEntry* entry = cullList->dynamicEntries + index;
+		entry->node = cullNode;
+		entry->treeNode = treeNode;
+		entry->result = (bool*)thisItemData;
+		entry->nodeID = cullList->nextDynamicNodeID++;
+		return entry->nodeID;
+	}
+
+	uint32_t index = cullList->staticEntryCount;
+	if (!DS_RESIZEABLE_ARRAY_ADD(itemList->allocator, cullList->staticEntries,
+			cullList->staticEntryCount, cullList->maxStaticEntries, 1))
 	{
 		return DS_NO_SCENE_NODE;
 	}
 
-	Entry* entry = cullList->entries + index;
-	entry->node = cullNode;
-	entry->treeNode = treeNode;
+	StaticEntry* entry = cullList->staticEntries + index;
+	entry->localBoxMatrix = cullNode->staticLocalBoxMatrix;
+	entry->transform = &treeNode->transform;
 	entry->result = (bool*)thisItemData;
-	entry->nodeID = cullList->nextNodeID++;
+	entry->nodeID = cullList->nextStaticNodeID++;
 	return entry->nodeID;
 }
 
 static void dsViewCullList_removeNode(dsSceneItemList* itemList, uint64_t nodeID)
 {
 	dsViewCullList* cullList = (dsViewCullList*)itemList;
-	for (uint32_t i = 0; i < cullList->entryCount; ++i)
+	if (nodeID < MIN_DYNAMIC_ENTRY_ID)
 	{
-		if (cullList->entries[i].nodeID != nodeID)
-			continue;
+		for (uint32_t i = 0; i < cullList->staticEntryCount; ++i)
+		{
+			if (cullList->staticEntries[i].nodeID != nodeID)
+				continue;
 
-		// Order shouldn't matter, so use constant-time removal.
-		cullList->entries[i] = cullList->entries[cullList->entryCount - 1];
-		--cullList->entryCount;
-		break;
+			// Order shouldn't matter, so use constant-time removal.
+			cullList->staticEntries[i] = cullList->staticEntries[cullList->staticEntryCount - 1];
+			--cullList->staticEntryCount;
+			break;
+		}
+	}
+	else
+	{
+		for (uint32_t i = 0; i < cullList->dynamicEntryCount; ++i)
+		{
+			if (cullList->dynamicEntries[i].nodeID != nodeID)
+				continue;
+
+			// Order shouldn't matter, so use constant-time removal.
+			cullList->dynamicEntries[i] = cullList->dynamicEntries[cullList->dynamicEntryCount - 1];
+			--cullList->dynamicEntryCount;
+			break;
+		}
 	}
 }
 
@@ -104,14 +152,26 @@ static void dsViewCullList_commitSIMD(dsSceneItemList* itemList, const dsView* v
 	DS_PROFILE_DYNAMIC_SCOPE_START(itemList->name);
 
 	dsViewCullList* cullList = (dsViewCullList*)itemList;
-	for (uint32_t i = 0; i < cullList->entryCount; ++i)
+	for (uint32_t i = 0; i < cullList->staticEntryCount; ++i)
 	{
-		const Entry* entry = cullList->entries + i;
-		dsOrientedBox3f bounds;
-		DS_VERIFY(entry->node->getBoundsFunc(&bounds, entry->node, entry->treeNode));
-		DS_ASSERT(dsOrientedBox3_isValid(bounds));
-		*entry->result = dsFrustum3f_intersectOrientedBoxSIMD(&view->viewFrustum, &bounds) ==
+		const StaticEntry* entry = cullList->staticEntries + i;
+		dsMatrix44f boxMatrix;
+		dsMatrix44f_affineMulSIMD(&boxMatrix, entry->transform, &entry->localBoxMatrix);
+		*entry->result = dsFrustum3f_intersectBoxMatrixSIMD(&view->viewFrustum, &boxMatrix) ==
 			dsIntersectResult_Outside;
+	}
+
+	for (uint32_t i = 0; i < cullList->dynamicEntryCount; ++i)
+	{
+		const DynamicEntry* entry = cullList->dynamicEntries + i;
+		dsMatrix44f boxMatrix;
+		if (entry->node->getBoundsFunc(&boxMatrix, entry->node, entry->treeNode))
+		{
+			*entry->result = dsFrustum3f_intersectBoxMatrixSIMD(&view->viewFrustum, &boxMatrix) ==
+				dsIntersectResult_Outside;
+		}
+		else
+			*entry->result = true;
 	}
 
 	DS_PROFILE_SCOPE_END();
@@ -126,14 +186,26 @@ static void dsViewCullList_commitFMA(dsSceneItemList* itemList, const dsView* vi
 	DS_PROFILE_DYNAMIC_SCOPE_START(itemList->name);
 
 	dsViewCullList* cullList = (dsViewCullList*)itemList;
-	for (uint32_t i = 0; i < cullList->entryCount; ++i)
+	for (uint32_t i = 0; i < cullList->staticEntryCount; ++i)
 	{
-		const Entry* entry = cullList->entries + i;
-		dsOrientedBox3f bounds;
-		DS_VERIFY(entry->node->getBoundsFunc(&bounds, entry->node, entry->treeNode));
-		DS_ASSERT(dsOrientedBox3_isValid(bounds));
-		*entry->result = dsFrustum3f_intersectOrientedBoxFMA(&view->viewFrustum, &bounds) ==
+		const StaticEntry* entry = cullList->staticEntries + i;
+		dsMatrix44f boxMatrix;
+		dsMatrix44f_affineMulFMA(&boxMatrix, entry->transform, &entry->localBoxMatrix);
+		*entry->result = dsFrustum3f_intersectBoxMatrixFMA(&view->viewFrustum, &boxMatrix) ==
 			dsIntersectResult_Outside;
+	}
+
+	for (uint32_t i = 0; i < cullList->dynamicEntryCount; ++i)
+	{
+		const DynamicEntry* entry = cullList->dynamicEntries + i;
+		dsMatrix44f boxMatrix;
+		if (entry->node->getBoundsFunc(&boxMatrix, entry->node, entry->treeNode))
+		{
+			*entry->result = dsFrustum3f_intersectBoxMatrixFMA(&view->viewFrustum, &boxMatrix) ==
+				dsIntersectResult_Outside;
+		}
+		else
+			*entry->result = true;
 	}
 
 	DS_PROFILE_SCOPE_END();
@@ -148,14 +220,26 @@ static void dsViewCullList_commit(dsSceneItemList* itemList, const dsView* view,
 	DS_PROFILE_DYNAMIC_SCOPE_START(itemList->name);
 
 	dsViewCullList* cullList = (dsViewCullList*)itemList;
-	for (uint32_t i = 0; i < cullList->entryCount; ++i)
+	for (uint32_t i = 0; i < cullList->staticEntryCount; ++i)
 	{
-		const Entry* entry = cullList->entries + i;
-		dsOrientedBox3f bounds;
-		DS_VERIFY(entry->node->getBoundsFunc(&bounds, entry->node, entry->treeNode));
-		DS_ASSERT(dsOrientedBox3_isValid(bounds));
-		*entry->result = dsFrustum3f_intersectOrientedBox(&view->viewFrustum, &bounds) ==
+		const StaticEntry* entry = cullList->staticEntries + i;
+		dsMatrix44f boxMatrix;
+		dsMatrix44f_affineMul(&boxMatrix, entry->transform, &entry->localBoxMatrix);
+		*entry->result = dsFrustum3f_intersectBoxMatrix(&view->viewFrustum, &boxMatrix) ==
 			dsIntersectResult_Outside;
+	}
+
+	for (uint32_t i = 0; i < cullList->dynamicEntryCount; ++i)
+	{
+		const DynamicEntry* entry = cullList->dynamicEntries + i;
+		dsMatrix44f boxMatrix;
+		if (entry->node->getBoundsFunc(&boxMatrix, entry->node, entry->treeNode))
+		{
+			*entry->result = dsFrustum3f_intersectBoxMatrix(&view->viewFrustum, &boxMatrix) ==
+				dsIntersectResult_Outside;
+		}
+		else
+			*entry->result = true;
 	}
 
 	DS_PROFILE_SCOPE_END();
@@ -164,7 +248,8 @@ static void dsViewCullList_commit(dsSceneItemList* itemList, const dsView* view,
 static void dsViewCullList_destroy(dsSceneItemList* itemList)
 {
 	dsViewCullList* cullList = (dsViewCullList*)itemList;
-	DS_VERIFY(dsAllocator_free(itemList->allocator, cullList->entries));
+	DS_VERIFY(dsAllocator_free(itemList->allocator, cullList->staticEntries));
+	DS_VERIFY(dsAllocator_free(itemList->allocator, cullList->dynamicEntries));
 	DS_VERIFY(dsAllocator_free(itemList->allocator, itemList));
 }
 
@@ -237,10 +322,15 @@ dsSceneItemList* dsViewCullList_create(dsAllocator* allocator, const char* name)
 		itemList->commitFunc = &dsViewCullList_commit;
 	itemList->destroyFunc = &dsViewCullList_destroy;
 
-	cullList->entries = NULL;
-	cullList->entryCount = 0;
-	cullList->maxEntries = 0;
-	cullList->nextNodeID = 0;
+	cullList->staticEntries = NULL;
+	cullList->staticEntryCount = 0;
+	cullList->maxStaticEntries = 0;
+	cullList->nextStaticNodeID = 0;
+
+	cullList->dynamicEntries = NULL;
+	cullList->dynamicEntryCount = 0;
+	cullList->maxDynamicEntries = 0;
+	cullList->nextDynamicNodeID = MIN_DYNAMIC_ENTRY_ID;
 
 	return itemList;
 }

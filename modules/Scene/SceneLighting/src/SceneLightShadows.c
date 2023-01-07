@@ -831,6 +831,72 @@ dsIntersectResult dsSceneLightShadows_intersectOrientedBoxFMA(dsSceneLightShadow
 DS_SIMD_END()
 #endif
 
+dsIntersectResult dsSceneLightShadows_intersectBoxMatrix(dsSceneLightShadows* shadows,
+	uint32_t surface, const dsMatrix44f* boxMatrix)
+{
+	if (!shadows || surface >= shadows->totalMatrices || !boxMatrix)
+		return dsIntersectResult_Outside;
+
+	float halfExtentsX = dsVector3f_len((const dsVector3f*)boxMatrix->columns);
+	float halfExtentsY = dsVector3f_len((const dsVector3f*)(boxMatrix->columns + 1));
+	float halfExtentsZ = dsVector3f_len((const dsVector3f*)(boxMatrix->columns + 2));
+	float maxHalfSize = dsMax(halfExtentsX, halfExtentsY);
+	maxHalfSize = dsMax(maxHalfSize, halfExtentsZ);
+	bool clampToVolume = maxHalfSize*2.0f >= shadows->largeBoxSize;
+
+	DS_ASSERT(shadows->view);
+	dsMatrix44f viewBoxMatrix;
+	dsMatrix44f_affineMul(&viewBoxMatrix, &shadows->view->viewMatrix, boxMatrix);
+	return dsShadowCullVolume_intersectBoxMatrix(shadows->cullVolumes + surface, &viewBoxMatrix,
+		shadows->projections + surface, clampToVolume);
+}
+
+#if DS_HAS_SIMD
+DS_SIMD_START_FLOAT4()
+dsIntersectResult dsSceneLightShadows_intersectBoxMatrixSIMD(dsSceneLightShadows* shadows,
+	uint32_t surface, const dsMatrix44f* boxMatrix)
+{
+	if (!shadows || surface >= shadows->totalMatrices || !boxMatrix)
+		return dsIntersectResult_Outside;
+
+	float halfExtentsX = dsVector3f_len((const dsVector3f*)boxMatrix->columns);
+	float halfExtentsY = dsVector3f_len((const dsVector3f*)(boxMatrix->columns + 1));
+	float halfExtentsZ = dsVector3f_len((const dsVector3f*)(boxMatrix->columns + 2));
+	float maxHalfSize = dsMax(halfExtentsX, halfExtentsY);
+	maxHalfSize = dsMax(maxHalfSize, halfExtentsZ);
+	bool clampToVolume = maxHalfSize*2.0f >= shadows->largeBoxSize;
+
+	DS_ASSERT(shadows->view);
+	dsMatrix44f viewBoxMatrix;
+	dsMatrix44f_affineMulSIMD(&viewBoxMatrix, &shadows->view->viewMatrix, boxMatrix);
+	return dsShadowCullVolume_intersectBoxMatrixSIMD(shadows->cullVolumes + surface, &viewBoxMatrix,
+		shadows->projections + surface, clampToVolume);
+}
+DS_SIMD_END()
+
+DS_SIMD_START_FLOAT4()
+dsIntersectResult dsSceneLightShadows_intersectBoxMatrixFMA(dsSceneLightShadows* shadows,
+	uint32_t surface, const dsMatrix44f* boxMatrix)
+{
+	if (!shadows || surface >= shadows->totalMatrices || !boxMatrix)
+		return dsIntersectResult_Outside;
+
+	float halfExtentsX = dsVector3f_len((const dsVector3f*)boxMatrix->columns);
+	float halfExtentsY = dsVector3f_len((const dsVector3f*)(boxMatrix->columns + 1));
+	float halfExtentsZ = dsVector3f_len((const dsVector3f*)(boxMatrix->columns + 2));
+	float maxHalfSize = dsMax(halfExtentsX, halfExtentsY);
+	maxHalfSize = dsMax(maxHalfSize, halfExtentsZ);
+	bool clampToVolume = maxHalfSize*2.0f >= shadows->largeBoxSize;
+
+	DS_ASSERT(shadows->view);
+	dsMatrix44f viewBoxMatrix;
+	dsMatrix44f_affineMulSIMD(&viewBoxMatrix, &shadows->view->viewMatrix, boxMatrix);
+	return dsShadowCullVolume_intersectBoxMatrixFMA(shadows->cullVolumes + surface, &viewBoxMatrix,
+		shadows->projections + surface, clampToVolume);
+}
+DS_SIMD_END()
+#endif
+
 dsIntersectResult dsSceneLightShadows_intersectSphere(dsSceneLightShadows* shadows,
 	uint32_t surface, const dsVector3f* center, float radius)
 {
@@ -944,6 +1010,63 @@ dsIntersectResult dsSceneLightShadows_intersectViewOrientedBoxFMA(dsSceneLightSh
 	bool clampToVolume = maxHalfSize*2.0f >= shadows->largeBoxSize;
 
 	return dsShadowCullVolume_intersectOrientedBoxFMA(shadows->cullVolumes + surface, box,
+		shadows->projections + surface, clampToVolume);
+}
+DS_SIMD_END()
+#endif
+
+dsIntersectResult dsSceneLightShadows_intersectViewBoxMatrix(dsSceneLightShadows* shadows,
+	uint32_t surface, const dsMatrix44f* boxMatrix)
+{
+	if (!shadows || surface >= shadows->totalMatrices || !boxMatrix)
+		return dsIntersectResult_Outside;
+
+	float halfExtentsX = dsVector3f_len((const dsVector3f*)boxMatrix->columns);
+	float halfExtentsY = dsVector3f_len((const dsVector3f*)(boxMatrix->columns + 1));
+	float halfExtentsZ = dsVector3f_len((const dsVector3f*)(boxMatrix->columns + 2));
+	float maxHalfSize = dsMax(halfExtentsX, halfExtentsY);
+	maxHalfSize = dsMax(maxHalfSize, halfExtentsZ);
+	bool clampToVolume = maxHalfSize*2.0f >= shadows->largeBoxSize;
+
+	return dsShadowCullVolume_intersectBoxMatrix(shadows->cullVolumes + surface, boxMatrix,
+		shadows->projections + surface, clampToVolume);
+}
+
+#if DS_HAS_SIMD
+DS_SIMD_START_FLOAT4()
+dsIntersectResult dsSceneLightShadows_intersectViewBoxMatrixSIMD(dsSceneLightShadows* shadows,
+	uint32_t surface, const dsMatrix44f* boxMatrix)
+{
+	if (!shadows || surface >= shadows->totalMatrices || !boxMatrix)
+		return dsIntersectResult_Outside;
+
+	float halfExtentsX = dsVector3f_len((const dsVector3f*)boxMatrix->columns);
+	float halfExtentsY = dsVector3f_len((const dsVector3f*)(boxMatrix->columns + 1));
+	float halfExtentsZ = dsVector3f_len((const dsVector3f*)(boxMatrix->columns + 2));
+	float maxHalfSize = dsMax(halfExtentsX, halfExtentsY);
+	maxHalfSize = dsMax(maxHalfSize, halfExtentsZ);
+	bool clampToVolume = maxHalfSize*2.0f >= shadows->largeBoxSize;
+
+	return dsShadowCullVolume_intersectBoxMatrixSIMD(shadows->cullVolumes + surface, boxMatrix,
+		shadows->projections + surface, clampToVolume);
+}
+DS_SIMD_END()
+
+DS_SIMD_START_FMA()
+dsIntersectResult dsSceneLightShadows_intersectViewBoxMatrixFMA(dsSceneLightShadows* shadows,
+	uint32_t surface, const dsMatrix44f* boxMatrix)
+{
+	if (!shadows || surface >= shadows->totalMatrices || !boxMatrix)
+		return dsIntersectResult_Outside;
+
+	float halfExtentsX = dsVector3f_len((const dsVector3f*)boxMatrix->columns);
+	float halfExtentsY = dsVector3f_len((const dsVector3f*)(boxMatrix->columns + 1));
+	float halfExtentsZ = dsVector3f_len((const dsVector3f*)(boxMatrix->columns + 2));
+	float maxHalfSize = dsMax(halfExtentsX, halfExtentsY);
+	maxHalfSize = dsMax(maxHalfSize, halfExtentsZ);
+	bool clampToVolume = maxHalfSize*2.0f >= shadows->largeBoxSize;
+
+	return dsShadowCullVolume_intersectBoxMatrixFMA(shadows->cullVolumes + surface, boxMatrix,
 		shadows->projections + surface, clampToVolume);
 }
 DS_SIMD_END()

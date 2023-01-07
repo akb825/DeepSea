@@ -173,7 +173,8 @@ DS_MATH_EXPORT inline void dsMatrix44f_affineInvertFMA(dsMatrix44f* result, cons
  * @param[out] result The inverted matrix as 3 aligned dsVector4f elements.
  * @param a The matrix to invert.
  */
-DS_MATH_EXPORT inline void dsMatrix44f_affineInvert33SIMD(dsVector4f* result, const dsMatrix44f* a);
+DS_MATH_EXPORT inline void dsMatrix44f_affineInvert33SIMD(dsVector4f result[3],
+	const dsMatrix44f* a);
 
 /**
  * @brief Inverts the upper 3x3 portion of an affine matrix using fused multiply-add operations.
@@ -181,7 +182,8 @@ DS_MATH_EXPORT inline void dsMatrix44f_affineInvert33SIMD(dsVector4f* result, co
  * @param[out] result The inverted matrix as 3 aligned dsVector4f elements.
  * @param a The matrix to invert.
  */
-DS_MATH_EXPORT inline void dsMatrix44f_affineInvert33FMA(dsVector4f* result, const dsMatrix44f* a);
+DS_MATH_EXPORT inline void dsMatrix44f_affineInvert33FMA(dsVector4f result[3],
+	const dsMatrix44f* a);
 
 /**
  * @brief Inverts a matrix.
@@ -205,7 +207,7 @@ DS_MATH_EXPORT inline void dsMatrix44f_invertFMA(dsMatrix44f* result, const dsMa
  * @param[out] result The inverted matrix as 3 aligned dsVector4f elements.
  * @param a The matrix to invert.
  */
-DS_MATH_EXPORT inline void dsMatrix44f_inverseTransposeSIMD(dsVector4f* result,
+DS_MATH_EXPORT inline void dsMatrix44f_inverseTransposeSIMD(dsVector4f result[3],
 	const dsMatrix44f* a);
 
 /**
@@ -215,7 +217,7 @@ DS_MATH_EXPORT inline void dsMatrix44f_inverseTransposeSIMD(dsVector4f* result,
  * @param[out] result The inverted matrix as 3 aligned dsVector4f elements.
  * @param a The matrix to invert.
  */
-DS_MATH_EXPORT inline void dsMatrix44f_inverseTransposeFMA(dsVector4f* result,
+DS_MATH_EXPORT inline void dsMatrix44f_inverseTransposeFMA(dsVector4f result[3],
 	const dsMatrix44f* a);
 
 DS_SIMD_START_FLOAT4()
@@ -634,7 +636,8 @@ DS_MATH_EXPORT inline void dsMatrix44f_affineInvertSIMD(dsMatrix44f* result, con
 			dsSIMD4f_mul(result->columns[2].simd, dsSIMD4f_set1(a->columns[3].z))));
 }
 
-DS_MATH_EXPORT inline void dsMatrix44f_affineInvert33SIMD(dsVector4f* result, const dsMatrix44f* a)
+DS_MATH_EXPORT inline void dsMatrix44f_affineInvert33SIMD(dsVector4f result[3],
+	const dsMatrix44f* a)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -716,7 +719,7 @@ DS_MATH_EXPORT inline void dsMatrix44f_invertSIMD(dsMatrix44f* result, const dsM
 	DS_SIMD_SHUFFLE2_3131_2020(result->columns[2].simd, result->columns[3].simd, z, w);
 }
 
-DS_MATH_EXPORT inline void dsMatrix44f_inverseTransposeSIMD(dsVector4f* result,
+DS_MATH_EXPORT inline void dsMatrix44f_inverseTransposeSIMD(dsVector4f result[3],
 	const dsMatrix44f* a)
 {
 	DS_ASSERT(result);
@@ -934,7 +937,7 @@ DS_MATH_EXPORT inline void dsMatrix44f_affineInvertFMA(dsMatrix44f* result, cons
 		dsSIMD4f_set4(0.0f, 0.0f, 0.0f, -1.0f))));
 }
 
-DS_MATH_EXPORT inline void dsMatrix44f_affineInvert33FMA(dsVector4f* result, const dsMatrix44f* a)
+DS_MATH_EXPORT inline void dsMatrix44f_affineInvert33FMA(dsVector4f result[3], const dsMatrix44f* a)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -1014,7 +1017,8 @@ DS_MATH_EXPORT inline void dsMatrix44f_invertFMA(dsMatrix44f* result, const dsMa
 	DS_SIMD_SHUFFLE2_3131_2020(result->columns[2].simd, result->columns[3].simd, z, w);
 }
 
-DS_MATH_EXPORT inline void dsMatrix44f_inverseTransposeFMA(dsVector4f* result, const dsMatrix44f* a)
+DS_MATH_EXPORT inline void dsMatrix44f_inverseTransposeFMA(dsVector4f result[3],
+	const dsMatrix44f* a)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);

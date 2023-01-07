@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Aaron Barany
+ * Copyright 2022-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,17 +43,13 @@ DS_SCENE_EXPORT const dsSceneNodeType* dsSceneCullNode_type(void);
  * If false is returned, the node should be considered always out of view. If true is returned and
  * bounds are invalid, the node should be considered always in view.
  *
- * @param[out] outBounds The bounds of the node in world space.
+ * @param[out] outBoxMatrix The bounds of the node in world space.
  * @param node The cull node to check.
  * @param treeNode The tree node for the instance to check.
  * @return False if there's no bounds available.
  */
-DS_SCENE_EXPORT inline bool dsSceneCullNode_getBounds(dsOrientedBox3f* outBounds,
-	const dsSceneCullNode* node, const dsSceneTreeNode* treeNode)
-{
-	return outBounds && node && treeNode && node->getBoundsFunc &&
-		node->getBoundsFunc(outBounds, node, treeNode);
-}
+DS_SCENE_EXPORT bool dsSceneCullNode_getBounds(dsMatrix44f* outBoxMatrix,
+	const dsSceneCullNode* node, const dsSceneTreeNode* treeNode);
 
 #ifdef __cplusplus
 }

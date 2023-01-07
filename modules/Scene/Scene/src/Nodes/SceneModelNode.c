@@ -25,6 +25,8 @@
 
 #include <DeepSea/Geometry/OrientedBox3.h>
 
+#include <DeepSea/Math/Matrix44.h>
+
 #include <DeepSea/Render/Resources/Material.h>
 
 #include <DeepSea/Scene/Nodes/SceneCullNode.h>
@@ -114,15 +116,6 @@ static void populateItemList(const char** itemLists, uint32_t* hashes, uint32_t*
 	}
 
 	*itemListCount += extraItemListCount;
-}
-
-static bool dsModelNode_getBounds(dsOrientedBox3f* outBounds, const dsSceneCullNode* node,
-	const dsSceneTreeNode* treeNode)
-{
-	const dsSceneModelNode* modelNode = (const dsSceneModelNode*)node;
-	*outBounds = modelNode->bounds;
-	dsOrientedBox3f_transform(outBounds, &treeNode->transform);
-	return true;
 }
 
 const char* const dsSceneModelNode_typeName = "ModelNode";
@@ -323,13 +316,20 @@ dsSceneModelNode* dsSceneModelNode_createBase(dsAllocator* allocator, size_t str
 		node->resourceCount = 0;
 	}
 
-	if (bounds)
-		node->bounds = *bounds;
-	else
-		dsOrientedBox3_makeInvalid(node->bounds);
-
 	dsSceneCullNode* cullNode = (dsSceneCullNode*)node;
-	cullNode->getBoundsFunc = &dsModelNode_getBounds;
+	if (bounds)
+	{
+		node->bounds = *bounds;
+		cullNode->hasBounds = true;
+		dsOrientedBox3f_toMatrix(&cullNode->staticLocalBoxMatrix, bounds);
+	}
+	else
+	{
+		cullNode->hasBounds = false;
+		dsOrientedBox3_makeInvalid(node->bounds);
+		dsMatrix44_identity(cullNode->staticLocalBoxMatrix);
+	}
+	cullNode->getBoundsFunc = NULL;
 
 	return node;
 }
@@ -435,8 +435,11 @@ dsSceneModelNode* dsSceneModelNode_cloneRemapBase(dsAllocator* allocator, size_t
 
 	node->bounds = origModel->bounds;
 
+	const dsSceneCullNode* origCullNode = (const dsSceneCullNode*)origModel;
 	dsSceneCullNode* cullNode = (dsSceneCullNode*)node;
-	cullNode->getBoundsFunc = &dsModelNode_getBounds;
+	cullNode->hasBounds = origCullNode->hasBounds;
+	cullNode->staticLocalBoxMatrix = origCullNode->staticLocalBoxMatrix;
+	cullNode->getBoundsFunc = origCullNode->getBoundsFunc;
 
 	DS_VERIFY(dsSceneModelNode_remapMaterials(node, remaps, remapCount));
 	return node;

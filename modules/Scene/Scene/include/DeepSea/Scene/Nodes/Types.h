@@ -198,12 +198,12 @@ typedef struct dsSceneTransformNode
  * If false is returned, the node should be considered always out of view. If true is returned and
  * bounds are invalid, the node should be considered always in view.
  *
- * @param[out] outBounds The bounds of the node in world space.
+ * @param[out] outBoxMatrix The bounds of the node in matrix form in world space.
  * @param node The cull node to check.
  * @param treeNode The tree node for the instance to check.
  * @return False if there's no bounds available.
  */
-typedef bool (*dsGetSceneCullNodeBoundsFunction)(dsOrientedBox3f* outBounds,
+typedef bool (*dsGetSceneCullNodeBoundsFunction)(dsMatrix44f* outBoxMatrix,
 	const dsSceneCullNode* node, const dsSceneTreeNode* treeNode);
 
 /**
@@ -219,9 +219,24 @@ struct dsSceneCullNode
 	dsSceneNode node;
 
 	/**
+	 * @brief Whether or not bounds are available on the node.
+	 *
+	 * When bounds aren't available the node will be ignored for culling.
+	 */
+	bool hasBounds;
+
+	/**
+	 * @brief The static local bounds of the node in matrix form.
+	 *
+	 * This will be used if getBoundsFunc is NULL and ignored if getBoundsFunc is non-NULL.
+	 */
+	dsMatrix44f staticLocalBoxMatrix;
+
+	/**
 	 * @brief Function to get the bounds for the cull node.
 	 *
-	 * This should be assigned by the subclass of the node.
+	 * This should be assigned by the subclass of the node if the bounds may change or uses a
+	 * different transform from the node transform.
 	 */
 	dsGetSceneCullNodeBoundsFunction getBoundsFunc;
 };

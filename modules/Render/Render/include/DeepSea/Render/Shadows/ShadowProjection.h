@@ -80,6 +80,36 @@ DS_RENDER_EXPORT bool dsShadowProjection_reset(dsShadowProjection* shadowProj);
 DS_RENDER_EXPORT bool dsShadowProjection_addPoints(dsShadowProjection* shadowProj,
 	const dsVector3f* points, uint32_t pointCount);
 
+#if DS_HAS_SIMD
+/**
+ * @brief Adds points to the shadow projection using SIMD operations.
+ *
+ * The points are typically from a bounding volume clamped to the cull volume.
+ *
+ * @remark This can be used when dsSIMDFeatures_Float4 is available.
+ * @param shadowProj The shadow projection to add the points to.
+ * @param points The list of points in world space to add.
+ * @param pointCount The number of points.
+ * @return False if the parameters are invalid.
+ */
+DS_RENDER_EXPORT void dsShadowProjection_addPointsSIMD(dsShadowProjection* shadowProj,
+	const dsVector4f* points, uint32_t pointCount);
+
+/**
+ * @brief Adds points to the shadow projection using fused multiply-add operations.
+ *
+ * The points are typically from a bounding volume clamped to the cull volume.
+ *
+ * @remark This can be used when dsSIMDFeatures_FMA is available.
+ * @param shadowProj The shadow projection to add the points to.
+ * @param points The list of points in world space to add.
+ * @param pointCount The number of points.
+ * @return False if the parameters are invalid.
+ */
+DS_RENDER_EXPORT void dsShadowProjection_addPointsFMA(dsShadowProjection* shadowProj,
+	const dsVector4f* points, uint32_t pointCount);
+#endif
+
 /**
  * @brief Computes the projection matrix for a shadow projection.
  * @param[out] outMatrix The projection matrix for the shadow projection.
