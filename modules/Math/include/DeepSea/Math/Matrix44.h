@@ -715,9 +715,9 @@ DS_MATH_EXPORT inline void dsMatrix44f_affineInvert(dsMatrix44f* result, const d
 	DS_ASSERT(a);
 	DS_ASSERT(result != a);
 
-#if DS_SIMD_ALWAYS_FMA && 0
+#if DS_SIMD_ALWAYS_FMA
 	dsMatrix44f_affineInvertFMA(result, a);
-#elif DS_SIMD_ALWAYS_FLOAT4 && 0
+#elif DS_SIMD_ALWAYS_FLOAT4
 	dsMatrix44f_affineInvertSIMD(result, a);
 #else
 	// Macros for 3x3 matrix will work on the upper 3x3 for a 4x4 matrix.
