@@ -92,6 +92,28 @@ extern "C"
 	} while (0)
 
 /**
+ * @brief Converts the oriented box to a matrix representation.
+ *
+ * This is useful to avoid the transpose in specific situations where the transpose is used.
+ *
+ * @param[out] result The matrix.
+ * @param box The box to convert.
+ */
+#define dsOrientedBox2_toMatrixTranspose(result, box) \
+	do \
+	{ \
+		(result).values[0][0] = (box).orientation.values[0][0]*(box).halfExtents.x; \
+		(result).values[1][0] = (box).orientation.values[0][1]*(box).halfExtents.x; \
+		(result).values[2][0] = 0; \
+		(result).values[0][1] = (box).orientation.values[1][0]*(box).halfExtents.y; \
+		(result).values[1][1] = (box).orientation.values[1][1]*(box).halfExtents.y; \
+		(result).values[2][1] = 0; \
+		(result).values[0][2] = (box).center.x; \
+		(result).values[1][2] = (box).center.y; \
+		(result).values[2][2] = 1; \
+	} while (0)
+
+/**
  * @brief Makes an invalid box.
  *
  * This will set the extents to -1.
@@ -265,6 +287,24 @@ DS_GEOMETRY_EXPORT inline void dsOrientedBox2d_toMatrix(dsMatrix44d* result,
 	DS_ASSERT(result);
 	DS_ASSERT(box);
 	dsOrientedBox2_toMatrix(*result, *box);
+}
+
+/** @copydoc dsOrientedBox2_toMatrixTranspose() */
+DS_GEOMETRY_EXPORT inline void dsOrientedBox2f_toMatrixTranspose(dsMatrix33f* result,
+	const dsOrientedBox2f* box)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(box);
+	dsOrientedBox2_toMatrixTranspose(*result, *box);
+}
+
+/** @copydoc dsOrientedBox2_toMatrix() */
+DS_GEOMETRY_EXPORT inline void dsOrientedBox2d_toMatrixTranspose(dsMatrix44d* result,
+	const dsOrientedBox2d* box)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(box);
+	dsOrientedBox2_toMatrixTranspose(*result, *box);
 }
 
 /** @copydoc dsOrientedBox2_fromAlignedBox() */

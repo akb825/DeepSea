@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022 Aaron Barany
+ * Copyright 2019-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,24 +51,16 @@ typedef struct dsViewCullList
 	uint64_t nextNodeID;
 } dsViewCullList;
 
-dsSceneItemList* dsViewCullList_load(const dsSceneLoadContext* loadContext,
-	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
-	void* userData, const char* name, const uint8_t* data, size_t dataSize)
-{
-	DS_UNUSED(loadContext);
-	DS_UNUSED(scratchData);
-	DS_UNUSED(resourceAllocator);
-	DS_UNUSED(userData);
-	DS_UNUSED(data);
-	DS_UNUSED(dataSize);
-	return dsViewCullList_create(allocator, name);
-}
-
-uint64_t dsViewCullList_addNode(dsSceneItemList* itemList, const dsSceneNode* node,
+static uint64_t dsViewCullList_addNode(dsSceneItemList* itemList, const dsSceneNode* node,
 	const dsSceneTreeNode* treeNode, const dsSceneNodeItemData* itemData, void** thisItemData)
 {
 	DS_UNUSED(itemData);
 	if (!dsSceneNode_isOfType(node, dsSceneCullNode_type()))
+		return DS_NO_SCENE_NODE;
+
+	const dsSceneCullNode* cullNode = (const dsSceneCullNode*)node;
+	dsOrientedBox3f bounds;
+	if (!dsSceneCullNode_getBounds(&bounds, cullNode, treeNode) || !dsOrientedBox3_isValid(bounds))
 		return DS_NO_SCENE_NODE;
 
 	dsViewCullList* cullList = (dsViewCullList*)itemList;
@@ -81,14 +73,14 @@ uint64_t dsViewCullList_addNode(dsSceneItemList* itemList, const dsSceneNode* no
 	}
 
 	Entry* entry = cullList->entries + index;
-	entry->node = (const dsSceneCullNode*)node;
+	entry->node = cullNode;
 	entry->treeNode = treeNode;
 	entry->result = (bool*)thisItemData;
 	entry->nodeID = cullList->nextNodeID++;
 	return entry->nodeID;
 }
 
-void dsViewCullList_removeNode(dsSceneItemList* itemList, uint64_t nodeID)
+static void dsViewCullList_removeNode(dsSceneItemList* itemList, uint64_t nodeID)
 {
 	dsViewCullList* cullList = (dsViewCullList*)itemList;
 	for (uint32_t i = 0; i < cullList->entryCount; ++i)
@@ -103,7 +95,9 @@ void dsViewCullList_removeNode(dsSceneItemList* itemList, uint64_t nodeID)
 	}
 }
 
-void dsViewCullList_commit(dsSceneItemList* itemList, const dsView* view,
+#if DS_HAS_SIMD
+DS_SIMD_START_FLOAT4()
+static void dsViewCullList_commitSIMD(dsSceneItemList* itemList, const dsView* view,
 	dsCommandBuffer* commandBuffer)
 {
 	DS_UNUSED(commandBuffer);
@@ -114,24 +108,60 @@ void dsViewCullList_commit(dsSceneItemList* itemList, const dsView* view,
 	{
 		const Entry* entry = cullList->entries + i;
 		dsOrientedBox3f bounds;
-		if (dsSceneCullNode_getBounds(&bounds, entry->node, entry->treeNode))
-		{
-			if (dsOrientedBox3_isValid(bounds))
-			{
-				*entry->result = dsFrustum3f_intersectOrientedBox(&view->viewFrustum, &bounds) ==
-					dsIntersectResult_Outside;
-			}
-			else
-				*entry->result = false;
-		}
-		else
-			*entry->result = true;
+		DS_VERIFY(entry->node->getBoundsFunc(&bounds, entry->node, entry->treeNode));
+		DS_ASSERT(dsOrientedBox3_isValid(bounds));
+		*entry->result = dsFrustum3f_intersectOrientedBoxSIMD(&view->viewFrustum, &bounds) ==
+			dsIntersectResult_Outside;
+	}
+
+	DS_PROFILE_SCOPE_END();
+}
+DS_SIMD_END()
+
+DS_SIMD_START_FMA()
+static void dsViewCullList_commitFMA(dsSceneItemList* itemList, const dsView* view,
+	dsCommandBuffer* commandBuffer)
+{
+	DS_UNUSED(commandBuffer);
+	DS_PROFILE_DYNAMIC_SCOPE_START(itemList->name);
+
+	dsViewCullList* cullList = (dsViewCullList*)itemList;
+	for (uint32_t i = 0; i < cullList->entryCount; ++i)
+	{
+		const Entry* entry = cullList->entries + i;
+		dsOrientedBox3f bounds;
+		DS_VERIFY(entry->node->getBoundsFunc(&bounds, entry->node, entry->treeNode));
+		DS_ASSERT(dsOrientedBox3_isValid(bounds));
+		*entry->result = dsFrustum3f_intersectOrientedBoxFMA(&view->viewFrustum, &bounds) ==
+			dsIntersectResult_Outside;
+	}
+
+	DS_PROFILE_SCOPE_END();
+}
+DS_SIMD_END()
+#endif
+
+static void dsViewCullList_commit(dsSceneItemList* itemList, const dsView* view,
+	dsCommandBuffer* commandBuffer)
+{
+	DS_UNUSED(commandBuffer);
+	DS_PROFILE_DYNAMIC_SCOPE_START(itemList->name);
+
+	dsViewCullList* cullList = (dsViewCullList*)itemList;
+	for (uint32_t i = 0; i < cullList->entryCount; ++i)
+	{
+		const Entry* entry = cullList->entries + i;
+		dsOrientedBox3f bounds;
+		DS_VERIFY(entry->node->getBoundsFunc(&bounds, entry->node, entry->treeNode));
+		DS_ASSERT(dsOrientedBox3_isValid(bounds));
+		*entry->result = dsFrustum3f_intersectOrientedBox(&view->viewFrustum, &bounds) ==
+			dsIntersectResult_Outside;
 	}
 
 	DS_PROFILE_SCOPE_END();
 }
 
-void dsViewCullList_destroy(dsSceneItemList* itemList)
+static void dsViewCullList_destroy(dsSceneItemList* itemList)
 {
 	dsViewCullList* cullList = (dsViewCullList*)itemList;
 	DS_VERIFY(dsAllocator_free(itemList->allocator, cullList->entries));
@@ -139,6 +169,19 @@ void dsViewCullList_destroy(dsSceneItemList* itemList)
 }
 
 const char* const dsViewCullList_typeName = "ViewCullList";
+
+dsSceneItemList* dsViewCullList_load(const dsSceneLoadContext* loadContext,
+	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
+	void* userData, const char* name, const uint8_t* data, size_t dataSize)
+{
+	DS_UNUSED(loadContext);
+	DS_UNUSED(scratchData);
+	DS_UNUSED(resourceAllocator);
+	DS_UNUSED(userData);
+	DS_UNUSED(data);
+	DS_UNUSED(dataSize);
+	return dsViewCullList_create(allocator, name);
+}
 
 dsSceneItemListType dsViewCullList_type(void)
 {
@@ -184,7 +227,14 @@ dsSceneItemList* dsViewCullList_create(dsAllocator* allocator, const char* name)
 	itemList->updateNodeFunc = NULL;
 	itemList->removeNodeFunc = &dsViewCullList_removeNode;
 	itemList->updateFunc = NULL;
-	itemList->commitFunc = &dsViewCullList_commit;
+#if DS_HAS_SIMD
+	if (DS_SIMD_ALWAYS_FMA || dsHostSIMDFeatures & dsSIMDFeatures_FMA)
+		itemList->commitFunc = &dsViewCullList_commitFMA;
+	else if (DS_SIMD_ALWAYS_FLOAT4 || dsHostSIMDFeatures & dsSIMDFeatures_Float4)
+		itemList->commitFunc = &dsViewCullList_commitSIMD;
+	else
+#endif
+		itemList->commitFunc = &dsViewCullList_commit;
 	itemList->destroyFunc = &dsViewCullList_destroy;
 
 	cullList->entries = NULL;

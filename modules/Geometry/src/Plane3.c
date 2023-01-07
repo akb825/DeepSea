@@ -233,19 +233,9 @@ dsIntersectResult dsPlane3f_intersectOrientedBox(const dsPlane3f* plane, const d
 	DS_ASSERT(plane);
 	DS_ASSERT(box);
 
-	// Same as aligned box, but radius computation is projected to box orientation.
-	dsVector3f orientedNormal;
-	dsMatrix33_transformTransposed(orientedNormal, box->orientation, plane->n);
-	float radius = box->halfExtents.x*fabsf(orientedNormal.x) +
-		box->halfExtents.y*fabsf(orientedNormal.y) + box->halfExtents.z*fabsf(orientedNormal.z);
-	float centerDist = dsVector3_dot(plane->n, box->center) + plane->d;
-
-	if (centerDist > radius)
-		return dsIntersectResult_Inside;
-	else if (centerDist < -radius)
-		return dsIntersectResult_Outside;
-	else
-		return dsIntersectResult_Intersects;
+	dsMatrix44f boxMatrix;
+	dsOrientedBox3_toMatrixTranspose(boxMatrix, *box);
+	return dsPlane3f_intersectBoxMatrixTranspose(plane, &boxMatrix);
 }
 
 dsIntersectResult dsPlane3d_intersectOrientedBox(const dsPlane3d* plane, const dsOrientedBox3d* box)
@@ -253,19 +243,9 @@ dsIntersectResult dsPlane3d_intersectOrientedBox(const dsPlane3d* plane, const d
 	DS_ASSERT(plane);
 	DS_ASSERT(box);
 
-	// Same as aligned box, but radius computation is projected to box orientation.
-	dsVector3d orientedNormal;
-	dsMatrix33_transformTransposed(orientedNormal, box->orientation, plane->n);
-	double radius = box->halfExtents.x*fabs(orientedNormal.x) +
-		box->halfExtents.y*fabs(orientedNormal.y) + box->halfExtents.z*fabs(orientedNormal.z);
-	double centerDist = dsVector3_dot(plane->n, box->center) + plane->d;
-
-	if (centerDist > radius)
-		return dsIntersectResult_Inside;
-	else if (centerDist < -radius)
-		return dsIntersectResult_Outside;
-	else
-		return dsIntersectResult_Intersects;
+	dsMatrix44d boxMatrix;
+	dsOrientedBox3_toMatrixTranspose(boxMatrix, *box);
+	return dsPlane3d_intersectBoxMatrixTranspose(plane, &boxMatrix);
 }
 
 void dsPlane3f_fromNormalPoint(dsPlane3f* result, const dsVector3f* normal,
@@ -283,3 +263,17 @@ void dsPlane3f_transformInverseTranspose(dsPlane3f* result, const dsMatrix44f* t
 	const dsPlane3f* plane);
 void dsPlane3d_transformInverseTranspose(dsPlane3d* result, const dsMatrix44d* transform,
 	const dsPlane3d* plane);
+dsIntersectResult dsPlane3f_intersectBoxMatrix(const dsPlane3f* plane,
+	const dsMatrix44f* boxMatrix);
+dsIntersectResult dsPlane3d_intersectBoxMatrix(const dsPlane3d* plane,
+	const dsMatrix44d* boxMatrix);
+dsIntersectResult dsPlane3f_intersectBoxMatrixTranspose(const dsPlane3f* plane,
+	const dsMatrix44f* boxMatrix);
+#if DS_HAS_SIMD
+dsIntersectResult dsPlane3f_intersectBoxMatrixTransposeSIMD(const dsPlane3f* plane,
+	const dsMatrix44f* boxMatrix);
+dsIntersectResult dsPlane3f_intersectBoxMatrixTransposeFMA(const dsPlane3f* plane,
+	const dsMatrix44f* boxMatrix);
+#endif
+dsIntersectResult dsPlane3d_intersectBoxMatrixTranspose(const dsPlane3d* plane,
+	const dsMatrix44d* boxMatrix);

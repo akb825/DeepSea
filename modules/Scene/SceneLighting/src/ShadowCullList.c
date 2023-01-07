@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2022 Aaron Barany
+ * Copyright 2021-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,6 +62,11 @@ static uint64_t dsShadowCullList_addNode(dsSceneItemList* itemList, const dsScen
 	if (!dsSceneNode_isOfType(node, dsSceneCullNode_type()))
 		return DS_NO_SCENE_NODE;
 
+	const dsSceneCullNode* cullNode = (const dsSceneCullNode*)node;
+	dsOrientedBox3f bounds;
+	if (!dsSceneCullNode_getBounds(&bounds, cullNode, treeNode) || !dsOrientedBox3_isValid(bounds))
+		return DS_NO_SCENE_NODE;
+
 	dsShadowCullList* cullList = (dsShadowCullList*)itemList;
 
 	uint32_t index = cullList->entryCount;
@@ -72,7 +77,7 @@ static uint64_t dsShadowCullList_addNode(dsSceneItemList* itemList, const dsScen
 	}
 
 	Entry* entry = cullList->entries + index;
-	entry->node = (const dsSceneCullNode*)node;
+	entry->node = cullNode;
 	entry->treeNode = treeNode;
 	entry->result = (bool*)thisItemData;
 	entry->nodeID = cullList->nextNodeID++;
@@ -93,6 +98,88 @@ static void dsShadowCullList_removeNode(dsSceneItemList* itemList, uint64_t node
 		break;
 	}
 }
+
+#if DS_HAS_SIMD
+DS_SIMD_START_FLOAT4()
+static void dsShadowCullList_commitSIMD(dsSceneItemList* itemList, const dsView* view,
+	dsCommandBuffer* commandBuffer)
+{
+	DS_UNUSED(commandBuffer);
+	DS_PROFILE_DYNAMIC_SCOPE_START(itemList->name);
+
+	dsShadowCullList* cullList = (dsShadowCullList*)itemList;
+	if (cullList->surface >= dsSceneLightShadows_getSurfaceCount(cullList->shadows))
+	{
+		for (uint32_t i = 0; i < cullList->entryCount; ++i)
+		{
+			const Entry* entry = cullList->entries + i;
+			*entry->result = true;
+		}
+		DS_PROFILE_SCOPE_END();
+		return;
+	}
+
+	for (uint32_t i = 0; i < cullList->entryCount; ++i)
+	{
+		const Entry* entry = cullList->entries + i;
+		dsOrientedBox3f bounds;
+		DS_VERIFY(entry->node->getBoundsFunc(&bounds, entry->node, entry->treeNode));
+		DS_ASSERT(dsOrientedBox3_isValid(bounds));
+		*entry->result = dsSceneLightShadows_intersectOrientedBoxSIMD(cullList->shadows,
+			cullList->surface, &bounds) == dsIntersectResult_Outside;;
+	}
+
+	if (!dsSceneLightShadows_computeSurfaceProjection(cullList->shadows, cullList->surface))
+	{
+		DS_LOG_ERROR_F(DS_SCENE_LIGHTING_LOG_TAG,
+			"Couldn't compute projection for shadows '%s' surface %d.",
+			dsSceneLightShadows_getName(cullList->shadows), cullList->surface);
+	}
+
+	DS_PROFILE_SCOPE_END();
+}
+DS_SIMD_END()
+
+DS_SIMD_START_FLOAT4()
+static void dsShadowCullList_commitFMA(dsSceneItemList* itemList, const dsView* view,
+	dsCommandBuffer* commandBuffer)
+{
+	DS_UNUSED(commandBuffer);
+	DS_PROFILE_DYNAMIC_SCOPE_START(itemList->name);
+
+	dsShadowCullList* cullList = (dsShadowCullList*)itemList;
+	if (cullList->surface >= dsSceneLightShadows_getSurfaceCount(cullList->shadows))
+	{
+		for (uint32_t i = 0; i < cullList->entryCount; ++i)
+		{
+			const Entry* entry = cullList->entries + i;
+			*entry->result = true;
+		}
+		DS_PROFILE_SCOPE_END();
+		return;
+	}
+
+	for (uint32_t i = 0; i < cullList->entryCount; ++i)
+	{
+		const Entry* entry = cullList->entries + i;
+		dsOrientedBox3f bounds;
+		DS_VERIFY(entry->node->getBoundsFunc(&bounds, entry->node, entry->treeNode));
+		DS_ASSERT(dsOrientedBox3_isValid(bounds));
+		*entry->result = dsSceneLightShadows_intersectOrientedBoxFMA(cullList->shadows,
+			cullList->surface, &bounds) == dsIntersectResult_Outside;;
+	}
+
+	if (!dsSceneLightShadows_computeSurfaceProjection(cullList->shadows, cullList->surface))
+	{
+		DS_LOG_ERROR_F(DS_SCENE_LIGHTING_LOG_TAG,
+			"Couldn't compute projection for shadows '%s' surface %d.",
+			dsSceneLightShadows_getName(cullList->shadows), cullList->surface);
+	}
+
+	DS_PROFILE_SCOPE_END();
+}
+DS_SIMD_END()
+#endif
 
 static void dsShadowCullList_commit(dsSceneItemList* itemList, const dsView* view,
 	dsCommandBuffer* commandBuffer)
@@ -116,18 +203,10 @@ static void dsShadowCullList_commit(dsSceneItemList* itemList, const dsView* vie
 	{
 		const Entry* entry = cullList->entries + i;
 		dsOrientedBox3f bounds;
-		if (dsSceneCullNode_getBounds(&bounds, entry->node, entry->treeNode))
-		{
-			if (dsOrientedBox3_isValid(bounds))
-			{
-				*entry->result = dsSceneLightShadows_intersectOrientedBox(cullList->shadows,
-					cullList->surface, &bounds) == dsIntersectResult_Outside;
-			}
-			else
-				*entry->result = false;
-		}
-		else
-			*entry->result = true;
+		DS_VERIFY(entry->node->getBoundsFunc(&bounds, entry->node, entry->treeNode));
+		DS_ASSERT(dsOrientedBox3_isValid(bounds));
+		*entry->result = dsSceneLightShadows_intersectOrientedBox(cullList->shadows,
+			cullList->surface, &bounds) == dsIntersectResult_Outside;;
 	}
 
 	if (!dsSceneLightShadows_computeSurfaceProjection(cullList->shadows, cullList->surface))
@@ -195,7 +274,14 @@ dsSceneItemList* dsShadowCullList_create(dsAllocator* allocator, const char* nam
 	itemList->updateNodeFunc = NULL;
 	itemList->removeNodeFunc = &dsShadowCullList_removeNode;
 	itemList->updateFunc = NULL;
-	itemList->commitFunc = &dsShadowCullList_commit;
+#if DS_HAS_SIMD
+	if (DS_SIMD_ALWAYS_FMA || dsHostSIMDFeatures & dsSIMDFeatures_FMA)
+		itemList->commitFunc = &dsShadowCullList_commitFMA;
+	else if (DS_SIMD_ALWAYS_FLOAT4 || dsHostSIMDFeatures & dsSIMDFeatures_Float4)
+		itemList->commitFunc = &dsShadowCullList_commitSIMD;
+	else
+#endif
+		itemList->commitFunc = &dsShadowCullList_commit;
 	itemList->destroyFunc = &dsShadowCullList_destroy;
 
 	cullList->shadows = shadows;

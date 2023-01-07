@@ -261,6 +261,33 @@ DS_SCENELIGHTING_EXPORT uint32_t dsSceneLightShadows_getSurfaceCount(
 DS_SCENELIGHTING_EXPORT dsIntersectResult dsSceneLightShadows_intersectAlignedBox(
 	dsSceneLightShadows* shadows, uint32_t surface, const dsAlignedBox3f* box);
 
+#if DS_HAS_SIMD
+/**
+ * @brief Intersects an aligned box in world space with a shadow surface using SIMD operations
+ * @remark This can be used when dsSIMDFeatures_Float4 is available.
+ * @param shadows The scene light shadows.
+ * @param surface The shadow surface index.
+ * @param box The aligned box to intersect with in world space.
+ * @return The intersection result. Inside and outside is with respect to the volume. If the box
+ *     fully contains the frustum, dsIntersectResult_Intersects will be returned.
+ */
+DS_SCENELIGHTING_EXPORT dsIntersectResult dsSceneLightShadows_intersectAlignedBoxSIMD(
+	dsSceneLightShadows* shadows, uint32_t surface, const dsAlignedBox3f* box);
+
+/**
+ * @brief Intersects an aligned box in world space with a shadow surface using fused multiply-add
+ *     operations
+ * @remark This can be used when dsSIMDFeatures_FMA is available.
+ * @param shadows The scene light shadows.
+ * @param surface The shadow surface index.
+ * @param box The aligned box to intersect with in world space.
+ * @return The intersection result. Inside and outside is with respect to the volume. If the box
+ *     fully contains the frustum, dsIntersectResult_Intersects will be returned.
+ */
+DS_SCENELIGHTING_EXPORT dsIntersectResult dsSceneLightShadows_intersectAlignedBoxFMA(
+	dsSceneLightShadows* shadows, uint32_t surface, const dsAlignedBox3f* box);
+#endif
+
 /**
  * @brief Intersects an oriented box in world space with a shadow surface.
  * @param shadows The scene light shadows.
@@ -271,6 +298,33 @@ DS_SCENELIGHTING_EXPORT dsIntersectResult dsSceneLightShadows_intersectAlignedBo
  */
 DS_SCENELIGHTING_EXPORT dsIntersectResult dsSceneLightShadows_intersectOrientedBox(
 	dsSceneLightShadows* shadows, uint32_t surface, const dsOrientedBox3f* box);
+
+#if DS_HAS_SIMD
+/**
+ * @brief Intersects an oriented box in world space with a shadow surface using SIMD operations.
+ * @remark This can be used when dsSIMDFeatures_Float4 is available.
+ * @param shadows The scene light shadows.
+ * @param surface The shadow surface index.
+ * @param box The oriented box to intersect with in world space.
+ * @return The intersection result. Inside and outside is with respect to the volume. If the box
+ *     fully contains the frustum, dsIntersectResult_Intersects will be returned.
+ */
+DS_SCENELIGHTING_EXPORT dsIntersectResult dsSceneLightShadows_intersectOrientedBoxSIMD(
+	dsSceneLightShadows* shadows, uint32_t surface, const dsOrientedBox3f* box);
+
+/**
+ * @brief Intersects an oriented box in world space with a shadow surface using fused multiply-add
+ *     operations.
+ * @remark This can be used when dsSIMDFeatures_FMA is available.
+ * @param shadows The scene light shadows.
+ * @param surface The shadow surface index.
+ * @param box The oriented box to intersect with in world space.
+ * @return The intersection result. Inside and outside is with respect to the volume. If the box
+ *     fully contains the frustum, dsIntersectResult_Intersects will be returned.
+ */
+DS_SCENELIGHTING_EXPORT dsIntersectResult dsSceneLightShadows_intersectOrientedBoxFMA(
+	dsSceneLightShadows* shadows, uint32_t surface, const dsOrientedBox3f* box);
+#endif
 
 /**
  * @brief Intersects a sphere in world space with a shadow surface.
@@ -295,6 +349,33 @@ DS_SCENELIGHTING_EXPORT dsIntersectResult dsSceneLightShadows_intersectSphere(
 DS_SCENELIGHTING_EXPORT dsIntersectResult dsSceneLightShadows_intersectViewAlignedBox(
 	dsSceneLightShadows* shadows, uint32_t surface, const dsAlignedBox3f* box);
 
+#if DS_HAS_SIMD
+/**
+ * @brief Intersects an aligned box in view space with a shadow surface using SIMD operations.
+ * @remark This can be used when dsSIMDFeatures_Float4 is available.
+ * @param shadows The scene light shadows.
+ * @param surface The shadow surface index.
+ * @param box The aligned box to intersect with in view space.
+ * @return The intersection result. Inside and outside is with respect to the volume. If the box
+ *     fully contains the frustum, dsIntersectResult_Intersects will be returned.
+ */
+DS_SCENELIGHTING_EXPORT dsIntersectResult dsSceneLightShadows_intersectViewAlignedBoxSIMD(
+	dsSceneLightShadows* shadows, uint32_t surface, const dsAlignedBox3f* box);
+
+/**
+ * @brief Intersects an aligned box in view space with a shadow surface using fused multiply-add
+ *     operations.
+ * @remark This can be used when dsSIMDFeatures_FMA is available.
+ * @param shadows The scene light shadows.
+ * @param surface The shadow surface index.
+ * @param box The aligned box to intersect with in view space.
+ * @return The intersection result. Inside and outside is with respect to the volume. If the box
+ *     fully contains the frustum, dsIntersectResult_Intersects will be returned.
+ */
+DS_SCENELIGHTING_EXPORT dsIntersectResult dsSceneLightShadows_intersectViewAlignedBoxFMA(
+	dsSceneLightShadows* shadows, uint32_t surface, const dsAlignedBox3f* box);
+#endif
+
 /**
  * @brief Intersects an oriented box in view space with a shadow surface.
  * @param shadows The scene light shadows.
@@ -305,6 +386,33 @@ DS_SCENELIGHTING_EXPORT dsIntersectResult dsSceneLightShadows_intersectViewAlign
  */
 DS_SCENELIGHTING_EXPORT dsIntersectResult dsSceneLightShadows_intersectViewOrientedBox(
 	dsSceneLightShadows* shadows, uint32_t surface, const dsOrientedBox3f* box);
+
+#if DS_HAS_SIMD
+/**
+ * @brief Intersects an oriented box in view space with a shadow surface using SIMD operations.
+ * @remark This can be used when dsSIMDFeatures_Float4 is available.
+ * @param shadows The scene light shadows.
+ * @param surface The shadow surface index.
+ * @param box The oriented box to intersect with in view space.
+ * @return The intersection result. Inside and outside is with respect to the volume. If the box
+ *     fully contains the frustum, dsIntersectResult_Intersects will be returned.
+ */
+DS_SCENELIGHTING_EXPORT dsIntersectResult dsSceneLightShadows_intersectViewOrientedBoxSIMD(
+	dsSceneLightShadows* shadows, uint32_t surface, const dsOrientedBox3f* box);
+
+/**
+ * @brief Intersects an oriented box in view space with a shadow surface using fused multiply-add
+ *     operations.
+ * @remark This can be used when dsSIMDFeatures_FMA is available.
+ * @param shadows The scene light shadows.
+ * @param surface The shadow surface index.
+ * @param box The oriented box to intersect with in view space.
+ * @return The intersection result. Inside and outside is with respect to the volume. If the box
+ *     fully contains the frustum, dsIntersectResult_Intersects will be returned.
+ */
+DS_SCENELIGHTING_EXPORT dsIntersectResult dsSceneLightShadows_intersectViewOrientedBoxFMA(
+	dsSceneLightShadows* shadows, uint32_t surface, const dsOrientedBox3f* box);
+#endif
 
 /**
  * @brief Intersects a sphere in view space with a shadow surface.

@@ -731,6 +731,8 @@ bool dsOrientedBox3f_isValid(const dsOrientedBox3f* box);
 bool dsOrientedBox3d_isValid(const dsOrientedBox3d* box);
 void dsOrientedBox3f_toMatrix(dsMatrix44f* result, const dsOrientedBox3f* box);
 void dsOrientedBox3d_toMatrix(dsMatrix44d* result, const dsOrientedBox3d* box);
+void dsOrientedBox3f_toMatrixTranspose(dsMatrix44f* result, const dsOrientedBox3f* box);
+void dsOrientedBox3d_toMatrixTranspose(dsMatrix44d* result, const dsOrientedBox3d* box);
 void dsOrientedBox3f_fromAlignedBox(dsOrientedBox3f* result, const dsAlignedBox3f* alignedBox);
 void dsOrientedBox3d_fromAlignedBox(dsOrientedBox3d* result, const dsAlignedBox3d* alignedBox);
 void dsOrientedBox3f_makeInvalid(dsOrientedBox3f* result);

@@ -555,6 +555,24 @@ TYPED_TEST(AlignedBox3FloatTest, ToMatrix)
 	EXPECT_NEAR(box.max.z, boxPoint.z, epsilon);
 }
 
+TYPED_TEST(AlignedBox3FloatTest, ToMatrixTranspose)
+{
+	typedef typename AlignedBox3TypeSelector<TypeParam>::AlignedBox3Type AlignedBox3Type;
+	typedef typename AlignedBox3TypeSelector<TypeParam>::Matrix44Type Matrix44Type;
+
+	AlignedBox3Type box = {{{0, 1, 2}}, {{3, 4, 5}}};
+
+	Matrix44Type matrix, transposedMatrix;
+	dsAlignedBox3_toMatrix(matrix, box);
+	dsAlignedBox3_toMatrixTranspose(transposedMatrix, box);
+
+	for (unsigned int i = 0; i < 4; ++i)
+	{
+		for (int j = 0; j < 4; ++j)
+			EXPECT_EQ(matrix.values[j][i], transposedMatrix.values[i][j]);
+	}
+}
+
 TYPED_TEST(AlignedBox3Test, Corners)
 {
 	typedef typename AlignedBox3TypeSelector<TypeParam>::AlignedBox3Type AlignedBox3Type;

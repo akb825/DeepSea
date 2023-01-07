@@ -395,6 +395,28 @@ TYPED_TEST(OrientedBox2Test, ToMatrix)
 	EXPECT_NEAR(restoredBox.halfExtents.y, box.halfExtents.y, epsilon);
 }
 
+TYPED_TEST(OrientedBox2Test, ToMatrixTranspose)
+{
+	typedef typename OrientedBox2TypeSelector<TypeParam>::OrientedBox2Type OrientedBox2Type;
+	typedef typename OrientedBox2TypeSelector<TypeParam>::Matrix33Type Matrix33Type;
+
+	OrientedBox2Type box =
+	{
+		{{ {0, 1}, {-1, 0} }},
+		{{4, 3}}, {{2, 1}}
+	};
+
+	Matrix33Type matrix, transposedMatrix;
+	dsOrientedBox2_toMatrix(matrix, box);
+	dsOrientedBox2_toMatrixTranspose(transposedMatrix, box);
+
+	for (unsigned int i = 0; i < 3; ++i)
+	{
+		for (int j = 0; j < 3; ++j)
+			EXPECT_EQ(matrix.values[j][i], transposedMatrix.values[i][j]);
+	}
+}
+
 TYPED_TEST(OrientedBox2Test, Transform)
 {
 	typedef typename OrientedBox2TypeSelector<TypeParam>::OrientedBox2Type OrientedBox2Type;

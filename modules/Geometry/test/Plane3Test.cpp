@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+#include <DeepSea/Geometry/OrientedBox3.h>
 #include <DeepSea/Geometry/Plane3.h>
 #include <DeepSea/Math/Matrix44.h>
 #include <gtest/gtest.h>
@@ -154,6 +155,30 @@ inline dsIntersectResult dsPlane3_intersectOrientedBox(const dsPlane3d* plane,
 	const dsOrientedBox3d* box)
 {
 	return dsPlane3d_intersectOrientedBox(plane, box);
+}
+
+inline dsIntersectResult dsPlane3_intersectBoxMatrix(const dsPlane3f* plane,
+	const dsMatrix44f* boxMatrix)
+{
+	return dsPlane3f_intersectBoxMatrix(plane, boxMatrix);
+}
+
+inline dsIntersectResult dsPlane3_intersectBoxMatrix(const dsPlane3d* plane,
+	const dsMatrix44d* boxMatrix)
+{
+	return dsPlane3d_intersectBoxMatrix(plane, boxMatrix);
+}
+
+inline dsIntersectResult dsPlane3_intersectBoxMatrixTranspose(const dsPlane3f* plane,
+	const dsMatrix44f* boxMatrix)
+{
+	return dsPlane3f_intersectBoxMatrixTranspose(plane, boxMatrix);
+}
+
+inline dsIntersectResult dsPlane3_intersectBoxMatrixTranspose(const dsPlane3d* plane,
+	const dsMatrix44d* boxMatrix)
+{
+	return dsPlane3d_intersectBoxMatrixTranspose(plane, boxMatrix);
 }
 
 inline void dsMatrix44_makeRotate(dsMatrix44f* result, float x, float y, float z)
@@ -562,6 +587,218 @@ TYPED_TEST(Plane3Test, IntersectOrientedBox)
 	plane.n.z = -1;
 	plane.d = 8;
 	EXPECT_EQ(dsIntersectResult_Inside, dsPlane3_intersectOrientedBox(&plane, &box));
+}
+
+TYPED_TEST(Plane3Test, IntersectBoxMatrixTranspose)
+{
+	typedef typename Plane3TypeSelector<TypeParam>::OrientedBox3Type OrientedBox3Type;
+	typedef typename Plane3TypeSelector<TypeParam>::Plane3Type Plane3Type;
+	typedef typename Plane3TypeSelector<TypeParam>::Matrix44Type Matrix44Type;
+
+	OrientedBox3Type box =
+	{
+		{{ {0, 0, 1}, {-1, 0, 0}, {0, 1, 0} }},
+		{{6, 5, 4}}, {{3, 2, 1}}
+	};
+
+	Matrix44Type boxMatrix;
+	dsOrientedBox3_toMatrixTranspose(boxMatrix, box);
+
+	Plane3Type plane = {{1, 0, 0, -5}};
+	// Positive normals
+	EXPECT_EQ(dsIntersectResult_Intersects, dsPlane3_intersectBoxMatrixTranspose(&plane, &boxMatrix));
+
+	plane.n.x = 0;
+	plane.n.y = 1;
+	plane.d = -5;
+	EXPECT_EQ(dsIntersectResult_Intersects, dsPlane3_intersectBoxMatrixTranspose(&plane, &boxMatrix));
+
+	plane.n.y = 0;
+	plane.n.z = 1;
+	plane.d = -3;
+	EXPECT_EQ(dsIntersectResult_Intersects, dsPlane3_intersectBoxMatrixTranspose(&plane, &boxMatrix));
+
+	plane.n.z = 0;
+	plane.n.x = 1;
+	plane.d = -3;
+	EXPECT_EQ(dsIntersectResult_Inside, dsPlane3_intersectBoxMatrixTranspose(&plane, &boxMatrix));
+
+	plane.n.x = 0;
+	plane.n.y = 1;
+	plane.d = -3;
+	EXPECT_EQ(dsIntersectResult_Inside, dsPlane3_intersectBoxMatrixTranspose(&plane, &boxMatrix));
+
+	plane.n.y = 0;
+	plane.n.z = 1;
+	plane.d = 0;
+	EXPECT_EQ(dsIntersectResult_Inside, dsPlane3_intersectBoxMatrixTranspose(&plane, &boxMatrix));
+
+	plane.n.z = 0;
+	plane.n.x = 1;
+	plane.d = -9;
+	EXPECT_EQ(dsIntersectResult_Outside, dsPlane3_intersectBoxMatrixTranspose(&plane, &boxMatrix));
+
+	plane.n.x = 0;
+	plane.n.y = 1;
+	plane.d = -7;
+	EXPECT_EQ(dsIntersectResult_Outside, dsPlane3_intersectBoxMatrixTranspose(&plane, &boxMatrix));
+
+	plane.n.y = 0;
+	plane.n.z = 1;
+	plane.d = -8;
+	EXPECT_EQ(dsIntersectResult_Outside, dsPlane3_intersectBoxMatrixTranspose(&plane, &boxMatrix));
+
+	// Negative normals
+	plane.n.z = 0;
+	plane.n.x = -1;
+	plane.d = 5;
+	EXPECT_EQ(dsIntersectResult_Intersects, dsPlane3_intersectBoxMatrixTranspose(&plane, &boxMatrix));
+
+	plane.n.x = 0;
+	plane.n.y = -1;
+	plane.d = 5;
+	EXPECT_EQ(dsIntersectResult_Intersects, dsPlane3_intersectBoxMatrixTranspose(&plane, &boxMatrix));
+
+	plane.n.y = 0;
+	plane.n.z = -1;
+	plane.d = 3;
+	EXPECT_EQ(dsIntersectResult_Intersects, dsPlane3_intersectBoxMatrixTranspose(&plane, &boxMatrix));
+
+	plane.n.z = 0;
+	plane.n.x = -1;
+	plane.d = 3;
+	EXPECT_EQ(dsIntersectResult_Outside, dsPlane3_intersectBoxMatrixTranspose(&plane, &boxMatrix));
+
+	plane.n.x = 0;
+	plane.n.y = -1;
+	plane.d = 3;
+	EXPECT_EQ(dsIntersectResult_Outside, dsPlane3_intersectBoxMatrixTranspose(&plane, &boxMatrix));
+
+	plane.n.y = 0;
+	plane.n.z = -1;
+	plane.d = 0;
+	EXPECT_EQ(dsIntersectResult_Outside, dsPlane3_intersectBoxMatrixTranspose(&plane, &boxMatrix));
+
+	plane.n.z = 0;
+	plane.n.x = -1;
+	plane.d = 9;
+	EXPECT_EQ(dsIntersectResult_Inside, dsPlane3_intersectBoxMatrixTranspose(&plane, &boxMatrix));
+
+	plane.n.x = 0;
+	plane.n.y = -1;
+	plane.d = 7;
+	EXPECT_EQ(dsIntersectResult_Inside, dsPlane3_intersectBoxMatrixTranspose(&plane, &boxMatrix));
+
+	plane.n.y = 0;
+	plane.n.z = -1;
+	plane.d = 8;
+	EXPECT_EQ(dsIntersectResult_Inside, dsPlane3_intersectBoxMatrixTranspose(&plane, &boxMatrix));
+}
+
+TYPED_TEST(Plane3Test, IntersectBoxMatrix)
+{
+	typedef typename Plane3TypeSelector<TypeParam>::OrientedBox3Type OrientedBox3Type;
+	typedef typename Plane3TypeSelector<TypeParam>::Plane3Type Plane3Type;
+	typedef typename Plane3TypeSelector<TypeParam>::Matrix44Type Matrix44Type;
+
+	OrientedBox3Type box =
+	{
+		{{ {0, 0, 1}, {-1, 0, 0}, {0, 1, 0} }},
+		{{6, 5, 4}}, {{3, 2, 1}}
+	};
+
+	Matrix44Type boxMatrix;
+	dsOrientedBox3_toMatrix(boxMatrix, box);
+
+	Plane3Type plane = {{1, 0, 0, -5}};
+	// Positive normals
+	EXPECT_EQ(dsIntersectResult_Intersects, dsPlane3_intersectBoxMatrix(&plane, &boxMatrix));
+
+	plane.n.x = 0;
+	plane.n.y = 1;
+	plane.d = -5;
+	EXPECT_EQ(dsIntersectResult_Intersects, dsPlane3_intersectBoxMatrix(&plane, &boxMatrix));
+
+	plane.n.y = 0;
+	plane.n.z = 1;
+	plane.d = -3;
+	EXPECT_EQ(dsIntersectResult_Intersects, dsPlane3_intersectBoxMatrix(&plane, &boxMatrix));
+
+	plane.n.z = 0;
+	plane.n.x = 1;
+	plane.d = -3;
+	EXPECT_EQ(dsIntersectResult_Inside, dsPlane3_intersectBoxMatrix(&plane, &boxMatrix));
+
+	plane.n.x = 0;
+	plane.n.y = 1;
+	plane.d = -3;
+	EXPECT_EQ(dsIntersectResult_Inside, dsPlane3_intersectBoxMatrix(&plane, &boxMatrix));
+
+	plane.n.y = 0;
+	plane.n.z = 1;
+	plane.d = 0;
+	EXPECT_EQ(dsIntersectResult_Inside, dsPlane3_intersectBoxMatrix(&plane, &boxMatrix));
+
+	plane.n.z = 0;
+	plane.n.x = 1;
+	plane.d = -9;
+	EXPECT_EQ(dsIntersectResult_Outside, dsPlane3_intersectBoxMatrix(&plane, &boxMatrix));
+
+	plane.n.x = 0;
+	plane.n.y = 1;
+	plane.d = -7;
+	EXPECT_EQ(dsIntersectResult_Outside, dsPlane3_intersectBoxMatrix(&plane, &boxMatrix));
+
+	plane.n.y = 0;
+	plane.n.z = 1;
+	plane.d = -8;
+	EXPECT_EQ(dsIntersectResult_Outside, dsPlane3_intersectBoxMatrix(&plane, &boxMatrix));
+
+	// Negative normals
+	plane.n.z = 0;
+	plane.n.x = -1;
+	plane.d = 5;
+	EXPECT_EQ(dsIntersectResult_Intersects, dsPlane3_intersectBoxMatrix(&plane, &boxMatrix));
+
+	plane.n.x = 0;
+	plane.n.y = -1;
+	plane.d = 5;
+	EXPECT_EQ(dsIntersectResult_Intersects, dsPlane3_intersectBoxMatrix(&plane, &boxMatrix));
+
+	plane.n.y = 0;
+	plane.n.z = -1;
+	plane.d = 3;
+	EXPECT_EQ(dsIntersectResult_Intersects, dsPlane3_intersectBoxMatrix(&plane, &boxMatrix));
+
+	plane.n.z = 0;
+	plane.n.x = -1;
+	plane.d = 3;
+	EXPECT_EQ(dsIntersectResult_Outside, dsPlane3_intersectBoxMatrix(&plane, &boxMatrix));
+
+	plane.n.x = 0;
+	plane.n.y = -1;
+	plane.d = 3;
+	EXPECT_EQ(dsIntersectResult_Outside, dsPlane3_intersectBoxMatrix(&plane, &boxMatrix));
+
+	plane.n.y = 0;
+	plane.n.z = -1;
+	plane.d = 0;
+	EXPECT_EQ(dsIntersectResult_Outside, dsPlane3_intersectBoxMatrix(&plane, &boxMatrix));
+
+	plane.n.z = 0;
+	plane.n.x = -1;
+	plane.d = 9;
+	EXPECT_EQ(dsIntersectResult_Inside, dsPlane3_intersectBoxMatrix(&plane, &boxMatrix));
+
+	plane.n.x = 0;
+	plane.n.y = -1;
+	plane.d = 7;
+	EXPECT_EQ(dsIntersectResult_Inside, dsPlane3_intersectBoxMatrix(&plane, &boxMatrix));
+
+	plane.n.y = 0;
+	plane.n.z = -1;
+	plane.d = 8;
+	EXPECT_EQ(dsIntersectResult_Inside, dsPlane3_intersectBoxMatrix(&plane, &boxMatrix));
 }
 
 TEST(Plane3, ConvertFloatToDouble)

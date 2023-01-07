@@ -99,6 +99,35 @@ extern "C"
 	} while (0)
 
 /**
+ * @brief Converts the oriented box to a transposed matrix representation.
+ *
+ * This is useful to avoid the transpose in specific situations where the transpose is used.
+ *
+ * @param[out] result The matrix.
+ * @param box The box to convert.
+ */
+#define dsOrientedBox3_toMatrixTranspose(result, box) \
+	do \
+	{ \
+		(result).values[0][0] = (box).orientation.values[0][0]*(box).halfExtents.x; \
+		(result).values[1][0] = (box).orientation.values[0][1]*(box).halfExtents.x; \
+		(result).values[2][0] = (box).orientation.values[0][2]*(box).halfExtents.x; \
+		(result).values[3][0] = 0; \
+		(result).values[0][1] = (box).orientation.values[1][0]*(box).halfExtents.y; \
+		(result).values[1][1] = (box).orientation.values[1][1]*(box).halfExtents.y; \
+		(result).values[2][1] = (box).orientation.values[1][2]*(box).halfExtents.y; \
+		(result).values[3][1] = 0; \
+		(result).values[0][2] = (box).orientation.values[2][0]*(box).halfExtents.z; \
+		(result).values[1][2] = (box).orientation.values[2][1]*(box).halfExtents.z; \
+		(result).values[2][2] = (box).orientation.values[2][2]*(box).halfExtents.z; \
+		(result).values[3][2] = 0; \
+		(result).values[0][3] = (box).center.x; \
+		(result).values[1][3] = (box).center.y; \
+		(result).values[2][3] = (box).center.z; \
+		(result).values[3][3] = 1; \
+	} while (0)
+
+/**
  * @brief Makes an invalid box.
  *
  * This will set the extents to -1.
@@ -273,6 +302,24 @@ DS_GEOMETRY_EXPORT inline void dsOrientedBox3d_toMatrix(dsMatrix44d* result,
 	DS_ASSERT(result);
 	DS_ASSERT(box);
 	dsOrientedBox3_toMatrix(*result, *box);
+}
+
+/** @copydoc dsOrientedBox3_toMatrixTranspose() */
+DS_GEOMETRY_EXPORT inline void dsOrientedBox3f_toMatrixTranspose(dsMatrix44f* result,
+	const dsOrientedBox3f* box)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(box);
+	dsOrientedBox3_toMatrixTranspose(*result, *box);
+}
+
+/** @copydoc dsOrientedBox3_toMatrixTranspose() */
+DS_GEOMETRY_EXPORT inline void dsOrientedBox3d_toMatrixTranspose(dsMatrix44d* result,
+	const dsOrientedBox3d* box)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(box);
+	dsOrientedBox3_toMatrixTranspose(*result, *box);
 }
 
 /** @copydoc dsOrientedBox3_fromAlignedBox() */

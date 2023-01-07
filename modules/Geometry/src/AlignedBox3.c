@@ -187,6 +187,9 @@ void dsAlignedBox3i_extents(dsVector3i* result, const dsAlignedBox3i* box);
 void dsAlignedBox3f_toMatrix(dsMatrix44f* result, dsAlignedBox3f* box);
 void dsAlignedBox3d_toMatrix(dsMatrix44d* result, dsAlignedBox3d* box);
 
+void dsAlignedBox3f_toMatrixTranspose(dsMatrix44f* result, dsAlignedBox3f* box);
+void dsAlignedBox3d_toMatrixTranspose(dsMatrix44d* result, dsAlignedBox3d* box);
+
 void dsAlignedBox3f_corners(dsVector3f corners[DS_BOX3_CORNER_COUNT],
 	const dsAlignedBox3f* box);
 void dsAlignedBox3d_corners(dsVector3d corners[DS_BOX3_CORNER_COUNT],

@@ -176,6 +176,28 @@ extern "C"
 	} while (0)
 
 /**
+ * @brief Converts the oriented box to a transposed matrix representation.
+ *
+ * This is useful to avoid the transpose in specific situations where the transpose is used.
+ *
+ * @param[out] result The matrix.
+ * @param box The box to convert.
+ */
+#define dsAlignedBox2_toMatrixTranspose(result, box) \
+	do \
+	{ \
+		(result).values[0][0] = ((box).max.x - (box).min.x)/2; \
+		(result).values[0][1] = 0; \
+		(result).values[0][2] = ((box).min.x + (box).max.x)/2; \
+		(result).values[1][0] = 0; \
+		(result).values[1][1] = ((box).max.y - (box).min.y)/2; \
+		(result).values[1][2] = ((box).min.y + (box).max.y)/2; \
+		(result).values[2][0] = 0; \
+		(result).values[2][1] = 0; \
+		(result).values[2][2] = 1; \
+	} while (0)
+
+/**
  * @brief Extracts the corners from an aligned box.
  * @param[out] corners The corners for the box. This must contain DS_BOX2_CORNER_COUNT elements.
  * @param box The box to extract the corners from.
@@ -515,6 +537,24 @@ DS_GEOMETRY_EXPORT inline void dsAlignedBox2d_toMatrix(dsMatrix33d* result, dsAl
 	DS_ASSERT(result);
 	DS_ASSERT(box);
 	dsAlignedBox2_toMatrix(*result, *box);
+}
+
+/** @copydoc dsAlignedBox2_toMatrix() */
+DS_GEOMETRY_EXPORT inline void dsAlignedBox2f_toMatrixTranspose(dsMatrix33f* result,
+	dsAlignedBox2f* box)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(box);
+	dsAlignedBox2_toMatrixTranspose(*result, *box);
+}
+
+/** @copydoc dsAlignedBox2_toMatrixTranspose() */
+DS_GEOMETRY_EXPORT inline void dsAlignedBox2d_toMatrixTranspose(dsMatrix33d* result,
+	dsAlignedBox2d* box)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(box);
+	dsAlignedBox2_toMatrixTranspose(*result, *box);
 }
 
 /** @copydoc dsAlignedBox2_corners() */
