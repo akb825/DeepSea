@@ -56,10 +56,10 @@ typedef struct DrawItem
 {
 	dsShader* shader;
 	dsMaterial* material;
+	dsDrawGeometry* geometry;
 	uint32_t instance;
 	float flatDistance;
 
-	dsDrawGeometry* geometry;
 	const dsSceneModelDrawRange* drawRanges;
 	uint32_t drawRangeCount;
 	dsPrimitiveType primitiveType;
@@ -120,9 +120,6 @@ static void addInstances(dsSceneItemList* itemList, const dsView* view, uint32_t
 		for (uint32_t j = 0; j < modelNode->modelCount; ++j)
 		{
 			dsSceneModelInfo* model = modelNode->models + j;
-			if (!model->shader || !model->material)
-				continue;
-
 			if (model->modelListID != itemList->nameID)
 				continue;
 
@@ -144,10 +141,10 @@ static void addInstances(dsSceneItemList* itemList, const dsView* view, uint32_t
 			DrawItem* item = modelList->drawItems + itemIndex;
 			item->shader = model->shader;
 			item->material = model->material;
-			item->flatDistance = flatDistance;
-			item->instance = instanceIndex;
-
 			item->geometry = model->geometry;
+			item->instance = instanceIndex;
+			item->flatDistance = flatDistance;
+
 			item->drawRanges = model->drawRanges;
 			item->drawRangeCount = model->drawRangeCount;
 			item->primitiveType = model->primitiveType;
@@ -331,6 +328,14 @@ static uint64_t dsSceneModelList_addNode(dsSceneItemList* itemList, const dsScen
 	if (!dsSceneNode_isOfType(node, dsSceneModelNode_type()))
 		return DS_NO_SCENE_NODE;
 
+	const dsSceneModelNode* modelNode = (const dsSceneModelNode*)node;
+	for (uint32_t i = 0; i < modelNode->modelCount; ++i)
+	{
+		dsSceneModelInfo* model = modelNode->models + i;
+		if (!model->shader || !model->material)
+			return DS_NO_SCENE_NODE;
+	}
+
 	dsSceneModelList* modelList = (dsSceneModelList*)itemList;
 
 	uint32_t index = modelList->entryCount;
@@ -341,7 +346,7 @@ static uint64_t dsSceneModelList_addNode(dsSceneItemList* itemList, const dsScen
 	}
 
 	Entry* entry = modelList->entries + index;
-	entry->node = (const dsSceneModelNode*)node;
+	entry->node = modelNode;
 	entry->treeNode = treeNode;
 	entry->transform = &treeNode->transform;
 	entry->itemData = itemData;
