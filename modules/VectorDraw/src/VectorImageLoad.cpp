@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,8 @@
 #include <DeepSea/VectorDraw/VectorMaterial.h>
 #include <DeepSea/VectorDraw/VectorMaterialSet.h>
 #include <DeepSea/VectorDraw/VectorResources.h>
+
+#include <cstring>
 
 #if DS_GCC || DS_CLANG
 #pragma GCC diagnostic push
@@ -389,8 +391,9 @@ static dsVectorImage* readVectorImage(dsAllocator* allocator, dsAllocator* resou
 					static_cast<dsLineCap>(strokePathCommand->capType());
 				commands[i].strokePath.width = strokePathCommand->width();
 				commands[i].strokePath.miterLimit = strokePathCommand->miterLimit();
-				commands[i].strokePath.dashArray =
-					*reinterpret_cast<const dsVector4f*>(strokePathCommand->dashArray());
+				// dsVector4f is aligned, so need to memcpy rather than cast to copy.
+				std::memcpy(&commands[i].strokePath.dashArray, strokePathCommand->dashArray(),
+					sizeof(dsVector4f));
 				break;
 			}
 			case DeepSeaVectorDraw::VectorCommandUnion::FillPathCommand:
