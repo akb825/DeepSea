@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,6 +39,24 @@ static int compareInt(const void* left, const void* right, void*)
 }
 
 } // namespace
+
+TEST(SortTest, Cmp)
+{
+	EXPECT_EQ(0, DS_CMP(1, 1));
+	EXPECT_EQ(-1, DS_CMP(0, 1));
+	EXPECT_EQ(1, DS_CMP(1, 0));
+}
+
+TEST(SortTest, CombineCmp)
+{
+	EXPECT_EQ(1, dsCombineCmp(1, -1));
+	EXPECT_EQ(-1, dsCombineCmp(-1, 1));
+	EXPECT_EQ(2, dsCombineCmp(2, -1));
+	EXPECT_EQ(-2, dsCombineCmp(-2, 1));
+	EXPECT_EQ(1, dsCombineCmp(0, 1));
+	EXPECT_EQ(-1, dsCombineCmp(0, -1));
+	EXPECT_EQ(0, dsCombineCmp(0, 0));
+}
 
 TEST(SortTest, IndirectSort)
 {

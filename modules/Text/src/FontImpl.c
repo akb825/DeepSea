@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2022 Aaron Barany
+ * Copyright 2017-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -278,15 +278,8 @@ static int compareGlyphEdge(const void* left, const void* right)
 {
 	const dsOrderedGlyphEdge* leftEdge = (const dsOrderedGlyphEdge*)left;
 	const dsOrderedGlyphEdge* rightEdge = (const dsOrderedGlyphEdge*)right;
-	if (leftEdge->minPoint.y < rightEdge->minPoint.y)
-		return -1;
-	else if (leftEdge->minPoint.y > rightEdge->minPoint.y)
-		return 1;
-	else if (leftEdge->minPoint.x < rightEdge->minPoint.y)
-		return -1;
-	else if (leftEdge->minPoint.x > rightEdge->minPoint.x)
-		return 1;
-	return 0;
+	return dsCombineCmp(DS_CMP(leftEdge->minPoint.y, rightEdge->minPoint.y),
+		DS_CMP(leftEdge->minPoint.x, rightEdge->minPoint.x));
 }
 
 static bool sortGlyphEdges(dsGlyphGeometry* geometry)

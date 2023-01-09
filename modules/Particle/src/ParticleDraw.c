@@ -22,6 +22,7 @@
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Core/Profile.h>
+#include <DeepSea/Core/Sort.h>
 
 #include <DeepSea/Math/SIMD/SIMD.h>
 #include <DeepSea/Math/Core.h>
@@ -226,11 +227,7 @@ static int particleRefCompare(const void* left, const void* right)
 	// Sort from far to near. These are in view space, so -Z faces the viewer.s
 	const ParticleRef* leftRef = (ParticleRef*)left;
 	const ParticleRef* rightRef = (ParticleRef*)right;
-	if (leftRef->viewZ < rightRef->viewZ)
-		return -1;
-	else if (leftRef->viewZ > rightRef->viewZ)
-		return 1;
-	return 0;
+	return DS_CMP(leftRef->viewZ, rightRef->viewZ);
 }
 
 static void collectParticles(dsParticleDraw* drawer, const dsMatrix44f* viewMatrix,

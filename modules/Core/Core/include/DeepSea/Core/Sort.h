@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2022 Aaron Barany
+ * Copyright 2018-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,22 @@ extern "C"
  * @file
  * @brief Functions for sorting and working with sortad array.
  */
+
+/**
+ * @brief Compares two values.
+ * @param a The first value to comapre.
+ * @param b The second value to compare.
+ * @return -1 if a < b, 1 if a > b, or 0 if a == b.
+ */
+#define DS_CMP(a, b) (((a) > (b)) - ((a) < (b)))
+
+/**
+ * @brief Combines two compare values.
+ * @param a The first comparison value.
+ * @param b The second comparison value.
+ * @return a if a != 0, otherwise b.
+ */
+DS_CORE_EXPORT inline int dsCombineCmp(int a, int b);
 
 /**
  * @brief Performs a qsort on an array with a context pointer.
@@ -85,6 +101,11 @@ DS_CORE_EXPORT const void* dsBinarySearchLowerBound(const void* key, const void*
  */
 DS_CORE_EXPORT const void* dsBinarySearchUpperBound(const void* key, const void* array,
 	size_t memberCount, size_t memberSize, dsSortCompareFunction compareFunc, void* context);
+
+DS_CORE_EXPORT inline int dsCombineCmp(int a, int b)
+{
+	return a | (((a != 0) - 1) & b);
+}
 
 #ifdef __cplusplus
 }

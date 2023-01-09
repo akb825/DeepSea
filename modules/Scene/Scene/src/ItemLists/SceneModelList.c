@@ -24,6 +24,7 @@
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Core/Profile.h>
+#include <DeepSea/Core/Sort.h>
 
 #include <DeepSea/Geometry/OrientedBox3.h>
 #include <DeepSea/Geometry/Frustum3.h>
@@ -179,35 +180,33 @@ static void setupInstances(dsSceneModelList* modelList, const dsView* view, uint
 	DS_PROFILE_FUNC_RETURN_VOID();
 }
 
-static int sortByMaterial(const void* left, const void* right)
+static inline int sortByMaterial(const void* left, const void* right)
 {
 	const DrawItem* leftInfo = (const DrawItem*)left;
 	const DrawItem* rightInfo = (const DrawItem*)right;
-	if (leftInfo->shader != rightInfo->shader)
-		return leftInfo->shader < rightInfo->shader ? -1 : 1;
-	if (leftInfo->material != rightInfo->material)
-		return leftInfo->material < rightInfo->material ? -1 : 1;
-	if (leftInfo->geometry != rightInfo->geometry)
-		return leftInfo->geometry < rightInfo->geometry ? -1 : 1;
-	return leftInfo->instance - rightInfo->instance;
+	int shaderCmp = DS_CMP(leftInfo->shader, rightInfo->shader);
+	int materialCmp = DS_CMP(leftInfo->material, rightInfo->material);
+	int geometryCmp = DS_CMP(leftInfo->geometry, rightInfo->geometry);
+	// Small enough that subtract should be safe.
+	int instanceCmp = leftInfo->instance - rightInfo->instance;
+
+	int result = dsCombineCmp(shaderCmp, materialCmp);
+	result = dsCombineCmp(result, geometryCmp);
+	return dsCombineCmp(result, instanceCmp);
 }
 
 static int sortBackToFront(const void* left, const void* right)
 {
 	const DrawItem* leftInfo = (const DrawItem*)left;
 	const DrawItem* rightInfo = (const DrawItem*)right;
-	if (leftInfo->flatDistance != rightInfo->flatDistance)
-		return leftInfo->flatDistance > rightInfo->flatDistance ? -1 : 1;
-	return sortByMaterial(left, right);
+	return DS_CMP(rightInfo->flatDistance, leftInfo->flatDistance);
 }
 
 static int sortFrontToBack(const void* left, const void* right)
 {
 	const DrawItem* leftInfo = (const DrawItem*)left;
 	const DrawItem* rightInfo = (const DrawItem*)right;
-	if (leftInfo->flatDistance != rightInfo->flatDistance)
-		return leftInfo->flatDistance < rightInfo->flatDistance ? -1 : 1;
-	return sortByMaterial(left, right);
+	return DS_CMP(leftInfo->flatDistance, rightInfo->flatDistance);
 }
 
 static void sortGeometry(dsSceneModelList* modelList, uint32_t drawItemCount)

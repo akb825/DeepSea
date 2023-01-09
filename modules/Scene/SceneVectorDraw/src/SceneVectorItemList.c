@@ -24,6 +24,7 @@
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Core/Profile.h>
+#include <DeepSea/Core/Sort.h>
 
 #include <DeepSea/Math/Matrix44.h>
 #include <DeepSea/Math/Core.h>
@@ -230,15 +231,17 @@ static int compareNodes(const void* left, const void* right)
 	int32_t leftZ = leftInfo->z;
 	int32_t rightZ = rightInfo->z;
 	if (leftZ != rightZ)
-		return leftZ - rightZ;
+		return DS_CMP(leftZ, rightZ);
 
 	// NOTE: First element of both text and image structs is the shaders, so compare for shader
 	// should be valid whether it's image or text despite using image struct of the union.
-	if (leftInfo->image.shaders != rightInfo->image.shaders)
-		return leftInfo->image.shaders < rightInfo->image.shaders ? -1 : 1;
-	if (leftInfo->material != rightInfo->material)
-		return leftInfo->material < rightInfo->material ? -1 : 1;
-	return leftInfo->instance - rightInfo->instance;
+	int shaderCmp = DS_CMP(leftInfo->image.shaders, rightInfo->image.shaders);
+	int materialCmp = DS_CMP(leftInfo->material, rightInfo->material);
+	// Small enough that subtract should be safe.
+	int instanceCmp = leftInfo->instance - rightInfo->instance;
+
+	int result = dsCombineCmp(shaderCmp, materialCmp);
+	return dsCombineCmp(result, instanceCmp);
 }
 
 static void sortItems(dsSceneVectorItemList* vectorList)

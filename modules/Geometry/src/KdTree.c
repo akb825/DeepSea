@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2022 Aaron Barany
+ * Copyright 2018-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -75,14 +75,7 @@ static int comparePointf(const void* left, const void* right, void* context)
 	const float* leftPoint = (const float*)((const uint8_t*)left + sortContext->pointOffset);
 	const float* rightPoint = (const float*)((const uint8_t*)right + sortContext->pointOffset);
 
-	float leftVal = leftPoint[sortContext->axis];
-	float rightVal = rightPoint[sortContext->axis];
-
-	if (leftVal < rightVal)
-		return -1;
-	else if (leftVal > rightVal)
-		return 1;
-	return 0;
+	return DS_CMP(leftPoint[sortContext->axis], rightPoint[sortContext->axis]);
 }
 
 static int comparePointd(const void* left, const void* right, void* context)
@@ -91,14 +84,7 @@ static int comparePointd(const void* left, const void* right, void* context)
 	const double* leftPoint = (const double*)((const uint8_t*)left + sortContext->pointOffset);
 	const double* rightPoint = (const double*)((const uint8_t*)right + sortContext->pointOffset);
 
-	double leftVal = leftPoint[sortContext->axis];
-	double rightVal = rightPoint[sortContext->axis];
-
-	if (leftVal < rightVal)
-		return -1;
-	else if (leftVal > rightVal)
-		return 1;
-	return 0;
+	return DS_CMP(leftPoint[sortContext->axis], rightPoint[sortContext->axis]);
 }
 
 static int comparePointi(const void* left, const void* right, void* context)
@@ -107,7 +93,7 @@ static int comparePointi(const void* left, const void* right, void* context)
 	const int* leftPoint = (const int*)((const uint8_t*)left + sortContext->pointOffset);
 	const int* rightPoint = (const int*)((const uint8_t*)right + sortContext->pointOffset);
 
-	return leftPoint[sortContext->axis] - rightPoint[sortContext->axis];
+	return DS_CMP(leftPoint[sortContext->axis], rightPoint[sortContext->axis]);
 }
 
 static uint32_t buildKdTreeBalancedRec(dsKdTree* kdTree, uint32_t start, uint32_t count,

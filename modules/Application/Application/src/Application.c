@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2022 Aaron Barany
+ * Copyright 2017-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
+#include <DeepSea/Core/Sort.h>
 #include <DeepSea/Math/Core.h>
 #include <stdlib.h>
 #include <string.h>
@@ -44,7 +45,7 @@ static void applicationLogWrapper(void* userData, dsLogLevel level, const char* 
 
 static int compareEventResponders(const void* left, const void* right)
 {
-	return ((dsEventResponder*)left)->priority - ((dsEventResponder*)right)->priority;
+	return DS_CMP(((dsEventResponder*)left)->priority, ((dsEventResponder*)right)->priority);
 }
 
 uint32_t dsApplication_addWindowResponder(dsApplication* application,

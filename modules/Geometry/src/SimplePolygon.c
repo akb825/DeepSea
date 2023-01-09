@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2021 Aaron Barany
+ * Copyright 2018-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,15 +56,11 @@ static int compareLoopVertex(const void* left, const void* right, void* context)
 	const dsVector2d* leftPos = &polygon->vertices[leftVert->vertIndex].point;
 	const dsVector2d* rightPos = &polygon->vertices[rightVert->vertIndex].point;
 
-	if (leftPos->x < rightPos->x - polygon->equalEpsilon)
-		return -1;
-	else if (leftPos->x > rightPos->x + polygon->equalEpsilon)
-		return 1;
-	else if (leftPos->y < rightPos->y - polygon->equalEpsilon)
-		return -1;
-	else if (leftPos->y > rightPos->y + polygon->equalEpsilon)
-		return 1;
-	return 0;
+	int xCmp = (leftPos->x > rightPos->x + polygon->equalEpsilon) -
+		(leftPos->x < rightPos->x - polygon->equalEpsilon);
+	int yCmp = (leftPos->y > rightPos->y + polygon->equalEpsilon) -
+		(leftPos->y < rightPos->y - polygon->equalEpsilon);
+	return dsCombineCmp(xCmp, yCmp);
 }
 
 static bool addVerticesAndEdges(dsBasePolygon* polygon, const void* points, uint32_t pointCount,

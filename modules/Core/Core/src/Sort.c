@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2022 Aaron Barany
+ * Copyright 2018-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -212,3 +212,5 @@ const void* dsBinarySearchUpperBound(const void* key, const void* array, size_t 
 		return NULL;
 	return arrayBytes + start*memberSize;
 }
+
+int dsCombineCmp(int a, int b);

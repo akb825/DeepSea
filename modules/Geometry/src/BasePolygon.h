@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2022 Aaron Barany
+ * Copyright 2018-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 #pragma once
 
 #include <DeepSea/Core/Config.h>
+#include <DeepSea/Core/Sort.h>
 #include <DeepSea/Core/Types.h>
 #include <DeepSea/Geometry/Types.h>
 #include <DeepSea/Math/Vector2.h>
@@ -99,15 +100,7 @@ inline bool dsIsPolygonTriangleCCW(const dsVector2d* p0, const dsVector2d* p1,
 
 inline int dsComparePolygonPoints(const dsVector2d* left, const dsVector2d* right)
 {
-	if (left->x < right->x)
-		return -1;
-	else if (left->x > right->x)
-		return 1;
-	else if (left->y < right->y)
-		return -1;
-	else if (left->y > right->y)
-		return 1;
-	return 0;
+	return dsCombineCmp(DS_CMP(left->x, right->x), DS_CMP(left->y, right->y));
 }
 
 inline void dsBasePolygon_reset(dsBasePolygon* polygon)

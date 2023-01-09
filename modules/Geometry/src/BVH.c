@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2022 Aaron Barany
+ * Copyright 2018-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -85,11 +85,7 @@ static int compareBoundsf(const void* left, const void* right, void* context)
 	float rightAverage = (rightBounds[sortContext->axis] +
 		rightBounds[sortContext->axisCount + sortContext->axis])*0.5f;
 
-	if (leftAverage < rightAverage)
-		return -1;
-	else if (leftAverage > rightAverage)
-		return 1;
-	return 0;
+	return DS_CMP(leftAverage, rightAverage);
 }
 
 static int compareBoundsd(const void* left, const void* right, void* context)
@@ -103,11 +99,7 @@ static int compareBoundsd(const void* left, const void* right, void* context)
 	double rightAverage = (rightBounds[sortContext->axis] +
 		rightBounds[sortContext->axisCount + sortContext->axis])*0.5;
 
-	if (leftAverage < rightAverage)
-		return -1;
-	else if (leftAverage > rightAverage)
-		return 1;
-	return 0;
+	return DS_CMP(leftAverage, rightAverage);
 }
 
 static int compareBoundsi(const void* left, const void* right, void* context)
@@ -121,7 +113,7 @@ static int compareBoundsi(const void* left, const void* right, void* context)
 	int rightAverage = (rightBounds[sortContext->axis] +
 		rightBounds[sortContext->axisCount + sortContext->axis])/2;
 
-	return leftAverage - rightAverage;
+	return DS_CMP(leftAverage, rightAverage);
 }
 
 // NOTE: Don't bother checking for dsIntersectResult_Inside, since it's expected to be slower unless
