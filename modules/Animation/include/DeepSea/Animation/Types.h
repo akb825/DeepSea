@@ -316,14 +316,6 @@ typedef struct dsKeyframeAnimationChannel
 	/**
 	 * @brief The number of total values.
 	 *
-	 * The number of values depend on the component, interpolation, and parent dsAnimationKeyframes
-	 * structure:
-	 *
-	 * Base values based on the component:
-	 * - Translation: 3.
-	 * - Rotation: 4.
-	 * - Scale: 4.
-	 *
 	 * Multiplier for the number of base values based on interpolation type:
 	 * - Step and linear: 1
 	 * - Cubic: 3
@@ -335,8 +327,11 @@ typedef struct dsKeyframeAnimationChannel
 
 	/**
 	 * @brief The values for the animation component.
+	 *
+	 * When a cubic spline, the order of data will be ai, vi, bi where "a" is the input tangent, "v"
+	 * is the vector, and "b" is the output tangent.
 	 */
-	const float* values;
+	const dsVector4f* values;
 } dsKeyframeAnimationChannel;
 
 /**
@@ -535,6 +530,117 @@ typedef struct dsDirectAnimationNodeMap
 	 */
 	const uint32_t* channelNodes;
 } dsDirectAnimationNodeMap;
+
+/**
+ * @brief Struct describing an entry for a keyframe animation.
+ * @see dsAnimation
+ * @see Animation.h
+ */
+typedef struct dsKeyframeAnimationEntry
+{
+	/**
+	 * @brief The animation for the entry.
+	 */
+	const dsKeyframeAnimation* animation;
+
+	/**
+	 * @brief The map between an animation and nodes for an animation tree.
+	 */
+	const dsKeyframeAnimationNodeMap* map;
+
+	/**
+	 * @brief The current time for the entry.
+	 */
+	double time;
+
+	/**
+	 * @brief The scale to apply when incrementing the time.
+	 */
+	double timeScale;
+
+	/**
+	 * @brief Whether to wrap the time or clamp to the limits of the animation.
+	 */
+	bool wrap;
+
+	/**
+	 * @brief The weight for animation.
+	 */
+	float weight;
+} dsKeyframeAnimationEntry;
+
+/**
+ * @brief Struct describing an entry for a direct animation.
+ * @see dsAnimation
+ * @see Animation.h
+ */
+typedef struct dsDirectAnimationEntry
+{
+	/**
+	 * @brief The animation for the entry.
+	 */
+	const dsDirectAnimation* animation;
+
+	/**
+	 * @brief The map between an animation and nodes for an animation tree.
+	 */
+	const dsDirectAnimationNodeMap* map;
+
+	/**
+	 * @brief The weight for animation.
+	 */
+	float weight;
+} dsDirectAnimationEntry;
+
+/**
+ * @brief Struct describing an animation.
+ *
+ * Animations are a collection of keyframe and direct animations that can be blended together.
+ *
+ * @see Animation.h
+ */
+typedef struct dsAnimation
+{
+	/**
+	 * @brief The allocator for the animation.
+	 */
+	dsAllocator* allocator;
+
+	/**
+	 * @brief The ID for the animation tree animations are associated with.
+	 */
+	uint32_t treeID;
+
+	/**
+	 * @brief The keyframe animation entries.
+	 */
+	dsKeyframeAnimationEntry* keyframeEntries;
+
+	/**
+	 * @brief The number of keyframe entries.
+	 */
+	uint32_t keyframeEntryCount;
+
+	/**
+	 * @brief The maximum number of keyframe entries currently allocated.
+	 */
+	uint32_t maxKeyframeEntries;
+
+	/**
+	 * @brief The direct animation entries.
+	 */
+	dsDirectAnimationEntry* directEntries;
+
+	/**
+	 * @brief The number of keyframe entries.
+	 */
+	uint32_t directEntryCount;
+
+	/**
+	 * @brief The maximum number of keyframe entries currently allocated.
+	 */
+	uint32_t maxDirectEntries;
+} dsAnimation;
 
 #ifdef __cplusplus
 }

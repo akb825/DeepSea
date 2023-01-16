@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Aaron Barany
+ * Copyright 2022-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -75,10 +75,7 @@ dsKeyframeAnimation* dsKeyframeAnimation_create(dsAllocator* allocator,
 			{
 				case dsAnimationComponent_Translation:
 				case dsAnimationComponent_Scale:
-					expectedValueCount *= 3;
-					break;
 				case dsAnimationComponent_Rotation:
-					expectedValueCount *= 4;
 					break;
 				default:
 					errno = EINVAL;
@@ -106,7 +103,7 @@ dsKeyframeAnimation* dsKeyframeAnimation_create(dsAllocator* allocator,
 			}
 
 			fullSize += DS_ALIGNED_SIZE(strlen(curChannel->node) + 1) +
-				DS_ALIGNED_SIZE(sizeof(float)*expectedValueCount);
+				DS_ALIGNED_SIZE(sizeof(dsVector4f)*expectedValueCount);
 		}
 	}
 
@@ -160,9 +157,10 @@ dsKeyframeAnimation* dsKeyframeAnimation_create(dsAllocator* allocator,
 			toChannel->interpolation = fromChannel->interpolation;
 			toChannel->valueCount = fromChannel->valueCount;
 
-			float* values = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, float, fromChannel->valueCount);
+			dsVector4f* values =
+				DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsVector4f, fromChannel->valueCount);
 			DS_ASSERT(values);
-			memcpy(values, fromChannel->values, sizeof(float)*fromChannel->valueCount);
+			memcpy(values, fromChannel->values, sizeof(dsVector4f)*fromChannel->valueCount);
 			toChannel->values = values;
 		}
 		toKeyframes->channels = channels;

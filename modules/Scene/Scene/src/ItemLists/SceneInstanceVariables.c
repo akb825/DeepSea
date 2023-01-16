@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022 Aaron Barany
+ * Copyright 2019-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -137,8 +137,7 @@ static bool reserveSpace(dsSceneInstanceVariables* variables, uint32_t maxInstan
 			return false;
 
 		// Constant-time removal since order doesn't matter.
-		*bufferInfo = variables->buffers[variables->bufferCount - 1];
-		--variables->bufferCount;
+		*bufferInfo = variables->buffers[--variables->bufferCount];
 	}
 
 	if (!variables->curBuffer)

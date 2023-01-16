@@ -125,8 +125,7 @@ static BufferInfo* getDrawBuffer(dsParticleDraw* draw, uint32_t particleCount,
 			return false;
 
 		// Constant-time removal since order doesn't matter.
-		*curBufferInfo = draw->buffers[draw->bufferCount - 1];
-		--draw->bufferCount;
+		*curBufferInfo = draw->buffers[--draw->bufferCount];
 	}
 
 	if (bufferInfo)
