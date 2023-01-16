@@ -100,17 +100,22 @@ static void applyKeyframeAnimationTransforms(WeightedTransform* transforms,
 			DS_ASSERT(keyframes->channelCount == keyframesMap->channelCount);
 
 			// Find wich pair of keyframes to interpolate between.
-			uint32_t endKeyframe =
-				findEndKeyframe(keyframes->keyframeTimes, keyframes->keyframeCount, entry->time);
-			uint32_t startKeyframe;
+			uint32_t startKeyframe, endKeyframe;
 			float t;
-			if (endKeyframe == 0)
+			if (entry->time <= keyframes->keyframeTimes[0])
 			{
-				startKeyframe = endKeyframe;
+				startKeyframe = endKeyframe = 0;
+				t = 0;
+			}
+			else if (entry->time >= keyframes->keyframeTimes[keyframes->keyframeCount - 1])
+			{
+				startKeyframe = endKeyframe = keyframes->keyframeCount - 1;
 				t = 0;
 			}
 			else
 			{
+				endKeyframe = findEndKeyframe(keyframes->keyframeTimes, keyframes->keyframeCount,
+					entry->time);
 				startKeyframe = endKeyframe - 1;
 				float startTime = keyframes->keyframeTimes[startKeyframe];
 				float endTime = keyframes->keyframeTimes[endKeyframe];
