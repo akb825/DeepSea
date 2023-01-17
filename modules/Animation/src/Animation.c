@@ -133,8 +133,17 @@ static void applyKeyframeAnimationTransforms(WeightedTransform* transforms,
 						value = channel->values[startKeyframe];
 						break;
 					case dsAnimationInterpolation_Linear:
-						dsVector4f_lerp(&value, channel->values + startKeyframe,
-							channel->values + endKeyframe, t);
+						if (channel->component == dsAnimationComponent_Rotation)
+						{
+							dsQuaternion4f_slerp((dsQuaternion4f*)&value,
+								(const dsQuaternion4f*)(channel->values + startKeyframe),
+								(const dsQuaternion4f*)(channel->values + endKeyframe), t);
+						}
+						else
+						{
+							dsVector4f_lerp(&value, channel->values + startKeyframe,
+								channel->values + endKeyframe, t);
+						}
 						break;
 					case dsAnimationInterpolation_Cubic:
 					{
@@ -144,6 +153,11 @@ static void applyKeyframeAnimationTransforms(WeightedTransform* transforms,
 							channel->values + startValueIndex + 2,
 							channel->values + endValueIndex + 1, channel->values + endValueIndex,
 							t);
+						if (channel->component == dsAnimationComponent_Rotation)
+						{
+							dsQuaternion4f_normalize((dsQuaternion4f*)&value,
+								(const dsQuaternion4f*)&value);
+						}
 						break;
 					}
 				}
