@@ -83,11 +83,6 @@ else()
 
 	# Disable RTTI, but enable exceptions.
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti -fexceptions")
-
-	# Always build with Neon support.
-	if (DEEPSEA_ARCH STREQUAL "arm")
-		add_compile_options(-mfpu=neon-vfpv4)
-	endif()
 endif()
 
 enable_testing()
@@ -318,5 +313,13 @@ macro(ds_target_compile_definitions target)
 		target_compile_definitions(deepsea ${ARGN})
 	else()
 		target_compile_definitions(${target} ${ARGN})
+	endif()
+endmacro()
+
+macro(ds_target_compile_options target)
+	if (DEEPSEA_SINGLE_SHARED)
+		target_compile_options(deepsea ${ARGN})
+	else()
+		target_compile_options(${target} ${ARGN})
 	endif()
 endmacro()
