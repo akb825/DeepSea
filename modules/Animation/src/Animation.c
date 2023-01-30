@@ -160,6 +160,9 @@ static void applyKeyframeAnimationTransforms(WeightedTransform* transforms,
 						}
 						break;
 					}
+					default:
+						DS_ASSERT(false);
+						DS_UNREACHABLE();
 				}
 
 				dsVector4f weightedValue;

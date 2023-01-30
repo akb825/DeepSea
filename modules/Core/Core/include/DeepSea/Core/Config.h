@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 Aaron Barany
+ * Copyright 2016-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -219,6 +219,15 @@
  * @param x The unused variable.
  */
 #define DS_UNUSED(x) (void)(&x)
+
+/**
+ * @brief Macro to mark a branch of code as unreachable.
+ */
+#if DS_MSC
+#define DS_UNREACHABLE() __assume(0)
+#else
+#define DS_UNREACHABLE() __builtin_unreachable()
+#endif
 
 /**
  * @brief Gets the number of elements within an array.

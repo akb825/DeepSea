@@ -523,7 +523,11 @@ int dsSDLApplication_run(dsApplication* application)
 
 					window = findWindow(application, sdlEvent.wheel.windowID);
 					event.type = dsAppEventType_MouseWheel;
-					event.mouseButton.mouseID = sdlEvent.wheel.which;
+					event.mouseWheel.mouseID = sdlEvent.wheel.which;
+#if SDL_VERSION_ATLEAST(2, 26, 0)
+					event.mouseWheel.position.x = sdlEvent.wheel.mouseX;
+					event.mouseWheel.position.y = sdlEvent.wheel.mouseY;
+#else
 					SDL_GetMouseState(&event.mouseWheel.position.x, &event.mouseWheel.position.y);
 					if (window)
 					{
@@ -533,6 +537,7 @@ int dsSDLApplication_run(dsApplication* application)
 						event.mouseWheel.position.x -= windowX;
 						event.mouseWheel.position.y -= windowY;
 					}
+#endif
 					event.mouseWheel.delta.x = sdlEvent.wheel.x;
 					event.mouseWheel.delta.y = sdlEvent.wheel.y;
 					event.mouseWheel.yFlipped = sdlEvent.wheel.direction == SDL_MOUSEWHEEL_FLIPPED;
