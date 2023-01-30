@@ -157,7 +157,8 @@ static dsIntersectResult intersectBounds3i(const void* volume, const void* bound
 }
 
 static uint32_t buildBVHBalancedRec(dsBVH* bvh, uint32_t start, uint32_t count,
-	AddBoxFunction addBoxFunc, MaxAxisFunction maxAxisFunc, dsSortCompareFunction compareFunc)
+	AddBoxFunction addBoxFunc, MaxAxisFunction maxAxisFunc, dsSortCompareFunction compareFunc,
+	uint8_t prevAxis)
 {
 	uint32_t node = bvh->nodeCount++;
 	// Should be guaranteed that reserved nodes is sufficient.
@@ -176,21 +177,24 @@ static uint32_t buildBVHBalancedRec(dsBVH* bvh, uint32_t start, uint32_t count,
 	for (uint32_t i = 1; i < count; ++i)
 		addBoxFunc(&bounds, getNode(bvh->tempNodes, bvh->nodeSize, start + i)->bounds);
 
-	// Sort based on the maximum dimension.
+	// Sort based on the maximum dimension. Can skip the sort if the same axis as last call.
 	uint8_t maxAxis = maxAxisFunc(&bounds);
-	SortContext context = {maxAxis, (uint8_t)(bvh->nodeSize - bvh->boundsSize), bvh->axisCount};
-	dsSort(getNode(bvh->tempNodes, bvh->nodeSize, start), count, bvh->nodeSize, compareFunc,
-		&context);
+	if (maxAxis != prevAxis)
+	{
+		SortContext context = {maxAxis, (uint8_t)(bvh->nodeSize - bvh->boundsSize), bvh->axisCount};
+		dsSort(getNode(bvh->tempNodes, bvh->nodeSize, start), count, bvh->nodeSize, compareFunc,
+			&context);
+	}
 
 	// Recursively add the nodes.
 	uint32_t middle = (uint32_t)count/2;
 	uint32_t leftNode = buildBVHBalancedRec(bvh, start, middle, addBoxFunc, maxAxisFunc,
-		compareFunc);
+		compareFunc, maxAxis);
 	if (leftNode == INVALID_NODE)
 		return INVALID_NODE;
 
 	uint32_t rightNode = buildBVHBalancedRec(bvh, start + middle, count - middle, addBoxFunc,
-		maxAxisFunc, compareFunc);
+		maxAxisFunc, compareFunc, maxAxis);
 	if (rightNode == INVALID_NODE)
 		return INVALID_NODE;
 
@@ -476,7 +480,8 @@ bool dsBVH_build(dsBVH* bvh, const void* objects, uint32_t objectCount, size_t o
 			node->leftNode = node->rightNode = INVALID_NODE;
 		}
 
-		rootNode = buildBVHBalancedRec(bvh, 0, objectCount, addBoxFunc, maxAxisFunc, compareFunc);
+		rootNode = buildBVHBalancedRec(bvh, 0, objectCount, addBoxFunc, maxAxisFunc, compareFunc,
+			bvh->axisCount);
 	}
 	else
 		rootNode = buildBVHRec(bvh, objects, 0, objectCount, objectSize, addBoxFunc);
