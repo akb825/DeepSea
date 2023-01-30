@@ -10,7 +10,7 @@
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 23 &&
               FLATBUFFERS_VERSION_MINOR == 1 &&
-              FLATBUFFERS_VERSION_REVISION == 4,
+              FLATBUFFERS_VERSION_REVISION == 21,
              "Non-compatible flatbuffers version included");
 
 namespace DeepSeaVectorDraw {
@@ -112,7 +112,7 @@ inline const char * const *EnumNamesGradientEdge() {
 }
 
 inline const char *EnumNameGradientEdge(GradientEdge e) {
-  if (flatbuffers::IsOutRange(e, GradientEdge::Clamp, GradientEdge::Mirror)) return "";
+  if (::flatbuffers::IsOutRange(e, GradientEdge::Clamp, GradientEdge::Mirror)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesGradientEdge()[index];
 }
@@ -142,7 +142,7 @@ inline const char * const *EnumNamesMaterialSpace() {
 }
 
 inline const char *EnumNameMaterialSpace(MaterialSpace e) {
-  if (flatbuffers::IsOutRange(e, MaterialSpace::Local, MaterialSpace::Bounds)) return "";
+  if (::flatbuffers::IsOutRange(e, MaterialSpace::Local, MaterialSpace::Bounds)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesMaterialSpace()[index];
 }
@@ -175,7 +175,7 @@ inline const char * const *EnumNamesLineJoin() {
 }
 
 inline const char *EnumNameLineJoin(LineJoin e) {
-  if (flatbuffers::IsOutRange(e, LineJoin::Miter, LineJoin::Round)) return "";
+  if (::flatbuffers::IsOutRange(e, LineJoin::Miter, LineJoin::Round)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesLineJoin()[index];
 }
@@ -208,7 +208,7 @@ inline const char * const *EnumNamesLineCap() {
 }
 
 inline const char *EnumNameLineCap(LineCap e) {
-  if (flatbuffers::IsOutRange(e, LineCap::Butt, LineCap::Square)) return "";
+  if (::flatbuffers::IsOutRange(e, LineCap::Butt, LineCap::Square)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesLineCap()[index];
 }
@@ -238,7 +238,7 @@ inline const char * const *EnumNamesFillRule() {
 }
 
 inline const char *EnumNameFillRule(FillRule e) {
-  if (flatbuffers::IsOutRange(e, FillRule::EvenOdd, FillRule::NonZero)) return "";
+  if (::flatbuffers::IsOutRange(e, FillRule::EvenOdd, FillRule::NonZero)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesFillRule()[index];
 }
@@ -268,7 +268,7 @@ inline const char * const *EnumNamesTextPosition() {
 }
 
 inline const char *EnumNameTextPosition(TextPosition e) {
-  if (flatbuffers::IsOutRange(e, TextPosition::Offset, TextPosition::Absolute)) return "";
+  if (::flatbuffers::IsOutRange(e, TextPosition::Offset, TextPosition::Absolute)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesTextPosition()[index];
 }
@@ -307,7 +307,7 @@ inline const char * const *EnumNamesTextAlign() {
 }
 
 inline const char *EnumNameTextAlign(TextAlign e) {
-  if (flatbuffers::IsOutRange(e, TextAlign::Start, TextAlign::Center)) return "";
+  if (::flatbuffers::IsOutRange(e, TextAlign::Start, TextAlign::Center)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesTextAlign()[index];
 }
@@ -376,7 +376,7 @@ inline const char * const *EnumNamesVectorCommandUnion() {
 }
 
 inline const char *EnumNameVectorCommandUnion(VectorCommandUnion e) {
-  if (flatbuffers::IsOutRange(e, VectorCommandUnion::NONE, VectorCommandUnion::ImageCommand)) return "";
+  if (::flatbuffers::IsOutRange(e, VectorCommandUnion::NONE, VectorCommandUnion::ImageCommand)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesVectorCommandUnion()[index];
 }
@@ -441,8 +441,8 @@ template<> struct VectorCommandUnionTraits<DeepSeaVectorDraw::ImageCommand> {
   static const VectorCommandUnion enum_value = VectorCommandUnion::ImageCommand;
 };
 
-bool VerifyVectorCommandUnion(flatbuffers::Verifier &verifier, const void *obj, VectorCommandUnion type);
-bool VerifyVectorCommandUnionVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<VectorCommandUnion> *types);
+bool VerifyVectorCommandUnion(::flatbuffers::Verifier &verifier, const void *obj, VectorCommandUnion type);
+bool VerifyVectorCommandUnionVector(::flatbuffers::Verifier &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<VectorCommandUnion> *types);
 
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(1) Color FLATBUFFERS_FINAL_CLASS {
  private:
@@ -459,22 +459,22 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(1) Color FLATBUFFERS_FINAL_CLASS {
         a_(0) {
   }
   Color(uint8_t _r, uint8_t _g, uint8_t _b, uint8_t _a)
-      : r_(flatbuffers::EndianScalar(_r)),
-        g_(flatbuffers::EndianScalar(_g)),
-        b_(flatbuffers::EndianScalar(_b)),
-        a_(flatbuffers::EndianScalar(_a)) {
+      : r_(::flatbuffers::EndianScalar(_r)),
+        g_(::flatbuffers::EndianScalar(_g)),
+        b_(::flatbuffers::EndianScalar(_b)),
+        a_(::flatbuffers::EndianScalar(_a)) {
   }
   uint8_t r() const {
-    return flatbuffers::EndianScalar(r_);
+    return ::flatbuffers::EndianScalar(r_);
   }
   uint8_t g() const {
-    return flatbuffers::EndianScalar(g_);
+    return ::flatbuffers::EndianScalar(g_);
   }
   uint8_t b() const {
-    return flatbuffers::EndianScalar(b_);
+    return ::flatbuffers::EndianScalar(b_);
   }
   uint8_t a() const {
-    return flatbuffers::EndianScalar(a_);
+    return ::flatbuffers::EndianScalar(a_);
   }
 };
 FLATBUFFERS_STRUCT_END(Color, 4);
@@ -490,14 +490,14 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Vector2f FLATBUFFERS_FINAL_CLASS {
         y_(0) {
   }
   Vector2f(float _x, float _y)
-      : x_(flatbuffers::EndianScalar(_x)),
-        y_(flatbuffers::EndianScalar(_y)) {
+      : x_(::flatbuffers::EndianScalar(_x)),
+        y_(::flatbuffers::EndianScalar(_y)) {
   }
   float x() const {
-    return flatbuffers::EndianScalar(x_);
+    return ::flatbuffers::EndianScalar(x_);
   }
   float y() const {
-    return flatbuffers::EndianScalar(y_);
+    return ::flatbuffers::EndianScalar(y_);
   }
 };
 FLATBUFFERS_STRUCT_END(Vector2f, 8);
@@ -515,18 +515,18 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Vector3f FLATBUFFERS_FINAL_CLASS {
         z_(0) {
   }
   Vector3f(float _x, float _y, float _z)
-      : x_(flatbuffers::EndianScalar(_x)),
-        y_(flatbuffers::EndianScalar(_y)),
-        z_(flatbuffers::EndianScalar(_z)) {
+      : x_(::flatbuffers::EndianScalar(_x)),
+        y_(::flatbuffers::EndianScalar(_y)),
+        z_(::flatbuffers::EndianScalar(_z)) {
   }
   float x() const {
-    return flatbuffers::EndianScalar(x_);
+    return ::flatbuffers::EndianScalar(x_);
   }
   float y() const {
-    return flatbuffers::EndianScalar(y_);
+    return ::flatbuffers::EndianScalar(y_);
   }
   float z() const {
-    return flatbuffers::EndianScalar(z_);
+    return ::flatbuffers::EndianScalar(z_);
   }
 };
 FLATBUFFERS_STRUCT_END(Vector3f, 12);
@@ -575,22 +575,22 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) DashArray FLATBUFFERS_FINAL_CLASS {
         gap1_(0) {
   }
   DashArray(float _solid0, float _gap0, float _solid1, float _gap1)
-      : solid0_(flatbuffers::EndianScalar(_solid0)),
-        gap0_(flatbuffers::EndianScalar(_gap0)),
-        solid1_(flatbuffers::EndianScalar(_solid1)),
-        gap1_(flatbuffers::EndianScalar(_gap1)) {
+      : solid0_(::flatbuffers::EndianScalar(_solid0)),
+        gap0_(::flatbuffers::EndianScalar(_gap0)),
+        solid1_(::flatbuffers::EndianScalar(_solid1)),
+        gap1_(::flatbuffers::EndianScalar(_gap1)) {
   }
   float solid0() const {
-    return flatbuffers::EndianScalar(solid0_);
+    return ::flatbuffers::EndianScalar(solid0_);
   }
   float gap0() const {
-    return flatbuffers::EndianScalar(gap0_);
+    return ::flatbuffers::EndianScalar(gap0_);
   }
   float solid1() const {
-    return flatbuffers::EndianScalar(solid1_);
+    return ::flatbuffers::EndianScalar(solid1_);
   }
   float gap1() const {
-    return flatbuffers::EndianScalar(gap1_);
+    return ::flatbuffers::EndianScalar(gap1_);
   }
 };
 FLATBUFFERS_STRUCT_END(DashArray, 16);
@@ -606,11 +606,11 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) GradientStop FLATBUFFERS_FINAL_CLASS {
         color_() {
   }
   GradientStop(float _position, const DeepSeaVectorDraw::Color &_color)
-      : position_(flatbuffers::EndianScalar(_position)),
+      : position_(::flatbuffers::EndianScalar(_position)),
         color_(_color) {
   }
   float position() const {
-    return flatbuffers::EndianScalar(position_);
+    return ::flatbuffers::EndianScalar(position_);
   }
   const DeepSeaVectorDraw::Color &color() const {
     return color_;
@@ -618,19 +618,19 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) GradientStop FLATBUFFERS_FINAL_CLASS {
 };
 FLATBUFFERS_STRUCT_END(GradientStop, 8);
 
-struct ColorMaterial FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+struct ColorMaterial FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef ColorMaterialBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_NAME = 4,
     VT_COLOR = 6
   };
-  const flatbuffers::String *name() const {
-    return GetPointer<const flatbuffers::String *>(VT_NAME);
+  const ::flatbuffers::String *name() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_NAME);
   }
   const DeepSeaVectorDraw::Color *color() const {
     return GetStruct<const DeepSeaVectorDraw::Color *>(VT_COLOR);
   }
-  bool Verify(flatbuffers::Verifier &verifier) const {
+  bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_NAME) &&
            verifier.VerifyString(name()) &&
@@ -641,30 +641,30 @@ struct ColorMaterial FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 
 struct ColorMaterialBuilder {
   typedef ColorMaterial Table;
-  flatbuffers::FlatBufferBuilder &fbb_;
-  flatbuffers::uoffset_t start_;
-  void add_name(flatbuffers::Offset<flatbuffers::String> name) {
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_name(::flatbuffers::Offset<::flatbuffers::String> name) {
     fbb_.AddOffset(ColorMaterial::VT_NAME, name);
   }
   void add_color(const DeepSeaVectorDraw::Color *color) {
     fbb_.AddStruct(ColorMaterial::VT_COLOR, color);
   }
-  explicit ColorMaterialBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit ColorMaterialBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  flatbuffers::Offset<ColorMaterial> Finish() {
+  ::flatbuffers::Offset<ColorMaterial> Finish() {
     const auto end = fbb_.EndTable(start_);
-    auto o = flatbuffers::Offset<ColorMaterial>(end);
+    auto o = ::flatbuffers::Offset<ColorMaterial>(end);
     fbb_.Required(o, ColorMaterial::VT_NAME);
     fbb_.Required(o, ColorMaterial::VT_COLOR);
     return o;
   }
 };
 
-inline flatbuffers::Offset<ColorMaterial> CreateColorMaterial(
-    flatbuffers::FlatBufferBuilder &_fbb,
-    flatbuffers::Offset<flatbuffers::String> name = 0,
+inline ::flatbuffers::Offset<ColorMaterial> CreateColorMaterial(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<::flatbuffers::String> name = 0,
     const DeepSeaVectorDraw::Color *color = nullptr) {
   ColorMaterialBuilder builder_(_fbb);
   builder_.add_color(color);
@@ -672,8 +672,8 @@ inline flatbuffers::Offset<ColorMaterial> CreateColorMaterial(
   return builder_.Finish();
 }
 
-inline flatbuffers::Offset<ColorMaterial> CreateColorMaterialDirect(
-    flatbuffers::FlatBufferBuilder &_fbb,
+inline ::flatbuffers::Offset<ColorMaterial> CreateColorMaterialDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
     const char *name = nullptr,
     const DeepSeaVectorDraw::Color *color = nullptr) {
   auto name__ = name ? _fbb.CreateString(name) : 0;
@@ -683,7 +683,7 @@ inline flatbuffers::Offset<ColorMaterial> CreateColorMaterialDirect(
       color);
 }
 
-struct LinearGradient FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+struct LinearGradient FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef LinearGradientBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_NAME = 4,
@@ -694,11 +694,11 @@ struct LinearGradient FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_COORDINATESPACE = 14,
     VT_TRANSFORM = 16
   };
-  const flatbuffers::String *name() const {
-    return GetPointer<const flatbuffers::String *>(VT_NAME);
+  const ::flatbuffers::String *name() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_NAME);
   }
-  const flatbuffers::Vector<const DeepSeaVectorDraw::GradientStop *> *gradient() const {
-    return GetPointer<const flatbuffers::Vector<const DeepSeaVectorDraw::GradientStop *> *>(VT_GRADIENT);
+  const ::flatbuffers::Vector<const DeepSeaVectorDraw::GradientStop *> *gradient() const {
+    return GetPointer<const ::flatbuffers::Vector<const DeepSeaVectorDraw::GradientStop *> *>(VT_GRADIENT);
   }
   const DeepSeaVectorDraw::Vector2f *start() const {
     return GetStruct<const DeepSeaVectorDraw::Vector2f *>(VT_START);
@@ -715,7 +715,7 @@ struct LinearGradient FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const DeepSeaVectorDraw::Matrix33f *transform() const {
     return GetStruct<const DeepSeaVectorDraw::Matrix33f *>(VT_TRANSFORM);
   }
-  bool Verify(flatbuffers::Verifier &verifier) const {
+  bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_NAME) &&
            verifier.VerifyString(name()) &&
@@ -732,12 +732,12 @@ struct LinearGradient FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 
 struct LinearGradientBuilder {
   typedef LinearGradient Table;
-  flatbuffers::FlatBufferBuilder &fbb_;
-  flatbuffers::uoffset_t start_;
-  void add_name(flatbuffers::Offset<flatbuffers::String> name) {
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_name(::flatbuffers::Offset<::flatbuffers::String> name) {
     fbb_.AddOffset(LinearGradient::VT_NAME, name);
   }
-  void add_gradient(flatbuffers::Offset<flatbuffers::Vector<const DeepSeaVectorDraw::GradientStop *>> gradient) {
+  void add_gradient(::flatbuffers::Offset<::flatbuffers::Vector<const DeepSeaVectorDraw::GradientStop *>> gradient) {
     fbb_.AddOffset(LinearGradient::VT_GRADIENT, gradient);
   }
   void add_start(const DeepSeaVectorDraw::Vector2f *start) {
@@ -755,13 +755,13 @@ struct LinearGradientBuilder {
   void add_transform(const DeepSeaVectorDraw::Matrix33f *transform) {
     fbb_.AddStruct(LinearGradient::VT_TRANSFORM, transform);
   }
-  explicit LinearGradientBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit LinearGradientBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  flatbuffers::Offset<LinearGradient> Finish() {
+  ::flatbuffers::Offset<LinearGradient> Finish() {
     const auto end = fbb_.EndTable(start_);
-    auto o = flatbuffers::Offset<LinearGradient>(end);
+    auto o = ::flatbuffers::Offset<LinearGradient>(end);
     fbb_.Required(o, LinearGradient::VT_NAME);
     fbb_.Required(o, LinearGradient::VT_GRADIENT);
     fbb_.Required(o, LinearGradient::VT_START);
@@ -771,10 +771,10 @@ struct LinearGradientBuilder {
   }
 };
 
-inline flatbuffers::Offset<LinearGradient> CreateLinearGradient(
-    flatbuffers::FlatBufferBuilder &_fbb,
-    flatbuffers::Offset<flatbuffers::String> name = 0,
-    flatbuffers::Offset<flatbuffers::Vector<const DeepSeaVectorDraw::GradientStop *>> gradient = 0,
+inline ::flatbuffers::Offset<LinearGradient> CreateLinearGradient(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<::flatbuffers::String> name = 0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<const DeepSeaVectorDraw::GradientStop *>> gradient = 0,
     const DeepSeaVectorDraw::Vector2f *start = nullptr,
     const DeepSeaVectorDraw::Vector2f *end = nullptr,
     DeepSeaVectorDraw::GradientEdge edge = DeepSeaVectorDraw::GradientEdge::Clamp,
@@ -791,8 +791,8 @@ inline flatbuffers::Offset<LinearGradient> CreateLinearGradient(
   return builder_.Finish();
 }
 
-inline flatbuffers::Offset<LinearGradient> CreateLinearGradientDirect(
-    flatbuffers::FlatBufferBuilder &_fbb,
+inline ::flatbuffers::Offset<LinearGradient> CreateLinearGradientDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
     const char *name = nullptr,
     const std::vector<DeepSeaVectorDraw::GradientStop> *gradient = nullptr,
     const DeepSeaVectorDraw::Vector2f *start = nullptr,
@@ -813,7 +813,7 @@ inline flatbuffers::Offset<LinearGradient> CreateLinearGradientDirect(
       transform);
 }
 
-struct RadialGradient FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+struct RadialGradient FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef RadialGradientBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_NAME = 4,
@@ -826,11 +826,11 @@ struct RadialGradient FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_COORDINATESPACE = 18,
     VT_TRANSFORM = 20
   };
-  const flatbuffers::String *name() const {
-    return GetPointer<const flatbuffers::String *>(VT_NAME);
+  const ::flatbuffers::String *name() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_NAME);
   }
-  const flatbuffers::Vector<const DeepSeaVectorDraw::GradientStop *> *gradient() const {
-    return GetPointer<const flatbuffers::Vector<const DeepSeaVectorDraw::GradientStop *> *>(VT_GRADIENT);
+  const ::flatbuffers::Vector<const DeepSeaVectorDraw::GradientStop *> *gradient() const {
+    return GetPointer<const ::flatbuffers::Vector<const DeepSeaVectorDraw::GradientStop *> *>(VT_GRADIENT);
   }
   const DeepSeaVectorDraw::Vector2f *center() const {
     return GetStruct<const DeepSeaVectorDraw::Vector2f *>(VT_CENTER);
@@ -853,7 +853,7 @@ struct RadialGradient FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const DeepSeaVectorDraw::Matrix33f *transform() const {
     return GetStruct<const DeepSeaVectorDraw::Matrix33f *>(VT_TRANSFORM);
   }
-  bool Verify(flatbuffers::Verifier &verifier) const {
+  bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_NAME) &&
            verifier.VerifyString(name()) &&
@@ -872,12 +872,12 @@ struct RadialGradient FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 
 struct RadialGradientBuilder {
   typedef RadialGradient Table;
-  flatbuffers::FlatBufferBuilder &fbb_;
-  flatbuffers::uoffset_t start_;
-  void add_name(flatbuffers::Offset<flatbuffers::String> name) {
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_name(::flatbuffers::Offset<::flatbuffers::String> name) {
     fbb_.AddOffset(RadialGradient::VT_NAME, name);
   }
-  void add_gradient(flatbuffers::Offset<flatbuffers::Vector<const DeepSeaVectorDraw::GradientStop *>> gradient) {
+  void add_gradient(::flatbuffers::Offset<::flatbuffers::Vector<const DeepSeaVectorDraw::GradientStop *>> gradient) {
     fbb_.AddOffset(RadialGradient::VT_GRADIENT, gradient);
   }
   void add_center(const DeepSeaVectorDraw::Vector2f *center) {
@@ -901,13 +901,13 @@ struct RadialGradientBuilder {
   void add_transform(const DeepSeaVectorDraw::Matrix33f *transform) {
     fbb_.AddStruct(RadialGradient::VT_TRANSFORM, transform);
   }
-  explicit RadialGradientBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit RadialGradientBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  flatbuffers::Offset<RadialGradient> Finish() {
+  ::flatbuffers::Offset<RadialGradient> Finish() {
     const auto end = fbb_.EndTable(start_);
-    auto o = flatbuffers::Offset<RadialGradient>(end);
+    auto o = ::flatbuffers::Offset<RadialGradient>(end);
     fbb_.Required(o, RadialGradient::VT_NAME);
     fbb_.Required(o, RadialGradient::VT_GRADIENT);
     fbb_.Required(o, RadialGradient::VT_CENTER);
@@ -917,10 +917,10 @@ struct RadialGradientBuilder {
   }
 };
 
-inline flatbuffers::Offset<RadialGradient> CreateRadialGradient(
-    flatbuffers::FlatBufferBuilder &_fbb,
-    flatbuffers::Offset<flatbuffers::String> name = 0,
-    flatbuffers::Offset<flatbuffers::Vector<const DeepSeaVectorDraw::GradientStop *>> gradient = 0,
+inline ::flatbuffers::Offset<RadialGradient> CreateRadialGradient(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<::flatbuffers::String> name = 0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<const DeepSeaVectorDraw::GradientStop *>> gradient = 0,
     const DeepSeaVectorDraw::Vector2f *center = nullptr,
     float radius = 0.0f,
     const DeepSeaVectorDraw::Vector2f *focus = nullptr,
@@ -941,8 +941,8 @@ inline flatbuffers::Offset<RadialGradient> CreateRadialGradient(
   return builder_.Finish();
 }
 
-inline flatbuffers::Offset<RadialGradient> CreateRadialGradientDirect(
-    flatbuffers::FlatBufferBuilder &_fbb,
+inline ::flatbuffers::Offset<RadialGradient> CreateRadialGradientDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
     const char *name = nullptr,
     const std::vector<DeepSeaVectorDraw::GradientStop> *gradient = nullptr,
     const DeepSeaVectorDraw::Vector2f *center = nullptr,
@@ -967,7 +967,7 @@ inline flatbuffers::Offset<RadialGradient> CreateRadialGradientDirect(
       transform);
 }
 
-struct StartPathCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+struct StartPathCommand FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef StartPathCommandBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_TRANSFORM = 4,
@@ -979,7 +979,7 @@ struct StartPathCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   bool simple() const {
     return GetField<uint8_t>(VT_SIMPLE, 0) != 0;
   }
-  bool Verify(flatbuffers::Verifier &verifier) const {
+  bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyFieldRequired<DeepSeaVectorDraw::Matrix33f>(verifier, VT_TRANSFORM, 4) &&
            VerifyField<uint8_t>(verifier, VT_SIMPLE, 1) &&
@@ -989,28 +989,28 @@ struct StartPathCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 
 struct StartPathCommandBuilder {
   typedef StartPathCommand Table;
-  flatbuffers::FlatBufferBuilder &fbb_;
-  flatbuffers::uoffset_t start_;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
   void add_transform(const DeepSeaVectorDraw::Matrix33f *transform) {
     fbb_.AddStruct(StartPathCommand::VT_TRANSFORM, transform);
   }
   void add_simple(bool simple) {
     fbb_.AddElement<uint8_t>(StartPathCommand::VT_SIMPLE, static_cast<uint8_t>(simple), 0);
   }
-  explicit StartPathCommandBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit StartPathCommandBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  flatbuffers::Offset<StartPathCommand> Finish() {
+  ::flatbuffers::Offset<StartPathCommand> Finish() {
     const auto end = fbb_.EndTable(start_);
-    auto o = flatbuffers::Offset<StartPathCommand>(end);
+    auto o = ::flatbuffers::Offset<StartPathCommand>(end);
     fbb_.Required(o, StartPathCommand::VT_TRANSFORM);
     return o;
   }
 };
 
-inline flatbuffers::Offset<StartPathCommand> CreateStartPathCommand(
-    flatbuffers::FlatBufferBuilder &_fbb,
+inline ::flatbuffers::Offset<StartPathCommand> CreateStartPathCommand(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
     const DeepSeaVectorDraw::Matrix33f *transform = nullptr,
     bool simple = false) {
   StartPathCommandBuilder builder_(_fbb);
@@ -1019,7 +1019,7 @@ inline flatbuffers::Offset<StartPathCommand> CreateStartPathCommand(
   return builder_.Finish();
 }
 
-struct MoveCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+struct MoveCommand FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef MoveCommandBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_POSITION = 4
@@ -1027,7 +1027,7 @@ struct MoveCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const DeepSeaVectorDraw::Vector2f *position() const {
     return GetStruct<const DeepSeaVectorDraw::Vector2f *>(VT_POSITION);
   }
-  bool Verify(flatbuffers::Verifier &verifier) const {
+  bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyFieldRequired<DeepSeaVectorDraw::Vector2f>(verifier, VT_POSITION, 4) &&
            verifier.EndTable();
@@ -1036,32 +1036,32 @@ struct MoveCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 
 struct MoveCommandBuilder {
   typedef MoveCommand Table;
-  flatbuffers::FlatBufferBuilder &fbb_;
-  flatbuffers::uoffset_t start_;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
   void add_position(const DeepSeaVectorDraw::Vector2f *position) {
     fbb_.AddStruct(MoveCommand::VT_POSITION, position);
   }
-  explicit MoveCommandBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit MoveCommandBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  flatbuffers::Offset<MoveCommand> Finish() {
+  ::flatbuffers::Offset<MoveCommand> Finish() {
     const auto end = fbb_.EndTable(start_);
-    auto o = flatbuffers::Offset<MoveCommand>(end);
+    auto o = ::flatbuffers::Offset<MoveCommand>(end);
     fbb_.Required(o, MoveCommand::VT_POSITION);
     return o;
   }
 };
 
-inline flatbuffers::Offset<MoveCommand> CreateMoveCommand(
-    flatbuffers::FlatBufferBuilder &_fbb,
+inline ::flatbuffers::Offset<MoveCommand> CreateMoveCommand(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
     const DeepSeaVectorDraw::Vector2f *position = nullptr) {
   MoveCommandBuilder builder_(_fbb);
   builder_.add_position(position);
   return builder_.Finish();
 }
 
-struct LineCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+struct LineCommand FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef LineCommandBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_END = 4
@@ -1069,7 +1069,7 @@ struct LineCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const DeepSeaVectorDraw::Vector2f *end() const {
     return GetStruct<const DeepSeaVectorDraw::Vector2f *>(VT_END);
   }
-  bool Verify(flatbuffers::Verifier &verifier) const {
+  bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyFieldRequired<DeepSeaVectorDraw::Vector2f>(verifier, VT_END, 4) &&
            verifier.EndTable();
@@ -1078,32 +1078,32 @@ struct LineCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 
 struct LineCommandBuilder {
   typedef LineCommand Table;
-  flatbuffers::FlatBufferBuilder &fbb_;
-  flatbuffers::uoffset_t start_;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
   void add_end(const DeepSeaVectorDraw::Vector2f *end) {
     fbb_.AddStruct(LineCommand::VT_END, end);
   }
-  explicit LineCommandBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit LineCommandBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  flatbuffers::Offset<LineCommand> Finish() {
+  ::flatbuffers::Offset<LineCommand> Finish() {
     const auto end = fbb_.EndTable(start_);
-    auto o = flatbuffers::Offset<LineCommand>(end);
+    auto o = ::flatbuffers::Offset<LineCommand>(end);
     fbb_.Required(o, LineCommand::VT_END);
     return o;
   }
 };
 
-inline flatbuffers::Offset<LineCommand> CreateLineCommand(
-    flatbuffers::FlatBufferBuilder &_fbb,
+inline ::flatbuffers::Offset<LineCommand> CreateLineCommand(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
     const DeepSeaVectorDraw::Vector2f *end = nullptr) {
   LineCommandBuilder builder_(_fbb);
   builder_.add_end(end);
   return builder_.Finish();
 }
 
-struct BezierCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+struct BezierCommand FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef BezierCommandBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_CONTROL1 = 4,
@@ -1119,7 +1119,7 @@ struct BezierCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const DeepSeaVectorDraw::Vector2f *end() const {
     return GetStruct<const DeepSeaVectorDraw::Vector2f *>(VT_END);
   }
-  bool Verify(flatbuffers::Verifier &verifier) const {
+  bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyFieldRequired<DeepSeaVectorDraw::Vector2f>(verifier, VT_CONTROL1, 4) &&
            VerifyFieldRequired<DeepSeaVectorDraw::Vector2f>(verifier, VT_CONTROL2, 4) &&
@@ -1130,8 +1130,8 @@ struct BezierCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 
 struct BezierCommandBuilder {
   typedef BezierCommand Table;
-  flatbuffers::FlatBufferBuilder &fbb_;
-  flatbuffers::uoffset_t start_;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
   void add_control1(const DeepSeaVectorDraw::Vector2f *control1) {
     fbb_.AddStruct(BezierCommand::VT_CONTROL1, control1);
   }
@@ -1141,13 +1141,13 @@ struct BezierCommandBuilder {
   void add_end(const DeepSeaVectorDraw::Vector2f *end) {
     fbb_.AddStruct(BezierCommand::VT_END, end);
   }
-  explicit BezierCommandBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit BezierCommandBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  flatbuffers::Offset<BezierCommand> Finish() {
+  ::flatbuffers::Offset<BezierCommand> Finish() {
     const auto end = fbb_.EndTable(start_);
-    auto o = flatbuffers::Offset<BezierCommand>(end);
+    auto o = ::flatbuffers::Offset<BezierCommand>(end);
     fbb_.Required(o, BezierCommand::VT_CONTROL1);
     fbb_.Required(o, BezierCommand::VT_CONTROL2);
     fbb_.Required(o, BezierCommand::VT_END);
@@ -1155,8 +1155,8 @@ struct BezierCommandBuilder {
   }
 };
 
-inline flatbuffers::Offset<BezierCommand> CreateBezierCommand(
-    flatbuffers::FlatBufferBuilder &_fbb,
+inline ::flatbuffers::Offset<BezierCommand> CreateBezierCommand(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
     const DeepSeaVectorDraw::Vector2f *control1 = nullptr,
     const DeepSeaVectorDraw::Vector2f *control2 = nullptr,
     const DeepSeaVectorDraw::Vector2f *end = nullptr) {
@@ -1167,7 +1167,7 @@ inline flatbuffers::Offset<BezierCommand> CreateBezierCommand(
   return builder_.Finish();
 }
 
-struct QuadraticCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+struct QuadraticCommand FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef QuadraticCommandBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_CONTROL = 4,
@@ -1179,7 +1179,7 @@ struct QuadraticCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const DeepSeaVectorDraw::Vector2f *end() const {
     return GetStruct<const DeepSeaVectorDraw::Vector2f *>(VT_END);
   }
-  bool Verify(flatbuffers::Verifier &verifier) const {
+  bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyFieldRequired<DeepSeaVectorDraw::Vector2f>(verifier, VT_CONTROL, 4) &&
            VerifyFieldRequired<DeepSeaVectorDraw::Vector2f>(verifier, VT_END, 4) &&
@@ -1189,29 +1189,29 @@ struct QuadraticCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 
 struct QuadraticCommandBuilder {
   typedef QuadraticCommand Table;
-  flatbuffers::FlatBufferBuilder &fbb_;
-  flatbuffers::uoffset_t start_;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
   void add_control(const DeepSeaVectorDraw::Vector2f *control) {
     fbb_.AddStruct(QuadraticCommand::VT_CONTROL, control);
   }
   void add_end(const DeepSeaVectorDraw::Vector2f *end) {
     fbb_.AddStruct(QuadraticCommand::VT_END, end);
   }
-  explicit QuadraticCommandBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit QuadraticCommandBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  flatbuffers::Offset<QuadraticCommand> Finish() {
+  ::flatbuffers::Offset<QuadraticCommand> Finish() {
     const auto end = fbb_.EndTable(start_);
-    auto o = flatbuffers::Offset<QuadraticCommand>(end);
+    auto o = ::flatbuffers::Offset<QuadraticCommand>(end);
     fbb_.Required(o, QuadraticCommand::VT_CONTROL);
     fbb_.Required(o, QuadraticCommand::VT_END);
     return o;
   }
 };
 
-inline flatbuffers::Offset<QuadraticCommand> CreateQuadraticCommand(
-    flatbuffers::FlatBufferBuilder &_fbb,
+inline ::flatbuffers::Offset<QuadraticCommand> CreateQuadraticCommand(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
     const DeepSeaVectorDraw::Vector2f *control = nullptr,
     const DeepSeaVectorDraw::Vector2f *end = nullptr) {
   QuadraticCommandBuilder builder_(_fbb);
@@ -1220,7 +1220,7 @@ inline flatbuffers::Offset<QuadraticCommand> CreateQuadraticCommand(
   return builder_.Finish();
 }
 
-struct ArcCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+struct ArcCommand FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef ArcCommandBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_RADIUS = 4,
@@ -1244,7 +1244,7 @@ struct ArcCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const DeepSeaVectorDraw::Vector2f *end() const {
     return GetStruct<const DeepSeaVectorDraw::Vector2f *>(VT_END);
   }
-  bool Verify(flatbuffers::Verifier &verifier) const {
+  bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyFieldRequired<DeepSeaVectorDraw::Vector2f>(verifier, VT_RADIUS, 4) &&
            VerifyField<float>(verifier, VT_ROTATION, 4) &&
@@ -1257,8 +1257,8 @@ struct ArcCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 
 struct ArcCommandBuilder {
   typedef ArcCommand Table;
-  flatbuffers::FlatBufferBuilder &fbb_;
-  flatbuffers::uoffset_t start_;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
   void add_radius(const DeepSeaVectorDraw::Vector2f *radius) {
     fbb_.AddStruct(ArcCommand::VT_RADIUS, radius);
   }
@@ -1274,21 +1274,21 @@ struct ArcCommandBuilder {
   void add_end(const DeepSeaVectorDraw::Vector2f *end) {
     fbb_.AddStruct(ArcCommand::VT_END, end);
   }
-  explicit ArcCommandBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit ArcCommandBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  flatbuffers::Offset<ArcCommand> Finish() {
+  ::flatbuffers::Offset<ArcCommand> Finish() {
     const auto end = fbb_.EndTable(start_);
-    auto o = flatbuffers::Offset<ArcCommand>(end);
+    auto o = ::flatbuffers::Offset<ArcCommand>(end);
     fbb_.Required(o, ArcCommand::VT_RADIUS);
     fbb_.Required(o, ArcCommand::VT_END);
     return o;
   }
 };
 
-inline flatbuffers::Offset<ArcCommand> CreateArcCommand(
-    flatbuffers::FlatBufferBuilder &_fbb,
+inline ::flatbuffers::Offset<ArcCommand> CreateArcCommand(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
     const DeepSeaVectorDraw::Vector2f *radius = nullptr,
     float rotation = 0.0f,
     bool largeArc = false,
@@ -1303,9 +1303,9 @@ inline flatbuffers::Offset<ArcCommand> CreateArcCommand(
   return builder_.Finish();
 }
 
-struct ClosePathCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+struct ClosePathCommand FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef ClosePathCommandBuilder Builder;
-  bool Verify(flatbuffers::Verifier &verifier) const {
+  bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            verifier.EndTable();
   }
@@ -1313,26 +1313,26 @@ struct ClosePathCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 
 struct ClosePathCommandBuilder {
   typedef ClosePathCommand Table;
-  flatbuffers::FlatBufferBuilder &fbb_;
-  flatbuffers::uoffset_t start_;
-  explicit ClosePathCommandBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  explicit ClosePathCommandBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  flatbuffers::Offset<ClosePathCommand> Finish() {
+  ::flatbuffers::Offset<ClosePathCommand> Finish() {
     const auto end = fbb_.EndTable(start_);
-    auto o = flatbuffers::Offset<ClosePathCommand>(end);
+    auto o = ::flatbuffers::Offset<ClosePathCommand>(end);
     return o;
   }
 };
 
-inline flatbuffers::Offset<ClosePathCommand> CreateClosePathCommand(
-    flatbuffers::FlatBufferBuilder &_fbb) {
+inline ::flatbuffers::Offset<ClosePathCommand> CreateClosePathCommand(
+    ::flatbuffers::FlatBufferBuilder &_fbb) {
   ClosePathCommandBuilder builder_(_fbb);
   return builder_.Finish();
 }
 
-struct EllipseCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+struct EllipseCommand FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef EllipseCommandBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_CENTER = 4,
@@ -1344,7 +1344,7 @@ struct EllipseCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const DeepSeaVectorDraw::Vector2f *radius() const {
     return GetStruct<const DeepSeaVectorDraw::Vector2f *>(VT_RADIUS);
   }
-  bool Verify(flatbuffers::Verifier &verifier) const {
+  bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyFieldRequired<DeepSeaVectorDraw::Vector2f>(verifier, VT_CENTER, 4) &&
            VerifyFieldRequired<DeepSeaVectorDraw::Vector2f>(verifier, VT_RADIUS, 4) &&
@@ -1354,29 +1354,29 @@ struct EllipseCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 
 struct EllipseCommandBuilder {
   typedef EllipseCommand Table;
-  flatbuffers::FlatBufferBuilder &fbb_;
-  flatbuffers::uoffset_t start_;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
   void add_center(const DeepSeaVectorDraw::Vector2f *center) {
     fbb_.AddStruct(EllipseCommand::VT_CENTER, center);
   }
   void add_radius(const DeepSeaVectorDraw::Vector2f *radius) {
     fbb_.AddStruct(EllipseCommand::VT_RADIUS, radius);
   }
-  explicit EllipseCommandBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit EllipseCommandBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  flatbuffers::Offset<EllipseCommand> Finish() {
+  ::flatbuffers::Offset<EllipseCommand> Finish() {
     const auto end = fbb_.EndTable(start_);
-    auto o = flatbuffers::Offset<EllipseCommand>(end);
+    auto o = ::flatbuffers::Offset<EllipseCommand>(end);
     fbb_.Required(o, EllipseCommand::VT_CENTER);
     fbb_.Required(o, EllipseCommand::VT_RADIUS);
     return o;
   }
 };
 
-inline flatbuffers::Offset<EllipseCommand> CreateEllipseCommand(
-    flatbuffers::FlatBufferBuilder &_fbb,
+inline ::flatbuffers::Offset<EllipseCommand> CreateEllipseCommand(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
     const DeepSeaVectorDraw::Vector2f *center = nullptr,
     const DeepSeaVectorDraw::Vector2f *radius = nullptr) {
   EllipseCommandBuilder builder_(_fbb);
@@ -1385,7 +1385,7 @@ inline flatbuffers::Offset<EllipseCommand> CreateEllipseCommand(
   return builder_.Finish();
 }
 
-struct RectangleCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+struct RectangleCommand FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef RectangleCommandBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_UPPERLEFT = 4,
@@ -1401,7 +1401,7 @@ struct RectangleCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const DeepSeaVectorDraw::Vector2f *cornerRadius() const {
     return GetStruct<const DeepSeaVectorDraw::Vector2f *>(VT_CORNERRADIUS);
   }
-  bool Verify(flatbuffers::Verifier &verifier) const {
+  bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyFieldRequired<DeepSeaVectorDraw::Vector2f>(verifier, VT_UPPERLEFT, 4) &&
            VerifyFieldRequired<DeepSeaVectorDraw::Vector2f>(verifier, VT_LOWERRIGHT, 4) &&
@@ -1412,8 +1412,8 @@ struct RectangleCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 
 struct RectangleCommandBuilder {
   typedef RectangleCommand Table;
-  flatbuffers::FlatBufferBuilder &fbb_;
-  flatbuffers::uoffset_t start_;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
   void add_upperLeft(const DeepSeaVectorDraw::Vector2f *upperLeft) {
     fbb_.AddStruct(RectangleCommand::VT_UPPERLEFT, upperLeft);
   }
@@ -1423,13 +1423,13 @@ struct RectangleCommandBuilder {
   void add_cornerRadius(const DeepSeaVectorDraw::Vector2f *cornerRadius) {
     fbb_.AddStruct(RectangleCommand::VT_CORNERRADIUS, cornerRadius);
   }
-  explicit RectangleCommandBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit RectangleCommandBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  flatbuffers::Offset<RectangleCommand> Finish() {
+  ::flatbuffers::Offset<RectangleCommand> Finish() {
     const auto end = fbb_.EndTable(start_);
-    auto o = flatbuffers::Offset<RectangleCommand>(end);
+    auto o = ::flatbuffers::Offset<RectangleCommand>(end);
     fbb_.Required(o, RectangleCommand::VT_UPPERLEFT);
     fbb_.Required(o, RectangleCommand::VT_LOWERRIGHT);
     fbb_.Required(o, RectangleCommand::VT_CORNERRADIUS);
@@ -1437,8 +1437,8 @@ struct RectangleCommandBuilder {
   }
 };
 
-inline flatbuffers::Offset<RectangleCommand> CreateRectangleCommand(
-    flatbuffers::FlatBufferBuilder &_fbb,
+inline ::flatbuffers::Offset<RectangleCommand> CreateRectangleCommand(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
     const DeepSeaVectorDraw::Vector2f *upperLeft = nullptr,
     const DeepSeaVectorDraw::Vector2f *lowerRight = nullptr,
     const DeepSeaVectorDraw::Vector2f *cornerRadius = nullptr) {
@@ -1449,7 +1449,7 @@ inline flatbuffers::Offset<RectangleCommand> CreateRectangleCommand(
   return builder_.Finish();
 }
 
-struct StrokePathCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+struct StrokePathCommand FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef StrokePathCommandBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_MATERIAL = 4,
@@ -1460,8 +1460,8 @@ struct StrokePathCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_MITERLIMIT = 14,
     VT_DASHARRAY = 16
   };
-  const flatbuffers::String *material() const {
-    return GetPointer<const flatbuffers::String *>(VT_MATERIAL);
+  const ::flatbuffers::String *material() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_MATERIAL);
   }
   float opacity() const {
     return GetField<float>(VT_OPACITY, 0.0f);
@@ -1481,7 +1481,7 @@ struct StrokePathCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const DeepSeaVectorDraw::DashArray *dashArray() const {
     return GetStruct<const DeepSeaVectorDraw::DashArray *>(VT_DASHARRAY);
   }
-  bool Verify(flatbuffers::Verifier &verifier) const {
+  bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_MATERIAL) &&
            verifier.VerifyString(material()) &&
@@ -1497,9 +1497,9 @@ struct StrokePathCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 
 struct StrokePathCommandBuilder {
   typedef StrokePathCommand Table;
-  flatbuffers::FlatBufferBuilder &fbb_;
-  flatbuffers::uoffset_t start_;
-  void add_material(flatbuffers::Offset<flatbuffers::String> material) {
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_material(::flatbuffers::Offset<::flatbuffers::String> material) {
     fbb_.AddOffset(StrokePathCommand::VT_MATERIAL, material);
   }
   void add_opacity(float opacity) {
@@ -1520,22 +1520,22 @@ struct StrokePathCommandBuilder {
   void add_dashArray(const DeepSeaVectorDraw::DashArray *dashArray) {
     fbb_.AddStruct(StrokePathCommand::VT_DASHARRAY, dashArray);
   }
-  explicit StrokePathCommandBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit StrokePathCommandBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  flatbuffers::Offset<StrokePathCommand> Finish() {
+  ::flatbuffers::Offset<StrokePathCommand> Finish() {
     const auto end = fbb_.EndTable(start_);
-    auto o = flatbuffers::Offset<StrokePathCommand>(end);
+    auto o = ::flatbuffers::Offset<StrokePathCommand>(end);
     fbb_.Required(o, StrokePathCommand::VT_MATERIAL);
     fbb_.Required(o, StrokePathCommand::VT_DASHARRAY);
     return o;
   }
 };
 
-inline flatbuffers::Offset<StrokePathCommand> CreateStrokePathCommand(
-    flatbuffers::FlatBufferBuilder &_fbb,
-    flatbuffers::Offset<flatbuffers::String> material = 0,
+inline ::flatbuffers::Offset<StrokePathCommand> CreateStrokePathCommand(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<::flatbuffers::String> material = 0,
     float opacity = 0.0f,
     DeepSeaVectorDraw::LineJoin joinType = DeepSeaVectorDraw::LineJoin::Miter,
     DeepSeaVectorDraw::LineCap capType = DeepSeaVectorDraw::LineCap::Butt,
@@ -1553,8 +1553,8 @@ inline flatbuffers::Offset<StrokePathCommand> CreateStrokePathCommand(
   return builder_.Finish();
 }
 
-inline flatbuffers::Offset<StrokePathCommand> CreateStrokePathCommandDirect(
-    flatbuffers::FlatBufferBuilder &_fbb,
+inline ::flatbuffers::Offset<StrokePathCommand> CreateStrokePathCommandDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
     const char *material = nullptr,
     float opacity = 0.0f,
     DeepSeaVectorDraw::LineJoin joinType = DeepSeaVectorDraw::LineJoin::Miter,
@@ -1574,15 +1574,15 @@ inline flatbuffers::Offset<StrokePathCommand> CreateStrokePathCommandDirect(
       dashArray);
 }
 
-struct FillPathCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+struct FillPathCommand FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef FillPathCommandBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_MATERIAL = 4,
     VT_OPACITY = 6,
     VT_FILLRULE = 8
   };
-  const flatbuffers::String *material() const {
-    return GetPointer<const flatbuffers::String *>(VT_MATERIAL);
+  const ::flatbuffers::String *material() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_MATERIAL);
   }
   float opacity() const {
     return GetField<float>(VT_OPACITY, 0.0f);
@@ -1590,7 +1590,7 @@ struct FillPathCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   DeepSeaVectorDraw::FillRule fillRule() const {
     return static_cast<DeepSeaVectorDraw::FillRule>(GetField<uint8_t>(VT_FILLRULE, 0));
   }
-  bool Verify(flatbuffers::Verifier &verifier) const {
+  bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_MATERIAL) &&
            verifier.VerifyString(material()) &&
@@ -1602,9 +1602,9 @@ struct FillPathCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 
 struct FillPathCommandBuilder {
   typedef FillPathCommand Table;
-  flatbuffers::FlatBufferBuilder &fbb_;
-  flatbuffers::uoffset_t start_;
-  void add_material(flatbuffers::Offset<flatbuffers::String> material) {
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_material(::flatbuffers::Offset<::flatbuffers::String> material) {
     fbb_.AddOffset(FillPathCommand::VT_MATERIAL, material);
   }
   void add_opacity(float opacity) {
@@ -1613,21 +1613,21 @@ struct FillPathCommandBuilder {
   void add_fillRule(DeepSeaVectorDraw::FillRule fillRule) {
     fbb_.AddElement<uint8_t>(FillPathCommand::VT_FILLRULE, static_cast<uint8_t>(fillRule), 0);
   }
-  explicit FillPathCommandBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit FillPathCommandBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  flatbuffers::Offset<FillPathCommand> Finish() {
+  ::flatbuffers::Offset<FillPathCommand> Finish() {
     const auto end = fbb_.EndTable(start_);
-    auto o = flatbuffers::Offset<FillPathCommand>(end);
+    auto o = ::flatbuffers::Offset<FillPathCommand>(end);
     fbb_.Required(o, FillPathCommand::VT_MATERIAL);
     return o;
   }
 };
 
-inline flatbuffers::Offset<FillPathCommand> CreateFillPathCommand(
-    flatbuffers::FlatBufferBuilder &_fbb,
-    flatbuffers::Offset<flatbuffers::String> material = 0,
+inline ::flatbuffers::Offset<FillPathCommand> CreateFillPathCommand(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<::flatbuffers::String> material = 0,
     float opacity = 0.0f,
     DeepSeaVectorDraw::FillRule fillRule = DeepSeaVectorDraw::FillRule::EvenOdd) {
   FillPathCommandBuilder builder_(_fbb);
@@ -1637,8 +1637,8 @@ inline flatbuffers::Offset<FillPathCommand> CreateFillPathCommand(
   return builder_.Finish();
 }
 
-inline flatbuffers::Offset<FillPathCommand> CreateFillPathCommandDirect(
-    flatbuffers::FlatBufferBuilder &_fbb,
+inline ::flatbuffers::Offset<FillPathCommand> CreateFillPathCommandDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
     const char *material = nullptr,
     float opacity = 0.0f,
     DeepSeaVectorDraw::FillRule fillRule = DeepSeaVectorDraw::FillRule::EvenOdd) {
@@ -1650,7 +1650,7 @@ inline flatbuffers::Offset<FillPathCommand> CreateFillPathCommandDirect(
       fillRule);
 }
 
-struct TextCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+struct TextCommand FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef TextCommandBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_TEXT = 4,
@@ -1661,11 +1661,11 @@ struct TextCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_TRANSFORM = 14,
     VT_RANGECOUNT = 16
   };
-  const flatbuffers::String *text() const {
-    return GetPointer<const flatbuffers::String *>(VT_TEXT);
+  const ::flatbuffers::String *text() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_TEXT);
   }
-  const flatbuffers::String *font() const {
-    return GetPointer<const flatbuffers::String *>(VT_FONT);
+  const ::flatbuffers::String *font() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_FONT);
   }
   DeepSeaVectorDraw::TextAlign alignment() const {
     return static_cast<DeepSeaVectorDraw::TextAlign>(GetField<uint8_t>(VT_ALIGNMENT, 0));
@@ -1682,7 +1682,7 @@ struct TextCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   uint32_t rangeCount() const {
     return GetField<uint32_t>(VT_RANGECOUNT, 0);
   }
-  bool Verify(flatbuffers::Verifier &verifier) const {
+  bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_TEXT) &&
            verifier.VerifyString(text()) &&
@@ -1699,12 +1699,12 @@ struct TextCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 
 struct TextCommandBuilder {
   typedef TextCommand Table;
-  flatbuffers::FlatBufferBuilder &fbb_;
-  flatbuffers::uoffset_t start_;
-  void add_text(flatbuffers::Offset<flatbuffers::String> text) {
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_text(::flatbuffers::Offset<::flatbuffers::String> text) {
     fbb_.AddOffset(TextCommand::VT_TEXT, text);
   }
-  void add_font(flatbuffers::Offset<flatbuffers::String> font) {
+  void add_font(::flatbuffers::Offset<::flatbuffers::String> font) {
     fbb_.AddOffset(TextCommand::VT_FONT, font);
   }
   void add_alignment(DeepSeaVectorDraw::TextAlign alignment) {
@@ -1722,13 +1722,13 @@ struct TextCommandBuilder {
   void add_rangeCount(uint32_t rangeCount) {
     fbb_.AddElement<uint32_t>(TextCommand::VT_RANGECOUNT, rangeCount, 0);
   }
-  explicit TextCommandBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit TextCommandBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  flatbuffers::Offset<TextCommand> Finish() {
+  ::flatbuffers::Offset<TextCommand> Finish() {
     const auto end = fbb_.EndTable(start_);
-    auto o = flatbuffers::Offset<TextCommand>(end);
+    auto o = ::flatbuffers::Offset<TextCommand>(end);
     fbb_.Required(o, TextCommand::VT_TEXT);
     fbb_.Required(o, TextCommand::VT_FONT);
     fbb_.Required(o, TextCommand::VT_TRANSFORM);
@@ -1736,10 +1736,10 @@ struct TextCommandBuilder {
   }
 };
 
-inline flatbuffers::Offset<TextCommand> CreateTextCommand(
-    flatbuffers::FlatBufferBuilder &_fbb,
-    flatbuffers::Offset<flatbuffers::String> text = 0,
-    flatbuffers::Offset<flatbuffers::String> font = 0,
+inline ::flatbuffers::Offset<TextCommand> CreateTextCommand(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<::flatbuffers::String> text = 0,
+    ::flatbuffers::Offset<::flatbuffers::String> font = 0,
     DeepSeaVectorDraw::TextAlign alignment = DeepSeaVectorDraw::TextAlign::Start,
     float maxLength = 0.0f,
     float lineHeight = 0.0f,
@@ -1756,8 +1756,8 @@ inline flatbuffers::Offset<TextCommand> CreateTextCommand(
   return builder_.Finish();
 }
 
-inline flatbuffers::Offset<TextCommand> CreateTextCommandDirect(
-    flatbuffers::FlatBufferBuilder &_fbb,
+inline ::flatbuffers::Offset<TextCommand> CreateTextCommandDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
     const char *text = nullptr,
     const char *font = nullptr,
     DeepSeaVectorDraw::TextAlign alignment = DeepSeaVectorDraw::TextAlign::Start,
@@ -1778,7 +1778,7 @@ inline flatbuffers::Offset<TextCommand> CreateTextCommandDirect(
       rangeCount);
 }
 
-struct TextRangeCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+struct TextRangeCommand FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef TextRangeCommandBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_START = 4,
@@ -1807,11 +1807,11 @@ struct TextRangeCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const DeepSeaVectorDraw::Vector2f *position() const {
     return GetStruct<const DeepSeaVectorDraw::Vector2f *>(VT_POSITION);
   }
-  const flatbuffers::String *fillMaterial() const {
-    return GetPointer<const flatbuffers::String *>(VT_FILLMATERIAL);
+  const ::flatbuffers::String *fillMaterial() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_FILLMATERIAL);
   }
-  const flatbuffers::String *outlineMaterial() const {
-    return GetPointer<const flatbuffers::String *>(VT_OUTLINEMATERIAL);
+  const ::flatbuffers::String *outlineMaterial() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_OUTLINEMATERIAL);
   }
   float fillOpacity() const {
     return GetField<float>(VT_FILLOPACITY, 0.0f);
@@ -1834,7 +1834,7 @@ struct TextRangeCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   float fuziness() const {
     return GetField<float>(VT_FUZINESS, 0.0f);
   }
-  bool Verify(flatbuffers::Verifier &verifier) const {
+  bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<uint32_t>(verifier, VT_START, 4) &&
            VerifyField<uint32_t>(verifier, VT_COUNT, 4) &&
@@ -1857,8 +1857,8 @@ struct TextRangeCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 
 struct TextRangeCommandBuilder {
   typedef TextRangeCommand Table;
-  flatbuffers::FlatBufferBuilder &fbb_;
-  flatbuffers::uoffset_t start_;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
   void add_start(uint32_t start) {
     fbb_.AddElement<uint32_t>(TextRangeCommand::VT_START, start, 0);
   }
@@ -1871,10 +1871,10 @@ struct TextRangeCommandBuilder {
   void add_position(const DeepSeaVectorDraw::Vector2f *position) {
     fbb_.AddStruct(TextRangeCommand::VT_POSITION, position);
   }
-  void add_fillMaterial(flatbuffers::Offset<flatbuffers::String> fillMaterial) {
+  void add_fillMaterial(::flatbuffers::Offset<::flatbuffers::String> fillMaterial) {
     fbb_.AddOffset(TextRangeCommand::VT_FILLMATERIAL, fillMaterial);
   }
-  void add_outlineMaterial(flatbuffers::Offset<flatbuffers::String> outlineMaterial) {
+  void add_outlineMaterial(::flatbuffers::Offset<::flatbuffers::String> outlineMaterial) {
     fbb_.AddOffset(TextRangeCommand::VT_OUTLINEMATERIAL, outlineMaterial);
   }
   void add_fillOpacity(float fillOpacity) {
@@ -1898,26 +1898,26 @@ struct TextRangeCommandBuilder {
   void add_fuziness(float fuziness) {
     fbb_.AddElement<float>(TextRangeCommand::VT_FUZINESS, fuziness, 0.0f);
   }
-  explicit TextRangeCommandBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit TextRangeCommandBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  flatbuffers::Offset<TextRangeCommand> Finish() {
+  ::flatbuffers::Offset<TextRangeCommand> Finish() {
     const auto end = fbb_.EndTable(start_);
-    auto o = flatbuffers::Offset<TextRangeCommand>(end);
+    auto o = ::flatbuffers::Offset<TextRangeCommand>(end);
     fbb_.Required(o, TextRangeCommand::VT_POSITION);
     return o;
   }
 };
 
-inline flatbuffers::Offset<TextRangeCommand> CreateTextRangeCommand(
-    flatbuffers::FlatBufferBuilder &_fbb,
+inline ::flatbuffers::Offset<TextRangeCommand> CreateTextRangeCommand(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
     uint32_t start = 0,
     uint32_t count = 0,
     DeepSeaVectorDraw::TextPosition positionType = DeepSeaVectorDraw::TextPosition::Offset,
     const DeepSeaVectorDraw::Vector2f *position = nullptr,
-    flatbuffers::Offset<flatbuffers::String> fillMaterial = 0,
-    flatbuffers::Offset<flatbuffers::String> outlineMaterial = 0,
+    ::flatbuffers::Offset<::flatbuffers::String> fillMaterial = 0,
+    ::flatbuffers::Offset<::flatbuffers::String> outlineMaterial = 0,
     float fillOpacity = 0.0f,
     float outlineOpacity = 0.0f,
     float size = 0.0f,
@@ -1942,8 +1942,8 @@ inline flatbuffers::Offset<TextRangeCommand> CreateTextRangeCommand(
   return builder_.Finish();
 }
 
-inline flatbuffers::Offset<TextRangeCommand> CreateTextRangeCommandDirect(
-    flatbuffers::FlatBufferBuilder &_fbb,
+inline ::flatbuffers::Offset<TextRangeCommand> CreateTextRangeCommandDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
     uint32_t start = 0,
     uint32_t count = 0,
     DeepSeaVectorDraw::TextPosition positionType = DeepSeaVectorDraw::TextPosition::Offset,
@@ -1976,7 +1976,7 @@ inline flatbuffers::Offset<TextRangeCommand> CreateTextRangeCommandDirect(
       fuziness);
 }
 
-struct ImageCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+struct ImageCommand FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef ImageCommandBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_IMAGE = 4,
@@ -1985,8 +1985,8 @@ struct ImageCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_OPACITY = 10,
     VT_TRANSFORM = 12
   };
-  const flatbuffers::String *image() const {
-    return GetPointer<const flatbuffers::String *>(VT_IMAGE);
+  const ::flatbuffers::String *image() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_IMAGE);
   }
   const DeepSeaVectorDraw::Vector2f *upperLeft() const {
     return GetStruct<const DeepSeaVectorDraw::Vector2f *>(VT_UPPERLEFT);
@@ -2000,7 +2000,7 @@ struct ImageCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const DeepSeaVectorDraw::Matrix33f *transform() const {
     return GetStruct<const DeepSeaVectorDraw::Matrix33f *>(VT_TRANSFORM);
   }
-  bool Verify(flatbuffers::Verifier &verifier) const {
+  bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_IMAGE) &&
            verifier.VerifyString(image()) &&
@@ -2014,9 +2014,9 @@ struct ImageCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 
 struct ImageCommandBuilder {
   typedef ImageCommand Table;
-  flatbuffers::FlatBufferBuilder &fbb_;
-  flatbuffers::uoffset_t start_;
-  void add_image(flatbuffers::Offset<flatbuffers::String> image) {
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_image(::flatbuffers::Offset<::flatbuffers::String> image) {
     fbb_.AddOffset(ImageCommand::VT_IMAGE, image);
   }
   void add_upperLeft(const DeepSeaVectorDraw::Vector2f *upperLeft) {
@@ -2031,13 +2031,13 @@ struct ImageCommandBuilder {
   void add_transform(const DeepSeaVectorDraw::Matrix33f *transform) {
     fbb_.AddStruct(ImageCommand::VT_TRANSFORM, transform);
   }
-  explicit ImageCommandBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit ImageCommandBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  flatbuffers::Offset<ImageCommand> Finish() {
+  ::flatbuffers::Offset<ImageCommand> Finish() {
     const auto end = fbb_.EndTable(start_);
-    auto o = flatbuffers::Offset<ImageCommand>(end);
+    auto o = ::flatbuffers::Offset<ImageCommand>(end);
     fbb_.Required(o, ImageCommand::VT_IMAGE);
     fbb_.Required(o, ImageCommand::VT_UPPERLEFT);
     fbb_.Required(o, ImageCommand::VT_LOWERRIGHT);
@@ -2046,9 +2046,9 @@ struct ImageCommandBuilder {
   }
 };
 
-inline flatbuffers::Offset<ImageCommand> CreateImageCommand(
-    flatbuffers::FlatBufferBuilder &_fbb,
-    flatbuffers::Offset<flatbuffers::String> image = 0,
+inline ::flatbuffers::Offset<ImageCommand> CreateImageCommand(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<::flatbuffers::String> image = 0,
     const DeepSeaVectorDraw::Vector2f *upperLeft = nullptr,
     const DeepSeaVectorDraw::Vector2f *lowerRight = nullptr,
     float opacity = 0.0f,
@@ -2062,8 +2062,8 @@ inline flatbuffers::Offset<ImageCommand> CreateImageCommand(
   return builder_.Finish();
 }
 
-inline flatbuffers::Offset<ImageCommand> CreateImageCommandDirect(
-    flatbuffers::FlatBufferBuilder &_fbb,
+inline ::flatbuffers::Offset<ImageCommand> CreateImageCommandDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
     const char *image = nullptr,
     const DeepSeaVectorDraw::Vector2f *upperLeft = nullptr,
     const DeepSeaVectorDraw::Vector2f *lowerRight = nullptr,
@@ -2079,7 +2079,7 @@ inline flatbuffers::Offset<ImageCommand> CreateImageCommandDirect(
       transform);
 }
 
-struct VectorCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+struct VectorCommand FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef VectorCommandBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_COMMAND_TYPE = 4,
@@ -2134,7 +2134,7 @@ struct VectorCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const DeepSeaVectorDraw::ImageCommand *command_as_ImageCommand() const {
     return command_type() == DeepSeaVectorDraw::VectorCommandUnion::ImageCommand ? static_cast<const DeepSeaVectorDraw::ImageCommand *>(command()) : nullptr;
   }
-  bool Verify(flatbuffers::Verifier &verifier) const {
+  bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<uint8_t>(verifier, VT_COMMAND_TYPE, 1) &&
            VerifyOffsetRequired(verifier, VT_COMMAND) &&
@@ -2201,37 +2201,37 @@ template<> inline const DeepSeaVectorDraw::ImageCommand *VectorCommand::command_
 
 struct VectorCommandBuilder {
   typedef VectorCommand Table;
-  flatbuffers::FlatBufferBuilder &fbb_;
-  flatbuffers::uoffset_t start_;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
   void add_command_type(DeepSeaVectorDraw::VectorCommandUnion command_type) {
     fbb_.AddElement<uint8_t>(VectorCommand::VT_COMMAND_TYPE, static_cast<uint8_t>(command_type), 0);
   }
-  void add_command(flatbuffers::Offset<void> command) {
+  void add_command(::flatbuffers::Offset<void> command) {
     fbb_.AddOffset(VectorCommand::VT_COMMAND, command);
   }
-  explicit VectorCommandBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit VectorCommandBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  flatbuffers::Offset<VectorCommand> Finish() {
+  ::flatbuffers::Offset<VectorCommand> Finish() {
     const auto end = fbb_.EndTable(start_);
-    auto o = flatbuffers::Offset<VectorCommand>(end);
+    auto o = ::flatbuffers::Offset<VectorCommand>(end);
     fbb_.Required(o, VectorCommand::VT_COMMAND);
     return o;
   }
 };
 
-inline flatbuffers::Offset<VectorCommand> CreateVectorCommand(
-    flatbuffers::FlatBufferBuilder &_fbb,
+inline ::flatbuffers::Offset<VectorCommand> CreateVectorCommand(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
     DeepSeaVectorDraw::VectorCommandUnion command_type = DeepSeaVectorDraw::VectorCommandUnion::NONE,
-    flatbuffers::Offset<void> command = 0) {
+    ::flatbuffers::Offset<void> command = 0) {
   VectorCommandBuilder builder_(_fbb);
   builder_.add_command(command);
   builder_.add_command_type(command_type);
   return builder_.Finish();
 }
 
-struct VectorImage FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+struct VectorImage FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef VectorImageBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_COLORMATERIALS = 4,
@@ -2240,22 +2240,22 @@ struct VectorImage FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_COMMANDS = 10,
     VT_SIZE = 12
   };
-  const flatbuffers::Vector<flatbuffers::Offset<DeepSeaVectorDraw::ColorMaterial>> *colorMaterials() const {
-    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<DeepSeaVectorDraw::ColorMaterial>> *>(VT_COLORMATERIALS);
+  const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaVectorDraw::ColorMaterial>> *colorMaterials() const {
+    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaVectorDraw::ColorMaterial>> *>(VT_COLORMATERIALS);
   }
-  const flatbuffers::Vector<flatbuffers::Offset<DeepSeaVectorDraw::LinearGradient>> *linearGradients() const {
-    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<DeepSeaVectorDraw::LinearGradient>> *>(VT_LINEARGRADIENTS);
+  const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaVectorDraw::LinearGradient>> *linearGradients() const {
+    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaVectorDraw::LinearGradient>> *>(VT_LINEARGRADIENTS);
   }
-  const flatbuffers::Vector<flatbuffers::Offset<DeepSeaVectorDraw::RadialGradient>> *radialGradients() const {
-    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<DeepSeaVectorDraw::RadialGradient>> *>(VT_RADIALGRADIENTS);
+  const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaVectorDraw::RadialGradient>> *radialGradients() const {
+    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaVectorDraw::RadialGradient>> *>(VT_RADIALGRADIENTS);
   }
-  const flatbuffers::Vector<flatbuffers::Offset<DeepSeaVectorDraw::VectorCommand>> *commands() const {
-    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<DeepSeaVectorDraw::VectorCommand>> *>(VT_COMMANDS);
+  const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaVectorDraw::VectorCommand>> *commands() const {
+    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaVectorDraw::VectorCommand>> *>(VT_COMMANDS);
   }
   const DeepSeaVectorDraw::Vector2f *size() const {
     return GetStruct<const DeepSeaVectorDraw::Vector2f *>(VT_SIZE);
   }
-  bool Verify(flatbuffers::Verifier &verifier) const {
+  bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_COLORMATERIALS) &&
            verifier.VerifyVector(colorMaterials()) &&
@@ -2276,42 +2276,42 @@ struct VectorImage FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 
 struct VectorImageBuilder {
   typedef VectorImage Table;
-  flatbuffers::FlatBufferBuilder &fbb_;
-  flatbuffers::uoffset_t start_;
-  void add_colorMaterials(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaVectorDraw::ColorMaterial>>> colorMaterials) {
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_colorMaterials(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaVectorDraw::ColorMaterial>>> colorMaterials) {
     fbb_.AddOffset(VectorImage::VT_COLORMATERIALS, colorMaterials);
   }
-  void add_linearGradients(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaVectorDraw::LinearGradient>>> linearGradients) {
+  void add_linearGradients(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaVectorDraw::LinearGradient>>> linearGradients) {
     fbb_.AddOffset(VectorImage::VT_LINEARGRADIENTS, linearGradients);
   }
-  void add_radialGradients(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaVectorDraw::RadialGradient>>> radialGradients) {
+  void add_radialGradients(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaVectorDraw::RadialGradient>>> radialGradients) {
     fbb_.AddOffset(VectorImage::VT_RADIALGRADIENTS, radialGradients);
   }
-  void add_commands(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaVectorDraw::VectorCommand>>> commands) {
+  void add_commands(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaVectorDraw::VectorCommand>>> commands) {
     fbb_.AddOffset(VectorImage::VT_COMMANDS, commands);
   }
   void add_size(const DeepSeaVectorDraw::Vector2f *size) {
     fbb_.AddStruct(VectorImage::VT_SIZE, size);
   }
-  explicit VectorImageBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit VectorImageBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  flatbuffers::Offset<VectorImage> Finish() {
+  ::flatbuffers::Offset<VectorImage> Finish() {
     const auto end = fbb_.EndTable(start_);
-    auto o = flatbuffers::Offset<VectorImage>(end);
+    auto o = ::flatbuffers::Offset<VectorImage>(end);
     fbb_.Required(o, VectorImage::VT_COMMANDS);
     fbb_.Required(o, VectorImage::VT_SIZE);
     return o;
   }
 };
 
-inline flatbuffers::Offset<VectorImage> CreateVectorImage(
-    flatbuffers::FlatBufferBuilder &_fbb,
-    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaVectorDraw::ColorMaterial>>> colorMaterials = 0,
-    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaVectorDraw::LinearGradient>>> linearGradients = 0,
-    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaVectorDraw::RadialGradient>>> radialGradients = 0,
-    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaVectorDraw::VectorCommand>>> commands = 0,
+inline ::flatbuffers::Offset<VectorImage> CreateVectorImage(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaVectorDraw::ColorMaterial>>> colorMaterials = 0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaVectorDraw::LinearGradient>>> linearGradients = 0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaVectorDraw::RadialGradient>>> radialGradients = 0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaVectorDraw::VectorCommand>>> commands = 0,
     const DeepSeaVectorDraw::Vector2f *size = nullptr) {
   VectorImageBuilder builder_(_fbb);
   builder_.add_size(size);
@@ -2322,17 +2322,17 @@ inline flatbuffers::Offset<VectorImage> CreateVectorImage(
   return builder_.Finish();
 }
 
-inline flatbuffers::Offset<VectorImage> CreateVectorImageDirect(
-    flatbuffers::FlatBufferBuilder &_fbb,
-    const std::vector<flatbuffers::Offset<DeepSeaVectorDraw::ColorMaterial>> *colorMaterials = nullptr,
-    const std::vector<flatbuffers::Offset<DeepSeaVectorDraw::LinearGradient>> *linearGradients = nullptr,
-    const std::vector<flatbuffers::Offset<DeepSeaVectorDraw::RadialGradient>> *radialGradients = nullptr,
-    const std::vector<flatbuffers::Offset<DeepSeaVectorDraw::VectorCommand>> *commands = nullptr,
+inline ::flatbuffers::Offset<VectorImage> CreateVectorImageDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    const std::vector<::flatbuffers::Offset<DeepSeaVectorDraw::ColorMaterial>> *colorMaterials = nullptr,
+    const std::vector<::flatbuffers::Offset<DeepSeaVectorDraw::LinearGradient>> *linearGradients = nullptr,
+    const std::vector<::flatbuffers::Offset<DeepSeaVectorDraw::RadialGradient>> *radialGradients = nullptr,
+    const std::vector<::flatbuffers::Offset<DeepSeaVectorDraw::VectorCommand>> *commands = nullptr,
     const DeepSeaVectorDraw::Vector2f *size = nullptr) {
-  auto colorMaterials__ = colorMaterials ? _fbb.CreateVector<flatbuffers::Offset<DeepSeaVectorDraw::ColorMaterial>>(*colorMaterials) : 0;
-  auto linearGradients__ = linearGradients ? _fbb.CreateVector<flatbuffers::Offset<DeepSeaVectorDraw::LinearGradient>>(*linearGradients) : 0;
-  auto radialGradients__ = radialGradients ? _fbb.CreateVector<flatbuffers::Offset<DeepSeaVectorDraw::RadialGradient>>(*radialGradients) : 0;
-  auto commands__ = commands ? _fbb.CreateVector<flatbuffers::Offset<DeepSeaVectorDraw::VectorCommand>>(*commands) : 0;
+  auto colorMaterials__ = colorMaterials ? _fbb.CreateVector<::flatbuffers::Offset<DeepSeaVectorDraw::ColorMaterial>>(*colorMaterials) : 0;
+  auto linearGradients__ = linearGradients ? _fbb.CreateVector<::flatbuffers::Offset<DeepSeaVectorDraw::LinearGradient>>(*linearGradients) : 0;
+  auto radialGradients__ = radialGradients ? _fbb.CreateVector<::flatbuffers::Offset<DeepSeaVectorDraw::RadialGradient>>(*radialGradients) : 0;
+  auto commands__ = commands ? _fbb.CreateVector<::flatbuffers::Offset<DeepSeaVectorDraw::VectorCommand>>(*commands) : 0;
   return DeepSeaVectorDraw::CreateVectorImage(
       _fbb,
       colorMaterials__,
@@ -2342,7 +2342,7 @@ inline flatbuffers::Offset<VectorImage> CreateVectorImageDirect(
       size);
 }
 
-inline bool VerifyVectorCommandUnion(flatbuffers::Verifier &verifier, const void *obj, VectorCommandUnion type) {
+inline bool VerifyVectorCommandUnion(::flatbuffers::Verifier &verifier, const void *obj, VectorCommandUnion type) {
   switch (type) {
     case VectorCommandUnion::NONE: {
       return true;
@@ -2407,10 +2407,10 @@ inline bool VerifyVectorCommandUnion(flatbuffers::Verifier &verifier, const void
   }
 }
 
-inline bool VerifyVectorCommandUnionVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<VectorCommandUnion> *types) {
+inline bool VerifyVectorCommandUnionVector(::flatbuffers::Verifier &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<VectorCommandUnion> *types) {
   if (!values || !types) return !values && !types;
   if (values->size() != types->size()) return false;
-  for (flatbuffers::uoffset_t i = 0; i < values->size(); ++i) {
+  for (::flatbuffers::uoffset_t i = 0; i < values->size(); ++i) {
     if (!VerifyVectorCommandUnion(
         verifier,  values->Get(i), types->GetEnum<VectorCommandUnion>(i))) {
       return false;
@@ -2420,32 +2420,32 @@ inline bool VerifyVectorCommandUnionVector(flatbuffers::Verifier &verifier, cons
 }
 
 inline const DeepSeaVectorDraw::VectorImage *GetVectorImage(const void *buf) {
-  return flatbuffers::GetRoot<DeepSeaVectorDraw::VectorImage>(buf);
+  return ::flatbuffers::GetRoot<DeepSeaVectorDraw::VectorImage>(buf);
 }
 
 inline const DeepSeaVectorDraw::VectorImage *GetSizePrefixedVectorImage(const void *buf) {
-  return flatbuffers::GetSizePrefixedRoot<DeepSeaVectorDraw::VectorImage>(buf);
+  return ::flatbuffers::GetSizePrefixedRoot<DeepSeaVectorDraw::VectorImage>(buf);
 }
 
 inline bool VerifyVectorImageBuffer(
-    flatbuffers::Verifier &verifier) {
+    ::flatbuffers::Verifier &verifier) {
   return verifier.VerifyBuffer<DeepSeaVectorDraw::VectorImage>(nullptr);
 }
 
 inline bool VerifySizePrefixedVectorImageBuffer(
-    flatbuffers::Verifier &verifier) {
+    ::flatbuffers::Verifier &verifier) {
   return verifier.VerifySizePrefixedBuffer<DeepSeaVectorDraw::VectorImage>(nullptr);
 }
 
 inline void FinishVectorImageBuffer(
-    flatbuffers::FlatBufferBuilder &fbb,
-    flatbuffers::Offset<DeepSeaVectorDraw::VectorImage> root) {
+    ::flatbuffers::FlatBufferBuilder &fbb,
+    ::flatbuffers::Offset<DeepSeaVectorDraw::VectorImage> root) {
   fbb.Finish(root);
 }
 
 inline void FinishSizePrefixedVectorImageBuffer(
-    flatbuffers::FlatBufferBuilder &fbb,
-    flatbuffers::Offset<DeepSeaVectorDraw::VectorImage> root) {
+    ::flatbuffers::FlatBufferBuilder &fbb,
+    ::flatbuffers::Offset<DeepSeaVectorDraw::VectorImage> root) {
   fbb.FinishSizePrefixed(root);
 }
 

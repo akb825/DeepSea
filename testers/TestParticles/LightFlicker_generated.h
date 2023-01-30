@@ -10,7 +10,7 @@
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 23 &&
               FLATBUFFERS_VERSION_MINOR == 1 &&
-              FLATBUFFERS_VERSION_REVISION == 4,
+              FLATBUFFERS_VERSION_REVISION == 21,
              "Non-compatible flatbuffers version included");
 
 namespace TestParticles {
@@ -18,7 +18,7 @@ namespace TestParticles {
 struct LightFlicker;
 struct LightFlickerBuilder;
 
-struct LightFlicker FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+struct LightFlicker FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef LightFlickerBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_MINTIME = 4,
@@ -38,7 +38,7 @@ struct LightFlicker FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   float maxIntensity() const {
     return GetField<float>(VT_MAXINTENSITY, 0.0f);
   }
-  bool Verify(flatbuffers::Verifier &verifier) const {
+  bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<float>(verifier, VT_MINTIME, 4) &&
            VerifyField<float>(verifier, VT_MAXTIME, 4) &&
@@ -50,8 +50,8 @@ struct LightFlicker FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 
 struct LightFlickerBuilder {
   typedef LightFlicker Table;
-  flatbuffers::FlatBufferBuilder &fbb_;
-  flatbuffers::uoffset_t start_;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
   void add_minTime(float minTime) {
     fbb_.AddElement<float>(LightFlicker::VT_MINTIME, minTime, 0.0f);
   }
@@ -64,19 +64,19 @@ struct LightFlickerBuilder {
   void add_maxIntensity(float maxIntensity) {
     fbb_.AddElement<float>(LightFlicker::VT_MAXINTENSITY, maxIntensity, 0.0f);
   }
-  explicit LightFlickerBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit LightFlickerBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  flatbuffers::Offset<LightFlicker> Finish() {
+  ::flatbuffers::Offset<LightFlicker> Finish() {
     const auto end = fbb_.EndTable(start_);
-    auto o = flatbuffers::Offset<LightFlicker>(end);
+    auto o = ::flatbuffers::Offset<LightFlicker>(end);
     return o;
   }
 };
 
-inline flatbuffers::Offset<LightFlicker> CreateLightFlicker(
-    flatbuffers::FlatBufferBuilder &_fbb,
+inline ::flatbuffers::Offset<LightFlicker> CreateLightFlicker(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
     float minTime = 0.0f,
     float maxTime = 0.0f,
     float minIntensity = 0.0f,
@@ -90,32 +90,32 @@ inline flatbuffers::Offset<LightFlicker> CreateLightFlicker(
 }
 
 inline const TestParticles::LightFlicker *GetLightFlicker(const void *buf) {
-  return flatbuffers::GetRoot<TestParticles::LightFlicker>(buf);
+  return ::flatbuffers::GetRoot<TestParticles::LightFlicker>(buf);
 }
 
 inline const TestParticles::LightFlicker *GetSizePrefixedLightFlicker(const void *buf) {
-  return flatbuffers::GetSizePrefixedRoot<TestParticles::LightFlicker>(buf);
+  return ::flatbuffers::GetSizePrefixedRoot<TestParticles::LightFlicker>(buf);
 }
 
 inline bool VerifyLightFlickerBuffer(
-    flatbuffers::Verifier &verifier) {
+    ::flatbuffers::Verifier &verifier) {
   return verifier.VerifyBuffer<TestParticles::LightFlicker>(nullptr);
 }
 
 inline bool VerifySizePrefixedLightFlickerBuffer(
-    flatbuffers::Verifier &verifier) {
+    ::flatbuffers::Verifier &verifier) {
   return verifier.VerifySizePrefixedBuffer<TestParticles::LightFlicker>(nullptr);
 }
 
 inline void FinishLightFlickerBuffer(
-    flatbuffers::FlatBufferBuilder &fbb,
-    flatbuffers::Offset<TestParticles::LightFlicker> root) {
+    ::flatbuffers::FlatBufferBuilder &fbb,
+    ::flatbuffers::Offset<TestParticles::LightFlicker> root) {
   fbb.Finish(root);
 }
 
 inline void FinishSizePrefixedLightFlickerBuffer(
-    flatbuffers::FlatBufferBuilder &fbb,
-    flatbuffers::Offset<TestParticles::LightFlicker> root) {
+    ::flatbuffers::FlatBufferBuilder &fbb,
+    ::flatbuffers::Offset<TestParticles::LightFlicker> root) {
   fbb.FinishSizePrefixed(root);
 }
 

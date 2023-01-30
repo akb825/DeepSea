@@ -10,7 +10,7 @@
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 23 &&
               FLATBUFFERS_VERSION_MINOR == 1 &&
-              FLATBUFFERS_VERSION_REVISION == 4,
+              FLATBUFFERS_VERSION_REVISION == 21,
              "Non-compatible flatbuffers version included");
 
 #include "DeepSea/SceneParticle/Flatbuffers/SceneParticleCommon_generated.h"
@@ -20,7 +20,7 @@ namespace DeepSeaSceneParticle {
 struct StandardParticleEmitterFactory;
 struct StandardParticleEmitterFactoryBuilder;
 
-struct StandardParticleEmitterFactory FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+struct StandardParticleEmitterFactory FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef StandardParticleEmitterFactoryBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_PARAMS = 4,
@@ -114,8 +114,8 @@ struct StandardParticleEmitterFactory FLATBUFFERS_FINAL_CLASS : private flatbuff
   const DeepSeaScene::Vector2f *intensityRange() const {
     return GetStruct<const DeepSeaScene::Vector2f *>(VT_INTENSITYRANGE);
   }
-  const flatbuffers::String *relativeNode() const {
-    return GetPointer<const flatbuffers::String *>(VT_RELATIVENODE);
+  const ::flatbuffers::String *relativeNode() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_RELATIVENODE);
   }
   uint64_t seed() const {
     return GetField<uint64_t>(VT_SEED, 0);
@@ -126,7 +126,7 @@ struct StandardParticleEmitterFactory FLATBUFFERS_FINAL_CLASS : private flatbuff
   float startTime() const {
     return GetField<float>(VT_STARTTIME, 0.0f);
   }
-  bool Verify(flatbuffers::Verifier &verifier) const {
+  bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_PARAMS) &&
            verifier.VerifyTable(params()) &&
@@ -172,15 +172,15 @@ template<> inline const DeepSeaSceneParticle::ParticleCylinder *StandardParticle
 
 struct StandardParticleEmitterFactoryBuilder {
   typedef StandardParticleEmitterFactory Table;
-  flatbuffers::FlatBufferBuilder &fbb_;
-  flatbuffers::uoffset_t start_;
-  void add_params(flatbuffers::Offset<DeepSeaSceneParticle::ParticleEmitterParams> params) {
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_params(::flatbuffers::Offset<DeepSeaSceneParticle::ParticleEmitterParams> params) {
     fbb_.AddOffset(StandardParticleEmitterFactory::VT_PARAMS, params);
   }
   void add_spawnVolume_type(DeepSeaSceneParticle::ParticleVolume spawnVolume_type) {
     fbb_.AddElement<uint8_t>(StandardParticleEmitterFactory::VT_SPAWNVOLUME_TYPE, static_cast<uint8_t>(spawnVolume_type), 0);
   }
-  void add_spawnVolume(flatbuffers::Offset<void> spawnVolume) {
+  void add_spawnVolume(::flatbuffers::Offset<void> spawnVolume) {
     fbb_.AddOffset(StandardParticleEmitterFactory::VT_SPAWNVOLUME, spawnVolume);
   }
   void add_spawnVolumeMatrix(const DeepSeaScene::Matrix44f *spawnVolumeMatrix) {
@@ -231,7 +231,7 @@ struct StandardParticleEmitterFactoryBuilder {
   void add_intensityRange(const DeepSeaScene::Vector2f *intensityRange) {
     fbb_.AddStruct(StandardParticleEmitterFactory::VT_INTENSITYRANGE, intensityRange);
   }
-  void add_relativeNode(flatbuffers::Offset<flatbuffers::String> relativeNode) {
+  void add_relativeNode(::flatbuffers::Offset<::flatbuffers::String> relativeNode) {
     fbb_.AddOffset(StandardParticleEmitterFactory::VT_RELATIVENODE, relativeNode);
   }
   void add_seed(uint64_t seed) {
@@ -243,13 +243,13 @@ struct StandardParticleEmitterFactoryBuilder {
   void add_startTime(float startTime) {
     fbb_.AddElement<float>(StandardParticleEmitterFactory::VT_STARTTIME, startTime, 0.0f);
   }
-  explicit StandardParticleEmitterFactoryBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit StandardParticleEmitterFactoryBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  flatbuffers::Offset<StandardParticleEmitterFactory> Finish() {
+  ::flatbuffers::Offset<StandardParticleEmitterFactory> Finish() {
     const auto end = fbb_.EndTable(start_);
-    auto o = flatbuffers::Offset<StandardParticleEmitterFactory>(end);
+    auto o = ::flatbuffers::Offset<StandardParticleEmitterFactory>(end);
     fbb_.Required(o, StandardParticleEmitterFactory::VT_PARAMS);
     fbb_.Required(o, StandardParticleEmitterFactory::VT_SPAWNVOLUME);
     fbb_.Required(o, StandardParticleEmitterFactory::VT_SPAWNVOLUMEMATRIX);
@@ -270,11 +270,11 @@ struct StandardParticleEmitterFactoryBuilder {
   }
 };
 
-inline flatbuffers::Offset<StandardParticleEmitterFactory> CreateStandardParticleEmitterFactory(
-    flatbuffers::FlatBufferBuilder &_fbb,
-    flatbuffers::Offset<DeepSeaSceneParticle::ParticleEmitterParams> params = 0,
+inline ::flatbuffers::Offset<StandardParticleEmitterFactory> CreateStandardParticleEmitterFactory(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<DeepSeaSceneParticle::ParticleEmitterParams> params = 0,
     DeepSeaSceneParticle::ParticleVolume spawnVolume_type = DeepSeaSceneParticle::ParticleVolume::NONE,
-    flatbuffers::Offset<void> spawnVolume = 0,
+    ::flatbuffers::Offset<void> spawnVolume = 0,
     const DeepSeaScene::Matrix44f *spawnVolumeMatrix = nullptr,
     const DeepSeaScene::Vector2f *widthRange = nullptr,
     const DeepSeaScene::Vector2f *heightRange = nullptr,
@@ -291,7 +291,7 @@ inline flatbuffers::Offset<StandardParticleEmitterFactory> CreateStandardParticl
     const DeepSeaScene::Vector2f *colorValueRange = nullptr,
     const DeepSeaScene::Vector2f *colorAlphaRange = nullptr,
     const DeepSeaScene::Vector2f *intensityRange = nullptr,
-    flatbuffers::Offset<flatbuffers::String> relativeNode = 0,
+    ::flatbuffers::Offset<::flatbuffers::String> relativeNode = 0,
     uint64_t seed = 0,
     bool enabled = false,
     float startTime = 0.0f) {
@@ -322,11 +322,11 @@ inline flatbuffers::Offset<StandardParticleEmitterFactory> CreateStandardParticl
   return builder_.Finish();
 }
 
-inline flatbuffers::Offset<StandardParticleEmitterFactory> CreateStandardParticleEmitterFactoryDirect(
-    flatbuffers::FlatBufferBuilder &_fbb,
-    flatbuffers::Offset<DeepSeaSceneParticle::ParticleEmitterParams> params = 0,
+inline ::flatbuffers::Offset<StandardParticleEmitterFactory> CreateStandardParticleEmitterFactoryDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<DeepSeaSceneParticle::ParticleEmitterParams> params = 0,
     DeepSeaSceneParticle::ParticleVolume spawnVolume_type = DeepSeaSceneParticle::ParticleVolume::NONE,
-    flatbuffers::Offset<void> spawnVolume = 0,
+    ::flatbuffers::Offset<void> spawnVolume = 0,
     const DeepSeaScene::Matrix44f *spawnVolumeMatrix = nullptr,
     const DeepSeaScene::Vector2f *widthRange = nullptr,
     const DeepSeaScene::Vector2f *heightRange = nullptr,
@@ -376,32 +376,32 @@ inline flatbuffers::Offset<StandardParticleEmitterFactory> CreateStandardParticl
 }
 
 inline const DeepSeaSceneParticle::StandardParticleEmitterFactory *GetStandardParticleEmitterFactory(const void *buf) {
-  return flatbuffers::GetRoot<DeepSeaSceneParticle::StandardParticleEmitterFactory>(buf);
+  return ::flatbuffers::GetRoot<DeepSeaSceneParticle::StandardParticleEmitterFactory>(buf);
 }
 
 inline const DeepSeaSceneParticle::StandardParticleEmitterFactory *GetSizePrefixedStandardParticleEmitterFactory(const void *buf) {
-  return flatbuffers::GetSizePrefixedRoot<DeepSeaSceneParticle::StandardParticleEmitterFactory>(buf);
+  return ::flatbuffers::GetSizePrefixedRoot<DeepSeaSceneParticle::StandardParticleEmitterFactory>(buf);
 }
 
 inline bool VerifyStandardParticleEmitterFactoryBuffer(
-    flatbuffers::Verifier &verifier) {
+    ::flatbuffers::Verifier &verifier) {
   return verifier.VerifyBuffer<DeepSeaSceneParticle::StandardParticleEmitterFactory>(nullptr);
 }
 
 inline bool VerifySizePrefixedStandardParticleEmitterFactoryBuffer(
-    flatbuffers::Verifier &verifier) {
+    ::flatbuffers::Verifier &verifier) {
   return verifier.VerifySizePrefixedBuffer<DeepSeaSceneParticle::StandardParticleEmitterFactory>(nullptr);
 }
 
 inline void FinishStandardParticleEmitterFactoryBuffer(
-    flatbuffers::FlatBufferBuilder &fbb,
-    flatbuffers::Offset<DeepSeaSceneParticle::StandardParticleEmitterFactory> root) {
+    ::flatbuffers::FlatBufferBuilder &fbb,
+    ::flatbuffers::Offset<DeepSeaSceneParticle::StandardParticleEmitterFactory> root) {
   fbb.Finish(root);
 }
 
 inline void FinishSizePrefixedStandardParticleEmitterFactoryBuffer(
-    flatbuffers::FlatBufferBuilder &fbb,
-    flatbuffers::Offset<DeepSeaSceneParticle::StandardParticleEmitterFactory> root) {
+    ::flatbuffers::FlatBufferBuilder &fbb,
+    ::flatbuffers::Offset<DeepSeaSceneParticle::StandardParticleEmitterFactory> root) {
   fbb.FinishSizePrefixed(root);
 }
 

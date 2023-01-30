@@ -10,7 +10,7 @@
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 23 &&
               FLATBUFFERS_VERSION_MINOR == 1 &&
-              FLATBUFFERS_VERSION_REVISION == 4,
+              FLATBUFFERS_VERSION_REVISION == 21,
              "Non-compatible flatbuffers version included");
 
 #include "DeepSea/Scene/Flatbuffers/SceneCommon_generated.h"
@@ -20,15 +20,15 @@ namespace DeepSeaScene {
 struct ViewMipmapList;
 struct ViewMipmapListBuilder;
 
-struct ViewMipmapList FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+struct ViewMipmapList FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef ViewMipmapListBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_TEXTURES = 4
   };
-  const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *textures() const {
-    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *>(VT_TEXTURES);
+  const ::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>> *textures() const {
+    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>> *>(VT_TEXTURES);
   }
-  bool Verify(flatbuffers::Verifier &verifier) const {
+  bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_TEXTURES) &&
            verifier.VerifyVector(textures()) &&
@@ -39,67 +39,67 @@ struct ViewMipmapList FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 
 struct ViewMipmapListBuilder {
   typedef ViewMipmapList Table;
-  flatbuffers::FlatBufferBuilder &fbb_;
-  flatbuffers::uoffset_t start_;
-  void add_textures(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>> textures) {
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_textures(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>>> textures) {
     fbb_.AddOffset(ViewMipmapList::VT_TEXTURES, textures);
   }
-  explicit ViewMipmapListBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit ViewMipmapListBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  flatbuffers::Offset<ViewMipmapList> Finish() {
+  ::flatbuffers::Offset<ViewMipmapList> Finish() {
     const auto end = fbb_.EndTable(start_);
-    auto o = flatbuffers::Offset<ViewMipmapList>(end);
+    auto o = ::flatbuffers::Offset<ViewMipmapList>(end);
     fbb_.Required(o, ViewMipmapList::VT_TEXTURES);
     return o;
   }
 };
 
-inline flatbuffers::Offset<ViewMipmapList> CreateViewMipmapList(
-    flatbuffers::FlatBufferBuilder &_fbb,
-    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>> textures = 0) {
+inline ::flatbuffers::Offset<ViewMipmapList> CreateViewMipmapList(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>>> textures = 0) {
   ViewMipmapListBuilder builder_(_fbb);
   builder_.add_textures(textures);
   return builder_.Finish();
 }
 
-inline flatbuffers::Offset<ViewMipmapList> CreateViewMipmapListDirect(
-    flatbuffers::FlatBufferBuilder &_fbb,
-    const std::vector<flatbuffers::Offset<flatbuffers::String>> *textures = nullptr) {
-  auto textures__ = textures ? _fbb.CreateVector<flatbuffers::Offset<flatbuffers::String>>(*textures) : 0;
+inline ::flatbuffers::Offset<ViewMipmapList> CreateViewMipmapListDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    const std::vector<::flatbuffers::Offset<::flatbuffers::String>> *textures = nullptr) {
+  auto textures__ = textures ? _fbb.CreateVector<::flatbuffers::Offset<::flatbuffers::String>>(*textures) : 0;
   return DeepSeaScene::CreateViewMipmapList(
       _fbb,
       textures__);
 }
 
 inline const DeepSeaScene::ViewMipmapList *GetViewMipmapList(const void *buf) {
-  return flatbuffers::GetRoot<DeepSeaScene::ViewMipmapList>(buf);
+  return ::flatbuffers::GetRoot<DeepSeaScene::ViewMipmapList>(buf);
 }
 
 inline const DeepSeaScene::ViewMipmapList *GetSizePrefixedViewMipmapList(const void *buf) {
-  return flatbuffers::GetSizePrefixedRoot<DeepSeaScene::ViewMipmapList>(buf);
+  return ::flatbuffers::GetSizePrefixedRoot<DeepSeaScene::ViewMipmapList>(buf);
 }
 
 inline bool VerifyViewMipmapListBuffer(
-    flatbuffers::Verifier &verifier) {
+    ::flatbuffers::Verifier &verifier) {
   return verifier.VerifyBuffer<DeepSeaScene::ViewMipmapList>(nullptr);
 }
 
 inline bool VerifySizePrefixedViewMipmapListBuffer(
-    flatbuffers::Verifier &verifier) {
+    ::flatbuffers::Verifier &verifier) {
   return verifier.VerifySizePrefixedBuffer<DeepSeaScene::ViewMipmapList>(nullptr);
 }
 
 inline void FinishViewMipmapListBuffer(
-    flatbuffers::FlatBufferBuilder &fbb,
-    flatbuffers::Offset<DeepSeaScene::ViewMipmapList> root) {
+    ::flatbuffers::FlatBufferBuilder &fbb,
+    ::flatbuffers::Offset<DeepSeaScene::ViewMipmapList> root) {
   fbb.Finish(root);
 }
 
 inline void FinishSizePrefixedViewMipmapListBuffer(
-    flatbuffers::FlatBufferBuilder &fbb,
-    flatbuffers::Offset<DeepSeaScene::ViewMipmapList> root) {
+    ::flatbuffers::FlatBufferBuilder &fbb,
+    ::flatbuffers::Offset<DeepSeaScene::ViewMipmapList> root) {
   fbb.FinishSizePrefixed(root);
 }
 

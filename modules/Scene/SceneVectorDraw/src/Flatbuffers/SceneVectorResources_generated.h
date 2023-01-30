@@ -10,7 +10,7 @@
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 23 &&
               FLATBUFFERS_VERSION_MINOR == 1 &&
-              FLATBUFFERS_VERSION_REVISION == 4,
+              FLATBUFFERS_VERSION_REVISION == 21,
              "Non-compatible flatbuffers version included");
 
 #include "DeepSea/Scene/Flatbuffers/SceneCommon_generated.h"
@@ -20,7 +20,7 @@ namespace DeepSeaSceneVectorDraw {
 struct VectorResources;
 struct VectorResourcesBuilder;
 
-struct VectorResources FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+struct VectorResources FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef VectorResourcesBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_RESOURCES_TYPE = 4,
@@ -39,7 +39,7 @@ struct VectorResources FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const DeepSeaScene::RawData *resources_as_RawData() const {
     return resources_type() == DeepSeaScene::FileOrData::RawData ? static_cast<const DeepSeaScene::RawData *>(resources()) : nullptr;
   }
-  bool Verify(flatbuffers::Verifier &verifier) const {
+  bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<uint8_t>(verifier, VT_RESOURCES_TYPE, 1) &&
            VerifyOffsetRequired(verifier, VT_RESOURCES) &&
@@ -58,30 +58,30 @@ template<> inline const DeepSeaScene::RawData *VectorResources::resources_as<Dee
 
 struct VectorResourcesBuilder {
   typedef VectorResources Table;
-  flatbuffers::FlatBufferBuilder &fbb_;
-  flatbuffers::uoffset_t start_;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
   void add_resources_type(DeepSeaScene::FileOrData resources_type) {
     fbb_.AddElement<uint8_t>(VectorResources::VT_RESOURCES_TYPE, static_cast<uint8_t>(resources_type), 0);
   }
-  void add_resources(flatbuffers::Offset<void> resources) {
+  void add_resources(::flatbuffers::Offset<void> resources) {
     fbb_.AddOffset(VectorResources::VT_RESOURCES, resources);
   }
-  explicit VectorResourcesBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit VectorResourcesBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  flatbuffers::Offset<VectorResources> Finish() {
+  ::flatbuffers::Offset<VectorResources> Finish() {
     const auto end = fbb_.EndTable(start_);
-    auto o = flatbuffers::Offset<VectorResources>(end);
+    auto o = ::flatbuffers::Offset<VectorResources>(end);
     fbb_.Required(o, VectorResources::VT_RESOURCES);
     return o;
   }
 };
 
-inline flatbuffers::Offset<VectorResources> CreateVectorResources(
-    flatbuffers::FlatBufferBuilder &_fbb,
+inline ::flatbuffers::Offset<VectorResources> CreateVectorResources(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
     DeepSeaScene::FileOrData resources_type = DeepSeaScene::FileOrData::NONE,
-    flatbuffers::Offset<void> resources = 0) {
+    ::flatbuffers::Offset<void> resources = 0) {
   VectorResourcesBuilder builder_(_fbb);
   builder_.add_resources(resources);
   builder_.add_resources_type(resources_type);
@@ -89,32 +89,32 @@ inline flatbuffers::Offset<VectorResources> CreateVectorResources(
 }
 
 inline const DeepSeaSceneVectorDraw::VectorResources *GetVectorResources(const void *buf) {
-  return flatbuffers::GetRoot<DeepSeaSceneVectorDraw::VectorResources>(buf);
+  return ::flatbuffers::GetRoot<DeepSeaSceneVectorDraw::VectorResources>(buf);
 }
 
 inline const DeepSeaSceneVectorDraw::VectorResources *GetSizePrefixedVectorResources(const void *buf) {
-  return flatbuffers::GetSizePrefixedRoot<DeepSeaSceneVectorDraw::VectorResources>(buf);
+  return ::flatbuffers::GetSizePrefixedRoot<DeepSeaSceneVectorDraw::VectorResources>(buf);
 }
 
 inline bool VerifyVectorResourcesBuffer(
-    flatbuffers::Verifier &verifier) {
+    ::flatbuffers::Verifier &verifier) {
   return verifier.VerifyBuffer<DeepSeaSceneVectorDraw::VectorResources>(nullptr);
 }
 
 inline bool VerifySizePrefixedVectorResourcesBuffer(
-    flatbuffers::Verifier &verifier) {
+    ::flatbuffers::Verifier &verifier) {
   return verifier.VerifySizePrefixedBuffer<DeepSeaSceneVectorDraw::VectorResources>(nullptr);
 }
 
 inline void FinishVectorResourcesBuffer(
-    flatbuffers::FlatBufferBuilder &fbb,
-    flatbuffers::Offset<DeepSeaSceneVectorDraw::VectorResources> root) {
+    ::flatbuffers::FlatBufferBuilder &fbb,
+    ::flatbuffers::Offset<DeepSeaSceneVectorDraw::VectorResources> root) {
   fbb.Finish(root);
 }
 
 inline void FinishSizePrefixedVectorResourcesBuffer(
-    flatbuffers::FlatBufferBuilder &fbb,
-    flatbuffers::Offset<DeepSeaSceneVectorDraw::VectorResources> root) {
+    ::flatbuffers::FlatBufferBuilder &fbb,
+    ::flatbuffers::Offset<DeepSeaSceneVectorDraw::VectorResources> root) {
   fbb.FinishSizePrefixed(root);
 }
 

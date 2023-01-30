@@ -10,7 +10,7 @@
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 23 &&
               FLATBUFFERS_VERSION_MINOR == 1 &&
-              FLATBUFFERS_VERSION_REVISION == 4,
+              FLATBUFFERS_VERSION_REVISION == 21,
              "Non-compatible flatbuffers version included");
 
 #include "SceneVectorCommon_generated.h"
@@ -23,7 +23,7 @@ struct SceneTextStyleBuilder;
 struct SceneText;
 struct SceneTextBuilder;
 
-struct SceneTextStyle FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+struct SceneTextStyle FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef SceneTextStyleBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_START = 4,
@@ -67,7 +67,7 @@ struct SceneTextStyle FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const DeepSeaSceneVectorDraw::Color *outlineColor() const {
     return GetStruct<const DeepSeaSceneVectorDraw::Color *>(VT_OUTLINECOLOR);
   }
-  bool Verify(flatbuffers::Verifier &verifier) const {
+  bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<uint32_t>(verifier, VT_START, 4) &&
            VerifyField<uint32_t>(verifier, VT_COUNT, 4) &&
@@ -85,8 +85,8 @@ struct SceneTextStyle FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 
 struct SceneTextStyleBuilder {
   typedef SceneTextStyle Table;
-  flatbuffers::FlatBufferBuilder &fbb_;
-  flatbuffers::uoffset_t start_;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
   void add_start(uint32_t start) {
     fbb_.AddElement<uint32_t>(SceneTextStyle::VT_START, start, 0);
   }
@@ -117,19 +117,19 @@ struct SceneTextStyleBuilder {
   void add_outlineColor(const DeepSeaSceneVectorDraw::Color *outlineColor) {
     fbb_.AddStruct(SceneTextStyle::VT_OUTLINECOLOR, outlineColor);
   }
-  explicit SceneTextStyleBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit SceneTextStyleBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  flatbuffers::Offset<SceneTextStyle> Finish() {
+  ::flatbuffers::Offset<SceneTextStyle> Finish() {
     const auto end = fbb_.EndTable(start_);
-    auto o = flatbuffers::Offset<SceneTextStyle>(end);
+    auto o = ::flatbuffers::Offset<SceneTextStyle>(end);
     return o;
   }
 };
 
-inline flatbuffers::Offset<SceneTextStyle> CreateSceneTextStyle(
-    flatbuffers::FlatBufferBuilder &_fbb,
+inline ::flatbuffers::Offset<SceneTextStyle> CreateSceneTextStyle(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
     uint32_t start = 0,
     uint32_t count = 0,
     float size = 0.0f,
@@ -154,7 +154,7 @@ inline flatbuffers::Offset<SceneTextStyle> CreateSceneTextStyle(
   return builder_.Finish();
 }
 
-struct SceneText FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+struct SceneText FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef SceneTextBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_FONT = 4,
@@ -164,13 +164,13 @@ struct SceneText FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const DeepSeaSceneVectorDraw::VectorResourceRef *font() const {
     return GetPointer<const DeepSeaSceneVectorDraw::VectorResourceRef *>(VT_FONT);
   }
-  const flatbuffers::String *text() const {
-    return GetPointer<const flatbuffers::String *>(VT_TEXT);
+  const ::flatbuffers::String *text() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_TEXT);
   }
-  const flatbuffers::Vector<flatbuffers::Offset<DeepSeaSceneVectorDraw::SceneTextStyle>> *styles() const {
-    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<DeepSeaSceneVectorDraw::SceneTextStyle>> *>(VT_STYLES);
+  const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaSceneVectorDraw::SceneTextStyle>> *styles() const {
+    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaSceneVectorDraw::SceneTextStyle>> *>(VT_STYLES);
   }
-  bool Verify(flatbuffers::Verifier &verifier) const {
+  bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_FONT) &&
            verifier.VerifyTable(font()) &&
@@ -185,24 +185,24 @@ struct SceneText FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 
 struct SceneTextBuilder {
   typedef SceneText Table;
-  flatbuffers::FlatBufferBuilder &fbb_;
-  flatbuffers::uoffset_t start_;
-  void add_font(flatbuffers::Offset<DeepSeaSceneVectorDraw::VectorResourceRef> font) {
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_font(::flatbuffers::Offset<DeepSeaSceneVectorDraw::VectorResourceRef> font) {
     fbb_.AddOffset(SceneText::VT_FONT, font);
   }
-  void add_text(flatbuffers::Offset<flatbuffers::String> text) {
+  void add_text(::flatbuffers::Offset<::flatbuffers::String> text) {
     fbb_.AddOffset(SceneText::VT_TEXT, text);
   }
-  void add_styles(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaSceneVectorDraw::SceneTextStyle>>> styles) {
+  void add_styles(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaSceneVectorDraw::SceneTextStyle>>> styles) {
     fbb_.AddOffset(SceneText::VT_STYLES, styles);
   }
-  explicit SceneTextBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit SceneTextBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  flatbuffers::Offset<SceneText> Finish() {
+  ::flatbuffers::Offset<SceneText> Finish() {
     const auto end = fbb_.EndTable(start_);
-    auto o = flatbuffers::Offset<SceneText>(end);
+    auto o = ::flatbuffers::Offset<SceneText>(end);
     fbb_.Required(o, SceneText::VT_FONT);
     fbb_.Required(o, SceneText::VT_TEXT);
     fbb_.Required(o, SceneText::VT_STYLES);
@@ -210,11 +210,11 @@ struct SceneTextBuilder {
   }
 };
 
-inline flatbuffers::Offset<SceneText> CreateSceneText(
-    flatbuffers::FlatBufferBuilder &_fbb,
-    flatbuffers::Offset<DeepSeaSceneVectorDraw::VectorResourceRef> font = 0,
-    flatbuffers::Offset<flatbuffers::String> text = 0,
-    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaSceneVectorDraw::SceneTextStyle>>> styles = 0) {
+inline ::flatbuffers::Offset<SceneText> CreateSceneText(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<DeepSeaSceneVectorDraw::VectorResourceRef> font = 0,
+    ::flatbuffers::Offset<::flatbuffers::String> text = 0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaSceneVectorDraw::SceneTextStyle>>> styles = 0) {
   SceneTextBuilder builder_(_fbb);
   builder_.add_styles(styles);
   builder_.add_text(text);
@@ -222,13 +222,13 @@ inline flatbuffers::Offset<SceneText> CreateSceneText(
   return builder_.Finish();
 }
 
-inline flatbuffers::Offset<SceneText> CreateSceneTextDirect(
-    flatbuffers::FlatBufferBuilder &_fbb,
-    flatbuffers::Offset<DeepSeaSceneVectorDraw::VectorResourceRef> font = 0,
+inline ::flatbuffers::Offset<SceneText> CreateSceneTextDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<DeepSeaSceneVectorDraw::VectorResourceRef> font = 0,
     const char *text = nullptr,
-    const std::vector<flatbuffers::Offset<DeepSeaSceneVectorDraw::SceneTextStyle>> *styles = nullptr) {
+    const std::vector<::flatbuffers::Offset<DeepSeaSceneVectorDraw::SceneTextStyle>> *styles = nullptr) {
   auto text__ = text ? _fbb.CreateString(text) : 0;
-  auto styles__ = styles ? _fbb.CreateVector<flatbuffers::Offset<DeepSeaSceneVectorDraw::SceneTextStyle>>(*styles) : 0;
+  auto styles__ = styles ? _fbb.CreateVector<::flatbuffers::Offset<DeepSeaSceneVectorDraw::SceneTextStyle>>(*styles) : 0;
   return DeepSeaSceneVectorDraw::CreateSceneText(
       _fbb,
       font,
@@ -237,32 +237,32 @@ inline flatbuffers::Offset<SceneText> CreateSceneTextDirect(
 }
 
 inline const DeepSeaSceneVectorDraw::SceneText *GetSceneText(const void *buf) {
-  return flatbuffers::GetRoot<DeepSeaSceneVectorDraw::SceneText>(buf);
+  return ::flatbuffers::GetRoot<DeepSeaSceneVectorDraw::SceneText>(buf);
 }
 
 inline const DeepSeaSceneVectorDraw::SceneText *GetSizePrefixedSceneText(const void *buf) {
-  return flatbuffers::GetSizePrefixedRoot<DeepSeaSceneVectorDraw::SceneText>(buf);
+  return ::flatbuffers::GetSizePrefixedRoot<DeepSeaSceneVectorDraw::SceneText>(buf);
 }
 
 inline bool VerifySceneTextBuffer(
-    flatbuffers::Verifier &verifier) {
+    ::flatbuffers::Verifier &verifier) {
   return verifier.VerifyBuffer<DeepSeaSceneVectorDraw::SceneText>(nullptr);
 }
 
 inline bool VerifySizePrefixedSceneTextBuffer(
-    flatbuffers::Verifier &verifier) {
+    ::flatbuffers::Verifier &verifier) {
   return verifier.VerifySizePrefixedBuffer<DeepSeaSceneVectorDraw::SceneText>(nullptr);
 }
 
 inline void FinishSceneTextBuffer(
-    flatbuffers::FlatBufferBuilder &fbb,
-    flatbuffers::Offset<DeepSeaSceneVectorDraw::SceneText> root) {
+    ::flatbuffers::FlatBufferBuilder &fbb,
+    ::flatbuffers::Offset<DeepSeaSceneVectorDraw::SceneText> root) {
   fbb.Finish(root);
 }
 
 inline void FinishSizePrefixedSceneTextBuffer(
-    flatbuffers::FlatBufferBuilder &fbb,
-    flatbuffers::Offset<DeepSeaSceneVectorDraw::SceneText> root) {
+    ::flatbuffers::FlatBufferBuilder &fbb,
+    ::flatbuffers::Offset<DeepSeaSceneVectorDraw::SceneText> root) {
   fbb.FinishSizePrefixed(root);
 }
 

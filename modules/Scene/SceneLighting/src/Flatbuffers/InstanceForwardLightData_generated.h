@@ -10,7 +10,7 @@
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 23 &&
               FLATBUFFERS_VERSION_MINOR == 1 &&
-              FLATBUFFERS_VERSION_REVISION == 4,
+              FLATBUFFERS_VERSION_REVISION == 21,
              "Non-compatible flatbuffers version included");
 
 namespace DeepSeaSceneLighting {
@@ -18,19 +18,19 @@ namespace DeepSeaSceneLighting {
 struct InstanceForwardLightData;
 struct InstanceForwardLightDataBuilder;
 
-struct InstanceForwardLightData FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+struct InstanceForwardLightData FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef InstanceForwardLightDataBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_VARIABLEGROUPDESC = 4,
     VT_LIGHTSET = 6
   };
-  const flatbuffers::String *variableGroupDesc() const {
-    return GetPointer<const flatbuffers::String *>(VT_VARIABLEGROUPDESC);
+  const ::flatbuffers::String *variableGroupDesc() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_VARIABLEGROUPDESC);
   }
-  const flatbuffers::String *lightSet() const {
-    return GetPointer<const flatbuffers::String *>(VT_LIGHTSET);
+  const ::flatbuffers::String *lightSet() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_LIGHTSET);
   }
-  bool Verify(flatbuffers::Verifier &verifier) const {
+  bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_VARIABLEGROUPDESC) &&
            verifier.VerifyString(variableGroupDesc()) &&
@@ -42,39 +42,39 @@ struct InstanceForwardLightData FLATBUFFERS_FINAL_CLASS : private flatbuffers::T
 
 struct InstanceForwardLightDataBuilder {
   typedef InstanceForwardLightData Table;
-  flatbuffers::FlatBufferBuilder &fbb_;
-  flatbuffers::uoffset_t start_;
-  void add_variableGroupDesc(flatbuffers::Offset<flatbuffers::String> variableGroupDesc) {
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_variableGroupDesc(::flatbuffers::Offset<::flatbuffers::String> variableGroupDesc) {
     fbb_.AddOffset(InstanceForwardLightData::VT_VARIABLEGROUPDESC, variableGroupDesc);
   }
-  void add_lightSet(flatbuffers::Offset<flatbuffers::String> lightSet) {
+  void add_lightSet(::flatbuffers::Offset<::flatbuffers::String> lightSet) {
     fbb_.AddOffset(InstanceForwardLightData::VT_LIGHTSET, lightSet);
   }
-  explicit InstanceForwardLightDataBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit InstanceForwardLightDataBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  flatbuffers::Offset<InstanceForwardLightData> Finish() {
+  ::flatbuffers::Offset<InstanceForwardLightData> Finish() {
     const auto end = fbb_.EndTable(start_);
-    auto o = flatbuffers::Offset<InstanceForwardLightData>(end);
+    auto o = ::flatbuffers::Offset<InstanceForwardLightData>(end);
     fbb_.Required(o, InstanceForwardLightData::VT_VARIABLEGROUPDESC);
     fbb_.Required(o, InstanceForwardLightData::VT_LIGHTSET);
     return o;
   }
 };
 
-inline flatbuffers::Offset<InstanceForwardLightData> CreateInstanceForwardLightData(
-    flatbuffers::FlatBufferBuilder &_fbb,
-    flatbuffers::Offset<flatbuffers::String> variableGroupDesc = 0,
-    flatbuffers::Offset<flatbuffers::String> lightSet = 0) {
+inline ::flatbuffers::Offset<InstanceForwardLightData> CreateInstanceForwardLightData(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<::flatbuffers::String> variableGroupDesc = 0,
+    ::flatbuffers::Offset<::flatbuffers::String> lightSet = 0) {
   InstanceForwardLightDataBuilder builder_(_fbb);
   builder_.add_lightSet(lightSet);
   builder_.add_variableGroupDesc(variableGroupDesc);
   return builder_.Finish();
 }
 
-inline flatbuffers::Offset<InstanceForwardLightData> CreateInstanceForwardLightDataDirect(
-    flatbuffers::FlatBufferBuilder &_fbb,
+inline ::flatbuffers::Offset<InstanceForwardLightData> CreateInstanceForwardLightDataDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
     const char *variableGroupDesc = nullptr,
     const char *lightSet = nullptr) {
   auto variableGroupDesc__ = variableGroupDesc ? _fbb.CreateString(variableGroupDesc) : 0;
@@ -86,32 +86,32 @@ inline flatbuffers::Offset<InstanceForwardLightData> CreateInstanceForwardLightD
 }
 
 inline const DeepSeaSceneLighting::InstanceForwardLightData *GetInstanceForwardLightData(const void *buf) {
-  return flatbuffers::GetRoot<DeepSeaSceneLighting::InstanceForwardLightData>(buf);
+  return ::flatbuffers::GetRoot<DeepSeaSceneLighting::InstanceForwardLightData>(buf);
 }
 
 inline const DeepSeaSceneLighting::InstanceForwardLightData *GetSizePrefixedInstanceForwardLightData(const void *buf) {
-  return flatbuffers::GetSizePrefixedRoot<DeepSeaSceneLighting::InstanceForwardLightData>(buf);
+  return ::flatbuffers::GetSizePrefixedRoot<DeepSeaSceneLighting::InstanceForwardLightData>(buf);
 }
 
 inline bool VerifyInstanceForwardLightDataBuffer(
-    flatbuffers::Verifier &verifier) {
+    ::flatbuffers::Verifier &verifier) {
   return verifier.VerifyBuffer<DeepSeaSceneLighting::InstanceForwardLightData>(nullptr);
 }
 
 inline bool VerifySizePrefixedInstanceForwardLightDataBuffer(
-    flatbuffers::Verifier &verifier) {
+    ::flatbuffers::Verifier &verifier) {
   return verifier.VerifySizePrefixedBuffer<DeepSeaSceneLighting::InstanceForwardLightData>(nullptr);
 }
 
 inline void FinishInstanceForwardLightDataBuffer(
-    flatbuffers::FlatBufferBuilder &fbb,
-    flatbuffers::Offset<DeepSeaSceneLighting::InstanceForwardLightData> root) {
+    ::flatbuffers::FlatBufferBuilder &fbb,
+    ::flatbuffers::Offset<DeepSeaSceneLighting::InstanceForwardLightData> root) {
   fbb.Finish(root);
 }
 
 inline void FinishSizePrefixedInstanceForwardLightDataBuffer(
-    flatbuffers::FlatBufferBuilder &fbb,
-    flatbuffers::Offset<DeepSeaSceneLighting::InstanceForwardLightData> root) {
+    ::flatbuffers::FlatBufferBuilder &fbb,
+    ::flatbuffers::Offset<DeepSeaSceneLighting::InstanceForwardLightData> root) {
   fbb.FinishSizePrefixed(root);
 }
 

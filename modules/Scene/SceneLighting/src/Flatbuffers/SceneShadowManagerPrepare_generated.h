@@ -10,7 +10,7 @@
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 23 &&
               FLATBUFFERS_VERSION_MINOR == 1 &&
-              FLATBUFFERS_VERSION_REVISION == 4,
+              FLATBUFFERS_VERSION_REVISION == 21,
              "Non-compatible flatbuffers version included");
 
 namespace DeepSeaSceneLighting {
@@ -18,15 +18,15 @@ namespace DeepSeaSceneLighting {
 struct SceneShadowManagerPrepare;
 struct SceneShadowManagerPrepareBuilder;
 
-struct SceneShadowManagerPrepare FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+struct SceneShadowManagerPrepare FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef SceneShadowManagerPrepareBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_SHADOWMANAGER = 4
   };
-  const flatbuffers::String *shadowManager() const {
-    return GetPointer<const flatbuffers::String *>(VT_SHADOWMANAGER);
+  const ::flatbuffers::String *shadowManager() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_SHADOWMANAGER);
   }
-  bool Verify(flatbuffers::Verifier &verifier) const {
+  bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_SHADOWMANAGER) &&
            verifier.VerifyString(shadowManager()) &&
@@ -36,33 +36,33 @@ struct SceneShadowManagerPrepare FLATBUFFERS_FINAL_CLASS : private flatbuffers::
 
 struct SceneShadowManagerPrepareBuilder {
   typedef SceneShadowManagerPrepare Table;
-  flatbuffers::FlatBufferBuilder &fbb_;
-  flatbuffers::uoffset_t start_;
-  void add_shadowManager(flatbuffers::Offset<flatbuffers::String> shadowManager) {
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_shadowManager(::flatbuffers::Offset<::flatbuffers::String> shadowManager) {
     fbb_.AddOffset(SceneShadowManagerPrepare::VT_SHADOWMANAGER, shadowManager);
   }
-  explicit SceneShadowManagerPrepareBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit SceneShadowManagerPrepareBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  flatbuffers::Offset<SceneShadowManagerPrepare> Finish() {
+  ::flatbuffers::Offset<SceneShadowManagerPrepare> Finish() {
     const auto end = fbb_.EndTable(start_);
-    auto o = flatbuffers::Offset<SceneShadowManagerPrepare>(end);
+    auto o = ::flatbuffers::Offset<SceneShadowManagerPrepare>(end);
     fbb_.Required(o, SceneShadowManagerPrepare::VT_SHADOWMANAGER);
     return o;
   }
 };
 
-inline flatbuffers::Offset<SceneShadowManagerPrepare> CreateSceneShadowManagerPrepare(
-    flatbuffers::FlatBufferBuilder &_fbb,
-    flatbuffers::Offset<flatbuffers::String> shadowManager = 0) {
+inline ::flatbuffers::Offset<SceneShadowManagerPrepare> CreateSceneShadowManagerPrepare(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<::flatbuffers::String> shadowManager = 0) {
   SceneShadowManagerPrepareBuilder builder_(_fbb);
   builder_.add_shadowManager(shadowManager);
   return builder_.Finish();
 }
 
-inline flatbuffers::Offset<SceneShadowManagerPrepare> CreateSceneShadowManagerPrepareDirect(
-    flatbuffers::FlatBufferBuilder &_fbb,
+inline ::flatbuffers::Offset<SceneShadowManagerPrepare> CreateSceneShadowManagerPrepareDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
     const char *shadowManager = nullptr) {
   auto shadowManager__ = shadowManager ? _fbb.CreateString(shadowManager) : 0;
   return DeepSeaSceneLighting::CreateSceneShadowManagerPrepare(
@@ -71,32 +71,32 @@ inline flatbuffers::Offset<SceneShadowManagerPrepare> CreateSceneShadowManagerPr
 }
 
 inline const DeepSeaSceneLighting::SceneShadowManagerPrepare *GetSceneShadowManagerPrepare(const void *buf) {
-  return flatbuffers::GetRoot<DeepSeaSceneLighting::SceneShadowManagerPrepare>(buf);
+  return ::flatbuffers::GetRoot<DeepSeaSceneLighting::SceneShadowManagerPrepare>(buf);
 }
 
 inline const DeepSeaSceneLighting::SceneShadowManagerPrepare *GetSizePrefixedSceneShadowManagerPrepare(const void *buf) {
-  return flatbuffers::GetSizePrefixedRoot<DeepSeaSceneLighting::SceneShadowManagerPrepare>(buf);
+  return ::flatbuffers::GetSizePrefixedRoot<DeepSeaSceneLighting::SceneShadowManagerPrepare>(buf);
 }
 
 inline bool VerifySceneShadowManagerPrepareBuffer(
-    flatbuffers::Verifier &verifier) {
+    ::flatbuffers::Verifier &verifier) {
   return verifier.VerifyBuffer<DeepSeaSceneLighting::SceneShadowManagerPrepare>(nullptr);
 }
 
 inline bool VerifySizePrefixedSceneShadowManagerPrepareBuffer(
-    flatbuffers::Verifier &verifier) {
+    ::flatbuffers::Verifier &verifier) {
   return verifier.VerifySizePrefixedBuffer<DeepSeaSceneLighting::SceneShadowManagerPrepare>(nullptr);
 }
 
 inline void FinishSceneShadowManagerPrepareBuffer(
-    flatbuffers::FlatBufferBuilder &fbb,
-    flatbuffers::Offset<DeepSeaSceneLighting::SceneShadowManagerPrepare> root) {
+    ::flatbuffers::FlatBufferBuilder &fbb,
+    ::flatbuffers::Offset<DeepSeaSceneLighting::SceneShadowManagerPrepare> root) {
   fbb.Finish(root);
 }
 
 inline void FinishSizePrefixedSceneShadowManagerPrepareBuffer(
-    flatbuffers::FlatBufferBuilder &fbb,
-    flatbuffers::Offset<DeepSeaSceneLighting::SceneShadowManagerPrepare> root) {
+    ::flatbuffers::FlatBufferBuilder &fbb,
+    ::flatbuffers::Offset<DeepSeaSceneLighting::SceneShadowManagerPrepare> root) {
   fbb.FinishSizePrefixed(root);
 }
 

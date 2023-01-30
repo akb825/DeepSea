@@ -10,7 +10,7 @@
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 23 &&
               FLATBUFFERS_VERSION_MINOR == 1 &&
-              FLATBUFFERS_VERSION_REVISION == 4,
+              FLATBUFFERS_VERSION_REVISION == 21,
              "Non-compatible flatbuffers version included");
 
 namespace DeepSeaSceneLighting {
@@ -18,7 +18,7 @@ namespace DeepSeaSceneLighting {
 struct ShadowInstanceTransformData;
 struct ShadowInstanceTransformDataBuilder;
 
-struct ShadowInstanceTransformData FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+struct ShadowInstanceTransformData FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef ShadowInstanceTransformDataBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_SHADOWMANAGER = 4,
@@ -26,19 +26,19 @@ struct ShadowInstanceTransformData FLATBUFFERS_FINAL_CLASS : private flatbuffers
     VT_SURFACE = 8,
     VT_VARIABLEGROUPDESC = 10
   };
-  const flatbuffers::String *shadowManager() const {
-    return GetPointer<const flatbuffers::String *>(VT_SHADOWMANAGER);
+  const ::flatbuffers::String *shadowManager() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_SHADOWMANAGER);
   }
-  const flatbuffers::String *shadows() const {
-    return GetPointer<const flatbuffers::String *>(VT_SHADOWS);
+  const ::flatbuffers::String *shadows() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_SHADOWS);
   }
   uint8_t surface() const {
     return GetField<uint8_t>(VT_SURFACE, 0);
   }
-  const flatbuffers::String *variableGroupDesc() const {
-    return GetPointer<const flatbuffers::String *>(VT_VARIABLEGROUPDESC);
+  const ::flatbuffers::String *variableGroupDesc() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_VARIABLEGROUPDESC);
   }
-  bool Verify(flatbuffers::Verifier &verifier) const {
+  bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_SHADOWMANAGER) &&
            verifier.VerifyString(shadowManager()) &&
@@ -53,27 +53,27 @@ struct ShadowInstanceTransformData FLATBUFFERS_FINAL_CLASS : private flatbuffers
 
 struct ShadowInstanceTransformDataBuilder {
   typedef ShadowInstanceTransformData Table;
-  flatbuffers::FlatBufferBuilder &fbb_;
-  flatbuffers::uoffset_t start_;
-  void add_shadowManager(flatbuffers::Offset<flatbuffers::String> shadowManager) {
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_shadowManager(::flatbuffers::Offset<::flatbuffers::String> shadowManager) {
     fbb_.AddOffset(ShadowInstanceTransformData::VT_SHADOWMANAGER, shadowManager);
   }
-  void add_shadows(flatbuffers::Offset<flatbuffers::String> shadows) {
+  void add_shadows(::flatbuffers::Offset<::flatbuffers::String> shadows) {
     fbb_.AddOffset(ShadowInstanceTransformData::VT_SHADOWS, shadows);
   }
   void add_surface(uint8_t surface) {
     fbb_.AddElement<uint8_t>(ShadowInstanceTransformData::VT_SURFACE, surface, 0);
   }
-  void add_variableGroupDesc(flatbuffers::Offset<flatbuffers::String> variableGroupDesc) {
+  void add_variableGroupDesc(::flatbuffers::Offset<::flatbuffers::String> variableGroupDesc) {
     fbb_.AddOffset(ShadowInstanceTransformData::VT_VARIABLEGROUPDESC, variableGroupDesc);
   }
-  explicit ShadowInstanceTransformDataBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit ShadowInstanceTransformDataBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  flatbuffers::Offset<ShadowInstanceTransformData> Finish() {
+  ::flatbuffers::Offset<ShadowInstanceTransformData> Finish() {
     const auto end = fbb_.EndTable(start_);
-    auto o = flatbuffers::Offset<ShadowInstanceTransformData>(end);
+    auto o = ::flatbuffers::Offset<ShadowInstanceTransformData>(end);
     fbb_.Required(o, ShadowInstanceTransformData::VT_SHADOWMANAGER);
     fbb_.Required(o, ShadowInstanceTransformData::VT_SHADOWS);
     fbb_.Required(o, ShadowInstanceTransformData::VT_VARIABLEGROUPDESC);
@@ -81,12 +81,12 @@ struct ShadowInstanceTransformDataBuilder {
   }
 };
 
-inline flatbuffers::Offset<ShadowInstanceTransformData> CreateShadowInstanceTransformData(
-    flatbuffers::FlatBufferBuilder &_fbb,
-    flatbuffers::Offset<flatbuffers::String> shadowManager = 0,
-    flatbuffers::Offset<flatbuffers::String> shadows = 0,
+inline ::flatbuffers::Offset<ShadowInstanceTransformData> CreateShadowInstanceTransformData(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<::flatbuffers::String> shadowManager = 0,
+    ::flatbuffers::Offset<::flatbuffers::String> shadows = 0,
     uint8_t surface = 0,
-    flatbuffers::Offset<flatbuffers::String> variableGroupDesc = 0) {
+    ::flatbuffers::Offset<::flatbuffers::String> variableGroupDesc = 0) {
   ShadowInstanceTransformDataBuilder builder_(_fbb);
   builder_.add_variableGroupDesc(variableGroupDesc);
   builder_.add_shadows(shadows);
@@ -95,8 +95,8 @@ inline flatbuffers::Offset<ShadowInstanceTransformData> CreateShadowInstanceTran
   return builder_.Finish();
 }
 
-inline flatbuffers::Offset<ShadowInstanceTransformData> CreateShadowInstanceTransformDataDirect(
-    flatbuffers::FlatBufferBuilder &_fbb,
+inline ::flatbuffers::Offset<ShadowInstanceTransformData> CreateShadowInstanceTransformDataDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
     const char *shadowManager = nullptr,
     const char *shadows = nullptr,
     uint8_t surface = 0,
@@ -113,32 +113,32 @@ inline flatbuffers::Offset<ShadowInstanceTransformData> CreateShadowInstanceTran
 }
 
 inline const DeepSeaSceneLighting::ShadowInstanceTransformData *GetShadowInstanceTransformData(const void *buf) {
-  return flatbuffers::GetRoot<DeepSeaSceneLighting::ShadowInstanceTransformData>(buf);
+  return ::flatbuffers::GetRoot<DeepSeaSceneLighting::ShadowInstanceTransformData>(buf);
 }
 
 inline const DeepSeaSceneLighting::ShadowInstanceTransformData *GetSizePrefixedShadowInstanceTransformData(const void *buf) {
-  return flatbuffers::GetSizePrefixedRoot<DeepSeaSceneLighting::ShadowInstanceTransformData>(buf);
+  return ::flatbuffers::GetSizePrefixedRoot<DeepSeaSceneLighting::ShadowInstanceTransformData>(buf);
 }
 
 inline bool VerifyShadowInstanceTransformDataBuffer(
-    flatbuffers::Verifier &verifier) {
+    ::flatbuffers::Verifier &verifier) {
   return verifier.VerifyBuffer<DeepSeaSceneLighting::ShadowInstanceTransformData>(nullptr);
 }
 
 inline bool VerifySizePrefixedShadowInstanceTransformDataBuffer(
-    flatbuffers::Verifier &verifier) {
+    ::flatbuffers::Verifier &verifier) {
   return verifier.VerifySizePrefixedBuffer<DeepSeaSceneLighting::ShadowInstanceTransformData>(nullptr);
 }
 
 inline void FinishShadowInstanceTransformDataBuffer(
-    flatbuffers::FlatBufferBuilder &fbb,
-    flatbuffers::Offset<DeepSeaSceneLighting::ShadowInstanceTransformData> root) {
+    ::flatbuffers::FlatBufferBuilder &fbb,
+    ::flatbuffers::Offset<DeepSeaSceneLighting::ShadowInstanceTransformData> root) {
   fbb.Finish(root);
 }
 
 inline void FinishSizePrefixedShadowInstanceTransformDataBuffer(
-    flatbuffers::FlatBufferBuilder &fbb,
-    flatbuffers::Offset<DeepSeaSceneLighting::ShadowInstanceTransformData> root) {
+    ::flatbuffers::FlatBufferBuilder &fbb,
+    ::flatbuffers::Offset<DeepSeaSceneLighting::ShadowInstanceTransformData> root) {
   fbb.FinishSizePrefixed(root);
 }
 

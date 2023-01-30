@@ -10,7 +10,7 @@
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 23 &&
               FLATBUFFERS_VERSION_MINOR == 1 &&
-              FLATBUFFERS_VERSION_REVISION == 4,
+              FLATBUFFERS_VERSION_REVISION == 21,
              "Non-compatible flatbuffers version included");
 
 #include "DeepSea/Scene/Flatbuffers/SceneCommon_generated.h"
@@ -51,12 +51,12 @@ inline const char * const *EnumNamesLightType() {
 }
 
 inline const char *EnumNameLightType(LightType e) {
-  if (flatbuffers::IsOutRange(e, LightType::Directional, LightType::Spot)) return "";
+  if (::flatbuffers::IsOutRange(e, LightType::Directional, LightType::Spot)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesLightType()[index];
 }
 
-struct SceneLightShadows FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+struct SceneLightShadows FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef SceneLightShadowsBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_NAME = 4,
@@ -72,23 +72,23 @@ struct SceneLightShadows FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_FADESTARTDISTANCE = 24,
     VT_MAXDISTANCE = 26
   };
-  const flatbuffers::String *name() const {
-    return GetPointer<const flatbuffers::String *>(VT_NAME);
+  const ::flatbuffers::String *name() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_NAME);
   }
-  const flatbuffers::String *lightSet() const {
-    return GetPointer<const flatbuffers::String *>(VT_LIGHTSET);
+  const ::flatbuffers::String *lightSet() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_LIGHTSET);
   }
   DeepSeaSceneLighting::LightType lightType() const {
     return static_cast<DeepSeaSceneLighting::LightType>(GetField<uint8_t>(VT_LIGHTTYPE, 0));
   }
-  const flatbuffers::String *light() const {
-    return GetPointer<const flatbuffers::String *>(VT_LIGHT);
+  const ::flatbuffers::String *light() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_LIGHT);
   }
-  const flatbuffers::String *transformGroupDesc() const {
-    return GetPointer<const flatbuffers::String *>(VT_TRANSFORMGROUPDESC);
+  const ::flatbuffers::String *transformGroupDesc() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_TRANSFORMGROUPDESC);
   }
-  const flatbuffers::String *transformGroupName() const {
-    return GetPointer<const flatbuffers::String *>(VT_TRANSFORMGROUPNAME);
+  const ::flatbuffers::String *transformGroupName() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_TRANSFORMGROUPNAME);
   }
   uint32_t maxCascades() const {
     return GetField<uint32_t>(VT_MAXCASCADES, 0);
@@ -99,8 +99,8 @@ struct SceneLightShadows FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   float cascadeExpFactor() const {
     return GetField<float>(VT_CASCADEEXPFACTOR, 0.0f);
   }
-  const flatbuffers::Vector<float> *minDepthRanges() const {
-    return GetPointer<const flatbuffers::Vector<float> *>(VT_MINDEPTHRANGES);
+  const ::flatbuffers::Vector<float> *minDepthRanges() const {
+    return GetPointer<const ::flatbuffers::Vector<float> *>(VT_MINDEPTHRANGES);
   }
   float fadeStartDistance() const {
     return GetField<float>(VT_FADESTARTDISTANCE, 0.0f);
@@ -108,7 +108,7 @@ struct SceneLightShadows FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   float maxDistance() const {
     return GetField<float>(VT_MAXDISTANCE, 0.0f);
   }
-  bool Verify(flatbuffers::Verifier &verifier) const {
+  bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_NAME) &&
            verifier.VerifyString(name()) &&
@@ -134,24 +134,24 @@ struct SceneLightShadows FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 
 struct SceneLightShadowsBuilder {
   typedef SceneLightShadows Table;
-  flatbuffers::FlatBufferBuilder &fbb_;
-  flatbuffers::uoffset_t start_;
-  void add_name(flatbuffers::Offset<flatbuffers::String> name) {
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_name(::flatbuffers::Offset<::flatbuffers::String> name) {
     fbb_.AddOffset(SceneLightShadows::VT_NAME, name);
   }
-  void add_lightSet(flatbuffers::Offset<flatbuffers::String> lightSet) {
+  void add_lightSet(::flatbuffers::Offset<::flatbuffers::String> lightSet) {
     fbb_.AddOffset(SceneLightShadows::VT_LIGHTSET, lightSet);
   }
   void add_lightType(DeepSeaSceneLighting::LightType lightType) {
     fbb_.AddElement<uint8_t>(SceneLightShadows::VT_LIGHTTYPE, static_cast<uint8_t>(lightType), 0);
   }
-  void add_light(flatbuffers::Offset<flatbuffers::String> light) {
+  void add_light(::flatbuffers::Offset<::flatbuffers::String> light) {
     fbb_.AddOffset(SceneLightShadows::VT_LIGHT, light);
   }
-  void add_transformGroupDesc(flatbuffers::Offset<flatbuffers::String> transformGroupDesc) {
+  void add_transformGroupDesc(::flatbuffers::Offset<::flatbuffers::String> transformGroupDesc) {
     fbb_.AddOffset(SceneLightShadows::VT_TRANSFORMGROUPDESC, transformGroupDesc);
   }
-  void add_transformGroupName(flatbuffers::Offset<flatbuffers::String> transformGroupName) {
+  void add_transformGroupName(::flatbuffers::Offset<::flatbuffers::String> transformGroupName) {
     fbb_.AddOffset(SceneLightShadows::VT_TRANSFORMGROUPNAME, transformGroupName);
   }
   void add_maxCascades(uint32_t maxCascades) {
@@ -163,7 +163,7 @@ struct SceneLightShadowsBuilder {
   void add_cascadeExpFactor(float cascadeExpFactor) {
     fbb_.AddElement<float>(SceneLightShadows::VT_CASCADEEXPFACTOR, cascadeExpFactor, 0.0f);
   }
-  void add_minDepthRanges(flatbuffers::Offset<flatbuffers::Vector<float>> minDepthRanges) {
+  void add_minDepthRanges(::flatbuffers::Offset<::flatbuffers::Vector<float>> minDepthRanges) {
     fbb_.AddOffset(SceneLightShadows::VT_MINDEPTHRANGES, minDepthRanges);
   }
   void add_fadeStartDistance(float fadeStartDistance) {
@@ -172,13 +172,13 @@ struct SceneLightShadowsBuilder {
   void add_maxDistance(float maxDistance) {
     fbb_.AddElement<float>(SceneLightShadows::VT_MAXDISTANCE, maxDistance, 0.0f);
   }
-  explicit SceneLightShadowsBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit SceneLightShadowsBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  flatbuffers::Offset<SceneLightShadows> Finish() {
+  ::flatbuffers::Offset<SceneLightShadows> Finish() {
     const auto end = fbb_.EndTable(start_);
-    auto o = flatbuffers::Offset<SceneLightShadows>(end);
+    auto o = ::flatbuffers::Offset<SceneLightShadows>(end);
     fbb_.Required(o, SceneLightShadows::VT_NAME);
     fbb_.Required(o, SceneLightShadows::VT_LIGHTSET);
     fbb_.Required(o, SceneLightShadows::VT_TRANSFORMGROUPDESC);
@@ -186,18 +186,18 @@ struct SceneLightShadowsBuilder {
   }
 };
 
-inline flatbuffers::Offset<SceneLightShadows> CreateSceneLightShadows(
-    flatbuffers::FlatBufferBuilder &_fbb,
-    flatbuffers::Offset<flatbuffers::String> name = 0,
-    flatbuffers::Offset<flatbuffers::String> lightSet = 0,
+inline ::flatbuffers::Offset<SceneLightShadows> CreateSceneLightShadows(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<::flatbuffers::String> name = 0,
+    ::flatbuffers::Offset<::flatbuffers::String> lightSet = 0,
     DeepSeaSceneLighting::LightType lightType = DeepSeaSceneLighting::LightType::Directional,
-    flatbuffers::Offset<flatbuffers::String> light = 0,
-    flatbuffers::Offset<flatbuffers::String> transformGroupDesc = 0,
-    flatbuffers::Offset<flatbuffers::String> transformGroupName = 0,
+    ::flatbuffers::Offset<::flatbuffers::String> light = 0,
+    ::flatbuffers::Offset<::flatbuffers::String> transformGroupDesc = 0,
+    ::flatbuffers::Offset<::flatbuffers::String> transformGroupName = 0,
     uint32_t maxCascades = 0,
     float maxFirstSplitDistance = 0.0f,
     float cascadeExpFactor = 0.0f,
-    flatbuffers::Offset<flatbuffers::Vector<float>> minDepthRanges = 0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<float>> minDepthRanges = 0,
     float fadeStartDistance = 0.0f,
     float maxDistance = 0.0f) {
   SceneLightShadowsBuilder builder_(_fbb);
@@ -216,8 +216,8 @@ inline flatbuffers::Offset<SceneLightShadows> CreateSceneLightShadows(
   return builder_.Finish();
 }
 
-inline flatbuffers::Offset<SceneLightShadows> CreateSceneLightShadowsDirect(
-    flatbuffers::FlatBufferBuilder &_fbb,
+inline ::flatbuffers::Offset<SceneLightShadows> CreateSceneLightShadowsDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
     const char *name = nullptr,
     const char *lightSet = nullptr,
     DeepSeaSceneLighting::LightType lightType = DeepSeaSceneLighting::LightType::Directional,
@@ -252,15 +252,15 @@ inline flatbuffers::Offset<SceneLightShadows> CreateSceneLightShadowsDirect(
       maxDistance);
 }
 
-struct SceneShadowManager FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+struct SceneShadowManager FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef SceneShadowManagerBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_SHADOWS = 4
   };
-  const flatbuffers::Vector<flatbuffers::Offset<DeepSeaSceneLighting::SceneLightShadows>> *shadows() const {
-    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<DeepSeaSceneLighting::SceneLightShadows>> *>(VT_SHADOWS);
+  const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaSceneLighting::SceneLightShadows>> *shadows() const {
+    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaSceneLighting::SceneLightShadows>> *>(VT_SHADOWS);
   }
-  bool Verify(flatbuffers::Verifier &verifier) const {
+  bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_SHADOWS) &&
            verifier.VerifyVector(shadows()) &&
@@ -271,67 +271,67 @@ struct SceneShadowManager FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 
 struct SceneShadowManagerBuilder {
   typedef SceneShadowManager Table;
-  flatbuffers::FlatBufferBuilder &fbb_;
-  flatbuffers::uoffset_t start_;
-  void add_shadows(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaSceneLighting::SceneLightShadows>>> shadows) {
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_shadows(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaSceneLighting::SceneLightShadows>>> shadows) {
     fbb_.AddOffset(SceneShadowManager::VT_SHADOWS, shadows);
   }
-  explicit SceneShadowManagerBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit SceneShadowManagerBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  flatbuffers::Offset<SceneShadowManager> Finish() {
+  ::flatbuffers::Offset<SceneShadowManager> Finish() {
     const auto end = fbb_.EndTable(start_);
-    auto o = flatbuffers::Offset<SceneShadowManager>(end);
+    auto o = ::flatbuffers::Offset<SceneShadowManager>(end);
     fbb_.Required(o, SceneShadowManager::VT_SHADOWS);
     return o;
   }
 };
 
-inline flatbuffers::Offset<SceneShadowManager> CreateSceneShadowManager(
-    flatbuffers::FlatBufferBuilder &_fbb,
-    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaSceneLighting::SceneLightShadows>>> shadows = 0) {
+inline ::flatbuffers::Offset<SceneShadowManager> CreateSceneShadowManager(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaSceneLighting::SceneLightShadows>>> shadows = 0) {
   SceneShadowManagerBuilder builder_(_fbb);
   builder_.add_shadows(shadows);
   return builder_.Finish();
 }
 
-inline flatbuffers::Offset<SceneShadowManager> CreateSceneShadowManagerDirect(
-    flatbuffers::FlatBufferBuilder &_fbb,
-    const std::vector<flatbuffers::Offset<DeepSeaSceneLighting::SceneLightShadows>> *shadows = nullptr) {
-  auto shadows__ = shadows ? _fbb.CreateVector<flatbuffers::Offset<DeepSeaSceneLighting::SceneLightShadows>>(*shadows) : 0;
+inline ::flatbuffers::Offset<SceneShadowManager> CreateSceneShadowManagerDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    const std::vector<::flatbuffers::Offset<DeepSeaSceneLighting::SceneLightShadows>> *shadows = nullptr) {
+  auto shadows__ = shadows ? _fbb.CreateVector<::flatbuffers::Offset<DeepSeaSceneLighting::SceneLightShadows>>(*shadows) : 0;
   return DeepSeaSceneLighting::CreateSceneShadowManager(
       _fbb,
       shadows__);
 }
 
 inline const DeepSeaSceneLighting::SceneShadowManager *GetSceneShadowManager(const void *buf) {
-  return flatbuffers::GetRoot<DeepSeaSceneLighting::SceneShadowManager>(buf);
+  return ::flatbuffers::GetRoot<DeepSeaSceneLighting::SceneShadowManager>(buf);
 }
 
 inline const DeepSeaSceneLighting::SceneShadowManager *GetSizePrefixedSceneShadowManager(const void *buf) {
-  return flatbuffers::GetSizePrefixedRoot<DeepSeaSceneLighting::SceneShadowManager>(buf);
+  return ::flatbuffers::GetSizePrefixedRoot<DeepSeaSceneLighting::SceneShadowManager>(buf);
 }
 
 inline bool VerifySceneShadowManagerBuffer(
-    flatbuffers::Verifier &verifier) {
+    ::flatbuffers::Verifier &verifier) {
   return verifier.VerifyBuffer<DeepSeaSceneLighting::SceneShadowManager>(nullptr);
 }
 
 inline bool VerifySizePrefixedSceneShadowManagerBuffer(
-    flatbuffers::Verifier &verifier) {
+    ::flatbuffers::Verifier &verifier) {
   return verifier.VerifySizePrefixedBuffer<DeepSeaSceneLighting::SceneShadowManager>(nullptr);
 }
 
 inline void FinishSceneShadowManagerBuffer(
-    flatbuffers::FlatBufferBuilder &fbb,
-    flatbuffers::Offset<DeepSeaSceneLighting::SceneShadowManager> root) {
+    ::flatbuffers::FlatBufferBuilder &fbb,
+    ::flatbuffers::Offset<DeepSeaSceneLighting::SceneShadowManager> root) {
   fbb.Finish(root);
 }
 
 inline void FinishSizePrefixedSceneShadowManagerBuffer(
-    flatbuffers::FlatBufferBuilder &fbb,
-    flatbuffers::Offset<DeepSeaSceneLighting::SceneShadowManager> root) {
+    ::flatbuffers::FlatBufferBuilder &fbb,
+    ::flatbuffers::Offset<DeepSeaSceneLighting::SceneShadowManager> root) {
   fbb.FinishSizePrefixed(root);
 }
 

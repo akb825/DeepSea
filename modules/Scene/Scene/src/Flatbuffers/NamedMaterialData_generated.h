@@ -10,7 +10,7 @@
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 23 &&
               FLATBUFFERS_VERSION_MINOR == 1 &&
-              FLATBUFFERS_VERSION_REVISION == 4,
+              FLATBUFFERS_VERSION_REVISION == 21,
              "Non-compatible flatbuffers version included");
 
 #include "DeepSea/Scene/Flatbuffers/SceneCommon_generated.h"
@@ -20,15 +20,15 @@ namespace DeepSeaScene {
 struct NamedMaterialData;
 struct NamedMaterialDataBuilder;
 
-struct NamedMaterialData FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+struct NamedMaterialData FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef NamedMaterialDataBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_NAME = 4
   };
-  const flatbuffers::String *name() const {
-    return GetPointer<const flatbuffers::String *>(VT_NAME);
+  const ::flatbuffers::String *name() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_NAME);
   }
-  bool Verify(flatbuffers::Verifier &verifier) const {
+  bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_NAME) &&
            verifier.VerifyString(name()) &&
@@ -38,33 +38,33 @@ struct NamedMaterialData FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 
 struct NamedMaterialDataBuilder {
   typedef NamedMaterialData Table;
-  flatbuffers::FlatBufferBuilder &fbb_;
-  flatbuffers::uoffset_t start_;
-  void add_name(flatbuffers::Offset<flatbuffers::String> name) {
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_name(::flatbuffers::Offset<::flatbuffers::String> name) {
     fbb_.AddOffset(NamedMaterialData::VT_NAME, name);
   }
-  explicit NamedMaterialDataBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit NamedMaterialDataBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  flatbuffers::Offset<NamedMaterialData> Finish() {
+  ::flatbuffers::Offset<NamedMaterialData> Finish() {
     const auto end = fbb_.EndTable(start_);
-    auto o = flatbuffers::Offset<NamedMaterialData>(end);
+    auto o = ::flatbuffers::Offset<NamedMaterialData>(end);
     fbb_.Required(o, NamedMaterialData::VT_NAME);
     return o;
   }
 };
 
-inline flatbuffers::Offset<NamedMaterialData> CreateNamedMaterialData(
-    flatbuffers::FlatBufferBuilder &_fbb,
-    flatbuffers::Offset<flatbuffers::String> name = 0) {
+inline ::flatbuffers::Offset<NamedMaterialData> CreateNamedMaterialData(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<::flatbuffers::String> name = 0) {
   NamedMaterialDataBuilder builder_(_fbb);
   builder_.add_name(name);
   return builder_.Finish();
 }
 
-inline flatbuffers::Offset<NamedMaterialData> CreateNamedMaterialDataDirect(
-    flatbuffers::FlatBufferBuilder &_fbb,
+inline ::flatbuffers::Offset<NamedMaterialData> CreateNamedMaterialDataDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
     const char *name = nullptr) {
   auto name__ = name ? _fbb.CreateString(name) : 0;
   return DeepSeaScene::CreateNamedMaterialData(
@@ -73,32 +73,32 @@ inline flatbuffers::Offset<NamedMaterialData> CreateNamedMaterialDataDirect(
 }
 
 inline const DeepSeaScene::NamedMaterialData *GetNamedMaterialData(const void *buf) {
-  return flatbuffers::GetRoot<DeepSeaScene::NamedMaterialData>(buf);
+  return ::flatbuffers::GetRoot<DeepSeaScene::NamedMaterialData>(buf);
 }
 
 inline const DeepSeaScene::NamedMaterialData *GetSizePrefixedNamedMaterialData(const void *buf) {
-  return flatbuffers::GetSizePrefixedRoot<DeepSeaScene::NamedMaterialData>(buf);
+  return ::flatbuffers::GetSizePrefixedRoot<DeepSeaScene::NamedMaterialData>(buf);
 }
 
 inline bool VerifyNamedMaterialDataBuffer(
-    flatbuffers::Verifier &verifier) {
+    ::flatbuffers::Verifier &verifier) {
   return verifier.VerifyBuffer<DeepSeaScene::NamedMaterialData>(nullptr);
 }
 
 inline bool VerifySizePrefixedNamedMaterialDataBuffer(
-    flatbuffers::Verifier &verifier) {
+    ::flatbuffers::Verifier &verifier) {
   return verifier.VerifySizePrefixedBuffer<DeepSeaScene::NamedMaterialData>(nullptr);
 }
 
 inline void FinishNamedMaterialDataBuffer(
-    flatbuffers::FlatBufferBuilder &fbb,
-    flatbuffers::Offset<DeepSeaScene::NamedMaterialData> root) {
+    ::flatbuffers::FlatBufferBuilder &fbb,
+    ::flatbuffers::Offset<DeepSeaScene::NamedMaterialData> root) {
   fbb.Finish(root);
 }
 
 inline void FinishSizePrefixedNamedMaterialDataBuffer(
-    flatbuffers::FlatBufferBuilder &fbb,
-    flatbuffers::Offset<DeepSeaScene::NamedMaterialData> root) {
+    ::flatbuffers::FlatBufferBuilder &fbb,
+    ::flatbuffers::Offset<DeepSeaScene::NamedMaterialData> root) {
   fbb.FinishSizePrefixed(root);
 }
 

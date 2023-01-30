@@ -10,7 +10,7 @@
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 23 &&
               FLATBUFFERS_VERSION_MINOR == 1 &&
-              FLATBUFFERS_VERSION_REVISION == 4,
+              FLATBUFFERS_VERSION_REVISION == 21,
              "Non-compatible flatbuffers version included");
 
 #include "SceneLight_generated.h"
@@ -20,7 +20,7 @@ namespace DeepSeaSceneLighting {
 struct LightNode;
 struct LightNodeBuilder;
 
-struct LightNode FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+struct LightNode FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef LightNodeBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_TEMPLATELIGHT_TYPE = 4,
@@ -45,16 +45,16 @@ struct LightNode FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const DeepSeaSceneLighting::SpotLight *templateLight_as_SpotLight() const {
     return templateLight_type() == DeepSeaSceneLighting::LightUnion::SpotLight ? static_cast<const DeepSeaSceneLighting::SpotLight *>(templateLight()) : nullptr;
   }
-  const flatbuffers::String *lightBaseName() const {
-    return GetPointer<const flatbuffers::String *>(VT_LIGHTBASENAME);
+  const ::flatbuffers::String *lightBaseName() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_LIGHTBASENAME);
   }
   bool singleInstance() const {
     return GetField<uint8_t>(VT_SINGLEINSTANCE, 0) != 0;
   }
-  const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *itemLists() const {
-    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *>(VT_ITEMLISTS);
+  const ::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>> *itemLists() const {
+    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>> *>(VT_ITEMLISTS);
   }
-  bool Verify(flatbuffers::Verifier &verifier) const {
+  bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<uint8_t>(verifier, VT_TEMPLATELIGHT_TYPE, 1) &&
            VerifyOffsetRequired(verifier, VT_TEMPLATELIGHT) &&
@@ -83,43 +83,43 @@ template<> inline const DeepSeaSceneLighting::SpotLight *LightNode::templateLigh
 
 struct LightNodeBuilder {
   typedef LightNode Table;
-  flatbuffers::FlatBufferBuilder &fbb_;
-  flatbuffers::uoffset_t start_;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
   void add_templateLight_type(DeepSeaSceneLighting::LightUnion templateLight_type) {
     fbb_.AddElement<uint8_t>(LightNode::VT_TEMPLATELIGHT_TYPE, static_cast<uint8_t>(templateLight_type), 0);
   }
-  void add_templateLight(flatbuffers::Offset<void> templateLight) {
+  void add_templateLight(::flatbuffers::Offset<void> templateLight) {
     fbb_.AddOffset(LightNode::VT_TEMPLATELIGHT, templateLight);
   }
-  void add_lightBaseName(flatbuffers::Offset<flatbuffers::String> lightBaseName) {
+  void add_lightBaseName(::flatbuffers::Offset<::flatbuffers::String> lightBaseName) {
     fbb_.AddOffset(LightNode::VT_LIGHTBASENAME, lightBaseName);
   }
   void add_singleInstance(bool singleInstance) {
     fbb_.AddElement<uint8_t>(LightNode::VT_SINGLEINSTANCE, static_cast<uint8_t>(singleInstance), 0);
   }
-  void add_itemLists(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>> itemLists) {
+  void add_itemLists(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>>> itemLists) {
     fbb_.AddOffset(LightNode::VT_ITEMLISTS, itemLists);
   }
-  explicit LightNodeBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit LightNodeBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  flatbuffers::Offset<LightNode> Finish() {
+  ::flatbuffers::Offset<LightNode> Finish() {
     const auto end = fbb_.EndTable(start_);
-    auto o = flatbuffers::Offset<LightNode>(end);
+    auto o = ::flatbuffers::Offset<LightNode>(end);
     fbb_.Required(o, LightNode::VT_TEMPLATELIGHT);
     fbb_.Required(o, LightNode::VT_LIGHTBASENAME);
     return o;
   }
 };
 
-inline flatbuffers::Offset<LightNode> CreateLightNode(
-    flatbuffers::FlatBufferBuilder &_fbb,
+inline ::flatbuffers::Offset<LightNode> CreateLightNode(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
     DeepSeaSceneLighting::LightUnion templateLight_type = DeepSeaSceneLighting::LightUnion::NONE,
-    flatbuffers::Offset<void> templateLight = 0,
-    flatbuffers::Offset<flatbuffers::String> lightBaseName = 0,
+    ::flatbuffers::Offset<void> templateLight = 0,
+    ::flatbuffers::Offset<::flatbuffers::String> lightBaseName = 0,
     bool singleInstance = false,
-    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>> itemLists = 0) {
+    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>>> itemLists = 0) {
   LightNodeBuilder builder_(_fbb);
   builder_.add_itemLists(itemLists);
   builder_.add_lightBaseName(lightBaseName);
@@ -129,15 +129,15 @@ inline flatbuffers::Offset<LightNode> CreateLightNode(
   return builder_.Finish();
 }
 
-inline flatbuffers::Offset<LightNode> CreateLightNodeDirect(
-    flatbuffers::FlatBufferBuilder &_fbb,
+inline ::flatbuffers::Offset<LightNode> CreateLightNodeDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
     DeepSeaSceneLighting::LightUnion templateLight_type = DeepSeaSceneLighting::LightUnion::NONE,
-    flatbuffers::Offset<void> templateLight = 0,
+    ::flatbuffers::Offset<void> templateLight = 0,
     const char *lightBaseName = nullptr,
     bool singleInstance = false,
-    const std::vector<flatbuffers::Offset<flatbuffers::String>> *itemLists = nullptr) {
+    const std::vector<::flatbuffers::Offset<::flatbuffers::String>> *itemLists = nullptr) {
   auto lightBaseName__ = lightBaseName ? _fbb.CreateString(lightBaseName) : 0;
-  auto itemLists__ = itemLists ? _fbb.CreateVector<flatbuffers::Offset<flatbuffers::String>>(*itemLists) : 0;
+  auto itemLists__ = itemLists ? _fbb.CreateVector<::flatbuffers::Offset<::flatbuffers::String>>(*itemLists) : 0;
   return DeepSeaSceneLighting::CreateLightNode(
       _fbb,
       templateLight_type,
@@ -148,32 +148,32 @@ inline flatbuffers::Offset<LightNode> CreateLightNodeDirect(
 }
 
 inline const DeepSeaSceneLighting::LightNode *GetLightNode(const void *buf) {
-  return flatbuffers::GetRoot<DeepSeaSceneLighting::LightNode>(buf);
+  return ::flatbuffers::GetRoot<DeepSeaSceneLighting::LightNode>(buf);
 }
 
 inline const DeepSeaSceneLighting::LightNode *GetSizePrefixedLightNode(const void *buf) {
-  return flatbuffers::GetSizePrefixedRoot<DeepSeaSceneLighting::LightNode>(buf);
+  return ::flatbuffers::GetSizePrefixedRoot<DeepSeaSceneLighting::LightNode>(buf);
 }
 
 inline bool VerifyLightNodeBuffer(
-    flatbuffers::Verifier &verifier) {
+    ::flatbuffers::Verifier &verifier) {
   return verifier.VerifyBuffer<DeepSeaSceneLighting::LightNode>(nullptr);
 }
 
 inline bool VerifySizePrefixedLightNodeBuffer(
-    flatbuffers::Verifier &verifier) {
+    ::flatbuffers::Verifier &verifier) {
   return verifier.VerifySizePrefixedBuffer<DeepSeaSceneLighting::LightNode>(nullptr);
 }
 
 inline void FinishLightNodeBuffer(
-    flatbuffers::FlatBufferBuilder &fbb,
-    flatbuffers::Offset<DeepSeaSceneLighting::LightNode> root) {
+    ::flatbuffers::FlatBufferBuilder &fbb,
+    ::flatbuffers::Offset<DeepSeaSceneLighting::LightNode> root) {
   fbb.Finish(root);
 }
 
 inline void FinishSizePrefixedLightNodeBuffer(
-    flatbuffers::FlatBufferBuilder &fbb,
-    flatbuffers::Offset<DeepSeaSceneLighting::LightNode> root) {
+    ::flatbuffers::FlatBufferBuilder &fbb,
+    ::flatbuffers::Offset<DeepSeaSceneLighting::LightNode> root) {
   fbb.FinishSizePrefixed(root);
 }
 

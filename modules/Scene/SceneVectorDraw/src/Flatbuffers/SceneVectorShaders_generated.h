@@ -10,7 +10,7 @@
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 23 &&
               FLATBUFFERS_VERSION_MINOR == 1 &&
-              FLATBUFFERS_VERSION_REVISION == 4,
+              FLATBUFFERS_VERSION_REVISION == 21,
              "Non-compatible flatbuffers version included");
 
 #include "DeepSea/Scene/Flatbuffers/SceneCommon_generated.h"
@@ -23,7 +23,7 @@ struct MaterialElementBuilder;
 struct VectorShaders;
 struct VectorShadersBuilder;
 
-struct MaterialElement FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+struct MaterialElement FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef MaterialElementBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_NAME = 4,
@@ -32,8 +32,8 @@ struct MaterialElement FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_BINDING = 10,
     VT_SHADERVARIABLEGROUPDESC = 12
   };
-  const flatbuffers::String *name() const {
-    return GetPointer<const flatbuffers::String *>(VT_NAME);
+  const ::flatbuffers::String *name() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_NAME);
   }
   DeepSeaScene::MaterialType type() const {
     return static_cast<DeepSeaScene::MaterialType>(GetField<uint8_t>(VT_TYPE, 0));
@@ -44,10 +44,10 @@ struct MaterialElement FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   DeepSeaScene::MaterialBinding binding() const {
     return static_cast<DeepSeaScene::MaterialBinding>(GetField<uint8_t>(VT_BINDING, 0));
   }
-  const flatbuffers::String *shaderVariableGroupDesc() const {
-    return GetPointer<const flatbuffers::String *>(VT_SHADERVARIABLEGROUPDESC);
+  const ::flatbuffers::String *shaderVariableGroupDesc() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_SHADERVARIABLEGROUPDESC);
   }
-  bool Verify(flatbuffers::Verifier &verifier) const {
+  bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_NAME) &&
            verifier.VerifyString(name()) &&
@@ -62,9 +62,9 @@ struct MaterialElement FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 
 struct MaterialElementBuilder {
   typedef MaterialElement Table;
-  flatbuffers::FlatBufferBuilder &fbb_;
-  flatbuffers::uoffset_t start_;
-  void add_name(flatbuffers::Offset<flatbuffers::String> name) {
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_name(::flatbuffers::Offset<::flatbuffers::String> name) {
     fbb_.AddOffset(MaterialElement::VT_NAME, name);
   }
   void add_type(DeepSeaScene::MaterialType type) {
@@ -76,28 +76,28 @@ struct MaterialElementBuilder {
   void add_binding(DeepSeaScene::MaterialBinding binding) {
     fbb_.AddElement<uint8_t>(MaterialElement::VT_BINDING, static_cast<uint8_t>(binding), 0);
   }
-  void add_shaderVariableGroupDesc(flatbuffers::Offset<flatbuffers::String> shaderVariableGroupDesc) {
+  void add_shaderVariableGroupDesc(::flatbuffers::Offset<::flatbuffers::String> shaderVariableGroupDesc) {
     fbb_.AddOffset(MaterialElement::VT_SHADERVARIABLEGROUPDESC, shaderVariableGroupDesc);
   }
-  explicit MaterialElementBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit MaterialElementBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  flatbuffers::Offset<MaterialElement> Finish() {
+  ::flatbuffers::Offset<MaterialElement> Finish() {
     const auto end = fbb_.EndTable(start_);
-    auto o = flatbuffers::Offset<MaterialElement>(end);
+    auto o = ::flatbuffers::Offset<MaterialElement>(end);
     fbb_.Required(o, MaterialElement::VT_NAME);
     return o;
   }
 };
 
-inline flatbuffers::Offset<MaterialElement> CreateMaterialElement(
-    flatbuffers::FlatBufferBuilder &_fbb,
-    flatbuffers::Offset<flatbuffers::String> name = 0,
+inline ::flatbuffers::Offset<MaterialElement> CreateMaterialElement(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<::flatbuffers::String> name = 0,
     DeepSeaScene::MaterialType type = DeepSeaScene::MaterialType::Float,
     uint32_t count = 0,
     DeepSeaScene::MaterialBinding binding = DeepSeaScene::MaterialBinding::Material,
-    flatbuffers::Offset<flatbuffers::String> shaderVariableGroupDesc = 0) {
+    ::flatbuffers::Offset<::flatbuffers::String> shaderVariableGroupDesc = 0) {
   MaterialElementBuilder builder_(_fbb);
   builder_.add_shaderVariableGroupDesc(shaderVariableGroupDesc);
   builder_.add_count(count);
@@ -107,8 +107,8 @@ inline flatbuffers::Offset<MaterialElement> CreateMaterialElement(
   return builder_.Finish();
 }
 
-inline flatbuffers::Offset<MaterialElement> CreateMaterialElementDirect(
-    flatbuffers::FlatBufferBuilder &_fbb,
+inline ::flatbuffers::Offset<MaterialElement> CreateMaterialElementDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
     const char *name = nullptr,
     DeepSeaScene::MaterialType type = DeepSeaScene::MaterialType::Float,
     uint32_t count = 0,
@@ -125,7 +125,7 @@ inline flatbuffers::Offset<MaterialElement> CreateMaterialElementDirect(
       shaderVariableGroupDesc__);
 }
 
-struct VectorShaders FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+struct VectorShaders FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef VectorShadersBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_MODULES = 4,
@@ -141,43 +141,43 @@ struct VectorShaders FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_TEXTGRADIENT = 24,
     VT_TEXTGRADIENTOUTLINE = 26
   };
-  const flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::VersionedShaderModule>> *modules() const {
-    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::VersionedShaderModule>> *>(VT_MODULES);
+  const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaScene::VersionedShaderModule>> *modules() const {
+    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaScene::VersionedShaderModule>> *>(VT_MODULES);
   }
-  const flatbuffers::Vector<flatbuffers::Offset<DeepSeaSceneVectorDraw::MaterialElement>> *extraElements() const {
-    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<DeepSeaSceneVectorDraw::MaterialElement>> *>(VT_EXTRAELEMENTS);
+  const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaSceneVectorDraw::MaterialElement>> *extraElements() const {
+    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaSceneVectorDraw::MaterialElement>> *>(VT_EXTRAELEMENTS);
   }
-  const flatbuffers::String *materialDesc() const {
-    return GetPointer<const flatbuffers::String *>(VT_MATERIALDESC);
+  const ::flatbuffers::String *materialDesc() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_MATERIALDESC);
   }
-  const flatbuffers::String *fillColor() const {
-    return GetPointer<const flatbuffers::String *>(VT_FILLCOLOR);
+  const ::flatbuffers::String *fillColor() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_FILLCOLOR);
   }
-  const flatbuffers::String *fillLinearGradient() const {
-    return GetPointer<const flatbuffers::String *>(VT_FILLLINEARGRADIENT);
+  const ::flatbuffers::String *fillLinearGradient() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_FILLLINEARGRADIENT);
   }
-  const flatbuffers::String *fillRadialGradient() const {
-    return GetPointer<const flatbuffers::String *>(VT_FILLRADIALGRADIENT);
+  const ::flatbuffers::String *fillRadialGradient() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_FILLRADIALGRADIENT);
   }
-  const flatbuffers::String *line() const {
-    return GetPointer<const flatbuffers::String *>(VT_LINE);
+  const ::flatbuffers::String *line() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_LINE);
   }
-  const flatbuffers::String *image() const {
-    return GetPointer<const flatbuffers::String *>(VT_IMAGE);
+  const ::flatbuffers::String *image() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_IMAGE);
   }
-  const flatbuffers::String *textColor() const {
-    return GetPointer<const flatbuffers::String *>(VT_TEXTCOLOR);
+  const ::flatbuffers::String *textColor() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_TEXTCOLOR);
   }
-  const flatbuffers::String *textColorOutline() const {
-    return GetPointer<const flatbuffers::String *>(VT_TEXTCOLOROUTLINE);
+  const ::flatbuffers::String *textColorOutline() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_TEXTCOLOROUTLINE);
   }
-  const flatbuffers::String *textGradient() const {
-    return GetPointer<const flatbuffers::String *>(VT_TEXTGRADIENT);
+  const ::flatbuffers::String *textGradient() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_TEXTGRADIENT);
   }
-  const flatbuffers::String *textGradientOutline() const {
-    return GetPointer<const flatbuffers::String *>(VT_TEXTGRADIENTOUTLINE);
+  const ::flatbuffers::String *textGradientOutline() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_TEXTGRADIENTOUTLINE);
   }
-  bool Verify(flatbuffers::Verifier &verifier) const {
+  bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_MODULES) &&
            verifier.VerifyVector(modules()) &&
@@ -211,51 +211,51 @@ struct VectorShaders FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 
 struct VectorShadersBuilder {
   typedef VectorShaders Table;
-  flatbuffers::FlatBufferBuilder &fbb_;
-  flatbuffers::uoffset_t start_;
-  void add_modules(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::VersionedShaderModule>>> modules) {
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_modules(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaScene::VersionedShaderModule>>> modules) {
     fbb_.AddOffset(VectorShaders::VT_MODULES, modules);
   }
-  void add_extraElements(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaSceneVectorDraw::MaterialElement>>> extraElements) {
+  void add_extraElements(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaSceneVectorDraw::MaterialElement>>> extraElements) {
     fbb_.AddOffset(VectorShaders::VT_EXTRAELEMENTS, extraElements);
   }
-  void add_materialDesc(flatbuffers::Offset<flatbuffers::String> materialDesc) {
+  void add_materialDesc(::flatbuffers::Offset<::flatbuffers::String> materialDesc) {
     fbb_.AddOffset(VectorShaders::VT_MATERIALDESC, materialDesc);
   }
-  void add_fillColor(flatbuffers::Offset<flatbuffers::String> fillColor) {
+  void add_fillColor(::flatbuffers::Offset<::flatbuffers::String> fillColor) {
     fbb_.AddOffset(VectorShaders::VT_FILLCOLOR, fillColor);
   }
-  void add_fillLinearGradient(flatbuffers::Offset<flatbuffers::String> fillLinearGradient) {
+  void add_fillLinearGradient(::flatbuffers::Offset<::flatbuffers::String> fillLinearGradient) {
     fbb_.AddOffset(VectorShaders::VT_FILLLINEARGRADIENT, fillLinearGradient);
   }
-  void add_fillRadialGradient(flatbuffers::Offset<flatbuffers::String> fillRadialGradient) {
+  void add_fillRadialGradient(::flatbuffers::Offset<::flatbuffers::String> fillRadialGradient) {
     fbb_.AddOffset(VectorShaders::VT_FILLRADIALGRADIENT, fillRadialGradient);
   }
-  void add_line(flatbuffers::Offset<flatbuffers::String> line) {
+  void add_line(::flatbuffers::Offset<::flatbuffers::String> line) {
     fbb_.AddOffset(VectorShaders::VT_LINE, line);
   }
-  void add_image(flatbuffers::Offset<flatbuffers::String> image) {
+  void add_image(::flatbuffers::Offset<::flatbuffers::String> image) {
     fbb_.AddOffset(VectorShaders::VT_IMAGE, image);
   }
-  void add_textColor(flatbuffers::Offset<flatbuffers::String> textColor) {
+  void add_textColor(::flatbuffers::Offset<::flatbuffers::String> textColor) {
     fbb_.AddOffset(VectorShaders::VT_TEXTCOLOR, textColor);
   }
-  void add_textColorOutline(flatbuffers::Offset<flatbuffers::String> textColorOutline) {
+  void add_textColorOutline(::flatbuffers::Offset<::flatbuffers::String> textColorOutline) {
     fbb_.AddOffset(VectorShaders::VT_TEXTCOLOROUTLINE, textColorOutline);
   }
-  void add_textGradient(flatbuffers::Offset<flatbuffers::String> textGradient) {
+  void add_textGradient(::flatbuffers::Offset<::flatbuffers::String> textGradient) {
     fbb_.AddOffset(VectorShaders::VT_TEXTGRADIENT, textGradient);
   }
-  void add_textGradientOutline(flatbuffers::Offset<flatbuffers::String> textGradientOutline) {
+  void add_textGradientOutline(::flatbuffers::Offset<::flatbuffers::String> textGradientOutline) {
     fbb_.AddOffset(VectorShaders::VT_TEXTGRADIENTOUTLINE, textGradientOutline);
   }
-  explicit VectorShadersBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit VectorShadersBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  flatbuffers::Offset<VectorShaders> Finish() {
+  ::flatbuffers::Offset<VectorShaders> Finish() {
     const auto end = fbb_.EndTable(start_);
-    auto o = flatbuffers::Offset<VectorShaders>(end);
+    auto o = ::flatbuffers::Offset<VectorShaders>(end);
     fbb_.Required(o, VectorShaders::VT_MODULES);
     fbb_.Required(o, VectorShaders::VT_EXTRAELEMENTS);
     fbb_.Required(o, VectorShaders::VT_MATERIALDESC);
@@ -263,20 +263,20 @@ struct VectorShadersBuilder {
   }
 };
 
-inline flatbuffers::Offset<VectorShaders> CreateVectorShaders(
-    flatbuffers::FlatBufferBuilder &_fbb,
-    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::VersionedShaderModule>>> modules = 0,
-    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaSceneVectorDraw::MaterialElement>>> extraElements = 0,
-    flatbuffers::Offset<flatbuffers::String> materialDesc = 0,
-    flatbuffers::Offset<flatbuffers::String> fillColor = 0,
-    flatbuffers::Offset<flatbuffers::String> fillLinearGradient = 0,
-    flatbuffers::Offset<flatbuffers::String> fillRadialGradient = 0,
-    flatbuffers::Offset<flatbuffers::String> line = 0,
-    flatbuffers::Offset<flatbuffers::String> image = 0,
-    flatbuffers::Offset<flatbuffers::String> textColor = 0,
-    flatbuffers::Offset<flatbuffers::String> textColorOutline = 0,
-    flatbuffers::Offset<flatbuffers::String> textGradient = 0,
-    flatbuffers::Offset<flatbuffers::String> textGradientOutline = 0) {
+inline ::flatbuffers::Offset<VectorShaders> CreateVectorShaders(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaScene::VersionedShaderModule>>> modules = 0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaSceneVectorDraw::MaterialElement>>> extraElements = 0,
+    ::flatbuffers::Offset<::flatbuffers::String> materialDesc = 0,
+    ::flatbuffers::Offset<::flatbuffers::String> fillColor = 0,
+    ::flatbuffers::Offset<::flatbuffers::String> fillLinearGradient = 0,
+    ::flatbuffers::Offset<::flatbuffers::String> fillRadialGradient = 0,
+    ::flatbuffers::Offset<::flatbuffers::String> line = 0,
+    ::flatbuffers::Offset<::flatbuffers::String> image = 0,
+    ::flatbuffers::Offset<::flatbuffers::String> textColor = 0,
+    ::flatbuffers::Offset<::flatbuffers::String> textColorOutline = 0,
+    ::flatbuffers::Offset<::flatbuffers::String> textGradient = 0,
+    ::flatbuffers::Offset<::flatbuffers::String> textGradientOutline = 0) {
   VectorShadersBuilder builder_(_fbb);
   builder_.add_textGradientOutline(textGradientOutline);
   builder_.add_textGradient(textGradient);
@@ -293,10 +293,10 @@ inline flatbuffers::Offset<VectorShaders> CreateVectorShaders(
   return builder_.Finish();
 }
 
-inline flatbuffers::Offset<VectorShaders> CreateVectorShadersDirect(
-    flatbuffers::FlatBufferBuilder &_fbb,
-    const std::vector<flatbuffers::Offset<DeepSeaScene::VersionedShaderModule>> *modules = nullptr,
-    const std::vector<flatbuffers::Offset<DeepSeaSceneVectorDraw::MaterialElement>> *extraElements = nullptr,
+inline ::flatbuffers::Offset<VectorShaders> CreateVectorShadersDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    const std::vector<::flatbuffers::Offset<DeepSeaScene::VersionedShaderModule>> *modules = nullptr,
+    const std::vector<::flatbuffers::Offset<DeepSeaSceneVectorDraw::MaterialElement>> *extraElements = nullptr,
     const char *materialDesc = nullptr,
     const char *fillColor = nullptr,
     const char *fillLinearGradient = nullptr,
@@ -307,8 +307,8 @@ inline flatbuffers::Offset<VectorShaders> CreateVectorShadersDirect(
     const char *textColorOutline = nullptr,
     const char *textGradient = nullptr,
     const char *textGradientOutline = nullptr) {
-  auto modules__ = modules ? _fbb.CreateVector<flatbuffers::Offset<DeepSeaScene::VersionedShaderModule>>(*modules) : 0;
-  auto extraElements__ = extraElements ? _fbb.CreateVector<flatbuffers::Offset<DeepSeaSceneVectorDraw::MaterialElement>>(*extraElements) : 0;
+  auto modules__ = modules ? _fbb.CreateVector<::flatbuffers::Offset<DeepSeaScene::VersionedShaderModule>>(*modules) : 0;
+  auto extraElements__ = extraElements ? _fbb.CreateVector<::flatbuffers::Offset<DeepSeaSceneVectorDraw::MaterialElement>>(*extraElements) : 0;
   auto materialDesc__ = materialDesc ? _fbb.CreateString(materialDesc) : 0;
   auto fillColor__ = fillColor ? _fbb.CreateString(fillColor) : 0;
   auto fillLinearGradient__ = fillLinearGradient ? _fbb.CreateString(fillLinearGradient) : 0;
@@ -336,32 +336,32 @@ inline flatbuffers::Offset<VectorShaders> CreateVectorShadersDirect(
 }
 
 inline const DeepSeaSceneVectorDraw::VectorShaders *GetVectorShaders(const void *buf) {
-  return flatbuffers::GetRoot<DeepSeaSceneVectorDraw::VectorShaders>(buf);
+  return ::flatbuffers::GetRoot<DeepSeaSceneVectorDraw::VectorShaders>(buf);
 }
 
 inline const DeepSeaSceneVectorDraw::VectorShaders *GetSizePrefixedVectorShaders(const void *buf) {
-  return flatbuffers::GetSizePrefixedRoot<DeepSeaSceneVectorDraw::VectorShaders>(buf);
+  return ::flatbuffers::GetSizePrefixedRoot<DeepSeaSceneVectorDraw::VectorShaders>(buf);
 }
 
 inline bool VerifyVectorShadersBuffer(
-    flatbuffers::Verifier &verifier) {
+    ::flatbuffers::Verifier &verifier) {
   return verifier.VerifyBuffer<DeepSeaSceneVectorDraw::VectorShaders>(nullptr);
 }
 
 inline bool VerifySizePrefixedVectorShadersBuffer(
-    flatbuffers::Verifier &verifier) {
+    ::flatbuffers::Verifier &verifier) {
   return verifier.VerifySizePrefixedBuffer<DeepSeaSceneVectorDraw::VectorShaders>(nullptr);
 }
 
 inline void FinishVectorShadersBuffer(
-    flatbuffers::FlatBufferBuilder &fbb,
-    flatbuffers::Offset<DeepSeaSceneVectorDraw::VectorShaders> root) {
+    ::flatbuffers::FlatBufferBuilder &fbb,
+    ::flatbuffers::Offset<DeepSeaSceneVectorDraw::VectorShaders> root) {
   fbb.Finish(root);
 }
 
 inline void FinishSizePrefixedVectorShadersBuffer(
-    flatbuffers::FlatBufferBuilder &fbb,
-    flatbuffers::Offset<DeepSeaSceneVectorDraw::VectorShaders> root) {
+    ::flatbuffers::FlatBufferBuilder &fbb,
+    ::flatbuffers::Offset<DeepSeaSceneVectorDraw::VectorShaders> root) {
   fbb.FinishSizePrefixed(root);
 }
 

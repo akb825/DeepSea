@@ -10,7 +10,7 @@
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 23 &&
               FLATBUFFERS_VERSION_MINOR == 1 &&
-              FLATBUFFERS_VERSION_REVISION == 4,
+              FLATBUFFERS_VERSION_REVISION == 21,
              "Non-compatible flatbuffers version included");
 
 #include "DeepSea/Scene/Flatbuffers/SceneCommon_generated.h"
@@ -81,7 +81,7 @@ inline const char * const *EnumNamesPrimitiveType() {
 }
 
 inline const char *EnumNamePrimitiveType(PrimitiveType e) {
-  if (flatbuffers::IsOutRange(e, PrimitiveType::PointList, PrimitiveType::PatchList)) return "";
+  if (::flatbuffers::IsOutRange(e, PrimitiveType::PointList, PrimitiveType::PatchList)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesPrimitiveType()[index];
 }
@@ -114,7 +114,7 @@ inline const char * const *EnumNamesModelDrawRangeUnion() {
 }
 
 inline const char *EnumNameModelDrawRangeUnion(ModelDrawRangeUnion e) {
-  if (flatbuffers::IsOutRange(e, ModelDrawRangeUnion::NONE, ModelDrawRangeUnion::DrawIndexedRange)) return "";
+  if (::flatbuffers::IsOutRange(e, ModelDrawRangeUnion::NONE, ModelDrawRangeUnion::DrawIndexedRange)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesModelDrawRangeUnion()[index];
 }
@@ -131,10 +131,10 @@ template<> struct ModelDrawRangeUnionTraits<DeepSeaScene::DrawIndexedRange> {
   static const ModelDrawRangeUnion enum_value = ModelDrawRangeUnion::DrawIndexedRange;
 };
 
-bool VerifyModelDrawRangeUnion(flatbuffers::Verifier &verifier, const void *obj, ModelDrawRangeUnion type);
-bool VerifyModelDrawRangeUnionVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<ModelDrawRangeUnion> *types);
+bool VerifyModelDrawRangeUnion(::flatbuffers::Verifier &verifier, const void *obj, ModelDrawRangeUnion type);
+bool VerifyModelDrawRangeUnionVector(::flatbuffers::Verifier &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<ModelDrawRangeUnion> *types);
 
-struct DrawRange FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+struct DrawRange FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef DrawRangeBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_VERTEXCOUNT = 4,
@@ -154,7 +154,7 @@ struct DrawRange FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   uint32_t firstInstance() const {
     return GetField<uint32_t>(VT_FIRSTINSTANCE, 0);
   }
-  bool Verify(flatbuffers::Verifier &verifier) const {
+  bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<uint32_t>(verifier, VT_VERTEXCOUNT, 4) &&
            VerifyField<uint32_t>(verifier, VT_INSTANCECOUNT, 4) &&
@@ -166,8 +166,8 @@ struct DrawRange FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 
 struct DrawRangeBuilder {
   typedef DrawRange Table;
-  flatbuffers::FlatBufferBuilder &fbb_;
-  flatbuffers::uoffset_t start_;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
   void add_vertexCount(uint32_t vertexCount) {
     fbb_.AddElement<uint32_t>(DrawRange::VT_VERTEXCOUNT, vertexCount, 0);
   }
@@ -180,19 +180,19 @@ struct DrawRangeBuilder {
   void add_firstInstance(uint32_t firstInstance) {
     fbb_.AddElement<uint32_t>(DrawRange::VT_FIRSTINSTANCE, firstInstance, 0);
   }
-  explicit DrawRangeBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit DrawRangeBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  flatbuffers::Offset<DrawRange> Finish() {
+  ::flatbuffers::Offset<DrawRange> Finish() {
     const auto end = fbb_.EndTable(start_);
-    auto o = flatbuffers::Offset<DrawRange>(end);
+    auto o = ::flatbuffers::Offset<DrawRange>(end);
     return o;
   }
 };
 
-inline flatbuffers::Offset<DrawRange> CreateDrawRange(
-    flatbuffers::FlatBufferBuilder &_fbb,
+inline ::flatbuffers::Offset<DrawRange> CreateDrawRange(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
     uint32_t vertexCount = 0,
     uint32_t instanceCount = 0,
     uint32_t firstVertex = 0,
@@ -205,7 +205,7 @@ inline flatbuffers::Offset<DrawRange> CreateDrawRange(
   return builder_.Finish();
 }
 
-struct DrawIndexedRange FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+struct DrawIndexedRange FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef DrawIndexedRangeBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_INDEXCOUNT = 4,
@@ -229,7 +229,7 @@ struct DrawIndexedRange FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   uint32_t firstInstance() const {
     return GetField<uint32_t>(VT_FIRSTINSTANCE, 0);
   }
-  bool Verify(flatbuffers::Verifier &verifier) const {
+  bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<uint32_t>(verifier, VT_INDEXCOUNT, 4) &&
            VerifyField<uint32_t>(verifier, VT_INSTANCECOUNT, 4) &&
@@ -242,8 +242,8 @@ struct DrawIndexedRange FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 
 struct DrawIndexedRangeBuilder {
   typedef DrawIndexedRange Table;
-  flatbuffers::FlatBufferBuilder &fbb_;
-  flatbuffers::uoffset_t start_;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
   void add_indexCount(uint32_t indexCount) {
     fbb_.AddElement<uint32_t>(DrawIndexedRange::VT_INDEXCOUNT, indexCount, 0);
   }
@@ -259,19 +259,19 @@ struct DrawIndexedRangeBuilder {
   void add_firstInstance(uint32_t firstInstance) {
     fbb_.AddElement<uint32_t>(DrawIndexedRange::VT_FIRSTINSTANCE, firstInstance, 0);
   }
-  explicit DrawIndexedRangeBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit DrawIndexedRangeBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  flatbuffers::Offset<DrawIndexedRange> Finish() {
+  ::flatbuffers::Offset<DrawIndexedRange> Finish() {
     const auto end = fbb_.EndTable(start_);
-    auto o = flatbuffers::Offset<DrawIndexedRange>(end);
+    auto o = ::flatbuffers::Offset<DrawIndexedRange>(end);
     return o;
   }
 };
 
-inline flatbuffers::Offset<DrawIndexedRange> CreateDrawIndexedRange(
-    flatbuffers::FlatBufferBuilder &_fbb,
+inline ::flatbuffers::Offset<DrawIndexedRange> CreateDrawIndexedRange(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
     uint32_t indexCount = 0,
     uint32_t instanceCount = 0,
     uint32_t firstIndex = 0,
@@ -286,7 +286,7 @@ inline flatbuffers::Offset<DrawIndexedRange> CreateDrawIndexedRange(
   return builder_.Finish();
 }
 
-struct ModelDrawRange FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+struct ModelDrawRange FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef ModelDrawRangeBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_DRAWRANGE_TYPE = 4,
@@ -305,7 +305,7 @@ struct ModelDrawRange FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const DeepSeaScene::DrawIndexedRange *drawRange_as_DrawIndexedRange() const {
     return drawRange_type() == DeepSeaScene::ModelDrawRangeUnion::DrawIndexedRange ? static_cast<const DeepSeaScene::DrawIndexedRange *>(drawRange()) : nullptr;
   }
-  bool Verify(flatbuffers::Verifier &verifier) const {
+  bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<uint8_t>(verifier, VT_DRAWRANGE_TYPE, 1) &&
            VerifyOffsetRequired(verifier, VT_DRAWRANGE) &&
@@ -324,37 +324,37 @@ template<> inline const DeepSeaScene::DrawIndexedRange *ModelDrawRange::drawRang
 
 struct ModelDrawRangeBuilder {
   typedef ModelDrawRange Table;
-  flatbuffers::FlatBufferBuilder &fbb_;
-  flatbuffers::uoffset_t start_;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
   void add_drawRange_type(DeepSeaScene::ModelDrawRangeUnion drawRange_type) {
     fbb_.AddElement<uint8_t>(ModelDrawRange::VT_DRAWRANGE_TYPE, static_cast<uint8_t>(drawRange_type), 0);
   }
-  void add_drawRange(flatbuffers::Offset<void> drawRange) {
+  void add_drawRange(::flatbuffers::Offset<void> drawRange) {
     fbb_.AddOffset(ModelDrawRange::VT_DRAWRANGE, drawRange);
   }
-  explicit ModelDrawRangeBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit ModelDrawRangeBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  flatbuffers::Offset<ModelDrawRange> Finish() {
+  ::flatbuffers::Offset<ModelDrawRange> Finish() {
     const auto end = fbb_.EndTable(start_);
-    auto o = flatbuffers::Offset<ModelDrawRange>(end);
+    auto o = ::flatbuffers::Offset<ModelDrawRange>(end);
     fbb_.Required(o, ModelDrawRange::VT_DRAWRANGE);
     return o;
   }
 };
 
-inline flatbuffers::Offset<ModelDrawRange> CreateModelDrawRange(
-    flatbuffers::FlatBufferBuilder &_fbb,
+inline ::flatbuffers::Offset<ModelDrawRange> CreateModelDrawRange(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
     DeepSeaScene::ModelDrawRangeUnion drawRange_type = DeepSeaScene::ModelDrawRangeUnion::NONE,
-    flatbuffers::Offset<void> drawRange = 0) {
+    ::flatbuffers::Offset<void> drawRange = 0) {
   ModelDrawRangeBuilder builder_(_fbb);
   builder_.add_drawRange(drawRange);
   builder_.add_drawRange_type(drawRange_type);
   return builder_.Finish();
 }
 
-struct ModelInfo FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+struct ModelInfo FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef ModelInfoBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_NAME = 4,
@@ -366,31 +366,31 @@ struct ModelInfo FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_PRIMITIVETYPE = 16,
     VT_MODELLIST = 18
   };
-  const flatbuffers::String *name() const {
-    return GetPointer<const flatbuffers::String *>(VT_NAME);
+  const ::flatbuffers::String *name() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_NAME);
   }
-  const flatbuffers::String *shader() const {
-    return GetPointer<const flatbuffers::String *>(VT_SHADER);
+  const ::flatbuffers::String *shader() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_SHADER);
   }
-  const flatbuffers::String *material() const {
-    return GetPointer<const flatbuffers::String *>(VT_MATERIAL);
+  const ::flatbuffers::String *material() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_MATERIAL);
   }
-  const flatbuffers::String *geometry() const {
-    return GetPointer<const flatbuffers::String *>(VT_GEOMETRY);
+  const ::flatbuffers::String *geometry() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_GEOMETRY);
   }
   const DeepSeaScene::Vector2f *distanceRange() const {
     return GetStruct<const DeepSeaScene::Vector2f *>(VT_DISTANCERANGE);
   }
-  const flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::ModelDrawRange>> *drawRanges() const {
-    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::ModelDrawRange>> *>(VT_DRAWRANGES);
+  const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaScene::ModelDrawRange>> *drawRanges() const {
+    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaScene::ModelDrawRange>> *>(VT_DRAWRANGES);
   }
   DeepSeaScene::PrimitiveType primitiveType() const {
     return static_cast<DeepSeaScene::PrimitiveType>(GetField<uint8_t>(VT_PRIMITIVETYPE, 0));
   }
-  const flatbuffers::String *modelList() const {
-    return GetPointer<const flatbuffers::String *>(VT_MODELLIST);
+  const ::flatbuffers::String *modelList() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_MODELLIST);
   }
-  bool Verify(flatbuffers::Verifier &verifier) const {
+  bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_NAME) &&
            verifier.VerifyString(name()) &&
@@ -413,39 +413,39 @@ struct ModelInfo FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 
 struct ModelInfoBuilder {
   typedef ModelInfo Table;
-  flatbuffers::FlatBufferBuilder &fbb_;
-  flatbuffers::uoffset_t start_;
-  void add_name(flatbuffers::Offset<flatbuffers::String> name) {
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_name(::flatbuffers::Offset<::flatbuffers::String> name) {
     fbb_.AddOffset(ModelInfo::VT_NAME, name);
   }
-  void add_shader(flatbuffers::Offset<flatbuffers::String> shader) {
+  void add_shader(::flatbuffers::Offset<::flatbuffers::String> shader) {
     fbb_.AddOffset(ModelInfo::VT_SHADER, shader);
   }
-  void add_material(flatbuffers::Offset<flatbuffers::String> material) {
+  void add_material(::flatbuffers::Offset<::flatbuffers::String> material) {
     fbb_.AddOffset(ModelInfo::VT_MATERIAL, material);
   }
-  void add_geometry(flatbuffers::Offset<flatbuffers::String> geometry) {
+  void add_geometry(::flatbuffers::Offset<::flatbuffers::String> geometry) {
     fbb_.AddOffset(ModelInfo::VT_GEOMETRY, geometry);
   }
   void add_distanceRange(const DeepSeaScene::Vector2f *distanceRange) {
     fbb_.AddStruct(ModelInfo::VT_DISTANCERANGE, distanceRange);
   }
-  void add_drawRanges(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::ModelDrawRange>>> drawRanges) {
+  void add_drawRanges(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaScene::ModelDrawRange>>> drawRanges) {
     fbb_.AddOffset(ModelInfo::VT_DRAWRANGES, drawRanges);
   }
   void add_primitiveType(DeepSeaScene::PrimitiveType primitiveType) {
     fbb_.AddElement<uint8_t>(ModelInfo::VT_PRIMITIVETYPE, static_cast<uint8_t>(primitiveType), 0);
   }
-  void add_modelList(flatbuffers::Offset<flatbuffers::String> modelList) {
+  void add_modelList(::flatbuffers::Offset<::flatbuffers::String> modelList) {
     fbb_.AddOffset(ModelInfo::VT_MODELLIST, modelList);
   }
-  explicit ModelInfoBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit ModelInfoBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  flatbuffers::Offset<ModelInfo> Finish() {
+  ::flatbuffers::Offset<ModelInfo> Finish() {
     const auto end = fbb_.EndTable(start_);
-    auto o = flatbuffers::Offset<ModelInfo>(end);
+    auto o = ::flatbuffers::Offset<ModelInfo>(end);
     fbb_.Required(o, ModelInfo::VT_GEOMETRY);
     fbb_.Required(o, ModelInfo::VT_DISTANCERANGE);
     fbb_.Required(o, ModelInfo::VT_DRAWRANGES);
@@ -453,16 +453,16 @@ struct ModelInfoBuilder {
   }
 };
 
-inline flatbuffers::Offset<ModelInfo> CreateModelInfo(
-    flatbuffers::FlatBufferBuilder &_fbb,
-    flatbuffers::Offset<flatbuffers::String> name = 0,
-    flatbuffers::Offset<flatbuffers::String> shader = 0,
-    flatbuffers::Offset<flatbuffers::String> material = 0,
-    flatbuffers::Offset<flatbuffers::String> geometry = 0,
+inline ::flatbuffers::Offset<ModelInfo> CreateModelInfo(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<::flatbuffers::String> name = 0,
+    ::flatbuffers::Offset<::flatbuffers::String> shader = 0,
+    ::flatbuffers::Offset<::flatbuffers::String> material = 0,
+    ::flatbuffers::Offset<::flatbuffers::String> geometry = 0,
     const DeepSeaScene::Vector2f *distanceRange = nullptr,
-    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::ModelDrawRange>>> drawRanges = 0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaScene::ModelDrawRange>>> drawRanges = 0,
     DeepSeaScene::PrimitiveType primitiveType = DeepSeaScene::PrimitiveType::PointList,
-    flatbuffers::Offset<flatbuffers::String> modelList = 0) {
+    ::flatbuffers::Offset<::flatbuffers::String> modelList = 0) {
   ModelInfoBuilder builder_(_fbb);
   builder_.add_modelList(modelList);
   builder_.add_drawRanges(drawRanges);
@@ -475,21 +475,21 @@ inline flatbuffers::Offset<ModelInfo> CreateModelInfo(
   return builder_.Finish();
 }
 
-inline flatbuffers::Offset<ModelInfo> CreateModelInfoDirect(
-    flatbuffers::FlatBufferBuilder &_fbb,
+inline ::flatbuffers::Offset<ModelInfo> CreateModelInfoDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
     const char *name = nullptr,
     const char *shader = nullptr,
     const char *material = nullptr,
     const char *geometry = nullptr,
     const DeepSeaScene::Vector2f *distanceRange = nullptr,
-    const std::vector<flatbuffers::Offset<DeepSeaScene::ModelDrawRange>> *drawRanges = nullptr,
+    const std::vector<::flatbuffers::Offset<DeepSeaScene::ModelDrawRange>> *drawRanges = nullptr,
     DeepSeaScene::PrimitiveType primitiveType = DeepSeaScene::PrimitiveType::PointList,
     const char *modelList = nullptr) {
   auto name__ = name ? _fbb.CreateString(name) : 0;
   auto shader__ = shader ? _fbb.CreateString(shader) : 0;
   auto material__ = material ? _fbb.CreateString(material) : 0;
   auto geometry__ = geometry ? _fbb.CreateString(geometry) : 0;
-  auto drawRanges__ = drawRanges ? _fbb.CreateVector<flatbuffers::Offset<DeepSeaScene::ModelDrawRange>>(*drawRanges) : 0;
+  auto drawRanges__ = drawRanges ? _fbb.CreateVector<::flatbuffers::Offset<DeepSeaScene::ModelDrawRange>>(*drawRanges) : 0;
   auto modelList__ = modelList ? _fbb.CreateString(modelList) : 0;
   return DeepSeaScene::CreateModelInfo(
       _fbb,
@@ -503,7 +503,7 @@ inline flatbuffers::Offset<ModelInfo> CreateModelInfoDirect(
       modelList__);
 }
 
-struct ModelNode FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+struct ModelNode FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef ModelNodeBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_EMBEDDEDRESOURCES = 4,
@@ -511,19 +511,19 @@ struct ModelNode FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_EXTRAITEMLISTS = 8,
     VT_BOUNDS = 10
   };
-  const flatbuffers::Vector<uint8_t> *embeddedResources() const {
-    return GetPointer<const flatbuffers::Vector<uint8_t> *>(VT_EMBEDDEDRESOURCES);
+  const ::flatbuffers::Vector<uint8_t> *embeddedResources() const {
+    return GetPointer<const ::flatbuffers::Vector<uint8_t> *>(VT_EMBEDDEDRESOURCES);
   }
-  const flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::ModelInfo>> *models() const {
-    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::ModelInfo>> *>(VT_MODELS);
+  const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaScene::ModelInfo>> *models() const {
+    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaScene::ModelInfo>> *>(VT_MODELS);
   }
-  const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *extraItemLists() const {
-    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *>(VT_EXTRAITEMLISTS);
+  const ::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>> *extraItemLists() const {
+    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>> *>(VT_EXTRAITEMLISTS);
   }
   const DeepSeaScene::OrientedBox3f *bounds() const {
     return GetStruct<const DeepSeaScene::OrientedBox3f *>(VT_BOUNDS);
   }
-  bool Verify(flatbuffers::Verifier &verifier) const {
+  bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_EMBEDDEDRESOURCES) &&
            verifier.VerifyVector(embeddedResources()) &&
@@ -540,37 +540,37 @@ struct ModelNode FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 
 struct ModelNodeBuilder {
   typedef ModelNode Table;
-  flatbuffers::FlatBufferBuilder &fbb_;
-  flatbuffers::uoffset_t start_;
-  void add_embeddedResources(flatbuffers::Offset<flatbuffers::Vector<uint8_t>> embeddedResources) {
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_embeddedResources(::flatbuffers::Offset<::flatbuffers::Vector<uint8_t>> embeddedResources) {
     fbb_.AddOffset(ModelNode::VT_EMBEDDEDRESOURCES, embeddedResources);
   }
-  void add_models(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::ModelInfo>>> models) {
+  void add_models(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaScene::ModelInfo>>> models) {
     fbb_.AddOffset(ModelNode::VT_MODELS, models);
   }
-  void add_extraItemLists(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>> extraItemLists) {
+  void add_extraItemLists(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>>> extraItemLists) {
     fbb_.AddOffset(ModelNode::VT_EXTRAITEMLISTS, extraItemLists);
   }
   void add_bounds(const DeepSeaScene::OrientedBox3f *bounds) {
     fbb_.AddStruct(ModelNode::VT_BOUNDS, bounds);
   }
-  explicit ModelNodeBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit ModelNodeBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  flatbuffers::Offset<ModelNode> Finish() {
+  ::flatbuffers::Offset<ModelNode> Finish() {
     const auto end = fbb_.EndTable(start_);
-    auto o = flatbuffers::Offset<ModelNode>(end);
+    auto o = ::flatbuffers::Offset<ModelNode>(end);
     fbb_.Required(o, ModelNode::VT_MODELS);
     return o;
   }
 };
 
-inline flatbuffers::Offset<ModelNode> CreateModelNode(
-    flatbuffers::FlatBufferBuilder &_fbb,
-    flatbuffers::Offset<flatbuffers::Vector<uint8_t>> embeddedResources = 0,
-    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::ModelInfo>>> models = 0,
-    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>> extraItemLists = 0,
+inline ::flatbuffers::Offset<ModelNode> CreateModelNode(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<::flatbuffers::Vector<uint8_t>> embeddedResources = 0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaScene::ModelInfo>>> models = 0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>>> extraItemLists = 0,
     const DeepSeaScene::OrientedBox3f *bounds = nullptr) {
   ModelNodeBuilder builder_(_fbb);
   builder_.add_bounds(bounds);
@@ -580,15 +580,15 @@ inline flatbuffers::Offset<ModelNode> CreateModelNode(
   return builder_.Finish();
 }
 
-inline flatbuffers::Offset<ModelNode> CreateModelNodeDirect(
-    flatbuffers::FlatBufferBuilder &_fbb,
+inline ::flatbuffers::Offset<ModelNode> CreateModelNodeDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
     const std::vector<uint8_t> *embeddedResources = nullptr,
-    const std::vector<flatbuffers::Offset<DeepSeaScene::ModelInfo>> *models = nullptr,
-    const std::vector<flatbuffers::Offset<flatbuffers::String>> *extraItemLists = nullptr,
+    const std::vector<::flatbuffers::Offset<DeepSeaScene::ModelInfo>> *models = nullptr,
+    const std::vector<::flatbuffers::Offset<::flatbuffers::String>> *extraItemLists = nullptr,
     const DeepSeaScene::OrientedBox3f *bounds = nullptr) {
   auto embeddedResources__ = embeddedResources ? _fbb.CreateVector<uint8_t>(*embeddedResources) : 0;
-  auto models__ = models ? _fbb.CreateVector<flatbuffers::Offset<DeepSeaScene::ModelInfo>>(*models) : 0;
-  auto extraItemLists__ = extraItemLists ? _fbb.CreateVector<flatbuffers::Offset<flatbuffers::String>>(*extraItemLists) : 0;
+  auto models__ = models ? _fbb.CreateVector<::flatbuffers::Offset<DeepSeaScene::ModelInfo>>(*models) : 0;
+  auto extraItemLists__ = extraItemLists ? _fbb.CreateVector<::flatbuffers::Offset<::flatbuffers::String>>(*extraItemLists) : 0;
   return DeepSeaScene::CreateModelNode(
       _fbb,
       embeddedResources__,
@@ -597,7 +597,7 @@ inline flatbuffers::Offset<ModelNode> CreateModelNodeDirect(
       bounds);
 }
 
-inline bool VerifyModelDrawRangeUnion(flatbuffers::Verifier &verifier, const void *obj, ModelDrawRangeUnion type) {
+inline bool VerifyModelDrawRangeUnion(::flatbuffers::Verifier &verifier, const void *obj, ModelDrawRangeUnion type) {
   switch (type) {
     case ModelDrawRangeUnion::NONE: {
       return true;
@@ -614,10 +614,10 @@ inline bool VerifyModelDrawRangeUnion(flatbuffers::Verifier &verifier, const voi
   }
 }
 
-inline bool VerifyModelDrawRangeUnionVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<ModelDrawRangeUnion> *types) {
+inline bool VerifyModelDrawRangeUnionVector(::flatbuffers::Verifier &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<ModelDrawRangeUnion> *types) {
   if (!values || !types) return !values && !types;
   if (values->size() != types->size()) return false;
-  for (flatbuffers::uoffset_t i = 0; i < values->size(); ++i) {
+  for (::flatbuffers::uoffset_t i = 0; i < values->size(); ++i) {
     if (!VerifyModelDrawRangeUnion(
         verifier,  values->Get(i), types->GetEnum<ModelDrawRangeUnion>(i))) {
       return false;
@@ -627,32 +627,32 @@ inline bool VerifyModelDrawRangeUnionVector(flatbuffers::Verifier &verifier, con
 }
 
 inline const DeepSeaScene::ModelNode *GetModelNode(const void *buf) {
-  return flatbuffers::GetRoot<DeepSeaScene::ModelNode>(buf);
+  return ::flatbuffers::GetRoot<DeepSeaScene::ModelNode>(buf);
 }
 
 inline const DeepSeaScene::ModelNode *GetSizePrefixedModelNode(const void *buf) {
-  return flatbuffers::GetSizePrefixedRoot<DeepSeaScene::ModelNode>(buf);
+  return ::flatbuffers::GetSizePrefixedRoot<DeepSeaScene::ModelNode>(buf);
 }
 
 inline bool VerifyModelNodeBuffer(
-    flatbuffers::Verifier &verifier) {
+    ::flatbuffers::Verifier &verifier) {
   return verifier.VerifyBuffer<DeepSeaScene::ModelNode>(nullptr);
 }
 
 inline bool VerifySizePrefixedModelNodeBuffer(
-    flatbuffers::Verifier &verifier) {
+    ::flatbuffers::Verifier &verifier) {
   return verifier.VerifySizePrefixedBuffer<DeepSeaScene::ModelNode>(nullptr);
 }
 
 inline void FinishModelNodeBuffer(
-    flatbuffers::FlatBufferBuilder &fbb,
-    flatbuffers::Offset<DeepSeaScene::ModelNode> root) {
+    ::flatbuffers::FlatBufferBuilder &fbb,
+    ::flatbuffers::Offset<DeepSeaScene::ModelNode> root) {
   fbb.Finish(root);
 }
 
 inline void FinishSizePrefixedModelNodeBuffer(
-    flatbuffers::FlatBufferBuilder &fbb,
-    flatbuffers::Offset<DeepSeaScene::ModelNode> root) {
+    ::flatbuffers::FlatBufferBuilder &fbb,
+    ::flatbuffers::Offset<DeepSeaScene::ModelNode> root) {
   fbb.FinishSizePrefixed(root);
 }
 

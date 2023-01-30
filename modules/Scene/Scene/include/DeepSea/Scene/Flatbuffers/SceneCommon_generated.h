@@ -10,7 +10,7 @@
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 23 &&
               FLATBUFFERS_VERSION_MINOR == 1 &&
-              FLATBUFFERS_VERSION_REVISION == 4,
+              FLATBUFFERS_VERSION_REVISION == 21,
              "Non-compatible flatbuffers version included");
 
 namespace DeepSeaScene {
@@ -79,7 +79,7 @@ inline const char * const *EnumNamesFileResourceType() {
 }
 
 inline const char *EnumNameFileResourceType(FileResourceType e) {
-  if (flatbuffers::IsOutRange(e, FileResourceType::Embedded, FileResourceType::External)) return "";
+  if (::flatbuffers::IsOutRange(e, FileResourceType::Embedded, FileResourceType::External)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesFileResourceType()[index];
 }
@@ -328,7 +328,7 @@ inline const char * const *EnumNamesTextureFormat() {
 }
 
 inline const char *EnumNameTextureFormat(TextureFormat e) {
-  if (flatbuffers::IsOutRange(e, TextureFormat::R4G4, TextureFormat::SurfaceDepthStencil)) return "";
+  if (::flatbuffers::IsOutRange(e, TextureFormat::R4G4, TextureFormat::SurfaceDepthStencil)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesTextureFormat()[index];
 }
@@ -364,7 +364,7 @@ inline const char * const *EnumNamesTextureDim() {
 }
 
 inline const char *EnumNameTextureDim(TextureDim e) {
-  if (flatbuffers::IsOutRange(e, TextureDim::Dim1D, TextureDim::DimCube)) return "";
+  if (::flatbuffers::IsOutRange(e, TextureDim::Dim1D, TextureDim::DimCube)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesTextureDim()[index];
 }
@@ -406,7 +406,7 @@ inline const char * const *EnumNamesCubeFace() {
 }
 
 inline const char *EnumNameCubeFace(CubeFace e) {
-  if (flatbuffers::IsOutRange(e, CubeFace::PosX, CubeFace::NegZ)) return "";
+  if (::flatbuffers::IsOutRange(e, CubeFace::PosX, CubeFace::NegZ)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesCubeFace()[index];
 }
@@ -568,7 +568,7 @@ inline const char * const *EnumNamesMaterialType() {
 }
 
 inline const char *EnumNameMaterialType(MaterialType e) {
-  if (flatbuffers::IsOutRange(e, MaterialType::Float, MaterialType::UniformBuffer)) return "";
+  if (::flatbuffers::IsOutRange(e, MaterialType::Float, MaterialType::UniformBuffer)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesMaterialType()[index];
 }
@@ -601,7 +601,7 @@ inline const char * const *EnumNamesMaterialBinding() {
 }
 
 inline const char *EnumNameMaterialBinding(MaterialBinding e) {
-  if (flatbuffers::IsOutRange(e, MaterialBinding::Material, MaterialBinding::Instance)) return "";
+  if (::flatbuffers::IsOutRange(e, MaterialBinding::Material, MaterialBinding::Instance)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesMaterialBinding()[index];
 }
@@ -736,7 +736,7 @@ inline const char * const *EnumNamesVertexElementFormat() {
 }
 
 inline const char *EnumNameVertexElementFormat(VertexElementFormat e) {
-  if (flatbuffers::IsOutRange(e, VertexElementFormat::Unset, VertexElementFormat::R64G64B64A64)) return "";
+  if (::flatbuffers::IsOutRange(e, VertexElementFormat::Unset, VertexElementFormat::R64G64B64A64)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesVertexElementFormat()[index];
 }
@@ -790,7 +790,7 @@ inline const char * const *EnumNamesFormatDecoration() {
 }
 
 inline const char *EnumNameFormatDecoration(FormatDecoration e) {
-  if (flatbuffers::IsOutRange(e, FormatDecoration::UNorm, FormatDecoration::Unset)) return "";
+  if (::flatbuffers::IsOutRange(e, FormatDecoration::UNorm, FormatDecoration::Unset)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesFormatDecoration()[index];
 }
@@ -823,7 +823,7 @@ inline const char * const *EnumNamesFileOrData() {
 }
 
 inline const char *EnumNameFileOrData(FileOrData e) {
-  if (flatbuffers::IsOutRange(e, FileOrData::NONE, FileOrData::RawData)) return "";
+  if (::flatbuffers::IsOutRange(e, FileOrData::NONE, FileOrData::RawData)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesFileOrData()[index];
 }
@@ -840,8 +840,8 @@ template<> struct FileOrDataTraits<DeepSeaScene::RawData> {
   static const FileOrData enum_value = FileOrData::RawData;
 };
 
-bool VerifyFileOrData(flatbuffers::Verifier &verifier, const void *obj, FileOrData type);
-bool VerifyFileOrDataVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<FileOrData> *types);
+bool VerifyFileOrData(::flatbuffers::Verifier &verifier, const void *obj, FileOrData type);
+bool VerifyFileOrDataVector(::flatbuffers::Verifier &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<FileOrData> *types);
 
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Vector2f FLATBUFFERS_FINAL_CLASS {
  private:
@@ -854,14 +854,14 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Vector2f FLATBUFFERS_FINAL_CLASS {
         y_(0) {
   }
   Vector2f(float _x, float _y)
-      : x_(flatbuffers::EndianScalar(_x)),
-        y_(flatbuffers::EndianScalar(_y)) {
+      : x_(::flatbuffers::EndianScalar(_x)),
+        y_(::flatbuffers::EndianScalar(_y)) {
   }
   float x() const {
-    return flatbuffers::EndianScalar(x_);
+    return ::flatbuffers::EndianScalar(x_);
   }
   float y() const {
-    return flatbuffers::EndianScalar(y_);
+    return ::flatbuffers::EndianScalar(y_);
   }
 };
 FLATBUFFERS_STRUCT_END(Vector2f, 8);
@@ -879,18 +879,18 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Vector3f FLATBUFFERS_FINAL_CLASS {
         z_(0) {
   }
   Vector3f(float _x, float _y, float _z)
-      : x_(flatbuffers::EndianScalar(_x)),
-        y_(flatbuffers::EndianScalar(_y)),
-        z_(flatbuffers::EndianScalar(_z)) {
+      : x_(::flatbuffers::EndianScalar(_x)),
+        y_(::flatbuffers::EndianScalar(_y)),
+        z_(::flatbuffers::EndianScalar(_z)) {
   }
   float x() const {
-    return flatbuffers::EndianScalar(x_);
+    return ::flatbuffers::EndianScalar(x_);
   }
   float y() const {
-    return flatbuffers::EndianScalar(y_);
+    return ::flatbuffers::EndianScalar(y_);
   }
   float z() const {
-    return flatbuffers::EndianScalar(z_);
+    return ::flatbuffers::EndianScalar(z_);
   }
 };
 FLATBUFFERS_STRUCT_END(Vector3f, 12);
@@ -910,22 +910,22 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Vector4f FLATBUFFERS_FINAL_CLASS {
         w_(0) {
   }
   Vector4f(float _x, float _y, float _z, float _w)
-      : x_(flatbuffers::EndianScalar(_x)),
-        y_(flatbuffers::EndianScalar(_y)),
-        z_(flatbuffers::EndianScalar(_z)),
-        w_(flatbuffers::EndianScalar(_w)) {
+      : x_(::flatbuffers::EndianScalar(_x)),
+        y_(::flatbuffers::EndianScalar(_y)),
+        z_(::flatbuffers::EndianScalar(_z)),
+        w_(::flatbuffers::EndianScalar(_w)) {
   }
   float x() const {
-    return flatbuffers::EndianScalar(x_);
+    return ::flatbuffers::EndianScalar(x_);
   }
   float y() const {
-    return flatbuffers::EndianScalar(y_);
+    return ::flatbuffers::EndianScalar(y_);
   }
   float z() const {
-    return flatbuffers::EndianScalar(z_);
+    return ::flatbuffers::EndianScalar(z_);
   }
   float w() const {
-    return flatbuffers::EndianScalar(w_);
+    return ::flatbuffers::EndianScalar(w_);
   }
 };
 FLATBUFFERS_STRUCT_END(Vector4f, 16);
@@ -943,18 +943,18 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Color3f FLATBUFFERS_FINAL_CLASS {
         blue_(0) {
   }
   Color3f(float _red, float _green, float _blue)
-      : red_(flatbuffers::EndianScalar(_red)),
-        green_(flatbuffers::EndianScalar(_green)),
-        blue_(flatbuffers::EndianScalar(_blue)) {
+      : red_(::flatbuffers::EndianScalar(_red)),
+        green_(::flatbuffers::EndianScalar(_green)),
+        blue_(::flatbuffers::EndianScalar(_blue)) {
   }
   float red() const {
-    return flatbuffers::EndianScalar(red_);
+    return ::flatbuffers::EndianScalar(red_);
   }
   float green() const {
-    return flatbuffers::EndianScalar(green_);
+    return ::flatbuffers::EndianScalar(green_);
   }
   float blue() const {
-    return flatbuffers::EndianScalar(blue_);
+    return ::flatbuffers::EndianScalar(blue_);
   }
 };
 FLATBUFFERS_STRUCT_END(Color3f, 12);
@@ -974,22 +974,22 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Color4f FLATBUFFERS_FINAL_CLASS {
         alpha_(0) {
   }
   Color4f(float _red, float _green, float _blue, float _alpha)
-      : red_(flatbuffers::EndianScalar(_red)),
-        green_(flatbuffers::EndianScalar(_green)),
-        blue_(flatbuffers::EndianScalar(_blue)),
-        alpha_(flatbuffers::EndianScalar(_alpha)) {
+      : red_(::flatbuffers::EndianScalar(_red)),
+        green_(::flatbuffers::EndianScalar(_green)),
+        blue_(::flatbuffers::EndianScalar(_blue)),
+        alpha_(::flatbuffers::EndianScalar(_alpha)) {
   }
   float red() const {
-    return flatbuffers::EndianScalar(red_);
+    return ::flatbuffers::EndianScalar(red_);
   }
   float green() const {
-    return flatbuffers::EndianScalar(green_);
+    return ::flatbuffers::EndianScalar(green_);
   }
   float blue() const {
-    return flatbuffers::EndianScalar(blue_);
+    return ::flatbuffers::EndianScalar(blue_);
   }
   float alpha() const {
-    return flatbuffers::EndianScalar(alpha_);
+    return ::flatbuffers::EndianScalar(alpha_);
   }
 };
 FLATBUFFERS_STRUCT_END(Color4f, 16);
@@ -1110,19 +1110,19 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) OrientedBox3f FLATBUFFERS_FINAL_CLASS {
 };
 FLATBUFFERS_STRUCT_END(OrientedBox3f, 60);
 
-struct ObjectData FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+struct ObjectData FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef ObjectDataBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_TYPE = 4,
     VT_DATA = 6
   };
-  const flatbuffers::String *type() const {
-    return GetPointer<const flatbuffers::String *>(VT_TYPE);
+  const ::flatbuffers::String *type() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_TYPE);
   }
-  const flatbuffers::Vector<uint8_t> *data() const {
-    return GetPointer<const flatbuffers::Vector<uint8_t> *>(VT_DATA);
+  const ::flatbuffers::Vector<uint8_t> *data() const {
+    return GetPointer<const ::flatbuffers::Vector<uint8_t> *>(VT_DATA);
   }
-  bool Verify(flatbuffers::Verifier &verifier) const {
+  bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_TYPE) &&
            verifier.VerifyString(type()) &&
@@ -1134,39 +1134,39 @@ struct ObjectData FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 
 struct ObjectDataBuilder {
   typedef ObjectData Table;
-  flatbuffers::FlatBufferBuilder &fbb_;
-  flatbuffers::uoffset_t start_;
-  void add_type(flatbuffers::Offset<flatbuffers::String> type) {
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_type(::flatbuffers::Offset<::flatbuffers::String> type) {
     fbb_.AddOffset(ObjectData::VT_TYPE, type);
   }
-  void add_data(flatbuffers::Offset<flatbuffers::Vector<uint8_t>> data) {
+  void add_data(::flatbuffers::Offset<::flatbuffers::Vector<uint8_t>> data) {
     fbb_.AddOffset(ObjectData::VT_DATA, data);
   }
-  explicit ObjectDataBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit ObjectDataBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  flatbuffers::Offset<ObjectData> Finish() {
+  ::flatbuffers::Offset<ObjectData> Finish() {
     const auto end = fbb_.EndTable(start_);
-    auto o = flatbuffers::Offset<ObjectData>(end);
+    auto o = ::flatbuffers::Offset<ObjectData>(end);
     fbb_.Required(o, ObjectData::VT_TYPE);
     fbb_.Required(o, ObjectData::VT_DATA);
     return o;
   }
 };
 
-inline flatbuffers::Offset<ObjectData> CreateObjectData(
-    flatbuffers::FlatBufferBuilder &_fbb,
-    flatbuffers::Offset<flatbuffers::String> type = 0,
-    flatbuffers::Offset<flatbuffers::Vector<uint8_t>> data = 0) {
+inline ::flatbuffers::Offset<ObjectData> CreateObjectData(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<::flatbuffers::String> type = 0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<uint8_t>> data = 0) {
   ObjectDataBuilder builder_(_fbb);
   builder_.add_data(data);
   builder_.add_type(type);
   return builder_.Finish();
 }
 
-inline flatbuffers::Offset<ObjectData> CreateObjectDataDirect(
-    flatbuffers::FlatBufferBuilder &_fbb,
+inline ::flatbuffers::Offset<ObjectData> CreateObjectDataDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
     const char *type = nullptr,
     const std::vector<uint8_t> *data = nullptr) {
   auto type__ = type ? _fbb.CreateString(type) : 0;
@@ -1177,7 +1177,7 @@ inline flatbuffers::Offset<ObjectData> CreateObjectDataDirect(
       data__);
 }
 
-struct FileReference FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+struct FileReference FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef FileReferenceBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_TYPE = 4,
@@ -1186,10 +1186,10 @@ struct FileReference FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   DeepSeaScene::FileResourceType type() const {
     return static_cast<DeepSeaScene::FileResourceType>(GetField<uint8_t>(VT_TYPE, 0));
   }
-  const flatbuffers::String *path() const {
-    return GetPointer<const flatbuffers::String *>(VT_PATH);
+  const ::flatbuffers::String *path() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_PATH);
   }
-  bool Verify(flatbuffers::Verifier &verifier) const {
+  bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<uint8_t>(verifier, VT_TYPE, 1) &&
            VerifyOffsetRequired(verifier, VT_PATH) &&
@@ -1200,38 +1200,38 @@ struct FileReference FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 
 struct FileReferenceBuilder {
   typedef FileReference Table;
-  flatbuffers::FlatBufferBuilder &fbb_;
-  flatbuffers::uoffset_t start_;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
   void add_type(DeepSeaScene::FileResourceType type) {
     fbb_.AddElement<uint8_t>(FileReference::VT_TYPE, static_cast<uint8_t>(type), 0);
   }
-  void add_path(flatbuffers::Offset<flatbuffers::String> path) {
+  void add_path(::flatbuffers::Offset<::flatbuffers::String> path) {
     fbb_.AddOffset(FileReference::VT_PATH, path);
   }
-  explicit FileReferenceBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit FileReferenceBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  flatbuffers::Offset<FileReference> Finish() {
+  ::flatbuffers::Offset<FileReference> Finish() {
     const auto end = fbb_.EndTable(start_);
-    auto o = flatbuffers::Offset<FileReference>(end);
+    auto o = ::flatbuffers::Offset<FileReference>(end);
     fbb_.Required(o, FileReference::VT_PATH);
     return o;
   }
 };
 
-inline flatbuffers::Offset<FileReference> CreateFileReference(
-    flatbuffers::FlatBufferBuilder &_fbb,
+inline ::flatbuffers::Offset<FileReference> CreateFileReference(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
     DeepSeaScene::FileResourceType type = DeepSeaScene::FileResourceType::Embedded,
-    flatbuffers::Offset<flatbuffers::String> path = 0) {
+    ::flatbuffers::Offset<::flatbuffers::String> path = 0) {
   FileReferenceBuilder builder_(_fbb);
   builder_.add_path(path);
   builder_.add_type(type);
   return builder_.Finish();
 }
 
-inline flatbuffers::Offset<FileReference> CreateFileReferenceDirect(
-    flatbuffers::FlatBufferBuilder &_fbb,
+inline ::flatbuffers::Offset<FileReference> CreateFileReferenceDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
     DeepSeaScene::FileResourceType type = DeepSeaScene::FileResourceType::Embedded,
     const char *path = nullptr) {
   auto path__ = path ? _fbb.CreateString(path) : 0;
@@ -1241,15 +1241,15 @@ inline flatbuffers::Offset<FileReference> CreateFileReferenceDirect(
       path__);
 }
 
-struct RawData FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+struct RawData FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef RawDataBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_DATA = 4
   };
-  const flatbuffers::Vector<uint8_t> *data() const {
-    return GetPointer<const flatbuffers::Vector<uint8_t> *>(VT_DATA);
+  const ::flatbuffers::Vector<uint8_t> *data() const {
+    return GetPointer<const ::flatbuffers::Vector<uint8_t> *>(VT_DATA);
   }
-  bool Verify(flatbuffers::Verifier &verifier) const {
+  bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_DATA) &&
            verifier.VerifyVector(data()) &&
@@ -1259,33 +1259,33 @@ struct RawData FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 
 struct RawDataBuilder {
   typedef RawData Table;
-  flatbuffers::FlatBufferBuilder &fbb_;
-  flatbuffers::uoffset_t start_;
-  void add_data(flatbuffers::Offset<flatbuffers::Vector<uint8_t>> data) {
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_data(::flatbuffers::Offset<::flatbuffers::Vector<uint8_t>> data) {
     fbb_.AddOffset(RawData::VT_DATA, data);
   }
-  explicit RawDataBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit RawDataBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  flatbuffers::Offset<RawData> Finish() {
+  ::flatbuffers::Offset<RawData> Finish() {
     const auto end = fbb_.EndTable(start_);
-    auto o = flatbuffers::Offset<RawData>(end);
+    auto o = ::flatbuffers::Offset<RawData>(end);
     fbb_.Required(o, RawData::VT_DATA);
     return o;
   }
 };
 
-inline flatbuffers::Offset<RawData> CreateRawData(
-    flatbuffers::FlatBufferBuilder &_fbb,
-    flatbuffers::Offset<flatbuffers::Vector<uint8_t>> data = 0) {
+inline ::flatbuffers::Offset<RawData> CreateRawData(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<::flatbuffers::Vector<uint8_t>> data = 0) {
   RawDataBuilder builder_(_fbb);
   builder_.add_data(data);
   return builder_.Finish();
 }
 
-inline flatbuffers::Offset<RawData> CreateRawDataDirect(
-    flatbuffers::FlatBufferBuilder &_fbb,
+inline ::flatbuffers::Offset<RawData> CreateRawDataDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
     const std::vector<uint8_t> *data = nullptr) {
   auto data__ = data ? _fbb.CreateVector<uint8_t>(*data) : 0;
   return DeepSeaScene::CreateRawData(
@@ -1293,15 +1293,15 @@ inline flatbuffers::Offset<RawData> CreateRawDataDirect(
       data__);
 }
 
-struct VersionedShaderModule FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+struct VersionedShaderModule FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef VersionedShaderModuleBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_VERSION = 4,
     VT_DATA_TYPE = 6,
     VT_DATA = 8
   };
-  const flatbuffers::String *version() const {
-    return GetPointer<const flatbuffers::String *>(VT_VERSION);
+  const ::flatbuffers::String *version() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_VERSION);
   }
   DeepSeaScene::FileOrData data_type() const {
     return static_cast<DeepSeaScene::FileOrData>(GetField<uint8_t>(VT_DATA_TYPE, 0));
@@ -1316,7 +1316,7 @@ struct VersionedShaderModule FLATBUFFERS_FINAL_CLASS : private flatbuffers::Tabl
   const DeepSeaScene::RawData *data_as_RawData() const {
     return data_type() == DeepSeaScene::FileOrData::RawData ? static_cast<const DeepSeaScene::RawData *>(data()) : nullptr;
   }
-  bool Verify(flatbuffers::Verifier &verifier) const {
+  bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_VERSION) &&
            verifier.VerifyString(version()) &&
@@ -1337,35 +1337,35 @@ template<> inline const DeepSeaScene::RawData *VersionedShaderModule::data_as<De
 
 struct VersionedShaderModuleBuilder {
   typedef VersionedShaderModule Table;
-  flatbuffers::FlatBufferBuilder &fbb_;
-  flatbuffers::uoffset_t start_;
-  void add_version(flatbuffers::Offset<flatbuffers::String> version) {
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_version(::flatbuffers::Offset<::flatbuffers::String> version) {
     fbb_.AddOffset(VersionedShaderModule::VT_VERSION, version);
   }
   void add_data_type(DeepSeaScene::FileOrData data_type) {
     fbb_.AddElement<uint8_t>(VersionedShaderModule::VT_DATA_TYPE, static_cast<uint8_t>(data_type), 0);
   }
-  void add_data(flatbuffers::Offset<void> data) {
+  void add_data(::flatbuffers::Offset<void> data) {
     fbb_.AddOffset(VersionedShaderModule::VT_DATA, data);
   }
-  explicit VersionedShaderModuleBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit VersionedShaderModuleBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  flatbuffers::Offset<VersionedShaderModule> Finish() {
+  ::flatbuffers::Offset<VersionedShaderModule> Finish() {
     const auto end = fbb_.EndTable(start_);
-    auto o = flatbuffers::Offset<VersionedShaderModule>(end);
+    auto o = ::flatbuffers::Offset<VersionedShaderModule>(end);
     fbb_.Required(o, VersionedShaderModule::VT_VERSION);
     fbb_.Required(o, VersionedShaderModule::VT_DATA);
     return o;
   }
 };
 
-inline flatbuffers::Offset<VersionedShaderModule> CreateVersionedShaderModule(
-    flatbuffers::FlatBufferBuilder &_fbb,
-    flatbuffers::Offset<flatbuffers::String> version = 0,
+inline ::flatbuffers::Offset<VersionedShaderModule> CreateVersionedShaderModule(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<::flatbuffers::String> version = 0,
     DeepSeaScene::FileOrData data_type = DeepSeaScene::FileOrData::NONE,
-    flatbuffers::Offset<void> data = 0) {
+    ::flatbuffers::Offset<void> data = 0) {
   VersionedShaderModuleBuilder builder_(_fbb);
   builder_.add_data(data);
   builder_.add_version(version);
@@ -1373,11 +1373,11 @@ inline flatbuffers::Offset<VersionedShaderModule> CreateVersionedShaderModule(
   return builder_.Finish();
 }
 
-inline flatbuffers::Offset<VersionedShaderModule> CreateVersionedShaderModuleDirect(
-    flatbuffers::FlatBufferBuilder &_fbb,
+inline ::flatbuffers::Offset<VersionedShaderModule> CreateVersionedShaderModuleDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
     const char *version = nullptr,
     DeepSeaScene::FileOrData data_type = DeepSeaScene::FileOrData::NONE,
-    flatbuffers::Offset<void> data = 0) {
+    ::flatbuffers::Offset<void> data = 0) {
   auto version__ = version ? _fbb.CreateString(version) : 0;
   return DeepSeaScene::CreateVersionedShaderModule(
       _fbb,
@@ -1386,7 +1386,7 @@ inline flatbuffers::Offset<VersionedShaderModule> CreateVersionedShaderModuleDir
       data);
 }
 
-struct DynamicRenderStates FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+struct DynamicRenderStates FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef DynamicRenderStatesBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_LINEWIDTH = 4,
@@ -1438,7 +1438,7 @@ struct DynamicRenderStates FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table 
   uint32_t backStencilReference() const {
     return GetField<uint32_t>(VT_BACKSTENCILREFERENCE, 0);
   }
-  bool Verify(flatbuffers::Verifier &verifier) const {
+  bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<float>(verifier, VT_LINEWIDTH, 4) &&
            VerifyField<float>(verifier, VT_DEPTHBIASCONSTANTFACTOR, 4) &&
@@ -1458,8 +1458,8 @@ struct DynamicRenderStates FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table 
 
 struct DynamicRenderStatesBuilder {
   typedef DynamicRenderStates Table;
-  flatbuffers::FlatBufferBuilder &fbb_;
-  flatbuffers::uoffset_t start_;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
   void add_lineWidth(float lineWidth) {
     fbb_.AddElement<float>(DynamicRenderStates::VT_LINEWIDTH, lineWidth, 0.0f);
   }
@@ -1496,19 +1496,19 @@ struct DynamicRenderStatesBuilder {
   void add_backStencilReference(uint32_t backStencilReference) {
     fbb_.AddElement<uint32_t>(DynamicRenderStates::VT_BACKSTENCILREFERENCE, backStencilReference, 0);
   }
-  explicit DynamicRenderStatesBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit DynamicRenderStatesBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  flatbuffers::Offset<DynamicRenderStates> Finish() {
+  ::flatbuffers::Offset<DynamicRenderStates> Finish() {
     const auto end = fbb_.EndTable(start_);
-    auto o = flatbuffers::Offset<DynamicRenderStates>(end);
+    auto o = ::flatbuffers::Offset<DynamicRenderStates>(end);
     return o;
   }
 };
 
-inline flatbuffers::Offset<DynamicRenderStates> CreateDynamicRenderStates(
-    flatbuffers::FlatBufferBuilder &_fbb,
+inline ::flatbuffers::Offset<DynamicRenderStates> CreateDynamicRenderStates(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
     float lineWidth = 0.0f,
     float depthBiasConstantFactor = 0.0f,
     float depthBiasClamp = 0.0f,
@@ -1537,7 +1537,7 @@ inline flatbuffers::Offset<DynamicRenderStates> CreateDynamicRenderStates(
   return builder_.Finish();
 }
 
-inline bool VerifyFileOrData(flatbuffers::Verifier &verifier, const void *obj, FileOrData type) {
+inline bool VerifyFileOrData(::flatbuffers::Verifier &verifier, const void *obj, FileOrData type) {
   switch (type) {
     case FileOrData::NONE: {
       return true;
@@ -1554,10 +1554,10 @@ inline bool VerifyFileOrData(flatbuffers::Verifier &verifier, const void *obj, F
   }
 }
 
-inline bool VerifyFileOrDataVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<FileOrData> *types) {
+inline bool VerifyFileOrDataVector(::flatbuffers::Verifier &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<FileOrData> *types) {
   if (!values || !types) return !values && !types;
   if (values->size() != types->size()) return false;
-  for (flatbuffers::uoffset_t i = 0; i < values->size(); ++i) {
+  for (::flatbuffers::uoffset_t i = 0; i < values->size(); ++i) {
     if (!VerifyFileOrData(
         verifier,  values->Get(i), types->GetEnum<FileOrData>(i))) {
       return false;

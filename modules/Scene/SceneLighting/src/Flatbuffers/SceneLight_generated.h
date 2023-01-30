@@ -10,7 +10,7 @@
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 23 &&
               FLATBUFFERS_VERSION_MINOR == 1 &&
-              FLATBUFFERS_VERSION_REVISION == 4,
+              FLATBUFFERS_VERSION_REVISION == 21,
              "Non-compatible flatbuffers version included");
 
 #include "DeepSea/Scene/Flatbuffers/SceneCommon_generated.h"
@@ -57,7 +57,7 @@ inline const char * const *EnumNamesLightUnion() {
 }
 
 inline const char *EnumNameLightUnion(LightUnion e) {
-  if (flatbuffers::IsOutRange(e, LightUnion::NONE, LightUnion::SpotLight)) return "";
+  if (::flatbuffers::IsOutRange(e, LightUnion::NONE, LightUnion::SpotLight)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesLightUnion()[index];
 }
@@ -78,10 +78,10 @@ template<> struct LightUnionTraits<DeepSeaSceneLighting::SpotLight> {
   static const LightUnion enum_value = LightUnion::SpotLight;
 };
 
-bool VerifyLightUnion(flatbuffers::Verifier &verifier, const void *obj, LightUnion type);
-bool VerifyLightUnionVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<LightUnion> *types);
+bool VerifyLightUnion(::flatbuffers::Verifier &verifier, const void *obj, LightUnion type);
+bool VerifyLightUnionVector(::flatbuffers::Verifier &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<LightUnion> *types);
 
-struct DirectionalLight FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+struct DirectionalLight FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef DirectionalLightBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_DIRECTION = 4,
@@ -97,7 +97,7 @@ struct DirectionalLight FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   float intensity() const {
     return GetField<float>(VT_INTENSITY, 0.0f);
   }
-  bool Verify(flatbuffers::Verifier &verifier) const {
+  bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyFieldRequired<DeepSeaScene::Vector3f>(verifier, VT_DIRECTION, 4) &&
            VerifyFieldRequired<DeepSeaScene::Color3f>(verifier, VT_COLOR, 4) &&
@@ -108,8 +108,8 @@ struct DirectionalLight FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 
 struct DirectionalLightBuilder {
   typedef DirectionalLight Table;
-  flatbuffers::FlatBufferBuilder &fbb_;
-  flatbuffers::uoffset_t start_;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
   void add_direction(const DeepSeaScene::Vector3f *direction) {
     fbb_.AddStruct(DirectionalLight::VT_DIRECTION, direction);
   }
@@ -119,21 +119,21 @@ struct DirectionalLightBuilder {
   void add_intensity(float intensity) {
     fbb_.AddElement<float>(DirectionalLight::VT_INTENSITY, intensity, 0.0f);
   }
-  explicit DirectionalLightBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit DirectionalLightBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  flatbuffers::Offset<DirectionalLight> Finish() {
+  ::flatbuffers::Offset<DirectionalLight> Finish() {
     const auto end = fbb_.EndTable(start_);
-    auto o = flatbuffers::Offset<DirectionalLight>(end);
+    auto o = ::flatbuffers::Offset<DirectionalLight>(end);
     fbb_.Required(o, DirectionalLight::VT_DIRECTION);
     fbb_.Required(o, DirectionalLight::VT_COLOR);
     return o;
   }
 };
 
-inline flatbuffers::Offset<DirectionalLight> CreateDirectionalLight(
-    flatbuffers::FlatBufferBuilder &_fbb,
+inline ::flatbuffers::Offset<DirectionalLight> CreateDirectionalLight(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
     const DeepSeaScene::Vector3f *direction = nullptr,
     const DeepSeaScene::Color3f *color = nullptr,
     float intensity = 0.0f) {
@@ -144,7 +144,7 @@ inline flatbuffers::Offset<DirectionalLight> CreateDirectionalLight(
   return builder_.Finish();
 }
 
-struct PointLight FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+struct PointLight FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef PointLightBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_POSITION = 4,
@@ -168,7 +168,7 @@ struct PointLight FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   float quadraticFalloff() const {
     return GetField<float>(VT_QUADRATICFALLOFF, 0.0f);
   }
-  bool Verify(flatbuffers::Verifier &verifier) const {
+  bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyFieldRequired<DeepSeaScene::Vector3f>(verifier, VT_POSITION, 4) &&
            VerifyFieldRequired<DeepSeaScene::Color3f>(verifier, VT_COLOR, 4) &&
@@ -181,8 +181,8 @@ struct PointLight FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 
 struct PointLightBuilder {
   typedef PointLight Table;
-  flatbuffers::FlatBufferBuilder &fbb_;
-  flatbuffers::uoffset_t start_;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
   void add_position(const DeepSeaScene::Vector3f *position) {
     fbb_.AddStruct(PointLight::VT_POSITION, position);
   }
@@ -198,21 +198,21 @@ struct PointLightBuilder {
   void add_quadraticFalloff(float quadraticFalloff) {
     fbb_.AddElement<float>(PointLight::VT_QUADRATICFALLOFF, quadraticFalloff, 0.0f);
   }
-  explicit PointLightBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit PointLightBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  flatbuffers::Offset<PointLight> Finish() {
+  ::flatbuffers::Offset<PointLight> Finish() {
     const auto end = fbb_.EndTable(start_);
-    auto o = flatbuffers::Offset<PointLight>(end);
+    auto o = ::flatbuffers::Offset<PointLight>(end);
     fbb_.Required(o, PointLight::VT_POSITION);
     fbb_.Required(o, PointLight::VT_COLOR);
     return o;
   }
 };
 
-inline flatbuffers::Offset<PointLight> CreatePointLight(
-    flatbuffers::FlatBufferBuilder &_fbb,
+inline ::flatbuffers::Offset<PointLight> CreatePointLight(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
     const DeepSeaScene::Vector3f *position = nullptr,
     const DeepSeaScene::Color3f *color = nullptr,
     float intensity = 0.0f,
@@ -227,7 +227,7 @@ inline flatbuffers::Offset<PointLight> CreatePointLight(
   return builder_.Finish();
 }
 
-struct SpotLight FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+struct SpotLight FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef SpotLightBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_POSITION = 4,
@@ -263,7 +263,7 @@ struct SpotLight FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   float outerSpotAngle() const {
     return GetField<float>(VT_OUTERSPOTANGLE, 0.0f);
   }
-  bool Verify(flatbuffers::Verifier &verifier) const {
+  bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyFieldRequired<DeepSeaScene::Vector3f>(verifier, VT_POSITION, 4) &&
            VerifyFieldRequired<DeepSeaScene::Vector3f>(verifier, VT_DIRECTION, 4) &&
@@ -279,8 +279,8 @@ struct SpotLight FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 
 struct SpotLightBuilder {
   typedef SpotLight Table;
-  flatbuffers::FlatBufferBuilder &fbb_;
-  flatbuffers::uoffset_t start_;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
   void add_position(const DeepSeaScene::Vector3f *position) {
     fbb_.AddStruct(SpotLight::VT_POSITION, position);
   }
@@ -305,13 +305,13 @@ struct SpotLightBuilder {
   void add_outerSpotAngle(float outerSpotAngle) {
     fbb_.AddElement<float>(SpotLight::VT_OUTERSPOTANGLE, outerSpotAngle, 0.0f);
   }
-  explicit SpotLightBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit SpotLightBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  flatbuffers::Offset<SpotLight> Finish() {
+  ::flatbuffers::Offset<SpotLight> Finish() {
     const auto end = fbb_.EndTable(start_);
-    auto o = flatbuffers::Offset<SpotLight>(end);
+    auto o = ::flatbuffers::Offset<SpotLight>(end);
     fbb_.Required(o, SpotLight::VT_POSITION);
     fbb_.Required(o, SpotLight::VT_DIRECTION);
     fbb_.Required(o, SpotLight::VT_COLOR);
@@ -319,8 +319,8 @@ struct SpotLightBuilder {
   }
 };
 
-inline flatbuffers::Offset<SpotLight> CreateSpotLight(
-    flatbuffers::FlatBufferBuilder &_fbb,
+inline ::flatbuffers::Offset<SpotLight> CreateSpotLight(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
     const DeepSeaScene::Vector3f *position = nullptr,
     const DeepSeaScene::Vector3f *direction = nullptr,
     const DeepSeaScene::Color3f *color = nullptr,
@@ -341,7 +341,7 @@ inline flatbuffers::Offset<SpotLight> CreateSpotLight(
   return builder_.Finish();
 }
 
-inline bool VerifyLightUnion(flatbuffers::Verifier &verifier, const void *obj, LightUnion type) {
+inline bool VerifyLightUnion(::flatbuffers::Verifier &verifier, const void *obj, LightUnion type) {
   switch (type) {
     case LightUnion::NONE: {
       return true;
@@ -362,10 +362,10 @@ inline bool VerifyLightUnion(flatbuffers::Verifier &verifier, const void *obj, L
   }
 }
 
-inline bool VerifyLightUnionVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<LightUnion> *types) {
+inline bool VerifyLightUnionVector(::flatbuffers::Verifier &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<LightUnion> *types) {
   if (!values || !types) return !values && !types;
   if (values->size() != types->size()) return false;
-  for (flatbuffers::uoffset_t i = 0; i < values->size(); ++i) {
+  for (::flatbuffers::uoffset_t i = 0; i < values->size(); ++i) {
     if (!VerifyLightUnion(
         verifier,  values->Get(i), types->GetEnum<LightUnion>(i))) {
       return false;

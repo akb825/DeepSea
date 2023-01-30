@@ -10,7 +10,7 @@
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 23 &&
               FLATBUFFERS_VERSION_MINOR == 1 &&
-              FLATBUFFERS_VERSION_REVISION == 4,
+              FLATBUFFERS_VERSION_REVISION == 21,
              "Non-compatible flatbuffers version included");
 
 #include "DeepSea/Scene/Flatbuffers/SceneCommon_generated.h"
@@ -24,15 +24,15 @@ struct LightBuilder;
 struct SceneLightSet;
 struct SceneLightSetBuilder;
 
-struct Light FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+struct Light FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef LightBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_NAME = 4,
     VT_LIGHT_TYPE = 6,
     VT_LIGHT = 8
   };
-  const flatbuffers::String *name() const {
-    return GetPointer<const flatbuffers::String *>(VT_NAME);
+  const ::flatbuffers::String *name() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_NAME);
   }
   DeepSeaSceneLighting::LightUnion light_type() const {
     return static_cast<DeepSeaSceneLighting::LightUnion>(GetField<uint8_t>(VT_LIGHT_TYPE, 0));
@@ -50,7 +50,7 @@ struct Light FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const DeepSeaSceneLighting::SpotLight *light_as_SpotLight() const {
     return light_type() == DeepSeaSceneLighting::LightUnion::SpotLight ? static_cast<const DeepSeaSceneLighting::SpotLight *>(light()) : nullptr;
   }
-  bool Verify(flatbuffers::Verifier &verifier) const {
+  bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_NAME) &&
            verifier.VerifyString(name()) &&
@@ -75,35 +75,35 @@ template<> inline const DeepSeaSceneLighting::SpotLight *Light::light_as<DeepSea
 
 struct LightBuilder {
   typedef Light Table;
-  flatbuffers::FlatBufferBuilder &fbb_;
-  flatbuffers::uoffset_t start_;
-  void add_name(flatbuffers::Offset<flatbuffers::String> name) {
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_name(::flatbuffers::Offset<::flatbuffers::String> name) {
     fbb_.AddOffset(Light::VT_NAME, name);
   }
   void add_light_type(DeepSeaSceneLighting::LightUnion light_type) {
     fbb_.AddElement<uint8_t>(Light::VT_LIGHT_TYPE, static_cast<uint8_t>(light_type), 0);
   }
-  void add_light(flatbuffers::Offset<void> light) {
+  void add_light(::flatbuffers::Offset<void> light) {
     fbb_.AddOffset(Light::VT_LIGHT, light);
   }
-  explicit LightBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit LightBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  flatbuffers::Offset<Light> Finish() {
+  ::flatbuffers::Offset<Light> Finish() {
     const auto end = fbb_.EndTable(start_);
-    auto o = flatbuffers::Offset<Light>(end);
+    auto o = ::flatbuffers::Offset<Light>(end);
     fbb_.Required(o, Light::VT_NAME);
     fbb_.Required(o, Light::VT_LIGHT);
     return o;
   }
 };
 
-inline flatbuffers::Offset<Light> CreateLight(
-    flatbuffers::FlatBufferBuilder &_fbb,
-    flatbuffers::Offset<flatbuffers::String> name = 0,
+inline ::flatbuffers::Offset<Light> CreateLight(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<::flatbuffers::String> name = 0,
     DeepSeaSceneLighting::LightUnion light_type = DeepSeaSceneLighting::LightUnion::NONE,
-    flatbuffers::Offset<void> light = 0) {
+    ::flatbuffers::Offset<void> light = 0) {
   LightBuilder builder_(_fbb);
   builder_.add_light(light);
   builder_.add_name(name);
@@ -111,11 +111,11 @@ inline flatbuffers::Offset<Light> CreateLight(
   return builder_.Finish();
 }
 
-inline flatbuffers::Offset<Light> CreateLightDirect(
-    flatbuffers::FlatBufferBuilder &_fbb,
+inline ::flatbuffers::Offset<Light> CreateLightDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
     const char *name = nullptr,
     DeepSeaSceneLighting::LightUnion light_type = DeepSeaSceneLighting::LightUnion::NONE,
-    flatbuffers::Offset<void> light = 0) {
+    ::flatbuffers::Offset<void> light = 0) {
   auto name__ = name ? _fbb.CreateString(name) : 0;
   return DeepSeaSceneLighting::CreateLight(
       _fbb,
@@ -124,7 +124,7 @@ inline flatbuffers::Offset<Light> CreateLightDirect(
       light);
 }
 
-struct SceneLightSet FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+struct SceneLightSet FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef SceneLightSetBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_LIGHTS = 4,
@@ -133,8 +133,8 @@ struct SceneLightSet FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_AMBIENTINTENSITY = 10,
     VT_MAINLIGHT = 12
   };
-  const flatbuffers::Vector<flatbuffers::Offset<DeepSeaSceneLighting::Light>> *lights() const {
-    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<DeepSeaSceneLighting::Light>> *>(VT_LIGHTS);
+  const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaSceneLighting::Light>> *lights() const {
+    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaSceneLighting::Light>> *>(VT_LIGHTS);
   }
   uint32_t maxLights() const {
     return GetField<uint32_t>(VT_MAXLIGHTS, 0);
@@ -145,10 +145,10 @@ struct SceneLightSet FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   float ambientIntensity() const {
     return GetField<float>(VT_AMBIENTINTENSITY, 0.0f);
   }
-  const flatbuffers::String *mainLight() const {
-    return GetPointer<const flatbuffers::String *>(VT_MAINLIGHT);
+  const ::flatbuffers::String *mainLight() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_MAINLIGHT);
   }
-  bool Verify(flatbuffers::Verifier &verifier) const {
+  bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_LIGHTS) &&
            verifier.VerifyVector(lights()) &&
@@ -164,9 +164,9 @@ struct SceneLightSet FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 
 struct SceneLightSetBuilder {
   typedef SceneLightSet Table;
-  flatbuffers::FlatBufferBuilder &fbb_;
-  flatbuffers::uoffset_t start_;
-  void add_lights(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaSceneLighting::Light>>> lights) {
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_lights(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaSceneLighting::Light>>> lights) {
     fbb_.AddOffset(SceneLightSet::VT_LIGHTS, lights);
   }
   void add_maxLights(uint32_t maxLights) {
@@ -178,27 +178,27 @@ struct SceneLightSetBuilder {
   void add_ambientIntensity(float ambientIntensity) {
     fbb_.AddElement<float>(SceneLightSet::VT_AMBIENTINTENSITY, ambientIntensity, 0.0f);
   }
-  void add_mainLight(flatbuffers::Offset<flatbuffers::String> mainLight) {
+  void add_mainLight(::flatbuffers::Offset<::flatbuffers::String> mainLight) {
     fbb_.AddOffset(SceneLightSet::VT_MAINLIGHT, mainLight);
   }
-  explicit SceneLightSetBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit SceneLightSetBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  flatbuffers::Offset<SceneLightSet> Finish() {
+  ::flatbuffers::Offset<SceneLightSet> Finish() {
     const auto end = fbb_.EndTable(start_);
-    auto o = flatbuffers::Offset<SceneLightSet>(end);
+    auto o = ::flatbuffers::Offset<SceneLightSet>(end);
     return o;
   }
 };
 
-inline flatbuffers::Offset<SceneLightSet> CreateSceneLightSet(
-    flatbuffers::FlatBufferBuilder &_fbb,
-    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaSceneLighting::Light>>> lights = 0,
+inline ::flatbuffers::Offset<SceneLightSet> CreateSceneLightSet(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaSceneLighting::Light>>> lights = 0,
     uint32_t maxLights = 0,
     const DeepSeaScene::Color3f *ambientColor = nullptr,
     float ambientIntensity = 0.0f,
-    flatbuffers::Offset<flatbuffers::String> mainLight = 0) {
+    ::flatbuffers::Offset<::flatbuffers::String> mainLight = 0) {
   SceneLightSetBuilder builder_(_fbb);
   builder_.add_mainLight(mainLight);
   builder_.add_ambientIntensity(ambientIntensity);
@@ -208,14 +208,14 @@ inline flatbuffers::Offset<SceneLightSet> CreateSceneLightSet(
   return builder_.Finish();
 }
 
-inline flatbuffers::Offset<SceneLightSet> CreateSceneLightSetDirect(
-    flatbuffers::FlatBufferBuilder &_fbb,
-    const std::vector<flatbuffers::Offset<DeepSeaSceneLighting::Light>> *lights = nullptr,
+inline ::flatbuffers::Offset<SceneLightSet> CreateSceneLightSetDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    const std::vector<::flatbuffers::Offset<DeepSeaSceneLighting::Light>> *lights = nullptr,
     uint32_t maxLights = 0,
     const DeepSeaScene::Color3f *ambientColor = nullptr,
     float ambientIntensity = 0.0f,
     const char *mainLight = nullptr) {
-  auto lights__ = lights ? _fbb.CreateVector<flatbuffers::Offset<DeepSeaSceneLighting::Light>>(*lights) : 0;
+  auto lights__ = lights ? _fbb.CreateVector<::flatbuffers::Offset<DeepSeaSceneLighting::Light>>(*lights) : 0;
   auto mainLight__ = mainLight ? _fbb.CreateString(mainLight) : 0;
   return DeepSeaSceneLighting::CreateSceneLightSet(
       _fbb,
@@ -227,32 +227,32 @@ inline flatbuffers::Offset<SceneLightSet> CreateSceneLightSetDirect(
 }
 
 inline const DeepSeaSceneLighting::SceneLightSet *GetSceneLightSet(const void *buf) {
-  return flatbuffers::GetRoot<DeepSeaSceneLighting::SceneLightSet>(buf);
+  return ::flatbuffers::GetRoot<DeepSeaSceneLighting::SceneLightSet>(buf);
 }
 
 inline const DeepSeaSceneLighting::SceneLightSet *GetSizePrefixedSceneLightSet(const void *buf) {
-  return flatbuffers::GetSizePrefixedRoot<DeepSeaSceneLighting::SceneLightSet>(buf);
+  return ::flatbuffers::GetSizePrefixedRoot<DeepSeaSceneLighting::SceneLightSet>(buf);
 }
 
 inline bool VerifySceneLightSetBuffer(
-    flatbuffers::Verifier &verifier) {
+    ::flatbuffers::Verifier &verifier) {
   return verifier.VerifyBuffer<DeepSeaSceneLighting::SceneLightSet>(nullptr);
 }
 
 inline bool VerifySizePrefixedSceneLightSetBuffer(
-    flatbuffers::Verifier &verifier) {
+    ::flatbuffers::Verifier &verifier) {
   return verifier.VerifySizePrefixedBuffer<DeepSeaSceneLighting::SceneLightSet>(nullptr);
 }
 
 inline void FinishSceneLightSetBuffer(
-    flatbuffers::FlatBufferBuilder &fbb,
-    flatbuffers::Offset<DeepSeaSceneLighting::SceneLightSet> root) {
+    ::flatbuffers::FlatBufferBuilder &fbb,
+    ::flatbuffers::Offset<DeepSeaSceneLighting::SceneLightSet> root) {
   fbb.Finish(root);
 }
 
 inline void FinishSizePrefixedSceneLightSetBuffer(
-    flatbuffers::FlatBufferBuilder &fbb,
-    flatbuffers::Offset<DeepSeaSceneLighting::SceneLightSet> root) {
+    ::flatbuffers::FlatBufferBuilder &fbb,
+    ::flatbuffers::Offset<DeepSeaSceneLighting::SceneLightSet> root) {
   fbb.FinishSizePrefixed(root);
 }
 

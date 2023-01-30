@@ -10,7 +10,7 @@
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 23 &&
               FLATBUFFERS_VERSION_MINOR == 1 &&
-              FLATBUFFERS_VERSION_REVISION == 4,
+              FLATBUFFERS_VERSION_REVISION == 21,
              "Non-compatible flatbuffers version included");
 
 #include "DeepSea/Scene/Flatbuffers/SceneCommon_generated.h"
@@ -20,7 +20,7 @@ namespace TestScene {
 struct LightData;
 struct LightDataBuilder;
 
-struct LightData FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+struct LightData FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef LightDataBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_VARIABLEGROUPDESC = 4,
@@ -28,8 +28,8 @@ struct LightData FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_COLOR = 8,
     VT_AMBIENT = 10
   };
-  const flatbuffers::String *variableGroupDesc() const {
-    return GetPointer<const flatbuffers::String *>(VT_VARIABLEGROUPDESC);
+  const ::flatbuffers::String *variableGroupDesc() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_VARIABLEGROUPDESC);
   }
   const DeepSeaScene::Vector3f *direction() const {
     return GetStruct<const DeepSeaScene::Vector3f *>(VT_DIRECTION);
@@ -40,7 +40,7 @@ struct LightData FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const DeepSeaScene::Vector3f *ambient() const {
     return GetStruct<const DeepSeaScene::Vector3f *>(VT_AMBIENT);
   }
-  bool Verify(flatbuffers::Verifier &verifier) const {
+  bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_VARIABLEGROUPDESC) &&
            verifier.VerifyString(variableGroupDesc()) &&
@@ -53,9 +53,9 @@ struct LightData FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 
 struct LightDataBuilder {
   typedef LightData Table;
-  flatbuffers::FlatBufferBuilder &fbb_;
-  flatbuffers::uoffset_t start_;
-  void add_variableGroupDesc(flatbuffers::Offset<flatbuffers::String> variableGroupDesc) {
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_variableGroupDesc(::flatbuffers::Offset<::flatbuffers::String> variableGroupDesc) {
     fbb_.AddOffset(LightData::VT_VARIABLEGROUPDESC, variableGroupDesc);
   }
   void add_direction(const DeepSeaScene::Vector3f *direction) {
@@ -67,13 +67,13 @@ struct LightDataBuilder {
   void add_ambient(const DeepSeaScene::Vector3f *ambient) {
     fbb_.AddStruct(LightData::VT_AMBIENT, ambient);
   }
-  explicit LightDataBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit LightDataBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  flatbuffers::Offset<LightData> Finish() {
+  ::flatbuffers::Offset<LightData> Finish() {
     const auto end = fbb_.EndTable(start_);
-    auto o = flatbuffers::Offset<LightData>(end);
+    auto o = ::flatbuffers::Offset<LightData>(end);
     fbb_.Required(o, LightData::VT_VARIABLEGROUPDESC);
     fbb_.Required(o, LightData::VT_DIRECTION);
     fbb_.Required(o, LightData::VT_COLOR);
@@ -82,9 +82,9 @@ struct LightDataBuilder {
   }
 };
 
-inline flatbuffers::Offset<LightData> CreateLightData(
-    flatbuffers::FlatBufferBuilder &_fbb,
-    flatbuffers::Offset<flatbuffers::String> variableGroupDesc = 0,
+inline ::flatbuffers::Offset<LightData> CreateLightData(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<::flatbuffers::String> variableGroupDesc = 0,
     const DeepSeaScene::Vector3f *direction = nullptr,
     const DeepSeaScene::Vector3f *color = nullptr,
     const DeepSeaScene::Vector3f *ambient = nullptr) {
@@ -96,8 +96,8 @@ inline flatbuffers::Offset<LightData> CreateLightData(
   return builder_.Finish();
 }
 
-inline flatbuffers::Offset<LightData> CreateLightDataDirect(
-    flatbuffers::FlatBufferBuilder &_fbb,
+inline ::flatbuffers::Offset<LightData> CreateLightDataDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
     const char *variableGroupDesc = nullptr,
     const DeepSeaScene::Vector3f *direction = nullptr,
     const DeepSeaScene::Vector3f *color = nullptr,
@@ -112,32 +112,32 @@ inline flatbuffers::Offset<LightData> CreateLightDataDirect(
 }
 
 inline const TestScene::LightData *GetLightData(const void *buf) {
-  return flatbuffers::GetRoot<TestScene::LightData>(buf);
+  return ::flatbuffers::GetRoot<TestScene::LightData>(buf);
 }
 
 inline const TestScene::LightData *GetSizePrefixedLightData(const void *buf) {
-  return flatbuffers::GetSizePrefixedRoot<TestScene::LightData>(buf);
+  return ::flatbuffers::GetSizePrefixedRoot<TestScene::LightData>(buf);
 }
 
 inline bool VerifyLightDataBuffer(
-    flatbuffers::Verifier &verifier) {
+    ::flatbuffers::Verifier &verifier) {
   return verifier.VerifyBuffer<TestScene::LightData>(nullptr);
 }
 
 inline bool VerifySizePrefixedLightDataBuffer(
-    flatbuffers::Verifier &verifier) {
+    ::flatbuffers::Verifier &verifier) {
   return verifier.VerifySizePrefixedBuffer<TestScene::LightData>(nullptr);
 }
 
 inline void FinishLightDataBuffer(
-    flatbuffers::FlatBufferBuilder &fbb,
-    flatbuffers::Offset<TestScene::LightData> root) {
+    ::flatbuffers::FlatBufferBuilder &fbb,
+    ::flatbuffers::Offset<TestScene::LightData> root) {
   fbb.Finish(root);
 }
 
 inline void FinishSizePrefixedLightDataBuffer(
-    flatbuffers::FlatBufferBuilder &fbb,
-    flatbuffers::Offset<TestScene::LightData> root) {
+    ::flatbuffers::FlatBufferBuilder &fbb,
+    ::flatbuffers::Offset<TestScene::LightData> root) {
   fbb.FinishSizePrefixed(root);
 }
 

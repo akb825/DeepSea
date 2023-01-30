@@ -10,7 +10,7 @@
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 23 &&
               FLATBUFFERS_VERSION_MINOR == 1 &&
-              FLATBUFFERS_VERSION_REVISION == 4,
+              FLATBUFFERS_VERSION_REVISION == 21,
              "Non-compatible flatbuffers version included");
 
 #include "DeepSea/Scene/Flatbuffers/SceneCommon_generated.h"
@@ -20,19 +20,19 @@ namespace DeepSeaScene {
 struct TransformNodeChildren;
 struct TransformNodeChildrenBuilder;
 
-struct TransformNodeChildren FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+struct TransformNodeChildren FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef TransformNodeChildrenBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_NODE = 4,
     VT_CHILDREN = 6
   };
-  const flatbuffers::String *node() const {
-    return GetPointer<const flatbuffers::String *>(VT_NODE);
+  const ::flatbuffers::String *node() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_NODE);
   }
-  const flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::ObjectData>> *children() const {
-    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::ObjectData>> *>(VT_CHILDREN);
+  const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaScene::ObjectData>> *children() const {
+    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaScene::ObjectData>> *>(VT_CHILDREN);
   }
-  bool Verify(flatbuffers::Verifier &verifier) const {
+  bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_NODE) &&
            verifier.VerifyString(node()) &&
@@ -45,43 +45,43 @@ struct TransformNodeChildren FLATBUFFERS_FINAL_CLASS : private flatbuffers::Tabl
 
 struct TransformNodeChildrenBuilder {
   typedef TransformNodeChildren Table;
-  flatbuffers::FlatBufferBuilder &fbb_;
-  flatbuffers::uoffset_t start_;
-  void add_node(flatbuffers::Offset<flatbuffers::String> node) {
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_node(::flatbuffers::Offset<::flatbuffers::String> node) {
     fbb_.AddOffset(TransformNodeChildren::VT_NODE, node);
   }
-  void add_children(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::ObjectData>>> children) {
+  void add_children(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaScene::ObjectData>>> children) {
     fbb_.AddOffset(TransformNodeChildren::VT_CHILDREN, children);
   }
-  explicit TransformNodeChildrenBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit TransformNodeChildrenBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  flatbuffers::Offset<TransformNodeChildren> Finish() {
+  ::flatbuffers::Offset<TransformNodeChildren> Finish() {
     const auto end = fbb_.EndTable(start_);
-    auto o = flatbuffers::Offset<TransformNodeChildren>(end);
+    auto o = ::flatbuffers::Offset<TransformNodeChildren>(end);
     fbb_.Required(o, TransformNodeChildren::VT_NODE);
     fbb_.Required(o, TransformNodeChildren::VT_CHILDREN);
     return o;
   }
 };
 
-inline flatbuffers::Offset<TransformNodeChildren> CreateTransformNodeChildren(
-    flatbuffers::FlatBufferBuilder &_fbb,
-    flatbuffers::Offset<flatbuffers::String> node = 0,
-    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DeepSeaScene::ObjectData>>> children = 0) {
+inline ::flatbuffers::Offset<TransformNodeChildren> CreateTransformNodeChildren(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<::flatbuffers::String> node = 0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaScene::ObjectData>>> children = 0) {
   TransformNodeChildrenBuilder builder_(_fbb);
   builder_.add_children(children);
   builder_.add_node(node);
   return builder_.Finish();
 }
 
-inline flatbuffers::Offset<TransformNodeChildren> CreateTransformNodeChildrenDirect(
-    flatbuffers::FlatBufferBuilder &_fbb,
+inline ::flatbuffers::Offset<TransformNodeChildren> CreateTransformNodeChildrenDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
     const char *node = nullptr,
-    const std::vector<flatbuffers::Offset<DeepSeaScene::ObjectData>> *children = nullptr) {
+    const std::vector<::flatbuffers::Offset<DeepSeaScene::ObjectData>> *children = nullptr) {
   auto node__ = node ? _fbb.CreateString(node) : 0;
-  auto children__ = children ? _fbb.CreateVector<flatbuffers::Offset<DeepSeaScene::ObjectData>>(*children) : 0;
+  auto children__ = children ? _fbb.CreateVector<::flatbuffers::Offset<DeepSeaScene::ObjectData>>(*children) : 0;
   return DeepSeaScene::CreateTransformNodeChildren(
       _fbb,
       node__,
@@ -89,32 +89,32 @@ inline flatbuffers::Offset<TransformNodeChildren> CreateTransformNodeChildrenDir
 }
 
 inline const DeepSeaScene::TransformNodeChildren *GetTransformNodeChildren(const void *buf) {
-  return flatbuffers::GetRoot<DeepSeaScene::TransformNodeChildren>(buf);
+  return ::flatbuffers::GetRoot<DeepSeaScene::TransformNodeChildren>(buf);
 }
 
 inline const DeepSeaScene::TransformNodeChildren *GetSizePrefixedTransformNodeChildren(const void *buf) {
-  return flatbuffers::GetSizePrefixedRoot<DeepSeaScene::TransformNodeChildren>(buf);
+  return ::flatbuffers::GetSizePrefixedRoot<DeepSeaScene::TransformNodeChildren>(buf);
 }
 
 inline bool VerifyTransformNodeChildrenBuffer(
-    flatbuffers::Verifier &verifier) {
+    ::flatbuffers::Verifier &verifier) {
   return verifier.VerifyBuffer<DeepSeaScene::TransformNodeChildren>(nullptr);
 }
 
 inline bool VerifySizePrefixedTransformNodeChildrenBuffer(
-    flatbuffers::Verifier &verifier) {
+    ::flatbuffers::Verifier &verifier) {
   return verifier.VerifySizePrefixedBuffer<DeepSeaScene::TransformNodeChildren>(nullptr);
 }
 
 inline void FinishTransformNodeChildrenBuffer(
-    flatbuffers::FlatBufferBuilder &fbb,
-    flatbuffers::Offset<DeepSeaScene::TransformNodeChildren> root) {
+    ::flatbuffers::FlatBufferBuilder &fbb,
+    ::flatbuffers::Offset<DeepSeaScene::TransformNodeChildren> root) {
   fbb.Finish(root);
 }
 
 inline void FinishSizePrefixedTransformNodeChildrenBuffer(
-    flatbuffers::FlatBufferBuilder &fbb,
-    flatbuffers::Offset<DeepSeaScene::TransformNodeChildren> root) {
+    ::flatbuffers::FlatBufferBuilder &fbb,
+    ::flatbuffers::Offset<DeepSeaScene::TransformNodeChildren> root) {
   fbb.FinishSizePrefixed(root);
 }
 

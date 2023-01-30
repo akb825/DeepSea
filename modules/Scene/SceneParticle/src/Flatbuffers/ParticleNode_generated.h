@@ -10,7 +10,7 @@
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 23 &&
               FLATBUFFERS_VERSION_MINOR == 1 &&
-              FLATBUFFERS_VERSION_REVISION == 4,
+              FLATBUFFERS_VERSION_REVISION == 21,
              "Non-compatible flatbuffers version included");
 
 namespace DeepSeaSceneParticle {
@@ -18,19 +18,19 @@ namespace DeepSeaSceneParticle {
 struct ParticleNode;
 struct ParticleNodeBuilder;
 
-struct ParticleNode FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+struct ParticleNode FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef ParticleNodeBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_PARTICLEEMITTERFACTORY = 4,
     VT_ITEMLISTS = 6
   };
-  const flatbuffers::String *particleEmitterFactory() const {
-    return GetPointer<const flatbuffers::String *>(VT_PARTICLEEMITTERFACTORY);
+  const ::flatbuffers::String *particleEmitterFactory() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_PARTICLEEMITTERFACTORY);
   }
-  const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *itemLists() const {
-    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *>(VT_ITEMLISTS);
+  const ::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>> *itemLists() const {
+    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>> *>(VT_ITEMLISTS);
   }
-  bool Verify(flatbuffers::Verifier &verifier) const {
+  bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_PARTICLEEMITTERFACTORY) &&
            verifier.VerifyString(particleEmitterFactory()) &&
@@ -43,42 +43,42 @@ struct ParticleNode FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 
 struct ParticleNodeBuilder {
   typedef ParticleNode Table;
-  flatbuffers::FlatBufferBuilder &fbb_;
-  flatbuffers::uoffset_t start_;
-  void add_particleEmitterFactory(flatbuffers::Offset<flatbuffers::String> particleEmitterFactory) {
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_particleEmitterFactory(::flatbuffers::Offset<::flatbuffers::String> particleEmitterFactory) {
     fbb_.AddOffset(ParticleNode::VT_PARTICLEEMITTERFACTORY, particleEmitterFactory);
   }
-  void add_itemLists(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>> itemLists) {
+  void add_itemLists(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>>> itemLists) {
     fbb_.AddOffset(ParticleNode::VT_ITEMLISTS, itemLists);
   }
-  explicit ParticleNodeBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit ParticleNodeBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  flatbuffers::Offset<ParticleNode> Finish() {
+  ::flatbuffers::Offset<ParticleNode> Finish() {
     const auto end = fbb_.EndTable(start_);
-    auto o = flatbuffers::Offset<ParticleNode>(end);
+    auto o = ::flatbuffers::Offset<ParticleNode>(end);
     fbb_.Required(o, ParticleNode::VT_PARTICLEEMITTERFACTORY);
     return o;
   }
 };
 
-inline flatbuffers::Offset<ParticleNode> CreateParticleNode(
-    flatbuffers::FlatBufferBuilder &_fbb,
-    flatbuffers::Offset<flatbuffers::String> particleEmitterFactory = 0,
-    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>> itemLists = 0) {
+inline ::flatbuffers::Offset<ParticleNode> CreateParticleNode(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<::flatbuffers::String> particleEmitterFactory = 0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>>> itemLists = 0) {
   ParticleNodeBuilder builder_(_fbb);
   builder_.add_itemLists(itemLists);
   builder_.add_particleEmitterFactory(particleEmitterFactory);
   return builder_.Finish();
 }
 
-inline flatbuffers::Offset<ParticleNode> CreateParticleNodeDirect(
-    flatbuffers::FlatBufferBuilder &_fbb,
+inline ::flatbuffers::Offset<ParticleNode> CreateParticleNodeDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
     const char *particleEmitterFactory = nullptr,
-    const std::vector<flatbuffers::Offset<flatbuffers::String>> *itemLists = nullptr) {
+    const std::vector<::flatbuffers::Offset<::flatbuffers::String>> *itemLists = nullptr) {
   auto particleEmitterFactory__ = particleEmitterFactory ? _fbb.CreateString(particleEmitterFactory) : 0;
-  auto itemLists__ = itemLists ? _fbb.CreateVector<flatbuffers::Offset<flatbuffers::String>>(*itemLists) : 0;
+  auto itemLists__ = itemLists ? _fbb.CreateVector<::flatbuffers::Offset<::flatbuffers::String>>(*itemLists) : 0;
   return DeepSeaSceneParticle::CreateParticleNode(
       _fbb,
       particleEmitterFactory__,
@@ -86,32 +86,32 @@ inline flatbuffers::Offset<ParticleNode> CreateParticleNodeDirect(
 }
 
 inline const DeepSeaSceneParticle::ParticleNode *GetParticleNode(const void *buf) {
-  return flatbuffers::GetRoot<DeepSeaSceneParticle::ParticleNode>(buf);
+  return ::flatbuffers::GetRoot<DeepSeaSceneParticle::ParticleNode>(buf);
 }
 
 inline const DeepSeaSceneParticle::ParticleNode *GetSizePrefixedParticleNode(const void *buf) {
-  return flatbuffers::GetSizePrefixedRoot<DeepSeaSceneParticle::ParticleNode>(buf);
+  return ::flatbuffers::GetSizePrefixedRoot<DeepSeaSceneParticle::ParticleNode>(buf);
 }
 
 inline bool VerifyParticleNodeBuffer(
-    flatbuffers::Verifier &verifier) {
+    ::flatbuffers::Verifier &verifier) {
   return verifier.VerifyBuffer<DeepSeaSceneParticle::ParticleNode>(nullptr);
 }
 
 inline bool VerifySizePrefixedParticleNodeBuffer(
-    flatbuffers::Verifier &verifier) {
+    ::flatbuffers::Verifier &verifier) {
   return verifier.VerifySizePrefixedBuffer<DeepSeaSceneParticle::ParticleNode>(nullptr);
 }
 
 inline void FinishParticleNodeBuffer(
-    flatbuffers::FlatBufferBuilder &fbb,
-    flatbuffers::Offset<DeepSeaSceneParticle::ParticleNode> root) {
+    ::flatbuffers::FlatBufferBuilder &fbb,
+    ::flatbuffers::Offset<DeepSeaSceneParticle::ParticleNode> root) {
   fbb.Finish(root);
 }
 
 inline void FinishSizePrefixedParticleNodeBuffer(
-    flatbuffers::FlatBufferBuilder &fbb,
-    flatbuffers::Offset<DeepSeaSceneParticle::ParticleNode> root) {
+    ::flatbuffers::FlatBufferBuilder &fbb,
+    ::flatbuffers::Offset<DeepSeaSceneParticle::ParticleNode> root) {
   fbb.FinishSizePrefixed(root);
 }
 

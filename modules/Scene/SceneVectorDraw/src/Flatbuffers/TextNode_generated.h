@@ -10,7 +10,7 @@
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 23 &&
               FLATBUFFERS_VERSION_MINOR == 1 &&
-              FLATBUFFERS_VERSION_REVISION == 4,
+              FLATBUFFERS_VERSION_REVISION == 21,
              "Non-compatible flatbuffers version included");
 
 #include "DeepSea/Scene/Flatbuffers/SceneCommon_generated.h"
@@ -55,12 +55,12 @@ inline const char * const *EnumNamesTextAlign() {
 }
 
 inline const char *EnumNameTextAlign(TextAlign e) {
-  if (flatbuffers::IsOutRange(e, TextAlign::Start, TextAlign::Center)) return "";
+  if (::flatbuffers::IsOutRange(e, TextAlign::Start, TextAlign::Center)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesTextAlign()[index];
 }
 
-struct TextNode FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+struct TextNode FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef TextNodeBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_EMBEDDEDRESOURCES = 4,
@@ -76,11 +76,11 @@ struct TextNode FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_FONTTEXTURE = 24,
     VT_ITEMLISTS = 26
   };
-  const flatbuffers::Vector<uint8_t> *embeddedResources() const {
-    return GetPointer<const flatbuffers::Vector<uint8_t> *>(VT_EMBEDDEDRESOURCES);
+  const ::flatbuffers::Vector<uint8_t> *embeddedResources() const {
+    return GetPointer<const ::flatbuffers::Vector<uint8_t> *>(VT_EMBEDDEDRESOURCES);
   }
-  const flatbuffers::String *text() const {
-    return GetPointer<const flatbuffers::String *>(VT_TEXT);
+  const ::flatbuffers::String *text() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_TEXT);
   }
   DeepSeaSceneVectorDraw::TextAlign alignment() const {
     return static_cast<DeepSeaSceneVectorDraw::TextAlign>(GetField<uint8_t>(VT_ALIGNMENT, 0));
@@ -100,19 +100,19 @@ struct TextNode FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   uint32_t charCount() const {
     return GetField<uint32_t>(VT_CHARCOUNT, 0);
   }
-  const flatbuffers::String *shader() const {
-    return GetPointer<const flatbuffers::String *>(VT_SHADER);
+  const ::flatbuffers::String *shader() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_SHADER);
   }
-  const flatbuffers::String *material() const {
-    return GetPointer<const flatbuffers::String *>(VT_MATERIAL);
+  const ::flatbuffers::String *material() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_MATERIAL);
   }
-  const flatbuffers::String *fontTexture() const {
-    return GetPointer<const flatbuffers::String *>(VT_FONTTEXTURE);
+  const ::flatbuffers::String *fontTexture() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_FONTTEXTURE);
   }
-  const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *itemLists() const {
-    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *>(VT_ITEMLISTS);
+  const ::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>> *itemLists() const {
+    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>> *>(VT_ITEMLISTS);
   }
-  bool Verify(flatbuffers::Verifier &verifier) const {
+  bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_EMBEDDEDRESOURCES) &&
            verifier.VerifyVector(embeddedResources()) &&
@@ -139,12 +139,12 @@ struct TextNode FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 
 struct TextNodeBuilder {
   typedef TextNode Table;
-  flatbuffers::FlatBufferBuilder &fbb_;
-  flatbuffers::uoffset_t start_;
-  void add_embeddedResources(flatbuffers::Offset<flatbuffers::Vector<uint8_t>> embeddedResources) {
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_embeddedResources(::flatbuffers::Offset<::flatbuffers::Vector<uint8_t>> embeddedResources) {
     fbb_.AddOffset(TextNode::VT_EMBEDDEDRESOURCES, embeddedResources);
   }
-  void add_text(flatbuffers::Offset<flatbuffers::String> text) {
+  void add_text(::flatbuffers::Offset<::flatbuffers::String> text) {
     fbb_.AddOffset(TextNode::VT_TEXT, text);
   }
   void add_alignment(DeepSeaSceneVectorDraw::TextAlign alignment) {
@@ -165,25 +165,25 @@ struct TextNodeBuilder {
   void add_charCount(uint32_t charCount) {
     fbb_.AddElement<uint32_t>(TextNode::VT_CHARCOUNT, charCount, 0);
   }
-  void add_shader(flatbuffers::Offset<flatbuffers::String> shader) {
+  void add_shader(::flatbuffers::Offset<::flatbuffers::String> shader) {
     fbb_.AddOffset(TextNode::VT_SHADER, shader);
   }
-  void add_material(flatbuffers::Offset<flatbuffers::String> material) {
+  void add_material(::flatbuffers::Offset<::flatbuffers::String> material) {
     fbb_.AddOffset(TextNode::VT_MATERIAL, material);
   }
-  void add_fontTexture(flatbuffers::Offset<flatbuffers::String> fontTexture) {
+  void add_fontTexture(::flatbuffers::Offset<::flatbuffers::String> fontTexture) {
     fbb_.AddOffset(TextNode::VT_FONTTEXTURE, fontTexture);
   }
-  void add_itemLists(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>> itemLists) {
+  void add_itemLists(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>>> itemLists) {
     fbb_.AddOffset(TextNode::VT_ITEMLISTS, itemLists);
   }
-  explicit TextNodeBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit TextNodeBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  flatbuffers::Offset<TextNode> Finish() {
+  ::flatbuffers::Offset<TextNode> Finish() {
     const auto end = fbb_.EndTable(start_);
-    auto o = flatbuffers::Offset<TextNode>(end);
+    auto o = ::flatbuffers::Offset<TextNode>(end);
     fbb_.Required(o, TextNode::VT_TEXT);
     fbb_.Required(o, TextNode::VT_SHADER);
     fbb_.Required(o, TextNode::VT_MATERIAL);
@@ -192,20 +192,20 @@ struct TextNodeBuilder {
   }
 };
 
-inline flatbuffers::Offset<TextNode> CreateTextNode(
-    flatbuffers::FlatBufferBuilder &_fbb,
-    flatbuffers::Offset<flatbuffers::Vector<uint8_t>> embeddedResources = 0,
-    flatbuffers::Offset<flatbuffers::String> text = 0,
+inline ::flatbuffers::Offset<TextNode> CreateTextNode(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<::flatbuffers::Vector<uint8_t>> embeddedResources = 0,
+    ::flatbuffers::Offset<::flatbuffers::String> text = 0,
     DeepSeaSceneVectorDraw::TextAlign alignment = DeepSeaSceneVectorDraw::TextAlign::Start,
     float maxWidth = 0.0f,
     float lineScale = 0.0f,
     int32_t z = 0,
     uint32_t firstChar = 0,
     uint32_t charCount = 0,
-    flatbuffers::Offset<flatbuffers::String> shader = 0,
-    flatbuffers::Offset<flatbuffers::String> material = 0,
-    flatbuffers::Offset<flatbuffers::String> fontTexture = 0,
-    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>> itemLists = 0) {
+    ::flatbuffers::Offset<::flatbuffers::String> shader = 0,
+    ::flatbuffers::Offset<::flatbuffers::String> material = 0,
+    ::flatbuffers::Offset<::flatbuffers::String> fontTexture = 0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>>> itemLists = 0) {
   TextNodeBuilder builder_(_fbb);
   builder_.add_itemLists(itemLists);
   builder_.add_fontTexture(fontTexture);
@@ -222,8 +222,8 @@ inline flatbuffers::Offset<TextNode> CreateTextNode(
   return builder_.Finish();
 }
 
-inline flatbuffers::Offset<TextNode> CreateTextNodeDirect(
-    flatbuffers::FlatBufferBuilder &_fbb,
+inline ::flatbuffers::Offset<TextNode> CreateTextNodeDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
     const std::vector<uint8_t> *embeddedResources = nullptr,
     const char *text = nullptr,
     DeepSeaSceneVectorDraw::TextAlign alignment = DeepSeaSceneVectorDraw::TextAlign::Start,
@@ -235,13 +235,13 @@ inline flatbuffers::Offset<TextNode> CreateTextNodeDirect(
     const char *shader = nullptr,
     const char *material = nullptr,
     const char *fontTexture = nullptr,
-    const std::vector<flatbuffers::Offset<flatbuffers::String>> *itemLists = nullptr) {
+    const std::vector<::flatbuffers::Offset<::flatbuffers::String>> *itemLists = nullptr) {
   auto embeddedResources__ = embeddedResources ? _fbb.CreateVector<uint8_t>(*embeddedResources) : 0;
   auto text__ = text ? _fbb.CreateString(text) : 0;
   auto shader__ = shader ? _fbb.CreateString(shader) : 0;
   auto material__ = material ? _fbb.CreateString(material) : 0;
   auto fontTexture__ = fontTexture ? _fbb.CreateString(fontTexture) : 0;
-  auto itemLists__ = itemLists ? _fbb.CreateVector<flatbuffers::Offset<flatbuffers::String>>(*itemLists) : 0;
+  auto itemLists__ = itemLists ? _fbb.CreateVector<::flatbuffers::Offset<::flatbuffers::String>>(*itemLists) : 0;
   return DeepSeaSceneVectorDraw::CreateTextNode(
       _fbb,
       embeddedResources__,
@@ -259,32 +259,32 @@ inline flatbuffers::Offset<TextNode> CreateTextNodeDirect(
 }
 
 inline const DeepSeaSceneVectorDraw::TextNode *GetTextNode(const void *buf) {
-  return flatbuffers::GetRoot<DeepSeaSceneVectorDraw::TextNode>(buf);
+  return ::flatbuffers::GetRoot<DeepSeaSceneVectorDraw::TextNode>(buf);
 }
 
 inline const DeepSeaSceneVectorDraw::TextNode *GetSizePrefixedTextNode(const void *buf) {
-  return flatbuffers::GetSizePrefixedRoot<DeepSeaSceneVectorDraw::TextNode>(buf);
+  return ::flatbuffers::GetSizePrefixedRoot<DeepSeaSceneVectorDraw::TextNode>(buf);
 }
 
 inline bool VerifyTextNodeBuffer(
-    flatbuffers::Verifier &verifier) {
+    ::flatbuffers::Verifier &verifier) {
   return verifier.VerifyBuffer<DeepSeaSceneVectorDraw::TextNode>(nullptr);
 }
 
 inline bool VerifySizePrefixedTextNodeBuffer(
-    flatbuffers::Verifier &verifier) {
+    ::flatbuffers::Verifier &verifier) {
   return verifier.VerifySizePrefixedBuffer<DeepSeaSceneVectorDraw::TextNode>(nullptr);
 }
 
 inline void FinishTextNodeBuffer(
-    flatbuffers::FlatBufferBuilder &fbb,
-    flatbuffers::Offset<DeepSeaSceneVectorDraw::TextNode> root) {
+    ::flatbuffers::FlatBufferBuilder &fbb,
+    ::flatbuffers::Offset<DeepSeaSceneVectorDraw::TextNode> root) {
   fbb.Finish(root);
 }
 
 inline void FinishSizePrefixedTextNodeBuffer(
-    flatbuffers::FlatBufferBuilder &fbb,
-    flatbuffers::Offset<DeepSeaSceneVectorDraw::TextNode> root) {
+    ::flatbuffers::FlatBufferBuilder &fbb,
+    ::flatbuffers::Offset<DeepSeaSceneVectorDraw::TextNode> root) {
   fbb.FinishSizePrefixed(root);
 }
 
