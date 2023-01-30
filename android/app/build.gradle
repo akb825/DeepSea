@@ -163,6 +163,7 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+    namespace 'com.akb825.deepsea'
 }
 
 preBuild.dependsOn(copyArm32Libraries)
@@ -172,5 +173,5 @@ preBuild.dependsOn(copyX86_64Libraries)
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
-    implementation 'androidx.appcompat:appcompat:1.5.1'
+    implementation 'androidx.appcompat:appcompat:1.6.0'
 }
