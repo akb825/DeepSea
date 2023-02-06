@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Aaron Barany
+ * Copyright 2022-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,7 +56,58 @@ DS_ANIMATION_EXPORT dsAnimationTree* dsAnimationTree_create(dsAllocator* allocat
  * @return The animation tree or NULL if an error occurred.
  */
 DS_ANIMATION_EXPORT dsAnimationTree* dsAnimationTree_createJoints(dsAllocator* allocator,
-	const dsAnimationJointBuildNode* const* nodes, uint32_t nodeCount);
+	const dsAnimationJointBuildNode* nodes, uint32_t nodeCount);
+
+/**
+ * @brief Loads an animation tree from a file.
+ * @remark errno will be set on failure.
+ * @param allocator The allocator to create the animation tree.
+ * @param scratchAllocator The allocator for temporary data. If NULL, it will use the animation tree
+ *     allocator.
+ * @param filePath The file path for the animation tree to load.
+ * @return The loaded animation tree or NULL if it couldn't be loaded.
+ */
+DS_ANIMATION_EXPORT dsAnimationTree* dsAnimationTree_loadFile(dsAllocator* allocator,
+	dsAllocator* scratchAllocator, const char* filePath);
+
+/**
+ * @brief Loads an animation tree from a file.
+ * @remark errno will be set on failure.
+ * @param allocator The allocator to create the animation tree.
+ * @param scratchAllocator The allocator for temporary data. If NULL, it will use the animation tree
+ *     allocator.
+ * @param type The resource type.
+ * @param filePath The file path for the animation tree to load.
+ * @return The loaded animation tree or NULL if it couldn't be loaded.
+ */
+DS_ANIMATION_EXPORT dsAnimationTree* dsAnimationTree_loadResource(dsAllocator* allocator,
+	dsAllocator* scratchAllocator, dsFileResourceType type, const char* filePath);
+
+/**
+ * @brief Loads an animation tree from a stream.
+ * @remark errno will be set on failure.
+ * @param allocator The allocator to create the animation tree.
+ * @param scratchAllocator The allocator for temporary data. If NULL, it will use the animation tree
+ *     allocator.
+ * @param stream The stream to load the animation tree from. This stream will be read from the
+ *     current position until the end.
+ * @return The loaded animation tree or NULL if it couldn't be loaded.
+ */
+DS_ANIMATION_EXPORT dsAnimationTree* dsAnimationTree_loadStream(dsAllocator* allocator,
+	dsAllocator* scratchAllocator, dsStream* stream);
+
+/**
+ * @brief Loads an animation tree from a data buffer.
+ * @remark errno will be set on failure.
+ * @param allocator The allocator to create the animation tree.
+ * @param scratchAllocator The allocator for temporary data. If NULL, it will use the animation tree
+ *     allocator.
+ * @param data The data for the animation tree. The data isn't used after this call.
+ * @param size The size of the data buffer.
+ * @return The loaded animation tree or NULL if it couldn't be loaded.
+ */
+DS_ANIMATION_EXPORT dsAnimationTree* dsAnimationTree_loadData(dsAllocator* allocator,
+	dsAllocator* scratchAllocator, const void* data, size_t size);
 
 /**
  * @brief Clones an animation tree.

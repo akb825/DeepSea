@@ -1,0 +1,52 @@
+/*
+ * Copyright 2023 Aaron Barany
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+namespace DeepSeaAnimation;
+
+// Struct describing a 3-dimensional vector.
+struct Vector3f
+{
+	x : float;
+	y : float;
+	z : float;
+}
+
+// Struct describing a 4-dimensional vector.
+struct Vector4f
+{
+	x : float;
+	y : float;
+	z : float;
+	w : float;
+}
+
+// Struct describing a quaternion.
+struct Quaternion4f
+{
+	r : float;
+	i : float;
+	j : float;
+	k : float;
+}
+
+// Struct describing a 4x4 transform matrix.
+struct Matrix44f
+{
+	column0 : Vector4f;
+	column1 : Vector4f;
+	column2 : Vector4f;
+	column3 : Vector4f;
+}

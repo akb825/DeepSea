@@ -16,11 +16,15 @@
 
 #include <DeepSea/Animation/AnimationTree.h>
 
+#include "AnimationTreeLoad.h"
+
 #include <DeepSea/Core/Containers/Hash.h>
 #include <DeepSea/Core/Containers/HashTable.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Memory/StackAllocator.h>
+#include <DeepSea/Core/Streams/FileStream.h>
+#include <DeepSea/Core/Streams/ResourceStream.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Atomic.h>
 #include <DeepSea/Core/Error.h>
@@ -92,7 +96,7 @@ static size_t fullAllocSize(uint32_t* outNodeCount, const dsAnimationBuildNode* 
 }
 
 static size_t fullAllocSizeJoints(uint32_t* outParentNodes, uint32_t* outRootNodeCount,
-	const dsAnimationJointBuildNode* const* nodes, uint32_t nodeCount)
+	const dsAnimationJointBuildNode* nodes, uint32_t nodeCount)
 {
 	memset(outParentNodes, 0xFF, sizeof(uint32_t)*nodeCount);
 	*outRootNodeCount = 0;
@@ -104,7 +108,7 @@ static size_t fullAllocSizeJoints(uint32_t* outParentNodes, uint32_t* outRootNod
 		dsHashTable_fullAllocSize(dsHashTable_tableSize(nodeCount));
 	for (uint32_t i = 0; i < nodeCount; ++i)
 	{
-		const dsAnimationJointBuildNode* node = nodes[i];
+		const dsAnimationJointBuildNode* node = nodes + i;
 		if (!node || !node->name || (!node->children && node->childCount > 0))
 			return 0;
 
@@ -371,7 +375,7 @@ dsAnimationTree* dsAnimationTree_create(dsAllocator* allocator,
 }
 
 dsAnimationTree* dsAnimationTree_createJoints(dsAllocator* allocator,
-	const dsAnimationJointBuildNode* const* nodes, uint32_t nodeCount)
+	const dsAnimationJointBuildNode* nodes, uint32_t nodeCount)
 {
 	if (!allocator || !nodes || nodeCount == 0)
 	{
@@ -430,7 +434,7 @@ dsAnimationTree* dsAnimationTree_createJoints(dsAllocator* allocator,
 	uint32_t nextRootNodeIndex = 0;
 	for (uint32_t i = 0; i < nodeCount; ++i)
 	{
-		const dsAnimationJointBuildNode* node = nodes[i];
+		const dsAnimationJointBuildNode* node = nodes + i;
 		dsAnimationNode* treeNode = treeNodes + i;
 		DS_ASSERT(treeNode);
 
@@ -489,6 +493,106 @@ dsAnimationTree* dsAnimationTree_createJoints(dsAllocator* allocator,
 	}
 
 	return tree;
+}
+
+dsAnimationTree* dsAnimationTree_loadFile(dsAllocator* allocator, dsAllocator* scratchAllocator,
+	const char* filePath)
+{
+	if (!allocator || !filePath)
+	{
+		errno = EINVAL;
+		return NULL;
+	}
+
+	if (!scratchAllocator)
+		scratchAllocator = allocator;
+
+	dsFileStream stream;
+	if (!dsFileStream_openPath(&stream, filePath, "rb"))
+	{
+		DS_LOG_ERROR_F(DS_ANIMATION_LOG_TAG, "Couldn't open animation tree file '%s'.", filePath);
+		return NULL;
+	}
+
+	size_t size;
+	void* buffer = dsStream_readUntilEnd(&size, (dsStream*)&stream, scratchAllocator);
+	dsFileStream_close(&stream);
+	if (!buffer)
+		return NULL;
+
+	dsAnimationTree* tree = dsAnimationTree_loadImpl(allocator, scratchAllocator, buffer, size,
+		filePath);
+	DS_VERIFY(dsAllocator_free(scratchAllocator, buffer));
+	return tree;
+}
+
+dsAnimationTree* dsAnimationTree_loadResource(dsAllocator* allocator, dsAllocator* scratchAllocator,
+	dsFileResourceType type, const char* filePath)
+{
+	if (!allocator || !filePath)
+	{
+		errno = EINVAL;
+		return NULL;
+	}
+
+	if (!scratchAllocator)
+		scratchAllocator = allocator;
+
+	dsResourceStream stream;
+	if (!dsResourceStream_open(&stream, type, filePath, "rb"))
+	{
+		DS_LOG_ERROR_F(DS_ANIMATION_LOG_TAG, "Couldn't open animation tree file '%s'.", filePath);
+		return NULL;
+	}
+
+	size_t size;
+	void* buffer = dsStream_readUntilEnd(&size, (dsStream*)&stream, scratchAllocator);
+	dsStream_close((dsStream*)&stream);
+	if (!buffer)
+		return NULL;
+
+	dsAnimationTree* tree = dsAnimationTree_loadImpl(allocator, scratchAllocator, buffer, size,
+		filePath);
+	DS_VERIFY(dsAllocator_free(scratchAllocator, buffer));
+	return tree;
+}
+
+dsAnimationTree* dsAnimationTree_loadStream(dsAllocator* allocator, dsAllocator* scratchAllocator,
+	dsStream* stream)
+{
+	if (!allocator || !stream)
+	{
+		errno = EINVAL;
+		return NULL;
+	}
+
+	if (!scratchAllocator)
+		scratchAllocator = allocator;
+
+	size_t size;
+	void* buffer = dsStream_readUntilEnd(&size, stream, scratchAllocator);
+	if (!buffer)
+		return NULL;
+
+	dsAnimationTree* tree = dsAnimationTree_loadImpl(allocator, scratchAllocator, buffer, size,
+		NULL);
+	DS_VERIFY(dsAllocator_free(scratchAllocator, buffer));
+	return tree;
+}
+
+dsAnimationTree* dsAnimationTree_loadData(dsAllocator* allocator, dsAllocator* scratchAllocator,
+	const void* data, size_t size)
+{
+	if (!allocator || !data || size == 0)
+	{
+		errno = EINVAL;
+		return NULL;
+	}
+
+	if (!scratchAllocator)
+		scratchAllocator = allocator;
+
+	return dsAnimationTree_loadImpl(allocator, scratchAllocator, data, size, NULL);
 }
 
 dsAnimationTree* dsAnimationTree_clone(dsAllocator* allocator, const dsAnimationTree* tree)
