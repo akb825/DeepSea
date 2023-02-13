@@ -1,0 +1,63 @@
+/*
+ * Copyright 2023 Aaron Barany
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+include "AnimationCommon.fbs";
+
+namespace DeepSeaAnimation;
+
+// Enum for how to interpolate animation values.
+enum AnimationInterpolation : uint8
+{
+	Step,   // Instantly switch to the new value.
+	Linear, // Linearly interpolate between values.
+	Cubic   // Interpolation using cubic splines.
+}
+
+// Struct describing a channel for a keyframe animation.
+table KeyframeAnimationChannel
+{
+	// The name of the node the channel applies to.
+	node : string (required);
+
+	// The component the channel applies to.
+	component : AnimationComponent;
+
+	// How to interpolate the values from one keyframe to the next.
+	interpolation : AnimationInterpolation;
+
+	// The values for the animation component. For cubic interpolation three values should be
+	// present for each keyframe, otherwise one value should be present for each keyframe.
+	values : [Vector4f] (required);
+}
+
+// Struct describing the keyframes within a keyframe animation.
+table AnimationKeyframes
+{
+	// The time value for each keyframe.
+	keyframeTimes : [float] (required);
+
+	// The channels that apply to the keyframes.
+	channels : [KeyframeAnimationChannel] (required);
+}
+
+// Struct describing a keyframe animation.
+table KeyframeAnimation
+{
+	// The keyframes that compose the keyframe animation.
+	keyframes : [AnimationKeyframes] (required);
+}
+
+root_type KeyframeAnimation;

@@ -46,6 +46,57 @@ DS_ANIMATION_EXPORT dsKeyframeAnimation* dsKeyframeAnimation_create(dsAllocator*
 	const dsAnimationKeyframes* keyframes, uint32_t keyframesCount);
 
 /**
+ * @brief Loads an keyframe animation from a file.
+ * @remark errno will be set on failure.
+ * @param allocator The allocator to create the keyframe animation.
+ * @param scratchAllocator The allocator for temporary data. If NULL, it will use the keyframe
+ *     animation allocator.
+ * @param filePath The file path for the keyframe animation to load.
+ * @return The loaded keyframe animation or NULL if it couldn't be loaded.
+ */
+DS_ANIMATION_EXPORT dsKeyframeAnimation* dsKeyframeAnimation_loadFile(dsAllocator* allocator,
+	dsAllocator* scratchAllocator, const char* filePath);
+
+/**
+ * @brief Loads an keyframe animation from a file.
+ * @remark errno will be set on failure.
+ * @param allocator The allocator to create the keyframe animation.
+ * @param scratchAllocator The allocator for temporary data. If NULL, it will use the keyframe
+ *     animation allocator.
+ * @param type The resource type.
+ * @param filePath The file path for the keyframe animation to load.
+ * @return The loaded keyframe animation or NULL if it couldn't be loaded.
+ */
+DS_ANIMATION_EXPORT dsKeyframeAnimation* dsKeyframeAnimation_loadResource(dsAllocator* allocator,
+	dsAllocator* scratchAllocator, dsFileResourceType type, const char* filePath);
+
+/**
+ * @brief Loads an keyframe animation from a stream.
+ * @remark errno will be set on failure.
+ * @param allocator The allocator to create the keyframe animation.
+ * @param scratchAllocator The allocator for temporary data. If NULL, it will use the keyframe
+ *     animation allocator.
+ * @param stream The stream to load the keyframe animation from. This stream will be read from the
+ *     current position until the end.
+ * @return The loaded keyframe animation or NULL if it couldn't be loaded.
+ */
+DS_ANIMATION_EXPORT dsKeyframeAnimation* dsKeyframeAnimation_loadStream(dsAllocator* allocator,
+	dsAllocator* scratchAllocator, dsStream* stream);
+
+/**
+ * @brief Loads an keyframe animation from a data buffer.
+ * @remark errno will be set on failure.
+ * @param allocator The allocator to create the keyframe animation.
+ * @param scratchAllocator The allocator for temporary data. If NULL, it will use the keyframe
+ *     animation allocator.
+ * @param data The data for the keyframe animation. The data isn't used after this call.
+ * @param size The size of the data buffer.
+ * @return The loaded keyframe animation or NULL if it couldn't be loaded.
+ */
+DS_ANIMATION_EXPORT dsKeyframeAnimation* dsKeyframeAnimation_loadData(dsAllocator* allocator,
+	dsAllocator* scratchAllocator, const void* data, size_t size);
+
+/**
  * @brief Destroys a keyframe animation.
  * @param animation The keyframe animation to destroy.
  */

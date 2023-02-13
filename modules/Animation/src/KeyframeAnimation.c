@@ -16,8 +16,12 @@
 
 #include <DeepSea/Animation/KeyframeAnimation.h>
 
+#include "KeyframeAnimationLoad.h"
+
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
+#include <DeepSea/Core/Streams/FileStream.h>
+#include <DeepSea/Core/Streams/ResourceStream.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
@@ -168,6 +172,106 @@ dsKeyframeAnimation* dsKeyframeAnimation_create(dsAllocator* allocator,
 	animation->keyframes = animationKeyframes;
 
 	return animation;
+}
+
+dsKeyframeAnimation* dsKeyframeAnimation_loadFile(dsAllocator* allocator, dsAllocator* scratchAllocator,
+	const char* filePath)
+{
+	if (!allocator || !filePath)
+	{
+		errno = EINVAL;
+		return NULL;
+	}
+
+	if (!scratchAllocator)
+		scratchAllocator = allocator;
+
+	dsFileStream stream;
+	if (!dsFileStream_openPath(&stream, filePath, "rb"))
+	{
+		DS_LOG_ERROR_F(DS_ANIMATION_LOG_TAG, "Couldn't open keyframe animation file '%s'.", filePath);
+		return NULL;
+	}
+
+	size_t size;
+	void* buffer = dsStream_readUntilEnd(&size, (dsStream*)&stream, scratchAllocator);
+	dsFileStream_close(&stream);
+	if (!buffer)
+		return NULL;
+
+	dsKeyframeAnimation* tree = dsKeyframeAnimation_loadImpl(allocator, scratchAllocator, buffer, size,
+		filePath);
+	DS_VERIFY(dsAllocator_free(scratchAllocator, buffer));
+	return tree;
+}
+
+dsKeyframeAnimation* dsKeyframeAnimation_loadResource(dsAllocator* allocator,
+	dsAllocator* scratchAllocator, dsFileResourceType type, const char* filePath)
+{
+	if (!allocator || !filePath)
+	{
+		errno = EINVAL;
+		return NULL;
+	}
+
+	if (!scratchAllocator)
+		scratchAllocator = allocator;
+
+	dsResourceStream stream;
+	if (!dsResourceStream_open(&stream, type, filePath, "rb"))
+	{
+		DS_LOG_ERROR_F(DS_ANIMATION_LOG_TAG, "Couldn't open keyframe animation file '%s'.", filePath);
+		return NULL;
+	}
+
+	size_t size;
+	void* buffer = dsStream_readUntilEnd(&size, (dsStream*)&stream, scratchAllocator);
+	dsStream_close((dsStream*)&stream);
+	if (!buffer)
+		return NULL;
+
+	dsKeyframeAnimation* tree = dsKeyframeAnimation_loadImpl(allocator, scratchAllocator, buffer, size,
+		filePath);
+	DS_VERIFY(dsAllocator_free(scratchAllocator, buffer));
+	return tree;
+}
+
+dsKeyframeAnimation* dsKeyframeAnimation_loadStream(dsAllocator* allocator,
+	dsAllocator* scratchAllocator, dsStream* stream)
+{
+	if (!allocator || !stream)
+	{
+		errno = EINVAL;
+		return NULL;
+	}
+
+	if (!scratchAllocator)
+		scratchAllocator = allocator;
+
+	size_t size;
+	void* buffer = dsStream_readUntilEnd(&size, stream, scratchAllocator);
+	if (!buffer)
+		return NULL;
+
+	dsKeyframeAnimation* tree = dsKeyframeAnimation_loadImpl(allocator, scratchAllocator, buffer, size,
+		NULL);
+	DS_VERIFY(dsAllocator_free(scratchAllocator, buffer));
+	return tree;
+}
+
+dsKeyframeAnimation* dsKeyframeAnimation_loadData(dsAllocator* allocator, dsAllocator* scratchAllocator,
+	const void* data, size_t size)
+{
+	if (!allocator || !data || size == 0)
+	{
+		errno = EINVAL;
+		return NULL;
+	}
+
+	if (!scratchAllocator)
+		scratchAllocator = allocator;
+
+	return dsKeyframeAnimation_loadImpl(allocator, scratchAllocator, data, size, NULL);
 }
 
 void dsKeyframeAnimation_destroy(dsKeyframeAnimation* animation)

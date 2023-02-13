@@ -23,6 +23,39 @@ struct Quaternion4f;
 
 struct Matrix44f;
 
+enum class AnimationComponent : uint8_t {
+  Translation = 0,
+  Rotation = 1,
+  Scale = 2,
+  MIN = Translation,
+  MAX = Scale
+};
+
+inline const AnimationComponent (&EnumValuesAnimationComponent())[3] {
+  static const AnimationComponent values[] = {
+    AnimationComponent::Translation,
+    AnimationComponent::Rotation,
+    AnimationComponent::Scale
+  };
+  return values;
+}
+
+inline const char * const *EnumNamesAnimationComponent() {
+  static const char * const names[4] = {
+    "Translation",
+    "Rotation",
+    "Scale",
+    nullptr
+  };
+  return names;
+}
+
+inline const char *EnumNameAnimationComponent(AnimationComponent e) {
+  if (::flatbuffers::IsOutRange(e, AnimationComponent::Translation, AnimationComponent::Scale)) return "";
+  const size_t index = static_cast<size_t>(e);
+  return EnumNamesAnimationComponent()[index];
+}
+
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Vector3f FLATBUFFERS_FINAL_CLASS {
  private:
   float x_;

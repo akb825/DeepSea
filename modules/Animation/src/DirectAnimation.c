@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Aaron Barany
+ * Copyright 2022-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,12 @@
 
 #include <DeepSea/Animation/DirectAnimation.h>
 
+#include "DirectAnimationLoad.h"
+
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
+#include <DeepSea/Core/Streams/FileStream.h>
+#include <DeepSea/Core/Streams/ResourceStream.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
@@ -80,6 +84,106 @@ dsDirectAnimation* dsDirectAnimation_create(dsAllocator* allocator,
 	animation->channels = animationChannels;
 
 	return animation;
+}
+
+dsDirectAnimation* dsDirectAnimation_loadFile(dsAllocator* allocator, dsAllocator* scratchAllocator,
+	const char* filePath)
+{
+	if (!allocator || !filePath)
+	{
+		errno = EINVAL;
+		return NULL;
+	}
+
+	if (!scratchAllocator)
+		scratchAllocator = allocator;
+
+	dsFileStream stream;
+	if (!dsFileStream_openPath(&stream, filePath, "rb"))
+	{
+		DS_LOG_ERROR_F(DS_ANIMATION_LOG_TAG, "Couldn't open direct animation file '%s'.", filePath);
+		return NULL;
+	}
+
+	size_t size;
+	void* buffer = dsStream_readUntilEnd(&size, (dsStream*)&stream, scratchAllocator);
+	dsFileStream_close(&stream);
+	if (!buffer)
+		return NULL;
+
+	dsDirectAnimation* tree = dsDirectAnimation_loadImpl(allocator, scratchAllocator, buffer, size,
+		filePath);
+	DS_VERIFY(dsAllocator_free(scratchAllocator, buffer));
+	return tree;
+}
+
+dsDirectAnimation* dsDirectAnimation_loadResource(dsAllocator* allocator,
+	dsAllocator* scratchAllocator, dsFileResourceType type, const char* filePath)
+{
+	if (!allocator || !filePath)
+	{
+		errno = EINVAL;
+		return NULL;
+	}
+
+	if (!scratchAllocator)
+		scratchAllocator = allocator;
+
+	dsResourceStream stream;
+	if (!dsResourceStream_open(&stream, type, filePath, "rb"))
+	{
+		DS_LOG_ERROR_F(DS_ANIMATION_LOG_TAG, "Couldn't open direct animation file '%s'.", filePath);
+		return NULL;
+	}
+
+	size_t size;
+	void* buffer = dsStream_readUntilEnd(&size, (dsStream*)&stream, scratchAllocator);
+	dsStream_close((dsStream*)&stream);
+	if (!buffer)
+		return NULL;
+
+	dsDirectAnimation* tree = dsDirectAnimation_loadImpl(allocator, scratchAllocator, buffer, size,
+		filePath);
+	DS_VERIFY(dsAllocator_free(scratchAllocator, buffer));
+	return tree;
+}
+
+dsDirectAnimation* dsDirectAnimation_loadStream(dsAllocator* allocator,
+	dsAllocator* scratchAllocator, dsStream* stream)
+{
+	if (!allocator || !stream)
+	{
+		errno = EINVAL;
+		return NULL;
+	}
+
+	if (!scratchAllocator)
+		scratchAllocator = allocator;
+
+	size_t size;
+	void* buffer = dsStream_readUntilEnd(&size, stream, scratchAllocator);
+	if (!buffer)
+		return NULL;
+
+	dsDirectAnimation* tree = dsDirectAnimation_loadImpl(allocator, scratchAllocator, buffer, size,
+		NULL);
+	DS_VERIFY(dsAllocator_free(scratchAllocator, buffer));
+	return tree;
+}
+
+dsDirectAnimation* dsDirectAnimation_loadData(dsAllocator* allocator, dsAllocator* scratchAllocator,
+	const void* data, size_t size)
+{
+	if (!allocator || !data || size == 0)
+	{
+		errno = EINVAL;
+		return NULL;
+	}
+
+	if (!scratchAllocator)
+		scratchAllocator = allocator;
+
+	return dsDirectAnimation_loadImpl(allocator, scratchAllocator, data, size, NULL);
 }
 
 void dsDirectAnimation_destroy(dsDirectAnimation* animation)

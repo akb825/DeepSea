@@ -14,47 +14,18 @@
  * limitations under the License.
  */
 
-namespace DeepSeaAnimation;
+#include <DeepSea/Core/Config.h>
 
-// Struct describing a 3-dimensional vector.
-struct Vector3f
-{
-	x : float;
-	y : float;
-	z : float;
-}
+#include <DeepSea/Animation/Types.h>
 
-// Struct describing a 4-dimensional vector.
-struct Vector4f
+#ifdef __cplusplus
+extern "C"
 {
-	x : float;
-	y : float;
-	z : float;
-	w : float;
-}
+#endif
 
-// Struct describing a quaternion.
-struct Quaternion4f
-{
-	r : float;
-	i : float;
-	j : float;
-	k : float;
-}
+dsDirectAnimation* dsDirectAnimation_loadImpl(dsAllocator* allocator, dsAllocator* scratchAllocator,
+	const void* data, size_t size, const char* name);
 
-// Struct describing a 4x4 transform matrix.
-struct Matrix44f
-{
-	column0 : Vector4f;
-	column1 : Vector4f;
-	column2 : Vector4f;
-	column3 : Vector4f;
+#ifdef __cplusplus
 }
-
-// Enum for a component of an animation.
-enum AnimationComponent : uint8
-{
-	Translation,
-	Rotation,
-	Scale
-}
+#endif

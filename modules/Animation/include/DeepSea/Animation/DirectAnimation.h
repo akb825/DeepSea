@@ -46,6 +46,57 @@ DS_ANIMATION_EXPORT dsDirectAnimation* dsDirectAnimation_create(dsAllocator* all
 	const dsDirectAnimationChannel* channels, uint32_t channelCount);
 
 /**
+ * @brief Loads an direct animation from a file.
+ * @remark errno will be set on failure.
+ * @param allocator The allocator to create the direct animation.
+ * @param scratchAllocator The allocator for temporary data. If NULL, it will use the direct
+ *     animation allocator.
+ * @param filePath The file path for the direct animation to load.
+ * @return The loaded direct animation or NULL if it couldn't be loaded.
+ */
+DS_ANIMATION_EXPORT dsDirectAnimation* dsDirectAnimation_loadFile(dsAllocator* allocator,
+	dsAllocator* scratchAllocator, const char* filePath);
+
+/**
+ * @brief Loads an direct animation from a file.
+ * @remark errno will be set on failure.
+ * @param allocator The allocator to create the direct animation.
+ * @param scratchAllocator The allocator for temporary data. If NULL, it will use the direct
+ *     animation allocator.
+ * @param type The resource type.
+ * @param filePath The file path for the direct animation to load.
+ * @return The loaded direct animation or NULL if it couldn't be loaded.
+ */
+DS_ANIMATION_EXPORT dsDirectAnimation* dsDirectAnimation_loadResource(dsAllocator* allocator,
+	dsAllocator* scratchAllocator, dsFileResourceType type, const char* filePath);
+
+/**
+ * @brief Loads an direct animation from a stream.
+ * @remark errno will be set on failure.
+ * @param allocator The allocator to create the direct animation.
+ * @param scratchAllocator The allocator for temporary data. If NULL, it will use the direct
+ *     animation allocator.
+ * @param stream The stream to load the direct animation from. This stream will be read from the
+ *     current position until the end.
+ * @return The loaded direct animation or NULL if it couldn't be loaded.
+ */
+DS_ANIMATION_EXPORT dsDirectAnimation* dsDirectAnimation_loadStream(dsAllocator* allocator,
+	dsAllocator* scratchAllocator, dsStream* stream);
+
+/**
+ * @brief Loads an direct animation from a data buffer.
+ * @remark errno will be set on failure.
+ * @param allocator The allocator to create the direct animation.
+ * @param scratchAllocator The allocator for temporary data. If NULL, it will use the direct
+ *     animation allocator.
+ * @param data The data for the direct animation. The data isn't used after this call.
+ * @param size The size of the data buffer.
+ * @return The loaded direct animation or NULL if it couldn't be loaded.
+ */
+DS_ANIMATION_EXPORT dsDirectAnimation* dsDirectAnimation_loadData(dsAllocator* allocator,
+	dsAllocator* scratchAllocator, const void* data, size_t size);
+
+/**
  * @brief Destroys a direct animation.
  * @param animation The direct animation to destroy.
  */

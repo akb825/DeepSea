@@ -358,7 +358,7 @@ typedef struct dsAnimationKeyframes
 	const float* keyframeTimes;
 
 	/**
-	 * @brief The channels that apply to the keyframe.
+	 * @brief The channels that apply to the keyframes.
 	 */
 	const dsKeyframeAnimationChannel* channels;
 } dsAnimationKeyframes;
