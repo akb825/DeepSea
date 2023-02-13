@@ -20,12 +20,6 @@
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Error.h>
 
-static bool dsSceneDirectAnimation_destroy(void* animation)
-{
-	dsDirectAnimation_destroy((dsDirectAnimation*)animation);
-	return true;
-}
-
 const char* const dsSceneDirectAnimation_typeName = "DirectAnimation";
 
 static dsCustomSceneResourceType resourceType;
@@ -52,4 +46,10 @@ dsCustomSceneResource* dsSceneDirectAnimation_create(dsAllocator* allocator,
 	customResource->resource = animation;
 	customResource->destroyFunc = &dsSceneDirectAnimation_destroy;
 	return customResource;
+}
+
+bool dsSceneDirectAnimation_destroy(void* animation)
+{
+	dsDirectAnimation_destroy((dsDirectAnimation*)animation);
+	return true;
 }

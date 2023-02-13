@@ -53,6 +53,13 @@ DS_SCENEANIMATION_EXPORT const dsCustomSceneResourceType* dsSceneAnimation_type(
 DS_SCENEANIMATION_EXPORT dsCustomSceneResource* dsSceneAnimation_create(
 	dsAllocator* allocator, dsAnimation* animation);
 
+/**
+ * @brief Destroys an animation within a resource.
+ * @param animation The animation to destroy.
+ * @return False if the animation couldn't be destroyed
+ */
+bool dsSceneAnimation_destroy(void* animation);
+
 #ifdef __cplusplus
 }
 #endif

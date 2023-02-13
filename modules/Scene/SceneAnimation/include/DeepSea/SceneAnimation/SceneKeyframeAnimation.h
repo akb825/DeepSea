@@ -53,6 +53,13 @@ DS_SCENEANIMATION_EXPORT const dsCustomSceneResourceType* dsSceneKeyframeAnimati
 DS_SCENEANIMATION_EXPORT dsCustomSceneResource* dsSceneKeyframeAnimation_create(
 	dsAllocator* allocator, dsKeyframeAnimation* animation);
 
+/**
+ * @brief Destroys a keyframe animation within a resource.
+ * @param animation The keyframe animation to destroy.
+ * @return False if the keyframe animation couldn't be destroyed
+ */
+DS_SCENEANIMATION_EXPORT bool dsSceneKeyframeAnimation_destroy(void* animation);
+
 #ifdef __cplusplus
 }
 #endif

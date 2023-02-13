@@ -29,36 +29,36 @@ extern "C"
 
 /**
  * @file
- * @brief Function for registering dsDirectAnimation with dsSceneResources.
+ * @brief Function for registering dsAnimationTreeAnimation with dsSceneResources.
  */
 
 /**
- * @brief The type name for a scene direct animation.
+ * @brief The type name for a scene animation tree.
  */
-DS_SCENEANIMATION_EXPORT extern const char* const dsSceneDirectAnimation_typeName;
+DS_SCENEANIMATION_EXPORT extern const char* const dsSceneAnimationTree_typeName;
 
 /**
- * @brief Gets the type for the dsDirectAnimation custom type for storage in dsSceneResources.
+ * @brief Gets the type for the dsAnimationTree custom type for storage in dsSceneResources.
  * @return The custom type.
  */
-DS_SCENEANIMATION_EXPORT const dsCustomSceneResourceType* dsSceneDirectAnimation_type(void);
+DS_SCENEANIMATION_EXPORT const dsCustomSceneResourceType* dsSceneAnimationTree_type(void);
 
 /**
- * @brief Creates a custom resource to wrap a dsDirectAnimation.
+ * @brief Creates a custom resource to wrap a dsAnimationTree.
  * @remark errno will be set on failure.
  * @param allocator The allocator to create the custom resource.
- * @param animation The direct animation to wrap.
+ * @param tree The animation tree to wrap.
  * @return The custom resource or NULL if an error occurred.
  */
-DS_SCENEANIMATION_EXPORT dsCustomSceneResource* dsSceneDirectAnimation_create(
-	dsAllocator* allocator, dsDirectAnimation* animation);
+DS_SCENEANIMATION_EXPORT dsCustomSceneResource* dsSceneAnimationTree_create(dsAllocator* allocator,
+	dsAnimationTree* tree);
 
 /**
- * @brief Destroys a direct animation within a resource.
- * @param animation The direct animation to destroy.
- * @return False if the direct animation couldn't be destroyed
+ * @brief Destroys an animation tree within a resource.
+ * @param tree The animation tree to destroy.
+ * @return False if the animation tree couldn't be destroyed
  */
-DS_SCENEANIMATION_EXPORT bool dsSceneDirectAnimation_destroy(void* animation);
+DS_SCENEANIMATION_EXPORT bool dsSceneAnimationTree_destroy(void* tree);
 
 #ifdef __cplusplus
 }
