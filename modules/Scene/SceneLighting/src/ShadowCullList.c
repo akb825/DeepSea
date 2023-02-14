@@ -374,6 +374,7 @@ dsSceneItemList* dsShadowCullList_create(dsAllocator* allocator, const char* nam
 	itemList->addNodeFunc = &dsShadowCullList_addNode;
 	itemList->updateNodeFunc = NULL;
 	itemList->removeNodeFunc = &dsShadowCullList_removeNode;
+	itemList->preTransformUpdateFunc = NULL;
 	itemList->updateFunc = NULL;
 #if DS_HAS_SIMD
 	if (DS_SIMD_ALWAYS_FMA || dsHostSIMDFeatures & dsSIMDFeatures_FMA)

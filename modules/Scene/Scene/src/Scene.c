@@ -572,10 +572,18 @@ bool dsScene_forEachItemList(dsScene* scene, dsVisitSceneItemListsFunction visit
 
 bool dsScene_update(dsScene* scene, float time)
 {
+	DS_PROFILE_FUNC_START();
 	if (!scene)
 	{
 		errno = EINVAL;
-		return false;
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	for (dsListNode* node = scene->itemLists->list.head; node; node = node->next)
+	{
+		dsSceneItemList* itemList = ((dsSceneItemListNode*)node)->list;
+		if (itemList->preTransformUpdateFunc)
+			itemList->preTransformUpdateFunc(itemList, scene, time);
 	}
 
 	for (uint32_t i = 0; i < scene->dirtyNodeCount; ++i)
@@ -589,7 +597,7 @@ bool dsScene_update(dsScene* scene, float time)
 			itemList->updateFunc(itemList, scene, time);
 	}
 
-	return true;
+	DS_PROFILE_FUNC_RETURN(true);
 }
 
 void dsScene_destroy(dsScene* scene)

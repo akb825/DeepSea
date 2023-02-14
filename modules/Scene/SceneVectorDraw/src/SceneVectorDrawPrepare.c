@@ -220,6 +220,7 @@ dsSceneItemList* dsSceneVectorDrawPrepare_create(dsAllocator* allocator, const c
 	itemList->addNodeFunc = &dsSceneVectorDrawPrepare_addNode;
 	itemList->updateNodeFunc = NULL;
 	itemList->removeNodeFunc = &dsSceneVectorDrawPrepare_removeNode;
+	itemList->preTransformUpdateFunc = NULL;
 	itemList->updateFunc = NULL;
 	itemList->commitFunc = &dsSceneVectorDrawPrepare_commit;
 	itemList->destroyFunc = &dsSceneVectorDrawPrepare_destroy;

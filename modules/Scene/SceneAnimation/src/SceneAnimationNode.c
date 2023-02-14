@@ -187,7 +187,7 @@ bool dsSceneAnimationNode_removeKeyframeAnimationNodeMap(dsSceneAnimationNode* n
 	if (!node || !animation)
 	{
 		errno = EINVAL;
-		return NULL;
+		return false;
 	}
 
 	DS_VERIFY(dsSpinlock_lock(&node->keyframeMapLock));
@@ -270,7 +270,7 @@ bool dsSceneAnimationNode_removeDirectAnimationNodeMap(dsSceneAnimationNode* nod
 	if (!node || !animation)
 	{
 		errno = EINVAL;
-		return NULL;
+		return false;
 	}
 
 	DS_VERIFY(dsSpinlock_lock(&node->directMapLock));

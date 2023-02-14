@@ -207,6 +207,7 @@ dsSceneItemList* dsLightFlicker_create(dsAllocator* allocator, const char* name,
 	itemList->addNodeFunc = &dsLightFlicker_addNode;
 	itemList->updateNodeFunc = NULL;
 	itemList->removeNodeFunc = &dsLightFlicker_removeNode;
+	itemList->preTransformUpdateFunc = NULL;
 	itemList->updateFunc = &dsLightFlicker_update;
 	itemList->commitFunc = NULL;
 	itemList->destroyFunc = &dsLightFlicker_destroy;

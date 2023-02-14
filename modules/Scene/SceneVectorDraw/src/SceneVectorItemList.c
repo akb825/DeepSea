@@ -491,6 +491,7 @@ dsSceneVectorItemList* dsSceneVectorItemList_create(dsAllocator* allocator, cons
 	itemList->addNodeFunc = &dsSceneVectorItemList_addNode;
 	itemList->updateNodeFunc = NULL;
 	itemList->removeNodeFunc = &dsSceneVectorItemList_removeNode;
+	itemList->preTransformUpdateFunc = NULL;
 	itemList->updateFunc = NULL;
 	itemList->commitFunc = &dsSceneVectorItemList_commit;
 	itemList->destroyFunc = (dsDestroySceneItemListFunction)&dsSceneVectorItemList_destroy;

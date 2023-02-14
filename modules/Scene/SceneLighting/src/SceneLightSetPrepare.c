@@ -219,6 +219,7 @@ dsSceneLightSetPrepare* dsSceneLightSetPrepare_create(dsAllocator* allocator, co
 	itemList->addNodeFunc = &dsSceneLightSetPrepare_addNode;
 	itemList->updateNodeFunc = &dsSceneLightSetPrepare_updateNode;
 	itemList->removeNodeFunc = &dsSceneLightSetPrepare_removeNode;
+	itemList->preTransformUpdateFunc = NULL;
 	itemList->updateFunc = &dsSceneLightSetPrepare_update;
 	itemList->commitFunc = NULL;
 	itemList->destroyFunc = (dsDestroySceneItemListFunction)&dsSceneLightSetPrepare_destroy;

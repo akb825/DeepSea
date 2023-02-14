@@ -89,6 +89,7 @@ dsSceneItemList* dsSceneShadowManagerPrepare_create(dsAllocator* allocator, cons
 	itemList->addNodeFunc = NULL;
 	itemList->updateNodeFunc = NULL;
 	itemList->removeNodeFunc = NULL;
+	itemList->preTransformUpdateFunc = NULL;
 	itemList->updateFunc = NULL;
 	itemList->commitFunc = &dsSceneShadowManagerPrepare_commit;
 	itemList->destroyFunc = &dsSceneShadowManagerPrepare_destroy;

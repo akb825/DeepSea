@@ -149,6 +149,7 @@ dsSceneItemList* dsLightData_create(dsAllocator* allocator, const char* name,
 	itemList->addNodeFunc = NULL;
 	itemList->updateNodeFunc = NULL;
 	itemList->removeNodeFunc = NULL;
+	itemList->preTransformUpdateFunc = NULL;
 	itemList->updateFunc = NULL;
 	itemList->commitFunc = &dsLightData_commit;
 	itemList->destroyFunc = &dsLightData_destroy;

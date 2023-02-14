@@ -179,6 +179,7 @@ dsSceneItemList* dsViewTransformData_create(dsAllocator* allocator, const char* 
 	itemList->addNodeFunc = NULL;
 	itemList->updateNodeFunc = NULL;
 	itemList->removeNodeFunc = NULL;
+	itemList->preTransformUpdateFunc = NULL;
 	itemList->updateFunc = NULL;
 	itemList->commitFunc = &dsViewTransformData_commit;
 	itemList->destroyFunc = &dsViewTransformData_destroy;

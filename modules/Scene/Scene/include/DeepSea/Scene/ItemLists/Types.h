@@ -278,6 +278,14 @@ struct dsSceneItemList
 	dsRemoveSceneItemListNodeFunction removeNodeFunc;
 
 	/**
+	 * @brief Function for updating the scene item list before transforms are processed.
+	 *
+	 * This may be used to adjust the transforms of nodes. This may be NULL if the item list doesn't
+	 * need to be udpated before transforms.
+	 */
+	dsUpdateSceneItemListFunction preTransformUpdateFunc;
+
+	/**
 	 * @brief Function for updating the scene item list.
 	 *
 	 * This may be NULL if the item list doesn't need to be udpated.
