@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022 Aaron Barany
+ * Copyright 2019-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -205,6 +205,23 @@ DS_SCENE_EXPORT bool dsSceneNode_reparentChildIndex(dsSceneNode* node, uint32_t 
  */
 DS_SCENE_EXPORT bool dsSceneNode_reparentChildNode(dsSceneNode* node, dsSceneNode* child,
 	dsSceneNode* newParent);
+
+/**
+ * @brief Finds a unique tree node based on a scene node hierarchy.
+ *
+ * This can be useful for having a base node representing a unique instance and subnodes, which may
+ * shared across multiple unique base node instances, that store scene data inside the respective
+ * tree nodes. For example, a set of chairs that share the same model, but each have a base
+ * transform node that uniquely represents each individual chair.
+ *
+ * @remark errno will be set on failure.
+ * @param baseNode The base node. This must only be instantiated once (i.e. have a single
+ *     dsSceneTreeNode) to find any unique instances.
+ * @param descendentNode The descendent node to find the unique tree node for.
+ * @return The unique tree node or NULL if not found.
+ */
+DS_SCENE_EXPORT dsSceneTreeNode* dsSceneNode_findUniqueTreeNode(const dsSceneNode* baseNode,
+	const dsSceneNode* descendentNode);
 
 /**
  * @brief Clears all chidlren from a scene node.

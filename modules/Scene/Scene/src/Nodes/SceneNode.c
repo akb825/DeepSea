@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022 Aaron Barany
+ * Copyright 2019-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,25 @@
 // only this global variable is referenced for Scene.o, SceneNode.o doesn't bring in this variable.
 // Since Scene.o will reference functions in SceneNode.o, this *should* always work.
 dsSceneNodeType dsRootSceneNodeType;
+
+static dsSceneTreeNode* findUniqueTreeNodeRec(dsSceneTreeNode* treeNode,
+	const dsSceneNode* descendentNode)
+{
+	for (uint32_t i = 0; i < treeNode->childCount; ++i)
+	{
+		dsSceneTreeNode* child = treeNode->children[i];
+		if (child->node == descendentNode)
+			return child;
+		else if (child->childCount > 0)
+		{
+			dsSceneTreeNode* foundNode = findUniqueTreeNodeRec(child, descendentNode);
+			if (foundNode)
+				return foundNode;
+		}
+	}
+
+	return NULL;
+}
 
 const char* const dsSceneNodeRef_typeName = "ReferenceNode";
 
@@ -333,6 +352,30 @@ bool dsSceneNode_reparentChildNode(dsSceneNode* node, dsSceneNode* child, dsScen
 	}
 
 	return dsSceneNode_reparentChildIndex(node, childIndex, newParent);
+}
+
+dsSceneTreeNode* dsSceneNode_findUniqueTreeNode(const dsSceneNode* baseNode,
+	const dsSceneNode* descendentNode)
+{
+	if (!baseNode || !descendentNode)
+	{
+		errno = EINVAL;
+		return NULL;
+	}
+
+	if (baseNode->treeNodeCount != 1)
+	{
+		errno = EPERM;
+		return NULL;
+	}
+
+	if (baseNode == descendentNode)
+		return baseNode->treeNodes[0];
+
+	dsSceneTreeNode* foundTreeNode = findUniqueTreeNodeRec(baseNode->treeNodes[0], descendentNode);
+	if (foundTreeNode == NULL)
+		errno = ENOTFOUND;
+	return foundTreeNode;
 }
 
 void dsSceneNode_clear(dsSceneNode* node)
