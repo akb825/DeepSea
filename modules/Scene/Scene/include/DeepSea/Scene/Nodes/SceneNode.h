@@ -76,7 +76,7 @@ DS_SCENE_EXPORT const char* const* dsSceneNode_copyItemLists(dsBufferAllocator* 
  *     // Use this line if dsBaseSceneNode itself has a parent type.
  *     dsBaseSceneNode_setupParentType(&mySceneNodeType);
  *     // Use this line instead of the parent line if dsBaseSceneNode has no parent type.
- *     dsSceneNode_setupParentType(&mySceneNodeType, dsBaseSceneNode_type();
+ *     dsSceneNode_setupParentType(&mySceneNodeType, dsBaseSceneNode_type());
  *
  *     // Now set up type passed in.
  *     return dsSceneNode_setupParentType(type, &mySceneNodeType);

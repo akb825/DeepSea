@@ -18,6 +18,9 @@
 
 #include <DeepSea/Core/Config.h>
 
+#include <DeepSea/Animation/Types.h>
+#include <DeepSea/Scene/Types.h>
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -32,6 +35,16 @@ extern "C"
  * @brief Log tag used by the scene animation library.
  */
 #define DS_SCENE_ANIMATION_LOG_TAG "scene-animation"
+
+/**
+ * @brief Struct describing a node that manages an animation with an animation tree.
+ *
+ * Any child node of the animation node may reference the transformed animation tree, such as to
+ * apply a transform from a node of an animation node or skin a model.
+ *
+ * @see SceneAnimationNode.h
+ */
+typedef struct dsSceneAnimationNode dsSceneAnimationNode;
 
 #ifdef __cplusplus
 }
