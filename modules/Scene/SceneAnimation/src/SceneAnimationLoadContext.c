@@ -15,8 +15,18 @@ static void* dsSceneAnimationTree_load(const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
 	void* userData, const uint8_t* data, size_t dataSize)
 {
-	return dsAnimationTree_loadData(allocator, dsSceneLoadScratchData_getAllocator(scratchData),
-		data, dataSize);
+	dsAnimationTree* animationTree = dsAnimationTree_loadData(allocator,
+		dsSceneLoadScratchData_getAllocator(scratchData), data, dataSize);
+	if (!animationTree)
+		return NULL;
+
+	return dsSceneAnimationTree_create(allocator, animationTree);
+}
+
+static bool dsSceneAnimationTree_destroyResource(void* resource)
+{
+	dsSceneAnimationTree_destroy((dsSceneAnimationTree*)resource);
+	return true;
 }
 
 static void* dsSceneDirectAnimation_load(const dsSceneLoadContext* loadContext,
@@ -38,8 +48,8 @@ static void* dsSceneKeyframeAnimation_load(const dsSceneLoadContext* loadContext
 bool dsSceneAnimationLoadConext_registerTypes(dsSceneLoadContext* loadContext)
 {
 	if (!dsSceneLoadContext_registerCustomResourceType(loadContext, dsSceneAnimationTree_typeName,
-			dsSceneAnimationTree_type(), &dsSceneAnimationTree_load, &dsSceneAnimationTree_destroy,
-			NULL, NULL, 0))
+			dsSceneAnimationTree_type(), &dsSceneAnimationTree_load,
+			&dsSceneAnimationTree_destroyResource, NULL, NULL, 0))
 	{
 		return false;
 	}

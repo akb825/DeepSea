@@ -37,6 +37,17 @@ extern "C"
 #define DS_SCENE_ANIMATION_LOG_TAG "scene-animation"
 
 /**
+ * @brief Struct describing an animaton tree used within a scene.
+ *
+ * This brings together an animation tree and shared cache of direct and keyframe animation node
+ * mappings. The animation tree stored within this is intended to not be modified, but should be
+ * cloned for each instance that uses it to tie together with an actual animation.
+ *
+ * @see SceneAnimationTree.h
+ */
+typedef struct dsSceneAnimationTree dsSceneAnimationTree;
+
+/**
  * @brief Struct describing a node that manages an animation with an animation tree.
  *
  * Any child node of the animation node may reference the transformed animation tree, such as to
@@ -44,7 +55,22 @@ extern "C"
  *
  * @see SceneAnimationNode.h
  */
-typedef struct dsSceneAnimationNode dsSceneAnimationNode;
+typedef struct dsSceneAnimationNode
+{
+	/**
+	 * @brief The base node.
+	 */
+	dsSceneNode node;
+
+	/**
+	 * @brief The scene animation tree.
+	 *
+	 * The animation tree will be cloned for each dsSceneTreeNode instance associated with a
+	 * dsSceneAnimationList. The node maps may be shared between all dsSceneTreeNode instances and
+	 * other dsSceneAnimationNodes that use the same animation tree.
+	 */
+	dsSceneAnimationTree* animationTree;
+} dsSceneAnimationNode;
 
 #ifdef __cplusplus
 }
