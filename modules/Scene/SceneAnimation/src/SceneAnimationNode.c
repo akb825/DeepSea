@@ -18,6 +18,8 @@
 
 #include <DeepSea/Scene/Nodes/SceneNode.h>
 
+#include <DeepSea/SceneAnimation/SceneAnimationList.h>
+
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
@@ -58,4 +60,18 @@ dsSceneAnimationNode* dsSceneAnimationNode_create(dsAllocator* allocator,
 
 	node->animationTree = animationTree;
 	return node;
+}
+
+dsSceneAnimation* dsSceneAnimationNode_getAnimationForInstance(const dsSceneTreeNode* treeNode)
+{
+	const dsSceneNodeItemData* itemData = &treeNode->itemData;
+	DS_ASSERT(itemData->count == treeNode->node->itemListCount);
+	for (uint32_t i = 0; i < itemData->count; ++i)
+	{
+		const dsSceneItemList* itemList = treeNode->itemLists[i].list;
+		if (itemList && itemList->type == dsSceneAnimationList_type())
+			return (dsSceneAnimation*)itemData->itemData[i].data;
+	}
+
+	return NULL;
 }

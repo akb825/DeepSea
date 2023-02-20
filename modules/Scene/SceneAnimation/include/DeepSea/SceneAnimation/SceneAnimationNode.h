@@ -52,6 +52,15 @@ DS_SCENEANIMATION_EXPORT const dsSceneNodeType* dsSceneAnimationNode_type(void);
 DS_SCENEANIMATION_EXPORT dsSceneAnimationNode* dsSceneAnimationNode_create(dsAllocator* allocator,
 	dsSceneAnimationTree* animationTree);
 
+/**
+ * @brief Gets the animation for a tree node.
+ * @remark This assumes that the animation was created from a dsSceneAnimationList.
+ * @param treeNode The tree node to get the animation for.
+ * @return The animation or NULL if there isn't one present.
+ */
+DS_SCENEANIMATION_EXPORT dsSceneAnimation* dsSceneAnimationNode_getAnimationForInstance(
+	const dsSceneTreeNode* treeNode);
+
 #ifdef __cplusplus
 }
 #endif

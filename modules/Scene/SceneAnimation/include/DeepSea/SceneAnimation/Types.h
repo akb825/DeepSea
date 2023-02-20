@@ -72,6 +72,42 @@ typedef struct dsSceneAnimationNode
 	dsSceneAnimationTree* animationTree;
 } dsSceneAnimationNode;
 
+/**
+ * @brief Struct defining an animation used in a scene.
+ *
+ * This is typically created in a dsSceneAnimationList to be stored with the dsSceneTreeNode for a
+ * dsSceneAnimationNode. This ties together a dsAnimation and dsAnimationTree to animate.
+ *
+ * The dsSceneAnimation interface should be used to add and remove animations to ensure that the
+ * shared animation node maps are properly used.
+ *
+ * @see SceneAnimation.h
+ */
+typedef struct dsSceneAnimation
+{
+	/**
+	 * @brief The allocator the animation was created with.
+	 */
+	dsAllocator* allocator;
+
+	/**
+	 * @brief The animation.
+	 */
+	dsAnimation* animation;
+
+	/**
+	 * @brief The animation tree to animate.
+	 */
+	dsAnimationTree* animationTree;
+
+	/**
+	 * @brief The scene animation tree.
+	 *
+	 * This is also used to have shared animation node maps.
+	 */
+	dsSceneAnimationTree* sceneAnimationTree;
+} dsSceneAnimation;
+
 #ifdef __cplusplus
 }
 #endif

@@ -56,7 +56,6 @@ static uint64_t dsSceneParticlePrepare_addNode(dsSceneItemList* itemList, const 
 	const dsSceneTreeNode* treeNode, const dsSceneNodeItemData* itemData, void** thisItemData)
 {
 	DS_UNUSED(itemData);
-	DS_UNUSED(treeNode);
 	if (!dsSceneNode_isOfType(node, dsSceneParticleNode_type()))
 		return DS_NO_SCENE_NODE;
 
