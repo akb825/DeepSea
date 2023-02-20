@@ -53,13 +53,6 @@ DS_SCENEANIMATION_EXPORT const dsCustomSceneResourceType* dsSceneDirectAnimation
 DS_SCENEANIMATION_EXPORT dsCustomSceneResource* dsSceneDirectAnimation_create(
 	dsAllocator* allocator, dsDirectAnimation* animation);
 
-/**
- * @brief Destroys a direct animation within a resource.
- * @param animation The direct animation to destroy.
- * @return False if the direct animation couldn't be destroyed
- */
-DS_SCENEANIMATION_EXPORT bool dsSceneDirectAnimation_destroy(void* animation);
-
 #ifdef __cplusplus
 }
 #endif

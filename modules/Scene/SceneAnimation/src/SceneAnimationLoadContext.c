@@ -37,12 +37,24 @@ static void* dsSceneDirectAnimation_load(const dsSceneLoadContext* loadContext,
 		data, dataSize);
 }
 
+static bool dsSceneDirectAnimation_destroyResource(void* resource)
+{
+	dsDirectAnimation_destroy((dsDirectAnimation*)resource);
+	return true;
+}
+
 static void* dsSceneKeyframeAnimation_load(const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
 	void* userData, const uint8_t* data, size_t dataSize)
 {
 	return dsKeyframeAnimation_loadData(allocator, dsSceneLoadScratchData_getAllocator(scratchData),
 		data, dataSize);
+}
+
+static bool dsSceneKeyframeAnimation_destroyResource(void* resource)
+{
+	dsKeyframeAnimation_destroy((dsKeyframeAnimation*)resource);
+	return true;
 }
 
 bool dsSceneAnimationLoadConext_registerTypes(dsSceneLoadContext* loadContext)
@@ -56,14 +68,15 @@ bool dsSceneAnimationLoadConext_registerTypes(dsSceneLoadContext* loadContext)
 
 	if (!dsSceneLoadContext_registerCustomResourceType(loadContext, dsSceneDirectAnimation_typeName,
 			dsSceneDirectAnimation_type(), &dsSceneDirectAnimation_load,
-			&dsSceneDirectAnimation_destroy, NULL, NULL, 0))
+			&dsSceneDirectAnimation_destroyResource, NULL, NULL, 0))
 	{
 		return false;
 	}
 
 	if (!dsSceneLoadContext_registerCustomResourceType(loadContext,
 			dsSceneKeyframeAnimation_typeName, dsSceneKeyframeAnimation_type(),
-			&dsSceneKeyframeAnimation_load, &dsSceneKeyframeAnimation_destroy, NULL, NULL, 0))
+			&dsSceneKeyframeAnimation_load, &dsSceneKeyframeAnimation_destroyResource, NULL, NULL,
+			0))
 	{
 		return false;
 	}
