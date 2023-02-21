@@ -54,7 +54,11 @@ DS_SCENEANIMATION_EXPORT dsSceneAnimationNode* dsSceneAnimationNode_create(dsAll
 
 /**
  * @brief Gets the animation for a tree node.
- * @remark This assumes that the animation was created from a dsSceneAnimationList.
+ *
+ * This will check starting with the tree node passed in, then go up for each successive parent
+ * until a dsSceneAnimationNode is found. This assumes that the animation was created from a
+ * dsSceneAnimationList.
+ *
  * @param treeNode The tree node to get the animation for.
  * @return The animation or NULL if there isn't one present.
  */

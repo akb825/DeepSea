@@ -64,6 +64,11 @@ dsSceneAnimationNode* dsSceneAnimationNode_create(dsAllocator* allocator,
 
 dsSceneAnimation* dsSceneAnimationNode_getAnimationForInstance(const dsSceneTreeNode* treeNode)
 {
+	while (treeNode && !dsSceneNode_isOfType(treeNode->node, dsSceneAnimationNode_type()))
+		treeNode = treeNode->parent;
+	if (!treeNode)
+		return NULL;
+
 	const dsSceneNodeItemData* itemData = &treeNode->itemData;
 	DS_ASSERT(itemData->count == treeNode->node->itemListCount);
 	for (uint32_t i = 0; i < itemData->count; ++i)

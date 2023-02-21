@@ -157,6 +157,9 @@ dsParticleEmitter* dsSceneParticleNode_createEmitter(const dsSceneParticleNode* 
 
 dsParticleEmitter* dsSceneParticleNode_getEmitterForInstance(const dsSceneTreeNode* treeNode)
 {
+	if (!treeNode)
+		return NULL;
+
 	const dsSceneNodeItemData* itemData = &treeNode->itemData;
 	DS_ASSERT(itemData->count == treeNode->node->itemListCount);
 	for (uint32_t i = 0; i < itemData->count; ++i)
