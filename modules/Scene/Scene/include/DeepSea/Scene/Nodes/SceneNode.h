@@ -247,6 +247,15 @@ DS_SCENE_EXPORT dsSceneNode* dsSceneNode_addRef(dsSceneNode* node);
  */
 DS_SCENE_EXPORT void dsSceneNode_freeRef(dsSceneNode* node);
 
+/**
+ * @brief Marks a scene tree node as dirty.
+ *
+ * This should be called anytime the contents of treeNode->baseTransform change.
+ *
+ * @param node The node to mark as dirty.
+ */
+DS_SCENE_EXPORT void dsSceneTreeNode_markDirty(dsSceneTreeNode* node);
+
 #ifdef __cplusplus
 }
 #endif

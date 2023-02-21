@@ -16,7 +16,6 @@
 
 #include <DeepSea/Scene/Nodes/SceneTransformNode.h>
 
-#include "Nodes/SceneTreeNodeInternal.h"
 #include "SceneTypes.h"
 
 #include <DeepSea/Core/Containers/ResizeableArray.h>
@@ -26,6 +25,11 @@
 #include <DeepSea/Math/Matrix44.h>
 
 #include <DeepSea/Scene/Nodes/SceneNode.h>
+
+static void dsSceneTransformNode_setupTreeNode(dsSceneNode* node, dsSceneTreeNode* treeNode)
+{
+	treeNode->baseTransform = &((dsSceneTransformNode*)node)->transform;
+}
 
 static void dsSceneTransformNode_destroy(dsSceneNode* node)
 {
@@ -49,23 +53,25 @@ dsSceneTransformNode* dsSceneTransformNode_create(dsAllocator* allocator,
 		return NULL;
 	}
 
-	dsSceneTransformNode* node = DS_ALLOCATE_OBJECT(allocator, dsSceneTransformNode);
-	if (!node)
+	dsSceneTransformNode* transformNode = DS_ALLOCATE_OBJECT(allocator, dsSceneTransformNode);
+	if (!transformNode)
 		return NULL;
 
-	if (!dsSceneNode_initialize((dsSceneNode*)node, allocator, dsSceneTransformNode_type(), NULL, 0,
+	dsSceneNode* baseNode = (dsSceneNode*)transformNode;
+	if (!dsSceneNode_initialize(baseNode, allocator, dsSceneTransformNode_type(), NULL, 0,
 			&dsSceneTransformNode_destroy))
 	{
 		if (allocator->freeFunc)
-			DS_VERIFY(dsAllocator_free(allocator, node));
+			DS_VERIFY(dsAllocator_free(allocator, transformNode));
 		return NULL;
 	}
 
+	baseNode->setupTreeNodeFunc = &dsSceneTransformNode_setupTreeNode;
 	if (transform)
-		node->transform = *transform;
+		transformNode->transform = *transform;
 	else
-		dsMatrix44_identity(node->transform);
-	return node;
+		dsMatrix44_identity(transformNode->transform);
+	return transformNode;
 }
 
 bool dsSceneTransformNode_setTransform(dsSceneTransformNode* node, const dsMatrix44f* transform)

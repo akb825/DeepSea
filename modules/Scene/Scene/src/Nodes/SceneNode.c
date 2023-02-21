@@ -166,6 +166,7 @@ bool dsSceneNode_initialize(dsSceneNode* node, dsAllocator* allocator,
 	node->refCount = 1;
 	node->userData = NULL;
 	node->destroyUserDataFunc = NULL;
+	node->setupTreeNodeFunc = NULL;
 	node->destroyFunc = destroyFunc;
 	return true;
 }

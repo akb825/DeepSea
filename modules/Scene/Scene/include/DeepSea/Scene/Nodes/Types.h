@@ -55,10 +55,17 @@ struct dsSceneNodeType
 };
 
 /**
- * @brief Function for destroying a scene ndoe.
+ * @brief Function for destroying a scene node.
  * @param node The node to destroy.
  */
 typedef void (*dsDestroySceneNodeFunction)(dsSceneNode* node);
+
+/**
+ * @brief Function for setting up a scene tree node.
+ * @param node The base node.
+ * @param treeNode The tree node to set up.
+ */
+typedef void (*dsSetupSceneTreeNodeFunction)(dsSceneNode* node, dsSceneTreeNode* treeNode);
 
 /**
  * @brief Struct for a node within a scene graph.
@@ -161,6 +168,14 @@ struct dsSceneNode
 	 * @brief Function called on destruction to destroy the user data.
 	 */
 	dsDestroySceneUserDataFunction destroyUserDataFunc;
+
+	/**
+	 * @brief Function to setup a scene tree node.
+	 *
+	 * This should be assigned for node types that need special-purpose setup, such as to set the
+	 * base transform.
+	 */
+	dsSetupSceneTreeNodeFunction setupTreeNodeFunc;
 
 	/**
 	 * @brief Destroy function.
@@ -592,6 +607,13 @@ struct dsSceneTreeNode
 	 * @brief Whether or not the transform is dirty.
 	 */
 	bool dirty;
+
+	/**
+	 * @brief The base transform for the node.
+	 *
+	 * If non-NULL, this will multiply with the parent transform.
+	 */
+	const dsMatrix44f* baseTransform;
 
 	/**
 	 * @brief The transform for the node.

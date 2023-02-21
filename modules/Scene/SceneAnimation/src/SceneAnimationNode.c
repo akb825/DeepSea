@@ -16,13 +16,13 @@
 
 #include <DeepSea/SceneAnimation/SceneAnimationNode.h>
 
-#include <DeepSea/Scene/Nodes/SceneNode.h>
-
-#include <DeepSea/SceneAnimation/SceneAnimationList.h>
-
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
+
+#include <DeepSea/Scene/Nodes/SceneNode.h>
+
+#include <DeepSea/SceneAnimation/SceneAnimationList.h>
 
 static void dsSceneAnimationNode_destroy(dsSceneNode* node)
 {

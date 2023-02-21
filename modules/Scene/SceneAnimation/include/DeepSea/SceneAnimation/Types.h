@@ -73,6 +73,23 @@ typedef struct dsSceneAnimationNode
 } dsSceneAnimationNode;
 
 /**
+ * @brief Struct describing a node that takes a transform from a node in an animation.
+ * @see SceneAnimationTransformNode.h
+ */
+typedef struct dsSceneAnimationTransformNode
+{
+	/**
+	 * @brief The base node.
+	 */
+	dsSceneTransformNode node;
+
+	/**
+	 * @brief The name of the animation node to take the transform from.
+	 */
+	const char* animationNodeName;
+} dsSceneAnimationTransformNode;
+
+/**
  * @brief Struct defining an animation used in a scene.
  *
  * This is typically created in a dsSceneAnimationList to be stored with the dsSceneTreeNode for a
