@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Aaron Barany
+ * Copyright 2022-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,8 +64,8 @@ typedef struct dsLightFlicker
 
 static int type;
 
-static uint64_t dsLightFlicker_addNode(dsSceneItemList* itemList, const dsSceneNode* node,
-	const dsSceneTreeNode* treeNode, const dsSceneNodeItemData* itemData,
+static uint64_t dsLightFlicker_addNode(dsSceneItemList* itemList, dsSceneNode* node,
+	dsSceneTreeNode* treeNode, const dsSceneNodeItemData* itemData,
 	void** thisItemData)
 {
 	DS_UNUSED(itemData);

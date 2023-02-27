@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2022 Aaron Barany
+ * Copyright 2020-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,8 +57,8 @@ typedef struct dsSceneVectorDrawPrepare
 	uint64_t nextNodeID;
 } dsSceneVectorDrawPrepare;
 
-static uint64_t dsSceneVectorDrawPrepare_addNode(dsSceneItemList* itemList, const dsSceneNode* node,
-	const dsSceneTreeNode* treeNode, const dsSceneNodeItemData* itemData, void** thisItemData)
+static uint64_t dsSceneVectorDrawPrepare_addNode(dsSceneItemList* itemList, dsSceneNode* node,
+	dsSceneTreeNode* treeNode, const dsSceneNodeItemData* itemData, void** thisItemData)
 {
 	DS_UNUSED(itemData);
 	DS_UNUSED(treeNode);

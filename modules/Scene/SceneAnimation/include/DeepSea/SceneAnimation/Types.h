@@ -87,6 +87,11 @@ typedef struct dsSceneAnimationTransformNode
 	 * @brief The name of the animation node to take the transform from.
 	 */
 	const char* animationNodeName;
+
+	/**
+	 * @brief The ID of the animation node to take the transform from.
+	 */
+	uint32_t animationNodeID;
 } dsSceneAnimationTransformNode;
 
 /**

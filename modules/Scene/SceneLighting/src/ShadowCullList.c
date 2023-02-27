@@ -73,8 +73,8 @@ typedef struct dsShadowCullList
 	uint64_t nextDynamicNodeID;
 } dsShadowCullList;
 
-static uint64_t dsShadowCullList_addNode(dsSceneItemList* itemList, const dsSceneNode* node,
-	const dsSceneTreeNode* treeNode, const dsSceneNodeItemData* itemData, void** thisItemData)
+static uint64_t dsShadowCullList_addNode(dsSceneItemList* itemList, dsSceneNode* node,
+	dsSceneTreeNode* treeNode, const dsSceneNodeItemData* itemData, void** thisItemData)
 {
 	DS_UNUSED(itemData);
 	if (!dsSceneNode_isOfType(node, dsSceneCullNode_type()))

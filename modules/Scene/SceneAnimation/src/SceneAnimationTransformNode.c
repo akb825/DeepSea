@@ -18,6 +18,7 @@
 
 #include <DeepSea/Math/Matrix44.h>
 
+#include <DeepSea/Core/Containers/Hash.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Assert.h>
@@ -82,6 +83,7 @@ dsSceneAnimationTransformNode* dsSceneAnimationTransformNode_create(dsAllocator*
 	DS_ASSERT(nameCopy);
 	memcpy(nameCopy, animationNodeName, nameLen);
 	node->animationNodeName = nameCopy;
+	node->animationNodeID = dsHashString(animationNodeName);
 
 	return node;
 }

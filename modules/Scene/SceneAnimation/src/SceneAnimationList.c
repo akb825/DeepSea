@@ -25,6 +25,7 @@
 #include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
+#include <DeepSea/Core/Log.h>
 #include <DeepSea/Core/Profile.h>
 
 #include <DeepSea/Math/Matrix44.h>
@@ -52,7 +53,6 @@ typedef struct TransformEntry
 {
 	const dsSceneAnimationTransformNode* node;
 	dsSceneTreeNode* treeNode;
-	uint32_t animationNodeNameID;
 	dsMatrix44f prevTransform;
 	uint64_t nodeID;
 } TransformEntry;
@@ -72,8 +72,8 @@ typedef struct dsSceneAnimationList
 	uint64_t nextTransformNodeID;
 } dsSceneAnimationList;
 
-static uint64_t dsSceneAnimationList_addNode(dsSceneItemList* itemList, const dsSceneNode* node,
-	const dsSceneTreeNode* treeNode, const dsSceneNodeItemData* itemData, void** thisItemData)
+static uint64_t dsSceneAnimationList_addNode(dsSceneItemList* itemList, dsSceneNode* node,
+	dsSceneTreeNode* treeNode, const dsSceneNodeItemData* itemData, void** thisItemData)
 {
 	DS_UNUSED(itemData);
 	DS_UNUSED(treeNode);
@@ -103,6 +103,27 @@ static uint64_t dsSceneAnimationList_addNode(dsSceneItemList* itemList, const ds
 	}
 	else if (dsSceneNode_isOfType(node, dsSceneAnimationTransformNode_type()))
 	{
+		const dsSceneAnimationTransformNode* animationTransformNode =
+			(const dsSceneAnimationTransformNode*)node;
+		dsSceneAnimation* animation = dsSceneAnimationNode_getAnimationForInstance(treeNode);
+		if (!animation)
+		{
+			DS_LOG_WARNING_F(DS_SCENE_ANIMATION_LOG_TAG,
+				"Couldn't find animation for animation transform '%s'.",
+				animationTransformNode->animationNodeName);
+			return DS_NO_SCENE_NODE;
+		}
+
+		uint32_t nodeIndex = dsAnimationTree_findNodeIndexID(animation->animationTree,
+			animationTransformNode->animationNodeID);
+		if (nodeIndex == DS_NO_ANIMATION_NODE)
+		{
+			DS_LOG_WARNING_F(DS_SCENE_ANIMATION_LOG_TAG,
+				"Couldn't find animation node for animation transform '%s'.",
+				animationTransformNode->animationNodeName);
+			return DS_NO_SCENE_NODE;
+		}
+
 		uint32_t index = animationList->transformEntryCount;
 		if (!DS_RESIZEABLE_ARRAY_ADD(itemList->allocator, animationList->transformEntries,
 				animationList->transformEntryCount, animationList->maxTransformEntries, 1))
@@ -110,10 +131,11 @@ static uint64_t dsSceneAnimationList_addNode(dsSceneItemList* itemList, const ds
 			return DS_NO_SCENE_NODE;
 		}
 
+		treeNode->baseTransform = &animation->animationTree->nodes[nodeIndex].transform;
+
 		TransformEntry* entry = animationList->transformEntries + index;
-		entry->node = (const dsSceneAnimationTransformNode*)node;
-		entry->treeNode = (dsSceneTreeNode*)treeNode;
-		entry->animationNodeNameID = dsHashString(entry->node->animationNodeName);
+		entry->node = animationTransformNode;
+		entry->treeNode = treeNode;
 		dsMatrix44_identity(entry->prevTransform);
 		entry->nodeID = animationList->nextAnimationNodeID++;
 		return entry->nodeID;
@@ -179,20 +201,6 @@ static void dsSceneAnimationList_preTransformUpdate(dsSceneItemList* itemList, c
 	{
 		TransformEntry* entry = animationList->transformEntries + i;
 		dsSceneTreeNode* treeNode = entry->treeNode;
-		if (!treeNode->baseTransform)
-		{
-			dsSceneAnimation* animation = dsSceneAnimationNode_getAnimationForInstance(treeNode);
-			if (!animation)
-				continue;
-
-			uint32_t nodeIndex = dsAnimationTree_findNodeIndexID(animation->animationTree,
-				entry->animationNodeNameID);
-			if (nodeIndex == DS_NO_ANIMATION_NODE)
-				continue;
-
-			treeNode->baseTransform = &animation->animationTree->nodes[nodeIndex].transform;
-		}
-
 		if (memcmp(treeNode->baseTransform, &entry->prevTransform, sizeof(dsMatrix44f)) != 0)
 		{
 			dsSceneTreeNode_markDirty(treeNode);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022 Aaron Barany
+ * Copyright 2019-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -168,7 +168,7 @@ typedef void (*dsPopulateSceneInstanceVariablesFunction)(void* userData, const d
  * @return The ID of the node within the item list, or DS_NO_SCENE_NODE if not added.
  */
 typedef uint64_t (*dsAddSceneItemListNodeFunction)(dsSceneItemList* itemList,
-	const dsSceneNode* node, const dsSceneTreeNode* treeNode, const dsSceneNodeItemData* itemData,
+	dsSceneNode* node, dsSceneTreeNode* treeNode, const dsSceneNodeItemData* itemData,
 	void** thisItemData);
 
 /**

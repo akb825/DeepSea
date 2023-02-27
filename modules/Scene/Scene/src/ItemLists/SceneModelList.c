@@ -320,8 +320,8 @@ static void destroyInstanceData(dsSceneInstanceData* const* instanceData,
 		dsSceneInstanceData_destroy(instanceData[i]);
 }
 
-static uint64_t dsSceneModelList_addNode(dsSceneItemList* itemList, const dsSceneNode* node,
-	const dsSceneTreeNode* treeNode, const dsSceneNodeItemData* itemData, void** thisItemData)
+static uint64_t dsSceneModelList_addNode(dsSceneItemList* itemList, dsSceneNode* node,
+	dsSceneTreeNode* treeNode, const dsSceneNodeItemData* itemData, void** thisItemData)
 {
 	DS_UNUSED(thisItemData);
 	if (!dsSceneNode_isOfType(node, dsSceneModelNode_type()))

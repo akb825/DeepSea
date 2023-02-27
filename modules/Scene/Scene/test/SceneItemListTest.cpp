@@ -65,8 +65,8 @@ struct MockSceneItemList
 	uint64_t nextNodeID;
 };
 
-uint64_t addMockSceneItem(dsSceneItemList* itemList, const dsSceneNode* node,
-	const dsSceneTreeNode* treeNode, const dsSceneNodeItemData*, void**)
+uint64_t addMockSceneItem(dsSceneItemList* itemList, dsSceneNode* node, dsSceneTreeNode* treeNode,
+	const dsSceneNodeItemData*, void**)
 {
 	if (!dsSceneNode_isOfType(node, &mockSceneNodeType))
 		return DS_NO_SCENE_NODE;

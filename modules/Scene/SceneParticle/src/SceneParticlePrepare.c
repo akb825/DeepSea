@@ -52,8 +52,8 @@ typedef struct dsSceneParticlePrepare
 	uint64_t nextNodeID;
 } dsSceneParticlePrepare;
 
-static uint64_t dsSceneParticlePrepare_addNode(dsSceneItemList* itemList, const dsSceneNode* node,
-	const dsSceneTreeNode* treeNode, const dsSceneNodeItemData* itemData, void** thisItemData)
+static uint64_t dsSceneParticlePrepare_addNode(dsSceneItemList* itemList, dsSceneNode* node,
+	dsSceneTreeNode* treeNode, const dsSceneNodeItemData* itemData, void** thisItemData)
 {
 	DS_UNUSED(itemData);
 	if (!dsSceneNode_isOfType(node, dsSceneParticleNode_type()))
