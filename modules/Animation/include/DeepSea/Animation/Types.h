@@ -450,88 +450,6 @@ typedef struct dsDirectAnimation
 } dsDirectAnimation;
 
 /**
- * @brief Struct describing a mapping from animation keyframe channels to tree nodes.
- * @see dsKeyframeAnimationNodeMap
- * @see KeyframeAnimationNodeMap.h
- */
-typedef struct dsAnimationKeyframesNodeMap
-{
-	/**
-	 * @brief The number of channels for the keyfrmes.
-	 */
-	uint32_t channelCount;
-
-	/**
-	 * @brief The indices of the nodes that correspond to the channel.
-	 */
-	const uint32_t* channelNodes;
-} dsAnimationKeyframesNodeMap;
-
-/**
- * @brief Struct describing a mapping from a keyframe animation to tree ndoes.
- * @see KeyframeAnimationNodeMap.h
- */
-typedef struct dsKeyframeAnimationNodeMap
-{
-	/**
-	 * @brief The animation the keyframe animation node map was created with.
-	 */
-	dsAllocator* allocator;
-
-	/**
-	 * @brief The animation the map is used for.
-	 */
-	const dsKeyframeAnimation* animation;
-
-	/**
-	 * @brief The ID for the animation tree the map is used for.
-	 */
-	uint32_t treeID;
-
-	/**
-	 * @brief The number of dsAnimationKeyframesNodeMap objects.
-	 */
-	uint32_t keyframesCount;
-
-	/**
-	 * @brief The maps from animation keyframes to animation tree nodes.
-	 */
-	const dsAnimationKeyframesNodeMap* keyframesMaps;
-} dsKeyframeAnimationNodeMap;
-
-/**
- * @brief Struct describing a mapping from a direct animation to tree ndoes.
- * @see DirectAnimationNodeMap.h
- */
-typedef struct dsDirectAnimationNodeMap
-{
-	/**
-	 * @brief The animation the direct animation node map was created with.
-	 */
-	dsAllocator* allocator;
-
-	/**
-	 * @brief The animation the map is used for.
-	 */
-	const dsDirectAnimation* animation;
-
-	/**
-	 * @brief The ID for the animation tree the map is used for.
-	 */
-	uint32_t treeID;
-
-	/**
-	 * @brief The number of channels for the animation.
-	 */
-	uint32_t channelCount;
-
-	/**
-	 * @brief The indices of the nodes that correspond to the channel.
-	 */
-	const uint32_t* channelNodes;
-} dsDirectAnimationNodeMap;
-
-/**
  * @brief Struct describing an entry for a keyframe animation.
  * @see dsAnimation
  * @see Animation.h
@@ -542,11 +460,6 @@ typedef struct dsKeyframeAnimationEntry
 	 * @brief The animation for the entry.
 	 */
 	const dsKeyframeAnimation* animation;
-
-	/**
-	 * @brief The map between an animation and nodes for an animation tree.
-	 */
-	const dsKeyframeAnimationNodeMap* map;
 
 	/**
 	 * @brief The current time for the entry.
@@ -582,15 +495,16 @@ typedef struct dsDirectAnimationEntry
 	const dsDirectAnimation* animation;
 
 	/**
-	 * @brief The map between an animation and nodes for an animation tree.
-	 */
-	const dsDirectAnimationNodeMap* map;
-
-	/**
 	 * @brief The weight for animation.
 	 */
 	float weight;
 } dsDirectAnimationEntry;
+
+/**
+ * @brief Struct describing a cache of mappings from animations to animation nodes.
+ * @see AnimationNodeMapCache.h
+ */
+typedef struct dsAnimationNodeMapCache dsAnimationNodeMapCache;
 
 /**
  * @brief Struct describing an animation.
@@ -607,9 +521,9 @@ typedef struct dsAnimation
 	dsAllocator* allocator;
 
 	/**
-	 * @brief The ID for the animation tree animations are associated with.
+	 * @brief Cache of mappings between keyframe and direct animations and animation trees.
 	 */
-	uint32_t treeID;
+	dsAnimationNodeMapCache* nodeMapCache;
 
 	/**
 	 * @brief The keyframe animation entries.

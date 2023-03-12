@@ -27,42 +27,43 @@ extern "C"
 
 /**
  * @file
- * @brief Functions for creating and manipulating scene animation nodes.
- * @see dsSceneAnimationNode
+ * @brief Functions for creating and manipulating scene animation tree nodes.
+ * @see dsSceneAnimationTreeNode
  */
 
 /**
  * @brief The type name for a scene animation node.
  */
-DS_SCENEANIMATION_EXPORT extern const char* const dsSceneAnimationNode_typeName;
+DS_SCENEANIMATION_EXPORT extern const char* const dsSceneAnimationTreeNode_typeName;
 
 /**
  * @brief Gets the type of a transform node.
  * @return The type of a transform node.
  */
-DS_SCENEANIMATION_EXPORT const dsSceneNodeType* dsSceneAnimationNode_type(void);
+DS_SCENEANIMATION_EXPORT const dsSceneNodeType* dsSceneAnimationTreeNode_type(void);
 
 /**
- * @brief Creates a scene animation node.
+ * @brief Creates a scene animation tree node.
  * @remark errno will be set on failure.
  * @param allocator The allocator for the node. This must support freeing memory.
+ * @param animationTree The scene animation tree that will be animated.
  * @param nodeMapCache The cache to maintain animation node maps.
  * @return The scene animation node or NULL if an error occurred.
  */
-DS_SCENEANIMATION_EXPORT dsSceneAnimationNode* dsSceneAnimationNode_create(dsAllocator* allocator,
-	dsAnimationNodeMapCache* nodeMapCache);
+DS_SCENEANIMATION_EXPORT dsSceneAnimationTreeNode* dsSceneAnimationTreeNode_create(
+	dsAllocator* allocator, dsAnimationTree* animationTree, dsAnimationNodeMapCache* nodeMapCache);
 
 /**
- * @brief Gets the animation for a tree node.
+ * @brief Gets the animation tree for a scene tree node.
  *
- * This will check starting with the tree node passed in, then go up for each successive parent
- * until a dsSceneAnimationNode is found. This assumes that the animation was created from a
- * dsSceneAnimationList.
+ * This will check starting with the scene tree node passed in, then go up for each successive
+ * parent until a dsSceneAnimationTreeNode is found. This assumes that the animation tree was
+ * created from a dsSceneAnimationList.
  *
- * @param treeNode The tree node to get the animation for.
- * @return The animation or NULL if there isn't one present.
+ * @param treeNode The scene tree node to get the animation for.
+ * @return The animation tree or NULL if there isn't one present.
  */
-DS_SCENEANIMATION_EXPORT dsAnimation* dsSceneAnimationNode_getAnimationForInstance(
+DS_SCENEANIMATION_EXPORT dsAnimationTree* dsSceneAnimationTreeNode_getAnimationTreeForInstance(
 	const dsSceneTreeNode* treeNode);
 
 #ifdef __cplusplus

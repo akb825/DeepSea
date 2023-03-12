@@ -41,7 +41,7 @@ static void* dsSceneAnimationTree_load(const dsSceneLoadContext* loadContext,
 
 static bool dsSceneAnimationTree_destroyResource(void* resource)
 {
-	dsSceneAnimationTree_destroy((dsSceneAnimationTree*)resource);
+	dsAnimationTree_destroy((dsAnimationTree*)resource);
 	return true;
 }
 

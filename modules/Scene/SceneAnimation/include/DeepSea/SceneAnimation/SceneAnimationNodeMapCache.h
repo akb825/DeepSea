@@ -29,29 +29,29 @@ extern "C"
 
 /**
  * @file
- * @brief Function for registering dsAnimationTreeAnimation with dsSceneResources.
+ * @brief Function for registering dsSceneAnimationNodeMapCache with dsSceneResources.
  */
 
 /**
- * @brief The type name for a scene animation tree.
+ * @brief The type name for a scene animation node map cache.
  */
-DS_SCENEANIMATION_EXPORT extern const char* const dsSceneAnimationTree_typeName;
+DS_SCENEANIMATION_EXPORT extern const char* const dsSceneAnimationNodeMapCache_typeName;
 
 /**
- * @brief Gets the type for the dsAnimationTree custom type for storage in dsSceneResources.
+ * @brief Gets the type for the dsAnimationNodeMapCache custom type for storage in dsSceneResources.
  * @return The custom type.
  */
-DS_SCENEANIMATION_EXPORT const dsCustomSceneResourceType* dsSceneAnimationTree_type(void);
+DS_SCENEANIMATION_EXPORT const dsCustomSceneResourceType* dsSceneAnimationNodeMapCache_type(void);
 
 /**
- * @brief Creates a custom resource to wrap a dsAnimationTree.
+ * @brief Creates a custom resource to wrap a dsAnimationNodeMapCache.
  * @remark errno will be set on failure.
  * @param allocator The allocator to create the custom resource.
- * @param tree The animation tree to wrap.
+ * @param animation The animation node map cache to wrap.
  * @return The custom resource or NULL if an error occurred.
  */
-DS_SCENEANIMATION_EXPORT dsCustomSceneResource* dsSceneAnimationTree_create(dsAllocator* allocator,
-	dsAnimationTree* tree);
+DS_SCENEANIMATION_EXPORT dsCustomSceneResource* dsSceneAnimationNodeMapCache_create(
+	dsAllocator* allocator, dsAnimationNodeMapCache* animation);
 
 #ifdef __cplusplus
 }

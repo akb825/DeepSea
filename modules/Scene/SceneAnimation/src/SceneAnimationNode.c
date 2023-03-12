@@ -38,9 +38,9 @@ const dsSceneNodeType* dsSceneAnimationNode_type(void)
 }
 
 dsSceneAnimationNode* dsSceneAnimationNode_create(dsAllocator* allocator,
-	dsSceneAnimationTree* animationTree)
+	dsAnimationNodeMapCache* nodeMapCache)
 {
-	if (!allocator || !animationTree)
+	if (!allocator || !nodeMapCache)
 	{
 		errno = EINVAL;
 		return NULL;
@@ -58,11 +58,11 @@ dsSceneAnimationNode* dsSceneAnimationNode_create(dsAllocator* allocator,
 		return NULL;
 	}
 
-	node->animationTree = animationTree;
+	node->nodeMapCache = nodeMapCache;
 	return node;
 }
 
-dsSceneAnimation* dsSceneAnimationNode_getAnimationForInstance(const dsSceneTreeNode* treeNode)
+dsAnimation* dsSceneAnimationNode_getAnimationForInstance(const dsSceneTreeNode* treeNode)
 {
 	while (treeNode && !dsSceneNode_isOfType(treeNode->node, dsSceneAnimationNode_type()))
 		treeNode = treeNode->parent;
@@ -75,7 +75,7 @@ dsSceneAnimation* dsSceneAnimationNode_getAnimationForInstance(const dsSceneTree
 	{
 		const dsSceneItemList* itemList = treeNode->itemLists[i].list;
 		if (itemList && itemList->type == dsSceneAnimationList_type())
-			return (dsSceneAnimation*)itemData->itemData[i].data;
+			return (dsAnimation*)itemData->itemData[i].data;
 	}
 
 	return NULL;

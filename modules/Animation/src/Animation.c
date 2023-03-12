@@ -16,220 +16,34 @@
 
 #include <DeepSea/Animation/Animation.h>
 
+#include "AnimationNodeMapCacheInternal.h"
+
 #include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
-#include <DeepSea/Core/Memory/StackAllocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
+#include <DeepSea/Core/Sort.h>
 
 #include <DeepSea/Math/Core.h>
-#include <DeepSea/Math/Quaternion.h>
-#include <DeepSea/Math/Vector4.h>
 
-#include <string.h>
-
-typedef struct WeightedTransform
+static int directAnimationEntryCompare(const void* left, const void* right, void* context)
 {
-	dsVector4f translation;
-	dsVector4f rotation;
-	dsVector4f scale;
-	float totalTranslationWeight;
-	float totalRotationWeight;
-	float totalScaleWeight;
-} WeightedTransform;
-
-static uint32_t findEndKeyframe(const float* keyframeTimes, uint32_t keyframeCount, double time)
-{
-	// NOTE: If there's regularly many keyframes can use a binary search. Expected to be fairly
-	// on average, so a linear search should be fine and in many cases faster.
-	for (uint32_t i = 0; i < keyframeCount; ++i)
-	{
-		if (keyframeTimes[i] > time)
-			return i;
-	}
-
-	return keyframeCount - 1;
+	const dsDirectAnimationEntry* ref = (const dsDirectAnimationEntry*)left;
+	const dsDirectAnimation* animation = (const dsDirectAnimation*)right;
+	return DS_CMP(ref->animation, animation);
 }
 
-static void evaluateCubicSpline(dsVector4f* result, const dsVector4f* vi, const dsVector4f* bi,
-	const dsVector4f* vj, const dsVector4f* aj, float t)
+static int keyframeAnimationEntryCompare(const void* left, const void* right, void* context)
 {
-	float t2 = t*t;
-	float t3 = t2*t;
-
-	float viMul = 2*t3 - 3*t2 + 1;
-	float biMul = t3 - 2*t2 + t;
-	float vjMul = -2*t3 + 3*t2;
-	float ajMul = t3 - t2;
-
-#if DS_SIMD_ALWAYS_FMA
-	result->simd = dsSIMD4f_mul(vi->simd, dsSIMD4f_set1(viMul));
-	result->simd = dsSIMD4f_fmadd(bi->simd, dsSIMD4f_set1(biMul), result->simd);
-	result->simd = dsSIMD4f_fmadd(vj->simd, dsSIMD4f_set1(vjMul), result->simd);
-	result->simd = dsSIMD4f_fmadd(aj->simd, dsSIMD4f_set1(ajMul), result->simd);
-#else
-	dsVector4f viScaled, biScaled, vjScaled, ajScaled;
-	dsVector4f_scale(&viScaled, vi, viMul);
-	dsVector4f_scale(&biScaled, bi, biMul);
-	dsVector4f_scale(&vjScaled, vj, vjMul);
-	dsVector4f_scale(&ajScaled, aj, ajMul);
-
-	dsVector4f_add(result, &viScaled, &biScaled);
-	dsVector4f_add(result, result, &vjScaled);
-	dsVector4f_add(result, result, &ajScaled);
-#endif
+	const dsKeyframeAnimationEntry* ref = (const dsKeyframeAnimationEntry*)left;
+	const dsKeyframeAnimation* animation = (const dsKeyframeAnimation*)right;
+	return DS_CMP(ref->animation, animation);
 }
 
-static void applyKeyframeAnimationTransforms(WeightedTransform* transforms,
-	const dsAnimation* animation, const dsAnimationTree* tree)
+dsAnimation* dsAnimation_create(dsAllocator* allocator, dsAnimationNodeMapCache* nodeMapCache)
 {
-	for (uint32_t i = 0; i < animation->keyframeEntryCount; ++i)
-	{
-		const dsKeyframeAnimationEntry* entry = animation->keyframeEntries + i;
-		if (entry->weight <= 0)
-			continue;
-
-		const dsKeyframeAnimation* keyframeAnimation = entry->animation;
-		const dsKeyframeAnimationNodeMap* map = entry->map;
-		DS_ASSERT(keyframeAnimation->keyframesCount == map->keyframesCount);
-		for (uint32_t j = 0; j < keyframeAnimation->keyframesCount; ++i)
-		{
-			const dsAnimationKeyframes* keyframes = keyframeAnimation->keyframes + i;
-			const dsAnimationKeyframesNodeMap* keyframesMap = map->keyframesMaps + j;
-			DS_ASSERT(keyframes->channelCount == keyframesMap->channelCount);
-
-			// Find wich pair of keyframes to interpolate between.
-			uint32_t startKeyframe, endKeyframe;
-			float t;
-			if (entry->time <= keyframes->keyframeTimes[0])
-			{
-				startKeyframe = endKeyframe = 0;
-				t = 0;
-			}
-			else if (entry->time >= keyframes->keyframeTimes[keyframes->keyframeCount - 1])
-			{
-				startKeyframe = endKeyframe = keyframes->keyframeCount - 1;
-				t = 0;
-			}
-			else
-			{
-				endKeyframe = findEndKeyframe(keyframes->keyframeTimes, keyframes->keyframeCount,
-					entry->time);
-				startKeyframe = endKeyframe - 1;
-				float startTime = keyframes->keyframeTimes[startKeyframe];
-				float endTime = keyframes->keyframeTimes[endKeyframe];
-				t = (float)(entry->time - startTime)/(endTime - startTime);
-			}
-
-			for (uint32_t k = 0; k < keyframes->channelCount; ++k)
-			{
-				const dsKeyframeAnimationChannel* channel = keyframes->channels + k;
-				WeightedTransform* transform = transforms + keyframesMap->channelNodes[k];
-				dsVector4f value;
-				switch (channel->interpolation)
-				{
-					case dsAnimationInterpolation_Step:
-						value = channel->values[startKeyframe];
-						break;
-					case dsAnimationInterpolation_Linear:
-						if (channel->component == dsAnimationComponent_Rotation)
-						{
-							dsQuaternion4f_slerp((dsQuaternion4f*)&value,
-								(const dsQuaternion4f*)(channel->values + startKeyframe),
-								(const dsQuaternion4f*)(channel->values + endKeyframe), t);
-						}
-						else
-						{
-							dsVector4f_lerp(&value, channel->values + startKeyframe,
-								channel->values + endKeyframe, t);
-						}
-						break;
-					case dsAnimationInterpolation_Cubic:
-					{
-						uint32_t startValueIndex = startKeyframe*3;
-						uint32_t endValueIndex = endKeyframe*3;
-						evaluateCubicSpline(&value, channel->values + startValueIndex + 1,
-							channel->values + startValueIndex + 2,
-							channel->values + endValueIndex + 1, channel->values + endValueIndex,
-							t);
-						if (channel->component == dsAnimationComponent_Rotation)
-						{
-							dsQuaternion4f_normalize((dsQuaternion4f*)&value,
-								(const dsQuaternion4f*)&value);
-						}
-						break;
-					}
-					default:
-						DS_ASSERT(false);
-						DS_UNREACHABLE();
-				}
-
-				dsVector4f weightedValue;
-				dsVector4f_scale(&weightedValue, &value, entry->weight);
-				switch (channel->component)
-				{
-					case dsAnimationComponent_Translation:
-						dsVector4f_add(&transform->translation, &transform->translation,
-							&weightedValue);
-						transform->totalTranslationWeight += entry->weight;
-						break;
-					case dsAnimationComponent_Rotation:
-						dsVector4f_add(&transform->rotation, &transform->rotation, &weightedValue);
-						transform->totalRotationWeight += entry->weight;
-						break;
-					case dsAnimationComponent_Scale:
-						dsVector4f_add(&transform->scale, &transform->scale, &weightedValue);
-						transform->totalScaleWeight += entry->weight;
-						break;
-				}
-			}
-		}
-	}
-}
-
-static void applyDirectAnimationTransforms(WeightedTransform* transforms,
-	const dsAnimation* animation, const dsAnimationTree* tree)
-{
-	for (uint32_t i = 0; i < animation->directEntryCount; ++i)
-	{
-		const dsDirectAnimationEntry* entry = animation->directEntries + i;
-		if (entry->weight <= 0)
-			continue;
-
-		const dsDirectAnimation* directAnimation = entry->animation;
-		const dsDirectAnimationNodeMap* map = entry->map;
-		DS_ASSERT(directAnimation->channelCount == map->channelCount);
-		for (uint32_t j = 0; j < directAnimation->channelCount; ++i)
-		{
-			const dsDirectAnimationChannel* channel = directAnimation->channels + j;
-			WeightedTransform* transform = transforms + map->channelNodes[j];
-
-			dsVector4f weightedValue;
-			dsVector4f_scale(&weightedValue, &channel->value, entry->weight);
-			switch (channel->component)
-			{
-				case dsAnimationComponent_Translation:
-					dsVector4f_add(&transform->translation, &transform->translation,
-						&weightedValue);
-					transform->totalTranslationWeight += entry->weight;
-					break;
-				case dsAnimationComponent_Rotation:
-					dsVector4f_add(&transform->rotation, &transform->rotation, &weightedValue);
-					transform->totalRotationWeight += entry->weight;
-					break;
-				case dsAnimationComponent_Scale:
-					dsVector4f_add(&transform->scale, &transform->scale, &weightedValue);
-					transform->totalScaleWeight += entry->weight;
-					break;
-			}
-		}
-	}
-}
-
-dsAnimation* dsAnimation_create(dsAllocator* allocator, uint32_t treeID)
-{
-	if (!allocator)
+	if (!allocator || !nodeMapCache)
 	{
 		errno = EINVAL;
 		return NULL;
@@ -247,7 +61,7 @@ dsAnimation* dsAnimation_create(dsAllocator* allocator, uint32_t treeID)
 		return NULL;
 
 	animation->allocator = dsAllocator_keepPointer(allocator);
-	animation->treeID = treeID;
+	animation->nodeMapCache = nodeMapCache;
 	animation->keyframeEntries = NULL;
 	animation->keyframeEntryCount = 0;
 	animation->maxKeyframeEntries = 0;
@@ -259,40 +73,45 @@ dsAnimation* dsAnimation_create(dsAllocator* allocator, uint32_t treeID)
 }
 
 bool dsAnimation_addKeyframeAnimation(dsAnimation* animation,
-	const dsKeyframeAnimation* keyframeAnimation, const dsKeyframeAnimationNodeMap* map,
-	float weight, double time, double timeScale, bool wrap)
+	const dsKeyframeAnimation* keyframeAnimation, float weight, double time, double timeScale,
+	bool wrap)
 {
-	if (!animation || !keyframeAnimation || !map)
+	if (!animation || !keyframeAnimation)
 	{
 		errno = EINVAL;
 		return false;
 	}
 
-	if (map->animation != keyframeAnimation || map->treeID != animation->treeID)
+	const dsKeyframeAnimationEntry* prevEntry =
+		(const dsKeyframeAnimationEntry*)dsBinarySearchLowerBound(keyframeAnimation,
+			animation->keyframeEntries, animation->keyframeEntryCount, sizeof(dsKeyframeAnimationEntry),
+			&keyframeAnimationEntryCompare, NULL);
+	if (prevEntry && prevEntry->animation == keyframeAnimation)
 	{
 		errno = EPERM;
 		return false;
 	}
 
-	for (uint32_t i = 0; i < animation->keyframeEntryCount; ++i)
-	{
-		if (animation->keyframeEntries[i].animation == keyframeAnimation)
-		{
-			errno = EPERM;
-			return false;
-		}
-	}
-
-	uint32_t index = animation->keyframeEntryCount;
 	if (!DS_RESIZEABLE_ARRAY_ADD(animation->allocator, animation->keyframeEntries,
 			animation->keyframeEntryCount, animation->maxKeyframeEntries, 1))
 	{
 		return false;
 	}
 
+	if (!dsAnimationNodeMapCache_addKeyframeAnimation(animation->nodeMapCache, keyframeAnimation))
+	{
+		--animation->directEntryCount;
+		return false;
+	}
+
+	// Need to shift the entries to keep them sorted.
+	size_t index = prevEntry ? prevEntry - animation->keyframeEntries :
+		animation->keyframeEntryCount;
+	for (uint32_t i = animation->keyframeEntryCount; --i > index;)
+		animation->keyframeEntries[i] = animation->keyframeEntries[i - 1];
+
 	dsKeyframeAnimationEntry* entry = animation->keyframeEntries + index;
 	entry->animation = keyframeAnimation;
-	entry->map = map;
 	entry->time = time;
 	entry->timeScale = timeScale;
 	entry->wrap = wrap;
@@ -306,70 +125,76 @@ dsKeyframeAnimationEntry* dsAnimation_findKeyframeAnimationEntry(dsAnimation* an
 	if (!animation || !keyframeAnimation)
 		return NULL;
 
-	for (uint32_t i = 0; i < animation->keyframeEntryCount; ++i)
-	{
-		dsKeyframeAnimationEntry* entry = animation->keyframeEntries + i;
-		if (entry->animation == keyframeAnimation)
-			return entry;
-	}
-
-	return NULL;
+	return (dsKeyframeAnimationEntry*)dsBinarySearch(keyframeAnimation, animation->keyframeEntries,
+		animation->keyframeEntryCount, sizeof(dsKeyframeAnimationEntry),
+		&keyframeAnimationEntryCompare, NULL);
 }
 
 bool dsAnimation_removeKeyframeAnimation(dsAnimation* animation,
 	const dsKeyframeAnimation* keyframeAnimation)
 {
 	if (!animation || !keyframeAnimation)
-		return false;
-
-	for (uint32_t i = 0; i < animation->keyframeEntryCount; ++i)
-	{
-		dsKeyframeAnimationEntry* entry = animation->keyframeEntries + i;
-		if (entry->animation != keyframeAnimation)
-			continue;
-
-		// Constant-time removal since order doesn't matter.
-		*entry = animation->keyframeEntries[--animation->keyframeEntryCount];
-		return true;
-	}
-
-	return false;
-}
-
-bool dsAnimation_addDirectAnimation(dsAnimation* animation,
-	const dsDirectAnimation* directAnimation, const dsDirectAnimationNodeMap* map, float weight)
-{
-	if (!animation || !directAnimation || !map || map->treeID != animation->treeID)
 	{
 		errno = EINVAL;
 		return false;
 	}
 
-	if (map->animation != directAnimation)
+	const dsKeyframeAnimationEntry* entry = (const dsKeyframeAnimationEntry*)dsBinarySearch(
+		keyframeAnimation, animation->keyframeEntries, animation->keyframeEntryCount,
+		sizeof(dsKeyframeAnimationEntry), &keyframeAnimationEntryCompare, NULL);
+	if (!entry)
+	{
+		errno = ENOTFOUND;
+		return false;
+	}
+
+	--animation->keyframeEntryCount;
+	// Need to shift the entries back into place.
+	for (size_t i = entry - animation->keyframeEntries; i < animation->keyframeEntryCount; ++i)
+		animation->keyframeEntries[i] = animation->keyframeEntries[i + 1];
+	DS_VERIFY(dsAnimationNodeMapCache_removeKeyframeAnimation(animation->nodeMapCache,
+		keyframeAnimation));
+	return true;
+}
+
+bool dsAnimation_addDirectAnimation(dsAnimation* animation,
+	const dsDirectAnimation* directAnimation, float weight)
+{
+	if (!animation || !directAnimation)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	const dsDirectAnimationEntry* prevEntry =
+		(const dsDirectAnimationEntry*)dsBinarySearchLowerBound(directAnimation,
+			animation->directEntries, animation->directEntryCount, sizeof(dsDirectAnimationEntry),
+			&directAnimationEntryCompare, NULL);
+	if (prevEntry && prevEntry->animation == directAnimation)
 	{
 		errno = EPERM;
 		return false;
 	}
 
-	for (uint32_t i = 0; i < animation->directEntryCount; ++i)
-	{
-		if (animation->directEntries[i].animation == directAnimation)
-		{
-			errno = EPERM;
-			return false;
-		}
-	}
-
-	uint32_t index = animation->directEntryCount;
 	if (!DS_RESIZEABLE_ARRAY_ADD(animation->allocator, animation->directEntries,
 			animation->directEntryCount, animation->maxDirectEntries, 1))
 	{
 		return false;
 	}
 
+	if (!dsAnimationNodeMapCache_addDirectAnimation(animation->nodeMapCache, directAnimation))
+	{
+		--animation->directEntryCount;
+		return false;
+	}
+
+	// Need to shift the entries to keep them sorted.
+	size_t index = prevEntry ? prevEntry - animation->directEntries : animation->directEntryCount;
+	for (uint32_t i = animation->directEntryCount; --i > index;)
+		animation->directEntries[i] = animation->directEntries[i - 1];
+
 	dsDirectAnimationEntry* entry = animation->directEntries + index;
 	entry->animation = directAnimation;
-	entry->map = map;
 	entry->weight = weight;
 	return true;
 }
@@ -380,14 +205,9 @@ dsDirectAnimationEntry* dsAnimation_findDirectAnimationEntry(dsAnimation* animat
 	if (!animation || !directAnimation)
 		return NULL;
 
-	for (uint32_t i = 0; i < animation->directEntryCount; ++i)
-	{
-		dsDirectAnimationEntry* entry = animation->directEntries + i;
-		if (entry->animation == directAnimation)
-			return entry;
-	}
-
-	return NULL;
+	return (dsDirectAnimationEntry*)dsBinarySearch(directAnimation, animation->directEntries,
+		animation->directEntryCount, sizeof(dsDirectAnimationEntry),
+		&directAnimationEntryCompare, NULL);
 }
 
 bool dsAnimation_removeDirectAnimation(dsAnimation* animation,
@@ -396,18 +216,22 @@ bool dsAnimation_removeDirectAnimation(dsAnimation* animation,
 	if (!animation || !directAnimation)
 		return false;
 
-	for (uint32_t i = 0; i < animation->directEntryCount; ++i)
+	const dsDirectAnimationEntry* entry = (const dsDirectAnimationEntry*)dsBinarySearch(
+		directAnimation, animation->directEntries, animation->directEntryCount,
+		sizeof(dsDirectAnimationEntry), &directAnimationEntryCompare, NULL);
+	if (!entry)
 	{
-		dsDirectAnimationEntry* entry = animation->directEntries + i;
-		if (entry->animation != directAnimation)
-			continue;
-
-		// Constant-time removal since order doesn't matter.
-		*entry = animation->directEntries[--animation->directEntryCount];
-		return true;
+		errno = ENOTFOUND;
+		return false;
 	}
 
-	return false;
+	--animation->directEntryCount;
+	// Need to shift the entries back into place.
+	for (size_t i = entry - animation->directEntries; i < animation->directEntryCount; ++i)
+		animation->directEntries[i] = animation->directEntries[i + 1];
+	DS_VERIFY(dsAnimationNodeMapCache_removeDirectAnimation(animation->nodeMapCache,
+		directAnimation));
+	return true;
 }
 
 bool dsAnimation_update(dsAnimation* animation, double time)
@@ -440,49 +264,25 @@ bool dsAnimation_apply(const dsAnimation* animation, dsAnimationTree* tree)
 		return false;
 	}
 
-	// Expect we don't have 100s of thousands of nodes.
-	WeightedTransform* transforms =
-		DS_ALLOCATE_STACK_OBJECT_ARRAY(WeightedTransform, tree->nodeCount);
-	memset(transforms, 0, sizeof(WeightedTransform)*tree->nodeCount);
-
-	// Apply the animation channels to the transforms.
-	applyKeyframeAnimationTransforms(transforms, animation, tree);
-	applyDirectAnimationTransforms(transforms, animation, tree);
-
-	// Set the final non-zero weight transform values on the animation.
-	for (uint32_t i = 0; i < tree->nodeCount; ++i)
-	{
-		dsAnimationNode* node = tree->nodes + i;
-		WeightedTransform* transform = transforms + i;
-		if (transform->totalTranslationWeight > 0)
-		{
-			dsVector4f_scale(&transform->translation, &transform->translation,
-				1/transform->totalTranslationWeight);
-			node->translation = *(dsVector3f*)&transform->translation;
-		}
-
-		if (transform->totalRotationWeight > 0)
-		{
-			dsVector4f_scale(&transform->rotation, &transform->rotation,
-				1/transform->totalRotationWeight);
-			dsQuaternion4f_normalize(&node->rotation, (const dsQuaternion4f*)&transform->rotation);
-		}
-
-		if (transform->totalScaleWeight > 0)
-		{
-			dsVector4f_scale(&transform->scale, &transform->scale,
-				1/transform->totalScaleWeight);
-			node->scale = *(dsVector3f*)&transform->scale;
-		}
-	}
-
-	return true;
+	return dsAnimationNodeMapCache_applyAnimation(animation->nodeMapCache, animation, tree);
 }
 
 void dsAnimation_destroy(dsAnimation* animation)
 {
 	if (!animation)
 		return;
+
+	for (uint32_t i = 0; i < animation->keyframeEntryCount; ++i)
+	{
+		DS_VERIFY(dsAnimationNodeMapCache_removeKeyframeAnimation(animation->nodeMapCache,
+			animation->keyframeEntries[i].animation));
+	}
+
+	for (uint32_t i = 0; i < animation->directEntryCount; ++i)
+	{
+		DS_VERIFY(dsAnimationNodeMapCache_removeDirectAnimation(animation->nodeMapCache,
+			animation->directEntries[i].animation));
+	}
 
 	DS_VERIFY(dsAllocator_free(animation->allocator, animation->keyframeEntries));
 	DS_VERIFY(dsAllocator_free(animation->allocator, animation->directEntries));

@@ -14,29 +14,30 @@
  * limitations under the License.
  */
 
-#include <DeepSea/SceneAnimation/SceneAnimationTree.h>
+#include <DeepSea/SceneAnimation/SceneAnimationNodeMapCache.h>
 
-#include <DeepSea/Animation/AnimationTree.h>
+#include <DeepSea/Animation/AnimationNodeMapCache.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Error.h>
 
-static bool destroyResource(void* tree)
+static bool destroyResource(void* animation)
 {
-	dsAnimationTree_destroy((dsAnimationTree*)tree);
+	dsAnimationNodeMapCache_destroy((dsAnimationNodeMapCache*)animation);
 	return true;
 }
 
-const char* const dsSceneAnimationTree_typeName = "AnimationTree";
+const char* const dsSceneAnimationNodeMapCache_typeName = "AnimationNodeMapCache";
 
 static dsCustomSceneResourceType resourceType;
-const dsCustomSceneResourceType* dsSceneAnimationTree_type(void)
+const dsCustomSceneResourceType* dsSceneAnimationNodeMapCache_type(void)
 {
 	return &resourceType;
 }
 
-dsCustomSceneResource* dsSceneAnimationTree_create(dsAllocator* allocator, dsAnimationTree* tree)
+dsCustomSceneResource* dsSceneAnimationNodeMapCache_create(dsAllocator* allocator,
+	dsAnimationNodeMapCache* animation)
 {
-	if (!allocator || !tree)
+	if (!allocator || !animation)
 	{
 		errno = EINVAL;
 		return NULL;
@@ -48,7 +49,7 @@ dsCustomSceneResource* dsSceneAnimationTree_create(dsAllocator* allocator, dsAni
 
 	customResource->allocator = dsAllocator_keepPointer(allocator);
 	customResource->type = &resourceType;
-	customResource->resource = tree;
+	customResource->resource = animation;
 	customResource->destroyFunc = &destroyResource;
 	return customResource;
 }

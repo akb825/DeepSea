@@ -38,17 +38,19 @@ extern "C"
  * @remark errno will be set on failure.
  * @param allocator The allocator to create the animation with. The allocator must support freeing
  *     memory.
- * @param treeID The ID of the animation trees the animation is compatible with.
+ * @param nodeMapCache Cache for animation node maps. Any keyframe and direct animations added to
+ *     and removed from the animation will be forwarded to the cache. The cache must be alive for at
+ *     least as long as the animation.
  * @return The animation or NULL if an error occurred.
  */
-DS_ANIMATION_EXPORT dsAnimation* dsAnimation_create(dsAllocator* allocator, uint32_t treeID);
+DS_ANIMATION_EXPORT dsAnimation* dsAnimation_create(dsAllocator* allocator,
+	dsAnimationNodeMapCache* nodeMapCache);
 
 /**
  * @brief Adds a keyframe animation to the animation.
  * @remark errno will be set on failure.
  * @param animation The animation.
  * @param keyframeAnimation They keyframe animation to add.
- * @param map The mapping from the keyframe animation to animation tree nodes.
  * @param weight The weight of the keyframe animation.
  * @param time The initial time of the entry.
  * @param timeScale The scale to apply to the time when incrementing the entry time.
@@ -56,8 +58,8 @@ DS_ANIMATION_EXPORT dsAnimation* dsAnimation_create(dsAllocator* allocator, uint
  * @return False if an error occurred.
  */
 DS_ANIMATION_EXPORT bool dsAnimation_addKeyframeAnimation(dsAnimation* animation,
-	const dsKeyframeAnimation* keyframeAnimation, const dsKeyframeAnimationNodeMap* map,
-	float weight, double time, double timeScale, bool wrap);
+	const dsKeyframeAnimation* keyframeAnimation, float weight, double time, double timeScale,
+	bool wrap);
 
 /**
  * @brief Finds a keyframe animation entry in an animation.
@@ -71,6 +73,7 @@ DS_ANIMATION_EXPORT dsKeyframeAnimationEntry* dsAnimation_findKeyframeAnimationE
 
 /**
  * @brief Removes a keyframe animation from the animation.
+ * @remark errno will be set on failure.
  * @param animation The animation.
  * @param keyframeAnimation The keyframe animation.
  * @return False if the animation wasn't found.
@@ -83,12 +86,11 @@ DS_ANIMATION_EXPORT bool dsAnimation_removeKeyframeAnimation(dsAnimation* animat
  * @remark errno will be set on failure.
  * @param animation The animation.
  * @param directAnimation They direct animation to add.
- * @param map The mapping from the direct animation to animation tree nodes.
  * @param weight The weight of the direct animation.
  * @return False if an error occurred.
  */
 DS_ANIMATION_EXPORT bool dsAnimation_addDirectAnimation(dsAnimation* animation,
-	const dsDirectAnimation* directAnimation, const dsDirectAnimationNodeMap* map, float weight);
+	const dsDirectAnimation* directAnimation, float weight);
 
 /**
  * @brief Finds a direct animation entry in an animation.
@@ -102,6 +104,7 @@ DS_ANIMATION_EXPORT dsDirectAnimationEntry* dsAnimation_findDirectAnimationEntry
 
 /**
  * @brief Removes a direct animation from the animation.
+ * @remark errno will be set on failure.
  * @param animation The animation.
  * @param directAnimation The direct animation.
  * @return False if the animation wasn't found.
@@ -122,7 +125,9 @@ DS_ANIMATION_EXPORT bool dsAnimation_update(dsAnimation* animation, double time)
  * @brief Applies an animation to an animation tree.
  * @remark errno will be set on failure.
  * @param animation The animation.
- * @param tree The animation tree to apply the animation to.
+ * @param tree The animation tree to apply the animation to. The animation tree, or a compatible
+ *     clone, must have been previously added to the animation node map cache the animation was
+ *     created with.
  * @return False if the animation couldn't be applied.
  */
 DS_ANIMATION_EXPORT bool dsAnimation_apply(const dsAnimation* animation, dsAnimationTree* tree);

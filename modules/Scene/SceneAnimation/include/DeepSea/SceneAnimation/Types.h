@@ -37,25 +37,36 @@ extern "C"
 #define DS_SCENE_ANIMATION_LOG_TAG "scene-animation"
 
 /**
- * @brief Struct describing an animaton tree used within a scene.
+ * @brief Struct describing a node that manages an animation.
  *
- * This brings together an animation tree and shared cache of direct and keyframe animation node
- * mappings. The animation tree stored within this is intended to not be modified, but should be
- * cloned for each instance that uses it to tie together with an actual animation.
- *
- * @see SceneAnimationTree.h
- */
-typedef struct dsSceneAnimationTree dsSceneAnimationTree;
-
-/**
- * @brief Struct describing a node that manages an animation with an animation tree.
- *
- * Any child node of the animation node may reference the transformed animation tree, such as to
- * apply a transform from a node of an animation node or skin a model.
+ * Any child node of the animation node may reference the animation. Typically one or more
+ * dsSceneAnimationTreeNode will be under the dsSceneAnimationNode to apply the animation.
  *
  * @see SceneAnimationNode.h
  */
 typedef struct dsSceneAnimationNode
+{
+	/**
+	 * @brief The base node.
+	 */
+	dsSceneNode node;
+
+	/**
+	 * @brief The cache for animation node maps.
+	 */
+	dsAnimationNodeMapCache* nodeMapCache;
+} dsSceneAnimationNode;
+
+/**
+ * @brief Struct describing a node that manages an animation tree.
+ *
+ * It's expected this will be under a dsSceneAnimationNode to manage the animation. Any child node
+ * of the animation node may reference the transformed animation tree, such as to apply a transform
+ * from a node of an animation node or skin a model.
+ *
+ * @see SceneAnimationNode.h
+ */
+typedef struct dsSceneAnimationTreeNode
 {
 	/**
 	 * @brief The base node.
@@ -69,11 +80,19 @@ typedef struct dsSceneAnimationNode
 	 * dsSceneAnimationList. The node maps may be shared between all dsSceneTreeNode instances and
 	 * other dsSceneAnimationNodes that use the same animation tree.
 	 */
-	dsSceneAnimationTree* animationTree;
-} dsSceneAnimationNode;
+	dsAnimationTree* animationTree;
+
+	/**
+	 * @brief The cache for animation node maps.
+	 */
+	dsAnimationNodeMapCache* nodeMapCache;
+} dsSceneAnimationTreeNode;
 
 /**
- * @brief Struct describing a node that takes a transform from a node in an animation.
+ * @brief Struct describing a node that takes a transform from a node in an animation tree.
+ *
+ * It's expected this will be under a dsSceneAnimationTreeNode to manage the transform.
+ *
  * @see SceneAnimationTransformNode.h
  */
 typedef struct dsSceneAnimationTransformNode
@@ -93,42 +112,6 @@ typedef struct dsSceneAnimationTransformNode
 	 */
 	uint32_t animationNodeID;
 } dsSceneAnimationTransformNode;
-
-/**
- * @brief Struct defining an animation used in a scene.
- *
- * This is typically created in a dsSceneAnimationList to be stored with the dsSceneTreeNode for a
- * dsSceneAnimationNode. This ties together a dsAnimation and dsAnimationTree to animate.
- *
- * The dsSceneAnimation interface should be used to add and remove animations to ensure that the
- * shared animation node maps are properly used.
- *
- * @see SceneAnimation.h
- */
-typedef struct dsSceneAnimation
-{
-	/**
-	 * @brief The allocator the animation was created with.
-	 */
-	dsAllocator* allocator;
-
-	/**
-	 * @brief The animation.
-	 */
-	dsAnimation* animation;
-
-	/**
-	 * @brief The animation tree to animate.
-	 */
-	dsAnimationTree* animationTree;
-
-	/**
-	 * @brief The scene animation tree.
-	 *
-	 * This is also used to have shared animation node maps.
-	 */
-	dsSceneAnimationTree* sceneAnimationTree;
-} dsSceneAnimation;
 
 #ifdef __cplusplus
 }

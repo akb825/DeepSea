@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Aaron Barany
+ * Copyright 2022-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include <DeepSea/Animation/KeyframeAnimationNodeMap.h>
+#include "KeyframeAnimationNodeMap.h"
 
 #include <DeepSea/Animation/AnimationTree.h>
 #include <DeepSea/Core/Memory/Allocator.h>
@@ -70,15 +70,6 @@ dsKeyframeAnimationNodeMap* dsKeyframeAnimationNodeMap_create(
 		{
 			const dsKeyframeAnimationChannel* channel = keyframes->channels + j;
 			channelNodes[j] = dsAnimationTree_findNodeIndexName(tree, channel->node);
-			if (channelNodes[j] == DS_NO_ANIMATION_NODE)
-			{
-				DS_LOG_ERROR_F(DS_ANIMATION_LOG_TAG, "Animation tree doesn't contain node '%s'.",
-					channel->node);
-				errno = ENOTFOUND;
-				if (map->allocator)
-					DS_VERIFY(dsAllocator_free(map->allocator, map));
-				return NULL;
-			}
 		}
 		keyframesMap->channelNodes = channelNodes;
 	}
