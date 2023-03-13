@@ -87,7 +87,7 @@ static size_t fullAllocSize(uint32_t* outNodeCount, const dsAnimationBuildNode* 
 		fullSize += rootSize;
 	}
 
-	fullSize += DS_ALIGNED_SIZE(sizeof(dsAnimationNode*)*(*outNodeCount)) +
+	fullSize += DS_ALIGNED_SIZE(sizeof(dsAnimationNode)*(*outNodeCount)) +
 		DS_ALIGNED_SIZE(sizeof(uint32_t)*rootNodeCount);
 
 	fullSize += DS_ALIGNED_SIZE(sizeof(NamedHashNode))*(*outNodeCount) +
@@ -101,7 +101,7 @@ static size_t fullAllocSizeJoints(uint32_t* outParentNodes, uint32_t* outRootNod
 	memset(outParentNodes, 0xFF, sizeof(uint32_t)*nodeCount);
 	*outRootNodeCount = 0;
 	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsAnimationTree)) +
-		DS_ALIGNED_SIZE(sizeof(dsAnimationNode*)*nodeCount) +
+		DS_ALIGNED_SIZE(sizeof(dsAnimationNode)*nodeCount) +
 		DS_ALIGNED_SIZE(sizeof(dsMatrix44f)*nodeCount) +
 		DS_ALIGNED_SIZE(sizeof(dsAnimationJointTransform)*nodeCount) +
 		DS_ALIGNED_SIZE(sizeof(NamedHashNode))*nodeCount +
@@ -340,7 +340,7 @@ dsAnimationTree* dsAnimationTree_create(dsAllocator* allocator,
 	tree->rootNodeCount = rootNodeCount;
 
 	dsAnimationNode* nodes = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, dsAnimationNode, nodeCount);
-	DS_ASSERT(tree->nodes);
+	DS_ASSERT(nodes);
 	tree->nodes = nodes;
 
 	uint32_t* rootNodeIndices = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, uint32_t, rootNodeCount);
@@ -360,8 +360,8 @@ dsAnimationTree* dsAnimationTree_create(dsAllocator* allocator,
 	uint32_t nextIndex = 0;
 	for (uint32_t i = 0; i < rootNodeCount; ++i)
 	{
-		uint32_t root = buildTreeRec(allocator, &nextIndex, DS_NO_ANIMATION_NODE, rootNodes[i],
-			nodes, nodeTable);
+		uint32_t root = buildTreeRec((dsAllocator*)&bufferAlloc, &nextIndex, DS_NO_ANIMATION_NODE,
+			rootNodes[i], nodes, nodeTable);
 		if (root == DS_NO_ANIMATION_NODE)
 		{
 			errno = EINVAL;
@@ -447,7 +447,7 @@ dsAnimationTree* dsAnimationTree_createJoints(dsAllocator* allocator,
 		treeNode->childCount = node->childCount;
 		if (node->childCount > 0)
 		{
-			uint32_t* children = DS_ALLOCATE_OBJECT_ARRAY(allocator, uint32_t, node->childCount);
+			uint32_t* children = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, uint32_t, node->childCount);
 			DS_ASSERT(children);
 			treeNode->children = children;
 			memcpy(children, node->children, sizeof(uint32_t)*node->childCount);
@@ -479,7 +479,7 @@ dsAnimationTree* dsAnimationTree_createJoints(dsAllocator* allocator,
 		jointTransform->inverseTranspose[2].z = 1;
 		jointTransform->inverseTranspose[2].w = 0;
 
-		NamedHashNode* hashNode = DS_ALLOCATE_OBJECT(allocator, NamedHashNode);
+		NamedHashNode* hashNode = DS_ALLOCATE_OBJECT(&bufferAlloc, NamedHashNode);
 		DS_ASSERT(hashNode);
 		hashNode->index = i;
 		if (!dsHashTable_insert(nodeTable, &treeNode->nameID, (dsHashTableNode*)hashNode, NULL))
@@ -605,7 +605,7 @@ dsAnimationTree* dsAnimationTree_clone(dsAllocator* allocator, const dsAnimation
 
 	uint32_t tableSize = dsHashTable_tableSize(tree->nodeCount);
 	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsAnimationTree)) +
-		DS_ALIGNED_SIZE(sizeof(dsAnimationNode*)*tree->nodeCount) +
+		DS_ALIGNED_SIZE(sizeof(dsAnimationNode)*tree->nodeCount) +
 		DS_ALIGNED_SIZE(sizeof(uint32_t)*tree->rootNodeCount) +
 		DS_ALIGNED_SIZE(sizeof(NamedHashNode))*tree->nodeCount +
 		dsHashTable_fullAllocSize(tableSize);
@@ -671,13 +671,13 @@ dsAnimationTree* dsAnimationTree_clone(dsAllocator* allocator, const dsAnimation
 		memcpy(nodeClone, node, sizeof(dsAnimationNode));
 		if (node->childCount > 0)
 		{
-			uint32_t* children = DS_ALLOCATE_OBJECT_ARRAY(allocator, uint32_t, node->childCount);
+			uint32_t* children = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, uint32_t, node->childCount);
 			DS_ASSERT(children);
 			nodeClone->children = children;
 			memcpy(children, node->children, sizeof(uint32_t)*node->childCount);
 		}
 
-		NamedHashNode* hashNode = DS_ALLOCATE_OBJECT(allocator, NamedHashNode);
+		NamedHashNode* hashNode = DS_ALLOCATE_OBJECT(&bufferAlloc, NamedHashNode);
 		DS_ASSERT(hashNode);
 		hashNode->index = i;
 		DS_VERIFY(dsHashTable_insert(nodeTable, &node->nameID, (dsHashTableNode*)hashNode, NULL));

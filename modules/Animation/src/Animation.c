@@ -29,15 +29,15 @@
 
 static int directAnimationEntryCompare(const void* left, const void* right, void* context)
 {
-	const dsDirectAnimationEntry* ref = (const dsDirectAnimationEntry*)left;
-	const dsDirectAnimation* animation = (const dsDirectAnimation*)right;
+	const dsDirectAnimation* animation = (const dsDirectAnimation*)left;
+	const dsDirectAnimationEntry* ref = (const dsDirectAnimationEntry*)right;
 	return DS_CMP(ref->animation, animation);
 }
 
 static int keyframeAnimationEntryCompare(const void* left, const void* right, void* context)
 {
-	const dsKeyframeAnimationEntry* ref = (const dsKeyframeAnimationEntry*)left;
-	const dsKeyframeAnimation* animation = (const dsKeyframeAnimation*)right;
+	const dsKeyframeAnimation* animation = (const dsKeyframeAnimation*)left;
+	const dsKeyframeAnimationEntry* ref = (const dsKeyframeAnimationEntry*)right;
 	return DS_CMP(ref->animation, animation);
 }
 
@@ -92,6 +92,8 @@ bool dsAnimation_addKeyframeAnimation(dsAnimation* animation,
 		return false;
 	}
 
+	size_t index = prevEntry ? prevEntry - animation->keyframeEntries :
+		animation->keyframeEntryCount;
 	if (!DS_RESIZEABLE_ARRAY_ADD(animation->allocator, animation->keyframeEntries,
 			animation->keyframeEntryCount, animation->maxKeyframeEntries, 1))
 	{
@@ -105,8 +107,6 @@ bool dsAnimation_addKeyframeAnimation(dsAnimation* animation,
 	}
 
 	// Need to shift the entries to keep them sorted.
-	size_t index = prevEntry ? prevEntry - animation->keyframeEntries :
-		animation->keyframeEntryCount;
 	for (uint32_t i = animation->keyframeEntryCount; --i > index;)
 		animation->keyframeEntries[i] = animation->keyframeEntries[i - 1];
 
@@ -176,6 +176,7 @@ bool dsAnimation_addDirectAnimation(dsAnimation* animation,
 		return false;
 	}
 
+	size_t index = prevEntry ? prevEntry - animation->directEntries : animation->directEntryCount;
 	if (!DS_RESIZEABLE_ARRAY_ADD(animation->allocator, animation->directEntries,
 			animation->directEntryCount, animation->maxDirectEntries, 1))
 	{
@@ -189,7 +190,6 @@ bool dsAnimation_addDirectAnimation(dsAnimation* animation,
 	}
 
 	// Need to shift the entries to keep them sorted.
-	size_t index = prevEntry ? prevEntry - animation->directEntries : animation->directEntryCount;
 	for (uint32_t i = animation->directEntryCount; --i > index;)
 		animation->directEntries[i] = animation->directEntries[i - 1];
 

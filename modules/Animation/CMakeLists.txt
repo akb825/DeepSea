@@ -10,3 +10,5 @@ ds_convert_flatbuffers(generatedFlatbuffers FILE ${flatbuffers}
 ds_convert_flatbuffers_target(deepsea_animation_flatbuffers generatedFlatbuffers)
 add_dependencies(deepsea_animation deepsea_animation_flatbuffers)
 ds_set_folder(deepsea_animation_flatbuffers modules/Flatbuffers)
+
+add_subdirectory(test)

@@ -294,22 +294,22 @@ static void unlockRead(dsAnimationNodeMapCache* cache)
 
 static int animationTreeNodeMapCompare(const void* left, const void* right, void* context)
 {
-	const dsAnimationTreeNodeMap* nodeMap = (const dsAnimationTreeNodeMap*)left;
-	uint32_t treeID = *(const uint32_t*)right;
+	uint32_t treeID = *(const uint32_t*)left;
+	const dsAnimationTreeNodeMap* nodeMap = (const dsAnimationTreeNodeMap*)right;
 	return DS_CMP(nodeMap->tree->id, treeID);
 }
 
 static int directAnimationRefCompare(const void* left, const void* right, void* context)
 {
-	const dsDirectAnimationRef* ref = (const dsDirectAnimationRef*)left;
-	const dsDirectAnimation* animation = (const dsDirectAnimation*)right;
+	const dsDirectAnimation* animation = (const dsDirectAnimation*)left;
+	const dsDirectAnimationRef* ref = (const dsDirectAnimationRef*)right;
 	return DS_CMP(ref->animation, animation);
 }
 
 static int keyframeAnimationRefCompare(const void* left, const void* right, void* context)
 {
-	const dsKeyframeAnimationRef* ref = (const dsKeyframeAnimationRef*)left;
-	const dsKeyframeAnimation* animation = (const dsKeyframeAnimation*)right;
+	const dsKeyframeAnimation* animation = (const dsKeyframeAnimation*)left;
+	const dsKeyframeAnimationRef* ref = (const dsKeyframeAnimationRef*)right;
 	return DS_CMP(ref->animation, animation);
 }
 
@@ -557,7 +557,7 @@ bool dsAnimationNodeMapCache_addKeyframeAnimation(dsAnimationNodeMapCache* cache
 			{
 				// Need to shift the entries to keep them sorted.
 				for (uint32_t j = cache->keyframeAnimationCount; --j > index;)
-					treeMap->keyframeMaps[i] = treeMap->keyframeMaps[i - 1];
+					treeMap->keyframeMaps[j] = treeMap->keyframeMaps[j - 1];
 				treeMap->keyframeMaps[index] = map;
 			}
 			else
@@ -678,7 +678,7 @@ bool dsAnimationNodeMapCache_addDirectAnimation(dsAnimationNodeMapCache* cache,
 			{
 				// Need to shift the entries to keep them sorted.
 				for (uint32_t j = cache->directAnimationCount; --j > index;)
-					treeMap->directMaps[i] = treeMap->directMaps[i - 1];
+					treeMap->directMaps[j] = treeMap->directMaps[j - 1];
 				treeMap->directMaps[index] = map;
 			}
 			else
