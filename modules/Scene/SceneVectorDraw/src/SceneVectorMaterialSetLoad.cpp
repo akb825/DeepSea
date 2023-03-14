@@ -52,7 +52,7 @@ static bool convertStops(dsAllocator* allocator, dsGradientStop*& tempStops, uin
 		if (!fbStop)
 		{
 			errno = EFORMAT;
-			DS_LOG_ERROR(DS_VECTOR_DRAW_SCENE_LOG_TAG,
+			DS_LOG_ERROR(DS_SCENE_VECTOR_DRAW_LOG_TAG,
 				"Vector material set gradient stop is unset.");
 			return false;
 		}
@@ -77,7 +77,7 @@ void* dsVectorSceneMaterialSet_load(const dsSceneLoadContext* loadContext,
 	if (!DeepSeaSceneVectorDraw::VerifyVectorMaterialSetBuffer(verifier))
 	{
 		errno = EFORMAT;
-		DS_LOG_ERROR(DS_VECTOR_DRAW_SCENE_LOG_TAG,
+		DS_LOG_ERROR(DS_SCENE_VECTOR_DRAW_LOG_TAG,
 			"Invalid vector scene material set flatbuffer format.");
 		return nullptr;
 	}
@@ -104,7 +104,7 @@ void* dsVectorSceneMaterialSet_load(const dsSceneLoadContext* loadContext,
 		if (!fbMaterial)
 		{
 			errno = EFORMAT;
-			DS_LOG_ERROR(DS_VECTOR_DRAW_SCENE_LOG_TAG, "Vector material is unset.");
+			DS_LOG_ERROR(DS_SCENE_VECTOR_DRAW_LOG_TAG, "Vector material is unset.");
 			goto error;
 		}
 
@@ -164,7 +164,7 @@ void* dsVectorSceneMaterialSet_load(const dsSceneLoadContext* loadContext,
 		else
 		{
 			errno = EFORMAT;
-			DS_LOG_ERROR(DS_VECTOR_DRAW_SCENE_LOG_TAG, "Vector material is unset.");
+			DS_LOG_ERROR(DS_SCENE_VECTOR_DRAW_LOG_TAG, "Vector material is unset.");
 			goto error;
 		}
 

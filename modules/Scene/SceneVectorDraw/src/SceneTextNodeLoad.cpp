@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2021 Aaron Barany
+ * Copyright 2020-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,7 +55,7 @@ dsSceneNode* dsSceneTextNode_load(const dsSceneLoadContext* loadContext,
 	if (!DeepSeaSceneVectorDraw::VerifyTextNodeBuffer(verifier))
 	{
 		errno = EFORMAT;
-		DS_LOG_ERROR(DS_SCENE_LOG_TAG, "Invalid text node flatbuffer format.");
+		DS_LOG_ERROR(DS_SCENE_VECTOR_DRAW_LOG_TAG, "Invalid text node flatbuffer format.");
 		return nullptr;
 	}
 
@@ -100,7 +100,7 @@ dsSceneNode* dsSceneTextNode_load(const dsSceneLoadContext* loadContext,
 		customResource->type != dsSceneText_type())
 	{
 		errno = ENOTFOUND;
-		DS_LOG_ERROR_F(DS_SCENE_LOG_TAG, "Couldn't find scene text '%s'.",
+		DS_LOG_ERROR_F(DS_SCENE_VECTOR_DRAW_LOG_TAG, "Couldn't find scene text '%s'.",
 			fbText->c_str());
 		goto finished;
 	}
@@ -112,7 +112,8 @@ dsSceneNode* dsSceneTextNode_load(const dsSceneLoadContext* loadContext,
 		resourceType != dsSceneResourceType_Shader)
 	{
 		errno = ENOTFOUND;
-		DS_LOG_ERROR_F(DS_SCENE_LOG_TAG, "Couldn't find shader '%s'.", fbShader->c_str());
+		DS_LOG_ERROR_F(DS_SCENE_VECTOR_DRAW_LOG_TAG, "Couldn't find shader '%s'.",
+			fbShader->c_str());
 		goto finished;
 	}
 
@@ -121,7 +122,8 @@ dsSceneNode* dsSceneTextNode_load(const dsSceneLoadContext* loadContext,
 		resourceType != dsSceneResourceType_Material)
 	{
 		errno = ENOTFOUND;
-		DS_LOG_ERROR_F(DS_SCENE_LOG_TAG, "Couldn't find material '%s'.", fbMaterial->c_str());
+		DS_LOG_ERROR_F(DS_SCENE_VECTOR_DRAW_LOG_TAG, "Couldn't find material '%s'.",
+			fbMaterial->c_str());
 		goto finished;
 	}
 
@@ -135,7 +137,8 @@ dsSceneNode* dsSceneTextNode_load(const dsSceneLoadContext* loadContext,
 			if (!item)
 			{
 				errno = EFORMAT;
-				DS_LOG_ERROR(DS_SCENE_LOG_TAG, "Vector image node extra item name is null.");
+				DS_LOG_ERROR(DS_SCENE_VECTOR_DRAW_LOG_TAG,
+					"Vector image node extra item name is null.");
 				goto finished;
 			}
 
@@ -154,7 +157,7 @@ dsSceneNode* dsSceneTextNode_load(const dsSceneLoadContext* loadContext,
 		fontTextureMatElement->binding != dsMaterialBinding_Instance)
 	{
 		errno = ENOTFOUND;
-		DS_LOG_ERROR_F(DS_VECTOR_DRAW_SCENE_LOG_TAG,
+		DS_LOG_ERROR_F(DS_SCENE_VECTOR_DRAW_LOG_TAG,
 			"Font texture '%s' must be a texture with instance binding.", fontTextureName);
 		return nullptr;
 	}

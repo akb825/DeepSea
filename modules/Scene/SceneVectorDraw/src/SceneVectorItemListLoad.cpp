@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2022 Aaron Barany
+ * Copyright 2020-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,7 +45,7 @@ dsSceneItemList* dsSceneVectorItemList_load(const dsSceneLoadContext* loadContex
 	if (!DeepSeaSceneVectorDraw::VerifyVectorItemListBuffer(verifier))
 	{
 		errno = EFORMAT;
-		DS_LOG_ERROR(DS_SCENE_LOG_TAG, "Invalid vector item list flatbuffer format.");
+		DS_LOG_ERROR(DS_SCENE_VECTOR_DRAW_LOG_TAG, "Invalid vector item list flatbuffer format.");
 		return nullptr;
 	}
 
@@ -78,7 +78,8 @@ dsSceneItemList* dsSceneVectorItemList_load(const dsSceneLoadContext* loadContex
 			else
 			{
 				errno = EFORMAT;
-				DS_LOG_ERROR(DS_SCENE_LOG_TAG, "Vector item list instance data is null.");
+				DS_LOG_ERROR(DS_SCENE_VECTOR_DRAW_LOG_TAG,
+					"Vector item list instance data is null.");
 			}
 
 			if (!instance)

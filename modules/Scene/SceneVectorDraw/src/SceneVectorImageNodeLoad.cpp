@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2022 Aaron Barany
+ * Copyright 2020-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,7 +52,7 @@ dsSceneNode* dsSceneVectorImageNode_load(const dsSceneLoadContext* loadContext,
 	if (!DeepSeaSceneVectorDraw::VerifyVectorImageNodeBuffer(verifier))
 	{
 		errno = EFORMAT;
-		DS_LOG_ERROR(DS_SCENE_LOG_TAG, "Invalid vector image node flatbuffer format.");
+		DS_LOG_ERROR(DS_SCENE_VECTOR_DRAW_LOG_TAG, "Invalid vector image node flatbuffer format.");
 		return nullptr;
 	}
 
@@ -101,7 +101,7 @@ dsSceneNode* dsSceneVectorImageNode_load(const dsSceneLoadContext* loadContext,
 		customResource->type != dsSceneVectorImage_type())
 	{
 		errno = ENOTFOUND;
-		DS_LOG_ERROR_F(DS_SCENE_LOG_TAG, "Couldn't find scene vector image '%s'.",
+		DS_LOG_ERROR_F(DS_SCENE_VECTOR_DRAW_LOG_TAG, "Couldn't find scene vector image '%s'.",
 			fbVectorImage->c_str());
 		goto finished;
 	}
@@ -115,7 +115,7 @@ dsSceneNode* dsSceneVectorImageNode_load(const dsSceneLoadContext* loadContext,
 		customResource->type != dsSceneVectorShaders_type())
 	{
 		errno = ENOTFOUND;
-		DS_LOG_ERROR_F(DS_SCENE_LOG_TAG, "Couldn't find vector shaders '%s'.",
+		DS_LOG_ERROR_F(DS_SCENE_VECTOR_DRAW_LOG_TAG, "Couldn't find vector shaders '%s'.",
 			fbVectorShaders->c_str());
 		goto finished;
 	}
@@ -127,7 +127,8 @@ dsSceneNode* dsSceneVectorImageNode_load(const dsSceneLoadContext* loadContext,
 		resourceType != dsSceneResourceType_Material)
 	{
 		errno = ENOTFOUND;
-		DS_LOG_ERROR_F(DS_SCENE_LOG_TAG, "Couldn't find material '%s'.", fbMaterial->c_str());
+		DS_LOG_ERROR_F(DS_SCENE_VECTOR_DRAW_LOG_TAG, "Couldn't find material '%s'.",
+			fbMaterial->c_str());
 		goto finished;
 	}
 
@@ -141,7 +142,8 @@ dsSceneNode* dsSceneVectorImageNode_load(const dsSceneLoadContext* loadContext,
 			if (!item)
 			{
 				errno = EFORMAT;
-				DS_LOG_ERROR(DS_SCENE_LOG_TAG, "Vector image node extra item name is null.");
+				DS_LOG_ERROR(DS_SCENE_VECTOR_DRAW_LOG_TAG,
+					"Vector image node extra item name is null.");
 				goto finished;
 			}
 

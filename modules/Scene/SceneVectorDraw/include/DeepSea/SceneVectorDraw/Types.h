@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2022 Aaron Barany
+ * Copyright 2020-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ extern "C"
 /**
  * @brief Log tag used by the scene vector draw library.
  */
-#define DS_VECTOR_DRAW_SCENE_LOG_TAG "scene=vectordraw"
+#define DS_SCENE_VECTOR_DRAW_LOG_TAG "scene=vectordraw"
 
 /**
  * @brief Struct describing text used within a scene.

@@ -82,7 +82,7 @@ dsSceneItemList* dsLightData_load(const dsSceneLoadContext* loadContext,
 	if (!TestScene::VerifyLightDataBuffer(verifier))
 	{
 		errno = EFORMAT;
-		DS_LOG_ERROR(DS_SCENE_LOG_TAG, "Invalid light data flatbuffer format.");
+		DS_LOG_ERROR("TestLighting", "Invalid light data flatbuffer format.");
 		return nullptr;
 	}
 
@@ -100,7 +100,7 @@ dsSceneItemList* dsLightData_load(const dsSceneLoadContext* loadContext,
 	{
 		// NOTE: ENOTFOUND not set when the type doesn't match, so set it manually.
 		errno = ENOTFOUND;
-		DS_LOG_ERROR_F(DS_SCENE_LOG_TAG,
+		DS_LOG_ERROR_F("TestLighting",
 			"Couldn't find light data shader variable group description '%s'.", groupDescName);
 		return nullptr;
 	}

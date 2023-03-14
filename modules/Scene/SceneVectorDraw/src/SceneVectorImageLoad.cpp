@@ -51,7 +51,7 @@ void* dsSceneVectorImage_load(const dsSceneLoadContext* loadContext,
 	if (!DeepSeaSceneVectorDraw::VerifyVectorImageBuffer(verifier))
 	{
 		errno = EFORMAT;
-		DS_LOG_ERROR(DS_VECTOR_DRAW_SCENE_LOG_TAG, "Invalid scene vector image flatbuffer format.");
+		DS_LOG_ERROR(DS_SCENE_VECTOR_DRAW_LOG_TAG, "Invalid scene vector image flatbuffer format.");
 		return nullptr;
 	}
 
@@ -81,7 +81,7 @@ void* dsSceneVectorImage_load(const dsSceneLoadContext* loadContext,
 			resource->type != dsSceneVectorMaterialSet_type())
 		{
 			errno = ENOTFOUND;
-			DS_LOG_ERROR_F(DS_VECTOR_DRAW_SCENE_LOG_TAG,
+			DS_LOG_ERROR_F(DS_SCENE_VECTOR_DRAW_LOG_TAG,
 				"Couldn't find vector scene material set '%s'.", fbSharedMaterials->c_str());
 			return nullptr;
 		}
@@ -102,7 +102,7 @@ void* dsSceneVectorImage_load(const dsSceneLoadContext* loadContext,
 			if (!fbResource)
 			{
 				errno = EFORMAT;
-				DS_LOG_ERROR(DS_VECTOR_DRAW_SCENE_LOG_TAG, "Vector scene resource is unset.");
+				DS_LOG_ERROR(DS_SCENE_VECTOR_DRAW_LOG_TAG, "Vector scene resource is unset.");
 				return nullptr;
 			}
 
@@ -114,7 +114,7 @@ void* dsSceneVectorImage_load(const dsSceneLoadContext* loadContext,
 				resource->type != dsSceneVectorResources_type())
 			{
 				errno = ENOTFOUND;
-				DS_LOG_ERROR_F(DS_VECTOR_DRAW_SCENE_LOG_TAG,
+				DS_LOG_ERROR_F(DS_SCENE_VECTOR_DRAW_LOG_TAG,
 					"Couldn't find vector scene resource '%s'.", fbResource->c_str());
 				return nullptr;
 			}
@@ -134,7 +134,7 @@ void* dsSceneVectorImage_load(const dsSceneLoadContext* loadContext,
 			resource->type != dsSceneVectorShaders_type())
 		{
 			errno = ENOTFOUND;
-			DS_LOG_ERROR_F(DS_VECTOR_DRAW_SCENE_LOG_TAG,
+			DS_LOG_ERROR_F(DS_SCENE_VECTOR_DRAW_LOG_TAG,
 				"Couldn't find vector scene shaders '%s'.", fbShaders->c_str());
 			return nullptr;
 		}
@@ -171,7 +171,7 @@ void* dsSceneVectorImage_load(const dsSceneLoadContext* loadContext,
 	else
 	{
 		errno = EFORMAT;
-		DS_LOG_ERROR(DS_VECTOR_DRAW_SCENE_LOG_TAG, "No data provided for vector image");
+		DS_LOG_ERROR(DS_SCENE_VECTOR_DRAW_LOG_TAG, "No data provided for vector image");
 		return nullptr;
 	}
 

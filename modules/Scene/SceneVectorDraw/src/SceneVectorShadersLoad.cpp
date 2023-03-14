@@ -72,7 +72,7 @@ static dsVectorShaderModule* loadShaderModule(
 	if (!versionString)
 	{
 		errno = ENOTFOUND;
-		DS_LOG_ERROR(DS_VECTOR_DRAW_SCENE_LOG_TAG,
+		DS_LOG_ERROR(DS_SCENE_VECTOR_DRAW_LOG_TAG,
 			"No supported version found for vector shader module.");
 		return nullptr;
 	}
@@ -93,7 +93,7 @@ static dsVectorShaderModule* loadShaderModule(
 	else
 	{
 		errno = EFORMAT;
-		DS_LOG_ERROR(DS_VECTOR_DRAW_SCENE_LOG_TAG, "No data provided for vector shader module.");
+		DS_LOG_ERROR(DS_SCENE_VECTOR_DRAW_LOG_TAG, "No data provided for vector shader module.");
 		return nullptr;
 	}
 }
@@ -106,7 +106,7 @@ void* dsSceneVectorShaders_load(const dsSceneLoadContext* loadContext,
 	if (!DeepSeaSceneVectorDraw::VerifyVectorShadersBuffer(verifier))
 	{
 		errno = EFORMAT;
-		DS_LOG_ERROR(DS_VECTOR_DRAW_SCENE_LOG_TAG, "Invalid vector shaders flatbuffer format.");
+		DS_LOG_ERROR(DS_SCENE_VECTOR_DRAW_LOG_TAG, "Invalid vector shaders flatbuffer format.");
 		return nullptr;
 	}
 
@@ -141,7 +141,7 @@ void* dsSceneVectorShaders_load(const dsSceneLoadContext* loadContext,
 					resourceType != dsSceneResourceType_ShaderVariableGroupDesc)
 				{
 					errno = ENOTFOUND;
-					DS_LOG_ERROR_F(DS_VECTOR_DRAW_SCENE_LOG_TAG,
+					DS_LOG_ERROR_F(DS_SCENE_VECTOR_DRAW_LOG_TAG,
 						"Couldn't find shader variable group description '%s'.",
 						fbGroupDescName->c_str());
 					return nullptr;
@@ -187,7 +187,7 @@ void* dsSceneVectorShaders_load(const dsSceneLoadContext* loadContext,
 	if (!resources)
 	{
 		errno = EINVAL;
-		DS_LOG_ERROR(DS_VECTOR_DRAW_SCENE_LOG_TAG,
+		DS_LOG_ERROR(DS_SCENE_VECTOR_DRAW_LOG_TAG,
 			"Loading dsVectorShaders outside of a dsSceneResources instance.");
 		DS_VERIFY(dsVectorShaderModule_destroy(shaderModule));
 		return nullptr;

@@ -51,7 +51,7 @@ void* dsSceneText_load(const dsSceneLoadContext*, dsSceneLoadScratchData* scratc
 	if (!DeepSeaSceneVectorDraw::VerifySceneTextBuffer(verifier))
 	{
 		errno = EFORMAT;
-		DS_LOG_ERROR(DS_VECTOR_DRAW_SCENE_LOG_TAG, "Invalid scene text flatbuffer format.");
+		DS_LOG_ERROR(DS_SCENE_VECTOR_DRAW_LOG_TAG, "Invalid scene text flatbuffer format.");
 		return nullptr;
 	}
 
@@ -67,7 +67,7 @@ void* dsSceneText_load(const dsSceneLoadContext*, dsSceneLoadScratchData* scratc
 		fontResource->type != dsSceneVectorResources_type())
 	{
 		errno = ENOTFOUND;
-		DS_LOG_ERROR_F(DS_VECTOR_DRAW_SCENE_LOG_TAG, "Couldn't find vector resources '%s'.",
+		DS_LOG_ERROR_F(DS_SCENE_VECTOR_DRAW_LOG_TAG, "Couldn't find vector resources '%s'.",
 			fbFont->resources()->c_str());
 		return nullptr;
 	}
@@ -77,7 +77,7 @@ void* dsSceneText_load(const dsSceneLoadContext*, dsSceneLoadScratchData* scratc
 	if (!font)
 	{
 		errno = ENOTFOUND;
-		DS_LOG_ERROR_F(DS_VECTOR_DRAW_SCENE_LOG_TAG,
+		DS_LOG_ERROR_F(DS_SCENE_VECTOR_DRAW_LOG_TAG,
 			"Couldn't find font '%s' for vector resources '%s'.",
 			fbFont->name()->c_str(), fbFont->resources()->c_str());
 		return nullptr;

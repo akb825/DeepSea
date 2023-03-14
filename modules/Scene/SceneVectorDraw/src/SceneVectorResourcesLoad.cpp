@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2022 Aaron Barany
+ * Copyright 2020-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,7 +39,7 @@ static dsTexture* loadTexture(void*, dsResourceManager*, dsAllocator*, dsAllocat
 	dsTextureUsage, dsGfxMemory)
 {
 	errno = EFORMAT;
-	DS_LOG_ERROR(DS_VECTOR_DRAW_SCENE_LOG_TAG,
+	DS_LOG_ERROR(DS_SCENE_VECTOR_DRAW_LOG_TAG,
 		"Cannot load textures from file from embedded vector draw resources.");
 	return nullptr;
 }
@@ -47,7 +47,7 @@ static dsTexture* loadTexture(void*, dsResourceManager*, dsAllocator*, dsAllocat
 static bool loadFontFace(void*, dsFaceGroup*, const char*, const char*)
 {
 	errno = EFORMAT;
-	DS_LOG_ERROR(DS_VECTOR_DRAW_SCENE_LOG_TAG,
+	DS_LOG_ERROR(DS_SCENE_VECTOR_DRAW_LOG_TAG,
 		"Cannot load font faces from file from embedded vector draw resources.");
 	return false;
 }
@@ -60,7 +60,7 @@ void* dsVectorSceneResources_load(const dsSceneLoadContext* loadContext,
 	if (!DeepSeaSceneVectorDraw::VerifyVectorResourcesBuffer(verifier))
 	{
 		errno = EFORMAT;
-		DS_LOG_ERROR(DS_VECTOR_DRAW_SCENE_LOG_TAG, "Invalid vector resources flatbuffer format.");
+		DS_LOG_ERROR(DS_SCENE_VECTOR_DRAW_LOG_TAG, "Invalid vector resources flatbuffer format.");
 		return nullptr;
 	}
 
@@ -87,7 +87,7 @@ void* dsVectorSceneResources_load(const dsSceneLoadContext* loadContext,
 	else
 	{
 		errno = EFORMAT;
-		DS_LOG_ERROR(DS_SCENE_LOG_TAG, "Vector resources flatbuffer data not set.");
+		DS_LOG_ERROR(DS_SCENE_VECTOR_DRAW_LOG_TAG, "Vector resources flatbuffer data not set.");
 		return nullptr;
 	}
 

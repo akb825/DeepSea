@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2021 Aaron Barany
+ * Copyright 2020-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,7 +44,8 @@ dsSceneInstanceData* dsInstanceForwardLightData_load(const dsSceneLoadContext* l
 	if (!DeepSeaSceneLighting::VerifyInstanceForwardLightDataBuffer(verifier))
 	{
 		errno = EFORMAT;
-		DS_LOG_ERROR(DS_SCENE_LOG_TAG, "Invalid instance forward light data flatbuffer format.");
+		DS_LOG_ERROR(DS_SCENE_LIGHTING_LOG_TAG,
+			"Invalid instance forward light data flatbuffer format.");
 		return nullptr;
 	}
 
@@ -59,7 +60,7 @@ dsSceneInstanceData* dsInstanceForwardLightData_load(const dsSceneLoadContext* l
 	{
 		// NOTE: ENOTFOUND not set when the type doesn't match, so set it manually.
 		errno = ENOTFOUND;
-		DS_LOG_ERROR_F(DS_SCENE_LOG_TAG,
+		DS_LOG_ERROR_F(DS_SCENE_LIGHTING_LOG_TAG,
 			"Couldn't find forward light data shader variable group description '%s'.",
 			groupDescName);
 		return nullptr;
@@ -74,7 +75,7 @@ dsSceneInstanceData* dsInstanceForwardLightData_load(const dsSceneLoadContext* l
 	{
 		// NOTE: ENOTFOUND not set when the type doesn't match, so set it manually.
 		errno = ENOTFOUND;
-		DS_LOG_ERROR_F(DS_SCENE_LOG_TAG,
+		DS_LOG_ERROR_F(DS_SCENE_LIGHTING_LOG_TAG,
 			"Couldn't find scene light set '%s' for instance forward light data.", groupDescName);
 		return nullptr;
 	}

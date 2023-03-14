@@ -268,7 +268,7 @@ static void drawItems(dsSceneVectorItemList* vectorList, const dsView* view,
 		const DrawItem* drawItem = vectorList->drawItems + i;
 		for (uint32_t j = 0; j < vectorList->instanceDataCount; ++j)
 		{
-			DS_CHECK(DS_VECTOR_DRAW_SCENE_LOG_TAG, dsSceneInstanceData_bindInstance(
+			DS_CHECK(DS_SCENE_VECTOR_DRAW_LOG_TAG, dsSceneInstanceData_bindInstance(
 				vectorList->instanceData[j], drawItem->instance, vectorList->instanceValues));
 		}
 
@@ -280,7 +280,7 @@ static void drawItems(dsSceneVectorItemList* vectorList, const dsView* view,
 				dsTextRenderBuffer* renderBuffer = drawItem->text.renderBuffer;
 				const dsText* text = layout->text;
 				dsFont* font = text->font;
-				DS_CHECK(DS_VECTOR_DRAW_SCENE_LOG_TAG,
+				DS_CHECK(DS_SCENE_VECTOR_DRAW_LOG_TAG,
 					dsSharedMaterialValues_setTextureID(vectorList->instanceValues,
 						drawItem->text.fontTextureID, dsFont_getTexture(font)));
 				if (lastTextShader != drawItem->text.shader ||
@@ -288,18 +288,18 @@ static void drawItems(dsSceneVectorItemList* vectorList, const dsView* view,
 				{
 					if (lastTextShader)
 					{
-						DS_CHECK(DS_VECTOR_DRAW_SCENE_LOG_TAG,
+						DS_CHECK(DS_SCENE_VECTOR_DRAW_LOG_TAG,
 							dsShader_unbind(lastTextShader, commandBuffer));
 					}
 
-					DS_CHECK(DS_VECTOR_DRAW_SCENE_LOG_TAG,
+					DS_CHECK(DS_SCENE_VECTOR_DRAW_LOG_TAG,
 						dsShader_bind(drawItem->text.shader, commandBuffer, drawItem->material,
 							view->globalValues, renderStates));
 					lastTextShader = drawItem->text.shader;
 					lastTextMaterial = drawItem->material;
 				}
 
-				DS_CHECK(DS_VECTOR_DRAW_SCENE_LOG_TAG,
+				DS_CHECK(DS_SCENE_VECTOR_DRAW_LOG_TAG,
 					dsShader_updateInstanceValues(lastTextShader, commandBuffer,
 						vectorList->instanceValues));
 
@@ -312,7 +312,7 @@ static void drawItems(dsSceneVectorItemList* vectorList, const dsView* view,
 					charCount = dsMin(charCount, maxCharCount);
 					uint32_t firstGlyph, glyphCount;
 					getGlyphRange(&firstGlyph, &glyphCount, layout, firstChar, charCount);
-					DS_CHECK(DS_VECTOR_DRAW_SCENE_LOG_TAG,
+					DS_CHECK(DS_SCENE_VECTOR_DRAW_LOG_TAG,
 						dsTextRenderBuffer_drawRange(renderBuffer, commandBuffer, firstGlyph,
 							glyphCount));
 				}
@@ -342,7 +342,7 @@ static void drawItems(dsSceneVectorItemList* vectorList, const dsView* view,
 				dsMatrix44f modelViewProjection;
 				dsMatrix44f_mul(&modelViewProjection, &view->viewProjectionMatrix, &transform);
 
-				DS_CHECK(DS_VECTOR_DRAW_SCENE_LOG_TAG,
+				DS_CHECK(DS_SCENE_VECTOR_DRAW_LOG_TAG,
 					dsVectorImage_draw(drawItem->image.image, commandBuffer,
 						drawItem->image.shaders, drawItem->material, &modelViewProjection,
 						view->globalValues, renderStates));
@@ -447,7 +447,7 @@ dsSceneVectorItemList* dsSceneVectorItemList_create(dsAllocator* allocator, cons
 	if (!allocator->freeFunc)
 	{
 		errno = EINVAL;
-		DS_LOG_ERROR(DS_VECTOR_DRAW_SCENE_LOG_TAG,
+		DS_LOG_ERROR(DS_SCENE_VECTOR_DRAW_LOG_TAG,
 			"Vector item list allocator must support freeing memory.");
 		destroyInstanceData(instanceData, instanceDataCount);
 		return NULL;

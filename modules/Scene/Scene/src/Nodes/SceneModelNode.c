@@ -252,8 +252,8 @@ dsSceneModelNode* dsSceneModelNode_createBase(dsAllocator* allocator, size_t str
 		(dsSceneModelNode*)dsAllocator_alloc((dsAllocator*)&bufferAlloc, structSize);
 	DS_ASSERT(node);
 
-	const char* const* itemListsCopy = dsSceneNode_copyItemLists(&bufferAlloc, itemLists,
-		itemListCount);
+	const char* const* itemListsCopy = dsSceneNode_copyItemLists((dsAllocator*)&bufferAlloc,
+		itemLists, itemListCount);
 
 	if (itemLists != tempStringListData)
 		DS_VERIFY(dsAllocator_free(allocator, (void*)itemLists));
@@ -379,8 +379,8 @@ dsSceneModelNode* dsSceneModelNode_cloneRemapBase(dsAllocator* allocator, size_t
 	DS_ASSERT(node);
 
 	uint32_t itemListCount = origNode->itemListCount;
-	const char* const* itemListsCopy = dsSceneNode_copyItemLists(&bufferAlloc, origNode->itemLists,
-		itemListCount);
+	const char* const* itemListsCopy = dsSceneNode_copyItemLists((dsAllocator*)&bufferAlloc,
+		origNode->itemLists, itemListCount);
 	DS_ASSERT(itemListCount == 0 || itemListsCopy);
 
 	if (!dsSceneNode_initialize((dsSceneNode*)node, allocator,

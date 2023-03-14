@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2023 Aaron Barany
+ * Copyright 2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,57 +14,44 @@
  * limitations under the License.
  */
 
-#include "SceneLightNodeLoad.h"
+#include "SceneAnimationTransformNodeLoad.h"
 
-#include "SceneLightLoad.h"
-
-#include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/StackAllocator.h>
+#include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 
 #include <DeepSea/Scene/SceneLoadScratchData.h>
-#include <DeepSea/SceneLighting/SceneLightNode.h>
 
-#include <string.h>
+#include <DeepSea/SceneAnimation/SceneAnimationTransformNode.h>
 
 #if DS_GCC || DS_CLANG
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wconversion"
 #endif
 
-#include "Flatbuffers/LightNode_generated.h"
+#include "Flatbuffers/AnimationTransformNode_generated.h"
 
 #if DS_GCC || DS_CLANG
 #pragma GCC diagnostic pop
 #endif
 
-dsSceneNode* dsSceneLightNode_load(const dsSceneLoadContext* loadContext,
-	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
-	void*, const uint8_t* data, size_t dataSize)
+dsSceneNode* dsSceneAnimationTransformNode_load(const dsSceneLoadContext*,
+	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator*, void*,
+	const uint8_t* data, size_t dataSize)
 {
 	flatbuffers::Verifier verifier(data, dataSize);
-	if (!DeepSeaSceneLighting::VerifyLightNodeBuffer(verifier))
+	if (!DeepSeaSceneAnimation::VerifyAnimationTransformNodeBuffer(verifier))
 	{
 		errno = EFORMAT;
-		DS_LOG_ERROR(DS_SCENE_LIGHTING_LOG_TAG, "Invalid light node flatbuffer format.");
+		DS_LOG_ERROR(DS_SCENE_ANIMATION_LOG_TAG,
+			"Invalid animation transform node flatbuffer format.");
 		return nullptr;
 	}
 
-	auto fbLightNode = DeepSeaSceneLighting::GetLightNode(data);
+	auto fbAnimationTransformNode = DeepSeaSceneAnimation::GetAnimationTransformNode(data);
 
-	const char* lightBaseName = fbLightNode->lightBaseName()->c_str();
-	dsSceneLight templateLight;
-	memset(&templateLight, 0, sizeof(dsSceneLight));
-	if (!DeepSeaSceneLighting::extractLightData(templateLight, fbLightNode->templateLight_type(),
-			fbLightNode->templateLight()))
-	{
-		errno = EFORMAT;
-		DS_LOG_ERROR_F(DS_SCENE_LIGHTING_LOG_TAG, "Invalid light '%s' for scene light node.",
-			lightBaseName);
-	}
-
-	auto fbItemLists = fbLightNode->itemLists();
+	auto fbItemLists = fbAnimationTransformNode->itemLists();
 	uint32_t itemListCount = fbItemLists ? fbItemLists->size() : 0U;
 	const char** itemLists = NULL;
 	if (itemListCount > 0)
@@ -76,7 +63,8 @@ dsSceneNode* dsSceneLightNode_load(const dsSceneLoadContext* loadContext,
 			if (!fbItemList)
 			{
 				errno = EFORMAT;
-				DS_LOG_ERROR(DS_SCENE_LIGHTING_LOG_TAG, "Light node item list name is null.");
+				DS_LOG_ERROR(DS_SCENE_ANIMATION_LOG_TAG,
+					"Animation tree node item list name is null.");
 				return nullptr;
 			}
 
@@ -84,6 +72,6 @@ dsSceneNode* dsSceneLightNode_load(const dsSceneLoadContext* loadContext,
 		}
 	}
 
-	return (dsSceneNode*)dsSceneLightNode_create(allocator, &templateLight, lightBaseName,
-		fbLightNode->singleInstance(), itemLists, itemListCount);
+	return (dsSceneNode*)dsSceneAnimationTransformNode_create(allocator,
+		fbAnimationTransformNode->animatinNode()->c_str(), itemLists, itemListCount);
 }

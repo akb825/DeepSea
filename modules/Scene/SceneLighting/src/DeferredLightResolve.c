@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2022 Aaron Barany
+ * Copyright 2021-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -529,7 +529,7 @@ dsDeferredLightResolve* dsDeferredLightResolve_create(dsAllocator* allocator,
 	if (!allocator->freeFunc)
 	{
 		errno = EINVAL;
-		DS_LOG_ERROR(DS_SCENE_LOG_TAG,
+		DS_LOG_ERROR(DS_SCENE_LIGHTING_LOG_TAG,
 			"Deferred light resolve allocator must support freeing memory.");
 		return NULL;
 	}

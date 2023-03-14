@@ -48,10 +48,14 @@ DS_SCENEANIMATION_EXPORT const dsSceneNodeType* dsSceneAnimationTreeNode_type(vo
  * @param allocator The allocator for the node. This must support freeing memory.
  * @param animationTree The scene animation tree that will be animated.
  * @param nodeMapCache The cache to maintain animation node maps.
+ * @param itemLists The list of item list names that will be used to draw and process the node.
+ *     These will be copied.
+ * @param itemListCount The number of item lists.
  * @return The scene animation node or NULL if an error occurred.
  */
 DS_SCENEANIMATION_EXPORT dsSceneAnimationTreeNode* dsSceneAnimationTreeNode_create(
-	dsAllocator* allocator, dsAnimationTree* animationTree, dsAnimationNodeMapCache* nodeMapCache);
+	dsAllocator* allocator, dsAnimationTree* animationTree, dsAnimationNodeMapCache* nodeMapCache,
+	const char* const* itemLists, uint32_t itemListCount);
 
 /**
  * @brief Gets the animation tree for a scene tree node.

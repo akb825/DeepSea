@@ -201,7 +201,7 @@ dsSceneInstanceData* dsParticleTransformData_create(dsAllocator* allocator,
 	if (!dsParticleTransformData_isShaderVariableGroupCompatible(transformDesc))
 	{
 		errno = EINVAL;
-		DS_LOG_ERROR(DS_SCENE_LOG_TAG,
+		DS_LOG_ERROR(DS_SCENE_PARTICLE_LOG_TAG,
 			"Particle transform data's shader variable group description must have been created "
 			"with dsParticleTransformData_createShaderVariableGroupDesc().");
 		return NULL;

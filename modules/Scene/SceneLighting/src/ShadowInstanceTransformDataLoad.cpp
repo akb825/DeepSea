@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Aaron Barany
+ * Copyright 2021-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,7 +46,8 @@ dsSceneInstanceData* dsShadowInstanceTransformData_load(const dsSceneLoadContext
 	if (!DeepSeaSceneLighting::VerifyShadowInstanceTransformDataBuffer(verifier))
 	{
 		errno = EFORMAT;
-		DS_LOG_ERROR(DS_SCENE_LOG_TAG, "Invalid shadow instance transform data flatbuffer format.");
+		DS_LOG_ERROR(DS_SCENE_LIGHTING_LOG_TAG,
+			"Invalid shadow instance transform data flatbuffer format.");
 		return nullptr;
 	}
 
@@ -83,7 +84,7 @@ dsSceneInstanceData* dsShadowInstanceTransformData_load(const dsSceneLoadContext
 			groupDescName) || type != dsSceneResourceType_ShaderVariableGroupDesc)
 	{
 		errno = ENOTFOUND;
-		DS_LOG_ERROR_F(DS_SCENE_LOG_TAG,
+		DS_LOG_ERROR_F(DS_SCENE_LIGHTING_LOG_TAG,
 			"Couldn't find shadow instance transform shader variable group description '%s'.",
 			groupDescName);
 		return nullptr;

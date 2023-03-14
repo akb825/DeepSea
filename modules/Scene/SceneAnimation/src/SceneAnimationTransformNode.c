@@ -64,8 +64,8 @@ dsSceneAnimationTransformNode* dsSceneAnimationTransformNode_create(dsAllocator*
 	dsSceneAnimationTransformNode* node = DS_ALLOCATE_OBJECT(&bufferAlloc,
 		dsSceneAnimationTransformNode);
 
-	const char* const* itemListsCopy = dsSceneNode_copyItemLists(&bufferAlloc, itemLists,
-		itemListCount);
+	const char* const* itemListsCopy = dsSceneNode_copyItemLists((dsAllocator*)&bufferAlloc,
+		itemLists, itemListCount);
 	DS_ASSERT(itemListCount == 0 || itemListsCopy);
 
 	if (!dsSceneNode_initialize((dsSceneNode*)node, allocator,

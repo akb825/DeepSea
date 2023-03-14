@@ -16,6 +16,7 @@
 
 #include <DeepSea/SceneAnimation/SceneAnimationNode.h>
 
+#include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
@@ -38,20 +39,32 @@ const dsSceneNodeType* dsSceneAnimationNode_type(void)
 }
 
 dsSceneAnimationNode* dsSceneAnimationNode_create(dsAllocator* allocator,
-	dsAnimationNodeMapCache* nodeMapCache)
+	dsAnimationNodeMapCache* nodeMapCache, const char* const* itemLists, uint32_t itemListCount)
 {
-	if (!allocator || !nodeMapCache)
+	if (!allocator || !nodeMapCache || (!itemLists && itemListCount > 0))
 	{
 		errno = EINVAL;
 		return NULL;
 	}
 
-	dsSceneAnimationNode* node = DS_ALLOCATE_OBJECT(allocator, dsSceneAnimationNode);
-	if (!node)
+	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsSceneAnimationNode)) +
+		dsSceneNode_itemListsAllocSize(itemLists, itemListCount);
+	void* buffer = dsAllocator_alloc(allocator, fullSize);
+	if (!buffer)
 		return NULL;
 
-	if (!dsSceneNode_initialize((dsSceneNode*)node, allocator, dsSceneAnimationNode_type(), NULL, 0,
-			&dsSceneAnimationNode_destroy))
+	dsBufferAllocator bufferAlloc;
+	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, fullSize));
+
+	dsSceneAnimationNode* node = DS_ALLOCATE_OBJECT(&bufferAlloc, dsSceneAnimationNode);
+	DS_ASSERT(node);
+
+	const char* const* itemListsCopy = dsSceneNode_copyItemLists((dsAllocator*)&bufferAlloc,
+		itemLists, itemListCount);
+	DS_ASSERT(itemListCount == 0 || itemListsCopy);
+
+	if (!dsSceneNode_initialize((dsSceneNode*)node, allocator, dsSceneAnimationNode_type(),
+			itemListsCopy, itemListCount, &dsSceneAnimationNode_destroy))
 	{
 		if (allocator->freeFunc)
 			DS_VERIFY(dsAllocator_free(allocator, node));

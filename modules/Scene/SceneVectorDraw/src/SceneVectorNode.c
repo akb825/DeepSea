@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2022 Aaron Barany
+ * Copyright 2020-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -75,8 +75,8 @@ dsSceneVectorNode* dsSceneVectorNode_create(dsAllocator* allocator, size_t struc
 		(dsSceneVectorNode*)dsAllocator_alloc((dsAllocator*)&bufferAlloc, structSize);
 	DS_ASSERT(node);
 
-	const char* const* itemListsCopy = dsSceneNode_copyItemLists(&bufferAlloc, itemLists,
-		itemListCount);
+	const char* const* itemListsCopy = dsSceneNode_copyItemLists((dsAllocator*)&bufferAlloc,
+		itemLists, itemListCount);
 	DS_ASSERT(itemListCount == 0 || itemListsCopy);
 
 	if (!dsSceneNode_initialize((dsSceneNode*)node, allocator, dsSceneVectorNode_type(),

@@ -181,7 +181,7 @@ dsSceneInstanceData* dsInstanceForwardLightData_create(dsAllocator* allocator,
 	if (!isLightDescValid(lightDesc))
 	{
 		errno = EINVAL;
-		DS_LOG_ERROR(DS_SCENE_LOG_TAG,
+		DS_LOG_ERROR(DS_SCENE_LIGHTING_LOG_TAG,
 			"Instance forward light data's shader variable group description must have been "
 			"created with dsInstanceTransformData_createShaderVariableGroupDesc().");
 		return NULL;

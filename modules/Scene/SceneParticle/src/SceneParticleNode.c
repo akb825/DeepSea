@@ -107,8 +107,8 @@ dsSceneParticleNode* dsSceneParticleNode_create(dsAllocator* allocator,
 	dsSceneParticleNode* particleNode = DS_ALLOCATE_OBJECT(&bufferAlloc, dsSceneParticleNode);
 	DS_ASSERT(particleNode);
 
-	const char* const* itemListsCopy = dsSceneNode_copyItemLists(&bufferAlloc, itemLists,
-		itemListCount);
+	const char* const* itemListsCopy = dsSceneNode_copyItemLists((dsAllocator*)&bufferAlloc,
+		itemLists, itemListCount);
 	DS_ASSERT(itemListCount == 0 || itemListsCopy);
 
 	dsSceneNode* node = (dsSceneNode*)particleNode;

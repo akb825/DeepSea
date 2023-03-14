@@ -347,7 +347,8 @@ dsSceneItemList* dsShadowCullList_create(dsAllocator* allocator, const char* nam
 	if (!allocator->freeFunc)
 	{
 		errno = EINVAL;
-		DS_LOG_ERROR(DS_SCENE_LOG_TAG, "View cull list allocator must support freeing memory.");
+		DS_LOG_ERROR(DS_SCENE_LIGHTING_LOG_TAG,
+			"Shadow cull list allocator must support freeing memory.");
 		return NULL;
 	}
 

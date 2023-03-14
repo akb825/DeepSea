@@ -74,7 +74,7 @@ size_t dsSceneNode_itemListsAllocSize(const char* const* itemLists, uint32_t ite
 	return fullSize;
 }
 
-const char* const* dsSceneNode_copyItemLists(dsBufferAllocator* allocator,
+const char* const* dsSceneNode_copyItemLists(dsAllocator* allocator,
 	const char* const* itemLists, uint32_t itemListCount)
 {
 	if (!allocator || !itemLists || itemListCount == 0)

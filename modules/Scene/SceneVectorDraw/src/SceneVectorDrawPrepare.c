@@ -124,19 +124,19 @@ static void dsSceneVectorDrawPrepare_commit(dsSceneItemList* itemList, const dsV
 			dsSceneTextNode* node = entry->textNode;
 			if (entry->layoutVersion == entry->textNode->layoutVersion)
 			{
-				DS_CHECK(DS_VECTOR_DRAW_SCENE_LOG_TAG,
+				DS_CHECK(DS_SCENE_VECTOR_DRAW_LOG_TAG,
 					dsTextLayout_refresh(node->layout, commandBuffer));
 			}
 			else
 			{
-				DS_CHECK(DS_VECTOR_DRAW_SCENE_LOG_TAG,
+				DS_CHECK(DS_SCENE_VECTOR_DRAW_LOG_TAG,
 					dsTextLayout_layout(node->layout, commandBuffer, node->alignment,
 						node->maxWidth, node->lineScale));
 				DS_VERIFY(dsTextRenderBuffer_clear(node->renderBuffer));
-				DS_CHECK(DS_VECTOR_DRAW_SCENE_LOG_TAG,
+				DS_CHECK(DS_SCENE_VECTOR_DRAW_LOG_TAG,
 					dsTextRenderBuffer_addText(node->renderBuffer, node->layout,
 						node->textUserData));
-				DS_CHECK(DS_VECTOR_DRAW_SCENE_LOG_TAG,
+				DS_CHECK(DS_SCENE_VECTOR_DRAW_LOG_TAG,
 					dsTextRenderBuffer_commit(node->renderBuffer, commandBuffer));
 				entry->layoutVersion = node->layoutVersion;
 			}
@@ -190,7 +190,7 @@ dsSceneItemList* dsSceneVectorDrawPrepare_create(dsAllocator* allocator, const c
 	if (!allocator->freeFunc)
 	{
 		errno = EINVAL;
-		DS_LOG_ERROR(DS_VECTOR_DRAW_SCENE_LOG_TAG,
+		DS_LOG_ERROR(DS_SCENE_VECTOR_DRAW_LOG_TAG,
 			"Vector prepare list allocator must support freeing memory.");
 		return NULL;
 	}

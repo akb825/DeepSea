@@ -166,7 +166,7 @@ dsSceneItemList* dsLightFlicker_load(const dsSceneLoadContext*, dsSceneLoadScrat
 	if (!TestParticles::VerifyLightFlickerBuffer(verifier))
 	{
 		errno = EFORMAT;
-		DS_LOG_ERROR(DS_SCENE_LOG_TAG, "Invalid light flicker flatbuffer format.");
+		DS_LOG_ERROR("TestParticles", "Invalid light flicker flatbuffer format.");
 		return nullptr;
 	}
 

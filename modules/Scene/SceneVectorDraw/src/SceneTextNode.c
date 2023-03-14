@@ -283,7 +283,7 @@ dsSceneTextNode* dsSceneTextNode_createBase(dsAllocator* allocator, size_t struc
 		fontTextureMatElement->binding != dsMaterialBinding_Instance)
 	{
 		errno = ENOTFOUND;
-		DS_LOG_ERROR(DS_VECTOR_DRAW_SCENE_LOG_TAG,
+		DS_LOG_ERROR(DS_SCENE_VECTOR_DRAW_LOG_TAG,
 			"Font texture element must be a texture with instance binding.");
 		return NULL;
 	}

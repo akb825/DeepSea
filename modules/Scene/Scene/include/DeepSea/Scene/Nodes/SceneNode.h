@@ -56,7 +56,7 @@ DS_SCENE_EXPORT size_t dsSceneNode_itemListsAllocSize(const char* const* itemLis
  * @param itemListCount The number of item lsits.
  * @return The copied item list names or NULL if itemLists is empty or an error occurred.
  */
-DS_SCENE_EXPORT const char* const* dsSceneNode_copyItemLists(dsBufferAllocator* allocator,
+DS_SCENE_EXPORT const char* const* dsSceneNode_copyItemLists(dsAllocator* allocator,
 	const char* const* itemLists, uint32_t itemListCount);
 
 /**

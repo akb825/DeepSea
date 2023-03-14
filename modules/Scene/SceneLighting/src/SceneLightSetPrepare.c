@@ -191,7 +191,8 @@ dsSceneLightSetPrepare* dsSceneLightSetPrepare_create(dsAllocator* allocator, co
 	if (!allocator->freeFunc)
 	{
 		errno = EINVAL;
-		DS_LOG_ERROR(DS_SCENE_LOG_TAG, "Light set prepare allocator must support freeing memory.");
+		DS_LOG_ERROR(DS_SCENE_LIGHTING_LOG_TAG,
+			"Light set prepare allocator must support freeing memory.");
 		return NULL;
 	}
 

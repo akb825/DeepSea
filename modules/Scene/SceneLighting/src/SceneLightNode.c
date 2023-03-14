@@ -79,8 +79,8 @@ dsSceneLightNode* dsSceneLightNode_create(dsAllocator* allocator, const dsSceneL
 	dsSceneLightNode* lightNode = DS_ALLOCATE_OBJECT(&bufferAlloc, dsSceneLightNode);
 	DS_ASSERT(lightNode);
 
-	const char* const* itemListsCopy = dsSceneNode_copyItemLists(&bufferAlloc, itemLists,
-		itemListCount);
+	const char* const* itemListsCopy = dsSceneNode_copyItemLists((dsAllocator*)&bufferAlloc,
+		itemLists, itemListCount);
 	DS_ASSERT(itemListCount == 0 || itemListsCopy);
 
 	if (!dsSceneNode_initialize((dsSceneNode*)lightNode, allocator, dsSceneLightNode_type(),
