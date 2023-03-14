@@ -73,8 +73,10 @@ TEST(AnimationNodeMapCacheTest, AddRemove)
 	ASSERT_NE(nullptr, animation1);
 
 	ASSERT_TRUE(dsAnimationNodeMapCache_addAnimationTree(cache, tree1));
-	ASSERT_TRUE(dsAnimationNodeMapCache_addAnimationTree(cache, tree1));
-	ASSERT_TRUE(dsAnimationNodeMapCache_removeAnimationTree(cache, tree1));
+	EXPECT_EQ(1U, cache->treeMapCount);
+	EXPECT_TRUE(dsAnimationNodeMapCache_addAnimationTree(cache, tree1));
+	EXPECT_EQ(1U, cache->treeMapCount);
+	EXPECT_TRUE(dsAnimationNodeMapCache_removeAnimationTree(cache, tree1));
 	ASSERT_EQ(1U, cache->treeMapCount);
 
 	ASSERT_TRUE(dsAnimation_addDirectAnimation(animation0, direct2, 1));
@@ -182,9 +184,10 @@ TEST(AnimationNodeMapCacheTest, AddRemove)
 
 	dsAnimation_destroy(animation0);
 	dsAnimation_destroy(animation1);
-	dsAnimationNodeMapCache_destroy(cache);
+	// Should be safe to destroy trees first.
 	dsAnimationTree_destroy(tree0);
 	dsAnimationTree_destroy(tree1);
+	dsAnimationNodeMapCache_destroy(cache);
 	dsDirectAnimation_destroy(direct0);
 	dsDirectAnimation_destroy(direct1);
 	dsDirectAnimation_destroy(direct2);

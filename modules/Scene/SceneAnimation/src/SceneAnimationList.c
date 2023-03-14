@@ -253,10 +253,14 @@ static void dsSceneAnimationList_preTransformUpdate(dsSceneItemList* itemList, c
 	DS_PROFILE_DYNAMIC_SCOPE_START(itemList->name);
 
 	dsSceneAnimationList* animationList = (dsSceneAnimationList*)itemList;
-	for (uint32_t i = 0; i < animationList->animationEntryCount; ++i)
+
+	if (time != 0)
 	{
-		AnimationEntry* entry = animationList->animationEntries + i;
-		DS_CHECK(DS_SCENE_ANIMATION_LOG_TAG, dsAnimation_update(entry->animation, time));
+		for (uint32_t i = 0; i < animationList->animationEntryCount; ++i)
+		{
+			AnimationEntry* entry = animationList->animationEntries + i;
+			DS_CHECK(DS_SCENE_ANIMATION_LOG_TAG, dsAnimation_update(entry->animation, time));
+		}
 	}
 
 	for (uint32_t i = 0; i < animationList->treeEntryCount; ++i)
