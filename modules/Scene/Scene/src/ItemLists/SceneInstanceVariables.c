@@ -53,6 +53,7 @@ typedef struct CPUInfo
 typedef struct dsSceneInstanceVariables
 {
 	dsSceneInstanceData instanceData;
+	dsAllocator* resourceAllocator;
 	dsResourceManager* resourceManager;
 	const dsShaderVariableGroupDesc* dataDesc;
 	uint32_t nameID;
@@ -91,6 +92,7 @@ static bool reserveSpace(dsSceneInstanceVariables* variables, uint32_t maxInstan
 	if (maxInstances == 0)
 		return true;
 
+	dsAllocator* resourceAllocator = variables->resourceAllocator;
 	dsAllocator* allocator = ((dsSceneInstanceData*)variables)->allocator;
 	if (variables->fallback)
 	{
@@ -152,7 +154,7 @@ static bool reserveSpace(dsSceneInstanceVariables* variables, uint32_t maxInstan
 
 		dsGfxMemory memoryHints = dsGfxMemory_Stream | dsGfxMemory_Synchronize;
 		BufferInfo* bufferInfo = variables->buffers + index;
-		bufferInfo->buffer = dsGfxBuffer_create(resourceManager, allocator,
+		bufferInfo->buffer = dsGfxBuffer_create(resourceManager, resourceAllocator,
 			dsGfxBufferUsage_UniformBlock, memoryHints, NULL, requiredSize);
 		if (!bufferInfo->buffer)
 		{
@@ -297,7 +299,8 @@ static bool dsSceneInstanceVariables_destroy(dsSceneInstanceData* instanceData)
 }
 
 dsSceneInstanceData* dsSceneInstanceVariables_create(dsAllocator* allocator,
-	dsResourceManager* resourceManager, const dsShaderVariableGroupDesc* dataDesc, uint32_t nameID,
+	dsAllocator* resourceAllocator, dsResourceManager* resourceManager,
+	const dsShaderVariableGroupDesc* dataDesc, uint32_t nameID,
 	dsPopulateSceneInstanceVariablesFunction populateDataFunc, void* userData,
 	dsDestroySceneUserDataFunction destroyUserDataFunc)
 {
@@ -318,6 +321,9 @@ dsSceneInstanceData* dsSceneInstanceVariables_create(dsAllocator* allocator,
 			"Scene instance data allocator must support freeing memory.");
 		return NULL;
 	}
+
+	if (!resourceAllocator)
+		resourceAllocator = allocator;
 
 	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsSceneInstanceVariables));
 	bool needsFallback = !dsShaderVariableGroup_useGfxBuffer(resourceManager);
@@ -347,6 +353,7 @@ dsSceneInstanceData* dsSceneInstanceVariables_create(dsAllocator* allocator,
 	instanceData->finishFunc = &dsSceneInstanceVariables_finish;
 	instanceData->destroyFunc = &dsSceneInstanceVariables_destroy;
 
+	variables->resourceAllocator = resourceAllocator;
 	variables->resourceManager = resourceManager;
 	variables->dataDesc = dataDesc;
 	variables->nameID = nameID;

@@ -37,8 +37,8 @@
 #endif
 
 dsSceneInstanceData* dsParticleTransformData_load(const dsSceneLoadContext* loadContext,
-	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator*, void*,
-	const uint8_t* data, size_t dataSize)
+	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
+	void*, const uint8_t* data, size_t dataSize)
 {
 	flatbuffers::Verifier verifier(data, dataSize);
 	if (!DeepSeaSceneParticle::VerifyParticleTransformDataBuffer(verifier))
@@ -67,5 +67,6 @@ dsSceneInstanceData* dsParticleTransformData_load(const dsSceneLoadContext* load
 	}
 
 	dsRenderer* renderer = dsSceneLoadContext_getRenderer(loadContext);
-	return dsParticleTransformData_create(allocator, renderer->resourceManager, groupDesc);
+	return dsParticleTransformData_create(allocator, resourceAllocator, renderer->resourceManager,
+		groupDesc);
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Aaron Barany
+ * Copyright 2019-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,8 @@ extern "C"
  * @brief Creates a scene instance variables object.
  * @remark errno will be set on failure.
  * @param allocator The allocator to create the data with. This must support freeing memory.
+ * @param resourceAllocator The allocator to create graphics resources with. If NULL this will
+ *     default to allocator.
  * @param resourceManager The resource manager to create graphics resources with.
  * @param dataDesc The description for the data held for each instance. This must remain alive at
  *     least as long as the instance data object.
@@ -47,7 +49,8 @@ extern "C"
  * @return The instance data or NULL if an error occurred.
  */
 DS_SCENE_EXPORT dsSceneInstanceData* dsSceneInstanceVariables_create(dsAllocator* allocator,
-	dsResourceManager* resourceManager, const dsShaderVariableGroupDesc* dataDesc, uint32_t nameID,
+	dsAllocator* resourceAllocator, dsResourceManager* resourceManager,
+	const dsShaderVariableGroupDesc* dataDesc, uint32_t nameID,
 	dsPopulateSceneInstanceVariablesFunction populateDataFunc, void* userData,
 	dsDestroySceneUserDataFunction destroyUserDataFunc);
 

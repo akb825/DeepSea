@@ -160,7 +160,8 @@ bool dsInstanceTransformData_isShaderVariableGroupCompatible(
 }
 
 dsSceneInstanceData* dsInstanceTransformData_create(dsAllocator* allocator,
-	dsResourceManager* resourceManager, const dsShaderVariableGroupDesc* transformDesc)
+	dsAllocator* resourceAllocator, dsResourceManager* resourceManager,
+	const dsShaderVariableGroupDesc* transformDesc)
 {
 	if (!allocator || !transformDesc)
 	{
@@ -186,6 +187,6 @@ dsSceneInstanceData* dsInstanceTransformData_create(dsAllocator* allocator,
 	else
 #endif
 		populateFunc = &dsInstanceTransformData_populateData;
-	return dsSceneInstanceVariables_create(allocator, resourceManager, transformDesc,
-		dsHashString(dsInstanceTransformData_typeName), populateFunc, NULL, NULL);
+	return dsSceneInstanceVariables_create(allocator, resourceAllocator, resourceManager,
+		transformDesc, dsHashString(dsInstanceTransformData_typeName), populateFunc, NULL, NULL);
 }

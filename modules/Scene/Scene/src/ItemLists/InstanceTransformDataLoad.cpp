@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2021 Aaron Barany
+ * Copyright 2019-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,8 +36,8 @@
 
 extern "C"
 dsSceneInstanceData* dsInstanceTransformData_load(const dsSceneLoadContext* loadContext,
-	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator*, void*,
-	const uint8_t* data, size_t dataSize)
+	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
+	void*, const uint8_t* data, size_t dataSize)
 {
 	flatbuffers::Verifier verifier(data, dataSize);
 	if (!DeepSeaScene::VerifyInstanceTransformDataBuffer(verifier))
@@ -65,5 +65,6 @@ dsSceneInstanceData* dsInstanceTransformData_load(const dsSceneLoadContext* load
 	}
 
 	dsRenderer* renderer = dsSceneLoadContext_getRenderer(loadContext);
-	return dsInstanceTransformData_create(allocator, renderer->resourceManager, groupDesc);
+	return dsInstanceTransformData_create(allocator, resourceAllocator, renderer->resourceManager,
+		groupDesc);
 }

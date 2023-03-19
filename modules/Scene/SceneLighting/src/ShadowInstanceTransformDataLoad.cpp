@@ -91,6 +91,6 @@ dsSceneInstanceData* dsShadowInstanceTransformData_load(const dsSceneLoadContext
 	}
 
 	dsRenderer* renderer = dsSceneLoadContext_getRenderer(loadContext);
-	return dsShadowInstanceTransformData_create(allocator, renderer->resourceManager, shadows,
-		fbInstanceData->surface(), groupDesc);
+	return dsShadowInstanceTransformData_create(allocator, resourceAllocator,
+		renderer->resourceManager, shadows, fbInstanceData->surface(), groupDesc);
 }

@@ -171,7 +171,8 @@ static void dsShadowInstanceTransformData_populateData(void* userData, const dsV
 const char* const dsShadowInstanceTransformData_typeName = "ShadowInstanceTransformData";
 
 dsSceneInstanceData* dsShadowInstanceTransformData_create(dsAllocator* allocator,
-	dsResourceManager* resourceManager, const dsSceneLightShadows* shadows, uint32_t surface,
+	dsAllocator* resourceAllocator, dsResourceManager* resourceManager,
+	const dsSceneLightShadows* shadows, uint32_t surface,
 	const dsShaderVariableGroupDesc* transformDesc)
 {
 	if (!allocator || !shadows || surface > DS_MAX_SCENE_LIGHT_SHADOWS_SURFACES || !transformDesc)
@@ -206,6 +207,7 @@ dsSceneInstanceData* dsShadowInstanceTransformData_create(dsAllocator* allocator
 	userData->allocator = dsAllocator_keepPointer(allocator);
 	userData->shadows = shadows;
 	userData->surface = surface;
-	return dsSceneInstanceVariables_create(allocator, resourceManager, transformDesc,
-		dsHashString(dsInstanceTransformData_typeName), populateFunc, userData, &ShadowUserData_destroy);
+	return dsSceneInstanceVariables_create(allocator, resourceAllocator, resourceManager,
+		transformDesc, dsHashString(dsInstanceTransformData_typeName), populateFunc, userData,
+		&ShadowUserData_destroy);
 }

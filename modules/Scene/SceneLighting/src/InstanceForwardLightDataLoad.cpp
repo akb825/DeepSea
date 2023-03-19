@@ -37,8 +37,8 @@
 #endif
 
 dsSceneInstanceData* dsInstanceForwardLightData_load(const dsSceneLoadContext* loadContext,
-	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator*, void*,
-	const uint8_t* data, size_t dataSize)
+	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
+	void*, const uint8_t* data, size_t dataSize)
 {
 	flatbuffers::Verifier verifier(data, dataSize);
 	if (!DeepSeaSceneLighting::VerifyInstanceForwardLightDataBuffer(verifier))
@@ -81,6 +81,7 @@ dsSceneInstanceData* dsInstanceForwardLightData_load(const dsSceneLoadContext* l
 	}
 
 	dsRenderer* renderer = dsSceneLoadContext_getRenderer(loadContext);
-	return dsInstanceForwardLightData_create(allocator, renderer->resourceManager, groupDesc,
+	return dsInstanceForwardLightData_create(allocator, resourceAllocator,
+		renderer->resourceManager, groupDesc,
 		reinterpret_cast<dsSceneLightSet*>(lightSetResource->resource));
 }

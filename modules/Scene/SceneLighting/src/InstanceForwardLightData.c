@@ -169,8 +169,8 @@ static void dsInstanceForwardLightData_populateData(void* userData, const dsView
 }
 
 dsSceneInstanceData* dsInstanceForwardLightData_create(dsAllocator* allocator,
-	dsResourceManager* resourceManager, const dsShaderVariableGroupDesc* lightDesc,
-	const dsSceneLightSet* lightSet)
+	dsAllocator* resourceAllocator, dsResourceManager* resourceManager,
+	const dsShaderVariableGroupDesc* lightDesc, const dsSceneLightSet* lightSet)
 {
 	if (!allocator || !lightDesc || !lightSet)
 	{
@@ -187,7 +187,7 @@ dsSceneInstanceData* dsInstanceForwardLightData_create(dsAllocator* allocator,
 		return NULL;
 	}
 
-	return dsSceneInstanceVariables_create(allocator, resourceManager, lightDesc,
+	return dsSceneInstanceVariables_create(allocator, resourceAllocator, resourceManager, lightDesc,
 		dsHashString(dsInstanceForwardLightData_typeName),
 		&dsInstanceForwardLightData_populateData, (void*)lightSet, NULL);
 }

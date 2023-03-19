@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Aaron Barany
+ * Copyright 2022-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,7 +67,10 @@ DS_SCENEPARTICLE_EXPORT bool dsParticleTransformData_isShaderVariableGroupCompat
 
 /**
  * @brief Creates particle trnasform data to use with a dsSceneItemList.
- * @param allocator The allocator to create the transform data with.
+ * @param allocator The allocator to create the transform data with. This must support freeing
+ *     memory.
+ * @param resourceAllocator The allocator to create graphics resources with. If NULL this will
+ *     default to allocator.
  * @param resourceManager The resource manager.
  * @param transformDesc The shader variable group description created from
  *     dsParticleTransformData_createShaderVariableGroupDesc(). This must remain alive at least as
@@ -75,7 +78,8 @@ DS_SCENEPARTICLE_EXPORT bool dsParticleTransformData_isShaderVariableGroupCompat
  * @return The instance data or NULL if an error occurred.
  */
 DS_SCENEPARTICLE_EXPORT dsSceneInstanceData* dsParticleTransformData_create(dsAllocator* allocator,
-	dsResourceManager* resourceManager, const dsShaderVariableGroupDesc* transformDesc);
+	dsAllocator* resourceAllocator, dsResourceManager* resourceManager,
+	const dsShaderVariableGroupDesc* transformDesc);
 
 #ifdef __cplusplus
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Aaron Barany
+ * Copyright 2021-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,7 +46,10 @@ DS_SCENELIGHTING_EXPORT extern const char* const dsShadowInstanceTransformData_t
 
 /**
  * @brief Creates scene shadow instance data to use with a dsSceneItemList.
- * @param allocator The allocator to create the forward light data with.
+ * @param allocator The allocator to create the shadow instance transform data with. This must
+ *     support freeing memory.
+ * @param resourceAllocator The allocator to create graphics resources with. If NULL this will
+ *     default to allocator.
  * @param resourceManager The resource manager.
  * @param shadows The scene shadows to bind the transform for.
  * @param surface The index for the surface in the scene shadows to bind the transform for.
@@ -56,8 +59,9 @@ DS_SCENELIGHTING_EXPORT extern const char* const dsShadowInstanceTransformData_t
  * @return The instance data or NULL if an error occurred.
  */
 DS_SCENELIGHTING_EXPORT dsSceneInstanceData* dsShadowInstanceTransformData_create(
-	dsAllocator* allocator, dsResourceManager* resourceManager, const dsSceneLightShadows* shadows,
-	uint32_t surface, const dsShaderVariableGroupDesc* transformDesc);
+	dsAllocator* allocator, dsAllocator* resourceAllocator, dsResourceManager* resourceManager,
+	const dsSceneLightShadows* shadows, uint32_t surface,
+	const dsShaderVariableGroupDesc* transformDesc);
 
 #ifdef __cplusplus
 }
