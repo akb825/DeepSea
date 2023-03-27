@@ -1,4 +1,4 @@
-file(GLOB_RECURSE sources src/*.c src/*.cpp src/*.h include/*.h)
+file(GLOB_RECURSE sources src/*.c src/*.cpp src/*.h include/*.h include/*.mslh)
 file(GLOB_RECURSE flatbuffers src/*.fbs)
 ds_add_library(deepsea_scene_animation MODULE SceneAnimation FILES ${sources} ${flatbuffers})
 ds_target_include_directories(deepsea_scene_animation PRIVATE src ${FLATBUFFERS_INCLUDE_DIRS})

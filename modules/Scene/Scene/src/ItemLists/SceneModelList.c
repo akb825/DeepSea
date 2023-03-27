@@ -173,8 +173,8 @@ static void setupInstances(dsSceneModelList* modelList, const dsView* view, uint
 
 	for (uint32_t i = 0; i < modelList->instanceDataCount; ++i)
 	{
-		dsSceneInstanceData_populateData(modelList->instanceData[i], view, modelList->instances,
-			instanceCount);
+		DS_CHECK(DS_SCENE_LOG_TAG, dsSceneInstanceData_populateData(modelList->instanceData[i],
+			view, modelList->instances, instanceCount));
 	}
 
 	DS_PROFILE_FUNC_RETURN_VOID();

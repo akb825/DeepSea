@@ -1,0 +1,36 @@
+/*
+ * Copyright 2023 Aaron Barany
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#pragma once
+
+/**
+ * @file
+ * @brief Functions to perform skinning using a buffer.
+ */
+
+/**
+ * @brief Computes the skin transform from a buffer.
+ *
+ * This uses a macro to avoid copying the matrix array.
+ *
+ * @param bones The bone indices as an ivec4.
+ * @param weights The transform weights as a vec4.
+ * @param matrices The matrices for the bones. This should be the uniform to avoid extra copies.
+ * @return The skin transform.
+ */
+#define dsComputeSkinTransformBuffer(bones, weights, matrices) \
+	((weights).x*(matrices)[(bones).x] + (weights).y*(matrices)[(bones).y] + \
+	(weights).z*(matrices)[(bones).z] + (weights).w*(matrices)[(bones).w])

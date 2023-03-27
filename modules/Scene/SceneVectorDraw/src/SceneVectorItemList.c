@@ -217,8 +217,8 @@ static void setupInstances(dsSceneVectorItemList* vectorList, const dsView* view
 
 	for (uint32_t i = 0; i < vectorList->instanceDataCount; ++i)
 	{
-		dsSceneInstanceData_populateData(vectorList->instanceData[i], view, vectorList->instances,
-			vectorList->entryCount);
+		DS_CHECK(DS_SCENE_VECTOR_DRAW_LOG_TAG, dsSceneInstanceData_populateData(
+			vectorList->instanceData[i], view, vectorList->instances, vectorList->entryCount));
 	}
 
 	DS_PROFILE_FUNC_RETURN_VOID();

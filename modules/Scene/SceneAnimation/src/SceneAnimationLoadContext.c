@@ -20,6 +20,7 @@
 #include <DeepSea/SceneAnimation/SceneAnimationTreeNode.h>
 #include <DeepSea/SceneAnimation/SceneDirectAnimation.h>
 #include <DeepSea/SceneAnimation/SceneKeyframeAnimation.h>
+#include <DeepSea/SceneAnimation/SceneSkinningData.h>
 
 static dsSceneItemList* dsSceneAnimationList_load(const dsSceneLoadContext* loadContext,
 	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
@@ -33,6 +34,19 @@ static dsSceneItemList* dsSceneAnimationList_load(const dsSceneLoadContext* load
 	DS_UNUSED(dataSize);
 
 	return dsSceneAnimationList_create(allocator, name);
+}
+
+static dsSceneInstanceData* dsSceneSkinningData_load(const dsSceneLoadContext* loadContext,
+	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
+	void* userData, const uint8_t* data, size_t dataSize)
+{
+	DS_UNUSED(scratchData);
+	DS_UNUSED(userData);
+	DS_UNUSED(data);
+	DS_UNUSED(dataSize);
+
+	return dsSceneSkinningData_create(allocator, resourceAllocator,
+		dsSceneLoadContext_getRenderer(loadContext)->resourceManager);
 }
 
 static void* dsSceneAnimationTree_load(const dsSceneLoadContext* loadContext,
@@ -135,6 +149,12 @@ bool dsSceneAnimationLoadConext_registerTypes(dsSceneLoadContext* loadContext)
 
 	if (!dsSceneLoadContext_registerItemListType(loadContext, dsSceneAnimationList_typeName,
 			&dsSceneAnimationList_load, NULL, NULL))
+	{
+		return false;
+	}
+
+	if (!dsSceneLoadContext_registerInstanceDataType(loadContext, dsSceneSkinningData_typeName,
+			&dsSceneSkinningData_load, NULL, NULL))
 	{
 		return false;
 	}
