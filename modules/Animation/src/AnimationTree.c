@@ -48,9 +48,7 @@ static size_t fullAllocSizeRec(uint32_t* outNodeCount, const dsAnimationBuildNod
 {
 	++(*outNodeCount);
 	if (!node->name || (!node->children && node->childCount > 0))
-	{
 		return 0;
-	}
 
 	size_t curSize = DS_ALIGNED_SIZE(sizeof(dsAnimationNode)) +
 		DS_ALIGNED_SIZE(sizeof(uint32_t)*node->childCount);
@@ -232,8 +230,8 @@ static void updateJointTransformsSIMD(dsAnimationTree* tree)
 		dsAnimationJointTransform* jointTransform = tree->jointTransforms + i;
 		dsMatrix44f_affineMulSIMD(&jointTransform->transform, &node->transform,
 			tree->toNodeLocalSpace + i);
-		dsMatrix44f_inverseTransposeSIMD(jointTransform->inverseTranspose,
-			&jointTransform->transform);
+		/*dsMatrix44f_inverseTransposeSIMD(jointTransform->inverseTranspose,
+			&jointTransform->transform);*/
 	}
 }
 DS_SIMD_END()
@@ -273,12 +271,12 @@ static void updateJointTransformsFMA(dsAnimationTree* tree)
 	for (uint32_t i = 0; i < tree->nodeCount; ++i)
 	{
 		dsAnimationNode* node = tree->nodes + i;
-		updateTransformSIMD(tree, node);
+		updateTransformFMA(tree, node);
 		dsAnimationJointTransform* jointTransform = tree->jointTransforms + i;
-		dsMatrix44f_affineMulSIMD(&jointTransform->transform, &node->transform,
+		dsMatrix44f_affineMulFMA(&jointTransform->transform, &node->transform,
 			tree->toNodeLocalSpace + i);
-		dsMatrix44f_inverseTransposeSIMD(jointTransform->inverseTranspose,
-			&jointTransform->transform);
+		/*dsMatrix44f_inverseTransposeFMA(jointTransform->inverseTranspose,
+			&jointTransform->transform);*/
 	}
 }
 DS_SIMD_END()
@@ -464,7 +462,7 @@ dsAnimationTree* dsAnimationTree_createJoints(dsAllocator* allocator,
 		dsAnimationJointTransform* jointTransform = jointTransforms + i;
 		dsMatrix44_identity(jointTransform->transform);
 
-		jointTransform->inverseTranspose[0].x = 1;
+		/*jointTransform->inverseTranspose[0].x = 1;
 		jointTransform->inverseTranspose[0].y = 0;
 		jointTransform->inverseTranspose[0].z = 0;
 		jointTransform->inverseTranspose[0].w = 0;
@@ -477,7 +475,7 @@ dsAnimationTree* dsAnimationTree_createJoints(dsAllocator* allocator,
 		jointTransform->inverseTranspose[2].x = 0;
 		jointTransform->inverseTranspose[2].y = 0;
 		jointTransform->inverseTranspose[2].z = 1;
-		jointTransform->inverseTranspose[2].w = 0;
+		jointTransform->inverseTranspose[2].w = 0;*/
 
 		NamedHashNode* hashNode = DS_ALLOCATE_OBJECT(&bufferAlloc, NamedHashNode);
 		DS_ASSERT(hashNode);
@@ -787,7 +785,7 @@ bool dsAnimationTree_updateTransforms(dsAnimationTree* tree)
 				dsMatrix44f_affineMul(&jointTransform->transform, &node->transform,
 					tree->toNodeLocalSpace + i);
 
-				dsMatrix33f inverseTranspose;
+				/*dsMatrix33f inverseTranspose;
 				dsMatrix44f_inverseTranspose(&inverseTranspose, &jointTransform->transform);
 
 				jointTransform->inverseTranspose[0].x = inverseTranspose.columns[0].x;
@@ -803,7 +801,7 @@ bool dsAnimationTree_updateTransforms(dsAnimationTree* tree)
 				jointTransform->inverseTranspose[2].x = inverseTranspose.columns[2].x;
 				jointTransform->inverseTranspose[2].y = inverseTranspose.columns[2].y;
 				jointTransform->inverseTranspose[2].z = inverseTranspose.columns[2].z;
-				jointTransform->inverseTranspose[2].w = 0;
+				jointTransform->inverseTranspose[2].w = 0;*/
 			}
 		}
 	}

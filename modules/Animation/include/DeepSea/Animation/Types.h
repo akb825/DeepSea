@@ -74,12 +74,12 @@ typedef struct dsAnimationJointTransform
 	 */
 	dsMatrix44f transform;
 
-	/**
+	/* NOTE: Disable since non-uniform scales are expected to be too rare to justify the cost.
 	 * @brief The inverse transpose of the transform.
 	 *
 	 * This is stored as 3 vector 4s to make it easier to transfer to shaders.
 	 */
-	dsVector4f inverseTranspose[3];
+	//dsVector4f inverseTranspose[3];
 } dsAnimationJointTransform;
 
 /**

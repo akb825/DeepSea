@@ -150,8 +150,8 @@ static bool populateBufferData(dsSceneInstanceData* instanceData)
 		const dsAnimationTree* animationTree = skinningData->instances[i].animationTree;
 		if (animationTree)
 		{
-			bufferSize +=
-				DS_CUSTOM_ALIGNED_SIZE(animationTree->nodeCount*sizeof(dsMatrix44f), alignment);
+			bufferSize += DS_CUSTOM_ALIGNED_SIZE(
+				animationTree->nodeCount*sizeof(dsAnimationJointTransform), alignment);
 		}
 	}
 
@@ -173,7 +173,7 @@ static bool populateBufferData(dsSceneInstanceData* instanceData)
 		if (!animationTree)
 			continue;
 
-		size_t copySize = animationTree->nodeCount*sizeof(dsMatrix44f);
+		size_t copySize = animationTree->nodeCount*sizeof(dsAnimationJointTransform);
 		instance->offset = offset;
 		instance->size = copySize;
 		memcpy(bufferData + offset, animationTree->jointTransforms, copySize);
@@ -191,6 +191,7 @@ static bool populateTextureData(dsSceneInstanceData* instanceData)
 	// don't worry too much about the inefficiency for now.
 	dsSceneSkinningData* skinningData = (dsSceneSkinningData*)instanceData;
 	dsResourceManager* resourceManager = skinningData->resourceManager;
+	const uint32_t textureWidth = (uint32_t)(sizeof(dsAnimationJointTransform)/sizeof(dsVector4f));
 	for (uint32_t i = 0; i < skinningData->instanceCount; ++i)
 	{
 		InstanceData* instance = skinningData->instances + i;
@@ -201,11 +202,12 @@ static bool populateTextureData(dsSceneInstanceData* instanceData)
 		dsTextureInfo textureInfo =
 		{
 			dsGfxFormat_decorate(dsGfxFormat_X32Y32Z32W32, dsGfxFormat_Float),
-			dsTextureDim_2D, 4, animationTree->nodeCount, 0, 1, 0
+			dsTextureDim_2D, textureWidth, animationTree->nodeCount, 0, 1, 0
 		};
 		instance->texture = dsTexture_create(resourceManager, skinningData->resourceAllocator,
 			dsTextureUsage_Texture, dsGfxMemory_Stream, &textureInfo,
-			animationTree->jointTransforms, animationTree->nodeCount*sizeof(dsMatrix44f));
+			animationTree->jointTransforms,
+			animationTree->nodeCount*sizeof(dsAnimationJointTransform));
 		if (!instance->texture)
 			return false;
 	}
