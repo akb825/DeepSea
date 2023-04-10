@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Copyright 2020-2022 Aaron Barany
+# Copyright 2020-2023 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,6 +21,8 @@ from importlib import import_module
 
 from DeepSeaScene.Convert.ConvertContext import ConvertContext
 from DeepSeaScene.Convert.SceneResourcesConvert import convertSceneResources
+
+from DeepSeaSceneAnimation.Convert.DirectAnimationConvert import convertDirectAnimation
 
 from DeepSeaSceneLighting.Convert.LightNodeConvert import convertLightNode
 from DeepSeaSceneLighting.Convert.LightSetConvert import convertLightSet
@@ -57,6 +59,9 @@ if __name__ == '__main__':
 
 	args = parser.parse_args()
 	convertContext = ConvertContext(args.cuttlefish, args.vfc, args.multithread)
+
+	# Animation scene types.
+	convertContext.addCustomResourceType('DirectAnimation', convertDirectAnimation)
 
 	# Lighting scene types.
 	convertContext.addNodeType('LightNode', convertLightNode)

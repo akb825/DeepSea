@@ -1,4 +1,4 @@
-# Copyright 2020-2022 Aaron Barany
+# Copyright 2020-2023 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -130,7 +130,7 @@ def convertLightSet(convertContext, data):
 			builder.PrependUOffsetTRelative(offset)
 		lightsOffset = builder.EndVector()
 	else:
-		lightsOffset
+		lightsOffset = 0
 
 	mainLightOffset = 0
 	if mainLight:
