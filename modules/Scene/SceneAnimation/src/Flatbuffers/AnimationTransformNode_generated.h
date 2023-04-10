@@ -21,19 +21,19 @@ struct AnimationTransformNodeBuilder;
 struct AnimationTransformNode FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef AnimationTransformNodeBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_ANIMATINNODE = 4,
+    VT_ANIMATIONNODE = 4,
     VT_ITEMLISTS = 6
   };
-  const ::flatbuffers::String *animatinNode() const {
-    return GetPointer<const ::flatbuffers::String *>(VT_ANIMATINNODE);
+  const ::flatbuffers::String *animationNode() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_ANIMATIONNODE);
   }
   const ::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>> *itemLists() const {
     return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>> *>(VT_ITEMLISTS);
   }
   bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyOffsetRequired(verifier, VT_ANIMATINNODE) &&
-           verifier.VerifyString(animatinNode()) &&
+           VerifyOffsetRequired(verifier, VT_ANIMATIONNODE) &&
+           verifier.VerifyString(animationNode()) &&
            VerifyOffset(verifier, VT_ITEMLISTS) &&
            verifier.VerifyVector(itemLists()) &&
            verifier.VerifyVectorOfStrings(itemLists()) &&
@@ -45,8 +45,8 @@ struct AnimationTransformNodeBuilder {
   typedef AnimationTransformNode Table;
   ::flatbuffers::FlatBufferBuilder &fbb_;
   ::flatbuffers::uoffset_t start_;
-  void add_animatinNode(::flatbuffers::Offset<::flatbuffers::String> animatinNode) {
-    fbb_.AddOffset(AnimationTransformNode::VT_ANIMATINNODE, animatinNode);
+  void add_animationNode(::flatbuffers::Offset<::flatbuffers::String> animationNode) {
+    fbb_.AddOffset(AnimationTransformNode::VT_ANIMATIONNODE, animationNode);
   }
   void add_itemLists(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>>> itemLists) {
     fbb_.AddOffset(AnimationTransformNode::VT_ITEMLISTS, itemLists);
@@ -58,30 +58,30 @@ struct AnimationTransformNodeBuilder {
   ::flatbuffers::Offset<AnimationTransformNode> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = ::flatbuffers::Offset<AnimationTransformNode>(end);
-    fbb_.Required(o, AnimationTransformNode::VT_ANIMATINNODE);
+    fbb_.Required(o, AnimationTransformNode::VT_ANIMATIONNODE);
     return o;
   }
 };
 
 inline ::flatbuffers::Offset<AnimationTransformNode> CreateAnimationTransformNode(
     ::flatbuffers::FlatBufferBuilder &_fbb,
-    ::flatbuffers::Offset<::flatbuffers::String> animatinNode = 0,
+    ::flatbuffers::Offset<::flatbuffers::String> animationNode = 0,
     ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>>> itemLists = 0) {
   AnimationTransformNodeBuilder builder_(_fbb);
   builder_.add_itemLists(itemLists);
-  builder_.add_animatinNode(animatinNode);
+  builder_.add_animationNode(animationNode);
   return builder_.Finish();
 }
 
 inline ::flatbuffers::Offset<AnimationTransformNode> CreateAnimationTransformNodeDirect(
     ::flatbuffers::FlatBufferBuilder &_fbb,
-    const char *animatinNode = nullptr,
+    const char *animationNode = nullptr,
     const std::vector<::flatbuffers::Offset<::flatbuffers::String>> *itemLists = nullptr) {
-  auto animatinNode__ = animatinNode ? _fbb.CreateString(animatinNode) : 0;
+  auto animationNode__ = animationNode ? _fbb.CreateString(animationNode) : 0;
   auto itemLists__ = itemLists ? _fbb.CreateVector<::flatbuffers::Offset<::flatbuffers::String>>(*itemLists) : 0;
   return DeepSeaSceneAnimation::CreateAnimationTransformNode(
       _fbb,
-      animatinNode__,
+      animationNode__,
       itemLists__);
 }
 

@@ -25,7 +25,7 @@ class AnimationTransformNode(object):
         self._tab = flatbuffers.table.Table(buf, pos)
 
     # AnimationTransformNode
-    def AnimatinNode(self):
+    def AnimationNode(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         if o != 0:
             return self._tab.String(o + self._tab.Pos)
@@ -54,9 +54,9 @@ class AnimationTransformNode(object):
 def AnimationTransformNodeStart(builder): builder.StartObject(2)
 def Start(builder):
     return AnimationTransformNodeStart(builder)
-def AnimationTransformNodeAddAnimatinNode(builder, animatinNode): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(animatinNode), 0)
-def AddAnimatinNode(builder, animatinNode):
-    return AnimationTransformNodeAddAnimatinNode(builder, animatinNode)
+def AnimationTransformNodeAddAnimationNode(builder, animationNode): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(animationNode), 0)
+def AddAnimationNode(builder, animationNode):
+    return AnimationTransformNodeAddAnimationNode(builder, animationNode)
 def AnimationTransformNodeAddItemLists(builder, itemLists): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(itemLists), 0)
 def AddItemLists(builder, itemLists):
     return AnimationTransformNodeAddItemLists(builder, itemLists)

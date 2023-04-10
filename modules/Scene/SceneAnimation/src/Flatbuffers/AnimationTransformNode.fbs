@@ -20,7 +20,7 @@ namespace DeepSeaSceneAnimation;
 table AnimationTransformNode
 {
 	// The name of the node within the animation to retrieve the transform from.
-	animatinNode : string (required);
+	animationNode : string (required);
 
 	// The item lists to process the node with.
 	itemLists : [string];

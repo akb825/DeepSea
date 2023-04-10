@@ -22,6 +22,10 @@ from importlib import import_module
 from DeepSeaScene.Convert.ConvertContext import ConvertContext
 from DeepSeaScene.Convert.SceneResourcesConvert import convertSceneResources
 
+from DeepSeaSceneAnimation.Convert.AnimationNodeConvert import convertAnimationNode
+from DeepSeaSceneAnimation.Convert.AnimationTransformNodeConvert import \
+	convertAnimationTransformNode
+from DeepSeaSceneAnimation.Convert.AnimationTreeNodeConvert import convertAnimationTreeNode
 from DeepSeaSceneAnimation.Convert.DirectAnimationConvert import convertDirectAnimation
 
 from DeepSeaSceneLighting.Convert.LightNodeConvert import convertLightNode
@@ -61,6 +65,9 @@ if __name__ == '__main__':
 	convertContext = ConvertContext(args.cuttlefish, args.vfc, args.multithread)
 
 	# Animation scene types.
+	convertContext.addNodeType('AnimationNode', convertAnimationNode)
+	convertContext.addNodeType('AnimationTransformNode', convertAnimationTransformNode)
+	convertContext.addNodeType('AnimationTreeNode', convertAnimationTreeNode)
 	convertContext.addCustomResourceType('DirectAnimation', convertDirectAnimation)
 
 	# Lighting scene types.

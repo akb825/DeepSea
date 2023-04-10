@@ -73,5 +73,5 @@ dsSceneNode* dsSceneAnimationTransformNode_load(const dsSceneLoadContext*,
 	}
 
 	return (dsSceneNode*)dsSceneAnimationTransformNode_create(allocator,
-		fbAnimationTransformNode->animatinNode()->c_str(), itemLists, itemListCount);
+		fbAnimationTransformNode->animationNode()->c_str(), itemLists, itemListCount);
 }
