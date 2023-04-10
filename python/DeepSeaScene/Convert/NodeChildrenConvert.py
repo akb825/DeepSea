@@ -1,4 +1,4 @@
-# Copyright 2022 Aaron Barany
+# Copyright 2022=2023 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,12 +13,12 @@
 # limitations under the License.
 
 import flatbuffers
-from .. import TransformNodeChildren
+from .. import NodeChildren
 
-def convertTransformNodeChildren(convertContext, data):
+def convertNodeChildren(convertContext, data):
 	"""
-	Adds an action to insert children into an existing TransformNode. The data map is expected to
-	contain the following elements:
+	Adds an action to insert children into an existing node. The data map is expected to contain the
+	following elements:
 	- node: the name of the transform node to add children to.
 	- children: an array of child nodes. Each element is an object with the following elements:
 	  - nodeType: the name of the node type.
@@ -37,21 +37,21 @@ def convertTransformNodeChildren(convertContext, data):
 				except KeyError as e:
 					raise Exception('Child node data doesn\'t contain element ' + str(e) + '.')
 		except (TypeError, ValueError):
-			raise Exception('TransformNodeChildren "children" must be an array of objects.')
+			raise Exception('NodeChildren "children" must be an array of objects.')
 	except KeyError as e:
-		raise Exception('TransformNodeChildren data doesn\'t contain element ' + str(e) + '.')
+		raise Exception('NodeChildren data doesn\'t contain element ' + str(e) + '.')
 	except (TypeError, ValueError):
-		raise Exception('TransformNodeChildren data must be an object.')
+		raise Exception('NodeChildren data must be an object.')
 
 	nodeOffset = builder.CreateString(node)
 
-	TransformNodeChildren.StartChildrenVector(builder, len(childOffsets))
+	NodeChildren.StartChildrenVector(builder, len(childOffsets))
 	for offset in reversed(childOffsets):
 		builder.PrependUOffsetTRelative(offset)
 	childrenOffset = builder.EndVector()
 
-	TransformNodeChildren.Start(builder)
-	TransformNodeChildren.AddNode(builder, nodeOffset)
-	TransformNodeChildren.AddChildren(builder, childrenOffset)
-	builder.Finish(TransformNodeChildren.End(builder))
+	NodeChildren.Start(builder)
+	NodeChildren.AddNode(builder, nodeOffset)
+	NodeChildren.AddChildren(builder, childrenOffset)
+	builder.Finish(NodeChildren.End(builder))
 	return builder.Output()

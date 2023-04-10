@@ -205,11 +205,11 @@ Transform nodes have the type string "TransformNode" and contains the following 
 	* `type`: the name of the node type.
 	* Remaining members depend on the value of `nodeType`.
 
-## Transform Node Children
+## Node Children
 
-Transform node children have the type node "TransformNodeChildren" can be used to add children to an existing transform node. This can be used to break circular dependencies if a transform node needs to be referenced by other objects before the children are able to be added. It contains the following members:
+Node children have the type node "NodeChildren" can be used to add children to an existing node. This can be used to break circular dependencies if a node needs to be referenced by other objects before the children are able to be added. It contains the following members:
 
-* `node`: the name of the transform node to add children to.
+* `node`: the name of the node to add children to.
 * `children`: an array of child nodes. Each element is an object with the following elements:
 	* `type`: the name of the node type.
 	* Remaining members depend on the value of `nodeType`.

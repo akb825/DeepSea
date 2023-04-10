@@ -19,9 +19,9 @@ from .ModelListConvert import convertModelList
 from .ModelNodeReconfigConvert import convertModelNodeReconfig
 from .ModelNodeRemapConvert import convertModelNodeRemap
 from .ModelNodeConvert import convertModelNode
+from .NodeChildrenConvert import convertNodeChildren
 from .OBJModel import registerOBJModelType
 from .SceneNodeRefConvert import convertReferenceNode
-from .TransformNodeChildrenConvert import convertTransformNodeChildren
 from .TransformNodeConvert import convertTransformNode
 from .ViewCullListConvert import convertViewCullList
 from .ViewMipmapListConvert import convertViewMipmapList
@@ -68,7 +68,7 @@ class ConvertContext:
 		self.customResourceTypeMap = dict()
 
 		self.resourceActionTypeMap = {
-			'TransformNodeChildren': convertTransformNodeChildren
+			'NodeChildren': convertNodeChildren
 		}
 
 		# Model types are considered an extension. However, register the builtin model types here

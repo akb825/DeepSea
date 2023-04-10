@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Aaron Barany
+ * Copyright 2022-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,14 +18,14 @@ include "DeepSea/Scene/Flatbuffers/SceneCommon.fbs";
 
 namespace DeepSeaScene;
 
-// Struct containing children to add to an existing transform node.
-table TransformNodeChildren
+// Struct containing children to add to an existing node.
+table NodeChildren
 {
-	// The name of the transform node to add children to.
+	// The name of the node to add children to.
 	node : string (required);
 
 	// The child nodes for the transform.
 	children : [ObjectData] (required);
 }
 
-root_type TransformNodeChildren;
+root_type NodeChildren;

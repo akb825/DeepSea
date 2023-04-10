@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022 Aaron Barany
+ * Copyright 2019-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -99,8 +99,8 @@ dsSceneLoadContext* dsSceneLoadContext_create(dsAllocator* allocator, dsRenderer
 		&dsInstanceTransformData_load, NULL, NULL);
 
 	// Actions aren't exposed in code so inlined names.
-	dsSceneLoadContext_registerResourceActionType(context, "TransformNodeChildren",
-		&dsSceneTransformNodeChildren_load, NULL, NULL, 0);
+	dsSceneLoadContext_registerResourceActionType(context, "NodeChildren",
+		&dsSceneNodeChildren_load, NULL, NULL, 0);
 
 	return context;
 }
