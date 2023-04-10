@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+include "DeepSea/Scene/Flatbuffers/SceneCommon.fbs";
+
 namespace DeepSeaSceneAnimation;
 
 // Struct describing a node that inherits a transform from an animation.
@@ -21,6 +23,9 @@ table AnimationTransformNode
 {
 	// The name of the node within the animation to retrieve the transform from.
 	animationNode : string (required);
+
+	// The child nodes for the animation transform.
+	children : [DeepSeaScene.ObjectData];
 
 	// The item lists to process the node with.
 	itemLists : [string];

@@ -13,6 +13,8 @@ static_assert(FLATBUFFERS_VERSION_MAJOR == 23 &&
               FLATBUFFERS_VERSION_REVISION == 3,
              "Non-compatible flatbuffers version included");
 
+#include "DeepSea/Scene/Flatbuffers/SceneCommon_generated.h"
+
 namespace DeepSeaSceneAnimation {
 
 struct AnimationTransformNode;
@@ -22,10 +24,14 @@ struct AnimationTransformNode FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::T
   typedef AnimationTransformNodeBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_ANIMATIONNODE = 4,
-    VT_ITEMLISTS = 6
+    VT_CHILDREN = 6,
+    VT_ITEMLISTS = 8
   };
   const ::flatbuffers::String *animationNode() const {
     return GetPointer<const ::flatbuffers::String *>(VT_ANIMATIONNODE);
+  }
+  const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaScene::ObjectData>> *children() const {
+    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaScene::ObjectData>> *>(VT_CHILDREN);
   }
   const ::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>> *itemLists() const {
     return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>> *>(VT_ITEMLISTS);
@@ -34,6 +40,9 @@ struct AnimationTransformNode FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::T
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_ANIMATIONNODE) &&
            verifier.VerifyString(animationNode()) &&
+           VerifyOffset(verifier, VT_CHILDREN) &&
+           verifier.VerifyVector(children()) &&
+           verifier.VerifyVectorOfTables(children()) &&
            VerifyOffset(verifier, VT_ITEMLISTS) &&
            verifier.VerifyVector(itemLists()) &&
            verifier.VerifyVectorOfStrings(itemLists()) &&
@@ -47,6 +56,9 @@ struct AnimationTransformNodeBuilder {
   ::flatbuffers::uoffset_t start_;
   void add_animationNode(::flatbuffers::Offset<::flatbuffers::String> animationNode) {
     fbb_.AddOffset(AnimationTransformNode::VT_ANIMATIONNODE, animationNode);
+  }
+  void add_children(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaScene::ObjectData>>> children) {
+    fbb_.AddOffset(AnimationTransformNode::VT_CHILDREN, children);
   }
   void add_itemLists(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>>> itemLists) {
     fbb_.AddOffset(AnimationTransformNode::VT_ITEMLISTS, itemLists);
@@ -66,9 +78,11 @@ struct AnimationTransformNodeBuilder {
 inline ::flatbuffers::Offset<AnimationTransformNode> CreateAnimationTransformNode(
     ::flatbuffers::FlatBufferBuilder &_fbb,
     ::flatbuffers::Offset<::flatbuffers::String> animationNode = 0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaScene::ObjectData>>> children = 0,
     ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>>> itemLists = 0) {
   AnimationTransformNodeBuilder builder_(_fbb);
   builder_.add_itemLists(itemLists);
+  builder_.add_children(children);
   builder_.add_animationNode(animationNode);
   return builder_.Finish();
 }
@@ -76,12 +90,15 @@ inline ::flatbuffers::Offset<AnimationTransformNode> CreateAnimationTransformNod
 inline ::flatbuffers::Offset<AnimationTransformNode> CreateAnimationTransformNodeDirect(
     ::flatbuffers::FlatBufferBuilder &_fbb,
     const char *animationNode = nullptr,
+    const std::vector<::flatbuffers::Offset<DeepSeaScene::ObjectData>> *children = nullptr,
     const std::vector<::flatbuffers::Offset<::flatbuffers::String>> *itemLists = nullptr) {
   auto animationNode__ = animationNode ? _fbb.CreateString(animationNode) : 0;
+  auto children__ = children ? _fbb.CreateVector<::flatbuffers::Offset<DeepSeaScene::ObjectData>>(*children) : 0;
   auto itemLists__ = itemLists ? _fbb.CreateVector<::flatbuffers::Offset<::flatbuffers::String>>(*itemLists) : 0;
   return DeepSeaSceneAnimation::CreateAnimationTransformNode(
       _fbb,
       animationNode__,
+      children__,
       itemLists__);
 }
 

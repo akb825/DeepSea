@@ -20,18 +20,42 @@ def convertAnimationNode(convertContext, data):
 	"""
 	Converts a AnimationNode. The data map is expected to contain the following elements:
 	- nodeMapCache: the name of the animation node map cache to use with the animation tree.
+	- children: an array of child nodes. Each element is an object with the following elements:
+	  - nodeType: the name of the node type.
+	  - data: the data for the node.
 	- itemLists: array of item list names to add the node to.
 	"""
+	builder = flatbuffers.Builder(0)
 	try:
 		nodeMapCache = str(data['nodeMapcache'])
+
+		children = data.get('children', [])
+		childOffsets = []
+		try:
+			for child in children:
+				try:
+					childType = str(child['nodeType'])
+					childOffsets.append(convertContext.convertNode(builder, childType, child))
+				except KeyError as e:
+					raise Exception('Child node data doesn\'t contain element ' + str(e) + '.')
+		except (TypeError, ValueError):
+			raise Exception('AnimationNode "children" must be an array of objects.')
+
 		itemLists = data.get('itemLists')
 	except (TypeError, ValueError):
 		raise Exception('AnimationNode data must be an object.')
 	except KeyError as e:
 		raise Exception('AnimationNode data doesn\'t contain element ' + str(e) + '.')
 
-	builder = flatbuffers.Builder(0)
 	nodeMapCacheOffset = builder.CreateString(nodeMapCache)
+
+	if childOffsets:
+		AnimationNode.StartChildrenVector(builder, len(childOffsets))
+		for offset in reversed(childOffsets):
+			builder.PrependUOffsetTRelative(offset)
+		childrenOffset = builder.EndVector()
+	else:
+		childrenOffset = 0
 
 	if itemLists:
 		itemListOffsets = []
@@ -50,6 +74,7 @@ def convertAnimationNode(convertContext, data):
 
 	AnimationNode.Start(builder)
 	AnimationNode.AddNodeMapCache(builder, nodeMapCacheOffset)
+	AnimationNode.AddChildren(builder, childrenOffset)
 	AnimationNode.AddItemLists(builder, itemListsOffset)
 	builder.Finish(AnimationNode.End(builder))
 	return builder.Output()

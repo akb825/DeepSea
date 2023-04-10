@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+include "DeepSea/Scene/Flatbuffers/SceneCommon.fbs";
+
 namespace DeepSeaSceneAnimation;
 
 // Struct describing a node that manages an animation tree.
@@ -25,6 +27,9 @@ table AnimationTreeNode
 	// The name of the animation node map cache to use with the animation tree. This will be
 	// compatible with any animations that use the same cache.
 	nodeMapCache : string (required);
+
+	// The child nodes for the animation tree.
+	children : [DeepSeaScene.ObjectData];
 
 	// The item lists to process the node with.
 	itemLists : [string];

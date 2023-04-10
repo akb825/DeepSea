@@ -27,6 +27,8 @@ from DeepSeaSceneAnimation.Convert.AnimationTransformNodeConvert import \
 	convertAnimationTransformNode
 from DeepSeaSceneAnimation.Convert.AnimationTreeNodeConvert import convertAnimationTreeNode
 from DeepSeaSceneAnimation.Convert.DirectAnimationConvert import convertDirectAnimation
+from DeepSeaSceneAnimation.Convert.NodeMapCacheConvert import convertNodeMapCache
+from DeepSeaSceneAnimation.Convert.SkinningDataConvert import convertSkinningData
 
 from DeepSeaSceneLighting.Convert.LightNodeConvert import convertLightNode
 from DeepSeaSceneLighting.Convert.LightSetConvert import convertLightSet
@@ -65,15 +67,17 @@ if __name__ == '__main__':
 	convertContext = ConvertContext(args.cuttlefish, args.vfc, args.multithread)
 
 	# Animation scene types.
+	convertContext.addCustomResourceType('DirectAnimation', convertDirectAnimation)
+	convertContext.addCustomResourceType('NodeMapCache', convertNodeMapCache)
+	convertContext.addInstanceDataType('SkinningData', convertSkinningData)
 	convertContext.addNodeType('AnimationNode', convertAnimationNode)
 	convertContext.addNodeType('AnimationTransformNode', convertAnimationTransformNode)
 	convertContext.addNodeType('AnimationTreeNode', convertAnimationTreeNode)
-	convertContext.addCustomResourceType('DirectAnimation', convertDirectAnimation)
 
 	# Lighting scene types.
-	convertContext.addNodeType('LightNode', convertLightNode)
 	convertContext.addCustomResourceType('LightSet', convertLightSet)
 	convertContext.addCustomResourceType('ShadowManager', convertShadowManager)
+	convertContext.addNodeType('LightNode', convertLightNode)
 
 	# Particle scene types.
 	convertContext.addCustomResourceType('StandardParticleEmitterFactory',

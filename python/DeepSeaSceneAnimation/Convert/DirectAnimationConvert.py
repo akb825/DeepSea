@@ -30,12 +30,12 @@ def convertDirectAnimation(convertContext, data):
 	- channels: array of channels for the animation. Each member of the array has the following
 	  members:
 	  - node: the name of the node to apply the value to.
-	  - component: the component to apply the value to. Se the dsAnimationComponent enum for values,
-	    removing the type prefix.
+	  - component: the component to apply the value to. See the dsAnimationComponent enum for
+	    values, removing the type prefix.
 	  - value: the value for the channel as an array of three floats based on the component:
 	    - "Translation": x, y, z offset.
-		- "Scale": x, y, z scale factors.
-		- "Rotation": x, y, z Euler angles in degrees.
+	    - "Scale": x, y, z scale factors.
+	    - "Rotation": x, y, z Euler angles in degrees.
 	"""
 	def readFloat(value, name):
 		try:

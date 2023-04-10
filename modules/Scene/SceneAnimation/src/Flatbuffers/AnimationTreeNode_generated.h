@@ -13,6 +13,8 @@ static_assert(FLATBUFFERS_VERSION_MAJOR == 23 &&
               FLATBUFFERS_VERSION_REVISION == 3,
              "Non-compatible flatbuffers version included");
 
+#include "DeepSea/Scene/Flatbuffers/SceneCommon_generated.h"
+
 namespace DeepSeaSceneAnimation {
 
 struct AnimationTreeNode;
@@ -23,13 +25,17 @@ struct AnimationTreeNode FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table 
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_ANIMATIONTREE = 4,
     VT_NODEMAPCACHE = 6,
-    VT_ITEMLISTS = 8
+    VT_CHILDREN = 8,
+    VT_ITEMLISTS = 10
   };
   const ::flatbuffers::String *animationTree() const {
     return GetPointer<const ::flatbuffers::String *>(VT_ANIMATIONTREE);
   }
   const ::flatbuffers::String *nodeMapCache() const {
     return GetPointer<const ::flatbuffers::String *>(VT_NODEMAPCACHE);
+  }
+  const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaScene::ObjectData>> *children() const {
+    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaScene::ObjectData>> *>(VT_CHILDREN);
   }
   const ::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>> *itemLists() const {
     return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>> *>(VT_ITEMLISTS);
@@ -40,6 +46,9 @@ struct AnimationTreeNode FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table 
            verifier.VerifyString(animationTree()) &&
            VerifyOffsetRequired(verifier, VT_NODEMAPCACHE) &&
            verifier.VerifyString(nodeMapCache()) &&
+           VerifyOffset(verifier, VT_CHILDREN) &&
+           verifier.VerifyVector(children()) &&
+           verifier.VerifyVectorOfTables(children()) &&
            VerifyOffset(verifier, VT_ITEMLISTS) &&
            verifier.VerifyVector(itemLists()) &&
            verifier.VerifyVectorOfStrings(itemLists()) &&
@@ -56,6 +65,9 @@ struct AnimationTreeNodeBuilder {
   }
   void add_nodeMapCache(::flatbuffers::Offset<::flatbuffers::String> nodeMapCache) {
     fbb_.AddOffset(AnimationTreeNode::VT_NODEMAPCACHE, nodeMapCache);
+  }
+  void add_children(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaScene::ObjectData>>> children) {
+    fbb_.AddOffset(AnimationTreeNode::VT_CHILDREN, children);
   }
   void add_itemLists(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>>> itemLists) {
     fbb_.AddOffset(AnimationTreeNode::VT_ITEMLISTS, itemLists);
@@ -77,9 +89,11 @@ inline ::flatbuffers::Offset<AnimationTreeNode> CreateAnimationTreeNode(
     ::flatbuffers::FlatBufferBuilder &_fbb,
     ::flatbuffers::Offset<::flatbuffers::String> animationTree = 0,
     ::flatbuffers::Offset<::flatbuffers::String> nodeMapCache = 0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaScene::ObjectData>>> children = 0,
     ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>>> itemLists = 0) {
   AnimationTreeNodeBuilder builder_(_fbb);
   builder_.add_itemLists(itemLists);
+  builder_.add_children(children);
   builder_.add_nodeMapCache(nodeMapCache);
   builder_.add_animationTree(animationTree);
   return builder_.Finish();
@@ -89,14 +103,17 @@ inline ::flatbuffers::Offset<AnimationTreeNode> CreateAnimationTreeNodeDirect(
     ::flatbuffers::FlatBufferBuilder &_fbb,
     const char *animationTree = nullptr,
     const char *nodeMapCache = nullptr,
+    const std::vector<::flatbuffers::Offset<DeepSeaScene::ObjectData>> *children = nullptr,
     const std::vector<::flatbuffers::Offset<::flatbuffers::String>> *itemLists = nullptr) {
   auto animationTree__ = animationTree ? _fbb.CreateString(animationTree) : 0;
   auto nodeMapCache__ = nodeMapCache ? _fbb.CreateString(nodeMapCache) : 0;
+  auto children__ = children ? _fbb.CreateVector<::flatbuffers::Offset<DeepSeaScene::ObjectData>>(*children) : 0;
   auto itemLists__ = itemLists ? _fbb.CreateVector<::flatbuffers::Offset<::flatbuffers::String>>(*itemLists) : 0;
   return DeepSeaSceneAnimation::CreateAnimationTreeNode(
       _fbb,
       animationTree__,
       nodeMapCache__,
+      children__,
       itemLists__);
 }
 

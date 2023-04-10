@@ -1,4 +1,4 @@
-# Copyright 2020-2022 Aaron Barany
+# Copyright 2020-2023 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -53,10 +53,13 @@ def convertTransformNode(convertContext, data):
 	except (TypeError, ValueError):
 		raise Exception('TransformNode data must be an object.')
 
-	TransformNode.StartChildrenVector(builder, len(childOffsets))
-	for offset in reversed(childOffsets):
-		builder.PrependUOffsetTRelative(offset)
-	childrenOffset = builder.EndVector()
+	if childOffsets:
+		TransformNode.StartChildrenVector(builder, len(childOffsets))
+		for offset in reversed(childOffsets):
+			builder.PrependUOffsetTRelative(offset)
+		childrenOffset = builder.EndVector()
+	else:
+		childrenOffset = 0
 
 	TransformNode.Start(builder)
 	TransformNode.AddTransform(builder, CreateMatrix44f(builder, *matrix))

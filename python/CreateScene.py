@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Copyright 2020-2022 Aaron Barany
+# Copyright 2020-2023 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,6 +21,8 @@ from importlib import import_module
 
 from DeepSeaScene.Convert.ConvertContext import ConvertContext
 from DeepSeaScene.Convert.SceneConvert import convertScene
+
+from DeepSeaSceneAnimation.Convert.AnimationListConvert import convertAnimationList
 
 from DeepSeaSceneLighting.Convert.InstanceForwardLightDataConvert \
 	import convertInstanceForwardLightData
@@ -53,6 +55,9 @@ if __name__ == '__main__':
 
 	args = parser.parse_args()
 	convertContext = ConvertContext()
+
+	# Animation scene types.
+	convertContext.addItemListType('AnimationList', convertAnimationList)
 
 	# Lighting scene types.
 	convertContext.addItemListType('ComputeSSAO', convertSSAO) # Same type as normal SSAO.

@@ -21,6 +21,7 @@
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 
+#include <DeepSea/Scene/Nodes/SceneNode.h>
 #include <DeepSea/Scene/SceneLoadScratchData.h>
 
 #include <DeepSea/SceneAnimation/SceneAnimationTransformNode.h>
@@ -36,9 +37,9 @@
 #pragma GCC diagnostic pop
 #endif
 
-dsSceneNode* dsSceneAnimationTransformNode_load(const dsSceneLoadContext*,
-	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator*, void*,
-	const uint8_t* data, size_t dataSize)
+dsSceneNode* dsSceneAnimationTransformNode_load(const dsSceneLoadContext* loadContext,
+	dsSceneLoadScratchData* scratchData, dsAllocator* allocator, dsAllocator* resourceAllocator,
+	void*, const uint8_t* data, size_t dataSize)
 {
 	flatbuffers::Verifier verifier(data, dataSize);
 	if (!DeepSeaSceneAnimation::VerifyAnimationTransformNodeBuffer(verifier))
@@ -72,6 +73,34 @@ dsSceneNode* dsSceneAnimationTransformNode_load(const dsSceneLoadContext*,
 		}
 	}
 
-	return (dsSceneNode*)dsSceneAnimationTransformNode_create(allocator,
+	dsSceneNode* node = (dsSceneNode*)dsSceneAnimationTransformNode_create(allocator,
 		fbAnimationTransformNode->animationNode()->c_str(), itemLists, itemListCount);
+	if (!node)
+		return nullptr;
+
+	auto fbChildren = fbAnimationTransformNode->children();
+	if (fbChildren)
+	{
+		for (auto fbNode : *fbChildren)
+		{
+			if (!fbNode)
+				continue;
+
+			auto data = fbNode->data();
+			dsSceneNode* child = dsSceneNode_load(allocator, resourceAllocator, loadContext,
+				scratchData, fbNode->type()->c_str(), data->data(), data->size());
+			if (!child)
+			{
+				dsSceneNode_freeRef(node);
+				return nullptr;
+			}
+
+			bool success = dsSceneNode_addChild(node, child);
+			dsSceneNode_freeRef(child);
+			if (!success)
+				return nullptr;
+		}
+	}
+
+	return node;
 }

@@ -21,20 +21,44 @@ def convertAnimationTreeNode(convertContext, data):
 	Converts a AnimationTreeNode. The data map is expected to contain the following elements:
 	- animationTree: the name of the animation tree to use for the node.
 	- nodeMapCache: the name of the animation node map cache to use with the animation tree.
+	- children: an array of child nodes. Each element is an object with the following elements:
+	  - nodeType: the name of the node type.
+	  - data: the data for the node.
 	- itemLists: array of item list names to add the node to.
 	"""
+	builder = flatbuffers.Builder(0)
 	try:
 		animationTree = str(data['animationTree'])
 		nodeMapCache = str(data['nodeMapcache'])
+
+		children = data.get('children', [])
+		childOffsets = []
+		try:
+			for child in children:
+				try:
+					childType = str(child['nodeType'])
+					childOffsets.append(convertContext.convertNode(builder, childType, child))
+				except KeyError as e:
+					raise Exception('Child node data doesn\'t contain element ' + str(e) + '.')
+		except (TypeError, ValueError):
+			raise Exception('AnimationTreeNode "children" must be an array of objects.')
+
 		itemLists = data.get('itemLists')
 	except (TypeError, ValueError):
 		raise Exception('AnimationTreeNode data must be an object.')
 	except KeyError as e:
 		raise Exception('AnimationTreeNode data doesn\'t contain element ' + str(e) + '.')
 
-	builder = flatbuffers.Builder(0)
 	animationTreeOffset = builder.CreateString(animationTree)
 	nodeMapCacheOffset = builder.CreateString(nodeMapCache)
+
+	if childOffsets:
+		AnimationTreeNode.StartChildrenVector(builder, len(childOffsets))
+		for offset in reversed(childOffsets):
+			builder.PrependUOffsetTRelative(offset)
+		childrenOffset = builder.EndVector()
+	else:
+		childrenOffset = 0
 
 	if itemLists:
 		itemListOffsets = []
@@ -54,6 +78,7 @@ def convertAnimationTreeNode(convertContext, data):
 	AnimationTreeNode.Start(builder)
 	AnimationTreeNode.AddAnimationTree(builder, animationTreeOffset)
 	AnimationTreeNode.AddNodeMapCache(builder, nodeMapCacheOffset)
+	AnimationTreeNode.AddChildren(builder, childrenOffset)
 	AnimationTreeNode.AddItemLists(builder, itemListsOffset)
 	builder.Finish(AnimationTreeNode.End(builder))
 	return builder.Output()
