@@ -1,4 +1,4 @@
-# Copyright 2020-2022 Aaron Barany
+# Copyright 2020-2023 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -285,9 +285,43 @@ def convertGLTFOrGLBModel(convertContext, path, jsonData, binData):
 		geometry.append(ModelNodeGeometryData(mesh.name, vertexStreams, mesh.primitiveType))
 	return geometry
 
+def readGLTFData(path):
+	"""
+	Reads glTF data, returning the JSON data as a dict.
+	"""
+	with open(path) as f:
+		try:
+			return json.load(f)
+		except:
+			raise Exception('Invalid glTF file "' + path + '".')
+
+def readGLBData(path):
+	"""
+	Reads GLB data, returning a tuple for the JSON data as a dict and the binary data.
+	"""
+	with open(path, 'rb') as f:
+		try:
+			if f.read(4) != b'glTF' or struct.unpack('I', f.read(4))[0] != 2 or not f.read(4):
+				raise Exception()
+
+			length = struct.unpack('I', f.read(4))[0]
+			if f.read(4) != b'JSON':
+				raise Exception()
+
+			jsonData = json.loads(f.read(length))
+
+			length = struct.unpack('I', f.read(4))[0]
+			if f.read(4) != b'BIN\0':
+				raise Exception()
+
+			binData = f.read(length)
+			return jsonData, binData
+		except:
+			raise Exception('Invalid GLTF file "' + path + '".')
+
 def convertGLTFModel(convertContext, path):
 	"""
-	Converts an GLTF model for use with ModelNodeConvert.
+	Converts an glTF model for use with ModelNodeConvert.
 
 	If the "name" element is provided for a mesh, it will be used for the name of the model
 	geometry. Otherwise, the name will be "mesh#", where # is the index of the mesh. If multiple
@@ -301,12 +335,7 @@ def convertGLTFModel(convertContext, path):
 	- Buffer data may either be embedded or a file path relative to the main model file. General
 	  URIs are not supported.
 	"""
-	with open(path) as f:
-		try:
-			data = json.load(f)
-		except:
-			raise Exception('Invalid GLTF file "' + path + '".')
-
+	data = readGLTFData(path)
 	return convertGLTFOrGLBModel(convertContext, path, data, None)
 
 def convertGLBModel(convertContext, path):
@@ -325,25 +354,7 @@ def convertGLBModel(convertContext, path):
 	- Buffer data may either be embedded or a file path relative to the main model file. General
 	  URIs are not supported.
 	"""
-	with open(path, 'rb') as f:
-		try:
-			if f.read(4) != b'glTF' or struct.unpack('I', f.read(4))[0] != 2 or not f.read(4):
-				raise Exception()
-
-			length = struct.unpack('I', f.read(4))[0]
-			if f.read(4) != b'JSON':
-				raise Exception()
-
-			jsonData = json.loads(f.read(length))
-
-			length = struct.unpack('I', f.read(4))[0]
-			if f.read(4) != b'BIN\0':
-				raise Exception()
-
-			binData = f.read(length)
-		except:
-			raise Exception('Invalid GLTF file "' + path + '".')
-
+	jsonData, binData = readGLBData(path)
 	return convertGLTFOrGLBModel(convertContext, path, jsonData, binData)
 
 def registerGLTFModelType(convertContext):
