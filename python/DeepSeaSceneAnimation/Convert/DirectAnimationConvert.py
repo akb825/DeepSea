@@ -64,8 +64,8 @@ def convertDirectAnimation(convertContext, data):
 						raise Exception('DirectAnimation "value" must be an array of three floats.')
 
 					x = readFloat(valueList[0], 'value x')
-					y = readFloat(valueList[0], 'value y')
-					z = readFloat(valueList[0], 'value z')
+					y = readFloat(valueList[1], 'value y')
+					z = readFloat(valueList[2], 'value z')
 					if channel.component == AnimationComponent.Rotation:
 						channel.value = eulerToQuaternion(x, y, z)
 					else:

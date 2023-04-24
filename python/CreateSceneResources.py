@@ -23,10 +23,12 @@ from DeepSeaScene.Convert.ConvertContext import ConvertContext
 from DeepSeaScene.Convert.SceneResourcesConvert import convertSceneResources
 
 from DeepSeaSceneAnimation.Convert.AnimationNodeConvert import convertAnimationNode
+from DeepSeaSceneAnimation.Convert.AnimationTreeConvert import convertAnimationTree
 from DeepSeaSceneAnimation.Convert.AnimationTransformNodeConvert import \
 	convertAnimationTransformNode
 from DeepSeaSceneAnimation.Convert.AnimationTreeNodeConvert import convertAnimationTreeNode
 from DeepSeaSceneAnimation.Convert.DirectAnimationConvert import convertDirectAnimation
+from DeepSeaSceneAnimation.Convert.GLTFAnimationTree import registerGLTFAnimationTreeType
 from DeepSeaSceneAnimation.Convert.NodeMapCacheConvert import convertNodeMapCache
 from DeepSeaSceneAnimation.Convert.SkinningDataConvert import convertSkinningData
 
@@ -67,12 +69,14 @@ if __name__ == '__main__':
 	convertContext = ConvertContext(args.cuttlefish, args.vfc, args.multithread)
 
 	# Animation scene types.
+	convertContext.addCustomResourceType('AnimationTree', convertAnimationTree)
 	convertContext.addCustomResourceType('DirectAnimation', convertDirectAnimation)
 	convertContext.addCustomResourceType('NodeMapCache', convertNodeMapCache)
 	convertContext.addInstanceDataType('SkinningData', convertSkinningData)
 	convertContext.addNodeType('AnimationNode', convertAnimationNode)
 	convertContext.addNodeType('AnimationTransformNode', convertAnimationTransformNode)
 	convertContext.addNodeType('AnimationTreeNode', convertAnimationTreeNode)
+	registerGLTFAnimationTreeType(convertContext)
 
 	# Lighting scene types.
 	convertContext.addCustomResourceType('LightSet', convertLightSet)

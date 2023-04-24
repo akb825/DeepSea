@@ -1,4 +1,4 @@
-# Copyright 2020-2021 Aaron Barany
+# Copyright 2020-2023 Aaron Barany
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -125,9 +125,10 @@ def convertModelNodeGeometry(convertContext, modelGeometry, embeddedResources):
 			else:
 				return None
 
-		if not hasattr(convertContext, 'modelTypeMap') or \
-				modelType not in convertContext.modelTypeMap:
-			raise Exception('Model type"' + modelType + '" hasn\'t been registered.')
+		convertFunc = convertContext.modelTypeMap.get(modelType) \
+			if hasattr(convertContext, 'modelTypeMap') else None
+		if not convertFunc:
+			raise Exception('Model type "' + modelType + '" hasn\'t been registered.')
 
 		vfcVertexFormat = []
 		for streamFormat in vertexFormat:
@@ -146,7 +147,7 @@ def convertModelNodeGeometry(convertContext, modelGeometry, embeddedResources):
 		for attrib, transform in transforms:
 			vfcTransforms.append({'name': str(attrib), 'transform': transform})
 
-		geometryDataList = convertContext.modelTypeMap[modelType](convertContext, path)
+		geometryDataList = convertFunc(convertContext, path)
 		convertedGeometry = dict()
 		try:
 			for geometryData in geometryDataList:
