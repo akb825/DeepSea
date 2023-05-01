@@ -17,17 +17,17 @@ static_assert(FLATBUFFERS_VERSION_MAJOR == 23 &&
 
 namespace DeepSeaAnimation {
 
-struct AnimationNode;
-struct AnimationNodeBuilder;
+struct AnimationTreeNode;
+struct AnimationTreeNodeBuilder;
 
-struct AnimationJointNode;
-struct AnimationJointNodeBuilder;
+struct AnimationJointTreeNode;
+struct AnimationJointTreeNodeBuilder;
 
 struct AnimationTree;
 struct AnimationTreeBuilder;
 
-struct AnimationNode FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
-  typedef AnimationNodeBuilder Builder;
+struct AnimationTreeNode FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef AnimationTreeNodeBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_NAME = 4,
     VT_SCALE = 6,
@@ -47,8 +47,8 @@ struct AnimationNode FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const DeepSeaAnimation::Vector3f *translation() const {
     return GetStruct<const DeepSeaAnimation::Vector3f *>(VT_TRANSLATION);
   }
-  const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaAnimation::AnimationNode>> *children() const {
-    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaAnimation::AnimationNode>> *>(VT_CHILDREN);
+  const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaAnimation::AnimationTreeNode>> *children() const {
+    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaAnimation::AnimationTreeNode>> *>(VT_CHILDREN);
   }
   bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -64,45 +64,45 @@ struct AnimationNode FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   }
 };
 
-struct AnimationNodeBuilder {
-  typedef AnimationNode Table;
+struct AnimationTreeNodeBuilder {
+  typedef AnimationTreeNode Table;
   ::flatbuffers::FlatBufferBuilder &fbb_;
   ::flatbuffers::uoffset_t start_;
   void add_name(::flatbuffers::Offset<::flatbuffers::String> name) {
-    fbb_.AddOffset(AnimationNode::VT_NAME, name);
+    fbb_.AddOffset(AnimationTreeNode::VT_NAME, name);
   }
   void add_scale(const DeepSeaAnimation::Vector3f *scale) {
-    fbb_.AddStruct(AnimationNode::VT_SCALE, scale);
+    fbb_.AddStruct(AnimationTreeNode::VT_SCALE, scale);
   }
   void add_rotation(const DeepSeaAnimation::Quaternion4f *rotation) {
-    fbb_.AddStruct(AnimationNode::VT_ROTATION, rotation);
+    fbb_.AddStruct(AnimationTreeNode::VT_ROTATION, rotation);
   }
   void add_translation(const DeepSeaAnimation::Vector3f *translation) {
-    fbb_.AddStruct(AnimationNode::VT_TRANSLATION, translation);
+    fbb_.AddStruct(AnimationTreeNode::VT_TRANSLATION, translation);
   }
-  void add_children(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaAnimation::AnimationNode>>> children) {
-    fbb_.AddOffset(AnimationNode::VT_CHILDREN, children);
+  void add_children(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaAnimation::AnimationTreeNode>>> children) {
+    fbb_.AddOffset(AnimationTreeNode::VT_CHILDREN, children);
   }
-  explicit AnimationNodeBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+  explicit AnimationTreeNodeBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  ::flatbuffers::Offset<AnimationNode> Finish() {
+  ::flatbuffers::Offset<AnimationTreeNode> Finish() {
     const auto end = fbb_.EndTable(start_);
-    auto o = ::flatbuffers::Offset<AnimationNode>(end);
-    fbb_.Required(o, AnimationNode::VT_NAME);
+    auto o = ::flatbuffers::Offset<AnimationTreeNode>(end);
+    fbb_.Required(o, AnimationTreeNode::VT_NAME);
     return o;
   }
 };
 
-inline ::flatbuffers::Offset<AnimationNode> CreateAnimationNode(
+inline ::flatbuffers::Offset<AnimationTreeNode> CreateAnimationTreeNode(
     ::flatbuffers::FlatBufferBuilder &_fbb,
     ::flatbuffers::Offset<::flatbuffers::String> name = 0,
     const DeepSeaAnimation::Vector3f *scale = nullptr,
     const DeepSeaAnimation::Quaternion4f *rotation = nullptr,
     const DeepSeaAnimation::Vector3f *translation = nullptr,
-    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaAnimation::AnimationNode>>> children = 0) {
-  AnimationNodeBuilder builder_(_fbb);
+    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaAnimation::AnimationTreeNode>>> children = 0) {
+  AnimationTreeNodeBuilder builder_(_fbb);
   builder_.add_children(children);
   builder_.add_translation(translation);
   builder_.add_rotation(rotation);
@@ -111,16 +111,16 @@ inline ::flatbuffers::Offset<AnimationNode> CreateAnimationNode(
   return builder_.Finish();
 }
 
-inline ::flatbuffers::Offset<AnimationNode> CreateAnimationNodeDirect(
+inline ::flatbuffers::Offset<AnimationTreeNode> CreateAnimationTreeNodeDirect(
     ::flatbuffers::FlatBufferBuilder &_fbb,
     const char *name = nullptr,
     const DeepSeaAnimation::Vector3f *scale = nullptr,
     const DeepSeaAnimation::Quaternion4f *rotation = nullptr,
     const DeepSeaAnimation::Vector3f *translation = nullptr,
-    const std::vector<::flatbuffers::Offset<DeepSeaAnimation::AnimationNode>> *children = nullptr) {
+    const std::vector<::flatbuffers::Offset<DeepSeaAnimation::AnimationTreeNode>> *children = nullptr) {
   auto name__ = name ? _fbb.CreateString(name) : 0;
-  auto children__ = children ? _fbb.CreateVector<::flatbuffers::Offset<DeepSeaAnimation::AnimationNode>>(*children) : 0;
-  return DeepSeaAnimation::CreateAnimationNode(
+  auto children__ = children ? _fbb.CreateVector<::flatbuffers::Offset<DeepSeaAnimation::AnimationTreeNode>>(*children) : 0;
+  return DeepSeaAnimation::CreateAnimationTreeNode(
       _fbb,
       name__,
       scale,
@@ -129,8 +129,8 @@ inline ::flatbuffers::Offset<AnimationNode> CreateAnimationNodeDirect(
       children__);
 }
 
-struct AnimationJointNode FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
-  typedef AnimationJointNodeBuilder Builder;
+struct AnimationJointTreeNode FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef AnimationJointTreeNodeBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_NAME = 4,
     VT_SCALE = 6,
@@ -171,42 +171,42 @@ struct AnimationJointNode FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table
   }
 };
 
-struct AnimationJointNodeBuilder {
-  typedef AnimationJointNode Table;
+struct AnimationJointTreeNodeBuilder {
+  typedef AnimationJointTreeNode Table;
   ::flatbuffers::FlatBufferBuilder &fbb_;
   ::flatbuffers::uoffset_t start_;
   void add_name(::flatbuffers::Offset<::flatbuffers::String> name) {
-    fbb_.AddOffset(AnimationJointNode::VT_NAME, name);
+    fbb_.AddOffset(AnimationJointTreeNode::VT_NAME, name);
   }
   void add_scale(const DeepSeaAnimation::Vector3f *scale) {
-    fbb_.AddStruct(AnimationJointNode::VT_SCALE, scale);
+    fbb_.AddStruct(AnimationJointTreeNode::VT_SCALE, scale);
   }
   void add_rotation(const DeepSeaAnimation::Quaternion4f *rotation) {
-    fbb_.AddStruct(AnimationJointNode::VT_ROTATION, rotation);
+    fbb_.AddStruct(AnimationJointTreeNode::VT_ROTATION, rotation);
   }
   void add_translation(const DeepSeaAnimation::Vector3f *translation) {
-    fbb_.AddStruct(AnimationJointNode::VT_TRANSLATION, translation);
+    fbb_.AddStruct(AnimationJointTreeNode::VT_TRANSLATION, translation);
   }
   void add_toLocalSpace(const DeepSeaAnimation::Matrix44f *toLocalSpace) {
-    fbb_.AddStruct(AnimationJointNode::VT_TOLOCALSPACE, toLocalSpace);
+    fbb_.AddStruct(AnimationJointTreeNode::VT_TOLOCALSPACE, toLocalSpace);
   }
   void add_children(::flatbuffers::Offset<::flatbuffers::Vector<uint32_t>> children) {
-    fbb_.AddOffset(AnimationJointNode::VT_CHILDREN, children);
+    fbb_.AddOffset(AnimationJointTreeNode::VT_CHILDREN, children);
   }
-  explicit AnimationJointNodeBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+  explicit AnimationJointTreeNodeBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  ::flatbuffers::Offset<AnimationJointNode> Finish() {
+  ::flatbuffers::Offset<AnimationJointTreeNode> Finish() {
     const auto end = fbb_.EndTable(start_);
-    auto o = ::flatbuffers::Offset<AnimationJointNode>(end);
-    fbb_.Required(o, AnimationJointNode::VT_NAME);
-    fbb_.Required(o, AnimationJointNode::VT_TOLOCALSPACE);
+    auto o = ::flatbuffers::Offset<AnimationJointTreeNode>(end);
+    fbb_.Required(o, AnimationJointTreeNode::VT_NAME);
+    fbb_.Required(o, AnimationJointTreeNode::VT_TOLOCALSPACE);
     return o;
   }
 };
 
-inline ::flatbuffers::Offset<AnimationJointNode> CreateAnimationJointNode(
+inline ::flatbuffers::Offset<AnimationJointTreeNode> CreateAnimationJointTreeNode(
     ::flatbuffers::FlatBufferBuilder &_fbb,
     ::flatbuffers::Offset<::flatbuffers::String> name = 0,
     const DeepSeaAnimation::Vector3f *scale = nullptr,
@@ -214,7 +214,7 @@ inline ::flatbuffers::Offset<AnimationJointNode> CreateAnimationJointNode(
     const DeepSeaAnimation::Vector3f *translation = nullptr,
     const DeepSeaAnimation::Matrix44f *toLocalSpace = nullptr,
     ::flatbuffers::Offset<::flatbuffers::Vector<uint32_t>> children = 0) {
-  AnimationJointNodeBuilder builder_(_fbb);
+  AnimationJointTreeNodeBuilder builder_(_fbb);
   builder_.add_children(children);
   builder_.add_toLocalSpace(toLocalSpace);
   builder_.add_translation(translation);
@@ -224,7 +224,7 @@ inline ::flatbuffers::Offset<AnimationJointNode> CreateAnimationJointNode(
   return builder_.Finish();
 }
 
-inline ::flatbuffers::Offset<AnimationJointNode> CreateAnimationJointNodeDirect(
+inline ::flatbuffers::Offset<AnimationJointTreeNode> CreateAnimationJointTreeNodeDirect(
     ::flatbuffers::FlatBufferBuilder &_fbb,
     const char *name = nullptr,
     const DeepSeaAnimation::Vector3f *scale = nullptr,
@@ -234,7 +234,7 @@ inline ::flatbuffers::Offset<AnimationJointNode> CreateAnimationJointNodeDirect(
     const std::vector<uint32_t> *children = nullptr) {
   auto name__ = name ? _fbb.CreateString(name) : 0;
   auto children__ = children ? _fbb.CreateVector<uint32_t>(*children) : 0;
-  return DeepSeaAnimation::CreateAnimationJointNode(
+  return DeepSeaAnimation::CreateAnimationJointTreeNode(
       _fbb,
       name__,
       scale,
@@ -250,11 +250,11 @@ struct AnimationTree FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
     VT_ROOTNODES = 4,
     VT_JOINTNODES = 6
   };
-  const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaAnimation::AnimationNode>> *rootNodes() const {
-    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaAnimation::AnimationNode>> *>(VT_ROOTNODES);
+  const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaAnimation::AnimationTreeNode>> *rootNodes() const {
+    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaAnimation::AnimationTreeNode>> *>(VT_ROOTNODES);
   }
-  const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaAnimation::AnimationJointNode>> *jointNodes() const {
-    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaAnimation::AnimationJointNode>> *>(VT_JOINTNODES);
+  const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaAnimation::AnimationJointTreeNode>> *jointNodes() const {
+    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaAnimation::AnimationJointTreeNode>> *>(VT_JOINTNODES);
   }
   bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -272,10 +272,10 @@ struct AnimationTreeBuilder {
   typedef AnimationTree Table;
   ::flatbuffers::FlatBufferBuilder &fbb_;
   ::flatbuffers::uoffset_t start_;
-  void add_rootNodes(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaAnimation::AnimationNode>>> rootNodes) {
+  void add_rootNodes(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaAnimation::AnimationTreeNode>>> rootNodes) {
     fbb_.AddOffset(AnimationTree::VT_ROOTNODES, rootNodes);
   }
-  void add_jointNodes(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaAnimation::AnimationJointNode>>> jointNodes) {
+  void add_jointNodes(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaAnimation::AnimationJointTreeNode>>> jointNodes) {
     fbb_.AddOffset(AnimationTree::VT_JOINTNODES, jointNodes);
   }
   explicit AnimationTreeBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
@@ -291,8 +291,8 @@ struct AnimationTreeBuilder {
 
 inline ::flatbuffers::Offset<AnimationTree> CreateAnimationTree(
     ::flatbuffers::FlatBufferBuilder &_fbb,
-    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaAnimation::AnimationNode>>> rootNodes = 0,
-    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaAnimation::AnimationJointNode>>> jointNodes = 0) {
+    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaAnimation::AnimationTreeNode>>> rootNodes = 0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<DeepSeaAnimation::AnimationJointTreeNode>>> jointNodes = 0) {
   AnimationTreeBuilder builder_(_fbb);
   builder_.add_jointNodes(jointNodes);
   builder_.add_rootNodes(rootNodes);
@@ -301,10 +301,10 @@ inline ::flatbuffers::Offset<AnimationTree> CreateAnimationTree(
 
 inline ::flatbuffers::Offset<AnimationTree> CreateAnimationTreeDirect(
     ::flatbuffers::FlatBufferBuilder &_fbb,
-    const std::vector<::flatbuffers::Offset<DeepSeaAnimation::AnimationNode>> *rootNodes = nullptr,
-    const std::vector<::flatbuffers::Offset<DeepSeaAnimation::AnimationJointNode>> *jointNodes = nullptr) {
-  auto rootNodes__ = rootNodes ? _fbb.CreateVector<::flatbuffers::Offset<DeepSeaAnimation::AnimationNode>>(*rootNodes) : 0;
-  auto jointNodes__ = jointNodes ? _fbb.CreateVector<::flatbuffers::Offset<DeepSeaAnimation::AnimationJointNode>>(*jointNodes) : 0;
+    const std::vector<::flatbuffers::Offset<DeepSeaAnimation::AnimationTreeNode>> *rootNodes = nullptr,
+    const std::vector<::flatbuffers::Offset<DeepSeaAnimation::AnimationJointTreeNode>> *jointNodes = nullptr) {
+  auto rootNodes__ = rootNodes ? _fbb.CreateVector<::flatbuffers::Offset<DeepSeaAnimation::AnimationTreeNode>>(*rootNodes) : 0;
+  auto jointNodes__ = jointNodes ? _fbb.CreateVector<::flatbuffers::Offset<DeepSeaAnimation::AnimationJointTreeNode>>(*jointNodes) : 0;
   return DeepSeaAnimation::CreateAnimationTree(
       _fbb,
       rootNodes__,

@@ -41,7 +41,7 @@
 #define DS_MAX_STACK_NODES 1024
 
 static uint32_t countNodes(
-	const flatbuffers::Vector<flatbuffers::Offset<DeepSeaAnimation::AnimationNode>>& fbNodes)
+	const flatbuffers::Vector<flatbuffers::Offset<DeepSeaAnimation::AnimationTreeNode>>& fbNodes)
 {
 	uint32_t count = 0;
 	for (const auto& node : fbNodes)
@@ -57,7 +57,7 @@ static uint32_t countNodes(
 	return count;
 }
 
-static dsAnimationBuildNode* createBuildNodesRec(const DeepSeaAnimation::AnimationNode& fbNode,
+static dsAnimationBuildNode* createBuildNodesRec(const DeepSeaAnimation::AnimationTreeNode& fbNode,
 	dsAnimationBuildNode* buildNodes, uint32_t& buildNodeIndex,
 	const dsAnimationBuildNode** buildNodePtrs, uint32_t& buildNodePtrsIndex)
 {
@@ -143,7 +143,7 @@ static dsAnimationBuildNode* createBuildNodesRec(const DeepSeaAnimation::Animati
 
 static dsAnimationTree* dsAnimationTree_loadNodes(dsAllocator* allocator,
 	dsAllocator* scratchAllocator,
-	const flatbuffers::Vector<flatbuffers::Offset<DeepSeaAnimation::AnimationNode>>& fbRootNodes,
+	const flatbuffers::Vector<flatbuffers::Offset<DeepSeaAnimation::AnimationTreeNode>>& fbRootNodes,
 	const char* name)
 {
 	uint32_t nodeCount = countNodes(fbRootNodes);
@@ -215,7 +215,7 @@ static dsAnimationTree* dsAnimationTree_loadNodes(dsAllocator* allocator,
 
 static dsAnimationTree* dsAnimationTree_loadJointNodes(dsAllocator* allocator,
 	dsAllocator* scratchAllocator,
-	const flatbuffers::Vector<flatbuffers::Offset<DeepSeaAnimation::AnimationJointNode>>&
+	const flatbuffers::Vector<flatbuffers::Offset<DeepSeaAnimation::AnimationJointTreeNode>>&
 		fbNodes, const char* name)
 {
 	uint32_t nodeCount = fbNodes.size();

@@ -6,32 +6,32 @@ import flatbuffers
 from flatbuffers.compat import import_numpy
 np = import_numpy()
 
-class AnimationNode(object):
+class AnimationTreeNode(object):
     __slots__ = ['_tab']
 
     @classmethod
     def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
-        x = AnimationNode()
+        x = AnimationTreeNode()
         x.Init(buf, n + offset)
         return x
 
     @classmethod
-    def GetRootAsAnimationNode(cls, buf, offset=0):
+    def GetRootAsAnimationTreeNode(cls, buf, offset=0):
         """This method is deprecated. Please switch to GetRootAs."""
         return cls.GetRootAs(buf, offset)
-    # AnimationNode
+    # AnimationTreeNode
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
 
-    # AnimationNode
+    # AnimationTreeNode
     def Name(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         if o != 0:
             return self._tab.String(o + self._tab.Pos)
         return None
 
-    # AnimationNode
+    # AnimationTreeNode
     def Scale(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         if o != 0:
@@ -42,7 +42,7 @@ class AnimationNode(object):
             return obj
         return None
 
-    # AnimationNode
+    # AnimationTreeNode
     def Rotation(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
         if o != 0:
@@ -53,7 +53,7 @@ class AnimationNode(object):
             return obj
         return None
 
-    # AnimationNode
+    # AnimationTreeNode
     def Translation(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(10))
         if o != 0:
@@ -64,52 +64,52 @@ class AnimationNode(object):
             return obj
         return None
 
-    # AnimationNode
+    # AnimationTreeNode
     def Children(self, j):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(12))
         if o != 0:
             x = self._tab.Vector(o)
             x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * 4
             x = self._tab.Indirect(x)
-            from DeepSeaAnimation.AnimationNode import AnimationNode
-            obj = AnimationNode()
+            from DeepSeaAnimation.AnimationTreeNode import AnimationTreeNode
+            obj = AnimationTreeNode()
             obj.Init(self._tab.Bytes, x)
             return obj
         return None
 
-    # AnimationNode
+    # AnimationTreeNode
     def ChildrenLength(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(12))
         if o != 0:
             return self._tab.VectorLen(o)
         return 0
 
-    # AnimationNode
+    # AnimationTreeNode
     def ChildrenIsNone(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(12))
         return o == 0
 
-def AnimationNodeStart(builder): builder.StartObject(5)
+def AnimationTreeNodeStart(builder): builder.StartObject(5)
 def Start(builder):
-    return AnimationNodeStart(builder)
-def AnimationNodeAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+    return AnimationTreeNodeStart(builder)
+def AnimationTreeNodeAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
 def AddName(builder, name):
-    return AnimationNodeAddName(builder, name)
-def AnimationNodeAddScale(builder, scale): builder.PrependStructSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(scale), 0)
+    return AnimationTreeNodeAddName(builder, name)
+def AnimationTreeNodeAddScale(builder, scale): builder.PrependStructSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(scale), 0)
 def AddScale(builder, scale):
-    return AnimationNodeAddScale(builder, scale)
-def AnimationNodeAddRotation(builder, rotation): builder.PrependStructSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(rotation), 0)
+    return AnimationTreeNodeAddScale(builder, scale)
+def AnimationTreeNodeAddRotation(builder, rotation): builder.PrependStructSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(rotation), 0)
 def AddRotation(builder, rotation):
-    return AnimationNodeAddRotation(builder, rotation)
-def AnimationNodeAddTranslation(builder, translation): builder.PrependStructSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(translation), 0)
+    return AnimationTreeNodeAddRotation(builder, rotation)
+def AnimationTreeNodeAddTranslation(builder, translation): builder.PrependStructSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(translation), 0)
 def AddTranslation(builder, translation):
-    return AnimationNodeAddTranslation(builder, translation)
-def AnimationNodeAddChildren(builder, children): builder.PrependUOffsetTRelativeSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(children), 0)
+    return AnimationTreeNodeAddTranslation(builder, translation)
+def AnimationTreeNodeAddChildren(builder, children): builder.PrependUOffsetTRelativeSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(children), 0)
 def AddChildren(builder, children):
-    return AnimationNodeAddChildren(builder, children)
-def AnimationNodeStartChildrenVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+    return AnimationTreeNodeAddChildren(builder, children)
+def AnimationTreeNodeStartChildrenVector(builder, numElems): return builder.StartVector(4, numElems, 4)
 def StartChildrenVector(builder, numElems):
-    return AnimationNodeStartChildrenVector(builder, numElems)
-def AnimationNodeEnd(builder): return builder.EndObject()
+    return AnimationTreeNodeStartChildrenVector(builder, numElems)
+def AnimationTreeNodeEnd(builder): return builder.EndObject()
 def End(builder):
-    return AnimationNodeEnd(builder)
+    return AnimationTreeNodeEnd(builder)

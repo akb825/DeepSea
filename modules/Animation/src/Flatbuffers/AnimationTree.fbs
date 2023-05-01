@@ -19,7 +19,7 @@ include "AnimationCommon.fbs";
 namespace DeepSeaAnimation;
 
 // Struct describing a node for an animation tree.
-table AnimationNode
+table AnimationTreeNode
 {
 	// The name of the node.
 	name : string (required);
@@ -34,11 +34,11 @@ table AnimationNode
 	translation : Vector3f;
 
 	// The children of the current node.
-	children : [AnimationNode];
+	children : [AnimationTreeNode];
 }
 
 // Struct describing a joint node for an animation tree.
-table AnimationJointNode
+table AnimationJointTreeNode
 {
 	// The name of the node.
 	name : string (required);
@@ -63,10 +63,10 @@ table AnimationJointNode
 table AnimationTree
 {
 	// The root nodes for the tree. If this is set, rootJointNodes must be unset.
-	rootNodes : [AnimationNode];
+	rootNodes : [AnimationTreeNode];
 
 	// The joint nodes for the tree. If this is set, rootNodes must be unset.
-	jointNodes : [AnimationJointNode];
+	jointNodes : [AnimationJointTreeNode];
 }
 
 root_type AnimationTree;

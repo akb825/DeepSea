@@ -15,59 +15,6 @@
 from .AnimationTreeConvert import AnimationTreeNode, addAnimationTreeType
 from DeepSeaScene.Convert.GLTFModel import readGLTFData, readGLBData
 
-def constructNodeAndChildren(path, name, jsonNode, jsonNodes):
-	if 'matrix' in jsonNode:
-		raise Exception('Animation node "' + name + '" must not have single "matrix" transform '
-			'for GLTF file "' + path + '".')
-
-	jsonScale = jsonNode.get('scale')
-	if jsonScale:
-		try:
-			scale = (float(jsonScale[0]), float(jsonScale[1]), float(jsonScale[2]))
-		except:
-			raise Exception('Animation node "scale" must be an array of 3 floats for GLTF file "' +
-				path + '".')
-	else:
-		scale = (1.0, 1.0, 1.0)
-
-	jsonRotation = jsonNode.get('rotation')
-	if jsonRotation:
-		try:
-			rotation = (float(jsonRotation[0]), float(jsonRotation[1]), float(jsonRotation[2]),
-				float(jsonRotation[3]))
-		except:
-			raise Exception('Animation node "rotation" must be an array of 4 floats for GLTF '
-				'file "' + path + '".')
-	else:
-		rotation = (0.0, 0.0, 0.0, 1.0)
-
-	jsonTranslation = jsonNode.get('translation')
-	if jsonTranslation:
-		try:
-			translation = (float(jsonTranslation[0]), float(jsonTranslation[1]),
-				float(jsonTranslation[2]))
-		except:
-			raise Exception('Animation node "translation" must be an array of 3 floats for GLTF '
-				'file "' + path + '".')
-	else:
-		translation = (0.0, 0.0, 0.0)
-
-	node = AnimationTreeNode(name, scale, rotation, translation)
-	childIndices = jsonNode.get('children', [])
-	try:
-		for childIndex in childIndices:
-			childJson = jsonNodes[childIndices]
-			childName = jsonNodes.get('name')
-			if not childName:
-				raise Exception('Nodes part of an animation tree must contain names for GLTF file "'
-					+ path + '".')
-			node.children.append(constructNodeAndChildren(path, childName, childJson, jsonNodes))
-	except (TypeError, ValueError):
-		raise Exception('Node "children" must be an array of ints for node "' + name +
-			'" for GLTF file "' + path + '".')
-	except IndexError:
-		raise Exception('Node child index for node "' + name + '" for GLTF file "' + path + '".')
-
 def convertGLTFOrGLBAnimationTree(path, jsonData, rootNodes):
 	try:
 		namedNodes = dict()
@@ -84,12 +31,65 @@ def convertGLTFOrGLBAnimationTree(path, jsonData, rootNodes):
 	except KeyError as e:
 		raise Exception('GLTF file "' + path + '" doesn\'t contain element "' + str(e) + '".')
 
+	def constructNodeAndChildren(name, jsonNode):
+		if 'matrix' in jsonNode:
+			raise Exception('Animation node "' + name + '" must not have single "matrix" transform '
+				'for GLTF file "' + path + '".')
+
+		jsonScale = jsonNode.get('scale')
+		if jsonScale:
+			try:
+				scale = (float(jsonScale[0]), float(jsonScale[1]), float(jsonScale[2]))
+			except:
+				raise Exception('Animation node "scale" must be an array of 3 floats for GLTF file "' +
+					path + '".')
+		else:
+			scale = (1.0, 1.0, 1.0)
+
+		jsonRotation = jsonNode.get('rotation')
+		if jsonRotation:
+			try:
+				rotation = (float(jsonRotation[0]), float(jsonRotation[1]), float(jsonRotation[2]),
+					float(jsonRotation[3]))
+			except:
+				raise Exception('Animation node "rotation" must be an array of 4 floats for GLTF '
+					'file "' + path + '".')
+		else:
+			rotation = (0.0, 0.0, 0.0, 1.0)
+
+		jsonTranslation = jsonNode.get('translation')
+		if jsonTranslation:
+			try:
+				translation = (float(jsonTranslation[0]), float(jsonTranslation[1]),
+					float(jsonTranslation[2]))
+			except:
+				raise Exception('Animation node "translation" must be an array of 3 floats for GLTF '
+					'file "' + path + '".')
+		else:
+			translation = (0.0, 0.0, 0.0)
+
+		node = AnimationTreeNode(name, scale, rotation, translation)
+		childIndices = jsonNode.get('children', [])
+		try:
+			for childIndex in childIndices:
+				childJson = jsonNodes[childIndices]
+				childName = jsonNodes.get('name')
+				if not childName:
+					raise Exception('Nodes part of an animation tree must contain names for GLTF file "'
+						+ path + '".')
+				node.children.append(constructNodeAndChildren(childName, childJson))
+		except (TypeError, ValueError):
+			raise Exception('Node "children" must be an array of ints for node "' + name +
+				'" for GLTF file "' + path + '".')
+		except IndexError:
+			raise Exception('Node child index for node "' + name + '" for GLTF file "' + path + '".')
+
 	rootAnimationNodes = []
 	for rootName in rootNodes:
 		rootNode = namedNodes.get(rootName)
 		if not rootNode:
 			raise Exception('Root node "' + rootName + '" not found in GLTF file "' + path + '".')
-		rootAnimationNodes.append(constructNodeAndChildren(path, rootName, rootNode, jsonNodes))
+		rootAnimationNodes.append(constructNodeAndChildren(rootName, rootNode))
 
 	return rootAnimationNodes
 

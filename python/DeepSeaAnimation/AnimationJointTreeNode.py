@@ -6,32 +6,32 @@ import flatbuffers
 from flatbuffers.compat import import_numpy
 np = import_numpy()
 
-class AnimationJointNode(object):
+class AnimationJointTreeNode(object):
     __slots__ = ['_tab']
 
     @classmethod
     def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
-        x = AnimationJointNode()
+        x = AnimationJointTreeNode()
         x.Init(buf, n + offset)
         return x
 
     @classmethod
-    def GetRootAsAnimationJointNode(cls, buf, offset=0):
+    def GetRootAsAnimationJointTreeNode(cls, buf, offset=0):
         """This method is deprecated. Please switch to GetRootAs."""
         return cls.GetRootAs(buf, offset)
-    # AnimationJointNode
+    # AnimationJointTreeNode
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
 
-    # AnimationJointNode
+    # AnimationJointTreeNode
     def Name(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
         if o != 0:
             return self._tab.String(o + self._tab.Pos)
         return None
 
-    # AnimationJointNode
+    # AnimationJointTreeNode
     def Scale(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         if o != 0:
@@ -42,7 +42,7 @@ class AnimationJointNode(object):
             return obj
         return None
 
-    # AnimationJointNode
+    # AnimationJointTreeNode
     def Rotation(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
         if o != 0:
@@ -53,7 +53,7 @@ class AnimationJointNode(object):
             return obj
         return None
 
-    # AnimationJointNode
+    # AnimationJointTreeNode
     def Translation(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(10))
         if o != 0:
@@ -64,7 +64,7 @@ class AnimationJointNode(object):
             return obj
         return None
 
-    # AnimationJointNode
+    # AnimationJointTreeNode
     def ToLocalSpace(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(12))
         if o != 0:
@@ -75,7 +75,7 @@ class AnimationJointNode(object):
             return obj
         return None
 
-    # AnimationJointNode
+    # AnimationJointTreeNode
     def Children(self, j):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(14))
         if o != 0:
@@ -83,49 +83,49 @@ class AnimationJointNode(object):
             return self._tab.Get(flatbuffers.number_types.Uint32Flags, a + flatbuffers.number_types.UOffsetTFlags.py_type(j * 4))
         return 0
 
-    # AnimationJointNode
+    # AnimationJointTreeNode
     def ChildrenAsNumpy(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(14))
         if o != 0:
             return self._tab.GetVectorAsNumpy(flatbuffers.number_types.Uint32Flags, o)
         return 0
 
-    # AnimationJointNode
+    # AnimationJointTreeNode
     def ChildrenLength(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(14))
         if o != 0:
             return self._tab.VectorLen(o)
         return 0
 
-    # AnimationJointNode
+    # AnimationJointTreeNode
     def ChildrenIsNone(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(14))
         return o == 0
 
-def AnimationJointNodeStart(builder): builder.StartObject(6)
+def AnimationJointTreeNodeStart(builder): builder.StartObject(6)
 def Start(builder):
-    return AnimationJointNodeStart(builder)
-def AnimationJointNodeAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+    return AnimationJointTreeNodeStart(builder)
+def AnimationJointTreeNodeAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
 def AddName(builder, name):
-    return AnimationJointNodeAddName(builder, name)
-def AnimationJointNodeAddScale(builder, scale): builder.PrependStructSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(scale), 0)
+    return AnimationJointTreeNodeAddName(builder, name)
+def AnimationJointTreeNodeAddScale(builder, scale): builder.PrependStructSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(scale), 0)
 def AddScale(builder, scale):
-    return AnimationJointNodeAddScale(builder, scale)
-def AnimationJointNodeAddRotation(builder, rotation): builder.PrependStructSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(rotation), 0)
+    return AnimationJointTreeNodeAddScale(builder, scale)
+def AnimationJointTreeNodeAddRotation(builder, rotation): builder.PrependStructSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(rotation), 0)
 def AddRotation(builder, rotation):
-    return AnimationJointNodeAddRotation(builder, rotation)
-def AnimationJointNodeAddTranslation(builder, translation): builder.PrependStructSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(translation), 0)
+    return AnimationJointTreeNodeAddRotation(builder, rotation)
+def AnimationJointTreeNodeAddTranslation(builder, translation): builder.PrependStructSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(translation), 0)
 def AddTranslation(builder, translation):
-    return AnimationJointNodeAddTranslation(builder, translation)
-def AnimationJointNodeAddToLocalSpace(builder, toLocalSpace): builder.PrependStructSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(toLocalSpace), 0)
+    return AnimationJointTreeNodeAddTranslation(builder, translation)
+def AnimationJointTreeNodeAddToLocalSpace(builder, toLocalSpace): builder.PrependStructSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(toLocalSpace), 0)
 def AddToLocalSpace(builder, toLocalSpace):
-    return AnimationJointNodeAddToLocalSpace(builder, toLocalSpace)
-def AnimationJointNodeAddChildren(builder, children): builder.PrependUOffsetTRelativeSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(children), 0)
+    return AnimationJointTreeNodeAddToLocalSpace(builder, toLocalSpace)
+def AnimationJointTreeNodeAddChildren(builder, children): builder.PrependUOffsetTRelativeSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(children), 0)
 def AddChildren(builder, children):
-    return AnimationJointNodeAddChildren(builder, children)
-def AnimationJointNodeStartChildrenVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+    return AnimationJointTreeNodeAddChildren(builder, children)
+def AnimationJointTreeNodeStartChildrenVector(builder, numElems): return builder.StartVector(4, numElems, 4)
 def StartChildrenVector(builder, numElems):
-    return AnimationJointNodeStartChildrenVector(builder, numElems)
-def AnimationJointNodeEnd(builder): return builder.EndObject()
+    return AnimationJointTreeNodeStartChildrenVector(builder, numElems)
+def AnimationJointTreeNodeEnd(builder): return builder.EndObject()
 def End(builder):
-    return AnimationJointNodeEnd(builder)
+    return AnimationJointTreeNodeEnd(builder)

@@ -31,8 +31,8 @@ class AnimationTree(object):
             x = self._tab.Vector(o)
             x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * 4
             x = self._tab.Indirect(x)
-            from DeepSeaAnimation.AnimationNode import AnimationNode
-            obj = AnimationNode()
+            from DeepSeaAnimation.AnimationTreeNode import AnimationTreeNode
+            obj = AnimationTreeNode()
             obj.Init(self._tab.Bytes, x)
             return obj
         return None
@@ -56,8 +56,8 @@ class AnimationTree(object):
             x = self._tab.Vector(o)
             x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * 4
             x = self._tab.Indirect(x)
-            from DeepSeaAnimation.AnimationJointNode import AnimationJointNode
-            obj = AnimationJointNode()
+            from DeepSeaAnimation.AnimationJointTreeNode import AnimationJointTreeNode
+            obj = AnimationJointTreeNode()
             obj.Init(self._tab.Bytes, x)
             return obj
         return None

@@ -10,6 +10,25 @@ The following JSON formats are added to extend scene conversion.
 
 The following custom scene resource types are provided with the members that are expected:
 
+* `"AnimationTree"`: animation tree without joint nodes.
+	* `file`: file with the animation tree.
+	* `fileType`: the name of the type, such as "gltf". If ommitted, the type is inerred from the file extension.
+	* `nodes`: list of nodes to define the animation tree. If `file` is set, this will be the list of root node names. If `file` is not set, each element of the array has the following members:
+		* `name`: the name of the node.
+		* `translation`: array with x, y, z offset. Defaults to [0, 0, 0].
+		* `scale`: array with x, y, z scale factors. Defaults to [1, 1, 1].
+		* `rotation`: array with x, y, z Euler angles in degrees. Defaults to [0, 0, 0].
+		* `children`: array with the child nodes. Each element of the array has the same members as the `nodes` members. Defaults to no children if ommitted.
+* `"AnimationJointTree"`: animation tree with joint nodes.
+	* `file`: file with the animation joint tree.
+	* `fileType`: the name of the type, such as "gltf". If ommitted, the type is inerred from the file extension.
+	* `nodes`: list of nodes to define the animation tree. If `file` is set, this will be the list of root node names. If `file` is not set, each element of the array has the following members:
+		* `name`: the name of the node.
+		* `translation`: array with x, y, z offset. Defaults to [0, 0, 0].
+		* `scale`: array with x, y, z scale factors. Defaults to [1, 1, 1].
+		* `rotation`: array with x, y, z Euler angles in degrees. Defaults to [0, 0, 0].
+		* `toLocalSpace`: 4x4 2D array for a column-major matrix converting to local joint space.
+		* `childIndices`: array with the child node indices.
 * `"DirectAnimation"`: values to set directly on an animation tree.
 	* `channels`: array of channels for the animation. Each member of the array has the following members:
 	* `node`: the name of the node to apply the value to.

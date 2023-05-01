@@ -18,7 +18,7 @@ import os
 from DeepSeaAnimation.Convert.Quaternion import eulerToQuaternion
 from DeepSeaAnimation.Quaternion4f import CreateQuaternion4f
 from DeepSeaAnimation.Vector3f import CreateVector3f
-from DeepSeaAnimation import AnimationNode
+from DeepSeaAnimation import AnimationTreeNode as AnimationNode
 from DeepSeaAnimation import AnimationTree
 
 class AnimationTreeNode:
@@ -41,8 +41,9 @@ def addAnimationTreeType(convertContext, typeName, convertFunc):
 	Adds an animation tree type with the name and the convert function.
 
 	The function should take the ConvertContext, path to the animation tree to convert, and the list
-	of root nodes, and should return an array of AnimationTreeNode objects for the contents of the
-	animation tree.
+	of root node names, and should return an array of AnimationTreeNode objects for the contents of
+	the animation tree.
+
 	An exception will be raised if the type is already registered.
 	"""
 	if not hasattr(convertContext, 'animationTreeTypeMap'):
@@ -56,11 +57,11 @@ def convertAnimationTree(convertContext, data):
 	"""
 	Converts an AnimationTree without joints. The data map is expected to contain the following
 	elements:
-	- file: file with the animation tree. This should not be set when "nodes" is set.
+	- file: file with the animation tree.
 	- fileType: the name of the type, such as "gltf". If ommitted, the type is inerred from the
 	  file extension.
-	- nodes: list of nodes to define the animation tree. This should not be set when "file" is set.
-	  Each element of the array has the following members:
+	- nodes: list of nodes to define the animation tree. If "file" is set, this will be the list
+	  of root node names. If "file" is not set, each element of the array has the following members:
 	  - name: the name of the node.
 	  - translation: array with x, y, z offset. Defaults to [0, 0, 0].
 	  - scale: array with x, y, z scale factors. Defaults to [1, 1, 1].
@@ -118,9 +119,10 @@ def convertAnimationTree(convertContext, data):
 
 	try:
 		path = str(data.get('file', ''))
-		nodeData = data.get('nodes', [])
-		if (path and nodeData) or (not path and not nodeData):
-			raise Exception('AnimationTree data must have one of either "file" or "nodes".')
+		nodeData = data['nodes']
+
+		if not nodeData:
+			raise Exception('AnimationTree contains no nodes.')
 
 		if path:
 			fileType = str(data.get('fileType', ''))
@@ -136,7 +138,13 @@ def convertAnimationTree(convertContext, data):
 			if not convertFunc:
 				raise Exception('Animation tree type "' + fileType + '" hasn\'t been registered.')
 
-			rootNodes = convertFunc(convertContext, path)
+			if not isinstance(nodeData, list):
+				raise Exception('AnimationTree "nodes" must be a list of strings.')
+			for node in nodeData:
+				if not isinstance(node, str):
+					raise Exception('AnimationTree "nodes" must be a list of strings.')
+
+			rootNodes = convertFunc(convertContext, path, nodeData)
 		else:
 			rootNodes = []
 			try:
