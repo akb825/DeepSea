@@ -345,14 +345,19 @@ DS_GEOMETRY_EXPORT inline dsIntersectResult dsPlane3f_intersectBoxMatrix(const d
 	DS_ASSERT(plane);
 	DS_ASSERT(boxMatrix);
 
+	// https://gdbooks.gitbooks.io/3dcollisions/content/Chapter2/static_aabb_plane.html
+	// Transform plane into box space then compare to to a box [-1, 1] for all dimensions.
 	dsPlane3f transformedPlane;
 	dsMatrix44f_transformTransposed((dsVector4f*)&transformedPlane, boxMatrix,
 		(const dsVector4f*)plane);
 	dsPlane3f_normalize(&transformedPlane, &transformedPlane);
 
-	if (transformedPlane.d > 1)
+	float radius = fabsf(transformedPlane.n.x) + fabsf(transformedPlane.n.y) +
+		fabsf(transformedPlane.n.z);
+
+	if (transformedPlane.d > radius)
 		return dsIntersectResult_Inside;
-	else if (transformedPlane.d < -1)
+	else if (transformedPlane.d < -radius)
 		return dsIntersectResult_Outside;
 	else
 		return dsIntersectResult_Intersects;
@@ -364,13 +369,18 @@ DS_GEOMETRY_EXPORT inline dsIntersectResult dsPlane3d_intersectBoxMatrix(const d
 	DS_ASSERT(plane);
 	DS_ASSERT(boxMatrix);
 
+	// https://gdbooks.gitbooks.io/3dcollisions/content/Chapter2/static_aabb_plane.html
+	// Transform plane into box space then compare to to a box [-1, 1] for all dimensions.
 	dsPlane3d transformedPlane;
 	dsMatrix44_transformTransposed(transformedPlane, *boxMatrix, *plane);
 	dsPlane3d_normalize(&transformedPlane, &transformedPlane);
 
-	if (transformedPlane.d > 1)
+	double radius = fabs(transformedPlane.n.x) + fabs(transformedPlane.n.y) +
+		fabs(transformedPlane.n.z);
+
+	if (transformedPlane.d > radius)
 		return dsIntersectResult_Inside;
-	else if (transformedPlane.d < -1)
+	else if (transformedPlane.d < -radius)
 		return dsIntersectResult_Outside;
 	else
 		return dsIntersectResult_Intersects;
@@ -382,13 +392,18 @@ DS_GEOMETRY_EXPORT inline dsIntersectResult dsPlane3f_intersectBoxMatrixTranspos
 	DS_ASSERT(plane);
 	DS_ASSERT(boxMatrix);
 
+	// https://gdbooks.gitbooks.io/3dcollisions/content/Chapter2/static_aabb_plane.html
+	// Transform plane into box space then compare to to a box [-1, 1] for all dimensions.
 	dsPlane3f transformedPlane;
 	dsMatrix44f_transform((dsVector4f*)&transformedPlane, boxMatrix, (const dsVector4f*)plane);
 	dsPlane3f_normalize(&transformedPlane, &transformedPlane);
 
-	if (transformedPlane.d > 1)
+	float radius = fabsf(transformedPlane.n.x) + fabsf(transformedPlane.n.y) +
+		fabsf(transformedPlane.n.z);
+
+	if (transformedPlane.d > radius)
 		return dsIntersectResult_Inside;
-	else if (transformedPlane.d < -1)
+	else if (transformedPlane.d < -radius)
 		return dsIntersectResult_Outside;
 	else
 		return dsIntersectResult_Intersects;
@@ -402,13 +417,20 @@ DS_GEOMETRY_EXPORT inline dsIntersectResult dsPlane3f_intersectBoxMatrixTranspos
 	DS_ASSERT(plane);
 	DS_ASSERT(boxMatrix);
 
+	// https://gdbooks.gitbooks.io/3dcollisions/content/Chapter2/static_aabb_plane.html
+	// Transform plane into box space then compare to to a box [-1, 1] for all dimensions.
 	dsPlane3f transformedPlane;
 	dsMatrix44f_transformSIMD((dsVector4f*)&transformedPlane, boxMatrix, (const dsVector4f*)plane);
 	dsPlane3f_normalize(&transformedPlane, &transformedPlane);
 
-	if (transformedPlane.d > 1)
+	// Simplification of AABB/plane intersection with extents = 1.
+	dsVector4f planeAbs;
+	planeAbs.simd = dsSIMD4f_abs(transformedPlane.simd);
+	float radius = planeAbs.x + planeAbs.y + planeAbs.z;
+
+	if (transformedPlane.d > radius)
 		return dsIntersectResult_Inside;
-	else if (transformedPlane.d < -1)
+	else if (transformedPlane.d < -radius)
 		return dsIntersectResult_Outside;
 	else
 		return dsIntersectResult_Intersects;
@@ -422,13 +444,19 @@ DS_GEOMETRY_EXPORT inline dsIntersectResult dsPlane3f_intersectBoxMatrixTranspos
 	DS_ASSERT(plane);
 	DS_ASSERT(boxMatrix);
 
+	// https://gdbooks.gitbooks.io/3dcollisions/content/Chapter2/static_aabb_plane.html
+	// Transform plane into box space then compare to to a box [-1, 1] for all dimensions.
 	dsPlane3f transformedPlane;
 	dsMatrix44f_transformFMA((dsVector4f*)&transformedPlane, boxMatrix, (const dsVector4f*)plane);
 	dsPlane3f_normalize(&transformedPlane, &transformedPlane);
 
-	if (transformedPlane.d > 1)
+	dsVector4f planeAbs;
+	planeAbs.simd = dsSIMD4f_abs(transformedPlane.simd);
+	float radius = planeAbs.x + planeAbs.y + planeAbs.z;
+
+	if (transformedPlane.d > radius)
 		return dsIntersectResult_Inside;
-	else if (transformedPlane.d < -1)
+	else if (transformedPlane.d < -radius)
 		return dsIntersectResult_Outside;
 	else
 		return dsIntersectResult_Intersects;
@@ -442,13 +470,18 @@ DS_GEOMETRY_EXPORT inline dsIntersectResult dsPlane3d_intersectBoxMatrixTranspos
 	DS_ASSERT(plane);
 	DS_ASSERT(boxMatrix);
 
+	// https://gdbooks.gitbooks.io/3dcollisions/content/Chapter2/static_aabb_plane.html
+	// Transform plane into box space then compare to to a box [-1, 1] for all dimensions.
 	dsPlane3d transformedPlane;
 	dsMatrix44_transform(transformedPlane, *boxMatrix, *plane);
 	dsPlane3d_normalize(&transformedPlane, &transformedPlane);
 
-	if (transformedPlane.d > 1)
+	double radius = fabs(transformedPlane.n.x) + fabs(transformedPlane.n.y) +
+		fabs(transformedPlane.n.z);
+
+	if (transformedPlane.d > radius)
 		return dsIntersectResult_Inside;
-	else if (transformedPlane.d < -1)
+	else if (transformedPlane.d < -radius)
 		return dsIntersectResult_Outside;
 	else
 		return dsIntersectResult_Intersects;

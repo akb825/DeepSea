@@ -310,7 +310,7 @@ dsIntersectResult dsFrustum3f_intersectOrientedBoxFMA(const dsFrustum3f* frustum
 	int count = dsFrustum3f_isInfinite(frustum) ? dsFrustumPlanes_Far : dsFrustumPlanes_Count;
 	for (int i = 0; i < count; ++i)
 	{
-		dsIntersectResult planeResult = dsPlane3f_intersectBoxMatrixTransposeSIMD(
+		dsIntersectResult planeResult = dsPlane3f_intersectBoxMatrixTransposeFMA(
 			frustum->planes + i, &boxMatrix);
 		switch (planeResult)
 		{

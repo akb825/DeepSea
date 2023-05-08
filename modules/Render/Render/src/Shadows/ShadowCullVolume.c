@@ -896,7 +896,7 @@ dsIntersectResult dsShadowCullVolume_intersectBoxMatrixFMA(const dsShadowCullVol
 	bool intersects = false;
 	for (uint32_t i = 0; i < volume->planeCount; ++i)
 	{
-		dsIntersectResult planeResult = dsPlane3f_intersectBoxMatrixTransposeSIMD(
+		dsIntersectResult planeResult = dsPlane3f_intersectBoxMatrixTransposeFMA(
 			volume->planes + i, &boxMatrixTranspose);
 		switch (planeResult)
 		{
