@@ -22,6 +22,75 @@ from .SceneResourcesConvert import modelVertexAttribEnum
 class Object:
 	pass
 
+class Buffer:
+	def __init__(self, path, bufferInfo, binData, binDataOffset):
+		uri = bufferInfo.get('uri')
+		if uri:
+			dataPrefix = 'data:application/octet-stream;base64,'
+			if uri.startswith(dataPrefix):
+				try:
+					self.uri = None
+					self.dataRef = None
+					self.data = base64.b64decode(uri[len(dataPrefix):])
+				except:
+					raise Exception('Invalid buffer data for GLTF file "' + path + '".')
+			else:
+				parentDir = os.path.dirname(path)
+				self.uri = os.path.join(parentDir, uri)
+				self.dataRef = None
+				self.data = None
+		elif binData:
+			length = bufferInfo['byteLength']
+			if not isinstance(length, int) or binDataOffset + length > len(binData):
+				raise Exception('Invalid buffer data for GLTF file "' + path + '".')
+			self.uri = None
+			self.dataRef = (binData, binDataOffset, length)
+			self.data = None
+		else:
+			raise KeyError('uri')
+
+	def load(self):
+		if self.data is not None:
+			return self.data
+		elif self.uri:
+			with open(self.uri, 'rb') as f:
+				self.data = f.read()
+			self.uri = None
+		elif self.dataRef:
+			offset = self.dataRef[1]
+			length = self.dataRef[2]
+			self.data = self.dataRef[0][offset:offset + length]
+			self.dataRef = None
+		return self.data
+
+class BufferView:
+	def __init__(self, buffer, offset, length, stride):
+		self.buffer = buffer
+		self.offset = offset
+		self.length = length
+		self.stride = stride
+
+class Accessor:
+	def __init__(self, bufferView, itemType, decorator, itemSize, offset, count):
+		self.bufferView = bufferView
+		self.type = itemType
+		self.decorator = decorator
+		self.itemSize = itemSize
+		self.offset = offset
+		self.count = count
+
+	def extractData(self):
+		offset = self.offset + self.bufferView.offset
+		bufferData = self.bufferView.buffer.load()
+		if not self.bufferView.stride:
+			return bufferData[offset:offset + self.itemSize*self.count]
+
+		data = bytearray()
+		for i in range(0, self.count):
+			curOffset = offset + i*self.bufferView.stride
+			data += self.bufferView.buffer[curOffset:curOffset + self.itemSize]
+		return data
+
 gltfVertexAttribEnum = {
 	'POSITION': modelVertexAttribEnum['Position'],
 	'NORMAL': modelVertexAttribEnum['Normal'],
@@ -86,48 +155,19 @@ gltfTypeMap = {
 gltfPrimitiveTypeMap = ['PointList', 'LineList', 'LineStrip', 'LineStrip', 'TriangleList',
 	'TriangleStrip', 'TriangleFan']
 
-def extractBufferData(accessor):
-	offset = accessor.offset + accessor.bufferView.offset
-	if not accessor.bufferView.stride:
-		return accessor.bufferView.buffer[offset:offset + accessor.itemSize*accessor.count]
-
-	data = bytearray()
-	for i in range(0, accessor.count):
-		curOffset = offset + i*accessor.bufferView.stride
-		data += accessor.bufferView.buffer[curOffset:curOffset + accessor.itemSize]
-	return data
-
-def convertGLTFOrGLBModel(convertContext, path, jsonData, binData):
-	parentDir = os.path.dirname(path)
-
+def extractGLTFOrGLBBuffersViewsAccessors(path, jsonData, binData):
 	binOffset = 0
 	try:
 		# Read the buffers.
 		buffers = []
 		bufferInfos = jsonData['buffers']
-		dataPrefix = 'data:application/octet-stream;base64,'
 		try:
 			for bufferInfo in bufferInfos:
-				uri = bufferInfo.get('uri')
-				if uri:
-					if uri.startswith(dataPrefix):
-						try:
-							buffers.append(base64.b64decode(uri[len(dataPrefix):]))
-						except:
-							raise Exception('Invalid buffer data for GLTF file "' + path + '".')
-					else:
-						with open(os.path.join(parentDir, uri), 'rb') as f:
-							buffers.append(f.read())
-				elif binData:
-					length = bufferInfo['byteLength']
-					try:
-						buffers.append(binData[binOffset:binOffset + length])
-					except:
-						raise Exception('Invalid buffer data for GLTF file "' + path + '".')
-					paddedLength = ((length + 3)//4)*4
+				curBuffer = Buffer(path, bufferInfo, binData, binOffset)
+				if curBuffer.dataRef:
+					paddedLength = ((curBuffer.dataRef[2] + 3)//4)*4
 					binOffset += paddedLength
-				else:
-					raise KeyError('uri')
+				buffers.append(curBuffer)
 		except (TypeError, ValueError):
 			raise Exception('Buffers must be an array of objects for GLTF file "' + path + '".')
 		except KeyError as e:
@@ -139,15 +179,14 @@ def convertGLTFOrGLBModel(convertContext, path, jsonData, binData):
 		bufferViewInfos = jsonData['bufferViews']
 		try:
 			for bufferViewInfo in bufferViewInfos:
-				bufferView = Object()
 				try:
-					bufferView.buffer = buffers[bufferViewInfo['buffer']]
+					buffer = buffers[bufferViewInfo['buffer']]
 				except (IndexError, TypeError):
 					raise Exception('Invalid buffer index for GLTF file "' + path + '".')
-				bufferView.offset = bufferViewInfo['byteOffset']
-				bufferView.length = bufferViewInfo['byteLength']
-				bufferView.stride = bufferViewInfo.get('byteStride', 0)
-				bufferViews.append(bufferView)
+				offset = bufferViewInfo['byteOffset']
+				length = bufferViewInfo['byteLength']
+				stride = bufferViewInfo.get('byteStride', 0)
+				bufferViews.append(BufferView(buffer, offset, length, stride))
 		except (TypeError, ValueError):
 			raise Exception(
 				'Buffer views must be an array of objects for GLTF file "' + path + '".')
@@ -160,9 +199,8 @@ def convertGLTFOrGLBModel(convertContext, path, jsonData, binData):
 		accessorInfos = jsonData['accessors']
 		try:
 			for accessorInfo in accessorInfos:
-				accessor = Object()
 				try:
-					accessor.bufferView = bufferViews[accessorInfo['bufferView']]
+					bufferView = bufferViews[accessorInfo['bufferView']]
 				except (IndexError, TypeError):
 					raise Exception('Invalid buffer view index for GLTF file "' + path + '".')
 
@@ -176,18 +214,26 @@ def convertGLTFOrGLBModel(convertContext, path, jsonData, binData):
 					raise Exception('Invalid accessor type (' + str(gltfType) + ', ' +
 						str(componentType) + ') for GLTF file "' + path + '".')
 
-				accessor.type = accessorType
-				accessor.decorator = decorator
-				accessor.itemSize = itemSize
-				accessor.offset = accessorInfo.get('byteOffset', 0)
-				accessor.count = accessorInfo['count']
-				accessors.append(accessor)
+				offset = accessorInfo.get('byteOffset', 0)
+				count = accessorInfo['count']
+				accessors.append(
+					Accessor(bufferView, accessorType, decorator, itemSize, offset, count))
 		except (TypeError, ValueError):
 			raise Exception('Accessors must be an array of objects for GLTF file "' + path + '".')
 		except KeyError as e:
 			raise Exception('Accessor doesn\'t contain element "' + str(e) +
 				'" for GLTF file "' + path + '".')
+	except (TypeError, ValueError):
+		raise Exception('Root value in GLTF file "' + path + '" must be an object.')
+	except KeyError as e:
+		raise Exception('GLTF file "' + path + '" doesn\'t contain element "' + str(e) + '".')
 
+	return buffers, bufferViews, accessors
+
+def convertGLTFOrGLBModel(convertContext, path, jsonData, binData):
+	buffers, bufferViews, accessors = extractGLTFOrGLBBuffersViewsAccessors(path, jsonData, binData)
+
+	try:
 		# Read the meshes.
 		meshes = []
 		meshInfos = jsonData['meshes']
@@ -271,7 +317,7 @@ def convertGLTFOrGLBModel(convertContext, path, jsonData, binData):
 			else:
 				raise Exception('Unsupported index type "' + mesh.indices.type +
 					'" for GLTF file "' + path + '".')
-			indexData = extractBufferData(mesh.indices)
+			indexData = mesh.indices.extractData()
 		else:
 			indexData = None
 			indexSize = 0
@@ -279,7 +325,7 @@ def convertGLTFOrGLBModel(convertContext, path, jsonData, binData):
 		vertexStreams = []
 		for attrib, accessor in mesh.attributes:
 			vertexFormat = [(attrib, accessor.type, accessor.decorator)]
-			vertexStreams.append(ModelNodeVertexStream(vertexFormat, extractBufferData(accessor),
+			vertexStreams.append(ModelNodeVertexStream(vertexFormat, accessor.extractData(),
 				indexSize, indexData))
 
 		geometry.append(ModelNodeGeometryData(mesh.name, vertexStreams, mesh.primitiveType))
