@@ -41,19 +41,12 @@ from DeepSeaSceneParticle.Convert.ParticleTransformDataConvert import convertPar
 from DeepSeaSceneVectorDraw.Convert.VectorDrawPrepareConvert import convertVectorDrawPrepare
 from DeepSeaSceneVectorDraw.Convert.VectorItemListConvert import convertVectorItemList
 
-if __name__ == '__main__':
-	parser = argparse.ArgumentParser(description =
-		'Create a scene to be used by Deep Sea.')
-	parser.add_argument('-i', '--input', required = True,
-		help = 'input json description of the scene')
-	parser.add_argument('-o', '--output', required = True,
-		help = 'output file name, typically with the extension ".dss"')
-	parser.add_argument('-e', '--extensions', nargs = '*', default = [],
-		help = 'list of module names for extensions. Eeach extension should have a '
-			'deepSeaSceneExtension(convertContext) function to register the custom types with the'
-			'convert context.')
+def createSceneConvertContext(customExtensions=None):
+	"""
+	Creates a ConvertContext for scenes with the default set of extensions.
 
-	args = parser.parse_args()
+	:param customExtensions: List of custom extensions to add, which will be loaded as modules.
+	"""
 	convertContext = ConvertContext()
 
 	# Animation scene types.
@@ -79,8 +72,26 @@ if __name__ == '__main__':
 	convertContext.addItemListType('VectorDrawPrepare', convertVectorDrawPrepare)
 	convertContext.addItemListType('VectorItemList', convertVectorItemList)
 
-	for extension in args.extensions:
-		import_module(extension).deepSeaSceneExtension(convertContext)
+	if customExtensions:
+		for extension in customExtensions:
+			import_module(extension).deepSeaSceneExtension(convertContext)
+
+	return convertContext
+
+if __name__ == '__main__':
+	parser = argparse.ArgumentParser(description =
+		'Create a scene to be used by Deep Sea.')
+	parser.add_argument('-i', '--input', required = True,
+		help = 'input json description of the scene')
+	parser.add_argument('-o', '--output', required = True,
+		help = 'output file name, typically with the extension ".dss"')
+	parser.add_argument('-e', '--extensions', nargs = '*', default = [],
+		help = 'list of module names for extensions. Eeach extension should have a '
+			'deepSeaSceneExtension(convertContext) function to register the custom types with the'
+			'convert context.')
+
+	args = parser.parse_args()
+	convertContext = createSceneConvertContext(args.extensions)
 
 	try:
 		with open(args.input) as f:

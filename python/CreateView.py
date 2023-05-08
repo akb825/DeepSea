@@ -22,6 +22,19 @@ from importlib import import_module
 from DeepSeaScene.Convert.ConvertContext import ConvertContext
 from DeepSeaScene.Convert.ViewConvert import convertView
 
+def createViewConvertContext(customExtensions=None):
+	"""
+	Creates a ConvertContext for views with the default set of extensions.
+
+	:param customExtensions: List of custom extensions to add, which will be loaded as modules.
+	"""
+	convertContext = ConvertContext()
+	if customExtensions:
+		for extension in customExtensions:
+			import_module(extension).deepSeaSceneExtension(convertContext)
+
+	return convertContext
+
 if __name__ == '__main__':
 	parser = argparse.ArgumentParser(description =
 		'Create a vew to be used by Deep Sea.')
@@ -35,9 +48,7 @@ if __name__ == '__main__':
 			'convert context.')
 
 	args = parser.parse_args()
-	convertContext = ConvertContext()
-	for extension in args.extensions:
-		import_module(extension).deepSeaSceneExtension(convertContext)
+	convertContext = createViewConvertContext(args.extensions)
 
 	try:
 		with open(args.input) as f:

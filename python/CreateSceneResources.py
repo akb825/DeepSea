@@ -48,26 +48,17 @@ from DeepSeaSceneVectorDraw.Convert.VectorImageNodeConvert import convertVectorI
 from DeepSeaSceneVectorDraw.Convert.VectorResourcesConvert import convertVectorResources
 from DeepSeaSceneVectorDraw.Convert.VectorShadersConvert import convertVectorShaders
 
-if __name__ == '__main__':
-	parser = argparse.ArgumentParser(description =
-		'Create scene resources to be used by Deep Sea.')
-	parser.add_argument('-i', '--input', required = True,
-		help = 'input json description of the resources')
-	parser.add_argument('-o', '--output', required = True,
-		help = 'output file name, typically with the extension ".dssr"')
-	parser.add_argument('-c', '--cuttlefish', default = 'cuttlefish',
-		help = 'path to the cuttlefish tool for texture conversion')
-	parser.add_argument('-v', '--vfc', default = 'vfc',
-		help = 'path to the vfc tool for vertex format conversion')
-	parser.add_argument('-j', '--multithread', default = False, action = 'store_true',
-		help = 'multithread texture conversion')
-	parser.add_argument('-e', '--extensions', nargs = '*', default = [],
-		help = 'list of module names for extensions. Eeach extension should have a '
-			'deepSeaSceneExtension(convertContext) function to register the custom types with the'
-			'convert context.')
+def createSceneResourcesConvertContext(cuttlefish='cuttlefish', vfc='vfc', multithread=True,
+		customExtensions=None):
+	"""
+	Creates a ConvertContext for scene resources with the default set of extensions.
 
-	args = parser.parse_args()
-	convertContext = ConvertContext(args.cuttlefish, args.vfc, args.multithread)
+	:param cuttlefish: Path to the cuttlefish executable.
+	:param vfc: Path to the vfc executable.
+	:param multithread: Whether to multithread texture conversion.
+	:param customExtensions: List of custom extensions to add, which will be loaded as modules.
+	"""
+	convertContext = ConvertContext(cuttlefish, vfc, multithread)
 
 	# Animation scene types.
 	convertContext.addCustomResourceType('AnimationJointTree', convertAnimationJointTree)
@@ -98,8 +89,33 @@ if __name__ == '__main__':
 	convertContext.addNodeType('TextNode', convertTextNode)
 	convertContext.addNodeType('VectorImageNode', convertVectorImageNode)
 
-	for extension in args.extensions:
-		import_module(extension).deepSeaSceneExtension(convertContext)
+	if customExtensions:
+		for extension in customExtensions:
+			import_module(extension).deepSeaSceneExtension(convertContext)
+
+	return convertContext
+
+if __name__ == '__main__':
+	parser = argparse.ArgumentParser(description =
+		'Create scene resources to be used by Deep Sea.')
+	parser.add_argument('-i', '--input', required = True,
+		help = 'input json description of the resources')
+	parser.add_argument('-o', '--output', required = True,
+		help = 'output file name, typically with the extension ".dssr"')
+	parser.add_argument('-c', '--cuttlefish', default = 'cuttlefish',
+		help = 'path to the cuttlefish tool for texture conversion')
+	parser.add_argument('-v', '--vfc', default = 'vfc',
+		help = 'path to the vfc tool for vertex format conversion')
+	parser.add_argument('-j', '--multithread', default = False, action = 'store_true',
+		help = 'multithread texture conversion')
+	parser.add_argument('-e', '--extensions', nargs = '*', default = [],
+		help = 'list of module names for extensions. Eeach extension should have a '
+			'deepSeaSceneExtension(convertContext) function to register the custom types with the'
+			'convert context.')
+
+	args = parser.parse_args()
+	convertContext = createSceneResourcesConvertContext(args.cuttlefish, args.vfc, args.multithread,
+		args.extensions)
 
 	try:
 		with open(args.input) as f:
