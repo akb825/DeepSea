@@ -19,13 +19,13 @@ def convertGLTFOrGLBAnimationTree(path, jsonData, rootNodes):
 	try:
 		namedNodes = dict()
 		jsonNodes = jsonData['nodes']
-		for node in jsonNodes:
-			try:
+		try:
+			for node in jsonNodes:
 				name = node.get('name')
 				if name:
 					namedNodes[name] = node
-			except (TypeError, ValueError):
-				raise Exception('Nodes must be an array of objects for GLTF file "' + path + '".')
+		except (TypeError, ValueError):
+			raise Exception('Nodes must be an array of objects for GLTF file "' + path + '".')
 	except (TypeError, ValueError):
 		raise Exception('Root value in GLTF file "' + path + '" must be an object.')
 	except KeyError as e:
@@ -63,8 +63,9 @@ def convertGLTFOrGLBAnimationTree(path, jsonData, rootNodes):
 				translation = (float(jsonTranslation[0]), float(jsonTranslation[1]),
 					float(jsonTranslation[2]))
 			except:
-				raise Exception('Animation node "translation" must be an array of 3 floats for GLTF '
-					'file "' + path + '".')
+				raise Exception(
+					'Animation node "translation" must be an array of 3 floats for GLTF file "' +
+					path + '".')
 		else:
 			translation = (0.0, 0.0, 0.0)
 
@@ -75,14 +76,16 @@ def convertGLTFOrGLBAnimationTree(path, jsonData, rootNodes):
 				childJson = jsonNodes[childIndices]
 				childName = jsonNodes.get('name')
 				if not childName:
-					raise Exception('Nodes part of an animation tree must contain names for GLTF file "'
-						+ path + '".')
+					raise Exception(
+						'Nodes part of an animation tree must contain names for GLTF file "' +
+						path + '".')
 				node.children.append(constructNodeAndChildren(childName, childJson))
 		except (TypeError, ValueError):
 			raise Exception('Node "children" must be an array of ints for node "' + name +
 				'" for GLTF file "' + path + '".')
 		except IndexError:
-			raise Exception('Node child index for node "' + name + '" for GLTF file "' + path + '".')
+			raise Exception('Invalid child index for node "' + name + '" for GLTF file "' + path +
+				'".')
 
 	rootAnimationNodes = []
 	for rootName in rootNodes:

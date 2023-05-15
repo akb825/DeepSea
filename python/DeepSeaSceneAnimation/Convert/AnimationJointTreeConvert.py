@@ -26,7 +26,7 @@ class AnimationJointTreeNode:
 	"""
 	Joint node within an animation tree.
 	"""
-	def __init__(self, name, scale, rotation, translation, toLocalSpace):
+	def __init__(self, name, scale, rotation, translation, toLocalSpace, childIndices = []):
 		"""
 		Initializes an animation tree joint node.
 		Scale and translation are a tuple of 3 floats, rotation is a tuple of 4 floats.
@@ -37,7 +37,7 @@ class AnimationJointTreeNode:
 		self.rotation = rotation
 		self.translation = translation
 		self.toLocalSpace = toLocalSpace
-		self.childIndices = []
+		self.childIndices = childIndices
 
 def addAnimationJointTreeType(convertContext, typeName, convertFunc):
 	"""
