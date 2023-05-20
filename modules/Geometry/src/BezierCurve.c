@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -71,7 +71,7 @@ static bool tessellateRec(const dsBezierCurve* curve, double chordalTolerance,
 	if (level < maxRecursions && !isBezierStraight(&nextCurve, chordalTolerance))
 	{
 		if (!tessellateRec(&nextCurve, chordalTolerance, maxRecursions, sampleFunc, userData, t,
-			level + 1))
+				level + 1))
 		{
 			return false;
 		}
@@ -91,8 +91,8 @@ static bool tessellateRec(const dsBezierCurve* curve, double chordalTolerance,
 
 	if (level < maxRecursions && !isBezierStraight(&nextCurve, chordalTolerance))
 	{
-		if (!tessellateRec(&nextCurve, chordalTolerance, maxRecursions, sampleFunc, userData, middleT,
-			level + 1))
+		if (!tessellateRec(&nextCurve, chordalTolerance, maxRecursions, sampleFunc, userData,
+				middleT, level + 1))
 		{
 			return false;
 		}
@@ -165,14 +165,9 @@ bool dsBezierCurve_evaluate(void* outPoint, const dsBezierCurve* curve, double t
 
 	DS_ASSERT(curve->axisCount >= 2 && curve->axisCount <= 3);
 	double invT = 1.0 - t;
+	dsVector4d tMul = {{dsPow3(invT), 3.0*dsPow2(invT)*t, 3.0*dsPow2(t)*invT, dsPow3(t)}};
 	for (uint32_t i = 0; i < curve->axisCount; ++i)
-	{
-		((double*)outPoint)[i] =
-			dsPow3(invT)*curve->controlPoints[i].x +
-			3.0*dsPow2(invT)*t*curve->controlPoints[i].y +
-			3.0*dsPow2(t)*invT*curve->controlPoints[i].z +
-			dsPow3(t)*curve->controlPoints[i].w;
-	}
+		((double*)outPoint)[i] = dsVector4_dot(tMul, curve->controlPoints[i]);
 
 	return true;
 }
@@ -193,12 +188,13 @@ bool dsBezierCurve_evaluateTangent(void* outTangent, const dsBezierCurve* curve,
 
 	DS_ASSERT(curve->axisCount >= 2 && curve->axisCount <= 3);
 	double invT = 1.0 - t;
+	dsVector3d tMul = {{3.0*dsPow2(invT), 6.0*invT*t, 3.0*dsPow2(t)}};
 	for (uint32_t i = 0; i < curve->axisCount; ++i)
 	{
-		((double*)outTangent)[i] =
-			3.0*dsPow2(invT)*(curve->controlPoints[i].y - curve->controlPoints[i].x) +
-			6.0*invT*t*(curve->controlPoints[i].z - curve->controlPoints[i].y) +
-			3.0*dsPow2(t)*(curve->controlPoints[i].w - curve->controlPoints[i].z);
+		dsVector3d controlTangent = {{curve->controlPoints[i].y - curve->controlPoints[i].x,
+			curve->controlPoints[i].z - curve->controlPoints[i].y,
+			curve->controlPoints[i].w - curve->controlPoints[i].z}};
+		((double*)outTangent)[i] = dsVector3_dot(tMul, controlTangent);;
 	}
 
 	return true;
