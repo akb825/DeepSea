@@ -37,49 +37,43 @@ extern "C"
 #define DS_HAS_SIMD 1
 
 /// @cond
+#if DS_CLANG || DS_GCC
+#define DS_SIMD_FLOAT4 sse
+#define DS_SIMD_DOUBLE2 sse2
+#define DS_SIMD_DOUBLE4 avx
+#define DS_SIMD_HADD sse3
+#define DS_SIMD_FMA fma
+#define DS_SIMD_HALF_FLOAT sse2,f16c
+
+#define DS_SIMD_PRAGMA_IMPL(x) _Pragma(#x)
+#define DS_SIMD_PRAGMA(x) DS_SIMD_PRAGMA_IMPL(x)
+
 #if DS_CLANG
-#define DS_SIMD_START_FLOAT4() \
-	_Pragma("clang attribute push(__attribute__((target(\"sse\"))), apply_to = function)")
-#define DS_SIMD_START_DOUBLE2() \
-	_Pragma("clang attribute push(__attribute__((target(\"sse2\"))), apply_to = function)")
-// NOTE: Apple clang has issues with nested pushes. Add FMA so it always works so long as DOUBLE4
-// is first
-#define DS_SIMD_START_DOUBLE4() \
-	_Pragma("clang attribute push(__attribute__((target(\"avx,fma\"))), apply_to = function)")
-#define DS_SIMD_START_HADD() \
-	_Pragma("clang attribute push(__attribute__((target(\"sse,sse3\"))), apply_to = function)")
-#define DS_SIMD_START_FMA() \
-	_Pragma("clang attribute push(__attribute__((target(\"sse,fma\"))), apply_to = function)")
-#define DS_SIMD_START_HALF_FLOAT() \
-	_Pragma("clang attribute push(__attribute__((target(\"sse,sse2,f16c\"))), apply_to = function)")
+#define DS_SIMD_PRAGMA_VALUE(options) \
+	clang attribute push(__attribute__((target(options))), apply_to = function)
+#define DS_SIMD_START_IMPL(options) DS_SIMD_PRAGMA(DS_SIMD_PRAGMA_VALUE(options))
 #define DS_SIMD_END() _Pragma("clang attribute pop")
-#elif DS_GCC
-#define DS_SIMD_START_FLOAT4() \
-	_Pragma("GCC push_options") \
-	_Pragma("GCC target(\"sse\")")
-#define DS_SIMD_START_DOUBLE2() \
-	_Pragma("GCC push_options") \
-	_Pragma("GCC target(\"sse2\")")
-#define DS_SIMD_START_DOUBLE4() \
-	_Pragma("GCC push_options") \
-	_Pragma("GCC target(\"avx\")")
-#define DS_SIMD_START_HADD() \
-	_Pragma("GCC push_options") \
-	_Pragma("GCC target(\"sse,sse3\")")
-#define DS_SIMD_START_FMA() \
-	_Pragma("GCC push_options") \
-	_Pragma("GCC target(\"sse,fma\")")
-#define DS_SIMD_START_HALF_FLOAT() \
-	_Pragma("GCC push_options") \
-	_Pragma("GCC target(\"sse,sse2,f16c\")")
-#define DS_SIMD_END() _Pragma("GCC pop_options")
 #else
-#define DS_SIMD_START_FLOAT4()
-#define DS_SIMD_START_DOUBLE2()
-#define DS_SIMD_START_DOUBLE4()
-#define DS_SIMD_START_HADD()
-#define DS_SIMD_START_FMA()
-#define DS_SIMD_START_HALF_FLOAT()
+#define DS_SIMD_PRAGMA_VALUE(options) \
+	GCC target(options)
+#define DS_SIMD_START_IMPL(options) \
+	_Pragma("GCC push_options") \
+	DS_SIMD_PRAGMA(DS_SIMD_PRAGMA_VALUE(options))
+#define DS_SIMD_END() _Pragma("GCC pop_options")
+#endif
+
+#define DS_SIMD_STRINGIFY_ARGS_IMPL(...) #__VA_ARGS__
+#define DS_SIMD_STRINGIFY_ARGS(...) DS_SIMD_STRINGIFY_ARGS_IMPL(__VA_ARGS__)
+
+#define DS_SIMD_START(...) DS_SIMD_START_IMPL(DS_SIMD_STRINGIFY_ARGS(__VA_ARGS__))
+#else
+#define DS_SIMD_FLOAT4
+#define DS_SIMD_DOUBLE2
+#define DS_SIMD_DOUBLE4
+#define DS_SIMD_HADD
+#define DS_SIMD_FMA
+#define DS_SIMD_HALF_FLOAT
+#define DS_SIMD_START(...)
 #define DS_SIMD_END()
 #endif
 
@@ -162,7 +156,7 @@ typedef __m256d dsSIMD4db;
 typedef __m128i dsSIMD4hf;
 
 /// @cond
-DS_SIMD_START_FLOAT4();
+DS_SIMD_START(DS_SIMD_FLOAT4);
 /// @endcond
 
 /**
@@ -578,7 +572,7 @@ DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4fb_xor(dsSIMD4fb a, dsSIMD4fb b)
 
 /// @cond
 DS_SIMD_END();
-DS_SIMD_START_DOUBLE2();
+DS_SIMD_START(DS_SIMD_DOUBLE2);
 /// @endcond
 
 /**
@@ -982,7 +976,7 @@ DS_ALWAYS_INLINE dsSIMD2db dsSIMD2db_xor(dsSIMD2db a, dsSIMD2db b)
 
 /// @cond
 DS_SIMD_END();
-DS_SIMD_START_DOUBLE4();
+DS_SIMD_START(DS_SIMD_DOUBLE4);
 /// @endcond
 
 /**
@@ -1410,7 +1404,7 @@ DS_ALWAYS_INLINE dsSIMD4db dsSIMD4db_xor(dsSIMD4db a, dsSIMD4db b)
 
 /// @cond
 DS_SIMD_END();
-DS_SIMD_START_HADD();
+DS_SIMD_START(DS_SIMD_FLOAT4,DS_SIMD_HADD);
 /// @endcond
 
 /**
@@ -1427,8 +1421,7 @@ DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_hadd(dsSIMD4f a, dsSIMD4f b)
 
 /// @cond
 DS_SIMD_END();
-DS_SIMD_START_HADD();
-DS_SIMD_START_DOUBLE2();
+DS_SIMD_START(DS_SIMD_DOUBLE2,DS_SIMD_HADD);
 /// @endcond
 
 /**
@@ -1445,9 +1438,7 @@ DS_ALWAYS_INLINE dsSIMD2d dsSIMD2d_hadd(dsSIMD2d a, dsSIMD2d b)
 
 /// @cond
 DS_SIMD_END();
-DS_SIMD_END();
-DS_SIMD_START_DOUBLE4();
-DS_SIMD_START_HADD();
+DS_SIMD_START(DS_SIMD_DOUBLE4,DS_SIMD_HADD);
 /// @endcond
 
 /**
@@ -1464,8 +1455,7 @@ DS_ALWAYS_INLINE dsSIMD4d dsSIMD4d_hadd(dsSIMD4d a, dsSIMD4d b)
 
 /// @cond
 DS_SIMD_END();
-DS_SIMD_END();
-DS_SIMD_START_FMA();
+DS_SIMD_START(DS_SIMD_FLOAT4,DS_SIMD_FMA);
 /// @endcond
 
 /**
@@ -1522,8 +1512,7 @@ DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_fnmsub(dsSIMD4f a, dsSIMD4f b, dsSIMD4f c)
 
 /// @cond
 DS_SIMD_END();
-DS_SIMD_START_DOUBLE2();
-DS_SIMD_START_FMA();
+DS_SIMD_START(DS_SIMD_DOUBLE2,DS_SIMD_FMA);
 /// @endcond
 
 /**
@@ -1580,9 +1569,7 @@ DS_ALWAYS_INLINE dsSIMD2d dsSIMD2d_fnmsub(dsSIMD2d a, dsSIMD2d b, dsSIMD2d c)
 
 /// @cond
 DS_SIMD_END();
-DS_SIMD_END();
-DS_SIMD_START_DOUBLE4();
-DS_SIMD_START_FMA();
+DS_SIMD_START(DS_SIMD_DOUBLE4,DS_SIMD_FMA);
 /// @endcond
 
 /**
@@ -1639,8 +1626,7 @@ DS_ALWAYS_INLINE dsSIMD4d dsSIMD4d_fnmsub(dsSIMD4d a, dsSIMD4d b, dsSIMD4d c)
 
 /// @cond
 DS_SIMD_END();
-DS_SIMD_END();
-DS_SIMD_START_HALF_FLOAT();
+DS_SIMD_START(DS_SIMD_HALF_FLOAT);
 /// @endcond
 
 /**

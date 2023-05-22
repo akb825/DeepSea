@@ -144,7 +144,7 @@ dsIntersectResult dsFrustum3f_intersectAlignedBox(const dsFrustum3f* frustum,
 }
 
 #if DS_HAS_SIMD
-DS_SIMD_START_FLOAT4()
+DS_SIMD_START(DS_SIMD_FLOAT4)
 dsIntersectResult dsFrustum3f_intersectAlignedBoxSIMD(const dsFrustum3f* frustum,
 	const dsAlignedBox3f* box)
 {
@@ -175,7 +175,7 @@ dsIntersectResult dsFrustum3f_intersectAlignedBoxSIMD(const dsFrustum3f* frustum
 }
 DS_SIMD_END()
 
-DS_SIMD_START_FMA()
+DS_SIMD_START(DS_SIMD_FLOAT4,DS_SIMD_FMA)
 dsIntersectResult dsFrustum3f_intersectAlignedBoxFMA(const dsFrustum3f* frustum,
 	const dsAlignedBox3f* box)
 {
@@ -266,7 +266,7 @@ dsIntersectResult dsFrustum3f_intersectOrientedBox(const dsFrustum3f* frustum,
 }
 
 #if DS_HAS_SIMD
-DS_SIMD_START_FLOAT4()
+DS_SIMD_START(DS_SIMD_FLOAT4)
 dsIntersectResult dsFrustum3f_intersectOrientedBoxSIMD(const dsFrustum3f* frustum,
 	const dsOrientedBox3f* box)
 {
@@ -297,7 +297,7 @@ dsIntersectResult dsFrustum3f_intersectOrientedBoxSIMD(const dsFrustum3f* frustu
 }
 DS_SIMD_END()
 
-DS_SIMD_START_FMA()
+DS_SIMD_START(DS_SIMD_FLOAT4,DS_SIMD_FMA)
 dsIntersectResult dsFrustum3f_intersectOrientedBoxFMA(const dsFrustum3f* frustum,
 	const dsOrientedBox3f* box)
 {
@@ -388,7 +388,7 @@ dsIntersectResult dsFrustum3f_intersectBoxMatrix(const dsFrustum3f* frustum,
 }
 
 #if DS_HAS_SIMD
-DS_SIMD_START_FLOAT4()
+DS_SIMD_START(DS_SIMD_FLOAT4)
 dsIntersectResult dsFrustum3f_intersectBoxMatrixSIMD(const dsFrustum3f* frustum,
 	const dsMatrix44f* boxMatrix)
 {
@@ -419,7 +419,7 @@ dsIntersectResult dsFrustum3f_intersectBoxMatrixSIMD(const dsFrustum3f* frustum,
 }
 DS_SIMD_END()
 
-DS_SIMD_START_FMA()
+DS_SIMD_START(DS_SIMD_FLOAT4,DS_SIMD_FMA)
 dsIntersectResult dsFrustum3f_intersectBoxMatrixFMA(const dsFrustum3f* frustum,
 	const dsMatrix44f* boxMatrix)
 {

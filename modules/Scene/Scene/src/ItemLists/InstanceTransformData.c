@@ -48,7 +48,7 @@ typedef struct InstanceTransform
 } InstanceTransform;
 
 #if DS_HAS_SIMD
-DS_SIMD_START_FLOAT4()
+DS_SIMD_START(DS_SIMD_FLOAT4)
 static void dsInstanceTransformData_populateDataSIMD(void* userData, const dsView* view,
 	const dsSceneTreeNode* const* instances, uint32_t instanceCount,
 	const dsShaderVariableGroupDesc* dataDesc, uint8_t* data, uint32_t stride)
@@ -75,7 +75,7 @@ static void dsInstanceTransformData_populateDataSIMD(void* userData, const dsVie
 }
 DS_SIMD_END()
 
-DS_SIMD_START_FMA()
+DS_SIMD_START(DS_SIMD_FLOAT4,DS_SIMD_FMA)
 static void dsInstanceTransformData_populateDataFMA(void* userData, const dsView* view,
 	const dsSceneTreeNode* const* instances, uint32_t instanceCount,
 	const dsShaderVariableGroupDesc* dataDesc, uint8_t* data, uint32_t stride)

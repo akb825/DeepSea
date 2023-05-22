@@ -22,7 +22,7 @@
 
 #if DS_HAS_SIMD
 
-DS_SIMD_START_FLOAT4();
+DS_SIMD_START(DS_SIMD_FLOAT4);
 static void SIMDTest_Float4()
 {
 	constexpr float epsilon = 5e-3f;
@@ -179,7 +179,7 @@ TEST(SIMDTest, Float4)
 	SIMDTest_Float4();
 }
 
-DS_SIMD_START_DOUBLE2();
+DS_SIMD_START(DS_SIMD_DOUBLE2);
 static void SIMDTest_Double2()
 {
 	constexpr double epsilon = 5e-3;
@@ -278,7 +278,7 @@ TEST(SIMDTest, Double2)
 	SIMDTest_Double2();
 }
 
-DS_SIMD_START_DOUBLE4();
+DS_SIMD_START(DS_SIMD_DOUBLE4);
 static void SIMDTest_Double4()
 {
 	constexpr double epsilon = 5e-3;
@@ -435,7 +435,7 @@ TEST(SIMDTest, Double4)
 	SIMDTest_Double4();
 }
 
-DS_SIMD_START_FLOAT4();
+DS_SIMD_START(DS_SIMD_FLOAT4);
 static void SIMDTest_CompareLogicFloat4()
 {
 	dsVector4f cpuA = {{1.2f, 3.4f, 5.6f, 7.8f}};
@@ -606,7 +606,7 @@ TEST(SIMDTest, CompareLogicFloat4)
 	SIMDTest_CompareLogicFloat4();
 }
 
-DS_SIMD_START_DOUBLE2();
+DS_SIMD_START(DS_SIMD_DOUBLE2);
 static void SIMDTest_CompareLogicDouble2()
 {
 	dsVector2d cpuA = {{1.2, 3.4}};
@@ -737,7 +737,7 @@ TEST(SIMDTest, CompareLogicDouble2)
 	SIMDTest_CompareLogicDouble2();
 }
 
-DS_SIMD_START_DOUBLE4();
+DS_SIMD_START(DS_SIMD_DOUBLE4);
 static void SIMDTest_CompareLogicDouble4()
 {
 	DS_ALIGN(32) dsVector4d cpuA = {{1.2, 3.4, 5.6, 7.8}};
@@ -908,7 +908,7 @@ TEST(SIMDTest, CompareLogicDouble4)
 	SIMDTest_CompareLogicDouble4();
 }
 
-DS_SIMD_START_HADD();
+DS_SIMD_START(DS_SIMD_FLOAT4,DS_SIMD_HADD);
 static void SIMDTest_HAddFloat4()
 {
 	dsVector4f cpuA = {{1.2f, 3.4f, 5.6f, 7.8f}};
@@ -943,8 +943,7 @@ TEST(SIMDTest, HAddFloat4)
 	SIMDTest_HAddFloat4();
 }
 
-DS_SIMD_START_DOUBLE2();
-DS_SIMD_START_HADD();
+DS_SIMD_START(DS_SIMD_DOUBLE2,DS_SIMD_HADD);
 static void SIMDTest_HAddDouble2()
 {
 	dsVector2d cpuA = {{1.2, 3.2}};
@@ -958,7 +957,6 @@ static void SIMDTest_HAddDouble2()
 	EXPECT_EQ(cpuResult.x, cpuA.x + cpuA.y);
 	EXPECT_EQ(cpuResult.y, cpuB.x + cpuB.y);
 }
-DS_SIMD_END();
 DS_SIMD_END();
 
 TEST(SIMDTest, HAddDouble2)
@@ -979,8 +977,7 @@ TEST(SIMDTest, HAddDouble2)
 	SIMDTest_HAddDouble2();
 }
 
-DS_SIMD_START_DOUBLE4();
-DS_SIMD_START_HADD();
+DS_SIMD_START(DS_SIMD_DOUBLE4,DS_SIMD_HADD);
 static void SIMDTest_HAddDouble4()
 {
 	DS_ALIGN(32) dsVector4d cpuA = {{1.2, 3.4, 5.6, 7.8}};
@@ -996,7 +993,6 @@ static void SIMDTest_HAddDouble4()
 	EXPECT_EQ(cpuResult.z, cpuA.z + cpuA.w);
 	EXPECT_EQ(cpuResult.w, cpuB.z + cpuB.w);
 }
-DS_SIMD_END();
 DS_SIMD_END();
 
 TEST(SIMDTest, HAddDouble4)
@@ -1017,7 +1013,7 @@ TEST(SIMDTest, HAddDouble4)
 	SIMDTest_HAddDouble4();
 }
 
-DS_SIMD_START_FMA();
+DS_SIMD_START(DS_SIMD_FLOAT4,DS_SIMD_FMA);
 static void SIMDTest_FMAFloat4()
 {
 	constexpr float epsilon = 1e-6f;
@@ -1077,8 +1073,7 @@ TEST(SIMDTest, FMAFloat4)
 	SIMDTest_FMAFloat4();
 }
 
-DS_SIMD_START_DOUBLE2();
-DS_SIMD_START_FMA();
+DS_SIMD_START(DS_SIMD_DOUBLE2,DS_SIMD_FMA);
 static void SIMDTest_FMADouble2()
 {
 	constexpr double epsilon = 1e-12;
@@ -1112,7 +1107,6 @@ static void SIMDTest_FMADouble2()
 	EXPECT_NEAR(-cpuA.y*cpuB.y - cpuC.y, cpuResult.y, epsilon);
 }
 DS_SIMD_END();
-DS_SIMD_END();
 
 TEST(SIMDTest, FMADouble2)
 {
@@ -1132,8 +1126,7 @@ TEST(SIMDTest, FMADouble2)
 	SIMDTest_FMADouble2();
 }
 
-DS_SIMD_START_DOUBLE4();
-DS_SIMD_START_FMA();
+DS_SIMD_START(DS_SIMD_DOUBLE4,DS_SIMD_FMA);
 static void SIMDTest_FMADouble4()
 {
 	constexpr double epsilon = 1e-12;
@@ -1175,7 +1168,6 @@ static void SIMDTest_FMADouble4()
 	EXPECT_NEAR(-cpuA.w*cpuB.w - cpuC.w, cpuResult.w, epsilon);
 }
 DS_SIMD_END();
-DS_SIMD_END();
 
 TEST(SIMDTest, FMADouble4)
 {
@@ -1195,7 +1187,7 @@ TEST(SIMDTest, FMADouble4)
 	SIMDTest_FMADouble4();
 }
 
-DS_SIMD_START_HALF_FLOAT();
+DS_SIMD_START(DS_SIMD_FLOAT4,DS_SIMD_HALF_FLOAT);
 static void SIMDTest_HalfFloat()
 {
 	constexpr uint16_t unset = 0xFFFF;

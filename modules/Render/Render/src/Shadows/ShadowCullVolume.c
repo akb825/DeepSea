@@ -299,7 +299,7 @@ static inline void boxMatrixCorners(dsVector3f outCorners[DS_BOX3_CORNER_COUNT],
 }
 
 #if DS_HAS_SIMD
-DS_SIMD_START_FLOAT4()
+DS_SIMD_START(DS_SIMD_FLOAT4)
 static inline void boxMatrixCornersSIMD(dsVector4f outCorners[DS_BOX3_CORNER_COUNT],
 	const dsMatrix44f* boxMatrix)
 {
@@ -308,7 +308,7 @@ static inline void boxMatrixCornersSIMD(dsVector4f outCorners[DS_BOX3_CORNER_COU
 }
 DS_SIMD_END()
 
-DS_SIMD_START_FMA()
+DS_SIMD_START(DS_SIMD_FLOAT4,DS_SIMD_FMA)
 static inline void boxMatrixCornersFMA(dsVector4f outCorners[DS_BOX3_CORNER_COUNT],
 	const dsMatrix44f* boxMatrix)
 {
@@ -575,7 +575,7 @@ dsIntersectResult dsShadowCullVolume_intersectAlignedBox(const dsShadowCullVolum
 }
 
 #if DS_HAS_SIMD
-DS_SIMD_START_FLOAT4()
+DS_SIMD_START(DS_SIMD_FLOAT4)
 dsIntersectResult dsShadowCullVolume_intersectAlignedBoxSIMD(const dsShadowCullVolume* volume,
 	const dsAlignedBox3f* box, dsShadowProjection* shadowProj, bool clampToVolume)
 {
@@ -620,7 +620,7 @@ dsIntersectResult dsShadowCullVolume_intersectAlignedBoxSIMD(const dsShadowCullV
 }
 DS_SIMD_END()
 
-DS_SIMD_START_FMA()
+DS_SIMD_START(DS_SIMD_FLOAT4,DS_SIMD_FMA)
 dsIntersectResult dsShadowCullVolume_intersectAlignedBoxFMA(const dsShadowCullVolume* volume,
 	const dsAlignedBox3f* box, dsShadowProjection* shadowProj, bool clampToVolume)
 {
@@ -708,7 +708,7 @@ dsIntersectResult dsShadowCullVolume_intersectOrientedBox(const dsShadowCullVolu
 }
 
 #if DS_HAS_SIMD
-DS_SIMD_START_FLOAT4()
+DS_SIMD_START(DS_SIMD_FLOAT4)
 dsIntersectResult dsShadowCullVolume_intersectOrientedBoxSIMD(const dsShadowCullVolume* volume,
 	const dsOrientedBox3f* box, dsShadowProjection* shadowProj, bool clampToVolume)
 {
@@ -751,7 +751,7 @@ dsIntersectResult dsShadowCullVolume_intersectOrientedBoxSIMD(const dsShadowCull
 }
 DS_SIMD_END()
 
-DS_SIMD_START_FMA()
+DS_SIMD_START(DS_SIMD_FLOAT4,DS_SIMD_FMA)
 dsIntersectResult dsShadowCullVolume_intersectOrientedBoxFMA(const dsShadowCullVolume* volume,
 	const dsOrientedBox3f* box, dsShadowProjection* shadowProj, bool clampToVolume)
 {
@@ -839,7 +839,7 @@ dsIntersectResult dsShadowCullVolume_intersectBoxMatrix(const dsShadowCullVolume
 }
 
 #if DS_HAS_SIMD
-DS_SIMD_START_FLOAT4()
+DS_SIMD_START(DS_SIMD_FLOAT4)
 dsIntersectResult dsShadowCullVolume_intersectBoxMatrixSIMD(const dsShadowCullVolume* volume,
 	const dsMatrix44f* boxMatrix, dsShadowProjection* shadowProj, bool clampToVolume)
 {
@@ -884,7 +884,7 @@ dsIntersectResult dsShadowCullVolume_intersectBoxMatrixSIMD(const dsShadowCullVo
 }
 DS_SIMD_END()
 
-DS_SIMD_START_FMA()
+DS_SIMD_START(DS_SIMD_FLOAT4,DS_SIMD_FMA)
 dsIntersectResult dsShadowCullVolume_intersectBoxMatrixFMA(const dsShadowCullVolume* volume,
 	const dsMatrix44f* boxMatrix, dsShadowProjection* shadowProj, bool clampToVolume)
 {

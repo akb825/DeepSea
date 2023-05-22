@@ -410,7 +410,7 @@ DS_GEOMETRY_EXPORT inline dsIntersectResult dsPlane3f_intersectBoxMatrixTranspos
 }
 
 #if DS_HAS_SIMD
-DS_SIMD_START_FLOAT4()
+DS_SIMD_START(DS_SIMD_FLOAT4)
 DS_GEOMETRY_EXPORT inline dsIntersectResult dsPlane3f_intersectBoxMatrixTransposeSIMD(
 	const dsPlane3f* plane, const dsMatrix44f* boxMatrix)
 {
@@ -437,7 +437,7 @@ DS_GEOMETRY_EXPORT inline dsIntersectResult dsPlane3f_intersectBoxMatrixTranspos
 }
 DS_SIMD_END()
 
-DS_SIMD_START_FMA()
+DS_SIMD_START(DS_SIMD_FLOAT4,DS_SIMD_FMA)
 DS_GEOMETRY_EXPORT inline dsIntersectResult dsPlane3f_intersectBoxMatrixTransposeFMA(
 	const dsPlane3f* plane, const dsMatrix44f* boxMatrix)
 {

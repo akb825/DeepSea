@@ -271,7 +271,7 @@ static void collectParticles(dsParticleDraw* drawer, const dsMatrix44f* viewMatr
 }
 
 #if DS_HAS_SIMD
-DS_SIMD_START_HALF_FLOAT()
+DS_SIMD_START(DS_SIMD_FLOAT4,DS_SIMD_HALF_FLOAT)
 static bool populateParticleGeometrySIMD(dsParticleDraw* drawer, BufferInfo* bufferInfo,
 	uint32_t particleCount)
 {

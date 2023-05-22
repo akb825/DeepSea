@@ -301,7 +301,7 @@ bool dsShadowProjection_addPoints(dsShadowProjection* shadowProj, const dsVector
 }
 
 #if DS_HAS_SIMD
-DS_SIMD_START_FLOAT4()
+DS_SIMD_START(DS_SIMD_FLOAT4)
 void dsShadowProjection_addPointsSIMD(dsShadowProjection* shadowProj, const dsVector4f* points,
 	uint32_t pointCount)
 {
@@ -330,7 +330,7 @@ void dsShadowProjection_addPointsSIMD(dsShadowProjection* shadowProj, const dsVe
 }
 DS_SIMD_END()
 
-DS_SIMD_START_FMA()
+DS_SIMD_START(DS_SIMD_FLOAT4,DS_SIMD_FMA)
 void dsShadowProjection_addPointsFMA(dsShadowProjection* shadowProj, const dsVector4f* points,
 	uint32_t pointCount)
 {

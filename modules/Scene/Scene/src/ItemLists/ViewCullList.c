@@ -144,7 +144,7 @@ static void dsViewCullList_removeNode(dsSceneItemList* itemList, uint64_t nodeID
 }
 
 #if DS_HAS_SIMD
-DS_SIMD_START_FLOAT4()
+DS_SIMD_START(DS_SIMD_FLOAT4)
 static void dsViewCullList_commitSIMD(dsSceneItemList* itemList, const dsView* view,
 	dsCommandBuffer* commandBuffer)
 {
@@ -178,7 +178,7 @@ static void dsViewCullList_commitSIMD(dsSceneItemList* itemList, const dsView* v
 }
 DS_SIMD_END()
 
-DS_SIMD_START_FMA()
+DS_SIMD_START(DS_SIMD_FLOAT4,DS_SIMD_FMA)
 static void dsViewCullList_commitFMA(dsSceneItemList* itemList, const dsView* view,
 	dsCommandBuffer* commandBuffer)
 {

@@ -191,7 +191,7 @@ static uint32_t buildTreeRec(dsAllocator* allocator, uint32_t* nextIndex, uint32
 }
 
 #if DS_HAS_SIMD
-DS_SIMD_START_FLOAT4()
+DS_SIMD_START(DS_SIMD_FLOAT4)
 static inline void updateTransformSIMD(dsAnimationTree* tree, dsAnimationNode* node)
 {
 	dsMatrix44f scale;
@@ -236,7 +236,7 @@ static void updateJointTransformsSIMD(dsAnimationTree* tree)
 }
 DS_SIMD_END()
 
-DS_SIMD_START_FMA()
+DS_SIMD_START(DS_SIMD_FLOAT4,DS_SIMD_FMA)
 static inline void updateTransformFMA(dsAnimationTree* tree, dsAnimationNode* node)
 {
 	dsMatrix44f scale;

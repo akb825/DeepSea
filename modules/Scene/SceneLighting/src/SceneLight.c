@@ -96,7 +96,7 @@ static float getLightRadius(const dsSceneLight* light, float intensityThreshold)
 }
 
 #if DS_HAS_SIMD
-DS_SIMD_START_HALF_FLOAT()
+DS_SIMD_START(DS_SIMD_FLOAT4,DS_SIMD_HALF_FLOAT)
 static inline void packAmbientSIMD(dsHalfFloat* result, const dsVector3f* ambient)
 {
 	dsSIMD4hf_store4(result,

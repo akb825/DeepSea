@@ -220,7 +220,7 @@ DS_MATH_EXPORT inline void dsMatrix44f_inverseTransposeSIMD(dsVector4f result[3]
 DS_MATH_EXPORT inline void dsMatrix44f_inverseTransposeFMA(dsVector4f result[3],
 	const dsMatrix44f* a);
 
-DS_SIMD_START_FLOAT4()
+DS_SIMD_START(DS_SIMD_FLOAT4)
 
 #if DS_X86_32 || DS_X86_64
 #define DS_SIMD_TRANSPOSE_33(elem0, elem1, elem2) \
@@ -744,7 +744,7 @@ DS_MATH_EXPORT inline void dsMatrix44f_inverseTransposeSIMD(dsVector4f result[3]
 
 DS_SIMD_END()
 
-DS_SIMD_START_FMA()
+DS_SIMD_START(DS_SIMD_FLOAT4,DS_SIMD_FMA)
 
 #define DS_MATRIX22_MUL(result, a, b) \
 	do \

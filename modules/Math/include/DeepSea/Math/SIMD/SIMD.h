@@ -62,30 +62,53 @@
 #define DS_SIMD_ALWAYS_HALF_FLOAT 0
 
 /**
- * @brief Starts a block that uses 4-float SIMD instructions.
+ * @brief Token to enable 4-float SIMD instructions.
+ *
+ * This should be provided as an argument to DS_SIMD_START().
  */
-#define DS_SIMD_START_FLOAT4()
+#define DS_SIMD_FLOAT4
 
 /**
- * @brief Starts a block that uses horizontal add SIMD instructions.
+ * @brief Token to enable 2-double SIMD instructions.
  *
- * This implies DS_SIMD_START_FLOAT4().
+ * This should be provided as an argument to DS_SIMD_START().
  */
-#define DS_SIMD_START_HADD()
+#define DS_SIMD_DOUBLE2
 
 /**
- * @brief Starts a block that uses fused multiply-add SIMD instructions.
+ * @brief Token to enable 4-double SIMD instructions.
  *
- * This implies DS_SIMD_START_FLOAT4().
+ * This should be provided as an argument to DS_SIMD_START().
  */
-#define DS_SIMD_START_FMA()
+#define DS_SIMD_DOUBLE4
 
 /**
- * @brief Starts a block that uses half-float SIMD instructions.
+ * @brief Token to enable horizontal add SIMD instructions.
  *
- * This implies DS_SIMD_START_FLOAT4().
+ * This should be provided as an argument to DS_SIMD_START().
  */
-#define DS_SIMD_START_HALF_FLOAT()
+#define DS_SIMD_HADD
+
+/**
+ * @brief Token to enable fused multiply-add SIMD instructions.
+ *
+ * This should be provided as an argument to DS_SIMD_START().
+ */
+#define DS_SIMD_FMA
+
+/**
+ * @brief Token to enable half-float SIMD instructions.
+ *
+ * This should be provided as an argument to DS_SIMD_START().
+ */
+#define DS_SIMD_HALF_FLOAT
+
+/**
+ * @brief Starts a block that uses SIMD instructions.
+ * @remark Due to limitations with the preprocessor and GCC pragmas, the parameters MUST NOT
+ * be separated by spaces.
+ */
+#define DS_SIMD_START(...)
 
 /**
  * @brief Ends a previous SIMD start block.

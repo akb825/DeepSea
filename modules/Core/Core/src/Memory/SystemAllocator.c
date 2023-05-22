@@ -58,7 +58,7 @@ inline static size_t adjustSize(size_t size, unsigned int alignment)
 {
 #if NO_MALLOC_SIZE
 	if (alignment < sizeof(dsMallocInfo))
-		alignment = sizeof(dsMallocInfo);
+		alignment = (unsigned int)sizeof(dsMallocInfo);
 	return size + alignment;
 #else
 	DS_UNUSED(alignment);
@@ -75,6 +75,8 @@ inline static void* adjustPointer(void* ptr, size_t size, unsigned int alignment
 #if DS_64BIT
 	DS_ASSERT(size < (2ULL << 48));
 #endif
+	if (alignment < sizeof(dsMallocInfo))
+		alignment = (unsigned int)sizeof(dsMallocInfo);
 	DS_ASSERT(alignment < (2U << 16));
 
 	dsMallocInfo* mallocInfo = (dsMallocInfo*)((uint8_t*)ptr + alignment - sizeof(dsMallocInfo));

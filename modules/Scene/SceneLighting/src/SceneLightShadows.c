@@ -726,7 +726,7 @@ dsIntersectResult dsSceneLightShadows_intersectAlignedBox(dsSceneLightShadows* s
 }
 
 #if DS_HAS_SIMD
-DS_SIMD_START_FLOAT4()
+DS_SIMD_START(DS_SIMD_FLOAT4)
 dsIntersectResult dsSceneLightShadows_intersectAlignedBoxSIMD(dsSceneLightShadows* shadows,
 	uint32_t surface, const dsAlignedBox3f* box)
 {
@@ -748,7 +748,7 @@ dsIntersectResult dsSceneLightShadows_intersectAlignedBoxSIMD(dsSceneLightShadow
 }
 DS_SIMD_END()
 
-DS_SIMD_START_FMA()
+DS_SIMD_START(DS_SIMD_FLOAT4,DS_SIMD_FMA)
 dsIntersectResult dsSceneLightShadows_intersectAlignedBoxFMA(dsSceneLightShadows* shadows,
 	uint32_t surface, const dsAlignedBox3f* box)
 {
@@ -790,7 +790,7 @@ dsIntersectResult dsSceneLightShadows_intersectOrientedBox(dsSceneLightShadows* 
 }
 
 #if DS_HAS_SIMD
-DS_SIMD_START_FLOAT4()
+DS_SIMD_START(DS_SIMD_FLOAT4)
 dsIntersectResult dsSceneLightShadows_intersectOrientedBoxSIMD(dsSceneLightShadows* shadows,
 	uint32_t surface, const dsOrientedBox3f* box)
 {
@@ -810,7 +810,7 @@ dsIntersectResult dsSceneLightShadows_intersectOrientedBoxSIMD(dsSceneLightShado
 }
 DS_SIMD_END()
 
-DS_SIMD_START_FLOAT4()
+DS_SIMD_START(DS_SIMD_FLOAT4,DS_SIMD_FMA)
 dsIntersectResult dsSceneLightShadows_intersectOrientedBoxFMA(dsSceneLightShadows* shadows,
 	uint32_t surface, const dsOrientedBox3f* box)
 {
@@ -852,7 +852,7 @@ dsIntersectResult dsSceneLightShadows_intersectBoxMatrix(dsSceneLightShadows* sh
 }
 
 #if DS_HAS_SIMD
-DS_SIMD_START_FLOAT4()
+DS_SIMD_START(DS_SIMD_FLOAT4)
 dsIntersectResult dsSceneLightShadows_intersectBoxMatrixSIMD(dsSceneLightShadows* shadows,
 	uint32_t surface, const dsMatrix44f* boxMatrix)
 {
@@ -874,7 +874,7 @@ dsIntersectResult dsSceneLightShadows_intersectBoxMatrixSIMD(dsSceneLightShadows
 }
 DS_SIMD_END()
 
-DS_SIMD_START_FLOAT4()
+DS_SIMD_START(DS_SIMD_FLOAT4,DS_SIMD_FMA)
 dsIntersectResult dsSceneLightShadows_intersectBoxMatrixFMA(dsSceneLightShadows* shadows,
 	uint32_t surface, const dsMatrix44f* boxMatrix)
 {
@@ -930,7 +930,7 @@ dsIntersectResult dsSceneLightShadows_intersectViewAlignedBox(dsSceneLightShadow
 }
 
 #if DS_HAS_SIMD
-DS_SIMD_START_FLOAT4()
+DS_SIMD_START(DS_SIMD_FLOAT4)
 dsIntersectResult dsSceneLightShadows_intersectViewAlignedBoxSIMD(dsSceneLightShadows* shadows,
 	uint32_t surface, const dsAlignedBox3f* box)
 {
@@ -948,7 +948,7 @@ dsIntersectResult dsSceneLightShadows_intersectViewAlignedBoxSIMD(dsSceneLightSh
 }
 DS_SIMD_END()
 
-DS_SIMD_START_FMA()
+DS_SIMD_START(DS_SIMD_FLOAT4,DS_SIMD_FMA)
 dsIntersectResult dsSceneLightShadows_intersectViewAlignedBoxFMA(dsSceneLightShadows* shadows,
 	uint32_t surface, const dsAlignedBox3f* box)
 {
@@ -982,7 +982,7 @@ dsIntersectResult dsSceneLightShadows_intersectViewOrientedBox(dsSceneLightShado
 }
 
 #if DS_HAS_SIMD
-DS_SIMD_START_FLOAT4()
+DS_SIMD_START(DS_SIMD_FLOAT4)
 dsIntersectResult dsSceneLightShadows_intersectViewOrientedBoxSIMD(dsSceneLightShadows* shadows,
 	uint32_t surface, const dsOrientedBox3f* box)
 {
@@ -998,7 +998,7 @@ dsIntersectResult dsSceneLightShadows_intersectViewOrientedBoxSIMD(dsSceneLightS
 }
 DS_SIMD_END()
 
-DS_SIMD_START_FMA()
+DS_SIMD_START(DS_SIMD_FLOAT4,DS_SIMD_FMA)
 dsIntersectResult dsSceneLightShadows_intersectViewOrientedBoxFMA(dsSceneLightShadows* shadows,
 	uint32_t surface, const dsOrientedBox3f* box)
 {
@@ -1033,7 +1033,7 @@ dsIntersectResult dsSceneLightShadows_intersectViewBoxMatrix(dsSceneLightShadows
 }
 
 #if DS_HAS_SIMD
-DS_SIMD_START_FLOAT4()
+DS_SIMD_START(DS_SIMD_FLOAT4)
 dsIntersectResult dsSceneLightShadows_intersectViewBoxMatrixSIMD(dsSceneLightShadows* shadows,
 	uint32_t surface, const dsMatrix44f* boxMatrix)
 {
@@ -1052,7 +1052,7 @@ dsIntersectResult dsSceneLightShadows_intersectViewBoxMatrixSIMD(dsSceneLightSha
 }
 DS_SIMD_END()
 
-DS_SIMD_START_FMA()
+DS_SIMD_START(DS_SIMD_FLOAT4,DS_SIMD_FMA)
 dsIntersectResult dsSceneLightShadows_intersectViewBoxMatrixFMA(dsSceneLightShadows* shadows,
 	uint32_t surface, const dsMatrix44f* boxMatrix)
 {

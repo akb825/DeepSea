@@ -40,12 +40,13 @@ extern "C"
 #define DS_HAS_SIMD 1
 
 /// @cond
-#define DS_SIMD_START_FLOAT4()
-#define DS_SIMD_START_DOUBLE2()
-#define DS_SIMD_START_DOUBLE4()
-#define DS_SIMD_START_HADD()
-#define DS_SIMD_START_FMA()
-#define DS_SIMD_START_HALF_FLOAT()
+#define DS_SIMD_FLOAT4
+#define DS_SIMD_DOUBLE2
+#define DS_SIMD_DOUBLE4
+#define DS_SIMD_HADD
+#define DS_SIMD_FMA
+#define DS_SIMD_HALF_FLOAT
+#define DS_SIMD_START(...)
 #define DS_SIMD_END()
 
 #define DS_SIMD_ALWAYS_FLOAT4 1
