@@ -54,8 +54,6 @@ TEST(BufferAllocator, Allocate)
 
 	dsBufferAllocator allocator;
 	ASSERT_TRUE(dsBufferAllocator_initialize(&allocator, buffer, bufferSize));
-	EXPECT_EQ(NULL, dsAllocator_alloc((dsAllocator*)&allocator, 0));
-	EXPECT_NULL_ERRNO(EINVAL, dsBufferAllocator_alloc(&allocator, 10, DS_ALLOC_ALIGNMENT*2));
 
 	void* ptr1 = dsAllocator_alloc((dsAllocator*)&allocator, 10);
 	EXPECT_NE(nullptr, ptr1);
@@ -86,6 +84,47 @@ TEST(BufferAllocator, Allocate)
 	EXPECT_NULL_ERRNO(ENOMEM, dsAllocator_alloc((dsAllocator*)&allocator, 1));
 	EXPECT_EQ(4U, ((dsAllocator*)&allocator)->totalAllocations);
 	EXPECT_EQ(4U, ((dsAllocator*)&allocator)->currentAllocations);
+}
+
+TEST(BufferAllocator, AlignedAllocate)
+{
+	const unsigned int bufferSize = 192;
+	DS_ALIGN(DS_ALLOC_ALIGNMENT) uint8_t buffer[bufferSize];
+
+	dsBufferAllocator allocator;
+	ASSERT_TRUE(dsBufferAllocator_initialize(&allocator, buffer, bufferSize));
+
+	void* ptr1 = dsAllocator_alloc((dsAllocator*)&allocator, 10);
+	EXPECT_NE(nullptr, ptr1);
+	EXPECT_EQ(10U, ((dsAllocator*)&allocator)->size);
+	EXPECT_EQ(1U, ((dsAllocator*)&allocator)->totalAllocations);
+	EXPECT_EQ(1U, ((dsAllocator*)&allocator)->currentAllocations);
+
+	void* ptr2 = dsAllocator_alloc((dsAllocator*)&allocator, 30);
+	EXPECT_EQ((uintptr_t)ptr1 + 16, (uintptr_t)ptr2);
+	EXPECT_EQ(46U, ((dsAllocator*)&allocator)->size);
+	EXPECT_EQ(2U, ((dsAllocator*)&allocator)->totalAllocations);
+	EXPECT_EQ(2U, ((dsAllocator*)&allocator)->currentAllocations);
+
+	void* ptr3 = dsAllocator_alloc((dsAllocator*)&allocator, 40);
+	EXPECT_EQ((uintptr_t)ptr1 + 48, (uintptr_t)ptr3);
+	EXPECT_EQ(88U, ((dsAllocator*)&allocator)->size);
+	EXPECT_EQ(3U, ((dsAllocator*)&allocator)->totalAllocations);
+	EXPECT_EQ(3U, ((dsAllocator*)&allocator)->currentAllocations);
+
+	void* ptr4 = dsAllocator_alloc((dsAllocator*)&allocator, 1);
+	EXPECT_EQ((uintptr_t)ptr1 + 96, (uintptr_t)ptr4);
+	EXPECT_EQ(97U, ((dsAllocator*)&allocator)->size);
+	EXPECT_EQ(4U, ((dsAllocator*)&allocator)->totalAllocations);
+	EXPECT_EQ(4U, ((dsAllocator*)&allocator)->currentAllocations);
+
+	void* ptr5 = dsAllocator_alignedAlloc((dsAllocator*)&allocator, 16, 64);
+	EXPECT_NE(nullptr, ptr5);
+	EXPECT_EQ(0U, (uintptr_t)ptr5 % 64);
+	size_t size = ((dsAllocator*)&allocator)->size;
+	EXPECT_TRUE(size == 144 || size == 160 || size == 176 || size == 192);
+	EXPECT_EQ(5U, ((dsAllocator*)&allocator)->totalAllocations);
+	EXPECT_EQ(5U, ((dsAllocator*)&allocator)->currentAllocations);
 }
 
 TEST(BufferAllocator, Reset)

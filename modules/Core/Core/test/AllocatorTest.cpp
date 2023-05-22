@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,26 @@ TEST(Allocator, AlignedSize)
 	EXPECT_EQ(32U, DS_ALIGNED_SIZE(17U));
 }
 
+TEST(Allocator, CustomAlignedSize)
+{
+	EXPECT_EQ(32U, DS_CUSTOM_ALIGNED_SIZE(1U, 32U));
+	EXPECT_EQ(32U, DS_CUSTOM_ALIGNED_SIZE(32U, 32U));
+	EXPECT_EQ(64U, DS_CUSTOM_ALIGNED_SIZE(33U, 32U));
+}
+
+TEST(Allocator, RealignedSize)
+{
+	EXPECT_EQ(16U, DS_REALIGNED_SIZE(16U, DS_ALLOC_ALIGNMENT));
+	EXPECT_EQ(32U, DS_REALIGNED_SIZE(17U, DS_ALLOC_ALIGNMENT));
+	EXPECT_EQ(48U, DS_REALIGNED_SIZE(33U, DS_ALLOC_ALIGNMENT));
+
+	EXPECT_EQ(48U, DS_REALIGNED_SIZE(16U, 32U));
+	EXPECT_EQ(48U, DS_REALIGNED_SIZE(17U, 32U));
+	EXPECT_EQ(80U, DS_REALIGNED_SIZE(33U, 32U));
+
+	EXPECT_EQ(112U, DS_REALIGNED_SIZE(1U, 64U));
+}
+
 TEST(Allocator, Empty)
 {
 	dsAllocator allocator = {};
@@ -45,6 +65,21 @@ TEST(Allocator, NoFree)
 	ASSERT_NE(nullptr, ptr);
 	EXPECT_FALSE(dsAllocator_free(allocator, ptr));
 	EXPECT_TRUE(dsSystemAllocator_free(&systemAllocator, ptr));
+}
+
+TEST(Allocator, AlignedAlloc)
+{
+	dsSystemAllocator systemAllocator;
+	ASSERT_TRUE(dsSystemAllocator_initialize(&systemAllocator, DS_ALLOCATOR_NO_LIMIT));
+
+	dsAllocator* allocator = (dsAllocator*)&systemAllocator;
+
+	void* ptr = dsAllocator_alignedAlloc(allocator, 100, 32);
+	EXPECT_NE(nullptr, ptr);
+	EXPECT_TRUE(dsAllocator_free(allocator, ptr));
+
+	ptr = dsAllocator_alignedAlloc(allocator, 100, 48);
+	EXPECT_EQ(nullptr, ptr);
 }
 
 TEST(Allocator, ReallocWithFallbackUsingRealloc)

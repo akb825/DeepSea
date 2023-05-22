@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,6 +49,14 @@ extern "C"
 #endif
 
 /**
+ * @brief Gets the aligned size for a custom alignment.
+ * @param x The original size.
+ * @param alignment The alignment. This must be a power of two.
+ * @return The aligned size.
+ */
+#define DS_CUSTOM_ALIGNED_SIZE(x, alignment) (((x) + (alignment) - 1) & ~(((size_t)alignment) - 1))
+
+/**
  * @brief Gets the aligned size of an object.
  *
  * This can be used to calculate the amount of space to allocate to preserve alignment according to
@@ -58,15 +66,16 @@ extern "C"
  * @param x The original size.
  * @return The aligned size.
  */
-#define DS_ALIGNED_SIZE(x) (((x) + DS_ALLOC_ALIGNMENT - 1) & ~(DS_ALLOC_ALIGNMENT - 1))
+#define DS_ALIGNED_SIZE(x) DS_CUSTOM_ALIGNED_SIZE(x, DS_ALLOC_ALIGNMENT)
 
 /**
- * @brief Gets the aligned size for a custom alignment.
+ * @brief Gets the size when re-aligning from the default alignment to a custom alignment.
  * @param x The original size.
- * @param alignment The alignment.
+ * @param alignment The alignment. This must be a power of two and >= DS_ALLOC_ALIGNMENT.
  * @return The aligned size.
  */
-#define DS_CUSTOM_ALIGNED_SIZE(x, alignment) ((((x) + (alignment) - 1)/(alignment))*(alignment))
+#define DS_REALIGNED_SIZE(x, alignment) \
+	(DS_CUSTOM_ALIGNED_SIZE(x, alignment) + ((alignment) - DS_ALLOC_ALIGNMENT))
 
 #ifdef __cplusplus
 }

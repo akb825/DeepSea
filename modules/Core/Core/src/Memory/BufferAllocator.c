@@ -41,11 +41,16 @@ bool dsBufferAllocator_initialize(dsBufferAllocator* allocator, void* buffer, si
 
 void* dsBufferAllocator_alloc(dsBufferAllocator* allocator, size_t size, unsigned int alignment)
 {
-	if (!allocator || !size || alignment > DS_ALLOC_ALIGNMENT)
+	if (!allocator || size == 0 || alignment == 0)
 	{
 		errno = EINVAL;
 		return NULL;
 	}
+
+	size_t alignmentOffset = 0;
+	uintptr_t bufferRem = ((uintptr_t)allocator->buffer & (alignment - 1));
+	if (bufferRem > 0)
+		alignmentOffset = alignment - bufferRem;
 
 	// Use atomic operations to allow for thread safety.
 	// PTR is the same size is size_t.
@@ -53,7 +58,7 @@ void* dsBufferAllocator_alloc(dsBufferAllocator* allocator, size_t size, unsigne
 	DS_ATOMIC_LOAD_SIZE(&((dsAllocator*)allocator)->size, &curSize);
 	do
 	{
-		offset = DS_ALIGNED_SIZE(curSize);
+		offset = alignmentOffset + DS_CUSTOM_ALIGNED_SIZE(curSize, alignment);
 		if (offset + size > allocator->bufferSize)
 		{
 			errno = ENOMEM;

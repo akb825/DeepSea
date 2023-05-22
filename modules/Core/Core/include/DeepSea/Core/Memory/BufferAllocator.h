@@ -50,8 +50,8 @@ DS_CORE_EXPORT bool dsBufferAllocator_initialize(dsBufferAllocator* allocator, v
  * @remark errno will be set on failure.
  * @param allocator The allocator to allocate from.
  * @param size The size to allocate.
- * @param alignment The minimum alignment of the allocation. This will fail if it is greater than
- *     DS_ALLOC_ALIGNMENT.
+ * @param alignment The minimum alignment of the allocation. This may need to use additional space
+ *     to align the memory. Use DS_REALIGNED_SIZE() to compute the size to take this into account.
  * @return The allocated memory or NULL if an error occured.
  */
 DS_CORE_EXPORT void* dsBufferAllocator_alloc(dsBufferAllocator* allocator, size_t size,

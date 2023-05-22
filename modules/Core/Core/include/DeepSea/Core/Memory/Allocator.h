@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,8 @@
 #pragma once
 
 #include <DeepSea/Core/Config.h>
+
+#include <DeepSea/Core/Bits.h>
 #include <DeepSea/Core/Memory/Memory.h>
 #include <DeepSea/Core/Memory/Types.h>
 #include <DeepSea/Core/Error.h>
@@ -67,6 +69,17 @@ extern "C"
  * @return The allocated memory or NULL if an error occured or size is 0.
  */
 DS_CORE_EXPORT inline void* dsAllocator_alloc(dsAllocator* allocator, size_t size);
+
+/**
+ * @brief Allocates aligned memory from the allocator.
+ * @remark errno will be set on failure.
+ * @param allocator The allocator to allocate from.
+ * @param size The size to allocate.
+ * @param alignment The alignment to allocate. This must be a power of two.
+ * @return The allocated memory or NULL if an error occured or size is 0.
+ */
+DS_CORE_EXPORT inline void* dsAllocator_alignedAlloc(dsAllocator* allocator, size_t size,
+	unsigned int alignment);
 
 /**
  * @brief Re-allocates memory from the allocator.
@@ -132,6 +145,21 @@ inline void* dsAllocator_alloc(dsAllocator* allocator, size_t size)
 		return NULL;
 
 	return allocator->allocFunc(allocator, size, DS_ALLOC_ALIGNMENT);
+}
+
+inline void* dsAllocator_alignedAlloc(dsAllocator* allocator, size_t size, unsigned int alignment)
+{
+	if (!allocator || !allocator->allocFunc || alignment == 0 ||
+		(unsigned int)(1 << (32 - dsClz(alignment - 1))) != alignment)
+	{
+		errno = EINVAL;
+		return NULL;
+	}
+
+	if (size == 0)
+		return NULL;
+
+	return allocator->allocFunc(allocator, size, alignment);
 }
 
 inline void* dsAllocator_realloc(dsAllocator* allocator, void* ptr, size_t size)

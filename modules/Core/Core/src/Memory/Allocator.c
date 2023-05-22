@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,6 +49,7 @@ void* dsAllocator_reallocWithFallback(dsAllocator* allocator, void* ptr, size_t 
 }
 
 void* dsAllocator_alloc(dsAllocator* allocator, size_t size);
+void* dsAllocator_alignedAlloc(dsAllocator* allocator, size_t size, unsigned int alignment);
 void* dsAllocator_realloc(dsAllocator* allocator, void* ptr, size_t size);
 bool dsAllocator_free(dsAllocator* allocator, void* ptr);
 dsAllocator* dsAllocator_keepPointer(dsAllocator* allocator);
