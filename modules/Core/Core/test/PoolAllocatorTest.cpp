@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -88,7 +88,7 @@ TEST(PoolAllocator, AllocateFree)
 
 	EXPECT_EQ(NULL, dsAllocator_alloc((dsAllocator*)&allocator, 0));
 	EXPECT_NULL_ERRNO(EINVAL, dsAllocator_alloc((dsAllocator*)&allocator, 33));
-	EXPECT_NULL_ERRNO(EINVAL, dsPoolAllocator_alloc(&allocator, chunkSize, 32));
+	EXPECT_NULL_ERRNO(EINVAL, dsPoolAllocator_alloc(&allocator, chunkSize, DS_ALLOC_ALIGNMENT*2));
 
 	void* ptr1 = dsAllocator_alloc((dsAllocator*)&allocator, chunkSize);
 	EXPECT_EQ(buffer, ptr1);

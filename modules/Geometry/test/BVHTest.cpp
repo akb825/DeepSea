@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+#include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/SystemAllocator.h>
 #include <DeepSea/Geometry/AlignedBox2.h>
 #include <DeepSea/Geometry/AlignedBox3.h>
@@ -315,6 +316,19 @@ public:
 	{
 		auto* counts = reinterpret_cast<std::pair<int, int>*>(userData);
 		return ++counts->first < counts->second;
+	}
+
+	TestObject* newTestObject(int minX, int minY, int minZ, int maxX, int maxY, int maxZ, int data)
+	{
+		TestObject* object = DS_ALLOCATE_OBJECT(&allocator, TestObject);
+		object->bounds = SelectorT::createBounds(minX, minY, minZ, maxX, maxY, maxZ);
+		object->data = data;
+		return object;
+	}
+
+	void deleteTestObject(TestObject* object)
+	{
+		dsAllocator_free(reinterpret_cast<dsAllocator*>(&allocator), object);
 	}
 
 	dsSystemAllocator allocator;
@@ -727,10 +741,10 @@ TYPED_TEST(BVHTest, ObjectPointer)
 
 	TestObject* data[] =
 	{
-		new TestObject{TestFixture::createBounds(-2, -2, 0, -1, -1, 0), 0},
-		new TestObject{TestFixture::createBounds( 1, -2, 0,  2, -1, 0), 1},
-		new TestObject{TestFixture::createBounds(-2,  1, 0, -1,  2, 0), 2},
-		new TestObject{TestFixture::createBounds( 1,  1, 0,  2,  2, 0), 3}
+		fixture->newTestObject(-2, -2, 0, -1, -1, 0, 0),
+		fixture->newTestObject( 1, -2, 0,  2, -1, 0, 1),
+		fixture->newTestObject(-2,  1, 0, -1,  2, 0, 2),
+		fixture->newTestObject( 1,  1, 0,  2,  2, 0, 3)
 	};
 
 	EXPECT_TRUE(dsBVH_empty(bvh));
@@ -787,7 +801,7 @@ TYPED_TEST(BVHTest, ObjectPointer)
 	dsBVH_destroy(bvh);
 
 	for (TestObject* object : data)
-		delete object;
+		fixture->deleteTestObject(object);
 }
 
 TYPED_TEST(BVHTest, ObjectIndex)

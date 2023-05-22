@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Aaron Barany
+ * Copyright 2022-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,6 +43,7 @@ static dsSIMDFeatures detectSIMDFeatures()
 	// Function 1, ecx
 	const int sse3Bit = 1;
 	const int fmaBit = 1 << 12;
+	const int avxBit = 1 << 29;
 	const int f16cBit = 1 << 29;
 
 	dsSIMDFeatures features = dsSIMDFeatures_None;
@@ -55,10 +56,14 @@ static dsSIMDFeatures detectSIMDFeatures()
 		return features;
 
 	features |= dsSIMDFeatures_Float4;
+	if (edx & sse2Bit)
+		features |= dsSIMDFeatures_Double2;
 	if (ecx & sse3Bit)
 		features |= dsSIMDFeatures_HAdd;
 	if (ecx & fmaBit)
 		features |= dsSIMDFeatures_FMA;
+	if (ecx & avxBit)
+		features |= dsSIMDFeatures_Double4;
 	if ((edx & sse2Bit) && (ecx & f16cBit))
 		features |= dsSIMDFeatures_HalfFloat;
 
@@ -67,8 +72,12 @@ static dsSIMDFeatures detectSIMDFeatures()
 #else
 static dsSIMDFeatures detectSIMDFeatures()
 {
-	return dsSIMDFeatures_Float4 | dsSIMDFeatures_HAdd | dsSIMDFeatures_FMA |
+	dsSIMDFeatures features =  dsSIMDFeatures_Float4 | dsSIMDFeatures_HAdd | dsSIMDFeatures_FMA |
 		dsSIMDFeatures_HalfFloat;
+#if DS_ARM_64
+	features |= dsSIMDFeatures_Double2;
+#endif
+	return features;
 }
 #endif
 

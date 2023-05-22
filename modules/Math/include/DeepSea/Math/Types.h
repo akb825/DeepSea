@@ -132,6 +132,13 @@ typedef union dsVector2d
 	 */
 	double values[2];
 
+	/**
+	 * @brief SIMD value when supported.
+	 */
+#if DS_HAS_SIMD
+	dsSIMD2d simd;
+#endif
+
 	struct
 	{
 		/**
@@ -223,6 +230,67 @@ typedef union dsVector2i
 		int g;
 	};
 } dsVector2i;
+
+/**
+ * @brief Structure for a 2D vector holding 64-bit longs.
+ *
+ * This can be accessed using cartesian coordinates (x, y), texture coordinates (s, t), color
+ * channels (r, g), or an array of values.
+ *
+ * @remark When bracket initializing, use two brackets. (i.e. {{x, y}})
+ * @see Vector2.h
+ */
+typedef union dsVector2l
+{
+	/**
+	 * @brief Array of the vector values.
+	 */
+	long long values[2];
+
+	/**
+	 * @brief SIMD value when supported.
+	 */
+#if DS_HAS_SIMD
+	dsSIMD2db simd;
+#endif
+
+	struct
+	{
+		/**
+		 * @brief The x coordinate.
+		 */
+		long long x;
+
+		/**
+		 * @brief The y coordinate.
+		 */
+		long long y;
+	};
+	struct
+	{
+		/**
+		 * @brief The s coordinate.
+		 */
+		long long s;
+
+		/**
+		 * @brief The t coordinate.
+		 */
+		long long t;
+	};
+	struct
+	{
+		/**
+		 * @brief The red component.
+		 */
+		long long r;
+
+		/**
+		 * @brief The green component.
+		 */
+		long long g;
+	};
+} dsVector2l;
 
 /**
  * @brief Structure for a 3D vector holding floats.
@@ -438,6 +506,77 @@ typedef union dsVector3i
 } dsVector3i;
 
 /**
+ * @brief Structure for a 3D vector holding 64-bit longs.
+ *
+ * This can be accessed using cartesian coordinates (x, y, z), texture coordinates (s, t, p), color
+ * channels (r, g, b), or an array of values.
+ *
+ * Note that p is used in place of r for texture coordinates to avoid naming conflicts.
+ *
+ * @remark When bracket initializing, use two brackets. (i.e. {{x, y, z}})
+ * @see Vector3.h
+ */
+typedef union dsVector3l
+{
+	/**
+	  * @brief Array of the vector values.
+	  */
+	long long values[3];
+
+	struct
+	{
+		/**
+		 * @brief The x coordinate.
+		 */
+		long long x;
+
+		/**
+		 * @brief The y coordinate.
+		 */
+		long long y;
+
+		/**
+		 * @brief The z coordinate.
+		 */
+		long long z;
+	};
+	struct
+	{
+		/**
+		 * @brief The s coordinate.
+		 */
+		long long s;
+
+		/**
+		 * @brief The t coordinate.
+		 */
+		long long t;
+
+		/**
+		 * @brief The p coordinate. (often referred to as r)
+		 */
+		long long p;
+	};
+	struct
+	{
+		/**
+		 * @brief The red component.
+		 */
+		long long r;
+
+		/**
+		 * @brief The green component.
+		 */
+		long long g;
+
+		/**
+		 * @brief The blue component.
+		 */
+		long long b;
+	};
+} dsVector3l;
+
+/**
  * @brief Structure for a 4D vector holding floats.
  *
  * This can be accessed using cartesian coordinates (x, y, z, w), texture coordinates (s, t, p, q),
@@ -539,7 +678,9 @@ typedef union dsVector4f
  * Note that p is used in place of r for texture coordinates to avoid naming conflicts.
  *
  * @remark When bracket initializing, use two brackets. (i.e. {{x, y, z, w}})
- * @remark This will be 16 byte aligned when SIMD is supported.
+ * @remark This will be 16 byte aligned when SIMD is supported. Usage with dsSIMD4d must be done
+ *     manually, either using an unaligned load or manual alignment with DS_ALIGN() and allocation
+ *     alignment.
  * @see Vector4.h
  */
 typedef union dsVector4d
@@ -548,6 +689,13 @@ typedef union dsVector4d
 	 * @brief Array of the vector values.
 	 */
 	double values[4];
+
+#if DS_HAS_SIMD
+	/**
+	 * @brief SIMD value as 2 doubles when supported.
+	 */
+	dsSIMD2d simd2[2];
+#endif
 
 	struct
 	{
@@ -636,11 +784,11 @@ typedef union dsVector4i
 	 */
 	int values[4];
 
-	/**
-	 * @brief SIMD value for storing the result of boolean operations when supported.
-	 */
 #if DS_HAS_SIMD
-	dsSIMD4b simd;
+	/**
+	 * @brief SIMD value when supported.
+	 */
+	dsSIMD4fb simd;
 #endif
 
 	struct
@@ -710,6 +858,102 @@ typedef union dsVector4i
 		int a;
 	};
 } dsVector4i;
+
+/**
+ * @brief Structure for a 4D vector holding 64-bit longs.
+ *
+ * This can be accessed using cartesian coordinates (x, y, z, w), texture coordinates (s, t, p, q),
+ * colors channels (r, g, b, a), or an array of values.
+ *
+ * Note that p is used in place of r for texture coordinates to avoid naming conflicts.
+ *
+ * @remark When bracket initializing, use two brackets. (i.e. {{x, y, z, w}})
+ * @remark This will be 16 byte aligned when SIMD is supported. Usage with dsSIMD4db must be done
+ *     manually, either using an unaligned load or manual alignment with DS_ALIGN() and allocation
+ *     alignment.
+ * @see Vector4.h
+ */
+typedef union dsVector4l
+{
+	/**
+	 * @brief Array of the vector values.
+	 */
+	long long values[4];
+
+#if DS_HAS_SIMD
+	/**
+	 * @brief SIMD value as 2 doubles when supported.
+	 */
+	dsSIMD2db simd2[2];
+#endif
+
+	struct
+	{
+		/**
+		 * @brief The x coordinate.
+		 */
+		long long x;
+
+		/**
+		 * @brief The y coordinate.
+		 */
+		long long y;
+
+		/**
+		 * @brief The z coordinate.
+		 */
+		long long z;
+
+		/**
+		 * @brief The w coordinate.
+		 */
+		long long w;
+	};
+	struct
+	{
+		/**
+		 * @brief The s coordinate.
+		 */
+		long long s;
+
+		/**
+		 * @brief The t coordinate.
+		 */
+		long long t;
+
+		/**
+		 * @brief The p coordinate. (often referred to as r)
+		 */
+		long long p;
+
+		/**
+		 * @brief The q coordinate.
+		 */
+		long long q;
+	};
+	struct
+	{
+		/**
+		 * @brief The red component.
+		 */
+		long long r;
+
+		/**
+		 * @brief The green component.
+		 */
+		long long g;
+
+		/**
+		 * @brief The blue component.
+		 */
+		long long b;
+
+		/**
+		 * @brief The alpha component.
+		 */
+		long long a;
+	};
+} dsVector4l;
 
 /**
  * @brief Structure for a color.

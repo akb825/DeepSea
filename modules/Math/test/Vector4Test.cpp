@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 Aaron Barany
+ * Copyright 2016-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,12 +44,18 @@ struct Vector4TypeSelector<int>
 	typedef dsVector4i Type;
 };
 
+template <>
+struct Vector4TypeSelector<long long>
+{
+	typedef dsVector4l Type;
+};
+
 template <typename T>
 class Vector4Test : public testing::Test
 {
 };
 
-using Vector4Types = testing::Types<float, double, int>;
+using Vector4Types = testing::Types<float, double, int, long long>;
 TYPED_TEST_SUITE(Vector4Test, Vector4Types);
 
 template <typename T>
@@ -75,6 +81,11 @@ inline double dsVector4_len(dsVector4i* a)
 	return dsVector4i_len(a);
 }
 
+inline double dsVector4_len(dsVector4l* a)
+{
+	return dsVector4l_len(a);
+}
+
 inline float dsVector4_dist(dsVector4f* a, dsVector4f* b)
 {
 	return dsVector4f_dist(a, b);
@@ -88,6 +99,11 @@ inline double dsVector4_dist(dsVector4d* a, dsVector4d* b)
 inline double dsVector4_dist(dsVector4i* a, dsVector4i* b)
 {
 	return dsVector4i_dist(a, b);
+}
+
+inline double dsVector4_dist(dsVector4l* a, dsVector4l* b)
+{
+	return dsVector4l_dist(a, b);
 }
 
 inline void dsVector4_normalize(dsVector4f* result, dsVector4f* a)

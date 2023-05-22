@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Aaron Barany
+ * Copyright 2022-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,16 @@
  * @brief Define for whether or not SIMD instructions for 4 floats are always available.
  */
 #define DS_SIMD_ALWAYS_FLOAT4 0
+
+/**
+ * @brief Define for whether or not SIMD instructions for 2 doubles are always available.
+ */
+#define DS_SIMD_ALWAYS_DOUBLE2 0
+
+/**
+ * @brief Define for whether or not SIMD instructions for 4 doubles are always available.
+ */
+#define DS_SIMD_ALWAYS_DOUBLE4 0
 
 /**
  * @brief Define for whether or not SIMD instructions for horizontal adds are always  available.
@@ -105,11 +115,13 @@ extern "C"
  */
 typedef enum dsSIMDFeatures
 {
-	dsSIMDFeatures_None = 0,       ///< No SIMD features are supported.
-	dsSIMDFeatures_Float4 = 0x1,   ///< Standard 4 element float operations.
-	dsSIMDFeatures_HAdd = 0x2,     ///< Horizontal adds.
-	dsSIMDFeatures_FMA = 0x4,      ///< Fused multiply adds.
-	dsSIMDFeatures_HalfFloat = 0x8 ///< Half float conversions.
+	dsSIMDFeatures_None = 0,        ///< No SIMD features are supported.
+	dsSIMDFeatures_Float4 = 0x1,    ///< Standard 4 element float operations.
+	dsSIMDFeatures_Double2 = 0x2,   ///< Standard 2 element double operations.
+	dsSIMDFeatures_Double4 = 0x4,   ///< Standard 4 element double operations.
+	dsSIMDFeatures_HAdd = 0x8,      ///< Horizontal adds.
+	dsSIMDFeatures_FMA = 0x10,      ///< Fused multiply adds.
+	dsSIMDFeatures_HalfFloat = 0x20 ///< Half float conversions.
 } dsSIMDFeatures;
 
 /**

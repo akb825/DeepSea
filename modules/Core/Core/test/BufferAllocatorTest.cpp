@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ namespace
 dsThreadReturnType threadFunc(void* data)
 {
 	dsThread_sleep(1, nullptr);
-	EXPECT_NE(nullptr, dsAllocator_alloc((dsAllocator*)data, 16));
+	EXPECT_NE(nullptr, dsAllocator_alloc((dsAllocator*)data, DS_ALLOC_ALIGNMENT));
 	return 0;
 }
 
@@ -55,7 +55,7 @@ TEST(BufferAllocator, Allocate)
 	dsBufferAllocator allocator;
 	ASSERT_TRUE(dsBufferAllocator_initialize(&allocator, buffer, bufferSize));
 	EXPECT_EQ(NULL, dsAllocator_alloc((dsAllocator*)&allocator, 0));
-	EXPECT_NULL_ERRNO(EINVAL, dsBufferAllocator_alloc(&allocator, 10, 32));
+	EXPECT_NULL_ERRNO(EINVAL, dsBufferAllocator_alloc(&allocator, 10, DS_ALLOC_ALIGNMENT*2));
 
 	void* ptr1 = dsAllocator_alloc((dsAllocator*)&allocator, 10);
 	EXPECT_NE(nullptr, ptr1);
@@ -109,7 +109,7 @@ TEST(BufferAllocator, Reset)
 TEST(BufferAllocator, ThreadAlloc)
 {
 	const unsigned int threadCount = 100;
-	const unsigned int bufferSize = threadCount*16;
+	const unsigned int bufferSize = threadCount*DS_ALLOC_ALIGNMENT;
 	DS_ALIGN(DS_ALLOC_ALIGNMENT) uint8_t buffer[bufferSize];
 
 	dsBufferAllocator allocator;

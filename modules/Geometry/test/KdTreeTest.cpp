@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+#include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/SystemAllocator.h>
 #include <DeepSea/Geometry/KdTree.h>
 #include <DeepSea/Math/Vector2.h>
@@ -307,6 +308,19 @@ public:
 		EXPECT_EQ(1U, foundCount);
 	}
 
+	TestObject* newTestObject(int x, int y, int z, int data)
+	{
+		TestObject* object = DS_ALLOCATE_OBJECT(&allocator, TestObject);
+		object->point = SelectorT::createPoint(x, y, z);
+		object->data = data;
+		return object;
+	}
+
+	void deleteTestObject(TestObject* object)
+	{
+		dsAllocator_free(reinterpret_cast<dsAllocator*>(&allocator), object);
+	}
+
 	dsSystemAllocator allocator;
 };
 
@@ -421,17 +435,17 @@ TYPED_TEST(KdTreeTest, ObjectPointer)
 
 	TestObject* data[] =
 	{
-		new TestObject{TestFixture::createPoint(-2, -2, -2), 0},
-		new TestObject{TestFixture::createPoint(1, -2, 3), 1},
-		new TestObject{TestFixture::createPoint(-1, 2, -3), 2},
-		new TestObject{TestFixture::createPoint(1, 3, 3), 3},
-		new TestObject{TestFixture::createPoint(-1, -2, 3), 4},
-		new TestObject{TestFixture::createPoint(1, -3, -3), 5},
-		new TestObject{TestFixture::createPoint(1, 2, -3), 6},
-		new TestObject{TestFixture::createPoint(3, -2, 1), 7},
-		new TestObject{TestFixture::createPoint(-3, 2, -1), 8},
-		new TestObject{TestFixture::createPoint(2, -3, 1), 9},
-		new TestObject{TestFixture::createPoint(-2, 3, -1), 10}
+		fixture->newTestObject(-2, -2, -2, 0),
+		fixture->newTestObject(1, -2, 3, 1),
+		fixture->newTestObject(-1, 2, -3, 2),
+		fixture->newTestObject(1, 3, 3, 3),
+		fixture->newTestObject(-1, -2, 3, 4),
+		fixture->newTestObject(1, -3, -3, 5),
+		fixture->newTestObject(1, 2, -3, 6),
+		fixture->newTestObject(3, -2, 1, 7),
+		fixture->newTestObject(-3, 2, -1, 8),
+		fixture->newTestObject(2, -3, 1, 9),
+		fixture->newTestObject(-2, 3, -1, 10)
 	};
 
 	EXPECT_TRUE(dsKdTree_build(kdTree, data, DS_ARRAY_SIZE(data), DS_GEOMETRY_OBJECT_POINTERS,
@@ -447,7 +461,7 @@ TYPED_TEST(KdTreeTest, ObjectPointer)
 	dsKdTree_destroy(kdTree);
 
 	for (TestObject* object : data)
-		delete object;
+		fixture->deleteTestObject(object);
 }
 
 TYPED_TEST(KdTreeTest, ObjectIndices)

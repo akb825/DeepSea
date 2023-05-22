@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Aaron Barany
+ * Copyright 2022-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,6 +40,12 @@ extern "C"
 #if DS_CLANG
 #define DS_SIMD_START_FLOAT4() \
 	_Pragma("clang attribute push(__attribute__((target(\"sse\"))), apply_to = function)")
+#define DS_SIMD_START_DOUBLE2() \
+	_Pragma("clang attribute push(__attribute__((target(\"sse2\"))), apply_to = function)")
+// NOTE: Apple clang has issues with nested pushes. Add FMA so it always works so long as DOUBLE4
+// is first
+#define DS_SIMD_START_DOUBLE4() \
+	_Pragma("clang attribute push(__attribute__((target(\"avx,fma\"))), apply_to = function)")
 #define DS_SIMD_START_HADD() \
 	_Pragma("clang attribute push(__attribute__((target(\"sse,sse3\"))), apply_to = function)")
 #define DS_SIMD_START_FMA() \
@@ -51,6 +57,12 @@ extern "C"
 #define DS_SIMD_START_FLOAT4() \
 	_Pragma("GCC push_options") \
 	_Pragma("GCC target(\"sse\")")
+#define DS_SIMD_START_DOUBLE2() \
+	_Pragma("GCC push_options") \
+	_Pragma("GCC target(\"sse2\")")
+#define DS_SIMD_START_DOUBLE4() \
+	_Pragma("GCC push_options") \
+	_Pragma("GCC target(\"avx\")")
 #define DS_SIMD_START_HADD() \
 	_Pragma("GCC push_options") \
 	_Pragma("GCC target(\"sse,sse3\")")
@@ -63,6 +75,8 @@ extern "C"
 #define DS_SIMD_END() _Pragma("GCC pop_options")
 #else
 #define DS_SIMD_START_FLOAT4()
+#define DS_SIMD_START_DOUBLE2()
+#define DS_SIMD_START_DOUBLE4()
 #define DS_SIMD_START_HADD()
 #define DS_SIMD_START_FMA()
 #define DS_SIMD_START_HALF_FLOAT()
@@ -73,6 +87,18 @@ extern "C"
 #define DS_SIMD_ALWAYS_FLOAT4 1
 #else
 #define DS_SIMD_ALWAYS_FLOAT4 0
+#endif
+
+#if DS_X86_64 || defined(__SSE2__) || _M_IX86_FP >= 2
+#define DS_SIMD_ALWAYS_DOUBLE2 1
+#else
+#define DS_SIMD_ALWAYS_DOUBLE2 0
+#endif
+
+#if defined(__AVX__)
+#define DS_SIMD_ALWAYS_DOUBLE4 1
+#else
+#define DS_SIMD_ALWAYS_DOUBLE4 0
 #endif
 
 #if defined(__SSE3__) || (DS_WINDOWS && defined(__AVX__))
@@ -100,11 +126,35 @@ extern "C"
 typedef __m128 dsSIMD4f;
 
 /**
+ * @brief Type for a SIMD vector of 2 doubles.
+ */
+typedef __m128d dsSIMD2d;
+
+/**
+ * @brief Type for a SIMD vector of 4 doubles.
+ */
+typedef __m256d dsSIMD4d;
+
+/**
  * @brief Type for a SIMD vector of 4 bool results.
  *
  * Each boolean value will be stored in a 32-bit value.
  */
-typedef __m128 dsSIMD4b;
+typedef __m128 dsSIMD4fb;
+
+/**
+ * @brief Type for a SIMD vector of 2 bool results.
+ *
+ * Each boolean value will be stored in a 64-bit value.
+ */
+typedef __m128d dsSIMD2db;
+
+/**
+ * @brief Type for a SIMD vector of 4 bool results.
+ *
+ * Each boolean value will be stored in a 64-bit value.
+ */
+typedef __m256d dsSIMD4db;
 
 /**
  * @brief Type for a SIMD vector of 4 half floats.
@@ -144,7 +194,7 @@ DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_loadUnaligned(const void* fp)
  */
 DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_set1(float f)
 {
-	return _mm_set_ps1(f);
+	return _mm_set1_ps(f);
 }
 
 /**
@@ -199,7 +249,7 @@ DS_ALWAYS_INLINE void dsSIMD4f_storeUnaligned(void* fp, dsSIMD4f a)
  */
 DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_neg(dsSIMD4f a)
 {
-	return _mm_xor_ps(_mm_set_ps1(-0.0f), a);
+	return _mm_xor_ps(_mm_set1_ps(-0.0f), a);
 }
 
 /**
@@ -304,6 +354,1060 @@ DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_abs(dsSIMD4f a)
  */
 #define dsSIMD4f_transpose(a, b, c, d) _MM_TRANSPOSE4_PS(a, b, c, d)
 
+/**
+ * @brief Gets the minimum elements between two SIMD values.
+ * @remark This can be used when dsSIMDFeatures_Float4 is available.
+ * @param a The first value to take the min of.
+ * @param b The second value to take the min of.
+ * @return The result of min(a, b).
+ */
+DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_min(dsSIMD4f a, dsSIMD4f b)
+{
+	return _mm_min_ps(a, b);
+}
+
+/**
+ * @brief Gets the maximum elements between two SIMD values.
+ * @remark This can be used when dsSIMDFeatures_Float4 is available.
+ * @param a The first value to take the max of.
+ * @param b The second value to take the max of.
+ * @return The result of max(a, b).
+ */
+DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_max(dsSIMD4f a, dsSIMD4f b)
+{
+	return _mm_max_ps(a, b);
+}
+
+/**
+ * @brief Selects between two vectors based on a boolean mask.
+ * @remark This can be used when dsSIMDFeatures_Float4 is available.
+ * @param a The first SIMD values to select from.
+ * @param b The second SIMD values to select from.
+ * @param c The boolean mask to select with.
+ * @return Values from a or b for whether c is true or false, respectively.
+ */
+DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_select(dsSIMD4f a, dsSIMD4f b, dsSIMD4fb c)
+{
+	return _mm_or_ps(_mm_and_ps(c, a), _mm_andnot_ps(c, b));
+}
+
+/**
+ * @brief Checks if two SIMD values are equal.
+ * @remark This can be used when dsSIMDFeatures_Float4 is available.
+ * @param a The first value to compare.
+ * @param b The second value to compare.
+ * @return The result of a == b as a dsSIMD4fb.
+ */
+DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4f_cmpeq(dsSIMD4f a, dsSIMD4f b)
+{
+	return _mm_cmpeq_ps(a, b);
+}
+
+/**
+ * @brief Checks if two SIMD values are not equal.
+ * @remark This can be used when dsSIMDFeatures_Float4 is available.
+ * @param a The first value to compare.
+ * @param b The second value to compare.
+ * @return The result of a != b as a dsSIMD4fb.
+ */
+DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4f_cmpne(dsSIMD4f a, dsSIMD4f b)
+{
+	return _mm_cmpneq_ps(a, b);
+}
+
+/**
+ * @brief Checks if one SIMD values is less than another.
+ * @remark This can be used when dsSIMDFeatures_Float4 is available.
+ * @param a The first value to compare.
+ * @param b The second value to compare.
+ * @return The result of a < b as a dsSIMD4fb.
+ */
+DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4f_cmplt(dsSIMD4f a, dsSIMD4f b)
+{
+	return _mm_cmplt_ps(a, b);
+}
+
+/**
+ * @brief Checks if one SIMD values is less than or equal to another.
+ * @remark This can be used when dsSIMDFeatures_Float4 is available.
+ * @param a The first value to compare.
+ * @param b The second value to compare.
+ * @return The result of a <= b as a dsSIMD4fb.
+ */
+DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4f_cmple(dsSIMD4f a, dsSIMD4f b)
+{
+	return _mm_cmple_ps(a, b);
+}
+
+/**
+ * @brief Checks if one SIMD values is greater than another.
+ * @remark This can be used when dsSIMDFeatures_Float4 is available.
+ * @param a The first value to compare.
+ * @param b The second value to compare.
+ * @return The result of a > b as a dsSIMD4fb.
+ */
+DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4f_cmpgt(dsSIMD4f a, dsSIMD4f b)
+{
+	return _mm_cmpgt_ps(a, b);
+}
+
+/**
+ * @brief Checks if one SIMD values is greater than or equal to another.
+ * @remark This can be used when dsSIMDFeatures_Float4 is available.
+ * @param a The first value to compare.
+ * @param b The second value to compare.
+ * @return The result of a >= b as a dsSIMD4fb.
+ */
+DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4f_cmpge(dsSIMD4f a, dsSIMD4f b)
+{
+	return _mm_cmpge_ps(a, b);
+}
+
+/**
+ * @brief Creates a SIMD value for true.
+ * @return A SIMD value with true on all elements.
+ */
+DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4fb_true(void)
+{
+	const unsigned int a = 0xFFFFFFFF;
+	return _mm_set1_ps(*(float*)&a);
+}
+
+/**
+ * @brief Creates a SIMD value for false.
+ * @return A SIMD value with false on all elements.
+ */
+DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4fb_false(void)
+{
+	return _mm_setzero_ps();
+}
+
+/**
+ * @brief Stores a SIMD bool register into four int values.
+ * @remark This can be used when dsSIMDFeatures_Float4 is available.
+ * @param[out] ip A pointer to the int values to store to. This should be aligned to 16 bytes.
+ * @param a The value to store.
+ */
+DS_ALWAYS_INLINE void dsSIMD4fb_store(void* ip, dsSIMD4fb a)
+{
+	_mm_store_ps((float*)ip, a);
+}
+
+/**
+ * @brief Stores a SIMD register into four int values.
+ * @remark This can be used when dsSIMDFeatures_Float4 is available.
+ * @param[out] ip A pointer to the float values to store to. This may be unaligned.
+ * @param a The value to store.
+ */
+DS_ALWAYS_INLINE void dsSIMD4fb_storeUnaligned(void* ip, dsSIMD4fb a)
+{
+	_mm_storeu_ps((float*)ip, a);
+}
+
+/**
+ * @brief Performs a logical not on a SIMD bool value.
+ * @remark This can be used when dsSIMDFeatures_Float4 is available.
+ * @param a The value to not.
+ * @return The result of !a.
+ */
+DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4fb_not(dsSIMD4fb a)
+{
+	const unsigned int b = 0xFFFFFFFF;
+	return _mm_xor_ps(a, _mm_set1_ps(*(float*)&b));
+}
+
+/**
+ * @brief Performs a logical and between two SIMD bool values.
+ * @remark This can be used when dsSIMDFeatures_Float4 is available.
+ * @param a The first value to and.
+ * @param b The second value to and.
+ * @return The result of a & b.
+ */
+DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4fb_and(dsSIMD4fb a, dsSIMD4fb b)
+{
+	return _mm_and_ps(a, b);
+}
+
+/**
+ * @brief Performs a logical and not between two SIMD bool values.
+ * @remark This can be used when dsSIMDFeatures_Float4 is available.
+ * @param a The first value to not then and.
+ * @param b The second value to and.
+ * @return The result of (!a) & b.
+ */
+DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4fb_andnot(dsSIMD4fb a, dsSIMD4fb b)
+{
+	return _mm_andnot_ps(a, b);
+}
+
+/**
+ * @brief Performs a logical or between two SIMD bool values.
+ * @remark This can be used when dsSIMDFeatures_Float4 is available.
+ * @param a The first value to or.
+ * @param b The second value to or.
+ * @return The result of a | b.
+ */
+DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4fb_or(dsSIMD4fb a, dsSIMD4fb b)
+{
+	return _mm_or_ps(a, b);
+}
+
+/**
+ * @brief Performs a logical or not between two SIMD bool values.
+ * @remark This can be used when dsSIMDFeatures_Float4 is available.
+ * @param a The first value to or.
+ * @param b The second value to not then or.
+ * @return The result of a | (!b).
+ */
+DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4fb_ornot(dsSIMD4fb a, dsSIMD4fb b)
+{
+	return _mm_or_ps(a, dsSIMD4fb_not(b));
+}
+
+/**
+ * @brief Performs a logical xor between two SIMD bool values.
+ * @remark This can be used when dsSIMDFeatures_Float4 is available.
+ * @param a The first value to xor.
+ * @param b The first value to xor.
+ * @return The result of a ^ b.
+ */
+DS_ALWAYS_INLINE dsSIMD4fb dsSIMD4fb_xor(dsSIMD4fb a, dsSIMD4fb b)
+{
+	return _mm_xor_ps(a, b);
+}
+
+/// @cond
+DS_SIMD_END();
+DS_SIMD_START_DOUBLE2();
+/// @endcond
+
+/**
+ * @brief Loads double values into a SIMD register.
+ * @remark This can be used when dsSIMDFeatures_Double2 is available.
+ * @param dp A pointer to the double values to load. This should be aligned to 16 bytes.
+ * @return The loaded SIMD value.
+ */
+DS_ALWAYS_INLINE dsSIMD2d dsSIMD2d_load(const void* dp)
+{
+	return _mm_load_pd((const double*)dp);
+}
+
+/**
+ * @brief Loads double values into a SIMD register.
+ * @remark This can be used when dsSIMDFeatures_Double2 is available.
+ * @param dp A pointer to the double values to load. This may be unaligned.
+ * @return The loaded SIMD value.
+ */
+DS_ALWAYS_INLINE dsSIMD2d dsSIMD2d_loadUnaligned(const void* dp)
+{
+	return _mm_loadu_pd((const double*)(dp));
+}
+
+/**
+ * @brief Sets a double value into all elements of a SIMD register.
+ * @remark This can be used when dsSIMDFeatures_Double2 is available.
+ * @param d The value to set.
+ */
+DS_ALWAYS_INLINE dsSIMD2d dsSIMD2d_set1(double d)
+{
+	return _mm_set1_pd(d);
+}
+
+/**
+ * @brief Sets a SIMD value with two doubles.
+ * @remark This can be used when dsSIMDFeatures_Double2 is available.
+ * @param x The first value.
+ * @param y The second value.
+ */
+DS_ALWAYS_INLINE dsSIMD2d dsSIMD2d_set2(double x, double y)
+{
+	return _mm_set_pd(y, x);
+}
+
+/**
+ * @brief Stores a SIMD register into four double values.
+ * @remark This can be used when dsSIMDFeatures_Double2 is available.
+ * @param[out] fp A pointer to the double values to store to. This should be aligned to 16 bytes.
+ * @param a The value to store.
+ */
+DS_ALWAYS_INLINE void dsSIMD2d_store(void* fp, dsSIMD2d a)
+{
+	_mm_store_pd((double*)fp, a);
+}
+
+/**
+ * @brief Gets a double element from a SIMD value.
+ * @remark This can be used when dsSIMDFeatures_Double2 is available.
+ * @param a The value to get the element from.
+ * @param i The index of the element.
+ * @return The element value.
+ */
+#define dsSIMD2d_get(a, i) _mm_cvtsd_f64(_mm_shuffle_pd((a), (a), _MM_SHUFFLE2(0, (i))))
+
+/**
+ * @brief Stores a SIMD register into four double values.
+ * @remark This can be used when dsSIMDFeatures_Double2 is available.
+ * @param[out] dp A pointer to the double values to store to. This may be unaligned.
+ * @param a The value to store.
+ */
+DS_ALWAYS_INLINE void dsSIMD2d_storeUnaligned(void* dp, dsSIMD2d a)
+{
+	_mm_storeu_pd((double*)dp, a);
+}
+
+/**
+ * @brief Negates a SIMD value.
+ * @remark This can be used when dsSIMDFeatures_Double2 is available.
+ * @param a The value to negate.
+ * @return The result of -a.
+ */
+DS_ALWAYS_INLINE dsSIMD2d dsSIMD2d_neg(dsSIMD2d a)
+{
+	return _mm_xor_pd(_mm_set1_pd(-0.0), a);
+}
+
+/**
+ * @brief Adds two SIMD values.
+ * @remark This can be used when dsSIMDFeatures_Double2 is available.
+ * @param a The first value to add.
+ * @param b The second value to add.
+ * @return The result of a + b.
+ */
+DS_ALWAYS_INLINE dsSIMD2d dsSIMD2d_add(dsSIMD2d a, dsSIMD2d b)
+{
+	return _mm_add_pd(a, b);
+}
+
+/**
+ * @brief Subtracts two SIMD values.
+ * @remark This can be used when dsSIMDFeatures_Double2 is available.
+ * @param a The first value to subtract.
+ * @param b The second value to subtract.
+ * @return The result of a - b.
+ */
+DS_ALWAYS_INLINE dsSIMD2d dsSIMD2d_sub(dsSIMD2d a, dsSIMD2d b)
+{
+	return _mm_sub_pd(a, b);
+}
+
+/**
+ * @brief Multiplies two SIMD values.
+ * @remark This can be used when dsSIMDFeatures_Double2 is available.
+ * @param a The first value to multiply.
+ * @param b The second value to multiply.
+ * @return The result of a*b.
+ */
+DS_ALWAYS_INLINE dsSIMD2d dsSIMD2d_mul(dsSIMD2d a, dsSIMD2d b)
+{
+	return _mm_mul_pd(a, b);
+}
+
+/**
+ * @brief Divides two SIMD values.
+ * @remark This can be used when dsSIMDFeatures_Double2 is available.
+ * @param a The first value to divide.
+ * @param b The second value to divide.
+ * @return The result of a/b.
+ */
+DS_ALWAYS_INLINE dsSIMD2d dsSIMD2d_div(dsSIMD2d a, dsSIMD2d b)
+{
+	return _mm_div_pd(a, b);
+}
+
+/**
+ * @brief Takes the approximate reciprical of a SIMD value.
+ * @remark This can be used when dsSIMDFeatures_Double2 is available.
+ * @param a The value to take the reciprical.
+ * @return The approximate result of 1/a.
+ */
+DS_ALWAYS_INLINE dsSIMD2d dsSIMD2d_rcp(dsSIMD2d a)
+{
+	return _mm_div_pd(_mm_set1_pd(1.0), a);
+}
+
+/**
+ * @brief Takes the square root of a SIMD value.
+ * @remark This can be used when dsSIMDFeatures_Double2 is available.
+ * @param a The value to take the reciprical.
+ * @return The result of sqrt(a).
+ */
+DS_ALWAYS_INLINE dsSIMD2d dsSIMD2d_sqrt(dsSIMD2d a)
+{
+	return _mm_sqrt_pd(a);
+}
+
+/**
+ * @brief Takes the approximate reciprical square root of a SIMD value.
+ * @remark This can be used when dsSIMDFeatures_Double2 is available.
+ * @param a The value to take the reciprical.
+ * @return The approximate result of 1/sqrt(a).
+ */
+DS_ALWAYS_INLINE dsSIMD2d dsSIMD2d_rsqrt(dsSIMD2d a)
+{
+	return _mm_div_pd(_mm_set1_pd(1.0), _mm_sqrt_pd(a));
+}
+
+/**
+ * @brief Takes the absolute value of a SIMD value.
+ * @remark This can be used when dsSIMDFeatures_Double2 is available.
+ * @param a The value to take the absolute value.
+ * @return The result of abs(a).
+ */
+DS_ALWAYS_INLINE dsSIMD2d dsSIMD2d_abs(dsSIMD2d a)
+{
+	return _mm_andnot_pd(_mm_set1_pd(-0.0), a);
+}
+
+/**
+ * @brief Gets the minimum elements between two SIMD values.
+ * @remark This can be used when dsSIMDFeatures_Double2 is available.
+ * @param a The first value to take the min of.
+ * @param b The second value to take the min of.
+ * @return The result of min(a, b).
+ */
+DS_ALWAYS_INLINE dsSIMD2d dsSIMD2d_min(dsSIMD2d a, dsSIMD2d b)
+{
+	return _mm_min_pd(a, b);
+}
+
+/**
+ * @brief Gets the maximum elements between two SIMD values.
+ * @remark This can be used when dsSIMDFeatures_Double2 is available.
+ * @param a The first value to take the max of.
+ * @param b The second value to take the max of.
+ * @return The result of max(a, b).
+ */
+DS_ALWAYS_INLINE dsSIMD2d dsSIMD2d_max(dsSIMD2d a, dsSIMD2d b)
+{
+	return _mm_max_pd(a, b);
+}
+
+/**
+ * @brief Selects between two vectors based on a boolean mask.
+ * @remark This can be used when dsSIMDFeatures_Double2 is available.
+ * @param a The first SIMD values to select from.
+ * @param b The second SIMD values to select from.
+ * @param c The boolean mask to select with.
+ * @return Values from a or b for whether c is true or false, respectively.
+ */
+DS_ALWAYS_INLINE dsSIMD2d dsSIMD2d_select(dsSIMD2d a, dsSIMD2d b, dsSIMD2db c)
+{
+	return _mm_or_pd(_mm_and_pd(c, a), _mm_andnot_pd(c, b));
+}
+
+/**
+ * @brief Checks if two SIMD values are equal.
+ * @remark This can be used when dsSIMDFeatures_Double2 is available.
+ * @param a The first value to compare.
+ * @param b The second value to compare.
+ * @return The result of a == b as a dsSIMD2db.
+ */
+DS_ALWAYS_INLINE dsSIMD2db dsSIMD2d_cmpeq(dsSIMD2d a, dsSIMD2d b)
+{
+	return _mm_cmpeq_pd(a, b);
+}
+
+/**
+ * @brief Checks if two SIMD values are not equal.
+ * @remark This can be used when dsSIMDFeatures_Double2 is available.
+ * @param a The first value to compare.
+ * @param b The second value to compare.
+ * @return The result of a != b as a dsSIMD2db.
+ */
+DS_ALWAYS_INLINE dsSIMD2db dsSIMD2d_cmpne(dsSIMD2d a, dsSIMD2d b)
+{
+	return _mm_cmpneq_pd(a, b);
+}
+
+/**
+ * @brief Checks if one SIMD values is less than another.
+ * @remark This can be used when dsSIMDFeatures_Double2 is available.
+ * @param a The first value to compare.
+ * @param b The second value to compare.
+ * @return The result of a < b as a dsSIMD2db.
+ */
+DS_ALWAYS_INLINE dsSIMD2db dsSIMD2d_cmplt(dsSIMD2d a, dsSIMD2d b)
+{
+	return _mm_cmplt_pd(a, b);
+}
+
+/**
+ * @brief Checks if one SIMD values is less than or equal to another.
+ * @remark This can be used when dsSIMDFeatures_Double2 is available.
+ * @param a The first value to compare.
+ * @param b The second value to compare.
+ * @return The result of a <= b as a dsSIMD2db.
+ */
+DS_ALWAYS_INLINE dsSIMD2db dsSIMD2d_cmple(dsSIMD2d a, dsSIMD2d b)
+{
+	return _mm_cmple_pd(a, b);
+}
+
+/**
+ * @brief Checks if one SIMD values is greater than another.
+ * @remark This can be used when dsSIMDFeatures_Double2 is available.
+ * @param a The first value to compare.
+ * @param b The second value to compare.
+ * @return The result of a > b as a dsSIMD2db.
+ */
+DS_ALWAYS_INLINE dsSIMD2db dsSIMD2d_cmpgt(dsSIMD2d a, dsSIMD2d b)
+{
+	return _mm_cmpgt_pd(a, b);
+}
+
+/**
+ * @brief Checks if one SIMD values is greater than or equal to another.
+ * @remark This can be used when dsSIMDFeatures_Double2 is available.
+ * @param a The first value to compare.
+ * @param b The second value to compare.
+ * @return The result of a >= b as a dsSIMD2db.
+ */
+DS_ALWAYS_INLINE dsSIMD2db dsSIMD2d_cmpge(dsSIMD2d a, dsSIMD2d b)
+{
+	return _mm_cmpge_pd(a, b);
+}
+
+/**
+ * @brief Creates a SIMD value for true.
+ * @return A SIMD value with true on all elements.
+ */
+DS_ALWAYS_INLINE dsSIMD2db dsSIMD2db_true(void)
+{
+	const unsigned long long a = 0xFFFFFFFFFFFFFFFFULL;
+	return _mm_set1_pd(*(double*)&a);
+}
+
+/**
+ * @brief Creates a SIMD value for false.
+ * @return A SIMD value with false on all elements.
+ */
+DS_ALWAYS_INLINE dsSIMD2db dsSIMD2db_false(void)
+{
+	return _mm_setzero_pd();
+}
+
+/**
+ * @brief Stores a SIMD bool register into four int values.
+ * @remark This can be used when dsSIMDFeatures_Double2 is available.
+ * @param[out] ip A pointer to the int values to store to. This should be aligned to 16 bytes.
+ * @param a The value to store.
+ */
+DS_ALWAYS_INLINE void dsSIMD2db_store(void* ip, dsSIMD2db a)
+{
+	_mm_store_pd((double*)ip, a);
+}
+
+/**
+ * @brief Stores a SIMD register into four int values.
+ * @remark This can be used when dsSIMDFeatures_Double2 is available.
+ * @param[out] ip A pointer to the double values to store to. This may be unaligned.
+ * @param a The value to store.
+ */
+DS_ALWAYS_INLINE void dsSIMD2db_storeUnaligned(void* ip, dsSIMD2db a)
+{
+	_mm_storeu_pd((double*)ip, a);
+}
+
+/**
+ * @brief Performs a logical not on a SIMD bool value.
+ * @remark This can be used when dsSIMDFeatures_Double2 is available.
+ * @param a The value to not.
+ * @return The result of !a.
+ */
+DS_ALWAYS_INLINE dsSIMD2db dsSIMD2db_not(dsSIMD2db a)
+{
+	const unsigned long long b = 0xFFFFFFFFFFFFFFFFULL;
+	return _mm_xor_pd(a, _mm_set1_pd(*(double*)&b));
+}
+
+/**
+ * @brief Performs a logical and between two SIMD bool values.
+ * @remark This can be used when dsSIMDFeatures_Double2 is available.
+ * @param a The first value to and.
+ * @param b The second value to and.
+ * @return The result of a & b.
+ */
+DS_ALWAYS_INLINE dsSIMD2db dsSIMD2db_and(dsSIMD2db a, dsSIMD2db b)
+{
+	return _mm_and_pd(a, b);
+}
+
+/**
+ * @brief Performs a logical and not between two SIMD bool values.
+ * @remark This can be used when dsSIMDFeatures_Double2 is available.
+ * @param a The first value to not then and.
+ * @param b The second value to and.
+ * @return The result of (!a) & b.
+ */
+DS_ALWAYS_INLINE dsSIMD2db dsSIMD2db_andnot(dsSIMD2db a, dsSIMD2db b)
+{
+	return _mm_andnot_pd(a, b);
+}
+
+/**
+ * @brief Performs a logical or between two SIMD bool values.
+ * @remark This can be used when dsSIMDFeatures_Double2 is available.
+ * @param a The first value to or.
+ * @param b The second value to or.
+ * @return The result of a | b.
+ */
+DS_ALWAYS_INLINE dsSIMD2db dsSIMD2db_or(dsSIMD2db a, dsSIMD2db b)
+{
+	return _mm_or_pd(a, b);
+}
+
+/**
+ * @brief Performs a logical or not between two SIMD bool values.
+ * @remark This can be used when dsSIMDFeatures_Double2 is available.
+ * @param a The first value to or.
+ * @param b The second value to not then or.
+ * @return The result of a | (!b).
+ */
+DS_ALWAYS_INLINE dsSIMD2db dsSIMD2db_ornot(dsSIMD2db a, dsSIMD2db b)
+{
+	return _mm_or_pd(a, dsSIMD2db_not(b));
+}
+
+/**
+ * @brief Performs a logical xor between two SIMD bool values.
+ * @remark This can be used when dsSIMDFeatures_Double2 is available.
+ * @param a The first value to xor.
+ * @param b The first value to xor.
+ * @return The result of a ^ b.
+ */
+DS_ALWAYS_INLINE dsSIMD2db dsSIMD2db_xor(dsSIMD2db a, dsSIMD2db b)
+{
+	return _mm_xor_pd(a, b);
+}
+
+/// @cond
+DS_SIMD_END();
+DS_SIMD_START_DOUBLE4();
+/// @endcond
+
+/**
+ * @brief Loads double values into a SIMD register.
+ * @remark This can be used when dsSIMDFeatures_Double4 is available.
+ * @param dp A pointer to the double values to load. This should be aligned to 16 bytes.
+ * @return The loaded SIMD value.
+ */
+DS_ALWAYS_INLINE dsSIMD4d dsSIMD4d_load(const void* dp)
+{
+	return _mm256_load_pd((const double*)dp);
+}
+
+/**
+ * @brief Loads double values into a SIMD register.
+ * @remark This can be used when dsSIMDFeatures_Double4 is available.
+ * @param dp A pointer to the double values to load. This may be unaligned.
+ * @return The loaded SIMD value.
+ */
+DS_ALWAYS_INLINE dsSIMD4d dsSIMD4d_loadUnaligned(const void* dp)
+{
+	return _mm256_loadu_pd((const double*)(dp));
+}
+
+/**
+ * @brief Sets a double value into all elements of a SIMD register.
+ * @remark This can be used when dsSIMDFeatures_Double4 is available.
+ * @param d The value to set.
+ */
+DS_ALWAYS_INLINE dsSIMD4d dsSIMD4d_set1(double d)
+{
+	return _mm256_set1_pd(d);
+}
+
+/**
+ * @brief Sets a SIMD value with four doubles.
+ * @remark This can be used when dsSIMDFeatures_Double4 is available.
+ * @param x The first value.
+ * @param y The second value.
+ * @param z The third value.
+ * @param w The fourth value.
+ */
+DS_ALWAYS_INLINE dsSIMD4d dsSIMD4d_set4(double x, double y, double z, double w)
+{
+	return _mm256_set_pd(w, z, y, x);
+}
+
+/**
+ * @brief Stores a SIMD register into four double values.
+ * @remark This can be used when dsSIMDFeatures_Double4 is available.
+ * @param[out] dp A pointer to the double values to store to. This should be aligned to 16 bytes.
+ * @param a The value to store.
+ */
+DS_ALWAYS_INLINE void dsSIMD4d_store(void* dp, dsSIMD4d a)
+{
+	_mm256_store_pd((double*)dp, a);
+}
+
+/**
+ * @brief Gets a double element from a SIMD value.
+ * @remark This can be used when dsSIMDFeatures_Double4 is available.
+ * @param a The value to get the element from.
+ * @param i The index of the element.
+ * @return The element value.
+ */
+#define dsSIMD4d_get(a, i) (((const double*)&a)[i])
+
+/**
+ * @brief Stores a SIMD register into four double values.
+ * @remark This can be used when dsSIMDFeatures_Double4 is available.
+ * @param[out] dp A pointer to the double values to store to. This may be unaligned.
+ * @param a The value to store.
+ */
+DS_ALWAYS_INLINE void dsSIMD4d_storeUnaligned(void* dp, dsSIMD4d a)
+{
+	_mm256_storeu_pd((double*)dp, a);
+}
+
+/**
+ * @brief Negates a SIMD value.
+ * @remark This can be used when dsSIMDFeatures_Double4 is available.
+ * @param a The value to negate.
+ * @return The result of -a.
+ */
+DS_ALWAYS_INLINE dsSIMD4d dsSIMD4d_neg(dsSIMD4d a)
+{
+	return _mm256_xor_pd(_mm256_set1_pd(-0.0), a);
+}
+
+/**
+ * @brief Adds two SIMD values.
+ * @remark This can be used when dsSIMDFeatures_Double4 is available.
+ * @param a The first value to add.
+ * @param b The second value to add.
+ * @return The result of a + b.
+ */
+DS_ALWAYS_INLINE dsSIMD4d dsSIMD4d_add(dsSIMD4d a, dsSIMD4d b)
+{
+	return _mm256_add_pd(a, b);
+}
+
+/**
+ * @brief Subtracts two SIMD values.
+ * @remark This can be used when dsSIMDFeatures_Double4 is available.
+ * @param a The first value to subtract.
+ * @param b The second value to subtract.
+ * @return The result of a - b.
+ */
+DS_ALWAYS_INLINE dsSIMD4d dsSIMD4d_sub(dsSIMD4d a, dsSIMD4d b)
+{
+	return _mm256_sub_pd(a, b);
+}
+
+/**
+ * @brief Multiplies two SIMD values.
+ * @remark This can be used when dsSIMDFeatures_Double4 is available.
+ * @param a The first value to multiply.
+ * @param b The second value to multiply.
+ * @return The result of a*b.
+ */
+DS_ALWAYS_INLINE dsSIMD4d dsSIMD4d_mul(dsSIMD4d a, dsSIMD4d b)
+{
+	return _mm256_mul_pd(a, b);
+}
+
+/**
+ * @brief Divides two SIMD values.
+ * @remark This can be used when dsSIMDFeatures_Double4 is available.
+ * @param a The first value to divide.
+ * @param b The second value to divide.
+ * @return The result of a/b.
+ */
+DS_ALWAYS_INLINE dsSIMD4d dsSIMD4d_div(dsSIMD4d a, dsSIMD4d b)
+{
+	return _mm256_div_pd(a, b);
+}
+
+/**
+ * @brief Takes the approximate reciprical of a SIMD value.
+ * @remark This can be used when dsSIMDFeatures_Double4 is available.
+ * @param a The value to take the reciprical.
+ * @return The approximate result of 1/a.
+ */
+DS_ALWAYS_INLINE dsSIMD4d dsSIMD4d_rcp(dsSIMD4d a)
+{
+	return _mm256_div_pd(_mm256_set1_pd(1.0), a);
+}
+
+/**
+ * @brief Takes the square root of a SIMD value.
+ * @remark This can be used when dsSIMDFeatures_Double4 is available.
+ * @param a The value to take the reciprical.
+ * @return The result of sqrt(a).
+ */
+DS_ALWAYS_INLINE dsSIMD4d dsSIMD4d_sqrt(dsSIMD4d a)
+{
+	return _mm256_sqrt_pd(a);
+}
+
+/**
+ * @brief Takes the approximate reciprical square root of a SIMD value.
+ * @remark This can be used when dsSIMDFeatures_Double4 is available.
+ * @param a The value to take the reciprical.
+ * @return The approximate result of 1/sqrt(a).
+ */
+DS_ALWAYS_INLINE dsSIMD4d dsSIMD4d_rsqrt(dsSIMD4d a)
+{
+	return _mm256_div_pd(_mm256_set1_pd(1.0), _mm256_sqrt_pd(a));
+}
+
+/**
+ * @brief Takes the absolute value of a SIMD value.
+ * @remark This can be used when dsSIMDFeatures_Double4 is available.
+ * @param a The value to take the absolute value.
+ * @return The result of abs(a).
+ */
+DS_ALWAYS_INLINE dsSIMD4d dsSIMD4d_abs(dsSIMD4d a)
+{
+	return _mm256_andnot_pd(_mm256_set1_pd(-0.0), a);
+}
+
+/**
+ * @brief Transposes the values in 4 SIMD vectors.
+ * @remark This can be used when dsSIMDFeatures_Double4 is available.
+ * @param a The first SIMD values.
+ * @param b The second SIMD values.
+ * @param c The third SIMD values.
+ * @param d The fourth SIMD values.
+ */
+#define dsSIMD4d_transpose(a, b, c, d) \
+	do \
+	{ \
+		__m256d _tmpD, _tmpC, _tmpB, _tmpA; \
+		_tmpA = _mm256_unpacklo_pd((a), (b)); \
+		_tmpC = _mm256_unpacklo_pd((c), (d)); \
+		_tmpB = _mm256_unpackhi_pd((a), (b)); \
+		_tmpD = _mm256_unpackhi_pd((c), (d)); \
+		(a) = _mm256_permute2f128_pd(_tmpA, _tmpC, _MM_SHUFFLE(0, 2, 0, 0)); \
+		(b) = _mm256_permute2f128_pd(_tmpB, _tmpD, _MM_SHUFFLE(0, 2, 0, 0)); \
+		(c) = _mm256_permute2f128_pd(_tmpC, _tmpA, _MM_SHUFFLE(0, 1, 0, 3)); \
+		(d) = _mm256_permute2f128_pd(_tmpD, _tmpB, _MM_SHUFFLE(0, 1, 0, 3)); \
+	} while (0)
+
+/**
+ * @brief Gets the minimum elements between two SIMD values.
+ * @remark This can be used when dsSIMDFeatures_Double4 is available.
+ * @param a The first value to take the min of.
+ * @param b The second value to take the min of.
+ * @return The result of min(a, b).
+ */
+DS_ALWAYS_INLINE dsSIMD4d dsSIMD4d_min(dsSIMD4d a, dsSIMD4d b)
+{
+	return _mm256_min_pd(a, b);
+}
+
+/**
+ * @brief Gets the maximum elements between two SIMD values.
+ * @remark This can be used when dsSIMDFeatures_Double4 is available.
+ * @param a The first value to take the max of.
+ * @param b The second value to take the max of.
+ * @return The result of max(a, b).
+ */
+DS_ALWAYS_INLINE dsSIMD4d dsSIMD4d_max(dsSIMD4d a, dsSIMD4d b)
+{
+	return _mm256_max_pd(a, b);
+}
+
+/**
+ * @brief Selects between two vectors based on a boolean mask.
+ * @remark This can be used when dsSIMDFeatures_Double4 is available.
+ * @param a The first SIMD values to select from.
+ * @param b The second SIMD values to select from.
+ * @param c The boolean mask to select with.
+ * @return Values from a or b for whether c is true or false, respectively.
+ */
+DS_ALWAYS_INLINE dsSIMD4d dsSIMD4d_select(dsSIMD4d a, dsSIMD4d b, dsSIMD4db c)
+{
+	return _mm256_or_pd(_mm256_and_pd(c, a), _mm256_andnot_pd(c, b));
+}
+
+/**
+ * @brief Checks if two SIMD values are equal.
+ * @remark This can be used when dsSIMDFeatures_Double4 is available.
+ * @param a The first value to compare.
+ * @param b The second value to compare.
+ * @return The result of a == b as a dsSIMD4db.
+ */
+DS_ALWAYS_INLINE dsSIMD4db dsSIMD4d_cmpeq(dsSIMD4d a, dsSIMD4d b)
+{
+	return _mm256_cmp_pd(a, b, _CMP_EQ_OQ);
+}
+
+/**
+ * @brief Checks if two SIMD values are not equal.
+ * @remark This can be used when dsSIMDFeatures_Double4 is available.
+ * @param a The first value to compare.
+ * @param b The second value to compare.
+ * @return The result of a != b as a dsSIMD4db.
+ */
+DS_ALWAYS_INLINE dsSIMD4db dsSIMD4d_cmpne(dsSIMD4d a, dsSIMD4d b)
+{
+	return _mm256_cmp_pd(a, b, _CMP_NEQ_OQ);
+}
+
+/**
+ * @brief Checks if one SIMD values is less than another.
+ * @remark This can be used when dsSIMDFeatures_Double4 is available.
+ * @param a The first value to compare.
+ * @param b The second value to compare.
+ * @return The result of a < b as a dsSIMD4db.
+ */
+DS_ALWAYS_INLINE dsSIMD4db dsSIMD4d_cmplt(dsSIMD4d a, dsSIMD4d b)
+{
+	return _mm256_cmp_pd(a, b, _CMP_LT_OQ);
+}
+
+/**
+ * @brief Checks if one SIMD values is less than or equal to another.
+ * @remark This can be used when dsSIMDFeatures_Double4 is available.
+ * @param a The first value to compare.
+ * @param b The second value to compare.
+ * @return The result of a <= b as a dsSIMD4db.
+ */
+DS_ALWAYS_INLINE dsSIMD4db dsSIMD4d_cmple(dsSIMD4d a, dsSIMD4d b)
+{
+	return _mm256_cmp_pd(a, b, _CMP_LE_OQ);
+}
+
+/**
+ * @brief Checks if one SIMD values is greater than another.
+ * @remark This can be used when dsSIMDFeatures_Double4 is available.
+ * @param a The first value to compare.
+ * @param b The second value to compare.
+ * @return The result of a > b as a dsSIMD4db.
+ */
+DS_ALWAYS_INLINE dsSIMD4db dsSIMD4d_cmpgt(dsSIMD4d a, dsSIMD4d b)
+{
+	return _mm256_cmp_pd(a, b, _CMP_GT_OQ);
+}
+
+/**
+ * @brief Checks if one SIMD values is greater than or equal to another.
+ * @remark This can be used when dsSIMDFeatures_Double4 is available.
+ * @param a The first value to compare.
+ * @param b The second value to compare.
+ * @return The result of a >= b as a dsSIMD4db.
+ */
+DS_ALWAYS_INLINE dsSIMD4db dsSIMD4d_cmpge(dsSIMD4d a, dsSIMD4d b)
+{
+	return _mm256_cmp_pd(a, b, _CMP_GE_OQ);
+}
+
+/**
+ * @brief Creates a SIMD value for true.
+ * @return A SIMD value with true on all elements.
+ */
+DS_ALWAYS_INLINE dsSIMD4db dsSIMD4db_true(void)
+{
+	const unsigned long long a = 0xFFFFFFFFFFFFFFFFULL;
+	return _mm256_set1_pd(*(double*)&a);
+}
+
+/**
+ * @brief Creates a SIMD value for false.
+ * @return A SIMD value with false on all elements.
+ */
+DS_ALWAYS_INLINE dsSIMD4db dsSIMD4db_false(void)
+{
+	return _mm256_setzero_pd();
+}
+
+/**
+ * @brief Stores a SIMD bool register into four int values.
+ * @remark This can be used when dsSIMDFeatures_Double4 is available.
+ * @param[out] ip A pointer to the int values to store to. This should be aligned to 16 bytes.
+ * @param a The value to store.
+ */
+DS_ALWAYS_INLINE void dsSIMD4db_store(void* ip, dsSIMD4db a)
+{
+	_mm256_store_pd((double*)ip, a);
+}
+
+/**
+ * @brief Stores a SIMD register into four int values.
+ * @remark This can be used when dsSIMDFeatures_Double4 is available.
+ * @param[out] ip A pointer to the double values to store to. This may be unaligned.
+ * @param a The value to store.
+ */
+DS_ALWAYS_INLINE void dsSIMD4db_storeUnaligned(void* ip, dsSIMD4db a)
+{
+	_mm256_storeu_pd((double*)ip, a);
+}
+
+/**
+ * @brief Performs a logical not on a SIMD bool value.
+ * @remark This can be used when dsSIMDFeatures_Double4 is available.
+ * @param a The value to not.
+ * @return The result of !a.
+ */
+DS_ALWAYS_INLINE dsSIMD4db dsSIMD4db_not(dsSIMD4db a)
+{
+	const unsigned long long b = 0xFFFFFFFFFFFFFFFFULL;
+	return _mm256_xor_pd(a, _mm256_set1_pd(*(double*)&b));
+}
+
+/**
+ * @brief Performs a logical and between two SIMD bool values.
+ * @remark This can be used when dsSIMDFeatures_Double4 is available.
+ * @param a The first value to and.
+ * @param b The second value to and.
+ * @return The result of a & b.
+ */
+DS_ALWAYS_INLINE dsSIMD4db dsSIMD4db_and(dsSIMD4db a, dsSIMD4db b)
+{
+	return _mm256_and_pd(a, b);
+}
+
+/**
+ * @brief Performs a logical and not between two SIMD bool values.
+ * @remark This can be used when dsSIMDFeatures_Double4 is available.
+ * @param a The first value to not then and.
+ * @param b The second value to and.
+ * @return The result of (!a) & b.
+ */
+DS_ALWAYS_INLINE dsSIMD4db dsSIMD4db_andnot(dsSIMD4db a, dsSIMD4db b)
+{
+	return _mm256_andnot_pd(a, b);
+}
+
+/**
+ * @brief Performs a logical or between two SIMD bool values.
+ * @remark This can be used when dsSIMDFeatures_Double4 is available.
+ * @param a The first value to or.
+ * @param b The second value to or.
+ * @return The result of a | b.
+ */
+DS_ALWAYS_INLINE dsSIMD4db dsSIMD4db_or(dsSIMD4db a, dsSIMD4db b)
+{
+	return _mm256_or_pd(a, b);
+}
+
+/**
+ * @brief Performs a logical or not between two SIMD bool values.
+ * @remark This can be used when dsSIMDFeatures_Double4 is available.
+ * @param a The first value to or.
+ * @param b The second value to not then or.
+ * @return The result of a | (!b).
+ */
+DS_ALWAYS_INLINE dsSIMD4db dsSIMD4db_ornot(dsSIMD4db a, dsSIMD4db b)
+{
+	return _mm256_or_pd(a, dsSIMD4db_not(b));
+}
+
+/**
+ * @brief Performs a logical xor between two SIMD bool values.
+ * @remark This can be used when dsSIMDFeatures_Double4 is available.
+ * @param a The first value to xor.
+ * @param b The first value to xor.
+ * @return The result of a ^ b.
+ */
+DS_ALWAYS_INLINE dsSIMD4db dsSIMD4db_xor(dsSIMD4db a, dsSIMD4db b)
+{
+	return _mm256_xor_pd(a, b);
+}
+
 /// @cond
 DS_SIMD_END();
 DS_SIMD_START_HADD();
@@ -322,6 +1426,44 @@ DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_hadd(dsSIMD4f a, dsSIMD4f b)
 }
 
 /// @cond
+DS_SIMD_END();
+DS_SIMD_START_HADD();
+DS_SIMD_START_DOUBLE2();
+/// @endcond
+
+/**
+ * @brief Performs a horizontal add between two SIMD values.
+ * @remark This can be used when dsSIMDFeatures_HAdd and dsSIMDFeatures_Double2 is available.
+ * @param a The first value to add.
+ * @param b The second value to add.
+ * @return The result of (a.x + a.y, b.x + b.y)
+ */
+DS_ALWAYS_INLINE dsSIMD2d dsSIMD2d_hadd(dsSIMD2d a, dsSIMD2d b)
+{
+	return _mm_hadd_pd(a, b);
+}
+
+/// @cond
+DS_SIMD_END();
+DS_SIMD_END();
+DS_SIMD_START_DOUBLE4();
+DS_SIMD_START_HADD();
+/// @endcond
+
+/**
+ * @brief Performs a horizontal add between two SIMD values.
+ * @remark This can be used when dsSIMDFeatures_HAdd and dsSIMDFeatures_Double4 is available.
+ * @param a The first value to add.
+ * @param b The second value to add.
+ * @return The result of (a.x + a.y, b.x + b.y, a.z + a.w, b.z + b.w)
+ */
+DS_ALWAYS_INLINE dsSIMD4d dsSIMD4d_hadd(dsSIMD4d a, dsSIMD4d b)
+{
+	return _mm256_hadd_pd(a, b);
+}
+
+/// @cond
+DS_SIMD_END();
 DS_SIMD_END();
 DS_SIMD_START_FMA();
 /// @endcond
@@ -380,232 +1522,123 @@ DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_fnmsub(dsSIMD4f a, dsSIMD4f b, dsSIMD4f c)
 
 /// @cond
 DS_SIMD_END();
-DS_SIMD_START_FLOAT4();
+DS_SIMD_START_DOUBLE2();
+DS_SIMD_START_FMA();
 /// @endcond
 
 /**
- * @brief Gets the minimum elements between two SIMD values.
- * @remark This can be used when dsSIMDFeatures_Float4 is available.
- * @param a The first value to take the min of.
- * @param b The second value to take the min of.
- * @return The result of min(a, b).
+ * @brief Performs a fused multiply add with three SIMD values.
+ * @remark This can be used when dsSIMDFeatures_FMA and dsSIMDFeatures_Double2 is available.
+ * @param a The first value to multiply.
+ * @param b The second value to multiply.
+ * @param c The third value to add.
+ * @return The result of a*b + c.
  */
-DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_min(dsSIMD4f a, dsSIMD4f b)
+DS_ALWAYS_INLINE dsSIMD2d dsSIMD2d_fmadd(dsSIMD2d a, dsSIMD2d b, dsSIMD2d c)
 {
-	return _mm_min_ps(a, b);
+	return _mm_fmadd_pd(a, b, c);
 }
 
 /**
- * @brief Gets the maximum elements between two SIMD values.
- * @remark This can be used when dsSIMDFeatures_Float4 is available.
- * @param a The first value to take the max of.
- * @param b The second value to take the max of.
- * @return The result of max(a, b).
+ * @brief Performs a fused multiply subtract with three SIMD values.
+ * @remark This can be used when dsSIMDFeatures_FMA and dsSIMDFeatures_Double2 is available.
+ * @param a The first value to multiply.
+ * @param b The second value to multiply.
+ * @param c The third value to subtract.
+ * @return The result of a*b - c.
  */
-DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_max(dsSIMD4f a, dsSIMD4f b)
+DS_ALWAYS_INLINE dsSIMD2d dsSIMD2d_fmsub(dsSIMD2d a, dsSIMD2d b, dsSIMD2d c)
 {
-	return _mm_max_ps(a, b);
+	return _mm_fmsub_pd(a, b, c);
 }
 
 /**
- * @brief Selects between two vectors based on a boolean mask.
- * @remark This can be used when dsSIMDFeatures_Float4 is available.
- * @param a The first SIMD values to select from.
- * @param b The second SIMD values to select from.
- * @param c The boolean mask to select with.
- * @return Values from a or b for whether c is true or false, respectively.
+ * @brief Performs a fused negate multiply add with three SIMD values.
+ * @remark This can be used when dsSIMDFeatures_FMA and dsSIMDFeatures_Double2 is available.
+ * @param a The first value to multiply.
+ * @param b The second value to multiply.
+ * @param c The third value to add.
+ * @return The result of -(a*b) + c.
  */
-DS_ALWAYS_INLINE dsSIMD4f dsSIMD4f_select(dsSIMD4f a, dsSIMD4f b, dsSIMD4b c)
+DS_ALWAYS_INLINE dsSIMD2d dsSIMD2d_fnmadd(dsSIMD2d a, dsSIMD2d b, dsSIMD2d c)
 {
-	return _mm_or_ps(_mm_and_ps(c, a), _mm_andnot_ps(c, b));
+	return _mm_fnmadd_pd(a, b, c);
 }
 
 /**
- * @brief Checks if two SIMD values are equal.
- * @remark This can be used when dsSIMDFeatures_Float4 is available.
- * @param a The first value to compare.
- * @param b The second value to compare.
- * @return The result of a == b as a dsSIMD4b.
+ * @brief Performs a fused negate multiply subtract with three SIMD values.
+ * @remark This can be used when dsSIMDFeatures_FMA and dsSIMDFeatures_Double2 is available.
+ * @param a The first value to multiply.
+ * @param b The second value to multiply.
+ * @param c The third value to subtract.
+ * @return The result of -(a*b) - c.
  */
-DS_ALWAYS_INLINE dsSIMD4b dsSIMD4f_cmpeq(dsSIMD4f a, dsSIMD4f b)
+DS_ALWAYS_INLINE dsSIMD2d dsSIMD2d_fnmsub(dsSIMD2d a, dsSIMD2d b, dsSIMD2d c)
 {
-	return _mm_cmpeq_ps(a, b);
-}
-
-/**
- * @brief Checks if two SIMD values are not equal.
- * @remark This can be used when dsSIMDFeatures_Float4 is available.
- * @param a The first value to compare.
- * @param b The second value to compare.
- * @return The result of a != b as a dsSIMD4b.
- */
-DS_ALWAYS_INLINE dsSIMD4b dsSIMD4f_cmpne(dsSIMD4f a, dsSIMD4f b)
-{
-	return _mm_cmpneq_ps(a, b);
-}
-
-/**
- * @brief Checks if one SIMD values is less than another.
- * @remark This can be used when dsSIMDFeatures_Float4 is available.
- * @param a The first value to compare.
- * @param b The second value to compare.
- * @return The result of a < b as a dsSIMD4b.
- */
-DS_ALWAYS_INLINE dsSIMD4b dsSIMD4f_cmplt(dsSIMD4f a, dsSIMD4f b)
-{
-	return _mm_cmplt_ps(a, b);
-}
-
-/**
- * @brief Checks if one SIMD values is less than or equal to another.
- * @remark This can be used when dsSIMDFeatures_Float4 is available.
- * @param a The first value to compare.
- * @param b The second value to compare.
- * @return The result of a <= b as a dsSIMD4b.
- */
-DS_ALWAYS_INLINE dsSIMD4b dsSIMD4f_cmple(dsSIMD4f a, dsSIMD4f b)
-{
-	return _mm_cmple_ps(a, b);
-}
-
-/**
- * @brief Checks if one SIMD values is greater than another.
- * @remark This can be used when dsSIMDFeatures_Float4 is available.
- * @param a The first value to compare.
- * @param b The second value to compare.
- * @return The result of a > b as a dsSIMD4b.
- */
-DS_ALWAYS_INLINE dsSIMD4b dsSIMD4f_cmpgt(dsSIMD4f a, dsSIMD4f b)
-{
-	return _mm_cmpgt_ps(a, b);
-}
-
-/**
- * @brief Checks if one SIMD values is greater than or equal to another.
- * @remark This can be used when dsSIMDFeatures_Float4 is available.
- * @param a The first value to compare.
- * @param b The second value to compare.
- * @return The result of a >= b as a dsSIMD4b.
- */
-DS_ALWAYS_INLINE dsSIMD4b dsSIMD4f_cmpge(dsSIMD4f a, dsSIMD4f b)
-{
-	return _mm_cmpge_ps(a, b);
-}
-
-/**
- * @brief Creates a SIMD value for true.
- * @return A SIMD value with true on all elements.
- */
-DS_ALWAYS_INLINE dsSIMD4b dsSIMD4b_true(void)
-{
-	const unsigned int a = 0xFFFFFFFF;
-	return _mm_set1_ps(*(float*)&a);
-}
-
-/**
- * @brief Creates a SIMD value for false.
- * @return A SIMD value with false on all elements.
- */
-DS_ALWAYS_INLINE dsSIMD4b dsSIMD4b_false(void)
-{
-	return _mm_setzero_ps();
-}
-
-/**
- * @brief Stores a SIMD bool register into four int values.
- * @remark This can be used when dsSIMDFeatures_Float4 is available.
- * @param[out] ip A pointer to the int values to store to. This should be aligned to 16 bytes.
- * @param a The value to store.
- */
-DS_ALWAYS_INLINE void dsSIMD4b_store(void* ip, dsSIMD4b a)
-{
-	_mm_store_ps((float*)ip, a);
-}
-
-/**
- * @brief Stores a SIMD register into four int values.
- * @remark This can be used when dsSIMDFeatures_Float4 is available.
- * @param[out] ip A pointer to the float values to store to. This may be unaligned.
- * @param a The value to store.
- */
-DS_ALWAYS_INLINE void dsSIMD4b_storeUnaligned(void* ip, dsSIMD4b a)
-{
-	_mm_storeu_ps((float*)ip, a);
-}
-
-/**
- * @brief Performs a logical not on a SIMD bool value.
- * @remark This can be used when dsSIMDFeatures_Float4 is available.
- * @param a The value to not.
- * @return The result of !a.
- */
-DS_ALWAYS_INLINE dsSIMD4b dsSIMD4b_not(dsSIMD4b a)
-{
-	const unsigned int b = 0xFFFFFFFF;
-	return _mm_xor_ps(a, _mm_set1_ps(*(float*)&b));
-}
-
-/**
- * @brief Performs a logical and between two SIMD bool values.
- * @remark This can be used when dsSIMDFeatures_Float4 is available.
- * @param a The first value to and.
- * @param b The second value to and.
- * @return The result of a & b.
- */
-DS_ALWAYS_INLINE dsSIMD4b dsSIMD4b_and(dsSIMD4b a, dsSIMD4b b)
-{
-	return _mm_and_ps(a, b);
-}
-
-/**
- * @brief Performs a logical and not between two SIMD bool values.
- * @remark This can be used when dsSIMDFeatures_Float4 is available.
- * @param a The first value to not then and.
- * @param b The second value to and.
- * @return The result of (!a) & b.
- */
-DS_ALWAYS_INLINE dsSIMD4b dsSIMD4b_andnot(dsSIMD4b a, dsSIMD4b b)
-{
-	return _mm_andnot_ps(a, b);
-}
-
-/**
- * @brief Performs a logical or between two SIMD bool values.
- * @remark This can be used when dsSIMDFeatures_Float4 is available.
- * @param a The first value to or.
- * @param b The second value to or.
- * @return The result of a | b.
- */
-DS_ALWAYS_INLINE dsSIMD4b dsSIMD4b_or(dsSIMD4b a, dsSIMD4b b)
-{
-	return _mm_or_ps(a, b);
-}
-
-/**
- * @brief Performs a logical or not between two SIMD bool values.
- * @remark This can be used when dsSIMDFeatures_Float4 is available.
- * @param a The first value to or.
- * @param b The second value to not then or.
- * @return The result of a | (!b).
- */
-DS_ALWAYS_INLINE dsSIMD4b dsSIMD4b_ornot(dsSIMD4b a, dsSIMD4b b)
-{
-	return _mm_or_ps(a, dsSIMD4b_not(b));
-}
-
-/**
- * @brief Performs a logical xor between two SIMD bool values.
- * @remark This can be used when dsSIMDFeatures_Float4 is available.
- * @param a The first value to xor.
- * @param b The first value to xor.
- * @return The result of a ^ b.
- */
-DS_ALWAYS_INLINE dsSIMD4b dsSIMD4b_xor(dsSIMD4b a, dsSIMD4b b)
-{
-	return _mm_xor_ps(a, b);
+	return _mm_fnmsub_pd(a, b, c);
 }
 
 /// @cond
+DS_SIMD_END();
+DS_SIMD_END();
+DS_SIMD_START_DOUBLE4();
+DS_SIMD_START_FMA();
+/// @endcond
+
+/**
+ * @brief Performs a fused multiply add with three SIMD values.
+ * @remark This can be used when dsSIMDFeatures_FMA and dsSIMDFeatures_Double4 is available.
+ * @param a The first value to multiply.
+ * @param b The second value to multiply.
+ * @param c The third value to add.
+ * @return The result of a*b + c.
+ */
+DS_ALWAYS_INLINE dsSIMD4d dsSIMD4d_fmadd(dsSIMD4d a, dsSIMD4d b, dsSIMD4d c)
+{
+	return _mm256_fmadd_pd(a, b, c);
+}
+
+/**
+ * @brief Performs a fused multiply subtract with three SIMD values.
+ * @remark This can be used when dsSIMDFeatures_FMA and dsSIMDFeatures_Double4 is available.
+ * @param a The first value to multiply.
+ * @param b The second value to multiply.
+ * @param c The third value to subtract.
+ * @return The result of a*b - c.
+ */
+DS_ALWAYS_INLINE dsSIMD4d dsSIMD4d_fmsub(dsSIMD4d a, dsSIMD4d b, dsSIMD4d c)
+{
+	return _mm256_fmsub_pd(a, b, c);
+}
+
+/**
+ * @brief Performs a fused negate multiply add with three SIMD values.
+ * @remark This can be used when dsSIMDFeatures_FMA and dsSIMDFeatures_Double4 is available.
+ * @param a The first value to multiply.
+ * @param b The second value to multiply.
+ * @param c The third value to add.
+ * @return The result of -(a*b) + c.
+ */
+DS_ALWAYS_INLINE dsSIMD4d dsSIMD4d_fnmadd(dsSIMD4d a, dsSIMD4d b, dsSIMD4d c)
+{
+	return _mm256_fnmadd_pd(a, b, c);
+}
+
+/**
+ * @brief Performs a fused negate multiply subtract with three SIMD values.
+ * @remark This can be used when dsSIMDFeatures_FMA and dsSIMDFeatures_Double4 is available.
+ * @param a The first value to multiply.
+ * @param b The second value to multiply.
+ * @param c The third value to subtract.
+ * @return The result of -(a*b) - c.
+ */
+DS_ALWAYS_INLINE dsSIMD4d dsSIMD4d_fnmsub(dsSIMD4d a, dsSIMD4d b, dsSIMD4d c)
+{
+	return _mm256_fnmsub_pd(a, b, c);
+}
+
+/// @cond
+DS_SIMD_END();
 DS_SIMD_END();
 DS_SIMD_START_HALF_FLOAT();
 /// @endcond

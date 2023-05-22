@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 Aaron Barany
+ * Copyright 2016-2023 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,12 +44,18 @@ struct Vector2TypeSelector<int>
 	typedef dsVector2i Type;
 };
 
+template <>
+struct Vector2TypeSelector<long long>
+{
+	typedef dsVector2l Type;
+};
+
 template <typename T>
 class Vector2Test : public testing::Test
 {
 };
 
-using Vector2Types = testing::Types<float, double, int>;
+using Vector2Types = testing::Types<float, double, int, long long>;
 TYPED_TEST_SUITE(Vector2Test, Vector2Types);
 
 template <typename T>
@@ -75,6 +81,11 @@ inline double dsVector2_len(const dsVector2i* a)
 	return dsVector2i_len(a);
 }
 
+inline double dsVector2_len(const dsVector2l* a)
+{
+	return dsVector2l_len(a);
+}
+
 inline float dsVector2_dist(const dsVector2f* a, const dsVector2f* b)
 {
 	return dsVector2f_dist(a, b);
@@ -88,6 +99,11 @@ inline double dsVector2_dist(const dsVector2d* a, const dsVector2d* b)
 inline double dsVector2_dist(const dsVector2i* a, const dsVector2i* b)
 {
 	return dsVector2i_dist(a, b);
+}
+
+inline double dsVector2_dist(const dsVector2l* a, const dsVector2l* b)
+{
+	return dsVector2l_dist(a, b);
 }
 
 inline void dsVector2_normalize(dsVector2f* result, const dsVector2f* a)
