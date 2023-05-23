@@ -29,10 +29,11 @@ void dsOrientedBox2f_fromMatrix(dsOrientedBox2f* result, const dsMatrix33f* matr
 	result->halfExtents.x = dsVector2f_len((dsVector2f*)matrix->columns);
 	result->halfExtents.y = dsVector2f_len((dsVector2f*)(matrix->columns + 1));
 
-	float invLen = 1/result->halfExtents.x;
-	dsVector2_scale(result->orientation.columns[0], matrix->columns[0], invLen);
-	invLen = 1/result->halfExtents.y;
-	dsVector2_scale(result->orientation.columns[1], matrix->columns[1], invLen);
+	dsVector2f one = {{1.0f, 1.0f}};
+	dsVector2f invLen;
+	dsVector2_div(invLen, one, result->halfExtents);
+	dsVector2_scale(result->orientation.columns[0], matrix->columns[0], invLen.x);
+	dsVector2_scale(result->orientation.columns[1], matrix->columns[1], invLen.y);
 
 	result->center = *(dsVector2f*)(matrix->columns + 2);
 }
@@ -42,15 +43,26 @@ void dsOrientedBox2d_fromMatrix(dsOrientedBox2d* result, const dsMatrix33d* matr
 	DS_ASSERT(result);
 	DS_ASSERT(matrix);
 
-	result->halfExtents.x = dsVector2d_len((dsVector2d*)matrix->columns);
-	result->halfExtents.y = dsVector2d_len((dsVector2d*)(matrix->columns + 1));
+	// Ensure alignment for SIMD operations.
+	dsVector2d col0, col1;
+#if DS_SIMD_ALWAYS_DOUBLE2
+	col0.simd = dsSIMD2d_loadUnaligned(matrix->columns);
+	col1.simd = dsSIMD2d_loadUnaligned(matrix->columns + 1);
+	result->center.simd = dsSIMD2d_loadUnaligned(matrix->columns + 2);
+#else
+	col0 = *(const dsVector2d*)matrix->columns;
+	col1 = *(const dsVector2d*)(matrix->columns + 1);
+	result->center = *(const dsVector2d*)(matrix->columns + 2);
+#endif
 
-	double invLen = 1/result->halfExtents.x;
-	dsVector2_scale(result->orientation.columns[0], matrix->columns[0], invLen);
-	invLen = 1/result->halfExtents.y;
-	dsVector2_scale(result->orientation.columns[1], matrix->columns[1], invLen);
+	result->halfExtents.x = dsVector2d_len(&col0);
+	result->halfExtents.y = dsVector2d_len(&col1);
 
-	result->center = *(dsVector2d*)(matrix->columns + 2);
+	dsVector2d one = {{1.0, 1.0}};
+	dsVector2d invLen;
+	dsVector2d_div(&invLen, &one, &result->halfExtents);
+	dsVector2d_scale(&result->orientation.columns[0], &col0, invLen.x);
+	dsVector2d_scale(&result->orientation.columns[1], &col1, invLen.y);
 }
 
 bool dsOrientedBox2f_transform(dsOrientedBox2f* box, const dsMatrix33f* transform)

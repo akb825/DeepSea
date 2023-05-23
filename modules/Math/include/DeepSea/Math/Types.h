@@ -882,7 +882,7 @@ typedef union dsVector4l
 
 #if DS_HAS_SIMD
 	/**
-	 * @brief SIMD value as 2 doubles when supported.
+	 * @brief SIMD value as 2 double bools when supported.
 	 */
 	dsSIMD2db simd2[2];
 #endif
